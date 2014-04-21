@@ -24,6 +24,7 @@ liblitest_la_SOURCES = \
 	litest-wacom-bamboo-tablet.c \
 	litest-wacom-cintiq-tablet.c \
 	litest-wacom-intuos-tablet.c \
+	litest-wacom-isdv4-tablet.c \
 	litest-wacom-touch.c \
 	litest.c
 

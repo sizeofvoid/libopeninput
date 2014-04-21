@@ -46,6 +46,7 @@ enum litest_device_type {
 	LITEST_WACOM_BAMBOO,
 	LITEST_WACOM_CINTIQ,
 	LITEST_WACOM_INTUOS,
+	LITEST_WACOM_ISDV4,
 };
 
 enum litest_device_feature {

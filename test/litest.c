@@ -86,6 +86,7 @@ extern struct litest_test_device litest_wacom_touch_device;
 extern struct litest_test_device litest_wacom_bamboo_tablet_device;
 extern struct litest_test_device litest_wacom_cintiq_tablet_device;
 extern struct litest_test_device litest_wacom_intuos_tablet_device;
+extern struct litest_test_device litest_wacom_isdv4_tablet_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -99,6 +100,7 @@ struct litest_test_device* devices[] = {
 	&litest_wacom_bamboo_tablet_device,
 	&litest_wacom_cintiq_tablet_device,
 	&litest_wacom_intuos_tablet_device,
+	&litest_wacom_isdv4_tablet_device,
 	NULL,
 };
 
