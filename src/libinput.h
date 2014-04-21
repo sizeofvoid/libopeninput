@@ -121,7 +121,8 @@ enum libinput_log_priority {
 enum libinput_device_capability {
 	LIBINPUT_DEVICE_CAP_KEYBOARD = 0,
 	LIBINPUT_DEVICE_CAP_POINTER = 1,
-	LIBINPUT_DEVICE_CAP_TOUCH = 2
+	LIBINPUT_DEVICE_CAP_TOUCH = 2,
+	LIBINPUT_DEVICE_CAP_TABLET = 3
 };
 
 /**
