@@ -88,6 +88,14 @@ struct litest_device_interface {
 	struct input_event *touch_move_events;
 	struct input_event *touch_up_events;
 
+	/**
+	 * Tablet events, LITEST_AUTO_ASSIGN is allowed on event values for
+	 * ABS_X, ABS_Y, ABS_DISTANCE and ABS_PRESSURE.
+	 */
+	struct input_event *tablet_proximity_in_events;
+	struct input_event *tablet_proximity_out_events;
+	struct input_event *tablet_motion_events;
+
 	int min[2];
 	int max[2];
 };

@@ -695,6 +695,95 @@ litest_touch_move_to(struct litest_device *d,
 	litest_touch_move(d, slot, x_to, y_to);
 }
 
+static int32_t
+axis_replacement_value(struct axis_replacement *axes,
+		       int32_t evcode)
+{
+	struct axis_replacement *axis = axes;
+
+	while (axis->evcode != -1) {
+		if (axis->evcode == evcode)
+			return axis->value;
+		axis++;
+	}
+
+	return -1;
+}
+
+static int
+auto_assign_tablet_value(struct litest_device *d,
+			 const struct input_event *ev,
+			 int x, int y,
+			 struct axis_replacement *axes)
+{
+	int value = ev->value;
+
+	if (value != LITEST_AUTO_ASSIGN || ev->type != EV_ABS)
+		return value;
+
+	switch (ev->code) {
+	case ABS_X:
+		value = litest_scale(d, ABS_X, x);
+		break;
+	case ABS_Y:
+		value = litest_scale(d, ABS_Y, y);
+		break;
+	default:
+		value = axis_replacement_value(axes, ev->code);
+		break;
+	}
+
+	return value;
+}
+
+static int
+tablet_ignore_event(const struct input_event *ev, int value)
+{
+	return value == -1 && (ev->code == ABS_PRESSURE || ev->code == ABS_DISTANCE);
+}
+
+void
+litest_tablet_proximity_in(struct litest_device *d, int x, int y, struct axis_replacement *axes)
+{
+	struct input_event *ev;
+
+	ev = d->interface->tablet_proximity_in_events;
+	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
+		int value = auto_assign_tablet_value(d, ev, x, y, axes);
+		if (!tablet_ignore_event(ev, value))
+			litest_event(d, ev->type, ev->code, value);
+		ev++;
+	}
+}
+
+void
+litest_tablet_proximity_out(struct litest_device *d)
+{
+	struct input_event *ev;
+
+	ev = d->interface->tablet_proximity_out_events;
+	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
+		int value = auto_assign_tablet_value(d, ev, -1, -1, NULL);
+		if (!tablet_ignore_event(ev, value))
+			litest_event(d, ev->type, ev->code, value);
+		ev++;
+	}
+}
+
+void
+litest_tablet_motion(struct litest_device *d, int x, int y, struct axis_replacement *axes)
+{
+	struct input_event *ev;
+
+	ev = d->interface->tablet_motion_events;
+	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
+		int value = auto_assign_tablet_value(d, ev, x, y, axes);
+		if (!tablet_ignore_event(ev, value))
+			litest_event(d, ev->type, ev->code, value);
+		ev++;
+	}
+}
+
 void
 litest_button_click(struct litest_device *d, unsigned int button, bool is_press)
 {
