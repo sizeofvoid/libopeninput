@@ -84,4 +84,26 @@ zalloc(size_t size)
 	return calloc(1, size);
 }
 
+/* This bitfield helper implementation is taken from from libevdev-util.h,
+ * except that it has been modified to work with arrays of unsigned chars
+ */
+
+static inline int
+bit_is_set(const unsigned char *array, int bit)
+{
+    return !!(array[bit / 8] & (1 << (bit % 8)));
+}
+
+static inline void
+set_bit(unsigned char *array, int bit)
+{
+    array[bit / 8] |= (1 << (bit % 8));
+}
+
+static inline void
+clear_bit(unsigned char *array, int bit)
+{
+    array[bit / 8] &= ~(1 << (bit % 8));
+}
+
 #endif /* LIBINPUT_UTIL_H */
