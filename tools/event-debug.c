@@ -215,6 +215,9 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 		type = "TOUCH_FRAME";
 		break;
+	case LIBINPUT_EVENT_TABLET_AXIS:
+		type = "TABLET_AXIS";
+		break;
 	}
 
 	printf("%-7s	%s	", libinput_device_get_sysname(dev), type);
@@ -291,7 +294,7 @@ print_button_event(struct libinput_event *ev)
 }
 
 static void
-print_axis_event(struct libinput_event *ev)
+print_pointer_axis_event(struct libinput_event *ev)
 {
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
 	enum libinput_pointer_axis axis = libinput_event_pointer_get_axis(p);
@@ -312,6 +315,35 @@ print_axis_event(struct libinput_event *ev)
 	print_event_time(libinput_event_pointer_get_time(p));
 	val = libinput_event_pointer_get_axis_value(p);
 	printf("%s %.2f\n", ax, val);
+}
+
+static void
+print_tablet_axis_event(struct libinput_event *ev)
+{
+	struct libinput_event_tablet *t = libinput_event_get_tablet_event(ev);
+	int a;
+
+	print_event_time(libinput_event_tablet_get_time(t));
+	printf("\n");
+
+	for (a = 0; a <= LIBINPUT_TABLET_AXIS_CNT; a++) {
+		const char *ax;
+		double val;
+
+		if (!libinput_event_tablet_axis_has_changed(t, a))
+			continue;
+
+		switch (a) {
+		case LIBINPUT_TABLET_AXIS_X:
+			ax = "x";
+			break;
+		case LIBINPUT_TABLET_AXIS_Y:
+			ax = "y";
+			break;
+		}
+		val = libinput_event_tablet_get_axis_value(t, a);
+		printf("\t%s = %.2f\n", ax, val);
+	}
 }
 
 static void
@@ -368,7 +400,7 @@ handle_and_print_events(struct libinput *li)
 			print_button_event(ev);
 			break;
 		case LIBINPUT_EVENT_POINTER_AXIS:
-			print_axis_event(ev);
+			print_pointer_axis_event(ev);
 			break;
 		case LIBINPUT_EVENT_TOUCH_DOWN:
 			print_touch_event_with_coords(ev);
@@ -384,6 +416,9 @@ handle_and_print_events(struct libinput *li)
 			break;
 		case LIBINPUT_EVENT_TOUCH_FRAME:
 			print_touch_event_without_coords(ev);
+			break;
+		case LIBINPUT_EVENT_TABLET_AXIS:
+			print_tablet_axis_event(ev);
 			break;
 		}
 
