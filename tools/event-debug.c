@@ -224,6 +224,9 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
 		type = "TABLET_PROXIMITY_OUT";
 		break;
+	case LIBINPUT_EVENT_TABLET_BUTTON:
+		type = "TABLET_BUTTON";
+		break;
 	}
 
 	printf("%-7s	%s	", libinput_device_get_sysname(dev), type);
@@ -285,7 +288,7 @@ print_absmotion_event(struct libinput_event *ev)
 }
 
 static void
-print_button_event(struct libinput_event *ev)
+print_pointer_button_event(struct libinput_event *ev)
 {
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
 	enum libinput_button_state state;
@@ -297,6 +300,21 @@ print_button_event(struct libinput_event *ev)
 	       libinput_event_pointer_get_button(p),
 	       state == LIBINPUT_BUTTON_STATE_PRESSED ? "pressed" : "released",
 	       libinput_event_pointer_get_seat_button_count(p));
+}
+
+static void
+print_tablet_button_event(struct libinput_event *ev)
+{
+	struct libinput_event_tablet *p = libinput_event_get_tablet_event(ev);
+	enum libinput_button_state state;
+
+	print_event_time(libinput_event_tablet_get_time(p));
+
+	state = libinput_event_tablet_get_button_state(p);
+	printf("%3d %s, seat count: %u\n",
+	       libinput_event_tablet_get_button(p),
+	       state == LIBINPUT_BUTTON_STATE_PRESSED ? "pressed" : "released",
+	       libinput_event_tablet_get_seat_button_count(p));
 }
 
 static void
@@ -455,7 +473,7 @@ handle_and_print_events(struct libinput *li)
 			print_absmotion_event(ev);
 			break;
 		case LIBINPUT_EVENT_POINTER_BUTTON:
-			print_button_event(ev);
+			print_pointer_button_event(ev);
 			break;
 		case LIBINPUT_EVENT_POINTER_AXIS:
 			print_pointer_axis_event(ev);
@@ -483,6 +501,9 @@ handle_and_print_events(struct libinput *li)
 			break;
 		case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
 			print_proximity_out_event(ev);
+			break;
+		case LIBINPUT_EVENT_TABLET_BUTTON:
+			print_tablet_button_event(ev);
 			break;
 		}
 
