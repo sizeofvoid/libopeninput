@@ -80,6 +80,13 @@ struct libinput_event_touch {
 	double y;
 };
 
+struct libinput_event_tablet {
+	struct libinput_event base;
+	uint32_t time;
+	double *axes;
+	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_CNT)];
+};
+
 static void
 libinput_default_log_func(enum libinput_log_priority priority,
 			  void *data,
@@ -191,6 +198,7 @@ libinput_event_get_pointer_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_MOTION:
 	case LIBINPUT_EVENT_TOUCH_CANCEL:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
+	case LIBINPUT_EVENT_TABLET_AXIS:
 		break;
 	}
 
@@ -217,6 +225,7 @@ libinput_event_get_keyboard_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_MOTION:
 	case LIBINPUT_EVENT_TOUCH_CANCEL:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
+	case LIBINPUT_EVENT_TABLET_AXIS:
 		break;
 	}
 
@@ -243,6 +252,34 @@ libinput_event_get_touch_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_CANCEL:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 		return (struct libinput_event_touch *) event;
+	case LIBINPUT_EVENT_TABLET_AXIS:
+		break;
+	}
+
+	return NULL;
+}
+
+LIBINPUT_EXPORT struct libinput_event_tablet *
+libinput_event_get_tablet_event(struct libinput_event *event)
+{
+	switch (event->type) {
+	case LIBINPUT_EVENT_NONE:
+		abort(); /* not used as actual event type */
+	case LIBINPUT_EVENT_DEVICE_ADDED:
+	case LIBINPUT_EVENT_DEVICE_REMOVED:
+	case LIBINPUT_EVENT_KEYBOARD_KEY:
+	case LIBINPUT_EVENT_POINTER_MOTION:
+	case LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE:
+	case LIBINPUT_EVENT_POINTER_BUTTON:
+	case LIBINPUT_EVENT_POINTER_AXIS:
+	case LIBINPUT_EVENT_TOUCH_DOWN:
+	case LIBINPUT_EVENT_TOUCH_UP:
+	case LIBINPUT_EVENT_TOUCH_MOTION:
+	case LIBINPUT_EVENT_TOUCH_CANCEL:
+	case LIBINPUT_EVENT_TOUCH_FRAME:
+		break;
+	case LIBINPUT_EVENT_TABLET_AXIS:
+		return (struct libinput_event_tablet *) event;
 	}
 
 	return NULL;
@@ -267,6 +304,7 @@ libinput_event_get_device_notify_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_MOTION:
 	case LIBINPUT_EVENT_TOUCH_CANCEL:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
+	case LIBINPUT_EVENT_TABLET_AXIS:
 		break;
 	}
 
@@ -429,6 +467,52 @@ LIBINPUT_EXPORT double
 libinput_event_touch_get_y(struct libinput_event_touch *event)
 {
 	return event->y;
+}
+
+LIBINPUT_EXPORT int
+libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
+				       enum libinput_tablet_axis axis)
+{
+	return (NCHARS(axis) <= sizeof(event->changed_axes)) ?
+		bit_is_set(event->changed_axes, axis) : 0;
+}
+
+LIBINPUT_EXPORT double
+libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
+				     enum libinput_tablet_axis axis)
+{
+	return (axis >= 0 && axis < LIBINPUT_TABLET_AXIS_CNT) ?
+		event->axes[axis] : 0;
+}
+
+LIBINPUT_EXPORT double
+libinput_event_tablet_get_x_transformed(struct libinput_event_tablet *event,
+					uint32_t width)
+{
+	struct evdev_device *device =
+		(struct evdev_device *) event->base.device;
+
+	return evdev_device_transform_x(device,
+					event->axes[LIBINPUT_TABLET_AXIS_X],
+					width);
+}
+
+LIBINPUT_EXPORT double
+libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
+					uint32_t height)
+{
+	struct evdev_device *device =
+		(struct evdev_device *) event->base.device;
+
+	return evdev_device_transform_y(device,
+					event->axes[LIBINPUT_TABLET_AXIS_Y],
+					height);
+}
+
+LIBINPUT_EXPORT uint32_t
+libinput_event_tablet_get_time(struct libinput_event_tablet *event)
+{
+	return event->time;
 }
 
 struct libinput_source *
@@ -1021,6 +1105,31 @@ touch_notify_frame(struct libinput_device *device,
 			  &touch_event->base);
 }
 
+void
+tablet_notify_axis(struct libinput_device *device,
+		   uint32_t time,
+		   unsigned char *changed_axes,
+		   double *axes)
+{
+	struct libinput_event_tablet *axis_event;
+
+	axis_event = zalloc(sizeof *axis_event);
+	if (!axis_event)
+		return;
+
+	*axis_event = (struct libinput_event_tablet) {
+		.time = time,
+		.axes = axes,
+	};
+
+	memcpy(&axis_event->changed_axes,
+	       changed_axes,
+	       sizeof(axis_event->changed_axes));
+
+	post_device_event(device,
+			  LIBINPUT_EVENT_TABLET_AXIS,
+			  &axis_event->base);
+}
 
 static void
 libinput_post_event(struct libinput *libinput,

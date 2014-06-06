@@ -195,6 +195,12 @@ touch_notify_touch_up(struct libinput_device *device,
 		      int32_t seat_slot);
 
 void
+tablet_notify_axis(struct libinput_device *device,
+		   uint32_t time,
+		   unsigned char *changed_axes,
+		   double *axes);
+
+void
 touch_notify_frame(struct libinput_device *device,
 		   uint32_t time);
 #endif /* LIBINPUT_PRIVATE_H */

@@ -672,7 +672,15 @@ evdev_configure_device(struct evdev_device *device)
 			device->dispatch = evdev_mt_touchpad_create(device);
 			log_info("input device '%s', %s is a touchpad\n",
 				 device->devname, device->devnode);
+		} else if (!libevdev_has_event_code(device->evdev, EV_KEY, BTN_TOOL_FINGER) &&
+			   libevdev_has_event_code(device->evdev, EV_KEY, BTN_TOOL_PEN) &&
+			   has_abs) {
+			device->dispatch = evdev_tablet_create(device);
+			device->seat_caps |= EVDEV_DEVICE_TABLET;
+			log_info("input device '%s', %s is a tablet\n",
+				 device->devname, device->devnode);
 		}
+
 		for (i = KEY_ESC; i < KEY_MAX; i++) {
 			if (i >= BTN_MISC && i < KEY_OK)
 				continue;

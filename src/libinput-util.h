@@ -76,6 +76,8 @@ int list_empty(const struct list *list);
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
+#define NCHARS(x) ((size_t)(((x) + 7) / 8))
+
 #define LIBINPUT_EXPORT __attribute__ ((visibility("default")))
 
 static inline void *
