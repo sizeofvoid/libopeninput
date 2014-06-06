@@ -201,6 +201,7 @@ libinput_event_get_pointer_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 	case LIBINPUT_EVENT_TABLET_AXIS:
 	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
+	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
 		break;
 	}
 
@@ -229,6 +230,7 @@ libinput_event_get_keyboard_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 	case LIBINPUT_EVENT_TABLET_AXIS:
 	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
+	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
 		break;
 	}
 
@@ -257,6 +259,7 @@ libinput_event_get_touch_event(struct libinput_event *event)
 		return (struct libinput_event_touch *) event;
 	case LIBINPUT_EVENT_TABLET_AXIS:
 	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
+	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
 		break;
 	}
 
@@ -284,6 +287,7 @@ libinput_event_get_tablet_event(struct libinput_event *event)
 		break;
 	case LIBINPUT_EVENT_TABLET_AXIS:
 	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
+	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
 		return (struct libinput_event_tablet *) event;
 	}
 
@@ -311,6 +315,7 @@ libinput_event_get_device_notify_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 	case LIBINPUT_EVENT_TABLET_AXIS:
 	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
+	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
 		break;
 	}
 
@@ -1197,6 +1202,25 @@ tablet_notify_tool_update(struct libinput_device *device,
 	post_device_event(device,
 			  LIBINPUT_EVENT_TABLET_TOOL_UPDATE,
 			  &tool_update_event->base);
+}
+
+void
+tablet_notify_proximity_out(struct libinput_device *device,
+			    uint32_t time)
+{
+	struct libinput_event_tablet *proximity_out_update_event;
+
+	proximity_out_update_event = zalloc(sizeof *proximity_out_update_event);
+	if (!proximity_out_update_event)
+		return;
+
+	*proximity_out_update_event = (struct libinput_event_tablet) {
+		.time = time
+	};
+
+	post_device_event(device,
+			  LIBINPUT_EVENT_TABLET_PROXIMITY_OUT,
+			  &proximity_out_update_event->base);
 }
 
 static void

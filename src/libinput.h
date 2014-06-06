@@ -259,7 +259,17 @@ enum libinput_event_type {
 	 * Signals that a device with the @ref LIBINPUT_DEVICE_CAP_TABLET
 	 * capability has changed its tool.
 	 */
-	LIBINPUT_EVENT_TABLET_TOOL_UPDATE
+	LIBINPUT_EVENT_TABLET_TOOL_UPDATE,
+	/**
+	 * Signals that a device with the @ref LIBINPUT_DEVICE_CAP_TABLET
+	 * capability has detected that there is no longer a tool in use. When
+	 * this happens, the value of every axis should be assumed to have a
+	 * value of 0 and any buttons that are currently held down on the stylus
+	 * are marked as released. Button release events for each button that
+	 * was held down on the stylus are sent before the initial proximity out
+	 * event.
+	 */
+	LIBINPUT_EVENT_TABLET_PROXIMITY_OUT
 };
 
 struct libinput;
@@ -288,8 +298,8 @@ struct libinput_event_touch;
  * @struct libinput_event_tablet
  *
  * Tablet event representing an axis update, button press, or tool update. Valid
- * event types for this event are @ref LIBINPUT_EVENT_TABLET_AXIS, and
- * @ref LIBINPUT_EVENT_TABLET_TOOL_UPDATE.
+ * event types for this event are @ref LIBINPUT_EVENT_TABLET_AXIS, @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_UPDATE and @ref LIBINPUT_EVENT_TABLET_TOOL_UPDATE.
  */
 struct libinput_event_tablet;
 

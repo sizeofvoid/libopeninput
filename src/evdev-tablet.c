@@ -69,6 +69,8 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 		tablet->current_tool_type = tool;
 		tablet_set_status(tablet, TABLET_TOOL_UPDATED);
 	}
+	else if (!enabled)
+		tablet_set_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
 }
 
 static void
@@ -189,12 +191,28 @@ tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
 	     uint32_t time)
 {
-	if (tablet_has_status(tablet, TABLET_TOOL_UPDATED))
-		tablet_notify_tool(tablet, device, time);
+	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
+		/* FIXME: This behavior is not ideal and this memset should be
+		 * removed */
+		memset(&tablet->changed_axes, 0, sizeof(tablet->changed_axes));
+		memset(&tablet->axes, 0, sizeof(tablet->axes));
 
-	if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
-		tablet_check_notify_axes(tablet, device, time);
 		tablet_unset_status(tablet, TABLET_AXES_UPDATED);
+	} else {
+		if (tablet_has_status(tablet, TABLET_TOOL_UPDATED)) {
+			tablet_notify_tool(tablet, device, time);
+			tablet_unset_status(tablet, TABLET_TOOL_UPDATED);
+		}
+
+		if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
+			tablet_check_notify_axes(tablet, device, time);
+			tablet_unset_status(tablet, TABLET_AXES_UPDATED);
+		}
+	}
+
+	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
+		tablet_notify_proximity_out(&device->base, time);
+		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
 	}
 }
 
