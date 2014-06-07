@@ -364,6 +364,18 @@ print_tablet_axis_event(struct libinput_event *ev)
 		case LIBINPUT_TABLET_AXIS_Y:
 			ax = "y";
 			break;
+		case LIBINPUT_TABLET_AXIS_DISTANCE:
+			ax = "distance";
+			break;
+		case LIBINPUT_TABLET_AXIS_PRESSURE:
+			ax = "pressure";
+			break;
+		case LIBINPUT_TABLET_AXIS_TILT_VERTICAL:
+			ax = "ytilt";
+			break;
+		case LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL:
+			ax = "xtilt";
+			break;
 		}
 		val = libinput_event_tablet_get_axis_value(t, a);
 		printf("\t%s = %.2f\n", ax, val);
