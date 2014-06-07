@@ -47,6 +47,10 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 	switch (e->code) {
 	case ABS_X:
 	case ABS_Y:
+	case ABS_PRESSURE:
+	case ABS_TILT_X:
+	case ABS_TILT_Y:
+	case ABS_DISTANCE:
 		axis = evcode_to_axis(e->code);
 		if (axis == LIBINPUT_TABLET_AXIS_NONE) {
 			log_bug_libinput("Invalid ABS event code %#x\n",
@@ -78,6 +82,23 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 		tablet_set_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
 }
 
+static inline double
+normalize_pressure(const struct input_absinfo * absinfo) {
+	double range = absinfo->maximum - absinfo->minimum + 1;
+	double value = (absinfo->value + absinfo->minimum) / range;
+
+	return value;
+}
+
+static inline double
+normalize_tilt(const struct input_absinfo * absinfo) {
+	double range = absinfo->maximum - absinfo->minimum + 1;
+	double value = (absinfo->value + absinfo->minimum) / range;
+
+	/* Map to the (-1, 1) range */
+	return (value * 2) - 1;
+}
+
 static void
 tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			 struct evdev_device *device,
@@ -99,7 +120,15 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 		switch (a) {
 		case LIBINPUT_TABLET_AXIS_X:
 		case LIBINPUT_TABLET_AXIS_Y:
+		case LIBINPUT_TABLET_AXIS_DISTANCE:
 			tablet->axes[a] = absinfo->value;
+			break;
+		case LIBINPUT_TABLET_AXIS_PRESSURE:
+			tablet->axes[a] = normalize_pressure(absinfo);
+			break;
+		case LIBINPUT_TABLET_AXIS_TILT_VERTICAL:
+		case LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL:
+			tablet->axes[a] = normalize_tilt(absinfo);
 			break;
 		default:
 			log_bug_libinput("Invalid axis update: %d\n", a);
@@ -165,6 +194,12 @@ tablet_process_key(struct tablet_dispatch *tablet,
 		tablet_update_tool(tablet, e->code, e->value);
 		break;
 	case BTN_TOUCH:
+		if (e->value)
+			tablet_set_status(tablet, TABLET_STYLUS_IN_CONTACT);
+		else
+			tablet_unset_status(tablet, TABLET_STYLUS_IN_CONTACT);
+
+		/* Fall through */
 	case BTN_STYLUS:
 	case BTN_STYLUS2:
 	default:

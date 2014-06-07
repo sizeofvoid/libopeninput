@@ -179,7 +179,11 @@ enum libinput_tablet_axis {
 	LIBINPUT_TABLET_AXIS_NONE = -1,
 	LIBINPUT_TABLET_AXIS_X = 0,
 	LIBINPUT_TABLET_AXIS_Y = 1,
-	LIBINPUT_TABLET_AXIS_CNT = LIBINPUT_TABLET_AXIS_Y + 1
+	LIBINPUT_TABLET_AXIS_DISTANCE = 2,
+	LIBINPUT_TABLET_AXIS_PRESSURE = 3,
+	LIBINPUT_TABLET_AXIS_TILT_VERTICAL = 4,
+	LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL = 5,
+	LIBINPUT_TABLET_AXIS_CNT = LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL + 1
 };
 
 /**
@@ -870,6 +874,14 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
  *   however libinput provides libinput_event_tablet_get_x_transformed() and
  *   libinput_event_tablet_get_y_transformed() for transforming each respective
  *   axis value.
+ * - @ref LIBINPUT_TABLET_AXIS_DISTANCE - Approximately how many millimeters
+ *   away from the tablet's sensor the tool is
+ * - @ref LIBINPUT_TABLET_AXIS_PRESSURE - The current pressure being applied on
+ *   the tool in use, normalized from 0 to 1
+ * - @ref LIBINPUT_TABLET_AXIS_TILT_VERTICAL and @ref
+ *   LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL - normalized value between -1 and 1
+ *   that indicates the tilt vertical or horizontal tilt of the tool
+ *   respectively
  *
  * For tablet events that are not of type @ref LIBINPUT_EVENT_TABLET_AXIS, this
  * function returns 0.
