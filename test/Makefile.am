@@ -34,6 +34,7 @@ run_tests = \
 	test-pointer \
 	test-touch \
 	test-log \
+	test-tablet \
 	test-touchpad \
 	test-misc \
 	test-keyboard
@@ -67,6 +68,11 @@ test_touch_LDFLAGS = -static
 test_log_SOURCES = log.c
 test_log_LDADD = $(TEST_LIBS)
 test_log_LDFLAGS = -static
+
+test_tablet_SOURCES = tablet.c
+test_tablet_CFLAGS = $(AM_CPPFLAGS)
+test_tablet_LDADD = $(TEST_LIBS)
+test_tablet_LDFLAGS = -static
 
 test_touchpad_SOURCES = touchpad.c
 test_touchpad_LDADD = $(TEST_LIBS)
