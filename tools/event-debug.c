@@ -218,6 +218,9 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_TABLET_AXIS:
 		type = "TABLET_AXIS";
 		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
+		type = "TABLET_TOOL_UPDATE";
+		break;
 	}
 
 	printf("%-7s	%s	", libinput_device_get_sysname(dev), type);
@@ -356,6 +359,50 @@ print_touch_event_without_coords(struct libinput_event *ev)
 }
 
 static void
+print_tool_update_event(struct libinput_event *ev)
+{
+	struct libinput_event_tablet *t = libinput_event_get_tablet_event(ev);
+	struct libinput_tool *tool = libinput_event_tablet_get_tool(t);
+	const char *tool_str;
+
+	switch (libinput_tool_get_type(tool)) {
+	case LIBINPUT_TOOL_NONE:
+		tool_str = "none";
+		break;
+	case LIBINPUT_TOOL_PEN:
+		tool_str = "pen";
+		break;
+	case LIBINPUT_TOOL_ERASER:
+		tool_str = "eraser";
+		break;
+	case LIBINPUT_TOOL_BRUSH:
+		tool_str = "brush";
+		break;
+	case LIBINPUT_TOOL_PENCIL:
+		tool_str = "pencil";
+		break;
+	case LIBINPUT_TOOL_AIRBRUSH:
+		tool_str = "airbrush";
+		break;
+	case LIBINPUT_TOOL_FINGER:
+		tool_str = "finger";
+		break;
+	case LIBINPUT_TOOL_MOUSE:
+		tool_str = "mouse";
+		break;
+	case LIBINPUT_TOOL_LENS:
+		tool_str = "lens";
+		break;
+	default:
+		abort();
+	}
+
+	print_event_time(libinput_event_tablet_get_time(t));
+	printf("%s (%#x)", tool_str, libinput_tool_get_serial(tool));
+	printf("\n");
+}
+
+static void
 print_touch_event_with_coords(struct libinput_event *ev)
 {
 	struct libinput_event_touch *t = libinput_event_get_touch_event(ev);
@@ -419,6 +466,9 @@ handle_and_print_events(struct libinput *li)
 			break;
 		case LIBINPUT_EVENT_TABLET_AXIS:
 			print_tablet_axis_event(ev);
+			break;
+		case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
+			print_tool_update_event(ev);
 			break;
 		}
 
