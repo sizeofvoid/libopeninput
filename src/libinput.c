@@ -85,6 +85,7 @@ struct libinput_event_tablet {
 	uint32_t time;
 	double *axes;
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_CNT)];
+	struct libinput_tool *tool;
 };
 
 static void
@@ -199,6 +200,7 @@ libinput_event_get_pointer_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_CANCEL:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 	case LIBINPUT_EVENT_TABLET_AXIS:
+	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
 		break;
 	}
 
@@ -226,6 +228,7 @@ libinput_event_get_keyboard_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_CANCEL:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 	case LIBINPUT_EVENT_TABLET_AXIS:
+	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
 		break;
 	}
 
@@ -253,6 +256,7 @@ libinput_event_get_touch_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 		return (struct libinput_event_touch *) event;
 	case LIBINPUT_EVENT_TABLET_AXIS:
+	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
 		break;
 	}
 
@@ -279,6 +283,7 @@ libinput_event_get_tablet_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 		break;
 	case LIBINPUT_EVENT_TABLET_AXIS:
+	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
 		return (struct libinput_event_tablet *) event;
 	}
 
@@ -305,6 +310,7 @@ libinput_event_get_device_notify_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_CANCEL:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 	case LIBINPUT_EVENT_TABLET_AXIS:
+	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
 		break;
 	}
 
@@ -509,6 +515,12 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
 					height);
 }
 
+LIBINPUT_EXPORT struct libinput_tool *
+libinput_event_tablet_get_tool(struct libinput_event_tablet *event)
+{
+	return event->tool;
+}
+
 LIBINPUT_EXPORT uint32_t
 libinput_event_tablet_get_time(struct libinput_event_tablet *event)
 {
@@ -605,6 +617,7 @@ libinput_init(struct libinput *libinput,
 	libinput->user_data = user_data;
 	list_init(&libinput->source_destroy_list);
 	list_init(&libinput->seat_list);
+	list_init(&libinput->tool_list);
 
 	if (libinput_timer_subsys_init(libinput) != 0) {
 		free(libinput->events);
@@ -637,6 +650,7 @@ libinput_destroy(struct libinput *libinput)
 	struct libinput_event *event;
 	struct libinput_device *device, *next_device;
 	struct libinput_seat *seat, *next_seat;
+	struct libinput_tool *tool, *next_tool;
 
 	if (libinput == NULL)
 		return;
@@ -657,6 +671,10 @@ libinput_destroy(struct libinput *libinput)
 			libinput_device_destroy(device);
 
 		libinput_seat_destroy(seat);
+	}
+
+	list_for_each_safe(tool, next_tool, &libinput->tool_list, link) {
+		libinput_tool_unref(tool);
 	}
 
 	libinput_timer_subsys_destroy(libinput);
@@ -1158,6 +1176,27 @@ tablet_notify_axis(struct libinput_device *device,
 	post_device_event(device,
 			  LIBINPUT_EVENT_TABLET_AXIS,
 			  &axis_event->base);
+}
+
+void
+tablet_notify_tool_update(struct libinput_device *device,
+			  uint32_t time,
+			  struct libinput_tool *tool)
+{
+	struct libinput_event_tablet *tool_update_event;
+
+	tool_update_event = zalloc(sizeof *tool_update_event);
+	if (!tool_update_event)
+		return;
+
+	*tool_update_event = (struct libinput_event_tablet) {
+		.time = time,
+		.tool = tool,
+	};
+
+	post_device_event(device,
+			  LIBINPUT_EVENT_TABLET_TOOL_UPDATE,
+			  &tool_update_event->base);
 }
 
 static void

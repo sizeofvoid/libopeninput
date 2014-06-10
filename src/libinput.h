@@ -254,7 +254,12 @@ enum libinput_event_type {
 	 */
 	LIBINPUT_EVENT_TOUCH_FRAME,
 
-	LIBINPUT_EVENT_TABLET_AXIS = 600
+	LIBINPUT_EVENT_TABLET_AXIS = 600,
+	/**
+	 * Signals that a device with the @ref LIBINPUT_DEVICE_CAP_TABLET
+	 * capability has changed its tool.
+	 */
+	LIBINPUT_EVENT_TABLET_TOOL_UPDATE
 };
 
 struct libinput;
@@ -283,7 +288,8 @@ struct libinput_event_touch;
  * @struct libinput_event_tablet
  *
  * Tablet event representing an axis update, button press, or tool update. Valid
- * event types for this event are @ref LIBINPUT_EVENT_TABLET_AXIS.
+ * event types for this event are @ref LIBINPUT_EVENT_TABLET_AXIS, and
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_UPDATE.
  */
 struct libinput_event_tablet;
 
@@ -891,6 +897,31 @@ libinput_event_tablet_get_x_transformed(struct libinput_event_tablet *event,
 double
 libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
 					uint32_t height);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return the new tool in use for this event.
+ * For tablet events that are not of type @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_UPDATE, this function returns NULL. By default,
+ * the lifetime of each tool is bound to the lifetime of the event, so the tool
+ * will be destroyed when the event is destroyed. However, the lifetime of the
+ * tool may be extended by using libinput_tool_ref() to increment the reference
+ * count of the tool. Whenever libinput detects that the tool is in proximity of
+ * any tablet that's connected, it will return the same libinput_tool object.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_UPDATE.
+ *
+ * @note On tablets where the serial number of tools is not reported, each tool
+ * cannot be guaranteed to be unique.
+ *
+ * @param event The libinput tablet event
+ * @return The new tool triggering this event
+ */
+struct libinput_tool *
+libinput_event_tablet_get_tool(struct libinput_event_tablet *event);
+
 /**
  * @ingroup event_tablet
  *

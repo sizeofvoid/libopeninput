@@ -29,7 +29,8 @@
 
 enum tablet_status {
 	TABLET_NONE = 0,
-	TABLET_AXES_UPDATED = 1 << 0
+	TABLET_AXES_UPDATED = 1 << 0,
+	TABLET_TOOL_UPDATED = 1 << 1
 };
 
 struct tablet_dispatch {
@@ -38,6 +39,9 @@ struct tablet_dispatch {
 	unsigned char status;
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_CNT)];
 	double axes[LIBINPUT_TABLET_AXIS_CNT];
+
+	enum libinput_tool_type current_tool_type;
+	uint32_t current_tool_serial;
 };
 
 static inline enum libinput_tablet_axis

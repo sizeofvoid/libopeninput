@@ -54,6 +54,8 @@ struct libinput {
 	size_t events_in;
 	size_t events_out;
 
+	struct list tool_list;
+
 	const struct libinput_interface *interface;
 	const struct libinput_interface_backend *interface_backend;
 	void *user_data;
@@ -206,6 +208,11 @@ tablet_notify_axis(struct libinput_device *device,
 		   uint32_t time,
 		   unsigned char *changed_axes,
 		   double *axes);
+
+void
+tablet_notify_tool_update(struct libinput_device *device,
+			  uint32_t time,
+			  struct libinput_tool *tool);
 
 void
 touch_notify_frame(struct libinput_device *device,
