@@ -515,6 +515,35 @@ libinput_event_tablet_get_time(struct libinput_event_tablet *event)
 	return event->time;
 }
 
+LIBINPUT_EXPORT enum libinput_tool_type
+libinput_tool_get_type(struct libinput_tool *tool)
+{
+	return tool->type;
+}
+
+LIBINPUT_EXPORT uint32_t
+libinput_tool_get_serial(struct libinput_tool *tool)
+{
+	return tool->serial;
+}
+
+LIBINPUT_EXPORT void
+libinput_tool_ref(struct libinput_tool *tool)
+{
+	tool->refcount++;
+}
+
+LIBINPUT_EXPORT void
+libinput_tool_unref(struct libinput_tool *tool)
+{
+	assert(tool->refcount > 0);
+
+	if (--tool->refcount == 0) {
+		list_remove(&tool->link);
+		free(tool);
+	}
+}
+
 struct libinput_source *
 libinput_add_fd(struct libinput *libinput,
 		int fd,

@@ -183,6 +183,32 @@ enum libinput_tablet_axis {
 };
 
 /**
+ * @ingroup device
+ *
+ * An object representing a tool being used by the device. It must have the @ref
+ * LIBINPUT_DEVICE_CAP_TABLET capability.
+ */
+struct libinput_tool;
+
+/**
+ * @ingroup device
+ *
+ * Available tool types for a device. It must have the @ref
+ * LIBINPUT_DEVICE_CAP_TABLET capability.
+ */
+enum libinput_tool_type {
+	LIBINPUT_TOOL_NONE = -1,
+	LIBINPUT_TOOL_PEN = 0x140, /* Matches BTN_TOOL_PEN */
+	LIBINPUT_TOOL_ERASER,
+	LIBINPUT_TOOL_BRUSH,
+	LIBINPUT_TOOL_PENCIL,
+	LIBINPUT_TOOL_AIRBRUSH,
+	LIBINPUT_TOOL_FINGER,
+	LIBINPUT_TOOL_MOUSE,
+	LIBINPUT_TOOL_LENS
+};
+
+/**
  * @ingroup base
  *
  * Event type for events returned by libinput_get_event().
@@ -873,6 +899,53 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
  */
 uint32_t
 libinput_event_tablet_get_time(struct libinput_event_tablet *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return the type of tool type for a tool object
+ *
+ * @param tool The libinput tool
+ * @return The tool type for this tool object
+ */
+enum libinput_tool_type
+libinput_tool_get_type(struct libinput_tool *tool);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Increment the ref count of tool by one
+ *
+ * @param tool The tool to increment the ref count of
+ */
+void
+libinput_tool_ref(struct libinput_tool *tool);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Decrement the ref count of tool by one. When the ref count of tool reaches 0,
+ * the memory allocated for tool will be freed.
+ *
+ * @param tool The tool to decrement the ref count of
+ */
+void
+libinput_tool_unref(struct libinput_tool *tool);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return the serial number of a tool
+ *
+ * @note Not all tablets report a serial number along with the type of tool
+ * being used. If the hardware does not provide a unique serial number, the
+ * serial number is always 0.
+ *
+ * @param tool The libinput tool
+ * @return The new tool serial triggering this event
+ */
+uint32_t
+libinput_tool_get_serial(struct libinput_tool *tool);
 
 /**
  * @defgroup base Initialization and manipulation of libinput contexts
