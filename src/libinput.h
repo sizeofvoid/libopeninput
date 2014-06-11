@@ -269,7 +269,8 @@ enum libinput_event_type {
 	 * was held down on the stylus are sent before the initial proximity out
 	 * event.
 	 */
-	LIBINPUT_EVENT_TABLET_PROXIMITY_OUT
+	LIBINPUT_EVENT_TABLET_PROXIMITY_OUT,
+	LIBINPUT_EVENT_TABLET_BUTTON
 };
 
 struct libinput;
@@ -299,7 +300,8 @@ struct libinput_event_touch;
  *
  * Tablet event representing an axis update, button press, or tool update. Valid
  * event types for this event are @ref LIBINPUT_EVENT_TABLET_AXIS, @ref
- * LIBINPUT_EVENT_TABLET_TOOL_UPDATE and @ref LIBINPUT_EVENT_TABLET_TOOL_UPDATE.
+ * LIBINPUT_EVENT_TABLET_TOOL_UPDATE, @ref LIBINPUT_EVENT_TABLET_TOOL_UPDATE and
+ * @ref LIBINPUT_EVENT_TABLET_BUTTON.
  */
 struct libinput_event_tablet;
 
@@ -931,6 +933,51 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
  */
 struct libinput_tool *
 libinput_event_tablet_get_tool(struct libinput_event_tablet *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return the button that triggered this event.
+ * For tablet events that are not of type LIBINPUT_EVENT_TABLET_BUTTON, this
+ * function returns 0.
+ *
+ * @note It is an application bug to call this function for events other than
+ * LIBINPUT_EVENT_TABLET_BUTTON.
+ *
+ * @param event The libinput tablet event
+ * @return the button triggering this event
+ */
+uint32_t
+libinput_event_tablet_get_button(struct libinput_event_tablet *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return the button state of the event.
+ *
+ * @note It is an application bug to call this function for events other than
+ * LIBINPUT_EVENT_TABLET_BUTTON.
+ *
+ * @param event The libinput tablet event
+ * @return the button state triggering this event
+ */
+enum libinput_button_state
+libinput_event_tablet_get_button_state(struct libinput_event_tablet *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * For the button of a LIBINPUT_EVENT_TABLET_BUTTON event, return the total
+ * number of buttons pressed on all devices on the associated seat after the
+ * the event was triggered.
+ *
+ " @note It is an application bug to call this function for events other than
+ * LIBINPUT_EVENT_TABLET_BUTTON. For other events, this function returns 0.
+ *
+ * @return the seat wide pressed button count for the key of this event
+ */
+uint32_t
+libinput_event_tablet_get_seat_button_count(struct libinput_event_tablet *event);
 
 /**
  * @ingroup event_tablet

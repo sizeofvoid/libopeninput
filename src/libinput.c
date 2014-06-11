@@ -82,6 +82,9 @@ struct libinput_event_touch {
 
 struct libinput_event_tablet {
 	struct libinput_event base;
+	uint32_t button;
+	enum libinput_button_state state;
+	uint32_t seat_button_count;
 	uint32_t time;
 	double *axes;
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_CNT)];
@@ -202,6 +205,7 @@ libinput_event_get_pointer_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TABLET_AXIS:
 	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
 	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
+	case LIBINPUT_EVENT_TABLET_BUTTON:
 		break;
 	}
 
@@ -231,6 +235,7 @@ libinput_event_get_keyboard_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TABLET_AXIS:
 	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
 	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
+	case LIBINPUT_EVENT_TABLET_BUTTON:
 		break;
 	}
 
@@ -260,6 +265,7 @@ libinput_event_get_touch_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TABLET_AXIS:
 	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
 	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
+	case LIBINPUT_EVENT_TABLET_BUTTON:
 		break;
 	}
 
@@ -288,6 +294,7 @@ libinput_event_get_tablet_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TABLET_AXIS:
 	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
 	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
+	case LIBINPUT_EVENT_TABLET_BUTTON:
 		return (struct libinput_event_tablet *) event;
 	}
 
@@ -316,6 +323,7 @@ libinput_event_get_device_notify_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TABLET_AXIS:
 	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
 	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
+	case LIBINPUT_EVENT_TABLET_BUTTON:
 		break;
 	}
 
@@ -530,6 +538,24 @@ LIBINPUT_EXPORT uint32_t
 libinput_event_tablet_get_time(struct libinput_event_tablet *event)
 {
 	return event->time;
+}
+
+LIBINPUT_EXPORT uint32_t
+libinput_event_tablet_get_button(struct libinput_event_tablet *event)
+{
+	return event->button;
+}
+
+LIBINPUT_EXPORT enum libinput_button_state
+libinput_event_tablet_get_button_state(struct libinput_event_tablet *event)
+{
+	return event->state;
+}
+
+LIBINPUT_EXPORT uint32_t
+libinput_event_tablet_get_seat_button_count(struct libinput_event_tablet *event)
+{
+	return event->seat_button_count;
 }
 
 LIBINPUT_EXPORT enum libinput_tool_type
@@ -1221,6 +1247,35 @@ tablet_notify_proximity_out(struct libinput_device *device,
 	post_device_event(device,
 			  LIBINPUT_EVENT_TABLET_PROXIMITY_OUT,
 			  &proximity_out_update_event->base);
+}
+
+void
+tablet_notify_button(struct libinput_device *device,
+		     uint32_t time,
+		     int32_t button,
+		     enum libinput_button_state state)
+{
+	struct libinput_event_tablet *button_event;
+	int32_t seat_button_count;
+
+	button_event = zalloc(sizeof *button_event);
+	if (!button_event)
+		return;
+
+	seat_button_count = update_seat_button_count(device->seat,
+						     button,
+						     state);
+
+	*button_event = (struct libinput_event_tablet) {
+		.time = time,
+		.button = button,
+		.state = state,
+		.seat_button_count = seat_button_count,
+	};
+
+	post_device_event(device,
+			  LIBINPUT_EVENT_TABLET_BUTTON,
+			  &button_event->base);
 }
 
 static void

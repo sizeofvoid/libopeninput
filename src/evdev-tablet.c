@@ -31,6 +31,11 @@
 #define tablet_unset_status(tablet_,s_) ((tablet_)->status &= ~(s_))
 #define tablet_has_status(tablet_,s_) (!!((tablet_)->status & (s_)))
 
+#define tablet_get_pressed_buttons(tablet_,field_) \
+       ((tablet_)->button_state.field_ & ~((tablet_)->prev_button_state.field_))
+#define tablet_get_released_buttons(tablet_,field_) \
+       ((tablet_)->prev_button_state.field_ & ~((tablet_)->button_state.field_))
+
 static void
 tablet_process_absolute(struct tablet_dispatch *tablet,
 			struct evdev_device *device,
@@ -111,6 +116,37 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 }
 
 static void
+tablet_update_button(struct tablet_dispatch *tablet,
+		     uint32_t evcode,
+		     uint32_t enable)
+{
+	uint32_t button, *flags;
+
+	/* XXX: This really depends on the expected buttons fitting in the mask */
+	if (evcode >= BTN_MISC && evcode <= BTN_TASK) {
+		flags = &tablet->button_state.pad_buttons;
+		button = evcode - BTN_MISC;
+	} else if (evcode >= BTN_TOUCH && evcode <= BTN_STYLUS2) {
+		flags = &tablet->button_state.stylus_buttons;
+		button = evcode - BTN_TOUCH;
+	} else {
+		log_info("Unhandled button %s (%#x)\n",
+			 libevdev_event_code_get_name(EV_KEY, evcode), evcode);
+		return;
+	}
+
+	if (enable) {
+		(*flags) |= 1 << button;
+		tablet_set_status(tablet, TABLET_BUTTONS_PRESSED);
+	} else {
+		(*flags) &= ~(1 << button);
+		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
+	}
+
+	assert(button < 32);
+}
+
+static void
 tablet_process_key(struct tablet_dispatch *tablet,
 		   struct evdev_device *device,
 		   struct input_event *e,
@@ -128,7 +164,11 @@ tablet_process_key(struct tablet_dispatch *tablet,
 		/* These codes have an equivalent libinput_tool value */
 		tablet_update_tool(tablet, e->code, e->value);
 		break;
+	case BTN_TOUCH:
+	case BTN_STYLUS:
+	case BTN_STYLUS2:
 	default:
+		tablet_update_button(tablet, e->code, e->value);
 		break;
 	}
 }
@@ -187,11 +227,67 @@ tablet_notify_tool(struct tablet_dispatch *tablet,
 }
 
 static void
+tablet_notify_button_mask(struct tablet_dispatch *tablet,
+			  struct evdev_device *device,
+			  uint32_t time,
+			  uint32_t buttons,
+			  uint32_t button_base,
+			  enum libinput_button_state state)
+{
+	struct libinput_device *base = &device->base;
+	int32_t num_button = 0;
+
+	while (buttons) {
+		int enabled;
+
+		num_button++;
+		enabled = (buttons & 1);
+		buttons >>= 1;
+
+		if (!enabled)
+			continue;
+
+		tablet_notify_button(base,
+				     time,
+				     num_button + button_base - 1,
+				     state);
+	}
+}
+
+static void
+tablet_notify_buttons(struct tablet_dispatch *tablet,
+		      struct evdev_device *device,
+		      uint32_t time,
+		      enum libinput_button_state state)
+{
+	uint32_t pad_buttons, stylus_buttons;
+
+	if (state == LIBINPUT_BUTTON_STATE_PRESSED) {
+		pad_buttons = tablet_get_pressed_buttons(tablet, pad_buttons);
+		stylus_buttons =
+			tablet_get_pressed_buttons(tablet, stylus_buttons);
+	} else {
+		pad_buttons = tablet_get_released_buttons(tablet, pad_buttons);
+		stylus_buttons =
+			tablet_get_released_buttons(tablet, stylus_buttons);
+	}
+
+	tablet_notify_button_mask(tablet, device, time,
+				  pad_buttons, BTN_MISC, state);
+	tablet_notify_button_mask(tablet, device, time,
+				  stylus_buttons, BTN_TOUCH, state);
+}
+
+static void
 tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
 	     uint32_t time)
 {
 	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
+		/* Release all stylus buttons */
+		tablet->button_state.stylus_buttons = 0;
+		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
+
 		/* FIXME: This behavior is not ideal and this memset should be
 		 * removed */
 		memset(&tablet->changed_axes, 0, sizeof(tablet->changed_axes));
@@ -210,10 +306,27 @@ tablet_flush(struct tablet_dispatch *tablet,
 		}
 	}
 
+	if (tablet_has_status(tablet, TABLET_BUTTONS_RELEASED)) {
+		tablet_notify_buttons(tablet, device, time,
+				      LIBINPUT_BUTTON_STATE_RELEASED);
+		tablet_unset_status(tablet, TABLET_BUTTONS_RELEASED);
+	}
+
+	if (tablet_has_status(tablet, TABLET_BUTTONS_PRESSED)) {
+		tablet_notify_buttons(tablet, device, time,
+				      LIBINPUT_BUTTON_STATE_PRESSED);
+		tablet_unset_status(tablet, TABLET_BUTTONS_PRESSED);
+	}
+
 	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
 		tablet_notify_proximity_out(&device->base, time);
 		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
 	}
+
+	/* Update state */
+	memcpy(&tablet->prev_button_state,
+	       &tablet->button_state,
+	       sizeof(tablet->button_state));
 }
 
 static void

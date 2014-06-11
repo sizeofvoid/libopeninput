@@ -219,6 +219,11 @@ tablet_notify_proximity_out(struct libinput_device *device,
 			    uint32_t time);
 
 void
+tablet_notify_button(struct libinput_device *device,
+		     uint32_t time,
+		     int32_t button,
+		     enum libinput_button_state state);
+void
 touch_notify_frame(struct libinput_device *device,
 		   uint32_t time);
 #endif /* LIBINPUT_PRIVATE_H */
