@@ -281,6 +281,152 @@ START_TEST(bad_distance_events)
 }
 END_TEST
 
+START_TEST(normalization)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event_tablet *tablet_event;
+	struct libinput_event *event;
+	double pressure,
+	       tilt_vertical,
+	       tilt_horizontal;
+	const struct input_absinfo *pressure_absinfo,
+                                   *tilt_vertical_absinfo,
+                                   *tilt_horizontal_absinfo;
+
+	litest_drain_events(dev->libinput);
+
+	pressure_absinfo = libevdev_get_abs_info(dev->evdev, ABS_PRESSURE);
+	tilt_vertical_absinfo = libevdev_get_abs_info(dev->evdev, ABS_TILT_X);
+	tilt_horizontal_absinfo = libevdev_get_abs_info(dev->evdev, ABS_TILT_Y);
+
+	/* Test minimum */
+	if (pressure_absinfo != NULL)
+		litest_event(dev,
+			     EV_ABS,
+			     ABS_PRESSURE,
+			     pressure_absinfo->minimum);
+
+	if (tilt_vertical_absinfo != NULL)
+		litest_event(dev,
+			     EV_ABS,
+			     ABS_TILT_X,
+			     tilt_vertical_absinfo->minimum);
+
+	if (tilt_horizontal_absinfo != NULL)
+		litest_event(dev,
+			     EV_ABS,
+			     ABS_TILT_Y,
+			     tilt_horizontal_absinfo->minimum);
+
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	libinput_dispatch(li);
+
+	while ((event = libinput_get_event(li))) {
+		if (libinput_event_get_type(event) == LIBINPUT_EVENT_TABLET_AXIS) {
+			tablet_event = libinput_event_get_tablet_event(event);
+
+			if (libinput_event_tablet_axis_has_changed(
+				tablet_event,
+				LIBINPUT_TABLET_AXIS_PRESSURE)) {
+				pressure = libinput_event_tablet_get_axis_value(
+				    tablet_event, LIBINPUT_TABLET_AXIS_PRESSURE);
+
+				litest_assert_double_eq(pressure, 0);
+			}
+
+			if (libinput_event_tablet_axis_has_changed(
+				tablet_event,
+				LIBINPUT_TABLET_AXIS_TILT_VERTICAL)) {
+				tilt_vertical =
+					libinput_event_tablet_get_axis_value(
+					    tablet_event,
+					    LIBINPUT_TABLET_AXIS_TILT_VERTICAL);
+
+				litest_assert_double_eq(tilt_vertical, -1);
+			}
+
+			if (libinput_event_tablet_axis_has_changed(
+				tablet_event,
+				LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL)) {
+				tilt_horizontal =
+					libinput_event_tablet_get_axis_value(
+					    tablet_event,
+					    LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL);
+
+				litest_assert_double_eq(tilt_horizontal, -1);
+			}
+		}
+
+		libinput_event_destroy(event);
+	}
+
+	/* Test maximum */
+	if (pressure_absinfo != NULL)
+		litest_event(dev,
+			     EV_ABS,
+			     ABS_PRESSURE,
+			     pressure_absinfo->maximum);
+
+	if (tilt_vertical_absinfo != NULL)
+		litest_event(dev,
+			     EV_ABS,
+			     ABS_TILT_X,
+			     tilt_vertical_absinfo->maximum + 1);
+
+	if (tilt_horizontal_absinfo != NULL)
+		litest_event(dev,
+			     EV_ABS,
+			     ABS_TILT_Y,
+			     tilt_horizontal_absinfo->maximum + 1);
+
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	libinput_dispatch(li);
+
+	while ((event = libinput_get_event(li))) {
+		if (libinput_event_get_type(event) == LIBINPUT_EVENT_TABLET_AXIS) {
+			tablet_event = libinput_event_get_tablet_event(event);
+
+			if (libinput_event_tablet_axis_has_changed(
+				tablet_event,
+				LIBINPUT_TABLET_AXIS_PRESSURE)) {
+				pressure = libinput_event_tablet_get_axis_value(
+				    tablet_event, LIBINPUT_TABLET_AXIS_PRESSURE);
+
+				litest_assert_double_eq(pressure, 1);
+			}
+
+			if (libinput_event_tablet_axis_has_changed(
+				tablet_event,
+				LIBINPUT_TABLET_AXIS_TILT_VERTICAL)) {
+				tilt_vertical =
+					libinput_event_tablet_get_axis_value(
+					    tablet_event,
+					    LIBINPUT_TABLET_AXIS_TILT_VERTICAL);
+
+				litest_assert_double_eq(tilt_vertical, 1);
+			}
+
+			if (libinput_event_tablet_axis_has_changed(
+				tablet_event,
+				LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL)) {
+				tilt_horizontal =
+					libinput_event_tablet_get_axis_value(
+					    tablet_event,
+					    LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL);
+
+				litest_assert_double_eq(tilt_horizontal, 1);
+			}
+		}
+
+		libinput_event_destroy(event);
+	}
+
+}
+END_TEST
+
 int
 main(int argc, char **argv)
 {
@@ -288,6 +434,7 @@ main(int argc, char **argv)
 	litest_add("tablet:proximity", proximity_in_out, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", bad_distance_events, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add("tablet:motion", motion, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:normalization", normalization, LITEST_TABLET, LITEST_ANY);
 
 	return litest_run(argc, argv);
 }
