@@ -50,6 +50,9 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 	case ABS_PRESSURE:
 	case ABS_TILT_X:
 	case ABS_TILT_Y:
+		tablet_unset_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
+
+		/* Fall through */
 	case ABS_DISTANCE:
 		axis = evcode_to_axis(e->code);
 		if (axis == LIBINPUT_TABLET_AXIS_NONE) {
@@ -314,6 +317,35 @@ tablet_notify_buttons(struct tablet_dispatch *tablet,
 }
 
 static void
+sanitize_tablet_axes(struct tablet_dispatch *tablet)
+{
+	const struct input_absinfo *distance,
+	                           *pressure;
+
+	distance = libevdev_get_abs_info(tablet->device->evdev, ABS_DISTANCE);
+	pressure = libevdev_get_abs_info(tablet->device->evdev, ABS_PRESSURE);
+
+	/* Keep distance and pressure mutually exclusive. In addition, filter
+	 * out invalid distance events that can occur when the tablet tool is
+	 * close enough for the tablet to detect that's something's there, but
+	 * not close enough for it to actually receive data from the tool
+	 * properly
+	 */
+	if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_AXIS_DISTANCE) &&
+	    ((distance->value > distance->minimum &&
+	      pressure->value > pressure->minimum) ||
+	     (tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY) &&
+	      (distance->value <= distance->minimum ||
+	       distance->value >= distance->maximum)))) {
+		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_AXIS_DISTANCE);
+		tablet->axes[LIBINPUT_TABLET_AXIS_DISTANCE] = 0;
+	} else if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_AXIS_PRESSURE) &&
+		   !tablet_has_status(tablet, TABLET_STYLUS_IN_CONTACT)) {
+		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_AXIS_PRESSURE);
+	}
+}
+
+static void
 tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
 	     uint32_t time)
@@ -336,6 +368,7 @@ tablet_flush(struct tablet_dispatch *tablet,
 		}
 
 		if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
+			sanitize_tablet_axes(tablet);
 			tablet_check_notify_axes(tablet, device, time);
 			tablet_unset_status(tablet, TABLET_AXES_UPDATED);
 		}
@@ -355,6 +388,7 @@ tablet_flush(struct tablet_dispatch *tablet,
 
 	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
 		tablet_notify_proximity_out(&device->base, time);
+		tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
 	}
 
