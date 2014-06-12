@@ -148,6 +148,23 @@ struct libevdev_uinput * litest_create_uinput_abs_device(const char *name,
 							 struct input_id *id,
 							 const struct input_absinfo *abs,
 							 ...);
+#define litest_assert_double_eq(a_, b_)\
+	ck_assert_int_eq((int)(a_ * 256), (int)(b_ * 256))
+
+#define litest_assert_double_ne(a_, b_)\
+	ck_assert_int_ne((int)(a_ * 256), (int)(b_ * 256))
+
+#define litest_assert_double_lt(a_, b_)\
+	ck_assert_int_lt((int)(a_ * 256), (int)(b_ * 256))
+
+#define litest_assert_double_le(a_, b_)\
+	ck_assert_int_le((int)(a_ * 256), (int)(b_ * 256))
+
+#define litest_assert_double_gt(a_, b_)\
+	ck_assert_int_gt((int)(a_ * 256), (int)(b_ * 256))
+
+#define litest_assert_double_ge(a_, b_)\
+	ck_assert_int_ge((int)(a_ * 256), (int)(b_ * 256))
 
 #ifndef ck_assert_notnull
 #define ck_assert_notnull(ptr) ck_assert_ptr_ne(ptr, NULL)
