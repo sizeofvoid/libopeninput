@@ -239,11 +239,54 @@ START_TEST(motion)
 }
 END_TEST
 
+START_TEST(bad_distance_events)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event_tablet *tablet_event;
+	struct libinput_event *event;
+	bool bad_distance_event_received = false,
+	     axis_has_changed;
+	enum libinput_event_type type;
+	const struct input_absinfo *absinfo;
+
+	litest_drain_events(dev->libinput);
+
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(dev->libinput);
+
+	absinfo = libevdev_get_abs_info(dev->evdev, ABS_DISTANCE);
+	ck_assert(absinfo != NULL);
+
+	litest_event(dev, EV_ABS, ABS_DISTANCE, absinfo->maximum);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_event(dev, EV_ABS, ABS_DISTANCE, absinfo->minimum);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	/* We shouldn't be able to see any of the bad distance events that got
+	 * sent
+	 */
+	while ((event = libinput_get_event(li))) {
+		tablet_event = libinput_event_get_tablet_event(event);
+		type = libinput_event_get_type(event);
+		axis_has_changed = libinput_event_tablet_axis_has_changed(
+		    tablet_event, LIBINPUT_TABLET_AXIS_DISTANCE);
+
+		if (type == LIBINPUT_EVENT_TABLET_AXIS && axis_has_changed)
+			bad_distance_event_received = true;
+
+		libinput_event_destroy(event);
+	}
+	ck_assert(!bad_distance_event_received);
+}
+END_TEST
+
 int
 main(int argc, char **argv)
 {
 	litest_add("tablet:proximity", proximity_out_clear_buttons, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_in_out, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:proximity", bad_distance_events, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add("tablet:motion", motion, LITEST_TABLET, LITEST_ANY);
 
 	return litest_run(argc, argv);
