@@ -148,11 +148,103 @@ START_TEST(proximity_out_clear_buttons)
 }
 END_TEST
 
+START_TEST(motion)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event_tablet *tablet_event;
+	struct libinput_event *event;
+	int test_x, test_y;
+	double last_reported_x, last_reported_y;
+	enum libinput_event_type type;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ -1, -1 }
+	};
+
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	libinput_dispatch(li);
+
+	while ((event = libinput_get_event(li))) {
+		tablet_event = libinput_event_get_tablet_event(event);
+		type = libinput_event_get_type(event);
+
+		if (type == LIBINPUT_EVENT_TABLET_AXIS) {
+			bool x_changed, y_changed;
+			double reported_x, reported_y;
+
+			x_changed = libinput_event_tablet_axis_has_changed(
+			    tablet_event, LIBINPUT_TABLET_AXIS_X);
+			y_changed = libinput_event_tablet_axis_has_changed(
+			    tablet_event, LIBINPUT_TABLET_AXIS_Y);
+
+			ck_assert(x_changed);
+			ck_assert(y_changed);
+
+			reported_x = libinput_event_tablet_get_axis_value(
+			    tablet_event, LIBINPUT_TABLET_AXIS_X);
+			reported_y = libinput_event_tablet_get_axis_value(
+			    tablet_event, LIBINPUT_TABLET_AXIS_Y);
+
+			litest_assert_double_lt(reported_x, reported_y);
+
+			last_reported_x = reported_x;
+			last_reported_y = reported_y;
+		}
+
+		libinput_event_destroy(event);
+	}
+
+	for (test_x = 10, test_y = 90;
+	     test_x <= 100;
+	     test_x += 10, test_y -= 10) {
+		bool x_changed, y_changed;
+		double reported_x, reported_y;
+
+		litest_tablet_proximity_in(dev, test_x, test_y, axes);
+		libinput_dispatch(li);
+
+		while ((event = libinput_get_event(li))) {
+			tablet_event = libinput_event_get_tablet_event(event);
+			type = libinput_event_get_type(event);
+
+			if (type == LIBINPUT_EVENT_TABLET_AXIS) {
+				x_changed = libinput_event_tablet_axis_has_changed(
+				    tablet_event, LIBINPUT_TABLET_AXIS_X);
+				y_changed = libinput_event_tablet_axis_has_changed(
+				    tablet_event, LIBINPUT_TABLET_AXIS_Y);
+
+				ck_assert(x_changed);
+				ck_assert(y_changed);
+
+				reported_x = libinput_event_tablet_get_axis_value(
+				    tablet_event, LIBINPUT_TABLET_AXIS_X);
+				reported_y = libinput_event_tablet_get_axis_value(
+				    tablet_event, LIBINPUT_TABLET_AXIS_Y);
+
+				litest_assert_double_gt(reported_x,
+							last_reported_x);
+				litest_assert_double_lt(reported_y,
+							last_reported_y);
+
+				last_reported_x = reported_x;
+				last_reported_y = reported_y;
+			}
+
+			libinput_event_destroy(event);
+		}
+	}
+}
+END_TEST
+
 int
 main(int argc, char **argv)
 {
 	litest_add("tablet:proximity", proximity_out_clear_buttons, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_in_out, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:motion", motion, LITEST_TABLET, LITEST_ANY);
 
 	return litest_run(argc, argv);
 }
