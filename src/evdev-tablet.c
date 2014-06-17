@@ -27,8 +27,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define tablet_set_status(tablet_,s_) ((tablet_)->status |= (s_))
-#define tablet_unset_status(tablet_,s_) ((tablet_)->status &= ~(s_))
+#define tablet_set_status(tablet_,s_) (tablet_)->status |= (s_)
+#define tablet_unset_status(tablet_,s_) (tablet_)->status &= ~(s_)
 #define tablet_has_status(tablet_,s_) (!!((tablet_)->status & (s_)))
 
 #define tablet_get_pressed_buttons(tablet_,field_) \
