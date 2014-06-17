@@ -167,6 +167,8 @@ tablet_update_button(struct tablet_dispatch *tablet,
 		return;
 	}
 
+	assert(button < 32);
+
 	if (enable) {
 		(*flags) |= 1 << button;
 		tablet_set_status(tablet, TABLET_BUTTONS_PRESSED);
@@ -174,8 +176,6 @@ tablet_update_button(struct tablet_dispatch *tablet,
 		(*flags) &= ~(1 << button);
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
 	}
-
-	assert(button < 32);
 }
 
 static void
