@@ -341,45 +341,46 @@ print_pointer_axis_event(struct libinput_event *ev)
 	printf("%s %.2f\n", ax, val);
 }
 
+static const char*
+tablet_axis_changed_sym(struct libinput_event_tablet *t,
+			enum libinput_tablet_axis axis)
+{
+	if (libinput_event_tablet_axis_has_changed(t, axis))
+		return "*";
+	else
+		return "";
+}
+
 static void
 print_tablet_axis_event(struct libinput_event *ev)
 {
 	struct libinput_event_tablet *t = libinput_event_get_tablet_event(ev);
-	int a;
+	double x, y;
+	double dist, pressure;
 
 	print_event_time(libinput_event_tablet_get_time(t));
+
+	x = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_X);
+	y = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_Y);
+	printf("\t%.2f%s/%.2f%s",
+	       x, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_X),
+	       y, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_Y));
+
+	x = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_TILT_VERTICAL);
+	y = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL);
+	printf("\ttilt: %.2f%s/%.2f%s ",
+	       x, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_TILT_VERTICAL),
+	       y, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL));
+
+	dist = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_DISTANCE);
+	pressure = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_PRESSURE);
+	if (dist)
+		printf("distance: %.2f%s",
+		       dist, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_DISTANCE));
+	else
+		printf("pressure: %.2f%s",
+		       pressure, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_PRESSURE));
 	printf("\n");
-
-	for (a = 0; a <= LIBINPUT_TABLET_AXIS_CNT; a++) {
-		const char *ax;
-		double val;
-
-		if (!libinput_event_tablet_axis_has_changed(t, a))
-			continue;
-
-		switch (a) {
-		case LIBINPUT_TABLET_AXIS_X:
-			ax = "x";
-			break;
-		case LIBINPUT_TABLET_AXIS_Y:
-			ax = "y";
-			break;
-		case LIBINPUT_TABLET_AXIS_DISTANCE:
-			ax = "distance";
-			break;
-		case LIBINPUT_TABLET_AXIS_PRESSURE:
-			ax = "pressure";
-			break;
-		case LIBINPUT_TABLET_AXIS_TILT_VERTICAL:
-			ax = "ytilt";
-			break;
-		case LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL:
-			ax = "xtilt";
-			break;
-		}
-		val = libinput_event_tablet_get_axis_value(t, a);
-		printf("\t%s = %.2f\n", ax, val);
-	}
 }
 
 static void
