@@ -219,7 +219,7 @@ tablet_process_misc(struct tablet_dispatch *tablet,
 {
 	switch (e->code) {
 	case MSC_SERIAL:
-		if (e->value != (signed)tablet->current_tool_serial &&
+		if (e->value != (int32_t)tablet->current_tool_serial &&
 		    e->value != -1) {
 			tablet->current_tool_serial = e->value;
 			tablet_set_status(tablet, TABLET_TOOL_UPDATED);
