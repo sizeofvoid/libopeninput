@@ -152,14 +152,14 @@ tablet_update_button(struct tablet_dispatch *tablet,
 		     uint32_t evcode,
 		     uint32_t enable)
 {
-	uint32_t button, *flags;
+	uint32_t button, *mask;
 
 	/* XXX: This really depends on the expected buttons fitting in the mask */
 	if (evcode >= BTN_MISC && evcode <= BTN_TASK) {
-		flags = &tablet->button_state.pad_buttons;
+		mask = &tablet->button_state.pad_buttons;
 		button = evcode - BTN_MISC;
 	} else if (evcode >= BTN_TOUCH && evcode <= BTN_STYLUS2) {
-		flags = &tablet->button_state.stylus_buttons;
+		mask = &tablet->button_state.stylus_buttons;
 		button = evcode - BTN_TOUCH;
 	} else {
 		log_info("Unhandled button %s (%#x)\n",
@@ -170,10 +170,10 @@ tablet_update_button(struct tablet_dispatch *tablet,
 	assert(button < 32);
 
 	if (enable) {
-		(*flags) |= 1 << button;
+		(*mask) |= 1 << button;
 		tablet_set_status(tablet, TABLET_BUTTONS_PRESSED);
 	} else {
-		(*flags) &= ~(1 << button);
+		(*mask) &= ~(1 << button);
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
 	}
 }
