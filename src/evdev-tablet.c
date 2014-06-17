@@ -226,7 +226,9 @@ tablet_process_misc(struct tablet_dispatch *tablet,
 		}
 		break;
 	default:
-		log_info("Unhandled MSC event code %#x\n", e->code);
+		log_info("Unhandled MSC event code %s (%#x)\n",
+			 libevdev_event_code_get_name(EV_MSC, e->code),
+			 e->code);
 		break;
 	}
 }
@@ -421,7 +423,9 @@ tablet_process(struct evdev_dispatch *dispatch,
 		tablet_flush(tablet, device, time);
 		break;
 	default:
-		log_error("Unexpected event type %#x\n", e->type);
+		log_error("Unexpected event type %s (%#x)\n",
+			  libevdev_event_type_get_name(e->type),
+			  e->type);
 		break;
 	}
 }
