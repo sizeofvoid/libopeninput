@@ -141,6 +141,9 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 		switch (a) {
 		case LIBINPUT_TABLET_AXIS_X:
 		case LIBINPUT_TABLET_AXIS_Y:
+			tablet->axes[a] = evdev_convert_to_mm(absinfo,
+							      absinfo->value);
+			break;
 		case LIBINPUT_TABLET_AXIS_DISTANCE:
 			tablet->axes[a] = absinfo->value;
 			break;

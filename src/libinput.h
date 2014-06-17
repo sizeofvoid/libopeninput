@@ -861,11 +861,11 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
  *
  * Return the axis value of a given axis for a tablet. The interpretation of the
  * value is dependent on the axis:
- * - @ref LIBINPUT_TABLET_AXIS_X and @ref LIBINPUT_TABLET_AXIS_Y - the raw X and
- *   Y coordinates of the tablet tool. By default these are not transformed,
- *   however libinput provides libinput_event_tablet_get_x_transformed() and
- *   libinput_event_tablet_get_y_transformed() for transforming each respective
- *   axis value.
+ * - @ref LIBINPUT_TABLET_AXIS_X and @ref LIBINPUT_TABLET_AXIS_Y - the X and
+ *   Y coordinates of the tablet tool, in mm from the top left corner of the
+ *   tablet. Use libinput_event_tablet_get_x_transformed() and
+ *   libinput_event_tablet_get_y_transformed() for transforming each
+ *   respective axis value.
  * - @ref LIBINPUT_TABLET_AXIS_DISTANCE - Approximately how many millimeters
  *   away from the tablet's sensor the tool is
  * - @ref LIBINPUT_TABLET_AXIS_PRESSURE - The current pressure being applied on
