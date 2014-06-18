@@ -343,7 +343,12 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet)
 		tablet->axes[LIBINPUT_TABLET_AXIS_DISTANCE] = 0;
 	} else if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_AXIS_PRESSURE) &&
 		   !tablet_has_status(tablet, TABLET_STYLUS_IN_CONTACT)) {
-		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_AXIS_PRESSURE);
+		/* Make sure that the last axis value sent to the caller is a 0 */
+		if (tablet->axes[LIBINPUT_TABLET_AXIS_PRESSURE] == 0)
+			clear_bit(tablet->changed_axes,
+				  LIBINPUT_TABLET_AXIS_PRESSURE);
+		else
+			tablet->axes[LIBINPUT_TABLET_AXIS_PRESSURE] = 0;
 	}
 }
 
