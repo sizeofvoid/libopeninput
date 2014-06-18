@@ -866,8 +866,8 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
  *   tablet. Use libinput_event_tablet_get_x_transformed() and
  *   libinput_event_tablet_get_y_transformed() for transforming each
  *   respective axis value.
- * - @ref LIBINPUT_TABLET_AXIS_DISTANCE - Approximately how many millimeters
- *   away from the tablet's sensor the tool is
+ * - @ref LIBINPUT_TABLET_AXIS_DISTANCE - The distance from the tablet's
+ *   sensor, normalized from 0 to 1
  * - @ref LIBINPUT_TABLET_AXIS_PRESSURE - The current pressure being applied on
  *   the tool in use, normalized from 0 to 1
  * - @ref LIBINPUT_TABLET_AXIS_TILT_VERTICAL and @ref

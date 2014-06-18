@@ -104,7 +104,7 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 }
 
 static inline double
-normalize_pressure(const struct input_absinfo * absinfo) {
+normalize_pressure_or_dist(const struct input_absinfo * absinfo) {
 	double range = absinfo->maximum - absinfo->minimum + 1;
 	double value = (absinfo->value + absinfo->minimum) / range;
 
@@ -145,10 +145,8 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 							      absinfo->value);
 			break;
 		case LIBINPUT_TABLET_AXIS_DISTANCE:
-			tablet->axes[a] = absinfo->value;
-			break;
 		case LIBINPUT_TABLET_AXIS_PRESSURE:
-			tablet->axes[a] = normalize_pressure(absinfo);
+			tablet->axes[a] = normalize_pressure_or_dist(absinfo);
 			break;
 		case LIBINPUT_TABLET_AXIS_TILT_VERTICAL:
 		case LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL:
