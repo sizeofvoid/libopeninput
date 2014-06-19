@@ -85,6 +85,7 @@ tablet_mark_all_axes_changed(struct tablet_dispatch *tablet,
 
 static void
 tablet_update_tool(struct tablet_dispatch *tablet,
+		   struct evdev_device *device,
 		   enum libinput_tool_type tool,
 		   bool enabled)
 {
@@ -95,6 +96,7 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 			tablet->current_tool_type = tool;
 			tablet_set_status(tablet, TABLET_TOOL_UPDATED);
 		}
+		tablet_mark_all_axes_changed(tablet, device);
 		tablet_unset_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 	}
 	else
@@ -214,7 +216,7 @@ tablet_process_key(struct tablet_dispatch *tablet,
 	case BTN_TOOL_MOUSE:
 	case BTN_TOOL_LENS:
 		/* These codes have an equivalent libinput_tool value */
-		tablet_update_tool(tablet, e->code, e->value);
+		tablet_update_tool(tablet, device, e->code, e->value);
 		break;
 	case BTN_TOUCH:
 		if (e->value)
