@@ -68,6 +68,22 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 }
 
 static void
+tablet_mark_all_axes_changed(struct tablet_dispatch *tablet,
+			     struct evdev_device *device)
+{
+	enum libinput_tablet_axis a;
+
+	for (a = 0; a < LIBINPUT_TABLET_AXIS_CNT; a++) {
+		if (libevdev_has_event_code(device->evdev,
+					    EV_ABS,
+					    axis_to_evcode(a)))
+			set_bit(tablet->changed_axes, a);
+	}
+
+	tablet_set_status(tablet, TABLET_AXES_UPDATED);
+}
+
+static void
 tablet_update_tool(struct tablet_dispatch *tablet,
 		   enum libinput_tool_type tool,
 		   bool enabled)
@@ -444,20 +460,12 @@ static int
 tablet_init(struct tablet_dispatch *tablet,
 	    struct evdev_device *device)
 {
-	enum libinput_tablet_axis a;
-
 	tablet->base.interface = &tablet_interface;
 	tablet->device = device;
 	tablet->status = TABLET_NONE;
 	tablet->current_tool_type = LIBINPUT_TOOL_NONE;
 
-	/* Mark any axes the tablet has as changed */
-	for (a = 0; a < LIBINPUT_TABLET_AXIS_CNT; a++) {
-		if (libevdev_has_event_code(device->evdev,
-					    EV_ABS,
-					    axis_to_evcode(a)))
-			set_bit(tablet->changed_axes, a);
-	}
+	tablet_mark_all_axes_changed(tablet, device);
 
 	return 0;
 }
