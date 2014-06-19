@@ -427,9 +427,122 @@ START_TEST(normalization)
 }
 END_TEST
 
+START_TEST(tool_serial)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event_tablet *tablet_event;
+	struct libinput_event *event;
+	struct libinput_tool *tool;
+
+	litest_drain_events(li);
+
+	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
+	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	libinput_dispatch(li);
+	while ((event = libinput_get_event(li))) {
+		if (libinput_event_get_type(event) ==
+		    LIBINPUT_EVENT_TABLET_TOOL_UPDATE) {
+			tablet_event = libinput_event_get_tablet_event(event);
+			tool = libinput_event_tablet_get_tool(tablet_event);
+
+			ck_assert_uint_eq(libinput_tool_get_serial(tool), 1000);
+		}
+
+		libinput_event_destroy(event);
+	}
+}
+END_TEST
+
+START_TEST(serial_changes_tool)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event_tablet *tablet_event;
+	struct libinput_event *event;
+	struct libinput_tool *tool;
+	bool tool_updated = false;
+
+	litest_drain_events(li);
+
+	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
+	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	litest_drain_events(li);
+
+	litest_event(dev, EV_MSC, MSC_SERIAL, 2000);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	libinput_dispatch(li);
+	while ((event = libinput_get_event(li))) {
+		if (libinput_event_get_type(event) ==
+		    LIBINPUT_EVENT_TABLET_TOOL_UPDATE) {
+			tablet_event = libinput_event_get_tablet_event(event);
+			tool = libinput_event_tablet_get_tool(tablet_event);
+
+			ck_assert_uint_eq(libinput_tool_get_serial(tool), 2000);
+			tool_updated = true;
+		}
+
+		libinput_event_destroy(event);
+	}
+	ck_assert(tool_updated);
+}
+END_TEST
+
+START_TEST(invalid_serials)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	bool tool_updated = false;
+
+	litest_drain_events(li);
+
+	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
+	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_drain_events(li);
+
+	litest_event(dev, EV_MSC, MSC_SERIAL, -1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	libinput_dispatch(li);
+	while ((event = libinput_get_event(li))) {
+		if (libinput_event_get_type(event) ==
+		    LIBINPUT_EVENT_TABLET_TOOL_UPDATE)
+			tool_updated = true;
+
+		libinput_event_destroy(event);
+	}
+	ck_assert(!tool_updated);
+
+	/* Make sure libinput doesn't report a tool update when the serial
+	 * number goes back from -1 to what it was previously */
+	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	libinput_dispatch(li);
+	while ((event = libinput_get_event(li))) {
+		if (libinput_event_get_type(event) ==
+		    LIBINPUT_EVENT_TABLET_TOOL_UPDATE)
+			tool_updated = true;
+
+		libinput_event_destroy(event);
+	}
+	ck_assert(!tool_updated);
+}
+END_TEST
+
 int
 main(int argc, char **argv)
 {
+	litest_add("tablet:tool_serial", tool_serial, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
+	litest_add("tablet:tool_serial", serial_changes_tool, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
+	litest_add("tablet:tool_serial", invalid_serials, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_out_clear_buttons, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_in_out, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", bad_distance_events, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);

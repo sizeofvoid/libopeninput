@@ -64,6 +64,7 @@ enum litest_device_feature {
 	LITEST_TOPBUTTONPAD = 1 << 9,
 	LITEST_TABLET = 1 << 10,
 	LITEST_DISTANCE = 1 << 11,
+	LITEST_TOOL_SERIAL = 1 << 12,
 };
 
 struct litest_device {

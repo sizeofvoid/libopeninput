@@ -125,7 +125,7 @@ static int events[] = {
 
 struct litest_test_device litest_wacom_cintiq_tablet_device = {
 	.type = LITEST_WACOM_CINTIQ,
-	.features = LITEST_TABLET | LITEST_DISTANCE,
+	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL,
 	.shortname = "wacom-cintiq-tablet",
 	.setup = litest_wacom_cintiq_tablet_setup,
 	.interface = &interface,
