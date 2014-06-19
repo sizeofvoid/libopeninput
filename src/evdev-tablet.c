@@ -50,9 +50,6 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 	case ABS_PRESSURE:
 	case ABS_TILT_X:
 	case ABS_TILT_Y:
-		tablet_unset_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
-
-		/* Fall through */
 	case ABS_DISTANCE:
 		axis = evcode_to_axis(e->code);
 		if (axis == LIBINPUT_TABLET_AXIS_NONE) {
@@ -77,12 +74,15 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 {
 	assert(tool != LIBINPUT_TOOL_NONE);
 
-	if (enabled && tool != tablet->current_tool_type) {
-		tablet->current_tool_type = tool;
-		tablet_set_status(tablet, TABLET_TOOL_UPDATED);
+	if (enabled) {
+		if (tool != tablet->current_tool_type) {
+			tablet->current_tool_type = tool;
+			tablet_set_status(tablet, TABLET_TOOL_UPDATED);
+		}
+		tablet_unset_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 	}
-	else if (!enabled)
-		tablet_set_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
+	else
+		tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 }
 
 static inline double
@@ -141,10 +141,14 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 		axis_update_needed = true;
 	}
 
-	if (axis_update_needed) {
-		tablet_notify_axis(base, time, tablet->changed_axes, tablet->axes);
-		memset(tablet->changed_axes, 0, sizeof(tablet->changed_axes));
-	}
+	if (axis_update_needed &&
+	    !tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))
+		tablet_notify_axis(base,
+				   time,
+				   tablet->changed_axes,
+				   tablet->axes);
+
+	memset(tablet->changed_axes, 0, sizeof(tablet->changed_axes));
 }
 
 static void
@@ -223,6 +227,8 @@ tablet_process_misc(struct tablet_dispatch *tablet,
 		    e->value != -1) {
 			tablet->current_tool_serial = e->value;
 			tablet_set_status(tablet, TABLET_TOOL_UPDATED);
+			tablet_unset_status(tablet,
+					    TABLET_TOOL_OUT_OF_PROXIMITY);
 		}
 		break;
 	default:
@@ -334,11 +340,8 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet)
 	 * properly
 	 */
 	if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_AXIS_DISTANCE) &&
-	    ((distance->value > distance->minimum &&
-	      pressure->value > pressure->minimum) ||
-	     (tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY) &&
-	      (distance->value <= distance->minimum ||
-	       distance->value >= distance->maximum)))) {
+	    distance->value > distance->minimum &&
+	    pressure->value > pressure->minimum) {
 		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_AXIS_DISTANCE);
 		tablet->axes[LIBINPUT_TABLET_AXIS_DISTANCE] = 0;
 	} else if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_AXIS_PRESSURE) &&
@@ -357,28 +360,19 @@ tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
 	     uint32_t time)
 {
-	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
+	if (tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY)) {
 		/* Release all stylus buttons */
 		tablet->button_state.stylus_buttons = 0;
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
+	} else if (tablet_has_status(tablet, TABLET_TOOL_UPDATED)) {
+		tablet_notify_tool(tablet, device, time);
+		tablet_unset_status(tablet, TABLET_TOOL_UPDATED);
+	}
 
-		/* FIXME: This behavior is not ideal and this memset should be
-		 * removed */
-		memset(&tablet->changed_axes, 0, sizeof(tablet->changed_axes));
-		memset(&tablet->axes, 0, sizeof(tablet->axes));
-
+	if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
+		sanitize_tablet_axes(tablet);
+		tablet_check_notify_axes(tablet, device, time);
 		tablet_unset_status(tablet, TABLET_AXES_UPDATED);
-	} else {
-		if (tablet_has_status(tablet, TABLET_TOOL_UPDATED)) {
-			tablet_notify_tool(tablet, device, time);
-			tablet_unset_status(tablet, TABLET_TOOL_UPDATED);
-		}
-
-		if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
-			sanitize_tablet_axes(tablet);
-			tablet_check_notify_axes(tablet, device, time);
-			tablet_unset_status(tablet, TABLET_AXES_UPDATED);
-		}
 	}
 
 	if (tablet_has_status(tablet, TABLET_BUTTONS_RELEASED)) {
@@ -393,11 +387,8 @@ tablet_flush(struct tablet_dispatch *tablet,
 		tablet_unset_status(tablet, TABLET_BUTTONS_PRESSED);
 	}
 
-	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
+	if (tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))
 		tablet_notify_proximity_out(&device->base, time);
-		tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
-		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
-	}
 
 	/* Update state */
 	memcpy(&tablet->prev_button_state,
