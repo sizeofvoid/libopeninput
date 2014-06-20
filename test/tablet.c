@@ -537,6 +537,55 @@ START_TEST(invalid_serials)
 }
 END_TEST
 
+START_TEST(pad_buttons_ignored)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ -1, -1 }
+	};
+	int button;
+
+	litest_drain_events(li);
+
+	for (button = BTN_0; button < BTN_MOUSE; button++) {
+		litest_event(dev, EV_KEY, button, 1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_event(dev, EV_KEY, button, 0);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+
+	while ((event = libinput_get_event(li))) {
+		ck_assert_int_ne(libinput_event_get_type,
+				 LIBINPUT_EVENT_TABLET_BUTTON);
+		libinput_event_destroy(event);
+		libinput_dispatch(li);
+	}
+
+	/* same thing while in prox */
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	for (button = BTN_0; button < BTN_MOUSE; button++) {
+		litest_event(dev, EV_KEY, button, 1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_event(dev, EV_KEY, button, 0);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+	litest_tablet_proximity_out(dev);
+
+	libinput_dispatch(li);
+	while ((event = libinput_get_event(li))) {
+		ck_assert_int_ne(libinput_event_get_type,
+				 LIBINPUT_EVENT_TABLET_BUTTON);
+		libinput_event_destroy(event);
+		libinput_dispatch(li);
+	}
+}
+END_TEST
+
 int
 main(int argc, char **argv)
 {
@@ -548,6 +597,7 @@ main(int argc, char **argv)
 	litest_add("tablet:proximity", bad_distance_events, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add("tablet:motion", motion, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:normalization", normalization, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:pad", pad_buttons_ignored, LITEST_TABLET, LITEST_ANY);
 
 	return litest_run(argc, argv);
 }

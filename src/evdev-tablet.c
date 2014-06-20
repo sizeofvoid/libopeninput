@@ -179,8 +179,7 @@ tablet_update_button(struct tablet_dispatch *tablet,
 
 	/* XXX: This really depends on the expected buttons fitting in the mask */
 	if (evcode >= BTN_MISC && evcode <= BTN_TASK) {
-		mask = &tablet->button_state.pad_buttons;
-		button = evcode - BTN_MISC;
+		return;
 	} else if (evcode >= BTN_TOUCH && evcode <= BTN_STYLUS2) {
 		mask = &tablet->button_state.stylus_buttons;
 		button = evcode - BTN_TOUCH;
@@ -325,20 +324,15 @@ tablet_notify_buttons(struct tablet_dispatch *tablet,
 		      uint32_t time,
 		      enum libinput_button_state state)
 {
-	uint32_t pad_buttons, stylus_buttons;
+	uint32_t stylus_buttons;
 
-	if (state == LIBINPUT_BUTTON_STATE_PRESSED) {
-		pad_buttons = tablet_get_pressed_buttons(tablet, pad_buttons);
+	if (state == LIBINPUT_BUTTON_STATE_PRESSED)
 		stylus_buttons =
 			tablet_get_pressed_buttons(tablet, stylus_buttons);
-	} else {
-		pad_buttons = tablet_get_released_buttons(tablet, pad_buttons);
+	else
 		stylus_buttons =
 			tablet_get_released_buttons(tablet, stylus_buttons);
-	}
 
-	tablet_notify_button_mask(tablet, device, time,
-				  pad_buttons, BTN_MISC, state);
 	tablet_notify_button_mask(tablet, device, time,
 				  stylus_buttons, BTN_TOUCH, state);
 }

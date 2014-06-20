@@ -38,7 +38,6 @@ enum tablet_status {
 };
 
 struct button_state {
-	uint32_t pad_buttons; /* bitmask of evcode - BTN_MISC */
 	uint32_t stylus_buttons; /* bitmask of evcode - BTN_TOUCH */
 };
 
