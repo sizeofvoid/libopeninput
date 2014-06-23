@@ -67,7 +67,7 @@ struct evdev_device {
 	const char *devname;
 	int fd;
 	struct {
-		int min_x, max_x, min_y, max_y;
+		const struct input_absinfo *absinfo_x, *absinfo_y;
 		int32_t x, y;
 
 		int32_t seat_slot;
@@ -152,6 +152,11 @@ int
 evdev_device_has_capability(struct evdev_device *device,
 			    enum libinput_device_capability capability);
 
+int
+evdev_device_get_size(struct evdev_device *device,
+		      double *w,
+		      double *h);
+
 double
 evdev_device_transform_x(struct evdev_device *device,
 			 double x,
@@ -167,5 +172,12 @@ evdev_device_remove(struct evdev_device *device);
 
 void
 evdev_device_destroy(struct evdev_device *device);
+
+static inline double
+evdev_convert_to_mm(const struct input_absinfo *absinfo, double v)
+{
+	double value = v - absinfo->minimum;
+	return value/absinfo->resolution;
+}
 
 #endif /* EVDEV_H */

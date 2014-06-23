@@ -538,11 +538,9 @@ libinput_event_pointer_get_dy(struct libinput_event_pointer *event);
 /**
  * @ingroup event_pointer
  *
- * Return the current absolute x coordinate of the pointer event.
- *
- * The coordinate is in a device specific coordinate space; to get the
- * corresponding output screen coordinate, use
- * libinput_event_pointer_get_x_transformed().
+ * Return the current absolute x coordinate of the pointer event, in mm from
+ * the top left corner of the device. To get the corresponding output screen
+ * coordinate, use libinput_event_pointer_get_x_transformed().
  *
  * For pointer events that are not of type
  * LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE, this function returns 0.
@@ -558,11 +556,9 @@ libinput_event_pointer_get_absolute_x(struct libinput_event_pointer *event);
 /**
  * @ingroup event_pointer
  *
- * Return the current absolute y coordinate of the pointer event.
- *
- * The coordinate is in a device specific coordinate space; to get the
- * corresponding output screen coordinate, use
- * libinput_event_pointer_get_y_transformed().
+ * Return the current absolute y coordinate of the pointer event, in mm from
+ * the top left corner of the device. To get the corresponding output screen
+ * coordinate, use libinput_event_pointer_get_x_transformed().
  *
  * For pointer events that are not of type
  * LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE, this function returns 0.
@@ -763,11 +759,9 @@ libinput_event_touch_get_seat_slot(struct libinput_event_touch *event);
 /**
  * @ingroup event_touch
  *
- * Return the current absolute x coordinate of the touch event.
- *
- * The coordinate is in a device specific coordinate space; to get the
- * corresponding output screen coordinate, use
- * libinput_event_touch_get_x_transformed().
+ * Return the current absolute x coordinate of the touch event, in mm from
+ * the top left corner of the device. To get the corresponding output screen
+ * coordinate, use libinput_event_touch_get_x_transformed().
  *
  * @note this function should only be called for LIBINPUT_EVENT_TOUCH_DOWN and
  * LIBINPUT_EVENT_TOUCH_MOTION.
@@ -781,11 +775,9 @@ libinput_event_touch_get_x(struct libinput_event_touch *event);
 /**
  * @ingroup event_touch
  *
- * Return the current absolute y coordinate of the touch event.
- *
- * The coordinate is in a device specific coordinate space; to get the
- * corresponding output screen coordinate, use
- * libinput_event_touch_get_y_transformed().
+ * Return the current absolute y coordinate of the touch event, in mm from
+ * the top left corner of the device. To get the corresponding output screen
+ * coordinate, use libinput_event_touch_get_y_transformed().
  *
  * For LIBINPUT_EVENT_TOUCH_UP 0 is returned.
  *
@@ -1603,6 +1595,25 @@ libinput_device_calibrate(struct libinput_device *device,
 int
 libinput_device_has_capability(struct libinput_device *device,
 			       enum libinput_device_capability capability);
+
+/**
+ * @ingroup device
+ *
+ * Get the physical size of a device in mm, where meaningful. This function
+ * only succeeds on devices with the required data, i.e. tablets, touchpads
+ * and touchscreens.
+ *
+ * If this function returns nonzero, width and height are unmodified.
+ *
+ * @param device The device
+ * @param width Set to the width of the device
+ * @param height Set to the height of the device
+ * @return 0 on success, or nonzero otherwise
+ */
+int
+libinput_device_get_size(struct libinput_device *device,
+			 double *width,
+			 double *height);
 
 #ifdef __cplusplus
 }
