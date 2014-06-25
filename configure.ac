@@ -1,7 +1,7 @@
 AC_PREREQ([2.64])
 
 m4_define([libinput_major_version], [0])
-m4_define([libinput_minor_version], [3])
+m4_define([libinput_minor_version], [4])
 m4_define([libinput_micro_version], [0])
 m4_define([libinput_version],
           [libinput_major_version.libinput_minor_version.libinput_micro_version])
@@ -30,7 +30,7 @@ AM_INIT_AUTOMAKE([1.11 foreign no-dist-gzip dist-xz])
 # - If binary compatibility has been broken (eg removed or changed interfaces)
 #   change to C+1:0:0
 # - If the interface is the same as the previous version, change to C:R+1:A
-LIBINPUT_LT_VERSION=2:0:0
+LIBINPUT_LT_VERSION=3:0:0
 AC_SUBST(LIBINPUT_LT_VERSION)
 
 AM_SILENT_RULES([yes])
@@ -73,6 +73,21 @@ else
 	have_doxygen="yes"
 fi
 AM_CONDITIONAL([HAVE_DOXYGEN], [test "x$have_doxygen" = "xyes"])
+
+AC_ARG_ENABLE(event-gui,
+	      AS_HELP_STRING([--enable-event-gui], [Build the GUI event viewer (default=auto)]),
+	      [build_eventgui="$enableval"],
+	      [build_eventgui="auto"])
+PKG_CHECK_EXISTS([cairo glib-2.0 gtk+-3.0], [HAVE_GUILIBS="yes"], [HAVE_GUILIBS="no"])
+
+if test "x$build_eventgui" = "xauto"; then
+	build_eventgui="$HAVE_GUILIBS"
+fi
+if test "x$build_eventgui" = "xyes"; then
+	PKG_CHECK_MODULES(CAIRO, [cairo])
+	PKG_CHECK_MODULES(GTK, [glib-2.0 gtk+-3.0])
+fi
+AM_CONDITIONAL(BUILD_EVENTGUI, [test "x$build_eventgui" = "xyes"])
 
 AC_ARG_ENABLE(tests,
 	      AS_HELP_STRING([--enable-tests], [Build the tests (default=auto)]),

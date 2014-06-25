@@ -53,7 +53,8 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 	case ABS_DISTANCE:
 		axis = evcode_to_axis(e->code);
 		if (axis == LIBINPUT_TABLET_AXIS_NONE) {
-			log_bug_libinput("Invalid ABS event code %#x\n",
+			log_bug_libinput(device->base.seat->libinput,
+					 "Invalid ABS event code %#x\n",
 					 e->code);
 			break;
 		}
@@ -62,7 +63,8 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 		tablet_set_status(tablet, TABLET_AXES_UPDATED);
 		break;
 	default:
-		log_info("Unhandled ABS event code %#x\n", e->code);
+		log_info(device->base.seat->libinput,
+			 "Unhandled ABS event code %#x\n", e->code);
 		break;
 	}
 }
@@ -153,7 +155,8 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			tablet->axes[a] = normalize_tilt(absinfo);
 			break;
 		default:
-			log_bug_libinput("Invalid axis update: %d\n", a);
+			log_bug_libinput(device->base.seat->libinput,
+					 "Invalid axis update: %d\n", a);
 			break;
 		}
 
@@ -184,7 +187,8 @@ tablet_update_button(struct tablet_dispatch *tablet,
 		mask = &tablet->button_state.stylus_buttons;
 		button = evcode - BTN_TOUCH;
 	} else {
-		log_info("Unhandled button %s (%#x)\n",
+		log_info(tablet->device->base.seat->libinput,
+			 "Unhandled button %s (%#x)\n",
 			 libevdev_event_code_get_name(EV_KEY, evcode), evcode);
 		return;
 	}
@@ -250,7 +254,8 @@ tablet_process_misc(struct tablet_dispatch *tablet,
 		}
 		break;
 	default:
-		log_info("Unhandled MSC event code %s (%#x)\n",
+		log_info(device->base.seat->libinput,
+			 "Unhandled MSC event code %s (%#x)\n",
 			 libevdev_event_code_get_name(EV_MSC, e->code),
 			 e->code);
 		break;
@@ -432,7 +437,8 @@ tablet_process(struct evdev_dispatch *dispatch,
 		tablet_flush(tablet, device, time);
 		break;
 	default:
-		log_error("Unexpected event type %s (%#x)\n",
+		log_error(device->base.seat->libinput,
+			  "Unexpected event type %s (%#x)\n",
 			  libevdev_event_type_get_name(e->type),
 			  e->type);
 		break;

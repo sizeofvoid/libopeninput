@@ -33,6 +33,7 @@ extern "C" {
 
 #define LIBINPUT_ATTRIBUTE_PRINTF(_format, _args) \
 	__attribute__ ((format (printf, _format, _args)))
+#define LIBINPUT_ATTRIBUTE_DEPRECATED __attribute__ ((deprecated))
 
 /**
  * @mainpage
@@ -49,7 +50,7 @@ extern "C" {
  *
  * Software button areas
  * =====================
- * On most touchpads, the bottom area of the touchpad is split into a a left
+ * On most touchpads, the bottom area of the touchpad is split into a left
  * and a right-button area. Pressing the touchpad down with a finger in
  * those areas will generate clicks as shown in the diagram below:
  *
@@ -131,9 +132,9 @@ enum libinput_device_capability {
  * Logical state of a key. Note that the logical state may not represent
  * the physical state of the key.
  */
-enum libinput_keyboard_key_state {
-	LIBINPUT_KEYBOARD_KEY_STATE_RELEASED = 0,
-	LIBINPUT_KEYBOARD_KEY_STATE_PRESSED = 1
+enum libinput_key_state {
+	LIBINPUT_KEY_STATE_RELEASED = 0,
+	LIBINPUT_KEY_STATE_PRESSED = 1
 };
 
 /**
@@ -165,8 +166,8 @@ enum libinput_button_state {
  * Axes on a device that are not x or y coordinates.
  */
 enum libinput_pointer_axis {
-	LIBINPUT_POINTER_AXIS_VERTICAL_SCROLL = 0,
-	LIBINPUT_POINTER_AXIS_HORIZONTAL_SCROLL = 1
+	LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL = 0,
+	LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL = 1,
 };
 
 /**
@@ -462,7 +463,7 @@ libinput_event_keyboard_get_key(struct libinput_event_keyboard *event);
  *
  * @return The state change of the key
  */
-enum libinput_keyboard_key_state
+enum libinput_key_state
 libinput_event_keyboard_get_key_state(struct libinput_event_keyboard *event);
 
 
@@ -681,8 +682,8 @@ libinput_event_pointer_get_axis(struct libinput_event_pointer *event);
  *
  * Return the axis value of the given axis. The interpretation of the value
  * is dependent on the axis. For the two scrolling axes
- * LIBINPUT_POINTER_AXIS_VERTICAL_SCROLL and
- * LIBINPUT_POINTER_AXIS_HORIZONTAL_SCROLL, the value of the event is in
+ * LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL and
+ * LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, the value of the event is in
  * relative scroll units, with the positive direction being down or right,
  * respectively. The dimension of a scroll unit is equal to one unit of
  * motion in the respective axis, where applicable (e.g. touchpad two-finger
@@ -1051,7 +1052,7 @@ struct libinput_interface {
 	 * @param path The device path to open
 	 * @param flags Flags as defined by open(2)
 	 * @param user_data The user_data provided in
-	 * libinput_udev_create_for_seat()
+	 * libinput_udev_create_context()
 	 *
 	 * @return the file descriptor, or a negative errno on failure.
 	 */
@@ -1061,7 +1062,7 @@ struct libinput_interface {
 	 *
 	 * @param fd The file descriptor to close
 	 * @param user_data The user_data provided in
-	 * libinput_udev_create_for_seat()
+	 * libinput_udev_create_context()
 	 */
 	void (*close_restricted)(int fd, void *user_data);
 };
@@ -1069,31 +1070,45 @@ struct libinput_interface {
 /**
  * @ingroup base
  *
- * Create a new libinput context from udev, for input devices matching
- * the given seat ID. New devices or devices removed will appear as events
- * during libinput_dispatch.
- *
- * libinput_udev_create_for_seat() succeeds even if no input device is
- * available in this seat, or if devices are available but fail to open in
- * @ref libinput_interface::open_restricted. Devices that do not have the
- * minimum capabilities to be recognized as pointer, keyboard or touch
- * device are ignored. Such devices and those that failed to open
- * ignored until the next call to libinput_resume().
+ * Create a new libinput context from udev. This context is inactive until
+ * assigned a seat ID with libinput_udev_assign_seat().
  *
  * @param interface The callback interface
  * @param user_data Caller-specific data passed to the various callback
  * interfaces.
  * @param udev An already initialized udev context
- * @param seat_id A seat identifier. This string must not be NULL.
  *
- * @return An initialized libinput context, ready to handle events or NULL on
- * error.
+ * @return An initialized, but inactive libinput context or NULL on error
  */
 struct libinput *
-libinput_udev_create_for_seat(const struct libinput_interface *interface,
-			      void *user_data,
-			      struct udev *udev,
-			      const char *seat_id);
+libinput_udev_create_context(const struct libinput_interface *interface,
+			     void *user_data,
+			     struct udev *udev);
+
+/**
+ * @ingroup base
+ *
+ * Assign a seat to this libinput context. New devices or the removal of
+ * existing devices will appear as events during libinput_dispatch().
+ *
+ * libinput_udev_assign_seat() succeeds even if no input devices are currently
+ * available on this seat, or if devices are available but fail to open in
+ * @ref libinput_interface::open_restricted. Devices that do not have the
+ * minimum capabilities to be recognized as pointer, keyboard or touch
+ * device are ignored. Such devices and those that failed to open
+ * ignored until the next call to libinput_resume().
+ *
+ * This function may only be called once per context.
+ *
+ * @param libinput A libinput context initialized with
+ * libinput_udev_create_context()
+ * @param seat_id A seat identifier. This string must not be NULL.
+ *
+ * @return 0 on success or -1 on failure.
+ */
+int
+libinput_udev_assign_seat(struct libinput *libinput,
+		       const char *seat_id);
 
 /**
  * @ingroup base
@@ -1104,6 +1119,9 @@ libinput_udev_create_for_seat(const struct libinput_interface *interface,
  *
  * The context is fully initialized but will not generate events until at
  * least one device has been added.
+ *
+ * The reference count of the context is initialized to 1. See @ref
+ * libinput_unref.
  *
  * @param interface The callback interface
  * @param user_data Caller-specific data passed to the various callback
@@ -1133,7 +1151,7 @@ libinput_path_create_context(const struct libinput_interface *interface,
  * @return The newly initiated device on success, or NULL on failure.
  *
  * @note It is an application bug to call this function on a libinput
- * context initialized with libinput_udev_create_for_seat().
+ * context initialized with libinput_udev_create_context().
  */
 struct libinput_device *
 libinput_path_add_device(struct libinput *libinput,
@@ -1155,7 +1173,7 @@ libinput_path_add_device(struct libinput *libinput,
  * @param device A libinput device
  *
  * @note It is an application bug to call this function on a libinput
- * context initialized with libinput_udev_create_for_seat().
+ * context initialized with libinput_udev_create_context().
  */
 void
 libinput_path_remove_device(struct libinput_device *device);
@@ -1254,13 +1272,27 @@ libinput_suspend(struct libinput *libinput);
 /**
  * @ingroup base
  *
- * Destroy the libinput context. After this, object references associated with
- * the destroyed context are invalid and may not be interacted with.
+ * Add a reference to the context. A context is destroyed whenever the
+ * reference count reaches 0. See @ref libinput_unref.
+ *
+ * @param libinput A previously initialized valid libinput context
+ * @return The passed libinput context
+ */
+struct libinput *
+libinput_ref(struct libinput *libinput);
+
+/**
+ * @ingroup base
+ *
+ * Dereference the libinput context. After this, the context may have been
+ * destroyed, if the last reference was dereferenced. If so, the context is
+ * invalid and may not be interacted with.
  *
  * @param libinput A previously initialized libinput context
+ * @return NULL if context was destroyed otherwise the passed context
  */
-void
-libinput_destroy(struct libinput *libinput);
+struct libinput *
+libinput_unref(struct libinput *libinput);
 
 /**
  * @ingroup base
@@ -1270,13 +1302,15 @@ libinput_destroy(struct libinput *libinput);
  *
  * The default log priority is LIBINPUT_LOG_PRIORITY_ERROR.
  *
+ * @param libinput A previously initialized libinput context
  * @param priority The minimum priority of log messages to print.
  *
  * @see libinput_log_set_handler
  * @see libinput_log_get_priority
  */
 void
-libinput_log_set_priority(enum libinput_log_priority priority);
+libinput_log_set_priority(struct libinput *libinput,
+			  enum libinput_log_priority priority);
 
 /**
  * @ingroup base
@@ -1286,30 +1320,30 @@ libinput_log_set_priority(enum libinput_log_priority priority);
  *
  * The default log priority is LIBINPUT_LOG_PRIORITY_ERROR.
  *
+ * @param libinput A previously initialized libinput context
  * @return The minimum priority of log messages to print.
  *
  * @see libinput_log_set_handler
  * @see libinput_log_set_priority
  */
 enum libinput_log_priority
-libinput_log_get_priority(void);
+libinput_log_get_priority(const struct libinput *libinput);
 
 /**
  * @ingroup base
  *
  * Log handler type for custom logging.
  *
+ * @param libinput The libinput context
  * @param priority The priority of the current message
- * @param user_data Caller-specific data pointer as previously passed into
- * libinput_log_set_handler()
  * @param format Message format in printf-style
  * @param args Message arguments
  *
  * @see libinput_set_log_priority
  * @see libinput_log_set_handler
  */
-typedef void (*libinput_log_handler)(enum libinput_log_priority priority,
-				     void *user_data,
+typedef void (*libinput_log_handler)(struct libinput *libinput,
+				     enum libinput_log_priority priority,
 				     const char *format, va_list args)
 	   LIBINPUT_ATTRIBUTE_PRINTF(3, 0);
 
@@ -1322,6 +1356,7 @@ typedef void (*libinput_log_handler)(enum libinput_log_priority priority,
  *
  * The default log handler prints to stderr.
  *
+ * @param libinput A previously initialized libinput context
  * @param log_handler The log handler for library messages.
  * @param user_data Caller-specific data pointer, passed into the log
  * handler.
@@ -1329,8 +1364,8 @@ typedef void (*libinput_log_handler)(enum libinput_log_priority priority,
  * @see libinput_log_set_handler
  */
 void
-libinput_log_set_handler(libinput_log_handler log_handler,
-			 void *user_data);
+libinput_log_set_handler(struct libinput *libinput,
+			 libinput_log_handler log_handler);
 
 /**
  * @defgroup seat Initialization and manipulation of seats
@@ -1367,8 +1402,9 @@ libinput_log_set_handler(libinput_log_handler log_handler,
  * the seat correctly to avoid dangling pointers.
  *
  * @param seat A previously obtained seat
+ * @return The passed seat
  */
-void
+struct libinput_seat *
 libinput_seat_ref(struct libinput_seat *seat);
 
 /**
@@ -1380,8 +1416,9 @@ libinput_seat_ref(struct libinput_seat *seat);
  * the seat correctly to avoid dangling pointers.
  *
  * @param seat A previously obtained seat
+ * @return NULL if seat was destroyed, otherwise the passed seat
  */
-void
+struct libinput_seat *
 libinput_seat_unref(struct libinput_seat *seat);
 
 /**
@@ -1415,7 +1452,7 @@ libinput_seat_get_user_data(struct libinput_seat *seat);
  *
  * Return the physical name of the seat. For libinput contexts created from
  * udev, this is always the same value as passed into
- * libinput_udev_create_for_seat() and all seats from that context will have
+ * libinput_udev_assign_seat() and all seats from that context will have
  * the same physical name.
  *
  * The physical name of the seat is one that is usually set by the system or
@@ -1454,8 +1491,9 @@ libinput_seat_get_logical_name(struct libinput_seat *seat);
  * the device correctly to avoid dangling pointers.
  *
  * @param device A previously obtained device
+ * @return The passed device
  */
-void
+struct libinput_device *
 libinput_device_ref(struct libinput_device *device);
 
 /**
@@ -1467,8 +1505,9 @@ libinput_device_ref(struct libinput_device *device);
  * the device correctly to avoid dangling pointers.
  *
  * @param device A previously obtained device
+ * @return NULL if device was destroyed, otherwise the passed device
  */
-void
+struct libinput_device *
 libinput_device_unref(struct libinput_device *device);
 
 /**

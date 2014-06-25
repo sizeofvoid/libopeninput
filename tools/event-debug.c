@@ -131,6 +131,15 @@ static const struct libinput_interface interface = {
 	.close_restricted = close_restricted,
 };
 
+static void
+log_handler(struct libinput *li,
+	    enum libinput_log_priority priority,
+	    const char *format,
+	    va_list args)
+{
+	vprintf(format, args);
+}
+
 static int
 open_udev(struct libinput **li)
 {
@@ -140,9 +149,20 @@ open_udev(struct libinput **li)
 		return 1;
 	}
 
-	*li = libinput_udev_create_for_seat(&interface, NULL, udev, seat);
+	*li = libinput_udev_create_context(&interface, NULL, udev);
 	if (!*li) {
 		fprintf(stderr, "Failed to initialize context from udev\n");
+		return 1;
+	}
+
+	if (verbose) {
+		libinput_log_set_handler(*li, log_handler);
+		libinput_log_set_priority(*li, LIBINPUT_LOG_PRIORITY_DEBUG);
+	}
+
+	if (libinput_udev_assign_seat(*li, seat)) {
+		fprintf(stderr, "Failed to set seat\n");
+		libinput_unref(*li);
 		return 1;
 	}
 
@@ -160,10 +180,15 @@ open_device(struct libinput **li, const char *path)
 		return 1;
 	}
 
+	if (verbose) {
+		libinput_log_set_handler(*li, log_handler);
+		libinput_log_set_priority(*li, LIBINPUT_LOG_PRIORITY_DEBUG);
+	}
+
 	device = libinput_path_add_device(*li, path);
 	if (!device) {
 		fprintf(stderr, "Failed to initialized device %s\n", path);
-		libinput_destroy(*li);
+		libinput_unref(*li);
 		return 1;
 	}
 
@@ -259,13 +284,13 @@ static void
 print_key_event(struct libinput_event *ev)
 {
 	struct libinput_event_keyboard *k = libinput_event_get_keyboard_event(ev);
-	enum libinput_keyboard_key_state state;
+	enum libinput_key_state state;
 
 	print_event_time(libinput_event_keyboard_get_time(k));
 	state = libinput_event_keyboard_get_key_state(k);
 	printf("%d %s\n",
 	       libinput_event_keyboard_get_key(k),
-	       state == LIBINPUT_KEYBOARD_KEY_STATE_PRESSED ? "pressed" : "released");
+	       state == LIBINPUT_KEY_STATE_PRESSED ? "pressed" : "released");
 }
 
 static void
@@ -332,10 +357,10 @@ print_pointer_axis_event(struct libinput_event *ev)
 	double val;
 
 	switch (axis) {
-	case LIBINPUT_POINTER_AXIS_VERTICAL_SCROLL:
+	case LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL:
 		ax = "vscroll";
 		break;
-	case LIBINPUT_POINTER_AXIS_HORIZONTAL_SCROLL:
+	case LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL:
 		ax = "hscroll";
 		break;
 	default:
@@ -574,15 +599,6 @@ mainloop(struct libinput *li)
 	close(fds[1].fd);
 }
 
-static void
-log_handler(enum libinput_log_priority priority,
-	    void *user_data,
-	    const char *format,
-	    va_list args)
-{
-	vprintf(format, args);
-}
-
 int
 main(int argc, char **argv)
 {
@@ -591,11 +607,6 @@ main(int argc, char **argv)
 
 	if (parse_args(argc, argv))
 		return 1;
-
-	if (verbose) {
-		libinput_log_set_handler(log_handler, NULL);
-		libinput_log_set_priority(LIBINPUT_LOG_PRIORITY_DEBUG);
-	}
 
 	if (mode == MODE_UDEV) {
 		if (open_udev(&li))
@@ -611,7 +622,7 @@ main(int argc, char **argv)
 
 	mainloop(li);
 
-	libinput_destroy(li);
+	libinput_unref(li);
 	if (udev)
 		udev_unref(udev);
 

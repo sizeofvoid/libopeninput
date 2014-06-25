@@ -44,6 +44,7 @@
 #include "libinput-util.h"
 
 static int in_debugger = -1;
+static int verbose = 0;
 
 struct test {
 	struct list node;
@@ -258,8 +259,8 @@ litest_list_tests(struct list *tests)
 }
 
 static void
-litest_log_handler(enum libinput_log_priority pri,
-		   void *user_data,
+litest_log_handler(struct libinput *libinput,
+		   enum libinput_log_priority pri,
 		   const char *format,
 		   va_list args)
 {
@@ -274,6 +275,23 @@ litest_log_handler(enum libinput_log_priority pri,
 	fprintf(stderr, "litest %s: ", priority);
 	vfprintf(stderr, format, args);
 }
+
+static int
+open_restricted(const char *path, int flags, void *userdata)
+{
+	return open(path, flags);
+}
+
+static void
+close_restricted(int fd, void *userdata)
+{
+	close(fd);
+}
+
+struct libinput_interface interface = {
+	.open_restricted = open_restricted,
+	.close_restricted = close_restricted,
+};
 
 static const struct option opts[] = {
 	{ "list", 0, 0, 'l' },
@@ -312,8 +330,7 @@ litest_run(int argc, char **argv) {
 				litest_list_tests(&all_tests);
 				return 0;
 			case 'v':
-				libinput_log_set_priority(LIBINPUT_LOG_PRIORITY_DEBUG);
-				libinput_log_set_handler(litest_log_handler, NULL);
+				verbose = 1;
 				break;
 			default:
 				fprintf(stderr, "usage: %s [--list]\n", argv[0]);
@@ -342,24 +359,6 @@ litest_run(int argc, char **argv) {
 
 	return failed;
 }
-
-static int
-open_restricted(const char *path, int flags, void *userdata)
-{
-	return open(path, flags);
-}
-
-static void
-close_restricted(int fd, void *userdata)
-{
-	close(fd);
-}
-
-const struct libinput_interface interface = {
-	.open_restricted = open_restricted,
-	.close_restricted = close_restricted,
-};
-
 
 static struct input_absinfo *
 merge_absinfo(const struct input_absinfo *orig,
@@ -491,6 +490,11 @@ litest_create_context(void)
 	struct libinput *libinput =
 		libinput_path_create_context(&interface, NULL);
 	ck_assert_notnull(libinput);
+
+	libinput_log_set_handler(libinput, litest_log_handler);
+	if (verbose)
+		libinput_log_set_priority(libinput, LIBINPUT_LOG_PRIORITY_DEBUG);
+
 	return libinput;
 }
 
@@ -581,7 +585,7 @@ litest_delete_device(struct litest_device *d)
 
 	libinput_device_unref(d->libinput_device);
 	if (d->owns_context)
-		libinput_destroy(d->libinput);
+		libinput_unref(d->libinput);
 	libevdev_free(d->evdev);
 	libevdev_uinput_destroy(d->uinput);
 	memset(d,0, sizeof(*d));
@@ -915,11 +919,13 @@ litest_create_uinput_device_from_description(const char *name,
 		.flat = 0,
 		.resolution = 100
 	};
+	char buf[512];
 
 	dev = libevdev_new();
 	ck_assert(dev != NULL);
 
-	libevdev_set_name(dev, name);
+	snprintf(buf, sizeof(buf), "litest %s", name);
+	libevdev_set_name(dev, buf);
 	if (id) {
 		libevdev_set_id_bustype(dev, id->bustype);
 		libevdev_set_id_vendor(dev, id->vendor);

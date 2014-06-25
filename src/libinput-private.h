@@ -58,7 +58,11 @@ struct libinput {
 
 	const struct libinput_interface *interface;
 	const struct libinput_interface_backend *interface_backend;
+
+	libinput_log_handler log_handler;
+	enum libinput_log_priority log_priority;
 	void *user_data;
+	int refcount;
 };
 
 typedef void (*libinput_seat_destroy_func) (struct libinput_seat *seat);
@@ -97,17 +101,21 @@ struct libinput_tool {
 typedef void (*libinput_source_dispatch_t)(void *data);
 
 
-#define log_debug(...) log_msg(LIBINPUT_LOG_PRIORITY_DEBUG, __VA_ARGS__)
-#define log_info(...) log_msg(LIBINPUT_LOG_PRIORITY_INFO, __VA_ARGS__)
-#define log_error(...) log_msg(LIBINPUT_LOG_PRIORITY_ERROR, __VA_ARGS__)
-#define log_bug_kernel(...) log_msg(LIBINPUT_LOG_PRIORITY_ERROR, "kernel bug: " __VA_ARGS__)
-#define log_bug_libinput(...) log_msg(LIBINPUT_LOG_PRIORITY_ERROR, "libinput bug: " __VA_ARGS__);
-#define log_bug_client(...) log_msg(LIBINPUT_LOG_PRIORITY_ERROR, "client bug: " __VA_ARGS__);
+#define log_debug(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_DEBUG, __VA_ARGS__)
+#define log_info(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_INFO, __VA_ARGS__)
+#define log_error(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, __VA_ARGS__)
+#define log_bug_kernel(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "kernel bug: " __VA_ARGS__)
+#define log_bug_libinput(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "libinput bug: " __VA_ARGS__);
+#define log_bug_client(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "client bug: " __VA_ARGS__);
 
 void
-log_msg(enum libinput_log_priority priority, const char *format, ...);
+log_msg(struct libinput *libinput,
+	enum libinput_log_priority priority,
+	const char *format, ...);
+
 void
-log_msg_va(enum libinput_log_priority priority,
+log_msg_va(struct libinput *libinput,
+	   enum libinput_log_priority priority,
 	   const char *format,
 	   va_list args);
 
@@ -155,7 +163,7 @@ void
 keyboard_notify_key(struct libinput_device *device,
 		    uint32_t time,
 		    uint32_t key,
-		    enum libinput_keyboard_key_state state);
+		    enum libinput_key_state state);
 
 void
 pointer_notify_motion(struct libinput_device *device,

@@ -23,6 +23,8 @@
 #ifndef LIBINPUT_UTIL_H
 #define LIBINPUT_UTIL_H
 
+#include <unistd.h>
+
 #include "libinput.h"
 
 void
@@ -106,6 +108,12 @@ static inline void
 clear_bit(unsigned char *array, int bit)
 {
     array[bit / 8] &= ~(1 << (bit % 8));
+}
+
+static inline void
+msleep(unsigned int ms)
+{
+	usleep(ms * 1000);
 }
 
 #endif /* LIBINPUT_UTIL_H */
