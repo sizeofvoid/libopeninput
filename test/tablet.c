@@ -559,7 +559,7 @@ START_TEST(pad_buttons_ignored)
 	}
 
 	while ((event = libinput_get_event(li))) {
-		ck_assert_int_ne(libinput_event_get_type,
+		ck_assert_int_ne(libinput_event_get_type(event),
 				 LIBINPUT_EVENT_TABLET_BUTTON);
 		libinput_event_destroy(event);
 		libinput_dispatch(li);
@@ -578,7 +578,7 @@ START_TEST(pad_buttons_ignored)
 
 	libinput_dispatch(li);
 	while ((event = libinput_get_event(li))) {
-		ck_assert_int_ne(libinput_event_get_type,
+		ck_assert_int_ne(libinput_event_get_type(event),
 				 LIBINPUT_EVENT_TABLET_BUTTON);
 		libinput_event_destroy(event);
 		libinput_dispatch(li);
