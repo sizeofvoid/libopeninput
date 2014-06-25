@@ -375,6 +375,11 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 				return FALSE;
 			}
 			break;
+		case LIBINPUT_EVENT_TABLET_AXIS:
+		case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
+		case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
+		case LIBINPUT_EVENT_TABLET_BUTTON:
+			break;
 		}
 
 		libinput_event_destroy(ev);
