@@ -708,7 +708,8 @@ evdev_configure_device(struct evdev_device *device)
 			   has_abs) {
 			device->dispatch = evdev_tablet_create(device);
 			device->seat_caps |= EVDEV_DEVICE_TABLET;
-			log_info("input device '%s', %s is a tablet\n",
+			log_info(libinput,
+				 "input device '%s', %s is a tablet\n",
 				 device->devname, device->devnode);
 		}
 
