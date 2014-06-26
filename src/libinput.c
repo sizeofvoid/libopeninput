@@ -1240,7 +1240,7 @@ tablet_notify_axis(struct libinput_device *device,
 		.axes = axes,
 	};
 
-	memcpy(&axis_event->changed_axes,
+	memcpy(axis_event->changed_axes,
 	       changed_axes,
 	       sizeof(axis_event->changed_axes));
 
