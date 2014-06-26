@@ -102,7 +102,7 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 		tablet_unset_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 	}
 	else
-		tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
+		tablet_set_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
 }
 
 static inline double
@@ -164,7 +164,8 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	}
 
 	if (axis_update_needed &&
-	    !tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))
+	    !tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY) &&
+	    !tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY))
 		tablet_notify_axis(base,
 				   time,
 				   tablet->changed_axes,
@@ -378,7 +379,7 @@ tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
 	     uint32_t time)
 {
-	if (tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY)) {
+	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
 		/* Release all stylus buttons */
 		tablet->button_state.stylus_buttons = 0;
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
@@ -405,8 +406,11 @@ tablet_flush(struct tablet_dispatch *tablet,
 		tablet_unset_status(tablet, TABLET_BUTTONS_PRESSED);
 	}
 
-	if (tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))
+	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
 		tablet_notify_proximity_out(&device->base, time);
+		tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
+		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
+	}
 
 	/* Update state */
 	memcpy(&tablet->prev_button_state,
