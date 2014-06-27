@@ -1230,6 +1230,7 @@ touch_notify_frame(struct libinput_device *device,
 void
 tablet_notify_axis(struct libinput_device *device,
 		   uint32_t time,
+		   struct libinput_tool *tool,
 		   unsigned char *changed_axes,
 		   double *axes)
 {
@@ -1241,6 +1242,7 @@ tablet_notify_axis(struct libinput_device *device,
 
 	*axis_event = (struct libinput_event_tablet) {
 		.time = time,
+		.tool = tool,
 		.axes = axes,
 	};
 
@@ -1276,7 +1278,8 @@ tablet_notify_proximity_in(struct libinput_device *device,
 
 void
 tablet_notify_proximity_out(struct libinput_device *device,
-			    uint32_t time)
+			    uint32_t time,
+			    struct libinput_tool *tool)
 {
 	struct libinput_event_tablet *proximity_out_update_event;
 
@@ -1285,7 +1288,8 @@ tablet_notify_proximity_out(struct libinput_device *device,
 		return;
 
 	*proximity_out_update_event = (struct libinput_event_tablet) {
-		.time = time
+		.time = time,
+		.tool = tool,
 	};
 
 	post_device_event(device,
@@ -1296,6 +1300,7 @@ tablet_notify_proximity_out(struct libinput_device *device,
 void
 tablet_notify_button(struct libinput_device *device,
 		     uint32_t time,
+		     struct libinput_tool *tool,
 		     int32_t button,
 		     enum libinput_button_state state)
 {
@@ -1312,6 +1317,7 @@ tablet_notify_button(struct libinput_device *device,
 
 	*button_event = (struct libinput_event_tablet) {
 		.time = time,
+		.tool = tool,
 		.button = button,
 		.state = state,
 		.seat_button_count = seat_button_count,

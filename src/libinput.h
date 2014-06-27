@@ -918,18 +918,13 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
 /**
  * @ingroup event_tablet
  *
- * Returns the tool that came into proximity for this event.
- * For tablet events that are not of type @ref
- * LIBINPUT_EVENT_TABLET_PROXIMITY_IN, this function returns NULL. By default,
- * the lifetime of each tool will stay valid for as long as it is being used,
- * and is destroyed when another tool comes into proximity. However, the
- * lifetime of the tool may be extended by using libinput_tool_ref() to
- * increment the reference count of the tool. This guarantees that whenever the
- * tool comes back into proximity of the tablet, that the same structure will be
- * used to represent the tool.
- *
- * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_PROXIMITY_IN.
+ * Returns the tool that was in use during this event.
+ * By default, each tool will stay valid for as long as it is being used, and is
+ * destroyed when another tool comes into proximity. However, the lifetime of
+ * the tool may be extended by using libinput_tool_ref() to increment the
+ * reference count of the tool. This guarantees that whenever the tool comes
+ * back into proximity of the tablet, that the same structure will be used to
+ * represent the tool.
  *
  * @note On tablets where the serial number of tools is not reported, each tool
  * cannot be guaranteed to be unique.

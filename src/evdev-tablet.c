@@ -94,10 +94,7 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 	assert(tool != LIBINPUT_TOOL_NONE);
 
 	if (enabled) {
-		if (tool != tablet->current_tool_type) {
-			tablet->current_tool_type = tool;
-			tablet_set_status(tablet, TABLET_TOOL_UPDATED);
-		}
+		tablet->current_tool_type = tool;
 		tablet_mark_all_axes_changed(tablet, device);
 		tablet_set_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
@@ -126,7 +123,8 @@ normalize_tilt(const struct input_absinfo * absinfo) {
 static void
 tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			 struct evdev_device *device,
-			 uint32_t time)
+			 uint32_t time,
+			 struct libinput_tool *tool)
 {
 	struct libinput_device *base = &device->base;
 	bool axis_update_needed = false;
@@ -169,6 +167,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	    !tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY))
 		tablet_notify_axis(base,
 				   time,
+				   tool,
 				   tablet->changed_axes,
 				   tablet->axes);
 
@@ -247,11 +246,9 @@ tablet_process_misc(struct tablet_dispatch *tablet,
 {
 	switch (e->code) {
 	case MSC_SERIAL:
-		if (e->value != (int32_t)tablet->current_tool_serial &&
-		    e->value != -1) {
+		if (e->value != -1)
 			tablet->current_tool_serial = e->value;
-			tablet_set_status(tablet, TABLET_TOOL_UPDATED);
-		}
+
 		break;
 	default:
 		log_info(device->base.seat->libinput,
@@ -297,6 +294,7 @@ static void
 tablet_notify_button_mask(struct tablet_dispatch *tablet,
 			  struct evdev_device *device,
 			  uint32_t time,
+			  struct libinput_tool *tool,
 			  uint32_t buttons,
 			  uint32_t button_base,
 			  enum libinput_button_state state)
@@ -316,6 +314,7 @@ tablet_notify_button_mask(struct tablet_dispatch *tablet,
 
 		tablet_notify_button(base,
 				     time,
+				     tool,
 				     num_button + button_base - 1,
 				     state);
 	}
@@ -325,6 +324,7 @@ static void
 tablet_notify_buttons(struct tablet_dispatch *tablet,
 		      struct evdev_device *device,
 		      uint32_t time,
+		      struct libinput_tool *tool,
 		      enum libinput_button_state state)
 {
 	uint32_t stylus_buttons;
@@ -336,8 +336,13 @@ tablet_notify_buttons(struct tablet_dispatch *tablet,
 		stylus_buttons =
 			tablet_get_released_buttons(tablet, stylus_buttons);
 
-	tablet_notify_button_mask(tablet, device, time,
-				  stylus_buttons, BTN_TOUCH, state);
+	tablet_notify_button_mask(tablet,
+				  device,
+				  time,
+				  tool,
+				  stylus_buttons,
+				  BTN_TOUCH,
+				  state);
 }
 
 static void
@@ -392,24 +397,30 @@ tablet_flush(struct tablet_dispatch *tablet,
 
 	if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
 		sanitize_tablet_axes(tablet);
-		tablet_check_notify_axes(tablet, device, time);
+		tablet_check_notify_axes(tablet, device, time, tool);
 		tablet_unset_status(tablet, TABLET_AXES_UPDATED);
 	}
 
 	if (tablet_has_status(tablet, TABLET_BUTTONS_RELEASED)) {
-		tablet_notify_buttons(tablet, device, time,
+		tablet_notify_buttons(tablet,
+				      device,
+				      time,
+				      tool,
 				      LIBINPUT_BUTTON_STATE_RELEASED);
 		tablet_unset_status(tablet, TABLET_BUTTONS_RELEASED);
 	}
 
 	if (tablet_has_status(tablet, TABLET_BUTTONS_PRESSED)) {
-		tablet_notify_buttons(tablet, device, time,
+		tablet_notify_buttons(tablet,
+				      device,
+				      time,
+				      tool,
 				      LIBINPUT_BUTTON_STATE_PRESSED);
 		tablet_unset_status(tablet, TABLET_BUTTONS_PRESSED);
 	}
 
 	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
-		tablet_notify_proximity_out(&device->base, time);
+		tablet_notify_proximity_out(&device->base, time, tool);
 		tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
 	}
