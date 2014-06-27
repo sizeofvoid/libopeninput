@@ -1010,8 +1010,9 @@ libinput_tool_get_type(struct libinput_tool *tool);
  * Increment the ref count of tool by one
  *
  * @param tool The tool to increment the ref count of
+ * @return The passed tool
  */
-void
+struct libinput_tool *
 libinput_tool_ref(struct libinput_tool *tool);
 
 /**
@@ -1021,8 +1022,9 @@ libinput_tool_ref(struct libinput_tool *tool);
  * the memory allocated for tool will be freed.
  *
  * @param tool The tool to decrement the ref count of
+ * @return NULL if the tool was destroyed otherwise the passed tool
  */
-void
+struct libinput_tool *
 libinput_tool_unref(struct libinput_tool *tool);
 
 /**

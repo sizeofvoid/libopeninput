@@ -537,6 +537,42 @@ START_TEST(invalid_serials)
 }
 END_TEST
 
+START_TEST(tool_ref)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event_tablet *tablet_event;
+	struct libinput_event *event;
+	struct libinput_tool *tool;
+
+	litest_drain_events(li);
+
+	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
+	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	libinput_dispatch(li);
+	while ((event = libinput_get_event(li))) {
+		if (libinput_event_get_type(event) ==
+		    LIBINPUT_EVENT_TABLET_TOOL_UPDATE) {
+			break;
+		}
+		libinput_event_destroy(event);
+	}
+
+	tablet_event = libinput_event_get_tablet_event(event);
+	tool = libinput_event_tablet_get_tool(tablet_event);
+
+	ck_assert_notnull(tool);
+	ck_assert(tool == libinput_tool_ref(tool));
+	ck_assert(tool == libinput_tool_unref(tool));
+	ck_assert(libinput_tool_unref(tool) == NULL);
+
+	libinput_event_destroy(event);
+}
+END_TEST
+
+
 START_TEST(pad_buttons_ignored)
 {
 	struct litest_device *dev = litest_current_device();
@@ -589,6 +625,7 @@ END_TEST
 int
 main(int argc, char **argv)
 {
+	litest_add("tablet:tool", tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", tool_serial, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", serial_changes_tool, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", invalid_serials, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);

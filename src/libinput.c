@@ -583,21 +583,25 @@ libinput_tool_get_serial(struct libinput_tool *tool)
 	return tool->serial;
 }
 
-LIBINPUT_EXPORT void
+LIBINPUT_EXPORT struct libinput_tool *
 libinput_tool_ref(struct libinput_tool *tool)
 {
 	tool->refcount++;
+	return tool;
 }
 
-LIBINPUT_EXPORT void
+LIBINPUT_EXPORT struct libinput_tool *
 libinput_tool_unref(struct libinput_tool *tool)
 {
 	assert(tool->refcount > 0);
 
-	if (--tool->refcount == 0) {
-		list_remove(&tool->link);
-		free(tool);
-	}
+	tool->refcount--;
+	if (tool->refcount > 0)
+		return tool;
+
+	list_remove(&tool->link);
+	free(tool);
+	return NULL;
 }
 
 struct libinput_source *
