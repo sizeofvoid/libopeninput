@@ -243,8 +243,8 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_TABLET_AXIS:
 		type = "TABLET_AXIS";
 		break;
-	case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
-		type = "TABLET_TOOL_UPDATE";
+	case LIBINPUT_EVENT_TABLET_PROXIMITY_IN:
+		type = "TABLET_PROXIMITY_IN";
 		break;
 	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
 		type = "TABLET_PROXIMITY_OUT";
@@ -424,7 +424,7 @@ print_touch_event_without_coords(struct libinput_event *ev)
 }
 
 static void
-print_tool_update_event(struct libinput_event *ev)
+print_proximity_in_event(struct libinput_event *ev)
 {
 	struct libinput_event_tablet *t = libinput_event_get_tablet_event(ev);
 	struct libinput_tool *tool = libinput_event_tablet_get_tool(t);
@@ -543,8 +543,8 @@ handle_and_print_events(struct libinput *li)
 		case LIBINPUT_EVENT_TABLET_AXIS:
 			print_tablet_axis_event(ev);
 			break;
-		case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
-			print_tool_update_event(ev);
+		case LIBINPUT_EVENT_TABLET_PROXIMITY_IN:
+			print_proximity_in_event(ev);
 			break;
 		case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
 			print_proximity_out_event(ev);

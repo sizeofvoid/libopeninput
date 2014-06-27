@@ -376,7 +376,7 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 			}
 			break;
 		case LIBINPUT_EVENT_TABLET_AXIS:
-		case LIBINPUT_EVENT_TABLET_TOOL_UPDATE:
+		case LIBINPUT_EVENT_TABLET_PROXIMITY_IN:
 		case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
 		case LIBINPUT_EVENT_TABLET_BUTTON:
 			break;

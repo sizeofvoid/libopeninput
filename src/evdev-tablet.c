@@ -99,6 +99,7 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 			tablet_set_status(tablet, TABLET_TOOL_UPDATED);
 		}
 		tablet_mark_all_axes_changed(tablet, device);
+		tablet_set_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 	}
 	else
@@ -250,8 +251,6 @@ tablet_process_misc(struct tablet_dispatch *tablet,
 		    e->value != -1) {
 			tablet->current_tool_serial = e->value;
 			tablet_set_status(tablet, TABLET_TOOL_UPDATED);
-			tablet_unset_status(tablet,
-					    TABLET_TOOL_OUT_OF_PROXIMITY);
 		}
 		break;
 	default:
@@ -386,9 +385,9 @@ tablet_flush(struct tablet_dispatch *tablet,
 		/* Release all stylus buttons */
 		tablet->button_state.stylus_buttons = 0;
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
-	} else if (tablet_has_status(tablet, TABLET_TOOL_UPDATED)) {
-		tablet_notify_tool_update(&device->base, time, tool);
-		tablet_unset_status(tablet, TABLET_TOOL_UPDATED);
+	} else if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
+		tablet_notify_proximity_in(&device->base, time, tool);
+		tablet_unset_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
 	}
 
 	if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {

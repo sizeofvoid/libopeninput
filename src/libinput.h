@@ -261,10 +261,10 @@ enum libinput_event_type {
 
 	LIBINPUT_EVENT_TABLET_AXIS = 600,
 	/**
-	 * Signals that a device with the @ref LIBINPUT_DEVICE_CAP_TABLET
-	 * capability has changed its tool.
+	 * Signals that a tool has come into proximity of a device with the @ref
+	 * LIBINPUT_DEVICE_CAP_TABLET capability.
 	 */
-	LIBINPUT_EVENT_TABLET_TOOL_UPDATE,
+	LIBINPUT_EVENT_TABLET_PROXIMITY_IN,
 	/**
 	 * Signals that a device with the @ref LIBINPUT_DEVICE_CAP_TABLET
 	 * capability has detected that there is no longer a tool in use. When
@@ -305,8 +305,8 @@ struct libinput_event_touch;
  *
  * Tablet event representing an axis update, button press, or tool update. Valid
  * event types for this event are @ref LIBINPUT_EVENT_TABLET_AXIS, @ref
- * LIBINPUT_EVENT_TABLET_TOOL_UPDATE, @ref LIBINPUT_EVENT_TABLET_TOOL_UPDATE and
- * @ref LIBINPUT_EVENT_TABLET_BUTTON.
+ * LIBINPUT_EVENT_TABLET_PROXIMITY_IN, @ref LIBINPUT_EVENT_TABLET_PROXIMITY_IN
+ * and @ref LIBINPUT_EVENT_TABLET_BUTTON.
  */
 struct libinput_event_tablet;
 
@@ -918,17 +918,18 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
 /**
  * @ingroup event_tablet
  *
- * Return the new tool in use for this event.
+ * Returns the tool that came into proximity for this event.
  * For tablet events that are not of type @ref
- * LIBINPUT_EVENT_TABLET_TOOL_UPDATE, this function returns NULL. By default,
- * the lifetime of each tool is bound to the lifetime of the event, so the tool
- * will be destroyed when the event is destroyed. However, the lifetime of the
- * tool may be extended by using libinput_tool_ref() to increment the reference
- * count of the tool. Whenever libinput detects that the tool is in proximity of
- * any tablet that's connected, it will return the same libinput_tool object.
+ * LIBINPUT_EVENT_TABLET_PROXIMITY_IN, this function returns NULL. By default,
+ * the lifetime of each tool will stay valid for as long as it is being used,
+ * and is destroyed when another tool comes into proximity. However, the
+ * lifetime of the tool may be extended by using libinput_tool_ref() to
+ * increment the reference count of the tool. This guarantees that whenever the
+ * tool comes back into proximity of the tablet, that the same structure will be
+ * used to represent the tool.
  *
  * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_TOOL_UPDATE.
+ * @ref LIBINPUT_EVENT_TABLET_PROXIMITY_IN.
  *
  * @note On tablets where the serial number of tools is not reported, each tool
  * cannot be guaranteed to be unique.
