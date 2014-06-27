@@ -263,37 +263,35 @@ tablet_process_misc(struct tablet_dispatch *tablet,
 	}
 }
 
-static void
-tablet_notify_tool(struct tablet_dispatch *tablet,
-		   struct evdev_device *device,
-		   uint32_t time)
+static struct libinput_tool *
+tablet_get_tool(struct libinput *li,
+		enum libinput_tool_type type,
+		uint32_t serial)
 {
-	struct libinput_device *base = &device->base;
-	struct libinput_tool *tool;
-	struct libinput_tool *new_tool = NULL;
+	struct libinput_tool *tool = NULL, *t;
 
 	/* Check if we already have the tool in our list of tools */
-	list_for_each(tool, &base->seat->libinput->tool_list, link) {
-		if (tablet->current_tool_type == tool->type &&
-		    tablet->current_tool_serial == tool->serial) {
-			new_tool = tool;
+	list_for_each(t, &li->tool_list, link) {
+		if (type == t->type && serial == t->serial) {
+			tool = t;
 			break;
 		}
 	}
 
-	/* If we didn't already have the tool in our list of tools, add it */
-	if (new_tool == NULL) {
-		new_tool = zalloc(sizeof *new_tool);
-		*new_tool = (struct libinput_tool) {
-			.type = tablet->current_tool_type,
-			.serial = tablet->current_tool_serial,
+	/* If we didn't already have the new_tool in our list of tools,
+	 * add it */
+	if (!tool) {
+		tool = zalloc(sizeof *tool);
+		*tool = (struct libinput_tool) {
+			.type = type,
+			.serial = serial,
 			.refcount = 1,
 		};
 
-		list_insert(&base->seat->libinput->tool_list, &new_tool->link);
+		list_insert(&li->tool_list, &tool->link);
 	}
 
-	tablet_notify_tool_update(base, time, new_tool);
+	return tool;
 }
 
 static void
@@ -379,12 +377,17 @@ tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
 	     uint32_t time)
 {
+	struct libinput_tool *tool =
+		tablet_get_tool(device->base.seat->libinput,
+				tablet->current_tool_type,
+				tablet->current_tool_serial);
+
 	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
 		/* Release all stylus buttons */
 		tablet->button_state.stylus_buttons = 0;
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
 	} else if (tablet_has_status(tablet, TABLET_TOOL_UPDATED)) {
-		tablet_notify_tool(tablet, device, time);
+		tablet_notify_tool_update(&device->base, time, tool);
 		tablet_unset_status(tablet, TABLET_TOOL_UPDATED);
 	}
 
