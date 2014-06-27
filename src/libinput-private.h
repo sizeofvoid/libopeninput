@@ -221,17 +221,20 @@ tablet_notify_axis(struct libinput_device *device,
 void
 tablet_notify_proximity_in(struct libinput_device *device,
 			   uint32_t time,
-			   struct libinput_tool *tool);
+			   struct libinput_tool *tool,
+			   double *axes);
 
 void
 tablet_notify_proximity_out(struct libinput_device *device,
 			    uint32_t time,
-			    struct libinput_tool *tool);
+			    struct libinput_tool *tool,
+			    double *axes);
 
 void
 tablet_notify_button(struct libinput_device *device,
 		     uint32_t time,
 		     struct libinput_tool *tool,
+		     double *axes,
 		     int32_t button,
 		     enum libinput_button_state state);
 void

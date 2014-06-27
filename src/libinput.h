@@ -876,9 +876,6 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
  *   that indicates the tilt vertical or horizontal tilt of the tool
  *   respectively
  *
- * For tablet events that are not of type @ref LIBINPUT_EVENT_TABLET_AXIS, this
- * function returns 0.
- *
  * @param event The libinput tablet event
  * @param axis The axis to retrieve the value of
  * @return The current value of the the axis

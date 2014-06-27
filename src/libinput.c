@@ -1258,7 +1258,8 @@ tablet_notify_axis(struct libinput_device *device,
 void
 tablet_notify_proximity_in(struct libinput_device *device,
 			   uint32_t time,
-			   struct libinput_tool *tool)
+			   struct libinput_tool *tool,
+			   double *axes)
 {
 	struct libinput_event_tablet *proximity_in_event;
 
@@ -1270,6 +1271,9 @@ tablet_notify_proximity_in(struct libinput_device *device,
 		.time = time,
 		.tool = tool,
 	};
+	memcpy(proximity_in_event->axes,
+	       axes,
+	       sizeof(proximity_in_event->axes));
 
 	post_device_event(device,
 			  LIBINPUT_EVENT_TABLET_PROXIMITY_IN,
@@ -1279,7 +1283,8 @@ tablet_notify_proximity_in(struct libinput_device *device,
 void
 tablet_notify_proximity_out(struct libinput_device *device,
 			    uint32_t time,
-			    struct libinput_tool *tool)
+			    struct libinput_tool *tool,
+			    double *axes)
 {
 	struct libinput_event_tablet *proximity_out_update_event;
 
@@ -1291,6 +1296,9 @@ tablet_notify_proximity_out(struct libinput_device *device,
 		.time = time,
 		.tool = tool,
 	};
+	memcpy(proximity_out_update_event->axes,
+	       axes,
+	       sizeof(proximity_out_update_event->axes));
 
 	post_device_event(device,
 			  LIBINPUT_EVENT_TABLET_PROXIMITY_OUT,
@@ -1301,6 +1309,7 @@ void
 tablet_notify_button(struct libinput_device *device,
 		     uint32_t time,
 		     struct libinput_tool *tool,
+		     double *axes,
 		     int32_t button,
 		     enum libinput_button_state state)
 {
@@ -1322,6 +1331,7 @@ tablet_notify_button(struct libinput_device *device,
 		.state = state,
 		.seat_button_count = seat_button_count,
 	};
+	memcpy(button_event->axes, axes, sizeof(button_event->axes));
 
 	post_device_event(device,
 			  LIBINPUT_EVENT_TABLET_BUTTON,
