@@ -149,8 +149,8 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 		case LIBINPUT_TABLET_AXIS_PRESSURE:
 			tablet->axes[a] = normalize_pressure_or_dist(absinfo);
 			break;
-		case LIBINPUT_TABLET_AXIS_TILT_VERTICAL:
-		case LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL:
+		case LIBINPUT_TABLET_AXIS_TILT_X:
+		case LIBINPUT_TABLET_AXIS_TILT_Y:
 			tablet->axes[a] = normalize_tilt(absinfo);
 			break;
 		default:

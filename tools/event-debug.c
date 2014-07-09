@@ -397,11 +397,11 @@ print_tablet_axis_event(struct libinput_event *ev)
 	       x, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_X),
 	       y, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_Y));
 
-	x = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_TILT_VERTICAL);
-	y = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL);
+	x = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_TILT_X);
+	y = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_TILT_Y);
 	printf("\ttilt: %.2f%s/%.2f%s ",
-	       x, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_TILT_VERTICAL),
-	       y, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL));
+	       x, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_TILT_X),
+	       y, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_TILT_Y));
 
 	dist = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_DISTANCE);
 	pressure = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_PRESSURE);

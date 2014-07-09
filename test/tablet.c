@@ -403,22 +403,22 @@ START_TEST(normalization)
 
 			if (libinput_event_tablet_axis_has_changed(
 				tablet_event,
-				LIBINPUT_TABLET_AXIS_TILT_VERTICAL)) {
+				LIBINPUT_TABLET_AXIS_TILT_X)) {
 				tilt_vertical =
 					libinput_event_tablet_get_axis_value(
 					    tablet_event,
-					    LIBINPUT_TABLET_AXIS_TILT_VERTICAL);
+					    LIBINPUT_TABLET_AXIS_TILT_X);
 
 				litest_assert_double_eq(tilt_vertical, -1);
 			}
 
 			if (libinput_event_tablet_axis_has_changed(
 				tablet_event,
-				LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL)) {
+				LIBINPUT_TABLET_AXIS_TILT_Y)) {
 				tilt_horizontal =
 					libinput_event_tablet_get_axis_value(
 					    tablet_event,
-					    LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL);
+					    LIBINPUT_TABLET_AXIS_TILT_Y);
 
 				litest_assert_double_eq(tilt_horizontal, -1);
 			}
@@ -465,22 +465,22 @@ START_TEST(normalization)
 
 			if (libinput_event_tablet_axis_has_changed(
 				tablet_event,
-				LIBINPUT_TABLET_AXIS_TILT_VERTICAL)) {
+				LIBINPUT_TABLET_AXIS_TILT_X)) {
 				tilt_vertical =
 					libinput_event_tablet_get_axis_value(
 					    tablet_event,
-					    LIBINPUT_TABLET_AXIS_TILT_VERTICAL);
+					    LIBINPUT_TABLET_AXIS_TILT_X);
 
 				litest_assert_double_eq(tilt_vertical, 1);
 			}
 
 			if (libinput_event_tablet_axis_has_changed(
 				tablet_event,
-				LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL)) {
+				LIBINPUT_TABLET_AXIS_TILT_Y)) {
 				tilt_horizontal =
 					libinput_event_tablet_get_axis_value(
 					    tablet_event,
-					    LIBINPUT_TABLET_AXIS_TILT_HORIZONTAL);
+					    LIBINPUT_TABLET_AXIS_TILT_Y);
 
 				litest_assert_double_eq(tilt_horizontal, 1);
 			}
