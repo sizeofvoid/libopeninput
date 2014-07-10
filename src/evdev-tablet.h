@@ -75,10 +75,10 @@ evcode_to_axis(const uint32_t evcode)
 		axis = LIBINPUT_TABLET_AXIS_PRESSURE;
 		break;
 	case ABS_TILT_X:
-		axis = LIBINPUT_TABLET_AXIS_TILT_Y;
+		axis = LIBINPUT_TABLET_AXIS_TILT_X;
 		break;
 	case ABS_TILT_Y:
-		axis = LIBINPUT_TABLET_AXIS_TILT_X;
+		axis = LIBINPUT_TABLET_AXIS_TILT_Y;
 		break;
 	default:
 		axis = LIBINPUT_TABLET_AXIS_NONE;
