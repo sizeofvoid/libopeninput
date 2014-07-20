@@ -2,16 +2,17 @@ if BUILD_TESTS
 AM_CPPFLAGS = -I$(top_srcdir)/include \
               -I$(top_srcdir)/src \
               $(CHECK_CFLAGS) \
-              $(LIBEVDEV_CFLAGS)
+              $(LIBEVDEV_CFLAGS) \
+              $(LIBUDEV_CFLAGS)
 
 AM_CFLAGS = $(GCC_CFLAGS)
 AM_CXXFLAGS = $(GCC_CXXFLAGS)
 
-TEST_LIBS = liblitest.la $(CHECK_LIBS) $(LIBUDEV_LIBS) $(LIBEVDEV_LIBS) $(top_builddir)/src/libinput.la -lm
+TEST_LIBS = liblitest.la $(CHECK_LIBS) $(LIBUDEV_LIBS) $(LIBEVDEV_LIBS) $(top_builddir)/src/libinput.la
 noinst_LTLIBRARIES = liblitest.la
 liblitest_la_SOURCES = \
-	$(top_srcdir)/src/libinput-util.h \
-	$(top_srcdir)/src/libinput-util.c \
+	../src/libinput-util.h \
+	../src/libinput-util.c \
 	litest.h \
 	litest-int.h \
 	litest-bcm5974.c \

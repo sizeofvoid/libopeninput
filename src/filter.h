@@ -25,8 +25,10 @@
 
 #include "config.h"
 
+#include <stdint.h>
+
 struct motion_params {
-	double dx, dy;
+	double dx, dy; /* in units/ms @ 400dpi */
 };
 
 struct motion_filter;
@@ -35,6 +37,8 @@ void
 filter_dispatch(struct motion_filter *filter,
 		struct motion_params *motion,
 		void *data, uint64_t time);
+void
+filter_destroy(struct motion_filter *filter);
 
 
 struct motion_filter_interface {
@@ -59,8 +63,6 @@ typedef double (*accel_profile_func_t)(struct motion_filter *filter,
 struct motion_filter *
 create_pointer_accelator_filter(accel_profile_func_t filter);
 
-void
-motion_filter_destroy(struct motion_filter *filter);
 
 /*
  * Pointer acceleration profiles.

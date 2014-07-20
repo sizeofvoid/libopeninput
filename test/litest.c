@@ -365,7 +365,7 @@ merge_absinfo(const struct input_absinfo *orig,
 	      const struct input_absinfo *override)
 {
 	struct input_absinfo *abs;
-	int nelem, i;
+	unsigned int nelem, i;
 	size_t sz = ABS_MAX + 1;
 
 	if (!orig)
@@ -399,7 +399,7 @@ static int*
 merge_events(const int *orig, const int *override)
 {
 	int *events;
-	int nelem, i;
+	unsigned int nelem, i;
 	size_t sz = KEY_MAX * 3;
 
 	if (!orig)
@@ -596,13 +596,14 @@ void
 litest_event(struct litest_device *d, unsigned int type,
 	     unsigned int code, int value)
 {
-	libevdev_uinput_write_event(d->uinput, type, code, value);
+	int ret = libevdev_uinput_write_event(d->uinput, type, code, value);
+	ck_assert_int_eq(ret, 0);
 }
 
 static int
 auto_assign_value(struct litest_device *d,
 		  const struct input_event *ev,
-		  int slot, int x, int y)
+		  int slot, double x, double y)
 {
 	static int tracking_id;
 	int value = ev->value;
@@ -632,7 +633,8 @@ auto_assign_value(struct litest_device *d,
 
 
 void
-litest_touch_down(struct litest_device *d, unsigned int slot, int x, int y)
+litest_touch_down(struct litest_device *d, unsigned int slot,
+		  double x, double y)
 {
 	struct input_event *ev;
 
@@ -676,7 +678,8 @@ litest_touch_up(struct litest_device *d, unsigned int slot)
 }
 
 void
-litest_touch_move(struct litest_device *d, unsigned int slot, int x, int y)
+litest_touch_move(struct litest_device *d, unsigned int slot,
+		  double x, double y)
 {
 	struct input_event *ev;
 
@@ -696,8 +699,8 @@ litest_touch_move(struct litest_device *d, unsigned int slot, int x, int y)
 void
 litest_touch_move_to(struct litest_device *d,
 		     unsigned int slot,
-		     int x_from, int y_from,
-		     int x_to, int y_to,
+		     double x_from, double y_from,
+		     double x_to, double y_to,
 		     int steps)
 {
 	for (int i = 0; i < steps - 1; i++)
@@ -816,7 +819,8 @@ litest_keyboard_key(struct litest_device *d, unsigned int key, bool is_press)
 	litest_button_click(d, key, is_press);
 }
 
-int litest_scale(const struct litest_device *d, unsigned int axis, int val)
+int
+litest_scale(const struct litest_device *d, unsigned int axis, double val)
 {
 	int min, max;
 	ck_assert_int_ge(val, 0);
@@ -904,13 +908,14 @@ litest_assert_empty_queue(struct libinput *li)
 struct libevdev_uinput *
 litest_create_uinput_device_from_description(const char *name,
 					     const struct input_id *id,
-					     const struct input_absinfo *abs,
+					     const struct input_absinfo *abs_info,
 					     const int *events)
 {
 	struct libevdev_uinput *uinput;
 	struct libevdev *dev;
 	int type, code;
-	int rc;
+	int rc, fd;
+	const struct input_absinfo *abs;
 	const struct input_absinfo default_abs = {
 		.value = 0,
 		.minimum = 0,
@@ -920,6 +925,7 @@ litest_create_uinput_device_from_description(const char *name,
 		.resolution = 100
 	};
 	char buf[512];
+	const char *devnode;
 
 	dev = libevdev_new();
 	ck_assert(dev != NULL);
@@ -932,6 +938,7 @@ litest_create_uinput_device_from_description(const char *name,
 		libevdev_set_id_product(dev, id->product);
 	}
 
+	abs = abs_info;
 	while (abs && abs->value != -1) {
 		rc = libevdev_enable_event_code(dev, EV_ABS,
 						abs->value, abs);
@@ -958,6 +965,31 @@ litest_create_uinput_device_from_description(const char *name,
 						&uinput);
 	ck_assert_int_eq(rc, 0);
 
+	libevdev_free(dev);
+
+	/* uinput does not yet support setting the resolution, so we set it
+	 * afterwards. This is of course racy as hell but the way we
+	 * _generally_ use this function by the time libinput uses the
+	 * device, we're finished here */
+
+	devnode = libevdev_uinput_get_devnode(uinput);
+	ck_assert_notnull(devnode);
+	fd = open(devnode, O_RDONLY);
+	ck_assert_int_gt(fd, -1);
+	rc = libevdev_new_from_fd(fd, &dev);
+	ck_assert_int_eq(rc, 0);
+
+	abs = abs_info;
+	while (abs && abs->value != -1) {
+		if (abs->resolution != 0) {
+			rc = libevdev_kernel_set_abs_info(dev,
+							  abs->value,
+							  abs);
+			ck_assert_int_eq(rc, 0);
+		}
+		abs++;
+	}
+	close(fd);
 	libevdev_free(dev);
 
 	return uinput;

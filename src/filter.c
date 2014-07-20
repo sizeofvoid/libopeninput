@@ -29,6 +29,7 @@
 #include <math.h>
 
 #include "filter.h"
+#include "libinput-util.h"
 
 void
 filter_dispatch(struct motion_filter *filter,
@@ -38,26 +39,34 @@ filter_dispatch(struct motion_filter *filter,
 	filter->interface->filter(filter, motion, data, time);
 }
 
+void
+filter_destroy(struct motion_filter *filter)
+{
+	if (!filter)
+		return;
+
+	filter->interface->destroy(filter);
+}
+
 /*
  * Default parameters for pointer acceleration profiles.
  */
 
-#define DEFAULT_CONSTANT_ACCELERATION 10.0
-#define DEFAULT_THRESHOLD 4.0
-#define DEFAULT_ACCELERATION 2.0
+#define DEFAULT_THRESHOLD 0.4			/* in units/ms */
+#define DEFAULT_ACCELERATION 2.0		/* unitless factor */
 
 /*
  * Pointer acceleration filter constants
  */
 
-#define MAX_VELOCITY_DIFF	1.0
+#define MAX_VELOCITY_DIFF	1.0 /* units/ms */
 #define MOTION_TIMEOUT		300 /* (ms) */
 #define NUM_POINTER_TRACKERS	16
 
 struct pointer_tracker {
-	double dx;
-	double dy;
-	uint64_t time;
+	double dx;	/* delta to most recent event, in device units */
+	double dy;	/* delta to most recent event, in device units */
+	uint64_t time;  /* ms */
 	int dir;
 };
 
@@ -67,71 +76,14 @@ struct pointer_accelerator {
 
 	accel_profile_func_t profile;
 
-	double velocity;
-	double last_velocity;
-	int last_dx;
-	int last_dy;
+	double velocity;	/* units/ms */
+	double last_velocity;	/* units/ms */
+	int last_dx;		/* device units */
+	int last_dy;		/* device units */
 
 	struct pointer_tracker *trackers;
 	int cur_tracker;
 };
-
-enum directions {
-	N  = 1 << 0,
-	NE = 1 << 1,
-	E  = 1 << 2,
-	SE = 1 << 3,
-	S  = 1 << 4,
-	SW = 1 << 5,
-	W  = 1 << 6,
-	NW = 1 << 7,
-	UNDEFINED_DIRECTION = 0xff
-};
-
-static int
-get_direction(int dx, int dy)
-{
-	int dir = UNDEFINED_DIRECTION;
-	int d1, d2;
-	double r;
-
-	if (abs(dx) < 2 && abs(dy) < 2) {
-		if (dx > 0 && dy > 0)
-			dir = S | SE | E;
-		else if (dx > 0 && dy < 0)
-			dir = N | NE | E;
-		else if (dx < 0 && dy > 0)
-			dir = S | SW | W;
-		else if (dx < 0 && dy < 0)
-			dir = N | NW | W;
-		else if (dx > 0)
-			dir = NE | E | SE;
-		else if (dx < 0)
-			dir = NW | W | SW;
-		else if (dy > 0)
-			dir = SE | S | SW;
-		else if (dy < 0)
-			dir = NE | N | NW;
-	} else {
-		/* Calculate r within the interval  [0 to 8)
-		 *
-		 * r = [0 .. 2π] where 0 is North
-		 * d_f = r / 2π  ([0 .. 1))
-		 * d_8 = 8 * d_f
-		 */
-		r = atan2(dy, dx);
-		r = fmod(r + 2.5*M_PI, 2*M_PI);
-		r *= 4*M_1_PI;
-
-		/* Mark one or two close enough octants */
-		d1 = (int)(r + 0.9) % 8;
-		d2 = (int)(r + 0.1) % 8;
-
-		dir = (1 << d1) | (1 << d2);
-	}
-
-	return dir;
-}
 
 static void
 feed_trackers(struct pointer_accelerator *accel,
@@ -152,7 +104,7 @@ feed_trackers(struct pointer_accelerator *accel,
 	trackers[current].dx = 0.0;
 	trackers[current].dy = 0.0;
 	trackers[current].time = time;
-	trackers[current].dir = get_direction(dx, dy);
+	trackers[current].dir = vector_get_direction(dx, dy);
 }
 
 static struct pointer_tracker *
@@ -174,7 +126,7 @@ calculate_tracker_velocity(struct pointer_tracker *tracker, uint64_t time)
 	dx = tracker->dx;
 	dy = tracker->dy;
 	distance = sqrt(dx*dx + dy*dy);
-	return distance / (double)(time - tracker->time);
+	return distance / (double)(time - tracker->time); /* units/ms */
 }
 
 static double
@@ -218,7 +170,7 @@ calculate_velocity(struct pointer_accelerator *accel, uint64_t time)
 		}
 	}
 
-	return result;
+	return result; /* units/ms */
 }
 
 static double
@@ -245,28 +197,7 @@ calculate_acceleration(struct pointer_accelerator *accel,
 
 	factor = factor / 6.0;
 
-	return factor;
-}
-
-static double
-soften_delta(double last_delta, double delta)
-{
-	if (delta < -1.0 || delta > 1.0) {
-		if (delta > last_delta)
-			return delta - 0.5;
-		else if (delta < last_delta)
-			return delta + 0.5;
-	}
-
-	return delta;
-}
-
-static void
-apply_softening(struct pointer_accelerator *accel,
-		struct motion_params *motion)
-{
-	motion->dx = soften_delta(accel->last_dx, motion->dx);
-	motion->dy = soften_delta(accel->last_dy, motion->dy);
+	return factor; /* unitless factor */
 }
 
 static void
@@ -276,8 +207,8 @@ accelerator_filter(struct motion_filter *filter,
 {
 	struct pointer_accelerator *accel =
 		(struct pointer_accelerator *) filter;
-	double velocity;
-	double accel_value;
+	double velocity; /* units/ms */
+	double accel_value; /* unitless factor */
 
 	feed_trackers(accel, motion->dx, motion->dy, time);
 	velocity = calculate_velocity(accel, time);
@@ -285,8 +216,6 @@ accelerator_filter(struct motion_filter *filter,
 
 	motion->dx = accel_value * motion->dx;
 	motion->dy = accel_value * motion->dy;
-
-	apply_softening(accel, motion);
 
 	accel->last_dx = motion->dx;
 	accel->last_dy = motion->dy;
@@ -332,15 +261,6 @@ create_pointer_accelator_filter(accel_profile_func_t profile)
 	return &filter->base;
 }
 
-void
-motion_filter_destroy(struct motion_filter *filter)
-{
-	if (!filter)
-		return;
-
-	filter->interface->destroy(filter);
-}
-
 static inline double
 calc_penumbral_gradient(double x)
 {
@@ -352,27 +272,39 @@ calc_penumbral_gradient(double x)
 double
 pointer_accel_profile_smooth_simple(struct motion_filter *filter,
 				    void *data,
-				    double velocity,
+				    double velocity, /* units/ms */
 				    uint64_t time)
 {
-	double threshold = DEFAULT_THRESHOLD;
-	double accel = DEFAULT_ACCELERATION;
-	double smooth_accel_coefficient;
+	double threshold = DEFAULT_THRESHOLD; /* units/ms */
+	double accel = DEFAULT_ACCELERATION; /* unitless factor */
+	double smooth_accel_coefficient; /* unitless factor */
+	double factor; /* unitless factor */
 
-	velocity *= DEFAULT_CONSTANT_ACCELERATION;
+	if (threshold < 0.1)
+		threshold = 0.1;
+	if (accel < 1.0)
+		accel = 1.0;
 
-	if (velocity < 1.0)
-		return calc_penumbral_gradient(0.5 + velocity * 0.5) * 2.0 - 1.0;
-	if (threshold < 1.0)
-		threshold = 1.0;
+	/* We use units/ms as velocity but it has no real meaning unless all
+	   devices have the same resolution. For touchpads, we normalize to
+	   400dpi (15.75 units/mm), but the resolution on USB mice is all
+	   over the place. Though most mice these days have either 400
+	   dpi (15.75 units/mm), 800 dpi or 1000dpi, excluding gaming mice
+	   that can usually adjust it on the fly anyway and currently go up
+	   to 8200dpi.
+	  */
+	if (velocity < (threshold / 2.0))
+		return calc_penumbral_gradient(0.5 + velocity / threshold) * 2.0 - 1.0;
+
 	if (velocity <= threshold)
-		return 1;
-	velocity /= threshold;
-	if (velocity >= accel) {
+		return 1.0;
+
+	factor = velocity/threshold;
+	if (factor >= accel)
 		return accel;
-	} else {
-		smooth_accel_coefficient =
-			calc_penumbral_gradient(velocity / accel);
-		return 1.0 + (smooth_accel_coefficient * (accel - 1.0));
-	}
+
+	/* factor is between 1.0 and accel, scale this to 0.0 - 1.0 */
+	factor = (factor - 1.0) / (accel - 1.0);
+	smooth_accel_coefficient = calc_penumbral_gradient(factor);
+	return 1.0 + (smooth_accel_coefficient * (accel - 1.0));
 }

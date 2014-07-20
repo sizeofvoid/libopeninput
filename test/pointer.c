@@ -63,7 +63,7 @@ test_relative_event(struct litest_device *dev, int dx, int dy)
 	ptrev = libinput_event_get_pointer_event(event);
 	ck_assert(ptrev != NULL);
 
-	expected_length = sqrt(dx*dx + dy*dy);
+	expected_length = sqrt(4 * dx*dx + 4 * dy*dy);
 	expected_dir = atan2(dx, dy);
 
 	ev_dx = libinput_event_pointer_get_dx(ptrev);
@@ -72,7 +72,7 @@ test_relative_event(struct litest_device *dev, int dx, int dy)
 	actual_dir = atan2(ev_dx, ev_dy);
 
 	/* Check the length of the motion vector (tolerate 1.0 indifference). */
-	ck_assert(fabs(expected_length - actual_length) < 1.0);
+	ck_assert(fabs(expected_length) >= actual_length);
 
 	/* Check the direction of the motion vector (tolerate 2π/4 radians
 	 * indifference). */
@@ -102,7 +102,7 @@ START_TEST(pointer_motion_relative)
 END_TEST
 
 static void
-test_button_event(struct litest_device *dev, int button, int state)
+test_button_event(struct litest_device *dev, unsigned int button, int state)
 {
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
@@ -223,7 +223,7 @@ START_TEST(pointer_seat_button_count)
 
 	libinput = litest_create_context();
 	for (i = 0; i < num_devices; ++i) {
-		sprintf(device_name, "Generic mouse (%d)", i);
+		sprintf(device_name, "litest Generic mouse (%d)", i);
 		devices[i] = litest_add_device_with_overrides(libinput,
 							      LITEST_MOUSE,
 							      device_name,

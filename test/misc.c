@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <libinput.h>
+#include <libinput-util.h>
 #include <unistd.h>
 
 #include "litest.h"
@@ -95,7 +96,7 @@ START_TEST(event_conversion_device_notify)
 	struct libinput_event *event;
 	int device_added = 0, device_removed = 0;
 
-	uinput = create_simple_test_device("test device",
+	uinput = create_simple_test_device("litest test device",
 					   EV_REL, REL_X,
 					   EV_REL, REL_Y,
 					   EV_KEY, BTN_LEFT,
@@ -149,7 +150,7 @@ START_TEST(event_conversion_pointer)
 	struct libinput_event *event;
 	int motion = 0, button = 0;
 
-	uinput = create_simple_test_device("test device",
+	uinput = create_simple_test_device("litest test device",
 					   EV_REL, REL_X,
 					   EV_REL, REL_Y,
 					   EV_KEY, BTN_LEFT,
@@ -210,7 +211,7 @@ START_TEST(event_conversion_pointer_abs)
 	struct libinput_event *event;
 	int motion = 0, button = 0;
 
-	uinput = create_simple_test_device("test device",
+	uinput = create_simple_test_device("litest test device",
 					   EV_ABS, ABS_X,
 					   EV_ABS, ABS_Y,
 					   EV_KEY, BTN_LEFT,
@@ -270,7 +271,7 @@ START_TEST(event_conversion_key)
 	struct libinput_event *event;
 	int key = 0;
 
-	uinput = create_simple_test_device("test device",
+	uinput = create_simple_test_device("litest test device",
 					   EV_KEY, KEY_A,
 					   EV_KEY, KEY_B,
 					   -1, -1);
@@ -319,7 +320,7 @@ START_TEST(event_conversion_touch)
 	struct libinput_event *event;
 	int touch = 0;
 
-	uinput = create_simple_test_device("test device",
+	uinput = create_simple_test_device("litest test device",
 					   EV_KEY, BTN_TOUCH,
 					   EV_ABS, ABS_X,
 					   EV_ABS, ABS_Y,
@@ -428,6 +429,46 @@ START_TEST(context_ref_counting)
 }
 END_TEST
 
+START_TEST(device_ids)
+{
+	struct litest_device *dev = litest_current_device();
+	const char *name;
+	unsigned int pid, vid;
+
+	name = libevdev_get_name(dev->evdev);
+	pid = libevdev_get_id_product(dev->evdev);
+	vid = libevdev_get_id_vendor(dev->evdev);
+
+	ck_assert_str_eq(name,
+			 libinput_device_get_name(dev->libinput_device));
+	ck_assert_int_eq(pid,
+			 libinput_device_get_id_product(dev->libinput_device));
+	ck_assert_int_eq(vid,
+			 libinput_device_get_id_vendor(dev->libinput_device));
+}
+END_TEST
+
+START_TEST(config_status_string)
+{
+	const char *strs[3];
+	const char *invalid;
+	size_t i, j;
+
+	strs[0] = libinput_config_status_to_str(LIBINPUT_CONFIG_STATUS_SUCCESS);
+	strs[1] = libinput_config_status_to_str(LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	strs[2] = libinput_config_status_to_str(LIBINPUT_CONFIG_STATUS_INVALID);
+
+	for (i = 0; i < ARRAY_LENGTH(strs) - 1; i++)
+		for (j = i + 1; j < ARRAY_LENGTH(strs); j++)
+			ck_assert_str_ne(strs[i], strs[j]);
+
+	invalid = libinput_config_status_to_str(LIBINPUT_CONFIG_STATUS_INVALID + 1);
+	ck_assert(invalid == NULL);
+	invalid = libinput_config_status_to_str(LIBINPUT_CONFIG_STATUS_SUCCESS - 1);
+	ck_assert(invalid == NULL);
+}
+END_TEST
+
 int main (int argc, char **argv) {
 	litest_add_no_device("events:conversion", event_conversion_device_notify);
 	litest_add_no_device("events:conversion", event_conversion_pointer);
@@ -436,6 +477,8 @@ int main (int argc, char **argv) {
 	litest_add_no_device("events:conversion", event_conversion_touch);
 	litest_add_no_device("bitfield_helpers", bitfield_helpers);
 	litest_add_no_device("context:refcount", context_ref_counting);
+	litest_add("device:id", device_ids, LITEST_ANY, LITEST_ANY);
+	litest_add_no_device("config:status string", config_status_string);
 
 	return litest_run(argc, argv);
 }

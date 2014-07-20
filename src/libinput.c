@@ -1447,6 +1447,24 @@ libinput_device_get_sysname(struct libinput_device *device)
 }
 
 LIBINPUT_EXPORT const char *
+libinput_device_get_name(struct libinput_device *device)
+{
+	return evdev_device_get_name((struct evdev_device *) device);
+}
+
+LIBINPUT_EXPORT unsigned int
+libinput_device_get_id_product(struct libinput_device *device)
+{
+	return evdev_device_get_id_product((struct evdev_device *) device);
+}
+
+LIBINPUT_EXPORT unsigned int
+libinput_device_get_id_vendor(struct libinput_device *device)
+{
+	return evdev_device_get_id_vendor((struct evdev_device *) device);
+}
+
+LIBINPUT_EXPORT const char *
 libinput_device_get_output_name(struct libinput_device *device)
 {
 	return evdev_device_get_output((struct evdev_device *) device);
@@ -1521,4 +1539,59 @@ LIBINPUT_EXPORT struct libinput_event *
 libinput_event_touch_get_base_event(struct libinput_event_touch *event)
 {
 	return &event->base;
+}
+
+LIBINPUT_EXPORT const char *
+libinput_config_status_to_str(enum libinput_config_status status)
+{
+	const char *str = NULL;
+
+	switch(status) {
+	case LIBINPUT_CONFIG_STATUS_SUCCESS:
+		str = "Success";
+		break;
+	case LIBINPUT_CONFIG_STATUS_UNSUPPORTED:
+		str = "Unsupported configuration option";
+		break;
+	case LIBINPUT_CONFIG_STATUS_INVALID:
+		str = "Invalid argument range";
+		break;
+	}
+
+	return str;
+}
+
+LIBINPUT_EXPORT int
+libinput_device_config_tap_get_finger_count(struct libinput_device *device)
+{
+	return device->config.tap ? device->config.tap->count(device) : 0;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_tap_set_enabled(struct libinput_device *device,
+				       int enable)
+{
+	if (enable &&
+	    libinput_device_config_tap_get_finger_count(device) == 0)
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	return device->config.tap->set_enabled(device, enable);
+}
+
+LIBINPUT_EXPORT int
+libinput_device_config_tap_get_enabled(struct libinput_device *device)
+{
+	if (libinput_device_config_tap_get_finger_count(device) == 0)
+		return 0;
+
+	return device->config.tap->get_enabled(device);
+}
+
+LIBINPUT_EXPORT int
+libinput_device_config_tap_get_default_enabled(struct libinput_device *device)
+{
+	if (libinput_device_config_tap_get_finger_count(device) == 0)
+		return 0;
+
+	return device->config.tap->get_default(device);
 }
