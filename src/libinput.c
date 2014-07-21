@@ -504,11 +504,27 @@ LIBINPUT_EXPORT double
 libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
 				     enum libinput_tablet_axis axis)
 {
+	struct evdev_device *device =
+		(struct evdev_device *) event->base.device;
+
 	if (event->base.type != LIBINPUT_EVENT_TABLET_AXIS)
 		return 0;
 
-	return (axis >= 0 && axis < LIBINPUT_TABLET_AXIS_CNT) ?
-		event->axes[axis] : 0;
+	switch(axis) {
+		case LIBINPUT_TABLET_AXIS_X:
+			return evdev_convert_to_mm(device->abs.absinfo_x,
+						   event->axes[axis]);
+		case LIBINPUT_TABLET_AXIS_Y:
+			return evdev_convert_to_mm(device->abs.absinfo_y,
+						   event->axes[axis]);
+		case LIBINPUT_TABLET_AXIS_DISTANCE:
+		case LIBINPUT_TABLET_AXIS_PRESSURE:
+		case LIBINPUT_TABLET_AXIS_TILT_X:
+		case LIBINPUT_TABLET_AXIS_TILT_Y:
+			return event->axes[axis];
+		default:
+			return 0;
+	}
 }
 
 LIBINPUT_EXPORT double
