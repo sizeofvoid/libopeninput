@@ -599,6 +599,19 @@ libinput_tool_get_serial(struct libinput_tool *tool)
 	return tool->serial;
 }
 
+LIBINPUT_EXPORT void
+libinput_tool_set_user_data(struct libinput_tool *tool,
+			    void *user_data)
+{
+	tool->user_data = user_data;
+}
+
+LIBINPUT_EXPORT void *
+libinput_tool_get_user_data(struct libinput_tool *tool)
+{
+	return tool->user_data;
+}
+
 LIBINPUT_EXPORT struct libinput_tool *
 libinput_tool_ref(struct libinput_tool *tool)
 {

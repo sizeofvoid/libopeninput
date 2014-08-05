@@ -109,6 +109,7 @@ struct libinput_tool {
 	uint32_t serial;
 	enum libinput_tool_type type;
 	int refcount;
+	void *user_data;
 };
 
 typedef void (*libinput_source_dispatch_t)(void *data);

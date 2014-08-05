@@ -1035,6 +1035,29 @@ uint32_t
 libinput_tool_get_serial(struct libinput_tool *tool);
 
 /**
+ * @ingroup event_tablet
+ *
+ * Return the user data associated with a tool object.
+ *
+ * @param tool The libinput tool
+ * @return The user data associated with the tool object
+ */
+void *
+libinput_tool_get_user_data(struct libinput_tool *tool);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Set the user data associated with a tool object.
+ *
+ * @param tool The libinput tool
+ * @param user_data The user data to associate with the tool object
+ */
+void
+libinput_tool_set_user_data(struct libinput_tool *tool,
+			    void *user_data);
+
+/**
  * @defgroup base Initialization and manipulation of libinput contexts
  */
 
