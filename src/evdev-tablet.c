@@ -259,17 +259,36 @@ tablet_process_misc(struct tablet_dispatch *tablet,
 }
 
 static struct libinput_tool *
-tablet_get_tool(struct libinput *li,
+tablet_get_tool(struct tablet_dispatch *tablet,
 		enum libinput_tool_type type,
 		uint32_t serial)
 {
 	struct libinput_tool *tool = NULL, *t;
+	struct list *tool_list;
 
-	/* Check if we already have the tool in our list of tools */
-	list_for_each(t, &li->tool_list, link) {
-		if (type == t->type && serial == t->serial) {
-			tool = t;
-			break;
+	if (serial) {
+		tool_list = &tablet->device->base.seat->libinput->tool_list;
+
+		/* Check if we already have the tool in our list of tools */
+		list_for_each(t, tool_list, link) {
+			if (type == t->type && serial == t->serial) {
+				tool = t;
+				break;
+			}
+		}
+	} else {
+		/* We can't guarantee that tools without serial numbers are
+		 * unique, so we keep them local to the tablet that they come
+		 * into proximity of instead of storing them in the global tool
+		 * list */
+		tool_list = &tablet->tool_list;
+
+		/* Same as above, but don't bother checking the serial number */
+		list_for_each(t, tool_list, link) {
+			if (type == t->type) {
+				tool = t;
+				break;
+			}
 		}
 	}
 
@@ -283,7 +302,7 @@ tablet_get_tool(struct libinput *li,
 			.refcount = 1,
 		};
 
-		list_insert(&li->tool_list, &tool->link);
+		list_insert(tool_list, &tool->link);
 	}
 
 	return tool;
@@ -382,7 +401,7 @@ tablet_flush(struct tablet_dispatch *tablet,
 	     uint32_t time)
 {
 	struct libinput_tool *tool =
-		tablet_get_tool(device->base.seat->libinput,
+		tablet_get_tool(tablet,
 				tablet->current_tool_type,
 				tablet->current_tool_serial);
 
@@ -473,6 +492,11 @@ tablet_destroy(struct evdev_dispatch *dispatch)
 {
 	struct tablet_dispatch *tablet =
 		(struct tablet_dispatch*)dispatch;
+	struct libinput_tool *tool, *tmp;
+
+	list_for_each_safe(tool, tmp, &tablet->tool_list, link) {
+		libinput_tool_unref(tool);
+	}
 
 	free(tablet);
 }
@@ -490,6 +514,7 @@ tablet_init(struct tablet_dispatch *tablet,
 	tablet->device = device;
 	tablet->status = TABLET_NONE;
 	tablet->current_tool_type = LIBINPUT_TOOL_NONE;
+	list_init(&tablet->tool_list);
 
 	tablet_mark_all_axes_changed(tablet, device);
 

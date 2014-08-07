@@ -681,6 +681,95 @@ START_TEST(pad_buttons_ignored)
 }
 END_TEST
 
+START_TEST(tools_with_serials)
+{
+	struct libinput *li = litest_create_context();
+	struct litest_device *dev[2];
+	struct libinput_tool *tool[2] = {0};
+	struct libinput_event *event;
+	int i;
+
+	for (i = 0; i < 2; i++) {
+		dev[i] = litest_add_device_with_overrides(li,
+							  LITEST_WACOM_INTUOS,
+							  NULL,
+							  NULL,
+							  NULL,
+							  NULL);
+
+		litest_event(dev[i], EV_KEY, BTN_TOOL_PEN, 1);
+		litest_event(dev[i], EV_MSC, MSC_SERIAL, 100);
+		litest_event(dev[i], EV_SYN, SYN_REPORT, 0);
+
+		libinput_dispatch(li);
+		while ((event = libinput_get_event(li))) {
+			if (libinput_event_get_type(event) ==
+			    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+				struct libinput_event_tablet *t =
+					libinput_event_get_tablet_event(event);
+
+				tool[i] = libinput_event_tablet_get_tool(t);
+			}
+
+			libinput_event_destroy(event);
+		}
+	}
+
+	/* We should get the same object for both devices */
+	ck_assert_notnull(tool[0]);
+	ck_assert_notnull(tool[1]);
+	ck_assert_ptr_eq(tool[0], tool[1]);
+
+	litest_delete_device(dev[0]);
+	litest_delete_device(dev[1]);
+	libinput_unref(li);
+}
+END_TEST
+
+START_TEST(tools_without_serials)
+{
+	struct libinput *li = litest_create_context();
+	struct litest_device *dev[2];
+	struct libinput_tool *tool[2] = {0};
+	struct libinput_event *event;
+	int i;
+
+	for (i = 0; i < 2; i++) {
+		dev[i] = litest_add_device_with_overrides(li,
+							  LITEST_WACOM_ISDV4,
+							  NULL,
+							  NULL,
+							  NULL,
+							  NULL);
+
+		litest_event(dev[i], EV_KEY, BTN_TOOL_PEN, 1);
+		litest_event(dev[i], EV_SYN, SYN_REPORT, 0);
+
+		libinput_dispatch(li);
+		while ((event = libinput_get_event(li))) {
+			if (libinput_event_get_type(event) ==
+			    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+				struct libinput_event_tablet *t =
+					libinput_event_get_tablet_event(event);
+
+				tool[i] = libinput_event_tablet_get_tool(t);
+			}
+
+			libinput_event_destroy(event);
+		}
+	}
+
+	/* We should get different tool objects for each device */
+	ck_assert_notnull(tool[0]);
+	ck_assert_notnull(tool[1]);
+	ck_assert_ptr_ne(tool[0], tool[1]);
+
+	litest_delete_device(dev[0]);
+	litest_delete_device(dev[1]);
+	libinput_unref(li);
+}
+END_TEST
+
 int
 main(int argc, char **argv)
 {
@@ -688,6 +777,8 @@ main(int argc, char **argv)
 	litest_add("tablet:tool_serial", tool_serial, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", serial_changes_tool, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", invalid_serials, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
+	litest_add_no_device("tablet:tool_serial", tools_with_serials);
+	litest_add_no_device("tablet:tool_serial", tools_without_serials);
 	litest_add("tablet:proximity", proximity_out_clear_buttons, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_in_out, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", bad_distance_events, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);

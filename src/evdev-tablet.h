@@ -49,6 +49,9 @@ struct tablet_dispatch {
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_CNT)];
 	double axes[LIBINPUT_TABLET_AXIS_CNT];
 
+	/* Only used for tablets that don't report serial numbers */
+	struct list tool_list;
+
 	struct button_state button_state;
 	struct button_state prev_button_state;
 
