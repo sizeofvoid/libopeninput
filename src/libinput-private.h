@@ -108,6 +108,7 @@ struct libinput_tool {
 	struct list link;
 	uint32_t serial;
 	enum libinput_tool_type type;
+	unsigned char axis_caps[NCHARS(LIBINPUT_TABLET_AXIS_CNT)];
 	int refcount;
 	void *user_data;
 };

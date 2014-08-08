@@ -770,10 +770,86 @@ START_TEST(tools_without_serials)
 }
 END_TEST
 
+START_TEST(tool_capabilities)
+{
+	struct libinput *li = litest_create_context();
+	struct litest_device *intuos;
+	struct litest_device *bamboo;
+	struct libinput_event *event;
+
+	/* The axis capabilities of a tool can differ depending on the type of
+	 * tablet the tool is being used with */
+	bamboo = litest_create_device_with_overrides(LITEST_WACOM_BAMBOO,
+						     NULL,
+						     NULL,
+						     NULL,
+						     NULL);
+	intuos = litest_create_device_with_overrides(LITEST_WACOM_INTUOS,
+						     NULL,
+						     NULL,
+						     NULL,
+						     NULL);
+
+	litest_event(bamboo, EV_KEY, BTN_TOOL_PEN, 1);
+	litest_event(bamboo, EV_SYN, SYN_REPORT, 0);
+
+	libinput_dispatch(li);
+	while ((event = libinput_get_event(li))) {
+		if (libinput_event_get_type(event) ==
+		    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+			struct libinput_event_tablet *t =
+				libinput_event_get_tablet_event(event);
+			struct libinput_tool *tool =
+				libinput_event_tablet_get_tool(t);
+
+			ck_assert(libinput_tool_has_axis(tool,
+							 LIBINPUT_TABLET_AXIS_PRESSURE));
+			ck_assert(libinput_tool_has_axis(tool,
+							 LIBINPUT_TABLET_AXIS_DISTANCE));
+			ck_assert(!libinput_tool_has_axis(tool,
+							  LIBINPUT_TABLET_AXIS_TILT_X));
+			ck_assert(!libinput_tool_has_axis(tool,
+							  LIBINPUT_TABLET_AXIS_TILT_Y));
+		}
+
+		libinput_event_destroy(event);
+	}
+
+	litest_event(intuos, EV_KEY, BTN_TOOL_PEN, 1);
+	litest_event(intuos, EV_SYN, SYN_REPORT, 0);
+
+	while ((event = libinput_get_event(li))) {
+		if (libinput_event_get_type(event) ==
+		    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+			struct libinput_event_tablet *t =
+				libinput_event_get_tablet_event(event);
+			struct libinput_tool *tool =
+				libinput_event_tablet_get_tool(t);
+
+			ck_assert(libinput_tool_has_axis(tool,
+							 LIBINPUT_TABLET_AXIS_PRESSURE));
+			ck_assert(libinput_tool_has_axis(tool,
+							 LIBINPUT_TABLET_AXIS_DISTANCE));
+			ck_assert(libinput_tool_has_axis(tool,
+							 LIBINPUT_TABLET_AXIS_TILT_X));
+			ck_assert(libinput_tool_has_axis(tool,
+							 LIBINPUT_TABLET_AXIS_TILT_Y));
+		}
+
+		libinput_event_destroy(event);
+	}
+
+	litest_delete_device(bamboo);
+	litest_delete_device(intuos);
+	libinput_unref(li);
+}
+END_TEST
+
 int
 main(int argc, char **argv)
 {
 	litest_add("tablet:tool", tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
+	litest_add_no_device("tablet:tool", tool_capabilities);
 	litest_add("tablet:tool_serial", tool_serial, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", serial_changes_tool, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", invalid_serials, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);

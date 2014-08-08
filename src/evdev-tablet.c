@@ -302,6 +302,44 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 			.refcount = 1,
 		};
 
+		/* Determine the axis capabilities of the tool. Here's a break
+		 * down of the heuristics used here:
+		 * - The Wacom art pen supports all of the extra axes, along
+		 *   with rotation
+		 * - All of normal pens and the airbrush support all of the
+		 *   extra axes if the tablet can report them
+		 * - All of the mouse like devices don't really report any of
+		 *   the extra axes except for rotation.
+		 * (as of writing this comment, rotation isn't supported, so you
+		 * won't see the mouse or art pen here)
+		 */
+		switch (type) {
+		case LIBINPUT_TOOL_PEN:
+		case LIBINPUT_TOOL_ERASER:
+		case LIBINPUT_TOOL_PENCIL:
+		case LIBINPUT_TOOL_BRUSH:
+		case LIBINPUT_TOOL_AIRBRUSH:
+			if (bit_is_set(tablet->axis_caps,
+				       LIBINPUT_TABLET_AXIS_PRESSURE))
+				set_bit(tool->axis_caps,
+					LIBINPUT_TABLET_AXIS_PRESSURE);
+			if (bit_is_set(tablet->axis_caps,
+				       LIBINPUT_TABLET_AXIS_DISTANCE))
+				set_bit(tool->axis_caps,
+					LIBINPUT_TABLET_AXIS_DISTANCE);
+			if (bit_is_set(tablet->axis_caps,
+				       LIBINPUT_TABLET_AXIS_TILT_X))
+				set_bit(tool->axis_caps,
+					LIBINPUT_TABLET_AXIS_TILT_X);
+			if (bit_is_set(tablet->axis_caps,
+				       LIBINPUT_TABLET_AXIS_TILT_Y))
+				set_bit(tool->axis_caps,
+					LIBINPUT_TABLET_AXIS_TILT_Y);
+			break;
+		default:
+			break;
+		}
+
 		list_insert(tool_list, &tool->link);
 	}
 
@@ -510,11 +548,20 @@ static int
 tablet_init(struct tablet_dispatch *tablet,
 	    struct evdev_device *device)
 {
+	enum libinput_tablet_axis axis;
+
 	tablet->base.interface = &tablet_interface;
 	tablet->device = device;
 	tablet->status = TABLET_NONE;
 	tablet->current_tool_type = LIBINPUT_TOOL_NONE;
 	list_init(&tablet->tool_list);
+
+	for (axis = 0; axis < LIBINPUT_TABLET_AXIS_CNT; axis++) {
+		if (libevdev_has_event_code(device->evdev,
+					    EV_ABS,
+					    axis_to_evcode(axis)))
+			set_bit(tablet->axis_caps, axis);
+	}
 
 	tablet_mark_all_axes_changed(tablet, device);
 

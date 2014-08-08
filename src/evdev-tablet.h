@@ -48,6 +48,7 @@ struct tablet_dispatch {
 	unsigned char status;
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_CNT)];
 	double axes[LIBINPUT_TABLET_AXIS_CNT];
+	unsigned char axis_caps[NCHARS(LIBINPUT_TABLET_AXIS_CNT)];
 
 	/* Only used for tablets that don't report serial numbers */
 	struct list tool_list;

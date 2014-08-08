@@ -599,6 +599,13 @@ libinput_tool_get_serial(struct libinput_tool *tool)
 	return tool->serial;
 }
 
+LIBINPUT_EXPORT int
+libinput_tool_has_axis(struct libinput_tool *tool,
+		       enum libinput_tablet_axis axis)
+{
+	return bit_is_set(tool->axis_caps, axis);
+}
+
 LIBINPUT_EXPORT void
 libinput_tool_set_user_data(struct libinput_tool *tool,
 			    void *user_data)

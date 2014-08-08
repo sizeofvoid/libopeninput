@@ -1010,6 +1010,19 @@ libinput_tool_ref(struct libinput_tool *tool);
 /**
  * @ingroup event_tablet
  *
+ * Return whether or not a tablet tool supports the specified axis
+ *
+ * @param tool The tool to check the axis capabilities of
+ * @param axis The axis to check for support
+ * @return Whether or not the axis is supported
+ */
+int
+libinput_tool_has_axis(struct libinput_tool *tool,
+		       enum libinput_tablet_axis axis);
+
+/**
+ * @ingroup event_tablet
+ *
  * Decrement the ref count of tool by one. When the ref count of tool reaches 0,
  * the memory allocated for tool will be freed.
  *
