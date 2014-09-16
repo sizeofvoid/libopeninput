@@ -27,6 +27,7 @@ header_files = \
 	$(srcdir)/tapping.dox \
 	$(srcdir)/test-suite.dox \
 	$(srcdir)/tools.dox \
+	$(srcdir)/touchpad-jumping-cursors.dox \
 	$(srcdir)/touchpads.dox
 
 diagram_files = \

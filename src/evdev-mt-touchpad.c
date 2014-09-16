@@ -906,6 +906,25 @@ tp_need_motion_history_reset(struct tp_dispatch *tp)
 	return rc;
 }
 
+static bool
+tp_detect_jumps(const struct tp_dispatch *tp, struct tp_touch *t)
+{
+	struct device_coords *last;
+	double dx, dy;
+	const int JUMP_THRESHOLD_MM = 20;
+
+	if (t->history.count == 0)
+		return false;
+
+	/* called before tp_motion_history_push, so offset 0 is the most
+	 * recent coordinate */
+	last = tp_motion_history_offset(t, 0);
+	dx = fabs(t->point.x - last->x) / tp->device->abs.absinfo_x->resolution;
+	dy = fabs(t->point.y - last->y) / tp->device->abs.absinfo_y->resolution;
+
+	return hypot(dx, dy) > JUMP_THRESHOLD_MM;
+}
+
 static void
 tp_process_state(struct tp_dispatch *tp, uint64_t time)
 {
@@ -936,6 +955,14 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 
 		if (t->pressure_delta < -7)
 			tp_motion_history_reset(t);
+
+		if (tp_detect_jumps(tp, t)) {
+			log_bug_kernel(tp_libinput_context(tp),
+				       "Touch jump detected and discarded.\n"
+				       "See %stouchpad_jumping_cursor for details\n",
+				       HTTP_DOC_LINK);
+			tp_motion_history_reset(t);
+		}
 
 		tp_thumb_detect(tp, t, time);
 		tp_palm_detect(tp, t, time);
