@@ -1,7 +1,7 @@
 AC_PREREQ([2.64])
 
 m4_define([libinput_major_version], [0])
-m4_define([libinput_minor_version], [4])
+m4_define([libinput_minor_version], [6])
 m4_define([libinput_micro_version], [0])
 m4_define([libinput_version],
           [libinput_major_version.libinput_minor_version.libinput_micro_version])
@@ -30,7 +30,7 @@ AM_INIT_AUTOMAKE([1.11 foreign no-dist-gzip dist-xz subdir-objects])
 # - If binary compatibility has been broken (eg removed or changed interfaces)
 #   change to C+1:0:0
 # - If the interface is the same as the previous version, change to C:R+1:A
-LIBINPUT_LT_VERSION=3:0:0
+LIBINPUT_LT_VERSION=5:0:0
 AC_SUBST(LIBINPUT_LT_VERSION)
 
 AM_SILENT_RULES([yes])
@@ -96,7 +96,7 @@ AC_ARG_ENABLE(tests,
 	      [build_tests="$enableval"],
 	      [build_tests="auto"])
 
-PKG_CHECK_MODULES(CHECK, [check >= 0.9.9], [HAVE_CHECK="yes"], [HAVE_CHECK="no"])
+PKG_CHECK_MODULES(CHECK, [check >= 0.9.10], [HAVE_CHECK="yes"], [HAVE_CHECK="no"])
 
 if test "x$build_tests" = "xauto"; then
 	build_tests="$HAVE_CHECK"

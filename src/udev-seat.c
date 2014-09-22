@@ -47,8 +47,10 @@ device_added(struct udev_device *udev_device, struct udev_input *input)
 	struct evdev_device *device;
 	const char *devnode;
 	const char *sysname;
+	const char *syspath;
 	const char *device_seat, *seat_name, *output_name;
 	const char *calibration_values;
+	float calibration[6];
 	struct udev_seat *seat;
 
 	device_seat = udev_device_get_property_value(udev_device, "ID_SEAT");
@@ -60,6 +62,7 @@ device_added(struct udev_device *udev_device, struct udev_input *input)
 
 	devnode = udev_device_get_devnode(udev_device);
 	sysname = udev_device_get_sysname(udev_device);
+	syspath = udev_device_get_syspath(udev_device);
 
 	/* Search for matching logical seat */
 	seat_name = udev_device_get_property_value(udev_device, "WL_SEAT");
@@ -76,7 +79,7 @@ device_added(struct udev_device *udev_device, struct udev_input *input)
 			return -1;
 	}
 
-	device = evdev_device_create(&seat->base, devnode, sysname);
+	device = evdev_device_create(&seat->base, devnode, sysname, syspath);
 	libinput_seat_unref(&seat->base);
 
 	if (device == EVDEV_UNHANDLED_DEVICE) {
@@ -89,25 +92,25 @@ device_added(struct udev_device *udev_device, struct udev_input *input)
 
 	calibration_values =
 		udev_device_get_property_value(udev_device,
-					       "WL_CALIBRATION");
+					       "LIBINPUT_CALIBRATION_MATRIX");
 
 	if (calibration_values && sscanf(calibration_values,
 					 "%f %f %f %f %f %f",
-					 &device->abs.calibration[0],
-					 &device->abs.calibration[1],
-					 &device->abs.calibration[2],
-					 &device->abs.calibration[3],
-					 &device->abs.calibration[4],
-					 &device->abs.calibration[5]) == 6) {
-		device->abs.apply_calibration = 1;
+					 &calibration[0],
+					 &calibration[1],
+					 &calibration[2],
+					 &calibration[3],
+					 &calibration[4],
+					 &calibration[5]) == 6) {
+		evdev_device_set_default_calibration(device, calibration);
 		log_info(&input->base,
 			 "Applying calibration: %f %f %f %f %f %f\n",
-			 device->abs.calibration[0],
-			 device->abs.calibration[1],
-			 device->abs.calibration[2],
-			 device->abs.calibration[3],
-			 device->abs.calibration[4],
-			 device->abs.calibration[5]);
+			 calibration[0],
+			 calibration[1],
+			 calibration[2],
+			 calibration[3],
+			 calibration[4],
+			 calibration[5]);
 	}
 
 	output_name = udev_device_get_property_value(udev_device, "WL_OUTPUT");
@@ -215,7 +218,6 @@ udev_input_remove_devices(struct udev_input *input)
 		libinput_seat_unref(&seat->base);
 	}
 }
-
 
 static void
 udev_input_disable(struct libinput *libinput)

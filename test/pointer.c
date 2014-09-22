@@ -105,26 +105,13 @@ static void
 test_button_event(struct litest_device *dev, unsigned int button, int state)
 {
 	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
 
 	litest_event(dev, EV_KEY, button, state);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
-
-	event = libinput_get_event(li);
-	ck_assert(event != NULL);
-	ck_assert_int_eq(libinput_event_get_type(event), LIBINPUT_EVENT_POINTER_BUTTON);
-
-	ptrev = libinput_event_get_pointer_event(event);
-	ck_assert(ptrev != NULL);
-	ck_assert_int_eq(libinput_event_pointer_get_button(ptrev), button);
-	ck_assert_int_eq(libinput_event_pointer_get_button_state(ptrev),
-			 state ?
-				LIBINPUT_BUTTON_STATE_PRESSED :
-				LIBINPUT_BUTTON_STATE_RELEASED);
-	libinput_event_destroy(event);
+	litest_assert_button_event(li, button,
+				   state ?  LIBINPUT_BUTTON_STATE_PRESSED :
+					   LIBINPUT_BUTTON_STATE_RELEASED);
 }
 
 START_TEST(pointer_button)
@@ -145,10 +132,101 @@ START_TEST(pointer_button)
 		test_button_event(dev, BTN_RIGHT, 0);
 	}
 
-	if (libevdev_has_event_code(dev->evdev, EV_KEY, BTN_MIDDLE)) {
+	/* Skip middle button test on trackpoints (used for scrolling) */
+	if (!libevdev_has_property(dev->evdev, INPUT_PROP_POINTING_STICK) &&
+	    libevdev_has_event_code(dev->evdev, EV_KEY, BTN_MIDDLE)) {
 		test_button_event(dev, BTN_MIDDLE, 1);
 		test_button_event(dev, BTN_MIDDLE, 0);
 	}
+}
+END_TEST
+
+START_TEST(pointer_button_auto_release)
+{
+	struct libinput *libinput;
+	struct litest_device *dev;
+	struct libinput_event *event;
+	enum libinput_event_type type;
+	struct libinput_event_pointer *pevent;
+	struct {
+		int code;
+		int released;
+	} buttons[] = {
+		{ .code = BTN_LEFT, },
+		{ .code = BTN_MIDDLE, },
+		{ .code = BTN_EXTRA, },
+		{ .code = BTN_SIDE, },
+		{ .code = BTN_BACK, },
+		{ .code = BTN_FORWARD, },
+		{ .code = BTN_4, },
+	};
+	int events[2 * (ARRAY_LENGTH(buttons) + 1)];
+	unsigned i;
+	int button;
+	int valid_code;
+
+	/* Enable all tested buttons on the device */
+	for (i = 0; i < 2 * ARRAY_LENGTH(buttons);) {
+		button = buttons[i / 2].code;
+		events[i++] = EV_KEY;
+		events[i++] = button;
+	}
+	events[i++] = -1;
+	events[i++] = -1;
+
+	libinput = litest_create_context();
+	dev = litest_add_device_with_overrides(libinput,
+					       LITEST_MOUSE,
+					       "Generic mouse",
+					       NULL, NULL, events);
+
+	litest_drain_events(libinput);
+
+	/* Send pressed events, without releasing */
+	for (i = 0; i < ARRAY_LENGTH(buttons); ++i) {
+		test_button_event(dev, buttons[i].code, 1);
+	}
+
+	litest_drain_events(libinput);
+
+	/* "Disconnect" device */
+	litest_delete_device(dev);
+
+	/* Mark all released buttons until device is removed */
+	while (1) {
+		event = libinput_get_event(libinput);
+		ck_assert_notnull(event);
+		type = libinput_event_get_type(event);
+
+		if (type == LIBINPUT_EVENT_DEVICE_REMOVED) {
+			libinput_event_destroy(event);
+			break;
+		}
+
+		ck_assert_int_eq(type, LIBINPUT_EVENT_POINTER_BUTTON);
+		pevent = libinput_event_get_pointer_event(event);
+		ck_assert_int_eq(libinput_event_pointer_get_button_state(pevent),
+				 LIBINPUT_BUTTON_STATE_RELEASED);
+		button = libinput_event_pointer_get_button(pevent);
+
+		valid_code = 0;
+		for (i = 0; i < ARRAY_LENGTH(buttons); ++i) {
+			if (buttons[i].code == button) {
+				ck_assert_int_eq(buttons[i].released, 0);
+				buttons[i].released = 1;
+				valid_code = 1;
+			}
+		}
+		ck_assert_int_eq(valid_code, 1);
+		libinput_event_destroy(event);
+	}
+
+	/* Check that all pressed buttons has been released. */
+	for (i = 0; i < ARRAY_LENGTH(buttons); ++i) {
+		ck_assert_int_eq(buttons[i].released, 1);
+	}
+
+	libinput_unref(libinput);
 }
 END_TEST
 
@@ -296,12 +374,37 @@ START_TEST(pointer_seat_button_count)
 }
 END_TEST
 
+START_TEST(pointer_no_calibration)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *d = dev->libinput_device;
+	enum libinput_config_status status;
+	int rc;
+	float calibration[6] = {0};
+
+	rc = libinput_device_config_calibration_has_matrix(d);
+	ck_assert_int_eq(rc, 0);
+	rc = libinput_device_config_calibration_get_matrix(d, calibration);
+	ck_assert_int_eq(rc, 0);
+	rc = libinput_device_config_calibration_get_default_matrix(d,
+								   calibration);
+	ck_assert_int_eq(rc, 0);
+
+	status = libinput_device_config_calibration_set_matrix(d,
+							       calibration);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+}
+END_TEST
+
 int main (int argc, char **argv) {
 
 	litest_add("pointer:motion", pointer_motion_relative, LITEST_POINTER, LITEST_ANY);
 	litest_add("pointer:button", pointer_button, LITEST_BUTTON, LITEST_CLICKPAD);
+	litest_add_no_device("pointer:button_auto_release", pointer_button_auto_release);
 	litest_add("pointer:scroll", pointer_scroll_wheel, LITEST_WHEEL, LITEST_ANY);
 	litest_add_no_device("pointer:seat button count", pointer_seat_button_count);
+
+	litest_add("pointer:calibration", pointer_no_calibration, LITEST_ANY, LITEST_TOUCH|LITEST_SINGLE_TOUCH);
 
 	return litest_run(argc, argv);
 }

@@ -53,7 +53,6 @@ const struct libinput_interface simple_interface = {
 	.close_restricted = close_restricted,
 };
 
-
 START_TEST(path_create_NULL)
 {
 	struct libinput *li;
@@ -244,12 +243,11 @@ END_TEST
 
 START_TEST(path_add_invalid_path)
 {
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
+	struct libinput *li;
 	struct libinput_event *event;
 	struct libinput_device *device;
 
-	litest_drain_events(li);
+	li = litest_create_context();
 
 	device = libinput_path_add_device(li, "/tmp/");
 	ck_assert(device == NULL);
@@ -258,6 +256,8 @@ START_TEST(path_add_invalid_path)
 
 	while ((event = libinput_get_event(li)))
 		ck_abort();
+
+	libinput_unref(li);
 }
 END_TEST
 
@@ -492,7 +492,6 @@ START_TEST(path_add_device_suspend_resume)
 
 	ck_assert_int_eq(nevents, 2);
 
-
 	libinput_suspend(li);
 	libinput_dispatch(li);
 
@@ -575,7 +574,6 @@ START_TEST(path_add_device_suspend_resume_fail)
 	}
 
 	ck_assert_int_eq(nevents, 2);
-
 
 	libinput_suspend(li);
 	libinput_dispatch(li);
@@ -666,7 +664,6 @@ START_TEST(path_add_device_suspend_resume_remove_device)
 	}
 
 	ck_assert_int_eq(nevents, 2);
-
 
 	libinput_suspend(li);
 	libinput_dispatch(li);
@@ -796,26 +793,26 @@ START_TEST(path_seat_recycle)
 }
 END_TEST
 
-int main (int argc, char **argv) {
-
-	litest_add("path:create", path_create_NULL, LITEST_ANY, LITEST_ANY);
-	litest_add("path:create", path_create_invalid, LITEST_ANY, LITEST_ANY);
-	litest_add("path:create", path_create_destroy, LITEST_ANY, LITEST_ANY);
-	litest_add("path:suspend", path_suspend, LITEST_ANY, LITEST_ANY);
-	litest_add("path:suspend", path_double_suspend, LITEST_ANY, LITEST_ANY);
-	litest_add("path:suspend", path_double_resume, LITEST_ANY, LITEST_ANY);
-	litest_add("path:suspend", path_add_device_suspend_resume, LITEST_ANY, LITEST_ANY);
-	litest_add("path:suspend", path_add_device_suspend_resume_fail, LITEST_ANY, LITEST_ANY);
-	litest_add("path:suspend", path_add_device_suspend_resume_remove_device, LITEST_ANY, LITEST_ANY);
-	litest_add("path:seat events", path_added_seat, LITEST_ANY, LITEST_ANY);
+int
+main(int argc, char **argv)
+{
+	litest_add_no_device("path:create", path_create_NULL);
+	litest_add_no_device("path:create", path_create_invalid);
+	litest_add_no_device("path:create", path_create_destroy);
+	litest_add_no_device("path:suspend", path_suspend);
+	litest_add_no_device("path:suspend", path_double_suspend);
+	litest_add_no_device("path:suspend", path_double_resume);
+	litest_add_no_device("path:suspend", path_add_device_suspend_resume);
+	litest_add_no_device("path:suspend", path_add_device_suspend_resume_fail);
+	litest_add_no_device("path:suspend", path_add_device_suspend_resume_remove_device);
+	litest_add_for_device("path:seat events", path_added_seat, LITEST_SYNAPTICS_CLICKPAD);
 	litest_add("path:device events", path_added_device, LITEST_ANY, LITEST_ANY);
 	litest_add("path:device events", path_device_sysname, LITEST_ANY, LITEST_ANY);
-	litest_add("path:device events", path_add_device, LITEST_ANY, LITEST_ANY);
-	litest_add("path:device events", path_add_invalid_path, LITEST_ANY, LITEST_ANY);
-	litest_add("path:device events", path_remove_device, LITEST_ANY, LITEST_ANY);
-	litest_add("path:device events", path_double_remove_device, LITEST_ANY, LITEST_ANY);
-	litest_add("path:seat", path_seat_recycle,
-		   LITEST_DISABLE_DEVICE, LITEST_DISABLE_DEVICE);
+	litest_add_for_device("path:device events", path_add_device, LITEST_SYNAPTICS_CLICKPAD);
+	litest_add_no_device("path:device events", path_add_invalid_path);
+	litest_add_for_device("path:device events", path_remove_device, LITEST_SYNAPTICS_CLICKPAD);
+	litest_add_for_device("path:device events", path_double_remove_device, LITEST_SYNAPTICS_CLICKPAD);
+	litest_add_no_device("path:seat", path_seat_recycle);
 
 	return litest_run(argc, argv);
 }

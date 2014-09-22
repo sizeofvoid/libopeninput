@@ -34,8 +34,6 @@ static void litest_bcm5974_setup(void)
 }
 
 struct input_event down[] = {
-	{ .type = EV_KEY, .code = BTN_TOOL_FINGER, .value = 1 },
-	{ .type = EV_KEY, .code = BTN_TOUCH, .value = 1 },
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = 30  },
@@ -53,8 +51,6 @@ static struct input_event move[] = {
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_KEY, .code = BTN_TOOL_FINGER, .value = 1 },
-	{ .type = EV_KEY, .code = BTN_TOUCH, .value = 1 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
@@ -65,13 +61,18 @@ static struct litest_device_interface interface = {
 };
 
 static struct input_absinfo absinfo[] = {
-	{ ABS_X, 1472, 5472, 0, 0, 75 },
-	{ ABS_Y, 1408, 4448, 0, 0, 129 },
-	{ ABS_PRESSURE, 0, 255, 0, 0, 0 },
-	{ ABS_TOOL_WIDTH, 0, 15, 0, 0, 0 },
-	{ ABS_MT_SLOT, 0, 1, 0, 0, 0 },
-	{ ABS_MT_POSITION_X, 1472, 5472, 0, 0, 75 },
-	{ ABS_MT_POSITION_Y, 1408, 4448, 0, 0, 129 },
+	{ ABS_X, -4824, 4824, 0, 0, 0 },
+	{ ABS_Y, -172, 4290, 0, 0, 0 },
+	{ ABS_PRESSURE, 0, 256, 5, 0, 0 },
+	{ ABS_TOOL_WIDTH, 0, 16, 0, 0, 0 },
+	{ ABS_MT_SLOT, 0, 15, 0, 0, 0 },
+	{ ABS_MT_POSITION_X, -4824, 4824, 17, 0, 0 },
+	{ ABS_MT_POSITION_Y, -172, 4290, 17, 0, 0 },
+	{ ABS_MT_ORIENTATION, -16384, 16384, 3276, 0, 0 },
+	{ ABS_MT_TOUCH_MAJOR, 0, 2048, 81, 0, 0 },
+	{ ABS_MT_TOUCH_MINOR, 0, 2048, 81, 0, 0 },
+	{ ABS_MT_WIDTH_MAJOR, 0, 2048, 81, 0, 0 },
+	{ ABS_MT_WIDTH_MINOR, 0, 2048, 81, 0, 0 },
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ ABS_MT_PRESSURE, 0, 255, 0, 0, 0 },
 	{ .value = -1 },

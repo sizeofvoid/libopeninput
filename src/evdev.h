@@ -26,10 +26,12 @@
 
 #include "config.h"
 
+#include <stdbool.h>
 #include "linux/input.h"
 #include <libevdev/libevdev.h>
 
 #include "libinput-private.h"
+#include "timer.h"
 
 enum evdev_event_type {
 	EVDEV_NONE,
@@ -49,6 +51,12 @@ enum evdev_device_seat_capability {
 	EVDEV_DEVICE_TABLET = (1 << 3),
 };
 
+enum evdev_device_tags {
+	EVDEV_TAG_EXTERNAL_MOUSE = (1 << 0),
+	EVDEV_TAG_INTERNAL_TOUCHPAD = (1 << 1),
+	EVDEV_TAG_TRACKPOINT = (1 << 2),
+};
+
 struct mt_slot {
 	int32_t seat_slot;
 	int32_t x, y;
@@ -64,16 +72,20 @@ struct evdev_device {
 	char *output_name;
 	char *devnode;
 	char *sysname;
+	char *syspath;
 	const char *devname;
 	int fd;
 	struct {
 		const struct input_absinfo *absinfo_x, *absinfo_y;
-		int32_t x, y;
+		int fake_resolution;
 
+		int32_t x, y;
 		int32_t seat_slot;
 
 		int apply_calibration;
-		float calibration[6];
+		struct matrix calibration;
+		struct matrix default_calibration; /* from LIBINPUT_CALIBRATION_MATRIX */
+		struct matrix usermatrix; /* as supplied by the caller */
 	} abs;
 
 	struct {
@@ -87,14 +99,31 @@ struct evdev_device {
 		int dx, dy;
 	} rel;
 
+	struct {
+		struct libinput_timer timer;
+		bool has_middle_button_scroll;
+		bool middle_button_scroll_active;
+		double threshold;
+		uint32_t direction;
+	} scroll;
+
 	enum evdev_event_type pending_event;
 	enum evdev_device_seat_capability seat_caps;
+	enum evdev_device_tags tags;
 
 	int is_mt;
+	int suspended;
 
 	struct {
 		struct motion_filter *filter;
 	} pointer;
+
+	/* Bitmask of pressed keys used to ignore initial release events from
+	 * the kernel. */
+	unsigned long hw_key_mask[NLONGS(KEY_CNT)];
+	/* Key counter used for multiplexing button events internally in
+	 * libinput. */
+	uint8_t key_count[KEY_CNT];
 };
 
 #define EVDEV_UNHANDLED_DEVICE ((struct evdev_device *) 1)
@@ -110,16 +139,43 @@ struct evdev_dispatch_interface {
 
 	/* Destroy an event dispatch handler and free all its resources. */
 	void (*destroy)(struct evdev_dispatch *dispatch);
+
+	/* A new device was added */
+	void (*device_added)(struct evdev_device *device,
+			     struct evdev_device *added_device);
+
+	/* A device was removed */
+	void (*device_removed)(struct evdev_device *device,
+			       struct evdev_device *removed_device);
+
+	/* A device was suspended */
+	void (*device_suspended)(struct evdev_device *device,
+				 struct evdev_device *suspended_device);
+
+	/* A device was resumed */
+	void (*device_resumed)(struct evdev_device *device,
+			       struct evdev_device *resumed_device);
+
+	/* Tag device with one of EVDEV_TAG */
+	void (*tag_device)(struct evdev_device *device,
+			   struct udev_device *udev_device);
 };
 
 struct evdev_dispatch {
 	struct evdev_dispatch_interface *interface;
+	struct libinput_device_config_calibration calibration;
+
+	struct {
+		struct libinput_device_config_send_events config;
+		enum libinput_config_send_events_mode current_mode;
+	} sendevents;
 };
 
 struct evdev_device *
 evdev_device_create(struct libinput_seat *seat,
 		    const char *devnode,
-		    const char *sysname);
+		    const char *sysname,
+		    const char *syspath);
 
 struct evdev_dispatch *
 evdev_touchpad_create(struct evdev_device *device);
@@ -129,9 +185,6 @@ evdev_mt_touchpad_create(struct evdev_device *device);
 
 struct evdev_dispatch *
 evdev_tablet_create(struct evdev_device *device);
-
-void
-evdev_device_proces_event(struct libinput_event *event);
 
 void
 evdev_device_led_update(struct evdev_device *device, enum libinput_led leds);
@@ -155,7 +208,11 @@ unsigned int
 evdev_device_get_id_vendor(struct evdev_device *device);
 
 void
-evdev_device_calibrate(struct evdev_device *device, float calibration[6]);
+evdev_device_set_default_calibration(struct evdev_device *device,
+				     const float calibration[6]);
+void
+evdev_device_calibrate(struct evdev_device *device,
+		       const float calibration[6]);
 
 int
 evdev_device_has_capability(struct evdev_device *device,
@@ -175,6 +232,39 @@ double
 evdev_device_transform_y(struct evdev_device *device,
 			 double y,
 			 uint32_t height);
+int
+evdev_device_suspend(struct evdev_device *device);
+
+int
+evdev_device_resume(struct evdev_device *device);
+
+void
+evdev_notify_suspended_device(struct evdev_device *device);
+
+void
+evdev_notify_resumed_device(struct evdev_device *device);
+
+void
+evdev_keyboard_notify_key(struct evdev_device *device,
+			  uint32_t time,
+			  int key,
+			  enum libinput_key_state state);
+
+void
+evdev_pointer_notify_button(struct evdev_device *device,
+			    uint32_t time,
+			    int button,
+			    enum libinput_button_state state);
+
+void
+evdev_post_scroll(struct evdev_device *device,
+		  uint64_t time,
+		  double dx,
+		  double dy);
+
+
+void
+evdev_stop_scroll(struct evdev_device *device, uint64_t time);
 
 void
 evdev_device_remove(struct evdev_device *device);

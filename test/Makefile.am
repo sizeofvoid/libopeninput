@@ -15,7 +15,9 @@ liblitest_la_SOURCES = \
 	../src/libinput-util.c \
 	litest.h \
 	litest-int.h \
+	litest-alps-semi-mt.c \
 	litest-bcm5974.c \
+	litest-generic-singletouch.c \
 	litest-keyboard.c \
 	litest-mouse.c \
 	litest-synaptics.c \
@@ -37,8 +39,10 @@ run_tests = \
 	test-log \
 	test-tablet \
 	test-touchpad \
+	test-trackpoint \
 	test-misc \
-	test-keyboard
+	test-keyboard \
+	test-device
 build_tests = \
 	test-build-cxx \
 	test-build-linker \
@@ -52,23 +56,23 @@ TESTS = $(run_tests)
 
 test_udev_SOURCES = udev.c
 test_udev_LDADD = $(TEST_LIBS)
-test_udev_LDFLAGS = -static
+test_udev_LDFLAGS = -no-install
 
 test_path_SOURCES = path.c
 test_path_LDADD = $(TEST_LIBS)
-test_path_LDFLAGS = -static
+test_path_LDFLAGS = -no-install
 
 test_pointer_SOURCES = pointer.c
 test_pointer_LDADD = $(TEST_LIBS)
-test_pointer_LDFLAGS = -static
+test_pointer_LDFLAGS = -no-install
 
 test_touch_SOURCES = touch.c
 test_touch_LDADD = $(TEST_LIBS)
-test_touch_LDFLAGS = -static
+test_touch_LDFLAGS = -no-install
 
 test_log_SOURCES = log.c
 test_log_LDADD = $(TEST_LIBS)
-test_log_LDFLAGS = -static
+test_log_LDFLAGS = -no-install
 
 test_tablet_SOURCES = tablet.c
 test_tablet_CFLAGS = $(AM_CPPFLAGS)
@@ -77,15 +81,23 @@ test_tablet_LDFLAGS = -static
 
 test_touchpad_SOURCES = touchpad.c
 test_touchpad_LDADD = $(TEST_LIBS)
-test_touchpad_LDFLAGS = -static
+test_touchpad_LDFLAGS = -no-install
+
+test_trackpoint_SOURCES = trackpoint.c
+test_trackpoint_LDADD = $(TEST_LIBS)
+test_trackpoint_LDFLAGS = -no-install
 
 test_misc_SOURCES = misc.c
 test_misc_LDADD = $(TEST_LIBS)
-test_misc_LDFLAGS = -static
+test_misc_LDFLAGS = -no-install
 
 test_keyboard_SOURCES = keyboard.c
 test_keyboard_LDADD = $(TEST_LIBS)
-test_keyboard_LDFLAGS = -static
+test_keyboard_LDFLAGS = -no-install
+
+test_device_SOURCES = device.c
+test_device_LDADD = $(TEST_LIBS)
+test_device_LDFLAGS = -no-install
 
 # build-test only
 test_build_pedantic_c99_SOURCES = build-pedantic.c

@@ -484,6 +484,67 @@ tp_process_button(struct tp_dispatch *tp,
 	return 0;
 }
 
+void
+tp_release_all_buttons(struct tp_dispatch *tp,
+		       uint64_t time)
+{
+	if (tp->buttons.state) {
+		tp->buttons.state = 0;
+		tp->queued |= TOUCHPAD_EVENT_BUTTON_RELEASE;
+	}
+}
+
+void
+tp_init_softbuttons(struct tp_dispatch *tp,
+		    struct evdev_device *device,
+		    double topbutton_size_mult)
+{
+	int width, height;
+	const struct input_absinfo *absinfo_x, *absinfo_y;
+	int xoffset, yoffset;
+	int yres;
+
+	absinfo_x = device->abs.absinfo_x;
+	absinfo_y = device->abs.absinfo_y;
+
+	xoffset = absinfo_x->minimum,
+	yoffset = absinfo_y->minimum;
+	yres = absinfo_y->resolution;
+	width = abs(absinfo_x->maximum - absinfo_x->minimum);
+	height = abs(absinfo_y->maximum - absinfo_y->minimum);
+
+	/* button height: 10mm or 15% of the touchpad height,
+	   whichever is smaller */
+	if (yres > 1 && (height * 0.15/yres) > 10) {
+		tp->buttons.bottom_area.top_edge =
+		absinfo_y->maximum - 10 * yres;
+	} else {
+		tp->buttons.bottom_area.top_edge = height * .85 + yoffset;
+	}
+
+	tp->buttons.bottom_area.rightbutton_left_edge = width/2 + xoffset;
+
+	if (tp->buttons.has_topbuttons) {
+		/* T440s has the top button line 5mm from the top, event
+		   analysis has shown events to start down to ~10mm from the
+		   top - which maps to 15%.  We allow the caller to enlarge the
+		   area using a multiplier for the touchpad disabled case. */
+		double topsize_mm = 10 * topbutton_size_mult;
+		double topsize_pct = .15 * topbutton_size_mult;
+
+		if (yres > 1) {
+			tp->buttons.top_area.bottom_edge =
+			yoffset + topsize_mm * yres;
+		} else {
+			tp->buttons.top_area.bottom_edge = height * topsize_pct + yoffset;
+		}
+		tp->buttons.top_area.rightbutton_left_edge = width * .58 + xoffset;
+		tp->buttons.top_area.leftbutton_right_edge = width * .42 + xoffset;
+	} else {
+		tp->buttons.top_area.bottom_edge = INT_MIN;
+	}
+}
+
 int
 tp_init_buttons(struct tp_dispatch *tp,
 		struct evdev_device *device)
@@ -521,39 +582,11 @@ tp_init_buttons(struct tp_dispatch *tp,
 
 	tp->buttons.motion_dist = diagonal * DEFAULT_BUTTON_MOTION_THRESHOLD;
 
-	if (libevdev_get_id_vendor(device->evdev) == 0x5ac) /* Apple */
+	if (libevdev_get_id_vendor(device->evdev) == VENDOR_ID_APPLE)
 		tp->buttons.use_clickfinger = true;
 
 	if (tp->buttons.is_clickpad && !tp->buttons.use_clickfinger) {
-		int xoffset = absinfo_x->minimum,
-		    yoffset = absinfo_y->minimum;
-		int yres = absinfo_y->resolution;
-
-		/* button height: 10mm or 15% of the touchpad height,
-		   whichever is smaller */
-		if (yres > 1 && (height * 0.15/yres) > 10) {
-			tp->buttons.bottom_area.top_edge =
-				absinfo_y->maximum - 10 * yres;
-		} else {
-			tp->buttons.bottom_area.top_edge = height * .85 + yoffset;
-		}
-
-		tp->buttons.bottom_area.rightbutton_left_edge = width/2 + xoffset;
-
-		if (tp->buttons.has_topbuttons) {
-			/* T440s has the top button line 5mm from the top,
-			   make the buttons 6mm high */
-			if (yres > 1) {
-				tp->buttons.top_area.bottom_edge =
-					yoffset + 6 * yres;
-			} else {
-				tp->buttons.top_area.bottom_edge = height * .08 + yoffset;
-			}
-			tp->buttons.top_area.rightbutton_left_edge = width * .58 + xoffset;
-			tp->buttons.top_area.leftbutton_right_edge = width * .42 + xoffset;
-		} else {
-			tp->buttons.top_area.bottom_edge = INT_MIN;
-		}
+		tp_init_softbuttons(tp, device, 1.0);
 	} else {
 		tp->buttons.bottom_area.top_edge = INT_MAX;
 		tp->buttons.top_area.bottom_edge = INT_MIN;
@@ -606,11 +639,12 @@ tp_post_clickfinger_buttons(struct tp_dispatch *tp, uint64_t time)
 		state = LIBINPUT_BUTTON_STATE_RELEASED;
 	}
 
-	if (button)
-		pointer_notify_button(&tp->device->base,
-				      time,
-				      button,
-				      state);
+	if (button) {
+		evdev_pointer_notify_button(tp->device,
+					    time,
+					    button,
+					    state);
+	}
 	return 1;
 }
 
@@ -632,10 +666,10 @@ tp_post_physical_buttons(struct tp_dispatch *tp, uint64_t time)
 			else
 				state = LIBINPUT_BUTTON_STATE_RELEASED;
 
-			pointer_notify_button(&tp->device->base,
-					      time,
-					      button,
-					      state);
+			evdev_pointer_notify_button(tp->device,
+						    time,
+						    button,
+						    state);
 		}
 
 		button++;
@@ -646,16 +680,46 @@ tp_post_physical_buttons(struct tp_dispatch *tp, uint64_t time)
 	return 0;
 }
 
+static void
+tp_notify_softbutton(struct tp_dispatch *tp,
+		     uint64_t time,
+		     uint32_t button,
+		     uint32_t is_topbutton,
+		     enum libinput_button_state state)
+{
+	/* If we've a trackpoint, send top buttons through the trackpoint */
+	if (is_topbutton && tp->buttons.trackpoint) {
+		struct evdev_dispatch *dispatch = tp->buttons.trackpoint->dispatch;
+		struct input_event event;
+
+		event.time.tv_sec = time/1000;
+		event.time.tv_usec = (time % 1000) * 1000;
+		event.type = EV_KEY;
+		event.code = button;
+		event.value = (state == LIBINPUT_BUTTON_STATE_PRESSED) ? 1 : 0;
+		dispatch->interface->process(dispatch, tp->buttons.trackpoint,
+					     &event, time);
+		return;
+	}
+
+	/* Ignore button events not for the trackpoint while suspended */
+	if (tp->device->suspended)
+		return;
+
+	evdev_pointer_notify_button(tp->device, time, button, state);
+}
+
 static int
 tp_post_softbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 {
-	uint32_t current, old, button;
+	uint32_t current, old, button, is_top;
 	enum libinput_button_state state;
 	enum { AREA = 0x01, LEFT = 0x02, MIDDLE = 0x04, RIGHT = 0x08 };
 
 	current = tp->buttons.state;
 	old = tp->buttons.old_state;
 	button = 0;
+	is_top = 0;
 
 	if (!tp->buttons.click_pending && current == old)
 		return 0;
@@ -668,15 +732,18 @@ tp_post_softbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 			case BUTTON_EVENT_IN_AREA:
 				button |= AREA;
 				break;
-			case BUTTON_EVENT_IN_BOTTOM_L:
 			case BUTTON_EVENT_IN_TOP_L:
+				is_top = 1;
+			case BUTTON_EVENT_IN_BOTTOM_L:
 				button |= LEFT;
 				break;
 			case BUTTON_EVENT_IN_TOP_M:
+				is_top = 1;
 				button |= MIDDLE;
 				break;
-			case BUTTON_EVENT_IN_BOTTOM_R:
 			case BUTTON_EVENT_IN_TOP_R:
+				is_top = 1;
+			case BUTTON_EVENT_IN_BOTTOM_R:
 				button |= RIGHT;
 				break;
 			default:
@@ -698,20 +765,21 @@ tp_post_softbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 			button = BTN_LEFT;
 
 		tp->buttons.active = button;
+		tp->buttons.active_is_topbutton = is_top;
 		state = LIBINPUT_BUTTON_STATE_PRESSED;
 	} else {
 		button = tp->buttons.active;
+		is_top = tp->buttons.active_is_topbutton;
 		tp->buttons.active = 0;
+		tp->buttons.active_is_topbutton = 0;
 		state = LIBINPUT_BUTTON_STATE_RELEASED;
 	}
 
 	tp->buttons.click_pending = false;
 
 	if (button)
-		pointer_notify_button(&tp->device->base,
-				      time,
-				      button,
-				      state);
+		tp_notify_softbutton(tp, time, button, is_top, state);
+
 	return 1;
 }
 

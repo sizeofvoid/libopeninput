@@ -33,6 +33,8 @@
 #define TOUCHPAD_HISTORY_LENGTH 4
 #define TOUCHPAD_MIN_SAMPLES 4
 
+#define VENDOR_ID_APPLE 0x5ac
+
 enum touchpad_event {
 	TOUCHPAD_EVENT_NONE		= 0,
 	TOUCHPAD_EVENT_MOTION		= (1 << 0),
@@ -101,7 +103,6 @@ struct tp_touch {
 	struct tp_dispatch *tp;
 	enum touch_state state;
 	bool dirty;
-	bool fake;				/* a fake touch */
 	bool is_pointer;			/* the pointer-controlling touch */
 	int32_t x;
 	int32_t y;
@@ -151,10 +152,13 @@ struct tp_dispatch {
 	struct evdev_dispatch base;
 	struct evdev_device *device;
 	unsigned int nfingers_down;		/* number of fingers down */
+	unsigned int old_nfingers_down;		/* previous no fingers down */
 	unsigned int slot;			/* current slot */
 	bool has_mt;
+	bool semi_mt;
 
-	unsigned int ntouches;			/* number of slots */
+	unsigned int real_touches;		/* number of slots */
+	unsigned int ntouches;			/* no slots inc. fakes */
 	struct tp_touch *touches;		/* len == ntouches */
 	unsigned int fake_touches;		/* fake touch mask */
 
@@ -179,6 +183,7 @@ struct tp_dispatch {
 		uint32_t old_state;
 		uint32_t motion_dist;		/* for pinned touches */
 		unsigned int active;		/* currently active button, for release event */
+		bool active_is_topbutton;	/* is active a top button? */
 
 		/* Only used for clickpads. The software button areas are
 		 * always 2 horizontal stripes across the touchpad.
@@ -194,11 +199,9 @@ struct tp_dispatch {
 			int32_t rightbutton_left_edge;
 			int32_t leftbutton_right_edge;
 		} top_area;
-	} buttons;				/* physical buttons */
 
-	struct {
-		enum libinput_pointer_axis direction;
-	} scroll;
+		struct evdev_device *trackpoint;
+	} buttons;				/* physical buttons */
 
 	enum touchpad_event queued;
 
@@ -213,6 +216,11 @@ struct tp_dispatch {
 		int32_t right_edge;
 		int32_t left_edge;
 	} palm;
+
+	struct {
+		struct libinput_device_config_send_events config;
+		enum libinput_config_send_events_mode current_mode;
+	} sendevents;
 };
 
 #define tp_for_each_touch(_tp, _t) \
@@ -237,12 +245,21 @@ int
 tp_init_buttons(struct tp_dispatch *tp, struct evdev_device *device);
 
 void
+tp_init_softbuttons(struct tp_dispatch *tp,
+		    struct evdev_device *device,
+		    double topbutton_size_mult);
+
+void
 tp_destroy_buttons(struct tp_dispatch *tp);
 
 int
 tp_process_button(struct tp_dispatch *tp,
 		  const struct input_event *e,
 		  uint64_t time);
+
+void
+tp_release_all_buttons(struct tp_dispatch *tp,
+		       uint64_t time);
 
 int
 tp_post_button_events(struct tp_dispatch *tp, uint64_t time);
@@ -255,5 +272,9 @@ tp_button_touch_active(struct tp_dispatch *tp, struct tp_touch *t);
 
 bool
 tp_button_is_inside_softbutton_area(struct tp_dispatch *tp, struct tp_touch *t);
+
+void
+tp_release_all_taps(struct tp_dispatch *tp,
+		    uint64_t time);
 
 #endif

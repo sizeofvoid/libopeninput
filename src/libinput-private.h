@@ -23,6 +23,8 @@
 #ifndef LIBINPUT_PRIVATE_H
 #define LIBINPUT_PRIVATE_H
 
+#include <errno.h>
+
 #include "linux/input.h"
 
 #include "libinput.h"
@@ -86,13 +88,33 @@ struct libinput_seat {
 struct libinput_device_config_tap {
 	int (*count)(struct libinput_device *device);
 	enum libinput_config_status (*set_enabled)(struct libinput_device *device,
-						   int enable);
-	int (*get_enabled)(struct libinput_device *device);
-	int (*get_default)(struct libinput_device *device);
+						   enum libinput_config_tap_state enable);
+	enum libinput_config_tap_state (*get_enabled)(struct libinput_device *device);
+	enum libinput_config_tap_state (*get_default)(struct libinput_device *device);
+};
+
+struct libinput_device_config_calibration {
+	int (*has_matrix)(struct libinput_device *device);
+	enum libinput_config_status (*set_matrix)(struct libinput_device *device,
+						  const float matrix[6]);
+	int (*get_matrix)(struct libinput_device *device,
+			  float matrix[6]);
+	int (*get_default_matrix)(struct libinput_device *device,
+							  float matrix[6]);
+};
+
+struct libinput_device_config_send_events {
+	uint32_t (*get_modes)(struct libinput_device *device);
+	enum libinput_config_status (*set_mode)(struct libinput_device *device,
+						   enum libinput_config_send_events_mode mode);
+	enum libinput_config_send_events_mode (*get_mode)(struct libinput_device *device);
+	enum libinput_config_send_events_mode (*get_default_mode)(struct libinput_device *device);
 };
 
 struct libinput_device_config {
 	struct libinput_device_config_tap *tap;
+	struct libinput_device_config_calibration *calibration;
+	struct libinput_device_config_send_events *sendevents;
 };
 
 struct libinput_device {
@@ -120,8 +142,8 @@ typedef void (*libinput_source_dispatch_t)(void *data);
 #define log_info(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_INFO, __VA_ARGS__)
 #define log_error(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, __VA_ARGS__)
 #define log_bug_kernel(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "kernel bug: " __VA_ARGS__)
-#define log_bug_libinput(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "libinput bug: " __VA_ARGS__);
-#define log_bug_client(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "client bug: " __VA_ARGS__);
+#define log_bug_libinput(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "libinput bug: " __VA_ARGS__)
+#define log_bug_client(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "client bug: " __VA_ARGS__)
 
 void
 log_msg(struct libinput *libinput,
@@ -255,4 +277,17 @@ tablet_notify_button(struct libinput_device *device,
 void
 touch_notify_frame(struct libinput_device *device,
 		   uint32_t time);
+
+static inline uint64_t
+libinput_now(struct libinput *libinput)
+{
+	struct timespec ts = { 0, 0 };
+
+	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
+		log_error(libinput, "clock_gettime failed: %s\n", strerror(errno));
+		return 0;
+	}
+
+	return ts.tv_sec * 1000ULL + ts.tv_nsec / 1000000;
+}
 #endif /* LIBINPUT_PRIVATE_H */

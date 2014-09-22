@@ -662,7 +662,6 @@ libinput_add_fd(struct libinput *libinput,
 	ep.data.ptr = source;
 
 	if (epoll_ctl(libinput->epoll_fd, EPOLL_CTL_ADD, fd, &ep) < 0) {
-		close(source->fd);
 		free(source);
 		return NULL;
 	}
@@ -1605,8 +1604,12 @@ libinput_device_config_tap_get_finger_count(struct libinput_device *device)
 
 LIBINPUT_EXPORT enum libinput_config_status
 libinput_device_config_tap_set_enabled(struct libinput_device *device,
-				       int enable)
+				       enum libinput_config_tap_state enable)
 {
+	if (enable != LIBINPUT_CONFIG_TAP_ENABLED &&
+	    enable != LIBINPUT_CONFIG_TAP_DISABLED)
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
 	if (enable &&
 	    libinput_device_config_tap_get_finger_count(device) == 0)
 		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
@@ -1614,20 +1617,96 @@ libinput_device_config_tap_set_enabled(struct libinput_device *device,
 	return device->config.tap->set_enabled(device, enable);
 }
 
-LIBINPUT_EXPORT int
+LIBINPUT_EXPORT enum libinput_config_tap_state
 libinput_device_config_tap_get_enabled(struct libinput_device *device)
 {
 	if (libinput_device_config_tap_get_finger_count(device) == 0)
-		return 0;
+		return LIBINPUT_CONFIG_TAP_DISABLED;
 
 	return device->config.tap->get_enabled(device);
 }
 
-LIBINPUT_EXPORT int
+LIBINPUT_EXPORT enum libinput_config_tap_state
 libinput_device_config_tap_get_default_enabled(struct libinput_device *device)
 {
 	if (libinput_device_config_tap_get_finger_count(device) == 0)
-		return 0;
+		return LIBINPUT_CONFIG_TAP_DISABLED;
 
 	return device->config.tap->get_default(device);
+}
+
+LIBINPUT_EXPORT int
+libinput_device_config_calibration_has_matrix(struct libinput_device *device)
+{
+	return device->config.calibration ?
+		device->config.calibration->has_matrix(device) : 0;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_calibration_set_matrix(struct libinput_device *device,
+					      const float matrix[6])
+{
+	if (!libinput_device_config_calibration_has_matrix(device))
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	return device->config.calibration->set_matrix(device, matrix);
+}
+
+LIBINPUT_EXPORT int
+libinput_device_config_calibration_get_matrix(struct libinput_device *device,
+					      float matrix[6])
+{
+	if (!libinput_device_config_calibration_has_matrix(device))
+		return 0;
+
+	return device->config.calibration->get_matrix(device, matrix);
+}
+
+LIBINPUT_EXPORT int
+libinput_device_config_calibration_get_default_matrix(struct libinput_device *device,
+						      float matrix[6])
+{
+	if (!libinput_device_config_calibration_has_matrix(device))
+		return 0;
+
+	return device->config.calibration->get_default_matrix(device, matrix);
+}
+
+LIBINPUT_EXPORT uint32_t
+libinput_device_config_send_events_get_modes(struct libinput_device *device)
+{
+	uint32_t modes = LIBINPUT_CONFIG_SEND_EVENTS_ENABLED;
+
+	if (device->config.sendevents)
+		modes |= device->config.sendevents->get_modes(device);
+
+	return modes;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_send_events_set_mode(struct libinput_device *device,
+					    enum libinput_config_send_events_mode mode)
+{
+	if ((libinput_device_config_send_events_get_modes(device) & mode) == 0)
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	if (device->config.sendevents)
+		return device->config.sendevents->set_mode(device, mode);
+	else /* mode must be _ENABLED to get here */
+		return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+LIBINPUT_EXPORT enum libinput_config_send_events_mode
+libinput_device_config_send_events_get_mode(struct libinput_device *device)
+{
+	if (device->config.sendevents)
+		return device->config.sendevents->get_mode(device);
+	else
+		return LIBINPUT_CONFIG_SEND_EVENTS_ENABLED;
+}
+
+LIBINPUT_EXPORT enum libinput_config_send_events_mode
+libinput_device_config_send_events_get_default_mode(struct libinput_device *device)
+{
+	return LIBINPUT_CONFIG_SEND_EVENTS_ENABLED;
 }

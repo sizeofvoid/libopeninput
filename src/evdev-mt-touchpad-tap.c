@@ -113,10 +113,10 @@ tp_tap_notify(struct tp_dispatch *tp,
 		return;
 	}
 
-	pointer_notify_button(&tp->device->base,
-			      time,
-			      button,
-			      state);
+	evdev_pointer_notify_button(tp->device,
+				    time,
+				    button,
+				    state);
 }
 
 static void
@@ -221,7 +221,6 @@ tp_tap_tapped_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_DRAGGING_OR_DOUBLETAP;
-		tp_tap_clear_timer(tp);
 		break;
 	case TAP_EVENT_TIMEOUT:
 		tp->tap.state = TAP_STATE_IDLE;
@@ -253,6 +252,7 @@ tp_tap_touch2_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_MOTION:
 		tp_tap_clear_timer(tp);
+		/* fallthrough */
 	case TAP_EVENT_TIMEOUT:
 		tp->tap.state = TAP_STATE_TOUCH_2_HOLD;
 		break;
@@ -541,7 +541,10 @@ tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time)
 	struct tp_touch *t;
 	int filter_motion = 0;
 
-	if (tp->queued & TOUCHPAD_EVENT_BUTTON_PRESS)
+	/* Handle queued button pressed events from clickpads. For touchpads
+	 * with separate physical buttons, ignore button pressed events so they
+	 * don't interfere with tapping. */
+	if (tp->buttons.is_clickpad && tp->queued & TOUCHPAD_EVENT_BUTTON_PRESS)
 		tp_tap_handle_event(tp, NULL, TAP_EVENT_BUTTON, time);
 
 	tp_for_each_touch(tp, t) {
@@ -616,7 +619,7 @@ static int
 tp_tap_config_count(struct libinput_device *device)
 {
 	struct evdev_dispatch *dispatch;
-	struct tp_dispatch *tp;
+	struct tp_dispatch *tp = NULL;
 
 	dispatch = ((struct evdev_device *) device)->dispatch;
 	tp = container_of(dispatch, tp, base);
@@ -625,32 +628,34 @@ tp_tap_config_count(struct libinput_device *device)
 }
 
 static enum libinput_config_status
-tp_tap_config_set_enabled(struct libinput_device *device, int enabled)
+tp_tap_config_set_enabled(struct libinput_device *device,
+			  enum libinput_config_tap_state enabled)
 {
 	struct evdev_dispatch *dispatch;
-	struct tp_dispatch *tp;
+	struct tp_dispatch *tp = NULL;
 
 	dispatch = ((struct evdev_device *) device)->dispatch;
 	tp = container_of(dispatch, tp, base);
 
-	tp->tap.enabled = enabled;
+	tp->tap.enabled = (enabled == LIBINPUT_CONFIG_TAP_ENABLED);
 
 	return LIBINPUT_CONFIG_STATUS_SUCCESS;
 }
 
-static int
+static enum libinput_config_tap_state
 tp_tap_config_is_enabled(struct libinput_device *device)
 {
 	struct evdev_dispatch *dispatch;
-	struct tp_dispatch *tp;
+	struct tp_dispatch *tp = NULL;
 
 	dispatch = ((struct evdev_device *) device)->dispatch;
 	tp = container_of(dispatch, tp, base);
 
-	return tp->tap.enabled;
+	return tp->tap.enabled ? LIBINPUT_CONFIG_TAP_ENABLED :
+				 LIBINPUT_CONFIG_TAP_DISABLED;
 }
 
-static int
+static enum libinput_config_tap_state
 tp_tap_config_get_default(struct libinput_device *device)
 {
 	/**
@@ -662,7 +667,7 @@ tp_tap_config_get_default(struct libinput_device *device)
 	 *   usually know where to enable it, or at least you can search for
 	 *   it.
 	 */
-	return false;
+	return LIBINPUT_CONFIG_TAP_DISABLED;
 }
 
 int
@@ -687,4 +692,10 @@ void
 tp_destroy_tap(struct tp_dispatch *tp)
 {
 	libinput_timer_cancel(&tp->tap.timer);
+}
+
+void
+tp_release_all_taps(struct tp_dispatch *tp, uint64_t now)
+{
+	tp_tap_handle_timeout(now, tp);
 }
