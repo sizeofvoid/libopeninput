@@ -696,6 +696,10 @@ START_TEST(tools_with_serials)
 							  NULL,
 							  NULL,
 							  NULL);
+		/* WARNING: this test fails if UI_GET_SYSNAME isn't
+		 * available or isn't used by libevdev (1.3, commit 2ff45c73).
+		 * Put a sleep(1) here and that usually fixes it.
+		 */
 
 		litest_event(dev[i], EV_KEY, BTN_TOOL_PEN, 1);
 		litest_event(dev[i], EV_MSC, MSC_SERIAL, 100);
@@ -741,6 +745,11 @@ START_TEST(tools_without_serials)
 							  NULL,
 							  NULL,
 							  NULL);
+
+		/* WARNING: this test fails if UI_GET_SYSNAME isn't
+		 * available or isn't used by libevdev (1.3, commit 2ff45c73).
+		 * Put a sleep(1) here and that usually fixes it.
+		 */
 
 		litest_event(dev[i], EV_KEY, BTN_TOOL_PEN, 1);
 		litest_event(dev[i], EV_SYN, SYN_REPORT, 0);
