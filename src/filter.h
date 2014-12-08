@@ -25,10 +25,14 @@
 
 #include "config.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
+/* The HW DPI rate we normalize to before calculating pointer acceleration */
+#define DEFAULT_MOUSE_DPI 1000
+
 struct motion_params {
-	double dx, dy; /* in units/ms @ 400dpi */
+	double dx, dy; /* in units/ms @ DEFAULT_MOUSE_DPI resolution */
 };
 
 struct motion_filter;
@@ -40,17 +44,11 @@ filter_dispatch(struct motion_filter *filter,
 void
 filter_destroy(struct motion_filter *filter);
 
-
-struct motion_filter_interface {
-	void (*filter)(struct motion_filter *filter,
-		       struct motion_params *motion,
-		       void *data, uint64_t time);
-	void (*destroy)(struct motion_filter *filter);
-};
-
-struct motion_filter {
-	struct motion_filter_interface *interface;
-};
+bool
+filter_set_speed(struct motion_filter *filter,
+		 double speed);
+double
+filter_get_speed(struct motion_filter *filter);
 
 typedef double (*accel_profile_func_t)(struct motion_filter *filter,
 				       void *data,
@@ -58,21 +56,16 @@ typedef double (*accel_profile_func_t)(struct motion_filter *filter,
 				       uint64_t time);
 
 struct motion_filter *
-create_pointer_accelator_filter(accel_profile_func_t filter);
+create_pointer_accelerator_filter(accel_profile_func_t filter);
 
 
 /*
  * Pointer acceleration profiles.
  */
 
-/*
- * Profile similar which is similar to nonaccelerated but with a smooth
- * transition between accelerated and non-accelerated.
- */
 double
-pointer_accel_profile_smooth_simple(struct motion_filter *filter,
-				    void *data,
-				    double velocity,
-				    uint64_t time);
-
+pointer_accel_profile_linear(struct motion_filter *filter,
+			     void *data,
+			     double speed_in,
+			     uint64_t time);
 #endif /* FILTER_H */

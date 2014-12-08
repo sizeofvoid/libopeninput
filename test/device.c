@@ -42,8 +42,21 @@ START_TEST(device_sendevents_config)
 
 	modes = libinput_device_config_send_events_get_modes(device);
 	ck_assert_int_eq(modes,
-			 LIBINPUT_CONFIG_SEND_EVENTS_ENABLED|
 			 LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+}
+END_TEST
+
+START_TEST(device_sendevents_config_invalid)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device;
+	enum libinput_config_status status;
+
+	device = dev->libinput_device;
+
+	status = libinput_device_config_send_events_set_mode(device,
+			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED | (1 << 4));
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 }
 END_TEST
 
@@ -57,9 +70,30 @@ START_TEST(device_sendevents_config_touchpad)
 
 	modes = libinput_device_config_send_events_get_modes(device);
 	ck_assert_int_eq(modes,
-			 LIBINPUT_CONFIG_SEND_EVENTS_ENABLED|
 			 LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE|
 			 LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+}
+END_TEST
+
+START_TEST(device_sendevents_config_touchpad_superset)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device;
+	enum libinput_config_status status;
+	uint32_t modes;
+
+	device = dev->libinput_device;
+
+	modes = LIBINPUT_CONFIG_SEND_EVENTS_DISABLED |
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
+
+	status = libinput_device_config_send_events_set_mode(device,
+							     modes);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	/* DISABLED supersedes the rest, expect the rest to be dropped */
+	modes = libinput_device_config_send_events_get_mode(device);
+	ck_assert_int_eq(modes, LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 }
 END_TEST
 
@@ -131,7 +165,7 @@ START_TEST(device_disable_touchpad)
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 0, 50, 50);
-	litest_touch_move_to(dev, 0, 50, 50, 90, 90, 10);
+	litest_touch_move_to(dev, 0, 50, 50, 90, 90, 10, 0);
 	litest_touch_up(dev, 0);
 
 
@@ -404,7 +438,7 @@ START_TEST(device_disable_release_tap)
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	/* tap happened before suspending, so we still expect the event */
 
-	msleep(300); /* tap-n-drag timeout */
+	litest_timeout_tap();
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -443,7 +477,7 @@ START_TEST(device_disable_release_tap_n_drag)
 	litest_touch_up(dev, 0);
 	litest_touch_down(dev, 0, 50, 50);
 	libinput_dispatch(li);
-	msleep(400); /* tap-n-drag timeout */
+	litest_timeout_tap();
 	libinput_dispatch(li);
 
 	status = libinput_device_config_send_events_set_mode(device,
@@ -565,16 +599,60 @@ START_TEST(device_disable_topsoftbutton)
 }
 END_TEST
 
+START_TEST(device_ids)
+{
+	struct litest_device *dev = litest_current_device();
+	const char *name;
+	unsigned int pid, vid;
+
+	name = libevdev_get_name(dev->evdev);
+	pid = libevdev_get_id_product(dev->evdev);
+	vid = libevdev_get_id_vendor(dev->evdev);
+
+	ck_assert_str_eq(name,
+			 libinput_device_get_name(dev->libinput_device));
+	ck_assert_int_eq(pid,
+			 libinput_device_get_id_product(dev->libinput_device));
+	ck_assert_int_eq(vid,
+			 libinput_device_get_id_vendor(dev->libinput_device));
+}
+END_TEST
+
+START_TEST(device_get_udev_handle)
+{
+	struct litest_device *dev = litest_current_device();
+	struct udev_device *udev_device;
+
+	udev_device = libinput_device_get_udev_device(dev->libinput_device);
+	ck_assert_notnull(udev_device);
+	udev_device_unref(udev_device);
+}
+END_TEST
+
+START_TEST(device_context)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_seat *seat;
+
+	ck_assert(dev->libinput == libinput_device_get_context(dev->libinput_device));
+	seat = libinput_device_get_seat(dev->libinput_device);
+	ck_assert(dev->libinput == libinput_seat_get_context(seat));
+}
+END_TEST
+
 int main (int argc, char **argv)
 {
 	litest_add("device:sendevents", device_sendevents_config, LITEST_ANY, LITEST_TOUCHPAD|LITEST_TABLET);
+	litest_add("device:sendevents", device_sendevents_config_invalid, LITEST_ANY, LITEST_TABLET);
 	litest_add("device:sendevents", device_sendevents_config_touchpad, LITEST_TOUCHPAD, LITEST_TABLET);
+	litest_add("device:sendevents", device_sendevents_config_touchpad_superset, LITEST_TOUCHPAD, LITEST_TABLET);
 	litest_add("device:sendevents", device_sendevents_config_default, LITEST_ANY, LITEST_TABLET);
-	litest_add("device:sendevents", device_disable, LITEST_POINTER, LITEST_TABLET);
+	litest_add("device:sendevents", device_disable, LITEST_RELATIVE, LITEST_TABLET);
 	litest_add("device:sendevents", device_disable_touchpad, LITEST_TOUCHPAD, LITEST_TABLET);
-	litest_add("device:sendevents", device_disable_events_pending, LITEST_POINTER, LITEST_TOUCHPAD|LITEST_TABLET);
+	litest_add("device:sendevents", device_disable_events_pending, LITEST_RELATIVE, LITEST_TOUCHPAD|LITEST_TABLET);
 	litest_add("device:sendevents", device_double_disable, LITEST_ANY, LITEST_TABLET);
 	litest_add("device:sendevents", device_double_enable, LITEST_ANY, LITEST_TABLET);
+
 	litest_add_no_device("device:sendevents", device_reenable_syspath_changed);
 	litest_add_no_device("device:sendevents", device_reenable_device_removed);
 	litest_add_for_device("device:sendevents", device_disable_release_buttons, LITEST_MOUSE);
@@ -582,8 +660,11 @@ int main (int argc, char **argv)
 	litest_add("device:sendevents", device_disable_release_tap, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("device:sendevents", device_disable_release_tap_n_drag, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("device:sendevents", device_disable_release_softbutton, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
-
 	litest_add("device:sendevents", device_disable_topsoftbutton, LITEST_TOPBUTTONPAD, LITEST_ANY);
+	litest_add("device:id", device_ids, LITEST_ANY, LITEST_ANY);
+	litest_add_for_device("device:context", device_context, LITEST_SYNAPTICS_CLICKPAD);
+
+	litest_add("device:udev", device_get_udev_handle, LITEST_ANY, LITEST_ANY);
 
 	return litest_run(argc, argv);
 }

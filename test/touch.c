@@ -401,6 +401,70 @@ START_TEST(touch_calibration_translation)
 }
 END_TEST
 
+START_TEST(touch_no_left_handed)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *d = dev->libinput_device;
+	enum libinput_config_status status;
+	int rc;
+
+	rc = libinput_device_config_buttons_has_left_handed(d);
+	ck_assert_int_eq(rc, 0);
+
+	rc = libinput_device_config_buttons_get_left_handed(d);
+	ck_assert_int_eq(rc, 0);
+
+	rc = libinput_device_config_buttons_get_default_left_handed(d);
+	ck_assert_int_eq(rc, 0);
+
+	status = libinput_device_config_buttons_set_left_handed(d, 0);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+}
+END_TEST
+
+START_TEST(fake_mt_exists)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_device *device;
+
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED, -1);
+	event = libinput_get_event(li);
+	device = libinput_event_get_device(event);
+
+	ck_assert(!libinput_device_has_capability(device,
+						  LIBINPUT_DEVICE_CAP_TOUCH));
+
+	/* This test may need fixing if we add other fake-mt devices that
+	 * have different capabilities */
+	ck_assert(libinput_device_has_capability(device,
+						 LIBINPUT_DEVICE_CAP_POINTER));
+}
+END_TEST
+
+START_TEST(fake_mt_no_touch_events)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 5, 10);
+	litest_touch_up(dev, 0);
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_down(dev, 1, 70, 70);
+	litest_touch_move_to(dev, 0, 50, 50, 90, 40, 10, 10);
+	litest_touch_move_to(dev, 0, 70, 70, 40, 50, 10, 10);
+	litest_touch_up(dev, 0);
+	litest_touch_up(dev, 1);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 int
 main(int argc, char **argv)
 {
@@ -414,6 +478,11 @@ main(int argc, char **argv)
 	litest_add("touch:calibration", touch_calibration_rotation, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
 	litest_add("touch:calibration", touch_calibration_translation, LITEST_TOUCH, LITEST_TOUCHPAD);
 	litest_add("touch:calibration", touch_calibration_translation, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
+
+	litest_add("touch:left-handed", touch_no_left_handed, LITEST_TOUCH, LITEST_ANY);
+
+	litest_add("touch:fake-mt", fake_mt_exists, LITEST_FAKE_MT, LITEST_ANY);
+	litest_add("touch:fake-mt", fake_mt_no_touch_events, LITEST_FAKE_MT, LITEST_ANY);
 
 	return litest_run(argc, argv);
 }

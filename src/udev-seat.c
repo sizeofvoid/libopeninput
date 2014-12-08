@@ -42,13 +42,13 @@ static struct udev_seat *
 udev_seat_get_named(struct udev_input *input, const char *seat_name);
 
 static int
-device_added(struct udev_device *udev_device, struct udev_input *input)
+device_added(struct udev_device *udev_device,
+	     struct udev_input *input,
+	     const char *seat_name)
 {
 	struct evdev_device *device;
 	const char *devnode;
-	const char *sysname;
-	const char *syspath;
-	const char *device_seat, *seat_name, *output_name;
+	const char *device_seat, *output_name;
 	const char *calibration_values;
 	float calibration[6];
 	struct udev_seat *seat;
@@ -61,11 +61,10 @@ device_added(struct udev_device *udev_device, struct udev_input *input)
 		return 0;
 
 	devnode = udev_device_get_devnode(udev_device);
-	sysname = udev_device_get_sysname(udev_device);
-	syspath = udev_device_get_syspath(udev_device);
 
 	/* Search for matching logical seat */
-	seat_name = udev_device_get_property_value(udev_device, "WL_SEAT");
+	if (!seat_name)
+		seat_name = udev_device_get_property_value(udev_device, "WL_SEAT");
 	if (!seat_name)
 		seat_name = default_seat_name;
 
@@ -79,7 +78,7 @@ device_added(struct udev_device *udev_device, struct udev_input *input)
 			return -1;
 	}
 
-	device = evdev_device_create(&seat->base, devnode, sysname, syspath);
+	device = evdev_device_create(&seat->base, udev_device);
 	libinput_seat_unref(&seat->base);
 
 	if (device == EVDEV_UNHANDLED_DEVICE) {
@@ -94,7 +93,8 @@ device_added(struct udev_device *udev_device, struct udev_input *input)
 		udev_device_get_property_value(udev_device,
 					       "LIBINPUT_CALIBRATION_MATRIX");
 
-	if (calibration_values && sscanf(calibration_values,
+	if (device->abs.absinfo_x && device->abs.absinfo_y &&
+	    calibration_values && sscanf(calibration_values,
 					 "%f %f %f %f %f %f",
 					 &calibration[0],
 					 &calibration[1],
@@ -123,18 +123,20 @@ device_added(struct udev_device *udev_device, struct udev_input *input)
 static void
 device_removed(struct udev_device *udev_device, struct udev_input *input)
 {
-	const char *devnode;
 	struct evdev_device *device, *next;
 	struct udev_seat *seat;
+	const char *syspath;
 
-	devnode = udev_device_get_devnode(udev_device);
+	syspath = udev_device_get_syspath(udev_device);
 	list_for_each(seat, &input->base.seat_list, base.link) {
 		list_for_each_safe(device, next,
 				   &seat->base.devices_list, base.link) {
-			if (!strcmp(device->devnode, devnode)) {
+			if (!strcmp(syspath,
+				    udev_device_get_syspath(device->udev_device))) {
 				log_info(&input->base,
 					 "input device %s, %s removed\n",
-					 device->devname, device->devnode);
+					 device->devname,
+					 udev_device_get_devnode(device->udev_device));
 				evdev_device_remove(device);
 				break;
 			}
@@ -163,7 +165,7 @@ udev_input_add_devices(struct udev_input *input, struct udev *udev)
 			continue;
 		}
 
-		if (device_added(device, input) < 0) {
+		if (device_added(device, input, NULL) < 0) {
 			udev_device_unref(device);
 			udev_enumerate_unref(e);
 			return -1;
@@ -195,7 +197,7 @@ evdev_udev_handler(void *data)
 		goto out;
 
 	if (!strcmp(action, "add"))
-		device_added(udev_device, input);
+		device_added(udev_device, input, NULL);
 	else if (!strcmp(action, "remove"))
 		device_removed(udev_device, input);
 
@@ -331,10 +333,29 @@ udev_seat_get_named(struct udev_input *input, const char *seat_name)
 	return NULL;
 }
 
+static int
+udev_device_change_seat(struct libinput_device *device,
+			const char *seat_name)
+{
+	struct libinput *libinput = device->seat->libinput;
+	struct udev_input *input = (struct udev_input *)libinput;
+	struct evdev_device *evdev_device = (struct evdev_device *)device;
+	struct udev_device *udev_device = evdev_device->udev_device;
+	int rc;
+
+	udev_device_ref(udev_device);
+	device_removed(udev_device, input);
+	rc = device_added(udev_device, input, seat_name);
+	udev_device_unref(udev_device);
+
+	return rc;
+}
+
 static const struct libinput_interface_backend interface_backend = {
 	.resume = udev_input_enable,
 	.suspend = udev_input_disable,
 	.destroy = udev_input_destroy,
+	.device_change_seat = udev_device_change_seat,
 };
 
 LIBINPUT_EXPORT struct libinput *

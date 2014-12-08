@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013 Red Hat, Inc.
+ * Copyright © 2012 Jonas Ådahl
  *
  * Permission to use, copy, modify, distribute, and sell this software and
  * its documentation for any purpose is hereby granted without fee, provided
@@ -20,27 +20,26 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef _PATH_H_
-#define _PATH_H_
+#ifndef FILTER_PRIVATE_H
+#define FILTER_PRIVATE_H
 
 #include "config.h"
-#include "libinput-private.h"
 
-struct path_input {
-	struct libinput base;
-	struct udev *udev;
-	struct list path_list;
+#include "filter.h"
+
+struct motion_filter_interface {
+	void (*filter)(struct motion_filter *filter,
+		       struct motion_params *motion,
+		       void *data, uint64_t time);
+	void (*destroy)(struct motion_filter *filter);
+	bool (*set_speed)(struct motion_filter *filter,
+			  double speed);
 };
 
-struct path_device {
-	struct list link;
-	struct udev_device *udev_device;
+struct motion_filter {
+	double speed; /* normalized [-1, 1] */
+	struct motion_filter_interface *interface;
 };
 
-struct path_seat {
-	struct libinput_seat base;
-};
-
-int path_input_process_event(struct libinput_event);
 
 #endif

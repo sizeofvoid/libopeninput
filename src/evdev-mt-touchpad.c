@@ -31,6 +31,7 @@
 
 #define DEFAULT_ACCEL_NUMERATOR 1200.0
 #define DEFAULT_HYSTERESIS_MARGIN_DENOMINATOR 700.0
+#define DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT 500 /* ms */
 
 static inline int
 tp_hysteresis(int in, int center, int margin)
@@ -55,17 +56,24 @@ tp_motion_history_offset(struct tp_touch *t, int offset)
 	return &t->history.samples[offset_index];
 }
 
-static void
+void
 tp_filter_motion(struct tp_dispatch *tp,
-	         double *dx, double *dy, uint64_t time)
+	         double *dx, double *dy,
+	         double *dx_unaccel, double *dy_unaccel,
+		 uint64_t time)
 {
 	struct motion_params motion;
 
 	motion.dx = *dx * tp->accel.x_scale_coeff;
 	motion.dy = *dy * tp->accel.y_scale_coeff;
 
+	if (dx_unaccel)
+		*dx_unaccel = motion.dx;
+	if (dy_unaccel)
+		*dy_unaccel = motion.dy;
+
 	if (motion.dx != 0.0 || motion.dy != 0.0)
-		filter_dispatch(tp->filter, &motion, tp, time);
+		filter_dispatch(tp->device->pointer.filter, &motion, tp, time);
 
 	*dx = motion.dx;
 	*dy = motion.dy;
@@ -338,7 +346,9 @@ tp_touch_active(struct tp_dispatch *tp, struct tp_touch *t)
 {
 	return (t->state == TOUCH_BEGIN || t->state == TOUCH_UPDATE) &&
 		!t->palm.is_palm &&
-		!t->pinned.is_pinned && tp_button_touch_active(tp, t);
+		!t->pinned.is_pinned &&
+		tp_button_touch_active(tp, t) &&
+		tp_edge_scroll_touch_active(tp, t);
 }
 
 void
@@ -398,6 +408,116 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 }
 
 static void
+tp_post_twofinger_scroll(struct tp_dispatch *tp, uint64_t time)
+{
+	struct tp_touch *t;
+	int nchanged = 0;
+	double dx = 0, dy =0;
+	double tmpx, tmpy;
+
+	tp_for_each_touch(tp, t) {
+		if (tp_touch_active(tp, t) && t->dirty) {
+			nchanged++;
+			tp_get_delta(t, &tmpx, &tmpy);
+
+			dx += tmpx;
+			dy += tmpy;
+		}
+		/* Stop spurious MOTION events at the end of scrolling */
+		t->is_pointer = false;
+	}
+
+	if (nchanged == 0)
+		return;
+
+	dx /= nchanged;
+	dy /= nchanged;
+
+	tp_filter_motion(tp, &dx, &dy, NULL, NULL, time);
+
+	evdev_post_scroll(tp->device, time, dx, dy);
+}
+
+static int
+tp_twofinger_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
+{
+	struct tp_touch *t;
+	int nfingers_down = 0;
+
+	/* No 2fg scrolling during tap-n-drag */
+	if (tp_tap_dragging(tp))
+		return 0;
+
+	/* Only count active touches for 2 finger scrolling */
+	tp_for_each_touch(tp, t) {
+		if (tp_touch_active(tp, t))
+			nfingers_down++;
+	}
+
+	if (nfingers_down != 2) {
+		evdev_stop_scroll(tp->device, time);
+		return 0;
+	}
+
+	tp_post_twofinger_scroll(tp, time);
+	return 1;
+}
+
+static void
+tp_scroll_handle_state(struct tp_dispatch *tp, uint64_t time)
+{
+	/* Note this must be always called, so that it knows the state of
+	 * touches when the scroll-mode changes.
+	 */
+	tp_edge_scroll_handle_state(tp, time);
+}
+
+static int
+tp_post_scroll_events(struct tp_dispatch *tp, uint64_t time)
+{
+	struct libinput *libinput = tp->device->base.seat->libinput;
+
+	switch (tp->scroll.method) {
+	case LIBINPUT_CONFIG_SCROLL_NO_SCROLL:
+		break;
+	case LIBINPUT_CONFIG_SCROLL_2FG:
+		return tp_twofinger_scroll_post_events(tp, time);
+	case LIBINPUT_CONFIG_SCROLL_EDGE:
+		return tp_edge_scroll_post_events(tp, time);
+	case LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN:
+		log_bug_libinput(libinput, "Unexpected scroll mode\n");
+		break;
+	}
+	return 0;
+}
+
+static void
+tp_stop_scroll_events(struct tp_dispatch *tp, uint64_t time)
+{
+	struct libinput *libinput = tp->device->base.seat->libinput;
+
+	switch (tp->scroll.method) {
+	case LIBINPUT_CONFIG_SCROLL_NO_SCROLL:
+		break;
+	case LIBINPUT_CONFIG_SCROLL_2FG:
+		evdev_stop_scroll(tp->device, time);
+		break;
+	case LIBINPUT_CONFIG_SCROLL_EDGE:
+		tp_edge_scroll_stop_events(tp, time);
+		break;
+	case LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN:
+		log_bug_libinput(libinput, "Unexpected scroll mode\n");
+		break;
+	}
+}
+
+static void
+tp_destroy_scroll(struct tp_dispatch *tp)
+{
+	tp_destroy_edge_scroll(tp);
+}
+
+static void
 tp_process_state(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *t;
@@ -430,6 +550,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 	}
 
 	tp_button_handle_state(tp, time);
+	tp_scroll_handle_state(tp, time);
 
 	/*
 	 * We have a physical button down event on a clickpad. To avoid
@@ -465,63 +586,14 @@ tp_post_process_state(struct tp_dispatch *tp, uint64_t time)
 	tp->queued = TOUCHPAD_EVENT_NONE;
 }
 
-static void
-tp_post_twofinger_scroll(struct tp_dispatch *tp, uint64_t time)
-{
-	struct tp_touch *t;
-	int nchanged = 0;
-	double dx = 0, dy =0;
-	double tmpx, tmpy;
-
-	tp_for_each_touch(tp, t) {
-		if (tp_touch_active(tp, t) && t->dirty) {
-			nchanged++;
-			tp_get_delta(t, &tmpx, &tmpy);
-
-			dx += tmpx;
-			dy += tmpy;
-		}
-		/* Stop spurious MOTION events at the end of scrolling */
-		t->is_pointer = false;
-	}
-
-	if (nchanged == 0)
-		return;
-
-	dx /= nchanged;
-	dy /= nchanged;
-
-	tp_filter_motion(tp, &dx, &dy, time);
-	evdev_post_scroll(tp->device, time, dx, dy);
-}
-
-static int
-tp_post_scroll_events(struct tp_dispatch *tp, uint64_t time)
-{
-	struct tp_touch *t;
-	int nfingers_down = 0;
-
-	/* Only count active touches for 2 finger scrolling */
-	tp_for_each_touch(tp, t) {
-		if (tp_touch_active(tp, t))
-			nfingers_down++;
-	}
-
-	if (nfingers_down != 2) {
-		evdev_stop_scroll(tp->device, time);
-		return 0;
-	}
-
-	tp_post_twofinger_scroll(tp, time);
-	return 1;
-}
 
 static void
 tp_post_events(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *t = tp_current_touch(tp);
 	double dx, dy;
-	int consumed = 0;
+	int filter_motion = 0;
+	double dx_unaccel, dy_unaccel;
 
 	/* Only post (top) button events while suspended */
 	if (tp->device->suspended) {
@@ -529,11 +601,11 @@ tp_post_events(struct tp_dispatch *tp, uint64_t time)
 		return;
 	}
 
-	consumed |= tp_tap_handle_state(tp, time);
-	consumed |= tp_post_button_events(tp, time);
+	filter_motion |= tp_tap_handle_state(tp, time);
+	filter_motion |= tp_post_button_events(tp, time);
 
-	if (consumed) {
-		evdev_stop_scroll(tp->device, time);
+	if (filter_motion || tp->sendevents.trackpoint_active) {
+		tp_stop_scroll_events(tp, time);
 		return;
 	}
 
@@ -553,10 +625,12 @@ tp_post_events(struct tp_dispatch *tp, uint64_t time)
 		return;
 
 	tp_get_delta(t, &dx, &dy);
-	tp_filter_motion(tp, &dx, &dy, time);
+	tp_filter_motion(tp, &dx, &dy, &dx_unaccel, &dy_unaccel, time);
 
-	if (dx != 0.0 || dy != 0.0)
-		pointer_notify_motion(&tp->device->base, time, dx, dy);
+	if (dx != 0.0 || dy != 0.0 || dx_unaccel != 0.0 || dy_unaccel != 0.0) {
+		pointer_notify_motion(&tp->device->base, time,
+				      dx, dy, dx_unaccel, dy_unaccel);
+	}
 }
 
 static void
@@ -594,6 +668,16 @@ tp_process(struct evdev_dispatch *dispatch,
 }
 
 static void
+tp_destroy_sendevents(struct tp_dispatch *tp)
+{
+	libinput_timer_cancel(&tp->sendevents.trackpoint_timer);
+
+	if (tp->buttons.trackpoint)
+		libinput_device_remove_event_listener(
+					&tp->sendevents.trackpoint_listener);
+}
+
+static void
 tp_destroy(struct evdev_dispatch *dispatch)
 {
 	struct tp_dispatch *tp =
@@ -601,14 +685,15 @@ tp_destroy(struct evdev_dispatch *dispatch)
 
 	tp_destroy_tap(tp);
 	tp_destroy_buttons(tp);
+	tp_destroy_sendevents(tp);
+	tp_destroy_scroll(tp);
 
-	filter_destroy(tp->filter);
 	free(tp->touches);
 	free(tp);
 }
 
 static void
-tp_clear_state(struct tp_dispatch *tp, struct evdev_device *device)
+tp_clear_state(struct tp_dispatch *tp)
 {
 	uint64_t now = libinput_now(tp->device->base.seat->libinput);
 	struct tp_touch *t;
@@ -637,7 +722,7 @@ tp_clear_state(struct tp_dispatch *tp, struct evdev_device *device)
 static void
 tp_suspend(struct tp_dispatch *tp, struct evdev_device *device)
 {
-	tp_clear_state(tp, device);
+	tp_clear_state(tp);
 
 	/* On devices with top softwarebuttons we don't actually suspend the
 	 * device, to keep the "trackpoint" buttons working. tp_post_events()
@@ -657,13 +742,42 @@ tp_resume(struct tp_dispatch *tp, struct evdev_device *device)
 {
 	if (tp->buttons.has_topbuttons) {
 		/* tap state-machine is offline while suspended, reset state */
-		tp_clear_state(tp, device);
+		tp_clear_state(tp);
 		/* restore original topbutton area size */
 		tp_init_softbuttons(tp, device, 1.0);
 		evdev_notify_resumed_device(device);
 	} else {
 		evdev_device_resume(device);
 	}
+}
+
+static void
+tp_trackpoint_timeout(uint64_t now, void *data)
+{
+	struct tp_dispatch *tp = data;
+
+	tp_tap_resume(tp, now);
+	tp->sendevents.trackpoint_active = false;
+}
+
+static void
+tp_trackpoint_event(uint64_t time, struct libinput_event *event, void *data)
+{
+	struct tp_dispatch *tp = data;
+
+	/* Buttons do not count as trackpad activity, as people may use
+	   the trackpoint buttons in combination with the touchpad. */
+	if (event->type == LIBINPUT_EVENT_POINTER_BUTTON)
+		return;
+
+	if (!tp->sendevents.trackpoint_active) {
+		evdev_stop_scroll(tp->device, time);
+		tp_tap_suspend(tp, time);
+		tp->sendevents.trackpoint_active = true;
+	}
+
+	libinput_timer_set(&tp->sendevents.trackpoint_timer,
+			   time + DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT);
 }
 
 static void
@@ -677,6 +791,9 @@ tp_device_added(struct evdev_device *device,
 		/* Don't send any pending releases to the new trackpoint */
 		tp->buttons.active_is_topbutton = false;
 		tp->buttons.trackpoint = added_device;
+		libinput_device_add_event_listener(&added_device->base,
+					&tp->sendevents.trackpoint_listener,
+					tp_trackpoint_event, tp);
 	}
 
 	if (tp->sendevents.current_mode !=
@@ -700,6 +817,8 @@ tp_device_removed(struct evdev_device *device,
 			tp->buttons.active = 0;
 			tp->buttons.active_is_topbutton = false;
 		}
+		libinput_device_remove_event_listener(
+					&tp->sendevents.trackpoint_listener);
 		tp->buttons.trackpoint = NULL;
 	}
 
@@ -807,7 +926,6 @@ tp_init_slots(struct tp_dispatch *tp,
 static int
 tp_init_accel(struct tp_dispatch *tp, double diagonal)
 {
-	struct motion_filter *accel;
 	int res_x, res_y;
 
 	if (tp->has_mt) {
@@ -824,17 +942,27 @@ tp_init_accel(struct tp_dispatch *tp, double diagonal)
 
 	/*
 	 * Not all touchpads report the same amount of units/mm (resolution).
-	 * Normalize motion events to a resolution of 15.74 units/mm
-	 * (== 400 dpi) as base (unaccelerated) speed. This also evens out any
-	 * differences in x and y resolution, so that a circle on the
+	 * Normalize motion events to the default mouse DPI as base
+	 * (unaccelerated) speed. This also evens out any differences in x
+	 * and y resolution, so that a circle on the
 	 * touchpad does not turn into an elipse on the screen.
-	 *
-	 * We pick 400dpi as thats one of the many default resolutions
-	 * for USB mice, so we end up with a similar base speed on the device.
 	 */
 	if (res_x > 1 && res_y > 1) {
-		tp->accel.x_scale_coeff = (400/25.4) / res_x;
-		tp->accel.y_scale_coeff = (400/25.4) / res_y;
+		tp->accel.x_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_x;
+		tp->accel.y_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_y;
+
+		/* FIXME: once normalized, touchpads see the same
+		   acceleration as mice. that is technically correct but
+		   subjectively wrong, we expect a touchpad to be a lot
+		   slower than a mouse.
+		   For now, apply a magic factor here until this is
+		   fixed in the actual filter code.
+		 */
+		{
+			const double MAGIC = 0.4;
+			tp->accel.x_scale_coeff *= MAGIC;
+			tp->accel.y_scale_coeff *= MAGIC;
+		}
 	} else {
 	/*
 	 * For touchpads where the driver does not provide resolution, fall
@@ -844,12 +972,88 @@ tp_init_accel(struct tp_dispatch *tp, double diagonal)
 		tp->accel.y_scale_coeff = DEFAULT_ACCEL_NUMERATOR / diagonal;
 	}
 
-	accel = create_pointer_accelator_filter(
-			pointer_accel_profile_smooth_simple);
-	if (accel == NULL)
+	if (evdev_device_init_pointer_acceleration(tp->device) == -1)
 		return -1;
 
-	tp->filter = accel;
+	return 0;
+}
+
+static uint32_t
+tp_scroll_config_scroll_method_get_methods(struct libinput_device *device)
+{
+	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+	uint32_t methods = LIBINPUT_CONFIG_SCROLL_NO_SCROLL;
+
+	if (tp->ntouches >= 2)
+		methods |= LIBINPUT_CONFIG_SCROLL_2FG;
+
+	if (!tp->buttons.is_clickpad)
+		methods |= LIBINPUT_CONFIG_SCROLL_EDGE;
+
+	return methods;
+}
+
+static enum libinput_config_status
+tp_scroll_config_scroll_method_set_method(struct libinput_device *device,
+		        enum libinput_config_scroll_method method)
+{
+	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+
+	if (method == tp->scroll.method)
+		return LIBINPUT_CONFIG_STATUS_SUCCESS;
+
+	tp_stop_scroll_events(tp, libinput_now(device->seat->libinput));
+	tp->scroll.method = method;
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static enum libinput_config_scroll_method
+tp_scroll_config_scroll_method_get_method(struct libinput_device *device)
+{
+	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+
+	return tp->scroll.method;
+}
+
+static enum libinput_config_scroll_method
+tp_scroll_get_default_method(struct tp_dispatch *tp)
+{
+	if (tp->ntouches >= 2)
+		return LIBINPUT_CONFIG_SCROLL_2FG;
+	else
+		return LIBINPUT_CONFIG_SCROLL_EDGE;
+}
+
+static enum libinput_config_scroll_method
+tp_scroll_config_scroll_method_get_default_method(struct libinput_device *device)
+{
+	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+
+	return tp_scroll_get_default_method(tp);
+}
+
+static int
+tp_init_scroll(struct tp_dispatch *tp, struct evdev_device *device)
+{
+	if (tp_edge_scroll_init(tp, device) != 0)
+		return -1;
+
+	evdev_init_natural_scroll(device);
+
+	tp->scroll.config_method.get_methods = tp_scroll_config_scroll_method_get_methods;
+	tp->scroll.config_method.set_method = tp_scroll_config_scroll_method_set_method;
+	tp->scroll.config_method.get_method = tp_scroll_config_scroll_method_get_method;
+	tp->scroll.config_method.get_default_method = tp_scroll_config_scroll_method_get_default_method;
+	tp->scroll.method = tp_scroll_get_default_method(tp);
+	tp->device->base.config.scroll_method = &tp->scroll.config_method;
+
+	/* In mm for touchpads with valid resolution, see tp_init_accel() */
+	tp->device->scroll.threshold = 5.0;
 
 	return 0;
 }
@@ -882,6 +1086,16 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 	tp->palm.right_edge = device->abs.absinfo_x->maximum - width * 0.05;
 	tp->palm.left_edge = device->abs.absinfo_x->minimum + width * 0.05;
 
+	return 0;
+}
+
+static int
+tp_init_sendevents(struct tp_dispatch *tp,
+		   struct evdev_device *device)
+{
+	libinput_timer_init(&tp->sendevents.trackpoint_timer,
+			    tp->device->base.seat->libinput,
+			    tp_trackpoint_timeout, tp);
 	return 0;
 }
 
@@ -921,6 +1135,12 @@ tp_init(struct tp_dispatch *tp,
 	if (tp_init_palmdetect(tp, device) != 0)
 		return -1;
 
+	if (tp_init_sendevents(tp, device) != 0)
+		return -1;
+
+	if (tp_init_scroll(tp, device) != 0)
+		return -1;
+
 	device->seat_caps |= EVDEV_DEVICE_POINTER;
 
 	return 0;
@@ -930,8 +1150,7 @@ static uint32_t
 tp_sendevents_get_modes(struct libinput_device *device)
 {
 	struct evdev_device *evdev = (struct evdev_device*)device;
-	uint32_t modes = LIBINPUT_CONFIG_SEND_EVENTS_ENABLED |
-			 LIBINPUT_CONFIG_SEND_EVENTS_DISABLED;
+	uint32_t modes = LIBINPUT_CONFIG_SEND_EVENTS_DISABLED;
 
 	if (evdev->tags & EVDEV_TAG_INTERNAL_TOUCHPAD)
 		modes |= LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
@@ -960,6 +1179,11 @@ tp_sendevents_set_mode(struct libinput_device *device,
 {
 	struct evdev_device *evdev = (struct evdev_device*)device;
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+
+	/* DISABLED overrides any DISABLED_ON_ */
+	if ((mode & LIBINPUT_CONFIG_SEND_EVENTS_DISABLED) &&
+	    (mode & LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE))
+	    mode &= ~LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
 
 	if (mode == tp->sendevents.current_mode)
 		return LIBINPUT_CONFIG_STATUS_SUCCESS;
@@ -998,6 +1222,57 @@ tp_sendevents_get_default_mode(struct libinput_device *device)
 	return LIBINPUT_CONFIG_SEND_EVENTS_ENABLED;
 }
 
+static void
+tp_change_to_left_handed(struct evdev_device *device)
+{
+	struct tp_dispatch *tp = (struct tp_dispatch *)device->dispatch;
+
+	if (device->buttons.want_left_handed == device->buttons.left_handed)
+		return;
+
+	if (tp->buttons.state & 0x3) /* BTN_LEFT|BTN_RIGHT */
+		return;
+
+	/* tapping and clickfinger aren't affected by left-handed config,
+	 * so checking physical buttons is enough */
+
+	device->buttons.left_handed = device->buttons.want_left_handed;
+}
+
+struct model_lookup_t {
+	uint16_t vendor;
+	uint16_t product_start;
+	uint16_t product_end;
+	enum touchpad_model model;
+};
+
+static struct model_lookup_t model_lookup_table[] = {
+	{ 0x0002, 0x0007, 0x0007, MODEL_SYNAPTICS },
+	{ 0x0002, 0x0008, 0x0008, MODEL_ALPS },
+	{ 0x0002, 0x000e, 0x000e, MODEL_ELANTECH },
+	{ 0x05ac,      0, 0x0222, MODEL_APPLETOUCH },
+	{ 0x05ac, 0x0223, 0x0228, MODEL_UNIBODY_MACBOOK },
+	{ 0x05ac, 0x0229, 0x022b, MODEL_APPLETOUCH },
+	{ 0x05ac, 0x022c, 0xffff, MODEL_UNIBODY_MACBOOK },
+	{ 0, 0, 0, 0 }
+};
+
+static enum touchpad_model
+tp_get_model(struct evdev_device *device)
+{
+	struct model_lookup_t *lookup;
+	uint16_t vendor  = libevdev_get_id_vendor(device->evdev);
+	uint16_t product = libevdev_get_id_product(device->evdev);
+
+	for (lookup = model_lookup_table; lookup->vendor; lookup++) {
+		if (lookup->vendor == vendor &&
+		    lookup->product_start <= product &&
+		    product <= lookup->product_end)
+			return lookup->model;
+	}
+	return MODEL_UNKNOWN;
+}
+
 struct evdev_dispatch *
 evdev_mt_touchpad_create(struct evdev_device *device)
 {
@@ -1006,6 +1281,8 @@ evdev_mt_touchpad_create(struct evdev_device *device)
 	tp = zalloc(sizeof *tp);
 	if (!tp)
 		return NULL;
+
+	tp->model = tp_get_model(device);
 
 	if (tp_init(tp, device) != 0) {
 		tp_destroy(&tp->base);
@@ -1019,6 +1296,8 @@ evdev_mt_touchpad_create(struct evdev_device *device)
 	tp->sendevents.config.set_mode = tp_sendevents_set_mode;
 	tp->sendevents.config.get_mode = tp_sendevents_get_mode;
 	tp->sendevents.config.get_default_mode = tp_sendevents_get_default_mode;
+
+	evdev_init_left_handed(device, tp_change_to_left_handed);
 
 	return  &tp->base;
 }

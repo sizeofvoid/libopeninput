@@ -69,11 +69,10 @@ struct evdev_device {
 
 	struct evdev_dispatch *dispatch;
 	struct libevdev *evdev;
+	struct udev_device *udev_device;
 	char *output_name;
-	char *devnode;
-	char *sysname;
-	char *syspath;
 	const char *devname;
+	bool was_removed;
 	int fd;
 	struct {
 		const struct input_absinfo *absinfo_x, *absinfo_y;
@@ -101,10 +100,26 @@ struct evdev_device {
 
 	struct {
 		struct libinput_timer timer;
-		bool has_middle_button_scroll;
-		bool middle_button_scroll_active;
+		struct libinput_device_config_scroll_method config;
+		/* Currently enabled method, button */
+		enum libinput_config_scroll_method method;
+		uint32_t button;
+		/* set during device init, used at runtime to delay changes
+		 * until all buttons are up */
+		enum libinput_config_scroll_method want_method;
+		uint32_t want_button;
+		/* Checks if buttons are down and commits the setting */
+		void (*change_scroll_method)(struct evdev_device *device);
+		bool button_scroll_active;
 		double threshold;
 		uint32_t direction;
+		double buildup_vertical;
+		double buildup_horizontal;
+
+		struct libinput_device_config_natural_scroll config_natural;
+		/* set during device init if we want natural scrolling,
+		 * used at runtime to enable/disable the feature */
+		bool natural_scrolling_enabled;
 	} scroll;
 
 	enum evdev_event_type pending_event;
@@ -115,6 +130,7 @@ struct evdev_device {
 	int suspended;
 
 	struct {
+		struct libinput_device_config_accel config;
 		struct motion_filter *filter;
 	} pointer;
 
@@ -124,6 +140,20 @@ struct evdev_device {
 	/* Key counter used for multiplexing button events internally in
 	 * libinput. */
 	uint8_t key_count[KEY_CNT];
+
+	struct {
+		struct libinput_device_config_left_handed config_left_handed;
+		/* left-handed currently enabled */
+		bool left_handed;
+		/* set during device init if we want left_handed config,
+		 * used at runtime to delay the effect until buttons are up */
+		bool want_left_handed;
+		/* Checks if buttons are down and commits the setting */
+		void (*change_to_left_handed)(struct evdev_device *device);
+	} buttons;
+
+	int dpi; /* HW resolution */
+	struct ratelimit syn_drop_limit; /* ratelimit for SYN_DROPPED logging */
 };
 
 #define EVDEV_UNHANDLED_DEVICE ((struct evdev_device *) 1)
@@ -173,9 +203,10 @@ struct evdev_dispatch {
 
 struct evdev_device *
 evdev_device_create(struct libinput_seat *seat,
-		    const char *devnode,
-		    const char *sysname,
-		    const char *syspath);
+		    struct udev_device *device);
+
+int
+evdev_device_init_pointer_acceleration(struct evdev_device *device);
 
 struct evdev_dispatch *
 evdev_touchpad_create(struct evdev_device *device);
@@ -207,6 +238,9 @@ evdev_device_get_id_product(struct evdev_device *device);
 unsigned int
 evdev_device_get_id_vendor(struct evdev_device *device);
 
+struct udev_device *
+evdev_device_get_udev_device(struct evdev_device *device);
+
 void
 evdev_device_set_default_calibration(struct evdev_device *device,
 				     const float calibration[6]);
@@ -222,6 +256,9 @@ int
 evdev_device_get_size(struct evdev_device *device,
 		      double *w,
 		      double *h);
+
+int
+evdev_device_has_button(struct evdev_device *device, uint32_t code);
 
 double
 evdev_device_transform_x(struct evdev_device *device,
@@ -257,6 +294,9 @@ evdev_pointer_notify_button(struct evdev_device *device,
 			    enum libinput_button_state state);
 
 void
+evdev_init_natural_scroll(struct evdev_device *device);
+
+void
 evdev_post_scroll(struct evdev_device *device,
 		  uint64_t time,
 		  double dx,
@@ -277,6 +317,23 @@ evdev_convert_to_mm(const struct input_absinfo *absinfo, double v)
 {
 	double value = v - absinfo->minimum;
 	return value/absinfo->resolution;
+}
+
+int
+evdev_init_left_handed(struct evdev_device *device,
+		       void (*change_to_left_handed)(struct evdev_device *));
+
+static inline uint32_t
+evdev_to_left_handed(struct evdev_device *device,
+		     uint32_t button)
+{
+	if (device->buttons.left_handed) {
+		if (button == BTN_LEFT)
+			return BTN_RIGHT;
+		else if (button == BTN_RIGHT)
+			return BTN_LEFT;
+	}
+	return button;
 }
 
 #endif /* EVDEV_H */

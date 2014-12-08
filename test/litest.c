@@ -91,6 +91,9 @@ extern struct litest_test_device litest_wacom_intuos_tablet_device;
 extern struct litest_test_device litest_wacom_isdv4_tablet_device;
 extern struct litest_test_device litest_alps_device;
 extern struct litest_test_device litest_generic_singletouch_device;
+extern struct litest_test_device litest_qemu_tablet_device;
+extern struct litest_test_device litest_xen_virtual_pointer_device;
+extern struct litest_test_device litest_vmware_virtmouse_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -107,6 +110,9 @@ struct litest_test_device* devices[] = {
 	&litest_wacom_isdv4_tablet_device,
 	&litest_alps_device,
 	&litest_generic_singletouch_device,
+	&litest_qemu_tablet_device,
+	&litest_xen_virtual_pointer_device,
+	&litest_vmware_virtmouse_device,
 	NULL,
 };
 
@@ -642,7 +648,12 @@ void
 litest_event(struct litest_device *d, unsigned int type,
 	     unsigned int code, int value)
 {
-	int ret = libevdev_uinput_write_event(d->uinput, type, code, value);
+	int ret;
+
+	if (d->skip_ev_syn && type == EV_SYN && code == SYN_REPORT)
+		return;
+
+	ret = libevdev_uinput_write_event(d->uinput, type, code, value);
 	ck_assert_int_eq(ret, 0);
 }
 
@@ -765,12 +776,18 @@ litest_touch_move_to(struct litest_device *d,
 		     unsigned int slot,
 		     double x_from, double y_from,
 		     double x_to, double y_to,
-		     int steps)
+		     int steps, int sleep_ms)
 {
-	for (int i = 0; i < steps - 1; i++)
+	for (int i = 0; i < steps - 1; i++) {
 		litest_touch_move(d, slot,
 				  x_from + (x_to - x_from)/steps * i,
 				  y_from + (y_to - y_from)/steps * i);
+		if (sleep_ms) {
+			libinput_dispatch(d->libinput);
+			msleep(sleep_ms);
+			libinput_dispatch(d->libinput);
+		}
+	}
 	litest_touch_move(d, slot, x_to, y_to);
 }
 
@@ -875,6 +892,28 @@ litest_button_click(struct litest_device *d, unsigned int button, bool is_press)
 
 	ARRAY_FOR_EACH(click, ev)
 		litest_event(d, ev->type, ev->code, ev->value);
+}
+
+void
+litest_button_scroll(struct litest_device *dev,
+		     unsigned int button,
+		     double dx, double dy)
+{
+	struct libinput *li = dev->libinput;
+
+	litest_button_click(dev, button, 1);
+
+	libinput_dispatch(li);
+	litest_timeout_buttonscroll();
+	libinput_dispatch(li);
+
+	litest_event(dev, EV_REL, REL_X, dx);
+	litest_event(dev, EV_REL, REL_Y, dy);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	litest_button_click(dev, button, 0);
+
+	libinput_dispatch(li);
 }
 
 void
@@ -1182,7 +1221,10 @@ litest_assert_button_event(struct libinput *li, unsigned int button,
 	libinput_event_destroy(event);
 }
 
-void litest_assert_scroll(struct libinput *li, unsigned int axis, int dir)
+void
+litest_assert_scroll(struct libinput *li,
+		     enum libinput_pointer_axis axis,
+		     int minimum_movement)
 {
 	struct libinput_event *event, *next_event;
 	struct libinput_event_pointer *ptrev;
@@ -1200,14 +1242,14 @@ void litest_assert_scroll(struct libinput *li, unsigned int axis, int dir)
 
 		if (next_event) {
 			/* Normal scroll event, check dir */
-			if (dir > 0) {
+			if (minimum_movement > 0) {
 				ck_assert_int_ge(
 					libinput_event_pointer_get_axis_value(ptrev),
-					dir);
+					minimum_movement);
 			} else {
 				ck_assert_int_le(
 					libinput_event_pointer_get_axis_value(ptrev),
-					dir);
+					minimum_movement);
 			}
 		} else {
 			/* Last scroll event, must be 0 */
@@ -1219,4 +1261,37 @@ void litest_assert_scroll(struct libinput *li, unsigned int axis, int dir)
 		event = next_event;
 		next_event = libinput_get_event(li);
 	}
+}
+
+void
+litest_timeout_tap(void)
+{
+	msleep(200);
+}
+
+void
+litest_timeout_softbuttons(void)
+{
+	msleep(300);
+}
+
+void
+litest_timeout_buttonscroll(void)
+{
+	msleep(300);
+}
+
+void
+litest_push_event_frame(struct litest_device *dev)
+{
+	assert(!dev->skip_ev_syn);
+	dev->skip_ev_syn = true;
+}
+
+void
+litest_pop_event_frame(struct litest_device *dev)
+{
+	assert(dev->skip_ev_syn);
+	dev->skip_ev_syn = false;
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 }

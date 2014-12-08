@@ -22,6 +22,7 @@
 
 #include "config.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -30,6 +31,7 @@
 
 #include "filter.h"
 #include "libinput-util.h"
+#include "filter-private.h"
 
 void
 filter_dispatch(struct motion_filter *filter,
@@ -48,12 +50,26 @@ filter_destroy(struct motion_filter *filter)
 	filter->interface->destroy(filter);
 }
 
+bool
+filter_set_speed(struct motion_filter *filter,
+		 double speed)
+{
+	return filter->interface->set_speed(filter, speed);
+}
+
+double
+filter_get_speed(struct motion_filter *filter)
+{
+	return filter->speed;
+}
+
 /*
  * Default parameters for pointer acceleration profiles.
  */
 
 #define DEFAULT_THRESHOLD 0.4			/* in units/ms */
 #define DEFAULT_ACCELERATION 2.0		/* unitless factor */
+#define DEFAULT_INCLINE 1.1			/* unitless factor */
 
 /*
  * Pointer acceleration filter constants
@@ -83,6 +99,10 @@ struct pointer_accelerator {
 
 	struct pointer_tracker *trackers;
 	int cur_tracker;
+
+	double threshold;	/* units/ms */
+	double accel;		/* unitless factor */
+	double incline;		/* incline of the function */
 };
 
 static void
@@ -119,8 +139,8 @@ tracker_by_offset(struct pointer_accelerator *accel, unsigned int offset)
 static double
 calculate_tracker_velocity(struct pointer_tracker *tracker, uint64_t time)
 {
-	int dx;
-	int dy;
+	double dx;
+	double dy;
 	double distance;
 
 	dx = tracker->dx;
@@ -233,13 +253,36 @@ accelerator_destroy(struct motion_filter *filter)
 	free(accel);
 }
 
+static bool
+accelerator_set_speed(struct motion_filter *filter,
+		      double speed)
+{
+	struct pointer_accelerator *accel_filter =
+		(struct pointer_accelerator *)filter;
+
+	assert(speed >= -1.0 && speed <= 1.0);
+
+	/* delay when accel kicks in */
+	accel_filter->threshold = DEFAULT_THRESHOLD - speed/6.0;
+
+	/* adjust max accel factor */
+	accel_filter->accel = DEFAULT_ACCELERATION + speed;
+
+	/* higher speed -> faster to reach max */
+	accel_filter->incline = DEFAULT_INCLINE + speed/2.0;
+
+	filter->speed = speed;
+	return true;
+}
+
 struct motion_filter_interface accelerator_interface = {
 	accelerator_filter,
-	accelerator_destroy
+	accelerator_destroy,
+	accelerator_set_speed,
 };
 
 struct motion_filter *
-create_pointer_accelator_filter(accel_profile_func_t profile)
+create_pointer_accelerator_filter(accel_profile_func_t profile)
 {
 	struct pointer_accelerator *filter;
 
@@ -258,6 +301,10 @@ create_pointer_accelator_filter(accel_profile_func_t profile)
 		calloc(NUM_POINTER_TRACKERS, sizeof *filter->trackers);
 	filter->cur_tracker = 0;
 
+	filter->threshold = DEFAULT_THRESHOLD;
+	filter->accel = DEFAULT_ACCELERATION;
+	filter->incline = DEFAULT_INCLINE;
+
 	return &filter->base;
 }
 
@@ -270,41 +317,21 @@ calc_penumbral_gradient(double x)
 }
 
 double
-pointer_accel_profile_smooth_simple(struct motion_filter *filter,
-				    void *data,
-				    double velocity, /* units/ms */
-				    uint64_t time)
+pointer_accel_profile_linear(struct motion_filter *filter,
+			     void *data,
+			     double speed_in,
+			     uint64_t time)
 {
-	double threshold = DEFAULT_THRESHOLD; /* units/ms */
-	double accel = DEFAULT_ACCELERATION; /* unitless factor */
-	double smooth_accel_coefficient; /* unitless factor */
-	double factor; /* unitless factor */
+	struct pointer_accelerator *accel_filter =
+		(struct pointer_accelerator *)filter;
 
-	if (threshold < 0.1)
-		threshold = 0.1;
-	if (accel < 1.0)
-		accel = 1.0;
+	double s1, s2;
+	const double max_accel = accel_filter->accel; /* unitless factor */
+	const double threshold = accel_filter->threshold; /* units/ms */
+	const double incline = accel_filter->incline;
 
-	/* We use units/ms as velocity but it has no real meaning unless all
-	   devices have the same resolution. For touchpads, we normalize to
-	   400dpi (15.75 units/mm), but the resolution on USB mice is all
-	   over the place. Though most mice these days have either 400
-	   dpi (15.75 units/mm), 800 dpi or 1000dpi, excluding gaming mice
-	   that can usually adjust it on the fly anyway and currently go up
-	   to 8200dpi.
-	  */
-	if (velocity < (threshold / 2.0))
-		return calc_penumbral_gradient(0.5 + velocity / threshold) * 2.0 - 1.0;
+	s1 = min(1, speed_in * 5);
+	s2 = 1 + (speed_in - threshold) * incline;
 
-	if (velocity <= threshold)
-		return 1.0;
-
-	factor = velocity/threshold;
-	if (factor >= accel)
-		return accel;
-
-	/* factor is between 1.0 and accel, scale this to 0.0 - 1.0 */
-	factor = (factor - 1.0) / (accel - 1.0);
-	smooth_accel_coefficient = calc_penumbral_gradient(factor);
-	return 1.0 + (smooth_accel_coefficient * (accel - 1.0));
+	return min(max_accel, s2 > 1 ? s2 : s1);
 }

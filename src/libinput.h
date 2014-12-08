@@ -124,6 +124,10 @@ extern "C" {
  * <dd>Assigns the logical seat for this device. See
  * libinput_seat_get_logical_name()
  * context. Defaults to "default".</dd>
+ * <dt>MOUSE_DPI</dt>
+ * <dd>HW resolution and sampling frequency of a relative pointer device.
+ * See @ref motion_normalization for details.
+ * </dd>
  * </dl>
  *
  * Below is an example udev rule to assign "seat1" to a device from vendor
@@ -133,6 +137,57 @@ extern "C" {
  * ENV{ID_MODEL_ID}=="034b", ENV{ID_SEAT}="seat1"
  * @endcode
  *
+ */
+
+/**
+ * @page motion_normalization Normalization of relative motion
+ *
+ * Most relative input devices generate input in so-called "mickeys". A
+ * mickey is in device-specific units that depend on the resolution
+ * of the sensor. Most optical mice use sensors with 1000dpi resolution, but
+ * some devices range from 100dpi to well above 8000dpi.
+ *
+ * Without a physical reference point, a relative coordinate cannot be
+ * interpreted correctly. A delta of 10 mickeys may be a millimeter of
+ * physical movement or 10 millimeters, depending on the sensor. This
+ * affects pointer acceleration in libinput and interpretation of relative
+ * coordinates in callers.
+ *
+ * libinput normalizes all relative input to a physical resolution of
+ * 1000dpi, the same delta from two different devices thus represents the
+ * same physical movement of those two devices (within sensor error
+ * margins).
+ *
+ * Devices usually do not advertise their resolution and libinput relies on
+ * the udev property MOUSE_DPI for this information.
+ *
+ * The format of the property for single-resolution mice is:
+ * @code
+ *      MOUSE_DPI=resolution@frequency
+ * @endcode
+ *
+ * The resolution is in dots per inch, the frequency in Hz.
+ * The format of the property for multi-resolution mice may list multiple
+ * resolutions and frequencies:
+ * @code
+ *      MOUSE_DPI=r1@f1 *r2@f2 r3@f3
+ * @endcode
+ *
+ * The default frequency must be pre-fixed with an asterisk.
+ *
+ * For example, these two properties are valid:
+ * @code
+ *      MOUSE_DPI=800@125
+ *      MOUSE_DPI=400@125 800@125 *1000@500 5500@500
+ * @endcode
+ *
+ * The behavior for a malformed property is undefined.
+ *
+ * If the property is unset, libinput assumes the resolution is 1000dpi.
+ *
+ * Note that HW does not usually provide information about the resolution
+ * changes, libinput will thus not detect when a resolution changes to the
+ * non-default value.
  */
 
 /**
@@ -196,6 +251,12 @@ enum libinput_button_state {
  * @ingroup device
  *
  * Axes on a device that are not x or y coordinates.
+ *
+ * The two scroll axes @ref LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL and
+ * @ref LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL are engaged separately,
+ * depending on the device. libinput provides some scroll direction locking
+ * but it is up to the caller to determine which axis is needed and
+ * appropriate in the current interaction
  */
 enum libinput_pointer_axis {
 	LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL = 0,
@@ -510,12 +571,12 @@ libinput_event_keyboard_get_base_event(struct libinput_event_keyboard *event);
 /**
  * @ingroup event_keyboard
  *
- * For the key of a LIBINPUT_EVENT_KEYBOARD_KEY event, return the total number
+ * For the key of a @ref LIBINPUT_EVENT_KEYBOARD_KEY event, return the total number
  * of keys pressed on all devices on the associated seat after the event was
  * triggered.
  *
  " @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_KEYBOARD_KEY. For other events, this function returns 0.
+ * @ref LIBINPUT_EVENT_KEYBOARD_KEY. For other events, this function returns 0.
  *
  * @return the seat wide pressed key count for the key of this event
  */
@@ -542,14 +603,17 @@ libinput_event_pointer_get_time(struct libinput_event_pointer *event);
  * @ingroup event_pointer
  *
  * Return the delta between the last event and the current event. For pointer
- * events that are not of type LIBINPUT_EVENT_POINTER_MOTION, this function
- * returns 0.
+ * events that are not of type @ref LIBINPUT_EVENT_POINTER_MOTION, this
+ * function returns 0.
  *
  * If a device employs pointer acceleration, the delta returned by this
  * function is the accelerated delta.
  *
+ * Relative motion deltas are normalized to represent those of a device with
+ * 1000dpi resolution. See @ref motion_normalization for more details.
+ *
  * @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_POINTER_MOTION.
+ * @ref LIBINPUT_EVENT_POINTER_MOTION.
  *
  * @return the relative x movement since the last event
  */
@@ -560,14 +624,17 @@ libinput_event_pointer_get_dx(struct libinput_event_pointer *event);
  * @ingroup event_pointer
  *
  * Return the delta between the last event and the current event. For pointer
- * events that are not of type LIBINPUT_EVENT_POINTER_MOTION, this function
- * returns 0.
+ * events that are not of type @ref LIBINPUT_EVENT_POINTER_MOTION, this
+ * function returns 0.
  *
  * If a device employs pointer acceleration, the delta returned by this
  * function is the accelerated delta.
  *
+ * Relative motion deltas are normalized to represent those of a device with
+ * 1000dpi resolution. See @ref motion_normalization for more details.
+ *
  * @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_POINTER_MOTION.
+ * @ref LIBINPUT_EVENT_POINTER_MOTION.
  *
  * @return the relative y movement since the last event
  */
@@ -577,15 +644,57 @@ libinput_event_pointer_get_dy(struct libinput_event_pointer *event);
 /**
  * @ingroup event_pointer
  *
+ * Return the relative delta of the unaccelerated motion vector of the
+ * current event. For pointer events that are not of type @ref
+ * LIBINPUT_EVENT_POINTER_MOTION, this function returns 0.
+ *
+ * Relative unaccelerated motion deltas are normalized to represent those of a
+ * device with 1000dpi resolution. See @ref motion_normalization for more
+ * details. Note that unaccelerated events are not equivalent to 'raw' events
+ * as read from the device.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_POINTER_MOTION.
+ *
+ * @return the unaccelerated relative x movement since the last event
+ */
+double
+libinput_event_pointer_get_dx_unaccelerated(
+	struct libinput_event_pointer *event);
+
+/**
+ * @ingroup event_pointer
+ *
+ * Return the relative delta of the unaccelerated motion vector of the
+ * current event. For pointer events that are not of type @ref
+ * LIBINPUT_EVENT_POINTER_MOTION, this function returns 0.
+ *
+ * Relative unaccelerated motion deltas are normalized to represent those of a
+ * device with 1000dpi resolution. See @ref motion_normalization for more
+ * details. Note that unaccelerated events are not equivalent to 'raw' events
+ * as read from the device.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_POINTER_MOTION.
+ *
+ * @return the unaccelerated relative y movement since the last event
+ */
+double
+libinput_event_pointer_get_dy_unaccelerated(
+	struct libinput_event_pointer *event);
+
+/**
+ * @ingroup event_pointer
+ *
  * Return the current absolute x coordinate of the pointer event, in mm from
  * the top left corner of the device. To get the corresponding output screen
  * coordinate, use libinput_event_pointer_get_absolute_x_transformed().
  *
  * For pointer events that are not of type
- * LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE, this function returns 0.
+ * @ref LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE, this function returns 0.
  *
  * @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE.
+ * @ref LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE.
  *
  * @return the current absolute x coordinate
  */
@@ -600,10 +709,10 @@ libinput_event_pointer_get_absolute_x(struct libinput_event_pointer *event);
  * coordinate, use libinput_event_pointer_get_absolute_y_transformed().
  *
  * For pointer events that are not of type
- * LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE, this function returns 0.
+ * @ref LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE, this function returns 0.
  *
  * @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE.
+ * @ref LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE.
  *
  * @return the current absolute y coordinate
  */
@@ -617,11 +726,11 @@ libinput_event_pointer_get_absolute_y(struct libinput_event_pointer *event);
  * screen coordinates.
  *
  * For pointer events that are not of type
- * LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE, the return value of this function is
- * undefined.
+ * @ref LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE, the return value of this
+ * function is undefined.
  *
  * @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE.
+ * @ref LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE.
  *
  * @param event The libinput pointer event
  * @param width The current output screen width
@@ -639,11 +748,11 @@ libinput_event_pointer_get_absolute_x_transformed(
  * screen coordinates.
  *
  * For pointer events that are not of type
- * LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE, the return value of this function is
+ * @ref LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE, the return value of this function is
  * undefined.
  *
  * @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE.
+ * @ref LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE.
  *
  * @param event The libinput pointer event
  * @param height The current output screen height
@@ -658,11 +767,11 @@ libinput_event_pointer_get_absolute_y_transformed(
  * @ingroup event_pointer
  *
  * Return the button that triggered this event.
- * For pointer events that are not of type LIBINPUT_EVENT_POINTER_BUTTON,
- * this function returns 0.
+ * For pointer events that are not of type @ref
+ * LIBINPUT_EVENT_POINTER_BUTTON, this function returns 0.
  *
  * @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_POINTER_BUTTON.
+ * @ref LIBINPUT_EVENT_POINTER_BUTTON.
  *
  * @return the button triggering this event
  */
@@ -673,11 +782,11 @@ libinput_event_pointer_get_button(struct libinput_event_pointer *event);
  * @ingroup event_pointer
  *
  * Return the button state that triggered this event.
- * For pointer events that are not of type LIBINPUT_EVENT_POINTER_BUTTON,
- * this function returns 0.
+ * For pointer events that are not of type @ref
+ * LIBINPUT_EVENT_POINTER_BUTTON, this function returns 0.
  *
  * @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_POINTER_BUTTON.
+ * @ref LIBINPUT_EVENT_POINTER_BUTTON.
  *
  * @return the button state triggering this event
  */
@@ -687,12 +796,13 @@ libinput_event_pointer_get_button_state(struct libinput_event_pointer *event);
 /**
  * @ingroup event_pointer
  *
- * For the button of a LIBINPUT_EVENT_POINTER_BUTTON event, return the total
- * number of buttons pressed on all devices on the associated seat after the
- * the event was triggered.
+ * For the button of a @ref LIBINPUT_EVENT_POINTER_BUTTON event, return the
+ * total number of buttons pressed on all devices on the associated seat
+ * after the the event was triggered.
  *
  " @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_POINTER_BUTTON. For other events, this function returns 0.
+ * @ref LIBINPUT_EVENT_POINTER_BUTTON. For other events, this function
+ * returns 0.
  *
  * @return the seat wide pressed button count for the key of this event
  */
@@ -704,11 +814,11 @@ libinput_event_pointer_get_seat_button_count(
  * @ingroup event_pointer
  *
  * Return the axis that triggered this event.
- * For pointer events that are not of type LIBINPUT_EVENT_POINTER_AXIS,
+ * For pointer events that are not of type @ref LIBINPUT_EVENT_POINTER_AXIS,
  * this function returns 0.
  *
  * @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_POINTER_AXIS.
+ * @ref LIBINPUT_EVENT_POINTER_AXIS.
  *
  * @return the axis triggering this event
  */
@@ -720,18 +830,18 @@ libinput_event_pointer_get_axis(struct libinput_event_pointer *event);
  *
  * Return the axis value of the given axis. The interpretation of the value
  * is dependent on the axis. For the two scrolling axes
- * LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL and
- * LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, the value of the event is in
+ * @ref LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL and
+ * @ref LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, the value of the event is in
  * relative scroll units, with the positive direction being down or right,
  * respectively. The dimension of a scroll unit is equal to one unit of
  * motion in the respective axis, where applicable (e.g. touchpad two-finger
  * scrolling).
  *
- * For pointer events that are not of type LIBINPUT_EVENT_POINTER_AXIS,
+ * For pointer events that are not of type @ref LIBINPUT_EVENT_POINTER_AXIS,
  * this function returns 0.
  *
  * @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_POINTER_AXIS.
+ * @ref LIBINPUT_EVENT_POINTER_AXIS.
  *
  * @return the axis value of this event
  */
@@ -770,8 +880,8 @@ libinput_event_touch_get_time(struct libinput_event_touch *event);
  * If the touch event has no assigned slot, for example if it is from a
  * single touch device, this function returns -1.
  *
- * @note this function should not be called for LIBINPUT_EVENT_TOUCH_CANCEL or
- * LIBINPUT_EVENT_TOUCH_FRAME.
+ * @note this function should not be called for @ref
+ * LIBINPUT_EVENT_TOUCH_CANCEL or @ref LIBINPUT_EVENT_TOUCH_FRAME.
  *
  * @return The slot of this touch event
  */
@@ -787,8 +897,8 @@ libinput_event_touch_get_slot(struct libinput_event_touch *event);
  * Events from single touch devices will be represented as one individual
  * touch point per device.
  *
- * @note this function should not be called for LIBINPUT_EVENT_TOUCH_CANCEL or
- * LIBINPUT_EVENT_TOUCH_FRAME.
+ * @note this function should not be called for @ref
+ * LIBINPUT_EVENT_TOUCH_CANCEL or @ref LIBINPUT_EVENT_TOUCH_FRAME.
  *
  * @return The seat slot of the touch event
  */
@@ -802,8 +912,8 @@ libinput_event_touch_get_seat_slot(struct libinput_event_touch *event);
  * the top left corner of the device. To get the corresponding output screen
  * coordinate, use libinput_event_touch_get_x_transformed().
  *
- * @note this function should only be called for LIBINPUT_EVENT_TOUCH_DOWN and
- * LIBINPUT_EVENT_TOUCH_MOTION.
+ * @note this function should only be called for @ref
+ * LIBINPUT_EVENT_TOUCH_DOWN and @ref LIBINPUT_EVENT_TOUCH_MOTION.
  *
  * @param event The libinput touch event
  * @return the current absolute x coordinate
@@ -818,10 +928,10 @@ libinput_event_touch_get_x(struct libinput_event_touch *event);
  * the top left corner of the device. To get the corresponding output screen
  * coordinate, use libinput_event_touch_get_y_transformed().
  *
- * For LIBINPUT_EVENT_TOUCH_UP 0 is returned.
+ * For @ref LIBINPUT_EVENT_TOUCH_UP 0 is returned.
  *
- * @note this function should only be called for LIBINPUT_EVENT_TOUCH_DOWN and
- * LIBINPUT_EVENT_TOUCH_MOTION.
+ * @note this function should only be called for @ref LIBINPUT_EVENT_TOUCH_DOWN and
+ * @ref LIBINPUT_EVENT_TOUCH_MOTION.
  *
  * @param event The libinput touch event
  * @return the current absolute y coordinate
@@ -835,8 +945,8 @@ libinput_event_touch_get_y(struct libinput_event_touch *event);
  * Return the current absolute x coordinate of the touch event, transformed to
  * screen coordinates.
  *
- * @note this function should only be called for LIBINPUT_EVENT_TOUCH_DOWN and
- * LIBINPUT_EVENT_TOUCH_MOTION.
+ * @note this function should only be called for @ref
+ * LIBINPUT_EVENT_TOUCH_DOWN and @ref LIBINPUT_EVENT_TOUCH_MOTION.
  *
  * @param event The libinput touch event
  * @param width The current output screen width
@@ -852,8 +962,8 @@ libinput_event_touch_get_x_transformed(struct libinput_event_touch *event,
  * Return the current absolute y coordinate of the touch event, transformed to
  * screen coordinates.
  *
- * @note this function should only be called for LIBINPUT_EVENT_TOUCH_DOWN and
- * LIBINPUT_EVENT_TOUCH_MOTION.
+ * @note this function should only be called for @ref
+ * LIBINPUT_EVENT_TOUCH_DOWN and @ref LIBINPUT_EVENT_TOUCH_MOTION.
  *
  * @param event The libinput touch event
  * @param height The current output screen height
@@ -1233,8 +1343,8 @@ libinput_path_add_device(struct libinput *libinput,
  * libinput_path_add_device().
  *
  * Events already processed from this input device are kept in the queue,
- * the LIBINPUT_EVENT_DEVICE_REMOVED event marks the end of events for this
- * device.
+ * the @ref LIBINPUT_EVENT_DEVICE_REMOVED event marks the end of events for
+ * this device.
  *
  * If no matching device exists, this function does nothing.
  *
@@ -1407,7 +1517,8 @@ libinput_log_get_priority(const struct libinput *libinput);
  * @param format Message format in printf-style
  * @param args Message arguments
  *
- * @see libinput_set_log_priority
+ * @see libinput_log_set_priority
+ * @see libinput_log_get_priority
  * @see libinput_log_set_handler
  */
 typedef void (*libinput_log_handler)(struct libinput *libinput,
@@ -1426,10 +1537,9 @@ typedef void (*libinput_log_handler)(struct libinput *libinput,
  *
  * @param libinput A previously initialized libinput context
  * @param log_handler The log handler for library messages.
- * @param user_data Caller-specific data pointer, passed into the log
- * handler.
  *
- * @see libinput_log_set_handler
+ * @see libinput_log_set_priority
+ * @see libinput_log_get_priority
  */
 void
 libinput_log_set_handler(struct libinput *libinput,
@@ -1514,6 +1624,17 @@ libinput_seat_set_user_data(struct libinput_seat *seat, void *user_data);
  */
 void *
 libinput_seat_get_user_data(struct libinput_seat *seat);
+
+/**
+ * @ingroup seat
+ *
+ * Get the libinput context from the seat.
+ *
+ * @param seat A previously obtained seat
+ * @return The libinput context for this seat.
+ */
+struct libinput *
+libinput_seat_get_context(struct libinput_seat *seat);
 
 /**
  * @ingroup seat
@@ -1607,6 +1728,17 @@ libinput_device_get_user_data(struct libinput_device *device);
 /**
  * @ingroup device
  *
+ * Get the libinput context from the device.
+ *
+ * @param device A previously obtained device
+ * @return The libinput context for this device.
+ */
+struct libinput *
+libinput_device_get_context(struct libinput_device *device);
+
+/**
+ * @ingroup device
+ *
  * Get the system name of the device.
  *
  * To get the descriptive device name, use libinput_device_get_name().
@@ -1689,6 +1821,50 @@ libinput_device_get_seat(struct libinput_device *device);
 /**
  * @ingroup device
  *
+ * Change the logical seat associated with this device by removing the
+ * device and adding it to the new seat.
+ *
+ * This command is identical to physically unplugging the device, then
+ * re-plugging it as member of the new seat,
+ * @ref LIBINPUT_EVENT_DEVICE_REMOVED and @ref LIBINPUT_EVENT_DEVICE_ADDED
+ * events are sent accordingly. Those events mark the end of the lifetime
+ * of this device and the start of a new device.
+ *
+ * If the logical seat name already exists in the device's physical seat,
+ * the device is added to this seat. Otherwise, a new seat is created.
+ *
+ * @note This change applies to this device until removal or @ref
+ * libinput_suspend(), whichever happens earlier.
+ *
+ * @param device A previously obtained device
+ * @param name The new logical seat name
+ * @return 0 on success, non-zero on error
+ */
+int
+libinput_device_set_seat_logical_name(struct libinput_device *device,
+				      const char *name);
+
+/**
+ * Return a udev handle to the device that is this libinput device, if any.
+ * The returned handle has a refcount of at least 1, the caller must call
+ * udev_device_unref() once to release the associated resources.
+ *
+ * Some devices may not have a udev device, or the udev device may be
+ * unobtainable. This function returns NULL if no udev device was available.
+ *
+ * Calling this function multiple times for the same device may not
+ * return the same udev handle each time.
+ *
+ * @param device A previously obtained device
+ * @return A udev handle to the device with a refcount of >= 1 or NULL.
+ * @retval NULL This device is not represented by a udev device
+ */
+struct udev_device *
+libinput_device_get_udev_device(struct libinput_device *device);
+
+/**
+ * @ingroup device
+ *
  * Update the LEDs on the device, if any. If the device does not have
  * LEDs, or does not have one or more of the LEDs given in the mask, this
  * function does nothing.
@@ -1757,6 +1933,20 @@ libinput_device_get_size(struct libinput_device *device,
 			 double *width,
 			 double *height);
 
+/**
+ * @ingroup device
+ *
+ * Check if a @ref LIBINPUT_DEVICE_CAP_POINTER device has a button with the
+ * passed in code (see linux/input.h).
+ *
+ * @param device A current input device
+ * @param code button code to check for
+ *
+ * @return 1 if the device supports this button code, 0 if it does not, -1
+ * on error.
+ */
+int
+libinput_device_has_button(struct libinput_device *device, uint32_t code);
 
 /**
  * @defgroup config Device configuration
@@ -2012,22 +2202,31 @@ libinput_device_config_calibration_get_default_matrix(struct libinput_device *de
  */
 enum libinput_config_send_events_mode {
 	/**
-	 * Send events from this device normally.
+	 * Send events from this device normally. This is a placeholder
+	 * mode only, any device detected by libinput can be enabled. Do not
+	 * test for this value as bitmask.
 	 */
-	LIBINPUT_CONFIG_SEND_EVENTS_ENABLED = (1 << 0),
+	LIBINPUT_CONFIG_SEND_EVENTS_ENABLED = 0,
 	/**
 	 * Do not send events through this device. Depending on the device,
 	 * this may close all file descriptors on the device or it may leave
 	 * the file descriptors open and route events through a different
 	 * device.
+	 *
+	 * If this bit field is set, other disable modes may be
+	 * ignored. For example, if both @ref
+	 * LIBINPUT_CONFIG_SEND_EVENTS_DISABLED and @ref
+	 * LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE are set,
+	 * the device remains disabled when all external pointer devices are
+	 * unplugged.
 	 */
-	LIBINPUT_CONFIG_SEND_EVENTS_DISABLED = (1 << 1),
+	LIBINPUT_CONFIG_SEND_EVENTS_DISABLED = (1 << 0),
 	/**
 	 * If an external pointer device is plugged in, do not send events
 	 * from this device. This option may be available on built-in
 	 * touchpads.
 	 */
-	LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE = (1 << 2),
+	LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE = (1 << 1),
 };
 
 /**
@@ -2048,6 +2247,8 @@ uint32_t
 libinput_device_config_send_events_get_modes(struct libinput_device *device);
 
 /**
+ * @ingroup config
+ *
  * Set the send-event mode for this device. The mode defines when the device
  * processes and sends events to the caller.
  *
@@ -2055,18 +2256,17 @@ libinput_device_config_send_events_get_modes(struct libinput_device *device);
  * received and processed from this device are unaffected and will be passed
  * to the caller on the next call to libinput_get_event().
  *
- * If the mode is one of @ref LIBINPUT_CONFIG_SEND_EVENTS_DISABLED or
- * @ref LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE, the device
- * may wait for or generate events until it is in a neutral state.
- * For example, this may include waiting for or generating button release
- * events.
+ * If the mode is a bitmask of @ref libinput_config_send_events_mode,
+ * the device may wait for or generate events until it is in a neutral
+ * state. For example, this may include waiting for or generating button
+ * release events.
  *
  * If the device is already suspended, this function does nothing and
  * returns success. Changing the send-event mode on a device that has been
  * removed is permitted.
  *
  * @param device The device to configure
- * @param mode The send-event mode for this device.
+ * @param mode A bitmask of send-events modes
  *
  * @return A config status code.
  *
@@ -2076,35 +2276,464 @@ libinput_device_config_send_events_get_modes(struct libinput_device *device);
  */
 enum libinput_config_status
 libinput_device_config_send_events_set_mode(struct libinput_device *device,
-					    enum libinput_config_send_events_mode mode);
+					    uint32_t mode);
 
 /**
+ * @ingroup config
+ *
  * Get the send-event mode for this device. The mode defines when the device
  * processes and sends events to the caller.
  *
+ * If a caller enables the bits for multiple modes, some of which are
+ * subsets of another mode libinput may drop the bits that are subsets. In
+ * other words, don't expect libinput_device_config_send_events_get_mode()
+ * to always return exactly the same bitmask as passed into
+ * libinput_device_config_send_events_set_mode().
+ *
  * @param device The device to configure
- * @return The current send-event mode for this device.
+ * @return The current bitmask of the send-event mode for this device.
  *
  * @see libinput_device_config_send_events_get_modes
  * @see libinput_device_config_send_events_set_mode
  * @see libinput_device_config_send_events_get_default_mode
  */
-enum libinput_config_send_events_mode
+uint32_t
 libinput_device_config_send_events_get_mode(struct libinput_device *device);
 
 /**
+ * @ingroup config
+ *
  * Get the default send-event mode for this device. The mode defines when
  * the device processes and sends events to the caller.
  *
  * @param device The device to configure
- * @return The current send-event mode for this device.
+ * @return The bitmask of the send-event mode for this device.
  *
  * @see libinput_device_config_send_events_get_modes
  * @see libinput_device_config_send_events_set_mode
- * @see libinput_device_config_send_events_get_default_mode
+ * @see libinput_device_config_send_events_get_mode
  */
-enum libinput_config_send_events_mode
+uint32_t
 libinput_device_config_send_events_get_default_mode(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Check if a device uses libinput-internal pointer-acceleration.
+ *
+ * @param device The device to configure
+ *
+ * @return 0 if the device is not accelerated, nonzero if it is accelerated
+ */
+int
+libinput_device_config_accel_is_available(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Set the pointer acceleration speed of this pointer device within a range
+ * of [-1, 1], where 0 is the default acceleration for this device, -1 is
+ * the slowest acceleration and 1 is the maximum acceleration available on
+ * this device. The actual pointer acceleration mechanism is
+ * implementation-dependent, as is the number of steps available within the
+ * range. libinput picks the semantically closest acceleration step if the
+ * requested value does not match a discreet setting.
+ *
+ * @param device The device to configure
+ * @param speed The normalized speed, in a range of [-1, 1]
+ *
+ * @return A config status code
+ */
+enum libinput_config_status
+libinput_device_config_accel_set_speed(struct libinput_device *device,
+				       double speed);
+
+/**
+ * @ingroup config
+ *
+ * Get the current pointer acceleration setting for this pointer device. The
+ * returned value is normalized to a range of [-1, 1].
+ * See libinput_device_config_accel_set_speed() for details.
+ *
+ * @param device The device to configure
+ *
+ * @return The current speed, range -1 to 1
+ */
+double
+libinput_device_config_accel_get_speed(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Return the default speed setting for this device, normalized to a range
+ * of [-1, 1].
+ * See libinput_device_config_accel_set_speed() for details.
+ *
+ * @param device The device to configure
+ * @return The default speed setting for this device.
+ */
+double
+libinput_device_config_accel_get_default_speed(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Return non-zero if the device supports "natural scrolling".
+ *
+ * In traditional scroll mode, the movement of fingers on a touchpad when
+ * scrolling matches the movement of the scroll bars. When the fingers move
+ * down, the scroll bar moves down, a line of text on the screen moves
+ * towards the upper end of the screen. This also matches scroll wheels on
+ * mice (wheel down, content moves up).
+ *
+ * Natural scrolling is the term coined by Apple for inverted scrolling.
+ * In this mode, the effect of scrolling movement of fingers on a touchpad
+ * resemble physical manipulation of paper. When the fingers move down, a
+ * line of text on the screen moves down (scrollbars move up). This is the
+ * opposite of scroll wheels on mice.
+ *
+ * A device supporting natural scrolling can be switched between traditional
+ * scroll mode and natural scroll mode.
+ *
+ * @param device The device to configure
+ *
+ * @return 0 if natural scrolling is not supported, non-zero if natural
+ * scrolling is supported by this device
+ *
+ * @see libinput_device_config_set_natural_scroll_enabled
+ * @see libinput_device_config_get_natural_scroll_enabled
+ * @see libinput_device_config_get_default_natural_scroll_enabled
+ */
+int
+libinput_device_config_scroll_has_natural_scroll(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Enable or disable natural scrolling on the device.
+ *
+ * @param device The device to configure
+ * @param enable non-zero to enable, zero to disable natural scrolling
+ *
+ * @return a config status code
+ *
+ * @see libinput_device_config_has_natural_scroll
+ * @see libinput_device_config_get_natural_scroll_enabled
+ * @see libinput_device_config_get_default_natural_scroll_enabled
+ */
+enum libinput_config_status
+libinput_device_config_scroll_set_natural_scroll_enabled(struct libinput_device *device,
+							 int enable);
+/**
+ * @ingroup config
+ *
+ * Get the current mode for scrolling on this device
+ *
+ * @param device The device to configure
+ *
+ * @return zero if natural scrolling is disabled, non-zero if enabled
+ *
+ * @see libinput_device_config_has_natural_scroll
+ * @see libinput_device_config_set_natural_scroll_enabled
+ * @see libinput_device_config_get_default_natural_scroll_enabled
+ */
+int
+libinput_device_config_scroll_get_natural_scroll_enabled(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Get the default mode for scrolling on this device
+ *
+ * @param device The device to configure
+ *
+ * @return zero if natural scrolling is disabled by default, non-zero if enabled
+ *
+ * @see libinput_device_config_has_natural_scroll
+ * @see libinput_device_config_set_natural_scroll_enabled
+ * @see libinput_device_config_get_natural_scroll_enabled
+ */
+int
+libinput_device_config_scroll_get_default_natural_scroll_enabled(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Check if a device has a button configuration that supports left-handed
+ * usage.
+ *
+ * @param device The device to configure
+ * @return Non-zero if the device can be set to left-handed, or zero
+ * otherwise
+ *
+ * @see libinput_device_config_buttons_set_left_handed
+ * @see libinput_device_config_buttons_get_left_handed
+ * @see libinput_device_config_buttons_get_default_left_handed
+ */
+int
+libinput_device_config_buttons_has_left_handed(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Set the left-handed configuration of the device. A device in left-handed
+ * mode sends a left button event instead of the right button and vice
+ * versa.
+ *
+ * The exact button behavior is device-dependent. On a mouse and most
+ * pointing devices, left and right buttons are swapped but the middle
+ * button is unmodified. On a touchpad, physical buttons (if present) are
+ * swapped. On a clickpad, the top and bottom software-emulated buttons are
+ * swapped where present, the main area of the touchpad remains a left
+ * button. Tapping and clickfinger behavior is not affected by this setting.
+ *
+ * Changing the left-handed configuration of a device may not take effect
+ * until all buttons have been logically released.
+ *
+ * @param device The device to configure
+ * @param left_handed Zero to disable, non-zero to enable left-handed mode
+ * @return A configuration status code
+ *
+ * @see libinput_device_config_buttons_has_left_handed
+ * @see libinput_device_config_buttons_get_left_handed
+ * @see libinput_device_config_buttons_get_default_left_handed
+ */
+enum libinput_config_status
+libinput_device_config_buttons_set_left_handed(struct libinput_device *device,
+					       int left_handed);
+
+/**
+ * @ingroup config
+ *
+ * Get the current left-handed configuration of the device.
+ *
+ * @param device The device to configure
+ * @return Zero if the device is in right-handed mode, non-zero if the
+ * device is in left-handed mode
+ *
+ * @see libinput_device_config_buttons_has_left_handed
+ * @see libinput_device_config_buttons_set_left_handed
+ * @see libinput_device_config_buttons_get_default_left_handed
+ */
+int
+libinput_device_config_buttons_get_left_handed(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Get the default left-handed configuration of the device.
+ *
+ * @param device The device to configure
+ * @return Zero if the device is in right-handed mode by default, or non-zero if the
+ * device is in left-handed mode by default
+ *
+ * @see libinput_device_config_buttons_has_left_handed
+ * @see libinput_device_config_buttons_set_left_handed
+ * @see libinput_device_config_buttons_get_left_handed
+ */
+int
+libinput_device_config_buttons_get_default_left_handed(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * The scroll method of a device selects when to generate scroll axis events
+ * instead of pointer motion events.
+ */
+enum libinput_config_scroll_method {
+	/**
+	 * Never send scroll events instead of pointer motion events.
+	 * Note scroll wheels, etc. will still send scroll events.
+	 */
+	LIBINPUT_CONFIG_SCROLL_NO_SCROLL = 0,
+	/**
+	 * Send scroll events when 2 fingers are down on the device.
+	 */
+	LIBINPUT_CONFIG_SCROLL_2FG = (1 << 0),
+	/**
+	 * Send scroll events when a finger is moved along the bottom or
+	 * right edge of a device.
+	 */
+	LIBINPUT_CONFIG_SCROLL_EDGE = (1 << 1),
+	/**
+	 * Send scroll events when a button is down and the device moves
+	 * along a scroll-capable axis.
+	 */
+	LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN = (1 << 2),
+};
+
+/**
+ * @ingroup config
+ *
+ * Check which scroll methods a device supports. The method defines when to
+ * generate scroll axis events instead of pointer motion events.
+ *
+ * @param device The device to configure
+ *
+ * @return A bitmask of possible methods.
+ *
+ * @see libinput_device_config_scroll_set_method
+ * @see libinput_device_config_scroll_get_method
+ * @see libinput_device_config_scroll_get_default_method
+ * @see libinput_device_config_scroll_set_button
+ * @see libinput_device_config_scroll_get_button
+ * @see libinput_device_config_scroll_get_default_button
+ */
+uint32_t
+libinput_device_config_scroll_get_methods(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Set the scroll method for this device. The method defines when to
+ * generate scroll axis events instead of pointer motion events.
+ *
+ * @note Setting @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN enables
+ * the scroll method, but scrolling is only activated when the configured
+ * button is held down. If no button is set, i.e.
+ * libinput_device_config_scroll_get_button() returns 0, scrolling
+ * cannot activate.
+ *
+ * @param device The device to configure
+ * @param method The scroll method for this device.
+ *
+ * @return A config status code.
+ *
+ * @see libinput_device_config_scroll_get_methods
+ * @see libinput_device_config_scroll_get_method
+ * @see libinput_device_config_scroll_get_default_method
+ * @see libinput_device_config_scroll_set_button
+ * @see libinput_device_config_scroll_get_button
+ * @see libinput_device_config_scroll_get_default_button
+ */
+enum libinput_config_status
+libinput_device_config_scroll_set_method(struct libinput_device *device,
+					 enum libinput_config_scroll_method method);
+
+/**
+ * @ingroup config
+ *
+ * Get the scroll method for this device. The method defines when to
+ * generate scroll axis events instead of pointer motion events.
+ *
+ * @param device The device to configure
+ * @return The current scroll method for this device.
+ *
+ * @see libinput_device_config_scroll_get_methods
+ * @see libinput_device_config_scroll_set_method
+ * @see libinput_device_config_scroll_get_default_method
+ * @see libinput_device_config_scroll_set_button
+ * @see libinput_device_config_scroll_get_button
+ * @see libinput_device_config_scroll_get_default_button
+ */
+enum libinput_config_scroll_method
+libinput_device_config_scroll_get_method(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Get the default scroll method for this device. The method defines when to
+ * generate scroll axis events instead of pointer motion events.
+ *
+ * @param device The device to configure
+ * @return The default scroll method for this device.
+ *
+ * @see libinput_device_config_scroll_get_methods
+ * @see libinput_device_config_scroll_set_method
+ * @see libinput_device_config_scroll_get_method
+ * @see libinput_device_config_scroll_set_button
+ * @see libinput_device_config_scroll_get_button
+ * @see libinput_device_config_scroll_get_default_button
+ */
+enum libinput_config_scroll_method
+libinput_device_config_scroll_get_default_method(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Set the button for the @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN method
+ * for this device.
+ *
+ * When the current scroll method is set to @ref
+ * LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN, no button press/release events
+ * will be send for the configured button.
+ *
+ * When the configured button is pressed, any motion events along a
+ * scroll-capable axis are turned into scroll axis events.
+ *
+ * @note Setting the button does not change the scroll method. To change the
+ * scroll method call libinput_device_config_scroll_set_method().
+ *
+ * If the button is 0, button scrolling is effectively disabled.
+ *
+ * @param device The device to configure
+ * @param button The button which when pressed switches to sending scroll events
+ *
+ * @return a config status code
+ * @retval LIBINPUT_CONFIG_STATUS_SUCCESS on success
+ * @retval LIBINPUT_CONFIG_STATUS_UNSUPPORTED if @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN is not supported
+ * @retval LIBINPUT_CONFIG_STATUS_INVALID the given button does not
+ * exist on this device
+ *
+ * @see libinput_device_config_scroll_get_methods
+ * @see libinput_device_config_scroll_set_method
+ * @see libinput_device_config_scroll_get_method
+ * @see libinput_device_config_scroll_get_default_method
+ * @see libinput_device_config_scroll_get_button
+ * @see libinput_device_config_scroll_get_default_button
+ */
+enum libinput_config_status
+libinput_device_config_scroll_set_button(struct libinput_device *device,
+					 uint32_t button);
+
+/**
+ * @ingroup config
+ *
+ * Get the button for the @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN method for
+ * this device.
+ *
+ * If @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN scroll method is not supported,
+ * or no button is set, this function returns 0.
+ *
+ * @note The return value is independent of the currently selected
+ * scroll-method. For button scrolling to activate, a device must have the
+ * @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN method enabled, and a non-zero
+ * button set as scroll button.
+ *
+ * @param device The device to configure
+ * @return The button which when pressed switches to sending scroll events
+ *
+ * @see libinput_device_config_scroll_get_methods
+ * @see libinput_device_config_scroll_set_method
+ * @see libinput_device_config_scroll_get_method
+ * @see libinput_device_config_scroll_get_default_method
+ * @see libinput_device_config_scroll_set_button
+ * @see libinput_device_config_scroll_get_default_button
+ */
+uint32_t
+libinput_device_config_scroll_get_button(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Get the default button for LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN method
+ * for this device.
+ *
+ * If @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN scroll method is not supported,
+ * or no default button is set, this function returns 0.
+ *
+ * @param device The device to configure
+ * @return The default button for LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN method
+ *
+ * @see libinput_device_config_scroll_get_methods
+ * @see libinput_device_config_scroll_set_method
+ * @see libinput_device_config_scroll_get_method
+ * @see libinput_device_config_scroll_get_default_method
+ * @see libinput_device_config_scroll_set_button
+ * @see libinput_device_config_scroll_get_button
+ */
+uint32_t
+libinput_device_config_scroll_get_default_button(struct libinput_device *device);
 
 #ifdef __cplusplus
 }
