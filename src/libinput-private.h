@@ -30,6 +30,8 @@
 #include "libinput.h"
 #include "libinput-util.h"
 
+#define LIBINPUT_TABLET_AXIS_CNT LIBINPUT_TABLET_AXIS_TILT_Y + 1
+
 struct libinput_source;
 
 struct libinput_interface_backend {
