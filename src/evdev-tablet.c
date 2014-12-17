@@ -541,6 +541,7 @@ tablet_destroy(struct evdev_dispatch *dispatch)
 
 static struct evdev_dispatch_interface tablet_interface = {
 	tablet_process,
+	NULL, /* remove */
 	tablet_destroy,
 	NULL, /* device_added */
 	NULL, /* device_removed */

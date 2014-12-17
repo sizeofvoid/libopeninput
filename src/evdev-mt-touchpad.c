@@ -177,7 +177,7 @@ tp_estimate_delta(int x0, int x1, int x2, int x3)
 void
 tp_get_delta(struct tp_touch *t, double *dx, double *dy)
 {
-	if (t->history.count < 4) {
+	if (t->history.count < TOUCHPAD_MIN_SAMPLES) {
 		*dx = 0;
 		*dy = 0;
 		return;
@@ -448,6 +448,10 @@ tp_twofinger_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 	if (tp_tap_dragging(tp))
 		return 0;
 
+	/* No 2fg scrolling while a clickpad is clicked */
+	if (tp->buttons.is_clickpad && tp->buttons.state)
+		return 0;
+
 	/* Only count active touches for 2 finger scrolling */
 	tp_for_each_touch(tp, t) {
 		if (tp_touch_active(tp, t))
@@ -512,9 +516,9 @@ tp_stop_scroll_events(struct tp_dispatch *tp, uint64_t time)
 }
 
 static void
-tp_destroy_scroll(struct tp_dispatch *tp)
+tp_remove_scroll(struct tp_dispatch *tp)
 {
-	tp_destroy_edge_scroll(tp);
+	tp_remove_edge_scroll(tp);
 }
 
 static void
@@ -586,14 +590,67 @@ tp_post_process_state(struct tp_dispatch *tp, uint64_t time)
 	tp->queued = TOUCHPAD_EVENT_NONE;
 }
 
+static void
+tp_get_pointer_delta(struct tp_dispatch *tp, double *dx, double *dy)
+{
+	struct tp_touch *t = tp_current_touch(tp);
+
+	if (!t->is_pointer) {
+		tp_for_each_touch(tp, t) {
+			if (t->is_pointer)
+				break;
+		}
+	}
+
+	if (!t->is_pointer || !t->dirty)
+		return;
+
+	tp_get_delta(t, dx, dy);
+}
+
+static void
+tp_get_active_touches_delta(struct tp_dispatch *tp, double *dx, double *dy)
+{
+	struct tp_touch *t;
+	double tdx, tdy;
+	unsigned int i;
+
+	for (i = 0; i < tp->real_touches; i++) {
+		t = tp_get_touch(tp, i);
+
+		if (!tp_touch_active(tp, t) || !t->dirty)
+			continue;
+
+		tp_get_delta(t, &tdx, &tdy);
+		*dx += tdx;
+		*dy += tdy;
+	}
+}
+
+static void
+tp_post_pointer_motion(struct tp_dispatch *tp, uint64_t time)
+{
+	double dx = 0.0, dy = 0.0;
+	double dx_unaccel, dy_unaccel;
+
+	/* When a clickpad is clicked, combine motion of all active touches */
+	if (tp->buttons.is_clickpad && tp->buttons.state)
+		tp_get_active_touches_delta(tp, &dx, &dy);
+	else
+		tp_get_pointer_delta(tp, &dx, &dy);
+
+	tp_filter_motion(tp, &dx, &dy, &dx_unaccel, &dy_unaccel, time);
+
+	if (dx != 0.0 || dy != 0.0 || dx_unaccel != 0.0 || dy_unaccel != 0.0) {
+		pointer_notify_motion(&tp->device->base, time,
+				      dx, dy, dx_unaccel, dy_unaccel);
+	}
+}
 
 static void
 tp_post_events(struct tp_dispatch *tp, uint64_t time)
 {
-	struct tp_touch *t = tp_current_touch(tp);
-	double dx, dy;
 	int filter_motion = 0;
-	double dx_unaccel, dy_unaccel;
 
 	/* Only post (top) button events while suspended */
 	if (tp->device->suspended) {
@@ -612,25 +669,7 @@ tp_post_events(struct tp_dispatch *tp, uint64_t time)
 	if (tp_post_scroll_events(tp, time) != 0)
 		return;
 
-	if (!t->is_pointer) {
-		tp_for_each_touch(tp, t) {
-			if (t->is_pointer)
-				break;
-		}
-	}
-
-	if (!t->is_pointer ||
-	    !t->dirty ||
-	    t->history.count < TOUCHPAD_MIN_SAMPLES)
-		return;
-
-	tp_get_delta(t, &dx, &dy);
-	tp_filter_motion(tp, &dx, &dy, &dx_unaccel, &dy_unaccel, time);
-
-	if (dx != 0.0 || dy != 0.0 || dx_unaccel != 0.0 || dy_unaccel != 0.0) {
-		pointer_notify_motion(&tp->device->base, time,
-				      dx, dy, dx_unaccel, dy_unaccel);
-	}
+	tp_post_pointer_motion(tp, time);
 }
 
 static void
@@ -668,7 +707,7 @@ tp_process(struct evdev_dispatch *dispatch,
 }
 
 static void
-tp_destroy_sendevents(struct tp_dispatch *tp)
+tp_remove_sendevents(struct tp_dispatch *tp)
 {
 	libinput_timer_cancel(&tp->sendevents.trackpoint_timer);
 
@@ -678,15 +717,23 @@ tp_destroy_sendevents(struct tp_dispatch *tp)
 }
 
 static void
+tp_remove(struct evdev_dispatch *dispatch)
+{
+	struct tp_dispatch *tp =
+		(struct tp_dispatch*)dispatch;
+
+	tp_remove_tap(tp);
+	tp_remove_buttons(tp);
+	tp_remove_sendevents(tp);
+	tp_remove_scroll(tp);
+}
+
+static void
 tp_destroy(struct evdev_dispatch *dispatch)
 {
 	struct tp_dispatch *tp =
 		(struct tp_dispatch*)dispatch;
 
-	tp_destroy_tap(tp);
-	tp_destroy_buttons(tp);
-	tp_destroy_sendevents(tp);
-	tp_destroy_scroll(tp);
 
 	free(tp->touches);
 	free(tp);
@@ -858,6 +905,7 @@ tp_tag_device(struct evdev_device *device,
 
 static struct evdev_dispatch_interface tp_interface = {
 	tp_process,
+	tp_remove,
 	tp_destroy,
 	tp_device_added,
 	tp_device_removed,

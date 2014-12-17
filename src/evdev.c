@@ -737,6 +737,7 @@ evdev_calibration_get_default_matrix(struct libinput_device *libinput_device,
 
 struct evdev_dispatch_interface fallback_interface = {
 	fallback_process,
+	NULL, /* remove */
 	fallback_destroy,
 	NULL, /* device_added */
 	NULL, /* device_removed */
@@ -1612,13 +1613,6 @@ err:
 	return unhandled_device ? EVDEV_UNHANDLED_DEVICE :  NULL;
 }
 
-int
-evdev_device_get_keys(struct evdev_device *device, char *keys, size_t size)
-{
-	memset(keys, 0, size);
-	return 0;
-}
-
 const char *
 evdev_device_get_output(struct evdev_device *device)
 {
@@ -1995,6 +1989,8 @@ evdev_device_resume(struct evdev_device *device)
 	struct libinput *libinput = device->base.seat->libinput;
 	int fd;
 	const char *devnode;
+	struct input_event ev;
+	enum libevdev_read_status status;
 
 	if (device->fd != -1)
 		return 0;
@@ -2021,6 +2017,20 @@ evdev_device_resume(struct evdev_device *device)
 			return -ENODEV;
 	}
 
+	libevdev_change_fd(device->evdev, fd);
+	libevdev_set_clock_id(device->evdev, CLOCK_MONOTONIC);
+
+	/* re-sync libevdev's view of the device, but discard the actual
+	   events. Our device is in a neutral state already */
+	libevdev_next_event(device->evdev,
+			    LIBEVDEV_READ_FLAG_FORCE_SYNC,
+			    &ev);
+	do {
+		status = libevdev_next_event(device->evdev,
+					     LIBEVDEV_READ_FLAG_SYNC,
+					     &ev);
+	} while (status == LIBEVDEV_READ_STATUS_SYNC);
+
 	device->source =
 		libinput_add_fd(libinput, fd, evdev_device_dispatch, device);
 	if (!device->source) {
@@ -2041,7 +2051,7 @@ evdev_device_remove(struct evdev_device *device)
 	struct libinput_device *dev;
 
 	list_for_each(dev, &device->base.seat->devices_list, link) {
-		struct evdev_device *d = (struct evdev_device*)dev;;
+		struct evdev_device *d = (struct evdev_device*)dev;
 		if (dev == &device->base)
 			continue;
 
@@ -2050,6 +2060,9 @@ evdev_device_remove(struct evdev_device *device)
 	}
 
 	evdev_device_suspend(device);
+
+	if (device->dispatch->interface->remove)
+		device->dispatch->interface->remove(device->dispatch);
 
 	/* A device may be removed while suspended, mark it to
 	 * skip re-opening a different device with the same node */

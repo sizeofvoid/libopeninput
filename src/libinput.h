@@ -36,13 +36,6 @@ extern "C" {
 #define LIBINPUT_ATTRIBUTE_DEPRECATED __attribute__ ((deprecated))
 
 /**
- * @mainpage
- * libinput is a generic input device handling library. It abstracts
- * commonly-used concepts such as keyboard, pointer and touchpad handling
- * behind an API.
- */
-
-/**
  * @page tpbuttons Touchpad button behavior
  *
  * For touchpad devices without physical buttons, libinput enables an
@@ -185,9 +178,9 @@ extern "C" {
  *
  * If the property is unset, libinput assumes the resolution is 1000dpi.
  *
- * Note that HW does not usually provide information about the resolution
- * changes, libinput will thus not detect when a resolution changes to the
- * non-default value.
+ * Note that HW does not usually provide information about run-time
+ * resolution changes, libinput will thus not detect when a resolution
+ * changes to the non-default value.
  */
 
 /**
@@ -370,13 +363,68 @@ enum libinput_event_type {
 	LIBINPUT_EVENT_TABLET_BUTTON
 };
 
+/**
+ * @ingroup base
+ * @struct libinput
+ *
+ * A handle for accessing libinput. This struct is refcounted, use
+ * libinput_ref() and libinput_unref().
+ */
 struct libinput;
+
+/**
+ * @ingroup device
+ * @struct libinput_device
+ *
+ * A base handle for accessing libinput devices. This struct is
+ * refcounted, use libinput_device_ref() and libinput_device_unref().
+ */
 struct libinput_device;
+
+/**
+ * @ingroup seat
+ * @struct libinput_seat
+ *
+ * The base handle for accessing libinput seats. This struct is
+ * refcounted, use libinput_seat_ref() and libinput_seat_unref().
+ */
 struct libinput_seat;
 
+/**
+ * @ingroup event
+ * @struct libinput_event
+ *
+ * The base event type. Use libinput_event_get_pointer_event() or similar to
+ * get the actual event type.
+ *
+ * @warning Unlike other structs events are considered transient and
+ * <b>not</b> refcounted.
+ */
 struct libinput_event;
+
+/**
+ * @ingroup event
+ * @struct libinput_event_device_notify
+ *
+ * An event notifying the caller of a device being added or removed.
+ */
 struct libinput_event_device_notify;
+
+/**
+ * @ingroup event_keyboard
+ * @struct libinput_event_keyboard
+ *
+ * A keyboard event representing a key press/release.
+ */
 struct libinput_event_keyboard;
+
+/**
+ * @ingroup event_pointer
+ * @struct libinput_event_pointer
+ *
+ * A pointer event representing relative or absolute pointer movement,
+ * a button press/release or scroll axis events.
+ */
 struct libinput_event_pointer;
 
 /**
@@ -409,7 +457,12 @@ struct libinput_event_tablet;
 /**
  * @ingroup event
  *
- * Destroy the event.
+ * Destroy the event, freeing all associated resources. Resources obtained
+ * from this event must be considered invalid after this call.
+ *
+ * @warning Unlike other structs events are considered transient and
+ * <b>not</b> refcounted. Calling libinput_event_destroy() <b>will</b>
+ * destroy the event.
  *
  * @param event An event retrieved by libinput_get_event().
  */
@@ -557,7 +610,6 @@ libinput_event_keyboard_get_key(struct libinput_event_keyboard *event);
  */
 enum libinput_key_state
 libinput_event_keyboard_get_key_state(struct libinput_event_keyboard *event);
-
 
 /**
  * @ingroup event_keyboard
@@ -854,7 +906,6 @@ libinput_event_pointer_get_axis_value(struct libinput_event_pointer *event);
  */
 struct libinput_event *
 libinput_event_pointer_get_base_event(struct libinput_event_pointer *event);
-
 
 /**
  * @defgroup event_touch Touch events
@@ -1221,6 +1272,17 @@ libinput_tool_set_user_data(struct libinput_tool *tool,
  * @defgroup base Initialization and manipulation of libinput contexts
  */
 
+/**
+ * @ingroup base
+ * @struct libinput_interface
+ *
+ * libinput does not open file descriptors to devices directly, instead
+ * open_restricted() and close_restricted() are called for each path that
+ * must be opened.
+ *
+ * @see libinput_udev_create_context
+ * @see libinput_path_create_context
+ */
 struct libinput_interface {
 	/**
 	 * Open the device at the given path with the flags provided and
@@ -1874,33 +1936,6 @@ libinput_device_get_udev_device(struct libinput_device *device);
 void
 libinput_device_led_update(struct libinput_device *device,
 			   enum libinput_led leds);
-
-/**
- * @ingroup device
- *
- * Set the bitmask in keys to the bitmask of the keys present on the device
- * (see linux/input.h), up to size characters.
- *
- * @param device A current input device
- * @param keys An array filled with the bitmask for the keys
- * @param size Size of the keys array
- *
- * @return The number of valid bytes in keys, or a negative errno on failure
- */
-int
-libinput_device_get_keys(struct libinput_device *device,
-			 char *keys, size_t size)
-	LIBINPUT_ATTRIBUTE_DEPRECATED;
-
-/**
- * @ingroup device
- *
- * @deprecated Use libinput_device_config_calibration_set_matrix() instead.
- */
-void
-libinput_device_calibrate(struct libinput_device *device,
-			  float calibration[6])
-	LIBINPUT_ATTRIBUTE_DEPRECATED;
 
 /**
  * @ingroup device
