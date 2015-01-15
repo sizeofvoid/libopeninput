@@ -1092,11 +1092,11 @@ litest_print_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_POINTER_AXIS:
 		p = libinput_event_get_pointer_event(event);
 		fprintf(stderr,
-			"axis %s value %.2f",
-			libinput_event_pointer_get_axis(p) ==
-				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL ?
-				"vert" : "horiz",
-			libinput_event_pointer_get_axis_value(p));
+			"vert %.f horiz %.2f",
+			libinput_event_pointer_get_axis_value(p,
+				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
+			libinput_event_pointer_get_axis_value(p,
+				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL));
 		break;
 	default:
 		break;
@@ -1307,28 +1307,50 @@ litest_assert_scroll(struct libinput *li,
 				 LIBINPUT_EVENT_POINTER_AXIS);
 		ptrev = libinput_event_get_pointer_event(event);
 		ck_assert(ptrev != NULL);
-		ck_assert_int_eq(libinput_event_pointer_get_axis(ptrev), axis);
 
 		if (next_event) {
 			/* Normal scroll event, check dir */
 			if (minimum_movement > 0) {
 				ck_assert_int_ge(
-					libinput_event_pointer_get_axis_value(ptrev),
+					libinput_event_pointer_get_axis_value(ptrev,
+									      axis),
 					minimum_movement);
 			} else {
 				ck_assert_int_le(
-					libinput_event_pointer_get_axis_value(ptrev),
+					libinput_event_pointer_get_axis_value(ptrev,
+									      axis),
 					minimum_movement);
 			}
 		} else {
 			/* Last scroll event, must be 0 */
 			ck_assert_int_eq(
-				libinput_event_pointer_get_axis_value(ptrev),
+				libinput_event_pointer_get_axis_value(ptrev, axis),
 				0);
 		}
 		libinput_event_destroy(event);
 		event = next_event;
 		next_event = libinput_get_event(li);
+	}
+}
+
+void
+litest_assert_only_typed_events(struct libinput *li,
+				enum libinput_event_type type)
+{
+	struct libinput_event *event;
+
+	assert(type != LIBINPUT_EVENT_NONE);
+
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	ck_assert_notnull(event);
+
+	while (event) {
+		ck_assert_int_eq(libinput_event_get_type(event),
+				 type);
+		libinput_event_destroy(event);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
 	}
 }
 

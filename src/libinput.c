@@ -59,13 +59,15 @@ struct libinput_event_pointer {
 	uint32_t time;
 	double x;
 	double y;
+	double x_discrete;
+	double y_discrete;
 	double dx_unaccel;
 	double dy_unaccel;
 	uint32_t button;
 	uint32_t seat_button_count;
 	enum libinput_button_state state;
-	enum libinput_pointer_axis axis;
-	double value;
+	enum libinput_pointer_axis_source source;
+	uint32_t axes;
 };
 
 struct libinput_event_touch {
@@ -435,16 +437,69 @@ libinput_event_pointer_get_seat_button_count(
 	return event->seat_button_count;
 }
 
-LIBINPUT_EXPORT enum libinput_pointer_axis
-libinput_event_pointer_get_axis(struct libinput_event_pointer *event)
+LIBINPUT_EXPORT int
+libinput_event_pointer_has_axis(struct libinput_event_pointer *event,
+				enum libinput_pointer_axis axis)
 {
-	return event->axis;
+	if (event->base.type == LIBINPUT_EVENT_POINTER_AXIS) {
+		switch (axis) {
+		case LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL:
+		case LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL:
+			return !!(event->axes & AS_MASK(axis));
+		}
+	}
+	return 0;
 }
 
 LIBINPUT_EXPORT double
-libinput_event_pointer_get_axis_value(struct libinput_event_pointer *event)
+libinput_event_pointer_get_axis_value(struct libinput_event_pointer *event,
+				      enum libinput_pointer_axis axis)
 {
-	return event->value;
+	struct libinput *libinput = event->base.device->seat->libinput;
+	double value = 0;
+
+	if (!libinput_event_pointer_has_axis(event, axis)) {
+		log_bug_client(libinput, "value requested for unset axis\n");
+	} else {
+		switch (axis) {
+		case LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL:
+			value = event->x;
+			break;
+		case LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL:
+			value = event->y;
+			break;
+		}
+	}
+
+	return value;
+}
+
+LIBINPUT_EXPORT double
+libinput_event_pointer_get_axis_value_discrete(struct libinput_event_pointer *event,
+					       enum libinput_pointer_axis axis)
+{
+	struct libinput *libinput = event->base.device->seat->libinput;
+	double value = 0;
+
+	if (!libinput_event_pointer_has_axis(event, axis)) {
+		log_bug_client(libinput, "value requested for unset axis\n");
+	} else {
+		switch (axis) {
+		case LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL:
+			value = event->x_discrete;
+			break;
+		case LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL:
+			value = event->y_discrete;
+			break;
+		}
+	}
+	return value;
+}
+
+LIBINPUT_EXPORT enum libinput_pointer_axis_source
+libinput_event_pointer_get_axis_source(struct libinput_event_pointer *event)
+{
+	return event->source;
 }
 
 LIBINPUT_EXPORT uint32_t
@@ -1196,8 +1251,10 @@ pointer_notify_button(struct libinput_device *device,
 void
 pointer_notify_axis(struct libinput_device *device,
 		    uint64_t time,
-		    enum libinput_pointer_axis axis,
-		    double value)
+		    uint32_t axes,
+		    enum libinput_pointer_axis_source source,
+		    double x, double y,
+		    double x_discrete, double y_discrete)
 {
 	struct libinput_event_pointer *axis_event;
 
@@ -1207,8 +1264,12 @@ pointer_notify_axis(struct libinput_device *device,
 
 	*axis_event = (struct libinput_event_pointer) {
 		.time = time,
-		.axis = axis,
-		.value = value,
+		.x = x,
+		.y = y,
+		.source = source,
+		.axes = axes,
+		.x_discrete = x_discrete,
+		.y_discrete = y_discrete,
 	};
 
 	post_device_event(device, time,
@@ -1497,6 +1558,13 @@ libinput_next_event_type(struct libinput *libinput)
 
 	event = libinput->events[libinput->events_out];
 	return event->type;
+}
+
+LIBINPUT_EXPORT void
+libinput_set_user_data(struct libinput *libinput,
+		       void *user_data)
+{
+	libinput->user_data = user_data;
 }
 
 LIBINPUT_EXPORT void *
@@ -1857,7 +1925,7 @@ libinput_device_config_scroll_get_default_natural_scroll_enabled(struct libinput
 }
 
 LIBINPUT_EXPORT int
-libinput_device_config_buttons_has_left_handed(struct libinput_device *device)
+libinput_device_config_left_handed_is_available(struct libinput_device *device)
 {
 	if (!device->config.left_handed)
 		return 0;
@@ -1866,28 +1934,28 @@ libinput_device_config_buttons_has_left_handed(struct libinput_device *device)
 }
 
 LIBINPUT_EXPORT enum libinput_config_status
-libinput_device_config_buttons_set_left_handed(struct libinput_device *device,
-					       int left_handed)
+libinput_device_config_left_handed_set(struct libinput_device *device,
+				       int left_handed)
 {
-	if (!libinput_device_config_buttons_has_left_handed(device))
+	if (!libinput_device_config_left_handed_is_available(device))
 		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
 
 	return device->config.left_handed->set(device, left_handed);
 }
 
 LIBINPUT_EXPORT int
-libinput_device_config_buttons_get_left_handed(struct libinput_device *device)
+libinput_device_config_left_handed_get(struct libinput_device *device)
 {
-	if (!libinput_device_config_buttons_has_left_handed(device))
+	if (!libinput_device_config_left_handed_is_available(device))
 		return 0;
 
 	return device->config.left_handed->get(device);
 }
 
 LIBINPUT_EXPORT int
-libinput_device_config_buttons_get_default_left_handed(struct libinput_device *device)
+libinput_device_config_left_handed_get_default(struct libinput_device *device)
 {
-	if (!libinput_device_config_buttons_has_left_handed(device))
+	if (!libinput_device_config_left_handed_is_available(device))
 		return 0;
 
 	return device->config.left_handed->get_default(device);

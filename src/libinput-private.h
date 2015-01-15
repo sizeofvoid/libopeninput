@@ -291,8 +291,12 @@ pointer_notify_button(struct libinput_device *device,
 void
 pointer_notify_axis(struct libinput_device *device,
 		    uint64_t time,
-		    enum libinput_pointer_axis axis,
-		    double value);
+		    uint32_t axes,
+		    enum libinput_pointer_axis_source source,
+		    double x,
+		    double y,
+		    double x_discrete,
+		    double y_discrete);
 
 void
 touch_notify_touch_down(struct libinput_device *device,

@@ -69,7 +69,7 @@ tp_edge_scroll_set_state(struct tp_dispatch *tp,
 {
 	libinput_timer_cancel(&t->scroll.timer);
 
-	t->scroll.state = state;
+	t->scroll.edge_state = state;
 
 	switch (state) {
 	case EDGE_SCROLL_TOUCH_STATE_NONE:
@@ -207,7 +207,7 @@ tp_edge_scroll_handle_event(struct tp_dispatch *tp,
 			    struct tp_touch *t,
 			    enum scroll_event event)
 {
-	switch (t->scroll.state) {
+	switch (t->scroll.edge_state) {
 	case EDGE_SCROLL_TOUCH_STATE_NONE:
 		tp_edge_scroll_handle_none(tp, t, event);
 		break;
@@ -325,7 +325,10 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 				if (t->scroll.direction != -1) {
 					/* Send stop scroll event */
 					pointer_notify_axis(device, time,
-						t->scroll.direction, 0.0);
+						AS_MASK(t->scroll.direction),
+						LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
+						0.0, 0.0,
+						0, 0);
 					t->scroll.direction = -1;
 				}
 				continue;
@@ -347,7 +350,11 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 		if (fabs(*delta) < t->scroll.threshold)
 			continue;
 
-		pointer_notify_axis(device, time, axis, *delta);
+		pointer_notify_axis(device, time,
+				    AS_MASK(axis),
+				    LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
+				    dx, dy,
+				    0, 0);
 		t->scroll.direction = axis;
 
 		tp_edge_scroll_handle_event(tp, t, SCROLL_EVENT_POSTED);
@@ -365,7 +372,10 @@ tp_edge_scroll_stop_events(struct tp_dispatch *tp, uint64_t time)
 	tp_for_each_touch(tp, t) {
 		if (t->scroll.direction != -1) {
 			pointer_notify_axis(device, time,
-					    t->scroll.direction, 0.0);
+					    AS_MASK(t->scroll.direction),
+					    LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
+					    0.0, 0.0,
+					    0.0, 0.0);
 			t->scroll.direction = -1;
 		}
 	}
@@ -374,5 +384,5 @@ tp_edge_scroll_stop_events(struct tp_dispatch *tp, uint64_t time)
 int
 tp_edge_scroll_touch_active(struct tp_dispatch *tp, struct tp_touch *t)
 {
-	return t->scroll.state == EDGE_SCROLL_TOUCH_STATE_AREA;
+	return t->scroll.edge_state == EDGE_SCROLL_TOUCH_STATE_AREA;
 }

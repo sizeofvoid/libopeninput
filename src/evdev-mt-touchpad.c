@@ -435,7 +435,39 @@ tp_post_twofinger_scroll(struct tp_dispatch *tp, uint64_t time)
 
 	tp_filter_motion(tp, &dx, &dy, NULL, NULL, time);
 
-	evdev_post_scroll(tp->device, time, dx, dy);
+	evdev_post_scroll(tp->device,
+			  time,
+			  LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
+			  dx, dy);
+	tp->scroll.twofinger_state = TWOFINGER_SCROLL_STATE_ACTIVE;
+}
+
+static void
+tp_twofinger_stop_scroll(struct tp_dispatch *tp, uint64_t time)
+{
+	struct tp_touch *t, *ptr = NULL;
+	int nfingers_down = 0;
+
+	evdev_stop_scroll(tp->device,
+			  time,
+			  LIBINPUT_POINTER_AXIS_SOURCE_FINGER);
+
+	/* If we were scrolling and now there's exactly 1 active finger,
+	   switch back to pointer movement */
+	if (tp->scroll.twofinger_state == TWOFINGER_SCROLL_STATE_ACTIVE) {
+		tp_for_each_touch(tp, t) {
+			if (tp_touch_active(tp, t)) {
+				nfingers_down++;
+				if (ptr == NULL)
+					ptr = t;
+			}
+		}
+
+		if (nfingers_down == 1)
+			tp_set_pointer(tp, ptr);
+	}
+
+	tp->scroll.twofinger_state = TWOFINGER_SCROLL_STATE_NONE;
 }
 
 static int
@@ -458,13 +490,14 @@ tp_twofinger_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 			nfingers_down++;
 	}
 
-	if (nfingers_down != 2) {
-		evdev_stop_scroll(tp->device, time);
-		return 0;
+	if (nfingers_down == 2) {
+		tp_post_twofinger_scroll(tp, time);
+		return 1;
 	}
 
-	tp_post_twofinger_scroll(tp, time);
-	return 1;
+	tp_twofinger_stop_scroll(tp, time);
+
+	return 0;
 }
 
 static void
@@ -504,7 +537,7 @@ tp_stop_scroll_events(struct tp_dispatch *tp, uint64_t time)
 	case LIBINPUT_CONFIG_SCROLL_NO_SCROLL:
 		break;
 	case LIBINPUT_CONFIG_SCROLL_2FG:
-		evdev_stop_scroll(tp->device, time);
+		tp_twofinger_stop_scroll(tp, time);
 		break;
 	case LIBINPUT_CONFIG_SCROLL_EDGE:
 		tp_edge_scroll_stop_events(tp, time);
@@ -818,7 +851,9 @@ tp_trackpoint_event(uint64_t time, struct libinput_event *event, void *data)
 		return;
 
 	if (!tp->sendevents.trackpoint_active) {
-		evdev_stop_scroll(tp->device, time);
+		evdev_stop_scroll(tp->device,
+				  time,
+				  LIBINPUT_POINTER_AXIS_SOURCE_FINGER);
 		tp_tap_suspend(tp, time);
 		tp->sendevents.trackpoint_active = true;
 	}
@@ -1275,7 +1310,7 @@ tp_change_to_left_handed(struct evdev_device *device)
 {
 	struct tp_dispatch *tp = (struct tp_dispatch *)device->dispatch;
 
-	if (device->buttons.want_left_handed == device->buttons.left_handed)
+	if (device->left_handed.want_enabled == device->left_handed.enabled)
 		return;
 
 	if (tp->buttons.state & 0x3) /* BTN_LEFT|BTN_RIGHT */
@@ -1284,7 +1319,7 @@ tp_change_to_left_handed(struct evdev_device *device)
 	/* tapping and clickfinger aren't affected by left-handed config,
 	 * so checking physical buttons is enough */
 
-	device->buttons.left_handed = device->buttons.want_left_handed;
+	device->left_handed.enabled = device->left_handed.want_enabled;
 }
 
 struct model_lookup_t {

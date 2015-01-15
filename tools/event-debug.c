@@ -23,7 +23,6 @@
 #define _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
-#include <getopt.h>
 #include <poll.h>
 #include <stdio.h>
 #include <signal.h>
@@ -33,85 +32,16 @@
 #include <libudev.h>
 #include "linux/input.h"
 #include <sys/ioctl.h>
-#include <sys/signalfd.h>
 
 #include <libinput.h>
 
-static enum {
-	MODE_UDEV,
-	MODE_DEVICE,
-} mode = MODE_UDEV;
-static const char *device;
-static const char *seat = "seat0";
-static struct udev *udev;
+#include "shared.h"
+
 uint32_t start_time;
 static const uint32_t screen_width = 100;
 static const uint32_t screen_height = 100;
-static int verbose = 0;
-
-static void
-usage(void)
-{
-	printf("Usage: %s [--verbose] [--udev [<seat>]|--device /dev/input/event0]\n"
-	       "--verbose ....... Print debugging output.\n"
-	       "--udev <seat>.... Use udev device discovery (default).\n"
-	       "		  Specifying a seat ID is optional.\n"
-	       "--device /path/to/device .... open the given device only\n",
-		program_invocation_short_name);
-}
-
-static int
-parse_args(int argc, char **argv)
-{
-	while (1) {
-		int c;
-		int option_index = 0;
-		static struct option opts[] = {
-			{ "device", 1, 0, 'd' },
-			{ "udev", 0, 0, 'u' },
-			{ "help", 0, 0, 'h' },
-			{ "verbose", 0, 0, 'v'},
-			{ 0, 0, 0, 0}
-		};
-
-		c = getopt_long(argc, argv, "h", opts, &option_index);
-		if (c == -1)
-			break;
-
-		switch(c) {
-			case 'h': /* --help */
-				usage();
-				exit(0);
-			case 'd': /* --device */
-				mode = MODE_DEVICE;
-				if (!optarg) {
-					usage();
-					return 1;
-				}
-				device = optarg;
-				break;
-			case 'u': /* --udev */
-				mode = MODE_UDEV;
-				if (optarg)
-					seat = optarg;
-				break;
-			case 'v': /* --verbose */
-				verbose = 1;
-				break;
-			default:
-				usage();
-				return 1;
-		}
-
-	}
-
-	if (optind < argc) {
-		usage();
-		return 1;
-	}
-
-	return 0;
-}
+struct tools_options options;
+static unsigned int stop = 0;
 
 static int
 open_restricted(const char *path, int flags, void *user_data)
@@ -130,70 +60,6 @@ static const struct libinput_interface interface = {
 	.open_restricted = open_restricted,
 	.close_restricted = close_restricted,
 };
-
-static void
-log_handler(struct libinput *li,
-	    enum libinput_log_priority priority,
-	    const char *format,
-	    va_list args)
-{
-	vprintf(format, args);
-}
-
-static int
-open_udev(struct libinput **li)
-{
-	udev = udev_new();
-	if (!udev) {
-		fprintf(stderr, "Failed to initialize udev\n");
-		return 1;
-	}
-
-	*li = libinput_udev_create_context(&interface, NULL, udev);
-	if (!*li) {
-		fprintf(stderr, "Failed to initialize context from udev\n");
-		return 1;
-	}
-
-	if (verbose) {
-		libinput_log_set_handler(*li, log_handler);
-		libinput_log_set_priority(*li, LIBINPUT_LOG_PRIORITY_DEBUG);
-	}
-
-	if (libinput_udev_assign_seat(*li, seat)) {
-		fprintf(stderr, "Failed to set seat\n");
-		libinput_unref(*li);
-		return 1;
-	}
-
-	return 0;
-}
-
-static int
-open_device(struct libinput **li, const char *path)
-{
-	struct libinput_device *device;
-
-	*li = libinput_path_create_context(&interface, NULL);
-	if (!*li) {
-		fprintf(stderr, "Failed to initialize context from %s\n", path);
-		return 1;
-	}
-
-	if (verbose) {
-		libinput_log_set_handler(*li, log_handler);
-		libinput_log_set_priority(*li, LIBINPUT_LOG_PRIORITY_DEBUG);
-	}
-
-	device = libinput_path_add_device(*li, path);
-	if (!device) {
-		fprintf(stderr, "Failed to initialized device %s\n", path);
-		libinput_unref(*li);
-		return 1;
-	}
-
-	return 0;
-}
 
 static void
 print_event_header(struct libinput_event *ev)
@@ -271,17 +137,28 @@ print_device_notify(struct libinput_event *ev)
 	double w, h;
 	uint32_t scroll_methods;
 
-	printf("%-30s	%s	%s",
+	printf("%-33s %5s %7s",
 	       libinput_device_get_name(dev),
 	       libinput_seat_get_physical_name(seat),
 	       libinput_seat_get_logical_name(seat));
+
+	printf(" cap:");
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_KEYBOARD))
+		printf("k");
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_POINTER))
+		printf("p");
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_TOUCH))
+		printf("t");
 
 	if (libinput_device_get_size(dev, &w, &h) == 0)
 		printf("\tsize %.2f/%.2fmm", w, h);
 
 	if (libinput_device_config_tap_get_finger_count((dev)))
 	    printf(" tap");
-	if (libinput_device_config_buttons_has_left_handed((dev)))
+	if (libinput_device_config_left_handed_is_available((dev)))
 	    printf(" left");
 	if (libinput_device_config_scroll_has_natural_scroll((dev)))
 	    printf(" scroll-nat");
@@ -375,24 +252,18 @@ static void
 print_pointer_axis_event(struct libinput_event *ev)
 {
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
-	enum libinput_pointer_axis axis = libinput_event_pointer_get_axis(p);
-	const char *ax;
-	double val;
+	double v = 0, h = 0;
 
-	switch (axis) {
-	case LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL:
-		ax = "vscroll";
-		break;
-	case LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL:
-		ax = "hscroll";
-		break;
-	default:
-		abort();
-	}
-
+	if (libinput_event_pointer_has_axis(p,
+				    LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL))
+		v = libinput_event_pointer_get_axis_value(p,
+			      LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+	if (libinput_event_pointer_has_axis(p,
+				    LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL))
+		h = libinput_event_pointer_get_axis_value(p,
+			      LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
 	print_event_time(libinput_event_pointer_get_time(p));
-	val = libinput_event_pointer_get_axis_value(p);
-	printf("%s %.2f\n", ax, val);
+	printf("vert %.2f horiz %.2f\n", v, h);
 }
 
 static const char*
@@ -532,6 +403,8 @@ handle_and_print_events(struct libinput *li)
 		case LIBINPUT_EVENT_DEVICE_ADDED:
 		case LIBINPUT_EVENT_DEVICE_REMOVED:
 			print_device_notify(ev);
+			tools_device_apply_config(libinput_event_get_device(ev),
+						  &options);
 			break;
 		case LIBINPUT_EVENT_KEYBOARD_KEY:
 			print_key_event(ev);
@@ -585,26 +458,29 @@ handle_and_print_events(struct libinput *li)
 }
 
 static void
+sighandler(int signal, siginfo_t *siginfo, void *userdata)
+{
+	stop = 1;
+}
+
+static void
 mainloop(struct libinput *li)
 {
-	struct pollfd fds[2];
-	sigset_t mask;
+	struct pollfd fds;
+	struct sigaction act;
 
-	fds[0].fd = libinput_get_fd(li);
-	fds[0].events = POLLIN;
-	fds[0].revents = 0;
+	fds.fd = libinput_get_fd(li);
+	fds.events = POLLIN;
+	fds.revents = 0;
 
-	sigemptyset(&mask);
-	sigaddset(&mask, SIGINT);
+	memset(&act, 0, sizeof(act));
+	act.sa_sigaction = sighandler;
+	act.sa_flags = SA_SIGINFO;
 
-	fds[1].fd = signalfd(-1, &mask, SFD_NONBLOCK);
-	fds[1].events = POLLIN;
-	fds[1].revents = 0;
-
-	if (fds[1].fd == -1 ||
-	    sigprocmask(SIG_BLOCK, &mask, NULL) == -1) {
+	if (sigaction(SIGINT, &act, NULL) == -1) {
 		fprintf(stderr, "Failed to set up signal handling (%s)\n",
 				strerror(errno));
+		return;
 	}
 
 	/* Handle already-pending device added events */
@@ -612,14 +488,8 @@ mainloop(struct libinput *li)
 		fprintf(stderr, "Expected device added events on startup but got none. "
 				"Maybe you don't have the right permissions?\n");
 
-	while (poll(fds, 2, -1) > -1) {
-		if (fds[1].revents)
-			break;
-
+	while (!stop && poll(&fds, 1, -1) > -1)
 		handle_and_print_events(li);
-	}
-
-	close(fds[1].fd);
 }
 
 int
@@ -628,17 +498,14 @@ main(int argc, char **argv)
 	struct libinput *li;
 	struct timespec tp;
 
-	if (parse_args(argc, argv))
+	tools_init_options(&options);
+
+	if (tools_parse_args(argc, argv, &options))
 		return 1;
 
-	if (mode == MODE_UDEV) {
-		if (open_udev(&li))
-			return 1;
-	} else if (mode == MODE_DEVICE) {
-		if (open_device(&li, device))
-			return 1;
-	} else
-		abort();
+	li = tools_open_backend(&options, NULL, &interface);
+	if (!li)
+		return 1;
 
 	clock_gettime(CLOCK_MONOTONIC, &tp);
 	start_time = tp.tv_sec * 1000 + tp.tv_nsec / 1000000;
@@ -646,8 +513,6 @@ main(int argc, char **argv)
 	mainloop(li);
 
 	libinput_unref(li);
-	if (udev)
-		udev_unref(udev);
 
 	return 0;
 }

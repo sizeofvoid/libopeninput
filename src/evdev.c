@@ -40,7 +40,7 @@
 #include "filter.h"
 #include "libinput-private.h"
 
-#define DEFAULT_AXIS_STEP_DISTANCE 10
+#define DEFAULT_WHEEL_CLICK_ANGLE 15
 #define DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT 200
 
 enum evdev_key_type {
@@ -119,8 +119,8 @@ evdev_pointer_notify_button(struct evdev_device *device,
 		pointer_notify_button(&device->base, time, button, state);
 
 		if (state == LIBINPUT_BUTTON_STATE_RELEASED &&
-		    device->buttons.change_to_left_handed)
-			device->buttons.change_to_left_handed(device);
+		    device->left_handed.change_to_enabled)
+			device->left_handed.change_to_enabled(device);
 
 		if (state == LIBINPUT_BUTTON_STATE_RELEASED &&
 		    device->scroll.change_scroll_method)
@@ -222,6 +222,7 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 		    hw_is_key_down(device, device->scroll.button)) {
 			if (device->scroll.button_scroll_active)
 				evdev_post_scroll(device, time,
+						  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
 						  dx_unaccel, dy_unaccel);
 			break;
 		}
@@ -394,7 +395,8 @@ evdev_button_scroll_button(struct evdev_device *device,
 	} else {
 		libinput_timer_cancel(&device->scroll.timer);
 		if (device->scroll.button_scroll_active) {
-			evdev_stop_scroll(device, time);
+			evdev_stop_scroll(device, time,
+					  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
 			device->scroll.button_scroll_active = false;
 		} else {
 			/* If the button is released quickly enough emit the
@@ -537,16 +539,24 @@ evdev_process_absolute_motion(struct evdev_device *device,
 static void
 evdev_notify_axis(struct evdev_device *device,
 		  uint64_t time,
-		  enum libinput_pointer_axis axis,
-		  double value)
+		  uint32_t axes,
+		  enum libinput_pointer_axis_source source,
+		  double x, double y,
+		  double x_discrete, double y_discrete)
 {
-	if (device->scroll.natural_scrolling_enabled)
-		value *= -1;
+	if (device->scroll.natural_scrolling_enabled) {
+		x *= -1;
+		y *= -1;
+		x_discrete *= -1;
+		y_discrete *= -1;
+	}
 
 	pointer_notify_axis(&device->base,
 			    time,
-			    axis,
-			    value);
+			    axes,
+			    source,
+			    x, y,
+			    x_discrete, y_discrete);
 }
 
 static inline void
@@ -571,16 +581,24 @@ evdev_process_relative(struct evdev_device *device,
 		evdev_notify_axis(
 			device,
 			time,
-			LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
-			-1 * e->value * DEFAULT_AXIS_STEP_DISTANCE);
+			AS_MASK(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
+			LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
+			0.0,
+			-1 * e->value * device->scroll.wheel_click_angle,
+			0.0,
+			-1 * e->value);
 		break;
 	case REL_HWHEEL:
 		evdev_flush_pending_event(device, time);
 		evdev_notify_axis(
 			device,
 			time,
-			LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL,
-			e->value * DEFAULT_AXIS_STEP_DISTANCE);
+			AS_MASK(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
+			LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
+			e->value * device->scroll.wheel_click_angle,
+			0.0,
+			e->value,
+			0.0);
 		break;
 	}
 }
@@ -804,13 +822,13 @@ evdev_left_handed_has(struct libinput_device *device)
 static void
 evdev_change_to_left_handed(struct evdev_device *device)
 {
-	if (device->buttons.want_left_handed == device->buttons.left_handed)
+	if (device->left_handed.want_enabled == device->left_handed.enabled)
 		return;
 
 	if (evdev_any_button_down(device))
 		return;
 
-	device->buttons.left_handed = device->buttons.want_left_handed;
+	device->left_handed.enabled = device->left_handed.want_enabled;
 }
 
 static enum libinput_config_status
@@ -818,9 +836,9 @@ evdev_left_handed_set(struct libinput_device *device, int left_handed)
 {
 	struct evdev_device *evdev_device = (struct evdev_device *)device;
 
-	evdev_device->buttons.want_left_handed = left_handed ? true : false;
+	evdev_device->left_handed.want_enabled = left_handed ? true : false;
 
-	evdev_device->buttons.change_to_left_handed(evdev_device);
+	evdev_device->left_handed.change_to_enabled(evdev_device);
 
 	return LIBINPUT_CONFIG_STATUS_SUCCESS;
 }
@@ -832,7 +850,7 @@ evdev_left_handed_get(struct libinput_device *device)
 
 	/* return the wanted configuration, even if it hasn't taken
 	 * effect yet! */
-	return evdev_device->buttons.want_left_handed;
+	return evdev_device->left_handed.want_enabled;
 }
 
 static int
@@ -845,14 +863,14 @@ int
 evdev_init_left_handed(struct evdev_device *device,
 		       void (*change_to_left_handed)(struct evdev_device *))
 {
-	device->buttons.config_left_handed.has = evdev_left_handed_has;
-	device->buttons.config_left_handed.set = evdev_left_handed_set;
-	device->buttons.config_left_handed.get = evdev_left_handed_get;
-	device->buttons.config_left_handed.get_default = evdev_left_handed_get_default;
-	device->base.config.left_handed = &device->buttons.config_left_handed;
-	device->buttons.left_handed = false;
-	device->buttons.want_left_handed = false;
-	device->buttons.change_to_left_handed = change_to_left_handed;
+	device->left_handed.config.has = evdev_left_handed_has;
+	device->left_handed.config.set = evdev_left_handed_set;
+	device->left_handed.config.get = evdev_left_handed_get;
+	device->left_handed.config.get_default = evdev_left_handed_get_default;
+	device->base.config.left_handed = &device->left_handed.config;
+	device->left_handed.enabled = false;
+	device->left_handed.want_enabled = false;
+	device->left_handed.change_to_enabled = change_to_left_handed;
 
 	return 0;
 }
@@ -1046,7 +1064,7 @@ fallback_dispatch_create(struct libinput_device *device)
 
 	dispatch->interface = &fallback_interface;
 
-	if (evdev_device->buttons.want_left_handed &&
+	if (evdev_device->left_handed.want_enabled &&
 	    evdev_init_left_handed(evdev_device,
 				   evdev_change_to_left_handed) == -1) {
 		free(dispatch);
@@ -1233,6 +1251,29 @@ evdev_tag_device(struct evdev_device *device)
 							device->udev_device);
 }
 
+static inline int
+evdev_read_wheel_click_prop(struct evdev_device *device)
+{
+	struct libinput *libinput = device->base.seat->libinput;
+	const char *prop;
+	int angle = DEFAULT_WHEEL_CLICK_ANGLE;
+
+	prop = udev_device_get_property_value(device->udev_device,
+					      "MOUSE_WHEEL_CLICK_ANGLE");
+	if (prop) {
+		angle = parse_mouse_wheel_click_angle_property(prop);
+		if (!angle) {
+			log_error(libinput,
+				  "Mouse wheel click angle '%s' is present but invalid,"
+				  "using %d degrees instead\n",
+				  device->devname,
+				  DEFAULT_WHEEL_CLICK_ANGLE);
+			angle = DEFAULT_WHEEL_CLICK_ANGLE;
+		}
+	}
+
+	return angle;
+}
 static inline int
 evdev_read_dpi_prop(struct evdev_device *device)
 {
@@ -1444,7 +1485,7 @@ evdev_configure_device(struct evdev_device *device)
 			 has_button ? " button" : "");
 
 		/* want left-handed config option */
-		device->buttons.want_left_handed = true;
+		device->left_handed.want_enabled = true;
 		/* want natural-scroll config option */
 		device->scroll.natural_scrolling_enabled = true;
 	}
@@ -1570,6 +1611,8 @@ evdev_device_create(struct libinput_seat *seat,
 	device->devname = libevdev_get_name(device->evdev);
 	device->scroll.threshold = 5.0; /* Default may be overridden */
 	device->scroll.direction = 0;
+	device->scroll.wheel_click_angle =
+		evdev_read_wheel_click_prop(device);
 	device->dpi = evdev_read_dpi_prop(device);
 	/* at most 5 SYN_DROPPED log-messages per 30s */
 	ratelimit_init(&device->syn_drop_limit, 30ULL * 1000, 5);
@@ -1775,7 +1818,7 @@ evdev_is_scrolling(const struct evdev_device *device,
 	assert(axis == LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL ||
 	       axis == LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
 
-	return (device->scroll.direction & (1 << axis)) != 0;
+	return (device->scroll.direction & AS_MASK(axis)) != 0;
 }
 
 static inline void
@@ -1785,12 +1828,13 @@ evdev_start_scrolling(struct evdev_device *device,
 	assert(axis == LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL ||
 	       axis == LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
 
-	device->scroll.direction |= (1 << axis);
+	device->scroll.direction |= AS_MASK(axis);
 }
 
 void
 evdev_post_scroll(struct evdev_device *device,
 		  uint64_t time,
+		  enum libinput_pointer_axis_source source,
 		  double dx,
 		  double dy)
 {
@@ -1835,39 +1879,35 @@ evdev_post_scroll(struct evdev_device *device,
 	/* We use the trigger to enable, but the delta from this event for
 	 * the actual scroll movement. Otherwise we get a jump once
 	 * scrolling engages */
-	if (dy != 0.0 &&
-	    evdev_is_scrolling(device,
-			       LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
-		evdev_notify_axis(device,
-				  time,
-				  LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
-				  dy);
-	}
+	if (!evdev_is_scrolling(device,
+			       LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL))
+		dy = 0.0;
+	if (!evdev_is_scrolling(device,
+			       LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL))
+		dx = 0.0;
 
-	if (dx != 0.0 &&
-	    evdev_is_scrolling(device,
-			       LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
+	if (dx != 0.0 || dy != 0.0)
 		evdev_notify_axis(device,
 				  time,
-				  LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL,
-				  dx);
-	}
+				  device->scroll.direction,
+				  source,
+				  dx, dy,
+				  0.0, 0.0);
 }
 
 void
-evdev_stop_scroll(struct evdev_device *device, uint64_t time)
+evdev_stop_scroll(struct evdev_device *device,
+		  uint64_t time,
+		  enum libinput_pointer_axis_source source)
 {
 	/* terminate scrolling with a zero scroll event */
-	if (device->scroll.direction & (1 << LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL))
+	if (device->scroll.direction != 0)
 		pointer_notify_axis(&device->base,
 				    time,
-				    LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
-				    0);
-	if (device->scroll.direction & (1 << LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL))
-		pointer_notify_axis(&device->base,
-				    time,
-				    LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL,
-				    0);
+				    device->scroll.direction,
+				    source,
+				    0.0, 0.0,
+				    0.0, 0.0);
 
 	device->scroll.buildup_horizontal = 0;
 	device->scroll.buildup_vertical = 0;

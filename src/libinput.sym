@@ -7,10 +7,10 @@ global:
 	libinput_device_config_accel_get_speed;
 	libinput_device_config_accel_is_available;
 	libinput_device_config_accel_set_speed;
-	libinput_device_config_buttons_get_default_left_handed;
-	libinput_device_config_buttons_get_left_handed;
-	libinput_device_config_buttons_has_left_handed;
-	libinput_device_config_buttons_set_left_handed;
+	libinput_device_config_left_handed_get_default;
+	libinput_device_config_left_handed_get;
+	libinput_device_config_left_handed_is_available;
+	libinput_device_config_left_handed_set;
 	libinput_device_config_calibration_get_default_matrix;
 	libinput_device_config_calibration_get_matrix;
 	libinput_device_config_calibration_has_matrix;
@@ -71,7 +71,9 @@ global:
 	libinput_event_pointer_get_absolute_y;
 	libinput_event_pointer_get_absolute_y_transformed;
 	libinput_event_pointer_get_axis;
+	libinput_event_pointer_get_axis_source;
 	libinput_event_pointer_get_axis_value;
+	libinput_event_pointer_get_axis_value_discrete;
 	libinput_event_pointer_get_base_event;
 	libinput_event_pointer_get_button_state;
 	libinput_event_pointer_get_button;
@@ -81,6 +83,7 @@ global:
 	libinput_event_pointer_get_dy_unaccelerated;
 	libinput_event_pointer_get_seat_button_count;
 	libinput_event_pointer_get_time;
+	libinput_event_pointer_has_axis;
 	libinput_event_touch_get_base_event;
 	libinput_event_touch_get_seat_slot;
 	libinput_event_touch_get_slot;
@@ -108,6 +111,7 @@ global:
 	libinput_seat_ref;
 	libinput_seat_set_user_data;
 	libinput_seat_unref;
+	libinput_set_user_data;
 	libinput_suspend;
 	libinput_udev_assign_seat;
 	libinput_udev_create_context;

@@ -348,14 +348,18 @@ test_wheel_event(struct litest_device *dev, int which, int amount)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	struct libinput_event_pointer *ptrev;
+	enum libinput_pointer_axis axis;
 
 	/* the current evdev implementation scales the scroll wheel events
-	   up by a factor 10 */
-	const int scroll_step = 10;
+	   up by a factor 15 */
+	const int scroll_step = 15;
 	int expected = amount * scroll_step;
+	int discrete = amount;
 
-	if (libinput_device_config_scroll_get_natural_scroll_enabled(dev->libinput_device))
+	if (libinput_device_config_scroll_get_natural_scroll_enabled(dev->libinput_device)) {
 		expected *= -1;
+		discrete *= -1;
+	}
 
 	/* mouse scroll wheels are 'upside down' */
 	if (which == REL_WHEEL)
@@ -372,11 +376,17 @@ test_wheel_event(struct litest_device *dev, int which, int amount)
 
 	ptrev = libinput_event_get_pointer_event(event);
 	ck_assert(ptrev != NULL);
-	ck_assert_int_eq(libinput_event_pointer_get_axis(ptrev),
-			 which == REL_WHEEL ?
+
+	axis = (which == REL_WHEEL) ?
 				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL :
-				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
-	ck_assert_int_eq(libinput_event_pointer_get_axis_value(ptrev), expected);
+				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL;
+
+	ck_assert_int_eq(libinput_event_pointer_get_axis_value(ptrev, axis),
+			 expected);
+	ck_assert_int_eq(libinput_event_pointer_get_axis_source(ptrev),
+			 LIBINPUT_POINTER_AXIS_SOURCE_WHEEL);
+	ck_assert_int_eq(libinput_event_pointer_get_axis_value_discrete(ptrev, axis),
+			 discrete);
 	libinput_event_destroy(event);
 }
 
@@ -567,13 +577,13 @@ START_TEST(pointer_left_handed_defaults)
 	struct libinput_device *d = dev->libinput_device;
 	int rc;
 
-	rc = libinput_device_config_buttons_has_left_handed(d);
+	rc = libinput_device_config_left_handed_is_available(d);
 	ck_assert_int_ne(rc, 0);
 
-	rc = libinput_device_config_buttons_get_left_handed(d);
+	rc = libinput_device_config_left_handed_get(d);
 	ck_assert_int_eq(rc, 0);
 
-	rc = libinput_device_config_buttons_get_default_left_handed(d);
+	rc = libinput_device_config_left_handed_get_default(d);
 	ck_assert_int_eq(rc, 0);
 }
 END_TEST
@@ -585,7 +595,7 @@ START_TEST(pointer_left_handed)
 	struct libinput *li = dev->libinput;
 	enum libinput_config_status status;
 
-	status = libinput_device_config_buttons_set_left_handed(d, 1);
+	status = libinput_device_config_left_handed_set(d, 1);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
@@ -635,7 +645,7 @@ START_TEST(pointer_left_handed_during_click)
 	libinput_dispatch(li);
 
 	/* Change while button is down, expect correct release event */
-	status = libinput_device_config_buttons_set_left_handed(d, 1);
+	status = libinput_device_config_left_handed_set(d, 1);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_button_click(dev, BTN_LEFT, 0);
@@ -660,7 +670,7 @@ START_TEST(pointer_left_handed_during_click_multiple_buttons)
 	litest_button_click(dev, BTN_LEFT, 1);
 	libinput_dispatch(li);
 
-	status = libinput_device_config_buttons_set_left_handed(d, 1);
+	status = libinput_device_config_left_handed_set(d, 1);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	/* No left-handed until all buttons were down */
