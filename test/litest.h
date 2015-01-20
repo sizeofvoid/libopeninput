@@ -49,10 +49,11 @@ enum litest_device_type {
 	LITEST_QEMU_TABLET = -13,
 	LITEST_XEN_VIRTUAL_POINTER = -14,
 	LITEST_VMWARE_VIRTMOUSE = -15,
-	LITEST_WACOM_BAMBOO = -16,
-	LITEST_WACOM_CINTIQ = -17,
-	LITEST_WACOM_INTUOS = -18,
-	LITEST_WACOM_ISDV4 = -19,
+	LITEST_SYNAPTICS_HOVER_SEMI_MT = -16,
+	LITEST_WACOM_BAMBOO = -17,
+	LITEST_WACOM_CINTIQ = -18,
+	LITEST_WACOM_INTUOS = -19,
+	LITEST_WACOM_ISDV4 = -20,
 };
 
 enum litest_device_feature {
@@ -214,6 +215,33 @@ void litest_timeout_buttonscroll(void);
 
 void litest_push_event_frame(struct litest_device *dev);
 void litest_pop_event_frame(struct litest_device *dev);
+
+/* this is a semi-mt device, so we keep track of the touches that the tests
+ * send and modify them so that the first touch is always slot 0 and sends
+ * the top-left of the bounding box, the second is always slot 1 and sends
+ * the bottom-right of the bounding box.
+ * Lifting any of two fingers terminates slot 1
+ */
+struct litest_semi_mt {
+	int tracking_id;
+	/* The actual touches requested by the test for the two slots
+	 * in the 0..100 range used by litest */
+	struct {
+		double x, y;
+	} touches[2];
+};
+
+void litest_semi_mt_touch_down(struct litest_device *d,
+			       struct litest_semi_mt *semi_mt,
+			       unsigned int slot,
+			       double x, double y);
+void litest_semi_mt_touch_move(struct litest_device *d,
+			       struct litest_semi_mt *semi_mt,
+			       unsigned int slot,
+			       double x, double y);
+void litest_semi_mt_touch_up(struct litest_device *d,
+			     struct litest_semi_mt *semi_mt,
+			     unsigned int slot);
 
 #ifndef ck_assert_notnull
 #define ck_assert_notnull(ptr) ck_assert_ptr_ne(ptr, NULL)

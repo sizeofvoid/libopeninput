@@ -53,6 +53,7 @@ enum touchpad_model {
 
 enum touch_state {
 	TOUCH_NONE = 0,
+	TOUCH_HOVERING,
 	TOUCH_BEGIN,
 	TOUCH_UPDATE,
 	TOUCH_END
@@ -130,6 +131,7 @@ struct tp_motion {
 struct tp_touch {
 	struct tp_dispatch *tp;
 	enum touch_state state;
+	bool has_ended;				/* TRACKING_ID == -1 */
 	bool dirty;
 	bool is_pointer;			/* the pointer-controlling touch */
 	int32_t x;
@@ -197,7 +199,12 @@ struct tp_dispatch {
 	unsigned int real_touches;		/* number of slots */
 	unsigned int ntouches;			/* no slots inc. fakes */
 	struct tp_touch *touches;		/* len == ntouches */
-	unsigned int fake_touches;		/* fake touch mask */
+	/* bit 0: BTN_TOUCH
+	 * bit 1: BTN_TOOL_FINGER
+	 * bit 2: BTN_TOOL_DOUBLETAP
+	 * ...
+	 */
+	unsigned int fake_touches;
 
 	struct {
 		int32_t margin_x;
@@ -236,7 +243,10 @@ struct tp_dispatch {
 		} top_area;
 
 		struct evdev_device *trackpoint;
-	} buttons;				/* physical buttons */
+
+		enum libinput_config_click_method click_method;
+		struct libinput_device_config_click_method config_method;
+	} buttons;
 
 	struct {
 		struct libinput_device_config_scroll_method config_method;
@@ -299,9 +309,9 @@ int
 tp_init_buttons(struct tp_dispatch *tp, struct evdev_device *device);
 
 void
-tp_init_softbuttons(struct tp_dispatch *tp,
-		    struct evdev_device *device,
-		    double topbutton_size_mult);
+tp_init_top_softbuttons(struct tp_dispatch *tp,
+			struct evdev_device *device,
+			double topbutton_size_mult);
 
 void
 tp_remove_buttons(struct tp_dispatch *tp);
