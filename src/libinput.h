@@ -427,7 +427,7 @@ libinput_event_get_touch_event(struct libinput_event *event);
  *
  * The inverse of this function is libinput_event_tablet_get_base_event().
  *
- * @return A touch event, or NULL for other events
+ * @return A tablet event, or NULL for other events
  */
 struct libinput_event_tablet *
 libinput_event_get_tablet_event(struct libinput_event *event);
