@@ -1448,6 +1448,7 @@ evdev_configure_device(struct evdev_device *device)
 			log_info(libinput,
 				 "input device '%s', %s is a tablet\n",
 				 device->devname, devnode);
+			return device->dispatch == NULL ? -1 : 0;
 		}
 
 		for (i = 0; i < KEY_MAX; i++) {
