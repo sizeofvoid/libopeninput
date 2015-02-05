@@ -95,6 +95,7 @@ extern struct litest_test_device litest_qemu_tablet_device;
 extern struct litest_test_device litest_xen_virtual_pointer_device;
 extern struct litest_test_device litest_vmware_virtmouse_device;
 extern struct litest_test_device litest_synaptics_hover_device;
+extern struct litest_test_device litest_synaptics_carbon3rd_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -115,6 +116,7 @@ struct litest_test_device* devices[] = {
 	&litest_xen_virtual_pointer_device,
 	&litest_vmware_virtmouse_device,
 	&litest_synaptics_hover_device,
+	&litest_synaptics_carbon3rd_device,
 	NULL,
 };
 
@@ -1157,6 +1159,7 @@ litest_create_uinput_device_from_description(const char *name,
 		libevdev_set_id_bustype(dev, id->bustype);
 		libevdev_set_id_vendor(dev, id->vendor);
 		libevdev_set_id_product(dev, id->product);
+		libevdev_set_id_version(dev, id->version);
 	}
 
 	abs = abs_info;

@@ -350,6 +350,41 @@ tp_process_fake_touch(struct tp_dispatch *tp,
 }
 
 static void
+tp_process_trackpoint_button(struct tp_dispatch *tp,
+			     const struct input_event *e,
+			     uint64_t time)
+{
+	struct evdev_dispatch *dispatch;
+	struct input_event event;
+
+	if (!tp->buttons.trackpoint ||
+	    (tp->device->tags & EVDEV_TAG_TOUCHPAD_TRACKPOINT) == 0)
+		return;
+
+	dispatch = tp->buttons.trackpoint->dispatch;
+
+	event = *e;
+
+	switch (event.code) {
+	case BTN_0:
+		event.code = BTN_LEFT;
+		break;
+	case BTN_1:
+		event.code = BTN_RIGHT;
+		break;
+	case BTN_2:
+		event.code = BTN_MIDDLE;
+		break;
+	default:
+		return;
+	}
+
+	dispatch->interface->process(dispatch,
+				     tp->buttons.trackpoint,
+				     &event, time);
+}
+
+static void
 tp_process_key(struct tp_dispatch *tp,
 	       const struct input_event *e,
 	       uint64_t time)
@@ -366,6 +401,11 @@ tp_process_key(struct tp_dispatch *tp,
 		case BTN_TOOL_TRIPLETAP:
 		case BTN_TOOL_QUADTAP:
 			tp_process_fake_touch(tp, e, time);
+			break;
+		case BTN_0:
+		case BTN_1:
+		case BTN_2:
+			tp_process_trackpoint_button(tp, e, time);
 			break;
 	}
 }
@@ -1063,6 +1103,16 @@ tp_tag_device(struct evdev_device *device,
 			 device->tags |= EVDEV_TAG_INTERNAL_TOUCHPAD;
 	} else if (bustype != BUS_BLUETOOTH)
 		device->tags |= EVDEV_TAG_INTERNAL_TOUCHPAD;
+
+	if (udev_device_get_property_value(udev_device,
+					   "TOUCHPAD_HAS_TRACKPOINT_BUTTONS"))
+		device->tags |= EVDEV_TAG_TOUCHPAD_TRACKPOINT;
+
+	/* Magic version tag: used by the litest device. Should never be set
+	 * in real life but allows us to test for these features without
+	 * requiring custom udev rules during make check */
+	if (libevdev_get_id_version(device->evdev) == 0xfffa)
+		device->tags |= EVDEV_TAG_TOUCHPAD_TRACKPOINT;
 }
 
 static struct evdev_dispatch_interface tp_interface = {
