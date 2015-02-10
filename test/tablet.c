@@ -155,7 +155,7 @@ START_TEST(motion)
 	struct libinput_event_tablet *tablet_event;
 	struct libinput_event *event;
 	int test_x, test_y;
-	double last_reported_x, last_reported_y;
+	double last_reported_x = 0, last_reported_y = 0;
 	enum libinput_event_type type;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
