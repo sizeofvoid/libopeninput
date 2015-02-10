@@ -49,6 +49,37 @@ enum evdev_key_type {
 	EVDEV_KEY_TYPE_BUTTON,
 };
 
+enum evdev_device_udev_tags {
+        EVDEV_UDEV_TAG_INPUT = (1 << 0),
+        EVDEV_UDEV_TAG_KEYBOARD = (1 << 1),
+        EVDEV_UDEV_TAG_MOUSE = (1 << 2),
+        EVDEV_UDEV_TAG_TOUCHPAD = (1 << 3),
+        EVDEV_UDEV_TAG_TOUCHSCREEN = (1 << 4),
+        EVDEV_UDEV_TAG_TABLET = (1 << 5),
+        EVDEV_UDEV_TAG_JOYSTICK = (1 << 6),
+        EVDEV_UDEV_TAG_ACCELEROMETER = (1 << 7),
+};
+
+struct evdev_udev_tag_match {
+	const char *name;
+	enum evdev_device_udev_tags tag;
+};
+
+static const struct evdev_udev_tag_match evdev_udev_tag_matches[] = {
+	{"ID_INPUT",			EVDEV_UDEV_TAG_INPUT},
+	{"ID_INPUT_KEYBOARD",		EVDEV_UDEV_TAG_KEYBOARD},
+	{"ID_INPUT_KEY",		EVDEV_UDEV_TAG_KEYBOARD},
+	{"ID_INPUT_MOUSE",		EVDEV_UDEV_TAG_MOUSE},
+	{"ID_INPUT_TOUCHPAD",		EVDEV_UDEV_TAG_TOUCHPAD},
+	{"ID_INPUT_TOUCHSCREEN",	EVDEV_UDEV_TAG_TOUCHSCREEN},
+	{"ID_INPUT_TABLET",		EVDEV_UDEV_TAG_TABLET},
+	{"ID_INPUT_JOYSTICK",		EVDEV_UDEV_TAG_JOYSTICK},
+	{"ID_INPUT_ACCELEROMETER",	EVDEV_UDEV_TAG_ACCELEROMETER},
+
+	/* sentinel value */
+	{ 0 },
+};
+
 static void
 hw_set_key_down(struct evdev_device *device, int code, int pressed)
 {
@@ -1229,9 +1260,11 @@ evdev_device_init_pointer_acceleration(struct evdev_device *device)
 	device->pointer.config.get_default_speed = evdev_accel_config_get_default_speed;
 	device->base.config.accel = &device->pointer.config;
 
+	evdev_accel_config_set_speed(&device->base,
+		     evdev_accel_config_get_default_speed(&device->base));
+
 	return 0;
 }
-
 
 static inline int
 evdev_need_mtdev(struct evdev_device *device)
@@ -1317,38 +1350,62 @@ evdev_fix_abs_resolution(struct libevdev *evdev,
 	}
 }
 
+static enum evdev_device_udev_tags
+evdev_device_get_udev_tags(struct evdev_device *device,
+			   struct udev_device *udev_device)
+{
+	const char *prop;
+	enum evdev_device_udev_tags tags = 0;
+	const struct evdev_udev_tag_match *match = evdev_udev_tag_matches;
+
+	while (match->name) {
+		prop = udev_device_get_property_value(device->udev_device,
+						      match->name);
+		if (prop)
+			tags |= match->tag;
+
+		match++;
+	}
+	return tags;
+}
+
 static int
 evdev_configure_device(struct evdev_device *device)
 {
 	struct libinput *libinput = device->base.seat->libinput;
 	struct libevdev *evdev = device->evdev;
 	const struct input_absinfo *absinfo;
-	int has_abs, has_rel, has_mt;
-	int has_button, has_keyboard, has_touch, has_joystick_button;
 	struct mt_slot *slots;
 	int num_slots;
 	int active_slot;
 	int slot;
-	unsigned int i;
 	const char *devnode = udev_device_get_devnode(device->udev_device);
+	enum evdev_device_udev_tags udev_tags;
 
-	has_rel = 0;
-	has_abs = 0;
-	has_mt = 0;
-	has_button = 0;
-	has_joystick_button = 0;
-	has_keyboard = 0;
-	has_touch = 0;
+	udev_tags = evdev_device_get_udev_tags(device, device->udev_device);
 
-	for (i = BTN_JOYSTICK; i <= BTN_PINKIE; i++)
-		if (libevdev_has_event_code(evdev, EV_KEY, i))
-			has_joystick_button = 1;
+	if ((udev_tags & EVDEV_UDEV_TAG_INPUT) == 0 ||
+	    (udev_tags & ~EVDEV_UDEV_TAG_INPUT) == 0) {
+		log_info(libinput,
+			 "input device '%s', %s not tagged as input device\n",
+			 device->devname, devnode);
+		return -1;
+	}
 
-	for (i = BTN_GAMEPAD; i <= BTN_TR2; i++)
-		if (libevdev_has_event_code(evdev, EV_KEY, i))
-			has_joystick_button = 1;
+	log_info(libinput,
+		 "input device '%s', %s is tagged by udev as:%s%s%s%s%s%s\n",
+		 device->devname, devnode,
+		 udev_tags & EVDEV_UDEV_TAG_KEYBOARD ? " Keyboard" : "",
+		 udev_tags & EVDEV_UDEV_TAG_MOUSE ? " Mouse" : "",
+		 udev_tags & EVDEV_UDEV_TAG_TOUCHPAD ? " Touchpad" : "",
+		 udev_tags & EVDEV_UDEV_TAG_TOUCHSCREEN ? " Touchscreen" : "",
+		 udev_tags & EVDEV_UDEV_TAG_TABLET ? " Tablet" : "",
+		 udev_tags & EVDEV_UDEV_TAG_JOYSTICK ? " Joystick" : "",
+		 udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER ? " Accelerometer" : "");
 
-	if (has_joystick_button) {
+	/* libwacom *adds* TABLET, TOUCHPAD but leaves JOYSTICK in place, so
+	   make sure we only ignore real joystick devices */
+	if ((udev_tags & EVDEV_UDEV_TAG_JOYSTICK) == udev_tags) {
 		log_info(libinput,
 			 "input device '%s', %s is a joystick, ignoring\n",
 			 device->devname, devnode);
@@ -1363,7 +1420,6 @@ evdev_configure_device(struct evdev_device *device)
 						     absinfo))
 				device->abs.fake_resolution = 1;
 			device->abs.absinfo_x = absinfo;
-			has_abs = 1;
 		}
 		if ((absinfo = libevdev_get_abs_info(evdev, ABS_Y))) {
 			if (evdev_fix_abs_resolution(evdev,
@@ -1371,7 +1427,6 @@ evdev_configure_device(struct evdev_device *device)
 						     absinfo))
 				device->abs.fake_resolution = 1;
 			device->abs.absinfo_y = absinfo;
-			has_abs = 1;
 		}
 
 		/* Fake MT devices have the ABS_MT_SLOT bit set because of
@@ -1379,8 +1434,7 @@ evdev_configure_device(struct evdev_device *device)
 		   just have too many ABS_ axes */
 		if (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_SLOT) &&
 		    libevdev_get_num_slots(evdev) == -1) {
-			has_mt = 0;
-			has_touch = 0;
+			udev_tags &= ~EVDEV_UDEV_TAG_TOUCHSCREEN;
 		} else if (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_X) &&
 			   libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_Y)) {
 			absinfo = libevdev_get_abs_info(evdev, ABS_MT_POSITION_X);
@@ -1397,8 +1451,6 @@ evdev_configure_device(struct evdev_device *device)
 				device->abs.fake_resolution = 1;
 			device->abs.absinfo_y = absinfo;
 			device->is_mt = 1;
-			has_touch = 1;
-			has_mt = 1;
 
 			/* We only handle the slotted Protocol B in libinput.
 			   Devices with ABS_MT_POSITION_* but not ABS_MT_SLOT
@@ -1433,83 +1485,55 @@ evdev_configure_device(struct evdev_device *device)
 		}
 	}
 
-	if (libevdev_has_event_code(evdev, EV_REL, REL_X) ||
-	    libevdev_has_event_code(evdev, EV_REL, REL_Y))
-		has_rel = 1;
-
-	if (libevdev_has_event_type(evdev, EV_KEY)) {
-		if (!libevdev_has_property(evdev, INPUT_PROP_DIRECT) &&
-		    libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_FINGER) &&
-		    !libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_PEN) &&
-		    (has_abs || has_mt)) {
-			device->dispatch = evdev_mt_touchpad_create(device);
-			log_info(libinput,
-				 "input device '%s', %s is a touchpad\n",
-				 device->devname, devnode);
-			return device->dispatch == NULL ? -1 : 0;
-		} else if (!libevdev_has_event_code(device->evdev, EV_KEY, BTN_TOOL_FINGER) &&
-			   libevdev_has_event_code(device->evdev, EV_KEY, BTN_TOOL_PEN) &&
-			   has_abs) {
-			device->dispatch = evdev_tablet_create(device);
-			device->seat_caps |= EVDEV_DEVICE_TABLET;
-			log_info(libinput,
-				 "input device '%s', %s is a tablet\n",
-				 device->devname, devnode);
-			return device->dispatch == NULL ? -1 : 0;
-		}
-
-		for (i = 0; i < KEY_MAX; i++) {
-			if (libevdev_has_event_code(evdev, EV_KEY, i)) {
-				switch (get_key_type(i)) {
-				case EVDEV_KEY_TYPE_NONE:
-					break;
-				case EVDEV_KEY_TYPE_KEY:
-					has_keyboard = 1;
-					break;
-				case EVDEV_KEY_TYPE_BUTTON:
-					has_button = 1;
-					break;
-				}
-			}
-		}
-
-		if (libevdev_has_event_code(evdev, EV_KEY, BTN_TOUCH))
-			has_touch = 1;
+	/* libwacom assigns touchpad _and_ tablet to the tablet touch bits,
+	   so make sure we don't initialize the tablet interface for the
+	   touch device */
+	if ((udev_tags & (EVDEV_UDEV_TAG_TABLET|EVDEV_UDEV_TAG_TOUCHPAD)) ==
+	     EVDEV_UDEV_TAG_TABLET) {
+		device->dispatch = evdev_tablet_create(device);
+		device->seat_caps |= EVDEV_DEVICE_TABLET;
+		log_info(libinput,
+			 "input device '%s', %s is a tablet\n",
+			 device->devname, devnode);
+		return device->dispatch == NULL ? -1 : 0;
 	}
-	if (libevdev_has_event_type(evdev, EV_LED))
-		has_keyboard = 1;
 
-	if ((has_abs || has_rel) && has_button) {
-		if (evdev_device_init_pointer_acceleration(device) == -1)
+	if (udev_tags & EVDEV_UDEV_TAG_TOUCHPAD) {
+		device->dispatch = evdev_mt_touchpad_create(device);
+		log_info(libinput,
+			 "input device '%s', %s is a touchpad\n",
+			 device->devname, devnode);
+		return device->dispatch == NULL ? -1 : 0;
+	}
+
+	if (udev_tags & EVDEV_UDEV_TAG_MOUSE) {
+		if (!libevdev_has_event_code(evdev, EV_ABS, ABS_X) &&
+		    !libevdev_has_event_code(evdev, EV_ABS, ABS_Y) &&
+		    evdev_device_init_pointer_acceleration(device) == -1)
 			return -1;
 
 		device->seat_caps |= EVDEV_DEVICE_POINTER;
 
 		log_info(libinput,
-			 "input device '%s', %s is a pointer caps =%s%s%s\n",
-			 device->devname, devnode,
-			 has_abs ? " absolute-motion" : "",
-			 has_rel ? " relative-motion": "",
-			 has_button ? " button" : "");
+			 "input device '%s', %s is a pointer caps\n",
+			 device->devname, devnode);
 
 		/* want left-handed config option */
 		device->left_handed.want_enabled = true;
 		/* want natural-scroll config option */
 		device->scroll.natural_scrolling_enabled = true;
-	}
-
-	if (has_rel && has_button) {
 		/* want button scrolling config option */
 		device->scroll.want_button = 1;
 	}
 
-	if (has_keyboard) {
+	if (udev_tags & EVDEV_UDEV_TAG_KEYBOARD) {
 		device->seat_caps |= EVDEV_DEVICE_KEYBOARD;
 		log_info(libinput,
 			 "input device '%s', %s is a keyboard\n",
 			 device->devname, devnode);
 	}
-	if (has_touch && !has_button) {
+
+	if (udev_tags & EVDEV_UDEV_TAG_TOUCHSCREEN) {
 		device->seat_caps |= EVDEV_DEVICE_TOUCH;
 		log_info(libinput,
 			 "input device '%s', %s is a touch device\n",
@@ -1578,6 +1602,7 @@ evdev_device_create(struct libinput_seat *seat,
 	int fd;
 	int unhandled_device = 0;
 	const char *devnode = udev_device_get_devnode(udev_device);
+	struct libinput_device_group *group;
 
 	/* Use non-blocking mode so that we can loop on read on
 	 * evdev_device_data() until all events on the fd are
@@ -1647,6 +1672,12 @@ evdev_device_create(struct libinput_seat *seat,
 		libinput_add_fd(libinput, fd, evdev_device_dispatch, device);
 	if (!device->source)
 		goto err;
+
+	group = libinput_device_group_create();
+	if (!group)
+		goto err;
+	libinput_device_set_device_group(&device->base, group);
+	libinput_device_group_unref(group);
 
 	list_insert(seat->devices_list.prev, &device->base.link);
 
@@ -2130,6 +2161,9 @@ evdev_device_destroy(struct evdev_device *device)
 	dispatch = device->dispatch;
 	if (dispatch)
 		dispatch->interface->destroy(dispatch);
+
+	if (device->base.group)
+		libinput_device_group_unref(device->base.group);
 
 	filter_destroy(device->pointer.filter);
 	libinput_seat_unref(device->base.seat);
