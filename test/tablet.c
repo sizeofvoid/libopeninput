@@ -167,32 +167,36 @@ START_TEST(motion)
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	libinput_dispatch(li);
 
+	litest_wait_for_event_of_type(li,
+				      LIBINPUT_EVENT_TABLET_AXIS,
+				      -1);
+
 	while ((event = libinput_get_event(li))) {
+		bool x_changed, y_changed;
+		double reported_x, reported_y;
+
 		tablet_event = libinput_event_get_tablet_event(event);
-		type = libinput_event_get_type(event);
+		ck_assert_int_eq(libinput_event_get_type(event),
+				 LIBINPUT_EVENT_TABLET_AXIS);
 
-		if (type == LIBINPUT_EVENT_TABLET_AXIS) {
-			bool x_changed, y_changed;
-			double reported_x, reported_y;
 
-			x_changed = libinput_event_tablet_axis_has_changed(
-			    tablet_event, LIBINPUT_TABLET_AXIS_X);
-			y_changed = libinput_event_tablet_axis_has_changed(
-			    tablet_event, LIBINPUT_TABLET_AXIS_Y);
+		x_changed = libinput_event_tablet_axis_has_changed(
+		    tablet_event, LIBINPUT_TABLET_AXIS_X);
+		y_changed = libinput_event_tablet_axis_has_changed(
+		    tablet_event, LIBINPUT_TABLET_AXIS_Y);
 
-			ck_assert(x_changed);
-			ck_assert(y_changed);
+		ck_assert(x_changed);
+		ck_assert(y_changed);
 
-			reported_x = libinput_event_tablet_get_axis_value(
-			    tablet_event, LIBINPUT_TABLET_AXIS_X);
-			reported_y = libinput_event_tablet_get_axis_value(
-			    tablet_event, LIBINPUT_TABLET_AXIS_Y);
+		reported_x = libinput_event_tablet_get_axis_value(
+		    tablet_event, LIBINPUT_TABLET_AXIS_X);
+		reported_y = libinput_event_tablet_get_axis_value(
+		    tablet_event, LIBINPUT_TABLET_AXIS_Y);
 
-			litest_assert_double_lt(reported_x, reported_y);
+		litest_assert_double_lt(reported_x, reported_y);
 
-			last_reported_x = reported_x;
-			last_reported_y = reported_y;
-		}
+		last_reported_x = reported_x;
+		last_reported_y = reported_y;
 
 		libinput_event_destroy(event);
 	}
@@ -203,7 +207,7 @@ START_TEST(motion)
 		bool x_changed, y_changed;
 		double reported_x, reported_y;
 
-		litest_tablet_proximity_in(dev, test_x, test_y, axes);
+		litest_tablet_motion(dev, test_x, test_y, axes);
 		libinput_dispatch(li);
 
 		while ((event = libinput_get_event(li))) {
