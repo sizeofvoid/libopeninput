@@ -85,8 +85,8 @@ struct libinput_event_tablet {
 	enum libinput_button_state state;
 	uint32_t seat_button_count;
 	uint32_t time;
-	double axes[LIBINPUT_TABLET_AXIS_CNT];
-	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_CNT)];
+	double axes[LIBINPUT_TABLET_AXIS_MAX + 1];
+	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_MAX + 1)];
 	struct libinput_tool *tool;
 	enum libinput_tool_proximity_state proximity_state;
 };

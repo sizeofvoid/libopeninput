@@ -27,6 +27,8 @@
 
 #include "evdev.h"
 
+#define LIBINPUT_TABLET_AXIS_NONE 0
+
 enum tablet_status {
 	TABLET_NONE = 0,
 	TABLET_AXES_UPDATED = 1 << 0,
@@ -46,9 +48,9 @@ struct tablet_dispatch {
 	struct evdev_dispatch base;
 	struct evdev_device *device;
 	unsigned char status;
-	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_CNT)];
-	double axes[LIBINPUT_TABLET_AXIS_CNT];
-	unsigned char axis_caps[NCHARS(LIBINPUT_TABLET_AXIS_CNT)];
+	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_MAX + 1)];
+	double axes[LIBINPUT_TABLET_AXIS_MAX + 1];
+	unsigned char axis_caps[NCHARS(LIBINPUT_TABLET_AXIS_MAX + 1)];
 
 	/* Only used for tablets that don't report serial numbers */
 	struct list tool_list;

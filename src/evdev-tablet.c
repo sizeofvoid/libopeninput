@@ -75,7 +75,7 @@ tablet_mark_all_axes_changed(struct tablet_dispatch *tablet,
 {
 	enum libinput_tablet_axis a;
 
-	for (a = 0; a < LIBINPUT_TABLET_AXIS_CNT; a++) {
+	for (a = LIBINPUT_TABLET_AXIS_X; a <= LIBINPUT_TABLET_AXIS_MAX; a++) {
 		if (libevdev_has_event_code(device->evdev,
 					    EV_ABS,
 					    axis_to_evcode(a)))
@@ -151,7 +151,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	bool axis_update_needed = false;
 	int a;
 
-	for (a = 0; a < LIBINPUT_TABLET_AXIS_CNT; a++) {
+	for (a = LIBINPUT_TABLET_AXIS_X; a <= LIBINPUT_TABLET_AXIS_MAX; a++) {
 		const struct input_absinfo *absinfo;
 
 		if (!bit_is_set(tablet->changed_axes, a))
@@ -596,7 +596,9 @@ tablet_init(struct tablet_dispatch *tablet,
 	tablet->current_tool_type = LIBINPUT_TOOL_NONE;
 	list_init(&tablet->tool_list);
 
-	for (axis = 0; axis < LIBINPUT_TABLET_AXIS_CNT; axis++) {
+	for (axis = LIBINPUT_TABLET_AXIS_X;
+	     axis <= LIBINPUT_TABLET_AXIS_MAX;
+	     axis++) {
 		if (libevdev_has_event_code(device->evdev,
 					    EV_ABS,
 					    axis_to_evcode(axis)))
