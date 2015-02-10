@@ -222,6 +222,16 @@ enum libinput_event_type {
 	/**
 	 * Signals that a tool has come into proximity of a device with the @ref
 	 * LIBINPUT_DEVICE_CAP_TABLET capability.
+	 *
+	 * Some tools may always be in proximity. For these tools, the @ref
+	 * LIBINPUT_EVENT_TABLET_PROXIMITY_IN is sent only once after @ref
+	 * LIBINPUT_EVENT_DEVICE_ADDED, and likewise the @ref
+	 * LIBINPUT_EVENT_TABLET_PROXIMITY_OUT is sent only once before @ref
+	 * LIBINPUT_EVENT_DEVICE_REMOVED.
+	 *
+	 * If the tool that comes into proximity supports x/y coordinates,
+	 * libinput guarantees that both x and y are set in the proximity
+	 * event.
 	 */
 	LIBINPUT_EVENT_TABLET_PROXIMITY_IN,
 	/**
@@ -232,6 +242,12 @@ enum libinput_event_type {
 	 * are marked as released. Button release events for each button that
 	 * was held down on the stylus are sent before the initial proximity out
 	 * event.
+	 *
+	 * Some tools may always be in proximity. For these tools, the @ref
+	 * LIBINPUT_EVENT_TABLET_PROXIMITY_IN is sent only once after @ref
+	 * LIBINPUT_EVENT_DEVICE_ADDED, and likewise the @ref
+	 * LIBINPUT_EVENT_TABLET_PROXIMITY_OUT is sent only once before @ref
+	 * LIBINPUT_EVENT_DEVICE_REMOVED.
 	 */
 	LIBINPUT_EVENT_TABLET_PROXIMITY_OUT,
 	LIBINPUT_EVENT_TABLET_BUTTON
