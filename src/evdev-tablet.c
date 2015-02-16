@@ -411,12 +411,7 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet)
 	distance = libevdev_get_abs_info(tablet->device->evdev, ABS_DISTANCE);
 	pressure = libevdev_get_abs_info(tablet->device->evdev, ABS_PRESSURE);
 
-	/* Keep distance and pressure mutually exclusive. In addition, filter
-	 * out invalid distance events that can occur when the tablet tool is
-	 * close enough for the tablet to detect that's something's there, but
-	 * not close enough for it to actually receive data from the tool
-	 * properly
-	 */
+	/* Keep distance and pressure mutually exclusive */
 	if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_AXIS_DISTANCE) &&
 	    distance->value > distance->minimum &&
 	    pressure->value > pressure->minimum) {
