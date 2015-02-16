@@ -1039,6 +1039,10 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
  *   normalized value between -1 and 1 that indicates the X or Y tilt of the
  *   tool
  *
+ * @note This function may be called for a specific axis even if
+ * libinput_event_tablet_axis_has_changed() returns 0 for that axis.
+ * libinput always includes all device axes in the event.
+ *
  * @param event The libinput tablet event
  * @param axis The axis to retrieve the value of
  * @return The current value of the the axis
@@ -1053,6 +1057,10 @@ libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
  * Return the current absolute x coordinate of the tablet event, transformed to
  * screen coordinates.
  *
+ * @note This function may be called for a specific axis even if
+ * libinput_event_tablet_axis_has_changed() returns 0 for that axis.
+ * libinput always includes all device axes in the event.
+ *
  * @param event The libinput tablet event
  * @param width The current output screen width
  * @return the current absolute x coordinate transformed to a screen coordinate
@@ -1066,6 +1074,10 @@ libinput_event_tablet_get_x_transformed(struct libinput_event_tablet *event,
  *
  * Return the current absolute y coordinate of the tablet event, transformed to
  * screen coordinates.
+ *
+ * @note This function may be called for a specific axis even if
+ * libinput_event_tablet_axis_has_changed() returns 0 for that axis.
+ * libinput always includes all device axes in the event.
  *
  * @param event The libinput tablet event
  * @param height The current output screen height
