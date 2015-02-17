@@ -382,7 +382,7 @@ START_TEST(motion_event_state)
 
 	/* couple of events that go left/bottom to right/top */
 	for (test_x = 0, test_y = 100; test_x < 100; test_x += 10, test_y -= 10)
-		litest_tablet_proximity_in(dev, test_x, test_y, axes);
+		litest_tablet_motion(dev, test_x, test_y, axes);
 
 	libinput_dispatch(li);
 
@@ -407,7 +407,7 @@ START_TEST(motion_event_state)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
 	for (test_x = 100, test_y = 0; test_x > 0; test_x -= 10, test_y += 10)
-		litest_tablet_proximity_in(dev, test_x, test_y, axes);
+		litest_tablet_motion(dev, test_x, test_y, axes);
 
 	libinput_event_destroy(event);
 	libinput_dispatch(li);
