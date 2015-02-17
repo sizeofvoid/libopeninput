@@ -1152,11 +1152,8 @@ litest_event_type_str(struct libinput_event *event)
 	case LIBINPUT_EVENT_TABLET_AXIS:
 		str = "TABLET AXIS";
 		break;
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_IN:
-		str = "TABLET PROX IN";
-		break;
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
-		str = "TABLET PROX OUT";
+	case LIBINPUT_EVENT_TABLET_PROXIMITY:
+		str = "TABLET PROX";
 		break;
 	case LIBINPUT_EVENT_TABLET_BUTTON:
 		str = "TABLET BUTTON";

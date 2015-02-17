@@ -88,6 +88,7 @@ struct libinput_event_tablet {
 	double axes[LIBINPUT_TABLET_AXIS_CNT];
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_CNT)];
 	struct libinput_tool *tool;
+	enum libinput_tool_proximity_state proximity_state;
 };
 
 static void
@@ -194,8 +195,7 @@ libinput_event_get_pointer_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_CANCEL:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 	case LIBINPUT_EVENT_TABLET_AXIS:
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_IN:
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
+	case LIBINPUT_EVENT_TABLET_PROXIMITY:
 	case LIBINPUT_EVENT_TABLET_BUTTON:
 		break;
 	}
@@ -224,8 +224,7 @@ libinput_event_get_keyboard_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_CANCEL:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 	case LIBINPUT_EVENT_TABLET_AXIS:
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_IN:
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
+	case LIBINPUT_EVENT_TABLET_PROXIMITY:
 	case LIBINPUT_EVENT_TABLET_BUTTON:
 		break;
 	}
@@ -254,8 +253,7 @@ libinput_event_get_touch_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 		return (struct libinput_event_touch *) event;
 	case LIBINPUT_EVENT_TABLET_AXIS:
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_IN:
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
+	case LIBINPUT_EVENT_TABLET_PROXIMITY:
 	case LIBINPUT_EVENT_TABLET_BUTTON:
 		break;
 	}
@@ -283,8 +281,7 @@ libinput_event_get_tablet_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 		break;
 	case LIBINPUT_EVENT_TABLET_AXIS:
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_IN:
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
+	case LIBINPUT_EVENT_TABLET_PROXIMITY:
 	case LIBINPUT_EVENT_TABLET_BUTTON:
 		return (struct libinput_event_tablet *) event;
 	}
@@ -312,8 +309,7 @@ libinput_event_get_device_notify_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TOUCH_CANCEL:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 	case LIBINPUT_EVENT_TABLET_AXIS:
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_IN:
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
+	case LIBINPUT_EVENT_TABLET_PROXIMITY:
 	case LIBINPUT_EVENT_TABLET_BUTTON:
 		break;
 	}
@@ -627,6 +623,12 @@ LIBINPUT_EXPORT struct libinput_tool *
 libinput_event_tablet_get_tool(struct libinput_event_tablet *event)
 {
 	return event->tool;
+}
+
+LIBINPUT_EXPORT enum libinput_tool_proximity_state
+libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event)
+{
+	return event->proximity_state;
 }
 
 LIBINPUT_EXPORT uint32_t
@@ -1403,55 +1405,31 @@ tablet_notify_axis(struct libinput_device *device,
 }
 
 void
-tablet_notify_proximity_in(struct libinput_device *device,
-			   uint32_t time,
-			   struct libinput_tool *tool,
-			   double *axes)
+tablet_notify_proximity(struct libinput_device *device,
+			uint32_t time,
+			struct libinput_tool *tool,
+			enum libinput_tool_proximity_state proximity_state,
+			double *axes)
 {
-	struct libinput_event_tablet *proximity_in_event;
+	struct libinput_event_tablet *proximity_event;
 
-	proximity_in_event = zalloc(sizeof *proximity_in_event);
-	if (!proximity_in_event)
+	proximity_event = zalloc(sizeof *proximity_event);
+	if (!proximity_event)
 		return;
 
-	*proximity_in_event = (struct libinput_event_tablet) {
+	*proximity_event = (struct libinput_event_tablet) {
 		.time = time,
 		.tool = tool,
+		.proximity_state = proximity_state,
 	};
-	memcpy(proximity_in_event->axes,
+	memcpy(proximity_event->axes,
 	       axes,
-	       sizeof(proximity_in_event->axes));
+	       sizeof(proximity_event->axes));
 
 	post_device_event(device,
 			  time,
-			  LIBINPUT_EVENT_TABLET_PROXIMITY_IN,
-			  &proximity_in_event->base);
-}
-
-void
-tablet_notify_proximity_out(struct libinput_device *device,
-			    uint32_t time,
-			    struct libinput_tool *tool,
-			    double *axes)
-{
-	struct libinput_event_tablet *proximity_out_update_event;
-
-	proximity_out_update_event = zalloc(sizeof *proximity_out_update_event);
-	if (!proximity_out_update_event)
-		return;
-
-	*proximity_out_update_event = (struct libinput_event_tablet) {
-		.time = time,
-		.tool = tool,
-	};
-	memcpy(proximity_out_update_event->axes,
-	       axes,
-	       sizeof(proximity_out_update_event->axes));
-
-	post_device_event(device,
-			  time,
-			  LIBINPUT_EVENT_TABLET_PROXIMITY_OUT,
-			  &proximity_out_update_event->base);
+			  LIBINPUT_EVENT_TABLET_PROXIMITY,
+			  &proximity_event->base);
 }
 
 void

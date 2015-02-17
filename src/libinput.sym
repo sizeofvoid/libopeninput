@@ -134,6 +134,7 @@ global:
 	libinput_event_tablet_get_axis_value;
 	libinput_event_tablet_get_button;
 	libinput_event_tablet_get_button_state;
+	libinput_event_tablet_get_proximity_state;
 	libinput_event_tablet_get_seat_button_count;
 	libinput_event_tablet_get_time;
 	libinput_event_tablet_get_tool;

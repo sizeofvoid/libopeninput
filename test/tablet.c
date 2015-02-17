@@ -55,7 +55,7 @@ START_TEST(proximity_in_out)
 
 	while ((event = libinput_get_event(li))) {
 		if (libinput_event_get_type(event) ==
-		    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+		    LIBINPUT_EVENT_TABLET_PROXIMITY) {
 			struct libinput_tool * tool;
 
 			have_tool_update++;
@@ -73,8 +73,14 @@ START_TEST(proximity_in_out)
 
 	while ((event = libinput_get_event(li))) {
 		if (libinput_event_get_type(event) ==
-		    LIBINPUT_EVENT_TABLET_PROXIMITY_OUT)
-			have_proximity_out = true;
+		    LIBINPUT_EVENT_TABLET_PROXIMITY) {
+			struct libinput_event_tablet *t =
+				libinput_event_get_tablet_event(event);
+
+			if (libinput_event_tablet_get_proximity_state(t) ==
+			    LIBINPUT_TOOL_PROXIMITY_OUT)
+				have_proximity_out = true;
+		}
 
 		libinput_event_destroy(event);
 	}
@@ -626,7 +632,7 @@ START_TEST(tool_serial)
 	libinput_dispatch(li);
 	while ((event = libinput_get_event(li))) {
 		if (libinput_event_get_type(event) ==
-		    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+		    LIBINPUT_EVENT_TABLET_PROXIMITY) {
 			tablet_event = libinput_event_get_tablet_event(event);
 			tool = libinput_event_tablet_get_tool(tablet_event);
 
@@ -663,7 +669,7 @@ START_TEST(serial_changes_tool)
 	libinput_dispatch(li);
 	while ((event = libinput_get_event(li))) {
 		if (libinput_event_get_type(event) ==
-		    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+		    LIBINPUT_EVENT_TABLET_PROXIMITY) {
 			tablet_event = libinput_event_get_tablet_event(event);
 			tool = libinput_event_tablet_get_tool(tablet_event);
 
@@ -701,7 +707,7 @@ START_TEST(invalid_serials)
 	libinput_dispatch(li);
 	while ((event = libinput_get_event(li))) {
 		if (libinput_event_get_type(event) ==
-		    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+		    LIBINPUT_EVENT_TABLET_PROXIMITY) {
 			tablet_event = libinput_event_get_tablet_event(event);
 			tool = libinput_event_tablet_get_tool(tablet_event);
 
@@ -730,7 +736,7 @@ START_TEST(tool_ref)
 	libinput_dispatch(li);
 	while ((event = libinput_get_event(li))) {
 		if (libinput_event_get_type(event) ==
-		    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+		    LIBINPUT_EVENT_TABLET_PROXIMITY) {
 			break;
 		}
 		libinput_event_destroy(event);
@@ -825,7 +831,7 @@ START_TEST(tools_with_serials)
 		libinput_dispatch(li);
 		while ((event = libinput_get_event(li))) {
 			if (libinput_event_get_type(event) ==
-			    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+			    LIBINPUT_EVENT_TABLET_PROXIMITY) {
 				struct libinput_event_tablet *t =
 					libinput_event_get_tablet_event(event);
 
@@ -874,7 +880,7 @@ START_TEST(tools_without_serials)
 		libinput_dispatch(li);
 		while ((event = libinput_get_event(li))) {
 			if (libinput_event_get_type(event) ==
-			    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+			    LIBINPUT_EVENT_TABLET_PROXIMITY) {
 				struct libinput_event_tablet *t =
 					libinput_event_get_tablet_event(event);
 
@@ -922,7 +928,7 @@ START_TEST(tool_capabilities)
 	libinput_dispatch(li);
 	while ((event = libinput_get_event(li))) {
 		if (libinput_event_get_type(event) ==
-		    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+		    LIBINPUT_EVENT_TABLET_PROXIMITY) {
 			struct libinput_event_tablet *t =
 				libinput_event_get_tablet_event(event);
 			struct libinput_tool *tool =
@@ -946,7 +952,7 @@ START_TEST(tool_capabilities)
 
 	while ((event = libinput_get_event(li))) {
 		if (libinput_event_get_type(event) ==
-		    LIBINPUT_EVENT_TABLET_PROXIMITY_IN) {
+		    LIBINPUT_EVENT_TABLET_PROXIMITY) {
 			struct libinput_event_tablet *t =
 				libinput_event_get_tablet_event(event);
 			struct libinput_tool *tool =

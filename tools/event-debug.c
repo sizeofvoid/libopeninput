@@ -109,11 +109,8 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_TABLET_AXIS:
 		type = "TABLET_AXIS";
 		break;
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_IN:
-		type = "TABLET_PROXIMITY_IN";
-		break;
-	case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
-		type = "TABLET_PROXIMITY_OUT";
+	case LIBINPUT_EVENT_TABLET_PROXIMITY:
+		type = "TABLET_PROXIMITY";
 		break;
 	case LIBINPUT_EVENT_TABLET_BUTTON:
 		type = "TABLET_BUTTON";
@@ -321,11 +318,13 @@ print_touch_event_without_coords(struct libinput_event *ev)
 }
 
 static void
-print_proximity_in_event(struct libinput_event *ev)
+print_proximity_event(struct libinput_event *ev)
 {
 	struct libinput_event_tablet *t = libinput_event_get_tablet_event(ev);
 	struct libinput_tool *tool = libinput_event_tablet_get_tool(t);
-	const char *tool_str;
+	enum libinput_tool_proximity_state state;
+	const char *tool_str,
+	           *state_str;
 
 	switch (libinput_tool_get_type(tool)) {
 	case LIBINPUT_TOOL_NONE:
@@ -359,16 +358,18 @@ print_proximity_in_event(struct libinput_event *ev)
 		abort();
 	}
 
-	print_event_time(libinput_event_tablet_get_time(t));
-	printf("%s (%#x)", tool_str, libinput_tool_get_serial(tool));
-	printf("\n");
-}
+	state = libinput_event_tablet_get_proximity_state(t);
 
-static void
-print_proximity_out_event(struct libinput_event *ev) {
-	struct libinput_event_tablet *t = libinput_event_get_tablet_event(ev);
+	if (state == LIBINPUT_TOOL_PROXIMITY_IN)
+		state_str = "proximity-in";
+	else if (state == LIBINPUT_TOOL_PROXIMITY_OUT)
+		state_str = "proximity-out";
+	else
+		abort();
 
 	print_event_time(libinput_event_tablet_get_time(t));
+	printf("%s (%#x) %s",
+	       tool_str, libinput_tool_get_serial(tool), state_str);
 	printf("\n");
 }
 
@@ -442,11 +443,8 @@ handle_and_print_events(struct libinput *li)
 		case LIBINPUT_EVENT_TABLET_AXIS:
 			print_tablet_axis_event(ev);
 			break;
-		case LIBINPUT_EVENT_TABLET_PROXIMITY_IN:
-			print_proximity_in_event(ev);
-			break;
-		case LIBINPUT_EVENT_TABLET_PROXIMITY_OUT:
-			print_proximity_out_event(ev);
+		case LIBINPUT_EVENT_TABLET_PROXIMITY:
+			print_proximity_event(ev);
 			break;
 		case LIBINPUT_EVENT_TABLET_BUTTON:
 			print_tablet_button_event(ev);

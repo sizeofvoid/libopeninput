@@ -472,10 +472,11 @@ tablet_flush(struct tablet_dispatch *tablet,
 		tablet->button_state.stylus_buttons = 0;
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
 	} else if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
-		tablet_notify_proximity_in(&device->base,
-					   time,
-					   tool,
-					   tablet->axes);
+		tablet_notify_proximity(&device->base,
+					time,
+					tool,
+					LIBINPUT_TOOL_PROXIMITY_IN,
+					tablet->axes);
 		tablet_unset_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
 	}
 
@@ -504,10 +505,11 @@ tablet_flush(struct tablet_dispatch *tablet,
 	}
 
 	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
-		tablet_notify_proximity_out(&device->base,
-					    time,
-					    tool,
-					    tablet->axes);
+		tablet_notify_proximity(&device->base,
+					time,
+					tool,
+					LIBINPUT_TOOL_PROXIMITY_OUT,
+					tablet->axes);
 		tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
 

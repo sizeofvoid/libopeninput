@@ -173,6 +173,17 @@ enum libinput_tool_type {
 };
 
 /**
+ * @ingroup device
+ *
+ * The state of proximity for a tool on a device. The device must have the @ref
+ * LIBINPUT_DEVICE_CAP_TABLET capability.
+ */
+enum libinput_tool_proximity_state {
+	LIBINPUT_TOOL_PROXIMITY_OUT = 0,
+	LIBINPUT_TOOL_PROXIMITY_IN = 1,
+};
+
+/**
  * @ingroup base
  *
  * Event type for events returned by libinput_get_event().
@@ -220,36 +231,26 @@ enum libinput_event_type {
 
 	LIBINPUT_EVENT_TABLET_AXIS = 600,
 	/**
-	 * Signals that a tool has come into proximity of a device with the @ref
-	 * LIBINPUT_DEVICE_CAP_TABLET capability.
+	 * Signals that a tool has come in or out of proximity of a device with
+	 * the @ref LIBINPUT_DEVICE_CAP_TABLET capability.
 	 *
-	 * Some tools may always be in proximity. For these tools, the @ref
-	 * LIBINPUT_EVENT_TABLET_PROXIMITY_IN is sent only once after @ref
-	 * LIBINPUT_EVENT_DEVICE_ADDED, and likewise the @ref
-	 * LIBINPUT_EVENT_TABLET_PROXIMITY_OUT is sent only once before @ref
+	 * Some tools may always be in proximity. For these tools, events with
+	 * state @ref LIBINPUT_TOOL_PROXIMITY_IN are sent only once after @ref
+	 * LIBINPUT_EVENT_DEVICE_ADDED, and likewise events with state @ref
+	 * LIBINPUT_TOOL_PROXIMITY_OUT are sent only once before @ref
 	 * LIBINPUT_EVENT_DEVICE_REMOVED.
 	 *
 	 * If the tool that comes into proximity supports x/y coordinates,
 	 * libinput guarantees that both x and y are set in the proximity
 	 * event.
-	 */
-	LIBINPUT_EVENT_TABLET_PROXIMITY_IN,
-	/**
-	 * Signals that a device with the @ref LIBINPUT_DEVICE_CAP_TABLET
-	 * capability has detected that there is no longer a tool in use. When
-	 * this happens, the value of every axis should be assumed to have a
-	 * value of 0 and any buttons that are currently held down on the stylus
-	 * are marked as released. Button release events for each button that
-	 * was held down on the stylus are sent before the initial proximity out
-	 * event.
 	 *
-	 * Some tools may always be in proximity. For these tools, the @ref
-	 * LIBINPUT_EVENT_TABLET_PROXIMITY_IN is sent only once after @ref
-	 * LIBINPUT_EVENT_DEVICE_ADDED, and likewise the @ref
-	 * LIBINPUT_EVENT_TABLET_PROXIMITY_OUT is sent only once before @ref
-	 * LIBINPUT_EVENT_DEVICE_REMOVED.
+	 * When a tool goes out of proximity, the value of every axis should be
+	 * assumed to have a value of 0 and any buttons that are currently held
+	 * down on the stylus are marked as released. Button release events for
+	 * each button that was held down on the stylus are sent before the
+	 * initial proximity out event.
 	 */
-	LIBINPUT_EVENT_TABLET_PROXIMITY_OUT,
+	LIBINPUT_EVENT_TABLET_PROXIMITY,
 	LIBINPUT_EVENT_TABLET_BUTTON
 };
 
@@ -345,8 +346,7 @@ struct libinput_event_touch;
  *
  * Tablet event representing an axis update, button press, or tool update. Valid
  * event types for this event are @ref LIBINPUT_EVENT_TABLET_AXIS, @ref
- * LIBINPUT_EVENT_TABLET_PROXIMITY_IN, @ref LIBINPUT_EVENT_TABLET_PROXIMITY_IN
- * and @ref LIBINPUT_EVENT_TABLET_BUTTON.
+ * LIBINPUT_EVENT_TABLET_PROXIMITY and @ref LIBINPUT_EVENT_TABLET_BUTTON.
  */
 struct libinput_event_tablet;
 
@@ -1091,6 +1091,19 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
  */
 struct libinput_tool *
 libinput_event_tablet_get_tool(struct libinput_event_tablet *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the new proximity state of a tool from a proximity event.
+ * Used to check whether or not a tool came in or out of proximity during an
+ * event of type @ref LIBINPUT_EVENT_TABLET_PROXIMITY.
+ *
+ * @param event The libinput tablet event
+ * @return The new proximity state of the tool from the event.
+ */
+enum libinput_tool_proximity_state
+libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event);
 
 /**
  * @ingroup event_tablet
