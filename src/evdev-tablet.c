@@ -185,6 +185,11 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 		axis_update_needed = true;
 	}
 
+	/* We need to make sure that we check that the tool is not out of
+	 * proximity before we send any axis updates. This is because many
+	 * tablets will send axis events with incorrect values if the tablet
+	 * tool is close enough so that the tablet can partially detect that
+	 * it's there, but can't properly receive any data from the tool. */
 	if (axis_update_needed &&
 	    !tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY) &&
 	    !tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY))
