@@ -117,7 +117,7 @@ print_event_header(struct libinput_event *ev)
 		break;
 	}
 
-	printf("%-7s	%s	", libinput_device_get_sysname(dev), type);
+	printf("%-7s	%-16s ", libinput_device_get_sysname(dev), type);
 }
 
 static void
