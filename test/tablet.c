@@ -243,6 +243,119 @@ START_TEST(motion)
 }
 END_TEST
 
+START_TEST(left_handed)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet *tablet_event;
+	double libinput_max_x, libinput_max_y;
+	double last_x, last_y;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ -1, -1 }
+	};
+
+	ck_assert(libinput_device_config_left_handed_is_available(dev->libinput_device));
+
+	libinput_device_get_size (dev->libinput_device,
+				  &libinput_max_x,
+				  &libinput_max_y);
+
+	/* Test that left-handed mode doesn't go into effect until the tool has
+	 * left proximity of the tablet. In order to test this, we have to bring
+	 * the tool into proximity and make sure libinput processes the
+	 * proximity events so that it updates it's internal tablet state, and
+	 * then try setting it to left-handed mode. */
+	litest_tablet_proximity_in(dev, 0, 100, axes);
+	libinput_dispatch(li);
+	libinput_device_config_left_handed_set(dev->libinput_device, 1);
+
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_AXIS, -1);
+
+	while ((event = libinput_get_event(li))) {
+		tablet_event = libinput_event_get_tablet_event(event);
+
+		last_x = libinput_event_tablet_get_axis_value(
+				tablet_event, LIBINPUT_TABLET_AXIS_X);
+		last_y = libinput_event_tablet_get_axis_value(
+				tablet_event, LIBINPUT_TABLET_AXIS_Y);
+
+		litest_assert_double_eq(last_x, 0);
+		litest_assert_double_eq(last_y, libinput_max_y);
+
+		libinput_event_destroy(event);
+	}
+
+	litest_tablet_motion(dev, 100, 0, axes);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_AXIS, -1);
+
+	while ((event = libinput_get_event(li))) {
+		double x, y;
+		tablet_event = libinput_event_get_tablet_event(event);
+
+		x = libinput_event_tablet_get_axis_value(
+			tablet_event, LIBINPUT_TABLET_AXIS_X);
+		y = libinput_event_tablet_get_axis_value(
+			tablet_event, LIBINPUT_TABLET_AXIS_Y);
+
+		litest_assert_double_eq(x, libinput_max_x);
+		litest_assert_double_eq(y, 0);
+
+		litest_assert_double_gt(x, last_x);
+		litest_assert_double_lt(y, last_y);
+
+		libinput_event_destroy(event);
+	}
+
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(li);
+
+	/* Since we've drained the events and libinput's aware the tool is out
+	 * of proximity, it should have finally transitioned into left-handed
+	 * mode, so the axes should be inverted once we bring it back into
+	 * proximity */
+	litest_tablet_proximity_in(dev, 0, 100, axes);
+
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_AXIS, -1);
+
+	while ((event = libinput_get_event(li))) {
+		tablet_event = libinput_event_get_tablet_event(event);
+
+		last_x = libinput_event_tablet_get_axis_value(
+				tablet_event, LIBINPUT_TABLET_AXIS_X);
+		last_y = libinput_event_tablet_get_axis_value(
+				tablet_event, LIBINPUT_TABLET_AXIS_Y);
+
+		litest_assert_double_eq(last_x, libinput_max_x);
+		litest_assert_double_eq(last_y, 0);
+
+		libinput_event_destroy(event);
+	}
+
+	litest_tablet_motion(dev, 100, 0, axes);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_AXIS, -1);
+
+	while ((event = libinput_get_event(li))) {
+		double x, y;
+		tablet_event = libinput_event_get_tablet_event(event);
+
+		x = libinput_event_tablet_get_axis_value(
+			tablet_event, LIBINPUT_TABLET_AXIS_X);
+		y = libinput_event_tablet_get_axis_value(
+			tablet_event, LIBINPUT_TABLET_AXIS_Y);
+
+		litest_assert_double_eq(x, 0);
+		litest_assert_double_eq(y, libinput_max_y);
+
+		litest_assert_double_lt(x, last_x);
+		litest_assert_double_gt(y, last_y);
+
+		libinput_event_destroy(event);
+	}
+}
+END_TEST
+
 START_TEST(motion_event_state)
 {
 	struct litest_device *dev = litest_current_device();
@@ -873,6 +986,7 @@ main(int argc, char **argv)
 	litest_add("tablet:proximity", bad_distance_events, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add("tablet:motion", motion, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:motion", motion_event_state, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:left_handed", left_handed, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:normalization", normalization, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:pad", pad_buttons_ignored, LITEST_TABLET, LITEST_ANY);
 

@@ -86,6 +86,21 @@ tablet_mark_all_axes_changed(struct tablet_dispatch *tablet,
 }
 
 static void
+tablet_change_to_left_handed(struct evdev_device *device)
+{
+	struct tablet_dispatch *tablet =
+		(struct tablet_dispatch*)device->dispatch;
+
+	if (device->left_handed.enabled == device->left_handed.want_enabled)
+		return;
+
+	if (!tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))
+		return;
+
+	device->left_handed.enabled = device->left_handed.want_enabled;
+}
+
+static void
 tablet_update_tool(struct tablet_dispatch *tablet,
 		   struct evdev_device *device,
 		   enum libinput_tool_type tool,
@@ -120,6 +135,12 @@ normalize_tilt(const struct input_absinfo * absinfo) {
 	return (value * 2) - 1;
 }
 
+static inline int32_t
+invert_axis(const struct input_absinfo *absinfo)
+{
+	return absinfo->maximum - (absinfo->value - absinfo->minimum);
+}
+
 static void
 tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			 struct evdev_device *device,
@@ -142,7 +163,10 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 		switch (a) {
 		case LIBINPUT_TABLET_AXIS_X:
 		case LIBINPUT_TABLET_AXIS_Y:
-			tablet->axes[a] = absinfo->value;
+			if (device->left_handed.enabled)
+				tablet->axes[a] = invert_axis(absinfo);
+			else
+				tablet->axes[a] = absinfo->value;
 			break;
 		case LIBINPUT_TABLET_AXIS_DISTANCE:
 		case LIBINPUT_TABLET_AXIS_PRESSURE:
@@ -481,6 +505,8 @@ tablet_flush(struct tablet_dispatch *tablet,
 					    tablet->axes);
 		tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
+
+		tablet_change_to_left_handed(device);
 	}
 
 	/* Update state */
@@ -584,6 +610,8 @@ evdev_tablet_create(struct evdev_device *device)
 		tablet_destroy(&tablet->base);
 		return NULL;
 	}
+
+	evdev_init_left_handed(device, tablet_change_to_left_handed);
 
 	return &tablet->base;
 }
