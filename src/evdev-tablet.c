@@ -566,6 +566,8 @@ tablet_init(struct tablet_dispatch *tablet,
 
 	tablet_mark_all_axes_changed(tablet, device);
 
+	tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
+
 	return 0;
 }
 
