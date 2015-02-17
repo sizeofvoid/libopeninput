@@ -354,6 +354,7 @@ tablet_notify_proximity(struct libinput_device *device,
 			uint32_t time,
 			struct libinput_tool *tool,
 			enum libinput_tool_proximity_state state,
+			unsigned char *changed_axes,
 			double *axes);
 
 void

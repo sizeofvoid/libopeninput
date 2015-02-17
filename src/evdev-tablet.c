@@ -192,12 +192,21 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	 * it's there, but can't properly receive any data from the tool. */
 	if (axis_update_needed &&
 	    !tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY) &&
-	    !tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY))
-		tablet_notify_axis(base,
-				   time,
-				   tool,
-				   tablet->changed_axes,
-				   tablet->axes);
+	    !tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
+		if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY))
+			tablet_notify_proximity(&device->base,
+						time,
+						tool,
+						LIBINPUT_TOOL_PROXIMITY_IN,
+						tablet->changed_axes,
+						tablet->axes);
+		else
+			tablet_notify_axis(base,
+					   time,
+					   tool,
+					   tablet->changed_axes,
+					   tablet->axes);
+	}
 
 	memset(tablet->changed_axes, 0, sizeof(tablet->changed_axes));
 }
@@ -471,18 +480,12 @@ tablet_flush(struct tablet_dispatch *tablet,
 		/* Release all stylus buttons */
 		tablet->button_state.stylus_buttons = 0;
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
-	} else if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
-		tablet_notify_proximity(&device->base,
-					time,
-					tool,
-					LIBINPUT_TOOL_PROXIMITY_IN,
-					tablet->axes);
-		tablet_unset_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
-	}
-
-	if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
+	} else if (tablet_has_status(tablet, TABLET_AXES_UPDATED) ||
+		   tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
 		sanitize_tablet_axes(tablet);
 		tablet_check_notify_axes(tablet, device, time, tool);
+
+		tablet_unset_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_AXES_UPDATED);
 	}
 
@@ -509,9 +512,12 @@ tablet_flush(struct tablet_dispatch *tablet,
 					time,
 					tool,
 					LIBINPUT_TOOL_PROXIMITY_OUT,
+					tablet->changed_axes,
 					tablet->axes);
+
 		tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
+		memset(tablet->changed_axes, 0, sizeof(tablet->changed_axes));
 
 		tablet_change_to_left_handed(device);
 	}

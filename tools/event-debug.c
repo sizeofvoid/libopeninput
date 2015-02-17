@@ -325,6 +325,8 @@ print_proximity_event(struct libinput_event *ev)
 	enum libinput_tool_proximity_state state;
 	const char *tool_str,
 	           *state_str;
+	double x, y;
+	double dist, pressure;
 
 	switch (libinput_tool_get_type(tool)) {
 	case LIBINPUT_TOOL_NONE:
@@ -360,14 +362,39 @@ print_proximity_event(struct libinput_event *ev)
 
 	state = libinput_event_tablet_get_proximity_state(t);
 
-	if (state == LIBINPUT_TOOL_PROXIMITY_IN)
-		state_str = "proximity-in";
-	else if (state == LIBINPUT_TOOL_PROXIMITY_OUT)
-		state_str = "proximity-out";
-	else
-		abort();
-
 	print_event_time(libinput_event_tablet_get_time(t));
+
+	if (state == LIBINPUT_TOOL_PROXIMITY_IN) {
+		x = libinput_event_tablet_get_axis_value(
+					t, LIBINPUT_TABLET_AXIS_X);
+		y = libinput_event_tablet_get_axis_value(
+					t, LIBINPUT_TABLET_AXIS_Y);
+		printf("\t%.2f/%.2f", x, y);
+
+		x = libinput_event_tablet_get_axis_value(
+					t, LIBINPUT_TABLET_AXIS_TILT_X);
+		y = libinput_event_tablet_get_axis_value(
+					t, LIBINPUT_TABLET_AXIS_TILT_Y);
+		printf("\ttilt: %.2f/%.2f ", x, y);
+
+		dist = libinput_event_tablet_get_axis_value(
+					t, LIBINPUT_TABLET_AXIS_DISTANCE);
+		pressure = libinput_event_tablet_get_axis_value(
+					t, LIBINPUT_TABLET_AXIS_PRESSURE);
+
+		if (dist)
+			printf("\tdistance: %.2f ", dist);
+		else
+			printf("\tpressure: %.2f ", pressure);
+
+		state_str = "proximity-in";
+	} else if (state == LIBINPUT_TOOL_PROXIMITY_OUT) {
+		state_str = "proximity-out";
+		printf("\t");
+	} else {
+		abort();
+	}
+
 	printf("%s (%#x) %s",
 	       tool_str, libinput_tool_get_serial(tool), state_str);
 	printf("\n");

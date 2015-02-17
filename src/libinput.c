@@ -569,7 +569,8 @@ libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
 	struct evdev_device *device =
 		(struct evdev_device *) event->base.device;
 
-	if (event->base.type != LIBINPUT_EVENT_TABLET_AXIS)
+	if (event->base.type != LIBINPUT_EVENT_TABLET_AXIS &&
+	    event->base.type != LIBINPUT_EVENT_TABLET_PROXIMITY)
 		return 0;
 
 	switch(axis) {
@@ -1409,6 +1410,7 @@ tablet_notify_proximity(struct libinput_device *device,
 			uint32_t time,
 			struct libinput_tool *tool,
 			enum libinput_tool_proximity_state proximity_state,
+			unsigned char *changed_axes,
 			double *axes)
 {
 	struct libinput_event_tablet *proximity_event;
@@ -1425,6 +1427,9 @@ tablet_notify_proximity(struct libinput_device *device,
 	memcpy(proximity_event->axes,
 	       axes,
 	       sizeof(proximity_event->axes));
+	memcpy(proximity_event->changed_axes,
+	       changed_axes,
+	       sizeof(proximity_event->changed_axes));
 
 	post_device_event(device,
 			  time,

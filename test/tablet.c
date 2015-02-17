@@ -174,7 +174,7 @@ START_TEST(motion)
 	libinput_dispatch(li);
 
 	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_AXIS,
+				      LIBINPUT_EVENT_TABLET_PROXIMITY,
 				      -1);
 
 	while ((event = libinput_get_event(li))) {
@@ -183,7 +183,7 @@ START_TEST(motion)
 
 		tablet_event = libinput_event_get_tablet_event(event);
 		ck_assert_int_eq(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_TABLET_AXIS);
+				 LIBINPUT_EVENT_TABLET_PROXIMITY);
 
 
 		x_changed = libinput_event_tablet_axis_has_changed(
@@ -277,7 +277,7 @@ START_TEST(left_handed)
 	libinput_dispatch(li);
 	libinput_device_config_left_handed_set(dev->libinput_device, 1);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_AXIS, -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_PROXIMITY, -1);
 
 	while ((event = libinput_get_event(li))) {
 		tablet_event = libinput_event_get_tablet_event(event);
@@ -323,7 +323,7 @@ START_TEST(left_handed)
 	 * proximity */
 	litest_tablet_proximity_in(dev, 0, 100, axes);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_AXIS, -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_PROXIMITY, -1);
 
 	while ((event = libinput_get_event(li))) {
 		tablet_event = libinput_event_get_tablet_event(event);

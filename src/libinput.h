@@ -234,6 +234,10 @@ enum libinput_event_type {
 	 * Signals that a tool has come in or out of proximity of a device with
 	 * the @ref LIBINPUT_DEVICE_CAP_TABLET capability.
 	 *
+	 * Proximity events contain each of the current values for each axis,
+	 * and these values may be extracted from them in the same way they are
+	 * with @ref LIBINPUT_EVENT_TABLET_AXIS events.
+	 *
 	 * Some tools may always be in proximity. For these tools, events with
 	 * state @ref LIBINPUT_TOOL_PROXIMITY_IN are sent only once after @ref
 	 * LIBINPUT_EVENT_DEVICE_ADDED, and likewise events with state @ref
@@ -1004,11 +1008,11 @@ libinput_event_touch_get_base_event(struct libinput_event_touch *event);
  * @ingroup event_tablet
  *
  * Checks if an axis was updated in this event or return 0 otherwise.
- * For tablet events that are not of type @ref LIBINPUT_EVENT_TABLET_AXIS,
- * this function returns 0.
+ * For tablet events that are not of type @ref LIBINPUT_EVENT_TABLET_AXIS or
+ * type @ref LIBINPUT_EVENT_TABLET_PROXIMITY, this function returns 0.
  *
  * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_AXIS.
+ * @ref LIBINPUT_EVENT_TABLET_AXIS and @ref LIBINPUT_EVENT_TABLET_PROXIMITY.
  *
  * @param event The libinput tablet event
  * @param axis The axis to check for updates
