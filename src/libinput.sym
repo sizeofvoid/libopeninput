@@ -135,6 +135,8 @@ LIBINPUT_0.11.0 {
 	libinput_device_group_set_user_data;
 	libinput_device_group_unref;
 
+	libinput_device_pointer_has_button;
+
 	/* tablet APIs, they are not part of any stable API promise yet.
 	 * keep them separate */
 	libinput_event_get_tablet_event;

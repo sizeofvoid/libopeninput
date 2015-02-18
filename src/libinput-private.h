@@ -172,6 +172,7 @@ struct libinput_device_config {
 struct libinput_device_group {
 	int refcount;
 	void *user_data;
+	char *identifier; /* unique identifier or NULL for singletons */
 };
 
 struct libinput_device {
@@ -260,7 +261,7 @@ libinput_device_init(struct libinput_device *device,
 		     struct libinput_seat *seat);
 
 struct libinput_device_group *
-libinput_device_group_create(void);
+libinput_device_group_create(const char *identifier);
 
 void
 libinput_device_set_device_group(struct libinput_device *device,
@@ -295,8 +296,8 @@ pointer_notify_motion(struct libinput_device *device,
 		      uint64_t time,
 		      double dx,
 		      double dy,
-		      double dx_noaccel,
-		      double dy_noaccel);
+		      double dx_unaccel,
+		      double dy_unaccel);
 
 void
 pointer_notify_motion_absolute(struct libinput_device *device,

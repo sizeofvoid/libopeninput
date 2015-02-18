@@ -834,11 +834,11 @@ libinput_event_pointer_get_axis_value(struct libinput_event_pointer *event,
  * The coordinate system is identical to the cursor movement, i.e. a
  * scroll value of 1 represents the equivalent relative motion of 1.
  *
- * For pointer events that are not of type LIBINPUT_EVENT_POINTER_AXIS,
+ * For pointer events that are not of type @ref LIBINPUT_EVENT_POINTER_AXIS,
  * this function returns 0.
  *
  * @note It is an application bug to call this function for events other than
- * LIBINPUT_EVENT_POINTER_AXIS.
+ * @ref LIBINPUT_EVENT_POINTER_AXIS.
  *
  * @return the source for this axis event
  */
@@ -1837,6 +1837,9 @@ libinput_device_get_context(struct libinput_device *device);
  * libinput_device_group_unref() to continue using the handle outside of the
  * immediate scope.
  *
+ * Device groups are assigned based on the <b>LIBINPUT_DEVICE_GROUP</b> udev
+ * property, see @ref udev_config.
+ *
  * @return The device group this device belongs to
  */
 struct libinput_device_group *
@@ -2027,7 +2030,15 @@ libinput_device_get_size(struct libinput_device *device,
  * on error.
  */
 int
-libinput_device_has_button(struct libinput_device *device, uint32_t code);
+libinput_device_pointer_has_button(struct libinput_device *device, uint32_t code);
+
+/**
+ * @ingroup device
+ *
+ * @deprecated Use libinput_device_pointer_has_button() instead.
+ */
+int
+libinput_device_has_button(struct libinput_device *device, uint32_t code) LIBINPUT_ATTRIBUTE_DEPRECATED;
 
 /**
  * @ingroup device

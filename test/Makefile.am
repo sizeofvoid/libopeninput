@@ -55,7 +55,8 @@ build_tests = \
 	test-build-std-gnuc90
 
 noinst_PROGRAMS = $(build_tests) $(run_tests)
-TESTS = $(run_tests)
+noinst_SCRIPTS = symbols-leak-test
+TESTS = $(run_tests) symbols-leak-test
 
 .NOTPARALLEL:
 

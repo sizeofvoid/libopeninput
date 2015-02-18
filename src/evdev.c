@@ -1356,16 +1356,23 @@ evdev_device_get_udev_tags(struct evdev_device *device,
 {
 	const char *prop;
 	enum evdev_device_udev_tags tags = 0;
-	const struct evdev_udev_tag_match *match = evdev_udev_tag_matches;
+	const struct evdev_udev_tag_match *match;
+	int i;
 
-	while (match->name) {
-		prop = udev_device_get_property_value(device->udev_device,
+	for (i = 0; i < 2 && udev_device; i++) {
+		match = evdev_udev_tag_matches;
+		while (match->name) {
+			prop = udev_device_get_property_value(
+						      udev_device,
 						      match->name);
-		if (prop)
-			tags |= match->tag;
+			if (prop)
+				tags |= match->tag;
 
-		match++;
+			match++;
+		}
+		udev_device = udev_device_get_parent(udev_device);
 	}
+
 	return tags;
 }
 
@@ -1393,7 +1400,7 @@ evdev_configure_device(struct evdev_device *device)
 	}
 
 	log_info(libinput,
-		 "input device '%s', %s is tagged by udev as:%s%s%s%s%s%s\n",
+		 "input device '%s', %s is tagged by udev as:%s%s%s%s%s%s%s\n",
 		 device->devname, devnode,
 		 udev_tags & EVDEV_UDEV_TAG_KEYBOARD ? " Keyboard" : "",
 		 udev_tags & EVDEV_UDEV_TAG_MOUSE ? " Mouse" : "",
@@ -1592,6 +1599,42 @@ out:
 	return rc;
 }
 
+static int
+evdev_set_device_group(struct evdev_device *device,
+		       struct udev_device *udev_device)
+{
+	struct libinput_device_group *group = NULL;
+	const char *udev_group;
+
+	udev_group = udev_device_get_property_value(udev_device,
+						    "LIBINPUT_DEVICE_GROUP");
+	if (udev_group) {
+		struct libinput_device *d;
+
+		list_for_each(d, &device->base.seat->devices_list, link) {
+			const char *identifier = d->group->identifier;
+
+			if (identifier &&
+			    strcmp(identifier, udev_group) == 0) {
+				group = d->group;
+				break;
+			}
+		}
+	}
+
+	if (!group) {
+		group = libinput_device_group_create(udev_group);
+		if (!group)
+			return 1;
+		libinput_device_set_device_group(&device->base, group);
+		libinput_device_group_unref(group);
+	} else {
+		libinput_device_set_device_group(&device->base, group);
+	}
+
+	return 0;
+}
+
 struct evdev_device *
 evdev_device_create(struct libinput_seat *seat,
 		    struct udev_device *udev_device)
@@ -1602,7 +1645,6 @@ evdev_device_create(struct libinput_seat *seat,
 	int fd;
 	int unhandled_device = 0;
 	const char *devnode = udev_device_get_devnode(udev_device);
-	struct libinput_device_group *group;
 
 	/* Use non-blocking mode so that we can loop on read on
 	 * evdev_device_data() until all events on the fd are
@@ -1673,11 +1715,8 @@ evdev_device_create(struct libinput_seat *seat,
 	if (!device->source)
 		goto err;
 
-	group = libinput_device_group_create();
-	if (!group)
+	if (evdev_set_device_group(device, udev_device))
 		goto err;
-	libinput_device_set_device_group(&device->base, group);
-	libinput_device_group_unref(group);
 
 	list_insert(seat->devices_list.prev, &device->base.link);
 
