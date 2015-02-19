@@ -318,7 +318,6 @@ START_TEST(motion)
 		ck_assert_int_eq(libinput_event_get_type(event),
 				 LIBINPUT_EVENT_TABLET_PROXIMITY);
 
-
 		x_changed = libinput_event_tablet_axis_has_changed(
 		    tablet_event, LIBINPUT_TABLET_AXIS_X);
 		y_changed = libinput_event_tablet_axis_has_changed(
@@ -886,7 +885,6 @@ START_TEST(tool_ref)
 	libinput_event_destroy(event);
 }
 END_TEST
-
 
 START_TEST(pad_buttons_ignored)
 {
