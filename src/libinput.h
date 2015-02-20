@@ -91,7 +91,6 @@ enum libinput_button_state {
 	LIBINPUT_BUTTON_STATE_PRESSED = 1
 };
 
-
 /**
  * @ingroup device
  *
@@ -2782,7 +2781,6 @@ libinput_device_config_click_get_method(struct libinput_device *device);
  */
 enum libinput_config_click_method
 libinput_device_config_click_get_default_method(struct libinput_device *device);
-
 
 /**
  * @ingroup config
