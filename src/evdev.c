@@ -803,6 +803,7 @@ struct evdev_dispatch_interface fallback_interface = {
 	NULL, /* device_suspended */
 	NULL, /* device_resumed */
 	fallback_tag_device,
+	NULL, /* post_added */
 };
 
 static uint32_t
@@ -1592,6 +1593,10 @@ evdev_notify_added_device(struct evdev_device *device)
 	}
 
 	notify_added_device(&device->base);
+
+	if (device->dispatch->interface->post_added)
+		device->dispatch->interface->post_added(device,
+							device->dispatch);
 }
 
 static int

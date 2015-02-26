@@ -190,7 +190,7 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 		tablet_set_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 	}
-	else
+	else if (!tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))
 		tablet_set_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
 }
 
@@ -868,6 +868,9 @@ tablet_flush(struct tablet_dispatch *tablet,
 				tablet->current_tool_id,
 				tablet->current_tool_serial);
 
+	if (tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))
+		return;
+
 	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
 		/* Release all stylus buttons */
 		memset(tablet->button_state.stylus_buttons,
@@ -915,7 +918,11 @@ tablet_flush(struct tablet_dispatch *tablet,
 
 		tablet_change_to_left_handed(device);
 	}
+}
 
+static inline void
+tablet_reset_state(struct tablet_dispatch *tablet)
+{
 	/* Update state */
 	memcpy(&tablet->prev_button_state,
 	       &tablet->button_state,
@@ -946,6 +953,7 @@ tablet_process(struct evdev_dispatch *dispatch,
 		break;
 	case EV_SYN:
 		tablet_flush(tablet, device, time);
+		tablet_reset_state(tablet);
 		break;
 	default:
 		log_error(device->base.seat->libinput,
@@ -970,6 +978,47 @@ tablet_destroy(struct evdev_dispatch *dispatch)
 	free(tablet);
 }
 
+static void
+tablet_check_initial_proximity(struct evdev_device *device,
+			       struct evdev_dispatch *dispatch)
+{
+	bool tool_in_prox = false;
+	int code, state;
+	enum libinput_tool_type tool;
+	struct tablet_dispatch *tablet = (struct tablet_dispatch*)dispatch;
+
+	for (tool = LIBINPUT_TOOL_PEN; tool <= LIBINPUT_TOOL_MAX; tool++) {
+		code = tablet_tool_to_evcode(tool);
+
+		/* we only expect one tool to be in proximity at a time */
+		if (libevdev_fetch_event_value(device->evdev,
+						EV_KEY,
+						code,
+						&state) && state) {
+			tool_in_prox = true;
+			break;
+		}
+	}
+
+	if (!tool_in_prox)
+		return;
+
+	tablet_update_tool(tablet, device, tool, state);
+
+	tablet->current_tool_id =
+		libevdev_get_event_value(device->evdev,
+					 EV_ABS,
+					 ABS_MISC);
+	tablet->current_tool_serial =
+		libevdev_get_event_value(device->evdev,
+					 EV_MSC,
+					 MSC_SERIAL);
+
+	tablet_flush(tablet,
+		     device,
+		     libinput_now(device->base.seat->libinput));
+}
+
 static struct evdev_dispatch_interface tablet_interface = {
 	tablet_process,
 	NULL, /* remove */
@@ -979,6 +1028,7 @@ static struct evdev_dispatch_interface tablet_interface = {
 	NULL, /* device_suspended */
 	NULL, /* device_resumed */
 	NULL, /* tag_device */
+	tablet_check_initial_proximity,
 };
 
 static int

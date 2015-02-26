@@ -897,6 +897,7 @@ static struct evdev_dispatch_interface tp_interface = {
 	tp_device_removed, /* device_suspended, treat as remove */
 	tp_device_added,   /* device_resumed, treat as add */
 	tp_tag_device,
+	NULL,              /* post_added */
 };
 
 static void

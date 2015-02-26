@@ -196,6 +196,11 @@ struct evdev_dispatch_interface {
 	/* Tag device with one of EVDEV_TAG */
 	void (*tag_device)(struct evdev_device *device,
 			   struct udev_device *udev_device);
+
+	/* Called immediately after the LIBINPUT_EVENT_DEVICE_ADDED event
+	 * was sent */
+	void (*post_added)(struct evdev_device *device,
+			   struct evdev_dispatch *dispatch);
 };
 
 struct evdev_dispatch {

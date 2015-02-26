@@ -28,6 +28,7 @@
 
 #define LIBINPUT_TABLET_AXIS_NONE 0
 #define LIBINPUT_TOOL_NONE 0
+#define LIBINPUT_TOOL_MAX LIBINPUT_TOOL_LENS
 
 enum tablet_status {
 	TABLET_NONE = 0,
@@ -156,4 +157,24 @@ axis_to_evcode(const enum libinput_tablet_axis axis)
 	return evcode;
 }
 
+static inline int
+tablet_tool_to_evcode(enum libinput_tool_type type)
+{
+	int code;
+
+	switch (type) {
+	case LIBINPUT_TOOL_PEN:		code = BTN_TOOL_PEN;		break;
+	case LIBINPUT_TOOL_ERASER:	code = BTN_TOOL_RUBBER;		break;
+	case LIBINPUT_TOOL_BRUSH:	code = BTN_TOOL_BRUSH;		break;
+	case LIBINPUT_TOOL_PENCIL:	code = BTN_TOOL_PENCIL;		break;
+	case LIBINPUT_TOOL_AIRBRUSH:	code = BTN_TOOL_AIRBRUSH;	break;
+	case LIBINPUT_TOOL_FINGER:	code = BTN_TOOL_FINGER;		break;
+	case LIBINPUT_TOOL_MOUSE:	code = BTN_TOOL_MOUSE;		break;
+	case LIBINPUT_TOOL_LENS:	code = BTN_TOOL_LENS;		break;
+	default:
+		abort();
+	}
+
+	return code;
+}
 #endif
