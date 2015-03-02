@@ -639,6 +639,7 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 		break;
 	case WSTYLUS_PUCK:
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_ROTATION_Z);
+		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_DISTANCE);
 		/* lens cursors don't have a wheel */
 		if (!libwacom_stylus_has_lens(s))
 			copy_axis_cap(tablet,
