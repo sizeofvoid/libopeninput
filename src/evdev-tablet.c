@@ -517,6 +517,7 @@ tablet_process_relative(struct tablet_dispatch *tablet,
 			uint32_t time)
 {
 	enum libinput_tablet_axis axis;
+
 	switch (e->code) {
 	case REL_WHEEL:
 		axis = rel_evcode_to_axis(e->code);
