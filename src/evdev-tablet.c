@@ -587,14 +587,18 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 	int rc = 1;
 
 #if HAVE_LIBWACOM
+	struct libinput *libinput = tablet->device->base.seat->libinput;
 	WacomDeviceDatabase *db;
 	const WacomStylus *s = NULL;
 	int code;
 	WacomStylusType type;
 
 	db = libwacom_database_new();
-	if (!db)
+	if (!db) {
+		log_info(libinput,
+			 "Failed to initialize libwacom context.\n");
 		goto out;
+	}
 	s = libwacom_stylus_get_for_id(db, tool->tool_id);
 	if (!s)
 		goto out;
@@ -1017,8 +1021,11 @@ tablet_init_left_handed(struct evdev_device *device)
 	pid = evdev_device_get_id_product(device);
 
 	db = libwacom_database_new();
-	if (!db)
+	if (!db) {
+		log_info(libinput,
+			 "Failed to initialize libwacom context.\n");
 		return;
+	}
 	error = libwacom_error_new();
 	d = libwacom_new_from_usbid(db, vid, pid, error);
 
