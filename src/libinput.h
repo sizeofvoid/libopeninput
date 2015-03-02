@@ -162,7 +162,7 @@ struct libinput_tool;
  * LIBINPUT_DEVICE_CAP_TABLET capability. The tool type defines the default
  * usage of the tool as advertised by the manufacturer. Multiple different
  * physical tools may share the same tool type, e.g. a Wacom Classic Pen,
- * Wacom Pro Pen and a Wacom Grip Pen are all of type LIBINPUT_TOOL_PEN.
+ * Wacom Pro Pen and a Wacom Grip Pen are all of type @ref LIBINPUT_TOOL_PEN.
  * Use libinput_tool_get_tool_id() to get a specific model where applicable.
  *
  * Note that on some device, the eraser tool is on the tail end of a pen
