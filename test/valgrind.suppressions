@@ -8,6 +8,12 @@
    fun:main
 }
 {
+   mtdev:conditional_jumps_uninitialized_value
+   Memcheck:Cond
+   ...
+   fun:mtdev_put_event
+}
+{
    <g_type_register_static>
    Memcheck:Leak
    ...

@@ -100,6 +100,7 @@ extern struct litest_test_device litest_xen_virtual_pointer_device;
 extern struct litest_test_device litest_vmware_virtmouse_device;
 extern struct litest_test_device litest_synaptics_hover_device;
 extern struct litest_test_device litest_synaptics_carbon3rd_device;
+extern struct litest_test_device litest_protocol_a_screen;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -121,6 +122,7 @@ struct litest_test_device* devices[] = {
 	&litest_vmware_virtmouse_device,
 	&litest_synaptics_hover_device,
 	&litest_synaptics_carbon3rd_device,
+	&litest_protocol_a_screen,
 	NULL,
 };
 
@@ -1505,6 +1507,12 @@ void
 litest_timeout_buttonscroll(void)
 {
 	msleep(300);
+}
+
+void
+litest_timeout_finger_switch(void)
+{
+	msleep(120);
 }
 
 void

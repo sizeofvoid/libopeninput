@@ -48,8 +48,7 @@ enum libinput_log_priority {
  * @ingroup device
  *
  * Capabilities on a device. A device may have one or more capabilities
- * at a time, and capabilities may appear or disappear during the
- * lifetime of the device.
+ * at a time, capabilities remain static for the lifetime of the device.
  */
 enum libinput_device_capability {
 	LIBINPUT_DEVICE_CAP_KEYBOARD = 0,
@@ -94,7 +93,8 @@ enum libinput_button_state {
 /**
  * @ingroup device
  *
- * Axes on a device that are not x or y coordinates.
+ * Axes on a device with the capability @ref LIBINPUT_DEVICE_CAP_POINTER
+ * that are not x or y coordinates.
  *
  * The two scroll axes @ref LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL and
  * @ref LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL are engaged separately,
@@ -411,9 +411,9 @@ libinput_event_get_context(struct libinput_event *event);
 /**
  * @ingroup event
  *
- * Return the device associated with this event, if applicable. For device
- * added/removed events this is the device added or removed. For all other
- * device events, this is the device that generated the event.
+ * Return the device associated with this event. For device added/removed
+ * events this is the device added or removed. For all other device events,
+ * this is the device that generated the event.
  *
  * This device is not refcounted and its lifetime is that of the event. Use
  * libinput_device_ref() before using the device outside of this scope.
@@ -544,10 +544,10 @@ libinput_event_keyboard_get_base_event(struct libinput_event_keyboard *event);
  * of keys pressed on all devices on the associated seat after the event was
  * triggered.
  *
- " @note It is an application bug to call this function for events other than
+ * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_KEYBOARD_KEY. For other events, this function returns 0.
  *
- * @return the seat wide pressed key count for the key of this event
+ * @return The seat wide pressed key count for the key of this event
  */
 uint32_t
 libinput_event_keyboard_get_seat_key_count(
@@ -584,7 +584,7 @@ libinput_event_pointer_get_time(struct libinput_event_pointer *event);
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_MOTION.
  *
- * @return the relative x movement since the last event
+ * @return The relative x movement since the last event
  */
 double
 libinput_event_pointer_get_dx(struct libinput_event_pointer *event);
@@ -605,7 +605,7 @@ libinput_event_pointer_get_dx(struct libinput_event_pointer *event);
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_MOTION.
  *
- * @return the relative y movement since the last event
+ * @return The relative y movement since the last event
  */
 double
 libinput_event_pointer_get_dy(struct libinput_event_pointer *event);
@@ -625,7 +625,7 @@ libinput_event_pointer_get_dy(struct libinput_event_pointer *event);
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_MOTION.
  *
- * @return the unaccelerated relative x movement since the last event
+ * @return The unaccelerated relative x movement since the last event
  */
 double
 libinput_event_pointer_get_dx_unaccelerated(
@@ -646,7 +646,7 @@ libinput_event_pointer_get_dx_unaccelerated(
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_MOTION.
  *
- * @return the unaccelerated relative y movement since the last event
+ * @return The unaccelerated relative y movement since the last event
  */
 double
 libinput_event_pointer_get_dy_unaccelerated(
@@ -665,7 +665,7 @@ libinput_event_pointer_get_dy_unaccelerated(
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE.
  *
- * @return the current absolute x coordinate
+ * @return The current absolute x coordinate
  */
 double
 libinput_event_pointer_get_absolute_x(struct libinput_event_pointer *event);
@@ -683,7 +683,7 @@ libinput_event_pointer_get_absolute_x(struct libinput_event_pointer *event);
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE.
  *
- * @return the current absolute y coordinate
+ * @return The current absolute y coordinate
  */
 double
 libinput_event_pointer_get_absolute_y(struct libinput_event_pointer *event);
@@ -703,7 +703,7 @@ libinput_event_pointer_get_absolute_y(struct libinput_event_pointer *event);
  *
  * @param event The libinput pointer event
  * @param width The current output screen width
- * @return the current absolute x coordinate transformed to a screen coordinate
+ * @return The current absolute x coordinate transformed to a screen coordinate
  */
 double
 libinput_event_pointer_get_absolute_x_transformed(
@@ -725,7 +725,7 @@ libinput_event_pointer_get_absolute_x_transformed(
  *
  * @param event The libinput pointer event
  * @param height The current output screen height
- * @return the current absolute y coordinate transformed to a screen coordinate
+ * @return The current absolute y coordinate transformed to a screen coordinate
  */
 double
 libinput_event_pointer_get_absolute_y_transformed(
@@ -742,7 +742,7 @@ libinput_event_pointer_get_absolute_y_transformed(
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_BUTTON.
  *
- * @return the button triggering this event
+ * @return The button triggering this event
  */
 uint32_t
 libinput_event_pointer_get_button(struct libinput_event_pointer *event);
@@ -757,7 +757,7 @@ libinput_event_pointer_get_button(struct libinput_event_pointer *event);
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_BUTTON.
  *
- * @return the button state triggering this event
+ * @return The button state triggering this event
  */
 enum libinput_button_state
 libinput_event_pointer_get_button_state(struct libinput_event_pointer *event);
@@ -769,11 +769,11 @@ libinput_event_pointer_get_button_state(struct libinput_event_pointer *event);
  * total number of buttons pressed on all devices on the associated seat
  * after the event was triggered.
  *
- " @note It is an application bug to call this function for events other than
+ * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_BUTTON. For other events, this function
  * returns 0.
  *
- * @return the seat wide pressed button count for the key of this event
+ * @return The seat wide pressed button count for the key of this event
  */
 uint32_t
 libinput_event_pointer_get_seat_button_count(
@@ -788,7 +788,7 @@ libinput_event_pointer_get_seat_button_count(
  * libinput_event_pointer_get_axis_value() returns a value of 0, the event
  * is a scroll stop event.
  *
- * @return non-zero if this event contains a value for this axis
+ * @return Non-zero if this event contains a value for this axis
  */
 int
 libinput_event_pointer_has_axis(struct libinput_event_pointer *event,
@@ -814,7 +814,7 @@ libinput_event_pointer_has_axis(struct libinput_event_pointer *event,
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_AXIS.
  *
- * @return the axis value of this event
+ * @return The axis value of this event
  *
  * @see libinput_event_pointer_get_axis_value_discrete
  */
@@ -855,7 +855,7 @@ libinput_event_pointer_get_axis_value(struct libinput_event_pointer *event,
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_AXIS.
  *
- * @return the source for this axis event
+ * @return The source for this axis event
  */
 enum libinput_pointer_axis_source
 libinput_event_pointer_get_axis_source(struct libinput_event_pointer *event);
@@ -867,7 +867,7 @@ libinput_event_pointer_get_axis_source(struct libinput_event_pointer *event);
  * value translates into a discrete step depends on the source.
  *
  * If the source is @ref LIBINPUT_POINTER_AXIS_SOURCE_WHEEL, the discrete
- * value correspond to the number of physical mouse clicks.
+ * value correspond to the number of physical mouse wheel clicks.
  *
  * If the source is @ref LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS or @ref
  * LIBINPUT_POINTER_AXIS_SOURCE_FINGER, the discrete value is always 0.
@@ -947,7 +947,7 @@ libinput_event_touch_get_seat_slot(struct libinput_event_touch *event);
  * LIBINPUT_EVENT_TOUCH_DOWN and @ref LIBINPUT_EVENT_TOUCH_MOTION.
  *
  * @param event The libinput touch event
- * @return the current absolute x coordinate
+ * @return The current absolute x coordinate
  */
 double
 libinput_event_touch_get_x(struct libinput_event_touch *event);
@@ -965,7 +965,7 @@ libinput_event_touch_get_x(struct libinput_event_touch *event);
  * @ref LIBINPUT_EVENT_TOUCH_MOTION.
  *
  * @param event The libinput touch event
- * @return the current absolute y coordinate
+ * @return The current absolute y coordinate
  */
 double
 libinput_event_touch_get_y(struct libinput_event_touch *event);
@@ -981,7 +981,7 @@ libinput_event_touch_get_y(struct libinput_event_touch *event);
  *
  * @param event The libinput touch event
  * @param width The current output screen width
- * @return the current absolute x coordinate transformed to a screen coordinate
+ * @return The current absolute x coordinate transformed to a screen coordinate
  */
 double
 libinput_event_touch_get_x_transformed(struct libinput_event_touch *event,
@@ -998,7 +998,7 @@ libinput_event_touch_get_x_transformed(struct libinput_event_touch *event,
  *
  * @param event The libinput touch event
  * @param height The current output screen height
- * @return the current absolute y coordinate transformed to a screen coordinate
+ * @return The current absolute y coordinate transformed to a screen coordinate
  */
 double
 libinput_event_touch_get_y_transformed(struct libinput_event_touch *event,
@@ -1390,7 +1390,7 @@ struct libinput_interface {
 	 * @param user_data The user_data provided in
 	 * libinput_udev_create_context()
 	 *
-	 * @return the file descriptor, or a negative errno on failure.
+	 * @return The file descriptor, or a negative errno on failure.
 	 */
 	int (*open_restricted)(const char *path, int flags, void *user_data);
 	/**
@@ -1520,7 +1520,7 @@ libinput_path_remove_device(struct libinput_device *device);
  * libinput keeps a single file descriptor for all events. Call into
  * libinput_dispatch() if any events become available on this fd.
  *
- * @return the file descriptor used to notify of pending events.
+ * @return The file descriptor used to notify of pending events.
  */
 int
 libinput_get_fd(struct libinput *libinput);
@@ -1532,7 +1532,11 @@ libinput_get_fd(struct libinput *libinput);
  * and processes them internally. Use libinput_get_event() to retrieve the
  * events.
  *
- * Dispatching does not necessarily queue libinput events.
+ * Dispatching does not necessarily queue libinput events. This function
+ * should be called immediately once data is available on the file
+ * descriptor returned by libinput_get_fd(). libinput has a number of
+ * timing-sensitive features (e.g. tap-to-click), any delay in calling
+ * libinput_dispatch() may prevent these features from working correctly.
  *
  * @param libinput A previously initialized libinput context
  *
@@ -1563,14 +1567,18 @@ libinput_get_event(struct libinput *libinput);
  * libinput_get_event() returns that event.
  *
  * @param libinput A previously initialized libinput context
- * @return The event type of the next available event or LIBINPUT_EVENT_NONE
- * if no event is availble.
+ * @return The event type of the next available event or @ref
+ * LIBINPUT_EVENT_NONE if no event is availble.
  */
 enum libinput_event_type
 libinput_next_event_type(struct libinput *libinput);
 
 /**
  * @ingroup base
+ *
+ * Set caller-specific data associated with this context. libinput does
+ * not manage, look at, or modify this data. The caller must ensure the
+ * data is valid.
  *
  * @param libinput A previously initialized libinput context
  * @param user_data Caller-specific data passed to the various callback
@@ -1583,8 +1591,10 @@ libinput_set_user_data(struct libinput *libinput,
 /**
  * @ingroup base
  *
+ * Get the caller-specific data associated with this context, if any.
+ *
  * @param libinput A previously initialized libinput context
- * @return the caller-specific data previously assigned in
+ * @return The caller-specific data previously assigned in
  * libinput_create_udev().
  */
 void *
@@ -1644,10 +1654,11 @@ libinput_unref(struct libinput *libinput);
 /**
  * @ingroup base
  *
- * Set the global log priority. Messages with priorities equal to or
- * higher than the argument will be printed to the current log handler.
+ * Set the log priority for the libinput context. Messages with priorities
+ * equal to or higher than the argument will be printed to the context's
+ * log handler.
  *
- * The default log priority is LIBINPUT_LOG_PRIORITY_ERROR.
+ * The default log priority is @ref LIBINPUT_LOG_PRIORITY_ERROR.
  *
  * @param libinput A previously initialized libinput context
  * @param priority The minimum priority of log messages to print.
@@ -1662,10 +1673,10 @@ libinput_log_set_priority(struct libinput *libinput,
 /**
  * @ingroup base
  *
- * Get the global log priority. Messages with priorities equal to or
+ * Get the context's log priority. Messages with priorities equal to or
  * higher than the argument will be printed to the current log handler.
  *
- * The default log priority is LIBINPUT_LOG_PRIORITY_ERROR.
+ * The default log priority is @ref LIBINPUT_LOG_PRIORITY_ERROR.
  *
  * @param libinput A previously initialized libinput context
  * @return The minimum priority of log messages to print.
@@ -1698,8 +1709,8 @@ typedef void (*libinput_log_handler)(struct libinput *libinput,
 /**
  * @ingroup base
  *
- * Set the global log handler. Messages with priorities equal to or higher
- * than the current log priority will be passed to the given
+ * Set the context's log handler. Messages with priorities equal to or
+ * higher than the context's log priority will be passed to the given
  * log handler.
  *
  * The default log handler prints to stderr.
@@ -1727,7 +1738,7 @@ libinput_log_set_handler(struct libinput *libinput,
  * @ingroup seat
  *
  * Increase the refcount of the seat. A seat will be freed whenever the
- * refcount reaches 0. This may happen during dispatch if the
+ * refcount reaches 0. This may happen during libinput_dispatch() if the
  * seat was removed from the system. A caller must ensure to reference
  * the seat correctly to avoid dangling pointers.
  *
@@ -1741,7 +1752,7 @@ libinput_seat_ref(struct libinput_seat *seat);
  * @ingroup seat
  *
  * Decrease the refcount of the seat. A seat will be freed whenever the
- * refcount reaches 0. This may happen during dispatch if the
+ * refcount reaches 0. This may happen during libinput_dispatch() if the
  * seat was removed from the system. A caller must ensure to reference
  * the seat correctly to avoid dangling pointers.
  *
@@ -1802,7 +1813,7 @@ libinput_seat_get_context(struct libinput_seat *seat);
  * be available to the caller.
  *
  * @param seat A previously obtained seat
- * @return the physical name of this seat
+ * @return The physical name of this seat
  */
 const char *
 libinput_seat_get_physical_name(struct libinput_seat *seat);
@@ -1814,7 +1825,7 @@ libinput_seat_get_physical_name(struct libinput_seat *seat);
  * of devices within the compositor.
  *
  * @param seat A previously obtained seat
- * @return the logical name of this seat
+ * @return The logical name of this seat
  */
 const char *
 libinput_seat_get_logical_name(struct libinput_seat *seat);
@@ -1827,9 +1838,9 @@ libinput_seat_get_logical_name(struct libinput_seat *seat);
  * @ingroup device
  *
  * Increase the refcount of the input device. An input device will be freed
- * whenever the refcount reaches 0. This may happen during dispatch if the
- * device was removed from the system. A caller must ensure to reference
- * the device correctly to avoid dangling pointers.
+ * whenever the refcount reaches 0. This may happen during
+ * libinput_dispatch() if the device was removed from the system. A caller
+ * must ensure to reference the device correctly to avoid dangling pointers.
  *
  * @param device A previously obtained device
  * @return The passed device
@@ -1841,9 +1852,9 @@ libinput_device_ref(struct libinput_device *device);
  * @ingroup device
  *
  * Decrease the refcount of the input device. An input device will be freed
- * whenever the refcount reaches 0. This may happen during dispatch if the
- * device was removed from the system. A caller must ensure to reference
- * the device correctly to avoid dangling pointers.
+ * whenever the refcount reaches 0. This may happen during libinput_dispatch
+ * if the device was removed from the system. A caller must ensure to
+ * reference the device correctly to avoid dangling pointers.
  *
  * @param device A previously obtained device
  * @return NULL if the device was destroyed, otherwise the passed device
@@ -2011,7 +2022,7 @@ libinput_device_get_id_vendor(struct libinput_device *device);
  * beyond the boundaries of this output. An absolute device has its input
  * coordinates mapped to the extents of this output.
  *
- * @return the name of the output this device is mapped to, or NULL if no
+ * @return The name of the output this device is mapped to, or NULL if no
  * output is set
  */
 const char *
@@ -2020,7 +2031,8 @@ libinput_device_get_output_name(struct libinput_device *device);
 /**
  * @ingroup device
  *
- * Get the seat associated with this input device.
+ * Get the seat associated with this input device, see @ref seats for
+ * details.
  *
  * A seat can be uniquely identified by the physical and logical seat name.
  * There will ever be only one seat instance with a given physical and logical
@@ -2040,10 +2052,13 @@ libinput_device_get_seat(struct libinput_device *device);
  * device and adding it to the new seat.
  *
  * This command is identical to physically unplugging the device, then
- * re-plugging it as member of the new seat,
- * @ref LIBINPUT_EVENT_DEVICE_REMOVED and @ref LIBINPUT_EVENT_DEVICE_ADDED
- * events are sent accordingly. Those events mark the end of the lifetime
- * of this device and the start of a new device.
+ * re-plugging it as member of the new seat. libinput will generate a
+ * @ref LIBINPUT_EVENT_DEVICE_REMOVED event and this @ref libinput_device is
+ * considered removed from the context; it will not generate further events
+ * and will be freed when the refcount reaches zero.
+ * A @ref LIBINPUT_EVENT_DEVICE_ADDED event is generated with a new @ref
+ * libinput_device handle. It is the caller's responsibility to update
+ * references to the new device accordingly.
  *
  * If the logical seat name already exists in the device's physical seat,
  * the device is added to this seat. Otherwise, a new seat is created.
@@ -2064,7 +2079,9 @@ libinput_device_set_seat_logical_name(struct libinput_device *device,
  *
  * Return a udev handle to the device that is this libinput device, if any.
  * The returned handle has a refcount of at least 1, the caller must call
- * udev_device_unref() once to release the associated resources.
+ * <i>udev_device_unref()</i> once to release the associated resources.
+ * See the [libudev documentation]
+ * (http://www.freedesktop.org/software/systemd/libudev/) for details.
  *
  * Some devices may not have a udev device, or the udev device may be
  * unobtainable. This function returns NULL if no udev device was available.
@@ -2098,7 +2115,7 @@ libinput_device_led_update(struct libinput_device *device,
  *
  * Check if the given device has the specified capability
  *
- * @return 1 if the given device has the capability or 0 if not
+ * @return Non-zero if the given device has the capability or zero otherwise
  */
 int
 libinput_device_has_capability(struct libinput_device *device,
@@ -2127,10 +2144,10 @@ libinput_device_get_size(struct libinput_device *device,
  * @ingroup device
  *
  * Check if a @ref LIBINPUT_DEVICE_CAP_POINTER device has a button with the
- * passed in code (see linux/input.h).
+ * given code (see linux/input.h).
  *
  * @param device A current input device
- * @param code button code to check for
+ * @param code Button code to check for, e.g. <i>BTN_LEFT</i>
  *
  * @return 1 if the device supports this button code, 0 if it does not, -1
  * on error.
@@ -2150,9 +2167,10 @@ libinput_device_has_button(struct libinput_device *device, uint32_t code) LIBINP
  * @ingroup device
  *
  * Increase the refcount of the device group. A device group will be freed
- * whenever the refcount reaches 0. This may happen during dispatch if all
- * devices of this group were removed from the system. A caller must ensure
- * to reference the device group correctly to avoid dangling pointers.
+ * whenever the refcount reaches 0. This may happen during
+ * libinput_dispatch() if all devices of this group were removed from the
+ * system. A caller must ensure to reference the device group correctly to
+ * avoid dangling pointers.
  *
  * @param group A previously obtained device group
  * @return The passed device group
@@ -2164,9 +2182,10 @@ libinput_device_group_ref(struct libinput_device_group *group);
  * @ingroup device
  *
  * Decrease the refcount of the device group. A device group will be freed
- * whenever the refcount reaches 0. This may happen during dispatch if all
- * devices of this group were removed from the system. A caller must ensure
- * to reference the device group correctly to avoid dangling pointers.
+ * whenever the refcount reaches 0. This may happen during
+ * libinput_dispatch() if all devices of this group were removed from the
+ * system. A caller must ensure to reference the device group correctly to
+ * avoid dangling pointers.
  *
  * @param group A previously obtained device group
  * @return NULL if the device group was destroyed, otherwise the passed
@@ -2213,7 +2232,7 @@ libinput_device_group_get_user_data(struct libinput_device_group *group);
  *
  * Some configuration option may be dependent on or mutually exclusive with
  * with other options. The behavior in those cases is
- * implementation-defined, the caller must ensure that the options are set
+ * implementation-dependent, the caller must ensure that the options are set
  * in the right order.
  */
 
@@ -2254,7 +2273,8 @@ enum libinput_config_tap_state {
 /**
  * @ingroup config
  *
- * Check if the device supports tap-to-click. See
+ * Check if the device supports tap-to-click and how many fingers can be
+ * used for tapping. See
  * libinput_device_config_tap_set_enabled() for more information.
  *
  * @param device The device to configure
@@ -2300,8 +2320,8 @@ libinput_device_config_tap_set_enabled(struct libinput_device *device,
  *
  * @param device The device to configure
  *
- * @return @ref LIBINPUT_CONFIG_TAP_ENABLED if tapping is currently enabled,
- * or @ref LIBINPUT_CONFIG_TAP_DISABLED is currently disabled
+ * @retval LIBINPUT_CONFIG_TAP_ENABLED If tapping is currently enabled
+ * @retval LIBINPUT_CONFIG_TAP_DISABLED If tapping is currently disabled
  *
  * @see libinput_device_config_tap_get_finger_count
  * @see libinput_device_config_tap_set_enabled
@@ -2313,11 +2333,12 @@ libinput_device_config_tap_get_enabled(struct libinput_device *device);
 /**
  * @ingroup config
  *
- * Return the default setting for whether tapping is enabled on this device.
+ * Return the default setting for whether tap-to-click is enabled on this
+ * device.
  *
  * @param device The device to configure
- * @return @ref LIBINPUT_CONFIG_TAP_ENABLED if tapping is enabled by default,
- * or @ref LIBINPUT_CONFIG_TAP_DISABLED is disabled by default
+ * @retval LIBINPUT_CONFIG_TAP_ENABLED If tapping is enabled by default
+ * @retval LIBINPUT_CONFIG_TAP_DISABLED If tapping Is disabled by default
  *
  * @see libinput_device_config_tap_get_finger_count
  * @see libinput_device_config_tap_set_enabled
@@ -2332,7 +2353,7 @@ libinput_device_config_tap_get_default_enabled(struct libinput_device *device);
  * Check if the device can be calibrated via a calibration matrix.
  *
  * @param device The device to check
- * @return non-zero if the device can be calibrated, zero otherwise.
+ * @return Non-zero if the device can be calibrated, zero otherwise.
  *
  * @see libinput_device_config_calibration_set_matrix
  * @see libinput_device_config_calibration_get_matrix
@@ -2420,21 +2441,7 @@ libinput_device_config_calibration_get_matrix(struct libinput_device *device,
  * Return the default calibration matrix for this device. On most devices,
  * this is the identity matrix. If the udev property
  * <b>LIBINPUT_CALIBRATION_MATRIX</b> is set on the respective udev device,
- * that property's value becomes the default matrix.
- *
- * The udev property is parsed as 6 floating point numbers separated by a
- * single space each (scanf(3) format "%f %f %f %f %f %f").
- * The 6 values represent the first two rows of the calibration matrix as
- * described in libinput_device_config_calibration_set_matrix().
- *
- * Example values are:
- * @code
- * ENV{LIBINPUT_CALIBRATION_MATRIX}="1 0 0 0 1 0" # default
- * ENV{LIBINPUT_CALIBRATION_MATRIX}="0 -1 1 1 0 0" # 90 degree clockwise
- * ENV{LIBINPUT_CALIBRATION_MATRIX}="-1 0 1 0 -1 1" # 180 degree clockwise
- * ENV{LIBINPUT_CALIBRATION_MATRIX}="0 1 0 -1 0 1" # 270 degree clockwise
- * ENV{LIBINPUT_CALIBRATION_MATRIX}="-1 0 1 1 0 0" # reflect along y axis
- * @endcode
+ * that property's value becomes the default matrix, see @ref udev_config.
  *
  * @param device The device to configure
  * @param matrix Set to the array representing the first two rows of a 3x3 matrix as
@@ -2652,7 +2659,7 @@ libinput_device_config_accel_get_default_speed(struct libinput_device *device);
  *
  * @param device The device to configure
  *
- * @return 0 if natural scrolling is not supported, non-zero if natural
+ * @return Zero if natural scrolling is not supported, non-zero if natural
  * scrolling is supported by this device
  *
  * @see libinput_device_config_set_natural_scroll_enabled
@@ -2670,7 +2677,7 @@ libinput_device_config_scroll_has_natural_scroll(struct libinput_device *device)
  * @param device The device to configure
  * @param enable non-zero to enable, zero to disable natural scrolling
  *
- * @return a config status code
+ * @return A config status code
  *
  * @see libinput_device_config_has_natural_scroll
  * @see libinput_device_config_get_natural_scroll_enabled
@@ -2686,7 +2693,7 @@ libinput_device_config_scroll_set_natural_scroll_enabled(struct libinput_device 
  *
  * @param device The device to configure
  *
- * @return zero if natural scrolling is disabled, non-zero if enabled
+ * @return Zero if natural scrolling is disabled, non-zero if enabled
  *
  * @see libinput_device_config_has_natural_scroll
  * @see libinput_device_config_set_natural_scroll_enabled
@@ -2702,7 +2709,7 @@ libinput_device_config_scroll_get_natural_scroll_enabled(struct libinput_device 
  *
  * @param device The device to configure
  *
- * @return zero if natural scrolling is disabled by default, non-zero if enabled
+ * @return Zero if natural scrolling is disabled by default, non-zero if enabled
  *
  * @see libinput_device_config_has_natural_scroll
  * @see libinput_device_config_set_natural_scroll_enabled
@@ -2730,9 +2737,7 @@ libinput_device_config_left_handed_is_available(struct libinput_device *device);
 /**
  * @ingroup config
  *
- * Set the left-handed configuration of the device. For example, a pointing
- * device may reverse it's buttons and send a right button click when the
- * left button is pressed, and vice versa.
+ * Set the left-handed configuration of the device.
  *
  * The exact behavior is device-dependent. On a mouse and most pointing
  * devices, left and right buttons are swapped but the middle button is
@@ -2798,7 +2803,7 @@ libinput_device_config_left_handed_get_default(struct libinput_device *device);
 enum libinput_config_click_method {
 	/**
 	 * Do not send software-emulated button events. This has no effect
-	 * on physical button generations.
+	 * on events generated by physical buttons.
 	 */
 	LIBINPUT_CONFIG_CLICK_METHOD_NONE = 0,
 	/**
@@ -2898,15 +2903,16 @@ libinput_device_config_click_get_default_method(struct libinput_device *device);
 enum libinput_config_scroll_method {
 	/**
 	 * Never send scroll events instead of pointer motion events.
-	 * Note scroll wheels, etc. will still send scroll events.
+	 * This has no effect on events generated by scroll wheels.
 	 */
 	LIBINPUT_CONFIG_SCROLL_NO_SCROLL = 0,
 	/**
-	 * Send scroll events when 2 fingers are down on the device.
+	 * Send scroll events when two fingers are logically down on the
+	 * device.
 	 */
 	LIBINPUT_CONFIG_SCROLL_2FG = (1 << 0),
 	/**
-	 * Send scroll events when a finger is moved along the bottom or
+	 * Send scroll events when a finger moves along the bottom or
 	 * right edge of a device.
 	 */
 	LIBINPUT_CONFIG_SCROLL_EDGE = (1 << 1),
@@ -3024,10 +3030,11 @@ libinput_device_config_scroll_get_default_method(struct libinput_device *device)
  * @param device The device to configure
  * @param button The button which when pressed switches to sending scroll events
  *
- * @return a config status code
- * @retval LIBINPUT_CONFIG_STATUS_SUCCESS on success
- * @retval LIBINPUT_CONFIG_STATUS_UNSUPPORTED if @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN is not supported
- * @retval LIBINPUT_CONFIG_STATUS_INVALID the given button does not
+ * @return A config status code
+ * @retval LIBINPUT_CONFIG_STATUS_SUCCESS On success
+ * @retval LIBINPUT_CONFIG_STATUS_UNSUPPORTED If @ref
+ * LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN is not supported
+ * @retval LIBINPUT_CONFIG_STATUS_INVALID The given button does not
  * exist on this device
  *
  * @see libinput_device_config_scroll_get_methods
@@ -3044,11 +3051,11 @@ libinput_device_config_scroll_set_button(struct libinput_device *device,
 /**
  * @ingroup config
  *
- * Get the button for the @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN method for
- * this device.
+ * Get the button for the @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN method
+ * for this device.
  *
- * If @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN scroll method is not supported,
- * or no button is set, this function returns 0.
+ * If @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN scroll method is not
+ * supported, or no button is set, this function returns 0.
  *
  * @note The return value is independent of the currently selected
  * scroll-method. For button scrolling to activate, a device must have the
@@ -3071,14 +3078,15 @@ libinput_device_config_scroll_get_button(struct libinput_device *device);
 /**
  * @ingroup config
  *
- * Get the default button for LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN method
- * for this device.
+ * Get the default button for the @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN
+ * method for this device.
  *
  * If @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN scroll method is not supported,
  * or no default button is set, this function returns 0.
  *
  * @param device The device to configure
- * @return The default button for LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN method
+ * @return The default button for the @ref
+ * LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN method
  *
  * @see libinput_device_config_scroll_get_methods
  * @see libinput_device_config_scroll_set_method

@@ -58,6 +58,7 @@ enum evdev_device_udev_tags {
         EVDEV_UDEV_TAG_TABLET = (1 << 5),
         EVDEV_UDEV_TAG_JOYSTICK = (1 << 6),
         EVDEV_UDEV_TAG_ACCELEROMETER = (1 << 7),
+        EVDEV_UDEV_TAG_BUTTONSET = (1 << 8),
 };
 
 struct evdev_udev_tag_match {
@@ -73,6 +74,7 @@ static const struct evdev_udev_tag_match evdev_udev_tag_matches[] = {
 	{"ID_INPUT_TOUCHPAD",		EVDEV_UDEV_TAG_TOUCHPAD},
 	{"ID_INPUT_TOUCHSCREEN",	EVDEV_UDEV_TAG_TOUCHSCREEN},
 	{"ID_INPUT_TABLET",		EVDEV_UDEV_TAG_TABLET},
+	{"ID_INPUT_TABLET_PAD",		EVDEV_UDEV_TAG_BUTTONSET},
 	{"ID_INPUT_JOYSTICK",		EVDEV_UDEV_TAG_JOYSTICK},
 	{"ID_INPUT_ACCELEROMETER",	EVDEV_UDEV_TAG_ACCELEROMETER},
 
@@ -524,6 +526,14 @@ evdev_process_touch(struct evdev_device *device,
 {
 	switch (e->code) {
 	case ABS_MT_SLOT:
+		if ((size_t)e->value >= device->mt.slots_len) {
+			log_bug_libinput(device->base.seat->libinput,
+					 "%s exceeds slots (%d of %d)\n",
+					 device->devname,
+					 e->value,
+					 device->mt.slots_len);
+			e->value = device->mt.slots_len - 1;
+		}
 		evdev_flush_pending_event(device, time);
 		device->mt.slot = e->value;
 		break;
@@ -1400,7 +1410,7 @@ evdev_configure_device(struct evdev_device *device)
 	}
 
 	log_info(libinput,
-		 "input device '%s', %s is tagged by udev as:%s%s%s%s%s%s%s\n",
+		 "input device '%s', %s is tagged by udev as:%s%s%s%s%s%s%s%s\n",
 		 device->devname, devnode,
 		 udev_tags & EVDEV_UDEV_TAG_KEYBOARD ? " Keyboard" : "",
 		 udev_tags & EVDEV_UDEV_TAG_MOUSE ? " Mouse" : "",
@@ -1408,13 +1418,22 @@ evdev_configure_device(struct evdev_device *device)
 		 udev_tags & EVDEV_UDEV_TAG_TOUCHSCREEN ? " Touchscreen" : "",
 		 udev_tags & EVDEV_UDEV_TAG_TABLET ? " Tablet" : "",
 		 udev_tags & EVDEV_UDEV_TAG_JOYSTICK ? " Joystick" : "",
-		 udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER ? " Accelerometer" : "");
+		 udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER ? " Accelerometer" : "",
+		 udev_tags & EVDEV_UDEV_TAG_BUTTONSET ? " Buttonset" : "");
 
 	/* libwacom *adds* TABLET, TOUCHPAD but leaves JOYSTICK in place, so
 	   make sure we only ignore real joystick devices */
 	if ((udev_tags & EVDEV_UDEV_TAG_JOYSTICK) == udev_tags) {
 		log_info(libinput,
 			 "input device '%s', %s is a joystick, ignoring\n",
+			 device->devname, devnode);
+		return -1;
+	}
+
+	/* libwacom assigns tablet _and_ tablet_pad to the pad devices */
+	if (udev_tags & EVDEV_UDEV_TAG_BUTTONSET) {
+		log_info(libinput,
+			 "input device '%s', %s is a buttonset, ignoring\n",
 			 device->devname, devnode);
 		return -1;
 	}
@@ -1467,10 +1486,9 @@ evdev_configure_device(struct evdev_device *device)
 				if (!device->mtdev)
 					return -1;
 
-				num_slots = device->mtdev->caps.slot.maximum;
-				if (device->mtdev->caps.slot.minimum < 0 ||
-				    num_slots <= 0)
-					return -1;
+				/* pick 10 slots as default for type A
+				   devices. */
+				num_slots = 10;
 				active_slot = device->mtdev->caps.slot.value;
 			} else {
 				num_slots = libevdev_get_num_slots(device->evdev);

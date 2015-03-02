@@ -51,10 +51,11 @@ enum litest_device_type {
 	LITEST_VMWARE_VIRTMOUSE = -15,
 	LITEST_SYNAPTICS_HOVER_SEMI_MT = -16,
 	LITEST_SYNAPTICS_TRACKPOINT_BUTTONS = -17,
-	LITEST_WACOM_BAMBOO = -18,
-	LITEST_WACOM_CINTIQ = -19,
-	LITEST_WACOM_INTUOS = -20,
-	LITEST_WACOM_ISDV4 = -21,
+	LITEST_PROTOCOL_A_SCREEN = -18,
+	LITEST_WACOM_BAMBOO = -19,
+	LITEST_WACOM_CINTIQ = -20,
+	LITEST_WACOM_INTUOS = -21,
+	LITEST_WACOM_ISDV4 = -22,
 };
 
 enum litest_device_feature {
@@ -74,9 +75,10 @@ enum litest_device_feature {
 	LITEST_POINTINGSTICK = 1 << 11,
 	LITEST_FAKE_MT = 1 << 12,
 	LITEST_ABSOLUTE = 1 << 13,
-	LITEST_TABLET = 1 << 14,
-	LITEST_DISTANCE = 1 << 15,
-	LITEST_TOOL_SERIAL = 1 << 16,
+	LITEST_PROTOCOL_A = 1 << 14,
+	LITEST_TABLET = 1 << 15,
+	LITEST_DISTANCE = 1 << 16,
+	LITEST_TOOL_SERIAL = 1 << 17,
 };
 
 struct litest_device {
@@ -218,6 +220,7 @@ struct libevdev_uinput * litest_create_uinput_abs_device(const char *name,
 void litest_timeout_tap(void);
 void litest_timeout_softbuttons(void);
 void litest_timeout_buttonscroll(void);
+void litest_timeout_finger_switch(void);
 
 void litest_push_event_frame(struct litest_device *dev);
 void litest_pop_event_frame(struct litest_device *dev);

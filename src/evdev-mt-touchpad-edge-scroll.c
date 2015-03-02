@@ -86,7 +86,6 @@ tp_edge_scroll_set_state(struct tp_dispatch *tp,
 		break;
 	case EDGE_SCROLL_TOUCH_STATE_AREA:
 		t->scroll.edge = EDGE_NONE;
-		tp_set_pointer(tp, t);
 		break;
 	}
 }
@@ -316,6 +315,9 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 	struct tp_touch *t;
 	enum libinput_pointer_axis axis;
 	double dx, dy, *delta;
+
+	if (tp->scroll.method != LIBINPUT_CONFIG_SCROLL_EDGE)
+		return 0;
 
 	tp_for_each_touch(tp, t) {
 		if (!t->dirty)
