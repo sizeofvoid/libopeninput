@@ -15,6 +15,7 @@ header_files = \
 	$(srcdir)/scrolling.dox \
 	$(srcdir)/seats.dox \
 	$(srcdir)/t440-support.dox \
+	$(srcdir)/tablet-support.dox \
 	$(srcdir)/tapping.dox
 
 diagram_files = \

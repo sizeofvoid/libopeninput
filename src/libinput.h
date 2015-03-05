@@ -1185,6 +1185,8 @@ libinput_event_tablet_get_tool(struct libinput_event_tablet *event);
  * Used to check whether or not a tool came in or out of proximity during an
  * event of type @ref LIBINPUT_EVENT_TABLET_PROXIMITY.
  *
+ * See @ref fake-proximity for recommendations on proximity handling.
+ *
  * @param event The libinput tablet event
  * @return The new proximity state of the tool from the event.
  */

@@ -1,0 +1,49 @@
+/**
+@page tablet-support Tablet support
+
+This page provides details about the graphics tablet
+support in libinput. Note that the term "tablet" in libinput refers to
+graphics tablets only (e.g. Wacom Intuos), not to tablet devices like the
+Apple iPad.
+
+@section fake-proximity Handling of proximity events
+
+libinput's @ref LIBINPUT_EVENT_TABLET_PROXIMITY events represent the
+physical proximity limits of the device. In some cases the caller should
+emulate proximity based on the distance events. For example, the Wacom mouse
+and lens cursor tools are usually used in relative mode, lying flat on the
+tablet. A user typically expects that lifting the tool off the tablet to a
+different location has the same effect as with a normal mouse. The proximity
+detection on Wacom tablets however extends further than the user may lift
+the mouse, i.e. the tool may not be lifted out of physical proximity.
+
+To enable normal use as a mouse it is recommended that the caller treats
+proximity separate from libinput's proximity events. There is no simple way
+to detect the proximity motion threshold, it is different on each tablet and
+differs between tools. The recommended algorithm is to remember the minimum
+distance value seen on the tool and assume a proximity out when the distance
+exceeds a threshold above this minimum value. In pseudo-code:
+
+@code
+const double threshold = ...;
+static double min;
+static bool in_proximity;
+
+double value;
+
+value = libinput_event_pointer_get_axis_value(device,
+					      LIBINPUT_TABLET_AXIS_DISTANCE);
+
+if (value < min) {
+	min = value;
+	return;
+} else if (in_proximity &&
+	   value > min + threshold) {
+	   in_proximity = false;
+} else if (!in_proximity &&
+	   value < min + threshold) {
+	   in_proximity = true;
+}
+@endcode
+
+*/
