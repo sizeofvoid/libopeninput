@@ -599,6 +599,7 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 	const WacomStylus *s = NULL;
 	int code;
 	WacomStylusType type;
+	WacomAxisTypeFlags axes;
 
 	db = libwacom_database_new();
 	if (!db) {
@@ -624,38 +625,33 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 		copy_button_cap(tablet, tool, BTN_TOUCH);
 	}
 
-	/* Eventually we want libwacom to tell us each axis on each device
-	   separately. */
-	switch(type) {
-	case WSTYLUS_AIRBRUSH:
-		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_SLIDER);
-		/* fall-through */
-	case WSTYLUS_MARKER:
-		if (type == WSTYLUS_MARKER)
-			copy_axis_cap(tablet, tool,
-				      LIBINPUT_TABLET_AXIS_ROTATION_Z);
-		/* fallthrough */
-	case WSTYLUS_GENERAL:
-	case WSTYLUS_INKING:
-	case WSTYLUS_CLASSIC:
-	case WSTYLUS_STROKE:
-		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_PRESSURE);
-		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_DISTANCE);
-		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_TILT_X);
-		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_TILT_Y);
-		break;
-	case WSTYLUS_PUCK:
-		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_ROTATION_Z);
-		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_DISTANCE);
-		/* lens cursors don't have a wheel */
-		if (!libwacom_stylus_has_lens(s))
+	if (libwacom_stylus_has_wheel(s))
+		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_REL_WHEEL);
+
+	axes = libwacom_stylus_get_axes(s);
+
+	if (axes & WACOM_AXIS_TYPE_TILT) {
+		/* tilt on the puck is converted to rotation */
+		if (type == WSTYLUS_PUCK) {
+			set_bit(tool->axis_caps,
+				LIBINPUT_TABLET_AXIS_ROTATION_Z);
+		} else {
 			copy_axis_cap(tablet,
 				      tool,
-				      LIBINPUT_TABLET_AXIS_REL_WHEEL);
-		break;
-	default:
-		break;
+				      LIBINPUT_TABLET_AXIS_TILT_X);
+			copy_axis_cap(tablet,
+				      tool,
+				      LIBINPUT_TABLET_AXIS_TILT_Y);
+		}
 	}
+	if (axes & WACOM_AXIS_TYPE_ROTATION_Z)
+		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_ROTATION_Z);
+	if (axes & WACOM_AXIS_TYPE_DISTANCE)
+		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_DISTANCE);
+	if (axes & WACOM_AXIS_TYPE_SLIDER)
+		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_SLIDER);
+	if (axes & WACOM_AXIS_TYPE_PRESSURE)
+		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_PRESSURE);
 
 	rc = 0;
 out:
