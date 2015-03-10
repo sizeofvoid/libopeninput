@@ -1069,10 +1069,7 @@ tablet_init_left_handed(struct evdev_device *device)
 	WacomDeviceDatabase *db;
 	WacomDevice *d = NULL;
 	WacomError *error;
-	int vid, pid;
-
-	vid = evdev_device_get_id_vendor(device);
-	pid = evdev_device_get_id_product(device);
+	const char *devnode;
 
 	db = libwacom_database_new();
 	if (!db) {
@@ -1081,7 +1078,12 @@ tablet_init_left_handed(struct evdev_device *device)
 		return;
 	}
 	error = libwacom_error_new();
-	d = libwacom_new_from_usbid(db, vid, pid, error);
+	devnode = udev_device_get_devnode(device->udev_device);
+
+	d = libwacom_new_from_path(db,
+				   devnode,
+				   WFALLBACK_NONE,
+				   error);
 
 	if (d) {
 		if (libwacom_is_reversible(d))
