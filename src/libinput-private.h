@@ -345,6 +345,10 @@ touch_notify_touch_up(struct libinput_device *device,
 		      int32_t seat_slot);
 
 void
+touch_notify_frame(struct libinput_device *device,
+		   uint64_t time);
+
+void
 tablet_notify_axis(struct libinput_device *device,
 		   uint32_t time,
 		   struct libinput_tool *tool,
@@ -368,9 +372,6 @@ tablet_notify_button(struct libinput_device *device,
 		     double *axes,
 		     int32_t button,
 		     enum libinput_button_state state);
-void
-touch_notify_frame(struct libinput_device *device,
-		   uint64_t time);
 
 static inline uint64_t
 libinput_now(struct libinput *libinput)
