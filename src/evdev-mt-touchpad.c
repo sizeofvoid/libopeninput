@@ -29,7 +29,9 @@
 
 #include "evdev-mt-touchpad.h"
 
-#define DEFAULT_ACCEL_NUMERATOR 1200.0
+/* Number found by trial-and error, seems to be 1200, divided by the
+ * TP_MAGIC_SLOWDOWN in filter.c */
+#define DEFAULT_ACCEL_NUMERATOR 3000.0
 #define DEFAULT_HYSTERESIS_MARGIN_DENOMINATOR 700.0
 #define DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT 500 /* ms */
 
@@ -46,7 +48,7 @@ tp_hysteresis(int in, int center, int margin)
 		return center + diff + margin;
 }
 
-static inline struct tp_motion *
+static inline struct device_coords *
 tp_motion_history_offset(struct tp_touch *t, int offset)
 {
 	int offset_index =
@@ -87,8 +89,7 @@ tp_motion_history_push(struct tp_touch *t)
 	if (t->history.count < TOUCHPAD_HISTORY_LENGTH)
 		t->history.count++;
 
-	t->history.samples[motion_index].x = t->x;
-	t->history.samples[motion_index].y = t->y;
+	t->history.samples[motion_index] = t->point;
 	t->history.index = motion_index;
 }
 
@@ -96,23 +97,22 @@ static inline void
 tp_motion_hysteresis(struct tp_dispatch *tp,
 		     struct tp_touch *t)
 {
-	int x = t->x,
-	    y = t->y;
+	int x = t->point.x,
+	    y = t->point.y;
 
 	if (t->history.count == 0) {
-		t->hysteresis.center_x = t->x;
-		t->hysteresis.center_y = t->y;
+		t->hysteresis_center = t->point;
 	} else {
 		x = tp_hysteresis(x,
-				  t->hysteresis.center_x,
-				  tp->hysteresis.margin_x);
+				  t->hysteresis_center.x,
+				  tp->hysteresis_margin.x);
 		y = tp_hysteresis(y,
-				  t->hysteresis.center_y,
-				  tp->hysteresis.margin_y);
-		t->hysteresis.center_x = x;
-		t->hysteresis.center_y = y;
-		t->x = x;
-		t->y = y;
+				  t->hysteresis_center.y,
+				  tp->hysteresis_margin.y);
+		t->hysteresis_center.x = x;
+		t->hysteresis_center.y = y;
+		t->point.x = x;
+		t->point.y = y;
 	}
 }
 
@@ -252,24 +252,26 @@ tp_estimate_delta(int x0, int x1, int x2, int x3)
 	return (x0 + x1 - x2 - x3) / 4.0;
 }
 
-void
-tp_get_delta(struct tp_touch *t, double *dx, double *dy)
+struct normalized_coords
+tp_get_delta(struct tp_touch *t)
 {
-	if (t->history.count < TOUCHPAD_MIN_SAMPLES) {
-		*dx = 0;
-		*dy = 0;
-		return;
-	}
+	double dx, dy; /* in device coords */
+	struct normalized_coords normalized = { 0.0, 0.0 };
 
-	*dx = tp_estimate_delta(tp_motion_history_offset(t, 0)->x,
-				tp_motion_history_offset(t, 1)->x,
-				tp_motion_history_offset(t, 2)->x,
-				tp_motion_history_offset(t, 3)->x);
-	*dy = tp_estimate_delta(tp_motion_history_offset(t, 0)->y,
-				tp_motion_history_offset(t, 1)->y,
-				tp_motion_history_offset(t, 2)->y,
-				tp_motion_history_offset(t, 3)->y);
-	tp_normalize_delta(t->tp, dx, dy);
+	if (t->history.count < TOUCHPAD_MIN_SAMPLES)
+		return normalized;
+
+	dx = tp_estimate_delta(tp_motion_history_offset(t, 0)->x,
+			       tp_motion_history_offset(t, 1)->x,
+			       tp_motion_history_offset(t, 2)->x,
+			       tp_motion_history_offset(t, 3)->x);
+	dy = tp_estimate_delta(tp_motion_history_offset(t, 0)->y,
+			       tp_motion_history_offset(t, 1)->y,
+			       tp_motion_history_offset(t, 2)->y,
+			       tp_motion_history_offset(t, 3)->y);
+	tp_normalize_delta(t->tp, dx, dy, &normalized);
+
+	return normalized;
 }
 
 static void
@@ -281,13 +283,13 @@ tp_process_absolute(struct tp_dispatch *tp,
 
 	switch(e->code) {
 	case ABS_MT_POSITION_X:
-		t->x = e->value;
+		t->point.x = e->value;
 		t->millis = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
 		break;
 	case ABS_MT_POSITION_Y:
-		t->y = e->value;
+		t->point.y = e->value;
 		t->millis = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
@@ -312,13 +314,13 @@ tp_process_absolute_st(struct tp_dispatch *tp,
 
 	switch(e->code) {
 	case ABS_X:
-		t->x = e->value;
+		t->point.x = e->value;
 		t->millis = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
 		break;
 	case ABS_Y:
-		t->y = e->value;
+		t->point.y = e->value;
 		t->millis = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
@@ -418,8 +420,8 @@ tp_unpin_finger(struct tp_dispatch *tp, struct tp_touch *t)
 	if (!t->pinned.is_pinned)
 		return;
 
-	xdist = abs(t->x - t->pinned.center_x);
-	ydist = abs(t->y - t->pinned.center_y);
+	xdist = abs(t->point.x - t->pinned.center.x);
+	ydist = abs(t->point.y - t->pinned.center.y);
 
 	if (xdist * xdist + ydist * ydist >=
 			tp->buttons.motion_dist * tp->buttons.motion_dist) {
@@ -428,8 +430,8 @@ tp_unpin_finger(struct tp_dispatch *tp, struct tp_touch *t)
 	}
 
 	/* The finger may slowly drift, adjust the center */
-	t->pinned.center_x = t->x + t->pinned.center_x / 2;
-	t->pinned.center_y = t->y + t->pinned.center_y / 2;
+	t->pinned.center.x = t->point.x + t->pinned.center.x / 2;
+	t->pinned.center.y = t->point.y + t->pinned.center.y / 2;
 }
 
 static void
@@ -439,8 +441,7 @@ tp_pin_fingers(struct tp_dispatch *tp)
 
 	tp_for_each_touch(tp, t) {
 		t->pinned.is_pinned = true;
-		t->pinned.center_x = t->x;
-		t->pinned.center_y = t->y;
+		t->pinned.center = t->point;
 	}
 }
 
@@ -466,8 +467,9 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	 */
 	if (t->palm.is_palm) {
 		if (time < t->palm.time + PALM_TIMEOUT &&
-		    (t->x > tp->palm.left_edge && t->x < tp->palm.right_edge)) {
-			int dirs = vector_get_direction(t->x - t->palm.x, t->y - t->palm.y);
+		    (t->point.x > tp->palm.left_edge && t->point.x < tp->palm.right_edge)) {
+			int dirs = vector_get_direction(t->point.x - t->palm.first.x,
+							t->point.y - t->palm.first.y);
 			if ((dirs & DIRECTIONS) && !(dirs & ~DIRECTIONS)) {
 				t->palm.is_palm = false;
 			}
@@ -478,7 +480,7 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	/* palm must start in exclusion zone, it's ok to move into
 	   the zone without being a palm */
 	if (t->state != TOUCH_BEGIN ||
-	    (t->x > tp->palm.left_edge && t->x < tp->palm.right_edge))
+	    (t->point.x > tp->palm.left_edge && t->point.x < tp->palm.right_edge))
 		return;
 
 	/* don't detect palm in software button areas, it's
@@ -490,8 +492,7 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 
 	t->palm.is_palm = true;
 	t->palm.time = time;
-	t->palm.x = t->x;
-	t->palm.y = t->y;
+	t->palm.first = t->point;
 }
 
 static void
@@ -566,8 +567,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 			tp_motion_history_reset(t);
 
 		if (i >= tp->real_touches && t->state != TOUCH_NONE) {
-			t->x = first->x;
-			t->y = first->y;
+			t->point = first->point;
 			if (!t->dirty)
 				t->dirty = first->dirty;
 		}
@@ -964,16 +964,23 @@ tp_init_accel(struct tp_dispatch *tp, double diagonal)
 {
 	int res_x, res_y;
 
-	if (tp->has_mt) {
-		res_x = libevdev_get_abs_resolution(tp->device->evdev,
-						    ABS_MT_POSITION_X);
-		res_y = libevdev_get_abs_resolution(tp->device->evdev,
-						    ABS_MT_POSITION_Y);
-	} else {
-		res_x = libevdev_get_abs_resolution(tp->device->evdev,
-						    ABS_X);
-		res_y = libevdev_get_abs_resolution(tp->device->evdev,
-						    ABS_Y);
+	res_x = tp->device->abs.absinfo_x->resolution;
+	res_y = tp->device->abs.absinfo_y->resolution;
+
+	/* Mac touchpads seem to all be the same size (except the most
+	 * recent ones)
+	 * http://www.moshi.com/trackpad-protector-trackguard-macbook-pro#silver
+	 */
+	if (tp->model == MODEL_UNIBODY_MACBOOK && tp->device->abs.fake_resolution) {
+		const struct input_absinfo *abs;
+		int width, height;
+
+		abs = tp->device->abs.absinfo_x;
+		width = abs->maximum - abs->minimum;
+		abs = tp->device->abs.absinfo_y;
+		height = abs->maximum - abs->minimum;
+		res_x = width/104.4;
+		res_y = height/75.4;
 	}
 
 	/*
@@ -986,18 +993,6 @@ tp_init_accel(struct tp_dispatch *tp, double diagonal)
 	if (res_x > 1 && res_y > 1) {
 		tp->accel.x_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_x;
 		tp->accel.y_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_y;
-
-		/* FIXME: once normalized, touchpads see the same
-		   acceleration as mice. that is technically correct but
-		   subjectively wrong, we expect a touchpad to be a lot
-		   slower than a mouse.
-		   For now, apply a magic factor here until this is
-		   fixed in the actual filter code.
-		 */
-		{
-			tp->accel.x_scale_coeff *= TP_MAGIC_SLOWDOWN;
-			tp->accel.y_scale_coeff *= TP_MAGIC_SLOWDOWN;
-		}
 	} else {
 	/*
 	 * For touchpads where the driver does not provide resolution, fall
@@ -1007,7 +1002,9 @@ tp_init_accel(struct tp_dispatch *tp, double diagonal)
 		tp->accel.y_scale_coeff = DEFAULT_ACCEL_NUMERATOR / diagonal;
 	}
 
-	if (evdev_device_init_pointer_acceleration(tp->device) == -1)
+	if (evdev_device_init_pointer_acceleration(
+                                       tp->device,
+                                       touchpad_accel_profile_linear) == -1)
 		return -1;
 
 	return 0;
@@ -1137,6 +1134,32 @@ tp_init_sendevents(struct tp_dispatch *tp,
 	return 0;
 }
 
+static void
+tp_fix_resolution(struct tp_dispatch *tp, struct evdev_device *device)
+{
+	struct libinput *libinput = device->base.seat->libinput;
+	const char *prop;
+	unsigned int resx, resy;
+
+	prop = udev_device_get_property_value(device->udev_device,
+					      "TOUCHPAD_RESOLUTION");
+	if (!prop)
+		return;
+
+	if (parse_touchpad_resolution_property(prop, &resx, &resy) == -1) {
+		log_error(libinput,
+			  "Touchpad resolution property set for '%s', but invalid.\n",
+			  device->devname);
+		return;
+	}
+
+	if (evdev_fix_abs_resolution(device,
+				 tp->has_mt ? ABS_MT_POSITION_X : ABS_X,
+				 tp->has_mt ? ABS_MT_POSITION_Y : ABS_Y,
+				 resx, resy))
+		device->abs.fake_resolution = 0;
+}
+
 static int
 tp_init(struct tp_dispatch *tp,
 	struct evdev_device *device)
@@ -1150,15 +1173,17 @@ tp_init(struct tp_dispatch *tp,
 	if (tp_init_slots(tp, device) != 0)
 		return -1;
 
+	tp_fix_resolution(tp, device);
+
 	width = abs(device->abs.absinfo_x->maximum -
 		    device->abs.absinfo_x->minimum);
 	height = abs(device->abs.absinfo_y->maximum -
 		     device->abs.absinfo_y->minimum);
 	diagonal = sqrt(width*width + height*height);
 
-	tp->hysteresis.margin_x =
+	tp->hysteresis_margin.x =
 		diagonal / DEFAULT_HYSTERESIS_MARGIN_DENOMINATOR;
-	tp->hysteresis.margin_y =
+	tp->hysteresis_margin.y =
 		diagonal / DEFAULT_HYSTERESIS_MARGIN_DENOMINATOR;
 
 	if (tp_init_accel(tp, diagonal) != 0)

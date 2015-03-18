@@ -98,11 +98,14 @@ struct litest_device {
 	char *udev_rule_file;
 };
 
-struct libinput *litest_create_context(void);
 struct axis_replacement {
 	int32_t evcode;
 	int32_t value;
 };
+
+struct libinput *litest_create_context(void);
+void litest_disable_log_handler(struct libinput *libinput);
+void litest_restore_log_handler(struct libinput *libinput);
 
 void litest_add(const char *name, void *func,
 		enum litest_device_feature required_feature,
@@ -161,6 +164,12 @@ void litest_touch_move_to(struct litest_device *d,
 			  double x_from, double y_from,
 			  double x_to, double y_to,
 			  int steps, int sleep_ms);
+void litest_touch_move_two_touches(struct litest_device *d,
+				   double x0, double y0,
+				   double x1, double y1,
+				   double dx, double dy,
+				   int steps, int sleep_ms);
+
 void litest_tablet_proximity_in(struct litest_device *d,
 				int x, int y,
 				struct axis_replacement *axes);
@@ -168,6 +177,7 @@ void litest_tablet_proximity_out(struct litest_device *d);
 void litest_tablet_motion(struct litest_device *d,
 			  int x, int y,
 			  struct axis_replacement *axes);
+
 void litest_button_click(struct litest_device *d,
 			 unsigned int button,
 			 bool is_press);

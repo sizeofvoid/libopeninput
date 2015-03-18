@@ -34,10 +34,8 @@
 
 #define VENDOR_ID_APPLE 0x5ac
 
-/* Touchpad slowdown factor, see the FIXME in tp_init_accel() */
-#define TP_MAGIC_SLOWDOWN 0.4
 /* Convert mm to a distance normalized to DEFAULT_MOUSE_DPI */
-#define TP_MM_TO_DPI_NORMALIZED(mm) (DEFAULT_MOUSE_DPI/25.4 * TP_MAGIC_SLOWDOWN  * mm)
+#define TP_MM_TO_DPI_NORMALIZED(mm) (DEFAULT_MOUSE_DPI/25.4 * mm)
 
 enum touchpad_event {
 	TOUCHPAD_EVENT_NONE		= 0,
@@ -122,30 +120,21 @@ enum tp_edge_scroll_touch_state {
 	EDGE_SCROLL_TOUCH_STATE_AREA,
 };
 
-struct tp_motion {
-	int32_t x;
-	int32_t y;
-};
-
 struct tp_touch {
 	struct tp_dispatch *tp;
 	enum touch_state state;
 	bool has_ended;				/* TRACKING_ID == -1 */
 	bool dirty;
-	int32_t x;				/* in device coordinates */
-	int32_t y;				/* in device coordinates */
+	struct device_coords point;
 	uint64_t millis;
 
 	struct {
-		struct tp_motion samples[TOUCHPAD_HISTORY_LENGTH];
+		struct device_coords samples[TOUCHPAD_HISTORY_LENGTH];
 		unsigned int index;
 		unsigned int count;
 	} history;
 
-	struct {
-		int32_t center_x;		/* in device coordinates */
-		int32_t center_y;		/* in device coordinates */
-	} hysteresis;
+	struct device_coords hysteresis_center;
 
 	/* A pinned touchpoint is the one that pressed the physical button
 	 * on a clickpad. After the release, it won't move until the center
@@ -153,8 +142,7 @@ struct tp_touch {
 	 */
 	struct {
 		bool is_pinned;
-		int32_t center_x;		/* in device coordinates */
-		int32_t center_y;		/* in device coordinates */
+		struct device_coords center;
 	} pinned;
 
 	/* Software-button state and timeout if applicable */
@@ -167,7 +155,7 @@ struct tp_touch {
 
 	struct {
 		enum tp_tap_touch_state state;
-		int32_t initial_x, initial_y;	/* in device coordinates */
+		struct device_coords initial;
 	} tap;
 
 	struct {
@@ -175,14 +163,12 @@ struct tp_touch {
 		uint32_t edge;
 		int direction;
 		struct libinput_timer timer;
-		int32_t initial_x;		/* in device coordinates */
-		int32_t initial_y;		/* in device coordinates */
+		struct device_coords initial;
 	} scroll;
 
 	struct {
 		bool is_palm;
-		int32_t x, y;  /* first coordinates if is_palm == true,
-				  in device coordinates */
+		struct device_coords first; /* first coordinates if is_palm == true */
 		uint32_t time; /* first timestamp if is_palm == true */
 	} palm;
 };
@@ -207,10 +193,7 @@ struct tp_dispatch {
 	 */
 	unsigned int fake_touches;
 
-	struct {
-		int32_t margin_x;		/* in device coordiantes */
-		int32_t margin_y;		/* in device coordiantes */
-	} hysteresis;
+	struct device_coords hysteresis_margin;
 
 	struct {
 		double x_scale_coeff;
@@ -292,14 +275,16 @@ struct tp_dispatch {
 	for (unsigned int _i = 0; _i < (_tp)->ntouches && (_t = &(_tp)->touches[_i]); _i++)
 
 static inline void
-tp_normalize_delta(struct tp_dispatch *tp, double *dx, double *dy)
+tp_normalize_delta(struct tp_dispatch *tp,
+		   double dx, double dy,
+		   struct normalized_coords *normalized)
 {
-	*dx = *dx * tp->accel.x_scale_coeff;
-	*dy = *dy * tp->accel.y_scale_coeff;
+	normalized->x = dx * tp->accel.x_scale_coeff;
+	normalized->y = dy * tp->accel.y_scale_coeff;
 }
 
-void
-tp_get_delta(struct tp_touch *t, double *dx, double *dy);
+struct normalized_coords
+tp_get_delta(struct tp_touch *t);
 
 void
 tp_filter_motion(struct tp_dispatch *tp,

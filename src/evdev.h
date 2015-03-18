@@ -32,9 +32,12 @@
 
 #include "libinput-private.h"
 #include "timer.h"
+#include "filter.h"
 
 /* The HW DPI rate we normalize to before calculating pointer acceleration */
 #define DEFAULT_MOUSE_DPI 1000
+/* The fake resolution value for abs devices without resolution */
+#define EVDEV_FAKE_RESOLUTION 1
 
 enum evdev_event_type {
 	EVDEV_NONE,
@@ -63,7 +66,7 @@ enum evdev_device_tags {
 
 struct mt_slot {
 	int32_t seat_slot;
-	int32_t x, y;
+	struct device_coords point;
 };
 
 struct evdev_device {
@@ -82,7 +85,7 @@ struct evdev_device {
 		const struct input_absinfo *absinfo_x, *absinfo_y;
 		int fake_resolution;
 
-		int32_t x, y;
+		struct device_coords point;
 		int32_t seat_slot;
 
 		int apply_calibration;
@@ -98,9 +101,7 @@ struct evdev_device {
 	} mt;
 	struct mtdev *mtdev;
 
-	struct {
-		int dx, dy;
-	} rel;
+	struct device_coords rel;
 
 	struct {
 		struct libinput_timer timer;
@@ -117,8 +118,7 @@ struct evdev_device {
 		bool button_scroll_active;
 		double threshold;
 		uint32_t direction;
-		double buildup_vertical;
-		double buildup_horizontal;
+		struct normalized_coords buildup;
 
 		struct libinput_device_config_natural_scroll config_natural;
 		/* set during device init if we want natural scrolling,
@@ -221,7 +221,15 @@ evdev_device_create(struct libinput_seat *seat,
 		    struct udev_device *device);
 
 int
-evdev_device_init_pointer_acceleration(struct evdev_device *device);
+evdev_fix_abs_resolution(struct evdev_device *device,
+			 unsigned int xcode,
+			 unsigned int ycode,
+			 int yresolution,
+			 int xresolution);
+
+int
+evdev_device_init_pointer_acceleration(struct evdev_device *device,
+				       accel_profile_func_t profile);
 
 struct evdev_dispatch *
 evdev_touchpad_create(struct evdev_device *device);
@@ -315,8 +323,7 @@ void
 evdev_post_scroll(struct evdev_device *device,
 		  uint64_t time,
 		  enum libinput_pointer_axis_source source,
-		  double dx,
-		  double dy);
+		  const struct normalized_coords *delta);
 
 void
 evdev_stop_scroll(struct evdev_device *device,

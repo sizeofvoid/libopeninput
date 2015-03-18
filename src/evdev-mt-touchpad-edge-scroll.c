@@ -45,17 +45,17 @@ enum scroll_event {
 };
 
 static uint32_t
-tp_touch_get_edge(struct tp_dispatch *tp, struct tp_touch *touch)
+tp_touch_get_edge(struct tp_dispatch *tp, struct tp_touch *t)
 {
 	uint32_t edge = EDGE_NONE;
 
 	if (tp->scroll.method != LIBINPUT_CONFIG_SCROLL_EDGE)
 		return EDGE_NONE;
 
-	if (touch->x > tp->scroll.right_edge)
+	if (t->point.x > tp->scroll.right_edge)
 		edge |= EDGE_RIGHT;
 
-	if (touch->y > tp->scroll.bottom_edge)
+	if (t->point.y > tp->scroll.bottom_edge)
 		edge |= EDGE_BOTTOM;
 
 	return edge;
@@ -76,8 +76,7 @@ tp_edge_scroll_set_state(struct tp_dispatch *tp,
 		break;
 	case EDGE_SCROLL_TOUCH_STATE_EDGE_NEW:
 		t->scroll.edge = tp_touch_get_edge(tp, t);
-		t->scroll.initial_x = t->x;
-		t->scroll.initial_y = t->y;
+		t->scroll.initial = t->point;
 		libinput_timer_set(&t->scroll.timer,
 				   t->millis + DEFAULT_SCROLL_LOCK_TIMEOUT);
 		break;
@@ -256,6 +255,7 @@ tp_edge_scroll_init(struct tp_dispatch *tp, struct evdev_device *device)
 		 */
 		edge_width = width * .04;
 		edge_height = height * .054;
+		break;
 	}
 
 	tp->scroll.right_edge = device->abs.absinfo_x->maximum - edge_width;
@@ -312,8 +312,11 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 	struct libinput_device *device = &tp->device->base;
 	struct tp_touch *t;
 	enum libinput_pointer_axis axis;
-	double dx, dy, *delta;
+	double *delta;
 	double initial_dx, initial_dy, *initial_delta;
+	struct normalized_coords normalized;
+	const struct normalized_coords zero = { 0.0, 0.0 };
+	const struct discrete_coords zero_discrete = { 0.0, 0.0 };
 
 	if (tp->scroll.method != LIBINPUT_CONFIG_SCROLL_EDGE)
 		return 0;
@@ -329,27 +332,28 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 					pointer_notify_axis(device, time,
 						AS_MASK(t->scroll.direction),
 						LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
-						0.0, 0.0,
-						0, 0);
+						&zero,
+						&zero_discrete);
 					t->scroll.direction = -1;
 				}
 				continue;
 			case EDGE_RIGHT:
 				axis = LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL;
-				delta = &dy;
+				delta = &normalized.y;
 				initial_delta = &initial_dy;
 				break;
 			case EDGE_BOTTOM:
 				axis = LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL;
-				delta = &dx;
+				delta = &normalized.x;
 				initial_delta = &initial_dx;
 				break;
 			default: /* EDGE_RIGHT | EDGE_BOTTOM */
 				continue; /* Don't know direction yet, skip */
 		}
 
-		tp_get_delta(t, &dx, &dy);
-		tp_filter_motion(tp, &dx, &dy, NULL, NULL, time);
+		normalized = tp_get_delta(t);
+		tp_filter_motion(tp, &normalized.x, &normalized.y,
+				 NULL, NULL, time);
 
 		switch (t->scroll.edge_state) {
 		case EDGE_SCROLL_TOUCH_STATE_NONE:
@@ -359,17 +363,15 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 					 t->scroll.edge_state);
 			break;
 		case EDGE_SCROLL_TOUCH_STATE_EDGE_NEW:
-			initial_dx = t->x - t->scroll.initial_x;
-			initial_dy = t->y - t->scroll.initial_y;
+			initial_dx = t->point.x - t->scroll.initial.x;
+			initial_dy = t->point.y - t->scroll.initial.y;
 			tp_normalize_delta(tp,
-					   &initial_dx,
-					   &initial_dy);
+					   initial_dx,
+					   initial_dy,
+					   &normalized);
 			if (fabs(*initial_delta) < DEFAULT_SCROLL_THRESHOLD) {
-				dx = 0.0;
-				dy = 0.0;
-			} else {
-				dx = initial_dx;
-				dy = initial_dy;
+				normalized.x = 0.0;
+				normalized.y = 0.0;
 			}
 			break;
 		case EDGE_SCROLL_TOUCH_STATE_EDGE:
@@ -382,8 +384,8 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 		pointer_notify_axis(device, time,
 				    AS_MASK(axis),
 				    LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
-				    dx, dy,
-				    0, 0);
+				    &normalized,
+				    &zero_discrete);
 		t->scroll.direction = axis;
 
 		tp_edge_scroll_handle_event(tp, t, SCROLL_EVENT_POSTED);
@@ -397,14 +399,16 @@ tp_edge_scroll_stop_events(struct tp_dispatch *tp, uint64_t time)
 {
 	struct libinput_device *device = &tp->device->base;
 	struct tp_touch *t;
+	const struct normalized_coords zero = { 0.0, 0.0 };
+	const struct discrete_coords zero_discrete = { 0.0, 0.0 };
 
 	tp_for_each_touch(tp, t) {
 		if (t->scroll.direction != -1) {
 			pointer_notify_axis(device, time,
 					    AS_MASK(t->scroll.direction),
 					    LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
-					    0.0, 0.0,
-					    0.0, 0.0);
+					    &zero,
+					    &zero_discrete);
 			t->scroll.direction = -1;
 		}
 	}

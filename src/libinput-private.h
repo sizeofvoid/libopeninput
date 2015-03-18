@@ -34,6 +34,21 @@
 
 struct libinput_source;
 
+/* A coordinate pair in device coordinates */
+struct device_coords {
+	int x, y;
+};
+
+/* A dpi-normalized coordinate pair */
+struct normalized_coords {
+	double x, y;
+};
+
+/* A discrete step pair (mouse wheels) */
+struct discrete_coords {
+	int x, y;
+};
+
 struct libinput_interface_backend {
 	int (*resume)(struct libinput *libinput);
 	void (*suspend)(struct libinput *libinput);
@@ -295,16 +310,13 @@ keyboard_notify_key(struct libinput_device *device,
 void
 pointer_notify_motion(struct libinput_device *device,
 		      uint64_t time,
-		      double dx,
-		      double dy,
-		      double dx_unaccel,
-		      double dy_unaccel);
+		      const struct normalized_coords *delta,
+		      const struct normalized_coords *unaccel);
 
 void
 pointer_notify_motion_absolute(struct libinput_device *device,
 			       uint64_t time,
-			       double x,
-			       double y);
+			       const struct device_coords *point);
 
 void
 pointer_notify_button(struct libinput_device *device,
@@ -317,26 +329,22 @@ pointer_notify_axis(struct libinput_device *device,
 		    uint64_t time,
 		    uint32_t axes,
 		    enum libinput_pointer_axis_source source,
-		    double x,
-		    double y,
-		    double x_discrete,
-		    double y_discrete);
+		    const struct normalized_coords *delta,
+		    const struct discrete_coords *discrete);
 
 void
 touch_notify_touch_down(struct libinput_device *device,
 			uint64_t time,
 			int32_t slot,
 			int32_t seat_slot,
-			double x,
-			double y);
+			const struct device_coords *point);
 
 void
 touch_notify_touch_motion(struct libinput_device *device,
 			  uint64_t time,
 			  int32_t slot,
 			  int32_t seat_slot,
-			  double x,
-			  double y);
+			  const struct device_coords *point);
 
 void
 touch_notify_touch_up(struct libinput_device *device,

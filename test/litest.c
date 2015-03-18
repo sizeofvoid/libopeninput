@@ -380,6 +380,8 @@ litest_log_handler(struct libinput *libinput,
 	case LIBINPUT_LOG_PRIORITY_INFO: priority = "info"; break;
 	case LIBINPUT_LOG_PRIORITY_ERROR: priority = "error"; break;
 	case LIBINPUT_LOG_PRIORITY_DEBUG: priority = "debug"; break;
+	default:
+		  abort();
 	}
 
 	fprintf(stderr, "litest %s: ", priority);
@@ -646,6 +648,18 @@ litest_create_context(void)
 		libinput_log_set_priority(libinput, LIBINPUT_LOG_PRIORITY_DEBUG);
 
 	return libinput;
+}
+
+void
+litest_disable_log_handler(struct libinput *libinput)
+{
+	libinput_log_set_handler(libinput, NULL);
+}
+
+void
+litest_restore_log_handler(struct libinput *libinput)
+{
+	libinput_log_set_handler(libinput, litest_log_handler);
 }
 
 struct litest_device *
@@ -998,6 +1012,28 @@ litest_tablet_motion(struct litest_device *d, int x, int y, struct axis_replacem
 			litest_event(d, ev->type, ev->code, value);
 		ev++;
 	}
+}
+
+void
+litest_touch_move_two_touches(struct litest_device *d,
+			      double x0, double y0,
+			      double x1, double y1,
+			      double dx, double dy,
+			      int steps, int sleep_ms)
+{
+	for (int i = 0; i < steps - 1; i++) {
+		litest_touch_move(d, 0, x0 + dx / steps * i,
+					y0 + dy / steps * i);
+		litest_touch_move(d, 1, x1 + dx / steps * i,
+					y1 + dy / steps * i);
+		if (sleep_ms) {
+			libinput_dispatch(d->libinput);
+			msleep(sleep_ms);
+			libinput_dispatch(d->libinput);
+		}
+	}
+	litest_touch_move(d, 0, x0 + dx, y0 + dy);
+	litest_touch_move(d, 1, x1 + dx, y1 + dy);
 }
 
 void
