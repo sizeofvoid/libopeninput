@@ -1538,6 +1538,7 @@ evdev_configure_device(struct evdev_device *device)
 	struct libevdev *evdev = device->evdev;
 	const char *devnode = udev_device_get_devnode(device->udev_device);
 	enum evdev_device_udev_tags udev_tags;
+	unsigned int tablet_tags;
 
 	udev_tags = evdev_device_get_udev_tags(device, device->udev_device);
 
@@ -1609,11 +1610,13 @@ evdev_configure_device(struct evdev_device *device)
 		}
 	}
 
-	/* libwacom assigns touchpad _and_ tablet to the tablet touch bits,
-	   so make sure we don't initialize the tablet interface for the
-	   touch device */
-	if ((udev_tags & (EVDEV_UDEV_TAG_TABLET|EVDEV_UDEV_TAG_TOUCHPAD)) ==
-	     EVDEV_UDEV_TAG_TABLET) {
+	/* libwacom assigns touchpad (or touchscreen) _and_ tablet to the
+	   tablet touch bits, so make sure we don't initialize the tablet
+	   interface for the touch device */
+	tablet_tags = EVDEV_UDEV_TAG_TABLET |
+		      EVDEV_UDEV_TAG_TOUCHPAD |
+		      EVDEV_UDEV_TAG_TOUCHSCREEN;
+	if ((udev_tags & tablet_tags) == EVDEV_UDEV_TAG_TABLET) {
 		device->dispatch = evdev_tablet_create(device);
 		device->seat_caps |= EVDEV_DEVICE_TABLET;
 		log_info(libinput,
