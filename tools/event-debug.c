@@ -480,6 +480,8 @@ print_proximity_event(struct libinput_event *ev)
 		printf("r");
 	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_SLIDER))
 		printf("s");
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_REL_WHEEL))
+		printf("w");
 
 	printf("\tbtn:");
 	if (libinput_tool_has_button(tool, BTN_TOUCH))
