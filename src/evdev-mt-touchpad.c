@@ -64,21 +64,27 @@ tp_filter_motion(struct tp_dispatch *tp,
 	         double *dx_unaccel, double *dy_unaccel,
 		 uint64_t time)
 {
-	struct motion_params motion;
+	struct normalized_coords unaccelerated;
+	struct normalized_coords accelerated;
 
-	motion.dx = *dx;
-	motion.dy = *dy;
+	unaccelerated.x = *dx;
+	unaccelerated.y = *dy;
+
+	if (unaccelerated.x != 0.0 || unaccelerated.y != 0.0)
+		accelerated = filter_dispatch(tp->device->pointer.filter,
+					      &unaccelerated,
+					      tp,
+					      time);
+	else
+		accelerated = unaccelerated;
 
 	if (dx_unaccel)
-		*dx_unaccel = motion.dx;
+		*dx_unaccel = unaccelerated.x;
 	if (dy_unaccel)
-		*dy_unaccel = motion.dy;
+		*dy_unaccel = unaccelerated.y;
 
-	if (motion.dx != 0.0 || motion.dy != 0.0)
-		filter_dispatch(tp->device->pointer.filter, &motion, tp, time);
-
-	*dx = motion.dx;
-	*dy = motion.dy;
+	*dx = accelerated.x;
+	*dy = accelerated.y;
 }
 
 static inline void
@@ -967,22 +973,6 @@ tp_init_accel(struct tp_dispatch *tp, double diagonal)
 	res_x = tp->device->abs.absinfo_x->resolution;
 	res_y = tp->device->abs.absinfo_y->resolution;
 
-	/* Mac touchpads seem to all be the same size (except the most
-	 * recent ones)
-	 * http://www.moshi.com/trackpad-protector-trackguard-macbook-pro#silver
-	 */
-	if (tp->model == MODEL_UNIBODY_MACBOOK && tp->device->abs.fake_resolution) {
-		const struct input_absinfo *abs;
-		int width, height;
-
-		abs = tp->device->abs.absinfo_x;
-		width = abs->maximum - abs->minimum;
-		abs = tp->device->abs.absinfo_y;
-		height = abs->maximum - abs->minimum;
-		res_x = width/104.4;
-		res_y = height/75.4;
-	}
-
 	/*
 	 * Not all touchpads report the same amount of units/mm (resolution).
 	 * Normalize motion events to the default mouse DPI as base
@@ -1134,32 +1124,6 @@ tp_init_sendevents(struct tp_dispatch *tp,
 	return 0;
 }
 
-static void
-tp_fix_resolution(struct tp_dispatch *tp, struct evdev_device *device)
-{
-	struct libinput *libinput = device->base.seat->libinput;
-	const char *prop;
-	unsigned int resx, resy;
-
-	prop = udev_device_get_property_value(device->udev_device,
-					      "TOUCHPAD_RESOLUTION");
-	if (!prop)
-		return;
-
-	if (parse_touchpad_resolution_property(prop, &resx, &resy) == -1) {
-		log_error(libinput,
-			  "Touchpad resolution property set for '%s', but invalid.\n",
-			  device->devname);
-		return;
-	}
-
-	if (evdev_fix_abs_resolution(device,
-				 tp->has_mt ? ABS_MT_POSITION_X : ABS_X,
-				 tp->has_mt ? ABS_MT_POSITION_Y : ABS_Y,
-				 resx, resy))
-		device->abs.fake_resolution = 0;
-}
-
 static int
 tp_init(struct tp_dispatch *tp,
 	struct evdev_device *device)
@@ -1172,8 +1136,6 @@ tp_init(struct tp_dispatch *tp,
 
 	if (tp_init_slots(tp, device) != 0)
 		return -1;
-
-	tp_fix_resolution(tp, device);
 
 	width = abs(device->abs.absinfo_x->maximum -
 		    device->abs.absinfo_x->minimum);

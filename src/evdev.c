@@ -238,7 +238,6 @@ static void
 evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 {
 	struct libinput *libinput = device->base.seat->libinput;
-	struct motion_params motion;
 	int slot;
 	int seat_slot;
 	struct libinput_device *base = &device->base;
@@ -267,11 +266,7 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 		}
 
 		/* Apply pointer acceleration. */
-		motion.dx = unaccel.x;
-		motion.dy = unaccel.y;
-		filter_dispatch(device->pointer.filter, &motion, device, time);
-		accel.x = motion.dx;
-		accel.y = motion.dy;
+		accel = filter_dispatch(device->pointer.filter, &unaccel, device, time);
 
 		if (accel.x == 0.0 && accel.y == 0.0 &&
 		    unaccel.x == 0.0 && unaccel.y == 0.0) {
@@ -1458,10 +1453,32 @@ evdev_fix_android_mt(struct evdev_device *device)
 		      libevdev_get_abs_info(evdev, ABS_MT_POSITION_Y));
 }
 
+static inline int
+evdev_check_min_max(struct evdev_device *device, unsigned int code)
+{
+	struct libevdev *evdev = device->evdev;
+	const struct input_absinfo *absinfo;
+
+	if (!libevdev_has_event_code(evdev, EV_ABS, code))
+		return 0;
+
+	absinfo = libevdev_get_abs_info(evdev, code);
+	if (absinfo->minimum == absinfo->maximum) {
+		log_bug_kernel(device->base.seat->libinput,
+			       "Device '%s' has min == max on %s\n",
+			       device->devname,
+			       libevdev_event_code_get_name(EV_ABS, code));
+		return -1;
+	}
+
+	return 0;
+}
+
 static int
 evdev_reject_device(struct evdev_device *device)
 {
 	struct libevdev *evdev = device->evdev;
+	unsigned int code;
 
 	if (libevdev_has_event_code(evdev, EV_ABS, ABS_X) ^
 	    libevdev_has_event_code(evdev, EV_ABS, ABS_Y))
@@ -1470,6 +1487,18 @@ evdev_reject_device(struct evdev_device *device)
 	if (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_X) ^
 	    libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_Y))
 		return -1;
+
+	for (code = 0; code < ABS_CNT; code++) {
+		switch (code) {
+		case ABS_MISC:
+		case ABS_MT_SLOT:
+		case ABS_MT_TOOL_TYPE:
+			break;
+		default:
+			if (evdev_check_min_max(device, code) == -1)
+				return -1;
+		}
+	}
 
 	return 0;
 }
