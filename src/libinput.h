@@ -2186,6 +2186,22 @@ libinput_device_pointer_has_button(struct libinput_device *device, uint32_t code
 /**
  * @ingroup device
  *
+ * Check if a @ref LIBINPUT_DEVICE_CAP_KEYBOARD device has a key with the
+ * given code (see linux/input.h).
+ *
+ * @param device A current input device
+ * @param code Key code to check for, e.g. <i>KEY_ESC</i>
+ *
+ * @return 1 if the device supports this key code, 0 if it does not, -1
+ * on error.
+ */
+int
+libinput_device_keyboard_has_key(struct libinput_device *device,
+				 uint32_t code);
+
+/**
+ * @ingroup device
+ *
  * Increase the refcount of the device group. A device group will be freed
  * whenever the refcount reaches 0. This may happen during
  * libinput_dispatch() if all devices of this group were removed from the
@@ -2913,6 +2929,130 @@ libinput_device_config_click_get_method(struct libinput_device *device);
  */
 enum libinput_config_click_method
 libinput_device_config_click_get_default_method(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ */
+enum libinput_config_middle_emulation_state {
+	/**
+	 * Middle mouse button emulation is to be disabled, or
+	 * is currently disabled.
+	 */
+	LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED,
+	/**
+	 * Middle mouse button emulation is to be enabled, or
+	 * is currently enabled.
+	 */
+	LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED,
+};
+
+/**
+ * @ingroup config
+ *
+ * Check if middle mouse button emulation configuration is available on this
+ * device. See libinput_device_config_middle_emulation_set_enabled() for
+ * details.
+ *
+ * @note Some devices provide middle mouse button emulation but do not allow
+ * enabling/disabling that emulation. These devices return zero in
+ * libinput_device_config_middle_emulation_is_available().
+ *
+ * @param device The device to query
+ *
+ * @return Non-zero if middle mouse button emulation is available and can be
+ * configured, zero otherwise.
+ *
+ * @see libinput_device_config_middle_emulation_set_enabled
+ * @see libinput_device_config_middle_emulation_get_enabled
+ * @see libinput_device_config_middle_emulation_get_default_enabled
+ */
+int
+libinput_device_config_middle_emulation_is_available(
+		struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Enable or disable middle button emulation on this device. When enabled, a
+ * simultaneous press of the left and right button generates a middle mouse
+ * button event. Releasing the buttons generates a middle mouse button
+ * release, the left and right button events are discarded otherwise.
+ *
+ * The middle button release event may be generated when either button is
+ * released, or when both buttons have been released. The exact behavior is
+ * device-dependent.
+ *
+ * The middle button emulation behavior when combined with other device
+ * buttons, including a physical middle button is device-dependent.
+ *
+ * @note Some devices provide middle mouse button emulation but do not allow
+ * enabling/disabling that emulation.
+ *
+ * @param device The device to configure
+ * @param enable @ref LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED to
+ * disable, @ref LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED To enable
+ * middle button emulation.
+ *
+ * @return A config status code. Disabling middle button emulation on a
+ * device that does not support middle button emulation always succeeds.
+ *
+ * @see libinput_device_config_middle_emulation_is_available
+ * @see libinput_device_config_middle_emulation_get_enabled
+ * @see libinput_device_config_middle_emulation_get_default_enabled
+ */
+enum libinput_config_status
+libinput_device_config_middle_emulation_set_enabled(
+		struct libinput_device *device,
+		enum libinput_config_middle_emulation_state enable);
+
+/**
+ * @ingroup config
+ *
+ * Check if configurable middle button emulation is enabled on this device.
+ * If the device does not have configurable middle button emulation, this
+ * function returns @ref LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED.
+ *
+ * @note Some devices provide middle mouse button emulation but do not allow
+ * enabling/disabling that emulation. These devices always return @ref
+ * LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED.
+ *
+ * @param device The device to configure
+ * @return @ref LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED if disabled
+ * or not available/configurable, @ref
+ * LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED If enabled.
+ *
+ * @see libinput_device_config_middle_emulation_is_available
+ * @see libinput_device_config_middle_emulation_set_enabled
+ * @see libinput_device_config_middle_emulation_get_default_enabled
+ */
+enum libinput_config_middle_emulation_state
+libinput_device_config_middle_emulation_get_enabled(
+		struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Check if configurable middle button emulation is enabled by default on
+ * this device. If the device does not have configurable middle button
+ * emulation, this function returns @ref
+ * LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED.
+ *
+ * @note Some devices provide middle mouse button emulation but do not allow
+ * enabling/disabling that emulation. These devices always return @ref
+ * LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED.
+ *
+ * @param device The device to configure
+ * @return @ref LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED If disabled
+ * or not available, @ref LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED if
+ * enabled.
+ *
+ * @see libinput_device_config_middle_emulation_is_available
+ * @see libinput_device_config_middle_emulation_set_enabled
+ * @see libinput_device_config_middle_emulation_get_enabled
+ */
+enum libinput_config_middle_emulation_state
+libinput_device_config_middle_emulation_get_default_enabled(
+		struct libinput_device *device);
 
 /**
  * @ingroup config

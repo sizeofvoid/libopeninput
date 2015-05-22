@@ -61,6 +61,12 @@ enum touch_state {
 	TOUCH_END
 };
 
+enum touch_palm_state {
+	PALM_NONE = 0,
+	PALM_EDGE,
+	PALM_TYPING,
+};
+
 enum button_event {
 	BUTTON_EVENT_IN_BOTTOM_R = 30,
 	BUTTON_EVENT_IN_BOTTOM_L,
@@ -94,9 +100,12 @@ enum tp_tap_state {
 	TAP_STATE_TOUCH_3,
 	TAP_STATE_TOUCH_3_HOLD,
 	TAP_STATE_DRAGGING_OR_DOUBLETAP,
+	TAP_STATE_DRAGGING_OR_TAP,
 	TAP_STATE_DRAGGING,
 	TAP_STATE_DRAGGING_WAIT,
 	TAP_STATE_DRAGGING_2,
+	TAP_STATE_MULTITAP,
+	TAP_STATE_MULTITAP_DOWN,
 	TAP_STATE_DEAD, /**< finger count exceeded */
 };
 
@@ -127,6 +136,7 @@ struct tp_touch {
 	bool dirty;
 	struct device_coords point;
 	uint64_t millis;
+	int distance;				/* distance == 0 means touch */
 
 	struct {
 		struct device_coords samples[TOUCHPAD_HISTORY_LENGTH];
@@ -167,7 +177,7 @@ struct tp_touch {
 	} scroll;
 
 	struct {
-		bool is_palm;
+		enum touch_palm_state state;
 		struct device_coords first; /* first coordinates if is_palm == true */
 		uint32_t time; /* first timestamp if is_palm == true */
 	} palm;
@@ -181,9 +191,10 @@ struct tp_dispatch {
 	unsigned int slot;			/* current slot */
 	bool has_mt;
 	bool semi_mt;
+	bool reports_distance;			/* does the device support true hovering */
 	enum touchpad_model model;
 
-	unsigned int real_touches;		/* number of slots */
+	unsigned int num_slots;			/* number of slots */
 	unsigned int ntouches;			/* no slots inc. fakes */
 	struct tp_touch *touches;		/* len == ntouches */
 	/* bit 0: BTN_TOUCH
@@ -255,41 +266,50 @@ struct tp_dispatch {
 		struct libinput_timer timer;
 		enum tp_tap_state state;
 		uint32_t buttons_pressed;
+		uint64_t multitap_last_time;
 	} tap;
 
 	struct {
 		int32_t right_edge;		/* in device coordinates */
 		int32_t left_edge;		/* in device coordinates */
+		int32_t vert_center;		/* in device coordinates */
 	} palm;
 
 	struct {
 		struct libinput_device_config_send_events config;
 		enum libinput_config_send_events_mode current_mode;
+
 		bool trackpoint_active;
 		struct libinput_event_listener trackpoint_listener;
 		struct libinput_timer trackpoint_timer;
+
+		bool keyboard_active;
+		struct libinput_event_listener keyboard_listener;
+		struct libinput_timer keyboard_timer;
+		struct evdev_device *keyboard;
 	} sendevents;
 };
 
 #define tp_for_each_touch(_tp, _t) \
 	for (unsigned int _i = 0; _i < (_tp)->ntouches && (_t = &(_tp)->touches[_i]); _i++)
 
-static inline void
-tp_normalize_delta(struct tp_dispatch *tp,
-		   double dx, double dy,
-		   struct normalized_coords *normalized)
+static inline struct normalized_coords
+tp_normalize_delta(struct tp_dispatch *tp, struct device_float_coords delta)
 {
-	normalized->x = dx * tp->accel.x_scale_coeff;
-	normalized->y = dy * tp->accel.y_scale_coeff;
+	struct normalized_coords normalized;
+
+	normalized.x = delta.x * tp->accel.x_scale_coeff;
+	normalized.y = delta.y * tp->accel.y_scale_coeff;
+
+	return normalized;
 }
 
 struct normalized_coords
 tp_get_delta(struct tp_touch *t);
 
-void
+struct normalized_coords
 tp_filter_motion(struct tp_dispatch *tp,
-	         double *dx, double *dy,
-	         double *dx_unaccel, double *dy_unaccel,
+		 const struct normalized_coords *unaccelerated,
 		 uint64_t time);
 
 int
@@ -384,5 +404,8 @@ tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time);
 
 void
 tp_gesture_stop_twofinger_scroll(struct tp_dispatch *tp, uint64_t time);
+
+bool
+tp_palm_tap_is_palm(struct tp_dispatch *tp, struct tp_touch *t);
 
 #endif

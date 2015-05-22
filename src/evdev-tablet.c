@@ -1022,6 +1022,7 @@ tablet_check_initial_proximity(struct evdev_device *device,
 
 static struct evdev_dispatch_interface tablet_interface = {
 	tablet_process,
+	NULL, /* suspend */
 	NULL, /* remove */
 	tablet_destroy,
 	NULL, /* device_added */

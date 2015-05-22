@@ -29,6 +29,8 @@
 
 #include "evdev-mt-touchpad.h"
 
+#define CASE_RETURN_STRING(a) case a: return #a
+
 #define DEFAULT_SCROLL_LOCK_TIMEOUT 300 /* ms */
 /* Use a reasonably large threshold until locked into scrolling mode, to
    avoid accidentally locking in scrolling mode when trying to use the entire
@@ -43,6 +45,32 @@ enum scroll_event {
 	SCROLL_EVENT_TIMEOUT,
 	SCROLL_EVENT_POSTED,
 };
+
+static inline const char*
+edge_state_to_str(enum tp_edge_scroll_touch_state state)
+{
+
+	switch (state) {
+	CASE_RETURN_STRING(EDGE_SCROLL_TOUCH_STATE_NONE);
+	CASE_RETURN_STRING(EDGE_SCROLL_TOUCH_STATE_EDGE_NEW);
+	CASE_RETURN_STRING(EDGE_SCROLL_TOUCH_STATE_EDGE);
+	CASE_RETURN_STRING(EDGE_SCROLL_TOUCH_STATE_AREA);
+	}
+	return NULL;
+}
+
+static inline const char*
+edge_event_to_str(enum scroll_event event)
+{
+	switch (event) {
+	CASE_RETURN_STRING(SCROLL_EVENT_TOUCH);
+	CASE_RETURN_STRING(SCROLL_EVENT_MOTION);
+	CASE_RETURN_STRING(SCROLL_EVENT_RELEASE);
+	CASE_RETURN_STRING(SCROLL_EVENT_TIMEOUT);
+	CASE_RETURN_STRING(SCROLL_EVENT_POSTED);
+	}
+	return NULL;
+}
 
 static uint32_t
 tp_touch_get_edge(struct tp_dispatch *tp, struct tp_touch *t)
@@ -204,7 +232,10 @@ tp_edge_scroll_handle_event(struct tp_dispatch *tp,
 			    struct tp_touch *t,
 			    enum scroll_event event)
 {
-	switch (t->scroll.edge_state) {
+	struct libinput *libinput = tp->device->base.seat->libinput;
+	enum tp_edge_scroll_touch_state current = t->scroll.edge_state;
+
+	switch (current) {
 	case EDGE_SCROLL_TOUCH_STATE_NONE:
 		tp_edge_scroll_handle_none(tp, t, event);
 		break;
@@ -218,6 +249,12 @@ tp_edge_scroll_handle_event(struct tp_dispatch *tp,
 		tp_edge_scroll_handle_area(tp, t, event);
 		break;
 	}
+
+	log_debug(libinput,
+		  "edge state: %s → %s → %s\n",
+		  edge_state_to_str(current),
+		  edge_event_to_str(event),
+		  edge_state_to_str(t->scroll.edge_state));
 }
 
 static void
@@ -313,7 +350,6 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 	struct tp_touch *t;
 	enum libinput_pointer_axis axis;
 	double *delta;
-	double initial_dx, initial_dy, *initial_delta;
 	struct normalized_coords normalized;
 	const struct normalized_coords zero = { 0.0, 0.0 };
 	const struct discrete_coords zero_discrete = { 0.0, 0.0 };
@@ -340,20 +376,17 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 			case EDGE_RIGHT:
 				axis = LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL;
 				delta = &normalized.y;
-				initial_delta = &initial_dy;
 				break;
 			case EDGE_BOTTOM:
 				axis = LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL;
 				delta = &normalized.x;
-				initial_delta = &initial_dx;
 				break;
 			default: /* EDGE_RIGHT | EDGE_BOTTOM */
 				continue; /* Don't know direction yet, skip */
 		}
 
 		normalized = tp_get_delta(t);
-		tp_filter_motion(tp, &normalized.x, &normalized.y,
-				 NULL, NULL, time);
+		normalized = tp_filter_motion(tp, &normalized, time);
 
 		switch (t->scroll.edge_state) {
 		case EDGE_SCROLL_TOUCH_STATE_NONE:
@@ -363,16 +396,11 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 					 t->scroll.edge_state);
 			break;
 		case EDGE_SCROLL_TOUCH_STATE_EDGE_NEW:
-			initial_dx = t->point.x - t->scroll.initial.x;
-			initial_dy = t->point.y - t->scroll.initial.y;
-			tp_normalize_delta(tp,
-					   initial_dx,
-					   initial_dy,
-					   &normalized);
-			if (fabs(*initial_delta) < DEFAULT_SCROLL_THRESHOLD) {
-				normalized.x = 0.0;
-				normalized.y = 0.0;
-			}
+			normalized = tp_normalize_delta(tp,
+					device_delta(t->point,
+						     t->scroll.initial));
+			if (fabs(*delta) < DEFAULT_SCROLL_THRESHOLD)
+				normalized = zero;
 			break;
 		case EDGE_SCROLL_TOUCH_STATE_EDGE:
 			break;

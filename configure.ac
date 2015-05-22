@@ -1,7 +1,7 @@
 AC_PREREQ([2.64])
 
 m4_define([libinput_major_version], [0])
-m4_define([libinput_minor_version], [13])
+m4_define([libinput_minor_version], [15])
 m4_define([libinput_micro_version], [0])
 m4_define([libinput_version],
           [libinput_major_version.libinput_minor_version.libinput_micro_version])
@@ -31,7 +31,7 @@ AM_INIT_AUTOMAKE([1.11 foreign no-dist-gzip dist-xz])
 # b) If interfaces have been changed or added, but binary compatibility has
 #    been preserved, change to C+1:0:A+1
 # c) If the interface is the same as the previous version, change to C:R+1:A
-LIBINPUT_LT_VERSION=10:1:0
+LIBINPUT_LT_VERSION=12:0:2
 AC_SUBST(LIBINPUT_LT_VERSION)
 
 AM_SILENT_RULES([yes])
@@ -60,6 +60,20 @@ PKG_PROG_PKG_CONFIG()
 PKG_CHECK_MODULES(MTDEV, [mtdev >= 1.1.0])
 PKG_CHECK_MODULES(LIBUDEV, [libudev])
 PKG_CHECK_MODULES(LIBEVDEV, [libevdev >= 0.4])
+PKG_CHECK_MODULES(LIBUNWIND,
+		  [libunwind],
+		  [HAVE_LIBUNWIND=yes],
+		  [HAVE_LIBUNWIND=no])
+if test "x$HAVE_LIBUNWIND" = "xyes"; then
+	AC_DEFINE(HAVE_LIBUNWIND, 1, [Have libunwind support])
+fi
+AM_CONDITIONAL(HAVE_LIBUNWIND, [test "x$HAVE_LIBUNWIND" = xyes])
+AC_PATH_PROG(ADDR2LINE, [addr2line])
+if test "x$ADDR2LINE" != "x"; then
+	AC_DEFINE_UNQUOTED(HAVE_ADDR2LINE, 1, [addr2line found])
+	AC_DEFINE_UNQUOTED(ADDR2LINE, ["$ADDR2LINE"], [Path to addr2line])
+fi
+
 AC_CHECK_LIB([m], [atan2])
 AC_CHECK_LIB([rt], [clock_gettime])
 
@@ -201,5 +215,6 @@ AC_MSG_RESULT([
 	Build documentation	${build_documentation}
 	Build tests		${build_tests}
 	Tests use valgrind	${VALGRIND}
+	Tests use libunwind	${HAVE_LIBUNWIND}
 	Build GUI event tool	${build_eventgui}
 	])

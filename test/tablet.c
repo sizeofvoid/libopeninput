@@ -1662,8 +1662,8 @@ START_TEST(artpen_rotation)
 }
 END_TEST
 
-int
-main(int argc, char **argv)
+void
+litest_setup_tests(void)
 {
 	litest_add("tablet:tool", tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add_no_device("tablet:tool", tool_capabilities);
@@ -1692,6 +1692,4 @@ main(int argc, char **argv)
 	litest_add("tablet:airbrush", airbrush_wheel, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:artpen", artpen_tool, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:artpen", artpen_rotation, LITEST_TABLET, LITEST_ANY);
-
-	return litest_run(argc, argv);
 }

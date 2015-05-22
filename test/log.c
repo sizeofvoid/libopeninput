@@ -26,7 +26,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <libinput.h>
-#include <libudev.h>
 #include <unistd.h>
 
 #include "litest.h"
@@ -58,8 +57,8 @@ simple_log_handler(struct libinput *libinput,
 {
 	log_handler_called++;
 	if (log_handler_context)
-		ck_assert(libinput == log_handler_context);
-	ck_assert(format != NULL);
+		litest_assert_ptr_eq(libinput, log_handler_context);
+	litest_assert_notnull(format);
 }
 
 START_TEST(log_default_priority)
@@ -140,11 +139,11 @@ START_TEST(log_priority)
 }
 END_TEST
 
-int main (int argc, char **argv) {
+void
+litest_setup_tests(void)
+{
 	litest_add_no_device("log:defaults", log_default_priority);
 	litest_add_no_device("log:logging", log_handler_invoked);
 	litest_add_no_device("log:logging", log_handler_NULL);
 	litest_add_no_device("log:logging", log_priority);
-
-	return litest_run(argc, argv);
 }

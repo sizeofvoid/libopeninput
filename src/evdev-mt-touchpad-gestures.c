@@ -39,7 +39,7 @@ tp_get_touches_delta(struct tp_dispatch *tp, bool average)
 	struct normalized_coords normalized;
 	struct normalized_coords delta = {0.0, 0.0};
 
-	for (i = 0; i < tp->real_touches; i++) {
+	for (i = 0; i < tp->num_slots; i++) {
 		t = &tp->touches[i];
 
 		if (tp_touch_active(tp, t) && t->dirty) {
@@ -93,14 +93,13 @@ tp_gesture_post_pointer_motion(struct tp_dispatch *tp, uint64_t time)
 
 	/* When a clickpad is clicked, combine motion of all active touches */
 	if (tp->buttons.is_clickpad && tp->buttons.state)
-		delta = tp_get_combined_touches_delta(tp);
+		unaccel = tp_get_combined_touches_delta(tp);
 	else
-		delta = tp_get_average_touches_delta(tp);
+		unaccel = tp_get_average_touches_delta(tp);
 
-	tp_filter_motion(tp, &delta.x, &delta.y, &unaccel.x, &unaccel.y, time);
+	delta = tp_filter_motion(tp, &unaccel, time);
 
-	if (delta.x != 0.0 || delta.y != 0.0 ||
-	    unaccel.x != 0.0 || unaccel.y != 0.0) {
+	if (!normalized_is_zero(delta) || !normalized_is_zero(unaccel)) {
 		pointer_notify_motion(&tp->device->base, time,
 				      &delta, &unaccel);
 	}
@@ -111,10 +110,23 @@ tp_gesture_post_twofinger_scroll(struct tp_dispatch *tp, uint64_t time)
 {
 	struct normalized_coords delta;
 
-	delta = tp_get_average_touches_delta(tp);
-	tp_filter_motion(tp, &delta.x, &delta.y, NULL, NULL, time);
+	if (tp->scroll.method != LIBINPUT_CONFIG_SCROLL_2FG)
+		return;
 
-	if (delta.x == 0.0 && delta.y == 0.0)
+	/* On some semi-mt models slot 0 is more accurate, so for semi-mt
+	 * we only use slot 0. */
+	if (tp->semi_mt) {
+		if (!tp->touches[0].dirty)
+			return;
+
+		delta = tp_get_delta(&tp->touches[0]);
+	} else {
+		delta = tp_get_average_touches_delta(tp);
+	}
+
+	delta = tp_filter_motion(tp, &delta, time);
+
+	if (normalized_is_zero(delta))
 		return;
 
 	tp_gesture_start(tp, time);
@@ -154,6 +166,9 @@ tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time)
 void
 tp_gesture_stop_twofinger_scroll(struct tp_dispatch *tp, uint64_t time)
 {
+	if (tp->scroll.method != LIBINPUT_CONFIG_SCROLL_2FG)
+		return;
+
 	evdev_stop_scroll(tp->device,
 			  time,
 			  LIBINPUT_POINTER_AXIS_SOURCE_FINGER);

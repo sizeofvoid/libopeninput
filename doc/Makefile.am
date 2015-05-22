@@ -1,4 +1,7 @@
-EXTRA_DIST = touchpad-tap-state-machine.svg touchpad-softbutton-state-machine.svg
+EXTRA_DIST = \
+	     middle-button-emulation.svg \
+	     touchpad-tap-state-machine.svg \
+	     touchpad-softbutton-state-machine.svg
 
 if BUILD_DOCS
 
@@ -16,7 +19,8 @@ header_files = \
 	$(srcdir)/seats.dox \
 	$(srcdir)/t440-support.dox \
 	$(srcdir)/tablet-support.dox \
-	$(srcdir)/tapping.dox
+	$(srcdir)/tapping.dox \
+	$(srcdir)/test-suite.dox
 
 diagram_files = \
 	$(srcdir)/dot/seats-sketch.gv \

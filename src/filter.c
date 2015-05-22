@@ -1,4 +1,5 @@
 /*
+ * Copyright © 2006-2009 Simon Thum
  * Copyright © 2012 Jonas Ådahl
  *
  * Permission to use, copy, modify, distribute, and sell this software and
@@ -122,7 +123,7 @@ feed_trackers(struct pointer_accelerator *accel,
 	trackers[current].delta.x = 0.0;
 	trackers[current].delta.y = 0.0;
 	trackers[current].time = time;
-	trackers[current].dir = vector_get_direction(delta->x, delta->y);
+	trackers[current].dir = normalized_get_direction(*delta);
 }
 
 static struct pointer_tracker *
@@ -137,11 +138,9 @@ tracker_by_offset(struct pointer_accelerator *accel, unsigned int offset)
 static double
 calculate_tracker_velocity(struct pointer_tracker *tracker, uint64_t time)
 {
-	double distance;
 	double tdelta = time - tracker->time + 1;
 
-	distance = hypot(tracker->delta.x, tracker->delta.y);
-	return distance / tdelta; /* units/ms */
+	return normalized_length(tracker->delta) / tdelta; /* units/ms */
 }
 
 static double
@@ -260,13 +259,15 @@ accelerator_set_speed(struct motion_filter *filter,
 	assert(speed >= -1.0 && speed <= 1.0);
 
 	/* delay when accel kicks in */
-	accel_filter->threshold = DEFAULT_THRESHOLD - speed/6.0;
+	accel_filter->threshold = DEFAULT_THRESHOLD - speed / 4.0;
+	if (accel_filter->threshold < 0.2)
+		accel_filter->threshold = 0.2;
 
 	/* adjust max accel factor */
-	accel_filter->accel = DEFAULT_ACCELERATION + speed;
+	accel_filter->accel = DEFAULT_ACCELERATION + speed * 1.5;
 
 	/* higher speed -> faster to reach max */
-	accel_filter->incline = DEFAULT_INCLINE + speed/2.0;
+	accel_filter->incline = DEFAULT_INCLINE + speed * 0.75;
 
 	filter->speed = speed;
 	return true;
@@ -344,4 +345,41 @@ touchpad_accel_profile_linear(struct motion_filter *filter,
 	speed_out = pointer_accel_profile_linear(filter, data, speed_in, time);
 
 	return speed_out * TP_MAGIC_SLOWDOWN;
+}
+
+double
+touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
+				      void *data,
+				      double speed_in,
+				      uint64_t time)
+{
+	/* Keep the magic factor from touchpad_accel_profile_linear.  */
+	const double TP_MAGIC_SLOWDOWN = 0.4;
+
+	/* Those touchpads presents an actual lower resolution that what is
+	 * advertised. We see some jumps from the cursor due to the big steps
+	 * in X and Y when we are receiving data.
+	 * Apply a factor to minimize those jumps at low speed, and try
+	 * keeping the same feeling as regular touchpads at high speed.
+	 * It still feels slower but it is usable at least */
+	const double TP_MAGIC_LOW_RES_FACTOR = 4.0;
+	double speed_out;
+	struct pointer_accelerator *accel_filter =
+		(struct pointer_accelerator *)filter;
+
+	double s1, s2;
+	const double max_accel = accel_filter->accel *
+				  TP_MAGIC_LOW_RES_FACTOR; /* unitless factor */
+	const double threshold = accel_filter->threshold /
+				  TP_MAGIC_LOW_RES_FACTOR; /* units/ms */
+	const double incline = accel_filter->incline * TP_MAGIC_LOW_RES_FACTOR;
+
+	speed_in *= TP_MAGIC_SLOWDOWN / TP_MAGIC_LOW_RES_FACTOR;
+
+	s1 = min(1, speed_in * 5);
+	s2 = 1 + (speed_in - threshold) * incline;
+
+	speed_out = min(max_accel, s2 > 1 ? s2 : s1);
+
+	return speed_out * TP_MAGIC_SLOWDOWN / TP_MAGIC_LOW_RES_FACTOR;
 }

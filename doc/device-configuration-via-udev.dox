@@ -44,7 +44,10 @@ udev_device_type.</dt>
 ID_INPUT_TOUCHSCREEN, ID_INPUT_TABLET, ID_INPUT_JOYSTICK,
 ID_INPUT_ACCELEROMETER</dt>
 <dd>If any of the above is set, libinput initializes the device as the given
-type, see @ref udev_device_type.</dd>
+type, see @ref udev_device_type. Note that for historical reasons more than
+one of these may be set at any time, libinput will select only one of these
+to determine the device type. To ensure libinput selects the correct device
+type, only set one of them.</dd>
 <dt>WL_SEAT</dt>
 <dd>Assigns the logical seat for this device. See
 libinput_seat_get_logical_name()
@@ -56,6 +59,13 @@ See @ref motion_normalization for details.
 <dt>MOUSE_WHEEL_CLICK_ANGLE</dt>
 <dd>The angle in degrees for each click on a mouse wheel. See
 libinput_pointer_get_axis_source() for details.
+</dd>
+<dt>POINTINGSTICK_CONST_ACCEL</dt>
+<dd>A constant (linear) acceleration factor to apply to pointingstick deltas
+to normalize them.
+<dt>LIBINPUT_MODEL_*</dt>
+<dd><b>This prefix is reserved as private API, do not use.</b>. See @ref
+model_specific_configuration for details.
 </dd>
 </dl>
 
@@ -90,5 +100,17 @@ for a device with the vendor/model ID of 012a/034b.
 ACTION=="add|change", KERNEL=="event[0-9]*", ENV{ID_VENDOR_ID}=="012a", \
 ENV{ID_MODEL_ID}=="034b", ENV{ID_INPUT_TOUCHPAD}="", ENV{ID_INPUT_TABLET}="1"
 @endcode
+
+@section model_specific_configuration Model-specific configuration
+
+libinput reserves the property prefix <b>LIBINPUT_MODEL_</b> for
+model-specific configuration. <b>This prefix is reserved as private API, do
+not use.</b>
+
+The effect of this property may be to enable or disable certain
+features on a specific device or set of devices, to change configuration
+defaults or any other reason. The effects of setting this property, the
+format of the property and the value of the property are subject to change
+at any time.
 
 */

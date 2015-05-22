@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 Red Hat, Inc.
+ * Copyright © 2015 Red Hat, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -27,82 +27,26 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_ms_surface_cover_setup(void)
+/* Recording from https://bugs.freedesktop.org/show_bug.cgi?id=89783
+ * This is the second of 4 devices exported by this keyboard, the first is
+ * just a basic keyboard that is identical to the normal litest-keyboard.c
+ * file.
+ */
+
+static void litest_blackwidow_setup(void)
 {
-	struct litest_device *d = litest_create_device(LITEST_MS_SURFACE_COVER);
+	struct litest_device *d = litest_create_device(LITEST_KEYBOARD_BLACKWIDOW);
 	litest_set_current_device(d);
 }
 
-static struct input_event down[] = {
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
-	{ .type = -1, .code = -1 },
-};
-
-static struct input_event move[] = {
-	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
-	{ .type = -1, .code = -1 },
-};
-
-/* We define down/move so that we can emulate fake touches on this device,
-   to make sure nothing crashes. */
-static struct litest_device_interface interface = {
-	.touch_down_events = down,
-	.touch_move_events = move,
-};
-
-static struct input_absinfo absinfo[] = {
-	{ ABS_X, 0, 1022, 0, 0, 12 },
-	{ ABS_Y, 0, 487, 0, 0, 12 },
-	{ ABS_VOLUME, 0, 1023, 0, 0, 0 },
-	{ ABS_MISC, 0, 255, 0, 0, 0 },
-	{ 41, 0, 255, 0, 0, 0 },
-	{ 42, -127, 127, 0, 0, 0 },
-	{ 43, -127, 127, 0, 0, 0 },
-	{ 44, -127, 127, 0, 0, 0 },
-	{ 45, -127, 127, 0, 0, 0 },
-	{ 46, -127, 127, 0, 0, 0 },
-	{ 47, -127, 127, 0, 0, 0 },
-	/* ABS_MT range overlap starts here */
-	{ 48, -127, 127, 0, 0, 0 }, /* ABS_MT_SLOT */
-	{ 49, -127, 127, 0, 0, 0 },
-	{ 50, -127, 127, 0, 0, 0 },
-	{ 51, -127, 127, 0, 0, 0 },
-	{ 52, -127, 127, 0, 0, 0 },
-	{ 53, -127, 127, 0, 0, 0 },
-	{ 54, -127, 127, 0, 0, 0 },
-	{ 55, -127, 127, 0, 0, 0 },
-	{ 56, -127, 127, 0, 0, 0 },
-	{ 57, -127, 127, 0, 0, 0 },
-	{ 58, -127, 127, 0, 0, 0 },
-	{ 59, -127, 127, 0, 0, 0 },
-	{ 60, -127, 127, 0, 0, 0 },
-	{ 61, -127, 127, 0, 0, 0 }, /* ABS_MT_TOOL_Y */
-	{ 62, -127, 127, 0, 0, 0 },
-	{ .value = -1 },
-};
-
 static struct input_id input_id = {
 	.bustype = 0x3,
-	.vendor = 0x45e,
-	.product = 0x7dc,
+	.vendor = 0x1532,
+	.product = 0x11b,
 };
 
 static int events[] = {
-	EV_REL, REL_X,
-	EV_REL, REL_Y,
 	EV_REL, REL_HWHEEL,
-	EV_REL, REL_DIAL,
-	EV_REL, REL_WHEEL,
 	EV_KEY, KEY_ESC,
 	EV_KEY, KEY_1,
 	EV_KEY, KEY_2,
@@ -186,10 +130,13 @@ static int events[] = {
 	EV_KEY, KEY_KP3,
 	EV_KEY, KEY_KP0,
 	EV_KEY, KEY_KPDOT,
+	EV_KEY, KEY_ZENKAKUHANKAKU,
 	EV_KEY, KEY_102ND,
 	EV_KEY, KEY_F11,
 	EV_KEY, KEY_F12,
 	EV_KEY, KEY_RO,
+	EV_KEY, KEY_KATAKANA,
+	EV_KEY, KEY_HIRAGANA,
 	EV_KEY, KEY_HENKAN,
 	EV_KEY, KEY_KATAKANAHIRAGANA,
 	EV_KEY, KEY_MUHENKAN,
@@ -236,6 +183,7 @@ static int events[] = {
 	EV_KEY, KEY_MENU,
 	EV_KEY, KEY_CALC,
 	EV_KEY, KEY_SLEEP,
+	EV_KEY, KEY_WAKEUP,
 	EV_KEY, KEY_FILE,
 	EV_KEY, KEY_WWW,
 	EV_KEY, KEY_COFFEE,
@@ -258,8 +206,9 @@ static int events[] = {
 	EV_KEY, KEY_EDIT,
 	EV_KEY, KEY_SCROLLUP,
 	EV_KEY, KEY_SCROLLDOWN,
+	EV_KEY, KEY_KPLEFTPAREN,
+	EV_KEY, KEY_KPRIGHTPAREN,
 	EV_KEY, KEY_NEW,
-	EV_KEY, KEY_REDO,
 	EV_KEY, KEY_F13,
 	EV_KEY, KEY_F14,
 	EV_KEY, KEY_F15,
@@ -281,24 +230,15 @@ static int events[] = {
 	EV_KEY, KEY_CHAT,
 	EV_KEY, KEY_SEARCH,
 	EV_KEY, KEY_FINANCE,
-	EV_KEY, KEY_CANCEL,
 	EV_KEY, KEY_BRIGHTNESSDOWN,
 	EV_KEY, KEY_BRIGHTNESSUP,
 	EV_KEY, KEY_KBDILLUMTOGGLE,
-	EV_KEY, KEY_SEND,
-	EV_KEY, KEY_REPLY,
-	EV_KEY, KEY_FORWARDMAIL,
 	EV_KEY, KEY_SAVE,
 	EV_KEY, KEY_DOCUMENTS,
 	EV_KEY, KEY_UNKNOWN,
 	EV_KEY, KEY_VIDEO_NEXT,
-	EV_KEY, KEY_BRIGHTNESS_ZERO,
+	EV_KEY, KEY_BRIGHTNESS_AUTO,
 	EV_KEY, BTN_0,
-	EV_KEY, BTN_LEFT,
-	EV_KEY, BTN_RIGHT,
-	EV_KEY, BTN_MIDDLE,
-	EV_KEY, BTN_SIDE,
-	EV_KEY, BTN_EXTRA,
 	EV_KEY, KEY_SELECT,
 	EV_KEY, KEY_GOTO,
 	EV_KEY, KEY_INFO,
@@ -354,36 +294,57 @@ static int events[] = {
 	EV_KEY, KEY_LOGOFF,
 	EV_KEY, KEY_MEDIA_REPEAT,
 	EV_KEY, KEY_IMAGES,
-	EV_KEY, 576,
-	EV_KEY, 577,
-	EV_KEY, 578,
-	EV_KEY, 579,
-	EV_KEY, 580,
-	EV_KEY, 581,
-	EV_KEY, 582,
-	EV_KEY, 592,
-	EV_KEY, 593,
-	EV_KEY, 608,
-	EV_KEY, 609,
-	EV_KEY, 610,
-	EV_KEY, 611,
-	EV_KEY, 612,
-	EV_KEY, 613,
-	EV_LED, LED_NUML,
-	EV_LED, LED_CAPSL,
-	EV_LED, LED_SCROLLL,
-	-1, -1,
+	EV_KEY, KEY_BUTTONCONFIG,
+	EV_KEY, KEY_TASKMANAGER,
+	EV_KEY, KEY_JOURNAL,
+	EV_KEY, KEY_CONTROLPANEL,
+	EV_KEY, KEY_APPSELECT,
+	EV_KEY, KEY_SCREENSAVER,
+	EV_KEY, KEY_VOICECOMMAND,
+	EV_KEY, KEY_BRIGHTNESS_MIN,
+	EV_KEY, KEY_BRIGHTNESS_MAX,
+	EV_MSC, MSC_SCAN,
+	-1 , -1,
 };
 
-struct litest_test_device litest_ms_surface_cover_device = {
-	.type = LITEST_MS_SURFACE_COVER,
-	.features = LITEST_KEYS | LITEST_ABSOLUTE | LITEST_RELATIVE | LITEST_FAKE_MT | LITEST_BUTTON | LITEST_WHEEL,
-	.shortname = "MS surface cover",
-	.setup = litest_ms_surface_cover_setup,
-	.interface = &interface,
+static struct input_absinfo absinfo[] = {
+	{ ABS_VOLUME, 0, 572, 0, 0, 0 },
+	{ ABS_MISC, 0, 255, 0, 0, 0 },
+	{ 0x29, 0, 255, 0, 0, 0 },
+	{ 0x2a, 0, 255, 0, 0, 0 },
+	{ 0x2b, 0, 255, 0, 0, 0 },
+	{ 0x2c, 0, 255, 0, 0, 0 },
+	{ 0x2d, 0, 255, 0, 0, 0 },
+	{ 0x2e, 0, 255, 0, 0, 0 },
+	{ 0x2f, 0, 255, 0, 0, 0 },
+	{ 0x30, 0, 255, 0, 0, 0 },
+	{ 0x31, 0, 255, 0, 0, 0 },
+	{ 0x32, 0, 255, 0, 0, 0 },
+	{ 0x33, 0, 255, 0, 0, 0 },
+	{ 0x34, 0, 255, 0, 0, 0 },
+	{ 0x35, 0, 255, 0, 0, 0 },
+	{ 0x36, 0, 255, 0, 0, 0 },
+	{ 0x37, 0, 255, 0, 0, 0 },
+	{ 0x38, 0, 255, 0, 0, 0 },
+	{ 0x39, 0, 255, 0, 0, 0 },
+	{ 0x3a, 0, 255, 0, 0, 0 },
+	{ 0x3b, 0, 255, 0, 0, 0 },
+	{ 0x3c, 0, 255, 0, 0, 0 },
+	{ 0x3d, 0, 255, 0, 0, 0 },
+	{ 0x3e, 0, 255, 0, 0, 0 },
+	{ 0x3f, 0, 255, 0, 0, 0 },
+	{ .value = -1 },
+};
 
-	.name = "Microsoft Surface Type Cover",
+struct litest_test_device litest_keyboard_blackwidow_device = {
+	.type = LITEST_KEYBOARD_BLACKWIDOW,
+	.features = LITEST_KEYS | LITEST_WHEEL,
+	.shortname = "blackwidow",
+	.setup = litest_blackwidow_setup,
+	.interface = NULL,
+
+	.name = "Razer Razer BlackWidow 2013",
 	.id = &input_id,
-	.events = events,
 	.absinfo = absinfo,
+	.events = events,
 };

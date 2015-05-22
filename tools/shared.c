@@ -30,6 +30,8 @@
 #include <string.h>
 #include <libudev.h>
 
+#include <libevdev/libevdev.h>
+
 #include "shared.h"
 
 enum options {
@@ -43,7 +45,12 @@ enum options {
 	OPT_NATURAL_SCROLL_DISABLE,
 	OPT_LEFT_HANDED_ENABLE,
 	OPT_LEFT_HANDED_DISABLE,
+	OPT_MIDDLEBUTTON_ENABLE,
+	OPT_MIDDLEBUTTON_DISABLE,
 	OPT_CLICK_METHOD,
+	OPT_SCROLL_METHOD,
+	OPT_SCROLL_BUTTON,
+	OPT_SPEED,
 };
 
 static void
@@ -70,7 +77,12 @@ tools_usage()
 	       "--disable-natural-scrolling.... enable/disable natural scrolling\n"
 	       "--enable-left-handed\n"
 	       "--disable-left-handed.... enable/disable left-handed button configuration\n"
+	       "--enable-middlebutton\n"
+	       "--disable-middlebutton.... enable/disable middle button emulation\n"
 	       "--set-click-method=[none|clickfinger|buttonareas] .... set the desired click method\n"
+	       "--set-scroll-method=[none|twofinger|edge|button] ... set the desired scroll method\n"
+	       "--set-scroll-button=BTN_MIDDLE ... set the button to the given button code\n"
+	       "--set-speed=<value>.... set pointer acceleration speed\n"
 	       "\n"
 	       "These options apply to all applicable devices, if a feature\n"
 	       "is not explicitly specified it is left at each device's default.\n"
@@ -88,9 +100,13 @@ tools_init_options(struct tools_options *options)
 	options->tapping = -1;
 	options->natural_scroll = -1;
 	options->left_handed = -1;
+	options->middlebutton = -1;
 	options->click_method = -1;
+	options->scroll_method = -1;
+	options->scroll_button = -1;
 	options->backend = BACKEND_UDEV;
 	options->seat = "seat0";
+	options->speed = 0.0;
 }
 
 int
@@ -110,7 +126,12 @@ tools_parse_args(int argc, char **argv, struct tools_options *options)
 			{ "disable-natural-scrolling", 0, 0, OPT_NATURAL_SCROLL_DISABLE },
 			{ "enable-left-handed", 0, 0, OPT_LEFT_HANDED_ENABLE },
 			{ "disable-left-handed", 0, 0, OPT_LEFT_HANDED_DISABLE },
+			{ "enable-middlebutton", 0, 0, OPT_MIDDLEBUTTON_ENABLE },
+			{ "disable-middlebutton", 0, 0, OPT_MIDDLEBUTTON_DISABLE },
 			{ "set-click-method", 1, 0, OPT_CLICK_METHOD },
+			{ "set-scroll-method", 1, 0, OPT_SCROLL_METHOD },
+			{ "set-scroll-button", 1, 0, OPT_SCROLL_BUTTON },
+			{ "speed", 1, 0, OPT_SPEED },
 			{ 0, 0, 0, 0}
 		};
 
@@ -157,6 +178,12 @@ tools_parse_args(int argc, char **argv, struct tools_options *options)
 			case OPT_LEFT_HANDED_DISABLE:
 				options->left_handed = 0;
 				break;
+			case OPT_MIDDLEBUTTON_ENABLE:
+				options->middlebutton = 1;
+				break;
+			case OPT_MIDDLEBUTTON_DISABLE:
+				options->middlebutton = 0;
+				break;
 			case OPT_CLICK_METHOD:
 				if (!optarg) {
 					tools_usage();
@@ -175,6 +202,50 @@ tools_parse_args(int argc, char **argv, struct tools_options *options)
 					tools_usage();
 					return 1;
 				}
+				break;
+			case OPT_SCROLL_METHOD:
+				if (!optarg) {
+					tools_usage();
+					return 1;
+				}
+				if (strcmp(optarg, "none") == 0) {
+					options->scroll_method =
+						LIBINPUT_CONFIG_SCROLL_NO_SCROLL;
+				} else if (strcmp(optarg, "twofinger") == 0) {
+					options->scroll_method =
+						LIBINPUT_CONFIG_SCROLL_2FG;
+				} else if (strcmp(optarg, "edge") == 0) {
+					options->scroll_method =
+						LIBINPUT_CONFIG_SCROLL_EDGE;
+				} else if (strcmp(optarg, "button") == 0) {
+					options->scroll_method =
+						LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN;
+				} else {
+					tools_usage();
+					return 1;
+				}
+				break;
+			case OPT_SCROLL_BUTTON:
+				if (!optarg) {
+					tools_usage();
+					return 1;
+				}
+				options->scroll_button =
+					libevdev_event_code_from_name(EV_KEY,
+								      optarg);
+				if (options->scroll_button == -1) {
+					fprintf(stderr,
+						"Invalid button %s\n",
+						optarg);
+					return 1;
+				}
+				break;
+			case OPT_SPEED:
+				if (!optarg) {
+					tools_usage();
+					return 1;
+				}
+				options->speed = atof(optarg);
 				break;
 			default:
 				tools_usage();
@@ -286,7 +357,21 @@ tools_device_apply_config(struct libinput_device *device,
 									 options->natural_scroll);
 	if (options->left_handed != -1)
 		libinput_device_config_left_handed_set(device, options->left_handed);
+	if (options->middlebutton != -1)
+		libinput_device_config_middle_emulation_set_enabled(device,
+								    options->middlebutton);
 
 	if (options->click_method != -1)
 		libinput_device_config_click_set_method(device, options->click_method);
+
+	if (options->scroll_method != -1)
+		libinput_device_config_scroll_set_method(device,
+							 options->scroll_method);
+	if (options->scroll_button != -1)
+		libinput_device_config_scroll_set_button(device,
+							 options->scroll_button);
+
+	if (libinput_device_config_accel_is_available(device))
+		libinput_device_config_accel_set_speed(device,
+						       options->speed);
 }

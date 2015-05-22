@@ -1326,6 +1326,35 @@ notify_removed_device(struct libinput_device *device)
 			&removed_device_event->base);
 }
 
+static inline bool
+device_has_cap(struct libinput_device *device,
+	       enum libinput_device_capability cap)
+{
+	const char *capability;
+
+	if (libinput_device_has_capability(device, cap))
+		return true;
+
+	switch (cap) {
+	case LIBINPUT_DEVICE_CAP_POINTER:
+		capability = "CAP_POINTER";
+		break;
+	case LIBINPUT_DEVICE_CAP_KEYBOARD:
+		capability = "CAP_KEYBOARD";
+		break;
+	case LIBINPUT_DEVICE_CAP_TOUCH:
+		capability = "CAP_TOUCH";
+		break;
+	}
+
+	log_bug_libinput(device->seat->libinput,
+			 "Event for missing capability %s on device \"%s\"\n",
+			 capability,
+			 libinput_device_get_name(device));
+
+	return false;
+}
+
 void
 keyboard_notify_key(struct libinput_device *device,
 		    uint64_t time,
@@ -1334,6 +1363,9 @@ keyboard_notify_key(struct libinput_device *device,
 {
 	struct libinput_event_keyboard *key_event;
 	uint32_t seat_key_count;
+
+	if (!device_has_cap(device, LIBINPUT_DEVICE_CAP_KEYBOARD))
+		return;
 
 	key_event = zalloc(sizeof *key_event);
 	if (!key_event)
@@ -1361,6 +1393,9 @@ pointer_notify_motion(struct libinput_device *device,
 {
 	struct libinput_event_pointer *motion_event;
 
+	if (!device_has_cap(device, LIBINPUT_DEVICE_CAP_POINTER))
+		return;
+
 	motion_event = zalloc(sizeof *motion_event);
 	if (!motion_event)
 		return;
@@ -1382,6 +1417,9 @@ pointer_notify_motion_absolute(struct libinput_device *device,
 			       const struct device_coords *point)
 {
 	struct libinput_event_pointer *motion_absolute_event;
+
+	if (!device_has_cap(device, LIBINPUT_DEVICE_CAP_POINTER))
+		return;
 
 	motion_absolute_event = zalloc(sizeof *motion_absolute_event);
 	if (!motion_absolute_event)
@@ -1405,6 +1443,9 @@ pointer_notify_button(struct libinput_device *device,
 {
 	struct libinput_event_pointer *button_event;
 	int32_t seat_button_count;
+
+	if (!device_has_cap(device, LIBINPUT_DEVICE_CAP_POINTER))
+		return;
 
 	button_event = zalloc(sizeof *button_event);
 	if (!button_event)
@@ -1436,6 +1477,9 @@ pointer_notify_axis(struct libinput_device *device,
 {
 	struct libinput_event_pointer *axis_event;
 
+	if (!device_has_cap(device, LIBINPUT_DEVICE_CAP_POINTER))
+		return;
+
 	axis_event = zalloc(sizeof *axis_event);
 	if (!axis_event)
 		return;
@@ -1462,6 +1506,9 @@ touch_notify_touch_down(struct libinput_device *device,
 {
 	struct libinput_event_touch *touch_event;
 
+	if (!device_has_cap(device, LIBINPUT_DEVICE_CAP_TOUCH))
+		return;
+
 	touch_event = zalloc(sizeof *touch_event);
 	if (!touch_event)
 		return;
@@ -1487,6 +1534,9 @@ touch_notify_touch_motion(struct libinput_device *device,
 {
 	struct libinput_event_touch *touch_event;
 
+	if (!device_has_cap(device, LIBINPUT_DEVICE_CAP_TOUCH))
+		return;
+
 	touch_event = zalloc(sizeof *touch_event);
 	if (!touch_event)
 		return;
@@ -1511,6 +1561,9 @@ touch_notify_touch_up(struct libinput_device *device,
 {
 	struct libinput_event_touch *touch_event;
 
+	if (!device_has_cap(device, LIBINPUT_DEVICE_CAP_TOUCH))
+		return;
+
 	touch_event = zalloc(sizeof *touch_event);
 	if (!touch_event)
 		return;
@@ -1531,6 +1584,9 @@ touch_notify_frame(struct libinput_device *device,
 		   uint64_t time)
 {
 	struct libinput_event_touch *touch_event;
+
+	if (!device_has_cap(device, LIBINPUT_DEVICE_CAP_TOUCH))
+		return;
 
 	touch_event = zalloc(sizeof *touch_event);
 	if (!touch_event)
@@ -1855,6 +1911,12 @@ libinput_device_pointer_has_button(struct libinput_device *device, uint32_t code
 	return evdev_device_has_button((struct evdev_device *)device, code);
 }
 
+LIBINPUT_EXPORT int
+libinput_device_keyboard_has_key(struct libinput_device *device, uint32_t code)
+{
+	return evdev_device_has_key((struct evdev_device *)device, code);
+}
+
 LIBINPUT_EXPORT struct libinput_event *
 libinput_event_device_notify_get_base_event(struct libinput_event_device_notify *event)
 {
@@ -2010,11 +2072,12 @@ libinput_device_config_tap_set_enabled(struct libinput_device *device,
 	    enable != LIBINPUT_CONFIG_TAP_DISABLED)
 		return LIBINPUT_CONFIG_STATUS_INVALID;
 
-	if (enable &&
-	    libinput_device_config_tap_get_finger_count(device) == 0)
-		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+	if (libinput_device_config_tap_get_finger_count(device) == 0)
+		return enable ? LIBINPUT_CONFIG_STATUS_UNSUPPORTED :
+				LIBINPUT_CONFIG_STATUS_SUCCESS;
 
 	return device->config.tap->set_enabled(device, enable);
+
 }
 
 LIBINPUT_EXPORT enum libinput_config_tap_state
@@ -2237,9 +2300,6 @@ LIBINPUT_EXPORT enum libinput_config_status
 libinput_device_config_click_set_method(struct libinput_device *device,
 					enum libinput_config_click_method method)
 {
-	if ((libinput_device_config_click_get_methods(device) & method) != method)
-		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
-
 	/* Check method is a single valid method */
 	switch (method) {
 	case LIBINPUT_CONFIG_CLICK_METHOD_NONE:
@@ -2249,6 +2309,9 @@ libinput_device_config_click_set_method(struct libinput_device *device,
 	default:
 		return LIBINPUT_CONFIG_STATUS_INVALID;
 	}
+
+	if ((libinput_device_config_click_get_methods(device) & method) != method)
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
 
 	if (device->config.click_method)
 		return device->config.click_method->set_method(device, method);
@@ -2272,6 +2335,60 @@ libinput_device_config_click_get_default_method(struct libinput_device *device)
 		return device->config.click_method->get_default_method(device);
 	else
 		return LIBINPUT_CONFIG_CLICK_METHOD_NONE;
+}
+
+LIBINPUT_EXPORT int
+libinput_device_config_middle_emulation_is_available(
+		struct libinput_device *device)
+{
+	if (device->config.middle_emulation)
+		return device->config.middle_emulation->available(device);
+	else
+		return LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_middle_emulation_set_enabled(
+		struct libinput_device *device,
+		enum libinput_config_middle_emulation_state enable)
+{
+	int available =
+		libinput_device_config_middle_emulation_is_available(device);
+
+	switch (enable) {
+	case LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED:
+		if (!available)
+			return LIBINPUT_CONFIG_STATUS_SUCCESS;
+		break;
+	case LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED:
+		if (!available)
+			return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+		break;
+	default:
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+	}
+
+	return device->config.middle_emulation->set(device, enable);
+}
+
+LIBINPUT_EXPORT enum libinput_config_middle_emulation_state
+libinput_device_config_middle_emulation_get_enabled(
+		struct libinput_device *device)
+{
+	if (!libinput_device_config_middle_emulation_is_available(device))
+		return LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
+
+	return device->config.middle_emulation->get(device);
+}
+
+LIBINPUT_EXPORT enum libinput_config_middle_emulation_state
+libinput_device_config_middle_emulation_get_default_enabled(
+		struct libinput_device *device)
+{
+	if (!libinput_device_config_middle_emulation_is_available(device))
+		return LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
+
+	return device->config.middle_emulation->get_default(device);
 }
 
 LIBINPUT_EXPORT uint32_t

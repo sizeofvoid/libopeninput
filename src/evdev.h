@@ -36,6 +36,13 @@
 
 /* The HW DPI rate we normalize to before calculating pointer acceleration */
 #define DEFAULT_MOUSE_DPI 1000
+
+/*
+ * The constant (linear) acceleration factor we use to normalize trackpoint
+ * deltas before calculating pointer acceleration.
+ */
+#define DEFAULT_TRACKPOINT_ACCEL 1.0
+
 /* The fake resolution value for abs devices without resolution */
 #define EVDEV_FAKE_RESOLUTION 1
 
@@ -62,6 +69,39 @@ enum evdev_device_tags {
 	EVDEV_TAG_INTERNAL_TOUCHPAD = (1 << 1),
 	EVDEV_TAG_TRACKPOINT = (1 << 2),
 	EVDEV_TAG_TOUCHPAD_TRACKPOINT = (1 << 3),
+};
+
+enum evdev_middlebutton_state {
+	MIDDLEBUTTON_IDLE,
+	MIDDLEBUTTON_LEFT_DOWN,
+	MIDDLEBUTTON_RIGHT_DOWN,
+	MIDDLEBUTTON_MIDDLE,
+	MIDDLEBUTTON_LEFT_UP_PENDING,
+	MIDDLEBUTTON_RIGHT_UP_PENDING,
+	MIDDLEBUTTON_IGNORE_LR,
+	MIDDLEBUTTON_IGNORE_L,
+	MIDDLEBUTTON_IGNORE_R,
+	MIDDLEBUTTON_PASSTHROUGH,
+};
+
+enum evdev_middlebutton_event {
+	MIDDLEBUTTON_EVENT_L_DOWN,
+	MIDDLEBUTTON_EVENT_R_DOWN,
+	MIDDLEBUTTON_EVENT_OTHER,
+	MIDDLEBUTTON_EVENT_L_UP,
+	MIDDLEBUTTON_EVENT_R_UP,
+	MIDDLEBUTTON_EVENT_TIMEOUT,
+	MIDDLEBUTTON_EVENT_ALL_UP,
+};
+
+enum evdev_device_model {
+	EVDEV_MODEL_DEFAULT,
+	EVDEV_MODEL_LENOVO_X230,
+	EVDEV_MODEL_CHROMEBOOK,
+	EVDEV_MODEL_SYSTEM76_BONOBO,
+	EVDEV_MODEL_SYSTEM76_GALAGO,
+	EVDEV_MODEL_SYSTEM76_KUDU,
+	EVDEV_MODEL_CLEVO_W740SU,
 };
 
 struct mt_slot {
@@ -159,8 +199,22 @@ struct evdev_device {
 		void (*change_to_enabled)(struct evdev_device *device);
 	} left_handed;
 
+	struct {
+		struct libinput_device_config_middle_emulation config;
+		/* middle-button emulation enabled */
+		bool enabled;
+		bool enabled_default;
+		bool want_enabled;
+		enum evdev_middlebutton_state state;
+		struct libinput_timer timer;
+		uint32_t button_mask;
+		uint64_t first_event_time;
+	} middlebutton;
+
 	int dpi; /* HW resolution */
 	struct ratelimit syn_drop_limit; /* ratelimit for SYN_DROPPED logging */
+
+	enum evdev_device_model model;
 };
 
 #define EVDEV_UNHANDLED_DEVICE ((struct evdev_device *) 1)
@@ -173,6 +227,10 @@ struct evdev_dispatch_interface {
 			struct evdev_device *device,
 			struct input_event *event,
 			uint64_t time);
+
+	/* Device is being suspended */
+	void (*suspend)(struct evdev_dispatch *dispatch,
+			struct evdev_device *device);
 
 	/* Device is being removed (may be NULL) */
 	void (*remove)(struct evdev_dispatch *dispatch);
@@ -283,6 +341,9 @@ evdev_device_get_size(struct evdev_device *device,
 int
 evdev_device_has_button(struct evdev_device *device, uint32_t code);
 
+int
+evdev_device_has_key(struct evdev_device *device, uint32_t code);
+
 double
 evdev_device_transform_x(struct evdev_device *device,
 			 double x,
@@ -315,6 +376,11 @@ evdev_pointer_notify_button(struct evdev_device *device,
 			    uint32_t time,
 			    int button,
 			    enum libinput_button_state state);
+void
+evdev_pointer_notify_physical_button(struct evdev_device *device,
+				     uint32_t time,
+				     int button,
+				     enum libinput_button_state state);
 
 void
 evdev_init_natural_scroll(struct evdev_device *device);
@@ -335,6 +401,17 @@ evdev_device_remove(struct evdev_device *device);
 
 void
 evdev_device_destroy(struct evdev_device *device);
+
+bool
+evdev_middlebutton_filter_button(struct evdev_device *device,
+				 uint64_t time,
+				 int button,
+				 enum libinput_button_state state);
+
+void
+evdev_init_middlebutton(struct evdev_device *device,
+			bool enabled,
+			bool want_config);
 
 static inline double
 evdev_convert_to_mm(const struct input_absinfo *absinfo, double v)
