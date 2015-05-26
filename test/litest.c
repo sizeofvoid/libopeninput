@@ -56,11 +56,6 @@ const char *filter_test = NULL;
 const char *filter_device = NULL;
 const char *filter_group = NULL;
 
-#ifdef HAVE_LIBUNWIND
-#define UNW_LOCAL_ONLY
-#include <libunwind.h>
-#include <dlfcn.h>
-
 /* defined for the litest selftest */
 #ifndef LITEST_DISABLE_BACKTRACE_LOGGING
 #define litest_log(...) fprintf(stderr, __VA_ARGS__)
@@ -69,6 +64,11 @@ const char *filter_group = NULL;
 #define litest_log(...) /* __VA_ARGS__ */
 #define litest_vlog(...) /* __VA_ARGS__ */
 #endif
+
+#ifdef HAVE_LIBUNWIND
+#define UNW_LOCAL_ONLY
+#include <libunwind.h>
+#include <dlfcn.h>
 
 static char cwd[PATH_MAX];
 
@@ -82,7 +82,7 @@ litest_backtrace_get_lineno(const char *executable,
 	FILE* f;
 	char buffer[PATH_MAX];
 	char *s;
-	int i;
+	unsigned int i;
 
 	if (!cwd[0])
 		getcwd(cwd, sizeof(cwd));
@@ -99,8 +99,11 @@ litest_backtrace_get_lineno(const char *executable,
 	}
 
 	buffer[0] = '?';
-	fgets(buffer, sizeof(buffer), f);
-	fclose(f);
+	if (fgets(buffer, sizeof(buffer), f) == NULL) {
+		pclose(f);
+		return false;
+	}
+	pclose(f);
 
 	if (buffer[0] == '?')
 		return false;
@@ -116,7 +119,7 @@ litest_backtrace_get_lineno(const char *executable,
 	/* now strip cwd from buffer */
 	s = buffer;
 	i = 0;
-	while(cwd[i] == *s) {
+	while(i < strlen(cwd) && *s != '\0' && cwd[i] == *s) {
 		*s = '\0';
 		s++;
 		i++;
@@ -437,7 +440,7 @@ litest_add_tcase_for_device(struct suite *suite,
 	const char *test_name = dev->shortname;
 
 	list_for_each(t, &suite->tests, node) {
-		if (strcmp(t->name, test_name) != 0)
+		if (!streq(t->name, test_name))
 			continue;
 
 		if (range)
@@ -481,7 +484,7 @@ litest_add_tcase_no_device(struct suite *suite,
 		return;
 
 	list_for_each(t, &suite->tests, node) {
-		if (strcmp(t->name, test_name) != 0)
+		if (!streq(t->name, test_name))
 			continue;
 
 		if (range)
@@ -509,7 +512,7 @@ get_suite(const char *name)
 		list_init(&all_tests);
 
 	list_for_each(s, &all_tests, node) {
-		if (strcmp(s->name, name) == 0)
+		if (streq(s->name, name))
 			return s;
 	}
 
@@ -648,6 +651,10 @@ _litest_add_ranged_for_device(const char *name,
 
 	assert(type < LITEST_NO_DEVICE);
 
+	if (filter_test &&
+	    fnmatch(filter_test, funcname, 0) != 0)
+		return;
+
 	if (filter_group &&
 	    fnmatch(filter_group, name, 0) != 0)
 		return;
@@ -701,20 +708,6 @@ is_debugger_attached(void)
 }
 
 static void
-litest_list_tests(struct list *tests)
-{
-	struct suite *s;
-
-	list_for_each(s, tests, node) {
-		struct test *t;
-		printf("%s:\n", s->name);
-		list_for_each(t, &s->tests, node) {
-			printf("	%s\n", t->name);
-		}
-	}
-}
-
-static void
 litest_log_handler(struct libinput *libinput,
 		   enum libinput_log_priority pri,
 		   const char *format,
@@ -758,6 +751,12 @@ litest_run(int argc, char **argv)
 	struct suite *s, *snext;
 	int failed;
 	SRunner *sr = NULL;
+
+	if (list_empty(&all_tests)) {
+		fprintf(stderr,
+			"Error: filters are too strict, no tests to run.\n");
+		return 1;
+	}
 
 	if (in_debugger == -1) {
 		in_debugger = is_debugger_attached();
@@ -2272,7 +2271,13 @@ litest_semi_mt_touch_up(struct litest_device *d,
 	litest_event(d, EV_SYN, SYN_REPORT, 0);
 }
 
-static inline int
+enum litest_mode {
+	LITEST_MODE_ERROR,
+	LITEST_MODE_TEST,
+	LITEST_MODE_LIST,
+};
+
+static inline enum litest_mode
 litest_parse_argv(int argc, char **argv)
 {
 	enum {
@@ -2309,28 +2314,51 @@ litest_parse_argv(int argc, char **argv)
 			filter_group = optarg;
 			break;
 		case OPT_LIST:
-			litest_list_tests(&all_tests);
-			exit(0);
+			return LITEST_MODE_LIST;
 		case OPT_VERBOSE:
 			verbose = 1;
 			break;
 		default:
 			fprintf(stderr, "usage: %s [--list]\n", argv[0]);
-			return 1;
+			return LITEST_MODE_ERROR;
 		}
 	}
 
-	return 0;
+	return LITEST_MODE_TEST;
 }
 
 #ifndef LITEST_NO_MAIN
+static void
+litest_list_tests(struct list *tests)
+{
+	struct suite *s;
+
+	list_for_each(s, tests, node) {
+		struct test *t;
+		printf("%s:\n", s->name);
+		list_for_each(t, &s->tests, node) {
+			printf("	%s\n", t->name);
+		}
+	}
+}
+
 int
 main(int argc, char **argv)
 {
-	if (litest_parse_argv(argc, argv) != 0)
+	enum litest_mode mode;
+
+	list_init(&all_tests);
+
+	mode = litest_parse_argv(argc, argv);
+	if (mode == LITEST_MODE_ERROR)
 		return EXIT_FAILURE;
 
 	litest_setup_tests();
+
+	if (mode == LITEST_MODE_LIST) {
+		litest_list_tests(&all_tests);
+		return EXIT_SUCCESS;
+	}
 
 	return litest_run(argc, argv);
 }
