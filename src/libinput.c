@@ -1345,6 +1345,9 @@ device_has_cap(struct libinput_device *device,
 	case LIBINPUT_DEVICE_CAP_TOUCH:
 		capability = "CAP_TOUCH";
 		break;
+	case LIBINPUT_DEVICE_CAP_TABLET:
+		capability = "CAP_TABLET";
+		break;
 	}
 
 	log_bug_libinput(device->seat->libinput,
