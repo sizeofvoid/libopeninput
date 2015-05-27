@@ -1047,6 +1047,14 @@ libinput_event_touch_get_base_event(struct libinput_event_touch *event);
 /**
  * @ingroup event_tablet
  *
+ * @return The generic libinput_event of this event
+ */
+struct libinput_event *
+libinput_event_tablet_get_base_event(struct libinput_event_tablet *event);
+
+/**
+ * @ingroup event_tablet
+ *
  * Checks if an axis was updated in this event or return 0 otherwise.
  * For tablet events that are not of type @ref LIBINPUT_EVENT_TABLET_AXIS or
  * type @ref LIBINPUT_EVENT_TABLET_PROXIMITY, this function returns 0.

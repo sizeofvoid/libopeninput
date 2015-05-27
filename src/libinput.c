@@ -1972,6 +1972,19 @@ libinput_event_touch_get_base_event(struct libinput_event_touch *event)
 	return &event->base;
 }
 
+LIBINPUT_EXPORT struct libinput_event *
+libinput_event_tablet_get_base_event(struct libinput_event_tablet *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   NULL,
+			   LIBINPUT_EVENT_TABLET_AXIS,
+			   LIBINPUT_EVENT_TABLET_PROXIMITY,
+			   LIBINPUT_EVENT_TABLET_BUTTON);
+
+	return &event->base;
+}
+
 LIBINPUT_EXPORT struct libinput_device_group *
 libinput_device_group_ref(struct libinput_device_group *group)
 {
