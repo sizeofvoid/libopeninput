@@ -84,8 +84,10 @@ litest_backtrace_get_lineno(const char *executable,
 	char *s;
 	unsigned int i;
 
-	if (!cwd[0])
-		getcwd(cwd, sizeof(cwd));
+	if (!cwd[0]) {
+		if (getcwd(cwd, sizeof(cwd)) == NULL)
+			cwd[0] = 0; /* contents otherwise undefined. */
+	}
 
 	sprintf (buffer,
 		 ADDR2LINE " -C -e %s -i %lx",
@@ -383,7 +385,17 @@ static struct list all_tests;
 static void
 litest_reload_udev_rules(void)
 {
-	system("udevadm control --reload-rules");
+	int ret = system("udevadm control --reload-rules");
+	if (ret == -1) {
+		litest_abort_msg("Failed to execute: udevadm");
+	} else if (WIFEXITED(ret)) {
+		if (WEXITSTATUS(ret))
+			litest_abort_msg("udevadm failed with %d",
+					 WEXITSTATUS(ret));
+	} else if (WIFSIGNALED(ret)) {
+		litest_abort_msg("udevadm terminated with signal %d",
+				 WTERMSIG(ret));
+	}
 }
 
 static int
@@ -648,6 +660,7 @@ _litest_add_ranged_for_device(const char *name,
 {
 	struct suite *s;
 	struct litest_test_device **dev = devices;
+	bool device_filtered = false;
 
 	assert(type < LITEST_NO_DEVICE);
 
@@ -662,8 +675,10 @@ _litest_add_ranged_for_device(const char *name,
 	s = get_suite(name);
 	for (; *dev; dev++) {
 		if (filter_device &&
-		    fnmatch(filter_device, (*dev)->shortname, 0) != 0)
+		    fnmatch(filter_device, (*dev)->shortname, 0) != 0) {
+			device_filtered = true;
 			continue;
+		}
 
 		if ((*dev)->type == type) {
 			litest_add_tcase_for_device(s,
@@ -675,7 +690,9 @@ _litest_add_ranged_for_device(const char *name,
 		}
 	}
 
-	litest_abort_msg("Invalid test device type");
+	/* only abort if no filter was set, that's a bug */
+	if (!device_filtered)
+		litest_abort_msg("Invalid test device type");
 }
 
 static int
@@ -879,7 +896,7 @@ litest_init_udev_rules(struct litest_test_device *dev)
 		ck_abort_msg("Failed to create udev rules directory (%s)\n",
 			     strerror(errno));
 
-	rc = asprintf(&path,
+	rc = xasprintf(&path,
 		      "%s/%s%s.rules",
 		      UDEV_RULES_D,
 		      UDEV_RULE_PREFIX,
@@ -985,6 +1002,32 @@ litest_restore_log_handler(struct libinput *libinput)
 	libinput_log_set_handler(libinput, litest_log_handler);
 }
 
+static inline void
+litest_wait_for_udev(int fd)
+{
+	struct udev *udev;
+	struct udev_device *device;
+	struct stat st;
+	int loop_count = 0;
+
+	litest_assert_int_ge(fstat(fd, &st), 0);
+
+	udev = udev_new();
+	device = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
+	litest_assert_ptr_notnull(device);
+	while (device && !udev_device_get_property_value(device, "ID_INPUT")) {
+		loop_count++;
+		litest_assert_int_lt(loop_count, 300);
+
+		udev_device_unref(device);
+		msleep(2);
+		device = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
+	}
+
+	udev_device_unref(device);
+	udev_unref(udev);
+}
+
 struct litest_device *
 litest_add_device_with_overrides(struct libinput *libinput,
 				 enum litest_device_type which,
@@ -1011,6 +1054,8 @@ litest_add_device_with_overrides(struct libinput *libinput,
 
 	rc = libevdev_new_from_fd(fd, &d->evdev);
 	litest_assert_int_eq(rc, 0);
+
+	litest_wait_for_udev(fd);
 
 	d->libinput = libinput;
 	d->libinput_device = libinput_path_add_device(d->libinput, path);
@@ -1097,6 +1142,11 @@ litest_delete_device(struct litest_device *d)
 	free(d->private);
 	memset(d,0, sizeof(*d));
 	free(d);
+
+	/* zzz so udev can catch up with things, so we don't accidentally open
+	 * an old device in the next test and then get all upset when things blow
+	 * up */
+	msleep(10);
 }
 
 void
@@ -2113,6 +2163,18 @@ void
 litest_timeout_middlebutton(void)
 {
 	msleep(70);
+}
+
+void
+litest_timeout_dwt_short(void)
+{
+	msleep(220);
+}
+
+void
+litest_timeout_dwt_long(void)
+{
+	msleep(520);
 }
 
 void

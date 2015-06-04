@@ -1,5 +1,6 @@
 /*
  * Copyright © 2008 Kristian Høgsberg
+ * Copyright © 2013-2015 Red Hat, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -25,10 +26,15 @@
 
 #include <unistd.h>
 #include <math.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 
 #include "libinput.h"
+
+#define VENDOR_ID_APPLE 0x5ac
+#define VENDOR_ID_WACOM 0x56a
 
 void
 set_logging_enabled(int enabled);
@@ -248,6 +254,38 @@ matrix_to_farray6(const struct matrix *m, float out[6])
 	out[3] = m->val[1][0];
 	out[4] = m->val[1][1];
 	out[5] = m->val[1][2];
+}
+
+/**
+ * Simple wrapper for asprintf that ensures the passed in-pointer is set
+ * to NULL upon error.
+ * The standard asprintf() call does not guarantee the passed in pointer
+ * will be NULL'ed upon failure, whereas this wrapper does.
+ *
+ * @param strp pointer to set to newly allocated string.
+ * This pointer should be passed to free() to release when done.
+ * @param fmt the format string to use for printing.
+ * @return The number of bytes printed (excluding the null byte terminator)
+ * upon success or -1 upon failure. In the case of failure the pointer is set
+ * to NULL.
+ */
+static inline int
+xasprintf(char **strp, const char *fmt, ...)
+	LIBINPUT_ATTRIBUTE_PRINTF(2, 3);
+
+static inline int
+xasprintf(char **strp, const char *fmt, ...)
+{
+	int rc = 0;
+	va_list args;
+
+	va_start(args, fmt);
+	rc = vasprintf(strp, fmt, args);
+	va_end(args);
+	if ((rc == -1) && strp)
+		*strp = NULL;
+
+	return rc;
 }
 
 enum ratelimit_state {

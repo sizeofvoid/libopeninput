@@ -1029,7 +1029,6 @@ static struct evdev_dispatch_interface tablet_interface = {
 	NULL, /* device_removed */
 	NULL, /* device_suspended */
 	NULL, /* device_resumed */
-	NULL, /* tag_device */
 	tablet_check_initial_proximity,
 };
 

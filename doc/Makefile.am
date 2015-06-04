@@ -13,6 +13,7 @@ header_files = \
 	$(srcdir)/absolute-axes.dox \
 	$(srcdir)/clickpad-softbuttons.dox \
 	$(srcdir)/device-configuration-via-udev.dox \
+	$(srcdir)/faqs.dox \
 	$(srcdir)/normalization-of-relative-motion.dox \
 	$(srcdir)/palm-detection.dox \
 	$(srcdir)/scrolling.dox \
@@ -25,9 +26,16 @@ header_files = \
 diagram_files = \
 	$(srcdir)/dot/seats-sketch.gv \
 	$(srcdir)/dot/seats-sketch-libinput.gv \
+	$(srcdir)/dot/libinput-stack-wayland.gv \
+	$(srcdir)/dot/libinput-stack-xorg.gv \
+	$(srcdir)/dot/libinput-stack-gnome.gv \
+	$(srcdir)/svg/software-buttons.svg \
+	$(srcdir)/svg/clickfinger.svg \
 	$(srcdir)/svg/button-scrolling.svg \
 	$(srcdir)/svg/edge-scrolling.svg \
 	$(srcdir)/svg/palm-detection.svg \
+	$(srcdir)/svg/tap-n-drag.svg \
+	$(srcdir)/svg/top-software-buttons.svg \
 	$(srcdir)/svg/twofinger-scrolling.svg
 
 html/index.html: libinput.doxygen $(header_files) $(diagram_files)

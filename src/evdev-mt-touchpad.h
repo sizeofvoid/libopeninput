@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 Red Hat, Inc.
+ * Copyright © 2014-2015 Red Hat, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and
  * its documentation for any purpose is hereby granted without fee, provided
@@ -31,8 +31,6 @@
 
 #define TOUCHPAD_HISTORY_LENGTH 4
 #define TOUCHPAD_MIN_SAMPLES 4
-
-#define VENDOR_ID_APPLE 0x5ac
 
 /* Convert mm to a distance normalized to DEFAULT_MOUSE_DPI */
 #define TP_MM_TO_DPI_NORMALIZED(mm) (DEFAULT_MOUSE_DPI/25.4 * mm)
@@ -282,16 +280,26 @@ struct tp_dispatch {
 		bool trackpoint_active;
 		struct libinput_event_listener trackpoint_listener;
 		struct libinput_timer trackpoint_timer;
+	} sendevents;
 
+	struct {
 		bool keyboard_active;
 		struct libinput_event_listener keyboard_listener;
 		struct libinput_timer keyboard_timer;
 		struct evdev_device *keyboard;
-	} sendevents;
+
+		uint64_t keyboard_last_press_time;
+	} dwt;
 };
 
 #define tp_for_each_touch(_tp, _t) \
 	for (unsigned int _i = 0; _i < (_tp)->ntouches && (_t = &(_tp)->touches[_i]); _i++)
+
+static inline struct libinput*
+tp_libinput_context(struct tp_dispatch *tp)
+{
+	return tp->device->base.seat->libinput;
+}
 
 static inline struct normalized_coords
 tp_normalize_delta(struct tp_dispatch *tp, struct device_float_coords delta)

@@ -24,21 +24,14 @@ is split in the middle to generate left or right button events on click. The
 height of the button area depends on the hardware but is usually around
 10mm.
 
-@dot
-digraph G {
-  clickpad [
-      shape = "record";
-    label = "{\nMain\nArea\n\n|{LEFT|RIGHT}}";
-  ]
-}
-@enddot
-
 Left, right and middle button events can be triggered as follows:
 - if a finger is in the main area or the left button area, a click generates
   left button events.
 - if a finger is in the right area, a click generates right button events.
 - if there is a finger in both the left and right button area, a click
   generates middle button events.
+
+@image html software-buttons.svg "Left, right and middle-button click with software button areas"
 
 If fingers are down in the main area in addition to fingers in the
 left or right button area, those fingers are are ignored.
@@ -69,9 +62,18 @@ three fingers are held down on the touchpad when a physical click is
 generated. The location of the fingers does not matter and there are no
 software-defined button areas.
 
-The Xorg synaptics driver uses 30% of the touchpad dimensions as threshold,
-libinput does not have this restriction. If two fingers are on the pad
-while clicking, that is a two-finger click.
+@image html clickfinger.svg "One, two and three-finger click with Clickfinger behavior"
+
+On some touchpads, libinput imposes a limit on how the fingers may be placed
+on the touchpad. In the most common use-case this allows for a user to
+trigger a click with the thumb while leaving the pointer-moving finger on
+the touchpad.
+
+@image html clickfinger-distance.svg "Illustration of the distance detection algorithm"
+
+In the illustration above the red area marks the proximity area around the
+first finger. Since the thumb is outside of that area libinput considers the
+click a single-finger click rather than a two-finger click.
 
 Clickfinger configuration can be enabled through the
 libinput_device_config_click_set_method() call. If clickfingers are

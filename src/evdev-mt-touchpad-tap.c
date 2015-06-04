@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013 Red Hat, Inc.
+ * Copyright © 2013-2015 Red Hat, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software
  * and its documentation for any purpose is hereby granted without
@@ -37,7 +37,7 @@
 #define CASE_RETURN_STRING(a) case a: return #a
 
 #define DEFAULT_TAP_TIMEOUT_PERIOD 180
-#define DEFAULT_DRAG_TIMEOUT_PERIOD 500
+#define DEFAULT_DRAG_TIMEOUT_PERIOD 300
 #define DEFAULT_TAP_MOVE_THRESHOLD TP_MM_TO_DPI_NORMALIZED(3)
 
 enum tap_event {
@@ -147,7 +147,7 @@ tp_tap_idle_handle_event(struct tp_dispatch *tp,
 			 struct tp_touch *t,
 			 enum tap_event event, uint64_t time)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 
 	switch (event) {
 	case TAP_EVENT_TOUCH:
@@ -223,7 +223,7 @@ tp_tap_tapped_handle_event(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum tap_event event, uint64_t time)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 
 	switch (event) {
 	case TAP_EVENT_MOTION:
@@ -483,7 +483,7 @@ tp_tap_multitap_handle_event(struct tp_dispatch *tp,
 			      struct tp_touch *t,
 			      enum tap_event event, uint64_t time)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 
 	switch (event) {
 	case TAP_EVENT_RELEASE:
@@ -576,7 +576,7 @@ tp_tap_handle_event(struct tp_dispatch *tp,
 		    enum tap_event event,
 		    uint64_t time)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 	enum tp_tap_state current;
 
 	current = tp->tap.state;
@@ -857,7 +857,7 @@ tp_init_tap(struct tp_dispatch *tp)
 	tp->tap.enabled = tp_tap_default(tp->device);
 
 	libinput_timer_init(&tp->tap.timer,
-			    tp->device->base.seat->libinput,
+			    tp_libinput_context(tp),
 			    tp_tap_handle_timeout, tp);
 
 	return 0;

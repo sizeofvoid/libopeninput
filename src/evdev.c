@@ -1,6 +1,7 @@
 /*
  * Copyright © 2010 Intel Corporation
  * Copyright © 2013 Jonas Ådahl
+ * Copyright © 2013-2015 Red Hat, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and
  * its documentation for any purpose is hereby granted without fee, provided
@@ -59,6 +60,7 @@ enum evdev_device_udev_tags {
         EVDEV_UDEV_TAG_JOYSTICK = (1 << 6),
         EVDEV_UDEV_TAG_ACCELEROMETER = (1 << 7),
         EVDEV_UDEV_TAG_BUTTONSET = (1 << 8),
+        EVDEV_UDEV_TAG_POINTINGSTICK = (1 << 9),
 };
 
 struct evdev_udev_tag_match {
@@ -77,6 +79,7 @@ static const struct evdev_udev_tag_match evdev_udev_tag_matches[] = {
 	{"ID_INPUT_TABLET_PAD",		EVDEV_UDEV_TAG_BUTTONSET},
 	{"ID_INPUT_JOYSTICK",		EVDEV_UDEV_TAG_JOYSTICK},
 	{"ID_INPUT_ACCELEROMETER",	EVDEV_UDEV_TAG_ACCELEROMETER},
+	{"ID_INPUT_POINTINGSTICK",	EVDEV_UDEV_TAG_POINTINGSTICK},
 
 	/* sentinel value */
 	{ 0 },
@@ -439,6 +442,7 @@ evdev_button_scroll_button(struct evdev_device *device,
 	if (is_press) {
 		libinput_timer_set(&device->scroll.timer,
 				time + DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT);
+		device->scroll.button_down_time = time;
 	} else {
 		libinput_timer_cancel(&device->scroll.timer);
 		if (device->scroll.button_scroll_active) {
@@ -448,7 +452,8 @@ evdev_button_scroll_button(struct evdev_device *device,
 		} else {
 			/* If the button is released quickly enough emit the
 			 * button press/release events. */
-			evdev_pointer_notify_physical_button(device, time,
+			evdev_pointer_notify_physical_button(device,
+					device->scroll.button_down_time,
 					device->scroll.button,
 					LIBINPUT_BUTTON_STATE_PRESSED);
 			evdev_pointer_notify_physical_button(device, time,
@@ -719,18 +724,38 @@ evdev_tag_external_mouse(struct evdev_device *device,
 	int bustype;
 
 	bustype = libevdev_get_id_bustype(device->evdev);
-	if (bustype == BUS_USB || bustype == BUS_BLUETOOTH) {
-		if (device->seat_caps & EVDEV_DEVICE_POINTER)
-			device->tags |= EVDEV_TAG_EXTERNAL_MOUSE;
-	}
+	if (bustype == BUS_USB || bustype == BUS_BLUETOOTH)
+		device->tags |= EVDEV_TAG_EXTERNAL_MOUSE;
 }
 
 static void
 evdev_tag_trackpoint(struct evdev_device *device,
 		     struct udev_device *udev_device)
 {
-	if (libevdev_has_property(device->evdev, INPUT_PROP_POINTING_STICK))
+	if (libevdev_has_property(device->evdev,
+				  INPUT_PROP_POINTING_STICK) ||
+	    udev_device_get_property_value(udev_device,
+					   "ID_INPUT_POINTINGSTICK"))
 		device->tags |= EVDEV_TAG_TRACKPOINT;
+}
+
+static void
+evdev_tag_keyboard(struct evdev_device *device,
+		   struct udev_device *udev_device)
+{
+	int code;
+
+	if (!libevdev_has_event_type(device->evdev, EV_KEY))
+		return;
+
+	for (code = KEY_Q; code <= KEY_P; code++) {
+		if (!libevdev_has_event_code(device->evdev,
+					     EV_KEY,
+					     code))
+			return;
+	}
+
+	device->tags |= EVDEV_TAG_KEYBOARD;
 }
 
 static void
@@ -825,14 +850,6 @@ fallback_destroy(struct evdev_dispatch *dispatch)
 	free(dispatch);
 }
 
-static void
-fallback_tag_device(struct evdev_device *device,
-		    struct udev_device *udev_device)
-{
-	evdev_tag_external_mouse(device, udev_device);
-	evdev_tag_trackpoint(device, udev_device);
-}
-
 static int
 evdev_calibration_has_matrix(struct libinput_device *libinput_device)
 {
@@ -883,7 +900,6 @@ struct evdev_dispatch_interface fallback_interface = {
 	NULL, /* device_removed */
 	NULL, /* device_suspended */
 	NULL, /* device_resumed */
-	fallback_tag_device,
 	NULL, /* post_added */
 };
 
@@ -1045,7 +1061,7 @@ evdev_scroll_get_default_method(struct libinput_device *device)
 {
 	struct evdev_device *evdev = (struct evdev_device *)device;
 
-	if (libevdev_has_property(evdev->evdev, INPUT_PROP_POINTING_STICK))
+	if (evdev->tags & EVDEV_TAG_TRACKPOINT)
 		return LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN;
 
 	/* Mice without a scroll wheel but with middle button have on-button
@@ -1085,14 +1101,7 @@ evdev_scroll_get_default_button(struct libinput_device *device)
 {
 	struct evdev_device *evdev = (struct evdev_device *)device;
 
-	if (libevdev_has_property(evdev->evdev, INPUT_PROP_POINTING_STICK))
-		return BTN_MIDDLE;
-
-	/* A device that defaults to button scrolling defaults
-	   to BTN_MIDDLE */
-	if (evdev_scroll_get_default_method(device) ==
-		LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN &&
-	    libevdev_has_event_code(evdev->evdev, EV_KEY, BTN_MIDDLE))
+	if( libevdev_has_event_code(evdev->evdev, EV_KEY, BTN_MIDDLE))
 		return BTN_MIDDLE;
 
 	return 0;
@@ -1412,14 +1421,6 @@ evdev_need_mtdev(struct evdev_device *device)
 		!libevdev_has_event_code(evdev, EV_ABS, ABS_MT_SLOT));
 }
 
-static void
-evdev_tag_device(struct evdev_device *device)
-{
-	if (device->dispatch->interface->tag_device)
-		device->dispatch->interface->tag_device(device,
-							device->udev_device);
-}
-
 static inline int
 evdev_read_wheel_click_prop(struct evdev_device *device)
 {
@@ -1480,7 +1481,7 @@ evdev_read_dpi_prop(struct evdev_device *device)
 	 * POINTINGSTICK_CONST_ACCEL value to compensate for sensitivity
 	 * differences between models, we translate this to a fake dpi.
 	 */
-	if (libevdev_has_property(device->evdev, INPUT_PROP_POINTING_STICK))
+	if (device->tags & EVDEV_TAG_TRACKPOINT)
 		return evdev_get_trackpoint_dpi(device);
 
 	mouse_dpi = udev_device_get_property_value(device->udev_device,
@@ -1820,13 +1821,14 @@ evdev_configure_device(struct evdev_device *device)
 	}
 
 	log_info(libinput,
-		 "input device '%s', %s is tagged by udev as:%s%s%s%s%s%s%s%s\n",
+		 "input device '%s', %s is tagged by udev as:%s%s%s%s%s%s%s%s%s\n",
 		 device->devname, devnode,
 		 udev_tags & EVDEV_UDEV_TAG_KEYBOARD ? " Keyboard" : "",
 		 udev_tags & EVDEV_UDEV_TAG_MOUSE ? " Mouse" : "",
 		 udev_tags & EVDEV_UDEV_TAG_TOUCHPAD ? " Touchpad" : "",
 		 udev_tags & EVDEV_UDEV_TAG_TOUCHSCREEN ? " Touchscreen" : "",
 		 udev_tags & EVDEV_UDEV_TAG_TABLET ? " Tablet" : "",
+		 udev_tags & EVDEV_UDEV_TAG_POINTINGSTICK ? " Pointingstick" : "",
 		 udev_tags & EVDEV_UDEV_TAG_JOYSTICK ? " Joystick" : "",
 		 udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER ? " Accelerometer" : "",
 		 udev_tags & EVDEV_UDEV_TAG_BUTTONSET ? " Buttonset" : "");
@@ -1897,10 +1899,13 @@ evdev_configure_device(struct evdev_device *device)
 		log_info(libinput,
 			 "input device '%s', %s is a touchpad\n",
 			 device->devname, devnode);
+
+		evdev_tag_touchpad(device, device->udev_device);
 		return device->dispatch == NULL ? -1 : 0;
 	}
 
-	if (udev_tags & EVDEV_UDEV_TAG_MOUSE) {
+	if (udev_tags & EVDEV_UDEV_TAG_MOUSE ||
+	    udev_tags & EVDEV_UDEV_TAG_POINTINGSTICK) {
 		if (libevdev_has_event_code(evdev, EV_REL, REL_X) &&
 		    libevdev_has_event_code(evdev, EV_REL, REL_Y) &&
 		    evdev_device_init_pointer_acceleration(
@@ -1920,6 +1925,9 @@ evdev_configure_device(struct evdev_device *device)
 		device->scroll.natural_scrolling_enabled = true;
 		/* want button scrolling config option */
 		device->scroll.want_button = 1;
+
+		evdev_tag_external_mouse(device, device->udev_device);
+		evdev_tag_trackpoint(device, device->udev_device);
 	}
 
 	if (udev_tags & EVDEV_UDEV_TAG_KEYBOARD) {
@@ -1934,6 +1942,8 @@ evdev_configure_device(struct evdev_device *device)
 			device->scroll.natural_scrolling_enabled = true;
 			device->seat_caps |= EVDEV_DEVICE_POINTER;
 		}
+
+		evdev_tag_keyboard(device, device->udev_device);
 	}
 
 	if (udev_tags & EVDEV_UDEV_TAG_TOUCHSCREEN) {
@@ -2089,7 +2099,6 @@ evdev_device_create(struct libinput_seat *seat,
 	device->scroll.direction = 0;
 	device->scroll.wheel_click_angle =
 		evdev_read_wheel_click_prop(device);
-	device->dpi = evdev_read_dpi_prop(device);
 	device->model = evdev_read_model(device);
 	/* at most 5 SYN_DROPPED log-messages per 30s */
 	ratelimit_init(&device->syn_drop_limit, 30ULL * 1000, 5);
@@ -2100,6 +2109,8 @@ evdev_device_create(struct libinput_seat *seat,
 
 	if (evdev_configure_device(device) == -1)
 		goto err;
+
+	device->dpi = evdev_read_dpi_prop(device);
 
 	if (device->seat_caps == 0) {
 		unhandled_device = 1;
@@ -2122,7 +2133,6 @@ evdev_device_create(struct libinput_seat *seat,
 
 	list_insert(seat->devices_list.prev, &device->base.link);
 
-	evdev_tag_device(device);
 	evdev_notify_added_device(device);
 
 	return device;

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 Red Hat, Inc.
+ * Copyright © 2014-2015 Red Hat, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and
  * its documentation for any purpose is hereby granted without fee, provided
@@ -19,6 +19,8 @@
  * CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+#include "config.h"
 
 #include <errno.h>
 #include <limits.h>
@@ -392,7 +394,7 @@ tp_button_handle_event(struct tp_dispatch *tp,
 		       enum button_event event,
 		       uint64_t time)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 	enum button_state current = t->button.state;
 
 	switch(t->button.state) {
@@ -478,7 +480,7 @@ tp_process_button(struct tp_dispatch *tp,
 		  const struct input_event *e,
 		  uint64_t time)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 	uint32_t mask = 1 << (e->code - BTN_LEFT);
 
 	/* Ignore other buttons on clickpads */
@@ -680,7 +682,7 @@ int
 tp_init_buttons(struct tp_dispatch *tp,
 		struct evdev_device *device)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 	struct tp_touch *t;
 	int width, height;
 	double diagonal;
@@ -731,7 +733,7 @@ tp_init_buttons(struct tp_dispatch *tp,
 	tp_for_each_touch(tp, t) {
 		t->button.state = BUTTON_STATE_NONE;
 		libinput_timer_init(&t->button.timer,
-				    tp->device->base.seat->libinput,
+				    tp_libinput_context(tp),
 				    tp_button_handle_timeout, t);
 	}
 
@@ -782,6 +784,104 @@ tp_post_physical_buttons(struct tp_dispatch *tp, uint64_t time)
 	return 0;
 }
 
+static inline int
+tp_check_clickfinger_distance(struct tp_dispatch *tp,
+			      struct tp_touch *t1,
+			      struct tp_touch *t2)
+{
+	double x, y;
+
+	if (!t1 || !t2)
+		return 0;
+
+	x = abs(t1->point.x - t2->point.x);
+	y = abs(t1->point.y - t2->point.y);
+
+	/* no resolution, so let's assume they're close enough together */
+	if (tp->device->abs.fake_resolution) {
+		int w, h;
+
+		/* Use a maximum of 30% of the touchpad width or height if
+		 * we dont' have resolution. */
+		w = tp->device->abs.absinfo_x->maximum -
+		    tp->device->abs.absinfo_x->minimum;
+		h = tp->device->abs.absinfo_y->maximum -
+		    tp->device->abs.absinfo_y->minimum;
+
+		return (x < w * 0.3 && y < h * 0.3) ? 1 : 0;
+	} else {
+		/* maximum spread is 40mm horiz, 20mm vert. Anything wider than that
+		 * is probably a gesture. The y spread is small so we ignore clicks
+		 * with thumbs at the bottom of the touchpad while the pointer
+		 * moving finger is still on the pad */
+
+		x /= tp->device->abs.absinfo_x->resolution;
+		y /= tp->device->abs.absinfo_y->resolution;
+
+		return (x < 40 && y < 20) ? 1 : 0;
+	}
+
+}
+
+static uint32_t
+tp_clickfinger_set_button(struct tp_dispatch *tp)
+{
+	uint32_t button;
+	unsigned int nfingers = tp->nfingers_down;
+	struct tp_touch *t;
+	struct tp_touch *first = NULL,
+			*second = NULL,
+			*third = NULL;
+	uint32_t close_touches = 0;
+
+	if (nfingers < 2 || nfingers > 3)
+		goto out;
+
+	/* two or three fingers down on the touchpad. Check for distance
+	 * between the fingers. */
+	tp_for_each_touch(tp, t) {
+		if (t->state != TOUCH_BEGIN && t->state != TOUCH_UPDATE)
+			continue;
+
+		if (!first)
+			first = t;
+		else if (!second)
+			second = t;
+		else if (!third) {
+			third = t;
+			break;
+		}
+	}
+
+	if (!first || !second) {
+		nfingers = 1;
+		goto out;
+	}
+
+	close_touches |= tp_check_clickfinger_distance(tp, first, second) << 0;
+	close_touches |= tp_check_clickfinger_distance(tp, second, third) << 1;
+	close_touches |= tp_check_clickfinger_distance(tp, first, third) << 2;
+
+	switch(__builtin_popcount(close_touches)) {
+	case 0: nfingers = 1; break;
+	case 1: nfingers = 2; break;
+	default: nfingers = 3; break;
+	}
+
+out:
+	switch (nfingers) {
+	case 0:
+	case 1: button = BTN_LEFT; break;
+	case 2: button = BTN_RIGHT; break;
+	case 3: button = BTN_MIDDLE; break;
+	default:
+		button = 0;
+		break;
+	}
+
+	return button;
+}
+
 static int
 tp_notify_clickpadbutton(struct tp_dispatch *tp,
 			 uint64_t time,
@@ -816,14 +916,7 @@ tp_notify_clickpadbutton(struct tp_dispatch *tp,
 	 */
 	if (tp->buttons.click_method == LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER &&
 	    state == LIBINPUT_BUTTON_STATE_PRESSED) {
-		switch (tp->nfingers_down) {
-		case 0:
-		case 1: button = BTN_LEFT; break;
-		case 2: button = BTN_RIGHT; break;
-		case 3: button = BTN_MIDDLE; break;
-		default:
-			button = 0;
-		}
+		button = tp_clickfinger_set_button(tp);
 		tp->buttons.active = button;
 
 		if (!button)

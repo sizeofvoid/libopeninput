@@ -1,6 +1,7 @@
 /*
  * Copyright © 2011, 2012 Intel Corporation
  * Copyright © 2013 Jonas Ådahl
+ * Copyright © 2013-2015 Red Hat, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and
  * its documentation for any purpose is hereby granted without fee, provided
@@ -69,6 +70,7 @@ enum evdev_device_tags {
 	EVDEV_TAG_INTERNAL_TOUCHPAD = (1 << 1),
 	EVDEV_TAG_TRACKPOINT = (1 << 2),
 	EVDEV_TAG_TOUCHPAD_TRACKPOINT = (1 << 3),
+	EVDEV_TAG_KEYBOARD = (1 << 4),
 };
 
 enum evdev_middlebutton_state {
@@ -149,6 +151,8 @@ struct evdev_device {
 		/* Currently enabled method, button */
 		enum libinput_config_scroll_method method;
 		uint32_t button;
+		uint64_t button_down_time;
+
 		/* set during device init, used at runtime to delay changes
 		 * until all buttons are up */
 		enum libinput_config_scroll_method want_method;
@@ -254,10 +258,6 @@ struct evdev_dispatch_interface {
 	void (*device_resumed)(struct evdev_device *device,
 			       struct evdev_device *resumed_device);
 
-	/* Tag device with one of EVDEV_TAG */
-	void (*tag_device)(struct evdev_device *device,
-			   struct udev_device *udev_device);
-
 	/* Called immediately after the LIBINPUT_EVENT_DEVICE_ADDED event
 	 * was sent */
 	void (*post_added)(struct evdev_device *device,
@@ -297,6 +297,10 @@ evdev_mt_touchpad_create(struct evdev_device *device);
 
 struct evdev_dispatch *
 evdev_tablet_create(struct evdev_device *device);
+
+void
+evdev_tag_touchpad(struct evdev_device *device,
+		   struct udev_device *udev_device);
 
 void
 evdev_device_led_update(struct evdev_device *device, enum libinput_led leds);

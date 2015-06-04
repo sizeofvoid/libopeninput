@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 Red Hat, Inc.
+ * Copyright © 2014-2015 Red Hat, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and
  * its documentation for any purpose is hereby granted without fee, provided
@@ -19,6 +19,8 @@
  * CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+#include "config.h"
 
 #include <errno.h>
 #include <limits.h>
@@ -121,7 +123,7 @@ tp_edge_scroll_handle_none(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum scroll_event event)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
@@ -149,7 +151,7 @@ tp_edge_scroll_handle_edge_new(struct tp_dispatch *tp,
 			       struct tp_touch *t,
 			       enum scroll_event event)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
@@ -178,7 +180,7 @@ tp_edge_scroll_handle_edge(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum scroll_event event)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
@@ -209,7 +211,7 @@ tp_edge_scroll_handle_area(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum scroll_event event)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
@@ -232,7 +234,7 @@ tp_edge_scroll_handle_event(struct tp_dispatch *tp,
 			    struct tp_touch *t,
 			    enum scroll_event event)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 	enum tp_edge_scroll_touch_state current = t->scroll.edge_state;
 
 	switch (current) {
@@ -301,7 +303,7 @@ tp_edge_scroll_init(struct tp_dispatch *tp, struct evdev_device *device)
 	tp_for_each_touch(tp, t) {
 		t->scroll.direction = -1;
 		libinput_timer_init(&t->scroll.timer,
-				    device->base.seat->libinput,
+				    tp_libinput_context(tp),
 				    tp_edge_scroll_handle_timeout, t);
 	}
 
@@ -359,6 +361,9 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 
 	tp_for_each_touch(tp, t) {
 		if (!t->dirty)
+			continue;
+
+		if (t->palm.state != PALM_NONE)
 			continue;
 
 		switch (t->scroll.edge) {
@@ -438,6 +443,10 @@ tp_edge_scroll_stop_events(struct tp_dispatch *tp, uint64_t time)
 					    &zero,
 					    &zero_discrete);
 			t->scroll.direction = -1;
+			/* reset touch to area state, avoids loading the
+			 * state machine with special case handling */
+			t->scroll.edge = EDGE_NONE;
+			t->scroll.edge_state = EDGE_SCROLL_TOUCH_STATE_AREA;
 		}
 	}
 }
