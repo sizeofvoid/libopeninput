@@ -16,6 +16,13 @@
 # Sort by brand, model
 
 ##########################################
+# Apple
+##########################################
+libinput:touchpad:input:b0003v05ACp*
+libinput:touchpad:input:b0005v05ACp*
+ LIBINPUT_MODEL_APPLE_TOUCHPAD=1
+
+##########################################
 # Google
 ##########################################
 
@@ -23,18 +30,18 @@
 # extrapolated from the chromiumos touchad-tests repo
 # https://chromium.googlesource.com/chromiumos/platform/touchpad-tests
 libinput:name:Cypress APA Trackpad (cyapa):dmi:*pnFalco:pvr*
-libinput:name:SynPS/2 Synaptics TouchPad:dmi:*pn*Mario*:
-libinput:name:Cypress APA Trackpad (cyapa):dmi:*pn*Butterfly*:
-libinput:name:Cypress APA Trackpad (cyapa):dmi:*pn*Peppy*:
-libinput:name:SynPS/2 Synaptics TouchPad:dmi:*pn*ZGB*:
-libinput:name:Cypress APA Trackpad (cyapa):dmi:*pn*Parrot*:
-libinput:name:Cypress APA Trackpad (cyapa):dmi:*bvn*coreboot*:pn*Leon*:
-libinput:name:Cypress APA Trackpad (cyapa):dmi:*bvn*coreboot*:pn*Falco*:
-libinput:name:Cypress APA Trackpad (cyapa):dmi:*bvn*coreboot*:pn*Wolf*:
-libinput:name:Cypress APA Trackpad (cyapa):dmi:*svn*GOOGLE*:pn*Link*:
-libinput:name:SynPS/2 Synaptics TouchPad:dmi:*pn*Alex*:
-libinput:name:Cypress APA Trackpad (cyapa):dmi:*svn*SAMSUNG*:pn*Lumpy*:
-libinput:name:Atmel maXTouch Touchpad:dmi:*svn*GOOGLE*:pn*Samus*:
+libinput:name:SynPS/2 Synaptics TouchPad:dmi:*pn*Mario*
+libinput:name:Cypress APA Trackpad (cyapa):dmi:*pn*Butterfly*
+libinput:name:Cypress APA Trackpad (cyapa):dmi:*pn*Peppy*
+libinput:name:SynPS/2 Synaptics TouchPad:dmi:*pn*ZGB*
+libinput:name:Cypress APA Trackpad (cyapa):dmi:*pn*Parrot*
+libinput:name:Cypress APA Trackpad (cyapa):dmi:*bvn*coreboot*:pn*Leon*
+libinput:name:Cypress APA Trackpad (cyapa):dmi:*bvn*coreboot*:pn*Falco*
+libinput:name:Cypress APA Trackpad (cyapa):dmi:*bvn*coreboot*:pn*Wolf*
+libinput:name:Cypress APA Trackpad (cyapa):dmi:*svn*GOOGLE*:pn*Link*
+libinput:name:SynPS/2 Synaptics TouchPad:dmi:*pn*Alex*
+libinput:name:Cypress APA Trackpad (cyapa):dmi:*svn*SAMSUNG*:pn*Lumpy*
+libinput:name:Atmel maXTouch Touchpad:dmi:*svn*GOOGLE*:pn*Samus*
  LIBINPUT_MODEL_CHROMEBOOK=1
 
 ##########################################
@@ -64,3 +71,9 @@ libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnSystem76*pvrgalu1*
 # Kudu Professional
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnSystem76*pvrkudp1*
  LIBINPUT_MODEL_SYSTEM76_KUDU=1
+
+##########################################
+# Wacom
+##########################################
+libinput:touchpad:input:b0003v056Ap*
+ LIBINPUT_MODEL_WACOM_TOUCHPAD=1

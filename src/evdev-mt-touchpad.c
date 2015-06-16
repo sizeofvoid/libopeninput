@@ -431,17 +431,15 @@ tp_unpin_finger(struct tp_dispatch *tp, struct tp_touch *t)
 		return;
 
 	xdist = abs(t->point.x - t->pinned.center.x);
+	xdist *= tp->buttons.motion_dist.x_scale_coeff;
 	ydist = abs(t->point.y - t->pinned.center.y);
+	ydist *= tp->buttons.motion_dist.y_scale_coeff;
 
-	if (xdist * xdist + ydist * ydist >=
-			tp->buttons.motion_dist * tp->buttons.motion_dist) {
+	/* 3mm movement -> unpin */
+	if (vector_length(xdist, ydist) >= 3.0) {
 		t->pinned.is_pinned = false;
 		return;
 	}
-
-	/* The finger may slowly drift, adjust the center */
-	t->pinned.center.x = t->point.x + t->pinned.center.x / 2;
-	t->pinned.center.y = t->point.y + t->pinned.center.y / 2;
 }
 
 static void
@@ -666,6 +664,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 	struct tp_touch *t;
 	struct tp_touch *first = tp_get_touch(tp, 0);
 	unsigned int i;
+	bool restart_filter = false;
 
 	tp_process_fake_touches(tp, time);
 	tp_unhover_touches(tp, time);
@@ -692,7 +691,13 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 		tp_motion_history_push(t);
 
 		tp_unpin_finger(tp, t);
+
+		if (t->state == TOUCH_BEGIN)
+			restart_filter = true;
 	}
+
+	if (restart_filter)
+		filter_restart(tp->device->pointer.filter, tp, time);
 
 	tp_button_handle_state(tp, time);
 	tp_edge_scroll_handle_state(tp, time);
@@ -1150,7 +1155,7 @@ evdev_tag_touchpad(struct evdev_device *device,
 	 */
 	bustype = libevdev_get_id_bustype(device->evdev);
 	if (bustype == BUS_USB) {
-		 if (libevdev_get_id_vendor(device->evdev) == VENDOR_ID_APPLE)
+		if (device->model == EVDEV_MODEL_APPLE_TOUCHPAD)
 			 device->tags |= EVDEV_TAG_INTERNAL_TOUCHPAD;
 	} else if (bustype != BUS_BLUETOOTH)
 		device->tags |= EVDEV_TAG_INTERNAL_TOUCHPAD;
@@ -1389,7 +1394,6 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 		   struct evdev_device *device)
 {
 	int width, height;
-	unsigned int vendor_id;
 
 	tp->palm.right_edge = INT_MAX;
 	tp->palm.left_edge = INT_MIN;
@@ -1400,13 +1404,11 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 	height = abs(device->abs.absinfo_y->maximum -
 		    device->abs.absinfo_y->minimum);
 
-	vendor_id = evdev_device_get_id_vendor(device);
-
 	/* Wacom doesn't have internal touchpads,
 	 * Apple touchpads are always big enough to warrant palm detection */
-	if (vendor_id == VENDOR_ID_WACOM) {
+	if (device->model == EVDEV_MODEL_WACOM_TOUCHPAD) {
 		return 0;
-	} else if (vendor_id != VENDOR_ID_APPLE) {
+	} else if (device->model != EVDEV_MODEL_APPLE_TOUCHPAD) {
 		/* We don't know how big the touchpad is */
 		if (device->abs.absinfo_x->resolution == 1)
 			return 0;
@@ -1489,10 +1491,18 @@ tp_init(struct tp_dispatch *tp,
 						       EV_ABS,
 						       ABS_MT_DISTANCE);
 
-	tp->hysteresis_margin.x =
-		diagonal / DEFAULT_HYSTERESIS_MARGIN_DENOMINATOR;
-	tp->hysteresis_margin.y =
-		diagonal / DEFAULT_HYSTERESIS_MARGIN_DENOMINATOR;
+	if (device->abs.fake_resolution) {
+		tp->hysteresis_margin.x =
+			diagonal / DEFAULT_HYSTERESIS_MARGIN_DENOMINATOR;
+		tp->hysteresis_margin.y =
+			diagonal / DEFAULT_HYSTERESIS_MARGIN_DENOMINATOR;
+	} else {
+		int res_x = tp->device->abs.absinfo_x->resolution,
+		    res_y = tp->device->abs.absinfo_y->resolution;
+
+		tp->hysteresis_margin.x = res_x/2;
+		tp->hysteresis_margin.y = res_y/2;
+	}
 
 	if (tp_init_accel(tp, diagonal) != 0)
 		return -1;
