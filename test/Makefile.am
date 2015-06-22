@@ -14,6 +14,7 @@ liblitest_la_SOURCES = \
 	litest.h \
 	litest-int.h \
 	litest-alps-semi-mt.c \
+	litest-alps-dualpoint.c \
 	litest-atmel-hover.c \
 	litest-bcm5974.c \
 	litest-generic-singletouch.c \
@@ -52,6 +53,7 @@ endif
 
 run_tests = \
 	test-touchpad \
+	test-touchpad-tap \
 	test-tablet \
 	test-device \
 	test-pointer \
@@ -103,6 +105,10 @@ test_tablet_LDFLAGS = -static
 test_touchpad_SOURCES = touchpad.c
 test_touchpad_LDADD = $(TEST_LIBS)
 test_touchpad_LDFLAGS = -no-install
+
+test_touchpad_tap_SOURCES = touchpad-tap.c
+test_touchpad_tap_LDADD = $(TEST_LIBS)
+test_touchpad_tap_LDFLAGS = -no-install
 
 test_trackpoint_SOURCES = trackpoint.c
 test_trackpoint_LDADD = $(TEST_LIBS)

@@ -1,23 +1,24 @@
 /*
  * Copyright © 2014-2015 Red Hat, Inc.
  *
- * Permission to use, copy, modify, distribute, and sell this software and
- * its documentation for any purpose is hereby granted without fee, provided
- * that the above copyright notice appear in all copies and that both that
- * copyright notice and this permission notice appear in supporting
- * documentation, and that the name of the copyright holders not be used in
- * advertising or publicity pertaining to distribution of the software
- * without specific, written prior permission.  The copyright holders make
- * no representations about the suitability of this software for any
- * purpose.  It is provided "as is" without express or implied warranty.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
- * SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
- * FITNESS, IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER
- * RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF
- * CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
 
 #include "config.h"
@@ -677,6 +678,35 @@ tp_button_config_click_get_default_method(struct libinput_device *device)
 	return tp_click_get_default_method(tp);
 }
 
+static inline void
+tp_init_middlebutton_emulation(struct tp_dispatch *tp,
+			       struct evdev_device *device)
+{
+	bool enable_by_default,
+	     want_config_option;
+
+	if (tp->buttons.is_clickpad)
+		return;
+
+	/* init middle button emulation on non-clickpads, but only if we
+	 * don't have a middle button. Exception: ALPS touchpads don't know
+	 * if they have a middle button, so we always want the option there
+	 * and enabled by default.
+	 */
+	if (!libevdev_has_event_code(device->evdev, EV_KEY, BTN_MIDDLE)) {
+		enable_by_default = true;
+		want_config_option = false;
+	} else if (device->model == EVDEV_MODEL_ALPS_TOUCHPAD) {
+		enable_by_default = true;
+		want_config_option = true;
+	} else
+		return;
+
+	evdev_init_middlebutton(tp->device,
+				enable_by_default,
+				want_config_option);
+}
+
 int
 tp_init_buttons(struct tp_dispatch *tp,
 		struct evdev_device *device)
@@ -733,9 +763,7 @@ tp_init_buttons(struct tp_dispatch *tp,
 
 	tp_init_top_softbuttons(tp, device, 1.0);
 
-	if (!tp->buttons.is_clickpad &&
-	    !libevdev_has_event_code(device->evdev, EV_KEY, BTN_MIDDLE))
-		evdev_init_middlebutton(tp->device, true, false);
+	tp_init_middlebutton_emulation(tp, device);
 
 	tp_for_each_touch(tp, t) {
 		t->button.state = BUTTON_STATE_NONE;
