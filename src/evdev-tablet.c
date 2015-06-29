@@ -77,11 +77,18 @@ tablet_device_has_axis(struct tablet_dispatch *tablet,
 
 	if (axis == LIBINPUT_TABLET_AXIS_ROTATION_Z) {
 		has_axis = (libevdev_has_event_code(evdev,
+						    EV_KEY,
+						    BTN_TOOL_MOUSE) &&
+			    libevdev_has_event_code(evdev,
 						    EV_ABS,
 						    ABS_TILT_X) &&
 			    libevdev_has_event_code(evdev,
 						    EV_ABS,
 						    ABS_TILT_Y));
+		code = axis_to_evcode(axis);
+		has_axis |= libevdev_has_event_code(evdev,
+						    EV_ABS,
+						    code);
 	} else if (axis == LIBINPUT_TABLET_AXIS_REL_WHEEL) {
 		has_axis = libevdev_has_event_code(evdev,
 						   EV_REL,
