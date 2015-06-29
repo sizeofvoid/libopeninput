@@ -151,7 +151,8 @@ START_TEST(proximity_out_clear_buttons)
 		}
 
 		ck_assert_msg(button_released,
-			      "Button %d was not released.",
+			      "Button %s (%d) was not released.",
+			      libevdev_event_code_get_name(EV_KEY, button),
 			      event_button);
 	}
 }
