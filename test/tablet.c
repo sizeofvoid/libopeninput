@@ -123,6 +123,9 @@ START_TEST(proximity_out_clear_buttons)
 		uint32_t event_button;
 		enum libinput_button_state state;
 
+		if (!libevdev_has_event_code(dev->evdev, EV_KEY, button))
+			continue;
+
 		litest_tablet_proximity_in(dev, 10, 10, axes);
 		litest_event(dev, EV_KEY, button, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
