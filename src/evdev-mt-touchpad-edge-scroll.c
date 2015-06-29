@@ -39,7 +39,7 @@
    avoid accidentally locking in scrolling mode when trying to use the entire
    touchpad to move the pointer. The user can wait for the timeout to trigger
    to do a small scroll. */
-#define DEFAULT_SCROLL_THRESHOLD TP_MM_TO_DPI_NORMALIZED(5)
+#define DEFAULT_SCROLL_THRESHOLD TP_MM_TO_DPI_NORMALIZED(3)
 
 enum scroll_event {
 	SCROLL_EVENT_TOUCH,
@@ -275,8 +275,8 @@ tp_edge_scroll_init(struct tp_dispatch *tp, struct evdev_device *device)
 	int width, height;
 	int edge_width, edge_height;
 
-	width = device->abs.absinfo_x->maximum - device->abs.absinfo_x->minimum;
-	height = device->abs.absinfo_y->maximum - device->abs.absinfo_y->minimum;
+	width = device->abs.dimensions.x;
+	height = device->abs.dimensions.y;
 
 	switch (tp->model) {
 	case MODEL_ALPS:
@@ -353,7 +353,7 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 	struct tp_touch *t;
 	enum libinput_pointer_axis axis;
 	double *delta;
-	struct normalized_coords normalized;
+	struct normalized_coords normalized, tmp;
 	const struct normalized_coords zero = { 0.0, 0.0 };
 	const struct discrete_coords zero_discrete = { 0.0, 0.0 };
 
@@ -402,11 +402,14 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 					 t->scroll.edge_state);
 			break;
 		case EDGE_SCROLL_TOUCH_STATE_EDGE_NEW:
+			tmp = normalized;
 			normalized = tp_normalize_delta(tp,
 					device_delta(t->point,
 						     t->scroll.initial));
 			if (fabs(*delta) < DEFAULT_SCROLL_THRESHOLD)
 				normalized = zero;
+			else
+				normalized = tmp;
 			break;
 		case EDGE_SCROLL_TOUCH_STATE_EDGE:
 			break;

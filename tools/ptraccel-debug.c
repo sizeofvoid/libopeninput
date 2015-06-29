@@ -95,7 +95,7 @@ print_ptraccel_movement(struct motion_filter *filter,
 		motion.y = 0;
 		time += 12; /* pretend 80Hz data */
 
-		filter_dispatch(filter, &motion, NULL, time);
+		motion = filter_dispatch(filter, &motion, NULL, time);
 
 		printf("%d	%.3f	%.3f\n", i, motion.x, dx);
 
@@ -129,7 +129,7 @@ print_ptraccel_sequence(struct motion_filter *filter,
 		motion.y = 0;
 		time += 12; /* pretend 80Hz data */
 
-		filter_dispatch(filter, &motion, NULL, time);
+		motion = filter_dispatch(filter, &motion, NULL, time);
 
 		printf("%d	%.3f	%.3f\n", i, motion.x, *dx);
 	}
@@ -165,9 +165,9 @@ usage(void)
 	       "	delta    ... print delta to accelerated delta\n"
 	       "	accel    ... print accel factor\n"
 	       "	sequence ... print motion for custom delta sequence\n"
-	       "--maxdx=<double>\n  ... in motion mode only. Stop increasing dx at maxdx\n"
-	       "--steps=<double>\n  ... in motion and delta modes only. Increase dx by step each round\n"
-	       "--speed=<double>\n  ... accel speed [-1, 1], default 0\n"
+	       "--maxdx=<double>  ... in motion mode only. Stop increasing dx at maxdx\n"
+	       "--steps=<double>  ... in motion and delta modes only. Increase dx by step each round\n"
+	       "--speed=<double>  ... accel speed [-1, 1], default 0\n"
 	       "\n"
 	       "If extra arguments are present and mode is not given, mode defaults to 'sequence'\n"
 	       "and the arguments are interpreted as sequence of delta x coordinates\n"

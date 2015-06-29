@@ -42,26 +42,8 @@
 uint32_t start_time;
 static const uint32_t screen_width = 100;
 static const uint32_t screen_height = 100;
-struct tools_options options;
+struct tools_context context;
 static unsigned int stop = 0;
-
-static int
-open_restricted(const char *path, int flags, void *user_data)
-{
-	int fd = open(path, flags);
-	return fd < 0 ? -errno : fd;
-}
-
-static void
-close_restricted(int fd, void *user_data)
-{
-	close(fd);
-}
-
-static const struct libinput_interface interface = {
-	.open_restricted = open_restricted,
-	.close_restricted = close_restricted,
-};
 
 static void
 print_event_header(struct libinput_event *ev)
@@ -169,8 +151,13 @@ print_device_notify(struct libinput_event *ev)
 	if (libinput_device_get_size(dev, &w, &h) == 0)
 		printf("\tsize %.2f/%.2fmm", w, h);
 
-	if (libinput_device_config_tap_get_finger_count(dev))
+	if (libinput_device_config_tap_get_finger_count(dev)) {
 	    printf(" tap");
+	    if (libinput_device_config_tap_get_drag_lock_enabled(dev))
+		    printf("(dl on)");
+	    else
+		    printf("(dl off)");
+	}
 	if (libinput_device_config_left_handed_is_available(dev))
 	    printf(" left");
 	if (libinput_device_config_scroll_has_natural_scroll(dev))
@@ -547,7 +534,7 @@ handle_and_print_events(struct libinput *li)
 		case LIBINPUT_EVENT_DEVICE_REMOVED:
 			print_device_notify(ev);
 			tools_device_apply_config(libinput_event_get_device(ev),
-						  &options);
+						  &context.options);
 			break;
 		case LIBINPUT_EVENT_KEYBOARD_KEY:
 			print_key_event(ev);
@@ -638,17 +625,17 @@ main(int argc, char **argv)
 	struct libinput *li;
 	struct timespec tp;
 
-	clock_gettime(CLOCK_MONOTONIC, &tp);
-	start_time = tp.tv_sec * 1000 + tp.tv_nsec / 1000000;
+	tools_init_context(&context);
 
-	tools_init_options(&options);
-
-	if (tools_parse_args(argc, argv, &options))
+	if (tools_parse_args(argc, argv, &context))
 		return 1;
 
-	li = tools_open_backend(&options, NULL, &interface);
+	li = tools_open_backend(&context);
 	if (!li)
 		return 1;
+
+	clock_gettime(CLOCK_MONOTONIC, &tp);
+	start_time = tp.tv_sec * 1000 + tp.tv_nsec / 1000000;
 
 	mainloop(li);
 

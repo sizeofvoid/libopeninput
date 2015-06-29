@@ -426,7 +426,7 @@ tp_process_key(struct tp_dispatch *tp,
 static void
 tp_unpin_finger(struct tp_dispatch *tp, struct tp_touch *t)
 {
-	unsigned int xdist, ydist;
+	double xdist, ydist;
 
 	if (!t->pinned.is_pinned)
 		return;
@@ -524,7 +524,7 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	int dirs;
 
 	if (tp_palm_detect_dwt(tp, t, time))
-	    goto out;
+		goto out;
 
 	/* If labelled a touch as palm, we unlabel as palm when
 	   we move out of the palm edge zone within the timeout, provided
@@ -1403,10 +1403,8 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 	tp->palm.left_edge = INT_MIN;
 	tp->palm.vert_center = INT_MIN;
 
-	width = abs(device->abs.absinfo_x->maximum -
-		    device->abs.absinfo_x->minimum);
-	height = abs(device->abs.absinfo_y->maximum -
-		    device->abs.absinfo_y->minimum);
+	width = device->abs.dimensions.x;
+	height = device->abs.dimensions.y;
 
 	/* Wacom doesn't have internal touchpads,
 	 * Apple touchpads are always big enough to warrant palm detection */
@@ -1485,10 +1483,8 @@ tp_init(struct tp_dispatch *tp,
 	if (tp_init_slots(tp, device) != 0)
 		return -1;
 
-	width = abs(device->abs.absinfo_x->maximum -
-		    device->abs.absinfo_x->minimum);
-	height = abs(device->abs.absinfo_y->maximum -
-		     device->abs.absinfo_y->minimum);
+	width = device->abs.dimensions.x;
+	height = device->abs.dimensions.y;
 	diagonal = sqrt(width*width + height*height);
 
 	tp->reports_distance = libevdev_has_event_code(device->evdev,

@@ -23,7 +23,6 @@
 
 #define _GNU_SOURCE
 #include <errno.h>
-#include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -35,27 +34,6 @@
 #include <libinput-version.h>
 
 #include "shared.h"
-
-static int
-open_restricted(const char *path, int flags, void *user_data)
-{
-	int fd = open(path, flags);
-	if (fd < 0)
-		fprintf(stderr, "Failed to open %s (%s)\n",
-			path, strerror(errno));
-	return fd < 0 ? -errno : fd;
-}
-
-static void
-close_restricted(int fd, void *user_data)
-{
-	close(fd);
-}
-
-static const struct libinput_interface interface = {
-	.open_restricted = open_restricted,
-	.close_restricted = close_restricted,
-};
 
 static inline const char*
 bool_to_str(bool b)
@@ -73,6 +51,18 @@ tap_default(struct libinput_device *device)
 		return "n/a";
 
 	if (libinput_device_config_tap_get_default_enabled(device))
+		return "enabled";
+	else
+		return "disabled";
+}
+
+static const char *
+draglock_default(struct libinput_device *device)
+{
+	if (!libinput_device_config_tap_get_finger_count(device))
+		return "n/a";
+
+	if (libinput_device_config_tap_get_default_drag_lock_enabled(device))
 		return "enabled";
 	else
 		return "disabled";
@@ -238,6 +228,7 @@ print_device_notify(struct libinput_event *ev)
 	printf("\n");
 
 	printf("Tap-to-click:     %s\n", tap_default(dev));
+	printf("Tap drag lock:    %s\n", draglock_default(dev));
 	printf("Left-handed:      %s\n", left_handed_default(dev));
 	printf("Nat.scrolling:    %s\n", nat_scroll_default(dev));
 	printf("Middle emulation: %s\n", middle_emulation_default(dev));
@@ -277,7 +268,7 @@ int
 main(int argc, char **argv)
 {
 	struct libinput *li;
-	struct tools_options options;
+	struct tools_context context;
 	struct libinput_event *ev;
 
 	if (argc > 1) {
@@ -293,9 +284,9 @@ main(int argc, char **argv)
 		}
 	}
 
-	tools_init_options(&options);
+	tools_init_context(&context);
 
-	li = tools_open_backend(&options, NULL, &interface);
+	li = tools_open_backend(&context);
 	if (!li)
 		return 1;
 

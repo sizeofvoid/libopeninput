@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include "linux/input.h"
 #include <unistd.h>
 #include <fcntl.h>
@@ -253,6 +254,23 @@ normalize_delta(struct evdev_device *device,
 	normalized->y = delta->y * DEFAULT_MOUSE_DPI / (double)device->dpi;
 }
 
+static inline bool
+evdev_post_trackpoint_scroll(struct evdev_device *device,
+			     struct normalized_coords unaccel,
+			     uint64_t time)
+{
+	if (device->scroll.method != LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN ||
+	    !hw_is_key_down(device, device->scroll.button))
+		return false;
+
+	if (device->scroll.button_scroll_active)
+		evdev_post_scroll(device, time,
+				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
+				  &unaccel);
+
+	return true;
+}
+
 static void
 evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 {
@@ -275,14 +293,8 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 		device->rel.y = 0;
 
 		/* Use unaccelerated deltas for pointing stick scroll */
-		if (device->scroll.method == LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN &&
-		    hw_is_key_down(device, device->scroll.button)) {
-			if (device->scroll.button_scroll_active)
-				evdev_post_scroll(device, time,
-						  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
-						  &unaccel);
-			break;
-		}
+		if (evdev_post_trackpoint_scroll(device, unaccel, time))
+		    break;
 
 		/* Apply pointer acceleration. */
 		accel = filter_dispatch(device->pointer.filter,
@@ -1497,6 +1509,10 @@ evdev_read_dpi_prop(struct evdev_device *device)
 					    DEFAULT_MOUSE_DPI);
 			dpi = DEFAULT_MOUSE_DPI;
 		}
+		log_info(libinput,
+			 "Device '%s' set to %d DPI\n",
+			 device->devname,
+			 dpi);
 	}
 
 	return dpi;
@@ -1762,6 +1778,10 @@ evdev_configure_mt_device(struct evdev_device *device)
 
 	device->abs.absinfo_x = libevdev_get_abs_info(evdev, ABS_MT_POSITION_X);
 	device->abs.absinfo_y = libevdev_get_abs_info(evdev, ABS_MT_POSITION_Y);
+	device->abs.dimensions.x = abs(device->abs.absinfo_x->maximum -
+				       device->abs.absinfo_x->minimum);
+	device->abs.dimensions.y = abs(device->abs.absinfo_y->maximum -
+				       device->abs.absinfo_y->minimum);
 	device->is_mt = 1;
 
 	/* We only handle the slotted Protocol B in libinput.
@@ -1875,6 +1895,10 @@ evdev_configure_device(struct evdev_device *device)
 		device->abs.absinfo_y = libevdev_get_abs_info(evdev, ABS_Y);
 		device->abs.point.x = device->abs.absinfo_x->value;
 		device->abs.point.y = device->abs.absinfo_y->value;
+		device->abs.dimensions.x = abs(device->abs.absinfo_x->maximum -
+					       device->abs.absinfo_x->minimum);
+		device->abs.dimensions.y = abs(device->abs.absinfo_y->maximum -
+					       device->abs.absinfo_y->minimum);
 
 		if (evdev_is_fake_mt_device(device)) {
 			udev_tags &= ~EVDEV_UDEV_TAG_TOUCHSCREEN;
@@ -2104,6 +2128,8 @@ evdev_device_create(struct libinput_seat *seat,
 	device->scroll.wheel_click_angle =
 		evdev_read_wheel_click_prop(device);
 	device->model = evdev_read_model(device);
+	device->dpi = evdev_read_dpi_prop(device);
+
 	/* at most 5 SYN_DROPPED log-messages per 30s */
 	ratelimit_init(&device->syn_drop_limit, 30ULL * 1000, 5);
 
@@ -2113,8 +2139,6 @@ evdev_device_create(struct libinput_seat *seat,
 
 	if (evdev_configure_device(device) == -1)
 		goto err;
-
-	device->dpi = evdev_read_dpi_prop(device);
 
 	if (device->seat_caps == 0) {
 		unhandled_device = 1;
