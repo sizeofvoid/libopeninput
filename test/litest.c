@@ -356,6 +356,7 @@ extern struct litest_test_device litest_ms_surface_cover_device;
 extern struct litest_test_device litest_logitech_trackball_device;
 extern struct litest_test_device litest_atmel_hover_device;
 extern struct litest_test_device litest_alps_dualpoint_device;
+extern struct litest_test_device litest_waltop_tablet_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -386,6 +387,7 @@ struct litest_test_device* devices[] = {
 	&litest_logitech_trackball_device,
 	&litest_atmel_hover_device,
 	&litest_alps_dualpoint_device,
+	&litest_waltop_tablet_device,
 	NULL,
 };
 

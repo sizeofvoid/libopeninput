@@ -38,6 +38,7 @@ liblitest_la_SOURCES = \
 	litest-wacom-isdv4-tablet.c \
 	litest-wacom-touch.c \
 	litest-wacom-intuos-finger.c \
+	litest-waltop-tablet.c \
 	litest-wheel-only.c \
 	litest-xen-virtual-pointer.c \
 	litest-vmware-virtual-usb-mouse.c \

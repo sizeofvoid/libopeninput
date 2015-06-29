@@ -1691,7 +1691,7 @@ litest_setup_tests(void)
 	litest_add("tablet:mouse", mouse_tool, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:mouse", mouse_buttons, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:mouse", mouse_rotation, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:mouse", mouse_wheel, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:mouse", mouse_wheel, LITEST_TABLET, LITEST_WHEEL);
 	litest_add("tablet:airbrush", airbrush_tool, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:airbrush", airbrush_wheel, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:artpen", artpen_tool, LITEST_TABLET, LITEST_ANY);

@@ -988,5 +988,5 @@ litest_setup_tests(void)
 	litest_add_no_device("device:invalid devices", abs_device_missing_res);
 	litest_add_no_device("device:invalid devices", abs_mt_device_missing_res);
 
-	litest_add("device:wheel", device_wheel_only, LITEST_WHEEL, LITEST_RELATIVE|LITEST_ABSOLUTE);
+	litest_add("device:wheel", device_wheel_only, LITEST_WHEEL, LITEST_RELATIVE|LITEST_ABSOLUTE|LITEST_TABLET);
 }
