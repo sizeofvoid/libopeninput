@@ -64,6 +64,7 @@ enum touch_palm_state {
 	PALM_NONE = 0,
 	PALM_EDGE,
 	PALM_TYPING,
+	PALM_TRACKPOINT,
 };
 
 enum button_event {
@@ -277,15 +278,17 @@ struct tp_dispatch {
 		int32_t right_edge;		/* in device coordinates */
 		int32_t left_edge;		/* in device coordinates */
 		int32_t vert_center;		/* in device coordinates */
+
+		bool trackpoint_active;
+		struct libinput_event_listener trackpoint_listener;
+		struct libinput_timer trackpoint_timer;
+		uint64_t trackpoint_last_event_time;
+		bool monitor_trackpoint;
 	} palm;
 
 	struct {
 		struct libinput_device_config_send_events config;
 		enum libinput_config_send_events_mode current_mode;
-
-		bool trackpoint_active;
-		struct libinput_event_listener trackpoint_listener;
-		struct libinput_timer trackpoint_timer;
 	} sendevents;
 
 	struct {
@@ -316,6 +319,21 @@ tp_normalize_delta(struct tp_dispatch *tp, struct device_float_coords delta)
 	normalized.y = delta.y * tp->accel.y_scale_coeff;
 
 	return normalized;
+}
+
+/**
+ * Takes a dpi-normalized set of coordinates, returns a set of coordinates
+ * in the x-axis' coordinate space.
+ */
+static inline struct device_float_coords
+tp_unnormalize_for_xaxis(struct tp_dispatch *tp, struct normalized_coords delta)
+{
+	struct device_float_coords raw;
+
+	raw.x = delta.x / tp->accel.x_scale_coeff;
+	raw.y = delta.y / tp->accel.x_scale_coeff; /* <--- not a typo */
+
+	return raw;
 }
 
 struct normalized_coords

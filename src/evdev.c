@@ -281,6 +281,7 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 	struct libinput_seat *seat = base->seat;
 	struct normalized_coords accel, unaccel;
 	struct device_coords point;
+	struct device_float_coords raw;
 
 	slot = device->mt.slot;
 
@@ -289,6 +290,8 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 		return;
 	case EVDEV_RELATIVE_MOTION:
 		normalize_delta(device, &device->rel, &unaccel);
+		raw.x = device->rel.x;
+		raw.y = device->rel.y;
 		device->rel.x = 0;
 		device->rel.y = 0;
 
@@ -305,7 +308,7 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 		if (normalized_is_zero(accel) && normalized_is_zero(unaccel))
 			break;
 
-		pointer_notify_motion(base, time, &accel, &unaccel);
+		pointer_notify_motion(base, time, &accel, &raw);
 		break;
 	case EVDEV_ABSOLUTE_MT_DOWN:
 		if (!(device->seat_caps & EVDEV_DEVICE_TOUCH))
@@ -1408,7 +1411,8 @@ int
 evdev_device_init_pointer_acceleration(struct evdev_device *device,
 				       accel_profile_func_t profile)
 {
-	device->pointer.filter = create_pointer_accelerator_filter(profile);
+	device->pointer.filter = create_pointer_accelerator_filter(profile,
+								   device->dpi);
 	if (!device->pointer.filter)
 		return -1;
 
@@ -1549,7 +1553,7 @@ evdev_read_model(struct evdev_device *device)
 }
 
 /* Return 1 if the given resolutions have been set, or 0 otherwise */
-inline int
+static inline int
 evdev_fix_abs_resolution(struct evdev_device *device,
 			 unsigned int xcode,
 			 unsigned int ycode,
@@ -1825,6 +1829,19 @@ evdev_configure_mt_device(struct evdev_device *device)
 	return 0;
 }
 
+static inline int
+evdev_init_accel(struct evdev_device *device)
+{
+	accel_profile_func_t profile;
+
+	if (device->dpi < DEFAULT_MOUSE_DPI)
+		profile = pointer_accel_profile_linear_low_dpi;
+	else
+		profile = pointer_accel_profile_linear;
+
+	return evdev_device_init_pointer_acceleration(device, profile);
+}
+
 static int
 evdev_configure_device(struct evdev_device *device)
 {
@@ -1936,9 +1953,7 @@ evdev_configure_device(struct evdev_device *device)
 	    udev_tags & EVDEV_UDEV_TAG_POINTINGSTICK) {
 		if (libevdev_has_event_code(evdev, EV_REL, REL_X) &&
 		    libevdev_has_event_code(evdev, EV_REL, REL_Y) &&
-		    evdev_device_init_pointer_acceleration(
-					device,
-					pointer_accel_profile_linear) == -1)
+		    evdev_init_accel(device) == -1)
 			return -1;
 
 		device->seat_caps |= EVDEV_DEVICE_POINTER;

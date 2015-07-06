@@ -35,52 +35,26 @@
 #include "libinput-util.h"
 #include "litest.h"
 
-static struct libinput_event_pointer *
-get_accelerated_motion_event(struct libinput *li)
-{
-	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
-
-	while (1) {
-		event = libinput_get_event(li);
-		ptrev = litest_is_motion_event(event);
-
-		if (fabs(libinput_event_pointer_get_dx(ptrev)) < DBL_MIN &&
-		    fabs(libinput_event_pointer_get_dy(ptrev)) < DBL_MIN) {
-			libinput_event_destroy(event);
-			continue;
-		}
-
-		return ptrev;
-	}
-
-	litest_abort_msg("No accelerated pointer motion event found");
-	return NULL;
-}
-
 static void
 test_relative_event(struct litest_device *dev, int dx, int dy)
 {
 	struct libinput *li = dev->libinput;
 	struct libinput_event_pointer *ptrev;
+	struct libinput_event *event;
 	double ev_dx, ev_dy;
 	double expected_dir;
 	double expected_length;
 	double actual_dir;
 	double actual_length;
 
-	/* Send two deltas, as the first one may be eaten up by an
-	 * acceleration filter. */
-	litest_event(dev, EV_REL, REL_X, dx);
-	litest_event(dev, EV_REL, REL_Y, dy);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_REL, REL_X, dx);
 	litest_event(dev, EV_REL, REL_Y, dy);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
 	libinput_dispatch(li);
 
-	ptrev = get_accelerated_motion_event(li);
+	event = libinput_get_event(li);
+	ptrev = litest_is_motion_event(event);
 
 	expected_length = sqrt(4 * dx*dx + 4 * dy*dy);
 	expected_dir = atan2(dx, dy);
@@ -97,7 +71,7 @@ test_relative_event(struct litest_device *dev, int dx, int dy)
 	 * indifference). */
 	litest_assert(fabs(expected_dir - actual_dir) < M_PI_2);
 
-	libinput_event_destroy(libinput_event_pointer_get_base_event(ptrev));
+	libinput_event_destroy(event);
 
 	litest_drain_events(dev->libinput);
 }
@@ -120,6 +94,13 @@ START_TEST(pointer_motion_relative)
 {
 	struct litest_device *dev = litest_current_device();
 
+	/* send a single event, the first movement
+	   is always decelerated by 0.3 */
+	litest_event(dev, EV_REL, REL_X, 1);
+	litest_event(dev, EV_REL, REL_Y, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(dev->libinput);
+
 	litest_drain_events(dev->libinput);
 
 	test_relative_event(dev, 1, 0);
@@ -131,6 +112,95 @@ START_TEST(pointer_motion_relative)
 	test_relative_event(dev, -1, 1);
 	test_relative_event(dev, -1, -1);
 	test_relative_event(dev, 0, -1);
+}
+END_TEST
+
+START_TEST(pointer_motion_relative_zero)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	int i;
+
+	/* NOTE: this test does virtually nothing. The kernel should not
+	 * allow 0/0 events to be passed to userspace. If it ever happens,
+	 * let's hope this test fails if we do the wrong thing.
+	 */
+	litest_drain_events(li);
+
+	for (i = 0; i < 5; i++) {
+		litest_event(dev, EV_REL, REL_X, 0);
+		litest_event(dev, EV_REL, REL_Y, 0);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+	litest_assert_empty_queue(li);
+
+	/* send a single event, the first movement
+	   is always decelerated by 0.3 */
+	litest_event(dev, EV_REL, REL_X, 1);
+	litest_event(dev, EV_REL, REL_Y, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	libinput_event_destroy(libinput_get_event(li));
+	litest_assert_empty_queue(li);
+
+	for (i = 0; i < 5; i++) {
+		litest_event(dev, EV_REL, REL_X, 0);
+		litest_event(dev, EV_REL, REL_Y, 0);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(dev->libinput);
+	}
+	litest_assert_empty_queue(li);
+
+}
+END_TEST
+
+START_TEST(pointer_motion_relative_min_decel)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event_pointer *ptrev;
+	struct libinput_event *event;
+	double evx, evy;
+	int dx, dy;
+	int cardinal = _i; /* ranged test */
+	double len;
+
+	int deltas[8][2] = {
+		/* N, NE, E, ... */
+		{ 0, 1 },
+		{ 1, 1 },
+		{ 1, 0 },
+		{ 1, -1 },
+		{ 0, -1 },
+		{ -1, -1 },
+		{ -1, 0 },
+		{ -1, 1 },
+	};
+
+	litest_drain_events(dev->libinput);
+
+	dx = deltas[cardinal][0];
+	dy = deltas[cardinal][1];
+
+	litest_event(dev, EV_REL, REL_X, dx);
+	litest_event(dev, EV_REL, REL_Y, dy);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	ptrev = litest_is_motion_event(event);
+	evx = libinput_event_pointer_get_dx(ptrev);
+	evy = libinput_event_pointer_get_dy(ptrev);
+
+	ck_assert((evx == 0.0) == (dx == 0));
+	ck_assert((evy == 0.0) == (dy == 0));
+
+	len = vector_length(evx, evy);
+	ck_assert(fabs(len) >= 0.3);
+
+	libinput_event_destroy(event);
 }
 END_TEST
 
@@ -1347,8 +1417,11 @@ void
 litest_setup_tests(void)
 {
 	struct range axis_range = {ABS_X, ABS_Y + 1};
+	struct range compass = {0, 7}; /* cardinal directions */
 
 	litest_add("pointer:motion", pointer_motion_relative, LITEST_RELATIVE, LITEST_ANY);
+	litest_add_for_device("pointer:motion", pointer_motion_relative_zero, LITEST_MOUSE);
+	litest_add_ranged("pointer:motion", pointer_motion_relative_min_decel, LITEST_RELATIVE, LITEST_ANY, &compass);
 	litest_add("pointer:motion", pointer_motion_absolute, LITEST_ABSOLUTE, LITEST_ANY);
 	litest_add("pointer:motion", pointer_motion_unaccel, LITEST_RELATIVE, LITEST_ANY);
 	litest_add("pointer:button", pointer_button, LITEST_BUTTON, LITEST_CLICKPAD);
