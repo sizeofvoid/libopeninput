@@ -138,11 +138,13 @@ enum litest_device_type {
 	LITEST_ATMEL_HOVER = -24,
 	LITEST_ALPS_DUALPOINT = -25,
 	LITEST_MOUSE_LOW_DPI = -26,
-	LITEST_WACOM_BAMBOO = -27,
-	LITEST_WACOM_CINTIQ = -28,
-	LITEST_WACOM_INTUOS = -29,
-	LITEST_WACOM_ISDV4 = -30,
-	LITEST_WALTOP = -31,
+	LITEST_GENERIC_MULTITOUCH_SCREEN = -27,
+	LITEST_NEXUS4_TOUCH_SCREEN = -28,
+	LITEST_WACOM_BAMBOO = -29,
+	LITEST_WACOM_CINTIQ = -30,
+	LITEST_WACOM_INTUOS = -31,
+	LITEST_WACOM_ISDV4 = -32,
+	LITEST_WALTOP = -33,
 };
 
 enum litest_device_feature {
@@ -164,9 +166,10 @@ enum litest_device_feature {
 	LITEST_ABSOLUTE = 1 << 13,
 	LITEST_PROTOCOL_A = 1 << 14,
 	LITEST_HOVER = 1 << 15,
-	LITEST_TABLET = 1 << 16,
-	LITEST_DISTANCE = 1 << 17,
-	LITEST_TOOL_SERIAL = 1 << 18,
+	LITEST_ELLIPSE = 1 << 16,
+	LITEST_TABLET = 1 << 17,
+	LITEST_DISTANCE = 1 << 18,
+	LITEST_TOOL_SERIAL = 1 << 19,
 };
 
 struct litest_device {
@@ -298,16 +301,27 @@ void litest_event(struct litest_device *t,
 int litest_auto_assign_value(struct litest_device *d,
 			     const struct input_event *ev,
 			     int slot, double x, double y,
+			     struct axis_replacement *axes,
 			     bool touching);
 void litest_touch_up(struct litest_device *d, unsigned int slot);
 void litest_touch_move(struct litest_device *d,
 		       unsigned int slot,
 		       double x,
 		       double y);
+void litest_touch_move_extended(struct litest_device *d,
+				unsigned int slot,
+				double x,
+				double y,
+				struct axis_replacement *axes);
 void litest_touch_down(struct litest_device *d,
 		       unsigned int slot,
 		       double x,
 		       double y);
+void litest_touch_down_extended(struct litest_device *d,
+				unsigned int slot,
+				double x,
+				double y,
+				struct axis_replacement *axes);
 void litest_touch_move_to(struct litest_device *d,
 			  unsigned int slot,
 			  double x_from, double y_from,
@@ -481,4 +495,54 @@ litest_disable_tap(struct libinput_device *device)
 	litest_assert_int_eq(status, expected);
 }
 
+#define CK_DOUBLE_EQ_EPSILON 1E-3
+#define ck_assert_double_eq(X,Y)  \
+	do { \
+		double _ck_x = X; \
+		double _ck_y = Y; \
+		ck_assert_msg(fabs(_ck_x - _ck_y) < CK_DOUBLE_EQ_EPSILON, \
+			      "Assertion '" #X " == " #Y \
+			      "' failed: "#X"==%f, "#Y"==%f", \
+			      _ck_x, \
+			      _ck_y); \
+	} while (0)
+
+#define ck_assert_double_ne(X,Y)  \
+	do { \
+		double _ck_x = X; \
+		double _ck_y = Y; \
+		ck_assert_msg(fabs(_ck_x - _ck_y) > CK_DOUBLE_EQ_EPSILON, \
+			      "Assertion '" #X " != " #Y \
+			      "' failed: "#X"==%f, "#Y"==%f", \
+			      _ck_x, \
+			      _ck_y); \
+	} while (0)
+
+#define _ck_assert_double_eq(X, OP, Y)  \
+	do { \
+		double _ck_x = X; \
+		double _ck_y = Y; \
+		ck_assert_msg(_ck_x OP _ck_y || \
+			      fabs(_ck_x - _ck_y) < CK_DOUBLE_EQ_EPSILON, \
+			      "Assertion '" #X#OP#Y \
+			      "' failed: "#X"==%f, "#Y"==%f", \
+			      _ck_x, \
+			      _ck_y); \
+	} while (0)
+
+#define _ck_assert_double_ne(X, OP,Y) \
+	do { \
+		double _ck_x = X; \
+		double _ck_y = Y; \
+		ck_assert_msg(_ck_x OP _ck_y && \
+			      fabs(_ck_x - _ck_y) > CK_DOUBLE_EQ_EPSILON, \
+			      "Assertion '" #X#OP#Y \
+			      "' failed: "#X"==%f, "#Y"==%f", \
+			      _ck_x, \
+			      _ck_y); \
+	} while (0)
+#define ck_assert_double_lt(X, Y) _ck_assert_double_ne(X, <, Y)
+#define ck_assert_double_le(X, Y) _ck_assert_double_eq(X, <=, Y)
+#define ck_assert_double_gt(X, Y) _ck_assert_double_ne(X, >, Y)
+#define ck_assert_double_ge(X, Y) _ck_assert_double_eq(X, >=, Y)
 #endif /* LITEST_H */

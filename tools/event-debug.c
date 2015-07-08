@@ -90,6 +90,24 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 		type = "TOUCH_FRAME";
 		break;
+	case LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN:
+		type = "GESTURE_SWIPE_BEGIN";
+		break;
+	case LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE:
+		type = "GESTURE_SWIPE_UPDATE";
+		break;
+	case LIBINPUT_EVENT_GESTURE_SWIPE_END:
+		type = "GESTURE_SWIPE_END";
+		break;
+	case LIBINPUT_EVENT_GESTURE_PINCH_BEGIN:
+		type = "GESTURE_PINCH_BEGIN";
+		break;
+	case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE:
+		type = "GESTURE_PINCH_UPDATE";
+		break;
+	case LIBINPUT_EVENT_GESTURE_PINCH_END:
+		type = "GESTURE_PINCH_END";
+		break;
 	case LIBINPUT_EVENT_TABLET_AXIS:
 		type = "TABLET_AXIS";
 		break;
@@ -144,6 +162,9 @@ print_device_notify(struct libinput_event *ev)
 	if (libinput_device_has_capability(dev,
 					   LIBINPUT_DEVICE_CAP_TOUCH))
 		printf("t");
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_GESTURE))
+		printf("g");
 	if (libinput_device_has_capability(dev,
 					   LIBINPUT_DEVICE_CAP_TABLET))
 		printf("T");
@@ -517,6 +538,47 @@ print_touch_event_with_coords(struct libinput_event *ev)
 	       xmm, ymm);
 }
 
+static void
+print_gesture_event_without_coords(struct libinput_event *ev)
+{
+	struct libinput_event_gesture *t = libinput_event_get_gesture_event(ev);
+	int finger_count = libinput_event_gesture_get_finger_count(t);
+	int cancelled = 0;
+	enum libinput_event_type type;
+
+	type = libinput_event_get_type(ev);
+
+	if (type == LIBINPUT_EVENT_GESTURE_SWIPE_END ||
+	    type == LIBINPUT_EVENT_GESTURE_PINCH_END)
+	    cancelled = libinput_event_gesture_get_cancelled(t);
+
+	print_event_time(libinput_event_gesture_get_time(t));
+	printf("%d%s\n", finger_count, cancelled ? " cancelled" : "");
+}
+
+static void
+print_gesture_event_with_coords(struct libinput_event *ev)
+{
+	struct libinput_event_gesture *t = libinput_event_get_gesture_event(ev);
+	double dx = libinput_event_gesture_get_dx(t);
+	double dy = libinput_event_gesture_get_dy(t);
+	double dx_unaccel = libinput_event_gesture_get_dx_unaccelerated(t);
+	double dy_unaccel = libinput_event_gesture_get_dy_unaccelerated(t);
+	double scale = libinput_event_gesture_get_scale(t);
+	double angle = libinput_event_gesture_get_angle_delta(t);
+
+	print_event_time(libinput_event_gesture_get_time(t));
+
+	printf("%d %5.2f/%5.2f (%5.2f/%5.2f unaccelerated)",
+	       libinput_event_gesture_get_finger_count(t),
+	       dx, dy, dx_unaccel, dy_unaccel);
+
+	if (libinput_event_get_type(ev) == LIBINPUT_EVENT_GESTURE_PINCH_UPDATE)
+		printf(" %5.2f @ %5.2f\n", scale, angle);
+	else
+		printf("\n");
+}
+
 static int
 handle_and_print_events(struct libinput *li)
 {
@@ -565,6 +627,24 @@ handle_and_print_events(struct libinput *li)
 			break;
 		case LIBINPUT_EVENT_TOUCH_FRAME:
 			print_touch_event_without_coords(ev);
+			break;
+		case LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN:
+			print_gesture_event_without_coords(ev);
+			break;
+		case LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE:
+			print_gesture_event_with_coords(ev);
+			break;
+		case LIBINPUT_EVENT_GESTURE_SWIPE_END:
+			print_gesture_event_without_coords(ev);
+			break;
+		case LIBINPUT_EVENT_GESTURE_PINCH_BEGIN:
+			print_gesture_event_without_coords(ev);
+			break;
+		case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE:
+			print_gesture_event_with_coords(ev);
+			break;
+		case LIBINPUT_EVENT_GESTURE_PINCH_END:
+			print_gesture_event_without_coords(ev);
 			break;
 		case LIBINPUT_EVENT_TABLET_AXIS:
 			print_tablet_axis_event(ev);
