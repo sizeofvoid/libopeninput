@@ -446,6 +446,55 @@ START_TEST(motion_delta)
 }
 END_TEST
 
+START_TEST(motion_delta_partial)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event_tablet *tablet_event;
+	struct libinput_event *event;
+	double dx, dy, ddist;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ -1, -1 }
+	};
+
+	if (!libevdev_has_event_code(dev->evdev, EV_ABS, ABS_DISTANCE))
+		return;
+
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_tablet_motion(dev, 40, 100, axes);
+	litest_drain_events(li);
+
+	axes[0].value = 40;
+	litest_tablet_motion(dev, 40, 100, axes);
+	litest_wait_for_event_of_type(li,
+				      LIBINPUT_EVENT_TABLET_AXIS,
+				      -1);
+	event = libinput_get_event(li);
+	tablet_event = libinput_event_get_tablet_event(event);
+
+	ck_assert(!libinput_event_tablet_axis_has_changed(tablet_event,
+						LIBINPUT_TABLET_AXIS_X));
+	dx = libinput_event_tablet_get_axis_delta(tablet_event,
+						LIBINPUT_TABLET_AXIS_X);
+	litest_assert_double_eq(dx, 0.0);
+
+	ck_assert(!libinput_event_tablet_axis_has_changed(tablet_event,
+						LIBINPUT_TABLET_AXIS_X));
+	dy = libinput_event_tablet_get_axis_delta(tablet_event,
+						LIBINPUT_TABLET_AXIS_Y);
+	litest_assert_double_eq(dy, 0.0);
+
+	ck_assert(libinput_event_tablet_axis_has_changed(tablet_event,
+						LIBINPUT_TABLET_AXIS_DISTANCE));
+	ddist = libinput_event_tablet_get_axis_delta(tablet_event,
+						LIBINPUT_TABLET_AXIS_DISTANCE);
+	ck_assert_double_gt(ddist, 0);
+
+	libinput_event_destroy(event);
+}
+END_TEST
+
 START_TEST(left_handed)
 {
 #if HAVE_LIBWACOM
@@ -1683,6 +1732,7 @@ litest_setup_tests(void)
 	litest_add("tablet:proximity", bad_distance_events, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add("tablet:motion", motion, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:motion", motion_delta, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:motion", motion_delta_partial, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:motion", motion_event_state, LITEST_TABLET, LITEST_ANY);
 	litest_add_for_device("tablet:left_handed", left_handed, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:left_handed", no_left_handed, LITEST_WACOM_CINTIQ);
