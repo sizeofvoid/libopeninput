@@ -1358,10 +1358,6 @@ libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
  * For all other axes, see libinput_event_tablet_get_axis_value() for
  * details.
  *
- * @note The delta is *not* the delta to the previous event, but the delta
- * to the previous axis state, i.e. the delta to the last event that
- * libinput_event_tablet_axis_has_changed() returned true for this axis.
- *
  * @param event The libinput tablet event
  * @param axis The axis to retrieve the value of
  * @return The delta to the previous axis value
@@ -1378,10 +1374,6 @@ libinput_event_tablet_get_axis_delta(struct libinput_event_tablet *event,
  * - @ref LIBINPUT_TABLET_AXIS_REL_WHEEL - the returned value is the number
  * of physical mouse wheel clicks.
  * For all other axes, this function returns 0.
- *
- * @note The delta is *not* the delta to the previous event, but the delta
- * to the previous axis state, i.e. the delta to the last event that
- * libinput_event_tablet_axis_has_changed() returned true for this axis.
  *
  * @param event The libinput tablet event
  * @param axis The axis to retrieve the value of
