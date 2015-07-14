@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013 Red Hat, Inc.
+ * Copyright © 2015 Red Hat, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,19 +28,19 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_synaptics_clickpad_setup(void)
+static void litest_magicpad_setup(void)
 {
-	struct litest_device *d = litest_create_device(LITEST_SYNAPTICS_CLICKPAD);
+	struct litest_device *d = litest_create_device(LITEST_MAGIC_TRACKPAD);
 	litest_set_current_device(d);
 }
 
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = 30  },
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MAJOR, .value = 272 },
+	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MINOR, .value = 400 },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
@@ -49,8 +49,10 @@ static struct input_event down[] = {
 
 static struct input_event move[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MAJOR, .value = 272 },
+	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MINOR, .value = 400 },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
@@ -62,10 +64,23 @@ static struct litest_device_interface interface = {
 	.touch_move_events = move,
 };
 
+static struct input_absinfo absinfo[] = {
+	{ ABS_X, -2909, 3167, 4, 0, 46 },
+	{ ABS_Y, -2456, 2565, 4, 0, 45 },
+	{ ABS_MT_SLOT, 0, 15, 0, 0, 0 },
+	{ ABS_MT_POSITION_X, -2909, 3167, 4, 0, 46 },
+	{ ABS_MT_POSITION_Y, -2456, 2565, 4, 0, 45 },
+	{ ABS_MT_ORIENTATION, -31, 32, 1, 0, 0 },
+	{ ABS_MT_TOUCH_MAJOR, 0, 1020, 4, 0, 0 },
+	{ ABS_MT_TOUCH_MINOR, 0, 1020, 4, 0, 0 },
+	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
+	{ .value = -1 },
+};
+
 static struct input_id input_id = {
-	.bustype = 0x11,
-	.vendor = 0x2,
-	.product = 0x11,
+	.bustype = 0x5,
+	.vendor = 0x5ac,
+	.product = 0x30e,
 };
 
 static int events[] = {
@@ -76,32 +91,19 @@ static int events[] = {
 	EV_KEY, BTN_TOOL_DOUBLETAP,
 	EV_KEY, BTN_TOOL_TRIPLETAP,
 	EV_KEY, BTN_TOOL_QUADTAP,
-	INPUT_PROP_MAX, INPUT_PROP_POINTER,
 	INPUT_PROP_MAX, INPUT_PROP_BUTTONPAD,
-	-1, -1,
+	-1, -1
 };
 
-static struct input_absinfo absinfo[] = {
-	{ ABS_X, 1472, 5472, 0, 0, 75 },
-	{ ABS_Y, 1408, 4448, 0, 0, 129 },
-	{ ABS_PRESSURE, 0, 255, 0, 0, 0 },
-	{ ABS_TOOL_WIDTH, 0, 15, 0, 0, 0 },
-	{ ABS_MT_SLOT, 0, 1, 0, 0, 0 },
-	{ ABS_MT_POSITION_X, 1472, 5472, 0, 0, 75 },
-	{ ABS_MT_POSITION_Y, 1408, 4448, 0, 0, 129 },
-	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
-	{ ABS_MT_PRESSURE, 0, 255, 0, 0, 0 },
-	{ .value = -1 }
-};
-
-struct litest_test_device litest_synaptics_clickpad_device = {
-	.type = LITEST_SYNAPTICS_CLICKPAD,
-	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
-	.shortname = "synaptics",
-	.setup = litest_synaptics_clickpad_setup,
+struct litest_test_device litest_magicpad_device = {
+	.type = LITEST_MAGIC_TRACKPAD,
+	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD |
+		    LITEST_BUTTON | LITEST_APPLE_CLICKPAD,
+	.shortname = "magic trackpad",
+	.setup = litest_magicpad_setup,
 	.interface = &interface,
 
-	.name = "SynPS/2 Synaptics TouchPad",
+	.name = "Apple Wireless Trackpad",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,

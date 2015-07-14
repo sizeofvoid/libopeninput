@@ -32,6 +32,20 @@
 #define DEFAULT_GESTURE_SWITCH_TIMEOUT 100 /* ms */
 #define DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT 1000 /* ms */
 
+#define CASE_RETURN_STRING(a) case a: return #a
+
+static inline const char*
+gesture_state_to_str(enum tp_gesture_2fg_state state)
+{
+	switch (state) {
+	CASE_RETURN_STRING(GESTURE_2FG_STATE_NONE);
+	CASE_RETURN_STRING(GESTURE_2FG_STATE_UNKNOWN);
+	CASE_RETURN_STRING(GESTURE_2FG_STATE_SCROLL);
+	CASE_RETURN_STRING(GESTURE_2FG_STATE_PINCH);
+	}
+	return NULL;
+}
+
 static struct normalized_coords
 tp_get_touches_delta(struct tp_dispatch *tp, bool average)
 {
@@ -380,6 +394,8 @@ tp_gesture_twofinger_handle_state_pinch(struct tp_dispatch *tp, uint64_t time)
 static void
 tp_gesture_post_twofinger(struct tp_dispatch *tp, uint64_t time)
 {
+	enum tp_gesture_2fg_state oldstate = tp->gesture.twofinger_state;
+
 	if (tp->gesture.twofinger_state == GESTURE_2FG_STATE_NONE)
 		tp->gesture.twofinger_state =
 			tp_gesture_twofinger_handle_state_none(tp, time);
@@ -395,6 +411,11 @@ tp_gesture_post_twofinger(struct tp_dispatch *tp, uint64_t time)
 	if (tp->gesture.twofinger_state == GESTURE_2FG_STATE_PINCH)
 		tp->gesture.twofinger_state =
 			tp_gesture_twofinger_handle_state_pinch(tp, time);
+
+	log_debug(tp_libinput_context(tp),
+		  "gesture state: %s → %s\n",
+		  gesture_state_to_str(oldstate),
+		  gesture_state_to_str(tp->gesture.twofinger_state));
 }
 
 static void
@@ -525,10 +546,33 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time)
 {
 	unsigned int active_touches = 0;
 	struct tp_touch *t;
+	uint32_t old_thumb_mask, thumb_mask = 0;
+	int i = 0;
 
-	tp_for_each_touch(tp, t)
+	tp_for_each_touch(tp, t) {
 		if (tp_touch_active(tp, t))
 			active_touches++;
+
+		if (t->is_thumb)
+			thumb_mask |= 1 << i;
+		i++;
+	}
+
+	old_thumb_mask = tp->gesture.thumb_mask;
+	tp->gesture.thumb_mask = thumb_mask;
+
+	/* active touches does not include thumb touches, need to count those
+	 * separately, in a bitmask.
+	 * then, if the finger count changes and/or the thumb count changes
+	 * -> cancel gesture.
+	 */
+	if (thumb_mask != old_thumb_mask) {
+		/* if a thumb is detected during a gesture, that gesture is
+		 * cancelled and the user effectively needs to restart. we
+		 * could be smarter, but the complexity isn't worth it */
+		tp_gesture_cancel(tp, time);
+		return;
+	}
 
 	if (active_touches != tp->gesture.finger_count) {
 		/* If all fingers are lifted immediately end the gesture */

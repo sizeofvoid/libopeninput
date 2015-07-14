@@ -360,6 +360,8 @@ extern struct litest_test_device litest_alps_dualpoint_device;
 extern struct litest_test_device litest_mouse_low_dpi_device;
 extern struct litest_test_device litest_generic_multitouch_screen_device;
 extern struct litest_test_device litest_nexus4_device;
+extern struct litest_test_device litest_magicpad_device;
+extern struct litest_test_device litest_elantech_touchpad_device;
 extern struct litest_test_device litest_waltop_tablet_device;
 
 struct litest_test_device* devices[] = {
@@ -394,6 +396,8 @@ struct litest_test_device* devices[] = {
 	&litest_mouse_low_dpi_device,
 	&litest_generic_multitouch_screen_device,
 	&litest_nexus4_device,
+	&litest_magicpad_device,
+	&litest_elantech_touchpad_device,
 	&litest_waltop_tablet_device,
 	NULL,
 };
@@ -1222,19 +1226,22 @@ litest_event(struct litest_device *d, unsigned int type,
 	litest_assert_int_eq(ret, 0);
 }
 
-static int32_t
+static bool
 axis_replacement_value(struct axis_replacement *axes,
-		       int32_t evcode)
+		       int32_t evcode,
+		       int32_t *value)
 {
 	struct axis_replacement *axis = axes;
 
 	while (axis->evcode != -1) {
-		if (axis->evcode == evcode)
-			return axis->value;
+		if (axis->evcode == evcode) {
+			*value = axis->value;
+			return true;
+		}
 		axis++;
 	}
 
-	return -1;
+	return false;
 }
 
 int
@@ -1269,8 +1276,13 @@ litest_auto_assign_value(struct litest_device *d,
 		value = touching ? 0 : 1;
 		break;
 	default:
-		if (axes)
-			value = axis_replacement_value(axes, ev->code);
+		value = -1;
+		if (!axes)
+			break;
+
+		if (!axis_replacement_value(axes, ev->code, &value) &&
+		    d->interface->get_axis_default)
+			d->interface->get_axis_default(d, ev->code, &value);
 		break;
 	}
 
@@ -1466,7 +1478,7 @@ auto_assign_tablet_value(struct litest_device *d,
 		value = litest_scale(d, ABS_Y, y);
 		break;
 	default:
-		value = axis_replacement_value(axes, ev->code);
+		axis_replacement_value(axes, ev->code, &value);
 		break;
 	}
 

@@ -13,42 +13,44 @@ noinst_LTLIBRARIES = liblitest.la
 liblitest_la_SOURCES = \
 	litest.h \
 	litest-int.h \
-	litest-alps-semi-mt.c \
-	litest-alps-dualpoint.c \
-	litest-atmel-hover.c \
-	litest-bcm5974.c \
-	litest-generic-singletouch.c \
-	litest-keyboard.c \
-	litest-keyboard-razer-blackwidow.c \
-	litest-logitech-trackball.c \
-	litest-nexus4-touch-screen.c \
-	litest-mouse.c \
-	litest-mouse-roccat.c \
-	litest-mouse-low-dpi.c \
-	litest-ms-surface-cover.c \
-	litest-protocol-a-touch-screen.c \
-	litest-qemu-usb-tablet.c \
-	litest-synaptics.c \
-	litest-synaptics-hover.c \
-	litest-synaptics-st.c \
-	litest-synaptics-t440.c \
-	litest-synaptics-x1-carbon-3rd.c \
-	litest-trackpoint.c \
-	litest-touch-screen.c \
-	litest-wacom-bamboo-tablet.c \
-	litest-wacom-cintiq-tablet.c \
-	litest-wacom-intuos-tablet.c \
-	litest-wacom-isdv4-tablet.c \
-	litest-wacom-touch.c \
-	litest-wacom-intuos-finger.c \
-	litest-waltop-tablet.c \
-	litest-wheel-only.c \
-	litest-xen-virtual-pointer.c \
-	litest-vmware-virtual-usb-mouse.c \
+	litest-device-alps-semi-mt.c \
+	litest-device-alps-dualpoint.c \
+	litest-device-atmel-hover.c \
+	litest-device-bcm5974.c \
+	litest-device-elantech-touchpad.c \
+	litest-device-generic-singletouch.c \
+	litest-device-keyboard.c \
+	litest-device-keyboard-razer-blackwidow.c \
+	litest-device-logitech-trackball.c \
+	litest-device-nexus4-touch-screen.c \
+	litest-device-magic-trackpad.c \
+	litest-device-mouse.c \
+	litest-device-mouse-roccat.c \
+	litest-device-mouse-low-dpi.c \
+	litest-device-ms-surface-cover.c \
+	litest-device-protocol-a-touch-screen.c \
+	litest-device-qemu-usb-tablet.c \
+	litest-device-synaptics.c \
+	litest-device-synaptics-hover.c \
+	litest-device-synaptics-st.c \
+	litest-device-synaptics-t440.c \
+	litest-device-synaptics-x1-carbon-3rd.c \
+	litest-device-trackpoint.c \
+	litest-device-touch-screen.c \
+	litest-device-wacom-bamboo-tablet.c \
+	litest-device-wacom-cintiq-tablet.c \
+	litest-device-wacom-intuos-tablet.c \
+	litest-device-wacom-isdv4-tablet.c \
+	litest-device-wacom-touch.c \
+	litest-device-wacom-intuos-finger.c \
+	litest-device-waltop-tablet.c \
+	litest-device-wheel-only.c \
+	litest-device-xen-virtual-pointer.c \
+	litest-device-vmware-virtual-usb-mouse.c \
 	litest.c
 liblitest_la_LIBADD = $(top_builddir)/src/libinput-util.la
 liblitest_la_CFLAGS = $(AM_CFLAGS) \
-	      -DLIBINPUT_UDEV_RULES_FILE="\"$(abs_top_srcdir)/udev/90-libinput-model-quirks.rules\"" \
+	      -DLIBINPUT_UDEV_RULES_FILE="\"$(abs_top_srcdir)/udev/90-libinput-model-quirks-litest.rules\"" \
 	      -DLIBINPUT_UDEV_HWDB_FILE="\"$(abs_top_srcdir)/udev/90-libinput-model-quirks.hwdb\""
 if HAVE_LIBUNWIND
 liblitest_la_LIBADD += $(LIBUNWIND_LIBS) -ldl

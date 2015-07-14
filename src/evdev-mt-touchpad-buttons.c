@@ -525,20 +525,19 @@ tp_init_softbuttons(struct tp_dispatch *tp,
 	absinfo_y = device->abs.absinfo_y;
 
 	xoffset = absinfo_x->minimum,
-	yoffset = absinfo_y->minimum;
+	yoffset = absinfo_y->minimum,
 	yres = absinfo_y->resolution;
 	width = device->abs.dimensions.x;
 	height = device->abs.dimensions.y;
 
-	/* button height: 10mm or 15% of the touchpad height,
+	/* button height: 10mm or 15% orf the touchpad height,
 	   whichever is smaller */
-	if (!device->abs.fake_resolution && (height * 0.15/yres) > 10) {
+	if ((height * 0.15)/yres > 10) {
 		tp->buttons.bottom_area.top_edge =
-		absinfo_y->maximum - 10 * yres;
+			absinfo_y->maximum - 10 * yres;
 	} else {
 		tp->buttons.bottom_area.top_edge = height * .85 + yoffset;
 	}
-
 	tp->buttons.bottom_area.rightbutton_left_edge = width/2 + xoffset;
 }
 
@@ -547,7 +546,7 @@ tp_init_top_softbuttons(struct tp_dispatch *tp,
 			struct evdev_device *device,
 			double topbutton_size_mult)
 {
-	int width, height;
+	int width;
 	const struct input_absinfo *absinfo_x, *absinfo_y;
 	int xoffset, yoffset;
 	int yres;
@@ -559,7 +558,6 @@ tp_init_top_softbuttons(struct tp_dispatch *tp,
 	yoffset = absinfo_y->minimum;
 	yres = absinfo_y->resolution;
 	width = device->abs.dimensions.x;
-	height = device->abs.dimensions.y;
 
 	if (tp->buttons.has_topbuttons) {
 		/* T440s has the top button line 5mm from the top, event
@@ -567,14 +565,8 @@ tp_init_top_softbuttons(struct tp_dispatch *tp,
 		   top - which maps to 15%.  We allow the caller to enlarge the
 		   area using a multiplier for the touchpad disabled case. */
 		double topsize_mm = 10 * topbutton_size_mult;
-		double topsize_pct = .15 * topbutton_size_mult;
 
-		if (!device->abs.fake_resolution) {
-			tp->buttons.top_area.bottom_edge =
-			yoffset + topsize_mm * yres;
-		} else {
-			tp->buttons.top_area.bottom_edge = height * topsize_pct + yoffset;
-		}
+		tp->buttons.top_area.bottom_edge = yoffset + topsize_mm * yres;
 		tp->buttons.top_area.rightbutton_left_edge = width * .58 + xoffset;
 		tp->buttons.top_area.leftbutton_right_edge = width * .42 + xoffset;
 	} else {
@@ -713,8 +705,6 @@ tp_init_buttons(struct tp_dispatch *tp,
 {
 	struct libinput *libinput = tp_libinput_context(tp);
 	struct tp_touch *t;
-	int width, height;
-	double diagonal;
 	const struct input_absinfo *absinfo_x, *absinfo_y;
 
 	tp->buttons.is_clickpad = libevdev_has_property(device->evdev,
@@ -738,19 +728,9 @@ tp_init_buttons(struct tp_dispatch *tp,
 	absinfo_x = device->abs.absinfo_x;
 	absinfo_y = device->abs.absinfo_y;
 
-	/* pinned-finger motion threshold, see tp_unpin_finger.
-	   The MAGIC for resolution-less touchpads ends up as 2% of the diagonal */
-	if (device->abs.fake_resolution) {
-		const double BUTTON_MOTION_MAGIC = 0.007;
-		width = device->abs.dimensions.x;
-		height = device->abs.dimensions.y;
-		diagonal = sqrt(width*width + height*height);
-		tp->buttons.motion_dist.x_scale_coeff = diagonal * BUTTON_MOTION_MAGIC;
-		tp->buttons.motion_dist.y_scale_coeff = diagonal * BUTTON_MOTION_MAGIC;
-	} else {
-		tp->buttons.motion_dist.x_scale_coeff = 1.0/absinfo_x->resolution;
-		tp->buttons.motion_dist.y_scale_coeff = 1.0/absinfo_y->resolution;
-	}
+	/* pinned-finger motion threshold, see tp_unpin_finger. */
+	tp->buttons.motion_dist.x_scale_coeff = 1.0/absinfo_x->resolution;
+	tp->buttons.motion_dist.y_scale_coeff = 1.0/absinfo_y->resolution;
 
 	tp->buttons.config_method.get_methods = tp_button_config_click_get_methods;
 	tp->buttons.config_method.set_method = tp_button_config_click_set_method;
@@ -825,33 +805,53 @@ tp_check_clickfinger_distance(struct tp_dispatch *tp,
 			      struct tp_touch *t2)
 {
 	double x, y;
+	int within_distance = 0;
+	int xres, yres;
+	int bottom_threshold;
 
 	if (!t1 || !t2)
+		return 0;
+
+	if (t1->is_thumb || t2->is_thumb)
 		return 0;
 
 	x = abs(t1->point.x - t2->point.x);
 	y = abs(t1->point.y - t2->point.y);
 
-	/* no resolution, so let's assume they're close enough together if
-	   they're within 30% of the touchpad width or height */
-	if (tp->device->abs.fake_resolution) {
-		int w, h;
-		w = tp->device->abs.dimensions.x;
-		h = tp->device->abs.dimensions.y;
+	xres = tp->device->abs.absinfo_x->resolution;
+	yres = tp->device->abs.absinfo_y->resolution;
+	x /= xres;
+	y /= yres;
 
-		return (x < w * 0.3 && y < h * 0.3) ? 1 : 0;
-	} else {
-		/* maximum spread is 40mm horiz, 20mm vert. Anything wider than that
-		 * is probably a gesture. The y spread is small so we ignore clicks
-		 * with thumbs at the bottom of the touchpad while the pointer
-		 * moving finger is still on the pad */
+	/* maximum horiz spread is 40mm horiz, 30mm vert, anything wider
+	 * than that is probably a gesture. */
+	if (x > 40 || y > 30)
+		goto out;
 
-		x /= tp->device->abs.absinfo_x->resolution;
-		y /= tp->device->abs.absinfo_y->resolution;
+	within_distance = 1;
 
-		return (x < 40 && y < 20) ? 1 : 0;
-	}
+	/* if y spread is <= 20mm, they're definitely together. */
+	if (y <= 20)
+		goto out;
 
+	/* if they're vertically spread between 20-40mm, they're not
+	 * together if:
+	 * - the touchpad's vertical size is >50mm, anything smaller is
+	 *   unlikely to have a thumb resting on it
+	 * - and one of the touches is in the bottom 20mm of the touchpad
+	 *   and the other one isn't
+	 */
+
+	if (tp->device->abs.dimensions.y/yres < 50)
+		goto out;
+
+	bottom_threshold = tp->device->abs.absinfo_y->maximum - 20 * yres;
+	if ((t1->point.y > bottom_threshold) !=
+		    (t2->point.y > bottom_threshold))
+		within_distance = 0;
+
+out:
+	return within_distance;
 }
 
 static uint32_t
@@ -940,6 +940,10 @@ tp_notify_clickpadbutton(struct tp_dispatch *tp,
 	/* Ignore button events not for the trackpoint while suspended */
 	if (tp->device->suspended)
 		return 0;
+
+	/* A button click always terminates edge scrolling, even if we
+	 * don't end up sending a button event. */
+	tp_edge_scroll_stop_events(tp, time);
 
 	/*
 	 * If the user has requested clickfinger replace the button chosen

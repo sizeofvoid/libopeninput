@@ -212,6 +212,8 @@ tp_begin_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->millis = time;
 	tp->nfingers_down++;
 	t->palm.time = time;
+	t->is_thumb = false;
+	t->tap.is_thumb = false;
 	assert(tp->nfingers_down >= 1);
 }
 
@@ -313,6 +315,9 @@ tp_process_absolute(struct tp_dispatch *tp,
 			tp_new_touch(tp, t, time);
 		else
 			tp_end_sequence(tp, t, time);
+		break;
+	case ABS_MT_PRESSURE:
+		t->pressure = e->value;
 		break;
 	}
 }
@@ -461,6 +466,7 @@ tp_touch_active(struct tp_dispatch *tp, struct tp_touch *t)
 	return (t->state == TOUCH_BEGIN || t->state == TOUCH_UPDATE) &&
 		t->palm.state == PALM_NONE &&
 		!t->pinned.is_pinned &&
+		!t->is_thumb &&
 		tp_button_touch_active(tp, t) &&
 		tp_edge_scroll_touch_active(tp, t);
 }
@@ -496,8 +502,7 @@ tp_palm_detect_dwt(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 		return 1;
 	} else if (!tp->dwt.keyboard_active &&
 		   t->state == TOUCH_UPDATE &&
-		   t->palm.state == PALM_TYPING)
-	{
+		   t->palm.state == PALM_TYPING) {
 		/* If a touch has started before the first or after the last
 		   key press, release it on timeout. Benefit: a palm rested
 		   while typing on the touchpad will be ignored, but a touch
@@ -601,6 +606,33 @@ out:
 		  "palm: palm detected (%s)\n",
 		  t->palm.state == PALM_EDGE ? "edge" :
 		  t->palm.state == PALM_TYPING ? "typing" : "trackpoint");
+}
+
+static void
+tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t)
+{
+	/* once a thumb, always a thumb */
+	if (!tp->thumb.detect_thumbs || t->is_thumb)
+		return;
+
+	/* Note: a thumb at the edge of the touchpad won't trigger the
+	 * threshold, the surface areas is usually too small.
+	 */
+	if (t->pressure < tp->thumb.threshold)
+		return;
+
+	t->is_thumb = true;
+
+	/* now what? we marked it as thumb, so:
+	 *
+	 * - pointer motion must ignore this touch
+	 * - clickfinger must ignore this touch for finger count
+	 * - software buttons are unaffected
+	 * - edge scrolling unaffected
+	 * - gestures: cancel
+	 * - tapping: honour thumb on begin, ignore it otherwise for now,
+	 *   this gets a tad complicated otherwise
+	 */
 }
 
 static void
@@ -721,6 +753,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 		if (!t->dirty)
 			continue;
 
+		tp_thumb_detect(tp, t);
 		tp_palm_detect(tp, t, time);
 
 		tp_motion_hysteresis(tp, t);
@@ -1319,17 +1352,8 @@ tp_init_accel(struct tp_dispatch *tp, double diagonal)
 	 * and y resolution, so that a circle on the
 	 * touchpad does not turn into an elipse on the screen.
 	 */
-	if (!tp->device->abs.fake_resolution) {
-		tp->accel.x_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_x;
-		tp->accel.y_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_y;
-	} else {
-	/*
-	 * For touchpads where the driver does not provide resolution, fall
-	 * back to scaling motion events based on the diagonal size in units.
-	 */
-		tp->accel.x_scale_coeff = DEFAULT_ACCEL_NUMERATOR / diagonal;
-		tp->accel.y_scale_coeff = DEFAULT_ACCEL_NUMERATOR / diagonal;
-	}
+	tp->accel.x_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_x;
+	tp->accel.y_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_y;
 
 	switch (tp->device->model) {
 	case EVDEV_MODEL_LENOVO_X230:
@@ -1351,13 +1375,10 @@ tp_scroll_config_scroll_method_get_methods(struct libinput_device *device)
 {
 	struct evdev_device *evdev = (struct evdev_device*)device;
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
-	uint32_t methods = LIBINPUT_CONFIG_SCROLL_NO_SCROLL;
+	uint32_t methods = LIBINPUT_CONFIG_SCROLL_EDGE;
 
 	if (tp->ntouches >= 2)
 		methods |= LIBINPUT_CONFIG_SCROLL_2FG;
-
-	if (!tp->buttons.is_clickpad)
-		methods |= LIBINPUT_CONFIG_SCROLL_EDGE;
 
 	return methods;
 }
@@ -1482,6 +1503,30 @@ tp_init_sendevents(struct tp_dispatch *tp,
 }
 
 static int
+tp_init_thumb(struct tp_dispatch *tp)
+{
+	struct evdev_device *device = tp->device;
+	const struct input_absinfo *abs;
+
+	abs = libevdev_get_abs_info(device->evdev, ABS_MT_PRESSURE);
+	if (!abs)
+		return 0;
+
+	if (abs->maximum - abs->minimum < 255)
+		return 0;
+
+	/* The touchpads we looked at so far have a clear thumb threshold of
+	 * ~100, you don't reach that with a normal finger interaction.
+	 * Note: "thumb" means massive touch that should not interact, not
+	 * "using the tip of my thumb for a pinch gestures".
+	 */
+	tp->thumb.threshold = 100;
+	tp->thumb.detect_thumbs = true;
+
+	return 0;
+}
+
+static int
 tp_sanity_check(struct tp_dispatch *tp,
 		struct evdev_device *device)
 {
@@ -1506,11 +1551,49 @@ error:
 }
 
 static int
+tp_init_default_resolution(struct tp_dispatch *tp,
+			   struct evdev_device *device)
+{
+	const int touchpad_width_mm = 69, /* 1 under palm detection */
+		  touchpad_height_mm = 50;
+	int xres, yres;
+
+	if (!device->abs.fake_resolution)
+		return 0 ;
+
+	/* we only get here if
+	 * - the touchpad provides no resolution
+	 * - the udev hwdb didn't override the resoluion
+	 * - no ATTR_SIZE_HINT is set
+	 *
+	 * The majority of touchpads that triggers all these conditions
+	 * are old ones, so let's assume a small touchpad size and assume
+	 * that.
+	 */
+	log_info(tp_libinput_context(tp),
+		 "%s: no resolution or size hints, assuming a size of %dx%dmm\n",
+		 device->devname,
+		 touchpad_width_mm,
+		 touchpad_height_mm);
+
+	xres = device->abs.dimensions.x/touchpad_width_mm;
+	yres = device->abs.dimensions.y/touchpad_height_mm;
+	libevdev_set_abs_resolution(device->evdev, ABS_X, xres);
+	libevdev_set_abs_resolution(device->evdev, ABS_Y, yres);
+	libevdev_set_abs_resolution(device->evdev, ABS_MT_POSITION_X, xres);
+	libevdev_set_abs_resolution(device->evdev, ABS_MT_POSITION_Y, yres);
+	device->abs.fake_resolution = 0;
+
+	return 0;
+}
+
+static int
 tp_init(struct tp_dispatch *tp,
 	struct evdev_device *device)
 {
 	int width, height;
 	double diagonal;
+	int res_x, res_y;
 
 	tp->base.interface = &tp_interface;
 	tp->device = device;
@@ -1518,9 +1601,14 @@ tp_init(struct tp_dispatch *tp,
 	if (tp_sanity_check(tp, device) != 0)
 		return -1;
 
+	if (tp_init_default_resolution(tp, device) != 0)
+		return -1;
+
 	if (tp_init_slots(tp, device) != 0)
 		return -1;
 
+	res_x = tp->device->abs.absinfo_x->resolution;
+	res_y = tp->device->abs.absinfo_y->resolution;
 	width = device->abs.dimensions.x;
 	height = device->abs.dimensions.y;
 	diagonal = sqrt(width*width + height*height);
@@ -1529,18 +1617,8 @@ tp_init(struct tp_dispatch *tp,
 						       EV_ABS,
 						       ABS_MT_DISTANCE);
 
-	if (device->abs.fake_resolution) {
-		tp->hysteresis_margin.x =
-			diagonal / DEFAULT_HYSTERESIS_MARGIN_DENOMINATOR;
-		tp->hysteresis_margin.y =
-			diagonal / DEFAULT_HYSTERESIS_MARGIN_DENOMINATOR;
-	} else {
-		int res_x = tp->device->abs.absinfo_x->resolution,
-		    res_y = tp->device->abs.absinfo_y->resolution;
-
-		tp->hysteresis_margin.x = res_x/2;
-		tp->hysteresis_margin.y = res_y/2;
-	}
+	tp->hysteresis_margin.x = res_x/2;
+	tp->hysteresis_margin.y = res_y/2;
 
 	if (tp_init_accel(tp, diagonal) != 0)
 		return -1;
@@ -1561,6 +1639,9 @@ tp_init(struct tp_dispatch *tp,
 		return -1;
 
 	if (tp_init_gesture(tp) != 0)
+		return -1;
+
+	if (tp_init_thumb(tp) != 0)
 		return -1;
 
 	device->seat_caps |= EVDEV_DEVICE_POINTER;
