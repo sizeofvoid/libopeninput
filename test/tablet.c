@@ -503,7 +503,7 @@ START_TEST(left_handed)
 	struct libinput_event *event;
 	struct libinput_event_tablet *tablet_event;
 	double libinput_max_x, libinput_max_y;
-	double last_x, last_y;
+	double last_x = -1.0, last_y = -1.0;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ -1, -1 }
