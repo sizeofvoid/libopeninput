@@ -30,10 +30,6 @@
 
 #include "evdev-mt-touchpad.h"
 
-/* Number found by trial-and error, seems to be 1200, divided by the
- * TP_MAGIC_SLOWDOWN in filter.c */
-#define DEFAULT_ACCEL_NUMERATOR 3000.0
-#define DEFAULT_HYSTERESIS_MARGIN_DENOMINATOR 700.0
 #define DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT 300 /* ms */
 #define DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_1 200 /* ms */
 #define DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_2 500 /* ms */
@@ -212,7 +208,8 @@ tp_begin_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->millis = time;
 	tp->nfingers_down++;
 	t->palm.time = time;
-	t->is_thumb = false;
+	t->thumb.state = THUMB_STATE_MAYBE;
+	t->thumb.first_touch_time = time;
 	t->tap.is_thumb = false;
 	assert(tp->nfingers_down >= 1);
 }
@@ -318,6 +315,8 @@ tp_process_absolute(struct tp_dispatch *tp,
 		break;
 	case ABS_MT_PRESSURE:
 		t->pressure = e->value;
+		t->dirty = true;
+		tp->queued |= TOUCHPAD_EVENT_MOTION;
 		break;
 	}
 }
@@ -345,6 +344,40 @@ tp_process_absolute_st(struct tp_dispatch *tp,
 	}
 }
 
+static inline void
+tp_restore_synaptics_touches(struct tp_dispatch *tp,
+			     uint64_t time)
+{
+	unsigned int i;
+	unsigned int nfake_touches;
+
+	nfake_touches = tp_fake_finger_count(tp);
+	if (nfake_touches < 3)
+		return;
+
+	if (tp->nfingers_down >= nfake_touches ||
+	    tp->nfingers_down == tp->num_slots)
+		return;
+
+	/* Synaptics devices may end touch 2 on BTN_TOOL_TRIPLETAP
+	 * and start it again on the next frame with different coordinates
+	 * (#91352). We search the touches we have, if there is one that has
+	 * just ended despite us being on tripletap, we move it back to
+	 * update.
+	 */
+	for (i = 0; i < tp->num_slots; i++) {
+		struct tp_touch *t = tp_get_touch(tp, i);
+
+		if (t->state != TOUCH_END)
+			continue;
+
+		/* new touch, move it through begin to update immediately */
+		tp_new_touch(tp, t, time);
+		tp_begin_touch(tp, t, time);
+		t->state = TOUCH_UPDATE;
+	}
+}
+
 static void
 tp_process_fake_touches(struct tp_dispatch *tp,
 			uint64_t time)
@@ -356,6 +389,10 @@ tp_process_fake_touches(struct tp_dispatch *tp,
 	nfake_touches = tp_fake_finger_count(tp);
 	if (nfake_touches == FAKE_FINGER_OVERFLOW)
 		return;
+
+	if (tp->device->model_flags &
+	    EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD)
+		tp_restore_synaptics_touches(tp, time);
 
 	start = tp->has_mt ? tp->num_slots : 0;
 	for (i = start; i < tp->ntouches; i++) {
@@ -375,8 +412,7 @@ tp_process_trackpoint_button(struct tp_dispatch *tp,
 	struct evdev_dispatch *dispatch;
 	struct input_event event;
 
-	if (!tp->buttons.trackpoint ||
-	    (tp->device->tags & EVDEV_TAG_TOUCHPAD_TRACKPOINT) == 0)
+	if (!tp->buttons.trackpoint)
 		return;
 
 	dispatch = tp->buttons.trackpoint->dispatch;
@@ -442,8 +478,8 @@ tp_unpin_finger(struct tp_dispatch *tp, struct tp_touch *t)
 	ydist = abs(t->point.y - t->pinned.center.y);
 	ydist *= tp->buttons.motion_dist.y_scale_coeff;
 
-	/* 3mm movement -> unpin */
-	if (vector_length(xdist, ydist) >= 3.0) {
+	/* 1.5mm movement -> unpin */
+	if (hypot(xdist, ydist) >= 1.5) {
 		t->pinned.is_pinned = false;
 		return;
 	}
@@ -466,7 +502,7 @@ tp_touch_active(struct tp_dispatch *tp, struct tp_touch *t)
 	return (t->state == TOUCH_BEGIN || t->state == TOUCH_UPDATE) &&
 		t->palm.state == PALM_NONE &&
 		!t->pinned.is_pinned &&
-		!t->is_thumb &&
+		t->thumb.state != THUMB_STATE_YES &&
 		tp_button_touch_active(tp, t) &&
 		tp_edge_scroll_touch_active(tp, t);
 }
@@ -495,7 +531,8 @@ tp_palm_tap_is_palm(struct tp_dispatch *tp, struct tp_touch *t)
 static int
 tp_palm_detect_dwt(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 {
-	if (tp->dwt.keyboard_active &&
+	if (tp->dwt.dwt_enabled &&
+	    tp->dwt.keyboard_active &&
 	    t->state == TOUCH_BEGIN) {
 		t->palm.state = PALM_TYPING;
 		t->palm.first = t->point;
@@ -608,20 +645,63 @@ out:
 		  t->palm.state == PALM_TYPING ? "typing" : "trackpoint");
 }
 
-static void
-tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t)
+static inline const char*
+thumb_state_to_str(enum tp_thumb_state state)
 {
-	/* once a thumb, always a thumb */
-	if (!tp->thumb.detect_thumbs || t->is_thumb)
+	switch(state){
+	CASE_RETURN_STRING(THUMB_STATE_NO);
+	CASE_RETURN_STRING(THUMB_STATE_YES);
+	CASE_RETURN_STRING(THUMB_STATE_MAYBE);
+	}
+
+	return NULL;
+}
+
+static void
+tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+{
+	enum tp_thumb_state state = t->thumb.state;
+
+	/* once a thumb, always a thumb, once ruled out always ruled out */
+	if (!tp->thumb.detect_thumbs ||
+	    t->thumb.state != THUMB_STATE_MAYBE)
 		return;
+
+	if (t->point.y < tp->thumb.upper_thumb_line) {
+		/* if a potential thumb is above the line, it won't ever
+		 * label as thumb */
+		t->thumb.state = THUMB_STATE_NO;
+		goto out;
+	}
+
+	/* If the thumb moves by more than 7mm, it's not a resting thumb */
+	if (t->state == TOUCH_BEGIN)
+		t->thumb.initial = t->point;
+	else if (t->state == TOUCH_UPDATE) {
+		struct device_float_coords delta;
+		struct normalized_coords normalized;
+
+		delta = device_delta(t->point, t->thumb.initial);
+		normalized = tp_normalize_delta(tp, delta);
+		if (normalized_length(normalized) >
+			TP_MM_TO_DPI_NORMALIZED(7)) {
+			t->thumb.state = THUMB_STATE_NO;
+			goto out;
+		}
+	}
 
 	/* Note: a thumb at the edge of the touchpad won't trigger the
-	 * threshold, the surface areas is usually too small.
+	 * threshold, the surface area is usually too small. So we have a
+	 * two-stage detection: pressure and time within the area.
+	 * A finger that remains at the very bottom of the touchpad becomes
+	 * a thumb.
 	 */
-	if (t->pressure < tp->thumb.threshold)
-		return;
-
-	t->is_thumb = true;
+	if (t->pressure > tp->thumb.threshold)
+		t->thumb.state = THUMB_STATE_YES;
+	else if (t->point.y > tp->thumb.lower_thumb_line &&
+		 tp->scroll.method != LIBINPUT_CONFIG_SCROLL_EDGE &&
+		 t->thumb.first_touch_time + 300 < time)
+		t->thumb.state = THUMB_STATE_YES;
 
 	/* now what? we marked it as thumb, so:
 	 *
@@ -629,10 +709,16 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t)
 	 * - clickfinger must ignore this touch for finger count
 	 * - software buttons are unaffected
 	 * - edge scrolling unaffected
-	 * - gestures: cancel
+	 * - gestures: unaffected
 	 * - tapping: honour thumb on begin, ignore it otherwise for now,
 	 *   this gets a tad complicated otherwise
 	 */
+out:
+	if (t->thumb.state != state)
+		log_debug(tp_libinput_context(tp),
+			  "thumb state: %s → %s\n",
+			  thumb_state_to_str(state),
+			  thumb_state_to_str(t->thumb.state));
 }
 
 static void
@@ -726,34 +812,95 @@ tp_unhover_touches(struct tp_dispatch *tp, uint64_t time)
 
 }
 
+static inline void
+tp_position_fake_touches(struct tp_dispatch *tp)
+{
+	struct tp_touch *t;
+	struct tp_touch *topmost = NULL;
+	unsigned int start, i;
+
+	if (tp_fake_finger_count(tp) <= tp->num_slots)
+		return;
+
+	/* We have at least one fake touch down. Find the top-most real
+	 * touch and copy its coordinates over to to all fake touches.
+	 * This is more reliable than just taking the first touch.
+	 */
+	for (i = 0; i < tp->num_slots; i++) {
+		t = tp_get_touch(tp, i);
+		if (t->state == TOUCH_END ||
+		    t->state == TOUCH_NONE)
+			continue;
+
+		if (topmost == NULL || t->point.y < topmost->point.y)
+			topmost = t;
+	}
+
+	if (!topmost) {
+		log_bug_libinput(tp_libinput_context(tp),
+				 "Unable to find topmost touch\n");
+		return;
+	}
+
+	start = tp->has_mt ? tp->num_slots : 1;
+	for (i = start; i < tp->ntouches; i++) {
+		t = tp_get_touch(tp, i);
+		if (t->state == TOUCH_NONE)
+			continue;
+
+		t->point = topmost->point;
+		if (!t->dirty)
+			t->dirty = topmost->dirty;
+	}
+}
+
+static inline bool
+tp_need_motion_history_reset(struct tp_dispatch *tp)
+{
+	/* semi-mt finger postions may "jump" when nfingers changes */
+	if (tp->semi_mt && tp->nfingers_down != tp->old_nfingers_down)
+		return true;
+
+	/* if we're transitioning between slots and fake touches in either
+	 * direction, we may get a coordinate jump
+	 */
+	if (tp->nfingers_down != tp->old_nfingers_down &&
+		 (tp->nfingers_down > tp->num_slots ||
+		 tp->old_nfingers_down > tp->num_slots))
+		return true;
+
+	return false;
+}
+
 static void
 tp_process_state(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *t;
-	struct tp_touch *first = tp_get_touch(tp, 0);
 	unsigned int i;
 	bool restart_filter = false;
+	bool want_motion_reset;
 
 	tp_process_fake_touches(tp, time);
 	tp_unhover_touches(tp, time);
+	tp_position_fake_touches(tp);
+
+	want_motion_reset = tp_need_motion_history_reset(tp);
 
 	for (i = 0; i < tp->ntouches; i++) {
 		t = tp_get_touch(tp, i);
 
-		/* semi-mt finger postions may "jump" when nfingers changes */
-		if (tp->semi_mt && tp->nfingers_down != tp->old_nfingers_down)
+		if (want_motion_reset) {
 			tp_motion_history_reset(t);
-
-		if (i >= tp->num_slots && t->state != TOUCH_NONE) {
-			t->point = first->point;
-			if (!t->dirty)
-				t->dirty = first->dirty;
+			t->quirks.reset_motion_history = true;
+		} else if (t->quirks.reset_motion_history) {
+			tp_motion_history_reset(t);
+			t->quirks.reset_motion_history = false;
 		}
 
 		if (!t->dirty)
 			continue;
 
-		tp_thumb_detect(tp, t);
+		tp_thumb_detect(tp, t, time);
 		tp_palm_detect(tp, t, time);
 
 		tp_motion_hysteresis(tp, t);
@@ -1069,6 +1216,9 @@ tp_keyboard_event(uint64_t time, struct libinput_event *event, void *data)
 	struct libinput_event_keyboard *kbdev;
 	unsigned int timeout;
 
+	if (!tp->dwt.dwt_enabled)
+		return;
+
 	if (event->type != LIBINPUT_EVENT_KEYBOARD_KEY)
 		return;
 
@@ -1100,26 +1250,35 @@ tp_keyboard_event(uint64_t time, struct libinput_event *event, void *data)
 }
 
 static bool
+tp_dwt_device_is_blacklisted(struct evdev_device *device)
+{
+	unsigned int bus = libevdev_get_id_bustype(device->evdev);
+
+	/* evemu will set the right bus type */
+	if (bus == BUS_BLUETOOTH || bus == BUS_VIRTUAL)
+		return true;
+
+	/* Wacom makes touchpads, but not internal ones */
+	if (libevdev_get_id_vendor(device->evdev) == VENDOR_ID_WACOM)
+		return true;
+
+	return false;
+}
+
+static bool
 tp_want_dwt(struct evdev_device *touchpad,
 	    struct evdev_device *keyboard)
 {
 	unsigned int bus_tp = libevdev_get_id_bustype(touchpad->evdev),
 		     bus_kbd = libevdev_get_id_bustype(keyboard->evdev);
 
-	if (bus_tp == BUS_BLUETOOTH || bus_kbd == BUS_BLUETOOTH)
-		return false;
-
-	/* evemu will set the right bus type */
-	if (bus_tp == BUS_VIRTUAL || bus_kbd == BUS_VIRTUAL)
+	if (tp_dwt_device_is_blacklisted(touchpad) ||
+	    tp_dwt_device_is_blacklisted(keyboard))
 		return false;
 
 	/* If the touchpad is on serio, the keyboard is too, so ignore any
 	   other devices */
 	if (bus_tp == BUS_I8042 && bus_kbd != bus_tp)
-		return false;
-
-	/* Wacom makes touchpads, but not internal ones */
-	if (libevdev_get_id_vendor(touchpad->evdev) == VENDOR_ID_WACOM)
 		return false;
 
 	/* everything else we don't really know, so we have to assume
@@ -1228,14 +1387,10 @@ evdev_tag_touchpad(struct evdev_device *device,
 	 */
 	bustype = libevdev_get_id_bustype(device->evdev);
 	if (bustype == BUS_USB) {
-		if (device->model == EVDEV_MODEL_APPLE_TOUCHPAD)
+		if (device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD)
 			 device->tags |= EVDEV_TAG_INTERNAL_TOUCHPAD;
 	} else if (bustype != BUS_BLUETOOTH)
 		device->tags |= EVDEV_TAG_INTERNAL_TOUCHPAD;
-
-	if (udev_device_get_property_value(udev_device,
-					   "TOUCHPAD_HAS_TRACKPOINT_BUTTONS"))
-		device->tags |= EVDEV_TAG_TOUCHPAD_TRACKPOINT;
 }
 
 static struct evdev_dispatch_interface tp_interface = {
@@ -1355,14 +1510,10 @@ tp_init_accel(struct tp_dispatch *tp, double diagonal)
 	tp->accel.x_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_x;
 	tp->accel.y_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_y;
 
-	switch (tp->device->model) {
-	case EVDEV_MODEL_LENOVO_X230:
+	if (tp->device->model_flags & EVDEV_MODEL_LENOVO_X230)
 		profile = touchpad_lenovo_x230_accel_profile;
-		break;
-	default:
+	else
 		profile = touchpad_accel_profile_linear;
-		break;
-	}
 
 	if (evdev_device_init_pointer_acceleration(tp->device, profile) == -1)
 		return -1;
@@ -1451,6 +1602,77 @@ tp_init_scroll(struct tp_dispatch *tp, struct evdev_device *device)
 }
 
 static int
+tp_dwt_config_is_available(struct libinput_device *device)
+{
+	return 1;
+}
+
+static enum libinput_config_status
+tp_dwt_config_set(struct libinput_device *device,
+	   enum libinput_config_dwt_state enable)
+{
+	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+
+	switch(enable) {
+	case LIBINPUT_CONFIG_DWT_ENABLED:
+	case LIBINPUT_CONFIG_DWT_DISABLED:
+		break;
+	default:
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+	}
+
+	tp->dwt.dwt_enabled = (enable == LIBINPUT_CONFIG_DWT_ENABLED);
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static enum libinput_config_dwt_state
+tp_dwt_config_get(struct libinput_device *device)
+{
+	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+
+	return tp->dwt.dwt_enabled ?
+		LIBINPUT_CONFIG_DWT_ENABLED :
+		LIBINPUT_CONFIG_DWT_DISABLED;
+}
+
+static bool
+tp_dwt_default_enabled(struct tp_dispatch *tp)
+{
+	return true;
+}
+
+static enum libinput_config_dwt_state
+tp_dwt_config_get_default(struct libinput_device *device)
+{
+	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+
+	return tp_dwt_default_enabled(tp) ?
+		LIBINPUT_CONFIG_DWT_ENABLED :
+		LIBINPUT_CONFIG_DWT_DISABLED;
+}
+
+static int
+tp_init_dwt(struct tp_dispatch *tp,
+	    struct evdev_device *device)
+{
+	if (tp_dwt_device_is_blacklisted(device))
+		return 0;
+
+	tp->dwt.config.is_available = tp_dwt_config_is_available;
+	tp->dwt.config.set_enabled = tp_dwt_config_set;
+	tp->dwt.config.get_enabled = tp_dwt_config_get;
+	tp->dwt.config.get_default_enabled = tp_dwt_config_get_default;
+	tp->dwt.dwt_enabled = tp_dwt_default_enabled(tp);
+	device->base.config.dwt = &tp->dwt.config;
+
+	return 0;
+}
+
+static int
 tp_init_palmdetect(struct tp_dispatch *tp,
 		   struct evdev_device *device)
 {
@@ -1465,18 +1687,13 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 
 	/* Wacom doesn't have internal touchpads,
 	 * Apple touchpads are always big enough to warrant palm detection */
-	if (device->model == EVDEV_MODEL_WACOM_TOUCHPAD) {
+	if (device->model_flags & EVDEV_MODEL_WACOM_TOUCHPAD)
 		return 0;
-	} else if (device->model != EVDEV_MODEL_APPLE_TOUCHPAD) {
-		/* We don't know how big the touchpad is */
-		if (device->abs.absinfo_x->resolution == 1)
-			return 0;
 
-		/* Enable palm detection on touchpads >= 70 mm. Anything smaller
-		   probably won't need it, until we find out it does */
-		if (width/device->abs.absinfo_x->resolution < 70)
-			return 0;
-	}
+	/* Enable palm detection on touchpads >= 70 mm. Anything smaller
+	   probably won't need it, until we find out it does */
+	if (width/device->abs.absinfo_x->resolution < 70)
+		return 0;
 
 	/* palm edges are 5% of the width on each side */
 	tp->palm.right_edge = device->abs.absinfo_x->maximum - width * 0.05;
@@ -1507,6 +1724,13 @@ tp_init_thumb(struct tp_dispatch *tp)
 {
 	struct evdev_device *device = tp->device;
 	const struct input_absinfo *abs;
+	double w = 0.0, h = 0.0;
+	int xres, yres;
+	int ymax;
+	double threshold;
+
+	if (!tp->buttons.is_clickpad)
+		return 0;
 
 	abs = libevdev_get_abs_info(device->evdev, ABS_MT_PRESSURE);
 	if (!abs)
@@ -1515,13 +1739,32 @@ tp_init_thumb(struct tp_dispatch *tp)
 	if (abs->maximum - abs->minimum < 255)
 		return 0;
 
-	/* The touchpads we looked at so far have a clear thumb threshold of
-	 * ~100, you don't reach that with a normal finger interaction.
+	/* if the touchpad is less than 50mm high, skip thumb detection.
+	 * it's too small to meaningfully interact with a thumb on the
+	 * touchpad */
+	evdev_device_get_size(device, &w, &h);
+	if (h < 50)
+		return 0;
+
+	/* Our reference touchpad is the T440s with 42x42 resolution.
+	 * Higher-res touchpads exhibit higher pressure for the same
+	 * interaction. On the T440s, the threshold value is 100, you don't
+	 * reach that with a normal finger interaction.
 	 * Note: "thumb" means massive touch that should not interact, not
 	 * "using the tip of my thumb for a pinch gestures".
 	 */
-	tp->thumb.threshold = 100;
+	xres = tp->device->abs.absinfo_x->resolution;
+	yres = tp->device->abs.absinfo_y->resolution;
+	threshold = 100.0 * hypot(xres, yres)/hypot(42, 42);
+	tp->thumb.threshold = max(100, threshold);
 	tp->thumb.detect_thumbs = true;
+
+	/* detect thumbs by pressure in the bottom 15mm, detect thumbs by
+	 * lingering in the bottom 8mm */
+	ymax = tp->device->abs.absinfo_y->maximum;
+	yres = tp->device->abs.absinfo_y->resolution;
+	tp->thumb.upper_thumb_line = ymax - yres * 15;
+	tp->thumb.lower_thumb_line = ymax - yres * 8;
 
 	return 0;
 }
@@ -1546,7 +1789,8 @@ tp_sanity_check(struct tp_dispatch *tp,
 
 error:
 	log_bug_kernel(libinput,
-		       "device %s failed touchpad sanity checks\n");
+		       "device %s failed touchpad sanity checks\n",
+		       device->devname);
 	return -1;
 }
 
@@ -1627,6 +1871,9 @@ tp_init(struct tp_dispatch *tp,
 		return -1;
 
 	if (tp_init_buttons(tp, device) != 0)
+		return -1;
+
+	if (tp_init_dwt(tp, device) != 0)
 		return -1;
 
 	if (tp_init_palmdetect(tp, device) != 0)

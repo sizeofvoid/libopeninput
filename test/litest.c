@@ -63,6 +63,7 @@ const char *filter_device = NULL;
 const char *filter_group = NULL;
 
 static inline void litest_remove_model_quirks(void);
+static void litest_init_udev_rules(void);
 
 /* defined for the litest selftest */
 #ifndef LITEST_DISABLE_BACKTRACE_LOGGING
@@ -214,13 +215,13 @@ litest_backtrace(void)
 		}
 
 		if (have_lineno) {
-			litest_log("%u: %s() (%s:%d)\n",
+			litest_log("%d: %s() (%s:%d)\n",
 				   i,
 				   procname,
 				   file,
 				   line);
 		} else  {
-			litest_log("%u: %s (%s%s+%#x) [%p]\n",
+			litest_log("%d: %s (%s%s+%#x) [%p]\n",
 				   i,
 				   filename,
 				   procname,
@@ -452,7 +453,7 @@ litest_drop_udev_rules(void)
 		    &entries,
 		    litest_udev_rule_filter,
 		    alphasort);
-	if (n < 0)
+	if (n <= 0)
 		return;
 
 	while (n--) {
@@ -472,7 +473,6 @@ litest_drop_udev_rules(void)
 	}
 	free(entries);
 
-	litest_remove_model_quirks();
 	litest_reload_udev_rules();
 }
 
@@ -832,6 +832,8 @@ litest_run(int argc, char **argv)
 	if (getenv("LITEST_VERBOSE"))
 		verbose = 1;
 
+	litest_init_udev_rules();
+
 	srunner_run_all(sr, CK_ENV);
 	failed = srunner_ntests_failed(sr);
 	srunner_free(sr);
@@ -849,6 +851,9 @@ litest_run(int argc, char **argv)
 		free(s->name);
 		free(s);
 	}
+
+	litest_remove_model_quirks();
+	litest_reload_udev_rules();
 
 	return failed;
 }
@@ -967,12 +972,10 @@ litest_remove_model_quirks(void)
 	unlink(UDEV_COMMON_HWDB_FILE);
 }
 
-static char *
-litest_init_udev_rules(struct litest_test_device *dev)
+static void
+litest_init_udev_rules(void)
 {
 	int rc;
-	FILE *f;
-	char *path = NULL;
 
 	rc = mkdir(UDEV_RULES_D, 0755);
 	if (rc == -1 && errno != EEXIST)
@@ -985,10 +988,18 @@ litest_init_udev_rules(struct litest_test_device *dev)
 			     strerror(errno));
 
 	litest_install_model_quirks();
+	litest_reload_udev_rules();
+}
 
-	/* device-specific udev rules */
+static char *
+litest_init_device_udev_rules(struct litest_test_device *dev)
+{
+	int rc;
+	FILE *f;
+	char *path = NULL;
+
 	if (!dev->udev_rule)
-		goto out;
+		return NULL;
 
 	rc = xasprintf(&path,
 		      "%s/%s%s.rules",
@@ -1005,7 +1016,6 @@ litest_init_udev_rules(struct litest_test_device *dev)
 	litest_assert_int_ge(fputs(dev->udev_rule, f), 0);
 	fclose(f);
 
-out:
 	litest_reload_udev_rules();
 
 	return path;
@@ -1039,13 +1049,11 @@ litest_create(enum litest_device_type which,
 	d = zalloc(sizeof(*d));
 	litest_assert(d != NULL);
 
-	udev_file = litest_init_udev_rules(*dev);
-
+	udev_file = litest_init_device_udev_rules(*dev);
 	/* device has custom create method */
 	if ((*dev)->create) {
 		(*dev)->create(d);
 		if (abs_override || events_override) {
-			litest_remove_model_quirks();
 			if (udev_file)
 				unlink(udev_file);
 			litest_abort_msg("Custom create cannot be overridden");
@@ -1196,10 +1204,10 @@ litest_delete_device(struct litest_device *d)
 		return;
 
 	if (d->udev_rule_file) {
-		litest_remove_model_quirks();
 		unlink(d->udev_rule_file);
 		free(d->udev_rule_file);
 		d->udev_rule_file = NULL;
+		litest_reload_udev_rules();
 	}
 
 	libinput_device_unref(d->libinput_device);
@@ -1232,6 +1240,9 @@ axis_replacement_value(struct axis_replacement *axes,
 		       int32_t *value)
 {
 	struct axis_replacement *axis = axes;
+
+	if (!axes)
+		return false;
 
 	while (axis->evcode != -1) {
 		if (axis->evcode == evcode) {
@@ -1277,9 +1288,6 @@ litest_auto_assign_value(struct litest_device *d,
 		break;
 	default:
 		value = -1;
-		if (!axes)
-			break;
-
 		if (!axis_replacement_value(axes, ev->code, &value) &&
 		    d->interface->get_axis_default)
 			d->interface->get_axis_default(d, ev->code, &value);
@@ -1553,6 +1561,32 @@ litest_touch_move_two_touches(struct litest_device *d,
 	}
 	litest_touch_move(d, 0, x0 + dx, y0 + dy);
 	litest_touch_move(d, 1, x1 + dx, y1 + dy);
+}
+
+void
+litest_touch_move_three_touches(struct litest_device *d,
+				double x0, double y0,
+				double x1, double y1,
+				double x2, double y2,
+				double dx, double dy,
+				int steps, int sleep_ms)
+{
+	for (int i = 0; i < steps - 1; i++) {
+		litest_touch_move(d, 0, x0 + dx / steps * i,
+					y0 + dy / steps * i);
+		litest_touch_move(d, 1, x1 + dx / steps * i,
+					y1 + dy / steps * i);
+		litest_touch_move(d, 2, x2 + dx / steps * i,
+					y2 + dy / steps * i);
+		if (sleep_ms) {
+			libinput_dispatch(d->libinput);
+			msleep(sleep_ms);
+			libinput_dispatch(d->libinput);
+		}
+	}
+	litest_touch_move(d, 0, x0 + dx, y0 + dy);
+	litest_touch_move(d, 1, x1 + dx, y1 + dy);
+	litest_touch_move(d, 2, x2 + dx, y2 + dy);
 }
 
 void
@@ -2019,6 +2053,7 @@ litest_create_uinput_device_from_description(const char *name,
 	struct udev_device *udev_device;
 	const char *udev_action;
 	const char *udev_syspath = NULL;
+	int rc;
 
 	udev = udev_new();
 	litest_assert_notnull(udev);
@@ -2027,7 +2062,8 @@ litest_create_uinput_device_from_description(const char *name,
 	udev_monitor_filter_add_match_subsystem_devtype(udev_monitor, "input",
 							NULL);
 	/* remove O_NONBLOCK */
-	fcntl(udev_monitor_get_fd(udev_monitor), F_SETFL, 0);
+	rc = fcntl(udev_monitor_get_fd(udev_monitor), F_SETFL, 0);
+	litest_assert_int_ne(rc, -1);
 	litest_assert_int_eq(udev_monitor_enable_receiving(udev_monitor),
 			     0);
 
@@ -2233,6 +2269,25 @@ litest_is_keyboard_event(struct libinput_event *event,
 	return kevent;
 }
 
+struct libinput_event_gesture *
+litest_is_gesture_event(struct libinput_event *event,
+			enum libinput_event_type type,
+			int nfingers)
+{
+	struct libinput_event_gesture *gevent;
+
+	litest_assert(event != NULL);
+	litest_assert_int_eq(libinput_event_get_type(event), type);
+
+	gevent = libinput_event_get_gesture_event(event);
+	litest_assert(gevent != NULL);
+
+	if (nfingers != -1)
+		litest_assert_int_eq(libinput_event_gesture_get_finger_count(gevent),
+				     nfingers);
+	return gevent;
+}
+
 void
 litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
 				  enum libinput_button_state state)
@@ -2364,6 +2419,12 @@ void
 litest_timeout_dwt_long(void)
 {
 	msleep(520);
+}
+
+void
+litest_timeout_gesture(void)
+{
+	msleep(120);
 }
 
 void

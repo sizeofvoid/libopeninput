@@ -136,16 +136,30 @@ enum tp_gesture_2fg_state {
 	GESTURE_2FG_STATE_PINCH,
 };
 
+enum tp_thumb_state {
+	THUMB_STATE_NO,
+	THUMB_STATE_YES,
+	THUMB_STATE_MAYBE,
+};
+
 struct tp_touch {
 	struct tp_dispatch *tp;
 	enum touch_state state;
 	bool has_ended;				/* TRACKING_ID == -1 */
 	bool dirty;
-	bool is_thumb;
 	struct device_coords point;
 	uint64_t millis;
 	int distance;				/* distance == 0 means touch */
 	int pressure;
+
+	struct {
+		/* A quirk mostly used on Synaptics touchpads. In a
+		   transition to/from fake touches > num_slots, the current
+		   event data is likely garbage and the subsequent event
+		   is likely too. This marker tells us to reset the motion
+		   history again -> this effectively swallows any motion */
+		bool reset_motion_history;
+	} quirks;
 
 	struct {
 		struct device_coords samples[TOUCHPAD_HISTORY_LENGTH];
@@ -195,6 +209,12 @@ struct tp_touch {
 	struct {
 		struct device_coords initial;
 	} gesture;
+
+	struct {
+		enum tp_thumb_state state;
+		uint64_t first_touch_time;
+		struct device_coords initial;
+	} thumb;
 };
 
 struct tp_dispatch {
@@ -237,7 +257,6 @@ struct tp_dispatch {
 		double prev_scale;
 		double angle;
 		struct device_float_coords center;
-		uint32_t thumb_mask;
 	} gesture;
 
 	struct {
@@ -314,6 +333,9 @@ struct tp_dispatch {
 	} sendevents;
 
 	struct {
+		struct libinput_device_config_dwt config;
+		bool dwt_enabled;
+
 		bool keyboard_active;
 		struct libinput_event_listener keyboard_listener;
 		struct libinput_timer keyboard_timer;
@@ -325,6 +347,8 @@ struct tp_dispatch {
 	struct {
 		bool detect_thumbs;
 		int threshold;
+		int upper_thumb_line;
+		int lower_thumb_line;
 	} thumb;
 };
 

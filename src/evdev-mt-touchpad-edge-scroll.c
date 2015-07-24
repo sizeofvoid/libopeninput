@@ -32,8 +32,6 @@
 
 #include "evdev-mt-touchpad.h"
 
-#define CASE_RETURN_STRING(a) case a: return #a
-
 /* Use a reasonably large threshold until locked into scrolling mode, to
    avoid accidentally locking in scrolling mode when trying to use the entire
    touchpad to move the pointer. The user can wait for the timeout to trigger
@@ -287,30 +285,11 @@ int
 tp_edge_scroll_init(struct tp_dispatch *tp, struct evdev_device *device)
 {
 	struct tp_touch *t;
-	int width, height;
 	int edge_width, edge_height;
 
-	width = device->abs.dimensions.x;
-	height = device->abs.dimensions.y;
-
-	switch (tp->model) {
-	case MODEL_ALPS:
-		edge_width = width * .15;
-		edge_height = height * .15;
-		break;
-	case MODEL_APPLETOUCH: /* unibody are all clickpads, so N/A */
-		edge_width = width * .085;
-		edge_height = height * .085;
-		break;
-	default:
-		/* For elantech and synaptics, note for lenovo #40 series,
-		 * e.g. the T440s min/max are the absolute edges, not the
-		 * recommended ones as usual with synaptics.
-		 */
-		edge_width = width * .04;
-		edge_height = height * .054;
-		break;
-	}
+	/* 7mm edge size */
+	edge_width = device->abs.absinfo_x->resolution * 7;
+	edge_height = device->abs.absinfo_y->resolution * 7;
 
 	tp->scroll.right_edge = device->abs.absinfo_x->maximum - edge_width;
 	tp->scroll.bottom_edge = device->abs.absinfo_y->maximum - edge_height;
@@ -379,6 +358,11 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 			continue;
 
 		if (t->palm.state != PALM_NONE)
+			continue;
+
+		/* only scroll with the finger in the previous edge */
+		if (t->scroll.edge &&
+		    (tp_touch_get_edge(tp, t) & t->scroll.edge) == 0)
 			continue;
 
 		switch (t->scroll.edge) {

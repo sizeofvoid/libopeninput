@@ -114,16 +114,6 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"touchpad_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"touchpad_end\"\n"
-"ENV{ID_INPUT_TOUCHPAD}==\"\", GOTO=\"touchpad_end\"\n"
-"\n"
-"ATTRS{name}==\"litest*X1C3rd*\",\\\n"
-"    ENV{TOUCHPAD_HAS_TRACKPOINT_BUTTONS}=\"1\"\n"
-"\n"
-"LABEL=\"touchpad_end\"";
-
 struct litest_test_device litest_synaptics_carbon3rd_device = {
 	.type = LITEST_SYNAPTICS_TRACKPOINT_BUTTONS,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
@@ -135,5 +125,4 @@ struct litest_test_device litest_synaptics_carbon3rd_device = {
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
 };

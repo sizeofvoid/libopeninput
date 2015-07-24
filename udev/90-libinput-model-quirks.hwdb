@@ -35,6 +35,12 @@ libinput:touchpad:input:b0005v05ACp*
  LIBINPUT_ATTR_SIZE_HINT=104x75
 
 ##########################################
+# Elantech
+##########################################
+libinput:name:*ETPS/2 Elantech Touchpad*:dmi:*
+ LIBINPUT_ATTR_RESOLUTION_HINT=31x31
+
+##########################################
 # Google
 ##########################################
 
@@ -63,6 +69,12 @@ libinput:name:Atmel maXTouch Touchpad:dmi:*svn*GOOGLE*:pn*Samus*
 # X230 (Tablet)
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPadX230*
  LIBINPUT_MODEL_LENOVO_X230=1
+
+##########################################
+# Synaptics
+##########################################
+libinput:touchpad:input:b0011v0002p0007*
+ LIBINPUT_MODEL_SYNAPTICS_SERIAL_TOUCHPAD=1
 
 ##########################################
 # System76

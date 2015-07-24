@@ -2782,3 +2782,45 @@ libinput_device_config_scroll_get_default_button(struct libinput_device *device)
 
 	return device->config.scroll_method->get_default_button(device);
 }
+
+LIBINPUT_EXPORT int
+libinput_device_config_dwt_is_available(struct libinput_device *device)
+{
+	if (!device->config.dwt)
+		return 0;
+
+	return device->config.dwt->is_available(device);
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_dwt_set_enabled(struct libinput_device *device,
+				       enum libinput_config_dwt_state enable)
+{
+	if (enable != LIBINPUT_CONFIG_DWT_ENABLED &&
+	    enable != LIBINPUT_CONFIG_DWT_DISABLED)
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	if (!libinput_device_config_dwt_is_available(device))
+		return enable ? LIBINPUT_CONFIG_STATUS_UNSUPPORTED :
+				LIBINPUT_CONFIG_STATUS_SUCCESS;
+
+	return device->config.dwt->set_enabled(device, enable);
+}
+
+LIBINPUT_EXPORT enum libinput_config_dwt_state
+libinput_device_config_dwt_get_enabled(struct libinput_device *device)
+{
+	if (!libinput_device_config_dwt_is_available(device))
+		return LIBINPUT_CONFIG_DWT_DISABLED;
+
+	return device->config.dwt->get_enabled(device);
+}
+
+LIBINPUT_EXPORT enum libinput_config_dwt_state
+libinput_device_config_dwt_get_default_enabled(struct libinput_device *device)
+{
+	if (!libinput_device_config_dwt_is_available(device))
+		return LIBINPUT_CONFIG_DWT_DISABLED;
+
+	return device->config.dwt->get_default_enabled(device);
+}

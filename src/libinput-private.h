@@ -200,6 +200,17 @@ struct libinput_device_config_middle_emulation {
 			 struct libinput_device *device);
 };
 
+struct libinput_device_config_dwt {
+	int (*is_available)(struct libinput_device *device);
+	enum libinput_config_status (*set_enabled)(
+			 struct libinput_device *device,
+			 enum libinput_config_dwt_state enable);
+	enum libinput_config_dwt_state (*get_enabled)(
+			 struct libinput_device *device);
+	enum libinput_config_dwt_state (*get_default_enabled)(
+			 struct libinput_device *device);
+};
+
 struct libinput_device_config {
 	struct libinput_device_config_tap *tap;
 	struct libinput_device_config_calibration *calibration;
@@ -210,6 +221,7 @@ struct libinput_device_config {
 	struct libinput_device_config_scroll_method *scroll_method;
 	struct libinput_device_config_click_method *click_method;
 	struct libinput_device_config_middle_emulation *middle_emulation;
+	struct libinput_device_config_dwt *dwt;
 };
 
 struct libinput_device_group {
@@ -262,13 +274,15 @@ typedef void (*libinput_source_dispatch_t)(void *data);
 void
 log_msg(struct libinput *libinput,
 	enum libinput_log_priority priority,
-	const char *format, ...);
+	const char *format, ...)
+	LIBINPUT_ATTRIBUTE_PRINTF(3, 4);
 
 void
 log_msg_va(struct libinput *libinput,
 	   enum libinput_log_priority priority,
 	   const char *format,
-	   va_list args);
+	   va_list args)
+	LIBINPUT_ATTRIBUTE_PRINTF(3, 0);
 
 int
 libinput_init(struct libinput *libinput,

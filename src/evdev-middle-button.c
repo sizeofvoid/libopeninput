@@ -43,8 +43,6 @@
  * as-is.
  */
 
-#define CASE_RETURN_STRING(a) case a: return #a;
-
 static inline const char*
 middlebutton_state_to_str(enum evdev_middlebutton_state state)
 {
@@ -612,7 +610,7 @@ evdev_middlebutton_filter_button(struct evdev_device *device,
 	if (button < BTN_LEFT ||
 	    bit >= sizeof(device->middlebutton.button_mask) * 8) {
 		log_bug_libinput(device->base.seat->libinput,
-				 "Button mask too small for %d\n",
+				 "Button mask too small for %s\n",
 				 libevdev_event_code_get_name(EV_KEY,
 							      button));
 		return true;

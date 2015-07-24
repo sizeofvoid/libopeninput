@@ -312,7 +312,7 @@ udev_device_from_devnode(struct libinput *libinput,
 		dev = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
 
 		count++;
-		if (count > 50) {
+		if (count > 200) {
 			log_bug_libinput(libinput,
 					"udev device never initialized (%s)\n",
 					devnode);

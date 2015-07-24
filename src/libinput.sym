@@ -163,6 +163,13 @@ LIBINPUT_0.20.0 {
 	libinput_event_get_gesture_event;
 } LIBINPUT_0.19.0;
 
+LIBINPUT_0.21.0 {
+	libinput_device_config_dwt_is_available;
+	libinput_device_config_dwt_set_enabled;
+	libinput_device_config_dwt_get_enabled;
+	libinput_device_config_dwt_get_default_enabled;
+} LIBINPUT_0.20.0;
+
 /* tablet APIs, they are not part of any stable API promise yet.
  * keep them separate */
 LIBINPUT_TABLET_SUPPORT {
@@ -189,4 +196,4 @@ LIBINPUT_TABLET_SUPPORT {
 	libinput_tool_ref;
 	libinput_tool_set_user_data;
 	libinput_tool_unref;
-} LIBINPUT_0.20.0;
+} LIBINPUT_0.21.0;

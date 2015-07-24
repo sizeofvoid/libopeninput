@@ -563,7 +563,7 @@ evdev_process_touch(struct evdev_device *device,
 	case ABS_MT_SLOT:
 		if ((size_t)e->value >= device->mt.slots_len) {
 			log_bug_libinput(device->base.seat->libinput,
-					 "%s exceeds slots (%d of %d)\n",
+					 "%s exceeds slots (%d of %zd)\n",
 					 device->devname,
 					 e->value,
 					 device->mt.slots_len);
@@ -1481,6 +1481,10 @@ evdev_get_trackpoint_dpi(struct evdev_device *device)
 					    DEFAULT_TRACKPOINT_ACCEL);
 			accel = DEFAULT_TRACKPOINT_ACCEL;
 		}
+		log_info(libinput,
+			  "Device '%s' set to const accel %.2f\n",
+			  device->devname,
+			  accel);
 	}
 
 	return DEFAULT_MOUSE_DPI / accel;
@@ -1522,8 +1526,8 @@ evdev_read_dpi_prop(struct evdev_device *device)
 	return dpi;
 }
 
-static inline enum evdev_device_model
-evdev_read_model(struct evdev_device *device)
+static inline uint32_t
+evdev_read_model_flags(struct evdev_device *device)
 {
 	const struct model_map {
 		const char *property;
@@ -1538,18 +1542,37 @@ evdev_read_model(struct evdev_device *device)
 		{ "LIBINPUT_MODEL_APPLE_TOUCHPAD", EVDEV_MODEL_APPLE_TOUCHPAD },
 		{ "LIBINPUT_MODEL_WACOM_TOUCHPAD", EVDEV_MODEL_WACOM_TOUCHPAD },
 		{ "LIBINPUT_MODEL_ALPS_TOUCHPAD", EVDEV_MODEL_ALPS_TOUCHPAD },
+		{ "LIBINPUT_MODEL_SYNAPTICS_SERIAL_TOUCHPAD", EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD },
 		{ NULL, EVDEV_MODEL_DEFAULT },
 	};
 	const struct model_map *m = model_map;
+	uint32_t model_flags = 0;
 
 	while (m->property) {
 		if (!!udev_device_get_property_value(device->udev_device,
 						     m->property))
-			break;
+			model_flags |= m->model;
 		m++;
 	}
 
-	return m->model;
+	return model_flags;
+}
+
+static inline int
+evdev_read_attr_res_prop(struct evdev_device *device,
+			 size_t *xres,
+			 size_t *yres)
+{
+	struct udev_device *udev;
+	const char *res_prop;
+
+	udev = device->udev_device;
+	res_prop = udev_device_get_property_value(udev,
+						   "LIBINPUT_ATTR_RESOLUTION_HINT");
+	if (!res_prop)
+		return false;
+
+	return parse_dimension_property(res_prop, xres, yres);
 }
 
 static inline int
@@ -1579,8 +1602,8 @@ evdev_fix_abs_resolution(struct evdev_device *device,
 	struct libevdev *evdev = device->evdev;
 	const struct input_absinfo *absx, *absy;
 	size_t widthmm = 0, heightmm = 0;
-	int xres = EVDEV_FAKE_RESOLUTION,
-	    yres = EVDEV_FAKE_RESOLUTION;
+	size_t xres = EVDEV_FAKE_RESOLUTION,
+	       yres = EVDEV_FAKE_RESOLUTION;
 
 	if (!(xcode == ABS_X && ycode == ABS_Y)  &&
 	    !(xcode == ABS_MT_POSITION_X && ycode == ABS_MT_POSITION_Y)) {
@@ -1601,7 +1624,8 @@ evdev_fix_abs_resolution(struct evdev_device *device,
 	 * property is only for general size hints where we can make
 	 * educated guesses but don't know better.
 	 */
-	if (evdev_read_attr_size_prop(device, &widthmm, &heightmm)) {
+	if (!evdev_read_attr_res_prop(device, &xres, &yres) &&
+	    evdev_read_attr_size_prop(device, &widthmm, &heightmm)) {
 		xres = (absx->maximum - absx->minimum)/widthmm;
 		yres = (absy->maximum - absy->minimum)/heightmm;
 	}
@@ -1953,6 +1977,10 @@ evdev_configure_device(struct evdev_device *device)
 
 	if (udev_tags & EVDEV_UDEV_TAG_MOUSE ||
 	    udev_tags & EVDEV_UDEV_TAG_POINTINGSTICK) {
+		evdev_tag_external_mouse(device, device->udev_device);
+		evdev_tag_trackpoint(device, device->udev_device);
+		device->dpi = evdev_read_dpi_prop(device);
+
 		if (libevdev_has_event_code(evdev, EV_REL, REL_X) &&
 		    libevdev_has_event_code(evdev, EV_REL, REL_Y) &&
 		    evdev_init_accel(device) == -1)
@@ -1970,9 +1998,6 @@ evdev_configure_device(struct evdev_device *device)
 		device->scroll.natural_scrolling_enabled = true;
 		/* want button scrolling config option */
 		device->scroll.want_button = 1;
-
-		evdev_tag_external_mouse(device, device->udev_device);
-		evdev_tag_trackpoint(device, device->udev_device);
 	}
 
 	if (udev_tags & EVDEV_UDEV_TAG_KEYBOARD) {
@@ -2144,8 +2169,8 @@ evdev_device_create(struct libinput_seat *seat,
 	device->scroll.direction = 0;
 	device->scroll.wheel_click_angle =
 		evdev_read_wheel_click_prop(device);
-	device->model = evdev_read_model(device);
-	device->dpi = evdev_read_dpi_prop(device);
+	device->model_flags = evdev_read_model_flags(device);
+	device->dpi = DEFAULT_MOUSE_DPI;
 
 	/* at most 5 SYN_DROPPED log-messages per 30s */
 	ratelimit_init(&device->syn_drop_limit, 30ULL * 1000, 5);
