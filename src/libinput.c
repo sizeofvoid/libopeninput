@@ -130,7 +130,7 @@ struct libinput_event_tablet {
 	uint32_t button;
 	enum libinput_button_state state;
 	uint32_t seat_button_count;
-	uint32_t time;
+	uint64_t time;
 	double axes[LIBINPUT_TABLET_AXIS_MAX + 1];
 	double deltas[LIBINPUT_TABLET_AXIS_MAX + 1];
 	double deltas_discrete[LIBINPUT_TABLET_AXIS_MAX + 1];
@@ -1022,6 +1022,12 @@ libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event)
 LIBINPUT_EXPORT uint32_t
 libinput_event_tablet_get_time(struct libinput_event_tablet *event)
 {
+	return us2ms(event->time);
+}
+
+LIBINPUT_EXPORT uint64_t
+libinput_event_tablet_get_time_usec(struct libinput_event_tablet *event)
+{
 	return event->time;
 }
 
@@ -1841,7 +1847,7 @@ touch_notify_frame(struct libinput_device *device,
 
 void
 tablet_notify_axis(struct libinput_device *device,
-		   uint32_t time,
+		   uint64_t time,
 		   struct libinput_tool *tool,
 		   unsigned char *changed_axes,
 		   double *axes,
@@ -1876,7 +1882,7 @@ tablet_notify_axis(struct libinput_device *device,
 
 void
 tablet_notify_proximity(struct libinput_device *device,
-			uint32_t time,
+			uint64_t time,
 			struct libinput_tool *tool,
 			enum libinput_tool_proximity_state proximity_state,
 			unsigned char *changed_axes,
@@ -1910,7 +1916,7 @@ tablet_notify_proximity(struct libinput_device *device,
 
 void
 tablet_notify_button(struct libinput_device *device,
-		     uint32_t time,
+		     uint64_t time,
 		     struct libinput_tool *tool,
 		     double *axes,
 		     int32_t button,

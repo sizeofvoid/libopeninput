@@ -432,7 +432,7 @@ touch_notify_frame(struct libinput_device *device,
 
 void
 tablet_notify_axis(struct libinput_device *device,
-		   uint32_t time,
+		   uint64_t time,
 		   struct libinput_tool *tool,
 		   unsigned char *changed_axes,
 		   double *axes,
@@ -441,7 +441,7 @@ tablet_notify_axis(struct libinput_device *device,
 
 void
 tablet_notify_proximity(struct libinput_device *device,
-			uint32_t time,
+			uint64_t time,
 			struct libinput_tool *tool,
 			enum libinput_tool_proximity_state state,
 			unsigned char *changed_axes,
@@ -449,7 +449,7 @@ tablet_notify_proximity(struct libinput_device *device,
 
 void
 tablet_notify_button(struct libinput_device *device,
-		     uint32_t time,
+		     uint64_t time,
 		     struct libinput_tool *tool,
 		     double *axes,
 		     int32_t button,

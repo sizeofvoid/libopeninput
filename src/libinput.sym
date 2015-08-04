@@ -191,6 +191,7 @@ LIBINPUT_TABLET_SUPPORT {
 	libinput_event_tablet_get_tool;
 	libinput_event_tablet_get_x_transformed;
 	libinput_event_tablet_get_y_transformed;
+	libinput_event_tablet_get_time_usec;
 	libinput_tool_get_serial;
 	libinput_tool_get_tool_id;
 	libinput_tool_get_type;

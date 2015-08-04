@@ -1544,6 +1544,15 @@ libinput_event_tablet_get_time(struct libinput_event_tablet *event);
 /**
  * @ingroup event_tablet
  *
+ * @param event The libinput tablet event
+ * @return The event time for this event in microseconds
+ */
+uint64_t
+libinput_event_tablet_get_time_usec(struct libinput_event_tablet *event);
+
+/**
+ * @ingroup event_tablet
+ *
  * Return the type of tool type for a tool object
  *
  * @param tool The libinput tool

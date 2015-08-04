@@ -107,7 +107,7 @@ static void
 tablet_process_absolute(struct tablet_dispatch *tablet,
 			struct evdev_device *device,
 			struct input_event *e,
-			uint32_t time)
+			uint64_t time)
 {
 	enum libinput_tablet_axis axis;
 
@@ -316,7 +316,7 @@ get_delta(enum libinput_tablet_axis axis, double current, double old)
 static void
 tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			 struct evdev_device *device,
-			 uint32_t time,
+			 uint64_t time,
 			 struct libinput_tool *tool)
 {
 	struct libinput_device *base = &device->base;
@@ -478,7 +478,7 @@ static void
 tablet_process_key(struct tablet_dispatch *tablet,
 		   struct evdev_device *device,
 		   struct input_event *e,
-		   uint32_t time)
+		   uint64_t time)
 {
 	switch (e->code) {
 	case BTN_TOOL_PEN:
@@ -521,7 +521,7 @@ static void
 tablet_process_relative(struct tablet_dispatch *tablet,
 			struct evdev_device *device,
 			struct input_event *e,
-			uint32_t time)
+			uint64_t time)
 {
 	enum libinput_tablet_axis axis;
 
@@ -551,7 +551,7 @@ static void
 tablet_process_misc(struct tablet_dispatch *tablet,
 		    struct evdev_device *device,
 		    struct input_event *e,
-		    uint32_t time)
+		    uint64_t time)
 {
 	switch (e->code) {
 	case MSC_SERIAL:
@@ -779,7 +779,7 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 static void
 tablet_notify_button_mask(struct tablet_dispatch *tablet,
 			  struct evdev_device *device,
-			  uint32_t time,
+			  uint64_t time,
 			  struct libinput_tool *tool,
 			  const unsigned char *buttons,
 			  unsigned int buttons_len,
@@ -805,7 +805,7 @@ tablet_notify_button_mask(struct tablet_dispatch *tablet,
 static void
 tablet_notify_buttons(struct tablet_dispatch *tablet,
 		      struct evdev_device *device,
-		      uint32_t time,
+		      uint64_t time,
 		      struct libinput_tool *tool,
 		      enum libinput_button_state state)
 {
@@ -864,7 +864,7 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet)
 static void
 tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
-	     uint32_t time)
+	     uint64_t time)
 {
 	struct libinput_tool *tool =
 		tablet_get_tool(tablet,
