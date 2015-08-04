@@ -343,6 +343,11 @@ libinput_path_add_device(struct libinput *libinput,
 		return NULL;
 	}
 
+	if (ignore_litest_test_suite_device(udev_device)) {
+		udev_device_unref(udev_device);
+		return NULL;
+	}
+
 	device = path_create_device(libinput, udev_device, NULL);
 	udev_device_unref(udev_device);
 	return device;

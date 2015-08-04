@@ -307,6 +307,9 @@ open_restricted(struct libinput *libinput,
 void
 close_restricted(struct libinput *libinput, int fd);
 
+bool
+ignore_litest_test_suite_device(struct udev_device *device);
+
 void
 libinput_seat_init(struct libinput_seat *seat,
 		   struct libinput *libinput,
@@ -462,7 +465,7 @@ libinput_now(struct libinput *libinput)
 		return 0;
 	}
 
-	return ts.tv_sec * 1000ULL + ts.tv_nsec / 1000000;
+	return s2us(ts.tv_sec) + ns2us(ts.tv_nsec);
 }
 
 static inline struct device_float_coords

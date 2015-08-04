@@ -106,6 +106,8 @@ enum evdev_device_model {
 	EVDEV_MODEL_WACOM_TOUCHPAD = (1 << 7),
 	EVDEV_MODEL_ALPS_TOUCHPAD = (1 << 8),
 	EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD = (1 << 9),
+	EVDEV_MODEL_JUMPING_SEMI_MT = (1 << 10),
+	EVDEV_MODEL_ELANTECH_TOUCHPAD = (1 << 11),
 };
 
 struct mt_slot {
@@ -368,18 +370,18 @@ evdev_notify_resumed_device(struct evdev_device *device);
 
 void
 evdev_keyboard_notify_key(struct evdev_device *device,
-			  uint32_t time,
+			  uint64_t time,
 			  int key,
 			  enum libinput_key_state state);
 
 void
 evdev_pointer_notify_button(struct evdev_device *device,
-			    uint32_t time,
+			    uint64_t time,
 			    int button,
 			    enum libinput_button_state state);
 void
 evdev_pointer_notify_physical_button(struct evdev_device *device,
-				     uint32_t time,
+				     uint64_t time,
 				     int button,
 				     enum libinput_button_state state);
 

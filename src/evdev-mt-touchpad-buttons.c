@@ -32,8 +32,8 @@
 
 #include "evdev-mt-touchpad.h"
 
-#define DEFAULT_BUTTON_ENTER_TIMEOUT 100 /* ms */
-#define DEFAULT_BUTTON_LEAVE_TIMEOUT 300 /* ms */
+#define DEFAULT_BUTTON_ENTER_TIMEOUT ms2us(100)
+#define DEFAULT_BUTTON_LEAVE_TIMEOUT ms2us(300)
 
 /*****************************************
  * BEFORE YOU EDIT THIS FILE, look at the state diagram in
@@ -714,7 +714,8 @@ tp_init_buttons(struct tp_dispatch *tp,
 				       "%s: clickpad advertising right button\n",
 				       device->devname);
 	} else if (libevdev_has_event_code(device->evdev, EV_KEY, BTN_LEFT) &&
-		   !tp->buttons.is_clickpad) {
+		   !tp->buttons.is_clickpad &&
+		   libevdev_get_id_vendor(device->evdev) != VENDOR_ID_APPLE) {
 			log_bug_kernel(libinput,
 				       "%s: non clickpad without right button?\n",
 				       device->devname);
@@ -857,14 +858,12 @@ tp_clickfinger_set_button(struct tp_dispatch *tp)
 	unsigned int nfingers = tp->nfingers_down;
 	struct tp_touch *t;
 	struct tp_touch *first = NULL,
-			*second = NULL,
-			*third = NULL;
-	uint32_t close_touches = 0;
+			*second = NULL;
 
-	if (nfingers < 2 || nfingers > 3)
+	if (nfingers != 2)
 		goto out;
 
-	/* two or three fingers down on the touchpad. Check for distance
+	/* two fingers down on the touchpad. Check for distance
 	 * between the fingers. */
 	tp_for_each_touch(tp, t) {
 		if (t->state != TOUCH_BEGIN && t->state != TOUCH_UPDATE)
@@ -877,10 +876,6 @@ tp_clickfinger_set_button(struct tp_dispatch *tp)
 			first = t;
 		else if (!second)
 			second = t;
-		else if (!third) {
-			third = t;
-			break;
-		}
 	}
 
 	if (!first || !second) {
@@ -888,15 +883,10 @@ tp_clickfinger_set_button(struct tp_dispatch *tp)
 		goto out;
 	}
 
-	close_touches |= tp_check_clickfinger_distance(tp, first, second) << 0;
-	close_touches |= tp_check_clickfinger_distance(tp, second, third) << 1;
-	close_touches |= tp_check_clickfinger_distance(tp, first, third) << 2;
-
-	switch(__builtin_popcount(close_touches)) {
-	case 0: nfingers = 1; break;
-	case 1: nfingers = 2; break;
-	default: nfingers = 3; break;
-	}
+	if (tp_check_clickfinger_distance(tp, first, second))
+		nfingers = 2;
+	else
+		nfingers = 1;
 
 out:
 	switch (nfingers) {
@@ -923,8 +913,8 @@ tp_notify_clickpadbutton(struct tp_dispatch *tp,
 		struct evdev_dispatch *dispatch = tp->buttons.trackpoint->dispatch;
 		struct input_event event;
 
-		event.time.tv_sec = time/1000;
-		event.time.tv_usec = (time % 1000) * 1000;
+		event.time.tv_sec = time / ms2us(1000);
+		event.time.tv_usec = time % ms2us(1000);
 		event.type = EV_KEY;
 		event.code = button;
 		event.value = (state == LIBINPUT_BUTTON_STATE_PRESSED) ? 1 : 0;

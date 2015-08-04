@@ -652,6 +652,27 @@ START_TEST(touch_initial_state)
 }
 END_TEST
 
+START_TEST(touch_time_usec)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_touch *tev;
+
+	litest_drain_events(dev->libinput);
+
+	litest_touch_down(dev, 0, 10, 10);
+
+	litest_wait_for_event(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_DOWN);
+	ck_assert_int_eq(libinput_event_touch_get_time(tev),
+			 libinput_event_touch_get_time_usec(tev) / 1000);
+	libinput_event_destroy(event);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -678,4 +699,6 @@ litest_setup_tests(void)
 	litest_add("touch:protocol a", touch_protocol_a_2fg_touch, LITEST_PROTOCOL_A, LITEST_ANY);
 
 	litest_add_ranged("touch:state", touch_initial_state, LITEST_TOUCH, LITEST_PROTOCOL_A, &axes);
+
+	litest_add("touch:time", touch_time_usec, LITEST_TOUCH, LITEST_TOUCHPAD);
 }

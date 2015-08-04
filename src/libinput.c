@@ -86,7 +86,7 @@ struct libinput_event_device_notify {
 
 struct libinput_event_keyboard {
 	struct libinput_event base;
-	uint32_t time;
+	uint64_t time;
 	uint32_t key;
 	uint32_t seat_key_count;
 	enum libinput_key_state state;
@@ -94,7 +94,7 @@ struct libinput_event_keyboard {
 
 struct libinput_event_pointer {
 	struct libinput_event base;
-	uint32_t time;
+	uint64_t time;
 	struct normalized_coords delta;
 	struct device_float_coords delta_raw;
 	struct device_coords absolute;
@@ -108,7 +108,7 @@ struct libinput_event_pointer {
 
 struct libinput_event_touch {
 	struct libinput_event base;
-	uint32_t time;
+	uint64_t time;
 	int32_t slot;
 	int32_t seat_slot;
 	struct device_coords point;
@@ -116,7 +116,7 @@ struct libinput_event_touch {
 
 struct libinput_event_gesture {
 	struct libinput_event base;
-	uint32_t time;
+	uint64_t time;
 	int finger_count;
 	int cancelled;
 	struct normalized_coords delta;
@@ -310,6 +310,17 @@ libinput_event_keyboard_get_time(struct libinput_event_keyboard *event)
 			   0,
 			   LIBINPUT_EVENT_KEYBOARD_KEY);
 
+	return us2ms(event->time);
+}
+
+LIBINPUT_EXPORT uint64_t
+libinput_event_keyboard_get_time_usec(struct libinput_event_keyboard *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_KEYBOARD_KEY);
+
 	return event->time;
 }
 
@@ -349,6 +360,20 @@ libinput_event_keyboard_get_seat_key_count(
 
 LIBINPUT_EXPORT uint32_t
 libinput_event_pointer_get_time(struct libinput_event_pointer *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_POINTER_MOTION,
+			   LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE,
+			   LIBINPUT_EVENT_POINTER_BUTTON,
+			   LIBINPUT_EVENT_POINTER_AXIS);
+
+	return us2ms(event->time);
+}
+
+LIBINPUT_EXPORT uint64_t
+libinput_event_pointer_get_time_usec(struct libinput_event_pointer *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -597,6 +622,21 @@ libinput_event_touch_get_time(struct libinput_event_touch *event)
 			   LIBINPUT_EVENT_TOUCH_CANCEL,
 			   LIBINPUT_EVENT_TOUCH_FRAME);
 
+	return us2ms(event->time);
+}
+
+LIBINPUT_EXPORT uint64_t
+libinput_event_touch_get_time_usec(struct libinput_event_touch *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TOUCH_DOWN,
+			   LIBINPUT_EVENT_TOUCH_UP,
+			   LIBINPUT_EVENT_TOUCH_MOTION,
+			   LIBINPUT_EVENT_TOUCH_CANCEL,
+			   LIBINPUT_EVENT_TOUCH_FRAME);
+
 	return event->time;
 }
 
@@ -692,6 +732,22 @@ libinput_event_touch_get_y(struct libinput_event_touch *event)
 
 LIBINPUT_EXPORT uint32_t
 libinput_event_gesture_get_time(struct libinput_event_gesture *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_GESTURE_PINCH_BEGIN,
+			   LIBINPUT_EVENT_GESTURE_PINCH_UPDATE,
+			   LIBINPUT_EVENT_GESTURE_PINCH_END,
+			   LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
+			   LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
+			   LIBINPUT_EVENT_GESTURE_SWIPE_END);
+
+	return us2ms(event->time);
+}
+
+LIBINPUT_EXPORT uint64_t
+libinput_event_gesture_get_time_usec(struct libinput_event_gesture *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1224,6 +1280,16 @@ void
 close_restricted(struct libinput *libinput, int fd)
 {
 	return libinput->interface->close_restricted(fd, libinput->user_data);
+}
+
+bool
+ignore_litest_test_suite_device(struct udev_device *device)
+{
+	if (!getenv("LIBINPUT_RUNNING_TEST_SUITE") &&
+	    udev_device_get_property_value(device, "LIBINPUT_TEST_DEVICE"))
+		return true;
+
+	return false;
 }
 
 void

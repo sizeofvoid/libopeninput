@@ -29,8 +29,8 @@
 
 #include "evdev-mt-touchpad.h"
 
-#define DEFAULT_GESTURE_SWITCH_TIMEOUT 100 /* ms */
-#define DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT 1000 /* ms */
+#define DEFAULT_GESTURE_SWITCH_TIMEOUT ms2us(100)
+#define DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT ms2us(500)
 
 static inline const char*
 gesture_state_to_str(enum tp_gesture_2fg_state state)
@@ -157,7 +157,7 @@ tp_gesture_get_active_touches(struct tp_dispatch *tp,
 
 	memset(touches, 0, count * sizeof(struct tp_touch *));
 
-	for (i = 0; i < tp->num_slots; i++) {
+	for (i = 0; i < tp->ntouches; i++) {
 		t = &tp->touches[i];
 		if (tp_touch_active(tp, t)) {
 			touches[n++] = t;
@@ -189,8 +189,10 @@ tp_gesture_get_direction(struct tp_dispatch *tp, struct tp_touch *touch)
 	/*
 	 * Semi-mt touchpads have somewhat inaccurate coordinates when
 	 * 2 fingers are down, so use a slightly larger threshold.
+	 * Elantech semi-mt touchpads are accurate enough though.
 	 */
-	if (tp->semi_mt)
+	if (tp->semi_mt &&
+	    (tp->device->model_flags & EVDEV_MODEL_ELANTECH_TOUCHPAD) == 0)
 		move_threshold = TP_MM_TO_DPI_NORMALIZED(4);
 	else
 		move_threshold = TP_MM_TO_DPI_NORMALIZED(2);
@@ -264,26 +266,11 @@ tp_gesture_twofinger_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 static enum tp_gesture_2fg_state
 tp_gesture_twofinger_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 {
-	struct normalized_coords normalized;
-	struct device_float_coords delta;
 	struct tp_touch *first = tp->gesture.touches[0],
 			*second = tp->gesture.touches[1];
 	int dir1, dir2;
 
-	delta = device_delta(first->point, second->point);
-	normalized = tp_normalize_delta(tp, delta);
-
-	/* If fingers are further than 3 cm apart assume pinch */
-	if (normalized_length(normalized) > TP_MM_TO_DPI_NORMALIZED(30)) {
-		tp_gesture_get_pinch_info(tp,
-					  &tp->gesture.initial_distance,
-					  &tp->gesture.angle,
-					  &tp->gesture.center);
-		tp->gesture.prev_scale = 1.0;
-		return GESTURE_2FG_STATE_PINCH;
-	}
-
-	/* Elif fingers have been close together for a while, scroll */
+	/* if fingers stay unmoving for a while, assume (slow) scroll */
 	if (time > (tp->gesture.initial_time + DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT)) {
 		tp_gesture_set_scroll_buildup(tp);
 		return GESTURE_2FG_STATE_SCROLL;
@@ -310,7 +297,7 @@ tp_gesture_twofinger_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	    ((dir2 & 0x80) && (dir1 & 0x01))) {
 		tp_gesture_set_scroll_buildup(tp);
 		return GESTURE_2FG_STATE_SCROLL;
-	} else {
+	} else if (tp->gesture.enabled) {
 		tp_gesture_get_pinch_info(tp,
 					  &tp->gesture.initial_distance,
 					  &tp->gesture.angle,
@@ -318,6 +305,8 @@ tp_gesture_twofinger_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 		tp->gesture.prev_scale = 1.0;
 		return GESTURE_2FG_STATE_PINCH;
 	}
+
+	return GESTURE_2FG_STATE_UNKNOWN;
 }
 
 static enum tp_gesture_2fg_state
@@ -578,6 +567,11 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time)
 int
 tp_init_gesture(struct tp_dispatch *tp)
 {
+	if (tp->device->model_flags & EVDEV_MODEL_JUMPING_SEMI_MT)
+		tp->gesture.enabled = false;
+	else
+		tp->gesture.enabled = true;
+
 	tp->gesture.twofinger_state = GESTURE_2FG_STATE_NONE;
 
 	libinput_timer_init(&tp->gesture.finger_count_switch_timer,

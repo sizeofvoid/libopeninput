@@ -62,6 +62,9 @@ device_added(struct udev_device *udev_device,
 	if (!streq(device_seat, input->seat_id))
 		return 0;
 
+	if (ignore_litest_test_suite_device(udev_device))
+		return 0;
+
 	devnode = udev_device_get_devnode(udev_device);
 
 	/* Search for matching logical seat */

@@ -44,7 +44,7 @@
 #include "libinput-private.h"
 
 #define DEFAULT_WHEEL_CLICK_ANGLE 15
-#define DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT 200
+#define DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT ms2us(200)
 
 enum evdev_key_type {
 	EVDEV_KEY_TYPE_NONE,
@@ -129,7 +129,7 @@ update_key_down_count(struct evdev_device *device, int code, int pressed)
 
 void
 evdev_keyboard_notify_key(struct evdev_device *device,
-			  uint32_t time,
+			  uint64_t time,
 			  int key,
 			  enum libinput_key_state state)
 {
@@ -144,7 +144,7 @@ evdev_keyboard_notify_key(struct evdev_device *device,
 
 void
 evdev_pointer_notify_physical_button(struct evdev_device *device,
-				     uint32_t time,
+				     uint64_t time,
 				     int button,
 				     enum libinput_button_state state)
 {
@@ -159,7 +159,7 @@ evdev_pointer_notify_physical_button(struct evdev_device *device,
 
 void
 evdev_pointer_notify_button(struct evdev_device *device,
-			    uint32_t time,
+			    uint64_t time,
 			    int button,
 			    enum libinput_button_state state)
 {
@@ -457,7 +457,7 @@ evdev_button_scroll_button(struct evdev_device *device,
 {
 	if (is_press) {
 		libinput_timer_set(&device->scroll.timer,
-				time + DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT);
+				   time + DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT);
 		device->scroll.button_down_time = time;
 	} else {
 		libinput_timer_cancel(&device->scroll.timer);
@@ -1271,7 +1271,7 @@ static inline void
 evdev_process_event(struct evdev_device *device, struct input_event *e)
 {
 	struct evdev_dispatch *dispatch = device->dispatch;
-	uint64_t time = e->time.tv_sec * 1000ULL + e->time.tv_usec / 1000;
+	uint64_t time = s2us(e->time.tv_sec) + e->time.tv_usec;
 
 #if 0
 	if (libevdev_event_is_code(e, EV_SYN, SYN_REPORT))
@@ -1543,6 +1543,8 @@ evdev_read_model_flags(struct evdev_device *device)
 		{ "LIBINPUT_MODEL_WACOM_TOUCHPAD", EVDEV_MODEL_WACOM_TOUCHPAD },
 		{ "LIBINPUT_MODEL_ALPS_TOUCHPAD", EVDEV_MODEL_ALPS_TOUCHPAD },
 		{ "LIBINPUT_MODEL_SYNAPTICS_SERIAL_TOUCHPAD", EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD },
+		{ "LIBINPUT_MODEL_JUMPING_SEMI_MT", EVDEV_MODEL_JUMPING_SEMI_MT },
+		{ "LIBINPUT_MODEL_ELANTECH_TOUCHPAD", EVDEV_MODEL_ELANTECH_TOUCHPAD },
 		{ NULL, EVDEV_MODEL_DEFAULT },
 	};
 	const struct model_map *m = model_map;
@@ -1966,7 +1968,6 @@ evdev_configure_device(struct evdev_device *device)
 
 	if (udev_tags & EVDEV_UDEV_TAG_TOUCHPAD) {
 		device->dispatch = evdev_mt_touchpad_create(device);
-		device->seat_caps |= EVDEV_DEVICE_GESTURE;
 		log_info(libinput,
 			 "input device '%s', %s is a touchpad\n",
 			 device->devname, devnode);
@@ -2173,7 +2174,7 @@ evdev_device_create(struct libinput_seat *seat,
 	device->dpi = DEFAULT_MOUSE_DPI;
 
 	/* at most 5 SYN_DROPPED log-messages per 30s */
-	ratelimit_init(&device->syn_drop_limit, 30ULL * 1000, 5);
+	ratelimit_init(&device->syn_drop_limit, s2us(30), 5);
 
 	matrix_init_identity(&device->abs.calibration);
 	matrix_init_identity(&device->abs.usermatrix);

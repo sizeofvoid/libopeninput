@@ -33,3 +33,4 @@ CLEANFILES = $(litest_rules)
 DISTCLEANFILES = \
 		 80-libinput-device-groups.rules \
 		 90-libinput-model-quirks.rules 
+EXTRA_DIST = 80-libinput-test-device.rules

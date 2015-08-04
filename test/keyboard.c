@@ -311,6 +311,35 @@ START_TEST(keyboard_keys_bad_device)
 }
 END_TEST
 
+START_TEST(keyboard_time_usec)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event_keyboard *kev;
+	struct libinput_event *event;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, KEY_A))
+		return;
+
+	litest_drain_events(dev->libinput);
+
+	litest_keyboard_key(dev, KEY_A, true);
+
+	litest_wait_for_event(li);
+
+	event = libinput_get_event(li);
+	kev = litest_is_keyboard_event(event,
+				       KEY_A,
+				       LIBINPUT_KEY_STATE_PRESSED);
+
+	ck_assert_int_eq(libinput_event_keyboard_get_time(kev),
+			 libinput_event_keyboard_get_time_usec(kev) / 1000);
+
+	libinput_event_destroy(event);
+	litest_drain_events(dev->libinput);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -319,4 +348,5 @@ litest_setup_tests(void)
 	litest_add_no_device("keyboard:key counting", keyboard_key_auto_release);
 	litest_add("keyboard:keys", keyboard_has_key, LITEST_KEYS, LITEST_ANY);
 	litest_add("keyboard:keys", keyboard_keys_bad_device, LITEST_ANY, LITEST_ANY);
+	litest_add("keyboard:time", keyboard_time_usec, LITEST_KEYS, LITEST_ANY);
 }

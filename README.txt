@@ -56,6 +56,8 @@ Where possible, please provide an
 [evemu](http://www.freedesktop.org/wiki/Evemu/) recording of the input
 device and/or the event sequence in question.
 
+See @ref reporting_bugs for more info.
+
 Documentation
 -------------
 

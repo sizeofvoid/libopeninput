@@ -53,8 +53,12 @@
 #define UDEV_RULES_D "/run/udev/rules.d"
 #define UDEV_RULE_PREFIX "99-litest-"
 #define UDEV_HWDB_D "/etc/udev/hwdb.d"
-#define UDEV_COMMON_RULE_FILE UDEV_RULES_D "/91-litest-model-quirks-REMOVEME.rules"
-#define UDEV_COMMON_HWDB_FILE UDEV_HWDB_D "/91-litest-model-quirks-REMOVEME.hwdb"
+#define UDEV_MODEL_QUIRKS_RULE_FILE UDEV_RULES_D \
+	"/91-litest-model-quirks-REMOVEME.rules"
+#define UDEV_MODEL_QUIRKS_HWDB_FILE UDEV_HWDB_D \
+	"/91-litest-model-quirks-REMOVEME.hwdb"
+#define UDEV_TEST_DEVICE_RULE_FILE UDEV_RULES_D \
+	"/91-litest-test-device-REMOVEME.rules"
 
 static int in_debugger = -1;
 static int verbose = 0;
@@ -783,6 +787,10 @@ litest_log_handler(struct libinput *libinput,
 
 	fprintf(stderr, "litest %s: ", priority);
 	vfprintf(stderr, format, args);
+
+	if (strstr(format, "client bug: ") ||
+	    strstr(format, "libinput bug: "))
+		litest_abort_msg("libinput bug triggered, aborting.\n");
 }
 
 static int
@@ -957,19 +965,23 @@ litest_install_model_quirks(void)
 			 "# running, remove this file and update your hwdb: \n"
 			 "#       sudo udevadm hwdb --update\n"
 			 "#################################################################\n\n";
-	litest_copy_file(UDEV_COMMON_RULE_FILE,
-			 LIBINPUT_UDEV_RULES_FILE,
+	litest_copy_file(UDEV_MODEL_QUIRKS_RULE_FILE,
+			 LIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE,
 			 warning);
-	litest_copy_file(UDEV_COMMON_HWDB_FILE,
-			 LIBINPUT_UDEV_HWDB_FILE,
+	litest_copy_file(UDEV_MODEL_QUIRKS_HWDB_FILE,
+			 LIBINPUT_MODEL_QUIRKS_UDEV_HWDB_FILE,
+			 warning);
+	litest_copy_file(UDEV_TEST_DEVICE_RULE_FILE,
+			 LIBINPUT_TEST_DEVICE_RULES_FILE,
 			 warning);
 }
 
 static inline void
 litest_remove_model_quirks(void)
 {
-	unlink(UDEV_COMMON_RULE_FILE);
-	unlink(UDEV_COMMON_HWDB_FILE);
+	unlink(UDEV_MODEL_QUIRKS_RULE_FILE);
+	unlink(UDEV_MODEL_QUIRKS_HWDB_FILE);
+	unlink(UDEV_TEST_DEVICE_RULE_FILE);
 }
 
 static void
@@ -1059,6 +1071,7 @@ litest_create(enum litest_device_type which,
 			litest_abort_msg("Custom create cannot be overridden");
 		}
 
+		d->udev_rule_file = udev_file;
 		return d;
 	}
 
@@ -2336,9 +2349,9 @@ litest_assert_scroll(struct libinput *li,
 			}
 		} else {
 			/* Last scroll event, must be 0 */
-			litest_assert_int_eq(
+			ck_assert_double_eq(
 				libinput_event_pointer_get_axis_value(ptrev, axis),
-				0);
+				0.0);
 		}
 		libinput_event_destroy(event);
 		event = next_event;
@@ -2662,6 +2675,7 @@ main(int argc, char **argv)
 	list_init(&all_tests);
 
 	setenv("CK_DEFAULT_TIMEOUT", "10", 0);
+	setenv("LIBINPUT_RUNNING_TEST_SUITE", "1", 1);
 
 	mode = litest_parse_argv(argc, argv);
 	if (mode == LITEST_MODE_ERROR)

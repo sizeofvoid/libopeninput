@@ -27,7 +27,7 @@
 
 #include "evdev.h"
 
-#define MIDDLEBUTTON_TIMEOUT 50
+#define MIDDLEBUTTON_TIMEOUT ms2us(50)
 
 /*****************************************
  * BEFORE YOU EDIT THIS FILE, look at the state diagram in

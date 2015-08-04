@@ -328,4 +328,34 @@ int parse_mouse_wheel_click_angle_property(const char *prop);
 double parse_trackpoint_accel_property(const char *prop);
 bool parse_dimension_property(const char *prop, size_t *width, size_t *height);
 
+static inline uint64_t
+us(uint64_t us)
+{
+	return us;
+}
+
+static inline uint64_t
+ns2us(uint64_t ns)
+{
+	return us(ns / 1000);
+}
+
+static inline uint64_t
+ms2us(uint64_t ms)
+{
+	return us(ms * 1000);
+}
+
+static inline uint64_t
+s2us(uint64_t s)
+{
+	return ms2us(s * 1000);
+}
+
+static inline uint32_t
+us2ms(uint64_t us)
+{
+	return (uint32_t)(us / 1000);
+}
+
 #endif /* LIBINPUT_UTIL_H */

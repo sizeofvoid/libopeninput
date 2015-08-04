@@ -69,6 +69,30 @@ handle_touchpad_alps(struct udev_device *device)
 }
 
 static void
+handle_touchpad_synaptics(struct udev_device *device)
+{
+	const char *product, *props;
+	int bus, vid, pid, version;
+	int prop;
+
+	product = prop_value(device, "PRODUCT");
+	if (!product)
+		return;
+
+	if (sscanf(product, "%x/%x/%x/%x", &bus, &vid, &pid, &version) != 4)
+		return;
+
+	if (bus != BUS_I8042 || vid != 0x2 || pid != 0x7)
+		return;
+
+	props = prop_value(device, "PROP");
+	if (sscanf(props, "%x", &prop) != 1)
+		return;
+	if (prop & (1 << INPUT_PROP_SEMI_MT))
+		printf("LIBINPUT_MODEL_JUMPING_SEMI_MT=1\n");
+}
+
+static void
 handle_touchpad(struct udev_device *device)
 {
 	const char *name = NULL;
@@ -79,6 +103,8 @@ handle_touchpad(struct udev_device *device)
 
 	if (strstr(name, "AlpsPS/2 ALPS") != NULL)
 		handle_touchpad_alps(device);
+	if (strstr(name, "Synaptics ") != NULL)
+		handle_touchpad_synaptics(device);
 }
 
 int main(int argc, char **argv)

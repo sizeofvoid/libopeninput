@@ -26,11 +26,13 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <filter.h>
 #include <getopt.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include <filter.h>
+#include <libinput-util.h>
 
 static void
 print_ptraccel_deltas(struct motion_filter *filter, double step)
@@ -50,7 +52,7 @@ print_ptraccel_deltas(struct motion_filter *filter, double step)
 	for (i = 0.0; i < 15.0; i += step) {
 		motion.x = i;
 		motion.y = 0;
-		time += 12; /* pretend 80Hz data */
+		time += us(12500); /* pretend 80Hz data */
 
 		motion = filter_dispatch(filter, &motion, NULL, time);
 
@@ -93,7 +95,7 @@ print_ptraccel_movement(struct motion_filter *filter,
 	for (i = 0; i < nevents; i++) {
 		motion.x = dx;
 		motion.y = 0;
-		time += 12; /* pretend 80Hz data */
+		time += us(12500); /* pretend 80Hz data */
 
 		motion = filter_dispatch(filter, &motion, NULL, time);
 
@@ -127,7 +129,7 @@ print_ptraccel_sequence(struct motion_filter *filter,
 	for (i = 0; i < nevents; i++, dx++) {
 		motion.x = *dx;
 		motion.y = 0;
-		time += 12; /* pretend 80Hz data */
+		time += us(12500); /* pretend 80Hz data */
 
 		motion = filter_dispatch(filter, &motion, NULL, time);
 

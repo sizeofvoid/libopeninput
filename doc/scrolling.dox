@@ -44,6 +44,13 @@ movements will translate into tiny scroll movements.
 Scrolling in both directions at once is possible by meeting the required
 distance thresholds to enable each direction separately.
 
+Two-finger scrolling requires the touchpad to track both touch points with
+reasonable precision. Unfortunately, some so-called "semi-mt" touchpads can
+only track the bounding box of the two fingers rather than the actual
+position of each finger. In addition, that bounding box usually suffers from
+a low resolution, causing jumpy movement during two-finger scrolling.
+libinput does not provide two-finger scrolling on those touchpads.
+
 @section edge_scrolling Edge scrolling
 
 On some touchpads, edge scrolling is available, triggered by moving a single

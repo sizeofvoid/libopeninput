@@ -85,13 +85,13 @@ filter_get_speed(struct motion_filter *filter)
  * Pointer acceleration filter constants
  */
 
-#define MAX_VELOCITY_DIFF	1.0 /* units/ms */
-#define MOTION_TIMEOUT		1000 /* (ms) */
+#define MAX_VELOCITY_DIFF	1 /* units/ms */
+#define MOTION_TIMEOUT		ms2us(1000)
 #define NUM_POINTER_TRACKERS	16
 
 struct pointer_tracker {
 	struct normalized_coords delta; /* delta to most recent event */
-	uint64_t time;  /* ms */
+	uint64_t time;  /* us */
 	int dir;
 };
 
@@ -150,8 +150,7 @@ static double
 calculate_tracker_velocity(struct pointer_tracker *tracker, uint64_t time)
 {
 	double tdelta = time - tracker->time + 1;
-
-	return normalized_length(tracker->delta) / tdelta; /* units/ms */
+	return normalized_length(tracker->delta) / tdelta * 1000.0; /* units/ms */
 }
 
 static inline double
@@ -257,7 +256,7 @@ calculate_acceleration(struct pointer_accelerator *accel,
 static struct normalized_coords
 accelerator_filter(struct motion_filter *filter,
 		   const struct normalized_coords *unaccelerated,
-		   void *data, uint64_t time)
+		   void *data, uint64_t time /* in us */)
 {
 	struct pointer_accelerator *accel =
 		(struct pointer_accelerator *) filter;
@@ -334,9 +333,9 @@ accelerator_set_speed(struct motion_filter *filter,
 	assert(speed >= -1.0 && speed <= 1.0);
 
 	/* delay when accel kicks in */
-	accel_filter->threshold = DEFAULT_THRESHOLD - speed / 4.0;
-	if (accel_filter->threshold < 0.2)
-		accel_filter->threshold = 0.2;
+	accel_filter->threshold = DEFAULT_THRESHOLD - speed / 4000.0;
+	if (accel_filter->threshold < 0.0002)
+		accel_filter->threshold = 0.0002;
 
 	/* adjust max accel factor */
 	accel_filter->accel = DEFAULT_ACCELERATION + speed * 1.5;
@@ -398,8 +397,8 @@ create_pointer_accelerator_filter(accel_profile_func_t profile,
 double
 pointer_accel_profile_linear_low_dpi(struct motion_filter *filter,
 				     void *data,
-				     double speed_in, /* in device units */
-				     uint64_t time)
+				     double speed_in, /* in device units (units/ms) */
+				     uint64_t time /* in us */)
 {
 	struct pointer_accelerator *accel_filter =
 		(struct pointer_accelerator *)filter;
@@ -413,7 +412,7 @@ pointer_accel_profile_linear_low_dpi(struct motion_filter *filter,
 
 	max_accel /= dpi_factor;
 
-	s1 = min(1, 0.3 + speed_in * 10);
+	s1 = min(1, 0.3 + speed_in * 10.0);
 	s2 = 1 + (speed_in - threshold * dpi_factor) * incline;
 
 	factor = min(max_accel, s2 > 1 ? s2 : s1);
@@ -425,7 +424,7 @@ double
 pointer_accel_profile_linear(struct motion_filter *filter,
 			     void *data,
 			     double speed_in, /* 1000-dpi normalized */
-			     uint64_t time)
+			     uint64_t time /* in us */)
 {
 	struct pointer_accelerator *accel_filter =
 		(struct pointer_accelerator *)filter;
@@ -446,9 +445,9 @@ pointer_accel_profile_linear(struct motion_filter *filter,
 
 double
 touchpad_accel_profile_linear(struct motion_filter *filter,
-                              void *data,
-                              double speed_in,
-                              uint64_t time)
+			      void *data,
+			      double speed_in,
+			      uint64_t time /* in us */)
 {
 	/* Once normalized, touchpads see the same
 	   acceleration as mice. that is technically correct but
@@ -469,7 +468,7 @@ double
 touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
 				      void *data,
 				      double speed_in,
-				      uint64_t time)
+				      uint64_t time /* in us */)
 {
 	/* Keep the magic factor from touchpad_accel_profile_linear.  */
 	const double TP_MAGIC_SLOWDOWN = 0.4;

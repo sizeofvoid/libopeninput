@@ -1,0 +1,88 @@
+/**
+@page reporting_bugs Reporting bugs
+
+A new bug can be filed here:
+https://bugs.freedesktop.org/enter_bug.cgi?product=Wayland&component=libinput
+
+When reporting bugs against libinput, please follow the instructions below
+and provide the required data. This will speed up triage, resulting in a
+quicker bugfix.
+
+First, try to identify the bugi by reproducing it reliably. The more
+specific a bug description is, the easier it is to fix. The @ref
+libinput-debug-events helper tool can help identify whether the bug is in
+libinput at all. This tool is a direct hook to libinput without a desktop
+stack in between and can thus help to identify whether a bug is in libinput
+or in one of the higher layers. See the @ref libinput-debug-events section
+for information on this tool.
+
+@section triage Required information for triage
+
+When you file a bug, please attach the following information:
+- a virtual description of your input device, see @ref evemu. This is the
+  most important piece of information, do not forget it!
+- the libinput version. Either the package version from your distribution
+  or, when running from git: <tt>git log -n 1 HEAD</tt> or <tt>git describe
+  HEAD</tt>. As a last resort: <tt>libinput-list-devices --version</tt>.
+- the current libinput settings for the device. This is a bit harder to
+  obtain, for now we'll assume you are running X11. The current settings can
+  be obtained with <tt>xinput list-props "your device name"</tt>. Use
+  <tt>xinput list</tt> to obtain the device name.
+- if the device is a touchpad or a pointing stick, the vendor model number
+  of your laptop, and the content of <tt>/sys/class/dmi/id/modalias</tt>.
+- if the device is a touchpad, the physical dimensions of your touchpad in
+  mm
+
+@section evemu Recording devices with evemu
+
+<a href="http://www.freedesktop.org/wiki/Evemu/">evemu</a> records the
+device capabilities together with the event stream from the kernel. On our
+side, this allows us to recreate a virtual device identical to your device
+and re-play the event sequence, hopefully triggering the same bug.
+
+evemu-record takes a <tt>/dev/input/eventX</tt> event node, but without arguments
+it will simply show the list of devices and let you select:
+@code
+$ sudo evemu-record > scroll.evemu
+Available devices:
+/dev/input/event0:	Lid Switch
+/dev/input/event1:	Sleep Button
+/dev/input/event2:	Power Button
+/dev/input/event3:	AT Translated Set 2 keyboard
+/dev/input/event4:	SynPS/2 Synaptics TouchPad
+/dev/input/event5:	Video Bus
+/dev/input/event6:	ELAN Touchscreen
+/dev/input/event10:	ThinkPad Extra Buttons
+/dev/input/event11:	HDA Intel HDMI HDMI/DP,pcm=3
+/dev/input/event12:	HDA Intel HDMI HDMI/DP,pcm=7
+/dev/input/event13:	HDA Intel HDMI HDMI/DP,pcm=8
+/dev/input/event14:	HDA Intel PCH Dock Mic
+/dev/input/event15:	HDA Intel PCH Mic
+/dev/input/event16:	HDA Intel PCH Dock Headphone
+/dev/input/event17:	HDA Intel PCH Headphone
+/dev/input/event18:	Integrated Camera
+/dev/input/event19:	TPPS/2 IBM TrackPoint
+Select the device event number [0-19]:
+@endcode
+
+Select the device that triggers the issue, then reproduce the bug and Ctrl+C
+the process. The resulting recording, ("scroll.evemu" in this example) will
+contain the sequence required to reproduce the bug. If the bug fails to
+reproduce during recording, simply Ctrl+C and restart evemu-record.
+Always start the recording from a neutral state, i.e. without any buttons or
+keys down, with the position of the device in the neutral position, without
+touching the screen/touchpad.
+
+@note The longer the recording, the harder it is to identify the event
+sequence triggering the bug. Please keep the event sequence as short as possible.
+
+To verify that the recording contains the bug, you can replay it on your
+device. For example, to replay the sequence recorded in the example above:
+@code
+$ sudo evemu-play /dev/input/event4 < scroll.evemu
+@endcode
+
+If the bug is triggered by replaying on your device, attach the recording to
+the bug report.
+
+*/

@@ -509,6 +509,99 @@ litest_disable_tap(struct libinput_device *device)
 	litest_assert_int_eq(status, expected);
 }
 
+static inline bool
+litest_has_2fg_scroll(struct litest_device *dev)
+{
+	struct libinput_device *device = dev->libinput_device;
+
+	return !!(libinput_device_config_scroll_get_methods(device) &
+		  LIBINPUT_CONFIG_SCROLL_2FG);
+}
+
+static inline void
+litest_enable_2fg_scroll(struct litest_device *dev)
+{
+	enum libinput_config_status status, expected;
+	struct libinput_device *device = dev->libinput_device;
+
+	status = libinput_device_config_scroll_set_method(device,
+					  LIBINPUT_CONFIG_SCROLL_2FG);
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	litest_assert_int_eq(status, expected);
+}
+
+static inline void
+litest_enable_edge_scroll(struct litest_device *dev)
+{
+	enum libinput_config_status status, expected;
+	struct libinput_device *device = dev->libinput_device;
+
+	status = libinput_device_config_scroll_set_method(device,
+					  LIBINPUT_CONFIG_SCROLL_EDGE);
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	litest_assert_int_eq(status, expected);
+}
+
+static inline void
+litest_enable_clickfinger(struct litest_device *dev)
+{
+	enum libinput_config_status status, expected;
+	struct libinput_device *device = dev->libinput_device;
+
+	status = libinput_device_config_click_set_method(device,
+				 LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER);
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	litest_assert_int_eq(status, expected);
+}
+
+static inline void
+litest_enable_buttonareas(struct litest_device *dev)
+{
+	enum libinput_config_status status, expected;
+	struct libinput_device *device = dev->libinput_device;
+
+	status = libinput_device_config_click_set_method(device,
+				 LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS);
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	litest_assert_int_eq(status, expected);
+}
+
+static inline int
+litest_is_synaptics_semi_mt(struct litest_device *dev)
+{
+	struct libevdev *evdev = dev->evdev;
+
+	return libevdev_has_property(evdev, INPUT_PROP_SEMI_MT) &&
+		libevdev_get_id_vendor(evdev) == 0x2 &&
+		libevdev_get_id_product(evdev) == 0x7;
+}
+
+static inline void
+litest_enable_drag_lock(struct libinput_device *device)
+{
+	enum libinput_config_status status, expected;
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_tap_set_drag_lock_enabled(device,
+								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED);
+
+	litest_assert_int_eq(status, expected);
+}
+
+static inline void
+litest_disable_drag_lock(struct libinput_device *device)
+{
+	enum libinput_config_status status, expected;
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_tap_set_drag_lock_enabled(device,
+								  LIBINPUT_CONFIG_DRAG_LOCK_DISABLED);
+
+	litest_assert_int_eq(status, expected);
+}
+
 #define CK_DOUBLE_EQ_EPSILON 1E-3
 #define ck_assert_double_eq(X,Y)  \
 	do { \

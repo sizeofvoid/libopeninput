@@ -596,7 +596,7 @@ START_TEST(ratelimit_helpers)
 	unsigned int i, j;
 
 	/* 10 attempts every 100ms */
-	ratelimit_init(&rl, 100, 10);
+	ratelimit_init(&rl, ms2us(100), 10);
 
 	for (j = 0; j < 3; ++j) {
 		/* a burst of 9 attempts must succeed */
@@ -772,6 +772,16 @@ START_TEST(dimension_prop_parser)
 }
 END_TEST
 
+START_TEST(time_conversion)
+{
+	ck_assert_int_eq(us(10), 10);
+	ck_assert_int_eq(ns2us(10000), 10);
+	ck_assert_int_eq(ms2us(10), 10000);
+	ck_assert_int_eq(s2us(1), 1000000);
+	ck_assert_int_eq(us2ms(10000), 10);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -794,4 +804,5 @@ litest_setup_tests(void)
 	litest_add_no_device("misc:parser", wheel_click_parser);
 	litest_add_no_device("misc:parser", trackpoint_accel_parser);
 	litest_add_no_device("misc:parser", dimension_prop_parser);
+	litest_add_no_device("misc:time", time_conversion);
 }

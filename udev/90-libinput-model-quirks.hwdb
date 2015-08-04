@@ -39,6 +39,7 @@ libinput:touchpad:input:b0005v05ACp*
 ##########################################
 libinput:name:*ETPS/2 Elantech Touchpad*:dmi:*
  LIBINPUT_ATTR_RESOLUTION_HINT=31x31
+ LIBINPUT_MODEL_ELANTECH_TOUCHPAD=1
 
 ##########################################
 # Google

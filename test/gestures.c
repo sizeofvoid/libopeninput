@@ -34,8 +34,12 @@ START_TEST(gestures_cap)
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 
-	ck_assert(libinput_device_has_capability(device,
-						 LIBINPUT_DEVICE_CAP_GESTURE));
+	if (litest_is_synaptics_semi_mt(dev))
+		ck_assert(!libinput_device_has_capability(device,
+					  LIBINPUT_DEVICE_CAP_GESTURE));
+	else
+		ck_assert(libinput_device_has_capability(device,
+					 LIBINPUT_DEVICE_CAP_GESTURE));
 }
 END_TEST
 
@@ -349,6 +353,41 @@ START_TEST(gestures_spread)
 }
 END_TEST
 
+START_TEST(gestures_time_usec)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_gesture *gevent;
+
+	if (libevdev_get_num_slots(dev->evdev) < 3)
+		return;
+
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 40, 40);
+	litest_touch_down(dev, 1, 40, 50);
+	litest_touch_down(dev, 2, 40, 60);
+	libinput_dispatch(li);
+	litest_touch_move_three_touches(dev,
+					40, 40,
+					40, 50,
+					40, 60,
+					0, 30,
+					4, 2);
+
+	litest_wait_for_event(li);
+
+	event = libinput_get_event(li);
+	gevent = litest_is_gesture_event(event,
+					 LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
+					 3);
+	ck_assert_int_eq(libinput_event_gesture_get_time(gevent),
+			 libinput_event_gesture_get_time_usec(gevent) / 1000);
+	libinput_event_destroy(event);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -361,4 +400,6 @@ litest_setup_tests(void)
 	litest_add_ranged("gestures:swipe", gestures_swipe_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add_ranged("gestures:pinch", gestures_pinch, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add_ranged("gestures:pinch", gestures_spread, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
+
+	litest_add("gesture:time", gestures_time_usec, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 }

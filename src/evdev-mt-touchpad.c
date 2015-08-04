@@ -30,9 +30,10 @@
 
 #include "evdev-mt-touchpad.h"
 
-#define DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT 300 /* ms */
-#define DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_1 200 /* ms */
-#define DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_2 500 /* ms */
+#define DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT ms2us(300)
+#define DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_1 ms2us(200)
+#define DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_2 ms2us(500)
+#define THUMB_MOVE_TIMEOUT ms2us(300)
 #define FAKE_FINGER_OVERFLOW (1 << 7)
 
 static inline int
@@ -588,7 +589,7 @@ tp_palm_detect_trackpoint(struct tp_dispatch *tp,
 static void
 tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 {
-	const int PALM_TIMEOUT = 200; /* ms */
+	const int PALM_TIMEOUT = ms2us(200);
 	const int DIRECTIONS = NE|E|SE|SW|W|NW;
 	struct device_float_coords delta;
 	int dirs;
@@ -700,7 +701,7 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 		t->thumb.state = THUMB_STATE_YES;
 	else if (t->point.y > tp->thumb.lower_thumb_line &&
 		 tp->scroll.method != LIBINPUT_CONFIG_SCROLL_EDGE &&
-		 t->thumb.first_touch_time + 300 < time)
+		 t->thumb.first_touch_time + THUMB_MOVE_TIMEOUT < time)
 		t->thumb.state = THUMB_STATE_YES;
 
 	/* now what? we marked it as thumb, so:
@@ -1465,6 +1466,21 @@ tp_init_slots(struct tp_dispatch *tp,
 
 	tp->semi_mt = libevdev_has_property(device->evdev, INPUT_PROP_SEMI_MT);
 
+	/* This device has a terrible resolution when two fingers are down,
+	 * causing scroll jumps. The single-touch emulation ABS_X/Y is
+	 * accurate but the ABS_MT_POSITION touchpoints report the bounding
+	 * box and that causes jumps.  So we simply pretend it's a single
+	 * touch touchpad with the BTN_TOOL bits.
+	 * See https://bugzilla.redhat.com/show_bug.cgi?id=1235175 for an
+	 * explanation.
+	 */
+	if (tp->semi_mt &&
+	    (device->model_flags & EVDEV_MODEL_JUMPING_SEMI_MT)) {
+		tp->num_slots = 1;
+		tp->slot = 0;
+		tp->has_mt = false;
+	}
+
 	ARRAY_FOR_EACH(max_touches, m) {
 		if (libevdev_has_event_code(device->evdev,
 					    EV_KEY,
@@ -1522,16 +1538,23 @@ tp_init_accel(struct tp_dispatch *tp, double diagonal)
 }
 
 static uint32_t
-tp_scroll_config_scroll_method_get_methods(struct libinput_device *device)
+tp_scroll_get_methods(struct tp_dispatch *tp)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
-	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 	uint32_t methods = LIBINPUT_CONFIG_SCROLL_EDGE;
 
 	if (tp->ntouches >= 2)
 		methods |= LIBINPUT_CONFIG_SCROLL_2FG;
 
 	return methods;
+}
+
+static uint32_t
+tp_scroll_config_scroll_method_get_methods(struct libinput_device *device)
+{
+	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+
+	return tp_scroll_get_methods(tp);
 }
 
 static enum libinput_config_status
@@ -1565,10 +1588,21 @@ tp_scroll_config_scroll_method_get_method(struct libinput_device *device)
 static enum libinput_config_scroll_method
 tp_scroll_get_default_method(struct tp_dispatch *tp)
 {
-	if (tp->ntouches >= 2)
-		return LIBINPUT_CONFIG_SCROLL_2FG;
+	uint32_t methods;
+	enum libinput_config_scroll_method method;
+
+	methods = tp_scroll_get_methods(tp);
+
+	if (methods & LIBINPUT_CONFIG_SCROLL_2FG)
+		method = LIBINPUT_CONFIG_SCROLL_2FG;
 	else
-		return LIBINPUT_CONFIG_SCROLL_EDGE;
+		method = LIBINPUT_CONFIG_SCROLL_EDGE;
+
+	if ((methods & method) == 0)
+		log_bug_libinput(tp_libinput_context(tp),
+				 "Invalid default scroll method %d\n",
+				 method);
+	return method;
 }
 
 static enum libinput_config_scroll_method
@@ -1732,19 +1766,29 @@ tp_init_thumb(struct tp_dispatch *tp)
 	if (!tp->buttons.is_clickpad)
 		return 0;
 
-	abs = libevdev_get_abs_info(device->evdev, ABS_MT_PRESSURE);
-	if (!abs)
-		return 0;
-
-	if (abs->maximum - abs->minimum < 255)
-		return 0;
-
 	/* if the touchpad is less than 50mm high, skip thumb detection.
 	 * it's too small to meaningfully interact with a thumb on the
 	 * touchpad */
 	evdev_device_get_size(device, &w, &h);
 	if (h < 50)
 		return 0;
+
+	tp->thumb.detect_thumbs = true;
+	tp->thumb.threshold = INT_MAX;
+
+	/* detect thumbs by pressure in the bottom 15mm, detect thumbs by
+	 * lingering in the bottom 8mm */
+	ymax = tp->device->abs.absinfo_y->maximum;
+	yres = tp->device->abs.absinfo_y->resolution;
+	tp->thumb.upper_thumb_line = ymax - yres * 15;
+	tp->thumb.lower_thumb_line = ymax - yres * 8;
+
+	abs = libevdev_get_abs_info(device->evdev, ABS_MT_PRESSURE);
+	if (!abs)
+		goto out;
+
+	if (abs->maximum - abs->minimum < 255)
+		goto out;
 
 	/* Our reference touchpad is the T440s with 42x42 resolution.
 	 * Higher-res touchpads exhibit higher pressure for the same
@@ -1757,14 +1801,12 @@ tp_init_thumb(struct tp_dispatch *tp)
 	yres = tp->device->abs.absinfo_y->resolution;
 	threshold = 100.0 * hypot(xres, yres)/hypot(42, 42);
 	tp->thumb.threshold = max(100, threshold);
-	tp->thumb.detect_thumbs = true;
 
-	/* detect thumbs by pressure in the bottom 15mm, detect thumbs by
-	 * lingering in the bottom 8mm */
-	ymax = tp->device->abs.absinfo_y->maximum;
-	yres = tp->device->abs.absinfo_y->resolution;
-	tp->thumb.upper_thumb_line = ymax - yres * 15;
-	tp->thumb.lower_thumb_line = ymax - yres * 8;
+out:
+	log_debug(tp_libinput_context(tp),
+		  "thumb: enabled thumb detection%s on '%s'\n",
+		  tp->thumb.threshold != INT_MAX ? " (+pressure)" : "",
+		  device->devname);
 
 	return 0;
 }
@@ -1892,6 +1934,8 @@ tp_init(struct tp_dispatch *tp,
 		return -1;
 
 	device->seat_caps |= EVDEV_DEVICE_POINTER;
+	if (tp->gesture.enabled)
+		device->seat_caps |= EVDEV_DEVICE_GESTURE;
 
 	return 0;
 }

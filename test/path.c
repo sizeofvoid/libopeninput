@@ -331,7 +331,9 @@ START_TEST(path_add_invalid_path)
 
 	li = litest_create_context();
 
+	litest_disable_log_handler(li);
 	device = libinput_path_add_device(li, "/tmp/");
+	litest_restore_log_handler(li);
 	ck_assert(device == NULL);
 
 	libinput_dispatch(li);
