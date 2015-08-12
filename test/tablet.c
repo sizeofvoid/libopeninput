@@ -1715,6 +1715,33 @@ START_TEST(artpen_rotation)
 }
 END_TEST
 
+START_TEST(tablet_time_usec)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ -1, -1 }
+	};
+
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	libinput_dispatch(li);
+
+	litest_wait_for_event_of_type(li,
+				      LIBINPUT_EVENT_TABLET_PROXIMITY,
+				      -1);
+	event = libinput_get_event(li);
+	tev = libinput_event_get_tablet_event(event);
+	ck_assert_int_eq(libinput_event_tablet_get_time(tev),
+			 libinput_event_tablet_get_time_usec(tev) / 1000);
+	libinput_event_destroy(event);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -1746,4 +1773,6 @@ litest_setup_tests(void)
 	litest_add("tablet:airbrush", airbrush_wheel, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:artpen", artpen_tool, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:artpen", artpen_rotation, LITEST_TABLET, LITEST_ANY);
+
+	litest_add("tablet:time", tablet_time_usec, LITEST_TABLET, LITEST_ANY);
 }
