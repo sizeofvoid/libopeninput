@@ -25,16 +25,16 @@ movement speed increases, acceleration is applied - at high speeds a low-dpi
 device will roughly feel the same as a higher-dpi mouse.
 
 This normalization only applies to accelerated coordinates, unaccelerated
-coordiantes are left in device-units. It is up to the caller to interpret
+coordinates are left in device-units. It is up to the caller to interpret
 those coordinates correctly.
 
 @section Normalization of touchpad coordinates
 
 Touchpads may have a different resolution for the horizontal and vertical
-axis. Interpreting coordinates from the touchpad without taking resolutino
+axis. Interpreting coordinates from the touchpad without taking resolution
 into account results in uneven motion.
 
-libinput scales unaccelerated touchpad motion do the resolution of the
+libinput scales unaccelerated touchpad motion to the resolution of the
 touchpad's x axis, i.e. the unaccelerated value for the y axis is:
      y = (x / resolution_x) * resolution_y
 

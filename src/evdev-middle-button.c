@@ -640,9 +640,7 @@ evdev_middlebutton_handle_timeout(uint64_t now, void *data)
 {
 	struct evdev_device *device = (struct evdev_device*)data;
 
-	evdev_middlebutton_handle_event(device,
-					libinput_now(device->base.seat->libinput),
-					MIDDLEBUTTON_EVENT_TIMEOUT);
+	evdev_middlebutton_handle_event(device, now, MIDDLEBUTTON_EVENT_TIMEOUT);
 }
 
 static int

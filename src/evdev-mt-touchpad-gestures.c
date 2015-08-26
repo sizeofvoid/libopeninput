@@ -328,7 +328,8 @@ tp_gesture_twofinger_handle_state_scroll(struct tp_dispatch *tp, uint64_t time)
 		delta = tp_get_average_touches_delta(tp);
 	}
 
-	delta = tp_filter_motion(tp, &delta, time);
+	/* scroll is not accelerated */
+	delta = tp_filter_motion_unaccelerated(tp, &delta, time);
 
 	if (normalized_is_zero(delta))
 		return GESTURE_2FG_STATE_SCROLL;

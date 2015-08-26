@@ -67,7 +67,7 @@ or height. Note that rotation applies to the device's origin, rotation
 usually requires an offset to move the coordinates back into the original
 range.
 
-The most comon matrices are:
+The most common matrices are:
 
 - 90 degree clockwise:
 @f$

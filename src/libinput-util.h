@@ -45,12 +45,6 @@
 
 #define CASE_RETURN_STRING(a) case a: return #a;
 
-void
-set_logging_enabled(int enabled);
-
-void
-log_info(const char *format, ...);
-
 /*
  * This list data structure is a verbatim copy from wayland-util.h from the
  * Wayland project; except that wl_ prefix has been removed.

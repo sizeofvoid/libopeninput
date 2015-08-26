@@ -40,7 +40,7 @@ disabled with libinput_device_config_tap_set_drag_lock_enabled().
 The above diagram explains the process, a tap (a) followed by a finger held
 down (b) starts the drag process and logically holds the left mouse button
 down. A movement of the finger (c) will drag the selected item until the
-finger is relased (e). If needed and drag lock is enabled, the finger's
+finger is released (e). If needed and drag lock is enabled, the finger's
 position can be reset by lifting and quickly setting it down again on the
 touchpad (d). This will be interpreted as continuing move and is especially
 useful on small touchpads or with slow pointer acceleration.

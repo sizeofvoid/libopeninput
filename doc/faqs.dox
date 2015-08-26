@@ -30,7 +30,7 @@ scroll_sources.
 @section faq_gpl Is libinput GPL-licensed?
 
 No, libinput is MIT licensed. The Linux kernel header file linux/input.h in
-libinput's tree is provded to ensure the same behavior regardless of which
+libinput's tree is provided to ensure the same behavior regardless of which
 kernel version libinput is built on. It does not make libinput GPL-licensed.
 
 @section faq_config_options Where is the configuration stored?

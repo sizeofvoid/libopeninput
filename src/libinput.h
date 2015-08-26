@@ -1031,7 +1031,8 @@ libinput_event_touch_get_seat_slot(struct libinput_event_touch *event);
  * LIBINPUT_EVENT_TOUCH_MOTION, this function returns 0.
  *
  * @note It is an application bug to call this function for events of type
- * @ref LIBINPUT_EVENT_TOUCH_DOWN or @ref LIBINPUT_EVENT_TOUCH_MOTION.
+ * other than @ref LIBINPUT_EVENT_TOUCH_DOWN or @ref
+ * LIBINPUT_EVENT_TOUCH_MOTION.
  *
  * @param event The libinput touch event
  * @return The current absolute x coordinate
@@ -1050,7 +1051,8 @@ libinput_event_touch_get_x(struct libinput_event_touch *event);
  * LIBINPUT_EVENT_TOUCH_MOTION, this function returns 0.
  *
  * @note It is an application bug to call this function for events of type
- * @ref LIBINPUT_EVENT_TOUCH_DOWN or @ref LIBINPUT_EVENT_TOUCH_MOTION.
+ * other than @ref LIBINPUT_EVENT_TOUCH_DOWN or @ref
+ * LIBINPUT_EVENT_TOUCH_MOTION.
  *
  * @param event The libinput touch event
  * @return The current absolute y coordinate
@@ -1068,7 +1070,8 @@ libinput_event_touch_get_y(struct libinput_event_touch *event);
  * LIBINPUT_EVENT_TOUCH_MOTION, this function returns 0.
  *
  * @note It is an application bug to call this function for events of type
- * @ref LIBINPUT_EVENT_TOUCH_DOWN or @ref LIBINPUT_EVENT_TOUCH_MOTION.
+ * other than @ref LIBINPUT_EVENT_TOUCH_DOWN or @ref
+ * LIBINPUT_EVENT_TOUCH_MOTION.
  *
  * @param event The libinput touch event
  * @param width The current output screen width
@@ -1088,7 +1091,8 @@ libinput_event_touch_get_x_transformed(struct libinput_event_touch *event,
  * LIBINPUT_EVENT_TOUCH_MOTION, this function returns 0.
  *
  * @note It is an application bug to call this function for events of type
- * @ref LIBINPUT_EVENT_TOUCH_DOWN or @ref LIBINPUT_EVENT_TOUCH_MOTION.
+ * other than @ref LIBINPUT_EVENT_TOUCH_DOWN or @ref
+ * LIBINPUT_EVENT_TOUCH_MOTION.
  *
  * @param event The libinput touch event
  * @param height The current output screen height

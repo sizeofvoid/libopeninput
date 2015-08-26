@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 	if (!device)
 		goto out;
 
-	if (udev_device_get_property_value(device, "ID_INPUT_TOUCHPAD"))
+	if (prop_value(device, "ID_INPUT_TOUCHPAD"))
 		handle_touchpad(device);
 
 	rc = 0;

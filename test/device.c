@@ -1046,6 +1046,156 @@ START_TEST(device_udev_tag_wacom_tablet)
 }
 END_TEST
 
+START_TEST(device_nonpointer_rel)
+{
+	struct libevdev_uinput *uinput;
+	struct libinput *li;
+	struct libinput_device *device;
+	int i;
+
+	uinput = litest_create_uinput_device("test device",
+					     NULL,
+					     EV_KEY, KEY_A,
+					     EV_KEY, KEY_B,
+					     EV_REL, REL_X,
+					     EV_REL, REL_Y,
+					     -1);
+	li = litest_create_context();
+	device = libinput_path_add_device(li,
+					  libevdev_uinput_get_devnode(uinput));
+	ck_assert(device != NULL);
+
+	litest_disable_log_handler(li);
+	for (i = 0; i < 100; i++) {
+		libevdev_uinput_write_event(uinput, EV_REL, REL_X, 1);
+		libevdev_uinput_write_event(uinput, EV_REL, REL_Y, -1);
+		libevdev_uinput_write_event(uinput, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+	litest_restore_log_handler(li);
+
+	libinput_unref(li);
+	libevdev_uinput_destroy(uinput);
+}
+END_TEST
+
+START_TEST(device_touchpad_rel)
+{
+	struct libevdev_uinput *uinput;
+	struct libinput *li;
+	struct libinput_device *device;
+	const struct input_absinfo abs[] = {
+		{ ABS_X, 0, 10, 0, 0, 10 },
+		{ ABS_Y, 0, 10, 0, 0, 10 },
+		{ ABS_MT_SLOT, 0, 2, 0, 0, 0 },
+		{ ABS_MT_TRACKING_ID, 0, 255, 0, 0, 0 },
+		{ ABS_MT_POSITION_X, 0, 10, 0, 0, 10 },
+		{ ABS_MT_POSITION_Y, 0, 10, 0, 0, 10 },
+		{ -1, -1, -1, -1, -1, -1 }
+	};
+	int i;
+
+	uinput = litest_create_uinput_abs_device("test device",
+						 NULL, abs,
+						 EV_KEY, BTN_TOOL_FINGER,
+						 EV_KEY, BTN_TOUCH,
+						 EV_REL, REL_X,
+						 EV_REL, REL_Y,
+						 -1);
+	li = litest_create_context();
+	device = libinput_path_add_device(li,
+					  libevdev_uinput_get_devnode(uinput));
+	ck_assert(device != NULL);
+
+	for (i = 0; i < 100; i++) {
+		libevdev_uinput_write_event(uinput, EV_REL, REL_X, 1);
+		libevdev_uinput_write_event(uinput, EV_REL, REL_Y, -1);
+		libevdev_uinput_write_event(uinput, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+
+	libinput_unref(li);
+	libevdev_uinput_destroy(uinput);
+}
+END_TEST
+
+START_TEST(device_touch_rel)
+{
+	struct libevdev_uinput *uinput;
+	struct libinput *li;
+	struct libinput_device *device;
+	const struct input_absinfo abs[] = {
+		{ ABS_X, 0, 10, 0, 0, 10 },
+		{ ABS_Y, 0, 10, 0, 0, 10 },
+		{ ABS_MT_SLOT, 0, 2, 0, 0, 0 },
+		{ ABS_MT_TRACKING_ID, 0, 255, 0, 0, 0 },
+		{ ABS_MT_POSITION_X, 0, 10, 0, 0, 10 },
+		{ ABS_MT_POSITION_Y, 0, 10, 0, 0, 10 },
+		{ -1, -1, -1, -1, -1, -1 }
+	};
+	int i;
+
+	uinput = litest_create_uinput_abs_device("test device",
+						 NULL, abs,
+						 EV_KEY, BTN_TOUCH,
+						 EV_REL, REL_X,
+						 EV_REL, REL_Y,
+						 -1);
+	li = litest_create_context();
+	device = libinput_path_add_device(li,
+					  libevdev_uinput_get_devnode(uinput));
+	ck_assert(device != NULL);
+
+	litest_disable_log_handler(li);
+	for (i = 0; i < 100; i++) {
+		libevdev_uinput_write_event(uinput, EV_REL, REL_X, 1);
+		libevdev_uinput_write_event(uinput, EV_REL, REL_Y, -1);
+		libevdev_uinput_write_event(uinput, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+	litest_restore_log_handler(li);
+
+	libinput_unref(li);
+	libevdev_uinput_destroy(uinput);
+}
+END_TEST
+
+START_TEST(device_abs_rel)
+{
+	struct libevdev_uinput *uinput;
+	struct libinput *li;
+	struct libinput_device *device;
+	const struct input_absinfo abs[] = {
+		{ ABS_X, 0, 10, 0, 0, 10 },
+		{ ABS_Y, 0, 10, 0, 0, 10 },
+		{ -1, -1, -1, -1, -1, -1 }
+	};
+	int i;
+
+	uinput = litest_create_uinput_abs_device("test device",
+						 NULL, abs,
+						 EV_KEY, BTN_TOUCH,
+						 EV_KEY, BTN_LEFT,
+						 EV_REL, REL_X,
+						 EV_REL, REL_Y,
+						 -1);
+	li = litest_create_context();
+	device = libinput_path_add_device(li,
+					  libevdev_uinput_get_devnode(uinput));
+	ck_assert(device != NULL);
+
+	for (i = 0; i < 100; i++) {
+		libevdev_uinput_write_event(uinput, EV_REL, REL_X, 1);
+		libevdev_uinput_write_event(uinput, EV_REL, REL_Y, -1);
+		libevdev_uinput_write_event(uinput, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+
+	libinput_unref(li);
+	libevdev_uinput_destroy(uinput);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -1094,4 +1244,9 @@ litest_setup_tests(void)
 	litest_add("device:udev tags", device_udev_tag_apple, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("device:udev tags", device_udev_tag_synaptics_serial, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("device:udev tags", device_udev_tag_wacom_tablet, LITEST_TABLET, LITEST_ANY);
+
+	litest_add_no_device("device:invalid rel events", device_nonpointer_rel);
+	litest_add_no_device("device:invalid rel events", device_touchpad_rel);
+	litest_add_no_device("device:invalid rel events", device_touch_rel);
+	litest_add_no_device("device:invalid rel events", device_abs_rel);
 }

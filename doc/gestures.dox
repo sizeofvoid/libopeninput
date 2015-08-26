@@ -82,7 +82,7 @@ screen as well as the context of those virtual objects:
 @image html touchscreen-gestures.svg "Context-sensitivity of touchscreen gestures"
 
 In this example, the finger movements are identical but in the left case
-both fingers are located within the same window, thus suggesting an attemp
+both fingers are located within the same window, thus suggesting an attempt
 to zoom. In the right case  both fingers are located on a window border,
 thus suggesting a window movement. libinput only has knowledge of the finger
 coordinates (and even then only in device coordinates, not in screen

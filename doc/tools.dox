@@ -8,7 +8,7 @@ tools are usually installed, others are @ref developer_tools only.
 
 libinput ships with two tools to gather information about devices:
 @ref libinput-list-devices and @ref libinput-debug-events. Both tools must
-be run as root to have acess to the kernel's @c /dev/input/event* device
+be run as root to have access to the kernel's @c /dev/input/event* device
 files.
 
 @subsection libinput-list-devices
@@ -97,6 +97,6 @@ $ sudo ./tools/event-gui
 See the @c --help output for information about the available options.
 
 @note The @c --grab flag puts an exclusive @c EVIOCGRAB on the device to
-avoid interference with the desktiop while testing.
+avoid interference with the desktop while testing.
 
 */

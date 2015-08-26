@@ -1,7 +1,7 @@
 AC_PREREQ([2.64])
 
-m4_define([libinput_major_version], [0])
-m4_define([libinput_minor_version], [21])
+m4_define([libinput_major_version], [1])
+m4_define([libinput_minor_version], [0])
 m4_define([libinput_micro_version], [0])
 m4_define([libinput_version],
           [libinput_major_version.libinput_minor_version.libinput_micro_version])
@@ -31,7 +31,7 @@ AM_INIT_AUTOMAKE([1.11 foreign no-dist-gzip dist-xz])
 # b) If interfaces have been changed or added, but binary compatibility has
 #    been preserved, change to C+1:0:A+1
 # c) If the interface is the same as the previous version, change to C:R+1:A
-LIBINPUT_LT_VERSION=15:0:5
+LIBINPUT_LT_VERSION=15:2:5
 AC_SUBST(LIBINPUT_LT_VERSION)
 
 AM_SILENT_RULES([yes])
@@ -60,13 +60,22 @@ PKG_PROG_PKG_CONFIG()
 PKG_CHECK_MODULES(MTDEV, [mtdev >= 1.1.0])
 PKG_CHECK_MODULES(LIBUDEV, [libudev])
 PKG_CHECK_MODULES(LIBEVDEV, [libevdev >= 0.4])
-PKG_CHECK_MODULES(LIBUNWIND,
+
+AC_ARG_WITH(libunwind,
+            AS_HELP_STRING([--without-libunwind],[Do not use libunwind]))
+
+AS_IF([test "x$with_libunwind" != "xno"],
+	[PKG_CHECK_MODULES(LIBUNWIND,
 		  [libunwind],
 		  [HAVE_LIBUNWIND=yes],
-		  [HAVE_LIBUNWIND=no])
-if test "x$HAVE_LIBUNWIND" = "xyes"; then
-	AC_DEFINE(HAVE_LIBUNWIND, 1, [Have libunwind support])
-fi
+		  [HAVE_LIBUNWIND=no])],
+	[HAVE_LIBUNWIND=no])
+
+AS_IF([test "x$HAVE_LIBUNWIND" = "xyes"],
+	[AC_DEFINE(HAVE_LIBUNWIND, 1, [Have libunwind support])],
+	[AS_IF([test "x$with_libunwind" = "xyes"],
+		[AC_MSG_ERROR([libunwind requested but not found])])])
+
 AM_CONDITIONAL(HAVE_LIBUNWIND, [test "x$HAVE_LIBUNWIND" = xyes])
 AC_PATH_PROG(ADDR2LINE, [addr2line])
 if test "x$ADDR2LINE" != "x"; then

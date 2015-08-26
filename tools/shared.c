@@ -166,131 +166,131 @@ tools_parse_args(int argc, char **argv, struct tools_context *context)
 			break;
 
 		switch(c) {
-			case 'h':
-			case OPT_HELP:
-				tools_usage();
-				exit(0);
-			case OPT_DEVICE:
-				options->backend = BACKEND_DEVICE;
-				if (!optarg) {
-					tools_usage();
-					return 1;
-				}
-				options->device = optarg;
-				break;
-			case OPT_UDEV:
-				options->backend = BACKEND_UDEV;
-				if (optarg)
-					options->seat = optarg;
-				break;
-			case OPT_GRAB:
-				options->grab = 1;
-				break;
-			case OPT_VERBOSE:
-				options->verbose = 1;
-				break;
-			case OPT_TAP_ENABLE:
-				options->tapping = 1;
-				break;
-			case OPT_TAP_DISABLE:
-				options->tapping = 0;
-				break;
-			case OPT_DRAG_LOCK_ENABLE:
-				options->drag_lock = 1;
-				break;
-			case OPT_DRAG_LOCK_DISABLE:
-				options->drag_lock = 0;
-				break;
-			case OPT_NATURAL_SCROLL_ENABLE:
-				options->natural_scroll = 1;
-				break;
-			case OPT_NATURAL_SCROLL_DISABLE:
-				options->natural_scroll = 0;
-				break;
-			case OPT_LEFT_HANDED_ENABLE:
-				options->left_handed = 1;
-				break;
-			case OPT_LEFT_HANDED_DISABLE:
-				options->left_handed = 0;
-				break;
-			case OPT_MIDDLEBUTTON_ENABLE:
-				options->middlebutton = 1;
-				break;
-			case OPT_MIDDLEBUTTON_DISABLE:
-				options->middlebutton = 0;
-				break;
-			case OPT_DWT_ENABLE:
-				options->dwt = LIBINPUT_CONFIG_DWT_ENABLED;
-				break;
-			case OPT_DWT_DISABLE:
-				options->dwt = LIBINPUT_CONFIG_DWT_DISABLED;
-				break;
-			case OPT_CLICK_METHOD:
-				if (!optarg) {
-					tools_usage();
-					return 1;
-				}
-				if (streq(optarg, "none")) {
-					options->click_method =
-						LIBINPUT_CONFIG_CLICK_METHOD_NONE;
-				} else if (streq(optarg, "clickfinger")) {
-					options->click_method =
-						LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
-				} else if (streq(optarg, "buttonareas")) {
-					options->click_method =
-						LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS;
-				} else {
-					tools_usage();
-					return 1;
-				}
-				break;
-			case OPT_SCROLL_METHOD:
-				if (!optarg) {
-					tools_usage();
-					return 1;
-				}
-				if (streq(optarg, "none")) {
-					options->scroll_method =
-						LIBINPUT_CONFIG_SCROLL_NO_SCROLL;
-				} else if (streq(optarg, "twofinger")) {
-					options->scroll_method =
-						LIBINPUT_CONFIG_SCROLL_2FG;
-				} else if (streq(optarg, "edge")) {
-					options->scroll_method =
-						LIBINPUT_CONFIG_SCROLL_EDGE;
-				} else if (streq(optarg, "button")) {
-					options->scroll_method =
-						LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN;
-				} else {
-					tools_usage();
-					return 1;
-				}
-				break;
-			case OPT_SCROLL_BUTTON:
-				if (!optarg) {
-					tools_usage();
-					return 1;
-				}
-				options->scroll_button =
-					libevdev_event_code_from_name(EV_KEY,
-								      optarg);
-				if (options->scroll_button == -1) {
-					fprintf(stderr,
-						"Invalid button %s\n",
-						optarg);
-					return 1;
-				}
-				break;
-			case OPT_SPEED:
-				if (!optarg) {
-					tools_usage();
-					return 1;
-				}
-				options->speed = atof(optarg);
-				break;
-			default:
+		case 'h':
+		case OPT_HELP:
+			tools_usage();
+			exit(0);
+		case OPT_DEVICE:
+			options->backend = BACKEND_DEVICE;
+			if (!optarg) {
 				tools_usage();
 				return 1;
+			}
+			options->device = optarg;
+			break;
+		case OPT_UDEV:
+			options->backend = BACKEND_UDEV;
+			if (optarg)
+				options->seat = optarg;
+			break;
+		case OPT_GRAB:
+			options->grab = 1;
+			break;
+		case OPT_VERBOSE:
+			options->verbose = 1;
+			break;
+		case OPT_TAP_ENABLE:
+			options->tapping = 1;
+			break;
+		case OPT_TAP_DISABLE:
+			options->tapping = 0;
+			break;
+		case OPT_DRAG_LOCK_ENABLE:
+			options->drag_lock = 1;
+			break;
+		case OPT_DRAG_LOCK_DISABLE:
+			options->drag_lock = 0;
+			break;
+		case OPT_NATURAL_SCROLL_ENABLE:
+			options->natural_scroll = 1;
+			break;
+		case OPT_NATURAL_SCROLL_DISABLE:
+			options->natural_scroll = 0;
+			break;
+		case OPT_LEFT_HANDED_ENABLE:
+			options->left_handed = 1;
+			break;
+		case OPT_LEFT_HANDED_DISABLE:
+			options->left_handed = 0;
+			break;
+		case OPT_MIDDLEBUTTON_ENABLE:
+			options->middlebutton = 1;
+			break;
+		case OPT_MIDDLEBUTTON_DISABLE:
+			options->middlebutton = 0;
+			break;
+		case OPT_DWT_ENABLE:
+			options->dwt = LIBINPUT_CONFIG_DWT_ENABLED;
+			break;
+		case OPT_DWT_DISABLE:
+			options->dwt = LIBINPUT_CONFIG_DWT_DISABLED;
+			break;
+		case OPT_CLICK_METHOD:
+			if (!optarg) {
+				tools_usage();
+				return 1;
+			}
+			if (streq(optarg, "none")) {
+				options->click_method =
+				LIBINPUT_CONFIG_CLICK_METHOD_NONE;
+			} else if (streq(optarg, "clickfinger")) {
+				options->click_method =
+				LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
+			} else if (streq(optarg, "buttonareas")) {
+				options->click_method =
+				LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS;
+			} else {
+				tools_usage();
+				return 1;
+			}
+			break;
+		case OPT_SCROLL_METHOD:
+			if (!optarg) {
+				tools_usage();
+				return 1;
+			}
+			if (streq(optarg, "none")) {
+				options->scroll_method =
+				LIBINPUT_CONFIG_SCROLL_NO_SCROLL;
+			} else if (streq(optarg, "twofinger")) {
+				options->scroll_method =
+				LIBINPUT_CONFIG_SCROLL_2FG;
+			} else if (streq(optarg, "edge")) {
+				options->scroll_method =
+				LIBINPUT_CONFIG_SCROLL_EDGE;
+			} else if (streq(optarg, "button")) {
+				options->scroll_method =
+				LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN;
+			} else {
+				tools_usage();
+				return 1;
+			}
+			break;
+		case OPT_SCROLL_BUTTON:
+			if (!optarg) {
+				tools_usage();
+				return 1;
+			}
+			options->scroll_button =
+			libevdev_event_code_from_name(EV_KEY,
+						      optarg);
+			if (options->scroll_button == -1) {
+				fprintf(stderr,
+					"Invalid button %s\n",
+					optarg);
+				return 1;
+			}
+			break;
+		case OPT_SPEED:
+			if (!optarg) {
+				tools_usage();
+				return 1;
+			}
+			options->speed = atof(optarg);
+			break;
+		default:
+			tools_usage();
+			return 1;
 		}
 
 	}

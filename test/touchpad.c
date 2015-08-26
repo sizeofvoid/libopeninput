@@ -150,20 +150,17 @@ START_TEST(touchpad_2fg_scroll_slow_distance)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	struct libinput_event_pointer *ptrev;
-	const struct input_absinfo *y;
-	double y_move;
+	double width, height;
+	double y_move = 100;
 
 	if (!litest_has_2fg_scroll(dev))
 		return;
 
 	/* We want to move > 5 mm. */
-	y = libevdev_get_abs_info(dev->evdev, ABS_Y);
-	if (y->resolution) {
-		y_move = 7.0 * y->resolution /
-					(y->maximum - y->minimum) * 100;
-	} else {
-		y_move = 20.0;
-	}
+	ck_assert_int_eq(libinput_device_get_size(dev->libinput_device,
+						  &width,
+						  &height), 0);
+	y_move = 100.0/height * 7;
 
 	litest_enable_2fg_scroll(dev);
 	litest_drain_events(li);
@@ -350,6 +347,35 @@ START_TEST(touchpad_scroll_natural_2fg)
 }
 END_TEST
 
+START_TEST(touchpad_scroll_natural_edge)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_enable_edge_scroll(dev);
+	litest_drain_events(li);
+
+	libinput_device_config_scroll_set_natural_scroll_enabled(dev->libinput_device, 1);
+
+	litest_touch_down(dev, 0, 99, 20);
+	litest_touch_move_to(dev, 0, 99, 20, 99, 80, 10, 0);
+	litest_touch_up(dev, 0);
+
+	libinput_dispatch(li);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, -4);
+	litest_assert_empty_queue(li);
+
+	litest_touch_down(dev, 0, 99, 80);
+	litest_touch_move_to(dev, 0, 99, 80, 99, 20, 10, 0);
+	litest_touch_up(dev, 0);
+
+	libinput_dispatch(li);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, 4);
+	litest_assert_empty_queue(li);
+
+}
+END_TEST
+
 START_TEST(touchpad_edge_scroll)
 {
 	struct litest_device *dev = litest_current_device();
@@ -437,53 +463,59 @@ START_TEST(touchpad_edge_scroll_timeout)
 	struct libinput_event *event;
 	struct libinput_event_pointer *ptrev;
 	double width = 0, height = 0;
-	int y_movement = 30; /* in percent of height */
+	int nevents = 0;
+	double mm; /* one mm in percent of the device */
 
-	/* account for different touchpad heights, let's move 100% on a 15mm
-	   high touchpad, less on anything else. This number is picked at
-	   random, we just want deltas less than 5.
-	   */
-	if (libinput_device_get_size(dev->libinput_device,
-				     &width,
-				     &height) != -1) {
-		y_movement = 100 * 15/height;
-	}
+	ck_assert_int_eq(libinput_device_get_size(dev->libinput_device,
+						  &width,
+						  &height), 0);
+	mm = 100.0/height;
+
+	/* timeout-based scrolling is disabled when software buttons are
+	 * active, so switch to clickfinger. Not all test devices support
+	 * that, hence the extra check. */
+	if (libinput_device_config_click_get_methods(dev->libinput_device) &
+	    LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER)
+		litest_enable_clickfinger(dev);
 
 	litest_drain_events(li);
 	litest_enable_edge_scroll(dev);
 
+	/* move 0.5mm, enough to load up the motion history, but less than
+	 * the scroll threshold of 2mm */
 	litest_touch_down(dev, 0, 99, 20);
+	litest_touch_move_to(dev, 0, 99, 20, 99, 20 + mm/2, 8, 0);
 	libinput_dispatch(li);
+	litest_assert_empty_queue(li);
+
 	litest_timeout_edgescroll();
 	libinput_dispatch(li);
 
-	litest_touch_move_to(dev, 0, 99, 20, 99, 20 + y_movement, 100, 10);
+	litest_assert_empty_queue(li);
+
+	/* now move slowly up to the 2mm scroll threshold. we expect events */
+	litest_touch_move_to(dev, 0, 99, 20 + mm/2, 99, 20 + mm * 2, 20, 0);
 	litest_touch_up(dev, 0);
 	libinput_dispatch(li);
 
-	event = libinput_get_event(li);
-	ck_assert_notnull(event);
-
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS, -1);
 
-	while (libinput_next_event_type(li) != LIBINPUT_EVENT_NONE) {
-		double axisval;
-		ck_assert_int_eq(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_POINTER_AXIS);
-		ptrev = libinput_event_get_pointer_event(event);
+	while ((event = libinput_get_event(li))) {
+		double value;
 
-		axisval = libinput_event_pointer_get_axis_value(ptrev,
-				 LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
-		ck_assert(axisval > 0.0);
-
-		/* this is to verify we test the right thing, if the value
-		   is greater than scroll.threshold we triggered the wrong
-		   condition */
-		ck_assert(axisval < 5.0);
-
+		ptrev = litest_is_axis_event(event,
+					     LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+					     0);
+		value = libinput_event_pointer_get_axis_value(ptrev,
+							      LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+		ck_assert_double_lt(value, 5.0);
 		libinput_event_destroy(event);
-		event = libinput_get_event(li);
+		nevents++;
 	}
+
+	/* we sent 20 events but allow for some to be swallowed by rounding
+	 * errors, the hysteresis, etc. */
+	ck_assert_int_ge(nevents, 10);
 
 	litest_assert_empty_queue(li);
 	libinput_event_destroy(event);
@@ -3450,6 +3482,7 @@ litest_setup_tests(void)
 	litest_add("touchpad:scroll", touchpad_scroll_natural_defaults, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:scroll", touchpad_scroll_natural_enable_config, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:scroll", touchpad_scroll_natural_2fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add("touchpad:scroll", touchpad_scroll_natural_edge, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:scroll", touchpad_scroll_defaults, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:scroll", touchpad_edge_scroll, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:scroll", touchpad_edge_scroll_no_motion, LITEST_TOUCHPAD, LITEST_ANY);

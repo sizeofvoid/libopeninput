@@ -8,7 +8,7 @@ When reporting bugs against libinput, please follow the instructions below
 and provide the required data. This will speed up triage, resulting in a
 quicker bugfix.
 
-First, try to identify the bugi by reproducing it reliably. The more
+First, try to identify the bug by reproducing it reliably. The more
 specific a bug description is, the easier it is to fix. The @ref
 libinput-debug-events helper tool can help identify whether the bug is in
 libinput at all. This tool is a direct hook to libinput without a desktop
@@ -84,5 +84,11 @@ $ sudo evemu-play /dev/input/event4 < scroll.evemu
 
 If the bug is triggered by replaying on your device, attach the recording to
 the bug report.
+
+@note libinput does not affect the evemu recording. libinput and evemu talk
+directly to the kernel's device nodes. An evemu recording is not influenced
+by the libinput version or whether a libinput context is currently active.
+
+@dotfile evemu.gv
 
 */

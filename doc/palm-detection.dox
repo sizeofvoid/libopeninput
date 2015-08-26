@@ -46,10 +46,10 @@ will generate a button event for this touch.
 
 If a device provides a <a
 href="http://en.wikipedia.org/wiki/Pointing_stick">trackpoint</a>, it is
-usually located above the touchpad. This increases the likelyhood of
+usually located above the touchpad. This increases the likelihood of
 accidental touches whenever the trackpoint is used.
 
-libinput disables the touchpad whenver it detects trackpoint activity for a
+libinput disables the touchpad whenever it detects trackpoint activity for a
 certain timeout until after trackpoint activity stops. Touches generated
 during this timeout will not move the pointer, and touches started during
 this timeout will likewise not move the pointer (allowing for a user to rest

@@ -612,7 +612,7 @@ evdev_process_absolute_motion(struct evdev_device *device,
 	}
 }
 
-static void
+void
 evdev_notify_axis(struct evdev_device *device,
 		  uint64_t time,
 		  uint32_t axes,
@@ -638,12 +638,34 @@ evdev_notify_axis(struct evdev_device *device,
 			    &discrete);
 }
 
+static inline bool
+evdev_reject_relative(struct evdev_device *device,
+		      const struct input_event *e,
+		      uint64_t time)
+{
+	struct libinput *libinput = device->base.seat->libinput;
+
+	if ((e->code == REL_X || e->code == REL_Y) &&
+	    (device->seat_caps & EVDEV_DEVICE_POINTER) == 0) {
+		log_bug_libinput_ratelimit(libinput,
+					   &device->nonpointer_rel_limit,
+					   "REL_X/Y from device '%s', but this device is not a pointer\n",
+					   device->devname);
+		return true;
+	}
+
+	return false;
+}
+
 static inline void
 evdev_process_relative(struct evdev_device *device,
 		       struct input_event *e, uint64_t time)
 {
 	struct normalized_coords wheel_degrees = { 0.0, 0.0 };
 	struct discrete_coords discrete = { 0.0, 0.0 };
+
+	if (evdev_reject_relative(device, e, time))
+		return;
 
 	switch (e->code) {
 	case REL_X:
@@ -1339,20 +1361,10 @@ evdev_device_dispatch(void *data)
 		rc = libevdev_next_event(device->evdev,
 					 LIBEVDEV_READ_FLAG_NORMAL, &ev);
 		if (rc == LIBEVDEV_READ_STATUS_SYNC) {
-			switch (ratelimit_test(&device->syn_drop_limit)) {
-			case RATELIMIT_PASS:
-				log_info(libinput, "SYN_DROPPED event from "
-					 "\"%s\" - some input events have "
-					 "been lost.\n", device->devname);
-				break;
-			case RATELIMIT_THRESHOLD:
-				log_info(libinput, "SYN_DROPPED flood "
-					 "from \"%s\"\n",
-					 device->devname);
-				break;
-			case RATELIMIT_EXCEEDED:
-				break;
-			}
+			log_info_ratelimit(libinput,
+					   &device->syn_drop_limit,
+					   "SYN_DROPPED event from \"%s\" - some input events have been lost.\n",
+					   device->devname);
 
 			/* send one more sync event so we handle all
 			   currently pending events before we sync up
@@ -1409,12 +1421,9 @@ evdev_accel_config_get_default_speed(struct libinput_device *device)
 
 int
 evdev_device_init_pointer_acceleration(struct evdev_device *device,
-				       accel_profile_func_t profile)
+				       struct motion_filter *filter)
 {
-	device->pointer.filter = create_pointer_accelerator_filter(profile,
-								   device->dpi);
-	if (!device->pointer.filter)
-		return -1;
+	device->pointer.filter = filter;
 
 	device->pointer.config.available = evdev_accel_config_available;
 	device->pointer.config.set_speed = evdev_accel_config_set_speed;
@@ -1863,14 +1872,19 @@ evdev_configure_mt_device(struct evdev_device *device)
 static inline int
 evdev_init_accel(struct evdev_device *device)
 {
-	accel_profile_func_t profile;
+	struct motion_filter *filter;
 
-	if (device->dpi < DEFAULT_MOUSE_DPI)
-		profile = pointer_accel_profile_linear_low_dpi;
+	if (device->tags & EVDEV_TAG_TRACKPOINT)
+		filter = create_pointer_accelerator_filter_trackpoint(device->dpi);
+	else if (device->dpi < DEFAULT_MOUSE_DPI)
+		filter = create_pointer_accelerator_filter_linear_low_dpi(device->dpi);
 	else
-		profile = pointer_accel_profile_linear;
+		filter = create_pointer_accelerator_filter_linear(device->dpi);
 
-	return evdev_device_init_pointer_acceleration(device, profile);
+	if (!filter)
+		return -1;
+
+	return evdev_device_init_pointer_acceleration(device, filter);
 }
 
 static int
@@ -2167,6 +2181,7 @@ evdev_device_create(struct libinput_seat *seat,
 	device->pending_event = EVDEV_NONE;
 	device->devname = libevdev_get_name(device->evdev);
 	device->scroll.threshold = 5.0; /* Default may be overridden */
+	device->scroll.direction_lock_threshold = 5.0; /* Default may be overridden */
 	device->scroll.direction = 0;
 	device->scroll.wheel_click_angle =
 		evdev_read_wheel_click_prop(device);
@@ -2175,6 +2190,8 @@ evdev_device_create(struct libinput_seat *seat,
 
 	/* at most 5 SYN_DROPPED log-messages per 30s */
 	ratelimit_init(&device->syn_drop_limit, s2us(30), 5);
+	/* at most 5 log-messages per 5s */
+	ratelimit_init(&device->nonpointer_rel_limit, s2us(5), 5);
 
 	matrix_init_identity(&device->abs.calibration);
 	matrix_init_identity(&device->abs.usermatrix);
@@ -2437,12 +2454,12 @@ evdev_post_scroll(struct evdev_device *device,
 	   trigger speed to start scrolling in the other direction */
 	} else if (!evdev_is_scrolling(device,
 			       LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
-		if (fabs(delta->y) >= device->scroll.threshold)
+		if (fabs(delta->y) >= device->scroll.direction_lock_threshold)
 			evdev_start_scrolling(device,
 				      LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
 	} else if (!evdev_is_scrolling(device,
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
-		if (fabs(delta->x) >= device->scroll.threshold)
+		if (fabs(delta->x) >= device->scroll.direction_lock_threshold)
 			evdev_start_scrolling(device,
 				      LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
 	}

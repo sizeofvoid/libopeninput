@@ -34,10 +34,32 @@
 
 struct motion_filter;
 
+/**
+ * Accelerate the given coordinates.
+ * Takes a set of unaccelerated deltas and accelerates them based on the
+ * current and previous motion.
+ *
+ * This is a superset of filter_dispatch_constant()
+ *
+ * @see filter_dispatch_constant
+ */
 struct normalized_coords
 filter_dispatch(struct motion_filter *filter,
 		const struct normalized_coords *unaccelerated,
 		void *data, uint64_t time);
+
+/**
+ * Apply constant motion filters, but no acceleration.
+ *
+ * Takes a set of unaccelerated deltas and applies any constant filters to
+ * it but does not accelerate the delta in the conventional sense.
+ *
+ * @see filter_dispatch
+ */
+struct normalized_coords
+filter_dispatch_constant(struct motion_filter *filter,
+			 const struct normalized_coords *unaccelerated,
+			 void *data, uint64_t time);
 
 void
 filter_restart(struct motion_filter *filter,
@@ -57,9 +79,22 @@ typedef double (*accel_profile_func_t)(struct motion_filter *filter,
 				       double velocity,
 				       uint64_t time);
 
+/* Pointer acceleration types */
+
 struct motion_filter *
-create_pointer_accelerator_filter(accel_profile_func_t filter,
-				  int dpi);
+create_pointer_accelerator_filter_linear(int dpi);
+
+struct motion_filter *
+create_pointer_accelerator_filter_linear_low_dpi(int dpi);
+
+struct motion_filter *
+create_pointer_accelerator_filter_touchpad(int dpi);
+
+struct motion_filter *
+create_pointer_accelerator_filter_lenovo_x230(int dpi);
+
+struct motion_filter *
+create_pointer_accelerator_filter_trackpoint(int dpi);
 
 /*
  * Pointer acceleration profiles.
@@ -85,4 +120,9 @@ touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
 				      void *data,
 				      double speed_in,
 				      uint64_t time);
+double
+trackpoint_accel_profile(struct motion_filter *filter,
+			 void *data,
+			 double speed_in,
+			 uint64_t time);
 #endif /* FILTER_H */

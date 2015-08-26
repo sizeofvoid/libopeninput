@@ -71,6 +71,18 @@ tp_filter_motion(struct tp_dispatch *tp,
 			       unaccelerated, tp, time);
 }
 
+struct normalized_coords
+tp_filter_motion_unaccelerated(struct tp_dispatch *tp,
+			       const struct normalized_coords *unaccelerated,
+			       uint64_t time)
+{
+	if (normalized_is_zero(*unaccelerated))
+		return *unaccelerated;
+
+	return filter_dispatch_constant(tp->device->pointer.filter,
+					unaccelerated, tp, time);
+}
+
 static inline void
 tp_motion_history_push(struct tp_touch *t)
 {
@@ -1511,7 +1523,7 @@ static int
 tp_init_accel(struct tp_dispatch *tp, double diagonal)
 {
 	int res_x, res_y;
-	accel_profile_func_t profile;
+	struct motion_filter *filter;
 
 	res_x = tp->device->abs.absinfo_x->resolution;
 	res_y = tp->device->abs.absinfo_y->resolution;
@@ -1527,14 +1539,14 @@ tp_init_accel(struct tp_dispatch *tp, double diagonal)
 	tp->accel.y_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_y;
 
 	if (tp->device->model_flags & EVDEV_MODEL_LENOVO_X230)
-		profile = touchpad_lenovo_x230_accel_profile;
+		filter = create_pointer_accelerator_filter_lenovo_x230(tp->device->dpi);
 	else
-		profile = touchpad_accel_profile_linear;
+		filter = create_pointer_accelerator_filter_touchpad(tp->device->dpi);
 
-	if (evdev_device_init_pointer_acceleration(tp->device, profile) == -1)
+	if (!filter)
 		return -1;
 
-	return 0;
+	return evdev_device_init_pointer_acceleration(tp->device, filter);
 }
 
 static uint32_t
@@ -1629,8 +1641,9 @@ tp_init_scroll(struct tp_dispatch *tp, struct evdev_device *device)
 	tp->scroll.method = tp_scroll_get_default_method(tp);
 	tp->device->base.config.scroll_method = &tp->scroll.config_method;
 
-	/* In mm for touchpads with valid resolution, see tp_init_accel() */
-	tp->device->scroll.threshold = 5.0;
+	 /* In mm for touchpads with valid resolution, see tp_init_accel() */
+	tp->device->scroll.threshold = 0.0;
+	tp->device->scroll.direction_lock_threshold = 5.0;
 
 	return 0;
 }

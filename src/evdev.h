@@ -167,6 +167,7 @@ struct evdev_device {
 		void (*change_scroll_method)(struct evdev_device *device);
 		bool button_scroll_active;
 		double threshold;
+		double direction_lock_threshold;
 		uint32_t direction;
 		struct normalized_coords buildup;
 
@@ -223,6 +224,7 @@ struct evdev_device {
 
 	int dpi; /* HW resolution */
 	struct ratelimit syn_drop_limit; /* ratelimit for SYN_DROPPED logging */
+	struct ratelimit nonpointer_rel_limit; /* ratelimit for REL_* events from non-pointer devices */
 
 	uint32_t model_flags;
 };
@@ -286,7 +288,7 @@ evdev_device_create(struct libinput_seat *seat,
 
 int
 evdev_device_init_pointer_acceleration(struct evdev_device *device,
-				       accel_profile_func_t profile);
+				       struct motion_filter *filter);
 
 struct evdev_dispatch *
 evdev_touchpad_create(struct evdev_device *device);
@@ -388,6 +390,13 @@ evdev_pointer_notify_physical_button(struct evdev_device *device,
 void
 evdev_init_natural_scroll(struct evdev_device *device);
 
+void
+evdev_notify_axis(struct evdev_device *device,
+		  uint64_t time,
+		  uint32_t axes,
+		  enum libinput_pointer_axis_source source,
+		  const struct normalized_coords *delta_in,
+		  const struct discrete_coords *discrete_in);
 void
 evdev_post_scroll(struct evdev_device *device,
 		  uint64_t time,

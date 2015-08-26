@@ -105,8 +105,8 @@ struct litest_device_interface {
 	struct input_event *tablet_proximity_out_events;
 	struct input_event *tablet_motion_events;
 
-	int min[2];
-	int max[2];
+	int min[2]; /* x/y axis minimum */
+	int max[2]; /* x/y axis maximum */
 };
 
 void litest_set_current_device(struct litest_device *device);

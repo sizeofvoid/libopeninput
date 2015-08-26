@@ -71,7 +71,7 @@ touches, others support 5 touches like the Synaptics touchpads when using
 SMBus.
 
 These touchpads usually also provide extra information. Apple touchpads
-provide an ellipsis and the orientation of the ellipsis for each touch point.
+provide an ellipse and the orientation of the ellipse for each touch point.
 Other touchpads provide a pressure value for each touch point (see @ref
 touchpads_pressure_handling).
 
@@ -130,7 +130,7 @@ located underneath the keyboard, accidental palm touches are a non-issue.
 
 Pressure is usually directly related to contact area. Human fingers flatten
 out as the pressure on the pad increases, resulting in a bigger contact area
-and the firmware then calculates that back into a ressure reading.
+and the firmware then calculates that back into a pressure reading.
 
 libinput uses pressure to detect accidental palm contact and thumbs, though
 pressure data is often device-specific and unreliable.
@@ -138,7 +138,7 @@ pressure data is often device-specific and unreliable.
 @subsection touchpads_circular Circular touchpads
 
 Only listed for completeness, circular touchpads have not been used in
-laptops for a number of years. These touchpad shaped in an ellipsis or
+laptops for a number of years. These touchpad shaped in an ellipse or
 straight.
 
 @subsection touchpads_tablets Graphics tablets
