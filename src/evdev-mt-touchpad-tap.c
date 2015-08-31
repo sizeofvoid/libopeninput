@@ -69,6 +69,7 @@ tap_state_to_str(enum tp_tap_state state)
 	CASE_RETURN_STRING(TAP_STATE_TAPPED);
 	CASE_RETURN_STRING(TAP_STATE_TOUCH_2);
 	CASE_RETURN_STRING(TAP_STATE_TOUCH_2_HOLD);
+	CASE_RETURN_STRING(TAP_STATE_TOUCH_2_RELEASE);
 	CASE_RETURN_STRING(TAP_STATE_TOUCH_3);
 	CASE_RETURN_STRING(TAP_STATE_TOUCH_3_HOLD);
 	CASE_RETURN_STRING(TAP_STATE_DRAGGING);
@@ -275,12 +276,8 @@ tp_tap_touch2_handle_event(struct tp_dispatch *tp,
 		tp_tap_set_timer(tp, time);
 		break;
 	case TAP_EVENT_RELEASE:
-		tp->tap.state = TAP_STATE_HOLD;
-		if (t->tap.state == TAP_TOUCH_STATE_TOUCH) {
-			tp_tap_notify(tp, time, 2, LIBINPUT_BUTTON_STATE_PRESSED);
-			tp_tap_notify(tp, time, 2, LIBINPUT_BUTTON_STATE_RELEASED);
-		}
-		tp_tap_clear_timer(tp);
+		tp->tap.state = TAP_STATE_TOUCH_2_RELEASE;
+		tp_tap_set_timer(tp, time);
 		break;
 	case TAP_EVENT_MOTION:
 		tp_tap_clear_timer(tp);
@@ -313,6 +310,35 @@ tp_tap_touch2_hold_handle_event(struct tp_dispatch *tp,
 	case TAP_EVENT_MOTION:
 	case TAP_EVENT_TIMEOUT:
 		tp->tap.state = TAP_STATE_TOUCH_2_HOLD;
+		break;
+	case TAP_EVENT_BUTTON:
+		tp->tap.state = TAP_STATE_DEAD;
+		break;
+	case TAP_EVENT_THUMB:
+		break;
+	}
+}
+
+static void
+tp_tap_touch2_release_handle_event(struct tp_dispatch *tp,
+				   struct tp_touch *t,
+				   enum tap_event event, uint64_t time)
+{
+
+	switch (event) {
+	case TAP_EVENT_TOUCH:
+		tp->tap.state = TAP_STATE_TOUCH_2_HOLD;
+		t->tap.state = TAP_TOUCH_STATE_DEAD;
+		tp_tap_clear_timer(tp);
+		break;
+	case TAP_EVENT_RELEASE:
+		tp_tap_notify(tp, time, 2, LIBINPUT_BUTTON_STATE_PRESSED);
+		tp_tap_notify(tp, time, 2, LIBINPUT_BUTTON_STATE_RELEASED);
+		tp->tap.state = TAP_STATE_IDLE;
+		break;
+	case TAP_EVENT_MOTION:
+	case TAP_EVENT_TIMEOUT:
+		tp->tap.state = TAP_STATE_HOLD;
 		break;
 	case TAP_EVENT_BUTTON:
 		tp->tap.state = TAP_STATE_DEAD;
@@ -648,6 +674,9 @@ tp_tap_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_STATE_TOUCH_2_HOLD:
 		tp_tap_touch2_hold_handle_event(tp, t, event, time);
+		break;
+	case TAP_STATE_TOUCH_2_RELEASE:
+		tp_tap_touch2_release_handle_event(tp, t, event, time);
 		break;
 	case TAP_STATE_TOUCH_3:
 		tp_tap_touch3_handle_event(tp, t, event, time);
