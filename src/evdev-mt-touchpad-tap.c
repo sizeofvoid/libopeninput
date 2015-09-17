@@ -596,21 +596,11 @@ tp_tap_multitap_down_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_DRAGGING_2;
-		tp_tap_notify(tp,
-			      tp->tap.multitap_last_time,
-			      1,
-			      LIBINPUT_BUTTON_STATE_RELEASED);
-		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_PRESSED);
 		tp_tap_clear_timer(tp);
 		break;
 	case TAP_EVENT_MOTION:
 	case TAP_EVENT_TIMEOUT:
 		tp->tap.state = TAP_STATE_DRAGGING;
-		tp_tap_notify(tp,
-			      tp->tap.multitap_last_time,
-			      1,
-			      LIBINPUT_BUTTON_STATE_RELEASED);
-		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_PRESSED);
 		tp_tap_clear_timer(tp);
 		break;
 	case TAP_EVENT_BUTTON:
