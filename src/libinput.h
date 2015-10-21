@@ -1954,6 +1954,26 @@ libinput_ref(struct libinput *libinput);
  * destroyed, if the last reference was dereferenced. If so, the context is
  * invalid and may not be interacted with.
  *
+ * @bug When the refcount reaches zero, libinput_unref() releases resources
+ * even if a caller still holds refcounted references to related resources
+ * (e.g. a libinput_device). When libinput_unref() returns
+ * NULL, the caller must consider any resources related to that context
+ * invalid. See https://bugs.freedesktop.org/show_bug.cgi?id=91872.
+ * Example code:
+ * @code
+ * li = libinput_path_create_context(&interface, NULL);
+ * device = libinput_path_add_device(li, "/dev/input/event0");
+ * // get extra reference to device
+ * libinput_device_ref(device);
+ *
+ * // refcount reaches 0, so *all* resources are cleaned up,
+ * // including device
+ * libinput_unref(li);
+ *
+ * // INCORRECT: device has been cleaned up and must not be used
+ * // li = libinput_device_get_context(device);
+ * @endcode
+ *
  * @param libinput A previously initialized libinput context
  * @return NULL if context was destroyed otherwise the passed context
  */
@@ -3033,6 +3053,80 @@ libinput_device_config_accel_get_speed(struct libinput_device *device);
  */
 double
 libinput_device_config_accel_get_default_speed(struct libinput_device *device);
+
+enum libinput_config_accel_profile {
+	/**
+	 * Placeholder for devices that don't have a configurable pointer
+	 * acceleration profile.
+	 */
+	LIBINPUT_CONFIG_ACCEL_PROFILE_NONE = 0,
+	/**
+	 * A flat acceleration profile. Pointer motion is accelerated by a
+	 * constant (device-specific) factor, depending on the current
+	 * speed.
+	 *
+	 * @see libinput_device_config_accel_set_speed
+	 */
+	LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT = (1 << 0),
+
+	/**
+	 * An adaptive acceleration profile. Pointer acceleration depends
+	 * on the input speed. This is the default profile for most devices.
+	 */
+	LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE = (1 << 1),
+};
+
+/**
+ * @ingroup config
+ *
+ * Returns a bitmask of the configurable acceleration modes available on
+ * this device.
+ *
+ * @param device The device to configure
+ *
+ * @return A bitmask of all configurable modes availble on this device.
+ */
+uint32_t
+libinput_device_config_accel_get_profiles(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Set the pointer acceleration profile of this pointer device to the given
+ * mode.
+ *
+ * @param device The device to configure
+ * @param mode The mode to set the device to.
+ *
+ * @return A config status code
+ */
+enum libinput_config_status
+libinput_device_config_accel_set_profile(struct libinput_device *device,
+					 enum libinput_config_accel_profile mode);
+
+/**
+ * @ingroup config
+ *
+ * Get the current pointer acceleration profile for this pointer device.
+ *
+ * @param device The device to configure
+ *
+ * @return The currently configured pointer acceleration profile.
+ */
+enum libinput_config_accel_profile
+libinput_device_config_accel_get_profile(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Return the default pointer acceleration profile for this pointer device.
+ *
+ * @param device The device to configure
+ *
+ * @return The default acceleration profile for this device.
+ */
+enum libinput_config_accel_profile
+libinput_device_config_accel_get_default_profile(struct libinput_device *device);
 
 /**
  * @ingroup config

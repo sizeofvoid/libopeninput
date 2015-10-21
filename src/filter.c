@@ -76,13 +76,14 @@ void
 filter_restart(struct motion_filter *filter,
 	       void *data, uint64_t time)
 {
-	filter->interface->restart(filter, data, time);
+	if (filter->interface->restart)
+		filter->interface->restart(filter, data, time);
 }
 
 void
 filter_destroy(struct motion_filter *filter)
 {
-	if (!filter)
+	if (!filter || !filter->interface->destroy)
 		return;
 
 	filter->interface->destroy(filter);
@@ -101,6 +102,12 @@ filter_get_speed(struct motion_filter *filter)
 	return filter->speed_adjustment;
 }
 
+enum libinput_config_accel_profile
+filter_get_type(struct motion_filter *filter)
+{
+	return filter->interface->type;
+}
+
 /*
  * Default parameters for pointer acceleration profiles.
  */
@@ -114,6 +121,8 @@ filter_get_speed(struct motion_filter *filter)
 #define X230_THRESHOLD v_ms2us(0.4)		/* in units/us */
 #define X230_ACCELERATION 2.0			/* unitless factor */
 #define X230_INCLINE 1.1			/* unitless factor */
+#define X230_MAGIC_SLOWDOWN 0.4			/* unitless */
+#define X230_TP_MAGIC_LOW_RES_FACTOR 4.0	/* unitless */
 
 /*
  * Pointer acceleration filter constants
@@ -144,6 +153,13 @@ struct pointer_accelerator {
 	double accel;		/* unitless factor */
 	double incline;		/* incline of the function */
 
+	double dpi_factor;
+};
+
+struct pointer_accelerator_flat {
+	struct motion_filter base;
+
+	double factor;
 	double dpi_factor;
 };
 
@@ -421,6 +437,21 @@ accelerator_filter_x230(struct motion_filter *filter,
 }
 
 static struct normalized_coords
+accelerator_filter_constant_x230(struct motion_filter *filter,
+				 const struct normalized_coords *unaccelerated,
+				 void *data, uint64_t time)
+{
+	struct normalized_coords normalized;
+	const double factor =
+		X230_MAGIC_SLOWDOWN/X230_TP_MAGIC_LOW_RES_FACTOR;
+
+	normalized.x = factor * unaccelerated->x;
+	normalized.y = factor * unaccelerated->y;
+
+	return normalized;
+}
+
+static struct normalized_coords
 touchpad_constant_filter(struct motion_filter *filter,
 			 const struct normalized_coords *unaccelerated,
 			 void *data, uint64_t time)
@@ -631,26 +662,22 @@ touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
 				      double speed_in,
 				      uint64_t time)
 {
-	/* Keep the magic factor from touchpad_accel_profile_linear.  */
-	const double X230_MAGIC_SLOWDOWN = 0.4; /* unitless */
-
 	/* Those touchpads presents an actual lower resolution that what is
 	 * advertised. We see some jumps from the cursor due to the big steps
 	 * in X and Y when we are receiving data.
 	 * Apply a factor to minimize those jumps at low speed, and try
 	 * keeping the same feeling as regular touchpads at high speed.
 	 * It still feels slower but it is usable at least */
-	const double TP_MAGIC_LOW_RES_FACTOR = 4.0; /* unitless */
 	double factor; /* unitless */
 	struct pointer_accelerator *accel_filter =
 		(struct pointer_accelerator *)filter;
 
 	double f1, f2; /* unitless */
 	const double max_accel = accel_filter->accel *
-				  TP_MAGIC_LOW_RES_FACTOR; /* unitless factor */
+				  X230_TP_MAGIC_LOW_RES_FACTOR; /* unitless factor */
 	const double threshold = accel_filter->threshold /
-				  TP_MAGIC_LOW_RES_FACTOR; /* units/us */
-	const double incline = accel_filter->incline * TP_MAGIC_LOW_RES_FACTOR;
+				  X230_TP_MAGIC_LOW_RES_FACTOR; /* units/us */
+	const double incline = accel_filter->incline * X230_TP_MAGIC_LOW_RES_FACTOR;
 
 	/* Note: the magic values in this function are obtained by
 	 * trial-and-error. No other meaning should be interpreted.
@@ -658,14 +685,14 @@ touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
 	 * pointer_accel_profile_linear(), look at the git history of that
 	 * function for an explaination of what the min/max/etc. does.
 	 */
-	speed_in *= X230_MAGIC_SLOWDOWN / TP_MAGIC_LOW_RES_FACTOR;
+	speed_in *= X230_MAGIC_SLOWDOWN / X230_TP_MAGIC_LOW_RES_FACTOR;
 
 	f1 = min(1, v_us2ms(speed_in) * 5);
 	f2 = 1 + (v_us2ms(speed_in) - v_us2ms(threshold)) * incline;
 
 	factor = min(max_accel, f2 > 1 ? f2 : f1);
 
-	return factor * X230_MAGIC_SLOWDOWN / TP_MAGIC_LOW_RES_FACTOR;
+	return factor * X230_MAGIC_SLOWDOWN / X230_TP_MAGIC_LOW_RES_FACTOR;
 }
 
 double
@@ -701,6 +728,7 @@ trackpoint_accel_profile(struct motion_filter *filter,
 }
 
 struct motion_filter_interface accelerator_interface = {
+	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter,
 	.filter_constant = accelerator_filter_noop,
 	.restart = accelerator_restart,
@@ -748,6 +776,7 @@ create_pointer_accelerator_filter_linear(int dpi)
 }
 
 struct motion_filter_interface accelerator_interface_low_dpi = {
+	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_low_dpi,
 	.filter_constant = accelerator_filter_noop,
 	.restart = accelerator_restart,
@@ -771,6 +800,7 @@ create_pointer_accelerator_filter_linear_low_dpi(int dpi)
 }
 
 struct motion_filter_interface accelerator_interface_touchpad = {
+	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter,
 	.filter_constant = touchpad_constant_filter,
 	.restart = accelerator_restart,
@@ -794,8 +824,9 @@ create_pointer_accelerator_filter_touchpad(int dpi)
 }
 
 struct motion_filter_interface accelerator_interface_x230 = {
+	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_x230,
-	.filter_constant = accelerator_filter_noop,
+	.filter_constant = accelerator_filter_constant_x230,
 	.restart = accelerator_restart,
 	.destroy = accelerator_destroy,
 	.set_speed = accelerator_set_speed,
@@ -832,6 +863,7 @@ create_pointer_accelerator_filter_lenovo_x230(int dpi)
 }
 
 struct motion_filter_interface accelerator_interface_trackpoint = {
+	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_trackpoint,
 	.filter_constant = accelerator_filter_noop,
 	.restart = accelerator_restart,
@@ -853,6 +885,82 @@ create_pointer_accelerator_filter_trackpoint(int dpi)
 	filter->threshold = DEFAULT_THRESHOLD;
 	filter->accel = DEFAULT_ACCELERATION;
 	filter->incline = DEFAULT_INCLINE;
+
+	return &filter->base;
+}
+
+static struct normalized_coords
+accelerator_filter_flat(struct motion_filter *filter,
+			const struct normalized_coords *unaccelerated,
+			void *data, uint64_t time)
+{
+	struct pointer_accelerator_flat *accel_filter =
+		(struct pointer_accelerator_flat *)filter;
+	double factor; /* unitless factor */
+	struct normalized_coords accelerated;
+	struct normalized_coords unnormalized;
+
+	/* You want flat acceleration, you get flat acceleration for the
+	 * device */
+	unnormalized.x = unaccelerated->x * accel_filter->dpi_factor;
+	unnormalized.y = unaccelerated->y * accel_filter->dpi_factor;
+	factor = accel_filter->factor;
+
+	accelerated.x = factor * unnormalized.x;
+	accelerated.y = factor * unnormalized.y;
+
+	return accelerated;
+}
+
+static bool
+accelerator_set_speed_flat(struct motion_filter *filter,
+			   double speed_adjustment)
+{
+	struct pointer_accelerator_flat *accel_filter =
+		(struct pointer_accelerator_flat *)filter;
+
+	assert(speed_adjustment >= -1.0 && speed_adjustment <= 1.0);
+
+	/* Speed rage is 0-200% of the nominal speed, with 0 mapping to the
+	 * nominal speed. Anything above 200 is pointless, we're already
+	 * skipping over ever second pixel at 200% speed.
+	 */
+
+	accel_filter->factor = 1 + speed_adjustment;
+	filter->speed_adjustment = speed_adjustment;
+
+	return true;
+}
+
+static void
+accelerator_destroy_flat(struct motion_filter *filter)
+{
+	struct pointer_accelerator_flat *accel =
+		(struct pointer_accelerator_flat *) filter;
+
+	free(accel);
+}
+
+struct motion_filter_interface accelerator_interface_flat = {
+	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT,
+	.filter = accelerator_filter_flat,
+	.filter_constant = accelerator_filter_noop,
+	.restart = NULL,
+	.destroy = accelerator_destroy_flat,
+	.set_speed = accelerator_set_speed_flat,
+};
+
+struct motion_filter *
+create_pointer_accelerator_filter_flat(int dpi)
+{
+	struct pointer_accelerator_flat *filter;
+
+	filter = zalloc(sizeof *filter);
+	if (filter == NULL)
+		return NULL;
+
+	filter->base.interface = &accelerator_interface_flat;
+	filter->dpi_factor = dpi/(double)DEFAULT_MOUSE_DPI;
 
 	return &filter->base;
 }

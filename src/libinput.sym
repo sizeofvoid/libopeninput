@@ -174,6 +174,13 @@ LIBINPUT_0.21.0 {
 	libinput_event_touch_get_time_usec;
 } LIBINPUT_0.20.0;
 
+LIBINPUT_1.1 {
+	libinput_device_config_accel_get_profile;
+	libinput_device_config_accel_get_profiles;
+	libinput_device_config_accel_get_default_profile;
+	libinput_device_config_accel_set_profile;
+} LIBINPUT_0.21.0;
+
 /* tablet APIs, they are not part of any stable API promise yet.
  * keep them separate */
 LIBINPUT_TABLET_SUPPORT {
@@ -201,4 +208,4 @@ LIBINPUT_TABLET_SUPPORT {
 	libinput_tool_ref;
 	libinput_tool_set_user_data;
 	libinput_tool_unref;
-} LIBINPUT_0.21.0;
+} LIBINPUT_1.1;

@@ -790,11 +790,9 @@ litest_log_handler(struct libinput *libinput,
 	fprintf(stderr, "litest %s: ", priority);
 	vfprintf(stderr, format, args);
 
-#if 0
 	if (strstr(format, "client bug: ") ||
 	    strstr(format, "libinput bug: "))
 		litest_abort_msg("libinput bug triggered, aborting.\n");
-#endif
 }
 
 static int
@@ -942,13 +940,15 @@ merge_events(const int *orig, const int *override)
 static inline void
 litest_copy_file(const char *dest, const char *src, const char *header)
 {
-	int in, out;
+	int in, out, length;
 
 	out = open(dest, O_CREAT|O_WRONLY, 0644);
 	litest_assert_int_gt(out, -1);
 
-	if (header)
-		write(out, header, strlen(header));
+	if (header) {
+		length = strlen(header);
+		litest_assert_int_eq(write(out, header, length), length);
+	}
 
 	in = open(src, O_RDONLY);
 	litest_assert_int_gt(in, -1);
@@ -1304,7 +1304,6 @@ litest_auto_assign_value(struct litest_device *d,
 		value = touching ? 0 : 1;
 		break;
 	default:
-		value = -1;
 		if (!axis_replacement_value(axes, ev->code, &value) &&
 		    d->interface->get_axis_default)
 			d->interface->get_axis_default(d, ev->code, &value);
@@ -1354,8 +1353,8 @@ litest_slot_start(struct litest_device *d,
 						     y,
 						     axes,
 						     touching);
-
-		litest_event(d, ev->type, ev->code, value);
+		if (value != LITEST_AUTO_ASSIGN)
+			litest_event(d, ev->type, ev->code, value);
 		ev++;
 	}
 }
@@ -1440,7 +1439,8 @@ litest_slot_move(struct litest_device *d,
 						     y,
 						     axes,
 						     touching);
-		litest_event(d, ev->type, ev->code, value);
+		if (value != LITEST_AUTO_ASSIGN)
+			litest_event(d, ev->type, ev->code, value);
 		ev++;
 	}
 }

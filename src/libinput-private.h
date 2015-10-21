@@ -95,6 +95,8 @@ struct libinput {
 	enum libinput_log_priority log_priority;
 	void *user_data;
 	int refcount;
+
+	struct list device_group_list;
 };
 
 typedef void (*libinput_seat_destroy_func) (struct libinput_seat *seat);
@@ -152,6 +154,12 @@ struct libinput_device_config_accel {
 						 double speed);
 	double (*get_speed)(struct libinput_device *device);
 	double (*get_default_speed)(struct libinput_device *device);
+
+	uint32_t (*get_profiles)(struct libinput_device *device);
+	enum libinput_config_status (*set_profile)(struct libinput_device *device,
+						   enum libinput_config_accel_profile);
+	enum libinput_config_accel_profile (*get_profile)(struct libinput_device *device);
+	enum libinput_config_accel_profile (*get_default_profile)(struct libinput_device *device);
 };
 
 struct libinput_device_config_natural_scroll {
@@ -228,6 +236,8 @@ struct libinput_device_group {
 	int refcount;
 	void *user_data;
 	char *identifier; /* unique identifier or NULL for singletons */
+
+	struct list link;
 };
 
 struct libinput_device {
@@ -336,7 +346,12 @@ libinput_device_init(struct libinput_device *device,
 		     struct libinput_seat *seat);
 
 struct libinput_device_group *
-libinput_device_group_create(const char *identifier);
+libinput_device_group_create(struct libinput *libinput,
+			     const char *identifier);
+
+struct libinput_device_group *
+libinput_device_group_find_group(struct libinput *libinput,
+				 const char *identifier);
 
 void
 libinput_device_set_device_group(struct libinput_device *device,
