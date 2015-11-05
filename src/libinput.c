@@ -914,6 +914,12 @@ LIBINPUT_EXPORT int
 libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
 				       enum libinput_tablet_axis axis)
 {
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_AXIS,
+			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+
 	return (NCHARS(axis) <= sizeof(event->changed_axes)) ?
 		bit_is_set(event->changed_axes, axis) : 0;
 }
