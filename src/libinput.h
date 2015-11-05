@@ -1648,7 +1648,7 @@ libinput_tool_unref(struct libinput_tool *tool);
  * @param tool The libinput tool
  * @return The new tool serial triggering this event
  */
-uint32_t
+uint64_t
 libinput_tool_get_serial(struct libinput_tool *tool);
 
 /**

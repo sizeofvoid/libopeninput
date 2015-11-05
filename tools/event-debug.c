@@ -23,6 +23,7 @@
 
 #define _GNU_SOURCE
 #include <errno.h>
+#include <inttypes.h>
 #include <fcntl.h>
 #include <poll.h>
 #include <stdio.h>
@@ -489,7 +490,7 @@ print_proximity_event(struct libinput_event *ev)
 		abort();
 	}
 
-	printf("\t%s (%#x) %s",
+	printf("\t%s (%#" PRIx64 ") %s",
 	       tool_str, libinput_tool_get_serial(tool), state_str);
 
 	printf("\taxes:");
