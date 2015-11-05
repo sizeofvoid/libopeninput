@@ -1027,7 +1027,8 @@ libinput_event_tablet_get_x_transformed(struct libinput_event_tablet *event,
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS);
+			   LIBINPUT_EVENT_TABLET_AXIS,
+			   LIBINPUT_EVENT_TABLET_PROXIMITY);
 
 	return evdev_device_transform_x(device,
 					event->axes[LIBINPUT_TABLET_AXIS_X],
@@ -1044,7 +1045,8 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS);
+			   LIBINPUT_EVENT_TABLET_AXIS,
+			   LIBINPUT_EVENT_TABLET_PROXIMITY);
 
 	return evdev_device_transform_y(device,
 					event->axes[LIBINPUT_TABLET_AXIS_Y],
