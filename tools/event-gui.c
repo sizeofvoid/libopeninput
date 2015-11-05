@@ -85,6 +85,14 @@ struct window {
 		double x, y;
 	} pinch;
 
+	struct {
+		double x, y;
+		double x_in, y_in;
+		double pressure;
+		double distance;
+		double tilt_x, tilt_y;
+	} tool;
+
 	struct libinput_device *devices[50];
 };
 
@@ -214,6 +222,27 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	cairo_rectangle(cr, w->width/2 - 20, w->height - 200, 40, 30);
 	cairo_rectangle(cr, w->width/2 + 30, w->height - 200, 70, 30);
 	cairo_stroke(cr);
+	cairo_restore(cr);
+
+	/* tablet tool, square for prox-in location */
+	cairo_save(cr);
+	cairo_set_source_rgb(cr, .8, .8, .8);
+	if (w->tool.x_in && w->tool.y_in) {
+		cairo_rectangle(cr, w->tool.x_in - 15, w->tool.y_in - 15, 30, 30);
+		cairo_stroke(cr);
+		cairo_restore(cr);
+		cairo_save(cr);
+	}
+
+	if (w->tool.pressure)
+		cairo_set_source_rgb(cr, .8, .8, .2);
+
+	cairo_translate(cr, w->tool.x, w->tool.y);
+	cairo_scale(cr, 1.0 + w->tool.tilt_x, 1.0 + w->tool.tilt_y);
+	cairo_arc(cr, 0, 0,
+		  1 + 10 * max(w->tool.pressure, w->tool.distance),
+		  0, 2 * M_PI);
+	cairo_fill(cr);
 	cairo_restore(cr);
 
 	return TRUE;
@@ -551,6 +580,45 @@ handle_event_pinch(struct libinput_event *ev, struct window *w)
 	}
 }
 
+static void
+handle_event_tablet(struct libinput_event *ev, struct window *w)
+{
+	struct libinput_event_tablet *t = libinput_event_get_tablet_event(ev);
+
+	switch (libinput_event_get_type(ev)) {
+	case LIBINPUT_EVENT_TABLET_PROXIMITY:
+		if (libinput_event_tablet_get_proximity_state(t) ==
+		    LIBINPUT_TOOL_PROXIMITY_OUT) {
+			w->tool.x_in = 0;
+			w->tool.y_in = 0;
+		} else {
+			w->tool.x_in = libinput_event_tablet_get_x_transformed(t,
+								       w->width);
+			w->tool.y_in = libinput_event_tablet_get_y_transformed(t,
+								       w->height);
+		}
+		break;
+	case LIBINPUT_EVENT_TABLET_AXIS:
+		w->tool.x = libinput_event_tablet_get_x_transformed(t,
+								    w->width);
+		w->tool.y = libinput_event_tablet_get_y_transformed(t,
+								    w->height);
+		w->tool.pressure = libinput_event_tablet_get_axis_value(t,
+							LIBINPUT_TABLET_AXIS_PRESSURE);
+		w->tool.distance = libinput_event_tablet_get_axis_value(t,
+							LIBINPUT_TABLET_AXIS_DISTANCE);
+		w->tool.tilt_x = libinput_event_tablet_get_axis_value(t,
+							LIBINPUT_TABLET_AXIS_TILT_X);
+		w->tool.tilt_y = libinput_event_tablet_get_axis_value(t,
+							LIBINPUT_TABLET_AXIS_TILT_Y);
+		break;
+	case LIBINPUT_EVENT_TABLET_BUTTON:
+		break;
+	default:
+		abort();
+	}
+}
+
 static gboolean
 handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 {
@@ -609,6 +677,7 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 		case LIBINPUT_EVENT_TABLET_AXIS:
 		case LIBINPUT_EVENT_TABLET_PROXIMITY:
 		case LIBINPUT_EVENT_TABLET_BUTTON:
+			handle_event_tablet(ev, w);
 			break;
 		}
 
