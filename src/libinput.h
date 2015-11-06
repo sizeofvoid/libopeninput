@@ -172,7 +172,8 @@ struct libinput_tool;
  * LIBINPUT_DEVICE_CAP_TABLET capability. The tool type defines the default
  * usage of the tool as advertised by the manufacturer. Multiple different
  * physical tools may share the same tool type, e.g. a Wacom Classic Pen,
- * Wacom Pro Pen and a Wacom Grip Pen are all of type @ref LIBINPUT_TOOL_PEN.
+ * Wacom Pro Pen and a Wacom Grip Pen are all of type @ref
+ * LIBINPUT_TOOL_TYPE_PEN.
  * Use libinput_tool_get_tool_id() to get a specific model where applicable.
  *
  * Note that on some device, the eraser tool is on the tail end of a pen
@@ -182,18 +183,18 @@ struct libinput_tool;
  * @note The @ref libinput_tool_type can only describe the default physical
  * type of the device. For devices with adjustible physical properties
  * the tool type remains the same, i.e. putting a Wacom stroke nib into a
- * classic pen leaves the tool type as @ref LIBINPUT_TOOL_PEN.
+ * classic pen leaves the tool type as @ref LIBINPUT_TOOL_TYPE_PEN.
  */
 enum libinput_tool_type {
-	LIBINPUT_TOOL_PEN = 1,		/**< A generic pen */
-	LIBINPUT_TOOL_ERASER,		/**< Eraser */
-	LIBINPUT_TOOL_BRUSH,		/**< A paintbrush-like tool */
-	LIBINPUT_TOOL_PENCIL,		/**< Physical drawing tool, e.g.
+	LIBINPUT_TOOL_TYPE_PEN = 1,	/**< A generic pen */
+	LIBINPUT_TOOL_TYPE_ERASER,	/**< Eraser */
+	LIBINPUT_TOOL_TYPE_BRUSH,	/**< A paintbrush-like tool */
+	LIBINPUT_TOOL_TYPE_PENCIL,	/**< Physical drawing tool, e.g.
 					     Wacom Inking Pen */
-	LIBINPUT_TOOL_AIRBRUSH,		/**< An airbrush-like tool */
-	LIBINPUT_TOOL_FINGER,		/**< Touch */
-	LIBINPUT_TOOL_MOUSE,		/**< A mouse bound to the tablet */
-	LIBINPUT_TOOL_LENS,		/**< A mouse tool with a lens */
+	LIBINPUT_TOOL_TYPE_AIRBRUSH,	/**< An airbrush-like tool */
+	LIBINPUT_TOOL_TYPE_FINGER,	/**< Touch */
+	LIBINPUT_TOOL_TYPE_MOUSE,	/**< A mouse bound to the tablet */
+	LIBINPUT_TOOL_TYPE_LENS,	/**< A mouse tool with a lens */
 };
 
 /**
@@ -1357,10 +1358,10 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
  *   tool
  * - @ref LIBINPUT_TABLET_AXIS_ROTATION_Z - The z rotation of the tool in
  *   degrees, clockwise from the tool's logical neutral position. For the
- *   @ref LIBINPUT_TOOL_MOUSE and @ref LIBINPUT_TOOL_LENS tools the logical
- *   neutral position is pointing to the current logical north of the
- *   tablet. For the @ref LIBINPUT_TOOL_BRUSH tool, the logical neutral
- *   position is with the buttons pointing up.
+ *   @ref LIBINPUT_TOOL_TYPE_MOUSE and @ref LIBINPUT_TOOL_TYPE_LENS tools
+ *   the logical neutral position is pointing to the current logical north
+ *   of the tablet. For the @ref LIBINPUT_TOOL_TYPE_BRUSH tool, the logical
+ *   neutral position is with the buttons pointing up.
  * - @ref LIBINPUT_TABLET_AXIS_SLIDER - A slider on the tool, normalized
  *   from 0 to 1. e.g. the wheel-like tool on the Wacom Airbrush.
  * - @ref LIBINPUT_TABLET_AXIS_REL_WHEEL - A relative wheel on the tool,

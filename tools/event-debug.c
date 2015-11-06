@@ -448,28 +448,28 @@ print_proximity_event(struct libinput_event *ev)
 	           *state_str;
 
 	switch (libinput_tool_get_type(tool)) {
-	case LIBINPUT_TOOL_PEN:
+	case LIBINPUT_TOOL_TYPE_PEN:
 		tool_str = "pen";
 		break;
-	case LIBINPUT_TOOL_ERASER:
+	case LIBINPUT_TOOL_TYPE_ERASER:
 		tool_str = "eraser";
 		break;
-	case LIBINPUT_TOOL_BRUSH:
+	case LIBINPUT_TOOL_TYPE_BRUSH:
 		tool_str = "brush";
 		break;
-	case LIBINPUT_TOOL_PENCIL:
+	case LIBINPUT_TOOL_TYPE_PENCIL:
 		tool_str = "pencil";
 		break;
-	case LIBINPUT_TOOL_AIRBRUSH:
+	case LIBINPUT_TOOL_TYPE_AIRBRUSH:
 		tool_str = "airbrush";
 		break;
-	case LIBINPUT_TOOL_FINGER:
+	case LIBINPUT_TOOL_TYPE_FINGER:
 		tool_str = "finger";
 		break;
-	case LIBINPUT_TOOL_MOUSE:
+	case LIBINPUT_TOOL_TYPE_MOUSE:
 		tool_str = "mouse";
 		break;
-	case LIBINPUT_TOOL_LENS:
+	case LIBINPUT_TOOL_TYPE_LENS:
 		tool_str = "lens";
 		break;
 	default:

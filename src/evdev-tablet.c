@@ -341,8 +341,8 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 		/* ROTATION_Z is higher than TILT_X/Y so we know that the
 		   tilt axes are already normalized and set */
 		if (a == LIBINPUT_TABLET_AXIS_ROTATION_Z &&
-		   (tablet->current_tool_type == LIBINPUT_TOOL_MOUSE ||
-		    tablet->current_tool_type == LIBINPUT_TOOL_LENS)) {
+		   (tablet->current_tool_type == LIBINPUT_TOOL_TYPE_MOUSE ||
+		    tablet->current_tool_type == LIBINPUT_TOOL_TYPE_LENS)) {
 			convert_tilt_to_rotation(tablet);
 			axes[LIBINPUT_TABLET_AXIS_TILT_X] = 0;
 			axes[LIBINPUT_TABLET_AXIS_TILT_Y] = 0;
@@ -459,14 +459,14 @@ tablet_evcode_to_tool(int code)
 	enum libinput_tool_type type;
 
 	switch (code) {
-	case BTN_TOOL_PEN:	type = LIBINPUT_TOOL_PEN;	break;
-	case BTN_TOOL_RUBBER:	type = LIBINPUT_TOOL_ERASER;	break;
-	case BTN_TOOL_BRUSH:	type = LIBINPUT_TOOL_BRUSH;	break;
-	case BTN_TOOL_PENCIL:	type = LIBINPUT_TOOL_PENCIL;	break;
-	case BTN_TOOL_AIRBRUSH:	type = LIBINPUT_TOOL_AIRBRUSH;	break;
-	case BTN_TOOL_FINGER:	type = LIBINPUT_TOOL_FINGER;	break;
-	case BTN_TOOL_MOUSE:	type = LIBINPUT_TOOL_MOUSE;	break;
-	case BTN_TOOL_LENS:	type = LIBINPUT_TOOL_LENS;	break;
+	case BTN_TOOL_PEN:	type = LIBINPUT_TOOL_TYPE_PEN;		break;
+	case BTN_TOOL_RUBBER:	type = LIBINPUT_TOOL_TYPE_ERASER;	break;
+	case BTN_TOOL_BRUSH:	type = LIBINPUT_TOOL_TYPE_BRUSH;	break;
+	case BTN_TOOL_PENCIL:	type = LIBINPUT_TOOL_TYPE_PENCIL;	break;
+	case BTN_TOOL_AIRBRUSH:	type = LIBINPUT_TOOL_TYPE_AIRBRUSH;	break;
+	case BTN_TOOL_FINGER:	type = LIBINPUT_TOOL_TYPE_FINGER;	break;
+	case BTN_TOOL_MOUSE:	type = LIBINPUT_TOOL_TYPE_MOUSE;	break;
+	case BTN_TOOL_LENS:	type = LIBINPUT_TOOL_TYPE_LENS;		break;
 	default:
 		abort();
 	}
@@ -676,11 +676,11 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 	   anyway.
 	 */
 	switch (type) {
-	case LIBINPUT_TOOL_PEN:
-	case LIBINPUT_TOOL_ERASER:
-	case LIBINPUT_TOOL_PENCIL:
-	case LIBINPUT_TOOL_BRUSH:
-	case LIBINPUT_TOOL_AIRBRUSH:
+	case LIBINPUT_TOOL_TYPE_PEN:
+	case LIBINPUT_TOOL_TYPE_ERASER:
+	case LIBINPUT_TOOL_TYPE_PENCIL:
+	case LIBINPUT_TOOL_TYPE_BRUSH:
+	case LIBINPUT_TOOL_TYPE_AIRBRUSH:
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_PRESSURE);
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_DISTANCE);
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_TILT_X);
@@ -688,8 +688,8 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_SLIDER);
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_ROTATION_Z);
 		break;
-	case LIBINPUT_TOOL_MOUSE:
-	case LIBINPUT_TOOL_LENS:
+	case LIBINPUT_TOOL_TYPE_MOUSE:
+	case LIBINPUT_TOOL_TYPE_LENS:
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_ROTATION_Z);
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_AXIS_REL_WHEEL);
 		break;
@@ -700,17 +700,17 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 	/* If we don't have libwacom, copy all pen-related ones from the
 	   tablet vs all mouse-related ones */
 	switch (type) {
-	case LIBINPUT_TOOL_PEN:
-	case LIBINPUT_TOOL_BRUSH:
-	case LIBINPUT_TOOL_AIRBRUSH:
-	case LIBINPUT_TOOL_PENCIL:
-	case LIBINPUT_TOOL_ERASER:
+	case LIBINPUT_TOOL_TYPE_PEN:
+	case LIBINPUT_TOOL_TYPE_BRUSH:
+	case LIBINPUT_TOOL_TYPE_AIRBRUSH:
+	case LIBINPUT_TOOL_TYPE_PENCIL:
+	case LIBINPUT_TOOL_TYPE_ERASER:
 		copy_button_cap(tablet, tool, BTN_STYLUS);
 		copy_button_cap(tablet, tool, BTN_STYLUS2);
 		copy_button_cap(tablet, tool, BTN_TOUCH);
 		break;
-	case LIBINPUT_TOOL_MOUSE:
-	case LIBINPUT_TOOL_LENS:
+	case LIBINPUT_TOOL_TYPE_MOUSE:
+	case LIBINPUT_TOOL_TYPE_LENS:
 		copy_button_cap(tablet, tool, BTN_LEFT);
 		copy_button_cap(tablet, tool, BTN_MIDDLE);
 		copy_button_cap(tablet, tool, BTN_RIGHT);
@@ -854,8 +854,8 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet)
 
 	/* If we have a mouse/lens cursor and the tilt changed, the rotation
 	   changed. Mark this, calculate the angle later */
-	if ((tablet->current_tool_type == LIBINPUT_TOOL_MOUSE ||
-	    tablet->current_tool_type == LIBINPUT_TOOL_LENS) &&
+	if ((tablet->current_tool_type == LIBINPUT_TOOL_TYPE_MOUSE ||
+	    tablet->current_tool_type == LIBINPUT_TOOL_TYPE_LENS) &&
 	    (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_AXIS_TILT_X) ||
 	     bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_AXIS_TILT_Y)))
 		set_bit(tablet->changed_axes, LIBINPUT_TABLET_AXIS_ROTATION_Z);
@@ -991,7 +991,7 @@ tablet_check_initial_proximity(struct evdev_device *device,
 	enum libinput_tool_type tool;
 	struct tablet_dispatch *tablet = (struct tablet_dispatch*)dispatch;
 
-	for (tool = LIBINPUT_TOOL_PEN; tool <= LIBINPUT_TOOL_MAX; tool++) {
+	for (tool = LIBINPUT_TOOL_TYPE_PEN; tool <= LIBINPUT_TOOL_TYPE_MAX; tool++) {
 		code = tablet_tool_to_evcode(tool);
 
 		/* we only expect one tool to be in proximity at a time */
