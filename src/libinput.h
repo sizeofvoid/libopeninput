@@ -1583,7 +1583,7 @@ libinput_tool_get_type(struct libinput_tool *tool);
  *
  * @see libinput_tool_get_type
  */
-uint32_t
+uint64_t
 libinput_tool_get_tool_id(struct libinput_tool *tool);
 
 /**

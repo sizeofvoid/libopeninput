@@ -1101,7 +1101,7 @@ libinput_tool_get_type(struct libinput_tool *tool)
 	return tool->type;
 }
 
-LIBINPUT_EXPORT uint32_t
+LIBINPUT_EXPORT uint64_t
 libinput_tool_get_tool_id(struct libinput_tool *tool)
 {
 	return tool->tool_id;
