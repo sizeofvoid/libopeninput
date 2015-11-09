@@ -490,8 +490,11 @@ print_proximity_event(struct libinput_event *ev)
 		abort();
 	}
 
-	printf("\t%s (%#" PRIx64 ") %s",
-	       tool_str, libinput_tool_get_serial(tool), state_str);
+	printf("\t%s (%#" PRIx64 ", id %#" PRIx64 ") %s",
+	       tool_str,
+	       libinput_tool_get_serial(tool),
+	       libinput_tool_get_tool_id(tool),
+	       state_str);
 
 	printf("\taxes:");
 	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_DISTANCE))
