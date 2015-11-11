@@ -167,6 +167,8 @@ START_TEST(proximity_has_axes)
 	struct libinput_tool *tool;
 	double x, y,
 	       distance;
+	double last_x, last_y, last_distance,
+	       last_tx, last_ty;
 
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
@@ -233,6 +235,35 @@ START_TEST(proximity_has_axes)
 	litest_assert_empty_queue(li);
 	libinput_event_destroy(event);
 
+	axes[0].value = 20;
+	axes[1].value = 15;
+	axes[2].value = 25;
+	litest_tablet_motion(dev, 20, 30, axes);
+	libinput_dispatch(li);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_AXIS, -1);
+	event = libinput_get_event(li);
+	tablet_event = libinput_event_get_tablet_event(event);
+
+	last_x = libinput_event_tablet_get_axis_value(tablet_event,
+						      LIBINPUT_TABLET_AXIS_X);
+	last_y = libinput_event_tablet_get_axis_value(tablet_event,
+						      LIBINPUT_TABLET_AXIS_Y);
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_DISTANCE))
+		last_distance = libinput_event_tablet_get_axis_value(
+					     tablet_event,
+					     LIBINPUT_TABLET_AXIS_DISTANCE);
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_TILT_X) &&
+	    libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_TILT_Y)) {
+		last_tx = libinput_event_tablet_get_axis_value(
+						tablet_event,
+						LIBINPUT_TABLET_AXIS_TILT_X);
+		last_ty = libinput_event_tablet_get_axis_value(
+						tablet_event,
+						LIBINPUT_TABLET_AXIS_TILT_Y);
+	}
+
+	libinput_event_destroy(event);
+
 	/* Make sure that the axes are still present on proximity out */
 	litest_tablet_proximity_out(dev);
 
@@ -251,9 +282,8 @@ START_TEST(proximity_has_axes)
 						 LIBINPUT_TABLET_AXIS_X);
 	y = libinput_event_tablet_get_axis_value(tablet_event,
 						 LIBINPUT_TABLET_AXIS_Y);
-
-	litest_assert_double_ne(x, 0);
-	litest_assert_double_ne(y, 0);
+	litest_assert_double_eq(x, last_x);
+	litest_assert_double_eq(y, last_y);
 
 	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_DISTANCE)) {
 		ck_assert(!libinput_event_tablet_axis_has_changed(
@@ -263,7 +293,7 @@ START_TEST(proximity_has_axes)
 		distance = libinput_event_tablet_get_axis_value(
 			tablet_event,
 			LIBINPUT_TABLET_AXIS_DISTANCE);
-		litest_assert_double_ne(distance, 0);
+		litest_assert_double_eq(distance, last_distance);
 	}
 
 	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_TILT_X) &&
@@ -282,8 +312,8 @@ START_TEST(proximity_has_axes)
 			tablet_event,
 			LIBINPUT_TABLET_AXIS_TILT_Y);
 
-		litest_assert_double_ne(x, 0);
-		litest_assert_double_ne(y, 0);
+		litest_assert_double_eq(x, last_tx);
+		litest_assert_double_eq(y, last_ty);
 	}
 
 	litest_assert_empty_queue(li);
