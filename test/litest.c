@@ -1898,6 +1898,7 @@ static void
 litest_print_event(struct libinput_event *event)
 {
 	struct libinput_event_pointer *p;
+	struct libinput_event_tablet *t;
 	struct libinput_device *dev;
 	enum libinput_event_type type;
 	double x, y;
@@ -1942,6 +1943,17 @@ litest_print_event(struct libinput_event *event)
 			x = libinput_event_pointer_get_axis_value(p,
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
 		fprintf(stderr, "vert %.f horiz %.2f", y, x);
+		break;
+	case LIBINPUT_EVENT_TABLET_PROXIMITY:
+		t = libinput_event_get_tablet_event(event);
+		fprintf(stderr, "proximity %d\n",
+			libinput_event_tablet_get_proximity_state(t));
+		break;
+	case LIBINPUT_EVENT_TABLET_BUTTON:
+		t = libinput_event_get_tablet_event(event);
+		fprintf(stderr, "button %d state %d\n",
+			libinput_event_tablet_get_button(t),
+			libinput_event_tablet_get_button_state(t));
 		break;
 	default:
 		break;
