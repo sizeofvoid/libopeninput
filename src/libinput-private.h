@@ -463,6 +463,7 @@ void
 tablet_notify_axis(struct libinput_device *device,
 		   uint64_t time,
 		   struct libinput_tool *tool,
+		   enum libinput_tool_tip_state tip_state,
 		   unsigned char *changed_axes,
 		   double *axes,
 		   double *deltas,
@@ -487,6 +488,7 @@ void
 tablet_notify_button(struct libinput_device *device,
 		     uint64_t time,
 		     struct libinput_tool *tool,
+		     enum libinput_tool_tip_state tip_state,
 		     double *axes,
 		     int32_t button,
 		     enum libinput_button_state state);

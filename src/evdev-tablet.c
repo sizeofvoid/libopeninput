@@ -406,14 +406,20 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 						LIBINPUT_TOOL_PROXIMITY_IN,
 						tablet->changed_axes,
 						axes);
-		else
+		else {
+			enum libinput_tool_tip_state tip_state;
+
+			tip_state = tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ?
+				LIBINPUT_TOOL_TIP_DOWN : LIBINPUT_TOOL_TIP_UP;
 			tablet_notify_axis(base,
 					   time,
 					   tool,
+					   tip_state,
 					   tablet->changed_axes,
 					   axes,
 					   deltas,
 					   deltas_discrete);
+		}
 	}
 
 	memset(tablet->changed_axes, 0, sizeof(tablet->changed_axes));
@@ -786,6 +792,10 @@ tablet_notify_button_mask(struct tablet_dispatch *tablet,
 	struct libinput_device *base = &device->base;
 	size_t i;
 	size_t nbits = 8 * sizeof(buttons[0]) * buttons_len;
+	enum libinput_tool_tip_state tip_state;
+
+	tip_state = tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ?
+			LIBINPUT_TOOL_TIP_DOWN : LIBINPUT_TOOL_TIP_UP;
 
 	for (i = 0; i < nbits; i++) {
 		if (!bit_is_set(buttons, i))
@@ -794,6 +804,7 @@ tablet_notify_button_mask(struct tablet_dispatch *tablet,
 		tablet_notify_button(base,
 				     time,
 				     tool,
+				     tip_state,
 				     tablet->axes,
 				     i,
 				     state);
