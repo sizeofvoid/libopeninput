@@ -496,9 +496,9 @@ tablet_process_key(struct tablet_dispatch *tablet,
 		break;
 	case BTN_TOUCH:
 		if (e->value)
-			tablet_set_status(tablet, TABLET_STYLUS_IN_CONTACT);
+			tablet_set_status(tablet, TABLET_TOOL_IN_CONTACT);
 		else
-			tablet_unset_status(tablet, TABLET_STYLUS_IN_CONTACT);
+			tablet_unset_status(tablet, TABLET_TOOL_IN_CONTACT);
 
 		/* Fall through */
 	case BTN_LEFT:
@@ -843,7 +843,7 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet)
 		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_AXIS_DISTANCE);
 		tablet->axes[LIBINPUT_TABLET_AXIS_DISTANCE] = 0;
 	} else if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_AXIS_PRESSURE) &&
-		   !tablet_has_status(tablet, TABLET_STYLUS_IN_CONTACT)) {
+		   !tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT)) {
 		/* Make sure that the last axis value sent to the caller is a 0 */
 		if (tablet->axes[LIBINPUT_TABLET_AXIS_PRESSURE] == 0)
 			clear_bit(tablet->changed_axes,
