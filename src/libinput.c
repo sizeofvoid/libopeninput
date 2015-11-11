@@ -1064,48 +1064,97 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
 LIBINPUT_EXPORT struct libinput_tool *
 libinput_event_tablet_get_tool(struct libinput_event_tablet *event)
 {
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_AXIS,
+			   LIBINPUT_EVENT_TABLET_TIP,
+			   LIBINPUT_EVENT_TABLET_BUTTON,
+			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+
 	return event->tool;
 }
 
 LIBINPUT_EXPORT enum libinput_tool_proximity_state
 libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event)
 {
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+
 	return event->proximity_state;
 }
 
 LIBINPUT_EXPORT enum libinput_tool_tip_state
 libinput_event_tablet_get_tip_state(struct libinput_event_tablet *event)
 {
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TIP);
+
 	return event->tip_state;
 }
 
 LIBINPUT_EXPORT uint32_t
 libinput_event_tablet_get_time(struct libinput_event_tablet *event)
 {
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_AXIS,
+			   LIBINPUT_EVENT_TABLET_TIP,
+			   LIBINPUT_EVENT_TABLET_BUTTON,
+			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+
 	return us2ms(event->time);
 }
 
 LIBINPUT_EXPORT uint64_t
 libinput_event_tablet_get_time_usec(struct libinput_event_tablet *event)
 {
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_AXIS,
+			   LIBINPUT_EVENT_TABLET_TIP,
+			   LIBINPUT_EVENT_TABLET_BUTTON,
+			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+
 	return event->time;
 }
 
 LIBINPUT_EXPORT uint32_t
 libinput_event_tablet_get_button(struct libinput_event_tablet *event)
 {
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_BUTTON);
+
 	return event->button;
 }
 
 LIBINPUT_EXPORT enum libinput_button_state
 libinput_event_tablet_get_button_state(struct libinput_event_tablet *event)
 {
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_BUTTON);
+
 	return event->state;
 }
 
 LIBINPUT_EXPORT uint32_t
 libinput_event_tablet_get_seat_button_count(struct libinput_event_tablet *event)
 {
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_BUTTON);
+
 	return event->seat_button_count;
 }
 
