@@ -1081,6 +1081,9 @@ libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event)
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
+			   LIBINPUT_EVENT_TABLET_AXIS,
+			   LIBINPUT_EVENT_TABLET_TIP,
+			   LIBINPUT_EVENT_TABLET_BUTTON,
 			   LIBINPUT_EVENT_TABLET_PROXIMITY);
 
 	return event->proximity_state;
@@ -1981,6 +1984,7 @@ tablet_notify_axis(struct libinput_device *device,
 	*axis_event = (struct libinput_event_tablet) {
 		.time = time,
 		.tool = tool,
+		.proximity_state = LIBINPUT_TOOL_PROXIMITY_IN,
 	};
 
 	memcpy(axis_event->changed_axes,
@@ -2049,6 +2053,7 @@ tablet_notify_tip(struct libinput_device *device,
 		.time = time,
 		.tool = tool,
 		.tip_state = tip_state,
+		.proximity_state = LIBINPUT_TOOL_PROXIMITY_IN,
 	};
 	memcpy(tip_event->axes,
 	       axes,
@@ -2085,6 +2090,7 @@ tablet_notify_button(struct libinput_device *device,
 		.button = button,
 		.state = state,
 		.seat_button_count = seat_button_count,
+		.proximity_state = LIBINPUT_TOOL_PROXIMITY_IN,
 	};
 	memcpy(button_event->axes, axes, sizeof(button_event->axes));
 
