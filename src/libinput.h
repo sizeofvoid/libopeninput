@@ -267,6 +267,13 @@ enum libinput_event_type {
 	 * LIBINPUT_DEVICE_CAP_TABLET capability. This event is only sent
 	 * when the tool is in proximity, see @ref
 	 * LIBINPUT_EVENT_TABLET_PROXIMITY for details.
+	 *
+	 * The proximity event contains the initial state of the axis as the
+	 * tool comes into proximity. An event of type @ref
+	 * LIBINPUT_EVENT_TABLET_AXIS is only sent when an axis value
+	 * changes from this initial state. It is possible for a tool to
+	 * enter and leave proximity without sending an event of type @ref
+	 * LIBINPUT_EVENT_TABLET_AXIS.
 	 */
 	LIBINPUT_EVENT_TABLET_AXIS = 600,
 	/**
