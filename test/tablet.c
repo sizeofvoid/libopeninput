@@ -412,7 +412,7 @@ START_TEST(proximity_in_out)
 		{ -1, -1 }
 	};
 
-	litest_drain_events(dev->libinput);
+	litest_drain_events(li);
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	libinput_dispatch(li);
@@ -477,7 +477,7 @@ START_TEST(proximity_out_clear_buttons)
 		{ -1, -1 }
 	};
 
-	litest_drain_events(dev->libinput);
+	litest_drain_events(li);
 
 	/* Test that proximity out events send button releases for any currently
 	 * pressed stylus buttons
@@ -543,7 +543,7 @@ START_TEST(proximity_has_axes)
 		{ -1, -1}
 	};
 
-	litest_drain_events(dev->libinput);
+	litest_drain_events(li);
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 
@@ -1107,7 +1107,7 @@ START_TEST(bad_distance_events)
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_tablet_proximity_out(dev);
-	litest_drain_events(dev->libinput);
+	litest_drain_events(li);
 
 	absinfo = libevdev_get_abs_info(dev->evdev, ABS_DISTANCE);
 	ck_assert(absinfo != NULL);
@@ -1134,7 +1134,7 @@ START_TEST(normalization)
                                    *tilt_vertical_absinfo,
                                    *tilt_horizontal_absinfo;
 
-	litest_drain_events(dev->libinput);
+	litest_drain_events(li);
 
 	pressure_absinfo = libevdev_get_abs_info(dev->evdev, ABS_PRESSURE);
 	tilt_vertical_absinfo = libevdev_get_abs_info(dev->evdev, ABS_TILT_X);
