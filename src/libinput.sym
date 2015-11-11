@@ -195,6 +195,7 @@ LIBINPUT_TABLET_SUPPORT {
 	libinput_event_tablet_get_proximity_state;
 	libinput_event_tablet_get_seat_button_count;
 	libinput_event_tablet_get_time;
+	libinput_event_tablet_get_tip_state;
 	libinput_event_tablet_get_tool;
 	libinput_event_tablet_get_x_transformed;
 	libinput_event_tablet_get_y_transformed;

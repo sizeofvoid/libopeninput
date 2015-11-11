@@ -115,6 +115,9 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_TABLET_PROXIMITY:
 		type = "TABLET_PROXIMITY";
 		break;
+	case LIBINPUT_EVENT_TABLET_TIP:
+		type = "TABLET_TIP";
+		break;
 	case LIBINPUT_EVENT_TABLET_BUTTON:
 		type = "TABLET_BUTTON";
 		break;
@@ -276,6 +279,18 @@ print_pointer_button_event(struct libinput_event *ev)
 	       libinput_event_pointer_get_button(p),
 	       state == LIBINPUT_BUTTON_STATE_PRESSED ? "pressed" : "released",
 	       libinput_event_pointer_get_seat_button_count(p));
+}
+
+static void
+print_tablet_tip_event(struct libinput_event *ev)
+{
+	struct libinput_event_tablet *p = libinput_event_get_tablet_event(ev);
+	enum libinput_tool_tip_state state;
+
+	print_event_time(libinput_event_tablet_get_time(p));
+
+	state = libinput_event_tablet_get_tip_state(p);
+	printf("%s\n", state == LIBINPUT_TOOL_TIP_DOWN ? "down" : "up");
 }
 
 static void
@@ -666,6 +681,9 @@ handle_and_print_events(struct libinput *li)
 			break;
 		case LIBINPUT_EVENT_TABLET_PROXIMITY:
 			print_proximity_event(ev);
+			break;
+		case LIBINPUT_EVENT_TABLET_TIP:
+			print_tablet_tip_event(ev);
 			break;
 		case LIBINPUT_EVENT_TABLET_BUTTON:
 			print_tablet_button_event(ev);

@@ -217,6 +217,20 @@ enum libinput_tool_proximity_state {
 };
 
 /**
+ * @ingroup device
+ *
+ * The tip contact state for a tool on a device. The device must have
+ * the @ref LIBINPUT_DEVICE_CAP_TABLET capability.
+ *
+ * The tip contact state of a tool is a binary state signalling whether the tool is
+ * touching the surface of the tablet device.
+ */
+enum libinput_tool_tip_state {
+	LIBINPUT_TOOL_TIP_UP = 0,
+	LIBINPUT_TOOL_TIP_DOWN = 1,
+};
+
+/**
  * @ingroup base
  *
  * Event type for events returned by libinput_get_event().
@@ -301,6 +315,19 @@ enum libinput_event_type {
 	 * proximity out event.
 	 */
 	LIBINPUT_EVENT_TABLET_PROXIMITY,
+	/**
+	 * Signals that a tool has come in contact with the surface of a
+	 * device with the @ref LIBINPUT_DEVICE_CAP_TABLET capability.
+	 *
+	 * On devices without distance proximity detection, the @ref
+	 * LIBINPUT_EVENT_TABLET_TIP is sent immediately after @ref
+	 * LIBINPUT_EVENT_TABLET_PROXIMITY for the tip down event, and
+	 * immediately before for the tip up event.
+	 *
+	 * If a button and/or axis state change occurs at the same time as a
+	 * tip state change, the order of events is device-dependent.
+	 */
+	LIBINPUT_EVENT_TABLET_TIP,
 	LIBINPUT_EVENT_TABLET_BUTTON,
 
 	LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN = 800,
@@ -1498,6 +1525,20 @@ libinput_event_tablet_get_tool(struct libinput_event_tablet *event);
  */
 enum libinput_tool_proximity_state
 libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the new tip state of a tool from a tip event.
+ * Used to check whether or not a tool came in contact with the tablet
+ * surface or left contact with the tablet surface during an
+ * event of type @ref LIBINPUT_EVENT_TABLET_TIP.
+ *
+ * @param event The libinput tablet event
+ * @return The new tip state of the tool from the event.
+ */
+enum libinput_tool_tip_state
+libinput_event_tablet_get_tip_state(struct libinput_event_tablet *event);
 
 /**
  * @ingroup event_tablet

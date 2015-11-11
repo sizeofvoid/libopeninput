@@ -118,7 +118,7 @@ START_TEST(proximity_out_clear_buttons)
 	/* Test that proximity out events send button releases for any currently
 	 * pressed stylus buttons
 	 */
-	for (button = BTN_TOUCH; button <= BTN_STYLUS2; button++) {
+	for (button = BTN_TOUCH + 1; button <= BTN_STYLUS2; button++) {
 		bool button_released = false;
 		uint32_t event_button;
 		enum libinput_button_state state;
@@ -155,6 +155,8 @@ START_TEST(proximity_out_clear_buttons)
 			      libevdev_event_code_get_name(EV_KEY, button),
 			      event_button);
 	}
+
+	litest_assert_empty_queue(li);
 }
 END_TEST
 

@@ -88,6 +88,8 @@ struct window {
 	struct {
 		double x, y;
 		double x_in, y_in;
+		double x_down, y_down;
+		double x_up, y_up;
 		double pressure;
 		double distance;
 		double tilt_x, tilt_y;
@@ -229,6 +231,20 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	cairo_set_source_rgb(cr, .8, .8, .8);
 	if (w->tool.x_in && w->tool.y_in) {
 		cairo_rectangle(cr, w->tool.x_in - 15, w->tool.y_in - 15, 30, 30);
+		cairo_stroke(cr);
+		cairo_restore(cr);
+		cairo_save(cr);
+	}
+
+	if (w->tool.x_down && w->tool.y_down) {
+		cairo_rectangle(cr, w->tool.x_down - 10, w->tool.y_down - 10, 20, 20);
+		cairo_stroke(cr);
+		cairo_restore(cr);
+		cairo_save(cr);
+	}
+
+	if (w->tool.x_up && w->tool.y_up) {
+		cairo_rectangle(cr, w->tool.x_up - 10, w->tool.y_up - 10, 20, 20);
 		cairo_stroke(cr);
 		cairo_restore(cr);
 		cairo_save(cr);
@@ -584,6 +600,7 @@ static void
 handle_event_tablet(struct libinput_event *ev, struct window *w)
 {
 	struct libinput_event_tablet *t = libinput_event_get_tablet_event(ev);
+	double x, y;
 
 	switch (libinput_event_get_type(ev)) {
 	case LIBINPUT_EVENT_TABLET_PROXIMITY:
@@ -591,6 +608,10 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 		    LIBINPUT_TOOL_PROXIMITY_OUT) {
 			w->tool.x_in = 0;
 			w->tool.y_in = 0;
+			w->tool.x_down = 0;
+			w->tool.y_down = 0;
+			w->tool.x_up = 0;
+			w->tool.y_up = 0;
 		} else {
 			w->tool.x_in = libinput_event_tablet_get_x_transformed(t,
 								       w->width);
@@ -611,6 +632,18 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 							LIBINPUT_TABLET_AXIS_TILT_X);
 		w->tool.tilt_y = libinput_event_tablet_get_axis_value(t,
 							LIBINPUT_TABLET_AXIS_TILT_Y);
+		break;
+	case LIBINPUT_EVENT_TABLET_TIP:
+		x = libinput_event_tablet_get_x_transformed(t, w->width);
+		y = libinput_event_tablet_get_y_transformed(t, w->height);
+		if (libinput_event_tablet_get_tip_state(t) ==
+		    LIBINPUT_TOOL_TIP_DOWN) {
+			w->tool.x_down = x;
+			w->tool.y_down = y;
+		} else {
+			w->tool.x_up = x;
+			w->tool.y_up = y;
+		}
 		break;
 	case LIBINPUT_EVENT_TABLET_BUTTON:
 		break;
@@ -676,6 +709,7 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 			break;
 		case LIBINPUT_EVENT_TABLET_AXIS:
 		case LIBINPUT_EVENT_TABLET_PROXIMITY:
+		case LIBINPUT_EVENT_TABLET_TIP:
 		case LIBINPUT_EVENT_TABLET_BUTTON:
 			handle_event_tablet(ev, w);
 			break;

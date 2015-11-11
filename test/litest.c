@@ -1887,6 +1887,9 @@ litest_event_type_str(struct libinput_event *event)
 	case LIBINPUT_EVENT_TABLET_PROXIMITY:
 		str = "TABLET PROX";
 		break;
+	case LIBINPUT_EVENT_TABLET_TIP:
+		str = "TABLET TIP";
+		break;
 	case LIBINPUT_EVENT_TABLET_BUTTON:
 		str = "TABLET BUTTON";
 		break;
@@ -1948,6 +1951,11 @@ litest_print_event(struct libinput_event *event)
 		t = libinput_event_get_tablet_event(event);
 		fprintf(stderr, "proximity %d\n",
 			libinput_event_tablet_get_proximity_state(t));
+		break;
+	case LIBINPUT_EVENT_TABLET_TIP:
+		t = libinput_event_get_tablet_event(event);
+		fprintf(stderr, "tip %d\n",
+			libinput_event_tablet_get_tip_state(t));
 		break;
 	case LIBINPUT_EVENT_TABLET_BUTTON:
 		t = libinput_event_get_tablet_event(event);

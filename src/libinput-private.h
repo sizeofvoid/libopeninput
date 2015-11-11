@@ -477,6 +477,13 @@ tablet_notify_proximity(struct libinput_device *device,
 			double *axes);
 
 void
+tablet_notify_tip(struct libinput_device *device,
+		  uint64_t time,
+		  struct libinput_tool *tool,
+		  enum libinput_tool_tip_state tip_state,
+		  double *axes);
+
+void
 tablet_notify_button(struct libinput_device *device,
 		     uint64_t time,
 		     struct libinput_tool *tool,
