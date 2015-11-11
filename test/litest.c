@@ -2330,6 +2330,21 @@ litest_is_gesture_event(struct libinput_event *event,
 	return gevent;
 }
 
+struct libinput_event_tablet * litest_is_tablet_event(
+		       struct libinput_event *event,
+		       enum libinput_event_type type)
+{
+	struct libinput_event_tablet *tevent;
+
+	litest_assert(event != NULL);
+	litest_assert_int_eq(libinput_event_get_type(event), type);
+
+	tevent = libinput_event_get_tablet_event(event);
+	litest_assert(tevent != NULL);
+
+	return tevent;
+}
+
 void
 litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
 				  enum libinput_button_state state)

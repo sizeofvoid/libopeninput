@@ -425,6 +425,8 @@ tablet_update_button(struct tablet_dispatch *tablet,
 		     uint32_t enable)
 {
 	switch (evcode) {
+	case BTN_TOUCH:
+		return;
 	case BTN_LEFT:
 	case BTN_RIGHT:
 	case BTN_MIDDLE:
@@ -433,7 +435,6 @@ tablet_update_button(struct tablet_dispatch *tablet,
 	case BTN_FORWARD:
 	case BTN_BACK:
 	case BTN_TASK:
-	case BTN_TOUCH:
 	case BTN_STYLUS:
 	case BTN_STYLUS2:
 		break;
@@ -496,11 +497,10 @@ tablet_process_key(struct tablet_dispatch *tablet,
 		break;
 	case BTN_TOUCH:
 		if (e->value)
-			tablet_set_status(tablet, TABLET_TOOL_IN_CONTACT);
+			tablet_set_status(tablet, TABLET_TOOL_ENTERING_CONTACT);
 		else
-			tablet_unset_status(tablet, TABLET_TOOL_IN_CONTACT);
-
-		/* Fall through */
+			tablet_set_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
+		break;
 	case BTN_LEFT:
 	case BTN_RIGHT:
 	case BTN_MIDDLE:
@@ -622,7 +622,6 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 			copy_button_cap(tablet, tool, BTN_STYLUS2);
 		if (libwacom_stylus_get_num_buttons(s) >= 1)
 			copy_button_cap(tablet, tool, BTN_STYLUS);
-		copy_button_cap(tablet, tool, BTN_TOUCH);
 	}
 
 	if (libwacom_stylus_has_wheel(s))
@@ -707,7 +706,6 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 	case LIBINPUT_TOOL_TYPE_ERASER:
 		copy_button_cap(tablet, tool, BTN_STYLUS);
 		copy_button_cap(tablet, tool, BTN_STYLUS2);
-		copy_button_cap(tablet, tool, BTN_TOUCH);
 		break;
 	case LIBINPUT_TOOL_TYPE_MOUSE:
 	case LIBINPUT_TOOL_TYPE_LENS:
@@ -843,7 +841,8 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet)
 		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_AXIS_DISTANCE);
 		tablet->axes[LIBINPUT_TABLET_AXIS_DISTANCE] = 0;
 	} else if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_AXIS_PRESSURE) &&
-		   !tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT)) {
+		   (!tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) &&
+		    !tablet_has_status(tablet, TABLET_TOOL_ENTERING_CONTACT))) {
 		/* Make sure that the last axis value sent to the caller is a 0 */
 		if (tablet->axes[LIBINPUT_TABLET_AXIS_PRESSURE] == 0)
 			clear_bit(tablet->changed_axes,
@@ -881,6 +880,8 @@ tablet_flush(struct tablet_dispatch *tablet,
 		       0,
 		       sizeof(tablet->button_state.stylus_buttons));
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
+		if (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT))
+			tablet_set_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
 	} else if (tablet_has_status(tablet, TABLET_AXES_UPDATED) ||
 		   tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
 		sanitize_tablet_axes(tablet);
@@ -888,6 +889,16 @@ tablet_flush(struct tablet_dispatch *tablet,
 
 		tablet_unset_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_AXES_UPDATED);
+	}
+
+	if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_CONTACT)) {
+		tablet_notify_tip(&device->base,
+				  time,
+				  tool,
+				  LIBINPUT_TOOL_TIP_DOWN,
+				  tablet->axes);
+		tablet_unset_status(tablet, TABLET_TOOL_ENTERING_CONTACT);
+		tablet_set_status(tablet, TABLET_TOOL_IN_CONTACT);
 	}
 
 	if (tablet_has_status(tablet, TABLET_BUTTONS_RELEASED)) {
@@ -906,6 +917,16 @@ tablet_flush(struct tablet_dispatch *tablet,
 				      tool,
 				      LIBINPUT_BUTTON_STATE_PRESSED);
 		tablet_unset_status(tablet, TABLET_BUTTONS_PRESSED);
+	}
+
+	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_CONTACT)) {
+		tablet_notify_tip(&device->base,
+				  time,
+				  tool,
+				  LIBINPUT_TOOL_TIP_UP,
+				  tablet->axes);
+		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
+		tablet_unset_status(tablet, TABLET_TOOL_IN_CONTACT);
 	}
 
 	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {

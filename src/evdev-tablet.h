@@ -38,7 +38,9 @@ enum tablet_status {
 	TABLET_TOOL_IN_CONTACT = 1 << 3,
 	TABLET_TOOL_LEAVING_PROXIMITY = 1 << 4,
 	TABLET_TOOL_OUT_OF_PROXIMITY = 1 << 5,
-	TABLET_TOOL_ENTERING_PROXIMITY = 1 << 6
+	TABLET_TOOL_ENTERING_PROXIMITY = 1 << 6,
+	TABLET_TOOL_ENTERING_CONTACT = 1 << 7,
+	TABLET_TOOL_LEAVING_CONTACT = 1 << 8,
 };
 
 struct button_state {
@@ -48,7 +50,7 @@ struct button_state {
 struct tablet_dispatch {
 	struct evdev_dispatch base;
 	struct evdev_device *device;
-	unsigned char status;
+	unsigned int status;
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_MAX + 1)];
 	double axes[LIBINPUT_TABLET_AXIS_MAX + 1];
 	double deltas[LIBINPUT_TABLET_AXIS_MAX + 1];
