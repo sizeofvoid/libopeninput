@@ -186,7 +186,7 @@ tablet_change_to_left_handed(struct evdev_device *device)
 static void
 tablet_update_tool(struct tablet_dispatch *tablet,
 		   struct evdev_device *device,
-		   enum libinput_tool_type tool,
+		   enum libinput_tablet_tool_type tool,
 		   bool enabled)
 {
 	assert(tool != LIBINPUT_TOOL_NONE);
@@ -460,10 +460,10 @@ tablet_update_button(struct tablet_dispatch *tablet,
 	}
 }
 
-static inline enum libinput_tool_type
+static inline enum libinput_tablet_tool_type
 tablet_evcode_to_tool(int code)
 {
-	enum libinput_tool_type type;
+	enum libinput_tablet_tool_type type;
 
 	switch (code) {
 	case BTN_TOOL_PEN:	type = LIBINPUT_TOOL_TYPE_PEN;		break;
@@ -670,7 +670,7 @@ static void
 tool_set_bits(const struct tablet_dispatch *tablet,
 	      struct libinput_tablet_tool *tool)
 {
-	enum libinput_tool_type type = tool->type;
+	enum libinput_tablet_tool_type type = tool->type;
 
 #if HAVE_LIBWACOM
 	if (tool_set_bits_from_libwacom(tablet, tool) == 0)
@@ -728,7 +728,7 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 
 static struct libinput_tablet_tool *
 tablet_get_tool(struct tablet_dispatch *tablet,
-		enum libinput_tool_type type,
+		enum libinput_tablet_tool_type type,
 		uint32_t tool_id,
 		uint32_t serial)
 {
@@ -1020,7 +1020,7 @@ tablet_check_initial_proximity(struct evdev_device *device,
 {
 	bool tool_in_prox = false;
 	int code, state;
-	enum libinput_tool_type tool;
+	enum libinput_tablet_tool_type tool;
 	struct tablet_dispatch *tablet = (struct tablet_dispatch*)dispatch;
 
 	for (tool = LIBINPUT_TOOL_TYPE_PEN; tool <= LIBINPUT_TOOL_TYPE_MAX; tool++) {

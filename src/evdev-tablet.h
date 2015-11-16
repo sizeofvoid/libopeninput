@@ -62,7 +62,7 @@ struct tablet_dispatch {
 	struct button_state button_state;
 	struct button_state prev_button_state;
 
-	enum libinput_tool_type current_tool_type;
+	enum libinput_tablet_tool_type current_tool_type;
 	uint32_t current_tool_id;
 	uint32_t current_tool_serial;
 };
@@ -160,7 +160,7 @@ axis_to_evcode(const enum libinput_tablet_tool_axis axis)
 }
 
 static inline int
-tablet_tool_to_evcode(enum libinput_tool_type type)
+tablet_tool_to_evcode(enum libinput_tablet_tool_type type)
 {
 	int code;
 

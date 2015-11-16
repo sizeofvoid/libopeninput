@@ -180,12 +180,12 @@ struct libinput_tablet_tool;
  * device. On other devices, e.g. MS Surface 3, the eraser is the pen tip
  * while a button is held down.
  *
- * @note The @ref libinput_tool_type can only describe the default physical
+ * @note The @ref libinput_tablet_tool_type can only describe the default physical
  * type of the device. For devices with adjustible physical properties
  * the tool type remains the same, i.e. putting a Wacom stroke nib into a
  * classic pen leaves the tool type as @ref LIBINPUT_TOOL_TYPE_PEN.
  */
-enum libinput_tool_type {
+enum libinput_tablet_tool_type {
 	LIBINPUT_TOOL_TYPE_PEN = 1,	/**< A generic pen */
 	LIBINPUT_TOOL_TYPE_ERASER,	/**< Eraser */
 	LIBINPUT_TOOL_TYPE_BRUSH,	/**< A paintbrush-like tool */
@@ -1613,7 +1613,7 @@ libinput_event_tablet_get_time_usec(struct libinput_event_tablet *event);
  *
  * @see libinput_tool_get_tool_id
  */
-enum libinput_tool_type
+enum libinput_tablet_tool_type
 libinput_tool_get_type(struct libinput_tablet_tool *tool);
 
 /**

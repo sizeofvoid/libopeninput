@@ -1164,7 +1164,7 @@ libinput_event_tablet_get_seat_button_count(struct libinput_event_tablet *event)
 	return event->seat_button_count;
 }
 
-LIBINPUT_EXPORT enum libinput_tool_type
+LIBINPUT_EXPORT enum libinput_tablet_tool_type
 libinput_tool_get_type(struct libinput_tablet_tool *tool)
 {
 	return tool->type;
