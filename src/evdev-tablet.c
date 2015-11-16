@@ -403,7 +403,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			tablet_notify_proximity(&device->base,
 						time,
 						tool,
-						LIBINPUT_TOOL_PROXIMITY_IN,
+						LIBINPUT_TABLET_TOOL_PROXIMITY_IN,
 						tablet->changed_axes,
 						axes);
 		else {
@@ -945,7 +945,7 @@ tablet_flush(struct tablet_dispatch *tablet,
 		tablet_notify_proximity(&device->base,
 					time,
 					tool,
-					LIBINPUT_TOOL_PROXIMITY_OUT,
+					LIBINPUT_TABLET_TOOL_PROXIMITY_OUT,
 					tablet->changed_axes,
 					tablet->axes);
 

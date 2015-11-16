@@ -605,7 +605,7 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 	switch (libinput_event_get_type(ev)) {
 	case LIBINPUT_EVENT_TABLET_PROXIMITY:
 		if (libinput_event_tablet_get_proximity_state(t) ==
-		    LIBINPUT_TOOL_PROXIMITY_OUT) {
+		    LIBINPUT_TABLET_TOOL_PROXIMITY_OUT) {
 			w->tool.x_in = 0;
 			w->tool.y_in = 0;
 			w->tool.x_down = 0;

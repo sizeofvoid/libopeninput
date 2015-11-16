@@ -100,7 +100,7 @@ START_TEST(tip_down_prox_in)
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_PROXIMITY);
 	ck_assert_int_eq(libinput_event_tablet_get_proximity_state(tablet_event),
-			 LIBINPUT_TOOL_PROXIMITY_IN);
+			 LIBINPUT_TABLET_TOOL_PROXIMITY_IN);
 	libinput_event_destroy(event);
 
 	libinput_dispatch(li);
@@ -150,7 +150,7 @@ START_TEST(tip_up_prox_out)
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_PROXIMITY);
 	ck_assert_int_eq(libinput_event_tablet_get_proximity_state(tablet_event),
-			 LIBINPUT_TOOL_PROXIMITY_OUT);
+			 LIBINPUT_TABLET_TOOL_PROXIMITY_OUT);
 	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
@@ -609,7 +609,7 @@ START_TEST(proximity_in_out)
 				libinput_event_get_tablet_event(event);
 
 			if (libinput_event_tablet_get_proximity_state(t) ==
-			    LIBINPUT_TOOL_PROXIMITY_OUT)
+			    LIBINPUT_TABLET_TOOL_PROXIMITY_OUT)
 				have_proximity_out = true;
 		}
 

@@ -212,8 +212,8 @@ enum libinput_tablet_tool_type {
  * distance (a few cm) off the surface.
  */
 enum libinput_tablet_tool_proximity_state {
-	LIBINPUT_TOOL_PROXIMITY_OUT = 0,
-	LIBINPUT_TOOL_PROXIMITY_IN = 1,
+	LIBINPUT_TABLET_TOOL_PROXIMITY_OUT = 0,
+	LIBINPUT_TABLET_TOOL_PROXIMITY_IN = 1,
 };
 
 /**
@@ -299,9 +299,9 @@ enum libinput_event_type {
 	 * with @ref LIBINPUT_EVENT_TABLET_AXIS events.
 	 *
 	 * Some tools may always be in proximity. For these tools, events of
-	 * type @ref LIBINPUT_TOOL_PROXIMITY_IN are sent only once after @ref
+	 * type @ref LIBINPUT_TABLET_TOOL_PROXIMITY_IN are sent only once after @ref
 	 * LIBINPUT_EVENT_DEVICE_ADDED, and events of type @ref
-	 * LIBINPUT_TOOL_PROXIMITY_OUT are sent only once before @ref
+	 * LIBINPUT_TABLET_TOOL_PROXIMITY_OUT are sent only once before @ref
 	 * LIBINPUT_EVENT_DEVICE_REMOVED.
 	 *
 	 * If the tool that comes into proximity supports x/y coordinates,
