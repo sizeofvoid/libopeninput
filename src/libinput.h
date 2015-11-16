@@ -211,7 +211,7 @@ enum libinput_tablet_tool_type {
  * surface. On other hardware, the tool is still detectable within a short
  * distance (a few cm) off the surface.
  */
-enum libinput_tool_proximity_state {
+enum libinput_tablet_tool_proximity_state {
 	LIBINPUT_TOOL_PROXIMITY_OUT = 0,
 	LIBINPUT_TOOL_PROXIMITY_IN = 1,
 };
@@ -1523,7 +1523,7 @@ libinput_event_tablet_get_tool(struct libinput_event_tablet *event);
  * @param event The libinput tablet event
  * @return The new proximity state of the tool from the event.
  */
-enum libinput_tool_proximity_state
+enum libinput_tablet_tool_proximity_state
 libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event);
 
 /**

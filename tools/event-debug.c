@@ -458,7 +458,7 @@ print_proximity_event(struct libinput_event *ev)
 {
 	struct libinput_event_tablet *t = libinput_event_get_tablet_event(ev);
 	struct libinput_tablet_tool *tool = libinput_event_tablet_get_tool(t);
-	enum libinput_tool_proximity_state state;
+	enum libinput_tablet_tool_proximity_state state;
 	const char *tool_str,
 	           *state_str;
 
