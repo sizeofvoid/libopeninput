@@ -290,7 +290,7 @@ print_tablet_tip_event(struct libinput_event *ev)
 	print_event_time(libinput_event_tablet_get_time(p));
 
 	state = libinput_event_tablet_get_tip_state(p);
-	printf("%s\n", state == LIBINPUT_TOOL_TIP_DOWN ? "down" : "up");
+	printf("%s\n", state == LIBINPUT_TABLET_TOOL_TIP_DOWN ? "down" : "up");
 }
 
 static void

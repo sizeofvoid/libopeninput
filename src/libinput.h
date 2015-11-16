@@ -226,8 +226,8 @@ enum libinput_tablet_tool_proximity_state {
  * touching the surface of the tablet device.
  */
 enum libinput_tablet_tool_tip_state {
-	LIBINPUT_TOOL_TIP_UP = 0,
-	LIBINPUT_TOOL_TIP_DOWN = 1,
+	LIBINPUT_TABLET_TOOL_TIP_UP = 0,
+	LIBINPUT_TABLET_TOOL_TIP_DOWN = 1,
 };
 
 /**

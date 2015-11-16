@@ -410,7 +410,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			enum libinput_tablet_tool_tip_state tip_state;
 
 			tip_state = tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ?
-				LIBINPUT_TOOL_TIP_DOWN : LIBINPUT_TOOL_TIP_UP;
+				LIBINPUT_TABLET_TOOL_TIP_DOWN : LIBINPUT_TABLET_TOOL_TIP_UP;
 			tablet_notify_axis(base,
 					   time,
 					   tool,
@@ -795,7 +795,7 @@ tablet_notify_button_mask(struct tablet_dispatch *tablet,
 	enum libinput_tablet_tool_tip_state tip_state;
 
 	tip_state = tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ?
-			LIBINPUT_TOOL_TIP_DOWN : LIBINPUT_TOOL_TIP_UP;
+			LIBINPUT_TABLET_TOOL_TIP_DOWN : LIBINPUT_TABLET_TOOL_TIP_UP;
 
 	for (i = 0; i < nbits; i++) {
 		if (!bit_is_set(buttons, i))
@@ -906,7 +906,7 @@ tablet_flush(struct tablet_dispatch *tablet,
 		tablet_notify_tip(&device->base,
 				  time,
 				  tool,
-				  LIBINPUT_TOOL_TIP_DOWN,
+				  LIBINPUT_TABLET_TOOL_TIP_DOWN,
 				  tablet->axes);
 		tablet_unset_status(tablet, TABLET_TOOL_ENTERING_CONTACT);
 		tablet_set_status(tablet, TABLET_TOOL_IN_CONTACT);
@@ -934,7 +934,7 @@ tablet_flush(struct tablet_dispatch *tablet,
 		tablet_notify_tip(&device->base,
 				  time,
 				  tool,
-				  LIBINPUT_TOOL_TIP_UP,
+				  LIBINPUT_TABLET_TOOL_TIP_UP,
 				  tablet->axes);
 		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
 		tablet_unset_status(tablet, TABLET_TOOL_IN_CONTACT);

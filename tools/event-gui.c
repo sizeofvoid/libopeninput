@@ -637,7 +637,7 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 		x = libinput_event_tablet_get_x_transformed(t, w->width);
 		y = libinput_event_tablet_get_y_transformed(t, w->height);
 		if (libinput_event_tablet_get_tip_state(t) ==
-		    LIBINPUT_TOOL_TIP_DOWN) {
+		    LIBINPUT_TABLET_TOOL_TIP_DOWN) {
 			w->tool.x_down = x;
 			w->tool.y_down = y;
 		} else {
