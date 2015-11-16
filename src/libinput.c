@@ -1165,33 +1165,33 @@ libinput_event_tablet_tool_get_seat_button_count(struct libinput_event_tablet_to
 }
 
 LIBINPUT_EXPORT enum libinput_tablet_tool_type
-libinput_tool_get_type(struct libinput_tablet_tool *tool)
+libinput_tablet_tool_get_type(struct libinput_tablet_tool *tool)
 {
 	return tool->type;
 }
 
 LIBINPUT_EXPORT uint64_t
-libinput_tool_get_tool_id(struct libinput_tablet_tool *tool)
+libinput_tablet_tool_get_tool_id(struct libinput_tablet_tool *tool)
 {
 	return tool->tool_id;
 }
 
 LIBINPUT_EXPORT uint64_t
-libinput_tool_get_serial(struct libinput_tablet_tool *tool)
+libinput_tablet_tool_get_serial(struct libinput_tablet_tool *tool)
 {
 	return tool->serial;
 }
 
 LIBINPUT_EXPORT int
-libinput_tool_has_axis(struct libinput_tablet_tool *tool,
-		       enum libinput_tablet_tool_axis axis)
+libinput_tablet_tool_has_axis(struct libinput_tablet_tool *tool,
+			      enum libinput_tablet_tool_axis axis)
 {
 	return bit_is_set(tool->axis_caps, axis);
 }
 
 LIBINPUT_EXPORT int
-libinput_tool_has_button(struct libinput_tablet_tool *tool,
-			 uint32_t code)
+libinput_tablet_tool_has_button(struct libinput_tablet_tool *tool,
+				uint32_t code)
 {
 	if (NCHARS(code) > sizeof(tool->buttons))
 		return 0;
@@ -1200,27 +1200,27 @@ libinput_tool_has_button(struct libinput_tablet_tool *tool,
 }
 
 LIBINPUT_EXPORT void
-libinput_tool_set_user_data(struct libinput_tablet_tool *tool,
-			    void *user_data)
+libinput_tablet_tool_set_user_data(struct libinput_tablet_tool *tool,
+				   void *user_data)
 {
 	tool->user_data = user_data;
 }
 
 LIBINPUT_EXPORT void *
-libinput_tool_get_user_data(struct libinput_tablet_tool *tool)
+libinput_tablet_tool_get_user_data(struct libinput_tablet_tool *tool)
 {
 	return tool->user_data;
 }
 
 LIBINPUT_EXPORT struct libinput_tablet_tool *
-libinput_tool_ref(struct libinput_tablet_tool *tool)
+libinput_tablet_tool_ref(struct libinput_tablet_tool *tool)
 {
 	tool->refcount++;
 	return tool;
 }
 
 LIBINPUT_EXPORT struct libinput_tablet_tool *
-libinput_tool_unref(struct libinput_tablet_tool *tool)
+libinput_tablet_tool_unref(struct libinput_tablet_tool *tool)
 {
 	assert(tool->refcount > 0);
 
@@ -1374,7 +1374,7 @@ libinput_unref(struct libinput *libinput)
 	}
 
 	list_for_each_safe(tool, next_tool, &libinput->tool_list, link) {
-		libinput_tool_unref(tool);
+		libinput_tablet_tool_unref(tool);
 	}
 
 	libinput_timer_subsys_destroy(libinput);

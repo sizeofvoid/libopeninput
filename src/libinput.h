@@ -174,7 +174,7 @@ struct libinput_tablet_tool;
  * physical tools may share the same tool type, e.g. a Wacom Classic Pen,
  * Wacom Pro Pen and a Wacom Grip Pen are all of type @ref
  * LIBINPUT_TABLET_TOOL_TYPE_PEN.
- * Use libinput_tool_get_tool_id() to get a specific model where applicable.
+ * Use libinput_tablet_tool_get_tool_id() to get a specific model where applicable.
  *
  * Note that on some device, the eraser tool is on the tail end of a pen
  * device. On other devices, e.g. MS Surface 3, the eraser is the pen tip
@@ -1497,7 +1497,7 @@ libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *
  * Returns the tool that was in use during this event.
  * By default, each tool will stay valid for as long as it is being used, and is
  * destroyed when another tool comes into proximity. However, the lifetime of
- * the tool may be extended by using libinput_tool_ref() to increment the
+ * the tool may be extended by using libinput_tablet_tool_ref() to increment the
  * reference count of the tool. This guarantees that whenever the tool comes
  * back into proximity of the tablet, that the same structure will be used to
  * represent the tool.
@@ -1611,17 +1611,17 @@ libinput_event_tablet_tool_get_time_usec(struct libinput_event_tablet_tool *even
  * @param tool The libinput tool
  * @return The tool type for this tool object
  *
- * @see libinput_tool_get_tool_id
+ * @see libinput_tablet_tool_get_tool_id
  */
 enum libinput_tablet_tool_type
-libinput_tool_get_type(struct libinput_tablet_tool *tool);
+libinput_tablet_tool_get_type(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
  *
  * Return the tool ID for a tool object. If nonzero, this number identifies
  * the specific type of the tool with more precision than the type returned in
- * libinput_tool_get_type(). Not all tablets support a tool ID.
+ * libinput_tablet_tool_get_type(). Not all tablets support a tool ID.
  *
  * Tablets known to support tool IDs include the Wacom Intuos 3, 4, 5, Wacom
  * Cintiq and Wacom Intuos Pro series.
@@ -1629,10 +1629,10 @@ libinput_tool_get_type(struct libinput_tablet_tool *tool);
  * @param tool The libinput tool
  * @return The tool ID for this tool object or 0 if none is provided
  *
- * @see libinput_tool_get_type
+ * @see libinput_tablet_tool_get_type
  */
 uint64_t
-libinput_tool_get_tool_id(struct libinput_tablet_tool *tool);
+libinput_tablet_tool_get_tool_id(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
@@ -1643,7 +1643,7 @@ libinput_tool_get_tool_id(struct libinput_tablet_tool *tool);
  * @return The passed tool
  */
 struct libinput_tablet_tool *
-libinput_tool_ref(struct libinput_tablet_tool *tool);
+libinput_tablet_tool_ref(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
@@ -1655,8 +1655,8 @@ libinput_tool_ref(struct libinput_tablet_tool *tool);
  * @return Whether or not the axis is supported
  */
 int
-libinput_tool_has_axis(struct libinput_tablet_tool *tool,
-		       enum libinput_tablet_tool_axis axis);
+libinput_tablet_tool_has_axis(struct libinput_tablet_tool *tool,
+			      enum libinput_tablet_tool_axis axis);
 
 /**
  * @ingroup event_tablet
@@ -1670,8 +1670,8 @@ libinput_tool_has_axis(struct libinput_tablet_tool *tool,
  * @return 1 if the tool supports this button code, 0 if it does not
  */
 int
-libinput_tool_has_button(struct libinput_tablet_tool *tool,
-		         uint32_t code);
+libinput_tablet_tool_has_button(struct libinput_tablet_tool *tool,
+				uint32_t code);
 
 /**
  * @ingroup event_tablet
@@ -1683,7 +1683,7 @@ libinput_tool_has_button(struct libinput_tablet_tool *tool,
  * @return NULL if the tool was destroyed otherwise the passed tool
  */
 struct libinput_tablet_tool *
-libinput_tool_unref(struct libinput_tablet_tool *tool);
+libinput_tablet_tool_unref(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
@@ -1698,7 +1698,7 @@ libinput_tool_unref(struct libinput_tablet_tool *tool);
  * @return The new tool serial triggering this event
  */
 uint64_t
-libinput_tool_get_serial(struct libinput_tablet_tool *tool);
+libinput_tablet_tool_get_serial(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
@@ -1709,7 +1709,7 @@ libinput_tool_get_serial(struct libinput_tablet_tool *tool);
  * @return The user data associated with the tool object
  */
 void *
-libinput_tool_get_user_data(struct libinput_tablet_tool *tool);
+libinput_tablet_tool_get_user_data(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
@@ -1720,8 +1720,8 @@ libinput_tool_get_user_data(struct libinput_tablet_tool *tool);
  * @param user_data The user data to associate with the tool object
  */
 void
-libinput_tool_set_user_data(struct libinput_tablet_tool *tool,
-			    void *user_data);
+libinput_tablet_tool_set_user_data(struct libinput_tablet_tool *tool,
+				   void *user_data);
 
 /**
  * @defgroup base Initialization and manipulation of libinput contexts

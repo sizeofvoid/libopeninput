@@ -1008,7 +1008,7 @@ tablet_destroy(struct evdev_dispatch *dispatch)
 	struct libinput_tablet_tool *tool, *tmp;
 
 	list_for_each_safe(tool, tmp, &tablet->tool_list, link) {
-		libinput_tool_unref(tool);
+		libinput_tablet_tool_unref(tool);
 	}
 
 	free(tablet);
