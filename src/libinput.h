@@ -139,6 +139,9 @@ enum libinput_pointer_axis_source {
  *
  * Available axis types for a device. It must have the @ref
  * LIBINPUT_DEVICE_CAP_TABLET_TOOL capability.
+ *
+ * For details on the interpretation of these axes see
+ * libinput_event_tablet_tool_get_axis_value().
  */
 enum libinput_tablet_tool_axis {
 	LIBINPUT_TABLET_TOOL_AXIS_X = 1,
@@ -1518,7 +1521,7 @@ libinput_event_tablet_tool_get_tool(struct libinput_event_tablet_tool *event);
  * Used to check whether or not a tool came in or out of proximity during an
  * event of type @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
  *
- * See @ref fake-proximity for recommendations on proximity handling.
+ * See @ref tablet-fake-proximity for recommendations on proximity handling.
  *
  * @param event The libinput tablet event
  * @return The new proximity state of the tool from the event.
