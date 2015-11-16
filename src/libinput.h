@@ -141,15 +141,15 @@ enum libinput_pointer_axis_source {
  * LIBINPUT_DEVICE_CAP_TABLET capability.
  */
 enum libinput_tablet_tool_axis {
-	LIBINPUT_TABLET_AXIS_X = 1,
-	LIBINPUT_TABLET_AXIS_Y = 2,
-	LIBINPUT_TABLET_AXIS_DISTANCE = 3,
-	LIBINPUT_TABLET_AXIS_PRESSURE = 4,
-	LIBINPUT_TABLET_AXIS_TILT_X = 5,
-	LIBINPUT_TABLET_AXIS_TILT_Y = 6,
-	LIBINPUT_TABLET_AXIS_ROTATION_Z = 7,
-	LIBINPUT_TABLET_AXIS_SLIDER = 8,
-	LIBINPUT_TABLET_AXIS_REL_WHEEL = 9,
+	LIBINPUT_TABLET_TOOL_AXIS_X = 1,
+	LIBINPUT_TABLET_TOOL_AXIS_Y = 2,
+	LIBINPUT_TABLET_TOOL_AXIS_DISTANCE = 3,
+	LIBINPUT_TABLET_TOOL_AXIS_PRESSURE = 4,
+	LIBINPUT_TABLET_TOOL_AXIS_TILT_X = 5,
+	LIBINPUT_TABLET_TOOL_AXIS_TILT_Y = 6,
+	LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z = 7,
+	LIBINPUT_TABLET_TOOL_AXIS_SLIDER = 8,
+	LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL = 9,
 };
 
 /**
@@ -1378,27 +1378,27 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
  *
  * Return the axis value of a given axis for a tablet. The interpretation of the
  * value is dependent on the axis:
- * - @ref LIBINPUT_TABLET_AXIS_X and @ref LIBINPUT_TABLET_AXIS_Y - the X and
+ * - @ref LIBINPUT_TABLET_TOOL_AXIS_X and @ref LIBINPUT_TABLET_TOOL_AXIS_Y - the X and
  *   Y coordinates of the tablet tool, in mm from the top left corner of the
  *   tablet. Use libinput_event_tablet_get_x_transformed() and
  *   libinput_event_tablet_get_y_transformed() for transforming each
  *   respective axis value into a different coordinate space.
- * - @ref LIBINPUT_TABLET_AXIS_DISTANCE - The distance from the tablet's
+ * - @ref LIBINPUT_TABLET_TOOL_AXIS_DISTANCE - The distance from the tablet's
  *   sensor, normalized from 0 to 1
- * - @ref LIBINPUT_TABLET_AXIS_PRESSURE - The current pressure being applied on
+ * - @ref LIBINPUT_TABLET_TOOL_AXIS_PRESSURE - The current pressure being applied on
  *   the tool in use, normalized from 0 to 1
- * - @ref LIBINPUT_TABLET_AXIS_TILT_X and @ref LIBINPUT_TABLET_AXIS_TILT_Y -
+ * - @ref LIBINPUT_TABLET_TOOL_AXIS_TILT_X and @ref LIBINPUT_TABLET_TOOL_AXIS_TILT_Y -
  *   normalized value between -1 and 1 that indicates the X or Y tilt of the
  *   tool
- * - @ref LIBINPUT_TABLET_AXIS_ROTATION_Z - The z rotation of the tool in
+ * - @ref LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z - The z rotation of the tool in
  *   degrees, clockwise from the tool's logical neutral position. For the
  *   @ref LIBINPUT_TOOL_TYPE_MOUSE and @ref LIBINPUT_TOOL_TYPE_LENS tools
  *   the logical neutral position is pointing to the current logical north
  *   of the tablet. For the @ref LIBINPUT_TOOL_TYPE_BRUSH tool, the logical
  *   neutral position is with the buttons pointing up.
- * - @ref LIBINPUT_TABLET_AXIS_SLIDER - A slider on the tool, normalized
+ * - @ref LIBINPUT_TABLET_TOOL_AXIS_SLIDER - A slider on the tool, normalized
  *   from 0 to 1. e.g. the wheel-like tool on the Wacom Airbrush.
- * - @ref LIBINPUT_TABLET_AXIS_REL_WHEEL - A relative wheel on the tool,
+ * - @ref LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL - A relative wheel on the tool,
  *   similar or equivalent to a mouse wheel. The value is always 0, use
  *   libinput_event_tablet_get_axis_delta() instead.
  *
@@ -1423,7 +1423,7 @@ libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
  *
  * Return the delta for a given axis for a tablet. The interpretation of the
  * value is axis-dependent:
- * - @ref LIBINPUT_TABLET_AXIS_REL_WHEEL - A relative wheel on the tool,
+ * - @ref LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL - A relative wheel on the tool,
  *   similar or equivalent to a mouse wheel. The value is a delta from the
  *   device's previous position, in degrees.
  * For all other axes, see libinput_event_tablet_get_axis_value() for
@@ -1442,7 +1442,7 @@ libinput_event_tablet_get_axis_delta(struct libinput_event_tablet *event,
  *
  * Return the delta for a given axis for a tablet in discrete steps.
  * How a value translates into a discrete step depends on the axis:
- * - @ref LIBINPUT_TABLET_AXIS_REL_WHEEL - the returned value is the number
+ * - @ref LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL - the returned value is the number
  * of physical mouse wheel clicks.
  * For all other axes, this function returns 0.
  *

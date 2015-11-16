@@ -26,7 +26,7 @@
 
 #include "evdev.h"
 
-#define LIBINPUT_TABLET_AXIS_NONE 0
+#define LIBINPUT_TABLET_TOOL_AXIS_NONE 0
 #define LIBINPUT_TOOL_NONE 0
 #define LIBINPUT_TOOL_TYPE_MAX LIBINPUT_TOOL_TYPE_LENS
 
@@ -51,10 +51,10 @@ struct tablet_dispatch {
 	struct evdev_dispatch base;
 	struct evdev_device *device;
 	unsigned int status;
-	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_MAX + 1)];
-	double axes[LIBINPUT_TABLET_AXIS_MAX + 1];
-	double deltas[LIBINPUT_TABLET_AXIS_MAX + 1];
-	unsigned char axis_caps[NCHARS(LIBINPUT_TABLET_AXIS_MAX + 1)];
+	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];
+	double axes[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1];
+	double deltas[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1];
+	unsigned char axis_caps[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];
 
 	/* Only used for tablets that don't report serial numbers */
 	struct list tool_list;
@@ -74,31 +74,31 @@ evcode_to_axis(const uint32_t evcode)
 
 	switch (evcode) {
 	case ABS_X:
-		axis = LIBINPUT_TABLET_AXIS_X;
+		axis = LIBINPUT_TABLET_TOOL_AXIS_X;
 		break;
 	case ABS_Y:
-		axis = LIBINPUT_TABLET_AXIS_Y;
+		axis = LIBINPUT_TABLET_TOOL_AXIS_Y;
 		break;
 	case ABS_Z:
-		axis = LIBINPUT_TABLET_AXIS_ROTATION_Z;
+		axis = LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z;
 		break;
 	case ABS_DISTANCE:
-		axis = LIBINPUT_TABLET_AXIS_DISTANCE;
+		axis = LIBINPUT_TABLET_TOOL_AXIS_DISTANCE;
 		break;
 	case ABS_PRESSURE:
-		axis = LIBINPUT_TABLET_AXIS_PRESSURE;
+		axis = LIBINPUT_TABLET_TOOL_AXIS_PRESSURE;
 		break;
 	case ABS_TILT_X:
-		axis = LIBINPUT_TABLET_AXIS_TILT_X;
+		axis = LIBINPUT_TABLET_TOOL_AXIS_TILT_X;
 		break;
 	case ABS_TILT_Y:
-		axis = LIBINPUT_TABLET_AXIS_TILT_Y;
+		axis = LIBINPUT_TABLET_TOOL_AXIS_TILT_Y;
 		break;
 	case ABS_WHEEL:
-		axis = LIBINPUT_TABLET_AXIS_SLIDER;
+		axis = LIBINPUT_TABLET_TOOL_AXIS_SLIDER;
 		break;
 	default:
-		axis = LIBINPUT_TABLET_AXIS_NONE;
+		axis = LIBINPUT_TABLET_TOOL_AXIS_NONE;
 		break;
 	}
 
@@ -112,10 +112,10 @@ rel_evcode_to_axis(const uint32_t evcode)
 
 	switch (evcode) {
 	case REL_WHEEL:
-		axis = LIBINPUT_TABLET_AXIS_REL_WHEEL;
+		axis = LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL;
 		break;
 	default:
-		axis = LIBINPUT_TABLET_AXIS_NONE;
+		axis = LIBINPUT_TABLET_TOOL_AXIS_NONE;
 		break;
 	}
 
@@ -128,28 +128,28 @@ axis_to_evcode(const enum libinput_tablet_tool_axis axis)
 	uint32_t evcode;
 
 	switch (axis) {
-	case LIBINPUT_TABLET_AXIS_X:
+	case LIBINPUT_TABLET_TOOL_AXIS_X:
 		evcode = ABS_X;
 		break;
-	case LIBINPUT_TABLET_AXIS_Y:
+	case LIBINPUT_TABLET_TOOL_AXIS_Y:
 		evcode = ABS_Y;
 		break;
-	case LIBINPUT_TABLET_AXIS_DISTANCE:
+	case LIBINPUT_TABLET_TOOL_AXIS_DISTANCE:
 		evcode = ABS_DISTANCE;
 		break;
-	case LIBINPUT_TABLET_AXIS_PRESSURE:
+	case LIBINPUT_TABLET_TOOL_AXIS_PRESSURE:
 		evcode = ABS_PRESSURE;
 		break;
-	case LIBINPUT_TABLET_AXIS_TILT_X:
+	case LIBINPUT_TABLET_TOOL_AXIS_TILT_X:
 		evcode = ABS_TILT_X;
 		break;
-	case LIBINPUT_TABLET_AXIS_TILT_Y:
+	case LIBINPUT_TABLET_TOOL_AXIS_TILT_Y:
 		evcode = ABS_TILT_Y;
 		break;
-	case LIBINPUT_TABLET_AXIS_ROTATION_Z:
+	case LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z:
 		evcode = ABS_Z;
 		break;
-	case LIBINPUT_TABLET_AXIS_SLIDER:
+	case LIBINPUT_TABLET_TOOL_AXIS_SLIDER:
 		evcode = ABS_WHEEL;
 		break;
 	default:

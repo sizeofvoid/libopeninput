@@ -625,13 +625,13 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 		w->tool.y = libinput_event_tablet_get_y_transformed(t,
 								    w->height);
 		w->tool.pressure = libinput_event_tablet_get_axis_value(t,
-							LIBINPUT_TABLET_AXIS_PRESSURE);
+							LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
 		w->tool.distance = libinput_event_tablet_get_axis_value(t,
-							LIBINPUT_TABLET_AXIS_DISTANCE);
+							LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
 		w->tool.tilt_x = libinput_event_tablet_get_axis_value(t,
-							LIBINPUT_TABLET_AXIS_TILT_X);
+							LIBINPUT_TABLET_TOOL_AXIS_TILT_X);
 		w->tool.tilt_y = libinput_event_tablet_get_axis_value(t,
-							LIBINPUT_TABLET_AXIS_TILT_Y);
+							LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
 		break;
 	case LIBINPUT_EVENT_TABLET_TIP:
 		x = libinput_event_tablet_get_x_transformed(t, w->width);

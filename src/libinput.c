@@ -131,10 +131,10 @@ struct libinput_event_tablet {
 	enum libinput_button_state state;
 	uint32_t seat_button_count;
 	uint64_t time;
-	double axes[LIBINPUT_TABLET_AXIS_MAX + 1];
-	double deltas[LIBINPUT_TABLET_AXIS_MAX + 1];
-	double deltas_discrete[LIBINPUT_TABLET_AXIS_MAX + 1];
-	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_MAX + 1)];
+	double axes[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1];
+	double deltas[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1];
+	double deltas_discrete[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1];
+	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];
 	struct libinput_tablet_tool *tool;
 	enum libinput_tool_proximity_state proximity_state;
 	enum libinput_tool_tip_state tip_state;
@@ -942,19 +942,19 @@ libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
 			   LIBINPUT_EVENT_TABLET_PROXIMITY);
 
 	switch(axis) {
-		case LIBINPUT_TABLET_AXIS_X:
+		case LIBINPUT_TABLET_TOOL_AXIS_X:
 			return evdev_convert_to_mm(device->abs.absinfo_x,
 						   event->axes[axis]);
-		case LIBINPUT_TABLET_AXIS_Y:
+		case LIBINPUT_TABLET_TOOL_AXIS_Y:
 			return evdev_convert_to_mm(device->abs.absinfo_y,
 						   event->axes[axis]);
-		case LIBINPUT_TABLET_AXIS_DISTANCE:
-		case LIBINPUT_TABLET_AXIS_PRESSURE:
-		case LIBINPUT_TABLET_AXIS_TILT_X:
-		case LIBINPUT_TABLET_AXIS_TILT_Y:
-		case LIBINPUT_TABLET_AXIS_ROTATION_Z:
-		case LIBINPUT_TABLET_AXIS_SLIDER:
-		case LIBINPUT_TABLET_AXIS_REL_WHEEL:
+		case LIBINPUT_TABLET_TOOL_AXIS_DISTANCE:
+		case LIBINPUT_TABLET_TOOL_AXIS_PRESSURE:
+		case LIBINPUT_TABLET_TOOL_AXIS_TILT_X:
+		case LIBINPUT_TABLET_TOOL_AXIS_TILT_Y:
+		case LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z:
+		case LIBINPUT_TABLET_TOOL_AXIS_SLIDER:
+		case LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL:
 			return event->axes[axis];
 		default:
 			return 0;
@@ -976,19 +976,19 @@ libinput_event_tablet_get_axis_delta(struct libinput_event_tablet *event,
 			   LIBINPUT_EVENT_TABLET_PROXIMITY);
 
 	switch(axis) {
-		case LIBINPUT_TABLET_AXIS_X:
+		case LIBINPUT_TABLET_TOOL_AXIS_X:
 			return evdev_convert_to_mm(device->abs.absinfo_x,
 						   event->deltas[axis]);
-		case LIBINPUT_TABLET_AXIS_Y:
+		case LIBINPUT_TABLET_TOOL_AXIS_Y:
 			return evdev_convert_to_mm(device->abs.absinfo_y,
 						   event->deltas[axis]);
-		case LIBINPUT_TABLET_AXIS_DISTANCE:
-		case LIBINPUT_TABLET_AXIS_PRESSURE:
-		case LIBINPUT_TABLET_AXIS_TILT_X:
-		case LIBINPUT_TABLET_AXIS_TILT_Y:
-		case LIBINPUT_TABLET_AXIS_ROTATION_Z:
-		case LIBINPUT_TABLET_AXIS_SLIDER:
-		case LIBINPUT_TABLET_AXIS_REL_WHEEL:
+		case LIBINPUT_TABLET_TOOL_AXIS_DISTANCE:
+		case LIBINPUT_TABLET_TOOL_AXIS_PRESSURE:
+		case LIBINPUT_TABLET_TOOL_AXIS_TILT_X:
+		case LIBINPUT_TABLET_TOOL_AXIS_TILT_Y:
+		case LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z:
+		case LIBINPUT_TABLET_TOOL_AXIS_SLIDER:
+		case LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL:
 			return event->deltas[axis];
 		default:
 			return 0;
@@ -1008,15 +1008,15 @@ libinput_event_tablet_get_axis_delta_discrete(
 			   LIBINPUT_EVENT_TABLET_PROXIMITY);
 
 	switch(axis) {
-		case LIBINPUT_TABLET_AXIS_X:
-		case LIBINPUT_TABLET_AXIS_Y:
-		case LIBINPUT_TABLET_AXIS_DISTANCE:
-		case LIBINPUT_TABLET_AXIS_PRESSURE:
-		case LIBINPUT_TABLET_AXIS_TILT_X:
-		case LIBINPUT_TABLET_AXIS_TILT_Y:
-		case LIBINPUT_TABLET_AXIS_ROTATION_Z:
-		case LIBINPUT_TABLET_AXIS_SLIDER:
-		case LIBINPUT_TABLET_AXIS_REL_WHEEL:
+		case LIBINPUT_TABLET_TOOL_AXIS_X:
+		case LIBINPUT_TABLET_TOOL_AXIS_Y:
+		case LIBINPUT_TABLET_TOOL_AXIS_DISTANCE:
+		case LIBINPUT_TABLET_TOOL_AXIS_PRESSURE:
+		case LIBINPUT_TABLET_TOOL_AXIS_TILT_X:
+		case LIBINPUT_TABLET_TOOL_AXIS_TILT_Y:
+		case LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z:
+		case LIBINPUT_TABLET_TOOL_AXIS_SLIDER:
+		case LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL:
 			return event->deltas_discrete[axis];
 		default:
 			return 0;
@@ -1038,7 +1038,7 @@ libinput_event_tablet_get_x_transformed(struct libinput_event_tablet *event,
 			   LIBINPUT_EVENT_TABLET_PROXIMITY);
 
 	return evdev_device_transform_x(device,
-					event->axes[LIBINPUT_TABLET_AXIS_X],
+					event->axes[LIBINPUT_TABLET_TOOL_AXIS_X],
 					width);
 }
 
@@ -1057,7 +1057,7 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
 			   LIBINPUT_EVENT_TABLET_PROXIMITY);
 
 	return evdev_device_transform_y(device,
-					event->axes[LIBINPUT_TABLET_AXIS_Y],
+					event->axes[LIBINPUT_TABLET_TOOL_AXIS_Y],
 					height);
 }
 

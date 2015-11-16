@@ -345,91 +345,91 @@ print_tablet_axes(struct libinput_event_tablet *t)
 	double rotation, slider, wheel;
 	double delta;
 
-	x = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_X);
-	y = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_AXIS_Y);
-	dx = libinput_event_tablet_get_axis_delta(t, LIBINPUT_TABLET_AXIS_X);
-	dy = libinput_event_tablet_get_axis_delta(t, LIBINPUT_TABLET_AXIS_Y);
+	x = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_TOOL_AXIS_X);
+	y = libinput_event_tablet_get_axis_value(t, LIBINPUT_TABLET_TOOL_AXIS_Y);
+	dx = libinput_event_tablet_get_axis_delta(t, LIBINPUT_TABLET_TOOL_AXIS_X);
+	dy = libinput_event_tablet_get_axis_delta(t, LIBINPUT_TABLET_TOOL_AXIS_Y);
 	printf("\t%.2f%s/%.2f%s (%.2f/%.2f)",
-	       x, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_X),
-	       y, tablet_axis_changed_sym(t, LIBINPUT_TABLET_AXIS_Y),
+	       x, tablet_axis_changed_sym(t, LIBINPUT_TABLET_TOOL_AXIS_X),
+	       y, tablet_axis_changed_sym(t, LIBINPUT_TABLET_TOOL_AXIS_Y),
 	       dx, dy);
 
-	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_TILT_X) ||
-	    libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_TILT_Y)) {
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_X) ||
+	    libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_Y)) {
 		x = libinput_event_tablet_get_axis_value(t,
-					 LIBINPUT_TABLET_AXIS_TILT_X);
+					 LIBINPUT_TABLET_TOOL_AXIS_TILT_X);
 		y = libinput_event_tablet_get_axis_value(t,
-					 LIBINPUT_TABLET_AXIS_TILT_Y);
+					 LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
 		dx = libinput_event_tablet_get_axis_delta(t,
-					 LIBINPUT_TABLET_AXIS_TILT_X);
+					 LIBINPUT_TABLET_TOOL_AXIS_TILT_X);
 		dy = libinput_event_tablet_get_axis_delta(t,
-					 LIBINPUT_TABLET_AXIS_TILT_Y);
+					 LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
 		printf("\ttilt: %.2f%s/%.2f%s (%.2f/%.2f)",
 		       x, tablet_axis_changed_sym(t,
-					  LIBINPUT_TABLET_AXIS_TILT_X),
+					  LIBINPUT_TABLET_TOOL_AXIS_TILT_X),
 		       y, tablet_axis_changed_sym(t,
-					  LIBINPUT_TABLET_AXIS_TILT_Y),
+					  LIBINPUT_TABLET_TOOL_AXIS_TILT_Y),
 		       dx, dy);
 	}
 
-	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_DISTANCE) ||
-	    libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_PRESSURE)) {
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE) ||
+	    libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE)) {
 		dist = libinput_event_tablet_get_axis_value(t,
-					LIBINPUT_TABLET_AXIS_DISTANCE);
+					LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
 		pressure = libinput_event_tablet_get_axis_value(t,
-					LIBINPUT_TABLET_AXIS_PRESSURE);
+					LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
 		if (dist) {
 			delta = libinput_event_tablet_get_axis_delta(t,
-					LIBINPUT_TABLET_AXIS_DISTANCE);
+					LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
 			printf("\tdistance: %.2f%s (%.2f)",
 			       dist,
 			       tablet_axis_changed_sym(t,
-					       LIBINPUT_TABLET_AXIS_DISTANCE),
+					       LIBINPUT_TABLET_TOOL_AXIS_DISTANCE),
 			       delta);
 		} else {
 			delta = libinput_event_tablet_get_axis_delta(t,
-					LIBINPUT_TABLET_AXIS_PRESSURE);
+					LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
 			printf("\tpressure: %.2f%s (%.2f)",
 			       pressure,
 			       tablet_axis_changed_sym(t,
-					       LIBINPUT_TABLET_AXIS_PRESSURE),
+					       LIBINPUT_TABLET_TOOL_AXIS_PRESSURE),
 			       delta);
 		}
 	}
 
-	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_ROTATION_Z)) {
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z)) {
 		rotation = libinput_event_tablet_get_axis_value(t,
-					LIBINPUT_TABLET_AXIS_ROTATION_Z);
+					LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
 		delta = libinput_event_tablet_get_axis_delta(t,
-					LIBINPUT_TABLET_AXIS_ROTATION_Z);
+					LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
 		printf("\trotation: %.2f%s (%.2f)",
 		       rotation,
 		       tablet_axis_changed_sym(t,
-				       LIBINPUT_TABLET_AXIS_ROTATION_Z),
+				       LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z),
 		       delta);
 	}
 
-	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_SLIDER)) {
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_SLIDER)) {
 		slider = libinput_event_tablet_get_axis_value(t,
-					LIBINPUT_TABLET_AXIS_SLIDER);
+					LIBINPUT_TABLET_TOOL_AXIS_SLIDER);
 		delta = libinput_event_tablet_get_axis_delta(t,
-					LIBINPUT_TABLET_AXIS_SLIDER);
+					LIBINPUT_TABLET_TOOL_AXIS_SLIDER);
 		printf("\tslider: %.2f%s (%.2f)",
 		       slider,
 		       tablet_axis_changed_sym(t,
-				       LIBINPUT_TABLET_AXIS_SLIDER),
+				       LIBINPUT_TABLET_TOOL_AXIS_SLIDER),
 		       delta);
 	}
 
-	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_REL_WHEEL)) {
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL)) {
 		wheel = libinput_event_tablet_get_axis_value(t,
-					LIBINPUT_TABLET_AXIS_REL_WHEEL);
+					LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL);
 		delta = libinput_event_tablet_get_axis_delta_discrete(t,
-					LIBINPUT_TABLET_AXIS_REL_WHEEL);
+					LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL);
 		printf("\twheel: %.2f%s (%d)",
 		       wheel,
 		       tablet_axis_changed_sym(t,
-				       LIBINPUT_TABLET_AXIS_REL_WHEEL),
+				       LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL),
 		       (int)delta);
 	}
 }
@@ -512,18 +512,18 @@ print_proximity_event(struct libinput_event *ev)
 	       state_str);
 
 	printf("\taxes:");
-	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_DISTANCE))
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE))
 		printf("d");
-	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_PRESSURE))
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE))
 		printf("p");
-	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_TILT_X) ||
-	    libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_TILT_Y))
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_X) ||
+	    libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_Y))
 		printf("t");
-	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_ROTATION_Z))
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z))
 		printf("r");
-	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_SLIDER))
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_SLIDER))
 		printf("s");
-	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_AXIS_REL_WHEEL))
+	if (libinput_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL))
 		printf("w");
 
 	printf("\tbtn:");

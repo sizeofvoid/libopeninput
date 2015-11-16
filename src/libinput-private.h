@@ -33,7 +33,7 @@
 #include "libinput.h"
 #include "libinput-util.h"
 
-#define LIBINPUT_TABLET_AXIS_MAX LIBINPUT_TABLET_AXIS_REL_WHEEL
+#define LIBINPUT_TABLET_TOOL_AXIS_MAX LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL
 
 struct libinput_source;
 
@@ -255,7 +255,7 @@ struct libinput_tablet_tool {
 	uint32_t serial;
 	uint32_t tool_id;
 	enum libinput_tool_type type;
-	unsigned char axis_caps[NCHARS(LIBINPUT_TABLET_AXIS_MAX + 1)];
+	unsigned char axis_caps[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];
 	unsigned char buttons[NCHARS(KEY_MAX) + 1];
 	int refcount;
 	void *user_data;
