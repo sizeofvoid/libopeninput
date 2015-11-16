@@ -140,7 +140,7 @@ enum libinput_pointer_axis_source {
  * Available axis types for a device. It must have the @ref
  * LIBINPUT_DEVICE_CAP_TABLET capability.
  */
-enum libinput_tablet_axis {
+enum libinput_tablet_tool_axis {
 	LIBINPUT_TABLET_AXIS_X = 1,
 	LIBINPUT_TABLET_AXIS_Y = 2,
 	LIBINPUT_TABLET_AXIS_DISTANCE = 3,
@@ -1371,7 +1371,7 @@ libinput_event_tablet_get_base_event(struct libinput_event_tablet *event);
  */
 int
 libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
-				       enum libinput_tablet_axis axis);
+				       enum libinput_tablet_tool_axis axis);
 
 /**
  * @ingroup event_tablet
@@ -1416,7 +1416,7 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
  */
 double
 libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
-				     enum libinput_tablet_axis axis);
+				     enum libinput_tablet_tool_axis axis);
 
 /**
  * @ingroup event_tablet
@@ -1435,7 +1435,7 @@ libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
  */
 double
 libinput_event_tablet_get_axis_delta(struct libinput_event_tablet *event,
-				     enum libinput_tablet_axis axis);
+				     enum libinput_tablet_tool_axis axis);
 
 /**
  * @ingroup event_tablet
@@ -1453,7 +1453,7 @@ libinput_event_tablet_get_axis_delta(struct libinput_event_tablet *event,
 double
 libinput_event_tablet_get_axis_delta_discrete(
 				      struct libinput_event_tablet *event,
-				      enum libinput_tablet_axis axis);
+				      enum libinput_tablet_tool_axis axis);
 
 /**
  * @ingroup event_tablet
@@ -1656,7 +1656,7 @@ libinput_tool_ref(struct libinput_tablet_tool *tool);
  */
 int
 libinput_tool_has_axis(struct libinput_tablet_tool *tool,
-		       enum libinput_tablet_axis axis);
+		       enum libinput_tablet_tool_axis axis);
 
 /**
  * @ingroup event_tablet

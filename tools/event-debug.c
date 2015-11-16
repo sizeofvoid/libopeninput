@@ -328,7 +328,7 @@ print_pointer_axis_event(struct libinput_event *ev)
 
 static const char*
 tablet_axis_changed_sym(struct libinput_event_tablet *t,
-			enum libinput_tablet_axis axis)
+			enum libinput_tablet_tool_axis axis)
 {
 	if (libinput_event_tablet_axis_has_changed(t, axis))
 		return "*";

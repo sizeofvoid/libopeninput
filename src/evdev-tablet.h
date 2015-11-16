@@ -67,10 +67,10 @@ struct tablet_dispatch {
 	uint32_t current_tool_serial;
 };
 
-static inline enum libinput_tablet_axis
+static inline enum libinput_tablet_tool_axis
 evcode_to_axis(const uint32_t evcode)
 {
-	enum libinput_tablet_axis axis;
+	enum libinput_tablet_tool_axis axis;
 
 	switch (evcode) {
 	case ABS_X:
@@ -105,10 +105,10 @@ evcode_to_axis(const uint32_t evcode)
 	return axis;
 }
 
-static inline enum libinput_tablet_axis
+static inline enum libinput_tablet_tool_axis
 rel_evcode_to_axis(const uint32_t evcode)
 {
-	enum libinput_tablet_axis axis;
+	enum libinput_tablet_tool_axis axis;
 
 	switch (evcode) {
 	case REL_WHEEL:
@@ -123,7 +123,7 @@ rel_evcode_to_axis(const uint32_t evcode)
 }
 
 static inline uint32_t
-axis_to_evcode(const enum libinput_tablet_axis axis)
+axis_to_evcode(const enum libinput_tablet_tool_axis axis)
 {
 	uint32_t evcode;
 

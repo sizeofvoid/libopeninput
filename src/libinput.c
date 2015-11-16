@@ -914,7 +914,7 @@ libinput_event_gesture_get_angle_delta(struct libinput_event_gesture *event)
 
 LIBINPUT_EXPORT int
 libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
-				       enum libinput_tablet_axis axis)
+				       enum libinput_tablet_tool_axis axis)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -929,7 +929,7 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
-				     enum libinput_tablet_axis axis)
+				     enum libinput_tablet_tool_axis axis)
 {
 	struct evdev_device *device =
 		(struct evdev_device *) event->base.device;
@@ -963,7 +963,7 @@ libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_get_axis_delta(struct libinput_event_tablet *event,
-				     enum libinput_tablet_axis axis)
+				     enum libinput_tablet_tool_axis axis)
 {
 	struct evdev_device *device =
 		(struct evdev_device *) event->base.device;
@@ -998,7 +998,7 @@ libinput_event_tablet_get_axis_delta(struct libinput_event_tablet *event,
 LIBINPUT_EXPORT double
 libinput_event_tablet_get_axis_delta_discrete(
 				      struct libinput_event_tablet *event,
-				      enum libinput_tablet_axis axis)
+				      enum libinput_tablet_tool_axis axis)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1184,7 +1184,7 @@ libinput_tool_get_serial(struct libinput_tablet_tool *tool)
 
 LIBINPUT_EXPORT int
 libinput_tool_has_axis(struct libinput_tablet_tool *tool,
-		       enum libinput_tablet_axis axis)
+		       enum libinput_tablet_tool_axis axis)
 {
 	return bit_is_set(tool->axis_caps, axis);
 }

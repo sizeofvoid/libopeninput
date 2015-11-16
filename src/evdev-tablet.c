@@ -69,7 +69,7 @@ tablet_get_released_buttons(struct tablet_dispatch *tablet,
 
 static int
 tablet_device_has_axis(struct tablet_dispatch *tablet,
-		       enum libinput_tablet_axis axis)
+		       enum libinput_tablet_tool_axis axis)
 {
 	struct libevdev *evdev = tablet->device->evdev;
 	bool has_axis = false;
@@ -109,7 +109,7 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 			struct input_event *e,
 			uint64_t time)
 {
-	enum libinput_tablet_axis axis;
+	enum libinput_tablet_tool_axis axis;
 
 	switch (e->code) {
 	case ABS_X:
@@ -158,7 +158,7 @@ static void
 tablet_mark_all_axes_changed(struct tablet_dispatch *tablet,
 			     struct evdev_device *device)
 {
-	enum libinput_tablet_axis a;
+	enum libinput_tablet_tool_axis a;
 
 	for (a = LIBINPUT_TABLET_AXIS_X; a <= LIBINPUT_TABLET_AXIS_MAX; a++) {
 		if (tablet_device_has_axis(tablet, a))
@@ -290,7 +290,7 @@ guess_wheel_delta(double current, double old)
 }
 
 static inline double
-get_delta(enum libinput_tablet_axis axis, double current, double old)
+get_delta(enum libinput_tablet_tool_axis axis, double current, double old)
 {
 	double delta = 0;
 
@@ -529,7 +529,7 @@ tablet_process_relative(struct tablet_dispatch *tablet,
 			struct input_event *e,
 			uint64_t time)
 {
-	enum libinput_tablet_axis axis;
+	enum libinput_tablet_tool_axis axis;
 
 	switch (e->code) {
 	case REL_WHEEL:
@@ -577,7 +577,7 @@ tablet_process_misc(struct tablet_dispatch *tablet,
 static inline void
 copy_axis_cap(const struct tablet_dispatch *tablet,
 	      struct libinput_tablet_tool *tool,
-	      enum libinput_tablet_axis axis)
+	      enum libinput_tablet_tool_axis axis)
 {
 	if (bit_is_set(tablet->axis_caps, axis))
 		set_bit(tool->axis_caps, axis);
@@ -1071,7 +1071,7 @@ static int
 tablet_init(struct tablet_dispatch *tablet,
 	    struct evdev_device *device)
 {
-	enum libinput_tablet_axis axis;
+	enum libinput_tablet_tool_axis axis;
 
 	tablet->base.interface = &tablet_interface;
 	tablet->device = device;
