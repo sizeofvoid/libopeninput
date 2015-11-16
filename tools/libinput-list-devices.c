@@ -258,7 +258,7 @@ print_device_notify(struct libinput_event *ev)
 					   LIBINPUT_DEVICE_CAP_TOUCH))
 		printf("touch");
 	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_TABLET))
+					   LIBINPUT_DEVICE_CAP_TABLET_TOOL))
 		printf("tablet");
 	printf("\n");
 

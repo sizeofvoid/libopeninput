@@ -1710,7 +1710,7 @@ device_has_cap(struct libinput_device *device,
 	case LIBINPUT_DEVICE_CAP_GESTURE:
 		capability = "CAP_GESTURE";
 		break;
-	case LIBINPUT_DEVICE_CAP_TABLET:
+	case LIBINPUT_DEVICE_CAP_TABLET_TOOL:
 		capability = "CAP_TABLET";
 		break;
 	}

@@ -2418,7 +2418,7 @@ evdev_device_has_capability(struct evdev_device *device,
 		return !!(device->seat_caps & EVDEV_DEVICE_TOUCH);
 	case LIBINPUT_DEVICE_CAP_GESTURE:
 		return !!(device->seat_caps & EVDEV_DEVICE_GESTURE);
-	case LIBINPUT_DEVICE_CAP_TABLET:
+	case LIBINPUT_DEVICE_CAP_TABLET_TOOL:
 		return !!(device->seat_caps & EVDEV_DEVICE_TABLET);
 	default:
 		return 0;
