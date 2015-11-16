@@ -593,7 +593,7 @@ START_TEST(proximity_in_out)
 			tablet_event = libinput_event_get_tablet_event(event);
 			tool = libinput_event_tablet_get_tool(tablet_event);
 			ck_assert_int_eq(libinput_tool_get_type(tool),
-					 LIBINPUT_TOOL_TYPE_PEN);
+					 LIBINPUT_TABLET_TOOL_TYPE_PEN);
 		}
 		libinput_event_destroy(event);
 	}
@@ -1852,7 +1852,7 @@ START_TEST(mouse_tool)
 	tool = libinput_event_tablet_get_tool(tev);
 	ck_assert_notnull(tool);
 	ck_assert_int_eq(libinput_tool_get_type(tool),
-			 LIBINPUT_TOOL_TYPE_MOUSE);
+			 LIBINPUT_TABLET_TOOL_TYPE_MOUSE);
 
 	libinput_event_destroy(event);
 }
@@ -2121,7 +2121,7 @@ START_TEST(airbrush_tool)
 	tool = libinput_event_tablet_get_tool(tev);
 	ck_assert_notnull(tool);
 	ck_assert_int_eq(libinput_tool_get_type(tool),
-			 LIBINPUT_TOOL_TYPE_AIRBRUSH);
+			 LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH);
 
 	libinput_event_destroy(event);
 }
@@ -2208,7 +2208,7 @@ START_TEST(artpen_tool)
 	tool = libinput_event_tablet_get_tool(tev);
 	ck_assert_notnull(tool);
 	ck_assert_int_eq(libinput_tool_get_type(tool),
-			 LIBINPUT_TOOL_TYPE_PEN);
+			 LIBINPUT_TABLET_TOOL_TYPE_PEN);
 	ck_assert(libinput_tool_has_axis(tool,
 					 LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z));
 
