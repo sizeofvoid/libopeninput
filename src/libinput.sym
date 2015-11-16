@@ -184,22 +184,22 @@ LIBINPUT_1.1 {
 /* tablet APIs, they are not part of any stable API promise yet.
  * keep them separate */
 LIBINPUT_TABLET_SUPPORT {
-	libinput_event_get_tablet_event;
-	libinput_event_tablet_axis_has_changed;
-	libinput_event_tablet_get_axis_delta;
-	libinput_event_tablet_get_axis_delta_discrete;
-	libinput_event_tablet_get_axis_value;
-	libinput_event_tablet_get_base_event;
-	libinput_event_tablet_get_button;
-	libinput_event_tablet_get_button_state;
-	libinput_event_tablet_get_proximity_state;
-	libinput_event_tablet_get_seat_button_count;
-	libinput_event_tablet_get_time;
-	libinput_event_tablet_get_tip_state;
-	libinput_event_tablet_get_tool;
-	libinput_event_tablet_get_x_transformed;
-	libinput_event_tablet_get_y_transformed;
-	libinput_event_tablet_get_time_usec;
+	libinput_event_get_tablet_tool_event;
+	libinput_event_tablet_tool_axis_has_changed;
+	libinput_event_tablet_tool_get_axis_delta;
+	libinput_event_tablet_tool_get_axis_delta_discrete;
+	libinput_event_tablet_tool_get_axis_value;
+	libinput_event_tablet_tool_get_base_event;
+	libinput_event_tablet_tool_get_button;
+	libinput_event_tablet_tool_get_button_state;
+	libinput_event_tablet_tool_get_proximity_state;
+	libinput_event_tablet_tool_get_seat_button_count;
+	libinput_event_tablet_tool_get_time;
+	libinput_event_tablet_tool_get_tip_state;
+	libinput_event_tablet_tool_get_tool;
+	libinput_event_tablet_tool_get_x_transformed;
+	libinput_event_tablet_tool_get_y_transformed;
+	libinput_event_tablet_tool_get_time_usec;
 	libinput_tool_get_serial;
 	libinput_tool_get_tool_id;
 	libinput_tool_get_type;

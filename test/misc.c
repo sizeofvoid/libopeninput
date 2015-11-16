@@ -133,7 +133,7 @@ START_TEST(event_conversion_device_notify)
 			ck_assert(libinput_event_get_keyboard_event(event) == NULL);
 			ck_assert(libinput_event_get_touch_event(event) == NULL);
 			ck_assert(libinput_event_get_gesture_event(event) == NULL);
-			ck_assert(libinput_event_get_tablet_event(event) == NULL);
+			ck_assert(libinput_event_get_tablet_tool_event(event) == NULL);
 			litest_restore_log_handler(li);
 		}
 
@@ -189,7 +189,7 @@ START_TEST(event_conversion_pointer)
 			ck_assert(libinput_event_get_keyboard_event(event) == NULL);
 			ck_assert(libinput_event_get_touch_event(event) == NULL);
 			ck_assert(libinput_event_get_gesture_event(event) == NULL);
-			ck_assert(libinput_event_get_tablet_event(event) == NULL);
+			ck_assert(libinput_event_get_tablet_tool_event(event) == NULL);
 			litest_restore_log_handler(li);
 		}
 		libinput_event_destroy(event);
@@ -239,7 +239,7 @@ START_TEST(event_conversion_pointer_abs)
 			ck_assert(libinput_event_get_keyboard_event(event) == NULL);
 			ck_assert(libinput_event_get_touch_event(event) == NULL);
 			ck_assert(libinput_event_get_gesture_event(event) == NULL);
-			ck_assert(libinput_event_get_tablet_event(event) == NULL);
+			ck_assert(libinput_event_get_tablet_tool_event(event) == NULL);
 			litest_restore_log_handler(li);
 		}
 		libinput_event_destroy(event);
@@ -282,7 +282,7 @@ START_TEST(event_conversion_key)
 			ck_assert(libinput_event_get_pointer_event(event) == NULL);
 			ck_assert(libinput_event_get_touch_event(event) == NULL);
 			ck_assert(libinput_event_get_gesture_event(event) == NULL);
-			ck_assert(libinput_event_get_tablet_event(event) == NULL);
+			ck_assert(libinput_event_get_tablet_tool_event(event) == NULL);
 			litest_restore_log_handler(li);
 		}
 		libinput_event_destroy(event);
@@ -332,7 +332,7 @@ START_TEST(event_conversion_touch)
 			ck_assert(libinput_event_get_pointer_event(event) == NULL);
 			ck_assert(libinput_event_get_keyboard_event(event) == NULL);
 			ck_assert(libinput_event_get_gesture_event(event) == NULL);
-			ck_assert(libinput_event_get_tablet_event(event) == NULL);
+			ck_assert(libinput_event_get_tablet_tool_event(event) == NULL);
 			litest_restore_log_handler(li);
 		}
 		libinput_event_destroy(event);
@@ -414,10 +414,10 @@ START_TEST(event_conversion_tablet)
 
 		if (type >= LIBINPUT_EVENT_TABLET_TOOL_AXIS &&
 		    type <= LIBINPUT_EVENT_TABLET_TOOL_BUTTON) {
-			struct libinput_event_tablet *t;
+			struct libinput_event_tablet_tool *t;
 			struct libinput_event *base;
-			t = libinput_event_get_tablet_event(event);
-			base = libinput_event_tablet_get_base_event(t);
+			t = libinput_event_get_tablet_tool_event(event);
+			base = libinput_event_tablet_tool_get_base_event(t);
 			ck_assert(event == base);
 
 			events++;

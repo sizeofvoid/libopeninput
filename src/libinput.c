@@ -125,7 +125,7 @@ struct libinput_event_gesture {
 	double angle;
 };
 
-struct libinput_event_tablet {
+struct libinput_event_tablet_tool {
 	struct libinput_event base;
 	uint32_t button;
 	enum libinput_button_state state;
@@ -306,8 +306,8 @@ libinput_event_get_gesture_event(struct libinput_event *event)
 	return (struct libinput_event_gesture *) event;
 }
 
-LIBINPUT_EXPORT struct libinput_event_tablet *
-libinput_event_get_tablet_event(struct libinput_event *event)
+LIBINPUT_EXPORT struct libinput_event_tablet_tool *
+libinput_event_get_tablet_tool_event(struct libinput_event *event)
 {
 	require_event_type(libinput_event_get_context(event),
 			   event->type,
@@ -317,7 +317,7 @@ libinput_event_get_tablet_event(struct libinput_event *event)
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
 			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 
-	return (struct libinput_event_tablet *) event;
+	return (struct libinput_event_tablet_tool *) event;
 }
 
 LIBINPUT_EXPORT struct libinput_event_device_notify *
@@ -913,7 +913,7 @@ libinput_event_gesture_get_angle_delta(struct libinput_event_gesture *event)
 }
 
 LIBINPUT_EXPORT int
-libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
+libinput_event_tablet_tool_axis_has_changed(struct libinput_event_tablet_tool *event,
 				       enum libinput_tablet_tool_axis axis)
 {
 	require_event_type(libinput_event_get_context(&event->base),
@@ -928,7 +928,7 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
 }
 
 LIBINPUT_EXPORT double
-libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
+libinput_event_tablet_tool_get_axis_value(struct libinput_event_tablet_tool *event,
 				     enum libinput_tablet_tool_axis axis)
 {
 	struct evdev_device *device =
@@ -962,7 +962,7 @@ libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
 }
 
 LIBINPUT_EXPORT double
-libinput_event_tablet_get_axis_delta(struct libinput_event_tablet *event,
+libinput_event_tablet_tool_get_axis_delta(struct libinput_event_tablet_tool *event,
 				     enum libinput_tablet_tool_axis axis)
 {
 	struct evdev_device *device =
@@ -996,8 +996,8 @@ libinput_event_tablet_get_axis_delta(struct libinput_event_tablet *event,
 }
 
 LIBINPUT_EXPORT double
-libinput_event_tablet_get_axis_delta_discrete(
-				      struct libinput_event_tablet *event,
+libinput_event_tablet_tool_get_axis_delta_discrete(
+				      struct libinput_event_tablet_tool *event,
 				      enum libinput_tablet_tool_axis axis)
 {
 	require_event_type(libinput_event_get_context(&event->base),
@@ -1024,7 +1024,7 @@ libinput_event_tablet_get_axis_delta_discrete(
 }
 
 LIBINPUT_EXPORT double
-libinput_event_tablet_get_x_transformed(struct libinput_event_tablet *event,
+libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *event,
 					uint32_t width)
 {
 	struct evdev_device *device =
@@ -1043,7 +1043,7 @@ libinput_event_tablet_get_x_transformed(struct libinput_event_tablet *event,
 }
 
 LIBINPUT_EXPORT double
-libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
+libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *event,
 					uint32_t height)
 {
 	struct evdev_device *device =
@@ -1062,7 +1062,7 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
 }
 
 LIBINPUT_EXPORT struct libinput_tablet_tool *
-libinput_event_tablet_get_tool(struct libinput_event_tablet *event)
+libinput_event_tablet_tool_get_tool(struct libinput_event_tablet_tool *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1076,7 +1076,7 @@ libinput_event_tablet_get_tool(struct libinput_event_tablet *event)
 }
 
 LIBINPUT_EXPORT enum libinput_tablet_tool_proximity_state
-libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event)
+libinput_event_tablet_tool_get_proximity_state(struct libinput_event_tablet_tool *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1090,7 +1090,7 @@ libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event)
 }
 
 LIBINPUT_EXPORT enum libinput_tablet_tool_tip_state
-libinput_event_tablet_get_tip_state(struct libinput_event_tablet *event)
+libinput_event_tablet_tool_get_tip_state(struct libinput_event_tablet_tool *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1104,7 +1104,7 @@ libinput_event_tablet_get_tip_state(struct libinput_event_tablet *event)
 }
 
 LIBINPUT_EXPORT uint32_t
-libinput_event_tablet_get_time(struct libinput_event_tablet *event)
+libinput_event_tablet_tool_get_time(struct libinput_event_tablet_tool *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1118,7 +1118,7 @@ libinput_event_tablet_get_time(struct libinput_event_tablet *event)
 }
 
 LIBINPUT_EXPORT uint64_t
-libinput_event_tablet_get_time_usec(struct libinput_event_tablet *event)
+libinput_event_tablet_tool_get_time_usec(struct libinput_event_tablet_tool *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1132,7 +1132,7 @@ libinput_event_tablet_get_time_usec(struct libinput_event_tablet *event)
 }
 
 LIBINPUT_EXPORT uint32_t
-libinput_event_tablet_get_button(struct libinput_event_tablet *event)
+libinput_event_tablet_tool_get_button(struct libinput_event_tablet_tool *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1143,7 +1143,7 @@ libinput_event_tablet_get_button(struct libinput_event_tablet *event)
 }
 
 LIBINPUT_EXPORT enum libinput_button_state
-libinput_event_tablet_get_button_state(struct libinput_event_tablet *event)
+libinput_event_tablet_tool_get_button_state(struct libinput_event_tablet_tool *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1154,7 +1154,7 @@ libinput_event_tablet_get_button_state(struct libinput_event_tablet *event)
 }
 
 LIBINPUT_EXPORT uint32_t
-libinput_event_tablet_get_seat_button_count(struct libinput_event_tablet *event)
+libinput_event_tablet_tool_get_seat_button_count(struct libinput_event_tablet_tool *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1979,13 +1979,13 @@ tablet_notify_axis(struct libinput_device *device,
 		   double *deltas,
 		   double *deltas_discrete)
 {
-	struct libinput_event_tablet *axis_event;
+	struct libinput_event_tablet_tool *axis_event;
 
 	axis_event = zalloc(sizeof *axis_event);
 	if (!axis_event)
 		return;
 
-	*axis_event = (struct libinput_event_tablet) {
+	*axis_event = (struct libinput_event_tablet_tool) {
 		.time = time,
 		.tool = tool,
 		.proximity_state = LIBINPUT_TABLET_TOOL_PROXIMITY_IN,
@@ -2015,13 +2015,13 @@ tablet_notify_proximity(struct libinput_device *device,
 			unsigned char *changed_axes,
 			double *axes)
 {
-	struct libinput_event_tablet *proximity_event;
+	struct libinput_event_tablet_tool *proximity_event;
 
 	proximity_event = zalloc(sizeof *proximity_event);
 	if (!proximity_event)
 		return;
 
-	*proximity_event = (struct libinput_event_tablet) {
+	*proximity_event = (struct libinput_event_tablet_tool) {
 		.time = time,
 		.tool = tool,
 		.proximity_state = proximity_state,
@@ -2048,13 +2048,13 @@ tablet_notify_tip(struct libinput_device *device,
 		  enum libinput_tablet_tool_tip_state tip_state,
 		  double *axes)
 {
-	struct libinput_event_tablet *tip_event;
+	struct libinput_event_tablet_tool *tip_event;
 
 	tip_event = zalloc(sizeof *tip_event);
 	if (!tip_event)
 		return;
 
-	*tip_event = (struct libinput_event_tablet) {
+	*tip_event = (struct libinput_event_tablet_tool) {
 		.time = time,
 		.tool = tool,
 		.tip_state = tip_state,
@@ -2079,7 +2079,7 @@ tablet_notify_button(struct libinput_device *device,
 		     int32_t button,
 		     enum libinput_button_state state)
 {
-	struct libinput_event_tablet *button_event;
+	struct libinput_event_tablet_tool *button_event;
 	int32_t seat_button_count;
 
 	button_event = zalloc(sizeof *button_event);
@@ -2090,7 +2090,7 @@ tablet_notify_button(struct libinput_device *device,
 						     button,
 						     state);
 
-	*button_event = (struct libinput_event_tablet) {
+	*button_event = (struct libinput_event_tablet_tool) {
 		.time = time,
 		.tool = tool,
 		.button = button,
@@ -2463,7 +2463,7 @@ libinput_event_gesture_get_base_event(struct libinput_event_gesture *event)
 }
 
 LIBINPUT_EXPORT struct libinput_event *
-libinput_event_tablet_get_base_event(struct libinput_event_tablet *event)
+libinput_event_tablet_tool_get_base_event(struct libinput_event_tablet_tool *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,

@@ -599,12 +599,12 @@ handle_event_pinch(struct libinput_event *ev, struct window *w)
 static void
 handle_event_tablet(struct libinput_event *ev, struct window *w)
 {
-	struct libinput_event_tablet *t = libinput_event_get_tablet_event(ev);
+	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
 	double x, y;
 
 	switch (libinput_event_get_type(ev)) {
 	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
-		if (libinput_event_tablet_get_proximity_state(t) ==
+		if (libinput_event_tablet_tool_get_proximity_state(t) ==
 		    LIBINPUT_TABLET_TOOL_PROXIMITY_OUT) {
 			w->tool.x_in = 0;
 			w->tool.y_in = 0;
@@ -613,30 +613,30 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 			w->tool.x_up = 0;
 			w->tool.y_up = 0;
 		} else {
-			w->tool.x_in = libinput_event_tablet_get_x_transformed(t,
+			w->tool.x_in = libinput_event_tablet_tool_get_x_transformed(t,
 								       w->width);
-			w->tool.y_in = libinput_event_tablet_get_y_transformed(t,
+			w->tool.y_in = libinput_event_tablet_tool_get_y_transformed(t,
 								       w->height);
 		}
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
-		w->tool.x = libinput_event_tablet_get_x_transformed(t,
+		w->tool.x = libinput_event_tablet_tool_get_x_transformed(t,
 								    w->width);
-		w->tool.y = libinput_event_tablet_get_y_transformed(t,
+		w->tool.y = libinput_event_tablet_tool_get_y_transformed(t,
 								    w->height);
-		w->tool.pressure = libinput_event_tablet_get_axis_value(t,
+		w->tool.pressure = libinput_event_tablet_tool_get_axis_value(t,
 							LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
-		w->tool.distance = libinput_event_tablet_get_axis_value(t,
+		w->tool.distance = libinput_event_tablet_tool_get_axis_value(t,
 							LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
-		w->tool.tilt_x = libinput_event_tablet_get_axis_value(t,
+		w->tool.tilt_x = libinput_event_tablet_tool_get_axis_value(t,
 							LIBINPUT_TABLET_TOOL_AXIS_TILT_X);
-		w->tool.tilt_y = libinput_event_tablet_get_axis_value(t,
+		w->tool.tilt_y = libinput_event_tablet_tool_get_axis_value(t,
 							LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
-		x = libinput_event_tablet_get_x_transformed(t, w->width);
-		y = libinput_event_tablet_get_y_transformed(t, w->height);
-		if (libinput_event_tablet_get_tip_state(t) ==
+		x = libinput_event_tablet_tool_get_x_transformed(t, w->width);
+		y = libinput_event_tablet_tool_get_y_transformed(t, w->height);
+		if (libinput_event_tablet_tool_get_tip_state(t) ==
 		    LIBINPUT_TABLET_TOOL_TIP_DOWN) {
 			w->tool.x_down = x;
 			w->tool.y_down = y;

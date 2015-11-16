@@ -1901,7 +1901,7 @@ static void
 litest_print_event(struct libinput_event *event)
 {
 	struct libinput_event_pointer *p;
-	struct libinput_event_tablet *t;
+	struct libinput_event_tablet_tool *t;
 	struct libinput_device *dev;
 	enum libinput_event_type type;
 	double x, y;
@@ -1948,20 +1948,20 @@ litest_print_event(struct libinput_event *event)
 		fprintf(stderr, "vert %.f horiz %.2f", y, x);
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
-		t = libinput_event_get_tablet_event(event);
+		t = libinput_event_get_tablet_tool_event(event);
 		fprintf(stderr, "proximity %d\n",
-			libinput_event_tablet_get_proximity_state(t));
+			libinput_event_tablet_tool_get_proximity_state(t));
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
-		t = libinput_event_get_tablet_event(event);
+		t = libinput_event_get_tablet_tool_event(event);
 		fprintf(stderr, "tip %d\n",
-			libinput_event_tablet_get_tip_state(t));
+			libinput_event_tablet_tool_get_tip_state(t));
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
-		t = libinput_event_get_tablet_event(event);
+		t = libinput_event_get_tablet_tool_event(event);
 		fprintf(stderr, "button %d state %d\n",
-			libinput_event_tablet_get_button(t),
-			libinput_event_tablet_get_button_state(t));
+			libinput_event_tablet_tool_get_button(t),
+			libinput_event_tablet_tool_get_button_state(t));
 		break;
 	default:
 		break;
@@ -2330,16 +2330,16 @@ litest_is_gesture_event(struct libinput_event *event,
 	return gevent;
 }
 
-struct libinput_event_tablet * litest_is_tablet_event(
+struct libinput_event_tablet_tool * litest_is_tablet_event(
 		       struct libinput_event *event,
 		       enum libinput_event_type type)
 {
-	struct libinput_event_tablet *tevent;
+	struct libinput_event_tablet_tool *tevent;
 
 	litest_assert(event != NULL);
 	litest_assert_int_eq(libinput_event_get_type(event), type);
 
-	tevent = libinput_event_get_tablet_event(event);
+	tevent = libinput_event_get_tablet_tool_event(event);
 	litest_assert(tevent != NULL);
 
 	return tevent;
@@ -2350,7 +2350,7 @@ litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
 				  enum libinput_button_state state)
 {
 	struct libinput_event *event;
-	struct libinput_event_tablet *tev;
+	struct libinput_event_tablet_tool *tev;
 	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_TOOL_BUTTON;
 
 	litest_wait_for_event(li);
@@ -2358,10 +2358,10 @@ litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
 
 	litest_assert_notnull(event);
 	litest_assert_int_eq(libinput_event_get_type(event), type);
-	tev = libinput_event_get_tablet_event(event);
-	litest_assert_int_eq(libinput_event_tablet_get_button(tev),
+	tev = libinput_event_get_tablet_tool_event(event);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev),
 			     button);
-	litest_assert_int_eq(libinput_event_tablet_get_button_state(tev),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
 			     state);
 	libinput_event_destroy(event);
 }

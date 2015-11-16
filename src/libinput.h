@@ -426,13 +426,13 @@ struct libinput_event_touch;
 
 /**
  * @ingroup event_tablet
- * @struct libinput_event_tablet
+ * @struct libinput_event_tablet_tool
  *
  * Tablet event representing an axis update, button press, or tool update. Valid
  * event types for this event are @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
  * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY and @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  */
-struct libinput_event_tablet;
+struct libinput_event_tablet_tool;
 
 /**
  * @defgroup event Accessing and destruction of events
@@ -546,12 +546,12 @@ libinput_event_get_gesture_event(struct libinput_event *event);
  * Return the tablet event that is this input event. If the event type does not
  * match the tablet event types, this function returns NULL.
  *
- * The inverse of this function is libinput_event_tablet_get_base_event().
+ * The inverse of this function is libinput_event_tablet_tool_get_base_event().
  *
  * @return A tablet event, or NULL for other events
  */
-struct libinput_event_tablet *
-libinput_event_get_tablet_event(struct libinput_event *event);
+struct libinput_event_tablet_tool *
+libinput_event_get_tablet_tool_event(struct libinput_event *event);
 
 /**
  * @ingroup event
@@ -1353,7 +1353,7 @@ libinput_event_gesture_get_angle_delta(struct libinput_event_gesture *event);
  * @return The generic libinput_event of this event
  */
 struct libinput_event *
-libinput_event_tablet_get_base_event(struct libinput_event_tablet *event);
+libinput_event_tablet_tool_get_base_event(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -1370,8 +1370,8 @@ libinput_event_tablet_get_base_event(struct libinput_event_tablet *event);
  * @return 1 if the axis was updated or 0 otherwise
  */
 int
-libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
-				       enum libinput_tablet_tool_axis axis);
+libinput_event_tablet_tool_axis_has_changed(struct libinput_event_tablet_tool *event,
+					    enum libinput_tablet_tool_axis axis);
 
 /**
  * @ingroup event_tablet
@@ -1380,8 +1380,8 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
  * value is dependent on the axis:
  * - @ref LIBINPUT_TABLET_TOOL_AXIS_X and @ref LIBINPUT_TABLET_TOOL_AXIS_Y - the X and
  *   Y coordinates of the tablet tool, in mm from the top left corner of the
- *   tablet. Use libinput_event_tablet_get_x_transformed() and
- *   libinput_event_tablet_get_y_transformed() for transforming each
+ *   tablet. Use libinput_event_tablet_tool_get_x_transformed() and
+ *   libinput_event_tablet_tool_get_y_transformed() for transforming each
  *   respective axis value into a different coordinate space.
  * - @ref LIBINPUT_TABLET_TOOL_AXIS_DISTANCE - The distance from the tablet's
  *   sensor, normalized from 0 to 1
@@ -1400,10 +1400,10 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
  *   from 0 to 1. e.g. the wheel-like tool on the Wacom Airbrush.
  * - @ref LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL - A relative wheel on the tool,
  *   similar or equivalent to a mouse wheel. The value is always 0, use
- *   libinput_event_tablet_get_axis_delta() instead.
+ *   libinput_event_tablet_tool_get_axis_delta() instead.
  *
  * @note This function may be called for a specific axis even if
- * libinput_event_tablet_axis_has_changed() returns 0 for that axis.
+ * libinput_event_tablet_tool_axis_has_changed() returns 0 for that axis.
  * libinput always includes all device axes in the event.
  *
  * If the event is of type @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY and the
@@ -1415,8 +1415,8 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
  * @return The current value of the the axis
  */
 double
-libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
-				     enum libinput_tablet_tool_axis axis);
+libinput_event_tablet_tool_get_axis_value(struct libinput_event_tablet_tool *event,
+					  enum libinput_tablet_tool_axis axis);
 
 /**
  * @ingroup event_tablet
@@ -1426,7 +1426,7 @@ libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
  * - @ref LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL - A relative wheel on the tool,
  *   similar or equivalent to a mouse wheel. The value is a delta from the
  *   device's previous position, in degrees.
- * For all other axes, see libinput_event_tablet_get_axis_value() for
+ * For all other axes, see libinput_event_tablet_tool_get_axis_value() for
  * details.
  *
  * @param event The libinput tablet event
@@ -1434,8 +1434,8 @@ libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
  * @return The delta to the previous axis value
  */
 double
-libinput_event_tablet_get_axis_delta(struct libinput_event_tablet *event,
-				     enum libinput_tablet_tool_axis axis);
+libinput_event_tablet_tool_get_axis_delta(struct libinput_event_tablet_tool *event,
+					  enum libinput_tablet_tool_axis axis);
 
 /**
  * @ingroup event_tablet
@@ -1451,8 +1451,8 @@ libinput_event_tablet_get_axis_delta(struct libinput_event_tablet *event,
  * @return The delta to the previous axis value in discrete steps
  */
 double
-libinput_event_tablet_get_axis_delta_discrete(
-				      struct libinput_event_tablet *event,
+libinput_event_tablet_tool_get_axis_delta_discrete(
+				      struct libinput_event_tablet_tool *event,
 				      enum libinput_tablet_tool_axis axis);
 
 /**
@@ -1462,7 +1462,7 @@ libinput_event_tablet_get_axis_delta_discrete(
  * screen coordinates.
  *
  * @note This function may be called for a specific axis even if
- * libinput_event_tablet_axis_has_changed() returns 0 for that axis.
+ * libinput_event_tablet_tool_axis_has_changed() returns 0 for that axis.
  * libinput always includes all device axes in the event.
  *
  * @param event The libinput tablet event
@@ -1470,8 +1470,8 @@ libinput_event_tablet_get_axis_delta_discrete(
  * @return the current absolute x coordinate transformed to a screen coordinate
  */
 double
-libinput_event_tablet_get_x_transformed(struct libinput_event_tablet *event,
-					uint32_t width);
+libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *event,
+					     uint32_t width);
 
 /**
  * @ingroup event_tablet
@@ -1480,7 +1480,7 @@ libinput_event_tablet_get_x_transformed(struct libinput_event_tablet *event,
  * screen coordinates.
  *
  * @note This function may be called for a specific axis even if
- * libinput_event_tablet_axis_has_changed() returns 0 for that axis.
+ * libinput_event_tablet_tool_axis_has_changed() returns 0 for that axis.
  * libinput always includes all device axes in the event.
  *
  * @param event The libinput tablet event
@@ -1488,8 +1488,8 @@ libinput_event_tablet_get_x_transformed(struct libinput_event_tablet *event,
  * @return the current absolute y coordinate transformed to a screen coordinate
  */
 double
-libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
-					uint32_t height);
+libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *event,
+					     uint32_t height);
 
 /**
  * @ingroup event_tablet
@@ -1509,7 +1509,7 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
  * @return The new tool triggering this event
  */
 struct libinput_tablet_tool *
-libinput_event_tablet_get_tool(struct libinput_event_tablet *event);
+libinput_event_tablet_tool_get_tool(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -1524,7 +1524,7 @@ libinput_event_tablet_get_tool(struct libinput_event_tablet *event);
  * @return The new proximity state of the tool from the event.
  */
 enum libinput_tablet_tool_proximity_state
-libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event);
+libinput_event_tablet_tool_get_proximity_state(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -1538,7 +1538,7 @@ libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event);
  * @return The new tip state of the tool from the event.
  */
 enum libinput_tablet_tool_tip_state
-libinput_event_tablet_get_tip_state(struct libinput_event_tablet *event);
+libinput_event_tablet_tool_get_tip_state(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -1554,7 +1554,7 @@ libinput_event_tablet_get_tip_state(struct libinput_event_tablet *event);
  * @return the button triggering this event
  */
 uint32_t
-libinput_event_tablet_get_button(struct libinput_event_tablet *event);
+libinput_event_tablet_tool_get_button(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -1568,7 +1568,7 @@ libinput_event_tablet_get_button(struct libinput_event_tablet *event);
  * @return the button state triggering this event
  */
 enum libinput_button_state
-libinput_event_tablet_get_button_state(struct libinput_event_tablet *event);
+libinput_event_tablet_tool_get_button_state(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -1583,7 +1583,7 @@ libinput_event_tablet_get_button_state(struct libinput_event_tablet *event);
  * @return the seat wide pressed button count for the key of this event
  */
 uint32_t
-libinput_event_tablet_get_seat_button_count(struct libinput_event_tablet *event);
+libinput_event_tablet_tool_get_seat_button_count(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -1592,7 +1592,7 @@ libinput_event_tablet_get_seat_button_count(struct libinput_event_tablet *event)
  * @return The event time for this event
  */
 uint32_t
-libinput_event_tablet_get_time(struct libinput_event_tablet *event);
+libinput_event_tablet_tool_get_time(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -1601,7 +1601,7 @@ libinput_event_tablet_get_time(struct libinput_event_tablet *event);
  * @return The event time for this event in microseconds
  */
 uint64_t
-libinput_event_tablet_get_time_usec(struct libinput_event_tablet *event);
+libinput_event_tablet_tool_get_time_usec(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet

@@ -402,7 +402,7 @@ struct libinput_event_gesture * litest_is_gesture_event(
 		       struct libinput_event *event,
 		       enum libinput_event_type type,
 		       int nfingers);
-struct libinput_event_tablet * litest_is_tablet_event(
+struct libinput_event_tablet_tool * litest_is_tablet_event(
 		       struct libinput_event *event,
 		       enum libinput_event_type type);
 
