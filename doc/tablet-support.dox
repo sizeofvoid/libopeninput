@@ -8,7 +8,7 @@ Apple iPad.
 
 @section fake-proximity Handling of proximity events
 
-libinput's @ref LIBINPUT_EVENT_TABLET_PROXIMITY events represent the
+libinput's @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY events represent the
 physical proximity limits of the device. In some cases the caller should
 emulate proximity based on the distance events. For example, the Wacom mouse
 and lens cursor tools are usually used in relative mode, lying flat on the

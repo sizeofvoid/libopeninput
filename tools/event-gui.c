@@ -603,7 +603,7 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 	double x, y;
 
 	switch (libinput_event_get_type(ev)) {
-	case LIBINPUT_EVENT_TABLET_PROXIMITY:
+	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
 		if (libinput_event_tablet_get_proximity_state(t) ==
 		    LIBINPUT_TABLET_TOOL_PROXIMITY_OUT) {
 			w->tool.x_in = 0;
@@ -619,7 +619,7 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 								       w->height);
 		}
 		break;
-	case LIBINPUT_EVENT_TABLET_AXIS:
+	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
 		w->tool.x = libinput_event_tablet_get_x_transformed(t,
 								    w->width);
 		w->tool.y = libinput_event_tablet_get_y_transformed(t,
@@ -633,7 +633,7 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 		w->tool.tilt_y = libinput_event_tablet_get_axis_value(t,
 							LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
 		break;
-	case LIBINPUT_EVENT_TABLET_TIP:
+	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
 		x = libinput_event_tablet_get_x_transformed(t, w->width);
 		y = libinput_event_tablet_get_y_transformed(t, w->height);
 		if (libinput_event_tablet_get_tip_state(t) ==
@@ -645,7 +645,7 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 			w->tool.y_up = y;
 		}
 		break;
-	case LIBINPUT_EVENT_TABLET_BUTTON:
+	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
 		break;
 	default:
 		abort();
@@ -707,10 +707,10 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 		case LIBINPUT_EVENT_GESTURE_PINCH_END:
 			handle_event_pinch(ev, w);
 			break;
-		case LIBINPUT_EVENT_TABLET_AXIS:
-		case LIBINPUT_EVENT_TABLET_PROXIMITY:
-		case LIBINPUT_EVENT_TABLET_TIP:
-		case LIBINPUT_EVENT_TABLET_BUTTON:
+		case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
+		case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
+		case LIBINPUT_EVENT_TABLET_TOOL_TIP:
+		case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
 			handle_event_tablet(ev, w);
 			break;
 		}

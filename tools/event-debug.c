@@ -109,16 +109,16 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_GESTURE_PINCH_END:
 		type = "GESTURE_PINCH_END";
 		break;
-	case LIBINPUT_EVENT_TABLET_AXIS:
+	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
 		type = "TABLET_AXIS";
 		break;
-	case LIBINPUT_EVENT_TABLET_PROXIMITY:
+	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
 		type = "TABLET_PROXIMITY";
 		break;
-	case LIBINPUT_EVENT_TABLET_TIP:
+	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
 		type = "TABLET_TIP";
 		break;
-	case LIBINPUT_EVENT_TABLET_BUTTON:
+	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
 		type = "TABLET_BUTTON";
 		break;
 	}
@@ -676,16 +676,16 @@ handle_and_print_events(struct libinput *li)
 		case LIBINPUT_EVENT_GESTURE_PINCH_END:
 			print_gesture_event_without_coords(ev);
 			break;
-		case LIBINPUT_EVENT_TABLET_AXIS:
+		case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
 			print_tablet_axis_event(ev);
 			break;
-		case LIBINPUT_EVENT_TABLET_PROXIMITY:
+		case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
 			print_proximity_event(ev);
 			break;
-		case LIBINPUT_EVENT_TABLET_TIP:
+		case LIBINPUT_EVENT_TABLET_TOOL_TIP:
 			print_tablet_tip_event(ev);
 			break;
-		case LIBINPUT_EVENT_TABLET_BUTTON:
+		case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
 			print_tablet_button_event(ev);
 			break;
 		}

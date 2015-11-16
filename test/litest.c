@@ -1881,16 +1881,16 @@ litest_event_type_str(struct libinput_event *event)
 	case LIBINPUT_EVENT_GESTURE_PINCH_END:
 		str = "GESTURE PINCH END";
 		break;
-	case LIBINPUT_EVENT_TABLET_AXIS:
+	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
 		str = "TABLET AXIS";
 		break;
-	case LIBINPUT_EVENT_TABLET_PROXIMITY:
+	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
 		str = "TABLET PROX";
 		break;
-	case LIBINPUT_EVENT_TABLET_TIP:
+	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
 		str = "TABLET TIP";
 		break;
-	case LIBINPUT_EVENT_TABLET_BUTTON:
+	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
 		str = "TABLET BUTTON";
 		break;
 	}
@@ -1947,17 +1947,17 @@ litest_print_event(struct libinput_event *event)
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
 		fprintf(stderr, "vert %.f horiz %.2f", y, x);
 		break;
-	case LIBINPUT_EVENT_TABLET_PROXIMITY:
+	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
 		t = libinput_event_get_tablet_event(event);
 		fprintf(stderr, "proximity %d\n",
 			libinput_event_tablet_get_proximity_state(t));
 		break;
-	case LIBINPUT_EVENT_TABLET_TIP:
+	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
 		t = libinput_event_get_tablet_event(event);
 		fprintf(stderr, "tip %d\n",
 			libinput_event_tablet_get_tip_state(t));
 		break;
-	case LIBINPUT_EVENT_TABLET_BUTTON:
+	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
 		t = libinput_event_get_tablet_event(event);
 		fprintf(stderr, "button %d state %d\n",
 			libinput_event_tablet_get_button(t),
@@ -2351,7 +2351,7 @@ litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
 {
 	struct libinput_event *event;
 	struct libinput_event_tablet *tev;
-	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_BUTTON;
+	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_TOOL_BUTTON;
 
 	litest_wait_for_event(li);
 	event = libinput_get_event(li);

@@ -312,10 +312,10 @@ libinput_event_get_tablet_event(struct libinput_event *event)
 	require_event_type(libinput_event_get_context(event),
 			   event->type,
 			   NULL,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY,
-			   LIBINPUT_EVENT_TABLET_TIP,
-			   LIBINPUT_EVENT_TABLET_BUTTON);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 
 	return (struct libinput_event_tablet *) event;
 }
@@ -919,9 +919,9 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_TIP,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return (NCHARS(axis) <= sizeof(event->changed_axes)) ?
 		bit_is_set(event->changed_axes, axis) : 0;
@@ -937,9 +937,9 @@ libinput_event_tablet_get_axis_value(struct libinput_event_tablet *event,
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_TIP,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	switch(axis) {
 		case LIBINPUT_TABLET_TOOL_AXIS_X:
@@ -971,9 +971,9 @@ libinput_event_tablet_get_axis_delta(struct libinput_event_tablet *event,
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_TIP,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	switch(axis) {
 		case LIBINPUT_TABLET_TOOL_AXIS_X:
@@ -1003,9 +1003,9 @@ libinput_event_tablet_get_axis_delta_discrete(
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_TIP,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	switch(axis) {
 		case LIBINPUT_TABLET_TOOL_AXIS_X:
@@ -1033,9 +1033,9 @@ libinput_event_tablet_get_x_transformed(struct libinput_event_tablet *event,
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_TIP,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return evdev_device_transform_x(device,
 					event->axes[LIBINPUT_TABLET_TOOL_AXIS_X],
@@ -1052,9 +1052,9 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_TIP,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return evdev_device_transform_y(device,
 					event->axes[LIBINPUT_TABLET_TOOL_AXIS_Y],
@@ -1067,10 +1067,10 @@ libinput_event_tablet_get_tool(struct libinput_event_tablet *event)
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_TIP,
-			   LIBINPUT_EVENT_TABLET_BUTTON,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->tool;
 }
@@ -1081,10 +1081,10 @@ libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event)
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_TIP,
-			   LIBINPUT_EVENT_TABLET_BUTTON,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->proximity_state;
 }
@@ -1095,10 +1095,10 @@ libinput_event_tablet_get_tip_state(struct libinput_event_tablet *event)
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_TIP,
-			   LIBINPUT_EVENT_TABLET_BUTTON,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->tip_state;
 }
@@ -1109,10 +1109,10 @@ libinput_event_tablet_get_time(struct libinput_event_tablet *event)
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_TIP,
-			   LIBINPUT_EVENT_TABLET_BUTTON,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return us2ms(event->time);
 }
@@ -1123,10 +1123,10 @@ libinput_event_tablet_get_time_usec(struct libinput_event_tablet *event)
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_TIP,
-			   LIBINPUT_EVENT_TABLET_BUTTON,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->time;
 }
@@ -1137,7 +1137,7 @@ libinput_event_tablet_get_button(struct libinput_event_tablet *event)
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_BUTTON);
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 
 	return event->button;
 }
@@ -1148,7 +1148,7 @@ libinput_event_tablet_get_button_state(struct libinput_event_tablet *event)
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_BUTTON);
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 
 	return event->state;
 }
@@ -1159,7 +1159,7 @@ libinput_event_tablet_get_seat_button_count(struct libinput_event_tablet *event)
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
-			   LIBINPUT_EVENT_TABLET_BUTTON);
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 
 	return event->seat_button_count;
 }
@@ -2003,7 +2003,7 @@ tablet_notify_axis(struct libinput_device *device,
 
 	post_device_event(device,
 			  time,
-			  LIBINPUT_EVENT_TABLET_AXIS,
+			  LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			  &axis_event->base);
 }
 
@@ -2037,7 +2037,7 @@ tablet_notify_proximity(struct libinput_device *device,
 
 	post_device_event(device,
 			  time,
-			  LIBINPUT_EVENT_TABLET_PROXIMITY,
+			  LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
 			  &proximity_event->base);
 }
 
@@ -2066,7 +2066,7 @@ tablet_notify_tip(struct libinput_device *device,
 
 	post_device_event(device,
 			  time,
-			  LIBINPUT_EVENT_TABLET_TIP,
+			  LIBINPUT_EVENT_TABLET_TOOL_TIP,
 			  &tip_event->base);
 }
 
@@ -2103,7 +2103,7 @@ tablet_notify_button(struct libinput_device *device,
 
 	post_device_event(device,
 			  time,
-			  LIBINPUT_EVENT_TABLET_BUTTON,
+			  LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			  &button_event->base);
 }
 
@@ -2468,9 +2468,9 @@ libinput_event_tablet_get_base_event(struct libinput_event_tablet *event)
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   NULL,
-			   LIBINPUT_EVENT_TABLET_AXIS,
-			   LIBINPUT_EVENT_TABLET_PROXIMITY,
-			   LIBINPUT_EVENT_TABLET_BUTTON);
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 
 	return &event->base;
 }

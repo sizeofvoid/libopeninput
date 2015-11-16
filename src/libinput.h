@@ -280,23 +280,23 @@ enum libinput_event_type {
 	 * One or more axes have changed state on a device with the @ref
 	 * LIBINPUT_DEVICE_CAP_TABLET_TOOL capability. This event is only sent
 	 * when the tool is in proximity, see @ref
-	 * LIBINPUT_EVENT_TABLET_PROXIMITY for details.
+	 * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY for details.
 	 *
 	 * The proximity event contains the initial state of the axis as the
 	 * tool comes into proximity. An event of type @ref
-	 * LIBINPUT_EVENT_TABLET_AXIS is only sent when an axis value
+	 * LIBINPUT_EVENT_TABLET_TOOL_AXIS is only sent when an axis value
 	 * changes from this initial state. It is possible for a tool to
 	 * enter and leave proximity without sending an event of type @ref
-	 * LIBINPUT_EVENT_TABLET_AXIS.
+	 * LIBINPUT_EVENT_TABLET_TOOL_AXIS.
 	 */
-	LIBINPUT_EVENT_TABLET_AXIS = 600,
+	LIBINPUT_EVENT_TABLET_TOOL_AXIS = 600,
 	/**
 	 * Signals that a tool has come in or out of proximity of a device with
 	 * the @ref LIBINPUT_DEVICE_CAP_TABLET_TOOL capability.
 	 *
 	 * Proximity events contain each of the current values for each axis,
 	 * and these values may be extracted from them in the same way they are
-	 * with @ref LIBINPUT_EVENT_TABLET_AXIS events.
+	 * with @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS events.
 	 *
 	 * Some tools may always be in proximity. For these tools, events of
 	 * type @ref LIBINPUT_TABLET_TOOL_PROXIMITY_IN are sent only once after @ref
@@ -314,21 +314,21 @@ enum libinput_event_type {
 	 * each button that was held down on the stylus are sent before the
 	 * proximity out event.
 	 */
-	LIBINPUT_EVENT_TABLET_PROXIMITY,
+	LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
 	/**
 	 * Signals that a tool has come in contact with the surface of a
 	 * device with the @ref LIBINPUT_DEVICE_CAP_TABLET_TOOL capability.
 	 *
 	 * On devices without distance proximity detection, the @ref
-	 * LIBINPUT_EVENT_TABLET_TIP is sent immediately after @ref
-	 * LIBINPUT_EVENT_TABLET_PROXIMITY for the tip down event, and
+	 * LIBINPUT_EVENT_TABLET_TOOL_TIP is sent immediately after @ref
+	 * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY for the tip down event, and
 	 * immediately before for the tip up event.
 	 *
 	 * If a button and/or axis state change occurs at the same time as a
 	 * tip state change, the order of events is device-dependent.
 	 */
-	LIBINPUT_EVENT_TABLET_TIP,
-	LIBINPUT_EVENT_TABLET_BUTTON,
+	LIBINPUT_EVENT_TABLET_TOOL_TIP,
+	LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 
 	LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN = 800,
 	LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
@@ -429,8 +429,8 @@ struct libinput_event_touch;
  * @struct libinput_event_tablet
  *
  * Tablet event representing an axis update, button press, or tool update. Valid
- * event types for this event are @ref LIBINPUT_EVENT_TABLET_AXIS, @ref
- * LIBINPUT_EVENT_TABLET_PROXIMITY and @ref LIBINPUT_EVENT_TABLET_BUTTON.
+ * event types for this event are @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY and @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  */
 struct libinput_event_tablet;
 
@@ -1359,11 +1359,11 @@ libinput_event_tablet_get_base_event(struct libinput_event_tablet *event);
  * @ingroup event_tablet
  *
  * Checks if an axis was updated in this event or return 0 otherwise.
- * For tablet events that are not of type @ref LIBINPUT_EVENT_TABLET_AXIS or
- * type @ref LIBINPUT_EVENT_TABLET_PROXIMITY, this function returns 0.
+ * For tablet events that are not of type @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS or
+ * type @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
  * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_AXIS and @ref LIBINPUT_EVENT_TABLET_PROXIMITY.
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS and @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
  *
  * @param event The libinput tablet event
  * @param axis The axis to check for updates
@@ -1406,7 +1406,7 @@ libinput_event_tablet_axis_has_changed(struct libinput_event_tablet *event,
  * libinput_event_tablet_axis_has_changed() returns 0 for that axis.
  * libinput always includes all device axes in the event.
  *
- * If the event is of type @ref LIBINPUT_EVENT_TABLET_PROXIMITY and the
+ * If the event is of type @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY and the
  * event is a proximity out event, the value returned is the last known
  * value of the tool before it left proximity.
  *
@@ -1516,7 +1516,7 @@ libinput_event_tablet_get_tool(struct libinput_event_tablet *event);
  *
  * Returns the new proximity state of a tool from a proximity event.
  * Used to check whether or not a tool came in or out of proximity during an
- * event of type @ref LIBINPUT_EVENT_TABLET_PROXIMITY.
+ * event of type @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
  *
  * See @ref fake-proximity for recommendations on proximity handling.
  *
@@ -1532,7 +1532,7 @@ libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event);
  * Returns the new tip state of a tool from a tip event.
  * Used to check whether or not a tool came in contact with the tablet
  * surface or left contact with the tablet surface during an
- * event of type @ref LIBINPUT_EVENT_TABLET_TIP.
+ * event of type @ref LIBINPUT_EVENT_TABLET_TOOL_TIP.
  *
  * @param event The libinput tablet event
  * @return The new tip state of the tool from the event.
@@ -1544,11 +1544,11 @@ libinput_event_tablet_get_tip_state(struct libinput_event_tablet *event);
  * @ingroup event_tablet
  *
  * Return the button that triggered this event.
- * For tablet events that are not of type @ref LIBINPUT_EVENT_TABLET_BUTTON, this
+ * For tablet events that are not of type @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON, this
  * function returns 0.
  *
  * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_BUTTON.
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
  * @param event The libinput tablet event
  * @return the button triggering this event
@@ -1562,7 +1562,7 @@ libinput_event_tablet_get_button(struct libinput_event_tablet *event);
  * Return the button state of the event.
  *
  * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_BUTTON.
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
  * @param event The libinput tablet event
  * @return the button state triggering this event
@@ -1573,12 +1573,12 @@ libinput_event_tablet_get_button_state(struct libinput_event_tablet *event);
 /**
  * @ingroup event_tablet
  *
- * For the button of a @ref LIBINPUT_EVENT_TABLET_BUTTON event, return the total
+ * For the button of a @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON event, return the total
  * number of buttons pressed on all devices on the associated seat after the
  * the event was triggered.
  *
  " @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_BUTTON. For other events, this function returns 0.
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON. For other events, this function returns 0.
  *
  * @return the seat wide pressed button count for the key of this event
  */

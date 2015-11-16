@@ -412,8 +412,8 @@ START_TEST(event_conversion_tablet)
 		enum libinput_event_type type;
 		type = libinput_event_get_type(event);
 
-		if (type >= LIBINPUT_EVENT_TABLET_AXIS &&
-		    type <= LIBINPUT_EVENT_TABLET_BUTTON) {
+		if (type >= LIBINPUT_EVENT_TABLET_TOOL_AXIS &&
+		    type <= LIBINPUT_EVENT_TABLET_TOOL_BUTTON) {
 			struct libinput_event_tablet *t;
 			struct libinput_event *base;
 			t = libinput_event_get_tablet_event(event);
