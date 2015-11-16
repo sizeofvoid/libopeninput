@@ -587,7 +587,7 @@ START_TEST(proximity_in_out)
 	while ((event = libinput_get_event(li))) {
 		if (libinput_event_get_type(event) ==
 		    LIBINPUT_EVENT_TABLET_PROXIMITY) {
-			struct libinput_tool * tool;
+			struct libinput_tablet_tool * tool;
 
 			have_tool_update++;
 			tablet_event = libinput_event_get_tablet_event(event);
@@ -697,7 +697,7 @@ START_TEST(proximity_has_axes)
 	struct libinput *li = dev->libinput;
 	struct libinput_event_tablet *tablet_event;
 	struct libinput_event *event;
-	struct libinput_tool *tool;
+	struct libinput_tablet_tool *tool;
 	double x, y,
 	       distance;
 	double last_x, last_y, last_distance,
@@ -1440,7 +1440,7 @@ START_TEST(tool_serial)
 	struct libinput *li = dev->libinput;
 	struct libinput_event_tablet *tablet_event;
 	struct libinput_event *event;
-	struct libinput_tool *tool;
+	struct libinput_tablet_tool *tool;
 
 	litest_drain_events(li);
 
@@ -1465,7 +1465,7 @@ START_TEST(serial_changes_tool)
 	struct libinput *li = dev->libinput;
 	struct libinput_event_tablet *tablet_event;
 	struct libinput_event *event;
-	struct libinput_tool *tool;
+	struct libinput_tablet_tool *tool;
 
 	litest_drain_events(li);
 
@@ -1498,7 +1498,7 @@ START_TEST(invalid_serials)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	struct libinput_event_tablet *tablet_event;
-	struct libinput_tool *tool;
+	struct libinput_tablet_tool *tool;
 
 	litest_drain_events(li);
 
@@ -1534,7 +1534,7 @@ START_TEST(tool_ref)
 	struct libinput *li = dev->libinput;
 	struct libinput_event_tablet *tablet_event;
 	struct libinput_event *event;
-	struct libinput_tool *tool;
+	struct libinput_tablet_tool *tool;
 
 	litest_drain_events(li);
 
@@ -1611,7 +1611,7 @@ START_TEST(tools_with_serials)
 {
 	struct libinput *li = litest_create_context();
 	struct litest_device *dev[2];
-	struct libinput_tool *tool[2] = {0};
+	struct libinput_tablet_tool *tool[2] = {0};
 	struct libinput_event *event;
 	int i;
 
@@ -1660,7 +1660,7 @@ START_TEST(tools_without_serials)
 {
 	struct libinput *li = litest_create_context();
 	struct litest_device *dev[2];
-	struct libinput_tool *tool[2] = {0};
+	struct libinput_tablet_tool *tool[2] = {0};
 	struct libinput_event *event;
 	int i;
 
@@ -1712,7 +1712,7 @@ START_TEST(tool_capabilities)
 	struct litest_device *bamboo;
 	struct libinput_event *event;
 	struct libinput_event_tablet *t;
-	struct libinput_tool *tool;
+	struct libinput_tablet_tool *tool;
 
 	/* The axis capabilities of a tool can differ depending on the type of
 	 * tablet the tool is being used with */
@@ -1831,7 +1831,7 @@ START_TEST(mouse_tool)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	struct libinput_event_tablet *tev;
-	struct libinput_tool *tool;
+	struct libinput_tablet_tool *tool;
 
 	if (!libevdev_has_event_code(dev->evdev,
 				    EV_KEY,
@@ -1864,7 +1864,7 @@ START_TEST(mouse_buttons)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	struct libinput_event_tablet *tev;
-	struct libinput_tool *tool;
+	struct libinput_tablet_tool *tool;
 	int code;
 
 	if (!libevdev_has_event_code(dev->evdev,
@@ -2001,7 +2001,7 @@ START_TEST(mouse_wheel)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	struct libinput_event_tablet *tev;
-	struct libinput_tool *tool;
+	struct libinput_tablet_tool *tool;
 	const struct input_absinfo *abs;
 	double val;
 	int i;
@@ -2100,7 +2100,7 @@ START_TEST(airbrush_tool)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	struct libinput_event_tablet *tev;
-	struct libinput_tool *tool;
+	struct libinput_tablet_tool *tool;
 
 	if (!libevdev_has_event_code(dev->evdev,
 				    EV_KEY,
@@ -2186,7 +2186,7 @@ START_TEST(artpen_tool)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	struct libinput_event_tablet *tev;
-	struct libinput_tool *tool;
+	struct libinput_tablet_tool *tool;
 
 	if (!libevdev_has_event_code(dev->evdev,
 				    EV_ABS,

@@ -163,7 +163,7 @@ enum libinput_tablet_axis {
  * is possible to track the same physical tool across multiple
  * struct libinput_device devices.
  */
-struct libinput_tool;
+struct libinput_tablet_tool;
 
 /**
  * @ingroup device
@@ -1508,7 +1508,7 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
  * @param event The libinput tablet event
  * @return The new tool triggering this event
  */
-struct libinput_tool *
+struct libinput_tablet_tool *
 libinput_event_tablet_get_tool(struct libinput_event_tablet *event);
 
 /**
@@ -1614,7 +1614,7 @@ libinput_event_tablet_get_time_usec(struct libinput_event_tablet *event);
  * @see libinput_tool_get_tool_id
  */
 enum libinput_tool_type
-libinput_tool_get_type(struct libinput_tool *tool);
+libinput_tool_get_type(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
@@ -1632,7 +1632,7 @@ libinput_tool_get_type(struct libinput_tool *tool);
  * @see libinput_tool_get_type
  */
 uint64_t
-libinput_tool_get_tool_id(struct libinput_tool *tool);
+libinput_tool_get_tool_id(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
@@ -1642,8 +1642,8 @@ libinput_tool_get_tool_id(struct libinput_tool *tool);
  * @param tool The tool to increment the ref count of
  * @return The passed tool
  */
-struct libinput_tool *
-libinput_tool_ref(struct libinput_tool *tool);
+struct libinput_tablet_tool *
+libinput_tool_ref(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
@@ -1655,7 +1655,7 @@ libinput_tool_ref(struct libinput_tool *tool);
  * @return Whether or not the axis is supported
  */
 int
-libinput_tool_has_axis(struct libinput_tool *tool,
+libinput_tool_has_axis(struct libinput_tablet_tool *tool,
 		       enum libinput_tablet_axis axis);
 
 /**
@@ -1670,7 +1670,7 @@ libinput_tool_has_axis(struct libinput_tool *tool,
  * @return 1 if the tool supports this button code, 0 if it does not
  */
 int
-libinput_tool_has_button(struct libinput_tool *tool,
+libinput_tool_has_button(struct libinput_tablet_tool *tool,
 		         uint32_t code);
 
 /**
@@ -1682,8 +1682,8 @@ libinput_tool_has_button(struct libinput_tool *tool,
  * @param tool The tool to decrement the ref count of
  * @return NULL if the tool was destroyed otherwise the passed tool
  */
-struct libinput_tool *
-libinput_tool_unref(struct libinput_tool *tool);
+struct libinput_tablet_tool *
+libinput_tool_unref(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
@@ -1698,7 +1698,7 @@ libinput_tool_unref(struct libinput_tool *tool);
  * @return The new tool serial triggering this event
  */
 uint64_t
-libinput_tool_get_serial(struct libinput_tool *tool);
+libinput_tool_get_serial(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
@@ -1709,7 +1709,7 @@ libinput_tool_get_serial(struct libinput_tool *tool);
  * @return The user data associated with the tool object
  */
 void *
-libinput_tool_get_user_data(struct libinput_tool *tool);
+libinput_tool_get_user_data(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
@@ -1720,7 +1720,7 @@ libinput_tool_get_user_data(struct libinput_tool *tool);
  * @param user_data The user data to associate with the tool object
  */
 void
-libinput_tool_set_user_data(struct libinput_tool *tool,
+libinput_tool_set_user_data(struct libinput_tablet_tool *tool,
 			    void *user_data);
 
 /**

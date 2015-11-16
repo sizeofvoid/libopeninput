@@ -135,7 +135,7 @@ struct libinput_event_tablet {
 	double deltas[LIBINPUT_TABLET_AXIS_MAX + 1];
 	double deltas_discrete[LIBINPUT_TABLET_AXIS_MAX + 1];
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_AXIS_MAX + 1)];
-	struct libinput_tool *tool;
+	struct libinput_tablet_tool *tool;
 	enum libinput_tool_proximity_state proximity_state;
 	enum libinput_tool_tip_state tip_state;
 };
@@ -1061,7 +1061,7 @@ libinput_event_tablet_get_y_transformed(struct libinput_event_tablet *event,
 					height);
 }
 
-LIBINPUT_EXPORT struct libinput_tool *
+LIBINPUT_EXPORT struct libinput_tablet_tool *
 libinput_event_tablet_get_tool(struct libinput_event_tablet *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
@@ -1165,32 +1165,32 @@ libinput_event_tablet_get_seat_button_count(struct libinput_event_tablet *event)
 }
 
 LIBINPUT_EXPORT enum libinput_tool_type
-libinput_tool_get_type(struct libinput_tool *tool)
+libinput_tool_get_type(struct libinput_tablet_tool *tool)
 {
 	return tool->type;
 }
 
 LIBINPUT_EXPORT uint64_t
-libinput_tool_get_tool_id(struct libinput_tool *tool)
+libinput_tool_get_tool_id(struct libinput_tablet_tool *tool)
 {
 	return tool->tool_id;
 }
 
 LIBINPUT_EXPORT uint64_t
-libinput_tool_get_serial(struct libinput_tool *tool)
+libinput_tool_get_serial(struct libinput_tablet_tool *tool)
 {
 	return tool->serial;
 }
 
 LIBINPUT_EXPORT int
-libinput_tool_has_axis(struct libinput_tool *tool,
+libinput_tool_has_axis(struct libinput_tablet_tool *tool,
 		       enum libinput_tablet_axis axis)
 {
 	return bit_is_set(tool->axis_caps, axis);
 }
 
 LIBINPUT_EXPORT int
-libinput_tool_has_button(struct libinput_tool *tool,
+libinput_tool_has_button(struct libinput_tablet_tool *tool,
 			 uint32_t code)
 {
 	if (NCHARS(code) > sizeof(tool->buttons))
@@ -1200,27 +1200,27 @@ libinput_tool_has_button(struct libinput_tool *tool,
 }
 
 LIBINPUT_EXPORT void
-libinput_tool_set_user_data(struct libinput_tool *tool,
+libinput_tool_set_user_data(struct libinput_tablet_tool *tool,
 			    void *user_data)
 {
 	tool->user_data = user_data;
 }
 
 LIBINPUT_EXPORT void *
-libinput_tool_get_user_data(struct libinput_tool *tool)
+libinput_tool_get_user_data(struct libinput_tablet_tool *tool)
 {
 	return tool->user_data;
 }
 
-LIBINPUT_EXPORT struct libinput_tool *
-libinput_tool_ref(struct libinput_tool *tool)
+LIBINPUT_EXPORT struct libinput_tablet_tool *
+libinput_tool_ref(struct libinput_tablet_tool *tool)
 {
 	tool->refcount++;
 	return tool;
 }
 
-LIBINPUT_EXPORT struct libinput_tool *
-libinput_tool_unref(struct libinput_tool *tool)
+LIBINPUT_EXPORT struct libinput_tablet_tool *
+libinput_tool_unref(struct libinput_tablet_tool *tool)
 {
 	assert(tool->refcount > 0);
 
@@ -1337,7 +1337,7 @@ libinput_unref(struct libinput *libinput)
 	struct libinput_event *event;
 	struct libinput_device *device, *next_device;
 	struct libinput_seat *seat, *next_seat;
-	struct libinput_tool *tool, *next_tool;
+	struct libinput_tablet_tool *tool, *next_tool;
 	struct libinput_device_group *group, *next_group;
 
 	if (libinput == NULL)
@@ -1972,7 +1972,7 @@ touch_notify_frame(struct libinput_device *device,
 void
 tablet_notify_axis(struct libinput_device *device,
 		   uint64_t time,
-		   struct libinput_tool *tool,
+		   struct libinput_tablet_tool *tool,
 		   enum libinput_tool_tip_state tip_state,
 		   unsigned char *changed_axes,
 		   double *axes,
@@ -2010,7 +2010,7 @@ tablet_notify_axis(struct libinput_device *device,
 void
 tablet_notify_proximity(struct libinput_device *device,
 			uint64_t time,
-			struct libinput_tool *tool,
+			struct libinput_tablet_tool *tool,
 			enum libinput_tool_proximity_state proximity_state,
 			unsigned char *changed_axes,
 			double *axes)
@@ -2044,7 +2044,7 @@ tablet_notify_proximity(struct libinput_device *device,
 void
 tablet_notify_tip(struct libinput_device *device,
 		  uint64_t time,
-		  struct libinput_tool *tool,
+		  struct libinput_tablet_tool *tool,
 		  enum libinput_tool_tip_state tip_state,
 		  double *axes)
 {
@@ -2073,7 +2073,7 @@ tablet_notify_tip(struct libinput_device *device,
 void
 tablet_notify_button(struct libinput_device *device,
 		     uint64_t time,
-		     struct libinput_tool *tool,
+		     struct libinput_tablet_tool *tool,
 		     enum libinput_tool_tip_state tip_state,
 		     double *axes,
 		     int32_t button,

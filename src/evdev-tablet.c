@@ -317,7 +317,7 @@ static void
 tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			 struct evdev_device *device,
 			 uint64_t time,
-			 struct libinput_tool *tool)
+			 struct libinput_tablet_tool *tool)
 {
 	struct libinput_device *base = &device->base;
 	bool axis_update_needed = false;
@@ -576,7 +576,7 @@ tablet_process_misc(struct tablet_dispatch *tablet,
 
 static inline void
 copy_axis_cap(const struct tablet_dispatch *tablet,
-	      struct libinput_tool *tool,
+	      struct libinput_tablet_tool *tool,
 	      enum libinput_tablet_axis axis)
 {
 	if (bit_is_set(tablet->axis_caps, axis))
@@ -585,7 +585,7 @@ copy_axis_cap(const struct tablet_dispatch *tablet,
 
 static inline void
 copy_button_cap(const struct tablet_dispatch *tablet,
-		struct libinput_tool *tool,
+		struct libinput_tablet_tool *tool,
 		uint32_t button)
 {
 	struct libevdev *evdev = tablet->device->evdev;
@@ -595,7 +595,7 @@ copy_button_cap(const struct tablet_dispatch *tablet,
 
 static inline int
 tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
-			    struct libinput_tool *tool)
+			    struct libinput_tablet_tool *tool)
 {
 	int rc = 1;
 
@@ -668,7 +668,7 @@ out:
 
 static void
 tool_set_bits(const struct tablet_dispatch *tablet,
-	      struct libinput_tool *tool)
+	      struct libinput_tablet_tool *tool)
 {
 	enum libinput_tool_type type = tool->type;
 
@@ -726,13 +726,13 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 	}
 }
 
-static struct libinput_tool *
+static struct libinput_tablet_tool *
 tablet_get_tool(struct tablet_dispatch *tablet,
 		enum libinput_tool_type type,
 		uint32_t tool_id,
 		uint32_t serial)
 {
-	struct libinput_tool *tool = NULL, *t;
+	struct libinput_tablet_tool *tool = NULL, *t;
 	struct list *tool_list;
 
 	if (serial) {
@@ -765,7 +765,7 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 	 * add it */
 	if (!tool) {
 		tool = zalloc(sizeof *tool);
-		*tool = (struct libinput_tool) {
+		*tool = (struct libinput_tablet_tool) {
 			.type = type,
 			.serial = serial,
 			.tool_id = tool_id,
@@ -784,7 +784,7 @@ static void
 tablet_notify_button_mask(struct tablet_dispatch *tablet,
 			  struct evdev_device *device,
 			  uint64_t time,
-			  struct libinput_tool *tool,
+			  struct libinput_tablet_tool *tool,
 			  const unsigned char *buttons,
 			  unsigned int buttons_len,
 			  enum libinput_button_state state)
@@ -815,7 +815,7 @@ static void
 tablet_notify_buttons(struct tablet_dispatch *tablet,
 		      struct evdev_device *device,
 		      uint64_t time,
-		      struct libinput_tool *tool,
+		      struct libinput_tablet_tool *tool,
 		      enum libinput_button_state state)
 {
 	unsigned char buttons[ARRAY_LENGTH(tablet->button_state.stylus_buttons)];
@@ -876,7 +876,7 @@ tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
 	     uint64_t time)
 {
-	struct libinput_tool *tool =
+	struct libinput_tablet_tool *tool =
 		tablet_get_tool(tablet,
 				tablet->current_tool_type,
 				tablet->current_tool_id,
@@ -1005,7 +1005,7 @@ tablet_destroy(struct evdev_dispatch *dispatch)
 {
 	struct tablet_dispatch *tablet =
 		(struct tablet_dispatch*)dispatch;
-	struct libinput_tool *tool, *tmp;
+	struct libinput_tablet_tool *tool, *tmp;
 
 	list_for_each_safe(tool, tmp, &tablet->tool_list, link) {
 		libinput_tool_unref(tool);
