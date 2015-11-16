@@ -225,7 +225,7 @@ enum libinput_tablet_tool_proximity_state {
  * The tip contact state of a tool is a binary state signalling whether the tool is
  * touching the surface of the tablet device.
  */
-enum libinput_tool_tip_state {
+enum libinput_tablet_tool_tip_state {
 	LIBINPUT_TOOL_TIP_UP = 0,
 	LIBINPUT_TOOL_TIP_DOWN = 1,
 };
@@ -1537,7 +1537,7 @@ libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event);
  * @param event The libinput tablet event
  * @return The new tip state of the tool from the event.
  */
-enum libinput_tool_tip_state
+enum libinput_tablet_tool_tip_state
 libinput_event_tablet_get_tip_state(struct libinput_event_tablet *event);
 
 /**

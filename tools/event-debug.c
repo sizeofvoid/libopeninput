@@ -285,7 +285,7 @@ static void
 print_tablet_tip_event(struct libinput_event *ev)
 {
 	struct libinput_event_tablet *p = libinput_event_get_tablet_event(ev);
-	enum libinput_tool_tip_state state;
+	enum libinput_tablet_tool_tip_state state;
 
 	print_event_time(libinput_event_tablet_get_time(p));
 

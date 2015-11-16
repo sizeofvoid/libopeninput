@@ -137,7 +137,7 @@ struct libinput_event_tablet {
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];
 	struct libinput_tablet_tool *tool;
 	enum libinput_tablet_tool_proximity_state proximity_state;
-	enum libinput_tool_tip_state tip_state;
+	enum libinput_tablet_tool_tip_state tip_state;
 };
 
 static void
@@ -1089,7 +1089,7 @@ libinput_event_tablet_get_proximity_state(struct libinput_event_tablet *event)
 	return event->proximity_state;
 }
 
-LIBINPUT_EXPORT enum libinput_tool_tip_state
+LIBINPUT_EXPORT enum libinput_tablet_tool_tip_state
 libinput_event_tablet_get_tip_state(struct libinput_event_tablet *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
@@ -1973,7 +1973,7 @@ void
 tablet_notify_axis(struct libinput_device *device,
 		   uint64_t time,
 		   struct libinput_tablet_tool *tool,
-		   enum libinput_tool_tip_state tip_state,
+		   enum libinput_tablet_tool_tip_state tip_state,
 		   unsigned char *changed_axes,
 		   double *axes,
 		   double *deltas,
@@ -2045,7 +2045,7 @@ void
 tablet_notify_tip(struct libinput_device *device,
 		  uint64_t time,
 		  struct libinput_tablet_tool *tool,
-		  enum libinput_tool_tip_state tip_state,
+		  enum libinput_tablet_tool_tip_state tip_state,
 		  double *axes)
 {
 	struct libinput_event_tablet *tip_event;
@@ -2074,7 +2074,7 @@ void
 tablet_notify_button(struct libinput_device *device,
 		     uint64_t time,
 		     struct libinput_tablet_tool *tool,
-		     enum libinput_tool_tip_state tip_state,
+		     enum libinput_tablet_tool_tip_state tip_state,
 		     double *axes,
 		     int32_t button,
 		     enum libinput_button_state state)

@@ -407,7 +407,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 						tablet->changed_axes,
 						axes);
 		else {
-			enum libinput_tool_tip_state tip_state;
+			enum libinput_tablet_tool_tip_state tip_state;
 
 			tip_state = tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ?
 				LIBINPUT_TOOL_TIP_DOWN : LIBINPUT_TOOL_TIP_UP;
@@ -792,7 +792,7 @@ tablet_notify_button_mask(struct tablet_dispatch *tablet,
 	struct libinput_device *base = &device->base;
 	size_t i;
 	size_t nbits = 8 * sizeof(buttons[0]) * buttons_len;
-	enum libinput_tool_tip_state tip_state;
+	enum libinput_tablet_tool_tip_state tip_state;
 
 	tip_state = tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ?
 			LIBINPUT_TOOL_TIP_DOWN : LIBINPUT_TOOL_TIP_UP;
