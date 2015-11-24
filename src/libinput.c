@@ -2520,7 +2520,7 @@ libinput_device_group_find_group(struct libinput *libinput,
 		}
 	}
 
-	return g;
+	return NULL;
 }
 
 void

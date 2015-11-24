@@ -473,6 +473,30 @@ START_TEST(pointer_button_auto_release)
 }
 END_TEST
 
+static inline int
+wheel_click_angle(struct litest_device *dev)
+{
+	struct udev_device *d;
+	const char *prop;
+	const int default_angle = 15;
+	int angle = default_angle;
+
+	d = libinput_device_get_udev_device(dev->libinput_device);
+	litest_assert_ptr_notnull(d);
+
+	prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_ANGLE");
+	if (!prop)
+		goto out;
+
+	angle = parse_mouse_wheel_click_angle_property(prop);
+	if (angle == 0)
+		angle = default_angle;
+
+out:
+	udev_device_unref(d);
+	return angle;
+}
+
 static void
 test_wheel_event(struct litest_device *dev, int which, int amount)
 {
@@ -481,11 +505,11 @@ test_wheel_event(struct litest_device *dev, int which, int amount)
 	struct libinput_event_pointer *ptrev;
 	enum libinput_pointer_axis axis;
 
-	/* the current evdev implementation scales the scroll wheel events
-	   up by a factor 15 */
-	const int scroll_step = 15;
-	int expected = amount * scroll_step;
-	int discrete = amount;
+	int scroll_step, expected, discrete;;
+
+	scroll_step = wheel_click_angle(dev);
+	expected = amount * scroll_step;
+	discrete = amount;
 
 	if (libinput_device_config_scroll_get_natural_scroll_enabled(dev->libinput_device)) {
 		expected *= -1;

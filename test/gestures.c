@@ -294,13 +294,13 @@ START_TEST(gestures_spread)
 	for (i = 0; i < 15; i++) {
 		litest_push_event_frame(dev);
 		if (dir_x > 0.0)
-			dir_x += 2;
+			dir_x += 1;
 		else if (dir_x < 0.0)
-			dir_x -= 2;
+			dir_x -= 1;
 		if (dir_y > 0.0)
-			dir_y += 2;
+			dir_y += 1;
 		else if (dir_y < 0.0)
-			dir_y -= 2;
+			dir_y -= 1;
 		litest_touch_move(dev,
 				  0,
 				  50 + dir_x,

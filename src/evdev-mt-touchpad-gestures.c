@@ -195,7 +195,7 @@ tp_gesture_get_direction(struct tp_dispatch *tp, struct tp_touch *touch)
 	    (tp->device->model_flags & EVDEV_MODEL_ELANTECH_TOUCHPAD) == 0)
 		move_threshold = TP_MM_TO_DPI_NORMALIZED(4);
 	else
-		move_threshold = TP_MM_TO_DPI_NORMALIZED(2);
+		move_threshold = TP_MM_TO_DPI_NORMALIZED(1);
 
 	delta = device_delta(touch->point, touch->gesture.initial);
 

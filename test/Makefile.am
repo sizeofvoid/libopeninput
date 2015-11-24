@@ -15,6 +15,7 @@ liblitest_la_SOURCES = \
 	litest-int.h \
 	litest-device-alps-semi-mt.c \
 	litest-device-alps-dualpoint.c \
+	litest-device-asus-rog-gladius.c \
 	litest-device-atmel-hover.c \
 	litest-device-bcm5974.c \
 	litest-device-elantech-touchpad.c \
@@ -27,6 +28,7 @@ liblitest_la_SOURCES = \
 	litest-device-mouse.c \
 	litest-device-mouse-roccat.c \
 	litest-device-mouse-low-dpi.c \
+	litest-device-mouse-wheel-click-angle.c \
 	litest-device-ms-surface-cover.c \
 	litest-device-protocol-a-touch-screen.c \
 	litest-device-qemu-usb-tablet.c \
