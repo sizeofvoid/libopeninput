@@ -170,7 +170,6 @@ tablet_tool_to_evcode(enum libinput_tablet_tool_type type)
 	case LIBINPUT_TABLET_TOOL_TYPE_BRUSH:	  code = BTN_TOOL_BRUSH;	break;
 	case LIBINPUT_TABLET_TOOL_TYPE_PENCIL:	  code = BTN_TOOL_PENCIL;	break;
 	case LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH:  code = BTN_TOOL_AIRBRUSH;	break;
-	case LIBINPUT_TABLET_TOOL_TYPE_FINGER:	  code = BTN_TOOL_FINGER;	break;
 	case LIBINPUT_TABLET_TOOL_TYPE_MOUSE:	  code = BTN_TOOL_MOUSE;	break;
 	case LIBINPUT_TABLET_TOOL_TYPE_LENS:	  code = BTN_TOOL_LENS;		break;
 	default:

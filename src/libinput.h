@@ -195,7 +195,6 @@ enum libinput_tablet_tool_type {
 	LIBINPUT_TABLET_TOOL_TYPE_PENCIL,	/**< Physical drawing tool, e.g.
 					             Wacom Inking Pen */
 	LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH,	/**< An airbrush-like tool */
-	LIBINPUT_TABLET_TOOL_TYPE_FINGER,	/**< Touch */
 	LIBINPUT_TABLET_TOOL_TYPE_MOUSE,	/**< A mouse bound to the tablet */
 	LIBINPUT_TABLET_TOOL_TYPE_LENS,		/**< A mouse tool with a lens */
 };

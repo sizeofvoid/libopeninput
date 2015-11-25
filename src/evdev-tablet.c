@@ -476,7 +476,6 @@ tablet_evcode_to_tool(int code)
 	case BTN_TOOL_BRUSH:	type = LIBINPUT_TABLET_TOOL_TYPE_BRUSH;	break;
 	case BTN_TOOL_PENCIL:	type = LIBINPUT_TABLET_TOOL_TYPE_PENCIL;	break;
 	case BTN_TOOL_AIRBRUSH:	type = LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH;	break;
-	case BTN_TOOL_FINGER:	type = LIBINPUT_TABLET_TOOL_TYPE_FINGER;	break;
 	case BTN_TOOL_MOUSE:	type = LIBINPUT_TABLET_TOOL_TYPE_MOUSE;	break;
 	case BTN_TOOL_LENS:	type = LIBINPUT_TABLET_TOOL_TYPE_LENS;		break;
 	default:
@@ -493,12 +492,15 @@ tablet_process_key(struct tablet_dispatch *tablet,
 		   uint64_t time)
 {
 	switch (e->code) {
+	case BTN_TOOL_FINGER:
+		log_bug_libinput(device->base.seat->libinput,
+				 "Invalid tool 'finger' on tablet interface\n");
+		break;
 	case BTN_TOOL_PEN:
 	case BTN_TOOL_RUBBER:
 	case BTN_TOOL_BRUSH:
 	case BTN_TOOL_PENCIL:
 	case BTN_TOOL_AIRBRUSH:
-	case BTN_TOOL_FINGER:
 	case BTN_TOOL_MOUSE:
 	case BTN_TOOL_LENS:
 		tablet_update_tool(tablet,

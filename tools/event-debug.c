@@ -478,9 +478,6 @@ print_proximity_event(struct libinput_event *ev)
 	case LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH:
 		tool_str = "airbrush";
 		break;
-	case LIBINPUT_TABLET_TOOL_TYPE_FINGER:
-		tool_str = "finger";
-		break;
 	case LIBINPUT_TABLET_TOOL_TYPE_MOUSE:
 		tool_str = "mouse";
 		break;
