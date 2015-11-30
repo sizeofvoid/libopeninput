@@ -410,8 +410,12 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 		} else {
 			enum libinput_tablet_tool_tip_state tip_state;
 
-			tip_state = tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ?
-				LIBINPUT_TABLET_TOOL_TIP_DOWN : LIBINPUT_TABLET_TOOL_TIP_UP;
+			if (tablet_has_status(tablet,
+					      TABLET_TOOL_IN_CONTACT))
+				tip_state = LIBINPUT_TABLET_TOOL_TIP_DOWN;
+			else
+				tip_state = LIBINPUT_TABLET_TOOL_TIP_UP;
+
 			tablet_notify_axis(base,
 					   time,
 					   tool,
