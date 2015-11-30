@@ -399,14 +399,15 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	if (axis_update_needed &&
 	    !tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY) &&
 	    !tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
-		if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY))
+		if (tablet_has_status(tablet,
+				      TABLET_TOOL_ENTERING_PROXIMITY)) {
 			tablet_notify_proximity(&device->base,
 						time,
 						tool,
 						LIBINPUT_TABLET_TOOL_PROXIMITY_IN,
 						tablet->changed_axes,
 						axes);
-		else {
+		} else {
 			enum libinput_tablet_tool_tip_state tip_state;
 
 			tip_state = tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ?
