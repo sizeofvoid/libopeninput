@@ -853,7 +853,9 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet)
 	pressure = libevdev_get_abs_info(tablet->device->evdev, ABS_PRESSURE);
 
 	/* Keep distance and pressure mutually exclusive */
-	if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE) &&
+	if (distance &&
+	    (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE) ||
+	     bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE)) &&
 	    distance->value > distance->minimum &&
 	    pressure->value > pressure->minimum) {
 		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
