@@ -2305,6 +2305,65 @@ START_TEST(tablet_time_usec)
 }
 END_TEST
 
+START_TEST(tablet_pressure_distance_exclusive)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 20 },
+		{ -1, -1 },
+	};
+	double pressure, distance;
+
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_drain_events(li);
+
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+
+	litest_wait_for_event_of_type(li,
+				      LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+				      -1);
+	event = libinput_get_event(li);
+	tev = libinput_event_get_tablet_tool_event(event);
+
+	pressure = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+	distance = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
+
+	ck_assert_double_eq(pressure, 0.0);
+	ck_assert_double_ne(distance, 0.0);
+
+	libinput_event_destroy(event);
+
+	axes[0].value = 15;
+	axes[1].value = 25;
+	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+	litest_tablet_motion(dev, 30, 30, axes);
+	libinput_dispatch(li);
+
+	litest_wait_for_event_of_type(li,
+				      LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+				      -1);
+	event = libinput_get_event(li);
+	tev = libinput_event_get_tablet_tool_event(event);
+
+	pressure = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+	distance = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
+
+	ck_assert_double_eq(distance, 0.0);
+	ck_assert_double_ne(pressure, 0.0);
+
+	libinput_event_destroy(event);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -2348,4 +2407,5 @@ litest_setup_tests(void)
 	litest_add("tablet:artpen", artpen_rotation, LITEST_TABLET, LITEST_ANY);
 
 	litest_add("tablet:time", tablet_time_usec, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:pressure", tablet_pressure_distance_exclusive, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 }
