@@ -846,11 +846,16 @@ tablet_notify_buttons(struct tablet_dispatch *tablet,
 static void
 sanitize_tablet_axes(struct tablet_dispatch *tablet)
 {
+	bool tool_in_contact;
 	const struct input_absinfo *distance,
 	                           *pressure;
 
 	distance = libevdev_get_abs_info(tablet->device->evdev, ABS_DISTANCE);
 	pressure = libevdev_get_abs_info(tablet->device->evdev, ABS_PRESSURE);
+
+	tool_in_contact = (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ||
+			   tablet_has_status(tablet,
+					     TABLET_TOOL_ENTERING_CONTACT));
 
 	/* Keep distance and pressure mutually exclusive */
 	if (distance &&
@@ -858,11 +863,18 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet)
 	     bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE)) &&
 	    distance->value > distance->minimum &&
 	    pressure->value > pressure->minimum) {
-		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
-		tablet->axes[LIBINPUT_TABLET_TOOL_AXIS_DISTANCE] = 0;
+		if (tool_in_contact) {
+			clear_bit(tablet->changed_axes,
+				  LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
+			tablet->axes[LIBINPUT_TABLET_TOOL_AXIS_DISTANCE] =
+			0;
+		} else {
+			clear_bit(tablet->changed_axes,
+				  LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+			tablet->axes[LIBINPUT_TABLET_TOOL_AXIS_PRESSURE] = 0;
+		}
 	} else if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE) &&
-		   (!tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) &&
-		    !tablet_has_status(tablet, TABLET_TOOL_ENTERING_CONTACT))) {
+		   !tool_in_contact) {
 		/* Make sure that the last axis value sent to the caller is a 0 */
 		if (tablet->axes[LIBINPUT_TABLET_TOOL_AXIS_PRESSURE] == 0)
 			clear_bit(tablet->changed_axes,
