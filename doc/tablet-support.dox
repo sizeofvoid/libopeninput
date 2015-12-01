@@ -92,4 +92,33 @@ if (value < min) {
 }
 @endcode
 
+@section tablet-pressure-offset Pressure offset on worn-out tools
+
+When a tool is used for an extended period it can wear down physically. A
+worn-down tool may never return a zero pressure value. Even when hovering
+above the surface, the pressure value returned by the tool is nonzero,
+creating a fake surface touch and making interaction with the tablet less
+predictable.
+
+libinput automatically detects pressure offsets and rescales the remaining
+pressure range into the available range, making pressure-offsets transparent
+to the caller. A tool with a pressure offset will thus send a 0 pressure
+value for the detected offset and nonzero pressure values for values higher
+than that offset.
+
+Some limitations apply to avoid misdetection of pressure offsets,
+specifically:
+- pressure offset is only detected on proximity in, and if a device is
+  capable of detection distances,
+- pressure offset is only detected if the distance between the tool and the
+  tablet is high enough,
+- pressure offset is only used if it is 20% or less of the pressure range
+  available to the tool. A pressure offset higher than 20% indicates either
+  a misdetection or a tool that should be replaced, and
+- if a pressure value less than the current pressure offset is seen, the
+  offset resets to that value.
+
+Pressure offsets are not detected on @ref LIBINPUT_TABLET_TOOL_TYPE_MOUSE
+and @ref LIBINPUT_TABLET_TOOL_TYPE_LENS tools.
+
 */

@@ -2313,7 +2313,7 @@ START_TEST(tablet_pressure_distance_exclusive)
 	struct libinput_event_tablet_tool *tev;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
-		{ ABS_PRESSURE, 20 },
+		{ ABS_PRESSURE, 20 }, /* see the litest device */
 		{ -1, -1 },
 	};
 	double pressure, distance;
@@ -2548,6 +2548,310 @@ START_TEST(tablet_calibration_set_matrix)
 }
 END_TEST
 
+START_TEST(tablet_pressure_offset)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 70 },
+		{ ABS_PRESSURE, 20 },
+		{ -1, -1 },
+	};
+	double pressure;
+
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_drain_events(li);
+
+	axes[0].value = 0;
+	axes[1].value = 21;
+	litest_push_event_frame(dev);
+	litest_tablet_motion(dev, 70, 70, axes);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+	litest_pop_event_frame(dev);
+	libinput_dispatch(li);
+	litest_drain_events(li);
+
+	axes[1].value = 20;
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	pressure = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+	ck_assert_double_eq(pressure, 0.0);
+
+	libinput_event_destroy(event);
+	litest_drain_events(li);
+
+	axes[1].value = 21;
+	litest_tablet_motion(dev, 70, 70, axes);
+
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+	pressure = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+
+	/* can't use the double_eq here, the pressure value is too tiny */
+	ck_assert(pressure > 0.0);
+	ck_assert(pressure < 1.0);
+	libinput_event_destroy(event);
+}
+END_TEST
+
+START_TEST(tablet_pressure_offset_decrease)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 70 },
+		{ ABS_PRESSURE, 20 },
+		{ -1, -1 },
+	};
+	double pressure;
+
+	/* offset 20 on prox in */
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_drain_events(li);
+
+	/* a reduced pressure value must reduce the offset */
+	axes[0].value = 0;
+	axes[1].value = 10;
+	litest_push_event_frame(dev);
+	litest_tablet_motion(dev, 70, 70, axes);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+	litest_pop_event_frame(dev);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	pressure = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+	ck_assert_double_eq(pressure, 0.0);
+
+	libinput_event_destroy(event);
+	litest_drain_events(li);
+
+	axes[1].value = 11;
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+	pressure = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+
+	/* can't use the double_eq here, the pressure value is too tiny */
+	ck_assert(pressure > 0.0);
+	ck_assert(pressure < 1.0);
+	libinput_event_destroy(event);
+}
+END_TEST
+
+START_TEST(tablet_pressure_offset_increase)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 70 },
+		{ ABS_PRESSURE, 20 },
+		{ -1, -1 },
+	};
+	double pressure;
+
+	/* offset 20 on first prox in */
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(li);
+
+	/* offset 30 on second prox in - must not change the offset */
+	axes[1].value = 30;
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_drain_events(li);
+
+	axes[0].value = 0;
+	axes[1].value = 31;
+	litest_push_event_frame(dev);
+	litest_tablet_motion(dev, 70, 70, axes);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+	litest_pop_event_frame(dev);
+	libinput_dispatch(li);
+	litest_drain_events(li);
+
+	axes[1].value = 30;
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	pressure = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+	/* can't use the double_eq here, the pressure value is too tiny */
+	ck_assert(pressure > 0.0);
+	ck_assert(pressure < 1.0);
+	libinput_event_destroy(event);
+
+	litest_drain_events(li);
+
+	axes[1].value = 20;
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+	pressure = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+
+	ck_assert_double_eq(pressure, 0.0);
+	libinput_event_destroy(event);
+}
+END_TEST
+
+START_TEST(tablet_pressure_offset_exceed_threshold)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 70 },
+		{ ABS_PRESSURE, 30 },
+		{ -1, -1 },
+	};
+	double pressure;
+
+	litest_drain_events(li);
+
+	litest_disable_log_handler(li);
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	pressure = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+	ck_assert_double_eq(pressure, 0.0);
+	libinput_event_destroy(event);
+	litest_restore_log_handler(li);
+
+	axes[0].value = 0;
+	axes[1].value = 31;
+	litest_push_event_frame(dev);
+	litest_tablet_motion(dev, 70, 70, axes);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+	litest_pop_event_frame(dev);
+	libinput_dispatch(li);
+	litest_drain_events(li);
+
+	axes[1].value = 30;
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	pressure = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+	ck_assert_double_gt(pressure, 0.0);
+
+	libinput_event_destroy(event);
+}
+END_TEST
+
+START_TEST(tablet_pressure_offset_none_for_zero_distance)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 0 },
+		{ ABS_PRESSURE, 20 },
+		{ -1, -1 },
+	};
+	double pressure;
+
+	litest_drain_events(li);
+
+	/* we're going straight to touch on proximity, make sure we don't
+	 * offset the pressure here */
+	litest_push_event_frame(dev);
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+	litest_pop_event_frame(dev);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	pressure = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+	ck_assert_double_gt(pressure, 0.0);
+
+	libinput_event_destroy(event);
+}
+END_TEST
+
+START_TEST(tablet_pressure_offset_none_for_small_distance)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 20 },
+		{ ABS_PRESSURE, 20 },
+		{ -1, -1 },
+	};
+	double pressure;
+
+	/* stylus too close to the tablet on the proximity in, ignore any
+	 * pressure offset */
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_drain_events(li);
+	libinput_dispatch(li);
+
+	axes[0].value = 0;
+	axes[1].value = 21;
+	litest_push_event_frame(dev);
+	litest_tablet_motion(dev, 70, 70, axes);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+	litest_pop_event_frame(dev);
+	litest_drain_events(li);
+
+	axes[1].value = 20;
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+
+	litest_wait_for_event_of_type(li,
+				      LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+				      -1);
+	event = libinput_get_event(li);
+	tev = libinput_event_get_tablet_tool_event(event);
+	pressure = libinput_event_tablet_tool_get_axis_value(tev,
+							     LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+	ck_assert_double_gt(pressure, 0.0);
+
+	libinput_event_destroy(event);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -2596,4 +2900,11 @@ litest_setup_tests(void)
 	litest_add("tablet:calibration", tablet_calibration_has_matrix, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:calibration", tablet_calibration_set_matrix, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:calibration", tablet_calibration_set_matrix_delta, LITEST_TABLET, LITEST_ANY);
+
+	litest_add_for_device("tablet:pressure", tablet_pressure_offset, LITEST_WACOM_INTUOS);
+	litest_add_for_device("tablet:pressure", tablet_pressure_offset_decrease, LITEST_WACOM_INTUOS);
+	litest_add_for_device("tablet:pressure", tablet_pressure_offset_increase, LITEST_WACOM_INTUOS);
+	litest_add_for_device("tablet:pressure", tablet_pressure_offset_exceed_threshold, LITEST_WACOM_INTUOS);
+	litest_add_for_device("tablet:pressure", tablet_pressure_offset_none_for_zero_distance, LITEST_WACOM_INTUOS);
+	litest_add_for_device("tablet:pressure", tablet_pressure_offset_none_for_small_distance, LITEST_WACOM_INTUOS);
 }

@@ -259,6 +259,9 @@ struct libinput_tablet_tool {
 	unsigned char buttons[NCHARS(KEY_MAX) + 1];
 	int refcount;
 	void *user_data;
+
+	int pressure_offset;
+	bool has_pressure_offset;
 };
 
 struct libinput_event {

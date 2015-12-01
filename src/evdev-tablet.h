@@ -178,4 +178,25 @@ tablet_tool_to_evcode(enum libinput_tablet_tool_type type)
 
 	return code;
 }
+
+static inline const char *
+tablet_tool_type_to_string(enum libinput_tablet_tool_type type)
+{
+	const char *str;
+
+	switch (type) {
+	case LIBINPUT_TABLET_TOOL_TYPE_PEN:	  str = "pen";		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_ERASER:	  str = "eraser";	break;
+	case LIBINPUT_TABLET_TOOL_TYPE_BRUSH:	  str = "brush";	break;
+	case LIBINPUT_TABLET_TOOL_TYPE_PENCIL:	  str = "pencil";	break;
+	case LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH:  str = "airbrush";	break;
+	case LIBINPUT_TABLET_TOOL_TYPE_MOUSE:	  str = "mouse";	break;
+	case LIBINPUT_TABLET_TOOL_TYPE_LENS:	  str = "lens";		break;
+	default:
+		abort();
+	}
+
+	return str;
+}
+
 #endif

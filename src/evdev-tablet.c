@@ -21,6 +21,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "config.h"
+#include "libinput-version.h"
 #include "evdev-tablet.h"
 
 #include <assert.h>
@@ -202,10 +203,22 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 }
 
 static inline double
-normalize_pressure_dist_slider(const struct input_absinfo *absinfo)
+normalize_dist_slider(const struct input_absinfo *absinfo)
 {
 	double range = absinfo->maximum - absinfo->minimum;
 	double value = (absinfo->value - absinfo->minimum) / range;
+
+	return value;
+}
+
+static inline double
+normalize_pressure(const struct input_absinfo *absinfo,
+		   struct libinput_tablet_tool *tool)
+{
+	double range = absinfo->maximum - absinfo->minimum;
+	int offset = tool->has_pressure_offset ?
+			tool->pressure_offset : 0;
+	double value = (absinfo->value - offset - absinfo->minimum) / range;
 
 	return value;
 }
@@ -398,10 +411,12 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 						axis_to_evcode(a));
 
 		switch (a) {
-		case LIBINPUT_TABLET_TOOL_AXIS_DISTANCE:
 		case LIBINPUT_TABLET_TOOL_AXIS_PRESSURE:
+			tablet->axes[a] = normalize_pressure(absinfo, tool);
+			break;
+		case LIBINPUT_TABLET_TOOL_AXIS_DISTANCE:
 		case LIBINPUT_TABLET_TOOL_AXIS_SLIDER:
-			tablet->axes[a] = normalize_pressure_dist_slider(absinfo);
+			tablet->axes[a] = normalize_dist_slider(absinfo);
 			break;
 		case LIBINPUT_TABLET_TOOL_AXIS_TILT_X:
 		case LIBINPUT_TABLET_TOOL_AXIS_TILT_Y:
@@ -809,6 +824,8 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 			.refcount = 1,
 		};
 
+		tool->pressure_offset = 0;
+		tool->has_pressure_offset = false;
 		tool_set_bits(tablet, tool);
 
 		list_insert(tool_list, &tool->link);
@@ -922,6 +939,67 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet)
 		set_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
 }
 
+static inline int
+axis_range_percentage(const struct input_absinfo *a, int percent)
+{
+	return (a->maximum - a->minimum) * percent/100 + a->minimum;
+}
+
+static void
+detect_pressure_offset(struct tablet_dispatch *tablet,
+		       struct evdev_device *device,
+		       struct libinput_tablet_tool *tool)
+{
+	const struct input_absinfo *pressure, *distance;
+	int offset;
+
+	if (!bit_is_set(tablet->changed_axes,
+			LIBINPUT_TABLET_TOOL_AXIS_PRESSURE))
+		return;
+
+	pressure = libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
+	distance = libevdev_get_abs_info(device->evdev, ABS_DISTANCE);
+
+	if (!pressure || !distance)
+		return;
+
+	offset = pressure->value - pressure->minimum;
+
+	if (tool->has_pressure_offset) {
+		if (offset < tool->pressure_offset)
+			tool->pressure_offset = offset;
+		return;
+	}
+
+	/* we only set a pressure offset on proximity in */
+	if (!tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY))
+		return;
+
+	/* If we're closer than 50% of the distance axis, skip pressure
+	 * offset detection, too likely to be wrong */
+	if (distance->value < axis_range_percentage(distance, 50))
+		return;
+
+	if (offset > axis_range_percentage(pressure, 20)) {
+		log_error(device->base.seat->libinput,
+			 "Ignoring pressure offset greater than 20%% detected on tool %s (serial %#x). "
+			 "See http://wayland.freedesktop.org/libinput/doc/%s/tablet-support.html\n",
+			 tablet_tool_type_to_string(tool->type),
+			 tool->serial,
+			 LIBINPUT_VERSION);
+		return;
+	}
+
+	log_info(device->base.seat->libinput,
+		 "Pressure offset detected on tool %s (serial %#x).  "
+		 "See http://wayland.freedesktop.org/libinput/doc/%s/tablet-support.html\n",
+		 tablet_tool_type_to_string(tool->type),
+		 tool->serial,
+		 LIBINPUT_VERSION);
+	tool->pressure_offset = offset;
+	tool->has_pressure_offset = true;
+}
+
 static void
 tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
@@ -946,6 +1024,7 @@ tablet_flush(struct tablet_dispatch *tablet,
 			tablet_set_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
 	} else if (tablet_has_status(tablet, TABLET_AXES_UPDATED) ||
 		   tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
+		detect_pressure_offset(tablet, device, tool);
 		sanitize_tablet_axes(tablet);
 		tablet_check_notify_axes(tablet, device, time, tool);
 
