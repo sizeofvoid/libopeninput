@@ -1178,7 +1178,7 @@ evdev_init_button_scroll(struct evdev_device *device,
 	return 0;
 }
 
-static void
+void
 evdev_init_calibration(struct evdev_device *device,
 		       struct evdev_dispatch *dispatch)
 {

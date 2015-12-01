@@ -2364,6 +2364,172 @@ START_TEST(tablet_pressure_distance_exclusive)
 }
 END_TEST
 
+START_TEST(tablet_calibration_has_matrix)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *d = dev->libinput_device;
+	enum libinput_config_status status;
+	int rc;
+	float calibration[6] = {1, 0, 0, 0, 1, 0};
+	int has_calibration;
+
+	has_calibration = libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
+
+	rc = libinput_device_config_calibration_has_matrix(d);
+	ck_assert_int_eq(rc, has_calibration);
+	rc = libinput_device_config_calibration_get_matrix(d, calibration);
+	ck_assert_int_eq(rc, 0);
+	rc = libinput_device_config_calibration_get_default_matrix(d,
+								   calibration);
+	ck_assert_int_eq(rc, 0);
+
+	status = libinput_device_config_calibration_set_matrix(d,
+							       calibration);
+	if (has_calibration)
+		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	else
+		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+}
+END_TEST
+
+START_TEST(tablet_calibration_set_matrix_delta)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_device *d = dev->libinput_device;
+	enum libinput_config_status status;
+	float calibration[6] = {0.5, 0, 0, 0, 0.5, 0};
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tablet_event;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ -1, -1 }
+	};
+	int has_calibration;
+	double dx, dy, mdx, mdy;
+
+	has_calibration = libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
+	if (!has_calibration)
+		return;
+
+	litest_tablet_proximity_in(dev, 100, 100, axes);
+	litest_drain_events(li);
+
+	litest_tablet_motion(dev, 80, 80, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+	dx = libinput_event_tablet_tool_get_axis_delta(tablet_event,
+					       LIBINPUT_TABLET_TOOL_AXIS_X);
+	dy = libinput_event_tablet_tool_get_axis_delta(tablet_event,
+					       LIBINPUT_TABLET_TOOL_AXIS_Y);
+	libinput_event_destroy(event);
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(li);
+
+	status = libinput_device_config_calibration_set_matrix(d,
+							       calibration);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_tablet_proximity_in(dev, 100, 100, axes);
+	litest_drain_events(li);
+
+	litest_tablet_motion(dev, 80, 80, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+	mdx = libinput_event_tablet_tool_get_axis_delta(tablet_event,
+					       LIBINPUT_TABLET_TOOL_AXIS_X);
+	mdy = libinput_event_tablet_tool_get_axis_delta(tablet_event,
+					       LIBINPUT_TABLET_TOOL_AXIS_Y);
+	libinput_event_destroy(event);
+	litest_drain_events(li);
+
+	ck_assert_double_gt(dx, mdx * 2 - 1);
+	ck_assert_double_lt(dx, mdx * 2 + 1);
+	ck_assert_double_gt(dy, mdy * 2 - 1);
+	ck_assert_double_lt(dy, mdy * 2 + 1);
+}
+END_TEST
+
+START_TEST(tablet_calibration_set_matrix)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_device *d = dev->libinput_device;
+	enum libinput_config_status status;
+	float calibration[6] = {0.5, 0, 0, 0, 1, 0};
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tablet_event;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ -1, -1 }
+	};
+	int has_calibration;
+	double x, y;
+
+	has_calibration = libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
+	if (!has_calibration)
+		return;
+
+	litest_drain_events(li);
+
+	status = libinput_device_config_calibration_set_matrix(d,
+							       calibration);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_tablet_proximity_in(dev, 100, 100, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	x = libinput_event_tablet_tool_get_x_transformed(tablet_event, 100);
+	y = libinput_event_tablet_tool_get_y_transformed(tablet_event, 100);
+	libinput_event_destroy(event);
+
+	ck_assert_double_gt(x, 49.0);
+	ck_assert_double_lt(x, 51.0);
+	ck_assert_double_gt(y, 99.0);
+	ck_assert_double_lt(y, 100.0);
+
+	litest_tablet_proximity_out(dev);
+	libinput_dispatch(li);
+	litest_tablet_proximity_in(dev, 50, 50, axes);
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(li);
+
+	calibration[0] = 1;
+	calibration[4] = 0.5;
+	status = libinput_device_config_calibration_set_matrix(d,
+							       calibration);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_tablet_proximity_in(dev, 100, 100, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	x = libinput_event_tablet_tool_get_x_transformed(tablet_event, 100);
+	y = libinput_event_tablet_tool_get_y_transformed(tablet_event, 100);
+	libinput_event_destroy(event);
+
+	ck_assert_double_gt(x, 99.0);
+	ck_assert_double_lt(x, 100.0);
+	ck_assert_double_gt(y, 49.0);
+	ck_assert_double_lt(y, 51.0);
+
+	litest_tablet_proximity_out(dev);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -2408,4 +2574,8 @@ litest_setup_tests(void)
 
 	litest_add("tablet:time", tablet_time_usec, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:pressure", tablet_pressure_distance_exclusive, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
+
+	litest_add("tablet:calibration", tablet_calibration_has_matrix, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:calibration", tablet_calibration_set_matrix, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:calibration", tablet_calibration_set_matrix_delta, LITEST_TABLET, LITEST_ANY);
 }

@@ -290,6 +290,10 @@ void
 evdev_transform_absolute(struct evdev_device *device,
 			 struct device_coords *point);
 
+void
+evdev_init_calibration(struct evdev_device *device,
+		       struct evdev_dispatch *dispatch);
+
 int
 evdev_device_init_pointer_acceleration(struct evdev_device *device,
 				       struct motion_filter *filter);

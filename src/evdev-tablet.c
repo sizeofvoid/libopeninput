@@ -326,10 +326,47 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	double deltas[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1] = {0};
 	double deltas_discrete[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1] = {0};
 	double oldval;
+	struct device_coords point, old_point;
+	const struct input_absinfo *absinfo;
 
-	for (a = LIBINPUT_TABLET_TOOL_AXIS_X; a <= LIBINPUT_TABLET_TOOL_AXIS_MAX; a++) {
-		const struct input_absinfo *absinfo;
+	/* x/y are special for left-handed and calibration */
+	a = LIBINPUT_TABLET_TOOL_AXIS_X;
+	old_point.x = tablet->axes[a];
+	if (bit_is_set(tablet->changed_axes, a)) {
+		absinfo = libevdev_get_abs_info(device->evdev,
+						axis_to_evcode(a));
 
+		axis_update_needed = true;
+		if (device->left_handed.enabled)
+			tablet->axes[a] = invert_axis(absinfo);
+		else
+			tablet->axes[a] = absinfo->value;
+	}
+	point.x = tablet->axes[a];
+
+	a = LIBINPUT_TABLET_TOOL_AXIS_Y;
+	old_point.y = tablet->axes[a];
+	if (bit_is_set(tablet->changed_axes, a)) {
+		absinfo = libevdev_get_abs_info(device->evdev,
+						axis_to_evcode(a));
+		axis_update_needed = true;
+
+		if (device->left_handed.enabled)
+			tablet->axes[a] = invert_axis(absinfo);
+		else
+			tablet->axes[a] = absinfo->value;
+	}
+	point.y = tablet->axes[a];
+
+	evdev_transform_absolute(device, &point);
+	evdev_transform_absolute(device, &old_point);
+
+	axes[LIBINPUT_TABLET_TOOL_AXIS_X] = point.x;
+	axes[LIBINPUT_TABLET_TOOL_AXIS_Y] = point.y;
+	deltas[LIBINPUT_TABLET_TOOL_AXIS_X] = point.x - old_point.x;
+	deltas[LIBINPUT_TABLET_TOOL_AXIS_Y] = point.y - old_point.y;
+
+	for (a = LIBINPUT_TABLET_TOOL_AXIS_DISTANCE; a <= LIBINPUT_TABLET_TOOL_AXIS_MAX; a++) {
 		if (!bit_is_set(tablet->changed_axes, a)) {
 			axes[a] = tablet->axes[a];
 			continue;
@@ -1088,6 +1125,14 @@ static struct evdev_dispatch_interface tablet_interface = {
 	tablet_check_initial_proximity,
 };
 
+static void
+tablet_init_calibration(struct tablet_dispatch *tablet,
+			struct evdev_device *device)
+{
+	if (libevdev_has_property(device->evdev, INPUT_PROP_DIRECT))
+		evdev_init_calibration(device, &tablet->base);
+}
+
 static int
 tablet_init(struct tablet_dispatch *tablet,
 	    struct evdev_device *device)
@@ -1099,6 +1144,8 @@ tablet_init(struct tablet_dispatch *tablet,
 	tablet->status = TABLET_NONE;
 	tablet->current_tool_type = LIBINPUT_TOOL_NONE;
 	list_init(&tablet->tool_list);
+
+	tablet_init_calibration(tablet, device);
 
 	for (axis = LIBINPUT_TABLET_TOOL_AXIS_X;
 	     axis <= LIBINPUT_TABLET_TOOL_AXIS_MAX;
