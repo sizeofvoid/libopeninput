@@ -1750,8 +1750,8 @@ int
 litest_scale(const struct litest_device *d, unsigned int axis, double val)
 {
 	int min, max;
-	litest_assert_int_ge((int)val, 0);
-	litest_assert_int_le((int)val, 100);
+	litest_assert_double_ge(val, 0.0);
+	litest_assert_double_le(val, 100.0);
 	litest_assert_int_le(axis, (unsigned int)ABS_Y);
 
 	min = d->interface->min[axis];
