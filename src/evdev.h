@@ -286,6 +286,10 @@ struct evdev_device *
 evdev_device_create(struct libinput_seat *seat,
 		    struct udev_device *device);
 
+void
+evdev_transform_absolute(struct evdev_device *device,
+			 struct device_coords *point);
+
 int
 evdev_device_init_pointer_acceleration(struct evdev_device *device,
 				       struct motion_filter *filter);

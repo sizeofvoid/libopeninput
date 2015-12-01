@@ -212,9 +212,9 @@ evdev_device_led_update(struct evdev_device *device, enum libinput_led leds)
 	(void)i; /* no, we really don't care about the return value */
 }
 
-static void
-transform_absolute(struct evdev_device *device,
-		   struct device_coords *point)
+void
+evdev_transform_absolute(struct evdev_device *device,
+			 struct device_coords *point)
 {
 	if (!device->abs.apply_calibration)
 		return;
@@ -340,7 +340,7 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 
 		seat->slot_map |= 1 << seat_slot;
 		point = device->mt.slots[slot].point;
-		transform_absolute(device, &point);
+		evdev_transform_absolute(device, &point);
 
 		touch_notify_touch_down(base, time, slot, seat_slot,
 					&point);
@@ -355,7 +355,7 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 		if (seat_slot == -1)
 			break;
 
-		transform_absolute(device, &point);
+		evdev_transform_absolute(device, &point);
 		touch_notify_touch_motion(base, time, slot, seat_slot,
 					  &point);
 		break;
@@ -394,13 +394,13 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 		seat->slot_map |= 1 << seat_slot;
 
 		point = device->abs.point;
-		transform_absolute(device, &point);
+		evdev_transform_absolute(device, &point);
 
 		touch_notify_touch_down(base, time, -1, seat_slot, &point);
 		break;
 	case EVDEV_ABSOLUTE_MOTION:
 		point = device->abs.point;
-		transform_absolute(device, &point);
+		evdev_transform_absolute(device, &point);
 
 		if (device->seat_caps & EVDEV_DEVICE_TOUCH) {
 			seat_slot = device->abs.seat_slot;
