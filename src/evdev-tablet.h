@@ -41,6 +41,7 @@ enum tablet_status {
 	TABLET_TOOL_ENTERING_PROXIMITY = 1 << 6,
 	TABLET_TOOL_ENTERING_CONTACT = 1 << 7,
 	TABLET_TOOL_LEAVING_CONTACT = 1 << 8,
+	TABLET_TOOL_OUT_OF_RANGE = 1 << 9,
 };
 
 struct button_state {
@@ -65,6 +66,8 @@ struct tablet_dispatch {
 	enum libinput_tablet_tool_type current_tool_type;
 	uint32_t current_tool_id;
 	uint32_t current_tool_serial;
+
+	uint32_t cursor_proximity_threshold;
 };
 
 static inline enum libinput_tablet_tool_axis

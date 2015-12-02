@@ -68,6 +68,22 @@ tablet_get_released_buttons(struct tablet_dispatch *tablet,
 					~(state->stylus_buttons[i]);
 }
 
+/* Merge the previous state with the current one so all buttons look like
+ * they just got pressed in this frame */
+static inline void
+tablet_force_button_presses(struct tablet_dispatch *tablet)
+{
+	struct button_state *state = &tablet->button_state,
+			    *prev_state = &tablet->prev_button_state;
+	size_t i;
+
+	for (i = 0; i < sizeof(state->stylus_buttons); i++) {
+		state->stylus_buttons[i] = state->stylus_buttons[i] |
+						prev_state->stylus_buttons[i];
+		prev_state->stylus_buttons[i] = 0;
+	}
+}
+
 static int
 tablet_device_has_axis(struct tablet_dispatch *tablet,
 		       enum libinput_tablet_tool_axis axis)
@@ -1064,6 +1080,63 @@ tablet_mark_all_axes_changed(struct tablet_dispatch *tablet,
 }
 
 static void
+tablet_update_proximity_state(struct tablet_dispatch *tablet,
+			      struct evdev_device *device,
+			      struct libinput_tablet_tool *tool)
+{
+	const struct input_absinfo *distance;
+	int dist_max = tablet->cursor_proximity_threshold;
+	int dist;
+
+	distance = libevdev_get_abs_info(tablet->device->evdev, ABS_DISTANCE);
+	if (!distance)
+		return;
+
+	dist = distance->value;
+	if (dist == 0)
+		return;
+
+	/* Tool got into permitted range */
+	if (dist < dist_max &&
+	    (tablet_has_status(tablet, TABLET_TOOL_OUT_OF_RANGE) ||
+	     tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))) {
+		tablet_unset_status(tablet,
+				    TABLET_TOOL_OUT_OF_RANGE);
+		tablet_unset_status(tablet,
+				    TABLET_TOOL_OUT_OF_PROXIMITY);
+		tablet_set_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
+		tablet_mark_all_axes_changed(tablet, tool);
+
+		tablet_set_status(tablet, TABLET_BUTTONS_PRESSED);
+		tablet_force_button_presses(tablet);
+		return;
+	}
+
+	if (dist < dist_max)
+		return;
+
+	/* Still out of range/proximity */
+	if (tablet_has_status(tablet, TABLET_TOOL_OUT_OF_RANGE) ||
+	    tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))
+	    return;
+
+	/* Tool entered prox but is outside of permitted range */
+	if (tablet_has_status(tablet,
+			      TABLET_TOOL_ENTERING_PROXIMITY)) {
+		tablet_set_status(tablet,
+				  TABLET_TOOL_OUT_OF_RANGE);
+		tablet_unset_status(tablet,
+				    TABLET_TOOL_ENTERING_PROXIMITY);
+		return;
+	}
+
+	/* Tool was in prox and is now outside of range. Set leaving
+	 * proximity, on the next event it will be OUT_OF_PROXIMITY and thus
+	 * caught by the above conditions */
+	tablet_set_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
+}
+
+static void
 tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
 	     uint64_t time)
@@ -1074,7 +1147,12 @@ tablet_flush(struct tablet_dispatch *tablet,
 				tablet->current_tool_id,
 				tablet->current_tool_serial);
 
-	if (tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))
+	if (tool->type == LIBINPUT_TABLET_TOOL_TYPE_MOUSE ||
+	    tool->type == LIBINPUT_TABLET_TOOL_TYPE_LENS)
+		tablet_update_proximity_state(tablet, device, tool);
+
+	if (tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY) ||
+	    tablet_has_status(tablet, TABLET_TOOL_OUT_OF_RANGE))
 		return;
 
 	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
@@ -1271,6 +1349,30 @@ tablet_init_calibration(struct tablet_dispatch *tablet,
 		evdev_init_calibration(device, &tablet->base);
 }
 
+static void
+tablet_init_proximity_threshold(struct tablet_dispatch *tablet,
+				struct evdev_device *device)
+{
+	/* This rules out most of the bamboos and other devices, we're
+	 * pretty much down to
+	 */
+	if (!libevdev_has_event_code(device->evdev, EV_KEY, BTN_TOOL_MOUSE) &&
+	    !libevdev_has_event_code(device->evdev, EV_KEY, BTN_TOOL_LENS))
+		return;
+
+	/* 42 is the default proximity threshold the xf86-input-wacom driver
+	 * uses for Intuos/Cintiq models. Graphire models have a threshold
+	 * of 10 but since they haven't been manufactured in ages and the
+	 * intersection of users having a graphire, running libinput and
+	 * wanting to use the mouse/lens cursor tool is small enough to not
+	 * worry about it for now. If we need to, we can introduce a udev
+	 * property later.
+	 *
+	 * Value is in device coordinates.
+	 */
+	tablet->cursor_proximity_threshold = 42;
+}
+
 static int
 tablet_init(struct tablet_dispatch *tablet,
 	    struct evdev_device *device)
@@ -1284,6 +1386,7 @@ tablet_init(struct tablet_dispatch *tablet,
 	list_init(&tablet->tool_list);
 
 	tablet_init_calibration(tablet, device);
+	tablet_init_proximity_threshold(tablet, device);
 
 	for (axis = LIBINPUT_TABLET_TOOL_AXIS_X;
 	     axis <= LIBINPUT_TABLET_TOOL_AXIS_MAX;
