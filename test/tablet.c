@@ -623,6 +623,62 @@ START_TEST(proximity_in_out)
 }
 END_TEST
 
+START_TEST(proximity_in_button_down)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ -1, -1 }
+	};
+
+	litest_drain_events(li);
+
+	litest_push_event_frame(dev);
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_event(dev, EV_KEY, BTN_STYLUS, 1);
+	litest_pop_event_frame(dev);
+	libinput_dispatch(li);
+
+	litest_assert_tablet_proximity_event(li,
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_IN);
+	litest_assert_tablet_button_event(li,
+					  BTN_STYLUS,
+					  LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(proximity_out_button_up)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ -1, -1 }
+	};
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+
+	litest_event(dev, EV_KEY, BTN_STYLUS, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_drain_events(li);
+
+	litest_push_event_frame(dev);
+	litest_tablet_proximity_out(dev);
+	litest_event(dev, EV_KEY, BTN_STYLUS, 0);
+	litest_pop_event_frame(dev);
+	libinput_dispatch(li);
+
+	litest_assert_tablet_button_event(li,
+					  BTN_STYLUS,
+					  LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_tablet_proximity_event(li,
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_OUT);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(proximity_out_clear_buttons)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3086,6 +3142,8 @@ litest_setup_tests(void)
 	litest_add_no_device("tablet:tool_serial", tools_without_serials);
 	litest_add("tablet:proximity", proximity_out_clear_buttons, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_in_out, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:proximity", proximity_in_button_down, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:proximity", proximity_out_button_up, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_has_axes, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", bad_distance_events, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_range_enter, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
