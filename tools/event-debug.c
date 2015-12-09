@@ -313,17 +313,23 @@ print_pointer_axis_event(struct libinput_event *ev)
 {
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
 	double v = 0, h = 0;
+	const char *have_vert = "",
+		   *have_horiz = "";
 
 	if (libinput_event_pointer_has_axis(p,
-				    LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL))
+				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
 		v = libinput_event_pointer_get_axis_value(p,
 			      LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+		have_vert = "*";
+	}
 	if (libinput_event_pointer_has_axis(p,
-				    LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL))
+				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
 		h = libinput_event_pointer_get_axis_value(p,
 			      LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
+		have_horiz = "*";
+	}
 	print_event_time(libinput_event_pointer_get_time(p));
-	printf("vert %.2f horiz %.2f\n", v, h);
+	printf("vert %.2f%s horiz %.2f%s\n", v, have_vert, h, have_horiz);
 }
 
 static const char*

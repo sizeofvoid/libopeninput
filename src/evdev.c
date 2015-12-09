@@ -439,8 +439,22 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 static enum evdev_key_type
 get_key_type(uint16_t code)
 {
-	if (code == BTN_TOUCH)
+	switch (code) {
+	case BTN_TOOL_PEN:
+	case BTN_TOOL_RUBBER:
+	case BTN_TOOL_BRUSH:
+	case BTN_TOOL_PENCIL:
+	case BTN_TOOL_AIRBRUSH:
+	case BTN_TOOL_MOUSE:
+	case BTN_TOOL_LENS:
+	case BTN_TOOL_QUINTTAP:
+	case BTN_TOOL_DOUBLETAP:
+	case BTN_TOOL_TRIPLETAP:
+	case BTN_TOOL_QUADTAP:
+	case BTN_TOOL_FINGER:
+	case BTN_TOUCH:
 		return EVDEV_KEY_TYPE_NONE;
+	}
 
 	if (code >= KEY_ESC && code <= KEY_MICMUTE)
 		return EVDEV_KEY_TYPE_KEY;
@@ -2557,9 +2571,16 @@ evdev_post_scroll(struct evdev_device *device,
 
 	if (!normalized_is_zero(event)) {
 		const struct discrete_coords zero_discrete = { 0.0, 0.0 };
+		uint32_t axes = device->scroll.direction;
+
+		if (event.y == 0.0)
+			axes &= ~AS_MASK(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+		if (event.x == 0.0)
+			axes &= ~AS_MASK(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
+
 		evdev_notify_axis(device,
 				  time,
-				  device->scroll.direction,
+				  axes,
 				  source,
 				  &event,
 				  &zero_discrete);

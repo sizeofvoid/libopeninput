@@ -832,7 +832,8 @@ tp_position_fake_touches(struct tp_dispatch *tp)
 	struct tp_touch *topmost = NULL;
 	unsigned int start, i;
 
-	if (tp_fake_finger_count(tp) <= tp->num_slots)
+	if (tp_fake_finger_count(tp) <= tp->num_slots ||
+	    tp->nfingers_down == 0)
 		return;
 
 	/* We have at least one fake touch down. Find the top-most real

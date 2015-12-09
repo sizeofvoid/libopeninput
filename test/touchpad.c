@@ -144,6 +144,54 @@ START_TEST(touchpad_2fg_scroll)
 }
 END_TEST
 
+START_TEST(touchpad_2fg_scroll_diagonal)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_pointer *ptrev;
+	int i;
+
+	if (!litest_has_2fg_scroll(dev))
+		return;
+
+	litest_enable_2fg_scroll(dev);
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 45, 30);
+	litest_touch_down(dev, 1, 55, 30);
+
+	litest_touch_move_two_touches(dev, 45, 30, 55, 30, 10, 10, 10, 0);
+	libinput_dispatch(li);
+	litest_wait_for_event_of_type(li,
+				      LIBINPUT_EVENT_POINTER_AXIS,
+				      -1);
+	litest_drain_events(li);
+
+	/* get rid of any touch history still adding x deltas sideways */
+	for (i = 0; i < 5; i++)
+		litest_touch_move(dev, 0, 55, 41 + i);
+	litest_drain_events(li);
+
+	for (i = 6; i < 10; i++) {
+		litest_touch_move(dev, 0, 55, 41 + i);
+		libinput_dispatch(li);
+
+		event = libinput_get_event(li);
+		ptrev = litest_is_axis_event(event,
+				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+				LIBINPUT_POINTER_AXIS_SOURCE_FINGER);
+		ck_assert(!libinput_event_pointer_has_axis(ptrev,
+				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL));
+		libinput_event_destroy(event);
+	}
+
+	litest_touch_up(dev, 1);
+	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+}
+END_TEST
+
 START_TEST(touchpad_2fg_scroll_slow_distance)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1700,6 +1748,31 @@ START_TEST(touchpad_semi_mt_hover_2fg_1fg_down)
 		libinput_event_destroy(event);
 		libinput_dispatch(li);
 	}
+}
+END_TEST
+
+START_TEST(touchpad_semi_mt_hover_2fg_up)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_touch_down(dev, 0, 70, 50);
+	litest_touch_down(dev, 1, 50, 50);
+
+	litest_push_event_frame(dev);
+	litest_touch_move(dev, 0, 72, 50);
+	litest_touch_move(dev, 1, 52, 50);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 0);
+	litest_pop_event_frame(dev);
+
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
+	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, -1);
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 1);
+	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, -1);
+	litest_event(dev, EV_KEY, BTN_TOOL_DOUBLETAP, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	litest_drain_events(li);
 }
 END_TEST
 
@@ -3475,6 +3548,7 @@ litest_setup_tests(void)
 	litest_add("touchpad:motion", touchpad_2fg_no_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 
 	litest_add("touchpad:scroll", touchpad_2fg_scroll, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add("touchpad:scroll", touchpad_2fg_scroll_diagonal, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add("touchpad:scroll", touchpad_2fg_scroll_slow_distance, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:scroll", touchpad_2fg_scroll_return_to_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:scroll", touchpad_2fg_scroll_source, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
@@ -3514,13 +3588,14 @@ litest_setup_tests(void)
 	litest_add("touchpad:left-handed", touchpad_left_handed_clickpad_delayed, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
 
 	/* Semi-MT hover tests aren't generic, they only work on this device and
-	 * ignore the semi-mt capability (it doesn't matter for the tests */
+	 * ignore the semi-mt capability (it doesn't matter for the tests) */
 	litest_add_for_device("touchpad:semi-mt-hover", touchpad_semi_mt_hover_noevent, LITEST_SYNAPTICS_HOVER_SEMI_MT);
 	litest_add_for_device("touchpad:semi-mt-hover", touchpad_semi_mt_hover_down, LITEST_SYNAPTICS_HOVER_SEMI_MT);
 	litest_add_for_device("touchpad:semi-mt-hover", touchpad_semi_mt_hover_down_up, LITEST_SYNAPTICS_HOVER_SEMI_MT);
 	litest_add_for_device("touchpad:semi-mt-hover", touchpad_semi_mt_hover_down_hover_down, LITEST_SYNAPTICS_HOVER_SEMI_MT);
 	litest_add_for_device("touchpad:semi-mt-hover", touchpad_semi_mt_hover_2fg_noevent, LITEST_SYNAPTICS_HOVER_SEMI_MT);
 	litest_add_for_device("touchpad:semi-mt-hover", touchpad_semi_mt_hover_2fg_1fg_down, LITEST_SYNAPTICS_HOVER_SEMI_MT);
+	litest_add_for_device("touchpad:semi-mt-hover", touchpad_semi_mt_hover_2fg_up, LITEST_SYNAPTICS_HOVER_SEMI_MT);
 
 	litest_add("touchpad:hover", touchpad_hover_noevent, LITEST_TOUCHPAD|LITEST_HOVER, LITEST_ANY);
 	litest_add("touchpad:hover", touchpad_hover_down, LITEST_TOUCHPAD|LITEST_HOVER, LITEST_ANY);

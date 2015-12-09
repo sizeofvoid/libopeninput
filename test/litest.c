@@ -600,6 +600,7 @@ litest_add_tcase(const char *suite_name,
 {
 	struct litest_test_device **dev = devices;
 	struct suite *suite;
+	bool added = false;
 
 	assert(required >= LITEST_DISABLE_DEVICE);
 	assert(excluded >= LITEST_DISABLE_DEVICE);
@@ -617,6 +618,7 @@ litest_add_tcase(const char *suite_name,
 	if (required == LITEST_DISABLE_DEVICE &&
 	    excluded == LITEST_DISABLE_DEVICE) {
 		litest_add_tcase_no_device(suite, func, range);
+		added = true;
 	} else if (required != LITEST_ANY || excluded != LITEST_ANY) {
 		for (; *dev; dev++) {
 			if (filter_device &&
@@ -631,6 +633,7 @@ litest_add_tcase(const char *suite_name,
 						    func,
 						    *dev,
 						    range);
+			added = true;
 		}
 	} else {
 		for (; *dev; dev++) {
@@ -643,7 +646,13 @@ litest_add_tcase(const char *suite_name,
 						    func,
 						    *dev,
 						    range);
+			added = true;
 		}
+	}
+
+	if (!added) {
+		fprintf(stderr, "Test '%s' does not match any devices. Aborting.\n", funcname);
+		abort();
 	}
 }
 
@@ -1318,9 +1327,9 @@ litest_auto_assign_value(struct litest_device *d,
 }
 
 static void
-send_btntool(struct litest_device *d)
+send_btntool(struct litest_device *d, bool hover)
 {
-	litest_event(d, EV_KEY, BTN_TOUCH, d->ntouches_down != 0);
+	litest_event(d, EV_KEY, BTN_TOUCH, d->ntouches_down != 0 && !hover);
 	litest_event(d, EV_KEY, BTN_TOOL_FINGER, d->ntouches_down == 1);
 	litest_event(d, EV_KEY, BTN_TOOL_DOUBLETAP, d->ntouches_down == 2);
 	litest_event(d, EV_KEY, BTN_TOOL_TRIPLETAP, d->ntouches_down == 3);
@@ -1341,7 +1350,7 @@ litest_slot_start(struct litest_device *d,
 	assert(d->ntouches_down >= 0);
 	d->ntouches_down++;
 
-	send_btntool(d);
+	send_btntool(d, !touching);
 
 	if (d->interface->touch_down) {
 		d->interface->touch_down(d, slot, x, y);
@@ -1396,7 +1405,7 @@ litest_touch_up(struct litest_device *d, unsigned int slot)
 	litest_assert_int_gt(d->ntouches_down, 0);
 	d->ntouches_down--;
 
-	send_btntool(d);
+	send_btntool(d, false);
 
 	if (d->interface->touch_up) {
 		d->interface->touch_up(d, slot);
@@ -1577,8 +1586,8 @@ litest_touch_move_two_touches(struct litest_device *d,
 		if (sleep_ms) {
 			libinput_dispatch(d->libinput);
 			msleep(sleep_ms);
-			libinput_dispatch(d->libinput);
 		}
+		libinput_dispatch(d->libinput);
 	}
 	litest_touch_move(d, 0, x0 + dx, y0 + dy);
 	litest_touch_move(d, 1, x1 + dx, y1 + dy);
@@ -1634,7 +1643,7 @@ litest_hover_end(struct litest_device *d, unsigned int slot)
 	litest_assert_int_gt(d->ntouches_down, 0);
 	d->ntouches_down--;
 
-	send_btntool(d);
+	send_btntool(d, true);
 
 	if (d->interface->touch_up) {
 		d->interface->touch_up(d, slot);
