@@ -195,7 +195,7 @@ struct litest_device {
 
 struct axis_replacement {
 	int32_t evcode;
-	int32_t value;
+	double value;
 };
 
 /* A loop range, resolves to:

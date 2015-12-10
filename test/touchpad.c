@@ -2983,7 +2983,7 @@ START_TEST(touchpad_thumb_begin_no_motion)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 190 },
+		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
 	};
 
@@ -3007,7 +3007,7 @@ START_TEST(touchpad_thumb_update_no_motion)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 190 },
+		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
 	};
 
@@ -3033,7 +3033,7 @@ START_TEST(touchpad_thumb_moving)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 190 },
+		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
 	};
 
@@ -3062,7 +3062,7 @@ START_TEST(touchpad_thumb_clickfinger)
 	struct libinput_event *event;
 	struct libinput_event_pointer *ptrev;
 	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 190 },
+		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
 	};
 
@@ -3119,7 +3119,7 @@ START_TEST(touchpad_thumb_btnarea)
 	struct libinput_event *event;
 	struct libinput_event_pointer *ptrev;
 	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 190 },
+		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
 	};
 
@@ -3155,7 +3155,7 @@ START_TEST(touchpad_thumb_edgescroll)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 190 },
+		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
 	};
 
@@ -3186,7 +3186,7 @@ START_TEST(touchpad_thumb_tap_begin)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 190 },
+		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
 	};
 
@@ -3219,7 +3219,7 @@ START_TEST(touchpad_thumb_tap_touch)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 190 },
+		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
 	};
 
@@ -3252,7 +3252,7 @@ START_TEST(touchpad_thumb_tap_hold)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 190 },
+		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
 	};
 
@@ -3286,7 +3286,7 @@ START_TEST(touchpad_thumb_tap_hold_2ndfg)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 190 },
+		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
 	};
 
@@ -3337,7 +3337,7 @@ START_TEST(touchpad_thumb_tap_hold_2ndfg_tap)
 	struct libinput_event *event;
 	struct libinput_event_pointer *ptrev;
 	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 190 },
+		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
 	};
 

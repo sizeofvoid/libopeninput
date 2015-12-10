@@ -1267,7 +1267,8 @@ litest_event(struct litest_device *d, unsigned int type,
 }
 
 static bool
-axis_replacement_value(struct axis_replacement *axes,
+axis_replacement_value(struct litest_device *d,
+		       struct axis_replacement *axes,
 		       int32_t evcode,
 		       int32_t *value)
 {
@@ -1278,7 +1279,7 @@ axis_replacement_value(struct axis_replacement *axes,
 
 	while (axis->evcode != -1) {
 		if (axis->evcode == evcode) {
-			*value = axis->value;
+			*value = litest_scale(d, evcode, axis->value);
 			return true;
 		}
 		axis++;
@@ -1319,7 +1320,7 @@ litest_auto_assign_value(struct litest_device *d,
 		value = touching ? 0 : 1;
 		break;
 	default:
-		if (!axis_replacement_value(axes, ev->code, &value) &&
+		if (!axis_replacement_value(d, axes, ev->code, &value) &&
 		    d->interface->get_axis_default)
 			d->interface->get_axis_default(d, ev->code, &value);
 		break;
@@ -1518,7 +1519,7 @@ auto_assign_tablet_value(struct litest_device *d,
 		value = litest_scale(d, ABS_Y, y);
 		break;
 	default:
-		axis_replacement_value(axes, ev->code, &value);
+		axis_replacement_value(d, axes, ev->code, &value);
 		break;
 	}
 
@@ -1757,17 +1758,36 @@ litest_keyboard_key(struct litest_device *d, unsigned int key, bool is_press)
 	litest_button_click(d, key, is_press);
 }
 
+static int
+litest_scale_axis(const struct litest_device *d,
+		  unsigned int axis,
+		  double val)
+{
+	const struct input_absinfo *abs;
+
+	litest_assert_double_ge(val, 0.0);
+	litest_assert_double_le(val, 100.0);
+
+	abs = libevdev_get_abs_info(d->evdev, axis);
+	litest_assert_notnull(abs);
+
+	return (abs->maximum - abs->minimum) * val/100.0 + abs->minimum;
+}
+
 int
 litest_scale(const struct litest_device *d, unsigned int axis, double val)
 {
 	int min, max;
 	litest_assert_double_ge(val, 0.0);
 	litest_assert_double_le(val, 100.0);
-	litest_assert_int_le(axis, (unsigned int)ABS_Y);
 
-	min = d->interface->min[axis];
-	max = d->interface->max[axis];
-	return (max - min) * val/100.0 + min;
+	if (axis <= ABS_X) {
+		min = d->interface->min[axis];
+		max = d->interface->max[axis];
+		return (max - min) * val/100.0 + min;
+	} else {
+		return litest_scale_axis(d, axis, val);
+	}
 }
 
 void
