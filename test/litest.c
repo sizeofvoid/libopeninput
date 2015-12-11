@@ -1519,7 +1519,9 @@ auto_assign_tablet_value(struct litest_device *d,
 		value = litest_scale(d, ABS_Y, y);
 		break;
 	default:
-		axis_replacement_value(d, axes, ev->code, &value);
+		if (!axis_replacement_value(d, axes, ev->code, &value) &&
+		    d->interface->get_axis_default)
+			d->interface->get_axis_default(d, ev->code, &value);
 		break;
 	}
 

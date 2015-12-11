@@ -70,10 +70,31 @@ static struct input_event motion[] = {
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
+
+static int
+get_axis_default(struct litest_device *d, unsigned int evcode, int32_t *value)
+{
+	switch (evcode) {
+	case ABS_TILT_X:
+	case ABS_TILT_Y:
+		*value = 0;
+		return 0;
+	case ABS_PRESSURE:
+		*value = 100;
+		return 0;
+	case ABS_DISTANCE:
+		*value = 0;
+		return 0;
+	}
+	return 1;
+}
+
 static struct litest_device_interface interface = {
 	.tablet_proximity_in_events = proximity_in,
 	.tablet_proximity_out_events = proximity_out,
 	.tablet_motion_events = motion,
+
+	.get_axis_default = get_axis_default,
 };
 
 static struct input_absinfo absinfo[] = {
