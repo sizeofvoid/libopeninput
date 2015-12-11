@@ -63,6 +63,12 @@ struct normalized_range_coords {
 	double x, y;
 };
 
+/* A threshold with an upper and lower limit */
+struct threshold {
+	int upper;
+	int lower;
+};
+
 struct libinput_interface_backend {
 	int (*resume)(struct libinput *libinput);
 	void (*suspend)(struct libinput *libinput);
@@ -277,6 +283,8 @@ struct libinput_tablet_tool {
 	int refcount;
 	void *user_data;
 
+	/* The pressure threshold assumes a pressure_offset of 0 */
+	struct threshold pressure_threshold;
 	int pressure_offset; /* in device coordinates */
 	bool has_pressure_offset;
 };

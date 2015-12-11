@@ -35,6 +35,22 @@ Tablet tools may send button events; these are exclusively for extra buttons
 unrelated to the tip. A button event is independent of the tip and can while
 the tip is down or up.
 
+Some tablet tools' pressure detection is too sensitive, causing phantom
+touches when the user only slightly brushes the surfaces. For example, some
+tools are capable of detecting 1 gram of pressure.
+
+libinput uses a device-specific pressure threshold to determine when the tip
+is considered logically down. As a result, libinput may send a nonzero
+pressure value while the tip is logically up. Most application can and
+should ignore pressure information until they receive the event of type @ref
+LIBINPUT_EVENT_TABLET_TOOL_TIP. Applications that require extremely
+fine-grained pressure sensitivity should use the pressure data instead of
+the tip events.
+
+Note that the pressure threshold to trigger a logical tip event may be zero
+on some devices. On tools without pressure sensitivity, determining when a
+tip is down is device-specific.
+
 @section tablet-axes Special axes on tablet tools
 
 A tablet tool usually provides additional information beyond x/y positional

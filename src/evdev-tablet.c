@@ -616,10 +616,15 @@ tablet_process_key(struct tablet_dispatch *tablet,
 				   e->value);
 		break;
 	case BTN_TOUCH:
-		if (e->value)
-			tablet_set_status(tablet, TABLET_TOOL_ENTERING_CONTACT);
-		else
-			tablet_set_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
+		if (!bit_is_set(tablet->axis_caps,
+				LIBINPUT_TABLET_TOOL_AXIS_PRESSURE)) {
+			if (e->value)
+				tablet_set_status(tablet,
+						  TABLET_TOOL_ENTERING_CONTACT);
+			else
+				tablet_set_status(tablet,
+						  TABLET_TOOL_LEAVING_CONTACT);
+		}
 		break;
 	case BTN_LEFT:
 	case BTN_RIGHT:
@@ -843,6 +848,12 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 	}
 }
 
+static inline int
+axis_range_percentage(const struct input_absinfo *a, double percent)
+{
+	return (a->maximum - a->minimum) * percent/100.0 + a->minimum;
+}
+
 static struct libinput_tablet_tool *
 tablet_get_tool(struct tablet_dispatch *tablet,
 		enum libinput_tablet_tool_type type,
@@ -893,11 +904,20 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 
 		tool->pressure_offset = 0;
 		tool->has_pressure_offset = false;
+		tool->pressure_threshold.lower = 0;
+		tool->pressure_threshold.upper = 1;
 
 		pressure = libevdev_get_abs_info(tablet->device->evdev,
 						 ABS_PRESSURE);
-		if (pressure)
+		if (pressure) {
 			tool->pressure_offset = pressure->minimum;
+
+			/* 5% of the pressure range */
+			tool->pressure_threshold.upper =
+				axis_range_percentage(pressure, 5);
+			tool->pressure_threshold.lower =
+				pressure->minimum;
+		}
 
 		tool_set_bits(tablet, tool);
 
@@ -964,7 +984,8 @@ tablet_notify_buttons(struct tablet_dispatch *tablet,
 }
 
 static void
-sanitize_pressure_distance(struct tablet_dispatch *tablet)
+sanitize_pressure_distance(struct tablet_dispatch *tablet,
+			   struct libinput_tablet_tool *tool)
 {
 	bool tool_in_contact;
 	const struct input_absinfo *distance,
@@ -973,9 +994,14 @@ sanitize_pressure_distance(struct tablet_dispatch *tablet)
 	distance = libevdev_get_abs_info(tablet->device->evdev, ABS_DISTANCE);
 	pressure = libevdev_get_abs_info(tablet->device->evdev, ABS_PRESSURE);
 
-	tool_in_contact = (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ||
-			   tablet_has_status(tablet,
-					     TABLET_TOOL_ENTERING_CONTACT));
+	if (!pressure || !distance)
+		return;
+
+	if (!bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE) &&
+	    !bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE))
+		return;
+
+	tool_in_contact = (pressure->value > tool->pressure_offset);
 
 	/* Keep distance and pressure mutually exclusive */
 	if (distance &&
@@ -1016,16 +1042,11 @@ sanitize_mouse_lens_rotation(struct tablet_dispatch *tablet)
 		set_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
 }
 
-static inline int
-axis_range_percentage(const struct input_absinfo *a, int percent)
-{
-	return (a->maximum - a->minimum) * percent/100 + a->minimum;
-}
-
 static void
-sanitize_tablet_axes(struct tablet_dispatch *tablet)
+sanitize_tablet_axes(struct tablet_dispatch *tablet,
+		     struct libinput_tablet_tool *tool)
 {
-	sanitize_pressure_distance(tablet);
+	sanitize_pressure_distance(tablet, tool);
 	sanitize_mouse_lens_rotation(tablet);
 }
 
@@ -1082,6 +1103,46 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 		 LIBINPUT_VERSION);
 	tool->pressure_offset = offset;
 	tool->has_pressure_offset = true;
+}
+
+static void
+detect_tool_contact(struct tablet_dispatch *tablet,
+		    struct evdev_device *device,
+		    struct libinput_tablet_tool *tool)
+{
+	const struct input_absinfo *p;
+	int pressure;
+
+	if (!bit_is_set(tool->axis_caps, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE))
+		return;
+
+	/* if we have pressure, always use that for contact, not BTN_TOUCH */
+	if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_CONTACT))
+		log_bug_libinput(device->base.seat->libinput,
+				 "Invalid status: entering contact\n");
+	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_CONTACT) &&
+	    !tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY))
+		log_bug_libinput(device->base.seat->libinput,
+				 "Invalid status: leaving contact\n");
+
+	p = libevdev_get_abs_info(tablet->device->evdev, ABS_PRESSURE);
+	if (!p) {
+		log_bug_libinput(device->base.seat->libinput,
+				 "Missing pressure axis\n");
+		return;
+	}
+	pressure = p->value;
+
+	if (tool->has_pressure_offset)
+		pressure -= (tool->pressure_offset - p->minimum);
+
+	if (pressure <= tool->pressure_threshold.lower &&
+	    tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT)) {
+		tablet_set_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
+	} else if (pressure >= tool->pressure_threshold.upper &&
+		   !tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT)) {
+		tablet_set_status(tablet, TABLET_TOOL_ENTERING_CONTACT);
+	}
 }
 
 static void
@@ -1187,7 +1248,8 @@ tablet_flush(struct tablet_dispatch *tablet,
 				      TABLET_TOOL_ENTERING_PROXIMITY))
 			tablet_mark_all_axes_changed(tablet, tool);
 		detect_pressure_offset(tablet, device, tool);
-		sanitize_tablet_axes(tablet);
+		detect_tool_contact(tablet, device, tool);
+		sanitize_tablet_axes(tablet, tool);
 		tablet_check_notify_axes(tablet, device, time, tool);
 
 		tablet_unset_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
