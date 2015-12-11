@@ -20,6 +20,7 @@ liblitest_la_SOURCES = \
 	litest-device-bcm5974.c \
 	litest-device-elantech-touchpad.c \
 	litest-device-generic-singletouch.c \
+	litest-device-huion-pentablet.c \
 	litest-device-keyboard.c \
 	litest-device-keyboard-razer-blackwidow.c \
 	litest-device-logitech-trackball.c \
