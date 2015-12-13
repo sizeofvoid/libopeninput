@@ -2469,6 +2469,7 @@ libinput_event_tablet_tool_get_base_event(struct libinput_event_tablet_tool *eve
 			   event->base.type,
 			   NULL,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
 			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 
