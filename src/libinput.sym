@@ -185,7 +185,15 @@ LIBINPUT_1.1 {
  * keep them separate */
 LIBINPUT_TABLET_SUPPORT {
 	libinput_event_get_tablet_tool_event;
-	libinput_event_tablet_tool_axis_has_changed;
+	libinput_event_tablet_tool_x_has_changed;
+	libinput_event_tablet_tool_y_has_changed;
+	libinput_event_tablet_tool_pressure_has_changed;
+	libinput_event_tablet_tool_distance_has_changed;
+	libinput_event_tablet_tool_rotation_has_changed;
+	libinput_event_tablet_tool_tilt_x_has_changed;
+	libinput_event_tablet_tool_tilt_y_has_changed;
+	libinput_event_tablet_tool_wheel_has_changed;
+	libinput_event_tablet_tool_slider_has_changed;
 	libinput_event_tablet_tool_get_axis_delta;
 	libinput_event_tablet_tool_get_axis_delta_discrete;
 	libinput_event_tablet_tool_get_axis_value;

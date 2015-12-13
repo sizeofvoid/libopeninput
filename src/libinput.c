@@ -913,8 +913,8 @@ libinput_event_gesture_get_angle_delta(struct libinput_event_gesture *event)
 }
 
 LIBINPUT_EXPORT int
-libinput_event_tablet_tool_axis_has_changed(struct libinput_event_tablet_tool *event,
-				       enum libinput_tablet_tool_axis axis)
+libinput_event_tablet_tool_x_has_changed(
+				struct libinput_event_tablet_tool *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -923,8 +923,128 @@ libinput_event_tablet_tool_axis_has_changed(struct libinput_event_tablet_tool *e
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	return (NCHARS(axis) <= sizeof(event->changed_axes)) ?
-		bit_is_set(event->changed_axes, axis) : 0;
+	return bit_is_set(event->changed_axes,
+			  LIBINPUT_TABLET_TOOL_AXIS_X);
+}
+
+LIBINPUT_EXPORT int
+libinput_event_tablet_tool_y_has_changed(
+				struct libinput_event_tablet_tool *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return bit_is_set(event->changed_axes,
+			  LIBINPUT_TABLET_TOOL_AXIS_Y);
+}
+
+LIBINPUT_EXPORT int
+libinput_event_tablet_tool_pressure_has_changed(
+				struct libinput_event_tablet_tool *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return bit_is_set(event->changed_axes,
+			  LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+}
+
+LIBINPUT_EXPORT int
+libinput_event_tablet_tool_distance_has_changed(
+				struct libinput_event_tablet_tool *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return bit_is_set(event->changed_axes,
+			  LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
+}
+
+LIBINPUT_EXPORT int
+libinput_event_tablet_tool_tilt_x_has_changed(
+				struct libinput_event_tablet_tool *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return bit_is_set(event->changed_axes,
+			  LIBINPUT_TABLET_TOOL_AXIS_TILT_X);
+}
+
+LIBINPUT_EXPORT int
+libinput_event_tablet_tool_tilt_y_has_changed(
+				struct libinput_event_tablet_tool *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return bit_is_set(event->changed_axes,
+			  LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
+}
+
+LIBINPUT_EXPORT int
+libinput_event_tablet_tool_rotation_has_changed(
+				struct libinput_event_tablet_tool *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return bit_is_set(event->changed_axes,
+			  LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
+}
+
+LIBINPUT_EXPORT int
+libinput_event_tablet_tool_slider_has_changed(
+				struct libinput_event_tablet_tool *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return bit_is_set(event->changed_axes,
+			  LIBINPUT_TABLET_TOOL_AXIS_SLIDER);
+}
+
+LIBINPUT_EXPORT int
+libinput_event_tablet_tool_wheel_has_changed(
+				struct libinput_event_tablet_tool *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return bit_is_set(event->changed_axes,
+			  LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL);
 }
 
 LIBINPUT_EXPORT double

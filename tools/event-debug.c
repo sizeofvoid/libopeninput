@@ -332,16 +332,6 @@ print_pointer_axis_event(struct libinput_event *ev)
 	printf("vert %.2f%s horiz %.2f%s\n", v, have_vert, h, have_horiz);
 }
 
-static const char*
-tablet_axis_changed_sym(struct libinput_event_tablet_tool *t,
-			enum libinput_tablet_tool_axis axis)
-{
-	if (libinput_event_tablet_tool_axis_has_changed(t, axis))
-		return "*";
-	else
-		return "";
-}
-
 static void
 print_tablet_axes(struct libinput_event_tablet_tool *t)
 {
@@ -351,13 +341,16 @@ print_tablet_axes(struct libinput_event_tablet_tool *t)
 	double rotation, slider, wheel;
 	double delta;
 
+#define changed_sym(ev, ax) \
+	(libinput_event_tablet_tool_##ax##_has_changed(ev) ? "*" : "")
+
 	x = libinput_event_tablet_tool_get_axis_value(t, LIBINPUT_TABLET_TOOL_AXIS_X);
 	y = libinput_event_tablet_tool_get_axis_value(t, LIBINPUT_TABLET_TOOL_AXIS_Y);
 	dx = libinput_event_tablet_tool_get_axis_delta(t, LIBINPUT_TABLET_TOOL_AXIS_X);
 	dy = libinput_event_tablet_tool_get_axis_delta(t, LIBINPUT_TABLET_TOOL_AXIS_Y);
 	printf("\t%.2f%s/%.2f%s (%.2f/%.2f)",
-	       x, tablet_axis_changed_sym(t, LIBINPUT_TABLET_TOOL_AXIS_X),
-	       y, tablet_axis_changed_sym(t, LIBINPUT_TABLET_TOOL_AXIS_Y),
+	       x, changed_sym(t, x),
+	       y, changed_sym(t, y),
 	       dx, dy);
 
 	if (libinput_tablet_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_X) ||
@@ -371,10 +364,8 @@ print_tablet_axes(struct libinput_event_tablet_tool *t)
 		dy = libinput_event_tablet_tool_get_axis_delta(t,
 					 LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
 		printf("\ttilt: %.2f%s/%.2f%s (%.2f/%.2f)",
-		       x, tablet_axis_changed_sym(t,
-					  LIBINPUT_TABLET_TOOL_AXIS_TILT_X),
-		       y, tablet_axis_changed_sym(t,
-					  LIBINPUT_TABLET_TOOL_AXIS_TILT_Y),
+		       x, changed_sym(t, tilt_x),
+		       y, changed_sym(t, tilt_y),
 		       dx, dy);
 	}
 
@@ -388,17 +379,13 @@ print_tablet_axes(struct libinput_event_tablet_tool *t)
 			delta = libinput_event_tablet_tool_get_axis_delta(t,
 					LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
 			printf("\tdistance: %.2f%s (%.2f)",
-			       dist,
-			       tablet_axis_changed_sym(t,
-					       LIBINPUT_TABLET_TOOL_AXIS_DISTANCE),
+			       dist, changed_sym(t, distance),
 			       delta);
 		} else {
 			delta = libinput_event_tablet_tool_get_axis_delta(t,
 					LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
 			printf("\tpressure: %.2f%s (%.2f)",
-			       pressure,
-			       tablet_axis_changed_sym(t,
-					       LIBINPUT_TABLET_TOOL_AXIS_PRESSURE),
+			       pressure, changed_sym(t, pressure),
 			       delta);
 		}
 	}
@@ -409,9 +396,7 @@ print_tablet_axes(struct libinput_event_tablet_tool *t)
 		delta = libinput_event_tablet_tool_get_axis_delta(t,
 					LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
 		printf("\trotation: %.2f%s (%.2f)",
-		       rotation,
-		       tablet_axis_changed_sym(t,
-				       LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z),
+		       rotation, changed_sym(t, rotation),
 		       delta);
 	}
 
@@ -421,9 +406,7 @@ print_tablet_axes(struct libinput_event_tablet_tool *t)
 		delta = libinput_event_tablet_tool_get_axis_delta(t,
 					LIBINPUT_TABLET_TOOL_AXIS_SLIDER);
 		printf("\tslider: %.2f%s (%.2f)",
-		       slider,
-		       tablet_axis_changed_sym(t,
-				       LIBINPUT_TABLET_TOOL_AXIS_SLIDER),
+		       slider, changed_sym(t, slider),
 		       delta);
 	}
 
@@ -433,9 +416,7 @@ print_tablet_axes(struct libinput_event_tablet_tool *t)
 		delta = libinput_event_tablet_tool_get_axis_delta_discrete(t,
 					LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL);
 		printf("\twheel: %.2f%s (%d)",
-		       wheel,
-		       tablet_axis_changed_sym(t,
-				       LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL),
+		       wheel, changed_sym(t, wheel),
 		       (int)delta);
 	}
 }
