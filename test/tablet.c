@@ -1043,7 +1043,7 @@ START_TEST(motion_delta_partial)
 	litest_assert_double_eq(dx, 0.0);
 
 	ck_assert(!libinput_event_tablet_tool_axis_has_changed(tablet_event,
-						LIBINPUT_TABLET_TOOL_AXIS_X));
+						LIBINPUT_TABLET_TOOL_AXIS_Y));
 	dy = libinput_event_tablet_tool_get_axis_delta(tablet_event,
 						LIBINPUT_TABLET_TOOL_AXIS_Y);
 	litest_assert_double_eq(dy, 0.0);
