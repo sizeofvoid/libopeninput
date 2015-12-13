@@ -428,7 +428,7 @@ print_tablet_axes(struct libinput_event_tablet_tool *t)
 	}
 
 	if (libinput_tablet_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL)) {
-		wheel = libinput_event_tablet_tool_get_axis_value(t,
+		wheel = libinput_event_tablet_tool_get_axis_delta(t,
 					LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL);
 		delta = libinput_event_tablet_tool_get_axis_delta_discrete(t,
 					LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL);
