@@ -1047,7 +1047,7 @@ libinput_event_tablet_tool_wheel_has_changed(
 			  LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL);
 }
 
-LIBINPUT_EXPORT double
+static double
 libinput_event_tablet_tool_get_axis_value(struct libinput_event_tablet_tool *event,
 				     enum libinput_tablet_tool_axis axis)
 {
@@ -1079,6 +1079,62 @@ libinput_event_tablet_tool_get_axis_value(struct libinput_event_tablet_tool *eve
 		default:
 			return 0;
 	}
+}
+
+LIBINPUT_EXPORT double
+libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event)
+{
+	return libinput_event_tablet_tool_get_axis_value(event,
+				LIBINPUT_TABLET_TOOL_AXIS_X);
+}
+
+LIBINPUT_EXPORT double
+libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event)
+{
+	return libinput_event_tablet_tool_get_axis_value(event,
+				LIBINPUT_TABLET_TOOL_AXIS_Y);
+}
+
+LIBINPUT_EXPORT double
+libinput_event_tablet_tool_get_pressure(struct libinput_event_tablet_tool *event)
+{
+	return libinput_event_tablet_tool_get_axis_value(event,
+				LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+}
+
+LIBINPUT_EXPORT double
+libinput_event_tablet_tool_get_distance(struct libinput_event_tablet_tool *event)
+{
+	return libinput_event_tablet_tool_get_axis_value(event,
+				LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
+}
+
+LIBINPUT_EXPORT double
+libinput_event_tablet_tool_get_tilt_x(struct libinput_event_tablet_tool *event)
+{
+	return libinput_event_tablet_tool_get_axis_value(event,
+				LIBINPUT_TABLET_TOOL_AXIS_TILT_X);
+}
+
+LIBINPUT_EXPORT double
+libinput_event_tablet_tool_get_tilt_y(struct libinput_event_tablet_tool *event)
+{
+	return libinput_event_tablet_tool_get_axis_value(event,
+				LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
+}
+
+LIBINPUT_EXPORT double
+libinput_event_tablet_tool_get_rotation(struct libinput_event_tablet_tool *event)
+{
+	return libinput_event_tablet_tool_get_axis_value(event,
+				LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
+}
+
+LIBINPUT_EXPORT double
+libinput_event_tablet_tool_get_slider_position(struct libinput_event_tablet_tool *event)
+{
+	return libinput_event_tablet_tool_get_axis_value(event,
+				LIBINPUT_TABLET_TOOL_AXIS_SLIDER);
 }
 
 LIBINPUT_EXPORT double

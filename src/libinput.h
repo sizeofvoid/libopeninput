@@ -1520,47 +1520,122 @@ libinput_event_tablet_tool_wheel_has_changed(
 /**
  * @ingroup event_tablet
  *
- * Return the axis value of a given axis for a tablet. The interpretation of the
- * value is dependent on the axis:
- * - @ref LIBINPUT_TABLET_TOOL_AXIS_X and @ref LIBINPUT_TABLET_TOOL_AXIS_Y - the X and
- *   Y coordinates of the tablet tool, in mm from the top left corner of the
- *   tablet. Use libinput_event_tablet_tool_get_x_transformed() and
- *   libinput_event_tablet_tool_get_y_transformed() for transforming each
- *   respective axis value into a different coordinate space.
- * - @ref LIBINPUT_TABLET_TOOL_AXIS_DISTANCE - The distance from the tablet's
- *   sensor, normalized from 0 to 1
- * - @ref LIBINPUT_TABLET_TOOL_AXIS_PRESSURE - The current pressure being applied on
- *   the tool in use, normalized from 0 to 1
- * - @ref LIBINPUT_TABLET_TOOL_AXIS_TILT_X and @ref LIBINPUT_TABLET_TOOL_AXIS_TILT_Y -
- *   normalized value between -1 and 1 that indicates the X or Y tilt of the
- *   tool
- * - @ref LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z - The z rotation of the tool in
- *   degrees, clockwise from the tool's logical neutral position. For the
- *   @ref LIBINPUT_TABLET_TOOL_TYPE_MOUSE and @ref LIBINPUT_TABLET_TOOL_TYPE_LENS tools
- *   the logical neutral position is pointing to the current logical north
- *   of the tablet. For the @ref LIBINPUT_TABLET_TOOL_TYPE_BRUSH tool, the logical
- *   neutral position is with the buttons pointing up.
- * - @ref LIBINPUT_TABLET_TOOL_AXIS_SLIDER - A slider on the tool, normalized
- *   from 0 to 1. e.g. the wheel-like tool on the Wacom Airbrush.
- * - @ref LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL - A relative wheel on the tool,
- *   similar or equivalent to a mouse wheel. The value is always 0, use
- *   libinput_event_tablet_tool_get_axis_delta() instead.
- *
- * @note This function may be called for a specific axis even if
- * libinput_event_tablet_tool_*_has_changed() returns 0 for that axis.
- * libinput always includes all device axes in the event.
- *
- * If the event is of type @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY and the
- * event is a proximity out event, the value returned is the last known
- * value of the tool before it left proximity.
+ * Returns the X coordinate of tablet tool, in mm from the top left corner
+ * of the tablet in its current logical orientation. Use
+ * libinput_event_tablet_tool_get_x_transformed() for transforming the axis
+ * value into a different coordinate space.
  *
  * @param event The libinput tablet event
- * @param axis The axis to retrieve the value of
  * @return The current value of the the axis
  */
 double
-libinput_event_tablet_tool_get_axis_value(struct libinput_event_tablet_tool *event,
-					  enum libinput_tablet_tool_axis axis);
+libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the Y coordinate of tablet tool, in mm from the top left corner
+ * of the tablet in its current logical orientation. Use
+ * libinput_event_tablet_tool_get_y_transformed() for transforming the axis
+ * value into a different coordinate space.
+ *
+ * @param event The libinput tablet event
+ * @return The current value of the the axis
+ */
+double
+libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the current pressure being applied on the tool in use, normalized
+ * to the range [0, 1].
+ *
+ * If this axis does not exist on the device, this function returns 0.
+ *
+ * @param event The libinput tablet event
+ * @return The current value of the the axis
+ */
+double
+libinput_event_tablet_tool_get_pressure(struct libinput_event_tablet_tool *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the current distance from the tablet's sensor, normalized to the
+ * range [0, 1].
+ *
+ * If this axis does not exist on the device, this function returns 0.
+ *
+ * @param event The libinput tablet event
+ * @return The current value of the the axis
+ */
+double
+libinput_event_tablet_tool_get_distance(struct libinput_event_tablet_tool *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the current tilt along the X axis of the tablet's current logical
+ * orientation, normalized to the range [-1, 1].
+ *
+ * If this axis does not exist on the device, this function returns 0.
+ *
+ * @param event The libinput tablet event
+ * @return The current value of the the axis
+ */
+double
+libinput_event_tablet_tool_get_tilt_x(struct libinput_event_tablet_tool *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the current tilt along the Y axis of the tablet's current logical
+ * orientation, normalized to the range [-1, 1].
+ *
+ * If this axis does not exist on the device, this function returns 0.
+ *
+ * @param event The libinput tablet event
+ * @return The current value of the the axis
+ */
+double
+libinput_event_tablet_tool_get_tilt_y(struct libinput_event_tablet_tool *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the current z rotation of the tool in degrees, clockwise from the
+ * tool's logical neutral position.
+ *
+ * For tools of type @ref LIBINPUT_TABLET_TOOL_TYPE_MOUSE and @ref
+ * LIBINPUT_TABLET_TOOL_TYPE_LENS the logical neutral position is
+ * pointing to the current logical north of the tablet. For tools of type @ref
+ * LIBINPUT_TABLET_TOOL_TYPE_BRUSH, the logical neutral position is with the
+ * buttons pointing up.
+ *
+ * If this axis does not exist on the device, this function returns 0.
+ *
+ * @param event The libinput tablet event
+ * @return The current value of the the axis
+ */
+double
+libinput_event_tablet_tool_get_rotation(struct libinput_event_tablet_tool *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the current position of the slider on the tool, normalized to the
+ * range [-1, 1]. The logical zero is the neutral position of the slider, or
+ * the logical center of the axis. This axis is available on e.g. the Wacom
+ * Airbrush.
+ *
+ * If this axis does not exist on the device, this function returns 0.
+ *
+ * @param event The libinput tablet event
+ * @return The current value of the the axis
+ */
+double
+libinput_event_tablet_tool_get_slider_position(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
