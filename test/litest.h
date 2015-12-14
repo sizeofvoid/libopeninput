@@ -144,6 +144,7 @@ enum litest_device_type {
 	LITEST_ELANTECH_TOUCHPAD = -30,
 	LITEST_MOUSE_GLADIUS = -31,
 	LITEST_MOUSE_WHEEL_CLICK_ANGLE = -32,
+	LITEST_APPLE_KEYBOARD = -33,
 };
 
 enum litest_device_feature {

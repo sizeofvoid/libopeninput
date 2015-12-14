@@ -34,6 +34,9 @@ libinput:touchpad:input:b0005v05ACp*
  LIBINPUT_MODEL_APPLE_TOUCHPAD=1
  LIBINPUT_ATTR_SIZE_HINT=104x75
 
+libinput:name:*Apple Inc. Apple Internal Keyboard*:dmi:*
+ LIBINPUT_MODEL_APPLE_INTERNAL_KEYBOARD=1
+
 ##########################################
 # Elantech
 ##########################################

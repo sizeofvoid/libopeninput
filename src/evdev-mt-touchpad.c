@@ -1285,6 +1285,8 @@ tp_want_dwt(struct evdev_device *touchpad,
 {
 	unsigned int bus_tp = libevdev_get_id_bustype(touchpad->evdev),
 		     bus_kbd = libevdev_get_id_bustype(keyboard->evdev);
+	unsigned int vendor_tp = evdev_device_get_id_vendor(touchpad);
+	unsigned int vendor_kbd = evdev_device_get_id_vendor(keyboard);
 
 	if (tp_dwt_device_is_blacklisted(touchpad) ||
 	    tp_dwt_device_is_blacklisted(keyboard))
@@ -1294,6 +1296,13 @@ tp_want_dwt(struct evdev_device *touchpad,
 	   other devices */
 	if (bus_tp == BUS_I8042 && bus_kbd != bus_tp)
 		return false;
+
+	/* For Apple touchpads, always use its internal keyboard */
+	if (vendor_tp == VENDOR_ID_APPLE) {
+		return vendor_kbd == vendor_tp &&
+		       keyboard->model_flags &
+				EVDEV_MODEL_APPLE_INTERNAL_KEYBOARD;
+	}
 
 	/* everything else we don't really know, so we have to assume
 	   they go together */
