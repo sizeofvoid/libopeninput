@@ -2082,7 +2082,7 @@ START_TEST(mouse_wheel)
 		ck_assert_int_eq(val, 0);
 
 		val = libinput_event_tablet_tool_get_axis_delta_discrete(tev,
-						LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
+						LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL);
 		ck_assert_int_eq(val, 0);
 
 		libinput_event_destroy(event);
