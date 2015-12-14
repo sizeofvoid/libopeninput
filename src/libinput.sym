@@ -202,8 +202,8 @@ LIBINPUT_TABLET_SUPPORT {
 	libinput_event_tablet_tool_get_tilt_y;
 	libinput_event_tablet_tool_get_rotation;
 	libinput_event_tablet_tool_get_slider_position;
-	libinput_event_tablet_tool_get_axis_delta;
-	libinput_event_tablet_tool_get_axis_delta_discrete;
+	libinput_event_tablet_tool_get_wheel_delta;
+	libinput_event_tablet_tool_get_wheel_delta_discrete;
 	libinput_event_tablet_tool_get_base_event;
 	libinput_event_tablet_tool_get_button;
 	libinput_event_tablet_tool_get_button_state;

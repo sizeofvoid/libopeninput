@@ -1640,39 +1640,30 @@ libinput_event_tablet_tool_get_slider_position(struct libinput_event_tablet_tool
 /**
  * @ingroup event_tablet
  *
- * Return the delta for a given axis for a tablet. The interpretation of the
- * value is axis-dependent:
- * - @ref LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL - A relative wheel on the tool,
- *   similar or equivalent to a mouse wheel. The value is a delta from the
- *   device's previous position, in degrees.
- * For all other axes, see libinput_event_tablet_tool_get_axis_value() for
- * details.
+ * Return the delta for the wheel in degrees.
  *
  * @param event The libinput tablet event
- * @param axis The axis to retrieve the value of
- * @return The delta to the previous axis value
+ * @return The delta of the wheel, in degrees, compared to the last event
+ *
+ * @see libinput_event_tablet_tool_get_wheel_delta_discrete
  */
 double
-libinput_event_tablet_tool_get_axis_delta(struct libinput_event_tablet_tool *event,
-					  enum libinput_tablet_tool_axis axis);
+libinput_event_tablet_tool_get_wheel_delta(
+				   struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
  *
- * Return the delta for a given axis for a tablet in discrete steps.
- * How a value translates into a discrete step depends on the axis:
- * - @ref LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL - the returned value is the number
- * of physical mouse wheel clicks.
- * For all other axes, this function returns 0.
- *
+ * Return the delta for the wheel in discrete steps (e.g. wheel clicks).
+
  * @param event The libinput tablet event
- * @param axis The axis to retrieve the value of
- * @return The delta to the previous axis value in discrete steps
+ * @return The delta of the wheel, in discrete steps, compared to the last event
+ *
+ * @see libinput_event_tablet_tool_get_wheel_delta_discrete
  */
-double
-libinput_event_tablet_tool_get_axis_delta_discrete(
-				      struct libinput_event_tablet_tool *event,
-				      enum libinput_tablet_tool_axis axis);
+int
+libinput_event_tablet_tool_get_wheel_delta_discrete(
+				    struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet

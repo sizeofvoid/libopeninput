@@ -1138,12 +1138,8 @@ libinput_event_tablet_tool_get_slider_position(struct libinput_event_tablet_tool
 }
 
 LIBINPUT_EXPORT double
-libinput_event_tablet_tool_get_axis_delta(struct libinput_event_tablet_tool *event,
-				     enum libinput_tablet_tool_axis axis)
+libinput_event_tablet_tool_get_wheel_delta(struct libinput_event_tablet_tool *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
-
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
@@ -1151,30 +1147,12 @@ libinput_event_tablet_tool_get_axis_delta(struct libinput_event_tablet_tool *eve
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	switch(axis) {
-		case LIBINPUT_TABLET_TOOL_AXIS_X:
-			return evdev_convert_to_mm(device->abs.absinfo_x,
-						   event->deltas[axis]);
-		case LIBINPUT_TABLET_TOOL_AXIS_Y:
-			return evdev_convert_to_mm(device->abs.absinfo_y,
-						   event->deltas[axis]);
-		case LIBINPUT_TABLET_TOOL_AXIS_DISTANCE:
-		case LIBINPUT_TABLET_TOOL_AXIS_PRESSURE:
-		case LIBINPUT_TABLET_TOOL_AXIS_TILT_X:
-		case LIBINPUT_TABLET_TOOL_AXIS_TILT_Y:
-		case LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z:
-		case LIBINPUT_TABLET_TOOL_AXIS_SLIDER:
-		case LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL:
-			return event->deltas[axis];
-		default:
-			return 0;
-	}
+	return event->deltas[LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL];
 }
 
-LIBINPUT_EXPORT double
-libinput_event_tablet_tool_get_axis_delta_discrete(
-				      struct libinput_event_tablet_tool *event,
-				      enum libinput_tablet_tool_axis axis)
+LIBINPUT_EXPORT int
+libinput_event_tablet_tool_get_wheel_delta_discrete(
+				      struct libinput_event_tablet_tool *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1183,20 +1161,7 @@ libinput_event_tablet_tool_get_axis_delta_discrete(
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	switch(axis) {
-		case LIBINPUT_TABLET_TOOL_AXIS_X:
-		case LIBINPUT_TABLET_TOOL_AXIS_Y:
-		case LIBINPUT_TABLET_TOOL_AXIS_DISTANCE:
-		case LIBINPUT_TABLET_TOOL_AXIS_PRESSURE:
-		case LIBINPUT_TABLET_TOOL_AXIS_TILT_X:
-		case LIBINPUT_TABLET_TOOL_AXIS_TILT_Y:
-		case LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z:
-		case LIBINPUT_TABLET_TOOL_AXIS_SLIDER:
-		case LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL:
-			return event->deltas_discrete[axis];
-		default:
-			return 0;
-	}
+	return event->deltas_discrete[LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL];
 }
 
 LIBINPUT_EXPORT double
