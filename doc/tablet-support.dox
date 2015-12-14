@@ -121,4 +121,26 @@ specifically:
 Pressure offsets are not detected on @ref LIBINPUT_TABLET_TOOL_TYPE_MOUSE
 and @ref LIBINPUT_TABLET_TOOL_TYPE_LENS tools.
 
+@section tablet-serial-numbers Tracking unique tools
+
+Some tools provide hardware information that enables libinput to uniquely
+identify the physical device. For example, tools compatible with the Wacom
+Intuos 4, Intuos 5, Intuos Pro and Cintiq series are uniquely identifiable
+through a serial number.
+
+libinput creates a struct libinput_tablet_tool on the first proximity in of
+this tool. By default, this struct is destroyed on proximity out and
+re-initialized on the next proximity in. If a caller keeps a reference to
+the tool by using libinput_tablet_tool_ref() libinput re-uses this struct
+whenever that same physical tool comes into proximity on any tablet
+recognized by libinput. It is possible to attach tool-specific virtual state
+to the tool. For example, a graphics program such as the GIMP may assign a
+specific color to each tool, allowing the artist to use the tools like
+physical pens of different color. In multi-tablet setups it is also
+possible to track the tool across devices.
+
+If the tool does not have a unique identifier, libinput creates a single
+struct libinput_tablet_tool per tool type on each tablet the tool is used
+on.
+
 */

@@ -136,6 +136,7 @@ enum libinput_pointer_axis_source {
 
 /**
  * @ingroup device
+ * @struct libinput_tablet_tool
  *
  * Available axis types for a device. It must have the @ref
  * LIBINPUT_DEVICE_CAP_TABLET_TOOL capability.
@@ -1346,7 +1347,7 @@ libinput_event_gesture_get_angle_delta(struct libinput_event_gesture *event);
 /**
  * @defgroup event_tablet Tablet events
  *
- * Events that come from tablet devices.
+ * Events that come from tools on tablet devices.
  */
 
 /**
@@ -1497,15 +1498,15 @@ libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *
  * @ingroup event_tablet
  *
  * Returns the tool that was in use during this event.
- * By default, each tool will stay valid for as long as it is being used, and is
- * destroyed when another tool comes into proximity. However, the lifetime of
- * the tool may be extended by using libinput_tablet_tool_ref() to increment the
- * reference count of the tool. This guarantees that whenever the tool comes
- * back into proximity of the tablet, that the same structure will be used to
- * represent the tool.
+ * By default, a struct libinput_tablet_tool is created on proximity in and
+ * destroyed on proximity out. The lifetime of the tool may be extended by
+ * using libinput_tablet_tool_ref() to increment the reference count of the
+ * tool. This guarantees that the same struct will be used whenever the same
+ * physical tool comes back into proximity.
  *
- * @note On tablets where the serial number of tools is not reported, each tool
- * cannot be guaranteed to be unique.
+ * @note Physical tool tracking requires hardware support. If unavailable,
+ * libinput creates one tool per type per tablet. See @ref
+ * tablet-serial-numbers for more details.
  *
  * @param event The libinput tablet event
  * @return The new tool triggering this event
@@ -1639,13 +1640,26 @@ libinput_tablet_tool_get_tool_id(struct libinput_tablet_tool *tool);
 /**
  * @ingroup event_tablet
  *
- * Increment the ref count of tool by one
+ * Increment the reference count of the tool by one. A tool is destroyed
+ * whenever the reference count reaches 0. See libinput_tablet_tool_unref().
  *
  * @param tool The tool to increment the ref count of
  * @return The passed tool
  */
 struct libinput_tablet_tool *
 libinput_tablet_tool_ref(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Decrement the reference count of the tool by one. When the reference
+ * count of tool reaches 0, the memory allocated for tool will be freed.
+ *
+ * @param tool The tool to decrement the ref count of
+ * @return NULL if the tool was destroyed otherwise the passed tool
+ */
+struct libinput_tablet_tool *
+libinput_tablet_tool_unref(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
@@ -1678,18 +1692,6 @@ libinput_tablet_tool_has_button(struct libinput_tablet_tool *tool,
 /**
  * @ingroup event_tablet
  *
- * Decrement the ref count of tool by one. When the ref count of tool reaches 0,
- * the memory allocated for tool will be freed.
- *
- * @param tool The tool to decrement the ref count of
- * @return NULL if the tool was destroyed otherwise the passed tool
- */
-struct libinput_tablet_tool *
-libinput_tablet_tool_unref(struct libinput_tablet_tool *tool);
-
-/**
- * @ingroup event_tablet
- *
  * Return the serial number of a tool
  *
  * @note Not all tablets report a serial number along with the type of tool
@@ -1705,7 +1707,9 @@ libinput_tablet_tool_get_serial(struct libinput_tablet_tool *tool);
 /**
  * @ingroup event_tablet
  *
- * Return the user data associated with a tool object.
+ * Return the user data associated with a tool object. libinput does
+ * not manage, look at, or modify this data. The caller must ensure the
+ * data is valid.
  *
  * @param tool The libinput tool
  * @return The user data associated with the tool object
@@ -1716,7 +1720,7 @@ libinput_tablet_tool_get_user_data(struct libinput_tablet_tool *tool);
 /**
  * @ingroup event_tablet
  *
- * Set the user data associated with a tool object.
+ * Set the user data associated with a tool object, if any.
  *
  * @param tool The libinput tool
  * @param user_data The user data to associate with the tool object
