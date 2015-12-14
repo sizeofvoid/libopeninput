@@ -219,8 +219,13 @@ LIBINPUT_TABLET_SUPPORT {
 	libinput_tablet_tool_get_tool_id;
 	libinput_tablet_tool_get_type;
 	libinput_tablet_tool_get_user_data;
+	libinput_tablet_tool_has_pressure;
+	libinput_tablet_tool_has_distance;
+	libinput_tablet_tool_has_rotation;
+	libinput_tablet_tool_has_tilt;
+	libinput_tablet_tool_has_wheel;
+	libinput_tablet_tool_has_slider;
 	libinput_tablet_tool_has_button;
-	libinput_tablet_tool_has_axis;
 	libinput_tablet_tool_ref;
 	libinput_tablet_tool_set_user_data;
 	libinput_tablet_tool_unref;

@@ -722,7 +722,7 @@ START_TEST(proximity_has_axes)
 	litest_assert_double_ne(x, 0);
 	litest_assert_double_ne(y, 0);
 
-	if (libinput_tablet_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE)) {
+	if (libinput_tablet_tool_has_distance(tool)) {
 		ck_assert(libinput_event_tablet_tool_distance_has_changed(
 				tablet_event));
 
@@ -730,8 +730,7 @@ START_TEST(proximity_has_axes)
 		litest_assert_double_ne(distance, 0);
 	}
 
-	if (libinput_tablet_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_X) &&
-	    libinput_tablet_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_Y)) {
+	if (libinput_tablet_tool_has_tilt(tool)) {
 		ck_assert(libinput_event_tablet_tool_tilt_x_has_changed(
 				tablet_event));
 		ck_assert(libinput_event_tablet_tool_tilt_y_has_changed(
@@ -758,11 +757,10 @@ START_TEST(proximity_has_axes)
 
 	last_x = libinput_event_tablet_tool_get_x(tablet_event);
 	last_y = libinput_event_tablet_tool_get_y(tablet_event);
-	if (libinput_tablet_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE))
+	if (libinput_tablet_tool_has_distance(tool))
 		last_distance = libinput_event_tablet_tool_get_distance(
 					     tablet_event);
-	if (libinput_tablet_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_X) &&
-	    libinput_tablet_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_Y)) {
+	if (libinput_tablet_tool_has_tilt(tool)) {
 		last_tx = libinput_event_tablet_tool_get_tilt_x(tablet_event);
 		last_ty = libinput_event_tablet_tool_get_tilt_y(tablet_event);
 	}
@@ -786,7 +784,7 @@ START_TEST(proximity_has_axes)
 	litest_assert_double_eq(x, last_x);
 	litest_assert_double_eq(y, last_y);
 
-	if (libinput_tablet_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE)) {
+	if (libinput_tablet_tool_has_distance(tool)) {
 		ck_assert(!libinput_event_tablet_tool_distance_has_changed(
 				tablet_event));
 
@@ -795,8 +793,7 @@ START_TEST(proximity_has_axes)
 		litest_assert_double_eq(distance, last_distance);
 	}
 
-	if (libinput_tablet_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_X) &&
-	    libinput_tablet_tool_has_axis(tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_Y)) {
+	if (libinput_tablet_tool_has_tilt(tool)) {
 		ck_assert(!libinput_event_tablet_tool_tilt_x_has_changed(
 				tablet_event));
 		ck_assert(!libinput_event_tablet_tool_tilt_y_has_changed(
@@ -1651,14 +1648,9 @@ START_TEST(tool_capabilities)
 	t = libinput_event_get_tablet_tool_event(event);
 	tool = libinput_event_tablet_tool_get_tool(t);
 
-	ck_assert(libinput_tablet_tool_has_axis(tool,
-					 LIBINPUT_TABLET_TOOL_AXIS_PRESSURE));
-	ck_assert(libinput_tablet_tool_has_axis(tool,
-					 LIBINPUT_TABLET_TOOL_AXIS_DISTANCE));
-	ck_assert(!libinput_tablet_tool_has_axis(tool,
-					  LIBINPUT_TABLET_TOOL_AXIS_TILT_X));
-	ck_assert(!libinput_tablet_tool_has_axis(tool,
-					  LIBINPUT_TABLET_TOOL_AXIS_TILT_Y));
+	ck_assert(libinput_tablet_tool_has_pressure(tool));
+	ck_assert(libinput_tablet_tool_has_distance(tool));
+	ck_assert(!libinput_tablet_tool_has_tilt(tool));
 
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
@@ -1674,14 +1666,9 @@ START_TEST(tool_capabilities)
 	t = libinput_event_get_tablet_tool_event(event);
 	tool = libinput_event_tablet_tool_get_tool(t);
 
-	ck_assert(libinput_tablet_tool_has_axis(tool,
-					 LIBINPUT_TABLET_TOOL_AXIS_PRESSURE));
-	ck_assert(libinput_tablet_tool_has_axis(tool,
-					 LIBINPUT_TABLET_TOOL_AXIS_DISTANCE));
-	ck_assert(libinput_tablet_tool_has_axis(tool,
-					 LIBINPUT_TABLET_TOOL_AXIS_TILT_X));
-	ck_assert(libinput_tablet_tool_has_axis(tool,
-					 LIBINPUT_TABLET_TOOL_AXIS_TILT_Y));
+	ck_assert(libinput_tablet_tool_has_pressure(tool));
+	ck_assert(libinput_tablet_tool_has_distance(tool));
+	ck_assert(libinput_tablet_tool_has_tilt(tool));
 
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
@@ -1946,8 +1933,7 @@ START_TEST(mouse_wheel)
 
 	libinput_event_destroy(event);
 
-	ck_assert(libinput_tablet_tool_has_axis(tool,
-					 LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL));
+	ck_assert(libinput_tablet_tool_has_wheel(tool));
 
 	for (i = 0; i < 3; i++) {
 		litest_event(dev, EV_REL, REL_WHEEL, -1);
@@ -2116,8 +2102,7 @@ START_TEST(artpen_tool)
 	ck_assert_notnull(tool);
 	ck_assert_int_eq(libinput_tablet_tool_get_type(tool),
 			 LIBINPUT_TABLET_TOOL_TYPE_PEN);
-	ck_assert(libinput_tablet_tool_has_axis(tool,
-					 LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z));
+	ck_assert(libinput_tablet_tool_has_rotation(tool));
 
 	libinput_event_destroy(event);
 }

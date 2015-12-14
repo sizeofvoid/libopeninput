@@ -1359,10 +1359,45 @@ libinput_tablet_tool_get_serial(struct libinput_tablet_tool *tool)
 }
 
 LIBINPUT_EXPORT int
-libinput_tablet_tool_has_axis(struct libinput_tablet_tool *tool,
-			      enum libinput_tablet_tool_axis axis)
+libinput_tablet_tool_has_pressure(struct libinput_tablet_tool *tool)
 {
-	return bit_is_set(tool->axis_caps, axis);
+	return bit_is_set(tool->axis_caps,
+			  LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+}
+
+LIBINPUT_EXPORT int
+libinput_tablet_tool_has_distance(struct libinput_tablet_tool *tool)
+{
+	return bit_is_set(tool->axis_caps,
+			  LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
+}
+
+LIBINPUT_EXPORT int
+libinput_tablet_tool_has_tilt(struct libinput_tablet_tool *tool)
+{
+	return bit_is_set(tool->axis_caps,
+			  LIBINPUT_TABLET_TOOL_AXIS_TILT_X);
+}
+
+LIBINPUT_EXPORT int
+libinput_tablet_tool_has_rotation(struct libinput_tablet_tool *tool)
+{
+	return bit_is_set(tool->axis_caps,
+			  LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
+}
+
+LIBINPUT_EXPORT int
+libinput_tablet_tool_has_slider(struct libinput_tablet_tool *tool)
+{
+	return bit_is_set(tool->axis_caps,
+			  LIBINPUT_TABLET_TOOL_AXIS_SLIDER);
+}
+
+LIBINPUT_EXPORT int
+libinput_tablet_tool_has_wheel(struct libinput_tablet_tool *tool)
+{
+	return bit_is_set(tool->axis_caps,
+			  LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL);
 }
 
 LIBINPUT_EXPORT int

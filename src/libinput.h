@@ -1880,15 +1880,68 @@ libinput_tablet_tool_unref(struct libinput_tablet_tool *tool);
 /**
  * @ingroup event_tablet
  *
- * Return whether or not a tablet tool supports the specified axis
+ * Return whether the tablet tool supports pressure.
  *
  * @param tool The tool to check the axis capabilities of
- * @param axis The axis to check for support
- * @return Whether or not the axis is supported
+ * @return Nonzero if the axis is available, zero otherwise.
  */
 int
-libinput_tablet_tool_has_axis(struct libinput_tablet_tool *tool,
-			      enum libinput_tablet_tool_axis axis);
+libinput_tablet_tool_has_pressure(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return whether the tablet tool supports distance.
+ *
+ * @param tool The tool to check the axis capabilities of
+ * @return Nonzero if the axis is available, zero otherwise.
+ */
+int
+libinput_tablet_tool_has_distance(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return whether the tablet tool supports tilt.
+ *
+ * @param tool The tool to check the axis capabilities of
+ * @return Nonzero if the axis is available, zero otherwise.
+ */
+int
+libinput_tablet_tool_has_tilt(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return whether the tablet tool supports z-rotation.
+ *
+ * @param tool The tool to check the axis capabilities of
+ * @return Nonzero if the axis is available, zero otherwise.
+ */
+int
+libinput_tablet_tool_has_rotation(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return whether the tablet tool has a slider axis.
+ *
+ * @param tool The tool to check the axis capabilities of
+ * @return Nonzero if the axis is available, zero otherwise.
+ */
+int
+libinput_tablet_tool_has_slider(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return whether the tablet tool has a relative wheel.
+ *
+ * @param tool The tool to check the axis capabilities of
+ * @return Nonzero if the axis is available, zero otherwise.
+ */
+int
+libinput_tablet_tool_has_wheel(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet
