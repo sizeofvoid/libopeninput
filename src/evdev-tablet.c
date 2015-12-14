@@ -298,6 +298,13 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	int wheel_discrete = 0;
 	struct device_coords point, old_point;
 	const struct input_absinfo *absinfo;
+	const char tmp[sizeof(tablet->changed_axes)] = {0};
+
+	if (memcmp(tmp, tablet->changed_axes, sizeof(tmp)))
+		axis_update_needed = true;
+
+	if (!axis_update_needed)
+		return;
 
 	/* x/y are special for left-handed and calibration */
 	a = LIBINPUT_TABLET_TOOL_AXIS_X;
@@ -305,7 +312,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	if (bit_is_set(tablet->changed_axes, a)) {
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_X);
 
-		axis_update_needed = true;
 		if (device->left_handed.enabled)
 			tablet->axes[a] = invert_axis(absinfo);
 		else
@@ -317,8 +323,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	old_point.y = tablet->axes[a];
 	if (bit_is_set(tablet->changed_axes, a)) {
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_Y);
-
-		axis_update_needed = true;
 
 		if (device->left_handed.enabled)
 			tablet->axes[a] = invert_axis(absinfo);
@@ -335,7 +339,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 
 	a = LIBINPUT_TABLET_TOOL_AXIS_PRESSURE;
 	if (bit_is_set(tablet->changed_axes, a)) {
-		axis_update_needed = true;
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
 		tablet->axes[a] = normalize_pressure(absinfo, tool);
 	}
@@ -343,7 +346,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 
 	a = LIBINPUT_TABLET_TOOL_AXIS_DISTANCE;
 	if (bit_is_set(tablet->changed_axes, a)) {
-		axis_update_needed = true;
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_DISTANCE);
 		tablet->axes[a] = normalize_dist_slider(absinfo);
 	}
@@ -351,7 +353,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 
 	a = LIBINPUT_TABLET_TOOL_AXIS_SLIDER;
 	if (bit_is_set(tablet->changed_axes, a)) {
-		axis_update_needed = true;
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_WHEEL);
 		tablet->axes[a] = normalize_dist_slider(absinfo);
 	}
@@ -359,7 +360,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 
 	a = LIBINPUT_TABLET_TOOL_AXIS_TILT_X;
 	if (bit_is_set(tablet->changed_axes, a)) {
-		axis_update_needed = true;
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_TILT_X);
 		tablet->axes[a] = normalize_tilt(absinfo);
 	}
@@ -367,7 +367,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 
 	a = LIBINPUT_TABLET_TOOL_AXIS_TILT_Y;
 	if (bit_is_set(tablet->changed_axes, a)) {
-		axis_update_needed = true;
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_TILT_Y);
 		tablet->axes[a] = normalize_tilt(absinfo);
 	}
@@ -389,13 +388,11 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			/* artpen has 0 with buttons pointing east */
 			tablet->axes[a] = convert_to_degrees(absinfo, 90);
 		}
-		axis_update_needed = true;
 	}
 	axes[a] = tablet->axes[a];
 
 	a = LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL;
 	if (bit_is_set(tablet->changed_axes, a)) {
-		axis_update_needed = true;
 		wheel_discrete = tablet->deltas[a];
 		wheel_delta = normalize_wheel(tablet,
 					      tablet->deltas[a]);
@@ -408,8 +405,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	 * tablets will send axis events with incorrect values if the tablet
 	 * tool is close enough so that the tablet can partially detect that
 	 * it's there, but can't properly receive any data from the tool. */
-	if (axis_update_needed &&
-	    !tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY) &&
+	if (!tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY) &&
 	    !tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
 		if (tablet_has_status(tablet,
 				      TABLET_TOOL_ENTERING_PROXIMITY)) {
