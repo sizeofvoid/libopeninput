@@ -33,8 +33,6 @@
 #include "libinput.h"
 #include "libinput-util.h"
 
-#define LIBINPUT_TABLET_TOOL_AXIS_MAX LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL
-
 struct libinput_source;
 
 /* A coordinate pair in device coordinates */
@@ -249,6 +247,20 @@ struct libinput_device {
 	int refcount;
 	struct libinput_device_config config;
 };
+
+enum libinput_tablet_tool_axis {
+	LIBINPUT_TABLET_TOOL_AXIS_X = 1,
+	LIBINPUT_TABLET_TOOL_AXIS_Y = 2,
+	LIBINPUT_TABLET_TOOL_AXIS_DISTANCE = 3,
+	LIBINPUT_TABLET_TOOL_AXIS_PRESSURE = 4,
+	LIBINPUT_TABLET_TOOL_AXIS_TILT_X = 5,
+	LIBINPUT_TABLET_TOOL_AXIS_TILT_Y = 6,
+	LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z = 7,
+	LIBINPUT_TABLET_TOOL_AXIS_SLIDER = 8,
+	LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL = 9,
+};
+
+#define LIBINPUT_TABLET_TOOL_AXIS_MAX LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL
 
 struct libinput_tablet_tool {
 	struct list link;

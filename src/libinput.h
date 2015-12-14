@@ -138,27 +138,6 @@ enum libinput_pointer_axis_source {
  * @ingroup device
  * @struct libinput_tablet_tool
  *
- * Available axis types for a device. It must have the @ref
- * LIBINPUT_DEVICE_CAP_TABLET_TOOL capability.
- *
- * For details on the interpretation of these axes see
- * libinput_event_tablet_tool_get_axis_value().
- */
-enum libinput_tablet_tool_axis {
-	LIBINPUT_TABLET_TOOL_AXIS_X = 1,
-	LIBINPUT_TABLET_TOOL_AXIS_Y = 2,
-	LIBINPUT_TABLET_TOOL_AXIS_DISTANCE = 3,
-	LIBINPUT_TABLET_TOOL_AXIS_PRESSURE = 4,
-	LIBINPUT_TABLET_TOOL_AXIS_TILT_X = 5,
-	LIBINPUT_TABLET_TOOL_AXIS_TILT_Y = 6,
-	LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z = 7,
-	LIBINPUT_TABLET_TOOL_AXIS_SLIDER = 8,
-	LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL = 9,
-};
-
-/**
- * @ingroup device
- *
  * An object representing a tool being used by a device with the @ref
  * LIBINPUT_DEVICE_CAP_TABLET_TOOL capability.
  *
