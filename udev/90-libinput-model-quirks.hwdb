@@ -67,6 +67,18 @@ libinput:name:Atmel maXTouch Touchpad:dmi:*svn*GOOGLE*:pn*Samus*
 # LENOVO
 ##########################################
 
+# X220 after a bios update updating the touchpad firmware version to 8.1
+# See https://bugzilla.redhat.com/show_bug.cgi?id=1264453 for details
+# If the touchpad is unresponsive and dmesg includes this line
+# 	psmouse serio1: synaptics: Touchpad model: 1, fw: 8.1 [...]
+# then copy the two lines below into a new file
+# /etc/udev/hwdb.d/90-libinput-x220-touchpad-fw81.hwdb, then run
+# sudo udevadm hwdb --update and reboot.
+#
+# Copy the two lines below:
+#libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPadX220*
+# LIBINPUT_MODEL_LENOVO_X220_TOUCHPAD_FW81=1
+
 # X230 (Tablet)
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPadX230*
  LIBINPUT_MODEL_LENOVO_X230=1

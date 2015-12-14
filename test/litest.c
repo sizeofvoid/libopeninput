@@ -968,7 +968,7 @@ litest_copy_file(const char *dest, const char *src, const char *header)
 	in = open(src, O_RDONLY);
 	litest_assert_int_gt(in, -1);
 	/* lazy, just check for error and empty file copy */
-	litest_assert_int_gt(sendfile(out, in, NULL, 4096), 0);
+	litest_assert_int_gt(sendfile(out, in, NULL, 40960), 0);
 	close(out);
 	close(in);
 }
@@ -1783,7 +1783,7 @@ litest_scale(const struct litest_device *d, unsigned int axis, double val)
 	litest_assert_double_ge(val, 0.0);
 	litest_assert_double_le(val, 100.0);
 
-	if (axis <= ABS_X) {
+	if (axis <= ABS_Y) {
 		min = d->interface->min[axis];
 		max = d->interface->max[axis];
 		return (max - min) * val/100.0 + min;

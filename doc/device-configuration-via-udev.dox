@@ -117,4 +117,22 @@ defaults or any other reason. The effects of setting these properties, the
 format of the property and the value of the property are subject to change
 at any time.
 
+@subsection model_specific_configuration_x220fw81 Lenovo x220 with touchpad firmware v8.1
+
+The property <b>LIBINPUT_MODEL_LENOVO_X220_TOUCHPAD_FW81</b> may be set by a
+user in a local hwdb file. This property designates the touchpad on a Lenovo
+x220 with a touchpad firmware version 8.1. When this firmware version is
+installed, the touchpad is imprecise. The touchpad device does not send
+continuos x/y axis position updates, a behavior also observed on its
+successor model, the Lenovo x230 which has the same firmware version. If the
+above property is set, libinput adjusts its behavior to better suit this
+particular model.
+
+The touchpad firmware version cannot be detected automatically by libinput,
+local configuration is required to set this property. Refer to the libinput
+model quirks hwdb for instructions.
+
+This property must not be used for any other purpose, no specific behavior
+is guaranteed.
+
 */
