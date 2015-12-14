@@ -303,8 +303,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	a = LIBINPUT_TABLET_TOOL_AXIS_X;
 	old_point.x = tablet->axes[a];
 	if (bit_is_set(tablet->changed_axes, a)) {
-		absinfo = libevdev_get_abs_info(device->evdev,
-						axis_to_evcode(a));
+		absinfo = libevdev_get_abs_info(device->evdev, ABS_X);
 
 		axis_update_needed = true;
 		if (device->left_handed.enabled)
@@ -317,8 +316,8 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	a = LIBINPUT_TABLET_TOOL_AXIS_Y;
 	old_point.y = tablet->axes[a];
 	if (bit_is_set(tablet->changed_axes, a)) {
-		absinfo = libevdev_get_abs_info(device->evdev,
-						axis_to_evcode(a));
+		absinfo = libevdev_get_abs_info(device->evdev, ABS_Y);
+
 		axis_update_needed = true;
 
 		if (device->left_handed.enabled)
@@ -334,59 +333,75 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	axes[LIBINPUT_TABLET_TOOL_AXIS_X] = point.x;
 	axes[LIBINPUT_TABLET_TOOL_AXIS_Y] = point.y;
 
-	for (a = LIBINPUT_TABLET_TOOL_AXIS_DISTANCE; a <= LIBINPUT_TABLET_TOOL_AXIS_MAX; a++) {
-		if (!bit_is_set(tablet->changed_axes, a)) {
-			axes[a] = tablet->axes[a];
-			continue;
-		}
-
+	a = LIBINPUT_TABLET_TOOL_AXIS_PRESSURE;
+	if (bit_is_set(tablet->changed_axes, a)) {
 		axis_update_needed = true;
+		absinfo = libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
+		tablet->axes[a] = normalize_pressure(absinfo, tool);
+	}
+	axes[a] = tablet->axes[a];
 
-		/* ROTATION_Z is higher than TILT_X/Y so we know that the
-		   tilt axes are already normalized and set */
-		if (a == LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z &&
-		   (tablet->current_tool_type == LIBINPUT_TABLET_TOOL_TYPE_MOUSE ||
-		    tablet->current_tool_type == LIBINPUT_TABLET_TOOL_TYPE_LENS)) {
+	a = LIBINPUT_TABLET_TOOL_AXIS_DISTANCE;
+	if (bit_is_set(tablet->changed_axes, a)) {
+		axis_update_needed = true;
+		absinfo = libevdev_get_abs_info(device->evdev, ABS_DISTANCE);
+		tablet->axes[a] = normalize_dist_slider(absinfo);
+	}
+	axes[a] = tablet->axes[a];
+
+	a = LIBINPUT_TABLET_TOOL_AXIS_SLIDER;
+	if (bit_is_set(tablet->changed_axes, a)) {
+		axis_update_needed = true;
+		absinfo = libevdev_get_abs_info(device->evdev, ABS_WHEEL);
+		tablet->axes[a] = normalize_dist_slider(absinfo);
+	}
+	axes[a] = tablet->axes[a];
+
+	a = LIBINPUT_TABLET_TOOL_AXIS_TILT_X;
+	if (bit_is_set(tablet->changed_axes, a)) {
+		axis_update_needed = true;
+		absinfo = libevdev_get_abs_info(device->evdev, ABS_TILT_X);
+		tablet->axes[a] = normalize_tilt(absinfo);
+	}
+	axes[a] = tablet->axes[a];
+
+	a = LIBINPUT_TABLET_TOOL_AXIS_TILT_Y;
+	if (bit_is_set(tablet->changed_axes, a)) {
+		axis_update_needed = true;
+		absinfo = libevdev_get_abs_info(device->evdev, ABS_TILT_Y);
+		tablet->axes[a] = normalize_tilt(absinfo);
+	}
+	axes[a] = tablet->axes[a];
+
+	/* We must check ROTATION_Z after TILT_X/Y so that the tilt axes are
+	 * already normalized and set if we have the mouse/lens tool */
+	a = LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z;
+	if (bit_is_set(tablet->changed_axes, a)) {
+		if (tablet->current_tool_type == LIBINPUT_TABLET_TOOL_TYPE_MOUSE ||
+		    tablet->current_tool_type == LIBINPUT_TABLET_TOOL_TYPE_LENS) {
 			convert_tilt_to_rotation(tablet);
 			axes[LIBINPUT_TABLET_TOOL_AXIS_TILT_X] = 0;
 			axes[LIBINPUT_TABLET_TOOL_AXIS_TILT_Y] = 0;
-			axes[a] = tablet->axes[a];
-			continue;
-		} else if (a == LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL) {
-			wheel_discrete = tablet->deltas[a];
-			wheel_delta = normalize_wheel(tablet,
-						      tablet->deltas[a]);
-			axes[a] = 0;
-			continue;
-		}
 
-		absinfo = libevdev_get_abs_info(device->evdev,
-						axis_to_evcode(a));
-
-		switch (a) {
-		case LIBINPUT_TABLET_TOOL_AXIS_PRESSURE:
-			tablet->axes[a] = normalize_pressure(absinfo, tool);
-			break;
-		case LIBINPUT_TABLET_TOOL_AXIS_DISTANCE:
-		case LIBINPUT_TABLET_TOOL_AXIS_SLIDER:
-			tablet->axes[a] = normalize_dist_slider(absinfo);
-			break;
-		case LIBINPUT_TABLET_TOOL_AXIS_TILT_X:
-		case LIBINPUT_TABLET_TOOL_AXIS_TILT_Y:
-			tablet->axes[a] = normalize_tilt(absinfo);
-			break;
-		case LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z:
+		} else {
+			absinfo = libevdev_get_abs_info(device->evdev,
+							ABS_Z);
 			/* artpen has 0 with buttons pointing east */
 			tablet->axes[a] = convert_to_degrees(absinfo, 90);
-			break;
-		default:
-			log_bug_libinput(device->base.seat->libinput,
-					 "Invalid axis update: %d\n", a);
-			break;
 		}
-
-		axes[a] = tablet->axes[a];
+		axis_update_needed = true;
 	}
+	axes[a] = tablet->axes[a];
+
+	a = LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL;
+	if (bit_is_set(tablet->changed_axes, a)) {
+		axis_update_needed = true;
+		wheel_discrete = tablet->deltas[a];
+		wheel_delta = normalize_wheel(tablet,
+					      tablet->deltas[a]);
+		axes[a] = 0;
+	}
+	axes[a] = tablet->axes[a];
 
 	/* We need to make sure that we check that the tool is not out of
 	 * proximity before we send any axis updates. This is because many
