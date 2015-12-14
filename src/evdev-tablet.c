@@ -398,13 +398,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 						axis_to_evcode(a));
 
 		switch (a) {
-		case LIBINPUT_TABLET_TOOL_AXIS_X:
-		case LIBINPUT_TABLET_TOOL_AXIS_Y:
-			if (device->left_handed.enabled)
-				tablet->axes[a] = invert_axis(absinfo);
-			else
-				tablet->axes[a] = absinfo->value;
-			break;
 		case LIBINPUT_TABLET_TOOL_AXIS_DISTANCE:
 		case LIBINPUT_TABLET_TOOL_AXIS_PRESSURE:
 		case LIBINPUT_TABLET_TOOL_AXIS_SLIDER:
