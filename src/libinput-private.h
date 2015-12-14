@@ -58,6 +58,11 @@ struct discrete_coords {
 	int x, y;
 };
 
+/* A pair of coordinates normalized to a [0,1] or [-1, 1] range */
+struct normalized_range_coords {
+	double x, y;
+};
+
 struct libinput_interface_backend {
 	int (*resume)(struct libinput *libinput);
 	void (*suspend)(struct libinput *libinput);
