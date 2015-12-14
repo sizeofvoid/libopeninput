@@ -481,7 +481,7 @@ tablet_notify_axis(struct libinput_device *device,
 		   enum libinput_tablet_tool_tip_state tip_state,
 		   unsigned char *changed_axes,
 		   double *axes,
-		   double *deltas,
+		   double wheel_delta,
 		   int wheel_discrete);
 
 void

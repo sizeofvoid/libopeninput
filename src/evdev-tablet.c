@@ -284,48 +284,6 @@ normalize_wheel(struct tablet_dispatch *tablet,
 	return value * device->scroll.wheel_click_angle;
 }
 
-static inline double
-guess_wheel_delta(double current, double old)
-{
-       double d1, d2, d3;
-
-       d1 = current - old;
-       d2 = (current + 360.0) - old;
-       d3 = current - (old + 360.0);
-
-       if (fabs(d2) < fabs(d1))
-               d1 = d2;
-
-       if (fabs(d3) < fabs(d1))
-               d1 = d3;
-
-       return d1;
-}
-
-static inline double
-get_delta(enum libinput_tablet_tool_axis axis, double current, double old)
-{
-	double delta = 0;
-
-	switch (axis) {
-	case LIBINPUT_TABLET_TOOL_AXIS_X:
-	case LIBINPUT_TABLET_TOOL_AXIS_Y:
-	case LIBINPUT_TABLET_TOOL_AXIS_DISTANCE:
-	case LIBINPUT_TABLET_TOOL_AXIS_PRESSURE:
-	case LIBINPUT_TABLET_TOOL_AXIS_SLIDER:
-	case LIBINPUT_TABLET_TOOL_AXIS_TILT_X:
-	case LIBINPUT_TABLET_TOOL_AXIS_TILT_Y:
-		delta = current - old;
-		break;
-	case LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z:
-		delta = guess_wheel_delta(current, old);
-		break;
-	default:
-		abort();
-	}
-	return delta;
-}
-
 static void
 tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			 struct evdev_device *device,
@@ -336,9 +294,8 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	bool axis_update_needed = false;
 	int a;
 	double axes[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1] = {0};
-	double deltas[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1] = {0};
+	double wheel_delta = 0;
 	int wheel_discrete = 0;
-	double oldval;
 	struct device_coords point, old_point;
 	const struct input_absinfo *absinfo;
 
@@ -376,8 +333,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 
 	axes[LIBINPUT_TABLET_TOOL_AXIS_X] = point.x;
 	axes[LIBINPUT_TABLET_TOOL_AXIS_Y] = point.y;
-	deltas[LIBINPUT_TABLET_TOOL_AXIS_X] = point.x - old_point.x;
-	deltas[LIBINPUT_TABLET_TOOL_AXIS_Y] = point.y - old_point.y;
 
 	for (a = LIBINPUT_TABLET_TOOL_AXIS_DISTANCE; a <= LIBINPUT_TABLET_TOOL_AXIS_MAX; a++) {
 		if (!bit_is_set(tablet->changed_axes, a)) {
@@ -386,7 +341,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 		}
 
 		axis_update_needed = true;
-		oldval = tablet->axes[a];
 
 		/* ROTATION_Z is higher than TILT_X/Y so we know that the
 		   tilt axes are already normalized and set */
@@ -397,12 +351,11 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			axes[LIBINPUT_TABLET_TOOL_AXIS_TILT_X] = 0;
 			axes[LIBINPUT_TABLET_TOOL_AXIS_TILT_Y] = 0;
 			axes[a] = tablet->axes[a];
-			deltas[a] = get_delta(a, tablet->axes[a], oldval);
 			continue;
 		} else if (a == LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL) {
 			wheel_discrete = tablet->deltas[a];
-			deltas[a] = normalize_wheel(tablet,
-						    tablet->deltas[a]);
+			wheel_delta = normalize_wheel(tablet,
+						      tablet->deltas[a]);
 			axes[a] = 0;
 			continue;
 		}
@@ -433,7 +386,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 		}
 
 		axes[a] = tablet->axes[a];
-		deltas[a] = get_delta(a, tablet->axes[a], oldval);
 	}
 
 	/* We need to make sure that we check that the tool is not out of
@@ -467,7 +419,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 					   tip_state,
 					   tablet->changed_axes,
 					   axes,
-					   deltas,
+					   wheel_delta,
 					   wheel_discrete);
 		}
 	}
