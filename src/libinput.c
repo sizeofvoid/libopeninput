@@ -2226,6 +2226,7 @@ tablet_notify_tip(struct libinput_device *device,
 		  uint64_t time,
 		  struct libinput_tablet_tool *tool,
 		  enum libinput_tablet_tool_tip_state tip_state,
+		  unsigned char *changed_axes,
 		  double *axes)
 {
 	struct libinput_event_tablet_tool *tip_event;
@@ -2243,6 +2244,9 @@ tablet_notify_tip(struct libinput_device *device,
 	memcpy(tip_event->axes,
 	       axes,
 	       sizeof(tip_event->axes));
+	memcpy(tip_event->changed_axes,
+	       changed_axes,
+	       sizeof(tip_event->changed_axes));
 
 	post_device_event(device,
 			  time,

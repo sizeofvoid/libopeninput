@@ -509,6 +509,7 @@ tablet_notify_tip(struct libinput_device *device,
 		  uint64_t time,
 		  struct libinput_tablet_tool *tool,
 		  enum libinput_tablet_tool_tip_state tip_state,
+		  unsigned char *changed_axes,
 		  double *axes);
 
 void

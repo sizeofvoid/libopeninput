@@ -273,6 +273,10 @@ enum libinput_event_type {
 	 * changes from this initial state. It is possible for a tool to
 	 * enter and leave proximity without sending an event of type @ref
 	 * LIBINPUT_EVENT_TABLET_TOOL_AXIS.
+	 *
+	 * An event of type @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS is sent
+	 * when the tip state does not change. See the documentation for
+	 * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP for more details.
 	 */
 	LIBINPUT_EVENT_TABLET_TOOL_AXIS = 600,
 	/**
@@ -309,10 +313,30 @@ enum libinput_event_type {
 	 * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY for the tip down event, and
 	 * immediately before for the tip up event.
 	 *
-	 * If a button and/or axis state change occurs at the same time as a
-	 * tip state change, the order of events is device-dependent.
+	 * The decision when a tip touches the surface is device-dependent
+	 * and may be derived from pressure data or other means. If the tip
+	 * state is changed by axes changing state, the
+	 * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP event includes the changed
+	 * axes and no additional axis event is sent for this state change.
+	 * In other words, a caller must look at both @ref
+	 * LIBINPUT_EVENT_TABLET_TOOL_AXIS and @ref
+	 * LIBINPUT_EVENT_TABLET_TOOL_TIP events to know the current state
+	 * of the axes.
+	 *
+	 * If a button state change occurs at the same time as a tip state
+	 * change, the order of events is device-dependent.
 	 */
 	LIBINPUT_EVENT_TABLET_TOOL_TIP,
+	/**
+	 * Signals that a tool has changed a logical button state on a
+	 * device with the @ref LIBINPUT_DEVICE_CAP_TABLET_TOOL capability.
+	 *
+	 * Button state changes occur on their own and do not include axis
+	 * state changes. If button and axis state changes occur within the
+	 * same logical hardware event, the order of the @ref
+	 * LIBINPUT_EVENT_TABLET_TOOL_BUTTON and @ref
+	 * LIBINPUT_EVENT_TABLET_TOOL_AXIS event is device-specific.
+	 */
 	LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 
 	LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN = 800,

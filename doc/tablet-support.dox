@@ -45,7 +45,8 @@ pressure value while the tip is logically up. Most application can and
 should ignore pressure information until they receive the event of type @ref
 LIBINPUT_EVENT_TABLET_TOOL_TIP. Applications that require extremely
 fine-grained pressure sensitivity should use the pressure data instead of
-the tip events.
+the tip events to determine a logical tip down state and treat the tip
+events like axis events otherwise.
 
 Note that the pressure threshold to trigger a logical tip event may be zero
 on some devices. On tools without pressure sensitivity, determining when a
