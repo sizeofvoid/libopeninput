@@ -957,7 +957,7 @@ tablet_notify_buttons(struct tablet_dispatch *tablet,
 }
 
 static void
-sanitize_tablet_axes(struct tablet_dispatch *tablet)
+sanitize_pressure_distance(struct tablet_dispatch *tablet)
 {
 	bool tool_in_contact;
 	const struct input_absinfo *distance,
@@ -995,7 +995,11 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet)
 		else
 			tablet->axes[LIBINPUT_TABLET_TOOL_AXIS_PRESSURE] = 0;
 	}
+}
 
+static inline void
+sanitize_mouse_lens_rotation(struct tablet_dispatch *tablet)
+{
 	/* If we have a mouse/lens cursor and the tilt changed, the rotation
 	   changed. Mark this, calculate the angle later */
 	if ((tablet->current_tool_type == LIBINPUT_TABLET_TOOL_TYPE_MOUSE ||
@@ -1009,6 +1013,13 @@ static inline int
 axis_range_percentage(const struct input_absinfo *a, int percent)
 {
 	return (a->maximum - a->minimum) * percent/100 + a->minimum;
+}
+
+static void
+sanitize_tablet_axes(struct tablet_dispatch *tablet)
+{
+	sanitize_pressure_distance(tablet);
+	sanitize_mouse_lens_rotation(tablet);
 }
 
 static void
