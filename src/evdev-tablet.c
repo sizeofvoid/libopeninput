@@ -337,7 +337,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	int a;
 	double axes[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1] = {0};
 	double deltas[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1] = {0};
-	double deltas_discrete[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1] = {0};
+	int wheel_discrete = 0;
 	double oldval;
 	struct device_coords point, old_point;
 	const struct input_absinfo *absinfo;
@@ -400,7 +400,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			deltas[a] = get_delta(a, tablet->axes[a], oldval);
 			continue;
 		} else if (a == LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL) {
-			deltas_discrete[a] = tablet->deltas[a];
+			wheel_discrete = tablet->deltas[a];
 			deltas[a] = normalize_wheel(tablet,
 						    tablet->deltas[a]);
 			axes[a] = 0;
@@ -468,7 +468,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 					   tablet->changed_axes,
 					   axes,
 					   deltas,
-					   deltas_discrete);
+					   wheel_discrete);
 		}
 	}
 
