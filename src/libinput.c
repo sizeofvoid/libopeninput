@@ -1147,7 +1147,8 @@ libinput_event_tablet_tool_get_wheel_delta(struct libinput_event_tablet_tool *ev
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	return event->wheel_delta;
+	return  libinput_event_tablet_tool_get_axis_value(event,
+				LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL);
 }
 
 LIBINPUT_EXPORT int
@@ -2152,7 +2153,6 @@ tablet_notify_axis(struct libinput_device *device,
 		   enum libinput_tablet_tool_tip_state tip_state,
 		   unsigned char *changed_axes,
 		   double *axes,
-		   double wheel_delta,
 		   int wheel_discrete)
 {
 	struct libinput_event_tablet_tool *axis_event;
@@ -2167,7 +2167,6 @@ tablet_notify_axis(struct libinput_device *device,
 		.proximity_state = LIBINPUT_TABLET_TOOL_PROXIMITY_IN,
 		.tip_state = tip_state,
 		.wheel_discrete = wheel_discrete,
-		.wheel_delta = wheel_delta,
 	};
 
 	memcpy(axis_event->changed_axes,
