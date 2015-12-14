@@ -2406,14 +2406,24 @@ START_TEST(tablet_calibration_set_matrix_delta)
 		{ -1, -1 }
 	};
 	int has_calibration;
-	double dx, dy, mdx, mdy;
+	double x, y, dx, dy, mdx, mdy;
 
 	has_calibration = libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
 	if (!has_calibration)
 		return;
 
-	litest_tablet_proximity_in(dev, 100, 100, axes);
 	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 100, 100, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	x = libinput_event_tablet_tool_get_axis_value(tablet_event,
+					       LIBINPUT_TABLET_TOOL_AXIS_X);
+	y = libinput_event_tablet_tool_get_axis_value(tablet_event,
+					       LIBINPUT_TABLET_TOOL_AXIS_Y);
+	libinput_event_destroy(event);
 
 	litest_tablet_motion(dev, 80, 80, axes);
 	libinput_dispatch(li);
@@ -2422,10 +2432,10 @@ START_TEST(tablet_calibration_set_matrix_delta)
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
-	dx = libinput_event_tablet_tool_get_axis_delta(tablet_event,
-					       LIBINPUT_TABLET_TOOL_AXIS_X);
-	dy = libinput_event_tablet_tool_get_axis_delta(tablet_event,
-					       LIBINPUT_TABLET_TOOL_AXIS_Y);
+	dx = libinput_event_tablet_tool_get_axis_value(tablet_event,
+					       LIBINPUT_TABLET_TOOL_AXIS_X) - x;
+	dy = libinput_event_tablet_tool_get_axis_value(tablet_event,
+					       LIBINPUT_TABLET_TOOL_AXIS_Y) - y;
 	libinput_event_destroy(event);
 	litest_tablet_proximity_out(dev);
 	litest_drain_events(li);
@@ -2435,7 +2445,15 @@ START_TEST(tablet_calibration_set_matrix_delta)
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_tablet_proximity_in(dev, 100, 100, axes);
-	litest_drain_events(li);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	x = libinput_event_tablet_tool_get_axis_value(tablet_event,
+					       LIBINPUT_TABLET_TOOL_AXIS_X);
+	y = libinput_event_tablet_tool_get_axis_value(tablet_event,
+					       LIBINPUT_TABLET_TOOL_AXIS_Y);
+	libinput_event_destroy(event);
 
 	litest_tablet_motion(dev, 80, 80, axes);
 	libinput_dispatch(li);
@@ -2444,10 +2462,10 @@ START_TEST(tablet_calibration_set_matrix_delta)
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
-	mdx = libinput_event_tablet_tool_get_axis_delta(tablet_event,
-					       LIBINPUT_TABLET_TOOL_AXIS_X);
-	mdy = libinput_event_tablet_tool_get_axis_delta(tablet_event,
-					       LIBINPUT_TABLET_TOOL_AXIS_Y);
+	mdx = libinput_event_tablet_tool_get_axis_value(tablet_event,
+					       LIBINPUT_TABLET_TOOL_AXIS_X) - x;
+	mdy = libinput_event_tablet_tool_get_axis_value(tablet_event,
+					       LIBINPUT_TABLET_TOOL_AXIS_Y) - y;
 	libinput_event_destroy(event);
 	litest_drain_events(li);
 
