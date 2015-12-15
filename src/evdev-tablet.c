@@ -1284,8 +1284,6 @@ tablet_init(struct tablet_dispatch *tablet,
 			set_bit(tablet->axis_caps, axis);
 	}
 
-	tablet_mark_all_axes_changed(tablet, device);
-
 	tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 
 	return 0;
