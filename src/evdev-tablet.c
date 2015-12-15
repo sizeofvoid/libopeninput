@@ -754,8 +754,8 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 		break;
 	}
 
-	/* If we don't have libwacom, copy all pen-related ones from the
-	   tablet vs all mouse-related ones */
+	/* If we don't have libwacom, copy all pen-related buttons from the
+	   tablet vs all mouse-related buttons */
 	switch (type) {
 	case LIBINPUT_TABLET_TOOL_TYPE_PEN:
 	case LIBINPUT_TABLET_TOOL_TYPE_BRUSH:
