@@ -1613,6 +1613,7 @@ START_TEST(tools_with_serials)
 	struct litest_device *dev[2];
 	struct libinput_tablet_tool *tool[2] = {0};
 	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
 	int i;
 
 	for (i = 0; i < 2; i++) {
@@ -1622,6 +1623,8 @@ START_TEST(tools_with_serials)
 							  NULL,
 							  NULL,
 							  NULL);
+		litest_drain_events(li);
+
 		/* WARNING: this test fails if UI_GET_SYSNAME isn't
 		 * available or isn't used by libevdev (1.3, commit 2ff45c73).
 		 * Put a sleep(1) here and that usually fixes it.
@@ -1633,17 +1636,10 @@ START_TEST(tools_with_serials)
 		litest_pop_event_frame(dev[i]);
 
 		libinput_dispatch(li);
-		while ((event = libinput_get_event(li))) {
-			if (libinput_event_get_type(event) ==
-			    LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY) {
-				struct libinput_event_tablet_tool *t =
-					libinput_event_get_tablet_tool_event(event);
-
-				tool[i] = libinput_event_tablet_tool_get_tool(t);
-			}
-
-			libinput_event_destroy(event);
-		}
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+		tool[i] = libinput_event_tablet_tool_get_tool(tev);
+		libinput_event_destroy(event);
 	}
 
 	/* We should get the same object for both devices */
@@ -1663,6 +1659,7 @@ START_TEST(tools_without_serials)
 	struct litest_device *dev[2];
 	struct libinput_tablet_tool *tool[2] = {0};
 	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
 	int i;
 
 	for (i = 0; i < 2; i++) {
@@ -1673,6 +1670,8 @@ START_TEST(tools_without_serials)
 							  NULL,
 							  NULL);
 
+		litest_drain_events(li);
+
 		/* WARNING: this test fails if UI_GET_SYSNAME isn't
 		 * available or isn't used by libevdev (1.3, commit 2ff45c73).
 		 * Put a sleep(1) here and that usually fixes it.
@@ -1681,17 +1680,10 @@ START_TEST(tools_without_serials)
 		litest_tablet_proximity_in(dev[i], 10, 10, NULL);
 
 		libinput_dispatch(li);
-		while ((event = libinput_get_event(li))) {
-			if (libinput_event_get_type(event) ==
-			    LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY) {
-				struct libinput_event_tablet_tool *t =
-					libinput_event_get_tablet_tool_event(event);
-
-				tool[i] = libinput_event_tablet_tool_get_tool(t);
-			}
-
-			libinput_event_destroy(event);
-		}
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+		tool[i] = libinput_event_tablet_tool_get_tool(tev);
+		libinput_event_destroy(event);
 	}
 
 	/* We should get different tool objects for each device */
