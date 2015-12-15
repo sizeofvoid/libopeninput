@@ -1018,6 +1018,43 @@ START_TEST(no_left_handed)
 }
 END_TEST
 
+START_TEST(left_handed_tilt)
+{
+#if HAVE_LIBWACOM
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	enum libinput_config_status status;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_TILT_X, 90 },
+		{ ABS_TILT_Y, 10 },
+		{ -1, -1 }
+	};
+	double tx, ty;
+
+	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	tx = libinput_event_tablet_tool_get_tilt_x(tev);
+	ty = libinput_event_tablet_tool_get_tilt_y(tev);
+
+	ck_assert_double_lt(tx, 0);
+	ck_assert_double_gt(ty, 0);
+
+	libinput_event_destroy(event);
+#endif
+}
+END_TEST
+
 START_TEST(motion_event_state)
 {
 	struct litest_device *dev = litest_current_device();
@@ -2852,6 +2889,7 @@ litest_setup_tests(void)
 	litest_add("tablet:tilt", tilt_x, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
 	litest_add("tablet:tilt", tilt_y, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
 	litest_add_for_device("tablet:left_handed", left_handed, LITEST_WACOM_INTUOS);
+	litest_add_for_device("tablet:left_handed", left_handed_tilt, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:left_handed", no_left_handed, LITEST_WACOM_CINTIQ);
 	litest_add("tablet:normalization", normalization, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:pad", pad_buttons_ignored, LITEST_TABLET, LITEST_ANY);

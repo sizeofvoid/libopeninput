@@ -365,6 +365,8 @@ tablet_handle_tilt(struct tablet_dispatch *tablet,
 	if (bit_is_set(tablet->changed_axes, a)) {
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_TILT_X);
 		tablet->axes[a] = normalize_tilt(absinfo);
+		if (device->left_handed.enabled)
+			tablet->axes[a] *= -1;
 	}
 	tilt.x = tablet->axes[a];
 
@@ -372,6 +374,8 @@ tablet_handle_tilt(struct tablet_dispatch *tablet,
 	if (bit_is_set(tablet->changed_axes, a)) {
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_TILT_Y);
 		tablet->axes[a] = normalize_tilt(absinfo);
+		if (device->left_handed.enabled)
+			tablet->axes[a] *= -1;
 	}
 	tilt.y = tablet->axes[a];
 
