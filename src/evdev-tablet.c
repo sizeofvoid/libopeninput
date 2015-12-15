@@ -156,20 +156,6 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 }
 
 static void
-tablet_mark_all_axes_changed(struct tablet_dispatch *tablet,
-			     struct evdev_device *device)
-{
-	enum libinput_tablet_tool_axis a;
-
-	for (a = LIBINPUT_TABLET_TOOL_AXIS_X; a <= LIBINPUT_TABLET_TOOL_AXIS_MAX; a++) {
-		if (tablet_device_has_axis(tablet, a))
-			set_bit(tablet->changed_axes, a);
-	}
-
-	tablet_set_status(tablet, TABLET_AXES_UPDATED);
-}
-
-static void
 tablet_change_to_left_handed(struct evdev_device *device)
 {
 	struct tablet_dispatch *tablet =
@@ -194,7 +180,6 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 
 	if (enabled) {
 		tablet->current_tool_type = tool;
-		tablet_mark_all_axes_changed(tablet, device);
 		tablet_set_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 	}
@@ -782,6 +767,9 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 {
 	enum libinput_tablet_tool_type type = tool->type;
 
+	copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_X);
+	copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_Y);
+
 #if HAVE_LIBWACOM
 	if (tool_set_bits_from_libwacom(tablet, tool) == 0)
 		return;
@@ -1059,6 +1047,20 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 }
 
 static void
+tablet_mark_all_axes_changed(struct tablet_dispatch *tablet,
+			     struct evdev_device *device,
+			     struct libinput_tablet_tool *tool)
+{
+	static_assert(sizeof(tablet->changed_axes) ==
+			      sizeof(tool->axis_caps),
+		      "Mismatching array sizes");
+
+	memcpy(tablet->changed_axes,
+	       tool->axis_caps,
+	       sizeof(tablet->changed_axes));
+}
+
+static void
 tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
 	     uint64_t time)
@@ -1082,6 +1084,9 @@ tablet_flush(struct tablet_dispatch *tablet,
 			tablet_set_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
 	} else if (tablet_has_status(tablet, TABLET_AXES_UPDATED) ||
 		   tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
+		if (tablet_has_status(tablet,
+				      TABLET_TOOL_ENTERING_PROXIMITY))
+			tablet_mark_all_axes_changed(tablet, device, tool);
 		detect_pressure_offset(tablet, device, tool);
 		sanitize_tablet_axes(tablet);
 		tablet_check_notify_axes(tablet, device, time, tool);
