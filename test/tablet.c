@@ -1627,9 +1627,10 @@ START_TEST(tools_with_serials)
 		 * Put a sleep(1) here and that usually fixes it.
 		 */
 
-		litest_event(dev[i], EV_KEY, BTN_TOOL_PEN, 1);
+		litest_push_event_frame(dev[i]);
+		litest_tablet_proximity_in(dev[i], 10, 10, NULL);
 		litest_event(dev[i], EV_MSC, MSC_SERIAL, 100);
-		litest_event(dev[i], EV_SYN, SYN_REPORT, 0);
+		litest_pop_event_frame(dev[i]);
 
 		libinput_dispatch(li);
 		while ((event = libinput_get_event(li))) {
@@ -1677,8 +1678,7 @@ START_TEST(tools_without_serials)
 		 * Put a sleep(1) here and that usually fixes it.
 		 */
 
-		litest_event(dev[i], EV_KEY, BTN_TOOL_PEN, 1);
-		litest_event(dev[i], EV_SYN, SYN_REPORT, 0);
+		litest_tablet_proximity_in(dev[i], 10, 10, NULL);
 
 		libinput_dispatch(li);
 		while ((event = libinput_get_event(li))) {
