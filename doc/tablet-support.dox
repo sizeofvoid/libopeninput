@@ -126,7 +126,9 @@ and @ref LIBINPUT_TABLET_TOOL_TYPE_LENS tools.
 Some tools provide hardware information that enables libinput to uniquely
 identify the physical device. For example, tools compatible with the Wacom
 Intuos 4, Intuos 5, Intuos Pro and Cintiq series are uniquely identifiable
-through a serial number.
+through a serial number. libinput does not specify how a tool can be
+identified uniquely, a caller should use libinput_tablet_tool_is_unique() to
+check if the tool is unique.
 
 libinput creates a struct libinput_tablet_tool on the first proximity in of
 this tool. By default, this struct is destroyed on proximity out and

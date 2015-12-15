@@ -1318,6 +1318,12 @@ libinput_tablet_tool_get_tool_id(struct libinput_tablet_tool *tool)
 	return tool->tool_id;
 }
 
+LIBINPUT_EXPORT int
+libinput_tablet_tool_is_unique(struct libinput_tablet_tool *tool)
+{
+	return tool->serial != 0;
+}
+
 LIBINPUT_EXPORT uint64_t
 libinput_tablet_tool_get_serial(struct libinput_tablet_tool *tool)
 {
