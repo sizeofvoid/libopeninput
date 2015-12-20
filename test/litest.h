@@ -175,6 +175,7 @@ enum litest_device_feature {
 	LITEST_TABLET = 1 << 17,
 	LITEST_DISTANCE = 1 << 18,
 	LITEST_TOOL_SERIAL = 1 << 19,
+	LITEST_TILT = 1 << 20,
 };
 
 struct litest_device {

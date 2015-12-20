@@ -151,7 +151,7 @@ static int events[] = {
 
 struct litest_test_device litest_wacom_intuos_tablet_device = {
 	.type = LITEST_WACOM_INTUOS,
-	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL,
+	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT,
 	.shortname = "wacom-intuos-tablet",
 	.setup = litest_wacom_intuos_tablet_setup,
 	.interface = &interface,

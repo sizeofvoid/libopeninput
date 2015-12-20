@@ -2611,6 +2611,190 @@ START_TEST(tablet_pressure_offset_none_for_small_distance)
 }
 END_TEST
 
+START_TEST(tilt_available)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct libinput_tablet_tool *tool;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_TILT_X, 80 },
+		{ ABS_TILT_Y, 20 },
+		{ -1, -1 }
+	};
+
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	tool = libinput_event_tablet_tool_get_tool(tev);
+	ck_assert(libinput_tablet_tool_has_tilt(tool));
+
+	libinput_event_destroy(event);
+}
+END_TEST
+
+START_TEST(tilt_not_available)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct libinput_tablet_tool *tool;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_TILT_X, 80 },
+		{ ABS_TILT_Y, 20 },
+		{ -1, -1 }
+	};
+
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	tool = libinput_event_tablet_tool_get_tool(tev);
+	ck_assert(!libinput_tablet_tool_has_tilt(tool));
+
+	libinput_event_destroy(event);
+}
+END_TEST
+
+START_TEST(tilt_x)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_TILT_X, 90 },
+		{ ABS_TILT_Y, 0 },
+		{ -1, -1 }
+	};
+	double tx, ty;
+	int tilt;
+	double expected_tx;
+
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	/* 90% of the actual axis but mapped into a [-1, 1] range, so we
+	 * expect a pos. value of 80. Rounding errors in the scaling though,
+	 * we'll get something between 0.79 and 0.80 */
+	tx = libinput_event_tablet_tool_get_tilt_x(tev);
+	ck_assert_double_gt(tx, 0.79);
+	ck_assert_double_le(tx, 0.80);
+
+	ty = libinput_event_tablet_tool_get_tilt_y(tev);
+	ck_assert_double_eq(ty, -1);
+
+	libinput_event_destroy(event);
+
+	expected_tx = -1.0;
+
+	for (tilt = 0; tilt <= 100; tilt += 5) {
+		axes[1].value = tilt;
+		litest_tablet_motion(dev, 10, 10, axes);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event,
+					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+		tx = libinput_event_tablet_tool_get_tilt_x(tev);
+		ck_assert_double_gt(tx, expected_tx - 0.1);
+		ck_assert_double_lt(tx, expected_tx + 0.1);
+
+		ty = libinput_event_tablet_tool_get_tilt_y(tev);
+		ck_assert_double_eq(ty, -1);
+
+		libinput_event_destroy(event);
+
+		expected_tx += 0.1;
+	}
+
+	/* the last event must reach the max */
+	ck_assert_double_eq(tx, 1.0);
+}
+END_TEST
+
+START_TEST(tilt_y)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_TILT_X, 0 },
+		{ ABS_TILT_Y, 90 },
+		{ -1, -1 }
+	};
+	double tx, ty;
+	int tilt;
+	double expected_ty;
+
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	/* 90% of the actual axis but mapped into a [-1, 1] range, so we
+	 * expect a pos. value of 80. Rounding errors in the scaling though,
+	 * we'll get something between 0.79 and 0.80 */
+	ty = libinput_event_tablet_tool_get_tilt_y(tev);
+	ck_assert_double_gt(ty, 0.79);
+	ck_assert_double_le(ty, 0.80);
+
+	tx = libinput_event_tablet_tool_get_tilt_x(tev);
+	ck_assert_double_eq(tx, -1);
+
+	libinput_event_destroy(event);
+
+	expected_ty = -1.0;
+
+	for (tilt = 0; tilt <= 100; tilt += 5) {
+		axes[2].value = tilt;
+		litest_tablet_motion(dev, 10, 10, axes);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event,
+					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+		ty = libinput_event_tablet_tool_get_tilt_y(tev);
+		ck_assert_double_gt(ty, expected_ty - 0.1);
+		ck_assert_double_lt(ty, expected_ty + 0.1);
+
+		tx = libinput_event_tablet_tool_get_tilt_x(tev);
+		ck_assert_double_eq(tx, -1);
+
+		libinput_event_destroy(event);
+
+		expected_ty += 0.1;
+	}
+
+	/* the last event must reach the max */
+	ck_assert_double_eq(ty, 1.0);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -2638,6 +2822,10 @@ litest_setup_tests(void)
 	litest_add("tablet:tip", tip_state_button, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:motion", motion, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:motion", motion_event_state, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:tilt", tilt_available, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
+	litest_add("tablet:tilt", tilt_not_available, LITEST_TABLET, LITEST_TILT);
+	litest_add("tablet:tilt", tilt_x, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
+	litest_add("tablet:tilt", tilt_y, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
 	litest_add_for_device("tablet:left_handed", left_handed, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:left_handed", no_left_handed, LITEST_WACOM_CINTIQ);
 	litest_add("tablet:normalization", normalization, LITEST_TABLET, LITEST_ANY);

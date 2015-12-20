@@ -228,7 +228,7 @@ static int events[] = {
 
 struct litest_test_device litest_waltop_tablet_device = {
 	.type = LITEST_WALTOP,
-	.features = LITEST_TABLET | LITEST_WHEEL,
+	.features = LITEST_TABLET | LITEST_WHEEL | LITEST_TILT,
 	.shortname = "waltop-tablet",
 	.setup = litest_waltop_tablet_setup,
 	.interface = &interface,
