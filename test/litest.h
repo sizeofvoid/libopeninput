@@ -239,6 +239,24 @@ struct axis_replacement {
 	double value;
 };
 
+static inline void litest_axis_set_value(struct axis_replacement *axes,
+					 int code,
+					 double value)
+{
+	litest_assert_double_ge(value, 0.0);
+	litest_assert_double_le(value, 100.0);
+
+	while (axes->evcode != -1) {
+		if (axes->evcode == code) {
+			axes->value = value;
+			return;
+		}
+		axes++;
+	}
+
+	litest_abort_msg("Missing axis code %d\n", code);
+}
+
 /* A loop range, resolves to:
    for (i = lower; i < upper; i++)
  */
