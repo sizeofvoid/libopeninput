@@ -881,6 +881,8 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 	/* If we didn't already have the new_tool in our list of tools,
 	 * add it */
 	if (!tool) {
+		const struct input_absinfo *pressure;
+
 		tool = zalloc(sizeof *tool);
 		*tool = (struct libinput_tablet_tool) {
 			.type = type,
@@ -891,6 +893,12 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 
 		tool->pressure_offset = 0;
 		tool->has_pressure_offset = false;
+
+		pressure = libevdev_get_abs_info(tablet->device->evdev,
+						 ABS_PRESSURE);
+		if (pressure)
+			tool->pressure_offset = pressure->minimum;
+
 		tool_set_bits(tablet, tool);
 
 		list_insert(tool_list, &tool->link);

@@ -277,7 +277,7 @@ struct libinput_tablet_tool {
 	int refcount;
 	void *user_data;
 
-	int pressure_offset;
+	int pressure_offset; /* in device coordinates */
 	bool has_pressure_offset;
 };
 
