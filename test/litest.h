@@ -35,6 +35,28 @@
 #include <libinput.h>
 #include <math.h>
 
+void
+litest_fail_condition(const char *file,
+		      int line,
+		      const char *func,
+		      const char *condition,
+		      const char *message,
+		      ...);
+void
+litest_fail_comparison_int(const char *file,
+			   int line,
+			   const char *func,
+			   const char *operator,
+			   int a,
+			   int b,
+			   const char *astr,
+			   const char *bstr);
+void
+litest_fail_comparison_ptr(const char *file,
+			   int line,
+			   const char *func,
+			   const char *comparison);
+
 #define litest_assert(cond) \
 	do { \
 		if (!(cond)) \
@@ -110,6 +132,24 @@
 
 #define litest_assert_ptr_notnull(a_) \
 	litest_assert_comparison_ptr_(a_, !=, NULL)
+
+#define litest_assert_double_eq(a_, b_)\
+	ck_assert_int_eq((int)((a_) * 256), (int)((b_) * 256))
+
+#define litest_assert_double_ne(a_, b_)\
+	ck_assert_int_ne((int)((a_) * 256), (int)((b_) * 256))
+
+#define litest_assert_double_lt(a_, b_)\
+	ck_assert_int_lt((int)((a_) * 256), (int)((b_) * 256))
+
+#define litest_assert_double_le(a_, b_)\
+	ck_assert_int_le((int)((a_) * 256), (int)((b_) * 256))
+
+#define litest_assert_double_gt(a_, b_)\
+	ck_assert_int_gt((int)((a_) * 256), (int)((b_) * 256))
+
+#define litest_assert_double_ge(a_, b_)\
+	ck_assert_int_ge((int)((a_) * 256), (int)((b_) * 256))
 
 enum litest_device_type {
 	LITEST_NO_DEVICE = -1,
@@ -210,28 +250,6 @@ struct range {
 struct libinput *litest_create_context(void);
 void litest_disable_log_handler(struct libinput *libinput);
 void litest_restore_log_handler(struct libinput *libinput);
-
-void
-litest_fail_condition(const char *file,
-		      int line,
-		      const char *func,
-		      const char *condition,
-		      const char *message,
-		      ...);
-void
-litest_fail_comparison_int(const char *file,
-			   int line,
-			   const char *func,
-			   const char *operator,
-			   int a,
-			   int b,
-			   const char *astr,
-			   const char *bstr);
-void
-litest_fail_comparison_ptr(const char *file,
-			   int line,
-			   const char *func,
-			   const char *comparison);
 
 #define litest_add(name_, func_, ...) \
 	_litest_add(name_, #func_, func_, __VA_ARGS__)
@@ -429,24 +447,6 @@ struct libevdev_uinput * litest_create_uinput_abs_device(const char *name,
 							 struct input_id *id,
 							 const struct input_absinfo *abs,
 							 ...);
-#define litest_assert_double_eq(a_, b_)\
-	ck_assert_int_eq((int)((a_) * 256), (int)((b_) * 256))
-
-#define litest_assert_double_ne(a_, b_)\
-	ck_assert_int_ne((int)((a_) * 256), (int)((b_) * 256))
-
-#define litest_assert_double_lt(a_, b_)\
-	ck_assert_int_lt((int)((a_) * 256), (int)((b_) * 256))
-
-#define litest_assert_double_le(a_, b_)\
-	ck_assert_int_le((int)((a_) * 256), (int)((b_) * 256))
-
-#define litest_assert_double_gt(a_, b_)\
-	ck_assert_int_gt((int)((a_) * 256), (int)((b_) * 256))
-
-#define litest_assert_double_ge(a_, b_)\
-	ck_assert_int_ge((int)((a_) * 256), (int)((b_) * 256))
-
 void litest_timeout_tap(void);
 void litest_timeout_tapndrag(void);
 void litest_timeout_softbuttons(void);
