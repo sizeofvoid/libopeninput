@@ -761,12 +761,11 @@ START_TEST(proximity_has_axes)
 	litest_drain_events(li);
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
-
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, -1);
+	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
-
-	tablet_event = libinput_event_get_tablet_tool_event(event);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tablet_event);
 
 	ck_assert(libinput_event_tablet_tool_x_has_changed(tablet_event));
@@ -807,9 +806,8 @@ START_TEST(proximity_has_axes)
 	litest_axis_set_value(axes, ABS_TILT_Y, 25);
 	litest_tablet_motion(dev, 20, 30, axes);
 	libinput_dispatch(li);
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS, -1);
 	event = libinput_get_event(li);
-	tablet_event = libinput_event_get_tablet_tool_event(event);
+	tablet_event = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
 	last_x = libinput_event_tablet_tool_get_x(tablet_event);
 	last_y = libinput_event_tablet_tool_get_y(tablet_event);
@@ -825,11 +823,11 @@ START_TEST(proximity_has_axes)
 
 	/* Make sure that the axes are still present on proximity out */
 	litest_tablet_proximity_out(dev);
+	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, -1);
 	event = libinput_get_event(li);
-
-	tablet_event = libinput_event_get_tablet_tool_event(event);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tablet_event);
 
 	ck_assert(!libinput_event_tablet_tool_x_has_changed(tablet_event));
@@ -1103,11 +1101,9 @@ START_TEST(motion)
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
+	event = libinput_get_event(li);
 
-	while ((event = libinput_get_event(li))) {
+	do {
 		bool x_changed, y_changed;
 		double reported_x, reported_y;
 
@@ -1132,7 +1128,8 @@ START_TEST(motion)
 		last_reported_y = reported_y;
 
 		libinput_event_destroy(event);
-	}
+		event = libinput_get_event(li);
+	} while (event != NULL);
 
 	for (test_x = 10, test_y = 90;
 	     test_x <= 100;
@@ -1185,10 +1182,13 @@ START_TEST(left_handed)
 	struct libinput_event_tablet_tool *tablet_event;
 	double libinput_max_x, libinput_max_y;
 	double last_x = -1.0, last_y = -1.0;
+	double x, y;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ -1, -1 }
 	};
+
+	litest_drain_events(li);
 
 	ck_assert(libinput_device_config_left_handed_is_available(dev->libinput_device));
 
@@ -1205,38 +1205,35 @@ START_TEST(left_handed)
 	libinput_dispatch(li);
 	libinput_device_config_left_handed_set(dev->libinput_device, 1);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, -1);
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+				LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	while ((event = libinput_get_event(li))) {
-		tablet_event = libinput_event_get_tablet_tool_event(event);
+	last_x = libinput_event_tablet_tool_get_x(tablet_event);
+	last_y = libinput_event_tablet_tool_get_y(tablet_event);
 
-		last_x = libinput_event_tablet_tool_get_x(tablet_event);
-		last_y = libinput_event_tablet_tool_get_y(tablet_event);
+	litest_assert_double_eq(last_x, 0);
+	litest_assert_double_eq(last_y, libinput_max_y);
 
-		litest_assert_double_eq(last_x, 0);
-		litest_assert_double_eq(last_y, libinput_max_y);
-
-		libinput_event_destroy(event);
-	}
+	libinput_event_destroy(event);
 
 	litest_tablet_motion(dev, 100, 0, axes);
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS, -1);
+	libinput_dispatch(li);
 
-	while ((event = libinput_get_event(li))) {
-		double x, y;
-		tablet_event = libinput_event_get_tablet_tool_event(event);
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
-		x = libinput_event_tablet_tool_get_x(tablet_event);
-		y = libinput_event_tablet_tool_get_y(tablet_event);
+	x = libinput_event_tablet_tool_get_x(tablet_event);
+	y = libinput_event_tablet_tool_get_y(tablet_event);
 
-		litest_assert_double_eq(x, libinput_max_x);
-		litest_assert_double_eq(y, 0);
+	litest_assert_double_eq(x, libinput_max_x);
+	litest_assert_double_eq(y, 0);
 
-		litest_assert_double_gt(x, last_x);
-		litest_assert_double_lt(y, last_y);
+	litest_assert_double_gt(x, last_x);
+	litest_assert_double_lt(y, last_y);
 
-		libinput_event_destroy(event);
-	}
+	libinput_event_destroy(event);
 
 	litest_tablet_proximity_out(dev);
 	litest_drain_events(li);
@@ -1246,39 +1243,39 @@ START_TEST(left_handed)
 	 * mode, so the axes should be inverted once we bring it back into
 	 * proximity */
 	litest_tablet_proximity_in(dev, 0, 100, axes);
+	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, -1);
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+				LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	while ((event = libinput_get_event(li))) {
-		tablet_event = libinput_event_get_tablet_tool_event(event);
+	last_x = libinput_event_tablet_tool_get_x(tablet_event);
+	last_y = libinput_event_tablet_tool_get_y(tablet_event);
 
-		last_x = libinput_event_tablet_tool_get_x(tablet_event);
-		last_y = libinput_event_tablet_tool_get_y(tablet_event);
+	litest_assert_double_eq(last_x, libinput_max_x);
+	litest_assert_double_eq(last_y, 0);
 
-		litest_assert_double_eq(last_x, libinput_max_x);
-		litest_assert_double_eq(last_y, 0);
-
-		libinput_event_destroy(event);
-	}
+	libinput_event_destroy(event);
 
 	litest_tablet_motion(dev, 100, 0, axes);
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS, -1);
+	libinput_dispatch(li);
 
-	while ((event = libinput_get_event(li))) {
-		double x, y;
-		tablet_event = libinput_event_get_tablet_tool_event(event);
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+				LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
-		x = libinput_event_tablet_tool_get_x(tablet_event);
-		y = libinput_event_tablet_tool_get_y(tablet_event);
+	tablet_event = libinput_event_get_tablet_tool_event(event);
 
-		litest_assert_double_eq(x, 0);
-		litest_assert_double_eq(y, libinput_max_y);
+	x = libinput_event_tablet_tool_get_x(tablet_event);
+	y = libinput_event_tablet_tool_get_y(tablet_event);
 
-		litest_assert_double_lt(x, last_x);
-		litest_assert_double_gt(y, last_y);
+	litest_assert_double_eq(x, 0);
+	litest_assert_double_eq(y, libinput_max_y);
 
-		libinput_event_destroy(event);
-	}
+	litest_assert_double_lt(x, last_x);
+	litest_assert_double_gt(y, last_y);
+
+	libinput_event_destroy(event);
 #endif
 }
 END_TEST
@@ -1604,12 +1601,11 @@ START_TEST(tool_serial)
 	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
 	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
 	event = libinput_get_event(li);
-	tablet_event = libinput_event_get_tablet_tool_event(event);
+	tablet_event = litest_is_tablet_event(event,
+				LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tablet_event);
 	ck_assert_uint_eq(libinput_tablet_tool_get_serial(tool), 1000);
 	libinput_event_destroy(event);
@@ -1636,12 +1632,11 @@ START_TEST(serial_changes_tool)
 	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
 	litest_event(dev, EV_MSC, MSC_SERIAL, 2000);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
 	event = libinput_get_event(li);
-	tablet_event = libinput_event_get_tablet_tool_event(event);
+	tablet_event = litest_is_tablet_event(event,
+				LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tablet_event);
 
 	ck_assert_uint_eq(libinput_tablet_tool_get_serial(tool), 2000);
@@ -1698,12 +1693,11 @@ START_TEST(tool_ref)
 	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
 	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
 	event = libinput_get_event(li);
-	tablet_event = libinput_event_get_tablet_tool_event(event);
+	tablet_event = litest_is_tablet_event(event,
+				LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tablet_event);
 
 	ck_assert_notnull(tool);
@@ -1867,18 +1861,15 @@ START_TEST(tool_capabilities)
 	 * tablet the tool is being used with */
 	bamboo = litest_add_device(li, LITEST_WACOM_BAMBOO);
 	intuos = litest_add_device(li, LITEST_WACOM_INTUOS);
+	litest_drain_events(li);
 
 	litest_event(bamboo, EV_KEY, BTN_TOOL_PEN, 1);
 	litest_event(bamboo, EV_SYN, SYN_REPORT, 0);
 
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
-
 	event = libinput_get_event(li);
-	t = libinput_event_get_tablet_tool_event(event);
+	t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(t);
 
 	ck_assert(libinput_tablet_tool_has_pressure(tool));
@@ -1890,13 +1881,11 @@ START_TEST(tool_capabilities)
 
 	litest_event(intuos, EV_KEY, BTN_TOOL_PEN, 1);
 	litest_event(intuos, EV_SYN, SYN_REPORT, 0);
-
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
+	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
-	t = libinput_event_get_tablet_tool_event(event);
+	t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	tool = libinput_event_tablet_tool_get_tool(t);
 	tool = libinput_event_tablet_tool_get_tool(t);
 
 	ck_assert(libinput_tablet_tool_has_pressure(tool));
@@ -1982,12 +1971,11 @@ START_TEST(mouse_tool)
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 1);
 	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
 	event = libinput_get_event(li);
-	tev = libinput_event_get_tablet_tool_event(event);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tev);
 	ck_assert_notnull(tool);
 	ck_assert_int_eq(libinput_tablet_tool_get_type(tool),
@@ -2017,12 +2005,11 @@ START_TEST(mouse_buttons)
 	litest_event(dev, EV_ABS, ABS_MISC, 0x806); /* 5-button mouse tool_id */
 	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
 	event = libinput_get_event(li);
-	tev = libinput_event_get_tablet_tool_event(event);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tev);
 	ck_assert_notnull(tool);
 	libinput_tablet_tool_ref(tool);
@@ -2110,12 +2097,11 @@ START_TEST(mouse_rotation)
 		litest_event(dev, EV_ABS, ABS_TILT_X, x);
 		litest_event(dev, EV_ABS, ABS_TILT_Y, y);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
 
-		litest_wait_for_event_of_type(li,
-					      LIBINPUT_EVENT_TABLET_TOOL_AXIS,
-					      -1);
 		event = libinput_get_event(li);
-		tev = libinput_event_get_tablet_tool_event(event);
+		tev = litest_is_tablet_event(event,
+					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 		ck_assert(libinput_event_tablet_tool_rotation_has_changed(tev));
 		val = libinput_event_tablet_tool_get_rotation(tev);
 
@@ -2154,12 +2140,11 @@ START_TEST(mouse_wheel)
 	litest_event(dev, EV_ABS, ABS_MISC, 0x806); /* 5-button mouse tool_id */
 	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
 	event = libinput_get_event(li);
-	tev = libinput_event_get_tablet_tool_event(event);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tev);
 	ck_assert_notnull(tool);
 	libinput_tablet_tool_ref(tool);
@@ -2171,11 +2156,11 @@ START_TEST(mouse_wheel)
 	for (i = 0; i < 3; i++) {
 		litest_event(dev, EV_REL, REL_WHEEL, -1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-
-		litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS, -1);
+		libinput_dispatch(li);
 
 		event = libinput_get_event(li);
-		tev = libinput_event_get_tablet_tool_event(event);
+		tev = litest_is_tablet_event(event,
+					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 		ck_assert(libinput_event_tablet_tool_wheel_has_changed(tev));
 
 		val = libinput_event_tablet_tool_get_wheel_delta(tev);
@@ -2196,11 +2181,11 @@ START_TEST(mouse_wheel)
 		abs = libevdev_get_abs_info(dev->evdev, ABS_Y);
 		litest_event(dev, EV_ABS, ABS_Y, (abs->maximum - abs->minimum)/i);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-
-		litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS, -1);
+		libinput_dispatch(li);
 
 		event = libinput_get_event(li);
-		tev = libinput_event_get_tablet_tool_event(event);
+		tev = litest_is_tablet_event(event,
+					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 		ck_assert(!libinput_event_tablet_tool_wheel_has_changed(tev));
 
 		val = libinput_event_tablet_tool_get_wheel_delta(tev);
@@ -2236,13 +2221,13 @@ START_TEST(airbrush_tool)
 	litest_event(dev, EV_KEY, BTN_TOOL_AIRBRUSH, 1);
 	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
 	event = libinput_get_event(li);
-	tev = libinput_event_get_tablet_tool_event(event);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tev);
+
 	ck_assert_notnull(tool);
 	ck_assert_int_eq(libinput_tablet_tool_get_type(tool),
 			 LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH);
@@ -2286,12 +2271,10 @@ START_TEST(airbrush_wheel)
 	for (v = abs->minimum; v < abs->maximum; v += 8) {
 		litest_event(dev, EV_ABS, ABS_WHEEL, v);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-
-		litest_wait_for_event_of_type(li,
-					      LIBINPUT_EVENT_TABLET_TOOL_AXIS,
-					      -1);
+		libinput_dispatch(li);
 		event = libinput_get_event(li);
-		tev = libinput_event_get_tablet_tool_event(event);
+		tev = litest_is_tablet_event(event,
+					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 		ck_assert(libinput_event_tablet_tool_slider_has_changed(tev));
 		val = libinput_event_tablet_tool_get_slider_position(tev);
 
@@ -2321,12 +2304,10 @@ START_TEST(artpen_tool)
 	litest_event(dev, EV_ABS, ABS_MISC, 0x804); /* Art Pen */
 	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
+	libinput_dispatch(li);
 	event = libinput_get_event(li);
-	tev = libinput_event_get_tablet_tool_event(event);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tev);
 	ck_assert_notnull(tool);
 	ck_assert_int_eq(libinput_tablet_tool_get_type(tool),
@@ -2374,12 +2355,10 @@ START_TEST(artpen_rotation)
 
 		litest_event(dev, EV_ABS, ABS_Z, a);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-
-		litest_wait_for_event_of_type(li,
-					      LIBINPUT_EVENT_TABLET_TOOL_AXIS,
-					      -1);
+		libinput_dispatch(li);
 		event = libinput_get_event(li);
-		tev = libinput_event_get_tablet_tool_event(event);
+		tev = litest_is_tablet_event(event,
+					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 		ck_assert(libinput_event_tablet_tool_rotation_has_changed(tev));
 		val = libinput_event_tablet_tool_get_rotation(tev);
 
@@ -2409,11 +2388,9 @@ START_TEST(tablet_time_usec)
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
 	event = libinput_get_event(li);
-	tev = libinput_event_get_tablet_tool_event(event);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	ck_assert_int_eq(libinput_event_tablet_tool_get_time(tev),
 			 libinput_event_tablet_tool_get_time_usec(tev) / 1000);
 	libinput_event_destroy(event);
@@ -2439,11 +2416,8 @@ START_TEST(tablet_pressure_distance_exclusive)
 	litest_tablet_motion(dev, 70, 70, axes);
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_AXIS,
-				      -1);
 	event = libinput_get_event(li);
-	tev = libinput_event_get_tablet_tool_event(event);
+	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
 	pressure = libinput_event_tablet_tool_get_pressure(tev);
 	distance = libinput_event_tablet_tool_get_distance(tev);
@@ -2933,11 +2907,8 @@ START_TEST(tablet_pressure_offset_none_for_small_distance)
 	litest_tablet_motion(dev, 70, 70, axes);
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_AXIS,
-				      -1);
 	event = libinput_get_event(li);
-	tev = libinput_event_get_tablet_tool_event(event);
+	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 	pressure = libinput_event_tablet_tool_get_pressure(tev);
 	ck_assert_double_gt(pressure, 0.0);
 
