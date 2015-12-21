@@ -2203,6 +2203,7 @@ tablet_notify_proximity(struct libinput_device *device,
 	*proximity_event = (struct libinput_event_tablet_tool) {
 		.time = time,
 		.tool = tool,
+		.tip_state = LIBINPUT_TABLET_TOOL_TIP_UP,
 		.proximity_state = proximity_state,
 	};
 	memcpy(proximity_event->axes,
