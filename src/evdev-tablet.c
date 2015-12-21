@@ -291,7 +291,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			 struct libinput_tablet_tool *tool)
 {
 	struct libinput_device *base = &device->base;
-	bool axis_update_needed = false;
 	int a;
 	double axes[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1] = {0};
 	double wheel_delta = 0;
@@ -300,10 +299,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	const struct input_absinfo *absinfo;
 	const char tmp[sizeof(tablet->changed_axes)] = {0};
 
-	if (memcmp(tmp, tablet->changed_axes, sizeof(tmp)))
-		axis_update_needed = true;
-
-	if (!axis_update_needed)
+	if (memcmp(tmp, tablet->changed_axes, sizeof(tmp)) == 0)
 		return;
 
 	/* x/y are special for left-handed and calibration */
