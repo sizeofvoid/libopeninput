@@ -889,13 +889,14 @@ START_TEST(proximity_range_enter)
 	litest_pop_event_frame(dev);
 	litest_assert_empty_queue(li);
 
-	axes[0].value = 20;
+	litest_axis_set_value(axes, ABS_DISTANCE, 20);
 	litest_tablet_motion(dev, 10, 10, axes);
 	libinput_dispatch(li);
 
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_IN);
-	axes[0].value = 90;
+
+	litest_axis_set_value(axes, ABS_DISTANCE, 90);
 	litest_tablet_motion(dev, 10, 10, axes);
 	libinput_dispatch(li);
 	litest_assert_tablet_proximity_event(li,
@@ -930,7 +931,7 @@ START_TEST(proximity_range_in_out)
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_IN);
 
-	axes[0].value = 90;
+	litest_axis_set_value(axes, ABS_DISTANCE, 90);
 	litest_tablet_motion(dev, 10, 10, axes);
 	libinput_dispatch(li);
 	litest_assert_tablet_proximity_event(li,
@@ -939,7 +940,7 @@ START_TEST(proximity_range_in_out)
 	litest_tablet_motion(dev, 30, 30, axes);
 	litest_assert_empty_queue(li);
 
-	axes[0].value = 20;
+	litest_axis_set_value(axes, ABS_DISTANCE, 20);
 	litest_tablet_motion(dev, 10, 10, axes);
 	libinput_dispatch(li);
 	litest_assert_tablet_proximity_event(li,
@@ -1014,7 +1015,7 @@ START_TEST(proximity_range_button_press)
 					  BTN_STYLUS,
 					  LIBINPUT_BUTTON_STATE_PRESSED);
 
-	axes[0].value = 90;
+	litest_axis_set_value(axes, ABS_DISTANCE, 90);
 	litest_tablet_motion(dev, 15, 15, axes);
 	libinput_dispatch(li);
 
@@ -1058,7 +1059,7 @@ START_TEST(proximity_range_button_release)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_assert_empty_queue(li);
 
-	axes[0].value = 20;
+	litest_axis_set_value(axes, ABS_DISTANCE, 20);
 	litest_tablet_motion(dev, 15, 15, axes);
 	libinput_dispatch(li);
 
