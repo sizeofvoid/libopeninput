@@ -1052,7 +1052,6 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 
 static void
 tablet_mark_all_axes_changed(struct tablet_dispatch *tablet,
-			     struct evdev_device *device,
 			     struct libinput_tablet_tool *tool)
 {
 	static_assert(sizeof(tablet->changed_axes) ==
@@ -1090,7 +1089,7 @@ tablet_flush(struct tablet_dispatch *tablet,
 		   tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
 		if (tablet_has_status(tablet,
 				      TABLET_TOOL_ENTERING_PROXIMITY))
-			tablet_mark_all_axes_changed(tablet, device, tool);
+			tablet_mark_all_axes_changed(tablet, tool);
 		detect_pressure_offset(tablet, device, tool);
 		sanitize_tablet_axes(tablet);
 		tablet_check_notify_axes(tablet, device, time, tool);
