@@ -1254,6 +1254,35 @@ START_TEST(device_abs_rel)
 }
 END_TEST
 
+START_TEST(device_quirks_no_abs_mt_y)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_pointer *pev;
+	int code;
+
+	litest_drain_events(li);
+
+	litest_event(dev, EV_REL, REL_HWHEEL, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	pev = litest_is_axis_event(event,
+				   LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL,
+				   LIBINPUT_POINTER_AXIS_SOURCE_WHEEL);
+	libinput_event_destroy(libinput_event_pointer_get_base_event(pev));
+
+	for (code = ABS_MISC + 1; code < ABS_MAX; code++) {
+		litest_event(dev, EV_ABS, code, 1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_assert_empty_queue(li);
+	}
+
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -1308,4 +1337,6 @@ litest_setup_tests(void)
 	litest_add_no_device("device:invalid rel events", device_touchpad_rel);
 	litest_add_no_device("device:invalid rel events", device_touch_rel);
 	litest_add_no_device("device:invalid rel events", device_abs_rel);
+
+	litest_add_for_device("device:quirks", device_quirks_no_abs_mt_y, LITEST_ANKER_MOUSE_KBD);
 }

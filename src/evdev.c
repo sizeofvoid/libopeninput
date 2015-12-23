@@ -1869,7 +1869,8 @@ evdev_reject_device(struct evdev_device *device)
 	    libevdev_has_event_code(evdev, EV_REL, REL_Y))
 		return -1;
 
-	if (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_X) ^
+	if (!evdev_is_fake_mt_device(device) &&
+	    libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_X) ^
 	    libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_Y))
 		return -1;
 

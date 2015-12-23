@@ -15,6 +15,7 @@ liblitest_la_SOURCES = \
 	litest-int.h \
 	litest-device-alps-semi-mt.c \
 	litest-device-alps-dualpoint.c \
+	litest-device-anker-mouse-kbd.c \
 	litest-device-apple-internal-keyboard.c \
 	litest-device-asus-rog-gladius.c \
 	litest-device-atmel-hover.c \
