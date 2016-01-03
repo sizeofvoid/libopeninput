@@ -1536,29 +1536,37 @@ tp_dwt_pair_keyboard(struct evdev_device *touchpad,
 }
 
 static void
-tp_interface_device_added(struct evdev_device *device,
-			  struct evdev_device *added_device)
+tp_pair_trackpoint(struct evdev_device *touchpad,
+			struct evdev_device *trackpoint)
 {
-	struct tp_dispatch *tp = (struct tp_dispatch*)device->dispatch;
-	unsigned int bus_tp = libevdev_get_id_bustype(device->evdev),
-		     bus_trp = libevdev_get_id_bustype(added_device->evdev);
+	struct tp_dispatch *tp = (struct tp_dispatch*)touchpad->dispatch;
+	unsigned int bus_tp = libevdev_get_id_bustype(touchpad->evdev),
+		     bus_trp = libevdev_get_id_bustype(trackpoint->evdev);
 	bool tp_is_internal, trp_is_internal;
 
 	tp_is_internal = bus_tp != BUS_USB && bus_tp != BUS_BLUETOOTH;
 	trp_is_internal = bus_trp != BUS_USB && bus_trp != BUS_BLUETOOTH;
 
 	if (tp->buttons.trackpoint == NULL &&
-	    (added_device->tags & EVDEV_TAG_TRACKPOINT) &&
+	    (trackpoint->tags & EVDEV_TAG_TRACKPOINT) &&
 	    tp_is_internal && trp_is_internal) {
 		/* Don't send any pending releases to the new trackpoint */
 		tp->buttons.active_is_topbutton = false;
-		tp->buttons.trackpoint = added_device;
+		tp->buttons.trackpoint = trackpoint;
 		if (tp->palm.monitor_trackpoint)
-			libinput_device_add_event_listener(&added_device->base,
+			libinput_device_add_event_listener(&trackpoint->base,
 						&tp->palm.trackpoint_listener,
 						tp_trackpoint_event, tp);
 	}
+}
 
+static void
+tp_interface_device_added(struct evdev_device *device,
+			  struct evdev_device *added_device)
+{
+	struct tp_dispatch *tp = (struct tp_dispatch*)device->dispatch;
+
+	tp_pair_trackpoint(device, added_device);
 	if (added_device->tags & EVDEV_TAG_KEYBOARD)
 	    tp_dwt_pair_keyboard(device, added_device);
 
