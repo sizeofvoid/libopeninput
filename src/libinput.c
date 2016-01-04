@@ -3032,6 +3032,16 @@ libinput_event_touch_get_base_event(struct libinput_event_touch *event)
 LIBINPUT_EXPORT struct libinput_event *
 libinput_event_gesture_get_base_event(struct libinput_event_gesture *event)
 {
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   NULL,
+			   LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
+			   LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
+			   LIBINPUT_EVENT_GESTURE_SWIPE_END,
+			   LIBINPUT_EVENT_GESTURE_PINCH_BEGIN,
+			   LIBINPUT_EVENT_GESTURE_PINCH_UPDATE,
+			   LIBINPUT_EVENT_GESTURE_PINCH_END);
+
 	return &event->base;
 }
 
