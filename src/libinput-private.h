@@ -530,6 +530,10 @@ touch_notify_touch_up(struct libinput_device *device,
 		      int32_t seat_slot);
 
 void
+touch_notify_frame(struct libinput_device *device,
+		   uint64_t time);
+
+void
 gesture_notify_swipe(struct libinput_device *device,
 		     uint64_t time,
 		     enum libinput_event_type type,
@@ -559,10 +563,6 @@ gesture_notify_pinch_end(struct libinput_device *device,
 			 int finger_count,
 			 double scale,
 			 int cancelled);
-
-void
-touch_notify_frame(struct libinput_device *device,
-		   uint64_t time);
 
 void
 tablet_notify_axis(struct libinput_device *device,
