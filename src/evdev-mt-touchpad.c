@@ -1509,6 +1509,9 @@ tp_dwt_pair_keyboard(struct evdev_device *touchpad,
 	struct tp_dispatch *tp = (struct tp_dispatch*)touchpad->dispatch;
 	unsigned int bus_kbd = libevdev_get_id_bustype(keyboard->evdev);
 
+	if ((keyboard->tags & EVDEV_TAG_KEYBOARD) == 0)
+		return;
+
 	if (!tp_want_dwt(touchpad, keyboard))
 		return;
 
@@ -1544,11 +1547,13 @@ tp_pair_trackpoint(struct evdev_device *touchpad,
 		     bus_trp = libevdev_get_id_bustype(trackpoint->evdev);
 	bool tp_is_internal, trp_is_internal;
 
+	if ((trackpoint->tags & EVDEV_TAG_TRACKPOINT) == 0)
+		return;
+
 	tp_is_internal = bus_tp != BUS_USB && bus_tp != BUS_BLUETOOTH;
 	trp_is_internal = bus_trp != BUS_USB && bus_trp != BUS_BLUETOOTH;
 
 	if (tp->buttons.trackpoint == NULL &&
-	    (trackpoint->tags & EVDEV_TAG_TRACKPOINT) &&
 	    tp_is_internal && trp_is_internal) {
 		/* Don't send any pending releases to the new trackpoint */
 		tp->buttons.active_is_topbutton = false;
@@ -1567,8 +1572,7 @@ tp_interface_device_added(struct evdev_device *device,
 	struct tp_dispatch *tp = (struct tp_dispatch*)device->dispatch;
 
 	tp_pair_trackpoint(device, added_device);
-	if (added_device->tags & EVDEV_TAG_KEYBOARD)
-	    tp_dwt_pair_keyboard(device, added_device);
+	tp_dwt_pair_keyboard(device, added_device);
 
 	if (tp->sendevents.current_mode !=
 	    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE)
