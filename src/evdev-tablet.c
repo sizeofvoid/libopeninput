@@ -1047,6 +1047,9 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 		return;
 	}
 
+	if (offset == 0)
+		return;
+
 	/* we only set a pressure offset on proximity in */
 	if (!tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY))
 		return;
