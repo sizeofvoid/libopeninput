@@ -66,8 +66,8 @@ used in relative mode, lying flat on the tablet. Movement typically follows
 the interaction normal mouse movements have, i.e. slightly lift the tool and
 place it in a separate location. The proximity detection on Wacom
 tablets however extends further than the user may lift the mouse, i.e. the
-tool may not be lifted out of physical proximity. For such tools, libinput
-provides software-emulated proximity.
+tool may not be lifted out of physical proximity. For such tools, libinput 
+provides software-emulated proximity. 
 
 @section tablet-pressure-offset Pressure offset on worn-out tools
 

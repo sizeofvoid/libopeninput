@@ -1348,8 +1348,10 @@ libinput_event_tablet_tool_get_base_event(struct libinput_event_tablet_tool *eve
  * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
- * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS and @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
+ * @note It is an application bug to call this function for events other
+ * than @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_TIP, or @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
  *
  * @param event The libinput tablet event
  * @return 1 if the axis was updated or 0 otherwise
@@ -1366,8 +1368,10 @@ libinput_event_tablet_tool_x_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
- * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS and @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
+ * @note It is an application bug to call this function for events other
+ * than @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_TIP, or @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
  *
  * @param event The libinput tablet event
  * @return 1 if the axis was updated or 0 otherwise
@@ -1384,8 +1388,10 @@ libinput_event_tablet_tool_y_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
- * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS and @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
+ * @note It is an application bug to call this function for events other
+ * than @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_TIP, or @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
  *
  * @param event The libinput tablet event
  * @return 1 if the axis was updated or 0 otherwise
@@ -1401,9 +1407,13 @@ libinput_event_tablet_tool_pressure_has_changed(
  * For tablet events that are not of type @ref
  * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
+ * For tablet events of type @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this
+ * function always returns 1.
  *
- * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS and @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
+ * @note It is an application bug to call this function for events other
+ * than @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_TIP, or @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
  *
  * @param event The libinput tablet event
  * @return 1 if the axis was updated or 0 otherwise
@@ -1420,8 +1430,10 @@ libinput_event_tablet_tool_distance_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
- * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS and @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
+ * @note It is an application bug to call this function for events other
+ * than @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_TIP, or @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
  *
  * @param event The libinput tablet event
  * @return 1 if the axis was updated or 0 otherwise
@@ -1438,8 +1450,10 @@ libinput_event_tablet_tool_tilt_x_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
- * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS and @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
+ * @note It is an application bug to call this function for events other
+ * than @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_TIP, or @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
  *
  * @param event The libinput tablet event
  * @return 1 if the axis was updated or 0 otherwise
@@ -1455,8 +1469,10 @@ libinput_event_tablet_tool_tilt_y_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
- * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS and @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
+ * @note It is an application bug to call this function for events other
+ * than @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_TIP, or @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
  *
  * @param event The libinput tablet event
  * @return 1 if the axis was updated or 0 otherwise
@@ -1472,8 +1488,10 @@ libinput_event_tablet_tool_rotation_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
- * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS and @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
+ * @note It is an application bug to call this function for events other
+ * than @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_TIP, or @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
  *
  * @param event The libinput tablet event
  * @return 1 if the axis was updated or 0 otherwise
@@ -1489,8 +1507,10 @@ libinput_event_tablet_tool_slider_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
- * @note It is an application bug to call this function for events other than
- * @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS and @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
+ * @note It is an application bug to call this function for events other
+ * than @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_TIP, or @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY.
  *
  * @param event The libinput tablet event
  * @return 1 if the axis was updated or 0 otherwise
