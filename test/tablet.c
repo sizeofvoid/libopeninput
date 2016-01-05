@@ -100,7 +100,7 @@ START_TEST(tip_down_prox_in)
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	ck_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tablet_event),
-			 LIBINPUT_TABLET_TOOL_PROXIMITY_IN);
+			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 	libinput_event_destroy(event);
 
 	libinput_dispatch(li);
@@ -150,7 +150,7 @@ START_TEST(tip_up_prox_out)
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	ck_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tablet_event),
-			 LIBINPUT_TABLET_TOOL_PROXIMITY_OUT);
+			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
@@ -601,7 +601,7 @@ START_TEST(proximity_in_out)
 				libinput_event_get_tablet_tool_event(event);
 
 			if (libinput_event_tablet_tool_get_proximity_state(t) ==
-			    LIBINPUT_TABLET_TOOL_PROXIMITY_OUT)
+			    LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT)
 				have_proximity_out = true;
 		}
 
@@ -641,7 +641,7 @@ START_TEST(proximity_in_button_down)
 	libinput_dispatch(li);
 
 	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_IN);
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 	litest_assert_tablet_button_event(li,
 					  BTN_STYLUS,
 					  LIBINPUT_BUTTON_STATE_PRESSED);
@@ -674,7 +674,7 @@ START_TEST(proximity_out_button_up)
 					  BTN_STYLUS,
 					  LIBINPUT_BUTTON_STATE_RELEASED);
 	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_OUT);
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -892,13 +892,13 @@ START_TEST(proximity_range_enter)
 	libinput_dispatch(li);
 
 	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_IN);
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 
 	litest_axis_set_value(axes, ABS_DISTANCE, 90);
 	litest_tablet_motion(dev, 10, 10, axes);
 	libinput_dispatch(li);
 	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_OUT);
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 
 	litest_tablet_proximity_out(dev);
 	litest_assert_empty_queue(li);
@@ -927,13 +927,13 @@ START_TEST(proximity_range_in_out)
 	litest_pop_event_frame(dev);
 	libinput_dispatch(li);
 	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_IN);
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 
 	litest_axis_set_value(axes, ABS_DISTANCE, 90);
 	litest_tablet_motion(dev, 10, 10, axes);
 	libinput_dispatch(li);
 	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_OUT);
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 
 	litest_tablet_motion(dev, 30, 30, axes);
 	litest_assert_empty_queue(li);
@@ -942,11 +942,11 @@ START_TEST(proximity_range_in_out)
 	litest_tablet_motion(dev, 10, 10, axes);
 	libinput_dispatch(li);
 	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_IN);
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 
 	litest_tablet_proximity_out(dev);
 	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_OUT);
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -1022,7 +1022,7 @@ START_TEST(proximity_range_button_press)
 					  BTN_STYLUS,
 					  LIBINPUT_BUTTON_STATE_RELEASED);
 	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_OUT);
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 
 	litest_event(dev, EV_KEY, BTN_STYLUS, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -1062,7 +1062,7 @@ START_TEST(proximity_range_button_release)
 	libinput_dispatch(li);
 
 	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_IN);
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 	/* expect fake button press */
 	litest_assert_tablet_button_event(li,
 					  BTN_STYLUS,
@@ -1078,7 +1078,7 @@ START_TEST(proximity_range_button_release)
 
 	litest_tablet_proximity_out(dev);
 	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_OUT);
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 }
 END_TEST
 

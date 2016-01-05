@@ -449,10 +449,10 @@ print_proximity_event(struct libinput_event *ev)
 
 	print_event_time(libinput_event_tablet_tool_get_time(t));
 
-	if (state == LIBINPUT_TABLET_TOOL_PROXIMITY_IN) {
+	if (state == LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN) {
 		print_tablet_axes(t);
 		state_str = "proximity-in";
-	} else if (state == LIBINPUT_TABLET_TOOL_PROXIMITY_OUT) {
+	} else if (state == LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT) {
 		state_str = "proximity-out";
 		printf("\t");
 	} else {
