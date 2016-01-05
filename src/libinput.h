@@ -145,6 +145,9 @@ enum libinput_pointer_axis_source {
  * rather than coming from the device directly. Depending on the hardware it
  * is possible to track the same physical tool across multiple
  * struct libinput_device devices, see @ref tablet-serial-numbers.
+ *
+ * This struct is refcounted, use libinput_tablet_tool_ref() and
+ * libinput_tablet_tool_unref().
  */
 struct libinput_tablet_tool;
 
@@ -1530,7 +1533,7 @@ libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event);
  * Returns the current pressure being applied on the tool in use, normalized
  * to the range [0, 1].
  *
- * If this axis does not exist on the device, this function returns 0.
+ * If this axis does not exist on the current tool, this function returns 0.
  *
  * @param event The libinput tablet event
  * @return The current value of the the axis
@@ -1544,7 +1547,7 @@ libinput_event_tablet_tool_get_pressure(struct libinput_event_tablet_tool *event
  * Returns the current distance from the tablet's sensor, normalized to the
  * range [0, 1].
  *
- * If this axis does not exist on the device, this function returns 0.
+ * If this axis does not exist on the current tool, this function returns 0.
  *
  * @param event The libinput tablet event
  * @return The current value of the the axis
@@ -1558,7 +1561,7 @@ libinput_event_tablet_tool_get_distance(struct libinput_event_tablet_tool *event
  * Returns the current tilt along the X axis of the tablet's current logical
  * orientation, normalized to the range [-1, 1].
  *
- * If this axis does not exist on the device, this function returns 0.
+ * If this axis does not exist on the current tool, this function returns 0.
  *
  * @param event The libinput tablet event
  * @return The current value of the the axis
@@ -1572,7 +1575,7 @@ libinput_event_tablet_tool_get_tilt_x(struct libinput_event_tablet_tool *event);
  * Returns the current tilt along the Y axis of the tablet's current logical
  * orientation, normalized to the range [-1, 1].
  *
- * If this axis does not exist on the device, this function returns 0.
+ * If this axis does not exist on the current tool, this function returns 0.
  *
  * @param event The libinput tablet event
  * @return The current value of the the axis
@@ -1592,7 +1595,7 @@ libinput_event_tablet_tool_get_tilt_y(struct libinput_event_tablet_tool *event);
  * LIBINPUT_TABLET_TOOL_TYPE_BRUSH, the logical neutral position is with the
  * buttons pointing up.
  *
- * If this axis does not exist on the device, this function returns 0.
+ * If this axis does not exist on the current tool, this function returns 0.
  *
  * @param event The libinput tablet event
  * @return The current value of the the axis
@@ -1608,7 +1611,7 @@ libinput_event_tablet_tool_get_rotation(struct libinput_event_tablet_tool *event
  * the logical center of the axis. This axis is available on e.g. the Wacom
  * Airbrush.
  *
- * If this axis does not exist on the device, this function returns 0.
+ * If this axis does not exist on the current tool, this function returns 0.
  *
  * @param event The libinput tablet event
  * @return The current value of the the axis
@@ -1684,12 +1687,12 @@ libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *
  * @ingroup event_tablet
  *
  * Returns the tool that was in use during this event.
- * By default, a struct libinput_tablet_tool is created on proximity in and
- * destroyed on proximity out. The lifetime of the tool may be extended by
- * using libinput_tablet_tool_ref() to increment the reference count of the
- * tool. This guarantees that the same struct will be used whenever the same
- * physical tool comes back into proximity.
  *
+ * If the caller holds at least one reference (see
+ * libinput_tablet_tool_ref()), this struct is used whenever the
+ * tools enters proximity. Otherwise, if no references remain when the tool
+ * leaves proximity, the tool may be destroyed.
+  *
  * @note Physical tool tracking requires hardware support. If unavailable,
  * libinput creates one tool per type per tablet. See @ref
  * tablet-serial-numbers for more details.
@@ -1795,7 +1798,8 @@ libinput_event_tablet_tool_get_time_usec(struct libinput_event_tablet_tool *even
 /**
  * @ingroup event_tablet
  *
- * Return the type of tool type for a tool object
+ * Return the type of tool type for a tool object, see @ref
+ * tablet-tool-types for details.
  *
  * @param tool The libinput tool
  * @return The tool type for this tool object
@@ -1810,7 +1814,8 @@ libinput_tablet_tool_get_type(struct libinput_tablet_tool *tool);
  *
  * Return the tool ID for a tool object. If nonzero, this number identifies
  * the specific type of the tool with more precision than the type returned in
- * libinput_tablet_tool_get_type(). Not all tablets support a tool ID.
+ * libinput_tablet_tool_get_type(), see @ref tablet-tool-types. Not all
+ * tablets support a tool ID.
  *
  * Tablets known to support tool IDs include the Wacom Intuos 3, 4, 5, Wacom
  * Cintiq and Wacom Intuos Pro series.
@@ -1831,6 +1836,8 @@ libinput_tablet_tool_get_tool_id(struct libinput_tablet_tool *tool);
  *
  * @param tool The tool to increment the ref count of
  * @return The passed tool
+ *
+ * @see libinput_tablet_tool_unref
  */
 struct libinput_tablet_tool *
 libinput_tablet_tool_ref(struct libinput_tablet_tool *tool);
@@ -1843,6 +1850,8 @@ libinput_tablet_tool_ref(struct libinput_tablet_tool *tool);
  *
  * @param tool The tool to decrement the ref count of
  * @return NULL if the tool was destroyed otherwise the passed tool
+ *
+ * @see libinput_tablet_tool_ref
  */
 struct libinput_tablet_tool *
 libinput_tablet_tool_unref(struct libinput_tablet_tool *tool);
@@ -1939,6 +1948,8 @@ libinput_tablet_tool_has_button(struct libinput_tablet_tool *tool,
  *
  * @param tool A tablet tool
  * @return 1 if the tool can be uniquely identified, 0 otherwise.
+ *
+ * @see libinput_tablet_tool_get_serial
  */
 int
 libinput_tablet_tool_is_unique(struct libinput_tablet_tool *tool);
@@ -1947,10 +1958,13 @@ libinput_tablet_tool_is_unique(struct libinput_tablet_tool *tool);
  * @ingroup event_tablet
  *
  * Return the serial number of a tool. If the tool does not report a serial
- * number, this function returns zero.
+ * number, this function returns zero. See @ref tablet-serial-numbers for
+ * details.
  *
  * @param tool The libinput tool
  * @return The tool serial number
+ *
+ * @see libinput_tablet_tool_is_unique
  */
 uint64_t
 libinput_tablet_tool_get_serial(struct libinput_tablet_tool *tool);
