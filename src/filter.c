@@ -163,6 +163,13 @@ struct pointer_accelerator_flat {
 	double dpi_factor;
 };
 
+struct tablet_accelerator_flat {
+	struct motion_filter base;
+
+	double factor;
+	int xres, yres;
+};
+
 static void
 feed_trackers(struct pointer_accelerator *accel,
 	      const struct normalized_coords *delta,
@@ -961,6 +968,93 @@ create_pointer_accelerator_filter_flat(int dpi)
 
 	filter->base.interface = &accelerator_interface_flat;
 	filter->dpi_factor = dpi/(double)DEFAULT_MOUSE_DPI;
+
+	return &filter->base;
+}
+
+/* The tablet accel code uses mm as input */
+static struct normalized_coords
+tablet_accelerator_filter_flat(struct motion_filter *filter,
+			       const struct normalized_coords *mm,
+			       void *data, uint64_t time)
+{
+	struct tablet_accelerator_flat *accel_filter =
+		(struct tablet_accelerator_flat *)filter;
+	struct normalized_coords accelerated;
+
+	/* Tablet input is in mm, output is supposed to be in logical
+	 * pixels roughly equivalent to a mouse/touchpad.
+	 *
+	 * This is a magical constant found by trial and error. On a 96dpi
+	 * screen 0.4mm of movement correspond to 1px logical pixel which
+	 * is almost identical to the tablet mapped to screen in absolute
+	 * mode. Tested on a Intuos5, other tablets may vary.
+	 */
+	const double DPI_CONVERSION = 96.0/25.4 * 2.5; /* unitless factor */
+
+	accelerated.x = mm->x * accel_filter->factor * DPI_CONVERSION;
+	accelerated.y = mm->y * accel_filter->factor * DPI_CONVERSION;
+
+	return accelerated;
+}
+
+static bool
+tablet_accelerator_set_speed(struct motion_filter *filter,
+			     double speed_adjustment)
+{
+	struct tablet_accelerator_flat *accel_filter =
+		(struct tablet_accelerator_flat *)filter;
+
+	assert(speed_adjustment >= -1.0 && speed_adjustment <= 1.0);
+
+	accel_filter->factor = speed_adjustment + 1.0;
+
+	return true;
+}
+
+static void
+tablet_accelerator_destroy(struct motion_filter *filter)
+{
+	struct tablet_accelerator_flat *accel_filter =
+		(struct tablet_accelerator_flat *)filter;
+
+	free(accel_filter);
+}
+
+struct motion_filter_interface accelerator_interface_tablet = {
+	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT,
+	.filter = tablet_accelerator_filter_flat,
+	.filter_constant = NULL,
+	.restart = NULL,
+	.destroy = tablet_accelerator_destroy,
+	.set_speed = tablet_accelerator_set_speed,
+};
+
+static struct tablet_accelerator_flat *
+create_tablet_filter_flat(int xres, int yres)
+{
+	struct tablet_accelerator_flat *filter;
+
+	filter = zalloc(sizeof *filter);
+	if (filter == NULL)
+		return NULL;
+
+	filter->xres = xres;
+	filter->yres = yres;
+
+	return filter;
+}
+
+struct motion_filter *
+create_pointer_accelerator_filter_tablet(int xres, int yres)
+{
+	struct tablet_accelerator_flat *filter;
+
+	filter = create_tablet_filter_flat(xres, yres);
+	if (!filter)
+		return NULL;
+
+	filter->base.interface = &accelerator_interface_tablet;
 
 	return &filter->base;
 }

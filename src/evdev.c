@@ -222,6 +222,19 @@ evdev_transform_absolute(struct evdev_device *device,
 	matrix_mult_vec(&device->abs.calibration, &point->x, &point->y);
 }
 
+void
+evdev_transform_relative(struct evdev_device *device,
+			 struct device_coords *point)
+{
+	struct matrix rel_matrix;
+
+	if (!device->abs.apply_calibration)
+		return;
+
+	matrix_to_relative(&rel_matrix, &device->abs.calibration);
+	matrix_mult_vec(&rel_matrix, &point->x, &point->y);
+}
+
 static inline double
 scale_axis(const struct input_absinfo *absinfo, double val, double to_range)
 {

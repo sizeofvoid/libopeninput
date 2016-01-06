@@ -124,4 +124,10 @@ velocity of the pointer and each delta (dx, dy) results in an accelerated delta
 (dx * factor, dy * factor). This provides 1:1 movement between the device
 and the pointer on-screen.
 
+@section ptraccel-tablet Pointer acceleration on tablets
+
+Pointer acceleration for relative motion on tablet devices is a flat
+acceleration, with the speed seeting slowing down or speeding up the pointer
+motion by a constant factor. Tablets do not allow for switchable profiles.
+
 */

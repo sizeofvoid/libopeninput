@@ -270,6 +270,16 @@ matrix_to_farray6(const struct matrix *m, float out[6])
 	out[5] = m->val[1][2];
 }
 
+static inline void
+matrix_to_relative(struct matrix *dest, const struct matrix *src)
+{
+	matrix_init_identity(dest);
+	dest->val[0][0] = src->val[0][0];
+	dest->val[0][1] = src->val[0][1];
+	dest->val[1][0] = src->val[1][0];
+	dest->val[1][1] = src->val[1][1];
+}
+
 /**
  * Simple wrapper for asprintf that ensures the passed in-pointer is set
  * to NULL upon error.

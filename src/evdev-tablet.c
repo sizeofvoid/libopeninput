@@ -285,19 +285,29 @@ normalize_wheel(struct tablet_dispatch *tablet,
 	return value * device->scroll.wheel_click_angle;
 }
 
-static inline struct device_coords
-tablet_handle_xy(struct tablet_dispatch *tablet, struct evdev_device *device)
+static inline void
+tablet_handle_xy(struct tablet_dispatch *tablet,
+		 struct evdev_device *device,
+		 struct device_coords *point_out,
+		 struct device_coords *delta_out)
 {
 	struct device_coords point;
+	struct device_coords delta = { 0, 0 };
 	const struct input_absinfo *absinfo;
+	int value;
 
 	if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_X)) {
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_X);
 
 		if (device->left_handed.enabled)
-			tablet->axes.point.x = invert_axis(absinfo);
+			value = invert_axis(absinfo);
 		else
-			tablet->axes.point.x = absinfo->value;
+			value = absinfo->value;
+
+		if (!tablet_has_status(tablet,
+				       TABLET_TOOL_ENTERING_PROXIMITY))
+			delta.x = value - tablet->axes.point.x;
+		tablet->axes.point.x = value;
 	}
 	point.x = tablet->axes.point.x;
 
@@ -305,15 +315,41 @@ tablet_handle_xy(struct tablet_dispatch *tablet, struct evdev_device *device)
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_Y);
 
 		if (device->left_handed.enabled)
-			tablet->axes.point.y = invert_axis(absinfo);
+			value = invert_axis(absinfo);
 		else
-			tablet->axes.point.y = absinfo->value;
+			value = absinfo->value;
+
+		if (!tablet_has_status(tablet,
+				       TABLET_TOOL_ENTERING_PROXIMITY))
+			delta.y = value - tablet->axes.point.y;
+		tablet->axes.point.y = value;
 	}
 	point.y = tablet->axes.point.y;
 
 	evdev_transform_absolute(device, &point);
+	evdev_transform_relative(device, &delta);
 
-	return point;
+	*delta_out = delta;
+	*point_out = point;
+}
+
+static inline struct normalized_coords
+tablet_process_delta(struct tablet_dispatch *tablet,
+		     const struct evdev_device *device,
+		     const struct device_coords *delta,
+		     uint64_t time)
+{
+	struct normalized_coords accel;
+
+	/* The tablet accel code uses mm as input */
+	accel.x = 1.0 * delta->x/device->abs.absinfo_x->resolution;
+	accel.y = 1.0 * delta->y/device->abs.absinfo_y->resolution;
+
+	if (normalized_is_zero(accel))
+		return accel;
+
+	return filter_dispatch(device->pointer.filter,
+			       &accel, tablet, time);
 }
 
 static inline double
@@ -445,19 +481,22 @@ static bool
 tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			 struct evdev_device *device,
 			 struct libinput_tablet_tool *tool,
-			 struct tablet_axes *axes_out)
+			 struct tablet_axes *axes_out,
+			 uint64_t time)
 {
 	struct tablet_axes axes = {0};
 	const char tmp[sizeof(tablet->changed_axes)] = {0};
+	struct device_coords delta;
 
 	if (memcmp(tmp, tablet->changed_axes, sizeof(tmp)) == 0)
 		return false;
 
-	axes.point = tablet_handle_xy(tablet, device);
+	tablet_handle_xy(tablet, device, &axes.point, &delta);
 	axes.pressure = tablet_handle_pressure(tablet, device, tool);
 	axes.distance = tablet_handle_distance(tablet, device);
 	axes.slider = tablet_handle_slider(tablet, device);
 	axes.tilt = tablet_handle_tilt(tablet, device);
+	axes.delta = tablet_process_delta(tablet, device, &delta, time);
 
 	/* We must check ROTATION_Z after TILT_X/Y so that the tilt axes are
 	 * already normalized and set if we have the mouse/lens tool */
@@ -1186,7 +1225,8 @@ tablet_send_axis_proximity_tip_down_events(struct tablet_dispatch *tablet,
 	} else if (!tablet_check_notify_axes(tablet,
 					     device,
 					     tool,
-					     &axes)) {
+					     &axes,
+					     time)) {
 		goto out;
 	}
 
@@ -1463,11 +1503,64 @@ tablet_init_proximity_threshold(struct tablet_dispatch *tablet,
 	tablet->cursor_proximity_threshold = 42;
 }
 
+static uint32_t
+tablet_accel_config_get_profiles(struct libinput_device *libinput_device)
+{
+	return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
+}
+
+static enum libinput_config_status
+tablet_accel_config_set_profile(struct libinput_device *libinput_device,
+			    enum libinput_config_accel_profile profile)
+{
+	return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+}
+
+static enum libinput_config_accel_profile
+tablet_accel_config_get_profile(struct libinput_device *libinput_device)
+{
+	return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
+}
+
+static enum libinput_config_accel_profile
+tablet_accel_config_get_default_profile(struct libinput_device *libinput_device)
+{
+	return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
+}
+
+static int
+tablet_init_accel(struct tablet_dispatch *tablet, struct evdev_device *device)
+{
+	const struct input_absinfo *x, *y;
+	struct motion_filter *filter;
+	int rc;
+
+	x = device->abs.absinfo_x;
+	y = device->abs.absinfo_y;
+
+	filter = create_pointer_accelerator_filter_tablet(x->resolution,
+							  y->resolution);
+
+	rc = evdev_device_init_pointer_acceleration(device, filter);
+	if (rc != 0)
+		return rc;
+
+	/* we override the profile hooks for accel configuration with hooks
+	 * that don't allow selection of profiles */
+	device->pointer.config.get_profiles = tablet_accel_config_get_profiles;
+	device->pointer.config.set_profile = tablet_accel_config_set_profile;
+	device->pointer.config.get_profile = tablet_accel_config_get_profile;
+	device->pointer.config.get_default_profile = tablet_accel_config_get_default_profile;
+
+	return 0;
+}
+
 static int
 tablet_init(struct tablet_dispatch *tablet,
 	    struct evdev_device *device)
 {
 	enum libinput_tablet_tool_axis axis;
+	int rc;
 
 	tablet->base.interface = &tablet_interface;
 	tablet->device = device;
@@ -1477,6 +1570,9 @@ tablet_init(struct tablet_dispatch *tablet,
 
 	tablet_init_calibration(tablet, device);
 	tablet_init_proximity_threshold(tablet, device);
+	rc = tablet_init_accel(tablet, device);
+	if (rc != 0)
+		return rc;
 
 	for (axis = LIBINPUT_TABLET_TOOL_AXIS_X;
 	     axis <= LIBINPUT_TABLET_TOOL_AXIS_MAX;

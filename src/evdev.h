@@ -293,6 +293,10 @@ evdev_transform_absolute(struct evdev_device *device,
 			 struct device_coords *point);
 
 void
+evdev_transform_relative(struct evdev_device *device,
+			 struct device_coords *point);
+
+void
 evdev_init_calibration(struct evdev_device *device,
 		       struct evdev_dispatch *dispatch);
 
