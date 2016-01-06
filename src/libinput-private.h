@@ -69,6 +69,17 @@ struct threshold {
 	int lower;
 };
 
+struct tablet_axes {
+	struct device_coords point;
+	double distance;
+	double pressure;
+	struct normalized_range_coords tilt;
+	double rotation;
+	double slider;
+	double wheel;
+	int wheel_discrete;
+};
+
 struct libinput_interface_backend {
 	int (*resume)(struct libinput *libinput);
 	void (*suspend)(struct libinput *libinput);
@@ -493,8 +504,7 @@ tablet_notify_axis(struct libinput_device *device,
 		   struct libinput_tablet_tool *tool,
 		   enum libinput_tablet_tool_tip_state tip_state,
 		   unsigned char *changed_axes,
-		   double *axes,
-		   int wheel_discrete);
+		   const struct tablet_axes *axes);
 
 void
 tablet_notify_proximity(struct libinput_device *device,
@@ -502,7 +512,7 @@ tablet_notify_proximity(struct libinput_device *device,
 			struct libinput_tablet_tool *tool,
 			enum libinput_tablet_tool_proximity_state state,
 			unsigned char *changed_axes,
-			double *axes);
+			const struct tablet_axes *axes);
 
 void
 tablet_notify_tip(struct libinput_device *device,
@@ -510,14 +520,14 @@ tablet_notify_tip(struct libinput_device *device,
 		  struct libinput_tablet_tool *tool,
 		  enum libinput_tablet_tool_tip_state tip_state,
 		  unsigned char *changed_axes,
-		  double *axes);
+		  const struct tablet_axes *axes);
 
 void
 tablet_notify_button(struct libinput_device *device,
 		     uint64_t time,
 		     struct libinput_tablet_tool *tool,
 		     enum libinput_tablet_tool_tip_state tip_state,
-		     double *axes,
+		     const struct tablet_axes *axes,
 		     int32_t button,
 		     enum libinput_button_state state);
 

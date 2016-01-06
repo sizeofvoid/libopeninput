@@ -131,9 +131,7 @@ struct libinput_event_tablet_tool {
 	enum libinput_button_state state;
 	uint32_t seat_button_count;
 	uint64_t time;
-	double axes[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1];
-	double wheel_delta;
-	int wheel_discrete;
+	struct tablet_axes axes;
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];
 	struct libinput_tablet_tool *tool;
 	enum libinput_tablet_tool_proximity_state proximity_state;
@@ -1056,9 +1054,8 @@ libinput_event_tablet_tool_wheel_has_changed(
 			  LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL);
 }
 
-static double
-libinput_event_tablet_tool_get_axis_value(struct libinput_event_tablet_tool *event,
-				     enum libinput_tablet_tool_axis axis)
+LIBINPUT_EXPORT double
+libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event)
 {
 	struct evdev_device *device =
 		(struct evdev_device *) event->base.device;
@@ -1071,80 +1068,103 @@ libinput_event_tablet_tool_get_axis_value(struct libinput_event_tablet_tool *eve
 			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	switch(axis) {
-		case LIBINPUT_TABLET_TOOL_AXIS_X:
-			return evdev_convert_to_mm(device->abs.absinfo_x,
-						   event->axes[axis]);
-		case LIBINPUT_TABLET_TOOL_AXIS_Y:
-			return evdev_convert_to_mm(device->abs.absinfo_y,
-						   event->axes[axis]);
-		case LIBINPUT_TABLET_TOOL_AXIS_DISTANCE:
-		case LIBINPUT_TABLET_TOOL_AXIS_PRESSURE:
-		case LIBINPUT_TABLET_TOOL_AXIS_TILT_X:
-		case LIBINPUT_TABLET_TOOL_AXIS_TILT_Y:
-		case LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z:
-		case LIBINPUT_TABLET_TOOL_AXIS_SLIDER:
-		case LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL:
-			return event->axes[axis];
-		default:
-			return 0;
-	}
-}
-
-LIBINPUT_EXPORT double
-libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event)
-{
-	return libinput_event_tablet_tool_get_axis_value(event,
-				LIBINPUT_TABLET_TOOL_AXIS_X);
+	return evdev_convert_to_mm(device->abs.absinfo_x,
+				   event->axes.point.x);
 }
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event)
 {
-	return libinput_event_tablet_tool_get_axis_value(event,
-				LIBINPUT_TABLET_TOOL_AXIS_Y);
+	struct evdev_device *device =
+		(struct evdev_device *) event->base.device;
+
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return evdev_convert_to_mm(device->abs.absinfo_y,
+				   event->axes.point.y);
 }
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_pressure(struct libinput_event_tablet_tool *event)
 {
-	return libinput_event_tablet_tool_get_axis_value(event,
-				LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return event->axes.pressure;
 }
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_distance(struct libinput_event_tablet_tool *event)
 {
-	return libinput_event_tablet_tool_get_axis_value(event,
-				LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return event->axes.distance;
 }
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_tilt_x(struct libinput_event_tablet_tool *event)
 {
-	return libinput_event_tablet_tool_get_axis_value(event,
-				LIBINPUT_TABLET_TOOL_AXIS_TILT_X);
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return event->axes.tilt.x;
 }
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_tilt_y(struct libinput_event_tablet_tool *event)
 {
-	return libinput_event_tablet_tool_get_axis_value(event,
-				LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return event->axes.tilt.y;
 }
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_rotation(struct libinput_event_tablet_tool *event)
 {
-	return libinput_event_tablet_tool_get_axis_value(event,
-				LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return event->axes.rotation;
 }
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_slider_position(struct libinput_event_tablet_tool *event)
 {
-	return libinput_event_tablet_tool_get_axis_value(event,
-				LIBINPUT_TABLET_TOOL_AXIS_SLIDER);
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return event->axes.slider;
 }
 
 LIBINPUT_EXPORT double
@@ -1157,8 +1177,7 @@ libinput_event_tablet_tool_get_wheel_delta(struct libinput_event_tablet_tool *ev
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	return  libinput_event_tablet_tool_get_axis_value(event,
-				LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL);
+	return event->axes.wheel;
 }
 
 LIBINPUT_EXPORT int
@@ -1172,7 +1191,7 @@ libinput_event_tablet_tool_get_wheel_delta_discrete(
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	return event->wheel_discrete;
+	return event->axes.wheel_discrete;
 }
 
 LIBINPUT_EXPORT double
@@ -1191,7 +1210,7 @@ libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return evdev_device_transform_x(device,
-					event->axes[LIBINPUT_TABLET_TOOL_AXIS_X],
+					event->axes.point.x,
 					width);
 }
 
@@ -1211,7 +1230,7 @@ libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return evdev_device_transform_y(device,
-					event->axes[LIBINPUT_TABLET_TOOL_AXIS_Y],
+					event->axes.point.y,
 					height);
 }
 
@@ -2170,8 +2189,7 @@ tablet_notify_axis(struct libinput_device *device,
 		   struct libinput_tablet_tool *tool,
 		   enum libinput_tablet_tool_tip_state tip_state,
 		   unsigned char *changed_axes,
-		   double *axes,
-		   int wheel_discrete)
+		   const struct tablet_axes *axes)
 {
 	struct libinput_event_tablet_tool *axis_event;
 
@@ -2184,13 +2202,12 @@ tablet_notify_axis(struct libinput_device *device,
 		.tool = tool,
 		.proximity_state = LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN,
 		.tip_state = tip_state,
-		.wheel_discrete = wheel_discrete,
+		.axes = *axes,
 	};
 
 	memcpy(axis_event->changed_axes,
 	       changed_axes,
 	       sizeof(axis_event->changed_axes));
-	memcpy(axis_event->axes, axes, sizeof(axis_event->axes));
 
 	post_device_event(device,
 			  time,
@@ -2204,7 +2221,7 @@ tablet_notify_proximity(struct libinput_device *device,
 			struct libinput_tablet_tool *tool,
 			enum libinput_tablet_tool_proximity_state proximity_state,
 			unsigned char *changed_axes,
-			double *axes)
+			const struct tablet_axes *axes)
 {
 	struct libinput_event_tablet_tool *proximity_event;
 
@@ -2217,10 +2234,8 @@ tablet_notify_proximity(struct libinput_device *device,
 		.tool = tool,
 		.tip_state = LIBINPUT_TABLET_TOOL_TIP_UP,
 		.proximity_state = proximity_state,
+		.axes = *axes,
 	};
-	memcpy(proximity_event->axes,
-	       axes,
-	       sizeof(proximity_event->axes));
 	memcpy(proximity_event->changed_axes,
 	       changed_axes,
 	       sizeof(proximity_event->changed_axes));
@@ -2239,7 +2254,7 @@ tablet_notify_tip(struct libinput_device *device,
 		  struct libinput_tablet_tool *tool,
 		  enum libinput_tablet_tool_tip_state tip_state,
 		  unsigned char *changed_axes,
-		  double *axes)
+		  const struct tablet_axes *axes)
 {
 	struct libinput_event_tablet_tool *tip_event;
 
@@ -2252,10 +2267,8 @@ tablet_notify_tip(struct libinput_device *device,
 		.tool = tool,
 		.tip_state = tip_state,
 		.proximity_state = LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN,
+		.axes = *axes,
 	};
-	memcpy(tip_event->axes,
-	       axes,
-	       sizeof(tip_event->axes));
 	memcpy(tip_event->changed_axes,
 	       changed_axes,
 	       sizeof(tip_event->changed_axes));
@@ -2271,7 +2284,7 @@ tablet_notify_button(struct libinput_device *device,
 		     uint64_t time,
 		     struct libinput_tablet_tool *tool,
 		     enum libinput_tablet_tool_tip_state tip_state,
-		     double *axes,
+		     const struct tablet_axes *axes,
 		     int32_t button,
 		     enum libinput_button_state state)
 {
@@ -2294,8 +2307,8 @@ tablet_notify_button(struct libinput_device *device,
 		.seat_button_count = seat_button_count,
 		.proximity_state = LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN,
 		.tip_state = tip_state,
+		.axes = *axes,
 	};
-	memcpy(button_event->axes, axes, sizeof(button_event->axes));
 
 	post_device_event(device,
 			  time,

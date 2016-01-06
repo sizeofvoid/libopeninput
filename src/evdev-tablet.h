@@ -53,7 +53,7 @@ struct tablet_dispatch {
 	struct evdev_device *device;
 	unsigned int status;
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];
-	double axes[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1];
+	struct tablet_axes axes;
 	double deltas[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1];
 	unsigned char axis_caps[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];
 
