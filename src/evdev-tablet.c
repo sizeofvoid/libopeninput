@@ -286,8 +286,7 @@ normalize_wheel(struct tablet_dispatch *tablet,
 }
 
 static inline struct device_coords
-tablet_handle_xy(struct tablet_dispatch *tablet,
-		      struct evdev_device *device)
+tablet_handle_xy(struct tablet_dispatch *tablet, struct evdev_device *device)
 {
 	struct device_coords point;
 	const struct input_absinfo *absinfo;
