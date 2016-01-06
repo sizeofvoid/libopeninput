@@ -430,9 +430,9 @@ tablet_handle_wheel(struct tablet_dispatch *tablet,
 
 	a = LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL;
 	if (bit_is_set(tablet->changed_axes, a)) {
-		*wheel_discrete = tablet->deltas[a];
+		*wheel_discrete = tablet->axes.wheel_discrete;
 		tablet->axes.wheel = normalize_wheel(tablet,
-						     tablet->deltas[a]);
+						     tablet->axes.wheel_discrete);
 	} else {
 		tablet->axes.wheel = 0;
 		*wheel_discrete = 0;
@@ -457,7 +457,6 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	axes.pressure = tablet_handle_pressure(tablet, device, tool);
 	axes.distance = tablet_handle_distance(tablet, device);
 	axes.slider = tablet_handle_slider(tablet, device);
-
 	axes.tilt = tablet_handle_tilt(tablet, device);
 
 	/* We must check ROTATION_Z after TILT_X/Y so that the tilt axes are
@@ -602,7 +601,7 @@ tablet_process_relative(struct tablet_dispatch *tablet,
 			break;
 		}
 		set_bit(tablet->changed_axes, axis);
-		tablet->deltas[axis] = -1 * e->value;
+		tablet->axes.wheel_discrete = -1 * e->value;
 		tablet_set_status(tablet, TABLET_AXES_UPDATED);
 		break;
 	default:

@@ -2240,8 +2240,6 @@ tablet_notify_proximity(struct libinput_device *device,
 	       changed_axes,
 	       sizeof(proximity_event->changed_axes));
 
-	/* deltas are always 0 on prox-in/out */
-
 	post_device_event(device,
 			  time,
 			  LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
