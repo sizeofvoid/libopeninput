@@ -1522,8 +1522,8 @@ libinput_event_tablet_tool_wheel_has_changed(
 /**
  * @ingroup event_tablet
  *
- * Returns the X coordinate of tablet tool, in mm from the top left corner
- * of the tablet in its current logical orientation. Use
+ * Returns the X coordinate of the tablet tool, in mm from the top left
+ * corner of the tablet in its current logical orientation. Use
  * libinput_event_tablet_tool_get_x_transformed() for transforming the axis
  * value into a different coordinate space.
  *
@@ -1536,8 +1536,8 @@ libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event);
 /**
  * @ingroup event_tablet
  *
- * Returns the Y coordinate of tablet tool, in mm from the top left corner
- * of the tablet in its current logical orientation. Use
+ * Returns the Y coordinate of the tablet tool, in mm from the top left
+ * corner of the tablet in its current logical orientation. Use
  * libinput_event_tablet_tool_get_y_transformed() for transforming the axis
  * value into a different coordinate space.
  *
