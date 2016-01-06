@@ -52,6 +52,28 @@ Note that the pressure threshold to trigger a logical tip event may be zero
 on some devices. On tools without pressure sensitivity, determining when a
 tip is down is device-specific.
 
+@section tablet-relative-motion Relative motion for tablet tools
+
+libinput calculates the relative motion vector for each event and converts
+it to the same coordinate space that a normal mouse device would use. For
+the caller, this means that the delta coordinates returned by
+libinput_event_tablet_tool_get_dx() and
+libinput_event_tablet_tool_get_dy() can be used identical to the delta
+coordinates from any other pointer event. Any resolution differences between
+the x and y axes are accommodated for, a delta of N/N represents a 45 degree
+diagonal move on the tablet.
+
+The delta coordinates are available for all tablet events, it is up to the
+caller to decide when a tool should be used in relative mode. It is
+recommended that mouse and lens cursor tool default to relative mode and
+all pen-like tools to absolute mode.
+
+If a tool in relative mode must not use pointer acceleration, callers
+should use the absolute coordinates returned by
+libinput_event_tablet_tool_get_x() and libinput_event_tablet_tool_get_y()
+and calculate the delta themselves. Callers that require exact physical
+distance should also use these functions to calculate delta movements.
+
 @section tablet-axes Special axes on tablet tools
 
 A tablet tool usually provides additional information beyond x/y positional

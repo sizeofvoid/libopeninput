@@ -1583,6 +1583,40 @@ libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event);
 /**
  * @ingroup event_tablet
  *
+ * Return the delta between the last event and the current event.
+ * If the tool employs pointer acceleration, the delta returned by this
+ * function is the accelerated delta.
+ *
+ * This value is in screen coordinate space, the delta is to be interpreted
+ * like the return value of libinput_event_pointer_get_dx().
+ * See @ref tablet-relative-motion for more details.
+ *
+ * @param event The libinput tablet event
+ * @return The relative x movement since the last event
+ */
+double
+libinput_event_tablet_tool_get_dx(struct libinput_event_tablet_tool *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return the delta between the last event and the current event.
+ * If the tool employs pointer acceleration, the delta returned by this
+ * function is the accelerated delta.
+ *
+ * This value is in screen coordinate space, the delta is to be interpreted
+ * like the return value of libinput_event_pointer_get_dx().
+ * See @ref tablet-relative-motion for more details.
+ *
+ * @param event The libinput tablet event
+ * @return The relative y movement since the last event
+ */
+double
+libinput_event_tablet_tool_get_dy(struct libinput_event_tablet_tool *event);
+
+/**
+ * @ingroup event_tablet
+ *
  * Returns the current pressure being applied on the tool in use, normalized
  * to the range [0, 1].
  *

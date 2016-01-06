@@ -1090,6 +1090,32 @@ libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event)
 }
 
 LIBINPUT_EXPORT double
+libinput_event_tablet_tool_get_dx(struct libinput_event_tablet_tool *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return event->axes.delta.x;
+}
+
+LIBINPUT_EXPORT double
+libinput_event_tablet_tool_get_dy(struct libinput_event_tablet_tool *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	return event->axes.delta.y;
+}
+
+LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_pressure(struct libinput_event_tablet_tool *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),

@@ -71,6 +71,7 @@ struct threshold {
 
 struct tablet_axes {
 	struct device_coords point;
+	struct normalized_coords delta;
 	double distance;
 	double pressure;
 	struct normalized_range_coords tilt;

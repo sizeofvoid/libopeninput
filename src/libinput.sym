@@ -194,6 +194,8 @@ LIBINPUT_TABLET_SUPPORT {
 	libinput_event_tablet_tool_tilt_y_has_changed;
 	libinput_event_tablet_tool_wheel_has_changed;
 	libinput_event_tablet_tool_slider_has_changed;
+	libinput_event_tablet_tool_get_dx;
+	libinput_event_tablet_tool_get_dy;
 	libinput_event_tablet_tool_get_x;
 	libinput_event_tablet_tool_get_y;
 	libinput_event_tablet_tool_get_pressure;

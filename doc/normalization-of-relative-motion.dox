@@ -38,6 +38,10 @@ libinput scales unaccelerated touchpad motion to the resolution of the
 touchpad's x axis, i.e. the unaccelerated value for the y axis is:
      y = (x / resolution_x) * resolution_y
 
+@section motion_normalization_tablet Normalization of tablet coordinates
+
+See @ref tablet-relative-motion
+
 @section motion_normalization_customization Setting custom DPI settings
 
 Devices usually do not advertise their resolution and libinput relies on
