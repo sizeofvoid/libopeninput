@@ -602,6 +602,9 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
 	double x, y;
 
+	x = libinput_event_tablet_tool_get_x_transformed(t, w->width);
+	y = libinput_event_tablet_tool_get_y_transformed(t, w->height);
+
 	switch (libinput_event_get_type(ev)) {
 	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
 		if (libinput_event_tablet_tool_get_proximity_state(t) ==
@@ -613,25 +616,11 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 			w->tool.x_up = 0;
 			w->tool.y_up = 0;
 		} else {
-			w->tool.x_in = libinput_event_tablet_tool_get_x_transformed(t,
-								       w->width);
-			w->tool.y_in = libinput_event_tablet_tool_get_y_transformed(t,
-								       w->height);
+			w->tool.x_in = x;
+			w->tool.y_in = y;
 		}
 		break;
-	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
-		w->tool.x = libinput_event_tablet_tool_get_x_transformed(t,
-								    w->width);
-		w->tool.y = libinput_event_tablet_tool_get_y_transformed(t,
-								    w->height);
-		w->tool.pressure = libinput_event_tablet_tool_get_pressure(t);
-		w->tool.distance = libinput_event_tablet_tool_get_distance(t);
-		w->tool.tilt_x = libinput_event_tablet_tool_get_tilt_x(t);
-		w->tool.tilt_y = libinput_event_tablet_tool_get_tilt_y(t);
-		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
-		x = libinput_event_tablet_tool_get_x_transformed(t, w->width);
-		y = libinput_event_tablet_tool_get_y_transformed(t, w->height);
 		w->tool.pressure = libinput_event_tablet_tool_get_pressure(t);
 		w->tool.distance = libinput_event_tablet_tool_get_distance(t);
 		w->tool.tilt_x = libinput_event_tablet_tool_get_tilt_x(t);
@@ -644,6 +633,14 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 			w->tool.x_up = x;
 			w->tool.y_up = y;
 		}
+		/* fallthrough */
+	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
+		w->tool.x = x;
+		w->tool.y = y;
+		w->tool.pressure = libinput_event_tablet_tool_get_pressure(t);
+		w->tool.distance = libinput_event_tablet_tool_get_distance(t);
+		w->tool.tilt_x = libinput_event_tablet_tool_get_tilt_x(t);
+		w->tool.tilt_y = libinput_event_tablet_tool_get_tilt_y(t);
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
 		break;
