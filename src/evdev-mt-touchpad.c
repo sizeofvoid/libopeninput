@@ -1496,7 +1496,8 @@ tp_init_slots(struct tp_dispatch *tp,
 	 * explanation.
 	 */
 	if (tp->semi_mt &&
-	    (device->model_flags & EVDEV_MODEL_JUMPING_SEMI_MT)) {
+	    (device->model_flags &
+	     (EVDEV_MODEL_JUMPING_SEMI_MT|EVDEV_MODEL_ELANTECH_TOUCHPAD))) {
 		tp->num_slots = 1;
 		tp->slot = 0;
 		tp->has_mt = false;
