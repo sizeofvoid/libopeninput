@@ -632,6 +632,10 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
 		x = libinput_event_tablet_tool_get_x_transformed(t, w->width);
 		y = libinput_event_tablet_tool_get_y_transformed(t, w->height);
+		w->tool.pressure = libinput_event_tablet_tool_get_pressure(t);
+		w->tool.distance = libinput_event_tablet_tool_get_distance(t);
+		w->tool.tilt_x = libinput_event_tablet_tool_get_tilt_x(t);
+		w->tool.tilt_y = libinput_event_tablet_tool_get_tilt_y(t);
 		if (libinput_event_tablet_tool_get_tip_state(t) ==
 		    LIBINPUT_TABLET_TOOL_TIP_DOWN) {
 			w->tool.x_down = x;
