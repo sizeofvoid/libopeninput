@@ -51,6 +51,10 @@ struct touch {
 	int x, y;
 };
 
+struct point {
+	double x, y;
+};
+
 struct window {
 	GtkWidget *win;
 	GtkWidget *area;
@@ -93,6 +97,12 @@ struct window {
 		double pressure;
 		double distance;
 		double tilt_x, tilt_y;
+
+		/* these are for the delta coordinates, but they're not
+		 * deltas, theyconverted into
+		 * abs positions */
+		size_t ndeltas;
+		struct point deltas[64];
 	} tool;
 
 	struct libinput_device *devices[50];
@@ -128,6 +138,8 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	struct window *w = data;
 	struct touch *t;
 	int i, offset;
+	int first, last, mask;
+	double x, y;
 
 	cairo_set_source_rgb(cr, 1, 1, 1);
 	cairo_rectangle(cr, 0, 0, w->width, w->height);
@@ -260,6 +272,26 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 		  0, 2 * M_PI);
 	cairo_fill(cr);
 	cairo_restore(cr);
+
+	/* tablet deltas */
+	mask = ARRAY_LENGTH(w->tool.deltas);
+	first = max(w->tool.ndeltas + 1, mask) - mask;
+	last = w->tool.ndeltas;
+
+	cairo_save(cr);
+	cairo_set_source_rgb(cr, .8, .8, .2);
+
+	x = w->tool.deltas[first % mask].x;
+	y = w->tool.deltas[first % mask].y;
+	cairo_move_to(cr, x, y);
+
+	for (i = first + 1; i < last; i++) {
+		x = w->tool.deltas[i % mask].x;
+		y = w->tool.deltas[i % mask].y;
+		cairo_line_to(cr, x, y);
+	}
+
+	cairo_stroke(cr);
 
 	return TRUE;
 }
@@ -601,6 +633,9 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 {
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
 	double x, y;
+	struct point point;
+	int idx;
+	const int mask = ARRAY_LENGTH(w->tool.deltas);
 
 	x = libinput_event_tablet_tool_get_x_transformed(t, w->width);
 	y = libinput_event_tablet_tool_get_y_transformed(t, w->height);
@@ -618,6 +653,9 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 		} else {
 			w->tool.x_in = x;
 			w->tool.y_in = y;
+			w->tool.ndeltas = 0;
+			w->tool.deltas[0].x = w->width/2;
+			w->tool.deltas[0].y = w->height/2;
 		}
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
@@ -641,6 +679,17 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 		w->tool.distance = libinput_event_tablet_tool_get_distance(t);
 		w->tool.tilt_x = libinput_event_tablet_tool_get_tilt_x(t);
 		w->tool.tilt_y = libinput_event_tablet_tool_get_tilt_y(t);
+
+		/* Add the delta to the last position and store them as abs
+		 * coordinates */
+		idx = w->tool.ndeltas % mask;
+		point = w->tool.deltas[idx];
+
+		idx = (w->tool.ndeltas + 1) % mask;
+		point.x += libinput_event_tablet_tool_get_dx(t);
+		point.y += libinput_event_tablet_tool_get_dy(t);
+		w->tool.deltas[idx] = point;
+		w->tool.ndeltas++;
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
 		break;
