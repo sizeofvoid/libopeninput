@@ -28,7 +28,7 @@ This normalization only applies to accelerated coordinates, unaccelerated
 coordinates are left in device-units. It is up to the caller to interpret
 those coordinates correctly.
 
-@section Normalization of touchpad coordinates
+@section motion_normalization_touchpad Normalization of touchpad coordinates
 
 Touchpads may have a different resolution for the horizontal and vertical
 axis. Interpreting coordinates from the touchpad without taking resolution
@@ -38,7 +38,7 @@ libinput scales unaccelerated touchpad motion to the resolution of the
 touchpad's x axis, i.e. the unaccelerated value for the y axis is:
      y = (x / resolution_x) * resolution_y
 
-@section Setting custom DPI settings
+@section motion_normalization_customization Setting custom DPI settings
 
 Devices usually do not advertise their resolution and libinput relies on
 the udev property <b>MOUSE_DPI</b> for this information. This property is usually
