@@ -921,6 +921,7 @@ libinput_event_tablet_tool_x_has_changed(
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return bit_is_set(event->changed_axes,
@@ -936,6 +937,7 @@ libinput_event_tablet_tool_y_has_changed(
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return bit_is_set(event->changed_axes,
@@ -951,6 +953,7 @@ libinput_event_tablet_tool_pressure_has_changed(
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return bit_is_set(event->changed_axes,
@@ -966,6 +969,7 @@ libinput_event_tablet_tool_distance_has_changed(
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return bit_is_set(event->changed_axes,
@@ -981,6 +985,7 @@ libinput_event_tablet_tool_tilt_x_has_changed(
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return bit_is_set(event->changed_axes,
@@ -996,6 +1001,7 @@ libinput_event_tablet_tool_tilt_y_has_changed(
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return bit_is_set(event->changed_axes,
@@ -1011,6 +1017,7 @@ libinput_event_tablet_tool_rotation_has_changed(
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return bit_is_set(event->changed_axes,
@@ -1026,6 +1033,7 @@ libinput_event_tablet_tool_slider_has_changed(
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return bit_is_set(event->changed_axes,
@@ -1041,6 +1049,7 @@ libinput_event_tablet_tool_wheel_has_changed(
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return bit_is_set(event->changed_axes,
@@ -1059,6 +1068,7 @@ libinput_event_tablet_tool_get_axis_value(struct libinput_event_tablet_tool *eve
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	switch(axis) {
@@ -1177,6 +1187,7 @@ libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return evdev_device_transform_x(device,
@@ -1196,6 +1207,7 @@ libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return evdev_device_transform_y(device,
