@@ -241,7 +241,7 @@ START_TEST(touchpad_1fg_multitap_n_drag_2fg)
 	int range = _i,
 	    ntaps;
 
-	if (litest_is_synaptics_semi_mt(dev))
+	if (libevdev_has_property(dev->evdev, INPUT_PROP_SEMI_MT))
 		return;
 
 	litest_enable_tap(dev->libinput_device);
