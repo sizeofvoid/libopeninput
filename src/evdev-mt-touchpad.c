@@ -743,6 +743,9 @@ tp_unhover_abs_distance(struct tp_dispatch *tp, uint64_t time)
 	for (i = 0; i < tp->ntouches; i++) {
 		t = tp_get_touch(tp, i);
 
+		if (!t->dirty)
+			continue;
+
 		if (t->state == TOUCH_HOVERING) {
 			if (t->distance == 0) {
 				/* avoid jumps when landing a finger */
