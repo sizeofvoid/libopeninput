@@ -184,18 +184,7 @@ tp_gesture_get_direction(struct tp_dispatch *tp, struct tp_touch *touch)
 {
 	struct normalized_coords normalized;
 	struct device_float_coords delta;
-	double move_threshold;
-
-	/*
-	 * Semi-mt touchpads have somewhat inaccurate coordinates when
-	 * 2 fingers are down, so use a slightly larger threshold.
-	 * Elantech semi-mt touchpads are accurate enough though.
-	 */
-	if (tp->semi_mt &&
-	    (tp->device->model_flags & EVDEV_MODEL_ELANTECH_TOUCHPAD) == 0)
-		move_threshold = TP_MM_TO_DPI_NORMALIZED(4);
-	else
-		move_threshold = TP_MM_TO_DPI_NORMALIZED(1);
+	double move_threshold = TP_MM_TO_DPI_NORMALIZED(1);
 
 	delta = device_delta(touch->point, touch->gesture.initial);
 
@@ -221,11 +210,7 @@ tp_gesture_get_pinch_info(struct tp_dispatch *tp,
 	delta = device_delta(first->point, second->point);
 	normalized = tp_normalize_delta(tp, delta);
 	*distance = normalized_length(normalized);
-
-	if (!tp->semi_mt)
-		*angle = atan2(normalized.y, normalized.x) * 180.0 / M_PI;
-	else
-		*angle = 0.0;
+	*angle = atan2(normalized.y, normalized.x) * 180.0 / M_PI;
 
 	*center = device_average(first->point, second->point);
 }
@@ -259,6 +244,9 @@ tp_gesture_twofinger_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 	tp->gesture.initial_time = time;
 	first->gesture.initial = first->point;
 	second->gesture.initial = second->point;
+
+	if (!tp->gesture.enabled)
+		return GESTURE_2FG_STATE_SCROLL;
 
 	return GESTURE_2FG_STATE_UNKNOWN;
 }
@@ -297,7 +285,7 @@ tp_gesture_twofinger_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	    ((dir2 & 0x80) && (dir1 & 0x01))) {
 		tp_gesture_set_scroll_buildup(tp);
 		return GESTURE_2FG_STATE_SCROLL;
-	} else if (tp->gesture.enabled) {
+	} else {
 		tp_gesture_get_pinch_info(tp,
 					  &tp->gesture.initial_distance,
 					  &tp->gesture.angle,
@@ -317,16 +305,7 @@ tp_gesture_twofinger_handle_state_scroll(struct tp_dispatch *tp, uint64_t time)
 	if (tp->scroll.method != LIBINPUT_CONFIG_SCROLL_2FG)
 		return GESTURE_2FG_STATE_SCROLL;
 
-	/* On some semi-mt models slot 0 is more accurate, so for semi-mt
-	 * we only use slot 0. */
-	if (tp->semi_mt) {
-		if (!tp->touches[0].dirty)
-			return GESTURE_2FG_STATE_SCROLL;
-
-		delta = tp_get_delta(&tp->touches[0]);
-	} else {
-		delta = tp_get_average_touches_delta(tp);
-	}
+	delta = tp_get_average_touches_delta(tp);
 
 	/* scroll is not accelerated */
 	delta = tp_filter_motion_unaccelerated(tp, &delta, time);
@@ -568,10 +547,10 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time)
 int
 tp_init_gesture(struct tp_dispatch *tp)
 {
-	if (tp->device->model_flags & EVDEV_MODEL_JUMPING_SEMI_MT)
-		tp->gesture.enabled = false;
-	else
-		tp->gesture.enabled = true;
+	/* two-finger scrolling is always enabled, this flag just
+	 * decides whether we detect pinch. semi-mt devices are too
+	 * unreliable to do pinch gestures. */
+	tp->gesture.enabled = !tp->semi_mt;
 
 	tp->gesture.twofinger_state = GESTURE_2FG_STATE_NONE;
 
