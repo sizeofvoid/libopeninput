@@ -782,6 +782,87 @@ START_TEST(time_conversion)
 }
 END_TEST
 
+static int open_restricted_leak(const char *path, int flags, void *data)
+{
+	return *(int*)data;
+}
+
+static void close_restricted_leak(int fd, void *data)
+{
+	/* noop */
+}
+
+const struct libinput_interface leak_interface = {
+	.open_restricted = open_restricted_leak,
+	.close_restricted = close_restricted_leak,
+};
+
+static void
+simple_log_handler(struct libinput *libinput,
+		   enum libinput_log_priority priority,
+		   const char *format,
+		   va_list args)
+{
+	vfprintf(stderr, format, args);
+}
+
+START_TEST(fd_no_event_leak)
+{
+	struct libevdev_uinput *uinput;
+	struct libinput *li;
+	struct libinput_device *device;
+	int fd = -1;
+	const char *path;
+	struct libinput_event *event;
+
+	uinput = create_simple_test_device("litest test device",
+					   EV_REL, REL_X,
+					   EV_REL, REL_Y,
+					   EV_KEY, BTN_LEFT,
+					   EV_KEY, BTN_MIDDLE,
+					   EV_KEY, BTN_LEFT,
+					   -1, -1);
+	path = libevdev_uinput_get_devnode(uinput);
+
+	fd = open(path, O_RDWR | O_NONBLOCK | O_CLOEXEC);
+	ck_assert_int_gt(fd, -1);
+
+	li = libinput_path_create_context(&leak_interface, &fd);
+	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
+	libinput_log_set_handler(li, simple_log_handler);
+
+	/* Add the device, trigger an event, then remove it again.
+	 * Without it, we get a SYN_DROPPED immediately and no events.
+	 */
+	device = libinput_path_add_device(li, path);
+	libevdev_uinput_write_event(uinput, EV_REL, REL_X, 1);
+	libevdev_uinput_write_event(uinput, EV_SYN, SYN_REPORT, 0);
+	libinput_path_remove_device(device);
+	libinput_dispatch(li);
+	litest_drain_events(li);
+
+	/* Device is removed, but fd is still open. Queue an event, add a
+	 * new device with the same fd, the queued event must be discarded
+	 * by libinput */
+	libevdev_uinput_write_event(uinput, EV_REL, REL_Y, 1);
+	libevdev_uinput_write_event(uinput, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	libinput_path_add_device(li, path);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	ck_assert_int_eq(libinput_event_get_type(event),
+			 LIBINPUT_EVENT_DEVICE_ADDED);
+	libinput_event_destroy(event);
+
+	litest_assert_empty_queue(li);
+
+	close(fd);
+	libinput_unref(li);
+	libevdev_uinput_destroy(uinput);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -805,4 +886,6 @@ litest_setup_tests(void)
 	litest_add_no_device("misc:parser", trackpoint_accel_parser);
 	litest_add_no_device("misc:parser", dimension_prop_parser);
 	litest_add_no_device("misc:time", time_conversion);
+
+	litest_add_no_device("misc:fd", fd_no_event_leak);
 }

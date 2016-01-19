@@ -3249,6 +3249,8 @@ libinput_device_config_calibration_get_default_matrix(struct libinput_device *de
 						      float matrix[6]);
 
 /**
+ * @ingroup config
+ *
  * The send-event mode of a device defines when a device may generate events
  * and pass those events to the caller.
  */

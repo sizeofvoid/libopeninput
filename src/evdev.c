@@ -1663,6 +1663,7 @@ evdev_read_model_flags(struct evdev_device *device)
 		{ "LIBINPUT_MODEL_SYNAPTICS_SERIAL_TOUCHPAD", EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD },
 		{ "LIBINPUT_MODEL_JUMPING_SEMI_MT", EVDEV_MODEL_JUMPING_SEMI_MT },
 		{ "LIBINPUT_MODEL_ELANTECH_TOUCHPAD", EVDEV_MODEL_ELANTECH_TOUCHPAD },
+		{ "LIBINPUT_MODEL_APPLE_INTERNAL_KEYBOARD", EVDEV_MODEL_APPLE_INTERNAL_KEYBOARD },
 		{ NULL, EVDEV_MODEL_DEFAULT },
 	};
 	const struct model_map *m = model_map;
@@ -1869,7 +1870,8 @@ evdev_reject_device(struct evdev_device *device)
 	    libevdev_has_event_code(evdev, EV_REL, REL_Y))
 		return -1;
 
-	if (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_X) ^
+	if (!evdev_is_fake_mt_device(device) &&
+	    libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_X) ^
 	    libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_Y))
 		return -1;
 
@@ -2223,6 +2225,17 @@ evdev_set_device_group(struct evdev_device *device,
 	return 0;
 }
 
+static inline void
+evdev_drain_fd(int fd)
+{
+	struct input_event ev[24];
+	size_t sz = sizeof ev;
+
+	while (read(fd, &ev, sz) == (int)sz) {
+		/* discard all pending events */
+	}
+}
+
 struct evdev_device *
 evdev_device_create(struct libinput_seat *seat,
 		    struct udev_device *udev_device)
@@ -2255,6 +2268,8 @@ evdev_device_create(struct libinput_seat *seat,
 
 	libinput_device_init(&device->base, seat);
 	libinput_seat_ref(seat);
+
+	evdev_drain_fd(fd);
 
 	rc = libevdev_new_from_fd(fd, &device->evdev);
 	if (rc != 0)
@@ -2704,6 +2719,8 @@ evdev_device_resume(struct evdev_device *device)
 		close_restricted(libinput, fd);
 		return -ENODEV;
 	}
+
+	evdev_drain_fd(fd);
 
 	device->fd = fd;
 

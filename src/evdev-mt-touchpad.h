@@ -227,7 +227,6 @@ struct tp_dispatch {
 	bool has_mt;
 	bool semi_mt;
 	bool reports_distance;			/* does the device support true hovering */
-	enum touchpad_model model;
 
 	unsigned int num_slots;			/* number of slots */
 	unsigned int ntouches;			/* no slots inc. fakes */
@@ -396,6 +395,7 @@ struct normalized_coords
 tp_filter_motion(struct tp_dispatch *tp,
 		 const struct normalized_coords *unaccelerated,
 		 uint64_t time);
+
 struct normalized_coords
 tp_filter_motion_unaccelerated(struct tp_dispatch *tp,
 			       const struct normalized_coords *unaccelerated,
