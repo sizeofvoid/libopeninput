@@ -169,8 +169,8 @@ START_TEST(litest_ptr_eq_notrigger)
 	int v = 10;
 	int *a = &v;
 	int *b = &v;
-	int c = NULL;
-	int d = NULL;
+	int *c = NULL;
+	int *d = NULL;
 
 	litest_assert_ptr_eq(a, b);
 	litest_assert_ptr_eq(c, d);
