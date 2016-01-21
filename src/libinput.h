@@ -59,6 +59,7 @@ enum libinput_device_capability {
 	LIBINPUT_DEVICE_CAP_POINTER = 1,
 	LIBINPUT_DEVICE_CAP_TOUCH = 2,
 	LIBINPUT_DEVICE_CAP_TABLET_TOOL = 3,
+	LIBINPUT_DEVICE_CAP_TABLET_PAD = 4,
 	LIBINPUT_DEVICE_CAP_GESTURE = 5,
 };
 
@@ -132,6 +133,36 @@ enum libinput_pointer_axis_source {
 	 * The event is caused by the motion of some device.
 	 */
 	LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
+};
+
+/**
+ * @ingroup event_tablet
+ *
+ * The source for a @ref LIBINPUT_EVENT_TABLET_PAD_RING event. See
+ * libinput_event_tablet_pad_get_ring_source() for details.
+ */
+enum libinput_tablet_pad_ring_axis_source {
+	LIBINPUT_TABLET_PAD_RING_SOURCE_UNKNOWN = 1,
+	/**
+	 * The event is caused by the movement of one or more fingers on
+	 * the ring.
+	 */
+	LIBINPUT_TABLET_PAD_RING_SOURCE_FINGER,
+};
+
+/**
+ * @ingroup event_tablet
+ *
+ * The source for a @ref LIBINPUT_EVENT_TABLET_PAD_STRIP event. See
+ * libinput_event_tablet_pad_get_strip_source() for details.
+ */
+enum libinput_tablet_pad_strip_axis_source {
+	LIBINPUT_TABLET_PAD_STRIP_SOURCE_UNKNOWN = 1,
+	/**
+	 * The event is caused by the movement of one or more fingers on
+	 * the strip.
+	 */
+	LIBINPUT_TABLET_PAD_STRIP_SOURCE_FINGER,
 };
 
 /**
@@ -336,8 +367,33 @@ enum libinput_event_type {
 	 * same logical hardware event, the order of the @ref
 	 * LIBINPUT_EVENT_TABLET_TOOL_BUTTON and @ref
 	 * LIBINPUT_EVENT_TABLET_TOOL_AXIS event is device-specific.
+	 *
+	 * This event is not to be confused with the button events emitted
+	 * by the tablet pad. See @ref LIBINPUT_EVENT_TABLET_PAD_BUTTON.
+	 *
+	 * @see LIBINPUT_EVENT_TABLET_BUTTON
 	 */
 	LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
+
+	/**
+	 * A button pressed on a device with the @ref
+	 * LIBINPUT_DEVICE_CAP_TABLET_PAD capability.
+	 *
+	 * This event is not to be confused with the button events emitted
+	 * by tools on a tablet. See @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
+	 */
+	LIBINPUT_EVENT_TABLET_PAD_BUTTON = 700,
+	/**
+	 * A status change on a tablet ring with the
+	 * LIBINPUT_DEVICE_CAP_TABLET_PAD capability.
+	 */
+	LIBINPUT_EVENT_TABLET_PAD_RING,
+
+	/**
+	 * A status change on a strip on a device with the @ref
+	 * LIBINPUT_DEVICE_CAP_TABLET_PAD capability.
+	 */
+	LIBINPUT_EVENT_TABLET_PAD_STRIP,
 
 	LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN = 800,
 	LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
@@ -444,6 +500,17 @@ struct libinput_event_touch;
  * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  */
 struct libinput_event_tablet_tool;
+
+/**
+ * @ingroup event_tablet
+ * @struct libinput_event_tablet_pad
+ *
+ * Tablet pad event representing a button press, or ring/strip update on
+ * the tablet pad itself. Valid event types for this event are @ref
+ * LIBINPUT_EVENT_TABLET_PAD_BUTTON, @ref LIBINPUT_EVENT_TABLET_PAD_RING and
+ * @ref LIBINPUT_EVENT_TABLET_PAD_STRIP.
+ */
+struct libinput_event_tablet_pad;
 
 /**
  * @defgroup event Accessing and destruction of events
@@ -565,6 +632,19 @@ libinput_event_get_gesture_event(struct libinput_event *event);
  */
 struct libinput_event_tablet_tool *
 libinput_event_get_tablet_tool_event(struct libinput_event *event);
+
+/**
+ * @ingroup event
+ *
+ * Return the tablet pad event that is this input event. If the event type does not
+ * match the tablet pad event types, this function returns NULL.
+ *
+ * The inverse of this function is libinput_event_tablet_pad_get_base_event().
+ *
+ * @return A tablet pad event, or NULL for other events
+ */
+struct libinput_event_tablet_pad *
+libinput_event_get_tablet_pad_event(struct libinput_event *event);
 
 /**
  * @ingroup event
@@ -1357,7 +1437,17 @@ libinput_event_gesture_get_angle_delta(struct libinput_event_gesture *event);
 /**
  * @defgroup event_tablet Tablet events
  *
- * Events that come from tools on tablet devices.
+ * Events that come from tools on or the pad of tablet devices.
+ *
+ * Events from tablet devices are exposed by two interfaces, tools and pads.
+ * Tool events originate (usually) from a stylus-like device, pad events
+ * reflect any events originating from the physical tablet itself.
+ *
+ * Note that many tablets support touch events. These are exposed through
+ * the @ref LIBINPUT_DEVICE_CAP_POINTER interface (for external touchpad-like
+ * devices such as the Wacom Intuos series) or @ref
+ * LIBINPUT_DEVICE_CAP_TOUCH interface (for built-in touchscreen-like
+ * devices such as the Wacom Cintiq series).
  */
 
 /**
@@ -2104,6 +2194,182 @@ libinput_tablet_tool_get_user_data(struct libinput_tablet_tool *tool);
 void
 libinput_tablet_tool_set_user_data(struct libinput_tablet_tool *tool,
 				   void *user_data);
+
+/**
+ * @ingroup event_tablet
+ *
+ * @return The generic libinput_event of this event
+ */
+struct libinput_event *
+libinput_event_tablet_pad_get_base_event(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the current position of the ring, in degrees counterclockwise
+ * from the northern-most point of the ring in the tablet's current logical
+ * orientation.
+ *
+ * If the source is @ref LIBINPUT_TABLET_PAD_RING_SOURCE_FINGER,
+ * libinput sends a terminating event with a ring value of -1 when the
+ * finger is lifted from the ring. A caller may use this information to e.g.
+ * determine if kinetic scrolling should be triggered.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_PAD_RING.  For other events, this function
+ * returns 0.
+ *
+ * @param event The libinput tablet pad event
+ * @return The current value of the the axis
+ * @retval -1 The finger was lifted
+ */
+double
+libinput_event_tablet_pad_get_ring_position(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the number of the ring that has changed state, with 0 being the
+ * first ring. On tablets with only one ring, this function always returns
+ * 0.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_PAD_RING.  For other events, this function
+ * returns 0.
+ *
+ * @param event The libinput tablet pad event
+ * @return The index of the ring that changed state
+ */
+unsigned int
+libinput_event_tablet_pad_get_ring_number(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the source of the interaction with the ring. If the source is
+ * @ref LIBINPUT_TABLET_PAD_RING_SOURCE_FINGER, libinput sends a ring
+ * position value of -1 to terminate the current interaction.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_PAD_RING.  For other events, this function
+ * returns 0.
+ *
+ * @param event The libinput tablet pad event
+ * @return The source of the ring interaction
+ */
+enum libinput_tablet_pad_ring_axis_source
+libinput_event_tablet_pad_get_ring_source(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the current position of the strip, normalized to the range
+ * [0, 1], with 0 being the top/left-most point in the tablet's current
+ * logical orientation.
+ *
+ * If the source is @ref LIBINPUT_TABLET_PAD_STRIP_SOURCE_FINGER,
+ * libinput sends a terminating event with a ring value of -1 when the
+ * finger is lifted from the ring. A caller may use this information to e.g.
+ * determine if kinetic scrolling should be triggered.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_PAD_STRIP.  For other events, this function
+ * returns 0.
+ *
+ * @param event The libinput tablet pad event
+ * @return The current value of the the axis
+ * @retval -1 The finger was lifted
+ */
+double
+libinput_event_tablet_pad_get_strip_position(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the number of the strip that has changed state, with 0 being the
+ * first strip. On tablets with only one strip, this function always returns
+ * 0.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_PAD_STRIP.  For other events, this function
+ * returns 0.
+ *
+ * @param event The libinput tablet pad event
+ * @return The index of the strip that changed state
+ */
+unsigned int
+libinput_event_tablet_pad_get_strip_number(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Returns the source of the interaction with the strip. If the source is
+ * @ref LIBINPUT_TABLET_PAD_STRIP_SOURCE_FINGER, libinput sends a strip
+ * position value of -1 to terminate the current interaction.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_PAD_STRIP.  For other events, this function
+ * returns 0.
+ *
+ * @param event The libinput tablet pad event
+ * @return The source of the strip interaction
+ */
+enum libinput_tablet_pad_strip_axis_source
+libinput_event_tablet_pad_get_strip_source(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return the button number that triggered this event, starting at 0.
+ * For events that are not of type @ref LIBINPUT_EVENT_TABLET_PAD_BUTTON,
+ * this function returns 0.
+ *
+ * Note that the number returned is a generic sequential button number and
+ * not a semantic button code as defined in linux/input.h.
+ * See @ref tablet-pad-buttons for more details.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_PAD_BUTTON. For other events, this function
+ * returns 0.
+ *
+ * @param event The libinput tablet pad event
+ * @return the button triggering this event
+ */
+uint32_t
+libinput_event_tablet_pad_get_button_number(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return the button state of the event.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_PAD_BUTTON. For other events, this function
+ * returns 0.
+ *
+ * @param event The libinput tablet pad event
+ * @return the button state triggering this event
+ */
+enum libinput_button_state
+libinput_event_tablet_pad_get_button_state(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * @param event The libinput tablet pad event
+ * @return The event time for this event
+ */
+uint32_t
+libinput_event_tablet_pad_get_time(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet
+ *
+ * @param event The libinput tablet pad event
+ * @return The event time for this event in microseconds
+ */
+uint64_t
+libinput_event_tablet_pad_get_time_usec(struct libinput_event_tablet_pad *event);
 
 /**
  * @defgroup base Initialization and manipulation of libinput contexts
@@ -2930,6 +3196,51 @@ libinput_device_pointer_has_button(struct libinput_device *device, uint32_t code
 int
 libinput_device_keyboard_has_key(struct libinput_device *device,
 				 uint32_t code);
+
+/**
+ * @ingroup device
+ *
+ * Return the number of buttons on a device with the
+ * @ref LIBINPUT_DEVICE_CAP_TABLET_PAD capability.
+ * Buttons on a pad device are numbered sequentially, see @ref
+ * tablet-pad-buttons for details.
+ *
+ * @param device A current input device
+ *
+ * @return The number of buttons supported by the device.
+ */
+int
+libinput_device_tablet_pad_get_num_buttons(struct libinput_device *device);
+
+/**
+ * @ingroup device
+ *
+ * Return the number of rings a device with the @ref
+ * LIBINPUT_DEVICE_CAP_TABLET_PAD capability provides.
+ *
+ * @param device A current input device
+ *
+ * @return The number of rings or 0 if the device has no rings.
+ *
+ * @see libinput_event_tablet_pad_get_ring_number
+ */
+int
+libinput_device_tablet_pad_get_num_rings(struct libinput_device *device);
+
+/**
+ * @ingroup device
+ *
+ * Return the number of strips a device with the @ref
+ * LIBINPUT_DEVICE_CAP_TABLET_PAD capability provides.
+ *
+ * @param device A current input device
+ *
+ * @return The number of strips or 0 if the device has no strips.
+ *
+ * @see libinput_event_tablet_pad_get_strip_number
+ */
+int
+libinput_device_tablet_pad_get_num_strips(struct libinput_device *device);
 
 /**
  * @ingroup device
