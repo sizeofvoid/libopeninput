@@ -437,9 +437,11 @@ struct libinput_event_touch;
  * @ingroup event_tablet
  * @struct libinput_event_tablet_tool
  *
- * Tablet event representing an axis update, button press, or tool update. Valid
- * event types for this event are @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
- * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY and @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
+ * Tablet tool event representing an axis update, button press, or tool
+ * update. Valid event types for this event are @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY and @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  */
 struct libinput_event_tablet_tool;
 
@@ -552,12 +554,12 @@ libinput_event_get_gesture_event(struct libinput_event *event);
 /**
  * @ingroup event
  *
- * Return the tablet event that is this input event. If the event type does not
- * match the tablet event types, this function returns NULL.
+ * Return the tablet tool event that is this input event. If the event type
+ * does not match the tablet tool event types, this function returns NULL.
  *
  * The inverse of this function is libinput_event_tablet_tool_get_base_event().
  *
- * @return A tablet event, or NULL for other events
+ * @return A tablet tool event, or NULL for other events
  */
 struct libinput_event_tablet_tool *
 libinput_event_get_tablet_tool_event(struct libinput_event *event);
@@ -1368,8 +1370,8 @@ libinput_event_tablet_tool_get_base_event(struct libinput_event_tablet_tool *eve
  * @ingroup event_tablet
  *
  * Check if the x axis was updated in this event.
- * For tablet events that are not of type @ref
- * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
+ * For events that are not of type @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
  * @note It is an application bug to call this function for events other
@@ -1378,7 +1380,7 @@ libinput_event_tablet_tool_get_base_event(struct libinput_event_tablet_tool *eve
  * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, or @ref
  * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return 1 if the axis was updated or 0 otherwise
  */
 int
@@ -1389,8 +1391,8 @@ libinput_event_tablet_tool_x_has_changed(
  * @ingroup event_tablet
  *
  * Check if the y axis was updated in this event.
- * For tablet events that are not of type @ref
- * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
+ * For events that are not of type @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
  * @note It is an application bug to call this function for events other
@@ -1399,7 +1401,7 @@ libinput_event_tablet_tool_x_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, or @ref
  * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return 1 if the axis was updated or 0 otherwise
  */
 int
@@ -1410,8 +1412,8 @@ libinput_event_tablet_tool_y_has_changed(
  * @ingroup event_tablet
  *
  * Check if the pressure axis was updated in this event.
- * For tablet events that are not of type @ref
- * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
+ * For events that are not of type @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
  * @note It is an application bug to call this function for events other
@@ -1420,7 +1422,7 @@ libinput_event_tablet_tool_y_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, or @ref
  * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return 1 if the axis was updated or 0 otherwise
  */
 int
@@ -1431,11 +1433,11 @@ libinput_event_tablet_tool_pressure_has_changed(
  * @ingroup event_tablet
  *
  * Check if the distance axis was updated in this event.
- * For tablet events that are not of type @ref
- * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
+ * For events that are not of type @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
- * For tablet events of type @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this
- * function always returns 1.
+ * For tablet tool events of type @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
+ * this function always returns 1.
  *
  * @note It is an application bug to call this function for events other
  * than @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
@@ -1443,7 +1445,7 @@ libinput_event_tablet_tool_pressure_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, or @ref
  * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return 1 if the axis was updated or 0 otherwise
  */
 int
@@ -1454,8 +1456,8 @@ libinput_event_tablet_tool_distance_has_changed(
  * @ingroup event_tablet
  *
  * Check if the tilt x axis was updated in this event.
- * For tablet events that are not of type @ref
- * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
+ * For events that are not of type @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
  * @note It is an application bug to call this function for events other
@@ -1464,7 +1466,7 @@ libinput_event_tablet_tool_distance_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, or @ref
  * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return 1 if the axis was updated or 0 otherwise
  */
 int
@@ -1475,8 +1477,8 @@ libinput_event_tablet_tool_tilt_x_has_changed(
  * @ingroup event_tablet
  *
  * Check if the tilt y axis was updated in this event.
- * For tablet events that are not of type @ref
- * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
+ * For events that are not of type @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
  * @note It is an application bug to call this function for events other
@@ -1485,7 +1487,7 @@ libinput_event_tablet_tool_tilt_x_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, or @ref
  * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return 1 if the axis was updated or 0 otherwise
  */
 int
@@ -1495,8 +1497,8 @@ libinput_event_tablet_tool_tilt_y_has_changed(
  * @ingroup event_tablet
  *
  * Check if the z-rotation axis was updated in this event.
- * For tablet events that are not of type @ref
- * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
+ * For events that are not of type @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
  * @note It is an application bug to call this function for events other
@@ -1505,7 +1507,7 @@ libinput_event_tablet_tool_tilt_y_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, or @ref
  * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return 1 if the axis was updated or 0 otherwise
  */
 int
@@ -1515,8 +1517,8 @@ libinput_event_tablet_tool_rotation_has_changed(
  * @ingroup event_tablet
  *
  * Check if the slider axis was updated in this event.
- * For tablet events that are not of type @ref
- * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
+ * For events that are not of type @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
  * @note It is an application bug to call this function for events other
@@ -1525,7 +1527,7 @@ libinput_event_tablet_tool_rotation_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, or @ref
  * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return 1 if the axis was updated or 0 otherwise
  */
 int
@@ -1535,8 +1537,8 @@ libinput_event_tablet_tool_slider_has_changed(
  * @ingroup event_tablet
  *
  * Check if the wheel axis was updated in this event.
- * For tablet events that are not of type @ref
- * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
+ * For events that are not of type @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, or
  * @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, this function returns 0.
  *
  * @note It is an application bug to call this function for events other
@@ -1545,7 +1547,7 @@ libinput_event_tablet_tool_slider_has_changed(
  * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, or @ref
  * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return 1 if the axis was updated or 0 otherwise
  */
 int
@@ -1560,7 +1562,7 @@ libinput_event_tablet_tool_wheel_has_changed(
  * libinput_event_tablet_tool_get_x_transformed() for transforming the axis
  * value into a different coordinate space.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The current value of the the axis
  */
 double
@@ -1574,7 +1576,7 @@ libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event);
  * libinput_event_tablet_tool_get_y_transformed() for transforming the axis
  * value into a different coordinate space.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The current value of the the axis
  */
 double
@@ -1622,7 +1624,7 @@ libinput_event_tablet_tool_get_dy(struct libinput_event_tablet_tool *event);
  *
  * If this axis does not exist on the current tool, this function returns 0.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The current value of the the axis
  */
 double
@@ -1636,7 +1638,7 @@ libinput_event_tablet_tool_get_pressure(struct libinput_event_tablet_tool *event
  *
  * If this axis does not exist on the current tool, this function returns 0.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The current value of the the axis
  */
 double
@@ -1650,7 +1652,7 @@ libinput_event_tablet_tool_get_distance(struct libinput_event_tablet_tool *event
  *
  * If this axis does not exist on the current tool, this function returns 0.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The current value of the the axis
  */
 double
@@ -1664,7 +1666,7 @@ libinput_event_tablet_tool_get_tilt_x(struct libinput_event_tablet_tool *event);
  *
  * If this axis does not exist on the current tool, this function returns 0.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The current value of the the axis
  */
 double
@@ -1684,7 +1686,7 @@ libinput_event_tablet_tool_get_tilt_y(struct libinput_event_tablet_tool *event);
  *
  * If this axis does not exist on the current tool, this function returns 0.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The current value of the the axis
  */
 double
@@ -1700,7 +1702,7 @@ libinput_event_tablet_tool_get_rotation(struct libinput_event_tablet_tool *event
  *
  * If this axis does not exist on the current tool, this function returns 0.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The current value of the the axis
  */
 double
@@ -1711,7 +1713,7 @@ libinput_event_tablet_tool_get_slider_position(struct libinput_event_tablet_tool
  *
  * Return the delta for the wheel in degrees.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The delta of the wheel, in degrees, compared to the last event
  *
  * @see libinput_event_tablet_tool_get_wheel_delta_discrete
@@ -1725,7 +1727,7 @@ libinput_event_tablet_tool_get_wheel_delta(
  *
  * Return the delta for the wheel in discrete steps (e.g. wheel clicks).
 
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The delta of the wheel, in discrete steps, compared to the last event
  *
  * @see libinput_event_tablet_tool_get_wheel_delta_discrete
@@ -1737,14 +1739,14 @@ libinput_event_tablet_tool_get_wheel_delta_discrete(
 /**
  * @ingroup event_tablet
  *
- * Return the current absolute x coordinate of the tablet event, transformed to
- * screen coordinates.
+ * Return the current absolute x coordinate of the tablet tool event,
+ * transformed to screen coordinates.
  *
  * @note This function may be called for a specific axis even if
  * libinput_event_tablet_tool_*_has_changed() returns 0 for that axis.
  * libinput always includes all device axes in the event.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @param width The current output screen width
  * @return the current absolute x coordinate transformed to a screen coordinate
  */
@@ -1755,14 +1757,14 @@ libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *
 /**
  * @ingroup event_tablet
  *
- * Return the current absolute y coordinate of the tablet event, transformed to
- * screen coordinates.
+ * Return the current absolute y coordinate of the tablet tool event,
+ * transformed to screen coordinates.
  *
  * @note This function may be called for a specific axis even if
  * libinput_event_tablet_tool_*_has_changed() returns 0 for that axis.
  * libinput always includes all device axes in the event.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @param height The current output screen height
  * @return the current absolute y coordinate transformed to a screen coordinate
  */
@@ -1784,7 +1786,7 @@ libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *
  * libinput creates one tool per type per tablet. See @ref
  * tablet-serial-numbers for more details.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The new tool triggering this event
  */
 struct libinput_tablet_tool *
@@ -1799,7 +1801,7 @@ libinput_event_tablet_tool_get_tool(struct libinput_event_tablet_tool *event);
  *
  * See @ref tablet-fake-proximity for recommendations on proximity handling.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The new proximity state of the tool from the event.
  */
 enum libinput_tablet_tool_proximity_state
@@ -1813,7 +1815,7 @@ libinput_event_tablet_tool_get_proximity_state(struct libinput_event_tablet_tool
  * surface or left contact with the tablet surface during an
  * event of type @ref LIBINPUT_EVENT_TABLET_TOOL_TIP.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The new tip state of the tool from the event.
  */
 enum libinput_tablet_tool_tip_state
@@ -1822,14 +1824,13 @@ libinput_event_tablet_tool_get_tip_state(struct libinput_event_tablet_tool *even
 /**
  * @ingroup event_tablet
  *
- * Return the button that triggered this event.
- * For tablet events that are not of type @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON, this
- * function returns 0.
+ * Return the button that triggered this event.  For events that are not of
+ * type @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON, this function returns 0.
  *
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return the button triggering this event
  */
 uint32_t
@@ -1843,7 +1844,7 @@ libinput_event_tablet_tool_get_button(struct libinput_event_tablet_tool *event);
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return the button state triggering this event
  */
 enum libinput_button_state
@@ -1859,6 +1860,7 @@ libinput_event_tablet_tool_get_button_state(struct libinput_event_tablet_tool *e
  " @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON. For other events, this function returns 0.
  *
+ * @param event The libinput tablet tool event
  * @return the seat wide pressed button count for the key of this event
  */
 uint32_t
@@ -1867,7 +1869,7 @@ libinput_event_tablet_tool_get_seat_button_count(struct libinput_event_tablet_to
 /**
  * @ingroup event_tablet
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The event time for this event
  */
 uint32_t
@@ -1876,7 +1878,7 @@ libinput_event_tablet_tool_get_time(struct libinput_event_tablet_tool *event);
 /**
  * @ingroup event_tablet
  *
- * @param event The libinput tablet event
+ * @param event The libinput tablet tool event
  * @return The event time for this event in microseconds
  */
 uint64_t
