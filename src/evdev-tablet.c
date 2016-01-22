@@ -875,6 +875,8 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 		const struct input_absinfo *pressure;
 
 		tool = zalloc(sizeof *tool);
+		if (!tool)
+			return NULL;
 		*tool = (struct libinput_tablet_tool) {
 			.type = type,
 			.serial = serial,
@@ -1294,6 +1296,9 @@ tablet_flush(struct tablet_dispatch *tablet,
 				tablet->current_tool_type,
 				tablet->current_tool_id,
 				tablet->current_tool_serial);
+
+	if (!tool)
+		return; /* OOM */
 
 	if (tool->type == LIBINPUT_TABLET_TOOL_TYPE_MOUSE ||
 	    tool->type == LIBINPUT_TABLET_TOOL_TYPE_LENS)
