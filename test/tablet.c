@@ -841,8 +841,9 @@ START_TEST(proximity_has_axes)
 	struct libinput_tablet_tool *tool;
 	double x, y,
 	       distance;
-	double last_x, last_y, last_distance,
-	       last_tx, last_ty;
+	double last_x, last_y,
+	       last_distance = 0.0,
+	       last_tx = 0.0, last_ty = 0.0;
 
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
