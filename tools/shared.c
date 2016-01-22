@@ -45,6 +45,8 @@ enum options {
 	OPT_VERBOSE,
 	OPT_TAP_ENABLE,
 	OPT_TAP_DISABLE,
+	OPT_DRAG_ENABLE,
+	OPT_DRAG_DISABLE,
 	OPT_DRAG_LOCK_ENABLE,
 	OPT_DRAG_LOCK_DISABLE,
 	OPT_NATURAL_SCROLL_ENABLE,
@@ -82,6 +84,8 @@ tools_usage()
 	       "Features:\n"
 	       "--enable-tap\n"
 	       "--disable-tap.... enable/disable tapping\n"
+	       "--enable-drag\n"
+	       "--disable-drag.... enable/disable tap-n-drag\n"
 	       "--enable-drag-lock\n"
 	       "--disable-drag-lock.... enable/disable tapping drag lock\n"
 	       "--enable-natural-scrolling\n"
@@ -117,6 +121,7 @@ tools_init_context(struct tools_context *context)
 
 	memset(options, 0, sizeof(*options));
 	options->tapping = -1;
+	options->drag = -1;
 	options->drag_lock = -1;
 	options->natural_scroll = -1;
 	options->left_handed = -1;
@@ -147,6 +152,8 @@ tools_parse_args(int argc, char **argv, struct tools_context *context)
 			{ "verbose", 0, 0, OPT_VERBOSE },
 			{ "enable-tap", 0, 0, OPT_TAP_ENABLE },
 			{ "disable-tap", 0, 0, OPT_TAP_DISABLE },
+			{ "enable-drag", 0, 0, OPT_DRAG_ENABLE },
+			{ "disable-drag", 0, 0, OPT_DRAG_DISABLE },
 			{ "enable-drag-lock", 0, 0, OPT_DRAG_LOCK_ENABLE },
 			{ "disable-drag-lock", 0, 0, OPT_DRAG_LOCK_DISABLE },
 			{ "enable-natural-scrolling", 0, 0, OPT_NATURAL_SCROLL_ENABLE },
@@ -198,6 +205,12 @@ tools_parse_args(int argc, char **argv, struct tools_context *context)
 			break;
 		case OPT_TAP_DISABLE:
 			options->tapping = 0;
+			break;
+		case OPT_DRAG_ENABLE:
+			options->drag = 1;
+			break;
+		case OPT_DRAG_DISABLE:
+			options->drag = 0;
 			break;
 		case OPT_DRAG_LOCK_ENABLE:
 			options->drag_lock = 1;
@@ -438,6 +451,9 @@ tools_device_apply_config(struct libinput_device *device,
 {
 	if (options->tapping != -1)
 		libinput_device_config_tap_set_enabled(device, options->tapping);
+	if (options->drag != -1)
+		libinput_device_config_tap_set_drag_enabled(device,
+							    options->drag);
 	if (options->drag_lock != -1)
 		libinput_device_config_tap_set_drag_lock_enabled(device,
 								 options->drag_lock);

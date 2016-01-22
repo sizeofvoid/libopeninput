@@ -39,6 +39,7 @@ struct tools_options {
 
 	int verbose;
 	int tapping;
+	int drag;
 	int drag_lock;
 	int natural_scroll;
 	int left_handed;

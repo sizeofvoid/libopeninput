@@ -179,3 +179,9 @@ LIBINPUT_1.1 {
 	libinput_device_config_accel_get_default_profile;
 	libinput_device_config_accel_set_profile;
 } LIBINPUT_0.21.0;
+
+LIBINPUT_1.2 {
+	libinput_device_config_tap_get_drag_enabled;
+	libinput_device_config_tap_get_default_drag_enabled;
+	libinput_device_config_tap_set_drag_enabled;
+} LIBINPUT_1.1;
