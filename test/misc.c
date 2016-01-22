@@ -442,7 +442,7 @@ START_TEST(bitfield_helpers)
 	 * test: 0, 1, 7, 8, 31, 32, and 33
 	 */
 	unsigned char read_bitfield[] = { 0x83, 0x1, 0x0, 0x80, 0x3 };
-	unsigned char write_bitfield[ARRAY_LENGTH(read_bitfield)];
+	unsigned char write_bitfield[ARRAY_LENGTH(read_bitfield)] = {0};
 	size_t i;
 
 	/* Now check that the bitfield we wrote to came out to be the same as
