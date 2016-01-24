@@ -312,7 +312,6 @@ struct tp_dispatch {
 		struct libinput_timer timer;
 		enum tp_tap_state state;
 		uint32_t buttons_pressed;
-		uint64_t multitap_last_time;
 
 		bool drag_lock_enabled;
 	} tap;

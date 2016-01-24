@@ -561,7 +561,6 @@ tp_tap_multitap_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_MULTITAP_DOWN;
-		tp->tap.multitap_last_time = time;
 		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_PRESSED);
 		tp_tap_set_timer(tp, time);
 		break;
