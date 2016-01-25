@@ -484,6 +484,7 @@ void
 gesture_notify_pinch(struct libinput_device *device,
 		     uint64_t time,
 		     enum libinput_event_type type,
+		     int finger_count,
 		     const struct normalized_coords *delta,
 		     const struct normalized_coords *unaccel,
 		     double scale,
@@ -492,6 +493,7 @@ gesture_notify_pinch(struct libinput_device *device,
 void
 gesture_notify_pinch_end(struct libinput_device *device,
 			 uint64_t time,
+			 int finger_count,
 			 double scale,
 			 int cancelled);
 

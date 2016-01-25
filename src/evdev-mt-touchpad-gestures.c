@@ -33,13 +33,14 @@
 #define DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT ms2us(500)
 
 static inline const char*
-gesture_state_to_str(enum tp_gesture_2fg_state state)
+gesture_state_to_str(enum tp_gesture_state state)
 {
 	switch (state) {
-	CASE_RETURN_STRING(GESTURE_2FG_STATE_NONE);
-	CASE_RETURN_STRING(GESTURE_2FG_STATE_UNKNOWN);
-	CASE_RETURN_STRING(GESTURE_2FG_STATE_SCROLL);
-	CASE_RETURN_STRING(GESTURE_2FG_STATE_PINCH);
+	CASE_RETURN_STRING(GESTURE_STATE_NONE);
+	CASE_RETURN_STRING(GESTURE_STATE_UNKNOWN);
+	CASE_RETURN_STRING(GESTURE_STATE_SCROLL);
+	CASE_RETURN_STRING(GESTURE_STATE_PINCH);
+	CASE_RETURN_STRING(GESTURE_STATE_SWIPE);
 	}
 	return NULL;
 }
@@ -48,15 +49,19 @@ static struct normalized_coords
 tp_get_touches_delta(struct tp_dispatch *tp, bool average)
 {
 	struct tp_touch *t;
-	unsigned int i, nchanged = 0;
+	unsigned int i, nactive = 0;
 	struct normalized_coords normalized;
 	struct normalized_coords delta = {0.0, 0.0};
 
 	for (i = 0; i < tp->num_slots; i++) {
 		t = &tp->touches[i];
 
-		if (tp_touch_active(tp, t) && t->dirty) {
-			nchanged++;
+		if (!tp_touch_active(tp, t))
+			continue;
+
+		nactive++;
+
+		if (t->dirty) {
 			normalized = tp_get_delta(t);
 
 			delta.x += normalized.x;
@@ -64,11 +69,11 @@ tp_get_touches_delta(struct tp_dispatch *tp, bool average)
 		}
 	}
 
-	if (!average || nchanged == 0)
+	if (!average || nactive == 0)
 		return delta;
 
-	delta.x /= nchanged;
-	delta.y /= nchanged;
+	delta.x /= nactive;
+	delta.y /= nactive;
 
 	return delta;
 }
@@ -94,33 +99,30 @@ tp_gesture_start(struct tp_dispatch *tp, uint64_t time)
 	if (tp->gesture.started)
 		return;
 
-	switch (tp->gesture.finger_count) {
-	case 2:
-		switch (tp->gesture.twofinger_state) {
-		case GESTURE_2FG_STATE_NONE:
-		case GESTURE_2FG_STATE_UNKNOWN:
-			log_bug_libinput(libinput,
-					 "%s in unknown gesture mode\n",
-					 __func__);
-			break;
-		case GESTURE_2FG_STATE_SCROLL:
-			/* NOP */
-			break;
-		case GESTURE_2FG_STATE_PINCH:
-			gesture_notify_pinch(&tp->device->base, time,
-					    LIBINPUT_EVENT_GESTURE_PINCH_BEGIN,
-					    &zero, &zero, 1.0, 0.0);
-			break;
-		}
+	switch (tp->gesture.state) {
+	case GESTURE_STATE_NONE:
+	case GESTURE_STATE_UNKNOWN:
+		log_bug_libinput(libinput,
+				 "%s in unknown gesture mode\n",
+				 __func__);
 		break;
-	case 3:
-	case 4:
+	case GESTURE_STATE_SCROLL:
+		/* NOP */
+		break;
+	case GESTURE_STATE_PINCH:
+		gesture_notify_pinch(&tp->device->base, time,
+				    LIBINPUT_EVENT_GESTURE_PINCH_BEGIN,
+				    tp->gesture.finger_count,
+				    &zero, &zero, 1.0, 0.0);
+		break;
+	case GESTURE_STATE_SWIPE:
 		gesture_notify_swipe(&tp->device->base, time,
 				     LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
 				     tp->gesture.finger_count,
 				     &zero, &zero);
 		break;
 	}
+
 	tp->gesture.started = true;
 }
 
@@ -148,7 +150,7 @@ tp_gesture_post_pointer_motion(struct tp_dispatch *tp, uint64_t time)
 }
 
 static unsigned int
-tp_gesture_get_active_touches(struct tp_dispatch *tp,
+tp_gesture_get_active_touches(const struct tp_dispatch *tp,
 			      struct tp_touch **touches,
 			      unsigned int count)
 {
@@ -184,18 +186,7 @@ tp_gesture_get_direction(struct tp_dispatch *tp, struct tp_touch *touch)
 {
 	struct normalized_coords normalized;
 	struct device_float_coords delta;
-	double move_threshold;
-
-	/*
-	 * Semi-mt touchpads have somewhat inaccurate coordinates when
-	 * 2 fingers are down, so use a slightly larger threshold.
-	 * Elantech semi-mt touchpads are accurate enough though.
-	 */
-	if (tp->semi_mt &&
-	    (tp->device->model_flags & EVDEV_MODEL_ELANTECH_TOUCHPAD) == 0)
-		move_threshold = TP_MM_TO_DPI_NORMALIZED(4);
-	else
-		move_threshold = TP_MM_TO_DPI_NORMALIZED(1);
+	double move_threshold = TP_MM_TO_DPI_NORMALIZED(1);
 
 	delta = device_delta(touch->point, touch->gesture.initial);
 
@@ -221,11 +212,7 @@ tp_gesture_get_pinch_info(struct tp_dispatch *tp,
 	delta = device_delta(first->point, second->point);
 	normalized = tp_normalize_delta(tp, delta);
 	*distance = normalized_length(normalized);
-
-	if (!tp->semi_mt)
-		*angle = atan2(normalized.y, normalized.x) * 180.0 / M_PI;
-	else
-		*angle = 0.0;
+	*angle = atan2(normalized.y, normalized.x) * 180.0 / M_PI;
 
 	*center = device_average(first->point, second->point);
 }
@@ -245,94 +232,156 @@ tp_gesture_set_scroll_buildup(struct tp_dispatch *tp)
 	tp->device->scroll.buildup = tp_normalize_delta(tp, average);
 }
 
-static enum tp_gesture_2fg_state
-tp_gesture_twofinger_handle_state_none(struct tp_dispatch *tp, uint64_t time)
+static enum tp_gesture_state
+tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *first, *second;
+	struct tp_touch *touches[4];
+	unsigned int ntouches;
+	unsigned int i;
 
-	if (tp_gesture_get_active_touches(tp, tp->gesture.touches, 2) != 2)
-		return GESTURE_2FG_STATE_NONE;
+	ntouches = tp_gesture_get_active_touches(tp, touches, 4);
+	if (ntouches < 2)
+		return GESTURE_STATE_NONE;
 
-	first = tp->gesture.touches[0];
-	second = tp->gesture.touches[1];
+	if (!tp->gesture.enabled) {
+		if (ntouches == 2)
+			return GESTURE_STATE_SCROLL;
+		else
+			return GESTURE_STATE_SWIPE;
+	}
+
+	first = touches[0];
+	second = touches[1];
+
+	/* For 3+ finger gestures we cheat. A human hand's finger
+	 * arrangement means that for a 3 or 4 finger swipe gesture, the
+	 * fingers are roughly arranged in a horizontal line.
+	 * They will all move in the same direction, so we can simply look
+	 * at the left and right-most ones only. If we have fake touches, we
+	 * just take the left/right-most real touch position, since the fake
+	 * touch has the same location as one of those.
+	 *
+	 * For a 3 or 4 finger pinch gesture, 2 or 3 fingers are roughly in
+	 * a horizontal line, with the thumb below and left (right-handed
+	 * users) or right (left-handed users). Again, the row of non-thumb
+	 * fingers moves identically so we can look at the left and
+	 * right-most only and then treat it like a two-finger
+	 * gesture.
+	 */
+	if (ntouches > 2) {
+		second = touches[0];
+
+		for (i = 1; i < ntouches && i < tp->num_slots; i++) {
+			if (touches[i]->point.x < first->point.x)
+				first = touches[i];
+			else if (touches[i]->point.x > second->point.x)
+				second = touches[i];
+		}
+
+		if (first == second)
+			return GESTURE_STATE_NONE;
+
+	}
 
 	tp->gesture.initial_time = time;
 	first->gesture.initial = first->point;
 	second->gesture.initial = second->point;
+	tp->gesture.touches[0] = first;
+	tp->gesture.touches[1] = second;
 
-	return GESTURE_2FG_STATE_UNKNOWN;
+	return GESTURE_STATE_UNKNOWN;
 }
 
-static enum tp_gesture_2fg_state
-tp_gesture_twofinger_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
+static inline int
+tp_gesture_same_directions(int dir1, int dir2)
+{
+	/*
+	 * In some cases (semi-mt touchpads) we may seen one finger move
+	 * e.g. N/NE and the other W/NW so we not only check for overlapping
+	 * directions, but also for neighboring bits being set.
+	 * The ((dira & 0x80) && (dirb & 0x01)) checks are to check for bit 0
+	 * and 7 being set as they also represent neighboring directions.
+	 */
+	return ((dir1 | (dir1 >> 1)) & dir2) ||
+		((dir2 | (dir2 >> 1)) & dir1) ||
+		((dir1 & 0x80) && (dir2 & 0x01)) ||
+		((dir2 & 0x80) && (dir1 & 0x01));
+}
+
+static inline void
+tp_gesture_init_pinch( struct tp_dispatch *tp)
+{
+	tp_gesture_get_pinch_info(tp,
+				  &tp->gesture.initial_distance,
+				  &tp->gesture.angle,
+				  &tp->gesture.center);
+	tp->gesture.prev_scale = 1.0;
+}
+
+static enum tp_gesture_state
+tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *first = tp->gesture.touches[0],
 			*second = tp->gesture.touches[1];
 	int dir1, dir2;
+	int yres = tp->device->abs.absinfo_y->resolution;
+	int vert_distance;
 
-	/* if fingers stay unmoving for a while, assume (slow) scroll */
-	if (time > (tp->gesture.initial_time + DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT)) {
+	/* for two-finger gestures, if the fingers stay unmoving for a
+	 * while, assume (slow) scroll */
+	if (tp->gesture.finger_count == 2 &&
+	    time > (tp->gesture.initial_time + DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT)) {
 		tp_gesture_set_scroll_buildup(tp);
-		return GESTURE_2FG_STATE_SCROLL;
+		return GESTURE_STATE_SCROLL;
+	}
+
+	/* Else check if one finger is > 20mm below the others */
+	vert_distance = abs(first->point.y - second->point.y);
+	if (vert_distance > 20 * yres &&
+	    tp->gesture.enabled) {
+		tp_gesture_init_pinch(tp);
+		return GESTURE_STATE_PINCH;
 	}
 
 	/* Else wait for both fingers to have moved */
 	dir1 = tp_gesture_get_direction(tp, first);
 	dir2 = tp_gesture_get_direction(tp, second);
 	if (dir1 == UNDEFINED_DIRECTION || dir2 == UNDEFINED_DIRECTION)
-		return GESTURE_2FG_STATE_UNKNOWN;
+		return GESTURE_STATE_UNKNOWN;
 
-	/*
-	 * If both touches are moving in the same direction assume scroll.
-	 *
-	 * In some cases (semi-mt touchpads) We may seen one finger move
-	 * e.g. N/NE and the other W/NW so we not only check for overlapping
-	 * directions, but also for neighboring bits being set.
-	 * The ((dira & 0x80) && (dirb & 0x01)) checks are to check for bit 0
-	 * and 7 being set as they also represent neighboring directions.
-	 */
-	if (((dir1 | (dir1 >> 1)) & dir2) ||
-	    ((dir2 | (dir2 >> 1)) & dir1) ||
-	    ((dir1 & 0x80) && (dir2 & 0x01)) ||
-	    ((dir2 & 0x80) && (dir1 & 0x01))) {
-		tp_gesture_set_scroll_buildup(tp);
-		return GESTURE_2FG_STATE_SCROLL;
-	} else if (tp->gesture.enabled) {
-		tp_gesture_get_pinch_info(tp,
-					  &tp->gesture.initial_distance,
-					  &tp->gesture.angle,
-					  &tp->gesture.center);
-		tp->gesture.prev_scale = 1.0;
-		return GESTURE_2FG_STATE_PINCH;
+	/* If both touches are moving in the same direction assume
+	 * scroll or swipe */
+	if (tp_gesture_same_directions(dir1, dir2)) {
+		if (tp->gesture.finger_count == 2) {
+			tp_gesture_set_scroll_buildup(tp);
+			return GESTURE_STATE_SCROLL;
+		} else if (tp->gesture.enabled) {
+			return GESTURE_STATE_SWIPE;
+		}
+	} else {
+		tp_gesture_init_pinch(tp);
+		return GESTURE_STATE_PINCH;
 	}
 
-	return GESTURE_2FG_STATE_UNKNOWN;
+	return GESTURE_STATE_UNKNOWN;
 }
 
-static enum tp_gesture_2fg_state
-tp_gesture_twofinger_handle_state_scroll(struct tp_dispatch *tp, uint64_t time)
+static enum tp_gesture_state
+tp_gesture_handle_state_scroll(struct tp_dispatch *tp, uint64_t time)
 {
 	struct normalized_coords delta;
 
 	if (tp->scroll.method != LIBINPUT_CONFIG_SCROLL_2FG)
-		return GESTURE_2FG_STATE_SCROLL;
+		return GESTURE_STATE_SCROLL;
 
-	/* On some semi-mt models slot 0 is more accurate, so for semi-mt
-	 * we only use slot 0. */
-	if (tp->semi_mt) {
-		if (!tp->touches[0].dirty)
-			return GESTURE_2FG_STATE_SCROLL;
-
-		delta = tp_get_delta(&tp->touches[0]);
-	} else {
-		delta = tp_get_average_touches_delta(tp);
-	}
+	delta = tp_get_average_touches_delta(tp);
 
 	/* scroll is not accelerated */
 	delta = tp_filter_motion_unaccelerated(tp, &delta, time);
 
 	if (normalized_is_zero(delta))
-		return GESTURE_2FG_STATE_SCROLL;
+		return GESTURE_STATE_SCROLL;
 
 	tp_gesture_start(tp, time);
 	evdev_post_scroll(tp->device,
@@ -340,11 +389,30 @@ tp_gesture_twofinger_handle_state_scroll(struct tp_dispatch *tp, uint64_t time)
 			  LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
 			  &delta);
 
-	return GESTURE_2FG_STATE_SCROLL;
+	return GESTURE_STATE_SCROLL;
 }
 
-static enum tp_gesture_2fg_state
-tp_gesture_twofinger_handle_state_pinch(struct tp_dispatch *tp, uint64_t time)
+static enum tp_gesture_state
+tp_gesture_handle_state_swipe(struct tp_dispatch *tp, uint64_t time)
+{
+	struct normalized_coords delta, unaccel;
+
+	unaccel = tp_get_average_touches_delta(tp);
+	delta = tp_filter_motion(tp, &unaccel, time);
+
+	if (!normalized_is_zero(delta) || !normalized_is_zero(unaccel)) {
+		tp_gesture_start(tp, time);
+		gesture_notify_swipe(&tp->device->base, time,
+				     LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
+				     tp->gesture.finger_count,
+				     &delta, &unaccel);
+	}
+
+	return GESTURE_STATE_SWIPE;
+}
+
+static enum tp_gesture_state
+tp_gesture_handle_state_pinch(struct tp_dispatch *tp, uint64_t time)
 {
 	double angle, angle_delta, distance, scale;
 	struct device_float_coords center, fdelta;
@@ -368,60 +436,48 @@ tp_gesture_twofinger_handle_state_pinch(struct tp_dispatch *tp, uint64_t time)
 
 	if (normalized_is_zero(delta) && normalized_is_zero(unaccel) &&
 	    scale == tp->gesture.prev_scale && angle_delta == 0.0)
-		return GESTURE_2FG_STATE_PINCH;
+		return GESTURE_STATE_PINCH;
 
 	tp_gesture_start(tp, time);
 	gesture_notify_pinch(&tp->device->base, time,
 			     LIBINPUT_EVENT_GESTURE_PINCH_UPDATE,
+			     tp->gesture.finger_count,
 			     &delta, &unaccel, scale, angle_delta);
 
 	tp->gesture.prev_scale = scale;
 
-	return GESTURE_2FG_STATE_PINCH;
+	return GESTURE_STATE_PINCH;
 }
 
 static void
-tp_gesture_post_twofinger(struct tp_dispatch *tp, uint64_t time)
+tp_gesture_post_gesture(struct tp_dispatch *tp, uint64_t time)
 {
-	enum tp_gesture_2fg_state oldstate = tp->gesture.twofinger_state;
+	enum tp_gesture_state oldstate = tp->gesture.state;
 
-	if (tp->gesture.twofinger_state == GESTURE_2FG_STATE_NONE)
-		tp->gesture.twofinger_state =
-			tp_gesture_twofinger_handle_state_none(tp, time);
+	if (tp->gesture.state == GESTURE_STATE_NONE)
+		tp->gesture.state =
+			tp_gesture_handle_state_none(tp, time);
 
-	if (tp->gesture.twofinger_state == GESTURE_2FG_STATE_UNKNOWN)
-		tp->gesture.twofinger_state =
-			tp_gesture_twofinger_handle_state_unknown(tp, time);
+	if (tp->gesture.state == GESTURE_STATE_UNKNOWN)
+		tp->gesture.state =
+			tp_gesture_handle_state_unknown(tp, time);
 
-	if (tp->gesture.twofinger_state == GESTURE_2FG_STATE_SCROLL)
-		tp->gesture.twofinger_state =
-			tp_gesture_twofinger_handle_state_scroll(tp, time);
+	if (tp->gesture.state == GESTURE_STATE_SCROLL)
+		tp->gesture.state =
+			tp_gesture_handle_state_scroll(tp, time);
 
-	if (tp->gesture.twofinger_state == GESTURE_2FG_STATE_PINCH)
-		tp->gesture.twofinger_state =
-			tp_gesture_twofinger_handle_state_pinch(tp, time);
+	if (tp->gesture.state == GESTURE_STATE_SWIPE)
+		tp->gesture.state =
+			tp_gesture_handle_state_swipe(tp, time);
+
+	if (tp->gesture.state == GESTURE_STATE_PINCH)
+		tp->gesture.state =
+			tp_gesture_handle_state_pinch(tp, time);
 
 	log_debug(tp_libinput_context(tp),
 		  "gesture state: %s → %s\n",
 		  gesture_state_to_str(oldstate),
-		  gesture_state_to_str(tp->gesture.twofinger_state));
-}
-
-static void
-tp_gesture_post_swipe(struct tp_dispatch *tp, uint64_t time)
-{
-	struct normalized_coords delta, unaccel;
-
-	unaccel = tp_get_average_touches_delta(tp);
-	delta = tp_filter_motion(tp, &unaccel, time);
-
-	if (!normalized_is_zero(delta) || !normalized_is_zero(unaccel)) {
-		tp_gesture_start(tp, time);
-		gesture_notify_swipe(&tp->device->base, time,
-				     LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
-				     tp->gesture.finger_count,
-				     &delta, &unaccel);
-	}
+		  gesture_state_to_str(tp->gesture.state));
 }
 
 void
@@ -446,11 +502,9 @@ tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time)
 		tp_gesture_post_pointer_motion(tp, time);
 		break;
 	case 2:
-		tp_gesture_post_twofinger(tp, time);
-		break;
 	case 3:
 	case 4:
-		tp_gesture_post_swipe(tp, time);
+		tp_gesture_post_gesture(tp, time);
 		break;
 	}
 }
@@ -470,38 +524,37 @@ static void
 tp_gesture_end(struct tp_dispatch *tp, uint64_t time, bool cancelled)
 {
 	struct libinput *libinput = tp->device->base.seat->libinput;
-	enum tp_gesture_2fg_state twofinger_state = tp->gesture.twofinger_state;
+	enum tp_gesture_state state = tp->gesture.state;
 
-	tp->gesture.twofinger_state = GESTURE_2FG_STATE_NONE;
+	tp->gesture.state = GESTURE_STATE_NONE;
 
 	if (!tp->gesture.started)
 		return;
 
-	switch (tp->gesture.finger_count) {
-	case 2:
-		switch (twofinger_state) {
-		case GESTURE_2FG_STATE_NONE:
-		case GESTURE_2FG_STATE_UNKNOWN:
-			log_bug_libinput(libinput,
-					 "%s in unknown gesture mode\n",
-					 __func__);
-			break;
-		case GESTURE_2FG_STATE_SCROLL:
-			tp_gesture_stop_twofinger_scroll(tp, time);
-			break;
-		case GESTURE_2FG_STATE_PINCH:
-			gesture_notify_pinch_end(&tp->device->base, time,
-						 tp->gesture.prev_scale,
-						 cancelled);
-			break;
-		}
+	switch (state) {
+	case GESTURE_STATE_NONE:
+	case GESTURE_STATE_UNKNOWN:
+		log_bug_libinput(libinput,
+				 "%s in unknown gesture mode\n",
+				 __func__);
 		break;
-	case 3:
-	case 4:
-		gesture_notify_swipe_end(&tp->device->base, time,
-					 tp->gesture.finger_count, cancelled);
+	case GESTURE_STATE_SCROLL:
+		tp_gesture_stop_twofinger_scroll(tp, time);
+		break;
+	case GESTURE_STATE_PINCH:
+		gesture_notify_pinch_end(&tp->device->base, time,
+					 tp->gesture.finger_count,
+					 tp->gesture.prev_scale,
+					 cancelled);
+		break;
+	case GESTURE_STATE_SWIPE:
+		gesture_notify_swipe_end(&tp->device->base,
+					 time,
+					 tp->gesture.finger_count,
+					 cancelled);
 		break;
 	}
+
 	tp->gesture.started = false;
 }
 
@@ -535,13 +588,10 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time)
 {
 	unsigned int active_touches = 0;
 	struct tp_touch *t;
-	int i = 0;
 
 	tp_for_each_touch(tp, t) {
 		if (tp_touch_active(tp, t))
 			active_touches++;
-
-		i++;
 	}
 
 	if (active_touches != tp->gesture.finger_count) {
@@ -568,12 +618,12 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time)
 int
 tp_init_gesture(struct tp_dispatch *tp)
 {
-	if (tp->device->model_flags & EVDEV_MODEL_JUMPING_SEMI_MT)
-		tp->gesture.enabled = false;
-	else
-		tp->gesture.enabled = true;
+	/* two-finger scrolling is always enabled, this flag just
+	 * decides whether we detect pinch. semi-mt devices are too
+	 * unreliable to do pinch gestures. */
+	tp->gesture.enabled = !tp->semi_mt && tp->num_slots > 1;
 
-	tp->gesture.twofinger_state = GESTURE_2FG_STATE_NONE;
+	tp->gesture.state = GESTURE_STATE_NONE;
 
 	libinput_timer_init(&tp->gesture.finger_count_switch_timer,
 			    tp->device->base.seat->libinput,

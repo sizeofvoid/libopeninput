@@ -88,4 +88,42 @@ thus suggesting a window movement. libinput only has knowledge of the finger
 coordinates (and even then only in device coordinates, not in screen
 coordinates) and thus cannot differentiate the two.
 
+@section gestures_softbuttons Gestures with enabled software buttons
+
+If the touchpad device is a @ref touchpads_buttons_clickpads "Clickpad", it
+is recommended that a caller switches to @ref clickfinger.
+Usually fingers placed in a @ref software_buttons "software button area" is not
+considered for gestures, resulting in some gestures to be interpreted as
+pointer motion or two-finger scroll events.
+
+@image html pinch-gestures-softbuttons.svg "Interference of software buttons and pinch gestures"
+
+In the example above, the software button area is highlighted in red. The
+user executes a three-finger pinch gesture, with the thumb remaining in the
+software button area. libinput ignores fingers within the software button
+areas, the movement of the remaining fingers is thus interpreted as a
+two-finger scroll motion.
+
+@section gestures_twofinger_touchpads Gestures on two-finger touchpads
+
+As of kernel 4.2, many @ref touchpads_touch_partial_mt provide only two
+slots. This affects how gestures can be interpreted. Touchpads with only two
+slots can identify two touches by position but can usually tell that there
+is a third (or fourth) finger down on the touchpad - without providing
+positional information for that finger.
+
+Touchpoints are assigned in sequential order and only the first two touch
+points are trackable. For libinput this produces an ambiguity where it is
+impossible to detect whether a gesture is a pinch gesture or a swipe gesture
+whenever a user puts the index and middle finger down first. Since the third
+finger does not have positional information, it's location cannot be
+determined.
+
+@image html gesture-2fg-ambiguity.svg "Ambiguity of three-finger gestures on two-finger touchpads"
+
+The image above illustrates this ambiguity. The index and middle finger are
+set down first, the data stream from both finger positions looks identical.
+In this case, libinput assumes the fingers are in a horizontal arrangement
+(the right image above) and use a swipe gesture.
+
 */

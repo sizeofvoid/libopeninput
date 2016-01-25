@@ -140,6 +140,14 @@ tp_get_touch(struct tp_dispatch *tp, unsigned int slot)
 static inline unsigned int
 tp_fake_finger_count(struct tp_dispatch *tp)
 {
+	/* Only one of BTN_TOOL_DOUBLETAP/TRIPLETAP/... may be set at any
+	 * time */
+	if (__builtin_popcount(
+		       tp->fake_touches & ~(FAKE_FINGER_OVERFLOW|0x1)) > 1)
+	    log_bug_kernel(tp->device->base.seat->libinput,
+			   "Invalid fake finger state %#x\n",
+			   tp->fake_touches);
+
 	if (tp->fake_touches & FAKE_FINGER_OVERFLOW)
 		return FAKE_FINGER_OVERFLOW;
 	else /* don't count BTN_TOUCH */
@@ -510,7 +518,7 @@ tp_pin_fingers(struct tp_dispatch *tp)
 }
 
 int
-tp_touch_active(struct tp_dispatch *tp, struct tp_touch *t)
+tp_touch_active(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
 	return (t->state == TOUCH_BEGIN || t->state == TOUCH_UPDATE) &&
 		t->palm.state == PALM_NONE &&
@@ -521,7 +529,7 @@ tp_touch_active(struct tp_dispatch *tp, struct tp_touch *t)
 }
 
 bool
-tp_palm_tap_is_palm(struct tp_dispatch *tp, struct tp_touch *t)
+tp_palm_tap_is_palm(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
 	if (t->state != TOUCH_BEGIN)
 		return false;
@@ -742,6 +750,9 @@ tp_unhover_abs_distance(struct tp_dispatch *tp, uint64_t time)
 
 	for (i = 0; i < tp->ntouches; i++) {
 		t = tp_get_touch(tp, i);
+
+		if (!t->dirty)
+			continue;
 
 		if (t->state == TOUCH_HOVERING) {
 			if (t->distance == 0) {
@@ -1488,17 +1499,22 @@ tp_init_slots(struct tp_dispatch *tp,
 
 	tp->semi_mt = libevdev_has_property(device->evdev, INPUT_PROP_SEMI_MT);
 
-	/* This device has a terrible resolution when two fingers are down,
+	/* Semi-mt devices are not reliable for true multitouch data, so we
+	 * simply pretend they're single touch touchpads with BTN_TOOL bits.
+	 * Synaptics:
+	 * Terrible resolution when two fingers are down,
 	 * causing scroll jumps. The single-touch emulation ABS_X/Y is
 	 * accurate but the ABS_MT_POSITION touchpoints report the bounding
-	 * box and that causes jumps.  So we simply pretend it's a single
-	 * touch touchpad with the BTN_TOOL bits.
-	 * See https://bugzilla.redhat.com/show_bug.cgi?id=1235175 for an
-	 * explanation.
+	 * box and that causes jumps. See https://bugzilla.redhat.com/1235175
+	 * Elantech:
+	 * On three-finger taps/clicks, one slot doesn't get a coordinate
+	 * assigned. See https://bugs.freedesktop.org/show_bug.cgi?id=93583
+	 * Alps:
+	 * If three fingers are set down in the same frame, one slot has the
+	 * coordinates 0/0 and may not get updated for several frames.
+	 * See https://bugzilla.redhat.com/show_bug.cgi?id=1295073
 	 */
-	if (tp->semi_mt &&
-	    (device->model_flags &
-	     (EVDEV_MODEL_JUMPING_SEMI_MT|EVDEV_MODEL_ELANTECH_TOUCHPAD))) {
+	if (tp->semi_mt) {
 		tp->num_slots = 1;
 		tp->slot = 0;
 		tp->has_mt = false;

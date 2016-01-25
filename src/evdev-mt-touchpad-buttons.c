@@ -78,47 +78,54 @@ button_event_to_str(enum button_event event) {
 }
 
 static inline bool
-is_inside_bottom_button_area(struct tp_dispatch *tp, struct tp_touch *t)
+is_inside_bottom_button_area(const struct tp_dispatch *tp,
+			     const struct tp_touch *t)
 {
 	return t->point.y >= tp->buttons.bottom_area.top_edge;
 }
 
 static inline bool
-is_inside_bottom_right_area(struct tp_dispatch *tp, struct tp_touch *t)
+is_inside_bottom_right_area(const struct tp_dispatch *tp,
+			    const struct tp_touch *t)
 {
 	return is_inside_bottom_button_area(tp, t) &&
 	       t->point.x > tp->buttons.bottom_area.rightbutton_left_edge;
 }
 
 static inline bool
-is_inside_bottom_left_area(struct tp_dispatch *tp, struct tp_touch *t)
+is_inside_bottom_left_area(const struct tp_dispatch *tp,
+			   const struct tp_touch *t)
 {
 	return is_inside_bottom_button_area(tp, t) &&
 	       !is_inside_bottom_right_area(tp, t);
 }
 
 static inline bool
-is_inside_top_button_area(struct tp_dispatch *tp, struct tp_touch *t)
+is_inside_top_button_area(const struct tp_dispatch *tp,
+			  const struct tp_touch *t)
 {
 	return t->point.y <= tp->buttons.top_area.bottom_edge;
 }
 
 static inline bool
-is_inside_top_right_area(struct tp_dispatch *tp, struct tp_touch *t)
+is_inside_top_right_area(const struct tp_dispatch *tp,
+			 const struct tp_touch *t)
 {
 	return is_inside_top_button_area(tp, t) &&
 	       t->point.x > tp->buttons.top_area.rightbutton_left_edge;
 }
 
 static inline bool
-is_inside_top_left_area(struct tp_dispatch *tp, struct tp_touch *t)
+is_inside_top_left_area(const struct tp_dispatch *tp,
+			const struct tp_touch *t)
 {
 	return is_inside_top_button_area(tp, t) &&
 	       t->point.x < tp->buttons.top_area.leftbutton_right_edge;
 }
 
 static inline bool
-is_inside_top_middle_area(struct tp_dispatch *tp, struct tp_touch *t)
+is_inside_top_middle_area(const struct tp_dispatch *tp,
+			  const struct tp_touch *t)
 {
 	return is_inside_top_button_area(tp, t) &&
 	       t->point.x >= tp->buttons.top_area.leftbutton_right_edge &&
@@ -1042,13 +1049,15 @@ tp_post_button_events(struct tp_dispatch *tp, uint64_t time)
 }
 
 int
-tp_button_touch_active(struct tp_dispatch *tp, struct tp_touch *t)
+tp_button_touch_active(const struct tp_dispatch *tp,
+		       const struct tp_touch *t)
 {
 	return t->button.state == BUTTON_STATE_AREA;
 }
 
 bool
-tp_button_is_inside_softbutton_area(struct tp_dispatch *tp, struct tp_touch *t)
+tp_button_is_inside_softbutton_area(const struct tp_dispatch *tp,
+				    const struct tp_touch *t)
 {
 	return is_inside_top_button_area(tp, t) ||
 	       is_inside_bottom_button_area(tp, t);

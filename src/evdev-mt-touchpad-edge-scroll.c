@@ -73,7 +73,7 @@ edge_event_to_str(enum scroll_event event)
 }
 
 uint32_t
-tp_touch_get_edge(struct tp_dispatch *tp, struct tp_touch *t)
+tp_touch_get_edge(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
 	uint32_t edge = EDGE_NONE;
 
@@ -455,7 +455,8 @@ tp_edge_scroll_stop_events(struct tp_dispatch *tp, uint64_t time)
 }
 
 int
-tp_edge_scroll_touch_active(struct tp_dispatch *tp, struct tp_touch *t)
+tp_edge_scroll_touch_active(const struct tp_dispatch *tp,
+			    const struct tp_touch *t)
 {
 	return t->scroll.edge_state == EDGE_SCROLL_TOUCH_STATE_AREA;
 }
