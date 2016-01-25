@@ -48,15 +48,19 @@ static struct normalized_coords
 tp_get_touches_delta(struct tp_dispatch *tp, bool average)
 {
 	struct tp_touch *t;
-	unsigned int i, nchanged = 0;
+	unsigned int i, nactive = 0;
 	struct normalized_coords normalized;
 	struct normalized_coords delta = {0.0, 0.0};
 
 	for (i = 0; i < tp->num_slots; i++) {
 		t = &tp->touches[i];
 
-		if (tp_touch_active(tp, t) && t->dirty) {
-			nchanged++;
+		if (!tp_touch_active(tp, t))
+			continue;
+
+		nactive++;
+
+		if (t->dirty) {
 			normalized = tp_get_delta(t);
 
 			delta.x += normalized.x;
@@ -64,11 +68,11 @@ tp_get_touches_delta(struct tp_dispatch *tp, bool average)
 		}
 	}
 
-	if (!average || nchanged == 0)
+	if (!average || nactive == 0)
 		return delta;
 
-	delta.x /= nchanged;
-	delta.y /= nchanged;
+	delta.x /= nactive;
+	delta.y /= nactive;
 
 	return delta;
 }
