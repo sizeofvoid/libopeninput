@@ -578,13 +578,10 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time)
 {
 	unsigned int active_touches = 0;
 	struct tp_touch *t;
-	int i = 0;
 
 	tp_for_each_touch(tp, t) {
 		if (tp_touch_active(tp, t))
 			active_touches++;
-
-		i++;
 	}
 
 	if (active_touches != tp->gesture.finger_count) {
