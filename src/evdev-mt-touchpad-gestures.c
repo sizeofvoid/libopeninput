@@ -240,6 +240,13 @@ tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 	if (ntouches < 2)
 		return GESTURE_STATE_NONE;
 
+	if (!tp->gesture.enabled) {
+		if (ntouches == 2)
+			return GESTURE_STATE_SCROLL;
+		else
+			return GESTURE_STATE_SWIPE;
+	}
+
 	first = touches[0];
 	second = touches[1];
 
@@ -271,8 +278,7 @@ tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 		if (first == second)
 			return GESTURE_STATE_NONE;
 
-	} else if (!tp->gesture.enabled)
-		return GESTURE_STATE_SCROLL;
+	}
 
 	tp->gesture.initial_time = time;
 	first->gesture.initial = first->point;
