@@ -153,6 +153,7 @@ tp_tap_idle_handle_event(struct tp_dispatch *tp,
 	switch (event) {
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_TOUCH;
+		tp->tap.first_press_time = time;
 		tp_tap_set_timer(tp, time);
 		break;
 	case TAP_EVENT_RELEASE:
@@ -185,9 +186,14 @@ tp_tap_touch_handle_event(struct tp_dispatch *tp,
 		tp_tap_set_timer(tp, time);
 		break;
 	case TAP_EVENT_RELEASE:
-		tp->tap.state = TAP_STATE_TAPPED;
-		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_PRESSED);
-		tp_tap_set_timer(tp, time);
+		tp_tap_notify(tp, tp->tap.first_press_time, 1, LIBINPUT_BUTTON_STATE_PRESSED);
+		if (tp->tap.drag_enabled) {
+			tp->tap.state = TAP_STATE_TAPPED;
+			tp_tap_set_timer(tp, time);
+		} else {
+			tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_RELEASED);
+			tp->tap.state = TAP_STATE_IDLE;
+		}
 		break;
 	case TAP_EVENT_TIMEOUT:
 	case TAP_EVENT_MOTION:
@@ -929,6 +935,44 @@ tp_tap_config_get_default(struct libinput_device *device)
 }
 
 static enum libinput_config_status
+tp_tap_config_set_drag_enabled(struct libinput_device *device,
+			       enum libinput_config_drag_state enabled)
+{
+	struct evdev_dispatch *dispatch = ((struct evdev_device *) device)->dispatch;
+	struct tp_dispatch *tp = NULL;
+
+	tp = container_of(dispatch, tp, base);
+	tp->tap.drag_enabled = enabled;
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static enum libinput_config_drag_state
+tp_tap_config_get_drag_enabled(struct libinput_device *device)
+{
+	struct evdev_device *evdev = (struct evdev_device *)device;
+	struct tp_dispatch *tp = NULL;
+
+	tp = container_of(evdev->dispatch, tp, base);
+
+	return tp->tap.drag_enabled;
+}
+
+static inline enum libinput_config_drag_state
+tp_drag_default(struct evdev_device *device)
+{
+	return LIBINPUT_CONFIG_DRAG_ENABLED;
+}
+
+static enum libinput_config_drag_state
+tp_tap_config_get_default_drag_enabled(struct libinput_device *device)
+{
+	struct evdev_device *evdev = (struct evdev_device *)device;
+
+	return tp_drag_default(evdev);
+}
+
+static enum libinput_config_status
 tp_tap_config_set_draglock_enabled(struct libinput_device *device,
 				   enum libinput_config_drag_lock_state enabled)
 {
@@ -973,6 +1017,9 @@ tp_init_tap(struct tp_dispatch *tp)
 	tp->tap.config.set_enabled = tp_tap_config_set_enabled;
 	tp->tap.config.get_enabled = tp_tap_config_is_enabled;
 	tp->tap.config.get_default = tp_tap_config_get_default;
+	tp->tap.config.set_drag_enabled = tp_tap_config_set_drag_enabled;
+	tp->tap.config.get_drag_enabled = tp_tap_config_get_drag_enabled;
+	tp->tap.config.get_default_drag_enabled = tp_tap_config_get_default_drag_enabled;
 	tp->tap.config.set_draglock_enabled = tp_tap_config_set_draglock_enabled;
 	tp->tap.config.get_draglock_enabled = tp_tap_config_get_draglock_enabled;
 	tp->tap.config.get_default_draglock_enabled = tp_tap_config_get_default_draglock_enabled;
@@ -980,6 +1027,7 @@ tp_init_tap(struct tp_dispatch *tp)
 
 	tp->tap.state = TAP_STATE_IDLE;
 	tp->tap.enabled = tp_tap_default(tp->device);
+	tp->tap.drag_enabled = tp_drag_default(tp->device);
 	tp->tap.drag_lock_enabled = tp_drag_lock_default(tp->device);
 
 	libinput_timer_init(&tp->tap.timer,

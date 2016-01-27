@@ -537,6 +537,30 @@ litest_disable_tap(struct libinput_device *device)
 	litest_assert_int_eq(status, expected);
 }
 
+static inline void
+litest_enable_tap_drag(struct libinput_device *device)
+{
+	enum libinput_config_status status, expected;
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_tap_set_drag_enabled(device,
+							     LIBINPUT_CONFIG_DRAG_ENABLED);
+
+	litest_assert_int_eq(status, expected);
+}
+
+static inline void
+litest_disable_tap_drag(struct libinput_device *device)
+{
+	enum libinput_config_status status, expected;
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_tap_set_drag_enabled(device,
+							     LIBINPUT_CONFIG_DRAG_DISABLED);
+
+	litest_assert_int_eq(status, expected);
+}
+
 static inline bool
 litest_has_2fg_scroll(struct litest_device *dev)
 {
