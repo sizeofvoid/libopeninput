@@ -185,11 +185,6 @@ LIBINPUT_1.2 {
 	libinput_device_config_tap_get_drag_enabled;
 	libinput_device_config_tap_get_default_drag_enabled;
 	libinput_device_config_tap_set_drag_enabled;
-} LIBINPUT_1.1;
-
-/* tablet APIs, they are not part of any stable API promise yet.
- * keep them separate */
-LIBINPUT_TABLET_SUPPORT {
 	libinput_event_get_tablet_tool_event;
 	libinput_event_tablet_tool_x_has_changed;
 	libinput_event_tablet_tool_y_has_changed;
@@ -238,4 +233,4 @@ LIBINPUT_TABLET_SUPPORT {
 	libinput_tablet_tool_ref;
 	libinput_tablet_tool_set_user_data;
 	libinput_tablet_tool_unref;
-} LIBINPUT_1.2;
+} LIBINPUT_1.1;
