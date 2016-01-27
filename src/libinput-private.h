@@ -58,6 +58,29 @@ struct discrete_coords {
 	int x, y;
 };
 
+/* A pair of coordinates normalized to a [0,1] or [-1, 1] range */
+struct normalized_range_coords {
+	double x, y;
+};
+
+/* A threshold with an upper and lower limit */
+struct threshold {
+	int upper;
+	int lower;
+};
+
+struct tablet_axes {
+	struct device_coords point;
+	struct normalized_coords delta;
+	double distance;
+	double pressure;
+	struct normalized_range_coords tilt;
+	double rotation;
+	double slider;
+	double wheel;
+	int wheel_discrete;
+};
+
 struct libinput_interface_backend {
 	int (*resume)(struct libinput *libinput);
 	void (*suspend)(struct libinput *libinput);
@@ -83,6 +106,8 @@ struct libinput {
 	size_t events_len;
 	size_t events_in;
 	size_t events_out;
+
+	struct list tool_list;
 
 	const struct libinput_interface *interface;
 	const struct libinput_interface_backend *interface_backend;
@@ -249,6 +274,36 @@ struct libinput_device {
 	void *user_data;
 	int refcount;
 	struct libinput_device_config config;
+};
+
+enum libinput_tablet_tool_axis {
+	LIBINPUT_TABLET_TOOL_AXIS_X = 1,
+	LIBINPUT_TABLET_TOOL_AXIS_Y = 2,
+	LIBINPUT_TABLET_TOOL_AXIS_DISTANCE = 3,
+	LIBINPUT_TABLET_TOOL_AXIS_PRESSURE = 4,
+	LIBINPUT_TABLET_TOOL_AXIS_TILT_X = 5,
+	LIBINPUT_TABLET_TOOL_AXIS_TILT_Y = 6,
+	LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z = 7,
+	LIBINPUT_TABLET_TOOL_AXIS_SLIDER = 8,
+	LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL = 9,
+};
+
+#define LIBINPUT_TABLET_TOOL_AXIS_MAX LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL
+
+struct libinput_tablet_tool {
+	struct list link;
+	uint32_t serial;
+	uint32_t tool_id;
+	enum libinput_tablet_tool_type type;
+	unsigned char axis_caps[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];
+	unsigned char buttons[NCHARS(KEY_MAX) + 1];
+	int refcount;
+	void *user_data;
+
+	/* The pressure threshold assumes a pressure_offset of 0 */
+	struct threshold pressure_threshold;
+	int pressure_offset; /* in device coordinates */
+	bool has_pressure_offset;
 };
 
 struct libinput_event {
@@ -450,6 +505,39 @@ gesture_notify_pinch_end(struct libinput_device *device,
 void
 touch_notify_frame(struct libinput_device *device,
 		   uint64_t time);
+
+void
+tablet_notify_axis(struct libinput_device *device,
+		   uint64_t time,
+		   struct libinput_tablet_tool *tool,
+		   enum libinput_tablet_tool_tip_state tip_state,
+		   unsigned char *changed_axes,
+		   const struct tablet_axes *axes);
+
+void
+tablet_notify_proximity(struct libinput_device *device,
+			uint64_t time,
+			struct libinput_tablet_tool *tool,
+			enum libinput_tablet_tool_proximity_state state,
+			unsigned char *changed_axes,
+			const struct tablet_axes *axes);
+
+void
+tablet_notify_tip(struct libinput_device *device,
+		  uint64_t time,
+		  struct libinput_tablet_tool *tool,
+		  enum libinput_tablet_tool_tip_state tip_state,
+		  unsigned char *changed_axes,
+		  const struct tablet_axes *axes);
+
+void
+tablet_notify_button(struct libinput_device *device,
+		     uint64_t time,
+		     struct libinput_tablet_tool *tool,
+		     enum libinput_tablet_tool_tip_state tip_state,
+		     const struct tablet_axes *axes,
+		     int32_t button,
+		     enum libinput_button_state state);
 
 static inline uint64_t
 libinput_now(struct libinput *libinput)

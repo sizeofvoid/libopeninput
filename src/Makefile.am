@@ -18,6 +18,8 @@ libinput_la_SOURCES =			\
 	evdev-mt-touchpad-buttons.c	\
 	evdev-mt-touchpad-edge-scroll.c	\
 	evdev-mt-touchpad-gestures.c	\
+	evdev-tablet.c			\
+	evdev-tablet.h			\
 	filter.c			\
 	filter.h			\
 	filter-private.h		\
@@ -32,12 +34,14 @@ libinput_la_SOURCES =			\
 libinput_la_LIBADD = $(MTDEV_LIBS) \
 		     $(LIBUDEV_LIBS) \
 		     $(LIBEVDEV_LIBS) \
+		     $(LIBWACOM_LIBS) \
 		     libinput-util.la
 
 libinput_la_CFLAGS = -I$(top_srcdir)/include \
 		     $(MTDEV_CFLAGS)	\
 		     $(LIBUDEV_CFLAGS)	\
 		     $(LIBEVDEV_CFLAGS)	\
+		     $(LIBWACOM_CFLAGS) \
 		     $(GCC_CFLAGS)
 EXTRA_libinput_la_DEPENDENCIES = $(srcdir)/libinput.sym
 

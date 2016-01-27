@@ -1104,6 +1104,22 @@ START_TEST(device_udev_tag_synaptics_serial)
 }
 END_TEST
 
+START_TEST(device_udev_tag_wacom_tablet)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	struct udev_device *d;
+	const char *prop;
+
+	d = libinput_device_get_udev_device(device);
+	prop = udev_device_get_property_value(d,
+					      "ID_INPUT_TABLET");
+
+	ck_assert_notnull(prop);
+	udev_device_unref(d);
+}
+END_TEST
+
 START_TEST(device_nonpointer_rel)
 {
 	struct libevdev_uinput *uinput;
@@ -1289,16 +1305,16 @@ litest_setup_tests(void)
 	struct range abs_range = { 0, ABS_MISC };
 	struct range abs_mt_range = { ABS_MT_SLOT + 1, ABS_CNT };
 
-	litest_add("device:sendevents", device_sendevents_config, LITEST_ANY, LITEST_TOUCHPAD);
-	litest_add("device:sendevents", device_sendevents_config_invalid, LITEST_ANY, LITEST_ANY);
-	litest_add("device:sendevents", device_sendevents_config_touchpad, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("device:sendevents", device_sendevents_config_touchpad_superset, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("device:sendevents", device_sendevents_config_default, LITEST_ANY, LITEST_ANY);
-	litest_add("device:sendevents", device_disable, LITEST_RELATIVE, LITEST_ANY);
-	litest_add("device:sendevents", device_disable_touchpad, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("device:sendevents", device_disable_events_pending, LITEST_RELATIVE, LITEST_TOUCHPAD);
-	litest_add("device:sendevents", device_double_disable, LITEST_ANY, LITEST_ANY);
-	litest_add("device:sendevents", device_double_enable, LITEST_ANY, LITEST_ANY);
+	litest_add("device:sendevents", device_sendevents_config, LITEST_ANY, LITEST_TOUCHPAD|LITEST_TABLET);
+	litest_add("device:sendevents", device_sendevents_config_invalid, LITEST_ANY, LITEST_TABLET);
+	litest_add("device:sendevents", device_sendevents_config_touchpad, LITEST_TOUCHPAD, LITEST_TABLET);
+	litest_add("device:sendevents", device_sendevents_config_touchpad_superset, LITEST_TOUCHPAD, LITEST_TABLET);
+	litest_add("device:sendevents", device_sendevents_config_default, LITEST_ANY, LITEST_TABLET);
+	litest_add("device:sendevents", device_disable, LITEST_RELATIVE, LITEST_TABLET);
+	litest_add("device:sendevents", device_disable_touchpad, LITEST_TOUCHPAD, LITEST_TABLET);
+	litest_add("device:sendevents", device_disable_events_pending, LITEST_RELATIVE, LITEST_TOUCHPAD|LITEST_TABLET);
+	litest_add("device:sendevents", device_double_disable, LITEST_ANY, LITEST_TABLET);
+	litest_add("device:sendevents", device_double_enable, LITEST_ANY, LITEST_TABLET);
 	litest_add_no_device("device:sendevents", device_reenable_syspath_changed);
 	litest_add_no_device("device:sendevents", device_reenable_device_removed);
 	litest_add_for_device("device:sendevents", device_disable_release_buttons, LITEST_MOUSE);
@@ -1325,13 +1341,14 @@ litest_setup_tests(void)
 	litest_add_no_device("device:invalid devices", abs_device_missing_res);
 	litest_add_no_device("device:invalid devices", abs_mt_device_missing_res);
 
-	litest_add("device:wheel", device_wheel_only, LITEST_WHEEL, LITEST_RELATIVE|LITEST_ABSOLUTE);
+	litest_add("device:wheel", device_wheel_only, LITEST_WHEEL, LITEST_RELATIVE|LITEST_ABSOLUTE|LITEST_TABLET);
 	litest_add_no_device("device:accelerometer", device_accelerometer);
 
 	litest_add("device:udev tags", device_udev_tag_alps, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("device:udev tags", device_udev_tag_wacom, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("device:udev tags", device_udev_tag_apple, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("device:udev tags", device_udev_tag_synaptics_serial, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("device:udev tags", device_udev_tag_wacom_tablet, LITEST_TABLET, LITEST_ANY);
 
 	litest_add_no_device("device:invalid rel events", device_nonpointer_rel);
 	litest_add_no_device("device:invalid rel events", device_touchpad_rel);

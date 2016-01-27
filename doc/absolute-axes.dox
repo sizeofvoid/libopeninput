@@ -10,7 +10,7 @@ libinput supports three types of devices with absolute axes:
 
  - multi-touch screens
  - single-touch screens
- - graphics tablets (currently WIP)
+ - @ref tablet-support "graphics tablets"
 
 Touchpads are technically absolute devices but libinput converts the axis values
 to directional motion and posts events as relative events. Touchpads do not count
@@ -18,7 +18,10 @@ as absolute devices in libinput.
 
 For all absolute devices in libinput, the default unit for x/y coordinates is
 in mm off the top left corner on the device, or more specifically off the
-device's sensor.
+device's sensor. If the device is physically rotated from its natural
+position and this rotation was communicated to libinput (e.g.
+@ref libinput_device_config_left_handed_set "by setting the device left-handed"),
+the coordinate origin is the top left corner of in the current rotation.
 
 @section absolute_axes_handling Handling of absolute coordinates
 
@@ -40,7 +43,7 @@ coordinate.
 @section absolute_axes_nores Devices without x/y resolution
 
 An absolute device that does not provide a valid resolution is considered
-buggy and must be fixed in the kernel. Some touchpad devices that do not
+buggy and must be fixed in the kernel. Some touchpad devices do not
 provide resolution, those devices are correctly handled within libinput
 (touchpads are not absolute devices, as mentioned above).
 
@@ -107,10 +110,13 @@ The most common matrices are:
 
 See Wikipedia's
 <a href="http://en.wikipedia.org/wiki/Transformation_matrix">Transformation
-Matrix article</a> for more information on the matrix maths.
-
-See libinput_device_config_calibration_get_default_matrix() for how these
+Matrix article</a> for more information on the matrix maths. See
+libinput_device_config_calibration_get_default_matrix() for how these
 matrices must be supplied to libinput.
+
+Once applied, any x and y axis value has the calibration applied before it
+is made available to the caller. libinput does not provide access to the
+raw coordinates before the calibration is applied.
 
 @section absolute_axes_nonorm Why x/y coordinates are not normalized
 

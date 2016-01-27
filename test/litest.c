@@ -344,6 +344,10 @@ extern struct litest_test_device litest_trackpoint_device;
 extern struct litest_test_device litest_bcm5974_device;
 extern struct litest_test_device litest_mouse_device;
 extern struct litest_test_device litest_wacom_touch_device;
+extern struct litest_test_device litest_wacom_bamboo_tablet_device;
+extern struct litest_test_device litest_wacom_cintiq_tablet_device;
+extern struct litest_test_device litest_wacom_intuos_tablet_device;
+extern struct litest_test_device litest_wacom_isdv4_tablet_device;
 extern struct litest_test_device litest_alps_device;
 extern struct litest_test_device litest_generic_singletouch_device;
 extern struct litest_test_device litest_qemu_tablet_device;
@@ -369,6 +373,8 @@ extern struct litest_test_device litest_mouse_gladius_device;
 extern struct litest_test_device litest_mouse_wheel_click_angle_device;
 extern struct litest_test_device litest_apple_keyboard_device;
 extern struct litest_test_device litest_anker_mouse_kbd_device;
+extern struct litest_test_device litest_waltop_tablet_device;
+extern struct litest_test_device litest_huion_tablet_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -379,6 +385,10 @@ struct litest_test_device* devices[] = {
 	&litest_bcm5974_device,
 	&litest_mouse_device,
 	&litest_wacom_touch_device,
+	&litest_wacom_bamboo_tablet_device,
+	&litest_wacom_cintiq_tablet_device,
+	&litest_wacom_intuos_tablet_device,
+	&litest_wacom_isdv4_tablet_device,
 	&litest_alps_device,
 	&litest_generic_singletouch_device,
 	&litest_qemu_tablet_device,
@@ -404,6 +414,8 @@ struct litest_test_device* devices[] = {
 	&litest_mouse_wheel_click_angle_device,
 	&litest_apple_keyboard_device,
 	&litest_anker_mouse_kbd_device,
+	&litest_waltop_tablet_device,
+	&litest_huion_tablet_device,
 	NULL,
 };
 
@@ -1492,6 +1504,82 @@ litest_touch_move_to(struct litest_device *d,
 	litest_touch_move(d, slot, x_to, y_to);
 }
 
+static int
+auto_assign_tablet_value(struct litest_device *d,
+			 const struct input_event *ev,
+			 int x, int y,
+			 struct axis_replacement *axes)
+{
+	int value = ev->value;
+
+	if (value != LITEST_AUTO_ASSIGN || ev->type != EV_ABS)
+		return value;
+
+	switch (ev->code) {
+	case ABS_X:
+		value = litest_scale(d, ABS_X, x);
+		break;
+	case ABS_Y:
+		value = litest_scale(d, ABS_Y, y);
+		break;
+	default:
+		if (!axis_replacement_value(d, axes, ev->code, &value) &&
+		    d->interface->get_axis_default)
+			d->interface->get_axis_default(d, ev->code, &value);
+		break;
+	}
+
+	return value;
+}
+
+static int
+tablet_ignore_event(const struct input_event *ev, int value)
+{
+	return value == -1 && (ev->code == ABS_PRESSURE || ev->code == ABS_DISTANCE);
+}
+
+void
+litest_tablet_proximity_in(struct litest_device *d, int x, int y, struct axis_replacement *axes)
+{
+	struct input_event *ev;
+
+	ev = d->interface->tablet_proximity_in_events;
+	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
+		int value = auto_assign_tablet_value(d, ev, x, y, axes);
+		if (!tablet_ignore_event(ev, value))
+			litest_event(d, ev->type, ev->code, value);
+		ev++;
+	}
+}
+
+void
+litest_tablet_proximity_out(struct litest_device *d)
+{
+	struct input_event *ev;
+
+	ev = d->interface->tablet_proximity_out_events;
+	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
+		int value = auto_assign_tablet_value(d, ev, -1, -1, NULL);
+		if (!tablet_ignore_event(ev, value))
+			litest_event(d, ev->type, ev->code, value);
+		ev++;
+	}
+}
+
+void
+litest_tablet_motion(struct litest_device *d, int x, int y, struct axis_replacement *axes)
+{
+	struct input_event *ev;
+
+	ev = d->interface->tablet_motion_events;
+	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
+		int value = auto_assign_tablet_value(d, ev, x, y, axes);
+		if (!tablet_ignore_event(ev, value))
+			litest_event(d, ev->type, ev->code, value);
+		ev++;
+	}
+}
+
 void
 litest_touch_move_two_touches(struct litest_device *d,
 			      double x0, double y0,
@@ -1838,6 +1926,18 @@ litest_event_type_str(struct libinput_event *event)
 	case LIBINPUT_EVENT_GESTURE_PINCH_END:
 		str = "GESTURE PINCH END";
 		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
+		str = "TABLET AXIS";
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
+		str = "TABLET PROX";
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
+		str = "TABLET TIP";
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
+		str = "TABLET BUTTON";
+		break;
 	}
 	return str;
 }
@@ -1846,6 +1946,7 @@ static void
 litest_print_event(struct libinput_event *event)
 {
 	struct libinput_event_pointer *p;
+	struct libinput_event_tablet_tool *t;
 	struct libinput_device *dev;
 	enum libinput_event_type type;
 	double x, y;
@@ -1890,6 +1991,22 @@ litest_print_event(struct libinput_event *event)
 			x = libinput_event_pointer_get_axis_value(p,
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
 		fprintf(stderr, "vert %.f horiz %.2f", y, x);
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
+		t = libinput_event_get_tablet_tool_event(event);
+		fprintf(stderr, "proximity %d\n",
+			libinput_event_tablet_tool_get_proximity_state(t));
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
+		t = libinput_event_get_tablet_tool_event(event);
+		fprintf(stderr, "tip %d\n",
+			libinput_event_tablet_tool_get_tip_state(t));
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
+		t = libinput_event_get_tablet_tool_event(event);
+		fprintf(stderr, "button %d state %d\n",
+			libinput_event_tablet_tool_get_button(t),
+			libinput_event_tablet_tool_get_button_state(t));
 		break;
 	default:
 		break;
@@ -2256,6 +2373,60 @@ litest_is_gesture_event(struct libinput_event *event,
 		litest_assert_int_eq(libinput_event_gesture_get_finger_count(gevent),
 				     nfingers);
 	return gevent;
+}
+
+struct libinput_event_tablet_tool * litest_is_tablet_event(
+		       struct libinput_event *event,
+		       enum libinput_event_type type)
+{
+	struct libinput_event_tablet_tool *tevent;
+
+	litest_assert(event != NULL);
+	litest_assert_int_eq(libinput_event_get_type(event), type);
+
+	tevent = libinput_event_get_tablet_tool_event(event);
+	litest_assert(tevent != NULL);
+
+	return tevent;
+}
+
+void
+litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
+				  enum libinput_button_state state)
+{
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_TOOL_BUTTON;
+
+	litest_wait_for_event(li);
+	event = libinput_get_event(li);
+
+	litest_assert_notnull(event);
+	litest_assert_int_eq(libinput_event_get_type(event), type);
+	tev = libinput_event_get_tablet_tool_event(event);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev),
+			     button);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
+			     state);
+	libinput_event_destroy(event);
+}
+
+void litest_assert_tablet_proximity_event(struct libinput *li,
+					  enum libinput_tablet_tool_proximity_state state)
+{
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY;
+
+	litest_wait_for_event(li);
+	event = libinput_get_event(li);
+
+	litest_assert_notnull(event);
+	litest_assert_int_eq(libinput_event_get_type(event), type);
+	tev = libinput_event_get_tablet_tool_event(event);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tev),
+			     state);
+	libinput_event_destroy(event);
 }
 
 void

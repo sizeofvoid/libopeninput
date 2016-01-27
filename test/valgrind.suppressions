@@ -14,6 +14,24 @@
    fun:mtdev_put_event
 }
 {
+   <g_type_register_static>
+   Memcheck:Leak
+   ...
+   fun:g_type_register_static
+}
+{
+   <g_type_register_static>
+   Memcheck:Leak
+   ...
+   fun:g_type_register_fundamental
+}
+{
+   <g_type_register_static>
+   Memcheck:Leak
+   ...
+   fun:g_malloc0
+}
+{
    libunwind:msync_uninitialized_bytes
    Memcheck:Param
    msync(start)

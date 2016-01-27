@@ -212,14 +212,27 @@ evdev_device_led_update(struct evdev_device *device, enum libinput_led leds)
 	(void)i; /* no, we really don't care about the return value */
 }
 
-static void
-transform_absolute(struct evdev_device *device,
-		   struct device_coords *point)
+void
+evdev_transform_absolute(struct evdev_device *device,
+			 struct device_coords *point)
 {
 	if (!device->abs.apply_calibration)
 		return;
 
 	matrix_mult_vec(&device->abs.calibration, &point->x, &point->y);
+}
+
+void
+evdev_transform_relative(struct evdev_device *device,
+			 struct device_coords *point)
+{
+	struct matrix rel_matrix;
+
+	if (!device->abs.apply_calibration)
+		return;
+
+	matrix_to_relative(&rel_matrix, &device->abs.calibration);
+	matrix_mult_vec(&rel_matrix, &point->x, &point->y);
 }
 
 static inline double
@@ -340,7 +353,7 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 
 		seat->slot_map |= 1 << seat_slot;
 		point = device->mt.slots[slot].point;
-		transform_absolute(device, &point);
+		evdev_transform_absolute(device, &point);
 
 		touch_notify_touch_down(base, time, slot, seat_slot,
 					&point);
@@ -355,7 +368,7 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 		if (seat_slot == -1)
 			break;
 
-		transform_absolute(device, &point);
+		evdev_transform_absolute(device, &point);
 		touch_notify_touch_motion(base, time, slot, seat_slot,
 					  &point);
 		break;
@@ -394,13 +407,13 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 		seat->slot_map |= 1 << seat_slot;
 
 		point = device->abs.point;
-		transform_absolute(device, &point);
+		evdev_transform_absolute(device, &point);
 
 		touch_notify_touch_down(base, time, -1, seat_slot, &point);
 		break;
 	case EVDEV_ABSOLUTE_MOTION:
 		point = device->abs.point;
-		transform_absolute(device, &point);
+		evdev_transform_absolute(device, &point);
 
 		if (device->seat_caps & EVDEV_DEVICE_TOUCH) {
 			seat_slot = device->abs.seat_slot;
@@ -962,6 +975,7 @@ struct evdev_dispatch_interface fallback_interface = {
 	NULL, /* device_removed */
 	NULL, /* device_suspended */
 	NULL, /* device_resumed */
+	NULL, /* post_added */
 };
 
 static uint32_t
@@ -1191,7 +1205,7 @@ evdev_init_button_scroll(struct evdev_device *device,
 	return 0;
 }
 
-static void
+void
 evdev_init_calibration(struct evdev_device *device,
 		       struct evdev_dispatch *dispatch)
 {
@@ -1986,6 +2000,7 @@ evdev_configure_device(struct evdev_device *device)
 	struct libevdev *evdev = device->evdev;
 	const char *devnode = udev_device_get_devnode(device->udev_device);
 	enum evdev_device_udev_tags udev_tags;
+	unsigned int tablet_tags;
 
 	udev_tags = evdev_device_get_udev_tags(device, device->udev_device);
 
@@ -2061,6 +2076,21 @@ evdev_configure_device(struct evdev_device *device)
 		} else if (evdev_configure_mt_device(device) == -1) {
 			return -1;
 		}
+	}
+
+	/* libwacom assigns touchpad (or touchscreen) _and_ tablet to the
+	   tablet touch bits, so make sure we don't initialize the tablet
+	   interface for the touch device */
+	tablet_tags = EVDEV_UDEV_TAG_TABLET |
+		      EVDEV_UDEV_TAG_TOUCHPAD |
+		      EVDEV_UDEV_TAG_TOUCHSCREEN;
+	if ((udev_tags & tablet_tags) == EVDEV_UDEV_TAG_TABLET) {
+		device->dispatch = evdev_tablet_create(device);
+		device->seat_caps |= EVDEV_DEVICE_TABLET;
+		log_info(libinput,
+			 "input device '%s', %s is a tablet\n",
+			 device->devname, devnode);
+		return device->dispatch == NULL ? -1 : 0;
 	}
 
 	if (udev_tags & EVDEV_UDEV_TAG_TOUCHPAD) {
@@ -2153,6 +2183,10 @@ evdev_notify_added_device(struct evdev_device *device)
 	}
 
 	notify_added_device(&device->base);
+
+	if (device->dispatch->interface->post_added)
+		device->dispatch->interface->post_added(device,
+							device->dispatch);
 }
 
 static bool
@@ -2442,6 +2476,8 @@ evdev_device_has_capability(struct evdev_device *device,
 		return !!(device->seat_caps & EVDEV_DEVICE_TOUCH);
 	case LIBINPUT_DEVICE_CAP_GESTURE:
 		return !!(device->seat_caps & EVDEV_DEVICE_GESTURE);
+	case LIBINPUT_DEVICE_CAP_TABLET_TOOL:
+		return !!(device->seat_caps & EVDEV_DEVICE_TABLET);
 	default:
 		return 0;
 	}

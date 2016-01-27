@@ -23,6 +23,7 @@
 
 #define _GNU_SOURCE
 #include <errno.h>
+#include <inttypes.h>
 #include <fcntl.h>
 #include <poll.h>
 #include <stdio.h>
@@ -108,9 +109,21 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_GESTURE_PINCH_END:
 		type = "GESTURE_PINCH_END";
 		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
+		type = "TABLET_AXIS";
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
+		type = "TABLET_PROXIMITY";
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
+		type = "TABLET_TIP";
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
+		type = "TABLET_BUTTON";
+		break;
 	}
 
-	printf("%-7s	%s	", libinput_device_get_sysname(dev), type);
+	printf("%-7s	%-16s ", libinput_device_get_sysname(dev), type);
 }
 
 static void
@@ -156,6 +169,9 @@ print_device_notify(struct libinput_event *ev)
 	if (libinput_device_has_capability(dev,
 					   LIBINPUT_DEVICE_CAP_GESTURE))
 		printf("g");
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_TABLET_TOOL))
+		printf("T");
 
 	if (libinput_device_get_size(dev, &w, &h) == 0)
 		printf("\tsize %.2f/%.2fmm", w, h);
@@ -251,7 +267,7 @@ print_absmotion_event(struct libinput_event *ev)
 }
 
 static void
-print_button_event(struct libinput_event *ev)
+print_pointer_button_event(struct libinput_event *ev)
 {
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
 	enum libinput_button_state state;
@@ -272,7 +288,34 @@ print_button_event(struct libinput_event *ev)
 }
 
 static void
-print_axis_event(struct libinput_event *ev)
+print_tablet_tip_event(struct libinput_event *ev)
+{
+	struct libinput_event_tablet_tool *p = libinput_event_get_tablet_tool_event(ev);
+	enum libinput_tablet_tool_tip_state state;
+
+	print_event_time(libinput_event_tablet_tool_get_time(p));
+
+	state = libinput_event_tablet_tool_get_tip_state(p);
+	printf("%s\n", state == LIBINPUT_TABLET_TOOL_TIP_DOWN ? "down" : "up");
+}
+
+static void
+print_tablet_button_event(struct libinput_event *ev)
+{
+	struct libinput_event_tablet_tool *p = libinput_event_get_tablet_tool_event(ev);
+	enum libinput_button_state state;
+
+	print_event_time(libinput_event_tablet_tool_get_time(p));
+
+	state = libinput_event_tablet_tool_get_button_state(p);
+	printf("%3d %s, seat count: %u\n",
+	       libinput_event_tablet_tool_get_button(p),
+	       state == LIBINPUT_BUTTON_STATE_PRESSED ? "pressed" : "released",
+	       libinput_event_tablet_tool_get_seat_button_count(p));
+}
+
+static void
+print_pointer_axis_event(struct libinput_event *ev)
 {
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
 	double v = 0, h = 0;
@@ -296,11 +339,170 @@ print_axis_event(struct libinput_event *ev)
 }
 
 static void
+print_tablet_axes(struct libinput_event_tablet_tool *t)
+{
+	struct libinput_tablet_tool *tool = libinput_event_tablet_tool_get_tool(t);
+	double x, y;
+	double dist, pressure;
+	double rotation, slider, wheel;
+	double delta;
+
+#define changed_sym(ev, ax) \
+	(libinput_event_tablet_tool_##ax##_has_changed(ev) ? "*" : "")
+
+	x = libinput_event_tablet_tool_get_x(t);
+	y = libinput_event_tablet_tool_get_x(t);
+	printf("\t%.2f%s/%.2f%s",
+	       x, changed_sym(t, x),
+	       y, changed_sym(t, y));
+
+	if (libinput_tablet_tool_has_tilt(tool)) {
+		x = libinput_event_tablet_tool_get_tilt_x(t);
+		y = libinput_event_tablet_tool_get_tilt_y(t);
+		printf("\ttilt: %.2f%s/%.2f%s",
+		       x, changed_sym(t, tilt_x),
+		       y, changed_sym(t, tilt_y));
+	}
+
+	if (libinput_tablet_tool_has_distance(tool) ||
+	    libinput_tablet_tool_has_pressure(tool)) {
+		dist = libinput_event_tablet_tool_get_distance(t);
+		pressure = libinput_event_tablet_tool_get_pressure(t);
+		if (dist)
+			printf("\tdistance: %.2f%s",
+			       dist, changed_sym(t, distance));
+		else
+			printf("\tpressure: %.2f%s",
+			       pressure, changed_sym(t, pressure));
+	}
+
+	if (libinput_tablet_tool_has_rotation(tool)) {
+		rotation = libinput_event_tablet_tool_get_rotation(t);
+		printf("\trotation: %.2f%s",
+		       rotation, changed_sym(t, rotation));
+	}
+
+	if (libinput_tablet_tool_has_slider(tool)) {
+		slider = libinput_event_tablet_tool_get_slider_position(t);
+		printf("\tslider: %.2f%s",
+		       slider, changed_sym(t, slider));
+	}
+
+	if (libinput_tablet_tool_has_wheel(tool)) {
+		wheel = libinput_event_tablet_tool_get_wheel_delta(t);
+		delta = libinput_event_tablet_tool_get_wheel_delta_discrete(t);
+		printf("\twheel: %.2f%s (%d)",
+		       wheel, changed_sym(t, wheel),
+		       (int)delta);
+	}
+}
+
+static void
+print_tablet_axis_event(struct libinput_event *ev)
+{
+	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
+
+	print_event_time(libinput_event_tablet_tool_get_time(t));
+	print_tablet_axes(t);
+	printf("\n");
+}
+
+static void
 print_touch_event_without_coords(struct libinput_event *ev)
 {
 	struct libinput_event_touch *t = libinput_event_get_touch_event(ev);
 
 	print_event_time(libinput_event_touch_get_time(t));
+	printf("\n");
+}
+
+static void
+print_proximity_event(struct libinput_event *ev)
+{
+	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
+	struct libinput_tablet_tool *tool = libinput_event_tablet_tool_get_tool(t);
+	enum libinput_tablet_tool_proximity_state state;
+	const char *tool_str,
+	           *state_str;
+
+	switch (libinput_tablet_tool_get_type(tool)) {
+	case LIBINPUT_TABLET_TOOL_TYPE_PEN:
+		tool_str = "pen";
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_ERASER:
+		tool_str = "eraser";
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_BRUSH:
+		tool_str = "brush";
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_PENCIL:
+		tool_str = "pencil";
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH:
+		tool_str = "airbrush";
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_MOUSE:
+		tool_str = "mouse";
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_LENS:
+		tool_str = "lens";
+		break;
+	default:
+		abort();
+	}
+
+	state = libinput_event_tablet_tool_get_proximity_state(t);
+
+	print_event_time(libinput_event_tablet_tool_get_time(t));
+
+	if (state == LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN) {
+		print_tablet_axes(t);
+		state_str = "proximity-in";
+	} else if (state == LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT) {
+		state_str = "proximity-out";
+		printf("\t");
+	} else {
+		abort();
+	}
+
+	printf("\t%s (%#" PRIx64 ", id %#" PRIx64 ") %s",
+	       tool_str,
+	       libinput_tablet_tool_get_serial(tool),
+	       libinput_tablet_tool_get_tool_id(tool),
+	       state_str);
+
+	printf("\taxes:");
+	if (libinput_tablet_tool_has_distance(tool))
+		printf("d");
+	if (libinput_tablet_tool_has_pressure(tool))
+		printf("p");
+	if (libinput_tablet_tool_has_tilt(tool))
+		printf("t");
+	if (libinput_tablet_tool_has_rotation(tool))
+		printf("r");
+	if (libinput_tablet_tool_has_slider(tool))
+		printf("s");
+	if (libinput_tablet_tool_has_wheel(tool))
+		printf("w");
+
+	printf("\tbtn:");
+	if (libinput_tablet_tool_has_button(tool, BTN_TOUCH))
+		printf("T");
+	if (libinput_tablet_tool_has_button(tool, BTN_STYLUS))
+		printf("S");
+	if (libinput_tablet_tool_has_button(tool, BTN_STYLUS2))
+		printf("S2");
+	if (libinput_tablet_tool_has_button(tool, BTN_LEFT))
+		printf("L");
+	if (libinput_tablet_tool_has_button(tool, BTN_MIDDLE))
+		printf("M");
+	if (libinput_tablet_tool_has_button(tool, BTN_RIGHT))
+		printf("R");
+	if (libinput_tablet_tool_has_button(tool, BTN_SIDE))
+		printf("Sd");
+	if (libinput_tablet_tool_has_button(tool, BTN_EXTRA))
+		printf("Ex");
+
 	printf("\n");
 }
 
@@ -395,10 +597,10 @@ handle_and_print_events(struct libinput *li)
 			print_absmotion_event(ev);
 			break;
 		case LIBINPUT_EVENT_POINTER_BUTTON:
-			print_button_event(ev);
+			print_pointer_button_event(ev);
 			break;
 		case LIBINPUT_EVENT_POINTER_AXIS:
-			print_axis_event(ev);
+			print_pointer_axis_event(ev);
 			break;
 		case LIBINPUT_EVENT_TOUCH_DOWN:
 			print_touch_event_with_coords(ev);
@@ -432,6 +634,18 @@ handle_and_print_events(struct libinput *li)
 			break;
 		case LIBINPUT_EVENT_GESTURE_PINCH_END:
 			print_gesture_event_without_coords(ev);
+			break;
+		case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
+			print_tablet_axis_event(ev);
+			break;
+		case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
+			print_proximity_event(ev);
+			break;
+		case LIBINPUT_EVENT_TABLET_TOOL_TIP:
+			print_tablet_tip_event(ev);
+			break;
+		case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
+			print_tablet_button_event(ev);
 			break;
 		}
 

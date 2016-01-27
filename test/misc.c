@@ -31,6 +31,7 @@
 #include <unistd.h>
 
 #include "litest.h"
+#include "libinput-util.h"
 
 static int open_restricted(const char *path, int flags, void *data)
 {
@@ -132,6 +133,7 @@ START_TEST(event_conversion_device_notify)
 			ck_assert(libinput_event_get_keyboard_event(event) == NULL);
 			ck_assert(libinput_event_get_touch_event(event) == NULL);
 			ck_assert(libinput_event_get_gesture_event(event) == NULL);
+			ck_assert(libinput_event_get_tablet_tool_event(event) == NULL);
 			litest_restore_log_handler(li);
 		}
 
@@ -187,6 +189,7 @@ START_TEST(event_conversion_pointer)
 			ck_assert(libinput_event_get_keyboard_event(event) == NULL);
 			ck_assert(libinput_event_get_touch_event(event) == NULL);
 			ck_assert(libinput_event_get_gesture_event(event) == NULL);
+			ck_assert(libinput_event_get_tablet_tool_event(event) == NULL);
 			litest_restore_log_handler(li);
 		}
 		libinput_event_destroy(event);
@@ -236,6 +239,7 @@ START_TEST(event_conversion_pointer_abs)
 			ck_assert(libinput_event_get_keyboard_event(event) == NULL);
 			ck_assert(libinput_event_get_touch_event(event) == NULL);
 			ck_assert(libinput_event_get_gesture_event(event) == NULL);
+			ck_assert(libinput_event_get_tablet_tool_event(event) == NULL);
 			litest_restore_log_handler(li);
 		}
 		libinput_event_destroy(event);
@@ -278,6 +282,7 @@ START_TEST(event_conversion_key)
 			ck_assert(libinput_event_get_pointer_event(event) == NULL);
 			ck_assert(libinput_event_get_touch_event(event) == NULL);
 			ck_assert(libinput_event_get_gesture_event(event) == NULL);
+			ck_assert(libinput_event_get_tablet_tool_event(event) == NULL);
 			litest_restore_log_handler(li);
 		}
 		libinput_event_destroy(event);
@@ -327,6 +332,7 @@ START_TEST(event_conversion_touch)
 			ck_assert(libinput_event_get_pointer_event(event) == NULL);
 			ck_assert(libinput_event_get_keyboard_event(event) == NULL);
 			ck_assert(libinput_event_get_gesture_event(event) == NULL);
+			ck_assert(libinput_event_get_tablet_tool_event(event) == NULL);
 			litest_restore_log_handler(li);
 		}
 		libinput_event_destroy(event);
@@ -381,6 +387,89 @@ START_TEST(event_conversion_gesture)
 	}
 
 	ck_assert_int_gt(gestures, 0);
+}
+END_TEST
+
+START_TEST(event_conversion_tablet)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	int events = 0;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ -1, -1 }
+	};
+
+	litest_tablet_proximity_in(dev, 50, 50, axes);
+	litest_tablet_motion(dev, 60, 50, axes);
+	litest_button_click(dev, BTN_STYLUS, true);
+	litest_button_click(dev, BTN_STYLUS, false);
+
+	libinput_dispatch(li);
+
+	while ((event = libinput_get_event(li))) {
+		enum libinput_event_type type;
+		type = libinput_event_get_type(event);
+
+		if (type >= LIBINPUT_EVENT_TABLET_TOOL_AXIS &&
+		    type <= LIBINPUT_EVENT_TABLET_TOOL_BUTTON) {
+			struct libinput_event_tablet_tool *t;
+			struct libinput_event *base;
+			t = libinput_event_get_tablet_tool_event(event);
+			base = libinput_event_tablet_tool_get_base_event(t);
+			ck_assert(event == base);
+
+			events++;
+
+			litest_disable_log_handler(li);
+			ck_assert(libinput_event_get_device_notify_event(event) == NULL);
+			ck_assert(libinput_event_get_pointer_event(event) == NULL);
+			ck_assert(libinput_event_get_keyboard_event(event) == NULL);
+			ck_assert(libinput_event_get_touch_event(event) == NULL);
+			litest_restore_log_handler(li);
+		}
+		libinput_event_destroy(event);
+	}
+
+	ck_assert_int_gt(events, 0);
+}
+END_TEST
+
+START_TEST(bitfield_helpers)
+{
+	/* This value has a bit set on all of the word boundaries we want to
+	 * test: 0, 1, 7, 8, 31, 32, and 33
+	 */
+	unsigned char read_bitfield[] = { 0x83, 0x1, 0x0, 0x80, 0x3 };
+	unsigned char write_bitfield[ARRAY_LENGTH(read_bitfield)] = {0};
+	size_t i;
+
+	/* Now check that the bitfield we wrote to came out to be the same as
+	 * the bitfield we were writing from */
+	for (i = 0; i < ARRAY_LENGTH(read_bitfield) * 8; i++) {
+		switch (i) {
+		case 0:
+		case 1:
+		case 7:
+		case 8:
+		case 31:
+		case 32:
+		case 33:
+			ck_assert(bit_is_set(read_bitfield, i));
+			set_bit(write_bitfield, i);
+			break;
+		default:
+			ck_assert(!bit_is_set(read_bitfield, i));
+			clear_bit(write_bitfield, i);
+			break;
+		}
+	}
+
+	ck_assert_int_eq(memcmp(read_bitfield,
+				write_bitfield,
+				sizeof(read_bitfield)),
+			 0);
 }
 END_TEST
 
@@ -784,6 +873,8 @@ litest_setup_tests(void)
 	litest_add_for_device("events:conversion", event_conversion_key, LITEST_KEYBOARD);
 	litest_add_for_device("events:conversion", event_conversion_touch, LITEST_WACOM_TOUCH);
 	litest_add_for_device("events:conversion", event_conversion_gesture, LITEST_BCM5974);
+	litest_add_for_device("events:conversion", event_conversion_tablet, LITEST_WACOM_CINTIQ);
+	litest_add_no_device("bitfield_helpers", bitfield_helpers);
 
 	litest_add_no_device("context:refcount", context_ref_counting);
 	litest_add_no_device("config:status string", config_status_string);

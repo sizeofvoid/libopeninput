@@ -101,6 +101,9 @@ create_pointer_accelerator_filter_lenovo_x230(int dpi);
 struct motion_filter *
 create_pointer_accelerator_filter_trackpoint(int dpi);
 
+struct motion_filter *
+create_pointer_accelerator_filter_tablet(int xres, int yres);
+
 /*
  * Pointer acceleration profiles.
  */

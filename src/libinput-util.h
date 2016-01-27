@@ -96,6 +96,8 @@ int list_empty(const struct list *list);
 #define streq(s1, s2) (strcmp((s1), (s2)) == 0)
 #define strneq(s1, s2, n) (strncmp((s1), (s2), (n)) == 0)
 
+#define NCHARS(x) ((size_t)(((x) + 7) / 8))
+
 #ifdef DEBUG_TRACE
 #define debug_trace(...) \
 	do { \
@@ -105,12 +107,35 @@ int list_empty(const struct list *list);
 #else
 #define debug_trace(...) { }
 #endif
+
 #define LIBINPUT_EXPORT __attribute__ ((visibility("default")))
 
 static inline void *
 zalloc(size_t size)
 {
 	return calloc(1, size);
+}
+
+/* This bitfield helper implementation is taken from from libevdev-util.h,
+ * except that it has been modified to work with arrays of unsigned chars
+ */
+
+static inline int
+bit_is_set(const unsigned char *array, int bit)
+{
+    return !!(array[bit / 8] & (1 << (bit % 8)));
+}
+
+static inline void
+set_bit(unsigned char *array, int bit)
+{
+    array[bit / 8] |= (1 << (bit % 8));
+}
+
+static inline void
+clear_bit(unsigned char *array, int bit)
+{
+    array[bit / 8] &= ~(1 << (bit % 8));
 }
 
 static inline void
@@ -243,6 +268,16 @@ matrix_to_farray6(const struct matrix *m, float out[6])
 	out[3] = m->val[1][0];
 	out[4] = m->val[1][1];
 	out[5] = m->val[1][2];
+}
+
+static inline void
+matrix_to_relative(struct matrix *dest, const struct matrix *src)
+{
+	matrix_init_identity(dest);
+	dest->val[0][0] = src->val[0][0];
+	dest->val[0][1] = src->val[0][1];
+	dest->val[1][0] = src->val[1][0];
+	dest->val[1][1] = src->val[1][1];
 }
 
 /**

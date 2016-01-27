@@ -51,6 +51,10 @@ struct touch {
 	int x, y;
 };
 
+struct point {
+	double x, y;
+};
+
 struct window {
 	GtkWidget *win;
 	GtkWidget *area;
@@ -85,6 +89,22 @@ struct window {
 		double x, y;
 	} pinch;
 
+	struct {
+		double x, y;
+		double x_in, y_in;
+		double x_down, y_down;
+		double x_up, y_up;
+		double pressure;
+		double distance;
+		double tilt_x, tilt_y;
+
+		/* these are for the delta coordinates, but they're not
+		 * deltas, theyconverted into
+		 * abs positions */
+		size_t ndeltas;
+		struct point deltas[64];
+	} tool;
+
 	struct libinput_device *devices[50];
 };
 
@@ -118,6 +138,8 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	struct window *w = data;
 	struct touch *t;
 	int i, offset;
+	int first, last, mask;
+	double x, y;
 
 	cairo_set_source_rgb(cr, 1, 1, 1);
 	cairo_rectangle(cr, 0, 0, w->width, w->height);
@@ -215,6 +237,61 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	cairo_rectangle(cr, w->width/2 + 30, w->height - 200, 70, 30);
 	cairo_stroke(cr);
 	cairo_restore(cr);
+
+	/* tablet tool, square for prox-in location */
+	cairo_save(cr);
+	cairo_set_source_rgb(cr, .8, .8, .8);
+	if (w->tool.x_in && w->tool.y_in) {
+		cairo_rectangle(cr, w->tool.x_in - 15, w->tool.y_in - 15, 30, 30);
+		cairo_stroke(cr);
+		cairo_restore(cr);
+		cairo_save(cr);
+	}
+
+	if (w->tool.x_down && w->tool.y_down) {
+		cairo_rectangle(cr, w->tool.x_down - 10, w->tool.y_down - 10, 20, 20);
+		cairo_stroke(cr);
+		cairo_restore(cr);
+		cairo_save(cr);
+	}
+
+	if (w->tool.x_up && w->tool.y_up) {
+		cairo_rectangle(cr, w->tool.x_up - 10, w->tool.y_up - 10, 20, 20);
+		cairo_stroke(cr);
+		cairo_restore(cr);
+		cairo_save(cr);
+	}
+
+	if (w->tool.pressure)
+		cairo_set_source_rgb(cr, .8, .8, .2);
+
+	cairo_translate(cr, w->tool.x, w->tool.y);
+	cairo_scale(cr, 1.0 + w->tool.tilt_x, 1.0 + w->tool.tilt_y);
+	cairo_arc(cr, 0, 0,
+		  1 + 10 * max(w->tool.pressure, w->tool.distance),
+		  0, 2 * M_PI);
+	cairo_fill(cr);
+	cairo_restore(cr);
+
+	/* tablet deltas */
+	mask = ARRAY_LENGTH(w->tool.deltas);
+	first = max(w->tool.ndeltas + 1, mask) - mask;
+	last = w->tool.ndeltas;
+
+	cairo_save(cr);
+	cairo_set_source_rgb(cr, .8, .8, .2);
+
+	x = w->tool.deltas[first % mask].x;
+	y = w->tool.deltas[first % mask].y;
+	cairo_move_to(cr, x, y);
+
+	for (i = first + 1; i < last; i++) {
+		x = w->tool.deltas[i % mask].x;
+		y = w->tool.deltas[i % mask].y;
+		cairo_line_to(cr, x, y);
+	}
+
+	cairo_stroke(cr);
 
 	return TRUE;
 }
@@ -551,6 +628,76 @@ handle_event_pinch(struct libinput_event *ev, struct window *w)
 	}
 }
 
+static void
+handle_event_tablet(struct libinput_event *ev, struct window *w)
+{
+	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
+	double x, y;
+	struct point point;
+	int idx;
+	const int mask = ARRAY_LENGTH(w->tool.deltas);
+
+	x = libinput_event_tablet_tool_get_x_transformed(t, w->width);
+	y = libinput_event_tablet_tool_get_y_transformed(t, w->height);
+
+	switch (libinput_event_get_type(ev)) {
+	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
+		if (libinput_event_tablet_tool_get_proximity_state(t) ==
+		    LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT) {
+			w->tool.x_in = 0;
+			w->tool.y_in = 0;
+			w->tool.x_down = 0;
+			w->tool.y_down = 0;
+			w->tool.x_up = 0;
+			w->tool.y_up = 0;
+		} else {
+			w->tool.x_in = x;
+			w->tool.y_in = y;
+			w->tool.ndeltas = 0;
+			w->tool.deltas[0].x = w->width/2;
+			w->tool.deltas[0].y = w->height/2;
+		}
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
+		w->tool.pressure = libinput_event_tablet_tool_get_pressure(t);
+		w->tool.distance = libinput_event_tablet_tool_get_distance(t);
+		w->tool.tilt_x = libinput_event_tablet_tool_get_tilt_x(t);
+		w->tool.tilt_y = libinput_event_tablet_tool_get_tilt_y(t);
+		if (libinput_event_tablet_tool_get_tip_state(t) ==
+		    LIBINPUT_TABLET_TOOL_TIP_DOWN) {
+			w->tool.x_down = x;
+			w->tool.y_down = y;
+		} else {
+			w->tool.x_up = x;
+			w->tool.y_up = y;
+		}
+		/* fallthrough */
+	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
+		w->tool.x = x;
+		w->tool.y = y;
+		w->tool.pressure = libinput_event_tablet_tool_get_pressure(t);
+		w->tool.distance = libinput_event_tablet_tool_get_distance(t);
+		w->tool.tilt_x = libinput_event_tablet_tool_get_tilt_x(t);
+		w->tool.tilt_y = libinput_event_tablet_tool_get_tilt_y(t);
+
+		/* Add the delta to the last position and store them as abs
+		 * coordinates */
+		idx = w->tool.ndeltas % mask;
+		point = w->tool.deltas[idx];
+
+		idx = (w->tool.ndeltas + 1) % mask;
+		point.x += libinput_event_tablet_tool_get_dx(t);
+		point.y += libinput_event_tablet_tool_get_dy(t);
+		w->tool.deltas[idx] = point;
+		w->tool.ndeltas++;
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
+		break;
+	default:
+		abort();
+	}
+}
+
 static gboolean
 handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 {
@@ -605,6 +752,12 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 		case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE:
 		case LIBINPUT_EVENT_GESTURE_PINCH_END:
 			handle_event_pinch(ev, w);
+			break;
+		case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
+		case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
+		case LIBINPUT_EVENT_TABLET_TOOL_TIP:
+		case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
+			handle_event_tablet(ev, w);
 			break;
 		}
 

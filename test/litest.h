@@ -35,6 +35,28 @@
 #include <libinput.h>
 #include <math.h>
 
+void
+litest_fail_condition(const char *file,
+		      int line,
+		      const char *func,
+		      const char *condition,
+		      const char *message,
+		      ...);
+void
+litest_fail_comparison_int(const char *file,
+			   int line,
+			   const char *func,
+			   const char *operator,
+			   int a,
+			   int b,
+			   const char *astr,
+			   const char *bstr);
+void
+litest_fail_comparison_ptr(const char *file,
+			   int line,
+			   const char *func,
+			   const char *comparison);
+
 #define litest_assert(cond) \
 	do { \
 		if (!(cond)) \
@@ -111,6 +133,24 @@
 #define litest_assert_ptr_notnull(a_) \
 	litest_assert_comparison_ptr_(a_, !=, NULL)
 
+#define litest_assert_double_eq(a_, b_)\
+	ck_assert_int_eq((int)((a_) * 256), (int)((b_) * 256))
+
+#define litest_assert_double_ne(a_, b_)\
+	ck_assert_int_ne((int)((a_) * 256), (int)((b_) * 256))
+
+#define litest_assert_double_lt(a_, b_)\
+	ck_assert_int_lt((int)((a_) * 256), (int)((b_) * 256))
+
+#define litest_assert_double_le(a_, b_)\
+	ck_assert_int_le((int)((a_) * 256), (int)((b_) * 256))
+
+#define litest_assert_double_gt(a_, b_)\
+	ck_assert_int_gt((int)((a_) * 256), (int)((b_) * 256))
+
+#define litest_assert_double_ge(a_, b_)\
+	ck_assert_int_ge((int)((a_) * 256), (int)((b_) * 256))
+
 enum litest_device_type {
 	LITEST_NO_DEVICE = -1,
 	LITEST_SYNAPTICS_CLICKPAD = -2,
@@ -146,6 +186,12 @@ enum litest_device_type {
 	LITEST_MOUSE_WHEEL_CLICK_ANGLE = -32,
 	LITEST_APPLE_KEYBOARD = -33,
 	LITEST_ANKER_MOUSE_KBD = -34,
+	LITEST_WACOM_BAMBOO = -35,
+	LITEST_WACOM_CINTIQ = -36,
+	LITEST_WACOM_INTUOS = -37,
+	LITEST_WACOM_ISDV4 = -38,
+	LITEST_WALTOP = -39,
+	LITEST_HUION_TABLET = -40,
 };
 
 enum litest_device_feature {
@@ -168,6 +214,10 @@ enum litest_device_feature {
 	LITEST_PROTOCOL_A = 1 << 14,
 	LITEST_HOVER = 1 << 15,
 	LITEST_ELLIPSE = 1 << 16,
+	LITEST_TABLET = 1 << 17,
+	LITEST_DISTANCE = 1 << 18,
+	LITEST_TOOL_SERIAL = 1 << 19,
+	LITEST_TILT = 1 << 20,
 };
 
 struct litest_device {
@@ -188,8 +238,26 @@ struct litest_device {
 
 struct axis_replacement {
 	int32_t evcode;
-	int32_t value;
+	double value;
 };
+
+static inline void litest_axis_set_value(struct axis_replacement *axes,
+					 int code,
+					 double value)
+{
+	litest_assert_double_ge(value, 0.0);
+	litest_assert_double_le(value, 100.0);
+
+	while (axes->evcode != -1) {
+		if (axes->evcode == code) {
+			axes->value = value;
+			return;
+		}
+		axes++;
+	}
+
+	litest_abort_msg("Missing axis code %d\n", code);
+}
 
 /* A loop range, resolves to:
    for (i = lower; i < upper; i++)
@@ -202,28 +270,6 @@ struct range {
 struct libinput *litest_create_context(void);
 void litest_disable_log_handler(struct libinput *libinput);
 void litest_restore_log_handler(struct libinput *libinput);
-
-void
-litest_fail_condition(const char *file,
-		      int line,
-		      const char *func,
-		      const char *condition,
-		      const char *message,
-		      ...);
-void
-litest_fail_comparison_int(const char *file,
-			   int line,
-			   const char *func,
-			   const char *operator,
-			   int a,
-			   int b,
-			   const char *astr,
-			   const char *bstr);
-void
-litest_fail_comparison_ptr(const char *file,
-			   int line,
-			   const char *func,
-			   const char *comparison);
 
 #define litest_add(name_, func_, ...) \
 	_litest_add(name_, #func_, func_, __VA_ARGS__)
@@ -336,6 +382,15 @@ void litest_touch_move_three_touches(struct litest_device *d,
 				     double x2, double y2,
 				     double dx, double dy,
 				     int steps, int sleep_ms);
+
+void litest_tablet_proximity_in(struct litest_device *d,
+				int x, int y,
+				struct axis_replacement *axes);
+void litest_tablet_proximity_out(struct litest_device *d);
+void litest_tablet_motion(struct litest_device *d,
+			  int x, int y,
+			  struct axis_replacement *axes);
+
 void litest_hover_start(struct litest_device *d,
 			unsigned int slot,
 			double x,
@@ -389,6 +444,9 @@ struct libinput_event_gesture * litest_is_gesture_event(
 		       struct libinput_event *event,
 		       enum libinput_event_type type,
 		       int nfingers);
+struct libinput_event_tablet_tool * litest_is_tablet_event(
+		       struct libinput_event *event,
+		       enum libinput_event_type type);
 
 void litest_assert_button_event(struct libinput *li,
 				unsigned int button,
@@ -398,7 +456,11 @@ void litest_assert_scroll(struct libinput *li,
 			  int minimum_movement);
 void litest_assert_only_typed_events(struct libinput *li,
 				     enum libinput_event_type type);
-
+void litest_assert_tablet_button_event(struct libinput *li,
+				       unsigned int button,
+				       enum libinput_button_state state);
+void litest_assert_tablet_proximity_event(struct libinput *li,
+					  enum libinput_tablet_tool_proximity_state state);
 struct libevdev_uinput * litest_create_uinput_device(const char *name,
 						     struct input_id *id,
 						     ...);
@@ -406,24 +468,6 @@ struct libevdev_uinput * litest_create_uinput_abs_device(const char *name,
 							 struct input_id *id,
 							 const struct input_absinfo *abs,
 							 ...);
-#define litest_assert_double_eq(a_, b_)\
-	ck_assert_int_eq((int)(a_ * 256), (int)(b_ * 256))
-
-#define litest_assert_double_ne(a_, b_)\
-	ck_assert_int_ne((int)(a_ * 256), (int)(b_ * 256))
-
-#define litest_assert_double_lt(a_, b_)\
-	ck_assert_int_lt((int)(a_ * 256), (int)(b_ * 256))
-
-#define litest_assert_double_le(a_, b_)\
-	ck_assert_int_le((int)(a_ * 256), (int)(b_ * 256))
-
-#define litest_assert_double_gt(a_, b_)\
-	ck_assert_int_gt((int)(a_ * 256), (int)(b_ * 256))
-
-#define litest_assert_double_ge(a_, b_)\
-	ck_assert_int_ge((int)(a_ * 256), (int)(b_ * 256))
-
 void litest_timeout_tap(void);
 void litest_timeout_tapndrag(void);
 void litest_timeout_softbuttons(void);
