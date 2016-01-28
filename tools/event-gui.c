@@ -181,16 +181,6 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 
 	cairo_restore(cr);
 
-	/* draw pointer sprite */
-	cairo_set_source_rgb(cr, 0, 0, 0);
-	cairo_save(cr);
-	cairo_move_to(cr, w->x, w->y);
-	cairo_rel_line_to(cr, 10, 15);
-	cairo_rel_line_to(cr, -10, 0);
-	cairo_rel_line_to(cr, 0, -15);
-	cairo_fill(cr);
-	cairo_restore(cr);
-
 	/* draw scroll bars */
 	cairo_set_source_rgb(cr, .4, .8, 0);
 
@@ -292,6 +282,16 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	}
 
 	cairo_stroke(cr);
+
+	/* draw pointer sprite */
+	cairo_set_source_rgb(cr, 0, 0, 0);
+	cairo_save(cr);
+	cairo_move_to(cr, w->x, w->y);
+	cairo_rel_line_to(cr, 10, 15);
+	cairo_rel_line_to(cr, -10, 0);
+	cairo_rel_line_to(cr, 0, -15);
+	cairo_fill(cr);
+	cairo_restore(cr);
 
 	return TRUE;
 }
