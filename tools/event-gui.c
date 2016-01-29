@@ -132,18 +132,11 @@ msg(const char *fmt, ...)
 	va_end(args);
 }
 
-static gboolean
-draw(GtkWidget *widget, cairo_t *cr, gpointer data)
+static inline void
+draw_gestures(struct window *w, cairo_t *cr)
 {
-	struct window *w = data;
-	struct touch *t;
-	int i, offset;
-	int first, last, mask;
-	double x, y;
-
-	cairo_set_source_rgb(cr, 1, 1, 1);
-	cairo_rectangle(cr, 0, 0, w->width, w->height);
-	cairo_fill(cr);
+	int i;
+	int offset;
 
 	/* swipe */
 	cairo_save(cr);
@@ -181,7 +174,11 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 
 	cairo_restore(cr);
 
-	/* draw scroll bars */
+}
+
+static inline void
+draw_scrollbars(struct window *w, cairo_t *cr)
+{
 	cairo_set_source_rgb(cr, .4, .8, 0);
 
 	cairo_save(cr);
@@ -189,8 +186,13 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	cairo_rectangle(cr, w->hx - 20, w->hy - 10, 40, 20);
 	cairo_fill(cr);
 	cairo_restore(cr);
+}
 
-	/* touch points */
+static inline void
+draw_touchpoints(struct window *w, cairo_t *cr)
+{
+	struct touch *t;
+
 	cairo_set_source_rgb(cr, .8, .2, .2);
 
 	ARRAY_FOR_EACH(w->touches, t) {
@@ -199,16 +201,22 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 		cairo_fill(cr);
 		cairo_restore(cr);
 	}
+}
 
-	/* abs position */
+static inline void
+draw_abs_pointer(struct window *w, cairo_t *cr)
+{
 	cairo_set_source_rgb(cr, .2, .4, .8);
 
 	cairo_save(cr);
 	cairo_arc(cr, w->absx, w->absy, 10, 0, 2 * M_PI);
 	cairo_fill(cr);
 	cairo_restore(cr);
+}
 
-	/* lmr buttons */
+static inline void
+draw_buttons(struct window *w, cairo_t *cr)
+{
 	cairo_save(cr);
 	if (w->l || w->m || w->r) {
 		cairo_set_source_rgb(cr, .2, .8, .8);
@@ -227,6 +235,14 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	cairo_rectangle(cr, w->width/2 + 30, w->height - 200, 70, 30);
 	cairo_stroke(cr);
 	cairo_restore(cr);
+}
+
+static inline void
+draw_tablet(struct window *w, cairo_t *cr)
+{
+	double x, y;
+	int first, last, mask;
+	int i;
 
 	/* tablet tool, square for prox-in location */
 	cairo_save(cr);
@@ -283,6 +299,11 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 
 	cairo_stroke(cr);
 
+}
+
+static inline void
+draw_pointer(struct window *w, cairo_t *cr)
+{
 	/* draw pointer sprite */
 	cairo_set_source_rgb(cr, 0, 0, 0);
 	cairo_save(cr);
@@ -292,6 +313,24 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	cairo_rel_line_to(cr, 0, -15);
 	cairo_fill(cr);
 	cairo_restore(cr);
+}
+
+static gboolean
+draw(GtkWidget *widget, cairo_t *cr, gpointer data)
+{
+	struct window *w = data;
+
+	cairo_set_source_rgb(cr, 1, 1, 1);
+	cairo_rectangle(cr, 0, 0, w->width, w->height);
+	cairo_fill(cr);
+
+	draw_gestures(w, cr);
+	draw_scrollbars(w, cr);
+	draw_touchpoints(w, cr);
+	draw_abs_pointer(w, cr);
+	draw_buttons(w, cr);
+	draw_tablet(w, cr);
+	draw_pointer(w, cr);
 
 	return TRUE;
 }
