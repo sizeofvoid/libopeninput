@@ -1153,6 +1153,63 @@ START_TEST(gestures_time_usec)
 }
 END_TEST
 
+START_TEST(gestures_3fg_buttonarea_scroll)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	if (libevdev_get_num_slots(dev->evdev) < 3)
+		return;
+
+	litest_enable_buttonareas(dev);
+	litest_enable_2fg_scroll(dev);
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 40, 20);
+	litest_touch_down(dev, 1, 30, 20);
+	/* third finger in btnarea */
+	litest_touch_down(dev, 2, 50, 99);
+	libinput_dispatch(li);
+	litest_touch_move_two_touches(dev,
+					40, 20,
+					30, 20,
+					0, 40,
+					4, 2);
+
+	litest_touch_up(dev, 0);
+	litest_touch_up(dev, 1);
+	libinput_dispatch(li);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, 4);
+}
+END_TEST
+
+START_TEST(gestures_3fg_buttonarea_scroll_btntool)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	if (libevdev_get_num_slots(dev->evdev) > 2)
+		return;
+
+	litest_enable_buttonareas(dev);
+	litest_enable_2fg_scroll(dev);
+	litest_drain_events(li);
+
+	/* first finger in btnarea */
+	litest_touch_down(dev, 0, 20, 99);
+	litest_touch_down(dev, 1, 30, 20);
+	litest_event(dev, EV_KEY, BTN_TOOL_DOUBLETAP, 0);
+	litest_event(dev, EV_KEY, BTN_TOOL_TRIPLETAP, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+	litest_touch_move_to(dev, 1, 30, 20, 30, 70, 10, 1);
+
+	litest_touch_up(dev, 1);
+	libinput_dispatch(li);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, 4);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -1172,6 +1229,9 @@ litest_setup_tests(void)
 	litest_add_ranged("gestures:pinch", gestures_pinch_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add_ranged("gestures:pinch", gestures_pinch_4fg_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add_ranged("gestures:pinch", gestures_spread, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
+
+	litest_add("gestures:swipe", gestures_3fg_buttonarea_scroll, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
+	litest_add("gestures:swipe", gestures_3fg_buttonarea_scroll_btntool, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
 
 	litest_add("gesture:time", gestures_time_usec, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 }
