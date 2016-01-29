@@ -1299,6 +1299,38 @@ START_TEST(device_quirks_no_abs_mt_y)
 }
 END_TEST
 
+START_TEST(device_quirks_cyborg_rat_mode_button)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	struct libinput *li = dev->libinput;
+
+	ck_assert(!libinput_device_pointer_has_button(device, 0x118));
+	ck_assert(!libinput_device_pointer_has_button(device, 0x119));
+	ck_assert(!libinput_device_pointer_has_button(device, 0x11a));
+
+	litest_drain_events(li);
+
+	litest_event(dev, EV_KEY, 0x118, 0);
+	litest_event(dev, EV_KEY, 0x119, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	litest_assert_empty_queue(li);
+
+	litest_event(dev, EV_KEY, 0x119, 0);
+	litest_event(dev, EV_KEY, 0x11a, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	litest_assert_empty_queue(li);
+
+	litest_event(dev, EV_KEY, 0x11a, 0);
+	litest_event(dev, EV_KEY, 0x118, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -1356,4 +1388,5 @@ litest_setup_tests(void)
 	litest_add_no_device("device:invalid rel events", device_abs_rel);
 
 	litest_add_for_device("device:quirks", device_quirks_no_abs_mt_y, LITEST_ANKER_MOUSE_KBD);
+	litest_add_for_device("device:quirks", device_quirks_cyborg_rat_mode_button, LITEST_CYBORG_RAT);
 }

@@ -1677,6 +1677,7 @@ evdev_read_model_flags(struct evdev_device *device)
 		{ "LIBINPUT_MODEL_JUMPING_SEMI_MT", EVDEV_MODEL_JUMPING_SEMI_MT },
 		{ "LIBINPUT_MODEL_ELANTECH_TOUCHPAD", EVDEV_MODEL_ELANTECH_TOUCHPAD },
 		{ "LIBINPUT_MODEL_APPLE_INTERNAL_KEYBOARD", EVDEV_MODEL_APPLE_INTERNAL_KEYBOARD },
+		{ "LIBINPUT_MODEL_CYBORG_RAT", EVDEV_MODEL_CYBORG_RAT },
 		{ NULL, EVDEV_MODEL_DEFAULT },
 	};
 	const struct model_map *m = model_map;
@@ -2249,6 +2250,39 @@ evdev_drain_fd(int fd)
 	}
 }
 
+static inline void
+evdev_pre_configure_model_quirks(struct evdev_device *device)
+{
+	/* The Cyborg RAT has a mode button that cycles through event codes.
+	 * On press, we get a release for the current mode and a press for the
+	 * next mode:
+	 * E: 0.000001 0004 0004 589833	# EV_MSC / MSC_SCAN             589833
+	 * E: 0.000001 0001 0118 0000	# EV_KEY / (null)               0
+	 * E: 0.000001 0004 0004 589834	# EV_MSC / MSC_SCAN             589834
+	 * E: 0.000001 0001 0119 0001	# EV_KEY / (null)               1
+	 * E: 0.000001 0000 0000 0000	# ------------ SYN_REPORT (0) ---------- +0ms
+	 * E: 0.705000 0004 0004 589834	# EV_MSC / MSC_SCAN             589834
+	 * E: 0.705000 0001 0119 0000	# EV_KEY / (null)               0
+	 * E: 0.705000 0004 0004 589835	# EV_MSC / MSC_SCAN             589835
+	 * E: 0.705000 0001 011a 0001	# EV_KEY / (null)               1
+	 * E: 0.705000 0000 0000 0000	# ------------ SYN_REPORT (0) ---------- +705ms
+	 * E: 1.496995 0004 0004 589833	# EV_MSC / MSC_SCAN             589833
+	 * E: 1.496995 0001 0118 0001	# EV_KEY / (null)               1
+	 * E: 1.496995 0004 0004 589835	# EV_MSC / MSC_SCAN             589835
+	 * E: 1.496995 0001 011a 0000	# EV_KEY / (null)               0
+	 * E: 1.496995 0000 0000 0000	# ------------ SYN_REPORT (0) ---------- +791ms
+	 *
+	 * https://bugs.freedesktop.org/show_bug.cgi?id=92127
+	 *
+	 * Disable the event codes to avoid stuck buttons.
+	 */
+	if(device->model_flags & EVDEV_MODEL_CYBORG_RAT) {
+		libevdev_disable_event_code(device->evdev, EV_KEY, 0x118);
+		libevdev_disable_event_code(device->evdev, EV_KEY, 0x119);
+		libevdev_disable_event_code(device->evdev, EV_KEY, 0x11a);
+	}
+}
+
 struct evdev_device *
 evdev_device_create(struct libinput_seat *seat,
 		    struct udev_device *udev_device)
@@ -2317,6 +2351,8 @@ evdev_device_create(struct libinput_seat *seat,
 	matrix_init_identity(&device->abs.calibration);
 	matrix_init_identity(&device->abs.usermatrix);
 	matrix_init_identity(&device->abs.default_calibration);
+
+	evdev_pre_configure_model_quirks(device);
 
 	if (evdev_configure_device(device) == -1)
 		goto err;

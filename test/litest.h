@@ -192,6 +192,7 @@ enum litest_device_type {
 	LITEST_WACOM_ISDV4 = -38,
 	LITEST_WALTOP = -39,
 	LITEST_HUION_TABLET = -40,
+	LITEST_CYBORG_RAT = -41,
 };
 
 enum litest_device_feature {
