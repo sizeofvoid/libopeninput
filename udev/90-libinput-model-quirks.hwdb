@@ -38,6 +38,13 @@ libinput:name:*Apple Inc. Apple Internal Keyboard*:dmi:*
  LIBINPUT_MODEL_APPLE_INTERNAL_KEYBOARD=1
 
 ##########################################
+# Cyborg
+##########################################
+# Saitek Cyborg R.A.T.5 Mouse
+libinput:mouse:input:b0003v06A3p0CD5*
+ LIBINPUT_MODEL_CYBORG_RAT=1
+
+##########################################
 # Elantech
 ##########################################
 libinput:name:*ETPS/2 Elantech Touchpad*:dmi:*

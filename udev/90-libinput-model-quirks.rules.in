@@ -29,6 +29,10 @@ KERNELS=="*input*", \
 ENV{ID_INPUT_TOUCHPAD}=="1", \
   IMPORT{builtin}="hwdb --subsystem=input --lookup-prefix=libinput:touchpad:"
 
+# libinput:mouse:<modalias>
+ENV{ID_INPUT_MOUSE}=="1", \
+  IMPORT{builtin}="hwdb --subsystem=input --lookup-prefix=libinput:mouse:"
+
 # libinput:name:<name>:dmi:<dmi string>
 KERNELS=="input*", \
   IMPORT{builtin}="hwdb 'libinput:name:$attr{name}:$attr{[dmi/id]modalias}'"

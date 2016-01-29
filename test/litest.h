@@ -146,6 +146,7 @@ enum litest_device_type {
 	LITEST_MOUSE_WHEEL_CLICK_ANGLE = -32,
 	LITEST_APPLE_KEYBOARD = -33,
 	LITEST_ANKER_MOUSE_KBD = -34,
+	LITEST_CYBORG_RAT = -41,
 };
 
 enum litest_device_feature {

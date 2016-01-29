@@ -20,6 +20,7 @@ liblitest_la_SOURCES = \
 	litest-device-asus-rog-gladius.c \
 	litest-device-atmel-hover.c \
 	litest-device-bcm5974.c \
+	litest-device-cyborg-rat-5.c \
 	litest-device-elantech-touchpad.c \
 	litest-device-generic-singletouch.c \
 	litest-device-keyboard.c \
