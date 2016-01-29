@@ -111,6 +111,7 @@ enum evdev_device_model {
 	EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81 = (1 << 12),
 	EVDEV_MODEL_APPLE_INTERNAL_KEYBOARD = (1 << 13),
 	EVDEV_MODEL_CYBORG_RAT = (1 << 14),
+	EVDEV_MODEL_CYAPA = (1 << 15),
 };
 
 struct mt_slot {

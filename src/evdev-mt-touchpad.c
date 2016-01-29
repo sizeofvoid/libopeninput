@@ -1951,13 +1951,29 @@ tp_init_default_resolution(struct tp_dispatch *tp,
 	return 0;
 }
 
+static inline void
+tp_init_hysteresis(struct tp_dispatch *tp)
+{
+	int res_x, res_y;
+
+	res_x = tp->device->abs.absinfo_x->resolution;
+	res_y = tp->device->abs.absinfo_y->resolution;
+
+	if (tp->device->model_flags & EVDEV_MODEL_CYAPA) {
+		tp->hysteresis_margin.x = res_x/2;
+		tp->hysteresis_margin.y = res_y/2;
+	} else {
+		tp->hysteresis_margin.x = 0;
+		tp->hysteresis_margin.y = 0;
+	}
+}
+
 static int
 tp_init(struct tp_dispatch *tp,
 	struct evdev_device *device)
 {
 	int width, height;
 	double diagonal;
-	int res_x, res_y;
 
 	tp->base.interface = &tp_interface;
 	tp->device = device;
@@ -1971,8 +1987,6 @@ tp_init(struct tp_dispatch *tp,
 	if (tp_init_slots(tp, device) != 0)
 		return -1;
 
-	res_x = tp->device->abs.absinfo_x->resolution;
-	res_y = tp->device->abs.absinfo_y->resolution;
 	width = device->abs.dimensions.x;
 	height = device->abs.dimensions.y;
 	diagonal = sqrt(width*width + height*height);
@@ -1981,8 +1995,7 @@ tp_init(struct tp_dispatch *tp,
 						       EV_ABS,
 						       ABS_MT_DISTANCE);
 
-	tp->hysteresis_margin.x = res_x/2;
-	tp->hysteresis_margin.y = res_y/2;
+	tp_init_hysteresis(tp);
 
 	if (tp_init_accel(tp, diagonal) != 0)
 		return -1;
