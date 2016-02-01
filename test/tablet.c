@@ -1423,6 +1423,98 @@ START_TEST(left_handed_tilt)
 }
 END_TEST
 
+static inline double
+rotate_event(struct litest_device *dev, int angle_degrees)
+{
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	const struct input_absinfo *abs;
+	double a = (angle_degrees - 90 - 175)/180.0 * M_PI;
+	double val;
+	int x, y;
+	int tilt_center_x, tilt_center_y;
+
+	abs = libevdev_get_abs_info(dev->evdev, ABS_TILT_X);
+	ck_assert_notnull(abs);
+	tilt_center_x = (abs->maximum - abs->minimum + 1) / 2;
+
+	abs = libevdev_get_abs_info(dev->evdev, ABS_TILT_Y);
+	ck_assert_notnull(abs);
+	tilt_center_y = (abs->maximum - abs->minimum + 1) / 2;
+
+	x = cos(a) * 20 + tilt_center_x;
+	y = sin(a) * 20 + tilt_center_y;
+
+	litest_event(dev, EV_ABS, ABS_TILT_X, x);
+	litest_event(dev, EV_ABS, ABS_TILT_Y, y);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	ck_assert(libinput_event_tablet_tool_rotation_has_changed(tev));
+	val = libinput_event_tablet_tool_get_rotation(tev);
+
+	libinput_event_destroy(event);
+	litest_assert_empty_queue(li);
+
+	return val;
+}
+
+START_TEST(left_handed_mouse_rotation)
+{
+#if HAVE_LIBWACOM
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	enum libinput_config_status status;
+	int angle;
+	double val, old_val = 0;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ ABS_TILT_X, 0 },
+		{ ABS_TILT_Y, 0 },
+		{ -1, -1 }
+	};
+
+	if (!libevdev_has_event_code(dev->evdev,
+				    EV_KEY,
+				    BTN_TOOL_MOUSE))
+		return;
+
+	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_drain_events(li);
+
+	litest_push_event_frame(dev);
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 1);
+	litest_pop_event_frame(dev);
+
+	litest_drain_events(li);
+
+	/* cos/sin are 90 degrees offset from the north-is-zero that
+	   libinput uses. 175 is the CCW offset in the mouse HW */
+	for (angle = 185; angle < 540; angle += 5) {
+		int expected_angle = angle - 180;
+
+		val = rotate_event(dev, angle % 360);
+
+		/* rounding error galore, we can't test for anything more
+		   precise than these */
+		litest_assert_double_lt(val, 360.0);
+		litest_assert_double_gt(val, old_val);
+		litest_assert_double_lt(val, expected_angle + 5);
+
+		old_val = val;
+	}
+#endif
+}
+END_TEST
+
 START_TEST(motion_event_state)
 {
 	struct litest_device *dev = litest_current_device();
@@ -2163,11 +2255,7 @@ START_TEST(mouse_rotation)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
-	struct libinput_event_tablet_tool *tev;
 	int angle;
-	int tilt_center_x, tilt_center_y;
-	const struct input_absinfo *abs;
 	double val, old_val = 0;
 
 	struct axis_replacement axes[] = {
@@ -2183,14 +2271,6 @@ START_TEST(mouse_rotation)
 				    BTN_TOOL_MOUSE))
 		return;
 
-	abs = libevdev_get_abs_info(dev->evdev, ABS_TILT_X);
-	ck_assert_notnull(abs);
-	tilt_center_x = (abs->maximum - abs->minimum + 1) / 2;
-
-	abs = libevdev_get_abs_info(dev->evdev, ABS_TILT_Y);
-	ck_assert_notnull(abs);
-	tilt_center_y = (abs->maximum - abs->minimum + 1) / 2;
-
 	litest_drain_events(li);
 
 	litest_push_event_frame(dev);
@@ -2203,22 +2283,7 @@ START_TEST(mouse_rotation)
 	/* cos/sin are 90 degrees offset from the north-is-zero that
 	   libinput uses. 175 is the CCW offset in the mouse HW */
 	for (angle = 5; angle < 360; angle += 5) {
-		double a = (angle - 90 - 175)/180.0 * M_PI;
-		int x, y;
-
-		x = cos(a) * 20 + tilt_center_x;
-		y = sin(a) * 20 + tilt_center_y;
-
-		litest_event(dev, EV_ABS, ABS_TILT_X, x);
-		litest_event(dev, EV_ABS, ABS_TILT_Y, y);
-		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
-
-		event = libinput_get_event(li);
-		tev = litest_is_tablet_event(event,
-					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
-		ck_assert(libinput_event_tablet_tool_rotation_has_changed(tev));
-		val = libinput_event_tablet_tool_get_rotation(tev);
+		val = rotate_event(dev, angle);
 
 		/* rounding error galore, we can't test for anything more
 		   precise than these */
@@ -2227,8 +2292,6 @@ START_TEST(mouse_rotation)
 		litest_assert_double_lt(val, angle + 5);
 
 		old_val = val;
-		libinput_event_destroy(event);
-		litest_assert_empty_queue(li);
 	}
 }
 END_TEST
@@ -3459,6 +3522,7 @@ litest_setup_tests(void)
 	litest_add("tablet:tilt", tilt_y, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
 	litest_add_for_device("tablet:left_handed", left_handed, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:left_handed", left_handed_tilt, LITEST_WACOM_INTUOS);
+	litest_add_for_device("tablet:left_handed", left_handed_mouse_rotation, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:left_handed", no_left_handed, LITEST_WACOM_CINTIQ);
 	litest_add("tablet:normalization", normalization, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:pad", pad_buttons_ignored, LITEST_TABLET, LITEST_ANY);

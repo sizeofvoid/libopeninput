@@ -515,6 +515,8 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 		axes.tilt.x = 0;
 		axes.tilt.y = 0;
 
+		/* tilt is already coverted to left-handed, so mouse
+		 * rotation is converted to left-handed automatically */
 	} else {
 		axes.rotation = tablet_handle_artpen_rotation(tablet, device);
 	}
