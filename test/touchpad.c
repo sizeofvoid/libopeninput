@@ -139,7 +139,7 @@ START_TEST(touchpad_2fg_scroll)
 	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, -10);
 
 	/* 2fg scroll smaller than the threshold should not generate events */
-	test_2fg_scroll(dev, 0.1, 0.1, 200);
+	test_2fg_scroll(dev, 0.1, 0.1, 1);
 	litest_assert_empty_queue(li);
 }
 END_TEST
