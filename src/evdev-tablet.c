@@ -262,8 +262,6 @@ convert_tilt_to_rotation(struct tablet_dispatch *tablet)
 	   */
 	x = tablet->axes.tilt.x;
 	y = tablet->axes.tilt.y;
-	clear_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_TILT_X);
-	clear_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
 
 	/* atan2 is CCW, we want CW -> negate x */
 	if (x || y)
@@ -512,6 +510,8 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	if (tablet->current_tool_type == LIBINPUT_TABLET_TOOL_TYPE_MOUSE ||
 	    tablet->current_tool_type == LIBINPUT_TABLET_TOOL_TYPE_LENS) {
 		axes.rotation = tablet_handle_mouse_rotation(tablet, device);
+		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_TILT_X);
+		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
 		axes.tilt.x = 0;
 		axes.tilt.y = 0;
 
