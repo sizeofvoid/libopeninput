@@ -1515,6 +1515,67 @@ START_TEST(left_handed_mouse_rotation)
 }
 END_TEST
 
+START_TEST(left_handed_artpen_rotation)
+{
+#if HAVE_LIBWACOM
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	const struct input_absinfo *abs;
+	enum libinput_config_status status;
+	double val;
+	double scale;
+	int angle;
+
+	if (!libevdev_has_event_code(dev->evdev,
+				    EV_ABS,
+				    ABS_Z))
+		return;
+
+	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_drain_events(li);
+
+	abs = libevdev_get_abs_info(dev->evdev, ABS_Z);
+	ck_assert_notnull(abs);
+	scale = (abs->maximum - abs->minimum + 1)/360.0;
+
+	litest_event(dev, EV_KEY, BTN_TOOL_BRUSH, 1);
+	litest_event(dev, EV_ABS, ABS_MISC, 0x804); /* Art Pen */
+	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	litest_event(dev, EV_ABS, ABS_Z, abs->minimum);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	litest_drain_events(li);
+
+	for (angle = 188; angle < 540; angle += 8) {
+		int a = angle * scale + abs->minimum;
+		int expected_angle = angle - 180;
+
+		litest_event(dev, EV_ABS, ABS_Z, a);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event,
+					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		ck_assert(libinput_event_tablet_tool_rotation_has_changed(tev));
+		val = libinput_event_tablet_tool_get_rotation(tev);
+
+		/* artpen has a 90 deg offset cw */
+		ck_assert_int_eq(round(val), (expected_angle + 90) % 360);
+
+		libinput_event_destroy(event);
+		litest_assert_empty_queue(li);
+
+	}
+#endif
+}
+END_TEST
+
 START_TEST(motion_event_state)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3523,6 +3584,7 @@ litest_setup_tests(void)
 	litest_add_for_device("tablet:left_handed", left_handed, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:left_handed", left_handed_tilt, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:left_handed", left_handed_mouse_rotation, LITEST_WACOM_INTUOS);
+	litest_add_for_device("tablet:left_handed", left_handed_artpen_rotation, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:left_handed", no_left_handed, LITEST_WACOM_CINTIQ);
 	litest_add("tablet:normalization", normalization, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:pad", pad_buttons_ignored, LITEST_TABLET, LITEST_ANY);

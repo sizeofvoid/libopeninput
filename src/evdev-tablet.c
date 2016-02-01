@@ -519,6 +519,8 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 		 * rotation is converted to left-handed automatically */
 	} else {
 		axes.rotation = tablet_handle_artpen_rotation(tablet, device);
+		if (device->left_handed.enabled)
+			axes.rotation = fmod(180 + axes.rotation, 360);
 	}
 
 	axes.wheel = tablet_handle_wheel(tablet, device, &axes.wheel_discrete);
