@@ -1463,14 +1463,12 @@ tablet_check_initial_proximity(struct evdev_device *device,
 		libevdev_get_event_value(device->evdev,
 					 EV_ABS,
 					 ABS_MISC);
-	tablet->current_tool_serial =
-		libevdev_get_event_value(device->evdev,
-					 EV_MSC,
-					 MSC_SERIAL);
 
-	tablet_flush(tablet,
-		     device,
-		     libinput_now(device->base.seat->libinput));
+	/* we can't fetch MSC_SERIAL from the kernel, so we set the serial
+	 * to 0 for now. On the first real event from the device we get the
+	 * serial (if any) and that event will be converted into a proximity
+	 * event */
+	tablet->current_tool_serial = 0;
 }
 
 static struct evdev_dispatch_interface tablet_interface = {

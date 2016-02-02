@@ -2006,6 +2006,8 @@ START_TEST(tool_in_prox_before_start)
 	struct libinput *li;
 	struct litest_device *dev = litest_current_device();
 	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct libinput_tablet_tool *tool;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
@@ -2014,6 +2016,7 @@ START_TEST(tool_in_prox_before_start)
 		{ -1, -1 }
 	};
 	const char *devnode;
+	unsigned int serial;
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 
@@ -2028,17 +2031,27 @@ START_TEST(tool_in_prox_before_start)
 	event = libinput_get_event(li);
 	libinput_event_destroy(event);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
-	event = libinput_get_event(li);
-	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
 
 	litest_tablet_motion(dev, 10, 20, axes);
-	litest_tablet_motion(dev, 30, 40, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	tool = libinput_event_tablet_tool_get_tool(tev);
+	serial = libinput_tablet_tool_get_serial(tool);
+	libinput_event_destroy(event);
 
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	litest_tablet_motion(dev, 30, 40, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	tool = libinput_event_tablet_tool_get_tool(tev);
+	ck_assert_int_eq(serial,
+			 libinput_tablet_tool_get_serial(tool));
+	libinput_event_destroy(event);
+
 	litest_assert_empty_queue(li);
 	litest_event(dev, EV_KEY, BTN_STYLUS, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
