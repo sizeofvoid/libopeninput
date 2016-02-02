@@ -83,14 +83,18 @@ additionally provide tilt information along the x and y axis.
 
 @image html tablet-axes.svg "Illustration of the distance, pressure and tilt axes"
 
-The granularity and precision of these axes varies between tablet devices
-and cannot usually be mapped into a physical unit.
-libinput normalizes distance and pressure into the [0, 1] range and the tilt
-axes into the [-1, 1] range with 0 as the neutral point.
+The granularity and precision of the distance and pressure axes varies
+between tablet devices and cannot usually be mapped into a physical unit.
+libinput normalizes distance and pressure into the [0, 1] range.
 
 While the normalization range is identical for these axes, a caller should
 not interpret identical values as identical across axes, i.e. a value v1 on
 the distance axis has no relation to the same value v1 on the pressure axis.
+
+The tilt axes provide the angle in degrees between a vertical line out of
+the tablet and the top of the stylus. The angle is measured along the x and
+y axis, respectively, a positive tilt angle thus means that the stylus' top
+is tilted towards the logical right and/or bottom of the tablet.
 
 @section tablet-fake-proximity Handling of proximity events
 

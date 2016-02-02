@@ -3081,7 +3081,7 @@ START_TEST(tilt_x)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ ABS_TILT_X, 90 },
+		{ ABS_TILT_X, 10 },
 		{ ABS_TILT_Y, 0 },
 		{ -1, -1 }
 	};
@@ -3097,19 +3097,18 @@ START_TEST(tilt_x)
 	tev = litest_is_tablet_event(event,
 				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	/* 90% of the actual axis but mapped into a [-1, 1] range, so we
-	 * expect a pos. value of 80. Rounding errors in the scaling though,
-	 * we'll get something between 0.79 and 0.80 */
+	/* 90% of the actual axis but mapped into a [-64, 64] tilt range, so
+	 * we expect 51 degrees ± rounding errors */
 	tx = libinput_event_tablet_tool_get_tilt_x(tev);
-	ck_assert_double_gt(tx, 0.79);
-	ck_assert_double_le(tx, 0.80);
+	ck_assert_double_le(tx, -50);
+	ck_assert_double_ge(tx, -52);
 
 	ty = libinput_event_tablet_tool_get_tilt_y(tev);
-	ck_assert_double_eq(ty, -1);
+	ck_assert_double_eq(ty, -64);
 
 	libinput_event_destroy(event);
 
-	expected_tx = -1.0;
+	expected_tx = -64.0;
 
 	litest_axis_set_value(axes, ABS_DISTANCE, 0);
 	litest_axis_set_value(axes, ABS_PRESSURE, 1);
@@ -3123,19 +3122,20 @@ START_TEST(tilt_x)
 					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
 		tx = libinput_event_tablet_tool_get_tilt_x(tev);
-		ck_assert_double_gt(tx, expected_tx - 0.1);
-		ck_assert_double_lt(tx, expected_tx + 0.1);
+		ck_assert_double_ge(tx, expected_tx - 2);
+		ck_assert_double_le(tx, expected_tx + 2);
 
 		ty = libinput_event_tablet_tool_get_tilt_y(tev);
-		ck_assert_double_eq(ty, -1);
+		ck_assert_double_eq(ty, -64);
 
 		libinput_event_destroy(event);
 
-		expected_tx += 0.1;
+		expected_tx = tx + 6.04;
 	}
 
 	/* the last event must reach the max */
-	ck_assert_double_eq(tx, 1.0);
+	ck_assert_double_ge(tx, 63.0);
+	ck_assert_double_le(tx, 64.0);
 }
 END_TEST
 
@@ -3149,7 +3149,7 @@ START_TEST(tilt_y)
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
 		{ ABS_TILT_X, 0 },
-		{ ABS_TILT_Y, 90 },
+		{ ABS_TILT_Y, 10 },
 		{ -1, -1 }
 	};
 	double tx, ty;
@@ -3164,19 +3164,18 @@ START_TEST(tilt_y)
 	tev = litest_is_tablet_event(event,
 				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	/* 90% of the actual axis but mapped into a [-1, 1] range, so we
-	 * expect a pos. value of 80. Rounding errors in the scaling though,
-	 * we'll get something between 0.79 and 0.80 */
+	/* 90% of the actual axis but mapped into a [-64, 64] tilt range, so
+	 * we expect 50 degrees ± rounding errors */
 	ty = libinput_event_tablet_tool_get_tilt_y(tev);
-	ck_assert_double_gt(ty, 0.79);
-	ck_assert_double_le(ty, 0.80);
+	ck_assert_double_le(ty, -50);
+	ck_assert_double_ge(ty, -52);
 
 	tx = libinput_event_tablet_tool_get_tilt_x(tev);
-	ck_assert_double_eq(tx, -1);
+	ck_assert_double_eq(tx, -64);
 
 	libinput_event_destroy(event);
 
-	expected_ty = -1.0;
+	expected_ty = -64;
 
 	litest_axis_set_value(axes, ABS_DISTANCE, 0);
 	litest_axis_set_value(axes, ABS_PRESSURE, 1);
@@ -3190,19 +3189,20 @@ START_TEST(tilt_y)
 					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
 		ty = libinput_event_tablet_tool_get_tilt_y(tev);
-		ck_assert_double_gt(ty, expected_ty - 0.1);
-		ck_assert_double_lt(ty, expected_ty + 0.1);
+		ck_assert_double_ge(ty, expected_ty - 2);
+		ck_assert_double_le(ty, expected_ty + 2);
 
 		tx = libinput_event_tablet_tool_get_tilt_x(tev);
-		ck_assert_double_eq(tx, -1);
+		ck_assert_double_eq(tx, -64);
 
 		libinput_event_destroy(event);
 
-		expected_ty += 0.1;
+		expected_ty = ty + 6;
 	}
 
 	/* the last event must reach the max */
-	ck_assert_double_eq(ty, 1.0);
+	ck_assert_double_ge(ty, 63.0);
+	ck_assert_double_le(tx, 64.0);
 }
 END_TEST
 

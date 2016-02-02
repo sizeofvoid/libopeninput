@@ -1648,12 +1648,16 @@ libinput_event_tablet_tool_get_distance(struct libinput_event_tablet_tool *event
  * @ingroup event_tablet
  *
  * Returns the current tilt along the X axis of the tablet's current logical
- * orientation, normalized to the range [-1, 1].
+ * orientation, in degrees off the tablet's z axis. That is, if the tool is
+ * perfectly orthogonal to the tablet, the tilt angle is 0. When the top
+ * tilts towards the logical top/left of the tablet, the x/y tilt angles are
+ * negative, if the top tilts towards the logical bottom/right of the
+ * tablet, the x/y tilt angles are positive.
  *
  * If this axis does not exist on the current tool, this function returns 0.
  *
  * @param event The libinput tablet tool event
- * @return The current value of the the axis
+ * @return The current value of the the axis in degrees
  */
 double
 libinput_event_tablet_tool_get_tilt_x(struct libinput_event_tablet_tool *event);
@@ -1662,12 +1666,16 @@ libinput_event_tablet_tool_get_tilt_x(struct libinput_event_tablet_tool *event);
  * @ingroup event_tablet
  *
  * Returns the current tilt along the Y axis of the tablet's current logical
- * orientation, normalized to the range [-1, 1].
+ * orientation, in degrees off the tablet's z axis. That is, if the tool is
+ * perfectly orthogonal to the tablet, the tilt angle is 0. When the top
+ * tilts towards the logical top/left of the tablet, the x/y tilt angles are
+ * negative, if the top tilts towards the logical bottom/right of the
+ * tablet, the x/y tilt angles are positive.
  *
  * If this axis does not exist on the current tool, this function returns 0.
  *
  * @param event The libinput tablet tool event
- * @return The current value of the the axis
+ * @return The current value of the the axis in degrees
  */
 double
 libinput_event_tablet_tool_get_tilt_y(struct libinput_event_tablet_tool *event);

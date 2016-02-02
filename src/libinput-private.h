@@ -63,6 +63,11 @@ struct normalized_range_coords {
 	double x, y;
 };
 
+/* A pair of angles in degrees */
+struct tilt_degrees {
+	double x, y;
+};
+
 /* A threshold with an upper and lower limit */
 struct threshold {
 	int upper;
@@ -74,7 +79,7 @@ struct tablet_axes {
 	struct normalized_coords delta;
 	double distance;
 	double pressure;
-	struct normalized_range_coords tilt;
+	struct tilt_degrees tilt;
 	double rotation;
 	double slider;
 	double wheel;

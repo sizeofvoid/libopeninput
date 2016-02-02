@@ -225,13 +225,22 @@ normalize_pressure(const struct input_absinfo *absinfo,
 }
 
 static inline double
-normalize_tilt(const struct input_absinfo *absinfo)
+adjust_tilt(const struct input_absinfo *absinfo)
 {
 	double range = absinfo->maximum - absinfo->minimum;
 	double value = (absinfo->value - absinfo->minimum) / range;
+	const int WACOM_MAX_DEGREES = 64;
 
 	/* Map to the (-1, 1) range */
-	return (value * 2) - 1;
+	value = (value * 2) - 1;
+
+	/* Wacom supports physical [-64, 64] degrees, so map to that by
+	 * default. If other tablets have a different physical range or
+	 * nonzero physical offsets, they need extra treatment
+	 * here.
+	 */
+
+	return value * WACOM_MAX_DEGREES;
 }
 
 static inline int32_t
@@ -398,17 +407,17 @@ tablet_handle_slider(struct tablet_dispatch *tablet,
 	return tablet->axes.slider;
 }
 
-static inline struct normalized_range_coords
+static inline struct tilt_degrees
 tablet_handle_tilt(struct tablet_dispatch *tablet,
 		   struct evdev_device *device)
 {
-	struct normalized_range_coords tilt;
+	struct tilt_degrees tilt;
 	const struct input_absinfo *absinfo;
 
 	if (bit_is_set(tablet->changed_axes,
 		       LIBINPUT_TABLET_TOOL_AXIS_TILT_X)) {
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_TILT_X);
-		tablet->axes.tilt.x = normalize_tilt(absinfo);
+		tablet->axes.tilt.x = adjust_tilt(absinfo);
 		if (device->left_handed.enabled)
 			tablet->axes.tilt.x *= -1;
 	}
@@ -417,7 +426,7 @@ tablet_handle_tilt(struct tablet_dispatch *tablet,
 	if (bit_is_set(tablet->changed_axes,
 		       LIBINPUT_TABLET_TOOL_AXIS_TILT_Y)) {
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_TILT_Y);
-		tablet->axes.tilt.y = normalize_tilt(absinfo);
+		tablet->axes.tilt.y = adjust_tilt(absinfo);
 		if (device->left_handed.enabled)
 			tablet->axes.tilt.y *= -1;
 	}
