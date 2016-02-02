@@ -16,6 +16,10 @@
 
 - @subpage motion_normalization
 
+@page tablets Graphics Tablets
+
+- @subpage tablet-support
+
 @page general General setup
 
 - @subpage udev_config
