@@ -110,16 +110,16 @@ print_event_header(struct libinput_event *ev)
 		type = "GESTURE_PINCH_END";
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
-		type = "TABLET_AXIS";
+		type = "TABLET_TOOL_AXIS";
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
-		type = "TABLET_PROXIMITY";
+		type = "TABLET_TOOL_PROXIMITY";
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
-		type = "TABLET_TIP";
+		type = "TABLET_TOOL_TIP";
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
-		type = "TABLET_BUTTON";
+		type = "TABLET_TOOL_BUTTON";
 		break;
 	}
 
