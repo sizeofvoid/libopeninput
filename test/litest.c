@@ -1929,16 +1929,16 @@ litest_event_type_str(struct libinput_event *event)
 		str = "GESTURE PINCH END";
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
-		str = "TABLET AXIS";
+		str = "TABLET TOOL AXIS";
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
-		str = "TABLET PROX";
+		str = "TABLET TOOL PROX";
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
-		str = "TABLET TIP";
+		str = "TABLET TOOL TIP";
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
-		str = "TABLET BUTTON";
+		str = "TABLET TOOL BUTTON";
 		break;
 	}
 	return str;
