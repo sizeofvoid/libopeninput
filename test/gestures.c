@@ -410,6 +410,7 @@ START_TEST(gestures_swipe_4fg_btntool)
 	};
 
 	if (libevdev_get_num_slots(dev->evdev) > 2 ||
+	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_QUADTAP) ||
 	    !libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
 		return;
@@ -940,6 +941,7 @@ START_TEST(gestures_pinch_4fg_btntool)
 	};
 
 	if (libevdev_get_num_slots(dev->evdev) > 2 ||
+	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_QUADTAP) ||
 	    !libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
 		return;
