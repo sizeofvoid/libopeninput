@@ -244,9 +244,8 @@ struct axis_replacement {
 	double value;
 };
 
-static inline void litest_axis_set_value(struct axis_replacement *axes,
-					 int code,
-					 double value)
+static inline void
+litest_axis_set_value(struct axis_replacement *axes, int code, double value)
 {
 	litest_assert_double_ge(value, 0.0);
 	litest_assert_double_le(value, 100.0);
@@ -286,38 +285,49 @@ void litest_restore_log_handler(struct libinput *libinput);
 	_litest_add_no_device(name_, #func_, func_)
 #define litest_add_ranged_no_device(name_, func_, ...) \
 	_litest_add_ranged_no_device(name_, #func_, func_, __VA_ARGS__)
-void _litest_add(const char *name,
-		 const char *funcname,
-		 void *func,
-		 enum litest_device_feature required_feature,
-		 enum litest_device_feature excluded_feature);
-void _litest_add_ranged(const char *name,
-			const char *funcname,
-			void *func,
-			enum litest_device_feature required,
-			enum litest_device_feature excluded,
-			const struct range *range);
-void _litest_add_for_device(const char *name,
-			    const char *funcname,
-			    void *func,
-			    enum litest_device_type type);
-void _litest_add_ranged_for_device(const char *name,
-				   const char *funcname,
-				   void *func,
-				   enum litest_device_type type,
-				   const struct range *range);
-void _litest_add_no_device(const char *name,
-			   const char *funcname,
-			   void *func);
-void _litest_add_ranged_no_device(const char *name,
-				  const char *funcname,
-				  void *func,
-				  const struct range *range);
+void
+_litest_add(const char *name,
+	    const char *funcname,
+	    void *func,
+	    enum litest_device_feature required_feature,
+	    enum litest_device_feature excluded_feature);
+void
+_litest_add_ranged(const char *name,
+		   const char *funcname,
+		   void *func,
+		   enum litest_device_feature required,
+		   enum litest_device_feature excluded,
+		   const struct range *range);
+void
+_litest_add_for_device(const char *name,
+		       const char *funcname,
+		       void *func,
+		       enum litest_device_type type);
+void
+_litest_add_ranged_for_device(const char *name,
+			      const char *funcname,
+			      void *func,
+			      enum litest_device_type type,
+			      const struct range *range);
+void
+_litest_add_no_device(const char *name,
+		      const char *funcname,
+		      void *func);
+void
+_litest_add_ranged_no_device(const char *name,
+			     const char *funcname,
+			     void *func,
+			     const struct range *range);
 
-extern void litest_setup_tests(void);
-struct litest_device * litest_create_device(enum litest_device_type which);
-struct litest_device * litest_add_device(struct libinput *libinput,
-					 enum litest_device_type which);
+extern void
+litest_setup_tests(void);
+
+struct litest_device *
+litest_create_device(enum litest_device_type which);
+
+struct litest_device *
+litest_add_device(struct libinput *libinput,
+		  enum litest_device_type which);
 struct libevdev_uinput *
 litest_create_uinput_device_from_description(const char *name,
 					     const struct input_id *id,
@@ -337,153 +347,245 @@ litest_add_device_with_overrides(struct libinput *libinput,
 				 const struct input_absinfo *abs_override,
 				 const int *events_override);
 
-struct litest_device *litest_current_device(void);
-void litest_delete_device(struct litest_device *d);
-int litest_handle_events(struct litest_device *d);
+struct litest_device *
+litest_current_device(void);
 
-void litest_event(struct litest_device *t,
-		  unsigned int type,
-		  unsigned int code,
-		  int value);
-int litest_auto_assign_value(struct litest_device *d,
-			     const struct input_event *ev,
-			     int slot, double x, double y,
-			     struct axis_replacement *axes,
-			     bool touching);
-void litest_touch_up(struct litest_device *d, unsigned int slot);
-void litest_touch_move(struct litest_device *d,
-		       unsigned int slot,
-		       double x,
-		       double y);
-void litest_touch_move_extended(struct litest_device *d,
-				unsigned int slot,
-				double x,
-				double y,
-				struct axis_replacement *axes);
-void litest_touch_down(struct litest_device *d,
-		       unsigned int slot,
-		       double x,
-		       double y);
-void litest_touch_down_extended(struct litest_device *d,
-				unsigned int slot,
-				double x,
-				double y,
-				struct axis_replacement *axes);
-void litest_touch_move_to(struct litest_device *d,
-			  unsigned int slot,
-			  double x_from, double y_from,
-			  double x_to, double y_to,
-			  int steps, int sleep_ms);
-void litest_touch_move_two_touches(struct litest_device *d,
-				   double x0, double y0,
-				   double x1, double y1,
-				   double dx, double dy,
-				   int steps, int sleep_ms);
-void litest_touch_move_three_touches(struct litest_device *d,
-				     double x0, double y0,
-				     double x1, double y1,
-				     double x2, double y2,
-				     double dx, double dy,
-				     int steps, int sleep_ms);
+void
+litest_delete_device(struct litest_device *d);
 
-void litest_tablet_proximity_in(struct litest_device *d,
-				int x, int y,
-				struct axis_replacement *axes);
-void litest_tablet_proximity_out(struct litest_device *d);
-void litest_tablet_motion(struct litest_device *d,
-			  int x, int y,
-			  struct axis_replacement *axes);
+int
+litest_handle_events(struct litest_device *d);
 
-void litest_hover_start(struct litest_device *d,
-			unsigned int slot,
-			double x,
-			double y);
-void litest_hover_end(struct litest_device *d, unsigned int slot);
+void
+litest_event(struct litest_device *t,
+	     unsigned int type,
+	     unsigned int code,
+	     int value);
+int
+litest_auto_assign_value(struct litest_device *d,
+			 const struct input_event *ev,
+			 int slot, double x, double y,
+			 struct axis_replacement *axes,
+			 bool touching);
+void
+litest_touch_up(struct litest_device *d, unsigned int slot);
+
+void
+litest_touch_move(struct litest_device *d,
+		  unsigned int slot,
+		  double x,
+		  double y);
+
+void
+litest_touch_move_extended(struct litest_device *d,
+			   unsigned int slot,
+			   double x,
+			   double y,
+			   struct axis_replacement *axes);
+
+void
+litest_touch_down(struct litest_device *d,
+		  unsigned int slot,
+		  double x,
+		  double y);
+
+void
+litest_touch_down_extended(struct litest_device *d,
+			   unsigned int slot,
+			   double x,
+			   double y,
+			   struct axis_replacement *axes);
+
+void
+litest_touch_move_to(struct litest_device *d,
+		     unsigned int slot,
+		     double x_from, double y_from,
+		     double x_to, double y_to,
+		     int steps, int sleep_ms);
+
+void
+litest_touch_move_two_touches(struct litest_device *d,
+			      double x0, double y0,
+			      double x1, double y1,
+			      double dx, double dy,
+			      int steps, int sleep_ms);
+
+void
+litest_touch_move_three_touches(struct litest_device *d,
+				double x0, double y0,
+				double x1, double y1,
+				double x2, double y2,
+				double dx, double dy,
+				int steps, int sleep_ms);
+
+void
+litest_tablet_proximity_in(struct litest_device *d,
+			   int x, int y,
+			   struct axis_replacement *axes);
+
+void
+litest_tablet_proximity_out(struct litest_device *d);
+
+void
+litest_tablet_motion(struct litest_device *d,
+		     int x, int y,
+		     struct axis_replacement *axes);
+
+void
+litest_hover_start(struct litest_device *d,
+		   unsigned int slot,
+		   double x,
+		   double y);
+
+void
+litest_hover_end(struct litest_device *d, unsigned int slot);
+
 void litest_hover_move(struct litest_device *d,
 		       unsigned int slot,
 		       double x,
 		       double y);
-void litest_hover_move_to(struct litest_device *d,
-			  unsigned int slot,
-			  double x_from, double y_from,
-			  double x_to, double y_to,
-			  int steps, int sleep_ms);
-void litest_hover_move_two_touches(struct litest_device *d,
-				   double x0, double y0,
-				   double x1, double y1,
-				   double dx, double dy,
-				   int steps, int sleep_ms);
-void litest_button_click(struct litest_device *d,
-			 unsigned int button,
-			 bool is_press);
-void litest_button_scroll(struct litest_device *d,
-			 unsigned int button,
-			 double dx, double dy);
-void litest_keyboard_key(struct litest_device *d,
-			 unsigned int key,
-			 bool is_press);
-void litest_wait_for_event(struct libinput *li);
-void litest_wait_for_event_of_type(struct libinput *li, ...);
-void litest_drain_events(struct libinput *li);
-void litest_assert_empty_queue(struct libinput *li);
-struct libinput_event_pointer * litest_is_button_event(
-		       struct libinput_event *event,
+
+void
+litest_hover_move_to(struct litest_device *d,
+		     unsigned int slot,
+		     double x_from, double y_from,
+		     double x_to, double y_to,
+		     int steps, int sleep_ms);
+
+void
+litest_hover_move_two_touches(struct litest_device *d,
+			      double x0, double y0,
+			      double x1, double y1,
+			      double dx, double dy,
+			      int steps, int sleep_ms);
+
+void
+litest_button_click(struct litest_device *d,
+		    unsigned int button,
+		    bool is_press);
+
+void
+litest_button_scroll(struct litest_device *d,
+		     unsigned int button,
+		     double dx, double dy);
+
+void
+litest_keyboard_key(struct litest_device *d,
+		    unsigned int key,
+		    bool is_press);
+
+void
+litest_wait_for_event(struct libinput *li);
+
+void
+litest_wait_for_event_of_type(struct libinput *li, ...);
+
+void
+litest_drain_events(struct libinput *li);
+
+void
+litest_assert_empty_queue(struct libinput *li);
+
+struct libinput_event_pointer *
+litest_is_button_event(struct libinput_event *event,
 		       unsigned int button,
 		       enum libinput_button_state state);
-struct libinput_event_pointer * litest_is_axis_event(
-		       struct libinput_event *event,
-		       enum libinput_pointer_axis axis,
-		       enum libinput_pointer_axis_source source);
-struct libinput_event_pointer * litest_is_motion_event(
-		       struct libinput_event *event);
-struct libinput_event_touch * litest_is_touch_event(
-		       struct libinput_event *event,
-		       enum libinput_event_type type);
-struct libinput_event_keyboard * litest_is_keyboard_event(
-		       struct libinput_event *event,
-		       unsigned int key,
-		       enum libinput_key_state state);
-struct libinput_event_gesture * litest_is_gesture_event(
-		       struct libinput_event *event,
-		       enum libinput_event_type type,
-		       int nfingers);
-struct libinput_event_tablet_tool * litest_is_tablet_event(
-		       struct libinput_event *event,
+
+struct libinput_event_pointer *
+litest_is_axis_event(struct libinput_event *event,
+		     enum libinput_pointer_axis axis,
+		     enum libinput_pointer_axis_source source);
+
+struct libinput_event_pointer *
+litest_is_motion_event(struct libinput_event *event);
+
+struct libinput_event_touch *
+litest_is_touch_event(struct libinput_event *event,
+		      enum libinput_event_type type);
+
+struct libinput_event_keyboard *
+litest_is_keyboard_event(struct libinput_event *event,
+			 unsigned int key,
+			 enum libinput_key_state state);
+
+struct libinput_event_gesture *
+litest_is_gesture_event(struct libinput_event *event,
+			enum libinput_event_type type,
+			int nfingers);
+
+struct libinput_event_tablet_tool *
+litest_is_tablet_event(struct libinput_event *event,
 		       enum libinput_event_type type);
 
-void litest_assert_button_event(struct libinput *li,
-				unsigned int button,
-				enum libinput_button_state state);
-void litest_assert_scroll(struct libinput *li,
-			  enum libinput_pointer_axis axis,
-			  int minimum_movement);
-void litest_assert_only_typed_events(struct libinput *li,
-				     enum libinput_event_type type);
-void litest_assert_tablet_button_event(struct libinput *li,
-				       unsigned int button,
-				       enum libinput_button_state state);
-void litest_assert_tablet_proximity_event(struct libinput *li,
-					  enum libinput_tablet_tool_proximity_state state);
-struct libevdev_uinput * litest_create_uinput_device(const char *name,
-						     struct input_id *id,
-						     ...);
-struct libevdev_uinput * litest_create_uinput_abs_device(const char *name,
-							 struct input_id *id,
-							 const struct input_absinfo *abs,
-							 ...);
-void litest_timeout_tap(void);
-void litest_timeout_tapndrag(void);
-void litest_timeout_softbuttons(void);
-void litest_timeout_buttonscroll(void);
-void litest_timeout_edgescroll(void);
-void litest_timeout_finger_switch(void);
-void litest_timeout_middlebutton(void);
-void litest_timeout_dwt_short(void);
-void litest_timeout_dwt_long(void);
-void litest_timeout_gesture(void);
+void
+litest_assert_button_event(struct libinput *li,
+			   unsigned int button,
+			   enum libinput_button_state state);
 
-void litest_push_event_frame(struct litest_device *dev);
-void litest_pop_event_frame(struct litest_device *dev);
+void
+litest_assert_scroll(struct libinput *li,
+		     enum libinput_pointer_axis axis,
+		     int minimum_movement);
+
+void
+litest_assert_only_typed_events(struct libinput *li,
+				enum libinput_event_type type);
+
+void
+litest_assert_tablet_button_event(struct libinput *li,
+				  unsigned int button,
+				  enum libinput_button_state state);
+
+void
+litest_assert_tablet_proximity_event(struct libinput *li,
+				     enum libinput_tablet_tool_proximity_state state);
+
+struct libevdev_uinput *
+litest_create_uinput_device(const char *name,
+			    struct input_id *id,
+			    ...);
+
+struct libevdev_uinput *
+litest_create_uinput_abs_device(const char *name,
+				struct input_id *id,
+				const struct input_absinfo *abs,
+				...);
+
+void
+litest_timeout_tap(void);
+
+void
+litest_timeout_tapndrag(void);
+
+void
+litest_timeout_softbuttons(void);
+
+void
+litest_timeout_buttonscroll(void);
+
+void
+litest_timeout_edgescroll(void);
+
+void
+litest_timeout_finger_switch(void);
+
+void
+litest_timeout_middlebutton(void);
+
+void
+litest_timeout_dwt_short(void);
+
+void
+litest_timeout_dwt_long(void);
+
+void
+litest_timeout_gesture(void);
+
+void
+litest_push_event_frame(struct litest_device *dev);
+
+void
+litest_pop_event_frame(struct litest_device *dev);
 
 /* this is a semi-mt device, so we keep track of the touches that the tests
  * send and modify them so that the first touch is always slot 0 and sends
@@ -500,17 +602,22 @@ struct litest_semi_mt {
 	} touches[2];
 };
 
-void litest_semi_mt_touch_down(struct litest_device *d,
-			       struct litest_semi_mt *semi_mt,
-			       unsigned int slot,
-			       double x, double y);
-void litest_semi_mt_touch_move(struct litest_device *d,
-			       struct litest_semi_mt *semi_mt,
-			       unsigned int slot,
-			       double x, double y);
-void litest_semi_mt_touch_up(struct litest_device *d,
-			     struct litest_semi_mt *semi_mt,
-			     unsigned int slot);
+void
+litest_semi_mt_touch_down(struct litest_device *d,
+			  struct litest_semi_mt *semi_mt,
+			  unsigned int slot,
+			  double x, double y);
+
+void
+litest_semi_mt_touch_move(struct litest_device *d,
+			  struct litest_semi_mt *semi_mt,
+			  unsigned int slot,
+			  double x, double y);
+
+void
+litest_semi_mt_touch_up(struct litest_device *d,
+			struct litest_semi_mt *semi_mt,
+			unsigned int slot);
 
 #ifndef ck_assert_notnull
 #define ck_assert_notnull(ptr) ck_assert_ptr_ne(ptr, NULL)
