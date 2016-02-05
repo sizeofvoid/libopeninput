@@ -48,6 +48,8 @@ liblitest_la_SOURCES = \
 	litest-device-wacom-cintiq-tablet.c \
 	litest-device-wacom-cintiq-24hd.c \
 	litest-device-wacom-intuos-tablet.c \
+	litest-device-wacom-intuos3-pad.c \
+	litest-device-wacom-intuos5-pad.c \
 	litest-device-wacom-isdv4-tablet.c \
 	litest-device-wacom-touch.c \
 	litest-device-wacom-intuos-finger.c \
@@ -71,6 +73,7 @@ run_tests = \
 	test-touchpad \
 	test-touchpad-tap \
 	test-touchpad-buttons \
+	test-pad \
 	test-tablet \
 	test-device \
 	test-gestures \
@@ -119,6 +122,10 @@ test_log_LDFLAGS = -no-install
 test_tablet_SOURCES = tablet.c
 test_tablet_LDADD = $(TEST_LIBS)
 test_tablet_LDFLAGS = -static
+
+test_pad_SOURCES = pad.c
+test_pad_LDADD = $(TEST_LIBS)
+test_pad_LDFLAGS = -static
 
 test_touchpad_SOURCES = touchpad.c
 test_touchpad_LDADD = $(TEST_LIBS)
