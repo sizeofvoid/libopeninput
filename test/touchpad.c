@@ -3114,6 +3114,72 @@ START_TEST(touchpad_dwt_disable_before_touch)
 }
 END_TEST
 
+START_TEST(touchpad_dwt_disable_during_key_release)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *keyboard;
+	struct libinput *li = touchpad->libinput;
+
+	if (!has_disable_while_typing(touchpad))
+		return;
+
+	enable_dwt(touchpad);
+
+	keyboard = dwt_init_paired_keyboard(li, touchpad);
+	litest_disable_tap(touchpad->libinput_device);
+	litest_drain_events(li);
+
+	litest_keyboard_key(keyboard, KEY_A, true);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
+	disable_dwt(touchpad);
+	libinput_dispatch(li);
+	litest_keyboard_key(keyboard, KEY_A, false);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
+	/* touch down during timeout, wait, should generate events */
+	litest_touch_down(touchpad, 0, 50, 50);
+	libinput_dispatch(li);
+	litest_timeout_dwt_long();
+	litest_touch_move_to(touchpad, 0, 70, 50, 50, 50, 10, 1);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_delete_device(keyboard);
+}
+END_TEST
+
+START_TEST(touchpad_dwt_disable_during_key_hold)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *keyboard;
+	struct libinput *li = touchpad->libinput;
+
+	if (!has_disable_while_typing(touchpad))
+		return;
+
+	enable_dwt(touchpad);
+
+	keyboard = dwt_init_paired_keyboard(li, touchpad);
+	litest_disable_tap(touchpad->libinput_device);
+	litest_drain_events(li);
+
+	litest_keyboard_key(keyboard, KEY_A, true);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
+	disable_dwt(touchpad);
+	libinput_dispatch(li);
+
+	/* touch down during timeout, wait, should generate events */
+	litest_touch_down(touchpad, 0, 50, 50);
+	libinput_dispatch(li);
+	litest_timeout_dwt_long();
+	litest_touch_move_to(touchpad, 0, 70, 50, 50, 50, 10, 1);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_delete_device(keyboard);
+}
+END_TEST
+
 START_TEST(touchpad_dwt_enable_during_touch)
 {
 	struct litest_device *touchpad = litest_current_device();
@@ -3925,6 +3991,8 @@ litest_setup_tests(void)
 	litest_add("touchpad:dwt", touchpad_dwt_disabled, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:dwt", touchpad_dwt_disable_during_touch, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:dwt", touchpad_dwt_disable_before_touch, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("touchpad:dwt", touchpad_dwt_disable_during_key_release, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("touchpad:dwt", touchpad_dwt_disable_during_key_hold, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:dwt", touchpad_dwt_enable_during_touch, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:dwt", touchpad_dwt_enable_before_touch, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:dwt", touchpad_dwt_enable_during_tap, LITEST_TOUCHPAD, LITEST_ANY);
