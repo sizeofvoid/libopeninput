@@ -112,6 +112,7 @@ enum evdev_device_model {
 	EVDEV_MODEL_APPLE_INTERNAL_KEYBOARD = (1 << 13),
 	EVDEV_MODEL_CYBORG_RAT = (1 << 14),
 	EVDEV_MODEL_CYAPA = (1 << 15),
+	EVDEV_MODEL_ALPS_RUSHMORE = (1 << 16),
 };
 
 struct mt_slot {

@@ -64,7 +64,7 @@ handle_touchpad_alps(struct udev_device *device)
 		return;
 
 	/* ALPS' firmware version is the version */
-	if (pid)
+	if (version)
 		printf("LIBINPUT_MODEL_FIRMWARE_VERSION=%x\n", version);
 }
 
