@@ -45,7 +45,7 @@ enum tablet_status {
 };
 
 struct button_state {
-	unsigned char stylus_buttons[NCHARS(KEY_CNT)];
+	unsigned char bits[NCHARS(KEY_CNT)];
 };
 
 struct tablet_dispatch {

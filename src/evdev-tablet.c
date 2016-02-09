@@ -38,34 +38,27 @@
 
 static inline void
 tablet_get_pressed_buttons(struct tablet_dispatch *tablet,
-			   unsigned char *buttons,
-			   unsigned int buttons_len)
+			   struct button_state *buttons)
 {
 	size_t i;
 	const struct button_state *state = &tablet->button_state,
 			          *prev_state = &tablet->prev_button_state;
 
-	assert(buttons_len <= ARRAY_LENGTH(state->stylus_buttons));
-
-	for (i = 0; i < buttons_len; i++)
-		buttons[i] = state->stylus_buttons[i] &
-					~(prev_state->stylus_buttons[i]);
+	for (i = 0; i < sizeof(buttons->bits); i++)
+		buttons->bits[i] = state->bits[i] & ~(prev_state->bits[i]);
 }
 
 static inline void
 tablet_get_released_buttons(struct tablet_dispatch *tablet,
-			    unsigned char *buttons,
-			    unsigned int buttons_len)
+			    struct button_state *buttons)
 {
 	size_t i;
 	const struct button_state *state = &tablet->button_state,
 			          *prev_state = &tablet->prev_button_state;
 
-	assert(buttons_len <= ARRAY_LENGTH(state->stylus_buttons));
-
-	for (i = 0; i < buttons_len; i++)
-		buttons[i] = prev_state->stylus_buttons[i] &
-					~(state->stylus_buttons[i]);
+	for (i = 0; i < sizeof(buttons->bits); i++)
+		buttons->bits[i] = prev_state->bits[i] &
+					~(state->bits[i]);
 }
 
 /* Merge the previous state with the current one so all buttons look like
@@ -77,10 +70,9 @@ tablet_force_button_presses(struct tablet_dispatch *tablet)
 			    *prev_state = &tablet->prev_button_state;
 	size_t i;
 
-	for (i = 0; i < sizeof(state->stylus_buttons); i++) {
-		state->stylus_buttons[i] = state->stylus_buttons[i] |
-						prev_state->stylus_buttons[i];
-		prev_state->stylus_buttons[i] = 0;
+	for (i = 0; i < sizeof(state->bits); i++) {
+		state->bits[i] = state->bits[i] | prev_state->bits[i];
+		prev_state->bits[i] = 0;
 	}
 }
 
@@ -566,10 +558,10 @@ tablet_update_button(struct tablet_dispatch *tablet,
 	}
 
 	if (enable) {
-		set_bit(tablet->button_state.stylus_buttons, evcode);
+		set_bit(tablet->button_state.bits, evcode);
 		tablet_set_status(tablet, TABLET_BUTTONS_PRESSED);
 	} else {
-		clear_bit(tablet->button_state.stylus_buttons, evcode);
+		clear_bit(tablet->button_state.bits, evcode);
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
 	}
 }
@@ -936,20 +928,19 @@ tablet_notify_button_mask(struct tablet_dispatch *tablet,
 			  struct evdev_device *device,
 			  uint64_t time,
 			  struct libinput_tablet_tool *tool,
-			  const unsigned char *buttons,
-			  unsigned int buttons_len,
+			  const struct button_state *buttons,
 			  enum libinput_button_state state)
 {
 	struct libinput_device *base = &device->base;
 	size_t i;
-	size_t nbits = 8 * sizeof(buttons[0]) * buttons_len;
+	size_t nbits = 8 * sizeof(buttons->bits);
 	enum libinput_tablet_tool_tip_state tip_state;
 
 	tip_state = tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ?
 			LIBINPUT_TABLET_TOOL_TIP_DOWN : LIBINPUT_TABLET_TOOL_TIP_UP;
 
 	for (i = 0; i < nbits; i++) {
-		if (!bit_is_set(buttons, i))
+		if (!bit_is_set(buttons->bits, i))
 			continue;
 
 		tablet_notify_button(base,
@@ -969,21 +960,18 @@ tablet_notify_buttons(struct tablet_dispatch *tablet,
 		      struct libinput_tablet_tool *tool,
 		      enum libinput_button_state state)
 {
-	unsigned char buttons[ARRAY_LENGTH(tablet->button_state.stylus_buttons)];
+	struct button_state buttons;
 
 	if (state == LIBINPUT_BUTTON_STATE_PRESSED)
-		tablet_get_pressed_buttons(tablet, buttons, sizeof(buttons));
+		tablet_get_pressed_buttons(tablet, &buttons);
 	else
-		tablet_get_released_buttons(tablet,
-					    buttons,
-					    sizeof(buttons));
+		tablet_get_released_buttons(tablet, &buttons);
 
 	tablet_notify_button_mask(tablet,
 				  device,
 				  time,
 				  tool,
-				  buttons,
-				  sizeof(buttons),
+				  &buttons,
 				  state);
 }
 
@@ -1332,9 +1320,9 @@ tablet_flush(struct tablet_dispatch *tablet,
 
 	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
 		/* Release all stylus buttons */
-		memset(tablet->button_state.stylus_buttons,
+		memset(tablet->button_state.bits,
 		       0,
-		       sizeof(tablet->button_state.stylus_buttons));
+		       sizeof(tablet->button_state.bits));
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
 		if (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT))
 			tablet_set_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
