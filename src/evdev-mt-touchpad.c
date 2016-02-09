@@ -1983,7 +1983,8 @@ tp_init_hysteresis(struct tp_dispatch *tp)
 	res_x = tp->device->abs.absinfo_x->resolution;
 	res_y = tp->device->abs.absinfo_y->resolution;
 
-	if (tp->device->model_flags & EVDEV_MODEL_CYAPA) {
+	if (tp->device->model_flags &
+	    (EVDEV_MODEL_CYAPA|EVDEV_MODEL_ALPS_RUSHMORE)) {
 		tp->hysteresis_margin.x = res_x/2;
 		tp->hysteresis_margin.y = res_y/2;
 	} else {
