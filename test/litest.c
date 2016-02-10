@@ -2382,8 +2382,8 @@ litest_is_gesture_event(struct libinput_event *event,
 	return gevent;
 }
 
-struct libinput_event_tablet_tool * litest_is_tablet_event(
-		       struct libinput_event *event,
+struct libinput_event_tablet_tool *
+litest_is_tablet_event(struct libinput_event *event,
 		       enum libinput_event_type type)
 {
 	struct libinput_event_tablet_tool *tevent;
