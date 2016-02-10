@@ -23,6 +23,8 @@ Pad events do not require a tool to be in proximity. Note that both
 capabilities may exist on the same device though usually they are split
 across multiple kernel devices.
 
+@image html tablet-interfaces.svg "Difference between Pad and Tool buttons"
+
 Touch events on the tablet integrated into a screen itself are exposed
 through the @ref LIBINPUT_DEVICE_CAP_TOUCH capability. Touch events on a
 standalone tablet are exposed through the @ref LIBINPUT_DEVICE_CAP_POINTER
