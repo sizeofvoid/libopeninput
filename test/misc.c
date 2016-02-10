@@ -863,6 +863,27 @@ START_TEST(fd_no_event_leak)
 }
 END_TEST
 
+START_TEST(library_version)
+{
+	const char *version = LIBINPUT_LT_VERSION;
+	int C, R, A;
+	int rc;
+
+	rc = sscanf(version, "%d:%d:%d", &C, &R, &A);
+	ck_assert_int_eq(rc, 3);
+
+	ck_assert_int_ge(C, 17);
+	ck_assert_int_ge(R, 0);
+	ck_assert_int_ge(A, 7);
+
+	/* Binary compatibility broken? */
+	ck_assert(R != 0 || A != 0);
+
+	/* The first stable API in 0.12 had 10:0:0  */
+	ck_assert_int_eq(C - A, 10);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -888,4 +909,6 @@ litest_setup_tests(void)
 	litest_add_no_device("misc:time", time_conversion);
 
 	litest_add_no_device("misc:fd", fd_no_event_leak);
+
+	litest_add_no_device("misc:library_version", library_version);
 }

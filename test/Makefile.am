@@ -136,6 +136,7 @@ test_trackpoint_LDADD = $(TEST_LIBS)
 test_trackpoint_LDFLAGS = -no-install
 
 test_misc_SOURCES = misc.c
+test_misc_CFLAGS= $(AM_CFLAGS) -DLIBINPUT_LT_VERSION="\"$(LIBINPUT_LT_VERSION)\""
 test_misc_LDADD = $(TEST_LIBS)
 test_misc_LDFLAGS = -no-install
 
