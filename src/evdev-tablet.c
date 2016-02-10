@@ -1571,37 +1571,6 @@ tablet_init_accel(struct tablet_dispatch *tablet, struct evdev_device *device)
 	return 0;
 }
 
-static int
-tablet_init(struct tablet_dispatch *tablet,
-	    struct evdev_device *device)
-{
-	enum libinput_tablet_tool_axis axis;
-	int rc;
-
-	tablet->base.interface = &tablet_interface;
-	tablet->device = device;
-	tablet->status = TABLET_NONE;
-	tablet->current_tool_type = LIBINPUT_TOOL_NONE;
-	list_init(&tablet->tool_list);
-
-	tablet_init_calibration(tablet, device);
-	tablet_init_proximity_threshold(tablet, device);
-	rc = tablet_init_accel(tablet, device);
-	if (rc != 0)
-		return rc;
-
-	for (axis = LIBINPUT_TABLET_TOOL_AXIS_X;
-	     axis <= LIBINPUT_TABLET_TOOL_AXIS_MAX;
-	     axis++) {
-		if (tablet_device_has_axis(tablet, axis))
-			set_bit(tablet->axis_caps, axis);
-	}
-
-	tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
-
-	return 0;
-}
-
 static void
 tablet_init_left_handed(struct evdev_device *device)
 {
@@ -1646,6 +1615,39 @@ tablet_init_left_handed(struct evdev_device *device)
 #endif
 }
 
+static int
+tablet_init(struct tablet_dispatch *tablet,
+	    struct evdev_device *device)
+{
+	enum libinput_tablet_tool_axis axis;
+	int rc;
+
+	tablet->base.interface = &tablet_interface;
+	tablet->device = device;
+	tablet->status = TABLET_NONE;
+	tablet->current_tool_type = LIBINPUT_TOOL_NONE;
+	list_init(&tablet->tool_list);
+
+	tablet_init_calibration(tablet, device);
+	tablet_init_proximity_threshold(tablet, device);
+	rc = tablet_init_accel(tablet, device);
+	if (rc != 0)
+		return rc;
+
+	tablet_init_left_handed(device);
+
+	for (axis = LIBINPUT_TABLET_TOOL_AXIS_X;
+	     axis <= LIBINPUT_TABLET_TOOL_AXIS_MAX;
+	     axis++) {
+		if (tablet_device_has_axis(tablet, axis))
+			set_bit(tablet->axis_caps, axis);
+	}
+
+	tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
+
+	return 0;
+}
+
 struct evdev_dispatch *
 evdev_tablet_create(struct evdev_device *device)
 {
@@ -1659,8 +1661,6 @@ evdev_tablet_create(struct evdev_device *device)
 		tablet_destroy(&tablet->base);
 		return NULL;
 	}
-
-	tablet_init_left_handed(device);
 
 	return &tablet->base;
 }
