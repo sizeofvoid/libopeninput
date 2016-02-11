@@ -1562,6 +1562,9 @@ libinput_event_tablet_tool_wheel_has_changed(
  * libinput_event_tablet_tool_get_x_transformed() for transforming the axis
  * value into a different coordinate space.
  *
+ * @note On some devices, returned value may be negative or larger than the
+ * width of the device. See @ref tablet-bounds for more details.
+ *
  * @param event The libinput tablet tool event
  * @return The current value of the the axis
  */
@@ -1575,6 +1578,9 @@ libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event);
  * corner of the tablet in its current logical orientation. Use
  * libinput_event_tablet_tool_get_y_transformed() for transforming the axis
  * value into a different coordinate space.
+ *
+ * @note On some devices, returned value may be negative or larger than the
+ * width of the device. See @ref tablet-bounds for more details.
  *
  * @param event The libinput tablet tool event
  * @return The current value of the the axis
@@ -1754,6 +1760,9 @@ libinput_event_tablet_tool_get_wheel_delta_discrete(
  * libinput_event_tablet_tool_*_has_changed() returns 0 for that axis.
  * libinput always includes all device axes in the event.
  *
+ * @note On some devices, returned value may be negative or larger than the
+ * width of the device. See @ref tablet-bounds for more details.
+ *
  * @param event The libinput tablet tool event
  * @param width The current output screen width
  * @return the current absolute x coordinate transformed to a screen coordinate
@@ -1771,6 +1780,9 @@ libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *
  * @note This function may be called for a specific axis even if
  * libinput_event_tablet_tool_*_has_changed() returns 0 for that axis.
  * libinput always includes all device axes in the event.
+ *
+ * @note On some devices, returned value may be negative or larger than the
+ * width of the device. See @ref tablet-bounds for more details.
  *
  * @param event The libinput tablet tool event
  * @param height The current output screen height

@@ -186,4 +186,26 @@ Intuos 3, 4, 5, Wacon Cintiq and Wacom Intuos Pro series. The tool ID can
 be used to distinguish between e.g. a Wacom Classic Pen or a Wacom Pro Pen.
 It is  the caller's responsibility to interpret the tool ID.
 
+@section tablet-bounds Out-of-bounds motion events
+
+Some tablets integrated into a screen (e.g. Wacom Cintiq 24HD, 27QHD and
+13HD series, etc.) have a sensor larger than the display area. libinput uses
+the range advertised by the kernel as the valid range unless device-specific
+quirks are present. Events outside this range will produce coordinates that
+may be negative or larger than the tablet's width and/or height. It is up to
+the caller to ignore these events.
+
+@image html tablet-out-of-bounds.svg "Illustration of the out-of-bounds area on a tablet"
+
+In the image above, the display area is shown in black. The red area around
+the display illustrates the sensor area that generates input events. Events
+within this area will have negative coordinate or coordinates larger than
+the width/height of the tablet.
+
+If events outside the logical bounds of the input area are scaled into a
+custom range with libinput_event_tablet_tool_get_x_transformed() and
+libinput_event_tablet_tool_get_y_transformed() the resulting value may be
+less than 0 or larger than the upper range provided. It is up to the caller
+to test for this and handle or ignore these events accordingly.
+
 */

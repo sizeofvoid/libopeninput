@@ -1655,6 +1655,63 @@ START_TEST(motion_event_state)
 }
 END_TEST
 
+START_TEST(motion_outside_bounds)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tablet_event;
+	double val;
+
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	litest_tablet_proximity_in(dev, 50, 50, axes);
+	litest_drain_events(li);
+
+	/* On the 24HD x/y of 0 is outside the limit */
+	litest_event(dev, EV_ABS, ABS_X, 0);
+	litest_event(dev, EV_ABS, ABS_Y, 1000);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	val = libinput_event_tablet_tool_get_x(tablet_event);
+	ck_assert_double_lt(val, 0.0);
+	val = libinput_event_tablet_tool_get_y(tablet_event);
+	ck_assert_double_gt(val, 0.0);
+
+	val = libinput_event_tablet_tool_get_x_transformed(tablet_event, 100);
+	ck_assert_double_lt(val, 0.0);
+
+	libinput_event_destroy(event);
+
+	/* On the 24HD x/y of 0 is outside the limit */
+	litest_event(dev, EV_ABS, ABS_X, 1000);
+	litest_event(dev, EV_ABS, ABS_Y, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	val = libinput_event_tablet_tool_get_x(tablet_event);
+	ck_assert_double_gt(val, 0.0);
+	val = libinput_event_tablet_tool_get_y(tablet_event);
+	ck_assert_double_lt(val, 0.0);
+
+	val = libinput_event_tablet_tool_get_y_transformed(tablet_event, 100);
+	ck_assert_double_lt(val, 0.0);
+
+	libinput_event_destroy(event);
+}
+END_TEST
+
 START_TEST(bad_distance_events)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3577,6 +3634,7 @@ litest_setup_tests(void)
 	litest_add("tablet:tip", tip_state_button, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:motion", motion, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:motion", motion_event_state, LITEST_TABLET, LITEST_ANY);
+	litest_add_for_device("tablet:motion", motion_outside_bounds, LITEST_WACOM_CINTIQ_24HD);
 	litest_add("tablet:tilt", tilt_available, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
 	litest_add("tablet:tilt", tilt_not_available, LITEST_TABLET, LITEST_TILT);
 	litest_add("tablet:tilt", tilt_x, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
