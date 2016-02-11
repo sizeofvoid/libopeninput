@@ -46,6 +46,7 @@ liblitest_la_SOURCES = \
 	litest-device-touch-screen.c \
 	litest-device-wacom-bamboo-tablet.c \
 	litest-device-wacom-cintiq-tablet.c \
+	litest-device-wacom-cintiq-24hd.c \
 	litest-device-wacom-intuos-tablet.c \
 	litest-device-wacom-isdv4-tablet.c \
 	litest-device-wacom-touch.c \

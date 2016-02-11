@@ -2839,10 +2839,10 @@ START_TEST(tablet_calibration_set_matrix)
 	y = libinput_event_tablet_tool_get_y_transformed(tablet_event, 100);
 	libinput_event_destroy(event);
 
-	ck_assert_double_gt(x, 99.0);
-	ck_assert_double_lt(x, 100.0);
-	ck_assert_double_gt(y, 49.0);
-	ck_assert_double_lt(y, 51.0);
+	ck_assert(x > 99.0);
+	ck_assert(x < 100.0);
+	ck_assert(y > 49.0);
+	ck_assert(y < 51.0);
 
 	litest_tablet_proximity_out(dev);
 }

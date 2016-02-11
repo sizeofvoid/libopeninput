@@ -195,6 +195,7 @@ enum litest_device_type {
 	LITEST_CYBORG_RAT = -41,
 	LITEST_YUBIKEY = -42,
 	LITEST_SYNAPTICS_I2C = -43,
+	LITEST_WACOM_CINTIQ_24HD = -44,
 };
 
 enum litest_device_feature {

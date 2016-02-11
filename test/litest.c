@@ -378,6 +378,7 @@ extern struct litest_test_device litest_huion_tablet_device;
 extern struct litest_test_device litest_cyborg_rat_device;
 extern struct litest_test_device litest_yubikey_device;
 extern struct litest_test_device litest_synaptics_i2c_device;
+extern struct litest_test_device litest_wacom_cintiq_24hd_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -422,6 +423,7 @@ struct litest_test_device* devices[] = {
 	&litest_cyborg_rat_device,
 	&litest_yubikey_device,
 	&litest_synaptics_i2c_device,
+	&litest_wacom_cintiq_24hd_device,
 	NULL,
 };
 
