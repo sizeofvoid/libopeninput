@@ -530,9 +530,9 @@ tp_palm_tap_is_palm(struct tp_dispatch *tp, struct tp_touch *t)
 	    t->point.x < tp->palm.right_edge)
 		return false;
 
-	/* We're inside the left/right palm edge and in the northern half of
-	 * the touchpad - this tap is a palm */
-	if (t->point.y < tp->palm.vert_center) {
+	/* We're inside the left/right palm edge and not in one of the
+	 * software button areas */
+	if (t->point.y < tp->buttons.bottom_area.top_edge) {
 		log_debug(tp_libinput_context(tp),
 			  "palm: palm-tap detected\n");
 		return true;
@@ -1812,14 +1812,12 @@ static int
 tp_init_palmdetect(struct tp_dispatch *tp,
 		   struct evdev_device *device)
 {
-	int width, height;
+	int width;
 
 	tp->palm.right_edge = INT_MAX;
 	tp->palm.left_edge = INT_MIN;
-	tp->palm.vert_center = INT_MIN;
 
 	width = device->abs.dimensions.x;
-	height = device->abs.dimensions.y;
 
 	/* Wacom doesn't have internal touchpads,
 	 * Apple touchpads are always big enough to warrant palm detection */
@@ -1834,7 +1832,6 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 	/* palm edges are 5% of the width on each side */
 	tp->palm.right_edge = device->abs.absinfo_x->maximum - width * 0.05;
 	tp->palm.left_edge = device->abs.absinfo_x->minimum + width * 0.05;
-	tp->palm.vert_center = device->abs.absinfo_y->minimum + height/2;
 
 	tp->palm.monitor_trackpoint = true;
 
