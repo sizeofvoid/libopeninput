@@ -1980,17 +1980,28 @@ tp_init_hysteresis(struct tp_dispatch *tp)
 {
 	int res_x, res_y;
 
+	if (tp->device->model_flags & EVDEV_MODEL_CYAPA)
+		goto want_hysteresis;
+
+	if (tp->device->model_flags & EVDEV_MODEL_ALPS_RUSHMORE)
+		goto want_hysteresis;
+
+	if (tp->semi_mt &&
+	    (tp->device->model_flags & EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD))
+		goto want_hysteresis;
+
+	tp->hysteresis_margin.x = 0;
+	tp->hysteresis_margin.y = 0;
+
+	return;
+
+want_hysteresis:
 	res_x = tp->device->abs.absinfo_x->resolution;
 	res_y = tp->device->abs.absinfo_y->resolution;
 
-	if (tp->device->model_flags &
-	    (EVDEV_MODEL_CYAPA|EVDEV_MODEL_ALPS_RUSHMORE)) {
-		tp->hysteresis_margin.x = res_x/2;
-		tp->hysteresis_margin.y = res_y/2;
-	} else {
-		tp->hysteresis_margin.x = 0;
-		tp->hysteresis_margin.y = 0;
-	}
+	tp->hysteresis_margin.x = res_x/2;
+	tp->hysteresis_margin.y = res_y/2;
+	return;
 }
 
 static int
