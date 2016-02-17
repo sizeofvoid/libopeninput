@@ -231,16 +231,25 @@ adjust_tilt(const struct input_absinfo *absinfo)
 	double value = (absinfo->value - absinfo->minimum) / range;
 	const int WACOM_MAX_DEGREES = 64;
 
-	/* Map to the (-1, 1) range */
-	value = (value * 2) - 1;
+	/* If resolution is nonzero, it's in units/radian. But require
+	 * a min/max less/greater than zero so we can assume 0 is the
+	 * center */
+	if (absinfo->resolution != 0 &&
+	    absinfo->maximum > 0 &&
+	    absinfo->minimum < 0) {
+		value = 180.0/M_PI * absinfo->value/absinfo->resolution;
+	} else {
+		/* Wacom supports physical [-64, 64] degrees, so map to that by
+		 * default. If other tablets have a different physical range or
+		 * nonzero physical offsets, they need extra treatment
+		 * here.
+		 */
+		/* Map to the (-1, 1) range */
+		value = (value * 2) - 1;
+		value *= WACOM_MAX_DEGREES;
+	}
 
-	/* Wacom supports physical [-64, 64] degrees, so map to that by
-	 * default. If other tablets have a different physical range or
-	 * nonzero physical offsets, they need extra treatment
-	 * here.
-	 */
-
-	return value * WACOM_MAX_DEGREES;
+	return value;
 }
 
 static inline int32_t

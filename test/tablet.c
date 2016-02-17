@@ -3298,7 +3298,8 @@ START_TEST(tilt_x)
 	ck_assert_double_ge(tx, -52);
 
 	ty = libinput_event_tablet_tool_get_tilt_y(tev);
-	ck_assert_double_eq(ty, -64);
+	ck_assert_double_ge(ty, -65);
+	ck_assert_double_lt(ty, -63);
 
 	libinput_event_destroy(event);
 
@@ -3320,7 +3321,8 @@ START_TEST(tilt_x)
 		ck_assert_double_le(tx, expected_tx + 2);
 
 		ty = libinput_event_tablet_tool_get_tilt_y(tev);
-		ck_assert_double_eq(ty, -64);
+		ck_assert_double_ge(ty, -65);
+		ck_assert_double_lt(ty, -63);
 
 		libinput_event_destroy(event);
 
@@ -3365,7 +3367,8 @@ START_TEST(tilt_y)
 	ck_assert_double_ge(ty, -52);
 
 	tx = libinput_event_tablet_tool_get_tilt_x(tev);
-	ck_assert_double_eq(tx, -64);
+	ck_assert_double_ge(tx, -65);
+	ck_assert_double_lt(tx, -63);
 
 	libinput_event_destroy(event);
 
@@ -3387,7 +3390,8 @@ START_TEST(tilt_y)
 		ck_assert_double_le(ty, expected_ty + 2);
 
 		tx = libinput_event_tablet_tool_get_tilt_x(tev);
-		ck_assert_double_eq(tx, -64);
+		ck_assert_double_ge(tx, -65);
+		ck_assert_double_lt(tx, -63);
 
 		libinput_event_destroy(event);
 
