@@ -339,6 +339,7 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	/* Else check if one finger is > 20mm below the others */
 	vert_distance = abs(first->point.y - second->point.y);
 	if (vert_distance > 20 * yres &&
+	    tp->gesture.finger_count > 2 &&
 	    tp->gesture.enabled) {
 		tp_gesture_init_pinch(tp);
 		return GESTURE_STATE_PINCH;
