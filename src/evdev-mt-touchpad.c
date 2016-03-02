@@ -1299,7 +1299,7 @@ tp_dwt_device_is_blacklisted(struct evdev_device *device)
 		return true;
 
 	/* Wacom makes touchpads, but not internal ones */
-	if (libevdev_get_id_vendor(device->evdev) == VENDOR_ID_WACOM)
+	if (device->model_flags & EVDEV_MODEL_WACOM_TOUCHPAD)
 		return true;
 
 	return false;
