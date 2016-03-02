@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <libinput.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #include "litest.h"
@@ -83,6 +84,63 @@ START_TEST(path_create_invalid)
 	close_func_count = 0;
 
 	li = libinput_path_create_context(&simple_interface, NULL);
+	ck_assert(li != NULL);
+	device = libinput_path_add_device(li, path);
+	ck_assert(device == NULL);
+
+	ck_assert_int_eq(open_func_count, 0);
+	ck_assert_int_eq(close_func_count, 0);
+
+	libinput_unref(li);
+	ck_assert_int_eq(close_func_count, 0);
+
+	open_func_count = 0;
+	close_func_count = 0;
+}
+END_TEST
+
+START_TEST(path_create_invalid_kerneldev)
+{
+	struct libinput *li;
+	struct libinput_device *device;
+	const char *path = "/dev/uinput";
+
+	open_func_count = 0;
+	close_func_count = 0;
+
+	li = libinput_path_create_context(&simple_interface, NULL);
+	ck_assert(li != NULL);
+	device = libinput_path_add_device(li, path);
+	ck_assert(device == NULL);
+
+	ck_assert_int_eq(open_func_count, 1);
+	ck_assert_int_eq(close_func_count, 1);
+
+	libinput_unref(li);
+	ck_assert_int_eq(close_func_count, 1);
+
+	open_func_count = 0;
+	close_func_count = 0;
+}
+END_TEST
+
+START_TEST(path_create_invalid_file)
+{
+	struct libinput *li;
+	struct libinput_device *device;
+	char path[] = "/tmp/litest_path_XXXXXX";
+	int fd;
+
+	fd = mkstemp(path);
+	ck_assert_int_ge(fd, 0);
+	close(fd);
+
+	open_func_count = 0;
+	close_func_count = 0;
+
+	li = libinput_path_create_context(&simple_interface, NULL);
+	unlink(path);
+
 	ck_assert(li != NULL);
 	device = libinput_path_add_device(li, path);
 	ck_assert(device == NULL);
@@ -882,6 +940,8 @@ litest_setup_tests(void)
 {
 	litest_add_no_device("path:create", path_create_NULL);
 	litest_add_no_device("path:create", path_create_invalid);
+	litest_add_no_device("path:create", path_create_invalid_file);
+	litest_add_no_device("path:create", path_create_invalid_kerneldev);
 	litest_add_no_device("path:create", path_create_destroy);
 	litest_add_no_device("path:create", path_set_user_data);
 	litest_add_no_device("path:suspend", path_suspend);
