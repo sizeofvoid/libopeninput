@@ -52,7 +52,6 @@ const struct libinput_interface simple_interface = {
 START_TEST(udev_create_NULL)
 {
 	struct libinput *li;
-	const struct libinput_interface interface;
 	struct udev *udev;
 
 	udev = udev_new();
@@ -60,13 +59,13 @@ START_TEST(udev_create_NULL)
 	li = libinput_udev_create_context(NULL, NULL, NULL);
 	ck_assert(li == NULL);
 
-	li = libinput_udev_create_context(&interface, NULL, NULL);
+	li = libinput_udev_create_context(&simple_interface, NULL, NULL);
 	ck_assert(li == NULL);
 
 	li = libinput_udev_create_context(NULL, NULL, udev);
 	ck_assert(li == NULL);
 
-	li = libinput_udev_create_context(&interface, NULL, udev);
+	li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	ck_assert(li != NULL);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, NULL), -1);
 
