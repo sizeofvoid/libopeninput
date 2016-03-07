@@ -1613,6 +1613,31 @@ tablet_init_left_handed(struct evdev_device *device)
 }
 
 static int
+tablet_reject_device(struct evdev_device *device)
+{
+	struct libevdev *evdev = device->evdev;
+	int rc = -1;
+
+	if (!libevdev_has_event_code(evdev, EV_ABS, ABS_X) ||
+	    !libevdev_has_event_code(evdev, EV_ABS, ABS_Y))
+		goto out;
+
+	if (!libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_PEN))
+		goto out;
+
+	rc = 0;
+
+out:
+	if (rc) {
+		log_bug_libinput(device->base.seat->libinput,
+				 "Device '%s' does not meet tablet criteria. "
+				 "Ignoring this device.\n",
+				 device->devname);
+	}
+	return rc;
+}
+
+static int
 tablet_init(struct tablet_dispatch *tablet,
 	    struct evdev_device *device)
 {
@@ -1624,6 +1649,9 @@ tablet_init(struct tablet_dispatch *tablet,
 	tablet->status = TABLET_NONE;
 	tablet->current_tool_type = LIBINPUT_TOOL_NONE;
 	list_init(&tablet->tool_list);
+
+	if (tablet_reject_device(device))
+		return -1;
 
 	tablet_init_calibration(tablet, device);
 	tablet_init_proximity_threshold(tablet, device);
