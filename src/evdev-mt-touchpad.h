@@ -41,6 +41,7 @@ enum touchpad_event {
 	TOUCHPAD_EVENT_MOTION		= (1 << 0),
 	TOUCHPAD_EVENT_BUTTON_PRESS	= (1 << 1),
 	TOUCHPAD_EVENT_BUTTON_RELEASE	= (1 << 2),
+	TOUCHPAD_EVENT_OTHERAXIS	= (1 << 3),
 };
 
 enum touchpad_model {
@@ -353,6 +354,17 @@ struct tp_dispatch {
 		int upper_thumb_line;
 		int lower_thumb_line;
 	} thumb;
+
+	struct {
+		/* A quirk used on the T450 series Synaptics hardware.
+		 * Slowly moving the finger causes multiple events with only
+		 * ABS_MT_PRESSURE but no x/y information. When the x/y
+		 * event comes, it will be a jump of ~20 units. We use the
+		 * below to count non-motion events to discard that first
+		 * event with the jump.
+		 */
+		unsigned int nonmotion_event_count;
+	} quirks;
 };
 
 #define tp_for_each_touch(_tp, _t) \

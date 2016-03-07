@@ -337,7 +337,7 @@ tp_process_absolute(struct tp_dispatch *tp,
 	case ABS_MT_PRESSURE:
 		t->pressure = e->value;
 		t->dirty = true;
-		tp->queued |= TOUCHPAD_EVENT_MOTION;
+		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
 		break;
 	}
 }
@@ -880,8 +880,10 @@ tp_position_fake_touches(struct tp_dispatch *tp)
 }
 
 static inline bool
-tp_need_motion_history_reset(struct tp_dispatch *tp)
+tp_need_motion_history_reset(struct tp_dispatch *tp, uint64_t time)
 {
+	bool rc = false;
+
 	/* semi-mt finger postions may "jump" when nfingers changes */
 	if (tp->semi_mt && tp->nfingers_down != tp->old_nfingers_down)
 		return true;
@@ -894,7 +896,29 @@ tp_need_motion_history_reset(struct tp_dispatch *tp)
 		 tp->old_nfingers_down > tp->num_slots))
 		return true;
 
-	return false;
+	/* Quirk: if we had multiple events without x/y axis
+	   information, the next x/y event is going to be a jump. So we
+	   reset that touch to non-dirty effectively swallowing that event
+	   and restarting with the next event again.
+	 */
+	if (tp->device->model_flags & EVDEV_MODEL_LENOVO_T450_TOUCHPAD) {
+		if (tp->queued & TOUCHPAD_EVENT_MOTION) {
+			if (tp->quirks.nonmotion_event_count > 10) {
+				struct tp_touch *t;
+
+				tp_for_each_touch(tp, t)
+				t->dirty = false;
+				rc = true;
+			}
+			tp->quirks.nonmotion_event_count = 0;
+		}
+
+		if ((tp->queued & (TOUCHPAD_EVENT_OTHERAXIS|TOUCHPAD_EVENT_MOTION)) ==
+		    TOUCHPAD_EVENT_OTHERAXIS)
+			tp->quirks.nonmotion_event_count++;
+	}
+
+	return rc;
 }
 
 static void
@@ -909,7 +933,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 	tp_unhover_touches(tp, time);
 	tp_position_fake_touches(tp);
 
-	want_motion_reset = tp_need_motion_history_reset(tp);
+	want_motion_reset = tp_need_motion_history_reset(tp, time);
 
 	for (i = 0; i < tp->ntouches; i++) {
 		t = tp_get_touch(tp, i);
