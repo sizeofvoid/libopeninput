@@ -880,7 +880,7 @@ tp_position_fake_touches(struct tp_dispatch *tp)
 }
 
 static inline bool
-tp_need_motion_history_reset(struct tp_dispatch *tp, uint64_t time)
+tp_need_motion_history_reset(struct tp_dispatch *tp)
 {
 	bool rc = false;
 
@@ -933,7 +933,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 	tp_unhover_touches(tp, time);
 	tp_position_fake_touches(tp);
 
-	want_motion_reset = tp_need_motion_history_reset(tp, time);
+	want_motion_reset = tp_need_motion_history_reset(tp);
 
 	for (i = 0; i < tp->ntouches; i++) {
 		t = tp_get_touch(tp, i);
