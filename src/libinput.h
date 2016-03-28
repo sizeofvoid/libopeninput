@@ -541,6 +541,8 @@ struct libinput_event_touch *
 libinput_event_get_touch_event(struct libinput_event *event);
 
 /**
+ * @ingroup event
+ *
  * Return the gesture event that is this input event. If the event type does
  * not match the gesture event types, this function returns NULL.
  *
@@ -973,7 +975,7 @@ enum libinput_pointer_axis_source
 libinput_event_pointer_get_axis_source(struct libinput_event_pointer *event);
 
 /**
- * @ingroup pointer
+ * @ingroup event_pointer
  *
  * Return the axis value in discrete steps for a given axis event. How a
  * value translates into a discrete step depends on the source.
