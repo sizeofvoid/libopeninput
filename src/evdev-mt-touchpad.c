@@ -904,10 +904,7 @@ tp_need_motion_history_reset(struct tp_dispatch *tp, uint64_t time)
 	if (tp->device->model_flags & EVDEV_MODEL_LENOVO_T450_TOUCHPAD) {
 		if (tp->queued & TOUCHPAD_EVENT_MOTION) {
 			if (tp->quirks.nonmotion_event_count > 10) {
-				struct tp_touch *t;
-
-				tp_for_each_touch(tp, t)
-				t->dirty = false;
+				tp->queued &= ~TOUCHPAD_EVENT_MOTION;
 				rc = true;
 			}
 			tp->quirks.nonmotion_event_count = 0;

@@ -500,7 +500,8 @@ tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time)
 
 	switch (tp->gesture.finger_count) {
 	case 1:
-		tp_gesture_post_pointer_motion(tp, time);
+		if (tp->queued & TOUCHPAD_EVENT_MOTION)
+			tp_gesture_post_pointer_motion(tp, time);
 		break;
 	case 2:
 	case 3:
