@@ -335,6 +335,7 @@ tp_process_absolute(struct tp_dispatch *tp,
 			tp_end_sequence(tp, t, time);
 		break;
 	case ABS_MT_PRESSURE:
+		t->pressure_delta = e->value - t->pressure;
 		t->pressure = e->value;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
@@ -945,6 +946,9 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 
 		if (!t->dirty)
 			continue;
+
+		if (t->pressure_delta < -7)
+			tp_motion_history_reset(t);
 
 		tp_thumb_detect(tp, t, time);
 		tp_palm_detect(tp, t, time);
