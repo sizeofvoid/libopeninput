@@ -963,6 +963,7 @@ tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 	uint32_t current, old, button, is_top;
 	enum libinput_button_state state;
 	enum { AREA = 0x01, LEFT = 0x02, MIDDLE = 0x04, RIGHT = 0x08 };
+	bool want_left_handed = true;
 
 	current = tp->buttons.state;
 	old = tp->buttons.old_state;
@@ -1008,14 +1009,22 @@ tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 			return 0;
 		}
 
-		if ((area & MIDDLE) || ((area & LEFT) && (area & RIGHT)))
-			button = evdev_to_left_handed(tp->device, BTN_MIDDLE);
-		else if (area & RIGHT)
-			button = evdev_to_left_handed(tp->device, BTN_RIGHT);
-		else if (area & LEFT)
-			button = evdev_to_left_handed(tp->device, BTN_LEFT);
-		else /* main or no area (for clickfinger) is always BTN_LEFT */
+		if ((area & MIDDLE) || ((area & LEFT) && (area & RIGHT))) {
+			button = BTN_MIDDLE;
+		} else if (area & RIGHT) {
+			button = BTN_RIGHT;
+		} else if (area & LEFT) {
 			button = BTN_LEFT;
+		} else { /* main or no area (for clickfinger) is always BTN_LEFT */
+			button = BTN_LEFT;
+			want_left_handed = false;
+		}
+
+		if (is_top)
+			want_left_handed = false;
+
+		if (want_left_handed)
+			button = evdev_to_left_handed(tp->device, button);
 
 		tp->buttons.active = button;
 		tp->buttons.active_is_topbutton = is_top;
