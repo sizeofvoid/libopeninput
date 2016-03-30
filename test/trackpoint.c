@@ -150,6 +150,135 @@ START_TEST(trackpoint_scroll_source)
 }
 END_TEST
 
+START_TEST(trackpoint_topsoftbuttons_left_handed_trackpoint)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *trackpoint;
+	struct libinput *li = touchpad->libinput;
+	enum libinput_config_status status;
+	struct libinput_event *event;
+	struct libinput_device *device;
+
+	trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
+	litest_drain_events(li);
+	/* touchpad right-handed, trackpoint left-handed */
+	status = libinput_device_config_left_handed_set(
+					trackpoint->libinput_device, 1);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_touch_down(touchpad, 0, 5, 5);
+	libinput_dispatch(li);
+	litest_button_click(touchpad, BTN_LEFT, true);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	litest_is_button_event(event,
+			       BTN_RIGHT,
+			       LIBINPUT_BUTTON_STATE_PRESSED);
+	device = libinput_event_get_device(event);
+	ck_assert(device == trackpoint->libinput_device);
+	libinput_event_destroy(event);
+
+	litest_button_click(touchpad, BTN_LEFT, false);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	litest_is_button_event(event,
+			       BTN_RIGHT,
+			       LIBINPUT_BUTTON_STATE_RELEASED);
+	device = libinput_event_get_device(event);
+	ck_assert(device == trackpoint->libinput_device);
+	libinput_event_destroy(event);
+
+	litest_delete_device(trackpoint);
+}
+END_TEST
+
+START_TEST(trackpoint_topsoftbuttons_left_handed_touchpad)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *trackpoint;
+	struct libinput *li = touchpad->libinput;
+	enum libinput_config_status status;
+	struct libinput_event *event;
+	struct libinput_device *device;
+
+	trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
+	litest_drain_events(li);
+	/* touchpad left-handed, trackpoint right-handed */
+	status = libinput_device_config_left_handed_set(
+					touchpad->libinput_device, 1);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_touch_down(touchpad, 0, 5, 5);
+	libinput_dispatch(li);
+	litest_button_click(touchpad, BTN_LEFT, true);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	litest_is_button_event(event, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	device = libinput_event_get_device(event);
+	ck_assert(device == trackpoint->libinput_device);
+	libinput_event_destroy(event);
+
+	litest_button_click(touchpad, BTN_LEFT, false);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	litest_is_button_event(event,
+			       BTN_LEFT,
+			       LIBINPUT_BUTTON_STATE_RELEASED);
+	device = libinput_event_get_device(event);
+	ck_assert(device == trackpoint->libinput_device);
+	libinput_event_destroy(event);
+
+	litest_delete_device(trackpoint);
+}
+END_TEST
+
+START_TEST(trackpoint_topsoftbuttons_left_handed_both)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *trackpoint;
+	struct libinput *li = touchpad->libinput;
+	enum libinput_config_status status;
+	struct libinput_event *event;
+	struct libinput_device *device;
+
+	trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
+	litest_drain_events(li);
+	/* touchpad left-handed, trackpoint left-handed */
+	status = libinput_device_config_left_handed_set(
+					touchpad->libinput_device, 1);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	status = libinput_device_config_left_handed_set(
+					trackpoint->libinput_device, 1);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_touch_down(touchpad, 0, 5, 5);
+	libinput_dispatch(li);
+	litest_button_click(touchpad, BTN_LEFT, true);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	litest_is_button_event(event,
+			       BTN_RIGHT,
+			       LIBINPUT_BUTTON_STATE_PRESSED);
+	device = libinput_event_get_device(event);
+	ck_assert(device == trackpoint->libinput_device);
+	libinput_event_destroy(event);
+
+	litest_button_click(touchpad, BTN_LEFT, false);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	litest_is_button_event(event,
+			       BTN_RIGHT,
+			       LIBINPUT_BUTTON_STATE_RELEASED);
+	device = libinput_event_get_device(event);
+	ck_assert(device == trackpoint->libinput_device);
+	libinput_event_destroy(event);
+
+	litest_delete_device(trackpoint);
+}
+END_TEST
 void
 litest_setup_tests(void)
 {
@@ -157,4 +286,7 @@ litest_setup_tests(void)
 	litest_add("trackpoint:middlebutton", trackpoint_middlebutton_noscroll, LITEST_POINTINGSTICK, LITEST_ANY);
 	litest_add("trackpoint:scroll", trackpoint_scroll, LITEST_POINTINGSTICK, LITEST_ANY);
 	litest_add("trackpoint:scroll", trackpoint_scroll_source, LITEST_POINTINGSTICK, LITEST_ANY);
+	litest_add("trackpoint:left-handed", trackpoint_topsoftbuttons_left_handed_trackpoint, LITEST_TOPBUTTONPAD, LITEST_ANY);
+	litest_add("trackpoint:left-handed", trackpoint_topsoftbuttons_left_handed_touchpad, LITEST_TOPBUTTONPAD, LITEST_ANY);
+	litest_add("trackpoint:left-handed", trackpoint_topsoftbuttons_left_handed_both, LITEST_TOPBUTTONPAD, LITEST_ANY);
 }
