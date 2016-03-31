@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <libinput.h>
 #include <stdio.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "litest.h"
@@ -131,6 +132,7 @@ START_TEST(path_create_invalid_file)
 	char path[] = "/tmp/litest_path_XXXXXX";
 	int fd;
 
+	umask(002);
 	fd = mkstemp(path);
 	ck_assert_int_ge(fd, 0);
 	close(fd);
