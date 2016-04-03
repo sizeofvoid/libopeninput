@@ -70,7 +70,7 @@ digraph top_button_routing
 	touchpad -> libinput_tp [color="red4"]
 
 	events_tp [label="other touchpad events"];
-	events_topbutton [label="top sofware button events"];
+	events_topbutton [label="top software button events"];
 
 	libinput_tp -> events_tp [arrowhead="none"]
 	libinput_ts -> events_topbutton [color="red4"]

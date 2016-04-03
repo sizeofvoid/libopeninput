@@ -1340,7 +1340,7 @@ libinput_event_gesture_get_scale(struct libinput_event_gesture *event);
  *
  * The angle delta is defined as the change in angle of the line formed by
  * the 2 fingers of a pinch gesture. Clockwise rotation is represented
- * by a postive delta, counter-clockwise by a negative delta. If e.g. the
+ * by a positive delta, counter-clockwise by a negative delta. If e.g. the
  * fingers are on the 12 and 6 location of a clock face plate and they move
  * to the 1 resp. 7 location in a single event then the angle delta is
  * 30 degrees.
@@ -2308,7 +2308,7 @@ libinput_get_event(struct libinput *libinput);
  *
  * @param libinput A previously initialized libinput context
  * @return The event type of the next available event or @ref
- * LIBINPUT_EVENT_NONE if no event is availble.
+ * LIBINPUT_EVENT_NONE if no event is available.
  */
 enum libinput_event_type
 libinput_next_event_type(struct libinput *libinput);
@@ -3590,7 +3590,7 @@ enum libinput_config_accel_profile {
  *
  * @param device The device to configure
  *
- * @return A bitmask of all configurable modes availble on this device.
+ * @return A bitmask of all configurable modes available on this device.
  */
 uint32_t
 libinput_device_config_accel_get_profiles(struct libinput_device *device);
@@ -4234,7 +4234,7 @@ enum libinput_config_dwt_state {
  * @ingroup config
  *
  * Check if this device supports configurable disable-while-typing feature.
- * This feature is usally available on built-in touchpads and disables the
+ * This feature is usually available on built-in touchpads and disables the
  * touchpad while typing. See @ref disable-while-typing for details.
  *
  * @param device The device to configure
