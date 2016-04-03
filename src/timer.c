@@ -73,7 +73,8 @@ libinput_timer_set(struct libinput_timer *timer, uint64_t expire)
 	uint64_t now = libinput_now(timer->libinput);
 	if (expire < now)
 		log_bug_libinput(timer->libinput,
-				 "timer offset negative\n");
+				 "timer offset negative (-%" PRIu64 ")\n",
+				 now - expire);
 	else if ((expire - now) > ms2us(5000))
 		log_bug_libinput(timer->libinput,
 				 "timer offset more than 5s, now %"
