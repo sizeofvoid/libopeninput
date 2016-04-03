@@ -1306,7 +1306,7 @@ fallback_dispatch_create(struct libinput_device *device)
 	evdev_init_sendevents(evdev_device, dispatch);
 
 	/* BTN_MIDDLE is set on mice even when it's not present. So
-	 * we can only use the absense of BTN_MIDDLE to mean something, i.e.
+	 * we can only use the absence of BTN_MIDDLE to mean something, i.e.
 	 * we enable it by default on anything that only has L&R.
 	 * If we have L&R and no middle, we don't expose it as config
 	 * option */

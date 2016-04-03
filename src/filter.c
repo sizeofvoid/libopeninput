@@ -690,7 +690,7 @@ touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
 	 * trial-and-error. No other meaning should be interpreted.
 	 * The calculation is a compressed form of
 	 * pointer_accel_profile_linear(), look at the git history of that
-	 * function for an explaination of what the min/max/etc. does.
+	 * function for an explanation of what the min/max/etc. does.
 	 */
 	speed_in *= X230_MAGIC_SLOWDOWN / X230_TP_MAGIC_LOW_RES_FACTOR;
 
