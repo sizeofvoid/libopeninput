@@ -335,6 +335,7 @@ tp_process_absolute(struct tp_dispatch *tp,
 			tp_end_sequence(tp, t, time);
 		break;
 	case ABS_MT_PRESSURE:
+		t->pressure_delta = e->value - t->pressure;
 		t->pressure = e->value;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
@@ -904,10 +905,7 @@ tp_need_motion_history_reset(struct tp_dispatch *tp)
 	if (tp->device->model_flags & EVDEV_MODEL_LENOVO_T450_TOUCHPAD) {
 		if (tp->queued & TOUCHPAD_EVENT_MOTION) {
 			if (tp->quirks.nonmotion_event_count > 10) {
-				struct tp_touch *t;
-
-				tp_for_each_touch(tp, t)
-				t->dirty = false;
+				tp->queued &= ~TOUCHPAD_EVENT_MOTION;
 				rc = true;
 			}
 			tp->quirks.nonmotion_event_count = 0;
@@ -948,6 +946,9 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 
 		if (!t->dirty)
 			continue;
+
+		if (t->pressure_delta < -7)
+			tp_motion_history_reset(t);
 
 		tp_thumb_detect(tp, t, time);
 		tp_palm_detect(tp, t, time);
