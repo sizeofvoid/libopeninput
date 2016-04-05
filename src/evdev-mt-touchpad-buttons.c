@@ -64,6 +64,7 @@ static inline const char*
 button_event_to_str(enum button_event event) {
 	switch(event) {
 	CASE_RETURN_STRING(BUTTON_EVENT_IN_BOTTOM_R);
+	CASE_RETURN_STRING(BUTTON_EVENT_IN_BOTTOM_M);
 	CASE_RETURN_STRING(BUTTON_EVENT_IN_BOTTOM_L);
 	CASE_RETURN_STRING(BUTTON_EVENT_IN_TOP_R);
 	CASE_RETURN_STRING(BUTTON_EVENT_IN_TOP_M);
@@ -93,10 +94,20 @@ is_inside_bottom_right_area(const struct tp_dispatch *tp,
 }
 
 static inline bool
+is_inside_bottom_middle_area(const struct tp_dispatch *tp,
+			   const struct tp_touch *t)
+{
+	return is_inside_bottom_button_area(tp, t) &&
+	       !is_inside_bottom_right_area(tp, t) &&
+	       t->point.x > tp->buttons.bottom_area.middlebutton_left_edge;
+}
+
+static inline bool
 is_inside_bottom_left_area(const struct tp_dispatch *tp,
 			   const struct tp_touch *t)
 {
 	return is_inside_bottom_button_area(tp, t) &&
+	       !is_inside_bottom_middle_area(tp, t) &&
 	       !is_inside_bottom_right_area(tp, t);
 }
 
@@ -192,6 +203,7 @@ tp_button_none_handle_event(struct tp_dispatch *tp,
 {
 	switch (event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
+	case BUTTON_EVENT_IN_BOTTOM_M:
 	case BUTTON_EVENT_IN_BOTTOM_L:
 		tp_button_set_state(tp, t, BUTTON_STATE_BOTTOM, event);
 		break;
@@ -220,6 +232,7 @@ tp_button_area_handle_event(struct tp_dispatch *tp,
 {
 	switch (event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
+	case BUTTON_EVENT_IN_BOTTOM_M:
 	case BUTTON_EVENT_IN_BOTTOM_L:
 	case BUTTON_EVENT_IN_TOP_R:
 	case BUTTON_EVENT_IN_TOP_M:
@@ -243,6 +256,7 @@ tp_button_bottom_handle_event(struct tp_dispatch *tp,
 {
 	switch (event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
+	case BUTTON_EVENT_IN_BOTTOM_M:
 	case BUTTON_EVENT_IN_BOTTOM_L:
 		if (event != t->button.curr)
 			tp_button_set_state(tp,
@@ -273,6 +287,7 @@ tp_button_top_handle_event(struct tp_dispatch *tp,
 {
 	switch (event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
+	case BUTTON_EVENT_IN_BOTTOM_M:
 	case BUTTON_EVENT_IN_BOTTOM_L:
 		tp_button_set_state(tp, t, BUTTON_STATE_TOP_TO_IGNORE, event);
 		break;
@@ -305,6 +320,7 @@ tp_button_top_new_handle_event(struct tp_dispatch *tp,
 {
 	switch(event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
+	case BUTTON_EVENT_IN_BOTTOM_M:
 	case BUTTON_EVENT_IN_BOTTOM_L:
 		tp_button_set_state(tp, t, BUTTON_STATE_AREA, event);
 		break;
@@ -355,6 +371,7 @@ tp_button_top_to_ignore_handle_event(struct tp_dispatch *tp,
 					    event);
 		break;
 	case BUTTON_EVENT_IN_BOTTOM_R:
+	case BUTTON_EVENT_IN_BOTTOM_M:
 	case BUTTON_EVENT_IN_BOTTOM_L:
 	case BUTTON_EVENT_IN_AREA:
 		break;
@@ -377,6 +394,7 @@ tp_button_ignore_handle_event(struct tp_dispatch *tp,
 {
 	switch (event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
+	case BUTTON_EVENT_IN_BOTTOM_M:
 	case BUTTON_EVENT_IN_BOTTOM_L:
 	case BUTTON_EVENT_IN_TOP_R:
 	case BUTTON_EVENT_IN_TOP_M:
@@ -450,6 +468,8 @@ tp_button_handle_state(struct tp_dispatch *tp, uint64_t time)
 
 			if (is_inside_bottom_right_area(tp, t))
 				event = BUTTON_EVENT_IN_BOTTOM_R;
+			else if (is_inside_bottom_middle_area(tp, t))
+				event = BUTTON_EVENT_IN_BOTTOM_M;
 			else if (is_inside_bottom_left_area(tp, t))
 				event = BUTTON_EVENT_IN_BOTTOM_L;
 			else if (is_inside_top_right_area(tp, t))
@@ -543,7 +563,14 @@ tp_init_softbuttons(struct tp_dispatch *tp,
 	} else {
 		tp->buttons.bottom_area.top_edge = height * .85 + yoffset;
 	}
-	tp->buttons.bottom_area.rightbutton_left_edge = width/2 + xoffset;
+
+	/* The middle button is 25% of the touchpad and centered. Many
+	 * touchpads don't have markings for the middle button at all so we
+	 * need to make it big enough to reliably hit it but not too big so
+	 * it takes away all the space.
+	 */
+	tp->buttons.bottom_area.middlebutton_left_edge = width * 0.375 + xoffset;
+	tp->buttons.bottom_area.rightbutton_left_edge = width * 0.625 + xoffset;
 }
 
 void
@@ -989,6 +1016,8 @@ tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 				break;
 			case BUTTON_EVENT_IN_TOP_M:
 				is_top = 1;
+				/* fallthrough */
+			case BUTTON_EVENT_IN_BOTTOM_M:
 				area |= MIDDLE;
 				break;
 			case BUTTON_EVENT_IN_TOP_R:

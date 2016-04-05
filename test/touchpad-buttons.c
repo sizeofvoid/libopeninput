@@ -987,6 +987,35 @@ START_TEST(clickpad_softbutton_left)
 }
 END_TEST
 
+START_TEST(clickpad_softbutton_middle)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 50, 90);
+	litest_event(dev, EV_KEY, BTN_LEFT, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	litest_assert_button_event(li,
+				   BTN_MIDDLE,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+
+	litest_event(dev, EV_KEY, BTN_LEFT, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_touch_up(dev, 0);
+
+	litest_assert_button_event(li,
+				   BTN_MIDDLE,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+
+	libinput_dispatch(li);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(clickpad_softbutton_right)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1585,6 +1614,7 @@ litest_setup_tests(void)
 	litest_add("touchpad:click", clickpad_finger_pin, LITEST_CLICKPAD, LITEST_ANY);
 
 	litest_add("touchpad:softbutton", clickpad_softbutton_left, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
+	litest_add("touchpad:softbutton", clickpad_softbutton_middle, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
 	litest_add("touchpad:softbutton", clickpad_softbutton_right, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
 	litest_add("touchpad:softbutton", clickpad_softbutton_left_tap_n_drag, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
 	litest_add("touchpad:softbutton", clickpad_softbutton_right_tap_n_drag, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);

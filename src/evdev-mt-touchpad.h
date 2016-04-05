@@ -70,6 +70,7 @@ enum touch_palm_state {
 
 enum button_event {
 	BUTTON_EVENT_IN_BOTTOM_R = 30,
+	BUTTON_EVENT_IN_BOTTOM_M,
 	BUTTON_EVENT_IN_BOTTOM_L,
 	BUTTON_EVENT_IN_TOP_R,
 	BUTTON_EVENT_IN_TOP_M,
@@ -284,6 +285,7 @@ struct tp_dispatch {
 		struct {
 			int32_t top_edge;	/* in device coordinates */
 			int32_t rightbutton_left_edge; /* in device coordinates */
+			int32_t middlebutton_left_edge; /* in device coordinates */
 		} bottom_area;
 
 		struct {
