@@ -2019,17 +2019,17 @@ litest_print_event(struct libinput_event *event)
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
 		t = libinput_event_get_tablet_tool_event(event);
-		fprintf(stderr, "proximity %d\n",
+		fprintf(stderr, "proximity %d",
 			libinput_event_tablet_tool_get_proximity_state(t));
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
 		t = libinput_event_get_tablet_tool_event(event);
-		fprintf(stderr, "tip %d\n",
+		fprintf(stderr, "tip %d",
 			libinput_event_tablet_tool_get_tip_state(t));
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
 		t = libinput_event_get_tablet_tool_event(event);
-		fprintf(stderr, "button %d state %d\n",
+		fprintf(stderr, "button %d state %d",
 			libinput_event_tablet_tool_get_button(t),
 			libinput_event_tablet_tool_get_button_state(t));
 		break;
