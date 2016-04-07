@@ -2073,7 +2073,7 @@ litest_create_uinput(const char *name,
 	const struct input_absinfo default_abs = {
 		.value = 0,
 		.minimum = 0,
-		.maximum = 0xffff,
+		.maximum = 100,
 		.fuzz = 0,
 		.flat = 0,
 		.resolution = 100
