@@ -658,6 +658,7 @@ START_TEST(touch_time_usec)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	struct libinput_event_touch *tev;
+	uint64_t time_usec;
 
 	litest_drain_events(dev->libinput);
 
@@ -667,8 +668,9 @@ START_TEST(touch_time_usec)
 
 	event = libinput_get_event(li);
 	tev = litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_DOWN);
+	time_usec = libinput_event_touch_get_time_usec(tev);
 	ck_assert_int_eq(libinput_event_touch_get_time(tev),
-			 libinput_event_touch_get_time_usec(tev) / 1000);
+			 (uint32_t) (time_usec / 1000));
 	libinput_event_destroy(event);
 }
 END_TEST

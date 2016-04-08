@@ -1559,6 +1559,7 @@ START_TEST(pointer_time_usec)
 	struct libinput *li = dev->libinput;
 	struct libinput_event_pointer *ptrev;
 	struct libinput_event *event;
+	uint64_t time_usec;
 
 	litest_drain_events(dev->libinput);
 
@@ -1571,8 +1572,9 @@ START_TEST(pointer_time_usec)
 	event = libinput_get_event(li);
 	ptrev = litest_is_motion_event(event);
 
+	time_usec = libinput_event_pointer_get_time_usec(ptrev);
 	ck_assert_int_eq(libinput_event_pointer_get_time(ptrev),
-			 libinput_event_pointer_get_time_usec(ptrev) / 1000);
+			 (uint32_t) (time_usec / 1000));
 
 	libinput_event_destroy(event);
 	litest_drain_events(dev->libinput);

@@ -317,6 +317,7 @@ START_TEST(keyboard_time_usec)
 	struct libinput *li = dev->libinput;
 	struct libinput_event_keyboard *kev;
 	struct libinput_event *event;
+	uint64_t time_usec;
 
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, KEY_A))
 		return;
@@ -332,8 +333,9 @@ START_TEST(keyboard_time_usec)
 				       KEY_A,
 				       LIBINPUT_KEY_STATE_PRESSED);
 
+	time_usec = libinput_event_keyboard_get_time_usec(kev);
 	ck_assert_int_eq(libinput_event_keyboard_get_time(kev),
-			 libinput_event_keyboard_get_time_usec(kev) / 1000);
+			 (uint32_t) (time_usec / 1000));
 
 	libinput_event_destroy(event);
 	litest_drain_events(dev->libinput);

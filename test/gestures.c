@@ -1127,6 +1127,7 @@ START_TEST(gestures_time_usec)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	struct libinput_event_gesture *gevent;
+	uint64_t time_usec;
 
 	if (libevdev_get_num_slots(dev->evdev) < 3)
 		return;
@@ -1149,8 +1150,9 @@ START_TEST(gestures_time_usec)
 	gevent = litest_is_gesture_event(event,
 					 LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
 					 3);
+	time_usec = libinput_event_gesture_get_time_usec(gevent);
 	ck_assert_int_eq(libinput_event_gesture_get_time(gevent),
-			 libinput_event_gesture_get_time_usec(gevent) / 1000);
+			 (uint32_t) (time_usec / 1000));
 	libinput_event_destroy(event);
 }
 END_TEST

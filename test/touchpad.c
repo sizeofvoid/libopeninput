@@ -4017,7 +4017,7 @@ START_TEST(touchpad_time_usec)
 		utime = libinput_event_pointer_get_time_usec(ptrev);
 
 		ck_assert_int_eq(libinput_event_pointer_get_time(ptrev),
-				 utime / 1000);
+				 (uint32_t) (utime / 1000));
 		libinput_event_destroy(event);
 		event = libinput_get_event(li);
 	}

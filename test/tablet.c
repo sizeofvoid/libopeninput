@@ -2679,6 +2679,7 @@ START_TEST(tablet_time_usec)
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
+	uint64_t time_usec;
 
 	litest_drain_events(li);
 
@@ -2688,8 +2689,9 @@ START_TEST(tablet_time_usec)
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
 				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	time_usec = libinput_event_tablet_tool_get_time_usec(tev);
 	ck_assert_int_eq(libinput_event_tablet_tool_get_time(tev),
-			 libinput_event_tablet_tool_get_time_usec(tev) / 1000);
+			 (uint32_t) (time_usec / 1000));
 	libinput_event_destroy(event);
 }
 END_TEST
