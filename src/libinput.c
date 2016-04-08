@@ -3105,7 +3105,7 @@ libinput_device_config_accel_get_default_profile(struct libinput_device *device)
 	if (!libinput_device_config_accel_is_available(device))
 		return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
 
-	return device->config.accel->get_profile(device);
+	return device->config.accel->get_default_profile(device);
 }
 
 LIBINPUT_EXPORT enum libinput_config_status
