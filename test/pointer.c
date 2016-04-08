@@ -1079,6 +1079,9 @@ START_TEST(pointer_accel_profile_defaults)
 	profile = libinput_device_config_accel_get_profile(device);
 	ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT);
 
+	profile = libinput_device_config_accel_get_default_profile(device);
+	ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE);
+
 	status = libinput_device_config_accel_set_profile(device,
 							  LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
