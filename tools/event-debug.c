@@ -304,12 +304,18 @@ print_tablet_button_event(struct libinput_event *ev)
 {
 	struct libinput_event_tablet_tool *p = libinput_event_get_tablet_tool_event(ev);
 	enum libinput_button_state state;
+	const char *buttonname;
+	int button;
 
 	print_event_time(libinput_event_tablet_tool_get_time(p));
 
+	button = libinput_event_tablet_tool_get_button(p);
+	buttonname = libevdev_event_code_get_name(EV_KEY, button);
+
 	state = libinput_event_tablet_tool_get_button_state(p);
-	printf("%3d %s, seat count: %u\n",
-	       libinput_event_tablet_tool_get_button(p),
+	printf("%3d (%s) %s, seat count: %u\n",
+	       button,
+	       buttonname ? buttonname : "???",
 	       state == LIBINPUT_BUTTON_STATE_PRESSED ? "pressed" : "released",
 	       libinput_event_tablet_tool_get_seat_button_count(p));
 }
