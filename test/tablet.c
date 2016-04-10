@@ -2532,7 +2532,7 @@ START_TEST(airbrush_tool)
 }
 END_TEST
 
-START_TEST(airbrush_wheel)
+START_TEST(airbrush_slider)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -2541,6 +2541,7 @@ START_TEST(airbrush_wheel)
 	const struct input_absinfo *abs;
 	double val;
 	double scale;
+	double expected;
 	int v;
 
 	if (!libevdev_has_event_code(dev->evdev,
@@ -2574,7 +2575,10 @@ START_TEST(airbrush_wheel)
 		ck_assert(libinput_event_tablet_tool_slider_has_changed(tev));
 		val = libinput_event_tablet_tool_get_slider_position(tev);
 
-		ck_assert_int_eq(val, (v - abs->minimum)/scale);
+		expected = ((v - abs->minimum)/scale) * 2 - 1;
+		ck_assert_double_eq(val, expected);
+		ck_assert_double_ge(val, -1.0);
+		ck_assert_double_le(val, 1.0);
 		libinput_event_destroy(event);
 		litest_assert_empty_queue(li);
 	}
@@ -3655,7 +3659,7 @@ litest_setup_tests(void)
 	litest_add("tablet:mouse", mouse_rotation, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:mouse", mouse_wheel, LITEST_TABLET, LITEST_WHEEL);
 	litest_add("tablet:airbrush", airbrush_tool, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:airbrush", airbrush_wheel, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:airbrush", airbrush_slider, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:artpen", artpen_tool, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:artpen", artpen_rotation, LITEST_TABLET, LITEST_ANY);
 
