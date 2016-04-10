@@ -507,11 +507,11 @@ evdev_button_scroll_button(struct evdev_device *device,
 		} else {
 			/* If the button is released quickly enough emit the
 			 * button press/release events. */
-			evdev_pointer_notify_physical_button(device,
+			evdev_pointer_notify_button(device,
 					device->scroll.button_down_time,
 					device->scroll.button,
 					LIBINPUT_BUTTON_STATE_PRESSED);
-			evdev_pointer_notify_physical_button(device, time,
+			evdev_pointer_notify_button(device, time,
 					device->scroll.button,
 					LIBINPUT_BUTTON_STATE_RELEASED);
 		}
