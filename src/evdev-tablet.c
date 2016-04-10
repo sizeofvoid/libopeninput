@@ -201,7 +201,7 @@ normalize_dist_slider(const struct input_absinfo *absinfo)
 	double range = absinfo->maximum - absinfo->minimum;
 	double value = (absinfo->value - absinfo->minimum) / range;
 
-	return value;
+	return value * 2 - 1;
 }
 
 static inline double
