@@ -55,6 +55,8 @@ struct tablet_dispatch {
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];
 	struct tablet_axes axes;
 	unsigned char axis_caps[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];
+	int current_value[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1];
+	int prev_value[LIBINPUT_TABLET_TOOL_AXIS_MAX + 1];
 
 	/* Only used for tablets that don't report serial numbers */
 	struct list tool_list;
