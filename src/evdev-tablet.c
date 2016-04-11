@@ -112,6 +112,36 @@ tablet_device_has_axis(struct tablet_dispatch *tablet,
 	return has_axis;
 }
 
+static inline bool
+tablet_filter_axis_fuzz(const struct tablet_dispatch *tablet,
+			const struct evdev_device *device,
+			const struct input_event *e,
+			enum libinput_tablet_tool_axis axis)
+{
+	int delta, fuzz;
+	int current, previous;
+
+	previous = tablet->prev_value[axis];
+	current = e->value;
+	delta = previous - current;
+
+	fuzz = libevdev_get_abs_fuzz(device->evdev, e->code);
+
+	/* ABS_DISTANCE doesn't have have fuzz set and causes continuous
+	 * updates for the cursor/lens tools. Add a minimum fuzz of 2, same
+	 * as the xf86-input-wacom driver
+	 */
+	switch (e->code) {
+	case ABS_DISTANCE:
+		fuzz = max(2, fuzz);
+		break;
+	default:
+		break;
+	}
+
+	return abs(delta) <= fuzz;
+}
+
 static void
 tablet_process_absolute(struct tablet_dispatch *tablet,
 			struct evdev_device *device,
@@ -137,6 +167,11 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 			break;
 		}
 
+		tablet->prev_value[axis] = tablet->current_value[axis];
+		if (tablet_filter_axis_fuzz(tablet, device, e, axis))
+			break;
+
+		tablet->current_value[axis] = e->value;
 		set_bit(tablet->changed_axes, axis);
 		tablet_set_status(tablet, TABLET_AXES_UPDATED);
 		break;
