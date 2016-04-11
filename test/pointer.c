@@ -1290,6 +1290,62 @@ START_TEST(middlebutton)
 }
 END_TEST
 
+START_TEST(middlebutton_nostart_while_down)
+{
+	struct litest_device *device = litest_current_device();
+	struct libinput *li = device->libinput;
+	enum libinput_config_status status;
+	unsigned int i;
+	const int btn[][4] = {
+		{ BTN_LEFT, BTN_RIGHT, BTN_LEFT, BTN_RIGHT },
+		{ BTN_LEFT, BTN_RIGHT, BTN_RIGHT, BTN_LEFT },
+		{ BTN_RIGHT, BTN_LEFT, BTN_LEFT, BTN_RIGHT },
+		{ BTN_RIGHT, BTN_LEFT, BTN_RIGHT, BTN_LEFT },
+	};
+
+	if (!libinput_device_pointer_has_button(device->libinput_device,
+						BTN_MIDDLE))
+		return;
+
+	disable_button_scrolling(device);
+
+	status = libinput_device_config_middle_emulation_set_enabled(
+					    device->libinput_device,
+					    LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
+	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
+		return;
+
+	litest_button_click(device, BTN_MIDDLE, true);
+	litest_drain_events(li);
+
+	for (i = 0; i < ARRAY_LENGTH(btn); i++) {
+		litest_button_click(device, btn[i][0], true);
+		litest_assert_button_event(li,
+					   btn[i][0],
+					   LIBINPUT_BUTTON_STATE_PRESSED);
+		litest_button_click(device, btn[i][1], true);
+		litest_assert_button_event(li,
+					   btn[i][1],
+					   LIBINPUT_BUTTON_STATE_PRESSED);
+
+		litest_assert_empty_queue(li);
+
+		litest_button_click(device, btn[i][2], false);
+		litest_assert_button_event(li,
+					   btn[i][2],
+					   LIBINPUT_BUTTON_STATE_RELEASED);
+		litest_button_click(device, btn[i][3], false);
+		litest_assert_button_event(li,
+					   btn[i][3],
+					   LIBINPUT_BUTTON_STATE_RELEASED);
+		litest_assert_empty_queue(li);
+	}
+
+	litest_button_click(device, BTN_MIDDLE, false);
+	litest_drain_events(li);
+}
+END_TEST
+
 START_TEST(middlebutton_timeout)
 {
 	struct litest_device *device = litest_current_device();
@@ -1708,6 +1764,7 @@ litest_setup_tests(void)
 	litest_add("pointer:accel", pointer_accel_profile_flat_motion_relative, LITEST_RELATIVE, LITEST_TOUCHPAD);
 
 	litest_add("pointer:middlebutton", middlebutton, LITEST_BUTTON, LITEST_ANY);
+	litest_add("pointer:middlebutton", middlebutton_nostart_while_down, LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:middlebutton", middlebutton_timeout, LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:middlebutton", middlebutton_doubleclick, LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:middlebutton", middlebutton_middleclick, LITEST_BUTTON, LITEST_ANY);
