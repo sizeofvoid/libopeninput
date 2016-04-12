@@ -893,6 +893,36 @@ START_TEST(pointer_scroll_button)
 }
 END_TEST
 
+START_TEST(pointer_scroll_button_no_event_before_timeout)
+{
+	struct litest_device *device = litest_current_device();
+	struct libinput *li = device->libinput;
+	int i;
+
+	disable_button_scrolling(device);
+
+	libinput_device_config_scroll_set_method(device->libinput_device,
+					LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
+	libinput_device_config_scroll_set_button(device->libinput_device,
+						 BTN_LEFT);
+	litest_drain_events(li);
+
+	litest_button_click(device, BTN_LEFT, true);
+	litest_assert_empty_queue(li);
+
+	for (i = 0; i < 10; i++) {
+		litest_event(device, EV_REL, REL_Y, 1);
+		litest_event(device, EV_SYN, SYN_REPORT, 0);
+	}
+	litest_assert_empty_queue(li);
+
+	litest_timeout_buttonscroll();
+	libinput_dispatch(li);
+	litest_button_click(device, BTN_LEFT, false);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(pointer_scroll_nowheel_defaults)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1600,6 +1630,7 @@ litest_setup_tests(void)
 	litest_add_no_device("pointer:button", pointer_seat_button_count);
 	litest_add("pointer:scroll", pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
+	litest_add("pointer:scroll", pointer_scroll_button_no_event_before_timeout, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:scroll", pointer_scroll_nowheel_defaults, LITEST_RELATIVE|LITEST_BUTTON, LITEST_WHEEL);
 	litest_add("pointer:scroll", pointer_scroll_natural_defaults, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_natural_enable_config, LITEST_WHEEL, LITEST_TABLET);

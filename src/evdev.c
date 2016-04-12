@@ -280,6 +280,8 @@ evdev_post_trackpoint_scroll(struct evdev_device *device,
 		evdev_post_scroll(device, time,
 				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
 				  &unaccel);
+	/* if the button is down but scroll is not active, we're within the
+	   timeout where swallow motion events but don't post scroll buttons */
 
 	return true;
 }
