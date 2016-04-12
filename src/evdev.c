@@ -273,7 +273,7 @@ evdev_post_trackpoint_scroll(struct evdev_device *device,
 			     uint64_t time)
 {
 	if (device->scroll.method != LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN ||
-	    !hw_is_key_down(device, device->scroll.button))
+	    !device->scroll.button_scroll_btn_pressed)
 		return false;
 
 	if (device->scroll.button_scroll_active)
@@ -494,6 +494,8 @@ static void
 evdev_button_scroll_button(struct evdev_device *device,
 			   uint64_t time, int is_press)
 {
+	device->scroll.button_scroll_btn_pressed = is_press;
+
 	if (is_press) {
 		libinput_timer_set(&device->scroll.timer,
 				   time + DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT);

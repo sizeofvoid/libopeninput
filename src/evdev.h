@@ -172,6 +172,7 @@ struct evdev_device {
 		/* Checks if buttons are down and commits the setting */
 		void (*change_scroll_method)(struct evdev_device *device);
 		bool button_scroll_active;
+		bool button_scroll_btn_pressed;
 		double threshold;
 		double direction_lock_threshold;
 		uint32_t direction;
