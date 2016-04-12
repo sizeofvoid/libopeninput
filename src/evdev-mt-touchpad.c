@@ -2023,6 +2023,9 @@ tp_init_hysteresis(struct tp_dispatch *tp)
 	    (tp->device->model_flags & EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD))
 		goto want_hysteresis;
 
+	if (tp->device->model_flags & EVDEV_MODEL_WOBBLY_TOUCHPAD)
+		goto want_hysteresis;
+
 	tp->hysteresis_margin.x = 0;
 	tp->hysteresis_margin.y = 0;
 

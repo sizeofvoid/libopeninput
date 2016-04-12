@@ -114,6 +114,7 @@ enum evdev_device_model {
 	EVDEV_MODEL_CYAPA = (1 << 15),
 	EVDEV_MODEL_ALPS_RUSHMORE = (1 << 16),
 	EVDEV_MODEL_LENOVO_T450_TOUCHPAD= (1 << 17),
+	EVDEV_MODEL_WOBBLY_TOUCHPAD = (1 << 18),
 };
 
 struct mt_slot {

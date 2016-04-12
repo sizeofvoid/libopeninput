@@ -81,6 +81,14 @@ libinput:name:Cypress APA Trackpad ?cyapa?:dmi:*
  LIBINPUT_MODEL_CYAPA=1
 
 ##########################################
+# HP
+##########################################
+
+# HP 14-ac157tu
+libinput:name:*ETPS/2 Elantech Touchpad*:dmi:*svnHP*pvrCNB1:*
+ LIBINPUT_MODEL_WOBBLY_TOUCHPAD=1
+
+##########################################
 # LENOVO
 ##########################################
 
