@@ -469,4 +469,17 @@ evdev_to_left_handed(struct evdev_device *device,
 	return button;
 }
 
+static inline int
+evdev_hysteresis(int in, int center, int margin)
+{
+	int diff = in - center;
+	if (abs(diff) <= margin)
+		return center;
+
+	if (diff > margin)
+		return center + diff - margin;
+	else
+		return center + diff + margin;
+}
+
 #endif /* EVDEV_H */

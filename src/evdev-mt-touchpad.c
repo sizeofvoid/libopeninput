@@ -36,19 +36,6 @@
 #define THUMB_MOVE_TIMEOUT ms2us(300)
 #define FAKE_FINGER_OVERFLOW (1 << 7)
 
-static inline int
-tp_hysteresis(int in, int center, int margin)
-{
-	int diff = in - center;
-	if (abs(diff) <= margin)
-		return center;
-
-	if (diff > margin)
-		return center + diff - margin;
-	else
-		return center + diff + margin;
-}
-
 static inline struct device_coords *
 tp_motion_history_offset(struct tp_touch *t, int offset)
 {
@@ -105,12 +92,12 @@ tp_motion_hysteresis(struct tp_dispatch *tp,
 	if (t->history.count == 0) {
 		t->hysteresis_center = t->point;
 	} else {
-		x = tp_hysteresis(x,
-				  t->hysteresis_center.x,
-				  tp->hysteresis_margin.x);
-		y = tp_hysteresis(y,
-				  t->hysteresis_center.y,
-				  tp->hysteresis_margin.y);
+		x = evdev_hysteresis(x,
+				     t->hysteresis_center.x,
+				     tp->hysteresis_margin.x);
+		y = evdev_hysteresis(y,
+				     t->hysteresis_center.y,
+				     tp->hysteresis_margin.y);
 		t->hysteresis_center.x = x;
 		t->hysteresis_center.y = y;
 		t->point.x = x;
