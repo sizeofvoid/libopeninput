@@ -172,6 +172,7 @@ struct evdev_device {
 		/* Checks if buttons are down and commits the setting */
 		void (*change_scroll_method)(struct evdev_device *device);
 		bool button_scroll_active;
+		bool button_scroll_btn_pressed;
 		double threshold;
 		double direction_lock_threshold;
 		uint32_t direction;
@@ -397,7 +398,7 @@ evdev_keyboard_notify_key(struct evdev_device *device,
 void
 evdev_pointer_notify_button(struct evdev_device *device,
 			    uint64_t time,
-			    int button,
+			    unsigned int button,
 			    enum libinput_button_state state);
 void
 evdev_pointer_notify_physical_button(struct evdev_device *device,

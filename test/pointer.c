@@ -893,6 +893,88 @@ START_TEST(pointer_scroll_button)
 }
 END_TEST
 
+START_TEST(pointer_scroll_button_no_event_before_timeout)
+{
+	struct litest_device *device = litest_current_device();
+	struct libinput *li = device->libinput;
+	int i;
+
+	disable_button_scrolling(device);
+
+	libinput_device_config_scroll_set_method(device->libinput_device,
+					LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
+	libinput_device_config_scroll_set_button(device->libinput_device,
+						 BTN_LEFT);
+	litest_drain_events(li);
+
+	litest_button_click(device, BTN_LEFT, true);
+	litest_assert_empty_queue(li);
+
+	for (i = 0; i < 10; i++) {
+		litest_event(device, EV_REL, REL_Y, 1);
+		litest_event(device, EV_SYN, SYN_REPORT, 0);
+	}
+	litest_assert_empty_queue(li);
+
+	litest_timeout_buttonscroll();
+	libinput_dispatch(li);
+	litest_button_click(device, BTN_LEFT, false);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(pointer_scroll_button_middle_emulation)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	struct libinput *li = dev->libinput;
+	enum libinput_config_status status;
+	int i;
+
+	status = libinput_device_config_middle_emulation_set_enabled(device,
+				LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
+
+	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
+		return;
+
+	status = libinput_device_config_scroll_set_method(device,
+				 LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	status = libinput_device_config_scroll_set_button(device, BTN_MIDDLE);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_drain_events(li);
+
+	litest_button_click(dev, BTN_LEFT, 1);
+	litest_button_click(dev, BTN_RIGHT, 1);
+	libinput_dispatch(li);
+	litest_timeout_buttonscroll();
+	libinput_dispatch(li);
+
+	for (i = 0; i < 10; i++) {
+		litest_event(dev, EV_REL, REL_Y, -1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	}
+
+	libinput_dispatch(li);
+
+	litest_button_click(dev, BTN_LEFT, 0);
+	litest_button_click(dev, BTN_RIGHT, 0);
+	libinput_dispatch(li);
+
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, -1);
+	litest_assert_empty_queue(li);
+
+	/* Restore default scroll behavior */
+	libinput_device_config_scroll_set_method(dev->libinput_device,
+		libinput_device_config_scroll_get_default_method(
+			dev->libinput_device));
+	libinput_device_config_scroll_set_button(dev->libinput_device,
+		libinput_device_config_scroll_get_default_button(
+			dev->libinput_device));
+}
+END_TEST
+
 START_TEST(pointer_scroll_nowheel_defaults)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1205,6 +1287,62 @@ START_TEST(middlebutton)
 					   LIBINPUT_BUTTON_STATE_RELEASED);
 		litest_assert_empty_queue(li);
 	}
+}
+END_TEST
+
+START_TEST(middlebutton_nostart_while_down)
+{
+	struct litest_device *device = litest_current_device();
+	struct libinput *li = device->libinput;
+	enum libinput_config_status status;
+	unsigned int i;
+	const int btn[][4] = {
+		{ BTN_LEFT, BTN_RIGHT, BTN_LEFT, BTN_RIGHT },
+		{ BTN_LEFT, BTN_RIGHT, BTN_RIGHT, BTN_LEFT },
+		{ BTN_RIGHT, BTN_LEFT, BTN_LEFT, BTN_RIGHT },
+		{ BTN_RIGHT, BTN_LEFT, BTN_RIGHT, BTN_LEFT },
+	};
+
+	if (!libinput_device_pointer_has_button(device->libinput_device,
+						BTN_MIDDLE))
+		return;
+
+	disable_button_scrolling(device);
+
+	status = libinput_device_config_middle_emulation_set_enabled(
+					    device->libinput_device,
+					    LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
+	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
+		return;
+
+	litest_button_click(device, BTN_MIDDLE, true);
+	litest_drain_events(li);
+
+	for (i = 0; i < ARRAY_LENGTH(btn); i++) {
+		litest_button_click(device, btn[i][0], true);
+		litest_assert_button_event(li,
+					   btn[i][0],
+					   LIBINPUT_BUTTON_STATE_PRESSED);
+		litest_button_click(device, btn[i][1], true);
+		litest_assert_button_event(li,
+					   btn[i][1],
+					   LIBINPUT_BUTTON_STATE_PRESSED);
+
+		litest_assert_empty_queue(li);
+
+		litest_button_click(device, btn[i][2], false);
+		litest_assert_button_event(li,
+					   btn[i][2],
+					   LIBINPUT_BUTTON_STATE_RELEASED);
+		litest_button_click(device, btn[i][3], false);
+		litest_assert_button_event(li,
+					   btn[i][3],
+					   LIBINPUT_BUTTON_STATE_RELEASED);
+		litest_assert_empty_queue(li);
+	}
+
+	litest_button_click(device, BTN_MIDDLE, false);
+	litest_drain_events(li);
 }
 END_TEST
 
@@ -1600,6 +1738,8 @@ litest_setup_tests(void)
 	litest_add_no_device("pointer:button", pointer_seat_button_count);
 	litest_add("pointer:scroll", pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
+	litest_add("pointer:scroll", pointer_scroll_button_no_event_before_timeout, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
+	litest_add("pointer:scroll", pointer_scroll_button_middle_emulation, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:scroll", pointer_scroll_nowheel_defaults, LITEST_RELATIVE|LITEST_BUTTON, LITEST_WHEEL);
 	litest_add("pointer:scroll", pointer_scroll_natural_defaults, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_natural_enable_config, LITEST_WHEEL, LITEST_TABLET);
@@ -1624,6 +1764,7 @@ litest_setup_tests(void)
 	litest_add("pointer:accel", pointer_accel_profile_flat_motion_relative, LITEST_RELATIVE, LITEST_TOUCHPAD);
 
 	litest_add("pointer:middlebutton", middlebutton, LITEST_BUTTON, LITEST_ANY);
+	litest_add("pointer:middlebutton", middlebutton_nostart_while_down, LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:middlebutton", middlebutton_timeout, LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:middlebutton", middlebutton_doubleclick, LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:middlebutton", middlebutton_middleclick, LITEST_BUTTON, LITEST_ANY);

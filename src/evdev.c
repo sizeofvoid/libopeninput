@@ -154,14 +154,17 @@ evdev_pointer_notify_physical_button(struct evdev_device *device,
 					     state))
 			return;
 
-	evdev_pointer_notify_button(device, time, button, state);
+	evdev_pointer_notify_button(device,
+				    time,
+				    (unsigned int)button,
+				    state);
 }
 
-void
-evdev_pointer_notify_button(struct evdev_device *device,
-			    uint64_t time,
-			    int button,
-			    enum libinput_button_state state)
+static void
+evdev_pointer_post_button(struct evdev_device *device,
+			  uint64_t time,
+			  unsigned int button,
+			  enum libinput_button_state state)
 {
 	int down_count;
 
@@ -180,6 +183,59 @@ evdev_pointer_notify_button(struct evdev_device *device,
 		}
 	}
 
+}
+
+static void
+evdev_button_scroll_timeout(uint64_t time, void *data)
+{
+	struct evdev_device *device = data;
+
+	device->scroll.button_scroll_active = true;
+}
+
+static void
+evdev_button_scroll_button(struct evdev_device *device,
+			   uint64_t time, int is_press)
+{
+	device->scroll.button_scroll_btn_pressed = is_press;
+
+	if (is_press) {
+		libinput_timer_set(&device->scroll.timer,
+				   time + DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT);
+		device->scroll.button_down_time = time;
+	} else {
+		libinput_timer_cancel(&device->scroll.timer);
+		if (device->scroll.button_scroll_active) {
+			evdev_stop_scroll(device, time,
+					  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
+			device->scroll.button_scroll_active = false;
+		} else {
+			/* If the button is released quickly enough emit the
+			 * button press/release events. */
+			evdev_pointer_post_button(device,
+					device->scroll.button_down_time,
+					device->scroll.button,
+					LIBINPUT_BUTTON_STATE_PRESSED);
+			evdev_pointer_post_button(device, time,
+					device->scroll.button,
+					LIBINPUT_BUTTON_STATE_RELEASED);
+		}
+	}
+}
+
+void
+evdev_pointer_notify_button(struct evdev_device *device,
+			    uint64_t time,
+			    unsigned int button,
+			    enum libinput_button_state state)
+{
+	if (device->scroll.method == LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN &&
+	    button == device->scroll.button) {
+		evdev_button_scroll_button(device, time, state);
+		return;
+	}
+
+	evdev_pointer_post_button(device, time, button, state);
 }
 
 void
@@ -273,13 +329,15 @@ evdev_post_trackpoint_scroll(struct evdev_device *device,
 			     uint64_t time)
 {
 	if (device->scroll.method != LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN ||
-	    !hw_is_key_down(device, device->scroll.button))
+	    !device->scroll.button_scroll_btn_pressed)
 		return false;
 
 	if (device->scroll.button_scroll_active)
 		evdev_post_scroll(device, time,
 				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
 				  &unaccel);
+	/* if the button is down but scroll is not active, we're within the
+	   timeout where swallow motion events but don't post scroll buttons */
 
 	return true;
 }
@@ -481,42 +539,6 @@ get_key_type(uint16_t code)
 }
 
 static void
-evdev_button_scroll_timeout(uint64_t time, void *data)
-{
-	struct evdev_device *device = data;
-
-	device->scroll.button_scroll_active = true;
-}
-
-static void
-evdev_button_scroll_button(struct evdev_device *device,
-			   uint64_t time, int is_press)
-{
-	if (is_press) {
-		libinput_timer_set(&device->scroll.timer,
-				   time + DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT);
-		device->scroll.button_down_time = time;
-	} else {
-		libinput_timer_cancel(&device->scroll.timer);
-		if (device->scroll.button_scroll_active) {
-			evdev_stop_scroll(device, time,
-					  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
-			device->scroll.button_scroll_active = false;
-		} else {
-			/* If the button is released quickly enough emit the
-			 * button press/release events. */
-			evdev_pointer_notify_physical_button(device,
-					device->scroll.button_down_time,
-					device->scroll.button,
-					LIBINPUT_BUTTON_STATE_PRESSED);
-			evdev_pointer_notify_physical_button(device, time,
-					device->scroll.button,
-					LIBINPUT_BUTTON_STATE_RELEASED);
-		}
-	}
-}
-
-static void
 evdev_process_touch_button(struct evdev_device *device,
 			   uint64_t time, int value)
 {
@@ -576,11 +598,6 @@ evdev_process_key(struct evdev_device *device,
 				   LIBINPUT_KEY_STATE_RELEASED);
 		break;
 	case EVDEV_KEY_TYPE_BUTTON:
-		if (device->scroll.method == LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN &&
-		    e->code == device->scroll.button) {
-			evdev_button_scroll_button(device, time, e->value);
-			break;
-		}
 		evdev_pointer_notify_physical_button(
 			device,
 			time,
