@@ -346,7 +346,7 @@ static void
 evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 {
 	struct libinput *libinput = device->base.seat->libinput;
-	int slot;
+	int slot_idx;
 	int seat_slot;
 	struct libinput_device *base = &device->base;
 	struct libinput_seat *seat = base->seat;
@@ -354,7 +354,7 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 	struct device_coords point;
 	struct device_float_coords raw;
 
-	slot = device->mt.slot;
+	slot_idx = device->mt.slot;
 
 	switch (device->pending_event) {
 	case EVDEV_NONE:
@@ -395,7 +395,7 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 		if (!(device->seat_caps & EVDEV_DEVICE_TOUCH))
 			break;
 
-		if (device->mt.slots[slot].seat_slot != -1) {
+		if (device->mt.slots[slot_idx].seat_slot != -1) {
 			log_bug_kernel(libinput,
 				       "%s: Driver sent multiple touch down for the "
 				       "same slot",
@@ -404,45 +404,45 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 		}
 
 		seat_slot = ffs(~seat->slot_map) - 1;
-		device->mt.slots[slot].seat_slot = seat_slot;
+		device->mt.slots[slot_idx].seat_slot = seat_slot;
 
 		if (seat_slot == -1)
 			break;
 
 		seat->slot_map |= 1 << seat_slot;
-		point = device->mt.slots[slot].point;
+		point = device->mt.slots[slot_idx].point;
 		evdev_transform_absolute(device, &point);
 
-		touch_notify_touch_down(base, time, slot, seat_slot,
+		touch_notify_touch_down(base, time, slot_idx, seat_slot,
 					&point);
 		break;
 	case EVDEV_ABSOLUTE_MT_MOTION:
 		if (!(device->seat_caps & EVDEV_DEVICE_TOUCH))
 			break;
 
-		seat_slot = device->mt.slots[slot].seat_slot;
-		point = device->mt.slots[slot].point;
+		seat_slot = device->mt.slots[slot_idx].seat_slot;
+		point = device->mt.slots[slot_idx].point;
 
 		if (seat_slot == -1)
 			break;
 
 		evdev_transform_absolute(device, &point);
-		touch_notify_touch_motion(base, time, slot, seat_slot,
+		touch_notify_touch_motion(base, time, slot_idx, seat_slot,
 					  &point);
 		break;
 	case EVDEV_ABSOLUTE_MT_UP:
 		if (!(device->seat_caps & EVDEV_DEVICE_TOUCH))
 			break;
 
-		seat_slot = device->mt.slots[slot].seat_slot;
-		device->mt.slots[slot].seat_slot = -1;
+		seat_slot = device->mt.slots[slot_idx].seat_slot;
+		device->mt.slots[slot_idx].seat_slot = -1;
 
 		if (seat_slot == -1)
 			break;
 
 		seat->slot_map &= ~(1 << seat_slot);
 
-		touch_notify_touch_up(base, time, slot, seat_slot);
+		touch_notify_touch_up(base, time, slot_idx, seat_slot);
 		break;
 	case EVDEV_ABSOLUTE_TOUCH_DOWN:
 		if (!(device->seat_caps & EVDEV_DEVICE_TOUCH))
