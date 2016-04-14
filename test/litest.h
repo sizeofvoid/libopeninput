@@ -196,6 +196,7 @@ enum litest_device_type {
 	LITEST_YUBIKEY = -42,
 	LITEST_SYNAPTICS_I2C = -43,
 	LITEST_WACOM_CINTIQ_24HD = -44,
+	LITEST_MULTITOUCH_FUZZ_SCREEN = -45,
 };
 
 enum litest_device_feature {

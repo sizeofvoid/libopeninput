@@ -44,6 +44,7 @@ liblitest_la_SOURCES = \
 	litest-device-synaptics-x1-carbon-3rd.c \
 	litest-device-trackpoint.c \
 	litest-device-touch-screen.c \
+	litest-device-touchscreen-fuzz.c \
 	litest-device-wacom-bamboo-tablet.c \
 	litest-device-wacom-cintiq-tablet.c \
 	litest-device-wacom-cintiq-24hd.c \

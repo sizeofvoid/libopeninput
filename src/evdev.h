@@ -120,6 +120,7 @@ enum evdev_device_model {
 struct mt_slot {
 	int32_t seat_slot;
 	struct device_coords point;
+	struct device_coords hysteresis_center;
 };
 
 struct evdev_device {
@@ -153,6 +154,8 @@ struct evdev_device {
 		int slot;
 		struct mt_slot *slots;
 		size_t slots_len;
+		bool want_hysteresis;
+		struct device_coords hysteresis_margin;
 	} mt;
 	struct mtdev *mtdev;
 

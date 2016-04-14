@@ -675,6 +675,50 @@ START_TEST(touch_time_usec)
 }
 END_TEST
 
+START_TEST(touch_fuzz)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	int i;
+	int x = 700, y = 300;
+
+	litest_drain_events(dev->libinput);
+
+	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, 30);
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, x);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, y);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_DOWN);
+	libinput_event_destroy(event);
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
+	libinput_event_destroy(event);
+
+	litest_drain_events(li);
+
+	for (i = 0; i < 50; i++) {
+		if (i % 2) {
+			x++;
+			y--;
+		} else {
+			x--;
+			y++;
+		}
+		litest_event(dev, EV_ABS, ABS_MT_POSITION_X, x);
+		litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, y);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+		litest_assert_empty_queue(li);
+	}
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -703,4 +747,6 @@ litest_setup_tests(void)
 	litest_add_ranged("touch:state", touch_initial_state, LITEST_TOUCH, LITEST_PROTOCOL_A, &axes);
 
 	litest_add("touch:time", touch_time_usec, LITEST_TOUCH, LITEST_TOUCHPAD);
+
+	litest_add_for_device("touch:fuzz", touch_fuzz, LITEST_MULTITOUCH_FUZZ_SCREEN);
 }

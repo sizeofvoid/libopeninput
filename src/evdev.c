@@ -342,6 +342,30 @@ evdev_post_trackpoint_scroll(struct evdev_device *device,
 	return true;
 }
 
+static inline bool
+evdev_filter_defuzz_touch(struct evdev_device *device, struct mt_slot *slot)
+{
+	struct device_coords point;
+
+	if (!device->mt.want_hysteresis)
+		return false;
+
+	point.x = evdev_hysteresis(slot->point.x,
+				   slot->hysteresis_center.x,
+				   device->mt.hysteresis_margin.x);
+	point.y = evdev_hysteresis(slot->point.y,
+				   slot->hysteresis_center.y,
+				   device->mt.hysteresis_margin.y);
+
+	slot->hysteresis_center = slot->point;
+	if (point.x == slot->point.x && point.y == slot->point.y)
+		return true;
+
+	slot->point = point;
+
+	return false;
+}
+
 static void
 evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 {
@@ -414,6 +438,7 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 
 		seat->slot_map |= 1 << seat_slot;
 		point = slot->point;
+		slot->hysteresis_center = point;
 		evdev_transform_absolute(device, &point);
 
 		touch_notify_touch_down(base, time, slot_idx, seat_slot,
@@ -427,6 +452,9 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 		point = slot->point;
 
 		if (seat_slot == -1)
+			break;
+
+		if (evdev_filter_defuzz_touch(device, slot))
 			break;
 
 		evdev_transform_absolute(device, &point);
@@ -2014,6 +2042,12 @@ evdev_configure_mt_device(struct evdev_device *device)
 	device->mt.slots = slots;
 	device->mt.slots_len = num_slots;
 	device->mt.slot = active_slot;
+
+	if (device->abs.absinfo_x->fuzz || device->abs.absinfo_y->fuzz) {
+		device->mt.want_hysteresis = true;
+		device->mt.hysteresis_margin.x = device->abs.absinfo_x->fuzz/2;
+		device->mt.hysteresis_margin.y = device->abs.absinfo_y->fuzz/2;
+	}
 
 	return 0;
 }
