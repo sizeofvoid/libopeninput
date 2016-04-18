@@ -43,6 +43,10 @@
 #include "filter.h"
 #include "libinput-private.h"
 
+#if HAVE_LIBWACOM
+#include <libwacom/libwacom.h>
+#endif
+
 #define DEFAULT_WHEEL_CLICK_ANGLE 15
 #define DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT ms2us(200)
 
@@ -61,7 +65,7 @@ enum evdev_device_udev_tags {
         EVDEV_UDEV_TAG_TABLET = (1 << 5),
         EVDEV_UDEV_TAG_JOYSTICK = (1 << 6),
         EVDEV_UDEV_TAG_ACCELEROMETER = (1 << 7),
-        EVDEV_UDEV_TAG_BUTTONSET = (1 << 8),
+        EVDEV_UDEV_TAG_TABLET_PAD = (1 << 8),
         EVDEV_UDEV_TAG_POINTINGSTICK = (1 << 9),
 };
 
@@ -78,7 +82,7 @@ static const struct evdev_udev_tag_match evdev_udev_tag_matches[] = {
 	{"ID_INPUT_TOUCHPAD",		EVDEV_UDEV_TAG_TOUCHPAD},
 	{"ID_INPUT_TOUCHSCREEN",	EVDEV_UDEV_TAG_TOUCHSCREEN},
 	{"ID_INPUT_TABLET",		EVDEV_UDEV_TAG_TABLET},
-	{"ID_INPUT_TABLET_PAD",		EVDEV_UDEV_TAG_BUTTONSET},
+	{"ID_INPUT_TABLET_PAD",		EVDEV_UDEV_TAG_TABLET_PAD},
 	{"ID_INPUT_JOYSTICK",		EVDEV_UDEV_TAG_JOYSTICK},
 	{"ID_INPUT_ACCELEROMETER",	EVDEV_UDEV_TAG_ACCELEROMETER},
 	{"ID_INPUT_POINTINGSTICK",	EVDEV_UDEV_TAG_POINTINGSTICK},
@@ -2082,7 +2086,7 @@ evdev_configure_device(struct evdev_device *device)
 		 udev_tags & EVDEV_UDEV_TAG_POINTINGSTICK ? " Pointingstick" : "",
 		 udev_tags & EVDEV_UDEV_TAG_JOYSTICK ? " Joystick" : "",
 		 udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER ? " Accelerometer" : "",
-		 udev_tags & EVDEV_UDEV_TAG_BUTTONSET ? " Buttonset" : "");
+		 udev_tags & EVDEV_UDEV_TAG_TABLET_PAD ? " TabletPad" : "");
 
 	if (udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER) {
 		log_info(libinput,
@@ -2096,14 +2100,6 @@ evdev_configure_device(struct evdev_device *device)
 	if ((udev_tags & EVDEV_UDEV_TAG_JOYSTICK) == udev_tags) {
 		log_info(libinput,
 			 "input device '%s', %s is a joystick, ignoring\n",
-			 device->devname, devnode);
-		return -1;
-	}
-
-	/* libwacom assigns tablet _and_ tablet_pad to the pad devices */
-	if (udev_tags & EVDEV_UDEV_TAG_BUTTONSET) {
-		log_info(libinput,
-			 "input device '%s', %s is a buttonset, ignoring\n",
 			 device->devname, devnode);
 		return -1;
 	}
@@ -2143,7 +2139,17 @@ evdev_configure_device(struct evdev_device *device)
 	tablet_tags = EVDEV_UDEV_TAG_TABLET |
 		      EVDEV_UDEV_TAG_TOUCHPAD |
 		      EVDEV_UDEV_TAG_TOUCHSCREEN;
-	if ((udev_tags & tablet_tags) == EVDEV_UDEV_TAG_TABLET) {
+
+	/* libwacom assigns tablet _and_ tablet_pad to the pad devices */
+	if (udev_tags & EVDEV_UDEV_TAG_TABLET_PAD) {
+		device->dispatch = evdev_tablet_pad_create(device);
+		device->seat_caps |= EVDEV_DEVICE_TABLET_PAD;
+		log_info(libinput,
+			 "input device '%s', %s is a tablet pad\n",
+			 device->devname, devnode);
+		return device->dispatch == NULL ? -1 : 0;
+
+	} else if ((udev_tags & tablet_tags) == EVDEV_UDEV_TAG_TABLET) {
 		device->dispatch = evdev_tablet_create(device);
 		device->seat_caps |= EVDEV_DEVICE_TABLET;
 		log_info(libinput,
@@ -2572,6 +2578,8 @@ evdev_device_has_capability(struct evdev_device *device,
 		return !!(device->seat_caps & EVDEV_DEVICE_GESTURE);
 	case LIBINPUT_DEVICE_CAP_TABLET_TOOL:
 		return !!(device->seat_caps & EVDEV_DEVICE_TABLET);
+	case LIBINPUT_DEVICE_CAP_TABLET_PAD:
+		return !!(device->seat_caps & EVDEV_DEVICE_TABLET_PAD);
 	default:
 		return 0;
 	}
@@ -2912,4 +2920,52 @@ evdev_device_destroy(struct evdev_device *device)
 	udev_device_unref(device->udev_device);
 	free(device->mt.slots);
 	free(device);
+}
+
+bool
+evdev_tablet_has_left_handed(struct evdev_device *device)
+{
+	bool has_left_handed = false;
+#if HAVE_LIBWACOM
+	struct libinput *libinput = device->base.seat->libinput;
+	WacomDeviceDatabase *db;
+	WacomDevice *d = NULL;
+	WacomError *error;
+	const char *devnode;
+
+	db = libwacom_database_new();
+	if (!db) {
+		log_info(libinput,
+			 "Failed to initialize libwacom context.\n");
+		goto out;
+	}
+
+	error = libwacom_error_new();
+	devnode = udev_device_get_devnode(device->udev_device);
+
+	d = libwacom_new_from_path(db,
+				   devnode,
+				   WFALLBACK_NONE,
+				   error);
+
+	if (d) {
+		if (libwacom_is_reversible(d))
+			has_left_handed = true;
+	} else if (libwacom_error_get_code(error) == WERROR_UNKNOWN_MODEL) {
+		log_info(libinput, "Tablet unknown to libwacom\n");
+	} else {
+		log_error(libinput,
+			  "libwacom error: %s\n",
+			  libwacom_error_get_message(error));
+	}
+
+	if (error)
+		libwacom_error_free(&error);
+	if (d)
+		libwacom_destroy(d);
+	libwacom_database_destroy(db);
+
+out:
+#endif
+	return has_left_handed;
 }

@@ -61,6 +61,7 @@ enum evdev_device_seat_capability {
 	EVDEV_DEVICE_KEYBOARD = (1 << 1),
 	EVDEV_DEVICE_TOUCH = (1 << 2),
 	EVDEV_DEVICE_TABLET = (1 << 3),
+	EVDEV_DEVICE_TABLET_PAD = (1 << 4),
 	EVDEV_DEVICE_GESTURE = (1 << 5),
 };
 
@@ -322,6 +323,9 @@ evdev_mt_touchpad_create(struct evdev_device *device);
 struct evdev_dispatch *
 evdev_tablet_create(struct evdev_device *device);
 
+struct evdev_dispatch *
+evdev_tablet_pad_create(struct evdev_device *device);
+
 void
 evdev_tag_touchpad(struct evdev_device *device,
 		   struct udev_device *udev_device);
@@ -371,6 +375,15 @@ evdev_device_has_button(struct evdev_device *device, uint32_t code);
 
 int
 evdev_device_has_key(struct evdev_device *device, uint32_t code);
+
+int
+evdev_device_tablet_pad_get_num_buttons(struct evdev_device *device);
+
+int
+evdev_device_tablet_pad_get_num_rings(struct evdev_device *device);
+
+int
+evdev_device_tablet_pad_get_num_strips(struct evdev_device *device);
 
 double
 evdev_device_transform_x(struct evdev_device *device,
@@ -458,6 +471,9 @@ evdev_convert_to_mm(const struct input_absinfo *absinfo, double v)
 int
 evdev_init_left_handed(struct evdev_device *device,
 		       void (*change_to_left_handed)(struct evdev_device *));
+
+bool
+evdev_tablet_has_left_handed(struct evdev_device *device);
 
 static inline uint32_t
 evdev_to_left_handed(struct evdev_device *device,

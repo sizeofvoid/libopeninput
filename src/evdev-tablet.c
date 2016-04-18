@@ -1606,45 +1606,9 @@ tablet_init_accel(struct tablet_dispatch *tablet, struct evdev_device *device)
 static void
 tablet_init_left_handed(struct evdev_device *device)
 {
-#if HAVE_LIBWACOM
-	struct libinput *libinput = device->base.seat->libinput;
-	WacomDeviceDatabase *db;
-	WacomDevice *d = NULL;
-	WacomError *error;
-	const char *devnode;
-
-	db = libwacom_database_new();
-	if (!db) {
-		log_info(libinput,
-			 "Failed to initialize libwacom context.\n");
-		return;
-	}
-	error = libwacom_error_new();
-	devnode = udev_device_get_devnode(device->udev_device);
-
-	d = libwacom_new_from_path(db,
-				   devnode,
-				   WFALLBACK_NONE,
-				   error);
-
-	if (d) {
-		if (libwacom_is_reversible(d))
+	if (evdev_tablet_has_left_handed(device))
 		    evdev_init_left_handed(device,
 					   tablet_change_to_left_handed);
-	} else if (libwacom_error_get_code(error) == WERROR_UNKNOWN_MODEL) {
-		log_info(libinput, "Tablet unknown to libwacom\n");
-	} else {
-		log_error(libinput,
-			  "libwacom error: %s\n",
-			  libwacom_error_get_message(error));
-	}
-
-	if (error)
-		libwacom_error_free(&error);
-	if (d)
-		libwacom_destroy(d);
-	libwacom_database_destroy(db);
-#endif
 }
 
 static int
