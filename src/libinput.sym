@@ -251,5 +251,4 @@ TABLET_PAD {
 	libinput_event_tablet_pad_get_strip_source;
 	libinput_event_tablet_pad_get_time;
 	libinput_event_tablet_pad_get_time_usec;
-
 } LIBINPUT_1.2;
