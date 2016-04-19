@@ -315,6 +315,46 @@ draw_pointer(struct window *w, cairo_t *cr)
 	cairo_restore(cr);
 }
 
+static inline void
+draw_background(struct window *w, cairo_t *cr)
+{
+	int x1, x2, y1, y2, x3, y3, x4, y4;
+	int cols;
+
+	/* 10px and 5px grids */
+	cairo_save(cr);
+	cairo_set_source_rgb(cr, 0.8, 0.8, 0.8);
+	x1 = w->width/2 - 200;
+	y1 = w->height/2 - 200;
+	x2 = w->width/2 + 200;
+	y2 = w->height/2 - 200;
+	for (cols = 1; cols < 10; cols++) {
+		cairo_move_to(cr, x1 + 10 * cols, y1);
+		cairo_rel_line_to(cr, 0, 100);
+		cairo_move_to(cr, x1, y1 + 10 * cols);
+		cairo_rel_line_to(cr, 100, 0);
+
+		cairo_move_to(cr, x2 + 5 * cols, y2);
+		cairo_rel_line_to(cr, 0, 50);
+		cairo_move_to(cr, x2, y2 + 5 * cols);
+		cairo_rel_line_to(cr, 50, 0);
+	}
+
+	/* 3px horiz/vert bar codes */
+	x3 = w->width/2 - 200;
+	y3 = w->height/2 + 200;
+	x4 = w->width/2 + 200;
+	y4 = w->height/2 + 100;
+	for (cols = 0; cols < 50; cols++) {
+		cairo_move_to(cr, x3 + 3 * cols, y3);
+		cairo_rel_line_to(cr, 0, 20);
+
+		cairo_move_to(cr, x4, y4 + 3 * cols);
+		cairo_rel_line_to(cr, 20, 0);
+	}
+	cairo_stroke(cr);
+}
+
 static gboolean
 draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 {
@@ -323,6 +363,8 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	cairo_set_source_rgb(cr, 1, 1, 1);
 	cairo_rectangle(cr, 0, 0, w->width, w->height);
 	cairo_fill(cr);
+
+	draw_background(w, cr);
 
 	draw_gestures(w, cr);
 	draw_scrollbars(w, cr);
