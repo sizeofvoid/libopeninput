@@ -21,6 +21,7 @@ libinput_la_SOURCES =			\
 	evdev-tablet.c			\
 	evdev-tablet.h			\
 	evdev-tablet-pad.c		\
+	evdev-tablet-pad.h		\
 	filter.c			\
 	filter.h			\
 	filter-private.h		\
