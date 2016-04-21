@@ -37,6 +37,7 @@
 #include "libinput.h"
 
 #define VENDOR_ID_APPLE 0x5ac
+#define VENDOR_ID_LOGITECH 0x46d
 #define VENDOR_ID_WACOM 0x56a
 #define VENDOR_ID_SYNAPTICS_SERIAL 0x002
 #define PRODUCT_ID_APPLE_KBD_TOUCHPAD 0x273

@@ -1335,6 +1335,10 @@ tp_want_dwt(struct evdev_device *touchpad,
 	if (bus_tp == BUS_I8042 && bus_kbd != bus_tp)
 		return false;
 
+	/* Logitech does not have internal touchpads */
+	if (vendor_tp == VENDOR_ID_LOGITECH)
+		return false;
+
 	/* For Apple touchpads, always use its internal keyboard */
 	if (vendor_tp == VENDOR_ID_APPLE) {
 		return vendor_kbd == vendor_tp &&
