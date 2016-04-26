@@ -231,12 +231,21 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 }
 
 static inline double
-normalize_dist_slider(const struct input_absinfo *absinfo)
+normalize_slider(const struct input_absinfo *absinfo)
 {
 	double range = absinfo->maximum - absinfo->minimum;
 	double value = (absinfo->value - absinfo->minimum) / range;
 
 	return value * 2 - 1;
+}
+
+static inline double
+normalize_distance(const struct input_absinfo *absinfo)
+{
+	double range = absinfo->maximum - absinfo->minimum;
+	double value = (absinfo->value - absinfo->minimum) / range;
+
+	return value;
 }
 
 static inline double
@@ -420,7 +429,7 @@ tablet_handle_distance(struct tablet_dispatch *tablet,
 	if (bit_is_set(tablet->changed_axes,
 		       LIBINPUT_TABLET_TOOL_AXIS_DISTANCE)) {
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_DISTANCE);
-		tablet->axes.distance = normalize_dist_slider(absinfo);
+		tablet->axes.distance = normalize_distance(absinfo);
 	}
 
 	return tablet->axes.distance;
@@ -435,7 +444,7 @@ tablet_handle_slider(struct tablet_dispatch *tablet,
 	if (bit_is_set(tablet->changed_axes,
 		       LIBINPUT_TABLET_TOOL_AXIS_SLIDER)) {
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_WHEEL);
-		tablet->axes.slider = normalize_dist_slider(absinfo);
+		tablet->axes.slider = normalize_slider(absinfo);
 	}
 
 	return tablet->axes.slider;
