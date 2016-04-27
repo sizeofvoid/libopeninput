@@ -17,6 +17,10 @@ AC_SUBST([LIBINPUT_VERSION_MINOR], [libinput_minor_version])
 AC_SUBST([LIBINPUT_VERSION_MICRO], [libinput_micro_version])
 AC_SUBST([LIBINPUT_VERSION], [libinput_version])
 
+AC_DEFINE([LIBINPUT_VERSION_MAJOR], [libinput_major_version], "libinput major version number")
+AC_DEFINE([LIBINPUT_VERSION_MINOR], [libinput_minor_version], "libinput minor version number")
+AC_DEFINE([LIBINPUT_VERSION_MICRO], [libinput_micro_version], "libinput micro version number")
+
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 

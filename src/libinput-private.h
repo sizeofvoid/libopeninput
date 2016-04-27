@@ -25,6 +25,8 @@
 #ifndef LIBINPUT_PRIVATE_H
 #define LIBINPUT_PRIVATE_H
 
+#include "config.h"
+
 #include <errno.h>
 #include <math.h>
 
@@ -32,6 +34,12 @@
 
 #include "libinput.h"
 #include "libinput-util.h"
+
+#if LIBINPUT_VERSION_MICRO >= 90
+#define HTTP_DOC_LINK "https://wayland.freedesktop.org/libinput/doc/latest/"
+#else
+#define HTTP_DOC_LINK "https://wayland.freedesktop.org/libinput/doc/" VERSION "/"
+#endif
 
 struct libinput_source;
 
