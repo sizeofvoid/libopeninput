@@ -991,7 +991,7 @@ START_TEST(touchpad_palm_detect_palm_becomes_pointer)
 	litest_drain_events(li);
 
 	litest_touch_down(dev, 0, 99, 50);
-	litest_touch_move_to(dev, 0, 99, 50, 0, 70, 5, 0);
+	litest_touch_move_to(dev, 0, 99, 50, 0, 70, 20, 0);
 	litest_touch_up(dev, 0);
 
 	libinput_dispatch(li);

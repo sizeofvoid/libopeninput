@@ -1143,7 +1143,7 @@ START_TEST(gestures_time_usec)
 					50, 40,
 					60, 40,
 					0, 30,
-					4, 2);
+					10, 2);
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
@@ -1178,7 +1178,7 @@ START_TEST(gestures_3fg_buttonarea_scroll)
 					40, 20,
 					30, 20,
 					0, 40,
-					4, 2);
+					10, 2);
 
 	litest_touch_up(dev, 0);
 	litest_touch_up(dev, 1);
