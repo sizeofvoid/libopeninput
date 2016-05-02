@@ -3309,10 +3309,36 @@ libinput_device_group_get_user_data(struct libinput_device_group *group);
  * configuration. This default can be obtained with the respective
  * get_default call.
  *
+ * Configuration options are device dependent and not all options are
+ * supported on all devices. For all configuration options, libinput
+ * provides a call to check if a configuration option is available on a
+ * device (e.g. libinput_device_config_calibration_has_matrix())
+ *
  * Some configuration option may be dependent on or mutually exclusive with
  * with other options. The behavior in those cases is
  * implementation-dependent, the caller must ensure that the options are set
  * in the right order.
+ *
+ * Below is a general grouping of configuration options according to device
+ * type. Note that this is a guide only and not indicative of any specific
+ * device.
+ * - Touchpad:
+ *    - libinput_device_config_tap_set_enabled()
+ *    - libinput_device_config_tap_set_drag_enabled()
+ *    - libinput_device_config_tap_set_drag_lock_enabled()
+ *    - libinput_device_config_click_set_method()
+ *    - libinput_device_config_scroll_set_method()
+ *    - libinput_device_config_dwt_set_enabled()
+ * - Touchscreens:
+ *    - libinput_device_config_calibration_set_matrix()
+ * - Pointer devices (mice, trackballs, touchpads):
+ *    - libinput_device_config_accel_set_speed()
+ *    - libinput_device_config_accel_set_profile()
+ *    - libinput_device_config_scroll_set_natural_scroll_enabled()
+ *    - libinput_device_config_left_handed_set()
+ *    - libinput_device_config_middle_emulation_set_enabled()
+ * - All devices:
+ *    - libinput_device_config_send_events_set_mode()
  */
 
 /**
