@@ -3871,6 +3871,9 @@ libinput_device_config_accel_get_speed(struct libinput_device *device);
 double
 libinput_device_config_accel_get_default_speed(struct libinput_device *device);
 
+/**
+ * @ingroup config
+ */
 enum libinput_config_accel_profile {
 	/**
 	 * Placeholder for devices that don't have a configurable pointer
