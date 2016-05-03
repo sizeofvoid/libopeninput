@@ -279,6 +279,7 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_both)
 	litest_delete_device(trackpoint);
 }
 END_TEST
+
 void
 litest_setup_tests(void)
 {
