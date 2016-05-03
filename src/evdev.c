@@ -1736,6 +1736,7 @@ evdev_read_model_flags(struct evdev_device *device)
 		MODEL(ALPS_RUSHMORE),
 		MODEL(LENOVO_T450_TOUCHPAD),
 		MODEL(WOBBLY_TOUCHPAD),
+		MODEL(TRACKBALL),
 		{ NULL, EVDEV_MODEL_DEFAULT },
 #undef MODEL
 	};
