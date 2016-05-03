@@ -228,7 +228,7 @@ matrix_init_translate(struct matrix *m, float x, float y)
 }
 
 static inline int
-matrix_is_identity(struct matrix *m)
+matrix_is_identity(const struct matrix *m)
 {
 	return (m->val[0][0] == 1 &&
 		m->val[0][1] == 0 &&
@@ -263,7 +263,7 @@ matrix_mult(struct matrix *dest,
 }
 
 static inline void
-matrix_mult_vec(struct matrix *m, int *x, int *y)
+matrix_mult_vec(const struct matrix *m, int *x, int *y)
 {
 	int tx, ty;
 
