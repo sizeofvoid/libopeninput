@@ -1741,8 +1741,13 @@ evdev_read_model_flags(struct evdev_device *device)
 
 	while (m->property) {
 		if (!!udev_device_get_property_value(device->udev_device,
-						     m->property))
+						     m->property)) {
+			log_debug(device->base.seat->libinput,
+				  "%s: tagged as %s\n",
+				  evdev_device_get_sysname(device),
+				  m->property);
 			model_flags |= m->model;
+		}
 		m++;
 	}
 
