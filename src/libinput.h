@@ -809,6 +809,9 @@ libinput_event_pointer_get_dy(struct libinput_event_pointer *event);
  * X resolution of the touchpad. See @ref motion_normalization for more
  * details.
  *
+ * Any rotation applied to the device also applies to unaccelerated motion
+ * (see libinput_device_config_rotation_set_angle()).
+ *
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_MOTION.
  *
@@ -830,6 +833,9 @@ libinput_event_pointer_get_dx_unaccelerated(
  * resolution. Touchpad coordinates represent raw device coordinates in the
  * X resolution of the touchpad. See @ref motion_normalization for more
  * details.
+ *
+ * Any rotation applied to the device also applies to unaccelerated motion
+ * (see libinput_device_config_rotation_set_angle()).
  *
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_MOTION.
@@ -1356,6 +1362,9 @@ libinput_event_gesture_get_dy(struct libinput_event_gesture *event);
  * details. Note that unaccelerated events are not equivalent to 'raw' events
  * as read from the device.
  *
+ * Any rotation applied to the device also applies to gesture motion
+ * (see libinput_device_config_rotation_set_angle()).
+ *
  * @return the unaccelerated relative x movement since the last event
  */
 double
@@ -1374,6 +1383,9 @@ libinput_event_gesture_get_dx_unaccelerated(
  * device with 1000dpi resolution. See @ref motion_normalization for more
  * details. Note that unaccelerated events are not equivalent to 'raw' events
  * as read from the device.
+ *
+ * Any rotation applied to the device also applies to gesture motion
+ * (see libinput_device_config_rotation_set_angle()).
  *
  * @return the unaccelerated relative y movement since the last event
  */
@@ -3337,6 +3349,7 @@ libinput_device_group_get_user_data(struct libinput_device_group *group);
  *    - libinput_device_config_scroll_set_natural_scroll_enabled()
  *    - libinput_device_config_left_handed_set()
  *    - libinput_device_config_middle_emulation_set_enabled()
+ *    - libinput_device_config_rotation_set_angle()
  * - All devices:
  *    - libinput_device_config_send_events_set_mode()
  */
@@ -4648,6 +4661,89 @@ libinput_device_config_dwt_get_enabled(struct libinput_device *device);
  */
 enum libinput_config_dwt_state
 libinput_device_config_dwt_get_default_enabled(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Check whether a device can have a custom rotation applied.
+ *
+ * @param device The device to configure
+ * @return Non-zero if a device can be rotated, zero otherwise.
+ *
+ * @see libinput_device_config_rotation_set_angle
+ * @see libinput_device_config_rotation_get_angle
+ * @see libinput_device_config_rotation_get_default_angle
+ */
+int
+libinput_device_config_rotation_is_available(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Set the rotation of a device in degrees clockwise off the logical neutral
+ * position. Any subsequent motion events are adjusted according to the
+ * given angle.
+ *
+ * The angle has to be in the range of [0, 360[ degrees, otherwise this
+ * function returns LIBINPUT_CONFIG_STATUS_INVALID. If the angle is a
+ * multiple of 360 or negative, the caller must ensure the correct ranging
+ * before calling this function.
+ *
+ * libinput guarantees that this function accepts multiples of 90 degrees.
+ * If a value is within the [0, 360[ range but not a multiple of 90 degrees,
+ * this function may return LIBINPUT_CONFIG_STATUS_INVALID if the underlying
+ * device or implementation does not support finer-grained rotation angles.
+ *
+ * The rotation angle is applied to all motion events emitted by the device.
+ * Thus, rotating the device also changes the angle required or presented by
+ * scrolling, gestures, etc.
+ *
+ * @param device The device to configure
+ * @param degrees_cw The angle in degrees clockwise
+ * @return A config status code. Setting a rotation of 0 degrees on a
+ * device that does not support rotation always succeeds.
+ *
+ * @see libinput_device_config_rotation_is_available
+ * @see libinput_device_config_rotation_get_angle
+ * @see libinput_device_config_rotation_get_default_angle
+ */
+enum libinput_config_status
+libinput_device_config_rotation_set_angle(struct libinput_device *device,
+					  unsigned int degrees_cw);
+
+/**
+ * @ingroup config
+ *
+ * Get the current rotation of a device in degrees clockwise off the logical
+ * neutral position. If this device does not support rotation, the return
+ * value is always 0.
+ *
+ * @param device The device to configure
+ * @return The angle in degrees clockwise
+ *
+ * @see libinput_device_config_rotation_is_available
+ * @see libinput_device_config_rotation_set_angle
+ * @see libinput_device_config_rotation_get_default_angle
+ */
+unsigned int
+libinput_device_config_rotation_get_angle(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Get the default rotation of a device in degrees clockwise off the logical
+ * neutral position. If this device does not support rotation, the return
+ * value is always 0.
+ *
+ * @param device The device to configure
+ * @return The default angle in degrees clockwise
+ *
+ * @see libinput_device_config_rotation_is_available
+ * @see libinput_device_config_rotation_set_angle
+ * @see libinput_device_config_rotation_get_angle
+ */
+unsigned int
+libinput_device_config_rotation_get_default_angle(struct libinput_device *device);
 
 #ifdef __cplusplus
 }

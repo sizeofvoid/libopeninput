@@ -80,6 +80,7 @@ run_tests = \
 	test-gestures \
 	test-pointer \
 	test-touch \
+	test-trackball \
 	test-trackpoint \
 	test-udev \
 	test-path \
@@ -143,6 +144,10 @@ test_touchpad_buttons_LDFLAGS = -no-install
 test_trackpoint_SOURCES = trackpoint.c
 test_trackpoint_LDADD = $(TEST_LIBS)
 test_trackpoint_LDFLAGS = -no-install
+
+test_trackball_SOURCES = trackball.c
+test_trackball_LDADD = $(TEST_LIBS)
+test_trackball_LDFLAGS = -no-install
 
 test_misc_SOURCES = misc.c
 test_misc_CFLAGS= $(AM_CFLAGS) -DLIBINPUT_LT_VERSION="\"$(LIBINPUT_LT_VERSION)\""

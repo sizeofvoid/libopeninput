@@ -258,6 +258,15 @@ struct libinput_device_config_dwt {
 			 struct libinput_device *device);
 };
 
+struct libinput_device_config_rotation {
+	int (*is_available)(struct libinput_device *device);
+	enum libinput_config_status (*set_angle)(
+			 struct libinput_device *device,
+			 unsigned int degrees_cw);
+	unsigned int (*get_angle)(struct libinput_device *device);
+	unsigned int (*get_default_angle)(struct libinput_device *device);
+};
+
 struct libinput_device_config {
 	struct libinput_device_config_tap *tap;
 	struct libinput_device_config_calibration *calibration;
@@ -269,6 +278,7 @@ struct libinput_device_config {
 	struct libinput_device_config_click_method *click_method;
 	struct libinput_device_config_middle_emulation *middle_emulation;
 	struct libinput_device_config_dwt *dwt;
+	struct libinput_device_config_rotation *rotation;
 };
 
 struct libinput_device_group {

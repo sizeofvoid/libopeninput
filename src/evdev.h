@@ -290,6 +290,13 @@ struct evdev_dispatch {
 	struct libinput_device_config_calibration calibration;
 
 	struct {
+		bool is_enabled;
+		int angle;
+		struct matrix matrix;
+		struct libinput_device_config_rotation config;
+	} rotation;
+
+	struct {
 		struct libinput_device_config_send_events config;
 		enum libinput_config_send_events_mode current_mode;
 	} sendevents;

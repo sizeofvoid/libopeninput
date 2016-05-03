@@ -370,6 +370,22 @@ evdev_filter_defuzz_touch(struct evdev_device *device, struct mt_slot *slot)
 	return false;
 }
 
+static inline void
+evdev_rotate_relative(struct evdev_device *device)
+{
+	struct evdev_dispatch *dispatch = device->dispatch;
+	struct device_coords rel = device->rel;
+
+	if (!device->base.config.rotation)
+		return;
+
+	/* loss of precision for non-90 degrees, but we only support 90 deg
+	 * right now anyway */
+	matrix_mult_vec(&dispatch->rotation.matrix, &rel.x, &rel.y);
+
+	device->rel = rel;
+}
+
 static void
 evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 {
@@ -393,6 +409,8 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 	case EVDEV_RELATIVE_MOTION:
 		if (!(device->seat_caps & EVDEV_DEVICE_POINTER))
 			break;
+
+		evdev_rotate_relative(device);
 
 		normalize_delta(device, &device->rel, &unaccel);
 		raw.x = device->rel.x;
@@ -1326,6 +1344,55 @@ evdev_init_natural_scroll(struct evdev_device *device)
 	device->base.config.natural_scroll = &device->scroll.config_natural;
 }
 
+static int
+evdev_rotation_config_is_available(struct libinput_device *device)
+{
+	/* This function only gets called when we support rotation */
+	return 1;
+}
+
+static enum libinput_config_status
+evdev_rotation_config_set_angle(struct libinput_device *device,
+				unsigned int degrees_cw)
+{
+	struct evdev_dispatch *dispatch = ((struct evdev_device*)device)->dispatch;
+
+	dispatch->rotation.angle = degrees_cw;
+	matrix_init_rotate(&dispatch->rotation.matrix, degrees_cw);
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static unsigned int
+evdev_rotation_config_get_angle(struct libinput_device *device)
+{
+	struct evdev_dispatch *dispatch = ((struct evdev_device*)device)->dispatch;
+
+	return dispatch->rotation.angle;
+}
+
+static unsigned int
+evdev_rotation_config_get_default_angle(struct libinput_device *device)
+{
+	return 0;
+}
+
+static void
+evdev_init_rotation(struct evdev_device *device,
+		    struct evdev_dispatch *dispatch)
+{
+	if ((device->model_flags & EVDEV_MODEL_TRACKBALL) == 0)
+		return;
+
+	dispatch->rotation.config.is_available = evdev_rotation_config_is_available;
+	dispatch->rotation.config.set_angle = evdev_rotation_config_set_angle;
+	dispatch->rotation.config.get_angle = evdev_rotation_config_get_angle;
+	dispatch->rotation.config.get_default_angle = evdev_rotation_config_get_default_angle;
+	dispatch->rotation.is_enabled = false;
+	matrix_init_identity(&dispatch->rotation.matrix);
+	device->base.config.rotation = &dispatch->rotation.config;
+}
+
 static struct evdev_dispatch *
 fallback_dispatch_create(struct libinput_device *device)
 {
@@ -1356,6 +1423,7 @@ fallback_dispatch_create(struct libinput_device *device)
 
 	evdev_init_calibration(evdev_device, dispatch);
 	evdev_init_sendevents(evdev_device, dispatch);
+	evdev_init_rotation(evdev_device, dispatch);
 
 	/* BTN_MIDDLE is set on mice even when it's not present. So
 	 * we can only use the absence of BTN_MIDDLE to mean something, i.e.

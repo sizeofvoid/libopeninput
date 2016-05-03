@@ -3688,3 +3688,44 @@ libinput_device_config_dwt_get_default_enabled(struct libinput_device *device)
 
 	return device->config.dwt->get_default_enabled(device);
 }
+
+LIBINPUT_EXPORT int
+libinput_device_config_rotation_is_available(struct libinput_device *device)
+{
+	if (!device->config.rotation)
+		return 0;
+
+	return device->config.rotation->is_available(device);
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_rotation_set_angle(struct libinput_device *device,
+					  unsigned int degrees_cw)
+{
+	if (!libinput_device_config_rotation_is_available(device))
+		return degrees_cw ? LIBINPUT_CONFIG_STATUS_UNSUPPORTED :
+				    LIBINPUT_CONFIG_STATUS_SUCCESS;
+
+	if (degrees_cw >= 360 || degrees_cw % 90)
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	return device->config.rotation->set_angle(device, degrees_cw);
+}
+
+LIBINPUT_EXPORT unsigned int
+libinput_device_config_rotation_get_angle(struct libinput_device *device)
+{
+	if (!libinput_device_config_rotation_is_available(device))
+		return 0;
+
+	return device->config.rotation->get_angle(device);
+}
+
+LIBINPUT_EXPORT unsigned int
+libinput_device_config_rotation_get_default_angle(struct libinput_device *device)
+{
+	if (!libinput_device_config_rotation_is_available(device))
+		return 0;
+
+	return device->config.rotation->get_default_angle(device);
+}
