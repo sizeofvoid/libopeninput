@@ -245,4 +245,35 @@ caller and libinput does not provide specific handling. Callers should use
 external sources like libwacom to identify which buttons have semantic
 behaviors.
 
+@section tablet-left-handed Tablets in left-handed mode
+
+Left-handed mode on tablet devices usually means rotating the physical
+tablet by 180 degrees to move the tablet pad button area to right side of
+the tablet.  When left-handed mode is enabled on a tablet device (see
+libinput_device_config_left_handed_set()) the tablet tool and tablet pad
+behavior changes. In left-handed mode, the tools' axes are adjusted
+so that the origin of each axis remains the logical north-east of
+the physical tablet. For example, the x and y axes are inverted and the
+positive x/y coordinates are down/right of the top-left corner of the tablet
+in its current orientation. On a tablet pad, the ring and strip are
+similarly adjusted. The origin of the ring and strips remain the top-most
+point.
+
+@image html tablet-left-handed.svg "Tablet axes in right- and left-handed mode"
+
+Pad buttons are not affected by left-handed mode; the number of each button
+remains the same even when the perceived physical location of the button
+changes. This is a conscious design decision:
+- Tablet pad buttons do not have intrinsic semantic meanings. Re-ordering
+  the button numbers would not change any functionality.
+- Button numbers should not be exposed directly to the user but handled in
+  the intermediate layers. Re-ordering button numbers thus has no
+  user-visible effect.
+- Re-ordering button numbers may complicate the intermediate layers.
+
+Left-handed mode is only available on some tablets, some tablets are
+symmetric and thus do not support left-handed mode. libinput requires
+libwacom to determine if a tablet is capable of being switched to
+left-handed mode.
+
 */
