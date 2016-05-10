@@ -65,28 +65,6 @@ PKG_CHECK_MODULES(MTDEV, [mtdev >= 1.1.0])
 PKG_CHECK_MODULES(LIBUDEV, [libudev])
 PKG_CHECK_MODULES(LIBEVDEV, [libevdev >= 0.4])
 
-AC_ARG_WITH(libunwind,
-            AS_HELP_STRING([--without-libunwind],[Do not use libunwind]))
-
-AS_IF([test "x$with_libunwind" != "xno"],
-	[PKG_CHECK_MODULES(LIBUNWIND,
-		  [libunwind],
-		  [HAVE_LIBUNWIND=yes],
-		  [HAVE_LIBUNWIND=no])],
-	[HAVE_LIBUNWIND=no])
-
-AS_IF([test "x$HAVE_LIBUNWIND" = "xyes"],
-	[AC_DEFINE(HAVE_LIBUNWIND, 1, [Have libunwind support])],
-	[AS_IF([test "x$with_libunwind" = "xyes"],
-		[AC_MSG_ERROR([libunwind requested but not found])])])
-
-AM_CONDITIONAL(HAVE_LIBUNWIND, [test "x$HAVE_LIBUNWIND" = xyes])
-AC_PATH_PROG(ADDR2LINE, [addr2line])
-if test "x$ADDR2LINE" != "x"; then
-	AC_DEFINE_UNQUOTED(HAVE_ADDR2LINE, 1, [addr2line found])
-	AC_DEFINE_UNQUOTED(ADDR2LINE, ["$ADDR2LINE"], [Path to addr2line])
-fi
-
 AC_CHECK_LIB([m], [atan2])
 AC_CHECK_LIB([rt], [clock_gettime])
 
@@ -191,7 +169,29 @@ if test "x$build_tests" = "xyes"; then
 	fi
 
 	AC_PATH_PROG(VALGRIND, [valgrind])
+
+	AC_ARG_WITH(libunwind,
+		    AS_HELP_STRING([--without-libunwind],[Do not use libunwind]))
+
+	AS_IF([test "x$with_libunwind" != "xno"],
+		[PKG_CHECK_MODULES(LIBUNWIND,
+			  [libunwind],
+			  [HAVE_LIBUNWIND=yes],
+			  [HAVE_LIBUNWIND=no])],
+		[HAVE_LIBUNWIND=no])
+
+	AS_IF([test "x$HAVE_LIBUNWIND" = "xyes"],
+		[AC_DEFINE(HAVE_LIBUNWIND, 1, [Have libunwind support])],
+		[AS_IF([test "x$with_libunwind" = "xyes"],
+			[AC_MSG_ERROR([libunwind requested but not found])])])
+
+	AC_PATH_PROG(ADDR2LINE, [addr2line])
+	if test "x$ADDR2LINE" != "x"; then
+		AC_DEFINE_UNQUOTED(HAVE_ADDR2LINE, 1, [addr2line found])
+		AC_DEFINE_UNQUOTED(ADDR2LINE, ["$ADDR2LINE"], [Path to addr2line])
+	fi
 fi
+AM_CONDITIONAL(HAVE_LIBUNWIND, [test "x$HAVE_LIBUNWIND" = xyes])
 
 AC_ARG_ENABLE(libwacom,
 	      AS_HELP_STRING([--enable-libwacom],
