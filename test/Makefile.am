@@ -25,6 +25,7 @@ liblitest_la_SOURCES = \
 	litest-device-generic-singletouch.c \
 	litest-device-huion-pentablet.c \
 	litest-device-keyboard.c \
+	litest-device-keyboard-all-codes.c \
 	litest-device-keyboard-razer-blackwidow.c \
 	litest-device-logitech-trackball.c \
 	litest-device-nexus4-touch-screen.c \

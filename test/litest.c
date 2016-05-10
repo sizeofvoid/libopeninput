@@ -382,6 +382,7 @@ extern struct litest_test_device litest_wacom_cintiq_24hd_device;
 extern struct litest_test_device litest_multitouch_fuzz_screen_device;
 extern struct litest_test_device litest_wacom_intuos3_pad_device;
 extern struct litest_test_device litest_wacom_intuos5_pad_device;
+extern struct litest_test_device litest_keyboard_all_codes_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -430,6 +431,7 @@ struct litest_test_device* devices[] = {
 	&litest_multitouch_fuzz_screen_device,
 	&litest_wacom_intuos3_pad_device,
 	&litest_wacom_intuos5_pad_device,
+	&litest_keyboard_all_codes_device,
 	NULL,
 };
 
