@@ -248,7 +248,7 @@ tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 		if (ntouches == 2)
 			return GESTURE_STATE_SCROLL;
 		else
-			return GESTURE_STATE_SWIPE;
+			return GESTURE_STATE_NONE;
 	}
 
 	first = touches[0];
