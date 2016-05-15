@@ -186,6 +186,12 @@ long_any_bit_set(unsigned long *array, size_t size)
 	return 0;
 }
 
+static inline double
+deg2rad(int degree)
+{
+	return M_PI * degree / 180.0;
+}
+
 struct matrix {
 	float val[3][3]; /* [row][col] */
 };
@@ -225,6 +231,21 @@ matrix_init_translate(struct matrix *m, float x, float y)
 	matrix_init_identity(m);
 	m->val[0][2] = x;
 	m->val[1][2] = y;
+}
+
+static inline void
+matrix_init_rotate(struct matrix *m, int degrees)
+{
+	double s, c;
+
+	s = sin(deg2rad(degrees));
+	c = cos(deg2rad(degrees));
+
+	matrix_init_identity(m);
+	m->val[0][0] = c;
+	m->val[0][1] = -s;
+	m->val[1][0] = s;
+	m->val[1][1] = c;
 }
 
 static inline int

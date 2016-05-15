@@ -146,3 +146,9 @@ libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnSystem76*pvrkudp1*
 ##########################################
 libinput:touchpad:input:b0003v056Ap*
  LIBINPUT_MODEL_WACOM_TOUCHPAD=1
+
+##########################################
+# Anything that has trackball in the name
+##########################################
+libinput:name:*Trackball*:dmi:*
+ LIBINPUT_MODEL_TRACKBALL=1

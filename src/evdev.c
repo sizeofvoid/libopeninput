@@ -370,6 +370,22 @@ evdev_filter_defuzz_touch(struct evdev_device *device, struct mt_slot *slot)
 	return false;
 }
 
+static inline void
+evdev_rotate_relative(struct evdev_device *device)
+{
+	struct evdev_dispatch *dispatch = device->dispatch;
+	struct device_coords rel = device->rel;
+
+	if (!device->base.config.rotation)
+		return;
+
+	/* loss of precision for non-90 degrees, but we only support 90 deg
+	 * right now anyway */
+	matrix_mult_vec(&dispatch->rotation.matrix, &rel.x, &rel.y);
+
+	device->rel = rel;
+}
+
 static void
 evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 {
@@ -393,6 +409,8 @@ evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 	case EVDEV_RELATIVE_MOTION:
 		if (!(device->seat_caps & EVDEV_DEVICE_POINTER))
 			break;
+
+		evdev_rotate_relative(device);
 
 		normalize_delta(device, &device->rel, &unaccel);
 		raw.x = device->rel.x;
@@ -1326,6 +1344,55 @@ evdev_init_natural_scroll(struct evdev_device *device)
 	device->base.config.natural_scroll = &device->scroll.config_natural;
 }
 
+static int
+evdev_rotation_config_is_available(struct libinput_device *device)
+{
+	/* This function only gets called when we support rotation */
+	return 1;
+}
+
+static enum libinput_config_status
+evdev_rotation_config_set_angle(struct libinput_device *device,
+				unsigned int degrees_cw)
+{
+	struct evdev_dispatch *dispatch = ((struct evdev_device*)device)->dispatch;
+
+	dispatch->rotation.angle = degrees_cw;
+	matrix_init_rotate(&dispatch->rotation.matrix, degrees_cw);
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static unsigned int
+evdev_rotation_config_get_angle(struct libinput_device *device)
+{
+	struct evdev_dispatch *dispatch = ((struct evdev_device*)device)->dispatch;
+
+	return dispatch->rotation.angle;
+}
+
+static unsigned int
+evdev_rotation_config_get_default_angle(struct libinput_device *device)
+{
+	return 0;
+}
+
+static void
+evdev_init_rotation(struct evdev_device *device,
+		    struct evdev_dispatch *dispatch)
+{
+	if ((device->model_flags & EVDEV_MODEL_TRACKBALL) == 0)
+		return;
+
+	dispatch->rotation.config.is_available = evdev_rotation_config_is_available;
+	dispatch->rotation.config.set_angle = evdev_rotation_config_set_angle;
+	dispatch->rotation.config.get_angle = evdev_rotation_config_get_angle;
+	dispatch->rotation.config.get_default_angle = evdev_rotation_config_get_default_angle;
+	dispatch->rotation.is_enabled = false;
+	matrix_init_identity(&dispatch->rotation.matrix);
+	device->base.config.rotation = &dispatch->rotation.config;
+}
+
 static struct evdev_dispatch *
 fallback_dispatch_create(struct libinput_device *device)
 {
@@ -1356,6 +1423,7 @@ fallback_dispatch_create(struct libinput_device *device)
 
 	evdev_init_calibration(evdev_device, dispatch);
 	evdev_init_sendevents(evdev_device, dispatch);
+	evdev_init_rotation(evdev_device, dispatch);
 
 	/* BTN_MIDDLE is set on mice even when it's not present. So
 	 * we can only use the absence of BTN_MIDDLE to mean something, i.e.
@@ -1715,26 +1783,30 @@ evdev_read_model_flags(struct evdev_device *device)
 		const char *property;
 		enum evdev_device_model model;
 	} model_map[] = {
-		{ "LIBINPUT_MODEL_LENOVO_X230", EVDEV_MODEL_LENOVO_X230 },
-		{ "LIBINPUT_MODEL_LENOVO_X220_TOUCHPAD_FW81", EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81 },
-		{ "LIBINPUT_MODEL_CHROMEBOOK", EVDEV_MODEL_CHROMEBOOK },
-		{ "LIBINPUT_MODEL_SYSTEM76_BONOBO", EVDEV_MODEL_SYSTEM76_BONOBO },
-		{ "LIBINPUT_MODEL_SYSTEM76_GALAGO", EVDEV_MODEL_SYSTEM76_GALAGO },
-		{ "LIBINPUT_MODEL_SYSTEM76_KUDU", EVDEV_MODEL_SYSTEM76_KUDU },
-		{ "LIBINPUT_MODEL_CLEVO_W740SU", EVDEV_MODEL_CLEVO_W740SU },
-		{ "LIBINPUT_MODEL_APPLE_TOUCHPAD", EVDEV_MODEL_APPLE_TOUCHPAD },
-		{ "LIBINPUT_MODEL_WACOM_TOUCHPAD", EVDEV_MODEL_WACOM_TOUCHPAD },
-		{ "LIBINPUT_MODEL_ALPS_TOUCHPAD", EVDEV_MODEL_ALPS_TOUCHPAD },
-		{ "LIBINPUT_MODEL_SYNAPTICS_SERIAL_TOUCHPAD", EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD },
-		{ "LIBINPUT_MODEL_JUMPING_SEMI_MT", EVDEV_MODEL_JUMPING_SEMI_MT },
-		{ "LIBINPUT_MODEL_ELANTECH_TOUCHPAD", EVDEV_MODEL_ELANTECH_TOUCHPAD },
-		{ "LIBINPUT_MODEL_APPLE_INTERNAL_KEYBOARD", EVDEV_MODEL_APPLE_INTERNAL_KEYBOARD },
-		{ "LIBINPUT_MODEL_CYBORG_RAT", EVDEV_MODEL_CYBORG_RAT },
-		{ "LIBINPUT_MODEL_CYAPA", EVDEV_MODEL_CYAPA },
-		{ "LIBINPUT_MODEL_ALPS_RUSHMORE", EVDEV_MODEL_ALPS_RUSHMORE },
-		{ "LIBINPUT_MODEL_LENOVO_T450_TOUCHPAD", EVDEV_MODEL_LENOVO_T450_TOUCHPAD },
-		{ "LIBINPUT_MODEL_WOBBLY_TOUCHPAD", EVDEV_MODEL_WOBBLY_TOUCHPAD },
+#define MODEL(name) { "LIBINPUT_MODEL_" #name, EVDEV_MODEL_##name }
+		MODEL(LENOVO_X230),
+		MODEL(LENOVO_X230),
+		MODEL(LENOVO_X220_TOUCHPAD_FW81),
+		MODEL(CHROMEBOOK),
+		MODEL(SYSTEM76_BONOBO),
+		MODEL(SYSTEM76_GALAGO),
+		MODEL(SYSTEM76_KUDU),
+		MODEL(CLEVO_W740SU),
+		MODEL(APPLE_TOUCHPAD),
+		MODEL(WACOM_TOUCHPAD),
+		MODEL(ALPS_TOUCHPAD),
+		MODEL(SYNAPTICS_SERIAL_TOUCHPAD),
+		MODEL(JUMPING_SEMI_MT),
+		MODEL(ELANTECH_TOUCHPAD),
+		MODEL(APPLE_INTERNAL_KEYBOARD),
+		MODEL(CYBORG_RAT),
+		MODEL(CYAPA),
+		MODEL(ALPS_RUSHMORE),
+		MODEL(LENOVO_T450_TOUCHPAD),
+		MODEL(WOBBLY_TOUCHPAD),
+		MODEL(TRACKBALL),
 		{ NULL, EVDEV_MODEL_DEFAULT },
+#undef MODEL
 	};
 	const struct model_map *m = model_map;
 	uint32_t model_flags = 0;

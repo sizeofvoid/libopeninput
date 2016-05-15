@@ -116,6 +116,7 @@ enum evdev_device_model {
 	EVDEV_MODEL_ALPS_RUSHMORE = (1 << 16),
 	EVDEV_MODEL_LENOVO_T450_TOUCHPAD= (1 << 17),
 	EVDEV_MODEL_WOBBLY_TOUCHPAD = (1 << 18),
+	EVDEV_MODEL_TRACKBALL = (1 << 19),
 };
 
 struct mt_slot {
@@ -287,6 +288,13 @@ struct evdev_dispatch_interface {
 struct evdev_dispatch {
 	struct evdev_dispatch_interface *interface;
 	struct libinput_device_config_calibration calibration;
+
+	struct {
+		bool is_enabled;
+		int angle;
+		struct matrix matrix;
+		struct libinput_device_config_rotation config;
+	} rotation;
 
 	struct {
 		struct libinput_device_config_send_events config;

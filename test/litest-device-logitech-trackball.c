@@ -53,7 +53,7 @@ static int events[] = {
 
 struct litest_test_device litest_logitech_trackball_device = {
 	.type = LITEST_LOGITECH_TRACKBALL,
-	.features = LITEST_RELATIVE | LITEST_BUTTON,
+	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_TRACKBALL,
 	.shortname = "logitech trackball",
 	.setup = litest_logitech_trackball_setup,
 	.interface = NULL,

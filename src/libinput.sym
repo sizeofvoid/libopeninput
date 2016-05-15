@@ -252,3 +252,10 @@ LIBINPUT_1.3 {
 	libinput_event_tablet_pad_get_time;
 	libinput_event_tablet_pad_get_time_usec;
 } LIBINPUT_1.2;
+
+LIBINPUT_1.4 {
+	libinput_device_config_rotation_get_angle;
+	libinput_device_config_rotation_get_default_angle;
+	libinput_device_config_rotation_is_available;
+	libinput_device_config_rotation_set_angle;
+} LIBINPUT_1.3;
