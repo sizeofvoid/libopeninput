@@ -59,6 +59,10 @@ AC_CHECK_DECL(TFD_CLOEXEC,[],
 AC_CHECK_DECL(CLOCK_MONOTONIC,[],
 	      [AC_MSG_ERROR("CLOCK_MONOTONIC is needed to compile libinput")],
 	      [[#include <time.h>]])
+AC_CHECK_DECL(static_assert, [],
+	      [AC_DEFINE(static_assert(...), [/* */], [noop static_assert() replacement]),
+              AC_MSG_RESULT([no])],
+	      [[#include <assert.h>]])
 
 PKG_PROG_PKG_CONFIG()
 PKG_CHECK_MODULES(MTDEV, [mtdev >= 1.1.0])
