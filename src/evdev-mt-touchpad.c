@@ -928,6 +928,7 @@ tp_detect_jumps(const struct tp_dispatch *tp, struct tp_touch *t)
 static void
 tp_process_state(struct tp_dispatch *tp, uint64_t time)
 {
+	struct evdev_device *device = tp->device;
 	struct tp_touch *t;
 	unsigned int i;
 	bool restart_filter = false;
@@ -953,7 +954,8 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 		if (!t->dirty)
 			continue;
 
-		if (t->pressure_delta < -7)
+		if ((device->model_flags & EVDEV_MODEL_LENOVO_T450_TOUCHPAD) &&
+		    t->pressure_delta < -7)
 			tp_motion_history_reset(t);
 
 		if (tp_detect_jumps(tp, t)) {
