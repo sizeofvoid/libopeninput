@@ -2293,6 +2293,10 @@ litest_create_uinput(const char *name,
 	abs = abs_info;
 	while (abs && abs->value != -1) {
 		if (abs->resolution != 0) {
+			if (libevdev_get_abs_resolution(dev, abs->value) ==
+			    abs->resolution)
+				break;
+
 			rc = libevdev_kernel_set_abs_info(dev,
 							  abs->value,
 							  abs);
