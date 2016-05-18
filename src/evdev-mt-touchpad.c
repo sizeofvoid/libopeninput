@@ -913,6 +913,12 @@ tp_detect_jumps(const struct tp_dispatch *tp, struct tp_touch *t)
 	double dx, dy;
 	const int JUMP_THRESHOLD_MM = 20;
 
+	/* We haven't seen pointer jumps on Wacom tablets yet, so exclude
+	 * those.
+	 */
+	if (tp->device->model_flags & EVDEV_MODEL_WACOM_TOUCHPAD)
+		return false;
+
 	if (t->history.count == 0)
 		return false;
 
