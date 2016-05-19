@@ -26,6 +26,10 @@ libinput:name:*AlpsPS/2 ALPS DualPoint TouchPad:fwversion:800
 libinput:name:*AlpsPS/2 ALPS GlidePoint:fwversion:800
  LIBINPUT_ATTR_SIZE_HINT=100x55
 
+libinput:name:*AlpsPS/2 ALPS DualPoint TouchPad:fwversion:300
+libinput:name:*AlpsPS/2 ALPS GlidePoint:fwversion:300
+ LIBINPUT_MODEL_WOBBLY_TOUCHPAD=1
+
 libinput:name:*AlpsPS/2 ALPS DualPoint TouchPad:fwversion:310
 libinput:name:*AlpsPS/2 ALPS GlidePoint:fwversion:310
  LIBINPUT_MODEL_ALPS_RUSHMORE=1
