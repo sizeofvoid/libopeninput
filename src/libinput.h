@@ -1999,7 +1999,7 @@ libinput_event_tablet_tool_get_time_usec(struct libinput_event_tablet_tool *even
 /**
  * @ingroup event_tablet
  *
- * Return the type of tool type for a tool object, see @ref
+ * Return the tool type for a tool object, see @ref
  * tablet-tool-types for details.
  *
  * @param tool The libinput tool
@@ -2047,7 +2047,8 @@ libinput_tablet_tool_ref(struct libinput_tablet_tool *tool);
  * @ingroup event_tablet
  *
  * Decrement the reference count of the tool by one. When the reference
- * count of tool reaches 0, the memory allocated for tool will be freed.
+ * count of the tool reaches 0, the memory allocated for the tool will be
+ * freed.
  *
  * @param tool The tool to decrement the ref count of
  * @return NULL if the tool was destroyed otherwise the passed tool
