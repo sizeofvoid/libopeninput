@@ -2074,9 +2074,6 @@ tp_init_hysteresis(struct tp_dispatch *tp)
 	if (tp->device->model_flags & EVDEV_MODEL_CYAPA)
 		goto want_hysteresis;
 
-	if (tp->device->model_flags & EVDEV_MODEL_ALPS_RUSHMORE)
-		goto want_hysteresis;
-
 	if (tp->semi_mt &&
 	    (tp->device->model_flags & EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD))
 		goto want_hysteresis;

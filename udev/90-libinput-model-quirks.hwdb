@@ -28,11 +28,9 @@ libinput:name:*AlpsPS/2 ALPS GlidePoint:fwversion:800
 
 libinput:name:*AlpsPS/2 ALPS DualPoint TouchPad:fwversion:300
 libinput:name:*AlpsPS/2 ALPS GlidePoint:fwversion:300
- LIBINPUT_MODEL_WOBBLY_TOUCHPAD=1
-
 libinput:name:*AlpsPS/2 ALPS DualPoint TouchPad:fwversion:310
 libinput:name:*AlpsPS/2 ALPS GlidePoint:fwversion:310
- LIBINPUT_MODEL_ALPS_RUSHMORE=1
+ LIBINPUT_MODEL_WOBBLY_TOUCHPAD=1
 
 ##########################################
 # Apple
