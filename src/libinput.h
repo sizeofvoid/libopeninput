@@ -3066,6 +3066,11 @@ libinput_device_get_output_name(struct libinput_device *device);
  * seat name pair at any given time, but if no external reference is kept, it
  * may be destroyed if no device belonging to it is left.
  *
+ * The returned seat is not refcounted and may become invalid after
+ * the next call to libinput. Use libinput_seat_ref() and
+ * libinput_seat_unref() to continue using the handle outside of the
+ * immediate scope.
+ *
  * @param device A previously obtained device
  * @return The seat this input device belongs to
  */
