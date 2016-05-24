@@ -1901,10 +1901,13 @@ libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *
  *
  * Returns the tool that was in use during this event.
  *
- * If the caller holds at least one reference (see
- * libinput_tablet_tool_ref()), this struct is used whenever the
- * tools enters proximity. Otherwise, if no references remain when the tool
- * leaves proximity, the tool may be destroyed.
+ * The returned tablet tool is not refcounted and may become invalid after
+ * the next call to libinput. Use libinput_tablet_tool_ref() and
+ * libinput_tablet_tool_unref() to continue using the handle outside of the
+ * immediate scope.
+ *
+ * If the caller holds at least one reference, this struct is used
+ * whenever the tools enters proximity again.
   *
  * @note Physical tool tracking requires hardware support. If unavailable,
  * libinput creates one tool per type per tablet. See @ref
