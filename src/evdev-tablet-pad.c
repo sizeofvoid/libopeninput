@@ -403,6 +403,10 @@ pad_process(struct evdev_dispatch *dispatch,
 	case EV_SYN:
 		pad_flush(pad, device, time);
 		break;
+	case EV_MSC:
+		/* The EKR sends the serial as MSC_SERIAL, ignore this for
+		 * now */
+		break;
 	default:
 		log_error(device->base.seat->libinput,
 			  "Unexpected event type %s (%#x)\n",
