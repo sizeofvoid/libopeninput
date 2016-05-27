@@ -37,9 +37,8 @@ diagram_files = \
 	$(srcdir)/dot/libinput-stack-xorg.gv \
 	$(srcdir)/dot/libinput-stack-gnome.gv \
 	$(srcdir)/dot/evemu.gv \
-	$(srcdir)/svg/software-buttons.svg \
-	$(srcdir)/svg/clickfinger.svg \
 	$(srcdir)/svg/button-scrolling.svg \
+	$(srcdir)/svg/clickfinger.svg \
 	$(srcdir)/svg/edge-scrolling.svg \
 	$(srcdir)/svg/palm-detection.svg \
 	$(srcdir)/svg/pinch-gestures.svg \
@@ -47,6 +46,7 @@ diagram_files = \
 	$(srcdir)/svg/ptraccel-low-dpi.svg \
 	$(srcdir)/svg/ptraccel-touchpad.svg \
 	$(srcdir)/svg/ptraccel-trackpoint.svg \
+	$(srcdir)/svg/software-buttons.svg \
 	$(srcdir)/svg/swipe-gestures.svg \
 	$(srcdir)/svg/tap-n-drag.svg \
 	$(srcdir)/svg/thumb-detection.svg \
