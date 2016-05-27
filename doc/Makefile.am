@@ -89,6 +89,6 @@ dist-hook:
 	@test -f $(distdir)/html/index.html || (\
 		echo "******************************************************" && \
 		echo "Couldn't find documentation files, refusing make dist." && \
-		echo "Install doxygen to build documentation for tarball." && \
+		echo "Install doxygen to build documentation for the tarball." && \
 		echo "******************************************************" && \
 		test )
