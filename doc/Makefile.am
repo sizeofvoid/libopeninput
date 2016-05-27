@@ -39,15 +39,23 @@ diagram_files = \
 	$(srcdir)/dot/evemu.gv \
 	$(srcdir)/svg/button-scrolling.svg \
 	$(srcdir)/svg/clickfinger.svg \
+	$(srcdir)/svg/clickfinger-distance.svg \
 	$(srcdir)/svg/edge-scrolling.svg \
+	$(srcdir)/svg/gesture-2fg-ambiguity.svg \
 	$(srcdir)/svg/palm-detection.svg \
 	$(srcdir)/svg/pinch-gestures.svg \
+	$(srcdir)/svg/pinch-gestures-softbuttons.svg \
 	$(srcdir)/svg/ptraccel-linear.svg \
 	$(srcdir)/svg/ptraccel-low-dpi.svg \
 	$(srcdir)/svg/ptraccel-touchpad.svg \
 	$(srcdir)/svg/ptraccel-trackpoint.svg \
 	$(srcdir)/svg/software-buttons.svg \
 	$(srcdir)/svg/swipe-gestures.svg \
+	$(srcdir)/svg/tablet-axes.svg \
+	$(srcdir)/svg/tablet-interfaces.svg \
+	$(srcdir)/svg/tablet-left-handed.svg \
+	$(srcdir)/svg/tablet-out-of-bounds.svg \
+	$(srcdir)/svg/tablet.svg \
 	$(srcdir)/svg/tap-n-drag.svg \
 	$(srcdir)/svg/thumb-detection.svg \
 	$(srcdir)/svg/top-software-buttons.svg \
