@@ -225,6 +225,22 @@ dwt_default(struct libinput_device *device)
 		return "disabled";
 }
 
+static char *
+rotation_default(struct libinput_device *device)
+{
+	char *str;
+	double angle;
+
+	if (!libinput_device_config_rotation_is_available(device)) {
+		xasprintf(&str, "n/a");
+		return str;
+	}
+
+	angle = libinput_device_config_rotation_get_angle(device);
+	xasprintf(&str, "%.1f", angle);
+	return str;
+}
+
 static void
 print_device_notify(struct libinput_event *ev)
 {
@@ -296,6 +312,10 @@ print_device_notify(struct libinput_event *ev)
 
 	str = accel_profiles(dev);
 	printf("Accel profiles:   %s\n", str);
+	free(str);
+
+	str = rotation_default(dev);
+	printf("Rotation:         %s\n", str);
 	free(str);
 
 	printf("\n");
