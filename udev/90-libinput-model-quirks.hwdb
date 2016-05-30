@@ -122,6 +122,12 @@ libinput:name:*SynPS/2 Synaptics TouchPad*:dmi:*svnLENOVO*pvrLenovoYoga213:*
  LIBINPUT_MODEL_WOBBLY_TOUCHPAD=1
 
 ##########################################
+# Logitech
+##########################################
+libinput:name:*Logitech M570*:dmi:*
+ LIBINPUT_MODEL_TRACKBALL=1
+
+##########################################
 # Synaptics
 ##########################################
 libinput:touchpad:input:b0011v0002p0007*
