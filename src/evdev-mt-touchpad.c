@@ -967,7 +967,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 		if (tp_detect_jumps(tp, t)) {
 			log_bug_kernel(tp_libinput_context(tp),
 				       "Touch jump detected and discarded.\n"
-				       "See %stouchpad_jumping_cursor for details\n",
+				       "See %stouchpad_jumping_cursor.html for details\n",
 				       HTTP_DOC_LINK);
 			tp_motion_history_reset(t);
 		}
