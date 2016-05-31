@@ -8,6 +8,7 @@
 - @subpage palm_detection
 - @subpage t440_support
 - @subpage touchpad_jumping_cursor
+- @subpage absolute_coordinate_ranges
 
 @page touchscreens Touchscreens
 

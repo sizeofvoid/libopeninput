@@ -245,6 +245,11 @@ struct tp_dispatch {
 	struct device_coords hysteresis_margin;
 
 	struct {
+		struct device_coords min, max;
+		struct ratelimit range_warn_limit;
+	} warning_range;
+
+	struct {
 		double x_scale_coeff;
 		double y_scale_coeff;
 	} accel;
