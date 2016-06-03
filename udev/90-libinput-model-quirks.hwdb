@@ -26,18 +26,13 @@ libinput:name:*AlpsPS/2 ALPS DualPoint TouchPad:fwversion:800
 libinput:name:*AlpsPS/2 ALPS GlidePoint:fwversion:800
  LIBINPUT_ATTR_SIZE_HINT=100x55
 
-libinput:name:*AlpsPS/2 ALPS DualPoint TouchPad:fwversion:300
-libinput:name:*AlpsPS/2 ALPS GlidePoint:fwversion:300
-libinput:name:*AlpsPS/2 ALPS DualPoint TouchPad:fwversion:310
-libinput:name:*AlpsPS/2 ALPS GlidePoint:fwversion:310
- LIBINPUT_MODEL_WOBBLY_TOUCHPAD=1
-
 ##########################################
 # Apple
 ##########################################
 libinput:touchpad:input:b0003v05ACp*
 libinput:touchpad:input:b0005v05ACp*
  LIBINPUT_MODEL_APPLE_TOUCHPAD=1
+ LIBINPUT_MODEL_PRECISE_TOUCHPAD=1
  LIBINPUT_ATTR_SIZE_HINT=104x75
 
 libinput:name:*Apple Inc. Apple Internal Keyboard*:dmi:*
@@ -83,14 +78,6 @@ libinput:name:Cypress APA Trackpad ?cyapa?:dmi:*
  LIBINPUT_MODEL_CYAPA=1
 
 ##########################################
-# HP
-##########################################
-
-# HP 14-ac157tu
-libinput:name:*ETPS/2 Elantech Touchpad*:dmi:*svnHP*pvrCNB1:*
- LIBINPUT_MODEL_WOBBLY_TOUCHPAD=1
-
-##########################################
 # LENOVO
 ##########################################
 
@@ -116,10 +103,7 @@ libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPad??50*:
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPad??60*:
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPadX1Carbon3rd:*
  LIBINPUT_MODEL_LENOVO_T450_TOUCHPAD=1
-
-# Lenovo Yoga 2013
-libinput:name:*SynPS/2 Synaptics TouchPad*:dmi:*svnLENOVO*pvrLenovoYoga213:*
- LIBINPUT_MODEL_WOBBLY_TOUCHPAD=1
+ LIBINPUT_MODEL_PRECISE_TOUCHPAD=1
 
 ##########################################
 # Synaptics
