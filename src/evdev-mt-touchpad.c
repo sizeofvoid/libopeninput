@@ -2076,27 +2076,17 @@ tp_init_hysteresis(struct tp_dispatch *tp)
 {
 	int res_x, res_y;
 
-	if (tp->device->model_flags & EVDEV_MODEL_CYAPA)
-		goto want_hysteresis;
-
-	if (tp->semi_mt &&
-	    (tp->device->model_flags & EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD))
-		goto want_hysteresis;
-
-	if (tp->device->model_flags & EVDEV_MODEL_WOBBLY_TOUCHPAD)
-		goto want_hysteresis;
-
 	tp->hysteresis_margin.x = 0;
 	tp->hysteresis_margin.y = 0;
 
-	return;
+	if (tp->device->model_flags & EVDEV_MODEL_PRECISE_TOUCHPAD)
+		return;
 
-want_hysteresis:
 	res_x = tp->device->abs.absinfo_x->resolution;
 	res_y = tp->device->abs.absinfo_y->resolution;
-
 	tp->hysteresis_margin.x = res_x/2;
 	tp->hysteresis_margin.y = res_y/2;
+
 	return;
 }
 
