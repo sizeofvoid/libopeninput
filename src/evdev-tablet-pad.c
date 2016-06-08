@@ -469,12 +469,12 @@ pad_init_buttons(struct pad_dispatch *pad,
 			pad->button_map[code] = map++;
 	}
 
-	for (code = BTN_A; code < BTN_A + 6; code++) {
+	for (code = BTN_BASE; code < BTN_BASE + 2; code++) {
 		if (libevdev_has_event_code(device->evdev, EV_KEY, code))
 			pad->button_map[code] = map++;
 	}
 
-	for (code = BTN_BASE; code < BTN_BASE + 2; code++) {
+	for (code = BTN_A; code < BTN_A + 6; code++) {
 		if (libevdev_has_event_code(device->evdev, EV_KEY, code))
 			pad->button_map[code] = map++;
 	}
