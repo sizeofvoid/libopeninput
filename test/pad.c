@@ -86,7 +86,7 @@ START_TEST(pad_button)
 
 	litest_drain_events(li);
 
-	for (code = BTN_LEFT; code < KEY_MAX; code++) {
+	for (code = BTN_0; code < KEY_MAX; code++) {
 		if (!libevdev_has_event_code(dev->evdev, EV_KEY, code))
 			continue;
 
