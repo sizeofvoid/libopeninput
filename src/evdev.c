@@ -123,7 +123,7 @@ update_key_down_count(struct evdev_device *device, int code, int pressed)
 	}
 
 	if (key_count > 32) {
-		log_bug_libinput(device->base.seat->libinput,
+		log_bug_libinput(evdev_libinput_context(device),
 				 "Key count for %s reached abnormal values\n",
 				 libevdev_event_code_get_name(EV_KEY, code));
 	}
@@ -389,7 +389,7 @@ evdev_rotate_relative(struct evdev_device *device)
 static void
 evdev_flush_pending_event(struct evdev_device *device, uint64_t time)
 {
-	struct libinput *libinput = device->base.seat->libinput;
+	struct libinput *libinput = evdev_libinput_context(device);
 	int slot_idx;
 	int seat_slot;
 	struct libinput_device *base = &device->base;
@@ -673,7 +673,7 @@ evdev_process_touch(struct evdev_device *device,
 	switch (e->code) {
 	case ABS_MT_SLOT:
 		if ((size_t)e->value >= device->mt.slots_len) {
-			log_bug_libinput(device->base.seat->libinput,
+			log_bug_libinput(evdev_libinput_context(device),
 					 "%s exceeds slots (%d of %zd)\n",
 					 device->devname,
 					 e->value,
@@ -754,11 +754,9 @@ evdev_reject_relative(struct evdev_device *device,
 		      const struct input_event *e,
 		      uint64_t time)
 {
-	struct libinput *libinput = device->base.seat->libinput;
-
 	if ((e->code == REL_X || e->code == REL_Y) &&
 	    (device->seat_caps & EVDEV_DEVICE_POINTER) == 0) {
-		log_bug_libinput_ratelimit(libinput,
+		log_bug_libinput_ratelimit(evdev_libinput_context(device),
 					   &device->nonpointer_rel_limit,
 					   "REL_X/Y from device '%s', but this device is not a pointer\n",
 					   device->devname);
@@ -937,7 +935,7 @@ fallback_process(struct evdev_dispatch *dispatch,
 static void
 release_pressed_keys(struct evdev_device *device)
 {
-	struct libinput *libinput = device->base.seat->libinput;
+	struct libinput *libinput = evdev_libinput_context(device);
 	uint64_t time;
 	int code;
 
@@ -1260,7 +1258,8 @@ static int
 evdev_init_button_scroll(struct evdev_device *device,
 			 void (*change_scroll_method)(struct evdev_device *))
 {
-	libinput_timer_init(&device->scroll.timer, device->base.seat->libinput,
+	libinput_timer_init(&device->scroll.timer,
+			    evdev_libinput_context(device),
 			    evdev_button_scroll_timeout, device);
 	device->scroll.config.get_methods = evdev_scroll_get_methods;
 	device->scroll.config.set_method = evdev_scroll_set_method;
@@ -1458,10 +1457,10 @@ evdev_process_event(struct evdev_device *device, struct input_event *e)
 
 #if 0
 	if (libevdev_event_is_code(e, EV_SYN, SYN_REPORT))
-		log_debug(device->base.seat->libinput,
+		log_debug(evdev_libinput_context(device),
 			  "-------------- EV_SYN ------------\n");
 	else
-		log_debug(device->base.seat->libinput,
+		log_debug(evdev_libinput_context(device),
 			  "%-7s %-16s %-20s %4d\n",
 			  evdev_device_get_sysname(device),
 			  libevdev_event_type_get_name(e->type),
@@ -1511,7 +1510,7 @@ static void
 evdev_device_dispatch(void *data)
 {
 	struct evdev_device *device = data;
-	struct libinput *libinput = device->base.seat->libinput;
+	struct libinput *libinput = evdev_libinput_context(device);
 	struct input_event ev;
 	int rc;
 
@@ -1695,7 +1694,6 @@ evdev_need_mtdev(struct evdev_device *device)
 static inline int
 evdev_read_wheel_click_prop(struct evdev_device *device)
 {
-	struct libinput *libinput = device->base.seat->libinput;
 	const char *prop;
 	int angle = DEFAULT_WHEEL_CLICK_ANGLE;
 
@@ -1704,7 +1702,7 @@ evdev_read_wheel_click_prop(struct evdev_device *device)
 	if (prop) {
 		angle = parse_mouse_wheel_click_angle_property(prop);
 		if (!angle) {
-			log_error(libinput,
+			log_error(evdev_libinput_context(device),
 				  "Mouse wheel click angle '%s' is present but invalid,"
 				  "using %d degrees instead\n",
 				  device->devname,
@@ -1719,7 +1717,7 @@ evdev_read_wheel_click_prop(struct evdev_device *device)
 static inline int
 evdev_get_trackpoint_dpi(struct evdev_device *device)
 {
-	struct libinput *libinput = device->base.seat->libinput;
+	struct libinput *libinput = evdev_libinput_context(device);
 	const char *trackpoint_accel;
 	double accel = DEFAULT_TRACKPOINT_ACCEL;
 
@@ -1747,7 +1745,7 @@ evdev_get_trackpoint_dpi(struct evdev_device *device)
 static inline int
 evdev_read_dpi_prop(struct evdev_device *device)
 {
-	struct libinput *libinput = device->base.seat->libinput;
+	struct libinput *libinput = evdev_libinput_context(device);
 	const char *mouse_dpi;
 	int dpi = DEFAULT_MOUSE_DPI;
 
@@ -1819,7 +1817,7 @@ evdev_read_model_flags(struct evdev_device *device)
 		val = udev_device_get_property_value(device->udev_device,
 						     m->property);
 		if (val && !streq(val, "0")) {
-			log_debug(device->base.seat->libinput,
+			log_debug(evdev_libinput_context(device),
 				  "%s: tagged as %s\n",
 				  evdev_device_get_sysname(device),
 				  m->property);
@@ -1871,7 +1869,6 @@ evdev_fix_abs_resolution(struct evdev_device *device,
 			 unsigned int xcode,
 			 unsigned int ycode)
 {
-	struct libinput *libinput = device->base.seat->libinput;
 	struct libevdev *evdev = device->evdev;
 	const struct input_absinfo *absx, *absy;
 	size_t widthmm = 0, heightmm = 0;
@@ -1880,7 +1877,7 @@ evdev_fix_abs_resolution(struct evdev_device *device,
 
 	if (!(xcode == ABS_X && ycode == ABS_Y)  &&
 	    !(xcode == ABS_MT_POSITION_X && ycode == ABS_MT_POSITION_Y)) {
-		log_bug_libinput(libinput,
+		log_bug_libinput(evdev_libinput_context(device),
 				 "Invalid x/y code combination %d/%d\n",
 				 xcode, ycode);
 		return 0;
@@ -1987,7 +1984,7 @@ evdev_check_min_max(struct evdev_device *device, unsigned int code)
 		 */
 		if (absinfo->minimum == 0 &&
 		    code >= ABS_MISC && code < ABS_MT_SLOT) {
-			log_info(device->base.seat->libinput,
+			log_info(evdev_libinput_context(device),
 				 "Disabling EV_ABS %#x on device '%s' (min == max == 0)\n",
 				 code,
 				 device->devname);
@@ -1995,7 +1992,7 @@ evdev_check_min_max(struct evdev_device *device, unsigned int code)
 						    EV_ABS,
 						    code);
 		} else {
-			log_bug_kernel(device->base.seat->libinput,
+			log_bug_kernel(evdev_libinput_context(device),
 				       "Device '%s' has min == max on %s\n",
 				       device->devname,
 				       libevdev_event_code_get_name(EV_ABS, code));
@@ -2009,7 +2006,7 @@ evdev_check_min_max(struct evdev_device *device, unsigned int code)
 static int
 evdev_reject_device(struct evdev_device *device)
 {
-	struct libinput *libinput = device->base.seat->libinput;
+	struct libinput *libinput = evdev_libinput_context(device);
 	struct libevdev *evdev = device->evdev;
 	unsigned int code;
 	const struct input_absinfo *absx, *absy;
@@ -2141,7 +2138,7 @@ evdev_configure_mt_device(struct evdev_device *device)
 static int
 evdev_configure_device(struct evdev_device *device)
 {
-	struct libinput *libinput = device->base.seat->libinput;
+	struct libinput *libinput = evdev_libinput_context(device);
 	struct libevdev *evdev = device->evdev;
 	const char *devnode = udev_device_get_devnode(device->udev_device);
 	enum evdev_device_udev_tags udev_tags;
@@ -2363,7 +2360,7 @@ static int
 evdev_set_device_group(struct evdev_device *device,
 		       struct udev_device *udev_device)
 {
-	struct libinput *libinput = device->base.seat->libinput;
+	struct libinput *libinput = evdev_libinput_context(device);
 	struct libinput_device_group *group = NULL;
 	const char *udev_group;
 
@@ -2865,6 +2862,8 @@ evdev_notify_resumed_device(struct evdev_device *device)
 int
 evdev_device_suspend(struct evdev_device *device)
 {
+	struct libinput *libinput = evdev_libinput_context(device);
+
 	evdev_notify_suspended_device(device);
 
 	if (device->dispatch->interface->suspend)
@@ -2872,8 +2871,7 @@ evdev_device_suspend(struct evdev_device *device)
 						     device);
 
 	if (device->source) {
-		libinput_remove_source(device->base.seat->libinput,
-				       device->source);
+		libinput_remove_source(libinput, device->source);
 		device->source = NULL;
 	}
 
@@ -2883,7 +2881,7 @@ evdev_device_suspend(struct evdev_device *device)
 	}
 
 	if (device->fd != -1) {
-		close_restricted(device->base.seat->libinput, device->fd);
+		close_restricted(libinput, device->fd);
 		device->fd = -1;
 	}
 
@@ -2893,7 +2891,7 @@ evdev_device_suspend(struct evdev_device *device)
 int
 evdev_device_resume(struct evdev_device *device)
 {
-	struct libinput *libinput = device->base.seat->libinput;
+	struct libinput *libinput = evdev_libinput_context(device);
 	int fd;
 	const char *devnode;
 	struct input_event ev;
@@ -3009,7 +3007,7 @@ evdev_tablet_has_left_handed(struct evdev_device *device)
 {
 	bool has_left_handed = false;
 #if HAVE_LIBWACOM
-	struct libinput *libinput = device->base.seat->libinput;
+	struct libinput *libinput = evdev_libinput_context(device);
 	WacomDeviceDatabase *db;
 	WacomDevice *d = NULL;
 	WacomError *error;

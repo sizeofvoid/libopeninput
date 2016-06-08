@@ -381,7 +381,7 @@ struct tp_dispatch {
 static inline struct libinput*
 tp_libinput_context(const struct tp_dispatch *tp)
 {
-	return tp->device->base.seat->libinput;
+	return evdev_libinput_context(tp->device);
 }
 
 static inline struct normalized_coords

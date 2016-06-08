@@ -1637,7 +1637,7 @@ tablet_reject_device(struct evdev_device *device)
 
 out:
 	if (rc) {
-		log_bug_libinput(device->base.seat->libinput,
+		log_bug_libinput(evdev_libinput_context(device),
 				 "Device '%s' does not meet tablet criteria. "
 				 "Ignoring this device.\n",
 				 device->devname);

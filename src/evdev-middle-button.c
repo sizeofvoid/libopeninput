@@ -82,7 +82,7 @@ static void
 middlebutton_state_error(struct evdev_device *device,
 			 enum evdev_middlebutton_event event)
 {
-	log_bug_libinput(device->base.seat->libinput,
+	log_bug_libinput(evdev_libinput_context(device),
 			 "Invalid event %s in middle btn state %s\n",
 			 middlebutton_event_to_str(event),
 			 middlebutton_state_to_str(device->middlebutton.state));
@@ -547,7 +547,7 @@ evdev_middlebutton_handle_event(struct evdev_device *device,
 		break;
 	}
 
-	log_debug(device->base.seat->libinput,
+	log_debug(evdev_libinput_context(device),
 		  "middlebuttonstate: %s → %s → %s, rc %d\n",
 		  middlebutton_state_to_str(current),
 		  middlebutton_event_to_str(event),
@@ -609,7 +609,7 @@ evdev_middlebutton_filter_button(struct evdev_device *device,
 
 	if (button < BTN_LEFT ||
 	    bit >= sizeof(device->middlebutton.button_mask) * 8) {
-		log_bug_libinput(device->base.seat->libinput,
+		log_bug_libinput(evdev_libinput_context(device),
 				 "Button mask too small for %s\n",
 				 libevdev_event_code_get_name(EV_KEY,
 							      button));
@@ -697,7 +697,7 @@ evdev_init_middlebutton(struct evdev_device *device,
 			bool want_config)
 {
 	libinput_timer_init(&device->middlebutton.timer,
-			    device->base.seat->libinput,
+			    evdev_libinput_context(device),
 			    evdev_middlebutton_handle_timeout,
 			    device);
 	device->middlebutton.enabled_default = enable;

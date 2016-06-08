@@ -508,4 +508,10 @@ evdev_hysteresis(int in, int center, int margin)
 		return center + diff + margin;
 }
 
+static inline struct libinput *
+evdev_libinput_context(const struct evdev_device *device)
+{
+	return device->base.seat->libinput;
+}
+
 #endif /* EVDEV_H */
