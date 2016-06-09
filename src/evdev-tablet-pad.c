@@ -132,7 +132,7 @@ pad_process_absolute(struct pad_dispatch *pad,
 		pad->have_abs_misc_terminator = true;
 		break;
 	default:
-		log_info(device->base.seat->libinput,
+		log_info(pad_libinput_context(pad),
 			 "Unhandled EV_ABS event code %#x\n", e->code);
 		break;
 	}
@@ -408,7 +408,7 @@ pad_process(struct evdev_dispatch *dispatch,
 		 * now */
 		break;
 	default:
-		log_error(device->base.seat->libinput,
+		log_error(pad_libinput_context(pad),
 			  "Unexpected event type %s (%#x)\n",
 			  libevdev_event_type_get_name(e->type),
 			  e->type);
@@ -421,7 +421,7 @@ pad_suspend(struct evdev_dispatch *dispatch,
 	    struct evdev_device *device)
 {
 	struct pad_dispatch *pad = (struct pad_dispatch *)dispatch;
-	struct libinput *libinput = device->base.seat->libinput;
+	struct libinput *libinput = pad_libinput_context(pad);
 	unsigned int code;
 
 	for (code = KEY_ESC; code < KEY_CNT; code++) {

@@ -66,4 +66,10 @@ struct pad_dispatch {
 	} sendevents;
 };
 
+static inline struct libinput *
+pad_libinput_context(const struct pad_dispatch *pad)
+{
+	return evdev_libinput_context(pad->device);
+}
+
 #endif
