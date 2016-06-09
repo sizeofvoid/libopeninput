@@ -203,4 +203,10 @@ tablet_tool_type_to_string(enum libinput_tablet_tool_type type)
 	return str;
 }
 
+static inline struct libinput *
+tablet_libinput_context(const struct tablet_dispatch *tablet)
+{
+	return evdev_libinput_context(tablet->device);
+}
+
 #endif
