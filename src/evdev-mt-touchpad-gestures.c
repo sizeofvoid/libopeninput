@@ -93,7 +93,7 @@ tp_get_average_touches_delta(struct tp_dispatch *tp)
 static void
 tp_gesture_start(struct tp_dispatch *tp, uint64_t time)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 	const struct normalized_coords zero = { 0.0, 0.0 };
 
 	if (tp->gesture.started)
@@ -525,7 +525,7 @@ tp_gesture_stop_twofinger_scroll(struct tp_dispatch *tp, uint64_t time)
 static void
 tp_gesture_end(struct tp_dispatch *tp, uint64_t time, bool cancelled)
 {
-	struct libinput *libinput = tp->device->base.seat->libinput;
+	struct libinput *libinput = tp_libinput_context(tp);
 	enum tp_gesture_state state = tp->gesture.state;
 
 	tp->gesture.state = GESTURE_STATE_NONE;
@@ -628,7 +628,7 @@ tp_init_gesture(struct tp_dispatch *tp)
 	tp->gesture.state = GESTURE_STATE_NONE;
 
 	libinput_timer_init(&tp->gesture.finger_count_switch_timer,
-			    tp->device->base.seat->libinput,
+			    tp_libinput_context(tp),
 			    tp_gesture_finger_count_switch_timeout, tp);
 	return 0;
 }

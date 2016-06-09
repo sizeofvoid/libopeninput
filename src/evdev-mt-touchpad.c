@@ -131,7 +131,7 @@ tp_fake_finger_count(struct tp_dispatch *tp)
 	 * time */
 	if (__builtin_popcount(
 		       tp->fake_touches & ~(FAKE_FINGER_OVERFLOW|0x1)) > 1)
-	    log_bug_kernel(tp->device->base.seat->libinput,
+	    log_bug_kernel(tp_libinput_context(tp),
 			   "Invalid fake finger state %#x\n",
 			   tp->fake_touches);
 
