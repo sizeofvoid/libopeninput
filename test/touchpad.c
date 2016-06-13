@@ -1135,6 +1135,62 @@ START_TEST(touchpad_palm_detect_tap_clickfinger)
 }
 END_TEST
 
+START_TEST(touchpad_no_palm_detect_2fg_scroll)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	if (!touchpad_has_palm_detect_size(dev) ||
+	    !litest_has_2fg_scroll(dev))
+		return;
+
+	litest_enable_2fg_scroll(dev);
+
+	litest_drain_events(li);
+
+	/* first finger is palm, second finger isn't so we trigger 2fg
+	 * scrolling */
+	litest_touch_down(dev, 0, 99, 50);
+	litest_touch_move_to(dev, 0, 99, 50, 99, 40, 10, 0);
+	litest_touch_move_to(dev, 0, 99, 40, 99, 50, 10, 0);
+	litest_assert_empty_queue(li);
+	litest_touch_down(dev, 1, 50, 50);
+	litest_assert_empty_queue(li);
+
+	litest_touch_move_two_touches(dev, 99, 50, 50, 50, 0, -20, 10, 0);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
+}
+END_TEST
+
+START_TEST(touchpad_palm_detect_both_edges)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	if (!touchpad_has_palm_detect_size(dev) ||
+	    !litest_has_2fg_scroll(dev))
+		return;
+
+	litest_enable_2fg_scroll(dev);
+
+	litest_drain_events(li);
+
+	/* two fingers moving up/down in the left/right palm zone must not
+	 * generate events */
+	litest_touch_down(dev, 0, 99, 50);
+	litest_touch_move_to(dev, 0, 99, 50, 99, 40, 10, 0);
+	litest_touch_move_to(dev, 0, 99, 40, 99, 50, 10, 0);
+	litest_assert_empty_queue(li);
+	litest_touch_down(dev, 1, 1, 50);
+	litest_touch_move_to(dev, 1, 1, 50, 1, 40, 10, 0);
+	litest_touch_move_to(dev, 1, 1, 40, 1, 50, 10, 0);
+	litest_assert_empty_queue(li);
+
+	litest_touch_move_two_touches(dev, 99, 50, 1, 50, 0, -20, 10, 0);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(touchpad_left_handed)
 {
 	struct litest_device *dev = litest_current_device();
@@ -4102,6 +4158,8 @@ litest_setup_tests(void)
 	litest_add("touchpad:palm", touchpad_palm_detect_tap_softbuttons, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:palm", touchpad_palm_detect_tap_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:palm", touchpad_no_palm_detect_at_edge_for_edge_scrolling, LITEST_TOUCHPAD, LITEST_CLICKPAD);
+	litest_add("touchpad:palm", touchpad_no_palm_detect_2fg_scroll, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add("touchpad:palm", touchpad_palm_detect_both_edges, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 
 	litest_add("touchpad:left-handed", touchpad_left_handed, LITEST_TOUCHPAD|LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add("touchpad:left-handed", touchpad_left_handed_clickpad, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);

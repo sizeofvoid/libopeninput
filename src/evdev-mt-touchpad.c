@@ -652,6 +652,35 @@ tp_palm_detect_move_out_of_edge(struct tp_dispatch *tp,
 	return false;
 }
 
+static inline bool
+tp_palm_detect_multifinger(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+{
+	struct tp_touch *other;
+
+	if (tp->nfingers_down < 2)
+		return false;
+
+	/* If we have at least one other active non-palm touch make this
+	 * touch non-palm too. This avoids palm detection during two-finger
+	 * scrolling.
+	 *
+	 * Note: if both touches start in the palm zone within the same
+	 * frame the second touch will still be PALM_NONE and thus detected
+	 * here as non-palm touch. This is too niche to worry about for now.
+	 */
+	tp_for_each_touch(tp, other) {
+		if (other == t)
+			continue;
+
+		if (tp_touch_active(tp, other) &&
+		    other->palm.state == PALM_NONE) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static void
 tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 {
@@ -662,16 +691,23 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	if (tp_palm_detect_trackpoint(tp, t, time))
 		goto out;
 
-	/* If labelled a touch as palm, we unlabel as palm when
-	   we move out of the palm edge zone within the timeout, provided
-	   the direction is within 45 degrees of the horizontal.
-	 */
 	if (t->palm.state == PALM_EDGE) {
-		if (tp_palm_detect_move_out_of_edge(tp, t, time)) {
+		if (tp_palm_detect_multifinger(tp, t, time)) {
+			t->palm.state = PALM_NONE;
+			log_debug(tp_libinput_context(tp),
+				  "palm: touch released, multiple fingers\n");
+
+		/* If labelled a touch as palm, we unlabel as palm when
+		   we move out of the palm edge zone within the timeout, provided
+		   the direction is within 45 degrees of the horizontal.
+		 */
+		} else if (tp_palm_detect_move_out_of_edge(tp, t, time)) {
 			t->palm.state = PALM_NONE;
 			log_debug(tp_libinput_context(tp),
 				  "palm: touch released, out of edge zone\n");
 		}
+		return;
+	} else if (tp_palm_detect_multifinger(tp, t, time)) {
 		return;
 	}
 
