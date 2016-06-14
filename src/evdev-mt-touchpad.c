@@ -631,13 +631,30 @@ tp_palm_detect_trackpoint(struct tp_dispatch *tp,
 	return 0;
 }
 
-static void
-tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+static inline bool
+tp_palm_detect_move_out_of_edge(struct tp_dispatch *tp,
+				struct tp_touch *t,
+				uint64_t time)
 {
 	const int PALM_TIMEOUT = ms2us(200);
 	const int DIRECTIONS = NE|E|SE|SW|W|NW;
 	struct device_float_coords delta;
 	int dirs;
+
+	if (time < t->palm.time + PALM_TIMEOUT &&
+	    (t->point.x > tp->palm.left_edge && t->point.x < tp->palm.right_edge)) {
+		delta = device_delta(t->point, t->palm.first);
+		dirs = normalized_get_direction(tp_normalize_delta(tp, delta));
+		if ((dirs & DIRECTIONS) && !(dirs & ~DIRECTIONS))
+			return true;
+	}
+
+	return false;
+}
+
+static void
+tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+{
 
 	if (tp_palm_detect_dwt(tp, t, time))
 		goto out;
@@ -650,16 +667,10 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	   the direction is within 45 degrees of the horizontal.
 	 */
 	if (t->palm.state == PALM_EDGE) {
-		if (time < t->palm.time + PALM_TIMEOUT &&
-		    (t->point.x > tp->palm.left_edge && t->point.x < tp->palm.right_edge)) {
-			delta = device_delta(t->point, t->palm.first);
-			dirs = normalized_get_direction(
-						tp_normalize_delta(tp, delta));
-			if ((dirs & DIRECTIONS) && !(dirs & ~DIRECTIONS)) {
-				t->palm.state = PALM_NONE;
-				log_debug(tp_libinput_context(tp),
-					  "palm: touch released, out of edge zone\n");
-			}
+		if (tp_palm_detect_move_out_of_edge(tp, t, time)) {
+			t->palm.state = PALM_NONE;
+			log_debug(tp_libinput_context(tp),
+				  "palm: touch released, out of edge zone\n");
 		}
 		return;
 	}
