@@ -2250,8 +2250,12 @@ litest_create_uinput(const char *name,
 
 	abs = abs_info;
 	while (abs && abs->value != -1) {
-		rc = libevdev_enable_event_code(dev, EV_ABS,
-						abs->value, abs);
+		struct input_absinfo a = *abs;
+
+		/* abs_info->value is used for the code and may be outside
+		   of [min, max] */
+		a.value = abs->minimum;
+		rc = libevdev_enable_event_code(dev, EV_ABS, abs->value, &a);
 		litest_assert_int_eq(rc, 0);
 		abs++;
 	}
