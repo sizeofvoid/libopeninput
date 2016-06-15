@@ -1806,6 +1806,7 @@ evdev_read_model_flags(struct evdev_device *device)
 		MODEL(LENOVO_T450_TOUCHPAD),
 		MODEL(PRECISE_TOUCHPAD),
 		MODEL(TRACKBALL),
+		MODEL(APPLE_MAGICMOUSE),
 		{ NULL, EVDEV_MODEL_DEFAULT },
 #undef MODEL
 	};
@@ -2424,6 +2425,12 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 		libevdev_disable_event_code(device->evdev, EV_KEY, 0x119);
 		libevdev_disable_event_code(device->evdev, EV_KEY, 0x11a);
 	}
+	/* The Apple MagicMouse has a touchpad built-in but the kernel still
+	 * emulates a full 2/3 button mouse for us. Ignore anything from the
+	 * ABS interface
+	 */
+	if (device->model_flags & EVDEV_MODEL_APPLE_MAGICMOUSE)
+		libevdev_disable_event_type(device->evdev, EV_ABS);
 }
 
 struct evdev_device *

@@ -1331,6 +1331,21 @@ START_TEST(device_quirks_cyborg_rat_mode_button)
 }
 END_TEST
 
+START_TEST(device_quirks_apple_magicmouse)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_drain_events(li);
+
+	/* ensure we get no events from the touch */
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 50, 80, 80, 10, 0);
+	litest_touch_up(dev, 0);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -1389,4 +1404,5 @@ litest_setup_tests(void)
 
 	litest_add_for_device("device:quirks", device_quirks_no_abs_mt_y, LITEST_ANKER_MOUSE_KBD);
 	litest_add_for_device("device:quirks", device_quirks_cyborg_rat_mode_button, LITEST_CYBORG_RAT);
+	litest_add_for_device("device:quirks", device_quirks_apple_magicmouse, LITEST_MAGICMOUSE);
 }

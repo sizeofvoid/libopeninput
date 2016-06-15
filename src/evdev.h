@@ -116,6 +116,7 @@ enum evdev_device_model {
 	EVDEV_MODEL_LENOVO_T450_TOUCHPAD= (1 << 17),
 	EVDEV_MODEL_PRECISE_TOUCHPAD = (1 << 18),
 	EVDEV_MODEL_TRACKBALL = (1 << 19),
+	EVDEV_MODEL_APPLE_MAGICMOUSE = (1 << 20),
 };
 
 struct mt_slot {

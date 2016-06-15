@@ -38,6 +38,9 @@ libinput:touchpad:input:b0005v05ACp*
 libinput:name:*Apple Inc. Apple Internal Keyboard*:dmi:*
  LIBINPUT_MODEL_APPLE_INTERNAL_KEYBOARD=1
 
+libinput:mouse:input:b0005v05ACp030D*
+ LIBINPUT_MODEL_APPLE_MAGICMOUSE=1
+
 ##########################################
 # Cyborg
 ##########################################
