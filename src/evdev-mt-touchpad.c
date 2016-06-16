@@ -2118,12 +2118,6 @@ tp_init_hysteresis(struct tp_dispatch *tp)
 {
 	int res_x, res_y;
 
-	tp->hysteresis_margin.x = 0;
-	tp->hysteresis_margin.y = 0;
-
-	if (tp->device->model_flags & EVDEV_MODEL_PRECISE_TOUCHPAD)
-		return;
-
 	res_x = tp->device->abs.absinfo_x->resolution;
 	res_y = tp->device->abs.absinfo_y->resolution;
 	tp->hysteresis_margin.x = res_x/2;

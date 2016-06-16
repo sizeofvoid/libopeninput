@@ -121,7 +121,6 @@ static const char udev_rule[] =
 "\n"
 "ATTRS{name}==\"litest SynPS/2 Synaptics TouchPad X1C3rd\","
 "    ENV{LIBINPUT_MODEL_LENOVO_T450_TOUCHPAD}=\"1\"\n"
-"    ENV{LIBINPUT_MODEL_PRECISE_TOUCHPAD}=\"1\"\n"
 "\n"
 "LABEL=\"touchpad_end\"";
 

@@ -32,7 +32,6 @@ libinput:name:*AlpsPS/2 ALPS GlidePoint:fwversion:800
 libinput:touchpad:input:b0003v05ACp*
 libinput:touchpad:input:b0005v05ACp*
  LIBINPUT_MODEL_APPLE_TOUCHPAD=1
- LIBINPUT_MODEL_PRECISE_TOUCHPAD=1
  LIBINPUT_ATTR_SIZE_HINT=104x75
 
 libinput:name:*Apple Inc. Apple Internal Keyboard*:dmi:*
@@ -103,7 +102,6 @@ libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPad??50*:
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPad??60*:
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPadX1Carbon3rd:*
  LIBINPUT_MODEL_LENOVO_T450_TOUCHPAD=1
- LIBINPUT_MODEL_PRECISE_TOUCHPAD=1
 
 ##########################################
 # Logitech
