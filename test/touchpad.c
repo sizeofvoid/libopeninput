@@ -3650,7 +3650,7 @@ START_TEST(touchpad_thumb_edgescroll)
 	libinput_dispatch(li);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
 
-	litest_touch_move_to_extended(dev, 0, 99, 55, 99, 70, axes, 10, 0);
+	litest_touch_move_to(dev, 0, 99, 55, 99, 70, 10, 0);
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
 }
