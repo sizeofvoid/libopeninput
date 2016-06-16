@@ -155,7 +155,6 @@ struct tp_touch {
 	uint64_t millis;
 	int distance;				/* distance == 0 means touch */
 	int pressure;
-	int pressure_delta;
 
 	struct {
 		/* A quirk mostly used on Synaptics touchpads. In a
