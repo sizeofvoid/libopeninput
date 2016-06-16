@@ -3924,72 +3924,6 @@ START_TEST(touchpad_tool_tripletap_touch_count)
 }
 END_TEST
 
-START_TEST(touchpad_t450_motion_drops)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
-	int i;
-	double d;
-
-	/* In some areas on the touchpad we only get pressure events.
-	 * https://bugs.freedesktop.org/show_bug.cgi?id=94379
-	 */
-	litest_drain_events(li);
-
-	litest_touch_down(dev, 0, 50, 50);
-
-	for (i = 0; i < 10; i++) {
-		litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
-		litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 3000 - i);
-		litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3000 - i);
-		litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 30);
-		litest_event(dev, EV_ABS, ABS_X, 3000 - i);
-		litest_event(dev, EV_ABS, ABS_Y, 3000 - i);
-		litest_event(dev, EV_ABS, ABS_PRESSURE, 30);
-		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		litest_drain_events(li);
-	}
-
-	/* several pressure-only events */
-
-	for (i = 0; i< 20; i++) {
-		litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 30 + i % 2);
-		litest_event(dev, EV_ABS, ABS_PRESSURE, 30 + i % 2);
-		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		litest_assert_empty_queue(li);
-	}
-
-	/* a 100 unit jump followed by fine-grained motion, we expect small
-	 * motions without the jump */
-
-	for (i = 0; i < 10; i++) {
-		litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
-		litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 3100 + i);
-		litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3100 + i);
-		litest_event(dev, EV_ABS, ABS_X, 3100 + i);
-		litest_event(dev, EV_ABS, ABS_Y, 3100 + i);
-		litest_event(dev, EV_ABS, ABS_PRESSURE, 30);
-		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
-	}
-
-	event = libinput_get_event(li);
-	ck_assert_notnull(event);
-	while (event) {
-		ptrev = litest_is_motion_event(event);
-		d = libinput_event_pointer_get_dx(ptrev);
-		litest_assert_double_lt(d, 1.0);
-		d = libinput_event_pointer_get_dy(ptrev);
-		litest_assert_double_lt(d, 1.0);
-		libinput_event_destroy(event);
-
-		event = libinput_get_event(li);
-	}
-}
-END_TEST
-
 START_TEST(touchpad_time_usec)
 {
 	struct litest_device *dev = litest_current_device();
@@ -4178,7 +4112,6 @@ litest_setup_tests(void)
 	litest_add("touchpad:thumb", touchpad_thumb_tap_hold_2ndfg_tap, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
 
 	litest_add_for_device("touchpad:bugs", touchpad_tool_tripletap_touch_count, LITEST_SYNAPTICS_TOPBUTTONPAD);
-	litest_add_for_device("touchpad:bugs", touchpad_t450_motion_drops, LITEST_SYNAPTICS_TRACKPOINT_BUTTONS);
 
 	litest_add("touchpad:time", touchpad_time_usec, LITEST_TOUCHPAD, LITEST_ANY);
 
