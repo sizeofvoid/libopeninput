@@ -357,7 +357,6 @@ tp_process_absolute(struct tp_dispatch *tp,
 			tp_end_sequence(tp, t, time);
 		break;
 	case ABS_MT_PRESSURE:
-		t->pressure_delta = e->value - t->pressure;
 		t->pressure = e->value;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
@@ -1018,7 +1017,6 @@ tp_detect_jumps(const struct tp_dispatch *tp, struct tp_touch *t)
 static void
 tp_process_state(struct tp_dispatch *tp, uint64_t time)
 {
-	struct evdev_device *device = tp->device;
 	struct tp_touch *t;
 	unsigned int i;
 	bool restart_filter = false;
@@ -1043,10 +1041,6 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 
 		if (!t->dirty)
 			continue;
-
-		if ((device->model_flags & EVDEV_MODEL_LENOVO_T450_TOUCHPAD) &&
-		    t->pressure_delta < -7)
-			tp_motion_history_reset(t);
 
 		if (tp_detect_jumps(tp, t)) {
 			if (!tp->semi_mt)
@@ -2123,12 +2117,6 @@ static inline void
 tp_init_hysteresis(struct tp_dispatch *tp)
 {
 	int res_x, res_y;
-
-	tp->hysteresis_margin.x = 0;
-	tp->hysteresis_margin.y = 0;
-
-	if (tp->device->model_flags & EVDEV_MODEL_PRECISE_TOUCHPAD)
-		return;
 
 	res_x = tp->device->abs.absinfo_x->resolution;
 	res_y = tp->device->abs.absinfo_y->resolution;
