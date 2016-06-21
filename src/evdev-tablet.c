@@ -386,22 +386,23 @@ tablet_handle_xy(struct tablet_dispatch *tablet,
 }
 
 static inline struct normalized_coords
-tablet_process_delta(struct tablet_dispatch *tablet,
-		     const struct evdev_device *device,
-		     const struct device_coords *delta,
-		     uint64_t time)
+tool_process_delta(struct libinput_tablet_tool *tool,
+		   const struct evdev_device *device,
+		   const struct device_coords *delta,
+		   uint64_t time)
 {
 	struct normalized_coords accel;
 
-	/* The tablet accel code uses mm as input */
-	accel.x = 1.0 * delta->x/device->abs.absinfo_x->resolution;
-	accel.y = 1.0 * delta->y/device->abs.absinfo_y->resolution;
+	accel.x = 1.0 * delta->x;
+	accel.y = 1.0 * delta->y;
 
 	if (normalized_is_zero(accel))
 		return accel;
 
 	return filter_dispatch(device->pointer.filter,
-			       &accel, tablet, time);
+			       &accel,
+			       tool,
+			       time);
 }
 
 static inline double
@@ -548,7 +549,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	axes.distance = tablet_handle_distance(tablet, device);
 	axes.slider = tablet_handle_slider(tablet, device);
 	axes.tilt = tablet_handle_tilt(tablet, device);
-	axes.delta = tablet_process_delta(tablet, device, &delta, time);
+	axes.delta = tool_process_delta(tool, device, &delta, time);
 
 	/* We must check ROTATION_Z after TILT_X/Y so that the tilt axes are
 	 * already normalized and set if we have the mouse/lens tool */
