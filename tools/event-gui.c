@@ -272,7 +272,7 @@ draw_tablet(struct window *w, cairo_t *cr)
 		cairo_set_source_rgb(cr, .8, .8, .2);
 
 	cairo_translate(cr, w->tool.x, w->tool.y);
-	cairo_scale(cr, 1.0 + w->tool.tilt_x, 1.0 + w->tool.tilt_y);
+	cairo_scale(cr, 1.0 + w->tool.tilt_x/30.0, 1.0 + w->tool.tilt_y/30.0);
 	cairo_arc(cr, 0, 0,
 		  1 + 10 * max(w->tool.pressure, w->tool.distance),
 		  0, 2 * M_PI);
