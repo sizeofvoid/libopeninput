@@ -265,6 +265,10 @@ struct evdev_dispatch_interface {
 	 * was sent */
 	void (*post_added)(struct evdev_device *device,
 			   struct evdev_dispatch *dispatch);
+
+	void (*toggle_touch)(struct evdev_dispatch *dispatch,
+			     struct evdev_device *device,
+			     bool enable);
 };
 
 struct evdev_dispatch {
@@ -308,6 +312,10 @@ struct fallback_dispatch {
 	unsigned long hw_key_mask[NLONGS(KEY_CNT)];
 
 	enum evdev_event_type pending_event;
+
+	/* true if we're reading events (i.e. not suspended) but we're
+	   ignoring them */
+	bool ignore_events;
 };
 
 struct evdev_device *

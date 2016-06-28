@@ -3767,6 +3767,338 @@ START_TEST(relative_calibration)
 }
 END_TEST
 
+static void
+touch_arbitration(struct litest_device *dev,
+		  enum litest_device_type other,
+		  bool is_touchpad)
+{
+	struct litest_device *finger;
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	finger = litest_add_device(li, other);
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_tablet_motion(dev, 10, 10, axes);
+	litest_tablet_motion(dev, 20, 40, axes);
+	litest_drain_events(li);
+
+	litest_touch_down(finger, 0, 30, 30);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+	litest_assert_empty_queue(li);
+
+	litest_tablet_motion(dev, 10, 10, axes);
+	litest_tablet_motion(dev, 20, 40, axes);
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	litest_tablet_proximity_out(dev);
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	/* finger still down */
+	litest_touch_move_to(finger, 0, 80, 80, 30, 30, 10, 1);
+	litest_touch_up(finger, 0);
+	litest_assert_empty_queue(li);
+
+	/* lift finger, expect expect events */
+	litest_touch_down(finger, 0, 30, 30);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_up(finger, 0);
+	libinput_dispatch(li);
+
+	if (is_touchpad)
+		litest_assert_only_typed_events(li,
+						LIBINPUT_EVENT_POINTER_MOTION);
+	else
+		litest_assert_touch_sequence(li);
+
+	litest_delete_device(finger);
+}
+
+START_TEST(intuos_touch_arbitration)
+{
+	touch_arbitration(litest_current_device(), LITEST_WACOM_FINGER, true);
+}
+END_TEST
+
+START_TEST(cintiq_touch_arbitration)
+{
+	touch_arbitration(litest_current_device(),
+			  LITEST_WACOM_CINTIQ_13HDT_FINGER,
+			  false);
+}
+END_TEST
+
+static void
+touch_arbitration_stop_touch(struct litest_device *dev,
+			     enum litest_device_type other,
+			     bool is_touchpad)
+{
+	struct litest_device *finger;
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	finger = litest_add_device(li, other);
+	litest_touch_down(finger, 0, 30, 30);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_tablet_motion(dev, 10, 10, axes);
+	litest_tablet_motion(dev, 20, 40, axes);
+	litest_drain_events(li);
+
+	litest_touch_move_to(finger, 0, 80, 80, 30, 30, 10, 1);
+	/* start another finger to make sure that one doesn't send events
+	   either */
+	litest_touch_down(finger, 1, 30, 30);
+	litest_touch_move_to(finger, 1, 30, 30, 80, 80, 10, 1);
+	litest_assert_empty_queue(li);
+
+	litest_tablet_motion(dev, 10, 10, axes);
+	litest_tablet_motion(dev, 20, 40, axes);
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(li);
+
+	/* Finger needs to be lifted for events to happen*/
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+	litest_assert_empty_queue(li);
+	litest_touch_move_to(finger, 1, 80, 80, 30, 30, 10, 1);
+	litest_assert_empty_queue(li);
+	litest_touch_up(finger, 0);
+	litest_touch_move_to(finger, 1, 30, 30, 80, 80, 10, 1);
+	litest_assert_empty_queue(li);
+	litest_touch_up(finger, 1);
+	litest_touch_down(finger, 0, 30, 30);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_up(finger, 0);
+	libinput_dispatch(li);
+
+	if (is_touchpad)
+		litest_assert_only_typed_events(li,
+						LIBINPUT_EVENT_POINTER_MOTION);
+	else
+		litest_assert_touch_sequence(li);
+
+	litest_delete_device(finger);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
+}
+
+START_TEST(intuos_touch_arbitration_stop_touch)
+{
+	touch_arbitration_stop_touch(litest_current_device(),
+				     LITEST_WACOM_FINGER,
+				     true);
+}
+END_TEST
+
+START_TEST(cintiq_touch_arbitration_stop_touch)
+{
+	touch_arbitration_stop_touch(litest_current_device(),
+				     LITEST_WACOM_CINTIQ_13HDT_FINGER,
+				     false);
+}
+END_TEST
+
+static void
+touch_arbitration_suspend_touch(struct litest_device *dev,
+				enum litest_device_type other,
+				bool is_touchpad)
+{
+	struct litest_device *tablet;
+	struct libinput *li = dev->libinput;
+	enum libinput_config_status status;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	tablet = litest_add_device(li, other);
+
+	/* we can't force a device suspend, but we can at least make sure
+	   the device doesn't send events */
+	status = libinput_device_config_send_events_set_mode(
+			     dev->libinput_device,
+			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(tablet, 10, 10, axes);
+	litest_tablet_motion(tablet, 10, 10, axes);
+	litest_tablet_motion(tablet, 20, 40, axes);
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 30, 30);
+	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_up(dev, 0);
+	litest_assert_empty_queue(li);
+
+	/* Remove tablet device to unpair, still disabled though */
+	litest_delete_device(tablet);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
+
+	litest_touch_down(dev, 0, 30, 30);
+	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_up(dev, 0);
+	litest_assert_empty_queue(li);
+
+	/* Touch device is still disabled */
+	litest_touch_down(dev, 0, 30, 30);
+	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_up(dev, 0);
+	litest_assert_empty_queue(li);
+
+	status = libinput_device_config_send_events_set_mode(
+			     dev->libinput_device,
+			     LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_touch_down(dev, 0, 30, 30);
+	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	if (is_touchpad)
+		litest_assert_only_typed_events(li,
+						LIBINPUT_EVENT_POINTER_MOTION);
+	else
+		litest_assert_touch_sequence(li);
+}
+
+START_TEST(intuos_touch_arbitration_suspend_touch_device)
+{
+	touch_arbitration_suspend_touch(litest_current_device(),
+					LITEST_WACOM_INTUOS,
+					true);
+}
+END_TEST
+
+START_TEST(cintiq_touch_arbitration_suspend_touch_device)
+{
+	touch_arbitration_suspend_touch(litest_current_device(),
+					LITEST_WACOM_CINTIQ_13HDT_PEN,
+					false);
+}
+END_TEST
+
+static void
+touch_arbitration_remove_touch(struct litest_device *dev,
+			       enum litest_device_type other,
+			       bool is_touchpad)
+{
+	struct litest_device *finger;
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	finger = litest_add_device(li, other);
+	litest_touch_down(finger, 0, 30, 30);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_drain_events(li);
+
+	litest_delete_device(finger);
+	libinput_dispatch(li);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
+	litest_assert_empty_queue(li);
+
+	litest_tablet_motion(dev, 10, 10, axes);
+	litest_tablet_motion(dev, 20, 40, axes);
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+}
+
+START_TEST(intuos_touch_arbitration_remove_touch)
+{
+	touch_arbitration_remove_touch(litest_current_device(),
+				       LITEST_WACOM_INTUOS,
+				       true);
+}
+END_TEST
+
+START_TEST(cintiq_touch_arbitration_remove_touch)
+{
+	touch_arbitration_remove_touch(litest_current_device(),
+				       LITEST_WACOM_CINTIQ_13HDT_FINGER,
+				       false);
+}
+END_TEST
+
+static void
+touch_arbitration_remove_tablet(struct litest_device *dev,
+				enum litest_device_type other,
+				bool is_touchpad)
+{
+	struct litest_device *tablet;
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	tablet = litest_add_device(li, other);
+	libinput_dispatch(li);
+	litest_tablet_proximity_in(tablet, 10, 10, axes);
+	litest_tablet_motion(tablet, 10, 10, axes);
+	litest_tablet_motion(tablet, 20, 40, axes);
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 30, 30);
+	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10, 1);
+	litest_assert_empty_queue(li);
+
+	litest_delete_device(tablet);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
+
+	/* Touch is still down, don't enable */
+	litest_touch_move_to(dev, 0, 80, 80, 30, 30, 10, 1);
+	litest_touch_up(dev, 0);
+	litest_assert_empty_queue(li);
+
+	litest_touch_down(dev, 0, 30, 30);
+	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	if (is_touchpad)
+		litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+	else
+		litest_assert_touch_sequence(li);
+}
+
+START_TEST(intuos_touch_arbitration_remove_tablet)
+{
+	touch_arbitration_remove_tablet(litest_current_device(),
+					LITEST_WACOM_INTUOS,
+					true);
+}
+END_TEST
+
+START_TEST(cintiq_touch_arbitration_remove_tablet)
+{
+	touch_arbitration_remove_tablet(litest_current_device(),
+					LITEST_WACOM_CINTIQ_13HDT_PEN,
+					false);
+}
+END_TEST
+
 void
 litest_setup_tests_tablet(void)
 {
@@ -3844,4 +4176,16 @@ litest_setup_tests_tablet(void)
 	litest_add("tablet:relative", relative_no_delta_prox_in, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:relative", relative_delta, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:relative", relative_calibration, LITEST_TABLET, LITEST_ANY);
+
+	litest_add_for_device("tablet:touch-arbitration", intuos_touch_arbitration, LITEST_WACOM_INTUOS);
+	litest_add_for_device("tablet:touch-arbitration", intuos_touch_arbitration_stop_touch, LITEST_WACOM_INTUOS);
+	litest_add_for_device("tablet:touch-arbitration", intuos_touch_arbitration_suspend_touch_device, LITEST_WACOM_FINGER);
+	litest_add_for_device("tablet:touch-arbitration", intuos_touch_arbitration_remove_touch, LITEST_WACOM_INTUOS);
+	litest_add_for_device("tablet:touch-arbitration", intuos_touch_arbitration_remove_tablet, LITEST_WACOM_FINGER);
+
+	litest_add_for_device("tablet:touch-arbitration", cintiq_touch_arbitration, LITEST_WACOM_CINTIQ_13HDT_PEN);
+	litest_add_for_device("tablet:touch-arbitration", cintiq_touch_arbitration_stop_touch, LITEST_WACOM_CINTIQ_13HDT_PEN);
+	litest_add_for_device("tablet:touch-arbitration", cintiq_touch_arbitration_suspend_touch_device, LITEST_WACOM_CINTIQ_13HDT_FINGER);
+	litest_add_for_device("tablet:touch-arbitration", cintiq_touch_arbitration_remove_touch, LITEST_WACOM_CINTIQ_13HDT_PEN);
+	litest_add_for_device("tablet:touch-arbitration", cintiq_touch_arbitration_remove_tablet, LITEST_WACOM_CINTIQ_13HDT_FINGER);
 }

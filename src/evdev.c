@@ -1055,6 +1055,9 @@ fallback_process(struct evdev_dispatch *evdev_dispatch,
 	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)evdev_dispatch;
 	enum evdev_event_type sent;
 
+	if (dispatch->ignore_events)
+		return;
+
 	switch (event->type) {
 	case EV_REL:
 		fallback_process_relative(dispatch, device, event, time);
@@ -1184,6 +1187,23 @@ fallback_suspend(struct evdev_dispatch *evdev_dispatch,
 }
 
 static void
+fallback_toggle_touch(struct evdev_dispatch *evdev_dispatch,
+		      struct evdev_device *device,
+		      bool enable)
+{
+	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)evdev_dispatch;
+	bool ignore_events = !enable;
+
+	if (ignore_events == dispatch->ignore_events)
+		return;
+
+	if (ignore_events)
+		fallback_return_to_neutral_state(dispatch, device);
+
+	dispatch->ignore_events = ignore_events;
+}
+
+static void
 fallback_destroy(struct evdev_dispatch *evdev_dispatch)
 {
 	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)evdev_dispatch;
@@ -1243,6 +1263,7 @@ struct evdev_dispatch_interface fallback_interface = {
 	NULL, /* device_suspended */
 	NULL, /* device_resumed */
 	NULL, /* post_added */
+	fallback_toggle_touch, /* toggle_touch */
 };
 
 static uint32_t

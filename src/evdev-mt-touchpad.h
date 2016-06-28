@@ -231,6 +231,10 @@ struct tp_dispatch {
 	bool semi_mt;
 	bool reports_distance;			/* does the device support true hovering */
 
+	/* true if we're reading events (i.e. not suspended) but we're
+	 * ignoring them */
+	bool ignore_events;
+
 	unsigned int num_slots;			/* number of slots */
 	unsigned int ntouches;			/* no slots inc. fakes */
 	struct tp_touch *touches;		/* len == ntouches */

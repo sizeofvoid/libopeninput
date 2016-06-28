@@ -1165,6 +1165,9 @@ tp_interface_process(struct evdev_dispatch *dispatch,
 	struct tp_dispatch *tp =
 		(struct tp_dispatch *)dispatch;
 
+	if (tp->ignore_events)
+		return;
+
 	switch (e->type) {
 	case EV_ABS:
 		if (tp->has_mt)
@@ -1679,6 +1682,23 @@ evdev_tag_touchpad(struct evdev_device *device,
 	}
 }
 
+static void
+tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
+			  struct evdev_device *device,
+			  bool enable)
+{
+	struct tp_dispatch *tp = (struct tp_dispatch*)dispatch;
+	bool ignore_events = !enable;
+
+	if (ignore_events == tp->ignore_events)
+		return;
+
+	if (ignore_events)
+		tp_clear_state(tp);
+
+	tp->ignore_events = ignore_events;
+}
+
 static struct evdev_dispatch_interface tp_interface = {
 	tp_interface_process,
 	tp_interface_suspend,
@@ -1689,6 +1709,7 @@ static struct evdev_dispatch_interface tp_interface = {
 	tp_interface_device_removed, /* device_suspended, treat as remove */
 	tp_interface_device_added,   /* device_resumed, treat as add */
 	NULL,                        /* post_added */
+	tp_interface_toggle_touch,
 };
 
 static void

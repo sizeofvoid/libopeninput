@@ -71,6 +71,9 @@ struct tablet_dispatch {
 	uint32_t cursor_proximity_threshold;
 
 	struct libinput_device_config_calibration calibration;
+
+	/* The paired touch device on devices with both pen & touch */
+	struct evdev_device *touch_device;
 };
 
 static inline enum libinput_tablet_tool_axis
