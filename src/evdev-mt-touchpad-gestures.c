@@ -182,11 +182,14 @@ tp_gesture_get_active_touches(const struct tp_dispatch *tp,
 }
 
 static int
-tp_gesture_get_direction(struct tp_dispatch *tp, struct tp_touch *touch)
+tp_gesture_get_direction(struct tp_dispatch *tp, struct tp_touch *touch,
+			 unsigned int nfingers)
 {
 	struct normalized_coords normalized;
 	struct device_float_coords delta;
 	double move_threshold = TP_MM_TO_DPI_NORMALIZED(1);
+
+	move_threshold *= (nfingers - 1);
 
 	delta = device_delta(touch->point, touch->gesture.initial);
 
@@ -347,8 +350,8 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	}
 
 	/* Else wait for both fingers to have moved */
-	dir1 = tp_gesture_get_direction(tp, first);
-	dir2 = tp_gesture_get_direction(tp, second);
+	dir1 = tp_gesture_get_direction(tp, first, tp->gesture.finger_count);
+	dir2 = tp_gesture_get_direction(tp, second, tp->gesture.finger_count);
 	if (dir1 == UNDEFINED_DIRECTION || dir2 == UNDEFINED_DIRECTION)
 		return GESTURE_STATE_UNKNOWN;
 

@@ -961,13 +961,13 @@ START_TEST(gestures_pinch_4fg_btntool)
 	for (i = 0; i < 8; i++) {
 		litest_push_event_frame(dev);
 		if (dir_x > 0.0)
-			dir_x -= 2;
+			dir_x -= 3;
 		else if (dir_x < 0.0)
-			dir_x += 2;
+			dir_x += 3;
 		if (dir_y > 0.0)
-			dir_y -= 2;
+			dir_y -= 3;
 		else if (dir_y < 0.0)
-			dir_y += 2;
+			dir_y += 3;
 		litest_touch_move(dev,
 				  0,
 				  50 + dir_x,
@@ -1004,7 +1004,7 @@ START_TEST(gestures_pinch_4fg_btntool)
 		ck_assert(scale < oldscale);
 
 		angle = libinput_event_gesture_get_angle_delta(gevent);
-		ck_assert_double_le(fabs(angle), 1.0);
+		ck_assert_double_le(fabs(angle), 1.5);
 
 		libinput_event_destroy(event);
 		libinput_dispatch(li);
