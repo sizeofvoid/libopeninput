@@ -10,6 +10,8 @@
 *.patch
 *.rej
 *.trs
+*.gcda
+*.gcno
 Makefile
 Makefile.in
 aclocal.m4
