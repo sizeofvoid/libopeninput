@@ -48,6 +48,13 @@ libinput:mouse:input:b0003v06A3p0CD5*
  LIBINPUT_MODEL_CYBORG_RAT=1
 
 ##########################################
+# Dell
+##########################################
+libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnDellInc.:*
+libinput:name:* Touchpad:dmi:*svnDellInc.:*
+ LIBINPUT_MODEL_DELL_TOUCHPAD=1
+
+##########################################
 # Elantech
 ##########################################
 libinput:name:*ETPS/2 Elantech Touchpad*:dmi:*

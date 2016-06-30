@@ -544,13 +544,15 @@ tp_init_softbuttons(struct tp_dispatch *tp,
 	int width, height;
 	const struct input_absinfo *absinfo_x, *absinfo_y;
 	int xoffset, yoffset;
-	int yres;
+	int xres, yres;
+	int mb_le, mb_re; /* middle button left/right edge */
 
 	absinfo_x = device->abs.absinfo_x;
 	absinfo_y = device->abs.absinfo_y;
 
 	xoffset = absinfo_x->minimum,
 	yoffset = absinfo_y->minimum,
+	xres = absinfo_x->resolution;
 	yres = absinfo_y->resolution;
 	width = device->abs.dimensions.x;
 	height = device->abs.dimensions.y;
@@ -575,9 +577,25 @@ tp_init_softbuttons(struct tp_dispatch *tp,
 	 * touchpads don't have markings for the middle button at all so we
 	 * need to make it big enough to reliably hit it but not too big so
 	 * it takes away all the space.
+	 *
+	 * On touchpads with visible markings we reduce the size of the
+	 * middle button since users have a visual guide.
+	 *
+	 * All Dell touchpads appear to have a middle marker.
 	 */
-	tp->buttons.bottom_area.middlebutton_left_edge = width * 0.375 + xoffset;
-	tp->buttons.bottom_area.rightbutton_left_edge = width * 0.625 + xoffset;
+	if (tp->device->model_flags & EVDEV_MODEL_DELL_TOUCHPAD) {
+		const int MIDDLE_BUTTON_WIDTH = 10; /* mm */
+		int half_width = MIDDLE_BUTTON_WIDTH/2 * xres; /* units */
+
+		mb_le = xoffset + width/2 - half_width;
+		mb_re = xoffset + width/2 + half_width;
+	} else {
+		mb_le = xoffset + width * 0.375;
+		mb_re = xoffset + width * 0.625;
+	}
+
+	tp->buttons.bottom_area.middlebutton_left_edge = mb_le;
+	tp->buttons.bottom_area.rightbutton_left_edge = mb_re;
 }
 
 void
