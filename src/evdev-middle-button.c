@@ -676,7 +676,7 @@ evdev_middlebutton_get(struct libinput_device *device)
 {
 	struct evdev_device *evdev = (struct evdev_device*)device;
 
-	return evdev->middlebutton.enabled ?
+	return evdev->middlebutton.want_enabled ?
 			LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED :
 			LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
 }
