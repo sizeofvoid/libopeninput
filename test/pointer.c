@@ -1603,7 +1603,7 @@ START_TEST(middlebutton_default_clickpad)
 	int available;
 
 	available = libinput_device_config_middle_emulation_is_available(device);
-	ck_assert(!available);
+	ck_assert(available);
 
 	state = libinput_device_config_middle_emulation_get_enabled(device);
 	ck_assert_int_eq(state, LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED);
@@ -1613,7 +1613,7 @@ START_TEST(middlebutton_default_clickpad)
 
 	status = libinput_device_config_middle_emulation_set_enabled(device,
 					    LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
-	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	status = libinput_device_config_middle_emulation_set_enabled(device,
 					    LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED);
@@ -1763,12 +1763,12 @@ litest_setup_tests(void)
 	litest_add("pointer:accel", pointer_accel_profile_invalid, LITEST_RELATIVE, LITEST_ANY);
 	litest_add("pointer:accel", pointer_accel_profile_flat_motion_relative, LITEST_RELATIVE, LITEST_TOUCHPAD);
 
-	litest_add("pointer:middlebutton", middlebutton, LITEST_BUTTON, LITEST_ANY);
-	litest_add("pointer:middlebutton", middlebutton_nostart_while_down, LITEST_BUTTON, LITEST_ANY);
-	litest_add("pointer:middlebutton", middlebutton_timeout, LITEST_BUTTON, LITEST_ANY);
-	litest_add("pointer:middlebutton", middlebutton_doubleclick, LITEST_BUTTON, LITEST_ANY);
-	litest_add("pointer:middlebutton", middlebutton_middleclick, LITEST_BUTTON, LITEST_ANY);
-	litest_add("pointer:middlebutton", middlebutton_middleclick_during, LITEST_BUTTON, LITEST_ANY);
+	litest_add("pointer:middlebutton", middlebutton, LITEST_BUTTON, LITEST_CLICKPAD);
+	litest_add("pointer:middlebutton", middlebutton_nostart_while_down, LITEST_BUTTON, LITEST_CLICKPAD);
+	litest_add("pointer:middlebutton", middlebutton_timeout, LITEST_BUTTON, LITEST_CLICKPAD);
+	litest_add("pointer:middlebutton", middlebutton_doubleclick, LITEST_BUTTON, LITEST_CLICKPAD);
+	litest_add("pointer:middlebutton", middlebutton_middleclick, LITEST_BUTTON, LITEST_CLICKPAD);
+	litest_add("pointer:middlebutton", middlebutton_middleclick_during, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add("pointer:middlebutton", middlebutton_default_enabled, LITEST_BUTTON, LITEST_TOUCHPAD|LITEST_POINTINGSTICK);
 	litest_add("pointer:middlebutton", middlebutton_default_clickpad, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("pointer:middlebutton", middlebutton_default_touchpad, LITEST_TOUCHPAD, LITEST_CLICKPAD);

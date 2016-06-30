@@ -799,6 +799,32 @@ litest_disable_drag_lock(struct libinput_device *device)
 	litest_assert_int_eq(status, expected);
 }
 
+static inline void
+litest_enable_middleemu(struct litest_device *dev)
+{
+	struct libinput_device *device = dev->libinput_device;
+	enum libinput_config_status status, expected;
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_middle_emulation_set_enabled(device,
+								     LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
+
+	litest_assert_int_eq(status, expected);
+}
+
+static inline void
+litest_disable_middleemu(struct litest_device *dev)
+{
+	struct libinput_device *device = dev->libinput_device;
+	enum libinput_config_status status, expected;
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_middle_emulation_set_enabled(device,
+								     LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED);
+
+	litest_assert_int_eq(status, expected);
+}
+
 #define CK_DOUBLE_EQ_EPSILON 1E-3
 #define ck_assert_double_eq(X,Y)  \
 	do { \

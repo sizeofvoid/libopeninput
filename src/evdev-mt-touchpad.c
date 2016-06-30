@@ -1145,6 +1145,8 @@ tp_handle_state(struct tp_dispatch *tp,
 	tp_process_state(tp, time);
 	tp_post_events(tp, time);
 	tp_post_process_state(tp, time);
+
+	tp_clickpad_middlebutton_apply_config(tp->device);
 }
 
 static void

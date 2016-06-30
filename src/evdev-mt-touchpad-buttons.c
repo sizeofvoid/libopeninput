@@ -564,6 +564,13 @@ tp_init_softbuttons(struct tp_dispatch *tp,
 		tp->buttons.bottom_area.top_edge = height * .85 + yoffset;
 	}
 
+	tp->buttons.bottom_area.middlebutton_left_edge = INT_MAX;
+	tp->buttons.bottom_area.rightbutton_left_edge = width/2 + xoffset;
+
+	/* if middlebutton emulation is enabled, don't init a software area */
+	if (device->middlebutton.want_enabled)
+		return;
+
 	/* The middle button is 25% of the touchpad and centered. Many
 	 * touchpads don't have markings for the middle button at all so we
 	 * need to make it big enough to reliably hit it but not too big so
@@ -699,6 +706,80 @@ tp_button_config_click_get_default_method(struct libinput_device *device)
 	return tp_click_get_default_method(tp);
 }
 
+void
+tp_clickpad_middlebutton_apply_config(struct evdev_device *device)
+{
+	struct tp_dispatch *tp = (struct tp_dispatch*)device->dispatch;
+
+	if (!tp->buttons.is_clickpad ||
+	    tp->buttons.state != 0)
+		return;
+
+	if (device->middlebutton.want_enabled ==
+	    device->middlebutton.enabled)
+		return;
+
+	device->middlebutton.enabled = device->middlebutton.want_enabled;
+	if (tp->buttons.click_method ==
+	    LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS)
+		tp_init_softbuttons(tp, device);
+}
+
+static int
+tp_clickpad_middlebutton_is_available(struct libinput_device *device)
+{
+	return evdev_middlebutton_is_available(device);
+}
+
+static enum libinput_config_status
+tp_clickpad_middlebutton_set(struct libinput_device *device,
+		     enum libinput_config_middle_emulation_state enable)
+{
+	struct evdev_device *evdev = (struct evdev_device*)device;
+
+	switch (enable) {
+	case LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED:
+		evdev->middlebutton.want_enabled = true;
+		break;
+	case LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED:
+		evdev->middlebutton.want_enabled = false;
+		break;
+	default:
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+	}
+
+	tp_clickpad_middlebutton_apply_config(evdev);
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static enum libinput_config_middle_emulation_state
+tp_clickpad_middlebutton_get(struct libinput_device *device)
+{
+	return evdev_middlebutton_get(device);
+}
+
+static enum libinput_config_middle_emulation_state
+tp_clickpad_middlebutton_get_default(struct libinput_device *device)
+{
+	return evdev_middlebutton_get_default(device);
+}
+
+static inline void
+tp_init_clickpad_middlebutton_emulation(struct tp_dispatch *tp,
+					struct evdev_device *device)
+{
+	device->middlebutton.enabled_default = false;
+	device->middlebutton.want_enabled = false;
+	device->middlebutton.enabled = false;
+
+	device->middlebutton.config.available = tp_clickpad_middlebutton_is_available;
+	device->middlebutton.config.set = tp_clickpad_middlebutton_set;
+	device->middlebutton.config.get = tp_clickpad_middlebutton_get;
+	device->middlebutton.config.get_default = tp_clickpad_middlebutton_get_default;
+	device->base.config.middle_emulation = &device->middlebutton.config;
+}
+
 static inline void
 tp_init_middlebutton_emulation(struct tp_dispatch *tp,
 			       struct evdev_device *device)
@@ -706,8 +787,12 @@ tp_init_middlebutton_emulation(struct tp_dispatch *tp,
 	bool enable_by_default,
 	     want_config_option;
 
-	if (tp->buttons.is_clickpad)
+	/* On clickpads we provide the config option but disable by default.
+	   When enabled, the middle software button disappears */
+	if (tp->buttons.is_clickpad) {
+		tp_init_clickpad_middlebutton_emulation(tp, device);
 		return;
+	}
 
 	/* init middle button emulation on non-clickpads, but only if we
 	 * don't have a middle button. Exception: ALPS touchpads don't know
@@ -1038,7 +1123,10 @@ tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 			return 0;
 		}
 
-		if ((area & MIDDLE) || ((area & LEFT) && (area & RIGHT))) {
+		if ((tp->device->middlebutton.enabled || is_top) &&
+		    (area & LEFT) && (area & RIGHT)) {
+			button = BTN_MIDDLE;
+		} else if (area & MIDDLE) {
 			button = BTN_MIDDLE;
 		} else if (area & RIGHT) {
 			button = BTN_RIGHT;

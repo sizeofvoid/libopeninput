@@ -4307,6 +4307,10 @@ libinput_device_config_middle_emulation_is_available(
  *
  * The middle button emulation behavior when combined with other device
  * buttons, including a physical middle button is device-dependent.
+ * For example, @ref clickpad_softbuttons provides a middle button area when
+ * middle button emulation is disabled. That middle button area disappears
+ * when middle button emulation is enabled - a middle click can then only be
+ * triggered by a simultaneous left + right click.
  *
  * @note Some devices provide middle mouse button emulation but do not allow
  * enabling/disabling that emulation.

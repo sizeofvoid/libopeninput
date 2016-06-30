@@ -465,6 +465,15 @@ evdev_init_middlebutton(struct evdev_device *device,
 			bool enabled,
 			bool want_config);
 
+enum libinput_config_middle_emulation_state
+evdev_middlebutton_get(struct libinput_device *device);
+
+int
+evdev_middlebutton_is_available(struct libinput_device *device);
+
+enum libinput_config_middle_emulation_state
+evdev_middlebutton_get_default(struct libinput_device *device);
+
 static inline double
 evdev_convert_to_mm(const struct input_absinfo *absinfo, double v)
 {
