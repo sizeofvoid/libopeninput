@@ -68,8 +68,9 @@ enum evdev_device_seat_capability {
 enum evdev_device_tags {
 	EVDEV_TAG_EXTERNAL_MOUSE = (1 << 0),
 	EVDEV_TAG_INTERNAL_TOUCHPAD = (1 << 1),
-	EVDEV_TAG_TRACKPOINT = (1 << 2),
-	EVDEV_TAG_KEYBOARD = (1 << 3),
+	EVDEV_TAG_EXTERNAL_TOUCHPAD = (1 << 2),
+	EVDEV_TAG_TRACKPOINT = (1 << 3),
+	EVDEV_TAG_KEYBOARD = (1 << 4),
 };
 
 enum evdev_middlebutton_state {
@@ -332,10 +333,6 @@ evdev_tablet_create(struct evdev_device *device);
 
 struct evdev_dispatch *
 evdev_tablet_pad_create(struct evdev_device *device);
-
-void
-evdev_tag_touchpad(struct evdev_device *device,
-		   struct udev_device *udev_device);
 
 void
 evdev_device_led_update(struct evdev_device *device, enum libinput_led leds);

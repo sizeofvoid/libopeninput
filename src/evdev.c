@@ -2243,7 +2243,6 @@ evdev_configure_device(struct evdev_device *device)
 			 "input device '%s', %s is a touchpad\n",
 			 device->devname, devnode);
 
-		evdev_tag_touchpad(device, device->udev_device);
 		return device->dispatch == NULL ? -1 : 0;
 	}
 

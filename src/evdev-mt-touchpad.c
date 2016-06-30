@@ -1421,11 +1421,10 @@ tp_dwt_device_is_blacklisted(struct evdev_device *device)
 	unsigned int bus = libevdev_get_id_bustype(device->evdev);
 
 	/* evemu will set the right bus type */
-	if (bus == BUS_BLUETOOTH || bus == BUS_VIRTUAL)
+	if (bus == BUS_VIRTUAL)
 		return true;
 
-	/* Wacom makes touchpads, but not internal ones */
-	if (device->model_flags & EVDEV_MODEL_WACOM_TOUCHPAD)
+	if (device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD)
 		return true;
 
 	return false;
@@ -1447,10 +1446,6 @@ tp_want_dwt(struct evdev_device *touchpad,
 	/* If the touchpad is on serio, the keyboard is too, so ignore any
 	   other devices */
 	if (bus_tp == BUS_I8042 && bus_kbd != bus_tp)
-		return false;
-
-	/* Logitech does not have internal touchpads */
-	if (vendor_tp == VENDOR_ID_LOGITECH)
 		return false;
 
 	/* For Apple touchpads, always use its internal keyboard */
@@ -1573,11 +1568,25 @@ tp_interface_device_removed(struct evdev_device *device,
 	tp_resume(tp, device);
 }
 
-void
+static inline void
+evdev_tag_touchpad_internal(struct evdev_device *device)
+{
+	device->tags |= EVDEV_TAG_INTERNAL_TOUCHPAD;
+	device->tags &= ~EVDEV_TAG_EXTERNAL_TOUCHPAD;
+}
+
+static inline void
+evdev_tag_touchpad_external(struct evdev_device *device)
+{
+	device->tags |= EVDEV_TAG_EXTERNAL_TOUCHPAD;
+	device->tags &= ~EVDEV_TAG_INTERNAL_TOUCHPAD;
+}
+
+static void
 evdev_tag_touchpad(struct evdev_device *device,
 		   struct udev_device *udev_device)
 {
-	int bustype;
+	int bustype, vendor;
 
 	/* simple approach: touchpads on USB or Bluetooth are considered
 	 * external, anything else is internal. Exception is Apple -
@@ -1585,11 +1594,39 @@ evdev_tag_touchpad(struct evdev_device *device,
 	 * external USB touchpads anyway.
 	 */
 	bustype = libevdev_get_id_bustype(device->evdev);
-	if (bustype == BUS_USB) {
+	vendor = libevdev_get_id_vendor(device->evdev);
+
+	switch (bustype) {
+	case BUS_USB:
 		if (device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD)
-			 device->tags |= EVDEV_TAG_INTERNAL_TOUCHPAD;
-	} else if (bustype != BUS_BLUETOOTH)
-		device->tags |= EVDEV_TAG_INTERNAL_TOUCHPAD;
+			 evdev_tag_touchpad_internal(device);
+		break;
+	case BUS_BLUETOOTH:
+		evdev_tag_touchpad_external(device);
+		break;
+	default:
+		evdev_tag_touchpad_internal(device);
+		break;
+	}
+
+	switch (vendor) {
+	/* Logitech does not have internal touchpads */
+	case VENDOR_ID_LOGITECH:
+		evdev_tag_touchpad_external(device);
+		break;
+	}
+
+	/* Wacom makes touchpads, but not internal ones */
+	if (device->model_flags & EVDEV_MODEL_WACOM_TOUCHPAD)
+		evdev_tag_touchpad_external(device);
+
+	if ((device->tags &
+	    (EVDEV_TAG_EXTERNAL_TOUCHPAD|EVDEV_TAG_INTERNAL_TOUCHPAD)) == 0) {
+		log_bug_libinput(evdev_libinput_context(device),
+				 "%s: Internal or external? Please file a bug.\n",
+				 device->devname);
+		evdev_tag_touchpad_external(device);
+	}
 }
 
 static struct evdev_dispatch_interface tp_interface = {
@@ -2308,6 +2345,8 @@ struct evdev_dispatch *
 evdev_mt_touchpad_create(struct evdev_device *device)
 {
 	struct tp_dispatch *tp;
+
+	evdev_tag_touchpad(device, device->udev_device);
 
 	tp = zalloc(sizeof *tp);
 	if (!tp)
