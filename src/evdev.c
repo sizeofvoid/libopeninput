@@ -2303,15 +2303,15 @@ evdev_notify_added_device(struct evdev_device *device)
 		if (dev == &device->base)
 			continue;
 
-		/* Notify existing device d about addition of device device */
+		/* Notify existing device d about addition of device */
 		if (d->dispatch->interface->device_added)
 			d->dispatch->interface->device_added(d, device);
 
-		/* Notify new device device about existing device d */
+		/* Notify new device about existing device d */
 		if (device->dispatch->interface->device_added)
 			device->dispatch->interface->device_added(device, d);
 
-		/* Notify new device device if existing device d is suspended */
+		/* Notify new device if existing device d is suspended */
 		if (d->suspended && device->dispatch->interface->device_suspended)
 			device->dispatch->interface->device_suspended(device, d);
 	}
