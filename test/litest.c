@@ -2340,7 +2340,7 @@ litest_create_uinput_device_from_description(const char *name,
 	syspath = libevdev_uinput_get_syspath(uinput);
 
 	/* blocking, we don't want to continue until udev is ready */
-	do {
+	while (1) {
 		udev_device = udev_monitor_receive_device(udev_monitor);
 		litest_assert_notnull(udev_device);
 		udev_action = udev_device_get_action(udev_device);
@@ -2350,7 +2350,11 @@ litest_create_uinput_device_from_description(const char *name,
 		}
 
 		udev_syspath = udev_device_get_syspath(udev_device);
-	} while (!udev_syspath || strcmp(udev_syspath, syspath) != 0);
+		if (udev_syspath && streq(udev_syspath, syspath))
+			break;
+
+		udev_device_unref(udev_device);
+	}
 
 	litest_assert(udev_device_get_property_value(udev_device, "ID_INPUT"));
 
