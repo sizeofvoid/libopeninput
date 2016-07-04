@@ -384,6 +384,8 @@ extern struct litest_test_device litest_wacom_intuos3_pad_device;
 extern struct litest_test_device litest_wacom_intuos5_pad_device;
 extern struct litest_test_device litest_keyboard_all_codes_device;
 extern struct litest_test_device litest_magicmouse_device;
+extern struct litest_test_device litest_wacom_ekr_device;
+extern struct litest_test_device litest_wacom_cintiq_24hdt_pad_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -434,6 +436,8 @@ struct litest_test_device* devices[] = {
 	&litest_wacom_intuos5_pad_device,
 	&litest_keyboard_all_codes_device,
 	&litest_magicmouse_device,
+	&litest_wacom_ekr_device,
+	&litest_wacom_cintiq_24hdt_pad_device,
 	NULL,
 };
 
@@ -2082,6 +2086,9 @@ litest_event_type_str(struct libinput_event *event)
 		break;
 	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
 		str = "TABLET PAD STRIP";
+		break;
+	case LIBINPUT_EVENT_TABLET_PAD_MODE:
+		str = "TABLET PAD MODE";
 		break;
 	}
 	return str;
