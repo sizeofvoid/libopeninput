@@ -3104,7 +3104,7 @@ main(int argc, char **argv)
 
 	list_init(&all_tests);
 
-	setenv("CK_DEFAULT_TIMEOUT", "10", 0);
+	setenv("CK_DEFAULT_TIMEOUT", "30", 0);
 	setenv("LIBINPUT_RUNNING_TEST_SUITE", "1", 1);
 
 	mode = litest_parse_argv(argc, argv);
