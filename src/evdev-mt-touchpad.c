@@ -1589,6 +1589,24 @@ evdev_tag_touchpad(struct evdev_device *device,
 		   struct udev_device *udev_device)
 {
 	int bustype, vendor;
+	const char *prop;
+
+	prop = udev_device_get_property_value(udev_device,
+					      "ID_INPUT_TOUCHPAD_INTEGRATION");
+	if (prop) {
+		if (streq(prop, "internal")) {
+			evdev_tag_touchpad_internal(device);
+			return;
+		} else if (streq(prop, "external")) {
+			evdev_tag_touchpad_external(device);
+			return;
+		} else {
+			log_info(evdev_libinput_context(device),
+				 "%s: tagged as unknown value %s\n",
+				 device->devname,
+				 prop);
+		}
+	}
 
 	/* simple approach: touchpads on USB or Bluetooth are considered
 	 * external, anything else is internal. Exception is Apple -
