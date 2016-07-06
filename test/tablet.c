@@ -2078,12 +2078,7 @@ START_TEST(tools_with_serials)
 	int i;
 
 	for (i = 0; i < 2; i++) {
-		dev[i] = litest_add_device_with_overrides(li,
-							  LITEST_WACOM_INTUOS,
-							  NULL,
-							  NULL,
-							  NULL,
-							  NULL);
+		dev[i] = litest_add_device(li, LITEST_WACOM_INTUOS);
 		litest_drain_events(li);
 
 		/* WARNING: this test fails if UI_GET_SYSNAME isn't
