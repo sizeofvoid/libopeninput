@@ -25,6 +25,8 @@
 #ifndef LIBINPUT_UTIL_H
 #define LIBINPUT_UTIL_H
 
+#include "config.h"
+
 #include <assert.h>
 #include <unistd.h>
 #include <limits.h>
