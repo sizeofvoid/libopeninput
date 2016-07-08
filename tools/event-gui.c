@@ -843,7 +843,6 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 		case LIBINPUT_EVENT_TABLET_PAD_BUTTON:
 		case LIBINPUT_EVENT_TABLET_PAD_RING:
 		case LIBINPUT_EVENT_TABLET_PAD_STRIP:
-		case LIBINPUT_EVENT_TABLET_PAD_MODE:
 			break;
 		}
 

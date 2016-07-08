@@ -740,19 +740,6 @@ enum libinput_event_type {
 	 */
 	LIBINPUT_EVENT_TABLET_PAD_STRIP,
 
-	/**
-	 * A mode change on a device with the @ref
-	 * LIBINPUT_DEVICE_CAP_TABLET_PAD capability.
-	 *
-	 * This event is triggered when the mode is changed through
-	 * external means. The event reflects a mode change (see @ref
-	 * tablet-pad-modes) occurring as a result other than that of
-	 * pressing a mode toggle button.
-	 *
-	 * @note Support for this event is not yet implemented.
-	 */
-	LIBINPUT_EVENT_TABLET_PAD_MODE,
-
 	LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN = 800,
 	LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
 	LIBINPUT_EVENT_GESTURE_SWIPE_END,

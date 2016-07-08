@@ -130,9 +130,6 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
 		type = "TABLET_PAD_STRIP";
 		break;
-	case LIBINPUT_EVENT_TABLET_PAD_MODE:
-		type = "TABLET_PAD_MODE";
-		break;
 	}
 
 	printf("%-7s	%-16s ", libinput_device_get_sysname(dev), type);
@@ -682,22 +679,6 @@ print_tablet_pad_strip_event(struct libinput_event *ev)
 	       mode);
 }
 
-static void
-print_tablet_pad_mode_event(struct libinput_event *ev)
-{
-	struct libinput_event_tablet_pad *p = libinput_event_get_tablet_pad_event(ev);
-	struct libinput_tablet_pad_mode_group *group;
-	unsigned int mode;
-
-	print_event_time(libinput_event_tablet_pad_get_time(p));
-
-	group = libinput_event_tablet_pad_get_mode_group(p);
-	mode = libinput_event_tablet_pad_get_mode(p);
-	printf("group %d mode %d\n",
-	       libinput_tablet_pad_mode_group_get_index(group),
-	       mode);
-}
-
 static int
 handle_and_print_events(struct libinput *li)
 {
@@ -785,9 +766,6 @@ handle_and_print_events(struct libinput *li)
 			break;
 		case LIBINPUT_EVENT_TABLET_PAD_STRIP:
 			print_tablet_pad_strip_event(ev);
-			break;
-		case LIBINPUT_EVENT_TABLET_PAD_MODE:
-			print_tablet_pad_mode_event(ev);
 			break;
 		}
 
