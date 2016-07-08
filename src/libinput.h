@@ -438,10 +438,10 @@ libinput_tablet_pad_mode_group_get_index(struct libinput_tablet_pad_mode_group *
 /**
  * @ingroup tablet_pad_modes
  *
- * Query the mode group for the number of available modes. This number is
- * usually decided by the number of physical LEDs available on the device.
- * Different mode groups may have a different number of modes.
- * Use libinput_tablet_pad_mode_group_get_mode() to get the currently active
+ * Query the mode group for the number of available modes. The number of
+ * modes is usually decided by the number of physical LEDs available on the
+ * device. Different mode groups may have a different number of modes. Use
+ * libinput_tablet_pad_mode_group_get_mode() to get the currently active
  * mode.
  *
  * libinput guarantees that at least one mode is available. A device without
@@ -458,7 +458,7 @@ libinput_tablet_pad_mode_group_get_num_modes(struct libinput_tablet_pad_mode_gro
  *
  * Return the current mode this mode group is in. Note that the returned
  * mode is the mode valid as of completing the last libinput_dispatch().
- * The returned mode may thus be different to the mode returned by
+ * The returned mode may thus be different than the mode returned by
  * libinput_event_tablet_pad_get_mode().
  *
  * For example, if the mode was toggled three times between the call to
@@ -518,6 +518,12 @@ libinput_tablet_pad_mode_group_has_strip(struct libinput_tablet_pad_mode_group *
 /**
  * @ingroup tablet_pad_modes
  *
+ * The toggle button in a mode group is the button assigned to cycle to or
+ * directly assign a new mode when pressed. Not all devices have a toggle
+ * button and some devices may have more than one toggle button. For
+ * example, the Wacom Cintiq 24HD has six toggle buttons in two groups, each
+ * directly selecting one of the three modes per group.
+ *
  * Devices without mode switching capabilities return false for every button.
  *
  * @param group A previously obtained mode group
@@ -532,7 +538,7 @@ libinput_tablet_pad_mode_group_button_is_toggle(struct libinput_tablet_pad_mode_
 /**
  * @ingroup tablet_pad_modes
  *
- * Increase the refcount of the mode group. A mode device group will be
+ * Increase the refcount of the mode group. A mode group will be
  * freed whenever the refcount reaches 0.
  *
  * @param group A previously obtained mode group
@@ -545,7 +551,7 @@ libinput_tablet_pad_mode_group_ref(
 /**
  * @ingroup tablet_pad_modes
  *
- * Decrease the refcount of the mode group. A mode device group will be
+ * Decrease the refcount of the mode group. A mode group will be
  * freed whenever the refcount reaches 0.
  *
  * @param group A previously obtained mode group
@@ -575,7 +581,7 @@ libinput_tablet_pad_mode_group_set_user_data(
 /**
  * @ingroup tablet_pad_modes
  *
- * Get the caller-specific data associated with this input device, if any.
+ * Get the caller-specific data associated with this mode group, if any.
  *
  * @param group A previously obtained mode group
  * @return Caller-specific data pointer or NULL if none was set
@@ -2623,7 +2629,9 @@ libinput_event_tablet_pad_get_button_state(struct libinput_event_tablet_pad *eve
 /**
  * @ingroup event_tablet_pad
  *
- * Returns the current mode this button, ring, or strip is considered in.
+ * Returns the mode the button, ring, or strip that triggered this event is
+ * in, at the time of the event.
+ *
  * The mode is a virtual grouping of functionality, usually based on some
  * visual feedback like LEDs on the pad. See @ref tablet-pad-modes for
  * details. Mode indices start at 0, a device that does not support modes
@@ -2631,9 +2639,9 @@ libinput_event_tablet_pad_get_button_state(struct libinput_event_tablet_pad *eve
  *
  * Mode switching is controlled by libinput and more than one mode may exist
  * on the tablet. This function returns the mode that this event's button,
- * ring or strip is logically grouped in. If the button is the mode toggle
- * button and the button event caused a new mode to be toggled, the mode
- * returned is the new mode the button is in.
+ * ring or strip is logically in. If the button is a mode toggle button
+ * and the button event caused a new mode to be toggled, the mode returned
+ * is the new mode the button is in.
  *
  * Note that the returned mode is the mode valid as of the time of the
  * event. The returned mode may thus be different to the mode returned by
@@ -2641,7 +2649,8 @@ libinput_event_tablet_pad_get_button_state(struct libinput_event_tablet_pad *eve
  * libinput_tablet_pad_mode_group_get_mode() for details.
  *
  * @param event The libinput tablet pad event
- * @return the current 0-indexed mode of this button, ring or strip
+ * @return the 0-indexed mode of this button, ring or strip at the time of
+ * the event
  *
  * @see libinput_tablet_pad_mode_group_get_mode
  */
@@ -2651,10 +2660,10 @@ libinput_event_tablet_pad_get_mode(struct libinput_event_tablet_pad *event);
 /**
  * @ingroup event_tablet_pad
  *
- * Returns the current mode group this button, ring, or strip is considered in.
- * The mode is a virtual grouping of functionality, usually based on some
- * visual feedback like LEDs on the pad. See @ref tablet-pad-modes for
- * details.
+ * Returns the mode group that the button, ring, or strip that triggered
+ * this event is considered in. The mode is a virtual grouping of
+ * functionality, usually based on some visual feedback like LEDs on the
+ * pad. See @ref tablet-pad-modes for details.
  *
  * The returned mode group is not refcounted and may become invalid after
  * the next call to libinput. Use libinput_tablet_pad_mode_group_ref() and
@@ -2662,7 +2671,9 @@ libinput_event_tablet_pad_get_mode(struct libinput_event_tablet_pad *event);
  * outside of the immediate scope.
  *
  * @param event The libinput tablet pad event
- * @return the current 0-indexed mode of this button, ring or strip
+ * @return the mode group of the button, ring or strip that caused this event
+ *
+ * @see libinput_device_tablet_pad_get_mode_group
  */
 struct libinput_tablet_pad_mode_group *
 libinput_event_tablet_pad_get_mode_group(struct libinput_event_tablet_pad *event);
