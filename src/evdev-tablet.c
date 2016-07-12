@@ -1599,6 +1599,8 @@ tablet_init_accel(struct tablet_dispatch *tablet, struct evdev_device *device)
 
 	filter = create_pointer_accelerator_filter_tablet(x->resolution,
 							  y->resolution);
+	if (!filter)
+		return -1;
 
 	rc = evdev_device_init_pointer_acceleration(device, filter);
 	if (rc != 0)
