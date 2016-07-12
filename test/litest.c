@@ -386,6 +386,9 @@ extern struct litest_test_device litest_keyboard_all_codes_device;
 extern struct litest_test_device litest_magicmouse_device;
 extern struct litest_test_device litest_wacom_ekr_device;
 extern struct litest_test_device litest_wacom_cintiq_24hdt_pad_device;
+extern struct litest_test_device litest_wacom_cintiq_13hdt_finger_device;
+extern struct litest_test_device litest_wacom_cintiq_13hdt_pen_device;
+extern struct litest_test_device litest_wacom_cintiq_13hdt_pad_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -438,6 +441,9 @@ struct litest_test_device* devices[] = {
 	&litest_magicmouse_device,
 	&litest_wacom_ekr_device,
 	&litest_wacom_cintiq_24hdt_pad_device,
+	&litest_wacom_cintiq_13hdt_finger_device,
+	&litest_wacom_cintiq_13hdt_pen_device,
+	&litest_wacom_cintiq_13hdt_pad_device,
 	NULL,
 };
 

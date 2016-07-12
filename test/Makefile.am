@@ -49,6 +49,9 @@ liblitest_la_SOURCES = \
 	litest-device-touchscreen-fuzz.c \
 	litest-device-wacom-bamboo-tablet.c \
 	litest-device-wacom-cintiq-tablet.c \
+	litest-device-wacom-cintiq-13hdt-finger.c \
+	litest-device-wacom-cintiq-13hdt-pad.c \
+	litest-device-wacom-cintiq-13hdt-pen.c \
 	litest-device-wacom-cintiq-24hd.c \
 	litest-device-wacom-cintiq-24hdt-pad.c \
 	litest-device-wacom-ekr.c \
