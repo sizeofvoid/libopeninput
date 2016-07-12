@@ -127,19 +127,19 @@ zalloc(size_t size)
 static inline int
 bit_is_set(const unsigned char *array, int bit)
 {
-    return !!(array[bit / 8] & (1 << (bit % 8)));
+	return !!(array[bit / 8] & (1 << (bit % 8)));
 }
 
-static inline void
+	static inline void
 set_bit(unsigned char *array, int bit)
 {
-    array[bit / 8] |= (1 << (bit % 8));
+	array[bit / 8] |= (1 << (bit % 8));
 }
 
-static inline void
+	static inline void
 clear_bit(unsigned char *array, int bit)
 {
-    array[bit / 8] &= ~(1 << (bit % 8));
+	array[bit / 8] &= ~(1 << (bit % 8));
 }
 
 static inline void
