@@ -1592,7 +1592,6 @@ tablet_init_accel(struct tablet_dispatch *tablet, struct evdev_device *device)
 {
 	const struct input_absinfo *x, *y;
 	struct motion_filter *filter;
-	int rc;
 
 	x = device->abs.absinfo_x;
 	y = device->abs.absinfo_y;
@@ -1602,9 +1601,7 @@ tablet_init_accel(struct tablet_dispatch *tablet, struct evdev_device *device)
 	if (!filter)
 		return -1;
 
-	rc = evdev_device_init_pointer_acceleration(device, filter);
-	if (rc != 0)
-		return rc;
+	evdev_device_init_pointer_acceleration(device, filter);
 
 	/* we override the profile hooks for accel configuration with hooks
 	 * that don't allow selection of profiles */

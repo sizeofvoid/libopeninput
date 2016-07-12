@@ -452,7 +452,7 @@ tp_button_handle_event(struct tp_dispatch *tp,
 			  button_state_to_str(t->button.state));
 }
 
-int
+void
 tp_button_handle_state(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *t;
@@ -488,8 +488,6 @@ tp_button_handle_state(struct tp_dispatch *tp, uint64_t time)
 		if (tp->queued & TOUCHPAD_EVENT_BUTTON_PRESS)
 			tp_button_handle_event(tp, t, BUTTON_EVENT_PRESS, time);
 	}
-
-	return 0;
 }
 
 static void
@@ -500,7 +498,7 @@ tp_button_handle_timeout(uint64_t now, void *data)
 	tp_button_handle_event(t->tp, t, BUTTON_EVENT_TIMEOUT, now);
 }
 
-int
+void
 tp_process_button(struct tp_dispatch *tp,
 		  const struct input_event *e,
 		  uint64_t time)
@@ -513,7 +511,7 @@ tp_process_button(struct tp_dispatch *tp,
 		log_bug_kernel(libinput,
 			       "received %s button event on a clickpad\n",
 			       libevdev_event_code_get_name(EV_KEY, e->code));
-		return 0;
+		return;
 	}
 
 	if (e->value) {
@@ -523,8 +521,6 @@ tp_process_button(struct tp_dispatch *tp,
 		tp->buttons.state &= ~mask;
 		tp->queued |= TOUCHPAD_EVENT_BUTTON_RELEASE;
 	}
-
-	return 0;
 }
 
 void
@@ -831,7 +827,7 @@ tp_init_middlebutton_emulation(struct tp_dispatch *tp,
 				want_config_option);
 }
 
-int
+void
 tp_init_buttons(struct tp_dispatch *tp,
 		struct evdev_device *device)
 {
@@ -884,8 +880,6 @@ tp_init_buttons(struct tp_dispatch *tp,
 				    tp_libinput_context(tp),
 				    tp_button_handle_timeout, t);
 	}
-
-	return 0;
 }
 
 void

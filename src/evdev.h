@@ -319,7 +319,7 @@ void
 evdev_init_calibration(struct evdev_device *device,
 		       struct evdev_dispatch *dispatch);
 
-int
+void
 evdev_device_init_pointer_acceleration(struct evdev_device *device,
 				       struct motion_filter *filter);
 
@@ -498,7 +498,7 @@ evdev_convert_to_mm(const struct input_absinfo *absinfo, double v)
 	return value/absinfo->resolution;
 }
 
-int
+void
 evdev_init_left_handed(struct evdev_device *device,
 		       void (*change_to_left_handed)(struct evdev_device *));
 

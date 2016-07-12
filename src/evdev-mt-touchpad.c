@@ -1781,7 +1781,6 @@ tp_init_accel(struct tp_dispatch *tp)
 	struct evdev_device *device = tp->device;
 	int res_x, res_y;
 	struct motion_filter *filter;
-	int rc;
 
 	res_x = tp->device->abs.absinfo_x->resolution;
 	res_y = tp->device->abs.absinfo_y->resolution;
@@ -1805,9 +1804,7 @@ tp_init_accel(struct tp_dispatch *tp)
 	if (!filter)
 		return -1;
 
-	rc = evdev_device_init_pointer_acceleration(tp->device, filter);
-	if (rc != 0)
-		return rc;
+	evdev_device_init_pointer_acceleration(tp->device, filter);
 
 	/* we override the profile hooks for accel configuration with hooks
 	 * that don't allow selection of profiles */
@@ -1896,11 +1893,10 @@ tp_scroll_config_scroll_method_get_default_method(struct libinput_device *device
 	return tp_scroll_get_default_method(tp);
 }
 
-static int
+static void
 tp_init_scroll(struct tp_dispatch *tp, struct evdev_device *device)
 {
-	if (tp_edge_scroll_init(tp, device) != 0)
-		return -1;
+	tp_edge_scroll_init(tp, device);
 
 	evdev_init_natural_scroll(device);
 
@@ -1914,8 +1910,6 @@ tp_init_scroll(struct tp_dispatch *tp, struct evdev_device *device)
 	 /* In mm for touchpads with valid resolution, see tp_init_accel() */
 	tp->device->scroll.threshold = 0.0;
 	tp->device->scroll.direction_lock_threshold = 5.0;
-
-	return 0;
 }
 
 static int
@@ -1972,12 +1966,12 @@ tp_dwt_config_get_default(struct libinput_device *device)
 		LIBINPUT_CONFIG_DWT_DISABLED;
 }
 
-static int
+static void
 tp_init_dwt(struct tp_dispatch *tp,
 	    struct evdev_device *device)
 {
 	if (tp_dwt_device_is_blacklisted(device))
-		return 0;
+		return;
 
 	tp->dwt.config.is_available = tp_dwt_config_is_available;
 	tp->dwt.config.set_enabled = tp_dwt_config_set;
@@ -1986,10 +1980,10 @@ tp_init_dwt(struct tp_dispatch *tp,
 	tp->dwt.dwt_enabled = tp_dwt_default_enabled(tp);
 	device->base.config.dwt = &tp->dwt.config;
 
-	return 0;
+	return;
 }
 
-static int
+static void
 tp_init_palmdetect(struct tp_dispatch *tp,
 		   struct evdev_device *device)
 {
@@ -2002,23 +1996,21 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 
 	/* Wacom doesn't have internal touchpads */
 	if (device->model_flags & EVDEV_MODEL_WACOM_TOUCHPAD)
-		return 0;
+		return;
 
 	/* Enable palm detection on touchpads >= 70 mm. Anything smaller
 	   probably won't need it, until we find out it does */
 	if (width/device->abs.absinfo_x->resolution < 70)
-		return 0;
+		return;
 
 	/* palm edges are 5% of the width on each side */
 	tp->palm.right_edge = device->abs.absinfo_x->maximum - width * 0.05;
 	tp->palm.left_edge = device->abs.absinfo_x->minimum + width * 0.05;
 
 	tp->palm.monitor_trackpoint = true;
-
-	return 0;
 }
 
-static int
+static void
 tp_init_sendevents(struct tp_dispatch *tp,
 		   struct evdev_device *device)
 {
@@ -2029,10 +2021,9 @@ tp_init_sendevents(struct tp_dispatch *tp,
 	libinput_timer_init(&tp->dwt.keyboard_timer,
 			    tp_libinput_context(tp),
 			    tp_keyboard_timeout, tp);
-	return 0;
 }
 
-static int
+static void
 tp_init_thumb(struct tp_dispatch *tp)
 {
 	struct evdev_device *device = tp->device;
@@ -2043,14 +2034,14 @@ tp_init_thumb(struct tp_dispatch *tp)
 	double threshold;
 
 	if (!tp->buttons.is_clickpad)
-		return 0;
+		return;
 
 	/* if the touchpad is less than 50mm high, skip thumb detection.
 	 * it's too small to meaningfully interact with a thumb on the
 	 * touchpad */
 	evdev_device_get_size(device, &w, &h);
 	if (h < 50)
-		return 0;
+		return;
 
 	tp->thumb.detect_thumbs = true;
 	tp->thumb.threshold = INT_MAX;
@@ -2086,8 +2077,6 @@ out:
 		  "thumb: enabled thumb detection%s on '%s'\n",
 		  tp->thumb.threshold != INT_MAX ? " (+pressure)" : "",
 		  device->devname);
-
-	return 0;
 }
 
 static int
@@ -2115,7 +2104,7 @@ error:
 	return -1;
 }
 
-static int
+static void
 tp_init_default_resolution(struct tp_dispatch *tp,
 			   struct evdev_device *device)
 {
@@ -2124,7 +2113,7 @@ tp_init_default_resolution(struct tp_dispatch *tp,
 	int xres, yres;
 
 	if (!device->abs.fake_resolution)
-		return 0 ;
+		return;
 
 	/* we only get here if
 	 * - the touchpad provides no resolution
@@ -2148,8 +2137,6 @@ tp_init_default_resolution(struct tp_dispatch *tp,
 	libevdev_set_abs_resolution(device->evdev, ABS_MT_POSITION_X, xres);
 	libevdev_set_abs_resolution(device->evdev, ABS_MT_POSITION_Y, yres);
 	device->abs.fake_resolution = 0;
-
-	return 0;
 }
 
 static inline void
@@ -2197,8 +2184,7 @@ tp_init(struct tp_dispatch *tp,
 	if (tp_sanity_check(tp, device) != 0)
 		return -1;
 
-	if (tp_init_default_resolution(tp, device) != 0)
-		return -1;
+	tp_init_default_resolution(tp, device);
 
 	if (tp_init_slots(tp, device) != 0)
 		return -1;
@@ -2217,29 +2203,14 @@ tp_init(struct tp_dispatch *tp,
 	if (tp_init_accel(tp) != 0)
 		return -1;
 
-	if (tp_init_tap(tp) != 0)
-		return -1;
-
-	if (tp_init_buttons(tp, device) != 0)
-		return -1;
-
-	if (tp_init_dwt(tp, device) != 0)
-		return -1;
-
-	if (tp_init_palmdetect(tp, device) != 0)
-		return -1;
-
-	if (tp_init_sendevents(tp, device) != 0)
-		return -1;
-
-	if (tp_init_scroll(tp, device) != 0)
-		return -1;
-
-	if (tp_init_gesture(tp) != 0)
-		return -1;
-
-	if (tp_init_thumb(tp) != 0)
-		return -1;
+	tp_init_tap(tp);
+	tp_init_buttons(tp, device);
+	tp_init_dwt(tp, device);
+	tp_init_palmdetect(tp, device);
+	tp_init_sendevents(tp, device);
+	tp_init_scroll(tp, device);
+	tp_init_gesture(tp);
+	tp_init_thumb(tp);
 
 	device->seat_caps |= EVDEV_DEVICE_POINTER;
 	if (tp->gesture.enabled)

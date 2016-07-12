@@ -281,7 +281,7 @@ tp_edge_scroll_handle_timeout(uint64_t now, void *data)
 	tp_edge_scroll_handle_event(t->tp, t, SCROLL_EVENT_TIMEOUT);
 }
 
-int
+void
 tp_edge_scroll_init(struct tp_dispatch *tp, struct evdev_device *device)
 {
 	struct tp_touch *t;
@@ -316,8 +316,6 @@ tp_edge_scroll_init(struct tp_dispatch *tp, struct evdev_device *device)
 				    tp_libinput_context(tp),
 				    tp_edge_scroll_handle_timeout, t);
 	}
-
-	return 0;
 }
 
 void

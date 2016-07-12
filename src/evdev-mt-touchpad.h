@@ -428,13 +428,13 @@ tp_touch_active(const struct tp_dispatch *tp, const struct tp_touch *t);
 int
 tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time);
 
-int
+void
 tp_init_tap(struct tp_dispatch *tp);
 
 void
 tp_remove_tap(struct tp_dispatch *tp);
 
-int
+void
 tp_init_buttons(struct tp_dispatch *tp, struct evdev_device *device);
 
 void
@@ -445,7 +445,7 @@ tp_init_top_softbuttons(struct tp_dispatch *tp,
 void
 tp_remove_buttons(struct tp_dispatch *tp);
 
-int
+void
 tp_process_button(struct tp_dispatch *tp,
 		  const struct input_event *e,
 		  uint64_t time);
@@ -457,7 +457,7 @@ tp_release_all_buttons(struct tp_dispatch *tp,
 int
 tp_post_button_events(struct tp_dispatch *tp, uint64_t time);
 
-int
+void
 tp_button_handle_state(struct tp_dispatch *tp, uint64_t time);
 
 int
@@ -481,7 +481,7 @@ tp_tap_resume(struct tp_dispatch *tp, uint64_t time);
 bool
 tp_tap_dragging(const struct tp_dispatch *tp);
 
-int
+void
 tp_edge_scroll_init(struct tp_dispatch *tp, struct evdev_device *device);
 
 void
@@ -503,7 +503,7 @@ tp_edge_scroll_touch_active(const struct tp_dispatch *tp,
 uint32_t
 tp_touch_get_edge(const struct tp_dispatch *tp, const struct tp_touch *t);
 
-int
+void
 tp_init_gesture(struct tp_dispatch *tp);
 
 void

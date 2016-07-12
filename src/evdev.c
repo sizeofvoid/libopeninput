@@ -1145,7 +1145,7 @@ evdev_left_handed_get_default(struct libinput_device *device)
 	return 0;
 }
 
-int
+void
 evdev_init_left_handed(struct evdev_device *device,
 		       void (*change_to_left_handed)(struct evdev_device *))
 {
@@ -1157,8 +1157,6 @@ evdev_init_left_handed(struct evdev_device *device,
 	device->left_handed.enabled = false;
 	device->left_handed.want_enabled = false;
 	device->left_handed.change_to_enabled = change_to_left_handed;
-
-	return 0;
 }
 
 static uint32_t
@@ -1254,7 +1252,7 @@ evdev_scroll_get_default_button(struct libinput_device *device)
 	return 0;
 }
 
-static int
+static void
 evdev_init_button_scroll(struct evdev_device *device,
 			 void (*change_scroll_method)(struct evdev_device *))
 {
@@ -1274,8 +1272,6 @@ evdev_init_button_scroll(struct evdev_device *device,
 	device->scroll.button = evdev_scroll_get_default_button((struct libinput_device *)device);
 	device->scroll.want_button = device->scroll.button;
 	device->scroll.change_scroll_method = change_scroll_method;
-
-	return 0;
 }
 
 void
@@ -1407,19 +1403,13 @@ fallback_dispatch_create(struct libinput_device *device)
 
 	dispatch->interface = &fallback_interface;
 
-	if (evdev_device->left_handed.want_enabled &&
-	    evdev_init_left_handed(evdev_device,
-				   evdev_change_to_left_handed) == -1) {
-		free(dispatch);
-		return NULL;
-	}
+	if (evdev_device->left_handed.want_enabled)
+		evdev_init_left_handed(evdev_device,
+				       evdev_change_to_left_handed);
 
-	if (evdev_device->scroll.want_button &&
-	    evdev_init_button_scroll(evdev_device,
-				     evdev_change_scroll_method) == -1) {
-		free(dispatch);
-		return NULL;
-	}
+	if (evdev_device->scroll.want_button)
+		evdev_init_button_scroll(evdev_device,
+					 evdev_change_scroll_method);
 
 	if (evdev_device->scroll.natural_scrolling_enabled)
 		evdev_init_natural_scroll(evdev_device);
@@ -1564,7 +1554,9 @@ evdev_init_accel(struct evdev_device *device,
 	if (!filter)
 		return -1;
 
-	return evdev_device_init_pointer_acceleration(device, filter);
+	evdev_device_init_pointer_acceleration(device, filter);
+
+	return 0;
 }
 
 static int
@@ -1657,7 +1649,7 @@ evdev_accel_config_get_default_profile(struct libinput_device *libinput_device)
 	return LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE;
 }
 
-int
+void
 evdev_device_init_pointer_acceleration(struct evdev_device *device,
 				       struct motion_filter *filter)
 {
@@ -1677,8 +1669,6 @@ evdev_device_init_pointer_acceleration(struct evdev_device *device,
 		evdev_accel_config_set_speed(&device->base,
 			     evdev_accel_config_get_default_speed(&device->base));
 	}
-
-	return 0;
 }
 
 static inline int

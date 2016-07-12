@@ -1010,7 +1010,7 @@ tp_tap_config_get_default_draglock_enabled(struct libinput_device *device)
 	return tp_drag_lock_default(evdev);
 }
 
-int
+void
 tp_init_tap(struct tp_dispatch *tp)
 {
 	tp->tap.config.count = tp_tap_config_count;
@@ -1033,8 +1033,6 @@ tp_init_tap(struct tp_dispatch *tp)
 	libinput_timer_init(&tp->tap.timer,
 			    tp_libinput_context(tp),
 			    tp_tap_handle_timeout, tp);
-
-	return 0;
 }
 
 void
