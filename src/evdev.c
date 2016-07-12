@@ -2865,7 +2865,7 @@ evdev_notify_resumed_device(struct evdev_device *device)
 	device->suspended = 0;
 }
 
-int
+void
 evdev_device_suspend(struct evdev_device *device)
 {
 	struct libinput *libinput = evdev_libinput_context(device);
@@ -2890,8 +2890,6 @@ evdev_device_suspend(struct evdev_device *device)
 		close_restricted(libinput, device->fd);
 		device->fd = -1;
 	}
-
-	return 0;
 }
 
 int

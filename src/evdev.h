@@ -415,7 +415,7 @@ double
 evdev_device_transform_y(struct evdev_device *device,
 			 double y,
 			 uint32_t height);
-int
+void
 evdev_device_suspend(struct evdev_device *device);
 
 int
