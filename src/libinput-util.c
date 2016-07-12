@@ -65,7 +65,7 @@ list_remove(struct list *elm)
 	elm->prev = NULL;
 }
 
-int
+bool
 list_empty(const struct list *list)
 {
 	return list->next == list;

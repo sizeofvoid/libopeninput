@@ -541,7 +541,7 @@ tp_pin_fingers(struct tp_dispatch *tp)
 	}
 }
 
-int
+bool
 tp_touch_active(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
 	return (t->state == TOUCH_BEGIN || t->state == TOUCH_UPDATE) &&
@@ -1673,7 +1673,7 @@ tp_sync_touch(struct tp_dispatch *tp,
 	libevdev_fetch_slot_value(evdev, slot, ABS_MT_DISTANCE, &t->distance);
 }
 
-static int
+static bool
 tp_init_slots(struct tp_dispatch *tp,
 	      struct evdev_device *device)
 {
@@ -1736,7 +1736,7 @@ tp_init_slots(struct tp_dispatch *tp,
 	tp->ntouches = max(tp->num_slots, n_btn_tool_touches);
 	tp->touches = calloc(tp->ntouches, sizeof(struct tp_touch));
 	if (!tp->touches)
-		return -1;
+		return false;
 
 	for (i = 0; i < tp->ntouches; i++)
 		tp_init_touch(tp, &tp->touches[i]);
@@ -1747,7 +1747,7 @@ tp_init_slots(struct tp_dispatch *tp,
 	for (i = 1; i < tp->num_slots; i++)
 		tp_sync_touch(tp, device, &tp->touches[i], i);
 
-	return 0;
+	return true;
 }
 
 static uint32_t
@@ -1775,7 +1775,7 @@ tp_accel_config_get_default_profile(struct libinput_device *libinput_device)
 	return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
 }
 
-static int
+static bool
 tp_init_accel(struct tp_dispatch *tp)
 {
 	struct evdev_device *device = tp->device;
@@ -1802,7 +1802,7 @@ tp_init_accel(struct tp_dispatch *tp)
 		filter = create_pointer_accelerator_filter_touchpad(tp->device->dpi);
 
 	if (!filter)
-		return -1;
+		return false;
 
 	evdev_device_init_pointer_acceleration(tp->device, filter);
 
@@ -1813,7 +1813,7 @@ tp_init_accel(struct tp_dispatch *tp)
 	device->pointer.config.get_profile = tp_accel_config_get_profile;
 	device->pointer.config.get_default_profile = tp_accel_config_get_default_profile;
 
-	return 0;
+	return true;
 }
 
 static uint32_t
@@ -2186,8 +2186,8 @@ tp_init(struct tp_dispatch *tp,
 
 	tp_init_default_resolution(tp, device);
 
-	if (tp_init_slots(tp, device) != 0)
-		return -1;
+	if (!tp_init_slots(tp, device))
+		return false;
 
 	width = device->abs.dimensions.x;
 	height = device->abs.dimensions.y;
@@ -2200,8 +2200,8 @@ tp_init(struct tp_dispatch *tp,
 
 	tp_init_hysteresis(tp);
 
-	if (tp_init_accel(tp) != 0)
-		return -1;
+	if (!tp_init_accel(tp))
+		return false;
 
 	tp_init_tap(tp);
 	tp_init_buttons(tp, device);
@@ -2216,7 +2216,7 @@ tp_init(struct tp_dispatch *tp,
 	if (tp->gesture.enabled)
 		device->seat_caps |= EVDEV_DEVICE_GESTURE;
 
-	return 0;
+	return true;
 }
 
 static uint32_t
@@ -2323,7 +2323,7 @@ evdev_mt_touchpad_create(struct evdev_device *device)
 	if (!tp)
 		return NULL;
 
-	if (tp_init(tp, device) != 0) {
+	if (!tp_init(tp, device)) {
 		tp_interface_destroy(&tp->base);
 		return NULL;
 	}

@@ -422,7 +422,7 @@ tp_filter_motion_unaccelerated(struct tp_dispatch *tp,
 			       const struct normalized_coords *unaccelerated,
 			       uint64_t time);
 
-int
+bool
 tp_touch_active(const struct tp_dispatch *tp, const struct tp_touch *t);
 
 int
@@ -460,7 +460,7 @@ tp_post_button_events(struct tp_dispatch *tp, uint64_t time);
 void
 tp_button_handle_state(struct tp_dispatch *tp, uint64_t time);
 
-int
+bool
 tp_button_touch_active(const struct tp_dispatch *tp,
 		       const struct tp_touch *t);
 

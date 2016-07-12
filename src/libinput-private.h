@@ -665,7 +665,7 @@ normalized_length(struct normalized_coords norm)
 	return hypot(norm.x, norm.y);
 }
 
-static inline int
+static inline bool
 normalized_is_zero(struct normalized_coords norm)
 {
 	return norm.x == 0.0 && norm.y == 0.0;

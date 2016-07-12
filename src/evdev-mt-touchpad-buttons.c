@@ -1186,7 +1186,7 @@ tp_post_button_events(struct tp_dispatch *tp, uint64_t time)
 		return tp_post_physical_buttons(tp, time);
 }
 
-int
+bool
 tp_button_touch_active(const struct tp_dispatch *tp,
 		       const struct tp_touch *t)
 {

@@ -62,7 +62,7 @@ struct list {
 void list_init(struct list *list);
 void list_insert(struct list *list, struct list *elm);
 void list_remove(struct list *elm);
-int list_empty(const struct list *list);
+bool list_empty(const struct list *list);
 
 #ifdef __GNUC__
 #define container_of(ptr, sample, member)				\
@@ -124,7 +124,7 @@ zalloc(size_t size)
  * except that it has been modified to work with arrays of unsigned chars
  */
 
-static inline int
+static inline bool
 bit_is_set(const unsigned char *array, int bit)
 {
 	return !!(array[bit / 8] & (1 << (bit % 8)));
@@ -148,7 +148,7 @@ msleep(unsigned int ms)
 	usleep(ms * 1000);
 }
 
-static inline int
+static inline bool
 long_bit_is_set(const unsigned long *array, int bit)
 {
 	return !!(array[bit / LONG_BITS] & (1LL << (bit % LONG_BITS)));
@@ -175,7 +175,7 @@ long_set_bit_state(unsigned long *array, int bit, int state)
 		long_clear_bit(array, bit);
 }
 
-static inline int
+static inline bool
 long_any_bit_set(unsigned long *array, size_t size)
 {
 	unsigned long i;
@@ -184,8 +184,8 @@ long_any_bit_set(unsigned long *array, size_t size)
 
 	for (i = 0; i < size; i++)
 		if (array[i] != 0)
-			return 1;
-	return 0;
+			return true;
+	return false;
 }
 
 static inline double
@@ -250,7 +250,7 @@ matrix_init_rotate(struct matrix *m, int degrees)
 	m->val[1][1] = c;
 }
 
-static inline int
+static inline bool
 matrix_is_identity(const struct matrix *m)
 {
 	return (m->val[0][0] == 1 &&

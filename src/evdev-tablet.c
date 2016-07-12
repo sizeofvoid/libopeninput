@@ -76,7 +76,7 @@ tablet_force_button_presses(struct tablet_dispatch *tablet)
 	}
 }
 
-static int
+static bool
 tablet_device_has_axis(struct tablet_dispatch *tablet,
 		       enum libinput_tablet_tool_axis axis)
 {

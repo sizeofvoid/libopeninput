@@ -97,7 +97,7 @@ hw_set_key_down(struct evdev_device *device, int code, int pressed)
 	long_set_bit_state(device->hw_key_mask, code, pressed);
 }
 
-static int
+static bool
 hw_is_key_down(struct evdev_device *device, int code)
 {
 	return long_bit_is_set(device->hw_key_mask, code);
@@ -1536,7 +1536,7 @@ evdev_device_dispatch(void *data)
 	}
 }
 
-static inline int
+static inline bool
 evdev_init_accel(struct evdev_device *device,
 		 enum libinput_config_accel_profile which)
 {
@@ -1552,11 +1552,11 @@ evdev_init_accel(struct evdev_device *device,
 		filter = create_pointer_accelerator_filter_linear(device->dpi);
 
 	if (!filter)
-		return -1;
+		return false;
 
 	evdev_device_init_pointer_acceleration(device, filter);
 
-	return 0;
+	return true;
 }
 
 static int
@@ -1619,7 +1619,7 @@ evdev_accel_config_set_profile(struct libinput_device *libinput_device,
 	speed = filter_get_speed(filter);
 	device->pointer.filter = NULL;
 
-	if (evdev_init_accel(device, profile) == 0) {
+	if (evdev_init_accel(device, profile)) {
 		evdev_accel_config_set_speed(libinput_device, speed);
 		filter_destroy(filter);
 	} else {
@@ -1671,7 +1671,7 @@ evdev_device_init_pointer_acceleration(struct evdev_device *device,
 	}
 }
 
-static inline int
+static inline bool
 evdev_need_mtdev(struct evdev_device *device)
 {
 	struct libevdev *evdev = device->evdev;
@@ -1820,7 +1820,7 @@ evdev_read_model_flags(struct evdev_device *device)
 	return model_flags;
 }
 
-static inline int
+static inline bool
 evdev_read_attr_res_prop(struct evdev_device *device,
 			 size_t *xres,
 			 size_t *yres)
@@ -1837,7 +1837,7 @@ evdev_read_attr_res_prop(struct evdev_device *device,
 	return parse_dimension_property(res_prop, xres, yres);
 }
 
-static inline int
+static inline bool
 evdev_read_attr_size_prop(struct evdev_device *device,
 			  size_t *size_x,
 			  size_t *size_y)
@@ -1957,14 +1957,14 @@ evdev_fix_android_mt(struct evdev_device *device)
 		      libevdev_get_abs_info(evdev, ABS_MT_POSITION_Y));
 }
 
-static inline int
+static inline bool
 evdev_check_min_max(struct evdev_device *device, unsigned int code)
 {
 	struct libevdev *evdev = device->evdev;
 	const struct input_absinfo *absinfo;
 
 	if (!libevdev_has_event_code(evdev, EV_ABS, code))
-		return 0;
+		return true;
 
 	absinfo = libevdev_get_abs_info(evdev, code);
 	if (absinfo->minimum == absinfo->maximum) {
@@ -1987,14 +1987,14 @@ evdev_check_min_max(struct evdev_device *device, unsigned int code)
 				       "Device '%s' has min == max on %s\n",
 				       device->devname,
 				       libevdev_event_code_get_name(EV_ABS, code));
-			return -1;
+			return false;
 		}
 	}
 
-	return 0;
+	return true;
 }
 
-static int
+static bool
 evdev_reject_device(struct evdev_device *device)
 {
 	struct libinput *libinput = evdev_libinput_context(device);
@@ -2004,16 +2004,16 @@ evdev_reject_device(struct evdev_device *device)
 
 	if (libevdev_has_event_code(evdev, EV_ABS, ABS_X) ^
 	    libevdev_has_event_code(evdev, EV_ABS, ABS_Y))
-		return -1;
+		return true;
 
 	if (libevdev_has_event_code(evdev, EV_REL, REL_X) ^
 	    libevdev_has_event_code(evdev, EV_REL, REL_Y))
-		return -1;
+		return true;
 
 	if (!evdev_is_fake_mt_device(device) &&
 	    libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_X) ^
 	    libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_Y))
-		return -1;
+		return true;
 
 	if (libevdev_has_event_code(evdev, EV_ABS, ABS_X)) {
 		absx = libevdev_get_abs_info(evdev, ABS_X);
@@ -2022,7 +2022,7 @@ evdev_reject_device(struct evdev_device *device)
 		    (absx->resolution != 0 && absy->resolution == 0)) {
 			log_bug_kernel(libinput,
 				       "Kernel has only x or y resolution, not both.\n");
-			return -1;
+			return true;
 		}
 	}
 
@@ -2034,7 +2034,7 @@ evdev_reject_device(struct evdev_device *device)
 		    (absx->resolution != 0 && absy->resolution == 0)) {
 			log_bug_kernel(libinput,
 				       "Kernel has only x or y MT resolution, not both.\n");
-			return -1;
+			return true;
 		}
 	}
 
@@ -2045,15 +2045,15 @@ evdev_reject_device(struct evdev_device *device)
 		case ABS_MT_TOOL_TYPE:
 			break;
 		default:
-			if (evdev_check_min_max(device, code) == -1)
-				return -1;
+			if (!evdev_check_min_max(device, code))
+				return true;
 		}
 	}
 
-	return 0;
+	return false;
 }
 
-static int
+static bool
 evdev_configure_mt_device(struct evdev_device *device)
 {
 	struct libevdev *evdev = device->evdev;
@@ -2064,7 +2064,7 @@ evdev_configure_mt_device(struct evdev_device *device)
 
 	if (!libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_X) ||
 	    !libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_Y))
-		 return 0;
+		 return true;
 
 	if (evdev_fix_abs_resolution(device,
 				     ABS_MT_POSITION_X,
@@ -2085,7 +2085,7 @@ evdev_configure_mt_device(struct evdev_device *device)
 	if (evdev_need_mtdev(device)) {
 		device->mtdev = mtdev_new_open(device->fd);
 		if (!device->mtdev)
-			return -1;
+			return false;
 
 		/* pick 10 slots as default for type A
 		   devices. */
@@ -2098,7 +2098,7 @@ evdev_configure_mt_device(struct evdev_device *device)
 
 	slots = calloc(num_slots, sizeof(struct mt_slot));
 	if (!slots)
-		return -1;
+		return false;
 
 	for (slot = 0; slot < num_slots; ++slot) {
 		slots[slot].seat_slot = -1;
@@ -2123,10 +2123,10 @@ evdev_configure_mt_device(struct evdev_device *device)
 		device->mt.hysteresis_margin.y = device->abs.absinfo_y->fuzz/2;
 	}
 
-	return 0;
+	return true;
 }
 
-static int
+static bool
 evdev_configure_device(struct evdev_device *device)
 {
 	struct libinput *libinput = evdev_libinput_context(device);
@@ -2142,7 +2142,7 @@ evdev_configure_device(struct evdev_device *device)
 		log_info(libinput,
 			 "input device '%s', %s not tagged as input device\n",
 			 device->devname, devnode);
-		return -1;
+		return false;
 	}
 
 	log_info(libinput,
@@ -2162,7 +2162,7 @@ evdev_configure_device(struct evdev_device *device)
 		log_info(libinput,
 			 "input device '%s', %s is an accelerometer, ignoring\n",
 			 device->devname, devnode);
-		return -1;
+		return false;
 	}
 
 	/* libwacom *adds* TABLET, TOUCHPAD but leaves JOYSTICK in place, so
@@ -2171,14 +2171,14 @@ evdev_configure_device(struct evdev_device *device)
 		log_info(libinput,
 			 "input device '%s', %s is a joystick, ignoring\n",
 			 device->devname, devnode);
-		return -1;
+		return false;
 	}
 
-	if (evdev_reject_device(device) == -1) {
+	if (evdev_reject_device(device)) {
 		log_info(libinput,
 			 "input device '%s', %s was rejected.\n",
 			 device->devname, devnode);
-		return -1;
+		return false;
 	}
 
 	if (!evdev_is_fake_mt_device(device))
@@ -2198,8 +2198,8 @@ evdev_configure_device(struct evdev_device *device)
 
 		if (evdev_is_fake_mt_device(device)) {
 			udev_tags &= ~EVDEV_UDEV_TAG_TOUCHSCREEN;
-		} else if (evdev_configure_mt_device(device) == -1) {
-			return -1;
+		} else if (!evdev_configure_mt_device(device)) {
+			return false;
 		}
 	}
 
@@ -2217,7 +2217,7 @@ evdev_configure_device(struct evdev_device *device)
 		log_info(libinput,
 			 "input device '%s', %s is a tablet pad\n",
 			 device->devname, devnode);
-		return device->dispatch == NULL ? -1 : 0;
+		return device->dispatch != NULL;
 
 	} else if ((udev_tags & tablet_tags) == EVDEV_UDEV_TAG_TABLET) {
 		device->dispatch = evdev_tablet_create(device);
@@ -2225,7 +2225,7 @@ evdev_configure_device(struct evdev_device *device)
 		log_info(libinput,
 			 "input device '%s', %s is a tablet\n",
 			 device->devname, devnode);
-		return device->dispatch == NULL ? -1 : 0;
+		return device->dispatch != NULL;
 	}
 
 	if (udev_tags & EVDEV_UDEV_TAG_TOUCHPAD) {
@@ -2234,7 +2234,7 @@ evdev_configure_device(struct evdev_device *device)
 			 "input device '%s', %s is a touchpad\n",
 			 device->devname, devnode);
 
-		return device->dispatch == NULL ? -1 : 0;
+		return device->dispatch != NULL;
 	}
 
 	if (udev_tags & EVDEV_UDEV_TAG_MOUSE ||
@@ -2283,14 +2283,14 @@ evdev_configure_device(struct evdev_device *device)
 	if (device->seat_caps & EVDEV_DEVICE_POINTER &&
 	    libevdev_has_event_code(evdev, EV_REL, REL_X) &&
 	    libevdev_has_event_code(evdev, EV_REL, REL_Y) &&
-	    evdev_init_accel(device, LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE) == -1) {
+	    !evdev_init_accel(device, LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE)) {
 		log_error(libinput,
 			  "failed to initialize pointer acceleration for %s\n",
 			  device->devname);
-		return -1;
+		return false;
 	}
 
-	return 0;
+	return true;
 }
 
 static void
@@ -2346,7 +2346,7 @@ out:
 	return rc;
 }
 
-static int
+static bool
 evdev_set_device_group(struct evdev_device *device,
 		       struct udev_device *udev_device)
 {
@@ -2362,14 +2362,14 @@ evdev_set_device_group(struct evdev_device *device,
 	if (!group) {
 		group = libinput_device_group_create(libinput, udev_group);
 		if (!group)
-			return 1;
+			return false;
 		libinput_device_set_device_group(&device->base, group);
 		libinput_device_group_unref(group);
 	} else {
 		libinput_device_set_device_group(&device->base, group);
 	}
 
-	return 0;
+	return true;
 }
 
 static inline void
@@ -2493,7 +2493,7 @@ evdev_device_create(struct libinput_seat *seat,
 
 	evdev_pre_configure_model_quirks(device);
 
-	if (evdev_configure_device(device) == -1)
+	if (!evdev_configure_device(device))
 		goto err;
 
 	if (device->seat_caps == 0) {
@@ -2512,7 +2512,7 @@ evdev_device_create(struct libinput_seat *seat,
 	if (!device->source)
 		goto err;
 
-	if (evdev_set_device_group(device, udev_device))
+	if (!evdev_set_device_group(device, udev_device))
 		goto err;
 
 	list_insert(seat->devices_list.prev, &device->base.link);
@@ -2638,7 +2638,7 @@ evdev_device_calibrate(struct evdev_device *device,
 	matrix_mult(&device->abs.calibration, &transform, &scale);
 }
 
-int
+bool
 evdev_device_has_capability(struct evdev_device *device,
 			    enum libinput_device_capability capability)
 {
@@ -2656,7 +2656,7 @@ evdev_device_has_capability(struct evdev_device *device,
 	case LIBINPUT_DEVICE_CAP_TABLET_PAD:
 		return !!(device->seat_caps & EVDEV_DEVICE_TABLET_PAD);
 	default:
-		return 0;
+		return false;
 	}
 }
 
