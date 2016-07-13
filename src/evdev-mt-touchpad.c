@@ -1776,7 +1776,7 @@ tp_accel_config_get_default_profile(struct libinput_device *libinput_device)
 }
 
 static int
-tp_init_accel(struct tp_dispatch *tp, double diagonal)
+tp_init_accel(struct tp_dispatch *tp)
 {
 	struct evdev_device *device = tp->device;
 	int res_x, res_y;
@@ -2190,7 +2190,6 @@ tp_init(struct tp_dispatch *tp,
 	struct evdev_device *device)
 {
 	int width, height;
-	double diagonal;
 
 	tp->base.interface = &tp_interface;
 	tp->device = device;
@@ -2206,7 +2205,6 @@ tp_init(struct tp_dispatch *tp,
 
 	width = device->abs.dimensions.x;
 	height = device->abs.dimensions.y;
-	diagonal = sqrt(width*width + height*height);
 
 	tp_init_range_warnings(tp, device, width, height);
 
@@ -2216,7 +2214,7 @@ tp_init(struct tp_dispatch *tp,
 
 	tp_init_hysteresis(tp);
 
-	if (tp_init_accel(tp, diagonal) != 0)
+	if (tp_init_accel(tp) != 0)
 		return -1;
 
 	if (tp_init_tap(tp) != 0)
