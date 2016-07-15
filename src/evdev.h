@@ -537,4 +537,59 @@ evdev_libinput_context(const struct evdev_device *device)
 	return device->base.seat->libinput;
 }
 
+/**
+ * Convert the pair of coordinates in device space to mm. This takes the
+ * axis min into account, i.e. a unit of min is equivalent to 0 mm.
+ */
+static inline struct phys_coords
+evdev_device_units_to_mm(const struct evdev_device* device,
+			 const struct device_coords *units)
+{
+	struct phys_coords mm = { 0,  0 };
+	const struct input_absinfo *absx, *absy;
+
+	if (device->abs.absinfo_x == NULL ||
+	    device->abs.absinfo_y == NULL) {
+		log_bug_libinput(evdev_libinput_context(device),
+				 "%s: is not an abs device\n",
+				 device->devname);
+		return mm;
+	}
+
+	absx = device->abs.absinfo_x;
+	absy = device->abs.absinfo_y;
+
+	mm.x = (units->x - absx->minimum)/absx->resolution;
+	mm.y = (units->y - absy->minimum)/absy->resolution;
+
+	return mm;
+}
+
+/**
+ * Convert the pair of coordinates in mm to device units. This takes the
+ * axis min into account, i.e. 0 mm  is equivalent to the min.
+ */
+static inline struct device_coords
+evdev_device_mm_to_units(const struct evdev_device *device,
+			 const struct phys_coords *mm)
+{
+	struct device_coords units = { 0,  0 };
+	const struct input_absinfo *absx, *absy;
+
+	if (device->abs.absinfo_x == NULL ||
+	    device->abs.absinfo_y == NULL) {
+		log_bug_libinput(evdev_libinput_context(device),
+				 "%s: is not an abs device\n",
+				 device->devname);
+		return units;
+	}
+
+	absx = device->abs.absinfo_x;
+	absy = device->abs.absinfo_y;
+
+	units.x = mm->x * absx->resolution + absx->minimum;
+	units.y = mm->y * absy->resolution + absy->minimum;
+
+	return units;
+}
 #endif /* EVDEV_H */

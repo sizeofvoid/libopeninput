@@ -82,6 +82,12 @@ struct threshold {
 	int lower;
 };
 
+/* A pair of coordinates in mm */
+struct phys_coords {
+	double x;
+	double y;
+};
+
 struct tablet_axes {
 	struct device_coords point;
 	struct normalized_coords delta;
