@@ -1989,25 +1989,32 @@ static void
 tp_init_palmdetect(struct tp_dispatch *tp,
 		   struct evdev_device *device)
 {
-	int width;
+	double width, height;
+	struct phys_coords mm = { 0.0, 0.0 };
+	struct device_coords edges;
 
 	tp->palm.right_edge = INT_MAX;
 	tp->palm.left_edge = INT_MIN;
-
-	width = device->abs.dimensions.x;
 
 	/* Wacom doesn't have internal touchpads */
 	if (device->model_flags & EVDEV_MODEL_WACOM_TOUCHPAD)
 		return;
 
+	evdev_device_get_size(device, &width, &height);
+
 	/* Enable palm detection on touchpads >= 70 mm. Anything smaller
 	   probably won't need it, until we find out it does */
-	if (width/device->abs.absinfo_x->resolution < 70)
+	if (width < 70.0)
 		return;
 
 	/* palm edges are 5% of the width on each side */
-	tp->palm.right_edge = device->abs.absinfo_x->maximum - width * 0.05;
-	tp->palm.left_edge = device->abs.absinfo_x->minimum + width * 0.05;
+	mm.x = width * 0.05;
+	edges = evdev_device_mm_to_units(device, &mm);
+	tp->palm.left_edge = edges.x;
+
+	mm.x = width * 0.95;
+	edges = evdev_device_mm_to_units(device, &mm);
+	tp->palm.right_edge = edges.x;
 
 	tp->palm.monitor_trackpoint = true;
 }
@@ -2031,8 +2038,9 @@ tp_init_thumb(struct tp_dispatch *tp)
 	struct evdev_device *device = tp->device;
 	const struct input_absinfo *abs;
 	double w = 0.0, h = 0.0;
+	struct device_coords edges;
+	struct phys_coords mm = { 0.0, 0.0 };
 	int xres, yres;
-	int ymax;
 	double threshold;
 
 	if (!tp->buttons.is_clickpad)
@@ -2050,10 +2058,13 @@ tp_init_thumb(struct tp_dispatch *tp)
 
 	/* detect thumbs by pressure in the bottom 15mm, detect thumbs by
 	 * lingering in the bottom 8mm */
-	ymax = tp->device->abs.absinfo_y->maximum;
-	yres = tp->device->abs.absinfo_y->resolution;
-	tp->thumb.upper_thumb_line = ymax - yres * 15;
-	tp->thumb.lower_thumb_line = ymax - yres * 8;
+	mm.y = h * 0.85;
+	edges = evdev_device_mm_to_units(device, &mm);
+	tp->thumb.upper_thumb_line = edges.y;
+
+	mm.y = h * 0.92;
+	edges = evdev_device_mm_to_units(device, &mm);
+	tp->thumb.lower_thumb_line = edges.y;
 
 	abs = libevdev_get_abs_info(device->evdev, ABS_MT_PRESSURE);
 	if (!abs)

@@ -537,33 +537,26 @@ static void
 tp_init_softbuttons(struct tp_dispatch *tp,
 		    struct evdev_device *device)
 {
-	int width, height;
-	const struct input_absinfo *absinfo_x, *absinfo_y;
-	struct device_coords offset;
-	int xres, yres;
+	double width, height;
+	struct device_coords edges;
 	int mb_le, mb_re; /* middle button left/right edge */
+	struct phys_coords mm = { 0.0, 0.0 };
 
-	absinfo_x = device->abs.absinfo_x;
-	absinfo_y = device->abs.absinfo_y;
-
-	offset.x = absinfo_x->minimum,
-	offset.y = absinfo_y->minimum,
-	xres = absinfo_x->resolution;
-	yres = absinfo_y->resolution;
-	width = device->abs.dimensions.x;
-	height = device->abs.dimensions.y;
+	evdev_device_get_size(device, &width, &height);
 
 	/* button height: 10mm or 15% or the touchpad height,
 	   whichever is smaller */
-	if ((height * 0.15)/yres > 10) {
-		tp->buttons.bottom_area.top_edge =
-			absinfo_y->maximum - 10 * yres;
-	} else {
-		tp->buttons.bottom_area.top_edge = height * .85 + offset.y;
-	}
+	if (height * 0.15 > 10)
+		mm.y = height - 10;
+	else
+		mm.y = height * 0.85;
+
+	mm.x = width * 0.5;
+	edges = evdev_device_mm_to_units(device, &mm);
+	tp->buttons.bottom_area.top_edge = edges.y;
+	tp->buttons.bottom_area.rightbutton_left_edge = edges.x;
 
 	tp->buttons.bottom_area.middlebutton_left_edge = INT_MAX;
-	tp->buttons.bottom_area.rightbutton_left_edge = width/2 + offset.x;
 
 	/* if middlebutton emulation is enabled, don't init a software area */
 	if (device->middlebutton.want_enabled)
@@ -580,14 +573,21 @@ tp_init_softbuttons(struct tp_dispatch *tp,
 	 * All Dell touchpads appear to have a middle marker.
 	 */
 	if (tp->device->model_flags & EVDEV_MODEL_DELL_TOUCHPAD) {
-		const int MIDDLE_BUTTON_WIDTH = 10; /* mm */
-		int half_width = MIDDLE_BUTTON_WIDTH/2 * xres; /* units */
+		mm.x = width/2 - 5; /* 10mm wide */
+		edges = evdev_device_mm_to_units(device, &mm);
+		mb_le = edges.x;
 
-		mb_le = offset.x + width/2 - half_width;
-		mb_re = offset.x + width/2 + half_width;
+		mm.x = width/2 + 5; /* 10mm wide */
+		edges = evdev_device_mm_to_units(device, &mm);
+		mb_re = edges.x;
 	} else {
-		mb_le = offset.x + width * 0.375;
-		mb_re = offset.x + width * 0.625;
+		mm.x = width * 0.375;
+		edges = evdev_device_mm_to_units(device, &mm);
+		mb_le = edges.x;
+
+		mm.x = width * 0.625;
+		edges = evdev_device_mm_to_units(device, &mm);
+		mb_re = edges.x;
 	}
 
 	tp->buttons.bottom_area.middlebutton_left_edge = mb_le;
@@ -599,18 +599,7 @@ tp_init_top_softbuttons(struct tp_dispatch *tp,
 			struct evdev_device *device,
 			double topbutton_size_mult)
 {
-	int width;
-	const struct input_absinfo *absinfo_x, *absinfo_y;
-	struct device_coords offset;
-	int yres;
-
-	absinfo_x = device->abs.absinfo_x;
-	absinfo_y = device->abs.absinfo_y;
-
-	offset.x = absinfo_x->minimum,
-	offset.y = absinfo_y->minimum;
-	yres = absinfo_y->resolution;
-	width = device->abs.dimensions.x;
+	struct device_coords edges;
 
 	if (tp->buttons.has_topbuttons) {
 		/* T440s has the top button line 5mm from the top, event
@@ -618,10 +607,20 @@ tp_init_top_softbuttons(struct tp_dispatch *tp,
 		   top - which maps to 15%.  We allow the caller to enlarge the
 		   area using a multiplier for the touchpad disabled case. */
 		double topsize_mm = 10 * topbutton_size_mult;
+		struct phys_coords mm;
+		double width, height;
 
-		tp->buttons.top_area.bottom_edge = offset.y + topsize_mm * yres;
-		tp->buttons.top_area.rightbutton_left_edge = width * .58 + offset.x;
-		tp->buttons.top_area.leftbutton_right_edge = width * .42 + offset.x;
+		evdev_device_get_size(device, &width, &height);
+
+		mm.x = width * 0.58;
+		mm.y = topsize_mm;
+		edges = evdev_device_mm_to_units(device, &mm);
+		tp->buttons.top_area.bottom_edge = edges.y;
+		tp->buttons.top_area.rightbutton_left_edge = edges.x;
+
+		mm.x = width * 0.42;
+		edges = evdev_device_mm_to_units(device, &mm);
+		tp->buttons.top_area.leftbutton_right_edge = edges.x;
 	} else {
 		tp->buttons.top_area.bottom_edge = INT_MIN;
 	}
