@@ -371,7 +371,7 @@ evdev_device_has_capability(struct evdev_device *device,
 			    enum libinput_device_capability capability);
 
 int
-evdev_device_get_size(struct evdev_device *device,
+evdev_device_get_size(const struct evdev_device *device,
 		      double *w,
 		      double *h);
 

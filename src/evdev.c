@@ -2671,7 +2671,7 @@ evdev_device_has_capability(struct evdev_device *device,
 }
 
 int
-evdev_device_get_size(struct evdev_device *device,
+evdev_device_get_size(const struct evdev_device *device,
 		      double *width,
 		      double *height)
 {
