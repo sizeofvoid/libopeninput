@@ -543,15 +543,15 @@ tp_init_softbuttons(struct tp_dispatch *tp,
 {
 	int width, height;
 	const struct input_absinfo *absinfo_x, *absinfo_y;
-	int xoffset, yoffset;
+	struct device_coords offset;
 	int xres, yres;
 	int mb_le, mb_re; /* middle button left/right edge */
 
 	absinfo_x = device->abs.absinfo_x;
 	absinfo_y = device->abs.absinfo_y;
 
-	xoffset = absinfo_x->minimum,
-	yoffset = absinfo_y->minimum,
+	offset.x = absinfo_x->minimum,
+	offset.y = absinfo_y->minimum,
 	xres = absinfo_x->resolution;
 	yres = absinfo_y->resolution;
 	width = device->abs.dimensions.x;
@@ -563,11 +563,11 @@ tp_init_softbuttons(struct tp_dispatch *tp,
 		tp->buttons.bottom_area.top_edge =
 			absinfo_y->maximum - 10 * yres;
 	} else {
-		tp->buttons.bottom_area.top_edge = height * .85 + yoffset;
+		tp->buttons.bottom_area.top_edge = height * .85 + offset.y;
 	}
 
 	tp->buttons.bottom_area.middlebutton_left_edge = INT_MAX;
-	tp->buttons.bottom_area.rightbutton_left_edge = width/2 + xoffset;
+	tp->buttons.bottom_area.rightbutton_left_edge = width/2 + offset.x;
 
 	/* if middlebutton emulation is enabled, don't init a software area */
 	if (device->middlebutton.want_enabled)
@@ -587,11 +587,11 @@ tp_init_softbuttons(struct tp_dispatch *tp,
 		const int MIDDLE_BUTTON_WIDTH = 10; /* mm */
 		int half_width = MIDDLE_BUTTON_WIDTH/2 * xres; /* units */
 
-		mb_le = xoffset + width/2 - half_width;
-		mb_re = xoffset + width/2 + half_width;
+		mb_le = offset.x + width/2 - half_width;
+		mb_re = offset.x + width/2 + half_width;
 	} else {
-		mb_le = xoffset + width * 0.375;
-		mb_re = xoffset + width * 0.625;
+		mb_le = offset.x + width * 0.375;
+		mb_re = offset.x + width * 0.625;
 	}
 
 	tp->buttons.bottom_area.middlebutton_left_edge = mb_le;
@@ -605,14 +605,14 @@ tp_init_top_softbuttons(struct tp_dispatch *tp,
 {
 	int width;
 	const struct input_absinfo *absinfo_x, *absinfo_y;
-	int xoffset, yoffset;
+	struct device_coords offset;
 	int yres;
 
 	absinfo_x = device->abs.absinfo_x;
 	absinfo_y = device->abs.absinfo_y;
 
-	xoffset = absinfo_x->minimum,
-	yoffset = absinfo_y->minimum;
+	offset.x = absinfo_x->minimum,
+	offset.y = absinfo_y->minimum;
 	yres = absinfo_y->resolution;
 	width = device->abs.dimensions.x;
 
@@ -623,9 +623,9 @@ tp_init_top_softbuttons(struct tp_dispatch *tp,
 		   area using a multiplier for the touchpad disabled case. */
 		double topsize_mm = 10 * topbutton_size_mult;
 
-		tp->buttons.top_area.bottom_edge = yoffset + topsize_mm * yres;
-		tp->buttons.top_area.rightbutton_left_edge = width * .58 + xoffset;
-		tp->buttons.top_area.leftbutton_right_edge = width * .42 + xoffset;
+		tp->buttons.top_area.bottom_edge = offset.y + topsize_mm * yres;
+		tp->buttons.top_area.rightbutton_left_edge = width * .58 + offset.x;
+		tp->buttons.top_area.leftbutton_right_edge = width * .42 + offset.x;
 	} else {
 		tp->buttons.top_area.bottom_edge = INT_MIN;
 	}
