@@ -2367,5 +2367,5 @@ evdev_mt_touchpad_create(struct evdev_device *device)
 
 	evdev_init_left_handed(device, tp_change_to_left_handed);
 
-	return  &tp->base;
+	return &tp->base;
 }
