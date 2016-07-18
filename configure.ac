@@ -208,7 +208,26 @@ AC_ARG_ENABLE(libwacom,
 if test "x$use_libwacom" = "xyes"; then
 	PKG_CHECK_MODULES(LIBWACOM, [libwacom >= 0.12], [HAVE_LIBWACOM="yes"])
 	AC_DEFINE(HAVE_LIBWACOM, 1, [Build with libwacom])
+
+	OLD_LIBS=$LIBS
+	OLD_CFLAGS=$CFLAGS
+	LIBS="$LIBS $LIBWACOM_LIBS"
+	CFLAGS="$CFLAGS $LIBWACOM_CFLAGS"
+	AC_MSG_CHECKING([if libwacom_get_paired_device is available])
+	AC_LINK_IFELSE(
+		       [AC_LANG_PROGRAM([[#include <libwacom/libwacom.h>]],
+					[[libwacom_get_paired_device(NULL)]])],
+		       [AC_MSG_RESULT([yes])
+			AC_DEFINE(HAVE_LIBWACOM_GET_PAIRED_DEVICE, [1],
+				  [libwacom_get_paired_device() is available])
+		        [libwacom_have_get_paired_device=yes]],
+		       [AC_MSG_RESULT([no])
+		        [libwacom_have_get_paired_device=no]])
+	LIBS=$OLD_LIBS
+	CFLAGS=$OLD_CFLAGS
 fi
+AM_CONDITIONAL(HAVE_LIBWACOM_GET_PAIRED_DEVICE,
+	       [test "x$libwacom_have_get_paired_device" == "xyes"])
 
 AM_CONDITIONAL(HAVE_VALGRIND, [test "x$VALGRIND" != "x"])
 AM_CONDITIONAL(BUILD_TESTS, [test "x$build_tests" = "xyes"])
