@@ -926,13 +926,13 @@ tp_post_physical_buttons(struct tp_dispatch *tp, uint64_t time)
 	return 0;
 }
 
-static inline int
-tp_check_clickfinger_distance(struct tp_dispatch *tp,
-			      struct tp_touch *t1,
-			      struct tp_touch *t2)
+static inline bool
+tp_clickfinger_within_distance(struct tp_dispatch *tp,
+			       struct tp_touch *t1,
+			       struct tp_touch *t2)
 {
 	double x, y;
-	int within_distance = 0;
+	bool within_distance = false;
 	int xres, yres;
 	int bottom_threshold;
 
@@ -956,7 +956,7 @@ tp_check_clickfinger_distance(struct tp_dispatch *tp,
 	if (x > 40 || y > 30)
 		goto out;
 
-	within_distance = 1;
+	within_distance = true;
 
 	/* if y spread is <= 20mm, they're definitely together. */
 	if (y <= 20)
@@ -1014,7 +1014,7 @@ tp_clickfinger_set_button(struct tp_dispatch *tp)
 		goto out;
 	}
 
-	if (tp_check_clickfinger_distance(tp, first, second))
+	if (tp_clickfinger_within_distance(tp, first, second))
 		nfingers = 2;
 	else
 		nfingers = 1;
