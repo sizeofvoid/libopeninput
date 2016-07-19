@@ -2081,9 +2081,9 @@ out:
 		  device->devname);
 }
 
-static int
-tp_sanity_check(struct tp_dispatch *tp,
-		struct evdev_device *device)
+static bool
+tp_pass_sanity_check(struct tp_dispatch *tp,
+		     struct evdev_device *device)
 {
 	struct libevdev *evdev = device->evdev;
 	struct libinput *libinput = tp_libinput_context(tp);
@@ -2097,13 +2097,13 @@ tp_sanity_check(struct tp_dispatch *tp,
 	if (!libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_FINGER))
 		goto error;
 
-	return 0;
+	return true;
 
 error:
 	log_bug_kernel(libinput,
 		       "device %s failed touchpad sanity checks\n",
 		       device->devname);
-	return -1;
+	return false;
 }
 
 static void
@@ -2183,8 +2183,8 @@ tp_init(struct tp_dispatch *tp,
 	tp->base.interface = &tp_interface;
 	tp->device = device;
 
-	if (tp_sanity_check(tp, device) != 0)
-		return -1;
+	if (!tp_pass_sanity_check(tp, device))
+		return false;
 
 	tp_init_default_resolution(tp, device);
 
