@@ -573,15 +573,17 @@ tp_palm_tap_is_palm(const struct tp_dispatch *tp, const struct tp_touch *t)
 	return false;
 }
 
-static int
-tp_palm_detect_dwt(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+static bool
+tp_palm_detect_dwt_triggered(struct tp_dispatch *tp,
+			     struct tp_touch *t,
+			     uint64_t time)
 {
 	if (tp->dwt.dwt_enabled &&
 	    tp->dwt.keyboard_active &&
 	    t->state == TOUCH_BEGIN) {
 		t->palm.state = PALM_TYPING;
 		t->palm.first = t->point;
-		return 1;
+		return true;
 	} else if (!tp->dwt.keyboard_active &&
 		   t->state == TOUCH_UPDATE &&
 		   t->palm.state == PALM_TYPING) {
@@ -599,22 +601,22 @@ tp_palm_detect_dwt(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 		}
 	}
 
-	return 0;
+	return false;
 }
 
-static int
-tp_palm_detect_trackpoint(struct tp_dispatch *tp,
-			  struct tp_touch *t,
-			  uint64_t time)
+static bool
+tp_palm_detect_trackpoint_triggered(struct tp_dispatch *tp,
+				    struct tp_touch *t,
+				    uint64_t time)
 {
 	if (!tp->palm.monitor_trackpoint)
-		return 0;
+		return false;
 
 	if (t->palm.state == PALM_NONE &&
 	    t->state == TOUCH_BEGIN &&
 	    tp->palm.trackpoint_active) {
 		t->palm.state = PALM_TRACKPOINT;
-		return 1;
+		return true;
 	} else if (t->palm.state == PALM_TRACKPOINT &&
 		   t->state == TOUCH_UPDATE &&
 		   !tp->palm.trackpoint_active) {
@@ -627,7 +629,7 @@ tp_palm_detect_trackpoint(struct tp_dispatch *tp,
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 static inline bool
@@ -684,10 +686,10 @@ static void
 tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 {
 
-	if (tp_palm_detect_dwt(tp, t, time))
+	if (tp_palm_detect_dwt_triggered(tp, t, time))
 		goto out;
 
-	if (tp_palm_detect_trackpoint(tp, t, time))
+	if (tp_palm_detect_trackpoint_triggered(tp, t, time))
 		goto out;
 
 	if (t->palm.state == PALM_EDGE) {
