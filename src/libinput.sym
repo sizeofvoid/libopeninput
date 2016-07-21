@@ -274,3 +274,9 @@ LIBINPUT_1.4 {
 	libinput_tablet_pad_mode_group_set_user_data;
 	libinput_tablet_pad_mode_group_unref;
 } LIBINPUT_1.3;
+
+LIBINPUT_1.5 {
+	libinput_device_config_tap_get_button_map;
+	libinput_device_config_tap_get_default_button_map;
+	libinput_device_config_tap_set_button_map;
+} LIBINPUT_1.4;

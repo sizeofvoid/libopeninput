@@ -45,6 +45,7 @@ enum options {
 	OPT_VERBOSE,
 	OPT_TAP_ENABLE,
 	OPT_TAP_DISABLE,
+	OPT_TAP_MAP,
 	OPT_DRAG_ENABLE,
 	OPT_DRAG_DISABLE,
 	OPT_DRAG_LOCK_ENABLE,
@@ -101,6 +102,7 @@ tools_usage()
 	       "--set-scroll-button=BTN_MIDDLE ... set the button to the given button code\n"
 	       "--set-profile=[adaptive|flat].... set pointer acceleration profile\n"
 	       "--set-speed=<value>.... set pointer acceleration speed\n"
+	       "--set-tap-map=[lrm|lmr] ... set button mapping for tapping\n"
 	       "\n"
 	       "These options apply to all applicable devices, if a feature\n"
 	       "is not explicitly specified it is left at each device's default.\n"
@@ -121,6 +123,7 @@ tools_init_context(struct tools_context *context)
 
 	memset(options, 0, sizeof(*options));
 	options->tapping = -1;
+	options->tap_map = -1;
 	options->drag = -1;
 	options->drag_lock = -1;
 	options->natural_scroll = -1;
@@ -168,6 +171,7 @@ tools_parse_args(int argc, char **argv, struct tools_context *context)
 			{ "set-scroll-method", 1, 0, OPT_SCROLL_METHOD },
 			{ "set-scroll-button", 1, 0, OPT_SCROLL_BUTTON },
 			{ "set-profile", 1, 0, OPT_PROFILE },
+			{ "set-tap-map", 1, 0, OPT_TAP_MAP },
 			{ "speed", 1, 0, OPT_SPEED },
 			{ 0, 0, 0, 0}
 		};
@@ -205,6 +209,20 @@ tools_parse_args(int argc, char **argv, struct tools_context *context)
 			break;
 		case OPT_TAP_DISABLE:
 			options->tapping = 0;
+			break;
+		case OPT_TAP_MAP:
+			if (!optarg) {
+				tools_usage();
+				return 1;
+			}
+			if (streq(optarg, "lrm")) {
+				options->tap_map = LIBINPUT_CONFIG_TAP_MAP_LRM;
+			} else if (streq(optarg, "lmr")) {
+				options->tap_map = LIBINPUT_CONFIG_TAP_MAP_LMR;
+			} else {
+				tools_usage();
+				return 1;
+			}
 			break;
 		case OPT_DRAG_ENABLE:
 			options->drag = 1;
@@ -451,6 +469,9 @@ tools_device_apply_config(struct libinput_device *device,
 {
 	if (options->tapping != -1)
 		libinput_device_config_tap_set_enabled(device, options->tapping);
+	if (options->tap_map != -1)
+		libinput_device_config_tap_set_button_map(device,
+							  options->tap_map);
 	if (options->drag != -1)
 		libinput_device_config_tap_set_drag_enabled(device,
 							    options->drag);

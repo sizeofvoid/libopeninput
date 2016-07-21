@@ -3352,6 +3352,42 @@ libinput_device_config_tap_get_default_enabled(struct libinput_device *device)
 }
 
 LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_tap_set_button_map(struct libinput_device *device,
+					    enum libinput_config_tap_button_map map)
+{
+	switch (map) {
+	case LIBINPUT_CONFIG_TAP_MAP_LRM:
+	case LIBINPUT_CONFIG_TAP_MAP_LMR:
+		break;
+	default:
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+	}
+
+	if (libinput_device_config_tap_get_finger_count(device) == 0)
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	return device->config.tap->set_map(device, map);
+}
+
+LIBINPUT_EXPORT enum libinput_config_tap_button_map
+libinput_device_config_tap_get_button_map(struct libinput_device *device)
+{
+	if (libinput_device_config_tap_get_finger_count(device) == 0)
+		return LIBINPUT_CONFIG_TAP_MAP_LRM;
+
+	return device->config.tap->get_map(device);
+}
+
+LIBINPUT_EXPORT enum libinput_config_tap_button_map
+libinput_device_config_tap_get_default_button_map(struct libinput_device *device)
+{
+	if (libinput_device_config_tap_get_finger_count(device) == 0)
+		return LIBINPUT_CONFIG_TAP_MAP_LRM;
+
+	return device->config.tap->get_default_map(device);
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
 libinput_device_config_tap_set_drag_enabled(struct libinput_device *device,
 					    enum libinput_config_drag_state enable)
 {

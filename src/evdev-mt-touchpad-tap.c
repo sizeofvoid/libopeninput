@@ -935,6 +935,25 @@ tp_tap_config_get_default(struct libinput_device *device)
 }
 
 static enum libinput_config_status
+tp_tap_config_set_map(struct libinput_device *device,
+		      enum libinput_config_tap_button_map map)
+{
+	return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+}
+
+static enum libinput_config_tap_button_map
+tp_tap_config_get_map(struct libinput_device *device)
+{
+	return LIBINPUT_CONFIG_TAP_MAP_LRM;
+}
+
+static enum libinput_config_tap_button_map
+tp_tap_config_get_default_map(struct libinput_device *device)
+{
+	return LIBINPUT_CONFIG_TAP_MAP_LRM;
+}
+
+static enum libinput_config_status
 tp_tap_config_set_drag_enabled(struct libinput_device *device,
 			       enum libinput_config_drag_state enabled)
 {
@@ -1017,6 +1036,9 @@ tp_init_tap(struct tp_dispatch *tp)
 	tp->tap.config.set_enabled = tp_tap_config_set_enabled;
 	tp->tap.config.get_enabled = tp_tap_config_is_enabled;
 	tp->tap.config.get_default = tp_tap_config_get_default;
+	tp->tap.config.set_map = tp_tap_config_set_map;
+	tp->tap.config.get_map = tp_tap_config_get_map;
+	tp->tap.config.get_default_map = tp_tap_config_get_default_map;
 	tp->tap.config.set_drag_enabled = tp_tap_config_set_drag_enabled;
 	tp->tap.config.get_drag_enabled = tp_tap_config_get_drag_enabled;
 	tp->tap.config.get_default_drag_enabled = tp_tap_config_get_default_drag_enabled;
