@@ -322,6 +322,9 @@ struct tp_dispatch {
 		uint32_t buttons_pressed;
 		uint64_t first_press_time;
 
+		enum libinput_config_tap_button_map map;
+		enum libinput_config_tap_button_map want_map;
+
 		bool drag_enabled;
 		bool drag_lock_enabled;
 	} tap;
@@ -428,6 +431,9 @@ tp_touch_active(const struct tp_dispatch *tp, const struct tp_touch *t);
 
 int
 tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time);
+
+void
+tp_tap_post_process_state(struct tp_dispatch *tp);
 
 void
 tp_init_tap(struct tp_dispatch *tp);

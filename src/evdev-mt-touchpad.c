@@ -1110,6 +1110,8 @@ tp_post_process_state(struct tp_dispatch *tp, uint64_t time)
 	tp->buttons.old_state = tp->buttons.state;
 
 	tp->queued = TOUCHPAD_EVENT_NONE;
+
+	tp_tap_post_process_state(tp);
 }
 
 static void
