@@ -3038,7 +3038,9 @@ evdev_tablet_has_left_handed(struct evdev_device *device)
 		if (libwacom_is_reversible(d))
 			has_left_handed = true;
 	} else if (libwacom_error_get_code(error) == WERROR_UNKNOWN_MODEL) {
-		log_info(libinput, "Tablet unknown to libwacom\n");
+		log_info(libinput,
+			 "%s: tablet unknown to libwacom\n",
+			 device->devname);
 	} else {
 		log_error(libinput,
 			  "libwacom error: %s\n",
