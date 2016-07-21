@@ -710,6 +710,17 @@ litest_disable_tap(struct libinput_device *device)
 }
 
 static inline void
+litest_set_tap_map(struct libinput_device *device,
+		   enum libinput_config_tap_button_map map)
+{
+	enum libinput_config_status status, expected;
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_tap_set_button_map(device, map);
+	litest_assert_int_eq(status, expected);
+}
+
+static inline void
 litest_enable_tap_drag(struct libinput_device *device)
 {
 	enum libinput_config_status status, expected;
