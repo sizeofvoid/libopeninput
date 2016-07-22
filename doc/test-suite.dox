@@ -7,6 +7,12 @@ during `make check`. Check itself is wrapped into a libinput-specific test
 suite called *litest*. Tests are found in `$srcdir/test/`, the main test
 suite is `libinput-test-suite-runner`.
 
+The test suite has a make-like job control enabled by the `-j` or `--jobs`
+flag and will fork off as many parallel processes as given by this flag. The
+default if unspecified is 8. When debugging a specific test case failure it
+is recommended to employ test filtures (see @ref test-filtering) and disable
+parallel tests.
+
 @section test-config X.Org config to avoid interference
 
 uinput devices created by the test suite are usually recognised by X as

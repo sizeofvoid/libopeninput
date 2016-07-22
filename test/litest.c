@@ -63,6 +63,7 @@
 #define UDEV_TEST_DEVICE_RULE_FILE UDEV_RULES_D \
 	"/91-litest-test-device-REMOVEME.rules"
 
+static int jobs = 8;
 static int in_debugger = -1;
 static int verbose = 0;
 const char *filter_test = NULL;
@@ -325,6 +326,7 @@ struct suite {
 	struct list tests;
 	char *name;
 	Suite *suite;
+	bool used;
 };
 
 static struct litest_device *current_device;
@@ -576,6 +578,7 @@ get_suite(const char *name)
 	assert(s != NULL);
 	s->name = strdup(name);
 	s->suite = suite_create(s->name);
+	s->used = false;
 
 	list_init(&s->tests);
 	list_insert(&all_tests, &s->node);
@@ -875,12 +878,107 @@ litest_setup_sighandler(int sig)
 	litest_assert_int_ne(rc, -1);
 }
 
+static void
+litest_free_test_list(struct list *tests)
+{
+	struct suite *s, *snext;
+	SRunner *sr = NULL;
+
+	/* quirk needed for check: test suites can only get freed by adding
+	 * them to a test runner and freeing the runner. Without this,
+	 * valgrind complains */
+	list_for_each(s, tests, node) {
+		if (s->used)
+			continue;
+
+		if (!sr)
+			sr = srunner_create(s->suite);
+		else
+			srunner_add_suite(sr, s->suite);
+	}
+	srunner_free(sr);
+
+	list_for_each_safe(s, snext, tests, node) {
+		struct test *t, *tnext;
+
+		list_for_each_safe(t, tnext, &s->tests, node) {
+			free(t->name);
+			list_remove(&t->node);
+			free(t);
+		}
+
+		list_remove(&s->node);
+		free(s->name);
+		free(s);
+	}
+}
+
+static int
+litest_run_suite(char *argv0, struct list *tests, int which, int max)
+{
+	int failed = 0;
+	SRunner *sr = NULL;
+	struct suite *s;
+	int argvlen = strlen(argv0);
+	int count = -1;
+
+	if (max > 1)
+		snprintf(argv0, argvlen, "libinput-test-%-50d", which);
+
+	list_for_each(s, tests, node) {
+		++count;
+		if (max != 1 && (count % max) != which) {
+			continue;
+		}
+
+		if (!sr)
+			sr = srunner_create(s->suite);
+		else
+			srunner_add_suite(sr, s->suite);
+
+		s->used = true;
+	}
+
+	if (!sr)
+		return 0;
+
+	srunner_run_all(sr, CK_ENV);
+	failed = srunner_ntests_failed(sr);
+	srunner_free(sr);
+	return failed;
+}
+
+static int
+litest_fork_subtests(char *argv0, struct list *tests, int max_forks)
+{
+	int failed = 0;
+	int status;
+	pid_t pid;
+	int f;
+
+	for (f = 0; f < max_forks; f++) {
+		pid = fork();
+		if (pid == 0) {
+			failed = litest_run_suite(argv0, tests, f, max_forks);
+			litest_free_test_list(&all_tests);
+			exit(failed);
+			/* child always exits here */
+		}
+	}
+
+	/* parent process only */
+	while (wait(&status) != -1 && errno != ECHILD) {
+		if (WEXITSTATUS(status) != 0)
+			failed = 1;
+	}
+
+	return failed;
+}
+
 static inline int
 litest_run(int argc, char **argv)
 {
-	struct suite *s, *snext;
-	int failed;
-	SRunner *sr = NULL;
+	int failed = 0;
 
 	list_init(&created_files_list);
 
@@ -896,13 +994,6 @@ litest_run(int argc, char **argv)
 			setenv("CK_FORK", "no", 0);
 	}
 
-	list_for_each(s, &all_tests, node) {
-		if (!sr)
-			sr = srunner_create(s->suite);
-		else
-			srunner_add_suite(sr, s->suite);
-	}
-
 	if (getenv("LITEST_VERBOSE"))
 		verbose = 1;
 
@@ -910,23 +1001,12 @@ litest_run(int argc, char **argv)
 
 	litest_setup_sighandler(SIGINT);
 
-	srunner_run_all(sr, CK_ENV);
-	failed = srunner_ntests_failed(sr);
-	srunner_free(sr);
+	if (jobs == 1)
+		failed = litest_run_suite(argv[0], &all_tests, 1, 1);
+	else
+		failed = litest_fork_subtests(argv[0], &all_tests, jobs);
 
-	list_for_each_safe(s, snext, &all_tests, node) {
-		struct test *t, *tnext;
-
-		list_for_each_safe(t, tnext, &s->tests, node) {
-			free(t->name);
-			list_remove(&t->node);
-			free(t);
-		}
-
-		list_remove(&s->node);
-		free(s->name);
-		free(s);
-	}
+	litest_free_test_list(&all_tests);
 
 	litest_remove_udev_rules(&created_files_list);
 
@@ -3005,6 +3085,7 @@ litest_parse_argv(int argc, char **argv)
 		OPT_FILTER_TEST,
 		OPT_FILTER_DEVICE,
 		OPT_FILTER_GROUP,
+		OPT_JOBS,
 		OPT_LIST,
 		OPT_VERBOSE,
 	};
@@ -3012,6 +3093,7 @@ litest_parse_argv(int argc, char **argv)
 		{ "filter-test", 1, 0, OPT_FILTER_TEST },
 		{ "filter-device", 1, 0, OPT_FILTER_DEVICE },
 		{ "filter-group", 1, 0, OPT_FILTER_GROUP },
+		{ "jobs", 1, 0, OPT_JOBS },
 		{ "list", 0, 0, OPT_LIST },
 		{ "verbose", 0, 0, OPT_VERBOSE },
 		{ 0, 0, 0, 0}
@@ -3021,7 +3103,7 @@ litest_parse_argv(int argc, char **argv)
 		int c;
 		int option_index = 0;
 
-		c = getopt_long(argc, argv, "", opts, &option_index);
+		c = getopt_long(argc, argv, "j:", opts, &option_index);
 		if (c == -1)
 			break;
 		switch(c) {
@@ -3033,6 +3115,10 @@ litest_parse_argv(int argc, char **argv)
 			break;
 		case OPT_FILTER_GROUP:
 			filter_group = optarg;
+			break;
+		case 'j':
+		case OPT_JOBS:
+			jobs = atoi(optarg);
 			break;
 		case OPT_LIST:
 			return LITEST_MODE_LIST;
