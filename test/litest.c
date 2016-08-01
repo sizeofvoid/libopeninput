@@ -751,35 +751,6 @@ _litest_add_ranged_for_device(const char *name,
 		litest_abort_msg("Invalid test device type");
 }
 
-static int
-is_debugger_attached(void)
-{
-	int status;
-	int rc;
-	int pid = fork();
-
-	if (pid == -1)
-		return 0;
-
-	if (pid == 0) {
-		int ppid = getppid();
-		if (ptrace(PTRACE_ATTACH, ppid, NULL, NULL) == 0) {
-			waitpid(ppid, NULL, 0);
-			ptrace(PTRACE_CONT, NULL, NULL);
-			ptrace(PTRACE_DETACH, ppid, NULL, NULL);
-			rc = 0;
-		} else {
-			rc = 1;
-		}
-		_exit(rc);
-	} else {
-		waitpid(pid, &status, 0);
-		rc = WEXITSTATUS(status);
-	}
-
-	return rc;
-}
-
 static void
 litest_log_handler(struct libinput *libinput,
 		   enum libinput_log_priority pri,
@@ -986,12 +957,6 @@ litest_run(int argc, char **argv)
 		fprintf(stderr,
 			"Error: filters are too strict, no tests to run.\n");
 		return 1;
-	}
-
-	if (in_debugger == -1) {
-		in_debugger = is_debugger_attached();
-		if (in_debugger)
-			setenv("CK_FORK", "no", 0);
 	}
 
 	if (getenv("LITEST_VERBOSE"))
@@ -3105,6 +3070,9 @@ litest_parse_argv(int argc, char **argv)
 		JOBS_CUSTOM
 	} want_jobs = JOBS_DEFAULT;
 
+	if (in_debugger)
+		want_jobs = JOBS_SINGLE;
+
 	while(1) {
 		int c;
 		int option_index = 0;
@@ -3151,6 +3119,35 @@ litest_parse_argv(int argc, char **argv)
 }
 
 #ifndef LITEST_NO_MAIN
+static int
+is_debugger_attached(void)
+{
+	int status;
+	int rc;
+	int pid = fork();
+
+	if (pid == -1)
+		return 0;
+
+	if (pid == 0) {
+		int ppid = getppid();
+		if (ptrace(PTRACE_ATTACH, ppid, NULL, NULL) == 0) {
+			waitpid(ppid, NULL, 0);
+			ptrace(PTRACE_CONT, NULL, NULL);
+			ptrace(PTRACE_DETACH, ppid, NULL, NULL);
+			rc = 0;
+		} else {
+			rc = 1;
+		}
+		_exit(rc);
+	} else {
+		waitpid(pid, &status, 0);
+		rc = WEXITSTATUS(status);
+	}
+
+	return rc;
+}
+
 static void
 litest_list_tests(struct list *tests)
 {
@@ -3174,6 +3171,10 @@ main(int argc, char **argv)
 
 	setenv("CK_DEFAULT_TIMEOUT", "30", 0);
 	setenv("LIBINPUT_RUNNING_TEST_SUITE", "1", 1);
+
+	in_debugger = is_debugger_attached();
+	if (in_debugger)
+		setenv("CK_FORK", "no", 0);
 
 	mode = litest_parse_argv(argc, argv);
 	if (mode == LITEST_MODE_ERROR)

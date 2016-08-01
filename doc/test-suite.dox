@@ -11,7 +11,8 @@ The test suite has a make-like job control enabled by the `-j` or `--jobs`
 flag and will fork off as many parallel processes as given by this flag. The
 default if unspecified is 8. When debugging a specific test case failure it
 is recommended to employ test filtures (see @ref test-filtering) and disable
-parallel tests.
+parallel tests. The test suite automatically disables parallel make when run
+in gdb.
 
 @section test-config X.Org config to avoid interference
 
