@@ -67,6 +67,23 @@ http://wayland.freedesktop.org/libinput/doc/latest/modules.html
 High-level documentation about libinput's features:
 http://wayland.freedesktop.org/libinput/doc/latest/pages.html
 
+Examples of how to use libinput are the debugging tools in the libinput
+repository. Developers are encouraged to look at those tools for a
+real-world (yet simple) example on how to use libinput.
+
+- A commandline debugging tool: https://cgit.freedesktop.org/wayland/libinput/tree/tools/event-debug.c
+- A GTK application that draws cursor/touch/tablet positions: https://cgit.freedesktop.org/wayland/libinput/tree/tools/event-gui.c
+
+libinput provides a
+[pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) file.
+Usually a program will use the `PKG_CHECK_MODULES` autoconf macro.
+Otherwise, the most rudimentary way to compile and link a program against
+libinput is:
+
+    gcc -o myprogram myprogram.c `pkg-config --cflags --libs libinput`
+
+For further information on using pkgconfig see the pkg-config documentation.
+
 License
 -------
 
