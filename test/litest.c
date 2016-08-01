@@ -3099,6 +3099,12 @@ litest_parse_argv(int argc, char **argv)
 		{ 0, 0, 0, 0}
 	};
 
+	enum {
+		JOBS_DEFAULT,
+		JOBS_SINGLE,
+		JOBS_CUSTOM
+	} want_jobs = JOBS_DEFAULT;
+
 	while(1) {
 		int c;
 		int option_index = 0;
@@ -3109,16 +3115,23 @@ litest_parse_argv(int argc, char **argv)
 		switch(c) {
 		case OPT_FILTER_TEST:
 			filter_test = optarg;
+			if (want_jobs == JOBS_DEFAULT)
+				want_jobs = JOBS_SINGLE;
 			break;
 		case OPT_FILTER_DEVICE:
 			filter_device = optarg;
+			if (want_jobs == JOBS_DEFAULT)
+				want_jobs = JOBS_SINGLE;
 			break;
 		case OPT_FILTER_GROUP:
 			filter_group = optarg;
+			if (want_jobs == JOBS_DEFAULT)
+				want_jobs = JOBS_SINGLE;
 			break;
 		case 'j':
 		case OPT_JOBS:
 			jobs = atoi(optarg);
+			want_jobs = JOBS_CUSTOM;
 			break;
 		case OPT_LIST:
 			return LITEST_MODE_LIST;
@@ -3130,6 +3143,9 @@ litest_parse_argv(int argc, char **argv)
 			return LITEST_MODE_ERROR;
 		}
 	}
+
+	if (want_jobs == JOBS_SINGLE)
+		jobs = 1;
 
 	return LITEST_MODE_TEST;
 }
