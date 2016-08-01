@@ -296,7 +296,7 @@ START_TEST(device_reenable_syspath_changed)
 {
 	struct libinput *li;
 	struct litest_device *litest_device;
-	struct libinput_device *device1, *device2;
+	struct libinput_device *device1;
 	enum libinput_config_status status;
 	struct libinput_event *event;
 
@@ -315,12 +315,6 @@ START_TEST(device_reenable_syspath_changed)
 	litest_drain_events(li);
 
 	litest_device = litest_add_device(li, LITEST_MOUSE);
-	device2 = litest_device->libinput_device;
-	/* Note: if the sysname isn't the same, some other device got added
-	 * or removed while this test was running.  This is unlikely and
-	 * would result in a false positive, so let's fail the test here */
-	ck_assert_str_eq(libinput_device_get_sysname(device1),
-			 libinput_device_get_sysname(device2));
 
 	status = libinput_device_config_send_events_set_mode(device1,
 			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
