@@ -67,6 +67,7 @@ enum evdev_device_udev_tags {
         EVDEV_UDEV_TAG_ACCELEROMETER = (1 << 7),
         EVDEV_UDEV_TAG_TABLET_PAD = (1 << 8),
         EVDEV_UDEV_TAG_POINTINGSTICK = (1 << 9),
+        EVDEV_UDEV_TAG_TRACKBALL = (1 << 10),
 };
 
 struct evdev_udev_tag_match {
@@ -86,6 +87,7 @@ static const struct evdev_udev_tag_match evdev_udev_tag_matches[] = {
 	{"ID_INPUT_JOYSTICK",		EVDEV_UDEV_TAG_JOYSTICK},
 	{"ID_INPUT_ACCELEROMETER",	EVDEV_UDEV_TAG_ACCELEROMETER},
 	{"ID_INPUT_POINTINGSTICK",	EVDEV_UDEV_TAG_POINTINGSTICK},
+	{"ID_INPUT_TRACKBALL",		EVDEV_UDEV_TAG_TRACKBALL},
 
 	/* sentinel value */
 	{ 0 },
@@ -1952,8 +1954,9 @@ evdev_read_model_flags(struct evdev_device *device)
 		MODEL(DELL_TOUCHPAD),
 		MODEL(TRACKBALL),
 		MODEL(APPLE_MAGICMOUSE),
-		{ NULL, EVDEV_MODEL_DEFAULT },
 #undef MODEL
+		{ "ID_INPUT_TRACKBALL", EVDEV_MODEL_TRACKBALL },
+		{ NULL, EVDEV_MODEL_DEFAULT },
 	};
 	const struct model_map *m = model_map;
 	uint32_t model_flags = 0;
@@ -2254,7 +2257,7 @@ evdev_configure_device(struct evdev_device *device)
 	}
 
 	log_info(libinput,
-		 "input device '%s', %s is tagged by udev as:%s%s%s%s%s%s%s%s%s\n",
+		 "input device '%s', %s is tagged by udev as:%s%s%s%s%s%s%s%s%s%s\n",
 		 device->devname, devnode,
 		 udev_tags & EVDEV_UDEV_TAG_KEYBOARD ? " Keyboard" : "",
 		 udev_tags & EVDEV_UDEV_TAG_MOUSE ? " Mouse" : "",
@@ -2264,7 +2267,8 @@ evdev_configure_device(struct evdev_device *device)
 		 udev_tags & EVDEV_UDEV_TAG_POINTINGSTICK ? " Pointingstick" : "",
 		 udev_tags & EVDEV_UDEV_TAG_JOYSTICK ? " Joystick" : "",
 		 udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER ? " Accelerometer" : "",
-		 udev_tags & EVDEV_UDEV_TAG_TABLET_PAD ? " TabletPad" : "");
+		 udev_tags & EVDEV_UDEV_TAG_TABLET_PAD ? " TabletPad" : "",
+		 udev_tags & EVDEV_UDEV_TAG_TRACKBALL ? " Trackball" : "");
 
 	if (udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER) {
 		log_info(libinput,
