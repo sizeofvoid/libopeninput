@@ -452,7 +452,7 @@ fallback_flush_absolute_motion(struct fallback_dispatch *dispatch,
 	pointer_notify_motion_absolute(base, time, &point);
 }
 
-static void
+static bool
 fallback_flush_mt_down(struct fallback_dispatch *dispatch,
 		       struct evdev_device *device,
 		       int slot_idx,
@@ -465,7 +465,7 @@ fallback_flush_mt_down(struct fallback_dispatch *dispatch,
 	int seat_slot;
 
 	if (!(device->seat_caps & EVDEV_DEVICE_TOUCH))
-		return;
+		return false;
 
 	slot = &dispatch->mt.slots[slot_idx];
 	if (slot->seat_slot != -1) {
@@ -475,14 +475,14 @@ fallback_flush_mt_down(struct fallback_dispatch *dispatch,
 			       "%s: Driver sent multiple touch down for the "
 			       "same slot",
 			       udev_device_get_devnode(device->udev_device));
-		return;
+		return false;
 	}
 
 	seat_slot = ffs(~seat->slot_map) - 1;
 	slot->seat_slot = seat_slot;
 
 	if (seat_slot == -1)
-		return;
+		return false;
 
 	seat->slot_map |= 1 << seat_slot;
 	point = slot->point;
@@ -491,9 +491,11 @@ fallback_flush_mt_down(struct fallback_dispatch *dispatch,
 
 	touch_notify_touch_down(base, time, slot_idx, seat_slot,
 				&point);
+
+	return true;
 }
 
-static void
+static bool
 fallback_flush_mt_motion(struct fallback_dispatch *dispatch,
 			 struct evdev_device *device,
 			 int slot_idx,
@@ -505,24 +507,26 @@ fallback_flush_mt_motion(struct fallback_dispatch *dispatch,
 	int seat_slot;
 
 	if (!(device->seat_caps & EVDEV_DEVICE_TOUCH))
-		return;
+		return false;
 
 	slot = &dispatch->mt.slots[slot_idx];
 	seat_slot = slot->seat_slot;
 	point = slot->point;
 
 	if (seat_slot == -1)
-		return;
+		return false;
 
 	if (fallback_filter_defuzz_touch(dispatch, device, slot))
-		return;
+		return false;
 
 	evdev_transform_absolute(device, &point);
 	touch_notify_touch_motion(base, time, slot_idx, seat_slot,
 				  &point);
+
+	return true;
 }
 
-static void
+static bool
 fallback_flush_mt_up(struct fallback_dispatch *dispatch,
 		     struct evdev_device *device,
 		     int slot_idx,
@@ -534,21 +538,23 @@ fallback_flush_mt_up(struct fallback_dispatch *dispatch,
 	int seat_slot;
 
 	if (!(device->seat_caps & EVDEV_DEVICE_TOUCH))
-		return;
+		return false;
 
 	slot = &dispatch->mt.slots[slot_idx];
 	seat_slot = slot->seat_slot;
 	slot->seat_slot = -1;
 
 	if (seat_slot == -1)
-		return;
+		return false;
 
 	seat->slot_map &= ~(1 << seat_slot);
 
 	touch_notify_touch_up(base, time, slot_idx, seat_slot);
+
+	return true;
 }
 
-static void
+static bool
 fallback_flush_st_down(struct fallback_dispatch *dispatch,
 		       struct evdev_device *device,
 		       uint64_t time)
@@ -559,7 +565,7 @@ fallback_flush_st_down(struct fallback_dispatch *dispatch,
 	int seat_slot;
 
 	if (!(device->seat_caps & EVDEV_DEVICE_TOUCH))
-		return;
+		return false;
 
 	if (dispatch->abs.seat_slot != -1) {
 		struct libinput *libinput = evdev_libinput_context(device);
@@ -568,14 +574,14 @@ fallback_flush_st_down(struct fallback_dispatch *dispatch,
 			       "%s: Driver sent multiple touch down for the "
 			       "same slot",
 			       udev_device_get_devnode(device->udev_device));
-		return;
+		return false;
 	}
 
 	seat_slot = ffs(~seat->slot_map) - 1;
 	dispatch->abs.seat_slot = seat_slot;
 
 	if (seat_slot == -1)
-		return;
+		return false;
 
 	seat->slot_map |= 1 << seat_slot;
 
@@ -583,9 +589,11 @@ fallback_flush_st_down(struct fallback_dispatch *dispatch,
 	evdev_transform_absolute(device, &point);
 
 	touch_notify_touch_down(base, time, -1, seat_slot, &point);
+
+	return true;
 }
 
-static void
+static bool
 fallback_flush_st_motion(struct fallback_dispatch *dispatch,
 			 struct evdev_device *device,
 			 uint64_t time)
@@ -600,12 +608,14 @@ fallback_flush_st_motion(struct fallback_dispatch *dispatch,
 	seat_slot = dispatch->abs.seat_slot;
 
 	if (seat_slot == -1)
-		return;
+		return false;
 
 	touch_notify_touch_motion(base, time, -1, seat_slot, &point);
+
+	return true;
 }
 
-static void
+static bool
 fallback_flush_st_up(struct fallback_dispatch *dispatch,
 		     struct evdev_device *device,
 		     uint64_t time)
@@ -615,17 +625,19 @@ fallback_flush_st_up(struct fallback_dispatch *dispatch,
 	int seat_slot;
 
 	if (!(device->seat_caps & EVDEV_DEVICE_TOUCH))
-		return;
+		return false;
 
 	seat_slot = dispatch->abs.seat_slot;
 	dispatch->abs.seat_slot = -1;
 
 	if (seat_slot == -1)
-		return;
+		return false;
 
 	seat->slot_map &= ~(1 << seat_slot);
 
 	touch_notify_touch_up(base, time, -1, seat_slot);
+
+	return true;
 }
 
 static enum evdev_event_type
@@ -646,23 +658,40 @@ fallback_flush_pending_event(struct fallback_dispatch *dispatch,
 		break;
 	case EVDEV_ABSOLUTE_MT_DOWN:
 		slot_idx = dispatch->mt.slot;
-		fallback_flush_mt_down(dispatch, device, slot_idx, time);
+		if (!fallback_flush_mt_down(dispatch,
+					    device,
+					    slot_idx,
+					    time))
+			sent_event = EVDEV_NONE;
 		break;
 	case EVDEV_ABSOLUTE_MT_MOTION:
 		slot_idx = dispatch->mt.slot;
-		fallback_flush_mt_motion(dispatch, device, slot_idx, time);
+		if (!fallback_flush_mt_motion(dispatch,
+					      device,
+					      slot_idx,
+					      time))
+			sent_event = EVDEV_NONE;
 		break;
 	case EVDEV_ABSOLUTE_MT_UP:
 		slot_idx = dispatch->mt.slot;
-		fallback_flush_mt_up(dispatch, device, slot_idx, time);
+		if (!fallback_flush_mt_up(dispatch,
+					  device,
+					  slot_idx,
+					  time))
+			sent_event = EVDEV_NONE;
 		break;
 	case EVDEV_ABSOLUTE_TOUCH_DOWN:
-		fallback_flush_st_down(dispatch, device, time);
+		if (!fallback_flush_st_down(dispatch, device, time))
+			sent_event = EVDEV_NONE;
 		break;
 	case EVDEV_ABSOLUTE_MOTION:
 		if (device->seat_caps & EVDEV_DEVICE_TOUCH) {
-			fallback_flush_st_motion(dispatch, device, time);
-			sent_event = EVDEV_ABSOLUTE_MT_MOTION;
+			if (fallback_flush_st_motion(dispatch,
+						     device,
+						     time))
+				sent_event = EVDEV_ABSOLUTE_MT_MOTION;
+			else
+				sent_event = EVDEV_NONE;
 		} else if (device->seat_caps & EVDEV_DEVICE_POINTER) {
 			fallback_flush_absolute_motion(dispatch,
 						       device,
@@ -670,7 +699,8 @@ fallback_flush_pending_event(struct fallback_dispatch *dispatch,
 		}
 		break;
 	case EVDEV_ABSOLUTE_TOUCH_UP:
-		fallback_flush_st_up(dispatch, device, time);
+		if (!fallback_flush_st_up(dispatch, device, time))
+			sent_event = EVDEV_NONE;
 		break;
 	default:
 		assert(0 && "Unknown pending event type");
