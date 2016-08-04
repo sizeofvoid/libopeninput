@@ -957,8 +957,11 @@ tp_need_motion_history_reset(struct tp_dispatch *tp)
 {
 	bool rc = false;
 
-	/* semi-mt finger postions may "jump" when nfingers changes */
-	if (tp->semi_mt && tp->nfingers_down != tp->old_nfingers_down)
+	/* Semi-mt finger postions may "jump" when nfingers changes. And on
+	 * a non-clickpad the only reason to have more than one finger down
+	 * is scrolling/gesture, so a reset just makes things sane again */
+	if ((tp->semi_mt || !tp->buttons.is_clickpad) &&
+	    tp->nfingers_down != tp->old_nfingers_down)
 		return true;
 
 	/* if we're transitioning between slots and fake touches in either
