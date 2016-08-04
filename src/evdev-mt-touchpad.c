@@ -1344,7 +1344,7 @@ tp_keyboard_timeout(uint64_t now, void *data)
 }
 
 static inline bool
-tp_key_ignore_for_dwt(unsigned int keycode)
+tp_key_is_modifier(unsigned int keycode)
 {
 	switch (keycode) {
 	/* Ignore modifiers to be responsive to ctrl-click, alt-tab, etc. */
@@ -1362,16 +1362,21 @@ tp_key_ignore_for_dwt(unsigned int keycode)
 	case KEY_LEFTMETA:
 		return true;
 	default:
-		break;
+		return false;
 	}
+}
 
+static inline bool
+tp_key_ignore_for_dwt(unsigned int keycode)
+{
 	/* Ignore keys not part of the "typewriter set", i.e. F-keys,
 	 * multimedia keys, numpad, etc.
 	 */
-	if (keycode >= KEY_F1)
-		return true;
 
-	return false;
+	if (tp_key_is_modifier(keycode))
+		return false;
+
+	return keycode >= KEY_F1;
 }
 
 static void
@@ -1381,6 +1386,7 @@ tp_keyboard_event(uint64_t time, struct libinput_event *event, void *data)
 	struct libinput_event_keyboard *kbdev;
 	unsigned int timeout;
 	unsigned int key;
+	bool is_modifier;
 
 	if (event->type != LIBINPUT_EVENT_KEYBOARD_KEY)
 		return;
@@ -1392,18 +1398,34 @@ tp_keyboard_event(uint64_t time, struct libinput_event *event, void *data)
 	if (libinput_event_keyboard_get_key_state(kbdev) !=
 	    LIBINPUT_KEY_STATE_PRESSED) {
 		long_clear_bit(tp->dwt.key_mask, key);
+		long_clear_bit(tp->dwt.mod_mask, key);
 		return;
 	}
 
 	if (!tp->dwt.dwt_enabled)
 		return;
 
-	/* modifier keys don't trigger disable-while-typing so things like
-	 * ctrl+zoom or ctrl+click are possible */
 	if (tp_key_ignore_for_dwt(key))
 		return;
 
+	/* modifier keys don't trigger disable-while-typing so things like
+	 * ctrl+zoom or ctrl+click are possible */
+	is_modifier = tp_key_is_modifier(key);
+	if (is_modifier) {
+		long_set_bit(tp->dwt.mod_mask, key);
+		return;
+	}
+
 	if (!tp->dwt.keyboard_active) {
+		/* This is the first non-modifier key press. Check if the
+		 * modifier mask is set. If any modifier is down we don't
+		 * trigger dwt because it's likely to be combination like
+		 * Ctrl+S or similar */
+
+		if (long_any_bit_set(tp->dwt.mod_mask,
+				     ARRAY_LENGTH(tp->dwt.mod_mask)))
+		    return;
+
 		tp_edge_scroll_stop_events(tp, time);
 		tp_gesture_cancel(tp, time);
 		tp_tap_suspend(tp, time);
@@ -1482,6 +1504,7 @@ tp_dwt_pair_keyboard(struct evdev_device *touchpad,
 			return;
 
 		memset(tp->dwt.key_mask, 0, sizeof(tp->dwt.key_mask));
+		memset(tp->dwt.mod_mask, 0, sizeof(tp->dwt.mod_mask));
 		libinput_device_remove_event_listener(&tp->dwt.keyboard_listener);
 	}
 

@@ -351,6 +351,7 @@ struct tp_dispatch {
 		struct libinput_timer keyboard_timer;
 		struct evdev_device *keyboard;
 		unsigned long key_mask[NLONGS(KEY_CNT)];
+		unsigned long mod_mask[NLONGS(KEY_CNT)];
 
 		uint64_t keyboard_last_press_time;
 	} dwt;
