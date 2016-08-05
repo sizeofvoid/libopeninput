@@ -54,6 +54,52 @@ option is not exposed by the intermediary, it cannot be configured by the
 client. Also some configuration options that are provided by the
 intermediary may not be libinput-specific configuration options.
 
+@section faq_configure_wayland How do I configure my device on Wayland?
+
+See @ref faq_config_options Use the configuration tool provided by your
+desktop environment (e.g. gnome-control-center) or direct access to your
+desktop environment's configuration storage (e.g. gsettings).
+
+@section faq_configure_xorg How do I configure my device on X?
+
+See @ref faq_config_options  If your desktop environment does not provide a
+graphical configuration tool you can use an
+<a href="https://www.x.org/archive/current/doc/man/man5/xorg.conf.5.xhtml">xorg.conf.d snippet</a>.
+Usually, such a snippet looks like this:
+<pre>
+$> cat /etc/X11/xorg.conf.d/99-libinput-custom-config.conf
+Section "InputClass"
+  Identifier "something to identify this snippet"
+  MatchDriver "libinput"
+  MatchProduct "substring of the device name"
+  Option "some option name" "the option value"
+EndSection
+</pre>
+
+The identifier is merely a human-readable string that shows up in the log
+file. The MatchProduct line should contain the device name or a substring of
+the device name that the snippet should apply to. For a full list of option
+names and permitted values, see the
+<a href="https://www.mankier.com/4/libinput">libinput man page</a>.
+xorg.conf.d snippets like the above apply to hotplugged devices but can be
+overwritten at runtime by desktop tools. Multiple snippets may be placed
+into the same file.
+
+For run-time configuration and testing, the
+<a href="https://www.x.org/archive/X11R7.5/doc/man/man1/xinput.1.html">xinput</a>
+debugging tool can modify a devices' properties. See the
+<a href="https://www.mankier.com/4/libinput">libinput man page</a>
+for supported property names and values. Usually, an invocation looks like
+this:
+<pre>
+$> xinput set-prop "the device name" "the property name" value [value2] [value3]
+</pre>
+
+@note
+Changes performed by xinput do not persist across device hotplugs. xinput is
+considered a debugging and testing tool only and should not be used for
+permanent configurations.
+
 @section faq_hwdb_changes How to apply hwdb changes
 
 Sometimes users are asked to test updates to the <a
