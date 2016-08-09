@@ -4,8 +4,15 @@
 The libinput test suite is based on
 [Check](http://check.sourceforge.net/doc/check_html/) and runs automatically
 during `make check`. Check itself is wrapped into a libinput-specific test
-suite called *litest*. Tests are found in `$srcdir/test/`, the test binaries are
-prefixed with `test-` and can be run individually. 
+suite called *litest*. Tests are found in `$srcdir/test/`, the main test
+suite is `libinput-test-suite-runner`.
+
+The test suite has a make-like job control enabled by the `-j` or `--jobs`
+flag and will fork off as many parallel processes as given by this flag. The
+default if unspecified is 8. When debugging a specific test case failure it
+is recommended to employ test filtures (see @ref test-filtering) and disable
+parallel tests. The test suite automatically disables parallel make when run
+in gdb.
 
 @section test-config X.Org config to avoid interference
 
@@ -30,7 +37,7 @@ litest's tests are grouped by test groups and devices. A test group is e.g.
 Each test function is (usually) run with one or more specific devices.
 The `--list` commandline argument shows the list of suites and tests.
 @code
-$ ./test/test-device --list
+$ ./test/libinput-test-suite-runner --list
 device:wheel:
 	wheel only
 	blackwidow
@@ -56,7 +63,7 @@ The `--filter-test` argument enables selective running of tests through
 basic shell-style function name matching. For example:
 
 @code
-$ ./test/test-touchpad --filter-test="*1fg_tap*"
+$ ./test/libinput-test-suite-runner --filter-test="*1fg_tap*"
 @endcode
 
 The `--filter-device` argument enables selective running of tests through
@@ -64,7 +71,7 @@ basic shell-style device name matching. The device names matched are the
 litest-specific shortnames, see the output of `--list`. For example:
 
 @code
-$ ./test/test-touchpad --filter-device="synaptics*"
+$ ./test/libinput-test-suite-runner --filter-device="synaptics*"
 @endcode
 
 The `--filter-group` argument enables selective running of test groups
@@ -72,7 +79,7 @@ through basic shell-style test group matching. The test groups matched are
 litest-specific test groups, see the output of `--list`. For example:
 
 @code
-$ ./test/test-touchpad --filter-group="touchpad:*hover*"
+$ ./test/libinput-test-suite-runner --filter-group="touchpad:*hover*"
 @endcode
 
 The `--filter-device` and `--filter-group` arguments can be combined with
@@ -85,7 +92,7 @@ output, see libinput_log_set_priority() for details. The `LITEST_VERBOSE`
 environment variable, if set, also enables verbose mode.
 
 @code
-$ ./test/test-device --verbose
+$ ./test/libinput-test-suite-runner --verbose
 $ LITEST_VERBOSE=1 make check
 @endcode
 
