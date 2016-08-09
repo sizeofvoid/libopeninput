@@ -189,12 +189,18 @@ tp_tap_touch_handle_event(struct tp_dispatch *tp,
 		tp_tap_set_timer(tp, time);
 		break;
 	case TAP_EVENT_RELEASE:
-		tp_tap_notify(tp, tp->tap.first_press_time, 1, LIBINPUT_BUTTON_STATE_PRESSED);
+		tp_tap_notify(tp,
+			      tp->tap.first_press_time,
+			      1,
+			      LIBINPUT_BUTTON_STATE_PRESSED);
 		if (tp->tap.drag_enabled) {
 			tp->tap.state = TAP_STATE_TAPPED;
 			tp_tap_set_timer(tp, time);
 		} else {
-			tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_RELEASED);
+			tp_tap_notify(tp,
+				      time,
+				      1,
+				      LIBINPUT_BUTTON_STATE_RELEASED);
 			tp->tap.state = TAP_STATE_IDLE;
 		}
 		break;
