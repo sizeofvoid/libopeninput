@@ -35,6 +35,7 @@
 
 @page developers Developers
 
+- @subpage building_libinput
 - @subpage test-suite
 - @subpage tools
 - @subpage pointer-acceleration

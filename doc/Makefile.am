@@ -8,6 +8,7 @@ header_files = \
 	$(top_srcdir)/README.txt \
 	$(srcdir)/absolute-axes.dox \
 	$(srcdir)/absolute-coordinate-ranges.dox \
+	$(srcdir)/building.dox \
 	$(srcdir)/clickpad-softbuttons.dox \
 	$(srcdir)/device-configuration-via-udev.dox \
 	$(srcdir)/faqs.dox \
