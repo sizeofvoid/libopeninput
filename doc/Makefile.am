@@ -13,6 +13,7 @@ header_files = \
 	$(srcdir)/device-configuration-via-udev.dox \
 	$(srcdir)/faqs.dox \
 	$(srcdir)/gestures.dox \
+	$(srcdir)/middle-button-emulation.dox \
 	$(srcdir)/normalization-of-relative-motion.dox \
 	$(srcdir)/palm-detection.dox \
 	$(srcdir)/page-hierarchy.dox \

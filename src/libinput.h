@@ -4569,8 +4569,7 @@ enum libinput_config_middle_emulation_state {
  * @ingroup config
  *
  * Check if middle mouse button emulation configuration is available on this
- * device. See libinput_device_config_middle_emulation_set_enabled() for
- * details.
+ * device. See @ref middle_button_emulation for details.
  *
  * @note Some devices provide middle mouse button emulation but do not allow
  * enabling/disabling that emulation. These devices return zero in
@@ -4597,19 +4596,7 @@ libinput_device_config_middle_emulation_is_available(
  * button event. Releasing the buttons generates a middle mouse button
  * release, the left and right button events are discarded otherwise.
  *
- * The middle button release event may be generated when either button is
- * released, or when both buttons have been released. The exact behavior is
- * device-dependent.
- *
- * The middle button emulation behavior when combined with other device
- * buttons, including a physical middle button is device-dependent.
- * For example, @ref clickpad_softbuttons provides a middle button area when
- * middle button emulation is disabled. That middle button area disappears
- * when middle button emulation is enabled - a middle click can then only be
- * triggered by a simultaneous left + right click.
- *
- * @note Some devices provide middle mouse button emulation but do not allow
- * enabling/disabling that emulation.
+ * See @ref middle_button_emulation for details.
  *
  * @param device The device to configure
  * @param enable @ref LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED to
@@ -4632,6 +4619,8 @@ libinput_device_config_middle_emulation_set_enabled(
  * @ingroup config
  *
  * Check if configurable middle button emulation is enabled on this device.
+ * See @ref middle_button_emulation for details.
+ *
  * If the device does not have configurable middle button emulation, this
  * function returns @ref LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED.
  *
@@ -4656,7 +4645,9 @@ libinput_device_config_middle_emulation_get_enabled(
  * @ingroup config
  *
  * Check if configurable middle button emulation is enabled by default on
- * this device. If the device does not have configurable middle button
+ * this device. See @ref middle_button_emulation for details.
+ *
+ * If the device does not have configurable middle button
  * emulation, this function returns @ref
  * LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED.
  *

@@ -17,6 +17,7 @@
 @page pointers Mice, Trackballs, etc.
 
 - @subpage motion_normalization
+- @subpage middle_button_emulation
 
 @page tablets Graphics Tablets
 
