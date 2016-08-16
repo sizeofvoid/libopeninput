@@ -56,6 +56,7 @@ static const char udev_rule[] =
 "\n"
 "ATTRS{name}==\"litest Wheel Click Angle Mouse*\",\\\n"
 "    ENV{MOUSE_WHEEL_CLICK_ANGLE}=\"-7\"\n"
+"    ENV{MOUSE_WHEEL_CLICK_ANGLE_HORIZONTAL}=\"13\"\n"
 "\n"
 "LABEL=\"wheel_click_angle_end\"";
 

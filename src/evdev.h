@@ -187,7 +187,7 @@ struct evdev_device {
 		bool natural_scrolling_enabled;
 
 		/* angle per REL_WHEEL click in degrees */
-		int wheel_click_angle;
+		struct wheel_angle wheel_click_angle;
 	} scroll;
 
 	struct {

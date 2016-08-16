@@ -72,6 +72,11 @@ struct normalized_range_coords {
 };
 
 /* A pair of angles in degrees */
+struct wheel_angle {
+	int x, y;
+};
+
+/* A pair of angles in degrees */
 struct tilt_degrees {
 	double x, y;
 };

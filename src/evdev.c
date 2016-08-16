@@ -805,7 +805,7 @@ fallback_process_relative(struct fallback_dispatch *dispatch,
 	case REL_WHEEL:
 		fallback_flush_pending_event(dispatch, device, time);
 		wheel_degrees.y = -1 * e->value *
-					device->scroll.wheel_click_angle;
+					device->scroll.wheel_click_angle.x;
 		discrete.y = -1 * e->value;
 		evdev_notify_axis(
 			device,
@@ -817,7 +817,8 @@ fallback_process_relative(struct fallback_dispatch *dispatch,
 		break;
 	case REL_HWHEEL:
 		fallback_flush_pending_event(dispatch, device, time);
-		wheel_degrees.x = e->value * device->scroll.wheel_click_angle;
+		wheel_degrees.x = e->value *
+					device->scroll.wheel_click_angle.y;
 		discrete.x = e->value;
 		evdev_notify_axis(
 			device,
@@ -1815,27 +1816,47 @@ evdev_device_init_pointer_acceleration(struct evdev_device *device,
 	}
 }
 
-static inline int
-evdev_read_wheel_click_prop(struct evdev_device *device)
+static inline bool
+evdev_read_wheel_click_prop(struct evdev_device *device,
+			    const char *prop,
+			    int *angle)
 {
-	const char *prop;
-	int angle = DEFAULT_WHEEL_CLICK_ANGLE;
+	int val;
 
-	prop = udev_device_get_property_value(device->udev_device,
-					      "MOUSE_WHEEL_CLICK_ANGLE");
-	if (prop) {
-		angle = parse_mouse_wheel_click_angle_property(prop);
-		if (!angle) {
-			log_error(evdev_libinput_context(device),
-				  "Mouse wheel click angle '%s' is present but invalid,"
-				  "using %d degrees instead\n",
-				  device->devname,
-				  DEFAULT_WHEEL_CLICK_ANGLE);
-			angle = DEFAULT_WHEEL_CLICK_ANGLE;
-		}
+	*angle = DEFAULT_WHEEL_CLICK_ANGLE;
+	prop = udev_device_get_property_value(device->udev_device, prop);
+	if (!prop)
+		return false;
+
+	val = parse_mouse_wheel_click_angle_property(prop);
+	if (angle) {
+		*angle = val;
+		return true;
 	}
 
-	return angle;
+	log_error(evdev_libinput_context(device),
+		  "Mouse wheel click angle '%s' is present but invalid,"
+		  "using %d degrees instead\n",
+		  device->devname,
+		  DEFAULT_WHEEL_CLICK_ANGLE);
+
+	return false;
+}
+
+static inline struct wheel_angle
+evdev_read_wheel_click_props(struct evdev_device *device)
+{
+	struct wheel_angle angles;
+
+	evdev_read_wheel_click_prop(device,
+				    "MOUSE_WHEEL_CLICK_ANGLE",
+				    &angles.x);
+	if (!evdev_read_wheel_click_prop(device,
+					 "MOUSE_WHEEL_CLICK_ANGLE_HORIZONTAL",
+					 &angles.y))
+		angles.y = angles.x;
+
+	return angles;
 }
 
 static inline int
@@ -2550,7 +2571,7 @@ evdev_device_create(struct libinput_seat *seat,
 	device->scroll.direction_lock_threshold = 5.0; /* Default may be overridden */
 	device->scroll.direction = 0;
 	device->scroll.wheel_click_angle =
-		evdev_read_wheel_click_prop(device);
+		evdev_read_wheel_click_props(device);
 	device->model_flags = evdev_read_model_flags(device);
 	device->dpi = DEFAULT_MOUSE_DPI;
 

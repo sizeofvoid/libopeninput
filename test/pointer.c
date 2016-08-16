@@ -474,17 +474,20 @@ START_TEST(pointer_button_auto_release)
 END_TEST
 
 static inline int
-wheel_click_angle(struct litest_device *dev)
+wheel_click_angle(struct litest_device *dev, int which)
 {
 	struct udev_device *d;
-	const char *prop;
+	const char *prop = NULL;
 	const int default_angle = 15;
 	int angle = default_angle;
 
 	d = libinput_device_get_udev_device(dev->libinput_device);
 	litest_assert_ptr_notnull(d);
 
-	prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_ANGLE");
+	if (which == REL_HWHEEL)
+		prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_ANGLE_HORIZONTAL");
+	if(!prop)
+		prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_ANGLE");
 	if (!prop)
 		goto out;
 
@@ -507,7 +510,7 @@ test_wheel_event(struct litest_device *dev, int which, int amount)
 
 	int scroll_step, expected, discrete;;
 
-	scroll_step = wheel_click_angle(dev);
+	scroll_step = wheel_click_angle(dev, which);
 	expected = amount * scroll_step;
 	discrete = amount;
 

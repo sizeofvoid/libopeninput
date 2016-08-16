@@ -334,7 +334,7 @@ normalize_wheel(struct tablet_dispatch *tablet,
 {
 	struct evdev_device *device = tablet->device;
 
-	return value * device->scroll.wheel_click_angle;
+	return value * device->scroll.wheel_click_angle.x;
 }
 
 static inline void
