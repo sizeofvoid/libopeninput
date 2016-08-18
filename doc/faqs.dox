@@ -120,7 +120,7 @@ commands below.
 
 Rebuild the hwdb and load the new set on your device:
 
-    sudo udevadm hwdb --reload
+    sudo udevadm hwdb --update
     sudo udevadm trigger /sys/class/input/eventX
     sudo udevadm test /sys/class/input/eventX
 
