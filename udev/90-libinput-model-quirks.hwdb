@@ -95,6 +95,10 @@ libinput:name:Cypress APA Trackpad ?cyapa?:dmi:*
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnHewlett-Packard:*pnHPCompaq8510w*
  LIBINPUT_MODEL_HP8510_TOUCHPAD=1
 
+# HP Stream 11
+evdev:name:SYN1EDE:00 06CB:7442:dmi:*svnHewlett-Packard:pnHPStreamNotebookPC11*
+ LIBINPUT_MODEL_HP_STREAM11_TOUCHPAD=1
+
 ##########################################
 # LENOVO
 ##########################################
