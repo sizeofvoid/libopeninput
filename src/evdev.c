@@ -1803,6 +1803,7 @@ evdev_read_model_flags(struct evdev_device *device)
 		MODEL(APPLE_INTERNAL_KEYBOARD),
 		MODEL(CYBORG_RAT),
 		MODEL(CYAPA),
+		MODEL(HP_STREAM11_TOUCHPAD),
 		MODEL(LENOVO_T450_TOUCHPAD),
 		MODEL(DELL_TOUCHPAD),
 		MODEL(TRACKBALL),
@@ -2439,6 +2440,12 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 		libevdev_disable_event_code(device->evdev, EV_KEY, BTN_TOOL_DOUBLETAP);
 		libevdev_disable_event_code(device->evdev, EV_KEY, BTN_TOOL_TRIPLETAP);
 	}
+
+	/* Touchpad is a clickpad but INPUT_PROP_BUTTONPAD is not set, see
+	 * fdo bug 97147. Remove when RMI4 is commonplace */
+	if (device->model_flags & EVDEV_MODEL_HP_STREAM11_TOUCHPAD)
+		libevdev_enable_property(device->evdev,
+					 INPUT_PROP_BUTTONPAD);
 }
 
 struct evdev_device *
