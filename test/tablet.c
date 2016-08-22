@@ -2766,8 +2766,8 @@ START_TEST(tablet_calibration_set_matrix_delta)
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tablet_event;
 	struct axis_replacement axes[] = {
-		{ ABS_DISTANCE, 10 },
-		{ ABS_PRESSURE, 0 },
+		{ ABS_DISTANCE, 0 },
+		{ ABS_PRESSURE, 10 },
 		{ -1, -1 }
 	};
 	int has_calibration;
@@ -2786,6 +2786,11 @@ START_TEST(tablet_calibration_set_matrix_delta)
 					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	x = libinput_event_tablet_tool_get_x(tablet_event);
 	y = libinput_event_tablet_tool_get_y(tablet_event);
+	libinput_event_destroy(event);
+
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
 	libinput_event_destroy(event);
 
 	litest_tablet_motion(dev, 80, 80, axes);
@@ -2812,6 +2817,11 @@ START_TEST(tablet_calibration_set_matrix_delta)
 					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	x = libinput_event_tablet_tool_get_x(tablet_event);
 	y = libinput_event_tablet_tool_get_y(tablet_event);
+	libinput_event_destroy(event);
+
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
 	libinput_event_destroy(event);
 
 	litest_tablet_motion(dev, 80, 80, axes);
