@@ -429,6 +429,10 @@ START_TEST(touchpad_edge_scroll_vert)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
+	litest_touch_down(dev, 0, 99, 20);
+	litest_touch_move_to(dev, 0, 99, 20, 99, 80, 10, 0);
+	litest_touch_up(dev, 0);
+
 	litest_drain_events(li);
 	litest_enable_edge_scroll(dev);
 
@@ -465,6 +469,10 @@ START_TEST(touchpad_edge_scroll_horiz)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
+
+	litest_touch_down(dev, 0, 99, 20);
+	litest_touch_move_to(dev, 0, 99, 20, 99, 80, 10, 0);
+	litest_touch_up(dev, 0);
 
 	if (!touchpad_has_horiz_edge_scroll_size(dev))
 		return;
