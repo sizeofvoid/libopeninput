@@ -339,6 +339,9 @@ tp_edge_scroll_handle_state(struct tp_dispatch *tp, uint64_t time)
 			if (t->state == TOUCH_BEGIN)
 				t->scroll.edge_state =
 					EDGE_SCROLL_TOUCH_STATE_AREA;
+			else if (t->state == TOUCH_END)
+				t->scroll.edge_state =
+					EDGE_SCROLL_TOUCH_STATE_NONE;
 		}
 		return;
 	}
