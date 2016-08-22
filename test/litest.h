@@ -529,6 +529,10 @@ void
 litest_drain_events(struct libinput *li);
 
 void
+litest_assert_event_type(struct libinput_event *event,
+			 enum libinput_event_type want);
+
+void
 litest_assert_empty_queue(struct libinput *li);
 
 struct libinput_event_pointer *

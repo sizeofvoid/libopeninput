@@ -2082,11 +2082,11 @@ litest_drain_events(struct libinput *li)
 }
 
 static const char *
-litest_event_type_str(struct libinput_event *event)
+litest_event_type_str(enum libinput_event_type type)
 {
 	const char *str = NULL;
 
-	switch (libinput_event_get_type(event)) {
+	switch (type) {
 	case LIBINPUT_EVENT_NONE:
 		abort();
 	case LIBINPUT_EVENT_DEVICE_ADDED:
@@ -2168,6 +2168,12 @@ litest_event_type_str(struct libinput_event *event)
 	return str;
 }
 
+static const char *
+litest_event_get_type_str(struct libinput_event *event)
+{
+	return litest_event_type_str(libinput_event_get_type(event));
+}
+
 static void
 litest_print_event(struct libinput_event *event)
 {
@@ -2184,7 +2190,7 @@ litest_print_event(struct libinput_event *event)
 	fprintf(stderr,
 		"device %s type %s ",
 		libinput_device_get_sysname(dev),
-		litest_event_type_str(event));
+		litest_event_get_type_str(event));
 	switch (type) {
 	case LIBINPUT_EVENT_POINTER_MOTION:
 		p = libinput_event_get_pointer_event(event);
@@ -2260,6 +2266,23 @@ litest_print_event(struct libinput_event *event)
 	}
 
 	fprintf(stderr, "\n");
+}
+
+void
+litest_assert_event_type(struct libinput_event *event,
+			 enum libinput_event_type want)
+{
+	if (libinput_event_get_type(event) == want)
+		return;
+
+	fprintf(stderr,
+		"FAILED EVENT TYPE: have %s (%d) but want %s (%d)\n",
+		litest_event_get_type_str(event),
+		libinput_event_get_type(event),
+		litest_event_type_str(want),
+		want);
+	litest_backtrace();
+	abort();
 }
 
 void
@@ -2501,7 +2524,7 @@ litest_is_button_event(struct libinput_event *event,
 	enum libinput_event_type type = LIBINPUT_EVENT_POINTER_BUTTON;
 
 	litest_assert(event != NULL);
-	litest_assert_int_eq(libinput_event_get_type(event), type);
+	litest_assert_event_type(event, type);
 	ptrev = libinput_event_get_pointer_event(event);
 	litest_assert_int_eq(libinput_event_pointer_get_button(ptrev),
 			     button);
@@ -2520,7 +2543,7 @@ litest_is_axis_event(struct libinput_event *event,
 	enum libinput_event_type type = LIBINPUT_EVENT_POINTER_AXIS;
 
 	litest_assert(event != NULL);
-	litest_assert_int_eq(libinput_event_get_type(event), type);
+	litest_assert_event_type(event, type);
 	ptrev = libinput_event_get_pointer_event(event);
 	litest_assert(libinput_event_pointer_has_axis(ptrev, axis));
 
@@ -2539,7 +2562,7 @@ litest_is_motion_event(struct libinput_event *event)
 	double x, y, ux, uy;
 
 	litest_assert(event != NULL);
-	litest_assert_int_eq(libinput_event_get_type(event), type);
+	litest_assert_event_type(event, type);
 	ptrev = libinput_event_get_pointer_event(event);
 
 	x = libinput_event_pointer_get_dx(ptrev);
@@ -2584,7 +2607,7 @@ litest_is_touch_event(struct libinput_event *event,
 	case LIBINPUT_EVENT_TOUCH_UP:
 	case LIBINPUT_EVENT_TOUCH_MOTION:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
-		litest_assert_int_eq(libinput_event_get_type(event), type);
+		litest_assert_event_type(event, type);
 		break;
 	default:
 		ck_abort_msg("%s: invalid touch type %d\n", __func__, type);
@@ -2604,7 +2627,7 @@ litest_is_keyboard_event(struct libinput_event *event,
 	enum libinput_event_type type = LIBINPUT_EVENT_KEYBOARD_KEY;
 
 	litest_assert(event != NULL);
-	litest_assert_int_eq(libinput_event_get_type(event), type);
+	litest_assert_event_type(event, type);
 
 	kevent = libinput_event_get_keyboard_event(event);
 	litest_assert(kevent != NULL);
@@ -2623,7 +2646,7 @@ litest_is_gesture_event(struct libinput_event *event,
 	struct libinput_event_gesture *gevent;
 
 	litest_assert(event != NULL);
-	litest_assert_int_eq(libinput_event_get_type(event), type);
+	litest_assert_event_type(event, type);
 
 	gevent = libinput_event_get_gesture_event(event);
 	litest_assert(gevent != NULL);
@@ -2641,7 +2664,7 @@ litest_is_tablet_event(struct libinput_event *event,
 	struct libinput_event_tablet_tool *tevent;
 
 	litest_assert(event != NULL);
-	litest_assert_int_eq(libinput_event_get_type(event), type);
+	litest_assert_event_type(event, type);
 
 	tevent = libinput_event_get_tablet_tool_event(event);
 	litest_assert(tevent != NULL);
@@ -2661,7 +2684,7 @@ litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
 	event = libinput_get_event(li);
 
 	litest_assert_notnull(event);
-	litest_assert_int_eq(libinput_event_get_type(event), type);
+	litest_assert_event_type(event, type);
 	tev = libinput_event_get_tablet_tool_event(event);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev),
 			     button);
@@ -2681,7 +2704,7 @@ void litest_assert_tablet_proximity_event(struct libinput *li,
 	event = libinput_get_event(li);
 
 	litest_assert_notnull(event);
-	litest_assert_int_eq(libinput_event_get_type(event), type);
+	litest_assert_event_type(event, type);
 	tev = libinput_event_get_tablet_tool_event(event);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tev),
 			     state);
@@ -2697,7 +2720,7 @@ litest_is_pad_button_event(struct libinput_event *event,
 	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_PAD_BUTTON;
 
 	litest_assert(event != NULL);
-	litest_assert_int_eq(libinput_event_get_type(event), type);
+	litest_assert_event_type(event, type);
 
 	p = libinput_event_get_tablet_pad_event(event);
 	litest_assert(p != NULL);
@@ -2717,7 +2740,7 @@ litest_is_pad_ring_event(struct libinput_event *event,
 	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_PAD_RING;
 
 	litest_assert(event != NULL);
-	litest_assert_int_eq(libinput_event_get_type(event), type);
+	litest_assert_event_type(event, type);
 	p = libinput_event_get_tablet_pad_event(event);
 
 	litest_assert_int_eq(libinput_event_tablet_pad_get_ring_number(p),
@@ -2737,7 +2760,7 @@ litest_is_pad_strip_event(struct libinput_event *event,
 	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_PAD_STRIP;
 
 	litest_assert(event != NULL);
-	litest_assert_int_eq(libinput_event_get_type(event), type);
+	litest_assert_event_type(event, type);
 	p = libinput_event_get_tablet_pad_event(event);
 
 	litest_assert_int_eq(libinput_event_tablet_pad_get_strip_number(p),
