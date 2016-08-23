@@ -226,8 +226,9 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 		tablet_set_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 	}
-	else if (!tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))
+	else if (!tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY)) {
 		tablet_set_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
+	}
 }
 
 static inline double
