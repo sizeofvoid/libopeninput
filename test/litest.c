@@ -646,7 +646,10 @@ litest_add_tcase(const char *suite_name,
 		}
 	}
 
-	if (!added) {
+	if (!added &&
+	    filter_test == NULL &&
+	    filter_device == NULL &&
+	    filter_group == NULL) {
 		fprintf(stderr, "Test '%s' does not match any devices. Aborting.\n", funcname);
 		abort();
 	}
