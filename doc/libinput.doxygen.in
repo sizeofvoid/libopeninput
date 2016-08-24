@@ -13,7 +13,6 @@ INPUT                  = @top_srcdir@/src/libinput.h \
 IMAGE_PATH             = @top_srcdir@/doc/svg \
 			 @top_srcdir@/doc/dot
 GENERATE_HTML          = YES
-HTML_TIMESTAMP         = YES
 USE_MATHJAX            = YES
 GENERATE_LATEX         = NO
 MACRO_EXPANSION        = YES
