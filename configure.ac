@@ -241,6 +241,7 @@ AC_CONFIG_FILES([Makefile
 		 doc/libinput.doxygen
 		 src/Makefile
 		 src/libinput.pc
+		 src/libinput-uninstalled.pc
 		 src/libinput-version.h
 		 test/Makefile
 		 tools/Makefile
