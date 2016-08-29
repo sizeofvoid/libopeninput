@@ -900,13 +900,12 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 		uint32_t tool_id,
 		uint32_t serial)
 {
+	struct libinput *libinput = tablet_libinput_context(tablet);
 	struct libinput_tablet_tool *tool = NULL, *t;
 	struct list *tool_list;
 
 	if (serial) {
-		struct libinput *libinput = tablet_libinput_context(tablet);
 		tool_list = &libinput->tool_list;
-
 		/* Check if we already have the tool in our list of tools */
 		list_for_each(t, tool_list, link) {
 			if (type == t->type && serial == t->serial) {
@@ -914,20 +913,32 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 				break;
 			}
 		}
-	} else {
+	}
+
+	/* If we get a tool with a delayed serial number, we already created
+	 * a 0-serial number tool for it earlier. Re-use that, even though
+	 * it means we can't distinguish this tool from others.
+	 * https://bugs.freedesktop.org/show_bug.cgi?id=97526
+	 */
+	if (!tool) {
+		tool_list = &tablet->tool_list;
 		/* We can't guarantee that tools without serial numbers are
 		 * unique, so we keep them local to the tablet that they come
 		 * into proximity of instead of storing them in the global tool
-		 * list */
-		tool_list = &tablet->tool_list;
-
-		/* Same as above, but don't bother checking the serial number */
+		 * list
+		 * Same as above, but don't bother checking the serial number
+		 */
 		list_for_each(t, tool_list, link) {
 			if (type == t->type) {
 				tool = t;
 				break;
 			}
 		}
+
+		/* Didn't find the tool but we have a serial. Switch
+		 * tool_list back so we create in the correct list */
+		if (!tool && serial)
+			tool_list = &libinput->tool_list;
 	}
 
 	/* If we didn't already have the new_tool in our list of tools,
