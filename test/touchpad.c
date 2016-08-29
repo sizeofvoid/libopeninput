@@ -4315,6 +4315,56 @@ START_TEST(touchpad_tool_tripletap_touch_count)
 }
 END_TEST
 
+START_TEST(touchpad_slot_swap)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_pointer *ptrev;
+	int first, second;
+
+	/* Synaptics touchpads sometimes end the wrong touchpoint on finger
+	 * up, causing the remaining slot to continue with the other slot's
+	 * coordinates.
+	 * https://bugs.freedesktop.org/show_bug.cgi?id=91352
+	 */
+	litest_drain_events(li);
+
+	for (first = 0; first <= 1; first++) {
+		second = 1 - first;
+
+		litest_touch_down(dev, 0, 50, 50);
+		libinput_dispatch(li);
+		litest_touch_down(dev, 1, 70, 70);
+		libinput_dispatch(li);
+
+		litest_touch_move_to(dev, first, 50, 50, 50, 30, 10, 1);
+		litest_drain_events(li);
+
+		/* release touch 0, continue other slot with 0's coords */
+		litest_push_event_frame(dev);
+		litest_touch_up(dev, first);
+		litest_touch_move(dev, second, 50, 30.1);
+		litest_pop_event_frame(dev);
+		libinput_dispatch(li);
+		litest_touch_move_to(dev, second, 50, 30, 50, 11, 10, 1);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		do {
+			ptrev = litest_is_motion_event(event);
+			ck_assert_double_eq(libinput_event_pointer_get_dx(ptrev), 0.0);
+			ck_assert_double_lt(libinput_event_pointer_get_dy(ptrev), 1.0);
+
+			libinput_event_destroy(event);
+			event = libinput_get_event(li);
+		} while (event);
+		litest_assert_empty_queue(li);
+
+		litest_touch_up(dev, second);
+	}
+}
+END_TEST
+
 START_TEST(touchpad_time_usec)
 {
 	struct litest_device *dev = litest_current_device();
@@ -4513,6 +4563,7 @@ litest_setup_tests_touchpad(void)
 	litest_add("touchpad:thumb", touchpad_thumb_tap_hold_2ndfg_tap, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
 
 	litest_add_for_device("touchpad:bugs", touchpad_tool_tripletap_touch_count, LITEST_SYNAPTICS_TOPBUTTONPAD);
+	litest_add_for_device("touchpad:bugs", touchpad_slot_swap, LITEST_SYNAPTICS_TOPBUTTONPAD);
 
 	litest_add("touchpad:time", touchpad_time_usec, LITEST_TOUCHPAD, LITEST_ANY);
 
