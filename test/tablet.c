@@ -2158,6 +2158,93 @@ START_TEST(tools_without_serials)
 }
 END_TEST
 
+START_TEST(tool_delayed_serial)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct libinput_tablet_tool *tool;
+	unsigned int serial;
+
+	litest_drain_events(li);
+
+	litest_event(dev, EV_ABS, ABS_X, 4500);
+	litest_event(dev, EV_ABS, ABS_Y, 2000);
+	litest_event(dev, EV_MSC, MSC_SERIAL, 0);
+	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	tool = libinput_event_tablet_tool_get_tool(tev);
+	serial = libinput_tablet_tool_get_serial(tool);
+	ck_assert_int_eq(serial, 0);
+	libinput_event_destroy(event);
+
+	for (int x = 4500; x < 8000; x += 1000) {
+		litest_event(dev, EV_ABS, ABS_X, x);
+		litest_event(dev, EV_ABS, ABS_Y, 2000);
+		litest_event(dev, EV_MSC, MSC_SERIAL, 0);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+	litest_drain_events(li);
+
+	/* Now send the serial */
+	litest_event(dev, EV_ABS, ABS_X, 4500);
+	litest_event(dev, EV_ABS, ABS_Y, 2000);
+	litest_event(dev, EV_MSC, MSC_SERIAL, 1234566);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	tool = libinput_event_tablet_tool_get_tool(tev);
+	serial = libinput_tablet_tool_get_serial(tool);
+	ck_assert_int_eq(serial, 0);
+	libinput_event_destroy(event);
+
+	for (int x = 4500; x < 8000; x += 500) {
+		litest_event(dev, EV_ABS, ABS_X, x);
+		litest_event(dev, EV_ABS, ABS_Y, 2000);
+		litest_event(dev, EV_MSC, MSC_SERIAL, 1234566);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+
+	event = libinput_get_event(li);
+	do {
+		tev = litest_is_tablet_event(event,
+					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		tool = libinput_event_tablet_tool_get_tool(tev);
+		serial = libinput_tablet_tool_get_serial(tool);
+		ck_assert_int_eq(serial, 0);
+		libinput_event_destroy(event);
+		event = libinput_get_event(li);
+	} while (event != NULL);
+
+	/* Quirk: tool out event is a serial of 0 */
+	litest_event(dev, EV_ABS, ABS_X, 4500);
+	litest_event(dev, EV_ABS, ABS_Y, 2000);
+	litest_event(dev, EV_MSC, MSC_SERIAL, 0);
+	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	tool = libinput_event_tablet_tool_get_tool(tev);
+	serial = libinput_tablet_tool_get_serial(tool);
+	ck_assert_int_eq(serial, 0);
+	libinput_event_destroy(event);
+}
+END_TEST
+
 START_TEST(tool_capabilities)
 {
 	struct libinput *li = litest_create_context();
@@ -3687,6 +3774,7 @@ litest_setup_tests(void)
 	litest_add("tablet:tool_serial", invalid_serials, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add_no_device("tablet:tool_serial", tools_with_serials);
 	litest_add_no_device("tablet:tool_serial", tools_without_serials);
+	litest_add_for_device("tablet:tool_serial", tool_delayed_serial, LITEST_WACOM_HID4800_PEN);
 	litest_add("tablet:proximity", proximity_out_clear_buttons, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_in_out, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_in_button_down, LITEST_TABLET, LITEST_ANY);
