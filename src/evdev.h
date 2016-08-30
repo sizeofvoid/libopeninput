@@ -118,6 +118,7 @@ enum evdev_device_model {
 	EVDEV_MODEL_DELL_TOUCHPAD = (1 << 18),
 	EVDEV_MODEL_TRACKBALL = (1 << 19),
 	EVDEV_MODEL_APPLE_MAGICMOUSE = (1 << 20),
+	EVDEV_MODEL_HP8510_TOUCHPAD = (1 << 21),
 };
 
 struct mt_slot {
