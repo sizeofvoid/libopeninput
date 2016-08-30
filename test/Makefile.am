@@ -211,6 +211,8 @@ valgrind: all
 
 check: valgrind
 
+DISTCLEANFILES=test-suite-valgrind.log
+
 endif
 endif
 EXTRA_DIST=valgrind.suppressions
