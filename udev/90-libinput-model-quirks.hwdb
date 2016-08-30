@@ -87,6 +87,13 @@ libinput:name:Cypress APA Trackpad ?cyapa?:dmi:*
  LIBINPUT_MODEL_CYAPA=1
 
 ##########################################
+# HP
+##########################################
+#
+libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnHewlett-Packard:*pnHPCompaq8510w*
+ LIBINPUT_MODEL_HP8510_TOUCHPAD=1
+
+##########################################
 # LENOVO
 ##########################################
 
