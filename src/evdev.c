@@ -1831,7 +1831,7 @@ evdev_read_wheel_click_prop(struct evdev_device *device,
 		return false;
 
 	val = parse_mouse_wheel_click_angle_property(prop);
-	if (angle) {
+	if (val) {
 		*angle = val;
 		return true;
 	}
