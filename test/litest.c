@@ -2850,6 +2850,39 @@ litest_assert_only_typed_events(struct libinput *li,
 }
 
 void
+litest_assert_touch_sequence(struct libinput *li)
+{
+	struct libinput_event *event;
+
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_DOWN);
+	libinput_event_destroy(event);
+
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
+	libinput_event_destroy(event);
+
+	event = libinput_get_event(li);
+	do {
+		litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_MOTION);
+		libinput_event_destroy(event);
+
+		event = libinput_get_event(li);
+		litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
+		libinput_event_destroy(event);
+
+		event = libinput_get_event(li);
+		litest_assert_notnull(event);
+	} while (libinput_event_get_type(event) != LIBINPUT_EVENT_TOUCH_UP);
+
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_UP);
+	libinput_event_destroy(event);
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
+	libinput_event_destroy(event);
+}
+
+void
 litest_timeout_tap(void)
 {
 	msleep(200);
