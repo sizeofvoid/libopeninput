@@ -9,7 +9,8 @@
 #	90-libinput-model-quirks.rules
 #
 # Match string formats:
-#	libinput:<modalias>
+#	libinput:mouse:<modalias>
+#	libinput:touchpad:<modalias>
 #	libinput:name:<name>:dmi:<dmi string>
 #	libinput:name:<name>:fwversion:<version>
 #
