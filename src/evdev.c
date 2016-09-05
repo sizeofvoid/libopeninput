@@ -1160,10 +1160,9 @@ release_pressed_keys(struct fallback_dispatch *dispatch,
 }
 
 static void
-fallback_suspend(struct evdev_dispatch *evdev_dispatch,
-		 struct evdev_device *device)
+fallback_return_to_neutral_state(struct fallback_dispatch *dispatch,
+				 struct evdev_device *device)
 {
-	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)evdev_dispatch;
 	struct libinput *libinput = evdev_libinput_context(device);
 	uint64_t time;
 
@@ -1173,6 +1172,15 @@ fallback_suspend(struct evdev_dispatch *evdev_dispatch,
 	release_touches(dispatch, device, time);
 	release_pressed_keys(dispatch, device, time);
 	memset(dispatch->hw_key_mask, 0, sizeof(dispatch->hw_key_mask));
+}
+
+static void
+fallback_suspend(struct evdev_dispatch *evdev_dispatch,
+		 struct evdev_device *device)
+{
+	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)evdev_dispatch;
+
+	fallback_return_to_neutral_state(dispatch, device);
 }
 
 static void
