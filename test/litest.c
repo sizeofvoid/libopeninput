@@ -2876,6 +2876,12 @@ litest_timeout_gesture(void)
 }
 
 void
+litest_timeout_trackpoint(void)
+{
+	msleep(320);
+}
+
+void
 litest_push_event_frame(struct litest_device *dev)
 {
 	assert(!dev->skip_ev_syn);

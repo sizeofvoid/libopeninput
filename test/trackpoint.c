@@ -280,6 +280,75 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_both)
 }
 END_TEST
 
+START_TEST(trackpoint_palmdetect)
+{
+	struct litest_device *trackpoint = litest_current_device();
+	struct litest_device *touchpad;
+	struct libinput *li = trackpoint->libinput;
+	int i;
+
+	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	litest_drain_events(li);
+
+	for (i = 0; i < 10; i++) {
+		litest_event(trackpoint, EV_REL, REL_X, 1);
+		litest_event(trackpoint, EV_REL, REL_Y, 1);
+		litest_event(trackpoint, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+	litest_drain_events(li);
+
+	litest_touch_down(touchpad, 0, 30, 30);
+	litest_touch_move_to(touchpad, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	litest_timeout_trackpoint();
+	libinput_dispatch(li);
+
+	litest_touch_down(touchpad, 0, 30, 30);
+	litest_touch_move_to(touchpad, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_delete_device(touchpad);
+}
+END_TEST
+
+START_TEST(trackpoint_palmdetect_resume_touch)
+{
+	struct litest_device *trackpoint = litest_current_device();
+	struct litest_device *touchpad;
+	struct libinput *li = trackpoint->libinput;
+	int i;
+
+	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	litest_drain_events(li);
+
+	for (i = 0; i < 10; i++) {
+		litest_event(trackpoint, EV_REL, REL_X, 1);
+		litest_event(trackpoint, EV_REL, REL_Y, 1);
+		litest_event(trackpoint, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+	litest_drain_events(li);
+
+	litest_touch_down(touchpad, 0, 30, 30);
+	litest_touch_move_to(touchpad, 0, 30, 30, 80, 80, 10, 1);
+	litest_assert_empty_queue(li);
+
+	litest_timeout_trackpoint();
+	libinput_dispatch(li);
+
+	/* touch started after last tp event, expect resume */
+	litest_touch_move_to(touchpad, 0, 80, 80, 30, 30, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_delete_device(touchpad);
+}
+END_TEST
+
 void
 litest_setup_tests(void)
 {
@@ -290,4 +359,7 @@ litest_setup_tests(void)
 	litest_add("trackpoint:left-handed", trackpoint_topsoftbuttons_left_handed_trackpoint, LITEST_TOPBUTTONPAD, LITEST_ANY);
 	litest_add("trackpoint:left-handed", trackpoint_topsoftbuttons_left_handed_touchpad, LITEST_TOPBUTTONPAD, LITEST_ANY);
 	litest_add("trackpoint:left-handed", trackpoint_topsoftbuttons_left_handed_both, LITEST_TOPBUTTONPAD, LITEST_ANY);
+
+	litest_add("trackpoint:palmdetect", trackpoint_palmdetect, LITEST_POINTINGSTICK, LITEST_ANY);
+	litest_add("trackpoint:palmdetect", trackpoint_palmdetect_resume_touch, LITEST_POINTINGSTICK, LITEST_ANY);
 }

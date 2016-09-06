@@ -633,6 +633,9 @@ void
 litest_timeout_gesture(void);
 
 void
+litest_timeout_trackpoint(void);
+
+void
 litest_push_event_frame(struct litest_device *dev);
 
 void
