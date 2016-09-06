@@ -1298,6 +1298,7 @@ tp_trackpoint_timeout(uint64_t now, void *data)
 
 	tp_tap_resume(tp, now);
 	tp->palm.trackpoint_active = false;
+	tp->palm.trackpoint_event_count = 0;
 }
 
 static void
@@ -1310,6 +1311,13 @@ tp_trackpoint_event(uint64_t time, struct libinput_event *event, void *data)
 	if (event->type == LIBINPUT_EVENT_POINTER_BUTTON)
 		return;
 
+	tp->palm.trackpoint_last_event_time = time;
+	tp->palm.trackpoint_event_count++;
+
+	/* Require at least three events before enabling palm detection */
+	if (tp->palm.trackpoint_event_count < 3)
+		return;
+
 	if (!tp->palm.trackpoint_active) {
 		tp_edge_scroll_stop_events(tp, time);
 		tp_gesture_cancel(tp, time);
@@ -1317,7 +1325,6 @@ tp_trackpoint_event(uint64_t time, struct libinput_event *event, void *data)
 		tp->palm.trackpoint_active = true;
 	}
 
-	tp->palm.trackpoint_last_event_time = time;
 	libinput_timer_set(&tp->palm.trackpoint_timer,
 			   time + DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT);
 }
