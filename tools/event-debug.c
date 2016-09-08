@@ -49,8 +49,11 @@ static unsigned int stop = 0;
 static void
 print_event_header(struct libinput_event *ev)
 {
+	/* use for pointer value only, do not dereference */
+	static struct libinput_device *last_device = NULL;
 	struct libinput_device *dev = libinput_event_get_device(ev);
 	const char *type = NULL;
+	char prefix;
 
 	switch(libinput_event_get_type(ev)) {
 	case LIBINPUT_EVENT_NONE:
@@ -132,7 +135,14 @@ print_event_header(struct libinput_event *ev)
 		break;
 	}
 
-	printf("%-7s	%-16s ", libinput_device_get_sysname(dev), type);
+	prefix = (last_device != dev) ? '-' : ' ';
+
+	printf("%c%-7s	%-16s ",
+	       prefix,
+	       libinput_device_get_sysname(dev),
+	       type);
+
+	last_device = dev;
 }
 
 static void
