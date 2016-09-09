@@ -4745,10 +4745,10 @@ litest_setup_tests_touchpad(void)
 
 	litest_add("touchpad:time", touchpad_time_usec, LITEST_TOUCHPAD, LITEST_ANY);
 
-	litest_add_for_device("touchpad:jumps", touchpad_jump_finger_motion, LITEST_SYNAPTICS_CLICKPAD);
+	litest_add_for_device("touchpad:jumps", touchpad_jump_finger_motion, LITEST_SYNAPTICS_CLICKPAD_X220);
 
-	litest_add_for_device("touchpad:sendevents", touchpad_disabled_on_mouse, LITEST_SYNAPTICS_CLICKPAD);
-	litest_add_for_device("touchpad:sendevents", touchpad_disabled_on_mouse_suspend_mouse, LITEST_SYNAPTICS_CLICKPAD);
-	litest_add_for_device("touchpad:sendevents", touchpad_disabled_double_mouse, LITEST_SYNAPTICS_CLICKPAD);
-	litest_add_for_device("touchpad:sendevents", touchpad_disabled_double_mouse_one_suspended, LITEST_SYNAPTICS_CLICKPAD);
+	litest_add_for_device("touchpad:sendevents", touchpad_disabled_on_mouse, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("touchpad:sendevents", touchpad_disabled_on_mouse_suspend_mouse, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("touchpad:sendevents", touchpad_disabled_double_mouse, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("touchpad:sendevents", touchpad_disabled_double_mouse_one_suspended, LITEST_SYNAPTICS_CLICKPAD_X220);
 }

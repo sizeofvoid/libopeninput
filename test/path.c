@@ -952,13 +952,13 @@ litest_setup_tests_path(void)
 	litest_add_no_device("path:suspend", path_add_device_suspend_resume);
 	litest_add_no_device("path:suspend", path_add_device_suspend_resume_fail);
 	litest_add_no_device("path:suspend", path_add_device_suspend_resume_remove_device);
-	litest_add_for_device("path:seat", path_added_seat, LITEST_SYNAPTICS_CLICKPAD);
-	litest_add_for_device("path:seat", path_seat_change, LITEST_SYNAPTICS_CLICKPAD);
+	litest_add_for_device("path:seat", path_added_seat, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("path:seat", path_seat_change, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add("path:device events", path_added_device, LITEST_ANY, LITEST_ANY);
 	litest_add("path:device events", path_device_sysname, LITEST_ANY, LITEST_ANY);
-	litest_add_for_device("path:device events", path_add_device, LITEST_SYNAPTICS_CLICKPAD);
+	litest_add_for_device("path:device events", path_add_device, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_no_device("path:device events", path_add_invalid_path);
-	litest_add_for_device("path:device events", path_remove_device, LITEST_SYNAPTICS_CLICKPAD);
-	litest_add_for_device("path:device events", path_double_remove_device, LITEST_SYNAPTICS_CLICKPAD);
+	litest_add_for_device("path:device events", path_remove_device, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("path:device events", path_double_remove_device, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_no_device("path:seat", path_seat_recycle);
 }

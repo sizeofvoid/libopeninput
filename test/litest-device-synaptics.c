@@ -31,7 +31,7 @@
 static void
 litest_synaptics_clickpad_setup(void)
 {
-	struct litest_device *d = litest_create_device(LITEST_SYNAPTICS_CLICKPAD);
+	struct litest_device *d = litest_create_device(LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_set_current_device(d);
 }
 
@@ -112,7 +112,7 @@ static struct input_absinfo absinfo[] = {
 };
 
 struct litest_test_device litest_synaptics_clickpad_device = {
-	.type = LITEST_SYNAPTICS_CLICKPAD,
+	.type = LITEST_SYNAPTICS_CLICKPAD_X220,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
 	.shortname = "synaptics",
 	.setup = litest_synaptics_clickpad_setup,

@@ -1448,7 +1448,7 @@ litest_setup_tests_device(void)
 	litest_add("device:sendevents", device_disable_release_softbutton, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
 	litest_add("device:sendevents", device_disable_topsoftbutton, LITEST_TOPBUTTONPAD, LITEST_ANY);
 	litest_add("device:id", device_ids, LITEST_ANY, LITEST_ANY);
-	litest_add_for_device("device:context", device_context, LITEST_SYNAPTICS_CLICKPAD);
+	litest_add_for_device("device:context", device_context, LITEST_SYNAPTICS_CLICKPAD_X220);
 
 	litest_add("device:udev", device_get_udev_handle, LITEST_ANY, LITEST_ANY);
 

@@ -517,9 +517,9 @@ litest_setup_tests_udev(void)
 	litest_add_no_device("udev:seat", udev_added_seat_default);
 	litest_add_no_device("udev:seat", udev_change_seat);
 
-	litest_add_for_device("udev:suspend", udev_double_suspend, LITEST_SYNAPTICS_CLICKPAD);
-	litest_add_for_device("udev:suspend", udev_double_resume, LITEST_SYNAPTICS_CLICKPAD);
-	litest_add_for_device("udev:suspend", udev_suspend_resume, LITEST_SYNAPTICS_CLICKPAD);
-	litest_add_for_device("udev:device events", udev_device_sysname, LITEST_SYNAPTICS_CLICKPAD);
-	litest_add_for_device("udev:seat", udev_seat_recycle, LITEST_SYNAPTICS_CLICKPAD);
+	litest_add_for_device("udev:suspend", udev_double_suspend, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("udev:suspend", udev_double_resume, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("udev:suspend", udev_suspend_resume, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("udev:device events", udev_device_sysname, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("udev:seat", udev_seat_recycle, LITEST_SYNAPTICS_CLICKPAD_X220);
 }
