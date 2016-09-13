@@ -725,6 +725,8 @@ tablet_process_misc(struct tablet_dispatch *tablet,
 			tablet->current_tool_serial = e->value;
 
 		break;
+	case MSC_SCAN:
+		break;
 	default:
 		log_info(tablet_libinput_context(tablet),
 			 "Unhandled MSC event code %s (%#x)\n",
