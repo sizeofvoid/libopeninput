@@ -46,6 +46,10 @@ AC_PROG_CC_C99
 AC_PROG_CXX # Only used by build C++ test
 AC_PROG_GREP
 
+# Only used for testing the hwdb
+AM_PATH_PYTHON([3.0],, [:])
+AM_CONDITIONAL([HAVE_PYTHON], [test "$PYTHON" != :])
+
 # Initialize libtool
 LT_PREREQ([2.2])
 LT_INIT
