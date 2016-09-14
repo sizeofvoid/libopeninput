@@ -15,6 +15,7 @@ IMAGE_PATH             = @top_srcdir@/doc/svg \
 GENERATE_HTML          = YES
 HTML_TIMESTAMP         = YES
 USE_MATHJAX            = YES
+MATHJAX_RELPATH        = https://cdn.mathjax.org/mathjax/latest
 GENERATE_LATEX         = NO
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
