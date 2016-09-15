@@ -50,7 +50,7 @@ static void
 print_event_header(struct libinput_event *ev)
 {
 	/* use for pointer value only, do not dereference */
-	static struct libinput_device *last_device = NULL;
+	static void *last_device = NULL;
 	struct libinput_device *dev = libinput_event_get_device(ev);
 	const char *type = NULL;
 	char prefix;
