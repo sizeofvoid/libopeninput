@@ -2179,6 +2179,7 @@ evdev_read_model_flags(struct evdev_device *device)
 		MODEL(APPLE_MAGICMOUSE),
 		MODEL(HP8510_TOUCHPAD),
 		MODEL(HP6910_TOUCHPAD),
+		MODEL(HP_ZBOOK_STUDIO_G3),
 #undef MODEL
 		{ "ID_INPUT_TRACKBALL", EVDEV_MODEL_TRACKBALL },
 		{ NULL, EVDEV_MODEL_DEFAULT },
@@ -2762,6 +2763,11 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	if (device->model_flags & EVDEV_MODEL_HP_STREAM11_TOUCHPAD)
 		libevdev_enable_property(device->evdev,
 					 INPUT_PROP_BUTTONPAD);
+
+	/* Touchpad claims to have 4 slots but only ever sends 2
+	 * https://bugs.freedesktop.org/show_bug.cgi?id=98100 */
+	if (device->model_flags & EVDEV_MODEL_HP_ZBOOK_STUDIO_G3)
+		libevdev_set_abs_maximum(device->evdev, ABS_MT_SLOT, 1);
 }
 
 struct evdev_device *

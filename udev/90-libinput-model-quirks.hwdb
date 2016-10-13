@@ -103,6 +103,10 @@ libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnHewlett-Packard:*pnHPCompaq8510
 libinput:name:SYN1EDE:00 06CB:7442:dmi:*svnHewlett-Packard:pnHPStreamNotebookPC11*
  LIBINPUT_MODEL_HP_STREAM11_TOUCHPAD=1
 
+# HP Zbook Studio G3
+libinput:name:AlpsPS/2 ALPS GlidePoint:dmi:*svnHP:pnHPZBookStudioG3:*
+ LIBINPUT_MODEL_HP_ZBOOK_STUDIO_G3=1
+
 ##########################################
 # LENOVO
 ##########################################
