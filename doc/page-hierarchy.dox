@@ -36,6 +36,10 @@
 
 @page developers Developers
 
+Contributions to libinput are always welcome. See the links below for
+specific documentation.
+
+- @subpage contributing
 - @subpage building_libinput
 - @subpage test-suite
 - @subpage tools

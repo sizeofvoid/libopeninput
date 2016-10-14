@@ -10,6 +10,7 @@ header_files = \
 	$(srcdir)/absolute-coordinate-ranges.dox \
 	$(srcdir)/building.dox \
 	$(srcdir)/clickpad-softbuttons.dox \
+	$(srcdir)/contributing.dox \
 	$(srcdir)/device-configuration-via-udev.dox \
 	$(srcdir)/faqs.dox \
 	$(srcdir)/gestures.dox \
