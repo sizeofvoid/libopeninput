@@ -173,7 +173,7 @@ tools_parse_args(int argc, char **argv, struct tools_context *context)
 			{ "set-scroll-button", 1, 0, OPT_SCROLL_BUTTON },
 			{ "set-profile", 1, 0, OPT_PROFILE },
 			{ "set-tap-map", 1, 0, OPT_TAP_MAP },
-			{ "speed", 1, 0, OPT_SPEED },
+			{ "set-speed", 1, 0, OPT_SPEED },
 			{ 0, 0, 0, 0}
 		};
 
