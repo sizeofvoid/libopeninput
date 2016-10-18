@@ -16,22 +16,111 @@ stack in between and can thus help to identify whether a bug is in libinput
 or in one of the higher layers. See the @ref libinput-debug-events section
 for information on this tool.
 
-@section triage Required information for triage
+@section triage Triaging bugs
+
+Some specific information is required, providing it enables the developers
+to get a clear picture of what the issue with your device is.
+
+Always include the libinput version. Either the package version from your
+distribution or, when running from git: <tt>git log -n 1 HEAD</tt> or
+<tt>git describe HEAD</tt>. As a last resort: <tt>libinput-list-devices
+--version</tt>.
+
+Include the current libinput settings for the device (if you are on X11).
+The current settings can be obtained with <tt>xinput list-props "your device
+name"</tt>.  Use <tt>xinput list</tt> to obtain the device name.
+
+Third, pick which device are you reporting a bug for:
+
+- @ref reporting_bugs_touchpad
+- @ref reporting_bugs_mouse
+- @ref reporting_bugs_keyboard
+- @ref reporting_bugs_trackpoint
+- @ref reporting_bugs_other
+
+
+@section reporting_bugs_touchpad Reporting touchpad bugs
 
 When you file a bug, please attach the following information:
+
 - a virtual description of your input device, see @ref evemu. This is the
   most important piece of information, do not forget it!
-- the libinput version. Either the package version from your distribution
-  or, when running from git: <tt>git log -n 1 HEAD</tt> or <tt>git describe
-  HEAD</tt>. As a last resort: <tt>libinput-list-devices --version</tt>.
-- the current libinput settings for the device. This is a bit harder to
-  obtain, for now we'll assume you are running X11. The current settings can
-  be obtained with <tt>xinput list-props "your device name"</tt>. Use
-  <tt>xinput list</tt> to obtain the device name.
-- if the device is a touchpad or a pointing stick, the vendor model number
-  of your laptop, and the content of <tt>/sys/class/dmi/id/modalias</tt>.
-- if the device is a touchpad, the physical dimensions of your touchpad in
-  mm
+- the output from udevadm info, see @ref udev_info.
+- the vendor model number of your laptop (e.g. "Lenovo Thinkpad T440s")
+- and the content of <tt>/sys/class/dmi/id/modalias</tt>.
+- the physical dimensions of your touchpad in mm
+
+If you are reporting a bug related to button event generation:
+
+- does your touchpad have (separate) physical hardware buttons or is the
+  whole touchpad clickable?
+- Are you using software buttons or clickfinger? See @ref
+  clickpad_softbuttons.
+
+@section reporting_bugs_mouse Reporting mouse bugs
+
+When you file a bug, please attach the following information:
+
+- a virtual description of your input device, see @ref evemu. This is the
+  most important piece of information, do not forget it!
+- the vendor model number of the device (e.g. "Logitech M325")
+- the output from udevadm info, see @ref udev_info.
+
+If the bug is related to the @ref motion_normalization_customization "speed of the mouse":
+
+- the resolution of the mouse as specified by the vendor (in DPI)
+- the output of the mouse-dpi-tool (provided by libevdev)
+
+@section reporting_bugs_keyboard Reporting keyboard bugs
+
+When you file a bug, please attach the following information:
+
+- a virtual description of your input device, see @ref evemu. This is the
+  most important piece of information, do not forget it!
+
+@section reporting_bugs_trackpoint Reporting trackpoint bugs
+
+When you file a bug, please attach the following information:
+
+- a virtual description of your input device, see @ref evemu. This is the
+  most important piece of information, do not forget it!
+- the vendor model number of the device (e.g. "Logitech M325")
+- the output from udevadm info, see @ref udev_info.
+
+@section reporting_bugs_other All other devices
+
+When you file a bug, please attach the following information:
+
+- a virtual description of your input device, see @ref evemu. This is the
+  most important piece of information, do not forget it!
+- the vendor model number of the device (e.g. "Sony Plastation3 controller")
+
+@section udev_info udev information for the device
+
+In many cases, we require the udev properties assigned to the device to
+verify whether device-specific quirks were applied. This can be obtained
+with ````udevadm info /sys/class/input/eventX```, with the correct event
+node for your device. An example output is below:
+
+@code
+$ udevadm info /sys/class/input/event4
+P: /devices/platform/i8042/serio1/input/input5/event4
+N: input/event4
+E: DEVNAME=/dev/input/event4
+E: DEVPATH=/devices/platform/i8042/serio1/input/input5/event4
+E: EVDEV_ABS_00=::41
+E: EVDEV_ABS_01=::37
+E: EVDEV_ABS_35=::41
+E: EVDEV_ABS_36=::37
+E: ID_INPUT=1
+E: ID_INPUT_HEIGHT_MM=66
+E: ID_INPUT_TOUCHPAD=1
+E: ID_INPUT_WIDTH_MM=97
+E: MAJOR=13
+E: MINOR=68
+E: SUBSYSTEM=input
+E: USEC_INITIALIZED=5463031
+@endcode
 
 @section evemu Recording devices with evemu
 
