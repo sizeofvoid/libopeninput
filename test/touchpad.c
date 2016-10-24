@@ -4427,8 +4427,8 @@ START_TEST(touchpad_jump_finger_motion)
 		ptrev = litest_is_motion_event(event);
 		dx = libinput_event_pointer_get_dx(ptrev);
 		dy = libinput_event_pointer_get_dy(ptrev);
-		ck_assert_int_lt(abs(dx), 20);
-		ck_assert_int_lt(abs(dy), 20);
+		ck_assert_int_lt(abs((int)dx), 20);
+		ck_assert_int_lt(abs((int)dy), 20);
 
 		libinput_event_destroy(event);
 		event = libinput_get_event(li);
