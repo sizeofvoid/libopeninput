@@ -1013,8 +1013,8 @@ tp_detect_jumps(const struct tp_dispatch *tp, struct tp_touch *t)
 	/* called before tp_motion_history_push, so offset 0 is the most
 	 * recent coordinate */
 	last = tp_motion_history_offset(t, 0);
-	dx = fabs(t->point.x - last->x) / tp->device->abs.absinfo_x->resolution;
-	dy = fabs(t->point.y - last->y) / tp->device->abs.absinfo_y->resolution;
+	dx = 1.0 * abs(t->point.x - last->x) / tp->device->abs.absinfo_x->resolution;
+	dy = 1.0 * abs(t->point.y - last->y) / tp->device->abs.absinfo_y->resolution;
 
 	return hypot(dx, dy) > JUMP_THRESHOLD_MM;
 }
