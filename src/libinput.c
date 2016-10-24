@@ -159,6 +159,7 @@ struct libinput_event_tablet_pad {
 	} strip;
 };
 
+LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void
 libinput_default_log_func(struct libinput *libinput,
 			  enum libinput_log_priority priority,

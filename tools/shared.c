@@ -65,6 +65,7 @@ enum options {
 	OPT_PROFILE,
 };
 
+LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void
 log_handler(struct libinput *li,
 	    enum libinput_log_priority priority,

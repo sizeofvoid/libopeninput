@@ -108,6 +108,7 @@ struct window {
 	struct libinput_device *devices[50];
 };
 
+LIBINPUT_ATTRIBUTE_PRINTF(1, 2)
 static int
 error(const char *fmt, ...)
 {
@@ -121,6 +122,7 @@ error(const char *fmt, ...)
 	return EXIT_FAILURE;
 }
 
+LIBINPUT_ATTRIBUTE_PRINTF(1, 2)
 static void
 msg(const char *fmt, ...)
 {

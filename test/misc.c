@@ -847,6 +847,7 @@ const struct libinput_interface leak_interface = {
 	.close_restricted = close_restricted_leak,
 };
 
+LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void
 simple_log_handler(struct libinput *libinput,
 		   enum libinput_log_priority priority,

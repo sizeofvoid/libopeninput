@@ -263,6 +263,7 @@ litest_backtrace(void)
 }
 #endif
 
+LIBINPUT_ATTRIBUTE_PRINTF(5, 6)
 void
 litest_fail_condition(const char *file,
 		      int line,
@@ -756,6 +757,7 @@ _litest_add_ranged_for_device(const char *name,
 		litest_abort_msg("Invalid test device type");
 }
 
+LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void
 litest_log_handler(struct libinput *libinput,
 		   enum libinput_log_priority pri,
