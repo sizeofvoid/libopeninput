@@ -2024,7 +2024,7 @@ evdev_read_wheel_click_prop(struct evdev_device *device,
 	}
 
 	log_error(evdev_libinput_context(device),
-		  "Mouse wheel click angle '%s' is present but invalid,"
+		  "Mouse wheel click angle '%s' is present but invalid, "
 		  "using %d degrees instead\n",
 		  device->devname,
 		  DEFAULT_WHEEL_CLICK_ANGLE);
