@@ -402,6 +402,7 @@ extern struct litest_test_device litest_wacom_cintiq_13hdt_finger_device;
 extern struct litest_test_device litest_wacom_cintiq_13hdt_pen_device;
 extern struct litest_test_device litest_wacom_cintiq_13hdt_pad_device;
 extern struct litest_test_device litest_wacom_hid4800_tablet_device;
+extern struct litest_test_device litest_mouse_wheel_click_count_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -458,6 +459,7 @@ struct litest_test_device* devices[] = {
 	&litest_wacom_cintiq_13hdt_pen_device,
 	&litest_wacom_cintiq_13hdt_pad_device,
 	&litest_wacom_hid4800_tablet_device,
+	&litest_mouse_wheel_click_count_device,
 	NULL,
 };
 

@@ -2008,7 +2008,7 @@ evdev_device_init_pointer_acceleration(struct evdev_device *device,
 static inline bool
 evdev_read_wheel_click_prop(struct evdev_device *device,
 			    const char *prop,
-			    int *angle)
+			    double *angle)
 {
 	int val;
 
@@ -2032,18 +2032,53 @@ evdev_read_wheel_click_prop(struct evdev_device *device,
 	return false;
 }
 
+static inline bool
+evdev_read_wheel_click_count_prop(struct evdev_device *device,
+				  const char *prop,
+				  double *angle)
+{
+	int val;
+
+	prop = udev_device_get_property_value(device->udev_device, prop);
+	if (!prop)
+		return false;
+
+	val = parse_mouse_wheel_click_angle_property(prop);
+	if (val) {
+		*angle = 360.0/val;
+		return true;
+	}
+
+	log_error(evdev_libinput_context(device),
+		  "Mouse wheel click count '%s' is present but invalid, "
+		  "using %d degrees for angle instead instead\n",
+		  device->devname,
+		  DEFAULT_WHEEL_CLICK_ANGLE);
+	*angle = DEFAULT_WHEEL_CLICK_ANGLE;
+
+	return false;
+}
+
 static inline struct wheel_angle
 evdev_read_wheel_click_props(struct evdev_device *device)
 {
 	struct wheel_angle angles;
 
-	evdev_read_wheel_click_prop(device,
-				    "MOUSE_WHEEL_CLICK_ANGLE",
-				    &angles.x);
-	if (!evdev_read_wheel_click_prop(device,
-					 "MOUSE_WHEEL_CLICK_ANGLE_HORIZONTAL",
-					 &angles.y))
-		angles.y = angles.x;
+	/* CLICK_COUNT overrides CLICK_ANGLE */
+	if (!evdev_read_wheel_click_count_prop(device,
+					      "MOUSE_WHEEL_CLICK_COUNT",
+					      &angles.x))
+		evdev_read_wheel_click_prop(device,
+					    "MOUSE_WHEEL_CLICK_ANGLE",
+					    &angles.x);
+	if (!evdev_read_wheel_click_count_prop(device,
+					      "MOUSE_WHEEL_CLICK_COUNT_HORIZONTAL",
+					      &angles.y)) {
+		if (!evdev_read_wheel_click_prop(device,
+						 "MOUSE_WHEEL_CLICK_ANGLE_HORIZONTAL",
+						 &angles.y))
+			angles.y = angles.x;
+	}
 
 	return angles;
 }

@@ -73,7 +73,7 @@ struct normalized_range_coords {
 
 /* A pair of angles in degrees */
 struct wheel_angle {
-	int x, y;
+	double x, y;
 };
 
 /* A pair of angles in degrees */

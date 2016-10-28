@@ -35,6 +35,7 @@ liblitest_la_SOURCES = \
 	litest-device-mouse-roccat.c \
 	litest-device-mouse-low-dpi.c \
 	litest-device-mouse-wheel-click-angle.c \
+	litest-device-mouse-wheel-click-count.c \
 	litest-device-ms-surface-cover.c \
 	litest-device-protocol-a-touch-screen.c \
 	litest-device-qemu-usb-tablet.c \

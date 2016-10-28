@@ -473,14 +473,45 @@ START_TEST(pointer_button_auto_release)
 }
 END_TEST
 
-static inline int
+static inline double
+wheel_click_count(struct litest_device *dev, int which)
+{
+	struct udev_device *d;
+	const char *prop = NULL;
+	int count;
+	double angle = 0.0;
+
+	d = libinput_device_get_udev_device(dev->libinput_device);
+	litest_assert_ptr_notnull(d);
+
+	if (which == REL_HWHEEL)
+		prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_COUNT_HORIZONTAL");
+	if(!prop)
+		prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_COUNT");
+	if (!prop)
+		goto out;
+
+	count = parse_mouse_wheel_click_count_property(prop);
+	angle = 360.0/count;
+
+out:
+	udev_device_unref(d);
+	return angle;
+}
+
+static inline double
 wheel_click_angle(struct litest_device *dev, int which)
 {
 	struct udev_device *d;
 	const char *prop = NULL;
 	const int default_angle = 15;
-	int angle = default_angle;
+	double angle;
 
+	angle = wheel_click_count(dev, which);
+	if (angle != 0.0)
+		return angle;
+
+	angle = default_angle;
 	d = libinput_device_get_udev_device(dev->libinput_device);
 	litest_assert_ptr_notnull(d);
 
@@ -492,7 +523,7 @@ wheel_click_angle(struct litest_device *dev, int which)
 		goto out;
 
 	angle = parse_mouse_wheel_click_angle_property(prop);
-	if (angle == 0)
+	if (angle == 0.0)
 		angle = default_angle;
 
 out:
@@ -508,7 +539,7 @@ test_wheel_event(struct litest_device *dev, int which, int amount)
 	struct libinput_event_pointer *ptrev;
 	enum libinput_pointer_axis axis;
 
-	int scroll_step, expected, discrete;;
+	double scroll_step, expected, discrete;
 
 	scroll_step = wheel_click_angle(dev, which);
 	expected = amount * scroll_step;
@@ -535,10 +566,12 @@ test_wheel_event(struct litest_device *dev, int which, int amount)
 				     axis,
 				     LIBINPUT_POINTER_AXIS_SOURCE_WHEEL);
 
-	litest_assert_int_eq(libinput_event_pointer_get_axis_value(ptrev, axis),
-			 expected);
-	litest_assert_int_eq(libinput_event_pointer_get_axis_value_discrete(ptrev, axis),
-			     discrete);
+	litest_assert_double_eq(
+			libinput_event_pointer_get_axis_value(ptrev, axis),
+			expected);
+	litest_assert_double_eq(
+			libinput_event_pointer_get_axis_value_discrete(ptrev, axis),
+			discrete);
 	libinput_event_destroy(event);
 }
 

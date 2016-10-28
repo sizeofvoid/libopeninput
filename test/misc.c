@@ -750,6 +750,35 @@ START_TEST(wheel_click_parser)
 }
 END_TEST
 
+START_TEST(wheel_click_count_parser)
+{
+	struct parser_test tests[] = {
+		{ "1", 1 },
+		{ "10", 10 },
+		{ "-12", -12 },
+		{ "360", 360 },
+		{ "66 ", 66 },
+		{ "   100 ", 100 },
+
+		{ "0", 0 },
+		{ "-0", 0 },
+		{ "a", 0 },
+		{ "10a", 0 },
+		{ "10-", 0 },
+		{ "sadfasfd", 0 },
+		{ "361", 0 },
+		{ NULL, 0 }
+	};
+
+	int i, angle;
+
+	for (i = 0; tests[i].tag != NULL; i++) {
+		angle = parse_mouse_wheel_click_count_property(tests[i].tag);
+		ck_assert_int_eq(angle, tests[i].expected_value);
+	}
+}
+END_TEST
+
 struct parser_test_float {
 	char *tag;
 	double expected_value;
@@ -956,6 +985,7 @@ litest_setup_tests_misc(void)
 	litest_add_no_device("misc:ratelimit", ratelimit_helpers);
 	litest_add_no_device("misc:parser", dpi_parser);
 	litest_add_no_device("misc:parser", wheel_click_parser);
+	litest_add_no_device("misc:parser", wheel_click_count_parser);
 	litest_add_no_device("misc:parser", trackpoint_accel_parser);
 	litest_add_no_device("misc:parser", dimension_prop_parser);
 	litest_add_no_device("misc:time", time_conversion);
