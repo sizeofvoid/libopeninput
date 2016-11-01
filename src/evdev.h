@@ -122,6 +122,7 @@ enum evdev_device_model {
 	EVDEV_MODEL_HP8510_TOUCHPAD = (1 << 21),
 	EVDEV_MODEL_HP6910_TOUCHPAD = (1 << 22),
 	EVDEV_MODEL_HP_ZBOOK_STUDIO_G3 = (1 << 23),
+	EVDEV_MODEL_HP_PAVILION_DM4_TOUCHPAD = (1 << 24),
 };
 
 struct mt_slot {

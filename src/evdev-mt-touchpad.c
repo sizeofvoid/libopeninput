@@ -1795,8 +1795,12 @@ tp_init_slots(struct tp_dispatch *tp,
 	 * If three fingers are set down in the same frame, one slot has the
 	 * coordinates 0/0 and may not get updated for several frames.
 	 * See https://bugzilla.redhat.com/show_bug.cgi?id=1295073
+	 *
+	 * The HP Pavilion DM4 touchpad has random jumps in slots, including
+	 * for single-finger movement. See fdo bug 91135
 	 */
-	if (tp->semi_mt) {
+	if (tp->semi_mt ||
+	    device->model_flags & EVDEV_MODEL_HP_PAVILION_DM4_TOUCHPAD) {
 		tp->num_slots = 1;
 		tp->slot = 0;
 		tp->has_mt = false;
@@ -1898,6 +1902,12 @@ static uint32_t
 tp_scroll_get_methods(struct tp_dispatch *tp)
 {
 	uint32_t methods = LIBINPUT_CONFIG_SCROLL_EDGE;
+
+	/* Any movement with more than one finger has random cursor
+	 * jumps. Don't allow for 2fg scrolling on this device, see
+	 * fdo bug 91135 */
+	if (tp->device->model_flags & EVDEV_MODEL_HP_PAVILION_DM4_TOUCHPAD)
+		return LIBINPUT_CONFIG_SCROLL_EDGE;
 
 	if (tp->ntouches >= 2)
 		methods |= LIBINPUT_CONFIG_SCROLL_2FG;
