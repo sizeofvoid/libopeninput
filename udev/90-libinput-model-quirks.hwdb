@@ -99,6 +99,10 @@ libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnHewlett-Packard:*pnHPCompaq6910
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnHewlett-Packard:*pnHPCompaq8510w*
  LIBINPUT_MODEL_HP8510_TOUCHPAD=1
 
+# HP Pavillion dm4
+libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnHewlett-Packard:*pnHPPaviliondm4NotebookPC*
+ LIBINPUT_MODEL_HP_PAVILION_DM4_TOUCHPAD=1
+
 # HP Stream 11
 libinput:name:SYN1EDE:00 06CB:7442:dmi:*svnHewlett-Packard:pnHPStreamNotebookPC11*
  LIBINPUT_MODEL_HP_STREAM11_TOUCHPAD=1
