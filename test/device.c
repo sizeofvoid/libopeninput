@@ -1058,6 +1058,39 @@ START_TEST(abs_mt_device_missing_res)
 }
 END_TEST
 
+START_TEST(ignore_joystick)
+{
+	struct libinput *li;
+	struct libevdev_uinput *uinput;
+	struct libinput_device *device;
+	struct input_absinfo absinfo[] = {
+		{ ABS_X, 0, 10, 0, 0, 10 },
+		{ ABS_Y, 0, 10, 0, 0, 10 },
+		{ ABS_RX, 0, 10, 0, 0, 10 },
+		{ ABS_RY, 0, 10, 0, 0, 10 },
+		{ ABS_THROTTLE, 0, 2, 0, 0, 0 },
+		{ ABS_RUDDER, 0, 255, 0, 0, 0 },
+		{ -1, -1, -1, -1, -1, -1 }
+	};
+
+	li = litest_create_context();
+	litest_disable_log_handler(li);
+	litest_drain_events(li);
+
+	uinput = litest_create_uinput_abs_device("joystick test device", NULL,
+						 absinfo,
+						 EV_KEY, BTN_TRIGGER,
+						 EV_KEY, BTN_A,
+						 -1);
+	device = libinput_path_add_device(li,
+					  libevdev_uinput_get_devnode(uinput));
+	litest_assert_ptr_null(device);
+	libevdev_uinput_destroy(uinput);
+	litest_restore_log_handler(li);
+	libinput_unref(li);
+}
+END_TEST
+
 START_TEST(device_wheel_only)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1464,6 +1497,7 @@ litest_setup_tests_device(void)
 	litest_add_ranged_no_device("device:invalid devices", abs_mt_device_no_range, &abs_mt_range);
 	litest_add_no_device("device:invalid devices", abs_device_missing_res);
 	litest_add_no_device("device:invalid devices", abs_mt_device_missing_res);
+	litest_add_no_device("device:invalid devices", ignore_joystick);
 
 	litest_add("device:wheel", device_wheel_only, LITEST_WHEEL, LITEST_RELATIVE|LITEST_ABSOLUTE|LITEST_TABLET);
 	litest_add_no_device("device:accelerometer", device_accelerometer);
