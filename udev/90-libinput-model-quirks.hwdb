@@ -91,7 +91,11 @@ libinput:name:Cypress APA Trackpad ?cyapa?:dmi:*
 # HP
 ##########################################
 
-# HP 8510w
+# HP Compaq6910p
+libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnHewlett-Packard:*pnHPCompaq6910p*
+ LIBINPUT_MODEL_HP6910_TOUCHPAD=1
+
+# HP Compaq 8510w
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnHewlett-Packard:*pnHPCompaq8510w*
  LIBINPUT_MODEL_HP8510_TOUCHPAD=1
 

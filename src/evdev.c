@@ -2143,6 +2143,7 @@ evdev_read_model_flags(struct evdev_device *device)
 		MODEL(TRACKBALL),
 		MODEL(APPLE_MAGICMOUSE),
 		MODEL(HP8510_TOUCHPAD),
+		MODEL(HP6910_TOUCHPAD),
 #undef MODEL
 		{ "ID_INPUT_TRACKBALL", EVDEV_MODEL_TRACKBALL },
 		{ NULL, EVDEV_MODEL_DEFAULT },
@@ -2712,9 +2713,11 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 		libevdev_disable_event_type(device->evdev, EV_ABS);
 
 	/* Claims to have double/tripletap but doesn't actually send it
-	 * https://bugzilla.redhat.com/show_bug.cgi?id=1351285
+	 * https://bugzilla.redhat.com/show_bug.cgi?id=1351285 and
+	 * https://bugzilla.redhat.com/show_bug.cgi?id=98538
 	 */
-	if (device->model_flags & EVDEV_MODEL_HP8510_TOUCHPAD) {
+	if (device->model_flags &
+	    (EVDEV_MODEL_HP8510_TOUCHPAD|EVDEV_MODEL_HP6910_TOUCHPAD)) {
 		libevdev_disable_event_code(device->evdev, EV_KEY, BTN_TOOL_DOUBLETAP);
 		libevdev_disable_event_code(device->evdev, EV_KEY, BTN_TOOL_TRIPLETAP);
 	}
