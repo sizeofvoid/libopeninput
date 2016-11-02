@@ -203,7 +203,8 @@ main(int argc, char **argv)
 	accel_profile_func_t profile = NULL;
 
 	enum {
-		OPT_MODE = 1,
+		OPT_HELP = 1,
+		OPT_MODE,
 		OPT_NEVENTS,
 		OPT_MAXDX,
 		OPT_STEP,
@@ -216,6 +217,7 @@ main(int argc, char **argv)
 		int c;
 		int option_index = 0;
 		static struct option long_options[] = {
+			{"help", 0, 0, OPT_HELP },
 			{"mode", 1, 0, OPT_MODE },
 			{"nevents", 1, 0, OPT_NEVENTS },
 			{"maxdx", 1, 0, OPT_MAXDX },
@@ -232,6 +234,10 @@ main(int argc, char **argv)
 			break;
 
 		switch (c) {
+		case OPT_HELP:
+			usage();
+			exit(0);
+			break;
 		case OPT_MODE:
 			if (streq(optarg, "accel"))
 				print_accel = true;
