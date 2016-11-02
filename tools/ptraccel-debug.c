@@ -148,7 +148,7 @@ print_accel_func(struct motion_filter *filter, accel_profile_func_t profile)
 	printf("# set ylabel \"raw accel factor\"\n");
 	printf("# set style data lines\n");
 	printf("# plot \"gnuplot.data\" using 1:2\n");
-	for (vel = 0.0; vel < 0.003; vel += 0.0000001) {
+	for (vel = 0.0; vel < 0.004; vel += 0.0000001) {
 		double result = profile(filter, NULL, vel, 0 /* time */);
 		printf("%.8f\t%.4f\n", vel, result);
 	}
