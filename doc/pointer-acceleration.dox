@@ -108,14 +108,33 @@ The image above shows the touchpad acceleration profile in comparison to the
 
 @section ptraccel-trackpoint Pointer acceleration on trackpoints
 
+Trackpoint hardware is quite varied in how it reacts to user pressure and
+unlike other devices it cannot easily be normalized for physical properties.
+Measuring pressure objectively across a variety of hardware is nontrivial.
+libinput relies on some sytem-wide configured properties, specifically the
+@ref udev_config. The two properties that influence trackpoint acceleration
+````POINTINGSTICK_CONST_ACCEL```` which is a constant factor applied to the
+trackpoint's motion data. For example, a factor of 3 will see all input data
+multipled by 3. This multiplication is done by libinput.
+
+Additionally, some trackpoints provide the ability to adjust the sensitivity in
+hardware by modifying a sysfs file on the serio node. The udev property
+````POINTINGSTICK_SENSITIVITY```` indicates the desired value, a udev
+builtin is expected to apply this to the device, i.e.  libinput does not
+handle this property. Once applied, the sensitivity adjusts the deltas
+coming out of the hardware.
+
 Trackpoint pointer acceleration uses the @ref ptraccel-low-dpi profile, with a
-constant deceleration factor taking the place of the DPI settings.
+constant acceleration factor taking the place of the DPI settings.
 
 @image html ptraccel-trackpoint.svg "Pointer acceleration curves for trackpoints"
 
 The image above shows the trackpoint acceleration profile in comparison to the
-@ref ptraccel-linear. The constant acceleration factor, usually applied by
-udev, shapes the acceleration profile.
+@ref ptraccel-linear.
+
+The constant acceleration factor, usually applied in
+@ref udev_config, shapes the acceleration profile and is pre-applied before
+any user-specific acceleration adjustments.
 
 @section ptraccel-profile-flat The flat pointer acceleration profile
 
