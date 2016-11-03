@@ -182,25 +182,15 @@ parse_mouse_dpi_property(const char *prop)
  * Where the number indicates the number of wheel clicks per 360 deg
  * rotation.
  *
- * We skip preceding whitespaces and parse the first number seen. If
- * multiple numbers are specified, we ignore those.
- *
  * @param prop The value of the udev property (without the MOUSE_WHEEL_CLICK_COUNT=)
  * @return The click count of the wheel (may be negative) or 0 on error.
  */
 int
 parse_mouse_wheel_click_count_property(const char *prop)
 {
-	int count = 0,
-	    nread = 0;
+	int count = 0;
 
-	while(*prop != 0 && *prop == ' ')
-		prop++;
-
-	sscanf(prop, "%d%n", &count, &nread);
-	if (nread == 0 || count == 0 || abs(count) > 360)
-		return 0;
-	if (prop[nread] != ' ' && prop[nread] != '\0')
+	if (!safe_atoi(prop, &count) || abs(count) > 360)
 		return 0;
 
         return count;
@@ -213,25 +203,15 @@ parse_mouse_wheel_click_count_property(const char *prop)
  * MOUSE_WHEEL_CLICK_ANGLE=<integer>
  * Where the number indicates the degrees travelled for each click.
  *
- * We skip preceding whitespaces and parse the first number seen. If
- * multiple numbers are specified, we ignore those.
- *
  * @param prop The value of the udev property (without the MOUSE_WHEEL_CLICK_ANGLE=)
  * @return The angle of the wheel (may be negative) or 0 on error.
  */
 int
 parse_mouse_wheel_click_angle_property(const char *prop)
 {
-	int angle = 0,
-	    nread = 0;
+	int angle = 0;
 
-	while(*prop != 0 && *prop == ' ')
-		prop++;
-
-	sscanf(prop, "%d%n", &angle, &nread);
-	if (nread == 0 || angle == 0 || abs(angle) > 360)
-		return 0;
-	if (prop[nread] != ' ' && prop[nread] != '\0')
+	if (!safe_atoi(prop, &angle) || abs(angle) > 360)
 		return 0;
 
         return angle;
