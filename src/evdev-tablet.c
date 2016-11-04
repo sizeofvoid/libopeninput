@@ -1712,12 +1712,16 @@ tablet_reject_device(struct evdev_device *device)
 {
 	struct libevdev *evdev = device->evdev;
 	int rc = -1;
+	double w, h;
 
 	if (!libevdev_has_event_code(evdev, EV_ABS, ABS_X) ||
 	    !libevdev_has_event_code(evdev, EV_ABS, ABS_Y))
 		goto out;
 
 	if (!libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_PEN))
+		goto out;
+
+	if (evdev_device_get_size(device, &w, &h) != 0)
 		goto out;
 
 	rc = 0;
