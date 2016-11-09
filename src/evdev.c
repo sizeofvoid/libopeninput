@@ -2749,7 +2749,7 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 
 	/* Claims to have double/tripletap but doesn't actually send it
 	 * https://bugzilla.redhat.com/show_bug.cgi?id=1351285 and
-	 * https://bugzilla.redhat.com/show_bug.cgi?id=98538
+	 * https://bugs.freedesktop.org/show_bug.cgi?id=98538
 	 */
 	if (device->model_flags &
 	    (EVDEV_MODEL_HP8510_TOUCHPAD|EVDEV_MODEL_HP6910_TOUCHPAD)) {
