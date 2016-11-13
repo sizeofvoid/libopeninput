@@ -90,7 +90,10 @@ build_tests = \
 
 noinst_PROGRAMS = $(build_tests) $(run_tests)
 noinst_SCRIPTS = symbols-leak-test
+
+if RUN_TESTS
 TESTS = $(run_tests) symbols-leak-test
+endif
 
 libinput_test_suite_runner_SOURCES = udev.c \
 				     path.c \

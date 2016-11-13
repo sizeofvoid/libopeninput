@@ -211,6 +211,11 @@ if test "x$build_tests" = "xyes"; then
 	fi
 fi
 
+AC_ARG_ENABLE(test-run,
+	      AS_HELP_STRING([--enable-test-run], [For internal use only]),
+	      [run_tests="$enableval"],
+	      [run_tests="yes"])
+
 # Used by the udev rules so we can use callouts during testing without
 # installing everything first. Default is the empty string so the installed
 # rule will use udev's default path. Override is in udev/Makefile.am
@@ -220,6 +225,7 @@ AC_PATH_PROG(SED, [sed])
 ###########################
 # enable/disable libwacom #
 ###########################
+
 AC_ARG_ENABLE(libwacom,
 	      AS_HELP_STRING([--enable-libwacom],
 			     [Use libwacom for tablet identification (default=enabled)]),
@@ -251,6 +257,7 @@ AM_CONDITIONAL(HAVE_LIBWACOM_GET_PAIRED_DEVICE,
 	       [test "x$libwacom_have_get_paired_device" == "xyes"])
 AM_CONDITIONAL(HAVE_VALGRIND, [test "x$VALGRIND" != "x"])
 AM_CONDITIONAL(BUILD_TESTS, [test "x$build_tests" = "xyes"])
+AM_CONDITIONAL(RUN_TESTS, [test "x$run_tests" = "xyes"])
 AM_CONDITIONAL(BUILD_DOCS, [test "x$build_documentation" = "xyes"])
 AM_CONDITIONAL(HAVE_LIBUNWIND, [test "x$HAVE_LIBUNWIND" = xyes])
 AM_CONDITIONAL(BUILD_EVENTGUI, [test "x$build_eventgui" = "xyes"])
