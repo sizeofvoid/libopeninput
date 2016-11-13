@@ -159,7 +159,6 @@ if test "x$build_eventgui" = "xyes"; then
 	PKG_CHECK_MODULES(CAIRO, [cairo])
 	PKG_CHECK_MODULES(GTK, [glib-2.0 gtk+-3.0])
 fi
-AM_CONDITIONAL(BUILD_EVENTGUI, [test "x$build_eventgui" = "xyes"])
 
 AC_ARG_ENABLE(tests,
 	      AS_HELP_STRING([--enable-tests], [Build the tests (default=auto)]),
@@ -199,7 +198,6 @@ if test "x$build_tests" = "xyes"; then
 		AC_DEFINE_UNQUOTED(ADDR2LINE, ["$ADDR2LINE"], [Path to addr2line])
 	fi
 fi
-AM_CONDITIONAL(HAVE_LIBUNWIND, [test "x$HAVE_LIBUNWIND" = xyes])
 
 AC_ARG_ENABLE(libwacom,
 	      AS_HELP_STRING([--enable-libwacom],
@@ -227,12 +225,14 @@ if test "x$use_libwacom" = "xyes"; then
 	LIBS=$OLD_LIBS
 	CFLAGS=$OLD_CFLAGS
 fi
+
 AM_CONDITIONAL(HAVE_LIBWACOM_GET_PAIRED_DEVICE,
 	       [test "x$libwacom_have_get_paired_device" == "xyes"])
-
 AM_CONDITIONAL(HAVE_VALGRIND, [test "x$VALGRIND" != "x"])
 AM_CONDITIONAL(BUILD_TESTS, [test "x$build_tests" = "xyes"])
 AM_CONDITIONAL(BUILD_DOCS, [test "x$build_documentation" = "xyes"])
+AM_CONDITIONAL(HAVE_LIBUNWIND, [test "x$HAVE_LIBUNWIND" = xyes])
+AM_CONDITIONAL(BUILD_EVENTGUI, [test "x$build_eventgui" = "xyes"])
 
 # Used by the udev rules so we can use callouts during testing without
 # installing everything first. Default is the empty string so the installed
