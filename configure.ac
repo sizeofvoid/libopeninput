@@ -83,6 +83,9 @@ fi
 AC_SUBST(GCC_CFLAGS)
 AC_SUBST(GCC_CXXFLAGS)
 
+######################
+# udev configuration #
+######################
 udev_dir_default="$libdir/udev"
 AC_ARG_WITH(udev-dir,
             AS_HELP_STRING([--with-udev-dir=DIR],
@@ -96,6 +99,9 @@ AS_CASE($with_udev_dir,
 UDEV_DIR=${udevdir}
 AC_SUBST(UDEV_DIR)
 
+################################
+# enable/disable documentation #
+################################
 AC_ARG_ENABLE([documentation],
 	      [AC_HELP_STRING([--enable-documentation],
 		              [Enable building the documentation (default=auto)])],
@@ -146,6 +152,9 @@ if test "x$build_documentation" = "xyes" -o "x$build_documentation" = "xauto"; t
 	fi
 fi
 
+###########################################
+# enable/disable event gui debugging tool #
+###########################################
 AC_ARG_ENABLE(event-gui,
 	      AS_HELP_STRING([--enable-event-gui], [Build the GUI event viewer (default=auto)]),
 	      [build_eventgui="$enableval"],
@@ -160,6 +169,9 @@ if test "x$build_eventgui" = "xyes"; then
 	PKG_CHECK_MODULES(GTK, [glib-2.0 gtk+-3.0])
 fi
 
+########################
+# enable/disable tests #
+########################
 AC_ARG_ENABLE(tests,
 	      AS_HELP_STRING([--enable-tests], [Build the tests (default=auto)]),
 	      [build_tests="$enableval"],
@@ -199,6 +211,9 @@ if test "x$build_tests" = "xyes"; then
 	fi
 fi
 
+###########################
+# enable/disable libwacom #
+###########################
 AC_ARG_ENABLE(libwacom,
 	      AS_HELP_STRING([--enable-libwacom],
 			     [Use libwacom for tablet identification (default=enabled)]),
