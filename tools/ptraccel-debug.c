@@ -32,8 +32,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <filter.h>
-#include <libinput-util.h>
+#include "filter.h"
+#include "libinput-util.h"
 
 static void
 print_ptraccel_deltas(struct motion_filter *filter, double step)
