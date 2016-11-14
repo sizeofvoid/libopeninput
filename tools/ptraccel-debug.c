@@ -182,6 +182,9 @@ usage(void)
 	       "If stdin is a pipe, mode defaults to 'sequence' and the pipe is read \n"
 	       "for delta coordinates\n"
 	       "\n"
+	       "Delta coordinates passed into this tool must be in dpi as\n"
+	       "specified by the --dpi argument\n"
+	       "\n"
 	       "Output best viewed with gnuplot. See output for gnuplot commands\n");
 }
 
