@@ -224,7 +224,7 @@ main(int argc, char **argv)
 			{"step", 1, 0, OPT_STEP },
 			{"speed", 1, 0, OPT_SPEED },
 			{"dpi", 1, 0, OPT_DPI },
-			{"filter", 1, 0, OPT_FILTER},
+			{"filter", 1, 0, OPT_FILTER },
 			{0, 0, 0, 0}
 		};
 
