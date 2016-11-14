@@ -211,6 +211,12 @@ if test "x$build_tests" = "xyes"; then
 	fi
 fi
 
+# Used by the udev rules so we can use callouts during testing without
+# installing everything first. Default is the empty string so the installed
+# rule will use udev's default path. Override is in udev/Makefile.am
+AC_SUBST(UDEV_TEST_PATH, "")
+AC_PATH_PROG(SED, [sed])
+
 ###########################
 # enable/disable libwacom #
 ###########################
@@ -248,12 +254,6 @@ AM_CONDITIONAL(BUILD_TESTS, [test "x$build_tests" = "xyes"])
 AM_CONDITIONAL(BUILD_DOCS, [test "x$build_documentation" = "xyes"])
 AM_CONDITIONAL(HAVE_LIBUNWIND, [test "x$HAVE_LIBUNWIND" = xyes])
 AM_CONDITIONAL(BUILD_EVENTGUI, [test "x$build_eventgui" = "xyes"])
-
-# Used by the udev rules so we can use callouts during testing without
-# installing everything first. Default is the empty string so the installed
-# rule will use udev's default path. Override is in udev/Makefile.am
-AC_SUBST(UDEV_TEST_PATH, "")
-AC_PATH_PROG(SED, [sed])
 
 AC_CONFIG_FILES([Makefile
 		 doc/Makefile
