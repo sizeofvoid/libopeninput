@@ -530,6 +530,38 @@ evdev_to_left_handed(struct evdev_device *device,
 	return button;
 }
 
+/**
+ * Apply a hysteresis filtering to the coordinate in, based on the current
+ * hystersis center and the margin. If 'in' is within 'margin' of center,
+ * return the center (and thus filter the motion). If 'in' is outside,
+ * return a point on the edge of the new margin. So for a point x in the
+ * space outside c + margin we return r:
+ * +---+       +---+
+ * | c |  x →  | r x
+ * +---+       +---+
+ *
+ * The effect of this is that initial small motions are filtered. Once we
+ * move into one direction we lag the real coordinates by 'margin' but any
+ * movement that continues into that direction will always be just outside
+ * margin - we get responsive movement. Once we move back into the other
+ * direction, the first movements are filtered again.
+ *
+ * Returning the edge rather than the point avoids cursor jumps, as the
+ * first reachable coordinate is the point next to the center (center + 1).
+ * Otherwise, the center has a dead zone of size margin around it and the
+ * first reachable point is the margin edge.
+ *
+ * Hysteresis is handled separately per axis (and the window is thus
+ * rectangular, not circular). It is unkown if that's an issue, but the
+ * calculation to do circular hysteresis are nontrivial, especially since
+ * many touchpads have uneven x/y resolutions.
+ *
+ * @param in The input coordinate
+ * @param center Current center of the hysteresis
+ * @param margin Hysteresis width (on each side)
+ *
+ * @return The new center of the hysteresis
+ */
 static inline int
 evdev_hysteresis(int in, int center, int margin)
 {
@@ -537,10 +569,10 @@ evdev_hysteresis(int in, int center, int margin)
 	if (abs(diff) <= margin)
 		return center;
 
-	if (diff > margin)
-		return center + diff - margin;
+	if (diff > 0)
+		return in - margin;
 	else
-		return center + diff + margin;
+		return in + margin;
 }
 
 static inline struct libinput *
