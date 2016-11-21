@@ -664,9 +664,9 @@ START_TEST(touchpad_edge_scroll_no_motion)
 	litest_touch_down(dev, 0, 99, 10);
 	litest_touch_move_to(dev, 0, 99, 10, 99, 70, 12, 0);
 	/* moving outside -> no motion event */
-	litest_touch_move_to(dev, 0, 99, 70, 20, 80, 12, 0);
+	litest_touch_move_to(dev, 0, 99, 70, 20, 70, 12, 0);
 	/* moving down outside edge once scrolling had started -> scroll */
-	litest_touch_move_to(dev, 0, 20, 80, 40, 99, 12, 0);
+	litest_touch_move_to(dev, 0, 20, 70, 40, 99, 12, 0);
 	litest_touch_up(dev, 0);
 	libinput_dispatch(li);
 
