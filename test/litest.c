@@ -2806,6 +2806,7 @@ litest_assert_scroll(struct libinput *li,
 	struct libinput_event *event, *next_event;
 	struct libinput_event_pointer *ptrev;
 	int value;
+	int nevents = 0;
 
 	event = libinput_get_event(li);
 	next_event = libinput_get_event(li);
@@ -2813,16 +2814,26 @@ litest_assert_scroll(struct libinput *li,
 
 	while (event) {
 		ptrev = litest_is_axis_event(event, axis, 0);
+		nevents++;
 
 		if (next_event) {
+			int min = minimum_movement;
+
 			value = libinput_event_pointer_get_axis_value(ptrev,
 								      axis);
+			/* Due to how the hysteresis works on touchpad
+			 * events, the first event is reduced by the
+			 * hysteresis margin that can cause the first event
+			 * go under the minimum we expect for all other
+			 * events */
+			if (nevents == 1)
+				min = minimum_movement/2;
+
 			/* Normal scroll event, check dir */
-			if (minimum_movement > 0) {
-				litest_assert_int_ge(value, minimum_movement);
-			} else {
-				litest_assert_int_le(value, minimum_movement);
-			}
+			if (minimum_movement > 0)
+				litest_assert_int_ge(value, min);
+			else
+				litest_assert_int_le(value, min);
 		} else {
 			/* Last scroll event, must be 0 */
 			ck_assert_double_eq(
