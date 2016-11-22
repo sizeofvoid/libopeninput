@@ -264,6 +264,7 @@ litest_backtrace(void)
 #endif
 
 LIBINPUT_ATTRIBUTE_PRINTF(5, 6)
+__attribute__((noreturn))
 void
 litest_fail_condition(const char *file,
 		      int line,
@@ -286,6 +287,7 @@ litest_fail_condition(const char *file,
 	abort();
 }
 
+__attribute__((noreturn))
 void
 litest_fail_comparison_int(const char *file,
 			   int line,
@@ -303,6 +305,7 @@ litest_fail_comparison_int(const char *file,
 	abort();
 }
 
+__attribute__((noreturn))
 void
 litest_fail_comparison_ptr(const char *file,
 			   int line,
