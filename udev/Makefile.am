@@ -42,9 +42,10 @@ DISTCLEANFILES = \
 		 90-libinput-model-quirks.rules 
 EXTRA_DIST = 80-libinput-test-device.rules
 
+TEST_EXTENSIONS = .py
+
 if HAVE_PYTHON
 TESTS = parse_hwdb.py
-TEST_EXTENSIONS = .py
 PY_LOG_COMPILER = $(PYTHON)
 endif
 EXTRA_DIST += parse_hwdb.py
