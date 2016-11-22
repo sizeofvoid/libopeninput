@@ -919,7 +919,7 @@ START_TEST(touchpad_2fg_tap)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
-	unsigned int button;
+	unsigned int button = 0;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_set_tap_map(dev->libinput_device, map);
@@ -959,7 +959,7 @@ START_TEST(touchpad_2fg_tap_inverted)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
-	unsigned int button;
+	unsigned int button = 0;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_set_tap_map(dev->libinput_device, map);
@@ -1362,7 +1362,7 @@ START_TEST(touchpad_3fg_tap)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
-	unsigned int button;
+	unsigned int button = 0;
 	int i;
 
 	if (libevdev_get_abs_maximum(dev->evdev,
@@ -1454,7 +1454,7 @@ START_TEST(touchpad_3fg_tap_btntool)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
-	unsigned int button;
+	unsigned int button = 0;
 
 	if (libevdev_get_abs_maximum(dev->evdev,
 				     ABS_MT_SLOT) > 2)
@@ -1507,7 +1507,7 @@ START_TEST(touchpad_3fg_tap_btntool_inverted)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
-	unsigned int button;
+	unsigned int button = 0;
 
 	if (libevdev_get_abs_maximum(dev->evdev,
 				     ABS_MT_SLOT) > 2)
