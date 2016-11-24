@@ -407,20 +407,20 @@ us2ms(uint64_t us)
 static inline bool
 safe_atoi(const char *str, int *val)
 {
-        char *endptr;
-        long v;
+	char *endptr;
+	long v;
 
-        v = strtol(str, &endptr, 10);
-        if (str == endptr)
-                return false;
-        if (*str != '\0' && *endptr != '\0')
-                return false;
+	v = strtol(str, &endptr, 10);
+	if (str == endptr)
+		return false;
+	if (*str != '\0' && *endptr != '\0')
+		return false;
 
-        if (v > INT_MAX || v < INT_MIN)
-                return false;
+	if (v > INT_MAX || v < INT_MIN)
+		return false;
 
-        *val = v;
-        return true;
+	*val = v;
+	return true;
 }
 
 #endif /* LIBINPUT_UTIL_H */
