@@ -28,6 +28,7 @@
 #include "config.h"
 
 #include <assert.h>
+#include <errno.h>
 #include <limits.h>
 #include <math.h>
 #include <stdarg.h>
@@ -410,7 +411,10 @@ safe_atoi(const char *str, int *val)
 	char *endptr;
 	long v;
 
+	errno = 0;
 	v = strtol(str, &endptr, 10);
+	if (errno > 0)
+		return false;
 	if (str == endptr)
 		return false;
 	if (*str != '\0' && *endptr != '\0')
