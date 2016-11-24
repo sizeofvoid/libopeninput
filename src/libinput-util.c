@@ -248,21 +248,10 @@ parse_mouse_wheel_click_angle_property(const char *prop)
 double
 parse_trackpoint_accel_property(const char *prop)
 {
-	locale_t c_locale;
 	double accel;
-	char *endp;
 
-	/* Create a "C" locale to force strtod to use '.' as separator */
-	c_locale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
-	if (c_locale == (locale_t)0)
-		return 0.0;
-
-	accel = strtod_l(prop, &endp, c_locale);
-
-	freelocale(c_locale);
-
-	if (*endp != '\0')
-		return 0.0;
+	if (!safe_atod(prop, &accel))
+		accel = 0.0;
 
 	return accel;
 }
