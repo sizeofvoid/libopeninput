@@ -902,6 +902,55 @@ START_TEST(safe_atoi_test)
 }
 END_TEST
 
+struct atod_test {
+	char *str;
+	bool success;
+	double val;
+};
+
+START_TEST(safe_atod_test)
+{
+	struct atod_test tests[] = {
+		{ "10", true, 10 },
+		{ "20", true, 20 },
+		{ "-1", true, -1 },
+		{ "2147483647", true, 2147483647 },
+		{ "-2147483648", true, -2147483648 },
+		{ "4294967295", true, 4294967295 },
+		{ "0x0", true, 0 },
+		{ "0x10", true, 0x10 },
+		{ "0xaf", true, 0xaf },
+		{ "x80", false, 0 },
+		{ "0.0", true, 0.0 },
+		{ "0.1", true, 0.1 },
+		{ "1.2", true, 1.2 },
+		{ "-324.9", true, -324.9 },
+		{ "9324.9", true, 9324.9 },
+		{ "NAN", false, 0 },
+		{ "INFINITY", false, 0 },
+		{ "-10x10", false, 0 },
+		{ "1x-99", false, 0 },
+		{ "", false, 0 },
+		{ "abd", false, 0 },
+		{ "xabd", false, 0 },
+		{ "0x0x", false, 0 },
+		{ NULL, false, 0 }
+	};
+	double v;
+	bool success;
+
+	for (int i = 0; tests[i].str != NULL; i++) {
+		v = 0xad;
+		success = safe_atod(tests[i].str, &v);
+		ck_assert(success == tests[i].success);
+		if (success)
+			ck_assert_int_eq(v, tests[i].val);
+		else
+			ck_assert_int_eq(v, 0xad);
+	}
+}
+END_TEST
+
 static int open_restricted_leak(const char *path, int flags, void *data)
 {
 	return *(int*)data;
@@ -1030,6 +1079,7 @@ litest_setup_tests_misc(void)
 	litest_add_no_device("misc:parser", trackpoint_accel_parser);
 	litest_add_no_device("misc:parser", dimension_prop_parser);
 	litest_add_no_device("misc:parser", safe_atoi_test);
+	litest_add_no_device("misc:parser", safe_atod_test);
 	litest_add_no_device("misc:time", time_conversion);
 
 	litest_add_no_device("misc:fd", fd_no_event_leak);

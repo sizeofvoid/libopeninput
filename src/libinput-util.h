@@ -30,6 +30,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <limits.h>
+#include <locale.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -421,6 +422,34 @@ safe_atoi(const char *str, int *val)
 		return false;
 
 	if (v > INT_MAX || v < INT_MIN)
+		return false;
+
+	*val = v;
+	return true;
+}
+
+static inline bool
+safe_atod(const char *str, double *val)
+{
+	char *endptr;
+	double v;
+	locale_t c_locale;
+
+	/* Create a "C" locale to force strtod to use '.' as separator */
+	c_locale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
+	if (c_locale == (locale_t)0)
+		return false;
+
+	errno = 0;
+	v = strtod_l(str, &endptr, c_locale);
+	freelocale(c_locale);
+	if (errno > 0)
+		return false;
+	if (str == endptr)
+		return false;
+	if (*str != '\0' && *endptr != '\0')
+		return false;
+	if (isnan(v) || isinf(v))
 		return false;
 
 	*val = v;
