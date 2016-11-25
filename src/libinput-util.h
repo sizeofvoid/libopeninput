@@ -456,4 +456,22 @@ safe_atod(const char *str, double *val)
 	return true;
 }
 
+char **strv_from_string(const char *string, const char *separator);
+
+static inline void
+strv_free(char **strv) {
+	char **s = strv;
+
+	if (!strv)
+		return;
+
+	while (*s != NULL) {
+		free(*s);
+		*s = (char*)0x1; /* detect use-after-free */
+		s++;
+	}
+
+	free (strv);
+}
+
 #endif /* LIBINPUT_UTIL_H */

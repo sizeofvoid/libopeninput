@@ -951,6 +951,50 @@ START_TEST(safe_atod_test)
 }
 END_TEST
 
+struct strsplit_test {
+	const char *string;
+	const char *delim;
+	const char *results[10];
+};
+
+START_TEST(strsplit_test)
+{
+	struct strsplit_test tests[] = {
+		{ "one two three", " ", { "one", "two", "three", NULL } },
+		{ "one", " ", { "one", NULL } },
+		{ "one two ", " ", { "one", "two", NULL } },
+		{ "one  two", " ", { "one", "two", NULL } },
+		{ " one two", " ", { "one", "two", NULL } },
+		{ "one", "\t \r", { "one", NULL } },
+		{ "one two three", " t", { "one", "wo", "hree", NULL } },
+		{ " one two three", "te", { " on", " ", "wo ", "hr", NULL } },
+		{ "one", "ne", { "o", NULL } },
+		{ "onene", "ne", { "o", NULL } },
+		{ NULL, NULL, { NULL }}
+	};
+	struct strsplit_test *t = tests;
+
+	while (t->string) {
+		char **strv;
+		int idx = 0;
+		strv = strv_from_string(t->string, t->delim);
+		while (t->results[idx]) {
+			ck_assert_str_eq(t->results[idx], strv[idx]);
+			idx++;
+		}
+		ck_assert_ptr_eq(strv[idx], NULL);
+		strv_free(strv);
+		t++;
+	}
+
+	/* Special cases */
+	ck_assert_ptr_eq(strv_from_string("", " "), NULL);
+	ck_assert_ptr_eq(strv_from_string(" ", " "), NULL);
+	ck_assert_ptr_eq(strv_from_string("     ", " "), NULL);
+	ck_assert_ptr_eq(strv_from_string("oneoneone", "one"), NULL);
+}
+END_TEST
+
 static int open_restricted_leak(const char *path, int flags, void *data)
 {
 	return *(int*)data;
@@ -1080,6 +1124,7 @@ litest_setup_tests_misc(void)
 	litest_add_no_device("misc:parser", dimension_prop_parser);
 	litest_add_no_device("misc:parser", safe_atoi_test);
 	litest_add_no_device("misc:parser", safe_atod_test);
+	litest_add_no_device("misc:parser", strsplit_test);
 	litest_add_no_device("misc:time", time_conversion);
 
 	litest_add_no_device("misc:fd", fd_no_event_leak);

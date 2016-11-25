@@ -285,3 +285,85 @@ parse_dimension_property(const char *prop, size_t *w, size_t *h)
 	*h = (size_t)y;
 	return true;
 }
+
+/**
+ * Return the next word in a string pointed to by state before the first
+ * separator character. Call repeatedly to tokenize a whole string.
+ *
+ * @param state Current state
+ * @param len String length of the word returned
+ * @param separators List of separator characters
+ *
+ * @return The first word in *state, NOT null-terminated
+ */
+static const char *
+next_word(const char **state, size_t *len, const char *separators)
+{
+	const char *next = *state;
+	size_t l;
+
+	if (!*next)
+		return NULL;
+
+	next += strspn(next, separators);
+	if (!*next) {
+		*state = next;
+		return NULL;
+	}
+
+	l = strcspn(next, separators);
+	*state = next + l;
+	*len = l;
+
+	return next;
+}
+
+/**
+ * Return a null-terminated string array with the tokens in the input
+ * string, e.g. "one two\tthree" with a separator list of " \t" will return
+ * an array [ "one", "two", "three", NULL ].
+ *
+ * Use strv_free() to free the array.
+ *
+ * @param in Input string
+ * @param separators List of separator characters
+ *
+ * @return A null-terminated string array or NULL on errors
+ */
+char **
+strv_from_string(const char *in, const char *separators)
+{
+	const char *s, *word;
+	char **strv = NULL;
+	int nelems = 0, idx;
+	size_t l;
+
+	assert(in != NULL);
+
+	s = in;
+	while ((word = next_word(&s, &l, separators)) != NULL)
+	       nelems++;
+
+	if (nelems == 0)
+		return NULL;
+
+	nelems++; /* NULL-terminated */
+	strv = zalloc(nelems * sizeof *strv);
+	if (!strv)
+		return NULL;
+
+	idx = 0;
+
+	s = in;
+	while ((word = next_word(&s, &l, separators)) != NULL) {
+		char *copy = strndup(word, l);
+		if (!copy) {
+			strv_free(strv);
+			return NULL;
+		}
+
+		strv[idx++] = copy;
+	}
+
+	return strv;
+}
