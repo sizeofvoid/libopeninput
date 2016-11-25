@@ -26,7 +26,6 @@
 #include "config.h"
 #endif
 
-#include <assert.h>
 #include <check.h>
 #include <dirent.h>
 #include <errno.h>
@@ -606,8 +605,8 @@ litest_add_tcase(const char *suite_name,
 	struct suite *suite;
 	bool added = false;
 
-	assert(required >= LITEST_DISABLE_DEVICE);
-	assert(excluded >= LITEST_DISABLE_DEVICE);
+	litest_assert(required >= LITEST_DISABLE_DEVICE);
+	litest_assert(excluded >= LITEST_DISABLE_DEVICE);
 
 	if (filter_test &&
 	    fnmatch(filter_test, funcname, 0) != 0)
@@ -729,7 +728,7 @@ _litest_add_ranged_for_device(const char *name,
 	struct litest_test_device **dev = devices;
 	bool device_filtered = false;
 
-	assert(type < LITEST_NO_DEVICE);
+	litest_assert(type < LITEST_NO_DEVICE);
 
 	if (filter_test &&
 	    fnmatch(filter_test, funcname, 0) != 0)
@@ -1466,7 +1465,7 @@ litest_slot_start(struct litest_device *d,
 {
 	struct input_event *ev;
 
-	assert(d->ntouches_down >= 0);
+	litest_assert(d->ntouches_down >= 0);
 	d->ntouches_down++;
 
 	send_btntool(d, !touching);
@@ -2047,8 +2046,8 @@ litest_wait_for_event_of_type(struct libinput *li, ...)
 	va_start(args, li);
 	type = va_arg(args, int);
 	while ((int)type != -1) {
-		assert(type > 0);
-		assert(ntypes < ARRAY_LENGTH(types));
+		litest_assert(type > 0);
+		litest_assert(ntypes < ARRAY_LENGTH(types));
 		types[ntypes++] = type;
 		type = va_arg(args, int);
 	}
@@ -2852,7 +2851,7 @@ litest_assert_only_typed_events(struct libinput *li,
 {
 	struct libinput_event *event;
 
-	assert(type != LIBINPUT_EVENT_NONE);
+	litest_assert(type != LIBINPUT_EVENT_NONE);
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
@@ -2969,14 +2968,14 @@ litest_timeout_trackpoint(void)
 void
 litest_push_event_frame(struct litest_device *dev)
 {
-	assert(!dev->skip_ev_syn);
+	litest_assert(!dev->skip_ev_syn);
 	dev->skip_ev_syn = true;
 }
 
 void
 litest_pop_event_frame(struct litest_device *dev)
 {
-	assert(dev->skip_ev_syn);
+	litest_assert(dev->skip_ev_syn);
 	dev->skip_ev_syn = false;
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 }
