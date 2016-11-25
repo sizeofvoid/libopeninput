@@ -398,6 +398,105 @@ START_TEST(touch_calibration_translation)
 }
 END_TEST
 
+START_TEST(touch_calibrated_screen_path)
+{
+	struct litest_device *dev = litest_current_device();
+	float matrix[6];
+	int rc;
+
+	rc = libinput_device_config_calibration_has_matrix(dev->libinput_device);
+	ck_assert_int_eq(rc, 1);
+
+	rc = libinput_device_config_calibration_get_matrix(dev->libinput_device,
+							   matrix);
+	ck_assert_int_eq(rc, 1);
+
+	ck_assert_double_eq(matrix[0], 1.2);
+	ck_assert_double_eq(matrix[1], 3.4);
+	ck_assert_double_eq(matrix[2], 5.6);
+	ck_assert_double_eq(matrix[3], 7.8);
+	ck_assert_double_eq(matrix[4], 9.10);
+	ck_assert_double_eq(matrix[5], 11.12);
+}
+END_TEST
+
+static int open_restricted(const char *path, int flags, void *data)
+{
+	int fd;
+	fd = open(path, flags);
+	return fd < 0 ? -errno : fd;
+}
+static void close_restricted(int fd, void *data)
+{
+	close(fd);
+}
+
+static const struct libinput_interface simple_interface = {
+	.open_restricted = open_restricted,
+	.close_restricted = close_restricted,
+};
+
+START_TEST(touch_calibrated_screen_udev)
+{
+	struct libinput *li;
+	struct libinput_event *ev;
+	struct libinput_device *device = NULL;
+	struct udev *udev;
+	float matrix[6];
+	int rc;
+
+	udev = udev_new();
+	ck_assert(udev != NULL);
+
+	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	ck_assert(li != NULL);
+	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
+
+	libinput_dispatch(li);
+
+	while ((ev = libinput_get_event(li))) {
+		struct libinput_device *d;
+
+		if (libinput_event_get_type(ev) !=
+		    LIBINPUT_EVENT_DEVICE_ADDED) {
+			libinput_event_destroy(ev);
+			continue;
+		}
+
+		d = libinput_event_get_device(ev);
+
+		if (libinput_device_get_id_vendor(d) == 0x22 &&
+		    libinput_device_get_id_product(d) == 0x33) {
+			device = libinput_device_ref(d);
+			litest_drain_events(li);
+		}
+		libinput_event_destroy(ev);
+	}
+
+	litest_drain_events(li);
+
+	ck_assert_notnull(device);
+	rc = libinput_device_config_calibration_has_matrix(device);
+	ck_assert_int_eq(rc, 1);
+
+	rc = libinput_device_config_calibration_get_matrix(device, matrix);
+	ck_assert_int_eq(rc, 1);
+
+	ck_assert_double_eq(matrix[0], 1.2);
+	ck_assert_double_eq(matrix[1], 3.4);
+	ck_assert_double_eq(matrix[2], 5.6);
+	ck_assert_double_eq(matrix[3], 7.8);
+	ck_assert_double_eq(matrix[4], 9.10);
+	ck_assert_double_eq(matrix[5], 11.12);
+
+	libinput_device_unref(device);
+
+	libinput_unref(li);
+	udev_unref(udev);
+
+}
+END_TEST
+
 START_TEST(touch_no_left_handed)
 {
 	struct litest_device *dev = litest_current_device();
@@ -734,6 +833,8 @@ litest_setup_tests_touch(void)
 	litest_add("touch:calibration", touch_calibration_rotation, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
 	litest_add("touch:calibration", touch_calibration_translation, LITEST_TOUCH, LITEST_TOUCHPAD);
 	litest_add("touch:calibration", touch_calibration_translation, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
+	litest_add_for_device("touch:calibration", touch_calibrated_screen_path, LITEST_CALIBRATED_TOUCHSCREEN);
+	litest_add_for_device("touch:calibration", touch_calibrated_screen_udev, LITEST_CALIBRATED_TOUCHSCREEN);
 
 	litest_add("touch:left-handed", touch_no_left_handed, LITEST_TOUCH, LITEST_ANY);
 
