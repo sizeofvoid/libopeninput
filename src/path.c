@@ -171,6 +171,8 @@ path_device_enable(struct path_input *input,
 		goto out;
 	}
 
+	evdev_read_calibration_prop(device);
+
 out:
 	free(seat_name);
 	free(seat_logical_name);
