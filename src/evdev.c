@@ -2975,6 +2975,45 @@ evdev_device_calibrate(struct evdev_device *device,
 	matrix_mult(&device->abs.calibration, &transform, &scale);
 }
 
+void
+evdev_read_calibration_prop(struct evdev_device *device)
+{
+	const char *calibration_values;
+	float calibration[6];
+	int nread;
+
+	calibration_values =
+		udev_device_get_property_value(device->udev_device,
+					       "LIBINPUT_CALIBRATION_MATRIX");
+
+	if (calibration_values == NULL)
+		return;
+
+	if (!device->abs.absinfo_x || !device->abs.absinfo_y)
+		return;
+
+	nread = sscanf(calibration_values,
+		       "%f %f %f %f %f %f",
+		       &calibration[0],
+		       &calibration[1],
+		       &calibration[2],
+		       &calibration[3],
+		       &calibration[4],
+		       &calibration[5]);
+	if (nread != 6)
+		return;
+
+	evdev_device_set_default_calibration(device, calibration);
+	log_info(evdev_libinput_context(device),
+		 "Applying calibration: %f %f %f %f %f %f\n",
+		 calibration[0],
+		 calibration[1],
+		 calibration[2],
+		 calibration[3],
+		 calibration[4],
+		 calibration[5]);
+}
+
 bool
 evdev_device_has_capability(struct evdev_device *device,
 			    enum libinput_device_capability capability)

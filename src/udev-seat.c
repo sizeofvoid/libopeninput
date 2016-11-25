@@ -51,8 +51,6 @@ device_added(struct udev_device *udev_device,
 	struct evdev_device *device;
 	const char *devnode;
 	const char *device_seat, *output_name;
-	const char *calibration_values;
-	float calibration[6];
 	struct udev_seat *seat;
 
 	device_seat = udev_device_get_property_value(udev_device, "ID_SEAT");
@@ -94,29 +92,7 @@ device_added(struct udev_device *udev_device,
 		return 0;
 	}
 
-	calibration_values =
-		udev_device_get_property_value(udev_device,
-					       "LIBINPUT_CALIBRATION_MATRIX");
-
-	if (device->abs.absinfo_x && device->abs.absinfo_y &&
-	    calibration_values && sscanf(calibration_values,
-					 "%f %f %f %f %f %f",
-					 &calibration[0],
-					 &calibration[1],
-					 &calibration[2],
-					 &calibration[3],
-					 &calibration[4],
-					 &calibration[5]) == 6) {
-		evdev_device_set_default_calibration(device, calibration);
-		log_info(&input->base,
-			 "Applying calibration: %f %f %f %f %f %f\n",
-			 calibration[0],
-			 calibration[1],
-			 calibration[2],
-			 calibration[3],
-			 calibration[4],
-			 calibration[5]);
-	}
+	evdev_read_calibration_prop(device);
 
 	output_name = udev_device_get_property_value(udev_device, "WL_OUTPUT");
 	if (output_name)

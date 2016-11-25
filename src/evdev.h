@@ -338,6 +338,9 @@ evdev_init_calibration(struct evdev_device *device,
 		        struct libinput_device_config_calibration *calibration);
 
 void
+evdev_read_calibration_prop(struct evdev_device *device);
+
+void
 evdev_device_init_pointer_acceleration(struct evdev_device *device,
 				       struct motion_filter *filter);
 
