@@ -2980,7 +2980,8 @@ evdev_read_calibration_prop(struct evdev_device *device)
 {
 	const char *calibration_values;
 	float calibration[6];
-	int nread;
+	int idx;
+	char **strv;
 
 	calibration_values =
 		udev_device_get_property_value(device->udev_device,
@@ -2992,16 +2993,21 @@ evdev_read_calibration_prop(struct evdev_device *device)
 	if (!device->abs.absinfo_x || !device->abs.absinfo_y)
 		return;
 
-	nread = sscanf(calibration_values,
-		       "%f %f %f %f %f %f",
-		       &calibration[0],
-		       &calibration[1],
-		       &calibration[2],
-		       &calibration[3],
-		       &calibration[4],
-		       &calibration[5]);
-	if (nread != 6)
+	strv = strv_from_string(calibration_values, " ");
+	if (!strv)
 		return;
+
+	for (idx = 0; idx < 6; idx++) {
+		double v;
+		if (strv[idx] == NULL || !safe_atod(strv[idx], &v)) {
+			strv_free(strv);
+			return;
+		}
+
+		calibration[idx] = v;
+	}
+
+	strv_free(strv);
 
 	evdev_device_set_default_calibration(device, calibration);
 	log_info(evdev_libinput_context(device),
