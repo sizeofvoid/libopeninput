@@ -93,6 +93,28 @@ static const struct evdev_udev_tag_match evdev_udev_tag_matches[] = {
 	{ 0 },
 };
 
+static inline bool
+parse_udev_flag(struct evdev_device *device,
+		struct udev_device *udev_device,
+		const char *property)
+{
+	const char *val;
+
+	val = udev_device_get_property_value(udev_device, property);
+	if (!val)
+		return false;
+
+	if (streq(val, "1"))
+		return true;
+	if (!streq(val, "0"))
+		log_error(evdev_libinput_context(device),
+			  "%s: property %s has invalid value '%s'\n",
+			  evdev_device_get_sysname(device),
+			  property,
+			  val);
+	return false;
+}
+
 static void
 hw_set_key_down(struct fallback_dispatch *dispatch, int code, int pressed)
 {
@@ -1026,8 +1048,7 @@ evdev_tag_trackpoint(struct evdev_device *device,
 {
 	if (libevdev_has_property(device->evdev,
 				  INPUT_PROP_POINTING_STICK) ||
-	    udev_device_get_property_value(udev_device,
-					   "ID_INPUT_POINTINGSTICK"))
+	    parse_udev_flag(device, udev_device, "ID_INPUT_POINTINGSTICK"))
 		device->tags |= EVDEV_TAG_TRACKPOINT;
 }
 
@@ -2193,12 +2214,11 @@ evdev_read_model_flags(struct evdev_device *device)
 	};
 	const struct model_map *m = model_map;
 	uint32_t model_flags = 0;
-	const char *val;
 
 	while (m->property) {
-		val = udev_device_get_property_value(device->udev_device,
-						     m->property);
-		if (val && !streq(val, "0")) {
+		if (parse_udev_flag(device,
+				    device->udev_device,
+				    m->property)) {
 			log_debug(evdev_libinput_context(device),
 				  "%s: tagged as %s\n",
 				  evdev_device_get_sysname(device),
@@ -2294,7 +2314,6 @@ static enum evdev_device_udev_tags
 evdev_device_get_udev_tags(struct evdev_device *device,
 			   struct udev_device *udev_device)
 {
-	const char *prop;
 	enum evdev_device_udev_tags tags = 0;
 	const struct evdev_udev_tag_match *match;
 	int i;
@@ -2302,10 +2321,9 @@ evdev_device_get_udev_tags(struct evdev_device *device,
 	for (i = 0; i < 2 && udev_device; i++) {
 		match = evdev_udev_tag_matches;
 		while (match->name) {
-			prop = udev_device_get_property_value(
-						      udev_device,
-						      match->name);
-			if (prop)
+			if (parse_udev_flag(device,
+					    udev_device,
+					    match->name))
 				tags |= match->tag;
 
 			match++;
