@@ -852,11 +852,13 @@ fallback_process_touch(struct fallback_dispatch *dispatch,
 			dispatch->pending_event = EVDEV_ABSOLUTE_MT_UP;
 		break;
 	case ABS_MT_POSITION_X:
+		evdev_device_check_abs_axis_range(device, e->code, e->value);
 		dispatch->mt.slots[dispatch->mt.slot].point.x = e->value;
 		if (dispatch->pending_event == EVDEV_NONE)
 			dispatch->pending_event = EVDEV_ABSOLUTE_MT_MOTION;
 		break;
 	case ABS_MT_POSITION_Y:
+		evdev_device_check_abs_axis_range(device, e->code, e->value);
 		dispatch->mt.slots[dispatch->mt.slot].point.y = e->value;
 		if (dispatch->pending_event == EVDEV_NONE)
 			dispatch->pending_event = EVDEV_ABSOLUTE_MT_MOTION;
@@ -870,11 +872,13 @@ fallback_process_absolute_motion(struct fallback_dispatch *dispatch,
 {
 	switch (e->code) {
 	case ABS_X:
+		evdev_device_check_abs_axis_range(device, e->code, e->value);
 		dispatch->abs.point.x = e->value;
 		if (dispatch->pending_event == EVDEV_NONE)
 			dispatch->pending_event = EVDEV_ABSOLUTE_MOTION;
 		break;
 	case ABS_Y:
+		evdev_device_check_abs_axis_range(device, e->code, e->value);
 		dispatch->abs.point.y = e->value;
 		if (dispatch->pending_event == EVDEV_NONE)
 			dispatch->pending_event = EVDEV_ABSOLUTE_MOTION;
@@ -1716,6 +1720,8 @@ fallback_dispatch_init_abs(struct fallback_dispatch *dispatch,
 	dispatch->abs.point.x = device->abs.absinfo_x->value;
 	dispatch->abs.point.y = device->abs.absinfo_y->value;
 	dispatch->abs.seat_slot = -1;
+
+	evdev_device_init_abs_range_warnings(device);
 }
 
 static struct evdev_dispatch *

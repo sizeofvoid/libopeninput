@@ -162,6 +162,11 @@ struct evdev_device {
 		struct matrix usermatrix; /* as supplied by the caller */
 
 		struct device_coords dimensions;
+
+		struct {
+			struct device_coords min, max;
+			struct ratelimit range_warn_limit;
+		} warning_range;
 	} abs;
 
 	struct {
@@ -298,6 +303,11 @@ struct fallback_dispatch {
 	struct {
 		struct device_coords point;
 		int32_t seat_slot;
+
+		struct {
+			struct device_coords min, max;
+			struct ratelimit range_warn_limit;
+		} warning_range;
 	} abs;
 
 	struct {
@@ -639,4 +649,59 @@ evdev_device_mm_to_units(const struct evdev_device *device,
 
 	return units;
 }
+
+static inline void
+evdev_device_init_abs_range_warnings(struct evdev_device *device)
+{
+	const struct input_absinfo *x, *y;
+	int width, height;
+
+	x = device->abs.absinfo_x;
+	y = device->abs.absinfo_y;
+	width = device->abs.dimensions.x;
+	height = device->abs.dimensions.y;
+
+	device->abs.warning_range.min.x = x->minimum - 0.05 * width;
+	device->abs.warning_range.min.y = y->minimum - 0.05 * height;
+	device->abs.warning_range.max.x = x->maximum + 0.05 * width;
+	device->abs.warning_range.max.y = y->maximum + 0.05 * height;
+
+	/* One warning every 5 min is enough */
+	ratelimit_init(&device->abs.warning_range.range_warn_limit,
+		       s2us(3000),
+		       1);
+}
+
+static inline void
+evdev_device_check_abs_axis_range(struct evdev_device *device,
+				  unsigned int code,
+				  int value)
+{
+	int min, max;
+
+	switch(code) {
+	case ABS_X:
+	case ABS_MT_POSITION_X:
+		min = device->abs.warning_range.min.x;
+		max = device->abs.warning_range.max.x;
+		break;
+	case ABS_Y:
+	case ABS_MT_POSITION_Y:
+		min = device->abs.warning_range.min.y;
+		max = device->abs.warning_range.max.y;
+		break;
+	default:
+		return;
+	}
+
+	if (value < min || value > max) {
+		log_info_ratelimit(evdev_libinput_context(device),
+				   &device->abs.warning_range.range_warn_limit,
+				   "Axis %#x value %d is outside expected range [%d, %d]\n"
+				   "See %s/absolute_coordinate_ranges.html for details\n",
+				   code, value, min, max,
+				   HTTP_DOC_LINK);
+	}
+}
+
 #endif /* EVDEV_H */

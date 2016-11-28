@@ -140,11 +140,61 @@ START_TEST(log_priority)
 }
 END_TEST
 
+static int axisrange_log_handler_called = 0;
+
+static void
+axisrange_warning_log_handler(struct libinput *libinput,
+			      enum libinput_log_priority priority,
+			      const char *format,
+			      va_list args)
+{
+	axisrange_log_handler_called++;
+	litest_assert_notnull(format);
+	litest_assert_notnull(strstr(format, "is outside expected range"));
+}
+
+START_TEST(log_axisrange_warning)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	const struct input_absinfo *abs;
+	int axis = _i; /* looped test */
+
+	litest_touch_down(dev, 0, 90, 100);
+	litest_drain_events(li);
+
+	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_INFO);
+	libinput_log_set_handler(li, axisrange_warning_log_handler);
+
+	abs = libevdev_get_abs_info(dev->evdev, axis);
+
+	for (int i = 0; i < 100; i++) {
+		litest_event(dev, EV_ABS,
+			     ABS_MT_POSITION_X + axis,
+			     abs->maximum * 2 + i);
+		litest_event(dev, EV_ABS, axis, abs->maximum * 2);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+
+	/* Expect only one message per 5 min */
+	ck_assert_int_eq(axisrange_log_handler_called, 1);
+
+	litest_restore_log_handler(li);
+	axisrange_log_handler_called = 0;
+}
+END_TEST
+
 void
 litest_setup_tests_log(void)
 {
+	struct range axes = { ABS_X, ABS_Y + 1};
+
 	litest_add_no_device("log:defaults", log_default_priority);
 	litest_add_no_device("log:logging", log_handler_invoked);
 	litest_add_no_device("log:logging", log_handler_NULL);
 	litest_add_no_device("log:logging", log_priority);
+
+	litest_add_ranged("log:warnings", log_axisrange_warning, LITEST_TOUCH, LITEST_ANY, &axes);
+	litest_add_ranged("log:warnings", log_axisrange_warning, LITEST_TOUCHPAD, LITEST_ANY, &axes);
 }
