@@ -36,6 +36,7 @@ liblitest_la_SOURCES = \
 	litest-device-nexus4-touch-screen.c \
 	litest-device-magic-trackpad.c \
 	litest-device-mouse.c \
+	litest-device-mouse-wheel-tilt.c \
 	litest-device-mouse-roccat.c \
 	litest-device-mouse-low-dpi.c \
 	litest-device-mouse-wheel-click-angle.c \
