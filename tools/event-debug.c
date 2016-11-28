@@ -365,6 +365,19 @@ print_pointer_axis_event(struct libinput_event *ev)
 	double v = 0, h = 0;
 	const char *have_vert = "",
 		   *have_horiz = "";
+	const char *source = "invalid";
+
+	switch (libinput_event_pointer_get_axis_source(p)) {
+	case LIBINPUT_POINTER_AXIS_SOURCE_WHEEL:
+		source = "wheel";
+		break;
+	case LIBINPUT_POINTER_AXIS_SOURCE_FINGER:
+		source = "finger";
+		break;
+	case LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS:
+		source = "continuous";
+		break;
+	}
 
 	if (libinput_event_pointer_has_axis(p,
 				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
@@ -379,7 +392,8 @@ print_pointer_axis_event(struct libinput_event *ev)
 		have_horiz = "*";
 	}
 	print_event_time(libinput_event_pointer_get_time(p));
-	printf("vert %.2f%s horiz %.2f%s\n", v, have_vert, h, have_horiz);
+	printf("vert %.2f%s horiz %.2f%s (%s)\n",
+	       v, have_vert, h, have_horiz, source);
 }
 
 static void
