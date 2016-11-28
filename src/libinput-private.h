@@ -94,6 +94,11 @@ struct phys_coords {
 	double y;
 };
 
+/* A pair of tilt flags */
+struct wheel_tilt_flags {
+	bool vertical, horizontal;
+};
+
 struct tablet_axes {
 	struct device_coords point;
 	struct normalized_coords delta;
