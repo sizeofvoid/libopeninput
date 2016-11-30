@@ -21,9 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#if HAVE_CONFIG_H
 #include "config.h"
-#endif
 #include <limits.h>
 
 #ifndef LITEST_INT_H
