@@ -896,7 +896,7 @@ tp_tap_config_count(struct libinput_device *device)
 	dispatch = ((struct evdev_device *) device)->dispatch;
 	tp = container_of(dispatch, tp, base);
 
-	return min(tp->ntouches, 3); /* we only do up to 3 finger tap */
+	return min(tp->ntouches, 3U); /* we only do up to 3 finger tap */
 }
 
 static enum libinput_config_status

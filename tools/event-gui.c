@@ -242,7 +242,8 @@ static inline void
 draw_tablet(struct window *w, cairo_t *cr)
 {
 	double x, y;
-	int first, last, mask;
+	int first, last;
+	size_t mask;
 	int i;
 
 	/* tablet tool, square for prox-in location */
@@ -485,7 +486,7 @@ handle_event_device_notify(struct libinput_event *ev)
 	struct libinput *li;
 	struct window *w;
 	const char *type;
-	int i;
+	size_t i;
 
 	if (libinput_event_get_type(ev) == LIBINPUT_EVENT_DEVICE_ADDED)
 		type = "added";
