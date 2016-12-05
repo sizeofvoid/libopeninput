@@ -75,7 +75,7 @@ log_handler(struct libinput *li,
 }
 
 void
-tools_usage()
+tools_usage(void)
 {
 	printf("Usage: %s [options] [--udev [<seat>]|--device /dev/input/event0]\n"
 	       "--udev <seat>.... Use udev device discovery (default).\n"
