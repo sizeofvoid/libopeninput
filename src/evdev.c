@@ -1470,7 +1470,7 @@ evdev_scroll_get_default_button(struct libinput_device *device)
 {
 	struct evdev_device *evdev = (struct evdev_device *)device;
 
-	if( libevdev_has_event_code(evdev->evdev, EV_KEY, BTN_MIDDLE))
+	if (libevdev_has_event_code(evdev->evdev, EV_KEY, BTN_MIDDLE))
 		return BTN_MIDDLE;
 
 	return 0;
@@ -2743,7 +2743,7 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	 *
 	 * Disable the event codes to avoid stuck buttons.
 	 */
-	if(device->model_flags & EVDEV_MODEL_CYBORG_RAT) {
+	if (device->model_flags & EVDEV_MODEL_CYBORG_RAT) {
 		libevdev_disable_event_code(device->evdev, EV_KEY, 0x118);
 		libevdev_disable_event_code(device->evdev, EV_KEY, 0x119);
 		libevdev_disable_event_code(device->evdev, EV_KEY, 0x11a);

@@ -486,7 +486,7 @@ wheel_click_count(struct litest_device *dev, int which)
 
 	if (which == REL_HWHEEL)
 		prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_COUNT_HORIZONTAL");
-	if(!prop)
+	if (!prop)
 		prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_COUNT");
 	if (!prop)
 		goto out;
@@ -517,7 +517,7 @@ wheel_click_angle(struct litest_device *dev, int which)
 
 	if (which == REL_HWHEEL)
 		prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_ANGLE_HORIZONTAL");
-	if(!prop)
+	if (!prop)
 		prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_ANGLE");
 	if (!prop)
 		goto out;

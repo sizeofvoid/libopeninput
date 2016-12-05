@@ -313,7 +313,7 @@ tp_gesture_same_directions(int dir1, int dir2)
 }
 
 static inline void
-tp_gesture_init_pinch( struct tp_dispatch *tp)
+tp_gesture_init_pinch(struct tp_dispatch *tp)
 {
 	tp_gesture_get_pinch_info(tp,
 				  &tp->gesture.initial_distance,
