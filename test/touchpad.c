@@ -4365,6 +4365,29 @@ START_TEST(touchpad_slot_swap)
 }
 END_TEST
 
+START_TEST(touchpad_finger_always_down)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li;
+
+	/* Set BTN_TOOL_FINGER before a new context is initialized */
+	litest_event(dev, EV_KEY, BTN_TOOL_FINGER, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	li = litest_create_context();
+	libinput_path_add_device(li,
+				 libevdev_uinput_get_devnode(dev->uinput));
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 50, 70, 50, 10, 0);
+
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	libinput_unref(li);
+}
+END_TEST
+
 START_TEST(touchpad_time_usec)
 {
 	struct litest_device *dev = litest_current_device();
@@ -4742,6 +4765,7 @@ litest_setup_tests_touchpad(void)
 
 	litest_add_for_device("touchpad:bugs", touchpad_tool_tripletap_touch_count, LITEST_SYNAPTICS_TOPBUTTONPAD);
 	litest_add_for_device("touchpad:bugs", touchpad_slot_swap, LITEST_SYNAPTICS_TOPBUTTONPAD);
+	litest_add_for_device("touchpad:bugs", touchpad_finger_always_down, LITEST_SYNAPTICS_TOPBUTTONPAD);
 
 	litest_add("touchpad:time", touchpad_time_usec, LITEST_TOUCHPAD, LITEST_ANY);
 

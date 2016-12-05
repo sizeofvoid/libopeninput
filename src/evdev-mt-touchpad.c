@@ -1829,6 +1829,14 @@ tp_init_slots(struct tp_dispatch *tp,
 	for (i = 1; i < tp->num_slots; i++)
 		tp_sync_touch(tp, device, &tp->touches[i], i);
 
+	/* Some touchpads don't reset BTN_TOOL_FINGER on touch up and only
+	 * change to/from it when BTN_TOOL_DOUBLETAP is set. This causes us
+	 * to ignore the first touches events until a two-finger gesture is
+	 * performed.
+	 */
+	if (libevdev_get_event_value(device->evdev, EV_KEY, BTN_TOOL_FINGER))
+		tp_fake_finger_set(tp, BTN_TOOL_FINGER, 1);
+
 	return true;
 }
 
