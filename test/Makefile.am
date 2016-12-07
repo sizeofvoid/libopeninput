@@ -3,7 +3,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/include \
               -I$(top_srcdir)/src \
               $(CHECK_CFLAGS) \
               $(LIBEVDEV_CFLAGS) \
-              $(LIBUDEV_CFLAGS)
+              $(LIBUDEV_CFLAGS) \
+              -I$(top_builddir)/src # for libinput-version.h
 
 AM_CFLAGS = $(GCC_CFLAGS)
 AM_CXXFLAGS = $(GCC_CXXFLAGS)
