@@ -388,7 +388,8 @@ tp_libinput_context(const struct tp_dispatch *tp)
 }
 
 static inline struct normalized_coords
-tp_normalize_delta(struct tp_dispatch *tp, struct device_float_coords delta)
+tp_normalize_delta(const struct tp_dispatch *tp,
+		   struct device_float_coords delta)
 {
 	struct normalized_coords normalized;
 
@@ -403,7 +404,8 @@ tp_normalize_delta(struct tp_dispatch *tp, struct device_float_coords delta)
  * in the x-axis' coordinate space.
  */
 static inline struct device_float_coords
-tp_unnormalize_for_xaxis(struct tp_dispatch *tp, struct normalized_coords delta)
+tp_unnormalize_for_xaxis(const struct tp_dispatch *tp,
+			 struct normalized_coords delta)
 {
 	struct device_float_coords raw;
 

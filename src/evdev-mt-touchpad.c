@@ -476,7 +476,7 @@ tp_process_key(struct tp_dispatch *tp,
 }
 
 static void
-tp_unpin_finger(struct tp_dispatch *tp, struct tp_touch *t)
+tp_unpin_finger(const struct tp_dispatch *tp, struct tp_touch *t)
 {
 	double xdist, ydist;
 
