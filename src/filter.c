@@ -228,6 +228,13 @@ calculate_velocity_after_timeout(struct pointer_tracker *tracker)
 					  tracker->time + MOTION_TIMEOUT);
 }
 
+/**
+ * Calculate the velocity based on the tracker data. Velocity is averaged
+ * across multiple historical values, provided those values aren't "too
+ * different" to our current one. That includes either being too far in the
+ * past, moving into a different direction or having too much of a velocity
+ * change between events.
+ */
 static double
 calculate_velocity(struct pointer_accelerator *accel, uint64_t time)
 {
