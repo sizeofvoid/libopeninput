@@ -245,9 +245,12 @@ calculate_velocity(struct pointer_accelerator *accel, uint64_t time)
 	for (offset = 1; offset < NUM_POINTER_TRACKERS; offset++) {
 		tracker = tracker_by_offset(accel, offset);
 
+		/* Bug: time running backwards */
+		if (tracker->time > time)
+			break;
+
 		/* Stop if too far away in time */
-		if (time - tracker->time > MOTION_TIMEOUT ||
-		    tracker->time > time) {
+		if (time - tracker->time > MOTION_TIMEOUT) {
 			if (offset == 1)
 				result = calculate_velocity_after_timeout(tracker);
 			break;
