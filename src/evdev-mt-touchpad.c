@@ -478,18 +478,19 @@ tp_process_key(struct tp_dispatch *tp,
 static void
 tp_unpin_finger(const struct tp_dispatch *tp, struct tp_touch *t)
 {
-	double xdist, ydist;
+	struct phys_coords mm;
+	struct device_coords delta;
 
 	if (!t->pinned.is_pinned)
 		return;
 
-	xdist = abs(t->point.x - t->pinned.center.x);
-	xdist *= tp->buttons.motion_dist.x_scale_coeff;
-	ydist = abs(t->point.y - t->pinned.center.y);
-	ydist *= tp->buttons.motion_dist.y_scale_coeff;
+	delta.x = abs(t->point.x - t->pinned.center.x);
+	delta.y = abs(t->point.y - t->pinned.center.y);
+
+	mm = evdev_device_unit_delta_to_mm(tp->device, &delta);
 
 	/* 1.5mm movement -> unpin */
-	if (hypot(xdist, ydist) >= 1.5) {
+	if (hypot(mm.x, mm.y) >= 1.5) {
 		t->pinned.is_pinned = false;
 		return;
 	}
@@ -962,8 +963,8 @@ tp_need_motion_history_reset(struct tp_dispatch *tp)
 static bool
 tp_detect_jumps(const struct tp_dispatch *tp, struct tp_touch *t)
 {
-	struct device_coords *last;
-	double dx, dy;
+	struct device_coords *last, delta;
+	struct phys_coords mm;
 	const int JUMP_THRESHOLD_MM = 20;
 
 	/* We haven't seen pointer jumps on Wacom tablets yet, so exclude
@@ -978,10 +979,11 @@ tp_detect_jumps(const struct tp_dispatch *tp, struct tp_touch *t)
 	/* called before tp_motion_history_push, so offset 0 is the most
 	 * recent coordinate */
 	last = tp_motion_history_offset(t, 0);
-	dx = 1.0 * abs(t->point.x - last->x) / tp->device->abs.absinfo_x->resolution;
-	dy = 1.0 * abs(t->point.y - last->y) / tp->device->abs.absinfo_y->resolution;
+	delta.x = abs(t->point.x - last->x);
+	delta.y = abs(t->point.y - last->y);
+	mm = evdev_device_unit_delta_to_mm(tp->device, &delta);
 
-	return hypot(dx, dy) > JUMP_THRESHOLD_MM;
+	return hypot(mm.x, mm.y) > JUMP_THRESHOLD_MM;
 }
 
 static void

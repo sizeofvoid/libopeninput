@@ -596,6 +596,33 @@ evdev_libinput_context(const struct evdev_device *device)
 }
 
 /**
+ * Convert the pair of delta coordinates in device space to mm.
+ */
+static inline struct phys_coords
+evdev_device_unit_delta_to_mm(const struct evdev_device* device,
+			      const struct device_coords *units)
+{
+	struct phys_coords mm = { 0,  0 };
+	const struct input_absinfo *absx, *absy;
+
+	if (device->abs.absinfo_x == NULL ||
+	    device->abs.absinfo_y == NULL) {
+		log_bug_libinput(evdev_libinput_context(device),
+				 "%s: is not an abs device\n",
+				 device->devname);
+		return mm;
+	}
+
+	absx = device->abs.absinfo_x;
+	absy = device->abs.absinfo_y;
+
+	mm.x = 1.0 * units->x/absx->resolution;
+	mm.y = 1.0 * units->y/absy->resolution;
+
+	return mm;
+}
+
+/**
  * Convert the pair of coordinates in device space to mm. This takes the
  * axis min into account, i.e. a unit of min is equivalent to 0 mm.
  */
