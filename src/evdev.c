@@ -249,7 +249,7 @@ void
 evdev_device_led_update(struct evdev_device *device, enum libinput_led leds)
 {
 	static const struct {
-		enum libinput_led weston;
+		enum libinput_led libinput;
 		int evdev;
 	} map[] = {
 		{ LIBINPUT_LED_NUM_LOCK, LED_NUML },
@@ -266,7 +266,7 @@ evdev_device_led_update(struct evdev_device *device, enum libinput_led leds)
 	for (i = 0; i < ARRAY_LENGTH(map); i++) {
 		ev[i].type = EV_LED;
 		ev[i].code = map[i].evdev;
-		ev[i].value = !!(leds & map[i].weston);
+		ev[i].value = !!(leds & map[i].libinput);
 	}
 	ev[i].type = EV_SYN;
 	ev[i].code = SYN_REPORT;
