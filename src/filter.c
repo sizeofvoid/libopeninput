@@ -717,7 +717,7 @@ touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
 double
 trackpoint_accel_profile(struct motion_filter *filter,
 				void *data,
-				double speed_in, /* 1000-dpi normalized */
+				double speed_in, /* device units/µs */
 				uint64_t time)
 {
 	struct pointer_accelerator *accel_filter =
