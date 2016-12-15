@@ -135,7 +135,7 @@ filter_get_type(struct motion_filter *filter)
 struct pointer_tracker {
 	struct normalized_coords delta; /* delta to most recent event */
 	uint64_t time;  /* us */
-	int dir;
+	uint32_t dir;
 };
 
 struct pointer_accelerator {

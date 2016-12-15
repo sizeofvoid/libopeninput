@@ -700,10 +700,10 @@ enum directions {
 	UNDEFINED_DIRECTION = 0xff
 };
 
-static inline int
+static inline uint32_t
 normalized_get_direction(struct normalized_coords norm)
 {
-	int dir = UNDEFINED_DIRECTION;
+	uint32_t dir = UNDEFINED_DIRECTION;
 	int d1, d2;
 	double r;
 
