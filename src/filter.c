@@ -624,7 +624,7 @@ pointer_accel_profile_linear(struct motion_filter *filter,
 	   for speeds up to 0.07 u/ms, we decelerate, down to 30% of input
 	   speed.
 		   hence 1 = a * 0.07 + 0.3
-		       0.3 = a * 0.00 + 0.3 => a := 10
+		       0.7 = a * 0.07 => a := 10
 		   deceleration function is thus:
 			y = 10x + 0.3
 
