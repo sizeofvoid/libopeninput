@@ -61,6 +61,22 @@ START_TEST(device_sendevents_config_invalid)
 }
 END_TEST
 
+static inline bool
+touchpad_is_external(struct litest_device *dev)
+{
+	struct udev_device *udev_device;
+	const char *prop;
+	bool is_external;
+
+	udev_device = libinput_device_get_udev_device(dev->libinput_device);
+	prop = udev_device_get_property_value(udev_device,
+					      "ID_INPUT_TOUCHPAD_INTEGRATION");
+	is_external = prop && streq(prop, "external");
+	udev_device_unref(udev_device);
+
+	return is_external;
+}
+
 START_TEST(device_sendevents_config_touchpad)
 {
 	struct litest_device *dev = litest_current_device();
@@ -71,7 +87,7 @@ START_TEST(device_sendevents_config_touchpad)
 
 	/* The wacom devices in the test suite are external */
 	if (libevdev_get_id_vendor(dev->evdev) != VENDOR_ID_WACOM &&
-	    libevdev_get_id_bustype(dev->evdev) != BUS_BLUETOOTH)
+	    !touchpad_is_external(dev))
 		expected |=
 			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
 
@@ -91,7 +107,7 @@ START_TEST(device_sendevents_config_touchpad_superset)
 
 	/* The wacom devices in the test suite are external */
 	if (libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_WACOM ||
-	    libevdev_get_id_bustype(dev->evdev) == BUS_BLUETOOTH)
+	    touchpad_is_external(dev))
 		return;
 
 	device = dev->libinput_device;
