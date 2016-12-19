@@ -1450,12 +1450,14 @@ static bool
 tp_dwt_device_is_blacklisted(struct evdev_device *device)
 {
 	unsigned int bus = libevdev_get_id_bustype(device->evdev);
+	unsigned int vendor_id = libevdev_get_id_vendor(device->evdev);
 
 	/* evemu will set the right bus type */
-	if (bus == BUS_VIRTUAL)
+	if (bus == BUS_VIRTUAL || bus == BUS_BLUETOOTH)
 		return true;
 
-	if (device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD)
+	/* Wacom doesn't have devices that need dwt */
+	if (vendor_id == VENDOR_ID_WACOM)
 		return true;
 
 	return false;
@@ -1469,10 +1471,17 @@ tp_want_dwt(struct evdev_device *touchpad,
 		     bus_kbd = libevdev_get_id_bustype(keyboard->evdev);
 	unsigned int vendor_tp = evdev_device_get_id_vendor(touchpad);
 	unsigned int vendor_kbd = evdev_device_get_id_vendor(keyboard);
+	unsigned int product_tp = evdev_device_get_id_product(touchpad);
+	unsigned int product_kbd = evdev_device_get_id_product(keyboard);
 
 	if (tp_dwt_device_is_blacklisted(touchpad) ||
 	    tp_dwt_device_is_blacklisted(keyboard))
 		return false;
+
+	/* External touchpads with the same vid/pid as the keyboard are
+	   considered a happy couple */
+	if (touchpad->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD)
+		return vendor_tp == vendor_kbd && product_tp == product_kbd;
 
 	/* If the touchpad is on serio, the keyboard is too, so ignore any
 	   other devices */

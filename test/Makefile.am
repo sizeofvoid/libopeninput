@@ -13,6 +13,8 @@ noinst_LTLIBRARIES = liblitest.la
 liblitest_la_SOURCES = \
 	litest.h \
 	litest-int.h \
+	litest-device-acer-hawaii-keyboard.c \
+	litest-device-acer-hawaii-touchpad.c \
 	litest-device-alps-semi-mt.c \
 	litest-device-alps-dualpoint.c \
 	litest-device-anker-mouse-kbd.c \
