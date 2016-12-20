@@ -331,21 +331,23 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	int yres = tp->device->abs.absinfo_y->resolution;
 	int vert_distance;
 
-	/* for two-finger gestures, if the fingers stay unmoving for a
-	 * while, assume (slow) scroll */
-	if (tp->gesture.finger_count == 2) {
-		if (time > (tp->gesture.initial_time + DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT)) {
+	if (time > (tp->gesture.initial_time + DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT)) {
+		/* for two-finger gestures, if the fingers stay unmoving for a
+		 * while, assume (slow) scroll */
+		if (tp->gesture.finger_count == 2) {
 			tp_gesture_set_scroll_buildup(tp);
 			return GESTURE_STATE_SCROLL;
 		}
 
-		/* Else check if one finger is > 20mm below the others */
+		/* for 3+ finger gestures, check if one finger is > 20mm
+		   below the others */
 		vert_distance = abs(first->point.y - second->point.y);
 		if (vert_distance > 20 * yres &&
-		    tp->gesture.finger_count > 2 &&
 		    tp->gesture.enabled) {
 			tp_gesture_init_pinch(tp);
 			return GESTURE_STATE_PINCH;
+		} else {
+			return GESTURE_STATE_SWIPE;
 		}
 	}
 
