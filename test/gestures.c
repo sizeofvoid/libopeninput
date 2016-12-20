@@ -496,6 +496,58 @@ START_TEST(gestures_swipe_4fg_btntool)
 }
 END_TEST
 
+START_TEST(gestures_pinch_vertical_positon)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	int nfingers = _i; /* ranged test */
+
+	if (libevdev_get_num_slots(dev->evdev) < nfingers ||
+	    !libinput_device_has_capability(dev->libinput_device,
+					    LIBINPUT_DEVICE_CAP_GESTURE))
+		return;
+
+	litest_disable_tap(dev->libinput_device);
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 40, 30);
+	litest_touch_down(dev, 1, 50, 70);
+	litest_touch_down(dev, 2, 60, 70);
+	if (nfingers > 3)
+		litest_touch_down(dev, 3, 70, 70);
+	libinput_dispatch(li);
+	litest_timeout_gesture_scroll();
+	libinput_dispatch(li);
+
+	/* This is actually a small swipe gesture, all three fingers moving
+	 * down but we're checking for the code that triggers based on
+	 * finger position. */
+	litest_touch_move_to(dev, 0, 40, 30, 40, 30.5, 1, 0);
+	litest_touch_move_to(dev, 1, 50, 70, 50, 70.5, 1, 0);
+	litest_touch_move_to(dev, 2, 60, 70, 60, 70.5, 1, 0);
+	if (nfingers > 3)
+		litest_touch_move_to(dev, 3, 70, 70, 70, 70.5, 1, 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	litest_is_gesture_event(event,
+				LIBINPUT_EVENT_GESTURE_PINCH_BEGIN,
+				nfingers);
+	libinput_event_destroy(event);
+
+	litest_touch_move_to(dev, 0, 40, 30.5, 40, 36, 5, 0);
+	litest_touch_move_to(dev, 1, 50, 70.5, 50, 76, 5, 0);
+	litest_touch_move_to(dev, 2, 60, 70.5, 60, 76, 5, 0);
+	if (nfingers > 3)
+		litest_touch_move_to(dev, 3, 70, 70.5, 60, 76, 5, 0);
+	libinput_dispatch(li);
+
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_GESTURE_PINCH_UPDATE);
+}
+END_TEST
+
 START_TEST(gestures_pinch)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1219,6 +1271,7 @@ litest_setup_tests_gestures(void)
 {
 	/* N, NE, ... */
 	struct range cardinals = { 0, 8 };
+	struct range fingers = { 3, 5 };
 
 	litest_add("gestures:cap", gestures_cap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("gestures:cap", gestures_nocap, LITEST_ANY, LITEST_TOUCHPAD);
@@ -1233,6 +1286,7 @@ litest_setup_tests_gestures(void)
 	litest_add_ranged("gestures:pinch", gestures_pinch_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add_ranged("gestures:pinch", gestures_pinch_4fg_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add_ranged("gestures:pinch", gestures_spread, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
+	litest_add_ranged("gestures:pinch", gestures_pinch_vertical_positon, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &fingers);
 
 	litest_add("gestures:swipe", gestures_3fg_buttonarea_scroll, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
 	litest_add("gestures:swipe", gestures_3fg_buttonarea_scroll_btntool, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);

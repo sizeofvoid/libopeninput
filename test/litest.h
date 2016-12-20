@@ -654,6 +654,9 @@ void
 litest_timeout_gesture(void);
 
 void
+litest_timeout_gesture_scroll(void);
+
+void
 litest_timeout_trackpoint(void);
 
 void
