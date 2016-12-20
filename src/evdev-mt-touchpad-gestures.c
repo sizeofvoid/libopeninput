@@ -181,7 +181,7 @@ tp_gesture_get_active_touches(const struct tp_dispatch *tp,
 	return n;
 }
 
-static int
+static uint32_t
 tp_gesture_get_direction(struct tp_dispatch *tp, struct tp_touch *touch,
 			 unsigned int nfingers)
 {
