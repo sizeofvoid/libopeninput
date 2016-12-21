@@ -38,7 +38,8 @@
 static void
 print_ptraccel_deltas(struct motion_filter *filter, double step)
 {
-	struct normalized_coords motion;
+	struct device_float_coords motion;
+	struct normalized_coords accel;
 	uint64_t time = 0;
 	double i;
 
@@ -55,9 +56,9 @@ print_ptraccel_deltas(struct motion_filter *filter, double step)
 		motion.y = 0;
 		time += us(12500); /* pretend 80Hz data */
 
-		motion = filter_dispatch(filter, &motion, NULL, time);
+		accel = filter_dispatch(filter, &motion, NULL, time);
 
-		printf("%.2f	%.3f\n", i, motion.x);
+		printf("%.2f	%.3f\n", i, accel.x);
 	}
 }
 
@@ -67,7 +68,8 @@ print_ptraccel_movement(struct motion_filter *filter,
 			double max_dx,
 			double step)
 {
-	struct normalized_coords motion;
+	struct device_float_coords motion;
+	struct normalized_coords accel;
 	uint64_t time = 0;
 	double dx;
 	int i;
@@ -98,9 +100,9 @@ print_ptraccel_movement(struct motion_filter *filter,
 		motion.y = 0;
 		time += us(12500); /* pretend 80Hz data */
 
-		motion = filter_dispatch(filter, &motion, NULL, time);
+		accel = filter_dispatch(filter, &motion, NULL, time);
 
-		printf("%d	%.3f	%.3f\n", i, motion.x, dx);
+		printf("%d	%.3f	%.3f\n", i, accel.x, dx);
 
 		if (dx < max_dx)
 			dx += step;
@@ -112,7 +114,8 @@ print_ptraccel_sequence(struct motion_filter *filter,
 			int nevents,
 			double *deltas)
 {
-	struct normalized_coords motion;
+	struct device_float_coords motion;
+	struct normalized_coords accel;
 	uint64_t time = 0;
 	double *dx;
 	int i;
@@ -132,25 +135,37 @@ print_ptraccel_sequence(struct motion_filter *filter,
 		motion.y = 0;
 		time += us(12500); /* pretend 80Hz data */
 
-		motion = filter_dispatch(filter, &motion, NULL, time);
+		accel = filter_dispatch(filter, &motion, NULL, time);
 
-		printf("%d	%.3f	%.3f\n", i, motion.x, *dx);
+		printf("%d	%.3f	%.3f\n", i, accel.x, *dx);
 	}
 }
 
-static void
-print_accel_func(struct motion_filter *filter, accel_profile_func_t profile)
+/* mm/s → units/µs */
+static inline double
+mmps_to_upus(double mmps, int dpi)
 {
-	double vel;
+	return mmps * (dpi/25.4) / 1e6;
+}
+
+static void
+print_accel_func(struct motion_filter *filter,
+		 accel_profile_func_t profile,
+		 int dpi)
+{
+	double mmps;
 
 	printf("# gnuplot:\n");
-	printf("# set xlabel \"speed\"\n");
+	printf("# set xlabel \"speed (mm/s)\"\n");
 	printf("# set ylabel \"raw accel factor\"\n");
 	printf("# set style data lines\n");
-	printf("# plot \"gnuplot.data\" using 1:2\n");
-	for (vel = 0.0; vel < 0.004; vel += 0.0000001) {
-		double result = profile(filter, NULL, vel, 0 /* time */);
-		printf("%.8f\t%.4f\n", vel, result);
+	printf("# plot \"gnuplot.data\" using 1:2 title 'accel factor'\n");
+	printf("#\n");
+	printf("# data: velocity(mm/s) factor velocity(units/us)\n");
+	for (mmps = 0.0; mmps < 300.0; mmps += 1) {
+		double units_per_us = mmps_to_upus(mmps, dpi);
+		double result = profile(filter, NULL, units_per_us, 0 /* time */);
+		printf("%.8f\t%.4f\t%.8f\n", mmps, result, units_per_us);
 	}
 }
 
@@ -335,7 +350,7 @@ main(int argc, char **argv)
 	}
 
 	if (print_accel)
-		print_accel_func(filter, profile);
+		print_accel_func(filter, profile, dpi);
 	else if (print_delta)
 		print_ptraccel_deltas(filter, step);
 	else if (print_motion)

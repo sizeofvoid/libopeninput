@@ -51,11 +51,17 @@ tp_filter_motion(struct tp_dispatch *tp,
 		 const struct normalized_coords *unaccelerated,
 		 uint64_t time)
 {
+	struct device_float_coords raw;
+
 	if (normalized_is_zero(*unaccelerated))
 		return *unaccelerated;
 
+	/* Temporary solution only: convert back to raw coordinates, but
+	 * make sure we're on the same resolution for both axes */
+	raw = tp_unnormalize_for_xaxis(tp, *unaccelerated);
+
 	return filter_dispatch(tp->device->pointer.filter,
-			       unaccelerated, tp, time);
+			       &raw, tp, time);
 }
 
 struct normalized_coords
@@ -63,11 +69,17 @@ tp_filter_motion_unaccelerated(struct tp_dispatch *tp,
 			       const struct normalized_coords *unaccelerated,
 			       uint64_t time)
 {
+	struct device_float_coords raw;
+
 	if (normalized_is_zero(*unaccelerated))
 		return *unaccelerated;
 
+	/* Temporary solution only: convert back to raw coordinates, but
+	 * make sure we're on the same resolution for both axes */
+	raw = tp_unnormalize_for_xaxis(tp, *unaccelerated);
+
 	return filter_dispatch_constant(tp->device->pointer.filter,
-					unaccelerated, tp, time);
+					&raw, tp, time);
 }
 
 static inline void
@@ -2265,6 +2277,10 @@ tp_init(struct tp_dispatch *tp,
 	tp->reports_distance = libevdev_has_event_code(device->evdev,
 						       EV_ABS,
 						       ABS_MT_DISTANCE);
+
+	/* Set the dpi to that of the x axis, because that's what we normalize
+	   to when needed*/
+	device->dpi = device->abs.absinfo_x->resolution * 25.4;
 
 	tp_init_hysteresis(tp);
 
