@@ -137,7 +137,7 @@ print_event_header(struct libinput_event *ev)
 
 	prefix = (last_device != dev) ? '-' : ' ';
 
-	printf("%c%-7s	%-16s ",
+	printf("%c%-7s  %-16s ",
 	       prefix,
 	       libinput_device_get_sysname(dev),
 	       type);
@@ -196,7 +196,7 @@ print_device_notify(struct libinput_event *ev)
 		printf("P");
 
 	if (libinput_device_get_size(dev, &w, &h) == 0)
-		printf("\tsize %.0fx%.0fmm", w, h);
+		printf("  size %.0fx%.0fmm", w, h);
 
 	if (libinput_device_config_tap_get_finger_count(dev)) {
 	    printf(" tap");
