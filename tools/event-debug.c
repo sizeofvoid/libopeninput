@@ -196,7 +196,7 @@ print_device_notify(struct libinput_event *ev)
 		printf("P");
 
 	if (libinput_device_get_size(dev, &w, &h) == 0)
-		printf("\tsize %.2f/%.2fmm", w, h);
+		printf("\tsize %.0fx%.0fmm", w, h);
 
 	if (libinput_device_config_tap_get_finger_count(dev)) {
 	    printf(" tap");
