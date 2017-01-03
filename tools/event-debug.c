@@ -169,7 +169,7 @@ print_device_notify(struct libinput_event *ev)
 		libinput_device_group_set_user_data(group, (void*)group_id);
 	}
 
-	printf("%-33s %5s %7s group%d",
+	printf("%-33s %5s %7s group%-2d",
 	       libinput_device_get_name(dev),
 	       libinput_seat_get_physical_name(seat),
 	       libinput_seat_get_logical_name(seat),
