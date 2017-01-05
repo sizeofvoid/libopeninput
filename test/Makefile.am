@@ -6,7 +6,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include \
               $(LIBUDEV_CFLAGS) \
               -I$(top_builddir)/src # for libinput-version.h
 
-AM_CFLAGS = $(GCC_CFLAGS)
+AM_CFLAGS = $(GCC_CFLAGS) $(GCOV_CFLAGS)
 AM_CXXFLAGS = $(GCC_CXXFLAGS)
 
 TEST_LIBS = liblitest.la $(CHECK_LIBS) $(LIBUDEV_LIBS) $(LIBEVDEV_LIBS) $(top_builddir)/src/libinput.la
@@ -163,3 +163,14 @@ DISTCLEANFILES=test-suite-valgrind.log
 endif
 endif
 EXTRA_DIST=valgrind.suppressions
+
+if GCOV_ENABLED
+
+CLEANFILES = gcov-reports/*.gcov gcov-reports/summary.txt *.gcno *.gcda
+
+gcov: generate-gcov-report.sh check-TESTS
+	$(AM_V_GEN)$(srcdir)/generate-gcov-report.sh gcov-reports $(top_builddir)/src $(builddir)
+else
+gcov:
+	@echo "Run ./configure --enable-gcov to produce gcov reports" && false
+endif
