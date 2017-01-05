@@ -1062,7 +1062,7 @@ START_TEST(pointer_accel_defaults)
 				    speed);
 	}
 
-	for (speed = 1.2; speed <= -2.0; speed += 0.2) {
+	for (speed = 1.2; speed <= 2.0; speed += 0.2) {
 		status = libinput_device_config_accel_set_speed(device,
 								speed);
 		ck_assert_int_eq(status,
