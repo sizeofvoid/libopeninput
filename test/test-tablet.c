@@ -1737,142 +1737,6 @@ START_TEST(bad_distance_events)
 }
 END_TEST
 
-START_TEST(normalization)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-	struct libinput_event_tablet_tool *tablet_event;
-	struct libinput_event *event;
-	double pressure,
-	       tilt_vertical,
-	       tilt_horizontal;
-	const struct input_absinfo *pressure_absinfo,
-                                   *tilt_vertical_absinfo,
-                                   *tilt_horizontal_absinfo;
-
-	litest_drain_events(li);
-
-	pressure_absinfo = libevdev_get_abs_info(dev->evdev, ABS_PRESSURE);
-	tilt_vertical_absinfo = libevdev_get_abs_info(dev->evdev, ABS_TILT_X);
-	tilt_horizontal_absinfo = libevdev_get_abs_info(dev->evdev, ABS_TILT_Y);
-
-	/* Test minimum */
-	if (pressure_absinfo != NULL)
-		litest_event(dev,
-			     EV_ABS,
-			     ABS_PRESSURE,
-			     pressure_absinfo->minimum);
-
-	if (tilt_vertical_absinfo != NULL)
-		litest_event(dev,
-			     EV_ABS,
-			     ABS_TILT_X,
-			     tilt_vertical_absinfo->minimum);
-
-	if (tilt_horizontal_absinfo != NULL)
-		litest_event(dev,
-			     EV_ABS,
-			     ABS_TILT_Y,
-			     tilt_horizontal_absinfo->minimum);
-
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-
-	libinput_dispatch(li);
-
-	while ((event = libinput_get_event(li))) {
-		if (libinput_event_get_type(event) == LIBINPUT_EVENT_TABLET_TOOL_AXIS) {
-			tablet_event = libinput_event_get_tablet_tool_event(event);
-
-			if (libinput_event_tablet_tool_pressure_has_changed(
-							tablet_event)) {
-				pressure = libinput_event_tablet_tool_get_pressure(
-				    tablet_event);
-
-				litest_assert_double_eq(pressure, 0);
-			}
-
-			if (libinput_event_tablet_tool_tilt_x_has_changed(
-							tablet_event)) {
-				tilt_vertical =
-					libinput_event_tablet_tool_get_tilt_x(
-					    tablet_event);
-
-				litest_assert_double_eq(tilt_vertical, -1);
-			}
-
-			if (libinput_event_tablet_tool_tilt_y_has_changed(
-							tablet_event)) {
-				tilt_horizontal =
-					libinput_event_tablet_tool_get_tilt_y(
-					    tablet_event);
-
-				litest_assert_double_eq(tilt_horizontal, -1);
-			}
-		}
-
-		libinput_event_destroy(event);
-	}
-
-	/* Test maximum */
-	if (pressure_absinfo != NULL)
-		litest_event(dev,
-			     EV_ABS,
-			     ABS_PRESSURE,
-			     pressure_absinfo->maximum);
-
-	if (tilt_vertical_absinfo != NULL)
-		litest_event(dev,
-			     EV_ABS,
-			     ABS_TILT_X,
-			     tilt_vertical_absinfo->maximum);
-
-	if (tilt_horizontal_absinfo != NULL)
-		litest_event(dev,
-			     EV_ABS,
-			     ABS_TILT_Y,
-			     tilt_horizontal_absinfo->maximum);
-
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-
-	libinput_dispatch(li);
-
-	while ((event = libinput_get_event(li))) {
-		if (libinput_event_get_type(event) == LIBINPUT_EVENT_TABLET_TOOL_AXIS) {
-			tablet_event = libinput_event_get_tablet_tool_event(event);
-
-			if (libinput_event_tablet_tool_pressure_has_changed(
-							tablet_event)) {
-				pressure = libinput_event_tablet_tool_get_pressure(
-							tablet_event);
-
-				litest_assert_double_eq(pressure, 1);
-			}
-
-			if (libinput_event_tablet_tool_tilt_x_has_changed(
-							tablet_event)) {
-				tilt_vertical =
-					libinput_event_tablet_tool_get_tilt_x(
-							tablet_event);
-
-				litest_assert_double_eq(tilt_vertical, 1);
-			}
-
-			if (libinput_event_tablet_tool_tilt_y_has_changed(
-							tablet_event)) {
-				tilt_horizontal =
-					libinput_event_tablet_tool_get_tilt_y(
-							tablet_event);
-
-				litest_assert_double_eq(tilt_horizontal, 1);
-			}
-		}
-
-		libinput_event_destroy(event);
-	}
-
-}
-END_TEST
-
 START_TEST(tool_unique)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3198,6 +3062,48 @@ static void pressure_threshold_warning(struct libinput *libinput,
 		(*warning_triggered)++;
 }
 
+START_TEST(tablet_pressure_min_max)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 0 },
+		{ ABS_PRESSURE, 2 },
+		{ -1, -1 },
+	};
+	double p;
+
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_drain_events(li);
+	libinput_dispatch(li);
+
+	litest_axis_set_value(axes, ABS_PRESSURE, 0);
+	litest_tablet_motion(dev, 5, 100, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	p = libinput_event_tablet_tool_get_pressure(tev);
+	ck_assert_double_ge(p, 0.0);
+	libinput_event_destroy(event);
+
+	/* skip over pressure-based tip down */
+	litest_axis_set_value(axes, ABS_PRESSURE, 90);
+	litest_tablet_motion(dev, 5, 100, axes);
+	litest_drain_events(li);
+
+	litest_axis_set_value(axes, ABS_PRESSURE, 100);
+	litest_tablet_motion(dev, 5, 100, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	p = libinput_event_tablet_tool_get_pressure(tev);
+	ck_assert_double_ge(p, 1.0);
+	libinput_event_destroy(event);
+}
+END_TEST
+
 START_TEST(tablet_pressure_range)
 {
 	struct litest_device *dev = litest_current_device();
@@ -4145,7 +4051,6 @@ litest_setup_tests_tablet(void)
 	litest_add_for_device("tablet:left_handed", left_handed_mouse_rotation, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:left_handed", left_handed_artpen_rotation, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:left_handed", no_left_handed, LITEST_WACOM_CINTIQ);
-	litest_add("tablet:normalization", normalization, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:pad", pad_buttons_ignored, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:mouse", mouse_tool, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:mouse", mouse_buttons, LITEST_TABLET, LITEST_ANY);
@@ -4163,6 +4068,7 @@ litest_setup_tests_tablet(void)
 	litest_add("tablet:calibration", tablet_calibration_set_matrix, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:calibration", tablet_calibration_set_matrix_delta, LITEST_TABLET, LITEST_ANY);
 
+	litest_add("tablet:pressure", tablet_pressure_min_max, LITEST_TABLET, LITEST_ANY);
 	litest_add_for_device("tablet:pressure", tablet_pressure_range, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:pressure", tablet_pressure_offset, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:pressure", tablet_pressure_offset_decrease, LITEST_WACOM_INTUOS);
