@@ -700,16 +700,7 @@ START_TEST(proximity_in_out)
 	ck_assert(have_proximity_out);
 
 	/* Proximity out must not emit axis events */
-	litest_tablet_proximity_out(dev);
-	libinput_dispatch(li);
-
-	while ((event = libinput_get_event(li))) {
-		enum libinput_event_type type = libinput_event_get_type(event);
-
-		ck_assert(type != LIBINPUT_EVENT_TABLET_TOOL_AXIS);
-
-		libinput_event_destroy(event);
-	}
+	litest_assert_empty_queue(li);
 }
 END_TEST
 
@@ -1601,16 +1592,8 @@ START_TEST(motion_event_state)
 
 	libinput_dispatch(li);
 
-	while ((event = libinput_get_event(li))) {
-		if (libinput_event_get_type(event) == LIBINPUT_EVENT_TABLET_TOOL_AXIS)
-			break;
-		libinput_event_destroy(event);
-	}
-
-	/* pop the first event off */
-	ck_assert_notnull(event);
-	tablet_event = libinput_event_get_tablet_tool_event(event);
-	ck_assert_notnull(tablet_event);
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
 	last_x = libinput_event_tablet_tool_get_x(tablet_event);
 	last_y = libinput_event_tablet_tool_get_y(tablet_event);
@@ -1886,7 +1869,6 @@ START_TEST(pad_buttons_ignored)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
@@ -1904,15 +1886,12 @@ START_TEST(pad_buttons_ignored)
 		libinput_dispatch(li);
 	}
 
-	while ((event = libinput_get_event(li))) {
-		ck_assert_int_ne(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
-		libinput_event_destroy(event);
-		libinput_dispatch(li);
-	}
+	litest_assert_empty_queue(li);
 
 	/* same thing while in prox */
 	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_drain_events(li);
+
 	for (button = BTN_0; button < BTN_MOUSE; button++) {
 		litest_event(dev, EV_KEY, button, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -1920,15 +1899,8 @@ START_TEST(pad_buttons_ignored)
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 		libinput_dispatch(li);
 	}
-	litest_tablet_proximity_out(dev);
 
-	libinput_dispatch(li);
-	while ((event = libinput_get_event(li))) {
-		ck_assert_int_ne(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
-		libinput_event_destroy(event);
-		libinput_dispatch(li);
-	}
+	litest_assert_empty_queue(li);
 }
 END_TEST
 
