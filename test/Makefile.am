@@ -83,8 +83,9 @@ liblitest_la_LIBADD += $(LIBUNWIND_LIBS) -ldl
 liblitest_la_CFLAGS += $(LIBUNWIND_CFLAGS)
 endif
 
-run_tests = libinput-test-suite-runner \
-	    test-litest-selftest
+run_tests = \
+	    test-litest-selftest \
+	    libinput-test-suite-runner
 
 build_tests = \
 	test-build-cxx \
