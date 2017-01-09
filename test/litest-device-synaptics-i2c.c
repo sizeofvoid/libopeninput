@@ -92,7 +92,7 @@ static const char udev_rule[] =
 "ENV{ID_INPUT_TOUCHPAD}==\"\", GOTO=\"touchpad_end\"\n"
 "\n"
 "ATTRS{name}==\"litest DLL0704:01 06CB:76AD Touchpad\","
-"    ENV{LIBINPUT_MODEL_DELL_TOUCHPAD}=\"1\"\n"
+"    ENV{LIBINPUT_MODEL_TOUCHPAD_VISIBLE_MARKER}=\"1\"\n"
 "\n"
 "LABEL=\"touchpad_end\"";
 

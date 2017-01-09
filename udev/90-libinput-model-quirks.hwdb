@@ -53,7 +53,7 @@ libinput:mouse:input:b0003v06A3p0CD5*
 ##########################################
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnDellInc.:*
 libinput:name:* Touchpad:dmi:*svnDellInc.:*
- LIBINPUT_MODEL_DELL_TOUCHPAD=1
+ LIBINPUT_MODEL_TOUCHPAD_VISIBLE_MARKER=1
 
 ##########################################
 # Elantech
