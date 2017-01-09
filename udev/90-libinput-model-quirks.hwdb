@@ -42,6 +42,12 @@ libinput:mouse:input:b0005v05ACp030D*
  LIBINPUT_MODEL_APPLE_MAGICMOUSE=1
 
 ##########################################
+# Asus
+##########################################
+libinput:name:*ETPS/2 Elantech Touchpad*:dmi:*svnASUSTeKCOMPUTERINC.:pnX555LAB:*
+ LIBINPUT_MODEL_TOUCHPAD_VISIBLE_MARKER=1
+
+##########################################
 # Cyborg
 ##########################################
 # Saitek Cyborg R.A.T.5 Mouse
