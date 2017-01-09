@@ -47,6 +47,7 @@
 #define VENDOR_ID_WACOM 0x56a
 #define VENDOR_ID_SYNAPTICS_SERIAL 0x002
 #define PRODUCT_ID_APPLE_KBD_TOUCHPAD 0x273
+#define PRODUCT_ID_APPLE_APPLETOUCH 0x21a
 #define PRODUCT_ID_SYNAPTICS_SERIAL 0x007
 
 /* The HW DPI rate we normalize to before calculating pointer acceleration */

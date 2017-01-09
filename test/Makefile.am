@@ -19,6 +19,7 @@ liblitest_la_SOURCES = \
 	litest-device-alps-semi-mt.c \
 	litest-device-alps-dualpoint.c \
 	litest-device-anker-mouse-kbd.c \
+	litest-device-apple-appletouch.c \
 	litest-device-apple-internal-keyboard.c \
 	litest-device-apple-magicmouse.c \
 	litest-device-asus-rog-gladius.c \

@@ -556,15 +556,21 @@ START_TEST(touchpad_scroll_defaults)
 	struct libevdev *evdev = dev->evdev;
 	enum libinput_config_scroll_method method, expected;
 	enum libinput_config_status status;
+	bool should_have_2fg = false;
+
+	if (libevdev_get_num_slots(evdev) > 1 ||
+	    (libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_APPLE &&
+	     libevdev_get_id_product(dev->evdev) == PRODUCT_ID_APPLE_APPLETOUCH))
+		should_have_2fg = true;
 
 	method = libinput_device_config_scroll_get_methods(device);
 	ck_assert(method & LIBINPUT_CONFIG_SCROLL_EDGE);
-	if (libevdev_get_num_slots(evdev) > 1)
+	if (should_have_2fg)
 		ck_assert(method & LIBINPUT_CONFIG_SCROLL_2FG);
 	else
 		ck_assert((method & LIBINPUT_CONFIG_SCROLL_2FG) == 0);
 
-	if (libevdev_get_num_slots(evdev) > 1)
+	if (should_have_2fg)
 		expected = LIBINPUT_CONFIG_SCROLL_2FG;
 	else
 		expected = LIBINPUT_CONFIG_SCROLL_EDGE;
@@ -580,7 +586,7 @@ START_TEST(touchpad_scroll_defaults)
 	status = libinput_device_config_scroll_set_method(device,
 					  LIBINPUT_CONFIG_SCROLL_2FG);
 
-	if (libevdev_get_num_slots(evdev) > 1)
+	if (should_have_2fg)
 		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	else
 		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
@@ -1290,6 +1296,10 @@ START_TEST(touchpad_left_handed)
 	struct libinput *li = dev->libinput;
 	enum libinput_config_status status;
 
+	if (libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_APPLE &&
+	    libevdev_get_id_product(dev->evdev) == PRODUCT_ID_APPLE_APPLETOUCH)
+		return;
+
 	status = libinput_device_config_left_handed_set(d, 1);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
@@ -1325,6 +1335,19 @@ START_TEST(touchpad_left_handed)
 					   BTN_MIDDLE,
 					   LIBINPUT_BUTTON_STATE_RELEASED);
 	}
+}
+END_TEST
+
+START_TEST(touchpad_left_handed_appletouch)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *d = dev->libinput_device;
+	enum libinput_config_status status;
+
+	ck_assert_int_eq(libinput_device_config_left_handed_is_available(d), 0);
+	status = libinput_device_config_left_handed_set(d, 1);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	ck_assert_int_eq(libinput_device_config_left_handed_get(d), 0);
 }
 END_TEST
 
@@ -4717,6 +4740,7 @@ litest_setup_tests_touchpad(void)
 	litest_add("touchpad:palm", touchpad_palm_detect_both_edges, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 
 	litest_add("touchpad:left-handed", touchpad_left_handed, LITEST_TOUCHPAD|LITEST_BUTTON, LITEST_CLICKPAD);
+	litest_add_for_device("touchpad:left-handed", touchpad_left_handed_appletouch, LITEST_APPLETOUCH);
 	litest_add("touchpad:left-handed", touchpad_left_handed_clickpad, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
 	litest_add("touchpad:left-handed", touchpad_left_handed_clickfinger, LITEST_APPLE_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:left-handed", touchpad_left_handed_tapping, LITEST_TOUCHPAD, LITEST_ANY);

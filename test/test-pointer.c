@@ -774,6 +774,10 @@ START_TEST(pointer_left_handed_defaults)
 	struct libinput_device *d = dev->libinput_device;
 	int rc;
 
+	if (libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_APPLE &&
+	    libevdev_get_id_product(dev->evdev) == PRODUCT_ID_APPLE_APPLETOUCH)
+		return;
+
 	rc = libinput_device_config_left_handed_is_available(d);
 	ck_assert_int_ne(rc, 0);
 
