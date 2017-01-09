@@ -2544,6 +2544,7 @@ struct evdev_dispatch *
 evdev_mt_touchpad_create(struct evdev_device *device)
 {
 	struct tp_dispatch *tp;
+	bool want_left_handed = true;
 
 	evdev_tag_touchpad(device, device->udev_device);
 
@@ -2564,7 +2565,10 @@ evdev_mt_touchpad_create(struct evdev_device *device)
 	tp->sendevents.config.get_mode = tp_sendevents_get_mode;
 	tp->sendevents.config.get_default_mode = tp_sendevents_get_default_mode;
 
-	evdev_init_left_handed(device, tp_change_to_left_handed);
+	if (device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON)
+		want_left_handed = false;
+	if (want_left_handed)
+		evdev_init_left_handed(device, tp_change_to_left_handed);
 
 	return &tp->base;
 }

@@ -637,6 +637,9 @@ tp_button_config_click_get_methods(struct libinput_device *device)
 			methods |= LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
 	}
 
+	if (evdev->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON)
+		methods |= LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
+
 	return methods;
 }
 
@@ -695,14 +698,15 @@ tp_click_get_default_method(struct tp_dispatch *tp)
 				      EVDEV_MODEL_SYSTEM76_BONOBO |
 				      EVDEV_MODEL_SYSTEM76_GALAGO |
 				      EVDEV_MODEL_SYSTEM76_KUDU |
-				      EVDEV_MODEL_CLEVO_W740SU;
+				      EVDEV_MODEL_CLEVO_W740SU |
+				      EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON;
+
+	if (device->model_flags & clickfinger_models)
+		return LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
 
 	if (!tp->buttons.is_clickpad)
 		return LIBINPUT_CONFIG_CLICK_METHOD_NONE;
 	else if (libevdev_get_id_vendor(tp->device->evdev) == VENDOR_ID_APPLE)
-		return LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
-
-	if (device->model_flags & clickfinger_models)
 		return LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
 
 	return LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS;
@@ -1177,7 +1181,8 @@ tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 int
 tp_post_button_events(struct tp_dispatch *tp, uint64_t time)
 {
-	if (tp->buttons.is_clickpad)
+	if (tp->buttons.is_clickpad ||
+	    tp->device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON)
 		return tp_post_clickpadbutton_buttons(tp, time);
 	else
 		return tp_post_physical_buttons(tp, time);

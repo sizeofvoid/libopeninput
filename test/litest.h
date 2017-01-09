@@ -231,6 +231,7 @@ enum litest_device_type {
 	LITEST_MOUSE_WHEEL_TILT,
 	LITEST_LID_SWITCH,
 	LITEST_LID_SWITCH_SURFACE3,
+	LITEST_APPLETOUCH,
 };
 
 enum litest_device_feature {
