@@ -569,10 +569,8 @@ tp_init_softbuttons(struct tp_dispatch *tp,
 	 *
 	 * On touchpads with visible markings we reduce the size of the
 	 * middle button since users have a visual guide.
-	 *
-	 * All Dell touchpads appear to have a middle marker.
 	 */
-	if (tp->device->model_flags & EVDEV_MODEL_DELL_TOUCHPAD) {
+	if (tp->device->model_flags & EVDEV_MODEL_TOUCHPAD_VISIBLE_MARKER) {
 		mm.x = width/2 - 5; /* 10mm wide */
 		edges = evdev_device_mm_to_units(device, &mm);
 		mb_le = edges.x;
