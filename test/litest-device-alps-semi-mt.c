@@ -60,9 +60,23 @@ static struct input_event move[] = {
 	{ .type = -1, .code = -1 },
 };
 
+static int
+get_axis_default(struct litest_device *d, unsigned int evcode, int32_t *value)
+{
+	switch (evcode) {
+	case ABS_PRESSURE:
+	case ABS_MT_PRESSURE:
+		*value = 30;
+		return 0;
+	}
+	return 1;
+}
+
 static struct litest_device_interface interface = {
 	.touch_down_events = down,
 	.touch_move_events = move,
+
+	.get_axis_default = get_axis_default,
 };
 
 static struct input_id input_id = {

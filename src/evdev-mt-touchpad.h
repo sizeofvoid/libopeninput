@@ -153,7 +153,6 @@ struct tp_touch {
 	bool dirty;
 	struct device_coords point;
 	uint64_t millis;
-	int distance;				/* distance == 0 means touch */
 	int pressure;
 
 	bool was_down; /* if distance == 0, false for pure hovering
@@ -232,7 +231,6 @@ struct tp_dispatch {
 	unsigned int slot;			/* current slot */
 	bool has_mt;
 	bool semi_mt;
-	bool reports_distance;			/* does the device support true hovering */
 
 	/* true if we're reading events (i.e. not suspended) but we're
 	 * ignoring them */
@@ -247,6 +245,14 @@ struct tp_dispatch {
 	 * ...
 	 */
 	unsigned int fake_touches;
+
+	/* if pressure goes above high -> touch down,
+	   if pressure then goes below low -> touch up */
+	struct {
+		bool use_pressure;
+		int high;
+		int low;
+	} pressure;
 
 	struct device_coords hysteresis_margin;
 
