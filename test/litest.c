@@ -1799,7 +1799,13 @@ litest_hover_start(struct litest_device *d,
 		   double x,
 		   double y)
 {
-	litest_slot_start(d, slot, x, y, NULL, 0);
+	struct axis_replacement axes[] = {
+		{ABS_MT_PRESSURE, 0 },
+		{ABS_PRESSURE, 0 },
+		{-1, -1 },
+	};
+
+	litest_slot_start(d, slot, x, y, axes, 0);
 }
 
 void
@@ -1838,7 +1844,13 @@ void
 litest_hover_move(struct litest_device *d, unsigned int slot,
 		  double x, double y)
 {
-	litest_slot_move(d, slot, x, y, NULL, false);
+	struct axis_replacement axes[] = {
+		{ABS_MT_PRESSURE, 0 },
+		{ABS_PRESSURE, 0 },
+		{-1, -1 },
+	};
+
+	litest_slot_move(d, slot, x, y, axes, false);
 }
 
 void
