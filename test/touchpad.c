@@ -2079,7 +2079,7 @@ START_TEST(touchpad_hover_down_up)
 	litest_hover_start(dev, 0, 50, 50);
 	litest_hover_start(dev, 1, 50, 50);
 	litest_touch_down(dev, 2, 50, 50);
-	litest_pop_event_frame(dev);;
+	litest_pop_event_frame(dev);
 
 	litest_assert_empty_queue(li);
 
@@ -2088,7 +2088,7 @@ START_TEST(touchpad_hover_down_up)
 	litest_hover_move(dev, 0, 55, 55);
 	litest_hover_end(dev, 1);
 	litest_touch_up(dev, 2);
-	litest_pop_event_frame(dev);;
+	litest_pop_event_frame(dev);
 
 	litest_assert_empty_queue(li);
 
@@ -2112,14 +2112,14 @@ START_TEST(touchpad_hover_2fg_noevent)
 	litest_push_event_frame(dev);
 	litest_hover_start(dev, 0, 25, 25);
 	litest_hover_start(dev, 1, 50, 50);
-	litest_pop_event_frame(dev);;
+	litest_pop_event_frame(dev);
 
 	litest_hover_move_two_touches(dev, 25, 25, 50, 50, 50, 50, 10, 0);
 
 	litest_push_event_frame(dev);
 	litest_hover_end(dev, 0);
 	litest_hover_end(dev, 1);
-	litest_pop_event_frame(dev);;
+	litest_pop_event_frame(dev);
 
 	litest_assert_empty_queue(li);
 }
@@ -2137,19 +2137,19 @@ START_TEST(touchpad_hover_2fg_1fg_down)
 	litest_push_event_frame(dev);
 	litest_hover_start(dev, 0, 25, 25);
 	litest_touch_down(dev, 1, 50, 50);
-	litest_pop_event_frame(dev);;
+	litest_pop_event_frame(dev);
 
 	for (i = 0; i < 10; i++) {
 		litest_push_event_frame(dev);
 		litest_hover_move(dev, 0, 25 + 5 * i, 25 + 5 * i);
 		litest_touch_move(dev, 1, 50 + 5 * i, 50 - 5 * i);
-		litest_pop_event_frame(dev);;
+		litest_pop_event_frame(dev);
 	}
 
 	litest_push_event_frame(dev);
 	litest_hover_end(dev, 0);
 	litest_touch_up(dev, 1);
-	litest_pop_event_frame(dev);;
+	litest_pop_event_frame(dev);
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 }

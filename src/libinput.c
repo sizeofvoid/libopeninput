@@ -1555,7 +1555,7 @@ libinput_init(struct libinput *libinput,
 	assert(interface->open_restricted != NULL);
 	assert(interface->close_restricted != NULL);
 
-	libinput->epoll_fd = epoll_create1(EPOLL_CLOEXEC);;
+	libinput->epoll_fd = epoll_create1(EPOLL_CLOEXEC);
 	if (libinput->epoll_fd < 0)
 		return -1;
 
