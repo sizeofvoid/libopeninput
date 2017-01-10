@@ -1335,6 +1335,9 @@ START_TEST(touchpad_left_handed_clickpad)
 	struct libinput *li = dev->libinput;
 	enum libinput_config_status status;
 
+	if (!libinput_device_config_left_handed_is_available(d))
+		return;
+
 	status = libinput_device_config_left_handed_set(d, 1);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
@@ -1386,6 +1389,9 @@ START_TEST(touchpad_left_handed_clickfinger)
 	struct libinput *li = dev->libinput;
 	enum libinput_config_status status;
 
+	if (!libinput_device_config_left_handed_is_available(d))
+		return;
+
 	status = libinput_device_config_left_handed_set(d, 1);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
@@ -1427,6 +1433,9 @@ START_TEST(touchpad_left_handed_tapping)
 	struct libinput *li = dev->libinput;
 	enum libinput_config_status status;
 
+	if (!libinput_device_config_left_handed_is_available(d))
+		return;
+
 	litest_enable_tap(dev->libinput_device);
 
 	status = libinput_device_config_left_handed_set(d, 1);
@@ -1457,6 +1466,9 @@ START_TEST(touchpad_left_handed_tapping_2fg)
 	struct libinput_device *d = dev->libinput_device;
 	struct libinput *li = dev->libinput;
 	enum libinput_config_status status;
+
+	if (!libinput_device_config_left_handed_is_available(d))
+		return;
 
 	litest_enable_tap(dev->libinput_device);
 
@@ -1490,6 +1502,9 @@ START_TEST(touchpad_left_handed_delayed)
 	struct libinput_device *d = dev->libinput_device;
 	struct libinput *li = dev->libinput;
 	enum libinput_config_status status;
+
+	if (!libinput_device_config_left_handed_is_available(d))
+		return;
 
 	litest_drain_events(li);
 	litest_button_click(dev, BTN_LEFT, 1);
@@ -1542,6 +1557,9 @@ START_TEST(touchpad_left_handed_clickpad_delayed)
 	struct libinput_device *d = dev->libinput_device;
 	struct libinput *li = dev->libinput;
 	enum libinput_config_status status;
+
+	if (!libinput_device_config_left_handed_is_available(d))
+		return;
 
 	litest_drain_events(li);
 	litest_touch_down(dev, 0, 10, 90);
