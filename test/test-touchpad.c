@@ -4698,6 +4698,222 @@ START_TEST(touchpad_disabled_double_mouse_one_suspended)
 }
 END_TEST
 
+static inline bool
+touchpad_has_pressure(struct litest_device *dev)
+{
+	struct libevdev *evdev = dev->evdev;
+
+	if (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_PRESSURE))
+		return true;
+
+	if (libevdev_has_event_code(evdev, EV_ABS, ABS_PRESSURE) &&
+	    !libevdev_has_event_code(evdev, EV_ABS, ABS_MT_SLOT))
+		return true;
+
+	return false;
+}
+
+START_TEST(touchpad_pressure)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_PRESSURE, 1 },
+		{ ABS_PRESSURE, 1 },
+		{ -1, 0 }
+	};
+	double pressure; /* in percent */
+	double threshold = 12.0;
+
+	if (!touchpad_has_pressure(dev))
+		return;
+
+	litest_drain_events(li);
+
+	for (pressure = 1; pressure <= threshold + 1; pressure++) {
+		litest_axis_set_value(axes, ABS_MT_PRESSURE, pressure);
+		litest_axis_set_value(axes, ABS_PRESSURE, pressure);
+		litest_touch_down_extended(dev, 0, 50, 50, axes);
+		litest_touch_move_to_extended(dev, 0,
+					      50, 50,
+					      80, 80,
+					      axes, 10, 1);
+		litest_touch_up(dev, 0);
+		if (pressure < threshold)
+			litest_assert_empty_queue(li);
+		else
+			litest_assert_only_typed_events(li,
+							LIBINPUT_EVENT_POINTER_MOTION);
+
+	}
+}
+END_TEST
+
+START_TEST(touchpad_pressure_2fg)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_PRESSURE, 5 },
+		{ ABS_PRESSURE, 5 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_pressure(dev))
+		return;
+
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 30, 50);
+	litest_touch_down_extended(dev, 1, 50, 50, axes);
+	libinput_dispatch(li);
+	litest_touch_move_to(dev, 0, 50, 50, 80, 80, 10, 1);
+	libinput_dispatch(li);
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_POINTER_MOTION);
+	litest_touch_move_to_extended(dev, 1,
+				      50, 50,
+				      80, 80,
+				      axes, 10, 1);
+	litest_assert_empty_queue(li);
+	litest_touch_move_to(dev, 0, 80, 80, 20, 50, 10, 1);
+	litest_touch_move_to_extended(dev, 1,
+				      80, 80,
+				      50, 50,
+				      axes, 10, 1);
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_POINTER_MOTION);
+}
+END_TEST
+
+START_TEST(touchpad_pressure_2fg_st)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_PRESSURE, 5 },
+		{ ABS_PRESSURE, 5 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_pressure(dev))
+		return;
+
+	/* This is a bit of a weird test. We expect two fingers to be down as
+	 * soon as doubletap is set, regardless of pressure. But we don't
+	 * have 2fg scrolling on st devices and 2 fingers down on a touchpad
+	 * without 2fg scrolling simply does not generate events. But that's
+	 * the same result as if the fingers were ignored because of
+	 * pressure and we cannot know the difference.
+	 * So this test only keeps your CPU warm, not much else.
+	 */
+	litest_drain_events(li);
+
+	litest_touch_down_extended(dev, 0, 50, 50, axes);
+	libinput_dispatch(li);
+	litest_event(dev, EV_KEY, BTN_TOOL_FINGER, 0);
+	litest_event(dev, EV_KEY, BTN_TOOL_DOUBLETAP, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+	litest_touch_move_to_extended(dev, 0,
+				      50, 50,
+				      80, 80,
+				      axes, 10, 1);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touchpad_pressure_tap)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_PRESSURE, 5 },
+		{ ABS_PRESSURE, 5 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_pressure(dev))
+		return;
+
+	litest_enable_tap(dev->libinput_device);
+	litest_drain_events(li);
+
+	litest_touch_down_extended(dev, 0, 50, 50, axes);
+	libinput_dispatch(li);
+	litest_touch_up(dev, 0);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touchpad_pressure_tap_2fg)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_PRESSURE, 5 },
+		{ ABS_PRESSURE, 5 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_pressure(dev))
+		return;
+
+	litest_enable_tap(dev->libinput_device);
+	litest_drain_events(li);
+
+	/* tap but too light */
+	litest_touch_down_extended(dev, 0, 40, 50, axes);
+	litest_touch_down_extended(dev, 1, 50, 50, axes);
+	libinput_dispatch(li);
+	litest_touch_up(dev, 0);
+	litest_touch_up(dev, 1);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touchpad_pressure_tap_2fg_1fg_light)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_PRESSURE, 5 },
+		{ ABS_PRESSURE, 5 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_pressure(dev))
+		return;
+
+	litest_enable_tap(dev->libinput_device);
+	litest_drain_events(li);
+
+	/* double-tap with one finger too light */
+	litest_touch_down(dev, 0, 40, 50);
+	litest_touch_down_extended(dev, 1, 50, 50, axes);
+	libinput_dispatch(li);
+	litest_touch_up(dev, 0);
+	litest_touch_up(dev, 1);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	litest_is_button_event(event,
+			       BTN_LEFT,
+			       LIBINPUT_BUTTON_STATE_PRESSED);
+	libinput_event_destroy(event);
+
+	litest_timeout_tap();
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	litest_is_button_event(event,
+			       BTN_LEFT,
+			       LIBINPUT_BUTTON_STATE_RELEASED);
+	libinput_event_destroy(event);
+}
+END_TEST
+
 void
 litest_setup_tests_touchpad(void)
 {
@@ -4838,4 +5054,11 @@ litest_setup_tests_touchpad(void)
 	litest_add_for_device("touchpad:sendevents", touchpad_disabled_on_mouse_suspend_mouse, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_for_device("touchpad:sendevents", touchpad_disabled_double_mouse, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_for_device("touchpad:sendevents", touchpad_disabled_double_mouse_one_suspended, LITEST_SYNAPTICS_CLICKPAD_X220);
+
+	litest_add("touchpad:pressure", touchpad_pressure, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("touchpad:pressure", touchpad_pressure_2fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add("touchpad:pressure", touchpad_pressure_2fg_st, LITEST_TOUCHPAD|LITEST_SINGLE_TOUCH, LITEST_ANY);
+	litest_add("touchpad:pressure", touchpad_pressure_tap, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("touchpad:pressure", touchpad_pressure_tap_2fg, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("touchpad:pressure", touchpad_pressure_tap_2fg_1fg_light, LITEST_TOUCHPAD, LITEST_ANY);
 }
