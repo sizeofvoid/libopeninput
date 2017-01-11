@@ -36,7 +36,6 @@ START_TEST(touchpad_1fg_tap)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
 
 	litest_enable_tap(dev->libinput_device);
 
@@ -53,9 +52,7 @@ START_TEST(touchpad_1fg_tap)
 	litest_assert_button_event(li, BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 
-	libinput_dispatch(li);
-	event = libinput_get_event(li);
-	ck_assert(event == NULL);
+	litest_assert_empty_queue(li);
 }
 END_TEST
 
@@ -1360,7 +1357,6 @@ START_TEST(touchpad_3fg_tap)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
 	unsigned int button = 0;
 	int i;
@@ -1402,9 +1398,7 @@ START_TEST(touchpad_3fg_tap)
 		litest_assert_button_event(li, button,
 					   LIBINPUT_BUTTON_STATE_RELEASED);
 
-		libinput_dispatch(li);
-		event = libinput_get_event(li);
-		ck_assert(event == NULL);
+		litest_assert_empty_queue(li);
 	}
 }
 END_TEST
@@ -1452,7 +1446,6 @@ START_TEST(touchpad_3fg_tap_btntool)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
 	unsigned int button = 0;
 
@@ -1495,9 +1488,7 @@ START_TEST(touchpad_3fg_tap_btntool)
 	litest_assert_button_event(li, button,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 
-	libinput_dispatch(li);
-	event = libinput_get_event(li);
-	ck_assert(event == NULL);
+	litest_assert_empty_queue(li);
 }
 END_TEST
 
@@ -1505,7 +1496,6 @@ START_TEST(touchpad_3fg_tap_btntool_inverted)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
 	unsigned int button = 0;
 
@@ -1548,9 +1538,7 @@ START_TEST(touchpad_3fg_tap_btntool_inverted)
 	litest_assert_button_event(li, button,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 
-	libinput_dispatch(li);
-	event = libinput_get_event(li);
-	ck_assert(event == NULL);
+	litest_assert_empty_queue(li);
 }
 END_TEST
 
@@ -1558,7 +1546,6 @@ START_TEST(touchpad_4fg_tap)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
 	int i;
 
 	if (libevdev_get_abs_maximum(dev->evdev,
@@ -1584,8 +1571,6 @@ START_TEST(touchpad_4fg_tap)
 		litest_assert_empty_queue(li);
 		litest_timeout_tap();
 		litest_assert_empty_queue(li);
-		event = libinput_get_event(li);
-		ck_assert(event == NULL);
 	}
 }
 END_TEST
@@ -1631,7 +1616,6 @@ START_TEST(touchpad_5fg_tap)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
 	int i;
 
 	if (libevdev_get_abs_maximum(dev->evdev,
@@ -1659,8 +1643,6 @@ START_TEST(touchpad_5fg_tap)
 		litest_assert_empty_queue(li);
 		litest_timeout_tap();
 		litest_assert_empty_queue(li);
-		event = libinput_get_event(li);
-		ck_assert(event == NULL);
 	}
 }
 END_TEST
