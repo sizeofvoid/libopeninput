@@ -1718,7 +1718,6 @@ START_TEST(touchpad_semi_mt_hover_down_hover_down)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
 	int i, j;
 	int x = 1400,
 	    y = 1400;
@@ -1751,14 +1750,8 @@ START_TEST(touchpad_semi_mt_hover_down_hover_down)
 
 		libinput_dispatch(li);
 
-		ck_assert_int_ne(libinput_next_event_type(li),
-				 LIBINPUT_EVENT_NONE);
-		while ((event = libinput_get_event(li)) != NULL) {
-			ck_assert_int_eq(libinput_event_get_type(event),
-					 LIBINPUT_EVENT_POINTER_MOTION);
-			libinput_event_destroy(event);
-			libinput_dispatch(li);
-		}
+		litest_assert_only_typed_events(li,
+						LIBINPUT_EVENT_POINTER_MOTION);
 
 		/* go back to hover */
 		hover_continue(dev, 0, x, y);
@@ -1790,14 +1783,8 @@ START_TEST(touchpad_semi_mt_hover_down_hover_down)
 	litest_touch_up(dev, 0);
 
 	libinput_dispatch(li);
-	ck_assert_int_ne(libinput_next_event_type(li),
-			 LIBINPUT_EVENT_NONE);
-	while ((event = libinput_get_event(li)) != NULL) {
-		ck_assert_int_eq(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_POINTER_MOTION);
-		libinput_event_destroy(event);
-		libinput_dispatch(li);
-	}
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_POINTER_MOTION);
 }
 END_TEST
 
@@ -1916,7 +1903,6 @@ START_TEST(touchpad_semi_mt_hover_2fg_1fg_down)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
 	int i;
 	int x = 2400,
 	    y = 2400;
@@ -1950,14 +1936,7 @@ START_TEST(touchpad_semi_mt_hover_2fg_1fg_down)
 
 	libinput_dispatch(li);
 
-	ck_assert_int_ne(libinput_next_event_type(li),
-			 LIBINPUT_EVENT_NONE);
-	while ((event = libinput_get_event(li)) != NULL) {
-		ck_assert_int_eq(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_POINTER_MOTION);
-		libinput_event_destroy(event);
-		libinput_dispatch(li);
-	}
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 }
 END_TEST
 
