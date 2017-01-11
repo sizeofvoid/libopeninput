@@ -3912,7 +3912,6 @@ START_TEST(touchpad_thumb_clickfinger)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
@@ -3935,10 +3934,10 @@ START_TEST(touchpad_thumb_clickfinger)
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
-	ptrev = litest_is_button_event(event,
+	litest_is_button_event(event,
 				       BTN_LEFT,
 				       LIBINPUT_BUTTON_STATE_PRESSED);
-	libinput_event_destroy(libinput_event_pointer_get_base_event(ptrev));
+	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
 
@@ -3955,10 +3954,10 @@ START_TEST(touchpad_thumb_clickfinger)
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
-	ptrev = litest_is_button_event(event,
-				       BTN_LEFT,
-				       LIBINPUT_BUTTON_STATE_PRESSED);
-	libinput_event_destroy(libinput_event_pointer_get_base_event(ptrev));
+	litest_is_button_event(event,
+			       BTN_LEFT,
+			       LIBINPUT_BUTTON_STATE_PRESSED);
+	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
 }
@@ -3969,7 +3968,6 @@ START_TEST(touchpad_thumb_btnarea)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
@@ -3993,10 +3991,10 @@ START_TEST(touchpad_thumb_btnarea)
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
-	ptrev = litest_is_button_event(event,
-				       BTN_RIGHT,
-				       LIBINPUT_BUTTON_STATE_PRESSED);
-	libinput_event_destroy(libinput_event_pointer_get_base_event(ptrev));
+	litest_is_button_event(event,
+			       BTN_RIGHT,
+			       LIBINPUT_BUTTON_STATE_PRESSED);
+	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
 }
@@ -4187,7 +4185,6 @@ START_TEST(touchpad_thumb_tap_hold_2ndfg_tap)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
 		{ -1, 0 }
@@ -4220,19 +4217,19 @@ START_TEST(touchpad_thumb_tap_hold_2ndfg_tap)
 	litest_touch_up(dev, 1);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
-	ptrev = litest_is_button_event(event,
-				       BTN_LEFT,
-				       LIBINPUT_BUTTON_STATE_PRESSED);
-	libinput_event_destroy(libinput_event_pointer_get_base_event(ptrev));
+	litest_is_button_event(event,
+			       BTN_LEFT,
+			       LIBINPUT_BUTTON_STATE_PRESSED);
+	libinput_event_destroy(event);
 
 	libinput_dispatch(li);
 	litest_timeout_tap();
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
-	ptrev = litest_is_button_event(event,
-				       BTN_LEFT,
-				       LIBINPUT_BUTTON_STATE_RELEASED);
-	libinput_event_destroy(libinput_event_pointer_get_base_event(ptrev));
+	litest_is_button_event(event,
+			       BTN_LEFT,
+			       LIBINPUT_BUTTON_STATE_RELEASED);
+	libinput_event_destroy(event);
 
 	/* make sure normal tap still works */
 	litest_touch_down(dev, 0, 50, 99);
@@ -4248,7 +4245,6 @@ START_TEST(touchpad_tool_tripletap_touch_count)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
 
 	/* Synaptics touchpads sometimes end one touch point while
 	 * simultaneously setting BTN_TOOL_TRIPLETAP.
@@ -4331,17 +4327,14 @@ START_TEST(touchpad_tool_tripletap_touch_count)
 
 	litest_wait_for_event(li);
 	event = libinput_get_event(li);
-	ptrev = litest_is_button_event(event,
-				       BTN_MIDDLE,
-				       LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_is_button_event(event,
+			       BTN_MIDDLE,
+			       LIBINPUT_BUTTON_STATE_PRESSED);
 	libinput_event_destroy(event);
 	event = libinput_get_event(li);
-	ptrev = litest_is_button_event(event,
-				       BTN_MIDDLE,
-				       LIBINPUT_BUTTON_STATE_RELEASED);
-	/* silence gcc set-but-not-used warning, litest_is_button_event
-	 * checks what we care about */
-	event = libinput_event_pointer_get_base_event(ptrev);
+	litest_is_button_event(event,
+			       BTN_MIDDLE,
+			       LIBINPUT_BUTTON_STATE_RELEASED);
 	libinput_event_destroy(event);
 
 	/* release everything */
