@@ -438,6 +438,14 @@ litest_touch_move_to(struct litest_device *d,
 		     int steps, int sleep_ms);
 
 void
+litest_touch_move_to_extended(struct litest_device *d,
+			      unsigned int slot,
+			      double x_from, double y_from,
+			      double x_to, double y_to,
+			      struct axis_replacement *axes,
+			      int steps, int sleep_ms);
+
+void
 litest_touch_move_two_touches(struct litest_device *d,
 			      double x0, double y0,
 			      double x1, double y1,
