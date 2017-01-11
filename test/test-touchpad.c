@@ -2152,6 +2152,24 @@ START_TEST(touchpad_hover_2fg_1fg_down)
 }
 END_TEST
 
+START_TEST(touchpad_hover_1fg_tap)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_enable_tap(dev->libinput_device);
+
+	litest_drain_events(li);
+
+	litest_hover_start(dev, 0, 50, 50);
+	litest_hover_end(dev, 0);
+
+	libinput_dispatch(li);
+	litest_assert_empty_queue(li);
+
+}
+END_TEST
+
 static void
 assert_btnevent_from_device(struct litest_device *device,
 			    unsigned int button,
@@ -4740,6 +4758,7 @@ litest_setup_tests_touchpad(void)
 	litest_add("touchpad:hover", touchpad_hover_down_hover_down, LITEST_TOUCHPAD|LITEST_HOVER, LITEST_ANY);
 	litest_add("touchpad:hover", touchpad_hover_2fg_noevent, LITEST_TOUCHPAD|LITEST_HOVER, LITEST_ANY);
 	litest_add("touchpad:hover", touchpad_hover_2fg_1fg_down, LITEST_TOUCHPAD|LITEST_HOVER, LITEST_ANY);
+	litest_add("touchpad:hover", touchpad_hover_1fg_tap, LITEST_TOUCHPAD|LITEST_HOVER, LITEST_ANY);
 
 	litest_add_for_device("touchpad:trackpoint", touchpad_trackpoint_buttons, LITEST_SYNAPTICS_TRACKPOINT_BUTTONS);
 	litest_add_for_device("touchpad:trackpoint", touchpad_trackpoint_mb_scroll, LITEST_SYNAPTICS_TRACKPOINT_BUTTONS);

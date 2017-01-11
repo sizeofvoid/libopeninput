@@ -214,6 +214,7 @@ tp_new_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	tp_motion_history_reset(t);
 	t->dirty = true;
 	t->has_ended = false;
+	t->was_down = false;
 	t->state = TOUCH_HOVERING;
 	t->pinned.is_pinned = false;
 	t->millis = time;
@@ -226,6 +227,7 @@ tp_begin_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->dirty = true;
 	t->state = TOUCH_BEGIN;
 	t->millis = time;
+	t->was_down = true;
 	tp->nfingers_down++;
 	t->palm.time = time;
 	t->thumb.state = THUMB_STATE_MAYBE;

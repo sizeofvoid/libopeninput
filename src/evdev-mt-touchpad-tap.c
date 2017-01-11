@@ -774,6 +774,9 @@ tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time)
 		if (t->tap.is_thumb)
 			continue;
 
+		if (t->state == TOUCH_HOVERING)
+			continue;
+
 		if (t->state == TOUCH_BEGIN) {
 			/* The simple version: if a touch is a thumb on
 			 * begin we ignore it. All other thumb touches
@@ -795,7 +798,8 @@ tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time)
 				tp_tap_handle_event(tp, t, TAP_EVENT_MOTION, time);
 
 		} else if (t->state == TOUCH_END) {
-			tp_tap_handle_event(tp, t, TAP_EVENT_RELEASE, time);
+			if (t->was_down)
+				tp_tap_handle_event(tp, t, TAP_EVENT_RELEASE, time);
 			t->tap.state = TAP_TOUCH_STATE_IDLE;
 		} else if (tp->tap.state != TAP_STATE_IDLE &&
 			   tp_tap_exceeds_motion_threshold(tp, t)) {

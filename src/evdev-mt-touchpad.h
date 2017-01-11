@@ -156,6 +156,9 @@ struct tp_touch {
 	int distance;				/* distance == 0 means touch */
 	int pressure;
 
+	bool was_down; /* if distance == 0, false for pure hovering
+			  touches */
+
 	struct {
 		/* A quirk mostly used on Synaptics touchpads. In a
 		   transition to/from fake touches > num_slots, the current
