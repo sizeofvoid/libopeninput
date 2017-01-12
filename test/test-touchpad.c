@@ -1686,6 +1686,7 @@ START_TEST(touchpad_semi_mt_hover_down)
 
 	litest_event(dev, EV_ABS, ABS_X, x + 100);
 	litest_event(dev, EV_ABS, ABS_Y, y + 100);
+	litest_event(dev, EV_ABS, ABS_PRESSURE, 50);
 	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
@@ -1712,6 +1713,7 @@ START_TEST(touchpad_semi_mt_hover_down)
 
 	/* go back to hover */
 	hover_continue(dev, 0, x, y);
+	litest_event(dev, EV_ABS, ABS_PRESSURE, 0);
 	litest_event(dev, EV_KEY, BTN_TOUCH, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
@@ -1752,6 +1754,7 @@ START_TEST(touchpad_semi_mt_hover_down_hover_down)
 		/* touch */
 		litest_event(dev, EV_ABS, ABS_X, x + 100);
 		litest_event(dev, EV_ABS, ABS_Y, y + 100);
+		litest_event(dev, EV_ABS, ABS_PRESSURE, 50);
 		litest_event(dev, EV_KEY, BTN_TOUCH, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 		libinput_dispatch(li);
@@ -1773,6 +1776,7 @@ START_TEST(touchpad_semi_mt_hover_down_hover_down)
 
 		/* go back to hover */
 		hover_continue(dev, 0, x, y);
+		litest_event(dev, EV_ABS, ABS_PRESSURE, 0);
 		litest_event(dev, EV_KEY, BTN_TOUCH, 0);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
@@ -1796,7 +1800,10 @@ START_TEST(touchpad_semi_mt_hover_down_hover_down)
 	litest_assert_empty_queue(li);
 
 	/* start a new touch to be sure */
+	litest_push_event_frame(dev);
 	litest_touch_down(dev, 0, 50, 50);
+	litest_event(dev, EV_ABS, ABS_PRESSURE, 50);
+	litest_pop_event_frame(dev);
 	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 10, 10);
 	litest_touch_up(dev, 0);
 
@@ -1845,6 +1852,7 @@ START_TEST(touchpad_semi_mt_hover_down_up)
 
 	litest_assert_empty_queue(li);
 
+	litest_event(dev, EV_ABS, ABS_PRESSURE, 50);
 	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
@@ -1930,6 +1938,7 @@ START_TEST(touchpad_semi_mt_hover_2fg_1fg_down)
 	/* two slots active, but BTN_TOOL_FINGER only */
 	hover_start(dev, 0, x, y);
 	hover_start(dev, 1, x + 500, y + 500);
+	litest_event(dev, EV_ABS, ABS_PRESSURE, 50);
 	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
 	litest_event(dev, EV_KEY, BTN_TOOL_FINGER, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -1948,6 +1957,7 @@ START_TEST(touchpad_semi_mt_hover_2fg_1fg_down)
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	}
 
+	litest_event(dev, EV_ABS, ABS_PRESSURE, 0);
 	litest_event(dev, EV_KEY, BTN_TOUCH, 0);
 	litest_event(dev, EV_KEY, BTN_TOOL_FINGER, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -1969,6 +1979,7 @@ START_TEST(touchpad_semi_mt_hover_2fg_up)
 	litest_push_event_frame(dev);
 	litest_touch_move(dev, 0, 72, 50);
 	litest_touch_move(dev, 1, 52, 50);
+	litest_event(dev, EV_ABS, ABS_PRESSURE, 0);
 	litest_event(dev, EV_KEY, BTN_TOUCH, 0);
 	litest_pop_event_frame(dev);
 
