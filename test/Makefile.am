@@ -46,6 +46,7 @@ liblitest_la_SOURCES = \
 	litest-device-synaptics.c \
 	litest-device-synaptics-hover.c \
 	litest-device-synaptics-i2c.c \
+	litest-device-synaptics-rmi4.c \
 	litest-device-synaptics-st.c \
 	litest-device-synaptics-t440.c \
 	litest-device-synaptics-x1-carbon-3rd.c \
