@@ -1482,6 +1482,42 @@ START_TEST(device_quirks_apple_magicmouse)
 }
 END_TEST
 
+START_TEST(device_capability_at_least_one)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	enum libinput_device_capability caps[] = {
+		LIBINPUT_DEVICE_CAP_KEYBOARD,
+		LIBINPUT_DEVICE_CAP_POINTER,
+		LIBINPUT_DEVICE_CAP_TOUCH,
+		LIBINPUT_DEVICE_CAP_TABLET_TOOL,
+		LIBINPUT_DEVICE_CAP_TABLET_PAD,
+		LIBINPUT_DEVICE_CAP_GESTURE,
+	};
+	enum libinput_device_capability *cap;
+	int ncaps = 0;
+
+	ARRAY_FOR_EACH(caps, cap) {
+		if (libinput_device_has_capability(device, *cap))
+			ncaps++;
+	}
+	ck_assert_int_gt(ncaps, 0);
+
+}
+END_TEST
+
+START_TEST(device_capability_check_invalid)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	ck_assert(!libinput_device_has_capability(device, -1));
+	ck_assert(!libinput_device_has_capability(device, 6));
+	ck_assert(!libinput_device_has_capability(device, 0xffff));
+
+}
+END_TEST
+
 void
 litest_setup_tests_device(void)
 {
@@ -1547,4 +1583,7 @@ litest_setup_tests_device(void)
 	litest_add_for_device("device:quirks", device_quirks_no_abs_mt_y, LITEST_ANKER_MOUSE_KBD);
 	litest_add_for_device("device:quirks", device_quirks_cyborg_rat_mode_button, LITEST_CYBORG_RAT);
 	litest_add_for_device("device:quirks", device_quirks_apple_magicmouse, LITEST_MAGICMOUSE);
+
+	litest_add("device:capability", device_capability_at_least_one, LITEST_ANY, LITEST_ANY);
+	litest_add("device:capability", device_capability_check_invalid, LITEST_ANY, LITEST_ANY);
 }
