@@ -144,6 +144,9 @@ parse_mouse_dpi_property(const char *prop)
 	bool is_default = false;
 	int nread, dpi = 0, rate;
 
+	if (!prop)
+		return 0;
+
 	while (*prop != 0) {
 		if (*prop == ' ') {
 			prop++;
@@ -190,6 +193,9 @@ parse_mouse_wheel_click_count_property(const char *prop)
 {
 	int count = 0;
 
+	if (!prop)
+		return 0;
+
 	if (!safe_atoi(prop, &count) || abs(count) > 360)
 		return 0;
 
@@ -211,6 +217,9 @@ parse_mouse_wheel_click_angle_property(const char *prop)
 {
 	int angle = 0;
 
+	if (!prop)
+		return 0;
+
 	if (!safe_atoi(prop, &angle) || abs(angle) > 360)
 		return 0;
 
@@ -229,6 +238,9 @@ double
 parse_trackpoint_accel_property(const char *prop)
 {
 	double accel;
+
+	if (!prop)
+		return 0.0;
 
 	if (!safe_atod(prop, &accel))
 		accel = 0.0;
