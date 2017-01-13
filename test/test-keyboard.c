@@ -366,6 +366,35 @@ START_TEST(keyboard_no_buttons)
 }
 END_TEST
 
+START_TEST(keyboard_leds)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	/* we can't actually test the results here without physically
+	 * looking at the LEDs. So all we do is trigger the code for devices
+	 * with and without LEDs and check that it doesn't go boom
+	 */
+
+	libinput_device_led_update(device,
+				   LIBINPUT_LED_NUM_LOCK);
+	libinput_device_led_update(device,
+				   LIBINPUT_LED_CAPS_LOCK);
+	libinput_device_led_update(device,
+				   LIBINPUT_LED_SCROLL_LOCK);
+
+	libinput_device_led_update(device,
+				   LIBINPUT_LED_NUM_LOCK|
+				   LIBINPUT_LED_CAPS_LOCK);
+	libinput_device_led_update(device,
+				   LIBINPUT_LED_NUM_LOCK|
+				   LIBINPUT_LED_CAPS_LOCK |
+				   LIBINPUT_LED_SCROLL_LOCK);
+	libinput_device_led_update(device, 0);
+	libinput_device_led_update(device, -1);
+}
+END_TEST
+
 void
 litest_setup_tests_keyboard(void)
 {
@@ -377,4 +406,6 @@ litest_setup_tests_keyboard(void)
 	litest_add("keyboard:time", keyboard_time_usec, LITEST_KEYS, LITEST_ANY);
 
 	litest_add("keyboard:events", keyboard_no_buttons, LITEST_KEYS, LITEST_ANY);
+
+	litest_add("keyboard:leds", keyboard_leds, LITEST_ANY, LITEST_ANY);
 }

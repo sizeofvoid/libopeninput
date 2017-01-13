@@ -257,6 +257,7 @@ enum litest_device_feature {
 	LITEST_RING = 1 << 22,
 	LITEST_STRIP = 1 << 23,
 	LITEST_TRACKBALL = 1 << 24,
+	LITEST_LEDS = 1 << 25,
 };
 
 struct litest_device {
