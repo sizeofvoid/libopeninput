@@ -2393,10 +2393,14 @@ litest_create_uinput(const char *name,
 	rc = libevdev_new_from_fd(fd, &dev);
 	litest_assert_int_eq(rc, 0);
 
-	/* uinput does not yet support setting the resolution, so we set it
-	 * afterwards. This is of course racy as hell but the way we
-	 * _generally_ use this function by the time libinput uses the
-	 * device, we're finished here */
+	/* uinput before kernel 4.5 + libevdev 1.5.0 does not support
+	 * setting the resolution, so we set it afterwards. This is of
+	 * course racy as hell but the way we _generally_ use this function
+	 * by the time libinput uses the device, we're finished here.
+	 *
+	 * If you have kernel 4.5 and libevdev 1.5.0 or later, this code
+	 * just keeps the room warm.
+	 */
 	abs = abs_info;
 	while (abs && abs->value != -1) {
 		if (abs->resolution != 0) {
