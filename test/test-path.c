@@ -192,6 +192,24 @@ START_TEST(path_create_destroy)
 }
 END_TEST
 
+START_TEST(path_force_destroy)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li;
+	struct libinput_device *device;
+
+	li = libinput_path_create_context(&simple_interface, NULL);
+	ck_assert_notnull(li);
+	libinput_ref(li);
+	device = libinput_path_add_device(li,
+				  libevdev_uinput_get_devnode(dev->uinput));
+	ck_assert_notnull(device);
+
+	while (libinput_unref(li) != NULL)
+		;
+}
+END_TEST
+
 START_TEST(path_set_user_data)
 {
 	struct libinput *li;
@@ -936,6 +954,7 @@ litest_setup_tests_path(void)
 	litest_add_no_device("path:create", path_create_invalid_file);
 	litest_add_no_device("path:create", path_create_invalid_kerneldev);
 	litest_add_no_device("path:create", path_create_destroy);
+	litest_add("path:create", path_force_destroy, LITEST_ANY, LITEST_ANY);
 	litest_add_no_device("path:create", path_set_user_data);
 	litest_add_no_device("path:suspend", path_suspend);
 	litest_add_no_device("path:suspend", path_double_suspend);
