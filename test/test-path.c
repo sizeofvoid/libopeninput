@@ -915,6 +915,19 @@ START_TEST(path_seat_recycle)
 }
 END_TEST
 
+START_TEST(path_udev_assign_seat)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	int rc;
+
+	litest_set_log_handler_bug(li);
+	rc = libinput_udev_assign_seat(li, "foo");
+	ck_assert_int_eq(rc, -1);
+	litest_restore_log_handler(li);
+}
+END_TEST
+
 void
 litest_setup_tests_path(void)
 {
@@ -939,4 +952,5 @@ litest_setup_tests_path(void)
 	litest_add_for_device("path:device events", path_remove_device, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_for_device("path:device events", path_double_remove_device, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_no_device("path:seat", path_seat_recycle);
+	litest_add_for_device("path:udev", path_udev_assign_seat, LITEST_SYNAPTICS_CLICKPAD_X220);
 }
