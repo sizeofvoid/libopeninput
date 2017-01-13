@@ -1518,6 +1518,36 @@ START_TEST(device_capability_check_invalid)
 }
 END_TEST
 
+START_TEST(device_has_size)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	double w, h;
+	int rc;
+
+	rc = libinput_device_get_size(device, &w, &h);
+	ck_assert_int_eq(rc, 0);
+	/* This matches the current set of test devices but may fail if
+	 * newer ones are added */
+	ck_assert_double_gt(w, 40);
+	ck_assert_double_gt(h, 20);
+}
+END_TEST
+
+START_TEST(device_has_no_size)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	double w = 45, h = 67;
+	int rc;
+
+	rc = libinput_device_get_size(device, &w, &h);
+	ck_assert_int_eq(rc, -1);
+	ck_assert_double_eq(w, 45);
+	ck_assert_double_eq(h, 67);
+}
+END_TEST
+
 void
 litest_setup_tests_device(void)
 {
@@ -1586,4 +1616,9 @@ litest_setup_tests_device(void)
 
 	litest_add("device:capability", device_capability_at_least_one, LITEST_ANY, LITEST_ANY);
 	litest_add("device:capability", device_capability_check_invalid, LITEST_ANY, LITEST_ANY);
+
+	litest_add("device:size", device_has_size, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("device:size", device_has_size, LITEST_TABLET, LITEST_ANY);
+	litest_add("device:size", device_has_no_size, LITEST_ANY,
+		   LITEST_TOUCHPAD|LITEST_TABLET|LITEST_TOUCH|LITEST_ABSOLUTE|LITEST_SINGLE_TOUCH);
 }
