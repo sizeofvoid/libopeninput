@@ -763,6 +763,20 @@ START_TEST(device_context)
 }
 END_TEST
 
+START_TEST(device_user_data)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	void *userdata = &dev; /* not referenced */
+
+	ck_assert(libinput_device_get_user_data(device) == NULL);
+	libinput_device_set_user_data(device, userdata);
+	ck_assert_ptr_eq(libinput_device_get_user_data(device), userdata);
+	libinput_device_set_user_data(device, NULL);
+	ck_assert(libinput_device_get_user_data(device) == NULL);
+}
+END_TEST
+
 static int open_restricted(const char *path, int flags, void *data)
 {
 	int fd;
@@ -1498,6 +1512,7 @@ litest_setup_tests_device(void)
 	litest_add("device:sendevents", device_disable_topsoftbutton, LITEST_TOPBUTTONPAD, LITEST_ANY);
 	litest_add("device:id", device_ids, LITEST_ANY, LITEST_ANY);
 	litest_add_for_device("device:context", device_context, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("device:context", device_user_data, LITEST_SYNAPTICS_CLICKPAD_X220);
 
 	litest_add("device:udev", device_get_udev_handle, LITEST_ANY, LITEST_ANY);
 
