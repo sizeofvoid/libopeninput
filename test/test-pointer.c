@@ -674,6 +674,35 @@ START_TEST(pointer_scroll_natural_wheel)
 }
 END_TEST
 
+START_TEST(pointer_scroll_has_axis_invalid)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_pointer *pev;
+
+	litest_drain_events(dev->libinput);
+
+	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL))
+		return;
+
+	litest_event(dev, EV_REL, REL_WHEEL, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	pev = litest_is_axis_event(event,
+				   LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+				   LIBINPUT_POINTER_AXIS_SOURCE_WHEEL);
+
+	ck_assert_int_eq(libinput_event_pointer_has_axis(pev, -1), 0);
+	ck_assert_int_eq(libinput_event_pointer_has_axis(pev, 2), 0);
+	ck_assert_int_eq(libinput_event_pointer_has_axis(pev, 3), 0);
+	ck_assert_int_eq(libinput_event_pointer_has_axis(pev, 0xffff), 0);
+	libinput_event_destroy(event);
+}
+END_TEST
+
 START_TEST(pointer_seat_button_count)
 {
 	const int num_devices = 4;
@@ -1796,6 +1825,7 @@ litest_setup_tests_pointer(void)
 	litest_add("pointer:scroll", pointer_scroll_natural_defaults, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_natural_enable_config, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_natural_wheel, LITEST_WHEEL, LITEST_TABLET);
+	litest_add("pointer:scroll", pointer_scroll_has_axis_invalid, LITEST_WHEEL, LITEST_TABLET);
 
 	litest_add("pointer:calibration", pointer_no_calibration, LITEST_ANY, LITEST_TOUCH|LITEST_SINGLE_TOUCH|LITEST_ABSOLUTE|LITEST_PROTOCOL_A|LITEST_TABLET);
 
