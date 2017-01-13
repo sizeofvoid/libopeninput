@@ -29,7 +29,7 @@
 #include <sys/stat.h>
 #include <libudev.h>
 
-#include "path.h"
+#include "path-seat.h"
 #include "evdev.h"
 
 static const char default_seat[] = "seat0";

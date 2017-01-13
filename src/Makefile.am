@@ -26,8 +26,8 @@ libinput_la_SOURCES =			\
 	filter.c			\
 	filter.h			\
 	filter-private.h		\
-	path.h				\
-	path.c				\
+	path-seat.h			\
+	path-seat.c			\
 	udev-seat.c			\
 	udev-seat.h			\
 	timer.c				\
