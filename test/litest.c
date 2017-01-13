@@ -1265,6 +1265,26 @@ litest_restore_log_handler(struct libinput *libinput)
 	libinput_log_set_handler(libinput, litest_log_handler);
 }
 
+LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
+static void
+litest_bug_log_handler(struct libinput *libinput,
+		       enum libinput_log_priority pri,
+		       const char *format,
+		       va_list args)
+{
+	if (strstr(format, "client bug: ") ||
+	    strstr(format, "libinput bug: "))
+		return;
+
+	litest_abort_msg("Expected bug statement in log msg, aborting.\n");
+}
+
+void
+litest_set_log_handler_bug(struct libinput *libinput)
+{
+	libinput_log_set_handler(libinput, litest_bug_log_handler);
+}
+
 struct litest_device *
 litest_add_device_with_overrides(struct libinput *libinput,
 				 enum litest_device_type which,
