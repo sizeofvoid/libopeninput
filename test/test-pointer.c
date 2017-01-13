@@ -473,6 +473,21 @@ START_TEST(pointer_button_auto_release)
 }
 END_TEST
 
+START_TEST(pointer_button_has_no_button)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	unsigned int code;
+
+	ck_assert(!libinput_device_has_capability(device,
+					  LIBINPUT_DEVICE_CAP_POINTER));
+
+	for (code = BTN_LEFT; code < KEY_OK; code++)
+		ck_assert_int_eq(-1,
+			 libinput_device_pointer_has_button(device, code));
+}
+END_TEST
+
 static inline double
 wheel_click_count(struct litest_device *dev, int which)
 {
@@ -1772,6 +1787,7 @@ litest_setup_tests_pointer(void)
 	litest_add("pointer:button", pointer_button, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add_no_device("pointer:button", pointer_button_auto_release);
 	litest_add_no_device("pointer:button", pointer_seat_button_count);
+	litest_add_for_device("pointer:button", pointer_button_has_no_button, LITEST_KEYBOARD);
 	litest_add("pointer:scroll", pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:scroll", pointer_scroll_button_no_event_before_timeout, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
