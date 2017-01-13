@@ -2076,6 +2076,16 @@ START_TEST(tool_delayed_serial)
 }
 END_TEST
 
+START_TEST(tool_capability)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	ck_assert(libinput_device_has_capability(device,
+						 LIBINPUT_DEVICE_CAP_TABLET_TOOL));
+}
+END_TEST
+
 START_TEST(tool_capabilities)
 {
 	struct libinput *li = litest_create_context();
@@ -3981,6 +3991,7 @@ void
 litest_setup_tests_tablet(void)
 {
 	litest_add("tablet:tool", tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
+	litest_add("tablet:tool", tool_capability, LITEST_TABLET, LITEST_ANY);
 	litest_add_no_device("tablet:tool", tool_capabilities);
 	litest_add("tablet:tool", tool_in_prox_before_start, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tool_serial", tool_unique, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
