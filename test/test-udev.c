@@ -506,6 +506,60 @@ START_TEST(udev_seat_recycle)
 }
 END_TEST
 
+START_TEST(udev_path_add_device)
+{
+	struct udev *udev;
+	struct libinput *li;
+	struct libinput_device *device;
+
+	udev = udev_new();
+	ck_assert(udev != NULL);
+
+	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	ck_assert(li != NULL);
+	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
+
+	litest_set_log_handler_bug(li);
+	device = libinput_path_add_device(li, "/dev/input/event0");
+	ck_assert(device == NULL);
+	litest_restore_log_handler(li);
+
+	libinput_unref(li);
+	udev_unref(udev);
+}
+END_TEST
+
+START_TEST(udev_path_remove_device)
+{
+	struct udev *udev;
+	struct libinput *li;
+	struct libinput_device *device;
+	struct libinput_event *event;
+
+	udev = udev_new();
+	ck_assert(udev != NULL);
+
+	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	ck_assert(li != NULL);
+	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
+	libinput_dispatch(li);
+
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED, -1);
+	event = libinput_get_event(li);
+	device = libinput_event_get_device(event);
+	ck_assert(device != NULL);
+
+	/* no effect bug a bug log msg */
+	litest_set_log_handler_bug(li);
+	libinput_path_remove_device(device);
+	litest_restore_log_handler(li);
+
+	libinput_event_destroy(event);
+	libinput_unref(li);
+	udev_unref(udev);
+}
+END_TEST
+
 void
 litest_setup_tests_udev(void)
 {
@@ -522,4 +576,7 @@ litest_setup_tests_udev(void)
 	litest_add_for_device("udev:suspend", udev_suspend_resume, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_for_device("udev:device events", udev_device_sysname, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_for_device("udev:seat", udev_seat_recycle, LITEST_SYNAPTICS_CLICKPAD_X220);
+
+	litest_add_no_device("udev:path", udev_path_add_device);
+	litest_add_for_device("udev:path", udev_path_remove_device, LITEST_SYNAPTICS_CLICKPAD_X220);
 }
