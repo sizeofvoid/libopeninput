@@ -375,13 +375,14 @@ libinput_udev_assign_seat(struct libinput *libinput,
 
 	if (!seat_id)
 		return -1;
-	if (input->seat_id != NULL)
-		return -1;
 
 	if (libinput->interface_backend != &interface_backend) {
 		log_bug_client(libinput, "Mismatching backends.\n");
 		return -1;
 	}
+
+	if (input->seat_id != NULL)
+		return -1;
 
 	input->seat_id = strdup(seat_id);
 
