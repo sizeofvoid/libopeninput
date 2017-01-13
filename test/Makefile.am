@@ -101,22 +101,22 @@ if RUN_TESTS
 TESTS = $(run_tests) symbols-leak-test
 endif
 
-libinput_test_suite_runner_SOURCES = udev.c \
-				     path.c \
-				     pointer.c \
-				     touch.c \
-				     log.c \
-				     tablet.c \
-				     pad.c \
-				     touchpad.c \
-				     touchpad-tap.c \
-				     touchpad-buttons.c \
-				     trackpoint.c \
-				     trackball.c \
-				     misc.c \
-				     keyboard.c \
-				     device.c \
-				     gestures.c
+libinput_test_suite_runner_SOURCES = test-udev.c \
+				     test-path.c \
+				     test-pointer.c \
+				     test-touch.c \
+				     test-log.c \
+				     test-tablet.c \
+				     test-pad.c \
+				     test-touchpad.c \
+				     test-touchpad-tap.c \
+				     test-touchpad-buttons.c \
+				     test-trackpoint.c \
+				     test-trackball.c \
+				     test-misc.c \
+				     test-keyboard.c \
+				     test-device.c \
+				     test-gestures.c
 
 libinput_test_suite_runner_CFLAGS = $(AM_CFLAGS) -DLIBINPUT_LT_VERSION="\"$(LIBINPUT_LT_VERSION)\""
 libinput_test_suite_runner_LDADD = $(TEST_LIBS)
