@@ -2382,6 +2382,10 @@ litest_create_uinput(const char *name,
 	rc = libevdev_uinput_create_from_device(dev,
 					        LIBEVDEV_UINPUT_OPEN_MANAGED,
 						&uinput);
+	/* workaround for a bug in libevdev pre-1.3
+	   http://cgit.freedesktop.org/libevdev/commit/?id=debe9b030c8069cdf78307888ef3b65830b25122 */
+	if (rc == -EBADF)
+		rc = -EACCES;
 	litest_assert_msg(rc == 0, "Failed to create uinput device: %s", strerror(-rc));
 
 	libevdev_free(dev);

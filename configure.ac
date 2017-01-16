@@ -71,7 +71,7 @@ AC_CHECK_DECL(static_assert, [],
 PKG_PROG_PKG_CONFIG()
 PKG_CHECK_MODULES(MTDEV, [mtdev >= 1.1.0])
 PKG_CHECK_MODULES(LIBUDEV, [libudev])
-PKG_CHECK_MODULES(LIBEVDEV, [libevdev >= 1.3])
+PKG_CHECK_MODULES(LIBEVDEV, [libevdev >= 0.4])
 
 AC_CHECK_LIB([m], [atan2])
 AC_CHECK_LIB([rt], [clock_gettime])
