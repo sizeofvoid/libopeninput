@@ -1768,6 +1768,44 @@ START_TEST(tool_serial)
 }
 END_TEST
 
+START_TEST(tool_id)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event_tablet_tool *tablet_event;
+	struct libinput_event *event;
+	struct libinput_tablet_tool *tool;
+	uint64_t tool_id;
+
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 10, 10, NULL);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+				LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	tool = libinput_event_tablet_tool_get_tool(tablet_event);
+
+	ck_assert_int_eq(libinput_device_get_id_vendor(dev->libinput_device),
+			 VENDOR_ID_WACOM);
+
+	switch (libinput_device_get_id_product(dev->libinput_device)) {
+	case 0x27: /* Intuos 5 */
+		tool_id = 1050626;
+		break;
+	case 0xc6: /* Cintiq 12WX */
+	case 0xf4: /* Cintiq 24HD */
+	case 0x333: /* Cintiq 13HD */
+		tool_id = 2083;
+		break;
+	}
+
+	ck_assert(tool_id == libinput_tablet_tool_get_tool_id(tool));
+	libinput_event_destroy(event);
+}
+END_TEST
+
 START_TEST(serial_changes_tool)
 {
 	struct litest_device *dev = litest_current_device();
@@ -4029,6 +4067,7 @@ litest_setup_tests_tablet(void)
 	litest_add("tablet:tool", tool_in_prox_before_start, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tool_serial", tool_unique, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", tool_serial, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
+	litest_add("tablet:tool_serial", tool_id, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", serial_changes_tool, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", invalid_serials, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add_no_device("tablet:tool_serial", tools_with_serials);
