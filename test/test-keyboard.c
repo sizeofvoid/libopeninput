@@ -395,6 +395,33 @@ START_TEST(keyboard_leds)
 }
 END_TEST
 
+START_TEST(keyboard_no_scroll)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	enum libinput_config_scroll_method method;
+	enum libinput_config_status status;
+
+	method = libinput_device_config_scroll_get_method(device);
+	ck_assert_int_eq(method, LIBINPUT_CONFIG_SCROLL_NO_SCROLL);
+	method = libinput_device_config_scroll_get_default_method(device);
+	ck_assert_int_eq(method, LIBINPUT_CONFIG_SCROLL_NO_SCROLL);
+
+	status = libinput_device_config_scroll_set_method(device,
+				 LIBINPUT_CONFIG_SCROLL_2FG);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	status = libinput_device_config_scroll_set_method(device,
+				 LIBINPUT_CONFIG_SCROLL_EDGE);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	status = libinput_device_config_scroll_set_method(device,
+				 LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	status = libinput_device_config_scroll_set_method(device,
+				 LIBINPUT_CONFIG_SCROLL_NO_SCROLL);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+}
+END_TEST
+
 void
 litest_setup_tests_keyboard(void)
 {
@@ -408,4 +435,6 @@ litest_setup_tests_keyboard(void)
 	litest_add("keyboard:events", keyboard_no_buttons, LITEST_KEYS, LITEST_ANY);
 
 	litest_add("keyboard:leds", keyboard_leds, LITEST_ANY, LITEST_ANY);
+
+	litest_add("keyboard:scroll", keyboard_no_scroll, LITEST_KEYS, LITEST_WHEEL);
 }
