@@ -4399,9 +4399,9 @@ libinput_device_config_accel_get_default_profile(struct libinput_device *device)
  * @return Zero if natural scrolling is not supported, non-zero if natural
  * scrolling is supported by this device
  *
- * @see libinput_device_config_set_natural_scroll_enabled
- * @see libinput_device_config_get_natural_scroll_enabled
- * @see libinput_device_config_get_default_natural_scroll_enabled
+ * @see libinput_device_config_scroll_set_natural_scroll_enabled
+ * @see libinput_device_config_scroll_get_natural_scroll_enabled
+ * @see libinput_device_config_scroll_get_default_natural_scroll_enabled
  */
 int
 libinput_device_config_scroll_has_natural_scroll(struct libinput_device *device);
@@ -4416,9 +4416,9 @@ libinput_device_config_scroll_has_natural_scroll(struct libinput_device *device)
  *
  * @return A config status code
  *
- * @see libinput_device_config_has_natural_scroll
- * @see libinput_device_config_get_natural_scroll_enabled
- * @see libinput_device_config_get_default_natural_scroll_enabled
+ * @see libinput_device_config_scroll_has_natural_scroll
+ * @see libinput_device_config_scroll_get_natural_scroll_enabled
+ * @see libinput_device_config_scroll_get_default_natural_scroll_enabled
  */
 enum libinput_config_status
 libinput_device_config_scroll_set_natural_scroll_enabled(struct libinput_device *device,
@@ -4432,9 +4432,9 @@ libinput_device_config_scroll_set_natural_scroll_enabled(struct libinput_device 
  *
  * @return Zero if natural scrolling is disabled, non-zero if enabled
  *
- * @see libinput_device_config_has_natural_scroll
- * @see libinput_device_config_set_natural_scroll_enabled
- * @see libinput_device_config_get_default_natural_scroll_enabled
+ * @see libinput_device_config_scroll_has_natural_scroll
+ * @see libinput_device_config_scroll_set_natural_scroll_enabled
+ * @see libinput_device_config_scroll_get_default_natural_scroll_enabled
  */
 int
 libinput_device_config_scroll_get_natural_scroll_enabled(struct libinput_device *device);
@@ -4448,9 +4448,9 @@ libinput_device_config_scroll_get_natural_scroll_enabled(struct libinput_device 
  *
  * @return Zero if natural scrolling is disabled by default, non-zero if enabled
  *
- * @see libinput_device_config_has_natural_scroll
- * @see libinput_device_config_set_natural_scroll_enabled
- * @see libinput_device_config_get_natural_scroll_enabled
+ * @see libinput_device_config_scroll_has_natural_scroll
+ * @see libinput_device_config_scroll_set_natural_scroll_enabled
+ * @see libinput_device_config_scroll_get_natural_scroll_enabled
  */
 int
 libinput_device_config_scroll_get_default_natural_scroll_enabled(struct libinput_device *device);
