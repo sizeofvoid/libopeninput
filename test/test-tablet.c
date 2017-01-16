@@ -3136,6 +3136,7 @@ START_TEST(tablet_pressure_min_max)
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	ck_assert(libinput_event_tablet_tool_pressure_has_changed(tev));
 	p = libinput_event_tablet_tool_get_pressure(tev);
 	ck_assert_double_ge(p, 0.0);
 	libinput_event_destroy(event);
@@ -3150,6 +3151,7 @@ START_TEST(tablet_pressure_min_max)
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	ck_assert(libinput_event_tablet_tool_pressure_has_changed(tev));
 	p = libinput_event_tablet_tool_get_pressure(tev);
 	ck_assert_double_ge(p, 1.0);
 	libinput_event_destroy(event);
@@ -3181,6 +3183,7 @@ START_TEST(tablet_pressure_range)
 
 		event = libinput_get_event(li);
 		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		p = libinput_event_tablet_tool_get_pressure(tev);
 		p = libinput_event_tablet_tool_get_pressure(tev);
 		ck_assert_double_ge(p, 0.0);
 		ck_assert_double_le(p, 1.0);
