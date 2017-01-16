@@ -1886,6 +1886,8 @@ START_TEST(touchpad_drag_default_disabled)
 
 	ck_assert_int_eq(libinput_device_config_tap_get_default_drag_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_DRAG_DISABLED);
+	ck_assert_int_eq(libinput_device_config_tap_get_drag_enabled(dev->libinput_device),
+			 LIBINPUT_CONFIG_DRAG_DISABLED);
 }
 END_TEST
 
@@ -1896,6 +1898,8 @@ START_TEST(touchpad_drag_default_enabled)
 	/* this test is only run on specific devices */
 
 	ck_assert_int_eq(libinput_device_config_tap_get_default_drag_enabled(dev->libinput_device),
+			 LIBINPUT_CONFIG_DRAG_ENABLED);
+	ck_assert_int_eq(libinput_device_config_tap_get_drag_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_DRAG_ENABLED);
 }
 END_TEST
@@ -1908,6 +1912,24 @@ START_TEST(touchpad_drag_config_invalid)
 			 LIBINPUT_CONFIG_STATUS_INVALID);
 	ck_assert_int_eq(libinput_device_config_tap_set_drag_enabled(dev->libinput_device, -1),
 			 LIBINPUT_CONFIG_STATUS_INVALID);
+}
+END_TEST
+
+START_TEST(touchpad_drag_config_unsupported)
+{
+	struct litest_device *dev = litest_current_device();
+	enum libinput_config_status status;
+
+	ck_assert_int_eq(libinput_device_config_tap_get_default_drag_enabled(dev->libinput_device),
+			 LIBINPUT_CONFIG_DRAG_DISABLED);
+	ck_assert_int_eq(libinput_device_config_tap_get_drag_enabled(dev->libinput_device),
+			 LIBINPUT_CONFIG_DRAG_DISABLED);
+	status = libinput_device_config_tap_set_drag_enabled(dev->libinput_device,
+							     LIBINPUT_CONFIG_DRAG_ENABLED);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	status = libinput_device_config_tap_set_drag_enabled(dev->libinput_device,
+							     LIBINPUT_CONFIG_DRAG_DISABLED);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 }
 END_TEST
 
@@ -2184,6 +2206,7 @@ litest_setup_tests_touchpad_tap(void)
 	litest_add("tap:drag", touchpad_drag_default_disabled, LITEST_ANY, LITEST_TOUCHPAD);
 	litest_add("tap:drag", touchpad_drag_default_enabled, LITEST_TOUCHPAD, LITEST_BUTTON);
 	litest_add("tap:drag", touchpad_drag_config_invalid, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("tap:drag", touchpad_drag_config_unsupported, LITEST_ANY, LITEST_TOUCHPAD);
 	litest_add("tap:drag", touchpad_drag_config_enabledisable, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("tap:drag", touchpad_drag_disabled, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("tap:drag", touchpad_drag_disabled_immediate, LITEST_TOUCHPAD, LITEST_ANY);
