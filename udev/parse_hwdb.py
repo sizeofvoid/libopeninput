@@ -53,7 +53,7 @@ except ImportError:
     print('WARNING: evdev is not available')
 
 EOL = LineEnd().suppress()
-EMPTYLINE = LineStart() + LineEnd()
+EMPTYLINE = LineEnd()
 COMMENTLINE = pythonStyleComment + EOL
 INTEGER = Word(nums)
 REAL = Combine((INTEGER + Optional('.' + Optional(INTEGER))) ^ ('.' + INTEGER))
