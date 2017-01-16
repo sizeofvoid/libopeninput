@@ -53,21 +53,21 @@ liblitest_la_SOURCES = \
 	litest-device-trackpoint.c \
 	litest-device-touch-screen.c \
 	litest-device-touchscreen-fuzz.c \
-	litest-device-wacom-bamboo-tablet.c \
-	litest-device-wacom-cintiq-tablet.c \
+	litest-device-wacom-bamboo-16fg-pen.c \
+	litest-device-wacom-cintiq-12wx-pen.c \
 	litest-device-wacom-cintiq-13hdt-finger.c \
 	litest-device-wacom-cintiq-13hdt-pad.c \
 	litest-device-wacom-cintiq-13hdt-pen.c \
-	litest-device-wacom-cintiq-24hd.c \
+	litest-device-wacom-cintiq-24hd-pen.c \
 	litest-device-wacom-cintiq-24hdt-pad.c \
 	litest-device-wacom-ekr.c \
 	litest-device-wacom-hid4800-pen.c \
-	litest-device-wacom-intuos-tablet.c \
 	litest-device-wacom-intuos3-pad.c \
+	litest-device-wacom-intuos5-finger.c \
 	litest-device-wacom-intuos5-pad.c \
-	litest-device-wacom-isdv4-tablet.c \
-	litest-device-wacom-touch.c \
-	litest-device-wacom-intuos-finger.c \
+	litest-device-wacom-intuos5-pen.c \
+	litest-device-wacom-isdv4-e6-pen.c \
+	litest-device-wacom-isdv4-e6-finger.c \
 	litest-device-waltop-tablet.c \
 	litest-device-wheel-only.c \
 	litest-device-xen-virtual-pointer.c \
