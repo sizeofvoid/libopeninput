@@ -2768,6 +2768,8 @@ litest_is_pad_button_event(struct libinput_event *event,
 
 	litest_assert_int_eq(libinput_event_tablet_pad_get_button_number(p),
 			     button);
+	litest_assert_int_eq(libinput_event_tablet_pad_get_button_state(p),
+			     state);
 
 	return p;
 }
