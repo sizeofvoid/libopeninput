@@ -38,5 +38,6 @@ doc/html
 tags
 test/test-*
 !test/test-*.c
+test/libinput-test-suite-runner*
 test/symbols-leak-test*
 test-driver
