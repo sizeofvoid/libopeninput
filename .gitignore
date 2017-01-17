@@ -37,5 +37,6 @@ doc/libinput.doxygen
 doc/html
 tags
 test/test-*
+!test/test-*.c
 test/symbols-leak-test*
 test-driver
