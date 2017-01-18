@@ -405,10 +405,10 @@ calculate_acceleration_factor(struct pointer_accelerator *accel,
  * @param data Caller-specific data
  * @param time Current time in µs
  *
- * @return An accelerated tuple of coordinates representing normalized
- * motion
+ * @return An accelerated tuple of coordinates representing accelerated
+ * motion, still in device units.
  */
-static struct normalized_coords
+static struct device_float_coords
 accelerator_filter_generic(struct motion_filter *filter,
 			   const struct device_float_coords *unaccelerated,
 			   void *data, uint64_t time)
@@ -416,7 +416,7 @@ accelerator_filter_generic(struct motion_filter *filter,
 	struct pointer_accelerator *accel =
 		(struct pointer_accelerator *) filter;
 	double accel_value; /* unitless factor */
-	struct normalized_coords accelerated;
+	struct device_float_coords accelerated;
 
 	accel_value = calculate_acceleration_factor(accel,
 						    unaccelerated,
@@ -427,6 +427,66 @@ accelerator_filter_generic(struct motion_filter *filter,
 	accelerated.y = accel_value * unaccelerated->y;
 
 	return accelerated;
+}
+
+static struct normalized_coords
+accelerator_filter_post_normalized(struct motion_filter *filter,
+				   const struct device_float_coords *unaccelerated,
+				   void *data, uint64_t time)
+{
+	struct pointer_accelerator *accel =
+		(struct pointer_accelerator *) filter;
+	struct device_float_coords accelerated;
+
+	/* Accelerate for device units, normalize afterwards */
+	accelerated = accelerator_filter_generic(filter,
+						 unaccelerated,
+						 data,
+						 time);
+	return normalize_for_dpi(&accelerated, accel->dpi);
+}
+
+static struct normalized_coords
+accelerator_filter_pre_normalized(struct motion_filter *filter,
+				  const struct device_float_coords *unaccelerated,
+				  void *data, uint64_t time)
+{
+	struct pointer_accelerator *accel =
+		(struct pointer_accelerator *) filter;
+	struct normalized_coords normalized;
+	struct device_float_coords converted, accelerated;
+
+	/* Accelerate for normalized units and return normalized units.
+	   API requires device_floats, so we just copy the bits around */
+	normalized = normalize_for_dpi(unaccelerated, accel->dpi);
+	converted.x = normalized.x;
+	converted.y = normalized.y;
+
+	accelerated = accelerator_filter_generic(filter,
+						 &converted,
+						 data,
+						 time);
+	normalized.x = accelerated.x;
+	normalized.y = accelerated.y;
+	return normalized;
+}
+
+static struct normalized_coords
+accelerator_filter_unnormalized(struct motion_filter *filter,
+				const struct device_float_coords *unaccelerated,
+				void *data, uint64_t time)
+{
+	struct device_float_coords accelerated;
+	struct normalized_coords normalized;
+
+	/* Accelerate for device units and return device units */
+	accelerated = accelerator_filter_generic(filter,
+						 unaccelerated,
+						 data,
+						 time);
+	normalized.x = accelerated.x;
+	normalized.y = accelerated.y;
+	return normalized;
 }
 
 /**
@@ -878,7 +938,7 @@ trackpoint_accel_profile(struct motion_filter *filter,
 
 struct motion_filter_interface accelerator_interface = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
-	.filter = accelerator_filter_generic,
+	.filter = accelerator_filter_pre_normalized,
 	.filter_constant = accelerator_filter_noop,
 	.restart = accelerator_restart,
 	.destroy = accelerator_destroy,
@@ -925,7 +985,7 @@ create_pointer_accelerator_filter_linear(int dpi)
 
 struct motion_filter_interface accelerator_interface_low_dpi = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
-	.filter = accelerator_filter_generic,
+	.filter = accelerator_filter_unnormalized,
 	.filter_constant = accelerator_filter_noop,
 	.restart = accelerator_restart,
 	.destroy = accelerator_destroy,
@@ -949,7 +1009,7 @@ create_pointer_accelerator_filter_linear_low_dpi(int dpi)
 
 struct motion_filter_interface accelerator_interface_touchpad = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
-	.filter = accelerator_filter_generic,
+	.filter = accelerator_filter_post_normalized,
 	.filter_constant = touchpad_constant_filter,
 	.restart = accelerator_restart,
 	.destroy = accelerator_destroy,
@@ -1011,7 +1071,7 @@ create_pointer_accelerator_filter_lenovo_x230(int dpi)
 
 struct motion_filter_interface accelerator_interface_trackpoint = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
-	.filter = accelerator_filter_generic,
+	.filter = accelerator_filter_unnormalized,
 	.filter_constant = accelerator_filter_noop,
 	.restart = accelerator_restart,
 	.destroy = accelerator_destroy,
