@@ -156,7 +156,7 @@ filter_get_type(struct motion_filter *filter)
 #define NUM_POINTER_TRACKERS	16
 
 struct pointer_tracker {
-	struct normalized_coords delta; /* delta to most recent event */
+	struct device_float_coords delta; /* delta to most recent event */
 	uint64_t time;  /* us */
 	uint32_t dir;
 };
@@ -230,7 +230,7 @@ static double
 calculate_tracker_velocity(struct pointer_tracker *tracker, uint64_t time)
 {
 	double tdelta = time - tracker->time + 1;
-	return normalized_length(tracker->delta) / tdelta; /* units/us */
+	return hypot(tracker->delta.x, tracker->delta.y) / tdelta; /* units/us */
 }
 
 static inline double
