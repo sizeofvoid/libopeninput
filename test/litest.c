@@ -1505,8 +1505,9 @@ litest_slot_start(struct litest_device *d,
 		return;
 	}
 
-	ev = d->interface->touch_down_events;
-	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
+	for (ev = d->interface->touch_down_events;
+	     ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1;
+	     ev++) {
 		int value = litest_auto_assign_value(d,
 						     ev,
 						     slot,
@@ -1514,9 +1515,10 @@ litest_slot_start(struct litest_device *d,
 						     y,
 						     axes,
 						     touching);
-		if (value != LITEST_AUTO_ASSIGN)
-			litest_event(d, ev->type, ev->code, value);
-		ev++;
+		if (value == LITEST_AUTO_ASSIGN)
+			continue;
+
+		litest_event(d, ev->type, ev->code, value);
 	}
 }
 
@@ -1563,7 +1565,9 @@ litest_touch_up(struct litest_device *d, unsigned int slot)
 	} else
 		ev = up;
 
-	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
+	for ( /* */;
+	     ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1;
+	     ev++) {
 		int value = litest_auto_assign_value(d,
 						     ev,
 						     slot,
@@ -1572,7 +1576,6 @@ litest_touch_up(struct litest_device *d, unsigned int slot)
 						     NULL,
 						     false);
 		litest_event(d, ev->type, ev->code, value);
-		ev++;
 	}
 }
 
@@ -1591,8 +1594,9 @@ litest_slot_move(struct litest_device *d,
 		return;
 	}
 
-	ev = d->interface->touch_move_events;
-	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
+	for (ev = d->interface->touch_move_events;
+	     ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1;
+	     ev++) {
 		int value = litest_auto_assign_value(d,
 						     ev,
 						     slot,
@@ -1600,9 +1604,10 @@ litest_slot_move(struct litest_device *d,
 						     y,
 						     axes,
 						     touching);
-		if (value != LITEST_AUTO_ASSIGN)
-			litest_event(d, ev->type, ev->code, value);
-		ev++;
+		if (value == LITEST_AUTO_ASSIGN)
+			continue;
+
+		litest_event(d, ev->type, ev->code, value);
 	}
 }
 
