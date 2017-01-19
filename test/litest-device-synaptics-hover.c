@@ -31,43 +31,38 @@
 #include "litest-int.h"
 
 static void
-synaptics_hover_create(struct litest_device *d);
-
-static void
 litest_synaptics_hover_setup(void)
 {
 	struct litest_device *d = litest_create_device(LITEST_SYNAPTICS_HOVER_SEMI_MT);
 	litest_set_current_device(d);
 }
 
-static void
-synaptics_hover_touch_down(struct litest_device *d, unsigned int slot, double x, double y)
-{
-	struct litest_semi_mt *semi_mt = d->private;
+static struct input_event down[] = {
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
+	{ .type = -1, .code = -1 },
+};
 
-	litest_semi_mt_touch_down(d, semi_mt, slot, x, y);
-}
-
-static void
-synaptics_hover_touch_move(struct litest_device *d, unsigned int slot, double x, double y)
-{
-	struct litest_semi_mt *semi_mt = d->private;
-
-	litest_semi_mt_touch_move(d, semi_mt, slot, x, y);
-}
-
-static void
-synaptics_hover_touch_up(struct litest_device *d, unsigned int slot)
-{
-	struct litest_semi_mt *semi_mt = d->private;
-
-	litest_semi_mt_touch_up(d, semi_mt, slot);
-}
+static struct input_event move[] = {
+	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
+	{ .type = -1, .code = -1 },
+};
 
 static struct litest_device_interface interface = {
-	.touch_down = synaptics_hover_touch_down,
-	.touch_move = synaptics_hover_touch_move,
-	.touch_up = synaptics_hover_touch_up,
+	.touch_down_events = down,
+	.touch_move_events = move,
 };
 
 static struct input_id input_id = {
@@ -115,7 +110,6 @@ struct litest_test_device litest_synaptics_hover_device = {
 	.shortname = "synaptics hover",
 	.setup = litest_synaptics_hover_setup,
 	.interface = &interface,
-	.create = synaptics_hover_create,
 
 	.name = "SynPS/2 Synaptics TouchPad",
 	.id = &input_id,
@@ -123,19 +117,3 @@ struct litest_test_device litest_synaptics_hover_device = {
 	.absinfo = absinfo,
 	.udev_rule = udev_rule,
 };
-
-static void
-synaptics_hover_create(struct litest_device *d)
-{
-	struct litest_semi_mt *semi_mt = zalloc(sizeof(*semi_mt));
-	assert(semi_mt);
-
-	d->private = semi_mt;
-
-	d->uinput = litest_create_uinput_device_from_description(
-			litest_synaptics_hover_device.name,
-			litest_synaptics_hover_device.id,
-			absinfo,
-			events);
-	d->interface = &interface;
-}
