@@ -261,6 +261,23 @@ enum litest_device_feature {
 	LITEST_LEDS = 1 << 25,
 };
 
+/* this is a semi-mt device, so we keep track of the touches that the tests
+ * send and modify them so that the first touch is always slot 0 and sends
+ * the top-left of the bounding box, the second is always slot 1 and sends
+ * the bottom-right of the bounding box.
+ * Lifting any of two fingers terminates slot 1
+ */
+struct litest_semi_mt {
+	bool is_semi_mt;
+
+	int tracking_id;
+	/* The actual touches requested by the test for the two slots
+	 * in the 0..100 range used by litest */
+	struct {
+		double x, y;
+	} touches[2];
+};
+
 struct litest_device {
 	struct libevdev *evdev;
 	struct libevdev_uinput *uinput;
@@ -271,6 +288,7 @@ struct litest_device {
 
 	int ntouches_down;
 	int skip_ev_syn;
+	struct litest_semi_mt semi_mt; /** only used for semi-mt device */
 
 	void *private; /* device-specific data */
 };
@@ -676,21 +694,6 @@ litest_push_event_frame(struct litest_device *dev);
 
 void
 litest_pop_event_frame(struct litest_device *dev);
-
-/* this is a semi-mt device, so we keep track of the touches that the tests
- * send and modify them so that the first touch is always slot 0 and sends
- * the top-left of the bounding box, the second is always slot 1 and sends
- * the bottom-right of the bounding box.
- * Lifting any of two fingers terminates slot 1
- */
-struct litest_semi_mt {
-	int tracking_id;
-	/* The actual touches requested by the test for the two slots
-	 * in the 0..100 range used by litest */
-	struct {
-		double x, y;
-	} touches[2];
-};
 
 void
 litest_semi_mt_touch_down(struct litest_device *d,

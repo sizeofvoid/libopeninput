@@ -1199,7 +1199,7 @@ litest_create(enum litest_device_type which,
 	const char *name;
 	const struct input_id *id;
 	struct input_absinfo *abs;
-	int *events;
+	int *events, *e;
 
 	dev = devices;
 	while (*dev) {
@@ -1234,6 +1234,18 @@ litest_create(enum litest_device_type which,
 								 abs,
 								 events);
 	d->interface = (*dev)->interface;
+
+	for (e = events; *e != -1; e += 2) {
+		unsigned int type = *e,
+			     code = *(e + 1);
+
+		if (type == INPUT_PROP_MAX &&
+		    code == INPUT_PROP_SEMI_MT) {
+			d->semi_mt.is_semi_mt = true;
+			break;
+		}
+	}
+
 	free(abs);
 	free(events);
 
@@ -1486,12 +1498,13 @@ send_btntool(struct litest_device *d, bool hover)
 }
 
 static void
-litest_slot_start(struct litest_device *d,
-		  unsigned int slot,
-		  double x,
-		  double y,
-		  struct axis_replacement *axes,
-		  bool touching)
+slot_start(struct litest_device *d,
+	   unsigned int slot,
+	   double x,
+	   double y,
+	   struct axis_replacement *axes,
+	   bool touching,
+	   bool filter_abs_xy)
 {
 	struct input_event *ev;
 
@@ -1518,31 +1531,53 @@ litest_slot_start(struct litest_device *d,
 		if (value == LITEST_AUTO_ASSIGN)
 			continue;
 
+		if (filter_abs_xy && ev->type == EV_ABS &&
+		    (ev->code == ABS_X || ev->code == ABS_Y))
+			continue;
+
 		litest_event(d, ev->type, ev->code, value);
 	}
 }
 
-void
-litest_touch_down(struct litest_device *d,
-		  unsigned int slot,
-		  double x,
-		  double y)
+static void
+slot_move(struct litest_device *d,
+	  unsigned int slot,
+	  double x,
+	  double y,
+	  struct axis_replacement *axes,
+	  bool touching,
+	  bool filter_abs_xy)
 {
-	litest_slot_start(d, slot, x, y, NULL, true);
+	struct input_event *ev;
+
+	if (d->interface->touch_move) {
+		d->interface->touch_move(d, slot, x, y);
+		return;
+	}
+
+	for (ev = d->interface->touch_move_events;
+	     ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1;
+	     ev++) {
+		int value = litest_auto_assign_value(d,
+						     ev,
+						     slot,
+						     x,
+						     y,
+						     axes,
+						     touching);
+		if (value == LITEST_AUTO_ASSIGN)
+			continue;
+
+		if (filter_abs_xy && ev->type == EV_ABS &&
+		    (ev->code == ABS_X || ev->code == ABS_Y))
+			continue;
+
+		litest_event(d, ev->type, ev->code, value);
+	}
 }
 
-void
-litest_touch_down_extended(struct litest_device *d,
-			   unsigned int slot,
-			   double x,
-			   double y,
-			   struct axis_replacement *axes)
-{
-	litest_slot_start(d, slot, x, y, axes, true);
-}
-
-void
-litest_touch_up(struct litest_device *d, unsigned int slot)
+static void
+touch_up(struct litest_device *d, unsigned int slot)
 {
 	struct input_event *ev;
 	struct input_event up[] = {
@@ -1580,6 +1615,74 @@ litest_touch_up(struct litest_device *d, unsigned int slot)
 }
 
 static void
+litest_slot_start(struct litest_device *d,
+		  unsigned int slot,
+		  double x,
+		  double y,
+		  struct axis_replacement *axes,
+		  bool touching)
+{
+	double t, l, r = 0, b = 0; /* top, left, right, bottom */
+	bool filter_abs_xy = false;
+
+	if (!d->semi_mt.is_semi_mt) {
+		slot_start(d, slot, x, y, axes, touching, filter_abs_xy);
+		return;
+	}
+
+	if (d->ntouches_down >= 2 || slot > 1)
+		return;
+
+	slot = d->ntouches_down;
+
+	if (d->ntouches_down == 0) {
+		l = x;
+		t = y;
+	} else {
+		int other = (slot + 1) % 2;
+		l = min(x, d->semi_mt.touches[other].x);
+		t = min(y, d->semi_mt.touches[other].y);
+		r = max(x, d->semi_mt.touches[other].x);
+		b = max(y, d->semi_mt.touches[other].y);
+	}
+
+	litest_push_event_frame(d);
+	if (d->ntouches_down == 0)
+		slot_start(d, 0, l, t, axes, touching, filter_abs_xy);
+	else
+		slot_move(d, 0, l, t, axes, touching, filter_abs_xy);
+
+	if (slot == 1) {
+		filter_abs_xy = true;
+		slot_start(d, 1, r, b, axes, touching, filter_abs_xy);
+	}
+
+	litest_pop_event_frame(d);
+
+	d->semi_mt.touches[slot].x = x;
+	d->semi_mt.touches[slot].y = y;
+}
+
+void
+litest_touch_down(struct litest_device *d,
+		  unsigned int slot,
+		  double x,
+		  double y)
+{
+	litest_slot_start(d, slot, x, y, NULL, true);
+}
+
+void
+litest_touch_down_extended(struct litest_device *d,
+			   unsigned int slot,
+			   double x,
+			   double y,
+			   struct axis_replacement *axes)
+{
+	litest_slot_start(d, slot, x, y, axes, true);
+}
+
+static void
 litest_slot_move(struct litest_device *d,
 		 unsigned int slot,
 		 double x,
@@ -1587,28 +1690,73 @@ litest_slot_move(struct litest_device *d,
 		 struct axis_replacement *axes,
 		 bool touching)
 {
-	struct input_event *ev;
+	double t, l, r = 0, b = 0; /* top, left, right, bottom */
+	bool filter_abs_xy = false;
 
-	if (d->interface->touch_move) {
-		d->interface->touch_move(d, slot, x, y);
+	if (!d->semi_mt.is_semi_mt) {
+		slot_move(d, slot, x, y, axes, touching, filter_abs_xy);
 		return;
 	}
 
-	for (ev = d->interface->touch_move_events;
-	     ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1;
-	     ev++) {
-		int value = litest_auto_assign_value(d,
-						     ev,
-						     slot,
-						     x,
-						     y,
-						     axes,
-						     touching);
-		if (value == LITEST_AUTO_ASSIGN)
-			continue;
+	if (d->ntouches_down > 2 || slot > 1)
+		return;
 
-		litest_event(d, ev->type, ev->code, value);
+	if (d->ntouches_down == 1) {
+		l = x;
+		t = y;
+	} else {
+		int other = (slot + 1) % 2;
+		l = min(x, d->semi_mt.touches[other].x);
+		t = min(y, d->semi_mt.touches[other].y);
+		r = max(x, d->semi_mt.touches[other].x);
+		b = max(y, d->semi_mt.touches[other].y);
 	}
+
+	litest_push_event_frame(d);
+	slot_move(d, 0, l, t, axes, touching, filter_abs_xy);
+
+	if (d->ntouches_down == 2) {
+		filter_abs_xy = true;
+		slot_move(d, 1, r, b, axes, touching, filter_abs_xy);
+	}
+
+	litest_pop_event_frame(d);
+
+	d->semi_mt.touches[slot].x = x;
+	d->semi_mt.touches[slot].y = y;
+}
+
+void
+litest_touch_up(struct litest_device *d, unsigned int slot)
+{
+	if (!d->semi_mt.is_semi_mt) {
+		touch_up(d, slot);
+		return;
+	}
+
+	if (d->ntouches_down > 2 || slot > 1)
+		return;
+
+	litest_push_event_frame(d);
+	touch_up(d, d->ntouches_down - 1);
+
+	/* if we have one finger left, send x/y coords for that finger left.
+	   this is likely to happen with a real touchpad */
+	if (d->ntouches_down == 1) {
+		bool touching = true;
+		bool filter_abs_xy = false;
+
+		int other = (slot + 1) % 2;
+		slot_move(d,
+			  0,
+			  d->semi_mt.touches[other].x,
+			  d->semi_mt.touches[other].y,
+			  NULL,
+			  touching,
+			  filter_abs_xy);
+	}
+
+	litest_pop_event_frame(d);
 }
 
 void
