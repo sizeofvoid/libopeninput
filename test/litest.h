@@ -270,7 +270,7 @@ struct litest_device {
 	struct litest_device_interface *interface;
 
 	int ntouches_down;
-	bool skip_ev_syn;
+	int skip_ev_syn;
 
 	void *private; /* device-specific data */
 };

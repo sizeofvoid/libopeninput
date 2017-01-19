@@ -1384,6 +1384,8 @@ litest_delete_device(struct litest_device *d)
 	if (!d)
 		return;
 
+	litest_assert_int_eq(d->skip_ev_syn, 0);
+
 	libinput_device_unref(d->libinput_device);
 	libinput_path_remove_device(d->libinput_device);
 	if (d->owns_context)
@@ -3042,16 +3044,17 @@ litest_timeout_trackpoint(void)
 void
 litest_push_event_frame(struct litest_device *dev)
 {
-	litest_assert(!dev->skip_ev_syn);
-	dev->skip_ev_syn = true;
+	litest_assert(dev->skip_ev_syn >= 0);
+	dev->skip_ev_syn++;
 }
 
 void
 litest_pop_event_frame(struct litest_device *dev)
 {
-	litest_assert(dev->skip_ev_syn);
-	dev->skip_ev_syn = false;
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_assert(dev->skip_ev_syn > 0);
+	dev->skip_ev_syn--;
+	if (dev->skip_ev_syn == 0)
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 }
 
 static void
