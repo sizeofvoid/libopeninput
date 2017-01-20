@@ -39,13 +39,17 @@ libinput_la_LIBADD = $(MTDEV_LIBS) \
 		     $(LIBEVDEV_LIBS) \
 		     $(LIBWACOM_LIBS) \
 		     libinput-util.la
+libinput_la_LDFLAGS = $(GCOV_LDFLAGS) \
+		      -version-info $(LIBINPUT_LT_VERSION) -shared \
+		      -Wl,--version-script=$(srcdir)/libinput.sym
 
 libinput_la_CFLAGS = -I$(top_srcdir)/include \
 		     $(MTDEV_CFLAGS)	\
 		     $(LIBUDEV_CFLAGS)	\
 		     $(LIBEVDEV_CFLAGS)	\
 		     $(LIBWACOM_CFLAGS) \
-		     $(GCC_CFLAGS)
+		     $(GCC_CFLAGS) \
+		     $(GCOV_CFLAGS)
 EXTRA_libinput_la_DEPENDENCIES = $(srcdir)/libinput.sym
 
 libinput_util_la_SOURCES = \
@@ -53,9 +57,11 @@ libinput_util_la_SOURCES = \
 	libinput-util.h
 
 libinput_util_la_LIBADD =
+libinput_util_la_LDFLAGS = $(GCOV_LDFLAGS)
 libinput_util_la_CFLAGS = -I$(top_srcdir)/include \
 			  $(LIBUDEV_CFLAGS) \
-			  $(GCC_CFLAGS)
+			  $(GCC_CFLAGS) \
+			  $(GCOV_CFLAGS)
 
 libfilter_la_SOURCES = \
 	filter.c \
@@ -63,9 +69,6 @@ libfilter_la_SOURCES = \
 	filter-private.h
 libfilter_la_LIBADD =
 libfilter_la_CFLAGS =
-
-libinput_la_LDFLAGS = -version-info $(LIBINPUT_LT_VERSION) -shared \
-		      -Wl,--version-script=$(srcdir)/libinput.sym
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libinput.pc

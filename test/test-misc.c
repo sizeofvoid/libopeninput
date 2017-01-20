@@ -718,6 +718,9 @@ START_TEST(dpi_parser)
 		dpi = parse_mouse_dpi_property(tests[i].tag);
 		ck_assert_int_eq(dpi, tests[i].expected_value);
 	}
+
+	dpi = parse_mouse_dpi_property(NULL);
+	ck_assert_int_eq(dpi, 0);
 }
 END_TEST
 
@@ -772,6 +775,9 @@ START_TEST(wheel_click_count_parser)
 		angle = parse_mouse_wheel_click_count_property(tests[i].tag);
 		ck_assert_int_eq(angle, tests[i].expected_value);
 	}
+
+	angle = parse_mouse_wheel_click_count_property(NULL);
+	ck_assert_int_eq(angle, 0);
 }
 END_TEST
 
@@ -798,6 +804,9 @@ START_TEST(trackpoint_accel_parser)
 		accel = parse_trackpoint_accel_property(tests[i].tag);
 		ck_assert(accel == tests[i].expected_value);
 	}
+
+	accel = parse_trackpoint_accel_property(NULL);
+	ck_assert_double_eq(accel, 0.0);
 }
 END_TEST
 
@@ -844,6 +853,9 @@ START_TEST(dimension_prop_parser)
 			ck_assert_int_eq(y, 0xad);
 		}
 	}
+
+	success = parse_dimension_property(NULL, &x, &y);
+	ck_assert(success == false);
 }
 END_TEST
 

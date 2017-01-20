@@ -6,3 +6,6 @@ valgrind:
 	(cd test; $(MAKE) valgrind)
 
 AM_DISTCHECK_CONFIGURE_FLAGS = --disable-test-run
+
+gcov:
+	(cd test; $(MAKE) gcov)

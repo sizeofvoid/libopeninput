@@ -257,6 +257,7 @@ enum litest_device_feature {
 	LITEST_RING = 1 << 22,
 	LITEST_STRIP = 1 << 23,
 	LITEST_TRACKBALL = 1 << 24,
+	LITEST_LEDS = 1 << 25,
 };
 
 struct litest_device {
@@ -306,6 +307,7 @@ struct range {
 struct libinput *litest_create_context(void);
 void litest_disable_log_handler(struct libinput *libinput);
 void litest_restore_log_handler(struct libinput *libinput);
+void litest_set_log_handler_bug(struct libinput *libinput);
 
 #define litest_add(name_, func_, ...) \
 	_litest_add(name_, #func_, func_, __VA_ARGS__)

@@ -191,6 +191,9 @@ static int events[] = {
 	EV_KEY, KEY_SEARCH,
 	EV_KEY, KEY_MEDIA,
 	EV_KEY, KEY_FN,
+	EV_LED, LED_NUML,
+	EV_LED, LED_CAPSL,
+	EV_LED, LED_SCROLLL,
 	-1, -1,
 };
 

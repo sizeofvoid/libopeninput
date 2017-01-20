@@ -473,6 +473,21 @@ START_TEST(pointer_button_auto_release)
 }
 END_TEST
 
+START_TEST(pointer_button_has_no_button)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	unsigned int code;
+
+	ck_assert(!libinput_device_has_capability(device,
+					  LIBINPUT_DEVICE_CAP_POINTER));
+
+	for (code = BTN_LEFT; code < KEY_OK; code++)
+		ck_assert_int_eq(-1,
+			 libinput_device_pointer_has_button(device, code));
+}
+END_TEST
+
 static inline double
 wheel_click_count(struct litest_device *dev, int which)
 {
@@ -656,6 +671,35 @@ START_TEST(pointer_scroll_natural_wheel)
 		test_wheel_event(dev, REL_HWHEEL, -5);
 		test_wheel_event(dev, REL_HWHEEL, 6);
 	}
+}
+END_TEST
+
+START_TEST(pointer_scroll_has_axis_invalid)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_pointer *pev;
+
+	litest_drain_events(dev->libinput);
+
+	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL))
+		return;
+
+	litest_event(dev, EV_REL, REL_WHEEL, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	pev = litest_is_axis_event(event,
+				   LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+				   LIBINPUT_POINTER_AXIS_SOURCE_WHEEL);
+
+	ck_assert_int_eq(libinput_event_pointer_has_axis(pev, -1), 0);
+	ck_assert_int_eq(libinput_event_pointer_has_axis(pev, 2), 0);
+	ck_assert_int_eq(libinput_event_pointer_has_axis(pev, 3), 0);
+	ck_assert_int_eq(libinput_event_pointer_has_axis(pev, 0xffff), 0);
+	libinput_event_destroy(event);
 }
 END_TEST
 
@@ -1062,7 +1106,7 @@ START_TEST(pointer_accel_defaults)
 				    speed);
 	}
 
-	for (speed = 1.2; speed <= -2.0; speed += 0.2) {
+	for (speed = 1.2; speed <= 2.0; speed += 0.2) {
 		status = libinput_device_config_accel_set_speed(device,
 								speed);
 		ck_assert_int_eq(status,
@@ -1772,6 +1816,7 @@ litest_setup_tests_pointer(void)
 	litest_add("pointer:button", pointer_button, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add_no_device("pointer:button", pointer_button_auto_release);
 	litest_add_no_device("pointer:button", pointer_seat_button_count);
+	litest_add_for_device("pointer:button", pointer_button_has_no_button, LITEST_KEYBOARD);
 	litest_add("pointer:scroll", pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:scroll", pointer_scroll_button_no_event_before_timeout, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
@@ -1780,6 +1825,7 @@ litest_setup_tests_pointer(void)
 	litest_add("pointer:scroll", pointer_scroll_natural_defaults, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_natural_enable_config, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_natural_wheel, LITEST_WHEEL, LITEST_TABLET);
+	litest_add("pointer:scroll", pointer_scroll_has_axis_invalid, LITEST_WHEEL, LITEST_TABLET);
 
 	litest_add("pointer:calibration", pointer_no_calibration, LITEST_ANY, LITEST_TOUCH|LITEST_SINGLE_TOUCH|LITEST_ABSOLUTE|LITEST_PROTOCOL_A|LITEST_TABLET);
 
