@@ -227,6 +227,7 @@ enum litest_device_type {
 	LITEST_ACER_HAWAII_KEYBOARD,
 	LITEST_ACER_HAWAII_TOUCHPAD,
 	LITEST_SYNAPTICS_RMI4,
+	LITEST_MOUSE_WHEEL_TILT,
 };
 
 enum litest_device_feature {

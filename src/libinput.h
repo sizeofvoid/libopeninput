@@ -259,6 +259,12 @@ enum libinput_pointer_axis_source {
 	 * The event is caused by the motion of some device.
 	 */
 	LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
+	/**
+	 * The event is caused by the tilting of a mouse wheel rather than
+	 * its rotation. This method is commonly used on mice without
+	 * separate horizontal scroll wheels.
+	 */
+	LIBINPUT_POINTER_AXIS_SOURCE_WHEEL_TILT,
 };
 
 /**
@@ -1284,6 +1290,15 @@ libinput_event_pointer_get_axis_value(struct libinput_event_pointer *event,
  * terminating event is guaranteed (though it may happen).
  * The coordinate system is identical to the cursor movement, i.e. a
  * scroll value of 1 represents the equivalent relative motion of 1.
+ *
+ * If the source is @ref LIBINPUT_POINTER_AXIS_SOURCE_WHEEL_TILT, no
+ * terminating event is guaranteed (though it may happen).
+ * Scrolling is in discrete steps and there is no physical equivalent for
+ * the value returned here. For backwards compatibility, the value returned
+ * by this function is identical to a single mouse wheel rotation by this
+ * device (see the documentation for @ref LIBINPUT_POINTER_AXIS_SOURCE_WHEEL
+ * above). Callers should not use this value but instead exclusively refer
+ * to the value returned by libinput_event_pointer_get_axis_value_discrete().
  *
  * For pointer events that are not of type @ref LIBINPUT_EVENT_POINTER_AXIS,
  * this function returns 0.

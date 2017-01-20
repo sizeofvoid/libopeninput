@@ -407,6 +407,7 @@ extern struct litest_test_device litest_calibrated_touchscreen_device;
 extern struct litest_test_device litest_acer_hawaii_keyboard_device;
 extern struct litest_test_device litest_acer_hawaii_touchpad_device;
 extern struct litest_test_device litest_synaptics_rmi4_device;
+extern struct litest_test_device litest_mouse_wheel_tilt_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -468,6 +469,7 @@ struct litest_test_device* devices[] = {
 	&litest_acer_hawaii_keyboard_device,
 	&litest_acer_hawaii_touchpad_device,
 	&litest_synaptics_rmi4_device,
+	&litest_mouse_wheel_tilt_device,
 	NULL,
 };
 

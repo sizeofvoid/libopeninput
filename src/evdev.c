@@ -958,6 +958,7 @@ fallback_process_relative(struct fallback_dispatch *dispatch,
 {
 	struct normalized_coords wheel_degrees = { 0.0, 0.0 };
 	struct discrete_coords discrete = { 0.0, 0.0 };
+	enum libinput_pointer_axis_source source;
 
 	if (fallback_reject_relative(device, e, time))
 		return;
@@ -980,11 +981,16 @@ fallback_process_relative(struct fallback_dispatch *dispatch,
 		wheel_degrees.y = -1 * e->value *
 					device->scroll.wheel_click_angle.x;
 		discrete.y = -1 * e->value;
+
+		source = device->scroll.is_tilt.vertical ?
+				LIBINPUT_POINTER_AXIS_SOURCE_WHEEL_TILT:
+				LIBINPUT_POINTER_AXIS_SOURCE_WHEEL;
+
 		evdev_notify_axis(
 			device,
 			time,
 			AS_MASK(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
-			LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
+			source,
 			&wheel_degrees,
 			&discrete);
 		break;
@@ -993,11 +999,16 @@ fallback_process_relative(struct fallback_dispatch *dispatch,
 		wheel_degrees.x = e->value *
 					device->scroll.wheel_click_angle.y;
 		discrete.x = e->value;
+
+		source = device->scroll.is_tilt.horizontal ?
+				LIBINPUT_POINTER_AXIS_SOURCE_WHEEL_TILT:
+				LIBINPUT_POINTER_AXIS_SOURCE_WHEEL;
+
 		evdev_notify_axis(
 			device,
 			time,
 			AS_MASK(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
-			LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
+			source,
 			&wheel_degrees,
 			&discrete);
 		break;
@@ -2110,6 +2121,21 @@ evdev_read_wheel_click_props(struct evdev_device *device)
 	return angles;
 }
 
+static inline struct wheel_tilt_flags
+evdev_read_wheel_tilt_props(struct evdev_device *device)
+{
+	struct wheel_tilt_flags flags;
+
+	flags.vertical = parse_udev_flag(device,
+					 device->udev_device,
+					 "MOUSE_WHEEL_TILT_VERTICAL");
+
+	flags.horizontal = parse_udev_flag(device,
+					 device->udev_device,
+					 "MOUSE_WHEEL_TILT_HORIZONTAL");
+	return flags;
+}
+
 static inline int
 evdev_get_trackpoint_dpi(struct evdev_device *device)
 {
@@ -2848,6 +2874,7 @@ evdev_device_create(struct libinput_seat *seat,
 	device->scroll.direction = 0;
 	device->scroll.wheel_click_angle =
 		evdev_read_wheel_click_props(device);
+	device->scroll.is_tilt = evdev_read_wheel_tilt_props(device);
 	device->model_flags = evdev_read_model_flags(device);
 	device->dpi = DEFAULT_MOUSE_DPI;
 

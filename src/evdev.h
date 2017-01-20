@@ -198,6 +198,8 @@ struct evdev_device {
 
 		/* angle per REL_WHEEL click in degrees */
 		struct wheel_angle wheel_click_angle;
+
+		struct wheel_tilt_flags is_tilt;
 	} scroll;
 
 	struct {

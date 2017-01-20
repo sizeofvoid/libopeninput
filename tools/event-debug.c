@@ -377,6 +377,9 @@ print_pointer_axis_event(struct libinput_event *ev)
 	case LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS:
 		source = "continuous";
 		break;
+	case LIBINPUT_POINTER_AXIS_SOURCE_WHEEL_TILT:
+		source = "tilt";
+		break;
 	}
 
 	if (libinput_event_pointer_has_axis(p,
