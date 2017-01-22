@@ -1749,6 +1749,16 @@ tp_sync_touch(struct tp_dispatch *tp,
 	libevdev_fetch_slot_value(evdev, slot, ABS_MT_DISTANCE, &t->distance);
 }
 
+static inline void
+tp_disable_abs_mt(struct evdev_device *device)
+{
+	struct libevdev *evdev = device->evdev;
+	unsigned int code;
+
+	for (code = ABS_MT_SLOT; code <= ABS_MAX; code++)
+		libevdev_disable_event_code(evdev, EV_ABS, code);
+}
+
 static bool
 tp_init_slots(struct tp_dispatch *tp,
 	      struct evdev_device *device)
@@ -1803,6 +1813,9 @@ tp_init_slots(struct tp_dispatch *tp,
 		tp->slot = 0;
 		tp->has_mt = false;
 	}
+
+	if (!tp->has_mt)
+		tp_disable_abs_mt(device);
 
 	ARRAY_FOR_EACH(max_touches, m) {
 		if (libevdev_has_event_code(device->evdev,
