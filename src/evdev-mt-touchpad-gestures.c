@@ -185,7 +185,6 @@ static uint32_t
 tp_gesture_get_direction(struct tp_dispatch *tp, struct tp_touch *touch,
 			 unsigned int nfingers)
 {
-	struct normalized_coords normalized;
 	struct phys_coords mm;
 	struct device_float_coords delta;
 	double move_threshold = 1.0; /* mm */
@@ -198,9 +197,7 @@ tp_gesture_get_direction(struct tp_dispatch *tp, struct tp_touch *touch,
 	if (length_in_mm(mm) < move_threshold)
 		return UNDEFINED_DIRECTION;
 
-	normalized = tp_normalize_delta(tp, delta);
-
-	return normalized_get_direction(normalized);
+	return phys_get_direction(mm);
 }
 
 static void

@@ -763,9 +763,9 @@ xy_get_direction(double x, double y)
 }
 
 static inline uint32_t
-normalized_get_direction(struct normalized_coords norm)
+phys_get_direction(struct phys_coords mm)
 {
-	return xy_get_direction(norm.x, norm.y);
+	return xy_get_direction(mm.x, mm.y);
 }
 
 /**

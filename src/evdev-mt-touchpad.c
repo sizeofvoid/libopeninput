@@ -623,7 +623,7 @@ tp_palm_detect_move_out_of_edge(struct tp_dispatch *tp,
 	if (time < t->palm.time + PALM_TIMEOUT &&
 	    (t->point.x > tp->palm.left_edge && t->point.x < tp->palm.right_edge)) {
 		delta = device_delta(t->point, t->palm.first);
-		dirs = normalized_get_direction(tp_normalize_delta(tp, delta));
+		dirs = phys_get_direction(tp_phys_delta(tp, delta));
 		if ((dirs & DIRECTIONS) && !(dirs & ~DIRECTIONS))
 			return true;
 	}
