@@ -699,6 +699,12 @@ normalized_is_zero(struct normalized_coords norm)
 	return norm.x == 0.0 && norm.y == 0.0;
 }
 
+static inline double
+length_in_mm(struct phys_coords mm)
+{
+	return hypot(mm.x, mm.y);
+}
+
 enum directions {
 	N  = 1 << 0,
 	NE = 1 << 1,

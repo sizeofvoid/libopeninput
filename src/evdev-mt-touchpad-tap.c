@@ -36,7 +36,7 @@
 #define DEFAULT_TAP_INITIAL_TIMEOUT_PERIOD ms2us(100)
 #define DEFAULT_TAP_TIMEOUT_PERIOD ms2us(180)
 #define DEFAULT_DRAG_TIMEOUT_PERIOD ms2us(300)
-#define DEFAULT_TAP_MOVE_THRESHOLD TP_MM_TO_DPI_NORMALIZED(1.3)
+#define DEFAULT_TAP_MOVE_THRESHOLD 1.3 /* mm */
 
 enum tap_event {
 	TAP_EVENT_TOUCH = 12,
@@ -734,11 +734,10 @@ static bool
 tp_tap_exceeds_motion_threshold(struct tp_dispatch *tp,
 				struct tp_touch *t)
 {
-	struct normalized_coords norm =
-		tp_normalize_delta(tp, device_delta(t->point,
-						    t->tap.initial));
+	struct phys_coords mm =
+		tp_phys_delta(tp, device_delta(t->point, t->tap.initial));
 
-	return normalized_length(norm) > DEFAULT_TAP_MOVE_THRESHOLD;
+	return length_in_mm(mm) > DEFAULT_TAP_MOVE_THRESHOLD;
 }
 
 static bool

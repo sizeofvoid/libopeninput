@@ -399,6 +399,18 @@ tp_normalize_delta(const struct tp_dispatch *tp,
 	return normalized;
 }
 
+static inline struct phys_coords
+tp_phys_delta(const struct tp_dispatch *tp,
+	      struct device_float_coords delta)
+{
+	struct phys_coords mm;
+
+	mm.x = delta.x / tp->device->abs.absinfo_x->resolution;
+	mm.y = delta.y / tp->device->abs.absinfo_y->resolution;
+
+	return mm;
+}
+
 /**
  * Takes a dpi-normalized set of coordinates, returns a set of coordinates
  * in the x-axis' coordinate space.

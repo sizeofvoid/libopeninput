@@ -186,17 +186,19 @@ tp_gesture_get_direction(struct tp_dispatch *tp, struct tp_touch *touch,
 			 unsigned int nfingers)
 {
 	struct normalized_coords normalized;
+	struct phys_coords mm;
 	struct device_float_coords delta;
-	double move_threshold = TP_MM_TO_DPI_NORMALIZED(1);
+	double move_threshold = 1.0; /* mm */
 
 	move_threshold *= (nfingers - 1);
 
 	delta = device_delta(touch->point, touch->gesture.initial);
+	mm = tp_phys_delta(tp, delta);
+
+	if (length_in_mm(mm) < move_threshold)
+		return UNDEFINED_DIRECTION;
 
 	normalized = tp_normalize_delta(tp, delta);
-
-	if (normalized_length(normalized) < move_threshold)
-		return UNDEFINED_DIRECTION;
 
 	return normalized_get_direction(normalized);
 }

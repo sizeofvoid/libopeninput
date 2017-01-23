@@ -751,12 +751,11 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 		t->thumb.initial = t->point;
 	else if (t->state == TOUCH_UPDATE) {
 		struct device_float_coords delta;
-		struct normalized_coords normalized;
+		struct phys_coords mm;
 
 		delta = device_delta(t->point, t->thumb.initial);
-		normalized = tp_normalize_delta(tp, delta);
-		if (normalized_length(normalized) >
-			TP_MM_TO_DPI_NORMALIZED(7)) {
+		mm = tp_phys_delta(tp, delta);
+		if (length_in_mm(mm) > 7) {
 			t->thumb.state = THUMB_STATE_NO;
 			goto out;
 		}
