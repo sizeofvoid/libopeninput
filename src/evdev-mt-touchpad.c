@@ -1519,7 +1519,7 @@ tp_dwt_pair_keyboard(struct evdev_device *touchpad,
 	tp->dwt.keyboard = keyboard;
 	tp->dwt.keyboard_active = false;
 
-	log_debug(touchpad->base.seat->libinput,
+	log_debug(evdev_libinput_context(touchpad),
 		  "palm: dwt activated with %s<->%s\n",
 		  touchpad->devname,
 		  keyboard->devname);
