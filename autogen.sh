@@ -10,4 +10,4 @@ test -n "$srcdir" || srcdir=.
 git config --local --get format.subjectPrefix >/dev/null 2>&1 ||
     git config --local format.subjectPrefix "PATCH libinput"
 
-test -n "$NOCONFIGURE" || "$srcdir/configure" "$@"
+test -n "$NOCONFIGURE" || exec "$srcdir/configure" "$@"
