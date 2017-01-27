@@ -40,12 +40,20 @@ manage these and decide which configuration option to apply to each device.
 This must be done at startup, after a resume and whenever a new device is
 detected.
 
-In a GNOME X.Org stack a user would usually toggle an option in
-the gnome-control-center which adjusts a gsettings entry. That change is
-picked up by gnome-settings-daemon and applied to the device by adjusting
-input device properties that the xf86-input-libinput driver provides.
-The input device property changes map to the respective libinput
-configuration options.
+One commonly used way to configure libinput is to have the Wayland
+compositor expose a compositor-specific configuration option. For example,
+in a GNOME stack, the gnome-control-center modifies dconf entries. These
+changes are read by mutter and applied to libinput. Changing these entries
+via the gsettings commandline tool has the same effect.
+
+Another commonly used way to configure libinput is to have xorg.conf.d
+snippets. When libinput is used with the xf86-input-libinput driver in an
+X.Org stack, these options are read on startup and apply to each device.
+Changing properties at runtime with the xinput commandline tool has the same
+effect.
+
+In both cases, the selection of available options and how they are exposed
+depends on the libinput caller (e.g. mutter or xf86-input-libinput).
 
 @dotfile libinput-stack-gnome.gv
 
