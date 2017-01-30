@@ -237,6 +237,14 @@ struct evdev_device {
 	} middlebutton;
 };
 
+static inline struct evdev_device *
+evdev_device(struct libinput_device *device)
+{
+	struct evdev_device *d;
+
+	return container_of(device, d, base);
+}
+
 #define EVDEV_UNHANDLED_DEVICE ((struct evdev_device *) 1)
 
 struct evdev_dispatch;

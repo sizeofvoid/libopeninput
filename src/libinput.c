@@ -516,8 +516,7 @@ libinput_event_pointer_get_dy_unaccelerated(
 LIBINPUT_EXPORT double
 libinput_event_pointer_get_absolute_x(struct libinput_event_pointer *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -530,8 +529,7 @@ libinput_event_pointer_get_absolute_x(struct libinput_event_pointer *event)
 LIBINPUT_EXPORT double
 libinput_event_pointer_get_absolute_y(struct libinput_event_pointer *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -546,8 +544,7 @@ libinput_event_pointer_get_absolute_x_transformed(
 	struct libinput_event_pointer *event,
 	uint32_t width)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -562,8 +559,7 @@ libinput_event_pointer_get_absolute_y_transformed(
 	struct libinput_event_pointer *event,
 	uint32_t height)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -752,8 +748,7 @@ libinput_event_touch_get_seat_slot(struct libinput_event_touch *event)
 LIBINPUT_EXPORT double
 libinput_event_touch_get_x(struct libinput_event_touch *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -768,8 +763,7 @@ LIBINPUT_EXPORT double
 libinput_event_touch_get_x_transformed(struct libinput_event_touch *event,
 				       uint32_t width)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -784,8 +778,7 @@ LIBINPUT_EXPORT double
 libinput_event_touch_get_y_transformed(struct libinput_event_touch *event,
 				       uint32_t height)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -799,8 +792,7 @@ libinput_event_touch_get_y_transformed(struct libinput_event_touch *event,
 LIBINPUT_EXPORT double
 libinput_event_touch_get_y(struct libinput_event_touch *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1110,8 +1102,7 @@ libinput_event_tablet_tool_wheel_has_changed(
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1128,8 +1119,7 @@ libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event)
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1277,8 +1267,7 @@ LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *event,
 					uint32_t width)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1297,8 +1286,7 @@ LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *event,
 					uint32_t height)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1898,7 +1886,7 @@ static void
 libinput_device_destroy(struct libinput_device *device)
 {
 	assert(list_empty(&device->event_listeners));
-	evdev_device_destroy((struct evdev_device *) device);
+	evdev_device_destroy(evdev_device(device));
 }
 
 LIBINPUT_EXPORT struct libinput_device *

@@ -580,7 +580,7 @@ static enum libinput_config_status
 pad_sendevents_set_mode(struct libinput_device *device,
 			enum libinput_config_send_events_mode mode)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct pad_dispatch *pad = (struct pad_dispatch*)evdev->dispatch;
 
 	if (mode == pad->sendevents.current_mode)
@@ -604,7 +604,7 @@ pad_sendevents_set_mode(struct libinput_device *device,
 static enum libinput_config_send_events_mode
 pad_sendevents_get_mode(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct pad_dispatch *dispatch = (struct pad_dispatch*)evdev->dispatch;
 
 	return dispatch->sendevents.current_mode;

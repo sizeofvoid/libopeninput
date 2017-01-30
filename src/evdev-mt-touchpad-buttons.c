@@ -627,7 +627,7 @@ tp_init_top_softbuttons(struct tp_dispatch *tp,
 static inline uint32_t
 tp_button_config_click_get_methods(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 	uint32_t methods = LIBINPUT_CONFIG_CLICK_METHOD_NONE;
 
@@ -669,7 +669,7 @@ static enum libinput_config_status
 tp_button_config_click_set_method(struct libinput_device *device,
 				  enum libinput_config_click_method method)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	tp->buttons.click_method = method;
@@ -681,7 +681,7 @@ tp_button_config_click_set_method(struct libinput_device *device,
 static enum libinput_config_click_method
 tp_button_config_click_get_method(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	return tp->buttons.click_method;
@@ -711,7 +711,7 @@ tp_click_get_default_method(struct tp_dispatch *tp)
 static enum libinput_config_click_method
 tp_button_config_click_get_default_method(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	return tp_click_get_default_method(tp);
@@ -746,7 +746,7 @@ static enum libinput_config_status
 tp_clickpad_middlebutton_set(struct libinput_device *device,
 		     enum libinput_config_middle_emulation_state enable)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	switch (enable) {
 	case LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED:

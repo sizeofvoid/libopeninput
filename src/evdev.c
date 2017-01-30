@@ -1260,7 +1260,7 @@ fallback_destroy(struct evdev_dispatch *evdev_dispatch)
 static int
 evdev_calibration_has_matrix(struct libinput_device *libinput_device)
 {
-	struct evdev_device *device = (struct evdev_device*)libinput_device;
+	struct evdev_device *device = evdev_device(libinput_device);
 
 	return device->abs.absinfo_x && device->abs.absinfo_y;
 }
@@ -1269,7 +1269,7 @@ static enum libinput_config_status
 evdev_calibration_set_matrix(struct libinput_device *libinput_device,
 			     const float matrix[6])
 {
-	struct evdev_device *device = (struct evdev_device*)libinput_device;
+	struct evdev_device *device = evdev_device(libinput_device);
 
 	evdev_device_calibrate(device, matrix);
 
@@ -1280,7 +1280,7 @@ static int
 evdev_calibration_get_matrix(struct libinput_device *libinput_device,
 			     float matrix[6])
 {
-	struct evdev_device *device = (struct evdev_device*)libinput_device;
+	struct evdev_device *device = evdev_device(libinput_device);
 
 	matrix_to_farray6(&device->abs.usermatrix, matrix);
 
@@ -1291,7 +1291,7 @@ static int
 evdev_calibration_get_default_matrix(struct libinput_device *libinput_device,
 				     float matrix[6])
 {
-	struct evdev_device *device = (struct evdev_device*)libinput_device;
+	struct evdev_device *device = evdev_device(libinput_device);
 
 	matrix_to_farray6(&device->abs.default_calibration, matrix);
 
@@ -1321,7 +1321,7 @@ static enum libinput_config_status
 evdev_sendevents_set_mode(struct libinput_device *device,
 			  enum libinput_config_send_events_mode mode)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct evdev_dispatch *dispatch = evdev->dispatch;
 
 	if (mode == dispatch->sendevents.current_mode)
@@ -1346,7 +1346,7 @@ evdev_sendevents_set_mode(struct libinput_device *device,
 static enum libinput_config_send_events_mode
 evdev_sendevents_get_mode(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct evdev_dispatch *dispatch = evdev->dispatch;
 
 	return dispatch->sendevents.current_mode;
@@ -1383,11 +1383,11 @@ evdev_change_to_left_handed(struct evdev_device *device)
 static enum libinput_config_status
 evdev_left_handed_set(struct libinput_device *device, int left_handed)
 {
-	struct evdev_device *evdev_device = (struct evdev_device *)device;
+	struct evdev_device *evdev = evdev_device(device);
 
-	evdev_device->left_handed.want_enabled = left_handed ? true : false;
+	evdev->left_handed.want_enabled = left_handed ? true : false;
 
-	evdev_device->left_handed.change_to_enabled(evdev_device);
+	evdev->left_handed.change_to_enabled(evdev);
 
 	return LIBINPUT_CONFIG_STATUS_SUCCESS;
 }
@@ -1395,11 +1395,11 @@ evdev_left_handed_set(struct libinput_device *device, int left_handed)
 static int
 evdev_left_handed_get(struct libinput_device *device)
 {
-	struct evdev_device *evdev_device = (struct evdev_device *)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	/* return the wanted configuration, even if it hasn't taken
 	 * effect yet! */
-	return evdev_device->left_handed.want_enabled;
+	return evdev->left_handed.want_enabled;
 }
 
 static int
@@ -1448,7 +1448,7 @@ static enum libinput_config_status
 evdev_scroll_set_method(struct libinput_device *device,
 			enum libinput_config_scroll_method method)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	evdev->scroll.want_method = method;
 	evdev->scroll.change_scroll_method(evdev);
@@ -1459,7 +1459,7 @@ evdev_scroll_set_method(struct libinput_device *device,
 static enum libinput_config_scroll_method
 evdev_scroll_get_method(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device *)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	/* return the wanted configuration, even if it hasn't taken
 	 * effect yet! */
@@ -1469,7 +1469,7 @@ evdev_scroll_get_method(struct libinput_device *device)
 static enum libinput_config_scroll_method
 evdev_scroll_get_default_method(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device *)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	if (evdev->tags & EVDEV_TAG_TRACKPOINT)
 		return LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN;
@@ -1488,7 +1488,7 @@ static enum libinput_config_status
 evdev_scroll_set_button(struct libinput_device *device,
 			uint32_t button)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	evdev->scroll.want_button = button;
 	evdev->scroll.change_scroll_method(evdev);
@@ -1499,7 +1499,7 @@ evdev_scroll_set_button(struct libinput_device *device,
 static uint32_t
 evdev_scroll_get_button(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device *)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	/* return the wanted configuration, even if it hasn't taken
 	 * effect yet! */
@@ -1509,7 +1509,7 @@ evdev_scroll_get_button(struct libinput_device *device)
 static uint32_t
 evdev_scroll_get_default_button(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device *)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	if (libevdev_has_event_code(evdev->evdev, EV_KEY, BTN_MIDDLE))
 		return BTN_MIDDLE;
@@ -1574,7 +1574,7 @@ static enum libinput_config_status
 evdev_scroll_config_natural_set(struct libinput_device *device,
 				int enabled)
 {
-	struct evdev_device *dev = (struct evdev_device *)device;
+	struct evdev_device *dev = evdev_device(device);
 
 	dev->scroll.natural_scrolling_enabled = enabled ? true : false;
 
@@ -1584,7 +1584,7 @@ evdev_scroll_config_natural_set(struct libinput_device *device,
 static int
 evdev_scroll_config_natural_get(struct libinput_device *device)
 {
-	struct evdev_device *dev = (struct evdev_device *)device;
+	struct evdev_device *dev = evdev_device(device);
 
 	return dev->scroll.natural_scrolling_enabled ? 1 : 0;
 }
@@ -1619,7 +1619,7 @@ static enum libinput_config_status
 evdev_rotation_config_set_angle(struct libinput_device *libinput_device,
 				unsigned int degrees_cw)
 {
-	struct evdev_device *device = (struct evdev_device*)libinput_device;
+	struct evdev_device *device = evdev_device(libinput_device);
 	struct fallback_dispatch *dispatch = fallback_dispatch(device->dispatch);
 
 	dispatch->rotation.angle = degrees_cw;
@@ -1631,7 +1631,7 @@ evdev_rotation_config_set_angle(struct libinput_device *libinput_device,
 static unsigned int
 evdev_rotation_config_get_angle(struct libinput_device *libinput_device)
 {
-	struct evdev_device *device = (struct evdev_device*)libinput_device;
+	struct evdev_device *device = evdev_device(libinput_device);
 	struct fallback_dispatch *dispatch = fallback_dispatch(device->dispatch);
 
 	return dispatch->rotation.angle;
@@ -1766,10 +1766,10 @@ fallback_dispatch_init_abs(struct fallback_dispatch *dispatch,
 }
 
 static struct evdev_dispatch *
-fallback_dispatch_create(struct libinput_device *device)
+fallback_dispatch_create(struct libinput_device *libinput_device)
 {
 	struct fallback_dispatch *dispatch = zalloc(sizeof *dispatch);
-	struct evdev_device *evdev_device = (struct evdev_device *)device;
+	struct evdev_device *device = evdev_device(libinput_device);
 
 	if (dispatch == NULL)
 		return NULL;
@@ -1778,42 +1778,42 @@ fallback_dispatch_create(struct libinput_device *device)
 	dispatch->base.interface = &fallback_interface;
 	dispatch->pending_event = EVDEV_NONE;
 
-	fallback_dispatch_init_rel(dispatch, evdev_device);
-	fallback_dispatch_init_abs(dispatch, evdev_device);
-	if (fallback_dispatch_init_slots(dispatch, evdev_device) == -1) {
+	fallback_dispatch_init_rel(dispatch, device);
+	fallback_dispatch_init_abs(dispatch, device);
+	if (fallback_dispatch_init_slots(dispatch, device) == -1) {
 		free(dispatch);
 		return NULL;
 	}
 
-	if (evdev_device->left_handed.want_enabled)
-		evdev_init_left_handed(evdev_device,
+	if (device->left_handed.want_enabled)
+		evdev_init_left_handed(device,
 				       evdev_change_to_left_handed);
 
-	if (evdev_device->scroll.want_button)
-		evdev_init_button_scroll(evdev_device,
+	if (device->scroll.want_button)
+		evdev_init_button_scroll(device,
 					 evdev_change_scroll_method);
 
-	if (evdev_device->scroll.natural_scrolling_enabled)
-		evdev_init_natural_scroll(evdev_device);
+	if (device->scroll.natural_scrolling_enabled)
+		evdev_init_natural_scroll(device);
 
-	evdev_init_calibration(evdev_device, &dispatch->calibration);
-	evdev_init_sendevents(evdev_device, &dispatch->base);
-	evdev_init_rotation(evdev_device, dispatch);
+	evdev_init_calibration(device, &dispatch->calibration);
+	evdev_init_sendevents(device, &dispatch->base);
+	evdev_init_rotation(device, dispatch);
 
 	/* BTN_MIDDLE is set on mice even when it's not present. So
 	 * we can only use the absence of BTN_MIDDLE to mean something, i.e.
 	 * we enable it by default on anything that only has L&R.
 	 * If we have L&R and no middle, we don't expose it as config
 	 * option */
-	if (libevdev_has_event_code(evdev_device->evdev, EV_KEY, BTN_LEFT) &&
-	    libevdev_has_event_code(evdev_device->evdev, EV_KEY, BTN_RIGHT)) {
-		bool has_middle = libevdev_has_event_code(evdev_device->evdev,
+	if (libevdev_has_event_code(device->evdev, EV_KEY, BTN_LEFT) &&
+	    libevdev_has_event_code(device->evdev, EV_KEY, BTN_RIGHT)) {
+		bool has_middle = libevdev_has_event_code(device->evdev,
 							  EV_KEY,
 							  BTN_MIDDLE);
 		bool want_config = has_middle;
 		bool enable_by_default = !has_middle;
 
-		evdev_init_middlebutton(evdev_device,
+		evdev_init_middlebutton(device,
 					enable_by_default,
 					want_config);
 	}
@@ -1952,7 +1952,7 @@ evdev_accel_config_available(struct libinput_device *device)
 static enum libinput_config_status
 evdev_accel_config_set_speed(struct libinput_device *device, double speed)
 {
-	struct evdev_device *dev = (struct evdev_device *)device;
+	struct evdev_device *dev = evdev_device(device);
 
 	if (!filter_set_speed(dev->pointer.filter, speed))
 		return LIBINPUT_CONFIG_STATUS_INVALID;
@@ -1963,7 +1963,7 @@ evdev_accel_config_set_speed(struct libinput_device *device, double speed)
 static double
 evdev_accel_config_get_speed(struct libinput_device *device)
 {
-	struct evdev_device *dev = (struct evdev_device *)device;
+	struct evdev_device *dev = evdev_device(device);
 
 	return filter_get_speed(dev->pointer.filter);
 }
@@ -1977,7 +1977,7 @@ evdev_accel_config_get_default_speed(struct libinput_device *device)
 static uint32_t
 evdev_accel_config_get_profiles(struct libinput_device *libinput_device)
 {
-	struct evdev_device *device = (struct evdev_device*)libinput_device;
+	struct evdev_device *device = evdev_device(libinput_device);
 
 	if (!device->pointer.filter)
 		return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
@@ -1990,7 +1990,7 @@ static enum libinput_config_status
 evdev_accel_config_set_profile(struct libinput_device *libinput_device,
 			       enum libinput_config_accel_profile profile)
 {
-	struct evdev_device *device = (struct evdev_device*)libinput_device;
+	struct evdev_device *device = evdev_device(libinput_device);
 	struct motion_filter *filter;
 	double speed;
 
@@ -2014,7 +2014,7 @@ evdev_accel_config_set_profile(struct libinput_device *libinput_device,
 static enum libinput_config_accel_profile
 evdev_accel_config_get_profile(struct libinput_device *libinput_device)
 {
-	struct evdev_device *device = (struct evdev_device*)libinput_device;
+	struct evdev_device *device = evdev_device(libinput_device);
 
 	return filter_get_type(device->pointer.filter);
 }
@@ -2022,7 +2022,7 @@ evdev_accel_config_get_profile(struct libinput_device *libinput_device)
 static enum libinput_config_accel_profile
 evdev_accel_config_get_default_profile(struct libinput_device *libinput_device)
 {
-	struct evdev_device *device = (struct evdev_device*)libinput_device;
+	struct evdev_device *device = evdev_device(libinput_device);
 
 	if (!device->pointer.filter)
 		return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
@@ -2698,7 +2698,7 @@ evdev_notify_added_device(struct evdev_device *device)
 	struct libinput_device *dev;
 
 	list_for_each(dev, &device->base.seat->devices_list, link) {
-		struct evdev_device *d = (struct evdev_device*)dev;
+		struct evdev_device *d = evdev_device(dev);
 		if (dev == &device->base)
 			continue;
 
@@ -3282,7 +3282,7 @@ evdev_notify_suspended_device(struct evdev_device *device)
 		return;
 
 	list_for_each(it, &device->base.seat->devices_list, link) {
-		struct evdev_device *d = (struct evdev_device*)it;
+		struct evdev_device *d = evdev_device(it);
 		if (it == &device->base)
 			continue;
 
@@ -3302,7 +3302,7 @@ evdev_notify_resumed_device(struct evdev_device *device)
 		return;
 
 	list_for_each(it, &device->base.seat->devices_list, link) {
-		struct evdev_device *d = (struct evdev_device*)it;
+		struct evdev_device *d = evdev_device(it);
 		if (it == &device->base)
 			continue;
 
@@ -3409,7 +3409,7 @@ evdev_device_remove(struct evdev_device *device)
 	struct libinput_device *dev;
 
 	list_for_each(dev, &device->base.seat->devices_list, link) {
-		struct evdev_device *d = (struct evdev_device*)dev;
+		struct evdev_device *d = evdev_device(dev);
 		if (dev == &device->base)
 			continue;
 

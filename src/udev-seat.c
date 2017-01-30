@@ -322,8 +322,8 @@ udev_device_change_seat(struct libinput_device *device,
 {
 	struct libinput *libinput = device->seat->libinput;
 	struct udev_input *input = (struct udev_input *)libinput;
-	struct evdev_device *evdev_device = (struct evdev_device *)device;
-	struct udev_device *udev_device = evdev_device->udev_device;
+	struct evdev_device *evdev = evdev_device(device);
+	struct udev_device *udev_device = evdev->udev_device;
 	int rc;
 
 	udev_device_ref(udev_device);

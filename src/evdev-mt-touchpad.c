@@ -1645,7 +1645,7 @@ tp_interface_device_removed(struct evdev_device *device,
 		return;
 
 	list_for_each(dev, &device->base.seat->devices_list, link) {
-		struct evdev_device *d = (struct evdev_device*)dev;
+		struct evdev_device *d = evdev_device(dev);
 		if (d != removed_device &&
 		    (d->tags & EVDEV_TAG_EXTERNAL_MOUSE)) {
 			return;
@@ -1982,7 +1982,7 @@ tp_scroll_get_methods(struct tp_dispatch *tp)
 static uint32_t
 tp_scroll_config_scroll_method_get_methods(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	return tp_scroll_get_methods(tp);
@@ -1992,7 +1992,7 @@ static enum libinput_config_status
 tp_scroll_config_scroll_method_set_method(struct libinput_device *device,
 		        enum libinput_config_scroll_method method)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 	uint64_t time = libinput_now(tp_libinput_context(tp));
 
@@ -2010,7 +2010,7 @@ tp_scroll_config_scroll_method_set_method(struct libinput_device *device,
 static enum libinput_config_scroll_method
 tp_scroll_config_scroll_method_get_method(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	return tp->scroll.method;
@@ -2039,7 +2039,7 @@ tp_scroll_get_default_method(struct tp_dispatch *tp)
 static enum libinput_config_scroll_method
 tp_scroll_config_scroll_method_get_default_method(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	return tp_scroll_get_default_method(tp);
@@ -2074,7 +2074,7 @@ static enum libinput_config_status
 tp_dwt_config_set(struct libinput_device *device,
 	   enum libinput_config_dwt_state enable)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	switch(enable) {
@@ -2093,7 +2093,7 @@ tp_dwt_config_set(struct libinput_device *device,
 static enum libinput_config_dwt_state
 tp_dwt_config_get(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	return tp->dwt.dwt_enabled ?
@@ -2110,7 +2110,7 @@ tp_dwt_default_enabled(struct tp_dispatch *tp)
 static enum libinput_config_dwt_state
 tp_dwt_config_get_default(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	return tp_dwt_default_enabled(tp) ?
@@ -2365,7 +2365,7 @@ tp_init(struct tp_dispatch *tp,
 static uint32_t
 tp_sendevents_get_modes(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	uint32_t modes = LIBINPUT_CONFIG_SEND_EVENTS_DISABLED;
 
 	if (evdev->tags & EVDEV_TAG_INTERNAL_TOUCHPAD)
@@ -2381,7 +2381,7 @@ tp_suspend_conditional(struct tp_dispatch *tp,
 	struct libinput_device *dev;
 
 	list_for_each(dev, &device->base.seat->devices_list, link) {
-		struct evdev_device *d = (struct evdev_device*)dev;
+		struct evdev_device *d = evdev_device(dev);
 		if (d->tags & EVDEV_TAG_EXTERNAL_MOUSE) {
 			tp_suspend(tp, device);
 			return;
@@ -2393,7 +2393,7 @@ static enum libinput_config_status
 tp_sendevents_set_mode(struct libinput_device *device,
 		       enum libinput_config_send_events_mode mode)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	/* DISABLED overrides any DISABLED_ON_ */
@@ -2426,7 +2426,7 @@ tp_sendevents_set_mode(struct libinput_device *device,
 static enum libinput_config_send_events_mode
 tp_sendevents_get_mode(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *dispatch = (struct tp_dispatch*)evdev->dispatch;
 
 	return dispatch->sendevents.current_mode;
