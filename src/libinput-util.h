@@ -380,6 +380,7 @@ bool parse_dimension_property(const char *prop, size_t *width, size_t *height);
 enum switch_reliability {
 	RELIABILITY_UNKNOWN,
 	RELIABILITY_RELIABLE,
+	RELIABILITY_WRITE_OPEN,
 };
 
 bool

@@ -289,6 +289,8 @@ parse_switch_reliability_property(const char *prop,
 
 	if (streq(prop, "reliable"))
 		*reliability = RELIABILITY_RELIABLE;
+	else if (streq(prop, "write_open"))
+		*reliability = RELIABILITY_WRITE_OPEN;
 	else
 		return false;
 

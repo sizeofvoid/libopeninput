@@ -31,6 +31,7 @@
 struct lid_switch_dispatch {
 	struct evdev_dispatch base;
 	struct evdev_device *device;
+	enum switch_reliability reliability;
 
 	bool lid_is_closed;
 
@@ -53,6 +54,18 @@ lid_switch_keyboard_event(uint64_t time,
 
 	if (event->type != LIBINPUT_EVENT_KEYBOARD_KEY)
 		return;
+
+	if (dispatch->reliability == RELIABILITY_WRITE_OPEN) {
+		int fd = libevdev_get_fd(dispatch->device->evdev);
+		struct input_event ev[2] = {
+			{{ 0, 0 }, EV_SW, SW_LID, 0 },
+			{{ 0, 0 }, EV_SYN, SYN_REPORT, 0 },
+		};
+
+		(void)write(fd, ev, sizeof(ev));
+		/* In case write() fails, we sync the lid state manually
+		 * regardless. */
+	}
 
 	dispatch->lid_is_closed = false;
 	switch_notify_toggle(&dispatch->device->base,
@@ -143,6 +156,10 @@ evdev_read_switch_reliability_prop(struct evdev_device *device)
 			  device->devname,
 			  prop);
 		r =  RELIABILITY_UNKNOWN;
+	} else if (r == RELIABILITY_WRITE_OPEN) {
+		log_info(evdev_libinput_context(device),
+			 "%s: will write switch open events\n",
+			 device->devname);
 	}
 
 	return r;
@@ -216,6 +233,8 @@ lid_switch_sync_initial_state(struct evdev_device *device,
 	struct libevdev *evdev = device->evdev;
 	bool is_closed = false;
 
+	dispatch->reliability = evdev_read_switch_reliability_prop(device);
+
 	/* For the initial state sync, we depend on whether the lid switch
 	 * is reliable. If we know it's reliable, we sync as expected.
 	 * If we're not sure, we ignore the initial state and only sync on
@@ -223,8 +242,9 @@ lid_switch_sync_initial_state(struct evdev_device *device,
 	 * that always have the switch in 'on' state thus don't mess up our
 	 * touchpad.
 	 */
-	switch(evdev_read_switch_reliability_prop(device)) {
+	switch(dispatch->reliability) {
 	case RELIABILITY_UNKNOWN:
+	case RELIABILITY_WRITE_OPEN:
 		is_closed = false;
 		break;
 	case RELIABILITY_RELIABLE:

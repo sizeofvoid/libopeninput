@@ -230,6 +230,7 @@ enum litest_device_type {
 	LITEST_SYNAPTICS_RMI4,
 	LITEST_MOUSE_WHEEL_TILT,
 	LITEST_LID_SWITCH,
+	LITEST_LID_SWITCH_SURFACE3,
 };
 
 enum litest_device_feature {

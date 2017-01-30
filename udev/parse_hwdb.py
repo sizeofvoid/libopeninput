@@ -102,10 +102,10 @@ def property_grammar():
     size_props = [Literal(name)('NAME') - Suppress('=') - val('VALUE')
                    for name, val in sz_props]
 
-    reliability_tags = (Literal("reliable"))
+    reliability_tags = Or(('reliable', 'write_open'))
     reliability = [Literal('LIBINPUT_ATTR_LID_SWITCH_RELIABILITY')('NAME') -
                          Suppress('=') -
-                         Group(OneOrMore(reliability_tags))('VALUE')]
+                         reliability_tags('VALUE')]
 
     grammar = Or(model_props + size_props + reliability)
 

@@ -33,6 +33,7 @@ liblitest_la_SOURCES = \
 	litest-device-keyboard-all-codes.c \
 	litest-device-keyboard-razer-blackwidow.c \
 	litest-device-lid-switch.c \
+	litest-device-lid-switch-surface3.c \
 	litest-device-logitech-trackball.c \
 	litest-device-nexus4-touch-screen.c \
 	litest-device-magic-trackpad.c \

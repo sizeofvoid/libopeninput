@@ -87,11 +87,31 @@ START_TEST(lid_switch_double)
 }
 END_TEST
 
+static bool
+lid_switch_is_reliable(struct litest_device *dev)
+{
+	struct udev_device *udev_device;
+	const char *prop;
+	bool is_reliable = false;
+
+	udev_device = libinput_device_get_udev_device(dev->libinput_device);
+	prop = udev_device_get_property_value(udev_device,
+					      "LIBINPUT_ATTR_LID_SWITCH_RELIABILITY");
+
+	is_reliable = prop && streq(prop, "reliable");
+	udev_device_unref(udev_device);
+
+	return is_reliable;
+}
+
 START_TEST(lid_switch_down_on_init)
 {
 	struct litest_device *sw = litest_current_device();
 	struct libinput *li;
 	struct libinput_event *event;
+
+	if (!lid_switch_is_reliable(sw))
+		return;
 
 	litest_lid_action(sw, LIBINPUT_SWITCH_STATE_ON);
 
@@ -125,6 +145,35 @@ START_TEST(lid_switch_down_on_init)
 
 	libinput_unref(li);
 
+}
+END_TEST
+
+START_TEST(lid_switch_not_down_on_init)
+{
+	struct litest_device *sw = litest_current_device();
+	struct libinput *li;
+	struct libinput_event *event;
+
+	if (lid_switch_is_reliable(sw))
+		return;
+
+	litest_lid_action(sw, LIBINPUT_SWITCH_STATE_ON);
+
+	/* need separate context to test */
+	li = litest_create_context();
+	libinput_path_add_device(li,
+				 libevdev_uinput_get_devnode(sw->uinput));
+	libinput_dispatch(li);
+
+	while ((event = libinput_get_event(li)) != NULL) {
+		ck_assert_int_ne(libinput_event_get_type(event),
+				 LIBINPUT_EVENT_SWITCH_TOGGLE);
+		libinput_event_destroy(event);
+	}
+
+	litest_lid_action(sw, LIBINPUT_SWITCH_STATE_OFF);
+	litest_assert_empty_queue(li);
+	libinput_unref(li);
 }
 END_TEST
 
@@ -358,12 +407,59 @@ START_TEST(lid_open_on_key_touchpad_enabled)
 }
 END_TEST
 
+START_TEST(lid_update_hw_on_key)
+{
+	struct litest_device *sw = litest_current_device();
+	struct libinput *li = sw->libinput;
+	struct libinput *li2;
+	struct litest_device *keyboard;
+	struct libinput_event *event;
+
+	sleep(5);
+	keyboard = litest_add_device(li, LITEST_KEYBOARD);
+
+	/* separate context to listen to the fake hw event */
+	li2 = litest_create_context();
+	libinput_path_add_device(li2,
+				 libevdev_uinput_get_devnode(sw->uinput));
+	litest_drain_events(li2);
+
+	litest_lid_action(sw, LIBINPUT_SWITCH_STATE_ON);
+	litest_drain_events(li);
+
+	libinput_dispatch(li2);
+	event = libinput_get_event(li2);
+	litest_is_switch_event(event,
+			       LIBINPUT_SWITCH_LID,
+			       LIBINPUT_SWITCH_STATE_ON);
+	libinput_event_destroy(event);
+
+	litest_event(keyboard, EV_KEY, KEY_A, 1);
+	litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
+	litest_event(keyboard, EV_KEY, KEY_A, 0);
+	litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
+	litest_drain_events(li);
+
+	libinput_dispatch(li2);
+	event = libinput_get_event(li2);
+	litest_is_switch_event(event,
+			       LIBINPUT_SWITCH_LID,
+			       LIBINPUT_SWITCH_STATE_OFF);
+	libinput_event_destroy(event);
+	litest_assert_empty_queue(li);
+
+	libinput_unref(li2);
+	litest_delete_device(keyboard);
+}
+END_TEST
+
 void
 litest_setup_tests_lid(void)
 {
 	litest_add("lid:switch", lid_switch, LITEST_SWITCH, LITEST_ANY);
 	litest_add("lid:switch", lid_switch_double, LITEST_SWITCH, LITEST_ANY);
 	litest_add("lid:switch", lid_switch_down_on_init, LITEST_SWITCH, LITEST_ANY);
+	litest_add("lid:switch", lid_switch_not_down_on_init, LITEST_SWITCH, LITEST_ANY);
 	litest_add("lid:disable_touchpad", lid_disable_touchpad, LITEST_SWITCH, LITEST_ANY);
 	litest_add("lid:disable_touchpad", lid_disable_touchpad_during_touch, LITEST_SWITCH, LITEST_ANY);
 	litest_add("lid:disable_touchpad", lid_disable_touchpad_edge_scroll, LITEST_SWITCH, LITEST_ANY);
@@ -372,4 +468,6 @@ litest_setup_tests_lid(void)
 
 	litest_add("lid:keyboard", lid_open_on_key, LITEST_SWITCH, LITEST_ANY);
 	litest_add("lid:keyboard", lid_open_on_key_touchpad_enabled, LITEST_SWITCH, LITEST_ANY);
+
+	litest_add_for_device("lid:buggy", lid_update_hw_on_key, LITEST_LID_SWITCH_SURFACE3);
 }
