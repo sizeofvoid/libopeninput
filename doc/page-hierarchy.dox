@@ -30,6 +30,7 @@
 
 @page misc Users
 
+- @subpage what_is_libinput
 - @subpage faq
 - @subpage tools
 - @subpage reporting_bugs
@@ -39,6 +40,7 @@
 Contributions to libinput are always welcome. See the links below for
 specific documentation.
 
+- @subpage what_is_libinput
 - @subpage contributing
 - @subpage building_libinput
 - @subpage test-suite
