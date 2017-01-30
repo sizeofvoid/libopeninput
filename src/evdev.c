@@ -1097,7 +1097,7 @@ fallback_process(struct evdev_dispatch *evdev_dispatch,
 		 struct input_event *event,
 		 uint64_t time)
 {
-	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)evdev_dispatch;
+	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 	enum evdev_event_type sent;
 
 	if (dispatch->ignore_events)
@@ -1226,7 +1226,7 @@ static void
 fallback_suspend(struct evdev_dispatch *evdev_dispatch,
 		 struct evdev_device *device)
 {
-	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)evdev_dispatch;
+	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 
 	fallback_return_to_neutral_state(dispatch, device);
 }
@@ -1236,7 +1236,7 @@ fallback_toggle_touch(struct evdev_dispatch *evdev_dispatch,
 		      struct evdev_device *device,
 		      bool enable)
 {
-	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)evdev_dispatch;
+	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 	bool ignore_events = !enable;
 
 	if (ignore_events == dispatch->ignore_events)
@@ -1251,7 +1251,7 @@ fallback_toggle_touch(struct evdev_dispatch *evdev_dispatch,
 static void
 fallback_destroy(struct evdev_dispatch *evdev_dispatch)
 {
-	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)evdev_dispatch;
+	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 
 	free(dispatch->mt.slots);
 	free(dispatch);
@@ -1369,7 +1369,7 @@ evdev_left_handed_has(struct libinput_device *device)
 static void
 evdev_change_to_left_handed(struct evdev_device *device)
 {
-	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)device->dispatch;
+	struct fallback_dispatch *dispatch = fallback_dispatch(device->dispatch);
 
 	if (device->left_handed.want_enabled == device->left_handed.enabled)
 		return;
@@ -1431,7 +1431,7 @@ evdev_scroll_get_methods(struct libinput_device *device)
 static void
 evdev_change_scroll_method(struct evdev_device *device)
 {
-	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)device->dispatch;
+	struct fallback_dispatch *dispatch = fallback_dispatch(device->dispatch);
 
 	if (device->scroll.want_method == device->scroll.method &&
 	    device->scroll.want_button == device->scroll.button)
@@ -1620,7 +1620,7 @@ evdev_rotation_config_set_angle(struct libinput_device *libinput_device,
 				unsigned int degrees_cw)
 {
 	struct evdev_device *device = (struct evdev_device*)libinput_device;
-	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)device->dispatch;
+	struct fallback_dispatch *dispatch = fallback_dispatch(device->dispatch);
 
 	dispatch->rotation.angle = degrees_cw;
 	matrix_init_rotate(&dispatch->rotation.matrix, degrees_cw);
@@ -1632,7 +1632,7 @@ static unsigned int
 evdev_rotation_config_get_angle(struct libinput_device *libinput_device)
 {
 	struct evdev_device *device = (struct evdev_device*)libinput_device;
-	struct fallback_dispatch *dispatch = (struct fallback_dispatch*)device->dispatch;
+	struct fallback_dispatch *dispatch = fallback_dispatch(device->dispatch);
 
 	return dispatch->rotation.angle;
 }
@@ -1774,6 +1774,7 @@ fallback_dispatch_create(struct libinput_device *device)
 	if (dispatch == NULL)
 		return NULL;
 
+	dispatch->base.dispatch_type = DISPATCH_FALLBACK;
 	dispatch->base.interface = &fallback_interface;
 	dispatch->pending_event = EVDEV_NONE;
 

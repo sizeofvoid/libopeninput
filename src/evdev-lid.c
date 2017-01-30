@@ -41,13 +41,22 @@ struct lid_switch_dispatch {
 	} keyboard;
 };
 
+static inline struct lid_switch_dispatch*
+lid_dispatch(struct evdev_dispatch *dispatch)
+{
+	struct lid_switch_dispatch *l;
+
+	evdev_verify_dispatch_type(dispatch, DISPATCH_LID_SWITCH);
+
+	return container_of(dispatch, l, base);
+}
+
 static void
 lid_switch_keyboard_event(uint64_t time,
 			  struct libinput_event *event,
 			  void *data)
 {
-	struct lid_switch_dispatch *dispatch =
-		(struct lid_switch_dispatch*)data;
+	struct lid_switch_dispatch *dispatch = lid_dispatch(data);
 
 	if (!dispatch->lid_is_closed)
 		return;
@@ -127,8 +136,7 @@ lid_switch_process(struct evdev_dispatch *evdev_dispatch,
 		   struct input_event *event,
 		   uint64_t time)
 {
-	struct lid_switch_dispatch *dispatch =
-		(struct lid_switch_dispatch*)evdev_dispatch;
+	struct lid_switch_dispatch *dispatch = lid_dispatch(evdev_dispatch);
 
 	switch (event->type) {
 	case EV_SW:
@@ -168,8 +176,7 @@ evdev_read_switch_reliability_prop(struct evdev_device *device)
 static void
 lid_switch_destroy(struct evdev_dispatch *evdev_dispatch)
 {
-	struct lid_switch_dispatch *dispatch =
-		(struct lid_switch_dispatch*)evdev_dispatch;
+	struct lid_switch_dispatch *dispatch = lid_dispatch(evdev_dispatch);
 
 	free(dispatch);
 }
@@ -179,7 +186,7 @@ lid_switch_pair_keyboard(struct evdev_device *lid_switch,
 			 struct evdev_device *keyboard)
 {
 	struct lid_switch_dispatch *dispatch =
-		(struct lid_switch_dispatch*)lid_switch->dispatch;
+		lid_dispatch(lid_switch->dispatch);
 	unsigned int bus_kbd = libevdev_get_id_bustype(keyboard->evdev);
 
 	if ((keyboard->tags & EVDEV_TAG_KEYBOARD) == 0)
@@ -214,8 +221,7 @@ static void
 lid_switch_interface_device_removed(struct evdev_device *device,
 				    struct evdev_device *removed_device)
 {
-	struct lid_switch_dispatch *dispatch =
-		(struct lid_switch_dispatch*)device->dispatch;
+	struct lid_switch_dispatch *dispatch = lid_dispatch(device->dispatch);
 
 	if (removed_device == dispatch->keyboard.keyboard) {
 		libinput_device_remove_event_listener(
@@ -228,8 +234,7 @@ static void
 lid_switch_sync_initial_state(struct evdev_device *device,
 			      struct evdev_dispatch *evdev_dispatch)
 {
-	struct lid_switch_dispatch *dispatch =
-		(struct lid_switch_dispatch*)evdev_dispatch;
+	struct lid_switch_dispatch *dispatch = lid_dispatch(device->dispatch);
 	struct libevdev *evdev = device->evdev;
 	bool is_closed = false;
 
@@ -284,6 +289,7 @@ evdev_lid_switch_dispatch_create(struct evdev_device *lid_device)
 	if (dispatch == NULL)
 		return NULL;
 
+	dispatch->base.dispatch_type = DISPATCH_LID_SWITCH;
 	dispatch->base.interface = &lid_switch_interface;
 	dispatch->device = lid_device;
 	libinput_device_init_event_listener(&dispatch->keyboard.listener);

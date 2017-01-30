@@ -284,7 +284,16 @@ struct evdev_dispatch_interface {
 			     bool enable);
 };
 
+enum evdev_dispatch_type {
+	DISPATCH_FALLBACK,
+	DISPATCH_TOUCHPAD,
+	DISPATCH_TABLET,
+	DISPATCH_TABLET_PAD,
+	DISPATCH_LID_SWITCH,
+};
+
 struct evdev_dispatch {
+	enum evdev_dispatch_type dispatch_type;
 	struct evdev_dispatch_interface *interface;
 
 	struct {
@@ -292,6 +301,14 @@ struct evdev_dispatch {
 		enum libinput_config_send_events_mode current_mode;
 	} sendevents;
 };
+
+static inline void
+evdev_verify_dispatch_type(struct evdev_dispatch *dispatch,
+			   enum evdev_dispatch_type type)
+{
+	if (dispatch->dispatch_type != type)
+		abort();
+}
 
 struct fallback_dispatch {
 	struct evdev_dispatch base;
@@ -335,6 +352,16 @@ struct fallback_dispatch {
 	   ignoring them */
 	bool ignore_events;
 };
+
+static inline struct fallback_dispatch*
+fallback_dispatch(struct evdev_dispatch *dispatch)
+{
+	struct fallback_dispatch *f;
+
+	evdev_verify_dispatch_type(dispatch, DISPATCH_FALLBACK);
+
+	return container_of(dispatch, f, base);
+}
 
 struct evdev_device *
 evdev_device_create(struct libinput_seat *seat,

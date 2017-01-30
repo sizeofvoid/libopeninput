@@ -1140,8 +1140,7 @@ tp_interface_process(struct evdev_dispatch *dispatch,
 		     struct input_event *e,
 		     uint64_t time)
 {
-	struct tp_dispatch *tp =
-		(struct tp_dispatch *)dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	if (tp->ignore_events)
 		return;
@@ -1185,8 +1184,7 @@ tp_remove_sendevents(struct tp_dispatch *tp)
 static void
 tp_interface_remove(struct evdev_dispatch *dispatch)
 {
-	struct tp_dispatch *tp =
-		(struct tp_dispatch*)dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	tp_remove_tap(tp);
 	tp_remove_buttons(tp);
@@ -1198,8 +1196,7 @@ tp_interface_remove(struct evdev_dispatch *dispatch)
 static void
 tp_interface_destroy(struct evdev_dispatch *dispatch)
 {
-	struct tp_dispatch *tp =
-		(struct tp_dispatch*)dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	free(tp->touches);
 	free(tp);
@@ -1261,7 +1258,7 @@ static void
 tp_interface_suspend(struct evdev_dispatch *dispatch,
 		     struct evdev_device *device)
 {
-	struct tp_dispatch *tp = (struct tp_dispatch *)dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	tp_clear_state(tp);
 }
@@ -1742,7 +1739,7 @@ tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 			  struct evdev_device *device,
 			  bool enable)
 {
-	struct tp_dispatch *tp = (struct tp_dispatch*)dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 	bool ignore_events = !enable;
 
 	if (ignore_events == tp->ignore_events)
@@ -2322,6 +2319,7 @@ static int
 tp_init(struct tp_dispatch *tp,
 	struct evdev_device *device)
 {
+	tp->base.dispatch_type = DISPATCH_TOUCHPAD;
 	tp->base.interface = &tp_interface;
 	tp->device = device;
 
