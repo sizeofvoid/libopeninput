@@ -3,6 +3,8 @@
 
 Frequently asked questions about libinput.
 
+@tableofcontents
+
 @section faq_fast_mouse My mouse moves too fast, even at the slowest setting
 
 This is a symptom of high-dpi mice (greater than 1000dpi). These devices
