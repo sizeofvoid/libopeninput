@@ -2265,8 +2265,6 @@ tp_init_hysteresis(struct tp_dispatch *tp)
 	res_y = tp->device->abs.absinfo_y->resolution;
 	tp->hysteresis_margin.x = res_x/2;
 	tp->hysteresis_margin.y = res_y/2;
-
-	return;
 }
 
 static int
