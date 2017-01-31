@@ -548,7 +548,7 @@ evdev_to_left_handed(struct evdev_device *device,
 
 /**
  * Apply a hysteresis filtering to the coordinate in, based on the current
- * hystersis center and the margin. If 'in' is within 'margin' of center,
+ * hysteresis center and the margin. If 'in' is within 'margin' of center,
  * return the center (and thus filter the motion). If 'in' is outside,
  * return a point on the edge of the new margin. So for a point x in the
  * space outside c + margin we return r:
