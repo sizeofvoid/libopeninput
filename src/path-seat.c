@@ -35,7 +35,6 @@
 static const char default_seat[] = "seat0";
 static const char default_seat_name[] = "default";
 
-int path_input_process_event(struct libinput_event);
 static void path_seat_destroy(struct libinput_seat *seat);
 
 static void
