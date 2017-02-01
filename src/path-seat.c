@@ -35,8 +35,6 @@
 static const char default_seat[] = "seat0";
 static const char default_seat_name[] = "default";
 
-static void path_seat_destroy(struct libinput_seat *seat);
-
 static void
 path_disable_device(struct libinput *libinput,
 		    struct evdev_device *device)
