@@ -1922,6 +1922,8 @@ START_TEST(tool_id)
 	case 0x333: /* Cintiq 13HD */
 		tool_id = 2083;
 		break;
+	default:
+		ck_abort();
 	}
 
 	ck_assert(tool_id == libinput_tablet_tool_get_tool_id(tool));
