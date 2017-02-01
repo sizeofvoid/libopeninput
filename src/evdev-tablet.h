@@ -76,6 +76,16 @@ struct tablet_dispatch {
 	struct evdev_device *touch_device;
 };
 
+static inline struct tablet_dispatch*
+tablet_dispatch(struct evdev_dispatch *dispatch)
+{
+	struct tablet_dispatch *t;
+
+	evdev_verify_dispatch_type(dispatch, DISPATCH_TABLET);
+
+	return container_of(dispatch, t, base);
+}
+
 static inline enum libinput_tablet_tool_axis
 evcode_to_axis(const uint32_t evcode)
 {

@@ -467,6 +467,9 @@ libinput_device_set_device_group(struct libinput_device *device,
 				 struct libinput_device_group *group);
 
 void
+libinput_device_init_event_listener(struct libinput_event_listener *listener);
+
+void
 libinput_device_add_event_listener(struct libinput_device *device,
 				   struct libinput_event_listener *listener,
 				   void (*notify_func)(
@@ -623,6 +626,11 @@ tablet_pad_notify_strip(struct libinput_device *device,
 			double value,
 			enum libinput_tablet_pad_strip_axis_source source,
 			struct libinput_tablet_pad_mode_group *group);
+void
+switch_notify_toggle(struct libinput_device *device,
+		     uint64_t time,
+		     enum libinput_switch sw,
+		     enum libinput_switch_state state);
 
 static inline uint64_t
 libinput_now(struct libinput *libinput)

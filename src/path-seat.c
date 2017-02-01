@@ -244,11 +244,11 @@ path_device_change_seat(struct libinput_device *device,
 			const char *seat_name)
 {
 	struct libinput *libinput = device->seat->libinput;
-	struct evdev_device *evdev_device = (struct evdev_device *)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct udev_device *udev_device = NULL;
 	int rc = -1;
 
-	udev_device = evdev_device->udev_device;
+	udev_device = evdev->udev_device;
 	udev_device_ref(udev_device);
 	libinput_path_remove_device(device);
 
@@ -361,7 +361,7 @@ libinput_path_remove_device(struct libinput_device *device)
 	struct libinput *libinput = device->seat->libinput;
 	struct path_input *input = (struct path_input*)libinput;
 	struct libinput_seat *seat;
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct path_device *dev;
 
 	if (libinput->interface_backend != &interface_backend) {

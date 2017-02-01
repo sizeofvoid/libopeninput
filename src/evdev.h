@@ -63,6 +63,7 @@ enum evdev_device_seat_capability {
 	EVDEV_DEVICE_TABLET = (1 << 3),
 	EVDEV_DEVICE_TABLET_PAD = (1 << 4),
 	EVDEV_DEVICE_GESTURE = (1 << 5),
+	EVDEV_DEVICE_SWITCH = (1 << 6),
 };
 
 enum evdev_device_tags {
@@ -71,6 +72,7 @@ enum evdev_device_tags {
 	EVDEV_TAG_EXTERNAL_TOUCHPAD = (1 << 2),
 	EVDEV_TAG_TRACKPOINT = (1 << 3),
 	EVDEV_TAG_KEYBOARD = (1 << 4),
+	EVDEV_TAG_LID_SWITCH = (1 << 5),
 };
 
 enum evdev_middlebutton_state {
@@ -235,6 +237,14 @@ struct evdev_device {
 	} middlebutton;
 };
 
+static inline struct evdev_device *
+evdev_device(struct libinput_device *device)
+{
+	struct evdev_device *d;
+
+	return container_of(device, d, base);
+}
+
 #define EVDEV_UNHANDLED_DEVICE ((struct evdev_device *) 1)
 
 struct evdev_dispatch;
@@ -282,7 +292,16 @@ struct evdev_dispatch_interface {
 			     bool enable);
 };
 
+enum evdev_dispatch_type {
+	DISPATCH_FALLBACK,
+	DISPATCH_TOUCHPAD,
+	DISPATCH_TABLET,
+	DISPATCH_TABLET_PAD,
+	DISPATCH_LID_SWITCH,
+};
+
 struct evdev_dispatch {
+	enum evdev_dispatch_type dispatch_type;
 	struct evdev_dispatch_interface *interface;
 
 	struct {
@@ -290,6 +309,14 @@ struct evdev_dispatch {
 		enum libinput_config_send_events_mode current_mode;
 	} sendevents;
 };
+
+static inline void
+evdev_verify_dispatch_type(struct evdev_dispatch *dispatch,
+			   enum evdev_dispatch_type type)
+{
+	if (dispatch->dispatch_type != type)
+		abort();
+}
 
 struct fallback_dispatch {
 	struct evdev_dispatch base;
@@ -334,6 +361,16 @@ struct fallback_dispatch {
 	bool ignore_events;
 };
 
+static inline struct fallback_dispatch*
+fallback_dispatch(struct evdev_dispatch *dispatch)
+{
+	struct fallback_dispatch *f;
+
+	evdev_verify_dispatch_type(dispatch, DISPATCH_FALLBACK);
+
+	return container_of(dispatch, f, base);
+}
+
 struct evdev_device *
 evdev_device_create(struct libinput_seat *seat,
 		    struct udev_device *device);
@@ -354,6 +391,10 @@ void
 evdev_read_calibration_prop(struct evdev_device *device);
 
 void
+evdev_init_sendevents(struct evdev_device *device,
+		      struct evdev_dispatch *dispatch);
+
+void
 evdev_device_init_pointer_acceleration(struct evdev_device *device,
 				       struct motion_filter *filter);
 
@@ -368,6 +409,9 @@ evdev_tablet_create(struct evdev_device *device);
 
 struct evdev_dispatch *
 evdev_tablet_pad_create(struct evdev_device *device);
+
+struct evdev_dispatch *
+evdev_lid_switch_dispatch_create(struct evdev_device *device);
 
 void
 evdev_device_led_update(struct evdev_device *device, enum libinput_led leds);

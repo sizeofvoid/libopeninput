@@ -201,8 +201,7 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 static void
 tablet_change_to_left_handed(struct evdev_device *device)
 {
-	struct tablet_dispatch *tablet =
-		(struct tablet_dispatch*)device->dispatch;
+	struct tablet_dispatch *tablet = tablet_dispatch(device->dispatch);
 
 	if (device->left_handed.enabled == device->left_handed.want_enabled)
 		return;
@@ -1484,8 +1483,7 @@ tablet_process(struct evdev_dispatch *dispatch,
 	       struct input_event *e,
 	       uint64_t time)
 {
-	struct tablet_dispatch *tablet =
-		(struct tablet_dispatch *)dispatch;
+	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 
 	switch (e->type) {
 	case EV_ABS:
@@ -1518,8 +1516,7 @@ static void
 tablet_suspend(struct evdev_dispatch *dispatch,
 	       struct evdev_device *device)
 {
-	struct tablet_dispatch *tablet =
-		(struct tablet_dispatch *)dispatch;
+	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 
 	tablet_set_touch_device_enabled(tablet->touch_device, true);
 }
@@ -1527,8 +1524,7 @@ tablet_suspend(struct evdev_dispatch *dispatch,
 static void
 tablet_destroy(struct evdev_dispatch *dispatch)
 {
-	struct tablet_dispatch *tablet =
-		(struct tablet_dispatch*)dispatch;
+	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 	struct libinput_tablet_tool *tool, *tmp;
 
 	list_for_each_safe(tool, tmp, &tablet->tool_list, link) {
@@ -1542,8 +1538,7 @@ static void
 tablet_device_added(struct evdev_device *device,
 		    struct evdev_device *added_device)
 {
-	struct tablet_dispatch *tablet =
-		(struct tablet_dispatch*)device->dispatch;
+	struct tablet_dispatch *tablet = tablet_dispatch(device->dispatch);
 
 	if (libinput_device_get_device_group(&device->base) !=
 	    libinput_device_get_device_group(&added_device->base))
@@ -1560,8 +1555,7 @@ static void
 tablet_device_removed(struct evdev_device *device,
 		      struct evdev_device *removed_device)
 {
-	struct tablet_dispatch *tablet =
-		(struct tablet_dispatch*)device->dispatch;
+	struct tablet_dispatch *tablet = tablet_dispatch(device->dispatch);
 
 	if (tablet->touch_device == removed_device)
 		tablet->touch_device = NULL;
@@ -1571,10 +1565,10 @@ static void
 tablet_check_initial_proximity(struct evdev_device *device,
 			       struct evdev_dispatch *dispatch)
 {
+	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 	bool tool_in_prox = false;
 	int code, state;
 	enum libinput_tablet_tool_type tool;
-	struct tablet_dispatch *tablet = (struct tablet_dispatch*)dispatch;
 
 	for (tool = LIBINPUT_TABLET_TOOL_TYPE_PEN; tool <= LIBINPUT_TABLET_TOOL_TYPE_MAX; tool++) {
 		code = tablet_tool_to_evcode(tool);
@@ -1746,6 +1740,7 @@ tablet_init(struct tablet_dispatch *tablet,
 	enum libinput_tablet_tool_axis axis;
 	int rc;
 
+	tablet->base.dispatch_type = DISPATCH_TABLET;
 	tablet->base.interface = &tablet_interface;
 	tablet->device = device;
 	tablet->status = TABLET_NONE;

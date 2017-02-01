@@ -897,11 +897,8 @@ tp_tap_enabled_update(struct tp_dispatch *tp, bool suspended, bool enabled, uint
 static int
 tp_tap_config_count(struct libinput_device *device)
 {
-	struct evdev_dispatch *dispatch;
-	struct tp_dispatch *tp = NULL;
-
-	dispatch = ((struct evdev_device *) device)->dispatch;
-	tp = container_of(dispatch, tp, base);
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	return min(tp->ntouches, 3U); /* we only do up to 3 finger tap */
 }
@@ -910,10 +907,9 @@ static enum libinput_config_status
 tp_tap_config_set_enabled(struct libinput_device *device,
 			  enum libinput_config_tap_state enabled)
 {
-	struct evdev_dispatch *dispatch = ((struct evdev_device *) device)->dispatch;
-	struct tp_dispatch *tp = NULL;
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
-	tp = container_of(dispatch, tp, base);
 	tp_tap_enabled_update(tp, tp->tap.suspended,
 			      (enabled == LIBINPUT_CONFIG_TAP_ENABLED),
 			      libinput_now(device->seat->libinput));
@@ -924,11 +920,8 @@ tp_tap_config_set_enabled(struct libinput_device *device,
 static enum libinput_config_tap_state
 tp_tap_config_is_enabled(struct libinput_device *device)
 {
-	struct evdev_dispatch *dispatch;
-	struct tp_dispatch *tp = NULL;
-
-	dispatch = ((struct evdev_device *) device)->dispatch;
-	tp = container_of(dispatch, tp, base);
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	return tp->tap.enabled ? LIBINPUT_CONFIG_TAP_ENABLED :
 				 LIBINPUT_CONFIG_TAP_DISABLED;
@@ -959,7 +952,7 @@ tp_tap_default(struct evdev_device *evdev)
 static enum libinput_config_tap_state
 tp_tap_config_get_default(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device *)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	return tp_tap_default(evdev);
 }
@@ -968,10 +961,9 @@ static enum libinput_config_status
 tp_tap_config_set_map(struct libinput_device *device,
 		      enum libinput_config_tap_button_map map)
 {
-	struct evdev_dispatch *dispatch = ((struct evdev_device *) device)->dispatch;
-	struct tp_dispatch *tp = NULL;
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
-	tp = container_of(dispatch, tp, base);
 	tp->tap.want_map = map;
 
 	tp_tap_update_map(tp);
@@ -982,10 +974,8 @@ tp_tap_config_set_map(struct libinput_device *device,
 static enum libinput_config_tap_button_map
 tp_tap_config_get_map(struct libinput_device *device)
 {
-	struct evdev_dispatch *dispatch = ((struct evdev_device *) device)->dispatch;
-	struct tp_dispatch *tp = NULL;
-
-	tp = container_of(dispatch, tp, base);
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	return tp->tap.want_map;
 }
@@ -1000,10 +990,9 @@ static enum libinput_config_status
 tp_tap_config_set_drag_enabled(struct libinput_device *device,
 			       enum libinput_config_drag_state enabled)
 {
-	struct evdev_dispatch *dispatch = ((struct evdev_device *) device)->dispatch;
-	struct tp_dispatch *tp = NULL;
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
-	tp = container_of(dispatch, tp, base);
 	tp->tap.drag_enabled = enabled;
 
 	return LIBINPUT_CONFIG_STATUS_SUCCESS;
@@ -1012,10 +1001,8 @@ tp_tap_config_set_drag_enabled(struct libinput_device *device,
 static enum libinput_config_drag_state
 tp_tap_config_get_drag_enabled(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device *)device;
-	struct tp_dispatch *tp = NULL;
-
-	tp = container_of(evdev->dispatch, tp, base);
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	return tp->tap.drag_enabled;
 }
@@ -1029,7 +1016,7 @@ tp_drag_default(struct evdev_device *device)
 static enum libinput_config_drag_state
 tp_tap_config_get_default_drag_enabled(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device *)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	return tp_drag_default(evdev);
 }
@@ -1038,10 +1025,9 @@ static enum libinput_config_status
 tp_tap_config_set_draglock_enabled(struct libinput_device *device,
 				   enum libinput_config_drag_lock_state enabled)
 {
-	struct evdev_dispatch *dispatch = ((struct evdev_device *) device)->dispatch;
-	struct tp_dispatch *tp = NULL;
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
-	tp = container_of(dispatch, tp, base);
 	tp->tap.drag_lock_enabled = enabled;
 
 	return LIBINPUT_CONFIG_STATUS_SUCCESS;
@@ -1050,10 +1036,8 @@ tp_tap_config_set_draglock_enabled(struct libinput_device *device,
 static enum libinput_config_drag_lock_state
 tp_tap_config_get_draglock_enabled(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device *)device;
-	struct tp_dispatch *tp = NULL;
-
-	tp = container_of(evdev->dispatch, tp, base);
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	return tp->tap.drag_lock_enabled;
 }
@@ -1067,7 +1051,7 @@ tp_drag_lock_default(struct evdev_device *device)
 static enum libinput_config_drag_lock_state
 tp_tap_config_get_default_draglock_enabled(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device *)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	return tp_drag_lock_default(evdev);
 }

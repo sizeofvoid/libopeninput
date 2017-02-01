@@ -638,7 +638,7 @@ evdev_middlebutton_filter_button(struct evdev_device *device,
 static void
 evdev_middlebutton_handle_timeout(uint64_t now, void *data)
 {
-	struct evdev_device *device = (struct evdev_device*)data;
+	struct evdev_device *device = evdev_device(data);
 
 	evdev_middlebutton_handle_event(device, now, MIDDLEBUTTON_EVENT_TIMEOUT);
 }
@@ -653,7 +653,7 @@ static enum libinput_config_status
 evdev_middlebutton_set(struct libinput_device *device,
 		       enum libinput_config_middle_emulation_state enable)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	switch (enable) {
 	case LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED:
@@ -674,7 +674,7 @@ evdev_middlebutton_set(struct libinput_device *device,
 enum libinput_config_middle_emulation_state
 evdev_middlebutton_get(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	return evdev->middlebutton.want_enabled ?
 			LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED :
@@ -684,7 +684,7 @@ evdev_middlebutton_get(struct libinput_device *device)
 enum libinput_config_middle_emulation_state
 evdev_middlebutton_get_default(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 
 	return evdev->middlebutton.enabled_default ?
 			LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED :

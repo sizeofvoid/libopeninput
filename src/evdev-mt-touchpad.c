@@ -1140,8 +1140,7 @@ tp_interface_process(struct evdev_dispatch *dispatch,
 		     struct input_event *e,
 		     uint64_t time)
 {
-	struct tp_dispatch *tp =
-		(struct tp_dispatch *)dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	if (tp->ignore_events)
 		return;
@@ -1176,13 +1175,16 @@ tp_remove_sendevents(struct tp_dispatch *tp)
 	if (tp->dwt.keyboard)
 		libinput_device_remove_event_listener(
 					&tp->dwt.keyboard_listener);
+
+	if (tp->lid_switch.lid_switch)
+		libinput_device_remove_event_listener(
+					&tp->lid_switch.lid_switch_listener);
 }
 
 static void
 tp_interface_remove(struct evdev_dispatch *dispatch)
 {
-	struct tp_dispatch *tp =
-		(struct tp_dispatch*)dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	tp_remove_tap(tp);
 	tp_remove_buttons(tp);
@@ -1194,8 +1196,7 @@ tp_interface_remove(struct evdev_dispatch *dispatch)
 static void
 tp_interface_destroy(struct evdev_dispatch *dispatch)
 {
-	struct tp_dispatch *tp =
-		(struct tp_dispatch*)dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	free(tp->touches);
 	free(tp);
@@ -1257,7 +1258,7 @@ static void
 tp_interface_suspend(struct evdev_dispatch *dispatch,
 		     struct evdev_device *device)
 {
-	struct tp_dispatch *tp = (struct tp_dispatch *)dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
 	tp_clear_state(tp);
 }
@@ -1553,6 +1554,50 @@ tp_pair_trackpoint(struct evdev_device *touchpad,
 }
 
 static void
+tp_lid_switch_event(uint64_t time, struct libinput_event *event, void *data)
+{
+	struct tp_dispatch *tp = data;
+	struct libinput_event_switch *swev;
+
+	if (libinput_event_get_type(event) != LIBINPUT_EVENT_SWITCH_TOGGLE)
+		return;
+
+	swev = libinput_event_get_switch_event(event);
+	switch (libinput_event_switch_get_switch_state(swev)) {
+	case LIBINPUT_SWITCH_STATE_OFF:
+		tp_resume(tp, tp->device);
+		log_debug(tp_libinput_context(tp), "lid: resume touchpad\n");
+		break;
+	case LIBINPUT_SWITCH_STATE_ON:
+		tp_suspend(tp, tp->device);
+		log_debug(tp_libinput_context(tp), "lid: suspend touchpad\n");
+		break;
+	}
+}
+
+static void
+tp_pair_lid_switch(struct evdev_device *touchpad,
+		   struct evdev_device *lid_switch)
+{
+	struct tp_dispatch *tp = (struct tp_dispatch*)touchpad->dispatch;
+
+	if ((lid_switch->tags & EVDEV_TAG_LID_SWITCH) == 0)
+		return;
+
+	if (tp->lid_switch.lid_switch == NULL) {
+		log_debug(tp_libinput_context(tp),
+			  "lid_switch: activated for %s<->%s\n",
+			  touchpad->devname,
+			  lid_switch->devname);
+
+		libinput_device_add_event_listener(&lid_switch->base,
+					&tp->lid_switch.lid_switch_listener,
+					tp_lid_switch_event, tp);
+		tp->lid_switch.lid_switch = lid_switch;
+	}
+}
+
+static void
 tp_interface_device_added(struct evdev_device *device,
 			  struct evdev_device *added_device)
 {
@@ -1560,6 +1605,7 @@ tp_interface_device_added(struct evdev_device *device,
 
 	tp_pair_trackpoint(device, added_device);
 	tp_dwt_pair_keyboard(device, added_device);
+	tp_pair_lid_switch(device, added_device);
 
 	if (tp->sendevents.current_mode !=
 	    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE)
@@ -1599,7 +1645,7 @@ tp_interface_device_removed(struct evdev_device *device,
 		return;
 
 	list_for_each(dev, &device->base.seat->devices_list, link) {
-		struct evdev_device *d = (struct evdev_device*)dev;
+		struct evdev_device *d = evdev_device(dev);
 		if (d != removed_device &&
 		    (d->tags & EVDEV_TAG_EXTERNAL_MOUSE)) {
 			return;
@@ -1693,7 +1739,7 @@ tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 			  struct evdev_device *device,
 			  bool enable)
 {
-	struct tp_dispatch *tp = (struct tp_dispatch*)dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
 	bool ignore_events = !enable;
 
 	if (ignore_events == tp->ignore_events)
@@ -1936,7 +1982,7 @@ tp_scroll_get_methods(struct tp_dispatch *tp)
 static uint32_t
 tp_scroll_config_scroll_method_get_methods(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	return tp_scroll_get_methods(tp);
@@ -1946,7 +1992,7 @@ static enum libinput_config_status
 tp_scroll_config_scroll_method_set_method(struct libinput_device *device,
 		        enum libinput_config_scroll_method method)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 	uint64_t time = libinput_now(tp_libinput_context(tp));
 
@@ -1964,7 +2010,7 @@ tp_scroll_config_scroll_method_set_method(struct libinput_device *device,
 static enum libinput_config_scroll_method
 tp_scroll_config_scroll_method_get_method(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	return tp->scroll.method;
@@ -1993,7 +2039,7 @@ tp_scroll_get_default_method(struct tp_dispatch *tp)
 static enum libinput_config_scroll_method
 tp_scroll_config_scroll_method_get_default_method(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	return tp_scroll_get_default_method(tp);
@@ -2028,7 +2074,7 @@ static enum libinput_config_status
 tp_dwt_config_set(struct libinput_device *device,
 	   enum libinput_config_dwt_state enable)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	switch(enable) {
@@ -2047,7 +2093,7 @@ tp_dwt_config_set(struct libinput_device *device,
 static enum libinput_config_dwt_state
 tp_dwt_config_get(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	return tp->dwt.dwt_enabled ?
@@ -2064,7 +2110,7 @@ tp_dwt_default_enabled(struct tp_dispatch *tp)
 static enum libinput_config_dwt_state
 tp_dwt_config_get_default(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	return tp_dwt_default_enabled(tp) ?
@@ -2271,6 +2317,7 @@ static int
 tp_init(struct tp_dispatch *tp,
 	struct evdev_device *device)
 {
+	tp->base.dispatch_type = DISPATCH_TOUCHPAD;
 	tp->base.interface = &tp_interface;
 	tp->device = device;
 
@@ -2316,7 +2363,7 @@ tp_init(struct tp_dispatch *tp,
 static uint32_t
 tp_sendevents_get_modes(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	uint32_t modes = LIBINPUT_CONFIG_SEND_EVENTS_DISABLED;
 
 	if (evdev->tags & EVDEV_TAG_INTERNAL_TOUCHPAD)
@@ -2332,7 +2379,7 @@ tp_suspend_conditional(struct tp_dispatch *tp,
 	struct libinput_device *dev;
 
 	list_for_each(dev, &device->base.seat->devices_list, link) {
-		struct evdev_device *d = (struct evdev_device*)dev;
+		struct evdev_device *d = evdev_device(dev);
 		if (d->tags & EVDEV_TAG_EXTERNAL_MOUSE) {
 			tp_suspend(tp, device);
 			return;
@@ -2344,7 +2391,7 @@ static enum libinput_config_status
 tp_sendevents_set_mode(struct libinput_device *device,
 		       enum libinput_config_send_events_mode mode)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
 
 	/* DISABLED overrides any DISABLED_ON_ */
@@ -2377,7 +2424,7 @@ tp_sendevents_set_mode(struct libinput_device *device,
 static enum libinput_config_send_events_mode
 tp_sendevents_get_mode(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *dispatch = (struct tp_dispatch*)evdev->dispatch;
 
 	return dispatch->sendevents.current_mode;

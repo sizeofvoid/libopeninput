@@ -452,7 +452,7 @@ pad_process(struct evdev_dispatch *dispatch,
 	    struct input_event *e,
 	    uint64_t time)
 {
-	struct pad_dispatch *pad = (struct pad_dispatch *)dispatch;
+	struct pad_dispatch *pad = pad_dispatch(dispatch);
 
 	switch (e->type) {
 	case EV_ABS:
@@ -481,7 +481,7 @@ static void
 pad_suspend(struct evdev_dispatch *dispatch,
 	    struct evdev_device *device)
 {
-	struct pad_dispatch *pad = (struct pad_dispatch *)dispatch;
+	struct pad_dispatch *pad = pad_dispatch(dispatch);
 	struct libinput *libinput = pad_libinput_context(pad);
 	unsigned int code;
 
@@ -496,7 +496,7 @@ pad_suspend(struct evdev_dispatch *dispatch,
 static void
 pad_destroy(struct evdev_dispatch *dispatch)
 {
-	struct pad_dispatch *pad = (struct pad_dispatch*)dispatch;
+	struct pad_dispatch *pad = pad_dispatch(dispatch);
 
 	pad_destroy_leds(pad);
 	free(pad);
@@ -556,6 +556,7 @@ pad_init_left_handed(struct evdev_device *device)
 static int
 pad_init(struct pad_dispatch *pad, struct evdev_device *device)
 {
+	pad->base.dispatch_type = DISPATCH_TABLET_PAD;
 	pad->base.interface = &pad_interface;
 	pad->device = device;
 	pad->status = PAD_NONE;
@@ -579,7 +580,7 @@ static enum libinput_config_status
 pad_sendevents_set_mode(struct libinput_device *device,
 			enum libinput_config_send_events_mode mode)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct pad_dispatch *pad = (struct pad_dispatch*)evdev->dispatch;
 
 	if (mode == pad->sendevents.current_mode)
@@ -603,7 +604,7 @@ pad_sendevents_set_mode(struct libinput_device *device,
 static enum libinput_config_send_events_mode
 pad_sendevents_get_mode(struct libinput_device *device)
 {
-	struct evdev_device *evdev = (struct evdev_device*)device;
+	struct evdev_device *evdev = evdev_device(device);
 	struct pad_dispatch *dispatch = (struct pad_dispatch*)evdev->dispatch;
 
 	return dispatch->sendevents.current_mode;

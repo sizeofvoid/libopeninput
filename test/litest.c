@@ -408,6 +408,8 @@ extern struct litest_test_device litest_acer_hawaii_keyboard_device;
 extern struct litest_test_device litest_acer_hawaii_touchpad_device;
 extern struct litest_test_device litest_synaptics_rmi4_device;
 extern struct litest_test_device litest_mouse_wheel_tilt_device;
+extern struct litest_test_device litest_lid_switch_device;
+extern struct litest_test_device litest_lid_switch_surface3_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -470,6 +472,8 @@ struct litest_test_device* devices[] = {
 	&litest_acer_hawaii_touchpad_device,
 	&litest_synaptics_rmi4_device,
 	&litest_mouse_wheel_tilt_device,
+	&litest_lid_switch_device,
+	&litest_lid_switch_surface3_device,
 	NULL,
 };
 
@@ -1907,6 +1911,14 @@ litest_keyboard_key(struct litest_device *d, unsigned int key, bool is_press)
 	litest_button_click(d, key, is_press);
 }
 
+void
+litest_lid_action(struct litest_device *dev,
+		  enum libinput_switch_state state)
+{
+	litest_event(dev, EV_SW, SW_LID, state);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+}
+
 static int
 litest_scale_axis(const struct litest_device *d,
 		  unsigned int axis,
@@ -2202,6 +2214,9 @@ litest_event_type_str(enum libinput_event_type type)
 		break;
 	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
 		str = "TABLET PAD STRIP";
+		break;
+	case LIBINPUT_EVENT_SWITCH_TOGGLE:
+		str = "SWITCH TOGGLE";
 		break;
 	}
 	return str;
@@ -2816,6 +2831,25 @@ litest_is_pad_strip_event(struct libinput_event *event,
 	return p;
 }
 
+struct libinput_event_switch *
+litest_is_switch_event(struct libinput_event *event,
+		       enum libinput_switch sw,
+		       enum libinput_switch_state state)
+{
+	struct libinput_event_switch *swev;
+	enum libinput_event_type type = LIBINPUT_EVENT_SWITCH_TOGGLE;
+
+	litest_assert_notnull(event);
+	litest_assert_event_type(event, type);
+	swev = libinput_event_get_switch_event(event);
+
+	litest_assert_int_eq(libinput_event_switch_get_switch(swev), sw);
+	litest_assert_int_eq(libinput_event_switch_get_switch_state(swev),
+			     state);
+
+	return swev;
+}
+
 void
 litest_assert_pad_button_event(struct libinput *li,
 			       unsigned int button,
@@ -3320,6 +3354,7 @@ main(int argc, char **argv)
 	litest_setup_tests_keyboard();
 	litest_setup_tests_device();
 	litest_setup_tests_gestures();
+	litest_setup_tests_lid();
 
 	if (mode == LITEST_MODE_LIST) {
 		litest_list_tests(&all_tests);

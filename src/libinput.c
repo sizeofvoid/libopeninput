@@ -159,6 +159,13 @@ struct libinput_event_tablet_pad {
 	} strip;
 };
 
+struct libinput_event_switch {
+	struct libinput_event base;
+	uint64_t time;
+	enum libinput_switch sw;
+	enum libinput_switch_state state;
+};
+
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void
 libinput_default_log_func(struct libinput *libinput,
@@ -365,6 +372,17 @@ libinput_event_get_device_notify_event(struct libinput_event *event)
 	return (struct libinput_event_device_notify *) event;
 }
 
+LIBINPUT_EXPORT struct libinput_event_switch *
+libinput_event_get_switch_event(struct libinput_event *event)
+{
+	require_event_type(libinput_event_get_context(event),
+			   event->type,
+			   NULL,
+			   LIBINPUT_EVENT_SWITCH_TOGGLE);
+
+	return (struct libinput_event_switch *) event;
+}
+
 LIBINPUT_EXPORT uint32_t
 libinput_event_keyboard_get_time(struct libinput_event_keyboard *event)
 {
@@ -498,8 +516,7 @@ libinput_event_pointer_get_dy_unaccelerated(
 LIBINPUT_EXPORT double
 libinput_event_pointer_get_absolute_x(struct libinput_event_pointer *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -512,8 +529,7 @@ libinput_event_pointer_get_absolute_x(struct libinput_event_pointer *event)
 LIBINPUT_EXPORT double
 libinput_event_pointer_get_absolute_y(struct libinput_event_pointer *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -528,8 +544,7 @@ libinput_event_pointer_get_absolute_x_transformed(
 	struct libinput_event_pointer *event,
 	uint32_t width)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -544,8 +559,7 @@ libinput_event_pointer_get_absolute_y_transformed(
 	struct libinput_event_pointer *event,
 	uint32_t height)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -734,8 +748,7 @@ libinput_event_touch_get_seat_slot(struct libinput_event_touch *event)
 LIBINPUT_EXPORT double
 libinput_event_touch_get_x(struct libinput_event_touch *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -750,8 +763,7 @@ LIBINPUT_EXPORT double
 libinput_event_touch_get_x_transformed(struct libinput_event_touch *event,
 				       uint32_t width)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -766,8 +778,7 @@ LIBINPUT_EXPORT double
 libinput_event_touch_get_y_transformed(struct libinput_event_touch *event,
 				       uint32_t height)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -781,8 +792,7 @@ libinput_event_touch_get_y_transformed(struct libinput_event_touch *event,
 LIBINPUT_EXPORT double
 libinput_event_touch_get_y(struct libinput_event_touch *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1092,8 +1102,7 @@ libinput_event_tablet_tool_wheel_has_changed(
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1110,8 +1119,7 @@ libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event)
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1259,8 +1267,7 @@ LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *event,
 					uint32_t width)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1279,8 +1286,7 @@ LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *event,
 					uint32_t height)
 {
-	struct evdev_device *device =
-		(struct evdev_device *) event->base.device;
+	struct evdev_device *device = evdev_device(event->base.device);
 
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
@@ -1506,6 +1512,61 @@ libinput_tablet_tool_unref(struct libinput_tablet_tool *tool)
 	list_remove(&tool->link);
 	free(tool);
 	return NULL;
+}
+
+LIBINPUT_EXPORT struct libinput_event *
+libinput_event_switch_get_base_event(struct libinput_event_switch *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   NULL,
+			   LIBINPUT_EVENT_SWITCH_TOGGLE);
+
+	return &event->base;
+}
+
+LIBINPUT_EXPORT enum libinput_switch
+libinput_event_switch_get_switch(struct libinput_event_switch *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_SWITCH_TOGGLE);
+
+	return event->sw;
+}
+
+LIBINPUT_EXPORT enum libinput_switch_state
+libinput_event_switch_get_switch_state(struct libinput_event_switch *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_SWITCH_TOGGLE);
+
+	return event->state;
+}
+
+LIBINPUT_EXPORT uint32_t
+libinput_event_switch_get_time(struct libinput_event_switch *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_SWITCH_TOGGLE);
+
+	return us2ms(event->time);
+}
+
+LIBINPUT_EXPORT uint64_t
+libinput_event_switch_get_time_usec(struct libinput_event_switch *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_SWITCH_TOGGLE);
+
+	return event->time;
 }
 
 struct libinput_source *
@@ -1825,7 +1886,7 @@ static void
 libinput_device_destroy(struct libinput_device *device)
 {
 	assert(list_empty(&device->event_listeners));
-	evdev_device_destroy((struct evdev_device *) device);
+	evdev_device_destroy(evdev_device(device));
 }
 
 LIBINPUT_EXPORT struct libinput_device *
@@ -1869,6 +1930,12 @@ libinput_dispatch(struct libinput *libinput)
 	libinput_drop_destroyed_sources(libinput);
 
 	return 0;
+}
+
+void
+libinput_device_init_event_listener(struct libinput_event_listener *listener)
+{
+	list_init(&listener->link);
 }
 
 void
@@ -2023,6 +2090,9 @@ device_has_cap(struct libinput_device *device,
 		break;
 	case LIBINPUT_DEVICE_CAP_TABLET_PAD:
 		capability = "CAP_TABLET_PAD";
+		break;
+	case LIBINPUT_DEVICE_CAP_SWITCH:
+		capability = "CAP_SWITCH";
 		break;
 	}
 
@@ -2619,11 +2689,38 @@ event_type_to_str(enum libinput_event_type type)
 	CASE_RETURN_STRING(LIBINPUT_EVENT_GESTURE_PINCH_BEGIN);
 	CASE_RETURN_STRING(LIBINPUT_EVENT_GESTURE_PINCH_UPDATE);
 	CASE_RETURN_STRING(LIBINPUT_EVENT_GESTURE_PINCH_END);
+	CASE_RETURN_STRING(LIBINPUT_EVENT_SWITCH_TOGGLE);
 	case LIBINPUT_EVENT_NONE:
 		abort();
 	}
 
 	return NULL;
+}
+
+void
+switch_notify_toggle(struct libinput_device *device,
+		     uint64_t time,
+		     enum libinput_switch sw,
+		     enum libinput_switch_state state)
+{
+	struct libinput_event_switch *switch_event;
+
+	if (!device_has_cap(device, LIBINPUT_DEVICE_CAP_SWITCH))
+		return;
+
+	switch_event = zalloc(sizeof *switch_event);
+	if (!switch_event)
+		return;
+
+	*switch_event = (struct libinput_event_switch) {
+		.time = time,
+		.sw = sw,
+		.state = state,
+	};
+
+	post_device_event(device, time,
+			  LIBINPUT_EVENT_SWITCH_TOGGLE,
+			  &switch_event->base);
 }
 
 static void

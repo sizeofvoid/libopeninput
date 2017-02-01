@@ -98,10 +98,16 @@ def property_grammar():
             ('LIBINPUT_ATTR_SIZE_HINT', Group(dimension('SETTINGS*'))),
             ('LIBINPUT_ATTR_RESOLUTION_HINT', Group(dimension('SETTINGS*'))),
             )
+
     size_props = [Literal(name)('NAME') - Suppress('=') - val('VALUE')
                    for name, val in sz_props]
 
-    grammar = Or(model_props + size_props);
+    reliability_tags = Or(('reliable', 'write_open'))
+    reliability = [Literal('LIBINPUT_ATTR_LID_SWITCH_RELIABILITY')('NAME') -
+                         Suppress('=') -
+                         reliability_tags('VALUE')]
+
+    grammar = Or(model_props + size_props + reliability)
 
     return grammar
 
