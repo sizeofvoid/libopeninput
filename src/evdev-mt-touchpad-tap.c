@@ -33,7 +33,6 @@
 
 #include "evdev-mt-touchpad.h"
 
-#define DEFAULT_TAP_INITIAL_TIMEOUT_PERIOD ms2us(100)
 #define DEFAULT_TAP_TIMEOUT_PERIOD ms2us(180)
 #define DEFAULT_DRAG_TIMEOUT_PERIOD ms2us(300)
 #define DEFAULT_TAP_MOVE_THRESHOLD TP_MM_TO_DPI_NORMALIZED(1.3)
@@ -128,13 +127,6 @@ tp_tap_notify(struct tp_dispatch *tp,
 }
 
 static void
-tp_tap_set_initial_timer(struct tp_dispatch *tp, uint64_t time)
-{
-	libinput_timer_set(&tp->tap.timer,
-			   time + DEFAULT_TAP_INITIAL_TIMEOUT_PERIOD);
-}
-
-static void
 tp_tap_set_timer(struct tp_dispatch *tp, uint64_t time)
 {
 	libinput_timer_set(&tp->tap.timer, time + DEFAULT_TAP_TIMEOUT_PERIOD);
@@ -163,7 +155,7 @@ tp_tap_idle_handle_event(struct tp_dispatch *tp,
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_TOUCH;
 		tp->tap.first_press_time = time;
-		tp_tap_set_initial_timer(tp, time);
+		tp_tap_set_timer(tp, time);
 		break;
 	case TAP_EVENT_RELEASE:
 		break;
