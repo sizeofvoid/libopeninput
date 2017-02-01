@@ -507,6 +507,7 @@ wheel_click_count(struct litest_device *dev, int which)
 		goto out;
 
 	count = parse_mouse_wheel_click_count_property(prop);
+	litest_assert_int_ne(count, 0);
 	angle = 360.0/count;
 
 out:
