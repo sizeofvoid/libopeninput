@@ -30,8 +30,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void alps_dualpoint_create(struct litest_device *d);
-
 static void
 litest_alps_dualpoint_setup(void)
 {
@@ -39,34 +37,46 @@ litest_alps_dualpoint_setup(void)
 	litest_set_current_device(d);
 }
 
-static void
-alps_dualpoint_touch_down(struct litest_device *d, unsigned int slot, double x, double y)
+static struct input_event down[] = {
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
+	{ .type = -1, .code = -1 },
+};
+
+static struct input_event move[] = {
+	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
+	{ .type = -1, .code = -1 },
+};
+
+static int
+get_axis_default(struct litest_device *d, unsigned int evcode, int32_t *value)
 {
-	struct litest_semi_mt *semi_mt = d->private;
-
-	litest_semi_mt_touch_down(d, semi_mt, slot, x, y);
-}
-
-static void
-alps_dualpoint_touch_move(struct litest_device *d, unsigned int slot, double x, double y)
-{
-	struct litest_semi_mt *semi_mt = d->private;
-
-	litest_semi_mt_touch_move(d, semi_mt, slot, x, y);
-}
-
-static void
-alps_dualpoint_touch_up(struct litest_device *d, unsigned int slot)
-{
-	struct litest_semi_mt *semi_mt = d->private;
-
-	litest_semi_mt_touch_up(d, semi_mt, slot);
+	switch (evcode) {
+	case ABS_PRESSURE:
+	case ABS_MT_PRESSURE:
+		*value = 30;
+		return 0;
+	}
+	return 1;
 }
 
 static struct litest_device_interface interface = {
-	.touch_down = alps_dualpoint_touch_down,
-	.touch_move = alps_dualpoint_touch_move,
-	.touch_up = alps_dualpoint_touch_up,
+	.touch_down_events = down,
+	.touch_move_events = move,
+
+	.get_axis_default = get_axis_default,
 };
 
 static struct input_id input_id = {
@@ -116,7 +126,6 @@ struct litest_test_device litest_alps_dualpoint_device = {
 	.shortname = "alps dualpoint",
 	.setup = litest_alps_dualpoint_setup,
 	.interface = &interface,
-	.create = alps_dualpoint_create,
 
 	.name = "AlpsPS/2 ALPS DualPoint TouchPad",
 	.id = &input_id,
@@ -124,18 +133,3 @@ struct litest_test_device litest_alps_dualpoint_device = {
 	.absinfo = absinfo,
 	.udev_rule = udev_rule,
 };
-
-static void
-alps_dualpoint_create(struct litest_device *d)
-{
-	struct litest_semi_mt *semi_mt = zalloc(sizeof(*semi_mt));
-	assert(semi_mt);
-
-	d->private = semi_mt;
-
-	d->uinput = litest_create_uinput_device_from_description(litest_alps_dualpoint_device.name,
-								 litest_alps_dualpoint_device.id,
-								 absinfo,
-								 events);
-	d->interface = &interface;
-}

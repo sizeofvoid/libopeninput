@@ -214,6 +214,7 @@ tp_new_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	tp_motion_history_reset(t);
 	t->dirty = true;
 	t->has_ended = false;
+	t->was_down = false;
 	t->state = TOUCH_HOVERING;
 	t->pinned.is_pinned = false;
 	t->millis = time;
@@ -226,6 +227,7 @@ tp_begin_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->dirty = true;
 	t->state = TOUCH_BEGIN;
 	t->millis = time;
+	t->was_down = true;
 	tp->nfingers_down++;
 	t->palm.time = time;
 	t->thumb.state = THUMB_STATE_MAYBE;
@@ -320,9 +322,6 @@ tp_process_absolute(struct tp_dispatch *tp,
 	case ABS_MT_SLOT:
 		tp->slot = e->value;
 		break;
-	case ABS_MT_DISTANCE:
-		t->distance = e->value;
-		break;
 	case ABS_MT_TRACKING_ID:
 		if (e->value != -1)
 			tp_new_touch(tp, t, time);
@@ -362,6 +361,11 @@ tp_process_absolute_st(struct tp_dispatch *tp,
 		t->millis = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
+		break;
+	case ABS_PRESSURE:
+		t->pressure = e->value;
+		t->dirty = true;
+		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
 		break;
 	}
 }
@@ -793,26 +797,72 @@ out:
 }
 
 static void
-tp_unhover_abs_distance(struct tp_dispatch *tp, uint64_t time)
+tp_unhover_pressure(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *t;
-	unsigned int i;
+	int i;
+	unsigned int nfake_touches;
+	unsigned int real_fingers_down = 0;
 
-	for (i = 0; i < tp->ntouches; i++) {
+	nfake_touches = tp_fake_finger_count(tp);
+	if (nfake_touches == FAKE_FINGER_OVERFLOW)
+		nfake_touches = 0;
+
+	for (i = 0; i < (int)tp->num_slots; i++) {
 		t = tp_get_touch(tp, i);
 
-		if (!t->dirty)
-			continue;
-
-		if (t->state == TOUCH_HOVERING) {
-			if (t->distance == 0) {
-				/* avoid jumps when landing a finger */
-				tp_motion_history_reset(t);
-				tp_begin_touch(tp, t, time);
+		if (t->dirty) {
+			if (t->state == TOUCH_HOVERING) {
+				if (t->pressure >= tp->pressure.high) {
+					/* avoid jumps when landing a finger */
+					tp_motion_history_reset(t);
+					tp_begin_touch(tp, t, time);
+				}
+			} else {
+				if (t->pressure < tp->pressure.low)
+					tp_end_touch(tp, t, time);
 			}
-		} else {
-			if (t->distance > 0)
-				tp_end_touch(tp, t, time);
+		}
+
+		if (t->state == TOUCH_BEGIN ||
+		    t->state == TOUCH_UPDATE)
+			real_fingers_down++;
+	}
+
+	if (nfake_touches <= tp->num_slots ||
+	    tp->nfingers_down == 0)
+		return;
+
+	/* if we have more fake fingers down than slots, we assume
+	 * _all_ fingers have enough pressure, even if some of the slotted
+	 * ones don't. Anything else gets insane quickly.
+	 */
+	for (i = 0; i < (int)tp->ntouches; i++) {
+		t = tp_get_touch(tp, i);
+		if (t->state == TOUCH_HOVERING) {
+			/* avoid jumps when landing a finger */
+			tp_motion_history_reset(t);
+			tp_begin_touch(tp, t, time);
+
+			if (tp->nfingers_down >= nfake_touches)
+				break;
+		}
+	}
+
+	if (tp->nfingers_down > nfake_touches ||
+	    real_fingers_down == 0) {
+		for (i = tp->ntouches - 1; i >= 0; i--) {
+			t = tp_get_touch(tp, i);
+
+			if (t->state == TOUCH_HOVERING ||
+			    t->state == TOUCH_NONE)
+				continue;
+
+			tp_end_touch(tp, t, time);
+
+			if (real_fingers_down > 0  &&
+			    tp->nfingers_down == nfake_touches)
+				break;
 		}
 	}
 }
@@ -879,8 +929,8 @@ tp_unhover_fake_touches(struct tp_dispatch *tp, uint64_t time)
 static void
 tp_unhover_touches(struct tp_dispatch *tp, uint64_t time)
 {
-	if (tp->reports_distance)
-		tp_unhover_abs_distance(tp, time);
+	if (tp->pressure.use_pressure)
+		tp_unhover_pressure(tp, time);
 	else
 		tp_unhover_fake_touches(tp, time);
 
@@ -924,6 +974,7 @@ tp_position_fake_touches(struct tp_dispatch *tp)
 			continue;
 
 		t->point = topmost->point;
+		t->pressure = topmost->pressure;
 		if (!t->dirty)
 			t->dirty = topmost->dirty;
 	}
@@ -1791,7 +1842,13 @@ tp_sync_touch(struct tp_dispatch *tp,
 				       &t->point.y))
 		t->point.y = libevdev_get_event_value(evdev, EV_ABS, ABS_Y);
 
-	libevdev_fetch_slot_value(evdev, slot, ABS_MT_DISTANCE, &t->distance);
+	if (!libevdev_fetch_slot_value(evdev,
+				       slot,
+				       ABS_MT_PRESSURE,
+				       &t->pressure))
+		t->pressure = libevdev_get_event_value(evdev,
+						       EV_ABS,
+						       ABS_PRESSURE);
 }
 
 static inline void
@@ -2313,6 +2370,38 @@ tp_init_hysteresis(struct tp_dispatch *tp)
 	tp->hysteresis_margin.y = res_y/2;
 }
 
+static void
+tp_init_pressure(struct tp_dispatch *tp,
+		 struct evdev_device *device)
+{
+	const struct input_absinfo *abs;
+	unsigned int range;
+	unsigned int code = ABS_PRESSURE;
+
+	if (tp->has_mt)
+		code = ABS_MT_PRESSURE;
+
+	if (!libevdev_has_event_code(device->evdev, EV_ABS, code)) {
+		tp->pressure.use_pressure = false;
+		return;
+	}
+
+	tp->pressure.use_pressure = true;
+
+	abs = libevdev_get_abs_info(device->evdev, code);
+	assert(abs);
+
+	range = abs->maximum - abs->minimum;
+
+	/* Approximately the synaptics defaults */
+	tp->pressure.high = abs->minimum + 0.12 * range;
+	tp->pressure.low = abs->minimum + 0.10 * range;
+
+	log_debug(evdev_libinput_context(device),
+		  "%s: using pressure-based touch detection\n",
+		  device->devname);
+}
+
 static int
 tp_init(struct tp_dispatch *tp,
 	struct evdev_device *device)
@@ -2331,9 +2420,7 @@ tp_init(struct tp_dispatch *tp,
 
 	evdev_device_init_abs_range_warnings(device);
 
-	tp->reports_distance = libevdev_has_event_code(device->evdev,
-						       EV_ABS,
-						       ABS_MT_DISTANCE);
+	tp_init_pressure(tp, device);
 
 	/* Set the dpi to that of the x axis, because that's what we normalize
 	   to when needed*/
