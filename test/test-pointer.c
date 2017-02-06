@@ -657,6 +657,18 @@ START_TEST(pointer_scroll_natural_defaults)
 }
 END_TEST
 
+START_TEST(pointer_scroll_natural_defaults_noscroll)
+{
+	struct litest_device *dev = litest_current_device();
+
+	if (libinput_device_config_scroll_has_natural_scroll(dev->libinput_device))
+		return;
+
+	ck_assert_int_eq(libinput_device_config_scroll_get_natural_scroll_enabled(dev->libinput_device), 0);
+	ck_assert_int_eq(libinput_device_config_scroll_get_default_natural_scroll_enabled(dev->libinput_device), 0);
+}
+END_TEST
+
 START_TEST(pointer_scroll_natural_enable_config)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1852,6 +1864,7 @@ litest_setup_tests_pointer(void)
 	litest_add("pointer:scroll", pointer_scroll_button_middle_emulation, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:scroll", pointer_scroll_nowheel_defaults, LITEST_RELATIVE|LITEST_BUTTON, LITEST_WHEEL);
 	litest_add("pointer:scroll", pointer_scroll_natural_defaults, LITEST_WHEEL, LITEST_TABLET);
+	litest_add("pointer:scroll", pointer_scroll_natural_defaults_noscroll, LITEST_ANY, LITEST_WHEEL);
 	litest_add("pointer:scroll", pointer_scroll_natural_enable_config, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_natural_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_has_axis_invalid, LITEST_WHEEL, LITEST_TABLET);
