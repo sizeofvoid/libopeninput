@@ -1014,6 +1014,28 @@ START_TEST(pointer_scroll_button)
 }
 END_TEST
 
+START_TEST(pointer_scroll_button_noscroll)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	uint32_t methods, button;
+	enum libinput_config_status status;
+
+	methods = libinput_device_config_scroll_get_method(device);
+	ck_assert_int_eq((methods & LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN), 0);
+	button = libinput_device_config_scroll_get_button(device);
+	ck_assert_int_eq(button, 0);
+	button = libinput_device_config_scroll_get_default_button(device);
+	ck_assert_int_eq(button, 0);
+
+	status = libinput_device_config_scroll_set_method(device,
+					LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	status = libinput_device_config_scroll_set_button(device, BTN_LEFT);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+}
+END_TEST
+
 START_TEST(pointer_scroll_button_no_event_before_timeout)
 {
 	struct litest_device *device = litest_current_device();
@@ -1889,6 +1911,7 @@ litest_setup_tests_pointer(void)
 	litest_add_for_device("pointer:button", pointer_button_has_no_button, LITEST_KEYBOARD);
 	litest_add("pointer:scroll", pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
+	litest_add("pointer:scroll", pointer_scroll_button_noscroll, LITEST_ANY, LITEST_RELATIVE|LITEST_BUTTON);
 	litest_add("pointer:scroll", pointer_scroll_button_no_event_before_timeout, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:scroll", pointer_scroll_button_middle_emulation, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:scroll", pointer_scroll_nowheel_defaults, LITEST_RELATIVE|LITEST_BUTTON, LITEST_WHEEL);
