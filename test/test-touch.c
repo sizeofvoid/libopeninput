@@ -114,6 +114,75 @@ START_TEST(touch_abs_transform)
 }
 END_TEST
 
+static inline void
+touch_assert_seat_slot(struct libinput *li,
+		       enum libinput_event_type type,
+		       unsigned int slot,
+		       unsigned int seat_slot)
+{
+	struct libinput_event *ev;
+	struct libinput_event_touch *tev;
+
+	libinput_dispatch(li);
+	ev = libinput_get_event(li);
+	tev = litest_is_touch_event(ev, type);
+	slot = libinput_event_touch_get_slot(tev);
+	ck_assert_int_eq(slot, slot);
+	slot = libinput_event_touch_get_seat_slot(tev);
+	ck_assert_int_eq(slot, seat_slot);
+	libinput_event_destroy(ev);
+
+	ev = libinput_get_event(li);
+	litest_assert_event_type(ev, LIBINPUT_EVENT_TOUCH_FRAME);
+	libinput_event_destroy(ev);
+}
+
+START_TEST(touch_seat_slot)
+{
+	struct litest_device *dev1 = litest_current_device();
+	struct litest_device *dev2;
+	struct libinput *li = dev1->libinput;
+
+	dev2 = litest_add_device(li, LITEST_WACOM_TOUCH);
+
+	litest_drain_events(li);
+
+	litest_touch_down(dev1, 0, 50, 50);
+	touch_assert_seat_slot(li, LIBINPUT_EVENT_TOUCH_DOWN, 0, 0);
+
+	litest_touch_down(dev2, 0, 50, 50);
+	touch_assert_seat_slot(li, LIBINPUT_EVENT_TOUCH_DOWN, 0, 1);
+
+	litest_touch_down(dev2, 1, 60, 50);
+	touch_assert_seat_slot(li, LIBINPUT_EVENT_TOUCH_DOWN, 1, 2);
+
+	litest_touch_down(dev1, 1, 60, 50);
+	touch_assert_seat_slot(li, LIBINPUT_EVENT_TOUCH_DOWN, 1, 3);
+
+	litest_touch_move_to(dev1, 0, 50, 50, 60, 70, 10, 0);
+	touch_assert_seat_slot(li, LIBINPUT_EVENT_TOUCH_MOTION, 0, 0);
+	litest_drain_events(li);
+
+	litest_touch_move_to(dev2, 1, 50, 50, 60, 70, 10, 0);
+	touch_assert_seat_slot(li, LIBINPUT_EVENT_TOUCH_MOTION, 1, 2);
+	litest_drain_events(li);
+
+	litest_touch_up(dev1, 0);
+	touch_assert_seat_slot(li, LIBINPUT_EVENT_TOUCH_UP, 0, 0);
+
+	litest_touch_up(dev2, 0);
+	touch_assert_seat_slot(li, LIBINPUT_EVENT_TOUCH_UP, 0, 1);
+
+	litest_touch_up(dev2, 1);
+	touch_assert_seat_slot(li, LIBINPUT_EVENT_TOUCH_UP, 1, 2);
+
+	litest_touch_up(dev1, 1);
+	touch_assert_seat_slot(li, LIBINPUT_EVENT_TOUCH_UP, 1, 3);
+
+	litest_delete_device(dev2);
+}
+END_TEST
+
 START_TEST(touch_many_slots)
 {
 	struct libinput *libinput;
@@ -825,7 +894,8 @@ litest_setup_tests_touch(void)
 
 	litest_add("touch:frame", touch_frame_events, LITEST_TOUCH, LITEST_ANY);
 	litest_add_no_device("touch:abs-transform", touch_abs_transform);
-	litest_add_no_device("touch:many-slots", touch_many_slots);
+	litest_add("touch:slots", touch_seat_slot, LITEST_TOUCH, LITEST_TOUCHPAD);
+	litest_add_no_device("touch:slots", touch_many_slots);
 	litest_add("touch:double-touch-down-up", touch_double_touch_down_up, LITEST_TOUCH, LITEST_ANY);
 	litest_add("touch:calibration", touch_calibration_scale, LITEST_TOUCH, LITEST_TOUCHPAD);
 	litest_add("touch:calibration", touch_calibration_scale, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
