@@ -1862,6 +1862,20 @@ START_TEST(touchpad_tap_set_map_no_tapping)
 }
 END_TEST
 
+START_TEST(touchpad_tap_get_map_no_tapping)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	enum libinput_config_tap_button_map map;
+
+	map = libinput_device_config_tap_get_button_map(device);
+	ck_assert_int_eq(map,  LIBINPUT_CONFIG_TAP_MAP_LRM);
+
+	map = libinput_device_config_tap_get_default_button_map(device);
+	ck_assert_int_eq(map,  LIBINPUT_CONFIG_TAP_MAP_LRM);
+}
+END_TEST
+
 START_TEST(touchpad_tap_map_delayed)
 {
 	struct litest_device *dev = litest_current_device();
@@ -2216,6 +2230,7 @@ litest_setup_tests_touchpad_tap(void)
 	litest_add("tap:config", touchpad_tap_map_unsupported, LITEST_ANY, LITEST_TOUCHPAD);
 	litest_add("tap:config", touchpad_tap_set_map, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("tap:config", touchpad_tap_set_map_no_tapping, LITEST_ANY, LITEST_TOUCHPAD);
+	litest_add("tap:config", touchpad_tap_get_map_no_tapping, LITEST_ANY, LITEST_TOUCHPAD);
 	litest_add("tap:config", touchpad_tap_map_delayed, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 
 	litest_add("tap-1fg:1fg", clickpad_1fg_tap_click, LITEST_CLICKPAD, LITEST_ANY);
