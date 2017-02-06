@@ -93,7 +93,7 @@ START_TEST(touchpad_click_defaults_none)
 	uint32_t methods, method;
 	enum libinput_config_status status;
 
-	/* call this test for non-clickpads */
+	/* call this test for non-clickpads and non-touchpads */
 
 	methods = libinput_device_config_click_get_methods(device);
 	ck_assert_int_eq(methods, 0);
@@ -1833,6 +1833,7 @@ litest_setup_tests_touchpad_buttons(void)
 	litest_add("touchpad:click", touchpad_click_defaults_clickfinger, LITEST_APPLE_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:click", touchpad_click_defaults_btnarea, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
 	litest_add("touchpad:click", touchpad_click_defaults_none, LITEST_TOUCHPAD, LITEST_CLICKPAD);
+	litest_add("touchpad:click", touchpad_click_defaults_none, LITEST_ANY, LITEST_TOUCHPAD);
 
 	litest_add("touchpad:click", touchpad_btn_left, LITEST_TOUCHPAD|LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add("touchpad:click", clickpad_btn_left, LITEST_CLICKPAD, LITEST_ANY);
