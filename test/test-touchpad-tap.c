@@ -1748,6 +1748,8 @@ START_TEST(touchpad_tap_default_disabled)
 
 	/* this test is only run on specific devices */
 
+	ck_assert_int_eq(libinput_device_config_tap_get_enabled(dev->libinput_device),
+			 LIBINPUT_CONFIG_TAP_DISABLED);
 	ck_assert_int_eq(libinput_device_config_tap_get_default_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_TAP_DISABLED);
 }
@@ -1759,6 +1761,8 @@ START_TEST(touchpad_tap_default_enabled)
 
 	/* this test is only run on specific devices */
 
+	ck_assert_int_eq(libinput_device_config_tap_get_enabled(dev->libinput_device),
+			 LIBINPUT_CONFIG_TAP_ENABLED);
 	ck_assert_int_eq(libinput_device_config_tap_get_default_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_TAP_ENABLED);
 }
