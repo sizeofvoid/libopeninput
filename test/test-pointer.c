@@ -1348,6 +1348,35 @@ START_TEST(pointer_accel_profile_invalid)
 }
 END_TEST
 
+START_TEST(pointer_accel_profile_noaccel)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	enum libinput_config_status status;
+	enum libinput_config_accel_profile profile;
+
+	ck_assert(!libinput_device_config_accel_is_available(device));
+
+	profile = libinput_device_config_accel_get_default_profile(device);
+	ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
+
+	profile = libinput_device_config_accel_get_profile(device);
+	ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
+
+	status = libinput_device_config_accel_set_profile(device,
+					   LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+
+	status = libinput_device_config_accel_set_profile(device,
+					   LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE + 1);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+
+	status = libinput_device_config_accel_set_profile(device,
+			   LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE |LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+}
+END_TEST
+
 START_TEST(pointer_accel_profile_flat_motion_relative)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1885,6 +1914,7 @@ litest_setup_tests_pointer(void)
 	litest_add("pointer:accel", pointer_accel_profile_defaults, LITEST_RELATIVE, LITEST_TOUCHPAD);
 	litest_add("pointer:accel", pointer_accel_profile_defaults_noprofile, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("pointer:accel", pointer_accel_profile_invalid, LITEST_RELATIVE, LITEST_ANY);
+	litest_add("pointer:accel", pointer_accel_profile_noaccel, LITEST_ANY, LITEST_TOUCHPAD|LITEST_RELATIVE|LITEST_TABLET);
 	litest_add("pointer:accel", pointer_accel_profile_flat_motion_relative, LITEST_RELATIVE, LITEST_TOUCHPAD);
 
 	litest_add("pointer:middlebutton", middlebutton, LITEST_BUTTON, LITEST_CLICKPAD);
