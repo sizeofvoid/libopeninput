@@ -610,13 +610,13 @@ tp_init_top_softbuttons(struct tp_dispatch *tp,
 
 		evdev_device_get_size(device, &width, &height);
 
-		mm.x = width * 0.58;
+		mm.x = width * 0.60;
 		mm.y = topsize_mm;
 		edges = evdev_device_mm_to_units(device, &mm);
 		tp->buttons.top_area.bottom_edge = edges.y;
 		tp->buttons.top_area.rightbutton_left_edge = edges.x;
 
-		mm.x = width * 0.42;
+		mm.x = width * 0.40;
 		edges = evdev_device_mm_to_units(device, &mm);
 		tp->buttons.top_area.leftbutton_right_edge = edges.x;
 	} else {
