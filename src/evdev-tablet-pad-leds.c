@@ -193,6 +193,13 @@ pad_group_new_basic(struct pad_dispatch *pad,
 	return group;
 }
 
+static inline bool
+is_litest_device(struct evdev_device *device)
+{
+	return !!udev_device_get_property_value(device->udev_device,
+						"LIBINPUT_TEST_DEVICE");
+}
+
 static inline struct pad_led_group *
 pad_group_new(struct pad_dispatch *pad,
 	      unsigned int group_index,
@@ -228,7 +235,11 @@ pad_group_new(struct pad_dispatch *pad,
 	return group;
 
 error:
-	log_error(libinput, "Unable to init LED group: %s\n", strerror(errno));
+	if (!is_litest_device(pad->device))
+		log_error(libinput,
+			  "%s: unable to init LED group: %s\n",
+			  pad->device->devname,
+			  strerror(errno));
 	pad_led_group_destroy(&group->base);
 
 	return NULL;
