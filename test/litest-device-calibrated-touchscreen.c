@@ -82,7 +82,8 @@ static const char udev_rule[] =
 "KERNEL!=\"event*\", GOTO=\"calibrated_touchscreen_end\"\n"
 "\n"
 "ATTRS{name}==\"litest Calibrated Touchscreen*\",\\\n"
-"    ENV{LIBINPUT_CALIBRATION_MATRIX}=\"1.2 3.4 5.6 7.8 9.10 11.12\"\n"
+"    ENV{LIBINPUT_CALIBRATION_MATRIX}=\"1.2 3.4 5.6 7.8 9.10 11.12\",\\\n"
+"    ENV{WL_OUTPUT}=\"myOutput\"\n"
 "\n"
 "LABEL=\"calibrated_touchscreen_end\"";
 

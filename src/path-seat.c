@@ -116,7 +116,7 @@ path_device_enable(struct path_input *input,
 	struct path_seat *seat;
 	struct evdev_device *device = NULL;
 	char *seat_name = NULL, *seat_logical_name = NULL;
-	const char *seat_prop;
+	const char *seat_prop, *output_name;
 	const char *devnode;
 
 	devnode = udev_device_get_devnode(udev_device);
@@ -169,6 +169,9 @@ path_device_enable(struct path_input *input,
 	}
 
 	evdev_read_calibration_prop(device);
+	output_name = udev_device_get_property_value(udev_device, "WL_OUTPUT");
+	if (output_name)
+		device->output_name = strdup(output_name);
 
 out:
 	free(seat_name);
