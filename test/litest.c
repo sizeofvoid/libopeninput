@@ -3248,6 +3248,26 @@ litest_pop_event_frame(struct litest_device *dev)
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 }
 
+void
+litest_filter_event(struct litest_device *dev,
+		    unsigned int type,
+		    unsigned int code)
+{
+	libevdev_disable_event_code(dev->evdev, type, code);
+}
+
+void
+litest_unfilter_event(struct litest_device *dev,
+		      unsigned int type,
+		      unsigned int code)
+{
+	/* would need an non-NULL argument for re-enabling, so simply abort
+	 * until we need to be more sophisticated */
+	litest_assert(type != EV_ABS);
+
+	libevdev_enable_event_code(dev->evdev, type, code, NULL);
+}
+
 static void
 send_abs_xy(struct litest_device *d, double x, double y)
 {
