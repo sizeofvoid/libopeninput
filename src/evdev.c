@@ -3444,6 +3444,7 @@ evdev_device_destroy(struct evdev_device *device)
 	if (device->base.group)
 		libinput_device_group_unref(device->base.group);
 
+	free(device->output_name);
 	filter_destroy(device->pointer.filter);
 	libinput_seat_unref(device->base.seat);
 	libevdev_free(device->evdev);
