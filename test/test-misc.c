@@ -947,6 +947,60 @@ START_TEST(reliability_prop_parser)
 }
 END_TEST
 
+struct parser_test_calibration {
+	char *prop;
+	bool success;
+	float values[6];
+};
+
+START_TEST(calibration_prop_parser)
+{
+#define DEFAULT_VALUES { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 }
+	const float untouched[6] = DEFAULT_VALUES;
+	struct parser_test_calibration tests[] = {
+		{ "", false, DEFAULT_VALUES },
+		{ "banana", false, DEFAULT_VALUES },
+		{ "1 2 3 a 5 6", false, DEFAULT_VALUES },
+		{ "2", false, DEFAULT_VALUES },
+		{ "2 3 4 5 6", false, DEFAULT_VALUES },
+		{ "1 2 3 4 5 6", true, DEFAULT_VALUES },
+		{ "6.00012 3.244 4.238 5.2421 6.0134 8.860", true,
+			{ 6.00012, 3.244, 4.238, 5.2421, 6.0134, 8.860 }},
+		{ "0xff 2 3 4 5 6", true,
+			{ 255, 2, 3, 4, 5, 6 }},
+		{ NULL, false, DEFAULT_VALUES }
+	};
+	bool success;
+	float calibration[6];
+	int rc;
+	int i;
+
+	for (i = 0; tests[i].prop != NULL; i++) {
+		memcpy(calibration, untouched, sizeof(calibration));
+
+		success = parse_calibration_property(tests[i].prop,
+						     calibration);
+		ck_assert_int_eq(success, tests[i].success);
+		if (success)
+			rc = memcmp(tests[i].values,
+				    calibration,
+				    sizeof(calibration));
+		else
+			rc = memcmp(untouched,
+				    calibration,
+				    sizeof(calibration));
+		ck_assert_int_eq(rc, 0);
+	}
+
+	memcpy(calibration, untouched, sizeof(calibration));
+
+	success = parse_calibration_property(NULL, calibration);
+	ck_assert(success == false);
+	rc = memcmp(untouched, calibration, sizeof(calibration));
+	ck_assert_int_eq(rc, 0);
+}
+END_TEST
+
 START_TEST(time_conversion)
 {
 	ck_assert_int_eq(us(10), 10);
@@ -1220,6 +1274,7 @@ litest_setup_tests_misc(void)
 	litest_add_no_device("misc:parser", trackpoint_accel_parser);
 	litest_add_no_device("misc:parser", dimension_prop_parser);
 	litest_add_no_device("misc:parser", reliability_prop_parser);
+	litest_add_no_device("misc:parser", calibration_prop_parser);
 	litest_add_no_device("misc:parser", safe_atoi_test);
 	litest_add_no_device("misc:parser", safe_atod_test);
 	litest_add_no_device("misc:parser", strsplit_test);

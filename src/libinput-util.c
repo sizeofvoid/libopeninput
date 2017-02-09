@@ -278,6 +278,44 @@ parse_dimension_property(const char *prop, size_t *w, size_t *h)
 	return true;
 }
 
+/**
+ * Parses a set of 6 space-separated floats.
+ *
+ * @param prop The string value of the property
+ * @param calibration Returns the six components
+ * @return true on success, false otherwise
+ */
+bool
+parse_calibration_property(const char *prop, float calibration_out[6])
+{
+	int idx;
+	char **strv;
+	float calibration[6];
+
+	if (!prop)
+		return false;
+
+	strv = strv_from_string(prop, " ");
+	if (!strv)
+		return false;
+
+	for (idx = 0; idx < 6; idx++) {
+		double v;
+		if (strv[idx] == NULL || !safe_atod(strv[idx], &v)) {
+			strv_free(strv);
+			return false;
+		}
+
+		calibration[idx] = v;
+	}
+
+	strv_free(strv);
+
+	memcpy(calibration_out, calibration, sizeof(calibration));
+
+	return true;
+}
+
 bool
 parse_switch_reliability_property(const char *prop,
 				  enum switch_reliability *reliability)

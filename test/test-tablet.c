@@ -2334,6 +2334,74 @@ START_TEST(tool_capabilities)
 }
 END_TEST
 
+START_TEST(tool_type)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *t;
+	struct libinput_tablet_tool *tool;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ ABS_TILT_X, 0 },
+		{ ABS_TILT_Y, 0 },
+		{ -1, -1 }
+	};
+	struct tool_type_match {
+		int code;
+		enum libinput_tablet_tool_type type;
+	} types[] = {
+		{ BTN_TOOL_PEN, LIBINPUT_TABLET_TOOL_TYPE_PEN },
+		{ BTN_TOOL_RUBBER, LIBINPUT_TABLET_TOOL_TYPE_ERASER },
+		{ BTN_TOOL_BRUSH, LIBINPUT_TABLET_TOOL_TYPE_BRUSH },
+		{ BTN_TOOL_BRUSH, LIBINPUT_TABLET_TOOL_TYPE_BRUSH },
+		{ BTN_TOOL_PENCIL, LIBINPUT_TABLET_TOOL_TYPE_PENCIL },
+		{ BTN_TOOL_AIRBRUSH, LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH },
+		{ BTN_TOOL_MOUSE, LIBINPUT_TABLET_TOOL_TYPE_MOUSE },
+		{ BTN_TOOL_LENS, LIBINPUT_TABLET_TOOL_TYPE_LENS },
+		{ -1, -1 }
+	};
+	struct tool_type_match *tt;
+
+	litest_drain_events(li);
+
+	for (tt = types; tt->code != -1; tt++) {
+		if (!libevdev_has_event_code(dev->evdev,
+					     EV_KEY,
+					     tt->code))
+			continue;
+
+		litest_push_event_frame(dev);
+		litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
+		litest_tablet_proximity_in(dev, 50, 50, axes);
+		litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
+		litest_event(dev, EV_KEY, tt->code, 1);
+		litest_pop_event_frame(dev);
+		libinput_dispatch(li);
+
+		event = libinput_get_event(li);
+		t = litest_is_tablet_event(event,
+				   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+		tool = libinput_event_tablet_tool_get_tool(t);
+
+		ck_assert_int_eq(libinput_tablet_tool_get_type(tool),
+				 tt->type);
+
+		libinput_event_destroy(event);
+		litest_assert_empty_queue(li);
+
+		litest_push_event_frame(dev);
+		litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
+		litest_tablet_proximity_out(dev);
+		litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
+		litest_event(dev, EV_KEY, tt->code, 0);
+		litest_pop_event_frame(dev);
+		litest_drain_events(li);
+	}
+}
+END_TEST
+
 START_TEST(tool_in_prox_before_start)
 {
 	struct libinput *li;
@@ -4192,6 +4260,7 @@ litest_setup_tests_tablet(void)
 	litest_add("tablet:tool", tool_user_data, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool", tool_capability, LITEST_TABLET, LITEST_ANY);
 	litest_add_no_device("tablet:tool", tool_capabilities);
+	litest_add("tablet:tool", tool_type, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tool", tool_in_prox_before_start, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tool_serial", tool_unique, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", tool_serial, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);

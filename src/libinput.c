@@ -3954,12 +3954,12 @@ LIBINPUT_EXPORT enum libinput_config_status
 libinput_device_config_scroll_set_button(struct libinput_device *device,
 					 uint32_t button)
 {
-	if (button && !libinput_device_pointer_has_button(device, button))
-		return LIBINPUT_CONFIG_STATUS_INVALID;
-
 	if ((libinput_device_config_scroll_get_methods(device) &
 	     LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN) == 0)
 		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	if (button && !libinput_device_pointer_has_button(device, button))
+		return LIBINPUT_CONFIG_STATUS_INVALID;
 
 	return device->config.scroll_method->set_button(device, button);
 }

@@ -3053,36 +3053,20 @@ evdev_device_calibrate(struct evdev_device *device,
 void
 evdev_read_calibration_prop(struct evdev_device *device)
 {
-	const char *calibration_values;
+	const char *prop;
 	float calibration[6];
-	int idx;
-	char **strv;
 
-	calibration_values =
-		udev_device_get_property_value(device->udev_device,
-					       "LIBINPUT_CALIBRATION_MATRIX");
+	prop = udev_device_get_property_value(device->udev_device,
+					      "LIBINPUT_CALIBRATION_MATRIX");
 
-	if (calibration_values == NULL)
+	if (prop == NULL)
 		return;
 
 	if (!device->abs.absinfo_x || !device->abs.absinfo_y)
 		return;
 
-	strv = strv_from_string(calibration_values, " ");
-	if (!strv)
+	if (!parse_calibration_property(prop, calibration))
 		return;
-
-	for (idx = 0; idx < 6; idx++) {
-		double v;
-		if (strv[idx] == NULL || !safe_atod(strv[idx], &v)) {
-			strv_free(strv);
-			return;
-		}
-
-		calibration[idx] = v;
-	}
-
-	strv_free(strv);
 
 	evdev_device_set_default_calibration(device, calibration);
 	log_info(evdev_libinput_context(device),
@@ -3445,6 +3429,7 @@ evdev_device_destroy(struct evdev_device *device)
 	if (device->base.group)
 		libinput_device_group_unref(device->base.group);
 
+	free(device->output_name);
 	filter_destroy(device->pointer.filter);
 	libinput_seat_unref(device->base.seat);
 	libevdev_free(device->evdev);

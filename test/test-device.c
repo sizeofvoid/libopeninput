@@ -1549,6 +1549,40 @@ START_TEST(device_has_no_size)
 }
 END_TEST
 
+START_TEST(device_get_output)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	const char *output_name;
+
+	output_name = libinput_device_get_output_name(device);
+	ck_assert_str_eq(output_name, "myOutput");
+}
+END_TEST
+
+START_TEST(device_no_output)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	const char *output_name;
+
+	output_name = libinput_device_get_output_name(device);
+	ck_assert(output_name == NULL);
+}
+END_TEST
+
+START_TEST(device_seat_phys_name)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	struct libinput_seat *seat = libinput_device_get_seat(device);
+	const char *seat_name;
+
+	seat_name = libinput_seat_get_physical_name(seat);
+	ck_assert(streq(seat_name, "seat0"));
+}
+END_TEST
+
 void
 litest_setup_tests_device(void)
 {
@@ -1622,4 +1656,10 @@ litest_setup_tests_device(void)
 	litest_add("device:size", device_has_size, LITEST_TABLET, LITEST_ANY);
 	litest_add("device:size", device_has_no_size, LITEST_ANY,
 		   LITEST_TOUCHPAD|LITEST_TABLET|LITEST_TOUCH|LITEST_ABSOLUTE|LITEST_SINGLE_TOUCH);
+
+	litest_add_for_device("device:output", device_get_output, LITEST_CALIBRATED_TOUCHSCREEN);
+	litest_add("device:output", device_no_output, LITEST_RELATIVE, LITEST_ANY);
+	litest_add("device:output", device_no_output, LITEST_KEYS, LITEST_ANY);
+
+	litest_add("device:seat", device_seat_phys_name, LITEST_ANY, LITEST_ANY);
 }

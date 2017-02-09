@@ -657,6 +657,18 @@ START_TEST(pointer_scroll_natural_defaults)
 }
 END_TEST
 
+START_TEST(pointer_scroll_natural_defaults_noscroll)
+{
+	struct litest_device *dev = litest_current_device();
+
+	if (libinput_device_config_scroll_has_natural_scroll(dev->libinput_device))
+		return;
+
+	ck_assert_int_eq(libinput_device_config_scroll_get_natural_scroll_enabled(dev->libinput_device), 0);
+	ck_assert_int_eq(libinput_device_config_scroll_get_default_natural_scroll_enabled(dev->libinput_device), 0);
+}
+END_TEST
+
 START_TEST(pointer_scroll_natural_enable_config)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1006,6 +1018,28 @@ START_TEST(pointer_scroll_button)
 }
 END_TEST
 
+START_TEST(pointer_scroll_button_noscroll)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	uint32_t methods, button;
+	enum libinput_config_status status;
+
+	methods = libinput_device_config_scroll_get_method(device);
+	ck_assert_int_eq((methods & LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN), 0);
+	button = libinput_device_config_scroll_get_button(device);
+	ck_assert_int_eq(button, 0);
+	button = libinput_device_config_scroll_get_default_button(device);
+	ck_assert_int_eq(button, 0);
+
+	status = libinput_device_config_scroll_set_method(device,
+					LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	status = libinput_device_config_scroll_set_button(device, BTN_LEFT);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+}
+END_TEST
+
 START_TEST(pointer_scroll_button_no_event_before_timeout)
 {
 	struct litest_device *device = litest_current_device();
@@ -1325,6 +1359,35 @@ START_TEST(pointer_accel_profile_invalid)
 	enum libinput_config_status status;
 
 	ck_assert(libinput_device_config_accel_is_available(device));
+
+	status = libinput_device_config_accel_set_profile(device,
+					   LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+
+	status = libinput_device_config_accel_set_profile(device,
+					   LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE + 1);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+
+	status = libinput_device_config_accel_set_profile(device,
+			   LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE |LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+}
+END_TEST
+
+START_TEST(pointer_accel_profile_noaccel)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	enum libinput_config_status status;
+	enum libinput_config_accel_profile profile;
+
+	ck_assert(!libinput_device_config_accel_is_available(device));
+
+	profile = libinput_device_config_accel_get_default_profile(device);
+	ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
+
+	profile = libinput_device_config_accel_get_profile(device);
+	ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
 
 	status = libinput_device_config_accel_set_profile(device,
 					   LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
@@ -1852,10 +1915,12 @@ litest_setup_tests_pointer(void)
 	litest_add_for_device("pointer:button", pointer_button_has_no_button, LITEST_KEYBOARD);
 	litest_add("pointer:scroll", pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
+	litest_add("pointer:scroll", pointer_scroll_button_noscroll, LITEST_ANY, LITEST_RELATIVE|LITEST_BUTTON);
 	litest_add("pointer:scroll", pointer_scroll_button_no_event_before_timeout, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:scroll", pointer_scroll_button_middle_emulation, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:scroll", pointer_scroll_nowheel_defaults, LITEST_RELATIVE|LITEST_BUTTON, LITEST_WHEEL);
 	litest_add("pointer:scroll", pointer_scroll_natural_defaults, LITEST_WHEEL, LITEST_TABLET);
+	litest_add("pointer:scroll", pointer_scroll_natural_defaults_noscroll, LITEST_ANY, LITEST_WHEEL);
 	litest_add("pointer:scroll", pointer_scroll_natural_enable_config, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_natural_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_has_axis_invalid, LITEST_WHEEL, LITEST_TABLET);
@@ -1876,6 +1941,7 @@ litest_setup_tests_pointer(void)
 	litest_add("pointer:accel", pointer_accel_profile_defaults, LITEST_RELATIVE, LITEST_TOUCHPAD);
 	litest_add("pointer:accel", pointer_accel_profile_defaults_noprofile, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("pointer:accel", pointer_accel_profile_invalid, LITEST_RELATIVE, LITEST_ANY);
+	litest_add("pointer:accel", pointer_accel_profile_noaccel, LITEST_ANY, LITEST_TOUCHPAD|LITEST_RELATIVE|LITEST_TABLET);
 	litest_add("pointer:accel", pointer_accel_profile_flat_motion_relative, LITEST_RELATIVE, LITEST_TOUCHPAD);
 
 	litest_add("pointer:middlebutton", middlebutton, LITEST_BUTTON, LITEST_CLICKPAD);

@@ -709,6 +709,15 @@ void
 litest_pop_event_frame(struct litest_device *dev);
 
 void
+litest_filter_event(struct litest_device *dev,
+		    unsigned int type,
+		    unsigned int code);
+
+void
+litest_unfilter_event(struct litest_device *dev,
+		      unsigned int type,
+		      unsigned int code);
+void
 litest_semi_mt_touch_down(struct litest_device *d,
 			  struct litest_semi_mt *semi_mt,
 			  unsigned int slot,
