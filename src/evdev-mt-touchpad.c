@@ -1487,23 +1487,6 @@ tp_keyboard_event(uint64_t time, struct libinput_event *event, void *data)
 }
 
 static bool
-tp_dwt_device_is_blacklisted(struct evdev_device *device)
-{
-	unsigned int bus = libevdev_get_id_bustype(device->evdev);
-	unsigned int vendor_id = libevdev_get_id_vendor(device->evdev);
-
-	/* evemu will set the right bus type */
-	if (bus == BUS_VIRTUAL || bus == BUS_BLUETOOTH)
-		return true;
-
-	/* Wacom doesn't have devices that need dwt */
-	if (vendor_id == VENDOR_ID_WACOM)
-		return true;
-
-	return false;
-}
-
-static bool
 tp_want_dwt(struct evdev_device *touchpad,
 	    struct evdev_device *keyboard)
 {
@@ -1513,10 +1496,6 @@ tp_want_dwt(struct evdev_device *touchpad,
 	unsigned int vendor_kbd = evdev_device_get_id_vendor(keyboard);
 	unsigned int product_tp = evdev_device_get_id_product(touchpad);
 	unsigned int product_kbd = evdev_device_get_id_product(keyboard);
-
-	if (tp_dwt_device_is_blacklisted(touchpad) ||
-	    tp_dwt_device_is_blacklisted(keyboard))
-		return false;
 
 	/* External touchpads with the same vid/pid as the keyboard are
 	   considered a happy couple */
@@ -2194,7 +2173,8 @@ static void
 tp_init_dwt(struct tp_dispatch *tp,
 	    struct evdev_device *device)
 {
-	if (tp_dwt_device_is_blacklisted(device))
+	if (device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD &&
+	    !tp_is_tpkb_combo_below(device))
 		return;
 
 	tp->dwt.config.is_available = tp_dwt_config_is_available;
