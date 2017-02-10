@@ -60,6 +60,13 @@ libinput:name:*ETPS/2 Elantech Touchpad*:dmi:*svnASUSTeKCOMPUTERINC.:pnX555LAB:*
  LIBINPUT_MODEL_TOUCHPAD_VISIBLE_MARKER=1
 
 ##########################################
+# Chicony
+##########################################
+# Acer Hawaii Keyboard, uses Chicony VID
+libinput:touchpad:input:b0003v04F2p1558*
+ LIBINPUT_ATTR_TPKBCOMBO_LAYOUT=below
+
+##########################################
 # Cyborg
 ##########################################
 # Saitek Cyborg R.A.T.5 Mouse

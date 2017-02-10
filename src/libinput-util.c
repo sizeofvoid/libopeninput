@@ -336,6 +336,30 @@ parse_switch_reliability_property(const char *prop,
 }
 
 /**
+ * Parses a string with the allowed values: "below"
+ * The value refers to the position of the touchpad (relative to the
+ * keyboard, i.e. your average laptop would be 'below')
+ *
+ * @param prop The value of the property
+ * @param layout The layout
+ * @return true on success, false otherwise
+ */
+bool
+parse_tpkbcombo_layout_poperty(const char *prop,
+			       enum tpkbcombo_layout *layout)
+{
+	if (!prop)
+		return false;
+
+	if (streq(prop, "below")) {
+		*layout = TPKBCOMBO_LAYOUT_BELOW;
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * Return the next word in a string pointed to by state before the first
  * separator character. Call repeatedly to tokenize a whole string.
  *

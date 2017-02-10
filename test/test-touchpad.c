@@ -933,10 +933,14 @@ touchpad_has_palm_detect_size(struct litest_device *dev)
 {
 	double width, height;
 	unsigned int vendor;
+	unsigned int bustype;
 	int rc;
 
 	vendor = libinput_device_get_id_vendor(dev->libinput_device);
+	bustype = libevdev_get_id_bustype(dev->evdev);
 	if (vendor == VENDOR_ID_WACOM)
+		return 0;
+	if (bustype == BUS_BLUETOOTH)
 		return 0;
 	if (vendor == VENDOR_ID_APPLE)
 		return 1;

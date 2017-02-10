@@ -107,7 +107,12 @@ def property_grammar():
                          Suppress('=') -
                          reliability_tags('VALUE')]
 
-    grammar = Or(model_props + size_props + reliability)
+    tpkbcombo_tags = Or(('below'))
+    tpkbcombo = [Literal('LIBINPUT_ATTR_TPKBCOMBO_LAYOUT')('NAME') -
+                         Suppress('=') -
+                         tpkbcombo_tags('VALUE')]
+
+    grammar = Or(model_props + size_props + reliability + tpkbcombo)
 
     return grammar
 

@@ -2175,6 +2175,21 @@ tp_dwt_config_get_default(struct libinput_device *device)
 		LIBINPUT_CONFIG_DWT_DISABLED;
 }
 
+static inline bool
+tp_is_tpkb_combo_below(struct evdev_device *device)
+{
+	const char *prop;
+	enum tpkbcombo_layout layout = TPKBCOMBO_LAYOUT_UNKNOWN;
+
+	prop = udev_device_get_property_value(device->udev_device,
+					      "LIBINPUT_ATTR_TPKBCOMBO_LAYOUT");
+	if (!prop)
+		return false;
+
+	return parse_tpkbcombo_layout_poperty(prop, &layout) &&
+		layout == TPKBCOMBO_LAYOUT_BELOW;
+}
+
 static void
 tp_init_dwt(struct tp_dispatch *tp,
 	    struct evdev_device *device)
@@ -2203,8 +2218,8 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 	tp->palm.right_edge = INT_MAX;
 	tp->palm.left_edge = INT_MIN;
 
-	/* Wacom doesn't have internal touchpads */
-	if (device->model_flags & EVDEV_MODEL_WACOM_TOUCHPAD)
+	if (device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD &&
+	    !tp_is_tpkb_combo_below(device))
 		return;
 
 	evdev_device_get_size(device, &width, &height);
