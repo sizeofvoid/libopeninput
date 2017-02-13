@@ -12,6 +12,8 @@ support tapping up to whatever is supported by the hardware. libinput does
 not support four-finger taps or any tapping with more than four fingers,
 even though some hardware can distinguish between that many fingers.
 
+@section tapping_default Tap-to-click default setting
+
 Tapping is **disabled** by default, see [this
 commit](http://cgit.freedesktop.org/wayland/libinput/commit/?id=2219c12c3aa45b80f235e761e87c17fb9ec70eae)
 because:
