@@ -93,7 +93,6 @@ tp_get_average_touches_delta(struct tp_dispatch *tp)
 static void
 tp_gesture_start(struct tp_dispatch *tp, uint64_t time)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
 	const struct normalized_coords zero = { 0.0, 0.0 };
 
 	if (tp->gesture.started)
@@ -102,9 +101,9 @@ tp_gesture_start(struct tp_dispatch *tp, uint64_t time)
 	switch (tp->gesture.state) {
 	case GESTURE_STATE_NONE:
 	case GESTURE_STATE_UNKNOWN:
-		log_bug_libinput(libinput,
-				 "%s in unknown gesture mode\n",
-				 __func__);
+		evdev_log_bug_libinput(tp->device,
+				       "%s in unknown gesture mode\n",
+				       __func__);
 		break;
 	case GESTURE_STATE_SCROLL:
 		/* NOP */
@@ -480,10 +479,10 @@ tp_gesture_post_gesture(struct tp_dispatch *tp, uint64_t time)
 		tp->gesture.state =
 			tp_gesture_handle_state_pinch(tp, time);
 
-	log_debug(tp_libinput_context(tp),
-		  "gesture state: %s → %s\n",
-		  gesture_state_to_str(oldstate),
-		  gesture_state_to_str(tp->gesture.state));
+	evdev_log_debug(tp->device,
+			"gesture state: %s → %s\n",
+			gesture_state_to_str(oldstate),
+			gesture_state_to_str(tp->gesture.state));
 }
 
 void
@@ -530,7 +529,6 @@ tp_gesture_stop_twofinger_scroll(struct tp_dispatch *tp, uint64_t time)
 static void
 tp_gesture_end(struct tp_dispatch *tp, uint64_t time, bool cancelled)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
 	enum tp_gesture_state state = tp->gesture.state;
 
 	tp->gesture.state = GESTURE_STATE_NONE;
@@ -541,9 +539,9 @@ tp_gesture_end(struct tp_dispatch *tp, uint64_t time, bool cancelled)
 	switch (state) {
 	case GESTURE_STATE_NONE:
 	case GESTURE_STATE_UNKNOWN:
-		log_bug_libinput(libinput,
-				 "%s in unknown gesture mode\n",
-				 __func__);
+		evdev_log_bug_libinput(tp->device,
+				       "%s in unknown gesture mode\n",
+				       __func__);
 		break;
 	case GESTURE_STATE_SCROLL:
 		tp_gesture_stop_twofinger_scroll(tp, time);

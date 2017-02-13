@@ -149,8 +149,6 @@ tp_tap_idle_handle_event(struct tp_dispatch *tp,
 			 struct tp_touch *t,
 			 enum tap_event event, uint64_t time)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
-
 	switch (event) {
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_TOUCH;
@@ -160,7 +158,7 @@ tp_tap_idle_handle_event(struct tp_dispatch *tp,
 	case TAP_EVENT_RELEASE:
 		break;
 	case TAP_EVENT_MOTION:
-		log_bug_libinput(libinput,
+		evdev_log_bug_libinput(tp->device,
 				 "invalid tap event, no fingers are down\n");
 		break;
 	case TAP_EVENT_TIMEOUT:
@@ -169,7 +167,7 @@ tp_tap_idle_handle_event(struct tp_dispatch *tp,
 		tp->tap.state = TAP_STATE_DEAD;
 		break;
 	case TAP_EVENT_THUMB:
-		log_bug_libinput(libinput,
+		evdev_log_bug_libinput(tp->device,
 				 "invalid tap event, no fingers down, no thumb\n");
 		break;
 	}
@@ -252,12 +250,10 @@ tp_tap_tapped_handle_event(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum tap_event event, uint64_t time)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
-
 	switch (event) {
 	case TAP_EVENT_MOTION:
 	case TAP_EVENT_RELEASE:
-		log_bug_libinput(libinput,
+		evdev_log_bug_libinput(tp->device,
 				 "invalid tap event when fingers are up\n");
 		break;
 	case TAP_EVENT_TOUCH:
@@ -565,11 +561,9 @@ tp_tap_multitap_handle_event(struct tp_dispatch *tp,
 			      struct tp_touch *t,
 			      enum tap_event event, uint64_t time)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
-
 	switch (event) {
 	case TAP_EVENT_RELEASE:
-		log_bug_libinput(libinput,
+		evdev_log_bug_libinput(tp->device,
 				 "invalid tap event, no fingers are down\n");
 		break;
 	case TAP_EVENT_TOUCH:
@@ -578,7 +572,7 @@ tp_tap_multitap_handle_event(struct tp_dispatch *tp,
 		tp_tap_set_timer(tp, time);
 		break;
 	case TAP_EVENT_MOTION:
-		log_bug_libinput(libinput,
+		evdev_log_bug_libinput(tp->device,
 				 "invalid tap event, no fingers are down\n");
 		break;
 	case TAP_EVENT_TIMEOUT:
@@ -653,7 +647,6 @@ tp_tap_handle_event(struct tp_dispatch *tp,
 		    enum tap_event event,
 		    uint64_t time)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
 	enum tp_tap_state current;
 
 	current = tp->tap.state;
@@ -715,7 +708,7 @@ tp_tap_handle_event(struct tp_dispatch *tp,
 	if (tp->tap.state == TAP_STATE_IDLE || tp->tap.state == TAP_STATE_DEAD)
 		tp_tap_clear_timer(tp);
 
-	log_debug(libinput,
+	evdev_log_debug(tp->device,
 		  "tap state: %s → %s → %s\n",
 		  tap_state_to_str(current),
 		  tap_event_to_str(event),

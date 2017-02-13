@@ -159,15 +159,15 @@ evdev_read_switch_reliability_prop(struct evdev_device *device)
 	prop = udev_device_get_property_value(device->udev_device,
 					      "LIBINPUT_ATTR_LID_SWITCH_RELIABILITY");
 	if (!parse_switch_reliability_property(prop, &r)) {
-		log_error(evdev_libinput_context(device),
-			  "%s: switch reliability set to unknown value '%s'\n",
-			  device->devname,
-			  prop);
+		evdev_log_error(device,
+				"%s: switch reliability set to unknown value '%s'\n",
+				device->devname,
+				prop);
 		r =  RELIABILITY_UNKNOWN;
 	} else if (r == RELIABILITY_WRITE_OPEN) {
-		log_info(evdev_libinput_context(device),
-			 "%s: will write switch open events\n",
-			 device->devname);
+		evdev_log_info(device,
+			       "%s: will write switch open events\n",
+			       device->devname);
 	}
 
 	return r;
@@ -201,10 +201,10 @@ lid_switch_pair_keyboard(struct evdev_device *lid_switch,
 	}
 
 	dispatch->keyboard.keyboard = keyboard;
-	log_debug(evdev_libinput_context(lid_switch),
-		  "lid: keyboard paired with %s<->%s\n",
-		  lid_switch->devname,
-		  keyboard->devname);
+	evdev_log_debug(lid_switch,
+			"lid: keyboard paired with %s<->%s\n",
+			lid_switch->devname,
+			keyboard->devname);
 
 	/* We don't init the event listener yet - we don't care about
 	 * keyboard events until the lid is closed */

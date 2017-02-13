@@ -649,6 +649,90 @@ evdev_libinput_context(const struct evdev_device *device)
 	return device->base.seat->libinput;
 }
 
+static inline void
+evdev_log_msg_va(struct evdev_device *device,
+		 enum libinput_log_priority priority,
+		 const char *format,
+		 va_list args)
+{
+	log_msg(evdev_libinput_context(device),
+		priority,
+		"%-7s - ",
+		evdev_device_get_sysname(device));
+
+	/* Anything info and above is user-visible, use the device name */
+	if (priority > LIBINPUT_LOG_PRIORITY_DEBUG)
+		log_msg(evdev_libinput_context(device),
+			priority,
+			"%s: ",
+			device->devname);
+
+	log_msg_va(evdev_libinput_context(device),
+		   priority,
+		   format,
+		   args);
+}
+
+static inline void
+evdev_log_msg(struct evdev_device *device,
+	      enum libinput_log_priority priority,
+	      const char *format,
+	      ...)
+{
+	va_list args;
+
+	va_start(args, format);
+	evdev_log_msg_va(device, priority, format, args);
+	va_end(args);
+
+}
+
+static inline void
+evdev_log_msg_ratelimit(struct evdev_device *device,
+			struct ratelimit *ratelimit,
+			enum libinput_log_priority priority,
+			const char *format,
+			...)
+{
+	va_list args;
+	enum ratelimit_state state;
+
+	state = ratelimit_test(ratelimit);
+	if (state == RATELIMIT_EXCEEDED)
+		return;
+
+	va_start(args, format);
+	evdev_log_msg_va(device, priority, format, args);
+	va_end(args);
+
+	if (state == RATELIMIT_THRESHOLD)
+		evdev_log_msg(device,
+			      priority,
+			      "WARNING: log rate limit exceeded (%d msgs per %dms). Discarding future messages.\n",
+			      ratelimit->burst,
+			      us2ms(ratelimit->interval));
+}
+
+#define evdev_log_debug(d_, ...) evdev_log_msg((d_), LIBINPUT_LOG_PRIORITY_DEBUG, __VA_ARGS__)
+#define evdev_log_info(d_, ...) evdev_log_msg((d_), LIBINPUT_LOG_PRIORITY_INFO, __VA_ARGS__)
+#define evdev_log_error(d_, ...) evdev_log_msg((d_), LIBINPUT_LOG_PRIORITY_ERROR, __VA_ARGS__)
+#define evdev_log_bug_kernel(d_, ...) evdev_log_msg((d_), LIBINPUT_LOG_PRIORITY_ERROR, "kernel bug: " __VA_ARGS__)
+#define evdev_log_bug_libinput(d_, ...) evdev_log_msg((d_), LIBINPUT_LOG_PRIORITY_ERROR, "libinput bug: " __VA_ARGS__)
+#define evdev_log_bug_client(d_, ...) evdev_log_msg((d_), LIBINPUT_LOG_PRIORITY_ERROR, "client bug: " __VA_ARGS__)
+
+#define evdev_log_debug_ratelimit(d_, r_, ...) \
+	evdev_log_msg_ratelimit((d_), (r_), LIBINPUT_LOG_PRIORITY_DEBUG, __VA_ARGS__)
+#define evdev_log_info_ratelimit(d_, r_, ...) \
+	evdev_log_msg_ratelimit((d_), (r_), LIBINPUT_LOG_PRIORITY_INFO, __VA_ARGS__)
+#define evdev_log_error_ratelimit(d_, r_, ...) \
+	evdev_log_msg_ratelimit((d_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, __VA_ARGS__)
+#define evdev_log_bug_kernel_ratelimit(d_, r_, ...) \
+	evdev_log_msg_ratelimit((d_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, "kernel bug: " __VA_ARGS__)
+#define evdev_log_bug_libinput_ratelimit(d_, r_, ...) \
+	evdev_log_msg_ratelimit((d_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, "libinput bug: " __VA_ARGS__)
+#define evdev_log_bug_client_ratelimit(d_, r_, ...) \
+	evdev_log_msg_ratelimit((d_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, "client bug: " __VA_ARGS__)
+
 /**
  * Convert the pair of delta coordinates in device space to mm.
  */

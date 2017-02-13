@@ -143,9 +143,9 @@ tp_fake_finger_count(struct tp_dispatch *tp)
 	 * time */
 	if (__builtin_popcount(
 		       tp->fake_touches & ~(FAKE_FINGER_OVERFLOW|0x1)) > 1)
-	    log_bug_kernel(tp_libinput_context(tp),
-			   "Invalid fake finger state %#x\n",
-			   tp->fake_touches);
+		evdev_log_bug_kernel(tp->device,
+				     "Invalid fake finger state %#x\n",
+				     tp->fake_touches);
 
 	if (tp->fake_touches & FAKE_FINGER_OVERFLOW)
 		return FAKE_FINGER_OVERFLOW;
@@ -547,8 +547,8 @@ tp_palm_tap_is_palm(const struct tp_dispatch *tp, const struct tp_touch *t)
 	/* We're inside the left/right palm edge and not in one of the
 	 * software button areas */
 	if (t->point.y < tp->buttons.bottom_area.top_edge) {
-		log_debug(tp_libinput_context(tp),
-			  "palm: palm-tap detected\n");
+		evdev_log_debug(tp->device,
+				"palm: palm-tap detected\n");
 		return true;
 	}
 
@@ -578,8 +578,8 @@ tp_palm_detect_dwt_triggered(struct tp_dispatch *tp,
 		if (t->palm.time == 0 ||
 		    t->palm.time > tp->dwt.keyboard_last_press_time) {
 			t->palm.state = PALM_NONE;
-			log_debug(tp_libinput_context(tp),
-				  "palm: touch released, timeout after typing\n");
+			evdev_log_debug(tp->device,
+					"palm: touch released, timeout after typing\n");
 		}
 	}
 
@@ -606,8 +606,8 @@ tp_palm_detect_trackpoint_triggered(struct tp_dispatch *tp,
 		if (t->palm.time == 0 ||
 		    t->palm.time > tp->palm.trackpoint_last_event_time) {
 			t->palm.state = PALM_NONE;
-			log_debug(tp_libinput_context(tp),
-				  "palm: touch released, timeout after trackpoint\n");
+			evdev_log_debug(tp->device,
+				       "palm: touch released, timeout after trackpoint\n");
 		}
 	}
 
@@ -677,7 +677,7 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	if (t->palm.state == PALM_EDGE) {
 		if (tp_palm_detect_multifinger(tp, t, time)) {
 			t->palm.state = PALM_NONE;
-			log_debug(tp_libinput_context(tp),
+			evdev_log_debug(tp->device,
 				  "palm: touch released, multiple fingers\n");
 
 		/* If labelled a touch as palm, we unlabel as palm when
@@ -686,7 +686,7 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 		 */
 		} else if (tp_palm_detect_move_out_of_edge(tp, t, time)) {
 			t->palm.state = PALM_NONE;
-			log_debug(tp_libinput_context(tp),
+			evdev_log_debug(tp->device,
 				  "palm: touch released, out of edge zone\n");
 		}
 		return;
@@ -715,7 +715,7 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->palm.first = t->point;
 
 out:
-	log_debug(tp_libinput_context(tp),
+	evdev_log_debug(tp->device,
 		  "palm: palm detected (%s)\n",
 		  t->palm.state == PALM_EDGE ? "edge" :
 		  t->palm.state == PALM_TYPING ? "typing" : "trackpoint");
@@ -790,7 +790,7 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	 */
 out:
 	if (t->thumb.state != state)
-		log_debug(tp_libinput_context(tp),
+		evdev_log_debug(tp->device,
 			  "thumb state: %s → %s\n",
 			  thumb_state_to_str(state),
 			  thumb_state_to_str(t->thumb.state));
@@ -962,8 +962,8 @@ tp_position_fake_touches(struct tp_dispatch *tp)
 	}
 
 	if (!topmost) {
-		log_bug_libinput(tp_libinput_context(tp),
-				 "Unable to find topmost touch\n");
+		evdev_log_bug_libinput(tp->device,
+				       "Unable to find topmost touch\n");
 		return;
 	}
 
@@ -1078,7 +1078,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 
 		if (tp_detect_jumps(tp, t)) {
 			if (!tp->semi_mt)
-				log_bug_kernel(tp_libinput_context(tp),
+				evdev_log_bug_kernel(tp->device,
 					       "Touch jump detected and discarded.\n"
 					       "See %stouchpad_jumping_cursor.html for details\n",
 					       HTTP_DOC_LINK);
@@ -1377,7 +1377,7 @@ tp_keyboard_timeout(uint64_t now, void *data)
 		libinput_timer_set(&tp->dwt.keyboard_timer,
 				   now + DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_2);
 		tp->dwt.keyboard_last_press_time = now;
-		log_debug(tp_libinput_context(tp), "palm: keyboard timeout refresh\n");
+		evdev_log_debug(tp->device, "palm: keyboard timeout refresh\n");
 		return;
 	}
 
@@ -1385,7 +1385,7 @@ tp_keyboard_timeout(uint64_t now, void *data)
 
 	tp->dwt.keyboard_active = false;
 
-	log_debug(tp_libinput_context(tp), "palm: keyboard timeout\n");
+	evdev_log_debug(tp->device, "palm: keyboard timeout\n");
 }
 
 static inline bool
@@ -1550,10 +1550,10 @@ tp_dwt_pair_keyboard(struct evdev_device *touchpad,
 	tp->dwt.keyboard = keyboard;
 	tp->dwt.keyboard_active = false;
 
-	log_debug(evdev_libinput_context(touchpad),
-		  "palm: dwt activated with %s<->%s\n",
-		  touchpad->devname,
-		  keyboard->devname);
+	evdev_log_debug(touchpad,
+			"palm: dwt activated with %s<->%s\n",
+			touchpad->devname,
+			keyboard->devname);
 }
 
 static void
@@ -1596,11 +1596,11 @@ tp_lid_switch_event(uint64_t time, struct libinput_event *event, void *data)
 	switch (libinput_event_switch_get_switch_state(swev)) {
 	case LIBINPUT_SWITCH_STATE_OFF:
 		tp_resume(tp, tp->device);
-		log_debug(tp_libinput_context(tp), "lid: resume touchpad\n");
+		evdev_log_debug(tp->device, "lid: resume touchpad\n");
 		break;
 	case LIBINPUT_SWITCH_STATE_ON:
 		tp_suspend(tp, tp->device);
-		log_debug(tp_libinput_context(tp), "lid: suspend touchpad\n");
+		evdev_log_debug(tp->device, "lid: suspend touchpad\n");
 		break;
 	}
 }
@@ -1615,10 +1615,10 @@ tp_pair_lid_switch(struct evdev_device *touchpad,
 		return;
 
 	if (tp->lid_switch.lid_switch == NULL) {
-		log_debug(tp_libinput_context(tp),
-			  "lid_switch: activated for %s<->%s\n",
-			  touchpad->devname,
-			  lid_switch->devname);
+		evdev_log_debug(touchpad,
+				"lid_switch: activated for %s<->%s\n",
+				touchpad->devname,
+				lid_switch->devname);
 
 		libinput_device_add_event_listener(&lid_switch->base,
 					&tp->lid_switch.lid_switch_listener,
@@ -1716,10 +1716,9 @@ evdev_tag_touchpad(struct evdev_device *device,
 			evdev_tag_touchpad_external(device);
 			return;
 		} else {
-			log_info(evdev_libinput_context(device),
-				 "%s: tagged as unknown value %s\n",
-				 device->devname,
-				 prop);
+			evdev_log_info(device,
+				       "tagged with unknown value %s\n",
+				       prop);
 		}
 	}
 
@@ -1757,9 +1756,8 @@ evdev_tag_touchpad(struct evdev_device *device,
 
 	if ((device->tags &
 	    (EVDEV_TAG_EXTERNAL_TOUCHPAD|EVDEV_TAG_INTERNAL_TOUCHPAD)) == 0) {
-		log_bug_libinput(evdev_libinput_context(device),
-				 "%s: Internal or external? Please file a bug.\n",
-				 device->devname);
+		evdev_log_bug_libinput(device,
+				       "Internal or external? Please file a bug.\n");
 		evdev_tag_touchpad_external(device);
 	}
 }
@@ -2066,9 +2064,9 @@ tp_scroll_get_default_method(struct tp_dispatch *tp)
 		method = LIBINPUT_CONFIG_SCROLL_EDGE;
 
 	if ((methods & method) == 0)
-		log_bug_libinput(tp_libinput_context(tp),
-				 "Invalid default scroll method %d\n",
-				 method);
+		evdev_log_bug_libinput(tp->device,
+				       "invalid default scroll method %d\n",
+				       method);
 	return method;
 }
 
@@ -2288,10 +2286,9 @@ tp_init_thumb(struct tp_dispatch *tp)
 	tp->thumb.threshold = max(100, threshold);
 
 out:
-	log_debug(tp_libinput_context(tp),
-		  "thumb: enabled thumb detection%s on '%s'\n",
-		  tp->thumb.threshold != INT_MAX ? " (+pressure)" : "",
-		  device->devname);
+	evdev_log_debug(device,
+			"thumb: enabled thumb detection%s\n",
+			tp->thumb.threshold != INT_MAX ? " (+pressure)" : "");
 }
 
 static bool
@@ -2299,7 +2296,6 @@ tp_pass_sanity_check(struct tp_dispatch *tp,
 		     struct evdev_device *device)
 {
 	struct libevdev *evdev = device->evdev;
-	struct libinput *libinput = tp_libinput_context(tp);
 
 	if (!libevdev_has_event_code(evdev, EV_ABS, ABS_X))
 		goto error;
@@ -2313,9 +2309,8 @@ tp_pass_sanity_check(struct tp_dispatch *tp,
 	return true;
 
 error:
-	log_bug_kernel(libinput,
-		       "device %s failed touchpad sanity checks\n",
-		       device->devname);
+	evdev_log_bug_kernel(device,
+			     "device failed touchpad sanity checks\n");
 	return false;
 }
 
@@ -2339,11 +2334,10 @@ tp_init_default_resolution(struct tp_dispatch *tp,
 	 * are old ones, so let's assume a small touchpad size and assume
 	 * that.
 	 */
-	log_info(tp_libinput_context(tp),
-		 "%s: no resolution or size hints, assuming a size of %dx%dmm\n",
-		 device->devname,
-		 touchpad_width_mm,
-		 touchpad_height_mm);
+	evdev_log_info(device,
+		       "no resolution or size hints, assuming a size of %dx%dmm\n",
+		       touchpad_width_mm,
+		       touchpad_height_mm);
 
 	xres = device->abs.dimensions.x/touchpad_width_mm;
 	yres = device->abs.dimensions.y/touchpad_height_mm;
@@ -2392,9 +2386,9 @@ tp_init_pressure(struct tp_dispatch *tp,
 	tp->pressure.high = abs->minimum + 0.12 * range;
 	tp->pressure.low = abs->minimum + 0.10 * range;
 
-	log_debug(evdev_libinput_context(device),
-		  "%s: using pressure-based touch detection\n",
-		  device->devname);
+	evdev_log_debug(device,
+			"using pressure-based touch detection\n",
+			device->devname);
 }
 
 static int

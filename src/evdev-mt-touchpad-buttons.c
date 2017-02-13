@@ -417,7 +417,6 @@ tp_button_handle_event(struct tp_dispatch *tp,
 		       enum button_event event,
 		       uint64_t time)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
 	enum button_state current = t->button.state;
 
 	switch(t->button.state) {
@@ -445,11 +444,11 @@ tp_button_handle_event(struct tp_dispatch *tp,
 	}
 
 	if (current != t->button.state)
-		log_debug(libinput,
-			  "button state: from %s, event %s to %s\n",
-			  button_state_to_str(current),
-			  button_event_to_str(event),
-			  button_state_to_str(t->button.state));
+		evdev_log_debug(tp->device,
+				"button state: from %s, event %s to %s\n",
+				button_state_to_str(current),
+				button_event_to_str(event),
+				button_state_to_str(t->button.state));
 }
 
 void
@@ -503,14 +502,13 @@ tp_process_button(struct tp_dispatch *tp,
 		  const struct input_event *e,
 		  uint64_t time)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
 	uint32_t mask = 1 << (e->code - BTN_LEFT);
 
 	/* Ignore other buttons on clickpads */
 	if (tp->buttons.is_clickpad && e->code != BTN_LEFT) {
-		log_bug_kernel(libinput,
-			       "received %s button event on a clickpad\n",
-			       libevdev_event_code_get_name(EV_KEY, e->code));
+		evdev_log_bug_kernel(tp->device,
+				     "received %s button event on a clickpad\n",
+				     libevdev_event_code_get_name(EV_KEY, e->code));
 		return;
 	}
 
@@ -832,7 +830,6 @@ void
 tp_init_buttons(struct tp_dispatch *tp,
 		struct evdev_device *device)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
 	struct tp_touch *t;
 	const struct input_absinfo *absinfo_x, *absinfo_y;
 
@@ -844,15 +841,13 @@ tp_init_buttons(struct tp_dispatch *tp,
 	if (libevdev_has_event_code(device->evdev, EV_KEY, BTN_MIDDLE) ||
 	    libevdev_has_event_code(device->evdev, EV_KEY, BTN_RIGHT)) {
 		if (tp->buttons.is_clickpad)
-			log_bug_kernel(libinput,
-				       "%s: clickpad advertising right button\n",
-				       device->devname);
+			evdev_log_bug_kernel(device,
+					     "clickpad advertising right button\n");
 	} else if (libevdev_has_event_code(device->evdev, EV_KEY, BTN_LEFT) &&
 		   !tp->buttons.is_clickpad &&
 		   libevdev_get_id_vendor(device->evdev) != VENDOR_ID_APPLE) {
-			log_bug_kernel(libinput,
-				       "%s: non clickpad without right button?\n",
-				       device->devname);
+			evdev_log_bug_kernel(device,
+					     "non clickpad without right button?\n");
 	}
 
 	absinfo_x = device->abs.absinfo_x;

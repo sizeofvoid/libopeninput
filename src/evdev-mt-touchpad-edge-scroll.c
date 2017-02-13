@@ -137,8 +137,6 @@ tp_edge_scroll_handle_none(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum scroll_event event)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
-
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
 		if (tp_touch_get_edge(tp, t)) {
@@ -153,7 +151,7 @@ tp_edge_scroll_handle_none(struct tp_dispatch *tp,
 	case SCROLL_EVENT_RELEASE:
 	case SCROLL_EVENT_TIMEOUT:
 	case SCROLL_EVENT_POSTED:
-		log_bug_libinput(libinput,
+		evdev_log_bug_libinput(tp->device,
 				 "unexpected scroll event %d in none state\n",
 				 event);
 		break;
@@ -165,13 +163,11 @@ tp_edge_scroll_handle_edge_new(struct tp_dispatch *tp,
 			       struct tp_touch *t,
 			       enum scroll_event event)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
-
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
-		log_bug_libinput(libinput,
-				 "unexpected scroll event %d in edge new state\n",
-				 event);
+		evdev_log_bug_libinput(tp->device,
+			       "unexpected scroll event %d in edge new state\n",
+			       event);
 		break;
 	case SCROLL_EVENT_MOTION:
 		t->scroll.edge &= tp_touch_get_edge(tp, t);
@@ -194,12 +190,10 @@ tp_edge_scroll_handle_edge(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum scroll_event event)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
-
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
 	case SCROLL_EVENT_TIMEOUT:
-		log_bug_libinput(libinput,
+		evdev_log_bug_libinput(tp->device,
 				 "unexpected scroll event %d in edge state\n",
 				 event);
 		break;
@@ -225,13 +219,11 @@ tp_edge_scroll_handle_area(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum scroll_event event)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
-
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
 	case SCROLL_EVENT_TIMEOUT:
 	case SCROLL_EVENT_POSTED:
-		log_bug_libinput(libinput,
+		evdev_log_bug_libinput(tp->device,
 				 "unexpected scroll event %d in area state\n",
 				 event);
 		break;
@@ -248,7 +240,6 @@ tp_edge_scroll_handle_event(struct tp_dispatch *tp,
 			    struct tp_touch *t,
 			    enum scroll_event event)
 {
-	struct libinput *libinput = tp_libinput_context(tp);
 	enum tp_edge_scroll_touch_state current = t->scroll.edge_state;
 
 	switch (current) {
@@ -266,11 +257,11 @@ tp_edge_scroll_handle_event(struct tp_dispatch *tp,
 		break;
 	}
 
-	log_debug(libinput,
-		  "edge state: %s → %s → %s\n",
-		  edge_state_to_str(current),
-		  edge_event_to_str(event),
-		  edge_state_to_str(t->scroll.edge_state));
+	evdev_log_debug(tp->device,
+			"edge state: %s → %s → %s\n",
+			edge_state_to_str(current),
+			edge_event_to_str(event),
+			edge_state_to_str(t->scroll.edge_state));
 }
 
 static void
@@ -420,7 +411,7 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 		switch (t->scroll.edge_state) {
 		case EDGE_SCROLL_TOUCH_STATE_NONE:
 		case EDGE_SCROLL_TOUCH_STATE_AREA:
-			log_bug_libinput(tp_libinput_context(tp),
+			evdev_log_bug_libinput(device,
 					 "unexpected scroll state %d\n",
 					 t->scroll.edge_state);
 			break;
