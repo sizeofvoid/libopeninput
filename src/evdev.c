@@ -3444,6 +3444,11 @@ evdev_device_remove(struct evdev_device *device)
 {
 	struct libinput_device *dev;
 
+	log_info(evdev_libinput_context(device),
+		 "input device %s, %s removed\n",
+		 device->devname,
+		 udev_device_get_devnode(device->udev_device));
+
 	list_for_each(dev, &device->base.seat->devices_list, link) {
 		struct evdev_device *d = evdev_device(dev);
 		if (dev == &device->base)

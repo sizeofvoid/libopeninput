@@ -114,10 +114,6 @@ device_removed(struct udev_device *udev_device, struct udev_input *input)
 				   &seat->base.devices_list, base.link) {
 			if (streq(syspath,
 				  udev_device_get_syspath(device->udev_device))) {
-				log_info(&input->base,
-					 "input device %s, %s removed\n",
-					 device->devname,
-					 udev_device_get_devnode(device->udev_device));
 				evdev_device_remove(device);
 				break;
 			}
