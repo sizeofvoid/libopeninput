@@ -154,55 +154,10 @@ print_event_time(uint32_t time)
 	printf("%+6.2fs	", (time - start_time) / 1000.0);
 }
 
-static void
-print_device_notify(struct libinput_event *ev)
+static inline void
+print_device_options(struct libinput_device *dev)
 {
-	struct libinput_device *dev = libinput_event_get_device(ev);
-	struct libinput_seat *seat = libinput_device_get_seat(dev);
-	struct libinput_device_group *group;
-	double w, h;
 	uint32_t scroll_methods, click_methods;
-	static int next_group_id = 0;
-	intptr_t group_id;
-
-	group = libinput_device_get_device_group(dev);
-	group_id = (intptr_t)libinput_device_group_get_user_data(group);
-	if (!group_id) {
-		group_id = ++next_group_id;
-		libinput_device_group_set_user_data(group, (void*)group_id);
-	}
-
-	printf("%-33s %5s %7s group%-2d",
-	       libinput_device_get_name(dev),
-	       libinput_seat_get_physical_name(seat),
-	       libinput_seat_get_logical_name(seat),
-	       (int)group_id);
-
-	printf(" cap:");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_KEYBOARD))
-		printf("k");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_POINTER))
-		printf("p");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_TOUCH))
-		printf("t");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_GESTURE))
-		printf("g");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_TABLET_TOOL))
-		printf("T");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_TABLET_PAD))
-		printf("P");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_SWITCH))
-		printf("S");
-
-	if (libinput_device_get_size(dev, &w, &h) == 0)
-		printf("  size %.0fx%.0fmm", w, h);
 
 	if (libinput_device_config_tap_get_finger_count(dev)) {
 	    printf(" tap");
@@ -261,6 +216,59 @@ print_device_notify(struct libinput_event *ev)
 		       nrings,
 		       ngroups);
 	}
+}
+
+static void
+print_device_notify(struct libinput_event *ev)
+{
+	struct libinput_device *dev = libinput_event_get_device(ev);
+	struct libinput_seat *seat = libinput_device_get_seat(dev);
+	struct libinput_device_group *group;
+	double w, h;
+	static int next_group_id = 0;
+	intptr_t group_id;
+
+	group = libinput_device_get_device_group(dev);
+	group_id = (intptr_t)libinput_device_group_get_user_data(group);
+	if (!group_id) {
+		group_id = ++next_group_id;
+		libinput_device_group_set_user_data(group, (void*)group_id);
+	}
+
+	printf("%-33s %5s %7s group%-2d",
+	       libinput_device_get_name(dev),
+	       libinput_seat_get_physical_name(seat),
+	       libinput_seat_get_logical_name(seat),
+	       (int)group_id);
+
+	printf(" cap:");
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_KEYBOARD))
+		printf("k");
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_POINTER))
+		printf("p");
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_TOUCH))
+		printf("t");
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_GESTURE))
+		printf("g");
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_TABLET_TOOL))
+		printf("T");
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_TABLET_PAD))
+		printf("P");
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_SWITCH))
+		printf("S");
+
+	if (libinput_device_get_size(dev, &w, &h) == 0)
+		printf("  size %.0fx%.0fmm", w, h);
+
+	if (libinput_event_get_type(ev) == LIBINPUT_EVENT_DEVICE_ADDED)
+		print_device_options(dev);
 
 	printf("\n");
 
