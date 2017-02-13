@@ -24,6 +24,8 @@
 #ifndef _SHARED_H_
 #define _SHARED_H_
 
+#include <stdbool.h>
+
 #include <libinput.h>
 
 enum tools_backend {
@@ -36,6 +38,7 @@ struct tools_options {
 	const char *device; /* if backend is BACKEND_DEVICE */
 	const char *seat; /* if backend is BACKEND_UDEV */
 	int grab; /* EVIOCGRAB */
+	bool show_keycodes; /* show keycodes */
 
 	int verbose;
 	int tapping;

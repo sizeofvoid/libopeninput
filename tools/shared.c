@@ -62,6 +62,7 @@ enum options {
 	OPT_SCROLL_BUTTON,
 	OPT_SPEED,
 	OPT_PROFILE,
+	OPT_SHOW_KEYCODES,
 };
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
@@ -103,6 +104,7 @@ tools_usage(void)
 	       "--set-profile=[adaptive|flat].... set pointer acceleration profile\n"
 	       "--set-speed=<value>.... set pointer acceleration speed (allowed range [-1, 1]) \n"
 	       "--set-tap-map=[lrm|lmr] ... set button mapping for tapping\n"
+	       "--show-keycodes.... show all key codes while typing\n"
 	       "\n"
 	       "These options apply to all applicable devices, if a feature\n"
 	       "is not explicitly specified it is left at each device's default.\n"
@@ -137,6 +139,7 @@ tools_init_context(struct tools_context *context)
 	options->seat = "seat0";
 	options->speed = 0.0;
 	options->profile = LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
+	options->show_keycodes = false;
 }
 
 int
@@ -173,6 +176,7 @@ tools_parse_args(int argc, char **argv, struct tools_context *context)
 			{ "set-profile", 1, 0, OPT_PROFILE },
 			{ "set-tap-map", 1, 0, OPT_TAP_MAP },
 			{ "set-speed", 1, 0, OPT_SPEED },
+			{ "show-keycodes", 0, 0, OPT_SHOW_KEYCODES },
 			{ 0, 0, 0, 0}
 		};
 
@@ -336,6 +340,9 @@ tools_parse_args(int argc, char **argv, struct tools_context *context)
 				tools_usage();
 				return 1;
 			}
+			break;
+		case OPT_SHOW_KEYCODES:
+			options->show_keycodes = true;
 			break;
 		default:
 			tools_usage();
