@@ -72,7 +72,25 @@ log_handler(struct libinput *li,
 	    const char *format,
 	    va_list args)
 {
+#define ANSI_HIGHLIGHT "\x1B[0;1;39m"
+#define ANSI_RED "\x1B[0;31m"
+#define ANSI_NORMAL "\x1B[0m"
+	static int is_tty = -1;
+
+	if (is_tty == -1)
+		is_tty = isatty(STDOUT_FILENO);
+
+	if (is_tty) {
+		if (priority >= LIBINPUT_LOG_PRIORITY_ERROR)
+			printf(ANSI_RED);
+		else if (priority >= LIBINPUT_LOG_PRIORITY_INFO)
+			printf(ANSI_HIGHLIGHT);
+	}
+
 	vprintf(format, args);
+
+	if (is_tty && priority >= LIBINPUT_LOG_PRIORITY_INFO)
+		printf(ANSI_NORMAL);
 }
 
 void
