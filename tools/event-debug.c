@@ -267,20 +267,31 @@ print_device_notify(struct libinput_event *ev)
 }
 
 static void
-print_key_event(struct libinput_event *ev)
+print_key_event(struct libinput *li, struct libinput_event *ev)
 {
 	struct libinput_event_keyboard *k = libinput_event_get_keyboard_event(ev);
+	struct tools_context *context;
+	struct tools_options *options;
 	enum libinput_key_state state;
 	uint32_t key;
 	const char *keyname;
+
+	context = libinput_get_user_data(li);
+	options = &context->options;
 
 	print_event_time(libinput_event_keyboard_get_time(k));
 	state = libinput_event_keyboard_get_key_state(k);
 
 	key = libinput_event_keyboard_get_key(k);
-	keyname = libevdev_event_code_get_name(EV_KEY, key);
+	if (!options->show_keycodes &&
+	    (key >= KEY_ESC && key < KEY_ZENKAKUHANKAKU)) {
+		keyname = "***";
+	} else {
+		keyname = libevdev_event_code_get_name(EV_KEY, key);
+		keyname = keyname ? keyname : "???";
+	}
 	printf("%s (%d) %s\n",
-	       keyname ? keyname : "???",
+	       keyname,
 	       key,
 	       state == LIBINPUT_KEY_STATE_PRESSED ? "pressed" : "released");
 }
@@ -754,7 +765,7 @@ handle_and_print_events(struct libinput *li)
 						  &context.options);
 			break;
 		case LIBINPUT_EVENT_KEYBOARD_KEY:
-			print_key_event(ev);
+			print_key_event(li, ev);
 			break;
 		case LIBINPUT_EVENT_POINTER_MOTION:
 			print_motion_event(ev);
