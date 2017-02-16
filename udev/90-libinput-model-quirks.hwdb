@@ -169,6 +169,10 @@ libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPadX1Carbon3rd
 libinput:name:*Logitech M570*:dmi:*
  LIBINPUT_MODEL_TRACKBALL=1
 
+# Logitech Marble Mouse trackball
+libinput:mouse:input:b0003v046DpC408*
+ LIBINPUT_MODEL_LOGITECH_MARBLE_MOUSE=1
+
 ##########################################
 # Microsoft
 ##########################################

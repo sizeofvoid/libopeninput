@@ -2261,6 +2261,7 @@ evdev_read_model_flags(struct evdev_device *device)
 		MODEL(HP_ZBOOK_STUDIO_G3),
 		MODEL(HP_PAVILION_DM4_TOUCHPAD),
 		MODEL(APPLE_TOUCHPAD_ONEBUTTON),
+		MODEL(LOGITECH_MARBLE_MOUSE),
 #undef MODEL
 		{ "ID_INPUT_TRACKBALL", EVDEV_MODEL_TRACKBALL },
 		{ NULL, EVDEV_MODEL_DEFAULT },
@@ -2858,6 +2859,10 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	 * https://bugs.freedesktop.org/show_bug.cgi?id=98100 */
 	if (device->model_flags & EVDEV_MODEL_HP_ZBOOK_STUDIO_G3)
 		libevdev_set_abs_maximum(device->evdev, ABS_MT_SLOT, 1);
+
+	/* Logitech Marble Mouse claims to have a middle button */
+	if (device->model_flags & EVDEV_MODEL_LOGITECH_MARBLE_MOUSE)
+		libevdev_disable_event_code(device->evdev, EV_KEY, BTN_MIDDLE);
 }
 
 struct evdev_device *
