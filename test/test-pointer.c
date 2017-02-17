@@ -1742,22 +1742,21 @@ START_TEST(middlebutton_default_enabled)
 	struct libinput_device *device = dev->libinput_device;
 	enum libinput_config_status status;
 	int available;
-	enum libinput_config_middle_emulation_state deflt, state;
+	enum libinput_config_middle_emulation_state state;
+
+	if (!libinput_device_pointer_has_button(dev->libinput_device,
+						BTN_MIDDLE))
+		return;
 
 	available = libinput_device_config_middle_emulation_is_available(device);
 	ck_assert(available);
 
-	if (libinput_device_pointer_has_button(device, BTN_MIDDLE))
-		deflt = LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
-	else
-		deflt = LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED;
-
 	state = libinput_device_config_middle_emulation_get_enabled(device);
-	ck_assert_int_eq(state, deflt);
+	ck_assert_int_eq(state, LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED);
 
 	state = libinput_device_config_middle_emulation_get_default_enabled(
 					    device);
-	ck_assert_int_eq(state, deflt);
+	ck_assert_int_eq(state, LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED);
 
 	status = libinput_device_config_middle_emulation_set_enabled(device,
 					    LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
