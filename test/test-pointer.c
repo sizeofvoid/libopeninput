@@ -371,13 +371,15 @@ START_TEST(pointer_button)
 	test_button_event(dev, BTN_LEFT, 1);
 	test_button_event(dev, BTN_LEFT, 0);
 
-	if (libevdev_has_event_code(dev->evdev, EV_KEY, BTN_RIGHT)) {
+	if (libinput_device_pointer_has_button(dev->libinput_device,
+					       BTN_RIGHT)) {
 		test_button_event(dev, BTN_RIGHT, 1);
 		test_button_event(dev, BTN_RIGHT, 0);
 	}
 
 	/* Skip middle button test on trackpoints (used for scrolling) */
-	if (libevdev_has_event_code(dev->evdev, EV_KEY, BTN_MIDDLE)) {
+	if (libinput_device_pointer_has_button(dev->libinput_device,
+					       BTN_MIDDLE)) {
 		test_button_event(dev, BTN_MIDDLE, 1);
 		test_button_event(dev, BTN_MIDDLE, 0);
 	}
@@ -904,9 +906,7 @@ START_TEST(pointer_left_handed)
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 
-	if (libevdev_has_event_code(dev->evdev,
-				    EV_KEY,
-				    BTN_MIDDLE)) {
+	if (libinput_device_pointer_has_button(d, BTN_MIDDLE)) {
 		litest_button_click(dev, BTN_MIDDLE, 1);
 		litest_button_click(dev, BTN_MIDDLE, 0);
 		litest_assert_button_event(li,
@@ -1614,7 +1614,8 @@ START_TEST(middlebutton_middleclick)
 
 	disable_button_scrolling(device);
 
-	if (!libevdev_has_event_code(device->evdev, EV_KEY, BTN_MIDDLE))
+	if (!libinput_device_pointer_has_button(device->libinput_device,
+					       BTN_MIDDLE))
 		return;
 
 	status = libinput_device_config_middle_emulation_set_enabled(
@@ -1678,7 +1679,8 @@ START_TEST(middlebutton_middleclick_during)
 
 	disable_button_scrolling(device);
 
-	if (!libevdev_has_event_code(device->evdev, EV_KEY, BTN_MIDDLE))
+	if (!libinput_device_pointer_has_button(device->libinput_device,
+						BTN_MIDDLE))
 		return;
 
 	status = libinput_device_config_middle_emulation_set_enabled(
@@ -1745,7 +1747,7 @@ START_TEST(middlebutton_default_enabled)
 	available = libinput_device_config_middle_emulation_is_available(device);
 	ck_assert(available);
 
-	if (libevdev_has_event_code(dev->evdev, EV_KEY, BTN_MIDDLE))
+	if (libinput_device_pointer_has_button(device, BTN_MIDDLE))
 		deflt = LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
 	else
 		deflt = LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED;
@@ -1815,7 +1817,7 @@ START_TEST(middlebutton_default_touchpad)
 	available = libinput_device_config_middle_emulation_is_available(device);
 	ck_assert(!available);
 
-	if (libevdev_has_event_code(dev->evdev, EV_KEY, BTN_MIDDLE))
+	if (libinput_device_pointer_has_button(device, BTN_MIDDLE))
 		return;
 
 	state = libinput_device_config_middle_emulation_get_enabled(
