@@ -952,6 +952,11 @@ START_TEST(pointer_left_handed_during_click_multiple_buttons)
 	struct libinput *li = dev->libinput;
 	enum libinput_config_status status;
 
+	if (!libinput_device_pointer_has_button(d, BTN_MIDDLE))
+		return;
+
+	litest_disable_middleemu(dev);
+
 	litest_drain_events(li);
 	litest_button_click(dev, BTN_LEFT, 1);
 	libinput_dispatch(li);
@@ -1046,6 +1051,11 @@ START_TEST(pointer_scroll_button_no_event_before_timeout)
 	struct libinput *li = device->libinput;
 	int i;
 
+	if (!libinput_device_pointer_has_button(device->libinput_device,
+						BTN_MIDDLE))
+		return;
+
+	litest_disable_middleemu(device);
 	disable_button_scrolling(device);
 
 	libinput_device_config_scroll_set_method(device->libinput_device,
