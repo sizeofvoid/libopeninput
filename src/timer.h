@@ -47,6 +47,16 @@ libinput_timer_init(struct libinput_timer *timer, struct libinput *libinput,
 void
 libinput_timer_set(struct libinput_timer *timer, uint64_t expire);
 
+enum timer_flags {
+	TIMER_FLAG_NONE = 0,
+	TIMER_FLAG_ALLOW_NEGATIVE = (1 << 0),
+};
+
+void
+libinput_timer_set_flags(struct libinput_timer *timer,
+			 uint64_t expire,
+			 uint32_t flags);
+
 void
 libinput_timer_cancel(struct libinput_timer *timer);
 

@@ -231,8 +231,24 @@ evdev_button_scroll_button(struct evdev_device *device,
 	device->scroll.button_scroll_btn_pressed = is_press;
 
 	if (is_press) {
-		libinput_timer_set(&device->scroll.timer,
-				   time + DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT);
+		enum timer_flags flags = TIMER_FLAG_NONE;
+
+		/* Special case: if middle button emulation is enabled and
+		 * our scroll button is the left or right button, we only
+		 * get here *after* the middle button timeout has expired
+		 * for that button press. The time passed is the button-down
+		 * time though (which is in the past), so we have to allow
+		 * for a negative timer to be set.
+		 */
+		if (device->middlebutton.enabled &&
+		    (device->scroll.button == BTN_LEFT ||
+		     device->scroll.button == BTN_RIGHT)) {
+			flags = TIMER_FLAG_ALLOW_NEGATIVE;
+		}
+
+		libinput_timer_set_flags(&device->scroll.timer,
+					 time + DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT,
+					 flags);
 		device->scroll.button_down_time = time;
 	} else {
 		libinput_timer_cancel(&device->scroll.timer);
