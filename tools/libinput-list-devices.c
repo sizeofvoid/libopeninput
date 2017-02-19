@@ -290,7 +290,7 @@ print_device_notify(struct libinput_event *ev)
 	       libinput_seat_get_logical_name(seat));
 
 	if (libinput_device_get_size(dev, &w, &h) == 0)
-		printf("Size:             %.2fx%.2fmm\n", w, h);
+		printf("Size:             %.fx%.fmm\n", w, h);
 	printf("Capabilities:     ");
 	if (libinput_device_has_capability(dev,
 					   LIBINPUT_DEVICE_CAP_KEYBOARD))
