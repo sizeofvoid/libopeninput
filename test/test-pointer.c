@@ -1136,19 +1136,28 @@ START_TEST(pointer_scroll_nowheel_defaults)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
-	enum libinput_config_scroll_method method;
+	enum libinput_config_scroll_method method, expected;
 	uint32_t button;
 
+	/* button scrolling is only enabled if there is a
+	   middle button present */
+	if (libinput_device_pointer_has_button(device, BTN_MIDDLE))
+		expected = LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN;
+	else
+		expected = LIBINPUT_CONFIG_SCROLL_NO_SCROLL;
+
 	method = libinput_device_config_scroll_get_method(device);
-	ck_assert_int_eq(method, LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
+	ck_assert_int_eq(method, expected);
 
 	method = libinput_device_config_scroll_get_default_method(device);
-	ck_assert_int_eq(method, LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
+	ck_assert_int_eq(method, expected);
 
-	button = libinput_device_config_scroll_get_button(device);
-	ck_assert_int_eq(button, BTN_MIDDLE);
-	button = libinput_device_config_scroll_get_default_button(device);
-	ck_assert_int_eq(button, BTN_MIDDLE);
+	if (method == LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN) {
+		button = libinput_device_config_scroll_get_button(device);
+		ck_assert_int_eq(button, BTN_MIDDLE);
+		button = libinput_device_config_scroll_get_default_button(device);
+		ck_assert_int_eq(button, BTN_MIDDLE);
+	}
 }
 END_TEST
 
