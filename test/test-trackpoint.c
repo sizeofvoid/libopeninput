@@ -85,10 +85,15 @@ START_TEST(trackpoint_scroll)
 	litest_button_scroll(dev, BTN_MIDDLE, -9, 1);
 	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, -9);
 
-	/* scroll smaller than the threshold should not generate events */
+	/* scroll smaller than the threshold should not generate axis events */
 	litest_button_scroll(dev, BTN_MIDDLE, 1, 1);
-	/* long middle press without movement should not generate events */
+
 	litest_button_scroll(dev, BTN_MIDDLE, 0, 0);
+	litest_assert_button_event(li, BTN_MIDDLE,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li,
+				   BTN_MIDDLE,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
 
 	litest_assert_empty_queue(li);
 }

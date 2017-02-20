@@ -132,7 +132,8 @@ enum evdev_device_model {
 enum evdev_button_scroll_state {
 	BUTTONSCROLL_IDLE,
 	BUTTONSCROLL_BUTTON_DOWN,	/* button is down */
-	BUTTONSCROLL_SCROLLING,		/* scrolling */
+	BUTTONSCROLL_READY,		/* ready for scroll events */
+	BUTTONSCROLL_SCROLLING,		/* have sent scroll events */
 };
 
 struct mt_slot {

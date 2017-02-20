@@ -221,7 +221,7 @@ evdev_button_scroll_timeout(uint64_t time, void *data)
 {
 	struct evdev_device *device = data;
 
-	device->scroll.button_scroll_state = BUTTONSCROLL_SCROLLING;
+	device->scroll.button_scroll_state = BUTTONSCROLL_READY;
 }
 
 static void
@@ -260,9 +260,12 @@ evdev_button_scroll_button(struct evdev_device *device,
 					 "invalid state IDLE for button up\n");
 			break;
 		case BUTTONSCROLL_BUTTON_DOWN:
+		case BUTTONSCROLL_READY:
 			log_debug(evdev_libinput_context(device),
 				  "btnscroll: cancel\n");
-			/* If the button is released quickly enough emit the
+
+			/* If the button is released quickly enough or
+			 * without scroll events, emit the
 			 * button press/release events. */
 			evdev_pointer_post_button(device,
 					device->scroll.button_down_time,
@@ -401,6 +404,9 @@ evdev_post_trackpoint_scroll(struct evdev_device *device,
 		log_debug(evdev_libinput_context(device),
 			  "btnscroll: discarding\n");
 		return true;
+	case BUTTONSCROLL_READY:
+		device->scroll.button_scroll_state = BUTTONSCROLL_SCROLLING;
+		/* fallthrough */
 	case BUTTONSCROLL_SCROLLING:
 		evdev_post_scroll(device, time,
 				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,

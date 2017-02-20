@@ -1006,11 +1006,15 @@ START_TEST(pointer_scroll_button)
 	litest_button_scroll(dev, BTN_LEFT, -9, 1);
 	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, -9);
 
-	/* scroll smaller than the threshold should not generate events */
+	/* scroll smaller than the threshold should not generate axis events */
 	litest_button_scroll(dev, BTN_LEFT, 1, 1);
-	/* left press without movement should not generate events */
-	litest_button_scroll(dev, BTN_LEFT, 0, 0);
 
+	litest_button_scroll(dev, BTN_LEFT, 0, 0);
+	litest_assert_button_event(li, BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li,
+				   BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
 	litest_assert_empty_queue(li);
 
 	/* Restore default scroll behavior */
@@ -1076,6 +1080,12 @@ START_TEST(pointer_scroll_button_no_event_before_timeout)
 	litest_timeout_buttonscroll();
 	libinput_dispatch(li);
 	litest_button_click(device, BTN_LEFT, false);
+
+	litest_assert_button_event(li, BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li,
+				   BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
 	litest_assert_empty_queue(li);
 }
 END_TEST
