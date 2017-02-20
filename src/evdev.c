@@ -48,7 +48,7 @@
 #endif
 
 #define DEFAULT_WHEEL_CLICK_ANGLE 15
-#define DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT ms2us(200)
+#define DEFAULT_BUTTON_SCROLL_TIMEOUT ms2us(200)
 
 enum evdev_key_type {
 	EVDEV_KEY_TYPE_NONE,
@@ -247,7 +247,7 @@ evdev_button_scroll_button(struct evdev_device *device,
 		}
 
 		libinput_timer_set_flags(&device->scroll.timer,
-					 time + DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT,
+					 time + DEFAULT_BUTTON_SCROLL_TIMEOUT,
 					 flags);
 		device->scroll.button_down_time = time;
 	} else {
