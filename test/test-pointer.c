@@ -2086,6 +2086,7 @@ litest_setup_tests_pointer(void)
 	litest_add_for_device("pointer:button", pointer_button_has_no_button, LITEST_KEYBOARD);
 	litest_add("pointer:scroll", pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
+	litest_add("pointer:scroll", pointer_scroll_button_noscroll, LITEST_ABSOLUTE|LITEST_BUTTON, LITEST_RELATIVE);
 	litest_add("pointer:scroll", pointer_scroll_button_noscroll, LITEST_ANY, LITEST_RELATIVE|LITEST_BUTTON);
 	litest_add("pointer:scroll", pointer_scroll_button_no_event_before_timeout, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:scroll", pointer_scroll_button_middle_emulation, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);

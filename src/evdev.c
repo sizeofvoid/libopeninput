@@ -2688,7 +2688,9 @@ evdev_configure_device(struct evdev_device *device)
 		/* want natural-scroll config option */
 		device->scroll.natural_scrolling_enabled = true;
 		/* want button scrolling config option */
-		device->scroll.want_button = 1;
+		if (libevdev_has_event_code(evdev, EV_REL, REL_X) ||
+		    libevdev_has_event_code(evdev, EV_REL, REL_Y))
+			device->scroll.want_button = 1;
 	}
 
 	if (udev_tags & EVDEV_UDEV_TAG_KEYBOARD) {
