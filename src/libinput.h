@@ -4377,6 +4377,10 @@ libinput_device_config_send_events_get_default_mode(struct libinput_device *devi
  * @param device The device to configure
  *
  * @return 0 if the device is not accelerated, nonzero if it is accelerated
+ *
+ * @see libinput_device_config_accel_set_speed
+ * @see libinput_device_config_accel_get_speed
+ * @see libinput_device_config_accel_get_default_speed
  */
 int
 libinput_device_config_accel_is_available(struct libinput_device *device);
@@ -4396,6 +4400,10 @@ libinput_device_config_accel_is_available(struct libinput_device *device);
  * @param speed The normalized speed, in a range of [-1, 1]
  *
  * @return A config status code
+ *
+ * @see libinput_device_config_accel_is_available
+ * @see libinput_device_config_accel_get_speed
+ * @see libinput_device_config_accel_get_default_speed
  */
 enum libinput_config_status
 libinput_device_config_accel_set_speed(struct libinput_device *device,
@@ -4411,6 +4419,10 @@ libinput_device_config_accel_set_speed(struct libinput_device *device,
  * @param device The device to configure
  *
  * @return The current speed, range -1 to 1
+ *
+ * @see libinput_device_config_accel_is_available
+ * @see libinput_device_config_accel_set_speed
+ * @see libinput_device_config_accel_get_default_speed
  */
 double
 libinput_device_config_accel_get_speed(struct libinput_device *device);
@@ -4424,6 +4436,10 @@ libinput_device_config_accel_get_speed(struct libinput_device *device);
  *
  * @param device The device to configure
  * @return The default speed setting for this device.
+ *
+ * @see libinput_device_config_accel_is_available
+ * @see libinput_device_config_accel_set_speed
+ * @see libinput_device_config_accel_get_speed
  */
 double
 libinput_device_config_accel_get_default_speed(struct libinput_device *device);
