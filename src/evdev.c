@@ -250,13 +250,19 @@ evdev_button_scroll_button(struct evdev_device *device,
 					 time + DEFAULT_BUTTON_SCROLL_TIMEOUT,
 					 flags);
 		device->scroll.button_down_time = time;
+		log_debug(evdev_libinput_context(device),
+			  "btnscroll: down\n");
 	} else {
 		libinput_timer_cancel(&device->scroll.timer);
 		if (device->scroll.button_scroll_active) {
+			log_debug(evdev_libinput_context(device),
+				  "btnscroll: up\n");
 			evdev_stop_scroll(device, time,
 					  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
 			device->scroll.button_scroll_active = false;
 		} else {
+			log_debug(evdev_libinput_context(device),
+				  "btnscroll: cancel\n");
 			/* If the button is released quickly enough emit the
 			 * button press/release events. */
 			evdev_pointer_post_button(device,
@@ -383,8 +389,11 @@ evdev_post_trackpoint_scroll(struct evdev_device *device,
 		evdev_post_scroll(device, time,
 				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
 				  &unaccel);
-	/* if the button is down but scroll is not active, we're within the
-	   timeout where swallow motion events but don't post scroll buttons */
+	else
+		/* if the button is down but scroll is not active, we're within the
+		   timeout where swallow motion events but don't post scroll buttons */
+		log_debug(evdev_libinput_context(device),
+			  "btnscroll: discarding\n");
 
 	return true;
 }
