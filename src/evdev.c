@@ -221,17 +221,17 @@ evdev_button_scroll_timeout(uint64_t time, void *data)
 {
 	struct evdev_device *device = data;
 
-	device->scroll.button_scroll_active = true;
+	device->scroll.button_scroll_state = BUTTONSCROLL_SCROLLING;
 }
 
 static void
 evdev_button_scroll_button(struct evdev_device *device,
 			   uint64_t time, int is_press)
 {
-	device->scroll.button_scroll_btn_pressed = is_press;
-
 	if (is_press) {
 		enum timer_flags flags = TIMER_FLAG_NONE;
+
+		device->scroll.button_scroll_state = BUTTONSCROLL_BUTTON_DOWN;
 
 		/* Special case: if middle button emulation is enabled and
 		 * our scroll button is the left or right button, we only
@@ -254,13 +254,12 @@ evdev_button_scroll_button(struct evdev_device *device,
 			  "btnscroll: down\n");
 	} else {
 		libinput_timer_cancel(&device->scroll.timer);
-		if (device->scroll.button_scroll_active) {
-			log_debug(evdev_libinput_context(device),
-				  "btnscroll: up\n");
-			evdev_stop_scroll(device, time,
-					  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
-			device->scroll.button_scroll_active = false;
-		} else {
+		switch(device->scroll.button_scroll_state) {
+		case BUTTONSCROLL_IDLE:
+			log_bug_libinput(evdev_libinput_context(device),
+					 "invalid state IDLE for button up\n");
+			break;
+		case BUTTONSCROLL_BUTTON_DOWN:
 			log_debug(evdev_libinput_context(device),
 				  "btnscroll: cancel\n");
 			/* If the button is released quickly enough emit the
@@ -272,7 +271,16 @@ evdev_button_scroll_button(struct evdev_device *device,
 			evdev_pointer_post_button(device, time,
 					device->scroll.button,
 					LIBINPUT_BUTTON_STATE_RELEASED);
+			break;
+		case BUTTONSCROLL_SCROLLING:
+			log_debug(evdev_libinput_context(device),
+				  "btnscroll: up\n");
+			evdev_stop_scroll(device, time,
+					  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
+			break;
 		}
+
+		device->scroll.button_scroll_state = BUTTONSCROLL_IDLE;
 	}
 }
 
@@ -381,21 +389,26 @@ evdev_post_trackpoint_scroll(struct evdev_device *device,
 			     struct normalized_coords unaccel,
 			     uint64_t time)
 {
-	if (device->scroll.method != LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN ||
-	    !device->scroll.button_scroll_btn_pressed)
+	if (device->scroll.method != LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN)
 		return false;
 
-	if (device->scroll.button_scroll_active)
-		evdev_post_scroll(device, time,
-				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
-				  &unaccel);
-	else
+	switch(device->scroll.button_scroll_state) {
+	case BUTTONSCROLL_IDLE:
+		return false;
+	case BUTTONSCROLL_BUTTON_DOWN:
 		/* if the button is down but scroll is not active, we're within the
 		   timeout where swallow motion events but don't post scroll buttons */
 		log_debug(evdev_libinput_context(device),
 			  "btnscroll: discarding\n");
+		return true;
+	case BUTTONSCROLL_SCROLLING:
+		evdev_post_scroll(device, time,
+				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
+				  &unaccel);
+		return true;
+	}
 
-	return true;
+	assert(!"invalid scroll button state");
 }
 
 static inline bool

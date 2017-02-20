@@ -129,6 +129,12 @@ enum evdev_device_model {
 	EVDEV_MODEL_LOGITECH_MARBLE_MOUSE = (1 << 26),
 };
 
+enum evdev_button_scroll_state {
+	BUTTONSCROLL_IDLE,
+	BUTTONSCROLL_BUTTON_DOWN,	/* button is down */
+	BUTTONSCROLL_SCROLLING,		/* scrolling */
+};
+
 struct mt_slot {
 	int32_t seat_slot;
 	struct device_coords point;
@@ -188,8 +194,7 @@ struct evdev_device {
 		uint32_t want_button;
 		/* Checks if buttons are down and commits the setting */
 		void (*change_scroll_method)(struct evdev_device *device);
-		bool button_scroll_active;
-		bool button_scroll_btn_pressed;
+		enum evdev_button_scroll_state button_scroll_state;
 		double threshold;
 		double direction_lock_threshold;
 		uint32_t direction;
