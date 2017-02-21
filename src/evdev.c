@@ -48,7 +48,7 @@
 #endif
 
 #define DEFAULT_WHEEL_CLICK_ANGLE 15
-#define DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT ms2us(200)
+#define DEFAULT_BUTTON_SCROLL_TIMEOUT ms2us(200)
 
 enum evdev_key_type {
 	EVDEV_KEY_TYPE_NONE,
@@ -221,27 +221,51 @@ evdev_button_scroll_timeout(uint64_t time, void *data)
 {
 	struct evdev_device *device = data;
 
-	device->scroll.button_scroll_active = true;
+	device->scroll.button_scroll_state = BUTTONSCROLL_READY;
 }
 
 static void
 evdev_button_scroll_button(struct evdev_device *device,
 			   uint64_t time, int is_press)
 {
-	device->scroll.button_scroll_btn_pressed = is_press;
-
 	if (is_press) {
-		libinput_timer_set(&device->scroll.timer,
-				   time + DEFAULT_MIDDLE_BUTTON_SCROLL_TIMEOUT);
+		enum timer_flags flags = TIMER_FLAG_NONE;
+
+		device->scroll.button_scroll_state = BUTTONSCROLL_BUTTON_DOWN;
+
+		/* Special case: if middle button emulation is enabled and
+		 * our scroll button is the left or right button, we only
+		 * get here *after* the middle button timeout has expired
+		 * for that button press. The time passed is the button-down
+		 * time though (which is in the past), so we have to allow
+		 * for a negative timer to be set.
+		 */
+		if (device->middlebutton.enabled &&
+		    (device->scroll.button == BTN_LEFT ||
+		     device->scroll.button == BTN_RIGHT)) {
+			flags = TIMER_FLAG_ALLOW_NEGATIVE;
+		}
+
+		libinput_timer_set_flags(&device->scroll.timer,
+					 time + DEFAULT_BUTTON_SCROLL_TIMEOUT,
+					 flags);
 		device->scroll.button_down_time = time;
+		log_debug(evdev_libinput_context(device),
+			  "btnscroll: down\n");
 	} else {
 		libinput_timer_cancel(&device->scroll.timer);
-		if (device->scroll.button_scroll_active) {
-			evdev_stop_scroll(device, time,
-					  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
-			device->scroll.button_scroll_active = false;
-		} else {
-			/* If the button is released quickly enough emit the
+		switch(device->scroll.button_scroll_state) {
+		case BUTTONSCROLL_IDLE:
+			log_bug_libinput(evdev_libinput_context(device),
+					 "invalid state IDLE for button up\n");
+			break;
+		case BUTTONSCROLL_BUTTON_DOWN:
+		case BUTTONSCROLL_READY:
+			log_debug(evdev_libinput_context(device),
+				  "btnscroll: cancel\n");
+
+			/* If the button is released quickly enough or
+			 * without scroll events, emit the
 			 * button press/release events. */
 			evdev_pointer_post_button(device,
 					device->scroll.button_down_time,
@@ -250,7 +274,16 @@ evdev_button_scroll_button(struct evdev_device *device,
 			evdev_pointer_post_button(device, time,
 					device->scroll.button,
 					LIBINPUT_BUTTON_STATE_RELEASED);
+			break;
+		case BUTTONSCROLL_SCROLLING:
+			log_debug(evdev_libinput_context(device),
+				  "btnscroll: up\n");
+			evdev_stop_scroll(device, time,
+					  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
+			break;
 		}
+
+		device->scroll.button_scroll_state = BUTTONSCROLL_IDLE;
 	}
 }
 
@@ -359,18 +392,29 @@ evdev_post_trackpoint_scroll(struct evdev_device *device,
 			     struct normalized_coords unaccel,
 			     uint64_t time)
 {
-	if (device->scroll.method != LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN ||
-	    !device->scroll.button_scroll_btn_pressed)
+	if (device->scroll.method != LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN)
 		return false;
 
-	if (device->scroll.button_scroll_active)
+	switch(device->scroll.button_scroll_state) {
+	case BUTTONSCROLL_IDLE:
+		return false;
+	case BUTTONSCROLL_BUTTON_DOWN:
+		/* if the button is down but scroll is not active, we're within the
+		   timeout where swallow motion events but don't post scroll buttons */
+		log_debug(evdev_libinput_context(device),
+			  "btnscroll: discarding\n");
+		return true;
+	case BUTTONSCROLL_READY:
+		device->scroll.button_scroll_state = BUTTONSCROLL_SCROLLING;
+		/* fallthrough */
+	case BUTTONSCROLL_SCROLLING:
 		evdev_post_scroll(device, time,
 				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
 				  &unaccel);
-	/* if the button is down but scroll is not active, we're within the
-	   timeout where swallow motion events but don't post scroll buttons */
+		return true;
+	}
 
-	return true;
+	assert(!"invalid scroll button state");
 }
 
 static inline bool
@@ -2245,6 +2289,7 @@ evdev_read_model_flags(struct evdev_device *device)
 		MODEL(HP_ZBOOK_STUDIO_G3),
 		MODEL(HP_PAVILION_DM4_TOUCHPAD),
 		MODEL(APPLE_TOUCHPAD_ONEBUTTON),
+		MODEL(LOGITECH_MARBLE_MOUSE),
 #undef MODEL
 		{ "ID_INPUT_TRACKBALL", EVDEV_MODEL_TRACKBALL },
 		{ NULL, EVDEV_MODEL_DEFAULT },
@@ -2643,7 +2688,9 @@ evdev_configure_device(struct evdev_device *device)
 		/* want natural-scroll config option */
 		device->scroll.natural_scrolling_enabled = true;
 		/* want button scrolling config option */
-		device->scroll.want_button = 1;
+		if (libevdev_has_event_code(evdev, EV_REL, REL_X) ||
+		    libevdev_has_event_code(evdev, EV_REL, REL_Y))
+			device->scroll.want_button = 1;
 	}
 
 	if (udev_tags & EVDEV_UDEV_TAG_KEYBOARD) {
@@ -2842,6 +2889,10 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	 * https://bugs.freedesktop.org/show_bug.cgi?id=98100 */
 	if (device->model_flags & EVDEV_MODEL_HP_ZBOOK_STUDIO_G3)
 		libevdev_set_abs_maximum(device->evdev, ABS_MT_SLOT, 1);
+
+	/* Logitech Marble Mouse claims to have a middle button */
+	if (device->model_flags & EVDEV_MODEL_LOGITECH_MARBLE_MOUSE)
+		libevdev_disable_event_code(device->evdev, EV_KEY, BTN_MIDDLE);
 }
 
 struct evdev_device *

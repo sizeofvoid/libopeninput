@@ -1482,6 +1482,18 @@ START_TEST(device_quirks_apple_magicmouse)
 }
 END_TEST
 
+START_TEST(device_quirks_logitech_marble_mouse)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_drain_events(li);
+
+	ck_assert(!libinput_device_pointer_has_button(dev->libinput_device,
+						      BTN_MIDDLE));
+}
+END_TEST
+
 START_TEST(device_capability_at_least_one)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1648,6 +1660,7 @@ litest_setup_tests_device(void)
 	litest_add_for_device("device:quirks", device_quirks_no_abs_mt_y, LITEST_ANKER_MOUSE_KBD);
 	litest_add_for_device("device:quirks", device_quirks_cyborg_rat_mode_button, LITEST_CYBORG_RAT);
 	litest_add_for_device("device:quirks", device_quirks_apple_magicmouse, LITEST_MAGICMOUSE);
+	litest_add_for_device("device:quirks", device_quirks_logitech_marble_mouse, LITEST_LOGITECH_TRACKBALL);
 
 	litest_add("device:capability", device_capability_at_least_one, LITEST_ANY, LITEST_ANY);
 	litest_add("device:capability", device_capability_check_invalid, LITEST_ANY, LITEST_ANY);

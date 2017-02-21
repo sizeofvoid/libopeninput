@@ -126,6 +126,14 @@ enum evdev_device_model {
 	EVDEV_MODEL_HP_ZBOOK_STUDIO_G3 = (1 << 23),
 	EVDEV_MODEL_HP_PAVILION_DM4_TOUCHPAD = (1 << 24),
 	EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON = (1 << 25),
+	EVDEV_MODEL_LOGITECH_MARBLE_MOUSE = (1 << 26),
+};
+
+enum evdev_button_scroll_state {
+	BUTTONSCROLL_IDLE,
+	BUTTONSCROLL_BUTTON_DOWN,	/* button is down */
+	BUTTONSCROLL_READY,		/* ready for scroll events */
+	BUTTONSCROLL_SCROLLING,		/* have sent scroll events */
 };
 
 struct mt_slot {
@@ -187,8 +195,7 @@ struct evdev_device {
 		uint32_t want_button;
 		/* Checks if buttons are down and commits the setting */
 		void (*change_scroll_method)(struct evdev_device *device);
-		bool button_scroll_active;
-		bool button_scroll_btn_pressed;
+		enum evdev_button_scroll_state button_scroll_state;
 		double threshold;
 		double direction_lock_threshold;
 		uint32_t direction;
