@@ -294,6 +294,7 @@ print_key_event(struct libinput *li, struct libinput_event *ev)
 	if (!options->show_keycodes &&
 	    (key >= KEY_ESC && key < KEY_ZENKAKUHANKAKU)) {
 		keyname = "***";
+		key = -1;
 	} else {
 		keyname = libevdev_event_code_get_name(EV_KEY, key);
 		keyname = keyname ? keyname : "???";
