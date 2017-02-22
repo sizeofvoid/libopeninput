@@ -2719,6 +2719,8 @@ START_TEST(airbrush_tool)
 	ck_assert_int_eq(libinput_tablet_tool_get_type(tool),
 			 LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH);
 
+	ck_assert(libinput_tablet_tool_has_slider(tool));
+
 	libinput_event_destroy(event);
 }
 END_TEST
