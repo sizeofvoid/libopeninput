@@ -108,7 +108,7 @@ ENV{ID_MODEL_ID}=="034b", ENV{ID_INPUT_TOUCHPAD}="", ENV{ID_INPUT_TABLET}="1"
 @section model_specific_configuration Model-specific configuration
 
 libinput reserves the property prefixes <b>LIBINPUT_MODEL_</b> and
-<b>LIBINPUT_ATTR_*</b> for model-specific configuration. <b>These prefixes
+<b>LIBINPUT_ATTR_</b> for model-specific configuration. <b>These prefixes
 are reserved as private API, do not use.</b>
 
 The effect of these properties may be to enable or disable certain
