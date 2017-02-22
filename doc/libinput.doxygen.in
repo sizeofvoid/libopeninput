@@ -13,6 +13,7 @@ INPUT                  = @top_srcdir@/src/libinput.h \
 IMAGE_PATH             = @top_srcdir@/doc/svg \
 			 @top_srcdir@/doc/dot
 GENERATE_HTML          = YES
+SEARCHENGINE           = NO
 USE_MATHJAX            = YES
 MATHJAX_RELPATH        = https://cdn.mathjax.org/mathjax/latest
 GENERATE_LATEX         = NO
