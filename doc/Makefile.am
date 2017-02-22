@@ -70,7 +70,8 @@ style_files = \
 	      style/header.html \
 	      style/footer.html \
 	      style/customdoxygen.css \
-	      style/bootstrap.css
+	      style/bootstrap.css \
+	      style/libinputdoxygen.css
 
 if BUILD_DOCS
 
