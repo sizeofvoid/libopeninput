@@ -281,7 +281,7 @@ LIBINPUT_1.5 {
 	libinput_device_config_tap_set_button_map;
 } LIBINPUT_1.4;
 
-LIBINPUT_SWITCH {
+LIBINPUT_1.7 {
 	libinput_event_get_switch_event;
 	libinput_event_switch_get_base_event;
 	libinput_event_switch_get_switch_state;

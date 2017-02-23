@@ -2,7 +2,7 @@ AC_PREREQ([2.64])
 
 m4_define([libinput_major_version], [1])
 m4_define([libinput_minor_version], [6])
-m4_define([libinput_micro_version], [900])
+m4_define([libinput_micro_version], [901])
 m4_define([libinput_version],
           [libinput_major_version.libinput_minor_version.libinput_micro_version])
 
@@ -35,7 +35,7 @@ AM_INIT_AUTOMAKE([1.11 foreign no-dist-gzip dist-xz])
 # b) If interfaces have been changed or added, but binary compatibility has
 #    been preserved, change to C+1:0:A+1
 # c) If the interface is the same as the previous version, change to C:R+1:A
-LIBINPUT_LT_VERSION=21:2:11
+LIBINPUT_LT_VERSION=22:0:12
 AC_SUBST(LIBINPUT_LT_VERSION)
 
 AM_SILENT_RULES([yes])
