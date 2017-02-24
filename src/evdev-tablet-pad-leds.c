@@ -645,5 +645,9 @@ evdev_device_tablet_pad_get_mode_group(struct evdev_device *device,
 	if (!(device->seat_caps & EVDEV_DEVICE_TABLET_PAD))
 		return NULL;
 
+	if (index >=
+	    (unsigned int)evdev_device_tablet_pad_get_num_mode_groups(device))
+		return NULL;
+
 	return pad_get_mode_group(pad, index);
 }
