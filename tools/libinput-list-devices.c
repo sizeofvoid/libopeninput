@@ -245,16 +245,23 @@ rotation_default(struct libinput_device *device)
 static void
 print_pad_info(struct libinput_device *device)
 {
-	int nbuttons, nrings, nstrips;
+	int nbuttons, nrings, nstrips, ngroups, nmodes;
+	struct libinput_tablet_pad_mode_group *group;
 
 	nbuttons = libinput_device_tablet_pad_get_num_buttons(device);
 	nrings = libinput_device_tablet_pad_get_num_rings(device);
 	nstrips = libinput_device_tablet_pad_get_num_strips(device);
+	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
+
+	group = libinput_device_tablet_pad_get_mode_group(device, 0);
+	nmodes = libinput_tablet_pad_mode_group_get_num_modes(group);
 
 	printf("Pad:\n");
 	printf("	Rings:   %d\n", nrings);
 	printf("	Strips:  %d\n", nstrips);
 	printf("	Buttons: %d\n", nbuttons);
+	printf("	Mode groups: %d (%d modes)\n", ngroups, nmodes);
+
 }
 
 static void
