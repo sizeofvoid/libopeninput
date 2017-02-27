@@ -98,7 +98,7 @@ struct window {
 		double tilt_x, tilt_y;
 
 		/* these are for the delta coordinates, but they're not
-		 * deltas, the are yconverted into abs positions */
+		 * deltas, they are converted into abs positions */
 		size_t ndeltas;
 		struct point deltas[64];
 	} tool;
