@@ -1176,11 +1176,15 @@ START_TEST(pointer_scroll_defaults_logitech_marble)
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 	enum libinput_config_scroll_method method;
+	uint32_t button;
 
 	method = libinput_device_config_scroll_get_method(device);
 	ck_assert_int_eq(method, LIBINPUT_CONFIG_SCROLL_NO_SCROLL);
 	method = libinput_device_config_scroll_get_default_method(device);
 	ck_assert_int_eq(method, LIBINPUT_CONFIG_SCROLL_NO_SCROLL);
+
+	button = libinput_device_config_scroll_get_button(device);
+	ck_assert_int_eq(button, BTN_SIDE);
 }
 END_TEST
 

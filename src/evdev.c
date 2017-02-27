@@ -1536,9 +1536,18 @@ static uint32_t
 evdev_scroll_get_default_button(struct libinput_device *device)
 {
 	struct evdev_device *evdev = evdev_device(device);
+	unsigned int code;
 
 	if (libevdev_has_event_code(evdev->evdev, EV_KEY, BTN_MIDDLE))
 		return BTN_MIDDLE;
+
+	for (code = BTN_SIDE; code <= BTN_TASK; code++) {
+		if (libevdev_has_event_code(evdev->evdev, EV_KEY, code))
+			return code;
+	}
+
+	if (libevdev_has_event_code(evdev->evdev, EV_KEY, BTN_RIGHT))
+		return BTN_RIGHT;
 
 	return 0;
 }
