@@ -63,6 +63,7 @@ enum options {
 	OPT_SPEED,
 	OPT_PROFILE,
 	OPT_SHOW_KEYCODES,
+	OPT_QUIET,
 };
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
@@ -130,6 +131,7 @@ tools_usage(void)
 	       "Other options:\n"
 	       "--grab .......... Exclusively grab all openend devices\n"
 	       "--verbose ....... Print debugging output.\n"
+	       "--quiet ......... Only print libinput messages, useful in combination with --verbose.\n"
 	       "--help .......... Print this help.\n",
 		program_invocation_short_name);
 }
@@ -174,6 +176,7 @@ tools_parse_args(int argc, char **argv, struct tools_context *context)
 			{ "grab", 0, 0, OPT_GRAB },
 			{ "help", 0, 0, OPT_HELP },
 			{ "verbose", 0, 0, OPT_VERBOSE },
+			{ "quiet", 0, 0, OPT_QUIET },
 			{ "enable-tap", 0, 0, OPT_TAP_ENABLE },
 			{ "disable-tap", 0, 0, OPT_TAP_DISABLE },
 			{ "enable-drag", 0, 0, OPT_DRAG_ENABLE },
@@ -361,6 +364,9 @@ tools_parse_args(int argc, char **argv, struct tools_context *context)
 			break;
 		case OPT_SHOW_KEYCODES:
 			options->show_keycodes = true;
+			break;
+		case OPT_QUIET:
+			options->quiet = true;
 			break;
 		default:
 			tools_usage();

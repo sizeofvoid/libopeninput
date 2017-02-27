@@ -39,6 +39,7 @@ struct tools_options {
 	const char *seat; /* if backend is BACKEND_UDEV */
 	int grab; /* EVIOCGRAB */
 	bool show_keycodes; /* show keycodes */
+	bool quiet; /* only print libinput messages */
 
 	int verbose;
 	int tapping;

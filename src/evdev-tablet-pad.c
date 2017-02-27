@@ -132,8 +132,9 @@ pad_process_absolute(struct pad_dispatch *pad,
 		pad->have_abs_misc_terminator = true;
 		break;
 	default:
-		log_info(pad_libinput_context(pad),
-			 "Unhandled EV_ABS event code %#x\n", e->code);
+		evdev_log_info(device,
+			       "Unhandled EV_ABS event code %#x\n",
+			       e->code);
 		break;
 	}
 }
@@ -469,10 +470,10 @@ pad_process(struct evdev_dispatch *dispatch,
 		 * now */
 		break;
 	default:
-		log_error(pad_libinput_context(pad),
-			  "Unexpected event type %s (%#x)\n",
-			  libevdev_event_type_get_name(e->type),
-			  e->type);
+		evdev_log_error(device,
+				"Unexpected event type %s (%#x)\n",
+				libevdev_event_type_get_name(e->type),
+				e->type);
 		break;
 	}
 }

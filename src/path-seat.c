@@ -117,9 +117,10 @@ path_device_enable(struct path_input *input,
 	struct evdev_device *device = NULL;
 	char *seat_name = NULL, *seat_logical_name = NULL;
 	const char *seat_prop, *output_name;
-	const char *devnode;
+	const char *devnode, *sysname;
 
 	devnode = udev_device_get_devnode(udev_device);
+	sysname = udev_device_get_sysname(udev_device);
 
 	seat_prop = udev_device_get_property_value(udev_device, "ID_SEAT");
 	seat_name = strdup(seat_prop ? seat_prop : default_seat);
@@ -133,7 +134,8 @@ path_device_enable(struct path_input *input,
 
 	if (!seat_logical_name) {
 		log_error(&input->base,
-			  "failed to create seat name for device '%s'.\n",
+			  "%s: failed to create seat name for device '%s'.\n",
+			  sysname,
 			  devnode);
 		goto out;
 	}
@@ -146,7 +148,8 @@ path_device_enable(struct path_input *input,
 		seat = path_seat_create(input, seat_name, seat_logical_name);
 		if (!seat) {
 			log_info(&input->base,
-				 "failed to create seat for device '%s'.\n",
+				 "%s: failed to create seat for device '%s'.\n",
+				 sysname,
 				 devnode);
 			goto out;
 		}
@@ -158,12 +161,14 @@ path_device_enable(struct path_input *input,
 	if (device == EVDEV_UNHANDLED_DEVICE) {
 		device = NULL;
 		log_info(&input->base,
-			 "not using input device '%s'.\n",
+			 "%-7s - not using input device '%s'.\n",
+			 sysname,
 			 devnode);
 		goto out;
 	} else if (device == NULL) {
 		log_info(&input->base,
-			 "failed to create input device '%s'.\n",
+			 "%-7s - failed to create input device '%s'.\n",
+			 sysname,
 			 devnode);
 		goto out;
 	}

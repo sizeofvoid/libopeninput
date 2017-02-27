@@ -49,7 +49,7 @@ device_added(struct udev_device *udev_device,
 	     const char *seat_name)
 {
 	struct evdev_device *device;
-	const char *devnode;
+	const char *devnode, *sysname;
 	const char *device_seat, *output_name;
 	struct udev_seat *seat;
 
@@ -64,6 +64,7 @@ device_added(struct udev_device *udev_device,
 		return 0;
 
 	devnode = udev_device_get_devnode(udev_device);
+	sysname = udev_device_get_sysname(udev_device);
 
 	/* Search for matching logical seat */
 	if (!seat_name)
@@ -85,10 +86,16 @@ device_added(struct udev_device *udev_device,
 	libinput_seat_unref(&seat->base);
 
 	if (device == EVDEV_UNHANDLED_DEVICE) {
-		log_info(&input->base, "not using input device '%s'.\n", devnode);
+		log_info(&input->base,
+			 "%-7s - not using input device '%s'\n",
+			 sysname,
+			 devnode);
 		return 0;
 	} else if (device == NULL) {
-		log_info(&input->base, "failed to create input device '%s'.\n", devnode);
+		log_info(&input->base,
+			 "%-7s - failed to create input device '%s'\n",
+			 sysname,
+			 devnode);
 		return 0;
 	}
 
@@ -114,10 +121,6 @@ device_removed(struct udev_device *udev_device, struct udev_input *input)
 				   &seat->base.devices_list, base.link) {
 			if (streq(syspath,
 				  udev_device_get_syspath(device->udev_device))) {
-				log_info(&input->base,
-					 "input device %s, %s removed\n",
-					 device->devname,
-					 udev_device_get_devnode(device->udev_device));
 				evdev_device_remove(device);
 				break;
 			}
