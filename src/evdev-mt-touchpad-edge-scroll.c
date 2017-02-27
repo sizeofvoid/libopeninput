@@ -291,14 +291,14 @@ tp_edge_scroll_init(struct tp_dispatch *tp, struct evdev_device *device)
 	struct phys_coords mm = { 0.0, 0.0 };
 
 	evdev_device_get_size(device, &width, &height);
-	/* Touchpads smaller than 50mm are not tall enough to have a
+	/* Touchpads smaller than 40mm are not tall enough to have a
 	   horizontal scroll area, it takes too much space away. But
 	   clickpads have enough space here anyway because of the
 	   software button area (and all these tiny clickpads were built
 	   when software buttons were a thing, e.g. Lenovo *20 series)
 	 */
 	if (!tp->buttons.is_clickpad)
-	    want_horiz_scroll = (height >= 50);
+	    want_horiz_scroll = (height >= 40);
 
 	/* 7mm edge size */
 	mm.x = width - 7;

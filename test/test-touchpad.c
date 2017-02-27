@@ -462,7 +462,7 @@ touchpad_has_horiz_edge_scroll_size(struct litest_device *dev)
 
 	rc = libinput_device_get_size(dev->libinput_device, &width, &height);
 
-	return rc == 0 && height >= 50;
+	return rc == 0 && height >= 40;
 }
 
 START_TEST(touchpad_edge_scroll_horiz)
