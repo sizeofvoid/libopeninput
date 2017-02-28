@@ -421,7 +421,7 @@ print_tablet_axes(struct libinput_event_tablet_tool *t)
 	(libinput_event_tablet_tool_##ax##_has_changed(ev) ? "*" : "")
 
 	x = libinput_event_tablet_tool_get_x(t);
-	y = libinput_event_tablet_tool_get_x(t);
+	y = libinput_event_tablet_tool_get_y(t);
 	printf("\t%.2f%s/%.2f%s",
 	       x, changed_sym(t, x),
 	       y, changed_sym(t, y));
