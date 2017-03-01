@@ -458,7 +458,7 @@ tp_button_handle_state(struct tp_dispatch *tp, uint64_t time)
 	struct tp_touch *t;
 
 	tp_for_each_touch(tp, t) {
-		if (t->state == TOUCH_NONE)
+		if (t->state == TOUCH_NONE || t->state == TOUCH_HOVERING)
 			continue;
 
 		if (t->state == TOUCH_END) {
