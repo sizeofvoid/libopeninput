@@ -1013,6 +1013,13 @@ START_TEST(proximity_has_axes)
 	litest_axis_set_value(axes, ABS_DISTANCE, 20);
 	litest_axis_set_value(axes, ABS_TILT_X, 15);
 	litest_axis_set_value(axes, ABS_TILT_Y, 25);
+
+	/* work around axis smoothing */
+	litest_tablet_motion(dev, 20, 30, axes);
+	litest_tablet_motion(dev, 20, 29, axes);
+	litest_tablet_motion(dev, 20, 31, axes);
+	litest_drain_events(li);
+
 	litest_tablet_motion(dev, 20, 30, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
@@ -1044,8 +1051,10 @@ START_TEST(proximity_has_axes)
 
 	x = libinput_event_tablet_tool_get_x(tablet_event);
 	y = libinput_event_tablet_tool_get_y(tablet_event);
-	litest_assert_double_eq(x, last_x);
-	litest_assert_double_eq(y, last_y);
+	litest_assert_double_ge(x, last_x - 1);
+	litest_assert_double_le(x, last_x + 1);
+	litest_assert_double_ge(y, last_y - 1);
+	litest_assert_double_le(y, last_y + 1);
 
 	if (libinput_tablet_tool_has_distance(tool)) {
 		ck_assert(!libinput_event_tablet_tool_distance_has_changed(
@@ -1428,6 +1437,16 @@ START_TEST(left_handed)
 
 	libinput_event_destroy(event);
 
+	/* work around smoothing */
+	litest_axis_set_value(axes, ABS_DISTANCE, 9);
+	litest_tablet_motion(dev, 100, 0, axes);
+	litest_axis_set_value(axes, ABS_DISTANCE, 7);
+	litest_tablet_motion(dev, 100, 0, axes);
+	litest_axis_set_value(axes, ABS_DISTANCE, 10);
+	litest_tablet_motion(dev, 100, 0, axes);
+	litest_drain_events(li);
+
+	litest_axis_set_value(axes, ABS_DISTANCE, 5);
 	litest_tablet_motion(dev, 100, 0, axes);
 	libinput_dispatch(li);
 
@@ -1468,6 +1487,16 @@ START_TEST(left_handed)
 
 	libinput_event_destroy(event);
 
+	/* work around smoothing */
+	litest_axis_set_value(axes, ABS_DISTANCE, 9);
+	litest_tablet_motion(dev, 100, 0, axes);
+	litest_axis_set_value(axes, ABS_DISTANCE, 7);
+	litest_tablet_motion(dev, 100, 0, axes);
+	litest_axis_set_value(axes, ABS_DISTANCE, 10);
+	litest_tablet_motion(dev, 100, 0, axes);
+	litest_drain_events(li);
+
+	litest_axis_set_value(axes, ABS_DISTANCE, 5);
 	litest_tablet_motion(dev, 100, 0, axes);
 	libinput_dispatch(li);
 
@@ -1768,6 +1797,7 @@ START_TEST(motion_outside_bounds)
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tablet_event;
 	double val;
+	int i;
 
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
@@ -1776,6 +1806,15 @@ START_TEST(motion_outside_bounds)
 	};
 
 	litest_tablet_proximity_in(dev, 50, 50, axes);
+	litest_drain_events(li);
+
+	/* Work around smoothing */
+	for (i = 5; i > 0; i--) {
+		litest_event(dev, EV_ABS, ABS_X, 0 + 5 * i);
+		litest_event(dev, EV_ABS, ABS_Y, 1000);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
 	litest_drain_events(li);
 
 	/* On the 24HD x/y of 0 is outside the limit */
@@ -1796,6 +1835,15 @@ START_TEST(motion_outside_bounds)
 	ck_assert_double_lt(val, 0.0);
 
 	libinput_event_destroy(event);
+
+	/* Work around smoothing */
+	for (i = 5; i > 0; i--) {
+		litest_event(dev, EV_ABS, ABS_X, 1000);
+		litest_event(dev, EV_ABS, ABS_Y, 0 + 5 * i);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+	litest_drain_events(li);
 
 	/* On the 24HD x/y of 0 is outside the limit */
 	litest_event(dev, EV_ABS, ABS_X, 1000);
@@ -3341,12 +3389,18 @@ START_TEST(tablet_pressure_min_max)
 	litest_tablet_motion(dev, 5, 100, axes);
 	litest_drain_events(li);
 
+	/* need to fill the motion history */
 	litest_axis_set_value(axes, ABS_PRESSURE, 100);
+	litest_tablet_motion(dev, 5, 100, axes);
+	litest_tablet_motion(dev, 6, 100, axes);
+	litest_tablet_motion(dev, 7, 100, axes);
+	litest_tablet_motion(dev, 8, 100, axes);
+	litest_drain_events(li);
+
 	litest_tablet_motion(dev, 5, 100, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
-	ck_assert(libinput_event_tablet_tool_pressure_has_changed(tev));
 	p = libinput_event_tablet_tool_get_pressure(tev);
 	ck_assert_double_ge(p, 1.0);
 	libinput_event_destroy(event);
@@ -3630,7 +3684,12 @@ START_TEST(tilt_x)
 
 	for (tilt = 0; tilt <= 100; tilt += 5) {
 		litest_axis_set_value(axes, ABS_TILT_X, tilt);
+		/* work around smoothing */
 		litest_tablet_motion(dev, 10, 10, axes);
+		litest_tablet_motion(dev, 10, 11, axes);
+		litest_tablet_motion(dev, 10, 10, axes);
+		litest_drain_events(li);
+		litest_tablet_motion(dev, 10, 11, axes);
 		libinput_dispatch(li);
 		event = libinput_get_event(li);
 		tev = litest_is_tablet_event(event,
@@ -3699,6 +3758,11 @@ START_TEST(tilt_y)
 
 	for (tilt = 0; tilt <= 100; tilt += 5) {
 		litest_axis_set_value(axes, ABS_TILT_Y, tilt);
+		/* work around smoothing */
+		litest_tablet_motion(dev, 10, 11, axes);
+		litest_tablet_motion(dev, 10, 10, axes);
+		litest_tablet_motion(dev, 10, 11, axes);
+		litest_drain_events(li);
 		litest_tablet_motion(dev, 10, 10, axes);
 		libinput_dispatch(li);
 		event = libinput_get_event(li);
@@ -3815,7 +3879,7 @@ START_TEST(relative_delta)
 	ck_assert(dy == 0.0);
 	libinput_event_destroy(event);
 
-	litest_tablet_motion(dev, 10, 10, axes);
+	litest_tablet_motion(dev, 5, 10, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
@@ -3837,7 +3901,7 @@ START_TEST(relative_delta)
 	ck_assert(dy > 0.0);
 	libinput_event_destroy(event);
 
-	litest_tablet_motion(dev, 10, 10, axes);
+	litest_tablet_motion(dev, 10, 5, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
@@ -3888,7 +3952,7 @@ START_TEST(relative_calibration)
 	ck_assert(dy == 0.0);
 	libinput_event_destroy(event);
 
-	litest_tablet_motion(dev, 10, 10, axes);
+	litest_tablet_motion(dev, 5, 10, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
@@ -3910,7 +3974,7 @@ START_TEST(relative_calibration)
 	ck_assert(dy < 0.0);
 	libinput_event_destroy(event);
 
-	litest_tablet_motion(dev, 10, 10, axes);
+	litest_tablet_motion(dev, 10, 5, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
