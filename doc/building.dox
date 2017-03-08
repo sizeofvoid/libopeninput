@@ -1,12 +1,20 @@
 /**
 @page building_libinput libinput build instructions
 
+@tableofcontents
+
 Instructions on how to build libinput and its tools and how to build against
 libinput.
 
+The build instruction on this page detail how to overwrite your
+system-provided libinput with one from the git repository, see
+see @ref reverting_install to revert to the previous state.
+
 @section building Building libinput
 
-libinput uses automake, a build is usually the following three-step process
+libinput uses automake, a build is usually the three-step process below.
+A successful build requires the @ref building_dependencies to be installed
+at configure time.
 
 @code
 $> git clone git://anongit.freedesktop.org/git/wayland/libinput
@@ -14,13 +22,52 @@ $> cd libinput
 $> ./autogen.sh --prefix=/usr --libdir=/usr/lib64
 $> make
 $> sudo make install
+$> sudo udevadm hwdb --update
 @endcode
 
 @note On Debian-based distributions including Ubuntu and its derivatives skip the
 ```--libdir=/usr/lib64``` argument.
 
-A successful build requires the @ref building_dependencies to be installed
-at configure time.
+@subsection verifying_install Verifying the install
+
+To verify the install worked correctly, check that libinput.so.x.x.x is in
+the library path and that all symlinks point to the new library.
+<pre>
+$> ls -l /usr/lib64/libinput.*
+-rwxr-xr-x 1 root root    946 Apr 28  2015 /usr/lib64/libinput.la
+lrwxrwxrwx 1 root root     19 Feb  1 15:12 /usr/lib64/libinput.so -> libinput.so.10.11.2
+lrwxrwxrwx 1 root root     19 Feb  1 15:12 /usr/lib64/libinput.so.10 -> libinput.so.10.11.2
+-rwxr-xr-x 1 root root 204992 Feb  1 15:12 /usr/lib64/libinput.so.10.11.2
+</pre>
+
+The .so installed from git master may have a lower number than the
+system-provided one. In that case, manually adjust the symlinks to point to
+the newly installed .so.x.x.x
+
+@subsection reverting_install Reverting to the system-provided libinput packge
+
+The recommended way to revert to the system install is to use the package
+manager to reinstall the libinput package. In some cases, this may leave
+files in the system (e.g. ```/usr/lib/libinput.la```) but these files are
+usually harmless. To definitely remove all files, run the following command
+from the libinput source directory:
+
+@code
+$> sudo make uninstall
+# WARNING: Do not restart the computer/X/the Wayland compositor after make
+# uninstall, reinstall the system package immediately!
+@endcode
+
+The following commands reinstall the current system package for libinput,
+overwriting manually installed files.
+
+<ul>
+<li><b>Debian/Ubuntu</b> based distributions: ```sudo apt-get install
+--reinstall libinput```</li>
+<li><b>Fedora 22</b> and later: ```sudo dnf reinstall libinput```</li>
+<li><b>SuSE/RHEL/CentOS/Fedora 21</b> and earlier: ```sudo yum reinstall libinput```</li>
+<li><b>Arch</b>: ```sudo packman -S libinput```</li>
+</ul>
 
 @subsection building_dependencies Build dependencies
 
@@ -60,9 +107,10 @@ building with the ``--disable-libwacom`` argument.
 $> ./autogen.sh --disable-libwacom --prefix=/usr --libdir=/usr/lib64
 @endcode
 
-Disabling libwacom is safe to do for environments where full tablet support
-is not required. Note that libinput provides tablet support even without
-libwacom, but some features may be missing or working differently.
+It is not recommended to disable libwacom unless libinput is used in an
+environment where tablet support is not required. libinput provides tablet
+support even without libwacom, but some features may be missing or working
+differently.
 
 @subsection buildling_event-gui Building the graphical helper tool
 
@@ -70,10 +118,10 @@ Only the commandline @ref tools are installed by distributions. The
 @ref event-gui graphical helper tools is only available in the source
 repository.
 
-The graphical helper tool is optional by default and requires extra
-libraries to build. If these libraries are not detected, the tool will not
-be built. If you need the tool for debugging purposes, use the
-``--enable-event-gui`` argument when @ref building.
+The graphical helper tool is optional and requires extra libraries to build.
+If these libraries are not detected, the tool will not be built. If you need
+the tool for debugging purposes, use the ``--enable-event-gui`` argument
+when @ref building.
 
 @code
 $> ./autogen.sh --enable-event-gui --prefix=/usr --libdir=/usr/lib64
