@@ -23,6 +23,7 @@ AC_DEFINE([LIBINPUT_VERSION_MICRO], [libinput_micro_version], "libinput micro ve
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_AUX_DIR([.])
 
 AM_INIT_AUTOMAKE([1.11 foreign no-dist-gzip dist-xz])
 
