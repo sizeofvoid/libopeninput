@@ -14,7 +14,7 @@ even though some hardware can distinguish between that many fingers.
 
 @section tapping_default Tap-to-click default setting
 
-Tapping is **disabled** by default, see [this
+Tapping is **disabled** by default on most devices, see [this
 commit](http://cgit.freedesktop.org/wayland/libinput/commit/?id=2219c12c3aa45b80f235e761e87c17fb9ec70eae)
 because:
 - if you don't know that tapping is a thing (or enabled by default), you get
@@ -22,7 +22,11 @@ because:
 - if you do know what tapping is and you want it, you usually know where to
   enable it, or at least you can search for it.
 
-Tapping can be enabled on a per-device basis. See
+Tapping is **enabled** by default on devices where tapping is the only
+method to trigger button clicks. This includes devices without physical
+buttons such as touch-capable graphics tablets.
+
+Tapping can be enabled/disabled on a per-device basis. See
 libinput_device_config_tap_set_enabled() for details.
 
 @section tapndrag Tap-and-drag 
