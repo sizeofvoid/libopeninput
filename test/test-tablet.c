@@ -4183,7 +4183,7 @@ touch_arbitration_remove_touch(struct litest_device *dev,
 START_TEST(intuos_touch_arbitration_remove_touch)
 {
 	touch_arbitration_remove_touch(litest_current_device(),
-				       LITEST_WACOM_INTUOS,
+				       LITEST_WACOM_FINGER,
 				       true);
 }
 END_TEST
