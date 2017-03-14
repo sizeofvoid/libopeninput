@@ -4647,7 +4647,7 @@ START_TEST(touchpad_disabled_double_mouse)
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
 	mouse1 = litest_add_device(li, LITEST_MOUSE);
-	mouse2 = litest_add_device(li, LITEST_MOUSE);
+	mouse2 = litest_add_device(li, LITEST_MOUSE_LOW_DPI);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_ADDED);
 
 	litest_touch_down(dev, 0, 20, 30);
@@ -4693,7 +4693,7 @@ START_TEST(touchpad_disabled_double_mouse_one_suspended)
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
 	mouse1 = litest_add_device(li, LITEST_MOUSE);
-	mouse2 = litest_add_device(li, LITEST_MOUSE);
+	mouse2 = litest_add_device(li, LITEST_MOUSE_LOW_DPI);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_ADDED);
 
 	/* Disable one external mouse -> don't expect touchpad events */
