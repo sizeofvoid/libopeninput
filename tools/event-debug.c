@@ -549,8 +549,8 @@ print_proximity_event(struct libinput_event *ev)
 		print_tablet_axes(t);
 		state_str = "proximity-in";
 	} else if (state == LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT) {
+		print_tablet_axes(t);
 		state_str = "proximity-out";
-		printq("\t");
 	} else {
 		abort();
 	}
@@ -561,37 +561,39 @@ print_proximity_event(struct libinput_event *ev)
 	       libinput_tablet_tool_get_tool_id(tool),
 	       state_str);
 
-	printq("\taxes:");
-	if (libinput_tablet_tool_has_distance(tool))
-		printq("d");
-	if (libinput_tablet_tool_has_pressure(tool))
-		printq("p");
-	if (libinput_tablet_tool_has_tilt(tool))
-		printq("t");
-	if (libinput_tablet_tool_has_rotation(tool))
-		printq("r");
-	if (libinput_tablet_tool_has_slider(tool))
-		printq("s");
-	if (libinput_tablet_tool_has_wheel(tool))
-		printq("w");
+	if (state == LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN) {
+		printq("\taxes:");
+		if (libinput_tablet_tool_has_distance(tool))
+			printq("d");
+		if (libinput_tablet_tool_has_pressure(tool))
+			printq("p");
+		if (libinput_tablet_tool_has_tilt(tool))
+			printq("t");
+		if (libinput_tablet_tool_has_rotation(tool))
+			printq("r");
+		if (libinput_tablet_tool_has_slider(tool))
+			printq("s");
+		if (libinput_tablet_tool_has_wheel(tool))
+			printq("w");
 
-	printq("\tbtn:");
-	if (libinput_tablet_tool_has_button(tool, BTN_TOUCH))
-		printq("T");
-	if (libinput_tablet_tool_has_button(tool, BTN_STYLUS))
-		printq("S");
-	if (libinput_tablet_tool_has_button(tool, BTN_STYLUS2))
-		printq("S2");
-	if (libinput_tablet_tool_has_button(tool, BTN_LEFT))
-		printq("L");
-	if (libinput_tablet_tool_has_button(tool, BTN_MIDDLE))
-		printq("M");
-	if (libinput_tablet_tool_has_button(tool, BTN_RIGHT))
-		printq("R");
-	if (libinput_tablet_tool_has_button(tool, BTN_SIDE))
-		printq("Sd");
-	if (libinput_tablet_tool_has_button(tool, BTN_EXTRA))
-		printq("Ex");
+		printq("\tbtn:");
+		if (libinput_tablet_tool_has_button(tool, BTN_TOUCH))
+			printq("T");
+		if (libinput_tablet_tool_has_button(tool, BTN_STYLUS))
+			printq("S");
+		if (libinput_tablet_tool_has_button(tool, BTN_STYLUS2))
+			printq("S2");
+		if (libinput_tablet_tool_has_button(tool, BTN_LEFT))
+			printq("L");
+		if (libinput_tablet_tool_has_button(tool, BTN_MIDDLE))
+			printq("M");
+		if (libinput_tablet_tool_has_button(tool, BTN_RIGHT))
+			printq("R");
+		if (libinput_tablet_tool_has_button(tool, BTN_SIDE))
+			printq("Sd");
+		if (libinput_tablet_tool_has_button(tool, BTN_EXTRA))
+			printq("Ex");
+	}
 
 	printq("\n");
 }
