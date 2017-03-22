@@ -348,6 +348,16 @@ tp_process_absolute(struct tp_dispatch *tp,
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
 		break;
+	case ABS_MT_TOUCH_MAJOR:
+		t->major = e->value;
+		t->dirty = true;
+		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
+		break;
+	case ABS_MT_TOUCH_MINOR:
+		t->minor = e->value;
+		t->dirty = true;
+		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
+		break;
 	}
 }
 
@@ -1016,6 +1026,45 @@ tp_unhover_pressure(struct tp_dispatch *tp, uint64_t time)
 }
 
 static void
+tp_unhover_size(struct tp_dispatch *tp, uint64_t time)
+{
+	struct tp_touch *t;
+	int low = tp->touch_size.low,
+	    high = tp->touch_size.high;
+	int i;
+
+	/* We require 5 slots for size handling, so we don't need to care
+	 * about fake touches here */
+
+	for (i = 0; i < (int)tp->num_slots; i++) {
+		t = tp_get_touch(tp, i);
+
+		if (t->state == TOUCH_NONE)
+			continue;
+
+		if (!t->dirty)
+			continue;
+
+		if (t->state == TOUCH_HOVERING) {
+			if ((t->major > high && t->minor > low) ||
+			    (t->major > low && t->minor > high)) {
+				evdev_log_debug(tp->device,
+						"touch-size: begin touch\n");
+				/* avoid jumps when landing a finger */
+				tp_motion_history_reset(t);
+				tp_begin_touch(tp, t, time);
+			}
+		} else {
+			if (t->major < low || t->minor < low) {
+				evdev_log_debug(tp->device,
+						"touch-size: end touch\n");
+				tp_end_touch(tp, t, time);
+			}
+		}
+	}
+}
+
+static void
 tp_unhover_fake_touches(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *t;
@@ -1077,6 +1126,8 @@ tp_unhover_touches(struct tp_dispatch *tp, uint64_t time)
 {
 	if (tp->pressure.use_pressure)
 		tp_unhover_pressure(tp, time);
+	else if (tp->touch_size.use_touch_size)
+		tp_unhover_size(tp, time);
 	else
 		tp_unhover_fake_touches(tp, time);
 
@@ -1512,6 +1563,15 @@ tp_sync_touch(struct tp_dispatch *tp,
 		t->pressure = libevdev_get_event_value(evdev,
 						       EV_ABS,
 						       ABS_PRESSURE);
+
+	libevdev_fetch_slot_value(evdev,
+				  slot,
+				  ABS_MT_TOUCH_MAJOR,
+				  &t->major);
+	libevdev_fetch_slot_value(evdev,
+				  slot,
+				  ABS_MT_TOUCH_MINOR,
+				  &t->minor);
 }
 
 static void
@@ -2650,10 +2710,59 @@ tp_init_pressure(struct tp_dispatch *tp,
 			"using pressure-based touch detection\n");
 }
 
+static bool
+tp_init_touch_size(struct tp_dispatch *tp,
+		   struct evdev_device *device)
+{
+	const char *prop;
+	int lo, hi;
+
+	if (!libevdev_has_event_code(device->evdev,
+				     EV_ABS,
+				     ABS_MT_TOUCH_MAJOR)) {
+		return false;
+	}
+
+	if (libevdev_get_num_slots(device->evdev) < 5) {
+		evdev_log_bug_libinput(device,
+			       "Expected 5+ slots for touch size detection\n");
+		return false;
+	}
+
+	prop = udev_device_get_property_value(device->udev_device,
+					      "LIBINPUT_ATTR_TOUCH_SIZE_RANGE");
+	if (!prop)
+		return false;
+
+	if (!parse_range_property(prop, &hi, &lo)) {
+		evdev_log_bug_client(device,
+				     "discarding invalid touch size range '%s'\n",
+				     prop);
+		return false;
+	}
+
+	if (hi == 0 && lo == 0) {
+		evdev_log_info(device,
+			       "touch size based touch detection disabled\n");
+		return false;
+	}
+
+	/* Thresholds apply for both major or minor */
+	tp->touch_size.low = lo;
+	tp->touch_size.high = hi;
+	tp->touch_size.use_touch_size = true;
+
+	evdev_log_debug(device, "using size-based touch detection\n");
+
+	return true;
+}
+
 static int
 tp_init(struct tp_dispatch *tp,
 	struct evdev_device *device)
 {
+	bool use_touch_size = false;
+
 	tp->base.dispatch_type = DISPATCH_TOUCHPAD;
 	tp->base.interface = &tp_interface;
 	tp->device = device;
@@ -2668,7 +2777,11 @@ tp_init(struct tp_dispatch *tp,
 
 	evdev_device_init_abs_range_warnings(device);
 
-	tp_init_pressure(tp, device);
+	if (device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD)
+		use_touch_size = tp_init_touch_size(tp, device);
+
+	if (!use_touch_size)
+		tp_init_pressure(tp, device);
 
 	/* Set the dpi to that of the x axis, because that's what we normalize
 	   to when needed*/

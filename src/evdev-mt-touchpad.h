@@ -148,6 +148,7 @@ struct tp_touch {
 	uint64_t time;
 	int pressure;
 	bool is_tool_palm; /* MT_TOOL_PALM */
+	int major, minor;
 
 	bool was_down; /* if distance == 0, false for pure hovering
 			  touches */
@@ -247,6 +248,17 @@ struct tp_dispatch {
 		int high;
 		int low;
 	} pressure;
+
+	/* If touch size (either axis) goes above high -> touch down,
+	   if touch size (either axis) goes below low -> touch up */
+	struct  {
+		bool use_touch_size;
+		int high;
+		int low;
+
+		/* convert device units to angle */
+		double orientation_to_angle;
+	} touch_size;
 
 	struct device_coords hysteresis_margin;
 
