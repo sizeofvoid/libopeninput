@@ -649,6 +649,7 @@ evdev_libinput_context(const struct evdev_device *device)
 	return device->base.seat->libinput;
 }
 
+LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static inline void
 evdev_log_msg_va(struct evdev_device *device,
 		 enum libinput_log_priority priority,
@@ -673,6 +674,7 @@ evdev_log_msg_va(struct evdev_device *device,
 		   args);
 }
 
+LIBINPUT_ATTRIBUTE_PRINTF(3, 4)
 static inline void
 evdev_log_msg(struct evdev_device *device,
 	      enum libinput_log_priority priority,
@@ -687,6 +689,7 @@ evdev_log_msg(struct evdev_device *device,
 
 }
 
+LIBINPUT_ATTRIBUTE_PRINTF(4, 5)
 static inline void
 evdev_log_msg_ratelimit(struct evdev_device *device,
 			struct ratelimit *ratelimit,

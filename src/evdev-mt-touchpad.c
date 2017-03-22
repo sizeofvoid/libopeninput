@@ -2395,8 +2395,7 @@ tp_init_pressure(struct tp_dispatch *tp,
 	}
 
 	evdev_log_debug(device,
-			"using pressure-based touch detection\n",
-			device->devname);
+			"using pressure-based touch detection\n");
 }
 
 static int
