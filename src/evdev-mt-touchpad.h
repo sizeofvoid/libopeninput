@@ -59,6 +59,7 @@ enum touch_palm_state {
 	PALM_TRACKPOINT,
 	PALM_TOOL_PALM,
 	PALM_PRESSURE,
+	PALM_TOUCH_SIZE,
 };
 
 enum button_event {
@@ -360,6 +361,9 @@ struct tp_dispatch {
 
 		bool use_pressure;
 		int pressure_threshold;
+
+		bool use_size;
+		int size_threshold;
 	} palm;
 
 	struct {

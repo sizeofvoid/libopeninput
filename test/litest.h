@@ -33,6 +33,8 @@
 #include <libinput.h>
 #include <math.h>
 
+#include "libinput-util.h"
+
 extern void litest_setup_tests_udev(void);
 extern void litest_setup_tests_path(void);
 extern void litest_setup_tests_pointer(void);
@@ -913,6 +915,22 @@ litest_disable_middleemu(struct litest_device *dev)
 								     LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED);
 
 	litest_assert_int_eq(status, expected);
+}
+
+static inline bool
+litest_touchpad_is_external(struct litest_device *dev)
+{
+	struct udev_device *udev_device;
+	const char *prop;
+	bool is_external;
+
+	udev_device = libinput_device_get_udev_device(dev->libinput_device);
+	prop = udev_device_get_property_value(udev_device,
+					      "ID_INPUT_TOUCHPAD_INTEGRATION");
+	is_external = prop && streq(prop, "external");
+	udev_device_unref(udev_device);
+
+	return is_external;
 }
 
 #undef ck_assert_double_eq

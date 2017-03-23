@@ -746,6 +746,30 @@ tp_palm_detect_multifinger(struct tp_dispatch *tp, struct tp_touch *t, uint64_t 
 }
 
 static inline bool
+tp_palm_detect_touch_size_triggered(struct tp_dispatch *tp,
+				    struct tp_touch *t,
+				    uint64_t time)
+{
+	if (!tp->palm.use_size)
+		return false;
+
+	/* If a finger size is large enough for palm, we stick with that and
+	 * force the user to release and reset the finger */
+	if (t->palm.state != PALM_NONE && t->palm.state != PALM_TOUCH_SIZE)
+		return false;
+
+	if (t->major > tp->palm.size_threshold ||
+	    t->minor > tp->palm.size_threshold) {
+		evdev_log_debug(tp->device,
+				"palm: touch size exceeded\n");
+		t->palm.state = PALM_TOUCH_SIZE;
+		return true;
+	}
+
+	return false;
+}
+
+static inline bool
 tp_palm_detect_edge(struct tp_dispatch *tp,
 		    struct tp_touch *t,
 		    uint64_t time)
@@ -828,6 +852,9 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	if (tp_palm_detect_tool_triggered(tp, t, time))
 		goto out;
 
+	if (tp_palm_detect_touch_size_triggered(tp, t, time))
+		goto out;
+
 	if (tp_palm_detect_edge(tp, t, time))
 		goto out;
 
@@ -861,6 +888,9 @@ out:
 		break;
 	case PALM_PRESSURE:
 		palm_state = "pressure";
+		break;
+	case PALM_TOUCH_SIZE:
+		palm_state = "touch size";
 		break;
 	case PALM_NONE:
 	default:
@@ -2415,10 +2445,14 @@ tp_init_palmdetect_edge(struct tp_dispatch *tp,
 	struct phys_coords mm = { 0.0, 0.0 };
 	struct device_coords edges;
 
+	if (device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD &&
+	    !tp_is_tpkb_combo_below(device))
+		return;
+
 	evdev_device_get_size(device, &width, &height);
 
-	/* Enable palm detection on touchpads >= 70 mm. Anything smaller
-	   probably won't need it, until we find out it does */
+	/* Enable edge palm detection on touchpads >= 70 mm. Anything
+	   smaller probably won't need it, until we find out it does */
 	if (width < 70.0)
 		return;
 
@@ -2475,6 +2509,33 @@ tp_init_palmdetect_pressure(struct tp_dispatch *tp,
 			tp->palm.pressure_threshold);
 }
 
+static inline void
+tp_init_palmdetect_size(struct tp_dispatch *tp,
+			struct evdev_device *device)
+{
+	const char *prop;
+	int threshold;
+
+	if (!tp->touch_size.use_touch_size)
+		return;
+
+	prop = udev_device_get_property_value(device->udev_device,
+					      "LIBINPUT_ATTR_PALM_SIZE_THRESHOLD");
+	if (!prop)
+		return;
+
+	threshold = parse_palm_size_property(prop);
+	if (threshold == 0) {
+		evdev_log_bug_client(device,
+				     "palm: ignoring invalid threshold %s\n",
+				     prop);
+		return;
+	}
+
+	tp->palm.use_size = true;
+	tp->palm.size_threshold = threshold;
+}
+
 static void
 tp_init_palmdetect(struct tp_dispatch *tp,
 		   struct evdev_device *device)
@@ -2497,6 +2558,7 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 
 	tp_init_palmdetect_edge(tp, device);
 	tp_init_palmdetect_pressure(tp, device);
+	tp_init_palmdetect_size(tp, device);
 }
 
 static void

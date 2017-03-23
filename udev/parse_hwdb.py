@@ -119,6 +119,7 @@ def property_grammar():
 
     tprops = (
         ('LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD', INTEGER('X')),
+        ('LIBINPUT_ATTR_PALM_SIZE_THRESHOLD', INTEGER('X')),
     )
     typed_props = [Literal(name)('NAME') - Suppress('=') - val
                    for name, val in tprops]
