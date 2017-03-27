@@ -594,7 +594,6 @@ START_TEST(touchpad_1fg_tap_n_drag)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev __attribute__((unused));
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_drag_lock(dev->libinput_device);
@@ -624,9 +623,9 @@ START_TEST(touchpad_1fg_tap_n_drag)
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	ck_assert_notnull(event);
-	ptrev = litest_is_button_event(event,
-				       BTN_LEFT,
-				       LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_is_button_event(event,
+			       BTN_LEFT,
+			       LIBINPUT_BUTTON_STATE_RELEASED);
 	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
