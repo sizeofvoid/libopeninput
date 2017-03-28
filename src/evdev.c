@@ -2617,7 +2617,7 @@ evdev_configure_device(struct evdev_device *device)
 
 	if (udev_tags & EVDEV_UDEV_TAG_TOUCHPAD) {
 		dispatch = evdev_mt_touchpad_create(device);
-		evdev_log_info(device, "device is a atouchpad\n");
+		evdev_log_info(device, "device is a touchpad\n");
 		return dispatch;
 	}
 
