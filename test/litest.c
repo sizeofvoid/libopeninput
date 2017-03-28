@@ -785,18 +785,39 @@ litest_log_handler(struct libinput *libinput,
 		   const char *format,
 		   va_list args)
 {
+	static int is_tty = -1;
 	const char *priority = NULL;
+	const char *color;
+
+	if (is_tty == -1)
+		is_tty = isatty(STDERR_FILENO);
 
 	switch(pri) {
-	case LIBINPUT_LOG_PRIORITY_INFO: priority =  "info "; break;
-	case LIBINPUT_LOG_PRIORITY_ERROR: priority = "error"; break;
-	case LIBINPUT_LOG_PRIORITY_DEBUG: priority = "debug"; break;
+	case LIBINPUT_LOG_PRIORITY_INFO:
+		priority =  "info ";
+		color = ANSI_HIGHLIGHT;
+		break;
+	case LIBINPUT_LOG_PRIORITY_ERROR:
+		priority = "error";
+		color = ANSI_RED;
+		break;
+	case LIBINPUT_LOG_PRIORITY_DEBUG:
+		priority = "debug";
+		color = ANSI_NORMAL;
+		break;
 	default:
 		  abort();
 	}
 
-	fprintf(stderr, "litest %s ", priority);
+	if (!is_tty)
+		color = "";
+
+	fprintf(stderr, "%slitest %s ", color, priority);
+
 	vfprintf(stderr, format, args);
+
+	if (is_tty)
+		fprintf(stderr, ANSI_NORMAL);
 
 	if (strstr(format, "client bug: ") ||
 	    strstr(format, "libinput bug: "))

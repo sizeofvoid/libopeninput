@@ -73,9 +73,6 @@ log_handler(struct libinput *li,
 	    const char *format,
 	    va_list args)
 {
-#define ANSI_HIGHLIGHT "\x1B[0;1;39m"
-#define ANSI_RED "\x1B[0;31m"
-#define ANSI_NORMAL "\x1B[0m"
 	static int is_tty = -1;
 
 	if (is_tty == -1)

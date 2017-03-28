@@ -53,6 +53,10 @@
 /* The HW DPI rate we normalize to before calculating pointer acceleration */
 #define DEFAULT_MOUSE_DPI 1000
 
+#define ANSI_HIGHLIGHT "\x1B[0;1;39m"
+#define ANSI_RED "\x1B[0;31m"
+#define ANSI_NORMAL "\x1B[0m"
+
 #define CASE_RETURN_STRING(a) case a: return #a
 
 /*
