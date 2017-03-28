@@ -788,14 +788,14 @@ litest_log_handler(struct libinput *libinput,
 	const char *priority = NULL;
 
 	switch(pri) {
-	case LIBINPUT_LOG_PRIORITY_INFO: priority = "info"; break;
+	case LIBINPUT_LOG_PRIORITY_INFO: priority =  "info "; break;
 	case LIBINPUT_LOG_PRIORITY_ERROR: priority = "error"; break;
 	case LIBINPUT_LOG_PRIORITY_DEBUG: priority = "debug"; break;
 	default:
 		  abort();
 	}
 
-	fprintf(stderr, "litest %s: ", priority);
+	fprintf(stderr, "litest %s ", priority);
 	vfprintf(stderr, format, args);
 
 	if (strstr(format, "client bug: ") ||
