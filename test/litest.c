@@ -786,6 +786,7 @@ litest_log_handler(struct libinput *libinput,
 		   va_list args)
 {
 	static int is_tty = -1;
+	static bool had_newline = true;
 	const char *priority = NULL;
 	const char *color;
 
@@ -812,11 +813,12 @@ litest_log_handler(struct libinput *libinput,
 	if (!is_tty)
 		color = "";
 
-	fprintf(stderr, "%slitest %s ", color, priority);
-
+	if (had_newline)
+		fprintf(stderr, "%slitest %s ", color, priority);
 	vfprintf(stderr, format, args);
-
-	if (is_tty)
+	had_newline = strlen(format) >= 1 &&
+		      format[strlen(format) - 1] == '\n';
+	if (is_tty && had_newline)
 		fprintf(stderr, ANSI_NORMAL);
 
 	if (strstr(format, "client bug: ") ||
