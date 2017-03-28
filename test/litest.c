@@ -800,7 +800,7 @@ litest_log_handler(struct libinput *libinput,
 		break;
 	case LIBINPUT_LOG_PRIORITY_ERROR:
 		priority = "error";
-		color = ANSI_RED;
+		color = ANSI_BRIGHT_RED;
 		break;
 	case LIBINPUT_LOG_PRIORITY_DEBUG:
 		priority = "debug";
@@ -815,6 +815,25 @@ litest_log_handler(struct libinput *libinput,
 
 	if (had_newline)
 		fprintf(stderr, "%slitest %s ", color, priority);
+
+	if (strstr(format, "tap state:"))
+		color = ANSI_BLUE;
+	else if (strstr(format, "thumb state:"))
+		color = ANSI_YELLOW;
+	else if (strstr(format, "button state:"))
+		color = ANSI_MAGENTA;
+	else if (strstr(format, "touch-size:") ||
+		 strstr(format, "pressure:"))
+		color = ANSI_GREEN;
+	else if (strstr(format, "palm:") ||
+		 strstr(format, "thumb:"))
+		color = ANSI_CYAN;
+	else if (strstr(format, "edge state:"))
+		color = ANSI_BRIGHT_GREEN;
+
+	if (is_tty)
+		fprintf(stderr, "%s ", color);
+
 	vfprintf(stderr, format, args);
 	had_newline = strlen(format) >= 1 &&
 		      format[strlen(format) - 1] == '\n';

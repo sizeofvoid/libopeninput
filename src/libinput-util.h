@@ -53,9 +53,20 @@
 /* The HW DPI rate we normalize to before calculating pointer acceleration */
 #define DEFAULT_MOUSE_DPI 1000
 
-#define ANSI_HIGHLIGHT "\x1B[0;1;39m"
-#define ANSI_RED "\x1B[0;31m"
-#define ANSI_NORMAL "\x1B[0m"
+#define ANSI_HIGHLIGHT		"\x1B[0;1;39m"
+#define ANSI_RED		"\x1B[0;31m"
+#define ANSI_GREEN		"\x1B[0;32m"
+#define ANSI_YELLOW		"\x1B[0;33m"
+#define ANSI_BLUE		"\x1B[0;34m"
+#define ANSI_MAGENTA		"\x1B[0;35m"
+#define ANSI_CYAN		"\x1B[0;36m"
+#define ANSI_BRIGHT_RED		"\x1B[0;31;1m"
+#define ANSI_BRIGHT_GREEN	"\x1B[0;32;1m"
+#define ANSI_BRIGHT_YELLOW	"\x1B[0;33;1m"
+#define ANSI_BRIGHT_BLUE	"\x1B[0;34;1m"
+#define ANSI_BRIGHT_MAGENTA	"\x1B[0;35;1m"
+#define ANSI_BRIGHT_CYAN	"\x1B[0;36;1m"
+#define ANSI_NORMAL		"\x1B[0m"
 
 #define CASE_RETURN_STRING(a) case a: return #a
 
