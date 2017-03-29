@@ -811,6 +811,9 @@ tp_unhover_pressure(struct tp_dispatch *tp, uint64_t time)
 	for (i = 0; i < (int)tp->num_slots; i++) {
 		t = tp_get_touch(tp, i);
 
+		if (t->state == TOUCH_NONE)
+			continue;
+
 		if (t->dirty) {
 			if (t->state == TOUCH_HOVERING) {
 				if (t->pressure >= tp->pressure.high) {
