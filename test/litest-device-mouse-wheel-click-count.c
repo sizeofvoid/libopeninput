@@ -53,9 +53,9 @@ static const char udev_rule[] =
 "KERNEL!=\"event*\", GOTO=\"wheel_click_count_end\"\n"
 "\n"
 "ATTRS{name}==\"litest Wheel Click Count Mouse*\",\\\n"
-"    ENV{MOUSE_WHEEL_CLICK_ANGLE}=\"-15\",\n"
-"    ENV{MOUSE_WHEEL_CLICK_ANGLE_HORIZONTAL}=\"13\",\n\\"
-"    ENV{MOUSE_WHEEL_CLICK_COUNT}=\"-14\",\n"
+"    ENV{MOUSE_WHEEL_CLICK_ANGLE}=\"-15\",\\\n"
+"    ENV{MOUSE_WHEEL_CLICK_ANGLE_HORIZONTAL}=\"13\",\\\n"
+"    ENV{MOUSE_WHEEL_CLICK_COUNT}=\"-14\",\\\n"
 "    ENV{MOUSE_WHEEL_CLICK_COUNT_HORIZONTAL}=\"27\"\\\n"
 "\n"
 "LABEL=\"wheel_click_count_end\"";
