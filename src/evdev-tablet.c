@@ -558,7 +558,6 @@ tablet_update_rotation(struct tablet_dispatch *tablet,
 		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
 		tablet->axes.tilt.x = 0;
 		tablet->axes.tilt.y = 0;
-		tablet->axes.rotation = tablet->axes.rotation;
 
 		/* tilt is already converted to left-handed, so mouse
 		 * rotation is converted to left-handed automatically */
