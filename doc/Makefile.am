@@ -29,6 +29,7 @@ header_files = \
 	$(srcdir)/test-suite.dox \
 	$(srcdir)/tools.dox \
 	$(srcdir)/touchpad-jumping-cursors.dox \
+	$(srcdir)/touchpad-pressure.dox \
 	$(srcdir)/touchpads.dox \
 	$(srcdir)/what-is-libinput.dox
 
