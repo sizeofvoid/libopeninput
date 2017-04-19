@@ -360,6 +360,42 @@ parse_tpkbcombo_layout_poperty(const char *prop,
 }
 
 /**
+ * Parses a string of the format "a:b" where both a and b must be integer
+ * numbers and a > b. Also allowed is the special string vaule "none" which
+ * amounts to unsetting the property.
+ *
+ * @param prop The value of the property
+ * @param hi Set to the first digit or 0 in case of 'none'
+ * @param lo Set to the second digit or 0 in case of 'none'
+ * @return true on success, false otherwise
+ */
+bool
+parse_pressure_range_property(const char *prop, int *hi, int *lo)
+{
+	int first, second;
+
+	if (!prop)
+		return false;
+
+	if (streq(prop, "none")) {
+		*hi = 0;
+		*lo = 0;
+		return true;
+	}
+
+	if (sscanf(prop, "%d:%d", &first, &second) != 2)
+		return false;
+
+	if (second >= first)
+		return false;
+
+	*hi = first;
+	*lo = second;
+
+	return true;
+}
+
+/**
  * Return the next word in a string pointed to by state before the first
  * separator character. Call repeatedly to tokenize a whole string.
  *
