@@ -5,6 +5,7 @@
 - @subpage clickpad_softbuttons
 - @subpage tapping
 - @subpage gestures
+- @subpage touchpad_pressure
 - @subpage palm_detection
 - @subpage t440_support
 - @subpage touchpad_jumping_cursor

@@ -1,0 +1,138 @@
+/**
+@page touchpad_pressure Touchpad pressure-based touch detection
+
+libinput uses the touchpad pressure values to detect wether a finger has
+been placed on the touchpad. This is @ref kernel_pressure_information and
+combines with a libinput-specific hardware database to adjust the thresholds
+on a per-device basis. libinput uses pressure thresholds primarily to filter
+out accidental light touches but pressure information is also used for
+some @ref palm_detection.
+
+Pressure thresholds are **not** directly configurable by the user, rather it
+is planned that libinput provides custom pressure thresholds for each device
+where necessary. See @ref touchpad_pressure_hwdb for instructions for your
+local device.
+
+@section kernel_pressure_information Information provided by the kernel
+
+The kernel sends multiple values to inform userspace about a finger touching
+the touchpad. The most basic is the ```EV_KEY/BTN_TOUCH``` boolean event
+that simply announces physical contact with the touchpad. The decision when
+this event is sent is usually made by the kernel driver and may depend on
+device-specific thresholds. These thresholds are transparent to userspace
+and cannot be modified.
+
+Many contemporary touchpad devices provide an absolute pressure axis in
+addition to ```BTN_TOUCH```. This pressure generally increases as the pressure
+increases, however few touchpads are capable of detection pressure. The
+pressure value is usually related to the covered area - as the pressure
+increases a finger flattens and thus covers a larger area. The range
+provided by the kernel is not mapped to a specific physical range and
+often requires adjustment. Pressure is sent by the ```ABS_PRESSURE``` axis
+for single-touch touchpads or ```ABS_MT_PRESSURE``` on multi-touch capable
+touchpads.
+
+Some devices provide additional touch size information through
+the ```ABS_MT_TOUCH_MAJOR/ABS_MT_TOUCH_MINOR``` axes and/or
+the ```ABS_MT_WIDTH_MAJOR/ABS_MT_WIDTH_MINOR``` axes. While the kernel
+documentation specifies how these axes are supposed to be mapped, few
+devices forward
+reliable information.
+
+@section touchpad_pressure_hwdb Debugging touchpad pressure ranges
+
+This section describes how to determine the touchpad pressure ranges
+required for a touchpad device and how to add the required hwdb entry
+locally. Note that the hwdb entry is **not public API** and **may change at
+any time**. Users are advised to @ref reporting_bugs "report a bug" with the
+updated pressure ranges when testing has completed.
+
+First, install the "evemu" package providing the ```evemu-record``` tool.
+Run ```evemu-record``` as root (without arguments) to see a list of devices
+and select the touchpad device. Pipe the actual output of the tool into a
+file for later analysis. For example:
+
+<pre>
+$ sudo evemu-record > touchpad-pressure.txt
+Available devices:
+/dev/input/event0:	Lid Switch
+/dev/input/event1:	Sleep Button
+/dev/input/event2:	Power Button
+/dev/input/event3:	AT Translated Set 2 keyboard
+/dev/input/event4:	SynPS/2 Synaptics TouchPad
+/dev/input/event5:	ELAN Touchscreen
+[...]
+Select the device event number [0-19]: 4
+#     Ctrl+C to quit, the output will be in touchpad-pressure.txt
+</pre>
+
+Now move a finger at **normal pressure** several times around the touchpad,
+as if moving the cursor normally around the screen. Avoid any accidental
+palm touches or any excessive or light pressure.
+
+The event recording is then filtered for pressure information, which is
+sorted and exported to a new file:
+<pre>
+$ grep --only-matching "ABS_MT_PRESSURE[ ]*[0-9]*" touchpad-pressure.txt | \
+	sed -e "s/ABS_MT_PRESSURE[ ]*//" | \
+	sort -n | uniq -c > touchpad-pressure-statistics.txt
+</pre>
+
+The file contains a list of (count, pressure-value) tuples which can be
+visualized with gnuplot. Copy the following into a file named
+```touchpad-pressure-statistics.gnuplot```:
+
+<pre>
+set style data lines
+plot 'touchpad-pressure-statistics.txt' using 2:1
+pause -1
+</pre>
+
+Now, you can visualize the touchpad pressure curve with the following
+command:
+<pre>
+$ gnuplot  touchpad-pressure-statistics.gnuplot
+</pre>
+
+The visualization will show a curve with the various pressure ranges, see
+[this bugzilla attachment](https://bugs.freedesktop.org/attachment.cgi?id=130659).
+In most cases, the thresholds can be guessed based on this curve. libinput
+employes a [Schmitt trigger](https://en.wikipedia.org/wiki/Schmitt_trigger)
+with an upper threshold and a lower threshold. A touch is detected when the
+pressure goes above the high threshold, a release is detected when the
+pressure fallse below the low threshold. Thus, an ideal threshold
+combination is with a high threshold slightly above the minimum threshold, a
+low threshold on the minimum threshold.
+
+Once the thresholds are decided on (e.g. 10 and 8), they can be enabled with
+the following hwdb file:
+
+<pre>
+$> cat /etc/udev/hwdb.d/99-touchpad-pressure.hwdb
+libinput:name:*SynPS/2 Synaptics TouchPad:dmi:*svnHewlett-Packard:*pnHPCompaq6910p*
+ LIBINPUT_ATTR_PRESSURE_RANGE=10:8
+</pre>
+
+The first line is the match line and should be adjusted for the device name
+(see evemu-record's output) and for the local system, based on the
+information in ```/sys/class/dmi/id/modalias```. The modalias should be
+shortened to the specific system's information, usually system vendor (svn)
+and product name (pn).
+
+Once in place, you need to run the following to commands, adjusted for your
+device's event node (see @ref faq_hwdb_changes):
+<pre>
+    sudo udevadm hwdb --update
+    sudo udevadm test /sys/class/input/eventX
+</pre>
+
+If the pressure range property shows up correctly, restart X or the
+Wayland compositor and libinput should now use the correct pressure
+thresholds. The @ref developer_tools can be used to verify the correct
+functionality first without the need for a restart.
+
+Once the pressure ranges are deemed correct,
+@ref reporting_bugs "report a bug" to get the pressure ranges into the
+repository.
+
+*/
