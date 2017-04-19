@@ -85,6 +85,7 @@ libinput:name:* Touchpad:dmi:*svnDellInc.:*
 ##########################################
 libinput:name:*ETPS/2 Elantech Touchpad*:dmi:*
  LIBINPUT_ATTR_RESOLUTION_HINT=31x31
+ LIBINPUT_ATTR_PRESSURE_RANGE=24:10
  LIBINPUT_MODEL_ELANTECH_TOUCHPAD=1
 
 ##########################################
@@ -111,6 +112,7 @@ libinput:name:Atmel maXTouch Touchpad:dmi:*svn*GOOGLE*:pn*Samus*
 
 libinput:name:Cypress APA Trackpad ?cyapa?:dmi:*
  LIBINPUT_MODEL_CYAPA=1
+ LIBINPUT_ATTR_PRESSURE_RANGE=10:8
 
 ##########################################
 # HP
