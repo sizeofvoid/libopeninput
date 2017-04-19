@@ -90,7 +90,6 @@ $> sudo zypper install autoconf automake libtool
 $> sudo zypper modifyrepo --disable `zypper repos | grep source | awk '{print $5}'`
 </pre>
 </li>
-</pre>
 <li><b>Arch</b>:
 <pre>
 $> abs extra/libinput
