@@ -3491,6 +3491,14 @@ libinput_device_get_id_vendor(struct libinput_device *device);
  * beyond the boundaries of this output. An absolute device has its input
  * coordinates mapped to the extents of this output.
  *
+ * @note <b>Use of this function is discouraged.</b> Its return value is not
+ * precisely defined and may not be understood by the caller or may be
+ * insufficient to map the device. Instead, the system configuration could
+ * set a udev property the caller understands and interprets correctly. The
+ * caller could then obtain device with libinput_device_get_udev_device()
+ * and query it for this property. For more complex cases, the caller
+ * must implement monitor-to-device association heuristics.
+ *
  * @return The name of the output this device is mapped to, or NULL if no
  * output is set
  */
