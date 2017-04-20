@@ -8,7 +8,7 @@ libinput-list-devices \- list local devices as recognized by libinput
 The
 .I libinput-list-devices
 tool creates a libinput context on the default seat "seat0" and lists all
-devices regonized by libinput. Each device shows available configurations
+devices recognized by libinput. Each device shows available configurations
 the respective default configuration setting.
 .PP
 For configuration options that allow multiple different settings (e.g.
