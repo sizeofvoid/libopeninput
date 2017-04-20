@@ -33,7 +33,7 @@ devices with the same property value are grouped into the same device group,
 the value itself is irrelevant otherwise.
 </dd>
 <dt>ID_SEAT</dt>
-<dd>Assigns the physical seat for this device. See
+<dd>Assigns the physical @ref seats "seat" for this device. See
 libinput_seat_get_physical_name(). Defaults to "seat0".</dd>
 <dt>ID_INPUT</dt>
 <dd>If this property is set, the device is considered an input device. Any
@@ -49,7 +49,7 @@ one of these may be set at any time, libinput will select only one of these
 to determine the device type. To ensure libinput selects the correct device
 type, only set one of them.</dd>
 <dt>WL_SEAT</dt>
-<dd>Assigns the logical seat for this device. See
+<dd>Assigns the logical @ref seats "seat" for this device. See
 libinput_seat_get_logical_name()
 context. Defaults to "default".</dd>
 <dt>MOUSE_DPI</dt>
