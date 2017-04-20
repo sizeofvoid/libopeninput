@@ -9,7 +9,7 @@ EXTRACT_STATIC         = YES
 MAX_INITIALIZER_LINES  = 0
 QUIET                  = YES
 INPUT                  = @top_srcdir@/src/libinput.h \
-			 @top_srcdir@/README.txt
+			 @top_srcdir@/README.md
 IMAGE_PATH             = @top_srcdir@/doc/svg \
 			 @top_srcdir@/doc/dot
 GENERATE_HTML          = YES
@@ -28,3 +28,4 @@ HTML_FOOTER = @top_srcdir@/doc/style/footer.html
 HTML_EXTRA_STYLESHEET = @top_srcdir@/doc/style/bootstrap.css \
 			@top_srcdir@/doc/style/customdoxygen.css \
 			@top_srcdir@/doc/style/libinputdoxygen.css
+USE_MDFILE_AS_MAINPAGE = @top_srcdir@/README.md

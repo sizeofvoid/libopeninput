@@ -1,5 +1,3 @@
-/*!@mainpage
-
 libinput
 ========
 
@@ -94,5 +92,3 @@ libinput is licensed under the MIT license.
 
 See the [COPYING](http://cgit.freedesktop.org/wayland/libinput/tree/COPYING)
 file for the full license information.
-
-*/

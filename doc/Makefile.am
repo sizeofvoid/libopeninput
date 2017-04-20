@@ -5,7 +5,7 @@ EXTRA_DIST = \
 
 header_files = \
 	$(top_srcdir)/src/libinput.h \
-	$(top_srcdir)/README.txt \
+	$(top_srcdir)/README.md \
 	$(srcdir)/absolute-axes.dox \
 	$(srcdir)/absolute-coordinate-ranges.dox \
 	$(srcdir)/building.dox \
