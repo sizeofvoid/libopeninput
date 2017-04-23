@@ -29,6 +29,16 @@
 #include "libinput-util.h"
 #include "litest.h"
 
+START_TEST(switch_has_cap)
+{
+	struct litest_device *dev = litest_current_device();
+
+	ck_assert(libinput_device_has_capability(dev->libinput_device,
+						 LIBINPUT_DEVICE_CAP_SWITCH));
+
+}
+END_TEST
+
 START_TEST(lid_switch)
 {
 	struct litest_device *dev = litest_current_device();
@@ -618,6 +628,7 @@ END_TEST
 void
 litest_setup_tests_lid(void)
 {
+	litest_add("switch:has", switch_has_cap, LITEST_SWITCH, LITEST_ANY);
 	litest_add("lid:switch", lid_switch, LITEST_SWITCH, LITEST_ANY);
 	litest_add("lid:switch", lid_switch_double, LITEST_SWITCH, LITEST_ANY);
 	litest_add("lid:switch", lid_switch_down_on_init, LITEST_SWITCH, LITEST_ANY);
