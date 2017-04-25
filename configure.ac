@@ -230,12 +230,7 @@ fi
 
 AM_CONDITIONAL(HAVE_LIBWACOM_GET_PAIRED_DEVICE,
 	       [test "x$libwacom_have_get_paired_device" == "xyes"])
-AM_CONDITIONAL(HAVE_VALGRIND, [test "x$VALGRIND" != "x"])
-AM_CONDITIONAL(BUILD_TESTS, [test "x$build_tests" = "xyes"])
-AM_CONDITIONAL(RUN_TESTS, [test "x$run_tests" = "xyes"])
-AM_CONDITIONAL(BUILD_DOCS, [test "x$build_documentation" = "xyes"])
-AM_CONDITIONAL(HAVE_LIBUNWIND, [test "x$HAVE_LIBUNWIND" = xyes])
-AM_CONDITIONAL(BUILD_EVENTGUI, [test "x$build_eventgui" = "xyes"])
+
 
 #######################
 # enable/disable gcov #
@@ -256,6 +251,12 @@ AM_CONDITIONAL([GCOV_ENABLED], [test "x$enable_gcov" != "xno"])
 AC_SUBST([GCOV_CFLAGS])
 AC_SUBST([GCOV_LDFLAGS])
 
+AM_CONDITIONAL(HAVE_VALGRIND, [test "x$VALGRIND" != "x"])
+AM_CONDITIONAL(BUILD_TESTS, [test "x$build_tests" = "xyes"])
+AM_CONDITIONAL(RUN_TESTS, [test "x$run_tests" = "xyes"])
+AM_CONDITIONAL(BUILD_DOCS, [test "x$build_documentation" = "xyes"])
+AM_CONDITIONAL(HAVE_LIBUNWIND, [test "x$HAVE_LIBUNWIND" = xyes])
+AM_CONDITIONAL(BUILD_EVENTGUI, [test "x$build_eventgui" = "xyes"])
 
 AC_CONFIG_FILES([Makefile
 		 doc/Makefile
