@@ -8,8 +8,7 @@ EXTRACT_ALL            = YES
 EXTRACT_STATIC         = YES
 MAX_INITIALIZER_LINES  = 0
 QUIET                  = YES
-INPUT                  = @top_srcdir@/src/libinput.h \
-			 @top_srcdir@/README.md
+INPUT                  = @INPUT@
 IMAGE_PATH             = @top_srcdir@/doc/svg \
 			 @top_srcdir@/doc/dot
 GENERATE_HTML          = YES
