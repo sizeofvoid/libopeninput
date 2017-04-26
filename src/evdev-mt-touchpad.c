@@ -276,6 +276,14 @@ tp_end_sequence(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	tp_end_touch(tp, t, time);
 }
 
+static void
+tp_stop_actions(struct tp_dispatch *tp, uint64_t time)
+{
+	tp_edge_scroll_stop_events(tp, time);
+	tp_gesture_cancel(tp, time);
+	tp_tap_suspend(tp, time);
+}
+
 struct normalized_coords
 tp_get_delta(struct tp_touch *t)
 {
@@ -330,6 +338,11 @@ tp_process_absolute(struct tp_dispatch *tp,
 		break;
 	case ABS_MT_PRESSURE:
 		t->pressure = e->value;
+		t->dirty = true;
+		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
+		break;
+	case ABS_MT_TOOL_TYPE:
+		t->is_tool_palm = e->value == MT_TOOL_PALM;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
 		break;
@@ -614,6 +627,31 @@ tp_palm_detect_trackpoint_triggered(struct tp_dispatch *tp,
 	return false;
 }
 
+static bool
+tp_palm_detect_tool_triggered(struct tp_dispatch *tp,
+			      struct tp_touch *t,
+			      uint64_t time)
+{
+	if (!tp->palm.use_mt_tool)
+		return false;
+
+	if (t->palm.state != PALM_NONE &&
+	    t->palm.state != PALM_TOOL_PALM)
+		return false;
+
+	if (t->palm.state == PALM_NONE &&
+	    t->is_tool_palm)
+		t->palm.state = PALM_TOOL_PALM;
+	else if (t->palm.state == PALM_TOOL_PALM &&
+		 !t->is_tool_palm)
+		t->palm.state = PALM_NONE;
+
+	if (t->palm.state == PALM_TOOL_PALM)
+		tp_stop_actions(tp, time);
+
+	return t->palm.state == PALM_TOOL_PALM;
+}
+
 static inline bool
 tp_palm_detect_move_out_of_edge(struct tp_dispatch *tp,
 				struct tp_touch *t,
@@ -664,16 +702,11 @@ tp_palm_detect_multifinger(struct tp_dispatch *tp, struct tp_touch *t, uint64_t 
 	return false;
 }
 
-static void
-tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+static inline bool
+tp_palm_detect_edge(struct tp_dispatch *tp,
+		    struct tp_touch *t,
+		    uint64_t time)
 {
-
-	if (tp_palm_detect_dwt_triggered(tp, t, time))
-		goto out;
-
-	if (tp_palm_detect_trackpoint_triggered(tp, t, time))
-		goto out;
-
 	if (t->palm.state == PALM_EDGE) {
 		if (tp_palm_detect_multifinger(tp, t, time)) {
 			t->palm.state = PALM_NONE;
@@ -689,36 +722,78 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 			evdev_log_debug(tp->device,
 				  "palm: touch released, out of edge zone\n");
 		}
-		return;
+		return false;
 	} else if (tp_palm_detect_multifinger(tp, t, time)) {
-		return;
+		return false;
 	}
 
 	/* palm must start in exclusion zone, it's ok to move into
 	   the zone without being a palm */
 	if (t->state != TOUCH_BEGIN ||
 	    (t->point.x > tp->palm.left_edge && t->point.x < tp->palm.right_edge))
-		return;
+		return false;
 
 	/* don't detect palm in software button areas, it's
 	   likely that legitimate touches start in the area
 	   covered by the exclusion zone */
 	if (tp->buttons.is_clickpad &&
 	    tp_button_is_inside_softbutton_area(tp, t))
-		return;
+		return false;
 
 	if (tp_touch_get_edge(tp, t) & EDGE_RIGHT)
-		return;
+		return false;
 
 	t->palm.state = PALM_EDGE;
 	t->palm.time = time;
 	t->palm.first = t->point;
 
+	return true;
+}
+
+static void
+tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+{
+	const char *palm_state;
+	enum touch_palm_state oldstate = t->palm.state;
+
+	if (tp_palm_detect_dwt_triggered(tp, t, time))
+		goto out;
+
+	if (tp_palm_detect_trackpoint_triggered(tp, t, time))
+		goto out;
+
+	if (tp_palm_detect_tool_triggered(tp, t, time))
+		goto out;
+
+	if (tp_palm_detect_edge(tp, t, time))
+		goto out;
+
+	return;
 out:
+	if (oldstate == t->palm.state)
+		return;
+
+	switch (t->palm.state) {
+	case PALM_EDGE:
+		palm_state = "edge";
+		break;
+	case PALM_TYPING:
+		palm_state = "typing";
+		break;
+	case PALM_TRACKPOINT:
+		palm_state = "trackpoint";
+		break;
+	case PALM_TOOL_PALM:
+		palm_state = "tool-palm";
+		break;
+	case PALM_NONE:
+	default:
+		abort();
+		break;
+	}
 	evdev_log_debug(tp->device,
 		  "palm: palm detected (%s)\n",
-		  t->palm.state == PALM_EDGE ? "edge" :
-		  t->palm.state == PALM_TYPING ? "typing" : "trackpoint");
+		  palm_state);
 }
 
 static inline const char*
@@ -1364,9 +1439,7 @@ tp_trackpoint_event(uint64_t time, struct libinput_event *event, void *data)
 		return;
 
 	if (!tp->palm.trackpoint_active) {
-		tp_edge_scroll_stop_events(tp, time);
-		tp_gesture_cancel(tp, time);
-		tp_tap_suspend(tp, time);
+		tp_stop_actions(tp, time);
 		tp->palm.trackpoint_active = true;
 	}
 
@@ -1479,9 +1552,7 @@ tp_keyboard_event(uint64_t time, struct libinput_event *event, void *data)
 				     ARRAY_LENGTH(tp->dwt.mod_mask)))
 		    return;
 
-		tp_edge_scroll_stop_events(tp, time);
-		tp_gesture_cancel(tp, time);
-		tp_tap_suspend(tp, time);
+		tp_stop_actions(tp, time);
 		tp->dwt.keyboard_active = true;
 		timeout = DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_1;
 	} else {
@@ -2193,20 +2264,13 @@ tp_init_dwt(struct tp_dispatch *tp,
 	return;
 }
 
-static void
-tp_init_palmdetect(struct tp_dispatch *tp,
-		   struct evdev_device *device)
+static inline void
+tp_init_palmdetect_edge(struct tp_dispatch *tp,
+			struct evdev_device *device)
 {
 	double width, height;
 	struct phys_coords mm = { 0.0, 0.0 };
 	struct device_coords edges;
-
-	tp->palm.right_edge = INT_MAX;
-	tp->palm.left_edge = INT_MIN;
-
-	if (device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD &&
-	    !tp_is_tpkb_combo_below(device))
-		return;
 
 	evdev_device_get_size(device, &width, &height);
 
@@ -2223,8 +2287,28 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 	mm.x = width * 0.95;
 	edges = evdev_device_mm_to_units(device, &mm);
 	tp->palm.right_edge = edges.x;
+}
+
+static void
+tp_init_palmdetect(struct tp_dispatch *tp,
+		   struct evdev_device *device)
+{
+
+	tp->palm.right_edge = INT_MAX;
+	tp->palm.left_edge = INT_MIN;
+
+	if (device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD &&
+	    !tp_is_tpkb_combo_below(device))
+		return;
 
 	tp->palm.monitor_trackpoint = true;
+
+	if (libevdev_has_event_code(device->evdev,
+				    EV_ABS,
+				    ABS_MT_TOOL_TYPE))
+		tp->palm.use_mt_tool = true;
+
+	tp_init_palmdetect_edge(tp, device);
 }
 
 static void
