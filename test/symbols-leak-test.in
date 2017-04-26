@@ -2,6 +2,17 @@
 
 ### simple check for exported symbols
 
+# Allow running this after the configure.ac replacement or directly with an
+# argument for the top_srcdir
+TOP_SRCDIR="@top_srcdir@"
+case "$TOP_SRCDIR" in
+@*)
+	TOP_SRCDIR="$1"
+	;;
+*)
+	;;
+esac
+
 # make bash exit if any command will exit with non-0 return value
 set -e
 
@@ -9,9 +20,9 @@ set -e
 cd `dirname $0`
 
 diff -a -u \
-	<(cat @top_srcdir@/src/libinput.sym | \
+	<(cat "$TOP_SRCDIR"/src/libinput.sym | \
 		grep '^\s\+libinput_.*' | \
 		sed -e 's/^\s\+\(.*\);/\1/' |  sort) \
-	<(cat @top_srcdir@/src/*.c | \
+	<(cat "$TOP_SRCDIR"/src/*.c | \
 		grep LIBINPUT_EXPORT -A 1 | grep '^libinput_.*' | \
 		sed -e 's/(.*//' | sort)
