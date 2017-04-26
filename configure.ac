@@ -55,15 +55,6 @@ AM_CONDITIONAL([HAVE_PYTHON], [test "$PYTHON" != :])
 LT_PREREQ([2.2])
 LT_INIT
 
-AC_CHECK_DECL(EPOLL_CLOEXEC, [],
-	      [AC_MSG_ERROR("EPOLL_CLOEXEC is needed to compile libinput")],
-	      [[#include <sys/epoll.h>]])
-AC_CHECK_DECL(TFD_CLOEXEC,[],
-	      [AC_MSG_ERROR("TFD_CLOEXEC is needed to compile libinput")],
-	      [[#include <sys/timerfd.h>]])
-AC_CHECK_DECL(CLOCK_MONOTONIC,[],
-	      [AC_MSG_ERROR("CLOCK_MONOTONIC is needed to compile libinput")],
-	      [[#include <time.h>]])
 AC_CHECK_DECL(static_assert, [],
 	      [AC_DEFINE(static_assert(...), [/* */], [noop static_assert() replacement]),
               AC_MSG_RESULT([no])],
