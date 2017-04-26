@@ -1268,6 +1268,28 @@ tp_handle_state(struct tp_dispatch *tp,
 	tp_clickpad_middlebutton_apply_config(tp->device);
 }
 
+static inline void
+tp_debug_touch_state(struct tp_dispatch *tp,
+		     struct evdev_device *device)
+{
+	char buf[1024] = {0};
+	struct tp_touch *t;
+	size_t i = 0;
+
+	tp_for_each_touch(tp, t) {
+		if (i >= tp->nfingers_down)
+			break;
+		sprintf(&buf[strlen(buf)],
+			"slot %zd: %04d/%04d p%03d %s |",
+			i++,
+			t->point.x,
+			t->point.y,
+			t->pressure,
+			tp_touch_active(tp, t) ? "" : "inactive");
+	}
+	evdev_log_debug(device, "touch state: %s\n", buf);
+}
+
 static void
 tp_interface_process(struct evdev_dispatch *dispatch,
 		     struct evdev_device *device,
@@ -1291,6 +1313,9 @@ tp_interface_process(struct evdev_dispatch *dispatch,
 		break;
 	case EV_SYN:
 		tp_handle_state(tp, time);
+#if 0
+		tp_debug_touch_state(tp, device);
+#endif
 		break;
 	}
 }
