@@ -15,6 +15,11 @@ motion_normalization for a detailed explanation.
 
 See @ref tapping_default
 
+@section faq_touchpad_pressure Why does my touchpad lose track of touches
+
+The most common cause for this is an incorrect pressure threshold range.
+See @ref touchpad_pressure for more info.
+
 @section faq_kinetic_scrolling Kinetic scrolling does not work
 
 The X.Org synaptics driver implemented kinetic scrolling in the driver. It

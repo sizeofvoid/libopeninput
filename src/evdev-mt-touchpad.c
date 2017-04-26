@@ -2456,8 +2456,9 @@ tp_init_pressure(struct tp_dispatch *tp,
 		 struct evdev_device *device)
 {
 	const struct input_absinfo *abs;
-	unsigned int range;
 	unsigned int code = ABS_PRESSURE;
+	const char *prop;
+	int hi, lo;
 
 	if (tp->has_mt)
 		code = ABS_MT_PRESSURE;
@@ -2467,24 +2468,43 @@ tp_init_pressure(struct tp_dispatch *tp,
 		return;
 	}
 
-	tp->pressure.use_pressure = true;
-
 	abs = libevdev_get_abs_info(device->evdev, code);
 	assert(abs);
 
-	range = abs->maximum - abs->minimum;
+	prop = udev_device_get_property_value(device->udev_device,
+					      "LIBINPUT_ATTR_PRESSURE_RANGE");
+	if (prop) {
+		if (!parse_pressure_range_property(prop, &hi, &lo)) {
+			evdev_log_bug_client(device,
+				     "discarding invalid pressure range '%s'\n",
+				     prop);
+			return;
+		}
 
-	if (device->model_flags & EVDEV_MODEL_ELANTECH_TOUCHPAD) {
-		tp->pressure.high = 24;
-		tp->pressure.low = 10;
-	} else if (device->model_flags & EVDEV_MODEL_CYAPA) {
-		tp->pressure.high = 10;
-		tp->pressure.low = 8;
+		if (hi == 0 && lo == 0) {
+			evdev_log_info(device,
+			       "pressure-based touch detection disabled\n");
+			return;
+		}
 	} else {
+		unsigned int range = abs->maximum - abs->minimum;
+
 		/* Approximately the synaptics defaults */
-		tp->pressure.high = abs->minimum + 0.12 * range;
-		tp->pressure.low = abs->minimum + 0.10 * range;
+		hi = abs->minimum + 0.12 * range;
+		lo = abs->minimum + 0.10 * range;
 	}
+
+	if (hi > abs->maximum || hi < abs->minimum ||
+	    lo > abs->maximum || lo < abs->minimum) {
+		evdev_log_bug_libinput(device,
+			       "discarding out-of-bounds pressure range %d:%d\n",
+			       hi, lo);
+		return;
+	}
+
+	tp->pressure.use_pressure = true;
+	tp->pressure.high = hi;
+	tp->pressure.low = lo;
 
 	evdev_log_debug(device,
 			"using pressure-based touch detection\n");

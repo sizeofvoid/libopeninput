@@ -112,7 +112,13 @@ def property_grammar():
                          Suppress('=') -
                          tpkbcombo_tags('VALUE')]
 
-    grammar = Or(model_props + size_props + reliability + tpkbcombo)
+    pressure_range = INTEGER('X') + Suppress(':') + INTEGER('Y')
+    pressure_prop = [ Literal('LIBINPUT_ATTR_PRESSURE_RANGE')('NAME') -
+                      Suppress('=') -
+                      Group(pressure_range('SETTINGS*')) ]
+
+    grammar = Or(model_props + size_props + reliability + tpkbcombo +
+                 pressure_prop)
 
     return grammar
 

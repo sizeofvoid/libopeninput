@@ -44,15 +44,6 @@ enum touchpad_event {
 	TOUCHPAD_EVENT_OTHERAXIS	= (1 << 3),
 };
 
-enum touchpad_model {
-	MODEL_UNKNOWN = 0,
-	MODEL_SYNAPTICS,
-	MODEL_ALPS,
-	MODEL_APPLETOUCH,
-	MODEL_ELANTECH,
-	MODEL_UNIBODY_MACBOOK
-};
-
 enum touch_state {
 	TOUCH_NONE = 0,
 	TOUCH_HOVERING,
