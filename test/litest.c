@@ -87,7 +87,7 @@ static void litest_remove_udev_rules(struct list *created_files_list);
 #define litest_vlog(...) { /* __VA_ARGS__ */ }
 #endif
 
-#ifdef HAVE_LIBUNWIND
+#if HAVE_LIBUNWIND
 #define UNW_LOCAL_ONLY
 #include <libunwind.h>
 #include <dlfcn.h>
