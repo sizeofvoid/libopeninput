@@ -341,7 +341,10 @@ tp_tap_touch2_release_handle_event(struct tp_dispatch *tp,
 		tp_tap_clear_timer(tp);
 		break;
 	case TAP_EVENT_RELEASE:
-		tp_tap_notify(tp, time, 2, LIBINPUT_BUTTON_STATE_PRESSED);
+		tp_tap_notify(tp,
+			      tp->tap.first_press_time,
+			      2,
+			      LIBINPUT_BUTTON_STATE_PRESSED);
 		tp_tap_notify(tp, time, 2, LIBINPUT_BUTTON_STATE_RELEASED);
 		tp->tap.state = TAP_STATE_IDLE;
 		break;
@@ -376,7 +379,10 @@ tp_tap_touch3_handle_event(struct tp_dispatch *tp,
 	case TAP_EVENT_RELEASE:
 		tp->tap.state = TAP_STATE_TOUCH_2_HOLD;
 		if (t->tap.state == TAP_TOUCH_STATE_TOUCH) {
-			tp_tap_notify(tp, time, 3, LIBINPUT_BUTTON_STATE_PRESSED);
+			tp_tap_notify(tp,
+				      tp->tap.first_press_time,
+				      3,
+				      LIBINPUT_BUTTON_STATE_PRESSED);
 			tp_tap_notify(tp, time, 3, LIBINPUT_BUTTON_STATE_RELEASED);
 		}
 		break;
