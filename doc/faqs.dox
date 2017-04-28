@@ -119,6 +119,29 @@ Changes performed by xinput do not persist across device hotplugs. xinput is
 considered a debugging and testing tool only and should not be used for
 permanent configurations.
 
+@section faq_synclient Why don't synclient and syndaemon work with libinput?
+
+Synclient and syndaemon rely on X input device properties that are specific
+to the xf86-input-synaptics X.Org input driver. Both were written when the
+synaptics driver was the only commmon touchpad driver in existence. They
+assume that if the properties aren't available, no touchpad is available
+either. The xf86-input-libinput X.Org input driver does not export these
+driver-specific properties, synclient/syndaemon will thus not detect the
+touchpad and refuse to work. Other tools that rely on synclient/syndaemon or
+those same properties also do not work with xf86-input-libinput.
+
+Most of syndaemon's functionality is built into libinput, see @ref
+disable-while-typing. synclient is merely a configuration tool, see
+@ref faq_configure_xorg for similar functionality.
+
+See also the blog posts
+<a
+href="http://who-t.blogspot.com.au/2017/01/the-definitive-guide-to-synclient.html">The
+definitive guide to synclient</a> and
+<a href="http://who-t.blogspot.com.au/2016/12/the-future-of-xinput-xmodmap-setxkbmap.html">
+The future of xinput, xmodmap, setxkbmap, xsetwacom and other tools under
+Wayland</a>
+
 @section faq_hwdb_changes How to apply hwdb changes
 
 Sometimes users are asked to test updates to the <a
