@@ -103,6 +103,11 @@ libinput:name:*ETPS/2 Elantech Touchpad*:dmi:*svnASUSTeKComputerInc.:pnUX21E:*
 libinput:name:*Elan Touchpad*:dt:*
  LIBINPUT_ATTR_PRESSURE_RANGE=10:8
 
+libinput:name:*Elan Touchpad*:dt:*Chrombook R13*
+libinput:name:*Elan Touchpad*:dt:*CB5-312T*
+libinput:name:*Elan Touchpad*:dt:*Elm*
+ LIBINPUT_ATTR_PRESSURE_RANGE=6:4
+
 ##########################################
 # Google
 ##########################################
