@@ -136,6 +136,8 @@ struct libinput {
 	int refcount;
 
 	struct list device_group_list;
+
+	uint64_t last_event_time;
 };
 
 typedef void (*libinput_seat_destroy_func) (struct libinput_seat *seat);
