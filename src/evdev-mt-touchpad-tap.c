@@ -152,7 +152,7 @@ tp_tap_idle_handle_event(struct tp_dispatch *tp,
 	switch (event) {
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_TOUCH;
-		tp->tap.first_press_time = time;
+		tp->tap.saved_press_time = time;
 		tp_tap_set_timer(tp, time);
 		break;
 	case TAP_EVENT_RELEASE:
@@ -186,11 +186,12 @@ tp_tap_touch_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_RELEASE:
 		tp_tap_notify(tp,
-			      tp->tap.first_press_time,
+			      tp->tap.saved_press_time,
 			      1,
 			      LIBINPUT_BUTTON_STATE_PRESSED);
 		if (tp->tap.drag_enabled) {
 			tp->tap.state = TAP_STATE_TAPPED;
+			tp->tap.saved_release_time = time;
 			tp_tap_set_timer(tp, time);
 		} else {
 			tp_tap_notify(tp,
@@ -258,15 +259,22 @@ tp_tap_tapped_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_DRAGGING_OR_DOUBLETAP;
+		tp->tap.saved_press_time = time;
 		tp_tap_set_timer(tp, time);
 		break;
 	case TAP_EVENT_TIMEOUT:
 		tp->tap.state = TAP_STATE_IDLE;
-		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_RELEASED);
+		tp_tap_notify(tp,
+			      tp->tap.saved_release_time,
+			      1,
+			      LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
 	case TAP_EVENT_BUTTON:
 		tp->tap.state = TAP_STATE_DEAD;
-		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_RELEASED);
+		tp_tap_notify(tp,
+			      tp->tap.saved_release_time,
+			      1,
+			      LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
 	case TAP_EVENT_THUMB:
 		break;
@@ -342,7 +350,7 @@ tp_tap_touch2_release_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_RELEASE:
 		tp_tap_notify(tp,
-			      tp->tap.first_press_time,
+			      tp->tap.saved_press_time,
 			      2,
 			      LIBINPUT_BUTTON_STATE_PRESSED);
 		tp_tap_notify(tp, time, 2, LIBINPUT_BUTTON_STATE_RELEASED);
@@ -380,7 +388,7 @@ tp_tap_touch3_handle_event(struct tp_dispatch *tp,
 		tp->tap.state = TAP_STATE_TOUCH_2_HOLD;
 		if (t->tap.state == TAP_TOUCH_STATE_TOUCH) {
 			tp_tap_notify(tp,
-				      tp->tap.first_press_time,
+				      tp->tap.saved_press_time,
 				      3,
 				      LIBINPUT_BUTTON_STATE_PRESSED);
 			tp_tap_notify(tp, time, 3, LIBINPUT_BUTTON_STATE_RELEASED);
@@ -430,7 +438,11 @@ tp_tap_dragging_or_doubletap_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_RELEASE:
 		tp->tap.state = TAP_STATE_MULTITAP;
-		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_RELEASED);
+		tp_tap_notify(tp,
+			      tp->tap.saved_release_time,
+			      1,
+			      LIBINPUT_BUTTON_STATE_RELEASED);
+		tp->tap.saved_release_time = time;
 		break;
 	case TAP_EVENT_MOTION:
 	case TAP_EVENT_TIMEOUT:
@@ -438,7 +450,10 @@ tp_tap_dragging_or_doubletap_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_BUTTON:
 		tp->tap.state = TAP_STATE_DEAD;
-		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_RELEASED);
+		tp_tap_notify(tp,
+			      tp->tap.saved_release_time,
+			      1,
+			      LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
 	case TAP_EVENT_THUMB:
 		break;
@@ -574,7 +589,11 @@ tp_tap_multitap_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_MULTITAP_DOWN;
-		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_PRESSED);
+		tp_tap_notify(tp,
+			      tp->tap.saved_press_time,
+			      1,
+			      LIBINPUT_BUTTON_STATE_PRESSED);
+		tp->tap.saved_press_time = time;
 		tp_tap_set_timer(tp, time);
 		break;
 	case TAP_EVENT_MOTION:
@@ -583,8 +602,14 @@ tp_tap_multitap_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_TIMEOUT:
 		tp->tap.state = TAP_STATE_IDLE;
-		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_PRESSED);
-		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_RELEASED);
+		tp_tap_notify(tp,
+			      tp->tap.saved_press_time,
+			      1,
+			      LIBINPUT_BUTTON_STATE_PRESSED);
+		tp_tap_notify(tp,
+			      tp->tap.saved_release_time,
+			      1,
+			      LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
 	case TAP_EVENT_BUTTON:
 		tp->tap.state = TAP_STATE_IDLE;
@@ -604,7 +629,11 @@ tp_tap_multitap_down_handle_event(struct tp_dispatch *tp,
 	switch (event) {
 	case TAP_EVENT_RELEASE:
 		tp->tap.state = TAP_STATE_MULTITAP;
-		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_RELEASED);
+		tp_tap_notify(tp,
+			      tp->tap.saved_release_time,
+			      1,
+			      LIBINPUT_BUTTON_STATE_RELEASED);
+		tp->tap.saved_release_time = time;
 		break;
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_DRAGGING_2;
@@ -617,7 +646,10 @@ tp_tap_multitap_down_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_BUTTON:
 		tp->tap.state = TAP_STATE_DEAD;
-		tp_tap_notify(tp, time, 1, LIBINPUT_BUTTON_STATE_RELEASED);
+		tp_tap_notify(tp,
+			      tp->tap.saved_release_time,
+			      1,
+			      LIBINPUT_BUTTON_STATE_RELEASED);
 		tp_tap_clear_timer(tp);
 		break;
 	case TAP_EVENT_THUMB:
