@@ -41,4 +41,8 @@ ENV{ID_INPUT_KEYBOARD}=="1", \
 KERNELS=="input*", \
   IMPORT{builtin}="hwdb 'libinput:name:$attr{name}:$attr{[dmi/id]modalias}'"
 
+# libinput:name:<name>:dt:<device-tree string>
+KERNELS=="input*", \
+  IMPORT{builtin}="hwdb 'libinput:name:$attr{name}:dt:$attr{[devicetree/base]model}'"
+
 LABEL="libinput_model_quirks_end"

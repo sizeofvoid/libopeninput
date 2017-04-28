@@ -12,6 +12,7 @@
 #	libinput:mouse:<modalias>
 #	libinput:touchpad:<modalias>
 #	libinput:name:<name>:dmi:<dmi string>
+#	libinput:name:<name>:dt:<device-tree string>
 #	libinput:name:<name>:fwversion:<version>
 #
 # Sort by brand, model
