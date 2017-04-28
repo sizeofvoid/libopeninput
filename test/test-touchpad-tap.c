@@ -125,6 +125,7 @@ START_TEST(touchpad_1fg_multitap)
 	    ntaps;
 
 	litest_enable_tap(dev->libinput_device);
+	litest_enable_drag_lock(dev->libinput_device);
 
 	litest_drain_events(li);
 
@@ -173,6 +174,7 @@ START_TEST(touchpad_1fg_multitap_n_drag_move)
 	    ntaps;
 
 	litest_enable_tap(dev->libinput_device);
+	litest_enable_drag_lock(dev->libinput_device);
 
 	litest_drain_events(li);
 
@@ -242,6 +244,7 @@ START_TEST(touchpad_1fg_multitap_n_drag_2fg)
 		return;
 
 	litest_enable_tap(dev->libinput_device);
+	litest_enable_drag_lock(dev->libinput_device);
 
 	litest_drain_events(li);
 
@@ -313,6 +316,7 @@ START_TEST(touchpad_1fg_multitap_n_drag_click)
 	    ntaps;
 
 	litest_enable_tap(dev->libinput_device);
+	litest_enable_drag_lock(dev->libinput_device);
 
 	litest_drain_events(li);
 
@@ -373,6 +377,7 @@ START_TEST(touchpad_1fg_multitap_n_drag_timeout)
 	    ntaps;
 
 	litest_enable_tap(dev->libinput_device);
+	litest_enable_drag_lock(dev->libinput_device);
 
 	litest_drain_events(li);
 
