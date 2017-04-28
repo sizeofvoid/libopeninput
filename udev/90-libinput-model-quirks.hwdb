@@ -86,7 +86,6 @@ libinput:name:* Touchpad:dmi:*svnDellInc.:*
 libinput:name:*ETPS/2 Elantech Touchpad*:dmi:*
  LIBINPUT_ATTR_RESOLUTION_HINT=31x31
  LIBINPUT_ATTR_PRESSURE_RANGE=24:10
- LIBINPUT_MODEL_ELANTECH_TOUCHPAD=1
 
 ##########################################
 # Google
