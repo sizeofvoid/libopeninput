@@ -972,6 +972,9 @@ libinput_event_device_notify_get_base_event(struct libinput_event_device_notify 
 /**
  * @ingroup event_keyboard
  *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
+ *
  * @return The event time for this event
  */
 uint32_t
@@ -979,6 +982,9 @@ libinput_event_keyboard_get_time(struct libinput_event_keyboard *event);
 
 /**
  * @ingroup event_keyboard
+ *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
  *
  * @return The event time for this event in microseconds
  */
@@ -1035,6 +1041,9 @@ libinput_event_keyboard_get_seat_key_count(
 /**
  * @ingroup event_pointer
  *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
+ *
  * @return The event time for this event
  */
 uint32_t
@@ -1042,6 +1051,9 @@ libinput_event_pointer_get_time(struct libinput_event_pointer *event);
 
 /**
  * @ingroup event_pointer
+ *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
  *
  * @return The event time for this event in microseconds
  */
@@ -1400,6 +1412,9 @@ libinput_event_pointer_get_base_event(struct libinput_event_pointer *event);
 /**
  * @ingroup event_touch
  *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
+ *
  * @return The event time for this event
  */
 uint32_t
@@ -1407,6 +1422,9 @@ libinput_event_touch_get_time(struct libinput_event_touch *event);
 
 /**
  * @ingroup event_touch
+ *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
  *
  * @return The event time for this event in microseconds
  */
@@ -1564,6 +1582,9 @@ libinput_event_touch_get_base_event(struct libinput_event_touch *event);
 /**
  * @ingroup event_gesture
  *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
+ *
  * @return The event time for this event
  */
 uint32_t
@@ -1571,6 +1592,9 @@ libinput_event_gesture_get_time(struct libinput_event_gesture *event);
 
 /**
  * @ingroup event_gesture
+ *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
  *
  * @return The event time for this event in microseconds
  */
@@ -2300,6 +2324,9 @@ libinput_event_tablet_tool_get_seat_button_count(struct libinput_event_tablet_to
 /**
  * @ingroup event_tablet
  *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
+ *
  * @param event The libinput tablet tool event
  * @return The event time for this event
  */
@@ -2308,6 +2335,9 @@ libinput_event_tablet_tool_get_time(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
+ *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
  *
  * @param event The libinput tablet tool event
  * @return The event time for this event in microseconds
@@ -2735,6 +2765,9 @@ libinput_event_tablet_pad_get_mode_group(struct libinput_event_tablet_pad *event
 /**
  * @ingroup event_tablet
  *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
+ *
  * @param event The libinput tablet pad event
  * @return The event time for this event
  */
@@ -2743,6 +2776,9 @@ libinput_event_tablet_pad_get_time(struct libinput_event_tablet_pad *event);
 
 /**
  * @ingroup event_tablet_pad
+ *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
  *
  * @param event The libinput tablet pad event
  * @return The event time for this event in microseconds
@@ -2799,6 +2835,9 @@ libinput_event_switch_get_base_event(struct libinput_event_switch *event);
 /**
  * @ingroup event_switch
  *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
+ *
  * @param event The libinput switch event
  * @return The event time for this event
  */
@@ -2807,6 +2846,9 @@ libinput_event_switch_get_time(struct libinput_event_switch *event);
 
 /**
  * @ingroup event_switch
+ *
+ * @note Timestamps may not always increase. See @ref event_timestamps for
+ * details.
  *
  * @param event The libinput switch event
  * @return The event time for this event in microseconds

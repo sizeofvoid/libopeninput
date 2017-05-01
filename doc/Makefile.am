@@ -27,6 +27,7 @@ header_files = \
 	$(srcdir)/tablet-support.dox \
 	$(srcdir)/tapping.dox \
 	$(srcdir)/test-suite.dox \
+	$(srcdir)/timestamps.dox \
 	$(srcdir)/tools.dox \
 	$(srcdir)/touchpad-jumping-cursors.dox \
 	$(srcdir)/touchpad-pressure.dox \
