@@ -2733,7 +2733,7 @@ struct libinput_tablet_pad_mode_group *
 libinput_event_tablet_pad_get_mode_group(struct libinput_event_tablet_pad *event);
 
 /**
- * @ingroup event_tablet
+ * @ingroup event_tablet_pad
  *
  * @param event The libinput tablet pad event
  * @return The event time for this event
