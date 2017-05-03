@@ -92,13 +92,13 @@ lid_switch_toggle_keyboard_listener(struct lid_switch_dispatch *dispatch,
 
 	if (is_closed) {
 		libinput_device_add_event_listener(
-					   &dispatch->keyboard.keyboard->base,
-					   &dispatch->keyboard.listener,
-					   lid_switch_keyboard_event,
-					   dispatch);
+					&dispatch->keyboard.keyboard->base,
+					&dispatch->keyboard.listener,
+					lid_switch_keyboard_event,
+					dispatch);
 	} else {
 		libinput_device_remove_event_listener(
-						      &dispatch->keyboard.listener);
+					&dispatch->keyboard.listener);
 	}
 }
 
