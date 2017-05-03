@@ -920,8 +920,7 @@ tp_unhover_pressure(struct tp_dispatch *tp, uint64_t time)
 	 * _all_ fingers have enough pressure, even if some of the slotted
 	 * ones don't. Anything else gets insane quickly.
 	 */
-	for (i = 0; i < (int)tp->ntouches; i++) {
-		t = tp_get_touch(tp, i);
+	tp_for_each_touch(tp, t) {
 		if (t->state == TOUCH_HOVERING) {
 			/* avoid jumps when landing a finger */
 			tp_motion_history_reset(t);
@@ -975,9 +974,7 @@ tp_unhover_fake_touches(struct tp_dispatch *tp, uint64_t time)
 	 */
 	if (tp_fake_finger_is_touching(tp) &&
 	    tp->nfingers_down < nfake_touches) {
-		for (i = 0; i < (int)tp->ntouches; i++) {
-			t = tp_get_touch(tp, i);
-
+		tp_for_each_touch(tp, t) {
 			if (t->state == TOUCH_HOVERING) {
 				tp_begin_touch(tp, t, time);
 
@@ -1135,7 +1132,6 @@ static void
 tp_process_state(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *t;
-	unsigned int i;
 	bool restart_filter = false;
 	bool want_motion_reset;
 
@@ -1145,9 +1141,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 
 	want_motion_reset = tp_need_motion_history_reset(tp);
 
-	for (i = 0; i < tp->ntouches; i++) {
-		t = tp_get_touch(tp, i);
-
+	tp_for_each_touch(tp, t) {
 		if (want_motion_reset) {
 			tp_motion_history_reset(t);
 			t->quirks.reset_motion_history = true;

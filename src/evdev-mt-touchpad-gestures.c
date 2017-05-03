@@ -153,13 +153,12 @@ tp_gesture_get_active_touches(const struct tp_dispatch *tp,
 			      struct tp_touch **touches,
 			      unsigned int count)
 {
-	unsigned int i, n = 0;
+	unsigned int n = 0;
 	struct tp_touch *t;
 
 	memset(touches, 0, count * sizeof(struct tp_touch *));
 
-	for (i = 0; i < tp->ntouches; i++) {
-		t = &tp->touches[i];
+	tp_for_each_touch(tp, t) {
 		if (tp_touch_active(tp, t)) {
 			touches[n++] = t;
 			if (n == count)
