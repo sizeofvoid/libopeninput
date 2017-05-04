@@ -906,6 +906,13 @@ litest_disable_middleemu(struct litest_device *dev)
 	litest_assert_int_eq(status, expected);
 }
 
+#undef ck_assert_double_eq
+#undef ck_assert_double_ne
+#undef ck_assert_double_lt
+#undef ck_assert_double_le
+#undef ck_assert_double_gt
+#undef ck_assert_double_ge
+
 #define CK_DOUBLE_EQ_EPSILON 1E-3
 #define ck_assert_double_eq(X,Y)  \
 	do { \
