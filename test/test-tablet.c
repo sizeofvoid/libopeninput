@@ -794,7 +794,8 @@ START_TEST(proximity_in_out)
 		    LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY) {
 			struct libinput_tablet_tool * tool;
 
-			have_tool_update++;
+			ck_assert(!have_tool_update);
+			have_tool_update = true;
 			tablet_event = libinput_event_get_tablet_tool_event(event);
 			tool = libinput_event_tablet_tool_get_tool(tablet_event);
 			ck_assert_int_eq(libinput_tablet_tool_get_type(tool),
