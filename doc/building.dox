@@ -12,9 +12,38 @@ see @ref reverting_install to revert to the previous state.
 
 @section building Building libinput
 
-libinput uses automake, a build is usually the three-step process below.
-A successful build requires the @ref building_dependencies to be installed
-at configure time.
+libinput uses [meson](https://www.mesonbuild.com) and
+[ninja](https://www.ninja-build.org). A build is usually the three-step
+process below.  A successful build requires the @ref
+building_dependencies to be installed before running meson.
+
+@code
+$> git clone git://anongit.freedesktop.org/git/wayland/libinput
+$> cd libinput
+$> meson --prefix=/usr builddir/
+$> ninja -C builddir/
+$> sudo ninja -C builddir/ install
+$> sudo udevadm hwdb --update
+@endcode
+
+The ```prefix``` option or other options can be changed later with the
+```mesonconf``` command.
+
+@code
+$> mesonconf builddir/ -Dprefix=/some/other/prefix
+$> ninja -C builddir
+$> sudo ninja -C builddir/ install
+@endcode
+
+@note On Fedora, use ```ninja-build``` instead of ```ninja```. We recommend
+setting up a shell alias.
+
+@subsection building_autotools Building with automake
+
+libinput currently also provides the autotools build system, but this will
+be removed in future libinput versions. A build with automake is usually the
+three-step process below. A successful build requires the @ref
+building_dependencies to be installed at configure time.
 
 @code
 $> git clone git://anongit.freedesktop.org/git/wayland/libinput
@@ -51,6 +80,12 @@ manager to reinstall the libinput package. In some cases, this may leave
 files in the system (e.g. ```/usr/lib/libinput.la```) but these files are
 usually harmless. To definitely remove all files, run the following command
 from the libinput source directory:
+
+@code
+$> sudo ninja -C builddir/ uninstall
+@endcode
+
+or when using autotools:
 
 @code
 $> sudo make uninstall
@@ -110,7 +145,13 @@ for instructions on how to fix it.
 libwacom is required by libinput's tablet code to gather additional
 information about tablets that is not available from the kernel device
 itself. libwacom is required by default but can be skipped when @ref
-building with the ``--disable-libwacom`` argument.
+building.
+
+@code
+$> meson --prefix=/usr -Dlibwacom=false builddir
+@endcode
+
+or when building with autotools:
 
 @code
 $> ./autogen.sh --disable-libwacom --prefix=/usr --libdir=/usr/lib64
@@ -131,6 +172,12 @@ The graphical helper tool is enabled by default but requires extra libraries
 to build. If these libraries are not available, the build will fail.
 If the tool is not required, use the ``--disable-event-gui`` argument
 when @ref building.
+
+@code
+$> meson --prefix=/usr -Devent-gui=false builddir
+@endcode
+
+or when building with autotools:
 
 @code
 $> ./autogen.sh --disable-event-gui --prefix=/usr --libdir=/usr/lib64
