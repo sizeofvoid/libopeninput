@@ -99,6 +99,8 @@ lid_switch_toggle_keyboard_listener(struct lid_switch_dispatch *dispatch,
 	} else {
 		libinput_device_remove_event_listener(
 					&dispatch->keyboard.listener);
+		libinput_device_init_event_listener(
+					&dispatch->keyboard.listener);
 	}
 }
 
@@ -174,6 +176,17 @@ evdev_read_switch_reliability_prop(struct evdev_device *device)
 }
 
 static void
+lid_switch_remove(struct evdev_dispatch *evdev_dispatch)
+{
+	struct lid_switch_dispatch *dispatch = lid_dispatch(evdev_dispatch);
+
+	if (!dispatch->keyboard.keyboard)
+		return;
+
+	libinput_device_remove_event_listener(&dispatch->keyboard.listener);
+}
+
+static void
 lid_switch_destroy(struct evdev_dispatch *evdev_dispatch)
 {
 	struct lid_switch_dispatch *dispatch = lid_dispatch(evdev_dispatch);
@@ -197,7 +210,9 @@ lid_switch_pair_keyboard(struct evdev_device *lid_switch,
 	if (dispatch->keyboard.keyboard) {
 		if (bus_kbd != BUS_I8042)
 			return;
+
 		libinput_device_remove_event_listener(&dispatch->keyboard.listener);
+		libinput_device_init_event_listener(&dispatch->keyboard.listener);
 	}
 
 	dispatch->keyboard.keyboard = keyboard;
@@ -225,7 +240,9 @@ lid_switch_interface_device_removed(struct evdev_device *device,
 
 	if (removed_device == dispatch->keyboard.keyboard) {
 		libinput_device_remove_event_listener(
-				      &dispatch->keyboard.listener);
+					&dispatch->keyboard.listener);
+		libinput_device_init_event_listener(
+					&dispatch->keyboard.listener);
 		dispatch->keyboard.keyboard = NULL;
 	}
 }
@@ -271,7 +288,7 @@ lid_switch_sync_initial_state(struct evdev_device *device,
 struct evdev_dispatch_interface lid_switch_interface = {
 	lid_switch_process,
 	NULL, /* suspend */
-	NULL, /* remove */
+	lid_switch_remove,
 	lid_switch_destroy,
 	lid_switch_interface_device_added,
 	lid_switch_interface_device_removed,
