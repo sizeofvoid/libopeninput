@@ -50,6 +50,9 @@ list_init(struct list *list)
 void
 list_insert(struct list *list, struct list *elm)
 {
+	assert((list->next != NULL && list->prev != NULL) ||
+	       !"list->next|prev is NULL, possibly missing list_init()");
+
 	elm->prev = list;
 	elm->next = list->next;
 	list->next = elm;
@@ -59,6 +62,9 @@ list_insert(struct list *list, struct list *elm)
 void
 list_remove(struct list *elm)
 {
+	assert((elm->next != NULL && elm->prev != NULL) ||
+	       !"list->next|prev is NULL, possibly missing list_init()");
+
 	elm->prev->next = elm->next;
 	elm->next->prev = elm->prev;
 	elm->next = NULL;
@@ -68,6 +74,9 @@ list_remove(struct list *elm)
 bool
 list_empty(const struct list *list)
 {
+	assert((list->next != NULL && list->prev != NULL) ||
+	       !"list->next|prev is NULL, possibly missing list_init()");
+
 	return list->next == list;
 }
 
