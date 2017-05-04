@@ -407,6 +407,35 @@ START_TEST(lid_open_on_key_touchpad_enabled)
 }
 END_TEST
 
+START_TEST(lid_suspend_with_keyboard)
+{
+	struct libinput *li;
+	struct litest_device *keyboard;
+	struct litest_device *sw;
+
+	li = litest_create_context();
+
+	sw = litest_add_device(li, LITEST_LID_SWITCH);
+	libinput_dispatch(li);
+
+	keyboard = litest_add_device(li, LITEST_KEYBOARD);
+	libinput_dispatch(li);
+
+	litest_lid_action(sw, LIBINPUT_SWITCH_STATE_ON);
+	litest_drain_events(li);
+	litest_lid_action(sw, LIBINPUT_SWITCH_STATE_OFF);
+	litest_drain_events(li);
+
+	litest_delete_device(keyboard);
+	litest_drain_events(li);
+
+	litest_delete_device(sw);
+	libinput_dispatch(li);
+
+	libinput_unref(li);
+}
+END_TEST
+
 START_TEST(lid_suspend_with_touchpad)
 {
 	struct libinput *li;
@@ -493,6 +522,7 @@ litest_setup_tests_lid(void)
 	litest_add("lid:keyboard", lid_open_on_key, LITEST_SWITCH, LITEST_ANY);
 	litest_add("lid:keyboard", lid_open_on_key_touchpad_enabled, LITEST_SWITCH, LITEST_ANY);
 
+	litest_add_no_device("lid:keyboard", lid_suspend_with_keyboard);
 	litest_add_no_device("lid:disable_touchpad", lid_suspend_with_touchpad);
 
 	litest_add_for_device("lid:buggy", lid_update_hw_on_key, LITEST_LID_SWITCH_SURFACE3);
