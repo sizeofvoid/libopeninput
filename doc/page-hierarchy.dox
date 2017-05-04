@@ -24,10 +24,11 @@
 
 - @subpage tablet-support
 
-@page general General setup
+@page general General 
 
 - @subpage udev_config
 - @subpage seats
+- @subpage timestamps
 
 @page misc Users
 
