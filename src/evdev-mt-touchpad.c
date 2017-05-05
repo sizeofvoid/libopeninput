@@ -1768,6 +1768,12 @@ tp_interface_device_removed(struct evdev_device *device,
 		tp->dwt.keyboard = NULL;
 	}
 
+	if (removed_device == tp->lid_switch.lid_switch) {
+		libinput_device_remove_event_listener(
+					&tp->lid_switch.lid_switch_listener);
+		tp->lid_switch.lid_switch = NULL;
+	}
+
 	if (tp->sendevents.current_mode !=
 	    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE)
 		return;
