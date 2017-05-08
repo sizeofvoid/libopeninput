@@ -39,3 +39,9 @@
    ...
    fun:litest_backtrace
 }
+{
+   python:PyUnicode_New
+   Memcheck:Leak
+   ...
+   obj:/usr/lib*/libpython3*.so*
+}
