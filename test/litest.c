@@ -39,6 +39,7 @@
 #include <unistd.h>
 #include "linux/input.h"
 #include <sys/ptrace.h>
+#include <sys/resource.h>
 #include <sys/sendfile.h>
 #include <sys/timerfd.h>
 #include <sys/wait.h>
@@ -3581,6 +3582,7 @@ litest_list_tests(struct list *tests)
 int
 main(int argc, char **argv)
 {
+	const struct rlimit corelimit = { 0, 0 };
 	enum litest_mode mode;
 
 	list_init(&all_tests);
@@ -3618,6 +3620,9 @@ main(int argc, char **argv)
 		litest_list_tests(&all_tests);
 		return EXIT_SUCCESS;
 	}
+
+	if (setrlimit(RLIMIT_CORE, &corelimit) != 0)
+		perror("WARNING: Core dumps not disabled. Reason");
 
 	return litest_run(argc, argv);
 }
