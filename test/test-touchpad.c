@@ -1176,15 +1176,15 @@ START_TEST(touchpad_palm_detect_tap_softbuttons)
 
 	litest_drain_events(li);
 
-	litest_touch_down(dev, 0, 95, 5);
+	litest_touch_down(dev, 0, 99, 99);
 	litest_touch_up(dev, 0);
 	litest_assert_empty_queue(li);
 
-	litest_touch_down(dev, 0, 5, 5);
+	litest_touch_down(dev, 0, 1, 99);
 	litest_touch_up(dev, 0);
 	litest_assert_empty_queue(li);
 
-	litest_touch_down(dev, 0, 5, 99);
+	litest_touch_down(dev, 0, 10, 99);
 	litest_touch_up(dev, 0);
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -1194,7 +1194,7 @@ START_TEST(touchpad_palm_detect_tap_softbuttons)
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 	litest_assert_empty_queue(li);
 
-	litest_touch_down(dev, 0, 95, 99);
+	litest_touch_down(dev, 0, 90, 99);
 	litest_touch_up(dev, 0);
 	litest_assert_button_event(li,
 				   BTN_LEFT,
