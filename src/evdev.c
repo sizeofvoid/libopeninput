@@ -90,9 +90,6 @@ static const struct evdev_udev_tag_match evdev_udev_tag_matches[] = {
 	{"ID_INPUT_POINTINGSTICK",	EVDEV_UDEV_TAG_POINTINGSTICK},
 	{"ID_INPUT_TRACKBALL",		EVDEV_UDEV_TAG_TRACKBALL},
 	{"ID_INPUT_SWITCH",		EVDEV_UDEV_TAG_SWITCH},
-
-	/* sentinel value */
-	{ 0 },
 };
 
 static inline bool
@@ -2373,18 +2370,16 @@ evdev_device_get_udev_tags(struct evdev_device *device,
 			   struct udev_device *udev_device)
 {
 	enum evdev_device_udev_tags tags = 0;
-	const struct evdev_udev_tag_match *match;
 	int i;
 
 	for (i = 0; i < 2 && udev_device; i++) {
-		match = evdev_udev_tag_matches;
-		while (match->name) {
+		unsigned j;
+		for (j = 0; j < ARRAY_LENGTH(evdev_udev_tag_matches); j++) {
+			const struct evdev_udev_tag_match match = evdev_udev_tag_matches[j];
 			if (parse_udev_flag(device,
 					    udev_device,
-					    match->name))
-				tags |= match->tag;
-
-			match++;
+					    match.name))
+				tags |= match.tag;
 		}
 		udev_device = udev_device_get_parent(udev_device);
 	}
