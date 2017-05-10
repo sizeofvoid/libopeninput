@@ -70,15 +70,9 @@ void list_insert(struct list *list, struct list *elm);
 void list_remove(struct list *elm);
 bool list_empty(const struct list *list);
 
-#ifdef __GNUC__
 #define container_of(ptr, sample, member)				\
 	(__typeof__(sample))((char *)(ptr)	-			\
 		 ((char *)&(sample)->member - (char *)(sample)))
-#else
-#define container_of(ptr, sample, member)				\
-	(void *)((char *)(ptr)	-				        \
-		 ((char *)&(sample)->member - (char *)(sample)))
-#endif
 
 #define list_for_each(pos, head, member)				\
 	for (pos = 0, pos = container_of((head)->next, pos, member);	\
