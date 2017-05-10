@@ -72,7 +72,7 @@ bool list_empty(const struct list *list);
 
 #define container_of(ptr, sample, member)				\
 	(__typeof__(sample))((char *)(ptr)	-			\
-		 ((char *)&(sample)->member - (char *)(sample)))
+		 ((char *)&((typeof(sample))0)->member))
 
 #define list_for_each(pos, head, member)				\
 	for (pos = 0, pos = container_of((head)->next, pos, member);	\
