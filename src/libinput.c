@@ -43,6 +43,37 @@
 	if (!check_event_type(li_, __func__, type_, __VA_ARGS__, -1)) \
 		return retval_; \
 
+#define ASSERT_INT_SIZE(type_) \
+	static_assert(sizeof(type_) == sizeof(unsigned int), \
+		      "sizeof("  #type_ ") must be sizeof(uint)")
+
+ASSERT_INT_SIZE(enum libinput_log_priority);
+ASSERT_INT_SIZE(enum libinput_device_capability);
+ASSERT_INT_SIZE(enum libinput_key_state);
+ASSERT_INT_SIZE(enum libinput_led);
+ASSERT_INT_SIZE(enum libinput_button_state);
+ASSERT_INT_SIZE(enum libinput_pointer_axis);
+ASSERT_INT_SIZE(enum libinput_pointer_axis_source);
+ASSERT_INT_SIZE(enum libinput_tablet_pad_ring_axis_source);
+ASSERT_INT_SIZE(enum libinput_tablet_pad_strip_axis_source);
+ASSERT_INT_SIZE(enum libinput_tablet_tool_type);
+ASSERT_INT_SIZE(enum libinput_tablet_tool_proximity_state);
+ASSERT_INT_SIZE(enum libinput_tablet_tool_tip_state);
+ASSERT_INT_SIZE(enum libinput_switch_state);
+ASSERT_INT_SIZE(enum libinput_switch);
+ASSERT_INT_SIZE(enum libinput_event_type);
+ASSERT_INT_SIZE(enum libinput_config_status);
+ASSERT_INT_SIZE(enum libinput_config_tap_state);
+ASSERT_INT_SIZE(enum libinput_config_tap_button_map);
+ASSERT_INT_SIZE(enum libinput_config_drag_state);
+ASSERT_INT_SIZE(enum libinput_config_drag_lock_state);
+ASSERT_INT_SIZE(enum libinput_config_send_events_mode);
+ASSERT_INT_SIZE(enum libinput_config_accel_profile);
+ASSERT_INT_SIZE(enum libinput_config_click_method);
+ASSERT_INT_SIZE(enum libinput_config_middle_emulation_state);
+ASSERT_INT_SIZE(enum libinput_config_scroll_method);
+ASSERT_INT_SIZE(enum libinput_config_dwt_state);
+
 static inline bool
 check_event_type(struct libinput *libinput,
 		 const char *function_name,
