@@ -46,7 +46,7 @@
 static inline bool
 check_event_type(struct libinput *libinput,
 		 const char *function_name,
-		 enum libinput_event_type type_in,
+		 unsigned int type_in,
 		 ...)
 {
 	bool rc = false;
