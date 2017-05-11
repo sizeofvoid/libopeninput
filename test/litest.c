@@ -60,6 +60,8 @@
 	"/91-litest-model-quirks-REMOVEME.hwdb"
 #define UDEV_TEST_DEVICE_RULE_FILE UDEV_RULES_D \
 	"/91-litest-test-device-REMOVEME.rules"
+#define UDEV_DEVICE_GROUPS_FILE UDEV_RULES_D \
+	"/80-libinput-device-groups-litest.rules"
 
 static int jobs = 8;
 static int in_debugger = -1;
@@ -1172,6 +1174,11 @@ litest_install_model_quirks(struct list *created_files_list)
 
 	file = litest_copy_file(UDEV_TEST_DEVICE_RULE_FILE,
 				LIBINPUT_TEST_DEVICE_RULES_FILE,
+				warning);
+	list_insert(created_files_list, &file->link);
+
+	file = litest_copy_file(UDEV_DEVICE_GROUPS_FILE,
+				LIBINPUT_DEVICE_GROUPS_RULES_FILE,
 				warning);
 	list_insert(created_files_list, &file->link);
 }

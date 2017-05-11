@@ -493,9 +493,11 @@ if get_option('enable-tests')
 	def_quirks_rules_file = '-DLIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE="@0@"'.format(litest_model_quirks_file)
 	def_quirks_hwdb_file = '-DLIBINPUT_MODEL_QUIRKS_UDEV_HWDB_FILE="@0@/udev/90-libinput-model-quirks.hwdb"'.format(meson.source_root())
 	def_test_rules_file = '-DLIBINPUT_TEST_DEVICE_RULES_FILE="@0@/udev/80-libinput-test-device.rules"'.format(meson.source_root())
+	def_device_groups_file = '-DLIBINPUT_DEVICE_GROUPS_RULES_FILE="@0@"'.format(litest_groups_rules_file)
 	defs_litest = [def_quirks_rules_file,
 		       def_quirks_hwdb_file,
-		       def_test_rules_file]
+		       def_test_rules_file,
+		       def_device_groups_file]
 
 	lib_litest = static_library('litest',
 				    lib_litest_sources,
