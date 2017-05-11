@@ -109,7 +109,7 @@ configure_file(input : 'udev/90-libinput-model-quirks.rules.in',
 	       configuration : udev_rules_config)
 
 litest_udev_rules_config = configuration_data()
-litest_udev_rules_config.set('UDEV_TEST_PATH', meson.build_root())
+litest_udev_rules_config.set('UDEV_TEST_PATH', meson.build_root() + '/')
 litest_groups_rules_file = configure_file(input : 'udev/80-libinput-device-groups.rules.in',
 	       output : '80-libinput-device-groups-litest.rules',
 	       install : false,
