@@ -2076,9 +2076,9 @@ litest_setup_tests_pointer(void)
 	struct range axis_range = {ABS_X, ABS_Y + 1};
 	struct range compass = {0, 7}; /* cardinal directions */
 
-	litest_add("pointer:motion", pointer_motion_relative, LITEST_RELATIVE, LITEST_ANY);
+	litest_add("pointer:motion", pointer_motion_relative, LITEST_RELATIVE, LITEST_POINTINGSTICK);
 	litest_add_for_device("pointer:motion", pointer_motion_relative_zero, LITEST_MOUSE);
-	litest_add_ranged("pointer:motion", pointer_motion_relative_min_decel, LITEST_RELATIVE, LITEST_ANY, &compass);
+	litest_add_ranged("pointer:motion", pointer_motion_relative_min_decel, LITEST_RELATIVE, LITEST_POINTINGSTICK, &compass);
 	litest_add("pointer:motion", pointer_motion_absolute, LITEST_ABSOLUTE, LITEST_ANY);
 	litest_add("pointer:motion", pointer_motion_unaccel, LITEST_RELATIVE, LITEST_ANY);
 	litest_add("pointer:button", pointer_button, LITEST_BUTTON, LITEST_CLICKPAD);
@@ -2111,7 +2111,7 @@ litest_setup_tests_pointer(void)
 	litest_add("pointer:accel", pointer_accel_invalid, LITEST_RELATIVE, LITEST_ANY);
 	litest_add("pointer:accel", pointer_accel_defaults_absolute, LITEST_ABSOLUTE, LITEST_RELATIVE);
 	litest_add("pointer:accel", pointer_accel_defaults_absolute_relative, LITEST_ABSOLUTE|LITEST_RELATIVE, LITEST_ANY);
-	litest_add("pointer:accel", pointer_accel_direction_change, LITEST_RELATIVE, LITEST_ANY);
+	litest_add("pointer:accel", pointer_accel_direction_change, LITEST_RELATIVE, LITEST_POINTINGSTICK);
 	litest_add("pointer:accel", pointer_accel_profile_defaults, LITEST_RELATIVE, LITEST_TOUCHPAD);
 	litest_add("pointer:accel", pointer_accel_profile_defaults_noprofile, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("pointer:accel", pointer_accel_profile_invalid, LITEST_RELATIVE, LITEST_ANY);
