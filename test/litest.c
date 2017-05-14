@@ -1132,7 +1132,10 @@ litest_copy_file(const char *dest, const char *src, const char *header)
 	litest_assert(file->path);
 
 	out = open(dest, O_CREAT|O_WRONLY, 0644);
-	litest_assert_int_gt(out, -1);
+	if (out == -1)
+		litest_abort_msg("Failed to write to file %s (%s)\n",
+				 dest,
+				 strerror(errno));
 
 	if (header) {
 		length = strlen(header);
@@ -1140,7 +1143,10 @@ litest_copy_file(const char *dest, const char *src, const char *header)
 	}
 
 	in = open(src, O_RDONLY);
-	litest_assert_int_gt(in, -1);
+	if (in == -1)
+		litest_abort_msg("Failed to open file %s (%s)\n",
+				 src,
+				 strerror(errno));
 	/* lazy, just check for error and empty file copy */
 	litest_assert_int_gt(sendfile(out, in, NULL, 40960), 0);
 	close(out);
