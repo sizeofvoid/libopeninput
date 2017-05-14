@@ -34,6 +34,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -86,8 +87,8 @@ void list_remove(struct list *elm);
 bool list_empty(const struct list *list);
 
 #define container_of(ptr, sample, member)				\
-	(__typeof__(sample))((char *)(ptr)	-			\
-		 ((char *)&((typeof(sample))0)->member))
+	(__typeof__(sample))((char *)(ptr) -				\
+		 offsetof(__typeof__(*sample), member))
 
 #define list_for_each(pos, head, member)				\
 	for (pos = 0, pos = container_of((head)->next, pos, member);	\
