@@ -1190,13 +1190,13 @@ litest_init_udev_rules(struct list *created_files)
 
 	rc = mkdir(UDEV_RULES_D, 0755);
 	if (rc == -1 && errno != EEXIST)
-		ck_abort_msg("Failed to create udev rules directory (%s)\n",
-			     strerror(errno));
+		litest_abort_msg("Failed to create udev rules directory (%s)\n",
+				 strerror(errno));
 
 	rc = mkdir(UDEV_HWDB_D, 0755);
 	if (rc == -1 && errno != EEXIST)
-		ck_abort_msg("Failed to create udev hwdb directory (%s)\n",
-			     strerror(errno));
+		litest_abort_msg("Failed to create udev hwdb directory (%s)\n",
+				 strerror(errno));
 
 	litest_install_model_quirks(created_files);
 	litest_init_all_device_udev_rules(created_files);
