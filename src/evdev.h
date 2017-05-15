@@ -247,9 +247,7 @@ struct evdev_device {
 static inline struct evdev_device *
 evdev_device(struct libinput_device *device)
 {
-	struct evdev_device *d;
-
-	return container_of(device, d, base);
+	return container_of(device, struct evdev_device, base);
 }
 
 #define EVDEV_UNHANDLED_DEVICE ((struct evdev_device *) 1)
@@ -371,11 +369,9 @@ struct fallback_dispatch {
 static inline struct fallback_dispatch*
 fallback_dispatch(struct evdev_dispatch *dispatch)
 {
-	struct fallback_dispatch *f;
-
 	evdev_verify_dispatch_type(dispatch, DISPATCH_FALLBACK);
 
-	return container_of(dispatch, f, base);
+	return container_of(dispatch, struct fallback_dispatch, base);
 }
 
 struct evdev_device *

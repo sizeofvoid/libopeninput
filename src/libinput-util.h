@@ -86,22 +86,25 @@ void list_insert(struct list *list, struct list *elm);
 void list_remove(struct list *elm);
 bool list_empty(const struct list *list);
 
-#define container_of(ptr, sample, member)				\
-	(__typeof__(sample))((char *)(ptr) -				\
-		 offsetof(__typeof__(*sample), member))
+#define container_of(ptr, type, member)					\
+	(__typeof__(type) *)((char *)(ptr) -				\
+		 offsetof(__typeof__(type), member))
+
+#define list_first_entry(head, pos, member)				\
+	container_of((head)->next, __typeof__(*pos), member)
 
 #define list_for_each(pos, head, member)				\
-	for (pos = 0, pos = container_of((head)->next, pos, member);	\
+	for (pos = 0, pos = list_first_entry(head, pos, member);	\
 	     &pos->member != (head);					\
-	     pos = container_of(pos->member.next, pos, member))
+	     pos = list_first_entry(&pos->member, pos, member))
 
 #define list_for_each_safe(pos, tmp, head, member)			\
 	for (pos = 0, tmp = 0, 						\
-	     pos = container_of((head)->next, pos, member),		\
-	     tmp = container_of((pos)->member.next, tmp, member);	\
+	     pos = list_first_entry(head, pos, member),			\
+	     tmp = list_first_entry(&pos->member, tmp, member);		\
 	     &pos->member != (head);					\
 	     pos = tmp,							\
-	     tmp = container_of(pos->member.next, tmp, member))
+	     tmp = list_first_entry(&pos->member, tmp, member))
 
 #define NBITS(b) (b * 8)
 #define LONG_BITS (sizeof(long) * 8)

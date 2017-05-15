@@ -73,11 +73,9 @@ struct pad_dispatch {
 static inline struct pad_dispatch*
 pad_dispatch(struct evdev_dispatch *dispatch)
 {
-	struct pad_dispatch *p;
-
 	evdev_verify_dispatch_type(dispatch, DISPATCH_TABLET_PAD);
 
-	return container_of(dispatch, p, base);
+	return container_of(dispatch, struct pad_dispatch, base);
 }
 
 static inline struct libinput *

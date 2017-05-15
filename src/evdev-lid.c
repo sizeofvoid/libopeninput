@@ -44,11 +44,9 @@ struct lid_switch_dispatch {
 static inline struct lid_switch_dispatch*
 lid_dispatch(struct evdev_dispatch *dispatch)
 {
-	struct lid_switch_dispatch *l;
-
 	evdev_verify_dispatch_type(dispatch, DISPATCH_LID_SWITCH);
 
-	return container_of(dispatch, l, base);
+	return container_of(dispatch, struct lid_switch_dispatch, base);
 }
 
 static void
