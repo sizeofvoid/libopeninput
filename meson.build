@@ -87,8 +87,6 @@ executable('libinput-model-quirks',
 	   install_dir : udev_dir)
 
 model_quirks = files('udev/90-libinput-model-quirks.hwdb')
-install_data(model_quirks,
-	     install_dir : udev_hwdb_dir)
 
 parse_hwdb_py = find_program('udev/parse_hwdb.py')
 test('parse-hwdb',
@@ -106,6 +104,11 @@ configure_file(input : 'udev/90-libinput-model-quirks.rules.in',
 	       output : '90-libinput-model-quirks.rules',
 	       install : true,
 	       install_dir : udev_rules_dir,
+	       configuration : udev_rules_config)
+configure_file(input : model_quirks,
+	       output : '90-libinput-model-quirks.hwdb',
+	       install : true,
+	       install_dir : udev_hwdb_dir,
 	       configuration : udev_rules_config)
 
 litest_udev_rules_config = configuration_data()
@@ -490,20 +493,24 @@ if get_option('enable-tests')
 		dep_dl,
 		dep_lm
 	]
-	def_quirks_rules_file = '-DLIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE="@0@"'.format(litest_model_quirks_file)
-	def_quirks_hwdb_file = '-DLIBINPUT_MODEL_QUIRKS_UDEV_HWDB_FILE="@0@/udev/90-libinput-model-quirks.hwdb"'.format(meson.source_root())
-	def_test_rules_file = '-DLIBINPUT_TEST_DEVICE_RULES_FILE="@0@/udev/80-libinput-test-device.rules"'.format(meson.source_root())
-	def_device_groups_file = '-DLIBINPUT_DEVICE_GROUPS_RULES_FILE="@0@"'.format(litest_groups_rules_file)
-	defs_litest = [def_quirks_rules_file,
-		       def_quirks_hwdb_file,
-		       def_test_rules_file,
-		       def_device_groups_file]
 
+	configure_file(input : 'udev/80-libinput-test-device.rules',
+		       output : '80-libinput-test-device.rules',
+		       install : false,
+		       configuration : udev_rules_config)
+
+	config_h.set_quoted('LIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE',
+			    join_paths(meson.build_root(), '90-libinput-model-quirks.rules'))
+	config_h.set_quoted('LIBINPUT_MODEL_QUIRKS_UDEV_HWDB_FILE',
+			    join_paths(meson.build_root(), '90-libinput-model-quirks.hwdb'))
+	config_h.set_quoted('LIBINPUT_TEST_DEVICE_RULES_FILE',
+			    join_paths(meson.build_root(), '80-libinput-test-device.rules'))
+	config_h.set_quoted('LIBINPUT_DEVICE_GROUPS_RULES_FILE',
+			    join_paths(meson.build_root(), '80-libinput-device-groups.rules'))
 	lib_litest = static_library('litest',
 				    lib_litest_sources,
 				    include_directories : include_directories('src'),
-				    dependencies : deps_litest,
-				    c_args : defs_litest)
+				    dependencies : deps_litest)
 	dep_litest = declare_dependency(link_with : lib_litest,
 					dependencies : deps_litest)
 
@@ -512,7 +519,7 @@ if get_option('enable-tests')
 	defs_litest_selftest = [
 		def_no_main,
 		def_disable_backtrace
-	] + defs_litest
+	]
 	test_litest_selftest_sources = [
 		'test/litest-selftest.c',
 		'test/litest.c',
