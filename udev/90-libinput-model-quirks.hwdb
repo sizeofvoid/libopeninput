@@ -116,7 +116,6 @@ libinput:name:Atmel maXTouch Touchpad:dmi:*svn*GOOGLE*:pn*Samus*
  LIBINPUT_MODEL_CHROMEBOOK=1
 
 libinput:name:Cypress APA Trackpad ?cyapa?:dmi:*
- LIBINPUT_MODEL_CYAPA=1
  LIBINPUT_ATTR_PRESSURE_RANGE=10:8
 
 ##########################################
