@@ -224,8 +224,11 @@ lid_switch_pair_keyboard(struct evdev_device *lid_switch,
 				lid_switch->devname,
 				keyboard->devname);
 
-		/* We don't init the event listener yet - we don't care
-		 * about keyboard events until the lid is closed */
+		/* We need to init the event listener now only if the reported state
+		 * is closed. */
+		if (dispatch->lid_is_closed)
+			lid_switch_toggle_keyboard_listener(dispatch,
+						    dispatch->lid_is_closed);
 	}
 }
 
