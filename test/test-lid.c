@@ -499,7 +499,7 @@ START_TEST(lid_update_hw_on_key)
 			       LIBINPUT_SWITCH_LID,
 			       LIBINPUT_SWITCH_STATE_OFF);
 	libinput_event_destroy(event);
-	litest_assert_empty_queue(li);
+	litest_assert_empty_queue(li2);
 
 	libinput_unref(li2);
 	litest_delete_device(keyboard);
