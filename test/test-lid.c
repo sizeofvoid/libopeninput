@@ -360,7 +360,6 @@ START_TEST(lid_open_on_key)
 	litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_SWITCH_TOGGLE, -1);
 	event = libinput_get_event(li);
 	litest_is_switch_event(event,
 			       LIBINPUT_SWITCH_LID,
