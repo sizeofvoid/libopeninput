@@ -74,6 +74,10 @@ lid_switch_keyboard_event(uint64_t time,
 		 * regardless. */
 	}
 
+	/* Posting the event here means we preempt the keyboard events that
+	 * caused us to wake up, so the lid event is always passed on before
+	 * the key event.
+	 */
 	dispatch->lid_is_closed = false;
 	switch_notify_toggle(&dispatch->device->base,
 			     time,
