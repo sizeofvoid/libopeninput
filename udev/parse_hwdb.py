@@ -60,7 +60,7 @@ REAL = Combine((INTEGER + Optional('.' + Optional(INTEGER))) ^ ('.' + INTEGER))
 UDEV_TAG = Word(string.ascii_uppercase, alphanums + '_')
 
 TYPES = {
-         'libinput': ('name', 'touchpad', 'mouse'),
+         'libinput': ('name', 'touchpad', 'mouse', 'keyboard'),
          }
 
 @functools.lru_cache()
@@ -117,8 +117,13 @@ def property_grammar():
                       Suppress('=') -
                       Group(pressure_range('SETTINGS*')) ]
 
+    kbintegration_tags = Or(('internal', 'external'))
+    kbintegration = [Literal('LIBINPUT_ATTR_KEYBOARD_INTEGRATION')('NAME') -
+                         Suppress('=') -
+                         kbintegration_tags('VALUE')]
+
     grammar = Or(model_props + size_props + reliability + tpkbcombo +
-                 pressure_prop)
+                 pressure_prop + kbintegration)
 
     return grammar
 
