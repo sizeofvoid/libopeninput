@@ -202,29 +202,23 @@ lid_switch_pair_keyboard(struct evdev_device *lid_switch,
 {
 	struct lid_switch_dispatch *dispatch =
 		lid_dispatch(lid_switch->dispatch);
-	unsigned int bus_kbd = libevdev_get_id_bustype(keyboard->evdev);
 
 	if ((keyboard->tags & EVDEV_TAG_KEYBOARD) == 0)
 		return;
 
-	/* If we already have a keyboard paired, override it if the new one
-	 * is a serio device. Otherwise keep the current one */
-	if (dispatch->keyboard.keyboard) {
-		if (bus_kbd != BUS_I8042)
-			return;
+	if (dispatch->keyboard.keyboard)
+		return;
 
-		libinput_device_remove_event_listener(&dispatch->keyboard.listener);
-		libinput_device_init_event_listener(&dispatch->keyboard.listener);
+	if (keyboard->tags & EVDEV_TAG_INTERNAL_KEYBOARD) {
+		dispatch->keyboard.keyboard = keyboard;
+		evdev_log_debug(lid_switch,
+				"lid: keyboard paired with %s<->%s\n",
+				lid_switch->devname,
+				keyboard->devname);
+
+		/* We don't init the event listener yet - we don't care
+		 * about keyboard events until the lid is closed */
 	}
-
-	dispatch->keyboard.keyboard = keyboard;
-	evdev_log_debug(lid_switch,
-			"lid: keyboard paired with %s<->%s\n",
-			lid_switch->devname,
-			keyboard->devname);
-
-	/* We don't init the event listener yet - we don't care about
-	 * keyboard events until the lid is closed */
 }
 
 static void
