@@ -65,23 +65,6 @@ lid_switch_notify_toggle(struct lid_switch_dispatch *dispatch,
 }
 
 static void
-lid_switch_update_kernel_state(struct lid_switch_dispatch *dispatch,
-			       uint64_t time)
-{
-	int fd;
-	const struct input_event ev[2] = {
-		{{ 0, 0 }, EV_SW, SW_LID, 0 },
-		{{ 0, 0 }, EV_SYN, SYN_REPORT, 0 },
-	};
-
-	if (dispatch->reliability != RELIABILITY_WRITE_OPEN)
-		return;
-
-	fd = libevdev_get_fd(dispatch->device->evdev);
-	(void)write(fd, ev, sizeof(ev));
-}
-
-static void
 lid_switch_keyboard_event(uint64_t time,
 			  struct libinput_event *event,
 			  void *data)
@@ -94,7 +77,17 @@ lid_switch_keyboard_event(uint64_t time,
 	if (event->type != LIBINPUT_EVENT_KEYBOARD_KEY)
 		return;
 
-	lid_switch_update_kernel_state(dispatch, time);
+	if (dispatch->reliability == RELIABILITY_WRITE_OPEN) {
+		int fd = libevdev_get_fd(dispatch->device->evdev);
+		struct input_event ev[2] = {
+			{{ 0, 0 }, EV_SW, SW_LID, 0 },
+			{{ 0, 0 }, EV_SYN, SYN_REPORT, 0 },
+		};
+
+		(void)write(fd, ev, sizeof(ev));
+		/* In case write() fails, we sync the lid state manually
+		 * regardless. */
+	}
 
 	/* Posting the event here means we preempt the keyboard events that
 	 * caused us to wake up, so the lid event is always passed on before
@@ -253,16 +246,11 @@ lid_switch_interface_device_removed(struct evdev_device *device,
 	struct lid_switch_dispatch *dispatch = lid_dispatch(device->dispatch);
 
 	if (removed_device == dispatch->keyboard.keyboard) {
-		uint64_t time;
-
 		libinput_device_remove_event_listener(
 					&dispatch->keyboard.listener);
 		libinput_device_init_event_listener(
 					&dispatch->keyboard.listener);
 		dispatch->keyboard.keyboard = NULL;
-
-		time = libinput_now(evdev_libinput_context(device));
-		lid_switch_update_kernel_state(dispatch, time);
 	}
 }
 

@@ -555,41 +555,6 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 }
 END_TEST
 
-START_TEST(lid_force_open_if_no_keyboard)
-{
-	struct litest_device *sw = litest_current_device();
-	struct libinput *li;
-	struct litest_device *keyboard;
-
-	litest_lid_action(sw, LIBINPUT_SWITCH_STATE_ON);
-	keyboard = litest_add_device(sw->libinput, LITEST_KEYBOARD);
-
-	/* separate context for the right state on init */
-	li = litest_create_context();
-	libinput_path_add_device(li,
-				 libevdev_uinput_get_devnode(sw->uinput));
-
-	/* We only have the switch device in this context, not the keyboard.
-	 * So don't expect any switch event to be in the pipe and don't
-	 * expect the event to change if we type or toggle the state
-	 */
-	while (libinput_next_event_type(li) != LIBINPUT_EVENT_NONE) {
-		ck_assert_int_ne(libinput_next_event_type(li),
-				 LIBINPUT_EVENT_SWITCH_TOGGLE);
-		libinput_event_destroy(libinput_get_event(li));
-	}
-
-	litest_event(keyboard, EV_KEY, KEY_A, 1);
-	litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
-	litest_event(keyboard, EV_KEY, KEY_A, 0);
-	litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
-	litest_lid_action(sw, LIBINPUT_SWITCH_STATE_OFF);
-	litest_assert_empty_queue(li);
-
-	libinput_unref(li);
-	litest_delete_device(keyboard);
-}
-END_TEST
 void
 litest_setup_tests_lid(void)
 {
@@ -611,5 +576,4 @@ litest_setup_tests_lid(void)
 
 	litest_add_for_device("lid:buggy", lid_update_hw_on_key, LITEST_LID_SWITCH_SURFACE3);
 	litest_add_for_device("lid:buggy", lid_update_hw_on_key_closed_on_init, LITEST_LID_SWITCH_SURFACE3);
-	litest_add_for_device("lid:buggy", lid_force_open_if_no_keyboard, LITEST_LID_SWITCH_SURFACE3);
 }
