@@ -76,8 +76,8 @@ enum global_opts {
 	GOPT_VERBOSE,
 };
 
-static bool
-parse_args_cmd(enum command cmd,
+static int
+run_args_cmd(enum command cmd,
 	       struct global_options *global_options,
 	       int argc, char *argv[])
 {
@@ -91,7 +91,8 @@ parse_args_cmd(enum command cmd,
 	case COMMAND_DEBUG_EVENTS:
 		return libinput_debug_events(global_options, argc, argv);
 	}
-	return true;
+
+	return EXIT_FAILURE;
 }
 
 int
@@ -104,7 +105,7 @@ main(int argc, char **argv)
 
 	if (argc == 1) {
 		libinput_tool_usage();
-		return false;
+		return EXIT_FAILURE;
 	}
 
 	while (1) {
@@ -125,10 +126,10 @@ main(int argc, char **argv)
 		case 'h':
 		case GOPT_HELP:
 			libinput_tool_usage();
-			exit(0);
+			return EXIT_SUCCESS;
 		case GOPT_VERSION:
 			printf("%s\n", LIBINPUT_VERSION);
-			exit(0);
+			return EXIT_SUCCESS;
 		case GOPT_VERBOSE:
 			global_options.verbose = true;
 			break;
@@ -137,13 +138,13 @@ main(int argc, char **argv)
 			break;
 		default:
 			libinput_tool_usage();
-			return false;
+			return EXIT_FAILURE;
 		}
 	}
 
 	if (optind > argc) {
 		libinput_tool_usage();
-		return false;
+		return EXIT_FAILURE;
 	}
 
 	command = argv[optind];
@@ -157,5 +158,5 @@ main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	return parse_args_cmd(cmd, &global_options, argc - optind, &argv[optind]);
+	return run_args_cmd(cmd, &global_options, argc - optind, &argv[optind]);
 }
