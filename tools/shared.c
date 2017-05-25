@@ -501,8 +501,9 @@ tools_open_backend(struct tools_context *context)
 				 context,
 				 options->device,
 				 options->global_options.verbose);
-	} else
+	} else {
 		abort();
+	}
 
 	return li;
 }
