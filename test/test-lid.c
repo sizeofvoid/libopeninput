@@ -505,6 +505,56 @@ START_TEST(lid_update_hw_on_key)
 }
 END_TEST
 
+START_TEST(lid_update_hw_on_key_closed_on_init)
+{
+	struct litest_device *sw = litest_current_device();
+	struct libinput *li;
+	struct litest_device *keyboard;
+	struct libevdev *evdev = sw->evdev;
+	struct input_event ev;
+
+	litest_lid_action(sw, LIBINPUT_SWITCH_STATE_ON);
+
+	/* Make sure kernel state is right */
+	libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_FORCE_SYNC, &ev);
+	while (libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_SYNC, &ev) >= 0)
+		;
+	ck_assert(libevdev_get_event_value(evdev, EV_SW, SW_LID));
+
+	keyboard = litest_add_device(sw->libinput, LITEST_KEYBOARD);
+
+	/* separate context for the right state on init */
+	li = litest_create_context();
+	libinput_path_add_device(li,
+				 libevdev_uinput_get_devnode(sw->uinput));
+	libinput_path_add_device(li,
+				 libevdev_uinput_get_devnode(keyboard->uinput));
+
+	/* don't expect a switch waiting for us */
+	while (libinput_next_event_type(li) != LIBINPUT_EVENT_NONE) {
+		ck_assert_int_ne(libinput_next_event_type(li),
+				 LIBINPUT_EVENT_SWITCH_TOGGLE);
+		libinput_event_destroy(libinput_get_event(li));
+	}
+
+	litest_event(keyboard, EV_KEY, KEY_A, 1);
+	litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
+	litest_event(keyboard, EV_KEY, KEY_A, 0);
+	litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
+	/* No switch event, we're still in vanilla (open) state */
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
+	/* Make sure kernel state has updated */
+	libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_FORCE_SYNC, &ev);
+	while (libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_SYNC, &ev) >= 0)
+		;
+	ck_assert(!libevdev_get_event_value(evdev, EV_SW, SW_LID));
+
+	libinput_unref(li);
+	litest_delete_device(keyboard);
+}
+END_TEST
+
 void
 litest_setup_tests_lid(void)
 {
@@ -525,4 +575,5 @@ litest_setup_tests_lid(void)
 	litest_add_no_device("lid:disable_touchpad", lid_suspend_with_touchpad);
 
 	litest_add_for_device("lid:buggy", lid_update_hw_on_key, LITEST_LID_SWITCH_SURFACE3);
+	litest_add_for_device("lid:buggy", lid_update_hw_on_key_closed_on_init, LITEST_LID_SWITCH_SURFACE3);
 }

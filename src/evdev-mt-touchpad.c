@@ -1601,8 +1601,7 @@ tp_want_dwt(struct evdev_device *touchpad,
 	/* For Apple touchpads, always use its internal keyboard */
 	if (vendor_tp == VENDOR_ID_APPLE) {
 		return vendor_kbd == vendor_tp &&
-		       keyboard->model_flags &
-				EVDEV_MODEL_APPLE_INTERNAL_KEYBOARD;
+		       keyboard->tags & EVDEV_TAG_INTERNAL_KEYBOARD;
 	}
 
 	/* everything else we don't really know, so we have to assume

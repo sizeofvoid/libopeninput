@@ -26,6 +26,12 @@ libinput:name:*Lid Switch*:dmi:*:ct9:*
  LIBINPUT_ATTR_LID_SWITCH_RELIABILITY=reliable
 
 ##########################################
+# Serial keyboards are internal
+##########################################
+libinput:keyboard:input:b0011v*
+ LIBINPUT_ATTR_KEYBOARD_INTEGRATION=internal
+
+##########################################
 # ALPS
 ##########################################
 libinput:name:*AlpsPS/2 ALPS DualPoint TouchPad:dmi:*
@@ -45,7 +51,7 @@ libinput:touchpad:input:b0005v05ACp*
  LIBINPUT_ATTR_SIZE_HINT=104x75
 
 libinput:name:*Apple Inc. Apple Internal Keyboard*:dmi:*
- LIBINPUT_MODEL_APPLE_INTERNAL_KEYBOARD=1
+ LIBINPUT_ATTR_KEYBOARD_INTEGRATION=internal
 
 libinput:mouse:input:b0005v05ACp030D*
  LIBINPUT_MODEL_APPLE_MAGICMOUSE=1
@@ -185,6 +191,10 @@ libinput:mouse:input:b0003v046DpC408*
 # Surface3 needs us to write the open lid switch event
 libinput:name:*Lid Switch*:dmi:*svnMicrosoftCorporation:pnSurface3:*
  LIBINPUT_ATTR_LID_SWITCH_RELIABILITY=write_open
+
+# Surface 3 Type Cover keyboard
+libinput:name:*Microsoft Surface Type Cover Keyboard*:dmi:*svnMicrosoftCorporation:pnSurface3:*
+ LIBINPUT_ATTR_KEYBOARD_INTEGRATION=internal
 
 ##########################################
 # Synaptics
