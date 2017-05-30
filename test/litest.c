@@ -2353,7 +2353,8 @@ litest_wait_for_event_of_type(struct libinput *li, ...)
 		struct libinput_event *event;
 
 		while ((type = libinput_next_event_type(li)) == LIBINPUT_EVENT_NONE) {
-			poll(&fds, 1, -1);
+			int rc = poll(&fds, 1, -1);
+			litest_assert_int_gt(rc, -1);
 			libinput_dispatch(li);
 		}
 
