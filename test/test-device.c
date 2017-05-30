@@ -481,7 +481,6 @@ START_TEST(device_disable_release_buttons)
 
 	litest_button_click(dev, BTN_LEFT, true);
 	litest_drain_events(li);
-	litest_assert_empty_queue(li);
 
 	status = libinput_device_config_send_events_set_mode(device,
 			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
@@ -516,7 +515,6 @@ START_TEST(device_disable_release_keys)
 
 	litest_button_click(dev, KEY_A, true);
 	litest_drain_events(li);
-	litest_assert_empty_queue(li);
 
 	status = libinput_device_config_send_events_set_mode(device,
 			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
