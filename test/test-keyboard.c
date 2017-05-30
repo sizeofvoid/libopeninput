@@ -313,8 +313,7 @@ START_TEST(keyboard_time_usec)
 	litest_drain_events(dev->libinput);
 
 	litest_keyboard_key(dev, KEY_A, true);
-
-	litest_wait_for_event(li);
+	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
 	kev = litest_is_keyboard_event(event,

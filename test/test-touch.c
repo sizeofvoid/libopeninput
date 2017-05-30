@@ -311,8 +311,8 @@ START_TEST(touch_calibration_scale)
 
 		litest_touch_down(dev, 0, 100, 100);
 		litest_touch_up(dev, 0);
+		libinput_dispatch(li);
 
-		litest_wait_for_event(li);
 		ev = libinput_get_event(li);
 		tev = litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_DOWN);
 
@@ -381,7 +381,7 @@ START_TEST(touch_calibration_rotation)
 
 		litest_touch_down(dev, 0, 80, 20);
 		litest_touch_up(dev, 0);
-		litest_wait_for_event(li);
+		libinput_dispatch(li);
 		ev = libinput_get_event(li);
 		tev = litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_DOWN);
 
@@ -445,7 +445,7 @@ START_TEST(touch_calibration_translation)
 		litest_touch_down(dev, 0, 100, 100);
 		litest_touch_up(dev, 0);
 
-		litest_wait_for_event(li);
+		libinput_dispatch(li);
 		ev = libinput_get_event(li);
 		tev = litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_DOWN);
 
@@ -594,7 +594,8 @@ START_TEST(fake_mt_exists)
 	struct libinput_event *event;
 	struct libinput_device *device;
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED, -1);
+	libinput_dispatch(li);
+
 	event = libinput_get_event(li);
 	device = libinput_event_get_device(event);
 
@@ -658,8 +659,7 @@ START_TEST(touch_protocol_a_touch)
 	litest_drain_events(li);
 
 	litest_touch_down(dev, 0, 5, 95);
-
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TOUCH_DOWN, -1);
+	libinput_dispatch(li);
 
 	ev = libinput_get_event(li);
 	tev = litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_DOWN);
@@ -669,8 +669,12 @@ START_TEST(touch_protocol_a_touch)
 
 	libinput_event_destroy(ev);
 
+	ev = libinput_get_event(li);
+	litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_FRAME);
+	libinput_event_destroy(ev);
+
 	litest_touch_move_to(dev, 0, 10, 90, 90, 10, 20, 1);
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TOUCH_MOTION, -1);
+	libinput_dispatch(li);
 
 	while ((ev = libinput_get_event(li))) {
 		if (libinput_event_get_type(ev) ==
@@ -695,7 +699,10 @@ START_TEST(touch_protocol_a_touch)
 	}
 
 	litest_touch_up(dev, 0);
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TOUCH_UP, -1);
+	libinput_dispatch(li);
+	ev = libinput_get_event(li);
+	litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_UP);
+	libinput_event_destroy(ev);
 }
 END_TEST
 
@@ -714,14 +721,17 @@ START_TEST(touch_protocol_a_2fg_touch)
 	litest_touch_down(dev, 0, 95, 5);
 	litest_pop_event_frame(dev);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TOUCH_DOWN, -1);
-
+	libinput_dispatch(li);
 	ev = libinput_get_event(li);
+	litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_DOWN);
 	libinput_event_destroy(ev);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TOUCH_DOWN, -1);
+	ev = libinput_get_event(li);
+	litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_DOWN);
+	libinput_event_destroy(ev);
 
 	ev = libinput_get_event(li);
+	litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_FRAME);
 	libinput_event_destroy(ev);
 
 	for (pos = 10; pos < 100; pos += 10) {
@@ -729,25 +739,40 @@ START_TEST(touch_protocol_a_2fg_touch)
 		litest_touch_move_to(dev, 0, pos, 100 - pos, pos, 100 - pos, 1, 1);
 		litest_touch_move_to(dev, 0, 100 - pos, pos, 100 - pos, pos, 1, 1);
 		litest_pop_event_frame(dev);
-		litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TOUCH_MOTION, -1);
+		libinput_dispatch(li);
+
 		ev = libinput_get_event(li);
 		tev = libinput_event_get_touch_event(ev);
 		ck_assert_int_eq(libinput_event_touch_get_slot(tev),
 				0);
 		libinput_event_destroy(ev);
 
-		litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TOUCH_MOTION, -1);
 		ev = libinput_get_event(li);
 		tev = libinput_event_get_touch_event(ev);
 		ck_assert_int_eq(libinput_event_touch_get_slot(tev),
 				1);
 		libinput_event_destroy(ev);
+
+		ev = libinput_get_event(li);
+		litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_FRAME);
+		libinput_event_destroy(ev);
 	}
 
 	litest_event(dev, EV_SYN, SYN_MT_REPORT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TOUCH_UP, -1);
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TOUCH_UP, -1);
+
+	libinput_dispatch(li);
+	ev = libinput_get_event(li);
+	litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_UP);
+	libinput_event_destroy(ev);
+
+	ev = libinput_get_event(li);
+	litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_UP);
+	libinput_event_destroy(ev);
+
+	ev = libinput_get_event(li);
+	litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_FRAME);
+	libinput_event_destroy(ev);
 }
 END_TEST
 
@@ -787,8 +812,8 @@ START_TEST(touch_initial_state)
 		litest_touch_down(dev, 0, 70, 60);
 	litest_touch_up(dev, 0);
 
-	litest_wait_for_event(libinput1);
-	litest_wait_for_event(libinput2);
+	libinput_dispatch(libinput1);
+	libinput_dispatch(libinput2);
 
 	while (libinput_next_event_type(libinput1)) {
 		ev1 = libinput_get_event(libinput1);
@@ -831,8 +856,7 @@ START_TEST(touch_time_usec)
 	litest_drain_events(dev->libinput);
 
 	litest_touch_down(dev, 0, 10, 10);
-
-	litest_wait_for_event(li);
+	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
 	tev = litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_DOWN);
