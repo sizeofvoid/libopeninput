@@ -2721,6 +2721,7 @@ litest_create_uinput_device_from_description(const char *name,
 {
 	struct libevdev_uinput *uinput;
 	const char *syspath;
+	char path[PATH_MAX];
 
 	struct udev *udev;
 	struct udev_monitor *udev_monitor;
@@ -2744,6 +2745,7 @@ litest_create_uinput_device_from_description(const char *name,
 	uinput = litest_create_uinput(name, id, abs_info, events);
 
 	syspath = libevdev_uinput_get_syspath(uinput);
+	snprintf(path, sizeof(path), "%s/event", syspath);
 
 	/* blocking, we don't want to continue until udev is ready */
 	while (1) {
@@ -2756,7 +2758,7 @@ litest_create_uinput_device_from_description(const char *name,
 		}
 
 		udev_syspath = udev_device_get_syspath(udev_device);
-		if (udev_syspath && streq(udev_syspath, syspath))
+		if (udev_syspath && strneq(udev_syspath, path, strlen(path)))
 			break;
 
 		udev_device_unref(udev_device);
