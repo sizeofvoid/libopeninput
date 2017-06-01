@@ -581,7 +581,7 @@ if get_option('enable-tests')
 					  install : false)
 	test('libinput-test-suite-runner',
 	     libinput_test_runner,
-	     timeout : 3600)
+	     timeout : 1200)
 
 	# build-test only
         executable('test-build-pedantic',
@@ -607,6 +607,17 @@ if get_option('enable-tests')
 		   include_directories : include_directories('src'),
 		   install : false)
 
+	valgrind_env = environment()
+	valgrind_env.set('CK_FORK', 'no')
+	valgrind_env.set('USING_VALGRIND', '1')
+	valgrind_suppressions_file = join_paths(meson.source_root(), 'test', 'valgrind.suppressions')
+	add_test_setup('valgrind',
+			exe_wrapper : [ valgrind,
+					'--leak-check=full',
+					'--error-exitcode=3',
+					'--suppressions=' + valgrind_suppressions_file ],
+			env :  valgrind_env,
+			timeout_multiplier : 100)
 endif
 ############ output files ############
 configure_file(output: 'config.h', install: false, configuration: config_h)
