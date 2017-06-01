@@ -105,6 +105,7 @@ START_TEST(event_conversion_device_notify)
 					   EV_KEY, BTN_LEFT,
 					   -1, -1);
 	li = libinput_path_create_context(&simple_interface, NULL);
+	litest_restore_log_handler(li); /* use the default litest handler */
 	libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 
 	libinput_dispatch(li);
@@ -1202,16 +1203,6 @@ const struct libinput_interface leak_interface = {
 	.close_restricted = close_restricted_leak,
 };
 
-LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
-static void
-simple_log_handler(struct libinput *libinput,
-		   enum libinput_log_priority priority,
-		   const char *format,
-		   va_list args)
-{
-	vfprintf(stderr, format, args);
-}
-
 START_TEST(fd_no_event_leak)
 {
 	struct libevdev_uinput *uinput;
@@ -1234,8 +1225,7 @@ START_TEST(fd_no_event_leak)
 	ck_assert_int_gt(fd, -1);
 
 	li = libinput_path_create_context(&leak_interface, &fd);
-	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
-	libinput_log_set_handler(li, simple_log_handler);
+	litest_restore_log_handler(li); /* use the default litest handler */
 
 	/* Add the device, trigger an event, then remove it again.
 	 * Without it, we get a SYN_DROPPED immediately and no events.

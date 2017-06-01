@@ -252,15 +252,15 @@ START_TEST(touch_double_touch_down_up)
 	dev = litest_current_device();
 	libinput = dev->libinput;
 
+	litest_disable_log_handler(libinput);
 	/* note: this test is a false negative, libevdev will filter
 	 * tracking IDs re-used in the same slot. */
-
 	litest_touch_down(dev, 0, 0, 0);
 	litest_touch_down(dev, 0, 0, 0);
 	litest_touch_up(dev, 0);
 	litest_touch_up(dev, 0);
-
 	libinput_dispatch(libinput);
+	litest_restore_log_handler(libinput);
 
 	while ((ev = libinput_get_event(libinput))) {
 		switch (libinput_event_get_type(ev)) {

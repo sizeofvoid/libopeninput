@@ -86,12 +86,16 @@ START_TEST(path_create_invalid)
 
 	li = libinput_path_create_context(&simple_interface, NULL);
 	ck_assert(li != NULL);
+
+	litest_disable_log_handler(li);
+
 	device = libinput_path_add_device(li, path);
 	ck_assert(device == NULL);
 
 	ck_assert_int_eq(open_func_count, 0);
 	ck_assert_int_eq(close_func_count, 0);
 
+	litest_restore_log_handler(li);
 	libinput_unref(li);
 	ck_assert_int_eq(close_func_count, 0);
 
@@ -111,12 +115,16 @@ START_TEST(path_create_invalid_kerneldev)
 
 	li = libinput_path_create_context(&simple_interface, NULL);
 	ck_assert(li != NULL);
+
+	litest_disable_log_handler(li);
+
 	device = libinput_path_add_device(li, path);
 	ck_assert(device == NULL);
 
 	ck_assert_int_eq(open_func_count, 1);
 	ck_assert_int_eq(close_func_count, 1);
 
+	litest_restore_log_handler(li);
 	libinput_unref(li);
 	ck_assert_int_eq(close_func_count, 1);
 
@@ -143,6 +151,8 @@ START_TEST(path_create_invalid_file)
 	li = libinput_path_create_context(&simple_interface, NULL);
 	unlink(path);
 
+	litest_disable_log_handler(li);
+
 	ck_assert(li != NULL);
 	device = libinput_path_add_device(li, path);
 	ck_assert(device == NULL);
@@ -150,6 +160,7 @@ START_TEST(path_create_invalid_file)
 	ck_assert_int_eq(open_func_count, 0);
 	ck_assert_int_eq(close_func_count, 0);
 
+	litest_restore_log_handler(li);
 	libinput_unref(li);
 	ck_assert_int_eq(close_func_count, 0);
 
@@ -175,6 +186,9 @@ START_TEST(path_create_destroy)
 
 	li = libinput_path_create_context(&simple_interface, userdata);
 	ck_assert(li != NULL);
+
+	litest_disable_log_handler(li);
+
 	ck_assert(libinput_get_user_data(li) == userdata);
 
 	device = libinput_path_add_device(li,

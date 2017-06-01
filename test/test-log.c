@@ -180,6 +180,7 @@ START_TEST(log_axisrange_warning)
 	/* Expect only one message per 5 min */
 	ck_assert_int_eq(axisrange_log_handler_called, 1);
 
+	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_ERROR);
 	litest_restore_log_handler(li);
 	axisrange_log_handler_called = 0;
 }
