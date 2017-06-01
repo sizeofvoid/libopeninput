@@ -581,8 +581,7 @@ if get_option('enable-tests')
 					  install : false)
 	test('libinput-test-suite-runner',
 	     libinput_test_runner,
-	     timeout : 3600,
-	     env : [ 'LITEST_VERBOSE=1' ])
+	     timeout : 3600)
 
 	# build-test only
         executable('test-build-pedantic',
