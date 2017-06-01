@@ -1441,20 +1441,6 @@ litest_create_device(enum litest_device_type which)
 	return litest_create_device_with_overrides(which, NULL, NULL, NULL, NULL);
 }
 
-int
-litest_handle_events(struct litest_device *d)
-{
-	struct pollfd fd;
-
-	fd.fd = libinput_get_fd(d->libinput);
-	fd.events = POLLIN;
-
-	while (poll(&fd, 1, 1))
-		libinput_dispatch(d->libinput);
-
-	return 0;
-}
-
 void
 litest_delete_device(struct litest_device *d)
 {

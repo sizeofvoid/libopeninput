@@ -410,9 +410,6 @@ litest_current_device(void);
 void
 litest_delete_device(struct litest_device *d);
 
-int
-litest_handle_events(struct litest_device *d);
-
 void
 litest_event(struct litest_device *t,
 	     unsigned int type,
