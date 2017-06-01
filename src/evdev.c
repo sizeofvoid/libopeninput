@@ -2867,6 +2867,38 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 		libevdev_disable_event_code(device->evdev, EV_KEY, BTN_MIDDLE);
 }
 
+static void
+libevdev_log_func(const struct libevdev *evdev,
+		  enum libevdev_log_priority priority,
+		  void *data,
+		  const char *file,
+		  int line,
+		  const char *func,
+		  const char *format,
+		  va_list args)
+{
+	struct libinput *libinput = data;
+	enum libinput_log_priority pri;
+	const char prefix[] = "libevdev: ";
+	char fmt[strlen(format) + strlen(prefix) + 1];
+
+	switch (priority) {
+	case LIBEVDEV_LOG_ERROR:
+		pri = LIBINPUT_LOG_PRIORITY_ERROR;
+		break;
+	case LIBEVDEV_LOG_INFO:
+		pri = LIBINPUT_LOG_PRIORITY_INFO;
+		break;
+	case LIBEVDEV_LOG_DEBUG:
+		pri = LIBINPUT_LOG_PRIORITY_DEBUG;
+		break;
+	}
+
+	snprintf(fmt, sizeof(fmt), "%s%s", prefix, format);
+
+	log_msg_va(libinput, pri, fmt, args);
+}
+
 struct evdev_device *
 evdev_device_create(struct libinput_seat *seat,
 		    struct udev_device *udev_device)
@@ -2910,7 +2942,10 @@ evdev_device_create(struct libinput_seat *seat,
 		goto err;
 
 	libevdev_set_clock_id(device->evdev, CLOCK_MONOTONIC);
-
+	libevdev_set_device_log_function(device->evdev,
+					 libevdev_log_func,
+					 LIBEVDEV_LOG_ERROR,
+					 libinput);
 	device->seat_caps = 0;
 	device->is_mt = 0;
 	device->mtdev = NULL;
