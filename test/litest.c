@@ -55,13 +55,13 @@
 #define UDEV_RULE_PREFIX "99-litest-"
 #define UDEV_HWDB_D "/etc/udev/hwdb.d"
 #define UDEV_MODEL_QUIRKS_RULE_FILE UDEV_RULES_D \
-	"/91-litest-model-quirks-REMOVEME.rules"
+	"/91-litest-model-quirks-REMOVEME-XXXXXX.rules"
 #define UDEV_MODEL_QUIRKS_HWDB_FILE UDEV_HWDB_D \
-	"/91-litest-model-quirks-REMOVEME.hwdb"
+	"/91-litest-model-quirks-REMOVEME-XXXXXX.hwdb"
 #define UDEV_TEST_DEVICE_RULE_FILE UDEV_RULES_D \
-	"/91-litest-test-device-REMOVEME.rules"
+	"/91-litest-test-device-REMOVEME-XXXXXXX.rules"
 #define UDEV_DEVICE_GROUPS_FILE UDEV_RULES_D \
-	"/80-libinput-device-groups-litest.rules"
+	"/80-libinput-device-groups-litest-XXXXXX.rules"
 
 static int jobs = 8;
 static int in_debugger = -1;
@@ -1124,17 +1124,20 @@ litest_copy_file(const char *dest, const char *src, const char *header)
 {
 	int in, out, length;
 	struct created_file *file;
+	int suffixlen;
 
 	file = zalloc(sizeof(*file));
 	litest_assert(file);
 	file->path = strdup(dest);
 	litest_assert(file->path);
 
-	out = open(dest, O_CREAT|O_WRONLY, 0644);
+	suffixlen = file->path + strlen(file->path)  - rindex(file->path, '.');
+	out = mkstemps(file->path, suffixlen);
 	if (out == -1)
 		litest_abort_msg("Failed to write to file %s (%s)\n",
-				 dest,
+				 file->path,
 				 strerror(errno));
+	litest_assert_int_ne(chmod(file->path, 0644), -1);
 
 	if (header) {
 		length = strlen(header);
@@ -1227,6 +1230,7 @@ static char *
 litest_init_device_udev_rules(struct litest_test_device *dev)
 {
 	int rc;
+	int fd;
 	FILE *f;
 	char *path = NULL;
 
@@ -1234,7 +1238,7 @@ litest_init_device_udev_rules(struct litest_test_device *dev)
 		return NULL;
 
 	rc = xasprintf(&path,
-		      "%s/%s%s.rules",
+		      "%s/%s%s-XXXXXX.rules",
 		      UDEV_RULES_D,
 		      UDEV_RULE_PREFIX,
 		      dev->shortname);
@@ -1242,8 +1246,11 @@ litest_init_device_udev_rules(struct litest_test_device *dev)
 			     (int)(
 				   strlen(UDEV_RULES_D) +
 				   strlen(UDEV_RULE_PREFIX) +
-				   strlen(dev->shortname) + 7));
-	f = fopen(path, "w");
+				   strlen(dev->shortname) + 14));
+
+	fd = mkstemps(path, 6);
+	litest_assert_int_ne(fd, -1);
+	f = fdopen(fd, "w");
 	litest_assert_notnull(f);
 	litest_assert_int_ge(fputs(dev->udev_rule, f), 0);
 	fclose(f);
