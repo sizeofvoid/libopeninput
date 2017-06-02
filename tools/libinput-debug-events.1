@@ -1,12 +1,12 @@
 .TH libinput-debug-events "1"
 .SH NAME
-libinput-debug-events \- debug helper for libinput
+libinput\-debug\-events \- debug helper for libinput
 .SH SYNOPSIS
-.B libinput debug-events [--help] [--show-keycodes]
+.B libinput debug\-events [\-\-help] [\-\-show\-keycodes]
 .SH DESCRIPTION
 .PP
 The
-.B "libinput debug-events"
+.B "libinput debug\-events"
 tool creates a libinput context and prints all events from these devices.
 .PP
 This is a debugging tool only, its output may change at any time. Do not
@@ -16,16 +16,16 @@ This tool usually needs to be run as root to have access to the
 /dev/input/eventX nodes.
 .SH OPTIONS
 .TP 8
-.B --help
+.B \-\-help
 Print help
 .TP 8
-.B --show-keycodes
+.B \-\-show\-keycodes
 Key events shown by this tool are partially obfuscated to avoid passwords
 and other sensitive information showing up in the output. Use the
-.B --show-keycodes
+.B \-\-show\-keycodes
 argument to make all keycodes visible.
 .PP
-For all other options, see the output from --help. Options may be added or
+For all other options, see the output from \-\-help. Options may be added or
 removed at any time.
 .SH NOTES
 .PP

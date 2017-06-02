@@ -1,12 +1,12 @@
 .TH libinput-list-devices "1"
 .SH NAME
-libinput-list-devices \- list local devices as recognized by libinput
+libinput\-list\-devices \- list local devices as recognized by libinput
 .SH SYNOPSIS
-.B libinput list-devices [--help]
+.B libinput list\-devices [\-\-help]
 .SH DESCRIPTION
 .PP
 The
-.B "libinput list-devices"
+.B "libinput list\-devices"
 tool creates a libinput context on the default seat "seat0" and lists all
 devices recognized by libinput. Each device shows available configurations
 the respective default configuration setting.
@@ -19,7 +19,7 @@ This tool usually needs to be run as root to have access to the
 /dev/input/eventX nodes.
 .SH OPTIONS
 .TP 8
-.B --help
+.B \-\-help
 Print help
 .SH NOTES
 .PP
@@ -32,7 +32,7 @@ driver or the Wayland compositor.
 .PP
 An xorg.conf(5) configuration entry or Wayland compositor setting may have
 changed configurations on a device. The
-.B "libinput list-devices"
+.B "libinput list\-devices"
 tool only shows the device's default configuration, not the current
 configuration.
 .SH LIBINPUT

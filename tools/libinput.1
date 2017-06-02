@@ -2,7 +2,7 @@
 .SH NAME
 libinput \- tool to interface with libinput
 .SH SYNOPSIS
-.B libinput [--help] [--version] <command> [<args>]
+.B libinput [\-\-help] [\-\-version] <command> [<args>]
 .SH DESCRIPTION
 .PP
 The
@@ -23,32 +23,32 @@ Note that a device may be recognized by this tool but not handled by the
 X.Org libinput driver or the Wayland compositor.
 .SH OPTIONS
 .TP 8
-.B --help
+.B \-\-help
 Print help and exit
 .TP 8
-.B --version
+.B \-\-version
 Print the version and exit
 
 .SH COMMANDS
 All commands support a
-.B --help
-argument that prints command-specific usage
+.B \-\-help
+argument that prints command\-specific usage
 information, e.g.
-.B "libinput debug-events --help".
+.B "libinput debug\-events \-\-help".
 .TP 8
-.B libinput-debug-events(1)
+.B libinput\-debug\-events(1)
 Print all events as seen by libinput.
 .TP 8
-.B libinput-debug-gui(1)
+.B libinput\-debug\-gui(1)
 Show a GUI to visualize libinput's events.
 .TP 8
-.B libinput-list-devices(1)
+.B libinput\-list\-devices(1)
 List all devices recognized by libinput.
 .TP 8
-.B libinput-measure(1)
+.B libinput\-measure(1)
 Measure various properties of devices.
 .TP 8
-.B libinput-measure-touchpad-tap(1)
+.B libinput\-measure\-touchpad\-tap(1)
 Measure tap-to-click time.
 .SH LIBINPUT
 Part of the

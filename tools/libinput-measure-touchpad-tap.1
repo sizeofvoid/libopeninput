@@ -1,16 +1,16 @@
 .TH libinput-measure-touchpad-tap "1"
 .SH NAME
-libinput-measure-touchpad-tap \- measure tap-to-click properities of devices
+libinput\-measure\-touchpad\-tap \- measure tap-to-click properities of devices
 .SH SYNOPSIS
-.B libinput measure touchpad-tap [--help] [--format=<format>] [/dev/input/event0]
+.B libinput measure touchpad\-tap [\-\-help] [\-\-format=<format>] [/dev/input/event0]
 .SH DESCRIPTION
 .PP
 The
-.B "libinput measure touchpad-tap"
-tool measures properties of the tap-to-click behavior of the user. This is
+.B "libinput measure touchpad\-tap"
+tool measures properties of the tap\-to\-click behavior of the user. This is
 an interactive tool. When executed, the tool will prompt the user to
 interact with the touchpad. On termination, the tool prints a summary of the
-tap interactions seen. This data should be attached to any tap-related bug
+tap interactions seen. This data should be attached to any tap\-related bug
 report.
 .PP
 For a full description on how libinput's tap-to-click behavior works, see
@@ -24,18 +24,18 @@ This tool usually needs to be run as root to have access to the
 /dev/input/eventX nodes.
 .SH OPTIONS
 .TP 8
-.B --help
+.B \-\-help
 Print help
 .TP 8
-.B --format=summary|dat
+.B \-\-format=summary|dat
 Specify the data format to be printed. The default (or if
-.B --format
+.B \-\-format
 is omitted) is "summary". See section
 .B DATA FORMATS
 
 .SH DATA FORMATS
 This section describes the data formats printed with the
-.B --format
+.B \-\-format
 commandline argument. Note that any of the output may change at any time.
 .RE
 .PP
@@ -57,7 +57,7 @@ format, suitable for processing by other tools such as
 .B gnuplot(1).
 The data is aligned in one row per touch with each column containing a
 separate data entry.
-.B libinput-measure-touchpad-tap
+.B libinput\-measure\-touchpad\-tap
 prints comments at the top of the file to describe each column.
 .PP
 .B WARNING:
