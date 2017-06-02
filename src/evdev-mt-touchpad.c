@@ -1581,8 +1581,6 @@ static bool
 tp_want_dwt(struct evdev_device *touchpad,
 	    struct evdev_device *keyboard)
 {
-	unsigned int bus_tp = libevdev_get_id_bustype(touchpad->evdev),
-		     bus_kbd = libevdev_get_id_bustype(keyboard->evdev);
 	unsigned int vendor_tp = evdev_device_get_id_vendor(touchpad);
 	unsigned int vendor_kbd = evdev_device_get_id_vendor(keyboard);
 	unsigned int product_tp = evdev_device_get_id_product(touchpad);
@@ -1592,22 +1590,12 @@ tp_want_dwt(struct evdev_device *touchpad,
 	   considered a happy couple */
 	if (touchpad->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD)
 		return vendor_tp == vendor_kbd && product_tp == product_kbd;
+	else if (keyboard->tags & EVDEV_TAG_INTERNAL_KEYBOARD)
+		return true;
 
-	/* If the touchpad is on serio, the keyboard is too, so ignore any
-	   other devices */
-	if (bus_tp == BUS_I8042 && bus_kbd != bus_tp)
-		return false;
-
-	/* For Apple touchpads, always use its internal keyboard */
-	if (vendor_tp == VENDOR_ID_APPLE) {
-		return vendor_kbd == vendor_tp &&
-		       keyboard->tags & EVDEV_TAG_INTERNAL_KEYBOARD;
-	}
-
-	/* everything else we don't really know, so we have to assume
-	   they go together */
-
-	return true;
+	/* keyboard is not tagged as internal keyboard and it's not part of
+	 * a combo */
+	return false;
 }
 
 static void
@@ -1615,7 +1603,9 @@ tp_dwt_pair_keyboard(struct evdev_device *touchpad,
 		     struct evdev_device *keyboard)
 {
 	struct tp_dispatch *tp = (struct tp_dispatch*)touchpad->dispatch;
-	unsigned int bus_kbd = libevdev_get_id_bustype(keyboard->evdev);
+
+	if (tp->dwt.keyboard)
+		return;
 
 	if ((keyboard->tags & EVDEV_TAG_KEYBOARD) == 0)
 		return;
@@ -1623,20 +1613,9 @@ tp_dwt_pair_keyboard(struct evdev_device *touchpad,
 	if (!tp_want_dwt(touchpad, keyboard))
 		return;
 
-	/* If we already have a keyboard paired, override it if the new one
-	 * is a serio device. Otherwise keep the current one */
-	if (tp->dwt.keyboard) {
-		if (bus_kbd != BUS_I8042)
-			return;
-
-		memset(tp->dwt.key_mask, 0, sizeof(tp->dwt.key_mask));
-		memset(tp->dwt.mod_mask, 0, sizeof(tp->dwt.mod_mask));
-		libinput_device_remove_event_listener(&tp->dwt.keyboard_listener);
-	}
-
 	libinput_device_add_event_listener(&keyboard->base,
-				&tp->dwt.keyboard_listener,
-				tp_keyboard_event, tp);
+					   &tp->dwt.keyboard_listener,
+					   tp_keyboard_event, tp);
 	tp->dwt.keyboard = keyboard;
 	tp->dwt.keyboard_active = false;
 
