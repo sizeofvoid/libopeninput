@@ -16,7 +16,7 @@ libshared_la_SOURCES = \
 		       shared.h
 libshared_la_CFLAGS = $(AM_CFLAGS) $(LIBEVDEV_CFLAGS) \
 		      -DLIBINPUT_TOOL_PATH="\"@libexecdir@/libinput\""
-libshared_la_LIBADD = $(LIBEVDEV_LIBS)
+libshared_la_LIBADD = $(LIBEVDEV_LIBS) ../src/libinput.la
 
 ptraccel_debug_SOURCES = ptraccel-debug.c
 ptraccel_debug_LDADD = ../src/libfilter.la ../src/libinput.la
