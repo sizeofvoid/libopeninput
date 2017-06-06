@@ -14,9 +14,9 @@ AM_CXXFLAGS = $(GCC_CXXFLAGS)
 libshared_la_SOURCES = \
 		       shared.c \
 		       shared.h
-libshared_la_CFLAGS = $(AM_CFLAGS) $(LIBEVDEV_CFLAGS) \
+libshared_la_CFLAGS = $(AM_CFLAGS) $(LIBEVDEV_CFLAGS) $(LIBUDEV_CFLAGS) \
 		      -DLIBINPUT_TOOL_PATH="\"@libexecdir@/libinput\""
-libshared_la_LIBADD = $(LIBEVDEV_LIBS) ../src/libinput.la
+libshared_la_LIBADD = $(LIBEVDEV_LIBS) $(LIBUDEV_LIBS) ../src/libinput.la
 
 ptraccel_debug_SOURCES = ptraccel-debug.c
 ptraccel_debug_LDADD = ../src/libfilter.la ../src/libinput.la
@@ -56,8 +56,8 @@ dist_man1_MANS += libinput-measure-touchpad-tap.1
 if BUILD_DEBUG_GUI
 tools_PROGRAMS += libinput-debug-gui
 libinput_debug_gui_SOURCES = libinput-debug-gui.c
-libinput_debug_gui_LDADD = ../src/libinput.la libshared.la $(CAIRO_LIBS) $(GTK_LIBS) $(LIBEVDEV_LIBS)
-libinput_debug_gui_CFLAGS = $(AM_CFLAGS) $(CAIRO_CFLAGS) $(GTK_CFLAGS) $(LIBEVDEV_CFLAGS)
+libinput_debug_gui_LDADD = ../src/libinput.la libshared.la $(CAIRO_LIBS) $(GTK_LIBS) $(LIBEVDEV_LIBS) $(LIBUDEV_LIBS)
+libinput_debug_gui_CFLAGS = $(AM_CFLAGS) $(CAIRO_CFLAGS) $(GTK_CFLAGS) $(LIBEVDEV_CFLAGS) $(LIBUDEV_CFLAGS)
 dist_man1_MANS += libinput-debug-gui.1
 endif
 
