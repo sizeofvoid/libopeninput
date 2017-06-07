@@ -321,15 +321,18 @@ litest_fail_comparison_ptr(const char *file,
 struct test {
 	struct list node;
 	char *name;
-	TCase *tc;
+	char *devname;
+	void *func;
+	void *setup;
+	void *teardown;
+
+	struct range range;
 };
 
 struct suite {
 	struct list node;
 	struct list tests;
 	char *name;
-	Suite *suite;
-	bool used;
 };
 
 static struct litest_device *current_device;
@@ -519,37 +522,19 @@ litest_add_tcase_for_device(struct suite *suite,
 			    const struct range *range)
 {
 	struct test *t;
-	const char *test_name = dev->shortname;
-
-	list_for_each(t, &suite->tests, node) {
-		if (!streq(t->name, test_name))
-			continue;
-
-		if (range)
-			tcase_add_loop_test(t->tc,
-					    func,
-					    range->lower,
-					    range->upper);
-		else
-			tcase_add_test(t->tc, func);
-		return;
-	}
 
 	t = zalloc(sizeof(*t));
 	assert(t != NULL);
-	t->name = strdup(test_name);
-	t->tc = tcase_create(test_name);
-	list_insert(&suite->tests, &t->node);
-	tcase_add_checked_fixture(t->tc, dev->setup,
-				  dev->teardown ? dev->teardown : litest_generic_device_teardown);
+	t->name = strdup(funcname);
+	t->devname = strdup(dev->shortname);
+	t->func = func;
+	t->setup = dev->setup;
+	t->teardown = dev->teardown ?
+			dev->teardown : litest_generic_device_teardown;
 	if (range)
-		tcase_add_loop_test(t->tc,
-				    func,
-				    range->lower,
-				    range->upper);
-	else
-		tcase_add_test(t->tc, func);
-	suite_add_tcase(suite->suite, t->tc);
+		t->range = *range;
+
+	list_insert(&suite->tests, &t->node);
 }
 
 static void
@@ -564,27 +549,17 @@ litest_add_tcase_no_device(struct suite *suite,
 	    fnmatch(filter_device, test_name, 0) != 0)
 		return;
 
-	list_for_each(t, &suite->tests, node) {
-		if (!streq(t->name, test_name))
-			continue;
-
-		if (range)
-			tcase_add_loop_test(t->tc, func, range->lower, range->upper);
-		else
-			tcase_add_test(t->tc, func);
-		return;
-	}
-
 	t = zalloc(sizeof(*t));
 	assert(t != NULL);
 	t->name = strdup(test_name);
-	t->tc = tcase_create(test_name);
-	list_insert(&suite->tests, &t->node);
+	t->devname = strdup("no device");
+	t->func = func;
 	if (range)
-		tcase_add_loop_test(t->tc, func, range->lower, range->upper);
-	else
-		tcase_add_test(t->tc, func);
-	suite_add_tcase(suite->suite, t->tc);
+		t->range = *range;
+	t->setup = NULL;
+	t->teardown = NULL;
+
+	list_insert(&suite->tests, &t->node);
 }
 
 static struct suite *
@@ -603,8 +578,6 @@ get_suite(const char *name)
 	s = zalloc(sizeof(*s));
 	assert(s != NULL);
 	s->name = strdup(name);
-	s->suite = suite_create(s->name);
-	s->used = false;
 
 	list_init(&s->tests);
 	list_insert(&all_tests, &s->node);
@@ -925,27 +898,13 @@ static void
 litest_free_test_list(struct list *tests)
 {
 	struct suite *s, *snext;
-	SRunner *sr = NULL;
-
-	/* quirk needed for check: test suites can only get freed by adding
-	 * them to a test runner and freeing the runner. Without this,
-	 * valgrind complains */
-	list_for_each(s, tests, node) {
-		if (s->used)
-			continue;
-
-		if (!sr)
-			sr = srunner_create(s->suite);
-		else
-			srunner_add_suite(sr, s->suite);
-	}
-	srunner_free(sr);
 
 	list_for_each_safe(s, snext, tests, node) {
 		struct test *t, *tnext;
 
 		list_for_each_safe(t, tnext, &s->tests, node) {
 			free(t->name);
+			free(t->devname);
 			list_remove(&t->node);
 			free(t);
 		}
@@ -962,24 +921,54 @@ litest_run_suite(char *argv0, struct list *tests, int which, int max)
 	int failed = 0;
 	SRunner *sr = NULL;
 	struct suite *s;
+	struct test *t;
 	int argvlen = strlen(argv0);
 	int count = -1;
 
 	if (max > 1)
 		snprintf(argv0, argvlen, "libinput-test-%-50d", which);
 
+	/* For each test, create one test suite with one test case, then
+	   add it to the test runner. The only benefit suites give us in
+	   check is that we can filter them, but our test runner has a
+	   --filter-group anyway. */
 	list_for_each(s, tests, node) {
-		++count;
-		if (max != 1 && (count % max) != which) {
-			continue;
+		list_for_each(t, &s->tests, node) {
+			Suite *suite;
+			TCase *tc;
+			char sname[128];
+
+			count = (count + 1) % max;
+			if (max != 1 && (count % max) != which)
+				continue;
+
+			snprintf(sname,
+				 sizeof(sname),
+				 "%s:%s:%s",
+				 s->name,
+				 t->name,
+				 t->devname);
+
+			tc = tcase_create(t->name);
+			tcase_add_checked_fixture(tc,
+						  t->setup,
+						  t->teardown);
+			if (t->range.upper != t->range.lower)
+				tcase_add_loop_test(tc,
+						    t->func,
+						    t->range.lower,
+						    t->range.upper);
+			else
+				tcase_add_test(tc, t->func);
+
+			suite = suite_create(sname);
+			suite_add_tcase(suite, tc);
+
+			if (!sr)
+				sr = srunner_create(suite);
+			else
+				srunner_add_suite(sr, suite);
 		}
-
-		if (!sr)
-			sr = srunner_create(s->suite);
-		else
-			srunner_add_suite(sr, s->suite);
-
-		s->used = true;
 	}
 
 	if (!sr)
