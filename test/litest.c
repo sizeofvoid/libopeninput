@@ -322,7 +322,6 @@ struct test {
 	struct list node;
 	char *name;
 	TCase *tc;
-	enum litest_device_type devices;
 };
 
 struct suite {
