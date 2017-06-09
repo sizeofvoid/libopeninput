@@ -67,6 +67,10 @@ sort order (i.e. as they occured), the data in the next few columns may list
 tap information sorted by the delta time between touch down and touch up.
 Comparing columns across these group boundaries will compare data of two
 different touch points and result in invalid analysis.
+.SH BUGS
+This tool does not take finger pressure into account. The tap it detects may
+be different to those detected by libinput if libinput's pressure thresholds
+differ significantly to the kernel's pressure thresholds.
 .SH LIBINPUT
 Part of the
 .B libinput(1)
