@@ -33,19 +33,47 @@
 
 #include "litest.h"
 
-static int open_func_count = 0;
-static int close_func_count = 0;
+struct counter {
+	int open_func_count;
+	int close_func_count;
+};
 
-static int open_restricted(const char *path, int flags, void *data)
+static int
+open_restricted_count(const char *path, int flags, void *data)
 {
+	struct counter *c = data;
 	int fd;
-	open_func_count++;
+
+	c->open_func_count++;
+
 	fd = open(path, flags);
 	return fd < 0 ? -errno : fd;
 }
-static void close_restricted(int fd, void *data)
+
+static void
+close_restricted_count(int fd, void *data)
 {
-	close_func_count++;
+	struct counter *c = data;
+
+	c->close_func_count++;
+	close(fd);
+}
+
+static const struct libinput_interface counting_interface = {
+	.open_restricted = open_restricted_count,
+	.close_restricted = close_restricted_count,
+};
+
+static int
+open_restricted(const char *path, int flags, void *data)
+{
+	int fd = open(path, flags);
+	return fd < 0 ? -errno : fd;
+}
+
+static void
+close_restricted(int fd, void *data)
+{
 	close(fd);
 }
 
@@ -57,21 +85,19 @@ static const struct libinput_interface simple_interface = {
 START_TEST(path_create_NULL)
 {
 	struct libinput *li;
+	struct counter counter;
 
-	open_func_count = 0;
-	close_func_count = 0;
+	counter.open_func_count = 0;
+	counter.close_func_count = 0;
 
 	li = libinput_path_create_context(NULL, NULL);
 	ck_assert(li == NULL);
-	li = libinput_path_create_context(&simple_interface, NULL);
+	li = libinput_path_create_context(&counting_interface, &counter);
 	ck_assert(li != NULL);
 	libinput_unref(li);
 
-	ck_assert_int_eq(open_func_count, 0);
-	ck_assert_int_eq(close_func_count, 0);
-
-	open_func_count = 0;
-	close_func_count = 0;
+	ck_assert_int_eq(counter.open_func_count, 0);
+	ck_assert_int_eq(counter.close_func_count, 0);
 }
 END_TEST
 
@@ -80,11 +106,12 @@ START_TEST(path_create_invalid)
 	struct libinput *li;
 	struct libinput_device *device;
 	const char *path = "/tmp";
+	struct counter counter;
 
-	open_func_count = 0;
-	close_func_count = 0;
+	counter.open_func_count = 0;
+	counter.close_func_count = 0;
 
-	li = libinput_path_create_context(&simple_interface, NULL);
+	li = libinput_path_create_context(&counting_interface, &counter);
 	ck_assert(li != NULL);
 
 	litest_disable_log_handler(li);
@@ -92,15 +119,12 @@ START_TEST(path_create_invalid)
 	device = libinput_path_add_device(li, path);
 	ck_assert(device == NULL);
 
-	ck_assert_int_eq(open_func_count, 0);
-	ck_assert_int_eq(close_func_count, 0);
+	ck_assert_int_eq(counter.open_func_count, 0);
+	ck_assert_int_eq(counter.close_func_count, 0);
 
 	litest_restore_log_handler(li);
 	libinput_unref(li);
-	ck_assert_int_eq(close_func_count, 0);
-
-	open_func_count = 0;
-	close_func_count = 0;
+	ck_assert_int_eq(counter.close_func_count, 0);
 }
 END_TEST
 
@@ -109,11 +133,12 @@ START_TEST(path_create_invalid_kerneldev)
 	struct libinput *li;
 	struct libinput_device *device;
 	const char *path = "/dev/uinput";
+	struct counter counter;
 
-	open_func_count = 0;
-	close_func_count = 0;
+	counter.open_func_count = 0;
+	counter.close_func_count = 0;
 
-	li = libinput_path_create_context(&simple_interface, NULL);
+	li = libinput_path_create_context(&counting_interface, &counter);
 	ck_assert(li != NULL);
 
 	litest_disable_log_handler(li);
@@ -121,15 +146,12 @@ START_TEST(path_create_invalid_kerneldev)
 	device = libinput_path_add_device(li, path);
 	ck_assert(device == NULL);
 
-	ck_assert_int_eq(open_func_count, 1);
-	ck_assert_int_eq(close_func_count, 1);
+	ck_assert_int_eq(counter.open_func_count, 1);
+	ck_assert_int_eq(counter.close_func_count, 1);
 
 	litest_restore_log_handler(li);
 	libinput_unref(li);
-	ck_assert_int_eq(close_func_count, 1);
-
-	open_func_count = 0;
-	close_func_count = 0;
+	ck_assert_int_eq(counter.close_func_count, 1);
 }
 END_TEST
 
@@ -139,16 +161,17 @@ START_TEST(path_create_invalid_file)
 	struct libinput_device *device;
 	char path[] = "/tmp/litest_path_XXXXXX";
 	int fd;
+	struct counter counter;
 
 	umask(002);
 	fd = mkstemp(path);
 	ck_assert_int_ge(fd, 0);
 	close(fd);
 
-	open_func_count = 0;
-	close_func_count = 0;
+	counter.open_func_count = 0;
+	counter.close_func_count = 0;
 
-	li = libinput_path_create_context(&simple_interface, NULL);
+	li = libinput_path_create_context(&counting_interface, &counter);
 	unlink(path);
 
 	litest_disable_log_handler(li);
@@ -157,15 +180,12 @@ START_TEST(path_create_invalid_file)
 	device = libinput_path_add_device(li, path);
 	ck_assert(device == NULL);
 
-	ck_assert_int_eq(open_func_count, 0);
-	ck_assert_int_eq(close_func_count, 0);
+	ck_assert_int_eq(counter.open_func_count, 0);
+	ck_assert_int_eq(counter.close_func_count, 0);
 
 	litest_restore_log_handler(li);
 	libinput_unref(li);
-	ck_assert_int_eq(close_func_count, 0);
-
-	open_func_count = 0;
-	close_func_count = 0;
+	ck_assert_int_eq(counter.close_func_count, 0);
 }
 END_TEST
 
@@ -174,8 +194,10 @@ START_TEST(path_create_destroy)
 	struct libinput *li;
 	struct libinput_device *device;
 	struct libevdev_uinput *uinput;
-	int rc;
-	void *userdata = &rc;
+	struct counter counter;
+
+	counter.open_func_count = 0;
+	counter.close_func_count = 0;
 
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_KEY, BTN_LEFT,
@@ -184,25 +206,22 @@ START_TEST(path_create_destroy)
 					     EV_REL, REL_Y,
 					     -1);
 
-	li = libinput_path_create_context(&simple_interface, userdata);
+	li = libinput_path_create_context(&counting_interface, &counter);
 	ck_assert(li != NULL);
 
 	litest_disable_log_handler(li);
 
-	ck_assert(libinput_get_user_data(li) == userdata);
+	ck_assert(libinput_get_user_data(li) == &counter);
 
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
 	ck_assert(device != NULL);
 
-	ck_assert_int_eq(open_func_count, 1);
+	ck_assert_int_eq(counter.open_func_count, 1);
 
 	libevdev_uinput_destroy(uinput);
 	libinput_unref(li);
-	ck_assert_int_eq(close_func_count, 1);
-
-	open_func_count = 0;
-	close_func_count = 0;
+	ck_assert_int_eq(counter.close_func_count, 1);
 }
 END_TEST
 
@@ -537,9 +556,6 @@ START_TEST(path_suspend)
 
 	libevdev_uinput_destroy(uinput);
 	libinput_unref(li);
-
-	open_func_count = 0;
-	close_func_count = 0;
 }
 END_TEST
 
@@ -571,9 +587,6 @@ START_TEST(path_double_suspend)
 
 	libevdev_uinput_destroy(uinput);
 	libinput_unref(li);
-
-	open_func_count = 0;
-	close_func_count = 0;
 }
 END_TEST
 
@@ -605,9 +618,6 @@ START_TEST(path_double_resume)
 
 	libevdev_uinput_destroy(uinput);
 	libinput_unref(li);
-
-	open_func_count = 0;
-	close_func_count = 0;
 }
 END_TEST
 
@@ -687,9 +697,6 @@ START_TEST(path_add_device_suspend_resume)
 	libevdev_uinput_destroy(uinput1);
 	libevdev_uinput_destroy(uinput2);
 	libinput_unref(li);
-
-	open_func_count = 0;
-	close_func_count = 0;
 }
 END_TEST
 
@@ -777,9 +784,6 @@ START_TEST(path_add_device_suspend_resume_fail)
 
 	libevdev_uinput_destroy(uinput2);
 	libinput_unref(li);
-
-	open_func_count = 0;
-	close_func_count = 0;
 }
 END_TEST
 
@@ -866,9 +870,6 @@ START_TEST(path_add_device_suspend_resume_remove_device)
 
 	libevdev_uinput_destroy(uinput1);
 	libinput_unref(li);
-
-	open_func_count = 0;
-	close_func_count = 0;
 }
 END_TEST
 
