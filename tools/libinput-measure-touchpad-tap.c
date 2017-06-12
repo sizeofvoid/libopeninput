@@ -119,6 +119,7 @@ tap_data_duplicate_sorted(const struct tap_data *src,
 	assert(src->count > 0);
 
 	dest->count = src->count;
+	dest->toffset = src->toffset;
 	dest->touches_sz = dest->count;
 	dest->touches = zalloc(dest->count * sizeof(*dest->touches));
 	memcpy(dest->touches,
