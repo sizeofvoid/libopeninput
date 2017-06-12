@@ -507,7 +507,8 @@ main(int argc, char **argv)
 	else
 		print_statistics(tap_data);
 
-	tap_data_free(&tap_data);
 out:
+	tap_data_free(&tap_data);
+
 	return rc;
 }
