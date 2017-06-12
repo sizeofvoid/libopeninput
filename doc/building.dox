@@ -102,6 +102,30 @@ overwriting manually installed files.
 <li><b>Arch</b>: ```sudo packman -S libinput```</li>
 </ul>
 
+@subsection building_selinux SELinux adjustments
+
+On systems with SELinux, overwriting the distribution-provided package with
+a manually built libinput may cause SELinux denials. This usually manifests
+when gdm does not start because it is denied access to libinput. The journal
+shows a log message in the form of:
+
+<pre>
+May 25 15:28:42 localhost.localdomain audit[23268]: AVC avc:  denied  { execute } for  pid=23268 comm="gnome-shell" path="/usr/lib64/libinput.so.10.12.2" dev="dm-0" ino=1709093 scontext=system_u:system_r:xdm_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=0
+May 25 15:28:42 localhost.localdomain org.gnome.Shell.desktop[23270]: /usr/bin/gnome-shell: error while loading shared libraries: libinput.so.10: failed to map segment from shared object
+</pre>
+
+The summary of this error message is that gdm's gnome-shell runs in the
+```system_u:system_r:xdm_t``` context but libinput is installed with the
+context ```unconfined_u:object_r:user_home_t```.
+
+To avoid this issue, restore the SELinux context for any system files.
+
+<pre>
+$> sudo restorecon /usr/lib*/libinput.so.*
+</pre>
+
+This issue is tracked in https://github.com/mesonbuild/meson/issues/1967.
+
 @subsection building_dependencies Build dependencies
 
 libinput has a few build-time dependencies that must be installed prior to
