@@ -190,7 +190,9 @@ Software that uses libinput should use pkg-config and the
 Otherwise, the most rudimentary way to compile and link a program against
 libinput is:
 
+@code
     gcc -o myprogram myprogram.c `pkg-config --cflags --libs libinput`
+@endcode
 
 For further information on using pkgconfig see the pkg-config documentation.
 
