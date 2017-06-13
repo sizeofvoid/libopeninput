@@ -35,8 +35,8 @@ $> ninja -C builddir
 $> sudo ninja -C builddir/ install
 @endcode
 
-@note On Fedora, use ```ninja-build``` instead of ```ninja```. We recommend
-setting up a shell alias.
+@note On Fedora, you may need to use ```ninja-build``` instead of
+```ninja```. See [this bug](https://bugzilla.redhat.com/show_bug.cgi?id=1166135)
 
 @subsection building_autotools Building with automake
 
