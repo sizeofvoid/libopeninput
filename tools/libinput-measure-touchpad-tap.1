@@ -23,6 +23,9 @@ rely on the output.
 This tool usually needs to be run as root to have access to the
 /dev/input/eventX nodes.
 .SH OPTIONS
+If a device node is given, this tool opens that device node. Otherwise, this
+tool searches for the first node that looks like a touchpad and uses that
+node.
 .TP 8
 .B \-\-help
 Print help
