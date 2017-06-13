@@ -4,9 +4,13 @@ set -e
 
 [ -e doc ] || (echo "Run this from the project root" && exit 1)
 
-make
+if ! [ -f build/build.ninja ]; then
+	echo "Setting up meson in directory 'build'"
+	meson build
+fi
+ninja -C build
 
-[ -e doc/html ] || (echo "HTML documentation failed to build" && exit 1)
+[ -e build/html ] || (echo "HTML documentation failed to build" && exit 1)
 
 path=latest
 
@@ -15,4 +19,4 @@ if [ -n "$1" ]; then
 	path="$1"
 fi
 
-rsync --delete -avz doc/html/ freedesktop.org:/srv/wayland.freedesktop.org/www/libinput/doc/$path
+rsync --delete -avz build/html/ freedesktop.org:/srv/wayland.freedesktop.org/www/libinput/doc/$path
