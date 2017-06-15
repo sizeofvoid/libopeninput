@@ -1,5 +1,5 @@
 project('libinput', 'c', 'cpp',
-	version : '1.7.0',
+	version : '1.7.901',
 	license: 'MIT/Expat',
 	default_options : [ 'c_std=gnu99', 'warning_level=2' ],
 	meson_version : '>= 0.40.0')
@@ -14,9 +14,9 @@ libinput_version = meson.project_version().split('.')
 # b) If interfaces have been changed or added, but binary compatibility has
 #    been preserved, change to C+1:0:A+1
 # c) If the interface is the same as the previous version, change to C:R+1:A
-libinput_lt_c=22
-libinput_lt_r=2
-libinput_lt_a=12
+libinput_lt_c=23
+libinput_lt_r=0
+libinput_lt_a=13
 
 # convert to soname
 libinput_so_version = '@0@.@1@.@2@'.format((libinput_lt_c - libinput_lt_a),
