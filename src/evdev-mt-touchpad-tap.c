@@ -768,6 +768,18 @@ tp_tap_exceeds_motion_threshold(struct tp_dispatch *tp,
 	struct phys_coords mm =
 		tp_phys_delta(tp, device_delta(t->point, t->tap.initial));
 
+	/* if we have more fingers down than slots, we know that synaptics
+	 * touchpads are likely to give us pointer jumps.
+	 * This triggers the movement threshold, making three-finger taps
+	 * less reliable (#101435)
+	 */
+	if (tp->device->model_flags & EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD &&
+	    (tp->nfingers_down > 2 || tp->old_nfingers_down > 2) &&
+	    (tp->nfingers_down > tp->num_slots ||
+	     tp->old_nfingers_down > tp->num_slots)) {
+		return false;
+	}
+
 	return length_in_mm(mm) > DEFAULT_TAP_MOVE_THRESHOLD;
 }
 
