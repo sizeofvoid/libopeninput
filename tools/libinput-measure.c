@@ -38,20 +38,7 @@
 static inline void
 usage(void)
 {
-	printf("Usage: libinput measure [--help] FEATURE [/dev/input/event0]\n");
-	printf("\n"
-	       "Collect measurements related to FEATURE on the given device.\n"
-	       "\n"
-	       "Options:\n"
-	       "--help ...... show this help\n"
-	       "\n"
-	       "Available features are:\n"
-	       "  touchpad-tap-time\n"
-	       "	Measures the time for tap-to-click interactions\n"
-	       "     "
-	       "For information about each feature, see the --help output for that feature.\n"
-	       "\n"
-	       "This tool requires access to the /dev/input/eventX nodes.\n");
+	printf("Usage: libinput measure [--help] <feature> [/dev/input/event0]\n");
 }
 
 int

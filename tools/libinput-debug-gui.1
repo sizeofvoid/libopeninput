@@ -2,7 +2,7 @@
 .SH NAME
 libinput\-debug\-gui \- visual debug helper for libinput
 .SH SYNOPSIS
-.B libinput debug\-gui [\-\-help]
+.B libinput debug\-gui [\-\-help] [\-\-udev [<seat>]|\-\-device /dev/input/event0] [configuration options]
 .SH DESCRIPTION
 .PP
 The
@@ -10,6 +10,7 @@ The
 tool creates a libinput context and a full-screen GTK window to visualize
 events processed by libinput. This tool exclusively grabs pointing devices
 and stops them from interacting with the rest of the GUI.
+.PP
 .B Hit Esc to exit this tool.
 .PP
 This is a debugging tool only, its output or behavior may change at any
@@ -19,11 +20,28 @@ This tool usually needs to be run as root to have access to the
 /dev/input/eventX nodes.
 .SH OPTIONS
 .TP 8
+.B \-\-device /dev/input/event0
+Use the given device with the path backend.
+.TP 8
+.B \-\-grab
+Exclusively grab all opened devices. This will prevent events from being
+delivered to the host system.
+.TP 8
 .B \-\-help
 Print help
+.TP 8
+.B \-\-quiet
+Only print libinput messages, don't print anything from this tool. This is
+useful in combination with --verbose for internal state debugging.
+.TP 8
+.B \-\-udev [<seat>]
+Use the udev backend to listen for device notifications. If a seat is given,
+use that seat, otherwise default to "seat0".
+.TP 8
+.B \-\-verbose
+Use verbose output
 .PP
-For all other options, see the output from \-\-help. Options may be added or
-removed at any time.
+For libinput configuration options, see libinput-debug-events(1)
 .SH NOTES
 .PP
 Events shown by this tool may not correspond to the events seen by a

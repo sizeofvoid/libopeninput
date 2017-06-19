@@ -2,7 +2,7 @@
 .SH NAME
 libinput\-debug\-events \- debug helper for libinput
 .SH SYNOPSIS
-.B libinput debug\-events [\-\-help] [\-\-show\-keycodes]
+libinput debug\-events [\-\-help] [\-\-show\-keycodes] [\-\-udev [<seat>]|\-\-device /dev/input/event0] [configuration options]
 .SH DESCRIPTION
 .PP
 The
@@ -16,17 +16,69 @@ This tool usually needs to be run as root to have access to the
 /dev/input/eventX nodes.
 .SH OPTIONS
 .TP 8
+.B \-\-device /dev/input/event0
+Use the given device with the path backend.
+.TP 8
+.B \-\-grab
+Exclusively grab all opened devices. This will prevent events from being
+delivered to the host system.
+.TP 8
 .B \-\-help
 Print help
+.TP 8
+.B \-\-quiet
+Only print libinput messages, don't print anything from this tool. This is
+useful in combination with --verbose for internal state debugging.
 .TP 8
 .B \-\-show\-keycodes
 Key events shown by this tool are partially obfuscated to avoid passwords
 and other sensitive information showing up in the output. Use the
 .B \-\-show\-keycodes
 argument to make all keycodes visible.
-.PP
-For all other options, see the output from \-\-help. Options may be added or
-removed at any time.
+.TP 8
+.B \-\-udev [<seat>]
+Use the udev backend to listen for device notifications. If a seat is given,
+use that seat, otherwise default to "seat0".
+.TP 8
+.B \-\-verbose
+Use verbose output
+.SS libinput configuration options
+.TP 8
+.B \-\-enable\-tap|\-\-disable\-tap
+Enable or disable tap-to-click.
+.TP 8
+.B \-\-enable-drag|\-\-disable\-drag
+Enable or disable tap-and-drag
+.TP 8
+.B \-\-enable\-drag-lock|\-\-disable\-drag\-lock
+Enable or disable tap-and-drag.
+.TP 8
+.B \-\-enable\-natural\-scrolling|\-\-disable\-natural\-scrolling
+Enable or disable natural scrolling.
+.TP 8
+.B \-\-enable\-left\-handed|\-\-disable\-left\-handed
+Enable or disable left handed button configuration.
+.TP 8
+.B \-\-enable\-dwt|\-\-disable\-dwt
+Enable or disable disable-while-typing.
+.TP 8
+.B \-\-set\-click\-method=[none|clickfinger|buttons]
+Set the desired click method
+.TP 8
+.B \-\-set\-scroll\-method=[none|twofinger|edge|button]
+Set the desired scroll method.
+.TP 8
+.B \-\-set\-scroll\-button=BTN_MIDDLE
+Set the button to the given button code.
+.TP 8
+.B \-\-set\-profile=[adaptive|flat]
+Set pointer acceleration profile.
+.TP 8
+.B \-\-set\-speed=<value>
+Set pointer acceleration speed. The allowed range is [-1, 1].
+.TP 8
+.B \-\-set\-tap\-map=[lrm|lmr]
+Set button mapping for tapping.
 .SH NOTES
 .PP
 Events shown by this tool may not correspond to the events seen by a

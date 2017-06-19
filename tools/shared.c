@@ -97,41 +97,6 @@ tools_usage(const char *command)
 {
 	printf("Usage: libinput %s [options] [--udev [<seat>]|--device /dev/input/event0]\n",
 	       command);
-	printf("--udev <seat>.... Use udev device discovery (default).\n"
-	       "		  Specifying a seat ID is optional.\n"
-	       "--device /path/to/device .... open the given device only\n"
-	       "\n"
-	       "Features:\n"
-	       "--enable-tap\n"
-	       "--disable-tap.... enable/disable tapping\n"
-	       "--enable-drag\n"
-	       "--disable-drag.... enable/disable tap-n-drag\n"
-	       "--enable-drag-lock\n"
-	       "--disable-drag-lock.... enable/disable tapping drag lock\n"
-	       "--enable-natural-scrolling\n"
-	       "--disable-natural-scrolling.... enable/disable natural scrolling\n"
-	       "--enable-left-handed\n"
-	       "--disable-left-handed.... enable/disable left-handed button configuration\n"
-	       "--enable-middlebutton\n"
-	       "--disable-middlebutton.... enable/disable middle button emulation\n"
-	       "--enable-dwt\n"
-	       "--disable-dwt..... enable/disable disable-while-typing\n"
-	       "--set-click-method=[none|clickfinger|buttonareas] .... set the desired click method\n"
-	       "--set-scroll-method=[none|twofinger|edge|button] ... set the desired scroll method\n"
-	       "--set-scroll-button=BTN_MIDDLE ... set the button to the given button code\n"
-	       "--set-profile=[adaptive|flat].... set pointer acceleration profile\n"
-	       "--set-speed=<value>.... set pointer acceleration speed (allowed range [-1, 1]) \n"
-	       "--set-tap-map=[lrm|lmr] ... set button mapping for tapping\n"
-	       "--show-keycodes.... show all key codes while typing\n"
-	       "\n"
-	       "These options apply to all applicable devices, if a feature\n"
-	       "is not explicitly specified it is left at each device's default.\n"
-	       "\n"
-	       "Other options:\n"
-	       "--grab .......... Exclusively grab all openend devices\n"
-	       "--help .......... Print this help.\n"
-	       "--verbose ....... Print debugging output.\n"
-	       "--quiet ......... Only print libinput messages, useful in combination with --verbose.\n");
 }
 
 void

@@ -420,15 +420,6 @@ static inline void
 usage(void)
 {
 	printf("Usage: libinput measure touchpad-tap [--help] [/dev/input/event0]\n");
-	printf("\n"
-	       "Measure various properties related to tap-to-click.\n"
-	       "If a path to the device is provided, that device is used. Otherwise, this tool\n"
-	       "will pick the first suitable touchpad device.\n"
-	       "\n"
-	       "Options:\n"
-	       "--help ...... show this help\n"
-	       "\n"
-	       "This tool requires access to the /dev/input/eventX nodes.\n");
 }
 
 int

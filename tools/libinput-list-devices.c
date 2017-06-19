@@ -354,17 +354,11 @@ print_device_notify(struct libinput_event *ev)
 static inline void
 usage(void)
 {
-	printf("Usage: libinput list-devices [--help]\n");
+	printf("Usage: libinput list-devices [--help|--version]\n");
 	printf("\n"
-	       "This tool creates a libinput context on the default seat \"seat0\"\n"
-	       "and lists all devices recognized by libinput and the configuration options.\n"
-	       "Where multiple options are possible, the default is prefixed with \"*\".\n"
-	       "\n"
-	       "Options:\n"
-	       "--help ...... show this help\n"
-	       "--version ... show version information\n"
-	       "\n"
-	       "This tool requires access to the /dev/input/eventX nodes.\n");
+	       "--help ...... show this help and exit\n"
+	       "--version ... show version information and exit\n"
+	       "\n");
 }
 
 int
@@ -374,6 +368,8 @@ main(int argc, char **argv)
 	struct tools_context context;
 	struct libinput_event *ev;
 
+	/* This is kept for backwards-compatibility with the old
+	   libinput-list-devices */
 	if (argc > 1) {
 		if (streq(argv[1], "--help")) {
 			usage();

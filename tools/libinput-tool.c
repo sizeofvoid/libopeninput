@@ -39,19 +39,11 @@
 static void
 usage(void)
 {
-	printf("Usage: libinput [GLOBAL OPTIONS] [COMMAND] [ARGS]\n"
-	       "\n"
-	       "This tool creates a libinput context and interacts with that context.\n"
-	       "For detailed information about the options below, see the"
-	       "libinput(1) man page.\n"
-	       "\n"
-	       "This tool usually requires access to the /dev/input/eventX nodes.\n"
+	printf("Usage: libinput [--help|--version] <command> [<args>]\n"
 	       "\n"
 	       "Global options:\n"
-	       "  --help ...... show this help\n"
-	       "  --version ... show version information\n"
-	       "  --verbose ... enable verbose output for debugging\n"
-	       "  --quiet ..... reduce output (may be used with --verbose)\n"
+	       "  --help ...... show this help and exit\n"
+	       "  --version ... show version information and exit\n"
 	       "\n"
 	       "Commands:\n"
 	       "  list-devices\n"
@@ -63,8 +55,8 @@ usage(void)
 	       "  debug-gui\n"
 	       "	Display a simple GUI to visualize libinput's events.\n"
 	       "\n"
-	       "  measure\n"
-	       "	Measure various device properties. See the --help output for more info\n"
+	       "  measure <feature>\n"
+	       "	Measure various device properties. See the man page for more info\n"
 	       "\n");
 }
 
