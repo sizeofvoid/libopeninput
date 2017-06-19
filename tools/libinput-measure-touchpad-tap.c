@@ -114,7 +114,7 @@ static inline struct tap_data *
 tap_data_duplicate_sorted(const struct tap_data *src,
 			  int (*cmp)(const void *a, const void *b))
 {
-	struct tap_data *dest= tap_data_new();
+	struct tap_data *dest = tap_data_new();
 
 	assert(src->count > 0);
 
@@ -122,6 +122,8 @@ tap_data_duplicate_sorted(const struct tap_data *src,
 	dest->toffset = src->toffset;
 	dest->touches_sz = dest->count;
 	dest->touches = zalloc(dest->count * sizeof(*dest->touches));
+	assert(dest->touches);
+
 	memcpy(dest->touches,
 	       src->touches,
 	       dest->count * sizeof(*dest->touches));
