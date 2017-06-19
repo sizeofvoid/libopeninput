@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <fcntl.h>
+#include <getopt.h>
 #include <poll.h>
 #include <stdio.h>
 #include <signal.h>
@@ -41,10 +42,11 @@
 
 #include "shared.h"
 
-uint32_t start_time;
+static uint32_t start_time;
 static const uint32_t screen_width = 100;
 static const uint32_t screen_height = 100;
-struct tools_context context;
+static struct tools_options options;
+static bool show_keycodes;
 static unsigned int stop = 0;
 static bool be_quiet = false;
 
@@ -282,21 +284,15 @@ static void
 print_key_event(struct libinput *li, struct libinput_event *ev)
 {
 	struct libinput_event_keyboard *k = libinput_event_get_keyboard_event(ev);
-	struct tools_context *context;
-	struct tools_options *options;
 	enum libinput_key_state state;
 	uint32_t key;
 	const char *keyname;
-
-	context = libinput_get_user_data(li);
-	options = &context->options;
 
 	print_event_time(libinput_event_keyboard_get_time(k));
 	state = libinput_event_keyboard_get_key_state(k);
 
 	key = libinput_event_keyboard_get_key(k);
-	if (!options->show_keycodes &&
-	    (key >= KEY_ESC && key < KEY_ZENKAKUHANKAKU)) {
+	if (!show_keycodes && (key >= KEY_ESC && key < KEY_ZENKAKUHANKAKU)) {
 		keyname = "***";
 		key = -1;
 	} else {
@@ -777,7 +773,7 @@ handle_and_print_events(struct libinput *li)
 		case LIBINPUT_EVENT_DEVICE_REMOVED:
 			print_device_notify(ev);
 			tools_device_apply_config(libinput_event_get_device(ev),
-						  &context.options);
+						  &options);
 			break;
 		case LIBINPUT_EVENT_KEYBOARD_KEY:
 			print_key_event(li, ev);
@@ -895,23 +891,98 @@ mainloop(struct libinput *li)
 		handle_and_print_events(li);
 }
 
+static void
+usage(void) {
+	printf("Usage: libinput debug-events [options] [--udev <seat>|--device /dev/input/event0]\n");
+}
+
 int
 main(int argc, char **argv)
 {
 	struct libinput *li;
 	struct timespec tp;
+	enum tools_backend backend = BACKEND_UDEV;
+	const char *seat_or_device = "seat0";
+	bool grab = false;
+	bool verbose = false;
 
 	clock_gettime(CLOCK_MONOTONIC, &tp);
 	start_time = tp.tv_sec * 1000 + tp.tv_nsec / 1000000;
 
-	tools_init_context(&context);
+	tools_init_options(&options);
 
-	if (tools_parse_args("debug-events", argc, argv, &context))
+	while (1) {
+		int c;
+		int option_index = 0;
+		enum {
+			OPT_DEVICE = 1,
+			OPT_UDEV,
+			OPT_GRAB,
+			OPT_VERBOSE,
+			OPT_SHOW_KEYCODES,
+			OPT_QUIET,
+		};
+		static struct option opts[] = {
+			CONFIGURATION_OPTIONS,
+			{ "help",                      no_argument,       0, 'h' },
+			{ "show-keycodes",             no_argument,       0, OPT_SHOW_KEYCODES },
+			{ "device",                    required_argument, 0, OPT_DEVICE },
+			{ "udev",                      required_argument, 0, OPT_UDEV },
+			{ "grab",                      no_argument,       0, OPT_GRAB },
+			{ "verbose",                   no_argument,       0, OPT_VERBOSE },
+			{ "quiet",                     no_argument,       0, OPT_QUIET },
+			{ 0, 0, 0, 0}
+		};
+
+		c = getopt_long(argc, argv, "h", opts, &option_index);
+		if (c == -1)
+			break;
+
+		switch(c) {
+		case '?':
+			exit(1);
+			break;
+		case 'h':
+			usage();
+			exit(0);
+			break;
+		case OPT_SHOW_KEYCODES:
+			show_keycodes = true;
+			break;
+		case OPT_QUIET:
+			be_quiet = true;
+			break;
+		case OPT_DEVICE:
+			backend = BACKEND_DEVICE;
+			seat_or_device = optarg;
+			break;
+		case OPT_UDEV:
+			backend = BACKEND_UDEV;
+			seat_or_device = optarg;
+			break;
+		case OPT_GRAB:
+			grab = true;
+			break;
+		case OPT_VERBOSE:
+			verbose = true;
+			break;
+		default:
+			printf(".. %c\n", c);
+			if (tools_parse_option(c, optarg, &options) != 0) {
+				usage();
+				return 1;
+			}
+			break;
+		}
+
+	}
+
+	if (optind < argc) {
+		usage();
 		return 1;
+	}
 
-	be_quiet = context.options.quiet;
-
-	li = tools_open_backend(&context);
+	li = tools_open_backend(backend, seat_or_device, verbose, grab);
 	if (!li)
 		return 1;
 

@@ -365,7 +365,6 @@ int
 main(int argc, char **argv)
 {
 	struct libinput *li;
-	struct tools_context context;
 	struct libinput_event *ev;
 
 	/* This is kept for backwards-compatibility with the old
@@ -383,9 +382,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	tools_init_context(&context);
-
-	li = tools_open_backend(&context);
+	li = tools_open_backend(BACKEND_UDEV, "seat0", false, false);
 	if (!li)
 		return 1;
 

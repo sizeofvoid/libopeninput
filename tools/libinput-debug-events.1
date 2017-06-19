@@ -2,7 +2,7 @@
 .SH NAME
 libinput\-debug\-events \- debug helper for libinput
 .SH SYNOPSIS
-libinput debug\-events [\-\-help] [\-\-show\-keycodes] [\-\-udev [<seat>]|\-\-device /dev/input/event0] [configuration options]
+libinput debug\-events [\-\-help] [\-\-show\-keycodes] [\-\-udev <seat>|\-\-device /dev/input/event0] [configuration options]
 .SH DESCRIPTION
 .PP
 The
@@ -36,9 +36,9 @@ and other sensitive information showing up in the output. Use the
 .B \-\-show\-keycodes
 argument to make all keycodes visible.
 .TP 8
-.B \-\-udev [<seat>]
-Use the udev backend to listen for device notifications. If a seat is given,
-use that seat, otherwise default to "seat0".
+.B \-\-udev <seat>
+Use the udev backend to listen for device notifications on the given seat.
+The default behavior is equivalent to \-\-udev "seat0".
 .TP 8
 .B \-\-verbose
 Use verbose output

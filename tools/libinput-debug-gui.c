@@ -27,6 +27,7 @@
 #include <cairo.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <getopt.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,8 +44,6 @@
 
 #define clip(val_, min_, max_) min((max_), max((min_), (val_)))
 
-struct tools_context context;
-
 struct touch {
 	int active;
 	int x, y;
@@ -55,6 +54,8 @@ struct point {
 };
 
 struct window {
+	struct tools_options options;
+
 	GtkWidget *win;
 	GtkWidget *area;
 	int width, height; /* of window */
@@ -107,21 +108,7 @@ struct window {
 };
 
 LIBINPUT_ATTRIBUTE_PRINTF(1, 2)
-static int
-error(const char *fmt, ...)
-{
-	va_list args;
-	fprintf(stderr, "error: ");
-
-	va_start(args, fmt);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
-
-	return EXIT_FAILURE;
-}
-
-LIBINPUT_ATTRIBUTE_PRINTF(1, 2)
-static void
+static inline void
 msg(const char *fmt, ...)
 {
 	va_list args;
@@ -492,7 +479,6 @@ change_ptraccel(struct window *w, double amount)
 static void
 handle_event_device_notify(struct libinput_event *ev)
 {
-	struct tools_context *context;
 	struct libinput_device *dev = libinput_event_get_device(ev);
 	struct libinput *li;
 	struct window *w;
@@ -510,11 +496,10 @@ handle_event_device_notify(struct libinput_event *ev)
 	    type);
 
 	li = libinput_event_get_context(ev);
-	context = libinput_get_user_data(li);
-	w = context->user_data;
+	w = libinput_get_user_data(li);
 
 	tools_device_apply_config(libinput_event_get_device(ev),
-				  &context->options);
+				  &w->options);
 
 	if (libinput_event_get_type(ev) == LIBINPUT_EVENT_DEVICE_ADDED) {
 		for (i = 0; i < ARRAY_LENGTH(w->devices); i++) {
@@ -796,8 +781,7 @@ static gboolean
 handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 {
 	struct libinput *li = data;
-	struct tools_context *context = libinput_get_user_data(li);
-	struct window *w = context->user_data;
+	struct window *w = libinput_get_user_data(li);
 	struct libinput_event *ev;
 
 	libinput_dispatch(li);
@@ -878,28 +862,90 @@ sockets_init(struct libinput *li)
 	g_io_add_watch(c, G_IO_IN, handle_event_libinput, li);
 }
 
+static void
+usage(void) {
+	printf("Usage: libinput debug-gui [options] [--udev <seat>|--device /dev/input/event0]\n");
+}
+
 int
 main(int argc, char **argv)
 {
 	struct window w;
 	struct libinput *li;
-	struct udev *udev;
+	enum tools_backend backend = BACKEND_UDEV;
+	const char *seat_or_device = "seat0";
+	bool grab = false;
+	bool verbose = false;
 
 	gtk_init(&argc, &argv);
 
-	tools_init_context(&context);
+	tools_init_options(&w.options);
 
-	if (tools_parse_args("debug-gui", argc, argv, &context) != 0)
+	while (1) {
+		int c;
+		int option_index = 0;
+		enum {
+			OPT_DEVICE = 1,
+			OPT_UDEV,
+			OPT_GRAB,
+			OPT_VERBOSE,
+		};
+		static struct option opts[] = {
+			CONFIGURATION_OPTIONS,
+			{ "help",                      no_argument,       0, 'h' },
+			{ "device",                    required_argument, 0, OPT_DEVICE },
+			{ "udev",                      required_argument, 0, OPT_UDEV },
+			{ "grab",                      no_argument,       0, OPT_GRAB },
+			{ "verbose",                   no_argument,       0, OPT_VERBOSE },
+			{ 0, 0, 0, 0}
+		};
+
+		c = getopt_long(argc, argv, "h", opts, &option_index);
+		if (c == -1)
+			break;
+
+		switch(c) {
+		case '?':
+			exit(1);
+			break;
+		case 'h':
+			usage();
+			exit(0);
+			break;
+		case OPT_DEVICE:
+			backend = BACKEND_DEVICE;
+			seat_or_device = optarg;
+			break;
+		case OPT_UDEV:
+			backend = BACKEND_UDEV;
+			seat_or_device = optarg;
+			break;
+		case OPT_GRAB:
+			grab = true;
+			break;
+		case OPT_VERBOSE:
+			verbose = true;
+			break;
+		default:
+			if (tools_parse_option(c, optarg, &w.options) != 0) {
+				usage();
+				return 1;
+			}
+			break;
+		}
+
+	}
+
+	if (optind < argc) {
+		usage();
 		return 1;
+	}
 
-	udev = udev_new();
-	if (!udev)
-		error("Failed to initialize udev\n");
-
-	context.user_data = &w;
-	li = tools_open_backend(&context);
+	li = tools_open_backend(backend, seat_or_device, verbose, grab);
 	if (!li)
 		return 1;
+
+	libinput_set_user_data(li, &w);
 
 	window_init(&w);
 	sockets_init(li);
@@ -909,7 +955,6 @@ main(int argc, char **argv)
 
 	window_cleanup(&w);
 	libinput_unref(li);
-	udev_unref(udev);
 
 	return 0;
 }
