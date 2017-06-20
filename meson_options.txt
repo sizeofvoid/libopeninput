@@ -14,3 +14,7 @@ option('tests',
        type: 'boolean',
        default: true,
        description: 'Build the tests [default=true]')
+option('documentation',
+       type: 'boolean',
+       default: true,
+       description: 'Build the documentation [default=true]')

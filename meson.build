@@ -222,9 +222,8 @@ pkgconfig.generate(
 
 ############ documentation ############
 
-doxygen = find_program('doxygen',
-		       required : false)
-if doxygen.found()
+if get_option('documentation')
+	doxygen = find_program('doxygen')
 	doxygen_version_cmd = run_command(doxygen.path(), '--version')
 	if doxygen_version_cmd.returncode() != 0
 		error('Command "doxygen --version" failed.')
