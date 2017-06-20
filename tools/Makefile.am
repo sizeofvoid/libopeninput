@@ -61,7 +61,7 @@ libinput_debug_gui_CFLAGS = $(AM_CFLAGS) $(CAIRO_CFLAGS) $(GTK_CFLAGS) $(LIBEVDE
 dist_man1_MANS += libinput-debug-gui.1
 endif
 
-EXTRA_DIST = make-ptraccel-graphs.sh $(bin_SCRIPTS)
+EXTRA_DIST = make-ptraccel-graphs.sh install-compat-scripts.sh $(bin_SCRIPTS)
 
 install-data-hook:
 	(cd $(DESTDIR)$(bindir) && mv libinput-list-devices.compat libinput-list-devices)
