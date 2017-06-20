@@ -436,7 +436,7 @@ executable('ptraccel-debug',
 
 ############ tests ############
 
-if get_option('enable-tests')
+if get_option('tests')
 	dep_check = dependency('check', version : '>= 0.9.10')
 	valgrind = find_program('valgrind')
 	addr2line = find_program('addr2line')
