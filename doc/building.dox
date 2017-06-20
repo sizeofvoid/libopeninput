@@ -148,10 +148,11 @@ $> sudo zypper modifyrepo --disable `zypper repos | grep source | awk '{print $5
 </li>
 <li><b>Arch</b>:
 <pre>
-$> abs extra/libinput
+$> sudo pacman -S asp
 $> cd $(mktemp -d)
-$> cp /var/abs/extra/libinput/PKGBUILD .
-$> makepkg --syncdeps --nobuild
+$> asp export libinput
+$> cd libinput
+$> makepkg --syncdeps --nobuild --noextract
 </pre>
 </li>
 </ul>
