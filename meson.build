@@ -220,6 +220,12 @@ pkgconfig.generate(
 	libraries: lib_libinput
 )
 
+# Restore the SELinux context for the libinput.so.a.b.c on install
+# meson bug https://github.com/mesonbuild/meson/issues/1967
+meson.add_install_script('src/libinput-restore-selinux-context.sh',
+			 get_option('libdir'),
+			 lib_libinput.full_path())
+
 ############ documentation ############
 
 if get_option('documentation')

@@ -77,4 +77,4 @@ pkgconfig_DATA = libinput.pc
 AM_CFLAGS = $(GCC_CFLAGS)
 
 DISTCLEANFILES = libinput-version.h
-EXTRA_DIST = libinput-version.h.in libinput.sym
+EXTRA_DIST = libinput-version.h.in libinput.sym libinput-restore-selinux-context.sh
