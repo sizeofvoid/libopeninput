@@ -147,14 +147,14 @@ static void
 tp_button_set_enter_timer(struct tp_dispatch *tp, struct tp_touch *t)
 {
 	libinput_timer_set(&t->button.timer,
-			   t->millis + DEFAULT_BUTTON_ENTER_TIMEOUT);
+			   t->time + DEFAULT_BUTTON_ENTER_TIMEOUT);
 }
 
 static void
 tp_button_set_leave_timer(struct tp_dispatch *tp, struct tp_touch *t)
 {
 	libinput_timer_set(&t->button.timer,
-			   t->millis + DEFAULT_BUTTON_LEAVE_TIMEOUT);
+			   t->time + DEFAULT_BUTTON_LEAVE_TIMEOUT);
 }
 
 /*

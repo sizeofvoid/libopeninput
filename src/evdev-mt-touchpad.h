@@ -144,7 +144,7 @@ struct tp_touch {
 	bool has_ended;				/* TRACKING_ID == -1 */
 	bool dirty;
 	struct device_coords point;
-	uint64_t millis;
+	uint64_t time;
 	int pressure;
 	bool is_tool_palm; /* MT_TOOL_PALM */
 

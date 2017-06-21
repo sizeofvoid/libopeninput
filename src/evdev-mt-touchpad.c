@@ -217,7 +217,7 @@ tp_new_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->was_down = false;
 	t->state = TOUCH_HOVERING;
 	t->pinned.is_pinned = false;
-	t->millis = time;
+	t->time = time;
 	tp->queued |= TOUCHPAD_EVENT_MOTION;
 }
 
@@ -226,7 +226,7 @@ tp_begin_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 {
 	t->dirty = true;
 	t->state = TOUCH_BEGIN;
-	t->millis = time;
+	t->time = time;
 	t->was_down = true;
 	tp->nfingers_down++;
 	t->palm.time = time;
@@ -259,7 +259,7 @@ tp_end_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->palm.state = PALM_NONE;
 	t->state = TOUCH_END;
 	t->pinned.is_pinned = false;
-	t->millis = time;
+	t->time = time;
 	t->palm.time = 0;
 	assert(tp->nfingers_down >= 1);
 	tp->nfingers_down--;
@@ -314,7 +314,7 @@ tp_process_absolute(struct tp_dispatch *tp,
 						  e->code,
 						  e->value);
 		t->point.x = e->value;
-		t->millis = time;
+		t->time = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
 		break;
@@ -323,7 +323,7 @@ tp_process_absolute(struct tp_dispatch *tp,
 						  e->code,
 						  e->value);
 		t->point.y = e->value;
-		t->millis = time;
+		t->time = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
 		break;
@@ -362,7 +362,7 @@ tp_process_absolute_st(struct tp_dispatch *tp,
 						  e->code,
 						  e->value);
 		t->point.x = e->value;
-		t->millis = time;
+		t->time = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
 		break;
@@ -371,7 +371,7 @@ tp_process_absolute_st(struct tp_dispatch *tp,
 						  e->code,
 						  e->value);
 		t->point.y = e->value;
-		t->millis = time;
+		t->time = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
 		break;

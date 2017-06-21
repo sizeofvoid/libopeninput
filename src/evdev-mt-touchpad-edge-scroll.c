@@ -103,7 +103,7 @@ tp_edge_scroll_set_timer(struct tp_dispatch *tp,
 		return;
 
 	libinput_timer_set(&t->scroll.timer,
-			   t->millis + DEFAULT_SCROLL_LOCK_TIMEOUT);
+			   t->time + DEFAULT_SCROLL_LOCK_TIMEOUT);
 }
 
 static void
