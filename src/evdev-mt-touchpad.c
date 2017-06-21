@@ -35,6 +35,7 @@
 #define DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_2 ms2us(500)
 #define THUMB_MOVE_TIMEOUT ms2us(300)
 #define FAKE_FINGER_OVERFLOW (1 << 7)
+#define THUMB_IGNORE_SPEED_THRESHOLD 20 /* mm/s */
 
 static inline struct tp_history_point*
 tp_motion_history_offset(struct tp_touch *t, int offset)
@@ -80,6 +81,41 @@ tp_filter_motion_unaccelerated(struct tp_dispatch *tp,
 
 	return filter_dispatch_constant(tp->device->pointer.filter,
 					&raw, tp, time);
+}
+
+static inline void
+tp_calculate_motion_speed(struct tp_dispatch *tp, struct tp_touch *t)
+{
+	const struct tp_history_point *last;
+	struct device_coords delta;
+	struct phys_coords mm;
+	double distance;
+	double speed;
+
+	/* This doesn't kick in until we have at least 4 events in the
+	 * motion history. As a side-effect, this automatically handles the
+	 * 2fg scroll where a finger is down and moving fast before the
+	 * other finger comes down for the scroll.
+	 *
+	 * We do *not* reset the speed to 0 here though. The motion history
+	 * is reset whenever a new finger is down, so we'd be resetting the
+	 * speed and failing.
+	 */
+	if (t->history.count < 4)
+		return;
+
+	/* TODO: we probably need a speed history here so we can average
+	 * across a few events */
+	last = tp_motion_history_offset(t, 1);
+	delta.x = abs(t->point.x - last->point.x);
+	delta.y = abs(t->point.y - last->point.y);
+	mm = evdev_device_unit_delta_to_mm(tp->device, &delta);
+
+	distance = length_in_mm(mm);
+	speed = distance/(t->time - last->time); /* mm/us */
+	speed *= 1000000; /* mm/s */
+
+	t->speed.last_speed = speed;
 }
 
 static inline void
@@ -219,6 +255,8 @@ tp_new_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->state = TOUCH_HOVERING;
 	t->pinned.is_pinned = false;
 	t->time = time;
+	t->speed.last_speed = 0;
+	t->speed.exceeded_count = 0;
 	tp->queued |= TOUCHPAD_EVENT_MOTION;
 }
 
@@ -1278,11 +1316,54 @@ tp_detect_jumps(const struct tp_dispatch *tp, struct tp_touch *t)
 }
 
 static void
+tp_detect_thumb_while_moving(struct tp_dispatch *tp)
+{
+	struct tp_touch *t;
+	struct tp_touch *first = NULL,
+			*second = NULL;
+	struct device_coords distance;
+	struct phys_coords mm;
+
+	tp_for_each_touch(tp, t) {
+		if (t->state != TOUCH_BEGIN)
+			first = t;
+		else
+			second = t;
+
+		if (first && second)
+			break;
+	}
+
+	assert(first);
+	assert(second);
+
+	if (tp->scroll.method == LIBINPUT_CONFIG_SCROLL_2FG) {
+		/* If the second finger comes down next to the other one, we
+		 * assume this is a scroll motion.
+		 */
+		distance.x = abs(first->point.x - second->point.x);
+		distance.y = abs(first->point.y - second->point.y);
+		mm = evdev_device_unit_delta_to_mm(tp->device, &distance);
+
+		if (mm.x <= 25 && mm.y <= 15)
+			return;
+	}
+
+	/* Finger are too far apart or 2fg scrolling is disabled, mark
+	 * second finger as thumb */
+	evdev_log_debug(tp->device,
+			"touch is speed-based thumb\n");
+	second->thumb.state = THUMB_STATE_YES;
+}
+
+static void
 tp_process_state(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *t;
 	bool restart_filter = false;
 	bool want_motion_reset;
+	bool have_new_touch = false;
+	unsigned int speed_exceeded_count = 0;
 
 	tp_process_fake_touches(tp, time);
 	tp_unhover_touches(tp, time);
@@ -1299,8 +1380,15 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 			t->quirks.reset_motion_history = false;
 		}
 
-		if (!t->dirty)
+		if (!t->dirty) {
+			/* A non-dirty touch must be below the speed limit */
+			if (t->speed.exceeded_count > 0)
+				t->speed.exceeded_count--;
+
+			speed_exceeded_count = max(speed_exceeded_count,
+						   t->speed.exceeded_count);
 			continue;
+		}
 
 		if (tp_detect_jumps(tp, t)) {
 			if (!tp->semi_mt)
@@ -1317,11 +1405,44 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 		tp_motion_hysteresis(tp, t);
 		tp_motion_history_push(t);
 
+		/* Touch speed handling: if we'are above the threshold,
+		 * count each event that we're over the threshold up to 10
+		 * events. Count down when we are below the speed.
+		 *
+		 * Take the touch with the highest speed excess, if it is
+		 * above a certain threshold (5, see below), assume a
+		 * dropped finger is a thumb.
+		 *
+		 * Yes, this relies on the touchpad to keep sending us
+		 * events even if the finger doesn't move, otherwise we
+		 * never count down. Let's see how far we get with that.
+		 */
+		if (t->speed.last_speed > THUMB_IGNORE_SPEED_THRESHOLD) {
+			if (t->speed.exceeded_count < 10)
+				t->speed.exceeded_count++;
+		} else if (t->speed.exceeded_count > 0) {
+				t->speed.exceeded_count--;
+		}
+
+		speed_exceeded_count = max(speed_exceeded_count,
+					   t->speed.exceeded_count);
+
+		tp_calculate_motion_speed(tp, t);
+
 		tp_unpin_finger(tp, t);
 
-		if (t->state == TOUCH_BEGIN)
+		if (t->state == TOUCH_BEGIN) {
+			have_new_touch = true;
 			restart_filter = true;
+		}
 	}
+
+	/* If we have one touch that exceeds the speed and we get a new
+	 * touch down while doing that, the second touch is a thumb */
+	if (have_new_touch &&
+	    tp->nfingers_down == 2 &&
+	    speed_exceeded_count > 5)
+		tp_detect_thumb_while_moving(tp);
 
 	if (restart_filter)
 		filter_restart(tp->device->pointer.filter, tp, time);

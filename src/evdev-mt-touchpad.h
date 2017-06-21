@@ -220,6 +220,11 @@ struct tp_touch {
 		uint64_t first_touch_time;
 		struct device_coords initial;
 	} thumb;
+
+	struct {
+		double last_speed; /* speed in mm/s at last sample */
+		unsigned int exceeded_count;
+	} speed;
 };
 
 struct tp_dispatch {
