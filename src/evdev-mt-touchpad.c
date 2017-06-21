@@ -338,11 +338,13 @@ tp_process_absolute(struct tp_dispatch *tp,
 		break;
 	case ABS_MT_PRESSURE:
 		t->pressure = e->value;
+		t->time = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
 		break;
 	case ABS_MT_TOOL_TYPE:
 		t->is_tool_palm = e->value == MT_TOOL_PALM;
+		t->time = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
 		break;
@@ -377,6 +379,7 @@ tp_process_absolute_st(struct tp_dispatch *tp,
 		break;
 	case ABS_PRESSURE:
 		t->pressure = e->value;
+		t->time = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
 		break;
