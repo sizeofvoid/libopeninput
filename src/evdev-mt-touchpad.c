@@ -36,7 +36,7 @@
 #define THUMB_MOVE_TIMEOUT ms2us(300)
 #define FAKE_FINGER_OVERFLOW (1 << 7)
 
-static inline struct device_coords *
+static inline struct tp_history_point*
 tp_motion_history_offset(struct tp_touch *t, int offset)
 {
 	int offset_index =
@@ -90,7 +90,8 @@ tp_motion_history_push(struct tp_touch *t)
 	if (t->history.count < TOUCHPAD_HISTORY_LENGTH)
 		t->history.count++;
 
-	t->history.samples[motion_index] = t->point;
+	t->history.samples[motion_index].point = t->point;
+	t->history.samples[motion_index].time = t->time;
 	t->history.index = motion_index;
 }
 
@@ -293,10 +294,10 @@ tp_get_delta(struct tp_touch *t)
 	if (t->history.count <= 1)
 		return zero;
 
-	delta.x = tp_motion_history_offset(t, 0)->x -
-		  tp_motion_history_offset(t, 1)->x;
-	delta.y = tp_motion_history_offset(t, 0)->y -
-		  tp_motion_history_offset(t, 1)->y;
+	delta.x = tp_motion_history_offset(t, 0)->point.x -
+		  tp_motion_history_offset(t, 1)->point.x;
+	delta.y = tp_motion_history_offset(t, 0)->point.y -
+		  tp_motion_history_offset(t, 1)->point.y;
 
 	return tp_normalize_delta(t->tp, delta);
 }
@@ -1252,9 +1253,10 @@ tp_need_motion_history_reset(struct tp_dispatch *tp)
 static bool
 tp_detect_jumps(const struct tp_dispatch *tp, struct tp_touch *t)
 {
-	struct device_coords *last, delta;
+	struct device_coords delta;
 	struct phys_coords mm;
 	const int JUMP_THRESHOLD_MM = 20;
+	struct tp_history_point *last;
 
 	/* We haven't seen pointer jumps on Wacom tablets yet, so exclude
 	 * those.
@@ -1268,8 +1270,8 @@ tp_detect_jumps(const struct tp_dispatch *tp, struct tp_touch *t)
 	/* called before tp_motion_history_push, so offset 0 is the most
 	 * recent coordinate */
 	last = tp_motion_history_offset(t, 0);
-	delta.x = abs(t->point.x - last->x);
-	delta.y = abs(t->point.y - last->y);
+	delta.x = abs(t->point.x - last->point.x);
+	delta.y = abs(t->point.y - last->point.y);
 	mm = evdev_device_unit_delta_to_mm(tp->device, &delta);
 
 	return hypot(mm.x, mm.y) > JUMP_THRESHOLD_MM;
