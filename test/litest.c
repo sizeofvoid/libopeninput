@@ -924,9 +924,19 @@ litest_run_suite(char *argv0, struct list *tests, int which, int max)
 	struct test *t;
 	int argvlen = strlen(argv0);
 	int count = -1;
+	struct name {
+		struct list node;
+		char *name;
+	};
+	struct name *n, *tmp;
+	struct list testnames;
 
 	if (max > 1)
 		snprintf(argv0, argvlen, "libinput-test-%-50d", which);
+
+	/* Check just takes the suite/test name pointers but doesn't strdup
+	 * them - we have to keep them around */
+	list_init(&testnames);
 
 	/* For each test, create one test suite with one test case, then
 	   add it to the test runner. The only benefit suites give us in
@@ -936,20 +946,34 @@ litest_run_suite(char *argv0, struct list *tests, int which, int max)
 		list_for_each(t, &s->tests, node) {
 			Suite *suite;
 			TCase *tc;
-			char sname[128];
+			char *sname, *tname;
 
 			count = (count + 1) % max;
 			if (max != 1 && (count % max) != which)
 				continue;
 
-			snprintf(sname,
-				 sizeof(sname),
-				 "%s:%s:%s",
-				 s->name,
-				 t->name,
-				 t->devname);
+			xasprintf(&sname,
+				  "%s:%s:%s",
+				  s->name,
+				  t->name,
+				  t->devname);
+			litest_assert(sname != NULL);
+			n = zalloc(sizeof(*n));
+			litest_assert_notnull(n);
+			n->name = sname;
+			list_insert(&testnames, &n->node);
 
-			tc = tcase_create(t->name);
+			xasprintf(&tname,
+				  "%s:%s",
+				  t->name,
+				  t->devname);
+			litest_assert(tname != NULL);
+			n = zalloc(sizeof(*n));
+			litest_assert_notnull(n);
+			n->name = tname;
+			list_insert(&testnames, &n->node);
+
+			tc = tcase_create(tname);
 			tcase_add_checked_fixture(tc,
 						  t->setup,
 						  t->teardown);
@@ -972,11 +996,17 @@ litest_run_suite(char *argv0, struct list *tests, int which, int max)
 	}
 
 	if (!sr)
-		return 0;
+		goto out;
 
 	srunner_run_all(sr, CK_ENV);
 	failed = srunner_ntests_failed(sr);
 	srunner_free(sr);
+out:
+	list_for_each_safe(n, tmp, &testnames, node) {
+		free(n->name);
+		free(n);
+	}
+
 	return failed;
 }
 
