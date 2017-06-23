@@ -357,7 +357,7 @@ lib_tools_shared = static_library('tools_shared',
 dep_tools_shared = declare_dependency(link_with : lib_tools_shared,
 				      dependencies : deps_tools_shared)
 
-deps_tools = [ dep_libinput,  dep_tools_shared ]
+deps_tools = [ dep_tools_shared, dep_libinput ]
 libinput_debug_events_sources = [ 'tools/libinput-debug-events.c' ]
 executable('libinput-debug-events',
 	   libinput_debug_events_sources,
