@@ -1,6 +1,6 @@
 project('libinput', 'c', 'cpp',
 	version : '1.7.901',
-	license: 'MIT/Expat',
+	license : 'MIT/Expat',
 	default_options : [ 'c_std=gnu99', 'warning_level=2' ],
 	meson_version : '>= 0.40.0')
 
@@ -26,8 +26,8 @@ libinput_so_version = '@0@.@1@.@2@'.format((libinput_lt_c - libinput_lt_a),
 cc = meson.get_compiler('c')
 cppflags = ['-Wno-unused-parameter', '-g', '-fvisibility=hidden']
 cflags = cppflags + ['-Wmissing-prototypes', '-Wstrict-prototypes']
-add_project_arguments(cflags, language: 'c')
-add_project_arguments(cppflags, language: 'cpp')
+add_project_arguments(cflags, language : 'c')
+add_project_arguments(cppflags, language : 'cpp')
 
 config_h = configuration_data()
 config_h.set('_GNU_SOURCE', '1')
@@ -42,8 +42,8 @@ endif
 # Dependencies
 pkgconfig = import('pkgconfig')
 dep_udev = dependency('libudev')
-dep_mtdev = dependency('mtdev', version: '>= 1.1.0')
-dep_libevdev = dependency('libevdev', version: '>= 0.4')
+dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
+dep_libevdev = dependency('libevdev', version : '>= 0.4')
 dep_lm = cc.find_library('m', required : false)
 dep_rt = cc.find_library('rt', required : false)
 
@@ -130,7 +130,7 @@ src_libinput_util = [
 libinput_util = static_library('libinput-util',
 			       src_libinput_util,
 			       dependencies : dep_udev)
-dep_libinput_util = declare_dependency(link_with: libinput_util)
+dep_libinput_util = declare_dependency(link_with : libinput_util)
 
 ############ libfilter.a ############
 src_libfilter = [
@@ -139,7 +139,7 @@ src_libfilter = [
 		'src/filter-private.h'
 ]
 libfilter = static_library('filter', src_libfilter)
-dep_libfilter = declare_dependency(link_with: libfilter)
+dep_libfilter = declare_dependency(link_with : libfilter)
 
 ############ libinput.so ############
 install_headers('src/libinput.h')
@@ -193,7 +193,7 @@ libinput_version_h = configure_file(
 		input : 'src/libinput-version.h.in',
 		output : 'libinput-version.h',
 		configuration : libinput_version_h_config,
-		install: false,
+		install : false,
 )
 
 mapfile = join_paths(meson.source_root(), 'src', 'libinput.sym')
@@ -213,11 +213,11 @@ dep_libinput = declare_dependency(
 		dependencies : deps_libinput)
 
 pkgconfig.generate(
-	filebase: 'libinput',
-	name: 'Libinput',
-	description: 'Input device library',
-	version: meson.project_version(),
-	libraries: lib_libinput
+	filebase : 'libinput',
+	name : 'Libinput',
+	description : 'Input device library',
+	version : meson.project_version(),
+	libraries : lib_libinput
 )
 
 # Restore the SELinux context for the libinput.so.a.b.c on install
@@ -451,7 +451,7 @@ if get_option('tests')
 		config_h.set_quoted('ADDR2LINE', addr2line.path())
 	endif
 
-	dep_libunwind = dependency('libunwind', required: false)
+	dep_libunwind = dependency('libunwind', required : false)
 	config_h.set10('HAVE_LIBUNWIND', dep_libunwind.found())
 
 	lib_litest_sources = [
@@ -647,4 +647,4 @@ if get_option('tests')
 			timeout_multiplier : 100)
 endif
 ############ output files ############
-configure_file(output: 'config.h', install: false, configuration: config_h)
+configure_file(output : 'config.h', install : false, configuration : config_h)
