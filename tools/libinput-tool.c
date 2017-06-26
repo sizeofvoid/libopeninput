@@ -104,5 +104,5 @@ main(int argc, char **argv)
 	argv += optind;
 	argc -= optind;
 
-	return tools_exec_command("libinput-", argc, argv);
+	return tools_exec_command("libinput", argc, argv);
 }
