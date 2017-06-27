@@ -72,7 +72,7 @@ Examples of how to use libinput are the debugging tools in the libinput
 repository. Developers are encouraged to look at those tools for a
 real-world (yet simple) example on how to use libinput.
 
-- A commandline debugging tool: https://cgit.freedesktop.org/wayland/libinput/tree/tools/event-debug.c
+- A commandline debugging tool: https://cgit.freedesktop.org/wayland/libinput/tree/tools/libinput-debug-events.c
 - A GTK application that draws cursor/touch/tablet positions: https://cgit.freedesktop.org/wayland/libinput/tree/tools/libinput-debug-gui.c
 
 Build instructions:
