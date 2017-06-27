@@ -405,7 +405,10 @@ tp_button_ignore_handle_event(struct tp_dispatch *tp,
 		tp_button_set_state(tp, t, BUTTON_STATE_NONE, event);
 		break;
 	case BUTTON_EVENT_PRESS:
+		t->button.curr = BUTTON_EVENT_IN_AREA;
+		break;
 	case BUTTON_EVENT_RELEASE:
+		break;
 	case BUTTON_EVENT_TIMEOUT:
 		break;
 	}
