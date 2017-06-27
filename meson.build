@@ -414,7 +414,7 @@ if get_option('debug-gui')
 		   dependencies : deps_debug_gui,
 		   include_directories : include_directories('src'),
 		   install_dir : libinput_tool_path,
-		   install : false
+		   install : true
 		   )
 	install_man('tools/libinput-debug-gui.1')
 endif
