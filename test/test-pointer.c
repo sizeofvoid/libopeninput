@@ -1308,9 +1308,6 @@ START_TEST(pointer_accel_direction_change)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_POINTER_MOTION,
-				      -1);
 	event = libinput_get_event(li);
 	do {
 		pev = libinput_event_get_pointer_event(event);
