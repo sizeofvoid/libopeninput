@@ -550,14 +550,45 @@ tp_touch_active(const struct tp_dispatch *tp, const struct tp_touch *t)
 		tp_edge_scroll_touch_active(tp, t);
 }
 
+static inline bool
+tp_palm_was_in_side_edge(const struct tp_dispatch *tp, const struct tp_touch *t)
+{
+	return t->palm.first.x < tp->palm.left_edge ||
+	       t->palm.first.x > tp->palm.right_edge;
+}
+
+static inline bool
+tp_palm_was_in_top_edge(const struct tp_dispatch *tp, const struct tp_touch *t)
+{
+	return t->palm.first.y < tp->palm.upper_edge;
+}
+
+static inline bool
+tp_palm_in_side_edge(const struct tp_dispatch *tp, const struct tp_touch *t)
+{
+	return t->point.x < tp->palm.left_edge ||
+	       t->point.x > tp->palm.right_edge;
+}
+
+static inline bool
+tp_palm_in_top_edge(const struct tp_dispatch *tp, const struct tp_touch *t)
+{
+	return t->point.y < tp->palm.upper_edge;
+}
+
+static inline bool
+tp_palm_in_edge(const struct tp_dispatch *tp, const struct tp_touch *t)
+{
+	return tp_palm_in_side_edge(tp, t) || tp_palm_in_top_edge(tp, t);
+}
+
 bool
 tp_palm_tap_is_palm(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
 	if (t->state != TOUCH_BEGIN)
 		return false;
 
-	if (t->point.x > tp->palm.left_edge &&
-	    t->point.x < tp->palm.right_edge)
+	if (!tp_palm_in_edge(tp, t))
 		return false;
 
 	evdev_log_debug(tp->device, "palm: palm-tap detected\n");
@@ -654,16 +685,22 @@ tp_palm_detect_move_out_of_edge(struct tp_dispatch *tp,
 				uint64_t time)
 {
 	const int PALM_TIMEOUT = ms2us(200);
-	const int DIRECTIONS = NE|E|SE|SW|W|NW;
+	int directions = 0;
 	struct device_float_coords delta;
 	int dirs;
 
-	if (time < t->palm.time + PALM_TIMEOUT &&
-	    (t->point.x > tp->palm.left_edge && t->point.x < tp->palm.right_edge)) {
-		delta = device_delta(t->point, t->palm.first);
-		dirs = phys_get_direction(tp_phys_delta(tp, delta));
-		if ((dirs & DIRECTIONS) && !(dirs & ~DIRECTIONS))
-			return true;
+	if (time < t->palm.time + PALM_TIMEOUT && !tp_palm_in_edge(tp, t)) {
+		if (tp_palm_was_in_side_edge(tp, t))
+			directions = NE|E|SE|SW|W|NW;
+		else if (tp_palm_was_in_top_edge(tp, t))
+			directions = S|SE|SW;
+
+		if (directions) {
+			delta = device_delta(t->point, t->palm.first);
+			dirs = phys_get_direction(tp_phys_delta(tp, delta));
+			if ((dirs & directions) && !(dirs & ~directions))
+				return true;
+		}
 	}
 
 	return false;
@@ -725,8 +762,7 @@ tp_palm_detect_edge(struct tp_dispatch *tp,
 
 	/* palm must start in exclusion zone, it's ok to move into
 	   the zone without being a palm */
-	if (t->state != TOUCH_BEGIN ||
-	    (t->point.x > tp->palm.left_edge && t->point.x < tp->palm.right_edge))
+	if (t->state != TOUCH_BEGIN || !tp_palm_in_edge(tp, t))
 		return false;
 
 	/* don't detect palm in software button areas, it's
@@ -2329,6 +2365,13 @@ tp_init_palmdetect_edge(struct tp_dispatch *tp,
 	mm.x = width * 0.92;
 	edges = evdev_device_mm_to_units(device, &mm);
 	tp->palm.right_edge = edges.x;
+
+	if (!tp->buttons.has_topbuttons) {
+		/* top edge is 5% of the height */
+		mm.y = height * 0.05;
+		edges = evdev_device_mm_to_units(device, &mm);
+		tp->palm.upper_edge = edges.y;
+	}
 }
 
 static int
@@ -2374,6 +2417,7 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 
 	tp->palm.right_edge = INT_MAX;
 	tp->palm.left_edge = INT_MIN;
+	tp->palm.upper_edge = INT_MIN;
 
 	if (device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD &&
 	    !tp_is_tpkb_combo_below(device))

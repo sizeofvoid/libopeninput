@@ -27,16 +27,20 @@ pressure ranges, see @ref touchpad_pressure.
 
 @section palm_exclusion_zones Palm exclusion zones
 
-libinput enables palm detection on the edge of the touchpad. Two exclusion
-zones are defined  on the left and right edge of the touchpad.
-If a touch starts in the exclusion zone, it is considered a palm and the
-touch point is ignored. However, for fast cursor movements across the
-screen, it is common for a finger to start inside an exclusion zone and move
-rapidly across the touchpad. libinput detects such movements and avoids palm
-detection on such touch sequences.
+libinput enables palm detection on the left, right and top edges of the
+touchpad. Two exclusion zones are defined  on the left and right edge of the
+touchpad. If a touch starts in the exclusion zone, it is considered a palm
+and the touch point is ignored. However, for fast cursor movements across
+the screen, it is common for a finger to start inside an exclusion zone and
+move rapidly across the touchpad. libinput detects such movements and avoids
+palm detection on such touch sequences.
 
-Each exclusion zone is divided into a top part and a bottom part. A touch
-starting in the top part of the exclusion zone does not trigger a
+Another exclusion zone is defined on the top edge of the touchpad. As with
+the edge zones, libinput detects vertical movements out of the edge zone and
+avoids palm detection on such touch sequences.
+
+Each side edge exclusion zone is divided into a top part and a bottom part.
+A touch starting in the top part of the exclusion zone does not trigger a
 tap (see @ref tapping).
 
 In the diagram below, the exclusion zones are painted red.
