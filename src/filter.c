@@ -182,6 +182,10 @@ struct pointer_accelerator {
 	double accel;		/* unitless factor */
 	double incline;		/* incline of the function */
 
+	/* For smoothing timestamps from devices with unreliable timing */
+	uint64_t event_delta_smooth_threshold;
+	uint64_t event_delta_smooth_value;
+
 	int dpi;
 };
 
@@ -247,14 +251,21 @@ tracker_by_offset(struct pointer_accelerator *accel, unsigned int offset)
 }
 
 static double
-calculate_tracker_velocity(struct pointer_tracker *tracker, uint64_t time)
+calculate_tracker_velocity(struct pointer_accelerator *accel,
+			   struct pointer_tracker *tracker, uint64_t time)
 {
-	double tdelta = time - tracker->time + 1;
-	return hypot(tracker->delta.x, tracker->delta.y) / tdelta; /* units/us */
+	uint64_t tdelta = time - tracker->time + 1;
+
+	if (tdelta < accel->event_delta_smooth_threshold)
+		tdelta = accel->event_delta_smooth_value;
+
+	return hypot(tracker->delta.x, tracker->delta.y) /
+	       (double)tdelta; /* units/us */
 }
 
 static inline double
-calculate_velocity_after_timeout(struct pointer_tracker *tracker)
+calculate_velocity_after_timeout(struct pointer_accelerator *accel,
+				 struct pointer_tracker *tracker)
 {
 	/* First movement after timeout needs special handling.
 	 *
@@ -267,7 +278,7 @@ calculate_velocity_after_timeout(struct pointer_tracker *tracker)
 	 * for really slow movements but provides much more useful initial
 	 * movement in normal use-cases (pause, move, pause, move)
 	 */
-	return calculate_tracker_velocity(tracker,
+	return calculate_tracker_velocity(accel, tracker,
 					  tracker->time + MOTION_TIMEOUT);
 }
 
@@ -302,11 +313,11 @@ calculate_velocity(struct pointer_accelerator *accel, uint64_t time)
 		/* Stop if too far away in time */
 		if (time - tracker->time > MOTION_TIMEOUT) {
 			if (offset == 1)
-				result = calculate_velocity_after_timeout(tracker);
+				result = calculate_velocity_after_timeout(accel, tracker);
 			break;
 		}
 
-		velocity = calculate_tracker_velocity(tracker, time);
+		velocity = calculate_tracker_velocity(accel, tracker, time);
 
 		/* Stop if direction changed */
 		dir &= tracker->dir;
