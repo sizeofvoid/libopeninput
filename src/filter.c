@@ -1013,7 +1013,9 @@ struct motion_filter_interface accelerator_interface_touchpad = {
 };
 
 struct motion_filter *
-create_pointer_accelerator_filter_touchpad(int dpi)
+create_pointer_accelerator_filter_touchpad(int dpi,
+	uint64_t event_delta_smooth_threshold,
+	uint64_t event_delta_smooth_value)
 {
 	struct pointer_accelerator *filter;
 
@@ -1023,6 +1025,8 @@ create_pointer_accelerator_filter_touchpad(int dpi)
 
 	filter->base.interface = &accelerator_interface_touchpad;
 	filter->profile = touchpad_accel_profile_linear;
+	filter->event_delta_smooth_threshold = event_delta_smooth_threshold;
+	filter->event_delta_smooth_value = event_delta_smooth_value;
 
 	return &filter->base;
 }
