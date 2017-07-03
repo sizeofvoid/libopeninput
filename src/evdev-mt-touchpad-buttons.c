@@ -835,6 +835,7 @@ tp_init_buttons(struct tp_dispatch *tp,
 {
 	struct tp_touch *t;
 	const struct input_absinfo *absinfo_x, *absinfo_y;
+	int i;
 
 	tp->buttons.is_clickpad = libevdev_has_property(device->evdev,
 							INPUT_PROP_BUTTONPAD);
@@ -873,10 +874,20 @@ tp_init_buttons(struct tp_dispatch *tp,
 
 	tp_init_middlebutton_emulation(tp, device);
 
+	i = 0;
 	tp_for_each_touch(tp, t) {
+		char timer_name[64];
+		i++;
+
+		snprintf(timer_name,
+			 sizeof(timer_name),
+			 "%s (%d) button",
+			 evdev_device_get_sysname(device),
+			 i);
 		t->button.state = BUTTON_STATE_NONE;
 		libinput_timer_init(&t->button.timer,
 				    tp_libinput_context(tp),
+				    timer_name,
 				    tp_button_handle_timeout, t);
 	}
 }
@@ -886,8 +897,10 @@ tp_remove_buttons(struct tp_dispatch *tp)
 {
 	struct tp_touch *t;
 
-	tp_for_each_touch(tp, t)
+	tp_for_each_touch(tp, t) {
 		libinput_timer_cancel(&t->button.timer);
+		libinput_timer_destroy(&t->button.timer);
+	}
 }
 
 static int

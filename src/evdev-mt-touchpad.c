@@ -1417,6 +1417,10 @@ tp_interface_destroy(struct evdev_dispatch *dispatch)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
+	libinput_timer_destroy(&tp->palm.trackpoint_timer);
+	libinput_timer_destroy(&tp->dwt.keyboard_timer);
+	libinput_timer_destroy(&tp->tap.timer);
+	libinput_timer_destroy(&tp->gesture.finger_count_switch_timer);
 	free(tp->touches);
 	free(tp);
 }
@@ -2438,12 +2442,24 @@ static void
 tp_init_sendevents(struct tp_dispatch *tp,
 		   struct evdev_device *device)
 {
+	char timer_name[64];
+
+	snprintf(timer_name,
+		 sizeof(timer_name),
+		  "%s trackpoint",
+		  evdev_device_get_sysname(device));
 	libinput_timer_init(&tp->palm.trackpoint_timer,
 			    tp_libinput_context(tp),
+			    timer_name,
 			    tp_trackpoint_timeout, tp);
 
+	snprintf(timer_name,
+		 sizeof(timer_name),
+		 "%s keyboard",
+		 evdev_device_get_sysname(device));
 	libinput_timer_init(&tp->dwt.keyboard_timer,
 			    tp_libinput_context(tp),
+			    timer_name,
 			    tp_keyboard_timeout, tp);
 }
 

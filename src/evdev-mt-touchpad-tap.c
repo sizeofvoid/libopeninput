@@ -1106,6 +1106,8 @@ tp_tap_config_get_default_draglock_enabled(struct libinput_device *device)
 void
 tp_init_tap(struct tp_dispatch *tp)
 {
+	char timer_name[64];
+
 	tp->tap.config.count = tp_tap_config_count;
 	tp->tap.config.set_enabled = tp_tap_config_set_enabled;
 	tp->tap.config.get_enabled = tp_tap_config_is_enabled;
@@ -1128,8 +1130,13 @@ tp_init_tap(struct tp_dispatch *tp)
 	tp->tap.drag_enabled = tp_drag_default(tp->device);
 	tp->tap.drag_lock_enabled = tp_drag_lock_default(tp->device);
 
+	snprintf(timer_name,
+		 sizeof(timer_name),
+		 "%s tap",
+		 evdev_device_get_sysname(tp->device));
 	libinput_timer_init(&tp->tap.timer,
 			    tp_libinput_context(tp),
+			    timer_name,
 			    tp_tap_handle_timeout, tp);
 }
 

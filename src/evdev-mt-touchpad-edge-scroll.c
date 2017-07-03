@@ -280,6 +280,7 @@ tp_edge_scroll_init(struct tp_dispatch *tp, struct evdev_device *device)
 	bool want_horiz_scroll = true;
 	struct device_coords edges;
 	struct phys_coords mm = { 0.0, 0.0 };
+	int i;
 
 	evdev_device_get_size(device, &width, &height);
 	/* Touchpads smaller than 40mm are not tall enough to have a
@@ -302,10 +303,19 @@ tp_edge_scroll_init(struct tp_dispatch *tp, struct evdev_device *device)
 	else
 		tp->scroll.bottom_edge = INT_MAX;
 
+	i = 0;
 	tp_for_each_touch(tp, t) {
+		char timer_name[64];
+
+		snprintf(timer_name,
+			 sizeof(timer_name),
+			 "%s (%d) edgescroll",
+			 evdev_device_get_sysname(device),
+			 i);
 		t->scroll.direction = -1;
 		libinput_timer_init(&t->scroll.timer,
 				    tp_libinput_context(tp),
+				    timer_name,
 				    tp_edge_scroll_handle_timeout, t);
 	}
 }
@@ -315,8 +325,10 @@ tp_remove_edge_scroll(struct tp_dispatch *tp)
 {
 	struct tp_touch *t;
 
-	tp_for_each_touch(tp, t)
+	tp_for_each_touch(tp, t) {
 		libinput_timer_cancel(&t->scroll.timer);
+		libinput_timer_destroy(&t->scroll.timer);
+	}
 }
 
 void

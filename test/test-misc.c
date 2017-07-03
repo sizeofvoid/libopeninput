@@ -1308,6 +1308,42 @@ START_TEST(library_version)
 }
 END_TEST
 
+static void timer_offset_warning(struct libinput *libinput,
+				 enum libinput_log_priority priority,
+				 const char *format,
+				 va_list args)
+{
+	int *warning_triggered = (int*)libinput_get_user_data(libinput);
+
+	if (priority == LIBINPUT_LOG_PRIORITY_ERROR &&
+	    strstr(format, "offset negative"))
+		(*warning_triggered)++;
+}
+
+START_TEST(timer_offset_bug_warning)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	int warning_triggered = 0;
+
+	litest_enable_tap(dev->libinput_device);
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_up(dev, 0);
+
+	litest_timeout_tap();
+
+	libinput_set_user_data(li, &warning_triggered);
+	libinput_log_set_handler(li, timer_offset_warning);
+	libinput_dispatch(li);
+
+	/* triggered for touch down and touch up */
+	ck_assert_int_eq(warning_triggered, 2);
+	litest_restore_log_handler(li);
+}
+END_TEST
+
 void
 litest_setup_tests_misc(void)
 {
@@ -1325,6 +1361,8 @@ litest_setup_tests_misc(void)
 
 	litest_add_no_device("context:refcount", context_ref_counting);
 	litest_add_no_device("config:status string", config_status_string);
+
+	litest_add_for_device("timer:offset-warning", timer_offset_bug_warning, LITEST_SYNAPTICS_TOUCHPAD);
 
 	litest_add_no_device("misc:matrix", matrix_helpers);
 	litest_add_no_device("misc:ratelimit", ratelimit_helpers);

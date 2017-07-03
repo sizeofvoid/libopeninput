@@ -1583,8 +1583,15 @@ static void
 evdev_init_button_scroll(struct evdev_device *device,
 			 void (*change_scroll_method)(struct evdev_device *))
 {
+	char timer_name[64];
+
+	snprintf(timer_name,
+		 sizeof(timer_name),
+		 "%s btnscroll",
+		 evdev_device_get_sysname(device));
 	libinput_timer_init(&device->scroll.timer,
 			    evdev_libinput_context(device),
+			    timer_name,
 			    evdev_button_scroll_timeout, device);
 	device->scroll.config.get_methods = evdev_scroll_get_methods;
 	device->scroll.config.set_method = evdev_scroll_set_method;
@@ -3494,6 +3501,8 @@ evdev_device_destroy(struct evdev_device *device)
 
 	free(device->output_name);
 	filter_destroy(device->pointer.filter);
+	libinput_timer_destroy(&device->scroll.timer);
+	libinput_timer_destroy(&device->middlebutton.timer);
 	libinput_seat_unref(device->base.seat);
 	libevdev_free(device->evdev);
 	udev_device_unref(device->udev_device);

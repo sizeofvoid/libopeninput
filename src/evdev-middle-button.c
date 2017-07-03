@@ -696,8 +696,15 @@ evdev_init_middlebutton(struct evdev_device *device,
 			bool enable,
 			bool want_config)
 {
+	char timer_name[64];
+
+	snprintf(timer_name,
+		 sizeof(timer_name),
+		 "%s middlebutton",
+		 evdev_device_get_sysname(device));
 	libinput_timer_init(&device->middlebutton.timer,
 			    evdev_libinput_context(device),
+			    timer_name,
 			    evdev_middlebutton_handle_timeout,
 			    device);
 	device->middlebutton.enabled_default = enable;

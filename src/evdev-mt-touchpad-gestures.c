@@ -622,6 +622,8 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time)
 void
 tp_init_gesture(struct tp_dispatch *tp)
 {
+	char timer_name[64];
+
 	/* two-finger scrolling is always enabled, this flag just
 	 * decides whether we detect pinch. semi-mt devices are too
 	 * unreliable to do pinch gestures. */
@@ -629,8 +631,13 @@ tp_init_gesture(struct tp_dispatch *tp)
 
 	tp->gesture.state = GESTURE_STATE_NONE;
 
+	snprintf(timer_name,
+		 sizeof(timer_name),
+		 "%s gestures",
+		 evdev_device_get_sysname(tp->device));
 	libinput_timer_init(&tp->gesture.finger_count_switch_timer,
 			    tp_libinput_context(tp),
+			    timer_name,
 			    tp_gesture_finger_count_switch_timeout, tp);
 }
 

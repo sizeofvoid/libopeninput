@@ -34,13 +34,23 @@
 #include "timer.h"
 
 void
-libinput_timer_init(struct libinput_timer *timer, struct libinput *libinput,
+libinput_timer_init(struct libinput_timer *timer,
+		    struct libinput *libinput,
+		    const char *timer_name,
 		    void (*timer_func)(uint64_t now, void *timer_func_data),
 		    void *timer_func_data)
 {
 	timer->libinput = libinput;
+	if (timer_name)
+		timer->timer_name = strdup(timer_name);
 	timer->timer_func = timer_func;
 	timer->timer_func_data = timer_func_data;
+}
+
+void
+libinput_timer_destroy(struct libinput_timer *timer)
+{
+	free(timer->timer_name);
 }
 
 static void
@@ -76,12 +86,14 @@ libinput_timer_set_flags(struct libinput_timer *timer,
 	if (expire < now) {
 		if ((flags & TIMER_FLAG_ALLOW_NEGATIVE) == 0)
 			log_bug_libinput(timer->libinput,
-					 "timer: offset negative (-%" PRIu64 ")\n",
+					 "timer %s: offset negative (-%" PRIu64 ")\n",
+					 timer->timer_name ? timer->timer_name : "",
 					 now - expire);
 	} else if ((expire - now) > ms2us(5000)) {
 		log_bug_libinput(timer->libinput,
-				 "timer: offset more than 5s, now %"
+				 "timer %s: offset more than 5s, now %"
 				 PRIu64 " expire %" PRIu64 "\n",
+				 timer->timer_name ? timer->timer_name : "",
 				 now, expire);
 	}
 #endif
