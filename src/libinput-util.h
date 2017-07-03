@@ -350,10 +350,7 @@ matrix_to_relative(struct matrix *dest, const struct matrix *src)
  * upon success or -1 upon failure. In the case of failure the pointer is set
  * to NULL.
  */
-static inline int
-xasprintf(char **strp, const char *fmt, ...)
-	LIBINPUT_ATTRIBUTE_PRINTF(2, 3);
-
+LIBINPUT_ATTRIBUTE_PRINTF(2, 3)
 static inline int
 xasprintf(char **strp, const char *fmt, ...)
 {
