@@ -2,7 +2,7 @@
 .SH NAME
 libinput\-measure \- measure properties of devices
 .SH SYNOPSIS
-.B libinput measure [\-\-help] <feature> [<args>]
+.B libinput measure [\-\-help] \fI<feature> [<args>]\fR
 .SH DESCRIPTION
 .PP
 The
@@ -23,7 +23,7 @@ Print help
 Features that can be measured include
 .TP 8
 .B libinput\-measure\-touchpad\-tap\-time(1)
-Measure tap-to-click time.
+Measure tap-to-click time
 .SH LIBINPUT
 Part of the
 .B libinput(1)

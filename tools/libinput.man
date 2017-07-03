@@ -2,25 +2,28 @@
 .SH NAME
 libinput \- tool to interface with libinput
 .SH SYNOPSIS
-.B libinput [\-\-help] [\-\-version] <command> [<args>]
+.B libinput [\-\-help|\-\-version] \fI<command>\fR \fI[<args>]\fR
 .SH DESCRIPTION
+.PP
+libinput is a library to handle input devices and provides device
+detection and input device event processing for most Wayland
+compositors and the X.Org xf86-input-libinput driver.
 .PP
 The
 .B "libinput"
-tool creates a libinput context on the default seat "seat0" and interacts
-with that libinput context.
+tools are a set of tools to debug, interface with and analyze data for
+libinput. These tools create libinput contexts separate from that of
+the compositor/X server and cannot change settings in a running session.
+See section
+.B COMMANDS
+for a list of available commands.
 .PP
-This tool usually needs to be run as root to have access to the
-/dev/input/eventX nodes.
+libinput's API documentation and details on features and various high-level
+concepts are available online at
+.I https://wayland.freedesktop.org/libinput/doc/latest/
 .PP
-The context created by this tool is a new libinput context and independent
-of that created by the X.Org libinput driver, the Wayland compositor or any
-other process that utilizes libinput (henceforth called "the caller").
-Configuration options set in this context do not affect any other libinput
-contexts.
-.PP
-Note that a device may be recognized by this tool but not handled by the
-X.Org libinput driver or the Wayland compositor.
+The man page for the X.Org xf86-input-libinput driver is
+.B libinput(4).
 .SH OPTIONS
 .TP 8
 .B \-\-help
@@ -28,28 +31,22 @@ Print help and exit
 .TP 8
 .B \-\-version
 Print the version and exit
-
 .SH COMMANDS
-All commands support a
-.B \-\-help
-argument that prints command\-specific usage
-information, e.g.
-.B "libinput debug\-events \-\-help".
 .TP 8
 .B libinput\-debug\-events(1)
-Print all events as seen by libinput.
+Print all events as seen by libinput
 .TP 8
 .B libinput\-debug\-gui(1)
-Show a GUI to visualize libinput's events.
+Show a GUI to visualize libinput's events
 .TP 8
 .B libinput\-list\-devices(1)
-List all devices recognized by libinput.
+List all devices recognized by libinput
 .TP 8
 .B libinput\-measure(1)
-Measure various properties of devices.
+Measure various properties of devices
 .TP 8
 .B libinput\-measure\-touchpad\-tap(1)
-Measure tap-to-click time.
+Measure tap-to-click time
 .SH LIBINPUT
 Part of the
 .B libinput(1)
