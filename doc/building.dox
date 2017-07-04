@@ -56,14 +56,10 @@ the library path and that all symlinks point to the new library.
 <pre>
 $> ls -l /usr/lib64/libinput.*
 -rwxr-xr-x 1 root root    946 Apr 28  2015 /usr/lib64/libinput.la
-lrwxrwxrwx 1 root root     19 Feb  1 15:12 /usr/lib64/libinput.so -> libinput.so.10.11.2
-lrwxrwxrwx 1 root root     19 Feb  1 15:12 /usr/lib64/libinput.so.10 -> libinput.so.10.11.2
--rwxr-xr-x 1 root root 204992 Feb  1 15:12 /usr/lib64/libinput.so.10.11.2
+lrwxrwxrwx 1 root root     19 Feb  1 15:12 /usr/lib64/libinput.so -> libinput.so.10.13.0
+lrwxrwxrwx 1 root root     19 Feb  1 15:12 /usr/lib64/libinput.so.10 -> libinput.so.10.13.0
+-rwxr-xr-x 1 root root 204992 Feb  1 15:12 /usr/lib64/libinput.so.10.13.0
 </pre>
-
-The .so installed from git master may have a lower number than the
-system-provided one. In that case, manually adjust the symlinks to point to
-the newly installed .so.x.x.x
 
 @subsection reverting_install Reverting to the system-provided libinput package
 
