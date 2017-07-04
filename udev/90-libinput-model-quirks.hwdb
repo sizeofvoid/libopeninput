@@ -90,6 +90,9 @@ libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnDellInc.:*
 libinput:name:* Touchpad:dmi:*svnDellInc.:*
  LIBINPUT_MODEL_TOUCHPAD_VISIBLE_MARKER=1
 
+libinput:name:*AlpsPS/2 ALPS GlidePoint:dmi:*svnDellInc.:pnLatitudeE6220:*
+ LIBINPUT_ATTR_PRESSURE_RANGE=103:100
+
 ##########################################
 # Elantech
 ##########################################
