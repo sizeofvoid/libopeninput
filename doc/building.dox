@@ -65,8 +65,7 @@ The .so installed from git master may have a lower number than the
 system-provided one. In that case, manually adjust the symlinks to point to
 the newly installed .so.x.x.x
 
-@subsection reverting_install Reverting to the system-provided libinput
-package
+@subsection reverting_install Reverting to the system-provided libinput package
 
 The recommended way to revert to the system install is to use the package
 manager to reinstall the libinput package. In some cases, this may leave
@@ -168,7 +167,7 @@ environment where tablet support is not required. libinput provides tablet
 support even without libwacom, but some features may be missing or working
 differently.
 
-@subsection buildling_debug-gui Building without the graphical helper tool
+@subsection building_debug_gui Building without the graphical helper tool
 
 The @ref tools provide commandline features as well as graphical debugging
 features. To keep dependencies in check on some builds, the graphical
@@ -217,7 +216,7 @@ $> ./autogen.sh --disable-libwacom --prefix=/usr --libdir=/usr/lib64
 @endcode
 
 To disable the graphical helper tool as detailed in section @ref
-buildling_debug-gui, run
+building_debug_gui, run
 
 @code
 $> ./autogen.sh --disable-debug-gui --prefix=/usr --libdir=/usr/lib64
