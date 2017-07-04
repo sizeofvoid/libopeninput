@@ -1,6 +1,0 @@
-libinput-device-group
-libinput-model-quirks
-80-libinput-device-groups-litest.rules
-80-libinput-device-groups.rules
-90-libinput-model-quirks-litest.rules
-90-libinput-model-quirks.rules
