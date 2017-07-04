@@ -62,6 +62,8 @@ if have_libwacom
 			  name : 'libwacom_get_paired_device check',
 			  dependencies : dep_libwacom)
 	config_h.set10('HAVE_LIBWACOM_GET_PAIRED_DEVICE', result)
+else
+	dep_libwacom = declare_dependency()
 endif
 
 ############ udev bits ############
