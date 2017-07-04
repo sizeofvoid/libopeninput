@@ -49,25 +49,6 @@ $> rm -r builddir/
 $> meson --prefix=....
 @endcode
 
-@subsection building_autotools Building with automake
-
-libinput currently also provides the autotools build system, but this will
-be removed in future libinput versions. A build with automake is usually the
-three-step process below. A successful build requires the @ref
-building_dependencies to be installed at configure time.
-
-@code
-$> git clone git://anongit.freedesktop.org/git/wayland/libinput
-$> cd libinput
-$> ./autogen.sh --prefix=/usr --libdir=/usr/lib64
-$> make
-$> sudo make install
-$> sudo udevadm hwdb --update
-@endcode
-
-@note On Debian-based distributions including Ubuntu and its derivatives skip the
-```--libdir=/usr/lib64``` argument.
-
 @subsection verifying_install Verifying the install
 
 To verify the install worked correctly, check that libinput.so.x.x.x is in
@@ -84,7 +65,8 @@ The .so installed from git master may have a lower number than the
 system-provided one. In that case, manually adjust the symlinks to point to
 the newly installed .so.x.x.x
 
-@subsection reverting_install Reverting to the system-provided libinput packge
+@subsection reverting_install Reverting to the system-provided libinput
+package
 
 The recommended way to revert to the system install is to use the package
 manager to reinstall the libinput package. In some cases, this may leave
@@ -94,13 +76,7 @@ from the libinput source directory:
 
 @code
 $> sudo ninja -C builddir/ uninstall
-@endcode
-
-or when using autotools:
-
-@code
-$> sudo make uninstall
-# WARNING: Do not restart the computer/X/the Wayland compositor after make
+# WARNING: Do not restart the computer/X/the Wayland compositor after
 # uninstall, reinstall the system package immediately!
 @endcode
 
@@ -187,12 +163,6 @@ building.
 $> meson --prefix=/usr -Dlibwacom=false builddir
 @endcode
 
-or when building with autotools:
-
-@code
-$> ./autogen.sh --disable-libwacom --prefix=/usr --libdir=/usr/lib64
-@endcode
-
 It is not recommended to disable libwacom unless libinput is used in an
 environment where tablet support is not required. libinput provides tablet
 support even without libwacom, but some features may be missing or working
@@ -211,11 +181,48 @@ not available, the build will fail. If the feature is not required, use the
 $> meson --prefix=/usr -Ddebug-gui=false builddir
 @endcode
 
-or when building with autotools:
+@subsection building_autotools Building with autotools
+
+<b>libinput no longer supports building with autotools.</b> These
+instructions are kept for users for libinput versions up to 1.8.x.
+
+A build with automake is usually the process below. A successful build
+requires the @ref building_dependencies to be installed at configure
+time.
+
+@code
+$> git clone git://anongit.freedesktop.org/git/wayland/libinput
+$> cd libinput
+$> ./autogen.sh --prefix=/usr --libdir=/usr/lib64
+$> make
+$> sudo make install
+$> sudo udevadm hwdb --update
+@endcode
+
+@note On Debian-based distributions including Ubuntu and its derivatives skip the
+```--libdir=/usr/lib64``` argument.
+
+To uninstall libinput as detailed in section @ref reverting_install, run
+
+@code
+$> sudo make uninstall
+# WARNING: Do not restart the computer/X/the Wayland compositor after make
+# uninstall, reinstall the system package immediately!
+@endcode
+
+To disable libwacom as detailed in section @ref building_libwacom, run
+
+@code
+$> ./autogen.sh --disable-libwacom --prefix=/usr --libdir=/usr/lib64
+@endcode
+
+To disable the graphical helper tool as detailed in section @ref
+buildling_debug-gui, run
 
 @code
 $> ./autogen.sh --disable-debug-gui --prefix=/usr --libdir=/usr/lib64
 @endcode
+
 
 @section building_against Building against libinput
 
