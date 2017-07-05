@@ -45,6 +45,9 @@ List all devices recognized by libinput
 .B libinput\-measure(1)
 Measure various properties of devices
 .TP 8
+.B libinput\-measure\-touch\-size(1)
+Measure touch size and orientation
+.TP 8
 .B libinput\-measure\-touchpad\-tap(1)
 Measure tap-to-click time
 .TP 8
