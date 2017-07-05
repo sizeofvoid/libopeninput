@@ -4220,37 +4220,6 @@ START_TEST(touchpad_thumb_btnarea)
 }
 END_TEST
 
-START_TEST(touchpad_thumb_edgescroll)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
-	};
-
-	if (!has_thumb_detect(dev))
-		return;
-
-	litest_enable_edge_scroll(dev);
-	litest_disable_tap(dev->libinput_device);
-
-	litest_drain_events(li);
-
-	litest_touch_down(dev, 0, 99, 30);
-	litest_touch_move_to(dev, 0, 99, 30, 99, 50, 10, 0);
-	litest_drain_events(li);
-
-	litest_touch_move_extended(dev, 0, 99, 55, axes);
-	libinput_dispatch(li);
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
-
-	litest_touch_move_to(dev, 0, 99, 55, 99, 70, 10, 0);
-
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
-}
-END_TEST
-
 START_TEST(touchpad_thumb_tap_begin)
 {
 	struct litest_device *dev = litest_current_device();
@@ -5238,7 +5207,6 @@ litest_setup_tests_touchpad(void)
 	litest_add("touchpad:thumb", touchpad_thumb_moving, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_btnarea, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add("touchpad:thumb", touchpad_thumb_edgescroll, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_tap_begin, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_tap_touch, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_tap_hold, LITEST_CLICKPAD, LITEST_ANY);
