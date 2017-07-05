@@ -2614,7 +2614,7 @@ tp_init_pressure(struct tp_dispatch *tp,
 	prop = udev_device_get_property_value(device->udev_device,
 					      "LIBINPUT_ATTR_PRESSURE_RANGE");
 	if (prop) {
-		if (!parse_pressure_range_property(prop, &hi, &lo)) {
+		if (!parse_range_property(prop, &hi, &lo)) {
 			evdev_log_bug_client(device,
 				     "discarding invalid pressure range '%s'\n",
 				     prop);

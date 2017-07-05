@@ -379,7 +379,7 @@ parse_tpkbcombo_layout_poperty(const char *prop,
  * @return true on success, false otherwise
  */
 bool
-parse_pressure_range_property(const char *prop, int *hi, int *lo)
+parse_range_property(const char *prop, int *hi, int *lo)
 {
 	int first, second;
 
