@@ -1172,18 +1172,30 @@ START_TEST(touchpad_palm_detect_tap_hardbuttons)
 
 	litest_touch_down(dev, 0, 95, 5);
 	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tap();
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 0, 5, 5);
 	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tap();
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 0, 5, 99);
 	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tap();
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 0, 95, 99);
 	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tap();
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -1203,14 +1215,23 @@ START_TEST(touchpad_palm_detect_tap_softbuttons)
 
 	litest_touch_down(dev, 0, 99, 99);
 	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tap();
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 0, 1, 99);
 	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tap();
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 0, 10, 99);
 	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tap();
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
@@ -1221,6 +1242,9 @@ START_TEST(touchpad_palm_detect_tap_softbuttons)
 
 	litest_touch_down(dev, 0, 90, 99);
 	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tap();
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
@@ -1246,18 +1270,30 @@ START_TEST(touchpad_palm_detect_tap_clickfinger)
 
 	litest_touch_down(dev, 0, 95, 5);
 	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tap();
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 0, 5, 5);
 	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tap();
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 0, 5, 99);
 	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tap();
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 0, 95, 99);
 	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tap();
 	litest_assert_empty_queue(li);
 }
 END_TEST
