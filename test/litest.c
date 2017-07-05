@@ -916,13 +916,12 @@ litest_free_test_list(struct list *tests)
 }
 
 static int
-litest_run_suite(char *argv0, struct list *tests, int which, int max)
+litest_run_suite(struct list *tests, int which, int max)
 {
 	int failed = 0;
 	SRunner *sr = NULL;
 	struct suite *s;
 	struct test *t;
-	int argvlen = strlen(argv0);
 	int count = -1;
 	struct name {
 		struct list node;
@@ -930,9 +929,6 @@ litest_run_suite(char *argv0, struct list *tests, int which, int max)
 	};
 	struct name *n, *tmp;
 	struct list testnames;
-
-	if (max > 1)
-		snprintf(argv0, argvlen, "libinput-test-%-50d", which);
 
 	/* Check just takes the suite/test name pointers but doesn't strdup
 	 * them - we have to keep them around */
@@ -1011,7 +1007,7 @@ out:
 }
 
 static int
-litest_fork_subtests(char *argv0, struct list *tests, int max_forks)
+litest_fork_subtests(struct list *tests, int max_forks)
 {
 	int failed = 0;
 	int status;
@@ -1021,7 +1017,7 @@ litest_fork_subtests(char *argv0, struct list *tests, int max_forks)
 	for (f = 0; f < max_forks; f++) {
 		pid = fork();
 		if (pid == 0) {
-			failed = litest_run_suite(argv0, tests, f, max_forks);
+			failed = litest_run_suite(tests, f, max_forks);
 			litest_free_test_list(&all_tests);
 			exit(failed);
 			/* child always exits here */
@@ -1058,9 +1054,9 @@ litest_run(int argc, char **argv)
 	litest_setup_sighandler(SIGINT);
 
 	if (jobs == 1)
-		failed = litest_run_suite(argv[0], &all_tests, 1, 1);
+		failed = litest_run_suite(&all_tests, 1, 1);
 	else
-		failed = litest_fork_subtests(argv[0], &all_tests, jobs);
+		failed = litest_fork_subtests(&all_tests, jobs);
 
 	litest_free_test_list(&all_tests);
 
