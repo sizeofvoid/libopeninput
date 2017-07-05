@@ -995,6 +995,8 @@ START_TEST(touchpad_palm_detect_at_edge)
 	litest_touch_down(dev, 0, 5, 50);
 	litest_touch_move_to(dev, 0, 5, 50, 5, 70, 5, 0);
 	litest_touch_up(dev, 0);
+
+	litest_assert_empty_queue(li);
 }
 END_TEST
 
@@ -1073,6 +1075,8 @@ START_TEST(touchpad_palm_detect_at_top_corners)
 	litest_touch_down(dev, 0, 5, 5);
 	litest_touch_move_to(dev, 0, 5, 5, 5, 9, 5, 0);
 	litest_touch_up(dev, 0);
+
+	litest_assert_empty_queue(li);
 }
 END_TEST
 
