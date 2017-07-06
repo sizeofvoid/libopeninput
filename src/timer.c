@@ -42,7 +42,7 @@ libinput_timer_init(struct libinput_timer *timer,
 {
 	timer->libinput = libinput;
 	if (timer_name)
-		timer->timer_name = strdup(timer_name);
+		timer->timer_name = safe_strdup(timer_name);
 	timer->timer_func = timer_func;
 	timer->timer_func_data = timer_func_data;
 }
