@@ -567,9 +567,6 @@ get_suite(const char *name)
 {
 	struct suite *s;
 
-	if (all_tests.next == NULL && all_tests.prev == NULL)
-		list_init(&all_tests);
-
 	list_for_each(s, &all_tests, node) {
 		if (streq(s->name, name))
 			return s;
