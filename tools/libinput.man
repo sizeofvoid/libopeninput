@@ -49,7 +49,7 @@ Measure various properties of devices
 Measure tap-to-click time
 .TP 8
 .B libinput\-measure\-touchpad\-pressure(1)
-Measure touch pressure.
+Measure touch pressure
 .SH LIBINPUT
 Part of the
 .B libinput(1)
