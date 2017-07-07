@@ -94,40 +94,26 @@ def property_grammar():
                   ]
 
     dimension = INTEGER('X') + Suppress('x') + INTEGER('Y')
-    sz_props = (
+
+    crange = INTEGER('X') + Suppress(':') + INTEGER('Y')
+    vprops = (
             ('LIBINPUT_ATTR_SIZE_HINT', Group(dimension('SETTINGS*'))),
             ('LIBINPUT_ATTR_RESOLUTION_HINT', Group(dimension('SETTINGS*'))),
-            )
+            ('LIBINPUT_ATTR_PRESSURE_RANGE', Group(crange('SETTINGS*'))),
+            ('LIBINPUT_ATTR_TPKBCOMBO_LAYOUT', Or(('below'))),
+            ('LIBINPUT_ATTR_LID_SWITCH_RELIABILITY', Or(('reliable', 'write_open'))),
+            ('LIBINPUT_ATTR_KEYBOARD_INTEGRATION', Or(('internal', 'external'))),
+    )
+    value_props = [Literal(name)('NAME') - Suppress('=') - val('VALUE') for
+                    name, val in vprops]
 
-    size_props = [Literal(name)('NAME') - Suppress('=') - val('VALUE')
-                   for name, val in sz_props]
+    tprops = (
+            ('LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD', INTEGER('X')),
+    )
+    typed_props = [Literal(name)('NAME') - Suppress('=') - val
+                      for name, val in tprops]
 
-    reliability_tags = Or(('reliable', 'write_open'))
-    reliability = [Literal('LIBINPUT_ATTR_LID_SWITCH_RELIABILITY')('NAME') -
-                         Suppress('=') -
-                         reliability_tags('VALUE')]
-
-    tpkbcombo_tags = Or(('below'))
-    tpkbcombo = [Literal('LIBINPUT_ATTR_TPKBCOMBO_LAYOUT')('NAME') -
-                         Suppress('=') -
-                         tpkbcombo_tags('VALUE')]
-
-    pressure_range = INTEGER('X') + Suppress(':') + INTEGER('Y')
-    pressure_prop = [ Literal('LIBINPUT_ATTR_PRESSURE_RANGE')('NAME') -
-                      Suppress('=') -
-                      Group(pressure_range('SETTINGS*')) ]
-
-    kbintegration_tags = Or(('internal', 'external'))
-    kbintegration = [Literal('LIBINPUT_ATTR_KEYBOARD_INTEGRATION')('NAME') -
-                         Suppress('=') -
-                         kbintegration_tags('VALUE')]
-
-    palm_prop = [Literal('LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD')('NAME') -
-                        Suppress('=') -
-                        INTEGER('X')]
-
-    grammar = Or(model_props + size_props + reliability + tpkbcombo +
-                 pressure_prop + kbintegration + palm_prop)
+    grammar = Or(model_props + value_props + typed_props)
 
     return grammar
 
