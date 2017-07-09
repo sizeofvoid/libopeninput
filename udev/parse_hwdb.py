@@ -37,9 +37,8 @@ import os
 
 try:
     from pyparsing import (Word, White, Literal, ParserElement, Regex,
-                           LineStart, LineEnd,
-                           ZeroOrMore, OneOrMore, Combine, Or, Optional, Suppress, Group,
-                           nums, alphanums, printables,
+                           LineEnd, OneOrMore, Combine, Or, Optional,
+                           Suppress, Group, nums, alphanums, printables,
                            stringEnd, pythonStyleComment,
                            ParseBaseException)
 except ImportError:
@@ -60,8 +59,9 @@ REAL = Combine((INTEGER + Optional('.' + Optional(INTEGER))) ^ ('.' + INTEGER))
 UDEV_TAG = Word(string.ascii_uppercase, alphanums + '_')
 
 TYPES = {
-         'libinput': ('name', 'touchpad', 'mouse', 'keyboard'),
-         }
+    'libinput': ('name', 'touchpad', 'mouse', 'keyboard'),
+}
+
 
 @functools.lru_cache()
 def hwdb_grammar():
@@ -70,63 +70,76 @@ def hwdb_grammar():
     prefix = Or(category + ':' + Or(conn) + ':'
                 for category, conn in TYPES.items())
     matchline = Combine(prefix + Word(printables + ' ' + '®')) + EOL
-    propertyline = (White(' ', exact=1).suppress() +
-                    Combine(UDEV_TAG - '=' - Word(alphanums + '_=:@*.! ') - Optional(pythonStyleComment)) +
-                    EOL)
+    propertyline = (
+        White(' ', exact=1).suppress()
+        + Combine(UDEV_TAG
+                  - '='
+                  - Word(alphanums + '_=:@*.! ')
+                  - Optional(pythonStyleComment))
+        + EOL
+    )
     propertycomment = White(' ', exact=1) + pythonStyleComment + EOL
 
-    group = (OneOrMore(matchline('MATCHES*') ^ COMMENTLINE.suppress()) -
-             OneOrMore(propertyline('PROPERTIES*') ^ propertycomment.suppress()) -
-             (EMPTYLINE ^ stringEnd()).suppress() )
+    group = (
+        OneOrMore(matchline('MATCHES*') ^ COMMENTLINE.suppress())
+        - OneOrMore(propertyline('PROPERTIES*') ^ propertycomment.suppress())
+        - (EMPTYLINE ^ stringEnd()).suppress()
+    )
     commentgroup = OneOrMore(COMMENTLINE).suppress() - EMPTYLINE.suppress()
 
     grammar = OneOrMore(group('GROUPS*') ^ commentgroup) + stringEnd()
 
     return grammar
 
+
 @functools.lru_cache()
 def property_grammar():
     ParserElement.setDefaultWhitespaceChars(' ')
 
-    model_props = [Regex(r'LIBINPUT_MODEL_[_0-9A-Z]+')('NAME')
-                   - Suppress('=') -
-                   (Literal('1'))('VALUE')
-                  ]
+    model_props = [
+        Regex(r'LIBINPUT_MODEL_[_0-9A-Z]+')('NAME') -
+        Suppress('=') - (Literal('1'))('VALUE')
+    ]
 
     dimension = INTEGER('X') + Suppress('x') + INTEGER('Y')
 
     crange = INTEGER('X') + Suppress(':') + INTEGER('Y')
     vprops = (
-            ('LIBINPUT_ATTR_SIZE_HINT', Group(dimension('SETTINGS*'))),
-            ('LIBINPUT_ATTR_RESOLUTION_HINT', Group(dimension('SETTINGS*'))),
-            ('LIBINPUT_ATTR_PRESSURE_RANGE', Group(crange('SETTINGS*'))),
-            ('LIBINPUT_ATTR_TPKBCOMBO_LAYOUT', Or(('below'))),
-            ('LIBINPUT_ATTR_LID_SWITCH_RELIABILITY', Or(('reliable', 'write_open'))),
-            ('LIBINPUT_ATTR_KEYBOARD_INTEGRATION', Or(('internal', 'external'))),
+        ('LIBINPUT_ATTR_SIZE_HINT', Group(dimension('SETTINGS*'))),
+        ('LIBINPUT_ATTR_RESOLUTION_HINT', Group(dimension('SETTINGS*'))),
+        ('LIBINPUT_ATTR_PRESSURE_RANGE', Group(crange('SETTINGS*'))),
+        ('LIBINPUT_ATTR_TPKBCOMBO_LAYOUT', Or(('below'))),
+        ('LIBINPUT_ATTR_LID_SWITCH_RELIABILITY',
+         Or(('reliable', 'write_open'))),
+        ('LIBINPUT_ATTR_KEYBOARD_INTEGRATION', Or(('internal', 'external'))),
     )
     value_props = [Literal(name)('NAME') - Suppress('=') - val('VALUE') for
-                    name, val in vprops]
+                   name, val in vprops]
 
     tprops = (
-            ('LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD', INTEGER('X')),
+        ('LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD', INTEGER('X')),
     )
     typed_props = [Literal(name)('NAME') - Suppress('=') - val
-                      for name, val in tprops]
+                   for name, val in tprops]
 
     grammar = Or(model_props + value_props + typed_props)
 
     return grammar
 
 ERROR = False
+
+
 def error(fmt, *args, **kwargs):
     global ERROR
     ERROR = True
     print(fmt.format(*args, **kwargs))
 
+
 def convert_properties(group):
     matches = [m[0] for m in group.MATCHES]
     props = [p[0] for p in group.PROPERTIES]
     return matches, props
+
 
 def parse(fname):
     grammar = hwdb_grammar()
@@ -137,6 +150,7 @@ def parse(fname):
         return []
     return [convert_properties(g) for g in parsed.GROUPS]
 
+
 def check_match_uniqueness(groups):
     matches = sum((group[0] for group in groups), [])
     matches.sort()
@@ -146,9 +160,11 @@ def check_match_uniqueness(groups):
             error('Match {!r} is duplicated', match)
         prev = match
 
+
 def check_one_dimension(prop, value):
     if int(value[0]) <= 0 or int(value[1]) <= 0:
         error('Dimension {} invalid', value)
+
 
 def check_properties(groups):
     grammar = property_grammar()
@@ -170,13 +186,15 @@ def check_properties(groups):
                parsed.NAME == "LIBINPUT_ATTR_RESOLUTION_HINT":
                 check_one_dimension(prop, parsed.VALUE)
 
+
 def print_summary(fname, groups):
     print('{}: {} match groups, {} matches, {} properties'
           .format(fname,
                   len(groups),
                   sum(len(matches) for matches, props in groups),
                   sum(len(props) for matches, props in groups),
-          ))
+                  ))
+
 
 if __name__ == '__main__':
     args = sys.argv[1:] or glob.glob(os.path.dirname(sys.argv[0]) + '/*.hwdb')
