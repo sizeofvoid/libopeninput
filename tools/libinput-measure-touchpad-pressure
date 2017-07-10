@@ -30,6 +30,7 @@ import evdev
 import evdev.ecodes
 import pyudev
 
+
 class Range(object):
     """Class to keep a min/max of a value around"""
     def __init__(self):
@@ -40,11 +41,13 @@ class Range(object):
         self.min = min(self.min, value)
         self.max = max(self.max, value)
 
+
 class Touch(object):
     """A single data point of a sequence (i.e. one event frame)"""
 
     def __init__(self, pressure=None):
         self.pressure = pressure
+
 
 class TouchSequence(object):
     """A touch sequence from beginning to end"""
@@ -96,12 +99,15 @@ class TouchSequence(object):
         return self._str_state() if self.is_active else self._str_summary()
 
     def _str_summary(self):
-        s = "Sequence {} pressure: min: {:3d} max: {:3d} avg: {:3d} median: {:3d} tags:".format(
+        s = "Sequence {} pressure: "\
+            "min: {:3d} max: {:3d} avg: {:3d} median: {:3d} tags:" \
+            .format(
                 self.tracking_id,
                 self.prange.min,
                 self.prange.max,
                 self.avg(),
-                self.median())
+                self.median()
+            )
         if self.was_down:
             s += " down"
         if self.was_palm:
@@ -110,17 +116,20 @@ class TouchSequence(object):
         return s
 
     def _str_state(self):
-        s = "Touchpad pressure: {:3d} min: {:3d} max: {:3d} tags: {} {}".format(
-                    self.points[-1].pressure,
-                    self.prange.min,
-                    self.prange.max,
-                    "down" if self.is_down else "    ",
-                    "palm" if self.is_palm else "     "
-                    )
+        s = "Touchpad pressure: {:3d} min: {:3d} max: {:3d} tags: {} {}" \
+            .format(
+                self.points[-1].pressure,
+                self.prange.min,
+                self.prange.max,
+                "down" if self.is_down else "    ",
+                "palm" if self.is_palm else "     "
+            )
         return s
+
 
 class InvalidDeviceError(Exception):
     pass
+
 
 class Device(object):
     def __init__(self, path):
@@ -135,7 +144,8 @@ class Device(object):
         #
         # Get the abs list first (or empty list if missing),
         # then extract the pressure absinfo from that
-        caps = self.device.capabilities(absinfo=True).get(evdev.ecodes.EV_ABS, [])
+        all_caps = self.device.capabilities(absinfo=True)
+        caps = all_caps.get(evdev.ecodes.EV_ABS, [])
         p = [cap[1] for cap in caps if cap[0] == evdev.ecodes.ABS_MT_PRESSURE]
         if not p:
             raise InvalidDeviceError("device does not have ABS_MT_PRESSURE")
@@ -146,7 +156,7 @@ class Device(object):
         # libinput defaults
         self.up = int(p.min + 0.12 * prange)
         self.down = int(p.min + 0.10 * prange)
-        self.palm = 130 # the libinput default
+        self.palm = 130  # the libinput default
 
         self._init_thresholds_from_udev()
         self.sequences = []
@@ -157,7 +167,8 @@ class Device(object):
             if not device.get('ID_INPUT_TOUCHPAD', 0):
                 continue
 
-            if not device.device_node or not device.device_node.startswith('/dev/input/event'):
+            if not device.device_node or \
+               not device.device_node.startswith('/dev/input/event'):
                 continue
 
             return device.device_node
@@ -181,13 +192,18 @@ class Device(object):
     def current_sequence(self):
         return self.sequences[-1]
 
+
 def handle_key(device, event):
-    tapcodes = [evdev.ecodes.BTN_TOOL_DOUBLETAP,
-            evdev.ecodes.BTN_TOOL_TRIPLETAP,
-            evdev.ecodes.BTN_TOOL_QUADTAP,
-            evdev.ecodes.BTN_TOOL_QUINTTAP]
+    tapcodes = [
+        evdev.ecodes.BTN_TOOL_DOUBLETAP,
+        evdev.ecodes.BTN_TOOL_TRIPLETAP,
+        evdev.ecodes.BTN_TOOL_QUADTAP,
+        evdev.ecodes.BTN_TOOL_QUINTTAP
+    ]
     if event.code in tapcodes and event.value > 0:
-        print("\rThis tool cannot handle multiple fingers, output will be invalid", file=sys.stderr)
+        print("\rThis tool cannot handle multiple fingers, "
+              "output will be invalid", file=sys.stderr)
+
 
 def handle_abs(device, event):
     if event.code == evdev.ecodes.ABS_MT_TRACKING_ID:
@@ -202,11 +218,13 @@ def handle_abs(device, event):
         s.append(Touch(pressure=event.value))
         print("\r{}".format(s), end="")
 
+
 def handle_event(device, event):
     if event.type == evdev.ecodes.EV_ABS:
-         handle_abs(device, event)
+        handle_abs(device, event)
     elif event.type == evdev.ecodes.EV_KEY:
         handle_key(device, event)
+
 
 def loop(device):
     print("Ready for recording data.")
@@ -217,6 +235,7 @@ def loop(device):
 
     for event in device.device.read_loop():
         handle_event(device, event)
+
 
 def colon_tuple(string):
     try:
@@ -230,14 +249,23 @@ def colon_tuple(string):
     msg = "{} is not in format N:M (N >= M)".format(string)
     raise argparse.ArgumentTypeError(msg)
 
+
 def main(args):
-    parser = argparse.ArgumentParser(description="Measure touchpad pressure values")
-    parser.add_argument('path', metavar='/dev/input/event0',
-                nargs='?', type=str, help='Path to device (optional)' )
-    parser.add_argument('--touch-thresholds', metavar='down:up',
-                type=colon_tuple, help='Thresholds when a touch is logically down or up')
-    parser.add_argument('--palm-threshold', metavar='t',
-                type=int, help='Threshold when a touch is a palm')
+    parser = argparse.ArgumentParser(
+        description="Measure touchpad pressure values"
+    )
+    parser.add_argument(
+        'path', metavar='/dev/input/event0', nargs='?', type=str,
+        help='Path to device (optional)'
+    )
+    parser.add_argument(
+        '--touch-thresholds', metavar='down:up', type=colon_tuple,
+        help='Thresholds when a touch is logically down or up'
+    )
+    parser.add_argument(
+        '--palm-threshold', metavar='t', type=int,
+        help='Threshold when a touch is a palm'
+    )
     args = parser.parse_args()
 
     try:
