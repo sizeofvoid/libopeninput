@@ -1740,6 +1740,7 @@ tp_interface_device_removed(struct evdev_device *device,
 		libinput_device_remove_event_listener(
 					&tp->dwt.keyboard_listener);
 		tp->dwt.keyboard = NULL;
+		tp->dwt.keyboard_active = false;
 	}
 
 	if (removed_device == tp->lid_switch.lid_switch) {
