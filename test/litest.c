@@ -173,8 +173,6 @@ litest_backtrace(void)
 	char procname[256];
 	Dl_info dlinfo;
 	/* filename and i are unused ifdef LITEST_SHUTUP */
-	const char *filename __attribute__((unused));
-	int i __attribute__((unused)) = 0;
 
 	pip.unwind_info = NULL;
 	ret = unw_getcontext(&context);
@@ -199,6 +197,8 @@ litest_backtrace(void)
 		char file[PATH_MAX];
 		int line;
 		bool have_lineno = false;
+		const char *filename = "?";
+		int i = 0;
 
 		ret = unw_get_proc_info(&cursor, &pip);
 		if (ret) {
@@ -226,8 +226,6 @@ litest_backtrace(void)
 								  (pip.start_ip + off),
 								  file,
 								  &line);
-		} else {
-			filename = "?";
 		}
 
 		if (have_lineno) {
