@@ -3141,6 +3141,7 @@ libinput_ref(struct libinput *libinput);
  * (e.g. a libinput_device). When libinput_unref() returns
  * NULL, the caller must consider any resources related to that context
  * invalid. See https://bugs.freedesktop.org/show_bug.cgi?id=91872.
+ *
  * Example code:
  * @code
  * li = libinput_path_create_context(&interface, NULL);
