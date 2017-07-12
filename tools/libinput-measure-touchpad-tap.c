@@ -495,6 +495,8 @@ main(int argc, char **argv)
 	if (rc != EXIT_SUCCESS)
 		goto out;
 
+	msg("\n");
+
 	if (print_dat_file)
 		print_dat(tap_data);
 	else
