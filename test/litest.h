@@ -684,6 +684,9 @@ void
 litest_timeout_tapndrag(void);
 
 void
+litest_timeout_debounce(void);
+
+void
 litest_timeout_softbuttons(void);
 
 void

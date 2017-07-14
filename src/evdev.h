@@ -135,6 +135,25 @@ enum evdev_button_scroll_state {
 	BUTTONSCROLL_SCROLLING,		/* have sent scroll events */
 };
 
+enum evdev_debounce_state {
+	/**
+	 * Initial state, no debounce but monitoring events
+	 */
+	DEBOUNCE_INIT,
+	/**
+	 * Bounce detected, future events need debouncing
+	 */
+	DEBOUNCE_NEEDED,
+	/**
+	 * Debounce is enabled, but no event is currently being filtered
+	 */
+	DEBOUNCE_ON,
+	/**
+	 * Debounce is enabled and we are currently filtering an event
+	 */
+	DEBOUNCE_ACTIVE,
+};
+
 struct mt_slot {
 	int32_t seat_slot;
 	struct device_coords point;
@@ -365,6 +384,13 @@ struct fallback_dispatch {
 	/* true if we're reading events (i.e. not suspended) but we're
 	   ignoring them */
 	bool ignore_events;
+
+	struct {
+		enum evdev_debounce_state state;
+		unsigned int button_code;
+		uint64_t button_up_time;
+		struct libinput_timer timer;
+	} debounce;
 };
 
 static inline struct fallback_dispatch*

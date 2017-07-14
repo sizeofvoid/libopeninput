@@ -2127,6 +2127,7 @@ litest_button_click(struct litest_device *d, unsigned int button, bool is_press)
 
 	ARRAY_FOR_EACH(click, ev)
 		litest_event(d, ev->type, ev->code, ev->value);
+	litest_timeout_debounce();
 }
 
 void
@@ -3234,6 +3235,12 @@ void
 litest_timeout_tapndrag(void)
 {
 	msleep(520);
+}
+
+void
+litest_timeout_debounce(void)
+{
+	msleep(15);
 }
 
 void

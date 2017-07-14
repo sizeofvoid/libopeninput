@@ -260,6 +260,7 @@ if get_option('documentation')
 		meson.source_root() + '/doc/absolute-axes.dox',
 		meson.source_root() + '/doc/absolute-coordinate-ranges.dox',
 		meson.source_root() + '/doc/building.dox',
+		meson.source_root() + '/doc/button_debouncing.dox',
 		meson.source_root() + '/doc/clickpad-softbuttons.dox',
 		meson.source_root() + '/doc/contributing.dox',
 		meson.source_root() + '/doc/device-configuration-via-udev.dox',

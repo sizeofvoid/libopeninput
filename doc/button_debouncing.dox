@@ -1,0 +1,26 @@
+/**
+
+@page button_debouncing Button debouncing
+
+Physical buttons experience wear-and-tear with usage. On some devices this
+can result in an effect called "contact bouncing" or "chatter". This effect
+can cause the button to send multiple events within a short time frame, even
+though the user only pressed or clicked the button once. This effect can be
+counteracted by "debouncing" the buttons, usually by ignoring erroneous
+events.
+
+libinput has a built-in debouncing for hardware defects. This feature is
+available for all button-base devices but not active by default. When
+libinput detects a faulty button on a device, debouncing is enabled and a
+warning is printed to the log. Subsequent button events are handled
+correctly in that bouncing button events are ignored, a user should thus see
+the expected behavior.
+
+Note that libinput's debouncing intended to correct hardware damage or
+substandard hardware. Debouncing is also used as an accessibility feature
+but the requirements are different. In the accessibility feature, multiple
+physical key presses, usually caused by involuntary muscle movement, must be
+filtered to only one key press. This feature must be implemented higher in
+the stack, libinput is limited to hardware debouncing.
+
+*/

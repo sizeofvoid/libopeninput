@@ -49,6 +49,7 @@
 
 #define DEFAULT_WHEEL_CLICK_ANGLE 15
 #define DEFAULT_BUTTON_SCROLL_TIMEOUT ms2us(200)
+#define	DEBOUNCE_TIME ms2us(12)
 
 enum evdev_key_type {
 	EVDEV_KEY_TYPE_NONE,
@@ -812,6 +813,148 @@ fallback_process_touch_button(struct fallback_dispatch *dispatch,
 }
 
 static inline void
+fallback_flush_debounce(struct fallback_dispatch *dispatch,
+			struct evdev_device *device)
+{
+	int code = dispatch->debounce.button_code;
+	int button;
+
+	if (dispatch->debounce.state != DEBOUNCE_ACTIVE)
+		return;
+
+	if (hw_is_key_down(dispatch, code)) {
+		button = evdev_to_left_handed(device, code);
+		evdev_pointer_notify_physical_button(device,
+						     dispatch->debounce.button_up_time,
+						     button,
+						     LIBINPUT_BUTTON_STATE_RELEASED);
+		hw_set_key_down(dispatch, code, 0);
+	}
+
+	dispatch->debounce.state = DEBOUNCE_ON;
+}
+
+static void
+fallback_debounce_timeout(uint64_t now, void *data)
+{
+	struct evdev_device *device = data;
+	struct fallback_dispatch *dispatch =
+		fallback_dispatch(device->dispatch);
+
+	fallback_flush_debounce(dispatch, device);
+}
+
+static bool
+fallback_filter_debounce_press(struct fallback_dispatch *dispatch,
+			       struct evdev_device *device,
+			       struct input_event *e,
+			       uint64_t time)
+{
+	bool filter = false;
+	uint64_t tdelta;
+
+	/* If other button is pressed while we're holding back the release,
+	 * flush the pending release (if any) and continue. We don't handle
+	 * this situation, if you have a mouse that needs per-button
+	 * debouncing, consider writing to santa for a new mouse.
+	 */
+	if (e->code != dispatch->debounce.button_code) {
+		if (dispatch->debounce.state == DEBOUNCE_ACTIVE) {
+			libinput_timer_cancel(&dispatch->debounce.timer);
+			fallback_flush_debounce(dispatch, device);
+		}
+		return false;
+	}
+
+	tdelta = time - dispatch->debounce.button_up_time;
+	assert((int64_t)tdelta >= 0);
+
+	if (tdelta < DEBOUNCE_TIME) {
+		switch (dispatch->debounce.state) {
+		case DEBOUNCE_INIT:
+			/* This is the first time we debounce, enable proper debouncing
+			   from now on but filter this press event */
+			filter = true;
+			evdev_log_info(device,
+				       "Enabling button debouncing, "
+				       "see %sbutton_debouncing.html for details\n",
+				       HTTP_DOC_LINK);
+			dispatch->debounce.state = DEBOUNCE_NEEDED;
+			break;
+		case DEBOUNCE_NEEDED:
+		case DEBOUNCE_ON:
+			break;
+		/* If a release event is pending and, filter press
+		 * events until we flushed the release */
+		case DEBOUNCE_ACTIVE:
+			filter = true;
+			break;
+		}
+	} else if (dispatch->debounce.state == DEBOUNCE_ACTIVE) {
+		/* call libinput_dispatch() more frequently */
+		evdev_log_bug_client(device,
+				     "Debouncing still active past timeout\n");
+	}
+
+	return filter;
+}
+
+static bool
+fallback_filter_debounce_release(struct fallback_dispatch *dispatch,
+				 struct input_event *e,
+				 uint64_t time)
+{
+	bool filter = false;
+
+	dispatch->debounce.button_code = e->code;
+	dispatch->debounce.button_up_time = time;
+
+	switch (dispatch->debounce.state) {
+	case DEBOUNCE_INIT:
+		break;
+	case DEBOUNCE_NEEDED:
+		filter = true;
+		dispatch->debounce.state = DEBOUNCE_ON;
+		break;
+	case DEBOUNCE_ON:
+		libinput_timer_set(&dispatch->debounce.timer,
+				   time + DEBOUNCE_TIME);
+		filter = true;
+		dispatch->debounce.state = DEBOUNCE_ACTIVE;
+		break;
+	case DEBOUNCE_ACTIVE:
+		filter = true;
+		break;
+	}
+
+	return filter;
+}
+
+static bool
+fallback_filter_debounce(struct fallback_dispatch *dispatch,
+			 struct evdev_device *device,
+			 struct input_event *e, uint64_t time)
+{
+	bool filter = false;
+
+	/* Behavior: we monitor the time deltas between release and press
+	 * events. Proper debouncing is disabled on init, but the first
+	 * time we see a bouncing press event we enable it.
+	 *
+	 * The first bounced event is simply discarded, which ends up in the
+	 * button being released sooner than it should be. Subsequent button
+	 * presses are timer-based and thus released a bit later because we
+	 * then wait for a timeout before we post the release event.
+	 */
+	if (e->value)
+		filter = fallback_filter_debounce_press(dispatch, device, e, time);
+	else
+		filter = fallback_filter_debounce_release(dispatch, e, time);
+
+	return filter;
+}
+
+static inline void
 fallback_process_key(struct fallback_dispatch *dispatch,
 		     struct evdev_device *device,
 		     struct input_event *e, uint64_t time)
@@ -842,10 +985,18 @@ fallback_process_key(struct fallback_dispatch *dispatch,
 	case EVDEV_KEY_TYPE_NONE:
 		break;
 	case EVDEV_KEY_TYPE_KEY:
-	case EVDEV_KEY_TYPE_BUTTON:
 		if ((e->value && hw_is_key_down(dispatch, e->code)) ||
 		    (e->value == 0 && !hw_is_key_down(dispatch, e->code)))
 			return;
+		break;
+	case EVDEV_KEY_TYPE_BUTTON:
+		if (fallback_filter_debounce(dispatch, device, e, time))
+			return;
+
+		if ((e->value && hw_is_key_down(dispatch, e->code)) ||
+		    (e->value == 0 && !hw_is_key_down(dispatch, e->code)))
+			return;
+		break;
 	}
 
 	hw_set_key_down(dispatch, e->code, e->value);
@@ -1306,6 +1457,8 @@ fallback_destroy(struct evdev_dispatch *evdev_dispatch)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 
+	libinput_timer_cancel(&dispatch->debounce.timer);
+	libinput_timer_destroy(&dispatch->debounce.timer);
 	free(dispatch->mt.slots);
 	free(dispatch);
 }
@@ -1837,6 +1990,7 @@ fallback_dispatch_create(struct libinput_device *libinput_device)
 {
 	struct evdev_device *device = evdev_device(libinput_device);
 	struct fallback_dispatch *dispatch;
+	char timer_name[64];
 
 	dispatch = zalloc(sizeof *dispatch);
 	dispatch->base.dispatch_type = DISPATCH_FALLBACK;
@@ -1883,6 +2037,15 @@ fallback_dispatch_create(struct libinput_device *libinput_device)
 					want_config);
 	}
 
+	snprintf(timer_name,
+		 sizeof(timer_name),
+		 "%s debounce",
+		 evdev_device_get_sysname(device));
+	libinput_timer_init(&dispatch->debounce.timer,
+			    evdev_libinput_context(device),
+			    timer_name,
+			    fallback_debounce_timeout,
+			    device);
 	return &dispatch->base;
 }
 
