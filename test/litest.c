@@ -1642,6 +1642,8 @@ touch_up(struct litest_device *d, unsigned int slot)
 		{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
 		{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = -1 },
 		{ .type = EV_ABS, .code = ABS_MT_PRESSURE, .value = 0 },
+		{ .type = EV_ABS, .code = ABS_MT_TOUCH_MAJOR, .value = 0 },
+		{ .type = EV_ABS, .code = ABS_MT_TOUCH_MINOR, .value = 0 },
 		{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 		{ .type = -1, .code = -1 }
 	};
@@ -2171,7 +2173,11 @@ litest_scale_axis(const struct litest_device *d,
 	const struct input_absinfo *abs;
 
 	litest_assert_double_ge(val, 0.0);
-	litest_assert_double_le(val, 100.0);
+	/* major/minor must be able to beyond 100% for large fingers */
+	if (axis != ABS_MT_TOUCH_MAJOR &&
+	    axis != ABS_MT_TOUCH_MINOR) {
+		litest_assert_double_le(val, 100.0);
+	}
 
 	abs = libevdev_get_abs_info(d->evdev, axis);
 	litest_assert_notnull(abs);
@@ -2192,8 +2198,12 @@ int
 litest_scale(const struct litest_device *d, unsigned int axis, double val)
 {
 	int min, max;
+
 	litest_assert_double_ge(val, 0.0);
-	litest_assert_double_le(val, 100.0);
+	/* major/minor must be able to beyond 100% for large fingers */
+	if (axis != ABS_MT_TOUCH_MAJOR &&
+	    axis != ABS_MT_TOUCH_MINOR)
+		litest_assert_double_le(val, 100.0);
 
 	if (axis <= ABS_Y) {
 		min = d->interface->min[axis];

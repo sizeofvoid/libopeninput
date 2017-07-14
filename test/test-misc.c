@@ -1002,15 +1002,15 @@ START_TEST(calibration_prop_parser)
 }
 END_TEST
 
-struct parser_test_pressure_range {
+struct parser_test_range {
 	char *tag;
 	bool success;
 	int hi, lo;
 };
 
-START_TEST(pressure_range_prop_parser)
+START_TEST(range_prop_parser)
 {
-	struct parser_test_pressure_range tests[] = {
+	struct parser_test_range tests[] = {
 		{ "10:8", true, 10, 8 },
 		{ "100:-1", true, 100, -1 },
 		{ "-203813:-502023", true, -203813, -502023 },
@@ -1028,7 +1028,7 @@ START_TEST(pressure_range_prop_parser)
 
 	for (i = 0; tests[i].tag != NULL; i++) {
 		hi = lo = 0xad;
-		success = parse_pressure_range_property(tests[i].tag, &hi, &lo);
+		success = parse_range_property(tests[i].tag, &hi, &lo);
 		ck_assert(success == tests[i].success);
 		if (success) {
 			ck_assert_int_eq(hi, tests[i].hi);
@@ -1039,7 +1039,7 @@ START_TEST(pressure_range_prop_parser)
 		}
 	}
 
-	success = parse_pressure_range_property(NULL, NULL, NULL);
+	success = parse_range_property(NULL, NULL, NULL);
 	ck_assert(success == false);
 }
 END_TEST
@@ -1373,7 +1373,7 @@ litest_setup_tests_misc(void)
 	litest_add_no_device("misc:parser", dimension_prop_parser);
 	litest_add_no_device("misc:parser", reliability_prop_parser);
 	litest_add_no_device("misc:parser", calibration_prop_parser);
-	litest_add_no_device("misc:parser", pressure_range_prop_parser);
+	litest_add_no_device("misc:parser", range_prop_parser);
 	litest_add_no_device("misc:parser", palm_pressure_parser);
 	litest_add_no_device("misc:parser", safe_atoi_test);
 	litest_add_no_device("misc:parser", safe_atod_test);

@@ -33,6 +33,8 @@
 #include <libinput.h>
 #include <math.h>
 
+#include "libinput-util.h"
+
 extern void litest_setup_tests_udev(void);
 extern void litest_setup_tests_path(void);
 extern void litest_setup_tests_pointer(void);
@@ -303,12 +305,12 @@ struct axis_replacement {
 	double value;
 };
 
+/**
+ * Same as litest_axis_set_value but allows for ranges outside 0..100%
+ */
 static inline void
-litest_axis_set_value(struct axis_replacement *axes, int code, double value)
+litest_axis_set_value_unchecked(struct axis_replacement *axes, int code, double value)
 {
-	litest_assert_double_ge(value, 0.0);
-	litest_assert_double_le(value, 100.0);
-
 	while (axes->evcode != -1) {
 		if (axes->evcode == code) {
 			axes->value = value;
@@ -318,6 +320,18 @@ litest_axis_set_value(struct axis_replacement *axes, int code, double value)
 	}
 
 	litest_abort_msg("Missing axis code %d\n", code);
+}
+
+/**
+ * Takes a value in percent and sets the given axis to that code.
+ */
+static inline void
+litest_axis_set_value(struct axis_replacement *axes, int code, double value)
+{
+	litest_assert_double_ge(value, 0.0);
+	litest_assert_double_le(value, 100.0);
+
+	litest_axis_set_value_unchecked(axes, code, value);
 }
 
 /* A loop range, resolves to:
@@ -901,6 +915,22 @@ litest_disable_middleemu(struct litest_device *dev)
 								     LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED);
 
 	litest_assert_int_eq(status, expected);
+}
+
+static inline bool
+litest_touchpad_is_external(struct litest_device *dev)
+{
+	struct udev_device *udev_device;
+	const char *prop;
+	bool is_external;
+
+	udev_device = libinput_device_get_udev_device(dev->libinput_device);
+	prop = udev_device_get_property_value(udev_device,
+					      "ID_INPUT_TOUCHPAD_INTEGRATION");
+	is_external = prop && streq(prop, "external");
+	udev_device_unref(udev_device);
+
+	return is_external;
 }
 
 #undef ck_assert_double_eq

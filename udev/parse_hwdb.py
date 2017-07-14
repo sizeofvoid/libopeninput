@@ -108,6 +108,7 @@ def property_grammar():
         ('LIBINPUT_ATTR_SIZE_HINT', Group(dimension('SETTINGS*'))),
         ('LIBINPUT_ATTR_RESOLUTION_HINT', Group(dimension('SETTINGS*'))),
         ('LIBINPUT_ATTR_PRESSURE_RANGE', Group(crange('SETTINGS*'))),
+        ('LIBINPUT_ATTR_TOUCH_SIZE_RANGE', Group(crange('SETTINGS*'))),
         ('LIBINPUT_ATTR_TPKBCOMBO_LAYOUT', Or(('below'))),
         ('LIBINPUT_ATTR_LID_SWITCH_RELIABILITY',
          Or(('reliable', 'write_open'))),
@@ -118,6 +119,7 @@ def property_grammar():
 
     tprops = (
         ('LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD', INTEGER('X')),
+        ('LIBINPUT_ATTR_PALM_SIZE_THRESHOLD', INTEGER('X')),
     )
     typed_props = [Literal(name)('NAME') - Suppress('=') - val
                    for name, val in tprops]

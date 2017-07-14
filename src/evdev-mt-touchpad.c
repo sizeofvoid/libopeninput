@@ -348,6 +348,16 @@ tp_process_absolute(struct tp_dispatch *tp,
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
 		break;
+	case ABS_MT_TOUCH_MAJOR:
+		t->major = e->value;
+		t->dirty = true;
+		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
+		break;
+	case ABS_MT_TOUCH_MINOR:
+		t->minor = e->value;
+		t->dirty = true;
+		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
+		break;
 	}
 }
 
@@ -736,6 +746,30 @@ tp_palm_detect_multifinger(struct tp_dispatch *tp, struct tp_touch *t, uint64_t 
 }
 
 static inline bool
+tp_palm_detect_touch_size_triggered(struct tp_dispatch *tp,
+				    struct tp_touch *t,
+				    uint64_t time)
+{
+	if (!tp->palm.use_size)
+		return false;
+
+	/* If a finger size is large enough for palm, we stick with that and
+	 * force the user to release and reset the finger */
+	if (t->palm.state != PALM_NONE && t->palm.state != PALM_TOUCH_SIZE)
+		return false;
+
+	if (t->major > tp->palm.size_threshold ||
+	    t->minor > tp->palm.size_threshold) {
+		evdev_log_debug(tp->device,
+				"palm: touch size exceeded\n");
+		t->palm.state = PALM_TOUCH_SIZE;
+		return true;
+	}
+
+	return false;
+}
+
+static inline bool
 tp_palm_detect_edge(struct tp_dispatch *tp,
 		    struct tp_touch *t,
 		    uint64_t time)
@@ -818,6 +852,9 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	if (tp_palm_detect_tool_triggered(tp, t, time))
 		goto out;
 
+	if (tp_palm_detect_touch_size_triggered(tp, t, time))
+		goto out;
+
 	if (tp_palm_detect_edge(tp, t, time))
 		goto out;
 
@@ -851,6 +888,9 @@ out:
 		break;
 	case PALM_PRESSURE:
 		palm_state = "pressure";
+		break;
+	case PALM_TOUCH_SIZE:
+		palm_state = "touch size";
 		break;
 	case PALM_NONE:
 	default:
@@ -1016,6 +1056,45 @@ tp_unhover_pressure(struct tp_dispatch *tp, uint64_t time)
 }
 
 static void
+tp_unhover_size(struct tp_dispatch *tp, uint64_t time)
+{
+	struct tp_touch *t;
+	int low = tp->touch_size.low,
+	    high = tp->touch_size.high;
+	int i;
+
+	/* We require 5 slots for size handling, so we don't need to care
+	 * about fake touches here */
+
+	for (i = 0; i < (int)tp->num_slots; i++) {
+		t = tp_get_touch(tp, i);
+
+		if (t->state == TOUCH_NONE)
+			continue;
+
+		if (!t->dirty)
+			continue;
+
+		if (t->state == TOUCH_HOVERING) {
+			if ((t->major > high && t->minor > low) ||
+			    (t->major > low && t->minor > high)) {
+				evdev_log_debug(tp->device,
+						"touch-size: begin touch\n");
+				/* avoid jumps when landing a finger */
+				tp_motion_history_reset(t);
+				tp_begin_touch(tp, t, time);
+			}
+		} else {
+			if (t->major < low || t->minor < low) {
+				evdev_log_debug(tp->device,
+						"touch-size: end touch\n");
+				tp_end_touch(tp, t, time);
+			}
+		}
+	}
+}
+
+static void
 tp_unhover_fake_touches(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *t;
@@ -1077,6 +1156,8 @@ tp_unhover_touches(struct tp_dispatch *tp, uint64_t time)
 {
 	if (tp->pressure.use_pressure)
 		tp_unhover_pressure(tp, time);
+	else if (tp->touch_size.use_touch_size)
+		tp_unhover_size(tp, time);
 	else
 		tp_unhover_fake_touches(tp, time);
 
@@ -1512,6 +1593,15 @@ tp_sync_touch(struct tp_dispatch *tp,
 		t->pressure = libevdev_get_event_value(evdev,
 						       EV_ABS,
 						       ABS_PRESSURE);
+
+	libevdev_fetch_slot_value(evdev,
+				  slot,
+				  ABS_MT_TOUCH_MAJOR,
+				  &t->major);
+	libevdev_fetch_slot_value(evdev,
+				  slot,
+				  ABS_MT_TOUCH_MINOR,
+				  &t->minor);
 }
 
 static void
@@ -2353,10 +2443,14 @@ tp_init_palmdetect_edge(struct tp_dispatch *tp,
 	struct phys_coords mm = { 0.0, 0.0 };
 	struct device_coords edges;
 
+	if (device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD &&
+	    !tp_is_tpkb_combo_below(device))
+		return;
+
 	evdev_device_get_size(device, &width, &height);
 
-	/* Enable palm detection on touchpads >= 70 mm. Anything smaller
-	   probably won't need it, until we find out it does */
+	/* Enable edge palm detection on touchpads >= 70 mm. Anything
+	   smaller probably won't need it, until we find out it does */
 	if (width < 70.0)
 		return;
 
@@ -2413,6 +2507,33 @@ tp_init_palmdetect_pressure(struct tp_dispatch *tp,
 			tp->palm.pressure_threshold);
 }
 
+static inline void
+tp_init_palmdetect_size(struct tp_dispatch *tp,
+			struct evdev_device *device)
+{
+	const char *prop;
+	int threshold;
+
+	if (!tp->touch_size.use_touch_size)
+		return;
+
+	prop = udev_device_get_property_value(device->udev_device,
+					      "LIBINPUT_ATTR_PALM_SIZE_THRESHOLD");
+	if (!prop)
+		return;
+
+	threshold = parse_palm_size_property(prop);
+	if (threshold == 0) {
+		evdev_log_bug_client(device,
+				     "palm: ignoring invalid threshold %s\n",
+				     prop);
+		return;
+	}
+
+	tp->palm.use_size = true;
+	tp->palm.size_threshold = threshold;
+}
+
 static void
 tp_init_palmdetect(struct tp_dispatch *tp,
 		   struct evdev_device *device)
@@ -2435,6 +2556,7 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 
 	tp_init_palmdetect_edge(tp, device);
 	tp_init_palmdetect_pressure(tp, device);
+	tp_init_palmdetect_size(tp, device);
 }
 
 static void
@@ -2612,7 +2734,7 @@ tp_init_pressure(struct tp_dispatch *tp,
 	prop = udev_device_get_property_value(device->udev_device,
 					      "LIBINPUT_ATTR_PRESSURE_RANGE");
 	if (prop) {
-		if (!parse_pressure_range_property(prop, &hi, &lo)) {
+		if (!parse_range_property(prop, &hi, &lo)) {
 			evdev_log_bug_client(device,
 				     "discarding invalid pressure range '%s'\n",
 				     prop);
@@ -2648,10 +2770,59 @@ tp_init_pressure(struct tp_dispatch *tp,
 			"using pressure-based touch detection\n");
 }
 
+static bool
+tp_init_touch_size(struct tp_dispatch *tp,
+		   struct evdev_device *device)
+{
+	const char *prop;
+	int lo, hi;
+
+	if (!libevdev_has_event_code(device->evdev,
+				     EV_ABS,
+				     ABS_MT_TOUCH_MAJOR)) {
+		return false;
+	}
+
+	if (libevdev_get_num_slots(device->evdev) < 5) {
+		evdev_log_bug_libinput(device,
+			       "Expected 5+ slots for touch size detection\n");
+		return false;
+	}
+
+	prop = udev_device_get_property_value(device->udev_device,
+					      "LIBINPUT_ATTR_TOUCH_SIZE_RANGE");
+	if (!prop)
+		return false;
+
+	if (!parse_range_property(prop, &hi, &lo)) {
+		evdev_log_bug_client(device,
+				     "discarding invalid touch size range '%s'\n",
+				     prop);
+		return false;
+	}
+
+	if (hi == 0 && lo == 0) {
+		evdev_log_info(device,
+			       "touch size based touch detection disabled\n");
+		return false;
+	}
+
+	/* Thresholds apply for both major or minor */
+	tp->touch_size.low = lo;
+	tp->touch_size.high = hi;
+	tp->touch_size.use_touch_size = true;
+
+	evdev_log_debug(device, "using size-based touch detection\n");
+
+	return true;
+}
+
 static int
 tp_init(struct tp_dispatch *tp,
 	struct evdev_device *device)
 {
+	bool use_touch_size = false;
+
 	tp->base.dispatch_type = DISPATCH_TOUCHPAD;
 	tp->base.interface = &tp_interface;
 	tp->device = device;
@@ -2666,7 +2837,11 @@ tp_init(struct tp_dispatch *tp,
 
 	evdev_device_init_abs_range_warnings(device);
 
-	tp_init_pressure(tp, device);
+	if (device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD)
+		use_touch_size = tp_init_touch_size(tp, device);
+
+	if (!use_touch_size)
+		tp_init_pressure(tp, device);
 
 	/* Set the dpi to that of the x axis, because that's what we normalize
 	   to when needed*/

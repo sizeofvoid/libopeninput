@@ -431,6 +431,14 @@ configure_file(input : 'tools/libinput-measure-touchpad-pressure.man',
 	       install : true,
 	       install_dir : join_paths(get_option('mandir'), 'man1')
 	       )
+install_data('tools/libinput-measure-touch-size',
+	     install_dir : libinput_tool_path)
+configure_file(input : 'tools/libinput-measure-touch-size.man',
+	       output : 'libinput-measure-touch-size.1',
+	       configuration : man_config,
+	       install : true,
+	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       )
 
 if get_option('debug-gui')
 	dep_gtk = dependency('gtk+-3.0')
