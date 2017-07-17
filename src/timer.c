@@ -133,6 +133,9 @@ libinput_timer_handler(void *data)
 		return;
 
 	list_for_each_safe(timer, tmp, &libinput->timer.list, link) {
+		if (timer->expire == 0)
+			continue;
+
 		if (timer->expire <= now) {
 			/* Clear the timer before calling timer_func,
 			   as timer_func may re-arm it */
