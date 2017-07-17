@@ -116,7 +116,7 @@ static void
 libinput_timer_handler(void *data)
 {
 	struct libinput *libinput = data;
-	struct libinput_timer *timer, *tmp;
+	struct libinput_timer *timer;
 	uint64_t now;
 	uint64_t discard;
 	int r;
@@ -132,7 +132,8 @@ libinput_timer_handler(void *data)
 	if (now == 0)
 		return;
 
-	list_for_each_safe(timer, tmp, &libinput->timer.list, link) {
+restart:
+	list_for_each(timer, &libinput->timer.list, link) {
 		if (timer->expire == 0)
 			continue;
 
@@ -141,6 +142,16 @@ libinput_timer_handler(void *data)
 			   as timer_func may re-arm it */
 			libinput_timer_cancel(timer);
 			timer->timer_func(now, timer->timer_func_data);
+
+			/*
+			 * Restart the loop. We can't use
+			 * list_for_each_safe() here because that only
+			 * allows removing one (our) timer per timer_func.
+			 * But the timer func may trigger another unrelated
+			 * timer to be cancelled and removed, causing a
+			 * segfault.
+			 */
+			goto restart;
 		}
 	}
 }
