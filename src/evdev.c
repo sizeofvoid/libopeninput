@@ -836,16 +836,16 @@ fallback_process_key(struct fallback_dispatch *dispatch,
 	type = get_key_type(e->code);
 
 	/* Ignore key release events from the kernel for keys that libinput
-	 * never got a pressed event for. */
-	if (e->value == 0) {
-		switch (type) {
-		case EVDEV_KEY_TYPE_NONE:
-			break;
-		case EVDEV_KEY_TYPE_KEY:
-		case EVDEV_KEY_TYPE_BUTTON:
-			if (!hw_is_key_down(dispatch, e->code))
-				return;
-		}
+	 * never got a pressed event for or key presses for keys that we
+	 * think are still down */
+	switch (type) {
+	case EVDEV_KEY_TYPE_NONE:
+		break;
+	case EVDEV_KEY_TYPE_KEY:
+	case EVDEV_KEY_TYPE_BUTTON:
+		if ((e->value && hw_is_key_down(dispatch, e->code)) ||
+		    (e->value == 0 && !hw_is_key_down(dispatch, e->code)))
+			return;
 	}
 
 	hw_set_key_down(dispatch, e->code, e->value);

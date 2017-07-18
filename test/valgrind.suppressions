@@ -45,3 +45,10 @@
    ...
    obj:/usr/lib*/libpython3*.so*
 }
+{
+   libevdev:grab
+   Memcheck:Param
+   ioctl(generic)
+   fun:ioctl
+   fun:libevdev_grab
+}
