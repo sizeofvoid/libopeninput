@@ -490,6 +490,40 @@ START_TEST(pointer_button_has_no_button)
 }
 END_TEST
 
+START_TEST(pointer_recover_from_lost_button_count)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libevdev *evdev = dev->evdev;
+
+	disable_button_scrolling(dev);
+
+	litest_drain_events(dev->libinput);
+
+	litest_button_click(dev, BTN_LEFT, 1);
+
+	litest_assert_button_event(li,
+				   BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+
+	/* Grab for the release to make libinput lose count */
+	libevdev_grab(evdev, LIBEVDEV_GRAB);
+	litest_button_click(dev, BTN_LEFT, 0);
+	libevdev_grab(evdev, LIBEVDEV_UNGRAB);
+
+	litest_assert_empty_queue(li);
+
+	litest_button_click(dev, BTN_LEFT, 1);
+	litest_assert_empty_queue(li);
+
+	litest_button_click(dev, BTN_LEFT, 0);
+	litest_assert_button_event(li,
+				   BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 static inline double
 wheel_click_count(struct litest_device *dev, int which)
 {
@@ -2088,6 +2122,7 @@ litest_setup_tests_pointer(void)
 	litest_add_no_device("pointer:button", pointer_button_auto_release);
 	litest_add_no_device("pointer:button", pointer_seat_button_count);
 	litest_add_for_device("pointer:button", pointer_button_has_no_button, LITEST_KEYBOARD);
+	litest_add("pointer:button", pointer_recover_from_lost_button_count, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add("pointer:scroll", pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add("pointer:scroll", pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:scroll", pointer_scroll_button_noscroll, LITEST_ABSOLUTE|LITEST_BUTTON, LITEST_RELATIVE);
