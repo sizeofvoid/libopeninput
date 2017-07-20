@@ -440,6 +440,15 @@ configure_file(input : 'tools/libinput-measure-touch-size.man',
 	       install_dir : join_paths(get_option('mandir'), 'man1')
 	       )
 
+install_data('tools/libinput-measure-trackpoint-range',
+            install_dir : libinput_tool_path)
+configure_file(input : 'tools/libinput-measure-trackpoint-range.man',
+	       output : 'libinput-measure-trackpoint-range.1',
+	       configuration : man_config,
+	       install : true,
+	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       )
+
 if get_option('debug-gui')
 	dep_gtk = dependency('gtk+-3.0')
 	dep_cairo = dependency('cairo')
