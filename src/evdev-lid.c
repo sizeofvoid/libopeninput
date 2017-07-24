@@ -298,6 +298,7 @@ struct evdev_dispatch *
 evdev_lid_switch_dispatch_create(struct evdev_device *lid_device)
 {
 	struct lid_switch_dispatch *dispatch;
+	int type;
 
 	dispatch = zalloc(sizeof *dispatch);
 	dispatch->base.dispatch_type = DISPATCH_LID_SWITCH;
@@ -308,6 +309,13 @@ evdev_lid_switch_dispatch_create(struct evdev_device *lid_device)
 	evdev_init_sendevents(lid_device, &dispatch->base);
 
 	dispatch->lid_is_closed = false;
+
+	for (type = EV_KEY; type < EV_CNT; type++) {
+		if (type == EV_SW)
+			continue;
+
+		libevdev_disable_event_type(lid_device->evdev, type);
+	}
 
 	return &dispatch->base;
 }

@@ -234,6 +234,7 @@ enum litest_device_type {
 	LITEST_LID_SWITCH,
 	LITEST_LID_SWITCH_SURFACE3,
 	LITEST_APPLETOUCH,
+	LITEST_GPIO_KEYS,
 };
 
 enum litest_device_feature {

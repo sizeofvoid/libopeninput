@@ -555,6 +555,24 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 }
 END_TEST
 
+START_TEST(lid_key_press)
+{
+	struct litest_device *sw = litest_current_device();
+	struct libinput *li = sw->libinput;
+
+	litest_drain_events(li);
+
+	litest_keyboard_key(sw, KEY_POWER, true);
+	litest_keyboard_key(sw, KEY_POWER, false);
+	libinput_dispatch(li);
+
+	/* We should route the key events correctly, but for now we just
+	 * ignore them. This test will fail once the key events are handled
+	 * correctly. */
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 void
 litest_setup_tests_lid(void)
 {
@@ -576,4 +594,6 @@ litest_setup_tests_lid(void)
 
 	litest_add_for_device("lid:buggy", lid_update_hw_on_key, LITEST_LID_SWITCH_SURFACE3);
 	litest_add_for_device("lid:buggy", lid_update_hw_on_key_closed_on_init, LITEST_LID_SWITCH_SURFACE3);
+
+	litest_add_for_device("lid:keypress", lid_key_press, LITEST_GPIO_KEYS);
 }
