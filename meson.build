@@ -512,6 +512,7 @@ if get_option('tests')
 		'test/litest-device-cyborg-rat-5.c',
 		'test/litest-device-elantech-touchpad.c',
 		'test/litest-device-generic-singletouch.c',
+		'test/litest-device-gpio-keys.c',
 		'test/litest-device-huion-pentablet.c',
 		'test/litest-device-keyboard.c',
 		'test/litest-device-keyboard-all-codes.c',
