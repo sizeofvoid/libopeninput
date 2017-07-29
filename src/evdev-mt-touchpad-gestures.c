@@ -334,6 +334,10 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 		if (tp->gesture.finger_count == 2) {
 			tp_gesture_set_scroll_buildup(tp);
 			return GESTURE_STATE_SCROLL;
+		/* more fingers than slots, don't bother with pinch, always
+		 * assume swipe */
+		} else if (tp->gesture.finger_count > tp->num_slots) {
+			return GESTURE_STATE_SWIPE;
 		}
 
 		/* for 3+ finger gestures, check if one finger is > 20mm
@@ -356,7 +360,8 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 
 	/* If both touches are moving in the same direction assume
 	 * scroll or swipe */
-	if (tp_gesture_same_directions(dir1, dir2)) {
+	if (tp->gesture.finger_count > tp->num_slots ||
+	    tp_gesture_same_directions(dir1, dir2)) {
 		if (tp->gesture.finger_count == 2) {
 			tp_gesture_set_scroll_buildup(tp);
 			return GESTURE_STATE_SCROLL;
