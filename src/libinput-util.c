@@ -450,7 +450,7 @@ parse_palm_size_property(const char *prop)
 	if (!prop)
 		return 0;
 
-	if (!safe_atoi(prop, &thr) || thr < 0 || thr > 1024)
+	if (!safe_atoi(prop, &thr) || thr < 0 || thr > 2028)
 		return 0;
 
         return thr;
