@@ -63,7 +63,7 @@ endif
 
 EXTRA_DIST = make-ptraccel-graphs.sh install-compat-scripts.sh $(bin_SCRIPTS)
 
-install-data-hook:
+install-exec-hook:
 	(cd $(DESTDIR)$(bindir) && mv libinput-list-devices.compat libinput-list-devices)
 	(cd $(DESTDIR)$(bindir) && mv libinput-debug-events.compat libinput-debug-events)
 
