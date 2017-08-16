@@ -1351,6 +1351,8 @@ void
 litest_restore_log_handler(struct libinput *libinput)
 {
 	libinput_log_set_handler(libinput, litest_log_handler);
+	if (verbose)
+		libinput_log_set_priority(libinput, LIBINPUT_LOG_PRIORITY_DEBUG);
 }
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
