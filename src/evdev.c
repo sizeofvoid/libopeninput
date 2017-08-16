@@ -3083,6 +3083,17 @@ libevdev_log_func(const struct libevdev *evdev,
 	log_msg_va(libinput, pri, fmt, args);
 }
 
+static bool
+udev_device_should_be_ignored(struct udev_device *udev_device)
+{
+	const char *value;
+
+	value = udev_device_get_property_value(udev_device,
+					       "LIBINPUT_IGNORE_DEVICE");
+
+	return value && !streq(value, "0");
+}
+
 struct evdev_device *
 evdev_device_create(struct libinput_seat *seat,
 		    struct udev_device *udev_device)
@@ -3094,6 +3105,11 @@ evdev_device_create(struct libinput_seat *seat,
 	int unhandled_device = 0;
 	const char *devnode = udev_device_get_devnode(udev_device);
 	const char *sysname = udev_device_get_sysname(udev_device);
+
+	if (udev_device_should_be_ignored(udev_device)) {
+		log_debug(libinput, "%s: device is ignored\n", sysname);
+		return NULL;
+	}
 
 	/* Use non-blocking mode so that we can loop on read on
 	 * evdev_device_data() until all events on the fd are

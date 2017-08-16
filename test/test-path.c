@@ -961,6 +961,26 @@ START_TEST(path_udev_assign_seat)
 }
 END_TEST
 
+START_TEST(path_ignore_device)
+{
+	struct litest_device *dev;
+	struct libinput *li;
+	struct libinput_device *device;
+	const char *path;
+
+	dev = litest_create(LITEST_IGNORED_MOUSE, NULL, NULL, NULL, NULL);
+	path = libevdev_uinput_get_devnode(dev->uinput);
+	ck_assert_notnull(path);
+
+	li = litest_create_context();
+	device = libinput_path_add_device(li, path);
+	ck_assert(device == NULL);
+
+	libinput_unref(li);
+	litest_delete_device(dev);
+}
+END_TEST
+
 void
 litest_setup_tests_path(void)
 {
@@ -987,4 +1007,6 @@ litest_setup_tests_path(void)
 	litest_add_for_device("path:device events", path_double_remove_device, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_no_device("path:seat", path_seat_recycle);
 	litest_add_for_device("path:udev", path_udev_assign_seat, LITEST_SYNAPTICS_CLICKPAD_X220);
+
+	litest_add_no_device("path:ignore", path_ignore_device);
 }

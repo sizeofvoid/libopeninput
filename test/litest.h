@@ -235,6 +235,7 @@ enum litest_device_type {
 	LITEST_LID_SWITCH_SURFACE3,
 	LITEST_APPLETOUCH,
 	LITEST_GPIO_KEYS,
+	LITEST_IGNORED_MOUSE,
 };
 
 enum litest_device_feature {
@@ -267,6 +268,7 @@ enum litest_device_feature {
 	LITEST_TRACKBALL = 1 << 24,
 	LITEST_LEDS = 1 << 25,
 	LITEST_SWITCH = 1 << 26,
+	LITEST_IGNORED = 1 << 27,
 };
 
 /* this is a semi-mt device, so we keep track of the touches that the tests

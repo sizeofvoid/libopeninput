@@ -415,6 +415,7 @@ extern struct litest_test_device litest_lid_switch_device;
 extern struct litest_test_device litest_lid_switch_surface3_device;
 extern struct litest_test_device litest_appletouch_device;
 extern struct litest_test_device litest_gpio_keys_device;
+extern struct litest_test_device litest_ignored_mouse_device;
 
 struct litest_test_device* devices[] = {
 	&litest_synaptics_clickpad_device,
@@ -481,6 +482,7 @@ struct litest_test_device* devices[] = {
 	&litest_lid_switch_surface3_device,
 	&litest_appletouch_device,
 	&litest_gpio_keys_device,
+	&litest_ignored_mouse_device,
 	NULL,
 };
 
@@ -610,6 +612,9 @@ litest_add_tcase(const char *suite_name,
 		added = true;
 	} else if (required != LITEST_ANY || excluded != LITEST_ANY) {
 		for (; *dev; dev++) {
+			if ((*dev)->features & LITEST_IGNORED)
+				continue;
+
 			if (filter_device &&
 			    fnmatch(filter_device, (*dev)->shortname, 0) != 0)
 				continue;
@@ -626,6 +631,9 @@ litest_add_tcase(const char *suite_name,
 		}
 	} else {
 		for (; *dev; dev++) {
+			if ((*dev)->features & LITEST_IGNORED)
+				continue;
+
 			if (filter_device &&
 			    fnmatch(filter_device, (*dev)->shortname, 0) != 0)
 				continue;

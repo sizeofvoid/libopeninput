@@ -560,6 +560,51 @@ START_TEST(udev_path_remove_device)
 }
 END_TEST
 
+START_TEST(udev_ignore_device)
+{
+	struct udev *udev;
+	struct libinput *li;
+	struct libinput_device *device;
+	struct libinput_event *event;
+	struct litest_device *dev;
+	const char *devname;
+
+	dev = litest_create(LITEST_IGNORED_MOUSE, NULL, NULL, NULL, NULL);
+	devname = libevdev_get_name(dev->evdev);
+
+	udev = udev_new();
+	ck_assert(udev != NULL);
+
+	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	ck_assert(li != NULL);
+	litest_restore_log_handler(li);
+
+	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	ck_assert(event != NULL);
+	while (event) {
+		if (libinput_event_get_type(event) ==
+		    LIBINPUT_EVENT_DEVICE_ADDED) {
+			const char *name;
+
+			device = libinput_event_get_device(event);
+			name = libinput_device_get_name(device);
+			ck_assert_str_ne(devname, name);
+		}
+		libinput_event_destroy(event);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+	}
+
+	libinput_unref(li);
+	udev_unref(udev);
+
+	litest_delete_device(dev);
+}
+END_TEST
+
 void
 litest_setup_tests_udev(void)
 {
@@ -579,4 +624,6 @@ litest_setup_tests_udev(void)
 
 	litest_add_no_device("udev:path", udev_path_add_device);
 	litest_add_for_device("udev:path", udev_path_remove_device, LITEST_SYNAPTICS_CLICKPAD_X220);
+
+	litest_add_no_device("udev:ignore", udev_ignore_device);
 }
