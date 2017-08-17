@@ -496,7 +496,7 @@ START_TEST(gestures_swipe_4fg_btntool)
 }
 END_TEST
 
-START_TEST(gestures_pinch_vertical_positon)
+START_TEST(gestures_pinch_vertical_position)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -1075,7 +1075,7 @@ litest_setup_tests_gestures(void)
 	litest_add_ranged("gestures:pinch", gestures_pinch_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add_ranged("gestures:pinch", gestures_pinch_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add_ranged("gestures:pinch", gestures_spread, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
-	litest_add_ranged("gestures:pinch", gestures_pinch_vertical_positon, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &fingers);
+	litest_add_ranged("gestures:pinch", gestures_pinch_vertical_position, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &fingers);
 
 	litest_add("gestures:swipe", gestures_3fg_buttonarea_scroll, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
 	litest_add("gestures:swipe", gestures_3fg_buttonarea_scroll_btntool, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
