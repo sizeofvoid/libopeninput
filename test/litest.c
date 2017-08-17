@@ -1262,7 +1262,10 @@ litest_init_device_udev_rules(struct litest_test_device *dev)
 	return path;
 }
 
-static struct litest_device *
+/**
+ * Creates a uinput device but does not add it to a libinput context
+ */
+struct litest_device *
 litest_create(enum litest_device_type which,
 	      const char *name_override,
 	      struct input_id *id_override,
@@ -1275,6 +1278,8 @@ litest_create(enum litest_device_type which,
 	const struct input_id *id;
 	struct input_absinfo *abs;
 	int *events, *e;
+	const char *path;
+	int fd, rc;
 
 	dev = devices;
 	while (*dev) {
@@ -1294,34 +1299,40 @@ litest_create(enum litest_device_type which,
 		if (abs_override || events_override) {
 			litest_abort_msg("Custom create cannot be overridden");
 		}
+	} else {
+		abs = merge_absinfo((*dev)->absinfo, abs_override);
+		events = merge_events((*dev)->events, events_override);
+		name = name_override ? name_override : (*dev)->name;
+		id = id_override ? id_override : (*dev)->id;
 
-		return d;
-	}
+		d->uinput = litest_create_uinput_device_from_description(name,
+									 id,
+									 abs,
+									 events);
+		d->interface = (*dev)->interface;
 
-	abs = merge_absinfo((*dev)->absinfo, abs_override);
-	events = merge_events((*dev)->events, events_override);
-	name = name_override ? name_override : (*dev)->name;
-	id = id_override ? id_override : (*dev)->id;
+		for (e = events; *e != -1; e += 2) {
+			unsigned int type = *e,
+				     code = *(e + 1);
 
-	d->uinput = litest_create_uinput_device_from_description(name,
-								 id,
-								 abs,
-								 events);
-	d->interface = (*dev)->interface;
-
-	for (e = events; *e != -1; e += 2) {
-		unsigned int type = *e,
-			     code = *(e + 1);
-
-		if (type == INPUT_PROP_MAX &&
-		    code == INPUT_PROP_SEMI_MT) {
-			d->semi_mt.is_semi_mt = true;
-			break;
+			if (type == INPUT_PROP_MAX &&
+			    code == INPUT_PROP_SEMI_MT) {
+				d->semi_mt.is_semi_mt = true;
+				break;
+			}
 		}
+
+		free(abs);
+		free(events);
 	}
 
-	free(abs);
-	free(events);
+	path = libevdev_uinput_get_devnode(d->uinput);
+	litest_assert(path != NULL);
+	fd = open(path, O_RDWR|O_NONBLOCK);
+	litest_assert_int_ne(fd, -1);
+
+	rc = libevdev_new_from_fd(fd, &d->evdev);
+	litest_assert_int_eq(rc, 0);
 
 	return d;
 
@@ -1384,8 +1395,6 @@ litest_add_device_with_overrides(struct libinput *libinput,
 				 const int *events_override)
 {
 	struct litest_device *d;
-	int fd;
-	int rc;
 	const char *path;
 
 	d = litest_create(which,
@@ -1396,11 +1405,6 @@ litest_add_device_with_overrides(struct libinput *libinput,
 
 	path = libevdev_uinput_get_devnode(d->uinput);
 	litest_assert(path != NULL);
-	fd = open(path, O_RDWR|O_NONBLOCK);
-	litest_assert_int_ne(fd, -1);
-
-	rc = libevdev_new_from_fd(fd, &d->evdev);
-	litest_assert_int_eq(rc, 0);
 
 	d->libinput = libinput;
 	d->libinput_device = libinput_path_add_device(d->libinput, path);
@@ -1460,8 +1464,10 @@ litest_delete_device(struct litest_device *d)
 
 	litest_assert_int_eq(d->skip_ev_syn, 0);
 
-	libinput_device_unref(d->libinput_device);
-	libinput_path_remove_device(d->libinput_device);
+	if (d->libinput_device) {
+		libinput_device_unref(d->libinput_device);
+		libinput_path_remove_device(d->libinput_device);
+	}
 	if (d->owns_context)
 		libinput_unref(d->libinput);
 	close(libevdev_get_fd(d->evdev));

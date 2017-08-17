@@ -406,6 +406,13 @@ litest_create_uinput_device_from_description(const char *name,
 					     const struct input_absinfo *abs,
 					     const int *events);
 struct litest_device *
+litest_create(enum litest_device_type which,
+	      const char *name_override,
+	      struct input_id *id_override,
+	      const struct input_absinfo *abs_override,
+	      const int *events_override);
+
+struct litest_device *
 litest_create_device_with_overrides(enum litest_device_type which,
 				    const char *name_override,
 				    struct input_id *id_override,
