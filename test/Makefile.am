@@ -73,6 +73,7 @@ liblitest_la_SOURCES = \
 	litest-device-wacom-intuos5-pen.c \
 	litest-device-wacom-isdv4-e6-pen.c \
 	litest-device-wacom-isdv4-e6-finger.c \
+	litest-device-wacom-mobilestudio-pro-pad.c \
 	litest-device-waltop-tablet.c \
 	litest-device-wheel-only.c \
 	litest-device-xen-virtual-pointer.c \
