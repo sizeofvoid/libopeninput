@@ -236,6 +236,7 @@ enum litest_device_type {
 	LITEST_APPLETOUCH,
 	LITEST_GPIO_KEYS,
 	LITEST_IGNORED_MOUSE,
+	LITEST_WACOM_MOBILESTUDIO_PRO_16_PAD,
 };
 
 enum litest_device_feature {

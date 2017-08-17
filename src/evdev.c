@@ -2748,6 +2748,20 @@ evdev_extract_abs_axes(struct evdev_device *device)
 	device->is_mt = 1;
 }
 
+static void
+evdev_disable_accelerometer_axes(struct evdev_device *device)
+{
+	struct libevdev *evdev = device->evdev;
+
+	libevdev_disable_event_code(evdev, EV_ABS, ABS_X);
+	libevdev_disable_event_code(evdev, EV_ABS, ABS_Y);
+	libevdev_disable_event_code(evdev, EV_ABS, ABS_Z);
+
+	libevdev_disable_event_code(evdev, EV_ABS, REL_X);
+	libevdev_disable_event_code(evdev, EV_ABS, REL_Y);
+	libevdev_disable_event_code(evdev, EV_ABS, REL_Z);
+}
+
 static struct evdev_dispatch *
 evdev_configure_device(struct evdev_device *device)
 {
@@ -2779,10 +2793,14 @@ evdev_configure_device(struct evdev_device *device)
 		 udev_tags & EVDEV_UDEV_TAG_TRACKBALL ? " Trackball" : "",
 		 udev_tags & EVDEV_UDEV_TAG_SWITCH ? " Switch" : "");
 
-	if (udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER) {
+	/* Ignore pure accelerometers, but accept devices that are
+	 * accelerometers with other axes */
+	if (udev_tags == (EVDEV_UDEV_TAG_INPUT|EVDEV_UDEV_TAG_ACCELEROMETER)) {
 		evdev_log_info(device,
 			 "device is an accelerometer, ignoring\n");
 		return NULL;
+	} else if (udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER) {
+		evdev_disable_accelerometer_axes(device);
 	}
 
 	/* libwacom *adds* TABLET, TOUCHPAD but leaves JOYSTICK in place, so
