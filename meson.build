@@ -672,7 +672,7 @@ if get_option('tests')
 	def_LT_VERSION = '-DLIBINPUT_LT_VERSION="@0@:@1@:@2@"'.format(libinput_lt_c, libinput_lt_r, libinput_lt_a)
 	libinput_test_runner = executable('libinput-test-suite-runner',
 					  libinput_test_runner_sources,
-					  include_directories : include_directories('src'),
+					  include_directories : [includes_src, includes_include],
 					  dependencies : dep_litest,
 					  c_args : [ def_LT_VERSION ],
 					  install : false)
@@ -683,25 +683,25 @@ if get_option('tests')
 	# build-test only
         executable('test-build-pedantic',
 		   'test/build-pedantic.c',
-		   include_directories : include_directories('src'),
+		   include_directories : [includes_src, includes_include],
 		   c_args : ['-std=c99', '-pedantic', '-Werror'],
 		   install : false)
 	# build-test only
         executable('test-build-std-gnuc90',
 		   'test/build-pedantic.c',
-		   include_directories : include_directories('src'),
+		   include_directories : [includes_src, includes_include],
 		   c_args : ['-std=gnu90', '-Werror'],
 		   install : false)
 	# test for linking with the minimal linker flags
         executable('test-build-linker',
 		   'test/build-pedantic.c',
-		   include_directories : include_directories('src'),
+		   include_directories : [includes_src, includes_include],
 		   dependencies : [ dep_libinput, dep_libinput_util ],
 		   install : false)
 	# test including from C++
 	executable('test-build-cxx',
 		   'test/build-cxx.cc',
-		   include_directories : include_directories('src'),
+		   include_directories : [includes_src, includes_include],
 		   install : false)
 
 	valgrind_env = environment()
