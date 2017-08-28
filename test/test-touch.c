@@ -911,6 +911,40 @@ START_TEST(touch_fuzz)
 }
 END_TEST
 
+START_TEST(touch_release_on_unplug)
+{
+	struct litest_device *dev;
+	struct libinput *li;
+	struct libinput_event *ev;
+
+	li = litest_create_context();
+	dev = litest_add_device(li, LITEST_GENERIC_MULTITOUCH_SCREEN);
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 10, 1);
+	litest_drain_events(li);
+
+	/* Touch is still down when device is removed, espect a release */
+	litest_delete_device(dev);
+	libinput_dispatch(li);
+
+	ev = libinput_get_event(li);
+	litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_UP);
+	libinput_event_destroy(ev);
+
+	ev = libinput_get_event(li);
+	litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_FRAME);
+	libinput_event_destroy(ev);
+
+	ev = libinput_get_event(li);
+	litest_assert_event_type(ev, LIBINPUT_EVENT_DEVICE_REMOVED);
+	libinput_event_destroy(ev);
+
+	libinput_unref(li);
+}
+END_TEST
+
 void
 litest_setup_tests_touch(void)
 {
@@ -944,4 +978,6 @@ litest_setup_tests_touch(void)
 	litest_add("touch:time", touch_time_usec, LITEST_TOUCH, LITEST_TOUCHPAD);
 
 	litest_add_for_device("touch:fuzz", touch_fuzz, LITEST_MULTITOUCH_FUZZ_SCREEN);
+
+	litest_add_no_device("touch:release", touch_release_on_unplug);
 }
