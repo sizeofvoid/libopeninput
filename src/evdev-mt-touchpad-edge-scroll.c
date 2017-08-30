@@ -384,7 +384,8 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 		if (!t->dirty)
 			continue;
 
-		if (t->palm.state != PALM_NONE)
+		if (t->palm.state != PALM_NONE ||
+		    t->thumb.state == THUMB_STATE_YES)
 			continue;
 
 		/* only scroll with the finger in the previous edge */
