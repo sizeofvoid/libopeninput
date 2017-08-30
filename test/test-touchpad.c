@@ -5378,36 +5378,36 @@ END_TEST
 
 START_TEST(touchpad_palm_detect_touch_size)
 {
-       struct litest_device *dev = litest_current_device();
-       struct libinput *li = dev->libinput;
-       struct axis_replacement axes[] = {
-               { ABS_MT_TOUCH_MAJOR, 0 },
-               { ABS_MT_TOUCH_MINOR, 0 },
-               { -1, 0 }
-       };
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOUCH_MAJOR, 0 },
+		{ ABS_MT_TOUCH_MINOR, 0 },
+		{ -1, 0 }
+	};
 
-       if (!touchpad_has_touch_size(dev) ||
-	   litest_touchpad_is_external(dev))
-               return;
+	if (!touchpad_has_touch_size(dev) ||
+	    litest_touchpad_is_external(dev))
+		return;
 
-       litest_drain_events(li);
-       litest_axis_set_value(axes, ABS_MT_TOUCH_MAJOR, 30);
-       litest_axis_set_value(axes, ABS_MT_TOUCH_MINOR, 30);
-       litest_touch_down_extended(dev, 0, 50, 50, axes);
-       litest_touch_move_to_extended(dev, 0,
-                                     50, 50,
-                                     80, 80,
-                                     axes, 10, 1);
-       litest_assert_only_typed_events(li,
-                                       LIBINPUT_EVENT_POINTER_MOTION);
+	litest_drain_events(li);
+	litest_axis_set_value(axes, ABS_MT_TOUCH_MAJOR, 30);
+	litest_axis_set_value(axes, ABS_MT_TOUCH_MINOR, 30);
+	litest_touch_down_extended(dev, 0, 50, 50, axes);
+	litest_touch_move_to_extended(dev, 0,
+				      50, 50,
+				      80, 80,
+				      axes, 10, 1);
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_POINTER_MOTION);
 
-       litest_axis_set_value_unchecked(axes, ABS_MT_TOUCH_MAJOR, 90);
-       litest_axis_set_value(axes, ABS_MT_TOUCH_MINOR, 90);
-       litest_touch_move_to_extended(dev, 0,
-                                     80, 80,
-                                     50, 50,
-                                     axes, 10, 1);
-       litest_assert_empty_queue(li);
+	litest_axis_set_value_unchecked(axes, ABS_MT_TOUCH_MAJOR, 90);
+	litest_axis_set_value(axes, ABS_MT_TOUCH_MINOR, 90);
+	litest_touch_move_to_extended(dev, 0,
+				      80, 80,
+				      50, 50,
+				      axes, 10, 1);
+	litest_assert_empty_queue(li);
 }
 END_TEST
 
