@@ -1866,7 +1866,7 @@ litest_touch_move_to(struct litest_device *d,
 		     double x_to, double y_to,
 		     int steps, int sleep_ms)
 {
-	for (int i = 1; i < steps - 1; i++) {
+	for (int i = 1; i < steps; i++) {
 		litest_touch_move(d, slot,
 				  x_from + (x_to - x_from)/steps * i,
 				  y_from + (y_to - y_from)/steps * i);
