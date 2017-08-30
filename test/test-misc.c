@@ -1127,6 +1127,77 @@ START_TEST(safe_atoi_test)
 }
 END_TEST
 
+START_TEST(safe_atoi_base_16_test)
+{
+	struct atoi_test tests[] = {
+		{ "10", true, 0x10 },
+		{ "20", true, 0x20 },
+		{ "-1", true, -1 },
+		{ "0x10", true, 0x10 },
+		{ "0xff", true, 0xff },
+		{ "abc", true, 0xabc },
+		{ "-10", true, -0x10 },
+		{ "0x0", true, 0 },
+		{ "0", true, 0 },
+		{ "0x-99", false, 0 },
+		{ "0xak", false, 0 },
+		{ "0x", false, 0 },
+		{ "x10", false, 0 },
+		{ NULL, false, 0 }
+	};
+
+	int v;
+	bool success;
+
+	for (int i = 0; tests[i].str != NULL; i++) {
+		v = 0xad;
+		success = safe_atoi_base(tests[i].str, &v, 16);
+		ck_assert(success == tests[i].success);
+		if (success)
+			ck_assert_int_eq(v, tests[i].val);
+		else
+			ck_assert_int_eq(v, 0xad);
+	}
+}
+END_TEST
+
+START_TEST(safe_atoi_base_8_test)
+{
+	struct atoi_test tests[] = {
+		{ "7", true, 07 },
+		{ "10", true, 010 },
+		{ "20", true, 020 },
+		{ "-1", true, -1 },
+		{ "010", true, 010 },
+		{ "0ff", false, 0 },
+		{ "abc", false, 0},
+		{ "0xabc", false, 0},
+		{ "-10", true, -010 },
+		{ "0", true, 0 },
+		{ "00", true, 0 },
+		{ "0x0", false, 0 },
+		{ "0x-99", false, 0 },
+		{ "0xak", false, 0 },
+		{ "0x", false, 0 },
+		{ "x10", false, 0 },
+		{ NULL, false, 0 }
+	};
+
+	int v;
+	bool success;
+
+	for (int i = 0; tests[i].str != NULL; i++) {
+		v = 0xad;
+		success = safe_atoi_base(tests[i].str, &v, 8);
+		ck_assert(success == tests[i].success);
+		if (success)
+			ck_assert_int_eq(v, tests[i].val);
+		else
+			ck_assert_int_eq(v, 0xad);
+	}
+}
+END_TEST
+
 struct atod_test {
 	char *str;
 	bool success;
@@ -1380,6 +1451,8 @@ litest_setup_tests_misc(void)
 	litest_add_no_device("misc:parser", range_prop_parser);
 	litest_add_no_device("misc:parser", palm_pressure_parser);
 	litest_add_no_device("misc:parser", safe_atoi_test);
+	litest_add_no_device("misc:parser", safe_atoi_base_16_test);
+	litest_add_no_device("misc:parser", safe_atoi_base_8_test);
 	litest_add_no_device("misc:parser", safe_atod_test);
 	litest_add_no_device("misc:parser", strsplit_test);
 	litest_add_no_device("misc:time", time_conversion);
