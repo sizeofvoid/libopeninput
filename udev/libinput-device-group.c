@@ -64,6 +64,86 @@ out:
 }
 #endif
 
+static int
+find_tree_distance(struct udev_device *a, struct udev_device *b)
+{
+	struct udev_device *ancestor_a = a;
+	int dist_a = 0;
+
+	while (ancestor_a != NULL) {
+		const char *path_a = udev_device_get_syspath(ancestor_a);
+		struct udev_device *ancestor_b = b;
+		int dist_b = 0;
+
+		while (ancestor_b != NULL) {
+			const char *path_b = udev_device_get_syspath(ancestor_b);
+
+			if (streq(path_a, path_b))
+				return dist_a + dist_b;
+
+			dist_b++;
+			ancestor_b = udev_device_get_parent(ancestor_b);
+		}
+
+		dist_a++;
+		ancestor_a = udev_device_get_parent(ancestor_a);
+	}
+	return -1;
+}
+
+static void
+wacom_handle_ekr(struct udev_device *device,
+		 int *vendor_id,
+		 int *product_id)
+{
+	struct udev *udev;
+	struct udev_enumerate *e;
+	struct udev_list_entry *entry;
+	int best_dist = -1;
+
+	udev = udev_device_get_udev(device);
+	e = udev_enumerate_new(udev);
+	udev_enumerate_add_match_subsystem(e, "input");
+	udev_enumerate_add_match_sysname(e, "input*");
+	udev_enumerate_scan_devices(e);
+
+	udev_list_entry_foreach(entry, udev_enumerate_get_list_entry(e)) {
+		struct udev_device *d;
+		const char *path;
+		const char *pidstr, *vidstr;
+		int pid, vid, dist;
+
+		/* Find and use the closest Wacom device on the system,
+		 * relying on wacom_handle_paired() to fix our ID later
+		 * if needed.
+		 */
+		path = udev_list_entry_get_name(entry);
+		d = udev_device_new_from_syspath(udev, path);
+		if (!d)
+			continue;
+
+		vidstr = udev_device_get_property_value(d, "ID_VENDOR_ID");
+		pidstr = udev_device_get_property_value(d, "ID_MODEL_ID");
+
+		if (vidstr && pidstr &&
+		    safe_atoi_base(vidstr, &vid, 16) &&
+		    safe_atoi_base(pidstr, &pid, 16) &&
+		    vid == VENDOR_ID_WACOM &&
+		    pid != PRODUCT_ID_WACOM_EKR) {
+			dist = find_tree_distance(device, d);
+			if (dist > 0 && (dist < best_dist || best_dist < 0)) {
+				*vendor_id = vid;
+				*product_id = pid;
+				best_dist = dist;
+			}
+		}
+
+		udev_device_unref(d);
+	}
+
+	udev_enumerate_unref(e);
+}
+
 int main(int argc, char **argv)
 {
 	int rc = 1;
@@ -123,8 +203,16 @@ int main(int argc, char **argv)
 		snprintf(group, sizeof(group), "%s:%s", product, phys);
 	} else {
 #if HAVE_LIBWACOM_GET_PAIRED_DEVICE
-	    if (vendor_id == VENDOR_ID_WACOM)
-		    wacom_handle_paired(device, &vendor_id, &product_id);
+	    if (vendor_id == VENDOR_ID_WACOM) {
+		    if (product_id == PRODUCT_ID_WACOM_EKR)
+			    wacom_handle_ekr(device,
+					     &vendor_id,
+					     &product_id);
+		    /* This is called for the EKR as well */
+		    wacom_handle_paired(device,
+					&vendor_id,
+					&product_id);
+	    }
 #endif
 	    snprintf(group,
 		     sizeof(group),
