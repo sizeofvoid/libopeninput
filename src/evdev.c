@@ -1290,8 +1290,7 @@ evdev_tag_keyboard(struct evdev_device *device,
 }
 
 static void
-evdev_tag_lid_switch(struct evdev_device *device,
-		     struct udev_device *udev_device)
+evdev_tag_lid_switch(struct evdev_device *device)
 {
 	device->tags |= EVDEV_TAG_LID_SWITCH;
 }
@@ -2897,7 +2896,7 @@ evdev_configure_device(struct evdev_device *device)
 	    libevdev_has_event_code(evdev, EV_SW, SW_LID)) {
 		dispatch = evdev_lid_switch_dispatch_create(device);
 		device->seat_caps |= EVDEV_DEVICE_SWITCH;
-		evdev_tag_lid_switch(device, device->udev_device);
+		evdev_tag_lid_switch(device);
 		evdev_log_info(device, "device is a switch device\n");
 		return dispatch;
 	}
