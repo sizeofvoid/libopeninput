@@ -1478,7 +1478,7 @@ tp_remove_sendevents(struct tp_dispatch *tp)
 
 	if (tp->lid_switch.lid_switch)
 		libinput_device_remove_event_listener(
-					&tp->lid_switch.lid_switch_listener);
+					&tp->lid_switch.listener);
 }
 
 static void
@@ -1898,8 +1898,8 @@ tp_pair_lid_switch(struct evdev_device *touchpad,
 				lid_switch->devname);
 
 		libinput_device_add_event_listener(&lid_switch->base,
-					&tp->lid_switch.lid_switch_listener,
-					tp_lid_switch_event, tp);
+						   &tp->lid_switch.listener,
+						   tp_lid_switch_event, tp);
 		tp->lid_switch.lid_switch = lid_switch;
 	}
 }
@@ -1950,7 +1950,7 @@ tp_interface_device_removed(struct evdev_device *device,
 
 	if (removed_device == tp->lid_switch.lid_switch) {
 		libinput_device_remove_event_listener(
-					&tp->lid_switch.lid_switch_listener);
+					&tp->lid_switch.listener);
 		tp->lid_switch.lid_switch = NULL;
 	}
 

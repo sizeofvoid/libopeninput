@@ -404,7 +404,7 @@ struct tp_dispatch {
 	} quirks;
 
 	struct {
-		struct libinput_event_listener lid_switch_listener;
+		struct libinput_event_listener listener;
 		struct evdev_device *lid_switch;
 	} lid_switch;
 };
