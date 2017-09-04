@@ -1342,7 +1342,7 @@ accelerator_set_speed_flat(struct motion_filter *filter,
 	 * skipping over ever second pixel at 200% speed.
 	 */
 
-	accel_filter->factor = 1 + speed_adjustment;
+	accel_filter->factor = max(0.005, 1 + speed_adjustment);
 	filter->speed_adjustment = speed_adjustment;
 
 	return true;
