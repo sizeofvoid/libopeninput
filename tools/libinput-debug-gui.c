@@ -871,6 +871,7 @@ int
 main(int argc, char **argv)
 {
 	struct window w;
+	struct tools_options options;
 	struct libinput *li;
 	enum tools_backend backend = BACKEND_UDEV;
 	const char *seat_or_device = "seat0";
@@ -879,7 +880,7 @@ main(int argc, char **argv)
 
 	gtk_init(&argc, &argv);
 
-	tools_init_options(&w.options);
+	tools_init_options(&options);
 
 	while (1) {
 		int c;
@@ -927,7 +928,7 @@ main(int argc, char **argv)
 			verbose = true;
 			break;
 		default:
-			if (tools_parse_option(c, optarg, &w.options) != 0) {
+			if (tools_parse_option(c, optarg, &options) != 0) {
 				usage();
 				return 1;
 			}
@@ -948,6 +949,7 @@ main(int argc, char **argv)
 	libinput_set_user_data(li, &w);
 
 	window_init(&w);
+	w.options = options;
 	sockets_init(li);
 	handle_event_libinput(NULL, 0, li);
 
