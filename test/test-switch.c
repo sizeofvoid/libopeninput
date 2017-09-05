@@ -418,6 +418,89 @@ START_TEST(switch_disable_touchpad_already_open)
 }
 END_TEST
 
+START_TEST(switch_dont_resume_disabled_touchpad)
+{
+	struct litest_device *sw = litest_current_device();
+	struct litest_device *touchpad;
+	struct libinput *li = sw->libinput;
+	enum libinput_switch which = _i; /* ranged test */
+
+	if (!libinput_device_switch_has_switch(sw->libinput_device, which))
+		return;
+
+	touchpad = switch_init_paired_touchpad(li);
+	litest_disable_tap(touchpad->libinput_device);
+	libinput_device_config_send_events_set_mode(touchpad->libinput_device,
+						    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	litest_drain_events(li);
+
+	/* switch is on - no events */
+	litest_switch_action(sw, which, LIBINPUT_SWITCH_STATE_ON);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_SWITCH_TOGGLE);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	/* switch is off but but tp is still disabled */
+	litest_switch_action(sw, which, LIBINPUT_SWITCH_STATE_OFF);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_SWITCH_TOGGLE);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	litest_delete_device(touchpad);
+}
+END_TEST
+
+START_TEST(switch_dont_resume_disabled_touchpad_external_mouse)
+{
+	struct litest_device *sw = litest_current_device();
+	struct litest_device *touchpad, *mouse;
+	struct libinput *li = sw->libinput;
+	enum libinput_switch which = _i; /* ranged test */
+
+	if (!libinput_device_switch_has_switch(sw->libinput_device, which))
+		return;
+
+	touchpad = switch_init_paired_touchpad(li);
+	mouse = litest_add_device(li, LITEST_MOUSE);
+	litest_disable_tap(touchpad->libinput_device);
+	libinput_device_config_send_events_set_mode(touchpad->libinput_device,
+						    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE);
+	litest_drain_events(li);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	/* switch is on - no events */
+	litest_switch_action(sw, which, LIBINPUT_SWITCH_STATE_ON);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_SWITCH_TOGGLE);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	/* switch is off but but tp is still disabled */
+	litest_switch_action(sw, which, LIBINPUT_SWITCH_STATE_OFF);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_SWITCH_TOGGLE);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	litest_delete_device(touchpad);
+	litest_delete_device(mouse);
+}
+END_TEST
+
 START_TEST(lid_open_on_key)
 {
 	struct litest_device *sw = litest_current_device();
@@ -744,6 +827,8 @@ litest_setup_tests_lid(void)
 	litest_add_ranged("switch:touchpad", switch_disable_touchpad_edge_scroll, LITEST_SWITCH, LITEST_ANY, &switches);
 	litest_add_ranged("switch:touchpad", switch_disable_touchpad_edge_scroll_interrupt, LITEST_SWITCH, LITEST_ANY, &switches);
 	litest_add_ranged("switch:touchpad", switch_disable_touchpad_already_open, LITEST_SWITCH, LITEST_ANY, &switches);
+	litest_add_ranged("switch:touchpad", switch_dont_resume_disabled_touchpad, LITEST_SWITCH, LITEST_ANY, &switches);
+	litest_add_ranged("switch:touchpad", switch_dont_resume_disabled_touchpad_external_mouse, LITEST_SWITCH, LITEST_ANY, &switches);
 
 	litest_add_ranged_no_device("switch:keyboard", switch_suspend_with_keyboard, &switches);
 	litest_add_ranged_no_device("switch:touchpad", switch_suspend_with_touchpad, &switches);
