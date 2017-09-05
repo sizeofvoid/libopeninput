@@ -49,9 +49,11 @@ enum configuration_options {
 	OPT_SCROLL_BUTTON,
 	OPT_SPEED,
 	OPT_PROFILE,
+	OPT_DISABLE_SENDEVENTS,
 };
 
 #define CONFIGURATION_OPTIONS \
+	{ "disable-sendevents",        required_argument, 0, OPT_DISABLE_SENDEVENTS }, \
 	{ "enable-tap",                no_argument,       0, OPT_TAP_ENABLE }, \
 	{ "disable-tap",               no_argument,       0, OPT_TAP_DISABLE }, \
 	{ "enable-drag",               no_argument,       0, OPT_DRAG_ENABLE }, \
@@ -92,6 +94,7 @@ struct tools_options {
 	double speed;
 	int dwt;
 	enum libinput_config_accel_profile profile;
+	char disable_pattern[64];
 };
 
 void tools_init_options(struct tools_options *options);
