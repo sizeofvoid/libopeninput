@@ -414,14 +414,8 @@ configure_file(input : 'tools/libinput-measure.man',
 	       install_dir : join_paths(get_option('mandir'), 'man1')
 	       )
 
-libinput_measure_touchpad_tap_sources = [ 'tools/libinput-measure-touchpad-tap.c' ]
-executable('libinput-measure-touchpad-tap',
-	   libinput_measure_touchpad_tap_sources,
-	   dependencies : deps_tools,
-	   include_directories : [includes_src, includes_include],
-	   install_dir : libinput_tool_path,
-	   install : true,
-	   )
+install_data('tools/libinput-measure-touchpad-tap',
+	     install_dir : libinput_tool_path)
 configure_file(input : 'tools/libinput-measure-touchpad-tap.man',
 	       output : 'libinput-measure-touchpad-tap.1',
 	       configuration : man_config,
