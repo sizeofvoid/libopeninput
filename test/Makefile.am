@@ -29,6 +29,7 @@ liblitest_la_SOURCES = \
 	litest-device-cyborg-rat-5.c \
 	litest-device-elantech-touchpad.c \
 	litest-device-generic-singletouch.c \
+	litest-device-gpio-keys.c \
 	litest-device-huion-pentablet.c \
 	litest-device-keyboard.c \
 	litest-device-keyboard-all-codes.c \
