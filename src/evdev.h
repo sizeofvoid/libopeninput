@@ -75,6 +75,7 @@ enum evdev_device_tags {
 	EVDEV_TAG_LID_SWITCH = (1 << 5),
 	EVDEV_TAG_INTERNAL_KEYBOARD = (1 << 6),
 	EVDEV_TAG_EXTERNAL_KEYBOARD = (1 << 7),
+	EVDEV_TAG_TABLET_MODE_SWITCH = (1 << 8),
 };
 
 enum evdev_middlebutton_state {
@@ -345,6 +346,7 @@ evdev_verify_dispatch_type(struct evdev_dispatch *dispatch,
 
 struct fallback_dispatch {
 	struct evdev_dispatch base;
+	struct evdev_device *device;
 
 	struct libinput_device_config_calibration calibration;
 
@@ -375,6 +377,10 @@ struct fallback_dispatch {
 
 	struct device_coords rel;
 
+	struct {
+		int state;
+	} tablet_mode;
+
 	/* Bitmask of pressed keys used to ignore initial release events from
 	 * the kernel. */
 	unsigned long hw_key_mask[NLONGS(KEY_CNT)];
@@ -391,6 +397,15 @@ struct fallback_dispatch {
 		uint64_t button_up_time;
 		struct libinput_timer timer;
 	} debounce;
+
+	struct {
+		enum switch_reliability reliability;
+
+		bool is_closed;
+		bool is_closed_client_state;
+		struct evdev_device *keyboard;
+		struct libinput_event_listener listener;
+	} lid;
 };
 
 static inline struct fallback_dispatch*
@@ -490,6 +505,10 @@ int
 evdev_device_has_key(struct evdev_device *device, uint32_t code);
 
 int
+evdev_device_has_switch(struct evdev_device *device,
+			enum libinput_switch sw);
+
+int
 evdev_device_tablet_pad_get_num_buttons(struct evdev_device *device);
 
 int
@@ -504,6 +523,10 @@ evdev_device_tablet_pad_get_num_mode_groups(struct evdev_device *device);
 struct libinput_tablet_pad_mode_group *
 evdev_device_tablet_pad_get_mode_group(struct evdev_device *device,
 				       unsigned int index);
+
+enum libinput_switch_state
+evdev_device_switch_get_state(struct evdev_device *device,
+			      enum libinput_switch sw);
 
 double
 evdev_device_transform_x(struct evdev_device *device,
