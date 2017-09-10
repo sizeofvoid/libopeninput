@@ -859,6 +859,15 @@ litest_enable_edge_scroll(struct litest_device *dev)
 	litest_assert_int_eq(status, expected);
 }
 
+static inline bool
+litest_has_clickfinger(struct litest_device *dev)
+{
+	struct libinput_device *device = dev->libinput_device;
+	uint32_t methods = libinput_device_config_click_get_methods(device);
+
+	return methods & LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
+}
+
 static inline void
 litest_enable_clickfinger(struct litest_device *dev)
 {
