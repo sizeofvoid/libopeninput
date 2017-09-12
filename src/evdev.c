@@ -2220,9 +2220,7 @@ evdev_read_switch_reliability_prop(struct evdev_device *device)
 				prop);
 		r =  RELIABILITY_UNKNOWN;
 	} else if (r == RELIABILITY_WRITE_OPEN) {
-		evdev_log_info(device,
-			       "%s: will write switch open events\n",
-			       device->devname);
+		evdev_log_info(device, "will write switch open events\n");
 	}
 
 	return r;
