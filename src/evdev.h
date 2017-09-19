@@ -308,6 +308,8 @@ struct evdev_dispatch_interface {
 	void (*post_added)(struct evdev_device *device,
 			   struct evdev_dispatch *dispatch);
 
+	/* For touch arbitration, called on the device that should
+	 * enable/disable touch capabilities */
 	void (*toggle_touch)(struct evdev_dispatch *dispatch,
 			     struct evdev_device *device,
 			     bool enable);

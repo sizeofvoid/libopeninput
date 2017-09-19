@@ -1734,7 +1734,7 @@ struct evdev_dispatch_interface fallback_interface = {
 	fallback_interface_device_removed, /* device_suspended, treat as remove */
 	fallback_interface_device_added,   /* device_resumed, treat as add */
 	fallback_sync_initial_state, /* post_added */
-	fallback_toggle_touch, /* toggle_touch */
+	fallback_toggle_touch,
 };
 
 static uint32_t
