@@ -36,12 +36,6 @@
 #include "timer.h"
 #include "filter.h"
 
-/*
- * The constant (linear) acceleration factor we use to normalize trackpoint
- * deltas before calculating pointer acceleration.
- */
-#define DEFAULT_TRACKPOINT_ACCEL 1.0
-
 /* The fake resolution value for abs devices without resolution */
 #define EVDEV_FAKE_RESOLUTION 1
 
