@@ -324,7 +324,6 @@ enum evdev_dispatch_type {
 	DISPATCH_TOUCHPAD,
 	DISPATCH_TABLET,
 	DISPATCH_TABLET_PAD,
-	DISPATCH_LID_SWITCH,
 };
 
 struct evdev_dispatch {
