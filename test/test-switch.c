@@ -663,7 +663,6 @@ START_TEST(lid_update_hw_on_key)
 	if (!switch_has_lid(sw))
 		return;
 
-	sleep(5);
 	keyboard = litest_add_device(li, LITEST_KEYBOARD);
 
 	/* separate context to listen to the fake hw event */
