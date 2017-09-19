@@ -2330,6 +2330,7 @@ evdev_process_event(struct evdev_device *device, struct input_event *e)
 			  libevdev_event_code_get_name(e->type, e->code),
 			  e->value);
 #endif
+	libinput_timer_flush(evdev_libinput_context(device), time);
 
 	dispatch->interface->process(dispatch, device, e, time);
 }

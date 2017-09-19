@@ -117,6 +117,7 @@ struct libinput {
 		struct list list;
 		struct libinput_source *source;
 		int fd;
+		uint64_t next_expiry;
 	} timer;
 
 	struct libinput_event **events;

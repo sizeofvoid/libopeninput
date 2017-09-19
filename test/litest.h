@@ -654,6 +654,10 @@ litest_is_switch_event(struct libinput_event *event,
 		       enum libinput_switch_state state);
 
 void
+litest_assert_key_event(struct libinput *li, unsigned int key,
+			enum libinput_key_state state);
+
+void
 litest_assert_button_event(struct libinput *li,
 			   unsigned int button,
 			   enum libinput_button_state state);

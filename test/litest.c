@@ -2932,6 +2932,20 @@ litest_is_motion_event(struct libinput_event *event)
 }
 
 void
+litest_assert_key_event(struct libinput *li, unsigned int key,
+			enum libinput_key_state state)
+{
+	struct libinput_event *event;
+
+	litest_wait_for_event(li);
+	event = libinput_get_event(li);
+
+	litest_is_keyboard_event(event, key, state);
+
+	libinput_event_destroy(event);
+}
+
+void
 litest_assert_button_event(struct libinput *li, unsigned int button,
 			   enum libinput_button_state state)
 {

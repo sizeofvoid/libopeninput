@@ -1419,6 +1419,78 @@ START_TEST(timer_offset_bug_warning)
 }
 END_TEST
 
+START_TEST(timer_flush)
+{
+	struct libinput *li;
+	struct litest_device *keyboard, *touchpad;
+
+	li = litest_create_context();
+
+	touchpad = litest_add_device(li, LITEST_SYNAPTICS_TOUCHPAD);
+	litest_enable_tap(touchpad->libinput_device);
+	libinput_dispatch(li);
+	keyboard = litest_add_device(li, LITEST_KEYBOARD);
+	libinput_dispatch(li);
+	litest_drain_events(li);
+
+	/* make sure tapping works */
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_up(touchpad, 0);
+	libinput_dispatch(li);
+	litest_timeout_tap();
+	libinput_dispatch(li);
+
+	litest_assert_button_event(li, BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_empty_queue(li);
+
+	/* make sure dwt-tap is ignored */
+	litest_keyboard_key(keyboard, KEY_A, true);
+	litest_keyboard_key(keyboard, KEY_A, false);
+	libinput_dispatch(li);
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_up(touchpad, 0);
+	libinput_dispatch(li);
+	litest_timeout_tap();
+	libinput_dispatch(li);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
+	/* Ingore 'timer offset negative' warnings */
+	litest_disable_log_handler(li);
+
+	/* now mess with the timing
+	   - send a key event
+	   - expire dwt
+	   - send a tap
+	   and then call libinput_dispatch(). libinput should notice that
+	   the tap event came in after the timeout and thus acknowledge the
+	   tap.
+	 */
+	litest_keyboard_key(keyboard, KEY_A, true);
+	litest_keyboard_key(keyboard, KEY_A, false);
+	litest_timeout_dwt_long();
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_up(touchpad, 0);
+	libinput_dispatch(li);
+	litest_timeout_tap();
+	libinput_dispatch(li);
+	litest_restore_log_handler(li);
+
+	litest_assert_key_event(li, KEY_A, LIBINPUT_KEY_STATE_PRESSED);
+	litest_assert_key_event(li, KEY_A, LIBINPUT_KEY_STATE_RELEASED);
+	litest_assert_button_event(li, BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+
+	litest_delete_device(keyboard);
+	litest_delete_device(touchpad);
+	libinput_unref(li);
+}
+END_TEST
+
 void
 litest_setup_tests_misc(void)
 {
@@ -1438,6 +1510,7 @@ litest_setup_tests_misc(void)
 	litest_add_no_device("config:status string", config_status_string);
 
 	litest_add_for_device("timer:offset-warning", timer_offset_bug_warning, LITEST_SYNAPTICS_TOUCHPAD);
+	litest_add_no_device("timer:flush", timer_flush);
 
 	litest_add_no_device("misc:matrix", matrix_helpers);
 	litest_add_no_device("misc:ratelimit", ratelimit_helpers);
