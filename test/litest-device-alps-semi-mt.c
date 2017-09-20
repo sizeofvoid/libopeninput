@@ -30,13 +30,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_alps_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_ALPS_SEMI_MT);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -110,15 +103,13 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-struct litest_test_device litest_alps_device = {
+TEST_DEVICE("alps-semi-mt",
 	.type = LITEST_ALPS_SEMI_MT,
 	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SEMI_MT,
-	.shortname = "alps semi-mt",
-	.setup = litest_alps_setup,
 	.interface = &interface,
 
 	.name = "AlpsPS/2 ALPS GlidePoint",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

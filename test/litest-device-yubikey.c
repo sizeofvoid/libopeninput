@@ -26,12 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_yubikey_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_YUBIKEY);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x3,
 	.vendor = 0x1050,
@@ -153,15 +147,13 @@ static int events[] = {
 	-1, -1,
 };
 
-struct litest_test_device litest_yubikey_device = {
+TEST_DEVICE("yubikey",
 	.type = LITEST_YUBIKEY,
 	.features = LITEST_KEYS,
-	.shortname = "yubikey",
-	.setup = litest_yubikey_setup,
 	.interface = NULL,
 
 	.name = "Yubico Yubico Yubikey II",
 	.id = &input_id,
 	.events = events,
 	.absinfo = NULL,
-};
+)

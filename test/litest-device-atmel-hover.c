@@ -30,13 +30,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_atmel_hover_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_ATMEL_HOVER);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -128,15 +121,13 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-struct litest_test_device litest_atmel_hover_device = {
+TEST_DEVICE("atmel-hover",
 	.type = LITEST_ATMEL_HOVER,
 	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_CLICKPAD | LITEST_HOVER,
-	.shortname = "atmel hover",
-	.setup = litest_atmel_hover_setup,
 	.interface = &interface,
 
 	.name = "Atmel maXTouch Touchpad",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

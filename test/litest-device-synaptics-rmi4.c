@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_synaptics_rmi4_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_SYNAPTICS_RMI4);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -118,15 +111,13 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-struct litest_test_device litest_synaptics_rmi4_device = {
+TEST_DEVICE("synaptics-rmi4",
 	.type = LITEST_SYNAPTICS_RMI4,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
-	.shortname = "synaptics rmi4",
-	.setup = litest_synaptics_rmi4_setup,
 	.interface = &interface,
 
 	.name = "Synaptics TM3053-004",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

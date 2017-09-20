@@ -26,12 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_wheel_only_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_WHEEL_ONLY);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x3,
 	.vendor = 0x1,
@@ -52,11 +46,9 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"wheel_only_end\"";
 
-struct litest_test_device litest_wheel_only_device = {
+TEST_DEVICE("wheel-only",
 	.type = LITEST_WHEEL_ONLY,
 	.features = LITEST_WHEEL,
-	.shortname = "wheel only",
-	.setup = litest_wheel_only_setup,
 	.interface = NULL,
 
 	.name = "wheel only device",
@@ -64,4 +56,4 @@ struct litest_test_device litest_wheel_only_device = {
 	.absinfo = NULL,
 	.events = events,
 	.udev_rule = udev_rule,
-};
+)

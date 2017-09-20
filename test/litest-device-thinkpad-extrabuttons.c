@@ -26,12 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_extrabuttons_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_THINKPAD_EXTRABUTTONS);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x19,
 	.vendor = 0x17aa,
@@ -76,15 +70,13 @@ static int events[] = {
 	-1, -1,
 };
 
-struct litest_test_device litest_thinkpad_extrabuttons_device = {
+TEST_DEVICE("thinkpad-extrabuttons",
 	.type = LITEST_THINKPAD_EXTRABUTTONS,
 	.features = LITEST_KEYS | LITEST_SWITCH,
-	.shortname = "thinkpad-extrabuttons",
-	.setup = litest_extrabuttons_setup,
 	.interface = NULL,
 
 	.name = "ThinkPad Extra Buttons",
 	.id = &input_id,
 	.events = events,
 	.absinfo = NULL,
-};
+)

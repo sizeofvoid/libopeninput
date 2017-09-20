@@ -29,12 +29,6 @@
 /* Note: this is the second event node of this mouse only, the first event
  * node is just a normal mouse */
 
-static void litest_mouse_gladius_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_MOUSE_GLADIUS);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x3,
 	.vendor = 0x0b05,
@@ -318,15 +312,13 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-struct litest_test_device litest_mouse_gladius_device = {
+TEST_DEVICE("mouse-gladius",
 	.type = LITEST_MOUSE_GLADIUS,
 	.features = LITEST_RELATIVE | LITEST_WHEEL | LITEST_KEYS,
-	.shortname = "mouse_gladius",
-	.setup = litest_mouse_gladius_setup,
 	.interface = NULL,
 
 	.name = "ASUS ROG GLADIUS",
 	.id = &input_id,
 	.absinfo = absinfo,
 	.events = events,
-};
+)

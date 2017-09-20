@@ -26,12 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_wacom_mobilestudio_pad_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_WACOM_MOBILESTUDIO_PRO_16_PAD);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = -1, .code = -1 },
 };
@@ -111,11 +105,9 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"pad_end\"";
 
-struct litest_test_device litest_wacom_mobilestudio_13hdt_pad_device = {
+TEST_DEVICE("wacom-mobilestudio-pro16-pad",
 	.type = LITEST_WACOM_MOBILESTUDIO_PRO_16_PAD,
 	.features = LITEST_TABLET_PAD | LITEST_RING,
-	.shortname = "wacom-mobilestudio-pro16-pad",
-	.setup = litest_wacom_mobilestudio_pad_setup,
 	.interface = &interface,
 
 	.name = "Wacom MobileStudio Pro 16 Pad",
@@ -123,4 +115,4 @@ struct litest_test_device litest_wacom_mobilestudio_13hdt_pad_device = {
 	.events = events,
 	.absinfo = absinfo,
 	.udev_rule = udev_rule,
-};
+)

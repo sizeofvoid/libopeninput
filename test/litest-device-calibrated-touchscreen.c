@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_calibrated_touchscreen_setup(void)
-{
-	struct litest_device *d =
-		litest_create_device(LITEST_CALIBRATED_TOUCHSCREEN);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
@@ -87,11 +80,9 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"calibrated_touchscreen_end\"";
 
-struct litest_test_device litest_calibrated_touchscreen_device = {
+TEST_DEVICE("calibrated-touchscreen",
 	.type = LITEST_CALIBRATED_TOUCHSCREEN,
 	.features = LITEST_TOUCH,
-	.shortname = "calibrated-touchscreen",
-	.setup = litest_calibrated_touchscreen_setup,
 	.interface = &interface,
 
 	.name = "Calibrated Touchscreen",
@@ -99,4 +90,4 @@ struct litest_test_device litest_calibrated_touchscreen_device = {
 	.events = events,
 	.absinfo = absinfo,
 	.udev_rule = udev_rule,
-};
+)

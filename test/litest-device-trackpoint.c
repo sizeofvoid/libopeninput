@@ -26,12 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_trackpoint_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_TRACKPOINT);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x11,
 	.vendor = 0x2,
@@ -49,11 +43,9 @@ static int events[] = {
 	-1, -1,
 };
 
-struct litest_test_device litest_trackpoint_device = {
+TEST_DEVICE("trackpoint",
 	.type = LITEST_TRACKPOINT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_POINTINGSTICK,
-	.shortname = "trackpoint",
-	.setup = litest_trackpoint_setup,
 	.interface = NULL,
 
 	.name = "TPPS/2 IBM TrackPoint",
@@ -61,4 +53,4 @@ struct litest_test_device litest_trackpoint_device = {
 	.absinfo = NULL,
 	.events = events,
 
-};
+)

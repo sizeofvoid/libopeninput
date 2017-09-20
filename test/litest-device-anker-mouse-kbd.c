@@ -30,12 +30,6 @@
  * This is the keyboard device for this mouse.
  */
 
-static void litest_anker_mouse_kbd_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_ANKER_MOUSE_KBD);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x3,
 	.vendor = 0x4d9,
@@ -209,15 +203,13 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 },
 };
 
-struct litest_test_device litest_anker_mouse_kbd_device = {
+TEST_DEVICE("anker-kbd",
 	.type = LITEST_ANKER_MOUSE_KBD,
 	.features = LITEST_KEYS | LITEST_WHEEL,
-	.shortname = "anker_kbd",
-	.setup = litest_anker_mouse_kbd_setup,
 	.interface = NULL,
 
 	.name = "USB Laser Game Mouse",
 	.id = &input_id,
 	.absinfo = absinfo,
 	.events = events,
-};
+)

@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_wacom_touch_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_WACOM_TOUCH);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -83,15 +76,13 @@ static int events[] = {
 	-1, -1,
 };
 
-struct litest_test_device litest_wacom_touch_device = {
+TEST_DEVICE("wacom-touch",
 	.type = LITEST_WACOM_TOUCH,
 	.features = LITEST_TOUCH,
-	.shortname = "wacom-touch",
-	.setup = litest_wacom_touch_setup,
 	.interface = &interface,
 
 	.name = "Wacom ISDv4 E6 Finger",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

@@ -28,12 +28,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_mouse_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_MOUSE_WHEEL_TILT);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x3,
 	.vendor = 0x17ef,
@@ -61,11 +55,9 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"wheel_wheel_tilt_end\"";
 
-struct litest_test_device litest_mouse_wheel_tilt_device = {
+TEST_DEVICE("mouse-wheel-tilt",
 	.type = LITEST_MOUSE_WHEEL_TILT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
-	.shortname = "mouse-wheel-tilt",
-	.setup = litest_mouse_setup,
 	.interface = NULL,
 
 	.name = "Wheel Tilt Mouse",
@@ -73,4 +65,4 @@ struct litest_test_device litest_mouse_wheel_tilt_device = {
 	.absinfo = NULL,
 	.events = events,
 	.udev_rule = udev_rule,
-};
+)

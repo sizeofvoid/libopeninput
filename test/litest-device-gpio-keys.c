@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_gpio_keys_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_GPIO_KEYS);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x19,
 	.vendor = 0x1,
@@ -59,11 +52,9 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"switch_end\"";
 
-struct litest_test_device litest_gpio_keys_device = {
+TEST_DEVICE("gpio-keys",
 	.type = LITEST_GPIO_KEYS,
 	.features = LITEST_SWITCH,
-	.shortname = "gpio keys",
-	.setup = litest_gpio_keys_setup,
 	.interface = NULL,
 
 	.name = "gpio-keys",
@@ -72,4 +63,4 @@ struct litest_test_device litest_gpio_keys_device = {
 	.absinfo = NULL,
 
 	.udev_rule = udev_rule,
-};
+)

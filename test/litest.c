@@ -351,146 +351,7 @@ void litest_generic_device_teardown(void)
 	current_device = NULL;
 }
 
-extern struct litest_test_device litest_keyboard_device;
-extern struct litest_test_device litest_synaptics_clickpad_device;
-extern struct litest_test_device litest_synaptics_touchpad_device;
-extern struct litest_test_device litest_synaptics_t440_device;
-extern struct litest_test_device litest_trackpoint_device;
-extern struct litest_test_device litest_bcm5974_device;
-extern struct litest_test_device litest_mouse_device;
-extern struct litest_test_device litest_wacom_touch_device;
-extern struct litest_test_device litest_wacom_bamboo_tablet_device;
-extern struct litest_test_device litest_wacom_cintiq_tablet_device;
-extern struct litest_test_device litest_wacom_intuos_tablet_device;
-extern struct litest_test_device litest_wacom_isdv4_tablet_device;
-extern struct litest_test_device litest_alps_device;
-extern struct litest_test_device litest_generic_singletouch_device;
-extern struct litest_test_device litest_qemu_tablet_device;
-extern struct litest_test_device litest_xen_virtual_pointer_device;
-extern struct litest_test_device litest_vmware_virtmouse_device;
-extern struct litest_test_device litest_synaptics_hover_device;
-extern struct litest_test_device litest_synaptics_carbon3rd_device;
-extern struct litest_test_device litest_protocol_a_screen;
-extern struct litest_test_device litest_wacom_finger_device;
-extern struct litest_test_device litest_keyboard_blackwidow_device;
-extern struct litest_test_device litest_wheel_only_device;
-extern struct litest_test_device litest_mouse_roccat_device;
-extern struct litest_test_device litest_ms_surface_cover_device;
-extern struct litest_test_device litest_logitech_trackball_device;
-extern struct litest_test_device litest_atmel_hover_device;
-extern struct litest_test_device litest_alps_dualpoint_device;
-extern struct litest_test_device litest_mouse_low_dpi_device;
-extern struct litest_test_device litest_generic_multitouch_screen_device;
-extern struct litest_test_device litest_nexus4_device;
-extern struct litest_test_device litest_magicpad_device;
-extern struct litest_test_device litest_elantech_touchpad_device;
-extern struct litest_test_device litest_mouse_gladius_device;
-extern struct litest_test_device litest_mouse_wheel_click_angle_device;
-extern struct litest_test_device litest_apple_keyboard_device;
-extern struct litest_test_device litest_anker_mouse_kbd_device;
-extern struct litest_test_device litest_waltop_tablet_device;
-extern struct litest_test_device litest_huion_tablet_device;
-extern struct litest_test_device litest_cyborg_rat_device;
-extern struct litest_test_device litest_yubikey_device;
-extern struct litest_test_device litest_synaptics_i2c_device;
-extern struct litest_test_device litest_wacom_cintiq_24hd_device;
-extern struct litest_test_device litest_multitouch_fuzz_screen_device;
-extern struct litest_test_device litest_wacom_intuos3_pad_device;
-extern struct litest_test_device litest_wacom_intuos5_pad_device;
-extern struct litest_test_device litest_keyboard_all_codes_device;
-extern struct litest_test_device litest_magicmouse_device;
-extern struct litest_test_device litest_wacom_ekr_device;
-extern struct litest_test_device litest_wacom_cintiq_24hdt_pad_device;
-extern struct litest_test_device litest_wacom_cintiq_13hdt_finger_device;
-extern struct litest_test_device litest_wacom_cintiq_13hdt_pen_device;
-extern struct litest_test_device litest_wacom_cintiq_13hdt_pad_device;
-extern struct litest_test_device litest_wacom_hid4800_tablet_device;
-extern struct litest_test_device litest_mouse_wheel_click_count_device;
-extern struct litest_test_device litest_calibrated_touchscreen_device;
-extern struct litest_test_device litest_acer_hawaii_keyboard_device;
-extern struct litest_test_device litest_acer_hawaii_touchpad_device;
-extern struct litest_test_device litest_synaptics_rmi4_device;
-extern struct litest_test_device litest_mouse_wheel_tilt_device;
-extern struct litest_test_device litest_lid_switch_device;
-extern struct litest_test_device litest_lid_switch_surface3_device;
-extern struct litest_test_device litest_appletouch_device;
-extern struct litest_test_device litest_gpio_keys_device;
-extern struct litest_test_device litest_ignored_mouse_device;
-extern struct litest_test_device litest_wacom_mobilestudio_13hdt_pad_device;
-extern struct litest_test_device litest_thinkpad_extrabuttons_device;
-extern struct litest_test_device litest_uclogic_tablet_device;
-
-struct litest_test_device* devices[] = {
-	&litest_synaptics_clickpad_device,
-	&litest_synaptics_touchpad_device,
-	&litest_synaptics_t440_device,
-	&litest_keyboard_device,
-	&litest_trackpoint_device,
-	&litest_bcm5974_device,
-	&litest_mouse_device,
-	&litest_wacom_touch_device,
-	&litest_wacom_bamboo_tablet_device,
-	&litest_wacom_cintiq_tablet_device,
-	&litest_wacom_intuos_tablet_device,
-	&litest_wacom_isdv4_tablet_device,
-	&litest_alps_device,
-	&litest_generic_singletouch_device,
-	&litest_qemu_tablet_device,
-	&litest_xen_virtual_pointer_device,
-	&litest_vmware_virtmouse_device,
-	&litest_synaptics_hover_device,
-	&litest_synaptics_carbon3rd_device,
-	&litest_protocol_a_screen,
-	&litest_wacom_finger_device,
-	&litest_keyboard_blackwidow_device,
-	&litest_wheel_only_device,
-	&litest_mouse_roccat_device,
-	&litest_ms_surface_cover_device,
-	&litest_logitech_trackball_device,
-	&litest_atmel_hover_device,
-	&litest_alps_dualpoint_device,
-	&litest_mouse_low_dpi_device,
-	&litest_generic_multitouch_screen_device,
-	&litest_nexus4_device,
-	&litest_magicpad_device,
-	&litest_elantech_touchpad_device,
-	&litest_mouse_gladius_device,
-	&litest_mouse_wheel_click_angle_device,
-	&litest_apple_keyboard_device,
-	&litest_anker_mouse_kbd_device,
-	&litest_waltop_tablet_device,
-	&litest_huion_tablet_device,
-	&litest_cyborg_rat_device,
-	&litest_yubikey_device,
-	&litest_synaptics_i2c_device,
-	&litest_wacom_cintiq_24hd_device,
-	&litest_multitouch_fuzz_screen_device,
-	&litest_wacom_intuos3_pad_device,
-	&litest_wacom_intuos5_pad_device,
-	&litest_keyboard_all_codes_device,
-	&litest_magicmouse_device,
-	&litest_wacom_ekr_device,
-	&litest_wacom_cintiq_24hdt_pad_device,
-	&litest_wacom_cintiq_13hdt_finger_device,
-	&litest_wacom_cintiq_13hdt_pen_device,
-	&litest_wacom_cintiq_13hdt_pad_device,
-	&litest_wacom_hid4800_tablet_device,
-	&litest_mouse_wheel_click_count_device,
-	&litest_calibrated_touchscreen_device,
-	&litest_acer_hawaii_keyboard_device,
-	&litest_acer_hawaii_touchpad_device,
-	&litest_synaptics_rmi4_device,
-	&litest_mouse_wheel_tilt_device,
-	&litest_lid_switch_device,
-	&litest_lid_switch_surface3_device,
-	&litest_appletouch_device,
-	&litest_gpio_keys_device,
-	&litest_ignored_mouse_device,
-	&litest_wacom_mobilestudio_13hdt_pad_device,
-	&litest_thinkpad_extrabuttons_device,
-	&litest_uclogic_tablet_device,
-	NULL,
-};
+struct litest_test_device** devices;
 
 static struct list all_tests;
 
@@ -3663,11 +3524,38 @@ litest_list_tests(struct list *tests)
 	}
 }
 
+extern const struct test_device __start_test_section, __stop_test_section;
+
+static void
+litest_init_test_devices(void)
+{
+	const struct test_device *t;
+	size_t ndevices = 0;
+
+	for (ndevices = 1,
+	     t = &__start_test_section;
+	     t < &__stop_test_section;
+	     ndevices++, t++)
+		; /* loopdeeloop */
+
+	ndevices++;
+	devices = zalloc(ndevices * sizeof(*devices));
+
+	for (ndevices = 0,
+	     t = &__start_test_section;
+	     t < &__stop_test_section;
+	     t++, ndevices++) {
+		devices[ndevices] = t->device;
+	}
+}
+
 int
 main(int argc, char **argv)
 {
 	const struct rlimit corelimit = { 0, 0 };
 	enum litest_mode mode;
+
+	litest_init_test_devices();
 
 	list_init(&all_tests);
 

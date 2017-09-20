@@ -27,13 +27,6 @@
 #include "litest-int.h"
 #include <assert.h>
 
-static void
-litest_xen_virtual_pointer_touch_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_XEN_VIRTUAL_POINTER);
-	litest_set_current_device(d);
-}
-
 static void touch_down(struct litest_device *d, unsigned int slot,
 		       double x, double y)
 {
@@ -91,15 +84,13 @@ static int events[] = {
 	-1, -1,
 };
 
-struct litest_test_device litest_xen_virtual_pointer_device = {
+TEST_DEVICE("xen-pointer",
 	.type = LITEST_XEN_VIRTUAL_POINTER,
 	.features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE,
-	.shortname = "xen pointer",
-	.setup = litest_xen_virtual_pointer_touch_setup,
 	.interface = &interface,
 
 	.name = "Xen Virtual Pointer",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

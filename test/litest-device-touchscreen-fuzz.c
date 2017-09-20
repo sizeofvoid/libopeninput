@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_fuzz_mt_setup(void)
-{
-	struct litest_device *d =
-		litest_create_device(LITEST_MULTITOUCH_FUZZ_SCREEN);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
@@ -80,15 +73,13 @@ static int events[] = {
 	-1, -1
 };
 
-struct litest_test_device litest_multitouch_fuzz_screen_device = {
+TEST_DEVICE("touchscreen-fuzz",
 	.type = LITEST_MULTITOUCH_FUZZ_SCREEN,
 	.features = LITEST_TOUCH,
-	.shortname = "touchscreen-fuzz",
-	.setup = litest_fuzz_mt_setup,
 	.interface = &interface,
 
 	.name = "touchscreen with fuzz",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

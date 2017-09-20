@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_wacom_intuos3_pad_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_WACOM_INTUOS3_PAD);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = -1, .code = -1 },
 };
@@ -101,11 +94,9 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"pad_end\"";
 
-struct litest_test_device litest_wacom_intuos3_pad_device = {
+TEST_DEVICE("wacom-intuos3-pad",
 	.type = LITEST_WACOM_INTUOS3_PAD,
 	.features = LITEST_TABLET_PAD | LITEST_STRIP,
-	.shortname = "wacom-intuos3-pad",
-	.setup = litest_wacom_intuos3_pad_setup,
 	.interface = &interface,
 
 	.name = "Wacom Intuos3 4x6 Pad",
@@ -113,4 +104,4 @@ struct litest_test_device litest_wacom_intuos3_pad_device = {
 	.events = events,
 	.absinfo = absinfo,
 	.udev_rule = udev_rule,
-};
+)

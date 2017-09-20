@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_wacom_finger_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_WACOM_FINGER);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -97,11 +90,9 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"rule_end\"";
 
-struct litest_test_device litest_wacom_finger_device = {
+TEST_DEVICE("wacom-finger",
 	.type = LITEST_WACOM_FINGER,
 	.features = LITEST_TOUCHPAD,
-	.shortname = "wacom-finger",
-	.setup = litest_wacom_finger_setup,
 	.interface = &interface,
 
 	.name = "Wacom Intuos5 touch M Finger",
@@ -109,4 +100,4 @@ struct litest_test_device litest_wacom_finger_device = {
 	.events = events,
 	.absinfo = absinfo,
 	.udev_rule = udev_rule,
-};
+)

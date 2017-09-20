@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_synaptics_touchpad_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_SYNAPTICS_TOUCHPAD);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -95,15 +88,13 @@ static int events[] = {
 	-1, -1,
 };
 
-struct litest_test_device litest_synaptics_touchpad_device = {
+TEST_DEVICE("synaptics-st",
 	.type = LITEST_SYNAPTICS_TOUCHPAD,
 	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SINGLE_TOUCH,
-	.shortname = "synaptics ST",
-	.setup = litest_synaptics_touchpad_setup,
 	.interface = &interface,
 
 	.name = "SynPS/2 Synaptics TouchPad",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

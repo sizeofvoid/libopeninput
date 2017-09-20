@@ -631,17 +631,16 @@ if get_option('tests')
 		def_no_main,
 		def_disable_backtrace
 	]
-	test_litest_selftest_sources = [
+	test_litest_selftest_sources = lib_litest_sources + [
 		'test/litest-selftest.c',
 		'test/litest.c',
 		'test/litest-int.h',
 		'test/litest.h'
 	]
-	deps_litest_selftest = [dep_litest]
 	test_litest_selftest = executable('test-litest-selftest',
 					  test_litest_selftest_sources,
 					  include_directories : [includes_src, includes_include],
-					  dependencies : deps_litest_selftest,
+					  dependencies : deps_litest,
 					  c_args : defs_litest_selftest,
 					  install : false)
 	test('test-litest-selftest', test_litest_selftest)
@@ -651,7 +650,7 @@ if get_option('tests')
 	     test_symbols_leak,
 	     args : [ meson.current_source_dir() ])
 
-	libinput_test_runner_sources = [
+	libinput_test_runner_sources = lib_litest_sources + [
 		'src/libinput-util.h',
 		'src/libinput-util.c',
 		'test/test-udev.c',
@@ -676,7 +675,7 @@ if get_option('tests')
 	libinput_test_runner = executable('libinput-test-suite-runner',
 					  libinput_test_runner_sources,
 					  include_directories : [includes_src, includes_include],
-					  dependencies : dep_litest,
+					  dependencies : deps_litest,
 					  c_args : [ def_LT_VERSION ],
 					  install : false)
 	test('libinput-test-suite-runner',

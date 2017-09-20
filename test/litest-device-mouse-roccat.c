@@ -26,12 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_mouse_roccat_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_MOUSE_ROCCAT);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x3,
 	.vendor = 0x1e7d,
@@ -190,15 +184,13 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-struct litest_test_device litest_mouse_roccat_device = {
+TEST_DEVICE("mouse-roccat",
 	.type = LITEST_MOUSE_ROCCAT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL | LITEST_KEYS,
-	.shortname = "mouse_roccat",
-	.setup = litest_mouse_roccat_setup,
 	.interface = NULL,
 
 	.name = "ROCCAT ROCCAT Kone XTD",
 	.id = &input_id,
 	.absinfo = absinfo,
 	.events = events,
-};
+)

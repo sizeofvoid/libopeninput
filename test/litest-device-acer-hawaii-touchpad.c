@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_touchpad_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_ACER_HAWAII_TOUCHPAD);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -98,11 +91,9 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"touchpad_end\"";
 
-struct litest_test_device litest_acer_hawaii_touchpad_device = {
+TEST_DEVICE("hawaii-touchpad",
 	.type = LITEST_ACER_HAWAII_TOUCHPAD,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
-	.shortname = "hawaii-touchpad",
-	.setup = litest_touchpad_setup,
 	.interface = &interface,
 
 	.name = "Chicony ACER Hawaii Keyboard Touchpad",
@@ -110,4 +101,4 @@ struct litest_test_device litest_acer_hawaii_touchpad_device = {
 	.events = events,
 	.absinfo = absinfo,
 	.udev_rule = udev_rule,
-};
+)

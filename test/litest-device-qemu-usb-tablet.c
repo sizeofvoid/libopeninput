@@ -27,13 +27,6 @@
 #include "litest-int.h"
 #include <assert.h>
 
-static void
-litest_qemu_tablet_touch_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_QEMU_TABLET);
-	litest_set_current_device(d);
-}
-
 static void touch_down(struct litest_device *d, unsigned int slot,
 		       double x, double y)
 {
@@ -86,15 +79,13 @@ static int events[] = {
 	-1, -1,
 };
 
-struct litest_test_device litest_qemu_tablet_device = {
+TEST_DEVICE("qemu-tablet",
 	.type = LITEST_QEMU_TABLET,
 	.features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE,
-	.shortname = "qemu tablet",
-	.setup = litest_qemu_tablet_touch_setup,
 	.interface = &interface,
 
 	.name = "QEMU 0.12.1 QEMU USB Tablet",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

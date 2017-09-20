@@ -32,12 +32,6 @@
  * file.
  */
 
-static void litest_blackwidow_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_KEYBOARD_BLACKWIDOW);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x3,
 	.vendor = 0x1532,
@@ -335,15 +329,13 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 },
 };
 
-struct litest_test_device litest_keyboard_blackwidow_device = {
+TEST_DEVICE("blackwidow",
 	.type = LITEST_KEYBOARD_BLACKWIDOW,
 	.features = LITEST_KEYS | LITEST_WHEEL,
-	.shortname = "blackwidow",
-	.setup = litest_blackwidow_setup,
 	.interface = NULL,
 
 	.name = "Razer Razer BlackWidow 2013",
 	.id = &input_id,
 	.absinfo = absinfo,
 	.events = events,
-};
+)

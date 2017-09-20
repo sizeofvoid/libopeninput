@@ -26,12 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_apple_keyboard_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_APPLE_KEYBOARD);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x3,
 	.vendor = 0x5ac,
@@ -223,15 +217,13 @@ static int events[] = {
 	-1, -1
 };
 
-struct litest_test_device litest_apple_keyboard_device = {
+TEST_DEVICE("apple-keyboard",
 	.type = LITEST_APPLE_KEYBOARD,
 	.features = LITEST_KEYS,
-	.shortname = "apple_keyboard",
-	.setup = litest_apple_keyboard_setup,
 	.interface = NULL,
 
 	.name = "Apple Inc. Apple Internal Keyboard / Trackpad",
 	.id = &input_id,
 	.events = events,
 	.absinfo = NULL,
-};
+)

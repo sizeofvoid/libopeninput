@@ -27,13 +27,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_lid_switch_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_LID_SWITCH_SURFACE3);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x19,
 	.vendor = 0x0,
@@ -55,11 +48,9 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"switch_end\"";
 
-struct litest_test_device litest_lid_switch_surface3_device = {
+TEST_DEVICE("lid-switch-surface3",
 	.type = LITEST_LID_SWITCH_SURFACE3,
 	.features = LITEST_SWITCH,
-	.shortname = "lid-switch-surface3",
-	.setup = litest_lid_switch_setup,
 	.interface = NULL,
 
 	.name = "Lid Switch Surface3",
@@ -68,4 +59,4 @@ struct litest_test_device litest_lid_switch_surface3_device = {
 	.absinfo = NULL,
 
 	.udev_rule = udev_rule,
-};
+)
