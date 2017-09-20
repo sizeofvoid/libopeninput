@@ -25,12 +25,13 @@
 
 #include "litest.h"
 #include "litest-int.h"
+#include "libinput-util.h"
 
 static void all_codes_create(struct litest_device *d);
 
 static void litest_keyboard_all_codes_setup(void)
 {
-	struct litest_device *d = litest_create_device(LITEST_KEYBOARD);
+	struct litest_device *d = litest_create_device(LITEST_KEYBOARD_ALL_CODES);
 	litest_set_current_device(d);
 }
 
@@ -61,6 +62,11 @@ all_codes_create(struct litest_device *d)
 	int code, idx;
 
 	for (idx = 0, code = 0; code < KEY_MAX; code++) {
+		const char *name = libevdev_event_code_get_name(EV_KEY, code);
+
+		if (name && strneq(name, "BTN_", 4))
+			continue;
+
 		events[idx++] = EV_KEY;
 		events[idx++] = code;
 	}
