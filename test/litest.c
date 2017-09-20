@@ -758,7 +758,7 @@ _litest_add_ranged_for_device(const char *name,
 
 	/* only abort if no filter was set, that's a bug */
 	if (!device_filtered)
-		litest_abort_msg("Invalid test device type");
+		litest_abort_msg("Invalid test device type\n");
 }
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
