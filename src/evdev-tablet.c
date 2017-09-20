@@ -1667,12 +1667,14 @@ tablet_proximity_out_quirk_timer_func(uint64_t now, void *data)
 		return;
 	}
 
+	tablet->quirks.proximity_out_in_progress = true;
 	ARRAY_FOR_EACH(events, e) {
 		tablet->base.interface->process(&tablet->base,
 						 tablet->device,
 						 e,
 						 now);
 	}
+	tablet->quirks.proximity_out_in_progress = false;
 
 	tablet->quirks.proximity_out_forced = true;
 }
@@ -1721,10 +1723,19 @@ tablet_proximity_out_quirk_update(struct tablet_dispatch *tablet,
 		}
 		tablet->quirks.last_event_time = time;
 	} else if (e->type == EV_KEY && e->code == BTN_TOOL_PEN) {
-		if (e->value)
+		if (e->value) {
 			tablet_proximity_out_quirk_set_timer(tablet, time);
-		else
+		} else {
+			/* If we get a BTN_TOOL_PEN 0 when *not* injecting
+			 * events it means the tablet will give us the right
+			 * events after all and we can disable our
+			 * timer-based proximity out.
+			 */
+			if (!tablet->quirks.proximity_out_in_progress)
+				tablet->quirks.need_to_force_prox_out = false;
+
 			libinput_timer_cancel(&tablet->quirks.prox_out_timer);
+		}
 	}
 }
 

@@ -59,7 +59,7 @@ REAL = Combine((INTEGER + Optional('.' + Optional(INTEGER))) ^ ('.' + INTEGER))
 UDEV_TAG = Word(string.ascii_uppercase, alphanums + '_')
 
 TYPES = {
-    'libinput': ('name', 'touchpad', 'mouse', 'keyboard'),
+    'libinput': ('name', 'touchpad', 'mouse', 'keyboard', 'tablet'),
 }
 
 

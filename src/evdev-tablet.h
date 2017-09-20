@@ -89,6 +89,9 @@ struct tablet_dispatch {
 		struct libinput_timer prox_out_timer;
 		bool proximity_out_forced;
 		uint64_t last_event_time;
+
+		/* true while injecting BTN_TOOL_PEN events */
+		bool proximity_out_in_progress;
 	} quirks;
 };
 

@@ -171,15 +171,10 @@ libinput:name:AlpsPS/2 ALPS GlidePoint:dmi:*svnHP:pnHPZBookStudioG3:*
 # matching BTN_TOOL_PEN value 0 event. The device appears as if it was
 # permanently in proximity.
 #
-# If the tablet is affected by this bug, copy the two lines below into a new
-# file
-# /etc/udev/hwdb.d/90-libinput-huion-pentablet-proximity-quirk.hwdb, then run
-# sudo udevadm hwdb --update and reboot.
-#
-# Note that HUION re-uses USB IDs for its devices, not ever HUION tablet is
-# affected by this bug.
-#libinput:name:PenTablet Pen:dmi:*
-# LIBINPUT_MODEL_TABLET_NO_PROXIMITY_OUT=1
+# HUION re-uses USB IDs for its devices, not every HUION tablet is
+# affected by this bug, libinput will auto-disable this feature
+libinput:tablet:input:b0003v256Cp*
+ LIBINPUT_MODEL_TABLET_NO_PROXIMITY_OUT=1
 
 ##########################################
 # LENOVO
