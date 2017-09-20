@@ -31,9 +31,6 @@
 #include "litest-int.h"
 
 static void
-atmel_hover_create(struct litest_device *d);
-
-static void
 litest_atmel_hover_setup(void)
 {
 	struct litest_device *d = litest_create_device(LITEST_ATMEL_HOVER);
@@ -137,27 +134,9 @@ struct litest_test_device litest_atmel_hover_device = {
 	.shortname = "atmel hover",
 	.setup = litest_atmel_hover_setup,
 	.interface = &interface,
-	.create = atmel_hover_create,
 
 	.name = "Atmel maXTouch Touchpad",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
 };
-
-static void
-atmel_hover_create(struct litest_device *d)
-{
-	struct litest_semi_mt *semi_mt;
-
-	semi_mt = zalloc(sizeof(*semi_mt));
-
-	d->private = semi_mt;
-
-	d->uinput = litest_create_uinput_device_from_description(
-			litest_atmel_hover_device.name,
-			litest_atmel_hover_device.id,
-			absinfo,
-			events);
-	d->interface = &interface;
-}
