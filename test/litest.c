@@ -408,10 +408,11 @@ litest_add_tcase_for_device(struct suite *suite,
 static void
 litest_add_tcase_no_device(struct suite *suite,
 			   void *func,
+			   const char *funcname,
 			   const struct range *range)
 {
 	struct test *t;
-	const char *test_name = "no device";
+	const char *test_name = funcname;
 
 	if (filter_device &&
 	    fnmatch(filter_device, test_name, 0) != 0)
@@ -475,7 +476,7 @@ litest_add_tcase(const char *suite_name,
 
 	if (required == LITEST_DISABLE_DEVICE &&
 	    excluded == LITEST_DISABLE_DEVICE) {
-		litest_add_tcase_no_device(suite, func, range);
+		litest_add_tcase_no_device(suite, func, funcname, range);
 		added = true;
 	} else if (required != LITEST_ANY || excluded != LITEST_ANY) {
 		for (; *dev; dev++) {
