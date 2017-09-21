@@ -3515,12 +3515,19 @@ static void
 litest_list_tests(struct list *tests)
 {
 	struct suite *s;
+	const char *last_test_name = NULL;
 
 	list_for_each(s, tests, node) {
 		struct test *t;
 		printf("%s:\n", s->name);
 		list_for_each(t, &s->tests, node) {
-			printf("	%s\n", t->name);
+			if (!last_test_name ||
+			    !streq(last_test_name, t->name))
+				printf("	%s:\n", t->name);
+
+			last_test_name = t->name;
+
+			printf("		%s\n", t->devname);
 		}
 	}
 }
