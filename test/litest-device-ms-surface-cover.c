@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_ms_surface_cover_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_MS_SURFACE_COVER);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -374,15 +367,13 @@ static int events[] = {
 	-1, -1,
 };
 
-struct litest_test_device litest_ms_surface_cover_device = {
+TEST_DEVICE("ms-surface-cover",
 	.type = LITEST_MS_SURFACE_COVER,
 	.features = LITEST_KEYS | LITEST_ABSOLUTE | LITEST_RELATIVE | LITEST_FAKE_MT | LITEST_BUTTON | LITEST_WHEEL,
-	.shortname = "MS surface cover",
-	.setup = litest_ms_surface_cover_setup,
 	.interface = &interface,
 
 	.name = "Microsoft Surface Type Cover",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

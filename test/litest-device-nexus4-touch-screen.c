@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_nexus4_setup(void)
-{
-	struct litest_device *d =
-		litest_create_device(LITEST_NEXUS4_TOUCH_SCREEN);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
@@ -83,15 +76,13 @@ static int events[] = {
 	-1, -1
 };
 
-struct litest_test_device litest_nexus4_device = {
+TEST_DEVICE("nexus4",
 	.type = LITEST_NEXUS4_TOUCH_SCREEN,
 	.features = LITEST_TOUCH|LITEST_ELLIPSE,
-	.shortname = "nexus4",
-	.setup = litest_nexus4_setup,
 	.interface = &interface,
 
 	.name = "Nexus 4 touch screen",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

@@ -27,13 +27,6 @@
 #include "litest-int.h"
 #include <assert.h>
 
-static void
-litest_vmware_virtmouse_touch_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_VMWARE_VIRTMOUSE);
-	litest_set_current_device(d);
-}
-
 static void touch_down(struct litest_device *d, unsigned int slot,
 		       double x, double y)
 {
@@ -100,15 +93,13 @@ static int events[] = {
 	-1, -1,
 };
 
-struct litest_test_device litest_vmware_virtmouse_device = {
+TEST_DEVICE("vmware-virtmouse",
 	.type = LITEST_VMWARE_VIRTMOUSE,
 	.features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE,
-	.shortname = "vmware virtmouse",
-	.setup = litest_vmware_virtmouse_touch_setup,
 	.interface = &interface,
 
 	.name = "VMware VMware Virtual USB Mouse",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

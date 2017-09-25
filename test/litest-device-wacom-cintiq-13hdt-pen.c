@@ -26,12 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_wacom_cintiq_tablet_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_WACOM_CINTIQ_13HDT_PEN);
-	litest_set_current_device(d);
-}
-
 static struct input_event proximity_in[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -141,11 +135,9 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"rule_end\"";
 
-struct litest_test_device litest_wacom_cintiq_13hdt_pen_device = {
+TEST_DEVICE("wacom-cintiq-13hdt-pen-tablet",
 	.type = LITEST_WACOM_CINTIQ_13HDT_PEN,
 	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT,
-	.shortname = "wacom-cintiq-13hdt-pen-tablet",
-	.setup = litest_wacom_cintiq_tablet_setup,
 	.interface = &interface,
 
 	.name = "Wacom Cintiq 13 HD touch Pen",
@@ -153,4 +145,4 @@ struct litest_test_device litest_wacom_cintiq_13hdt_pen_device = {
 	.events = events,
 	.absinfo = absinfo,
 	.udev_rule = udev_rule,
-};
+)

@@ -29,13 +29,6 @@
 /* Recording from https://bugs.freedesktop.org/show_bug.cgi?id=102039
  * This is the 'video switch' of 2 devices exported by this keyboard.
  */
-static void litest_blade_stealth_setup(void)
-{
-	struct litest_device *d;
-
-	d = litest_create_device(LITEST_KEYBOARD_BLADE_STEALTH_VIDEOSWITCH);
-	litest_set_current_device(d);
-}
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -214,14 +207,12 @@ static int events[] = {
 	-1 , -1,
 };
 
-struct litest_test_device litest_keyboard_blade_stealth_device_video = {
+TEST_DEVICE("blade-stealth-video-switch",
 	.type = LITEST_KEYBOARD_BLADE_STEALTH_VIDEOSWITCH,
 	.features = LITEST_KEYS,
-	.shortname = "blade-stealth-video-switch",
-	.setup = litest_blade_stealth_setup,
 	.interface = NULL,
 
 	.name = "Razer Razer Blade Stealth",
 	.id = &input_id,
 	.events = events,
-};
+)

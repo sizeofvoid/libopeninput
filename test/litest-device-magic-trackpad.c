@@ -26,12 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_magicpad_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_MAGIC_TRACKPAD);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -121,12 +115,10 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"touchpad_end\"";
 
-struct litest_test_device litest_magicpad_device = {
+TEST_DEVICE("magic-trackpad",
 	.type = LITEST_MAGIC_TRACKPAD,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD |
 		    LITEST_BUTTON | LITEST_APPLE_CLICKPAD,
-	.shortname = "magic trackpad",
-	.setup = litest_magicpad_setup,
 	.interface = &interface,
 
 	.name = "Apple Wireless Trackpad",
@@ -134,4 +126,4 @@ struct litest_test_device litest_magicpad_device = {
 	.events = events,
 	.absinfo = absinfo,
 	.udev_rule = udev_rule,
-};
+)

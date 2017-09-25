@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_generic_singletouch_touch_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_GENERIC_SINGLETOUCH);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -72,15 +65,13 @@ static int events[] = {
 	-1, -1,
 };
 
-struct litest_test_device litest_generic_singletouch_device = {
+TEST_DEVICE("generic-singletouch",
 	.type = LITEST_GENERIC_SINGLETOUCH,
 	.features = LITEST_SINGLE_TOUCH,
-	.shortname = "generic-singletouch",
-	.setup = litest_generic_singletouch_touch_setup,
 	.interface = &interface,
 
 	.name = "generic_singletouch",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_generic_mt_setup(void)
-{
-	struct litest_device *d =
-		litest_create_device(LITEST_GENERIC_MULTITOUCH_SCREEN);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
@@ -89,15 +82,13 @@ static int events[] = {
 	-1, -1
 };
 
-struct litest_test_device litest_generic_multitouch_screen_device = {
+TEST_DEVICE("generic-mt",
 	.type = LITEST_GENERIC_MULTITOUCH_SCREEN,
 	.features = LITEST_TOUCH|LITEST_ELLIPSE,
-	.shortname = "generic-mt",
-	.setup = litest_generic_mt_setup,
 	.interface = &interface,
 
 	.name = "generic-mt",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

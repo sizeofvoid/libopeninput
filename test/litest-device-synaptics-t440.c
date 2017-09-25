@@ -26,13 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void
-litest_synaptics_t440_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_SYNAPTICS_TOPBUTTONPAD);
-	litest_set_current_device(d);
-}
-
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -110,15 +103,13 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-struct litest_test_device litest_synaptics_t440_device = {
+TEST_DEVICE("synaptics-t440",
 	.type = LITEST_SYNAPTICS_TOPBUTTONPAD,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON | LITEST_TOPBUTTONPAD,
-	.shortname = "synaptics t440",
-	.setup = litest_synaptics_t440_setup,
 	.interface = &interface,
 
 	.name = "SynPS/2 Synaptics TouchPad",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

@@ -26,12 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_uclogic_tablet_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_UCLOGIC_TABLET);
-	litest_set_current_device(d);
-}
-
 static struct input_event proximity_in[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
@@ -92,15 +86,13 @@ static int events[] = {
 	-1, -1,
 };
 
-struct litest_test_device litest_uclogic_tablet_device = {
+TEST_DEVICE("uclogic-tablet",
 	.type = LITEST_UCLOGIC_TABLET,
 	.features = LITEST_TABLET,
-	.shortname = "uclogic-tablet",
-	.setup = litest_uclogic_tablet_setup,
 	.interface = &interface,
 
 	.name = "uclogic PenTablet Pen",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-};
+)

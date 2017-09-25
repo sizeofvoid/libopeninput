@@ -26,12 +26,6 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void litest_cyborg_rat_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_CYBORG_RAT);
-	litest_set_current_device(d);
-}
-
 static struct input_id input_id = {
 	.bustype = 0x3,
 	.vendor = 0x6a3,
@@ -55,15 +49,13 @@ static int events[] = {
 	-1 , -1,
 };
 
-struct litest_test_device litest_cyborg_rat_device = {
+TEST_DEVICE("cyborg-rat",
 	.type = LITEST_CYBORG_RAT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
-	.shortname = "cyborg_rat",
-	.setup = litest_cyborg_rat_setup,
 	.interface = NULL,
 
 	.name = "Saitek Cyborg R.A.T.5 Mouse",
 	.id = &input_id,
 	.absinfo = NULL,
 	.events = events,
-};
+)

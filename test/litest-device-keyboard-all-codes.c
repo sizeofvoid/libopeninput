@@ -26,13 +26,9 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static void all_codes_create(struct litest_device *d);
+#define NAME "All event codes keyboard"
 
-static void litest_keyboard_all_codes_setup(void)
-{
-	struct litest_device *d = litest_create_device(LITEST_KEYBOARD_ALL_CODES);
-	litest_set_current_device(d);
-}
+static void all_codes_create(struct litest_device *d);
 
 static struct input_id input_id = {
 	.bustype = 0x11,
@@ -40,19 +36,17 @@ static struct input_id input_id = {
 	.product = 0x1,
 };
 
-struct litest_test_device litest_keyboard_all_codes_device = {
+TEST_DEVICE("keyboard-all-codes",
 	.type = LITEST_KEYBOARD_ALL_CODES,
 	.features = LITEST_KEYS,
-	.shortname = "keyboard all event codes",
-	.setup = litest_keyboard_all_codes_setup,
 	.interface = NULL,
 	.create = all_codes_create,
 
-	.name = "All event codes keyboard",
+	.name = NAME,
 	.id = &input_id,
 	.events = NULL,
 	.absinfo = NULL,
-};
+)
 
 static void
 all_codes_create(struct litest_device *d)
@@ -72,8 +66,8 @@ all_codes_create(struct litest_device *d)
 	events[idx++] = -1;
 	events[idx++] = -1;
 
-	d->uinput = litest_create_uinput_device_from_description(litest_keyboard_all_codes_device.name,
-								 litest_keyboard_all_codes_device.id,
+	d->uinput = litest_create_uinput_device_from_description(NAME,
+								 &input_id,
 								 NULL,
 								 events);
 }
