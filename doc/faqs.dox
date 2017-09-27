@@ -5,6 +5,12 @@ Frequently asked questions about libinput.
 
 @tableofcontents
 
+@section faq_feature Why doesn't libinput support ...?
+
+First, read @ref what_is_libinput If you have a feature that you think
+libinput needs to support, please file a bug report. See @ref reporting_bugs
+for more details.
+
 @section faq_fast_mouse My mouse moves too fast, even at the slowest setting
 
 This is a symptom of high-dpi mice (greater than 1000dpi). These devices
@@ -141,6 +147,13 @@ definitive guide to synclient</a> and
 <a href="http://who-t.blogspot.com.au/2016/12/the-future-of-xinput-xmodmap-setxkbmap.html">
 The future of xinput, xmodmap, setxkbmap, xsetwacom and other tools under
 Wayland</a>
+
+@section faq_tablets Does libinput support non-Wacom tablets?
+
+Yes, though unfortunately many non-Wacom tablets suffer from bad firmware
+and don't send the required events. But they should all work nonetheless. If
+you have a tablet that does not work with libinput, please @ref
+reporting_bugs "file a bug".
 
 @section faq_hwdb_changes How to apply hwdb changes
 
