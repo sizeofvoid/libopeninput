@@ -3563,6 +3563,13 @@ main(int argc, char **argv)
 	const struct rlimit corelimit = { 0, 0 };
 	enum litest_mode mode;
 
+	if (getuid() != 0) {
+		fprintf(stderr,
+			"%s must be run as root.\n",
+			program_invocation_short_name);
+		return 77;
+	}
+
 	litest_init_test_devices();
 
 	list_init(&all_tests);
