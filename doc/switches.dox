@@ -31,4 +31,20 @@ state and the lid state may report as closed even when the lid is physicall
 open. libinput employs some heuristics to detect user input (specificially
 typing) to re-enable the touchpad on those devices.
 
+@section switches_tablet_mode Tablet mode switch handling
+
+Where available, libinput listens to devices providing a tablet mode switch.
+This switch is usually triggered on devices that can switch between a normal
+laptop layout and a tablet-like layout. One example for such a device is the
+Lenovo Yoga.
+
+The event sent by the kernel is `EV_SW` `SW_TABLET_MODE` and is provided as
+@ref LIBINPUT_SWITCH_TABLET_MODE. When the device switches to tablet mode,
+the touchpad and internal keyboard are disabled. If a trackpoint exists,
+it is disabled too. The input devices are automatically re-enabled whenever
+tablet mode is disengaged.
+
+This handling of tablet mode switches is transparent to the user, no
+notifications are sent and the device appears as enabled at all times.
+
 */
