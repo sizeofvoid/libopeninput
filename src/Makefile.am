@@ -33,7 +33,8 @@ libinput_la_SOURCES =			\
 	udev-seat.h			\
 	timer.c				\
 	timer.h				\
-	../include/linux/input.h
+	../include/linux/input.h	\
+	../include/linux/input-event-codes.h
 
 libinput_la_LIBADD = $(MTDEV_LIBS) \
 		     $(LIBUDEV_LIBS) \
