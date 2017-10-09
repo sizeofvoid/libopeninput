@@ -78,13 +78,14 @@ lid_switch_keyboard_event(uint64_t time,
 		return;
 
 	if (dispatch->reliability == RELIABILITY_WRITE_OPEN) {
+		__attribute__((unused)) int rc;
 		int fd = libevdev_get_fd(dispatch->device->evdev);
 		struct input_event ev[2] = {
 			{{ 0, 0 }, EV_SW, SW_LID, 0 },
 			{{ 0, 0 }, EV_SYN, SYN_REPORT, 0 },
 		};
 
-		(void)write(fd, ev, sizeof(ev));
+		rc = write(fd, ev, sizeof(ev));
 		/* In case write() fails, we sync the lid state manually
 		 * regardless. */
 	}
