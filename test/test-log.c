@@ -137,8 +137,8 @@ START_TEST(log_priority)
 	ck_assert_int_eq(log_handler_called, 1);
 
 	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_INFO);
-	/* event0 is usually Lid Switch which prints an info that
-	   we don't handle it */
+	/* event0 exists on any box we care to run the test suite on and we
+	 * currently prints *something* for each device */
 	libinput_path_add_device(li, "/dev/input/event0");
 	ck_assert_int_gt(log_handler_called, 1);
 
