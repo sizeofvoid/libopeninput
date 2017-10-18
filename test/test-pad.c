@@ -29,6 +29,10 @@
 #include <unistd.h>
 #include <stdbool.h>
 
+#if HAVE_LIBWACOM
+#include <libwacom/libwacom.h>
+#endif
+
 #include "libinput-util.h"
 #include "litest.h"
 
@@ -119,6 +123,35 @@ START_TEST(pad_time)
 }
 END_TEST
 
+START_TEST(pad_num_buttons_libwacom)
+{
+#if HAVE_LIBWACOM
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	WacomDeviceDatabase *db = NULL;
+	WacomDevice *wacom = NULL;
+	unsigned int nb_lw, nb;
+
+	db = libwacom_database_new();
+	ck_assert_notnull(db);
+
+	wacom = libwacom_new_from_usbid(db,
+					libevdev_get_id_vendor(dev->evdev),
+					libevdev_get_id_product(dev->evdev),
+					NULL);
+	ck_assert_notnull(wacom);
+
+	nb_lw = libwacom_get_num_buttons(wacom);
+	nb = libinput_device_tablet_pad_get_num_buttons(device);
+
+	ck_assert_int_eq(nb, nb_lw);
+
+	libwacom_destroy(wacom);
+	libwacom_database_destroy(db);
+#endif
+}
+END_TEST
+
 START_TEST(pad_num_buttons)
 {
 	struct litest_device *dev = litest_current_device();
@@ -141,18 +174,33 @@ START_TEST(pad_num_buttons)
 }
 END_TEST
 
-START_TEST(pad_button)
+START_TEST(pad_button_intuos)
 {
+#if !HAVE_LIBWACOM_GET_BUTTON_EVDEV_CODE
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	unsigned int code;
 	unsigned int expected_number = 0;
 	struct libinput_event *ev;
 	struct libinput_event_tablet_pad *pev;
+	unsigned int count;
+
+	/* Intuos button mapping is sequential up from BTN_0 and continues
+	 * with BTN_A */
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_0))
+		return;
 
 	litest_drain_events(li);
 
-	for (code = BTN_0; code < KEY_MAX; code++) {
+	for (code = BTN_0; code < BTN_DIGI; code++) {
+		/* Skip over the BTN_MOUSE and BTN_JOYSTICK range */
+		if ((code >= BTN_MOUSE && code < BTN_JOYSTICK) ||
+		    (code >= BTN_DIGI)) {
+			ck_assert(!libevdev_has_event_code(dev->evdev,
+							   EV_KEY, code));
+			continue;
+		}
+
 		if (!libevdev_has_event_code(dev->evdev, EV_KEY, code))
 			continue;
 
@@ -160,13 +208,7 @@ START_TEST(pad_button)
 		litest_button_click(dev, code, 0);
 		libinput_dispatch(li);
 
-		switch (code) {
-		case BTN_STYLUS:
-			litest_assert_empty_queue(li);
-			continue;
-		default:
-			break;
-		}
+		count++;
 
 		ev = libinput_get_event(li);
 		pev = litest_is_pad_button_event(ev,
@@ -186,6 +228,102 @@ START_TEST(pad_button)
 	}
 
 	litest_assert_empty_queue(li);
+
+	ck_assert_int_gt(count, 3);
+#endif
+}
+END_TEST
+
+START_TEST(pad_button_bamboo)
+{
+#if !HAVE_LIBWACOM_GET_BUTTON_EVDEV_CODE
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	unsigned int code;
+	unsigned int expected_number = 0;
+	struct libinput_event *ev;
+	struct libinput_event_tablet_pad *pev;
+	unsigned int count;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_LEFT))
+		return;
+
+	litest_drain_events(li);
+
+	for (code = BTN_LEFT; code < BTN_JOYSTICK; code++) {
+		if (!libevdev_has_event_code(dev->evdev, EV_KEY, code))
+			continue;
+
+		litest_button_click(dev, code, 1);
+		litest_button_click(dev, code, 0);
+		libinput_dispatch(li);
+
+		count++;
+
+		ev = libinput_get_event(li);
+		pev = litest_is_pad_button_event(ev,
+						 expected_number,
+						 LIBINPUT_BUTTON_STATE_PRESSED);
+		ev = libinput_event_tablet_pad_get_base_event(pev);
+		libinput_event_destroy(ev);
+
+		ev = libinput_get_event(li);
+		pev = litest_is_pad_button_event(ev,
+						 expected_number,
+						 LIBINPUT_BUTTON_STATE_RELEASED);
+		ev = libinput_event_tablet_pad_get_base_event(pev);
+		libinput_event_destroy(ev);
+
+		expected_number++;
+	}
+
+	litest_assert_empty_queue(li);
+
+	ck_assert_int_gt(count, 3);
+#endif
+}
+END_TEST
+
+START_TEST(pad_button_libwacom)
+{
+#if HAVE_LIBWACOM_GET_BUTTON_EVDEV_CODE
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	WacomDeviceDatabase *db = NULL;
+	WacomDevice *wacom = NULL;
+
+	db = libwacom_database_new();
+	assert(db);
+
+	wacom = libwacom_new_from_usbid(db,
+					libevdev_get_id_vendor(dev->evdev),
+					libevdev_get_id_product(dev->evdev),
+					NULL);
+	assert(wacom);
+
+	litest_drain_events(li);
+
+	for (int i = 0; i < libwacom_get_num_buttons(wacom); i++) {
+		unsigned int code;
+
+		code = libwacom_get_button_evdev_code(wacom, 'A' + i);
+
+		litest_button_click(dev, code, 1);
+		litest_button_click(dev, code, 0);
+		libinput_dispatch(li);
+
+		litest_assert_pad_button_event(li,
+					       i,
+					       LIBINPUT_BUTTON_STATE_PRESSED);
+		litest_assert_pad_button_event(li,
+					       i,
+					       LIBINPUT_BUTTON_STATE_RELEASED);
+	}
+
+
+	libwacom_destroy(wacom);
+	libwacom_database_destroy(db);
+#endif
 }
 END_TEST
 
@@ -788,7 +926,10 @@ litest_setup_tests_pad(void)
 	litest_add("pad:time", pad_time, LITEST_TABLET_PAD, LITEST_ANY);
 
 	litest_add("pad:button", pad_num_buttons, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:button", pad_button, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add("pad:button", pad_num_buttons_libwacom, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add("pad:button", pad_button_intuos, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add("pad:button", pad_button_bamboo, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add("pad:button", pad_button_libwacom, LITEST_TABLET_PAD, LITEST_ANY);
 	litest_add("pad:button", pad_button_mode_groups, LITEST_TABLET_PAD, LITEST_ANY);
 
 	litest_add("pad:ring", pad_has_ring, LITEST_RING, LITEST_ANY);

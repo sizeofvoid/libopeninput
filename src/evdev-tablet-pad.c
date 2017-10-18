@@ -27,6 +27,10 @@
 #include <stdbool.h>
 #include <string.h>
 
+#if HAVE_LIBWACOM
+#include <libwacom/libwacom.h>
+#endif
+
 #define pad_set_status(pad_,s_) (pad_)->status |= (s_)
 #define pad_unset_status(pad_,s_) (pad_)->status &= ~(s_)
 #define pad_has_status(pad_,s_) (!!((pad_)->status & (s_)))
@@ -517,16 +521,60 @@ static struct evdev_dispatch_interface pad_interface = {
 	.get_switch_state = NULL,
 };
 
-static void
-pad_init_buttons(struct pad_dispatch *pad,
-		 struct evdev_device *device)
+static bool
+pad_init_buttons_from_libwacom(struct pad_dispatch *pad,
+			       struct evdev_device *device)
 {
-	unsigned int code;
-	size_t i;
+	bool rc = false;
+#if HAVE_LIBWACOM_GET_BUTTON_EVDEV_CODE
+	WacomDeviceDatabase *db = NULL;
+	WacomDevice *tablet = NULL;
+	int num_buttons;
 	int map = 0;
 
-	for (i = 0; i < ARRAY_LENGTH(pad->button_map); i++)
-		pad->button_map[i] = -1;
+	db = libwacom_database_new();
+	if (!db) {
+		evdev_log_info(device,
+			       "Failed to initialize libwacom context.\n");
+		goto out;
+	}
+
+	tablet = libwacom_new_from_usbid(db,
+					 evdev_device_get_id_vendor(device),
+					 evdev_device_get_id_product(device),
+					 NULL);
+	if (!tablet)
+		goto out;
+
+	num_buttons = libwacom_get_num_buttons(tablet);
+	for (int i = 0; i < num_buttons; i++) {
+		unsigned int code;
+
+		code = libwacom_get_button_evdev_code(tablet, 'A' + i);
+		if (code == 0)
+			continue;
+
+		pad->button_map[code] = map++;
+	}
+
+	pad->nbuttons = map;
+
+	rc = true;
+out:
+	if (tablet)
+		libwacom_destroy(tablet);
+	if (db)
+		libwacom_database_destroy(db);
+#endif
+	return rc;
+}
+
+static void
+pad_init_buttons_from_kernel(struct pad_dispatch *pad,
+			       struct evdev_device *device)
+{
+	unsigned int code;
+	int map = 0;
 
 	/* we match wacom_report_numbered_buttons() from the kernel */
 	for (code = BTN_0; code < BTN_0 + 10; code++) {
@@ -550,6 +598,20 @@ pad_init_buttons(struct pad_dispatch *pad,
 	}
 
 	pad->nbuttons = map;
+}
+
+static void
+pad_init_buttons(struct pad_dispatch *pad,
+		 struct evdev_device *device)
+{
+	size_t i;
+
+	for (i = 0; i < ARRAY_LENGTH(pad->button_map); i++)
+		pad->button_map[i] = -1;
+
+	if (!pad_init_buttons_from_libwacom(pad, device))
+		pad_init_buttons_from_kernel(pad, device);
+
 }
 
 static void
