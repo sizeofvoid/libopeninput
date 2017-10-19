@@ -799,8 +799,9 @@ tp_palm_detect_touch_size_triggered(struct tp_dispatch *tp,
 
 	if (t->major > tp->palm.size_threshold ||
 	    t->minor > tp->palm.size_threshold) {
-		evdev_log_debug(tp->device,
-				"palm: touch size exceeded\n");
+		if (t->palm.state != PALM_TOUCH_SIZE)
+			evdev_log_debug(tp->device,
+					"palm: touch size exceeded\n");
 		t->palm.state = PALM_TOUCH_SIZE;
 		return true;
 	}
