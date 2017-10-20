@@ -72,7 +72,7 @@ static struct input_absinfo absinfo[] = {
 static struct input_id input_id = {
 	.bustype = 0x3,
 	.vendor = 0x56a,
-	.product = 0x33,
+	.product = 0x333,
 	.version = 0x110,
 };
 
