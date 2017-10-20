@@ -87,6 +87,7 @@ static int events[] = {
 	EV_KEY, BTN_6,
 	EV_KEY, BTN_7,
 	EV_KEY, BTN_8,
+	EV_KEY, BTN_9,
 	EV_KEY, BTN_SOUTH,
 	EV_KEY, BTN_EAST,
 	EV_KEY, BTN_C,
