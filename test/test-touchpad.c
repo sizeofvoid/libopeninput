@@ -4232,6 +4232,152 @@ START_TEST(touchpad_dwt_acer_hawaii)
 }
 END_TEST
 
+START_TEST(touchpad_dwt_multiple_keyboards)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *k1, *k2;
+	struct libinput *li = touchpad->libinput;
+
+	ck_assert(has_disable_while_typing(touchpad));
+
+	enable_dwt(touchpad);
+
+	k1 = litest_add_device(li, LITEST_KEYBOARD);
+	k2 = litest_add_device(li, LITEST_KEYBOARD);
+
+	litest_keyboard_key(k1, KEY_A, true);
+	litest_keyboard_key(k1, KEY_A, false);
+	litest_drain_events(li);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	litest_timeout_dwt_short();
+
+	litest_keyboard_key(k2, KEY_A, true);
+	litest_keyboard_key(k2, KEY_A, false);
+	litest_drain_events(li);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	litest_timeout_dwt_short();
+
+	litest_delete_device(k1);
+	litest_delete_device(k2);
+}
+END_TEST
+
+START_TEST(touchpad_dwt_multiple_keyboards_bothkeys)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *k1, *k2;
+	struct libinput *li = touchpad->libinput;
+
+	ck_assert(has_disable_while_typing(touchpad));
+
+	enable_dwt(touchpad);
+
+	k1 = litest_add_device(li, LITEST_KEYBOARD);
+	k2 = litest_add_device(li, LITEST_KEYBOARD);
+
+	litest_keyboard_key(k1, KEY_A, true);
+	litest_keyboard_key(k1, KEY_A, false);
+	litest_keyboard_key(k2, KEY_B, true);
+	litest_keyboard_key(k2, KEY_B, false);
+	litest_drain_events(li);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	litest_delete_device(k1);
+	litest_delete_device(k2);
+}
+END_TEST
+
+START_TEST(touchpad_dwt_multiple_keyboards_bothkeys_modifier)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *k1, *k2;
+	struct libinput *li = touchpad->libinput;
+
+	ck_assert(has_disable_while_typing(touchpad));
+
+	enable_dwt(touchpad);
+
+	k1 = litest_add_device(li, LITEST_KEYBOARD);
+	k2 = litest_add_device(li, LITEST_KEYBOARD);
+
+	litest_keyboard_key(k1, KEY_RIGHTCTRL, true);
+	litest_keyboard_key(k1, KEY_RIGHTCTRL, false);
+	litest_keyboard_key(k2, KEY_B, true);
+	litest_keyboard_key(k2, KEY_B, false);
+	litest_drain_events(li);
+
+	/* If the keyboard is a single physical device, the above should
+	 * trigger the modifier behavior for dwt. But libinput views it as
+	 * two separate devices and this is such a niche case that it
+	 * doesn't matter. So we test for the easy behavior:
+	 * ctrl+B across two devices is *not* a dwt modifier combo
+	 */
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	litest_delete_device(k1);
+	litest_delete_device(k2);
+}
+END_TEST
+
+START_TEST(touchpad_dwt_multiple_keyboards_remove)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *keyboards[2];
+	struct libinput *li = touchpad->libinput;
+	int which = _i; /* ranged test */
+	struct litest_device *removed, *remained;
+
+	ck_assert_int_le(which, 1);
+
+	ck_assert(has_disable_while_typing(touchpad));
+
+	enable_dwt(touchpad);
+
+	keyboards[0] = litest_add_device(li, LITEST_KEYBOARD);
+	keyboards[1] = litest_add_device(li, LITEST_KEYBOARD);
+
+	litest_keyboard_key(keyboards[0], KEY_A, true);
+	litest_keyboard_key(keyboards[0], KEY_A, false);
+	litest_keyboard_key(keyboards[1], KEY_B, true);
+	litest_keyboard_key(keyboards[1], KEY_B, false);
+	litest_drain_events(li);
+
+	litest_timeout_dwt_short();
+
+	removed = keyboards[which % 2];
+	remained = keyboards[(which + 1) % 2];
+
+	litest_delete_device(removed);
+	litest_keyboard_key(remained, KEY_C, true);
+	litest_keyboard_key(remained, KEY_C, false);
+	litest_drain_events(li);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	litest_delete_device(remained);
+}
+END_TEST
+
 static int
 has_thumb_detect(struct litest_device *dev)
 {
@@ -5493,6 +5639,7 @@ void
 litest_setup_tests_touchpad(void)
 {
 	struct range axis_range = {ABS_X, ABS_Y + 1};
+	struct range twice = {0, 2 };
 
 	litest_add("touchpad:motion", touchpad_1fg_motion, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:motion", touchpad_2fg_no_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
@@ -5620,6 +5767,10 @@ litest_setup_tests_touchpad(void)
 	litest_add("touchpad:dwt", touchpad_dwt_remove_kbd_while_active, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add_for_device("touchpad:dwt", touchpad_dwt_apple, LITEST_BCM5974);
 	litest_add_for_device("touchpad:dwt", touchpad_dwt_acer_hawaii, LITEST_ACER_HAWAII_TOUCHPAD);
+	litest_add_for_device("touchpad:dwt", touchpad_dwt_multiple_keyboards, LITEST_SYNAPTICS_I2C);
+	litest_add_for_device("touchpad:dwt", touchpad_dwt_multiple_keyboards_bothkeys, LITEST_SYNAPTICS_I2C);
+	litest_add_for_device("touchpad:dwt", touchpad_dwt_multiple_keyboards_bothkeys_modifier, LITEST_SYNAPTICS_I2C);
+	litest_add_ranged_for_device("touchpad:dwt", touchpad_dwt_multiple_keyboards_remove, LITEST_SYNAPTICS_I2C, &twice);
 
 	litest_add("touchpad:thumb", touchpad_thumb_begin_no_motion, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_update_no_motion, LITEST_CLICKPAD, LITEST_ANY);
