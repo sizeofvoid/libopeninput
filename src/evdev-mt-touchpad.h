@@ -383,13 +383,20 @@ struct tp_dispatch {
 		struct libinput_device_config_dwt config;
 		bool dwt_enabled;
 
-		bool keyboard_active;
-		struct libinput_event_listener keyboard_listener;
-		struct libinput_timer keyboard_timer;
-		struct evdev_device *keyboard;
+		/* We have to allow for more than one device node to be the
+		 * internal dwt keyboard (Razer Blade). But they're the same
+		 * physical device, so we don't care about per-keyboard
+		 * key/modifier masks.
+		 */
+		struct paired_keyboard {
+			struct evdev_device *device;
+			struct libinput_event_listener listener;
+		} paired_keyboard[3];
+
 		unsigned long key_mask[NLONGS(KEY_CNT)];
 		unsigned long mod_mask[NLONGS(KEY_CNT)];
-
+		bool keyboard_active;
+		struct libinput_timer keyboard_timer;
 		uint64_t keyboard_last_press_time;
 	} dwt;
 
