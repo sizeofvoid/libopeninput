@@ -2646,8 +2646,8 @@ tp_init_palmdetect_edge(struct tp_dispatch *tp,
 	if (width < 70.0)
 		return;
 
-	/* palm edges are 8% of the width on each side */
-	mm.x = width * 0.08;
+	/* palm edges are 8% of the width on each side up to a max of 8mm */
+	mm.x = min(8, width * 0.08);
 	edges = evdev_device_mm_to_units(device, &mm);
 	tp->palm.left_edge = edges.x;
 
