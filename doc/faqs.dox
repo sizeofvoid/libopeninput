@@ -155,6 +155,22 @@ and don't send the required events. But they should all work nonetheless. If
 you have a tablet that does not work with libinput, please @ref
 reporting_bugs "file a bug".
 
+@section faq_tablet_capabilities My tablet doesn't work
+
+If you see the message
+<pre>
+libinput bug: device does not meet tablet criteria. Ignoring this device.
+</pre>
+
+or the message
+<pre>
+missing tablet capabilities [...] Ignoring this device.
+</pre>
+
+your tablet device does not have the required capabilities to be treated as
+a tablet. This is usually a problem with the device and the kernel driver.
+See @ref tablet-capabilities for more details.
+
 @section faq_hwdb_changes How to apply hwdb changes
 
 Sometimes users are asked to test updates to the <a

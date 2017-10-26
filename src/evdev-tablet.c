@@ -1980,29 +1980,26 @@ static int
 tablet_reject_device(struct evdev_device *device)
 {
 	struct libevdev *evdev = device->evdev;
-	int rc = -1;
 	double w, h;
+	bool has_xy, has_pen, has_btn_stylus, has_size;
 
-	if (!libevdev_has_event_code(evdev, EV_ABS, ABS_X) ||
-	    !libevdev_has_event_code(evdev, EV_ABS, ABS_Y))
-		goto out;
+	has_xy = libevdev_has_event_code(evdev, EV_ABS, ABS_X) &&
+	         libevdev_has_event_code(evdev, EV_ABS, ABS_Y);
+	has_pen = libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_PEN);
+	has_btn_stylus = libevdev_has_event_code(evdev, EV_KEY, BTN_STYLUS);
+	has_size = evdev_device_get_size(device, &w, &h) == 0;
 
-	if (!libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_PEN) &&
-	    !libevdev_has_event_code(evdev, EV_KEY, BTN_STYLUS))
-		goto out;
+	if (has_xy && (has_pen || has_btn_stylus) && has_size)
+		return 0;
 
-	if (evdev_device_get_size(device, &w, &h) != 0)
-		goto out;
-
-	rc = 0;
-
-out:
-	if (rc) {
-		evdev_log_bug_libinput(device,
-				       "device does not meet tablet criteria. "
-				       "Ignoring this device.\n");
-	}
-	return rc;
+	evdev_log_bug_libinput(device,
+			       "missing tablet capabilities:%s%s%s%s."
+			       "Ignoring this device.\n",
+			       has_xy ? "" : " xy",
+			       has_pen ? "" : " pen",
+			       has_btn_stylus ? "" : " btn-stylus",
+			       has_size ? "" : " resolution");
+	return -1;
 }
 
 static int
