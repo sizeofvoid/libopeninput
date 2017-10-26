@@ -456,7 +456,7 @@ configure_file(input : 'tools/libinput-measure-trackpoint-range.man',
 	       )
 
 if get_option('debug-gui')
-	dep_gtk = dependency('gtk+-3.0')
+	dep_gtk = dependency('gtk+-3.0', version : '>= 3.20')
 	dep_cairo = dependency('cairo')
 	dep_glib = dependency('glib-2.0')
 
