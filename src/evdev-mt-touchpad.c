@@ -132,6 +132,21 @@ tp_motion_history_push(struct tp_touch *t)
 }
 
 static inline void
+tp_maybe_disable_hysteresis(struct tp_dispatch *tp, uint64_t time)
+{
+	/* If the finger is down for 80ms without seeing motion events,
+	   the firmware filters and we don't need a software hysteresis */
+	if (time - tp->hysteresis.last_motion_time > ms2us(80)) {
+		tp->hysteresis.enabled = false;
+		evdev_log_debug(tp->device, "hysteresis disabled\n");
+		return;
+	}
+
+	if (tp->queued & TOUCHPAD_EVENT_MOTION)
+		tp->hysteresis.last_motion_time = time;
+}
+
+static inline void
 tp_motion_hysteresis(struct tp_dispatch *tp,
 		     struct tp_touch *t)
 {
@@ -276,6 +291,7 @@ tp_begin_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->thumb.first_touch_time = time;
 	t->tap.is_thumb = false;
 	assert(tp->nfingers_down >= 1);
+	tp->hysteresis.last_motion_time = time;
 }
 
 /**
@@ -1529,6 +1545,9 @@ static void
 tp_handle_state(struct tp_dispatch *tp,
 		uint64_t time)
 {
+	if (tp->hysteresis.enabled)
+		tp_maybe_disable_hysteresis(tp, time);
+
 	tp_process_state(tp, time);
 	tp_post_events(tp, time);
 	tp_post_process_state(tp, time);
