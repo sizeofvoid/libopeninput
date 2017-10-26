@@ -128,11 +128,10 @@ int main(int argc, char **argv)
 #endif
 	    snprintf(group,
 		     sizeof(group),
-		     "%x/%x/%x/%x:%s",
+		     "%x/%x/%x:%s",
 		     bustype,
 		     vendor_id,
 		     product_id,
-		     version,
 		     phys);
 	}
 
