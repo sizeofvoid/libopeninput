@@ -949,6 +949,8 @@ fallback_lid_toggle_keyboard_listener(struct fallback_dispatch *dispatch,
 {
 	assert(kbd->device);
 
+	libinput_device_remove_event_listener(&kbd->listener);
+
 	if (is_closed) {
 		libinput_device_add_event_listener(
 					&kbd->device->base,
@@ -956,10 +958,7 @@ fallback_lid_toggle_keyboard_listener(struct fallback_dispatch *dispatch,
 					fallback_lid_keyboard_event,
 					dispatch);
 	} else {
-		libinput_device_remove_event_listener(
-					&kbd->listener);
-		libinput_device_init_event_listener(
-					&kbd->listener);
+		libinput_device_init_event_listener(&kbd->listener);
 	}
 }
 
@@ -992,10 +991,10 @@ fallback_process_switch(struct fallback_dispatch *dispatch,
 	case SW_LID:
 		is_closed = !!e->value;
 
+		fallback_lid_toggle_keyboard_listeners(dispatch, is_closed);
+
 		if (dispatch->lid.is_closed == is_closed)
 			return;
-
-		fallback_lid_toggle_keyboard_listeners(dispatch, is_closed);
 
 		dispatch->lid.is_closed = is_closed;
 		fallback_lid_notify_toggle(dispatch, device, time);
