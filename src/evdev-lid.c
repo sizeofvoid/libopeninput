@@ -105,6 +105,8 @@ lid_switch_toggle_keyboard_listener(struct lid_switch_dispatch *dispatch,
 	if (!dispatch->keyboard.keyboard)
 		return;
 
+	libinput_device_remove_event_listener(&dispatch->keyboard.listener);
+
 	if (is_closed) {
 		libinput_device_add_event_listener(
 					&dispatch->keyboard.keyboard->base,
@@ -112,10 +114,7 @@ lid_switch_toggle_keyboard_listener(struct lid_switch_dispatch *dispatch,
 					lid_switch_keyboard_event,
 					dispatch);
 	} else {
-		libinput_device_remove_event_listener(
-					&dispatch->keyboard.listener);
-		libinput_device_init_event_listener(
-					&dispatch->keyboard.listener);
+		libinput_device_init_event_listener(&dispatch->keyboard.listener);
 	}
 }
 
@@ -131,10 +130,11 @@ lid_switch_process_switch(struct lid_switch_dispatch *dispatch,
 	case SW_LID:
 		is_closed = !!e->value;
 
-		if (dispatch->lid_is_closed == is_closed)
-			return;
 		lid_switch_toggle_keyboard_listener(dispatch,
 						    is_closed);
+
+		if (dispatch->lid_is_closed == is_closed)
+			return;
 
 		dispatch->lid_is_closed = is_closed;
 

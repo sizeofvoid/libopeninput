@@ -426,26 +426,27 @@ START_TEST(lid_open_on_key)
 
 	keyboard = litest_add_device(li, LITEST_KEYBOARD);
 
-	litest_lid_action(sw, LIBINPUT_SWITCH_STATE_ON);
-	litest_drain_events(li);
+	for (int i = 0; i < 3; i++) {
+		litest_lid_action(sw, LIBINPUT_SWITCH_STATE_ON);
+		litest_drain_events(li);
 
-	litest_event(keyboard, EV_KEY, KEY_A, 1);
-	litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
-	litest_event(keyboard, EV_KEY, KEY_A, 0);
-	litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+		litest_event(keyboard, EV_KEY, KEY_A, 1);
+		litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
+		litest_event(keyboard, EV_KEY, KEY_A, 0);
+		litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
 
-	event = libinput_get_event(li);
-	litest_is_switch_event(event,
-			       LIBINPUT_SWITCH_LID,
-			       LIBINPUT_SWITCH_STATE_OFF);
+		event = libinput_get_event(li);
+		litest_is_switch_event(event,
+				       LIBINPUT_SWITCH_LID,
+				       LIBINPUT_SWITCH_STATE_OFF);
+		libinput_event_destroy(event);
 
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+		litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
-	litest_lid_action(sw, LIBINPUT_SWITCH_STATE_OFF);
-	litest_assert_empty_queue(li);
-
-	libinput_event_destroy(event);
+		litest_lid_action(sw, LIBINPUT_SWITCH_STATE_OFF);
+		litest_assert_empty_queue(li);
+	}
 	litest_delete_device(keyboard);
 }
 END_TEST
