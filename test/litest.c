@@ -27,6 +27,7 @@
 #include <check.h>
 #include <dirent.h>
 #include <errno.h>
+#include <libgen.h>
 #include <fcntl.h>
 #include <fnmatch.h>
 #include <getopt.h>
@@ -1071,20 +1072,32 @@ litest_install_model_quirks(struct list *created_files_list)
 	list_insert(created_files_list, &file->link);
 }
 
+static inline void
+mkdir_p(const char *dir)
+{
+	char *path = strdup(dir),
+	     *parent = dirname(path);
+
+	if (streq(parent, "/")) {
+		int rc = mkdir(dir, 0755);
+
+		if (rc == -1 && errno != EEXIST) {
+			litest_abort_msg("Failed to create directory %s (%s)\n",
+					 dir,
+					 strerror(errno));
+		}
+	} else {
+		mkdir_p(path);
+	}
+
+	free(path);
+}
+
 static void
 litest_init_udev_rules(struct list *created_files)
 {
-	int rc;
-
-	rc = mkdir(UDEV_RULES_D, 0755);
-	if (rc == -1 && errno != EEXIST)
-		litest_abort_msg("Failed to create udev rules directory (%s)\n",
-				 strerror(errno));
-
-	rc = mkdir(UDEV_HWDB_D, 0755);
-	if (rc == -1 && errno != EEXIST)
-		litest_abort_msg("Failed to create udev hwdb directory (%s)\n",
-				 strerror(errno));
+	mkdir_p(UDEV_RULES_D);
+	mkdir_p(UDEV_HWDB_D);
 
 	litest_install_model_quirks(created_files);
 	litest_init_all_device_udev_rules(created_files);
