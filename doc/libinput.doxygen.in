@@ -9,8 +9,8 @@ EXTRACT_STATIC         = YES
 MAX_INITIALIZER_LINES  = 0
 QUIET                  = YES
 INPUT                  = @INPUT@
-IMAGE_PATH             = @top_srcdir@/doc/svg \
-			 @top_srcdir@/doc/dot
+IMAGE_PATH             = "@top_srcdir@/doc/svg" \
+			 "@top_srcdir@/doc/dot"
 GENERATE_HTML          = YES
 SEARCHENGINE           = NO
 USE_MATHJAX            = YES
@@ -20,11 +20,11 @@ MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
 PREDEFINED             = LIBINPUT_ATTRIBUTE_PRINTF(f, a)= \
                          LIBINPUT_ATTRIBUTE_DEPRECATED
-DOTFILE_DIRS           = @top_srcdir@/doc/dot
+DOTFILE_DIRS           = "@top_srcdir@/doc/dot"
 
-HTML_HEADER = @top_srcdir@/doc/style/header.html
-HTML_FOOTER = @top_srcdir@/doc/style/footer.html
-HTML_EXTRA_STYLESHEET = @top_srcdir@/doc/style/bootstrap.css \
-			@top_srcdir@/doc/style/customdoxygen.css \
-			@top_srcdir@/doc/style/libinputdoxygen.css
-USE_MDFILE_AS_MAINPAGE = @top_srcdir@/README.md
+HTML_HEADER = "@top_srcdir@/doc/style/header.html"
+HTML_FOOTER = "@top_srcdir@/doc/style/footer.html"
+HTML_EXTRA_STYLESHEET = "@top_srcdir@/doc/style/bootstrap.css" \
+			"@top_srcdir@/doc/style/customdoxygen.css" \
+			"@top_srcdir@/doc/style/libinputdoxygen.css"
+USE_MDFILE_AS_MAINPAGE = "@top_srcdir@/README.md"
