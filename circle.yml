@@ -41,6 +41,12 @@ libinput_jobs:
       name: Build - No docs
       environment:
         MESON_PARAMS: -Ddocumentation=false
+  build_dist: &build_dist
+    run:
+      <<: *build_and_test_default
+      name: Build - ninja dist
+      environment:
+        NINJA_ARGS: dist
   ninja_scan_build: &ninja_scan_build
     run:
       <<: *build_and_test_default
@@ -88,6 +94,7 @@ fedora_build_all: &fedora_build_all
     - *build_no_debug_gui
     - *build_no_tests
     - *build_no_docs
+    - *build_dist
 
 ubuntu_install: &ubuntu_install
   run:
@@ -112,6 +119,7 @@ ubuntu_build_all: &ubuntu_build_all
     - *build_no_debug_gui
     - *build_no_tests
     - *build_no_docs
+    - *build_dist
 
 scan_build_run: &scan_build_run
   <<: *default_settings
