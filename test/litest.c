@@ -3583,6 +3583,13 @@ main(int argc, char **argv)
 		return 77;
 	}
 
+	if (access("/dev/uinput", F_OK) == -1 &&
+	    access("/dev/input/uinput", F_OK) == -1) {
+		fprintf(stderr,
+			"uinput device is missing, skipping tests.\n");
+		return 77;
+	}
+
 	litest_init_test_devices();
 
 	list_init(&all_tests);
