@@ -100,7 +100,7 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"mouse_end\"";
 
-TEST_DEVICE("litest-magicmouse-device",
+TEST_DEVICE("magicmouse",
 	.type = LITEST_MAGICMOUSE,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
 	.interface = &interface,
