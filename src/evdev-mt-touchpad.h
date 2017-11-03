@@ -269,7 +269,12 @@ struct tp_dispatch {
 		double orientation_to_angle;
 	} touch_size;
 
-	struct device_coords hysteresis_margin;
+	struct {
+		bool enabled;
+		struct device_coords margin;
+		unsigned int other_event_count;
+		uint64_t last_motion_time;
+	} hysteresis;
 
 	struct {
 		double x_scale_coeff;
