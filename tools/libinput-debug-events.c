@@ -747,6 +747,9 @@ print_switch_event(struct libinput_event *ev)
 	case LIBINPUT_SWITCH_LID:
 		which = "lid";
 		break;
+	case LIBINPUT_SWITCH_TABLET_MODE:
+		which = "tablet-mode";
+		break;
 	default:
 		abort();
 	}
