@@ -2378,7 +2378,7 @@ END_TEST
 void
 litest_setup_tests_touchpad_tap(void)
 {
-	struct range multitap_range = {3, 8};
+	struct range multitap_range = {3, 5};
 	struct range tap_map_range = { LIBINPUT_CONFIG_TAP_MAP_LRM,
 				       LIBINPUT_CONFIG_TAP_MAP_LMR + 1 };
 
