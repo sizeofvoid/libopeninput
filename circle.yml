@@ -80,6 +80,7 @@ fedora_install: &fedora_install
   run:
     name: Install prerequisites
     command: |
+      dnf upgrade -y libsolv
       dnf install -y git gcc gcc-c++ meson check-devel libudev-devel libevdev-devel doxygen graphviz valgrind binutils libwacom-devel cairo-devel gtk3-devel glib2-devel mtdev-devel
 
 fedora_build_all: &fedora_build_all
