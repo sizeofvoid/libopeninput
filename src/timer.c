@@ -88,7 +88,7 @@ libinput_timer_set_flags(struct libinput_timer *timer,
 	if (expire < now) {
 		if ((flags & TIMER_FLAG_ALLOW_NEGATIVE) == 0)
 			log_bug_libinput(timer->libinput,
-					 "timer %s: offset negative (-%" PRIu64 ")\n",
+					 "timer %s: offset negative (-%" PRIu64 "µs)\n",
 					 timer->timer_name ? timer->timer_name : "",
 					 now - expire);
 	} else if ((expire - now) > ms2us(5000)) {
