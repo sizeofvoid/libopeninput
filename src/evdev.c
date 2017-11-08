@@ -809,22 +809,49 @@ evdev_read_switch_reliability_prop(struct evdev_device *device)
 }
 
 static inline void
+evdev_print_event(struct evdev_device *device,
+		  const struct input_event *e)
+{
+	static uint32_t offset = 0;
+	static uint32_t last_time = 0;
+	uint32_t time = us2ms(tv2us(&e->time));
+
+	if (offset == 0) {
+		offset = time;
+		last_time = time - offset;
+	}
+
+	time -= offset;
+
+	if (libevdev_event_is_code(e, EV_SYN, SYN_REPORT)) {
+		evdev_log_debug(device,
+			  "%u.%03u -------------- EV_SYN ------------ +%ums\n",
+			  time / 1000,
+			  time % 1000,
+			  time - last_time);
+
+		last_time = time;
+	} else {
+		evdev_log_debug(device,
+			  "%u.%03u %-16s %-20s %4d\n",
+			  time / 1000,
+			  time % 1000,
+			  libevdev_event_type_get_name(e->type),
+			  libevdev_event_code_get_name(e->type, e->code),
+			  e->value);
+	}
+}
+
+static inline void
 evdev_process_event(struct evdev_device *device, struct input_event *e)
 {
 	struct evdev_dispatch *dispatch = device->dispatch;
 	uint64_t time = tv2us(&e->time);
 
 #if 0
-	if (libevdev_event_is_code(e, EV_SYN, SYN_REPORT))
-		evdev_log_debug(device,
-			  "-------------- EV_SYN ------------\n");
-	else
-		evdev_log_debug(device,
-			  "%-16s %-20s %4d\n",
-			  libevdev_event_type_get_name(e->type),
-			  libevdev_event_code_get_name(e->type, e->code),
-			  e->value);
+	evdev_print_event(device, e);
 #endif
+
 	libinput_timer_flush(evdev_libinput_context(device), time);
 
 	dispatch->interface->process(dispatch, device, e, time);
