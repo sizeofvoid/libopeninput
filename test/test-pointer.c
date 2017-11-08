@@ -2154,6 +2154,7 @@ START_TEST(debounce_timer)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
 
 	litest_timeout_debounce();
 	litest_drain_events(li);
