@@ -125,6 +125,20 @@ Changes performed by xinput do not persist across device hotplugs. xinput is
 considered a debugging and testing tool only and should not be used for
 permanent configurations.
 
+@section faq_configuration Can you add a configuration option for $FEATURE?
+
+No. At least that's going to be the initial answer. Read <a
+href="http://who-t.blogspot.com/2016/04/why-libinput-doesnt-have-lot-of-config.html">Why
+libinput doesn't have a lot of configuration options</a> first.
+Configuration options for most features are a signal that we are incapable
+of handling it correctly. To get to that point, we want to be sure we're
+truly incapable of doing so. libinput has several features that
+are handled automatically (and correctly) that users wanted to have
+configuration options for initially.
+
+So the answer to this question will almost always be 'no'. A configuration
+option is, in most cases, a cop-out.
+
 @section faq_synclient Why don't synclient and syndaemon work with libinput?
 
 Synclient and syndaemon rely on X input device properties that are specific
