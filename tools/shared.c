@@ -510,11 +510,20 @@ tools_exec_command(const char *prefix, int real_argc, char **real_argv)
 	setup_path();
 
 	rc = execvp(executable, argv);
-	if (rc)
-		fprintf(stderr,
-			"Failed to execute '%s' (%s)\n",
-			command,
-			strerror(errno));
+	if (rc) {
+		if (errno == ENOENT) {
+			fprintf(stderr,
+				"libinput: %s is not a libinput command or not installed. "
+				"See 'libinput --help'\n",
+				command);
+
+		} else {
+			fprintf(stderr,
+				"Failed to execute '%s' (%s)\n",
+				command,
+				strerror(errno));
+		}
+	}
 
 	return EXIT_FAILURE;
 }
