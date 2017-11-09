@@ -41,8 +41,7 @@ libinput_timer_init(struct libinput_timer *timer,
 		    void *timer_func_data)
 {
 	timer->libinput = libinput;
-	if (timer_name)
-		timer->timer_name = safe_strdup(timer_name);
+	timer->timer_name = safe_strdup(timer_name);
 	timer->timer_func = timer_func;
 	timer->timer_func_data = timer_func_data;
 }
@@ -89,12 +88,12 @@ libinput_timer_set_flags(struct libinput_timer *timer,
 		if ((flags & TIMER_FLAG_ALLOW_NEGATIVE) == 0)
 			log_bug_libinput(timer->libinput,
 					 "timer %s: offset negative (-%dms)\n",
-					 timer->timer_name ? timer->timer_name : "",
+					 timer->timer_name,
 					 us2ms(now - expire));
 	} else if ((expire - now) > ms2us(5000)) {
 		log_bug_libinput(timer->libinput,
 			 "timer %s: offset more than 5s, now %d expire %d\n",
-			 timer->timer_name ? timer->timer_name : "",
+			 timer->timer_name,
 			 us2ms(now), us2ms(expire));
 	}
 #endif
