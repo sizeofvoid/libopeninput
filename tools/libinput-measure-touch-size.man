@@ -9,7 +9,7 @@ libinput\-measure\-touch-size \- measure touch size and orientation of devices
 The
 .B "libinput measure touch\-size"
 tool measures the size and orientation of a touch as provided by the kernel.
-an interactive tool. When executed, the tool will prompt the user to
+This is an interactive tool. When executed, the tool will prompt the user to
 interact with the touch device. On termination, the tool prints a summary of the
 values seen. This data should be attached to any
 touch\-size\-related bug report.
