@@ -892,6 +892,8 @@ mainloop(struct libinput *li)
 
 	while (!stop && poll(&fds, 1, -1) > -1)
 		handle_and_print_events(li);
+
+	printf("\n");
 }
 
 static void
