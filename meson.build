@@ -156,6 +156,7 @@ src_libinput = [
 	'src/libinput-private.h',
 	'src/evdev.c',
 	'src/evdev.h',
+	'src/evdev-debounce.c',
 	'src/evdev-fallback.c',
 	'src/evdev-fallback.h',
 	'src/evdev-middle-button.c',
@@ -299,6 +300,7 @@ if get_option('documentation')
 		meson.source_root() + '/doc/dot/libinput-stack-gnome.gv',
 		meson.source_root() + '/doc/dot/evemu.gv',
 		# svgs
+		meson.source_root() + '/doc/svg/button-debouncing-wave-diagram.svg',
 		meson.source_root() + '/doc/svg/button-scrolling.svg',
 		meson.source_root() + '/doc/svg/clickfinger.svg',
 		meson.source_root() + '/doc/svg/clickfinger-distance.svg',
