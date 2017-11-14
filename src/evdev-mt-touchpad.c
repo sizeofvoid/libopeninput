@@ -2079,7 +2079,7 @@ tp_switch_event(uint64_t time, struct libinput_event *event, void *data)
 		break;
 	case LIBINPUT_SWITCH_STATE_ON:
 		tp_suspend(tp, tp->device);
-		evdev_log_debug(tp->device, "%s: suspend touchpad\n", which);
+		evdev_log_debug(tp->device, "%s: suspending touchpad\n", which);
 		break;
 	}
 }
