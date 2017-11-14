@@ -204,6 +204,10 @@ libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPadX1Carbon3rd
  LIBINPUT_MODEL_LENOVO_T450_TOUCHPAD=1
  LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD=150
 
+# Lenovo ThinkPad Compact USB Keyboard with TrackPoint
+libinput:keyboard:input:b0003v17EFp6047*
+ LIBINPUT_ATTR_KEYBOARD_INTEGRATION=external
+
 ##########################################
 # Logitech
 ##########################################
