@@ -924,12 +924,19 @@ fallback_lid_keyboard_event(uint64_t time,
 
 	if (dispatch->lid.reliability == RELIABILITY_WRITE_OPEN) {
 		int fd = libevdev_get_fd(dispatch->device->evdev);
+		int rc;
 		struct input_event ev[2] = {
 			{{ 0, 0 }, EV_SW, SW_LID, 0 },
 			{{ 0, 0 }, EV_SYN, SYN_REPORT, 0 },
 		};
 
-		(void)write(fd, ev, sizeof(ev));
+		rc = write(fd, ev, sizeof(ev));
+
+		if (rc < 0)
+			evdev_log_error(dispatch->device,
+					"failed to write SW_LID state (%s)",
+					strerror(errno));
+
 		/* In case write() fails, we sync the lid state manually
 		 * regardless. */
 	}
