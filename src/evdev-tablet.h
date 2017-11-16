@@ -1,6 +1,6 @@
 /*
  * Copyright © 2014 Red Hat, Inc.
- * Copyright © 2014 Stephen Chandler "Lyude" Paul
+ * Copyright © 2014 Lyude Paul
  *
  * Permission to use, copy, modify, distribute, and sell this software and
  * its documentation for any purpose is hereby granted without fee, provided
