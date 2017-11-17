@@ -691,7 +691,7 @@ START_TEST(lid_update_hw_on_key)
 	litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
 	litest_drain_events(li);
 
-	libinput_dispatch(li2);
+	litest_wait_for_event(li2);
 	event = libinput_get_event(li2);
 	litest_is_switch_event(event,
 			       LIBINPUT_SWITCH_LID,
@@ -798,7 +798,7 @@ START_TEST(lid_update_hw_on_key_multiple_keyboards)
 	litest_event(keyboard2, EV_SYN, SYN_REPORT, 0);
 	litest_drain_events(li);
 
-	libinput_dispatch(li2);
+	litest_wait_for_event(li2);
 	event = libinput_get_event(li2);
 	litest_is_switch_event(event,
 			       LIBINPUT_SWITCH_LID,
