@@ -497,7 +497,7 @@ START_TEST(device_disable_release_keys)
 
 	device = dev->libinput_device;
 
-	litest_button_click_debounced(dev, li, KEY_A, true);
+	litest_keyboard_key(dev, KEY_A, true);
 	litest_drain_events(li);
 
 	status = libinput_device_config_send_events_set_mode(device,
