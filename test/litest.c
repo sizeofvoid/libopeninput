@@ -2018,12 +2018,10 @@ litest_hover_move_two_touches(struct litest_device *d,
 }
 
 void
-litest_button_click_debounced(struct litest_device *d,
-			      struct libinput *li,
-			      unsigned int button,
-			      bool is_press)
+litest_button_click(struct litest_device *d,
+		    unsigned int button,
+		    bool is_press)
 {
-
 	struct input_event *ev;
 	struct input_event click[] = {
 		{ .type = EV_KEY, .code = button, .value = is_press ? 1 : 0 },
@@ -2032,6 +2030,16 @@ litest_button_click_debounced(struct litest_device *d,
 
 	ARRAY_FOR_EACH(click, ev)
 		litest_event(d, ev->type, ev->code, ev->value);
+}
+
+void
+litest_button_click_debounced(struct litest_device *d,
+			      struct libinput *li,
+			      unsigned int button,
+			      bool is_press)
+{
+	litest_button_click(d, button, is_press);
+
 	libinput_dispatch(li);
 	litest_timeout_debounce();
 	libinput_dispatch(li);

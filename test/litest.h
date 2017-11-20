@@ -603,6 +603,11 @@ litest_button_click_debounced(struct litest_device *d,
 			      bool is_press);
 
 void
+litest_button_click(struct litest_device *d,
+		    unsigned int button,
+		    bool is_press);
+
+void
 litest_button_scroll(struct litest_device *d,
 		     unsigned int button,
 		     double dx, double dy);
