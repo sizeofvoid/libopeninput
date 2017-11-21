@@ -335,9 +335,6 @@ debounce_maybe_spurious_handle_event(struct fallback_dispatch *fallback, enum de
 	case DEBOUNCE_EVENT_RELEASE:
 		debounce_set_state(fallback, DEBOUNCE_STATE_RELEASE_WAITING);
 		break;
-	case DEBOUNCE_EVENT_TIMEOUT:
-		log_debounce_bug(fallback, event);
-		break;
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
 		debounce_cancel_timer(fallback);
 		debounce_set_state(fallback, DEBOUNCE_STATE_IS_DOWN);
@@ -345,6 +342,7 @@ debounce_maybe_spurious_handle_event(struct fallback_dispatch *fallback, enum de
 		debounce_notify_button(fallback,
 				       LIBINPUT_BUTTON_STATE_PRESSED);
 		break;
+	case DEBOUNCE_EVENT_TIMEOUT:
 	case DEBOUNCE_EVENT_OTHERBUTTON:
 		debounce_set_state(fallback, DEBOUNCE_STATE_IS_DOWN);
 		debounce_notify_button(fallback,
