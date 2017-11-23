@@ -470,6 +470,15 @@ configure_file(input : 'tools/libinput-record.man',
 	       install_dir : join_paths(get_option('mandir'), 'man1')
 	       )
 
+install_data('tools/libinput-replay',
+	     install_dir : libinput_tool_path)
+configure_file(input : 'tools/libinput-replay.man',
+	       output : 'libinput-replay.1',
+	       configuration : man_config,
+	       install : true,
+	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       )
+
 if get_option('debug-gui')
 	dep_gtk = dependency('gtk+-3.0', version : '>= 3.20')
 	dep_cairo = dependency('cairo')
