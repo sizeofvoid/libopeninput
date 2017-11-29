@@ -60,6 +60,8 @@ class Device(object):
 
         self.device = evdev.InputDevice(self.path)
 
+        print("Using {}: {}\n".format(self.device.name, path))
+
         self.deltas = []
         self.nxdeltas = 0
         self.nydeltas = 0
