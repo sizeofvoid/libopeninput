@@ -17,6 +17,12 @@ This is a symptom of high-dpi mice (greater than 1000dpi). These devices
 need a udev hwdb entry to normalize their motion. See @ref
 motion_normalization for a detailed explanation.
 
+@section faq_fast_trackpoint My trackpoint moves too slow or too fast
+
+This is a symptom of an invalid trackpoint range. These devices need a udev
+hwdb entry to specify the range available so libinput can adjust the pointer
+acceleration accordingly. See @ref trackpoint_range for a detailed explanation.
+
 @section faq_enable_tapping Why isn't touchpad tap-to-click enabled by default
 
 See @ref tapping_default

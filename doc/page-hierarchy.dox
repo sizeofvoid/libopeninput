@@ -20,6 +20,7 @@
 - @subpage motion_normalization
 - @subpage middle_button_emulation
 - @subpage button_debouncing
+- @subpage trackpoints
 
 @page tablets Graphics Tablets
 

@@ -291,6 +291,7 @@ if get_option('documentation')
 		meson.source_root() + '/doc/touchpad-jumping-cursors.dox',
 		meson.source_root() + '/doc/touchpad-pressure.dox',
 		meson.source_root() + '/doc/touchpads.dox',
+		meson.source_root() + '/doc/trackpoints.dox',
 		meson.source_root() + '/doc/what-is-libinput.dox',
 		# dot drawings
 		meson.source_root() + '/doc/dot/seats-sketch.gv',
