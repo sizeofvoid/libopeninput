@@ -189,7 +189,7 @@ def main(args):
     except KeyboardInterrupt:
         device.print_summary()
     except (PermissionError, OSError):
-        print("Error: failed to open device")
+        print("Error: failed to open device. Are you running as root?")
     except InvalidDeviceError as e:
         print("Error: {}".format(e))
 
