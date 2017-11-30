@@ -145,6 +145,9 @@ class Device(object):
             self.path = path
 
         self.device = evdev.InputDevice(self.path)
+
+        print("Using {}: {}\n".format(self.device.name, self.path))
+
         # capabilities rturns a dict with the EV_* codes as key,
         # each of which is a list of tuples of (code, AbsInfo)
         #
