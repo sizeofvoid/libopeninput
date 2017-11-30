@@ -145,7 +145,9 @@ src_libfilter = [
 		'src/filter.h',
 		'src/filter-private.h'
 ]
-libfilter = static_library('filter', src_libfilter)
+libfilter = static_library('filter', src_libfilter,
+			   dependencies : dep_udev,
+			   include_directories : includes_include)
 dep_libfilter = declare_dependency(link_with : libfilter)
 
 ############ libinput.so ############
@@ -690,12 +692,14 @@ if get_option('tests')
 	# build-test only
         executable('test-build-pedantic',
 		   'test/build-pedantic.c',
+		   dependencies : [dep_udev],
 		   include_directories : [includes_src, includes_include],
 		   c_args : ['-std=c99', '-pedantic', '-Werror'],
 		   install : false)
 	# build-test only
         executable('test-build-std-gnuc90',
 		   'test/build-pedantic.c',
+		   dependencies : [dep_udev],
 		   include_directories : [includes_src, includes_include],
 		   c_args : ['-std=gnu90', '-Werror'],
 		   install : false)
@@ -708,6 +712,7 @@ if get_option('tests')
 	# test including from C++
 	executable('test-build-cxx',
 		   'test/build-cxx.cc',
+		   dependencies : [dep_udev],
 		   include_directories : [includes_src, includes_include],
 		   install : false)
 
