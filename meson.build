@@ -496,7 +496,8 @@ configure_file(input : 'tools/libinput.man',
 	       install_dir : join_paths(get_option('mandir'), 'man1')
 	       )
 
-meson.add_install_script('tools/install-compat-scripts.sh')
+meson.add_install_script('tools/install-compat-scripts.sh',
+			 join_paths(get_option('prefix'), get_option('bindir')))
 
 ptraccel_debug_sources = [ 'tools/ptraccel-debug.c' ]
 executable('ptraccel-debug',
