@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <libinput.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 #include "litest.h"
 

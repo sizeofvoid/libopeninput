@@ -27,6 +27,7 @@
 #define LITEST_H
 
 #include <stdbool.h>
+#include <stdarg.h>
 #include <check.h>
 #include <libevdev/libevdev.h>
 #include <libevdev/libevdev-uinput.h>

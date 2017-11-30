@@ -29,6 +29,7 @@
 #include <libinput.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 #include "libinput-util.h"
 #include "evdev-tablet.h"

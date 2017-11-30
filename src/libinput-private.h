@@ -29,6 +29,7 @@
 
 #include <errno.h>
 #include <math.h>
+#include <stdarg.h>
 
 #include "linux/input.h"
 

@@ -29,6 +29,7 @@
 #include "config.h"
 
 #include <stdbool.h>
+#include <stdarg.h>
 #include "linux/input.h"
 #include <libevdev/libevdev.h>
 

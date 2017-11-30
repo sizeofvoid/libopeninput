@@ -29,6 +29,7 @@
 #include <libinput.h>
 #include <libinput-util.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 #include "litest.h"
 #include "libinput-util.h"

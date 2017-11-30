@@ -31,6 +31,7 @@ extern "C" {
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdarg.h>
 #include <libudev.h>
 
 #define LIBINPUT_ATTRIBUTE_PRINTF(_format, _args) \

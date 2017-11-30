@@ -29,6 +29,7 @@
 #include <getopt.h>
 #include <poll.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <signal.h>
 #include <string.h>
 #include <time.h>
