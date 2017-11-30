@@ -7,6 +7,6 @@ libdir="$1"
 sofile=$(basename "$2")
 
 if command -v restorecon >/dev/null; then
-	echo "Restoring SELinux context on $MESON_INSTALL_DESTDIR_PREFIX/$libdir/$sofile"
-	restorecon "$MESON_INSTALL_DESTDIR_PREFIX/$libdir/$sofile"
+	echo "Restoring SELinux context on ${DESTDIR}${libdir}/${sofile}"
+	restorecon "${DESTDIR}${libdir}/${sofile}"
 fi
