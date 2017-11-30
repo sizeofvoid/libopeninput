@@ -162,4 +162,145 @@ model quirks hwdb for instructions.
 This property must not be used for any other purpose, no specific behavior
 is guaranteed.
 
+
+@section hwdb Configuring the hwdb
+
+This section outlines how to add an entry to the <a
+href="https://www.freedesktop.org/software/systemd/man/hwdb.html">udev
+hwdb</a> and reload properties so they are available to libinput.
+
+The hwdb contains a set of match rules that assign udev properties that are
+available to libinput when the device is connected and/or libinput is
+initialized. This section only describes the hwdb in relation to libinput,
+it is not a full documentation on how the hwdb works.
+
+@note **The use of the hwdb by libinput is not part of the public API. It may
+change at any time. Once tested, changes to the hwdb must be submitted
+upstream.**
+
+@subsection hwdb_querying Querying the hwdb
+
+libinput only uses device nodes in the form of `/dev/input/eventX` where X
+is the number of the specific device. Running `libinput debug-events` lists
+all devices currently available to libinput and their event node name:
+
+    $> sudo libinput debug-events
+    -event2   DEVICE_ADDED     Power Button                      seat0 default group1  cap:k
+    -event5   DEVICE_ADDED     Video Bus                         seat0 default group2  cap:k
+    -event0   DEVICE_ADDED     Lid Switch                        seat0 default group3  cap:S
+
+    ...
+
+Note the event node name for your device and translate it into a syspath in
+the form of `/sys/class/input/eventX`. This path can be supplied to `udevadm
+info`
+
+    $> udevadm info
+    P: /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0D:00/input/input0/event0
+    N: input/event0
+    E: DEVNAME=/dev/input/event0
+    E: DEVPATH=/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0D:00/input/input0/event0
+    E: ID_INPUT=1
+    E: ID_INPUT_SWITCH=1
+    E: MAJOR=13
+    E: MINOR=64
+    E: SUBSYSTEM=input
+    E: TAGS=:power-switch:
+    E: USEC_INITIALIZED=7167898
+
+Lines starting with `E:` are udev properties available to libinput. For
+example, the above device's `ID_INPUT_SWITCH` property will cause libinput
+to treat this device as switch device.
+
+
+@subsection hwdb_reloading Reloading the hwdb
+
+The actual hwdb is stored in binary file on-disk and must be updated
+manually whenever a `.hwdb` file changes. This is required both when a user
+manually edits the `.hwdb` file but also when the git tree is updated (and
+that update causes a hwdb change).
+
+To update the binary file on-disk, run:
+
+    sudo udevadm hwdb --update
+
+Then, to trigger a reload of all properties on your device, run:
+
+    sudo udevadm trigger /sys/class/input/eventX
+
+Then check with `udevadm info` whether the properties were updated, see @ref
+hwdb_querying. If a new property does not appear on the device, use `udevadm
+test` to check for error messages by udev and the hwdb (e.g. syntax errors
+in the udev rules files).
+
+    sudo udevadm test /sys/class/input/eventX
+
+@subsection hwdb_modifying Modifying the hwdb
+
+This section applies to users that need to add, change, or remove a hwdb
+entry for their device. Note that **the hwdb is not part of the public API
+and may change at any time**. Once a device has been made to work, the
+change must be submitted to the libinput bugzilla, see @ref reporting_bugs.
+
+hwdb entries are only applied if a udev rules calls out to the hwdb with the
+right match format. libinput ships with a set of rules to query the hwdb,
+the different rules are reflected by their prefix. Again, **this is not part
+of the public API**. libinput's matches are
+composed of a literal "libinput", then either the device name and dmi
+modalias, or the device types and the input modalias. Any part of the hwdb
+match line can be a glob by using a literal `*`. For example:
+
+    libinput:keyboard:input:b0011v*
+    libinput:touchpad:input:b0003v05ACp*
+    libinput:touchpad:input:b0003v05ACp021A*
+
+This type of matching is the preferred one for any removable device (USB,
+Bluetooth, ...) that can be uniquely identified by the bustype, vendor and
+product ID. The first line matches any keyboard device on the
+serial bus (0x0011). The second line matches any touchpad device
+with a vendor ID of 0x05AC. The third line matches any touchpad device
+with a vendor ID of 0x05AC and a product ID of 0x021A. The `input:b...`
+string is available in the device's modalias file
+`/sys/class/input/eventX/device/modalias`.
+
+In the case of built-in devices that do not have a unique id, we
+need to use the host system's dmi information. For example:
+
+    libinput:name:*Lid Switch*:dmi:*svnLENOVO:*pvrThinkPadT440*
+
+This match applies to any device with a name **containing** "Led Switch"
+that is on a Lenovo T440 system.  The dmi modalias is available in
+`/sys/class/dmi/id/modalias`. For example, on the T440 matched above, the
+modalias is
+
+    dmi:bvnLENOVO:bvrGJET72WW(2.22):bd02/21/2014:svnLENOVO:pn3453453678:pvrThinkPadT440s:rvnLENOVO:rn2012345223:rvrABC123KKK123B:cvnLENOVO:ct10:cvrNotAvailable:
+
+The dmi should always be shortened to the sections that uniquely identify
+the type system, in this case the vendor (svn) and the product version (pvr).
+Failing to shorten the system may mean that the hwdb match rule only applies
+to your specific system, rather than all systems of that type, or that the
+rule no longer applies after a firmware update.
+
+The hwdb match string is the first portion of the hwdb entry. The second
+portion is the property to set. Each hwdb entry may match on multiple
+devices and may apply multiple properties. For example:
+
+
+    libinput:touchpad:input:b0003v05ACp*
+      THIS_IS_AN_APPLE_DEVICE=1
+
+    libinput:touchpad:input:b0003v05ACp*
+    libinput:name:*Lid Switch*:dmi:*svnLENOVO:*pvrThinkPadT440*
+      FOO=1
+      BAR=2
+
+In the example above, any matching touchpad device will have all three
+properties applied, the lid switch device only has FOO and BAR.
+
+The hwdb does not allow removing properties. Where a property must be unset,
+it should be set to 0.
+
+Any user-specific hwdb entries should be placed in a file
+`/etc/udev/hwdb.d/99-somename.hwdb`. See @ref hwdb_reloading for
+instructions on how to reload the hwdb once the file is in place.
 */

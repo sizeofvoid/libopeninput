@@ -146,19 +146,8 @@ device would be 25. Note how there is a fair bit of guesswork involved, a
 trackpoint's data is never clean enough to get a definitive value. It is
 generally better to take a (slightly) smaller range than one too large.
 
-The hwdb entry for the above should thus be:
-@code
-libinput:name:TPPS/2 IBM TrackPoint:dmi:bvn*:bvr*:bd*:svnLENOVO:pn*:pvrThinkPadT440:*
-  LIBINPUT_ATTR_TRACKPOINT_RANGE=25
-@endcode
-
-The first line contains the device name and an abbreviated version of the
-dmi modalias (see `/sys/class/dmi/id/modalias/`). This dmi string should be
-abbreviated to be as generic as possible (hence the *) but specific enough
-to match the laptop model.
-
-See @ref faq_hwdb_changes for instructions on how to add this match to the
-system.
+The udev property to set is `LIBINPUT_ATTR_TRACKPOINT_RANGE=25`. See @ref
+hwdb_modifying for details on how to apply this property.
 
 */
 

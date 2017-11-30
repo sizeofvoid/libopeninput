@@ -195,31 +195,7 @@ See @ref tablet-capabilities for more details.
 
 Sometimes users are asked to test updates to the <a
 href="https://www.freedesktop.org/software/systemd/man/hwdb.html">udev
-hwdb</a> or patches that include a change to the hwdb.
-
-If you are testing a patch with a hwdb update, the file will be installed
-in the correct location. User-specific (i.e. user-written) hwdb entries for
-testing and debugging must be in `/etc/udev/hwdb.d/99-filename.hwdb`. You
-may rename the `filename` portion to something more useful, but make sure
-you keep the `.hwdb` suffix. Do not modify files or save files in
-`/usr/lib/udev/hwdb.d`.
-
-Figure out the event node name of your device. Run `sudo evemu-describe`
-with no arguments to get a list. If your device is `/dev/input/event4`,
-your event node name is `event4` and you will need to replace that in the
-commands below.
-
-Rebuild the hwdb and load the new set on your device:
-
-    sudo udevadm hwdb --update
-    sudo udevadm trigger /sys/class/input/eventX
-    sudo udevadm test /sys/class/input/eventX
-
-With the event node matching your device. Make sure the udev property
-appears (or does not appear, whichever applies) in the output of the test
-command.
-
-Once the output matches expectations, restart X or your Wayland
-compositor or reboot.
+hwdb</a> or patches that include a change to the hwdb. See @ref hwdb for
+details on the hwdb and how to modify it locally.
 
 */
