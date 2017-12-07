@@ -365,6 +365,61 @@ START_TEST(keyboard_no_buttons)
 }
 END_TEST
 
+START_TEST(keyboard_frame_order)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, KEY_A) ||
+	    !libevdev_has_event_code(dev->evdev, EV_KEY, KEY_LEFTSHIFT))
+		return;
+
+	litest_drain_events(li);
+
+	litest_event(dev, EV_KEY, KEY_LEFTSHIFT, 1);
+	litest_event(dev, EV_KEY, KEY_A, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	litest_assert_key_event(li,
+				KEY_LEFTSHIFT,
+				LIBINPUT_KEY_STATE_PRESSED);
+	litest_assert_key_event(li, KEY_A, LIBINPUT_KEY_STATE_PRESSED);
+
+	litest_event(dev, EV_KEY, KEY_LEFTSHIFT, 0);
+	litest_event(dev, EV_KEY, KEY_A, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	litest_assert_key_event(li,
+				KEY_LEFTSHIFT,
+				LIBINPUT_KEY_STATE_RELEASED);
+	litest_assert_key_event(li, KEY_A, LIBINPUT_KEY_STATE_RELEASED);
+
+	litest_event(dev, EV_KEY, KEY_A, 1);
+	litest_event(dev, EV_KEY, KEY_LEFTSHIFT, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	litest_assert_key_event(li, KEY_A, LIBINPUT_KEY_STATE_PRESSED);
+	litest_assert_key_event(li,
+				KEY_LEFTSHIFT,
+				LIBINPUT_KEY_STATE_PRESSED);
+
+	litest_event(dev, EV_KEY, KEY_A, 0);
+	litest_event(dev, EV_KEY, KEY_LEFTSHIFT, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	litest_assert_key_event(li, KEY_A, LIBINPUT_KEY_STATE_RELEASED);
+	litest_assert_key_event(li,
+				KEY_LEFTSHIFT,
+				LIBINPUT_KEY_STATE_RELEASED);
+
+	libinput_dispatch(li);
+}
+END_TEST
+
 START_TEST(keyboard_leds)
 {
 	struct litest_device *dev = litest_current_device();
@@ -432,6 +487,7 @@ litest_setup_tests_keyboard(void)
 	litest_add("keyboard:time", keyboard_time_usec, LITEST_KEYS, LITEST_ANY);
 
 	litest_add("keyboard:events", keyboard_no_buttons, LITEST_KEYS, LITEST_ANY);
+	litest_add("keyboard:events", keyboard_frame_order, LITEST_KEYS, LITEST_ANY);
 
 	litest_add("keyboard:leds", keyboard_leds, LITEST_ANY, LITEST_ANY);
 

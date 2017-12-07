@@ -501,6 +501,22 @@ fallback_process_key(struct fallback_dispatch *dispatch,
 	}
 
 	hw_set_key_down(dispatch, e->code, e->value);
+
+	switch (type) {
+	case KEY_TYPE_NONE:
+		break;
+	case KEY_TYPE_KEY:
+		fallback_keyboard_notify_key(
+			     dispatch,
+			     device,
+			     time,
+			     e->code,
+			     e->value ? LIBINPUT_KEY_STATE_PRESSED :
+					LIBINPUT_KEY_STATE_RELEASED);
+		break;
+	case KEY_TYPE_BUTTON:
+		break;
+	}
 }
 
 static void
@@ -827,27 +843,10 @@ fallback_handle_state(struct fallback_dispatch *dispatch,
 	if (dispatch->pending_event & EVDEV_KEY) {
 		bool want_debounce = false;
 		for (unsigned int code = 0; code <= KEY_MAX; code++) {
-			bool new_state;
-
 			if (!hw_key_has_changed(dispatch, code))
 				continue;
 
-			new_state = hw_is_key_down(dispatch, code);
-
-			switch (get_key_type(code)) {
-			case KEY_TYPE_NONE:
-				break;
-			case KEY_TYPE_KEY:
-				fallback_keyboard_notify_key(
-						     dispatch,
-						     device,
-						     time,
-						     code,
-						     new_state ?
-							     LIBINPUT_KEY_STATE_PRESSED :
-							     LIBINPUT_KEY_STATE_RELEASED);
-				break;
-			case KEY_TYPE_BUTTON:
+			if (get_key_type(code) == KEY_TYPE_BUTTON) {
 				want_debounce = true;
 				break;
 			}
