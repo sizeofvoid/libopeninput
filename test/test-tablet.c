@@ -3458,7 +3458,7 @@ START_TEST(tablet_pressure_range)
 	litest_drain_events(li);
 	libinput_dispatch(li);
 
-	for (pressure = 1; pressure <= 100; pressure += 10) {
+	for (pressure = 10; pressure <= 100; pressure += 10) {
 		litest_axis_set_value(axes, ABS_PRESSURE, pressure);
 		litest_tablet_motion(dev, 70, 70, axes);
 		libinput_dispatch(li);

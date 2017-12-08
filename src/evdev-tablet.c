@@ -1057,11 +1057,11 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 		if (pressure) {
 			tool->pressure_offset = pressure->minimum;
 
-			/* 5% of the pressure range */
+			/* 5 and 1% of the pressure range */
 			tool->pressure_threshold.upper =
 				axis_range_percentage(pressure, 5);
 			tool->pressure_threshold.lower =
-				pressure->minimum;
+				axis_range_percentage(pressure, 1);
 		}
 
 		tool_set_bits(tablet, tool);
@@ -1246,6 +1246,7 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 		 LIBINPUT_VERSION);
 	tool->pressure_offset = offset;
 	tool->has_pressure_offset = true;
+	tool->pressure_threshold.lower = pressure->minimum;
 }
 
 static void
