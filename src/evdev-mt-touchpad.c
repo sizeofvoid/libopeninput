@@ -1284,14 +1284,6 @@ tp_need_motion_history_reset(struct tp_dispatch *tp)
 	if (tp->nfingers_down != tp->old_nfingers_down)
 		return true;
 
-	/* if we're transitioning between slots and fake touches in either
-	 * direction, we may get a coordinate jump
-	 */
-	if (tp->nfingers_down != tp->old_nfingers_down &&
-		 (tp->nfingers_down > tp->num_slots ||
-		 tp->old_nfingers_down > tp->num_slots))
-		return true;
-
 	/* Quirk: if we had multiple events without x/y axis
 	   information, the next x/y event is going to be a jump. So we
 	   reset that touch to non-dirty effectively swallowing that event
