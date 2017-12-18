@@ -1840,7 +1840,9 @@ tablet_check_initial_proximity(struct evdev_device *device,
 	int code, state;
 	enum libinput_tablet_tool_type tool;
 
-	for (tool = LIBINPUT_TABLET_TOOL_TYPE_PEN; tool <= LIBINPUT_TABLET_TOOL_TYPE_MAX; tool++) {
+	for (tool = LIBINPUT_TABLET_TOOL_TYPE_PEN;
+	     tool <= LIBINPUT_TABLET_TOOL_TYPE_MAX;
+	     tool++) {
 		code = tablet_tool_to_evcode(tool);
 
 		/* we only expect one tool to be in proximity at a time */
