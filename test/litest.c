@@ -787,7 +787,7 @@ litest_free_test_list(struct list *tests)
 }
 
 static int
-litest_run_suite(struct list *tests, int which, int max)
+litest_run_suite(struct list *tests, int which, int max, int error_fd)
 {
 	int failed = 0;
 	SRunner *sr = NULL;
@@ -865,6 +865,19 @@ litest_run_suite(struct list *tests, int which, int max)
 
 	srunner_run_all(sr, CK_ENV);
 	failed = srunner_ntests_failed(sr);
+	if (failed) {
+		TestResult **trs;
+
+		trs = srunner_failures(sr);
+		for (int i = 0; i < failed; i++) {
+			dprintf(error_fd,
+				":: Failure: %s:%d:%s\n",
+				tr_lfile(trs[i]),
+				tr_lno(trs[i]),
+				tr_tcname(trs[i]));
+		}
+		free(trs);
+	}
 	srunner_free(sr);
 out:
 	list_for_each_safe(n, tmp, &testnames, node) {
@@ -882,14 +895,29 @@ litest_fork_subtests(struct list *tests, int max_forks)
 	int status;
 	pid_t pid;
 	int f;
+	int pipes[max_forks];
 
 	for (f = 0; f < max_forks; f++) {
+		int rc;
+		int pipefd[2];
+
+		rc = pipe2(pipefd, O_NONBLOCK|O_NONBLOCK);
+		assert(rc != -1);
+
 		pid = fork();
 		if (pid == 0) {
-			failed = litest_run_suite(tests, f, max_forks);
+			close(pipefd[0]);
+			failed = litest_run_suite(tests,
+						  f,
+						  max_forks,
+						  pipefd[1]);
+
 			litest_free_test_list(&all_tests);
 			exit(failed);
 			/* child always exits here */
+		} else {
+			pipes[f] = pipefd[0];
+			close(pipefd[1]);
 		}
 	}
 
@@ -897,6 +925,18 @@ litest_fork_subtests(struct list *tests, int max_forks)
 	while (wait(&status) != -1 && errno != ECHILD) {
 		if (WEXITSTATUS(status) != 0)
 			failed = 1;
+	}
+
+	for (f = 0; f < max_forks; f++) {
+		char buf[1024] = {0};
+		int rc;
+
+		while ((rc = read(pipes[f], buf, sizeof(buf) - 1)) > 0) {
+			buf[rc] = '\0';
+			fprintf(stderr, "%s", buf);
+		}
+
+		close(pipes[f]);
 	}
 
 	return failed;
@@ -923,7 +963,7 @@ litest_run(int argc, char **argv)
 	litest_setup_sighandler(SIGINT);
 
 	if (jobs == 1)
-		failed = litest_run_suite(&all_tests, 1, 1);
+		failed = litest_run_suite(&all_tests, 1, 1, STDERR_FILENO);
 	else
 		failed = litest_fork_subtests(&all_tests, jobs);
 
