@@ -1720,6 +1720,154 @@ START_TEST(touchpad_palm_detect_pressure_after_dwt)
 }
 END_TEST
 
+START_TEST(touchpad_palm_clickfinger_pressure)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_PRESSURE, 75 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_palm_pressure(dev))
+		return;
+
+	litest_enable_clickfinger(dev);
+	litest_disable_tap(dev->libinput_device);
+	litest_drain_events(li);
+
+	litest_touch_down_extended(dev, 0, 50, 95, axes);
+	litest_touch_down(dev, 1, 50, 50);
+	litest_button_click(dev, BTN_LEFT, true);
+	litest_button_click(dev, BTN_LEFT, false);
+
+	litest_touch_up(dev, 1);
+	litest_touch_up(dev, 0);
+
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touchpad_palm_clickfinger_pressure_2fg)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_PRESSURE, 75 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_palm_pressure(dev))
+		return;
+
+	if (libevdev_get_num_slots(dev->evdev) < 3)
+		return;
+
+	litest_enable_clickfinger(dev);
+	litest_disable_tap(dev->libinput_device);
+	litest_drain_events(li);
+
+	litest_touch_down_extended(dev, 0, 50, 95, axes);
+	litest_touch_down(dev, 1, 50, 50);
+	litest_touch_down(dev, 2, 50, 60);
+	litest_button_click(dev, BTN_LEFT, true);
+	litest_button_click(dev, BTN_LEFT, false);
+
+	litest_touch_up(dev, 1);
+	litest_touch_up(dev, 2);
+	litest_touch_up(dev, 0);
+
+	litest_assert_button_event(li, BTN_RIGHT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_RIGHT, LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+
+static inline bool
+touchpad_has_touch_size(struct litest_device *dev)
+{
+	struct libevdev *evdev = dev->evdev;
+
+	if (!libevdev_has_event_code(evdev, EV_ABS, ABS_MT_TOUCH_MAJOR))
+		return false;
+
+	if (libevdev_get_id_vendor(evdev) == VENDOR_ID_APPLE)
+		return true;
+
+	return false;
+}
+
+START_TEST(touchpad_palm_clickfinger_size)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOUCH_MAJOR, 0 },
+		{ ABS_MT_TOUCH_MINOR, 0 },
+		{ ABS_MT_ORIENTATION, 0 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_touch_size(dev))
+		return;
+
+	litest_enable_clickfinger(dev);
+	litest_disable_tap(dev->libinput_device);
+	litest_drain_events(li);
+
+	litest_touch_down_extended(dev, 0, 50, 95, axes);
+	litest_touch_down(dev, 1, 50, 50);
+	litest_button_click(dev, BTN_LEFT, true);
+	litest_button_click(dev, BTN_LEFT, false);
+
+	litest_touch_up(dev, 1);
+	litest_touch_up(dev, 0);
+
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touchpad_palm_clickfinger_size_2fg)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOUCH_MAJOR, 0 },
+		{ ABS_MT_TOUCH_MINOR, 0 },
+		{ ABS_MT_ORIENTATION, 0 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_touch_size(dev))
+		return;
+
+	if (libevdev_get_num_slots(dev->evdev) < 3)
+		return;
+
+	litest_enable_clickfinger(dev);
+	litest_disable_tap(dev->libinput_device);
+	litest_drain_events(li);
+
+	litest_touch_down_extended(dev, 0, 50, 95, axes);
+	litest_touch_down(dev, 1, 50, 50);
+	litest_touch_down(dev, 2, 50, 60);
+	litest_button_click(dev, BTN_LEFT, true);
+	litest_button_click(dev, BTN_LEFT, false);
+
+	litest_touch_up(dev, 1);
+	litest_touch_up(dev, 2);
+	litest_touch_up(dev, 0);
+
+	litest_assert_button_event(li, BTN_RIGHT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_RIGHT, LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_empty_queue(li);
+}
+END_TEST
 START_TEST(touchpad_left_handed)
 {
 	struct litest_device *dev = litest_current_device();
@@ -5579,20 +5727,6 @@ START_TEST(touchpad_pressure_semi_mt_2fg_goes_light)
 }
 END_TEST
 
-static inline bool
-touchpad_has_touch_size(struct litest_device *dev)
-{
-	struct libevdev *evdev = dev->evdev;
-
-	if (!libevdev_has_event_code(evdev, EV_ABS, ABS_MT_TOUCH_MAJOR))
-		return false;
-
-	if (libevdev_get_id_vendor(evdev) == VENDOR_ID_APPLE)
-		return true;
-
-	return false;
-}
-
 START_TEST(touchpad_touch_size)
 {
 	struct litest_device *dev = litest_current_device();
@@ -5856,6 +5990,11 @@ TEST_COLLECTION(touchpad)
 	litest_add("touchpad:palm", touchpad_palm_detect_pressure_keep_palm, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:palm", touchpad_palm_detect_pressure_after_edge, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:palm", touchpad_palm_detect_pressure_after_dwt, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+
+	litest_add("touchpad:palm", touchpad_palm_clickfinger_pressure, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add("touchpad:palm", touchpad_palm_clickfinger_pressure_2fg, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add("touchpad:palm", touchpad_palm_clickfinger_size, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add("touchpad:palm", touchpad_palm_clickfinger_size_2fg, LITEST_CLICKPAD, LITEST_ANY);
 
 	litest_add("touchpad:left-handed", touchpad_left_handed, LITEST_TOUCHPAD|LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add_for_device("touchpad:left-handed", touchpad_left_handed_appletouch, LITEST_APPLETOUCH);

@@ -999,16 +999,11 @@ static uint32_t
 tp_clickfinger_set_button(struct tp_dispatch *tp)
 {
 	uint32_t button;
-	unsigned int nfingers = tp->nfingers_down;
+	unsigned int nfingers = 0;
 	struct tp_touch *t;
 	struct tp_touch *first = NULL,
 			*second = NULL;
 
-	if (nfingers != 2)
-		goto out;
-
-	/* two fingers down on the touchpad. Check for distance
-	 * between the fingers. */
 	tp_for_each_touch(tp, t) {
 		if (t->state != TOUCH_BEGIN && t->state != TOUCH_UPDATE)
 			continue;
@@ -1016,16 +1011,21 @@ tp_clickfinger_set_button(struct tp_dispatch *tp)
 		if (t->thumb.state == THUMB_STATE_YES)
 			continue;
 
+		if (t->palm.state != PALM_NONE)
+			continue;
+
+		nfingers++;
+
 		if (!first)
 			first = t;
 		else if (!second)
 			second = t;
 	}
 
-	if (!first || !second) {
-		nfingers = 1;
+	/* Only check for finger distance when there are 2 fingers on the
+	 * touchpad */
+	if (nfingers != 2)
 		goto out;
-	}
 
 	if (tp_clickfinger_within_distance(tp, first, second))
 		nfingers = 2;

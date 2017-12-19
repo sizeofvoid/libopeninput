@@ -781,8 +781,8 @@ START_TEST(touchpad_clickfinger_3fg_tool_position)
 	litest_drain_events(li);
 
 	/* one in thumb area, one in normal area + TRIPLETAP. spread is wide
-	 * but any 3fg touch+click counts as middle */
-	litest_touch_down(dev, 0, 5, 99);
+	 * but any non-palm 3fg touch+click counts as middle */
+	litest_touch_down(dev, 0, 20, 99);
 	litest_touch_down(dev, 1, 90, 15);
 	litest_event(dev, EV_KEY, BTN_TOOL_DOUBLETAP, 0);
 	litest_event(dev, EV_KEY, BTN_TOOL_TRIPLETAP, 1);
