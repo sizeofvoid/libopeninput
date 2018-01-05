@@ -316,7 +316,7 @@ udev_device_from_devnode(struct libinput *libinput,
 			log_bug_libinput(libinput,
 					"udev device never initialized (%s)\n",
 					devnode);
-			break;
+			return NULL;
 		}
 	}
 
