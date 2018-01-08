@@ -642,6 +642,10 @@ START_TEST(touchpad_edge_scroll_timeout)
 	/* move 0.5mm, enough to load up the motion history, but less than
 	 * the scroll threshold of 2mm */
 	litest_touch_down(dev, 0, 99, 20);
+	libinput_dispatch(li);
+	litest_timeout_hysteresis();
+	libinput_dispatch(li);
+
 	litest_touch_move_to(dev, 0, 99, 20, 99, 20 + mm/2, 8, 0);
 	libinput_dispatch(li);
 	litest_assert_empty_queue(li);

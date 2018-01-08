@@ -136,7 +136,8 @@ tp_maybe_disable_hysteresis(struct tp_dispatch *tp, uint64_t time)
 {
 	/* If the finger is down for 80ms without seeing motion events,
 	   the firmware filters and we don't need a software hysteresis */
-	if (time - tp->hysteresis.last_motion_time > ms2us(80)) {
+	if (tp->nfingers_down >= 1 &&
+	    time - tp->hysteresis.last_motion_time > ms2us(80)) {
 		tp->hysteresis.enabled = false;
 		evdev_log_debug(tp->device, "hysteresis disabled\n");
 		return;
