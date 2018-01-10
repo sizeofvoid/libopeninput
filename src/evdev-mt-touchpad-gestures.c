@@ -45,13 +45,12 @@ gesture_state_to_str(enum tp_gesture_state state)
 	return NULL;
 }
 
-static struct normalized_coords
+static struct device_float_coords
 tp_get_touches_delta(struct tp_dispatch *tp, bool average)
 {
 	struct tp_touch *t;
 	unsigned int i, nactive = 0;
-	struct normalized_coords normalized;
-	struct normalized_coords delta = {0.0, 0.0};
+	struct device_float_coords delta = {0.0, 0.0};
 
 	for (i = 0; i < tp->num_slots; i++) {
 		t = &tp->touches[i];
@@ -62,10 +61,12 @@ tp_get_touches_delta(struct tp_dispatch *tp, bool average)
 		nactive++;
 
 		if (t->dirty) {
-			normalized = tp_get_delta(t);
+			struct device_coords d;
 
-			delta.x += normalized.x;
-			delta.y += normalized.y;
+			d = tp_get_delta(t);
+
+			delta.x += d.x;
+			delta.y += d.y;
 		}
 	}
 
@@ -78,13 +79,13 @@ tp_get_touches_delta(struct tp_dispatch *tp, bool average)
 	return delta;
 }
 
-static inline struct normalized_coords
+static inline struct device_float_coords
 tp_get_combined_touches_delta(struct tp_dispatch *tp)
 {
 	return tp_get_touches_delta(tp, false);
 }
 
-static inline struct normalized_coords
+static inline struct device_float_coords
 tp_get_average_touches_delta(struct tp_dispatch *tp)
 {
 	return tp_get_touches_delta(tp, true);
@@ -128,23 +129,25 @@ tp_gesture_start(struct tp_dispatch *tp, uint64_t time)
 static void
 tp_gesture_post_pointer_motion(struct tp_dispatch *tp, uint64_t time)
 {
-	struct normalized_coords delta, unaccel;
 	struct device_float_coords raw;
+	struct normalized_coords delta;
 
 	/* When a clickpad is clicked, combine motion of all active touches */
 	if (tp->buttons.is_clickpad && tp->buttons.state)
-		unaccel = tp_get_combined_touches_delta(tp);
+		raw = tp_get_combined_touches_delta(tp);
 	else
-		unaccel = tp_get_average_touches_delta(tp);
+		raw = tp_get_average_touches_delta(tp);
 
-	delta = tp_filter_motion(tp, &unaccel, time);
+	delta = tp_filter_motion(tp, &raw, time);
 
-	if (!normalized_is_zero(delta) || !normalized_is_zero(unaccel)) {
-		raw = tp_unnormalize_for_xaxis(tp, unaccel);
+	if (!normalized_is_zero(delta) || !device_float_is_zero(raw)) {
+		struct device_float_coords unaccel;
+
+		unaccel = tp_scale_to_xaxis(tp, raw);
 		pointer_notify_motion(&tp->device->base,
 				      time,
 				      &delta,
-				      &raw);
+				      &unaccel);
 	}
 }
 
@@ -379,15 +382,16 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 static enum tp_gesture_state
 tp_gesture_handle_state_scroll(struct tp_dispatch *tp, uint64_t time)
 {
+	struct device_float_coords raw;
 	struct normalized_coords delta;
 
 	if (tp->scroll.method != LIBINPUT_CONFIG_SCROLL_2FG)
 		return GESTURE_STATE_SCROLL;
 
-	delta = tp_get_average_touches_delta(tp);
+	raw = tp_get_average_touches_delta(tp);
 
 	/* scroll is not accelerated */
-	delta = tp_filter_motion_unaccelerated(tp, &delta, time);
+	delta = tp_filter_motion_unaccelerated(tp, &raw, time);
 
 	if (normalized_is_zero(delta))
 		return GESTURE_STATE_SCROLL;
@@ -404,12 +408,14 @@ tp_gesture_handle_state_scroll(struct tp_dispatch *tp, uint64_t time)
 static enum tp_gesture_state
 tp_gesture_handle_state_swipe(struct tp_dispatch *tp, uint64_t time)
 {
+	struct device_float_coords raw;
 	struct normalized_coords delta, unaccel;
 
-	unaccel = tp_get_average_touches_delta(tp);
-	delta = tp_filter_motion(tp, &unaccel, time);
+	raw = tp_get_average_touches_delta(tp);
+	delta = tp_filter_motion(tp, &raw, time);
 
-	if (!normalized_is_zero(delta) || !normalized_is_zero(unaccel)) {
+	if (!normalized_is_zero(delta) || !device_float_is_zero(raw)) {
+		unaccel = tp_normalize_delta(tp, raw);
 		tp_gesture_start(tp, time);
 		gesture_notify_swipe(&tp->device->base, time,
 				     LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
@@ -440,13 +446,14 @@ tp_gesture_handle_state_pinch(struct tp_dispatch *tp, uint64_t time)
 
 	fdelta = device_float_delta(center, tp->gesture.center);
 	tp->gesture.center = center;
-	unaccel = tp_normalize_delta(tp, fdelta);
-	delta = tp_filter_motion(tp, &unaccel, time);
 
-	if (normalized_is_zero(delta) && normalized_is_zero(unaccel) &&
+	delta = tp_filter_motion(tp, &fdelta, time);
+
+	if (normalized_is_zero(delta) && device_float_is_zero(fdelta) &&
 	    scale == tp->gesture.prev_scale && angle_delta == 0.0)
 		return GESTURE_STATE_PINCH;
 
+	unaccel = tp_normalize_delta(tp, fdelta);
 	tp_gesture_start(tp, time);
 	gesture_notify_pinch(&tp->device->base, time,
 			     LIBINPUT_EVENT_GESTURE_PINCH_UPDATE,

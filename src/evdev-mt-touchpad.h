@@ -281,6 +281,7 @@ struct tp_dispatch {
 	struct {
 		double x_scale_coeff;
 		double y_scale_coeff;
+		double xy_scale_coeff;
 	} accel;
 
 	struct {
@@ -480,32 +481,32 @@ tp_phys_delta(const struct tp_dispatch *tp,
 }
 
 /**
- * Takes a dpi-normalized set of coordinates, returns a set of coordinates
- * in the x-axis' coordinate space.
+ * Takes a set of device coordinates, returns that set of coordinates in the
+ * x-axis' resolution.
  */
 static inline struct device_float_coords
-tp_unnormalize_for_xaxis(const struct tp_dispatch *tp,
-			 struct normalized_coords delta)
+tp_scale_to_xaxis(const struct tp_dispatch *tp,
+		  struct device_float_coords delta)
 {
 	struct device_float_coords raw;
 
-	raw.x = delta.x / tp->accel.x_scale_coeff;
-	raw.y = delta.y / tp->accel.x_scale_coeff; /* <--- not a typo */
+	raw.x = delta.x;
+	raw.y = delta.y * tp->accel.xy_scale_coeff;
 
 	return raw;
 }
 
-struct normalized_coords
+struct device_coords
 tp_get_delta(struct tp_touch *t);
 
 struct normalized_coords
 tp_filter_motion(struct tp_dispatch *tp,
-		 const struct normalized_coords *unaccelerated,
+		 const struct device_float_coords *unaccelerated,
 		 uint64_t time);
 
 struct normalized_coords
 tp_filter_motion_unaccelerated(struct tp_dispatch *tp,
-			       const struct normalized_coords *unaccelerated,
+			       const struct device_float_coords *unaccelerated,
 			       uint64_t time);
 
 bool

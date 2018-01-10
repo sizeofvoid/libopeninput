@@ -49,17 +49,17 @@ tp_motion_history_offset(struct tp_touch *t, int offset)
 
 struct normalized_coords
 tp_filter_motion(struct tp_dispatch *tp,
-		 const struct normalized_coords *unaccelerated,
+		 const struct device_float_coords *unaccelerated,
 		 uint64_t time)
 {
 	struct device_float_coords raw;
+	const struct normalized_coords zero = { 0.0, 0.0 };
 
-	if (normalized_is_zero(*unaccelerated))
-		return *unaccelerated;
+	if (device_float_is_zero(*unaccelerated))
+		return zero;
 
-	/* Temporary solution only: convert back to raw coordinates, but
-	 * make sure we're on the same resolution for both axes */
-	raw = tp_unnormalize_for_xaxis(tp, *unaccelerated);
+	/* Convert to device units with x/y in the same resolution */
+	raw = tp_scale_to_xaxis(tp, *unaccelerated);
 
 	return filter_dispatch(tp->device->pointer.filter,
 			       &raw, tp, time);
@@ -67,17 +67,17 @@ tp_filter_motion(struct tp_dispatch *tp,
 
 struct normalized_coords
 tp_filter_motion_unaccelerated(struct tp_dispatch *tp,
-			       const struct normalized_coords *unaccelerated,
+			       const struct device_float_coords *unaccelerated,
 			       uint64_t time)
 {
 	struct device_float_coords raw;
+	const struct normalized_coords zero = { 0.0, 0.0 };
 
-	if (normalized_is_zero(*unaccelerated))
-		return *unaccelerated;
+	if (device_float_is_zero(*unaccelerated))
+		return zero;
 
-	/* Temporary solution only: convert back to raw coordinates, but
-	 * make sure we're on the same resolution for both axes */
-	raw = tp_unnormalize_for_xaxis(tp, *unaccelerated);
+	/* Convert to device units with x/y in the same resolution */
+	raw = tp_scale_to_xaxis(tp, *unaccelerated);
 
 	return filter_dispatch_constant(tp->device->pointer.filter,
 					&raw, tp, time);
@@ -344,11 +344,11 @@ tp_stop_actions(struct tp_dispatch *tp, uint64_t time)
 	tp_tap_suspend(tp, time);
 }
 
-struct normalized_coords
+struct device_coords
 tp_get_delta(struct tp_touch *t)
 {
-	struct device_float_coords delta;
-	const struct normalized_coords zero = { 0.0, 0.0 };
+	struct device_coords delta;
+	const struct device_coords zero = { 0.0, 0.0 };
 
 	if (t->history.count <= 1)
 		return zero;
@@ -358,7 +358,7 @@ tp_get_delta(struct tp_touch *t)
 	delta.y = tp_motion_history_offset(t, 0)->point.y -
 		  tp_motion_history_offset(t, 1)->point.y;
 
-	return tp_normalize_delta(t->tp, delta);
+	return delta;
 }
 
 static void
@@ -2448,6 +2448,7 @@ tp_init_accel(struct tp_dispatch *tp)
 	 */
 	tp->accel.x_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_x;
 	tp->accel.y_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_y;
+	tp->accel.xy_scale_coeff = 1.0 * res_x/res_y;
 
 	if (tp->device->model_flags & EVDEV_MODEL_LENOVO_X230 ||
 	    tp->device->model_flags & EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81)

@@ -376,6 +376,8 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 	struct tp_touch *t;
 	enum libinput_pointer_axis axis;
 	double *delta;
+	struct device_coords raw;
+	struct device_float_coords fraw;
 	struct normalized_coords normalized, tmp;
 	const struct normalized_coords zero = { 0.0, 0.0 };
 	const struct discrete_coords zero_discrete = { 0.0, 0.0 };
@@ -417,9 +419,11 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 				continue; /* Don't know direction yet, skip */
 		}
 
-		normalized = tp_get_delta(t);
+		raw = tp_get_delta(t);
+		fraw.x = raw.x;
+		fraw.y = raw.y;
 		/* scroll is not accelerated */
-		normalized = tp_filter_motion_unaccelerated(tp, &normalized, time);
+		normalized = tp_filter_motion_unaccelerated(tp, &fraw, time);
 
 		switch (t->scroll.edge_state) {
 		case EDGE_SCROLL_TOUCH_STATE_NONE:
