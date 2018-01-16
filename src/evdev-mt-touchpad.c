@@ -608,7 +608,13 @@ tp_process_trackpoint_button(struct tp_dispatch *tp,
 {
 	struct evdev_dispatch *dispatch;
 	struct input_event event;
-	struct input_event syn_report = {{ 0, 0 }, EV_SYN, SYN_REPORT, 0 };
+	struct input_event syn_report = {
+		 .input_event_sec = 0,
+		 .input_event_usec = 0,
+		 .type = EV_SYN,
+		 .code = SYN_REPORT,
+		 .value = 0
+	};
 
 	if (!tp->buttons.trackpoint)
 		return;
@@ -616,7 +622,8 @@ tp_process_trackpoint_button(struct tp_dispatch *tp,
 	dispatch = tp->buttons.trackpoint->dispatch;
 
 	event = *e;
-	syn_report.time = e->time;
+	syn_report.input_event_sec = e->input_event_sec;
+	syn_report.input_event_usec = e->input_event_usec;
 
 	switch (event.code) {
 	case BTN_0:
