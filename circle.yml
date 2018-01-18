@@ -61,21 +61,6 @@ libinput_jobs:
     store_artifacts:
       path: ~/libinput/build/meson-logs
 
-# Ubuntu's meson is too old, these instructions are
-# meson-specific
-meson_from_git: &meson_from_git
-  run:
-    name: Install meson from git
-    environment:
-      MESON_VERSION: 0.41.0
-    command: |
-      git clone https://github.com/mesonbuild/meson
-      pushd meson
-      git checkout -f ${MESON_VERSION}
-      python3 ./setup.py install --prefix=/usr --install-layout=deb --install-lib=/usr/share/meson --install-scripts=/usr/share/meson
-      popd
-      rm -rf meson
-
 fedora_install: &fedora_install
   run:
     name: Install prerequisites
@@ -111,7 +96,6 @@ ubuntu_build_all: &ubuntu_build_all
   <<: *default_settings
   steps:
     - *ubuntu_install
-    - *meson_from_git # meson version not recent enough
     - checkout
     - *build_and_test
     - *install
@@ -142,10 +126,10 @@ jobs:
     <<: *fedora_build_all
     docker:
       - image: fedora:latest
-  ubuntu_17_04:
+  ubuntu_17_10:
     <<: *ubuntu_build_all
     docker:
-      - image: ubuntu:zesty
+      - image: ubuntu:artful
   scan_build:
     <<: *scan_build_run
     docker:
@@ -157,4 +141,4 @@ workflows:
     jobs:
       - fedora_latest
       - scan_build
-      - ubuntu_17_04
+      - ubuntu_17_10
