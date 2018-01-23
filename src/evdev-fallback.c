@@ -30,8 +30,6 @@
 
 #include "evdev-fallback.h"
 
-#define	DEBOUNCE_TIME ms2us(12)
-
 static void
 fallback_keyboard_notify_key(struct fallback_dispatch *dispatch,
 			     struct evdev_device *device,
