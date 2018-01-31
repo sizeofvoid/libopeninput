@@ -468,6 +468,9 @@ int
 evdev_device_has_key(struct evdev_device *device, uint32_t code);
 
 int
+evdev_device_get_touch_count(struct evdev_device *device);
+
+int
 evdev_device_has_switch(struct evdev_device *device,
 			enum libinput_switch sw);
 

@@ -2301,6 +2301,28 @@ evdev_device_has_key(struct evdev_device *device, uint32_t code)
 }
 
 int
+evdev_device_get_touch_count(struct evdev_device *device)
+{
+	int ntouches;
+
+	if (!(device->seat_caps & EVDEV_DEVICE_TOUCH))
+		return -1;
+
+	ntouches = libevdev_get_num_slots(device->evdev);
+	if (ntouches == -1) {
+		/* mtdev devices have multitouch but we don't know
+		 * how many. Otherwise, any touch device with num_slots of
+		 * -1 is a single-touch device */
+		if (device->mtdev)
+			ntouches = 0;
+		else
+			ntouches = 1;
+	}
+
+	return ntouches;
+}
+
+int
 evdev_device_has_switch(struct evdev_device *device,
 			enum libinput_switch sw)
 {

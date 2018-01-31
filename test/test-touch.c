@@ -1023,6 +1023,44 @@ START_TEST(touch_invalid_range_under)
 }
 END_TEST
 
+START_TEST(touch_count_st)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	ck_assert_int_eq(libinput_device_touch_get_touch_count(device), 1);
+}
+END_TEST
+
+START_TEST(touch_count_mt)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	struct libevdev *evdev = dev->evdev;
+
+	ck_assert_int_eq(libinput_device_touch_get_touch_count(device),
+			 libevdev_get_num_slots(evdev));
+}
+END_TEST
+
+START_TEST(touch_count_unknown)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	ck_assert_int_eq(libinput_device_touch_get_touch_count(device), 0);
+}
+END_TEST
+
+START_TEST(touch_count_invalid)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	ck_assert_int_eq(libinput_device_touch_get_touch_count(device), -1);
+}
+END_TEST
+
 TEST_COLLECTION(touch)
 {
 	struct range axes = { ABS_X, ABS_Y + 1};
@@ -1060,4 +1098,9 @@ TEST_COLLECTION(touch)
 
 	litest_add_for_device("touch:range", touch_invalid_range_over, LITEST_TOUCHSCREEN_INVALID_RANGE);
 	litest_add_for_device("touch:range", touch_invalid_range_under, LITEST_TOUCHSCREEN_INVALID_RANGE);
+
+	litest_add("touch:count", touch_count_st, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
+	litest_add("touch:count", touch_count_mt, LITEST_TOUCH, LITEST_SINGLE_TOUCH|LITEST_PROTOCOL_A);
+	litest_add("touch:count", touch_count_unknown, LITEST_PROTOCOL_A, LITEST_ANY);
+	litest_add("touch:count", touch_count_invalid, LITEST_ANY, LITEST_TOUCH|LITEST_SINGLE_TOUCH|LITEST_PROTOCOL_A);
 }
