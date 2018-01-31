@@ -563,6 +563,7 @@ if get_option('tests')
 		'test/litest-device-mouse-low-dpi.c',
 		'test/litest-device-mouse-wheel-click-angle.c',
 		'test/litest-device-mouse-wheel-click-count.c',
+		'test/litest-device-ms-nano-transceiver-mouse.c',
 		'test/litest-device-ms-surface-cover.c',
 		'test/litest-device-protocol-a-touch-screen.c',
 		'test/litest-device-qemu-usb-tablet.c',

@@ -83,6 +83,7 @@ debounce_state_to_str(enum debounce_state state)
 	CASE_RETURN_STRING(DEBOUNCE_STATE_MAYBE_SPURIOUS);
 	CASE_RETURN_STRING(DEBOUNCE_STATE_RELEASED);
 	CASE_RETURN_STRING(DEBOUNCE_STATE_PRESS_PENDING);
+	CASE_RETURN_STRING(DEBOUNCE_STATE_DISABLED);
 	}
 
 	return NULL;
@@ -395,6 +396,31 @@ debounce_press_pending_event(struct fallback_dispatch *fallback, enum debounce_e
 }
 
 static void
+debounce_disabled_event(struct fallback_dispatch *fallback,
+			enum debounce_event event,
+			uint64_t time)
+{
+	switch (event) {
+	case DEBOUNCE_EVENT_PRESS:
+		fallback->debounce.button_time = time;
+		debounce_notify_button(fallback,
+				       LIBINPUT_BUTTON_STATE_PRESSED);
+		break;
+	case DEBOUNCE_EVENT_RELEASE:
+		fallback->debounce.button_time = time;
+		debounce_notify_button(fallback,
+				       LIBINPUT_BUTTON_STATE_RELEASED);
+		break;
+	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
+	case DEBOUNCE_EVENT_TIMEOUT:
+		log_debounce_bug(fallback, event);
+		break;
+	case DEBOUNCE_EVENT_OTHERBUTTON:
+		break;
+	}
+}
+
+static void
 debounce_handle_event(struct fallback_dispatch *fallback,
 		      enum debounce_event event,
 		      uint64_t time)
@@ -433,6 +459,9 @@ debounce_handle_event(struct fallback_dispatch *fallback,
 		break;
 	case DEBOUNCE_STATE_PRESS_PENDING:
 		debounce_press_pending_event(fallback, event, time);
+		break;
+	case DEBOUNCE_STATE_DISABLED:
+		debounce_disabled_event(fallback, event, time);
 		break;
 	}
 
@@ -484,7 +513,8 @@ fallback_debounce_handle_state(struct fallback_dispatch *dispatch,
 	for (size_t i = 0; i < nchanged; i++) {
 		bool is_down = hw_is_key_down(dispatch, changed[i]);
 
-		if (flushed) {
+		if (flushed &&
+		    dispatch->debounce.state != DEBOUNCE_STATE_DISABLED) {
 			debounce_set_state(dispatch,
 					   !is_down ?
 						   DEBOUNCE_STATE_IS_DOWN :
@@ -537,6 +567,12 @@ fallback_init_debounce(struct fallback_dispatch *dispatch)
 {
 	struct evdev_device *device = dispatch->device;
 	char timer_name[64];
+
+	if (device->model_flags & EVDEV_MODEL_MS_NANO_TRANSCEIVER) {
+		dispatch->debounce.state = DEBOUNCE_STATE_DISABLED;
+		return;
+	}
+
 
 	dispatch->debounce.state = DEBOUNCE_STATE_IS_UP;
 
