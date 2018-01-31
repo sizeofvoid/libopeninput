@@ -270,6 +270,7 @@ enum litest_device_type {
 	LITEST_WACOM_BAMBOO_2FG_PEN,
 	LITEST_WACOM_BAMBOO_2FG_FINGER,
 	LITEST_HP_WMI_HOTKEYS,
+	LITEST_MS_NANO_TRANSCEIVER_MOUSE,
 };
 
 enum litest_device_feature {
@@ -303,6 +304,7 @@ enum litest_device_feature {
 	LITEST_LEDS = 1 << 25,
 	LITEST_SWITCH = 1 << 26,
 	LITEST_IGNORED = 1 << 27,
+	LITEST_NO_DEBOUNCE = 1 << 28,
 };
 
 /* this is a semi-mt device, so we keep track of the touches that the tests

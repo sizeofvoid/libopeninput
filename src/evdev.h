@@ -124,6 +124,7 @@ enum evdev_device_model {
 	EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON = (1 << 25),
 	EVDEV_MODEL_LOGITECH_MARBLE_MOUSE = (1 << 26),
 	EVDEV_MODEL_TABLET_NO_PROXIMITY_OUT = (1 << 27),
+	EVDEV_MODEL_MS_NANO_TRANSCEIVER = (1 << 28),
 };
 
 enum evdev_button_scroll_state {

@@ -229,6 +229,10 @@ libinput:name:*Lid Switch*:dmi:*svnMicrosoftCorporation:pnSurface3:*
 libinput:name:*Microsoft Surface Type Cover Keyboard*:dmi:*svnMicrosoftCorporation:pnSurface3:*
  LIBINPUT_ATTR_KEYBOARD_INTEGRATION=internal
 
+# Microsoft Microsoft® Nano Transceiver v2.0"
+libinput:mouse:input:b0003v045Ep0800*
+ LIBINPUT_MODEL_MS_NANO_TRANSCEIVER=1
+
 ##########################################
 # Razer
 ##########################################
