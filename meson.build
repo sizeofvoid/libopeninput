@@ -521,6 +521,10 @@ if get_option('tests')
 	dep_libunwind = dependency('libunwind', required : false)
 	config_h.set10('HAVE_LIBUNWIND', dep_libunwind.found())
 
+	# for inhibit support during test run
+	dep_libsystemd = dependency('libsystemd', required : false)
+	config_h.set10('HAVE_LIBSYSTEMD', dep_libsystemd.found())
+
 	lib_litest_sources = [
 		'test/litest.h',
 		'test/litest-int.h',
@@ -609,7 +613,8 @@ if get_option('tests')
 		dep_udev,
 		dep_libevdev,
 		dep_dl,
-		dep_lm
+		dep_lm,
+		dep_libsystemd,
 	]
 
 	configure_file(input : 'udev/80-libinput-test-device.rules',

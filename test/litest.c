@@ -48,6 +48,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <libudev.h>
+#if HAVE_LIBSYSTEMD
+#include <systemd/sd-bus.h>
+#endif
 
 #include "litest.h"
 #include "litest-int.h"
@@ -943,9 +946,59 @@ litest_fork_subtests(struct list *tests, int max_forks)
 }
 
 static inline int
+inhibit(void)
+{
+	int lock_fd = -1;
+#if HAVE_LIBSYSTEMD
+	sd_bus_error error = SD_BUS_ERROR_NULL;
+	sd_bus_message *m = NULL;
+	sd_bus *bus = NULL;
+	int rc;
+
+	rc = sd_bus_open_system(&bus);
+	if (rc != 0) {
+		fprintf(stderr, "Warning: inhibit failed: %s\n", strerror(-rc));
+		goto out;
+	}
+
+	rc = sd_bus_call_method(bus,
+				"org.freedesktop.login1",
+				"/org/freedesktop/login1",
+				"org.freedesktop.login1.Manager",
+				"Inhibit",
+				&error,
+				&m,
+				"ssss",
+				"handle-lid-switch:handle-power-key:handle-suspend-key:handle-hibernate-key",
+				"libinput test-suite runner",
+				"testing in progress",
+				"block");
+	if (rc < 0) {
+		fprintf(stderr, "Warning: inhibit failed: %s\n", error.message);
+		goto out;
+	}
+
+	rc = sd_bus_message_read(m, "h", &lock_fd);
+	if (rc < 0) {
+		fprintf(stderr, "Warning: inhibit failed: %s\n", strerror(-rc));
+		goto out;
+	}
+
+	lock_fd = dup(lock_fd);
+out:
+	sd_bus_error_free(&error);
+	sd_bus_message_unref(m);
+	sd_bus_close(bus);
+	sd_bus_unref(bus);
+#endif
+	return lock_fd;
+}
+
+static inline int
 litest_run(int argc, char **argv)
 {
 	int failed = 0;
+	int inhibit_lock_fd;
 
 	list_init(&created_files_list);
 
@@ -962,10 +1015,14 @@ litest_run(int argc, char **argv)
 
 	litest_setup_sighandler(SIGINT);
 
+	inhibit_lock_fd = inhibit();
+
 	if (jobs == 1)
 		failed = litest_run_suite(&all_tests, 1, 1, STDERR_FILENO);
 	else
 		failed = litest_fork_subtests(&all_tests, jobs);
+
+	close(inhibit_lock_fd);
 
 	litest_free_test_list(&all_tests);
 
