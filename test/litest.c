@@ -691,8 +691,14 @@ litest_log_handler(struct libinput *libinput,
 		fprintf(stderr, ANSI_NORMAL);
 
 	if (strstr(format, "client bug: ") ||
-	    strstr(format, "libinput bug: "))
+	    strstr(format, "libinput bug: ")) {
+		/* valgrind is too slow and some of our offsets are too
+		 * short, don't abort if during a valgrind run we get a
+		 * negative offset */
+		if (!getenv("USING_VALGRIND") ||
+		    !strstr(format, "offset negative"))
 		litest_abort_msg("libinput bug triggered, aborting.\n");
+	}
 }
 
 static char *
