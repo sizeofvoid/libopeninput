@@ -819,8 +819,8 @@ START_TEST(lid_key_press)
 
 	litest_drain_events(li);
 
-	litest_keyboard_key(sw, KEY_POWER, true);
-	litest_keyboard_key(sw, KEY_POWER, false);
+	litest_keyboard_key(sw, KEY_VOLUMEUP, true);
+	litest_keyboard_key(sw, KEY_VOLUMEUP, false);
 	libinput_dispatch(li);
 
 	/* Check that we're routing key events from a lid device too */
