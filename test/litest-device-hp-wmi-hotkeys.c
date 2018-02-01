@@ -52,7 +52,7 @@ static const char udev_rule[] =
 "KERNEL!=\"event*\", GOTO=\"switch_end\"\n"
 "\n"
 "ATTRS{name}==\"litest HP WMI Hotkeys*\",\\\n"
-"    ENV{ID_INPUT_SWITCH}=\"1\",\\\n"
+"    ENV{ID_INPUT_SWITCH}=\"1\"\n"
 "\n"
 "LABEL=\"switch_end\"";
 
