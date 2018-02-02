@@ -757,16 +757,6 @@ tablet_process_key(struct tablet_dispatch *tablet,
 						  TABLET_TOOL_LEAVING_CONTACT);
 		}
 		break;
-	case BTN_LEFT:
-	case BTN_RIGHT:
-	case BTN_MIDDLE:
-	case BTN_SIDE:
-	case BTN_EXTRA:
-	case BTN_FORWARD:
-	case BTN_BACK:
-	case BTN_TASK:
-	case BTN_STYLUS:
-	case BTN_STYLUS2:
 	default:
 		tablet_update_button(tablet, e->code, e->value);
 		break;
