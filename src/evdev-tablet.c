@@ -673,8 +673,6 @@ tablet_update_button(struct tablet_dispatch *tablet,
 		     uint32_t enable)
 {
 	switch (evcode) {
-	case BTN_TOUCH:
-		return;
 	case BTN_LEFT:
 	case BTN_RIGHT:
 	case BTN_MIDDLE:
