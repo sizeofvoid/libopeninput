@@ -1556,11 +1556,15 @@ tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
 	     uint64_t time)
 {
-	struct libinput_tablet_tool *tool =
-		tablet_get_tool(tablet,
-				tablet->current_tool_type,
-				tablet->current_tool_id,
-				tablet->current_tool_serial);
+	struct libinput_tablet_tool *tool;
+
+	if (tablet->current_tool_type == LIBINPUT_TOOL_NONE)
+		return;
+
+	tool = tablet_get_tool(tablet,
+			       tablet->current_tool_type,
+			       tablet->current_tool_id,
+			       tablet->current_tool_serial);
 
 	if (!tool)
 		return; /* OOM */
