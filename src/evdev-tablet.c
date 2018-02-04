@@ -933,7 +933,17 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_X);
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_SLIDER);
-		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
+
+		/* Rotation is special, it can be either ABS_Z or
+		 * BTN_TOOL_MOUSE+ABS_TILT_X/Y. Aiptek tablets have
+		 * mouse+tilt (and thus rotation), but they do not have
+		 * ABS_Z. So let's not copy the axis bit if we don't have
+		 * ABS_Z, otherwise we try to get the value from it later on
+		 * proximity in and go boom because the absinfo isn't there.
+		 */
+		if (libevdev_has_event_code(tablet->device->evdev, EV_ABS,
+					    ABS_Z))
+			copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
 		break;
 	case LIBINPUT_TABLET_TOOL_TYPE_MOUSE:
 	case LIBINPUT_TABLET_TOOL_TYPE_LENS:
