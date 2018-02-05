@@ -305,6 +305,7 @@ START_TEST(tip_up_prox_out)
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
+	litest_timeout_tablet_proxout();
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
