@@ -800,7 +800,7 @@ evdev_read_switch_reliability_prop(struct evdev_device *device)
 				"%s: switch reliability set to unknown value '%s'\n",
 				device->devname,
 				prop);
-		r =  RELIABILITY_UNKNOWN;
+		r = RELIABILITY_UNKNOWN;
 	} else if (r == RELIABILITY_WRITE_OPEN) {
 		evdev_log_info(device, "will write switch open events\n");
 	}
