@@ -271,6 +271,7 @@ enum litest_device_type {
 	LITEST_WACOM_BAMBOO_2FG_FINGER,
 	LITEST_HP_WMI_HOTKEYS,
 	LITEST_MS_NANO_TRANSCEIVER_MOUSE,
+	LITEST_AIPTEK,
 };
 
 enum litest_device_feature {

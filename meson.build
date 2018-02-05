@@ -530,6 +530,7 @@ if get_option('tests')
 		'test/litest-int.h',
 		'test/litest-device-acer-hawaii-keyboard.c',
 		'test/litest-device-acer-hawaii-touchpad.c',
+		'test/litest-device-aiptek-tablet.c',
 		'test/litest-device-alps-semi-mt.c',
 		'test/litest-device-alps-dualpoint.c',
 		'test/litest-device-anker-mouse-kbd.c',

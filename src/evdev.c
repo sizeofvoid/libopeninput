@@ -1265,6 +1265,7 @@ evdev_read_model_flags(struct evdev_device *device)
 		MODEL(LOGITECH_MARBLE_MOUSE),
 		MODEL(TABLET_NO_PROXIMITY_OUT),
 		MODEL(MS_NANO_TRANSCEIVER),
+		MODEL(TABLET_NO_TILT),
 #undef MODEL
 		{ "ID_INPUT_TRACKBALL", EVDEV_MODEL_TRACKBALL },
 		{ NULL, EVDEV_MODEL_DEFAULT },
@@ -1861,6 +1862,12 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	/* Logitech Marble Mouse claims to have a middle button */
 	if (device->model_flags & EVDEV_MODEL_LOGITECH_MARBLE_MOUSE)
 		libevdev_disable_event_code(device->evdev, EV_KEY, BTN_MIDDLE);
+
+	/* Aiptek tablets have tilt but don't send events */
+	if (device->model_flags & EVDEV_MODEL_TABLET_NO_TILT) {
+		libevdev_disable_event_code(device->evdev, EV_ABS, ABS_TILT_X);
+		libevdev_disable_event_code(device->evdev, EV_ABS, ABS_TILT_Y);
+	}
 }
 
 static void

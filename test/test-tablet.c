@@ -2478,6 +2478,13 @@ START_TEST(tool_capabilities)
 }
 END_TEST
 
+static inline bool
+tablet_has_mouse(struct litest_device *dev)
+{
+	return libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_MOUSE) &&
+	       libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_WACOM;
+}
+
 START_TEST(tool_type)
 {
 	struct litest_device *dev = litest_current_device();
@@ -2514,6 +2521,10 @@ START_TEST(tool_type)
 		if (!libevdev_has_event_code(dev->evdev,
 					     EV_KEY,
 					     tt->code))
+			continue;
+
+		if ((tt->code == BTN_TOOL_MOUSE || tt->code == BTN_TOOL_LENS) &&
+		    !tablet_has_mouse(dev))
 			continue;
 
 		litest_push_event_frame(dev);

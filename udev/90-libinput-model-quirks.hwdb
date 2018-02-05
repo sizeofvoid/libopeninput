@@ -33,6 +33,12 @@ libinput:keyboard:input:b0011v*
  LIBINPUT_ATTR_KEYBOARD_INTEGRATION=internal
 
 ##########################################
+# Aiptek
+##########################################
+libinput:tablet:input:b0003v08CAp*
+ LIBINPUT_MODEL_TABLET_NO_TILT=1
+
+##########################################
 # ALPS
 ##########################################
 libinput:name:*AlpsPS/2 ALPS DualPoint TouchPad:dmi:*
