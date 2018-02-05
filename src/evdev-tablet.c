@@ -1781,8 +1781,14 @@ tablet_suspend(struct evdev_dispatch *dispatch,
 	       struct evdev_device *device)
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
+	struct libinput *li = tablet_libinput_context(tablet);
 
 	tablet_set_touch_device_enabled(tablet->touch_device, true);
+
+	if (!tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY)) {
+		tablet_set_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
+		tablet_flush(tablet, device, libinput_now(li));
+	}
 }
 
 static void
