@@ -1127,11 +1127,6 @@ START_TEST(proximity_range_enter)
 		{ -1, -1 }
 	};
 
-	if (!libevdev_has_event_code(dev->evdev,
-				    EV_KEY,
-				    BTN_TOOL_MOUSE))
-		return;
-
 	litest_drain_events(li);
 
 	litest_push_event_frame(dev);
@@ -1166,11 +1161,6 @@ START_TEST(proximity_range_in_out)
 		{ ABS_DISTANCE, 20 },
 		{ -1, -1 }
 	};
-
-	if (!libevdev_has_event_code(dev->evdev,
-				    EV_KEY,
-				    BTN_TOOL_MOUSE))
-		return;
 
 	litest_drain_events(li);
 
@@ -1213,11 +1203,6 @@ START_TEST(proximity_range_button_click)
 		{ -1, -1 }
 	};
 
-	if (!libevdev_has_event_code(dev->evdev,
-				    EV_KEY,
-				    BTN_TOOL_MOUSE))
-		return;
-
 	litest_drain_events(li);
 
 	litest_push_event_frame(dev);
@@ -1246,11 +1231,6 @@ START_TEST(proximity_range_button_press)
 		{ ABS_DISTANCE, 20 },
 		{ -1, -1 }
 	};
-
-	if (!libevdev_has_event_code(dev->evdev,
-				    EV_KEY,
-				    BTN_TOOL_MOUSE))
-		return;
 
 	litest_push_event_frame(dev);
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -1294,11 +1274,6 @@ START_TEST(proximity_range_button_release)
 		{ ABS_DISTANCE, 90 },
 		{ -1, -1 }
 	};
-
-	if (!libevdev_has_event_code(dev->evdev,
-				    EV_KEY,
-				    BTN_TOOL_MOUSE))
-		return;
 
 	litest_push_event_frame(dev);
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -1654,11 +1629,6 @@ START_TEST(left_handed_mouse_rotation)
 		{ ABS_TILT_Y, 0 },
 		{ -1, -1 }
 	};
-
-	if (!libevdev_has_event_code(dev->evdev,
-				    EV_KEY,
-				    BTN_TOOL_MOUSE))
-		return;
 
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
@@ -2560,11 +2530,6 @@ START_TEST(mouse_tool)
 	struct libinput_event_tablet_tool *tev;
 	struct libinput_tablet_tool *tool;
 
-	if (!libevdev_has_event_code(dev->evdev,
-				    EV_KEY,
-				    BTN_TOOL_MOUSE))
-		return;
-
 	litest_drain_events(li);
 
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 1);
@@ -2592,11 +2557,6 @@ START_TEST(mouse_buttons)
 	struct libinput_event_tablet_tool *tev;
 	struct libinput_tablet_tool *tool;
 	int code;
-
-	if (!libevdev_has_event_code(dev->evdev,
-				    EV_KEY,
-				    BTN_TOOL_MOUSE))
-		return;
 
 	litest_drain_events(li);
 
@@ -2658,11 +2618,6 @@ START_TEST(mouse_rotation)
 		{ ABS_TILT_Y, 0 },
 		{ -1, -1 }
 	};
-
-	if (!libevdev_has_event_code(dev->evdev,
-				    EV_KEY,
-				    BTN_TOOL_MOUSE))
-		return;
 
 	litest_drain_events(li);
 
@@ -4556,11 +4511,11 @@ litest_setup_tests_tablet(void)
 	litest_add("tablet:proximity", proximity_out_button_up, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_has_axes, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", bad_distance_events, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
-	litest_add("tablet:proximity", proximity_range_enter, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
-	litest_add("tablet:proximity", proximity_range_in_out, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
-	litest_add("tablet:proximity", proximity_range_button_click, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
-	litest_add("tablet:proximity", proximity_range_button_press, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
-	litest_add("tablet:proximity", proximity_range_button_release, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
+	litest_add("tablet:proximity", proximity_range_enter, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
+	litest_add("tablet:proximity", proximity_range_in_out, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
+	litest_add("tablet:proximity", proximity_range_button_click, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
+	litest_add("tablet:proximity", proximity_range_button_press, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
+	litest_add("tablet:proximity", proximity_range_button_release, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
 	litest_add("tablet:button", button_down_up, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:button", button_seat_count, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tip", tip_down_up, LITEST_TABLET, LITEST_ANY);
@@ -4586,10 +4541,10 @@ litest_setup_tests_tablet(void)
 	litest_add_for_device("tablet:left_handed", left_handed_artpen_rotation, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:left_handed", no_left_handed, LITEST_WACOM_CINTIQ);
 	litest_add("tablet:pad", pad_buttons_ignored, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:mouse", mouse_tool, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:mouse", mouse_buttons, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:mouse", mouse_rotation, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:mouse", mouse_wheel, LITEST_TABLET, LITEST_WHEEL);
+	litest_add("tablet:mouse", mouse_tool, LITEST_TABLET | LITEST_TOOL_MOUSE, LITEST_ANY);
+	litest_add("tablet:mouse", mouse_buttons, LITEST_TABLET | LITEST_TOOL_MOUSE, LITEST_ANY);
+	litest_add("tablet:mouse", mouse_rotation, LITEST_TABLET | LITEST_TOOL_MOUSE, LITEST_ANY);
+	litest_add("tablet:mouse", mouse_wheel, LITEST_TABLET | LITEST_TOOL_MOUSE, LITEST_WHEEL);
 	litest_add("tablet:airbrush", airbrush_tool, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:airbrush", airbrush_slider, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:artpen", artpen_tool, LITEST_TABLET, LITEST_ANY);
