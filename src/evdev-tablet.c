@@ -1696,13 +1696,27 @@ tablet_proximity_out_quirk_timer_func(uint64_t now, void *data)
  * We need to remember that we did that, on the first event after the
  * timeout we need to inject a BTN_TOOL_PEN event again to force proximity
  * in.
+ *
+ * Other tools never send the BTN_TOOL_PEN event. For those tools, we
+ * piggyback along with the proximity out quirks by injecting
+ * the event during the first event frame.
  */
 static inline void
-tablet_proximity_out_quirk_update(struct tablet_dispatch *tablet,
-				  struct evdev_device *device,
-				  struct input_event *e,
-				  uint64_t time)
+tablet_proximity_quirk_update(struct tablet_dispatch *tablet,
+			      struct evdev_device *device,
+			      struct input_event *e,
+			      uint64_t time)
 {
+	/* LIBINPUT_TOOL_NONE can only happpen on the first event after
+	 * init. By pretending we forced a proximity out, we can inject a
+	 * BTN_TOOL_PEN and move on from there. */
+	if (e->type == EV_SYN &&
+	    tablet_has_status(tablet, TABLET_AXES_UPDATED) &&
+	    tablet->current_tool_type == LIBINPUT_TOOL_NONE) {
+		tablet->quirks.proximity_out_forced = true;
+		tablet->quirks.need_to_force_prox_out = true;
+	}
+
 	if (!tablet->quirks.need_to_force_prox_out)
 		return;
 
@@ -1751,7 +1765,7 @@ tablet_process(struct evdev_dispatch *dispatch,
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 
 	/* Warning: this may inject events */
-	tablet_proximity_out_quirk_update(tablet, device, e, time);
+	tablet_proximity_quirk_update(tablet, device, e, time);
 
 	switch (e->type) {
 	case EV_ABS:
@@ -2065,14 +2079,14 @@ tablet_init(struct tablet_dispatch *tablet,
 	if (device->model_flags & EVDEV_MODEL_TABLET_NO_PROXIMITY_OUT)
 		want_proximity_quirk = true;
 
-	if (want_proximity_quirk) {
+	if (want_proximity_quirk)
 		tablet->quirks.need_to_force_prox_out = true;
-		libinput_timer_init(&tablet->quirks.prox_out_timer,
-				    tablet_libinput_context(tablet),
-				    "proxout",
-				    tablet_proximity_out_quirk_timer_func,
-				    tablet);
-	}
+
+	libinput_timer_init(&tablet->quirks.prox_out_timer,
+			    tablet_libinput_context(tablet),
+			    "proxout",
+			    tablet_proximity_out_quirk_timer_func,
+			    tablet);
 
 	return 0;
 }
