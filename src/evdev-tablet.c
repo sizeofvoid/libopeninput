@@ -2038,6 +2038,13 @@ tablet_init(struct tablet_dispatch *tablet,
 		tablet->quirks.proximity_out_forced = true;
 	}
 
+	/* Our rotation code only works with Wacoms, let's wait until
+	 * someone shouts */
+	if (evdev_device_get_id_vendor(device) != VENDOR_ID_WACOM) {
+		libevdev_disable_event_code(evdev, EV_KEY, BTN_TOOL_MOUSE);
+		libevdev_disable_event_code(evdev, EV_KEY, BTN_TOOL_LENS);
+	}
+
 	tablet_init_calibration(tablet, device);
 	tablet_init_proximity_threshold(tablet, device);
 	rc = tablet_init_accel(tablet, device);
