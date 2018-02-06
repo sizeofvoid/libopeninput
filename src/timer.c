@@ -86,10 +86,10 @@ libinput_timer_set_flags(struct libinput_timer *timer,
 	uint64_t now = libinput_now(timer->libinput);
 	if (expire < now) {
 		if ((flags & TIMER_FLAG_ALLOW_NEGATIVE) == 0)
-			log_bug_libinput(timer->libinput,
-					 "timer %s: offset negative (-%dms)\n",
-					 timer->timer_name,
-					 us2ms(now - expire));
+			log_bug_client(timer->libinput,
+				       "timer %s: offset negative (-%dms)\n",
+				       timer->timer_name,
+				       us2ms(now - expire));
 	} else if ((expire - now) > ms2us(5000)) {
 		log_bug_libinput(timer->libinput,
 			 "timer %s: offset more than 5s, now %d expire %d\n",
