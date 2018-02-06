@@ -636,7 +636,6 @@ litest_log_handler(struct libinput *libinput,
 		   va_list args)
 {
 	static int is_tty = -1;
-	static bool had_newline = true;
 	const char *priority = NULL;
 	const char *color;
 
@@ -662,11 +661,7 @@ litest_log_handler(struct libinput *libinput,
 
 	if (!is_tty)
 		color = "";
-
-	if (had_newline)
-		fprintf(stderr, "%slitest %s ", color, priority);
-
-	if (strstr(format, "tap state:"))
+	else if (strstr(format, "tap state:"))
 		color = ANSI_BLUE;
 	else if (strstr(format, "thumb state:"))
 		color = ANSI_YELLOW;
@@ -681,13 +676,9 @@ litest_log_handler(struct libinput *libinput,
 	else if (strstr(format, "edge state:"))
 		color = ANSI_BRIGHT_GREEN;
 
-	if (is_tty)
-		fprintf(stderr, "%s ", color);
-
+	fprintf(stderr, "%slitest %s ", color, priority);
 	vfprintf(stderr, format, args);
-	had_newline = strlen(format) >= 1 &&
-		      format[strlen(format) - 1] == '\n';
-	if (is_tty && had_newline)
+	if (is_tty)
 		fprintf(stderr, ANSI_NORMAL);
 
 	if (strstr(format, "client bug: ") ||
