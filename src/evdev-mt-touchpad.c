@@ -3174,16 +3174,16 @@ tp_init_touch_size(struct tp_dispatch *tp,
 		return false;
 	}
 
+	prop = udev_device_get_property_value(device->udev_device,
+					      "LIBINPUT_ATTR_TOUCH_SIZE_RANGE");
+	if (!prop)
+		return false;
+
 	if (libevdev_get_num_slots(device->evdev) < 5) {
 		evdev_log_bug_libinput(device,
 			       "Expected 5+ slots for touch size detection\n");
 		return false;
 	}
-
-	prop = udev_device_get_property_value(device->udev_device,
-					      "LIBINPUT_ATTR_TOUCH_SIZE_RANGE");
-	if (!prop)
-		return false;
 
 	if (!parse_range_property(prop, &hi, &lo)) {
 		evdev_log_bug_client(device,
@@ -3227,9 +3227,7 @@ tp_init(struct tp_dispatch *tp,
 		return false;
 
 	evdev_device_init_abs_range_warnings(device);
-
-	if (device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD)
-		use_touch_size = tp_init_touch_size(tp, device);
+	use_touch_size = tp_init_touch_size(tp, device);
 
 	if (!use_touch_size)
 		tp_init_pressure(tp, device);
