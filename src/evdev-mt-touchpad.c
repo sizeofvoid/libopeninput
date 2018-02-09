@@ -2788,6 +2788,12 @@ tp_is_tpkb_combo_below(struct evdev_device *device)
 		layout == TPKBCOMBO_LAYOUT_BELOW;
 }
 
+static inline bool
+tp_is_tablet(struct evdev_device *device)
+{
+	return device->tags & EVDEV_TAG_TABLET_TOUCHPAD;
+}
+
 static void
 tp_init_dwt(struct tp_dispatch *tp,
 	    struct evdev_device *device)
@@ -2885,9 +2891,6 @@ tp_init_palmdetect_size(struct tp_dispatch *tp,
 	const char *prop;
 	int threshold;
 
-	if (!tp->touch_size.use_touch_size)
-		return;
-
 	prop = udev_device_get_property_value(device->udev_device,
 					      "LIBINPUT_ATTR_PALM_SIZE_THRESHOLD");
 	if (!prop)
@@ -2934,17 +2937,20 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 	tp_init_palmdetect_arbitration(tp, device);
 
 	if (device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD &&
-	    !tp_is_tpkb_combo_below(device))
+	    !tp_is_tpkb_combo_below(device) &&
+	    !tp_is_tablet(device))
 		return;
 
-	tp->palm.monitor_trackpoint = true;
+	if (!tp_is_tablet(device))
+		tp->palm.monitor_trackpoint = true;
 
 	if (libevdev_has_event_code(device->evdev,
 				    EV_ABS,
 				    ABS_MT_TOOL_TYPE))
 		tp->palm.use_mt_tool = true;
 
-	tp_init_palmdetect_edge(tp, device);
+	if (!tp_is_tablet(device))
+		tp_init_palmdetect_edge(tp, device);
 	tp_init_palmdetect_pressure(tp, device);
 	tp_init_palmdetect_size(tp, device);
 }

@@ -441,6 +441,12 @@ evdev_tag_keyboard(struct evdev_device *device,
 	device->tags |= EVDEV_TAG_KEYBOARD;
 }
 
+static void
+evdev_tag_tablet_touchpad(struct evdev_device *device)
+{
+	device->tags |= EVDEV_TAG_TABLET_TOUCHPAD;
+}
+
 static int
 evdev_calibration_has_matrix(struct libinput_device *libinput_device)
 {
@@ -1638,6 +1644,8 @@ evdev_configure_device(struct evdev_device *device)
 	}
 
 	if (udev_tags & EVDEV_UDEV_TAG_TOUCHPAD) {
+		if (udev_tags & EVDEV_UDEV_TAG_TABLET)
+			evdev_tag_tablet_touchpad(device);
 		dispatch = evdev_mt_touchpad_create(device);
 		evdev_log_info(device, "device is a touchpad\n");
 		return dispatch;

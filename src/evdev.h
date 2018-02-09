@@ -72,6 +72,7 @@ enum evdev_device_tags {
 	EVDEV_TAG_INTERNAL_KEYBOARD = (1 << 6),
 	EVDEV_TAG_EXTERNAL_KEYBOARD = (1 << 7),
 	EVDEV_TAG_TABLET_MODE_SWITCH = (1 << 8),
+	EVDEV_TAG_TABLET_TOUCHPAD = (1 << 9),
 };
 
 enum evdev_middlebutton_state {
