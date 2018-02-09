@@ -1917,6 +1917,11 @@ evdev_device_create(struct libinput_seat *seat,
 	const char *devnode = udev_device_get_devnode(udev_device);
 	const char *sysname = udev_device_get_sysname(udev_device);
 
+	if (!devnode) {
+		log_info(libinput, "%s: no device node associated\n", sysname);
+		return NULL;
+	}
+
 	if (udev_device_should_be_ignored(udev_device)) {
 		log_debug(libinput, "%s: device is ignored\n", sysname);
 		return NULL;
@@ -2434,6 +2439,9 @@ evdev_device_resume(struct evdev_device *device)
 		return -ENODEV;
 
 	devnode = udev_device_get_devnode(device->udev_device);
+	if (!devnode)
+		return -ENODEV;
+
 	fd = open_restricted(libinput, devnode,
 			     O_RDWR | O_NONBLOCK | O_CLOEXEC);
 
