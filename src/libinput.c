@@ -2735,14 +2735,18 @@ libinput_post_event(struct libinput *libinput,
 
 	events_count++;
 	if (events_count > events_len) {
+		void *tmp;
+
 		events_len *= 2;
-		events = realloc(events, events_len * sizeof *events);
-		if (!events) {
+		tmp = realloc(events, events_len * sizeof *events);
+		if (!tmp) {
 			log_error(libinput,
 				  "Failed to reallocate event ring buffer. "
 				  "Events may be discarded\n");
 			return;
 		}
+
+		events = tmp;
 
 		if (libinput->events_count > 0 && libinput->events_in == 0) {
 			libinput->events_in = libinput->events_len;
