@@ -393,7 +393,7 @@ find_device(const char *udev_tag)
 {
 	struct udev *udev;
 	struct udev_enumerate *e;
-	struct udev_list_entry *entry;
+	struct udev_list_entry *entry = NULL;
 	struct udev_device *device;
 	const char *path, *sysname;
 	char *device_node = NULL;
