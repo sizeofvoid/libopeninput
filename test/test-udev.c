@@ -394,6 +394,47 @@ START_TEST(udev_suspend_resume)
 }
 END_TEST
 
+START_TEST(udev_resume_before_seat)
+{
+	struct libinput *li;
+	struct udev *udev;
+	int rc;
+
+	udev = udev_new();
+	ck_assert(udev != NULL);
+
+	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	ck_assert(li != NULL);
+
+	rc = libinput_resume(li);
+	ck_assert_int_eq(rc, 0);
+
+	libinput_unref(li);
+	udev_unref(udev);
+}
+END_TEST
+
+START_TEST(udev_suspend_resume_before_seat)
+{
+	struct libinput *li;
+	struct udev *udev;
+	int rc;
+
+	udev = udev_new();
+	ck_assert(udev != NULL);
+
+	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	ck_assert(li != NULL);
+
+	libinput_suspend(li);
+	rc = libinput_resume(li);
+	ck_assert_int_eq(rc, 0);
+
+	libinput_unref(li);
+	udev_unref(udev);
+}
+END_TEST
+
 START_TEST(udev_device_sysname)
 {
 	struct libinput *li;
@@ -619,6 +660,8 @@ litest_setup_tests_udev(void)
 	litest_add_for_device("udev:suspend", udev_double_suspend, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_for_device("udev:suspend", udev_double_resume, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_for_device("udev:suspend", udev_suspend_resume, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("udev:suspend", udev_resume_before_seat, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("udev:suspend", udev_suspend_resume_before_seat, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_for_device("udev:device events", udev_device_sysname, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_for_device("udev:seat", udev_seat_recycle, LITEST_SYNAPTICS_CLICKPAD_X220);
 

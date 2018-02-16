@@ -229,7 +229,7 @@ udev_input_enable(struct libinput *libinput)
 	struct udev *udev = input->udev;
 	int fd;
 
-	if (input->udev_monitor)
+	if (input->udev_monitor || !input->seat_id)
 		return 0;
 
 	input->udev_monitor = udev_monitor_new_from_netlink(udev, "udev");
