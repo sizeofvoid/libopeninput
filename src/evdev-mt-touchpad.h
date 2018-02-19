@@ -60,6 +60,7 @@ enum touch_palm_state {
 	PALM_TOOL_PALM,
 	PALM_PRESSURE,
 	PALM_TOUCH_SIZE,
+	PALM_ARBITRATION,
 };
 
 enum button_event {
@@ -239,9 +240,7 @@ struct tp_dispatch {
 	bool has_mt;
 	bool semi_mt;
 
-	/* true if we're reading events (i.e. not suspended) but we're
-	 * ignoring them */
-	bool ignore_events;
+	bool in_arbitration; /* pen/touch arbitration */
 
 	unsigned int num_slots;			/* number of slots */
 	unsigned int ntouches;			/* no slots inc. fakes */

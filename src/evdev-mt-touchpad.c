@@ -907,6 +907,19 @@ tp_palm_detect_pressure_triggered(struct tp_dispatch *tp,
 	return t->palm.state == PALM_PRESSURE;
 }
 
+static bool
+tp_palm_detect_arbitration_triggered(struct tp_dispatch *tp,
+				     struct tp_touch *t,
+				     uint64_t time)
+{
+	if (!tp->in_arbitration)
+		return false;
+
+	t->palm.state = PALM_ARBITRATION;
+
+	return true;
+}
+
 static void
 tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 {
@@ -914,6 +927,9 @@ tp_palm_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	enum touch_palm_state oldstate = t->palm.state;
 
 	if (tp_palm_detect_pressure_triggered(tp, t, time))
+		goto out;
+
+	if (tp_palm_detect_arbitration_triggered(tp, t, time))
 		goto out;
 
 	if (tp_palm_detect_dwt_triggered(tp, t, time))
@@ -964,6 +980,9 @@ out:
 		break;
 	case PALM_TOUCH_SIZE:
 		palm_state = "touch size";
+		break;
+	case PALM_ARBITRATION:
+		palm_state = "arbitration";
 		break;
 	case PALM_NONE:
 	default:
@@ -1599,9 +1618,6 @@ tp_interface_process(struct evdev_dispatch *dispatch,
 		     uint64_t time)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
-
-	if (tp->ignore_events)
-		return;
 
 	switch (e->type) {
 	case EV_ABS:
@@ -2291,15 +2307,15 @@ tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 			  bool enable)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
-	bool ignore_events = !enable;
+	bool arbitrate = !enable;
 
-	if (ignore_events == tp->ignore_events)
+	if (arbitrate == tp->in_arbitration)
 		return;
 
-	if (ignore_events)
+	if (arbitrate)
 		tp_clear_state(tp);
 
-	tp->ignore_events = ignore_events;
+	tp->in_arbitration = arbitrate;
 }
 
 static struct evdev_dispatch_interface tp_interface = {
