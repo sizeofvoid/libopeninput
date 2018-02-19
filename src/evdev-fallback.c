@@ -1050,7 +1050,8 @@ fallback_interface_sync_initial_state(struct evdev_device *device,
 static void
 fallback_interface_toggle_touch(struct evdev_dispatch *evdev_dispatch,
 				struct evdev_device *device,
-				bool enable)
+				bool enable,
+				uint64_t time)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 	bool ignore_events = !enable;

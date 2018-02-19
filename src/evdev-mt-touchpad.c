@@ -2304,7 +2304,8 @@ evdev_tag_touchpad(struct evdev_device *device,
 static void
 tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 			  struct evdev_device *device,
-			  bool enable)
+			  bool enable,
+			  uint64_t time)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
 	bool arbitrate = !enable;

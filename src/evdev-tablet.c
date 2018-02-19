@@ -1600,7 +1600,8 @@ tablet_flush(struct tablet_dispatch *tablet,
 
 static inline void
 tablet_set_touch_device_enabled(struct evdev_device *touch_device,
-				bool enable)
+				bool enable,
+				uint64_t time)
 {
 	struct evdev_dispatch *dispatch;
 
@@ -1611,12 +1612,14 @@ tablet_set_touch_device_enabled(struct evdev_device *touch_device,
 	if (dispatch->interface->toggle_touch)
 		dispatch->interface->toggle_touch(dispatch,
 						  touch_device,
-						  enable);
+						  enable,
+						  time);
 }
 
 static inline void
 tablet_toggle_touch_device(struct tablet_dispatch *tablet,
-			   struct evdev_device *tablet_device)
+			   struct evdev_device *tablet_device,
+			   uint64_t time)
 {
 	bool enable_events;
 
@@ -1628,7 +1631,9 @@ tablet_toggle_touch_device(struct tablet_dispatch *tablet,
 			tablet_has_status(tablet,
 					  TABLET_TOOL_OUT_OF_PROXIMITY);
 
-	tablet_set_touch_device_enabled(tablet->touch_device, enable_events);
+	tablet_set_touch_device_enabled(tablet->touch_device,
+					enable_events,
+					time);
 }
 
 static inline void
@@ -1782,7 +1787,7 @@ tablet_process(struct evdev_dispatch *dispatch,
 		break;
 	case EV_SYN:
 		tablet_flush(tablet, device, time);
-		tablet_toggle_touch_device(tablet, device);
+		tablet_toggle_touch_device(tablet, device, time);
 		tablet_reset_state(tablet);
 		break;
 	default:
@@ -1800,8 +1805,9 @@ tablet_suspend(struct evdev_dispatch *dispatch,
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 	struct libinput *li = tablet_libinput_context(tablet);
+	uint64_t now = libinput_now(li);
 
-	tablet_set_touch_device_enabled(tablet->touch_device, true);
+	tablet_set_touch_device_enabled(tablet->touch_device, true, now);
 
 	if (!tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY)) {
 		tablet_set_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);

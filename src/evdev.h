@@ -325,7 +325,8 @@ struct evdev_dispatch_interface {
 	 * enable/disable touch capabilities */
 	void (*toggle_touch)(struct evdev_dispatch *dispatch,
 			     struct evdev_device *device,
-			     bool enable);
+			     bool enable,
+			     uint64_t now);
 
 	/* Return the state of the given switch */
 	enum libinput_switch_state
