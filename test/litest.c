@@ -3355,6 +3355,12 @@ litest_timeout_tablet_proxout(void)
 }
 
 void
+litest_timeout_touch_arbitration(void)
+{
+	msleep(100);
+}
+
+void
 litest_timeout_hysteresis(void)
 {
 	msleep(90);

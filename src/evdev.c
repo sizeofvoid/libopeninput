@@ -848,7 +848,7 @@ evdev_process_event(struct evdev_device *device, struct input_event *e)
 	struct evdev_dispatch *dispatch = device->dispatch;
 	uint64_t time = tv2us(&e->time);
 
-#if 0
+#if 1
 	evdev_print_event(device, e);
 #endif
 

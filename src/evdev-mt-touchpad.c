@@ -912,7 +912,7 @@ tp_palm_detect_arbitration_triggered(struct tp_dispatch *tp,
 				     struct tp_touch *t,
 				     uint64_t time)
 {
-	if (!tp->in_arbitration)
+	if (!tp->arbitration.in_arbitration)
 		return false;
 
 	t->palm.state = PALM_ARBITRATION;
@@ -1682,6 +1682,8 @@ tp_interface_destroy(struct evdev_dispatch *dispatch)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
+	libinput_timer_cancel(&tp->arbitration.arbitration_timer);
+	libinput_timer_destroy(&tp->arbitration.arbitration_timer);
 	libinput_timer_destroy(&tp->palm.trackpoint_timer);
 	libinput_timer_destroy(&tp->dwt.keyboard_timer);
 	libinput_timer_destroy(&tp->tap.timer);
@@ -2302,6 +2304,15 @@ evdev_tag_touchpad(struct evdev_device *device,
 }
 
 static void
+tp_arbitration_timeout(uint64_t now, void *data)
+{
+	struct tp_dispatch *tp = data;
+
+	if (tp->arbitration.in_arbitration)
+		tp->arbitration.in_arbitration = false;
+}
+
+static void
 tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 			  struct evdev_device *device,
 			  bool enable,
@@ -2310,13 +2321,24 @@ tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
 	bool arbitrate = !enable;
 
-	if (arbitrate == tp->in_arbitration)
+	if (arbitrate == tp->arbitration.in_arbitration)
 		return;
 
-	if (arbitrate)
+	if (arbitrate) {
+		libinput_timer_cancel(&tp->arbitration.arbitration_timer);
 		tp_clear_state(tp);
-
-	tp->in_arbitration = arbitrate;
+		tp->arbitration.in_arbitration = true;
+	} else {
+		/* if in-kernel arbitration is in use and there is a touch
+		 * and a pen in proximity, lifting the pen out of proximity
+		 * causes a touch being for the touch. On a hand-lift the
+		 * proximity out precedes the touch up by a few ms, so we
+		 * get what looks like a tap. Fix this by delaying
+		 * arbitration by just a little bit so that any touch in
+		 * event is caught as palm touch. */
+		libinput_timer_set(&tp->arbitration.arbitration_timer,
+				   time + ms2us(90));
+	}
 }
 
 static struct evdev_dispatch_interface tp_interface = {
@@ -2796,6 +2818,23 @@ tp_init_palmdetect_size(struct tp_dispatch *tp,
 	tp->palm.size_threshold = threshold;
 }
 
+static inline void
+tp_init_palmdetect_arbitration(struct tp_dispatch *tp,
+			       struct evdev_device *device)
+{
+	char timer_name[64];
+
+	snprintf(timer_name,
+		 sizeof(timer_name),
+		  "%s arbitration",
+		  evdev_device_get_sysname(device));
+	libinput_timer_init(&tp->arbitration.arbitration_timer,
+			    tp_libinput_context(tp),
+			    timer_name,
+			    tp_arbitration_timeout, tp);
+	tp->arbitration.in_arbitration = false;
+}
+
 static void
 tp_init_palmdetect(struct tp_dispatch *tp,
 		   struct evdev_device *device)
@@ -2804,6 +2843,8 @@ tp_init_palmdetect(struct tp_dispatch *tp,
 	tp->palm.right_edge = INT_MAX;
 	tp->palm.left_edge = INT_MIN;
 	tp->palm.upper_edge = INT_MIN;
+
+	tp_init_palmdetect_arbitration(tp, device);
 
 	if (device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD &&
 	    !tp_is_tpkb_combo_below(device))

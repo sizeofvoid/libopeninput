@@ -240,7 +240,11 @@ struct tp_dispatch {
 	bool has_mt;
 	bool semi_mt;
 
-	bool in_arbitration; /* pen/touch arbitration */
+	/* pen/touch arbitration */
+	struct {
+		bool in_arbitration;
+		struct libinput_timer arbitration_timer;
+	} arbitration;
 
 	unsigned int num_slots;			/* number of slots */
 	unsigned int ntouches;			/* no slots inc. fakes */
