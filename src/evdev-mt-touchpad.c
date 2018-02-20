@@ -1092,14 +1092,16 @@ tp_unhover_pressure(struct tp_dispatch *tp, uint64_t time)
 	 * _all_ fingers have enough pressure, even if some of the slotted
 	 * ones don't. Anything else gets insane quickly.
 	 */
-	tp_for_each_touch(tp, t) {
-		if (t->state == TOUCH_HOVERING) {
-			/* avoid jumps when landing a finger */
-			tp_motion_history_reset(t);
-			tp_begin_touch(tp, t, time);
+	if (real_fingers_down > 0) {
+		tp_for_each_touch(tp, t) {
+			if (t->state == TOUCH_HOVERING) {
+				/* avoid jumps when landing a finger */
+				tp_motion_history_reset(t);
+				tp_begin_touch(tp, t, time);
 
-			if (tp->nfingers_down >= nfake_touches)
-				break;
+				if (tp->nfingers_down >= nfake_touches)
+					break;
+			}
 		}
 	}
 

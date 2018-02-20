@@ -1591,6 +1591,48 @@ START_TEST(touchpad_3fg_tap_quickrelease)
 }
 END_TEST
 
+START_TEST(touchpad_3fg_tap_hover_btntool)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	if (libevdev_get_abs_maximum(dev->evdev,
+				     ABS_MT_SLOT) >= 2)
+		return;
+
+	litest_enable_tap(dev->libinput_device);
+	litest_enable_edge_scroll(dev);
+
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_down(dev, 1, 70, 50);
+	libinput_dispatch(li);
+
+	litest_touch_move_to(dev, 0, 50, 50, 50, 70, 10, 0);
+	litest_touch_move_to(dev, 1, 70, 50, 50, 70, 10, 0);
+	litest_drain_events(li);
+
+	/* drop below the pressure threshold in the same frame as starting a */
+	litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 3);
+	litest_event(dev, EV_ABS, ABS_PRESSURE, 3);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 0);
+	litest_event(dev, EV_KEY, BTN_TOOL_DOUBLETAP, 0);
+	litest_event(dev, EV_KEY, BTN_TOOL_TRIPLETAP, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	litest_push_event_frame(dev);
+	litest_event(dev, EV_KEY, BTN_TOOL_DOUBLETAP, 1);
+	litest_event(dev, EV_KEY, BTN_TOOL_TRIPLETAP, 0);
+	litest_pop_event_frame(dev);
+	litest_assert_empty_queue(li);
+
+	litest_touch_up(dev, 0);
+	litest_touch_up(dev, 1);
+}
+END_TEST
+
 START_TEST(touchpad_3fg_tap_btntool)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3273,6 +3315,7 @@ litest_setup_tests_touchpad_tap(void)
 	litest_add_ranged("tap-3fg:3fg", touchpad_3fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &tap_map_range);
 	litest_add("tap-3fg:3fg", touchpad_3fg_tap_tap_again, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("tap-3fg:3fg", touchpad_3fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add("tap-3fg:3fg", touchpad_3fg_tap_hover_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add_for_device("tap-3fg:3fg", touchpad_3fg_tap_btntool_pointerjump, LITEST_SYNAPTICS_TOPBUTTONPAD);
 	litest_add("tap-4fg:4fg", touchpad_4fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add("tap-4fg:4fg", touchpad_4fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);

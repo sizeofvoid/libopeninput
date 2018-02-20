@@ -1025,6 +1025,7 @@ tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time)
 
 		} else if (t->state == TOUCH_END) {
 			if (t->was_down) {
+				assert(tp->tap.nfingers_down >= 1);
 				tp->tap.nfingers_down--;
 				tp_tap_handle_event(tp, t, TAP_EVENT_RELEASE, time);
 			}
