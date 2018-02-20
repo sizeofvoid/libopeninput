@@ -143,6 +143,7 @@ enum tp_thumb_state {
 
 struct tp_touch {
 	struct tp_dispatch *tp;
+	unsigned int index;
 	enum touch_state state;
 	bool has_ended;				/* TRACKING_ID == -1 */
 	bool dirty;

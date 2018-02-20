@@ -666,7 +666,9 @@ tp_palm_tap_is_palm(const struct tp_dispatch *tp, const struct tp_touch *t)
 	if (!tp_palm_in_edge(tp, t))
 		return false;
 
-	evdev_log_debug(tp->device, "palm: palm-tap detected\n");
+	evdev_log_debug(tp->device,
+			"palm: touch %d: palm-tap detected\n",
+			t->index);
 	return true;
 }
 
@@ -694,7 +696,8 @@ tp_palm_detect_dwt_triggered(struct tp_dispatch *tp,
 		    t->palm.time > tp->dwt.keyboard_last_press_time) {
 			t->palm.state = PALM_NONE;
 			evdev_log_debug(tp->device,
-					"palm: touch released, timeout after typing\n");
+					"palm: touch %d released, timeout after typing\n",
+					t->index);
 		}
 	}
 
@@ -722,7 +725,7 @@ tp_palm_detect_trackpoint_triggered(struct tp_dispatch *tp,
 		    t->palm.time > tp->palm.trackpoint_last_event_time) {
 			t->palm.state = PALM_NONE;
 			evdev_log_debug(tp->device,
-				       "palm: touch released, timeout after trackpoint\n");
+				       "palm: touch %d released, timeout after trackpoint\n", t->index);
 		}
 	}
 
@@ -827,7 +830,8 @@ tp_palm_detect_touch_size_triggered(struct tp_dispatch *tp,
 	    t->minor > tp->palm.size_threshold) {
 		if (t->palm.state != PALM_TOUCH_SIZE)
 			evdev_log_debug(tp->device,
-					"palm: touch size exceeded\n");
+					"palm: touch %d size exceeded\n",
+					t->index);
 		t->palm.state = PALM_TOUCH_SIZE;
 		return true;
 	}
@@ -844,7 +848,8 @@ tp_palm_detect_edge(struct tp_dispatch *tp,
 		if (tp_palm_detect_multifinger(tp, t, time)) {
 			t->palm.state = PALM_NONE;
 			evdev_log_debug(tp->device,
-				  "palm: touch released, multiple fingers\n");
+				  "palm: touch %d released, multiple fingers\n",
+				  t->index);
 
 		/* If labelled a touch as palm, we unlabel as palm when
 		   we move out of the palm edge zone within the timeout, provided
@@ -853,7 +858,8 @@ tp_palm_detect_edge(struct tp_dispatch *tp,
 		} else if (tp_palm_detect_move_out_of_edge(tp, t, time)) {
 			t->palm.state = PALM_NONE;
 			evdev_log_debug(tp->device,
-				  "palm: touch released, out of edge zone\n");
+				  "palm: touch %d released, out of edge zone\n",
+				  t->index);
 		}
 		return false;
 	} else if (tp_palm_detect_multifinger(tp, t, time)) {
@@ -964,7 +970,8 @@ out:
 		break;
 	}
 	evdev_log_debug(tp->device,
-		  "palm: palm detected (%s)\n",
+		  "palm: touch %d, palm detected (%s)\n",
+		  t->index,
 		  palm_state);
 }
 
@@ -1038,7 +1045,8 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 out:
 	if (t->thumb.state != state)
 		evdev_log_debug(tp->device,
-			  "thumb state: %s → %s\n",
+			  "thumb state: touch %d, %s → %s\n",
+			  t->index,
 			  thumb_state_to_str(state),
 			  thumb_state_to_str(t->thumb.state));
 }
@@ -1065,7 +1073,8 @@ tp_unhover_pressure(struct tp_dispatch *tp, uint64_t time)
 			if (t->state == TOUCH_HOVERING) {
 				if (t->pressure >= tp->pressure.high) {
 					evdev_log_debug(tp->device,
-							"pressure: begin touch\n");
+							"pressure: begin touch %d\n",
+							t->index);
 					/* avoid jumps when landing a finger */
 					tp_motion_history_reset(t);
 					tp_begin_touch(tp, t, time);
@@ -1073,7 +1082,8 @@ tp_unhover_pressure(struct tp_dispatch *tp, uint64_t time)
 			} else {
 				if (t->pressure < tp->pressure.low) {
 					evdev_log_debug(tp->device,
-							"pressure: end touch\n");
+							"pressure: end touch %d\n",
+							t->index);
 					tp_end_touch(tp, t, time);
 				}
 			}
@@ -1145,7 +1155,8 @@ tp_unhover_size(struct tp_dispatch *tp, uint64_t time)
 			if ((t->major > high && t->minor > low) ||
 			    (t->major > low && t->minor > high)) {
 				evdev_log_debug(tp->device,
-						"touch-size: begin touch\n");
+						"touch-size: begin touch %d\n",
+						t->index);
 				/* avoid jumps when landing a finger */
 				tp_motion_history_reset(t);
 				tp_begin_touch(tp, t, time);
@@ -1153,7 +1164,8 @@ tp_unhover_size(struct tp_dispatch *tp, uint64_t time)
 		} else {
 			if (t->major < low || t->minor < low) {
 				evdev_log_debug(tp->device,
-						"touch-size: end touch\n");
+						"touch-size: end touch %d\n",
+						t->index);
 				tp_end_touch(tp, t, time);
 			}
 		}
@@ -1371,7 +1383,8 @@ tp_detect_thumb_while_moving(struct tp_dispatch *tp)
 	/* Finger are too far apart or 2fg scrolling is disabled, mark
 	 * second finger as thumb */
 	evdev_log_debug(tp->device,
-			"touch is speed-based thumb\n");
+			"touch %d is speed-based thumb\n",
+			second->index);
 	second->thumb.state = THUMB_STATE_YES;
 }
 
@@ -2302,10 +2315,12 @@ static struct evdev_dispatch_interface tp_interface = {
 
 static void
 tp_init_touch(struct tp_dispatch *tp,
-	      struct tp_touch *t)
+	      struct tp_touch *t,
+	      unsigned int index)
 {
 	t->tp = tp;
 	t->has_ended = true;
+	t->index = index;
 }
 
 static inline void
@@ -2389,7 +2404,7 @@ tp_init_slots(struct tp_dispatch *tp,
 	tp->touches = zalloc(tp->ntouches * sizeof(struct tp_touch));
 
 	for (i = 0; i < tp->ntouches; i++)
-		tp_init_touch(tp, &tp->touches[i]);
+		tp_init_touch(tp, &tp->touches[i], i);
 
 	tp_sync_slots(tp, device);
 

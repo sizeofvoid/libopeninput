@@ -661,7 +661,7 @@ litest_log_handler(struct libinput *libinput,
 
 	if (!is_tty)
 		color = "";
-	else if (strstr(format, "tap state:"))
+	else if (strstr(format, "tap:"))
 		color = ANSI_BLUE;
 	else if (strstr(format, "thumb state:"))
 		color = ANSI_YELLOW;
@@ -673,7 +673,7 @@ litest_log_handler(struct libinput *libinput,
 	else if (strstr(format, "palm:") ||
 		 strstr(format, "thumb:"))
 		color = ANSI_CYAN;
-	else if (strstr(format, "edge state:"))
+	else if (strstr(format, "edge-scroll:"))
 		color = ANSI_BRIGHT_GREEN;
 
 	fprintf(stderr, "%slitest %s ", color, priority);

@@ -152,7 +152,8 @@ tp_edge_scroll_handle_none(struct tp_dispatch *tp,
 	case SCROLL_EVENT_TIMEOUT:
 	case SCROLL_EVENT_POSTED:
 		evdev_log_bug_libinput(tp->device,
-				 "unexpected scroll event %d in none state\n",
+				 "edge-scroll: touch %d: unexpected scroll event %d in none state\n",
+				 t->index,
 				 event);
 		break;
 	}
@@ -166,7 +167,8 @@ tp_edge_scroll_handle_edge_new(struct tp_dispatch *tp,
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
 		evdev_log_bug_libinput(tp->device,
-			       "unexpected scroll event %d in edge new state\n",
+			       "edge-scroll: touch %d: unexpected scroll event %d in edge new state\n",
+			       t->index,
 			       event);
 		break;
 	case SCROLL_EVENT_MOTION:
@@ -194,7 +196,8 @@ tp_edge_scroll_handle_edge(struct tp_dispatch *tp,
 	case SCROLL_EVENT_TOUCH:
 	case SCROLL_EVENT_TIMEOUT:
 		evdev_log_bug_libinput(tp->device,
-				 "unexpected scroll event %d in edge state\n",
+				 "edge-scroll: touch %d: unexpected scroll event %d in edge state\n",
+				 t->index,
 				 event);
 		break;
 	case SCROLL_EVENT_MOTION:
@@ -258,7 +261,8 @@ tp_edge_scroll_handle_event(struct tp_dispatch *tp,
 	}
 
 	evdev_log_debug(tp->device,
-			"edge state: %s → %s → %s\n",
+			"edge-scroll: touch %d state %s → %s → %s\n",
+			t->index,
 			edge_state_to_str(current),
 			edge_event_to_str(event),
 			edge_state_to_str(t->scroll.edge_state));

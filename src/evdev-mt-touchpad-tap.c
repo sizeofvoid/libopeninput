@@ -102,10 +102,11 @@ tap_event_to_str(enum tap_event event)
 }
 
 static inline void
-log_tap_bug(struct tp_dispatch *tp, enum tap_event event)
+log_tap_bug(struct tp_dispatch *tp, struct tp_touch *t, enum tap_event event)
 {
 	evdev_log_bug_libinput(tp->device,
-			       "invalid tap event %s in state %s\n",
+			       "%d: invalid tap event %s in state %s\n",
+			       t->index,
 			       tap_event_to_str(event),
 			       tap_state_to_str(tp->tap.state));
 
@@ -173,7 +174,7 @@ tp_tap_idle_handle_event(struct tp_dispatch *tp,
 	case TAP_EVENT_RELEASE:
 		break;
 	case TAP_EVENT_MOTION:
-		log_tap_bug(tp, event);
+		log_tap_bug(tp, t, event);
 		break;
 	case TAP_EVENT_TIMEOUT:
 		break;
@@ -181,7 +182,7 @@ tp_tap_idle_handle_event(struct tp_dispatch *tp,
 		tp->tap.state = TAP_STATE_DEAD;
 		break;
 	case TAP_EVENT_THUMB:
-		log_tap_bug(tp, event);
+		log_tap_bug(tp, t, event);
 		break;
 	case TAP_EVENT_PALM:
 		tp->tap.state = TAP_STATE_IDLE;
@@ -289,7 +290,7 @@ tp_tap_tapped_handle_event(struct tp_dispatch *tp,
 	switch (event) {
 	case TAP_EVENT_MOTION:
 	case TAP_EVENT_RELEASE:
-		log_tap_bug(tp, event);
+		log_tap_bug(tp, t, event);
 		break;
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_DRAGGING_OR_DOUBLETAP;
@@ -312,7 +313,7 @@ tp_tap_tapped_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_THUMB:
 	case TAP_EVENT_PALM:
-		log_tap_bug(tp, event);
+		log_tap_bug(tp, t, event);
 		break;
 	case TAP_EVENT_PALM_UP:
 		break;
@@ -705,7 +706,7 @@ tp_tap_multitap_handle_event(struct tp_dispatch *tp,
 {
 	switch (event) {
 	case TAP_EVENT_RELEASE:
-		log_tap_bug(tp, event);
+		log_tap_bug(tp, t, event);
 		break;
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_MULTITAP_DOWN;
@@ -717,7 +718,7 @@ tp_tap_multitap_handle_event(struct tp_dispatch *tp,
 		tp_tap_set_timer(tp, time);
 		break;
 	case TAP_EVENT_MOTION:
-		log_tap_bug(tp, event);
+		log_tap_bug(tp, t, event);
 		break;
 	case TAP_EVENT_TIMEOUT:
 		tp->tap.state = TAP_STATE_IDLE;
@@ -913,7 +914,8 @@ tp_tap_handle_event(struct tp_dispatch *tp,
 		tp_tap_clear_timer(tp);
 
 	evdev_log_debug(tp->device,
-		  "tap state: %s → %s → %s\n",
+		  "tap: touch %d state %s → %s → %s\n",
+		  t ? (int)t->index : -1,
 		  tap_state_to_str(current),
 		  tap_event_to_str(event),
 		  tap_state_to_str(tp->tap.state));

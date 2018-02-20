@@ -448,7 +448,8 @@ tp_button_handle_event(struct tp_dispatch *tp,
 
 	if (current != t->button.state)
 		evdev_log_debug(tp->device,
-				"button state: from %s, event %s to %s\n",
+				"button state: touch %d from %s, event %s to %s\n",
+				t->index,
 				button_state_to_str(current),
 				button_event_to_str(event),
 				button_state_to_str(t->button.state));
