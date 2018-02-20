@@ -2944,13 +2944,11 @@ tp_init_pressure(struct tp_dispatch *tp,
 		 struct evdev_device *device)
 {
 	const struct input_absinfo *abs;
-	unsigned int code = ABS_PRESSURE;
+	unsigned int code;
 	const char *prop;
 	int hi, lo;
 
-	if (tp->has_mt)
-		code = ABS_MT_PRESSURE;
-
+	code = tp->has_mt ? ABS_MT_PRESSURE : ABS_PRESSURE;
 	if (!libevdev_has_event_code(device->evdev, EV_ABS, code)) {
 		tp->pressure.use_pressure = false;
 		return;
