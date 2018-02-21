@@ -271,6 +271,7 @@ tp_new_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->dirty = true;
 	t->has_ended = false;
 	t->was_down = false;
+	t->palm.state = PALM_NONE;
 	t->state = TOUCH_HOVERING;
 	t->pinned.is_pinned = false;
 	t->time = time;
