@@ -76,4 +76,98 @@ $ sudo libinput debug-gui
 See the libinput(1) man page or the @c --help output for information about
 the available options.
 
+@section libinput-record libinput record and libinput replay
+
+The `libinput record` command records the **kernel** events from a specific
+device node. The recorded sequence can be replayed with the `libinput
+replay` command. This pair of tools is crucial to capturing bugs and
+reproducing them on a developer's machine.
+
+@note These tools are shipped with libinput, but the recorded events
+are **kernel events** and independent of the libinput context. libinput does not
+need to be running, it does not matter whether a user is running X.Org or
+Wayland or even what version of libinput is currently running.
+
+The use of the tools is straightforward, just run without arguments, piping
+the output into a file:
+@verbatim
+$ sudo libinput record > touchpad.log
+Available devices:
+/dev/input/event0:	Lid Switch
+/dev/input/event1:	Sleep Button
+/dev/input/event2:	Power Button
+/dev/input/event3:	AT Translated Set 2 keyboard
+/dev/input/event4:	ThinkPad Extra Buttons
+/dev/input/event5:	ELAN Touchscreen
+/dev/input/event6:	Video Bus
+/dev/input/event7:	HDA Intel HDMI HDMI/DP,pcm=3
+/dev/input/event8:	HDA Intel HDMI HDMI/DP,pcm=7
+/dev/input/event9:	HDA Intel HDMI HDMI/DP,pcm=8
+/dev/input/event10:	HDA Intel HDMI HDMI/DP,pcm=9
+/dev/input/event11:	HDA Intel HDMI HDMI/DP,pcm=10
+/dev/input/event12:	HDA Intel PCH Dock Mic
+/dev/input/event13:	HDA Intel PCH Mic
+/dev/input/event14:	HDA Intel PCH Dock Headphone
+/dev/input/event15:	HDA Intel PCH Headphone
+/dev/input/event16:	Integrated Camera: Integrated C
+/dev/input/event17:	SynPS/2 Synaptics TouchPad
+/dev/input/event18:	TPPS/2 IBM TrackPoint
+Select the device event number: 17
+/dev/input/event17 recording to stdout
+@endverbatim
+
+Without arguments, `libinput record` displays the available devices and lets
+the user select one. Supply the number (17 in this case for
+`/dev/input/event17`) and the tool will record to the log file. More
+arguments are available, see the `libinput-record` man page.
+
+Reproduce the bug, ctrl+c and attach the output file to a bug report.
+For data protection, `libinput record` obscures key codes by default, any
+alphanumeric key shows up as letter "a".
+
+@note When reproducing a bug that crashes libinput, run inside `screen` or
+`tmux`.
+
+The recording can be replayed with the `libinput replay` command:
+@verbatim
+$ sudo libinput replay touchpad.log
+SynPS/2 Synaptics TouchPad: /dev/input/event19
+Hit enter to start replaying
+@endverbatim
+
+`libinput replay` creates a new virtual device based on the description in
+the log file. Hitting enter replays the event sequence once and the tool
+stops once all events have been replayed. Hitting enter again replays the
+sequence again, Ctrl+C stops it and removes the virtual device.
+
+Users are advised to always replay a recorded event sequence to ensure they
+have captured the bug.
+
+More arguments are available, see the `libinput-record` and
+`libinput-replay` man pages.
+
+@subsection libinput-record-multiple Recording multiple devices at once
+
+In some cases, an interaction between multiple devices is the cause for a
+specific bug. For example, a touchpad may not work in response to keyboard
+events. To accurately reproduce this sequence, the timing between multiple
+devices must be correct and we need to record the events in one go.
+
+`libinput record` has a `--multiple` argument to record multiple devices at
+once. Unlike the normal invocation, this one requires a number of arguments:
+
+@verbatim
+$ sudo libinput record --multiple --output-file=touchpad-bug.log /dev/input/event17 /dev/input/event3
+recording to 'touchpad-bug.log'
+@endverbatim
+
+As seen above, a user must specify `--multiple` and the `--output-file`.
+Finally, all devices to be recorded must be specified on the commandline as
+well.
+
+Replaying events is the same as for a single recording:
+@verbatim
+$ sudo libinput replay touchpad-bug.log
+@endverbatim
+
 */
