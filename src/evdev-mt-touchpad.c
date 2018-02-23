@@ -3109,7 +3109,9 @@ tp_init_hysteresis(struct tp_dispatch *tp)
 
 	tp->hysteresis.margin.x = xmargin;
 	tp->hysteresis.margin.y = ymargin;
-	tp->hysteresis.enabled = false;
+	tp->hysteresis.enabled = (ax->fuzz || ay->fuzz);
+	if (tp->hysteresis.enabled)
+		evdev_log_debug(tp->device, "hysteresis enabled\n");
 }
 
 static void
