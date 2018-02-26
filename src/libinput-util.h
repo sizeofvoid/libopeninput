@@ -102,7 +102,7 @@ bool list_empty(const struct list *list);
 	     pos = list_first_entry(&pos->member, pos, member))
 
 #define list_for_each_safe(pos, tmp, head, member)			\
-	for (pos = 0, tmp = 0, 						\
+	for (pos = 0, tmp = 0,						\
 	     pos = list_first_entry(head, pos, member),			\
 	     tmp = list_first_entry(&pos->member, tmp, member);		\
 	     &pos->member != (head);					\
