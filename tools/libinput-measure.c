@@ -53,7 +53,7 @@ main(int argc, char **argv)
 			{ 0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "h", opts, &option_index);
+		c = getopt_long(argc, argv, "+h", opts, &option_index);
 		if (c == -1)
 			break;
 
