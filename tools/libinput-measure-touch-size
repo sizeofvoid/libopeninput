@@ -234,7 +234,7 @@ class Device(object):
         ud = pyudev.Devices.from_device_file(context, self.path)
         v = ud.get('LIBINPUT_ATTR_TOUCH_SIZE_RANGE')
         if v:
-            self.up, self.down = colon_tuple(v)
+            self.down, self.up = colon_tuple(v)
 
         v = ud.get('LIBINPUT_ATTR_PALM_SIZE_THRESHOLD')
         if v:
