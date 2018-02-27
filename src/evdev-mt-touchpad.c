@@ -92,6 +92,10 @@ tp_calculate_motion_speed(struct tp_dispatch *tp, struct tp_touch *t)
 	double distance;
 	double speed;
 
+	/* Don't do this on single-touch or semi-mt devices */
+	if (!tp->has_mt || tp->semi_mt)
+		return;
+
 	/* This doesn't kick in until we have at least 4 events in the
 	 * motion history. As a side-effect, this automatically handles the
 	 * 2fg scroll where a finger is down and moving fast before the
