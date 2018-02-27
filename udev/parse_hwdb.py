@@ -128,6 +128,7 @@ def property_grammar():
 
     return grammar
 
+
 ERROR = False
 
 
