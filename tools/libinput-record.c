@@ -613,6 +613,39 @@ select_device(void)
 	return device_path;
 }
 
+static inline char **
+all_devices(void)
+{
+	struct dirent **namelist;
+	int ndev;
+	int rc;
+	char **devices = NULL;
+
+	ndev = scandir("/dev/input", &namelist, is_event_node, versionsort);
+	if (ndev <= 0)
+		return NULL;
+
+	devices = zalloc((ndev + 1)* sizeof *devices); /* NULL-terminated */
+	for (int i = 0; i < ndev; i++) {
+		char *device_path;
+
+		rc = xasprintf(&device_path,
+			       "/dev/input/%s",
+			       namelist[i]->d_name);
+		if (rc == -1)
+			goto error;
+
+		devices[i] = device_path;
+	}
+
+	return devices;
+
+error:
+	if (devices)
+		strv_free(devices);
+	return NULL;
+}
+
 static char *
 init_output_file(const char *file, bool is_prefix)
 {
@@ -843,7 +876,7 @@ init_device(struct record_context *ctx, char *path)
 static inline void
 usage(void)
 {
-	printf("Usage: %s [--help] [--multiple] [--autorestart] [--output-file filename] [/dev/input/event0] [...]\n"
+	printf("Usage: %s [--help] [--multiple|--all] [--autorestart] [--output-file filename] [/dev/input/event0] [...]\n"
 	       "Common use-cases:\n"
 	       "\n"
 	       " sudo %s -o recording.yml\n"
@@ -871,6 +904,7 @@ enum options {
 	OPT_OUTFILE,
 	OPT_KEYCODES,
 	OPT_MULTIPLE,
+	OPT_ALL,
 };
 
 int
@@ -885,12 +919,13 @@ main(int argc, char **argv)
 		{ "output-file", required_argument, 0, OPT_OUTFILE },
 		{ "show-keycodes", no_argument, 0, OPT_KEYCODES },
 		{ "multiple", no_argument, 0, OPT_MULTIPLE },
+		{ "all", no_argument, 0, OPT_ALL },
 		{ "help", no_argument, 0, OPT_HELP },
 		{ 0, 0, 0, 0 },
 	};
 	struct record_device *d, *tmp;
 	const char *output_arg = NULL;
-	bool multiple = false;
+	bool multiple = false, all = false;
 	int ndevices;
 	int rc = 1;
 
@@ -928,7 +963,16 @@ main(int argc, char **argv)
 		case OPT_MULTIPLE:
 			multiple = true;
 			break;
+		case OPT_ALL:
+			all = true;
+			break;
 		}
+	}
+
+	if (all && multiple) {
+		fprintf(stderr,
+			"Only one of --multiple and --all allowed.\n");
+		goto out;
 	}
 
 	if (ctx.timeout > 0 && output_arg == NULL) {
@@ -960,6 +1004,29 @@ main(int argc, char **argv)
 			if (!init_device(&ctx, devnode))
 				goto out;
 		}
+	} else if (all) {
+		char **devices; /* NULL-terminated */
+		char **d;
+
+		if (output_arg == NULL) {
+			fprintf(stderr,
+				"Option --all requires --output-file\n");
+			goto out;
+		}
+
+
+		devices = all_devices();
+		d = devices;
+
+		while (*d) {
+			if (!init_device(&ctx, safe_strdup(*d))) {
+				strv_free(devices);
+				goto out;
+			}
+			d++;
+		}
+
+		strv_free(devices);
 	} else {
 		char *path;
 

@@ -22,6 +22,14 @@ If unsure, run without any arguments.
 .B \-\-help
 Print help
 .TP 8
+.B \-\-all
+Record all \fI/dev/input/event*\fR devices available on the system. This
+option should be used in exceptional cases only, the output file is almost
+always too noisy and replaying the recording may not be possible. Use
+\fB\-\-multiple\fR instead.
+This option requires that a \fB\-\-output-file\fR is specified and may not
+be used together with \fB\-\-multiple\fR.
+.TP 8
 .B \-\-autorestart=s
 Terminate the current recording after
 .I s
