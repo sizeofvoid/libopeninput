@@ -1632,10 +1632,19 @@ START_TEST(touchpad_3fg_tap_pressure_btntool)
 	litest_event(dev, EV_KEY, BTN_TOOL_DOUBLETAP, 1);
 	litest_event(dev, EV_KEY, BTN_TOOL_TRIPLETAP, 0);
 	litest_pop_event_frame(dev);
-	litest_assert_empty_queue(li);
 
 	litest_touch_up(dev, 0);
 	litest_touch_up(dev, 1);
+	libinput_dispatch(li);
+	litest_timeout_tap();
+	libinput_dispatch(li);
+
+	litest_assert_button_event(li,
+				   BTN_MIDDLE,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li,
+				   BTN_MIDDLE,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
 }
 END_TEST
 
