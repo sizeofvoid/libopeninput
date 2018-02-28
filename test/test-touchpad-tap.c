@@ -1613,7 +1613,8 @@ START_TEST(touchpad_3fg_tap_hover_btntool)
 	litest_touch_move_to(dev, 1, 70, 50, 50, 70, 10, 0);
 	litest_drain_events(li);
 
-	/* drop below the pressure threshold in the same frame as starting a */
+	/* drop below the pressure threshold in the same frame as starting a
+	 * third touch  */
 	litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 3);
 	litest_event(dev, EV_ABS, ABS_PRESSURE, 3);
 	litest_event(dev, EV_KEY, BTN_TOUCH, 0);
