@@ -38,6 +38,7 @@
 
 #include "libinput-util.h"
 #include "libinput-version.h"
+#include "libinput-git-version.h"
 
 static const int FILE_VERSION_NUMBER = 1;
 
@@ -278,6 +279,7 @@ print_libinput_header(struct record_context *ctx)
 	iprintf(ctx, "libinput:\n");
 	indent_push(ctx);
 	iprintf(ctx, "version: \"%s\"\n", LIBINPUT_VERSION);
+	iprintf(ctx, "git: \"%s\"\n", LIBINPUT_GIT_VERSION);
 	if (ctx->timeout > 0)
 		iprintf(ctx, "autorestart: %d\n", ctx->timeout);
 	indent_pop(ctx);
