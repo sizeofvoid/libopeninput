@@ -341,22 +341,64 @@ tp_begin_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 }
 
 /**
- * End a touch, even if the touch sequence is still active.
+ * Schedule a touch to be ended, based on either the events or some
+ * attributes of the touch (size, pressure). In some cases we need to
+ * resurrect a touch that has ended, so this doesn't actually end the touch
+ * yet. All the TOUCH_MAYBE_END touches get properly ended once the device
+ * state has been processed once and we know how many zombie touches we
+ * need.
  */
 static inline void
-tp_end_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+tp_maybe_end_touch(struct tp_dispatch *tp,
+		   struct tp_touch *t,
+		   uint64_t time)
 {
 	switch (t->state) {
-	case TOUCH_HOVERING:
-		t->state = TOUCH_NONE;
-		/* fallthough */
 	case TOUCH_NONE:
+	case TOUCH_MAYBE_END:
+	case TOUCH_HOVERING:
+		return;
 	case TOUCH_END:
+		evdev_log_bug_libinput(tp->device,
+				       "touch  already in TOUCH_END\n");
 		return;
 	case TOUCH_BEGIN:
 	case TOUCH_UPDATE:
 		break;
+	}
 
+	t->dirty = true;
+	t->state = TOUCH_MAYBE_END;
+
+	assert(tp->nfingers_down >= 1);
+	tp->nfingers_down--;
+}
+
+/**
+ * Inverse to tp_maybe_end_touch(), restores a touch back to its previous
+ * state.
+ */
+static inline void
+tp_recover_ended_touch(struct tp_dispatch *tp,
+		       struct tp_touch *t)
+{
+	t->dirty = true;
+	t->state = TOUCH_UPDATE;
+	tp->nfingers_down++;
+}
+
+/**
+ * End a touch, even if the touch sequence is still active.
+ * Use tp_maybe_end_touch() instead.
+ */
+static inline void
+tp_end_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+{
+	if (t->state != TOUCH_MAYBE_END) {
+		evdev_log_bug_libinput(tp->device,
+				       "touch should be MAYBE_END, is %d\n",
+				       t->state);
+		return;
 	}
 
 	t->dirty = true;
@@ -365,8 +407,6 @@ tp_end_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->pinned.is_pinned = false;
 	t->time = time;
 	t->palm.time = 0;
-	assert(tp->nfingers_down >= 1);
-	tp->nfingers_down--;
 	tp->queued |= TOUCHPAD_EVENT_MOTION;
 }
 
@@ -377,7 +417,7 @@ static inline void
 tp_end_sequence(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 {
 	t->has_ended = true;
-	tp_end_touch(tp, t, time);
+	tp_maybe_end_touch(tp, t, time);
 }
 
 static void
@@ -524,13 +564,11 @@ tp_restore_synaptics_touches(struct tp_dispatch *tp,
 	for (i = 0; i < tp->num_slots; i++) {
 		struct tp_touch *t = tp_get_touch(tp, i);
 
-		if (t->state != TOUCH_END)
+		if (t->state != TOUCH_MAYBE_END)
 			continue;
 
 		/* new touch, move it through begin to update immediately */
-		tp_new_touch(tp, t, time);
-		tp_begin_touch(tp, t, time);
-		t->state = TOUCH_UPDATE;
+		tp_recover_ended_touch(tp, t);
 	}
 }
 
@@ -1120,7 +1158,7 @@ tp_unhover_pressure(struct tp_dispatch *tp, uint64_t time)
 				if (t->pressure < tp->pressure.low) {
 					evdev_log_debug(tp->device,
 							"pressure: end touch\n");
-					tp_end_touch(tp, t, time);
+					tp_maybe_end_touch(tp, t, time);
 				}
 			}
 		}
@@ -1157,10 +1195,11 @@ tp_unhover_pressure(struct tp_dispatch *tp, uint64_t time)
 			t = tp_get_touch(tp, i);
 
 			if (t->state == TOUCH_HOVERING ||
-			    t->state == TOUCH_NONE)
+			    t->state == TOUCH_NONE ||
+			    t->state == TOUCH_MAYBE_END)
 				continue;
 
-			tp_end_touch(tp, t, time);
+			tp_maybe_end_touch(tp, t, time);
 
 			if (real_fingers_down > 0  &&
 			    tp->nfingers_down == nfake_touches)
@@ -1202,7 +1241,7 @@ tp_unhover_size(struct tp_dispatch *tp, uint64_t time)
 			if (t->major < low || t->minor < low) {
 				evdev_log_debug(tp->device,
 						"touch-size: end touch\n");
-				tp_end_touch(tp, t, time);
+				tp_maybe_end_touch(tp, t, time);
 			}
 		}
 	}
@@ -1256,7 +1295,7 @@ tp_unhover_fake_touches(struct tp_dispatch *tp, uint64_t time)
 			    t->state == TOUCH_NONE)
 				continue;
 
-			tp_end_touch(tp, t, time);
+			tp_maybe_end_touch(tp, t, time);
 
 			if (tp_fake_finger_is_touching(tp) &&
 			    tp->nfingers_down == nfake_touches)
@@ -1424,6 +1463,21 @@ tp_detect_thumb_while_moving(struct tp_dispatch *tp)
 }
 
 static void
+tp_pre_process_state(struct tp_dispatch *tp, uint64_t time)
+{
+	struct tp_touch *t;
+
+	tp_process_fake_touches(tp, time);
+	tp_unhover_touches(tp, time);
+
+	tp_for_each_touch(tp, t) {
+		if (t->state == TOUCH_MAYBE_END)
+			tp_end_touch(tp, t, time);
+	}
+
+}
+
+static void
 tp_process_state(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *t;
@@ -1432,8 +1486,6 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 	bool have_new_touch = false;
 	unsigned int speed_exceeded_count = 0;
 
-	tp_process_fake_touches(tp, time);
-	tp_unhover_touches(tp, time);
 	tp_position_fake_touches(tp);
 
 	want_motion_reset = tp_need_motion_history_reset(tp);
@@ -1592,6 +1644,7 @@ static void
 tp_handle_state(struct tp_dispatch *tp,
 		uint64_t time)
 {
+	tp_pre_process_state(tp, time);
 	tp_process_state(tp, time);
 	tp_post_events(tp, time);
 	tp_post_process_state(tp, time);
