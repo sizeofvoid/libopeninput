@@ -3073,7 +3073,9 @@ tp_init_pressure(struct tp_dispatch *tp,
 	tp->pressure.low = lo;
 
 	evdev_log_debug(device,
-			"using pressure-based touch detection\n");
+			"using pressure-based touch detection (%d:%d)\n",
+			lo,
+			hi);
 }
 
 static bool
