@@ -602,11 +602,11 @@ evdev_to_left_handed(struct evdev_device *device,
  * Apply a hysteresis filtering to the coordinate in, based on the current
  * hysteresis center and the margin. If 'in' is within 'margin' of center,
  * return the center (and thus filter the motion). If 'in' is outside,
- * return a point on the edge of the new margin. So for a point x in the
- * space outside c + margin we return r:
- * +---+       +---+
+ * return a point on the edge of the new margin (which is an ellipse, usually
+ * a circle). So for a point x in the space outside c + margin we return r:
+ * ,---.       ,---.
  * | c |  x →  | r x
- * +---+       +---+
+ * `---'       `---'
  *
  * The effect of this is that initial small motions are filtered. Once we
  * move into one direction we lag the real coordinates by 'margin' but any
@@ -619,41 +619,71 @@ evdev_to_left_handed(struct evdev_device *device,
  * Otherwise, the center has a dead zone of size margin around it and the
  * first reachable point is the margin edge.
  *
- * Hysteresis is handled separately per axis (and the window is thus
- * rectangular, not circular). It is unkown if that's an issue, but the
- * calculation to do circular hysteresis are nontrivial, especially since
- * many touchpads have uneven x/y resolutions.
- *
- * Given coordinates, 0, 1, 2, ... this is what we return for a margin of 3
- * and a center of 0:
- *
- * Input:  1 2 3 4 5 6 5 4 3 2 1 0 -1
- * Coord:  0 0 0 1 2 3 3 3 3 3 3 3 2
- * Center: 0 0 0 1 2 3 3 3 3 3 3 3 2
- *
- * Problem: viewed from a stationary finger that starts moving, the
- * hysteresis margin is M in both directions. Once we start moving
- * continuously though, the margin is 0 in the movement direction and 2*M to
- * change direction. That makes the finger less responsive to directional
- * changes than to the original movement.
- *
  * @param in The input coordinate
  * @param center Current center of the hysteresis
  * @param margin Hysteresis width (on each side)
  *
  * @return The new center of the hysteresis
  */
-static inline int
-evdev_hysteresis(int in, int center, int margin)
+static inline struct device_coords
+evdev_hysteresis(const struct device_coords *in,
+		 const struct device_coords *center,
+		 const struct device_coords *margin)
 {
-	int diff = in - center;
-	if (abs(diff) <= margin)
-		return center;
+	int dx = in->x - center->x;
+	int dy = in->y - center->y;
+	int dx2 = dx * dx;
+	int dy2 = dy * dy;
+	int a = margin->x;
+	int b = margin->y;
+	double normalized_finger_distance, finger_distance, margin_distance;
+	double lag_x, lag_y;
+	struct device_coords result;
 
-	if (diff > 0)
-		return in - margin;
-	else
-		return in + margin;
+	if (!a || !b)
+		return *in;
+
+	/*
+	 * Basic equation for an ellipse of radii a,b:
+	 *   x²/a² + y²/b² = 1
+	 * But we start by making a scaled ellipse passing through the
+	 * relative finger location (dx,dy). So the scale of this ellipse is
+	 * the ratio of finger_distance to margin_distance:
+	 *   dx²/a² + dy²/b² = normalized_finger_distance²
+	 */
+	normalized_finger_distance = sqrt((double)dx2 / (a * a) +
+					  (double)dy2 / (b * b));
+
+	/* Which means anything less than 1 is within the elliptical margin */
+	if (normalized_finger_distance < 1.0)
+		return *center;
+
+	finger_distance = sqrt(dx2 + dy2);
+	margin_distance = finger_distance / normalized_finger_distance;
+
+	/*
+	 * Now calculate the x,y coordinates on the edge of the margin ellipse
+	 * where it intersects the finger vector. Shortcut: We achieve this by
+	 * finding the point with the same gradient as dy/dx.
+	 */
+	if (dx) {
+		double gradient = (double)dy / dx;
+		lag_x = margin_distance / sqrt(gradient * gradient + 1);
+		lag_y = sqrt((margin_distance + lag_x) *
+			     (margin_distance - lag_x));
+	} else {  /* Infinite gradient */
+		lag_x = 0.0;
+		lag_y = margin_distance;
+	}
+
+	/*
+	 * 'result' is the centre of an ellipse (radii a,b) which has been
+	 * dragged by the finger moving inside it to 'in'. The finger is now
+	 * touching the margin ellipse at some point: (±lag_x,±lag_y)
+	 */
+	result.x = (dx >= 0) ? in->x - lag_x : in->x + lag_x;
+	result.y = (dy >= 0) ? in->y - lag_y : in->y + lag_y;
+	return result;
 }
 
 static inline struct libinput *

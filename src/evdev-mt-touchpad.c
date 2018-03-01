@@ -194,26 +194,15 @@ static inline void
 tp_motion_hysteresis(struct tp_dispatch *tp,
 		     struct tp_touch *t)
 {
-	int x = t->point.x,
-	    y = t->point.y;
-
 	if (!tp->hysteresis.enabled)
 		return;
 
-	if (t->history.count == 0) {
-		t->hysteresis.center = t->point;
-	} else {
-		x = evdev_hysteresis(x,
-				     t->hysteresis.center.x,
-				     tp->hysteresis.margin.x);
-		y = evdev_hysteresis(y,
-				     t->hysteresis.center.y,
-				     tp->hysteresis.margin.y);
-		t->hysteresis.center.x = x;
-		t->hysteresis.center.y = y;
-		t->point.x = x;
-		t->point.y = y;
-	}
+	if (t->history.count > 0)
+		t->point = evdev_hysteresis(&t->point,
+					    &t->hysteresis.center,
+					    &tp->hysteresis.margin);
+
+	t->hysteresis.center = t->point;
 }
 
 static inline void
