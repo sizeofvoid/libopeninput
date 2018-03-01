@@ -814,7 +814,6 @@ mainloop(struct record_context *ctx)
 		/* If we didn't have events, delete the file. */
 		if (!isatty(ctx->out_fd)) {
 			if (!had_events && ctx->output_file) {
-				perror("");
 				fprintf(stderr, "No events recorded, deleting '%s'\n", ctx->output_file);
 				unlink(ctx->output_file);
 			}
