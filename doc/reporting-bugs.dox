@@ -124,6 +124,9 @@ E: USEC_INITIALIZED=5463031
 
 @section evemu Recording devices with evemu
 
+@note Where available, the @ref libinput-record tools should be used instead
+of evemu
+
 <a href="http://www.freedesktop.org/wiki/Evemu/">evemu</a> records the
 device capabilities together with the event stream from the kernel. On our
 side, this allows us to recreate a virtual device identical to your device

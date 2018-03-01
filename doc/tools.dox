@@ -3,10 +3,13 @@
 
 libinput provides a `libinput` tool to query state and events.
 The two most common invocations are
-@ref libinput-list-devices and @ref libinput-debug-events. A full
-explanation of the various commands available in the libinput tool is
-available in the libinput(1) man page. Generally, the
-tool must be run as root to have access to the kernel's @c /dev/input/event*
+@ref libinput-list-devices and @ref libinput-debug-events. The @ref
+libinput-record tools are used to analyze and reproduce events sequences on
+developer machines, particularly useful when a user experiences a bug.
+
+A full explanation of the various commands available in the libinput tool is
+available in the libinput(1) man page. Generally, the tool must be run as
+root to have access to the kernel's @c /dev/input/event*
 device files.
 
 @section libinput-list-devices libinput list-devices
@@ -118,8 +121,9 @@ Select the device event number: 17
 
 Without arguments, `libinput record` displays the available devices and lets
 the user select one. Supply the number (17 in this case for
-`/dev/input/event17`) and the tool will record to the log file. More
-arguments are available, see the `libinput-record` man page.
+`/dev/input/event17`) and the tool will print the device information and
+events to the file it is redirected to. More arguments are available, see
+the `libinput-record` man page.
 
 Reproduce the bug, ctrl+c and attach the output file to a bug report.
 For data protection, `libinput record` obscures key codes by default, any

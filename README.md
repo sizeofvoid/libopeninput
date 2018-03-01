@@ -53,9 +53,8 @@ Reporting Bugs
 Bugs can be filed in the libinput component of Wayland:
 https://bugs.freedesktop.org/enter_bug.cgi?product=Wayland&component=libinput
 
-Where possible, please provide an
-[evemu](http://www.freedesktop.org/wiki/Evemu/) recording of the input
-device and/or the event sequence in question.
+Where possible, please provide the `libinput record` output
+of the input device and/or the event sequence in question.
 
 See @ref reporting_bugs for more info.
 
