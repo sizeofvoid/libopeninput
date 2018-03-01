@@ -405,7 +405,7 @@ print_description(struct record_context *ctx, struct libevdev *dev)
 	x = libevdev_get_abs_info(dev, ABS_X);
 	y = libevdev_get_abs_info(dev, ABS_Y);
 	if (x && y) {
-		if (x->resolution || y->resolution) {
+		if (x->resolution && y->resolution) {
 			int w, h;
 
 			w = (x->maximum - x->minimum)/x->resolution;
@@ -788,7 +788,6 @@ mainloop(struct record_context *ctx)
 		indent_pop(ctx); /* events: */
 
 		if (autorestart) {
-			d = list_first_entry(&ctx->devices, d, link);
 			noiprintf(ctx,
 				  "# Closing after %ds inactivity",
 				  ctx->timeout/1000);
