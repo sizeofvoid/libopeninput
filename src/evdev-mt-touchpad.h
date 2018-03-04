@@ -46,10 +46,11 @@ enum touchpad_event {
 
 enum touch_state {
 	TOUCH_NONE = 0,
-	TOUCH_HOVERING,
-	TOUCH_BEGIN,
-	TOUCH_UPDATE,
-	TOUCH_END
+	TOUCH_HOVERING = 1,
+	TOUCH_BEGIN = 2,
+	TOUCH_UPDATE = 3,
+	TOUCH_MAYBE_END = 4,
+	TOUCH_END = 5,
 };
 
 enum touch_palm_state {

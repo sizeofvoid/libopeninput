@@ -366,6 +366,14 @@ tp_edge_scroll_handle_state(struct tp_dispatch *tp, uint64_t time)
 		case TOUCH_UPDATE:
 			tp_edge_scroll_handle_event(tp, t, SCROLL_EVENT_MOTION);
 			break;
+		case TOUCH_MAYBE_END:
+			/* This shouldn't happen we transfer to TOUCH_END
+			 * before processing state */
+			evdev_log_debug(tp->device,
+					"touch %d: unexpected state %d\n",
+					t->index,
+					t->state);
+			/* fallthrough */
 		case TOUCH_END:
 			tp_edge_scroll_handle_event(tp, t, SCROLL_EVENT_RELEASE);
 			break;
