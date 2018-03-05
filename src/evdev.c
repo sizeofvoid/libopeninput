@@ -1505,6 +1505,7 @@ static void
 evdev_extract_abs_axes(struct evdev_device *device)
 {
 	struct libevdev *evdev = device->evdev;
+	int fuzz;
 
 	if (!libevdev_has_event_code(evdev, EV_ABS, ABS_X) ||
 	    !libevdev_has_event_code(evdev, EV_ABS, ABS_Y))
@@ -1512,6 +1513,12 @@ evdev_extract_abs_axes(struct evdev_device *device)
 
 	if (evdev_fix_abs_resolution(device, ABS_X, ABS_Y))
 		device->abs.is_fake_resolution = true;
+
+	if ((fuzz = evdev_read_fuzz_prop(device, ABS_X)))
+	    libevdev_set_abs_fuzz(evdev, ABS_X, fuzz);
+	if ((fuzz = evdev_read_fuzz_prop(device, ABS_Y)))
+	    libevdev_set_abs_fuzz(evdev, ABS_Y, fuzz);
+
 	device->abs.absinfo_x = libevdev_get_abs_info(evdev, ABS_X);
 	device->abs.absinfo_y = libevdev_get_abs_info(evdev, ABS_Y);
 	device->abs.dimensions.x = abs(device->abs.absinfo_x->maximum -
@@ -1528,6 +1535,11 @@ evdev_extract_abs_axes(struct evdev_device *device)
 				     ABS_MT_POSITION_X,
 				     ABS_MT_POSITION_Y))
 		device->abs.is_fake_resolution = true;
+
+	if ((fuzz = evdev_read_fuzz_prop(device, ABS_MT_POSITION_X)))
+	    libevdev_set_abs_fuzz(evdev, ABS_MT_POSITION_X, fuzz);
+	if ((fuzz = evdev_read_fuzz_prop(device, ABS_MT_POSITION_Y)))
+	    libevdev_set_abs_fuzz(evdev, ABS_MT_POSITION_Y, fuzz);
 
 	device->abs.absinfo_x = libevdev_get_abs_info(evdev, ABS_MT_POSITION_X);
 	device->abs.absinfo_y = libevdev_get_abs_info(evdev, ABS_MT_POSITION_Y);
@@ -2160,6 +2172,33 @@ evdev_read_calibration_prop(struct evdev_device *device)
 		       calibration[3],
 		       calibration[4],
 		       calibration[5]);
+}
+
+int
+evdev_read_fuzz_prop(struct evdev_device *device, unsigned int code)
+{
+	const char *prop;
+	char name[32];
+	int rc;
+	int fuzz = 0;
+
+	rc = snprintf(name, sizeof(name), "LIBINPUT_FUZZ_%02x", code);
+	if (rc == -1)
+		return 0;
+
+	prop = udev_device_get_property_value(device->udev_device, name);
+	if (prop == NULL)
+		return 0;
+
+	rc = safe_atoi(prop, &fuzz);
+	if (rc == -1 || fuzz < 0) {
+		evdev_log_bug_libinput(device,
+				       "invalid LIBINPUT_FUZZ property value: %s\n",
+				       prop);
+		return 0;
+	}
+
+	return fuzz;
 }
 
 bool

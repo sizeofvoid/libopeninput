@@ -15,7 +15,6 @@ KERNEL!="event*", GOTO="libinput_model_quirks_end"
 # First, run the program and import the LIBINPUT_MODEL_FIRMWARE_VERSION
 # environment (if any)
 KERNELS=="*input*", \
-  ENV{ID_INPUT_TOUCHPAD}=="1", \
   IMPORT{program}="@UDEV_TEST_PATH@libinput-model-quirks %S%p"
 
 # Second, match on anything with that env set and import from the hwdb
