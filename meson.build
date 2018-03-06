@@ -240,10 +240,10 @@ pkgconfig.generate(
 	libraries : lib_libinput
 )
 
-vcs_tag(['git', 'describe'],
-	'unknown',
-	input : 'src/libinput-git-version.h.in',
-	output :'libinput-git-version.h')
+git_version_h = vcs_tag(['git', 'describe'],
+			'unknown',
+			input : 'src/libinput-git-version.h.in',
+			output :'libinput-git-version.h')
 
 # Restore the SELinux context for the libinput.so.a.b.c on install
 # meson bug https://github.com/mesonbuild/meson/issues/1967
@@ -469,7 +469,7 @@ configure_file(input : 'tools/libinput-measure-trackpoint-range.man',
 	       install_dir : join_paths(get_option('mandir'), 'man1')
 	       )
 
-libinput_record_sources = [ 'tools/libinput-record.c' ]
+libinput_record_sources = [ 'tools/libinput-record.c', git_version_h ]
 executable('libinput-record',
 	   libinput_record_sources,
 	   dependencies : deps_tools,
