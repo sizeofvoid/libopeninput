@@ -312,9 +312,9 @@ tp_tap_tapped_handle_event(struct tp_dispatch *tp,
 			      LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
 	case TAP_EVENT_THUMB:
-	case TAP_EVENT_PALM:
 		log_tap_bug(tp, t, event);
 		break;
+	case TAP_EVENT_PALM:
 	case TAP_EVENT_PALM_UP:
 		break;
 	}
