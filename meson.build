@@ -240,8 +240,8 @@ pkgconfig.generate(
 	libraries : lib_libinput
 )
 
-git_version_h = vcs_tag(['git', 'describe'],
-			'unknown',
+git_version_h = vcs_tag(command : ['git', 'describe'],
+			fallback : 'unknown',
 			input : 'src/libinput-git-version.h.in',
 			output :'libinput-git-version.h')
 
