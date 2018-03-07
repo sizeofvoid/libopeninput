@@ -26,13 +26,16 @@
 #include <errno.h>
 #include <linux/input.h>
 #include <libevdev/libevdev.h>
+#include <libudev.h>
 #include <sys/signalfd.h>
 #include <sys/utsname.h>
+#include <sys/stat.h>
 #include <string.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <getopt.h>
 #include <poll.h>
+#include <unistd.h>
 #include <signal.h>
 #include <stdbool.h>
 
@@ -552,11 +555,60 @@ print_evdev_description(struct record_context *ctx, struct record_device *dev)
 }
 
 static inline void
+print_udev_properties(struct record_context *ctx, struct record_device *dev)
+{
+	struct udev *udev = NULL;
+	struct udev_device *udev_device = NULL;
+	struct udev_list_entry *entry;
+	struct stat st;
+
+	if (stat(dev->devnode, &st) < 0)
+		return;
+
+	udev = udev_new();
+	if (!udev)
+		goto out;
+
+	udev_device = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
+	if (!udev_device)
+		goto out;
+
+	iprintf(ctx, "udev:\n");
+	indent_push(ctx);
+
+	iprintf(ctx, "properties:\n");
+	indent_push(ctx);
+
+	entry = udev_device_get_properties_list_entry(udev_device);
+	while (entry) {
+		const char *key, *value;
+
+		key = udev_list_entry_get_name(entry);
+
+		if (strneq(key, "ID_INPUT", 8) ||
+		    strneq(key, "LIBINPUT", 8) ||
+		    strneq(key, "EV_ABS", 6)) {
+			value = udev_list_entry_get_value(entry);
+			iprintf(ctx, "- %s=%s\n", key, value);
+		}
+
+		entry = udev_list_entry_get_next(entry);
+	}
+
+	indent_pop(ctx);
+	indent_pop(ctx);
+out:
+	udev_device_unref(udev_device);
+	udev_unref(udev);
+}
+
+static inline void
 print_device_description(struct record_context *ctx, struct record_device *dev)
 {
 	iprintf(ctx, "- node: %s\n", dev->devnode);
 
 	print_evdev_description(ctx, dev);
+	print_udev_properties(ctx, dev);
 }
 
 static int is_event_node(const struct dirent *dir) {

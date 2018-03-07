@@ -472,7 +472,7 @@ configure_file(input : 'tools/libinput-measure-trackpoint-range.man',
 libinput_record_sources = [ 'tools/libinput-record.c', git_version_h ]
 executable('libinput-record',
 	   libinput_record_sources,
-	   dependencies : deps_tools,
+	   dependencies : deps_tools + [dep_udev],
 	   include_directories : [includes_src, includes_include],
 	   install_dir : libinput_tool_path,
 	   install : true,

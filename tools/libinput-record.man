@@ -119,6 +119,10 @@ devices:
         57: [0, 65535, 0, 0, 0]
         58: [0, 255, 0, 0, 0]
       properties: [0, 2, 4]
+    udev:
+      properties:
+      - ID_INPUT_MOUSE=1
+      - ID_INPUT=1
     events:
       - evdev:
         - [  0,      0,   3,  57,  1420] # EV_ABS / ABS_MT_TRACKING_ID   1420
@@ -192,6 +196,9 @@ the device node recorded
 .B evdev
 A dictionary with the evdev device information.
 .TP 8
+.B udev
+A dictionary with the udev device information.
+.TP 8
 .B events
 A list of dictionaries with the recorded events
 .SS evdev
@@ -213,6 +220,13 @@ in decimal format.
 .TP 8
 .B properties: [0, 1, ...]
 Array with all \fBINPUT_PROP_FOO\fR constants. May be an empty array.
+.SS udev
+.TP 8
+.B properties: list of strings
+A list of udev properties in the \fBkey=value\fR format. This is not the
+complete list of properties assigned to the device but a subset that is
+relevant to libinput. These properties may include properties set on a
+parent device.
 
 .SS events
 A list of the recorded events. The list contains dictionaries
