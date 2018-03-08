@@ -764,6 +764,7 @@ mainloop(struct record_context *ctx)
 	bool autorestart = (ctx->timeout > 0);
 	struct pollfd fds[ctx->ndevices + 1];
 	struct record_device *d = NULL;
+	struct record_device *first_device = NULL;
 	struct timespec ts;
 	sigset_t mask;
 	int idx;
@@ -821,8 +822,10 @@ mainloop(struct record_context *ctx)
 
 		/* we only print the first device's description, the
 		 * rest is assembled after CTRL+C */
-		d = list_first_entry(&ctx->devices, d, link);
-		print_device_description(ctx, d);
+		first_device = list_first_entry(&ctx->devices,
+						first_device,
+						link);
+		print_device_description(ctx, first_device);
 
 		iprintf(ctx, "events:\n");
 		indent_push(ctx);
