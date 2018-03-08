@@ -238,7 +238,7 @@ print_evdev_events(struct record_context *ctx, struct input_event *e, size_t nev
 }
 
 static inline size_t
-handle_frame(struct record_context *ctx, struct record_device *d, bool print)
+handle_evdev_frame(struct record_context *ctx, struct record_device *d)
 {
 	struct libevdev *evdev = d->evdev;
 	struct input_event e;
@@ -273,7 +273,7 @@ handle_events(struct record_context *ctx, struct record_device *d, bool print)
 		size_t first_idx = d->nevents;
 		size_t evcount;
 
-		evcount = handle_frame(ctx, d, print);
+		evcount = handle_evdev_frame(ctx, d);
 		if (evcount == 0)
 			break;
 
