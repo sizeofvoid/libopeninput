@@ -96,7 +96,7 @@ executable('libinput-device-group',
 	   install_dir : udev_dir)
 executable('libinput-model-quirks',
 	   'udev/libinput-model-quirks.c',
-	   dependencies : dep_udev,
+	   dependencies : [dep_udev, dep_libevdev],
 	   include_directories : [includes_src, includes_include],
 	   install : true,
 	   install_dir : udev_dir)

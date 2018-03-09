@@ -379,6 +379,9 @@ evdev_init_calibration(struct evdev_device *device,
 void
 evdev_read_calibration_prop(struct evdev_device *device);
 
+int
+evdev_read_fuzz_prop(struct evdev_device *device, unsigned int code);
+
 enum switch_reliability
 evdev_read_switch_reliability_prop(struct evdev_device *device);
 

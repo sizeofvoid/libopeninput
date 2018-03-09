@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <libudev.h>
 #include <linux/input.h>
+#include <libevdev/libevdev.h>
 
 #include "libinput-util.h"
 
@@ -107,6 +108,61 @@ handle_touchpad(struct udev_device *device)
 		handle_touchpad_synaptics(device);
 }
 
+/**
+ * For a non-zero fuzz on the x/y axes, print that fuzz as property and
+ * reset the kernel's fuzz to 0.
+ * https://bugs.freedesktop.org/show_bug.cgi?id=105202
+ */
+static void
+handle_absfuzz(struct udev_device *device)
+{
+	const char *devnode;
+	struct libevdev *evdev = NULL;
+	int fd = -1;
+	int rc;
+	unsigned int *code;
+	unsigned int axes[] = {ABS_X,
+			       ABS_Y,
+			       ABS_MT_POSITION_X,
+			       ABS_MT_POSITION_Y};
+
+	devnode = udev_device_get_devnode(device);
+	if (!devnode)
+		goto out;
+
+	fd = open(devnode, O_RDWR);
+	if (fd == -1 && errno == EACCES)
+		fd = open(devnode, O_RDONLY);
+	if (fd < 0)
+		goto out;
+
+	rc = libevdev_new_from_fd(fd, &evdev);
+	if (rc != 0)
+		goto out;
+
+	if (!libevdev_has_event_type(evdev, EV_ABS))
+		goto out;
+
+	ARRAY_FOR_EACH(axes, code) {
+		struct input_absinfo abs;
+		int fuzz;
+
+		fuzz = libevdev_get_abs_fuzz(evdev, *code);
+		if (!fuzz)
+			continue;
+
+		abs = *libevdev_get_abs_info(evdev, *code);
+		abs.fuzz = 0;
+		libevdev_kernel_set_abs_info(evdev, *code, &abs);
+
+		printf("LIBINPUT_FUZZ_%02x=%d\n", *code, fuzz);
+	}
+
+out:
+	close(fd);
+	libevdev_free(evdev);
+}
+
 int main(int argc, char **argv)
 {
 	int rc = 1;
@@ -126,6 +182,8 @@ int main(int argc, char **argv)
 	device = udev_device_new_from_syspath(udev, syspath);
 	if (!device)
 		goto out;
+
+	handle_absfuzz(device);
 
 	if (prop_value(device, "ID_INPUT_TOUCHPAD"))
 		handle_touchpad(device);

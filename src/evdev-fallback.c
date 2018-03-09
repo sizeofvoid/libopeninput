@@ -130,12 +130,13 @@ fallback_filter_defuzz_touch(struct fallback_dispatch *dispatch,
 	point = evdev_hysteresis(&slot->point,
 				 &slot->hysteresis_center,
 				 &dispatch->mt.hysteresis_margin);
+	slot->point = point;
 
-	slot->hysteresis_center = slot->point;
-	if (point.x == slot->point.x && point.y == slot->point.y)
+	if (point.x == slot->hysteresis_center.x &&
+	    point.y == slot->hysteresis_center.y)
 		return true;
 
-	slot->point = point;
+	slot->hysteresis_center = point;
 
 	return false;
 }
