@@ -218,13 +218,23 @@ print_evdev_event(struct record_context *ctx, struct input_event *ev)
 static inline void
 print_evdev_events(struct record_context *ctx, struct input_event *e, size_t nevents)
 {
-	iprintf(ctx, "- evdev:\n");
-	indent_push(ctx);
+	bool have_ev_syn = true;
 
-	for (size_t i = 0; i < nevents; i++)
+
+	for (size_t i = 0; i < nevents; i++) {
+		if (have_ev_syn) {
+			iprintf(ctx, "- evdev:\n");
+			indent_push(ctx);
+			have_ev_syn = false;
+		}
 		print_evdev_event(ctx, &e[i]);
 
-	indent_pop(ctx);
+		if (e[i].type == EV_SYN && e[i].code == SYN_REPORT) {
+			have_ev_syn = true;
+			indent_pop(ctx);
+		}
+	}
+
 }
 
 static inline size_t
