@@ -953,7 +953,7 @@ START_TEST(touchpad_edge_scroll_into_area)
 }
 END_TEST
 
-static int
+static bool
 touchpad_has_palm_detect_size(struct litest_device *dev)
 {
 	double width, height;
@@ -973,6 +973,20 @@ touchpad_has_palm_detect_size(struct litest_device *dev)
 	rc = libinput_device_get_size(dev->libinput_device, &width, &height);
 
 	return rc == 0 && width >= 70;
+}
+
+static bool
+touchpad_has_top_palm_detect_size(struct litest_device *dev)
+{
+	double width, height;
+	int rc;
+
+	if (!touchpad_has_palm_detect_size(dev))
+		return false;
+
+	rc = libinput_device_get_size(dev->libinput_device, &width, &height);
+
+	return rc == 0 && height > 55;
 }
 
 START_TEST(touchpad_palm_detect_at_edge)
@@ -1009,7 +1023,7 @@ START_TEST(touchpad_palm_detect_at_top)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (!touchpad_has_palm_detect_size(dev))
+	if (!touchpad_has_top_palm_detect_size(dev))
 		return;
 
 	litest_disable_tap(dev->libinput_device);
@@ -1131,7 +1145,7 @@ START_TEST(touchpad_palm_detect_top_palm_stays_palm)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (!touchpad_has_palm_detect_size(dev))
+	if (!touchpad_has_top_palm_detect_size(dev))
 		return;
 
 	litest_disable_tap(dev->libinput_device);
@@ -1178,7 +1192,7 @@ START_TEST(touchpad_palm_detect_top_palm_becomes_pointer)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (!touchpad_has_palm_detect_size(dev))
+	if (!touchpad_has_top_palm_detect_size(dev))
 		return;
 
 	litest_disable_tap(dev->libinput_device);
@@ -1231,7 +1245,7 @@ START_TEST(touchpad_palm_detect_no_palm_moving_into_top)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (!touchpad_has_palm_detect_size(dev))
+	if (!touchpad_has_top_palm_detect_size(dev))
 		return;
 
 	litest_disable_tap(dev->libinput_device);
@@ -1260,7 +1274,7 @@ START_TEST(touchpad_palm_detect_no_tap_top_edge)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (!touchpad_has_palm_detect_size(dev))
+	if (!touchpad_has_top_palm_detect_size(dev))
 		return;
 
 	litest_enable_tap(dev->libinput_device);
