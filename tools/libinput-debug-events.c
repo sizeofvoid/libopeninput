@@ -48,7 +48,7 @@ static const uint32_t screen_width = 100;
 static const uint32_t screen_height = 100;
 static struct tools_options options;
 static bool show_keycodes;
-static unsigned int stop = 0;
+static volatile sig_atomic_t stop = 0;
 static bool be_quiet = false;
 
 #define printq(...) ({ if (!be_quiet)  printf(__VA_ARGS__); })
