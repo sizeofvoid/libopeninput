@@ -942,6 +942,13 @@ tp_tap_exceeds_motion_threshold(struct tp_dispatch *tp,
 		return false;
 	}
 
+	/* Semi-mt devices will give us large movements on finger release,
+	 * depending which touch is released. Make sure we ignore any
+	 * movement in the same frame as a finger change.
+	 */
+	if (tp->semi_mt && tp->nfingers_down != tp->old_nfingers_down)
+		return false;
+
 	return length_in_mm(mm) > DEFAULT_TAP_MOVE_THRESHOLD;
 }
 
