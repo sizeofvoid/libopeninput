@@ -1334,6 +1334,19 @@ open_output_file(struct record_context *ctx, bool is_prefix)
 	return true;
 }
 
+static inline void
+print_progress_bar(void)
+{
+	static uint8_t foo = 0;
+
+	if (!isatty(STDERR_FILENO))
+		return;
+
+	if (++foo > 20)
+		foo = 1;
+	fprintf(stderr, "\rReceiving events: [%*s%*s]", foo, "*", 21 - foo, " ");
+}
+
 static int
 mainloop(struct record_context *ctx)
 {
@@ -1393,7 +1406,7 @@ mainloop(struct record_context *ctx)
 				ctx->output_file);
 			break;
 		}
-		fprintf(stderr, "recording to '%s'\n", ctx->output_file);
+		fprintf(stderr, "Recording to '%s'.\n", ctx->output_file);
 
 		print_header(ctx);
 		if (autorestart)
@@ -1464,6 +1477,9 @@ mainloop(struct record_context *ctx)
 				}
 				rc--;
 			}
+
+			if (ctx->out_fd != STDOUT_FILENO)
+				print_progress_bar();
 
 		}
 		indent_pop(ctx); /* events: */
