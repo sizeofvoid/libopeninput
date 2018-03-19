@@ -254,7 +254,15 @@ meson.add_install_script('src/libinput-restore-selinux-context.sh',
 ############ documentation ############
 
 if get_option('documentation')
-	doxygen = find_program('doxygen')
+	doxygen = find_program('doxygen', required : false)
+	if not doxygen.found()
+		error('Program "doxygen" not found or not executable. Try building with -Ddocumentation=false')
+	endif
+	dot = find_program('dot', required : false)
+	if not dot.found()
+		error('Program "dot" not found or not executable. Try building with -Ddocumentation=false')
+	endif
+
 	doxygen_version_cmd = run_command(doxygen.path(), '--version')
 	if doxygen_version_cmd.returncode() != 0
 		error('Command "doxygen --version" failed.')
@@ -263,7 +271,6 @@ if get_option('documentation')
 	if doxygen_version.version_compare('< 1.8.3')
 		error('doxygen needs to be at least version 1.8.3 (have @0@)'.format(doxygen_version))
 	endif
-	dot = find_program('dot')
 	grep = find_program('grep')
 	dot_version_cmd = run_command(dot.path(), '-V')
 	if dot_version_cmd.returncode() != 0

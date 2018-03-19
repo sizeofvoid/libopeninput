@@ -28,8 +28,11 @@ $> sudo udevadm hwdb --update
 
 Additional options may also be specified. For example:
 @code
-$> meson --prefix=/usr -Ddocumentation=false -Dlibwacom=false builddir/
+$> meson --prefix=/usr -Ddocumentation=false builddir/
 @endcode
+
+We recommend that users disable the documentation, it's not usually required
+for testing and reduces the number of dependencies needed.
 
 The ```prefix``` or other options can be changed later with the
 ```mesonconf``` command. For example:
