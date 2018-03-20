@@ -1124,7 +1124,9 @@ print_udev_properties(struct record_context *ctx, struct record_device *dev)
 
 		if (strneq(key, "ID_INPUT", 8) ||
 		    strneq(key, "LIBINPUT", 8) ||
-		    strneq(key, "EV_ABS", 6)) {
+		    strneq(key, "EV_ABS", 6) ||
+		    strneq(key, "MOUSE_DPI", 9) ||
+		    strneq(key, "POINTINGSTICK_", 14)) {
 			value = udev_list_entry_get_value(entry);
 			iprintf(ctx, "- %s=%s\n", key, value);
 		}
