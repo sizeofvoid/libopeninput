@@ -163,8 +163,8 @@ class Device(object):
         prange = p.max - p.min
 
         # libinput defaults
-        self.up = int(p.min + 0.12 * prange)
-        self.down = int(p.min + 0.10 * prange)
+        self.down = int(p.min + 0.12 * prange)
+        self.up = int(p.min + 0.10 * prange)
         self.palm = 130  # the libinput default
 
         self._init_thresholds_from_udev()
@@ -189,7 +189,7 @@ class Device(object):
         ud = pyudev.Devices.from_device_file(context, self.path)
         v = ud.get('LIBINPUT_ATTR_PRESSURE_RANGE')
         if v:
-            self.up, self.down = colon_tuple(v)
+            self.down, self.up = colon_tuple(v)
 
         v = ud.get('LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD')
         if v:
