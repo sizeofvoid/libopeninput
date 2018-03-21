@@ -1178,8 +1178,12 @@ tp_unhover_pressure(struct tp_dispatch *tp, uint64_t time)
 					tp_begin_touch(tp, t, time);
 				}
 			/* don't unhover for pressure if we have too many
-			 * fake fingers down, see comment below */
-			} else if (nfake_touches <= tp->num_slots) {
+			 * fake fingers down, see comment below. Except
+			 * for single-finger touches where the real touch
+			 * decides for the rest.
+			 */
+			} else if (nfake_touches <= tp->num_slots ||
+				   tp->num_slots == 1) {
 				if (t->pressure < tp->pressure.low) {
 					evdev_log_debug(tp->device,
 							"pressure: end touch %d\n",

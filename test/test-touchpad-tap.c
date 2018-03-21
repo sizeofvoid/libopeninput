@@ -1620,7 +1620,10 @@ START_TEST(touchpad_3fg_tap_pressure_btntool)
 	litest_drain_events(li);
 
 	/* drop below the pressure threshold in the same frame as starting a
-	 * third touch  */
+	 * third touch, see
+	 *   E: 8713.954784 0001 014e 0001 # EV_KEY / BTN_TOOL_TRIPLETAP   1
+	 * in https://bugs.freedesktop.org/attachment.cgi?id=137672
+	 */
 	litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 3);
 	litest_event(dev, EV_ABS, ABS_PRESSURE, 3);
 	litest_event(dev, EV_KEY, BTN_TOOL_DOUBLETAP, 0);

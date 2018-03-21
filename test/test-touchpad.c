@@ -5503,6 +5503,45 @@ START_TEST(touchpad_pressure_btntool)
 }
 END_TEST
 
+START_TEST(touchpad_pressure_semi_mt_2fg_goes_light)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_PRESSURE, 2 },
+		{ -1, 0 }
+	};
+
+	litest_enable_2fg_scroll(dev);
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 40, 50);
+	litest_touch_down(dev, 1, 60, 50);
+	litest_touch_move_two_touches(dev, 40, 50, 60, 50, 0, -20, 10, 0);
+
+	/* This should trigger a scroll end event */
+	litest_push_event_frame(dev);
+	litest_touch_move_extended(dev, 0, 40, 31, axes);
+	litest_touch_move_extended(dev, 1, 60, 31, axes);
+	litest_pop_event_frame(dev);
+	libinput_dispatch(li);
+
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, 0);
+
+	litest_push_event_frame(dev);
+	litest_touch_move_extended(dev, 0, 40, 35, axes);
+	litest_touch_move_extended(dev, 1, 60, 35, axes);
+	litest_pop_event_frame(dev);
+
+	litest_push_event_frame(dev);
+	litest_touch_move_extended(dev, 0, 40, 40, axes);
+	litest_touch_move_extended(dev, 1, 60, 40, axes);
+	litest_pop_event_frame(dev);
+	libinput_dispatch(li);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 static inline bool
 touchpad_has_touch_size(struct litest_device *dev)
 {
@@ -5887,6 +5926,7 @@ litest_setup_tests_touchpad(void)
 	litest_add("touchpad:pressure", touchpad_pressure_tap_2fg, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:pressure", touchpad_pressure_tap_2fg_1fg_light, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:pressure", touchpad_pressure_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add("touchpad:pressure", touchpad_pressure_semi_mt_2fg_goes_light, LITEST_SEMI_MT, LITEST_ANY);
 
 	litest_add("touchpad:touch-size", touchpad_touch_size, LITEST_APPLE_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:touch-size", touchpad_touch_size_2fg, LITEST_APPLE_CLICKPAD, LITEST_ANY);
