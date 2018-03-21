@@ -945,8 +945,7 @@ START_TEST(touch_release_on_unplug)
 }
 END_TEST
 
-void
-litest_setup_tests_touch(void)
+TEST_COLLECTION(touch)
 {
 	struct range axes = { ABS_X, ABS_Y + 1};
 

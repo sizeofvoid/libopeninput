@@ -646,8 +646,7 @@ START_TEST(udev_ignore_device)
 }
 END_TEST
 
-void
-litest_setup_tests_udev(void)
+TEST_COLLECTION(udev)
 {
 	litest_add_no_device("udev:create", udev_create_NULL);
 	litest_add_no_device("udev:create", udev_create_seat0);

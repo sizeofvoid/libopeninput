@@ -3383,8 +3383,7 @@ START_TEST(touchpad_tap_palm_dwt_tap)
 }
 END_TEST
 
-void
-litest_setup_tests_touchpad_tap(void)
+TEST_COLLECTION(touchpad_tap)
 {
 	struct range multitap_range = {3, 5};
 	struct range tap_map_range = { LIBINPUT_CONFIG_TAP_MAP_LRM,

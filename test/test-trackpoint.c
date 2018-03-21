@@ -379,8 +379,7 @@ START_TEST(trackpoint_palmdetect_require_min_events)
 }
 END_TEST
 
-void
-litest_setup_tests_trackpoint(void)
+TEST_COLLECTION(trackpoint)
 {
 	litest_add("trackpoint:middlebutton", trackpoint_middlebutton, LITEST_POINTINGSTICK, LITEST_ANY);
 	litest_add("trackpoint:middlebutton", trackpoint_middlebutton_noscroll, LITEST_POINTINGSTICK, LITEST_ANY);

@@ -476,8 +476,7 @@ START_TEST(keyboard_no_scroll)
 }
 END_TEST
 
-void
-litest_setup_tests_keyboard(void)
+TEST_COLLECTION(keyboard)
 {
 	litest_add_no_device("keyboard:seat key count", keyboard_seat_key_count);
 	litest_add_no_device("keyboard:key counting", keyboard_ignore_no_pressed_release);

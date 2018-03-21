@@ -4682,8 +4682,7 @@ START_TEST(huion_static_btn_tool_pen_disable_quirk_on_prox_out)
 }
 END_TEST
 
-void
-litest_setup_tests_tablet(void)
+TEST_COLLECTION(tablet)
 {
 	struct range with_timeout = { 0, 2 };
 

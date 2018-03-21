@@ -1040,8 +1040,8 @@ START_TEST(dock_toggle)
 	litest_assert_empty_queue(li);
 }
 END_TEST
-void
-litest_setup_tests_lid(void)
+
+TEST_COLLECTION(switch)
 {
 	struct range switches = { LIBINPUT_SWITCH_LID,
 				  LIBINPUT_SWITCH_TABLET_MODE + 1};

@@ -60,6 +60,20 @@ struct test_device {
 		__VA_ARGS__ \
 	};
 
+struct test_collection {
+	const char *name;
+	void (*setup)(void);
+} __attribute__((aligned(16)));
+
+#define TEST_COLLECTION(name) \
+	static void (name##_setup)(void); \
+	static const struct test_collection _test_collection \
+	__attribute__ ((used)) \
+	__attribute__ ((section ("test_collection_section"))) = { \
+		#name, name##_setup \
+	}; \
+	static void (name##_setup)(void)
+
 extern void litest_setup_tests_udev(void);
 extern void litest_setup_tests_path(void);
 extern void litest_setup_tests_pointer(void);

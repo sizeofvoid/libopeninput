@@ -981,8 +981,7 @@ START_TEST(path_ignore_device)
 }
 END_TEST
 
-void
-litest_setup_tests_path(void)
+TEST_COLLECTION(path)
 {
 	litest_add_no_device("path:create", path_create_NULL);
 	litest_add_no_device("path:create", path_create_invalid);

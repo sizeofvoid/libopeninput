@@ -5758,8 +5758,7 @@ START_TEST(touchpad_speed_ignore_finger_edgescroll)
 }
 END_TEST
 
-void
-litest_setup_tests_touchpad(void)
+TEST_COLLECTION(touchpad)
 {
 	struct range axis_range = {ABS_X, ABS_Y + 1};
 	struct range twice = {0, 2 };

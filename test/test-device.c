@@ -1577,8 +1577,7 @@ START_TEST(device_seat_phys_name)
 }
 END_TEST
 
-void
-litest_setup_tests_device(void)
+TEST_COLLECTION(device)
 {
 	struct range abs_range = { 0, ABS_MISC };
 	struct range abs_mt_range = { ABS_MT_SLOT + 1, ABS_CNT };

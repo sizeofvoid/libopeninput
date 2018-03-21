@@ -917,8 +917,7 @@ START_TEST(pad_mode_group_has_no_toggle)
 }
 END_TEST
 
-void
-litest_setup_tests_pad(void)
+TEST_COLLECTION(tablet_pad)
 {
 	litest_add("pad:cap", pad_cap, LITEST_TABLET_PAD, LITEST_ANY);
 	litest_add("pad:cap", pad_no_cap, LITEST_ANY, LITEST_TABLET_PAD);
