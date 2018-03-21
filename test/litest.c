@@ -2564,7 +2564,7 @@ litest_print_event(struct libinput_event *event)
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL))
 			x = libinput_event_pointer_get_axis_value(p,
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
-		fprintf(stderr, "vert %.f horiz %.2f", y, x);
+		fprintf(stderr, "vert %.2f horiz %.2f", y, x);
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
 		t = libinput_event_get_tablet_tool_event(event);
