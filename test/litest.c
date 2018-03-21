@@ -1224,20 +1224,22 @@ litest_init_device_udev_rules(struct litest_test_device *dev)
 	int fd;
 	FILE *f;
 	char *path = NULL;
+	static int count;
 
 	if (!dev->udev_rule)
 		return NULL;
 
 	rc = xasprintf(&path,
-		      "%s/%s%s-XXXXXX.rules",
+		      "%s/%s%03d-%s-XXXXXX.rules",
 		      UDEV_RULES_D,
 		      UDEV_RULE_PREFIX,
+		      ++count,
 		      dev->shortname);
 	litest_assert_int_eq(rc,
 			     (int)(
 				   strlen(UDEV_RULES_D) +
 				   strlen(UDEV_RULE_PREFIX) +
-				   strlen(dev->shortname) + 14));
+				   strlen(dev->shortname) + 18));
 
 	fd = mkstemps(path, 6);
 	litest_assert_int_ne(fd, -1);
