@@ -2024,7 +2024,7 @@ tablet_reject_device(struct evdev_device *device)
 		return 0;
 
 	evdev_log_bug_libinput(device,
-			       "missing tablet capabilities:%s%s%s%s."
+			       "missing tablet capabilities:%s%s%s%s. "
 			       "Ignoring this device.\n",
 			       has_xy ? "" : " xy",
 			       has_pen ? "" : " pen",
