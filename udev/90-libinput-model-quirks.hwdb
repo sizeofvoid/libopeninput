@@ -214,6 +214,10 @@ libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPadX1Carbon3rd
 libinput:keyboard:input:b0003v17EFp6047*
  LIBINPUT_ATTR_KEYBOARD_INTEGRATION=external
 
+# Lenovo X280
+libinput:name:*ALPS TrackPoint*:svnLENOVO:*:pvrThinkPadX280:*
+ LIBINPUT_ATTR_TRACKPOINT_RANGE=70
+
 ##########################################
 # Logitech
 ##########################################
