@@ -113,6 +113,7 @@ def property_grammar():
         ('LIBINPUT_ATTR_LID_SWITCH_RELIABILITY',
          Or(('reliable', 'write_open'))),
         ('LIBINPUT_ATTR_KEYBOARD_INTEGRATION', Or(('internal', 'external'))),
+        ('LIBINPUT_ATTR_TRACKPOINT_RANGE', INTEGER('Y')),
     )
     value_props = [Literal(name)('NAME') - Suppress('=') - val('VALUE') for
                    name, val in vprops]
