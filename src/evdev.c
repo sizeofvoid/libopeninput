@@ -1180,6 +1180,12 @@ evdev_get_trackpoint_range(struct evdev_device *device)
 		goto out;
 	}
 
+	evdev_log_info(device,
+		       "trackpoint does not have a specified range, "
+		       "guessing... see %strackpoints.html\n",
+		       HTTP_DOC_LINK);
+
+
 	prop = udev_device_get_property_value(device->udev_device,
 					      "POINTINGSTICK_SENSITIVITY");
 	if (prop) {
