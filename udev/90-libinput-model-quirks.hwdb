@@ -212,6 +212,10 @@ libinput:name:Synaptics tm2964-001:dmi:*svnLENOVO:*:pvrThinkPadT440p*
 libinput:name:TPPS/2 IBM TrackPoint:dmi:*svnLENOVO:*:pvrThinkPadT440s*
  LIBINPUT_ATTR_TRACKPOINT_RANGE=30
 
+# T450s trackpoint
+libinput:name:TPPS/2 IBM TrackPoint:dmi:*svnLENOVO:*:pvrThinkPadT450s*
+ LIBINPUT_ATTR_TRACKPOINT_RANGE=50
+
 # Lenovo T450/T460 and all other Lenovos of the *50 and *60 generation,
 # including the X1 Carbon 3rd gen
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*:pvrThinkPad??50*:
