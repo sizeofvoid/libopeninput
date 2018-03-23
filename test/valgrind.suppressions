@@ -52,3 +52,15 @@
    fun:ioctl
    fun:libevdev_grab
 }
+{
+   bash:execute_command
+   Memcheck:Cond
+   ...
+   fun:execute_command
+}
+{
+   bash:execute_command
+   Memcheck:Leak
+   ...
+   fun:execute_command
+}

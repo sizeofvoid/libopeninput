@@ -564,6 +564,9 @@ if get_option('tests')
 		config_h.set_quoted('ADDR2LINE', addr2line.path())
 	endif
 
+	leftover_rules = find_program('test/check-leftover-udev-rules.sh')
+	test('leftover-rules', leftover_rules, is_parallel : false)
+
 	dep_libunwind = dependency('libunwind', required : false)
 	config_h.set10('HAVE_LIBUNWIND', dep_libunwind.found())
 
