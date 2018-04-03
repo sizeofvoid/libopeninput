@@ -1,17 +1,40 @@
 /**
 @page palm_detection Palm detection
 
-Palm detection tries to identify accidental touches while typing.
+Palm detection tries to identify accidental touches while typing, while
+using the trackpoint and/or during general use of the touchpad area.
 
 On most laptops typing on the keyboard generates accidental touches on the
 touchpad with the palm (usually the area below the thumb). This can lead to
-cursor jumps or accidental clicks.
+cursor jumps or accidental clicks. On large touchpads, the palm may also
+touch the bottom edges of the touchpad during normal interaction.
 
 Interference from a palm depends on the size of the touchpad and the position
-of the user's hand. Data from touchpads showed that almost all palm events on a
-Lenovo T440 happened in the left-most and right-most 5% of the touchpad. The
-T440 series has one of the largest touchpads, other touchpads are less
-affected by palm touches.
+of the user's hand. Data from touchpads showed that almost all palm events
+during tying on a Lenovo T440 happened in the left-most and right-most 5% of
+the touchpad. The T440 series has one of the largest touchpads, other
+touchpads are less affected by palm touches.
+
+libinput has multiple ways of detecting a palm, each of which depends on
+hardware-specific capabilities.
+
+- @ref palm_tool
+- @ref palm_pressure
+- @ref palm_touch_size
+- @ref palm_exclusion_zones
+- @ref trackpoint-disabling
+- @ref disable-while-typing
+- @ref stylus-touch-arbitration
+
+Palm detection is always enabled, with the exception of
+disable-while-typing.
+
+@section palm_tool Palm detection based on firmware labelling
+
+Some devices provide palm detection in the firmware, forwarded by the kernel
+as the ```EV_ABS/ABS_MT_TOOL``` axis with a value of ```MT_TOOL_PALM```
+(whenever a palm is detected). libinput honors that value and switches that
+touch to a palm.
 
 @section palm_pressure Palm detection based on pressure
 
@@ -24,6 +47,16 @@ pressure changes as the user is typing.
 
 For some information on how to detect pressure on a touch and debug the
 pressure ranges, see @ref touchpad_pressure.
+
+@section palm_touch_size Palm detection based on touch size
+
+On touchads that support the `ABS_MT_TOUCH_MAJOR` axes, libinput can perform
+palm detection based on the size of the touch ellipse. This works similar to
+the pressure-based palm detection in that a touch is labelled as palm when
+it exceeds the (device-specific) touch size threshold.
+
+For some information on how to detect the size of a touch and debug the
+touch size ranges, see @ref touchpad_pressure.
 
 @section palm_exclusion_zones Palm exclusion zones
 
@@ -98,6 +131,17 @@ Notable behaviors of libinput's disable-while-typing feature:
 
 Disable-while-typing can be enabled and disabled by calling
 libinput_device_config_dwt_set_enabled().
+
+@section stylus-touch-arbitration Stylus-touch arbitration
+
+A special case of palm detection is touch arbitration on devices that
+support styli. When interacting with a stylus on the screen, parts of the
+hand may touch the surface and trigger touches. As the user is currently
+interacting with the stylus, these touches would interfer with the correct
+working of the stylus.
+
+libinput employs a method similar to @ref disable-while-typing to detect
+these touches and disables the touchpad accordingly.
 
 @section thumb-detection Thumb detection
 
