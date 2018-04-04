@@ -150,6 +150,17 @@ udev_input_add_devices(struct udev_input *input, struct udev *udev)
 			continue;
 		}
 
+		/* Skip unconfigured device. udev will send an event
+		 * when device is fully configured  */
+		if (!udev_device_get_is_initialized(device)) {
+			log_debug(&input->base,
+				  "%-7s - skip unconfigured input device '%s'\n",
+				  sysname,
+				  udev_device_get_devnode(device));
+			udev_device_unref(device);
+			continue;
+		}
+
 		if (device_added(device, input, NULL) < 0) {
 			udev_device_unref(device);
 			udev_enumerate_unref(e);
