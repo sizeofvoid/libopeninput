@@ -3230,7 +3230,9 @@ tp_init_touch_size(struct tp_dispatch *tp,
 	tp->touch_size.high = hi;
 	tp->touch_size.use_touch_size = true;
 
-	evdev_log_debug(device, "using size-based touch detection\n");
+	evdev_log_debug(device,
+			"using size-based touch detection (%d:%d)\n",
+			hi, lo);
 
 	return true;
 }
