@@ -4487,6 +4487,43 @@ START_TEST(touchpad_thumb_moving)
 }
 END_TEST
 
+START_TEST(touchpad_thumb_moving_empty_slots)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_disable_tap(dev->libinput_device);
+	litest_enable_2fg_scroll(dev);
+
+	if (libevdev_get_num_slots(dev->evdev) < 3)
+		return;
+
+	litest_drain_events(li);
+
+	/* exceed the speed movement threshold in slot 0 */
+	litest_touch_down(dev, 0, 50, 20);
+	litest_touch_move_to(dev, 0, 50, 20, 70, 99, 15, 0);
+	litest_touch_up(dev, 0);
+
+	litest_drain_events(li);
+
+	/* scroll in slots 1 and 2 */
+	litest_touch_down(dev, 1, 50, 50);
+	litest_touch_down(dev, 2, 90, 50);
+	libinput_dispatch(li);
+	for (int i = 0, y = 50; i < 10; i++, y++) {
+		litest_touch_move_to(dev, 1, 50, y, 50, y + 1, 1, 0);
+		litest_touch_move_to(dev, 2, 50, y, 50, y + 1, 1, 0);
+	}
+	libinput_dispatch(li);
+	litest_touch_up(dev, 1);
+	litest_touch_up(dev, 2);
+	libinput_dispatch(li);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, 2);
+
+}
+END_TEST
+
 START_TEST(touchpad_thumb_clickfinger)
 {
 	struct litest_device *dev = litest_current_device();
@@ -5898,6 +5935,7 @@ litest_setup_tests_touchpad(void)
 	litest_add("touchpad:thumb", touchpad_thumb_begin_no_motion, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_update_no_motion, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_moving, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add("touchpad:thumb", touchpad_thumb_moving_empty_slots, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:thumb", touchpad_thumb_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_btnarea, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_tap_begin, LITEST_CLICKPAD, LITEST_ANY);

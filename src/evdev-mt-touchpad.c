@@ -1489,6 +1489,9 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 	want_motion_reset = tp_need_motion_history_reset(tp);
 
 	tp_for_each_touch(tp, t) {
+		if (t->state == TOUCH_NONE)
+			continue;
+
 		if (want_motion_reset) {
 			tp_motion_history_reset(t);
 			t->quirks.reset_motion_history = true;
