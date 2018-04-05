@@ -4325,7 +4325,7 @@ libinput_device_config_calibration_get_matrix(struct libinput_device *device,
  *
  * @see libinput_device_config_calibration_has_matrix
  * @see libinput_device_config_calibration_set_matrix
- * @see libinput_device_config_calibration_get_default_matrix
+ * @see libinput_device_config_calibration_get_matrix
  */
 int
 libinput_device_config_calibration_get_default_matrix(struct libinput_device *device,
