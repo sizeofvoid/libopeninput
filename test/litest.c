@@ -56,6 +56,8 @@
 #include "litest-int.h"
 #include "libinput-util.h"
 
+#include <linux/kd.h>
+
 #define UDEV_RULES_D "/run/udev/rules.d"
 #define UDEV_RULE_PREFIX "99-litest-"
 #define UDEV_HWDB_D "/etc/udev/hwdb.d"
@@ -3722,6 +3724,8 @@ main(int argc, char **argv)
 {
 	const struct rlimit corelimit = { 0, 0 };
 	enum litest_mode mode;
+	int tty_mode = -1;
+	int failed_tests;
 
 	if (getuid() != 0) {
 		fprintf(stderr,
@@ -3762,6 +3766,22 @@ main(int argc, char **argv)
 	if (setrlimit(RLIMIT_CORE, &corelimit) != 0)
 		perror("WARNING: Core dumps not disabled. Reason");
 
-	return litest_run(argc, argv);
+	/* If we're running 'normally' on the VT, disable the keyboard to
+	 * avoid messing up our host. But if we're inside gdb or running
+	 * without forking, leave it as-is.
+	 */
+	if (jobs > 1 &&
+	    !in_debugger &&
+	    getenv("CK_FORK") == NULL &&
+	    isatty(STDIN_FILENO) &&
+	    ioctl(STDIN_FILENO, KDGKBMODE, &tty_mode) == 0)
+		ioctl(STDIN_FILENO, KDSKBMODE, K_OFF);
+
+	failed_tests = litest_run(argc, argv);
+
+	if (tty_mode != -1)
+		ioctl(STDIN_FILENO, KDSKBMODE, tty_mode);
+
+	return failed_tests;
 }
 #endif
