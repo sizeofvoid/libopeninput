@@ -112,8 +112,6 @@ output of
 Adjust the command for the event node of your touchpad.
 A udev builtin will apply the new axis ranges automatically.
 
-When the axis override is confirmed to work, please submit it as a patch to
-the [systemd project](https://github.com/systemd/systemd) or if that is not
-possible as a libinput bug here:
-https://bugs.freedesktop.org/enter_bug.cgi?product=Wayland&component=libinput
+When the axis override is confirmed to work, please submit it as a pull
+request to the [systemd project](https://github.com/systemd/systemd).
 */
