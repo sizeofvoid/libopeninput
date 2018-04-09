@@ -89,11 +89,16 @@ narrow down on the best values for your device, specify the 'logically down'
 and 'logically up' pressure thresholds with the  ```--touch-thresholds``
 argument:
 <pre>
-$ sudo libinput measure touchpad-pressure --touch-thresholds=10:8
+$ sudo libinput measure touchpad-pressure --touch-thresholds=10:8 --palm-threshold=20
 </pre>
 
 Interact with the touchpad and check if the output of this tool matches your
 expectations.
+
+@note **This is an interactive process. You will need to re-run the
+tool with varying thresholds until you find the right range for your
+touchpad. Attaching output logs to a bug will not help, only you with access
+to the hardware can figure out the correct ranges.**
 
 Once the thresholds are decided on (e.g. 10 and 8), they can be enabled with
 the following hwdb file:
@@ -173,6 +178,11 @@ arguments as in the example above.
 
 Interact with the touchpad and check if the output of this tool matches your
 expectations.
+
+@note **This is an interactive process. You will need to re-run the
+tool with varying thresholds until you find the right range for your
+touchpad. Attaching output logs to a bug will not help, only you with access
+to the hardware can figure out the correct ranges.**
 
 Once the thresholds are decided on (e.g. 10 and 8), they can be enabled with
 the following hwdb file:
