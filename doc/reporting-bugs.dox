@@ -5,39 +5,79 @@ A new bug can be filed here:
 https://bugs.freedesktop.org/enter_bug.cgi?product=Wayland&component=libinput
 
 When reporting bugs against libinput, please follow the instructions below
-and provide the required data. This will speed up triage, resulting in a
-quicker bugfix.
+and provide the required data. You will need:
 
-First, try to identify the bug by reproducing it reliably. The more
-specific a bug description is, the easier it is to fix. The @ref
-libinput-debug-events helper tool can help identify whether the bug is in
-libinput at all. This tool is a direct hook to libinput without a desktop
-stack in between and can thus help to identify whether a bug is in libinput
-or in one of the higher layers. See the @ref libinput-debug-events section
-for information on this tool.
+- a reliable @ref reporting_bugs_reproducer "reproducer" for the bug
+- an @ref evemu "evemu recording" of the device while the bug is reproduced
+- device-specific information, see
+	- @ref reporting_bugs_touchpad
+	- @ref reporting_bugs_mouse
+	- @ref reporting_bugs_keyboard
+	- @ref reporting_bugs_trackpoint
+	- @ref reporting_bugs_other
+- the @ref reporting_bugs_version "libinput version" you are on.
+- the @ref reporting_bugs_options "configuration options" you have set
+- a bugzilla account
 
-@section triage Triaging bugs
+If you don't have all of the above, provide a reason why not. Unless the
+reason is justified, the bug will have low priority. Remember, libinput has
+a lot of users but very few developers.
 
-Some specific information is required, providing it enables the developers
-to get a clear picture of what the issue with your device is.
+Stay technical, on-topic, and keep the description concise.
 
-Always include the libinput version. Either the package version from your
-distribution or, when running from git: <tt>git log -n 1 HEAD</tt> or
-<tt>git describe HEAD</tt>. As a last resort: <tt>libinput-list-devices
---version</tt>.
+@section reporting_bugs_version Obtaining the libinput version
 
-Include the current libinput settings for the device (if you are on X11).
-The current settings can be obtained with <tt>xinput list-props "your device
-name"</tt>.  Use <tt>xinput list</tt> to obtain the device name.
+If your libinput version is older than the current stable branch, you will
+get asked to try the latest version.
 
-Third, pick which device are you reporting a bug for:
+If you run a distribution-provided libinput, use the package manager to get
+the **full** package name and version of libinput, e.g.
+- `rpm -q libinput`
+- `dpkg -s libinput10`
 
-- @ref reporting_bugs_touchpad
-- @ref reporting_bugs_mouse
-- @ref reporting_bugs_keyboard
-- @ref reporting_bugs_trackpoint
-- @ref reporting_bugs_other
+If you run a self-compiled version of libinput provide the git commit you
+have built or the tarball name.
 
+As a last resort, use `libinput-list-devices --version`
+
+@section reporting_bugs_reproducer Reproducing bugs
+
+Try to identify the bug by reproducing it reliably. Bugs without a
+reliable reproducer will have lowest priority. The more specific a bug
+description and reproducer is, the easier it is to fix.
+
+Try to replicate the series of events that lead to the bug being triggered.
+Narrow it down until you have a reliable sequence that can trigger the bug.
+For the vast majority of bugs you should not take longer than 5 seconds or
+three interactions (clicks, touches, taps, ...) with the device to
+reproduce. If it takes longer than that, you can narrow it down further.
+
+Once you can reproduce it, use the @ref libinput-debug-events helper tool.
+The output is textual and can help identify whether the bug is in libinput
+at all. Note that any configuration options you have set must be specified
+on the commandline, see the @ref libinput-debug-events
+"libinput-debug-events" man page.
+
+If the bug cannot be reproduced with the @ref libinput-debug-events helper,
+even with the correct configuration options set, it is likely not a bug in
+libinput.
+
+@section reporting_bugs_options libinput configuration settings
+
+libinput has a number of device-specific default configuration settings that
+may differ from the ones your desktop environment picks by default. You may
+have changed some options in a settings panel or in an the xorg.conf snippet
+yourself.
+
+You must provide these options in the bug report, otherwise a developer
+reproducing the issue may not be able to do so.
+
+If you are on X11, the current settings can be can be obtained with
+`xinput list-props "your device name"`. Use `xinput list` to
+obtain the device name.
+
+If you are on Wayland, provide a manual summary of the options you have
+changed from the default (e.g. "I enabled tap-to-click").
 
 @section reporting_bugs_touchpad Reporting touchpad bugs
 
@@ -47,8 +87,10 @@ When you file a bug, please attach the following information:
   most important piece of information, do not forget it!
 - the output from udevadm info, see @ref udev_info.
 - the vendor model number of your laptop (e.g. "Lenovo Thinkpad T440s")
-- and the content of <tt>/sys/class/dmi/id/modalias</tt>.
-- the physical dimensions of your touchpad in mm
+- and the content of `/sys/class/dmi/id/modalias`.
+- run the `touchpad-edge-detectior` tool (provided by libevdev) and verify
+  that the ranges and sizes it prints match the touchpad (up to 5mm
+  difference is ok)
 
 If you are reporting a bug related to button event generation:
 
@@ -56,6 +98,7 @@ If you are reporting a bug related to button event generation:
   whole touchpad clickable?
 - Are you using software buttons or clickfinger? See @ref
   clickpad_softbuttons.
+- Do you have @ref tapping enabled?
 
 @section reporting_bugs_mouse Reporting mouse bugs
 
@@ -69,9 +112,14 @@ When you file a bug, please attach the following information:
 If the bug is related to the @ref motion_normalization_customization "speed of the mouse":
 
 - the resolution of the mouse as specified by the vendor (in DPI)
-- the output of the mouse-dpi-tool (provided by libevdev)
+- the output of the `mouse-dpi-tool` (provided by libevdev)
 
 @section reporting_bugs_keyboard Reporting keyboard bugs
+
+Is your bug related to a keyboard layout? libinput does not handle keyboard
+layouts and merely forwards the physical key events. File the bug with your
+desktop environment instead (e.g. GNOME, KDE, ...), that's most likely where
+the issue is.
 
 When you file a bug, please attach the following information:
 
