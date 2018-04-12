@@ -1057,6 +1057,8 @@ evdev_device_init_pointer_acceleration(struct evdev_device *device,
 	device->pointer.filter = filter;
 
 	if (device->base.config.accel == NULL) {
+		double default_speed;
+
 		device->pointer.config.available = evdev_accel_config_available;
 		device->pointer.config.set_speed = evdev_accel_config_set_speed;
 		device->pointer.config.get_speed = evdev_accel_config_get_speed;
@@ -1067,8 +1069,8 @@ evdev_device_init_pointer_acceleration(struct evdev_device *device,
 		device->pointer.config.get_default_profile = evdev_accel_config_get_default_profile;
 		device->base.config.accel = &device->pointer.config;
 
-		evdev_accel_config_set_speed(&device->base,
-			     evdev_accel_config_get_default_speed(&device->base));
+		default_speed = evdev_accel_config_get_default_speed(&device->base);
+		evdev_accel_config_set_speed(&device->base, default_speed);
 	}
 }
 
