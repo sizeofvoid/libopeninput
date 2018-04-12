@@ -1025,6 +1025,7 @@ evdev_accel_config_set_profile(struct libinput_device *libinput_device,
 		filter_destroy(filter);
 	} else {
 		device->pointer.filter = filter;
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
 	}
 
 	return LIBINPUT_CONFIG_STATUS_SUCCESS;
