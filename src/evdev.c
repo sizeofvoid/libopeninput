@@ -1258,7 +1258,6 @@ evdev_read_model_flags(struct evdev_device *device)
 	} model_map[] = {
 #define MODEL(name) { "LIBINPUT_MODEL_" #name, EVDEV_MODEL_##name }
 		MODEL(LENOVO_X230),
-		MODEL(LENOVO_X230),
 		MODEL(LENOVO_X220_TOUCHPAD_FW81),
 		MODEL(CHROMEBOOK),
 		MODEL(SYSTEM76_BONOBO),
