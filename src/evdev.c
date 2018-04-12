@@ -1291,8 +1291,15 @@ evdev_read_model_flags(struct evdev_device *device)
 	};
 	const struct model_map *m = model_map;
 	uint32_t model_flags = 0;
+	uint32_t all_model_flags = 0;
 
 	while (m->property) {
+		/* Check for flag re-use */
+		if (strneq("LIBINPUT_MODEL_", m->property, 15)) {
+			assert((all_model_flags & m->model) == 0);
+			all_model_flags |= m->model;
+		}
+
 		if (parse_udev_flag(device,
 				    device->udev_device,
 				    m->property)) {
