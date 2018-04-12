@@ -244,6 +244,10 @@ libinput:name:*Logitech M570*:dmi:*
 libinput:mouse:input:b0003v046DpC408*
  LIBINPUT_MODEL_LOGITECH_MARBLE_MOUSE=1
 
+# Logitech K400
+libinput:mouse:input:b0003v046Dp4024*
+ LIBINPUT_MODEL_LOGITECH_K400=1
+
 ##########################################
 # Microsoft
 ##########################################
