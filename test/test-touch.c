@@ -945,6 +945,84 @@ START_TEST(touch_release_on_unplug)
 }
 END_TEST
 
+START_TEST(touch_invalid_range_over)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *ev;
+	struct libinput_event_touch *t;
+	double x, y;
+
+	litest_drain_events(li);
+
+	/* Touch outside the valid area */
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
+	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, 1);
+	litest_event(dev, EV_ABS, ABS_X, 4000);
+	litest_event(dev, EV_ABS, ABS_Y, 5000);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 4000);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 5000);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	/* Expect the mm to be correct regardless */
+	ev = libinput_get_event(li);
+	t = litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_DOWN);
+	x = libinput_event_touch_get_x(t);
+	y = libinput_event_touch_get_y(t);
+	ck_assert_double_eq(x, 300); /* device has resolution 10 */
+	ck_assert_double_eq(y, 300); /* device has resolution 10 */
+
+	/* Expect the percentage to be correct too, even if > 100% */
+	x = libinput_event_touch_get_x_transformed(t, 100);
+	y = libinput_event_touch_get_y_transformed(t, 100);
+	ck_assert_double_eq(round(x), 200);
+	ck_assert_double_eq(round(y), 120);
+
+	libinput_event_destroy(ev);
+}
+END_TEST
+
+START_TEST(touch_invalid_range_under)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *ev;
+	struct libinput_event_touch *t;
+	double x, y;
+
+	litest_drain_events(li);
+
+	/* Touch outside the valid area */
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
+	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, 1);
+	litest_event(dev, EV_ABS, ABS_X, -500);
+	litest_event(dev, EV_ABS, ABS_Y, 1000);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, -500);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 1000);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	/* Expect the mm to be correct regardless */
+	ev = libinput_get_event(li);
+	t = litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_DOWN);
+	x = libinput_event_touch_get_x(t);
+	y = libinput_event_touch_get_y(t);
+	ck_assert_double_eq(x, -150); /* device has resolution 10 */
+	ck_assert_double_eq(y, -100); /* device has resolution 10 */
+
+	/* Expect the percentage to be correct too, even if > 100% */
+	x = libinput_event_touch_get_x_transformed(t, 100);
+	y = libinput_event_touch_get_y_transformed(t, 100);
+	ck_assert_double_eq(round(x), -100);
+	ck_assert_double_eq(round(y), -40);
+
+	libinput_event_destroy(ev);
+}
+END_TEST
+
 TEST_COLLECTION(touch)
 {
 	struct range axes = { ABS_X, ABS_Y + 1};
@@ -979,4 +1057,7 @@ TEST_COLLECTION(touch)
 	litest_add_for_device("touch:fuzz", touch_fuzz, LITEST_MULTITOUCH_FUZZ_SCREEN);
 
 	litest_add_no_device("touch:release", touch_release_on_unplug);
+
+	litest_add_for_device("touch:range", touch_invalid_range_over, LITEST_TOUCHSCREEN_INVALID_RANGE);
+	litest_add_for_device("touch:range", touch_invalid_range_under, LITEST_TOUCHSCREEN_INVALID_RANGE);
 }

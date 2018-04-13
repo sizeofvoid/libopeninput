@@ -627,6 +627,7 @@ if get_option('tests')
 		'test/litest-device-thinkpad-extrabuttons.c',
 		'test/litest-device-trackpoint.c',
 		'test/litest-device-touch-screen.c',
+		'test/litest-device-touchscreen-invalid-range.c',
 		'test/litest-device-touchscreen-fuzz.c',
 		'test/litest-device-uclogic-tablet.c',
 		'test/litest-device-wacom-bamboo-2fg-finger.c',

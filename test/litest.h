@@ -286,6 +286,7 @@ enum litest_device_type {
 	LITEST_HP_WMI_HOTKEYS,
 	LITEST_MS_NANO_TRANSCEIVER_MOUSE,
 	LITEST_AIPTEK,
+	LITEST_TOUCHSCREEN_INVALID_RANGE,
 };
 
 enum litest_device_feature {
