@@ -2647,7 +2647,6 @@ START_TEST(touchpad_tap_palm_on_tapped)
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 
-
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -2688,7 +2687,6 @@ START_TEST(touchpad_tap_palm_on_tapped_palm_down)
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
-
 
 	litest_assert_empty_queue(li);
 }
@@ -2740,7 +2738,6 @@ START_TEST(touchpad_tap_palm_on_tapped_2fg)
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
-
 
 	litest_touch_up(dev, 0);
 	litest_assert_empty_queue(li);
@@ -2862,7 +2859,6 @@ START_TEST(touchpad_tap_palm_on_touch_2)
 	litest_drain_events(li);
 	litest_touch_move_to_extended(dev, this, 50, 50, 50, 50, axes, 1, 1);
 
-
 	litest_touch_up(dev, this);
 	litest_touch_up(dev, other);
 
@@ -2874,7 +2870,6 @@ START_TEST(touchpad_tap_palm_on_touch_2)
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
-
 
 	litest_assert_empty_queue(li);
 }
@@ -2891,7 +2886,6 @@ START_TEST(touchpad_tap_palm_on_touch_2_retouch)
 	int which = _i; /* ranged test */
 	int this = which % 2,
 	    other = (which + 1) % 2;
-
 
 	if (!touchpad_has_palm_pressure(dev))
 		return;
@@ -3076,7 +3070,6 @@ START_TEST(touchpad_tap_palm_after_tap)
 	litest_enable_tap(dev->libinput_device);
 	litest_drain_events(li);
 
-
 	litest_touch_down(dev, 0, 50, 50);
 	litest_touch_up(dev, 0);
 	libinput_dispatch(li);
@@ -3095,7 +3088,6 @@ START_TEST(touchpad_tap_palm_after_tap)
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
-
 
 	litest_assert_empty_queue(li);
 }

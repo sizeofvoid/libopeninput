@@ -56,4 +56,3 @@ TEST_DEVICE("ms-nano-mouse",
 	.absinfo = NULL,
 	.events = events,
 )
-

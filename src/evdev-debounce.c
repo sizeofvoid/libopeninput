@@ -34,7 +34,6 @@
      'filtered' .. event is not sent (but may be sent later)
      'delayed' ... event is sent with wall-clock delay
 
-
    1) P---| R		P normal, R normal
    2) R---| P		R normal, P normal
    3) P---R--| P	P normal, R filtered, delayed, P normal
@@ -60,7 +59,6 @@
    but the second event is outside that timeout (but within the timeout of
    the second event). These cases are currently unhandled.
 */
-
 
 enum debounce_event {
 	DEBOUNCE_EVENT_PRESS = 50,
@@ -522,7 +520,6 @@ fallback_debounce_handle_state(struct fallback_dispatch *dispatch,
 			flushed = false;
 		}
 
-
 		dispatch->debounce.button_code = changed[i];
 		debounce_handle_event(dispatch,
 				      is_down ?
@@ -573,7 +570,6 @@ fallback_init_debounce(struct fallback_dispatch *dispatch)
 		dispatch->debounce.state = DEBOUNCE_STATE_DISABLED;
 		return;
 	}
-
 
 	dispatch->debounce.state = DEBOUNCE_STATE_IS_UP;
 

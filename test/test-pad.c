@@ -320,7 +320,6 @@ START_TEST(pad_button_libwacom)
 					       LIBINPUT_BUTTON_STATE_RELEASED);
 	}
 
-
 	libwacom_destroy(wacom);
 	libwacom_database_destroy(db);
 #endif

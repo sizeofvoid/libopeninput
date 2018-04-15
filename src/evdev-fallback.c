@@ -211,7 +211,6 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 	if (!(device->seat_caps & EVDEV_DEVICE_POINTER))
 		return;
 
-
 	if (dispatch->wheel.y != 0) {
 		wheel_degrees.y = -1 * dispatch->wheel.y *
 					device->scroll.wheel_click_angle.y;
@@ -830,7 +829,6 @@ fallback_handle_state(struct fallback_dispatch *dispatch,
 				slot->state = SLOT_STATE_NONE;
 			}
 
-
 			slot->dirty = false;
 		}
 
@@ -1152,7 +1150,6 @@ fallback_tablet_mode_switch_event(uint64_t time,
 	if (libinput_event_switch_get_switch(swev) !=
 	    LIBINPUT_SWITCH_TABLET_MODE)
 		return;
-
 
 	switch (libinput_event_switch_get_switch_state(swev)) {
 	case LIBINPUT_SWITCH_STATE_OFF:

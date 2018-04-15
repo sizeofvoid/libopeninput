@@ -182,7 +182,6 @@ tp_detect_wobbling(struct tp_dispatch *tp,
 	if (dx > 0) { /* right move */
 		static const char r_l_r = 0x5; /* {Right, Left, Right} */
 
-
 		t->hysteresis.x_motion_history |= (1 << 2);
 		if (t->hysteresis.x_motion_history == r_l_r) {
 			tp->hysteresis.enabled = true;

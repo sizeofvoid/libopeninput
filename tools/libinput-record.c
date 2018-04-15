@@ -213,7 +213,6 @@ print_evdev_event(struct record_context *ctx, struct input_event *ev)
 		static unsigned long last_ms = 0;
 		unsigned long time, dt;
 
-
 		time = us2ms(tv2us(&ev->time));
 		if (last_ms == 0)
 			last_ms = time;
@@ -1020,7 +1019,6 @@ print_bits_absinfo(struct record_context *ctx, struct libevdev *dev)
 	indent_pop(ctx);
 }
 
-
 static inline void
 print_bits_codes(struct record_context *ctx,
 		 struct libevdev *dev,
@@ -1528,7 +1526,6 @@ mainloop(struct record_context *ctx)
 
 	sigprocmask(SIG_UNBLOCK, &mask, NULL);
 
-
 	return 0;
 }
 
@@ -1768,7 +1765,6 @@ main(int argc, char **argv)
 				"Option --all requires --output-file\n");
 			goto out;
 		}
-
 
 		devices = all_devices();
 		d = devices;
