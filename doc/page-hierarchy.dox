@@ -46,6 +46,7 @@ specific documentation.
 
 - @subpage what_is_libinput
 - @subpage contributing
+- @subpage architecture
 - @subpage building_libinput
 - @subpage test-suite
 - @subpage tools

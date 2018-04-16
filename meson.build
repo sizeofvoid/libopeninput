@@ -291,6 +291,7 @@ if get_option('documentation')
 		# written docs
 		meson.source_root() + '/doc/absolute-axes.dox',
 		meson.source_root() + '/doc/absolute-coordinate-ranges.dox',
+		meson.source_root() + '/doc/architecture.dox',
 		meson.source_root() + '/doc/building.dox',
 		meson.source_root() + '/doc/button_debouncing.dox',
 		meson.source_root() + '/doc/clickpad-softbuttons.dox',
