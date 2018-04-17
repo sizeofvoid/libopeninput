@@ -128,6 +128,7 @@ enum evdev_device_model {
 	EVDEV_MODEL_TABLET_NO_PROXIMITY_OUT = (1 << 27),
 	EVDEV_MODEL_MS_NANO_TRANSCEIVER = (1 << 28),
 	EVDEV_MODEL_TABLET_NO_TILT = (1 << 29),
+	EVDEV_MODEL_TABLET_MODE_NO_SUSPEND = (1 << 30),
 };
 
 enum evdev_button_scroll_state {
