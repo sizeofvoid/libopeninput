@@ -2606,8 +2606,9 @@ litest_print_event(struct libinput_event *event)
 	type = libinput_event_get_type(event);
 
 	fprintf(stderr,
-		"device %s type %s ",
+		"device %s (%s) type %s ",
 		libinput_device_get_sysname(dev),
+		libinput_device_get_name(dev),
 		litest_event_get_type_str(event));
 	switch (type) {
 	case LIBINPUT_EVENT_POINTER_MOTION:
@@ -2694,7 +2695,8 @@ litest_assert_event_type(struct libinput_event *event,
 		return;
 
 	fprintf(stderr,
-		"FAILED EVENT TYPE: have %s (%d) but want %s (%d)\n",
+		"FAILED EVENT TYPE: %s: have %s (%d) but want %s (%d)\n",
+		libinput_device_get_name(libinput_event_get_device(event)),
 		litest_event_get_type_str(event),
 		libinput_event_get_type(event),
 		litest_event_type_str(want),
