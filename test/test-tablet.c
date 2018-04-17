@@ -244,7 +244,6 @@ START_TEST(tip_down_up)
 	ck_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
-	litest_assert_empty_queue(li);
 
 	litest_assert_empty_queue(li);
 
