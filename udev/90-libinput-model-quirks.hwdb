@@ -103,10 +103,6 @@ libinput:name:* Touchpad:dmi:*svnDellInc.:*
 libinput:name:*AlpsPS/2 ALPS GlidePoint:dmi:*svnDellInc.:pnLatitudeE6220:*
  LIBINPUT_ATTR_PRESSURE_RANGE=100:90
 
-libinput:name:*CyPS/2 Cypress Trackpad:dmi:*svnDell*:pnDellSystemXPSL322X*
- LIBINPUT_ATTR_PRESSURE_RANGE=30:20
- LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD=254
-
 ##########################################
 # Elantech
 ##########################################
