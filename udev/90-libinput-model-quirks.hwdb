@@ -234,6 +234,11 @@ libinput:keyboard:input:b0003v17EFp6047*
 libinput:name:*ALPS TrackPoint*:svnLENOVO:*:pvrThinkPadX280:*
  LIBINPUT_ATTR_TRACKPOINT_RANGE=70
 
+# Lenovo Thinkpad X1 Yoga disables the keyboard anyway but has the same device
+# use a windows key on the screen and volume rocker on the side (#103749)
+libinput:name:AT Translated Set 2 keyboard:dmi:*svnLENOVO:*pvrThinkPadX1Yoga1st:*
+ LIBINPUT_MODEL_TABLET_MODE_NO_SUSPEND=1
+
 ##########################################
 # Logitech
 ##########################################

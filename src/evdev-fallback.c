@@ -1175,6 +1175,9 @@ fallback_keyboard_pair_tablet_mode(struct evdev_device *keyboard,
 	     (EVDEV_TAG_TRACKPOINT|EVDEV_TAG_INTERNAL_KEYBOARD)) == 0)
 		return;
 
+	if (keyboard->model_flags & EVDEV_MODEL_TABLET_MODE_NO_SUSPEND)
+		return;
+
 	if ((tablet_mode_switch->tags & EVDEV_TAG_TABLET_MODE_SWITCH) == 0)
 		return;
 
