@@ -1447,11 +1447,78 @@ litest_create_device(enum litest_device_type which)
 	return litest_create_device_with_overrides(which, NULL, NULL, NULL, NULL);
 }
 
+static struct udev_monitor *
+udev_setup_monitor(void)
+{
+	struct udev *udev;
+	struct udev_monitor *udev_monitor;
+	int rc;
+
+	udev = udev_new();
+	litest_assert_notnull(udev);
+	udev_monitor = udev_monitor_new_from_netlink(udev, "udev");
+	litest_assert_notnull(udev_monitor);
+	udev_monitor_filter_add_match_subsystem_devtype(udev_monitor, "input",
+							NULL);
+
+
+	/* remove O_NONBLOCK */
+	rc = fcntl(udev_monitor_get_fd(udev_monitor), F_SETFL, 0);
+	litest_assert_int_ne(rc, -1);
+	litest_assert_int_eq(udev_monitor_enable_receiving(udev_monitor),
+			     0);
+	udev_unref(udev);
+
+	return udev_monitor;
+}
+
+static struct udev_device *
+udev_wait_for_device_event(struct udev_monitor *udev_monitor,
+			   const char *udev_event,
+			   const char *syspath)
+{
+	struct udev_device *udev_device = NULL;
+
+	/* blocking, we don't want to continue until udev is ready */
+	while (1) {
+		const char *udev_syspath = NULL;
+		const char *udev_action;
+
+		udev_device = udev_monitor_receive_device(udev_monitor);
+		litest_assert_notnull(udev_device);
+		udev_action = udev_device_get_action(udev_device);
+		if (!streq(udev_action, udev_event)) {
+			udev_device_unref(udev_device);
+			continue;
+		}
+
+		udev_syspath = udev_device_get_syspath(udev_device);
+		if (udev_syspath && strneq(udev_syspath,
+					   syspath,
+					   strlen(syspath)))
+			break;
+
+		udev_device_unref(udev_device);
+	}
+
+	return udev_device;
+}
+
 void
 litest_delete_device(struct litest_device *d)
 {
+
+	struct udev_monitor *udev_monitor;
+	struct udev_device *udev_device;
+	char path[PATH_MAX];
+
 	if (!d)
 		return;
+
+	udev_monitor = udev_setup_monitor();
+	snprintf(path, sizeof(path),
+		 "%s/event",
+		 libevdev_uinput_get_syspath(d->uinput));
 
 	litest_assert_int_eq(d->skip_ev_syn, 0);
 
@@ -1467,6 +1534,12 @@ litest_delete_device(struct litest_device *d)
 	free(d->private);
 	memset(d,0, sizeof(*d));
 	free(d);
+
+	udev_device = udev_wait_for_device_event(udev_monitor,
+						 "remove",
+						 path);
+	udev_device_unref(udev_device);
+	udev_monitor_unref(udev_monitor);
 }
 
 void
@@ -2763,52 +2836,22 @@ litest_create_uinput_device_from_description(const char *name,
 	const char *syspath;
 	char path[PATH_MAX];
 
-	struct udev *udev;
 	struct udev_monitor *udev_monitor;
 	struct udev_device *udev_device;
-	const char *udev_action;
-	const char *udev_syspath = NULL;
-	int rc;
 
-	udev = udev_new();
-	litest_assert_notnull(udev);
-	udev_monitor = udev_monitor_new_from_netlink(udev, "udev");
-	litest_assert_notnull(udev_monitor);
-	udev_monitor_filter_add_match_subsystem_devtype(udev_monitor, "input",
-							NULL);
-	/* remove O_NONBLOCK */
-	rc = fcntl(udev_monitor_get_fd(udev_monitor), F_SETFL, 0);
-	litest_assert_int_ne(rc, -1);
-	litest_assert_int_eq(udev_monitor_enable_receiving(udev_monitor),
-			     0);
+	udev_monitor = udev_setup_monitor();
 
 	uinput = litest_create_uinput(name, id, abs_info, events);
 
 	syspath = libevdev_uinput_get_syspath(uinput);
 	snprintf(path, sizeof(path), "%s/event", syspath);
 
-	/* blocking, we don't want to continue until udev is ready */
-	while (1) {
-		udev_device = udev_monitor_receive_device(udev_monitor);
-		litest_assert_notnull(udev_device);
-		udev_action = udev_device_get_action(udev_device);
-		if (!streq(udev_action, "add")) {
-			udev_device_unref(udev_device);
-			continue;
-		}
-
-		udev_syspath = udev_device_get_syspath(udev_device);
-		if (udev_syspath && strneq(udev_syspath, path, strlen(path)))
-			break;
-
-		udev_device_unref(udev_device);
-	}
+	udev_device = udev_wait_for_device_event(udev_monitor, "add", path);
 
 	litest_assert(udev_device_get_property_value(udev_device, "ID_INPUT"));
 
 	udev_device_unref(udev_device);
 	udev_monitor_unref(udev_monitor);
-	udev_unref(udev);
 
 	return uinput;
 }
