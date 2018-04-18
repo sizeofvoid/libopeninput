@@ -2699,6 +2699,8 @@ litest_assert_event_type(struct libinput_event *event,
 		libinput_event_get_type(event),
 		litest_event_type_str(want),
 		want);
+	fprintf(stderr, "Wrong event is: ");
+	litest_print_event(event);
 	litest_backtrace();
 	abort();
 }
