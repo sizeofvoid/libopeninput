@@ -2792,7 +2792,7 @@ litest_create_uinput_device_from_description(const char *name,
 		udev_device = udev_monitor_receive_device(udev_monitor);
 		litest_assert_notnull(udev_device);
 		udev_action = udev_device_get_action(udev_device);
-		if (strcmp(udev_action, "add") != 0) {
+		if (!streq(udev_action, "add")) {
 			udev_device_unref(udev_device);
 			continue;
 		}
