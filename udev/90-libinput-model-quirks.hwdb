@@ -239,6 +239,10 @@ libinput:name:*ALPS TrackPoint*:svnLENOVO:*:pvrThinkPadX280:*
 libinput:name:AT Translated Set 2 keyboard:dmi:*svnLENOVO:*pvrThinkPadX1Yoga1st:*
  LIBINPUT_MODEL_TABLET_MODE_NO_SUSPEND=1
 
+# Lenovo Carbon X1 6th gen (RMI4 only, PS/2 is broken on this device)
+libinput:name:Synaptics TM3288-010:dmi:*svnLenovo:*pvrThinkPadX1Carbon6th:*
+ LIBINPUT_MODEL_LENOVO_CARBON_X1_6TH=1
+
 ##########################################
 # Logitech
 ##########################################
