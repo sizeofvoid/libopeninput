@@ -1285,6 +1285,7 @@ evdev_read_model_flags(struct evdev_device *device)
 		MODEL(MS_NANO_TRANSCEIVER),
 		MODEL(TABLET_NO_TILT),
 		MODEL(TABLET_MODE_NO_SUSPEND),
+		MODEL(LENOVO_CARBON_X1_6TH),
 #undef MODEL
 		{ "ID_INPUT_TRACKBALL", EVDEV_MODEL_TRACKBALL },
 		{ NULL, EVDEV_MODEL_DEFAULT },
@@ -1908,6 +1909,13 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 		libevdev_disable_event_code(device->evdev, EV_ABS, ABS_TILT_X);
 		libevdev_disable_event_code(device->evdev, EV_ABS, ABS_TILT_Y);
 	}
+
+	/* Lenovo Carbon X1 6th gen sends bogus ABS_MT_TOOL_TYPE events for
+	 * MT_TOOL_PALM */
+	if (device->model_flags & EVDEV_MODEL_LENOVO_CARBON_X1_6TH)
+		libevdev_disable_event_code(device->evdev,
+					    EV_ABS,
+					    ABS_MT_TOOL_TYPE);
 }
 
 static void
