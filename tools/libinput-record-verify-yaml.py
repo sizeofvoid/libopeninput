@@ -192,7 +192,8 @@ class TestYaml(unittest.TestCase):
                 ev_syn = evdev[-1]
                 self.assertEqual(ev_syn[2], 0)
                 self.assertEqual(ev_syn[3], 0)
-                self.assertEqual(ev_syn[4], 0)
+                # SYN_REPORT value is 1 in case of some key repeats
+                self.assertLessEqual(ev_syn[4], 1)
 
     def test_events_evdev_syn_report(self):
         devices = self.yaml['devices']
