@@ -58,7 +58,8 @@ class TestYaml(unittest.TestCase):
                     continue
 
                 for ev in libinput:
-                    if filter is None or ev['type'] == filter:
+                    if (filter is None or ev['type'] == filter or
+                        isinstance(filter, list) and ev['type'] in filter):
                         yield ev
 
     def test_sections_exist(self):
@@ -224,7 +225,11 @@ class TestYaml(unittest.TestCase):
     def test_events_libinput_type(self):
         types = ['POINTER_MOTION', 'POINTER_MOTION_ABSOLUTE', 'POINTER_AXIS',
                  'POINTER_BUTTON', 'DEVICE_ADDED', 'KEYBOARD_KEY',
-                 'TOUCH_DOWN', 'TOUCH_MOTION', 'TOUCH_UP', 'TOUCH_FRAME']
+                 'TOUCH_DOWN', 'TOUCH_MOTION', 'TOUCH_UP', 'TOUCH_FRAME',
+                 'GESTURE_SWIPE_BEGIN', 'GESTURE_SWIPE_UPDATE',
+                 'GESTURE_SWIPE_END', 'GESTURE_PINCH_BEGIN',
+                 'GESTURE_PINCH_UPDATE', 'GESTURE_PINCH_END',
+                 ]
         for e in self.libinput_events():
             self.assertIn('type', e)
             self.assertIn(e['type'], types)
@@ -373,6 +378,54 @@ class TestYaml(unittest.TestCase):
                         need_frame = True
 
                 self.assertFalse(need_frame)
+
+    def test_events_libinput_gesture_pinch(self):
+        keys = ['type', 'time', 'nfingers', 'delta',
+                'unaccel', 'angle_delta', 'scale']
+        for e in self.libinput_events(['GESTURE_PINCH_BEGIN',
+                                       'GESTURE_PINCH_UPDATE',
+                                       'GESTURE_PINCH_END']):
+            self.dict_key_crosscheck(e, keys)
+            delta = e['delta']
+            self.assertTrue(isinstance(delta, list))
+            self.assertEqual(len(delta), 2)
+            for d in delta:
+                self.assertTrue(isinstance(d, float))
+            unaccel = e['unaccel']
+            self.assertTrue(isinstance(unaccel, list))
+            self.assertEqual(len(unaccel), 2)
+            for d in unaccel:
+                self.assertTrue(isinstance(d, float))
+
+            adelta = e['angle_delta']
+            self.assertTrue(isinstance(adelta, list))
+            self.assertEqual(len(adelta), 2)
+            for d in adelta:
+                self.assertTrue(isinstance(d, float))
+
+            scale = e['scale']
+            self.assertTrue(isinstance(scale, list))
+            self.assertEqual(len(scale), 2)
+            for d in scale:
+                self.assertTrue(isinstance(d, float))
+
+    def test_events_libinput_gesture_swipe(self):
+        keys = ['type', 'time', 'nfingers', 'delta',
+                'unaccel']
+        for e in self.libinput_events(['GESTURE_SWIPE_BEGIN',
+                                       'GESTURE_SWIPE_UPDATE',
+                                       'GESTURE_SWIPE_END']):
+            self.dict_key_crosscheck(e, keys)
+            delta = e['delta']
+            self.assertTrue(isinstance(delta, list))
+            self.assertEqual(len(delta), 2)
+            for d in delta:
+                self.assertTrue(isinstance(d, float))
+            unaccel = e['unaccel']
+            self.assertTrue(isinstance(unaccel, list))
+            self.assertEqual(len(unaccel), 2)
+            for d in unaccel:
+                self.assertTrue(isinstance(d, float))
 
 
 if __name__ == '__main__':

@@ -632,6 +632,86 @@ buffer_touch_event(struct record_context *ctx,
 }
 
 static void
+buffer_gesture_event(struct record_context *ctx,
+		     struct libinput_event *e,
+		     struct event *event)
+{
+	enum libinput_event_type etype = libinput_event_get_type(e);
+	struct libinput_event_gesture *g = libinput_event_get_gesture_event(e);
+	const char *type;
+	uint64_t time;
+
+	switch(etype) {
+	case LIBINPUT_EVENT_GESTURE_PINCH_BEGIN:
+		type = "GESTURE_PINCH_BEGIN";
+		break;
+	case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE:
+		type = "GESTURE_PINCH_UPDATE";
+		break;
+	case LIBINPUT_EVENT_GESTURE_PINCH_END:
+		type = "GESTURE_PINCH_END";
+		break;
+	case LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN:
+		type = "GESTURE_SWIPE_BEGIN";
+		break;
+	case LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE:
+		type = "GESTURE_SWIPE_UPDATE";
+		break;
+	case LIBINPUT_EVENT_GESTURE_SWIPE_END:
+		type = "GESTURE_SWIPE_END";
+		break;
+	default:
+		abort();
+	}
+
+	time = ctx->offset ?
+		libinput_event_gesture_get_time_usec(g) - ctx->offset : 0;
+	event->time = time;
+
+	switch (etype) {
+	case LIBINPUT_EVENT_GESTURE_PINCH_BEGIN:
+	case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE:
+	case LIBINPUT_EVENT_GESTURE_PINCH_END:
+		snprintf(event->u.libinput.msg,
+			 sizeof(event->u.libinput.msg),
+			 "{time: %ld.%06ld, type: %s, nfingers: %d, "
+			 "delta: [%6.2f, %6.2f], unaccel: [%6.2f, %6.2f], "
+			 "angle_delta: %6.2f, scale: %6.2f}",
+			 time / (int)1e6,
+			 time % (int)1e6,
+			 type,
+			 libinput_event_gesture_get_finger_count(g),
+			 libinput_event_gesture_get_dx(g),
+			 libinput_event_gesture_get_dy(g),
+			 libinput_event_gesture_get_dx_unaccelerated(g),
+			 libinput_event_gesture_get_dy_unaccelerated(g),
+			 libinput_event_gesture_get_angle_delta(g),
+			 libinput_event_gesture_get_scale(g)
+			 );
+		break;
+	case LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN:
+	case LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE:
+	case LIBINPUT_EVENT_GESTURE_SWIPE_END:
+		snprintf(event->u.libinput.msg,
+			 sizeof(event->u.libinput.msg),
+			 "{time: %ld.%06ld, type: %s, nfingers: %d, "
+			 "delta: [%6.2f, %6.2f], unaccel: [%6.2f, %6.2f]}",
+			 time / (int)1e6,
+			 time % (int)1e6,
+			 type,
+			 libinput_event_gesture_get_finger_count(g),
+			 libinput_event_gesture_get_dx(g),
+			 libinput_event_gesture_get_dy(g),
+			 libinput_event_gesture_get_dx_unaccelerated(g),
+			 libinput_event_gesture_get_dy_unaccelerated(g)
+			 );
+		break;
+	default:
+		abort();
+	}
+}
+
+static void
 buffer_libinput_event(struct record_context *ctx,
 		      struct libinput_event *e,
 		      struct event *event)
@@ -664,6 +744,14 @@ buffer_libinput_event(struct record_context *ctx,
 	case LIBINPUT_EVENT_TOUCH_CANCEL:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
 		buffer_touch_event(ctx, e, event);
+		break;
+	case LIBINPUT_EVENT_GESTURE_PINCH_BEGIN:
+	case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE:
+	case LIBINPUT_EVENT_GESTURE_PINCH_END:
+	case LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN:
+	case LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE:
+	case LIBINPUT_EVENT_GESTURE_SWIPE_END:
+		buffer_gesture_event(ctx, e, event);
 		break;
 	default:
 		break;
