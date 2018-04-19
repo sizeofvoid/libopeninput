@@ -107,6 +107,7 @@ def replay(device, verbose):
     uinput = device['__uinput']
 
     offset = time.time()
+    handled_first_event = False
 
     # each 'evdev' set contains one SYN_REPORT so we only need to check for
     # the time offset once per event
@@ -117,6 +118,12 @@ def replay(device, verbose):
             continue
 
         (sec, usec, evtype, evcode, value) = evdev[0]
+
+        # The first event may have a nonzero offset but we want to replay
+        # immediately regardless.
+        if not handled_first_event:
+            offset -= sec + usec/1.e6
+            handled_first_event = True
 
         evtime = sec + usec/1e6 + offset
         now = time.time()
