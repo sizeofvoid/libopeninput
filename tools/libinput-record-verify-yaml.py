@@ -82,7 +82,8 @@ class TestYaml(unittest.TestCase):
         libinput = self.yaml['libinput']
         version = libinput['version']
         self.assertTrue(isinstance(version, str))
-        self.assertGreaterEqual(parse_version(version), parse_version('1.10.0'))
+        self.assertGreaterEqual(parse_version(version),
+                                parse_version('1.10.0'))
         git = libinput['git']
         self.assertTrue(isinstance(git, str))
         self.assertNotEqual(git, 'unknown')
@@ -318,7 +319,7 @@ class TestYaml(unittest.TestCase):
     def test_events_libinput_touch_down(self):
         keys = ['type', 'time', 'slot', 'seat_slot', 'point', 'transformed']
         for e in self.libinput_events('TOUCH_DOWN'):
-            self.dict_key_crosscheck(e, keys);
+            self.dict_key_crosscheck(e, keys)
             point = e['point']
             self.assertTrue(isinstance(point, list))
             self.assertEqual(len(point), 2)
@@ -338,7 +339,7 @@ class TestYaml(unittest.TestCase):
     def test_events_libinput_touch_motion(self):
         keys = ['type', 'time', 'slot', 'seat_slot', 'point', 'transformed']
         for e in self.libinput_events('TOUCH_MOTION'):
-            self.dict_key_crosscheck(e, keys);
+            self.dict_key_crosscheck(e, keys)
             point = e['point']
             self.assertTrue(isinstance(point, list))
             self.assertEqual(len(point), 2)
