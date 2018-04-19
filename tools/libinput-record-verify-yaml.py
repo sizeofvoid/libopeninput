@@ -221,7 +221,7 @@ class TestYaml(unittest.TestCase):
                     self.assertTrue(isinstance(ev, dict))
 
     def test_events_libinput_type(self):
-        types = ['POINTER_MOTION', 'POINTER_MOTION_ABSOLUTE',
+        types = ['POINTER_MOTION', 'POINTER_MOTION_ABSOLUTE', 'POINTER_AXIS',
                  'POINTER_BUTTON', 'DEVICE_ADDED', 'KEYBOARD_KEY',
                  'TOUCH_DOWN', 'TOUCH_MOTION', 'TOUCH_UP', 'TOUCH_FRAME']
         for e in self.libinput_events():
