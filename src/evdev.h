@@ -130,6 +130,7 @@ enum evdev_device_model {
 	EVDEV_MODEL_MS_NANO_TRANSCEIVER = (1 << 28),
 	EVDEV_MODEL_TABLET_NO_TILT = (1 << 29),
 	EVDEV_MODEL_TABLET_MODE_NO_SUSPEND = (1 << 30),
+	EVDEV_MODEL_LENOVO_SCROLLPOINT = (1 << 31),
 };
 
 enum evdev_button_scroll_state {

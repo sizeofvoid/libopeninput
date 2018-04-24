@@ -211,6 +211,21 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 	if (!(device->seat_caps & EVDEV_DEVICE_POINTER))
 		return;
 
+	if (device->model_flags & EVDEV_MODEL_LENOVO_SCROLLPOINT) {
+		struct normalized_coords unaccel = { 0.0, 0.0 };
+
+		dispatch->wheel.y *= -1;
+		normalize_delta(device, &dispatch->wheel, &unaccel);
+		evdev_post_scroll(device,
+				  time,
+				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
+				  &unaccel);
+		dispatch->wheel.x = 0;
+		dispatch->wheel.y = 0;
+
+		return;
+	}
+
 	if (dispatch->wheel.y != 0) {
 		wheel_degrees.y = -1 * dispatch->wheel.y *
 					device->scroll.wheel_click_angle.y;
