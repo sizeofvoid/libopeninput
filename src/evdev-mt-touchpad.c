@@ -192,7 +192,10 @@ tp_detect_wobbling(struct tp_dispatch *tp,
 		t->hysteresis.x_motion_history |= (1 << 2);
 		if (t->hysteresis.x_motion_history == r_l_r) {
 			tp->hysteresis.enabled = true;
-			evdev_log_debug(tp->device, "hysteresis enabled\n");
+			evdev_log_debug(tp->device,
+					"hysteresis enabled. "
+					"See %stouchpad_jitter.html for details\n",
+					HTTP_DOC_LINK);
 		}
 	}
 }
@@ -3127,7 +3130,10 @@ tp_init_hysteresis(struct tp_dispatch *tp)
 	tp->hysteresis.margin.y = ymargin;
 	tp->hysteresis.enabled = (ax->fuzz || ay->fuzz);
 	if (tp->hysteresis.enabled)
-		evdev_log_debug(tp->device, "hysteresis enabled\n");
+		evdev_log_debug(tp->device,
+				"hysteresis enabled. "
+				"See %stouchpad_jitter.html for details\n",
+				HTTP_DOC_LINK);
 }
 
 static void
