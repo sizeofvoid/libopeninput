@@ -31,6 +31,7 @@
 
 #define DEFAULT_GESTURE_SWITCH_TIMEOUT ms2us(100)
 #define DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT ms2us(150)
+#define DEFAULT_GESTURE_2FG_PINCH_TIMEOUT ms2us(75)
 
 static inline const char*
 gesture_state_to_str(enum tp_gesture_state state)
@@ -328,8 +329,11 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	struct tp_touch *first = tp->gesture.touches[0],
 			*second = tp->gesture.touches[1];
 	uint32_t dir1, dir2;
-	int yres = tp->device->abs.absinfo_y->resolution;
-	int vert_distance;
+	struct phys_coords mm;
+	int vert_distance, horiz_distance;
+
+	vert_distance = abs(first->point.y - second->point.y);
+	horiz_distance = abs(first->point.x - second->point.x);
 
 	if (time > (tp->gesture.initial_time + DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT)) {
 		/* for two-finger gestures, if the fingers stay unmoving for a
@@ -345,14 +349,21 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 
 		/* for 3+ finger gestures, check if one finger is > 20mm
 		   below the others */
-		vert_distance = abs(first->point.y - second->point.y);
-		if (vert_distance > 20 * yres &&
-		    tp->gesture.enabled) {
+		mm = evdev_convert_xy_to_mm(tp->device,
+					    horiz_distance,
+					    vert_distance);
+		if (mm.y > 20 && tp->gesture.enabled) {
 			tp_gesture_init_pinch(tp);
 			return GESTURE_STATE_PINCH;
 		} else {
 			return GESTURE_STATE_SWIPE;
 		}
+	}
+
+	if (time > (tp->gesture.initial_time + DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT)) {
+		mm = evdev_convert_xy_to_mm(tp->device, horiz_distance, vert_distance);
+		if (tp->gesture.finger_count == 2 && mm.x > 40 && mm.y > 40)
+			return GESTURE_STATE_PINCH;
 	}
 
 	/* Else wait for both fingers to have moved */

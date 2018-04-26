@@ -586,6 +586,17 @@ evdev_convert_to_mm(const struct input_absinfo *absinfo, double v)
 	return value/absinfo->resolution;
 }
 
+static inline struct phys_coords
+evdev_convert_xy_to_mm(const struct evdev_device *device, int x, int y)
+{
+	struct phys_coords mm;
+
+	mm.x = evdev_convert_to_mm(device->abs.absinfo_x, x);
+	mm.y = evdev_convert_to_mm(device->abs.absinfo_y, y);
+
+	return mm;
+}
+
 void
 evdev_init_left_handed(struct evdev_device *device,
 		       void (*change_to_left_handed)(struct evdev_device *));
