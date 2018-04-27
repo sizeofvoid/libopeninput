@@ -31,6 +31,7 @@
 #include "evdev-mt-touchpad.h"
 
 #define DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT ms2us(300)
+#define DEFAULT_TRACKPOINT_EVENT_TIMEOUT ms2us(40)
 #define DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_1 ms2us(200)
 #define DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_2 ms2us(500)
 #define THUMB_MOVE_TIMEOUT ms2us(300)
@@ -1945,8 +1946,10 @@ tp_trackpoint_timeout(uint64_t now, void *data)
 {
 	struct tp_dispatch *tp = data;
 
-	tp_tap_resume(tp, now);
-	tp->palm.trackpoint_active = false;
+	if (tp->palm.trackpoint_active) {
+		tp_tap_resume(tp, now);
+		tp->palm.trackpoint_active = false;
+	}
 	tp->palm.trackpoint_event_count = 0;
 }
 
@@ -1963,9 +1966,13 @@ tp_trackpoint_event(uint64_t time, struct libinput_event *event, void *data)
 	tp->palm.trackpoint_last_event_time = time;
 	tp->palm.trackpoint_event_count++;
 
+
 	/* Require at least three events before enabling palm detection */
-	if (tp->palm.trackpoint_event_count < 3)
+	if (tp->palm.trackpoint_event_count < 3) {
+		libinput_timer_set(&tp->palm.trackpoint_timer,
+				   time + DEFAULT_TRACKPOINT_EVENT_TIMEOUT);
 		return;
+	}
 
 	if (!tp->palm.trackpoint_active) {
 		tp_stop_actions(tp, time);
