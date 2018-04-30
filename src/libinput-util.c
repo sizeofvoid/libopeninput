@@ -425,9 +425,7 @@ parse_palm_pressure_property(const char *prop)
 	if (!prop)
 		return 0;
 
-	if (!safe_atoi(prop, &threshold) ||
-	    threshold < 0 ||
-	    threshold > 255) /* No touchpad device has pressure > 255 */
+	if (!safe_atoi(prop, &threshold) || threshold < 0)
 		return 0;
 
         return threshold;
