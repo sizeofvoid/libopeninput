@@ -257,6 +257,10 @@ libinput:mouse:input:b0003v046DpC408*
 libinput:mouse:input:b0003v046Dp4024*
  LIBINPUT_MODEL_LOGITECH_K400=1
 
+# Logitech Wireless Touchpad
+libinput:touchpad:input:b0003v046Dp4011*
+ LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD=400
+
 ##########################################
 # Microsoft
 ##########################################
