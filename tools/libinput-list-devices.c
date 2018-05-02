@@ -205,11 +205,13 @@ accel_profiles(struct libinput_device *device)
 
 	profile = libinput_device_config_accel_get_default_profile(device);
 	xasprintf(&str,
-		  "%s%s %s%s",
+		  "%s%s %s%s %s%s",
 		  (profile == LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT) ? "*" : "",
 		  (profiles & LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT) ? "flat" : "",
 		  (profile == LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE) ? "*" : "",
-		  (profiles & LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE) ? "adaptive" : "");
+		  (profiles & LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE) ? "adaptive" : "",
+		  (profile == LIBINPUT_CONFIG_ACCEL_PROFILE_DEVICE_SPEED_CURVE) ? "*" : "",
+		  (profiles & LIBINPUT_CONFIG_ACCEL_PROFILE_DEVICE_SPEED_CURVE) ? "custom-speed" : "");
 
 	return str;
 }
