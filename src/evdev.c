@@ -1942,6 +1942,9 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 		libevdev_disable_event_code(device->evdev,
 					    EV_ABS,
 					    ABS_MT_TOOL_TYPE);
+
+	/* We don't care about them and it can cause unnecessary wakeups */
+	libevdev_disable_event_code(device->evdev, EV_MSC, MSC_TIMESTAMP);
 }
 
 static void
