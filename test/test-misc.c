@@ -1343,6 +1343,43 @@ START_TEST(kvsplit_double_test)
 }
 END_TEST
 
+struct strjoin_test {
+	char *strv[10];
+	const char *joiner;
+	const char *result;
+};
+
+START_TEST(strjoin_test)
+{
+	struct strjoin_test tests[] = {
+		{ { "one", "two", "three", NULL }, " ", "one two three" },
+		{ { "one", NULL }, "x", "one" },
+		{ { "one", "two", NULL }, "x", "onextwo" },
+		{ { "one", "two", NULL }, ",", "one,two" },
+		{ { "one", "two", NULL }, ", ", "one, two" },
+		{ { "one", "two", NULL }, "one", "oneonetwo" },
+		{ { "one", "two", NULL }, NULL, NULL },
+		{ { "", "", "", NULL }, " ", "  " },
+		{ { "a", "b", "c", NULL }, "", "abc" },
+		{ { "", "b", "c", NULL }, "x", "xbxc" },
+		{ { "", "", "", NULL }, "", "" },
+		{ { NULL }, NULL, NULL }
+	};
+	struct strjoin_test *t = tests;
+
+	while (t->strv[0]) {
+		char *str;
+		str = strv_join(t->strv, t->joiner);
+		if (t->result == NULL)
+			ck_assert_ptr_null(str);
+		else
+			ck_assert_str_eq(str, t->result);
+		free(str);
+		t++;
+	}
+}
+END_TEST
+
 static int open_restricted_leak(const char *path, int flags, void *data)
 {
 	return *(int*)data;
@@ -1580,6 +1617,7 @@ TEST_COLLECTION(misc)
 	litest_add_no_device("misc:parser", safe_atod_test);
 	litest_add_no_device("misc:parser", strsplit_test);
 	litest_add_no_device("misc:parser", kvsplit_double_test);
+	litest_add_no_device("misc:parser", strjoin_test);
 	litest_add_no_device("misc:time", time_conversion);
 
 	litest_add_no_device("misc:fd", fd_no_event_leak);

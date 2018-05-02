@@ -543,6 +543,7 @@ safe_atod(const char *str, double *val)
 }
 
 char **strv_from_string(const char *string, const char *separator);
+char *strv_join(char **strv, const char *separator);
 
 static inline void
 strv_free(char **strv) {
