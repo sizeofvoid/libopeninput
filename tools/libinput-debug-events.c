@@ -274,6 +274,10 @@ print_device_notify(struct libinput_event *ev)
 	if (libinput_device_get_size(dev, &w, &h) == 0)
 		printq("  size %.0fx%.0fmm", w, h);
 
+	if (libinput_device_has_capability(dev,
+					   LIBINPUT_DEVICE_CAP_TOUCH))
+		printq(" ntouches %d", libinput_device_touch_get_touch_count(dev));
+
 	if (libinput_event_get_type(ev) == LIBINPUT_EVENT_DEVICE_ADDED)
 		print_device_options(dev);
 
