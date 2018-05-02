@@ -230,6 +230,10 @@ class TestYaml(unittest.TestCase):
                  'GESTURE_SWIPE_BEGIN', 'GESTURE_SWIPE_UPDATE',
                  'GESTURE_SWIPE_END', 'GESTURE_PINCH_BEGIN',
                  'GESTURE_PINCH_UPDATE', 'GESTURE_PINCH_END',
+                 'TABLET_TOOL_AXIS', 'TABLET_TOOL_PROXIMITY',
+                 'TABLET_TOOL_BUTTON', 'TABLET_TOOL_TIP',
+                 'TABLET_PAD_STRIP', 'TABLET_PAD_RING',
+                 'TABLET_PAD_BUTTON'
                  ]
         for e in self.libinput_events():
             self.assertIn('type', e)
@@ -427,6 +431,189 @@ class TestYaml(unittest.TestCase):
             self.assertEqual(len(unaccel), 2)
             for d in unaccel:
                 self.assertTrue(isinstance(d, float))
+
+    def test_events_libinput_tablet_pad_button(self):
+        keys = ['type', 'time', 'button', 'state', 'mode', 'is-toggle']
+
+        for e in self.libinput_events('TABLET_PAD_BUTTON'):
+            self.dict_key_crosscheck(e, keys)
+
+            b = e['button']
+            self.assertTrue(isinstance(b, int))
+            self.assertGreaterEqual(b, 0)
+            self.assertLessEqual(b, 16)
+
+            state = e['state']
+            self.assertIn(state, ['pressed', 'released'])
+
+            m = e['mode']
+            self.assertTrue(isinstance(m, int))
+            self.assertGreaterEqual(m, 0)
+            self.assertLessEqual(m, 3)
+
+            t = e['is-toggle']
+            self.assertTrue(isinstance(t, bool))
+
+    def test_events_libinput_tablet_pad_ring(self):
+        keys = ['type', 'time', 'number', 'position', 'source', 'mode']
+
+        for e in self.libinput_events('TABLET_PAD_RING'):
+            self.dict_key_crosscheck(e, keys)
+
+            n = e['number']
+            self.assertTrue(isinstance(n, int))
+            self.assertGreaterEqual(n, 0)
+            self.assertLessEqual(n, 4)
+
+            p = e['position']
+            self.assertTrue(isinstance(p, float))
+            if p != -1.0:  # special 'end' case
+                self.assertGreaterEqual(p, 0.0)
+                self.assertLess(p, 360.0)
+
+            m = e['mode']
+            self.assertTrue(isinstance(m, int))
+            self.assertGreaterEqual(m, 0)
+            self.assertLessEqual(m, 3)
+
+            s = e['source']
+            self.assertIn(s, ['finger', 'unknown'])
+
+    def test_events_libinput_tablet_pad_strip(self):
+        keys = ['type', 'time', 'number', 'position', 'source', 'mode']
+
+        for e in self.libinput_events('TABLET_PAD_STRIP'):
+            self.dict_key_crosscheck(e, keys)
+
+            n = e['number']
+            self.assertTrue(isinstance(n, int))
+            self.assertGreaterEqual(n, 0)
+            self.assertLessEqual(n, 4)
+
+            p = e['position']
+            self.assertTrue(isinstance(p, float))
+            if p != -1.0:  # special 'end' case
+                self.assertGreaterEqual(p, 0.0)
+                self.assertLessEqual(p, 1.0)
+
+            m = e['mode']
+            self.assertTrue(isinstance(m, int))
+            self.assertGreaterEqual(m, 0)
+            self.assertLessEqual(m, 3)
+
+            s = e['source']
+            self.assertIn(s, ['finger', 'unknown'])
+
+    def test_events_libinput_tablet_tool_proximity(self):
+        keys = ['type', 'time', 'proximity', 'tool-type', 'serial', 'axes']
+
+        for e in self.libinput_events('TABLET_TOOL_PROXIMITY'):
+            for k in keys:
+                self.assertIn(k, e)
+
+            p = e['proximity']
+            self.assertIn(p, ['in', 'out'])
+
+            p = e['tool-type']
+            self.assertIn(p, ['pen', 'eraser', 'brush', 'airbrush', 'mouse',
+                              'lens', 'unknown'])
+
+            s = e['serial']
+            self.assertTrue(isinstance(s, int))
+            self.assertGreaterEqual(s, 0)
+
+            a = e['axes']
+            for ax in e['axes']:
+                self.assertIn(a, 'pdtrsw')
+
+    def test_events_libinput_tablet_tool(self):
+        keys = ['type', 'time', 'tip']
+
+        for e in self.libinput_events(['TABLET_TOOL_AXIS',
+                                       'TABLET_TOOL_TIP']):
+            for k in keys:
+                self.assertIn(k, e)
+
+            t = e['tip']
+            self.assertIn(t, ['down', 'up'])
+
+    def test_events_libinput_tablet_tool_button(self):
+        keys = ['type', 'time', 'button', 'state']
+
+        for e in self.libinput_events('TABLET_TOOL_BUTTON'):
+            self.dict_key_crosscheck(e, keys)
+
+            b = e['button']
+            # STYLUS, STYLUS2, STYLUS3
+            self.assertIn(b, [0x14b, 0x14c, 0x139])
+
+            s = e['state']
+            self.assertIn(s, ['pressed', 'released'])
+
+    def test_events_libinput_tablet_tool_axes(self):
+        for e in self.libinput_events(['TABLET_TOOL_PROXIMITY',
+                                       'TABLET_TOOL_AXIS',
+                                       'TABLET_TOOL_TIP']):
+
+            point = e['point']
+            self.assertTrue(isinstance(point, list))
+            self.assertEqual(len(point), 2)
+            for p in point:
+                self.assertTrue(isinstance(p, float))
+                self.assertGreater(p, 0.0)
+
+            try:
+                tilt = e['tilt']
+                self.assertTrue(isinstance(tilt, list))
+                self.assertEqual(len(tilt), 2)
+                for t in tilt:
+                    self.assertTrue(isinstance(t, float))
+            except KeyError:
+                pass
+
+            try:
+                d = e['distance']
+                self.assertTrue(isinstance(d, float))
+                self.assertGreaterEqual(d, 0.0)
+                self.assertNotIn('pressure', e)
+            except KeyError:
+                pass
+
+            try:
+                p = e['pressure']
+                self.assertTrue(isinstance(p, float))
+                self.assertGreaterEqual(p, 0.0)
+                self.assertNotIn('distance', e)
+            except KeyError:
+                pass
+
+            try:
+                r = e['rotation']
+                self.assertTrue(isinstance(r, float))
+                self.assertGreaterEqual(r, 0.0)
+            except KeyError:
+                pass
+
+            try:
+                s = e['slider']
+                self.assertTrue(isinstance(s, float))
+                self.assertGreaterEqual(s, 0.0)
+            except KeyError:
+                pass
+
+            try:
+                w = e['wheel']
+                self.assertTrue(isinstance(w, float))
+                self.assertGreaterEqual(w, 0.0)
+                self.assertIn('wheel-discrete', e)
+                wd = e['wheel-discrete']
+                self.assertTrue(isinstance(wd, 1))
+                self.assertGreaterEqual(wd, 0.0)
+
+                def sign(x): (1, -1)[x < 0]
+                self.assertTrue(sign(w), sign(wd))
+            except KeyError:
+                pass
 
 
 if __name__ == '__main__':
