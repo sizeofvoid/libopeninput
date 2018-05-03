@@ -233,7 +233,7 @@ class TestYaml(unittest.TestCase):
                  'TABLET_TOOL_AXIS', 'TABLET_TOOL_PROXIMITY',
                  'TABLET_TOOL_BUTTON', 'TABLET_TOOL_TIP',
                  'TABLET_PAD_STRIP', 'TABLET_PAD_RING',
-                 'TABLET_PAD_BUTTON'
+                 'TABLET_PAD_BUTTON', 'SWITCH_TOGGLE',
                  ]
         for e in self.libinput_events():
             self.assertIn('type', e)
@@ -614,6 +614,20 @@ class TestYaml(unittest.TestCase):
                 self.assertTrue(sign(w), sign(wd))
             except KeyError:
                 pass
+
+    def test_events_libinput_switch(self):
+        keys = ['type', 'time', 'switch', 'state']
+
+        for e in self.libinput_events('SWITCH_TOGGLE'):
+            self.dict_key_crosscheck(e, keys)
+
+            s = e['switch']
+            self.assertTrue(isinstance(s, int))
+            self.assertIn(s, [0x00, 0x01])
+
+            # yaml converts on/off to true/false
+            state = e['state']
+            self.assertTrue(isinstance(state, bool))
 
 
 if __name__ == '__main__':

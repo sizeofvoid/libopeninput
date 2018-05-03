@@ -1090,6 +1090,42 @@ buffer_tablet_pad_ringstrip_event(struct record_context *ctx,
 }
 
 static void
+buffer_switch_event(struct record_context *ctx,
+		    struct libinput_event *e,
+		    struct event *event)
+{
+	struct libinput_event_switch *s = libinput_event_get_switch_event(e);
+	enum libinput_switch_state state;
+	uint32_t sw;
+	const char *type;
+	uint64_t time;
+
+	switch(libinput_event_get_type(e)) {
+	case LIBINPUT_EVENT_SWITCH_TOGGLE:
+		type = "SWITCH_TOGGLE";
+		break;
+	default:
+		abort();
+	}
+
+	time = ctx->offset ?
+		libinput_event_switch_get_time_usec(s) - ctx->offset : 0;
+
+	sw = libinput_event_switch_get_switch(s);
+	state = libinput_event_switch_get_switch_state(s);
+
+	event->time = time;
+	snprintf(event->u.libinput.msg,
+		 sizeof(event->u.libinput.msg),
+		 "{time: %ld.%06ld, type: %s, switch: %d, state: %s}",
+		 time / (int)1e6,
+		 time % (int)1e6,
+		 type,
+		 sw,
+		 state == LIBINPUT_SWITCH_STATE_ON ? "on" : "off");
+}
+
+static void
 buffer_libinput_event(struct record_context *ctx,
 		      struct libinput_event *e,
 		      struct event *event)
@@ -1147,6 +1183,9 @@ buffer_libinput_event(struct record_context *ctx,
 	case LIBINPUT_EVENT_TABLET_PAD_RING:
 	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
 		buffer_tablet_pad_ringstrip_event(ctx, e, event);
+		break;
+	case LIBINPUT_EVENT_SWITCH_TOGGLE:
+		buffer_switch_event(ctx, e, event);
 		break;
 	default:
 		break;
