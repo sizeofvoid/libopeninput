@@ -1371,7 +1371,7 @@ START_TEST(strjoin_test)
 		char *str;
 		str = strv_join(t->strv, t->joiner);
 		if (t->result == NULL)
-			ck_assert_ptr_null(str);
+			ck_assert(str == NULL);
 		else
 			ck_assert_str_eq(str, t->result);
 		free(str);
