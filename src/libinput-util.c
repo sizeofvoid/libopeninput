@@ -561,7 +561,6 @@ strv_join(char **strv, const char *joiner)
 	if (!strv || !joiner)
 		return NULL;
 
-	s = strv;
 	for (s = strv, count = 0; *s; s++, count++) {
 		slen += strlen(*s);
 	}
