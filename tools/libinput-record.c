@@ -193,8 +193,6 @@ print_evdev_event(struct record_context *ctx, struct input_event *ev)
 	bool was_modified = false;
 	char desc[1024];
 
-	if (ctx->offset == 0)
-		ctx->offset = tv2us(&ev->time);
 	ev->time = us2tv(tv2us(&ev->time) - ctx->offset);
 
 	/* Don't leak passwords unless the user wants to */
@@ -268,6 +266,9 @@ handle_evdev_frame(struct record_context *ctx, struct record_device *d)
 	while (libevdev_next_event(evdev,
 				   LIBEVDEV_READ_FLAG_NORMAL,
 				   &e) == LIBEVDEV_READ_STATUS_SUCCESS) {
+
+		if (ctx->offset == 0)
+			ctx->offset = tv2us(&e.time);
 
 		if (d->nevents == d->events_sz)
 			resize(d->events, d->events_sz);
