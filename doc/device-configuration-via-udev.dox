@@ -64,9 +64,6 @@ See @ref motion_normalization for details.
 <dd>The angle in degrees for each click on a mouse wheel. See
 libinput_pointer_get_axis_source() for details.
 </dd>
-<dt>POINTINGSTICK_CONST_ACCEL</dt>
-<dd>A constant (linear) acceleration factor to apply to pointingstick deltas
-to normalize them.
 <dt>LIBINPUT_MODEL_*</dt>
 <dd><b>This prefix is reserved as private API, do not use.</b> See @ref
 model_specific_configuration for details.
