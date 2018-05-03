@@ -1196,6 +1196,7 @@ libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event)
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return evdev_convert_to_mm(device->abs.absinfo_y,
@@ -1210,6 +1211,7 @@ libinput_event_tablet_tool_get_dx(struct libinput_event_tablet_tool *event)
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->axes.delta.x;
@@ -1223,6 +1225,7 @@ libinput_event_tablet_tool_get_dy(struct libinput_event_tablet_tool *event)
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->axes.delta.y;
@@ -1236,6 +1239,7 @@ libinput_event_tablet_tool_get_pressure(struct libinput_event_tablet_tool *event
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->axes.pressure;
@@ -1249,6 +1253,7 @@ libinput_event_tablet_tool_get_distance(struct libinput_event_tablet_tool *event
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->axes.distance;
@@ -1262,6 +1267,7 @@ libinput_event_tablet_tool_get_tilt_x(struct libinput_event_tablet_tool *event)
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->axes.tilt.x;
@@ -1275,6 +1281,7 @@ libinput_event_tablet_tool_get_tilt_y(struct libinput_event_tablet_tool *event)
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->axes.tilt.y;
@@ -1288,6 +1295,7 @@ libinput_event_tablet_tool_get_rotation(struct libinput_event_tablet_tool *event
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->axes.rotation;
@@ -1301,6 +1309,7 @@ libinput_event_tablet_tool_get_slider_position(struct libinput_event_tablet_tool
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->axes.slider;
@@ -1314,6 +1323,7 @@ libinput_event_tablet_tool_get_wheel_delta(struct libinput_event_tablet_tool *ev
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->axes.wheel;
@@ -1328,6 +1338,7 @@ libinput_event_tablet_tool_get_wheel_delta_discrete(
 			   0,
 			   LIBINPUT_EVENT_TABLET_TOOL_AXIS,
 			   LIBINPUT_EVENT_TABLET_TOOL_TIP,
+			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
 	return event->axes.wheel_discrete;
