@@ -4826,6 +4826,45 @@ START_TEST(touchpad_thumb_tap_hold_2ndfg_tap)
 }
 END_TEST
 
+START_TEST(touchpad_thumb_move_and_tap)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_PRESSURE, 75 },
+		{ -1, 0 }
+	};
+
+	if (!has_thumb_detect(dev))
+		return;
+
+	litest_enable_tap(dev->libinput_device);
+	litest_drain_events(li);
+
+	/* trigger thumb detection by pressure after a slight movement */
+	litest_touch_down(dev, 0, 50, 99);
+	litest_touch_move(dev, 0, 51, 99);
+	litest_touch_move_extended(dev, 0, 55, 99, axes);
+	libinput_dispatch(li);
+
+	litest_assert_empty_queue(li);
+
+	/* thumb is resting, check if tapping still works */
+	litest_touch_down(dev, 1, 50, 50);
+	litest_touch_up(dev, 1);
+	libinput_dispatch(li);
+	litest_timeout_tap();
+
+	litest_assert_button_event(li,
+				   BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li,
+				   BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(touchpad_tool_tripletap_touch_count)
 {
 	struct litest_device *dev = litest_current_device();
@@ -5943,6 +5982,7 @@ litest_setup_tests_touchpad(void)
 	litest_add("touchpad:thumb", touchpad_thumb_tap_hold, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_tap_hold_2ndfg, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:thumb", touchpad_thumb_tap_hold_2ndfg_tap, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
+	litest_add("touchpad:thumb", touchpad_thumb_move_and_tap, LITEST_CLICKPAD, LITEST_ANY);
 
 	litest_add_for_device("touchpad:bugs", touchpad_tool_tripletap_touch_count, LITEST_SYNAPTICS_TOPBUTTONPAD);
 	litest_add_for_device("touchpad:bugs", touchpad_slot_swap, LITEST_SYNAPTICS_TOPBUTTONPAD);
