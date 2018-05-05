@@ -1040,6 +1040,9 @@ tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time)
 			}
 			t->tap.state = TAP_TOUCH_STATE_IDLE;
 		} else if (tp->tap.state != TAP_STATE_IDLE &&
+			   t->thumb.state == THUMB_STATE_YES) {
+			tp_tap_handle_event(tp, t, TAP_EVENT_THUMB, time);
+		} else if (tp->tap.state != TAP_STATE_IDLE &&
 			   tp_tap_exceeds_motion_threshold(tp, t)) {
 			struct tp_touch *tmp;
 
@@ -1051,10 +1054,6 @@ tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time)
 			}
 
 			tp_tap_handle_event(tp, t, TAP_EVENT_MOTION, time);
-		} else if (tp->tap.state != TAP_STATE_IDLE &&
-			   t->thumb.state == THUMB_STATE_YES &&
-			   !t->tap.is_thumb) {
-			tp_tap_handle_event(tp, t, TAP_EVENT_THUMB, time);
 		}
 	}
 
