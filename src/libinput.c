@@ -2129,6 +2129,12 @@ notify_added_device(struct libinput_device *device)
 	post_base_event(device,
 			LIBINPUT_EVENT_DEVICE_ADDED,
 			&added_device_event->base);
+
+#ifdef __clang_analyzer__
+	/* clang doesn't realize we're not leaking the event here, so
+	 * pretend to free it  */
+	free(added_device_event);
+#endif
 }
 
 void
@@ -2141,6 +2147,12 @@ notify_removed_device(struct libinput_device *device)
 	post_base_event(device,
 			LIBINPUT_EVENT_DEVICE_REMOVED,
 			&removed_device_event->base);
+
+#ifdef __clang_analyzer__
+	/* clang doesn't realize we're not leaking the event here, so
+	 * pretend to free it  */
+	free(removed_device_event);
+#endif
 }
 
 static inline bool
@@ -2728,6 +2740,12 @@ switch_notify_toggle(struct libinput_device *device,
 	post_device_event(device, time,
 			  LIBINPUT_EVENT_SWITCH_TOGGLE,
 			  &switch_event->base);
+
+#ifdef __clang_analyzer__
+	/* clang doesn't realize we're not leaking the event here, so
+	 * pretend to free it  */
+	free(switch_event);
+#endif
 }
 
 static void
