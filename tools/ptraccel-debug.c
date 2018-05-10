@@ -194,10 +194,10 @@ usage(void)
 	printf("Usage: %s [options] [dx1] [dx2] [...] > gnuplot.data\n", program_invocation_short_name);
 	printf("\n"
 	       "Options:\n"
-	       "--mode=<motion|accel|delta|sequence> \n"
-	       "	motion   ... print motion to accelerated motion (default)\n"
+	       "--mode=<accel|motion|delta|sequence> \n"
+	       "	accel    ... print accel factor (default)\n"
+	       "	motion   ... print motion to accelerated motion\n"
 	       "	delta    ... print delta to accelerated delta\n"
-	       "	accel    ... print accel factor\n"
 	       "	sequence ... print motion for custom delta sequence\n"
 	       "--maxdx=<double>  ... in motion mode only. Stop increasing dx at maxdx\n"
 	       "--steps=<double>  ... in motion and delta modes only. Increase dx by step each round\n"
@@ -230,8 +230,8 @@ main(int argc, char **argv)
 	double step = 0.1,
 	       max_dx = 10;
 	int nevents = 0;
-	bool print_accel = false,
-	     print_motion = true,
+	bool print_accel = true,
+	     print_motion = false,
 	     print_delta = false,
 	     print_sequence = false;
 	double custom_deltas[1024];
