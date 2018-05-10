@@ -9,3 +9,4 @@
 *.gcda
 *.gcno
 tags
+*.gnuplot
