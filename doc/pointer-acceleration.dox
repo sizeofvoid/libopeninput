@@ -150,7 +150,7 @@ and the pointer on-screen.
 @section ptraccel-tablet Pointer acceleration on tablets
 
 Pointer acceleration for relative motion on tablet devices is a flat
-acceleration, with the speed seeting slowing down or speeding up the pointer
+acceleration, with the speed setting slowing down or speeding up the pointer
 motion by a constant factor. Tablets do not allow for switchable profiles.
 
 @section ptraccel-device-speed Speed-dependent acceleration curve
