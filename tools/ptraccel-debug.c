@@ -223,6 +223,13 @@ usage(void)
 	       "Output best viewed with gnuplot. See output for gnuplot commands\n");
 }
 
+enum mode {
+	ACCEL,
+	MOTION,
+	DELTA,
+	SEQUENCE,
+};
+
 int
 main(int argc, char **argv)
 {
@@ -230,10 +237,7 @@ main(int argc, char **argv)
 	double step = 0.1,
 	       max_dx = 10;
 	int nevents = 0;
-	bool print_accel = true,
-	     print_motion = false,
-	     print_delta = false,
-	     print_sequence = false;
+	enum mode mode = ACCEL;
 	double custom_deltas[1024];
 	double speed = 0.0;
 	int dpi = 1000;
@@ -284,13 +288,13 @@ main(int argc, char **argv)
 			break;
 		case OPT_MODE:
 			if (streq(optarg, "accel"))
-				print_accel = true;
+				mode = ACCEL;
 			else if (streq(optarg, "motion"))
-				print_motion = true;
+				mode = MOTION;
 			else if (streq(optarg, "delta"))
-				print_delta = true;
+				mode = DELTA;
 			else if (streq(optarg, "sequence"))
-				print_sequence = true;
+				mode = SEQUENCE;
 			else {
 				usage();
 				return 1;
@@ -382,8 +386,7 @@ main(int argc, char **argv)
 
 	if (!isatty(STDIN_FILENO)) {
 		char buf[12];
-		print_sequence = true;
-		print_motion = false;
+		mode = SEQUENCE;
 		nevents = 0;
 		memset(custom_deltas, 0, sizeof(custom_deltas));
 
@@ -391,25 +394,30 @@ main(int argc, char **argv)
 			custom_deltas[nevents++] = strtod(buf, NULL);
 		}
 	} else if (optind < argc) {
-		print_sequence = true;
-		print_motion = false;
+		mode = SEQUENCE;
 		nevents = 0;
 		memset(custom_deltas, 0, sizeof(custom_deltas));
 		while (optind < argc)
 			custom_deltas[nevents++] = strtod(argv[optind++], NULL);
 	}
 
-	if (print_accel) {
+	switch (mode) {
+	case ACCEL:
 		if (!profile) /* trackpoint */
 			print_accel_func_trackpoint(filter, tp_range_max);
 		else
 			print_accel_func(filter, profile, dpi);
-	} else if (print_delta)
+		break;
+	case DELTA:
 		print_ptraccel_deltas(filter, step);
-	else if (print_motion)
+		break;
+	case MOTION:
 		print_ptraccel_movement(filter, nevents, max_dx, step);
-	else if (print_sequence)
+		break;
+	case SEQUENCE:
 		print_ptraccel_sequence(filter, nevents, custom_deltas);
+		break;
+	}
 
 	filter_destroy(filter);
 
