@@ -18,3 +18,7 @@ option('documentation',
        type: 'boolean',
        value: true,
        description: 'Build the documentation [default=true]')
+option('coverity',
+       type: 'boolean',
+       value: false,
+       description: 'Enable coverity build fixes, see meson.build for details [default=false]')
