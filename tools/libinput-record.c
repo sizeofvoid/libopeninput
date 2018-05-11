@@ -2068,7 +2068,7 @@ init_device(struct record_context *ctx, char *path)
 		fprintf(stderr,
 			"Failed to open device %s (%m)\n",
 			d->devnode);
-		return false;
+		goto error;
 	}
 
 	rc = libevdev_new_from_fd(fd, &d->evdev);
@@ -2077,8 +2077,7 @@ init_device(struct record_context *ctx, char *path)
 			"Failed to create context for %s (%s)\n",
 			d->devnode,
 			strerror(-rc));
-		close(fd);
-		return false;
+		goto error;
 	}
 
 	libevdev_set_clock_id(d->evdev, CLOCK_MONOTONIC);
@@ -2090,6 +2089,11 @@ init_device(struct record_context *ctx, char *path)
 	ctx->ndevices++;
 
 	return true;
+error:
+	close(fd);
+	free(d);
+	return false;
+
 }
 static int
 open_restricted(const char *path, int flags, void *user_data)
