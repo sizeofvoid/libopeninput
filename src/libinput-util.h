@@ -591,7 +591,7 @@ kv_double_from_string(const char *string,
 		npairs++;
 
 	if (npairs == 0)
-		return -1;
+		goto error;
 
 	result = zalloc(npairs * sizeof *result);
 
