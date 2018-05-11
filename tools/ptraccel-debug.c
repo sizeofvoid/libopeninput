@@ -203,7 +203,7 @@ usage(void)
 	       "--steps=<double>  ... in motion and delta modes only. Increase dx by step each round\n"
 	       "--speed=<double>  ... accel speed [-1, 1], default 0\n"
 	       "--dpi=<int>	... device resolution in DPI (default: 1000)\n"
-	       "--trackpoint_range=<int> ... range of the trackpoint deltas (default: 30)\n"
+	       "--trackpoint-range=<int> ... range of the trackpoint deltas (default: 30)\n"
 	       "--filter=<linear|low-dpi|touchpad|x230|trackpoint> \n"
 	       "	linear	  ... the default motion filter\n"
 	       "	low-dpi	  ... low-dpi filter, use --dpi with this argument\n"
