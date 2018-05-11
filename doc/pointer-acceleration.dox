@@ -137,12 +137,8 @@ As of version 1.9, libinput does not parse the `POINTINGSTICK_CONST_ACCEL` prope
 
 @image html ptraccel-trackpoint.svg "Pointer acceleration curves for trackpoints"
 
-The image above shows the trackpoint acceleration profile in comparison to the
-@ref ptraccel-linear.
-
-The constant acceleration factor, usually applied in
-@ref udev_config, shapes the acceleration profile and is pre-applied before
-any user-specific acceleration adjustments.
+The image above shows the trackpoint acceleration profile for each input
+delta.
 
 @section ptraccel-profile-flat The flat pointer acceleration profile
 
