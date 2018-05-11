@@ -565,6 +565,8 @@ strv_join(char **strv, const char *joiner)
 		slen += strlen(*s);
 	}
 
+	assert(slen < 1000);
+
 	slen += (count - 1) * strlen(joiner);
 
 	str = zalloc(slen + 1); /* trailing \0 */
