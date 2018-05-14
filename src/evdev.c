@@ -1203,8 +1203,7 @@ evdev_get_trackpoint_range(struct evdev_device *device)
 	prop = udev_device_get_property_value(device->udev_device,
 					      "LIBINPUT_ATTR_TRACKPOINT_RANGE");
 	if (prop) {
-		if (!safe_atoi(prop, &range) ||
-		    (range < 0.0 || range > 100)) {
+		if (!safe_atoi(prop, &range) || range < 0.0) {
 			evdev_log_error(device,
 					"trackpoint range property is present but invalid, "
 					"using %d instead\n",
