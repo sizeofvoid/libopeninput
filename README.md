@@ -1,39 +1,40 @@
 libinput
 ========
 
-libinput is a library that handles input devices for display servers and other
-applications that need to directly deal with input devices.
+libinput is a library that provides a full input stack for display servers
+and other applications that need to handle input devices provided by the
+kernel.
 
-It provides device detection, device handling, input device event processing
-and abstraction so minimize the amount of custom input code the user of
-libinput need to provide the common set of functionality that users expect.
-Input event processing includes scaling touch coordinates, generating
-pointer events from touchpads, pointer acceleration, etc.
-
-libinput originates from
-[weston](http://cgit.freedesktop.org/wayland/weston/), the Wayland reference
-compositor.
+libinput provides device detection, event handling and abstraction so
+minimize the amount of custom input code the user of libinput need to
+provide the common set of functionality that users expect. Input event
+processing includes scaling touch coordinates, generating
+relative pointer events from touchpads, pointer acceleration, etc.
 
 Architecture
 ------------
 
-libinput is not used directly by applications, rather it is used by the
-xf86-input-libinput X.Org driver or wayland compositors. The typical
-software stack for a system running Wayland is:
+libinput is not used directly by applications. Think of it more as a device
+driver than an application library. It is used by the xf86-input-libinput
+X.Org driver or Wayland compositors. The typical software stack for a system
+running Wayland is:
 
 @dotfile libinput-stack-wayland.gv
 
-Where the Wayland compositor may be Weston, mutter, KWin, etc. Note that
+The Wayland compositor may be Weston, mutter, KWin, etc. Note that
 Wayland encourages the use of toolkits, so the Wayland client (your
 application) does not usually talk directly to the compositor but rather
-employs a toolkit (e.g. GTK) to do so.
+employs a toolkit (e.g. GTK) to do so. The Wayland client does not know
+whether libinput is in use.
 
 The simplified software stack for a system running X.Org is:
 
 @dotfile libinput-stack-xorg.gv
 
-Again, on a modern system the application does not usually talk directly to
-the X server using Xlib but rather employs a toolkit to do so.
+libinput is not employed directly by the X server but by the
+xf86-input-libinput driver instead. That driver is loaded by the server
+on demand, depending on the xorg.conf.d configuration snippets. The X client
+does not know whether libinput is in use.
 
 Source code
 -----------
