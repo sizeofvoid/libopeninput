@@ -24,6 +24,7 @@
 # DEALINGS IN THE SOFTWARE.
 #
 
+from math import atan, sqrt, pi, floor, ceil
 import sys
 import argparse
 try:
@@ -36,6 +37,8 @@ except ModuleNotFoundError as e:
           'modules and re-run this tool.')
     sys.exit(1)
 
+# This should match libinput's DEFAULT_TRACKPOINT_RANGE
+DEFAULT_RANGE = 20
 MINIMUM_EVENT_COUNT = 1000
 
 
@@ -51,6 +54,8 @@ class Delta(object):
     def __bool__(self):
         return self.x != 0 or self.y != 0
 
+    def r(self):
+        return sqrt(self.x**2 + self.y**2)
 
 class Device(object):
     def __init__(self, path):
@@ -143,24 +148,52 @@ class Device(object):
             yc = int(yc/5)  # counts of 5 is enough
             print("{:4}: {}".format(i, "+" * yc, end=""))
 
+        print("Histogram for radius (amplitude) deltas")
+        rs = [d.r() for d in self.deltas if d]
+        nr = 50
+        minr = 0
+        maxr = ceil(max(rs))
+        for x in range(0, nr):
+            yc = len([y for y in rs if y >= x * maxr/nr
+                      and y < (x+1) * maxr/nr])
+            print("{:>6.1f}-{:<6.1f}: {:6} {}".
+                  format(x * maxr/nr, (x+1) * maxr/nr,
+                         yc, "+" * int(yc/5), end=""))
+
+        minr = min(rs)
+
         axs = sorted([abs(x) for x in xs])
         ays = sorted([abs(y) for y in ys])
+        ars = sorted([y for y in rs])
 
         avgx = int(sum(axs)/len(axs))
         avgy = int(sum(ays)/len(ays))
+        avgr = sum(ars)/len(ars)
 
         medx = axs[int(len(axs)/2)]
         medy = ays[int(len(ays)/2)]
+        medr = ars[int(len(ars)/2)]
 
         pc95x = axs[int(len(axs) * 0.95)]
         pc95y = ays[int(len(ays) * 0.95)]
+        pc95r = ars[int(len(ars) * 0.95)]
 
-        print("Average for abs deltas: x: {:3} y: {:3}".format(avgx, avgy))
-        print("Median for abs deltas: x: {:3} y: {:3}".format(medx, medy))
-        print("95% percentile for abs deltas: x: {:3} y: {:3}"
-              .format(pc95x, pc95y)
+        print("Min r: {:6.1f}, Max r: {:6.1f}, Max/Min: {:6.1f}".
+              format(minr, max(rs), max(rs)/minr))
+        print("Average for abs deltas: x: {:3} y: {:3} r: {:6.1f}".format(avgx, avgy, avgr))
+        print("Median for abs deltas: x: {:3} y: {:3} r: {:6.1f}".format(medx, medy, medr))
+        print("95% percentile for abs deltas: x: {:3} y: {:3} r: {:6.1f}"
+              .format(pc95x, pc95y, pc95r)
               )
-
+        if (minr > 2):
+            suggested = 10 * ceil(minr * DEFAULT_RANGE / 10)
+            print("""\
+The minimum amplitude is too big for precise pointer movements.
+The recommended value for LIBINPUT_ATTR_TRACKPOINT_RANGE
+is 20 * {} ~= {} or higher, which would result in a corrected
+delta range of {:>.1f}-{:<.1f}.
+""".format(ceil(minr), suggested,
+           minr*DEFAULT_RANGE/suggested, maxr*DEFAULT_RANGE/suggested))
 
 def main(args):
     parser = argparse.ArgumentParser(
@@ -176,17 +209,16 @@ def main(args):
 
         print(
            "This tool measures the commonly used pressure range of the\n"
-           "trackpoint. Push the trackpoint:\n"
-           "- Four times around the screen edges\n"
-           "- From the top left to the bottom right and back, twice\n"
-           "- From the top right to the bottom left and back, twice\n"
-           "A minimum of {} events for each axis is required\n"
-           "\n"
-           "Movements should emulate fast pointer movement on the screen\n"
-           "but not use excessive pressure that would not be used\n"
-           "during day-to-day movement. For best results, run this tool \n"
-           "several times to get an idea of the common range.\n"
-           "\n".format(MINIMUM_EVENT_COUNT))
+           "trackpoint. Start by pushing the trackpoint very gently in\n"
+           "slow, small circles. Slowly increase pressure until the pointer\n"
+           "moves quickly around the screen edges, but do not use excessive\n"
+           "pressure that would not be used during day-to-day movement.\n"
+           "Also make diagonal some movements, both slow and quick.\n"
+           "When you're done, start over, until the displayed event count\n"
+           "is {} or more for both x and y axis.\n\n"
+           "Hit Ctrl-C to stop the measurement and display results.\n"
+           "For best results, run this tool several times to get an idea\n"
+           "of the common range.\n".format(MINIMUM_EVENT_COUNT))
         device.read_events()
     except KeyboardInterrupt:
         device.print_summary()
