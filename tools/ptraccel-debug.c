@@ -399,6 +399,9 @@ main(int argc, char **argv)
 		memset(custom_deltas, 0, sizeof(custom_deltas));
 		while (optind < argc)
 			custom_deltas[nevents++] = strtod(argv[optind++], NULL);
+	} else if (mode == SEQUENCE) {
+		usage();
+		return 1;
 	}
 
 	switch (mode) {
