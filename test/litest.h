@@ -1019,6 +1019,9 @@ litest_touchpad_is_external(struct litest_device *dev)
 	const char *prop;
 	bool is_external;
 
+	if (libinput_device_get_id_vendor(dev->libinput_device) == VENDOR_ID_WACOM)
+		return true;
+
 	udev_device = libinput_device_get_udev_device(dev->libinput_device);
 	prop = udev_device_get_property_value(udev_device,
 					      "ID_INPUT_TOUCHPAD_INTEGRATION");
