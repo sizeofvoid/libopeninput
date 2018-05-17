@@ -38,7 +38,7 @@
 
 /* Trackpoint acceleration */
 #define TRACKPOINT_DEFAULT_MAX_ACCEL 2.0	/* in units/us */
-#define TRACKPOINT_DEFAULT_MAX_DELTA 60
+#define TRACKPOINT_DEFAULT_MAX_DELTA 120
 /* As measured on a Lenovo T440 at kernel-default sensitivity 128 */
 #define TRACKPOINT_DEFAULT_RANGE 20		/* max value */
 
