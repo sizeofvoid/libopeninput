@@ -280,7 +280,13 @@ libinput:mouse:input:b0003v046DpC408*
 
 # Logitech K400
 libinput:mouse:input:b0003v046Dp4024*
- LIBINPUT_MODEL_LOGITECH_K400=1
+# Logitech K400r
+libinput:mouse:input:b0003v046Dp404B*
+# Logitech K830
+libinput:mouse:input:b0003v046Dp404C*
+# Logitech K400Plus
+libinput:mouse:input:b0003v046Dp404D*
+ LIBINPUT_MODEL_BOUNCING_KEYS=1
 
 # Logitech Wireless Touchpad
 libinput:touchpad:input:b0003v046Dp4011*
@@ -299,7 +305,7 @@ libinput:name:*Microsoft Surface Type Cover Keyboard*:dmi:*svnMicrosoftCorporati
 
 # Microsoft Microsoft® Nano Transceiver v2.0"
 libinput:mouse:input:b0003v045Ep0800*
- LIBINPUT_MODEL_MS_NANO_TRANSCEIVER=1
+ LIBINPUT_MODEL_BOUNCING_KEYS=1
 
 ##########################################
 # Razer

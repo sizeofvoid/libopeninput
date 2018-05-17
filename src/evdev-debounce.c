@@ -565,8 +565,7 @@ fallback_init_debounce(struct fallback_dispatch *dispatch)
 	struct evdev_device *device = dispatch->device;
 	char timer_name[64];
 
-	if (device->model_flags &
-	    (EVDEV_MODEL_MS_NANO_TRANSCEIVER|EVDEV_MODEL_LOGITECH_K400)) {
+	if (device->model_flags & EVDEV_MODEL_BOUNCING_KEYS) {
 		dispatch->debounce.state = DEBOUNCE_STATE_DISABLED;
 		return;
 	}
