@@ -70,6 +70,15 @@ static int events[] = {
 	-1, -1,
 };
 
+static const char udev_rule[] =
+"ACTION==\"remove\", GOTO=\"switch_end\"\n"
+"KERNEL!=\"event*\", GOTO=\"switch_end\"\n"
+"\n"
+"ATTRS{name}==\"litest ThinkPad Extra Buttons*\",\\\n"
+"    ENV{ID_INPUT_SWITCH}=\"1\"\n"
+"\n"
+"LABEL=\"switch_end\"";
+
 TEST_DEVICE("thinkpad-extrabuttons",
 	.type = LITEST_THINKPAD_EXTRABUTTONS,
 	.features = LITEST_KEYS | LITEST_SWITCH,
@@ -79,4 +88,5 @@ TEST_DEVICE("thinkpad-extrabuttons",
 	.id = &input_id,
 	.events = events,
 	.absinfo = NULL,
+	.udev_rule = udev_rule,
 )
