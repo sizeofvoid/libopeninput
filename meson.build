@@ -166,7 +166,6 @@ dep_libinput_util = declare_dependency(link_with : libinput_util)
 ############ libfilter.a ############
 src_libfilter = [
 		'src/filter.c',
-		'src/filter-custom.c',
 		'src/filter-flat.c',
 		'src/filter-low-dpi.c',
 		'src/filter-mouse.c',
