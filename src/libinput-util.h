@@ -419,6 +419,7 @@ bool parse_calibration_property(const char *prop, float calibration[6]);
 bool parse_range_property(const char *prop, int *hi, int *lo);
 int parse_palm_pressure_property(const char *prop);
 int parse_palm_size_property(const char *prop);
+int parse_thumb_pressure_property(const char *prop);
 
 enum tpkbcombo_layout {
 	TPKBCOMBO_LAYOUT_UNKNOWN,

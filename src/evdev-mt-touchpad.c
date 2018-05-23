@@ -3039,6 +3039,25 @@ tp_init_sendevents(struct tp_dispatch *tp,
 			    tp_keyboard_timeout, tp);
 }
 
+static int
+tp_read_thumb_pressure_prop(struct tp_dispatch *tp,
+			    const struct evdev_device *device)
+{
+	struct udev_device *udev_device = device->udev_device;
+	const char *prop;
+	int threshold;
+	const int default_thumb_threshold = 0;
+
+	prop = udev_device_get_property_value(udev_device,
+			      "LIBINPUT_ATTR_THUMB_PRESSURE_THRESHOLD");
+	if (!prop)
+		return default_thumb_threshold;
+
+	threshold = parse_thumb_pressure_property(prop);
+
+	return threshold > 0 ? threshold : default_thumb_threshold;
+}
+
 static void
 tp_init_thumb(struct tp_dispatch *tp)
 {
@@ -3047,8 +3066,7 @@ tp_init_thumb(struct tp_dispatch *tp)
 	double w = 0.0, h = 0.0;
 	struct device_coords edges;
 	struct phys_coords mm = { 0.0, 0.0 };
-	int xres, yres;
-	double threshold;
+	int threshold;
 
 	if (!tp->buttons.is_clickpad)
 		return;
@@ -3077,20 +3095,11 @@ tp_init_thumb(struct tp_dispatch *tp)
 	if (!abs)
 		goto out;
 
-	if (abs->maximum - abs->minimum < 255)
+	threshold = tp_read_thumb_pressure_prop(tp, device);
+	if (threshold == 0)
 		goto out;
 
-	/* Our reference touchpad is the T440s with 42x42 resolution.
-	 * Higher-res touchpads exhibit higher pressure for the same
-	 * interaction. On the T440s, the threshold value is 100, you don't
-	 * reach that with a normal finger interaction.
-	 * Note: "thumb" means massive touch that should not interact, not
-	 * "using the tip of my thumb for a pinch gestures".
-	 */
-	xres = tp->device->abs.absinfo_x->resolution;
-	yres = tp->device->abs.absinfo_y->resolution;
-	threshold = 100.0 * hypot(xres, yres)/hypot(42, 42);
-	tp->thumb.threshold = max(100, threshold);
+	tp->thumb.threshold = threshold;
 
 out:
 	evdev_log_debug(device,
