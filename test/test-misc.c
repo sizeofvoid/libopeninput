@@ -1580,6 +1580,67 @@ START_TEST(timer_flush)
 }
 END_TEST
 
+START_TEST(list_test_insert)
+{
+	struct list_test {
+		int val;
+		struct list node;
+	} tests[] = {
+		{ .val  = 1 },
+		{ .val  = 2 },
+		{ .val  = 3 },
+		{ .val  = 4 },
+	};
+	struct list_test *t;
+	struct list head;
+	int val;
+
+	list_init(&head);
+
+	ARRAY_FOR_EACH(tests, t) {
+		list_insert(&head, &t->node);
+	}
+
+	val = 4;
+	list_for_each(t, &head, node) {
+		ck_assert_int_eq(t->val, val);
+		val--;
+	}
+
+	ck_assert_int_eq(val, 0);
+}
+END_TEST
+
+START_TEST(list_test_append)
+{
+	struct list_test {
+		int val;
+		struct list node;
+	} tests[] = {
+		{ .val  = 1 },
+		{ .val  = 2 },
+		{ .val  = 3 },
+		{ .val  = 4 },
+	};
+	struct list_test *t;
+	struct list head;
+	int val;
+
+	list_init(&head);
+
+	ARRAY_FOR_EACH(tests, t) {
+		list_append(&head, &t->node);
+	}
+
+	val = 1;
+	list_for_each(t, &head, node) {
+		ck_assert_int_eq(t->val, val);
+		val++;
+	}
+	ck_assert_int_eq(val, 5);
+}
+END_TEST
+
 TEST_COLLECTION(misc)
 {
 	litest_add_no_device("events:conversion", event_conversion_device_notify);
@@ -1623,4 +1684,7 @@ TEST_COLLECTION(misc)
 	litest_add_no_device("misc:fd", fd_no_event_leak);
 
 	litest_add_no_device("misc:library_version", library_version);
+
+	litest_add_no_device("misc:list", list_test_insert);
+	litest_add_no_device("misc:list", list_test_append);
 }
