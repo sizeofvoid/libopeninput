@@ -48,7 +48,7 @@ static const char udev_rule[] =
 "\n"
 "ATTRS{name}==\"litest gpio-keys*\",\\\n"
 "    ENV{ID_INPUT_SWITCH}=\"1\",\\\n"
-"    ENV{LIBINPUT_ATTR_gpio_keys_RELIABILITY}=\"reliable\"\n"
+"    ENV{LIBINPUT_ATTR_LID_SWITCH_RELIABILITY}=\"reliable\"\n"
 "\n"
 "LABEL=\"switch_end\"";
 
