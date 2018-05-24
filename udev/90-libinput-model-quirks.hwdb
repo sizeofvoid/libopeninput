@@ -256,7 +256,7 @@ libinput:keyboard:input:b0003v17EFp6047*
  LIBINPUT_ATTR_KEYBOARD_INTEGRATION=external
 
 # Lenovo X280
-libinput:name:*ALPS TrackPoint*:svnLENOVO:*:pvrThinkPadX280:*
+libinput:name:*ALPS TrackPoint*:dmi:svnLENOVO:*:pvrThinkPadX280:*
  LIBINPUT_ATTR_TRACKPOINT_RANGE=70
 
 # Lenovo Thinkpad X1 Yoga disables the keyboard anyway but has the same device
