@@ -1190,9 +1190,9 @@ START_TEST(device_udev_tag_apple)
 
 	d = libinput_device_get_udev_device(device);
 	prop = udev_device_get_property_value(d,
-					      "LIBINPUT_MODEL_WACOM_TOUCHPAD");
+					      "LIBINPUT_MODEL_APPLE_TOUCHPAD");
 
-	if (libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_WACOM)
+	if (libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_APPLE)
 		ck_assert_notnull(prop);
 	else
 		ck_assert(prop == NULL);
