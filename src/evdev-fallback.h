@@ -45,6 +45,12 @@ enum debounce_state {
 	DEBOUNCE_STATE_DISABLED = 999,
 };
 
+struct paired_keyboard {
+	struct list link;
+	struct evdev_device *device;
+	struct libinput_event_listener listener;
+};
+
 struct fallback_dispatch {
 	struct evdev_dispatch base;
 	struct evdev_device *device;
@@ -117,17 +123,12 @@ struct fallback_dispatch {
 		bool is_closed;
 		bool is_closed_client_state;
 
-		/* We allow up to 3 paired keyboards for the lid switch
+		/* We allow multiple paired keyboards for the lid switch
 		 * listener. Only one keyboard should exist, but that can
-		 * have more than one event node.
-		 *
-		 * Note: this is a sparse list, any element may have a
-		 * non-NULL device.
+		 * have more than one event node. And it's a list because
+		 * otherwise the test suite run fails too often.
 		 */
-		struct paired_keyboard {
-			struct evdev_device *device;
-			struct libinput_event_listener listener;
-		} paired_keyboard[3];
+		struct list paired_keyboard_list;
 	} lid;
 };
 

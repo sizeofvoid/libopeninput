@@ -660,7 +660,7 @@ fallback_lid_toggle_keyboard_listeners(struct fallback_dispatch *dispatch,
 {
 	struct paired_keyboard *kbd;
 
-	ARRAY_FOR_EACH(dispatch->lid.paired_keyboard, kbd) {
+	list_for_each(kbd, &dispatch->lid.paired_keyboard_list, link) {
 		if (!kbd->device)
 			continue;
 
@@ -1007,18 +1007,27 @@ fallback_interface_suspend(struct evdev_dispatch *evdev_dispatch,
 }
 
 static void
+fallback_paired_keyboard_destroy(struct paired_keyboard *kbd)
+{
+	kbd->device = NULL;
+	libinput_device_remove_event_listener(&kbd->listener);
+	list_remove(&kbd->link);
+	free(kbd);
+}
+
+static void
 fallback_interface_remove(struct evdev_dispatch *evdev_dispatch)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
-	struct paired_keyboard *kbd;
+	struct paired_keyboard *kbd, *tmp;
 
 	libinput_device_remove_event_listener(&dispatch->tablet_mode.other.listener);
 
-	ARRAY_FOR_EACH(dispatch->lid.paired_keyboard, kbd) {
-		if (!kbd->device)
-			continue;
-
-		libinput_device_remove_event_listener(&kbd->listener);
+	list_for_each_safe(kbd,
+			   tmp,
+			   &dispatch->lid.paired_keyboard_list,
+			   link) {
+		fallback_paired_keyboard_destroy(kbd);
 	}
 }
 
@@ -1096,7 +1105,7 @@ fallback_lid_pair_keyboard(struct evdev_device *lid_switch,
 	struct fallback_dispatch *dispatch =
 		fallback_dispatch(lid_switch->dispatch);
 	struct paired_keyboard *kbd;
-	bool paired = false;
+	size_t count = 0;
 
 	if ((keyboard->tags & EVDEV_TAG_KEYBOARD) == 0 ||
 	    (lid_switch->tags & EVDEV_TAG_LID_SWITCH) == 0)
@@ -1105,30 +1114,30 @@ fallback_lid_pair_keyboard(struct evdev_device *lid_switch,
 	if ((keyboard->tags & EVDEV_TAG_INTERNAL_KEYBOARD) == 0)
 		return;
 
-	ARRAY_FOR_EACH(dispatch->lid.paired_keyboard, kbd) {
-		if (kbd->device)
-			continue;
-
-		kbd->device = keyboard;
-		evdev_log_debug(lid_switch,
-				"lid: keyboard paired with %s<->%s\n",
-				lid_switch->devname,
-				keyboard->devname);
-
-		/* We need to init the event listener now only if the
-		 * reported state is closed. */
-		if (dispatch->lid.is_closed)
-			fallback_lid_toggle_keyboard_listener(
-					      dispatch,
-					      kbd,
-					      dispatch->lid.is_closed);
-		paired = true;
-		break;
+	list_for_each(kbd, &dispatch->lid.paired_keyboard_list, link) {
+		count++;
+		if (count > 3) {
+			evdev_log_info(lid_switch,
+				       "lid: too many internal keyboards\n");
+			break;
+		}
 	}
 
-	if (!paired)
-		evdev_log_bug_libinput(lid_switch,
-				       "lid: too many internal keyboards\n");
+	kbd = zalloc(sizeof(*kbd));
+	kbd->device = keyboard;
+	libinput_device_init_event_listener(&kbd->listener);
+	list_insert(&dispatch->lid.paired_keyboard_list, &kbd->link);
+	evdev_log_debug(lid_switch,
+			"lid: keyboard paired with %s<->%s\n",
+			lid_switch->devname,
+			keyboard->devname);
+
+	/* We need to init the event listener now only if the
+	 * reported state is closed. */
+	if (dispatch->lid.is_closed)
+		fallback_lid_toggle_keyboard_listener(dispatch,
+						      kbd,
+						      dispatch->lid.is_closed);
 }
 
 static void
@@ -1229,18 +1238,19 @@ fallback_interface_device_removed(struct evdev_device *device,
 {
 	struct fallback_dispatch *dispatch =
 			fallback_dispatch(device->dispatch);
-	struct paired_keyboard *kbd;
+	struct paired_keyboard *kbd, *tmp;
 
-	ARRAY_FOR_EACH(dispatch->lid.paired_keyboard, kbd) {
+	list_for_each_safe(kbd,
+			   tmp,
+			   &dispatch->lid.paired_keyboard_list,
+			   link) {
 		if (!kbd->device)
 			continue;
 
 		if (kbd->device != removed_device)
 			continue;
 
-		libinput_device_remove_event_listener(&kbd->listener);
-		libinput_device_init_event_listener(&kbd->listener);
-		kbd->device = NULL;
+		fallback_paired_keyboard_destroy(kbd);
 	}
 
 	if (removed_device == dispatch->tablet_mode.other.sw_device) {
@@ -1435,12 +1445,9 @@ fallback_dispatch_init_switch(struct fallback_dispatch *dispatch,
 {
 	int val;
 
+	list_init(&dispatch->lid.paired_keyboard_list);
+
 	if (device->tags & EVDEV_TAG_LID_SWITCH) {
-		struct paired_keyboard *kbd;
-
-		ARRAY_FOR_EACH(dispatch->lid.paired_keyboard, kbd)
-			libinput_device_init_event_listener(&kbd->listener);
-
 		dispatch->lid.reliability = evdev_read_switch_reliability_prop(device);
 		dispatch->lid.is_closed = false;
 	}
@@ -1466,6 +1473,7 @@ fallback_dispatch_create(struct libinput_device *libinput_device)
 	dispatch->base.dispatch_type = DISPATCH_FALLBACK;
 	dispatch->base.interface = &fallback_interface;
 	dispatch->pending_event = EVDEV_NONE;
+	list_init(&dispatch->lid.paired_keyboard_list);
 
 	fallback_dispatch_init_rel(dispatch, device);
 	fallback_dispatch_init_abs(dispatch, device);
