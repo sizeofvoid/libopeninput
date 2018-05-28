@@ -933,4 +933,19 @@ evdev_device_check_abs_axis_range(struct evdev_device *device,
 	}
 }
 
+struct evdev_paired_keyboard {
+	struct list link;
+	struct evdev_device *device;
+	struct libinput_event_listener listener;
+};
+
+static inline void
+evdev_paired_keyboard_destroy(struct evdev_paired_keyboard *kbd)
+{
+	kbd->device = NULL;
+	libinput_device_remove_event_listener(&kbd->listener);
+	list_remove(&kbd->link);
+	free(kbd);
+}
+
 #endif /* EVDEV_H */

@@ -45,12 +45,6 @@ enum debounce_state {
 	DEBOUNCE_STATE_DISABLED = 999,
 };
 
-struct paired_keyboard {
-	struct list link;
-	struct evdev_device *device;
-	struct libinput_event_listener listener;
-};
-
 struct fallback_dispatch {
 	struct evdev_dispatch base;
 	struct evdev_device *device;

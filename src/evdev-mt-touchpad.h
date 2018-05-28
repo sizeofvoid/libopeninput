@@ -417,10 +417,7 @@ struct tp_dispatch {
 		 * physical device, so we don't care about per-keyboard
 		 * key/modifier masks.
 		 */
-		struct paired_keyboard {
-			struct evdev_device *device;
-			struct libinput_event_listener listener;
-		} paired_keyboard[3];
+		struct list paired_keyboard_list;
 
 		unsigned long key_mask[NLONGS(KEY_CNT)];
 		unsigned long mod_mask[NLONGS(KEY_CNT)];
