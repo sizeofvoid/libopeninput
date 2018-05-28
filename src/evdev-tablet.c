@@ -33,8 +33,9 @@
 #endif
 
 /* The tablet sends events every ~2ms , 50ms should be plenty enough to
-   detect out-of-range */
-#define FORCED_PROXOUT_TIMEOUT ms2us(50)
+   detect out-of-range.
+   This value is higher during test suite runs */
+static int FORCED_PROXOUT_TIMEOUT = 50 * 1000; /* µs */
 
 #define tablet_set_status(tablet_,s_) (tablet_)->status |= (s_)
 #define tablet_unset_status(tablet_,s_) (tablet_)->status &= ~(s_)
@@ -2105,6 +2106,10 @@ struct evdev_dispatch *
 evdev_tablet_create(struct evdev_device *device)
 {
 	struct tablet_dispatch *tablet;
+
+	/* Stop false positives caused by the forced proximity code */
+	if (getenv("LIBINPUT_RUNNING_TEST_SUITE"))
+		FORCED_PROXOUT_TIMEOUT = 150 * 1000; /* µs */
 
 	tablet = zalloc(sizeof *tablet);
 

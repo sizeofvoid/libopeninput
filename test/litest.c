@@ -3402,7 +3402,7 @@ litest_timeout_trackpoint(void)
 void
 litest_timeout_tablet_proxout(void)
 {
-	msleep(70);
+	msleep(170);
 }
 
 void
