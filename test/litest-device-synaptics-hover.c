@@ -102,15 +102,6 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"synaptics_semi_mt_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"synaptics_semi_mt_end\"\n"
-"\n"
-"ATTRS{name}==\"SynPS/2 Synaptics TouchPad\",\\\n"
-"    ENV{LIBINPUT_MODEL_JUMPING_SEMI_MT}=\"1\"\n"
-"\n"
-"LABEL=\"synaptics_semi_mt_end\"";
-
 TEST_DEVICE("synaptics-hover",
 	.type = LITEST_SYNAPTICS_HOVER_SEMI_MT,
 	.features = LITEST_TOUCHPAD | LITEST_SEMI_MT | LITEST_BUTTON,
@@ -120,5 +111,4 @@ TEST_DEVICE("synaptics-hover",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
 )
