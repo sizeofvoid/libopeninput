@@ -59,7 +59,7 @@ REAL = Combine((INTEGER + Optional('.' + Optional(INTEGER))) ^ ('.' + INTEGER))
 UDEV_TAG = Word(string.ascii_uppercase, alphanums + '_')
 
 TYPES = {
-    'libinput': ('name', 'touchpad', 'mouse', 'keyboard', 'tablet'),
+    'libinput': ('name', 'touchpad', 'mouse', 'keyboard', 'tablet', 'pointingstick'),
 }
 
 
@@ -110,8 +110,7 @@ def property_grammar():
         ('LIBINPUT_ATTR_PRESSURE_RANGE', Group(crange('SETTINGS*'))),
         ('LIBINPUT_ATTR_TOUCH_SIZE_RANGE', Group(crange('SETTINGS*'))),
         ('LIBINPUT_ATTR_TPKBCOMBO_LAYOUT', Or(('below'))),
-        ('LIBINPUT_ATTR_LID_SWITCH_RELIABILITY',
-         Or(('reliable', 'write_open'))),
+        ('LIBINPUT_ATTR_LID_SWITCH_RELIABILITY', Or(('reliable', 'write_open'))),
         ('LIBINPUT_ATTR_KEYBOARD_INTEGRATION', Or(('internal', 'external'))),
         ('LIBINPUT_ATTR_TRACKPOINT_RANGE', INTEGER('Y')),
         ('LIBINPUT_ATTR_THUMB_PRESSURE_THRESHOLD', INTEGER('Y')),

@@ -52,24 +52,6 @@ prop_value(struct udev_device *device,
 }
 
 static void
-handle_touchpad_alps(struct udev_device *device)
-{
-	const char *product;
-	int bus, vid, pid, version;
-
-	product = prop_value(device, "PRODUCT");
-	if (!product)
-		return;
-
-	if (sscanf(product, "%x/%x/%x/%x", &bus, &vid, &pid, &version) != 4)
-		return;
-
-	/* ALPS' firmware version is the version */
-	if (version)
-		printf("LIBINPUT_MODEL_FIRMWARE_VERSION=%x\n", version);
-}
-
-static void
 handle_touchpad_synaptics(struct udev_device *device)
 {
 	const char *product, *props;
@@ -102,23 +84,8 @@ handle_touchpad(struct udev_device *device)
 	if (!name)
 		return;
 
-	if (strstr(name, "AlpsPS/2 ALPS") != NULL)
-		handle_touchpad_alps(device);
 	if (strstr(name, "Synaptics ") != NULL)
 		handle_touchpad_synaptics(device);
-}
-
-static void
-handle_pointingstick(struct udev_device *device)
-{
-	const char *name = NULL;
-
-	name = prop_value(device, "NAME");
-	if (!name)
-		return;
-
-	if (strstr(name, "AlpsPS/2 ALPS") != NULL)
-		handle_touchpad_alps(device);
 }
 
 /**
@@ -200,8 +167,6 @@ int main(int argc, char **argv)
 
 	if (prop_value(device, "ID_INPUT_TOUCHPAD"))
 		handle_touchpad(device);
-	if (prop_value(device, "ID_INPUT_POINTINGSTICK"))
-		handle_pointingstick(device);
 
 	rc = 0;
 

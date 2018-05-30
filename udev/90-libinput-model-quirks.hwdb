@@ -13,7 +13,6 @@
 #	libinput:touchpad:<modalias>
 #	libinput:name:<name>:dmi:<dmi string>
 #	libinput:name:<name>:dt:<device-tree string>
-#	libinput:name:<name>:fwversion:<version>
 #
 # Sort by brand, model
 
@@ -45,11 +44,21 @@ libinput:name:*AlpsPS/2 ALPS DualPoint TouchPad:dmi:*
 libinput:name:*AlpsPS/2 ALPS GlidePoint:dmi:*
  LIBINPUT_MODEL_ALPS_TOUCHPAD=1
 
-libinput:name:*AlpsPS/2 ALPS DualPoint TouchPad:fwversion:800
-libinput:name:*AlpsPS/2 ALPS GlidePoint:fwversion:800
+# ALPS firmware versions:
+# V1		= 0x100
+# V2		= 0x200
+# V3		= 0x300
+# V3_RUSHMORE	= 0x310
+# V4		= 0x400
+# V5		= 0x500
+# V6		= 0x600
+# V7		= 0x700	/* t3btl t4s */
+# V8		= 0x800	/* SS4btl SS4s */
+# V9		= 0x900	/* ss3btl */
+libinput:touchpad:input:b0011v0002p0008e0800*
  LIBINPUT_ATTR_SIZE_HINT=100x55
 
-libinput:name:*AlpsPS/2 ALPS DualPoint Stick:fwversion:800
+libinput:pointingstick:input:b0011v0002p0008e0800*
  LIBINPUT_ATTR_TRACKPOINT_RANGE=160
 
 ##########################################

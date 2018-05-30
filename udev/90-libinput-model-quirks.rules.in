@@ -11,23 +11,6 @@
 ACTION!="add|change", GOTO="libinput_model_quirks_end"
 KERNEL!="event*", GOTO="libinput_model_quirks_end"
 
-# Firmware detection, two-stage process.
-# First, run the program and import the LIBINPUT_MODEL_FIRMWARE_VERSION
-# environment (if any)
-KERNELS=="*input*", \
-  ENV{ID_INPUT_TOUCHPAD}=="1", \
-  ENV{.DETECT_FWVERSION}="1"
-KERNELS=="*input*", \
-  ENV{ID_INPUT_POINTINGSTICK}=="1", \
-  ENV{.DETECT_FWVERSION}="1"
-ENV{.DETECT_FWVERSION}!="1", GOTO="skip_fwversion"
-
-IMPORT{program}="@UDEV_TEST_PATH@libinput-model-quirks %S%p"
-ENV{LIBINPUT_MODEL_FIRMWARE_VERSION}!="", \
-  IMPORT{builtin}="hwdb 'libinput:name:$attr{name}:fwversion:$env{LIBINPUT_MODEL_FIRMWARE_VERSION}'"
-# End of touchpad firmware detection
-LABEL="skip_fwversion"
-
 # libinput:touchpad:<modalias>
 ENV{ID_INPUT_TOUCHPAD}=="1", \
   IMPORT{builtin}="hwdb --subsystem=input --lookup-prefix=libinput:touchpad:"
@@ -39,6 +22,10 @@ ENV{ID_INPUT_TABLET}=="1", \
 # libinput:mouse:<modalias>
 ENV{ID_INPUT_MOUSE}=="1", \
   IMPORT{builtin}="hwdb --subsystem=input --lookup-prefix=libinput:mouse:"
+
+# libinput:pointingstick:<modalias>
+ENV{ID_INPUT_POINTINGSTICK}=="1", \
+  IMPORT{builtin}="hwdb --subsystem=input --lookup-prefix=libinput:pointingstick:"
 
 # libinput:touchpad:<modalias>
 ENV{ID_INPUT_KEYBOARD}=="1", \
