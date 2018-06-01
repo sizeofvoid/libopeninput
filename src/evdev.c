@@ -1194,7 +1194,7 @@ evdev_get_trackpoint_range(struct evdev_device *device)
 		       HTTP_DOC_LINK);
 
 	prop = udev_device_get_property_value(device->udev_device,
-					      "LIBINPUT_ATTR_TRACKPOINT_SENSITIVITY");
+					      "POINTINGSTICK_SENSITIVITY");
 	if (prop) {
 		int sensitivity;
 
@@ -1210,7 +1210,7 @@ evdev_get_trackpoint_range(struct evdev_device *device)
 			sensitivity/DEFAULT_TRACKPOINT_SENSITIVITY;
 
 		evdev_log_debug(device,
-				"trackpoint sensitivity is %d\n",
+				"trackpoint udev sensitivity is %d\n",
 				sensitivity);
 	}
 

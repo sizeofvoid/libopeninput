@@ -39,8 +39,4 @@ KERNELS=="input*", \
 KERNELS=="input*", \
   IMPORT{builtin}="hwdb 'libinput:name:$attr{name}:dt:$attr{[devicetree/base]model}'"
 
-ENV{ID_INPUT_POINTINGSTICK}=="1", \
-  ATTRS{sensitivity}=="?*", \
-  ENV{LIBINPUT_ATTR_TRACKPOINT_SENSITIVITY}="$attr{sensitivity}"
-
 LABEL="libinput_model_quirks_end"
