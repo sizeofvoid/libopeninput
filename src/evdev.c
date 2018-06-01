@@ -1215,6 +1215,11 @@ evdev_get_trackpoint_range(struct evdev_device *device)
 	}
 
 out:
+	if (range == 0) {
+		evdev_log_bug_libinput(device, "trackpoint range is zero\n");
+		range = DEFAULT_TRACKPOINT_RANGE;
+	}
+
 	evdev_log_info(device, "trackpoint device set to range %d\n", range);
 	return range;
 }
