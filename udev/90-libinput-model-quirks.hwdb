@@ -220,6 +220,11 @@ libinput:mouse:b0003v04B3p3109*
 libinput:mouse:b0003v17EFp6049*
  LIBINPUT_MODEL_LENOVO_SCROLLPOINT=1
 
+# Lenovo Thinkpad X41 Tablet has lid buttons to be used in tablet mode
+# (#103749)
+libinput:name:AT Translated Set 2 keyboard:dmi:*svnIBM:*pvrThinkPadX41Tablet:*
+ LIBINPUT_MODEL_TABLET_MODE_NO_SUSPEND=1
+
 ##########################################
 # LENOVO
 ##########################################
