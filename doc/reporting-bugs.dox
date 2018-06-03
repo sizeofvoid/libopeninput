@@ -56,7 +56,8 @@ Once you can reproduce it, use the @ref libinput-debug-events helper tool.
 The output is textual and can help identify whether the bug is in libinput
 at all. Note that any configuration options you have set must be specified
 on the commandline, see the @ref libinput-debug-events
-"libinput-debug-events" man page.
+"libinput-debug-events" man page. Use the `--verbose` flag to get more
+information about how libinput processes events.
 
 If the bug cannot be reproduced with the @ref libinput-debug-events helper,
 even with the correct configuration options set, it is likely not a bug in
