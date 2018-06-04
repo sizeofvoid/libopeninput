@@ -299,9 +299,16 @@ create_pointer_accelerator_filter_trackpoint(int max_hw_delta)
 		return NULL;
 
 	filter->history_size = ARRAY_LENGTH(filter->history);
-	filter->scale_factor = 1.0 * TRACKPOINT_DEFAULT_RANGE / max_hw_delta;
 	filter->max_accel = TRACKPOINT_DEFAULT_MAX_ACCEL;
 	filter->max_delta = TRACKPOINT_DEFAULT_MAX_DELTA;
+
+	filter->scale_factor = 1.0 * TRACKPOINT_DEFAULT_RANGE / max_hw_delta;
+
+	/* Crop to a maximum 1.0 for the scale factor, otherwise we scale up
+	 * events from low-res trackpoints when really we should just take
+	 * those as-is.
+	 */
+	filter->scale_factor = min(1.0, filter->scale_factor);
 
 	filter->base.interface = &accelerator_interface_trackpoint;
 
