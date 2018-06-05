@@ -18,7 +18,7 @@ process below.  A successful build requires the @ref
 building_dependencies to be installed before running meson.
 
 @code
-$> git clone git://anongit.freedesktop.org/git/wayland/libinput
+$> git clone https://gitlab.freedesktop.org/libinput/libinput
 $> cd libinput
 $> meson --prefix=/usr builddir/
 $> ninja -C builddir/
@@ -189,7 +189,7 @@ requires the @ref building_dependencies to be installed at configure
 time.
 
 @code
-$> git clone git://anongit.freedesktop.org/git/wayland/libinput
+$> git clone https://gitlab.freedesktop.org/libinput/libinput
 $> cd libinput
 $> ./autogen.sh --prefix=/usr --libdir=/usr/lib64
 $> make

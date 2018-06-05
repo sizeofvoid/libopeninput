@@ -2,7 +2,7 @@
 @page reporting_bugs Reporting bugs
 
 A new bug can be filed here:
-https://bugs.freedesktop.org/enter_bug.cgi?product=Wayland&component=libinput
+https://gitlab.freedesktop.org/libinput/libinput
 
 When reporting bugs against libinput, please follow the instructions below
 and provide the required data. You will need:
@@ -182,7 +182,7 @@ E: USEC_INITIALIZED=5463031
 @note Where available, the @ref libinput-record tools should be used instead
 of evemu
 
-<a href="http://www.freedesktop.org/wiki/Evemu/">evemu</a> records the
+<a href="https://www.freedesktop.org/wiki/Evemu/">evemu</a> records the
 device capabilities together with the event stream from the kernel. On our
 side, this allows us to recreate a virtual device identical to your device
 and re-play the event sequence, hopefully triggering the same bug.
