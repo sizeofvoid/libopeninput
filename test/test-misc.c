@@ -1366,6 +1366,7 @@ START_TEST(strjoin_test)
 		{ { NULL }, NULL, NULL }
 	};
 	struct strjoin_test *t = tests;
+	struct strjoin_test nulltest = { {NULL}, "x", NULL };
 
 	while (t->strv[0]) {
 		char *str;
@@ -1377,6 +1378,8 @@ START_TEST(strjoin_test)
 		free(str);
 		t++;
 	}
+
+	ck_assert(strv_join(nulltest.strv, "x") == NULL);
 }
 END_TEST
 

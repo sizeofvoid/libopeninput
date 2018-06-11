@@ -586,11 +586,15 @@ strv_join(char **strv, const char *joiner)
 	if (!strv || !joiner)
 		return NULL;
 
+	if (strv[0] == NULL)
+		return NULL;
+
 	for (s = strv, count = 0; *s; s++, count++) {
 		slen += strlen(*s);
 	}
 
 	assert(slen < 1000);
+	assert(strlen(joiner) < 1000);
 
 	slen += (count - 1) * strlen(joiner);
 
