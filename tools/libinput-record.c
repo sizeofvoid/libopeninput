@@ -716,6 +716,7 @@ buffer_gesture_event(struct record_context *ctx,
 static char *
 buffer_tablet_axes(struct libinput_event_tablet_tool *t)
 {
+	const int MAX_AXES = 10;
 	struct libinput_tablet_tool *tool;
 	char *s = NULL;
 	int idx = 0;
@@ -725,7 +726,7 @@ buffer_tablet_axes(struct libinput_event_tablet_tool *t)
 
 	tool = libinput_event_tablet_tool_get_tool(t);
 
-	strv = zalloc(10 * sizeof *strv);
+	strv = zalloc(MAX_AXES * sizeof *strv);
 
 	x = libinput_event_tablet_tool_get_x(t);
 	y = libinput_event_tablet_tool_get_y(t);
@@ -788,6 +789,8 @@ buffer_tablet_axes(struct libinput_event_tablet_tool *t)
 		if (len <= 0)
 			goto out;
 	}
+
+	assert(idx < MAX_AXES);
 
 	s = strv_join(strv, ", ");
 out:
