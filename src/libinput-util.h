@@ -141,6 +141,9 @@ zalloc(size_t size)
 {
 	void *p;
 
+	if ((ssize_t)size < 0)
+		abort();
+
 	p = calloc(1, size);
 	if (!p)
 		abort();

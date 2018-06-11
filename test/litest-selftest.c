@@ -344,6 +344,12 @@ START_TEST(ck_double_ge_fails)
 }
 END_TEST
 
+START_TEST(zalloc_overflow)
+{
+	zalloc(-1);
+}
+END_TEST
+
 static Suite *
 litest_assert_macros_suite(void)
 {
@@ -406,6 +412,10 @@ litest_assert_macros_suite(void)
 	tcase_add_exit_test(tc, ck_double_gt_fails, 1);
 	tcase_add_exit_test(tc, ck_double_le_fails, 1);
 	tcase_add_exit_test(tc, ck_double_ge_fails, 1);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("zalloc ");
+	tcase_add_test_raise_signal(tc, zalloc_overflow, SIGABRT);
 	suite_add_tcase(s, tc);
 
 	return s;
