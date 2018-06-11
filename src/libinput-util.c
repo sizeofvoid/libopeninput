@@ -595,6 +595,8 @@ strv_join(char **strv, const char *joiner)
 
 	assert(slen < 1000);
 	assert(strlen(joiner) < 1000);
+	assert(count > 0);
+	assert(count < 100);
 
 	slen += (count - 1) * strlen(joiner);
 
