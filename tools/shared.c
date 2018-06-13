@@ -251,7 +251,7 @@ static const struct libinput_interface interface = {
 };
 
 static struct libinput *
-tools_open_udev(const char *seat, bool verbose, bool grab)
+tools_open_udev(const char *seat, bool verbose, bool *grab)
 {
 	struct libinput *li;
 	struct udev *udev = udev_new();
@@ -261,7 +261,7 @@ tools_open_udev(const char *seat, bool verbose, bool grab)
 		return NULL;
 	}
 
-	li = libinput_udev_create_context(&interface, &grab, udev);
+	li = libinput_udev_create_context(&interface, grab, udev);
 	if (!li) {
 		fprintf(stderr, "Failed to initialize context from udev\n");
 		goto out;
@@ -285,12 +285,12 @@ out:
 }
 
 static struct libinput *
-tools_open_device(const char *path, bool verbose, bool grab)
+tools_open_device(const char *path, bool verbose, bool *grab)
 {
 	struct libinput_device *device;
 	struct libinput *li;
 
-	li = libinput_path_create_context(&interface, &grab);
+	li = libinput_path_create_context(&interface, grab);
 	if (!li) {
 		fprintf(stderr, "Failed to initialize context from %s\n", path);
 		return NULL;
@@ -315,7 +315,7 @@ struct libinput *
 tools_open_backend(enum tools_backend which,
 		   const char *seat_or_device,
 		   bool verbose,
-		   bool grab)
+		   bool *grab)
 {
 	struct libinput *li;
 
