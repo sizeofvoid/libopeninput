@@ -958,7 +958,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	li = tools_open_backend(backend, seat_or_device, verbose, grab);
+	li = tools_open_backend(backend, seat_or_device, verbose, &grab);
 	if (!li)
 		return 1;
 

@@ -104,7 +104,7 @@ int tools_parse_option(int option,
 struct libinput* tools_open_backend(enum tools_backend which,
 				    const char *seat_or_device,
 				    bool verbose,
-				    bool grab);
+				    bool *grab);
 void tools_device_apply_config(struct libinput_device *device,
 			       struct tools_options *options);
 int tools_exec_command(const char *prefix, int argc, char **argv);
