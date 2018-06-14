@@ -1240,7 +1240,7 @@ quirk_apply_section(struct quirks_context *ctx,
 	}
 
 	nprops += q->nproperties;
-	tmp = reallocarray(q->properties, nprops, sizeof(p));
+	tmp = realloc(q->properties, nprops * sizeof(p));
 	if (!tmp)
 		return;
 
