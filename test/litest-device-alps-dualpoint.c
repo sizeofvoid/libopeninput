@@ -75,7 +75,8 @@ static struct litest_device_interface interface = {
 static struct input_id input_id = {
 	.bustype = 0x11,
 	.vendor = 0x2,
-	.product = 0x310,
+	.product = 0x8,
+	.version = 0x310,
 };
 
 static int events[] = {
