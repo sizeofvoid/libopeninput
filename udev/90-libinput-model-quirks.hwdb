@@ -124,6 +124,10 @@ libinput:name:*CyPS/2 Cypress Trackpad:dmi:*svnDell*:*XPSL322X*
  LIBINPUT_ATTR_PRESSURE_RANGE=30:20
  LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD=254
 
+libinput:name:*Synaptics s3203:dmi:*svnDellInc.:*pnXPS139333*
+ LIBINPUT_ATTR_PRESSURE_RANGE=15:10
+ LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD=150
+
 ##########################################
 # Elantech
 ##########################################
