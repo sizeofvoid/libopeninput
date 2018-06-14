@@ -657,6 +657,40 @@ executable('ptraccel-debug',
 
 ############ tests ############
 
+test_symbols_leak = find_program('test/symbols-leak-test.in')
+test('symbols-leak-test',
+     test_symbols_leak,
+     args : [ meson.current_source_dir() ])
+
+# build-test only
+executable('test-build-pedantic',
+	   'test/build-pedantic.c',
+	   dependencies : [dep_udev],
+	   include_directories : [includes_src, includes_include],
+	   c_args : ['-std=c99', '-pedantic', '-Werror'],
+	   install : false)
+# build-test only
+executable('test-build-std-gnuc90',
+	   'test/build-pedantic.c',
+	   dependencies : [dep_udev],
+	   include_directories : [includes_src, includes_include],
+	   c_args : ['-std=gnu90', '-Werror'],
+	   install : false)
+# test for linking with the minimal linker flags
+executable('test-build-linker',
+	   'test/build-pedantic.c',
+	   include_directories : [includes_src, includes_include],
+	   dependencies : [ dep_libinput, dep_libinput_util ],
+	   install : false)
+# test including from C++
+executable('test-build-cxx',
+	   'test/build-cxx.cc',
+	   dependencies : [dep_udev],
+	   include_directories : [includes_src, includes_include],
+	   install : false)
+
+# This is the test suite runner, we allow disabling that one because of
+# dependencies
 if get_option('tests')
 	dep_check = dependency('check', version : '>= 0.9.10')
 	valgrind = find_program('valgrind')
@@ -813,11 +847,6 @@ if get_option('tests')
 					  install : false)
 	test('test-litest-selftest', test_litest_selftest)
 
-	test_symbols_leak = find_program('test/symbols-leak-test.in')
-	test('symbols-leak-test',
-	     test_symbols_leak,
-	     args : [ meson.current_source_dir() ])
-
 	libinput_test_runner_sources = lib_litest_sources + [
 		'src/libinput-util.h',
 		'src/libinput-util.c',
@@ -850,33 +879,6 @@ if get_option('tests')
 	test('libinput-test-suite-runner',
 	     libinput_test_runner,
 	     timeout : 1200)
-
-	# build-test only
-        executable('test-build-pedantic',
-		   'test/build-pedantic.c',
-		   dependencies : [dep_udev],
-		   include_directories : [includes_src, includes_include],
-		   c_args : ['-std=c99', '-pedantic', '-Werror'],
-		   install : false)
-	# build-test only
-        executable('test-build-std-gnuc90',
-		   'test/build-pedantic.c',
-		   dependencies : [dep_udev],
-		   include_directories : [includes_src, includes_include],
-		   c_args : ['-std=gnu90', '-Werror'],
-		   install : false)
-	# test for linking with the minimal linker flags
-        executable('test-build-linker',
-		   'test/build-pedantic.c',
-		   include_directories : [includes_src, includes_include],
-		   dependencies : [ dep_libinput, dep_libinput_util ],
-		   install : false)
-	# test including from C++
-	executable('test-build-cxx',
-		   'test/build-cxx.cc',
-		   dependencies : [dep_udev],
-		   include_directories : [includes_src, includes_include],
-		   install : false)
 
 	valgrind_env = environment()
 	valgrind_env.set('CK_FORK', 'no')
