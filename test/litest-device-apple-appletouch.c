@@ -84,7 +84,7 @@ static struct input_absinfo absinfo[] = {
 };
 
 static const char quirk_file[] =
-"[litest ALPS Touchpad]\n"
+"[litest Apple Touchpad]\n"
 "MatchName=litest appletouch\n"
 "ModelAppleTouchpadOneButton=1\n";
 
