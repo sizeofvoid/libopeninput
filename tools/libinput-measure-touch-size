@@ -138,7 +138,7 @@ class TouchSequence(object):
 
     def _str_summary(self):
         if not self.points:
-                return "Sequence: no major/minor values recorded"
+            return "{:78s}".format("Sequence: no major/minor values recorded")
 
         s = "Sequence: major: [{:3d}..{:3d}] ".format(
                 self.major_range.min, self.major_range.max

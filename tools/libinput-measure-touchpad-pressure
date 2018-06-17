@@ -105,6 +105,9 @@ class TouchSequence(object):
         return self._str_state() if self.is_active else self._str_summary()
 
     def _str_summary(self):
+        if not self.points:
+            return "{:78s}".format("Sequence: no pressure values recorded")
+
         s = "Sequence {} pressure: "\
             "min: {:3d} max: {:3d} avg: {:3d} median: {:3d} tags:" \
             .format(
