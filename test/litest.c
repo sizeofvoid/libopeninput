@@ -1146,7 +1146,7 @@ litest_copy_file(const char *dest, const char *src, const char *header)
 				rindex(file->path, '.');
 		out = mkstemps(file->path, suffixlen);
 	} else {
-		out = open(file->path, O_CREAT|O_WRONLY);
+		out = open(file->path, O_CREAT|O_WRONLY, 0644);
 	}
 	if (out == -1)
 		litest_abort_msg("Failed to write to file %s (%s)\n",
