@@ -40,6 +40,7 @@ variables:
   # When using docker-in-docker (dind), it's wise to use the overlayfs driver
   # for improved performance.
   DOCKER_DRIVER: overlay2
+  GIT_DEPTH: 1
 
 .default_artifacts: &default_artifacts
   artifacts:
