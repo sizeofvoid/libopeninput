@@ -1185,16 +1185,6 @@ litest_install_model_quirks(struct list *created_files_list)
 			 "#################################################################\n\n";
 	struct created_file *file;
 
-	file = litest_copy_file(UDEV_MODEL_QUIRKS_RULE_FILE,
-				LIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE,
-				warning);
-	list_insert(created_files_list, &file->link);
-
-	file = litest_copy_file(UDEV_MODEL_QUIRKS_HWDB_FILE,
-				LIBINPUT_MODEL_QUIRKS_UDEV_HWDB_FILE,
-				warning);
-	list_insert(created_files_list, &file->link);
-
 	file = litest_copy_file(UDEV_TEST_DEVICE_RULE_FILE,
 				LIBINPUT_TEST_DEVICE_RULES_FILE,
 				warning);

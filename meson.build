@@ -116,13 +116,6 @@ executable('libinput-model-quirks',
 	   install : true,
 	   install_dir : udev_dir)
 
-model_quirks = files('udev/90-libinput-model-quirks.hwdb')
-
-parse_hwdb_py = find_program('udev/parse_hwdb.py')
-test('parse-hwdb',
-     parse_hwdb_py,
-     args : model_quirks)
-
 udev_rules_config = configuration_data()
 udev_rules_config.set('UDEV_TEST_PATH', '')
 configure_file(input : 'udev/80-libinput-device-groups.rules.in',
@@ -130,25 +123,11 @@ configure_file(input : 'udev/80-libinput-device-groups.rules.in',
 	       install : true,
 	       install_dir : udev_rules_dir,
 	       configuration : udev_rules_config)
-configure_file(input : 'udev/90-libinput-model-quirks.rules.in',
-	       output : '90-libinput-model-quirks.rules',
-	       install : true,
-	       install_dir : udev_rules_dir,
-	       configuration : udev_rules_config)
-configure_file(input : model_quirks,
-	       output : '90-libinput-model-quirks.hwdb',
-	       install : true,
-	       install_dir : udev_hwdb_dir,
-	       configuration : udev_rules_config)
 
 litest_udev_rules_config = configuration_data()
 litest_udev_rules_config.set('UDEV_TEST_PATH', meson.build_root() + '/')
 litest_groups_rules_file = configure_file(input : 'udev/80-libinput-device-groups.rules.in',
 	       output : '80-libinput-device-groups-litest.rules',
-	       install : false,
-	       configuration : litest_udev_rules_config)
-litest_model_quirks_file = configure_file(input : 'udev/90-libinput-model-quirks.rules.in',
-	       output : '90-libinput-model-quirks-litest.rules',
 	       install : false,
 	       configuration : litest_udev_rules_config)
 
@@ -812,10 +791,6 @@ if get_option('tests')
 		       install : false,
 		       configuration : udev_rules_config)
 
-	config_h.set_quoted('LIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE',
-			    join_paths(meson.build_root(), '90-libinput-model-quirks.rules'))
-	config_h.set_quoted('LIBINPUT_MODEL_QUIRKS_UDEV_HWDB_FILE',
-			    join_paths(meson.build_root(), '90-libinput-model-quirks.hwdb'))
 	config_h.set_quoted('LIBINPUT_TEST_DEVICE_RULES_FILE',
 			    join_paths(meson.build_root(), '80-libinput-test-device.rules'))
 	config_h.set_quoted('LIBINPUT_DEVICE_GROUPS_RULES_FILE',
