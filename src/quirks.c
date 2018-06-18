@@ -1079,8 +1079,6 @@ quirks_new(void)
 struct quirks *
 quirks_unref(struct quirks *q)
 {
-	struct property *p;
-
 	if (!q)
 		return NULL;
 
@@ -1090,7 +1088,6 @@ quirks_unref(struct quirks *q)
 
 	for (size_t i = 0; i < q->nproperties; i++) {
 		property_unref(q->properties[i]);
-		p++;
 	}
 
 	list_remove(&q->link);
