@@ -185,8 +185,6 @@ quirk_log_msg_va(struct quirks_context *ctx,
 		 const char *format,
 		 va_list args)
 {
-	enum libinput_log_priority p = priority;
-
 	switch (priority) {
 	/* We don't use this if we're logging through libinput */
 	default:
@@ -201,7 +199,10 @@ quirk_log_msg_va(struct quirks_context *ctx,
 		break;
 	}
 
-	ctx->log_handler(ctx->libinput, p, format, args);
+	ctx->log_handler(ctx->libinput,
+			 (enum libinput_log_priority)priority,
+			 format,
+			 args);
 }
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 4)

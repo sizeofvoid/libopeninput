@@ -41,7 +41,7 @@ log_handler(struct libinput *this_is_null,
 	    va_list args)
 {
 	FILE *out = stdout;
-	enum quirks_log_priorities p = priority;
+	enum quirks_log_priorities p = (enum quirks_log_priorities)priority;
 	char buf[256] = {0};
 	const char *prefix = "";
 
