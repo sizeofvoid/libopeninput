@@ -252,7 +252,6 @@ quirk_get_name(enum quirk q)
 	case QUIRK_MODEL_SYSTEM76_GALAGO:		return "ModelSystem76Galago";
 	case QUIRK_MODEL_SYSTEM76_KUDU:			return "ModelSystem76Kudu";
 	case QUIRK_MODEL_WACOM_TOUCHPAD:		return "ModelWacomTouchpad";
-	case QUIRK_MODEL_JUMPING_SEMI_MT:		return "ModelJumpingSemiMT";
 
 	case QUIRK_ATTR_SIZE_HINT:			return "AttrSizeHint";
 	case QUIRK_ATTR_TOUCH_SIZE_RANGE:		return "AttrTouchSizeRange";
@@ -589,7 +588,6 @@ parse_model(struct quirks_context *ctx,
 		QUIRK_MODEL_SYSTEM76_GALAGO,
 		QUIRK_MODEL_SYSTEM76_KUDU,
 		QUIRK_MODEL_WACOM_TOUCHPAD,
-		QUIRK_MODEL_JUMPING_SEMI_MT,
 	};
 	bool b;
 	enum quirk *q;
