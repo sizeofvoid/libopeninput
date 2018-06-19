@@ -488,13 +488,15 @@ configure_file(input : 'tools/libinput-list-quirks.man',
 	       )
 
 libinput_list_devices_sources = [ 'tools/libinput-list-devices.c' ]
-executable('libinput-list-devices',
-	   libinput_list_devices_sources,
-	   dependencies : deps_tools,
-	   include_directories : [includes_src, includes_include],
-	   install_dir : libinput_tool_path,
-	   install : true,
-	   )
+libinput_list_devices = executable('libinput-list-devices',
+				   libinput_list_devices_sources,
+				   dependencies : deps_tools,
+				   include_directories : [includes_src, includes_include],
+				   install_dir : libinput_tool_path,
+				   install : true,
+				  )
+test('list-devices', libinput_list_devices)
+
 configure_file(input : 'tools/libinput-list-devices.man',
 	       output : 'libinput-list-devices.1',
 	       configuration : man_config,
