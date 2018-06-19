@@ -1001,6 +1001,8 @@ quirks_init_subsystem(const char *data_path,
 {
 	struct quirks_context *ctx = zalloc(sizeof *ctx);
 
+	assert(data_path);
+
 	ctx->refcount = 1;
 	ctx->log_handler = log_handler;
 	ctx->log_type = log_type;
