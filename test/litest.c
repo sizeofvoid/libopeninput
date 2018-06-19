@@ -1229,7 +1229,7 @@ litest_install_quirks(struct list *created_files_list)
 {
 	struct litest_test_device **dev = devices;
 	struct created_file *file;
-	char dirname[PATH_MAX] = "/run/litest-XXXXXX";
+	char dirname[] = "/run/litest-XXXXXX";
 	char **quirks, **q;
 
 	litest_assert_notnull(mkdtemp(dirname));
