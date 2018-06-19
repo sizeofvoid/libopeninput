@@ -114,6 +114,7 @@ list_device_quirks(struct quirks_context *ctx, struct udev_device *device)
 		QUIRK_ATTR_PALM_PRESSURE_THRESHOLD,
 		QUIRK_ATTR_RESOLUTION_HINT,
 		QUIRK_ATTR_TRACKPOINT_RANGE,
+		QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD,
 	};
 	enum quirk *q;
 
