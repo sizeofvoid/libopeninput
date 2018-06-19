@@ -117,9 +117,18 @@ This issue is tracked in https://github.com/mesonbuild/meson/issues/1967.
 @subsection building_dependencies Build dependencies
 
 libinput has a few build-time dependencies that must be installed prior to
-running configure. In most cases, it is sufficient to install the
-dependencies that your distribution uses to build the libinput package.
-These can be installed with one of the following commands:
+running configure.
+
+@note The build dependencies for some distributions can be found in the
+<a href="https://gitlab.freedesktop.org/libinput/libinput/blob/master/.gitlab-ci.yml">
+GitLab Continuous Integration file</a>. Search for <b>FEDORA_RPMS</b> in the
+<b>variables:</b> definition and check the list for an entry for your
+distribution.
+
+
+In most cases, it is sufficient to install the dependencies that your
+distribution uses to build the libinput package.  These can be installed
+with one of the following commands:
 
 <ul>
 <li><b>Debian/Ubuntu</b> based distributions: ```sudo apt-get build-dep
