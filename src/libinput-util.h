@@ -142,7 +142,9 @@ zalloc(size_t size)
 {
 	void *p;
 
-	if ((ssize_t)size < 0)
+	/* We never need to alloc anything even near one MB so we can assume
+	 * if we ever get above that something's going wrong */
+	if (size > 1024 * 1024)
 		abort();
 
 	p = calloc(1, size);

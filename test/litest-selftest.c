@@ -350,6 +350,19 @@ START_TEST(zalloc_overflow)
 }
 END_TEST
 
+START_TEST(zalloc_max_size)
+{
+	/* Built-in alloc maximum */
+	free(zalloc(1024 * 1024));
+}
+END_TEST
+
+START_TEST(zalloc_too_large)
+{
+	zalloc(1024 * 1024 + 1);
+}
+END_TEST
+
 static Suite *
 litest_assert_macros_suite(void)
 {
@@ -415,7 +428,9 @@ litest_assert_macros_suite(void)
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("zalloc ");
+	tcase_add_test(tc, zalloc_max_size);
 	tcase_add_test_raise_signal(tc, zalloc_overflow, SIGABRT);
+	tcase_add_test_raise_signal(tc, zalloc_too_large, SIGABRT);
 	suite_add_tcase(s, tc);
 
 	return s;
