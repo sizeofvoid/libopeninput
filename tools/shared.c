@@ -232,7 +232,7 @@ open_restricted(const char *path, int flags, void *user_data)
 	if (fd < 0)
 		fprintf(stderr, "Failed to open %s (%s)\n",
 			path, strerror(errno));
-	else if (*grab && ioctl(fd, EVIOCGRAB, (void*)1) == -1)
+	else if (grab && *grab && ioctl(fd, EVIOCGRAB, (void*)1) == -1)
 		fprintf(stderr, "Grab requested, but failed for %s (%s)\n",
 			path, strerror(errno));
 
