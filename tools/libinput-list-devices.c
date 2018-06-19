@@ -270,6 +270,7 @@ print_device_notify(struct libinput_event *ev)
 	struct libinput_device *dev = libinput_event_get_device(ev);
 	struct libinput_seat *seat = libinput_device_get_seat(dev);
 	struct libinput_device_group *group;
+	struct udev_device *udev_device;
 	double w, h;
 	static int next_group_id = 0;
 	intptr_t group_id;
@@ -283,8 +284,8 @@ print_device_notify(struct libinput_event *ev)
 		libinput_device_group_set_user_data(group, (void*)group_id);
 	}
 
-	devnode = udev_device_get_devnode(
-				  libinput_device_get_udev_device(dev));
+	udev_device = libinput_device_get_udev_device(dev);
+	devnode = udev_device_get_devnode(udev_device);
 
 	printf("Device:           %s\n"
 	       "Kernel:           %s\n"
@@ -295,6 +296,8 @@ print_device_notify(struct libinput_event *ev)
 	       (int)group_id,
 	       libinput_seat_get_physical_name(seat),
 	       libinput_seat_get_logical_name(seat));
+
+	udev_device_unref(udev_device);
 
 	if (libinput_device_get_size(dev, &w, &h) == 0)
 		printf("Size:             %.fx%.fmm\n", w, h);
