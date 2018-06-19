@@ -137,13 +137,11 @@ static void
 usage(void)
 {
 	printf("Usage:\n"
-	       "  %s [--data-dir /path/to/data/dir] /dev/input/event0\n"
+	       "  libinput list-quirks [--data-dir /path/to/data/dir] /dev/input/event0\n"
 	       "	Print the quirks for the given device\n"
-	       "\n",
-	       program_invocation_short_name);
-	printf("  %s [--data-dir /path/to/data/dir] --validate-only\n"
-	       "	Validate the database\n",
-	       program_invocation_short_name);
+	       "\n"
+	       "  libinput list-quirks [--data-dir /path/to/data/dir] --validate-only\n"
+	       "	Validate the database\n");
 }
 
 int
