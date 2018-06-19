@@ -120,7 +120,7 @@ list_device_quirks(struct quirks_context *ctx, struct udev_device *device)
 
 	quirks = quirks_fetch_for_device(ctx, device);
 	if (!quirks) {
-		printf("Device has no quirks defined\n");
+		fprintf(stderr, "Device has no quirks defined\n");
 		return;
 	}
 
