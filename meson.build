@@ -52,6 +52,10 @@ endif
 # be removed when coverity fixes this again.
 if get_option('coverity')
 	config_h.set('_Float128', '__uint128_t')
+	config_h.set('_Float32', 'int')
+	config_h.set('_Float32x', 'int')
+	config_h.set('_Float64', 'long')
+	config_h.set('_Float64x', 'long')
 endif
 
 # Dependencies
