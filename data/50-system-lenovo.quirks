@@ -77,7 +77,7 @@ ModelTabletModeNoSuspend=1
 
 # Lenovo Carbon X1 6th gen (RMI4 only, PS/2 is broken on this device)
 [Lenovo Carbon X1 6th gen]
-MatchName=Synaptics TM3288-010
+MatchName=Synaptics TM3288-011
 MatchDMIModalias=dmi:*svnLenovo:*pvrThinkPadX1Carbon6th:*
 ModelLenovoCarbonX16th=1
 
