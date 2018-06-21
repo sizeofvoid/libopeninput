@@ -511,6 +511,14 @@ fedora:28@build-no-tests-nodeps:
   before_script:
     - dnf remove -y check-devel
 
+fedora:28@build-run-tests:
+  <<: *fedora_28_template
+  <<: *default_build
+  variables:
+    FEDORA_VERSION: 28
+    SKIP_LIBINPUT_TEST_SUITE_RUNNER: 1
+    NINJA_ARGS: "test"
+
 fedora:28@scan-build:
   <<: *fedora_28_template
   <<: *default_build
