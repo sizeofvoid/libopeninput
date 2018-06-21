@@ -44,7 +44,7 @@ devices. The `--list` commandline argument shows the list of suites and
 tests. This is useful when trying to figure out if a specific test is
 run for a device.
 
-@code
+@verbatim
 $ ./test/libinput-test-suite-runner --list
 ...
 pointer:left-handed:
@@ -82,7 +82,7 @@ pointer:left-handed:
 		mouse-wheel-tilt
 		mouse
 ...
-@endcode
+@endverbatim
 
 In the above example, the "pointer:left-handed" suite contains multiple
 tests, e.g. "pointer_left_handed_during_click" (this is also the function
@@ -97,25 +97,25 @@ instantiate one).
 The `--filter-test` argument enables selective running of tests through
 basic shell-style function name matching. For example:
 
-@code
+@verbatim
 $ ./test/libinput-test-suite-runner --filter-test="*1fg_tap*"
-@endcode
+@endverbatim
 
 The `--filter-device` argument enables selective running of tests through
 basic shell-style device name matching. The device names matched are the
 litest-specific shortnames, see the output of `--list`. For example:
 
-@code
+@verbatim
 $ ./test/libinput-test-suite-runner --filter-device="synaptics*"
-@endcode
+@endverbatim
 
 The `--filter-group` argument enables selective running of test groups
 through basic shell-style test group matching. The test groups matched are
 litest-specific test groups, see the output of `--list`. For example:
 
-@code
+@verbatim
 $ ./test/libinput-test-suite-runner --filter-group="touchpad:*hover*"
-@endcode
+@endverbatim
 
 The `--filter-device` and `--filter-group` arguments can be combined with
 `--list` to show which groups and devices will be affected.
@@ -126,9 +126,9 @@ Each test supports the `--verbose` commandline option to enable debugging
 output, see libinput_log_set_priority() for details. The `LITEST_VERBOSE`
 environment variable, if set, also enables verbose mode.
 
-@code
+@verbatim
 $ ./test/libinput-test-suite-runner --verbose
 $ LITEST_VERBOSE=1 ninja test
-@endcode
+@endverbatim
 
 */

@@ -157,7 +157,7 @@ verify whether device-specific quirks were applied. This can be obtained
 with ````udevadm info /sys/class/input/eventX```, with the correct event
 node for your device. An example output is below:
 
-@code
+@verbatim
 $ udevadm info /sys/class/input/event4
 P: /devices/platform/i8042/serio1/input/input5/event4
 N: input/event4
@@ -175,7 +175,7 @@ E: MAJOR=13
 E: MINOR=68
 E: SUBSYSTEM=input
 E: USEC_INITIALIZED=5463031
-@endcode
+@endverbatim
 
 @section evemu Recording devices with evemu
 
@@ -189,7 +189,7 @@ and re-play the event sequence, hopefully triggering the same bug.
 
 evemu-record takes a <tt>/dev/input/eventX</tt> event node, but without arguments
 it will simply show the list of devices and let you select:
-@code
+@verbatim
 $ sudo evemu-record > scroll.evemu
 Available devices:
 /dev/input/event0:	Lid Switch
@@ -210,7 +210,7 @@ Available devices:
 /dev/input/event18:	Integrated Camera
 /dev/input/event19:	TPPS/2 IBM TrackPoint
 Select the device event number [0-19]:
-@endcode
+@endverbatim
 
 Select the device that triggers the issue, then reproduce the bug and Ctrl+C
 the process. The resulting recording, ("scroll.evemu" in this example) will
@@ -225,9 +225,9 @@ sequence triggering the bug. Please keep the event sequence as short as possible
 
 To verify that the recording contains the bug, you can replay it on your
 device. For example, to replay the sequence recorded in the example above:
-@code
+@verbatim
 $ sudo evemu-play /dev/input/event4 < scroll.evemu
-@endcode
+@endverbatim
 
 If the bug is triggered by replaying on your device, attach the recording to
 the bug report.

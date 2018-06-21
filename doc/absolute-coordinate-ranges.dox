@@ -41,7 +41,7 @@ and repeatedly move a finger around the whole outside area of the
 touchpad. Then control+c the process and note the output.
 An example output is below:
 
-@code
+@verbatim
 $> sudo touchpad-edge-detector /dev/input/event4
 Touchpad SynPS/2 Synaptics TouchPad on /dev/input/event4
 Move one finger around the touchpad to detect the actual edges
@@ -61,7 +61,7 @@ evdev:name:SynPS/2 Synaptics TouchPad:dmi:bvnLENOVO:bvrGJET72WW(2.22):bd02/21/20
  EVDEV_ABS_35=2445:4252:<x resolution>
  EVDEV_ABS_36=3464:4071:<y resolution>
 
-@endcode
+@endverbatim
 
 Note the discrepancy between the coordinate range the kernels advertises vs.
 what the touchpad sends.
@@ -72,23 +72,23 @@ An example commit can be found
 
 In most cases the match can and should be trimmed to the system vendor (svn)
 and the product version (pvr), with everything else replaced by a wildcard
-(*). In this case, a Lenovo T440s, a suitable match string would be: @code
+(*). In this case, a Lenovo T440s, a suitable match string would be: @verbatim
 evdev:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*pvrThinkPadT440s*
-@endcode
+@endverbatim
 
 @note hwdb match strings only allow for alphanumeric ascii characters. Use a
 wildcard (* or ?, whichever appropriate) for special characters.
 
 The actual axis overrides are in the form:
-@code
+@verbatim
 # axis number=min:max:resolution
  EVDEV_ABS_00=2445:4252:42
-@endcode
+@endverbatim
 or, if the range is correct but the resolution is wrong
-@code
+@verbatim
 # axis number=::resolution
  EVDEV_ABS_00=::42
-@endcode
+@endverbatim
 
 Note the leading single space. The axis numbers are in hex and can be found
 in *linux/input-event-codes.h*. For touchpads ABS_X, ABS_Y,
@@ -105,9 +105,9 @@ file to save it locally and trigger the udev hwdb reload. Rebooting is
 always a good idea. If the match string is correct, the new properties will
 show up in the
 output of
-@code
+@verbatim
    udevadm info /sys/class/input/event4
-@endcode
+@endverbatim
 
 Adjust the command for the event node of your touchpad.
 A udev builtin will apply the new axis ranges automatically.

@@ -44,7 +44,7 @@ device-quirks to make this range known to libinput. libinput provides the tool
 tool and prints its instructions on the commandline. Example output from
 this tool is below:
 
-@code
+@verbatim
 $ sudo libinput measure trackpoint-range
 This tool measures the commonly used pressure range of the
 trackpoint. Push the trackpoint:
@@ -59,14 +59,14 @@ during day-to-day movement. For best results, run this tool
 several times to get an idea of the common range.
 
 Trackpoint sends: max x: 19, max y: 23 samples [121, 121]
-@endcode
+@endverbatim
 
 Once sufficient samples have been collected, the tool prints a simplified
 histogram for x and y axis deltas. This histogram should be used to
 <b>estimate</b> the appropriate trackpoint range. For example, let's look at
 the histogram below:
 
-@code
+@verbatim
 Histogram for x axis deltas, in counts of 5
  -30:
  -29:
@@ -133,7 +133,7 @@ Histogram for x axis deltas, in counts of 5
   32:
   33:
   34:
-@endcode
+@endverbatim
 
 The 0 delta is the neutral state, each + represents 5 events with that
 delta value. Note how the curve is distributed, it's not a classic bell

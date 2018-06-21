@@ -17,44 +17,44 @@ libinput uses [meson](https://www.mesonbuild.com) and
 process below.  A successful build requires the @ref
 building_dependencies to be installed before running meson.
 
-@code
+@verbatim
 $> git clone https://gitlab.freedesktop.org/libinput/libinput
 $> cd libinput
 $> meson --prefix=/usr builddir/
 $> ninja -C builddir/
 $> sudo ninja -C builddir/ install
-@endcode
+@endverbatim
 
 When running libinput versions 1.11.x or earlier, you must run
-@code
+@verbatim
 $> sudo udevadm hwdb --update
-@endcode
+@endverbatim
 
 Additional options may also be specified. For example:
-@code
+@verbatim
 $> meson --prefix=/usr -Ddocumentation=false builddir/
-@endcode
+@endverbatim
 
 We recommend that users disable the documentation, it's not usually required
 for testing and reduces the number of dependencies needed.
 
 The ```prefix``` or other options can be changed later with the
 ```mesonconf``` command. For example:
-@code
+@verbatim
 $> mesonconf builddir/ -Dprefix=/some/other/prefix -Ddocumentation=true
 $> ninja -C builddir
 $> sudo ninja -C builddir/ install
-@endcode
+@endverbatim
 
 Running ``mesonconf builddir/`` with no other arguments lists all
 configurable options meson provides.
 
 To rebuild from scratch, simply remove the build directory and run meson
 again:
-@code
+@verbatim
 $> rm -r builddir/
 $> meson --prefix=....
-@endcode
+@endverbatim
 
 @subsection verifying_install Verifying the install
 
@@ -76,11 +76,11 @@ files in the system (e.g. ```/usr/lib/libinput.la```) but these files are
 usually harmless. To definitely remove all files, run the following command
 from the libinput source directory:
 
-@code
+@verbatim
 $> sudo ninja -C builddir/ uninstall
 # WARNING: Do not restart the computer/X/the Wayland compositor after
 # uninstall, reinstall the system package immediately!
-@endcode
+@endverbatim
 
 The following commands reinstall the current system package for libinput,
 overwriting manually installed files.
@@ -112,9 +112,9 @@ context ```unconfined_u:object_r:user_home_t```.
 
 To avoid this issue, restore the SELinux context for any system files.
 
-<pre>
+@verbatim
 $> sudo restorecon /usr/lib*/libinput.so.*
-</pre>
+@endverbatim
 
 This issue is tracked in https://github.com/mesonbuild/meson/issues/1967.
 
@@ -170,9 +170,9 @@ information about tablets that is not available from the kernel device
 itself. libwacom is required by default but can be skipped when @ref
 building.
 
-@code
+@verbatim
 $> meson --prefix=/usr -Dlibwacom=false builddir
-@endcode
+@endverbatim
 
 It is not recommended to disable libwacom unless libinput is used in an
 environment where tablet support is not required. libinput provides tablet
@@ -188,9 +188,9 @@ feature of the `libinput` tool is enabled and if the required libraries are
 not available, the build will fail. If the feature is not required, use the
 ``--disable-debug-gui`` argument when @ref building.
 
-@code
+@verbatim
 $> meson --prefix=/usr -Ddebug-gui=false builddir
-@endcode
+@endverbatim
 
 @subsection building_autotools Building with autotools
 
@@ -201,38 +201,38 @@ A build with automake is usually the process below. A successful build
 requires the @ref building_dependencies to be installed at configure
 time.
 
-@code
+@verbatim
 $> git clone https://gitlab.freedesktop.org/libinput/libinput
 $> cd libinput
 $> ./autogen.sh --prefix=/usr --libdir=/usr/lib64
 $> make
 $> sudo make install
 $> sudo udevadm hwdb --update
-@endcode
+@endverbatim
 
 @note On Debian-based distributions including Ubuntu and its derivatives skip the
 ```--libdir=/usr/lib64``` argument.
 
 To uninstall libinput as detailed in section @ref reverting_install, run
 
-@code
+@verbatim
 $> sudo make uninstall
 # WARNING: Do not restart the computer/X/the Wayland compositor after make
 # uninstall, reinstall the system package immediately!
-@endcode
+@endverbatim
 
 To disable libwacom as detailed in section @ref building_libwacom, run
 
-@code
+@verbatim
 $> ./autogen.sh --disable-libwacom --prefix=/usr --libdir=/usr/lib64
-@endcode
+@endverbatim
 
 To disable the graphical helper tool as detailed in section @ref
 building_debug_gui, run
 
-@code
+@verbatim
 $> ./autogen.sh --disable-debug-gui --prefix=/usr --libdir=/usr/lib64
-@endcode
+@endverbatim
 
 
 @section building_against Building against libinput
@@ -244,9 +244,9 @@ Software that uses libinput should use pkg-config and the
 Otherwise, the most rudimentary way to compile and link a program against
 libinput is:
 
-@code
+@verbatim
     gcc -o myprogram myprogram.c `pkg-config --cflags --libs libinput`
-@endcode
+@endverbatim
 
 For further information on using pkgconfig see the pkg-config documentation.
 
