@@ -50,7 +50,7 @@ static struct data_dir
 make_data_dir(const char *file_content)
 {
 	struct data_dir dir = {0};
-	char dirname[PATH_MAX] = "/run/litest-quirk-test-XXXXXX";
+	char dirname[PATH_MAX] = "/tmp/litest-quirk-test-XXXXXX";
 	char *filename;
 	FILE *fp;
 	int rc;
