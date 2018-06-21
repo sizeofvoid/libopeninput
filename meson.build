@@ -861,6 +861,14 @@ if get_option('tests')
 	     libinput_test_runner,
 	     timeout : 1200)
 
+	libinput_test_deviceless = executable('libinput-test-deviceless',
+					      libinput_test_runner_sources,
+					      include_directories : [includes_src, includes_include],
+					      dependencies : deps_litest,
+					      c_args : [ def_LT_VERSION, '-DDISABLE_DEVICE_TESTS=1' ],
+					      install : false)
+	test('libinput-test-deviceless', libinput_test_deviceless)
+
 	valgrind_env = environment()
 	valgrind_env.set('CK_FORK', 'no')
 	valgrind_env.set('USING_VALGRIND', '1')

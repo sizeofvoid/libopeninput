@@ -89,7 +89,7 @@ struct list created_files_list; /* list of all files to remove at the end of
 
 static void litest_init_udev_rules(struct list *created_files_list);
 static void litest_remove_udev_rules(struct list *created_files_list);
-static char *litest_install_quirks(struct list *created_files_list);
+static inline char *litest_install_quirks(struct list *created_files_list);
 
 /* defined for the litest selftest */
 #ifndef LITEST_DISABLE_BACKTRACE_LOGGING
@@ -335,6 +335,7 @@ struct test {
 	void *teardown;
 
 	struct range range;
+	bool deviceless;
 };
 
 struct suite {
@@ -440,6 +441,32 @@ litest_add_tcase_no_device(struct suite *suite,
 	list_insert(&suite->tests, &t->node);
 }
 
+static void
+litest_add_tcase_deviceless(struct suite *suite,
+			    void *func,
+			    const char *funcname,
+			    const struct range *range)
+{
+	struct test *t;
+	const char *test_name = funcname;
+
+	if (filter_device &&
+	    fnmatch(filter_device, test_name, 0) != 0)
+		return;
+
+	t = zalloc(sizeof(*t));
+	t->deviceless = true;
+	t->name = safe_strdup(test_name);
+	t->devname = safe_strdup("deviceless");
+	t->func = func;
+	if (range)
+		t->range = *range;
+	t->setup = NULL;
+	t->teardown = NULL;
+
+	list_insert(&suite->tests, &t->node);
+}
+
 static struct suite *
 get_suite(const char *name)
 {
@@ -470,8 +497,8 @@ litest_add_tcase(const char *suite_name,
 	struct suite *suite;
 	bool added = false;
 
-	litest_assert(required >= LITEST_DISABLE_DEVICE);
-	litest_assert(excluded >= LITEST_DISABLE_DEVICE);
+	litest_assert(required >= LITEST_DEVICELESS);
+	litest_assert(excluded >= LITEST_DEVICELESS);
 
 	if (filter_test &&
 	    fnmatch(filter_test, funcname, 0) != 0)
@@ -483,7 +510,11 @@ litest_add_tcase(const char *suite_name,
 
 	suite = get_suite(suite_name);
 
-	if (required == LITEST_DISABLE_DEVICE &&
+	if (required == LITEST_DEVICELESS &&
+	    excluded == LITEST_DEVICELESS) {
+		litest_add_tcase_deviceless(suite, func, funcname, range);
+		added = true;
+	} else if (required == LITEST_DISABLE_DEVICE &&
 	    excluded == LITEST_DISABLE_DEVICE) {
 		litest_add_tcase_no_device(suite, func, funcname, range);
 		added = true;
@@ -555,6 +586,19 @@ _litest_add_ranged_no_device(const char *name,
 			   LITEST_DISABLE_DEVICE,
 			   LITEST_DISABLE_DEVICE,
 			   range);
+}
+
+void
+_litest_add_deviceless(const char *name,
+		       const char *funcname,
+		       void *func)
+{
+	_litest_add_ranged(name,
+			   funcname,
+			   func,
+			   LITEST_DEVICELESS,
+			   LITEST_DEVICELESS,
+			   NULL);
 }
 
 void
@@ -842,6 +886,16 @@ litest_run_suite(struct list *tests, int which, int max, int error_fd)
 			TCase *tc;
 			char *sname, *tname;
 
+#if DISABLE_DEVICE_TESTS
+			/* We run deviceless tests as part of the normal
+			 * test suite runner, just in case. Filtering
+			 * all the other ones out just for the case where
+			 * we can't run the full runner.
+			 */
+			if (!t->deviceless)
+				continue;
+#endif
+
 			count = (count + 1) % max;
 			if (max != 1 && (count % max) != which)
 				continue;
@@ -975,6 +1029,7 @@ static inline int
 inhibit(void)
 {
 	int lock_fd = -1;
+#if !DISABLE_DEVICE_TESTS
 #if HAVE_LIBSYSTEMD
 	sd_bus_error error = SD_BUS_ERROR_NULL;
 	sd_bus_message *m = NULL;
@@ -1017,6 +1072,7 @@ out:
 	sd_bus_close(bus);
 	sd_bus_unref(bus);
 #endif
+#endif
 	return lock_fd;
 }
 
@@ -1038,9 +1094,12 @@ litest_run(int argc, char **argv)
 	if (getenv("LITEST_VERBOSE"))
 		verbose = 1;
 
+#if DISABLE_DEVICE_TESTS
+	quirks_dir = safe_strdup(LIBINPUT_DATA_SRCDIR);
+#else
 	litest_init_udev_rules(&created_files_list);
 	quirks_dir = litest_install_quirks(&created_files_list);
-
+#endif
 	setenv("LIBINPUT_DATA_DIR", quirks_dir, 1);
 	free(quirks_dir);
 
@@ -1301,7 +1360,7 @@ mkdir_p(const char *dir)
 	free(path);
 }
 
-static void
+static inline void
 litest_init_udev_rules(struct list *created_files)
 {
 	mkdir_p(UDEV_RULES_D);
@@ -1312,7 +1371,7 @@ litest_init_udev_rules(struct list *created_files)
 	litest_reload_udev_rules();
 }
 
-static void
+static inline void
 litest_remove_udev_rules(struct list *created_files_list)
 {
 	struct created_file *f, *tmp;
@@ -3873,14 +3932,11 @@ setup_tests(void)
 	}
 }
 
-int
-main(int argc, char **argv)
+static int
+check_device_access(void)
 {
-	const struct rlimit corelimit = { 0, 0 };
-	enum litest_mode mode;
-	int tty_mode = -1;
-	int failed_tests;
-
+#if !DISABLE_DEVICE_TESTS
+	/* You don't get to skip the deviceless tests */
 	if (getenv("SKIP_LIBINPUT_TEST_SUITE_RUNNER"))
 		return 77;
 
@@ -3897,6 +3953,44 @@ main(int argc, char **argv)
 			"uinput device is missing, skipping tests.\n");
 		return 77;
 	}
+#endif /* DISABLE_DEVICE_TESTS */
+
+	return 0;
+}
+
+static int
+disable_tty(void)
+{
+	int tty_mode = -1;
+
+#if !DISABLE_DEVICE_TESTS
+	/* If we're running 'normally' on the VT, disable the keyboard to
+	 * avoid messing up our host. But if we're inside gdb or running
+	 * without forking, leave it as-is.
+	 */
+	if (jobs > 1 &&
+	    !in_debugger &&
+	    getenv("CK_FORK") == NULL &&
+	    isatty(STDIN_FILENO) &&
+	    ioctl(STDIN_FILENO, KDGKBMODE, &tty_mode) == 0)
+		ioctl(STDIN_FILENO, KDSKBMODE, K_OFF);
+#endif /* DISABLE_DEVICE_TESTS */
+
+	return tty_mode;
+}
+
+int
+main(int argc, char **argv)
+{
+	const struct rlimit corelimit = { 0, 0 };
+	enum litest_mode mode;
+	int tty_mode = -1;
+	int failed_tests;
+	int rc;
+
+	rc = check_device_access();
+	if (rc != 0)
+		return rc;
 
 	litest_init_test_devices();
 
@@ -3923,16 +4017,7 @@ main(int argc, char **argv)
 	if (setrlimit(RLIMIT_CORE, &corelimit) != 0)
 		perror("WARNING: Core dumps not disabled. Reason");
 
-	/* If we're running 'normally' on the VT, disable the keyboard to
-	 * avoid messing up our host. But if we're inside gdb or running
-	 * without forking, leave it as-is.
-	 */
-	if (jobs > 1 &&
-	    !in_debugger &&
-	    getenv("CK_FORK") == NULL &&
-	    isatty(STDIN_FILENO) &&
-	    ioctl(STDIN_FILENO, KDGKBMODE, &tty_mode) == 0)
-		ioctl(STDIN_FILENO, KDSKBMODE, K_OFF);
+	tty_mode = disable_tty();
 
 	failed_tests = litest_run(argc, argv);
 

@@ -1768,41 +1768,41 @@ TEST_COLLECTION(misc)
 	litest_add_for_device("events:conversion", event_conversion_tablet, LITEST_WACOM_CINTIQ);
 	litest_add_for_device("events:conversion", event_conversion_tablet_pad, LITEST_WACOM_INTUOS5_PAD);
 	litest_add_for_device("events:conversion", event_conversion_switch, LITEST_LID_SWITCH);
-	litest_add_no_device("misc:bitfield_helpers", bitfield_helpers);
+	litest_add_deviceless("misc:bitfield_helpers", bitfield_helpers);
 
-	litest_add_no_device("context:refcount", context_ref_counting);
-	litest_add_no_device("config:status string", config_status_string);
+	litest_add_deviceless("context:refcount", context_ref_counting);
+	litest_add_deviceless("config:status string", config_status_string);
 
 	litest_add_for_device("timer:offset-warning", timer_offset_bug_warning, LITEST_SYNAPTICS_TOUCHPAD);
 	litest_add_no_device("timer:flush", timer_flush);
 
-	litest_add_no_device("misc:matrix", matrix_helpers);
-	litest_add_no_device("misc:ratelimit", ratelimit_helpers);
-	litest_add_no_device("misc:parser", dpi_parser);
-	litest_add_no_device("misc:parser", wheel_click_parser);
-	litest_add_no_device("misc:parser", wheel_click_count_parser);
-	litest_add_no_device("misc:parser", trackpoint_accel_parser);
-	litest_add_no_device("misc:parser", dimension_prop_parser);
-	litest_add_no_device("misc:parser", reliability_prop_parser);
-	litest_add_no_device("misc:parser", calibration_prop_parser);
-	litest_add_no_device("misc:parser", range_prop_parser);
-	litest_add_no_device("misc:parser", palm_pressure_parser);
-	litest_add_no_device("misc:parser", safe_atoi_test);
-	litest_add_no_device("misc:parser", safe_atoi_base_16_test);
-	litest_add_no_device("misc:parser", safe_atoi_base_8_test);
-	litest_add_no_device("misc:parser", safe_atou_test);
-	litest_add_no_device("misc:parser", safe_atou_base_16_test);
-	litest_add_no_device("misc:parser", safe_atou_base_8_test);
-	litest_add_no_device("misc:parser", safe_atod_test);
-	litest_add_no_device("misc:parser", strsplit_test);
-	litest_add_no_device("misc:parser", kvsplit_double_test);
-	litest_add_no_device("misc:parser", strjoin_test);
-	litest_add_no_device("misc:time", time_conversion);
+	litest_add_deviceless("misc:matrix", matrix_helpers);
+	litest_add_deviceless("misc:ratelimit", ratelimit_helpers);
+	litest_add_deviceless("misc:parser", dpi_parser);
+	litest_add_deviceless("misc:parser", wheel_click_parser);
+	litest_add_deviceless("misc:parser", wheel_click_count_parser);
+	litest_add_deviceless("misc:parser", trackpoint_accel_parser);
+	litest_add_deviceless("misc:parser", dimension_prop_parser);
+	litest_add_deviceless("misc:parser", reliability_prop_parser);
+	litest_add_deviceless("misc:parser", calibration_prop_parser);
+	litest_add_deviceless("misc:parser", range_prop_parser);
+	litest_add_deviceless("misc:parser", palm_pressure_parser);
+	litest_add_deviceless("misc:parser", safe_atoi_test);
+	litest_add_deviceless("misc:parser", safe_atoi_base_16_test);
+	litest_add_deviceless("misc:parser", safe_atoi_base_8_test);
+	litest_add_deviceless("misc:parser", safe_atou_test);
+	litest_add_deviceless("misc:parser", safe_atou_base_16_test);
+	litest_add_deviceless("misc:parser", safe_atou_base_8_test);
+	litest_add_deviceless("misc:parser", safe_atod_test);
+	litest_add_deviceless("misc:parser", strsplit_test);
+	litest_add_deviceless("misc:parser", kvsplit_double_test);
+	litest_add_deviceless("misc:parser", strjoin_test);
+	litest_add_deviceless("misc:time", time_conversion);
 
 	litest_add_no_device("misc:fd", fd_no_event_leak);
 
-	litest_add_no_device("misc:library_version", library_version);
+	litest_add_deviceless("misc:library_version", library_version);
 
-	litest_add_no_device("misc:list", list_test_insert);
-	litest_add_no_device("misc:list", list_test_append);
+	litest_add_deviceless("misc:list", list_test_insert);
+	litest_add_deviceless("misc:list", list_test_append);
 }

@@ -974,40 +974,40 @@ END_TEST
 
 TEST_COLLECTION(quirks)
 {
-	litest_add_no_device("quirks:datadir", quirks_invalid_dir);
-	litest_add_no_device("quirks:datadir", quirks_empty_dir);
+	litest_add_deviceless("quirks:datadir", quirks_invalid_dir);
+	litest_add_deviceless("quirks:datadir", quirks_empty_dir);
 
-	litest_add_no_device("quirks:structure", quirks_section_empty);
-	litest_add_no_device("quirks:structure", quirks_section_double);
-	litest_add_no_device("quirks:structure", quirks_section_missing_match);
-	litest_add_no_device("quirks:structure", quirks_section_missing_attr);
-	litest_add_no_device("quirks:structure", quirks_section_match_after_attr);
-	litest_add_no_device("quirks:structure", quirks_section_duplicate_match);
-	litest_add_no_device("quirks:structure", quirks_section_duplicate_attr);
+	litest_add_deviceless("quirks:structure", quirks_section_empty);
+	litest_add_deviceless("quirks:structure", quirks_section_double);
+	litest_add_deviceless("quirks:structure", quirks_section_missing_match);
+	litest_add_deviceless("quirks:structure", quirks_section_missing_attr);
+	litest_add_deviceless("quirks:structure", quirks_section_match_after_attr);
+	litest_add_deviceless("quirks:structure", quirks_section_duplicate_match);
+	litest_add_deviceless("quirks:structure", quirks_section_duplicate_attr);
 
-	litest_add_no_device("quirks:parsing", quirks_parse_error_section);
-	litest_add_no_device("quirks:parsing", quirks_parse_error_trailing_whitespace);
-	litest_add_no_device("quirks:parsing", quirks_parse_error_unknown_match);
-	litest_add_no_device("quirks:parsing", quirks_parse_error_unknown_attr);
-	litest_add_no_device("quirks:parsing", quirks_parse_error_unknown_model);
-	litest_add_no_device("quirks:parsing", quirks_parse_error_model_not_one);
-	litest_add_no_device("quirks:parsing", quirks_parse_comment_inline);
-	litest_add_no_device("quirks:parsing", quirks_parse_comment_empty);
+	litest_add_deviceless("quirks:parsing", quirks_parse_error_section);
+	litest_add_deviceless("quirks:parsing", quirks_parse_error_trailing_whitespace);
+	litest_add_deviceless("quirks:parsing", quirks_parse_error_unknown_match);
+	litest_add_deviceless("quirks:parsing", quirks_parse_error_unknown_attr);
+	litest_add_deviceless("quirks:parsing", quirks_parse_error_unknown_model);
+	litest_add_deviceless("quirks:parsing", quirks_parse_error_model_not_one);
+	litest_add_deviceless("quirks:parsing", quirks_parse_comment_inline);
+	litest_add_deviceless("quirks:parsing", quirks_parse_comment_empty);
 
-	litest_add_no_device("quirks:parsing", quirks_parse_bustype);
-	litest_add_no_device("quirks:parsing", quirks_parse_bustype_invalid);
-	litest_add_no_device("quirks:parsing", quirks_parse_vendor);
-	litest_add_no_device("quirks:parsing", quirks_parse_vendor_invalid);
-	litest_add_no_device("quirks:parsing", quirks_parse_product);
-	litest_add_no_device("quirks:parsing", quirks_parse_product_invalid);
-	litest_add_no_device("quirks:parsing", quirks_parse_version);
-	litest_add_no_device("quirks:parsing", quirks_parse_version_invalid);
-	litest_add_no_device("quirks:parsing", quirks_parse_name);
-	litest_add_no_device("quirks:parsing", quirks_parse_name_invalid);
-	litest_add_no_device("quirks:parsing", quirks_parse_udev);
-	litest_add_no_device("quirks:parsing", quirks_parse_udev_invalid);
-	litest_add_no_device("quirks:parsing", quirks_parse_dmi);
-	litest_add_no_device("quirks:parsing", quirks_parse_dmi_invalid);
+	litest_add_deviceless("quirks:parsing", quirks_parse_bustype);
+	litest_add_deviceless("quirks:parsing", quirks_parse_bustype_invalid);
+	litest_add_deviceless("quirks:parsing", quirks_parse_vendor);
+	litest_add_deviceless("quirks:parsing", quirks_parse_vendor_invalid);
+	litest_add_deviceless("quirks:parsing", quirks_parse_product);
+	litest_add_deviceless("quirks:parsing", quirks_parse_product_invalid);
+	litest_add_deviceless("quirks:parsing", quirks_parse_version);
+	litest_add_deviceless("quirks:parsing", quirks_parse_version_invalid);
+	litest_add_deviceless("quirks:parsing", quirks_parse_name);
+	litest_add_deviceless("quirks:parsing", quirks_parse_name_invalid);
+	litest_add_deviceless("quirks:parsing", quirks_parse_udev);
+	litest_add_deviceless("quirks:parsing", quirks_parse_udev_invalid);
+	litest_add_deviceless("quirks:parsing", quirks_parse_dmi);
+	litest_add_deviceless("quirks:parsing", quirks_parse_dmi_invalid);
 
 	litest_add_for_device("quirks:model", quirks_model_one, LITEST_MOUSE);
 	litest_add_for_device("quirks:model", quirks_model_zero, LITEST_MOUSE);

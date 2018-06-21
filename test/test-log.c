@@ -204,9 +204,9 @@ TEST_COLLECTION(log)
 {
 	struct range axes = { ABS_X, ABS_Y + 1};
 
-	litest_add_no_device("log:defaults", log_default_priority);
-	litest_add_no_device("log:logging", log_handler_invoked);
-	litest_add_no_device("log:logging", log_handler_NULL);
+	litest_add_deviceless("log:defaults", log_default_priority);
+	litest_add_deviceless("log:logging", log_handler_invoked);
+	litest_add_deviceless("log:logging", log_handler_NULL);
 	litest_add_no_device("log:logging", log_priority);
 
 	litest_add_ranged("log:warnings", log_axisrange_warning, LITEST_TOUCH, LITEST_ANY, &axes);

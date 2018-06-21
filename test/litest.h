@@ -291,6 +291,7 @@ enum litest_device_type {
 };
 
 enum litest_device_feature {
+	LITEST_DEVICELESS = -2,
 	LITEST_DISABLE_DEVICE = -1,
 	LITEST_ANY = 0,
 	LITEST_TOUCHPAD = 1 << 0,
@@ -417,6 +418,9 @@ void litest_set_log_handler_bug(struct libinput *libinput);
 	_litest_add_no_device(name_, #func_, func_)
 #define litest_add_ranged_no_device(name_, func_, ...) \
 	_litest_add_ranged_no_device(name_, #func_, func_, __VA_ARGS__)
+#define litest_add_deviceless(name_, func_) \
+	_litest_add_deviceless(name_, #func_, func_)
+
 void
 _litest_add(const char *name,
 	    const char *funcname,
@@ -450,6 +454,10 @@ _litest_add_ranged_no_device(const char *name,
 			     const char *funcname,
 			     void *func,
 			     const struct range *range);
+void
+_litest_add_deviceless(const char *name,
+		       const char *funcname,
+		       void *func);
 
 struct litest_device *
 litest_create_device(enum litest_device_type which);
