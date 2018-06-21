@@ -146,7 +146,7 @@ Wayland or even what version of libinput is currently running.
 The use of the tools is straightforward, just run without arguments, piping
 the output into a file:
 @verbatim
-$ sudo libinput record > touchpad.log
+$ sudo libinput record > touchpad.yml
 Available devices:
 /dev/input/event0:	Lid Switch
 /dev/input/event1:	Sleep Button
@@ -186,7 +186,7 @@ alphanumeric key shows up as letter "a".
 
 The recording can be replayed with the `libinput replay` command:
 @verbatim
-$ sudo libinput replay touchpad.log
+$ sudo libinput replay touchpad.yml
 SynPS/2 Synaptics TouchPad: /dev/input/event19
 Hit enter to start replaying
 @endverbatim
@@ -213,8 +213,8 @@ devices must be correct and we need to record the events in one go.
 once. Unlike the normal invocation, this one requires a number of arguments:
 
 @verbatim
-$ sudo libinput record --multiple --output-file=touchpad-bug.log /dev/input/event17 /dev/input/event3
-recording to 'touchpad-bug.log'
+$ sudo libinput record --multiple --output-file=touchpad-bug.yml /dev/input/event17 /dev/input/event3
+recording to 'touchpad-bug.yml'
 @endverbatim
 
 As seen above, a user must specify `--multiple` and the `--output-file`.
@@ -223,7 +223,7 @@ well.
 
 Replaying events is the same as for a single recording:
 @verbatim
-$ sudo libinput replay touchpad-bug.log
+$ sudo libinput replay touchpad-bug.yml
 @endverbatim
 
 @subsection libinput-measure Measuring device properties with libinput measure
