@@ -25,6 +25,7 @@
 #
 
 import sys
+import subprocess
 import argparse
 try:
     import evdev
@@ -69,6 +70,8 @@ class TouchSequence(object):
         self.was_down = False
         self.is_palm = False
         self.was_palm = False
+        self.is_thumb = False
+        self.was_thumb = False
 
         self.prange = Range()
 
@@ -86,6 +89,10 @@ class TouchSequence(object):
         self.is_palm = touch.pressure > self.device.palm
         if self.is_palm:
             self.was_palm = True
+
+        self.is_thumb = touch.pressure > self.device.thumb
+        if self.is_thumb:
+            self.was_thumb = True
 
     def finalize(self):
         """Mark the TouchSequence as complete (finger is up)"""
@@ -121,17 +128,20 @@ class TouchSequence(object):
             s += " down"
         if self.was_palm:
             s += " palm"
+        if self.was_thumb:
+            s += " thumb"
 
         return s
 
     def _str_state(self):
-        s = "Touchpad pressure: {:3d} min: {:3d} max: {:3d} tags: {} {}" \
+        s = "Touchpad pressure: {:3d} min: {:3d} max: {:3d} tags: {} {} {}" \
             .format(
                 self.points[-1].pressure,
                 self.prange.min,
                 self.prange.max,
                 "down" if self.is_down else "    ",
-                "palm" if self.is_palm else "     "
+                "palm" if self.is_palm else "    ",
+                "thumb" if self.is_thumb else "     "
             )
         return s
 
@@ -169,8 +179,9 @@ class Device(object):
         self.down = int(p.min + 0.12 * prange)
         self.up = int(p.min + 0.10 * prange)
         self.palm = 130  # the libinput default
+        self.thumb = p.max
 
-        self._init_thresholds_from_udev()
+        self._init_thresholds_from_quirks()
         self.sequences = []
 
     def find_touchpad_device(self):
@@ -187,16 +198,26 @@ class Device(object):
         print("Unable to find a touchpad device.", file=sys.stderr)
         sys.exit(1)
 
-    def _init_thresholds_from_udev(self):
-        context = pyudev.Context()
-        ud = pyudev.Devices.from_device_file(context, self.path)
-        v = ud.get('LIBINPUT_ATTR_PRESSURE_RANGE')
-        if v:
-            self.down, self.up = colon_tuple(v)
+    def _init_thresholds_from_quirks(self):
+        # FIXME: this uses the system-installed version
+        # but we should really auto-detect when this is started
+        # from the builddir
+        command = ['libinput', 'list-quirks', self.path]
+        cmd = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if cmd.returncode != 0:
+            print("Error querying quirks: {}".format(cmd.stderr.decode('utf-8')), file=sys.stderr)
+            return
 
-        v = ud.get('LIBINPUT_ATTR_PALM_PRESSURE_THRESHOLD')
-        if v:
-            self.palm = int(v)
+        stdout = cmd.stdout.decode('utf-8')
+        quirks = [q.split('=') for q in stdout.split('\n')]
+
+        for q in quirks:
+            if q[0] == 'AttrPalmPressureThreshold':
+                self.palm = int(q[1])
+            elif q[0] == 'AttrPressureRange':
+                self.down, self.up = colon_tuple(q[1])
+            elif q[0] == 'AttrThumbPressureThreshold':
+                self.thumb = int(q[1])
 
     def start_new_sequence(self, tracking_id):
         self.sequences.append(TouchSequence(self, tracking_id))
@@ -242,6 +263,7 @@ def loop(device):
     print("Ready for recording data.")
     print("Pressure range used: {}:{}".format(device.down, device.up))
     print("Palm pressure range used: {}".format(device.palm))
+    print("Thumb pressure range used: {}".format(device.thumb))
     print("Place a single finger on the touchpad to measure pressure values.\n"
           "Ctrl+C to exit\n")
 
