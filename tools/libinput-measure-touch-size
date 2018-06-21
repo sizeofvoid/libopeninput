@@ -25,6 +25,7 @@
 #
 
 import sys
+import subprocess
 import argparse
 try:
     import evdev
@@ -199,7 +200,7 @@ class Device(object):
         self.down = 0
         self.palm = 0
 
-        self._init_thresholds_from_udev()
+        self._init_thresholds_from_quirks()
         self.sequences = []
         self.touch = Touch(0, 0)
 
@@ -219,16 +220,24 @@ class Device(object):
         print("Unable to find a touch device.", file=sys.stderr)
         sys.exit(1)
 
-    def _init_thresholds_from_udev(self):
-        context = pyudev.Context()
-        ud = pyudev.Devices.from_device_file(context, self.path)
-        v = ud.get('LIBINPUT_ATTR_TOUCH_SIZE_RANGE')
-        if v:
-            self.down, self.up = colon_tuple(v)
+    def _init_thresholds_from_quirks(self):
+        # FIXME: this uses the system-installed version
+        # but we should really auto-detect when this is started
+        # from the builddir
+        command = ['libinput', 'list-quirks', self.path]
+        cmd = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if cmd.returncode != 0:
+            print("Error querying quirks: {}".format(cmd.stderr.decode('utf-8')), file=sys.stderr)
+            return
 
-        v = ud.get('LIBINPUT_ATTR_PALM_SIZE_THRESHOLD')
-        if v:
-            self.palm = int(v)
+        stdout = cmd.stdout.decode('utf-8')
+        quirks = [q.split('=') for q in stdout.split('\n')]
+
+        for q in quirks:
+            if q[0] == 'AttrPalmSizeThreshold':
+                self.palm = int(q[1])
+            elif q[0] == 'AttrTouchSizeRange':
+                self.down, self.up = colon_tuple(q[1])
 
     def start_new_sequence(self, tracking_id):
         self.sequences.append(TouchSequence(self, tracking_id))
