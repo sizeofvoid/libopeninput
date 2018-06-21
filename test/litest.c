@@ -3887,6 +3887,9 @@ main(int argc, char **argv)
 	int tty_mode = -1;
 	int failed_tests;
 
+	if (getenv("SKIP_LIBINPUT_TEST_SUITE_RUNNER"))
+		return 77;
+
 	if (getuid() != 0) {
 		fprintf(stderr,
 			"%s must be run as root.\n",
