@@ -55,7 +55,7 @@ Assume a palm threshold of
 The threshold has to be in device-specific pressure values.
 .PP
 If the touch-thresholds or the palm-threshold are not provided,
-this tool uses the thresholds provided by the udev hwdb (if any) or the
+this tool uses the thresholds provided by the device quirks (if any) or the
 built-in defaults.
 .SH LIBINPUT
 Part of the
