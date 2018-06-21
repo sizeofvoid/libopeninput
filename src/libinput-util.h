@@ -145,7 +145,7 @@ zalloc(size_t size)
 	/* We never need to alloc anything more than 1,5 MB so we can assume
 	 * if we ever get above that something's going wrong */
 	if (size > 1536 * 1024)
-		abort();
+		assert(!"bug: internal malloc size limit exceeded");
 
 	p = calloc(1, size);
 	if (!p)
