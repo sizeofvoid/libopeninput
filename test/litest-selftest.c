@@ -353,13 +353,13 @@ END_TEST
 START_TEST(zalloc_max_size)
 {
 	/* Built-in alloc maximum */
-	free(zalloc(1024 * 1024));
+	free(zalloc(1536 * 1024));
 }
 END_TEST
 
 START_TEST(zalloc_too_large)
 {
-	zalloc(1024 * 1024 + 1);
+	zalloc(1536 * 1024 + 1);
 }
 END_TEST
 
