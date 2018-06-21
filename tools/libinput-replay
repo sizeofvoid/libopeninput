@@ -89,6 +89,10 @@ def create(device):
                     data = 20
             d.enable(libevdev.evbit(evtype, code), data=data)
 
+    properties = fetch(evdev, 'properties')
+    for prop in properties:
+        d.enable(libevdev.propbit(prop))
+
     uinput = d.create_uinput_device()
     return uinput
 
