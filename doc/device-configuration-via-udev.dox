@@ -64,14 +64,6 @@ See @ref motion_normalization for details.
 <dd>The angle in degrees for each click on a mouse wheel. See
 libinput_pointer_get_axis_source() for details.
 </dd>
-<dt>LIBINPUT_MODEL_*</dt>
-<dd><b>This prefix is reserved as private API, do not use.</b> See @ref
-model_specific_configuration for details.
-</dd>
-<dt>LIBINPUT_ATTR_*</dt>
-<dd><b>This prefix is reserved as private API, do not use.</b> See @ref
-model_specific_configuration for details.
-</dd>
 </dl>
 
 Below is an example udev rule to assign "seat1" to a device from vendor
@@ -131,15 +123,9 @@ treating this device normally.
 
 @section model_specific_configuration Model-specific configuration
 
-libinput reserves the property prefixes <b>LIBINPUT_MODEL_</b> and
-<b>LIBINPUT_ATTR_</b> for model-specific configuration. <b>These prefixes
-are reserved as private API, do not use.</b>
-
-The effect of these properties may be to enable or disable certain
-features on a specific device or set of devices, to change configuration
-defaults or any other reason. The effects of setting these properties, the
-format of the property and the value of the property are subject to change
-at any time.
+As of libinput 1.12, model-specific configuration is stored in the @ref
+device-quirks and not in the hwdb anymore. Please see @ref device-quirks for
+details.
 
 @subsection model_specific_configuration_x220fw81 Lenovo x220 with touchpad firmware v8.1
 
@@ -162,7 +148,7 @@ is guaranteed.
 
 @section hwdb Configuring the hwdb
 
-This section outlines how to add an entry to the <a
+This section outlines how to query the <a
 href="https://www.freedesktop.org/software/systemd/man/hwdb.html">udev
 hwdb</a> and reload properties so they are available to libinput.
 
@@ -171,9 +157,9 @@ available to libinput when the device is connected and/or libinput is
 initialized. This section only describes the hwdb in relation to libinput,
 it is not a full documentation on how the hwdb works.
 
-@note **The use of the hwdb by libinput is not part of the public API. It may
-change at any time. Once tested, changes to the hwdb must be submitted
-upstream.**
+libinput's use of the hwdb is limited to properties systemd and custom
+rules files (where available) provide. Hardware-specific quirks as used by
+libinput are in the @ref device-quirks system.
 
 @subsection hwdb_querying Querying the hwdb
 
@@ -234,70 +220,11 @@ in the udev rules files).
 
 @subsection hwdb_modifying Modifying the hwdb
 
-This section applies to users that need to add, change, or remove a hwdb
-entry for their device. Note that **the hwdb is not part of the public API
-and may change at any time**. Once a device has been made to work, the
-change must be submitted to the libinput bugzilla, see @ref reporting_bugs.
+***This section has been removed as it no longer applies in libinput 1.12
+and later.*** libinput users should not need to modify the hwdb, any
+device-specific quirks must go in to the @ref device-quirks system.
 
-hwdb entries are only applied if a udev rules calls out to the hwdb with the
-right match format. libinput ships with a set of rules to query the hwdb,
-the different rules are reflected by their prefix. Again, **this is not part
-of the public API**. libinput's matches are
-composed of a literal "libinput", then either the device name and dmi
-modalias, or the device types and the input modalias. Any part of the hwdb
-match line can be a glob by using a literal `*`. For example:
+For information about older libinput versions, please see the documentation
+for your version avaialable in: https://wayland.freedesktop.org/libinput/doc/
 
-    libinput:keyboard:input:b0011v*
-    libinput:touchpad:input:b0003v05ACp*
-    libinput:touchpad:input:b0003v05ACp021A*
-
-This type of matching is the preferred one for any removable device (USB,
-Bluetooth, ...) that can be uniquely identified by the bustype, vendor and
-product ID. The first line matches any keyboard device on the
-serial bus (0x0011). The second line matches any touchpad device
-with a vendor ID of 0x05AC. The third line matches any touchpad device
-with a vendor ID of 0x05AC and a product ID of 0x021A. The `input:b...`
-string is available in the device's modalias file
-`/sys/class/input/eventX/device/modalias`.
-
-In the case of built-in devices that do not have a unique id, we
-need to use the host system's dmi information. For example:
-
-    libinput:name:*Lid Switch*:dmi:*svnLENOVO:*pvrThinkPadT440*
-
-This match applies to any device with a name **containing** "Led Switch"
-that is on a Lenovo T440 system.  The dmi modalias is available in
-`/sys/class/dmi/id/modalias`. For example, on the T440 matched above, the
-modalias is
-
-    dmi:bvnLENOVO:bvrGJET72WW(2.22):bd02/21/2014:svnLENOVO:pn3453453678:pvrThinkPadT440s:rvnLENOVO:rn2012345223:rvrABC123KKK123B:cvnLENOVO:ct10:cvrNotAvailable:
-
-The dmi should always be shortened to the sections that uniquely identify
-the type system, in this case the vendor (svn) and the product version (pvr).
-Failing to shorten the system may mean that the hwdb match rule only applies
-to your specific system, rather than all systems of that type, or that the
-rule no longer applies after a firmware update.
-
-The hwdb match string is the first portion of the hwdb entry. The second
-portion is the property to set. Each hwdb entry may match on multiple
-devices and may apply multiple properties. For example:
-
-
-    libinput:touchpad:input:b0003v05ACp*
-      THIS_IS_AN_APPLE_DEVICE=1
-
-    libinput:touchpad:input:b0003v05ACp*
-    libinput:name:*Lid Switch*:dmi:*svnLENOVO:*pvrThinkPadT440*
-      FOO=1
-      BAR=2
-
-In the example above, any matching touchpad device will have all three
-properties applied, the lid switch device only has FOO and BAR.
-
-The hwdb does not allow removing properties. Where a property must be unset,
-it should be set to 0.
-
-Any user-specific hwdb entries should be placed in a file
-`/etc/udev/hwdb.d/99-somename.hwdb`. See @ref hwdb_reloading for
-instructions on how to reload the hwdb once the file is in place.
 */

@@ -19,9 +19,10 @@ motion_normalization for a detailed explanation.
 
 @section faq_fast_trackpoint My trackpoint moves too slow or too fast
 
-This is a symptom of an invalid trackpoint range. These devices need a udev
-hwdb entry to specify the range available so libinput can adjust the pointer
-acceleration accordingly. See @ref trackpoint_range for a detailed explanation.
+This is a symptom of an invalid trackpoint range. These devices need @ref
+device-quirks to specify the range available so libinput can adjust the
+pointer acceleration accordingly. See @ref trackpoint_range for a detailed
+explanation.
 
 @section faq_enable_tapping Why isn't touchpad tap-to-click enabled by default
 
@@ -197,6 +198,11 @@ Sometimes users are asked to test updates to the <a
 href="https://www.freedesktop.org/software/systemd/man/hwdb.html">udev
 hwdb</a> or patches that include a change to the hwdb. See @ref hwdb for
 details on the hwdb and how to modify it locally.
+
+@note As of libinput 1.12, libinput-specific properties are now stored in
+the @ref device-quirks system. There are no libinput-specific hwdb entries
+anymore and any changes to the hwdb must be merged into the systemd
+repository.
 
 @section faq_timer_offset What causes the "timer offset negative" warning?
 

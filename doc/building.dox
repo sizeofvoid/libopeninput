@@ -23,6 +23,10 @@ $> cd libinput
 $> meson --prefix=/usr builddir/
 $> ninja -C builddir/
 $> sudo ninja -C builddir/ install
+@endcode
+
+When running libinput versions 1.11.x or earlier, you must run
+@code
 $> sudo udevadm hwdb --update
 @endcode
 

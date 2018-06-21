@@ -38,8 +38,8 @@ see @ref trackpoint_range_measure.
 
 @section trackpoint_range_measure Measuring the trackpoint range
 
-This section describes how to measure the trackpoint range and apply a hwdb
-entry to make this range known to libinput. libinput provides the tool
+This section describes how to measure the trackpoint range and apply @ref
+device-quirks to make this range known to libinput. libinput provides the tool
 `libinput measure trackpoint-range` for this task. This is an interactive
 tool and prints its instructions on the commandline. Example output from
 this tool is below:
@@ -146,8 +146,8 @@ device would be 25. Note how there is a fair bit of guesswork involved, a
 trackpoint's data is never clean enough to get a definitive value. It is
 generally better to take a (slightly) smaller range than one too large.
 
-The udev property to set is `LIBINPUT_ATTR_TRACKPOINT_RANGE=25`. See @ref
-hwdb_modifying for details on how to apply this property.
+The device quirk set is `AttrTrackpointRange=25`. See @ref
+device-quirks for details on how to apply device quirks.
 
 */
 
