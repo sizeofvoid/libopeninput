@@ -1315,6 +1315,9 @@ static void
 litest_remove_udev_rules(struct list *created_files_list)
 {
 	struct created_file *f, *tmp;
+	bool reload_udev;
+
+	reload_udev = !list_empty(created_files_list);
 
 	list_for_each_safe(f, tmp, created_files_list, link) {
 		list_remove(&f->link);
@@ -1324,7 +1327,8 @@ litest_remove_udev_rules(struct list *created_files_list)
 		free(f);
 	}
 
-	litest_reload_udev_rules();
+	if (reload_udev)
+		litest_reload_udev_rules();
 }
 
 static char *
