@@ -474,7 +474,7 @@ configure_file(input : 'tools/libinput-debug-events.man',
 libinput_list_quirks_sources = [ 'tools/libinput-list-quirks.c' ]
 libinput_list_quirks = executable('libinput-list-quirks',
 				  libinput_list_quirks_sources,
-				  dependencies : [dep_libquirks, dep_libinput],
+				  dependencies : [dep_libquirks, dep_tools_shared, dep_libinput],
 				  include_directories : [includes_src, includes_include],
 				  install_dir : libinput_tool_path,
 				  install : true
