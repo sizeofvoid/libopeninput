@@ -280,6 +280,10 @@ libinput:name:*Synaptics*:dmi:*svnLENOVO:*:pvrThinkPad*:*
 libinput:keyboard:input:b0003v17EFp6047*
  LIBINPUT_ATTR_KEYBOARD_INTEGRATION=external
 
+# Lenovo X270
+libinput:name:*TPPS/2 IBM TrackPoint*:dmi:svnLENOVO:*:pvrThinkPadX270:*
+ LIBINPUT_ATTR_TRACKPOINT_RANGE=40
+
 # Lenovo X280
 libinput:name:*ALPS TrackPoint*:dmi:svnLENOVO:*:pvrThinkPadX280:*
  LIBINPUT_ATTR_TRACKPOINT_RANGE=70
