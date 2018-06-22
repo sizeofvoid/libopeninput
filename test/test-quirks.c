@@ -899,7 +899,7 @@ START_TEST(quirks_model_alps)
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 	struct quirks *q;
-	bool exists, value;
+	bool exists, value = false;
 
 	q = dev->quirks;
 	exists = quirks_get_bool(q, QUIRK_MODEL_ALPS_TOUCHPAD, &value);
@@ -918,7 +918,7 @@ START_TEST(quirks_model_wacom)
 {
 	struct litest_device *dev = litest_current_device();
 	struct quirks *q;
-	bool exists, value;
+	bool exists, value = false;
 
 	q = dev->quirks;
 	exists = quirks_get_bool(q, QUIRK_MODEL_WACOM_TOUCHPAD, &value);
@@ -937,7 +937,7 @@ START_TEST(quirks_model_apple)
 {
 	struct litest_device *dev = litest_current_device();
 	struct quirks *q;
-	bool exists, value;
+	bool exists, value = false;
 
 	q = dev->quirks;
 	exists = quirks_get_bool(q, QUIRK_MODEL_APPLE_TOUCHPAD, &value);
@@ -956,7 +956,7 @@ START_TEST(quirks_model_synaptics_serial)
 {
 	struct litest_device *dev = litest_current_device();
 	struct quirks *q;
-	bool exists, value;
+	bool exists, value = false;
 
 	q = dev->quirks;
 	exists = quirks_get_bool(q, QUIRK_MODEL_SYNAPTICS_SERIAL_TOUCHPAD, &value);
