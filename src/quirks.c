@@ -1059,6 +1059,7 @@ quirks_context_unref(struct quirks_context *ctx)
 	}
 
 	free(ctx->dmi);
+	free(ctx->dt);
 	free(ctx);
 
 	return NULL;
