@@ -43,6 +43,7 @@
 #include "libinput-util.h"
 #include "libinput-version.h"
 #include "libinput-git-version.h"
+#include "shared.h"
 
 static const int FILE_VERSION_NUMBER = 1;
 
@@ -1664,6 +1665,66 @@ out:
 	udev_unref(udev);
 }
 
+static void
+quirks_log_handler(struct libinput *this_is_null,
+		   enum libinput_log_priority priority,
+		   const char *format,
+		   va_list args)
+{
+}
+
+static void
+list_print(void *userdata, const char *val)
+{
+	struct record_context *ctx = userdata;
+
+	iprintf(ctx, "- %s\n", val);
+}
+
+static inline void
+print_device_quirks(struct record_context *ctx, struct record_device *dev)
+{
+	struct udev *udev = NULL;
+	struct udev_device *udev_device = NULL;
+	struct stat st;
+	struct quirks_context *quirks;
+	const char *data_path = LIBINPUT_DATA_DIR;
+	const char *override_file = LIBINPUT_DATA_OVERRIDE_FILE;
+
+	if (stat(dev->devnode, &st) < 0)
+		return;
+
+	quirks = quirks_init_subsystem(data_path,
+				       override_file,
+				       quirks_log_handler,
+				       NULL,
+				       QLOG_CUSTOM_LOG_PRIORITIES);
+	if (!quirks) {
+		fprintf(stderr,
+			"Failed to initialize the device quirks. "
+			"Please see the above errors "
+			"and/or re-run with --verbose for more details\n");
+		return;
+	}
+
+	udev = udev_new();
+	if (!udev)
+		goto out;
+
+	udev_device = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
+	if (!udev_device)
+		goto out;
+
+	iprintf(ctx, "quirks:\n");
+	indent_push(ctx);
+
+	tools_list_device_quirks(quirks, udev_device, list_print, ctx);
+
+	indent_pop(ctx);
+out:
+	udev_device_unref(udev_device);
+	udev_unref(udev);
+}
 static inline void
 print_libinput_description(struct record_context *ctx,
 			   struct record_device *dev)
@@ -1719,6 +1780,7 @@ print_device_description(struct record_context *ctx, struct record_device *dev)
 
 	print_evdev_description(ctx, dev);
 	print_udev_properties(ctx, dev);
+	print_device_quirks(ctx, dev);
 	print_libinput_description(ctx, dev);
 }
 

@@ -149,6 +149,9 @@ devices:
       properties:
       - ID_INPUT_MOUSE=1
       - ID_INPUT=1
+    quirks:
+      - ModelAppleTouchpad=1
+      - AttrSizeHint=32x32
     events:
       - evdev:
         - [  0,      0,   3,  57,  1420] # EV_ABS / ABS_MT_TRACKING_ID   1420
@@ -253,6 +256,9 @@ A list of udev properties in the \fBkey=value\fR format. This is not the
 complete list of properties assigned to the device but a subset that is
 relevant to libinput. These properties may include properties set on a
 parent device.
+.TP 8
+.B quirks: list of strings
+A list of device quirks the \fBkey=value\fR format.
 
 .SS events
 A list of the recorded events. The list contains dictionaries
