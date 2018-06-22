@@ -361,7 +361,7 @@ void litest_generic_device_teardown(void)
 	current_device = NULL;
 }
 
-struct litest_test_device** devices;
+struct list devices;
 
 static struct list all_tests;
 
@@ -467,7 +467,6 @@ litest_add_tcase(const char *suite_name,
 		 enum litest_device_feature excluded,
 		 const struct range *range)
 {
-	struct litest_test_device **dev = devices;
 	struct suite *suite;
 	bool added = false;
 
@@ -489,37 +488,41 @@ litest_add_tcase(const char *suite_name,
 		litest_add_tcase_no_device(suite, func, funcname, range);
 		added = true;
 	} else if (required != LITEST_ANY || excluded != LITEST_ANY) {
-		for (; *dev; dev++) {
-			if ((*dev)->features & LITEST_IGNORED)
+		struct litest_test_device *dev;
+
+		list_for_each(dev, &devices, node) {
+			if (dev->features & LITEST_IGNORED)
 				continue;
 
 			if (filter_device &&
-			    fnmatch(filter_device, (*dev)->shortname, 0) != 0)
+			    fnmatch(filter_device, dev->shortname, 0) != 0)
 				continue;
-			if (((*dev)->features & required) != required ||
-			    ((*dev)->features & excluded) != 0)
+			if ((dev->features & required) != required ||
+			    (dev->features & excluded) != 0)
 				continue;
 
 			litest_add_tcase_for_device(suite,
 						    funcname,
 						    func,
-						    *dev,
+						    dev,
 						    range);
 			added = true;
 		}
 	} else {
-		for (; *dev; dev++) {
-			if ((*dev)->features & LITEST_IGNORED)
+		struct litest_test_device *dev;
+
+		list_for_each(dev, &devices, node) {
+			if (dev->features & LITEST_IGNORED)
 				continue;
 
 			if (filter_device &&
-			    fnmatch(filter_device, (*dev)->shortname, 0) != 0)
+			    fnmatch(filter_device, dev->shortname, 0) != 0)
 				continue;
 
 			litest_add_tcase_for_device(suite,
 						    funcname,
 						    func,
-						    *dev,
+						    dev,
 						    range);
 			added = true;
 		}
@@ -597,7 +600,7 @@ _litest_add_ranged_for_device(const char *name,
 			      const struct range *range)
 {
 	struct suite *s;
-	struct litest_test_device **dev = devices;
+	struct litest_test_device *dev;
 	bool device_filtered = false;
 
 	litest_assert(type < LITEST_NO_DEVICE);
@@ -611,18 +614,18 @@ _litest_add_ranged_for_device(const char *name,
 		return;
 
 	s = get_suite(name);
-	for (; *dev; dev++) {
+	list_for_each(dev, &devices, node) {
 		if (filter_device &&
-		    fnmatch(filter_device, (*dev)->shortname, 0) != 0) {
+		    fnmatch(filter_device, dev->shortname, 0) != 0) {
 			device_filtered = true;
 			continue;
 		}
 
-		if ((*dev)->type == type) {
+		if (dev->type == type) {
 			litest_add_tcase_for_device(s,
 						    funcname,
 						    func,
-						    *dev,
+						    dev,
 						    range);
 			return;
 		}
@@ -703,18 +706,17 @@ litest_init_device_udev_rules(struct litest_test_device *dev);
 static void
 litest_init_all_device_udev_rules(struct list *created_files)
 {
-	struct litest_test_device **dev = devices;
+	struct litest_test_device *dev;
 
-	while (*dev) {
+	list_for_each(dev, &devices, node) {
 		char *udev_file;
 
-		udev_file = litest_init_device_udev_rules(*dev);
+		udev_file = litest_init_device_udev_rules(dev);
 		if (udev_file) {
 			struct created_file *file = zalloc(sizeof(*file));
 			file->path = udev_file;
 			list_insert(created_files, &file->link);
 		}
-		dev++;
 	}
 }
 
@@ -1227,7 +1229,7 @@ litest_init_device_quirk_file(const char *data_dir,
 static char *
 litest_install_quirks(struct list *created_files_list)
 {
-	struct litest_test_device **dev = devices;
+	struct litest_test_device *dev;
 	struct created_file *file;
 	char dirname[] = "/run/litest-XXXXXX";
 	char **quirks, **q;
@@ -1257,16 +1259,15 @@ litest_install_quirks(struct list *created_files_list)
 
 	/* Now add the per-device special config files */
 
-	while (*dev) {
+	list_for_each(dev, &devices, node) {
 		char *path;
 
-		path = litest_init_device_quirk_file(dirname, *dev);
+		path = litest_init_device_quirk_file(dirname, dev);
 		if (path) {
 			struct created_file *file = zalloc(sizeof(*file));
 			file->path = path;
 			list_insert(created_files_list, &file->link);
 		}
-		dev++;
 	}
 
 	file = zalloc(sizeof *file);
@@ -1376,43 +1377,44 @@ litest_create(enum litest_device_type which,
 	      const int *events_override)
 {
 	struct litest_device *d = NULL;
-	struct litest_test_device **dev;
+	struct litest_test_device *dev;
 	const char *name;
 	const struct input_id *id;
 	struct input_absinfo *abs;
 	int *events, *e;
 	const char *path;
 	int fd, rc;
+	bool found = false;
 
-	dev = devices;
-	while (*dev) {
-		if ((*dev)->type == which)
+	list_for_each(dev, &devices, node) {
+		if (dev->type == which) {
+			found = true;
 			break;
-		dev++;
+		}
 	}
 
-	if (!*dev)
+	if (!found)
 		ck_abort_msg("Invalid device type %d\n", which);
 
 	d = zalloc(sizeof(*d));
 
 	/* device has custom create method */
-	if ((*dev)->create) {
-		(*dev)->create(d);
+	if (dev->create) {
+		dev->create(d);
 		if (abs_override || events_override) {
 			litest_abort_msg("Custom create cannot be overridden");
 		}
 	} else {
-		abs = merge_absinfo((*dev)->absinfo, abs_override);
-		events = merge_events((*dev)->events, events_override);
-		name = name_override ? name_override : (*dev)->name;
-		id = id_override ? id_override : (*dev)->id;
+		abs = merge_absinfo(dev->absinfo, abs_override);
+		events = merge_events(dev->events, events_override);
+		name = name_override ? name_override : dev->name;
+		id = id_override ? id_override : dev->id;
 
 		d->uinput = litest_create_uinput_device_from_description(name,
 									 id,
 									 abs,
 									 events);
-		d->interface = (*dev)->interface;
+		d->interface = dev->interface;
 
 		for (e = events; *e != -1; e += 2) {
 			unsigned int type = *e,
@@ -3849,23 +3851,11 @@ static void
 litest_init_test_devices(void)
 {
 	const struct test_device *t;
-	size_t ndevices = 0;
 
-	for (ndevices = 1,
-	     t = &__start_test_section;
-	     t < &__stop_test_section;
-	     ndevices++, t++)
-		; /* loopdeeloop */
+	list_init(&devices);
 
-	ndevices++;
-	devices = zalloc(ndevices * sizeof(*devices));
-
-	for (ndevices = 0,
-	     t = &__start_test_section;
-	     t < &__stop_test_section;
-	     t++, ndevices++) {
-		devices[ndevices] = t->device;
-	}
+	for (t = &__start_test_section; t < &__stop_test_section; t++)
+		list_append(&devices, &t->device->node);
 }
 
 extern const struct test_collection __start_test_collection_section,

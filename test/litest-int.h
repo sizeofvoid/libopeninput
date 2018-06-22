@@ -32,6 +32,8 @@
 #define LITEST_AUTO_ASSIGN INT_MIN
 
 struct litest_test_device {
+	struct list node; /* global test device list */
+
 	enum litest_device_type type;
 	enum litest_device_feature features;
 	const char *shortname;
