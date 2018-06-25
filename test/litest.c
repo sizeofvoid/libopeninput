@@ -3988,6 +3988,14 @@ main(int argc, char **argv)
 	int failed_tests;
 	int rc;
 
+	in_debugger = is_debugger_attached();
+	if (in_debugger)
+		setenv("CK_FORK", "no", 0);
+
+	mode = litest_parse_argv(argc, argv);
+	if (mode == LITEST_MODE_ERROR)
+		return EXIT_FAILURE;
+
 	rc = check_device_access();
 	if (rc != 0)
 		return rc;
@@ -3998,14 +4006,6 @@ main(int argc, char **argv)
 
 	setenv("CK_DEFAULT_TIMEOUT", "30", 0);
 	setenv("LIBINPUT_RUNNING_TEST_SUITE", "1", 1);
-
-	in_debugger = is_debugger_attached();
-	if (in_debugger)
-		setenv("CK_FORK", "no", 0);
-
-	mode = litest_parse_argv(argc, argv);
-	if (mode == LITEST_MODE_ERROR)
-		return EXIT_FAILURE;
 
 	setup_tests();
 
