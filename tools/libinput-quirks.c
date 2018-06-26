@@ -74,10 +74,10 @@ static void
 usage(void)
 {
 	printf("Usage:\n"
-	       "  libinput list-quirks [--data-dir /path/to/data/dir] /dev/input/event0\n"
+	       "  libinput quirks list [--data-dir /path/to/data/dir] /dev/input/event0\n"
 	       "	Print the quirks for the given device\n"
 	       "\n"
-	       "  libinput list-quirks [--data-dir /path/to/data/dir] --validate-only\n"
+	       "  libinput quirks validate [--data-dir /path/to/data/dir]\n"
 	       "	Validate the database\n");
 }
 
@@ -105,13 +105,11 @@ main(int argc, char **argv)
 		enum {
 			OPT_VERBOSE,
 			OPT_DATADIR,
-			OPT_VALIDATE,
 		};
 		static struct option opts[] = {
 			{ "help",     no_argument,       0, 'h' },
 			{ "verbose",  no_argument,       0, OPT_VERBOSE },
 			{ "data-dir", required_argument, 0, OPT_DATADIR },
-			{ "validate-only", no_argument,  0, OPT_VALIDATE },
 			{ 0, 0, 0, 0}
 		};
 
@@ -133,17 +131,32 @@ main(int argc, char **argv)
 		case OPT_DATADIR:
 			data_path = optarg;
 			break;
-		case OPT_VALIDATE:
-			validate = true;
-			break;
 		default:
 			usage();
 			return 1;
 		}
 	}
 
-	if (optind >= argc && !validate) {
+	if (optind >= argc) {
 		usage();
+		return 1;
+	}
+
+	if (streq(argv[optind], "list")) {
+		optind++;
+		if (optind >= argc) {
+			usage();
+			return 1;
+		}
+	} else if (streq(argv[optind], "validate")) {
+		optind++;
+		if (optind < argc) {
+			usage();
+			return 1;
+		}
+		validate = true;
+	} else {
+		fprintf(stderr, "Unnkown action '%s'\n", argv[optind]);
 		return 1;
 	}
 

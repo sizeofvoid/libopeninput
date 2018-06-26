@@ -202,12 +202,12 @@ class Device(object):
     def _init_thresholds_from_quirks(self):
         # This is replaced for the version in builddir but left as-is for
         # the installed version. For the builddir one we need to run the
-        # builddir list-quirks
+        # builddir quirks list
         builddir = '@BUILDDIR@'
         if builddir != '@' + 'BUILDDIR' + '@':
-            command = [os.path.join(builddir, 'libinput-list-quirks')]
+            command = [os.path.join(builddir, 'libinput-quirks'), 'list']
         else:
-            command = ['libinput', 'list-quirks']
+            command = ['libinput', 'quirks', 'list']
         command.append(self.path)
         cmd = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if cmd.returncode != 0:

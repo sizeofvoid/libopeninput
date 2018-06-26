@@ -54,21 +54,23 @@ Once the required section has been added, use the information from section
 
 @section device-quirks-debugging Debugging device quirks
 
-libinput provides the `libinput list-quirks` tool to list and debug model
-quirks that apply to one or more local devices.
+libinput provides the `libinput quirks` tool to debug the quirks database.
+This tool takes an action as first argument, the most common invocation is
+`libinput quirks list` to list model quirks that apply to one or more local
+devices.
 
 @verbatim
-$ libinput list-quirks /dev/input/event19
+$ libinput quirks list /dev/input/event19
 Device has no quirks defined
-$ libinput list-quirks /dev/input/event0
+$ libinput quirks list /dev/input/event0
 AttrLidSwitchReliability
 @endverbatim
 
-When called with the `--verbose` argument, `libinput list-quirks` prints
+When called with the `--verbose` argument, `libinput quirks list` prints
 information about all files and its attempts to match the device:
 
 @verbatim
-$ libinput list-quirks --verbose /dev/input/event0
+$ libinput quirks list --verbose /dev/input/event0
 quirks debug: /usr/share/share/libinput is data root
 quirks debug: /usr/share/share/libinput/10-generic-keyboard.quirks
 quirks debug: /usr/share/share/libinput/10-generic-lid.quirks

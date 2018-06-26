@@ -471,21 +471,34 @@ configure_file(input : 'tools/libinput-debug-events.man',
 	       install_dir : join_paths(get_option('mandir'), 'man1')
 	       )
 
-libinput_list_quirks_sources = [ 'tools/libinput-list-quirks.c' ]
-libinput_list_quirks = executable('libinput-list-quirks',
-				  libinput_list_quirks_sources,
-				  dependencies : [dep_libquirks, dep_tools_shared, dep_libinput],
-				  include_directories : [includes_src, includes_include],
-				  install_dir : libinput_tool_path,
-				  install : true
-				 )
+libinput_quirks_sources = [ 'tools/libinput-quirks.c' ]
+libinput_quirks = executable('libinput-quirks',
+			     libinput_quirks_sources,
+			     dependencies : [dep_libquirks, dep_tools_shared, dep_libinput],
+			     include_directories : [includes_src, includes_include],
+			     install_dir : libinput_tool_path,
+			     install : true
+			    )
 test('validate-quirks',
-     libinput_list_quirks,
-     args: ['--validate-only', '--data-dir=@0@'.format(join_paths(meson.source_root(), 'data'))]
+     libinput_quirks,
+     args: ['validate', '--data-dir=@0@'.format(join_paths(meson.source_root(), 'data'))]
      )
 
-configure_file(input : 'tools/libinput-list-quirks.man',
-	       output : 'libinput-list-quirks.1',
+configure_file(input : 'tools/libinput-quirks.man',
+	       output : 'libinput-quirks.1',
+	       configuration : man_config,
+	       install : true,
+	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       )
+# Same man page for the subtools to stay consistent with the other tools
+configure_file(input : 'tools/libinput-quirks.man',
+	       output : 'libinput-quirks-list.1',
+	       configuration : man_config,
+	       install : true,
+	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       )
+configure_file(input : 'tools/libinput-quirks.man',
+	       output : 'libinput-quirks-validate.1',
 	       configuration : man_config,
 	       install : true,
 	       install_dir : join_paths(get_option('mandir'), 'man1')
@@ -544,7 +557,7 @@ configure_file(input : 'tools/libinput-measure-touchpad-tap.man',
 config_builddir = configuration_data()
 config_builddir.set('BUILDDIR', meson.build_root())
 # libinput-measure-touchpad-pressure gets built but we install_data the
-# source instead. The built file is the one that uses the local list-quirks
+# source instead. The built file is the one that uses the local quirks
 # and should be used for debugging.
 install_data('tools/libinput-measure-touchpad-pressure',
 	     install_dir : libinput_tool_path)
@@ -560,7 +573,7 @@ configure_file(input : 'tools/libinput-measure-touchpad-pressure.man',
 	       install_dir : join_paths(get_option('mandir'), 'man1')
 	       )
 # libinput-measure-touch-size gets built but we install_data the source
-# instead. The built file is the one that uses the local list-quirks and
+# instead. The built file is the one that uses the local quirks and
 # should be used for debugging.
 install_data('tools/libinput-measure-touch-size',
 	     install_dir : libinput_tool_path)
