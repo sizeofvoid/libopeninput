@@ -495,6 +495,14 @@ fedora:28@default-build:
   <<: *fedora_28_template
   <<: *default_build
 
+fedora:28@default-build-release:
+  <<: *fedora_28_template
+  <<: *default_build
+  variables:
+    FEDORA_VERSION: 28
+    MESON_ARGS: "-Dbuildtype=release"
+    CFLAGS: "-Werror"
+
 # Below jobs are build option combinations. We only
 # run them on one image, they shouldn't fail on one distro
 # when they succeed on another.
