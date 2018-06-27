@@ -46,7 +46,8 @@ struct trackpoint_accelerator {
 double
 trackpoint_accel_profile(struct motion_filter *filter,
 			 void *data,
-			 double velocity)
+			 double velocity,
+			 uint64_t time)
 {
 	struct trackpoint_accelerator *accel_filter =
 		(struct trackpoint_accelerator *)filter;
@@ -82,7 +83,7 @@ trackpoint_accelerator_filter(struct motion_filter *filter,
 	trackers_feed(&accel_filter->trackers, unaccelerated, time);
 	velocity = trackers_velocity(&accel_filter->trackers, time);
 
-	f = trackpoint_accel_profile(filter, data, velocity);
+	f = trackpoint_accel_profile(filter, data, velocity, time);
 	coords.x = unaccelerated->x * f;
 	coords.y = unaccelerated->y * f;
 

@@ -170,24 +170,6 @@ print_accel_func(struct motion_filter *filter,
 }
 
 static void
-print_accel_func_trackpoint(struct motion_filter *filter,
-			    int max)
-{
-	printf("# gnuplot:\n");
-	printf("# set xlabel \"deltas (units)\"\n");
-	printf("# set ylabel \"raw accel factor\"\n");
-	printf("# set style data lines\n");
-	printf("# plot \"gnuplot.data\" using 1:2 title 'accel factor'\n");
-	printf("#\n");
-	printf("# data: delta(units) factor\n");
-	for (double delta = 0; delta < max; delta += 0.2) {
-		double factor = trackpoint_accel_profile(filter, NULL, delta);
-
-		printf("%.2f %f\n", delta, factor);
-	}
-}
-
-static void
 usage(void)
 {
 	printf("Usage: %s [options] [dx1] [dx2] [...] > gnuplot.data\n", program_invocation_short_name);
@@ -350,7 +332,7 @@ main(int argc, char **argv)
 		profile = touchpad_lenovo_x230_accel_profile;
 	} else if (streq(filter_type, "trackpoint")) {
 		filter = create_pointer_accelerator_filter_trackpoint(tp_range_max);
-		profile = NULL; /* trackpoint is special */
+		profile = trackpoint_accel_profile;
 	} else {
 		fprintf(stderr, "Invalid filter type %s\n", filter_type);
 		return 1;
@@ -381,10 +363,7 @@ main(int argc, char **argv)
 
 	switch (mode) {
 	case ACCEL:
-		if (!profile) /* trackpoint */
-			print_accel_func_trackpoint(filter, tp_range_max);
-		else
-			print_accel_func(filter, profile, dpi);
+		print_accel_func(filter, profile, dpi);
 		break;
 	case DELTA:
 		print_ptraccel_deltas(filter, step);
