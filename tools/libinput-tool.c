@@ -57,6 +57,12 @@ usage(void)
 	       "\n"
 	       "  measure <feature>\n"
 	       "	Measure various device properties. See the man page for more info\n"
+	       "\n"
+	       "  record\n"
+	       "	Record event stream from a device node. See the man page for more info\n"
+	       "\n"
+	       "  replay\n"
+	       "	Replay a previously recorded event stream. See the man page for more info\n"
 	       "\n");
 }
 
