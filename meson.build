@@ -554,8 +554,13 @@ configure_file(input : 'tools/libinput-measure.man',
 	       install_dir : join_paths(get_option('mandir'), 'man1')
 	       )
 
-install_data('tools/libinput-measure-fuzz',
-	     install_dir : libinput_tool_path)
+config_noop = configuration_data()
+configure_file(input: 'tools/libinput-measure-fuzz.py',
+	       output: 'libinput-measure-fuzz',
+	       configuration : config_noop,
+	       install : true,
+	       install_dir : libinput_tool_path
+	       )
 configure_file(input : 'tools/libinput-measure-fuzz.man',
 	       output : 'libinput-measure-fuzz.1',
 	       configuration : man_config,
@@ -563,8 +568,12 @@ configure_file(input : 'tools/libinput-measure-fuzz.man',
 	       install_dir : join_paths(get_option('mandir'), 'man1')
 	       )
 
-install_data('tools/libinput-measure-touchpad-tap',
-	     install_dir : libinput_tool_path)
+configure_file(input: 'tools/libinput-measure-touchpad-tap.py',
+	       output: 'libinput-measure-touchpad_tap',
+	       configuration : config_noop,
+	       install : true,
+	       install_dir : libinput_tool_path
+	       )
 configure_file(input : 'tools/libinput-measure-touchpad-tap.man',
 	       output : 'libinput-measure-touchpad-tap.1',
 	       configuration : man_config,
@@ -572,7 +581,6 @@ configure_file(input : 'tools/libinput-measure-touchpad-tap.man',
 	       install_dir : join_paths(get_option('mandir'), 'man1')
 	       )
 
-config_noop = configuration_data()
 configure_file(input: 'tools/libinput-measure-touchpad-pressure.py',
 	       output: 'libinput-measure-touchpad-pressure',
 	       configuration : config_noop,
@@ -600,8 +608,12 @@ configure_file(input : 'tools/libinput-measure-touch-size.man',
 	       install_dir : join_paths(get_option('mandir'), 'man1')
 	       )
 
-install_data('tools/libinput-measure-trackpoint-range',
-            install_dir : libinput_tool_path)
+configure_file(input: 'tools/libinput-measure-trackpoint-range.py',
+	       output: 'libinput-measure-trackpoint-range',
+	       configuration : config_noop,
+	       install : true,
+	       install_dir : libinput_tool_path
+	       )
 configure_file(input : 'tools/libinput-measure-trackpoint-range.man',
 	       output : 'libinput-measure-trackpoint-range.1',
 	       configuration : man_config,
