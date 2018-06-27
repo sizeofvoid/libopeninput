@@ -467,18 +467,51 @@ out:
 	return is_touchpad;
 }
 
+/* Try to read the directory we're executing from and if it matches the
+ * builddir, return it as path. Otherwise, return NULL.
+ */
+char *
+tools_execdir_is_builddir(void)
+{
+	char execdir[PATH_MAX] = {0};
+	char *pathsep;
+	ssize_t sz;
+
+	sz = readlink("/proc/self/exe", execdir, sizeof(execdir) - 1);
+	if (sz <= 0 || sz == sizeof(execdir) - 1)
+		return NULL;
+
+	/* readlink doesn't terminate the string and readlink says
+	   anything past sz is undefined */
+	execdir[sz + 1] = '\0';
+
+	pathsep = strrchr(execdir, '/');
+	if (!pathsep)
+		return NULL;
+
+	*pathsep = '\0';
+	if (!streq(execdir, MESON_BUILD_ROOT))
+		return NULL;
+
+	return safe_strdup(execdir);
+}
+
 static inline void
 setup_path(void)
 {
 	const char *path = getenv("PATH");
 	char new_path[PATH_MAX];
+	char *builddir;
+
+	builddir = tools_execdir_is_builddir();
 
 	snprintf(new_path,
 		 sizeof(new_path),
 		 "%s:%s",
-		 LIBINPUT_TOOL_PATH,
+		 builddir ? builddir : LIBINPUT_TOOL_PATH,
 		 path ? path : "");
 	setenv("PATH", new_path, 1);
+	free(builddir);
 }
 
 int

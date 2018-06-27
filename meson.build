@@ -31,6 +31,7 @@ add_project_arguments(cppflags, language : 'cpp')
 
 config_h = configuration_data()
 config_h.set('_GNU_SOURCE', '1')
+config_h.set_quoted('MESON_BUILD_ROOT', meson.build_root())
 
 prefix = '''#define _GNU_SOURCE 1
 #include <assert.h>
@@ -687,6 +688,23 @@ executable('ptraccel-debug',
 	   include_directories : [includes_src, includes_include],
 	   install : false
 	   )
+
+# the libinput tools check whether we execute from the builddir, this is
+# the test to verify that lookup. We test twice, once as normal test
+# run from the builddir, once after copying to /tmp
+test_builddir_lookup = executable('test-builddir-lookup',
+				  'tools/test-builddir-lookup.c',
+				  dependencies : [ dep_tools_shared],
+				  include_directories : [includes_src, includes_include],
+				  install : false)
+test('tools-builddir-lookup',
+     test_builddir_lookup,
+     args : ['--builddir-is-set'])
+test('tools-builddir-lookup-installed',
+     find_program('tools/helper-copy-and-exec-from-tmp.sh'),
+     args : [test_builddir_lookup.full_path(), '--builddir-is-null'],
+     env : ['LD_LIBRARY_PATH=@0@'.format(meson.build_root())],
+     workdir : '/tmp')
 
 ############ tests ############
 
