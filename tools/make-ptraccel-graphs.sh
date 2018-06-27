@@ -76,13 +76,13 @@ done
 $gnuplot <<EOF
 set terminal svg enhanced background rgb 'white'
 set output "$outfile.svg"
-set xlabel "delta (units)"
+set xlabel "delta (units/ms)"
 set ylabel "accel factor"
 set style data lines
 set yrange [0:5]
 set xrange [0:20]
 speeds="$speeds"
 fname(s)=sprintf("$outfile-%s.gnuplot", s)
-plot for [s in speeds] fname(s) using 1:2 title s, \
+plot for [s in speeds] fname(s) using 4:2 title s, \
 
 EOF
