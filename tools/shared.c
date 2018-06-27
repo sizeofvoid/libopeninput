@@ -477,6 +477,11 @@ tools_execdir_is_builddir(void)
 	char *pathsep;
 	ssize_t sz;
 
+	/* In the case of release builds, the builddir is
+	   the empty string */
+	if (streq(MESON_BUILD_ROOT, ""))
+		return NULL;
+
 	sz = readlink("/proc/self/exe", execdir, sizeof(execdir) - 1);
 	if (sz <= 0 || sz == sizeof(execdir) - 1)
 		return NULL;

@@ -36,9 +36,15 @@ int main(int argc, char **argv) {
 	if (streq(mode, "--builddir-is-null")) {
 		assert(builddir == NULL);
 	} else if (streq(mode, "--builddir-is-set")) {
-		assert(builddir != NULL);
-		assert(streq(MESON_BUILD_ROOT, builddir));
-		free(builddir);
+		/* In the case of release builds, the builddir is
+		   the empty string */
+		if (streq(MESON_BUILD_ROOT, "")) {
+			assert(builddir == NULL);
+		} else {
+			assert(builddir != NULL);
+			assert(streq(MESON_BUILD_ROOT, builddir));
+			free(builddir);
+		}
 	} else {
 		abort();
 	}

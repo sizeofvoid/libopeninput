@@ -31,7 +31,11 @@ add_project_arguments(cppflags, language : 'cpp')
 
 config_h = configuration_data()
 config_h.set('_GNU_SOURCE', '1')
-config_h.set_quoted('MESON_BUILD_ROOT', meson.build_root())
+if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimized'
+	config_h.set_quoted('MESON_BUILD_ROOT', meson.build_root())
+else
+	config_h.set_quoted('MESON_BUILD_ROOT', '')
+endif
 
 prefix = '''#define _GNU_SOURCE 1
 #include <assert.h>
