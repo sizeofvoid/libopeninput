@@ -162,8 +162,16 @@ main(int argc, char **argv)
 
 	/* Overriding the data dir means no custom override file */
 	if (!data_path) {
-		data_path = LIBINPUT_DATA_DIR;
-		override_file = LIBINPUT_DATA_OVERRIDE_FILE;
+		char *builddir;
+
+		builddir = tools_execdir_is_builddir();
+		if (builddir) {
+			data_path = LIBINPUT_DATA_SRCDIR;
+			free(builddir);
+		} else {
+			data_path = LIBINPUT_DATA_DIR;
+			override_file = LIBINPUT_DATA_OVERRIDE_FILE;
+		}
 	}
 
 	quirks = quirks_init_subsystem(data_path,
