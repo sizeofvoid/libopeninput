@@ -185,7 +185,6 @@ usage(void)
 	       "--steps=<double>  ... in motion and delta modes only. Increase dx by step each round\n"
 	       "--speed=<double>  ... accel speed [-1, 1], default 0\n"
 	       "--dpi=<int>	... device resolution in DPI (default: 1000)\n"
-	       "--trackpoint-range=<int> ... range of the trackpoint deltas (default: 20)\n"
 	       "--filter=<linear|low-dpi|touchpad|x230|trackpoint> \n"
 	       "	linear	  ... the default motion filter\n"
 	       "	low-dpi	  ... low-dpi filter, use --dpi with this argument\n"
@@ -236,7 +235,6 @@ main(int argc, char **argv)
 		OPT_SPEED,
 		OPT_DPI,
 		OPT_FILTER,
-		OPT_TRACKPOINT_RANGE,
 	};
 
 	while (1) {
@@ -251,7 +249,6 @@ main(int argc, char **argv)
 			{"speed", 1, 0, OPT_SPEED },
 			{"dpi", 1, 0, OPT_DPI },
 			{"filter", 1, 0, OPT_FILTER },
-			{"trackpoint-range", 1, 0, OPT_TRACKPOINT_RANGE },
 			{0, 0, 0, 0}
 		};
 
@@ -308,9 +305,6 @@ main(int argc, char **argv)
 			break;
 		case OPT_FILTER:
 			filter_type = optarg;
-			break;
-		case OPT_TRACKPOINT_RANGE:
-			tp_range_max = strtod(optarg, NULL);
 			break;
 		default:
 			usage();
