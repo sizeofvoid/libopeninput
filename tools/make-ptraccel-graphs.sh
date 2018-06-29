@@ -69,7 +69,6 @@ plot for [s in speeds] fname(s) using 1:2 title s, \
 EOF
 
 outfile="ptraccel-trackpoint"
-$tool --mode=accel --dpi=1000 --filter=linear > $outfile-mouse.gnuplot
 for speed in $speeds; do
 	$tool --mode=accel --speed=$speed --filter=trackpoint > $outfile-$speed.gnuplot
 done
