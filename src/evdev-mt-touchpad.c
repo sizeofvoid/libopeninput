@@ -1782,6 +1782,8 @@ tp_interface_remove(struct evdev_dispatch *dispatch)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
+	libinput_timer_cancel(&tp->arbitration.arbitration_timer);
+
 	tp_remove_tap(tp);
 	tp_remove_buttons(tp);
 	tp_remove_sendevents(tp);
@@ -1794,7 +1796,6 @@ tp_interface_destroy(struct evdev_dispatch *dispatch)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
-	libinput_timer_cancel(&tp->arbitration.arbitration_timer);
 	libinput_timer_destroy(&tp->arbitration.arbitration_timer);
 	libinput_timer_destroy(&tp->palm.trackpoint_timer);
 	libinput_timer_destroy(&tp->dwt.keyboard_timer);
