@@ -2533,6 +2533,58 @@ START_TEST(debounce_spurious_switch_to_otherbutton)
 }
 END_TEST
 
+START_TEST(debounce_remove_device_button_up)
+{
+	struct libinput *li;
+	struct litest_device *dev;
+
+	li = litest_create_context();
+
+	dev = litest_add_device(li, LITEST_MOUSE);
+	litest_drain_events(li);
+
+	litest_event(dev, EV_KEY, BTN_LEFT, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_event(dev, EV_KEY, BTN_LEFT, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	/* delete the device  while the timer is still active */
+	litest_delete_device(dev);
+	libinput_dispatch(li);
+
+	litest_timeout_debounce();
+	libinput_dispatch(li);
+
+	libinput_unref(li);
+}
+END_TEST
+
+START_TEST(debounce_remove_device_button_down)
+{
+	struct libinput *li;
+	struct litest_device *dev;
+
+	li = litest_create_context();
+
+	dev = litest_add_device(li, LITEST_MOUSE);
+	litest_drain_events(li);
+
+	litest_event(dev, EV_KEY, BTN_LEFT, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	/* delete the device the timer is still active */
+	litest_delete_device(dev);
+	libinput_dispatch(li);
+
+	litest_timeout_debounce();
+	libinput_dispatch(li);
+
+	libinput_unref(li);
+}
+END_TEST
+
 TEST_COLLECTION(pointer)
 {
 	struct range axis_range = {ABS_X, ABS_Y + 1};
@@ -2607,4 +2659,6 @@ TEST_COLLECTION(pointer)
 	litest_add("pointer:debounce_otherbutton", debounce_spurious_dont_enable_on_otherbutton, LITEST_BUTTON, LITEST_TOUCHPAD|LITEST_NO_DEBOUNCE);
 	litest_add("pointer:debounce_otherbutton", debounce_spurious_cancel_debounce_otherbutton, LITEST_BUTTON, LITEST_TOUCHPAD|LITEST_NO_DEBOUNCE);
 	litest_add("pointer:debounce_otherbutton", debounce_spurious_switch_to_otherbutton, LITEST_BUTTON, LITEST_TOUCHPAD|LITEST_NO_DEBOUNCE);
+	litest_add_no_device("pointer:debounce", debounce_remove_device_button_down);
+	litest_add_no_device("pointer:debounce", debounce_remove_device_button_up);
 }
