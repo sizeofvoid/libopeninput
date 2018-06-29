@@ -80,7 +80,7 @@ set xlabel "delta (units/ms)"
 set ylabel "accel factor"
 set style data lines
 set yrange [0:5]
-set xrange [0:20]
+set xrange [0:1]
 speeds="$speeds"
 fname(s)=sprintf("$outfile-%s.gnuplot", s)
 plot for [s in speeds] fname(s) using 4:2 title s, \
