@@ -432,7 +432,7 @@ if get_option('documentation')
 				  install : false)
 	custom_target('doxygen',
 		      input : [ doxyfile ] + src_doxygen,
-		      output : [ 'html' ],
+		      output : [ 'Documentation' ],
 		      command : [ doxygen, doxyfile ],
 		      install : false,
 		      build_by_default : true)

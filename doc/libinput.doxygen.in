@@ -12,6 +12,7 @@ INPUT                  = @INPUT@
 IMAGE_PATH             = "@top_srcdir@/doc/svg" \
 			 "@top_srcdir@/doc/dot"
 GENERATE_HTML          = YES
+HTML_OUTPUT            = Documentation
 SEARCHENGINE           = NO
 USE_MATHJAX            = YES
 MATHJAX_RELPATH        = https://cdn.mathjax.org/mathjax/latest
