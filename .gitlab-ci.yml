@@ -587,6 +587,16 @@ fedora:28@scan-build:
     - echo "Check scan-build results"
     - /bin/false
 
+fedora:28@valgrind:
+  <<: *fedora_28_template
+  variables:
+    FEDORA_VERSION: 28
+  script:
+   - rm -rf $MESON_BUILDDIR
+   - meson $MESON_BUILDDIR $MESON_PARAMS
+   - meson configure $MESON_BUILDDIR
+   - meson test -C "$MESON_BUILDDIR" --setup=valgrind
+
 #
 # Ubuntu
 #
