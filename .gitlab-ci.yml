@@ -14,7 +14,7 @@
 #
 #   So instead we use a default_build template and override everything with
 #   variables. The only two variables that matter:
-#     MESON_PARAMS=-Denable-something=true
+#     MESON_ARGS=-Denable-something=true
 #     NINJA_ARGS=dist ... to run 'ninja -C builddir dist'
 #   Note that you cannot use scripts: in any target if you expect default_build
 #   to work.
@@ -46,7 +46,7 @@ variables:
   ############################ end of package lists #############################
   MESON_BUILDDIR: builddir
   NINJA_ARGS: 'test'
-  MESON_PARAMS: ''
+  MESON_ARGS: ''
   FEDORA_DOCKER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/fedora/$FEDORA_VERSION
   UBUNTU_DOCKER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/ubuntu/$UBUNTU_VERSION
   ARCH_DOCKER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/arch/rolling
@@ -69,7 +69,7 @@ variables:
 .default_build: &default_build
   script:
    - rm -rf $MESON_BUILDDIR
-   - meson $MESON_BUILDDIR $MESON_PARAMS
+   - meson $MESON_BUILDDIR $MESON_ARGS
    - meson configure $MESON_BUILDDIR
    - ninja -C $MESON_BUILDDIR $NINJA_ARGS
 
@@ -514,14 +514,14 @@ fedora:28@build-no-libwacom:
   <<: *default_build
   variables:
     FEDORA_VERSION: 28
-    MESON_PARAMS: "-Dlibwacom=false"
+    MESON_ARGS: "-Dlibwacom=false"
 
 fedora:28@build-no-libwacom-nodeps:
   <<: *fedora_28_template
   <<: *default_build
   variables:
     FEDORA_VERSION: 28
-    MESON_PARAMS: "-Dlibwacom=false"
+    MESON_ARGS: "-Dlibwacom=false"
   before_script:
     - dnf remove -y libwacom libwacom-devel
 
@@ -530,14 +530,14 @@ fedora:28@build-no-docs:
   <<: *default_build
   variables:
     FEDORA_VERSION: 28
-    MESON_PARAMS: "-Ddocumentation=false"
+    MESON_ARGS: "-Ddocumentation=false"
 
 fedora:28@build-no-docs-nodeps:
   <<: *fedora_28_template
   <<: *default_build
   variables:
     FEDORA_VERSION: 28
-    MESON_PARAMS: "-Ddocumentation=false"
+    MESON_ARGS: "-Ddocumentation=false"
   before_script:
     - dnf remove -y doxygen graphviz
 
@@ -546,14 +546,14 @@ fedora:28@build-no-debuggui:
   <<: *default_build
   variables:
     FEDORA_VERSION: 28
-    MESON_PARAMS: "-Ddebug-gui=false"
+    MESON_ARGS: "-Ddebug-gui=false"
 
 fedora:28@build-no-debuggui-nodeps:
   <<: *fedora_28_template
   <<: *default_build
   variables:
     FEDORA_VERSION: 28
-    MESON_PARAMS: "-Ddebug-gui=false"
+    MESON_ARGS: "-Ddebug-gui=false"
   before_script:
     - dnf remove -y gtk3-devel
 
@@ -562,14 +562,14 @@ fedora:28@build-no-tests:
   <<: *default_build
   variables:
     FEDORA_VERSION: 28
-    MESON_PARAMS: "-Dtests=false"
+    MESON_ARGS: "-Dtests=false"
 
 fedora:28@build-no-tests-nodeps:
   <<: *fedora_28_template
   <<: *default_build
   variables:
     FEDORA_VERSION: 28
-    MESON_PARAMS: "-Dtests=false"
+    MESON_ARGS: "-Dtests=false"
   before_script:
     - dnf remove -y check-devel
 
@@ -593,7 +593,7 @@ fedora:28@valgrind:
     FEDORA_VERSION: 28
   script:
    - rm -rf $MESON_BUILDDIR
-   - meson $MESON_BUILDDIR $MESON_PARAMS
+   - meson $MESON_BUILDDIR $MESON_ARGS
    - meson configure $MESON_BUILDDIR
    - meson test -C "$MESON_BUILDDIR" --setup=valgrind
 
