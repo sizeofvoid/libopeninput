@@ -505,6 +505,20 @@ fedora:28@default-build-release:
     MESON_ARGS: "-Dbuildtype=release"
     CFLAGS: "-Werror"
 
+fedora:28@scan-build:
+  <<: *fedora_28_template
+  <<: *default_build
+  variables:
+    FEDORA_VERSION: 28
+    NINJA_ARGS: scan-build
+  before_script:
+    - dnf install -y clang-analyzer findutils
+  after_script:
+    - test ! -d $MESON_BUILDDIR/meson-logs/scanbuild && exit 0
+    - test $(find $MESON_BUILDDIR/meson-logs/scanbuild -maxdepth 0 ! -empty -exec echo "not empty" \; | wc -l) -eq 0 && exit 0
+    - echo "Check scan-build results"
+    - /bin/false
+
 # Below jobs are build option combinations. We only
 # run them on one image, they shouldn't fail on one distro
 # when they succeed on another.
@@ -572,20 +586,6 @@ fedora:28@build-no-tests-nodeps:
     MESON_ARGS: "-Dtests=false"
   before_script:
     - dnf remove -y check-devel
-
-fedora:28@scan-build:
-  <<: *fedora_28_template
-  <<: *default_build
-  variables:
-    FEDORA_VERSION: 28
-    NINJA_ARGS: scan-build
-  before_script:
-    - dnf install -y clang-analyzer findutils
-  after_script:
-    - test ! -d $MESON_BUILDDIR/meson-logs/scanbuild && exit 0
-    - test $(find $MESON_BUILDDIR/meson-logs/scanbuild -maxdepth 0 ! -empty -exec echo "not empty" \; | wc -l) -eq 0 && exit 0
-    - echo "Check scan-build results"
-    - /bin/false
 
 fedora:28@valgrind:
   <<: *fedora_28_template
