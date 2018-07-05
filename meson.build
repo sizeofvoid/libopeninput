@@ -340,6 +340,12 @@ if get_option('documentation')
 		error('Graphviz dot needs to be at least version 2.26 (have @0@)'.format(dot_version))
 	endif
 
+	readme = vcs_tag(command : ['git', 'log', '-1', '--format=%h'],
+			 fallback : 'unknown',
+			 input : 'README.md',
+			 output : 'README.md',
+			 replace_string: '__GIT_VERSION__')
+
 	src_doxygen = files(
 		# source files
 		'src/libinput.h',
@@ -417,7 +423,6 @@ if get_option('documentation')
 		'doc/style/customdoxygen.css',
 		'doc/style/bootstrap.css',
 		'doc/style/libinputdoxygen.css',
-		'README.md'
 	)
 
 	# doxygen expects a space-separated list of input files in its
@@ -428,18 +433,22 @@ if get_option('documentation')
 		doxy_input_files += [join_paths(meson.source_root(), '@0@'.format(f))]
 	endforeach
 
+	doxy_input_files += [readme.full_path()]
+
 	doc_config = configuration_data()
 	doc_config.set('PACKAGE_NAME', meson.project_name())
 	doc_config.set('PACKAGE_VERSION', meson.project_version())
 	doc_config.set('top_srcdir', meson.source_root())
 	doc_config.set('INPUT', ' '.join(doxy_input_files))
+	doc_config.set('README_MD', readme.full_path())
 
 	doxyfile = configure_file(input : 'doc/libinput.doxygen.in',
 				  output : 'libinput.doxygen',
 				  configuration : doc_config,
 				  install : false)
+
 	custom_target('doxygen',
-		      input : [ doxyfile ] + src_doxygen,
+		      input : [ doxyfile, readme ] + src_doxygen,
 		      output : [ 'Documentation' ],
 		      command : [ doxygen, doxyfile ],
 		      install : false,
