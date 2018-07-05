@@ -35,6 +35,10 @@
 
 - @subpage tablet-support
 
+@page other_devices Other devices
+
+- @subpage switches
+
 @page general General 
 
 - @subpage device-quirks
