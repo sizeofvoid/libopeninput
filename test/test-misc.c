@@ -701,7 +701,7 @@ START_TEST(ratelimit_helpers)
 	unsigned int i, j;
 
 	/* 10 attempts every 100ms */
-	ratelimit_init(&rl, ms2us(100), 10);
+	ratelimit_init(&rl, ms2us(500), 10);
 
 	for (j = 0; j < 3; ++j) {
 		/* a burst of 9 attempts must succeed */
@@ -723,14 +723,14 @@ START_TEST(ratelimit_helpers)
 		}
 
 		/* ..even after waiting 20ms */
-		msleep(20);
+		msleep(100);
 		for (i = 0; i < 100; ++i) {
 			ck_assert_int_eq(ratelimit_test(&rl),
 					 RATELIMIT_EXCEEDED);
 		}
 
-		/* but after 100ms the counter is reset */
-		msleep(90); /* +10ms to account for time drifts */
+		/* but after 500ms the counter is reset */
+		msleep(450); /* +50ms to account for time drifts */
 	}
 }
 END_TEST
