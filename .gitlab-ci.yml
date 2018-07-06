@@ -648,6 +648,8 @@ wayland-web:
   only:
     refs:
       - master
+    variables:
+      - $CI_PROJECT_PATH == "libinput/libinput"
   dependencies:
   variables:
     DOT: "%2E"
