@@ -24,3 +24,8 @@ ModelHPStream11Touchpad=1
 MatchName=AlpsPS/2 ALPS GlidePoint
 MatchDMIModalias=dmi:*svnHP:pnHPZBookStudioG3:*
 ModelHPZBookStudioG3=1
+
+[HP Chromebook 14]
+MatchName=*Cypress APA Trackpad *cyapa*
+MatchDMIModalias=dmi:*svnHewlett-Packard*:pnFalco*
+AttrPressureRange=13:10
