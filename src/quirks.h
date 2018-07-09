@@ -217,6 +217,19 @@ quirks_get_int32(struct quirks *q,
 		 int32_t *val);
 
 /**
+ * Get the value of the given quirk, as double.
+ * This function will assert if the quirk type does not match the
+ * requested type. If the quirk is not set for this device, val is
+ * unchanged.
+ *
+ * @return true if the quirk value is valid, false otherwise.
+ */
+bool
+quirks_get_double(struct quirks *q,
+		  enum quirk which,
+		  double *val);
+
+/**
  * Get the value of the given quirk, as string.
  * This function will assert if the quirk type does not match the
  * requested type. If the quirk is not set for this device, val is

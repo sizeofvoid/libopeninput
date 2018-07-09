@@ -54,6 +54,7 @@ enum property_type {
 	PT_BOOL,
 	PT_DIMENSION,
 	PT_RANGE,
+	PT_DOUBLE,
 };
 
 /**
@@ -74,6 +75,7 @@ struct property {
 		char *s;
 		struct quirk_dimensions dim;
 		struct quirk_range range;
+		double d;
 	} value;
 };
 
@@ -1430,6 +1432,24 @@ quirks_get_uint32(struct quirks *q, enum quirk which, uint32_t *val)
 
 	assert(p->type == PT_UINT);
 	*val = p->value.u;
+
+	return true;
+}
+
+bool
+quirks_get_double(struct quirks *q, enum quirk which, double *val)
+{
+	struct property *p;
+
+	if (!q)
+		return false;
+
+	p = quirk_find_prop(q, which);
+	if (!p)
+		return false;
+
+	assert(p->type == PT_DOUBLE);
+	*val = p->value.d;
 
 	return true;
 }

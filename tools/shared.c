@@ -630,6 +630,7 @@ tools_list_device_quirks(struct quirks_context *ctx,
 		struct quirk_range r;
 		uint32_t v;
 		char *s;
+		double d;
 
 		if (!quirks_has_quirk(quirks, *q))
 			continue;
