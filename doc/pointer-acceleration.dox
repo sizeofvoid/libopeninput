@@ -124,6 +124,9 @@ sensitivity in hardware by modifying a sysfs file on the serio node. A
 higher sensitivity results in higher deltas, thus changing the definition of
 what is a unit again.
 
+libinput attempts to normalize unit data to the best of its abilities, see
+@ref trackpoint_multiplier. Beyond this, it is not possible to have
+consistent behavior across different touchpad devices.
 
 @image html ptraccel-trackpoint.svg "Pointer acceleration curves for trackpoints"
 

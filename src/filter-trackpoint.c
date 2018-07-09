@@ -41,6 +41,8 @@ struct trackpoint_accelerator {
 
 	struct pointer_trackers trackers;
 	double speed_factor;
+
+	double multiplier;
 };
 
 double
@@ -76,16 +78,20 @@ trackpoint_accelerator_filter(struct motion_filter *filter,
 {
 	struct trackpoint_accelerator *accel_filter =
 		(struct trackpoint_accelerator *)filter;
+	struct device_float_coords multiplied;
 	struct normalized_coords coords;
 	double f;
 	double velocity;
 
-	trackers_feed(&accel_filter->trackers, unaccelerated, time);
+	multiplied.x = unaccelerated->x * accel_filter->multiplier;
+	multiplied.y = unaccelerated->y * accel_filter->multiplier;
+
+	trackers_feed(&accel_filter->trackers, &multiplied, time);
 	velocity = trackers_velocity(&accel_filter->trackers, time);
 
 	f = trackpoint_accel_profile(filter, data, velocity, time);
-	coords.x = unaccelerated->x * f;
-	coords.y = unaccelerated->y * f;
+	coords.x = multiplied.x * f;
+	coords.y = multiplied.y * f;
 
 	return coords;
 }
@@ -95,11 +101,12 @@ trackpoint_accelerator_filter_noop(struct motion_filter *filter,
 				   const struct device_float_coords *unaccelerated,
 				   void *data, uint64_t time)
 {
-
+	struct trackpoint_accelerator *accel_filter =
+		(struct trackpoint_accelerator *)filter;
 	struct normalized_coords coords;
 
-	coords.x = unaccelerated->x;
-	coords.y = unaccelerated->y;
+	coords.x = unaccelerated->x * accel_filter->multiplier;
+	coords.y = unaccelerated->y * accel_filter->multiplier;
 
 	return coords;
 }
@@ -175,27 +182,29 @@ struct motion_filter_interface accelerator_interface_trackpoint = {
 };
 
 struct motion_filter *
-create_pointer_accelerator_filter_trackpoint(int max_hw_delta)
+create_pointer_accelerator_filter_trackpoint(double multiplier)
 {
 	struct trackpoint_accelerator *filter;
+
+	assert(multiplier > 0.0);
 
 	/* Trackpoints are special. They don't have a movement speed like a
 	 * mouse or a finger, instead they send a stream of events based on
 	 * the pressure applied.
 	 *
 	 * Physical ranges on a trackpoint are the max values for relative
-	 * deltas, but these are highly device-specific.
+	 * deltas, but these are highly device-specific and unreliable to
+	 * measure.
 	 *
+	 * Instead, we just have a constant multiplier we have in the quirks
+	 * system.
 	 */
 
 	filter = zalloc(sizeof *filter);
 	if (!filter)
 		return NULL;
 
-	/* FIXME: should figure out something here to deal with the
-	 * trackpoint range/max hw delta. Or we just make it a literal
-	 * "magic" number and live with it.
-	 */
+	filter->multiplier = multiplier;
 
 	trackers_init(&filter->trackers);
 

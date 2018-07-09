@@ -421,6 +421,7 @@ if get_option('documentation')
 		'doc/svg/thumb-detection.svg',
 		'doc/svg/top-software-buttons.svg',
 		'doc/svg/touchscreen-gestures.svg',
+		'doc/svg/trackpoint-delta-illustration.svg',
 		'doc/svg/twofinger-scrolling.svg',
 		# style files
 		'doc/style/header.html',
