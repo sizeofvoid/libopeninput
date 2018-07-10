@@ -87,6 +87,12 @@ if cc.has_header_symbol('dirent.h', 'versionsort', prefix : prefix)
 	config_h.set('HAVE_VERSIONSORT', '1')
 endif
 
+if not cc.has_header_symbol('errno.h', 'program_invocation_short_name', prefix : prefix)
+	if cc.has_header_symbol('stdlib.h', 'getprogname')
+		config_h.set('program_invocation_short_name', 'getprogname()')
+	endif
+endif
+
 if cc.has_header('xlocale.h')
 	config_h.set('HAVE_XLOCALE_H', '1')
 endif
