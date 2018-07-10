@@ -42,7 +42,6 @@
 #include "linux/input.h"
 #include <sys/ptrace.h>
 #include <sys/resource.h>
-#include <sys/sendfile.h>
 #include <sys/timerfd.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
@@ -1229,7 +1228,7 @@ litest_copy_file(const char *dest, const char *src, const char *header)
 				 src,
 				 strerror(errno));
 	/* lazy, just check for error and empty file copy */
-	litest_assert_int_gt(sendfile(out, in, NULL, 40960), 0);
+	litest_assert_int_gt(litest_send_file(out, in), 0);
 	close(out);
 	close(in);
 

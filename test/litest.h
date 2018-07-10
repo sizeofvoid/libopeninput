@@ -1077,6 +1077,14 @@ litest_touchpad_is_external(struct litest_device *dev)
 	return is_external;
 }
 
+static inline int
+litest_send_file(int sock, int fd)
+{
+	char buf[40960];
+	int n = read(fd, buf, 40960);
+	return write(sock, buf, n);
+}
+
 #undef ck_assert_double_eq
 #undef ck_assert_double_ne
 #undef ck_assert_double_lt
