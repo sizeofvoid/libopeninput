@@ -226,7 +226,7 @@ Replaying events is the same as for a single recording:
 $ sudo libinput replay touchpad-bug.yml
 @endverbatim
 
-@subsection libinput-measure Measuring device properties with libinput measure
+@section libinput-measure Measuring device properties with libinput measure
 
 The `libinput measure` tool is a multiplexer for various sub-tools that can
 measure specific properties on the device. These tools generally measure one
