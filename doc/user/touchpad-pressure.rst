@@ -1,0 +1,240 @@
+.. _touchpad_pressure:
+
+==============================================================================
+Touchpad pressure-based touch detection
+==============================================================================
+
+libinput uses the touchpad pressure values and/or touch size values to
+detect wether a finger has been placed on the touchpad. This is
+:ref:`kernel_pressure_information` and combines with a libinput-specific hardware
+database to adjust the thresholds on a per-device basis. libinput uses
+these thresholds primarily to filter out accidental light touches but
+the information is also used for some :ref:`palm_detection`.
+
+Pressure and touch size thresholds are **not** directly configurable by the
+user. Instead, libinput provides these thresholds for each device where
+necessary. See :ref:`touchpad_pressure_hwdb` for instructions on how to adjust
+the pressure ranges and :ref:`touchpad_touch_size_hwdb` for instructions on
+how to adjust the touch size ranges.
+
+.. _kernel_pressure_information:
+
+------------------------------------------------------------------------------
+Information provided by the kernel
+------------------------------------------------------------------------------
+
+The kernel sends multiple values to inform userspace about a finger touching
+the touchpad. The most basic is the ``EV_KEY/BTN_TOUCH`` boolean event
+that simply announces physical contact with the touchpad. The decision when
+this event is sent is usually made by the kernel driver and may depend on
+device-specific thresholds. These thresholds are transparent to userspace
+and cannot be modified. On touchpads where pressure or touch size is not
+available, libinput uses ``BTN_TOUCH`` to determine when a finger is
+logically down.
+
+Many contemporary touchpad devices provide an absolute pressure axis in
+addition to ``BTN_TOUCH``. This pressure generally increases as the pressure
+increases, however few touchpads are capable of detecting true pressure. The
+pressure value is usually related to the covered area - as the pressure
+increases a finger flattens and thus covers a larger area. The range
+provided by the kernel is not mapped to a specific physical range and
+often requires adjustment. Pressure is sent by the ``ABS_PRESSURE`` axis
+for single-touch touchpads or ``ABS_MT_PRESSURE`` on multi-touch capable
+touchpads. Some devices can detect multiple fingers but only provide
+``ABS_PRESSURE``.
+
+Some devices provide additional touch size information through
+the ``ABS_MT_TOUCH_MAJOR/ABS_MT_TOUCH_MINOR`` axes and/or
+the ``ABS_MT_WIDTH_MAJOR/ABS_MT_WIDTH_MINOR`` axes. These axes specifcy
+the size of the touch ellipse. While the kernel documentation specifies how
+these axes are supposed to be mapped, few devices forward reliable
+information. libinput uses these values together with a device-specific
+:ref:`device-quirks` entry. In other words, touch size detection does not work
+unless a device quirk is present for the device.
+
+.. _touchpad_pressure_hwdb:
+
+------------------------------------------------------------------------------
+Debugging touchpad pressure ranges
+------------------------------------------------------------------------------
+
+This section describes how to determine the touchpad pressure ranges
+required for a touchpad device and how to add the required
+:ref:`device-quirks` locally. Note that the quirk is **not public API** and **may
+change at any time**. Users are advised to :ref:`report a bug <reporting_bugs>`
+with the updated pressure ranges when testing has completed.
+
+Use the ``libinput measure touchpad-pressure`` tool provided by libinput.
+This tool will search for your touchpad device and print some pressure
+statistics, including whether a touch is/was considered logically down.
+
+.. note:: This tool will only work on touchpads with pressure.
+
+Example output of the tool is below: ::
+
+     $ sudo libinput measure touchpad-pressure
+     Ready for recording data.
+     Pressure range used: 8:10
+     Palm pressure range used: 65535
+     Place a single finger on the touchpad to measure pressure values.
+     Ctrl+C to exit
+     &nbsp;
+     Sequence 1190 pressure: min:  39 max:  48 avg:  43 median:  44 tags: down
+     Sequence 1191 pressure: min:  49 max:  65 avg:  62 median:  64 tags: down
+     Sequence 1192 pressure: min:  40 max:  78 avg:  64 median:  66 tags: down
+     Sequence 1193 pressure: min:  36 max:  83 avg:  70 median:  73 tags: down
+     Sequence 1194 pressure: min:  43 max:  76 avg:  72 median:  74 tags: down
+     Touchpad pressure:  47 min:  47 max:  86 tags: down
+
+
+The example output shows five completed touch sequences and one ongoing one.
+For each, the respective minimum and maximum pressure values are printed as
+well as some statistics. The ``tags`` show that sequence was considered
+logically down at some point. This is an interactive tool and its output may
+change frequently. Refer to the <i>libinput-measure-touchpad-pressure(1)</i> man
+page for more details.
+
+By default, this tool uses the :ref:`device-quirks` for the pressure range. To
+narrow down on the best values for your device, specify the 'logically down'
+and 'logically up' pressure thresholds with the  ``--touch-thresholds``
+argument: ::
+
+     $ sudo libinput measure touchpad-pressure --touch-thresholds=10:8 --palm-threshold=20
+
+
+Interact with the touchpad and check if the output of this tool matches your
+expectations.
+
+.. note:: This is an interactive process. You will need to re-run the
+          tool with varying thresholds until you find the right range for
+          your touchpad. Attaching output logs to a bug will not help, only
+          you with access to the hardware can figure out the correct
+          ranges.
+
+Once the thresholds are decided on (e.g. 10 and 8), they can be enabled with
+:ref:`device-quirks` entry similar to this: ::
+
+     $> cat /etc/libinput/local-overrides.quirks
+     [Touchpad pressure override]
+     MatchUdevType=touchpad
+     MatchName=*SynPS/2 Synaptics TouchPad
+     MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX230*
+     AttrPressureRange=10:8
+
+The file name **must** be ``/etc/libinput/local-overrides.quirks``. The
+The first line is the section name and can be free-form. The ``Match``
+directives limit the quirk to your touchpad, make sure the device name
+matches your device's name (see ``libinput record``'s output). The dmi
+modalias match should be based on the information in
+``/sys/class/dmi/id/modalias``.  This modalias should be shortened to the
+specific system's information, usually system vendor (svn)
+and product name (pn).
+
+Once in place, run the following command to verify the quirk is valid and
+works for your device: ::
+
+     $ sudo libinput list-quirks /dev/input/event10
+     AttrPressureRange=10:8
+
+Replace the event node with the one from your device. If the
+``AttrPressureRange`` quirk does not show up, re-run with ``--verbose`` and
+check the output for any error messages.
+
+If the pressure range quirk shows up correctly, restart X or the
+Wayland compositor and libinput should now use the correct pressure
+thresholds. The :ref:`tools` can be used to verify the correct
+functionality first without the need for a restart.
+
+Once the pressure ranges are deemed correct,
+:ref:`report a bug <reporting_bugs>` to get the pressure ranges into the
+repository.
+
+.. _touchpad_touch_size_hwdb:
+
+------------------------------------------------------------------------------
+Debugging touch size ranges
+------------------------------------------------------------------------------
+
+This section describes how to determine the touchpad size ranges
+required for a touchpad device and how to add the required
+:ref:`device-quirks` locally. Note that the quirk is **not public API** and **may
+change at any time**. Users are advised to :ref:`report a bug <reporting_bugs>`
+with the updated pressure ranges when testing has completed.
+
+Use the ``libinput measure touch-size`` tool provided by libinput.
+This tool will search for your touchpad device and print some touch size
+statistics, including whether a touch is/was considered logically down.
+
+.. note:: This tool will only work on touchpads with the ``ABS_MT_MAJOR`` axis.
+
+Example output of the tool is below: ::
+
+     $ sudo libinput measure touch-size --touch-thresholds 10:8 --palm-threshold 14
+     Using ELAN Touchscreen: /dev/input/event5
+     &nbsp;
+     Ready for recording data.
+     Touch sizes used: 10:8
+     Palm size used: 14
+     Place a single finger on the device to measure touch size.
+     Ctrl+C to exit
+     &nbsp;
+     Sequence: major: [  9.. 11] minor: [  7..  9]
+     Sequence: major: [  9.. 10] minor: [  7..  7]
+     Sequence: major: [  9.. 14] minor: [  6..  9]  down
+     Sequence: major: [ 11.. 11] minor: [  9..  9]  down
+     Sequence: major: [  4.. 33] minor: [  1..  5]  down palm
+
+The example output shows five completed touch sequences. For each, the
+respective minimum and maximum pressure values are printed as well as some
+statistics. The ``down`` and ``palm`` tags show that sequence was considered
+logically down or a palm at some point. This is an interactive tool and its
+output may change frequently. Refer to the <i>libinput-measure-touch-size(1)</i> man
+page for more details.
+
+By default, this tool uses the :ref:`device-quirks` for the touch size range. To
+narrow down on the best values for your device, specify the 'logically down'
+and 'logically up' pressure thresholds with the  ``--touch-thresholds``
+arguments as in the example above.
+
+Interact with the touchpad and check if the output of this tool matches your
+expectations.
+
+.. note:: This is an interactive process. You will need to re-run the
+          tool with varying thresholds until you find the right range for
+          your touchpad. Attaching output logs to a bug will not help, only
+          you with access to the hardware can figure out the correct
+          ranges.
+
+Once the thresholds are decided on (e.g. 10 and 8), they can be enabled with
+:ref:`device-quirks` entry similar to this: ::
+
+     $> cat /etc/libinput/local-overrides.quirks
+     [Touchpad touch size override]
+     MatchUdevType=touchpad
+     MatchName=*SynPS/2 Synaptics TouchPad
+     MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX230*
+     AttrTouchSizeRange=10:8
+
+The first line is the match line and should be adjusted for the device name
+(see evemu-record's output) and for the local system, based on the
+information in ``/sys/class/dmi/id/modalias``. The modalias should be
+shortened to the specific system's information, usually system vendor (svn)
+and product name (pn).
+
+Once in place, run the following command to verify the quirk is valid and
+works for your device: ::
+
+     $ sudo libinput list-quirks /dev/input/event10
+     AttrTouchSizeRange=10:8
+
+Replace the event node with the one from your device. If the
+``AttrTouchSizeRange`` quirk does not show up, re-run with ``--verbose`` and
+check the output for any error messages.
+
+If the touch size range property shows up correctly, restart X or the
+Wayland compositor and libinput should now use the correct thresholds.
+The :ref:`tools` can be used to verify the correct functionality first without
+the need for a restart.
+
+Once the touch size ranges are deemed correct, :ref:`reporting_bugs` "report a
+bug" to get the thresholds into the repository.

@@ -374,7 +374,8 @@ endif
 ############ documentation ############
 
 if get_option('documentation')
-	subdir('doc')
+	subdir('doc/api')
+	subdir('doc/user')
 endif
 
 ############ tools ############

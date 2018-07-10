@@ -1,0 +1,29 @@
+.. _features:
+
+==============================================================================
+libinput Features
+==============================================================================
+
+Below is a list of features supported by libinput. The availability of
+features usually depends on the device type and a device's capabilties.
+Not all features are user-configurable, some rely on @see device-quirks
+to be useful.
+
+
+.. toctree::
+   :maxdepth: 1
+
+   button_debouncing.rst
+   clickpad-softbuttons.rst
+   gestures.rst
+   middle-button-emulation.rst
+   palm-detection.rst
+   scrolling.rst
+   t440-support.rst
+   tapping.rst
+   tablet-support.rst
+   switches.rst
+   touchpad-jitter.rst
+   touchpad-jumping-cursors.rst
+   touchpad-pressure.rst
+   trackpoints.rst
