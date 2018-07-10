@@ -51,6 +51,9 @@
 #if HAVE_LIBSYSTEMD
 #include <systemd/sd-bus.h>
 #endif
+#ifdef __FreeBSD__
+#include <termios.h>
+#endif
 
 #include "litest.h"
 #include "litest-int.h"
@@ -3974,8 +3977,21 @@ disable_tty(void)
 	    !in_debugger &&
 	    getenv("CK_FORK") == NULL &&
 	    isatty(STDIN_FILENO) &&
-	    ioctl(STDIN_FILENO, KDGKBMODE, &tty_mode) == 0)
+	    ioctl(STDIN_FILENO, KDGKBMODE, &tty_mode) == 0) {
+#ifdef __linux__
 		ioctl(STDIN_FILENO, KDSKBMODE, K_OFF);
+#elif __FreeBSD__
+		ioctl(STDIN_FILENO, KDSKBMODE, K_RAW);
+
+		/* Put the tty into raw mode */
+		struct termios tios;
+		if (tcgetattr(STDIN_FILENO, &tios))
+				fprintf(stderr, "Failed to get terminal attribute: %d - %s\n", errno, strerror(errno));
+		cfmakeraw(&tios);
+		if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tios))
+				fprintf(stderr, "Failed to set terminal attribute: %d - %s\n", errno, strerror(errno));
+#endif
+	}
 #endif /* DISABLE_DEVICE_TESTS */
 
 	return tty_mode;
@@ -4023,8 +4039,18 @@ main(int argc, char **argv)
 
 	failed_tests = litest_run(argc, argv);
 
-	if (tty_mode != -1)
+	if (tty_mode != -1) {
 		ioctl(STDIN_FILENO, KDSKBMODE, tty_mode);
+#ifdef __FreeBSD__
+		/* Put the tty into "sane" mode */
+		struct termios tios;
+		if (tcgetattr(STDIN_FILENO, &tios))
+				fprintf(stderr, "Failed to get terminal attribute: %d - %s\n", errno, strerror(errno));
+		cfmakesane(&tios);
+		if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tios))
+				fprintf(stderr, "Failed to set terminal attribute: %d - %s\n", errno, strerror(errno));
+#endif
+	}
 
 	return failed_tests;
 }
