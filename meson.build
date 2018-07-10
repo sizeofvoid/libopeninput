@@ -97,6 +97,12 @@ if cc.has_header('xlocale.h')
 	config_h.set('HAVE_XLOCALE_H', '1')
 endif
 
+if not cc.has_header_symbol('sys/ptrace.h', 'PTRACE_ATTACH', prefix : prefix)
+	config_h.set('PTRACE_ATTACH', 'PT_ATTACH')
+	config_h.set('PTRACE_CONT', 'PT_CONTINUE')
+	config_h.set('PTRACE_DETACH', 'PT_DETACH')
+endif
+
 # Dependencies
 pkgconfig = import('pkgconfig')
 dep_udev = dependency('libudev')

@@ -3870,10 +3870,10 @@ is_debugger_attached(void)
 
 	if (pid == 0) {
 		int ppid = getppid();
-		if (ptrace(PTRACE_ATTACH, ppid, NULL, NULL) == 0) {
+		if (ptrace(PTRACE_ATTACH, ppid, NULL, 0) == 0) {
 			waitpid(ppid, NULL, 0);
-			ptrace(PTRACE_CONT, NULL, NULL);
-			ptrace(PTRACE_DETACH, ppid, NULL, NULL);
+			ptrace(PTRACE_CONT, ppid, NULL, 0);
+			ptrace(PTRACE_DETACH, ppid, NULL, 0);
 			rc = 0;
 		} else {
 			rc = 1;
