@@ -83,6 +83,10 @@ if get_option('coverity')
 	config_h.set('_Float64x', 'long')
 endif
 
+if cc.has_header_symbol('dirent.h', 'versionsort', prefix : prefix)
+	config_h.set('HAVE_VERSIONSORT', '1')
+endif
+
 # Dependencies
 pkgconfig = import('pkgconfig')
 dep_udev = dependency('libudev')
