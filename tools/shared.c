@@ -615,7 +615,6 @@ tools_list_device_quirks(struct quirks_context *ctx,
 		QUIRK_ATTR_PRESSURE_RANGE,
 		QUIRK_ATTR_PALM_PRESSURE_THRESHOLD,
 		QUIRK_ATTR_RESOLUTION_HINT,
-		QUIRK_ATTR_TRACKPOINT_RANGE,
 		QUIRK_ATTR_TRACKPOINT_MULTIPLIER,
 		QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD,
 	};
@@ -684,7 +683,6 @@ tools_list_device_quirks(struct quirks_context *ctx,
 			break;
 		case QUIRK_ATTR_PALM_SIZE_THRESHOLD:
 		case QUIRK_ATTR_PALM_PRESSURE_THRESHOLD:
-		case QUIRK_ATTR_TRACKPOINT_RANGE:
 		case QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD:
 			quirks_get_uint32(quirks, *q, &v);
 			snprintf(buf, sizeof(buf), "%s=%u", name, v);
