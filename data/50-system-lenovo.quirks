@@ -20,21 +20,6 @@ MatchName=Synaptics tm2964-001
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT440p*
 ModelLenovoT450Touchpad=1
 
-[Lenovo T440s Trackpoint]
-MatchName=TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT440s*
-AttrTrackpointRange=30
-
-[Lenovo T440s Trackpoint]
-MatchName=TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT450s*
-AttrTrackpointRange=50
-
-[Lenovo X270 Trackpoint]
-MatchName=TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX270*
-AttrTrackpointRange=40
-
 [Lenovo P50 Touchpad]
 MatchName=SynPS/2 Synaptics TouchPad
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadP50*:
@@ -65,11 +50,6 @@ MatchBus=usb
 MatchVendor=0x17EF
 MatchProduct=0x6047
 AttrKeyboardIntegration=external
-
-[Lenovo X280 Trackpoint]
-MatchName=*ALPS TrackPoint*
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX280:*
-AttrTrackpointRange=70
 
 # Lenovo Thinkpad Yoga (not the consumer versions) disables the keyboard
 # mechanically. We must not disable the keyboard because some keys are
