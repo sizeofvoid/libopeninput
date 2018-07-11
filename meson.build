@@ -6,6 +6,25 @@ project('libinput', 'c', 'cpp',
 
 libinput_version = meson.project_version().split('.')
 
+dir_data        = join_paths(get_option('prefix'), get_option('datadir'), 'libinput')
+dir_sysconf     = join_paths(get_option('prefix'), get_option('sysconfdir'), 'libinput')
+dir_libexec     = join_paths(get_option('prefix'), get_option('libexecdir'), 'libinput')
+dir_lib         = join_paths(get_option('prefix'), get_option('libdir'))
+dir_man1        = join_paths(get_option('prefix'), get_option('mandir'), 'man1')
+dir_system_udev = join_paths(get_option('prefix'), 'lib', 'udev')
+dir_src_quirks  = join_paths(meson.source_root(), 'data')
+dir_src_test    = join_paths(meson.source_root(), 'test')
+dir_src         = join_paths(meson.source_root(), 'src')
+
+dir_udev = get_option('udev-dir')
+if dir_udev == ''
+	dir_udev = dir_system_udev
+endif
+dir_udev_callouts = dir_udev
+dir_udev_rules    = join_paths(dir_udev, 'rules.d')
+dir_udev_hwdb     = join_paths(dir_udev, 'hwdb.d')
+
+
 # We use libtool-version numbers because it's easier to understand.
 # Before making a release, the libinput_so_*
 # numbers should be modified. The components are of the form C:R:A.
@@ -29,6 +48,7 @@ cflags = cppflags + ['-Wmissing-prototypes', '-Wstrict-prototypes']
 add_project_arguments(cflags, language : 'c')
 add_project_arguments(cppflags, language : 'cpp')
 
+# config.h
 config_h = configuration_data()
 config_h.set('_GNU_SOURCE', '1')
 if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimized'
@@ -105,32 +125,25 @@ endif
 
 ############ udev bits ############
 
-udev_dir = get_option('udev-dir')
-if udev_dir == ''
-	udev_dir = join_paths(get_option('prefix'), 'lib', 'udev')
-endif
-udev_rules_dir = join_paths(udev_dir, 'rules.d')
-udev_hwdb_dir = join_paths(udev_dir, 'hwdb.d')
-
 executable('libinput-device-group',
 	   'udev/libinput-device-group.c',
 	   dependencies : [dep_udev, dep_libwacom],
 	   include_directories : [includes_src, includes_include],
 	   install : true,
-	   install_dir : udev_dir)
+	   install_dir : dir_udev_callouts)
 executable('libinput-model-quirks',
 	   'udev/libinput-model-quirks.c',
 	   dependencies : [dep_udev, dep_libevdev],
 	   include_directories : [includes_src, includes_include],
 	   install : true,
-	   install_dir : udev_dir)
+	   install_dir : dir_udev_callouts)
 
 udev_rules_config = configuration_data()
 udev_rules_config.set('UDEV_TEST_PATH', '')
 configure_file(input : 'udev/80-libinput-device-groups.rules.in',
 	       output : '80-libinput-device-groups.rules',
 	       install : true,
-	       install_dir : udev_rules_dir,
+	       install_dir : dir_udev_rules,
 	       configuration : udev_rules_config)
 
 litest_udev_rules_config = configuration_data()
@@ -170,12 +183,9 @@ libfilter = static_library('filter', src_libfilter,
 dep_libfilter = declare_dependency(link_with : libfilter)
 
 ############ libquirks.a #############
-libinput_data_path = join_paths(get_option('prefix'), get_option('datadir'), 'libinput')
-libinput_data_override_path = join_paths(get_option('prefix'),
-					 get_option('sysconfdir'),
-					 'libinput',
-					 'local-overrides.quirks')
-config_h.set_quoted('LIBINPUT_DATA_DIR', libinput_data_path)
+libinput_data_path = dir_data
+libinput_data_override_path = join_paths(dir_sysconf, 'local-overrides.quirks')
+config_h.set_quoted('LIBINPUT_DATA_DIR', dir_data)
 config_h.set_quoted('LIBINPUT_DATA_OVERRIDE_FILE', libinput_data_override_path)
 
 quirks_data = [
@@ -205,9 +215,9 @@ quirks_data = [
 ]
 
 config_h.set_quoted('LIBINPUT_DATA_FILES', ':'.join(quirks_data))
-config_h.set_quoted('LIBINPUT_DATA_SRCDIR', join_paths(meson.source_root(), 'data'))
+config_h.set_quoted('LIBINPUT_DATA_SRCDIR', dir_src_quirks)
 
-install_data(quirks_data, install_dir : libinput_data_path)
+install_data(quirks_data, install_dir : dir_data)
 
 src_libquirks = [
 	'src/quirks.c',
@@ -276,7 +286,7 @@ libinput_version_h = configure_file(
 		install : false,
 )
 
-mapfile = join_paths(meson.source_root(), 'src', 'libinput.sym')
+mapfile = join_paths(dir_src, 'libinput.sym')
 version_flag = '-Wl,--version-script,@0@'.format(mapfile)
 lib_libinput = shared_library('input',
 		src_libinput,
@@ -309,8 +319,7 @@ if meson.version().version_compare('<0.4.3.0')
 	# Restore the SELinux context for the libinput.so.a.b.c on install
 	# meson bug https://github.com/mesonbuild/meson/issues/1967
 	meson.add_install_script('src/libinput-restore-selinux-context.sh',
-				 join_paths(get_option('prefix'), get_option('libdir')),
-				 lib_libinput.full_path())
+				 dir_lib, lib_libinput.full_path())
 endif
 
 ############ documentation ############
@@ -462,7 +471,7 @@ if get_option('documentation')
 endif
 
 ############ tools ############
-libinput_tool_path = join_paths(get_option('prefix'), get_option('libexecdir'), 'libinput')
+libinput_tool_path = dir_libexec
 config_h.set_quoted('LIBINPUT_TOOL_PATH', libinput_tool_path)
 tools_shared_sources = [ 'tools/shared.c',
 			 'tools/shared.h' ]
@@ -490,7 +499,7 @@ configure_file(input : 'tools/libinput-debug-events.man',
 	       output : 'libinput-debug-events.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 
 libinput_quirks_sources = [ 'tools/libinput-quirks.c' ]
@@ -503,27 +512,27 @@ libinput_quirks = executable('libinput-quirks',
 			    )
 test('validate-quirks',
      libinput_quirks,
-     args: ['validate', '--data-dir=@0@'.format(join_paths(meson.source_root(), 'data'))]
+     args: ['validate', '--data-dir=@0@'.format(dir_src_quirks)]
      )
 
 configure_file(input : 'tools/libinput-quirks.man',
 	       output : 'libinput-quirks.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 # Same man page for the subtools to stay consistent with the other tools
 configure_file(input : 'tools/libinput-quirks.man',
 	       output : 'libinput-quirks-list.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 configure_file(input : 'tools/libinput-quirks.man',
 	       output : 'libinput-quirks-validate.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 
 libinput_list_devices_sources = [ 'tools/libinput-list-devices.c' ]
@@ -540,7 +549,7 @@ configure_file(input : 'tools/libinput-list-devices.man',
 	       output : 'libinput-list-devices.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 
 libinput_measure_sources = [ 'tools/libinput-measure.c' ]
@@ -555,7 +564,7 @@ configure_file(input : 'tools/libinput-measure.man',
 	       output : 'libinput-measure.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 
 config_noop = configuration_data()
@@ -569,7 +578,7 @@ configure_file(input : 'tools/libinput-measure-fuzz.man',
 	       output : 'libinput-measure-fuzz.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 
 configure_file(input: 'tools/libinput-measure-touchpad-tap.py',
@@ -582,7 +591,7 @@ configure_file(input : 'tools/libinput-measure-touchpad-tap.man',
 	       output : 'libinput-measure-touchpad-tap.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 
 configure_file(input: 'tools/libinput-measure-touchpad-pressure.py',
@@ -596,7 +605,7 @@ configure_file(input : 'tools/libinput-measure-touchpad-pressure.man',
 	       output : 'libinput-measure-touchpad-pressure.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 configure_file(input: 'tools/libinput-measure-touch-size.py',
 	       output: 'libinput-measure-touch-size',
@@ -609,7 +618,7 @@ configure_file(input : 'tools/libinput-measure-touch-size.man',
 	       output : 'libinput-measure-touch-size.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 
 configure_file(input: 'tools/libinput-measure-trackpoint-range.py',
@@ -622,7 +631,7 @@ configure_file(input : 'tools/libinput-measure-trackpoint-range.man',
 	       output : 'libinput-measure-trackpoint-range.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 
 libinput_record_sources = [ 'tools/libinput-record.c', git_version_h ]
@@ -637,7 +646,7 @@ configure_file(input : 'tools/libinput-record.man',
 	       output : 'libinput-record.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 
 install_data('tools/libinput-replay',
@@ -646,7 +655,7 @@ configure_file(input : 'tools/libinput-replay.man',
 	       output : 'libinput-replay.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 
 if get_option('debug-gui')
@@ -671,7 +680,7 @@ if get_option('debug-gui')
 		       output : 'libinput-debug-gui.1',
 		       configuration : man_config,
 		       install : true,
-		       install_dir : join_paths(get_option('mandir'), 'man1')
+		       install_dir : dir_man1,
 		       )
 endif
 
@@ -687,7 +696,7 @@ configure_file(input : 'tools/libinput.man',
 	       output : 'libinput.1',
 	       configuration : man_config,
 	       install : true,
-	       install_dir : join_paths(get_option('mandir'), 'man1')
+	       install_dir : dir_man1,
 	       )
 
 ptraccel_debug_sources = [ 'tools/ptraccel-debug.c' ]
@@ -947,7 +956,7 @@ if get_option('tests')
 	valgrind_env = environment()
 	valgrind_env.set('CK_FORK', 'no')
 	valgrind_env.set('USING_VALGRIND', '1')
-	valgrind_suppressions_file = join_paths(meson.source_root(), 'test', 'valgrind.suppressions')
+	valgrind_suppressions_file = join_paths(dir_src_test, 'valgrind.suppressions')
 	add_test_setup('valgrind',
 			exe_wrapper : [ valgrind,
 					'--leak-check=full',
