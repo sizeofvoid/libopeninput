@@ -5,18 +5,18 @@ MatchName=* Touchpad
 MatchDMIModalias=dmi:*svnDellInc.:*
 ModelTouchpadVisibleMarker=1
 
-[Dell Lattitude E6220]
+[Dell Lattitude E6220 Touchpad]
 MatchName=*AlpsPS/2 ALPS GlidePoint
 MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE6220:*
 AttrPressureRange=100:90
 
-[Dell XPS L322X]
+[Dell XPS L322X Touchpad]
 MatchName=*CyPS/2 Cypress Trackpad
 MatchDMIModalias=dmi:*svnDell*:XPSL322X*
 AttrPressureRange=32:20
 AttrPalmPressureThreshold=254
 
-[Dell XPS13 9333]
+[Dell XPS13 9333 Touchpad]
 MatchName=*Synaptics s3203
 MatchDMIModalias=dmi:*svnDellInc.:*pnXPS139333*
 AttrPressureRange=15:10
