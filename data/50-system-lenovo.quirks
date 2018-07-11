@@ -20,6 +20,16 @@ MatchName=Synaptics tm2964-001
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT440p*
 ModelLenovoT450Touchpad=1
 
+[Lenovo X200 Trackpoint]
+MatchName=*TPPS/2 IBM TrackPoint
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20?:*
+AttrTrackpointMultiplier=1.25
+
+[Lenovo X200x Trackpoint]
+MatchName=*TPPS/2 IBM TrackPoint
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20??:*
+AttrTrackpointMultiplier=1.25
+
 [Lenovo P50 Touchpad]
 MatchName=SynPS/2 Synaptics TouchPad
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadP50*:
@@ -70,3 +80,9 @@ ModelLenovoCarbonX16th=1
 MatchName=AT Translated Set 2 keyboard
 MatchDMIModalias=dmi:*svnIBM:*pvrThinkPadX41Tablet:*
 ModelTabletModeNoSuspend=1
+
+[Lenovo UltraNav SK-8845 (USB keyboard) Trackpoint]
+MatchBus=usb
+MatchVendor=0x06CB
+MatchProduct=0x0009
+AttrTrackpointMultiplier=2.5
