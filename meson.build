@@ -726,10 +726,9 @@ test('tools-builddir-lookup-installed',
 
 ############ tests ############
 
-test_symbols_leak = find_program('test/symbols-leak-test.in')
 test('symbols-leak-test',
-     test_symbols_leak,
-     args : [ meson.current_source_dir() ])
+     find_program('test/symbols-leak-test'),
+     args : [ join_paths(dir_src, 'libinput.sym'), dir_src])
 
 # build-test only
 executable('test-build-pedantic',
