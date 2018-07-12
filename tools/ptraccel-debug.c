@@ -161,29 +161,12 @@ print_accel_func(struct motion_filter *filter,
 	printf("# set style data lines\n");
 	printf("# plot \"gnuplot.data\" using 1:2 title 'accel factor'\n");
 	printf("#\n");
-	printf("# data: velocity(mm/s) factor velocity(units/us)\n");
+	printf("# data: velocity(mm/s) factor velocity(units/us) velocity(units/ms)\n");
 	for (mmps = 0.0; mmps < 1000.0; mmps += 1) {
 		double units_per_us = mmps_to_upus(mmps, dpi);
+		double units_per_ms = units_per_us * 1000.0;
 		double result = profile(filter, NULL, units_per_us, 0 /* time */);
-		printf("%.8f\t%.4f\t%.8f\n", mmps, result, units_per_us);
-	}
-}
-
-static void
-print_accel_func_trackpoint(struct motion_filter *filter,
-			    int max)
-{
-	printf("# gnuplot:\n");
-	printf("# set xlabel \"deltas (units)\"\n");
-	printf("# set ylabel \"raw accel factor\"\n");
-	printf("# set style data lines\n");
-	printf("# plot \"gnuplot.data\" using 1:2 title 'accel factor'\n");
-	printf("#\n");
-	printf("# data: delta(units) factor\n");
-	for (double delta = 0; delta < max; delta += 0.2) {
-		double factor = trackpoint_accel_profile(filter, NULL, delta);
-
-		printf("%.2f %f\n", delta, factor);
+		printf("%.8f\t%.4f\t%.8f\t%.8f\n", mmps, result, units_per_us, units_per_ms);
 	}
 }
 
@@ -202,7 +185,6 @@ usage(void)
 	       "--steps=<double>  ... in motion and delta modes only. Increase dx by step each round\n"
 	       "--speed=<double>  ... accel speed [-1, 1], default 0\n"
 	       "--dpi=<int>	... device resolution in DPI (default: 1000)\n"
-	       "--trackpoint-range=<int> ... range of the trackpoint deltas (default: 20)\n"
 	       "--filter=<linear|low-dpi|touchpad|x230|trackpoint> \n"
 	       "	linear	  ... the default motion filter\n"
 	       "	low-dpi	  ... low-dpi filter, use --dpi with this argument\n"
@@ -253,7 +235,6 @@ main(int argc, char **argv)
 		OPT_SPEED,
 		OPT_DPI,
 		OPT_FILTER,
-		OPT_TRACKPOINT_RANGE,
 	};
 
 	while (1) {
@@ -268,7 +249,6 @@ main(int argc, char **argv)
 			{"speed", 1, 0, OPT_SPEED },
 			{"dpi", 1, 0, OPT_DPI },
 			{"filter", 1, 0, OPT_FILTER },
-			{"trackpoint-range", 1, 0, OPT_TRACKPOINT_RANGE },
 			{0, 0, 0, 0}
 		};
 
@@ -326,9 +306,6 @@ main(int argc, char **argv)
 		case OPT_FILTER:
 			filter_type = optarg;
 			break;
-		case OPT_TRACKPOINT_RANGE:
-			tp_range_max = strtod(optarg, NULL);
-			break;
 		default:
 			usage();
 			exit(1);
@@ -350,7 +327,7 @@ main(int argc, char **argv)
 		profile = touchpad_lenovo_x230_accel_profile;
 	} else if (streq(filter_type, "trackpoint")) {
 		filter = create_pointer_accelerator_filter_trackpoint(tp_range_max);
-		profile = NULL; /* trackpoint is special */
+		profile = trackpoint_accel_profile;
 	} else {
 		fprintf(stderr, "Invalid filter type %s\n", filter_type);
 		return 1;
@@ -381,10 +358,7 @@ main(int argc, char **argv)
 
 	switch (mode) {
 	case ACCEL:
-		if (!profile) /* trackpoint */
-			print_accel_func_trackpoint(filter, tp_range_max);
-		else
-			print_accel_func(filter, profile, dpi);
+		print_accel_func(filter, profile, dpi);
 		break;
 	case DELTA:
 		print_ptraccel_deltas(filter, step);

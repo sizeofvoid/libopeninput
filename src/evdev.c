@@ -956,7 +956,7 @@ evdev_init_accel(struct evdev_device *device,
 	if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT)
 		filter = create_pointer_accelerator_filter_flat(device->dpi);
 	else if (device->tags & EVDEV_TAG_TRACKPOINT)
-		filter = create_pointer_accelerator_filter_trackpoint(device->trackpoint_range);
+		filter = create_pointer_accelerator_filter_trackpoint(device->trackpoint_multiplier);
 	else if (device->dpi < DEFAULT_MOUSE_DPI)
 		filter = create_pointer_accelerator_filter_linear_low_dpi(device->dpi);
 	else
@@ -1176,59 +1176,36 @@ evdev_read_wheel_tilt_props(struct evdev_device *device)
 	return flags;
 }
 
-static inline int
-evdev_get_trackpoint_range(struct evdev_device *device)
+static inline double
+evdev_get_trackpoint_multiplier(struct evdev_device *device)
 {
 	struct quirks_context *quirks;
 	struct quirks *q;
-	const char *prop;
-	uint32_t range = DEFAULT_TRACKPOINT_RANGE;
+	double multiplier = 1.0;
 
 	if (!(device->tags & EVDEV_TAG_TRACKPOINT))
-		return DEFAULT_TRACKPOINT_RANGE;
+		return 1.0;
 
 	quirks = evdev_libinput_context(device)->quirks;
 	q = quirks_fetch_for_device(quirks, device->udev_device);
-	if (q && quirks_get_uint32(q, QUIRK_ATTR_TRACKPOINT_RANGE, &range)) {
-		goto out;
+	if (q) {
+		quirks_get_double(q, QUIRK_ATTR_TRACKPOINT_MULTIPLIER, &multiplier);
+		quirks_unref(q);
 	}
 
-	evdev_log_info(device,
-		       "trackpoint does not have a specified range, "
-		       "guessing... see %strackpoints.html\n",
-		       HTTP_DOC_LINK);
-
-	prop = udev_device_get_property_value(device->udev_device,
-					      "POINTINGSTICK_SENSITIVITY");
-	if (prop) {
-		int sensitivity;
-
-		if (!safe_atoi(prop, &sensitivity) ||
-		    (sensitivity < 0.0 || sensitivity > 255)) {
-			evdev_log_error(device,
-					"trackpoint sensitivity property is present but invalid, "
-					"using %d instead\n",
-					DEFAULT_TRACKPOINT_SENSITIVITY);
-			sensitivity = DEFAULT_TRACKPOINT_SENSITIVITY;
-		}
-		range = 1.0 * DEFAULT_TRACKPOINT_RANGE *
-			sensitivity/DEFAULT_TRACKPOINT_SENSITIVITY;
-
-		evdev_log_debug(device,
-				"trackpoint udev sensitivity is %d\n",
-				sensitivity);
+	if (multiplier <= 0.0) {
+		evdev_log_bug_libinput(device,
+				       "trackpoint multiplier %.2f is invalid\n",
+				       multiplier);
+		multiplier = 1.0;
 	}
 
-out:
-	quirks_unref(q);
+	if (multiplier != 1.0)
+		evdev_log_info(device,
+			       "trackpoint device set to range %.2f\n",
+			       multiplier);
 
-	if (range == 0) {
-		evdev_log_bug_libinput(device, "trackpoint range is zero\n");
-		range = DEFAULT_TRACKPOINT_RANGE;
-	}
-
-	evdev_log_info(device, "trackpoint device set to range %d\n", range);
-	return range;
+	return multiplier;
 }
 
 static inline int
@@ -1749,7 +1726,7 @@ evdev_configure_device(struct evdev_device *device)
 		evdev_tag_external_mouse(device, device->udev_device);
 		evdev_tag_trackpoint(device, device->udev_device);
 		device->dpi = evdev_read_dpi_prop(device);
-		device->trackpoint_range = evdev_get_trackpoint_range(device);
+		device->trackpoint_multiplier = evdev_get_trackpoint_multiplier(device);
 
 		device->seat_caps |= EVDEV_DEVICE_POINTER;
 

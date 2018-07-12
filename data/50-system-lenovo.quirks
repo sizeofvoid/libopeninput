@@ -20,20 +20,15 @@ MatchName=Synaptics tm2964-001
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT440p*
 ModelLenovoT450Touchpad=1
 
-[Lenovo T440s Trackpoint]
-MatchName=TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT440s*
-AttrTrackpointRange=30
+[Lenovo X200 Trackpoint]
+MatchName=*TPPS/2 IBM TrackPoint
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20?:*
+AttrTrackpointMultiplier=1.25
 
-[Lenovo T440s Trackpoint]
-MatchName=TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT450s*
-AttrTrackpointRange=50
-
-[Lenovo X270 Trackpoint]
-MatchName=TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX270*
-AttrTrackpointRange=40
+[Lenovo X200x Trackpoint]
+MatchName=*TPPS/2 IBM TrackPoint
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20??:*
+AttrTrackpointMultiplier=1.25
 
 [Lenovo P50 Touchpad]
 MatchName=SynPS/2 Synaptics TouchPad
@@ -66,11 +61,6 @@ MatchVendor=0x17EF
 MatchProduct=0x6047
 AttrKeyboardIntegration=external
 
-[Lenovo X280 Trackpoint]
-MatchName=*ALPS TrackPoint*
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX280:*
-AttrTrackpointRange=70
-
 # Lenovo Thinkpad Yoga (not the consumer versions) disables the keyboard
 # mechanically. We must not disable the keyboard because some keys are
 # still accessible on the screen and volume rocker.
@@ -90,3 +80,9 @@ ModelLenovoCarbonX16th=1
 MatchName=AT Translated Set 2 keyboard
 MatchDMIModalias=dmi:*svnIBM:*pvrThinkPadX41Tablet:*
 ModelTabletModeNoSuspend=1
+
+[Lenovo UltraNav SK-8845 (USB keyboard) Trackpoint]
+MatchBus=usb
+MatchVendor=0x06CB
+MatchProduct=0x0009
+AttrTrackpointMultiplier=2.5

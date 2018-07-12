@@ -114,31 +114,24 @@ that trackpoint speed is a function of pressure rather than moving speed.
 But trackpoint hardware is quite varied in how it reacts to user pressure
 and unlike other devices it cannot easily be normalized for physical
 properties. Measuring pressure objectively across a variety of hardware is
-nontrivial.
+nontrivial. See @ref trackpoints for more details.
 
-libinput's pointer acceleration is a function of the total available
-pressure range on a device. See @ref trackpoint_range for details.
+The deltas for trackpoints are converted units/ms but there is no common
+physical reference point for a unit. Thus, the same pressure on different
+trackpoints will generate different speeds and thus different acceleration
+behaviors. Additionally, some trackpoints provide the ability to adjust the
+sensitivity in hardware by modifying a sysfs file on the serio node. A
+higher sensitivity results in higher deltas, thus changing the definition of
+what is a unit again.
 
-libinput relies on some system-wide configured properties, specifically the
-@ref udev_config. The property that influences trackpoint acceleration is
-`LIBINPUT_ATTR_TRACKPOINT_RANGE` which specifies the total delta range for
-the trackpoint. See @ref trackpoint_range for details.
-
-Additionally, some trackpoints provide the ability to adjust the sensitivity in
-hardware by modifying a sysfs file on the serio node. The udev property
-`POINTINGSTICK_SENSITIVITY` indicates the desired value, a udev
-builtin is expected to apply this to the device, i.e.  libinput does not
-handle this property. Once applied, the sensitivity adjusts the deltas
-coming out of the hardware. When the sensitivity changes, the trackpoint
-range changes and thus the `LIBINPUT_ATTR_TRACKPOINT_RANGE` property
-becomes invalid.
-
-As of version 1.9, libinput does not parse the `POINTINGSTICK_CONST_ACCEL` property anymore.
+libinput attempts to normalize unit data to the best of its abilities, see
+@ref trackpoint_multiplier. Beyond this, it is not possible to have
+consistent behavior across different touchpad devices.
 
 @image html ptraccel-trackpoint.svg "Pointer acceleration curves for trackpoints"
 
-The image above shows the trackpoint acceleration profile for each input
-delta.
+The image above shows the trackpoint acceleration profile for the speed in
+units/ms.
 
 @section ptraccel-profile-flat The flat pointer acceleration profile
 

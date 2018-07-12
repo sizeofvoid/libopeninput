@@ -54,6 +54,7 @@ enum property_type {
 	PT_BOOL,
 	PT_DIMENSION,
 	PT_RANGE,
+	PT_DOUBLE,
 };
 
 /**
@@ -74,6 +75,7 @@ struct property {
 		char *s;
 		struct quirk_dimensions dim;
 		struct quirk_range range;
+		double d;
 	} value;
 };
 
@@ -262,7 +264,7 @@ quirk_get_name(enum quirk q)
 	case QUIRK_ATTR_PRESSURE_RANGE:			return "AttrPressureRange";
 	case QUIRK_ATTR_PALM_PRESSURE_THRESHOLD:	return "AttrPalmPressureThreshold";
 	case QUIRK_ATTR_RESOLUTION_HINT:		return "AttrResolutionHint";
-	case QUIRK_ATTR_TRACKPOINT_RANGE:		return "AttrTrackpointRange";
+	case QUIRK_ATTR_TRACKPOINT_MULTIPLIER:		return "AttrTrackpointMultiplier";
 	case QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD:	return "AttrThumbPressureThreshold";
 	default:
 		abort();
@@ -640,6 +642,7 @@ parse_attr(struct quirks_context *ctx,
 	struct quirk_dimensions dim;
 	struct quirk_range range;
 	unsigned int v;
+	double d;
 
 	if (streq(key, quirk_get_name(QUIRK_ATTR_SIZE_HINT))) {
 		p->id = QUIRK_ATTR_SIZE_HINT;
@@ -705,12 +708,12 @@ parse_attr(struct quirks_context *ctx,
 		p->type = PT_DIMENSION;
 		p->value.dim = dim;
 		rc = true;
-	} else if (streq(key, quirk_get_name(QUIRK_ATTR_TRACKPOINT_RANGE))) {
-		p->id = QUIRK_ATTR_TRACKPOINT_RANGE;
-		if (!safe_atou(value, &v))
+	} else if (streq(key, quirk_get_name(QUIRK_ATTR_TRACKPOINT_MULTIPLIER))) {
+		p->id = QUIRK_ATTR_TRACKPOINT_MULTIPLIER;
+		if (!safe_atod(value, &d))
 			goto out;
-		p->type = PT_UINT;
-		p->value.u = v;
+		p->type = PT_DOUBLE;
+		p->value.d = d;
 		rc = true;
 	} else if (streq(key, quirk_get_name(QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD))) {
 		p->id = QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD;
@@ -1430,6 +1433,24 @@ quirks_get_uint32(struct quirks *q, enum quirk which, uint32_t *val)
 
 	assert(p->type == PT_UINT);
 	*val = p->value.u;
+
+	return true;
+}
+
+bool
+quirks_get_double(struct quirks *q, enum quirk which, double *val)
+{
+	struct property *p;
+
+	if (!q)
+		return false;
+
+	p = quirk_find_prop(q, which);
+	if (!p)
+		return false;
+
+	assert(p->type == PT_DOUBLE);
+	*val = p->value.d;
 
 	return true;
 }

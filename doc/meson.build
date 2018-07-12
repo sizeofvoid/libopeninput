@@ -105,6 +105,7 @@ src_doxygen = files(
 	'svg/thumb-detection.svg',
 	'svg/top-software-buttons.svg',
 	'svg/touchscreen-gestures.svg',
+	'svg/trackpoint-delta-illustration.svg',
 	'svg/twofinger-scrolling.svg',
 	# style files
 	'style/header.html',

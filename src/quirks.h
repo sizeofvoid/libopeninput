@@ -93,7 +93,7 @@ enum quirk {
 	QUIRK_ATTR_PRESSURE_RANGE,
 	QUIRK_ATTR_PALM_PRESSURE_THRESHOLD,
 	QUIRK_ATTR_RESOLUTION_HINT,
-	QUIRK_ATTR_TRACKPOINT_RANGE,
+	QUIRK_ATTR_TRACKPOINT_MULTIPLIER,
 	QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD,
 };
 
@@ -215,6 +215,19 @@ bool
 quirks_get_int32(struct quirks *q,
 		 enum quirk which,
 		 int32_t *val);
+
+/**
+ * Get the value of the given quirk, as double.
+ * This function will assert if the quirk type does not match the
+ * requested type. If the quirk is not set for this device, val is
+ * unchanged.
+ *
+ * @return true if the quirk value is valid, false otherwise.
+ */
+bool
+quirks_get_double(struct quirks *q,
+		  enum quirk which,
+		  double *val);
 
 /**
  * Get the value of the given quirk, as string.

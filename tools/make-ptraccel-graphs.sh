@@ -69,20 +69,19 @@ plot for [s in speeds] fname(s) using 1:2 title s, \
 EOF
 
 outfile="ptraccel-trackpoint"
-$tool --mode=accel --dpi=1000 --filter=linear > $outfile-mouse.gnuplot
 for speed in $speeds; do
 	$tool --mode=accel --speed=$speed --filter=trackpoint > $outfile-$speed.gnuplot
 done
 $gnuplot <<EOF
 set terminal svg enhanced background rgb 'white'
 set output "$outfile.svg"
-set xlabel "delta (units)"
+set xlabel "delta (units/ms)"
 set ylabel "accel factor"
 set style data lines
 set yrange [0:5]
-set xrange [0:20]
+set xrange [0:1]
 speeds="$speeds"
 fname(s)=sprintf("$outfile-%s.gnuplot", s)
-plot for [s in speeds] fname(s) using 1:2 title s, \
+plot for [s in speeds] fname(s) using 4:2 title s, \
 
 EOF

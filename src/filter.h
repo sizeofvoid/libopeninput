@@ -122,7 +122,7 @@ struct motion_filter *
 create_pointer_accelerator_filter_lenovo_x230(int dpi);
 
 struct motion_filter *
-create_pointer_accelerator_filter_trackpoint(int max_delta);
+create_pointer_accelerator_filter_trackpoint(double multiplier);
 
 struct motion_filter *
 create_pointer_accelerator_filter_tablet(int xres, int yres);
@@ -154,5 +154,6 @@ touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
 double
 trackpoint_accel_profile(struct motion_filter *filter,
 			 void *data,
-			 double delta);
+			 double delta,
+			 uint64_t time);
 #endif /* FILTER_H */
