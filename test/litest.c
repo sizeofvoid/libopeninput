@@ -1752,7 +1752,16 @@ axis_replacement_value(struct litest_device *d,
 
 	while (axis->evcode != -1) {
 		if (axis->evcode == evcode) {
-			*value = litest_scale(d, evcode, axis->value);
+			switch (evcode) {
+			case ABS_MT_SLOT:
+			case ABS_MT_TRACKING_ID:
+			case ABS_MT_TOOL_TYPE:
+				*value = axis->value;
+				break;
+			default:
+				*value = litest_scale(d, evcode, axis->value);
+				break;
+			}
 			return true;
 		}
 		axis++;
@@ -1791,6 +1800,10 @@ litest_auto_assign_value(struct litest_device *d,
 		break;
 	case ABS_MT_DISTANCE:
 		value = touching ? 0 : 1;
+		break;
+	case ABS_MT_TOOL_TYPE:
+		if (!axis_replacement_value(d, axes, ev->code, &value))
+			value = MT_TOOL_FINGER;
 		break;
 	default:
 		if (!axis_replacement_value(d, axes, ev->code, &value) &&
