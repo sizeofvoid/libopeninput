@@ -1734,10 +1734,10 @@ libinput_init_quirks(struct libinput *libinput)
 	/* If we fail, we'll fail next time too */
 	libinput->quirks_initialized = true;
 
-	data_path = getenv("LIBINPUT_DATA_DIR");
+	data_path = getenv("LIBINPUT_QUIRKS_DIR");
 	if (!data_path) {
-		data_path = LIBINPUT_DATA_DIR;
-		override_file = LIBINPUT_DATA_OVERRIDE_FILE;
+		data_path = LIBINPUT_QUIRKS_DIR;
+		override_file = LIBINPUT_QUIRKS_OVERRIDE_FILE;
 	}
 
 	quirks = quirks_init_subsystem(data_path,

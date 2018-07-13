@@ -74,10 +74,10 @@ static void
 usage(void)
 {
 	printf("Usage:\n"
-	       "  libinput quirks list [--data-dir /path/to/data/dir] /dev/input/event0\n"
+	       "  libinput quirks list [--data-dir /path/to/quirks/dir] /dev/input/event0\n"
 	       "	Print the quirks for the given device\n"
 	       "\n"
-	       "  libinput quirks validate [--data-dir /path/to/data/dir]\n"
+	       "  libinput quirks validate [--data-dir /path/to/quirks/dir]\n"
 	       "	Validate the database\n");
 }
 
@@ -166,11 +166,11 @@ main(int argc, char **argv)
 
 		builddir = tools_execdir_is_builddir();
 		if (builddir) {
-			data_path = LIBINPUT_DATA_SRCDIR;
+			data_path = LIBINPUT_QUIRKS_SRCDIR;
 			free(builddir);
 		} else {
-			data_path = LIBINPUT_DATA_DIR;
-			override_file = LIBINPUT_DATA_OVERRIDE_FILE;
+			data_path = LIBINPUT_QUIRKS_DIR;
+			override_file = LIBINPUT_QUIRKS_OVERRIDE_FILE;
 		}
 	}
 

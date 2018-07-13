@@ -866,7 +866,7 @@ litest_run_suite(struct list *tests, int which, int max, int error_fd)
 	struct name *n, *tmp;
 	struct list testnames;
 
-	quirks_context = quirks_init_subsystem(getenv("LIBINPUT_DATA_DIR"),
+	quirks_context = quirks_init_subsystem(getenv("LIBINPUT_QUIRKS_DIR"),
 					       NULL,
 					       quirk_log_handler,
 					       NULL,
@@ -1095,12 +1095,12 @@ litest_run(int argc, char **argv)
 		verbose = 1;
 
 #if DISABLE_DEVICE_TESTS
-	quirks_dir = safe_strdup(LIBINPUT_DATA_SRCDIR);
+	quirks_dir = safe_strdup(LIBINPUT_QUIRKS_SRCDIR);
 #else
 	litest_init_udev_rules(&created_files_list);
 	quirks_dir = litest_install_quirks(&created_files_list);
 #endif
-	setenv("LIBINPUT_DATA_DIR", quirks_dir, 1);
+	setenv("LIBINPUT_QUIRKS_DIR", quirks_dir, 1);
 	free(quirks_dir);
 
 	litest_setup_sighandler(SIGINT);
@@ -1296,19 +1296,21 @@ litest_install_quirks(struct list *created_files_list)
 	litest_assert_notnull(mkdtemp(dirname));
 	litest_assert_int_ne(chmod(dirname, 0755), -1);
 
-	quirks = strv_from_string(LIBINPUT_DATA_FILES, ":");
+	quirks = strv_from_string(LIBINPUT_QUIRKS_FILES, ":");
 	litest_assert(quirks);
 
 	q = quirks;
 	while (*q) {
+		const char *quirksdir = "quirks/";
 		char *filename;
 		char dest[PATH_MAX];
 		char src[PATH_MAX];
 
-		litest_assert(strneq(*q, "data/", 5));
-		filename = &(*q)[5];
+		litest_assert(strneq(*q, quirksdir, strlen(quirksdir)));
+		filename = &(*q)[strlen(quirksdir)];
 
-		snprintf(src, sizeof(src), "%s/%s", LIBINPUT_DATA_SRCDIR, filename);
+		snprintf(src, sizeof(src), "%s/%s",
+			 LIBINPUT_QUIRKS_SRCDIR, filename);
 		snprintf(dest, sizeof(dest), "%s/%s", dirname, filename);
 		file = litest_copy_file(dest, src, NULL);
 		list_append(created_files_list, &file->link);

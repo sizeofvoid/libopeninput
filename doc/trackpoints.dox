@@ -99,7 +99,7 @@ installed.
 $ cd path/to/libinput.git
 
 # Use an approximate multiplier in the quirks file
-$ cat > data/99-trackpont-override.quirks <<EOF
+$ cat > quirks/99-trackpont-override.quirks <<EOF
 [Trackpoint Override]
 MatchUdevType=pointingstick
 AttrTrackpointMultiplier=1.0
@@ -125,7 +125,7 @@ Once the trackpoint behaves correctly you are ready to test the system
 libinput:
 
 @verbatim
-$ sudo cp data/99-trackpoint-override.quirks /etc/libinput/local-overrides.quirks
+$ sudo cp quirks/99-trackpoint-override.quirks /etc/libinput/local-overrides.quirks
 @endverbatim
 
 Now verify the override is seen by the system libinput

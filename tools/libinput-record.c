@@ -1688,8 +1688,8 @@ print_device_quirks(struct record_context *ctx, struct record_device *dev)
 	struct udev_device *udev_device = NULL;
 	struct stat st;
 	struct quirks_context *quirks;
-	const char *data_path = LIBINPUT_DATA_DIR;
-	const char *override_file = LIBINPUT_DATA_OVERRIDE_FILE;
+	const char *data_path = LIBINPUT_QUIRKS_DIR;
+	const char *override_file = LIBINPUT_QUIRKS_OVERRIDE_FILE;
 
 	if (stat(dev->devnode, &st) < 0)
 		return;

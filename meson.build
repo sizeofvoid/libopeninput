@@ -12,7 +12,7 @@ dir_libexec     = join_paths(get_option('prefix'), get_option('libexecdir'), 'li
 dir_lib         = join_paths(get_option('prefix'), get_option('libdir'))
 dir_man1        = join_paths(get_option('prefix'), get_option('mandir'), 'man1')
 dir_system_udev = join_paths(get_option('prefix'), 'lib', 'udev')
-dir_src_quirks  = join_paths(meson.source_root(), 'data')
+dir_src_quirks  = join_paths(meson.source_root(), 'quirks')
 dir_src_test    = join_paths(meson.source_root(), 'test')
 dir_src         = join_paths(meson.source_root(), 'src')
 
@@ -185,37 +185,37 @@ dep_libfilter = declare_dependency(link_with : libfilter)
 ############ libquirks.a #############
 libinput_data_path = dir_data
 libinput_data_override_path = join_paths(dir_sysconf, 'local-overrides.quirks')
-config_h.set_quoted('LIBINPUT_DATA_DIR', dir_data)
-config_h.set_quoted('LIBINPUT_DATA_OVERRIDE_FILE', libinput_data_override_path)
+config_h.set_quoted('LIBINPUT_QUIRKS_DIR', dir_data)
+config_h.set_quoted('LIBINPUT_QUIRKS_OVERRIDE_FILE', libinput_data_override_path)
 
 quirks_data = [
-	'data/10-generic-keyboard.quirks',
-	'data/10-generic-lid.quirks',
-	'data/10-generic-trackball.quirks',
-	'data/30-vendor-aiptek.quirks',
-	'data/30-vendor-alps.quirks',
-	'data/30-vendor-cyapa.quirks',
-	'data/30-vendor-elantech.quirks',
-	'data/30-vendor-huion.quirks',
-	'data/30-vendor-ibm.quirks',
-	'data/30-vendor-logitech.quirks',
-	'data/30-vendor-microsoft.quirks',
-	'data/30-vendor-razer.quirks',
-	'data/30-vendor-synaptics.quirks',
-	'data/30-vendor-wacom.quirks',
-	'data/50-system-apple.quirks',
-	'data/50-system-asus.quirks',
-	'data/50-system-chicony.quirks',
-	'data/50-system-cyborg.quirks',
-	'data/50-system-dell.quirks',
-	'data/50-system-google.quirks',
-	'data/50-system-hp.quirks',
-	'data/50-system-lenovo.quirks',
-	'data/50-system-system76.quirks',
+	'quirks/10-generic-keyboard.quirks',
+	'quirks/10-generic-lid.quirks',
+	'quirks/10-generic-trackball.quirks',
+	'quirks/30-vendor-aiptek.quirks',
+	'quirks/30-vendor-alps.quirks',
+	'quirks/30-vendor-cyapa.quirks',
+	'quirks/30-vendor-elantech.quirks',
+	'quirks/30-vendor-huion.quirks',
+	'quirks/30-vendor-ibm.quirks',
+	'quirks/30-vendor-logitech.quirks',
+	'quirks/30-vendor-microsoft.quirks',
+	'quirks/30-vendor-razer.quirks',
+	'quirks/30-vendor-synaptics.quirks',
+	'quirks/30-vendor-wacom.quirks',
+	'quirks/50-system-apple.quirks',
+	'quirks/50-system-asus.quirks',
+	'quirks/50-system-chicony.quirks',
+	'quirks/50-system-cyborg.quirks',
+	'quirks/50-system-dell.quirks',
+	'quirks/50-system-google.quirks',
+	'quirks/50-system-hp.quirks',
+	'quirks/50-system-lenovo.quirks',
+	'quirks/50-system-system76.quirks',
 ]
 
-config_h.set_quoted('LIBINPUT_DATA_FILES', ':'.join(quirks_data))
-config_h.set_quoted('LIBINPUT_DATA_SRCDIR', dir_src_quirks)
+config_h.set_quoted('LIBINPUT_QUIRKS_FILES', ':'.join(quirks_data))
+config_h.set_quoted('LIBINPUT_QUIRKS_SRCDIR', dir_src_quirks)
 
 install_data(quirks_data, install_dir : dir_data)
 

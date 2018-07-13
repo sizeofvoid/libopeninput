@@ -9,7 +9,7 @@ installed under `/usr/share/libinput/<filename>.quirks` and are standard
 `.ini` files. A file may contain multiple section headers (`[some
 identifier]`) followed by one or more `MatchFoo=Bar` directives, followed by
 at least one of `ModelFoo=1` or `AttrFoo=bar` directive. See the
-`data/README.md` file in the libinput source repository for more details on
+`quirks/README.md` file in the libinput source repository for more details on
 their contents.
 
 @note Model quirks are internal API and may change at any time. No
