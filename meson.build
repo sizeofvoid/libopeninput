@@ -742,6 +742,7 @@ if get_option('tests')
 		'test/litest-device-touch-screen.c',
 		'test/litest-device-touchscreen-invalid-range.c',
 		'test/litest-device-touchscreen-fuzz.c',
+		'test/litest-device-touchscreen-mt-tool.c',
 		'test/litest-device-uclogic-tablet.c',
 		'test/litest-device-wacom-bamboo-2fg-finger.c',
 		'test/litest-device-wacom-bamboo-2fg-pad.c',

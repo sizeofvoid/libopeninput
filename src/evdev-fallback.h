@@ -52,13 +52,20 @@ enum mt_slot_state {
 	SLOT_STATE_END,
 };
 
+enum palm_state {
+	PALM_NONE,
+	PALM_NEW,
+	PALM_IS_PALM,
+	PALM_WAS_PALM, /* this touch sequence was a palm but isn't now */
+};
+
 struct mt_slot {
 	bool dirty;
 	enum mt_slot_state state;
 	int32_t seat_slot;
 	struct device_coords point;
 	struct device_coords hysteresis_center;
-	bool is_palm;
+	enum palm_state palm_state;
 };
 
 struct fallback_dispatch {
@@ -85,6 +92,7 @@ struct fallback_dispatch {
 		size_t slots_len;
 		bool want_hysteresis;
 		struct device_coords hysteresis_margin;
+		bool has_palm;
 	} mt;
 
 	struct device_coords rel;

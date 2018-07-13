@@ -1061,6 +1061,221 @@ START_TEST(touch_count_invalid)
 }
 END_TEST
 
+static inline bool
+touch_has_tool_palm(struct litest_device *dev)
+{
+	return libevdev_has_event_code(dev->evdev, EV_ABS, ABS_MT_TOOL_TYPE);
+}
+
+START_TEST(touch_palm_detect_tool_palm)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOOL_TYPE, MT_TOOL_PALM },
+		{ -1, 0 }
+	};
+
+	if (!touch_has_tool_palm(dev))
+		return;
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 10, 1);
+	litest_drain_events(li);
+
+	litest_touch_move_to_extended(dev, 0, 50, 50, 70, 70, axes, 10, 1);
+	libinput_dispatch(li);
+	litest_assert_touch_cancel(li);
+
+	litest_touch_move_to(dev, 0, 70, 70, 50, 40, 10, 1);
+	litest_touch_up(dev, 0);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touch_palm_detect_tool_palm_on_off)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOOL_TYPE, MT_TOOL_PALM },
+		{ -1, 0 }
+	};
+
+	if (!touch_has_tool_palm(dev))
+		return;
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 10, 1);
+	litest_drain_events(li);
+
+	litest_touch_move_to_extended(dev, 0, 50, 50, 70, 70, axes, 10, 1);
+	libinput_dispatch(li);
+	litest_assert_touch_cancel(li);
+
+	litest_touch_move_to(dev, 0, 70, 70, 50, 40, 10, 1);
+	litest_assert_empty_queue(li);
+
+	litest_axis_set_value(axes, ABS_MT_TOOL_TYPE, MT_TOOL_FINGER);
+	litest_touch_move_to_extended(dev, 0, 50, 40, 70, 70, axes, 10, 1);
+	litest_touch_up(dev, 0);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touch_palm_detect_tool_palm_keep_type)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOOL_TYPE, MT_TOOL_PALM },
+		{ -1, 0 }
+	};
+
+	if (!touch_has_tool_palm(dev))
+		return;
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 10, 1);
+	litest_touch_move_to_extended(dev, 0, 50, 50, 70, 70, axes, 10, 1);
+	litest_touch_up(dev, 0);
+	litest_drain_events(li);
+
+	/* ABS_MT_TOOL_TYPE never reset to finger, so a new touch
+	   should be ignored outright */
+	litest_touch_down_extended(dev, 0, 50, 50, axes);
+
+	/* Test the revert to finger case too */
+	litest_axis_set_value(axes, ABS_MT_TOOL_TYPE, MT_TOOL_FINGER);
+	litest_touch_move_to(dev, 0, 70, 70, 50, 40, 10, 1);
+	litest_touch_up(dev, 0);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touch_palm_detect_tool_palm_2fg)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOOL_TYPE, MT_TOOL_PALM },
+		{ -1, 0 }
+	};
+
+	if (!touch_has_tool_palm(dev))
+		return;
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_down(dev, 1, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 10, 1);
+	litest_drain_events(li);
+
+	litest_touch_move_to_extended(dev, 0, 50, 50, 70, 70, axes, 10, 1);
+	libinput_dispatch(li);
+	litest_assert_touch_cancel(li);
+
+	litest_touch_move_to(dev, 1, 50, 50, 70, 70, 10, 1);
+	libinput_dispatch(li);
+	litest_assert_touch_motion_frame(li);
+
+	litest_touch_up(dev, 1);
+	libinput_dispatch(li);
+	litest_assert_touch_up_frame(li);
+
+	litest_touch_move_to(dev, 0, 70, 70, 50, 40, 10, 1);
+	litest_touch_up(dev, 0);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touch_palm_detect_tool_palm_on_off_2fg)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOOL_TYPE, MT_TOOL_PALM },
+		{ -1, 0 }
+	};
+
+	if (!touch_has_tool_palm(dev))
+		return;
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_down(dev, 1, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 10, 1);
+	litest_drain_events(li);
+
+	litest_touch_move_to_extended(dev, 0, 50, 50, 70, 70, axes, 10, 1);
+	libinput_dispatch(li);
+	litest_assert_touch_cancel(li);
+
+	litest_touch_move_to(dev, 1, 50, 50, 70, 70, 10, 1);
+	libinput_dispatch(li);
+	litest_assert_touch_motion_frame(li);
+
+	litest_axis_set_value(axes, ABS_MT_TOOL_TYPE, MT_TOOL_FINGER);
+	litest_touch_move_to_extended(dev, 0, 50, 40, 70, 70, axes, 10, 1);
+	litest_assert_empty_queue(li);
+
+	litest_touch_move_to(dev, 1, 70, 70, 50, 40, 10, 1);
+	libinput_dispatch(li);
+	litest_assert_touch_motion_frame(li);
+
+	litest_touch_up(dev, 1);
+	libinput_dispatch(li);
+	litest_assert_touch_up_frame(li);
+
+	litest_touch_move_to(dev, 0, 70, 70, 50, 40, 10, 1);
+	litest_touch_up(dev, 0);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touch_palm_detect_tool_palm_keep_type_2fg)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOOL_TYPE, MT_TOOL_PALM },
+		{ -1, 0 }
+	};
+
+	if (!touch_has_tool_palm(dev))
+		return;
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_down(dev, 1, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 10, 1);
+	litest_touch_move_to_extended(dev, 0, 50, 50, 70, 70, axes, 10, 1);
+	litest_touch_up(dev, 0);
+	litest_drain_events(li);
+
+	litest_touch_move_to(dev, 1, 50, 50, 70, 70, 10, 1);
+	libinput_dispatch(li);
+	litest_assert_touch_motion_frame(li);
+
+	/* ABS_MT_TOOL_TYPE never reset to finger, so a new touch
+	   should be ignored outright */
+	litest_touch_down_extended(dev, 0, 50, 50, axes);
+
+	/* Test the revert to finger case too */
+	litest_axis_set_value(axes, ABS_MT_TOOL_TYPE, MT_TOOL_FINGER);
+	litest_touch_move_to(dev, 0, 70, 70, 50, 40, 10, 1);
+	litest_touch_up(dev, 0);
+
+	litest_assert_empty_queue(li);
+
+	litest_touch_up(dev, 1);
+	libinput_dispatch(li);
+	litest_assert_touch_up_frame(li);
+}
+END_TEST
+
 TEST_COLLECTION(touch)
 {
 	struct range axes = { ABS_X, ABS_Y + 1};
@@ -1103,4 +1318,11 @@ TEST_COLLECTION(touch)
 	litest_add("touch:count", touch_count_mt, LITEST_TOUCH, LITEST_SINGLE_TOUCH|LITEST_PROTOCOL_A);
 	litest_add("touch:count", touch_count_unknown, LITEST_PROTOCOL_A, LITEST_ANY);
 	litest_add("touch:count", touch_count_invalid, LITEST_ANY, LITEST_TOUCH|LITEST_SINGLE_TOUCH|LITEST_PROTOCOL_A);
+
+	litest_add("touch:tool", touch_palm_detect_tool_palm, LITEST_TOUCH, LITEST_ANY);
+	litest_add("touch:tool", touch_palm_detect_tool_palm_on_off, LITEST_TOUCH, LITEST_ANY);
+	litest_add("touch:tool", touch_palm_detect_tool_palm_keep_type, LITEST_TOUCH, LITEST_ANY);
+	litest_add("touch:tool", touch_palm_detect_tool_palm_2fg, LITEST_TOUCH, LITEST_SINGLE_TOUCH);
+	litest_add("touch:tool", touch_palm_detect_tool_palm_on_off_2fg, LITEST_TOUCH, LITEST_SINGLE_TOUCH);
+	litest_add("touch:tool", touch_palm_detect_tool_palm_keep_type_2fg, LITEST_TOUCH, LITEST_ANY);
 }
