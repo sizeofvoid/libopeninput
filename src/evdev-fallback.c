@@ -781,6 +781,53 @@ fallback_any_button_down(struct fallback_dispatch *dispatch,
 	return false;
 }
 
+static inline bool
+fallback_flush_mt_events(struct fallback_dispatch *dispatch,
+			 struct evdev_device *device,
+			 uint64_t time)
+{
+	bool sent = false;
+
+	for (size_t i = 0; i < dispatch->mt.slots_len; i++) {
+		struct mt_slot *slot = &dispatch->mt.slots[i];
+
+		if (!slot->dirty)
+			continue;
+
+		switch (slot->state) {
+		case SLOT_STATE_BEGIN:
+			sent = fallback_flush_mt_down(dispatch,
+						      device,
+						      i,
+						      time);
+			slot->state = SLOT_STATE_UPDATE;
+			break;
+		case SLOT_STATE_UPDATE:
+			sent = fallback_flush_mt_motion(dispatch,
+							device,
+							i,
+							time);
+			break;
+		case SLOT_STATE_END:
+			sent = fallback_flush_mt_up(dispatch,
+						    device,
+						    i,
+						    time);
+			slot->state = SLOT_STATE_NONE;
+			break;
+		case SLOT_STATE_NONE:
+			/* touch arbitration may swallow the begin,
+			 * so we may get updates for a touch still
+			 * in NONE state */
+			break;
+		}
+
+		slot->dirty = false;
+	}
+
+	return sent;
+}
+
 static void
 fallback_handle_state(struct fallback_dispatch *dispatch,
 		      struct evdev_device *device,
@@ -817,47 +864,10 @@ fallback_handle_state(struct fallback_dispatch *dispatch,
 	}
 
 	/* Multitouch devices */
-	if (dispatch->pending_event & EVDEV_ABSOLUTE_MT) {
-		bool sent = false;
-		for (size_t i = 0; i < dispatch->mt.slots_len; i++) {
-			struct mt_slot *slot = &dispatch->mt.slots[i];
-
-			if (!slot->dirty)
-				continue;
-
-			switch (slot->state) {
-			case SLOT_STATE_BEGIN:
-				sent = fallback_flush_mt_down(dispatch,
-							      device,
-							      i,
-							      time);
-				slot->state = SLOT_STATE_UPDATE;
-				break;
-			case SLOT_STATE_UPDATE:
-				sent = fallback_flush_mt_motion(dispatch,
-								device,
-								i,
-								time);
-				break;
-			case SLOT_STATE_END:
-				sent = fallback_flush_mt_up(dispatch,
+	if (dispatch->pending_event & EVDEV_ABSOLUTE_MT)
+		need_touch_frame = fallback_flush_mt_events(dispatch,
 							    device,
-							    i,
 							    time);
-				slot->state = SLOT_STATE_NONE;
-				break;
-			case SLOT_STATE_NONE:
-				/* touch arbitration may swallow the begin,
-				 * so we may get updates for a touch still
-				 * in NONE state */
-				break;
-			}
-
-			slot->dirty = false;
-		}
-
-		need_touch_frame = sent;
-	}
 
 	if (need_touch_frame)
 		touch_notify_frame(&device->base, time);
