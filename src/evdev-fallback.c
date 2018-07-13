@@ -825,23 +825,32 @@ fallback_handle_state(struct fallback_dispatch *dispatch,
 			if (!slot->dirty)
 				continue;
 
-			if (slot->state == SLOT_STATE_BEGIN) {
+			switch (slot->state) {
+			case SLOT_STATE_BEGIN:
 				sent = fallback_flush_mt_down(dispatch,
 							      device,
 							      i,
 							      time);
 				slot->state = SLOT_STATE_UPDATE;
-			} else if (slot->state == SLOT_STATE_UPDATE) {
+				break;
+			case SLOT_STATE_UPDATE:
 				sent = fallback_flush_mt_motion(dispatch,
 								device,
 								i,
 								time);
-			} else if (slot->state == SLOT_STATE_END) {
+				break;
+			case SLOT_STATE_END:
 				sent = fallback_flush_mt_up(dispatch,
 							    device,
 							    i,
 							    time);
 				slot->state = SLOT_STATE_NONE;
+				break;
+			case SLOT_STATE_NONE:
+				/* touch arbitration may swallow the begin,
+				 * so we may get updates for a touch still
+				 * in NONE state */
+				break;
 			}
 
 			slot->dirty = false;
