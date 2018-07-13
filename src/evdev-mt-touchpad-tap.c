@@ -186,7 +186,6 @@ tp_tap_idle_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_PALM:
 		tp->tap.state = TAP_STATE_IDLE;
-		t->tap.state = TAP_TOUCH_STATE_DEAD;
 		break;
 	case TAP_EVENT_PALM_UP:
 		break;
@@ -239,7 +238,6 @@ tp_tap_touch_handle_event(struct tp_dispatch *tp,
 		break;
 	case TAP_EVENT_PALM:
 		tp->tap.state = TAP_STATE_IDLE;
-		t->tap.state = TAP_TOUCH_STATE_DEAD;
 		tp_tap_clear_timer(tp);
 		break;
 	case TAP_EVENT_PALM_UP:
