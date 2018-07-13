@@ -45,7 +45,7 @@ enum evdev_event_type {
 	EVDEV_ABSOLUTE_TOUCH_DOWN = (1 << 0),
 	EVDEV_ABSOLUTE_MOTION = (1 << 1),
 	EVDEV_ABSOLUTE_TOUCH_UP = (1 << 2),
-	EVDEV_ABSOLUTE_MT= (1 << 3),
+	EVDEV_ABSOLUTE_MT = (1 << 3),
 	EVDEV_WHEEL = (1 << 4),
 	EVDEV_KEY = (1 << 5),
 	EVDEV_RELATIVE_MOTION = (1 << 6),
