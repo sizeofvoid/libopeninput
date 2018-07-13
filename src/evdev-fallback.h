@@ -45,6 +45,22 @@ enum debounce_state {
 	DEBOUNCE_STATE_DISABLED = 999,
 };
 
+enum mt_slot_state {
+	SLOT_STATE_NONE,
+	SLOT_STATE_BEGIN,
+	SLOT_STATE_UPDATE,
+	SLOT_STATE_END,
+};
+
+struct mt_slot {
+	bool dirty;
+	enum mt_slot_state state;
+	int32_t seat_slot;
+	struct device_coords point;
+	struct device_coords hysteresis_center;
+	bool is_palm;
+};
+
 struct fallback_dispatch {
 	struct evdev_dispatch base;
 	struct evdev_device *device;

@@ -157,21 +157,6 @@ enum evdev_debounce_state {
 	DEBOUNCE_ACTIVE,
 };
 
-enum mt_slot_state {
-	SLOT_STATE_NONE,
-	SLOT_STATE_BEGIN,
-	SLOT_STATE_UPDATE,
-	SLOT_STATE_END,
-};
-
-struct mt_slot {
-	bool dirty;
-	enum mt_slot_state state;
-	int32_t seat_slot;
-	struct device_coords point;
-	struct device_coords hysteresis_center;
-};
-
 struct evdev_device {
 	struct libinput_device base;
 
