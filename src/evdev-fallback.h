@@ -99,10 +99,6 @@ struct fallback_dispatch {
 	bool ignore_events;
 
 	struct {
-#if 0
-		enum evdev_debounce_state state;
-		uint64_t button_up_time;
-#endif
 		unsigned int button_code;
 		uint64_t button_time;
 		struct libinput_timer timer;
