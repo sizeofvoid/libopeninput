@@ -670,6 +670,15 @@ litest_assert_empty_queue(struct libinput *li);
 void
 litest_assert_touch_sequence(struct libinput *li);
 
+void
+litest_assert_touch_motion_frame(struct libinput *li);
+void
+litest_assert_touch_down_frame(struct libinput *li);
+void
+litest_assert_touch_up_frame(struct libinput *li);
+void
+litest_assert_touch_cancel(struct libinput *li);
+
 struct libinput_event_pointer *
 litest_is_button_event(struct libinput_event *event,
 		       unsigned int button,

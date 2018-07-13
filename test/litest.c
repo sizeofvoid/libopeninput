@@ -3203,6 +3203,7 @@ litest_is_touch_event(struct libinput_event *event,
 	case LIBINPUT_EVENT_TOUCH_UP:
 	case LIBINPUT_EVENT_TOUCH_MOTION:
 	case LIBINPUT_EVENT_TOUCH_FRAME:
+	case LIBINPUT_EVENT_TOUCH_CANCEL:
 		litest_assert_event_type(event, type);
 		break;
 	default:
@@ -3500,6 +3501,75 @@ litest_assert_touch_sequence(struct libinput *li)
 
 	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_UP);
 	libinput_event_destroy(event);
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
+	libinput_event_destroy(event);
+}
+
+void
+litest_assert_touch_motion_frame(struct libinput *li)
+{
+	struct libinput_event *event;
+
+	/* expect at least one, but maybe more */
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_MOTION);
+	libinput_event_destroy(event);
+
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
+	libinput_event_destroy(event);
+
+	event = libinput_get_event(li);
+	while (event) {
+		litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_MOTION);
+		libinput_event_destroy(event);
+
+		event = libinput_get_event(li);
+		litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
+		libinput_event_destroy(event);
+
+		event = libinput_get_event(li);
+	}
+}
+
+void
+litest_assert_touch_down_frame(struct libinput *li)
+{
+	struct libinput_event *event;
+
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_DOWN);
+	libinput_event_destroy(event);
+
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
+	libinput_event_destroy(event);
+}
+
+void
+litest_assert_touch_up_frame(struct libinput *li)
+{
+	struct libinput_event *event;
+
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_UP);
+	libinput_event_destroy(event);
+
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
+	libinput_event_destroy(event);
+}
+
+void
+litest_assert_touch_cancel(struct libinput *li)
+{
+	struct libinput_event *event;
+
+	event = libinput_get_event(li);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_CANCEL);
+	libinput_event_destroy(event);
+
 	event = libinput_get_event(li);
 	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
 	libinput_event_destroy(event);
