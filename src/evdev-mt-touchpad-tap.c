@@ -791,7 +791,7 @@ tp_tap_multitap_palm_handle_event(struct tp_dispatch *tp,
 {
 	switch (event) {
 	case TAP_EVENT_RELEASE:
-		/* This is the palm finger */
+		log_tap_bug(tp, t, event);
 		break;
 	case TAP_EVENT_TOUCH:
 		tp->tap.state = TAP_STATE_MULTITAP_DOWN;
