@@ -33,9 +33,6 @@ static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_PRESSURE, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MAJOR, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MINOR, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_ORIENTATION, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
@@ -45,9 +42,6 @@ static struct input_event move[] = {
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_PRESSURE, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MAJOR, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MINOR, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_ORIENTATION, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
