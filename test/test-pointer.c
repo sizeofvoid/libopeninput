@@ -30,7 +30,6 @@
 #include <libinput.h>
 #include <math.h>
 #include <unistd.h>
-#include <values.h>
 
 #include "libinput-util.h"
 #include "litest.h"
