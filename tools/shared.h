@@ -25,6 +25,7 @@
 #define _SHARED_H_
 
 #include <stdbool.h>
+#include <limits.h>
 
 #include <quirks.h>
 #include <libinput.h>
@@ -119,7 +120,7 @@ tools_list_device_quirks(struct quirks_context *ctx,
 			 void (*callback)(void *userdata, const char *str),
 			 void *userdata);
 
-char *
-tools_execdir_is_builddir(void);
+bool
+tools_execdir_is_builddir(char *execdir_out, size_t sz);
 
 #endif

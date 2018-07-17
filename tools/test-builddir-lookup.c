@@ -26,25 +26,28 @@
 #include "shared.h"
 
 int main(int argc, char **argv) {
-	char *builddir;
+	char builddir[PATH_MAX];
 	char *mode;
+	bool rc, rc2;
 
 	assert(argc == 2);
 	mode = argv[1];
 
-	builddir = tools_execdir_is_builddir();
+	rc = tools_execdir_is_builddir(builddir, sizeof(builddir));
+	rc2 = tools_execdir_is_builddir(NULL, 0);
 	if (streq(mode, "--builddir-is-null")) {
-		assert(builddir == NULL);
+		assert(rc == false);
+		assert(rc == rc2);
 	} else if (streq(mode, "--builddir-is-set")) {
 		/* In the case of release builds, the builddir is
 		   the empty string */
 		if (streq(MESON_BUILD_ROOT, "")) {
-			assert(builddir == NULL);
+			assert(rc == false);
 		} else {
-			assert(builddir != NULL);
+			assert(rc == true);
 			assert(streq(MESON_BUILD_ROOT, builddir));
-			free(builddir);
 		}
+		assert(rc == rc2);
 	} else {
 		abort();
 	}
