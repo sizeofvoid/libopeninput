@@ -1202,7 +1202,7 @@ evdev_get_trackpoint_multiplier(struct evdev_device *device)
 
 	if (multiplier != 1.0)
 		evdev_log_info(device,
-			       "trackpoint device set to range %.2f\n",
+			       "trackpoint multiplier is %.2f\n",
 			       multiplier);
 
 	return multiplier;
