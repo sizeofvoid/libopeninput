@@ -311,6 +311,13 @@ tools_open_device(const char *path, bool verbose, bool *grab)
 	return li;
 }
 
+static void
+tools_setenv_quirks_dir(void)
+{
+	if (tools_execdir_is_builddir(NULL, 0))
+		setenv("LIBINPUT_QUIRKS_DIR", LIBINPUT_QUIRKS_SRCDIR, 0);
+}
+
 struct libinput *
 tools_open_backend(enum tools_backend which,
 		   const char *seat_or_device,
@@ -318,6 +325,8 @@ tools_open_backend(enum tools_backend which,
 		   bool *grab)
 {
 	struct libinput *li;
+
+	tools_setenv_quirks_dir();
 
 	switch (which) {
 	case BACKEND_UDEV:
