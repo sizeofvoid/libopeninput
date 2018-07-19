@@ -377,6 +377,7 @@ class TestYaml(unittest.TestCase):
                         self.assertFalse(need_frame)
                         continue
 
+                    if t == 'TOUCH_FRAME':
                         self.assertTrue(need_frame)
                         need_frame = False
                     else:
