@@ -5,6 +5,8 @@
 This page describes what libinput is, but more importantly it also describes
 what libinput is **not**.
 
+@section what_libinput_is What libinput is
+
 libinput is an input stack to be used by those applications that need full
 input device processing by commonly used input devices. That includes mice,
 keyboards, touchpads, touchscreens and graphics tablets. libinput handles
@@ -25,6 +27,8 @@ possible to do so. One example for this are the top software buttons on the
 touchpad in the Lenovo T440 and similar devices. While there may be
 use-cases for providing top software buttons on other devices, libinput does
 not do so.
+
+@section what_libinput_is_not What libinput is not
 
 libinput is **not** a project to support experimental devices. Unless a
 device is commonly available off-the-shelf, libinput will not support this
