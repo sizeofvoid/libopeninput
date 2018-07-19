@@ -1472,6 +1472,10 @@ tp_detect_thumb_while_moving(struct tp_dispatch *tp)
 	struct phys_coords mm;
 
 	tp_for_each_touch(tp, t) {
+		if (t->state == TOUCH_NONE ||
+		    t->state == TOUCH_HOVERING)
+			continue;
+
 		if (t->state != TOUCH_BEGIN)
 			first = t;
 		else
