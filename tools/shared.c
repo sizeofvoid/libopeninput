@@ -267,10 +267,9 @@ tools_open_udev(const char *seat, bool verbose, bool *grab)
 		goto out;
 	}
 
-	if (verbose) {
-		libinput_log_set_handler(li, log_handler);
+	libinput_log_set_handler(li, log_handler);
+	if (verbose)
 		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
-	}
 
 	if (libinput_udev_assign_seat(li, seat)) {
 		fprintf(stderr, "Failed to set seat\n");
