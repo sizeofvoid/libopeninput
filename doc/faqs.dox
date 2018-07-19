@@ -220,4 +220,27 @@ The warning has no immediate effect on libinput's behavior but some of the
 functionality that relies on the timer may be impeded (e.g. palms are not
 detected as they should be).
 
+@section faq_wayland Is libinput required for Wayland?
+
+Technically - no. But for your use-case - probably.
+
+Wayland is a display server communication protocol. libinput is a low-level
+library to simplify handling input devices and their events. They have no
+direct connection. As a technical analogy, the question is similar to "is
+glibc required for HTTP", or (stretching the analogy a bit further) "Is a
+pen required to write English". No, it isn't.
+
+You can use libinput without a Wayland compositor, you can
+write a Wayland compositor without libinput. Until 2018 the most common use
+of libinput is with the X.Org X server through the xf86-input-libinput
+driver. As Wayland compositors become more commonplace they will eventually
+overtake X.
+
+So why "for your use-case - probably"?  All general-purpose Wayland
+compositors use libinput for their input stack.  Wayland compositors that
+are more specialized (e.g. in-vehicle infotainment or IVI) can handle input
+devices directly but the compositor you want to use
+on your desktop needs an input stack that is more complex. And right now,
+libinput is the only input stack that exists for this use-case.
+
 */
