@@ -11,6 +11,17 @@ provide the common set of functionality that users expect. Input event
 processing includes scaling touch coordinates, generating
 relative pointer events from touchpads, pointer acceleration, etc.
 
+User documentation
+------------------
+
+Documentation explaining features available in libinput is available
+[here](https://wayland.freedesktop.org/libinput/doc/latest/pages.html).
+
+This includes the [FAQ](https://wayland.freedesktop.org/libinput/doc/latest/faq.html)
+and the instructions on
+[reporting bugs](https://wayland.freedesktop.org/libinput/doc/latest/reporting_bugs.html).
+
+
 Architecture
 ------------
 
