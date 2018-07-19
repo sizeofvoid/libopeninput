@@ -39,13 +39,6 @@
 
 - @subpage switches
 
-@page general General 
-
-- @subpage device-quirks
-- @subpage udev_config
-- @subpage seats
-- @subpage timestamps
-
 @page developers Developers
 
 Contributions to libinput are always welcome. See the links below for
@@ -58,5 +51,9 @@ specific documentation.
 - @subpage test-suite
 - @subpage tools
 - @subpage pointer-acceleration
+- @subpage device-quirks
+- @subpage udev_config
+- @subpage seats
+- @subpage timestamps
 
 */
