@@ -35,6 +35,7 @@
 #include <dirent.h>
 #include <fnmatch.h>
 
+#include "libinput-versionsort.h"
 #include "libinput-util.h"
 #include "libinput-private.h"
 

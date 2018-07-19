@@ -33,6 +33,8 @@
 
 #include "litest.h"
 #include "libinput-util.h"
+#define  TEST_VERSIONSORT
+#include "libinput-versionsort.h"
 
 static int open_restricted(const char *path, int flags, void *data)
 {
@@ -1756,6 +1758,21 @@ START_TEST(list_test_append)
 }
 END_TEST
 
+START_TEST(strverscmp_test)
+{
+	ck_assert_int_eq(libinput_strverscmp("", ""), 0);
+	ck_assert_int_gt(libinput_strverscmp("0.0.1", ""), 0);
+	ck_assert_int_lt(libinput_strverscmp("", "0.0.1"), 0);
+	ck_assert_int_eq(libinput_strverscmp("0.0.1", "0.0.1"), 0);
+	ck_assert_int_eq(libinput_strverscmp("0.0.1", "0.0.2"), -1);
+	ck_assert_int_eq(libinput_strverscmp("0.0.2", "0.0.1"), 1);
+	ck_assert_int_eq(libinput_strverscmp("0.0.1", "0.1.0"), -1);
+	ck_assert_int_eq(libinput_strverscmp("0.1.0", "0.0.1"), 1);
+}
+END_TEST
+
+
+
 TEST_COLLECTION(misc)
 {
 	litest_add_no_device("events:conversion", event_conversion_device_notify);
@@ -1805,4 +1822,5 @@ TEST_COLLECTION(misc)
 
 	litest_add_deviceless("misc:list", list_test_insert);
 	litest_add_deviceless("misc:list", list_test_append);
+	litest_add_deviceless("misc:versionsort", strverscmp_test);
 }

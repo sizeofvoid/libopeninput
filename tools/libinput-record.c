@@ -40,6 +40,7 @@
 #include <signal.h>
 #include <stdbool.h>
 
+#include "libinput-versionsort.h"
 #include "libinput-util.h"
 #include "libinput-version.h"
 #include "libinput-git-version.h"

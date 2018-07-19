@@ -83,6 +83,26 @@ if get_option('coverity')
 	config_h.set('_Float64x', 'long')
 endif
 
+if cc.has_header_symbol('dirent.h', 'versionsort', prefix : prefix)
+	config_h.set('HAVE_VERSIONSORT', '1')
+endif
+
+if not cc.has_header_symbol('errno.h', 'program_invocation_short_name', prefix : prefix)
+	if cc.has_header_symbol('stdlib.h', 'getprogname')
+		config_h.set('program_invocation_short_name', 'getprogname()')
+	endif
+endif
+
+if cc.has_header('xlocale.h')
+	config_h.set('HAVE_XLOCALE_H', '1')
+endif
+
+if not cc.has_header_symbol('sys/ptrace.h', 'PTRACE_ATTACH', prefix : prefix)
+	config_h.set('PTRACE_ATTACH', 'PT_ATTACH')
+	config_h.set('PTRACE_CONT', 'PT_CONTINUE')
+	config_h.set('PTRACE_DETACH', 'PT_DETACH')
+endif
+
 # Dependencies
 pkgconfig = import('pkgconfig')
 dep_udev = dependency('libudev')
@@ -152,6 +172,34 @@ litest_groups_rules_file = configure_file(input : 'udev/80-libinput-device-group
 	       output : '80-libinput-device-groups-litest.rules',
 	       install : false,
 	       configuration : litest_udev_rules_config)
+
+############ libepoll-shim (BSD) ############
+
+if cc.has_header_symbol('sys/epoll.h', 'epoll_create1', prefix : prefix)
+	# epoll is built-in (Linux, illumos)
+	dep_libepoll = declare_dependency()
+else
+	# epoll is implemented in userspace by libepoll-shim (FreeBSD)
+	dir_libepoll = get_option('epoll-dir')
+	if dir_libepoll == ''
+		dir_libepoll = get_option('prefix')
+	endif
+	includes_epoll = include_directories(join_paths(dir_libepoll, 'include/libepoll-shim'))
+	dep_libepoll = cc.find_library('epoll-shim', dirs : join_paths(dir_libepoll, 'lib'))
+	code = '''
+	#include <sys/epoll.h>
+	int main(void) { epoll_create1(0); }
+	'''
+	if not cc.links(code,
+		name : 'libepoll-shim check',
+		dependencies : [dep_libepoll, dep_rt],
+		include_directories : includes_epoll) # note: wants an include_directories object
+		error('No built-in epoll or libepoll-shim found.')
+	endif
+	dep_libepoll = declare_dependency(
+		include_directories : includes_epoll,
+		dependencies : [dep_libepoll, dep_rt])
+endif
 
 ############ libinput-util.a ############
 src_libinput_util = [
@@ -266,6 +314,7 @@ deps_libinput = [
 	dep_mtdev,
 	dep_udev,
 	dep_libevdev,
+	dep_libepoll,
 	dep_lm,
 	dep_rt,
 	dep_libwacom,
