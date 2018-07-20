@@ -101,4 +101,86 @@ Note that this is an example only, the output may change over time. The tool
 uses the same parser as libinput and any parsing errors will show up in the
 output.
 
+@section device-quirks-list List of supported device quirks
+
+This list is a guide for developers to ease the process of submitting
+patches upstream. This section shows device quirks supported in git
+commit @includedoc git-version.dox
+
+@note <b>Quirks are internal API and may change at any time for any reason.
+No guarantee is given that any quirk below works on your version of
+libinput.</b>
+
+In the documentation below, the letters N, M, O, P refer to arbitrary integer
+values.
+
+Quirks starting with <b>Model*</b> triggers implementation-defined behaviour
+for this device not needed for any other device. Only the more
+general-purpose <b>Model*</b> flags are listed here.
+
+<dl>
+  <dt>ModelALPSTouchpad</dt>
+  <dt>ModelAppleTouchpad</dt>
+  <dt>ModelWacomTouchpad</dt>
+  <dt>ModelChromebook</dt>
+    <dd>Reserved for touchpads made by the respective vendors</dd>
+  <dt>ModelTabletNoTilt</dt>
+    <dd>Indicates that the tablet stylus does not provide tilt axis
+    information, even if the kernel exposes that axis.</dd>
+  <dt>ModelTabletNoProximityOut</dt>
+    <dd>Indicates that the tablet stylus does not send correct proximity out
+    events.</dd>
+  <dt>ModelTouchpadVisibleMarker</dt>
+    <dd>Indicates the touchpad has a drawn-on visible marker between the software
+    buttons.</dd>
+  <dt>ModelTabletModeNoSuspend</dt>
+    <dd>Indicates that the device does not need to be
+    suspended in @ref switches_tablet_mode.</dd>
+  <dt>ModelTrackball</dt>
+    <dd>Reserved for trackballs</dd>
+  <dt>ModelBouncingKeys</dt>
+    <dd>Indicates that the device may send fake bouncing key events and
+    timestamps can not be relied upon.</dd>
+  <dt>ModelSynapticsSerialTouchpad</dt>
+    <dd>Reserved for touchpads made by Synaptics on the serial bus</dd>
+  </dd>
+  <dt>AttrSizeHint=NxM</dt>
+  <dt>AttrResolutionHint=N</dt>
+    <dd>Hints at the width x height of the device in mm, or the resolution
+    of the x/y axis in units/mm. These may only be used where they apply to
+    a large proportion of matching devices. They should not be used for any
+    specific device, override `EVDEV_ABS_*` instead, see @ref
+    absolute_coordinate_ranges_fix.
+    </dd>
+  <dt>AttrTouchSizeRange=N:M</dt>
+  <dt>AttrPalmSizeThreshold=O</dt>
+    <dd>Specifies the touch size required to
+    trigger a press (N) and to trigger a release (M). O > N > M. See
+    @ref touchpad_touch_size_hwdb for more details.
+    </dd>
+  <dt>AttrTouchPressureRange=N:M</dt>
+  <dt>AttrPalmPressureThreshold=O</dt>
+  <dt>AttrThumbPressureThreshold=P</dt>
+    <dd>Specifies the touch pressure required to
+    trigger a press (N) and to trigger a release (M), when a palm touch is
+    triggered (O) and when a thumb touch is triggered (P). O > P > N > M. See
+    @ref touchpad_pressure_hwdb for more details.
+    </dd>
+  <dt>AttrLidSwitchReliability=reliable|write_open</dt>
+    <dd>
+    Indicates the reliability of the lid switch. This is a string enum. Do not
+    use "reliable" for any specific device. Very few devices need this, if in
+    doubt do not set. See @ref switches_lid for details.
+    </dd>
+  <dt>AttrKeyboardIntegration=internal|external</dt>
+    <dd>Indicates the integration of the keyboard. This is a string enum.
+    Generally only needed for USB keyboards.
+    </dd>
+  <dt>AttrTPKComboLayout=below</dt>
+    <dd>Indicates the position of the touchpad on an external touchpad+keyboard
+    combination device. This is a string enum. Don't specify it unless the
+    touchpad is below.
+    </dd>
+</dl>
+
 */

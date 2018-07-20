@@ -29,6 +29,12 @@ if dot_version.version_compare('< 2.26')
 	error('Graphviz dot needs to be at least version 2.26 (have @0@)'.format(dot_version))
 endif
 
+doc_git_version = vcs_tag(command : ['git', 'log', '-1', '--format=%h'],
+			  fallback : 'ERROR - unable to fetch git version',
+			  input : 'git-version.dox',
+			  output : 'git-version.dox',
+			  replace_string: '__GIT_VERSION__')
+
 readme = vcs_tag(command : ['git', 'log', '-1', '--format=%h'],
 		 fallback : 'unknown',
 		 input : '../README.md',
@@ -132,9 +138,9 @@ doxyfile = configure_file(input : 'libinput.doxygen.in',
 			  install : false)
 
 custom_target('doxygen',
-	      input : [ doxyfile, readme ] + src_doxygen,
+	      input : [ doxyfile, readme, doc_git_version] + src_doxygen,
 	      output : [ 'Documentation' ],
 	      command : [ doxygen, doxyfile ],
 	      install : false,
-	      depends: [doxyfiles, readme],
+	      depends: [doxyfiles, readme, doc_git_version],
 	      build_by_default : true)
