@@ -28,4 +28,4 @@ ModelHPZBookStudioG3=1
 [HP Chromebook 14]
 MatchName=*Cypress APA Trackpad *cyapa*
 MatchDMIModalias=dmi:*svnHewlett-Packard*:pnFalco*
-AttrPressureRange=13:10
+AttrPressureRange=12:8
