@@ -177,7 +177,7 @@ libinput:name:Cypress APA Trackpad ?cyapa?:dmi:*
 
 # HP Chromebook 14
 libinput:name:*Cypress APA Trackpad *cyapa*:dmi:*svnHewlett-Packard*:pnFalco*
- LIBINPUT_ATTR_PRESSURE_RANGE=13:10
+ LIBINPUT_ATTR_PRESSURE_RANGE=12:8
 
 # HP Compaq6910p
 libinput:name:SynPS/2 Synaptics TouchPad:dmi:*svnHewlett-Packard:*pnHPCompaq6910p*
