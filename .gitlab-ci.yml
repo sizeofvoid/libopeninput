@@ -97,43 +97,56 @@ variables:
 #                                                               #
 #################################################################
 
-# we need a minimalist image capable of curl, jq, date and test.
-# instead of using a full fedora and install the dependencies, we
-# can reuse the one from https://github.com/endeveit/docker-jq with
-# the following Dockerfile:
-#   FROM alpine
-#   MAINTAINER Nikita Vershinin <endeveit@gmail.com>
+# we need a minimalist image capable of skopeo, curl, jq, date and
+# test. Instead of using a full fedora and install the dependencies,
+# we can build an alpine container through buildah with the following
+# script:
+# -----
+# #!/bin/bash
 #
-#   RUN apk add --update --no-cache curl jq
+# # build container
 #
-#   CMD ["sh"]
-
+# buildcntr1=$(buildah from golang:alpine)
+# buildmnt1=$(buildah mount $buildcntr1)
+#
+# buildah run $buildcntr1 apk add --update \
+#                                 --no-cache \
+#                                 --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ \
+#                                 --allow-untrusted \
+#                                 git make gcc musl-dev glib-dev ostree-dev \
+#                                 gpgme-dev linux-headers btrfs-progs-dev \
+#                                 libselinux-dev lvm2-dev
+# buildah run $buildcntr1 git clone https://github.com/projectatomic/skopeo.git /go/src/skopeo
+# buildah config --workingdir /go/src/skopeo $buildcntr1
+# buildah run $buildcntr1 go get -d -v ./...
+# buildah run $buildcntr1 make binary-local
+#
+#
+# buildcntr2=$(buildah from alpine:latest)
+# buildmnt2=$(buildah mount $buildcntr2)
+# buildah run $buildcntr2 apk add --update \
+#                                 --no-cache \
+#                                 --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ \
+#                                 --allow-untrusted \
+#                                 jq curl glib gpgme ostree lvm2 libselinux
+# cp $buildmnt1/go/src/skopeo/skopeo $buildmnt2/usr/bin/skopeo
+#
+# buildah unmount $buildcntr2
+# buildah commit $buildcntr2 registry.freedesktop.org/libinput/libinput/skopeo:latest
+#
+# #clean up build
+#
+# buildah rm $buildcntr1 $buildcntr2
+# -----
 .docker-check: &docker_check
   stage: docker_check
-  image: registry.freedesktop.org/libinput/libinput/jq:latest
+  image: registry.freedesktop.org/libinput/libinput/skopeo:latest
   script:
     # get the full docker image name (CURRENT_DOCKER_IMAGE still has indirections)
     - DOCKER_IMAGE=$(eval echo "$CURRENT_DOCKER_IMAGE")
-    - REPOSITORY=$(echo $DOCKER_IMAGE | cut -f2- -d/ | cut -f1 -d:)
-    - TAG=$(echo $DOCKER_IMAGE | cut -f2 -d:)
-
-    # request a token for the registry API
-    - REGISTRY_TOKEN=$(curl https://gitlab.freedesktop.org/jwt/auth --get
-                             --silent --show-error
-                             -d client_id=docker
-                             -d offline_token=true
-                             -d service=container_registry
-                             -d "scope=repository:$REPOSITORY:pull,*"
-                             --fail
-                             --user $CI_REGISTRY_USER:$CI_JOB_TOKEN
-                             | sed -r 's/(\{"token":"|"\})//g')
 
     # get the date of the current image
-    - IMG_DATE=$(curl https://$CI_REGISTRY/v2/$REPOSITORY/manifests/$TAG --silent
-                      -H "accept:application/vnd.docker.distribution.manifest.v1+json"
-                      -H "authorization:Bearer $REGISTRY_TOKEN"
-                      | jq -r '[.history[]]|map(.v1Compatibility|fromjson|.created)|sort|reverse|.[0]'
-                      | cut -dT -f1)
+    - IMG_DATE=$(skopeo inspect docker://$DOCKER_IMAGE | jq -r '.Created' | cut -dT -f1)
 
     - TODAY_SECS=$(date -u +%s)
     - IMG_SECS=$(date -u --date="$IMG_DATE" +%s)
@@ -420,11 +433,12 @@ freebsd:11.2@force-docker-prep:
 #
 .docker-clean: &docker_clean
   stage: docker_check
-  image: registry.freedesktop.org/libinput/libinput/jq:latest
+  image: registry.freedesktop.org/libinput/libinput/skopeo:latest
   script:
     # get the full docker image name (CURRENT_DOCKER_IMAGE still has indirections)
     - DOCKER_IMAGE=$(eval echo "$CURRENT_DOCKER_IMAGE")
     - REPOSITORY=$(echo $DOCKER_IMAGE | cut -f2- -d/)
+    - IMAGE_PATH=$(echo $DOCKER_IMAGE | cut -f1 -d:)
 
     # get the r/w token from the settings to access the registry
     #
@@ -446,28 +460,15 @@ freebsd:11.2@force-docker-prep:
                              | sed -r 's/(\{"token":"|"\})//g')
 
     # get the digest of the latest image
-    - LATEST_MANIFEST=$(curl https://$CI_REGISTRY/v2/$REPOSITORY/manifests/latest --silent
-                             -H "accept:application/vnd.docker.distribution.manifest.v2+json"
-                             -H "authorization:Bearer $REGISTRY_TOKEN"
-                             --head
-                             | grep -i "Docker-Content-Digest"
-                             | grep -oi "sha256:\w\+")
+    - LATEST_MANIFEST=$(skopeo inspect docker://$IMAGE_PATH:latest | jq -r '.Digest')
 
     # get the list of tags
-    - TAGS=$(curl https://$CI_REGISTRY/v2/$REPOSITORY/tags/list --silent
-                  -H "accept:application/vnd.docker.distribution.manifest.v2+json"
-                  -H "authorization:Bearer $REGISTRY_TOKEN"
-                  | jq -r '.tags[]')
+    - TAGS=$(skopeo inspect docker://$IMAGE_PATH | jq -r '.RepoTags[]')
 
     # iterate over the tags
     - for tag in $TAGS;
       do
-        MANIFEST=$(curl https://$CI_REGISTRY/v2/$REPOSITORY/manifests/$tag --silent
-                             -H "accept:application/vnd.docker.distribution.manifest.v2+json"
-                             -H "authorization:Bearer $REGISTRY_TOKEN"
-                             --head
-                             | grep -i "Docker-Content-Digest"
-                             | grep -oi "sha256:\w\+");
+        MANIFEST=$(skopeo inspect docker://$IMAGE_PATH:$tag | jq -r '.Digest');
         if test x"$MANIFEST" != x"$LATEST_MANIFEST";
           then
             echo removing $tag as $MANIFEST;
