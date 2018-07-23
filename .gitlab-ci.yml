@@ -721,7 +721,7 @@ wayland-web:
       - master
     variables:
       - $CI_PROJECT_PATH == "libinput/libinput"
-  dependencies:
+  dependencies: []
   variables:
     DOT: "%2E"
     SLASH: "%2F"
