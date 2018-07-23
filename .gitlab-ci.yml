@@ -339,6 +339,7 @@ arch:rolling@docker-prep:
     - echo "FROM myfreeweb/freebsd-cross:latest" > Dockerfile
     - echo "WORKDIR /app" >> Dockerfile
     - echo "RUN apk add --no-cache $FREEBSD_BUILD_PKGS" >> Dockerfile
+    - echo "RUN pkg -r /freebsd update -f" >> Dockerfile
     - echo "RUN pkg -r /freebsd install -y $FREEBSD_PKGS" >> Dockerfile
 
     # create the docker image
