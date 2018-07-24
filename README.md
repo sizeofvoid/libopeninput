@@ -75,9 +75,9 @@ Documentation
 
 - Developer API documentation: https://wayland.freedesktop.org/libinput/doc/latest/modules.html
 - High-level documentation about libinput's features:
-https://wayland.freedesktop.org/libinput/doc/latest/pages.html
+  https://wayland.freedesktop.org/libinput/doc/latest/pages.html
 - Build instructions:
-https://wayland.freedesktop.org/libinput/doc/latest/building_libinput.html
+  https://wayland.freedesktop.org/libinput/doc/latest/building_libinput.html
 - Documentation for previous versions of libinput: https://wayland.freedesktop.org/libinput/doc/
 
 Examples of how to use libinput are the debugging tools in the libinput
