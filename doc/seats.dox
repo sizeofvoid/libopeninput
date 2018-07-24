@@ -10,7 +10,7 @@ seats as independent device sets. Alternatively, a compositor may limit
 itself to a single logical seat, leaving a second compositor to manage
 devices on the other logical seats.
 
-@section Overview
+@section seats_overview Overview
 
 Below is an illustration of how physical seats and logical seats interact:
 
