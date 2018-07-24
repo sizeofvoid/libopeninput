@@ -77,7 +77,7 @@ evdev:name:SynPS/2 Synaptics TouchPad:dmi:*svnLENOVO:*pvrThinkPadT440s*
 @endverbatim
 
 @note hwdb match strings only allow for alphanumeric ascii characters. Use a
-wildcard (* or ?, whichever appropriate) for special characters.
+	wildcard (* or ?, whichever appropriate) for special characters.
 
 The actual axis overrides are in the form:
 @verbatim
@@ -95,8 +95,9 @@ in *linux/input-event-codes.h*. For touchpads ABS_X, ABS_Y,
 ABS_MT_POSITION_X and ABS_MT_POSITION_Y are required.
 
 @note The touchpad's ranges and/or resolution should only be fixed when
-there is a significant discrepancy. A few units do not make a difference and
-a resolution that is off by 2 or less usually does not matter either.
+	there is a significant discrepancy. A few units do not make a
+	difference and a resolution that is off by 2 or less usually does
+	not matter either.
 
 Once a match and override rule has been found, follow the instructions at
 the top of the

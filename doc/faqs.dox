@@ -127,10 +127,9 @@ this:
 $> xinput set-prop "the device name" "the property name" value [value2] [value3]
 @endverbatim
 
-@note
-Changes performed by xinput do not persist across device hotplugs. xinput is
-considered a debugging and testing tool only and should not be used for
-permanent configurations.
+@note Changes performed by xinput do not persist across device hotplugs. xinput
+	is considered a debugging and testing tool only and should not be used
+	for permanent configurations.
 
 @section faq_configuration Can you add a configuration option for $FEATURE?
 
@@ -195,9 +194,9 @@ or patches that include a change to the hwdb. See @ref hwdb for
 details on the hwdb and how to modify it locally.
 
 @note As of libinput 1.12, libinput-specific properties are now stored in
-the @ref device-quirks system. There are no libinput-specific hwdb entries
-anymore and any changes to the hwdb must be merged into the systemd
-repository.
+	the @ref device-quirks system. There are no libinput-specific hwdb
+	entries anymore and any changes to the hwdb must be merged into the
+	systemd repository.
 
 @section faq_timer_offset What causes the "timer offset negative" warning?
 

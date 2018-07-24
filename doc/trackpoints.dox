@@ -87,8 +87,8 @@ slows the trackpoint down, a value above 1.0 speeds the trackpoint up.
 Values below zero are invalid.
 
 @note The multiplier is not a configuration to adjust to personal
-preferences. The multiplier normalizes the input data into a range that can
-then be configured with the speed setting.
+	preferences. The multiplier normalizes the input data into a range that
+	can then be configured with the speed setting.
 
 To adjust the local multiplier, first @ref building_libinput
 "build libinput from git master". It is not required to install libinput

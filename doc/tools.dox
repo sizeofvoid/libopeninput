@@ -29,7 +29,7 @@ different than expected. For example, if a device does not show up in the
 output, it is not a supported input device.
 
 @note This tool does **not** show your desktop's configuration, just the
-libinput built-in defaults.
+	libinput built-in defaults.
 
 @verbatim
 $ sudo libinput list-devices
@@ -61,7 +61,7 @@ with an asterisk (*). In the example above, the default click method is
 button-areas but clickinger is available.
 
 @note This tool is intended to be human-readable and may change its output
-at any time.
+	at any time.
 
 @section libinput-debug-events libinput debug-events
 The `libinput debug-events` command prints events from devices and can help
@@ -78,7 +78,7 @@ on or off as required. See the **libinput-debug-events(1)** man page or the
 `--help` output for information about the available options. 
 
 @note When submitting a bug report, always use the `--verbose` flag to get
-additional information: `libinput debug-events --verbose <other options>`
+	additional information: `libinput debug-events --verbose <other options>`
 
 An example output from this tool may look like the snippet below. 
 
@@ -120,7 +120,7 @@ gathers data directly from libinput, it is thus suitable for
 pointer-acceleration testing.
 
 @note This tool does **not** use your desktop's configuration, just the
-libinput built-in defaults.
+	libinput built-in defaults.
 
 @verbatim
 $ sudo libinput debug-gui --enable-tapping
@@ -139,9 +139,10 @@ replay` command. This pair of tools is crucial to capturing bugs and
 reproducing them on a developer's machine.
 
 @note These tools are shipped with libinput, but the recorded events
-are **kernel events** and independent of the libinput context. libinput does not
-need to be running, it does not matter whether a user is running X.Org or
-Wayland or even what version of libinput is currently running.
+	are **kernel events** and independent of the libinput context. libinput
+	does not need to be running, it does not matter whether a user is
+	running X.Org or Wayland or even what version of libinput is currently
+	running.
 
 The use of the tools is straightforward, just run without arguments, piping
 the output into a file:
@@ -182,7 +183,7 @@ For data protection, `libinput record` obscures key codes by default, any
 alphanumeric key shows up as letter "a".
 
 @note When reproducing a bug that crashes libinput, run inside `screen` or
-`tmux`.
+	`tmux`.
 
 The recording can be replayed with the `libinput replay` command:
 @verbatim

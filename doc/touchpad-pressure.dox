@@ -96,9 +96,9 @@ Interact with the touchpad and check if the output of this tool matches your
 expectations.
 
 @note **This is an interactive process. You will need to re-run the
-tool with varying thresholds until you find the right range for your
-touchpad. Attaching output logs to a bug will not help, only you with access
-to the hardware can figure out the correct ranges.**
+	tool with varying thresholds until you find the right range for your
+	touchpad. Attaching output logs to a bug will not help, only you with access
+	to the hardware can figure out the correct ranges.**
 
 Once the thresholds are decided on (e.g. 10 and 8), they can be enabled with
 @ref device-quirks entry similar to this:

@@ -39,8 +39,8 @@ location of the button is not visibly obvious.
 @image html software-buttons.svg "Left, right and middle-button click with software button areas"
 
 @note If middle button emulation is enabled on a clickpad, only left and right
-button areas are available. For more details, see
-libinput_device_config_middle_emulation_set_enabled().
+	button areas are available. For more details, see
+	libinput_device_config_middle_emulation_set_enabled().
 
 If fingers are down in the main area in addition to fingers in the
 left or right button area, those fingers are are ignored.

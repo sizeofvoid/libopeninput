@@ -13,7 +13,7 @@ at least one of `ModelFoo=1` or `AttrFoo=bar` directive. See the
 their contents.
 
 @note Model quirks are internal API and may change at any time. No
-backwards-compatibility is guaranteed.
+	backwards-compatibility is guaranteed.
 
 For example, a quirks file may have this content to label all keyboards on
 the serial bus (PS/2) as internal keyboards:
@@ -45,8 +45,8 @@ this file to add a device quirk for a local device but beware that **any
 modification must be upstreamed** or it may cease to work at any time.
 
 @note Model quirks are internal API and may change at any time. No
-backwards-compatibility is guaranteed. Local overrides should only be used
-until the distribution updates the libinput packages.
+	backwards-compatibility is guaranteed. Local overrides should only
+	be used until the distribution updates the libinput packages.
 
 The `local-overrides.quirks` file usually needs to be created by the user.
 Once the required section has been added, use the information from section

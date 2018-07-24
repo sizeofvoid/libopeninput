@@ -180,7 +180,7 @@ E: USEC_INITIALIZED=5463031
 @section evemu Recording devices with evemu
 
 @note Where available, the @ref libinput-record tools should be used instead
-of evemu
+	of evemu
 
 [evemu](https://www.freedesktop.org/wiki/Evemu/) records the
 device capabilities together with the event stream from the kernel. On our
@@ -221,7 +221,8 @@ keys down, with the position of the device in the neutral position, without
 touching the screen/touchpad.
 
 @note The longer the recording, the harder it is to identify the event
-sequence triggering the bug. Please keep the event sequence as short as possible.
+	sequence triggering the bug. Please keep the event sequence as short
+	as possible.
 
 To verify that the recording contains the bug, you can replay it on your
 device. For example, to replay the sequence recorded in the example above:
@@ -233,8 +234,9 @@ If the bug is triggered by replaying on your device, attach the recording to
 the bug report.
 
 @note libinput does not affect the evemu recording. libinput and evemu talk
-directly to the kernel's device nodes. An evemu recording is not influenced
-by the libinput version or whether a libinput context is currently active.
+	directly to the kernel's device nodes. An evemu recording is not
+	influenced by the libinput version or whether a libinput context is
+	currently active.
 
 @dotfile evemu.gv
 
