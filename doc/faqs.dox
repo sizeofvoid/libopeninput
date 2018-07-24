@@ -98,7 +98,7 @@ See @ref faq_config_options  If your desktop environment does not provide a
 graphical configuration tool you can use an
 <a href="https://www.x.org/archive/current/doc/man/man5/xorg.conf.5.xhtml">xorg.conf.d snippet</a>.
 Usually, such a snippet looks like this:
-<pre>
+@verbatim
 $> cat /etc/X11/xorg.conf.d/99-libinput-custom-config.conf
 Section "InputClass"
   Identifier "something to identify this snippet"
@@ -106,7 +106,7 @@ Section "InputClass"
   MatchProduct "substring of the device name"
   Option "some option name" "the option value"
 EndSection
-</pre>
+@endverbatim
 
 The identifier is merely a human-readable string that shows up in the log
 file. The MatchProduct line should contain the device name or a substring of
@@ -123,9 +123,9 @@ debugging tool can modify a devices' properties. See the
 <a href="https://www.mankier.com/4/libinput">libinput man page</a>
 for supported property names and values. Usually, an invocation looks like
 this:
-<pre>
+@verbatim
 $> xinput set-prop "the device name" "the property name" value [value2] [value3]
-</pre>
+@endverbatim
 
 @note
 Changes performed by xinput do not persist across device hotplugs. xinput is
@@ -179,14 +179,14 @@ reporting_bugs "file a bug".
 @section faq_tablet_capabilities My tablet doesn't work
 
 If you see the message
-<pre>
+@verbatim
 libinput bug: device does not meet tablet criteria. Ignoring this device.
-</pre>
+@endverbatim
 
 or the message
-<pre>
+@verbatim
 missing tablet capabilities [...] Ignoring this device.
-</pre>
+@endverbatim
 
 your tablet device does not have the required capabilities to be treated as
 a tablet. This is usually a problem with the device and the kernel driver.

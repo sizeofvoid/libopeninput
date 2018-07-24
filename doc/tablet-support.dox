@@ -349,13 +349,13 @@ The exact behavior is device-dependent.
 To handle a tablet correctly, libinput requires a set of capabilities
 on the device. When these capabilities are missing, libinput ignores the
 device and prints an error to the log. This error messages reads
-<pre>
+@verbatim
 missing tablet capabilities: xy pen btn-stylus resolution. Ignoring this device.
-</pre>
+@endverbatim
 or in older versions of libinput simply:
-<pre>
+@verbatim
 libinput bug: device does not meet tablet criteria. Ignoring this device.
-</pre>
+@endverbatim
 
 When a tablet is rejected, it is usually possible to check the issue with
 the `evemu-descibe` tool.

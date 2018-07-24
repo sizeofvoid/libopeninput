@@ -15,14 +15,14 @@ use of timeouts to detect multi-finger taps and/or @ref tapndrag.
 
 Consider the following event sequences from a touchpad and a mouse:
 
-<pre>
+@verbatim
 Time      Touchpad      Mouse
 ---------------------------------
 t1       finger down
 t2        finger up
 t3                     movement
 t4       tap timeout
-</pre>
+@endverbatim
 
 For this event sequence, the first event to be sent to a caller is in
 response to the mouse movement: an event of type @ref

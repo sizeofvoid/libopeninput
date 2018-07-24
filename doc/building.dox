@@ -60,13 +60,13 @@ $> meson --prefix=....
 
 To verify the install worked correctly, check that libinput.so.x.x.x is in
 the library path and that all symlinks point to the new library.
-<pre>
+@verbatim
 $> ls -l /usr/lib64/libinput.*
 -rwxr-xr-x 1 root root    946 Apr 28  2015 /usr/lib64/libinput.la
 lrwxrwxrwx 1 root root     19 Feb  1 15:12 /usr/lib64/libinput.so -> libinput.so.10.13.0
 lrwxrwxrwx 1 root root     19 Feb  1 15:12 /usr/lib64/libinput.so.10 -> libinput.so.10.13.0
 -rwxr-xr-x 1 root root 204992 Feb  1 15:12 /usr/lib64/libinput.so.10.13.0
-</pre>
+@endverbatim
 
 @subsection reverting_install Reverting to the system-provided libinput package
 
@@ -101,10 +101,10 @@ a manually built libinput may cause SELinux denials. This usually manifests
 when gdm does not start because it is denied access to libinput. The journal
 shows a log message in the form of:
 
-<pre>
+@verbatim
 May 25 15:28:42 localhost.localdomain audit[23268]: AVC avc:  denied  { execute } for  pid=23268 comm="gnome-shell" path="/usr/lib64/libinput.so.10.12.2" dev="dm-0" ino=1709093 scontext=system_u:system_r:xdm_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=0
 May 25 15:28:42 localhost.localdomain org.gnome.Shell.desktop[23270]: /usr/bin/gnome-shell: error while loading shared libraries: libinput.so.10: failed to map segment from shared object
-</pre>
+@endverbatim
 
 The summary of this error message is that gdm's gnome-shell runs in the
 ```system_u:system_r:xdm_t``` context but libinput is installed with the
@@ -140,21 +140,21 @@ libinput```</li>
 <li><b>Fedora 22</b> and later: ```sudo dnf builddep libinput```</li>
 <li><b>RHEL/CentOS/Fedora 21</b> and earlier: ```sudo yum-builddep libinput```</li>
 <li><b>openSUSE</b>:
-<pre>
+@verbatim
 $> sudo zypper modifyrepo --enable `zypper repos | grep source | awk '{print $5}'`
 $> sudo zypper source-install -d libinput10
 $> sudo zypper install autoconf automake libtool
 $> sudo zypper modifyrepo --disable `zypper repos | grep source | awk '{print $5}'`
-</pre>
+@endverbatim
 </li>
 <li><b>Arch</b>:
-<pre>
+@verbatim
 $> sudo pacman -S asp
 $> cd $(mktemp -d)
 $> asp export libinput
 $> cd libinput
 $> makepkg --syncdeps --nobuild --noextract
-</pre>
+@endverbatim
 </li>
 </ul>
 
