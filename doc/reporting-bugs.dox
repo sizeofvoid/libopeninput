@@ -14,11 +14,13 @@ and provide the required data. You will need:
 - a reliable @ref reporting_bugs_reproducer "reproducer" for the bug
 - an @ref evemu "evemu recording" of the device while the bug is reproduced
 - device-specific information, see
+
 	- @ref reporting_bugs_touchpad
 	- @ref reporting_bugs_mouse
 	- @ref reporting_bugs_keyboard
 	- @ref reporting_bugs_trackpoint
 	- @ref reporting_bugs_other
+
 - the @ref reporting_bugs_version "libinput version" you are on.
 - the @ref reporting_bugs_options "configuration options" you have set
 - a [gitlab account](https://gitlab.freedesktop.org/users/sign_in)
@@ -28,10 +30,10 @@ Stay technical, on-topic, and keep the description concise.
 @section reporting_bugs_version Obtaining the libinput version
 
 If your libinput version is older than the current stable branch, you will
-get asked to try the latest version.
+get asked to try the latest version. If you run a distribution-provided
+libinput, use the package manager to get the **full** package name and
+version of libinput, e.g.
 
-If you run a distribution-provided libinput, use the package manager to get
-the **full** package name and version of libinput, e.g.
 - `rpm -q libinput`
 - `dpkg -s libinput10`
 

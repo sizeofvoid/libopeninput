@@ -65,6 +65,7 @@ setting libinput_device_config_accel_set_speed().
 @subsection trackpoint_multiplier_adjustment Adjusting the magic trackpoint multiplier
 
 This section only applies if:
+
 - the trackpoint default speed (speed setting 0) is unusably slow or
   unusably fast, **and**
 - the lowest speed setting (-1) is still too fast **or** the highest speed

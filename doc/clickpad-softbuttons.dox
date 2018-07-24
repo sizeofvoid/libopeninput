@@ -26,6 +26,7 @@ events on click. The height of the button area depends on the hardware but
 is usually around 10mm.
 
 Left, right and middle button events can be triggered as follows:
+
 - if a finger is in the main area or the left button area, a click generates
   left button events.
 - if a finger is in the right area, a click generates right button events.
@@ -48,6 +49,7 @@ A release event always releases the buttons logically down, regardless of
 the current finger position
 
 The movement of a finger can alter the button area behavior:
+
 - if a finger starts in the main area and moves into the software button
   area, the software buttons do not apply to that finger
 - a finger in the software button area does not move the pointer
