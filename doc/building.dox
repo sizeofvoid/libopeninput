@@ -85,12 +85,11 @@ $> sudo ninja -C builddir/ uninstall
 The following commands reinstall the current system package for libinput,
 overwriting manually installed files.
 
-- <b>Debian/Ubuntu</b> based distributions: `sudo apt-get install
---reinstall libinput`
-- <b>Fedora 22</b> and later: `sudo dnf reinstall libinput`
-- <b>RHEL/CentOS/Fedora 21</b> and earlier: `sudo yum reinstall libinput`
-- <b>openSUSE</b>: `sudo zypper install --force libinput10`
-- <b>Arch</b>: `sudo packman -S libinput`
+- **Debian/Ubuntu** based distributions: `sudo apt-get install --reinstall libinput`
+- **Fedora 22** and later: `sudo dnf reinstall libinput`
+- **RHEL/CentOS/Fedora 21** and earlier: `sudo yum reinstall libinput`
+- **openSUSE**: `sudo zypper install --force libinput10`
+- **Arch**: `sudo packman -S libinput`
 
 @subsection building_selinux SELinux adjustments
 
@@ -123,18 +122,17 @@ running configure.
 
 @note The build dependencies for some distributions can be found in the
 	[GitLab Continuous Integration file](https://gitlab.freedesktop.org/libinput/libinput/blob/master/.gitlab-ci.yml).
-	Search for <b>FEDORA_RPMS</b> in the <b>variables:</b> definition
+	Search for **FEDORA_RPMS** in the **variables:** definition
 	and check the list for an entry for your distribution.
 
 In most cases, it is sufficient to install the dependencies that your
 distribution uses to build the libinput package.  These can be installed
 with one of the following commands:
 
-- <b>Debian/Ubuntu</b> based distributions: `sudo apt-get build-dep
-libinput`
-- <b>Fedora 22</b> and later: `sudo dnf builddep libinput`
-- <b>RHEL/CentOS/Fedora 21</b> and earlier: `sudo yum-builddep libinput`
-- <b>openSUSE</b>:
+- **Debian/Ubuntu** based distributions: `sudo apt-get build-dep libinput`
+- **Fedora 22** and later: `sudo dnf builddep libinput`
+- **RHEL/CentOS/Fedora 21** and earlier: `sudo yum-builddep libinput`
+- **openSUSE**:
 @verbatim
 $> sudo zypper modifyrepo --enable `zypper repos | grep source | awk '{print $5}'`
 $> sudo zypper source-install -d libinput10
@@ -142,7 +140,7 @@ $> sudo zypper install autoconf automake libtool
 $> sudo zypper modifyrepo --disable `zypper repos | grep source | awk '{print $5}'`
 @endverbatim
 
-- <b>Arch</b>:
+- **Arch**:
 @verbatim
 $> sudo pacman -S asp
 $> cd $(mktemp -d)
