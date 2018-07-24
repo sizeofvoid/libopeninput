@@ -32,7 +32,7 @@ disable-while-typing.
 @section palm_tool Palm detection based on firmware labelling
 
 Some devices provide palm detection in the firmware, forwarded by the kernel
-as the ```EV_ABS/ABS_MT_TOOL``` axis with a value of ```MT_TOOL_PALM```
+as the `EV_ABS/ABS_MT_TOOL` axis with a value of `MT_TOOL_PALM`
 (whenever a palm is detected). libinput honors that value and switches that
 touch to a palm.
 

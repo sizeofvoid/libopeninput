@@ -154,7 +154,7 @@ When you file a bug, please attach the following information:
 
 In many cases, we require the udev properties assigned to the device to
 verify whether device-specific quirks were applied. This can be obtained
-with ````udevadm info /sys/class/input/eventX```, with the correct event
+with `udevadm info /sys/class/input/eventX`, with the correct event
 node for your device. An example output is below:
 
 @verbatim

@@ -5,7 +5,7 @@
 Contributions to libinput are always welcome. Any patches should be sent to
 the
 [wayland-devel](https://lists.freedesktop.org/mailman/listinfo/wayland-devel)
-email list with a subject prefix of ````[PATCH libinput]````. The easiest
+email list with a subject prefix of `[PATCH libinput]`. The easiest
 way to achieve that is to run the following command in the libinput
 repository:
 

@@ -17,28 +17,28 @@ how to adjust the touch size ranges.
 @section kernel_pressure_information Information provided by the kernel
 
 The kernel sends multiple values to inform userspace about a finger touching
-the touchpad. The most basic is the ```EV_KEY/BTN_TOUCH``` boolean event
+the touchpad. The most basic is the `EV_KEY/BTN_TOUCH` boolean event
 that simply announces physical contact with the touchpad. The decision when
 this event is sent is usually made by the kernel driver and may depend on
 device-specific thresholds. These thresholds are transparent to userspace
 and cannot be modified. On touchpads where pressure or touch size is not
-available, libinput uses ```BTN_TOUCH``` to determine when a finger is
+available, libinput uses `BTN_TOUCH` to determine when a finger is
 logically down.
 
 Many contemporary touchpad devices provide an absolute pressure axis in
-addition to ```BTN_TOUCH```. This pressure generally increases as the pressure
+addition to `BTN_TOUCH`. This pressure generally increases as the pressure
 increases, however few touchpads are capable of detecting true pressure. The
 pressure value is usually related to the covered area - as the pressure
 increases a finger flattens and thus covers a larger area. The range
 provided by the kernel is not mapped to a specific physical range and
-often requires adjustment. Pressure is sent by the ```ABS_PRESSURE``` axis
-for single-touch touchpads or ```ABS_MT_PRESSURE``` on multi-touch capable
+often requires adjustment. Pressure is sent by the `ABS_PRESSURE` axis
+for single-touch touchpads or `ABS_MT_PRESSURE` on multi-touch capable
 touchpads. Some devices can detect multiple fingers but only provide
-```ABS_PRESSURE```.
+`ABS_PRESSURE`.
 
 Some devices provide additional touch size information through
-the ```ABS_MT_TOUCH_MAJOR/ABS_MT_TOUCH_MINOR``` axes and/or
-the ```ABS_MT_WIDTH_MAJOR/ABS_MT_WIDTH_MINOR``` axes. These axes specifcy
+the `ABS_MT_TOUCH_MAJOR/ABS_MT_TOUCH_MINOR` axes and/or
+the `ABS_MT_WIDTH_MAJOR/ABS_MT_WIDTH_MINOR` axes. These axes specifcy
 the size of the touch ellipse. While the kernel documentation specifies how
 these axes are supposed to be mapped, few devices forward reliable
 information. libinput uses these values together with a device-specific
@@ -53,7 +53,7 @@ device-quirks locally. Note that the quirk is **not public API** and **may
 change at any time**. Users are advised to @ref reporting_bugs "report a bug"
 with the updated pressure ranges when testing has completed.
 
-Use the ```libinput measure touchpad-pressure``` tool provided by libinput.
+Use the `libinput measure touchpad-pressure` tool provided by libinput.
 This tool will search for your touchpad device and print some pressure
 statistics, including whether a touch is/was considered logically down.
 
@@ -79,7 +79,7 @@ Touchpad pressure:  47 min:  47 max:  86 tags: down
 
 The example output shows five completed touch sequences and one ongoing one.
 For each, the respective minimum and maximum pressure values are printed as
-well as some statistics. The ```tags``` show that sequence was considered
+well as some statistics. The `tags` show that sequence was considered
 logically down at some point. This is an interactive tool and its output may
 change frequently. Refer to the <i>libinput-measure-touchpad-pressure(1)</i> man
 page for more details.
@@ -148,11 +148,11 @@ device-quirks locally. Note that the quirk is **not public API** and **may
 change at any time**. Users are advised to @ref reporting_bugs "report a bug"
 with the updated pressure ranges when testing has completed.
 
-Use the ```libinput measure touch-size``` tool provided by libinput.
+Use the `libinput measure touch-size` tool provided by libinput.
 This tool will search for your touchpad device and print some touch size
 statistics, including whether a touch is/was considered logically down.
 
-@note This tool will only work on touchpads with the ```ABS_MT_MAJOR``` axis.
+@note This tool will only work on touchpads with the `ABS_MT_MAJOR` axis.
 
 Example output of the tool is below:
 
@@ -175,7 +175,7 @@ Sequence: major: [  4.. 33] minor: [  1..  5]  down palm
 
 The example output shows five completed touch sequences. For each, the
 respective minimum and maximum pressure values are printed as well as some
-statistics. The ```down``` and ```palm``` tags show that sequence was considered
+statistics. The `down` and `palm` tags show that sequence was considered
 logically down or a palm at some point. This is an interactive tool and its
 output may change frequently. Refer to the <i>libinput-measure-touch-size(1)</i> man
 page for more details.

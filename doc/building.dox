@@ -38,8 +38,8 @@ $> meson --prefix=/usr -Ddocumentation=false builddir/
 We recommend that users disable the documentation, it's not usually required
 for testing and reduces the number of dependencies needed.
 
-The ```prefix``` or other options can be changed later with the
-```mesonconf``` command. For example:
+The `prefix` or other options can be changed later with the
+`mesonconf` command. For example:
 @verbatim
 $> mesonconf builddir/ -Dprefix=/some/other/prefix -Ddocumentation=true
 $> ninja -C builddir
@@ -72,7 +72,7 @@ lrwxrwxrwx 1 root root     19 Feb  1 15:12 /usr/lib64/libinput.so.10 -> libinput
 
 The recommended way to revert to the system install is to use the package
 manager to reinstall the libinput package. In some cases, this may leave
-files in the system (e.g. ```/usr/lib/libinput.la```) but these files are
+files in the system (e.g. `/usr/lib/libinput.la`) but these files are
 usually harmless. To definitely remove all files, run the following command
 from the libinput source directory:
 
@@ -86,12 +86,12 @@ The following commands reinstall the current system package for libinput,
 overwriting manually installed files.
 
 <ul>
-<li><b>Debian/Ubuntu</b> based distributions: ```sudo apt-get install
---reinstall libinput```</li>
-<li><b>Fedora 22</b> and later: ```sudo dnf reinstall libinput```</li>
-<li><b>RHEL/CentOS/Fedora 21</b> and earlier: ```sudo yum reinstall libinput```</li>
-<li><b>openSUSE</b>: ```sudo zypper install --force libinput10```</li>
-<li><b>Arch</b>: ```sudo packman -S libinput```</li>
+<li><b>Debian/Ubuntu</b> based distributions: `sudo apt-get install
+--reinstall libinput`</li>
+<li><b>Fedora 22</b> and later: `sudo dnf reinstall libinput`</li>
+<li><b>RHEL/CentOS/Fedora 21</b> and earlier: `sudo yum reinstall libinput`</li>
+<li><b>openSUSE</b>: `sudo zypper install --force libinput10`</li>
+<li><b>Arch</b>: `sudo packman -S libinput`</li>
 </ul>
 
 @subsection building_selinux SELinux adjustments
@@ -107,8 +107,8 @@ May 25 15:28:42 localhost.localdomain org.gnome.Shell.desktop[23270]: /usr/bin/g
 @endverbatim
 
 The summary of this error message is that gdm's gnome-shell runs in the
-```system_u:system_r:xdm_t``` context but libinput is installed with the
-context ```unconfined_u:object_r:user_home_t```.
+`system_u:system_r:xdm_t` context but libinput is installed with the
+context `unconfined_u:object_r:user_home_t`.
 
 To avoid this issue, restore the SELinux context for any system files.
 
@@ -133,10 +133,10 @@ distribution uses to build the libinput package.  These can be installed
 with one of the following commands:
 
 <ul>
-<li><b>Debian/Ubuntu</b> based distributions: ```sudo apt-get build-dep
-libinput```</li>
-<li><b>Fedora 22</b> and later: ```sudo dnf builddep libinput```</li>
-<li><b>RHEL/CentOS/Fedora 21</b> and earlier: ```sudo yum-builddep libinput```</li>
+<li><b>Debian/Ubuntu</b> based distributions: `sudo apt-get build-dep
+libinput`</li>
+<li><b>Fedora 22</b> and later: `sudo dnf builddep libinput`</li>
+<li><b>RHEL/CentOS/Fedora 21</b> and earlier: `sudo yum-builddep libinput`</li>
 <li><b>openSUSE</b>:
 @verbatim
 $> sudo zypper modifyrepo --enable `zypper repos | grep source | awk '{print $5}'`
@@ -156,7 +156,7 @@ $> makepkg --syncdeps --nobuild --noextract
 </li>
 </ul>
 
-If dependencies are missing, a message ```No package 'foo' found``` will be
+If dependencies are missing, a message `No package 'foo' found` will be
 shown during the configure stage. See
 [this blog post here](https://who-t.blogspot.com.au/2014/05/configure-fails-with-no-package-foo.html)
 for instructions on how to fix it.
@@ -209,7 +209,7 @@ $> sudo udevadm hwdb --update
 @endverbatim
 
 @note On Debian-based distributions including Ubuntu and its derivatives skip the
-	```--libdir=/usr/lib64``` argument.
+	`--libdir=/usr/lib64` argument.
 
 To uninstall libinput as detailed in section @ref reverting_install, run
 
