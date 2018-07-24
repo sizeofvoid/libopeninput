@@ -69,7 +69,7 @@ a clickpad ends scrolling.
 
 On-button scrolling converts the motion of a device into scroll events while
 a designated button is held down. For example, Lenovo devices provide a
-<a href="http://en.wikipedia.org/wiki/Pointing_stick">pointing stick</a> that emulates
+[pointing stick](http://en.wikipedia.org/wiki/Pointing_stick) that emulates
 scroll events when the trackstick's middle mouse button is held down.
 
 @note On-button scrolling is enabled by default for pointing sticks. This

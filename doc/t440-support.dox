@@ -8,7 +8,7 @@ touchpads.
 
 The Lenovo *40 series introduced a new type of touchpad. Previously, all
 laptops had a separate set of physical buttons for the
-<a href="http://en.wikipedia.org/wiki/Pointing_stick">trackstick</a>. This
+[trackstick](http://en.wikipedia.org/wiki/Pointing_stick). This
 series removed these buttons, relying on a software emulation of the top
 section of the touchpad. This is visually marked on the trackpad itself,
 and clicks can be triggered by pressing the touchpad down with a finger in
@@ -19,8 +19,8 @@ the respective area:
 This page only covers the top software buttons, the bottom button behavior
 is covered in @ref clickpad_softbuttons "Clickpad software buttons".
 
-Clickpads with a top button area are marked with the <a
-href="https://www.kernel.org/doc/Documentation/input/event-codes.txt">INPUT_PROP_TOPBUTTONPAD</a>
+Clickpads with a top button area are marked with the
+[INPUT_PROP_TOPBUTTONPAD](https://www.kernel.org/doc/Documentation/input/event-codes.txt)
 property.
 
 @section t440_support_btn_size Size of the buttons
@@ -89,16 +89,17 @@ this area to take effect.
 
 The firmware on the first generation of touchpads providing top software
 buttons is buggy and announces wrong ranges.
-<a href="https://lkml.org/lkml/2014/3/7/722">Kernel patches</a> are required;
+[Kernel patches](https://lkml.org/lkml/2014/3/7/722) are required;
 these fixes are available in kernels 3.14.1, 3.15 and later but each
 touchpad needs a separate fix.
 
 The October 2014 refresh of these laptops do not have this firmware bug
 anymore and should work without per-device patches, though
-<a href="http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=02e07492cdfae9c86e3bd21c0beec88dbcc1e9e8">this kernel commit</a> is required.
+[this kernel commit](http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=02e07492cdfae9c86e3bd21c0beec88dbcc1e9e8)
+is required.
 
-For a complete list of supported touchpads check <a
-href="http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/input/mouse/synaptics.c">the
-kernel source</a> (search for "topbuttonpad_pnp_ids").
+For a complete list of supported touchpads check
+[the kernel source](http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/input/mouse/synaptics.c)
+(search for "topbuttonpad_pnp_ids").
 
 */

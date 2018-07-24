@@ -46,10 +46,10 @@ See @ref tablet-relative-motion
 
 Devices usually do not advertise their resolution and libinput relies on
 the udev property <b>MOUSE_DPI</b> for this information. This property is usually
-set via the <a
-href="http://cgit.freedesktop.org/systemd/systemd/tree/hwdb/70-mouse.hwdb">udev hwdb</a>.
-The "mouse-dpi-tool" utility provided by <a
-href="https://freedesktop.org/wiki/Software/libevdev/">libevdev</a> should be
+set via the
+[udev hwdb](http://cgit.freedesktop.org/systemd/systemd/tree/hwdb/70-mouse.hwdb).
+The "mouse-dpi-tool" utility provided by
+[libevdev](https://freedesktop.org/wiki/Software/libevdev/) should be
 used to measure a device's resolution.
 
 The format of the property for single-resolution mice is:

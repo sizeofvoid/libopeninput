@@ -96,7 +96,7 @@ desktop environment's configuration storage (e.g. gsettings).
 
 See @ref faq_config_options  If your desktop environment does not provide a
 graphical configuration tool you can use an
-<a href="https://www.x.org/archive/current/doc/man/man5/xorg.conf.5.xhtml">xorg.conf.d snippet</a>.
+[xorg.conf.d snippet](https://www.x.org/archive/current/doc/man/man5/xorg.conf.5.xhtml).
 Usually, such a snippet looks like this:
 @verbatim
 $> cat /etc/X11/xorg.conf.d/99-libinput-custom-config.conf
@@ -112,15 +112,15 @@ The identifier is merely a human-readable string that shows up in the log
 file. The MatchProduct line should contain the device name or a substring of
 the device name that the snippet should apply to. For a full list of option
 names and permitted values, see the
-<a href="https://www.mankier.com/4/libinput">libinput man page</a>.
+[libinput man page](https://www.mankier.com/4/libinput).
 xorg.conf.d snippets like the above apply to hotplugged devices but can be
 overwritten at runtime by desktop tools. Multiple snippets may be placed
 into the same file.
 
 For run-time configuration and testing, the
-<a href="https://www.x.org/archive/X11R7.5/doc/man/man1/xinput.1.html">xinput</a>
+[xinput](https://www.x.org/archive/X11R7.5/doc/man/man1/xinput.1.html)
 debugging tool can modify a devices' properties. See the
-<a href="https://www.mankier.com/4/libinput">libinput man page</a>
+[libinput man page](https://www.mankier.com/4/libinput)
 for supported property names and values. Usually, an invocation looks like
 this:
 @verbatim
@@ -134,10 +134,9 @@ permanent configurations.
 
 @section faq_configuration Can you add a configuration option for $FEATURE?
 
-No. At least that's going to be the initial answer. Read <a
-href="http://who-t.blogspot.com/2016/04/why-libinput-doesnt-have-lot-of-config.html">Why
-libinput doesn't have a lot of configuration options</a> first.
-Configuration options for most features are a signal that we are incapable
+No. At least that's going to be the initial answer. Read
+[Why libinput doesn't have a lot of configuration options](http://who-t.blogspot.com/2016/04/why-libinput-doesnt-have-lot-of-config.html)
+first. Configuration options for most features are a signal that we are incapable
 of handling it correctly. To get to that point, we want to be sure we're
 truly incapable of doing so. libinput has several features that
 are handled automatically (and correctly) that users wanted to have
@@ -162,12 +161,8 @@ disable-while-typing. synclient is merely a configuration tool, see
 @ref faq_configure_xorg for similar functionality.
 
 See also the blog posts
-<a
-href="http://who-t.blogspot.com.au/2017/01/the-definitive-guide-to-synclient.html">The
-definitive guide to synclient</a> and
-<a href="http://who-t.blogspot.com.au/2016/12/the-future-of-xinput-xmodmap-setxkbmap.html">
-The future of xinput, xmodmap, setxkbmap, xsetwacom and other tools under
-Wayland</a>
+[The definitive guide to synclient](http://who-t.blogspot.com.au/2017/01/the-definitive-guide-to-synclient.html) and
+[The future of xinput, xmodmap, setxkbmap, xsetwacom and other tools under Wayland](http://who-t.blogspot.com.au/2016/12/the-future-of-xinput-xmodmap-setxkbmap.html)
 
 @section faq_tablets Does libinput support non-Wacom tablets?
 
@@ -194,9 +189,9 @@ See @ref tablet-capabilities for more details.
 
 @section faq_hwdb_changes How to apply hwdb changes
 
-Sometimes users are asked to test updates to the <a
-href="https://www.freedesktop.org/software/systemd/man/hwdb.html">udev
-hwdb</a> or patches that include a change to the hwdb. See @ref hwdb for
+Sometimes users are asked to test updates to the
+[udev hwdb](https://www.freedesktop.org/software/systemd/man/hwdb.html)
+or patches that include a change to the hwdb. See @ref hwdb for
 details on the hwdb and how to modify it locally.
 
 @note As of libinput 1.12, libinput-specific properties are now stored in

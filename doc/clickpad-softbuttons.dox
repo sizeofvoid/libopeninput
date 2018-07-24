@@ -4,13 +4,14 @@
 Clickpad is the name given to touchpads without physical buttons below the
 touchpad. Instead, the whole touchpad acts as a button and left or right
 button clicks are distinguished by the location and/or number of fingers on
-the touchpad. <a href="http://www.synaptics.com/en/clickpad.php">"ClickPad" is
-a trademark by Synaptics Inc.</a> but for simplicity we refer to any
-touchpad with the above feature as Clickpad, regardless of the manufacturer.
+the touchpad.
+("ClickPad" is a trademark by Synaptics Inc.)[http://www.synaptics.com/en/clickpad.php]
+but for simplicity we refer to any touchpad with the above feature as Clickpad,
+regardless of the manufacturer.
 
-A clickpad is always marked with the <a
-href="https://www.kernel.org/doc/Documentation/input/event-codes.txt">INPUT_PROP_BUTTONPAD</a> property.
-To perform a right-click on a Clickpad, libinput provides @ref
+A clickpad is always marked with the
+[INPUT_PROP_BUTTONPAD](https://www.kernel.org/doc/Documentation/input/event-codes.txt)
+property. To perform a right-click on a Clickpad, libinput provides @ref
 software_buttons and @ref clickfinger.
 
 In the page below, the term "click" shall refer to a physical button press

@@ -148,9 +148,9 @@ is guaranteed.
 
 @section hwdb Configuring the hwdb
 
-This section outlines how to query the <a
-href="https://www.freedesktop.org/software/systemd/man/hwdb.html">udev
-hwdb</a> and reload properties so they are available to libinput.
+This section outlines how to query the
+[udev hwdb](https://www.freedesktop.org/software/systemd/man/hwdb.html)
+and reload properties so they are available to libinput.
 
 The hwdb contains a set of match rules that assign udev properties that are
 available to libinput when the device is connected and/or libinput is

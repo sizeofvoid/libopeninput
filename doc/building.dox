@@ -124,10 +124,9 @@ libinput has a few build-time dependencies that must be installed prior to
 running configure.
 
 @note The build dependencies for some distributions can be found in the
-<a href="https://gitlab.freedesktop.org/libinput/libinput/blob/master/.gitlab-ci.yml">
-GitLab Continuous Integration file</a>. Search for <b>FEDORA_RPMS</b> in the
-<b>variables:</b> definition and check the list for an entry for your
-distribution.
+[GitLab Continuous Integration file](https://gitlab.freedesktop.org/libinput/libinput/blob/master/.gitlab-ci.yml)
+. Search for <b>FEDORA_RPMS</b> in the <b>variables:</b> definition and check
+the list for an entry for your distribution.
 
 
 In most cases, it is sufficient to install the dependencies that your
@@ -160,7 +159,7 @@ $> makepkg --syncdeps --nobuild --noextract
 
 If dependencies are missing, a message ```No package 'foo' found``` will be
 shown during the configure stage. See
-<a href="https://who-t.blogspot.com.au/2014/05/configure-fails-with-no-package-foo.html">this blog post here</a>.
+[this blog post here](https://who-t.blogspot.com.au/2014/05/configure-fails-with-no-package-foo.html)
 for instructions on how to fix it.
 
 @subsection building_libwacom Building without libwacom

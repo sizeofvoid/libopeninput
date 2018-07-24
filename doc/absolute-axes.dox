@@ -109,8 +109,8 @@ The most common matrices are:
 @f$
 
 See Wikipedia's
-<a href="http://en.wikipedia.org/wiki/Transformation_matrix">Transformation
-Matrix article</a> for more information on the matrix maths. See
+[Transformation Matrix article](http://en.wikipedia.org/wiki/Transformation_matrix)
+for more information on the matrix maths. See
 libinput_device_config_calibration_get_default_matrix() for how these
 matrices must be supplied to libinput.
 
