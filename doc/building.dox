@@ -132,16 +132,14 @@ with one of the following commands:
 - **Debian/Ubuntu** based distributions: `sudo apt-get build-dep libinput`
 - **Fedora 22** and later: `sudo dnf builddep libinput`
 - **RHEL/CentOS/Fedora 21** and earlier: `sudo yum-builddep libinput`
-- **openSUSE**:
-@verbatim
+- **openSUSE**: @verbatim
 $> sudo zypper modifyrepo --enable `zypper repos | grep source | awk '{print $5}'`
 $> sudo zypper source-install -d libinput10
 $> sudo zypper install autoconf automake libtool
 $> sudo zypper modifyrepo --disable `zypper repos | grep source | awk '{print $5}'`
 @endverbatim
 
-- **Arch**:
-@verbatim
+- **Arch**: @verbatim
 $> sudo pacman -S asp
 $> cd $(mktemp -d)
 $> asp export libinput
