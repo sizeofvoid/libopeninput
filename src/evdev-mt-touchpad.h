@@ -441,9 +441,11 @@ struct tp_dispatch {
 
 	struct {
 		bool detect_thumbs;
-		int threshold;
 		int upper_thumb_line;
 		int lower_thumb_line;
+
+		bool use_pressure;
+		int pressure_threshold;
 	} thumb;
 
 	struct {
