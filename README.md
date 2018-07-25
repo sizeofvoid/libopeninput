@@ -22,31 +22,6 @@ and the instructions on
 [reporting bugs](https://wayland.freedesktop.org/libinput/doc/latest/reporting_bugs.html).
 
 
-Architecture
-------------
-
-libinput is not used directly by applications. Think of it more as a device
-driver than an application library. It is used by the xf86-input-libinput
-X.Org driver or Wayland compositors. The typical software stack for a system
-running Wayland is:
-
-@dotfile libinput-stack-wayland.gv
-
-The Wayland compositor may be Weston, mutter, KWin, etc. Note that
-Wayland encourages the use of toolkits, so the Wayland client (your
-application) does not usually talk directly to the compositor but rather
-employs a toolkit (e.g. GTK) to do so. The Wayland client does not know
-whether libinput is in use.
-
-The simplified software stack for a system running X.Org is:
-
-@dotfile libinput-stack-xorg.gv
-
-libinput is not employed directly by the X server but by the
-xf86-input-libinput driver instead. That driver is loaded by the server
-on demand, depending on the xorg.conf.d configuration snippets. The X client
-does not know whether libinput is in use.
-
 Source code
 -----------
 

@@ -55,4 +55,38 @@ are handled. Instead, it takes best practice and the common use-cases and
 provides it in an easy-to-consume package for compositors or other processes
 that need those interactions typically expected by users.
 
+@section libinput-wayland libinput and Wayland
+
+libinput is not used directly by Wayland applications, it is an input stack
+used by the compositor. The typical software stack for a system running
+Wayland is:
+
+@dotfile libinput-stack-wayland.gv
+
+The Wayland compositor may be Weston, mutter, KWin, etc. Note that
+Wayland encourages the use of toolkits, so the Wayland client (your
+application) does not usually talk directly to the compositor but rather
+employs a toolkit (e.g. GTK) to do so. The Wayland client does not know
+whether libinput is in use.
+
+libinput is not a requirement for Wayland or even a Wayland compositor.
+There are some specialized compositors that do not need or want libinput.
+
+@section libinput-xorg libinput and X.Org
+
+libinput is not used directly by X applications but rather through the
+custom xf86-input-libinput driver. The simplified software stack for a
+system running X.Org is:
+
+@dotfile libinput-stack-xorg.gv
+
+libinput is not employed directly by the X server but by the
+xf86-input-libinput driver instead. That driver is loaded by the server
+on demand, depending on the xorg.conf.d configuration snippets. The X client
+does not know whether libinput is in use.
+
+libinput and xf86-input-libinput are not a requirement, the driver will only
+handle those devices explicitly assigned through an xorg.conf.d snippets. It
+is possible to mix xf86-input-libinput with other X.Org drivers.
+
 */
