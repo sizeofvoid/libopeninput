@@ -1135,6 +1135,10 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	if (tp->thumb.use_pressure &&
 	    t->pressure > tp->thumb.pressure_threshold)
 		t->thumb.state = THUMB_STATE_YES;
+	else if (tp->thumb.use_size &&
+		 (t->major > tp->thumb.size_threshold ||
+		  t->minor > tp->thumb.size_threshold))
+		t->thumb.state = THUMB_STATE_YES;
 	else if (t->point.y > tp->thumb.lower_thumb_line &&
 		 tp->scroll.method != LIBINPUT_CONFIG_SCROLL_EDGE &&
 		 t->thumb.first_touch_time + THUMB_MOVE_TIMEOUT < time)
@@ -3126,11 +3130,21 @@ tp_init_thumb(struct tp_dispatch *tp)
 		}
 	}
 
+	if (libevdev_has_event_code(device->evdev, EV_ABS, ABS_MT_TOUCH_MAJOR)) {
+		if (quirks_get_uint32(q,
+				      QUIRK_ATTR_THUMB_SIZE_THRESHOLD,
+				      &threshold)) {
+			tp->thumb.use_size = true;
+			tp->thumb.size_threshold = threshold;
+		}
+	}
+
 	quirks_unref(q);
 
 	evdev_log_debug(device,
-			"thumb: enabled thumb detection%s\n",
-			tp->thumb.use_pressure ? " (+pressure)" : "");
+			"thumb: enabled thumb detection%s%s\n",
+			tp->thumb.use_pressure ? " (+pressure)" : "",
+			tp->thumb.use_size ? " (+size)" : "");
 }
 
 static bool
