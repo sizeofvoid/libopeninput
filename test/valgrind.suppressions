@@ -64,3 +64,9 @@
    ...
    fun:execute_command
 }
+{
+   bash:execute_command
+   Memcheck:Addr16
+   ...
+   fun:execute_command
+}
