@@ -38,7 +38,7 @@ the **full** package name and version of libinput, e.g.
 If you run a self-compiled version of libinput provide the git commit you
 have built or the tarball name.
 
-As a last resort, use `libinput-list-devices --version`
+As a last resort, use `libinput --version`
 
 @section reporting_bugs_reproducer Reproducing bugs
 
