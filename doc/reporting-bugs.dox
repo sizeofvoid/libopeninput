@@ -4,6 +4,10 @@
 A new bug can be filed here:
 https://gitlab.freedesktop.org/libinput/libinput
 
+@note libinput has lots of users but very few developers. It is in your own
+      interested to follow these steps precisely to ensure your bug can be
+      dealt with efficiently.
+
 When reporting bugs against libinput, please follow the instructions below
 and provide the required data. You will need:
 
@@ -18,10 +22,6 @@ and provide the required data. You will need:
 - the @ref reporting_bugs_version "libinput version" you are on.
 - the @ref reporting_bugs_options "configuration options" you have set
 - a bugzilla account
-
-If you don't have all of the above, provide a reason why not. Unless the
-reason is justified, the bug will have low priority. Remember, libinput has
-a lot of users but very few developers.
 
 Stay technical, on-topic, and keep the description concise.
 
