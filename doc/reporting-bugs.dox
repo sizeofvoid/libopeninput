@@ -2,7 +2,7 @@
 @page reporting_bugs Reporting bugs
 
 A new bug can be filed here:
-https://gitlab.freedesktop.org/libinput/libinput
+https://gitlab.freedesktop.org/libinput/libinput/issues/new
 
 @note libinput has lots of users but very few developers. It is in your own
       interested to follow these steps precisely to ensure your bug can be
@@ -21,7 +21,7 @@ and provide the required data. You will need:
 	- @ref reporting_bugs_other
 - the @ref reporting_bugs_version "libinput version" you are on.
 - the @ref reporting_bugs_options "configuration options" you have set
-- a bugzilla account
+- a [gitlab account](https://gitlab.freedesktop.org/users/sign_in)
 
 Stay technical, on-topic, and keep the description concise.
 
