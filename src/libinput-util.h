@@ -207,19 +207,19 @@ msleep(unsigned int ms)
 static inline bool
 long_bit_is_set(const unsigned long *array, int bit)
 {
-	return !!(array[bit / LONG_BITS] & (1LL << (bit % LONG_BITS)));
+	return !!(array[bit / LONG_BITS] & (1ULL << (bit % LONG_BITS)));
 }
 
 static inline void
 long_set_bit(unsigned long *array, int bit)
 {
-	array[bit / LONG_BITS] |= (1LL << (bit % LONG_BITS));
+	array[bit / LONG_BITS] |= (1ULL << (bit % LONG_BITS));
 }
 
 static inline void
 long_clear_bit(unsigned long *array, int bit)
 {
-	array[bit / LONG_BITS] &= ~(1LL << (bit % LONG_BITS));
+	array[bit / LONG_BITS] &= ~(1ULL << (bit % LONG_BITS));
 }
 
 static inline void
