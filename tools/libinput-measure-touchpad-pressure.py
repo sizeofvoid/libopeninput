@@ -24,7 +24,6 @@
 # DEALINGS IN THE SOFTWARE.
 #
 
-import os
 import sys
 import subprocess
 import argparse
