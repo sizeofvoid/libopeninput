@@ -41,8 +41,7 @@ See @ref ignoring_devices for more details.
 libinput_seat_get_physical_name(). Defaults to "seat0".</dd>
 <dt>ID_INPUT</dt>
 <dd>If this property is set, the device is considered an input device. Any
-device with this property missing will be ignored, see @ref
-udev_device_type.</dt>
+device with this property missing will be ignored, see @ref udev_device_type.
 </dd>
 <dt>ID_INPUT_KEYBOARD, ID_INPUT_KEY, ID_INPUT_MOUSE, ID_INPUT_TOUCHPAD,
 ID_INPUT_TOUCHSCREEN, ID_INPUT_TABLET, ID_INPUT_JOYSTICK,
