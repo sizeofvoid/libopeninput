@@ -6068,7 +6068,7 @@ START_TEST(touchpad_suspend_abba)
 			continue;
 
 		if (other == SUSPEND_EXT_MOUSE && litest_touchpad_is_external(tp))
-			return;
+			goto out;
 
 		/* That transition is tested elsewhere and has a different
 		 * behavior */
@@ -6167,6 +6167,7 @@ START_TEST(touchpad_suspend_abba)
 		assert_touchpad_moves(tp);
 	}
 
+out:
 	litest_delete_device(lid);
 	litest_delete_device(tabletmode);
 	litest_delete_device(extmouse);
@@ -6201,7 +6202,7 @@ START_TEST(touchpad_suspend_abab)
 			continue;
 
 		if (other == SUSPEND_EXT_MOUSE && litest_touchpad_is_external(tp))
-			return;
+			goto out;
 
 		/* That transition is tested elsewhere and has a different
 		 * behavior */
@@ -6317,6 +6318,7 @@ START_TEST(touchpad_suspend_abab)
 		assert_touchpad_moves(tp);
 	}
 
+out:
 	litest_delete_device(lid);
 	litest_delete_device(tabletmode);
 	litest_delete_device(extmouse);

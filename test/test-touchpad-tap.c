@@ -3403,6 +3403,8 @@ START_TEST(touchpad_tap_palm_dwt_tap)
 	libinput_dispatch(li);
 
 	litest_assert_empty_queue(li);
+
+	litest_delete_device(keyboard);
 }
 END_TEST
 
