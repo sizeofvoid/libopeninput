@@ -859,6 +859,7 @@ START_TEST(quirks_model_one)
 	quirks_unref(q);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
+	udev_device_unref(ud);
 }
 END_TEST
 
@@ -891,6 +892,7 @@ START_TEST(quirks_model_zero)
 	quirks_unref(q);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
+	udev_device_unref(ud);
 }
 END_TEST
 

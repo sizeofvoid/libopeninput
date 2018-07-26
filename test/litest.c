@@ -1562,6 +1562,7 @@ litest_add_device_with_overrides(struct libinput *libinput,
 				 const struct input_absinfo *abs_override,
 				 const int *events_override)
 {
+	struct udev_device *ud;
 	struct litest_device *d;
 	const char *path;
 
@@ -1576,8 +1577,9 @@ litest_add_device_with_overrides(struct libinput *libinput,
 
 	d->libinput = libinput;
 	d->libinput_device = libinput_path_add_device(d->libinput, path);
-	d->quirks = quirks_fetch_for_device(quirks_context,
-					    libinput_device_get_udev_device(d->libinput_device));
+	ud = libinput_device_get_udev_device(d->libinput_device);
+	d->quirks = quirks_fetch_for_device(quirks_context, ud);
+	udev_device_unref(ud);
 
 	litest_assert(d->libinput_device != NULL);
 	libinput_device_ref(d->libinput_device);
