@@ -23,6 +23,7 @@ PREDEFINED             = LIBINPUT_ATTRIBUTE_PRINTF(f, a)= \
                          LIBINPUT_ATTRIBUTE_DEPRECATED
 DOTFILE_DIRS           = "@builddir@"
 EXAMPLE_PATH           = "@builddir@"
+SHOW_NAMESPACES        = NO
 
 HTML_HEADER = "@builddir@/header.html"
 HTML_FOOTER = "@builddir@/footer.html"
