@@ -4835,8 +4835,7 @@ enum libinput_config_click_method {
 	 */
 	LIBINPUT_CONFIG_CLICK_METHOD_NONE = 0,
 	/**
-	 * Use software-button areas (see @ref clickfinger) to generate
-	 * button events.
+	 * Use software-button areas to generate button events.
 	 */
 	LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS = (1 << 0),
 	/**
