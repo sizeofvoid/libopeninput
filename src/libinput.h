@@ -368,7 +368,7 @@ enum libinput_tablet_tool_tip_state {
  * @defgroup tablet_pad_modes Tablet pad modes
  *
  * Handling the virtual mode groups of buttons, strips and rings on tablet
- * pad devices. See @ref tablet-pad-modes for details.
+ * pad devices. See the libinput documentation for more details.
  */
 
 /**
@@ -379,7 +379,7 @@ enum libinput_tablet_tool_tip_state {
  * based on some visual feedback like LEDs on the pad. The set of buttons,
  * rings and strips that share the same mode are a "mode group". Whenever
  * the mode changes, all buttons, rings and strips within this mode group
- * are affected. See @ref tablet-pad-modes for detail.
+ * are affected.
  *
  * Most tablets only have a single mode group, some tablets provide multiple
  * mode groups through independent banks of LEDs (e.g. the Wacom Cintiq
@@ -990,8 +990,8 @@ libinput_event_device_notify_get_base_event(struct libinput_event_device_notify 
 /**
  * @ingroup event_keyboard
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @return The event time for this event
  */
@@ -1001,8 +1001,8 @@ libinput_event_keyboard_get_time(struct libinput_event_keyboard *event);
 /**
  * @ingroup event_keyboard
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @return The event time for this event in microseconds
  */
@@ -1059,8 +1059,8 @@ libinput_event_keyboard_get_seat_key_count(
 /**
  * @ingroup event_pointer
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @return The event time for this event
  */
@@ -1070,8 +1070,8 @@ libinput_event_pointer_get_time(struct libinput_event_pointer *event);
 /**
  * @ingroup event_pointer
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @return The event time for this event in microseconds
  */
@@ -1089,7 +1089,7 @@ libinput_event_pointer_get_time_usec(struct libinput_event_pointer *event);
  * function is the accelerated delta.
  *
  * Relative motion deltas are to be interpreted as pixel movement of a
- * standardized mouse. See @ref motion_normalization for more details.
+ * standardized mouse. See the libinput documentation for more details.
  *
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_MOTION.
@@ -1110,7 +1110,7 @@ libinput_event_pointer_get_dx(struct libinput_event_pointer *event);
  * function is the accelerated delta.
  *
  * Relative motion deltas are to be interpreted as pixel movement of a
- * standardized mouse. See @ref motion_normalization for more details.
+ * standardized mouse. See the libinput documentation for more details.
  *
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_POINTER_MOTION.
@@ -1130,7 +1130,7 @@ libinput_event_pointer_get_dy(struct libinput_event_pointer *event);
  * Relative unaccelerated motion deltas are raw device coordinates.
  * Note that these coordinates are subject to the device's native
  * resolution. Touchpad coordinates represent raw device coordinates in the
- * X resolution of the touchpad. See @ref motion_normalization for more
+ * X resolution of the touchpad. See the libinput documentation for more
  * details.
  *
  * Any rotation applied to the device also applies to unaccelerated motion
@@ -1155,7 +1155,7 @@ libinput_event_pointer_get_dx_unaccelerated(
  * Relative unaccelerated motion deltas are raw device coordinates.
  * Note that these coordinates are subject to the device's native
  * resolution. Touchpad coordinates represent raw device coordinates in the
- * X resolution of the touchpad. See @ref motion_normalization for more
+ * X resolution of the touchpad. See the libinput documentation for more
  * details.
  *
  * Any rotation applied to the device also applies to unaccelerated motion
@@ -1430,8 +1430,8 @@ libinput_event_pointer_get_base_event(struct libinput_event_pointer *event);
 /**
  * @ingroup event_touch
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @return The event time for this event
  */
@@ -1441,8 +1441,8 @@ libinput_event_touch_get_time(struct libinput_event_touch *event);
 /**
  * @ingroup event_touch
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @return The event time for this event in microseconds
  */
@@ -1594,14 +1594,14 @@ libinput_event_touch_get_base_event(struct libinput_event_touch *event);
  * LIBINPUT_EVENT_GESTURE_FOO_END is generated which signals the end of the
  * gesture.
  *
- * See @ref gestures for more information on gesture handling.
+ * See the libinput documentation for details on gesture handling.
  */
 
 /**
  * @ingroup event_gesture
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @return The event time for this event
  */
@@ -1611,8 +1611,8 @@ libinput_event_gesture_get_time(struct libinput_event_gesture *event);
 /**
  * @ingroup event_gesture
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @return The event time for this event in microseconds
  */
@@ -1669,7 +1669,7 @@ libinput_event_gesture_get_cancelled(struct libinput_event_gesture *event);
  * function is the accelerated delta.
  *
  * Relative motion deltas are normalized to represent those of a device with
- * 1000dpi resolution. See @ref motion_normalization for more details.
+ * 1000dpi resolution. See the libinput documentation for more details.
  *
  * @return the relative x movement since the last event
  */
@@ -1687,7 +1687,7 @@ libinput_event_gesture_get_dx(struct libinput_event_gesture *event);
  * function is the accelerated delta.
  *
  * Relative motion deltas are normalized to represent those of a device with
- * 1000dpi resolution. See @ref motion_normalization for more details.
+ * 1000dpi resolution. See the libinput documentation for more details.
  *
  * @return the relative y movement since the last event
  */
@@ -1703,7 +1703,7 @@ libinput_event_gesture_get_dy(struct libinput_event_gesture *event);
  * @ref LIBINPUT_EVENT_GESTURE_PINCH_UPDATE, this function returns 0.
  *
  * Relative unaccelerated motion deltas are normalized to represent those of a
- * device with 1000dpi resolution. See @ref motion_normalization for more
+ * device with 1000dpi resolution. See the libinput documentation for more
  * details. Note that unaccelerated events are not equivalent to 'raw' events
  * as read from the device.
  *
@@ -1725,7 +1725,7 @@ libinput_event_gesture_get_dx_unaccelerated(
  * @ref LIBINPUT_EVENT_GESTURE_PINCH_UPDATE, this function returns 0.
  *
  * Relative unaccelerated motion deltas are normalized to represent those of a
- * device with 1000dpi resolution. See @ref motion_normalization for more
+ * device with 1000dpi resolution. See the libinput documentation for more
  * details. Note that unaccelerated events are not equivalent to 'raw' events
  * as read from the device.
  *
@@ -2013,7 +2013,7 @@ libinput_event_tablet_tool_wheel_has_changed(
  * value into a different coordinate space.
  *
  * @note On some devices, returned value may be negative or larger than the
- * width of the device. See @ref tablet-bounds for more details.
+ * width of the device. See the libinput documentation for more details.
  *
  * @param event The libinput tablet tool event
  * @return The current value of the the axis
@@ -2030,7 +2030,7 @@ libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event);
  * value into a different coordinate space.
  *
  * @note On some devices, returned value may be negative or larger than the
- * width of the device. See @ref tablet-bounds for more details.
+ * width of the device. See the libinput documentation for more details.
  *
  * @param event The libinput tablet tool event
  * @return The current value of the the axis
@@ -2047,7 +2047,7 @@ libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event);
  *
  * This value is in screen coordinate space, the delta is to be interpreted
  * like the return value of libinput_event_pointer_get_dx().
- * See @ref tablet-relative-motion for more details.
+ * See the libinput documentation for more details.
  *
  * @param event The libinput tablet event
  * @return The relative x movement since the last event
@@ -2064,7 +2064,7 @@ libinput_event_tablet_tool_get_dx(struct libinput_event_tablet_tool *event);
  *
  * This value is in screen coordinate space, the delta is to be interpreted
  * like the return value of libinput_event_pointer_get_dx().
- * See @ref tablet-relative-motion for more details.
+ * See the libinput documentation for more details.
  *
  * @param event The libinput tablet event
  * @return The relative y movement since the last event
@@ -2211,7 +2211,7 @@ libinput_event_tablet_tool_get_wheel_delta_discrete(
  * libinput always includes all device axes in the event.
  *
  * @note On some devices, returned value may be negative or larger than the
- * width of the device. See @ref tablet-bounds for more details.
+ * width of the device. See the libinput documentation for more details.
  *
  * @param event The libinput tablet tool event
  * @param width The current output screen width
@@ -2232,7 +2232,7 @@ libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *
  * libinput always includes all device axes in the event.
  *
  * @note On some devices, returned value may be negative or larger than the
- * width of the device. See @ref tablet-bounds for more details.
+ * width of the device. See the libinput documentation for more details.
  *
  * @param event The libinput tablet tool event
  * @param height The current output screen height
@@ -2354,8 +2354,8 @@ libinput_event_tablet_tool_get_seat_button_count(struct libinput_event_tablet_to
 /**
  * @ingroup event_tablet
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @param event The libinput tablet tool event
  * @return The event time for this event
@@ -2366,8 +2366,8 @@ libinput_event_tablet_tool_get_time(struct libinput_event_tablet_tool *event);
 /**
  * @ingroup event_tablet
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @param event The libinput tablet tool event
  * @return The event time for this event in microseconds
@@ -2746,7 +2746,7 @@ libinput_event_tablet_pad_get_strip_source(struct libinput_event_tablet_pad *eve
  *
  * Note that the number returned is a generic sequential button number and
  * not a semantic button code as defined in linux/input.h.
- * See @ref tablet-pad-buttons for more details.
+ * See the libinput documentation for more details.
  *
  * @note It is an application bug to call this function for events other than
  * @ref LIBINPUT_EVENT_TABLET_PAD_BUTTON. For other events, this function
@@ -2780,9 +2780,8 @@ libinput_event_tablet_pad_get_button_state(struct libinput_event_tablet_pad *eve
  * in, at the time of the event.
  *
  * The mode is a virtual grouping of functionality, usually based on some
- * visual feedback like LEDs on the pad. See @ref tablet-pad-modes for
- * details. Mode indices start at 0, a device that does not support modes
- * always returns 0.
+ * visual feedback like LEDs on the pad. Mode indices start at 0, a device
+ * that does not support modes always returns 0.
  *
  * Mode switching is controlled by libinput and more than one mode may exist
  * on the tablet. This function returns the mode that this event's button,
@@ -2810,7 +2809,7 @@ libinput_event_tablet_pad_get_mode(struct libinput_event_tablet_pad *event);
  * Returns the mode group that the button, ring, or strip that triggered
  * this event is considered in. The mode is a virtual grouping of
  * functionality, usually based on some visual feedback like LEDs on the
- * pad. See @ref tablet-pad-modes for details.
+ * pad.
  *
  * The returned mode group is not refcounted and may become invalid after
  * the next call to libinput. Use libinput_tablet_pad_mode_group_ref() and
@@ -2828,8 +2827,8 @@ libinput_event_tablet_pad_get_mode_group(struct libinput_event_tablet_pad *event
 /**
  * @ingroup event_tablet_pad
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @param event The libinput tablet pad event
  * @return The event time for this event
@@ -2840,8 +2839,8 @@ libinput_event_tablet_pad_get_time(struct libinput_event_tablet_pad *event);
 /**
  * @ingroup event_tablet_pad
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @param event The libinput tablet pad event
  * @return The event time for this event in microseconds
@@ -2898,8 +2897,8 @@ libinput_event_switch_get_base_event(struct libinput_event_switch *event);
 /**
  * @ingroup event_switch
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @param event The libinput switch event
  * @return The event time for this event
@@ -2910,8 +2909,8 @@ libinput_event_switch_get_time(struct libinput_event_switch *event);
 /**
  * @ingroup event_switch
  *
- * @note Timestamps may not always increase. See @ref event_timestamps for
- * details.
+ * @note Timestamps may not always increase. See the libinput documentation
+ * for more details.
  *
  * @param event The libinput switch event
  * @return The event time for this event in microseconds
@@ -3305,8 +3304,9 @@ libinput_log_set_handler(struct libinput *libinput,
  *
  * A seat has two identifiers, the physical name and the logical name. A
  * device is always assigned to exactly one seat. It may change to a
- * different logical seat but it cannot change physical seats. See @ref
- * seats for details.
+ * different logical seat but it cannot change physical seats.
+ *
+ * See the libinput documentation for more information on seats.
  */
 
 /**
@@ -3530,7 +3530,7 @@ libinput_device_get_context(struct libinput_device *device);
  * immediate scope.
  *
  * Device groups are assigned based on the <b>LIBINPUT_DEVICE_GROUP</b> udev
- * property, see @ref udev_config.
+ * property, see the libinput documentation for more details.
  *
  * @return The device group this device belongs to
  */
@@ -3614,8 +3614,7 @@ libinput_device_get_output_name(struct libinput_device *device);
 /**
  * @ingroup device
  *
- * Get the seat associated with this input device, see @ref seats for
- * details.
+ * Get the seat associated with this input device.
  *
  * A seat can be uniquely identified by the physical and logical seat name.
  * There will ever be only one seat instance with a given physical and logical
@@ -3626,6 +3625,8 @@ libinput_device_get_output_name(struct libinput_device *device);
  * the next call to libinput. Use libinput_seat_ref() and
  * libinput_seat_unref() to continue using the handle outside of the
  * immediate scope.
+ *
+ * See the libinput documentation for more information on seats.
  *
  * @param device A previously obtained device
  * @return The seat this input device belongs to
@@ -3794,8 +3795,8 @@ libinput_device_switch_has_switch(struct libinput_device *device,
  *
  * Return the number of buttons on a device with the
  * @ref LIBINPUT_DEVICE_CAP_TABLET_PAD capability.
- * Buttons on a pad device are numbered sequentially, see @ref
- * tablet-pad-buttons for details.
+ * Buttons on a pad device are numbered sequentially, see the
+ * libinput documentation for details.
  *
  * @param device A current input device
  *
@@ -4154,7 +4155,8 @@ enum libinput_config_drag_state {
  * Enable or disable tap-and-drag on this device. When enabled, a
  * single-finger tap immediately followed by a finger down results in a
  * button down event, subsequent finger motion thus triggers a drag. The
- * button is released on finger up. See @ref tapndrag for more details.
+ * button is released on finger up. See the libinput documentation for more
+ * details.
  *
  * @param device The device to configure
  * @param enable @ref LIBINPUT_CONFIG_DRAG_ENABLED to enable, @ref
@@ -4217,8 +4219,8 @@ enum libinput_config_drag_lock_state {
  * Enable or disable drag-lock during tapping on this device. When enabled,
  * a finger may be lifted and put back on the touchpad within a timeout and
  * the drag process continues. When disabled, lifting the finger during a
- * tap-and-drag will immediately stop the drag. See @ref tapndrag for
- * details.
+ * tap-and-drag will immediately stop the drag. See the libinput
+ * documentation for more details.
  *
  * Enabling drag lock on a device that has tapping disabled is permitted,
  * but has no effect until tapping is enabled.
@@ -4374,7 +4376,8 @@ libinput_device_config_calibration_get_matrix(struct libinput_device *device,
  * Return the default calibration matrix for this device. On most devices,
  * this is the identity matrix. If the udev property
  * <b>LIBINPUT_CALIBRATION_MATRIX</b> is set on the respective udev device,
- * that property's value becomes the default matrix, see @ref udev_config.
+ * that property's value becomes the default matrix, see the libinput
+ * documentation for more details.
  *
  * @param device The device to configure
  * @param matrix Set to the array representing the first two rows of a 3x3 matrix as
@@ -4941,7 +4944,8 @@ enum libinput_config_middle_emulation_state {
  * @ingroup config
  *
  * Check if middle mouse button emulation configuration is available on this
- * device. See @ref middle_button_emulation for details.
+ * device. See libinput_device_config_middle_emulation_set_enabled() for
+ * more details.
  *
  * @note Some devices provide middle mouse button emulation but do not allow
  * enabling/disabling that emulation. These devices return zero in
@@ -4968,7 +4972,7 @@ libinput_device_config_middle_emulation_is_available(
  * button event. Releasing the buttons generates a middle mouse button
  * release, the left and right button events are discarded otherwise.
  *
- * See @ref middle_button_emulation for details.
+ * See the libinput documentation for more details.
  *
  * @param device The device to configure
  * @param enable @ref LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED to
@@ -4991,7 +4995,8 @@ libinput_device_config_middle_emulation_set_enabled(
  * @ingroup config
  *
  * Check if configurable middle button emulation is enabled on this device.
- * See @ref middle_button_emulation for details.
+ * See libinput_device_config_middle_emulation_set_enabled() for more
+ * details.
  *
  * If the device does not have configurable middle button emulation, this
  * function returns @ref LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED.
@@ -5017,7 +5022,8 @@ libinput_device_config_middle_emulation_get_enabled(
  * @ingroup config
  *
  * Check if configurable middle button emulation is enabled by default on
- * this device. See @ref middle_button_emulation for details.
+ * this device. See libinput_device_config_middle_emulation_set_enabled()
+ * for more details.
  *
  * If the device does not have configurable middle button
  * emulation, this function returns @ref
@@ -5247,8 +5253,7 @@ libinput_device_config_scroll_get_default_button(struct libinput_device *device)
 /**
  * @ingroup config
  *
- * Possible states for the disable-while-typing feature. See @ref
- * disable-while-typing for details.
+ * Possible states for the disable-while-typing feature.
  */
 enum libinput_config_dwt_state {
 	LIBINPUT_CONFIG_DWT_DISABLED,
@@ -5260,7 +5265,7 @@ enum libinput_config_dwt_state {
  *
  * Check if this device supports configurable disable-while-typing feature.
  * This feature is usually available on built-in touchpads and disables the
- * touchpad while typing. See @ref disable-while-typing for details.
+ * touchpad while typing. See the libinput documentation for details.
  *
  * @param device The device to configure
  * @return 0 if this device does not support disable-while-typing, or 1
@@ -5278,7 +5283,7 @@ libinput_device_config_dwt_is_available(struct libinput_device *device);
  *
  * Enable or disable the disable-while-typing feature. When enabled, the
  * device will be disabled while typing and for a short period after. See
- * @ref disable-while-typing for details.
+ * the libinput documentation for details.
  *
  * @note Enabling or disabling disable-while-typing may not take effect
  * immediately.
