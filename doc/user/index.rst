@@ -5,6 +5,7 @@
 
   what-is-libinput
   features
+  configuration
   building
   faqs
   reporting-bugs

@@ -87,6 +87,7 @@ src_rst = files(
 	'features.rst',
 	'development.rst',
 	'troubleshooting.rst',
+	'configuration.rst',
 )
 
 src_sphinx = custom_target('sphinx-sources',
