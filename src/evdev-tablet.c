@@ -657,6 +657,14 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 	rc = true;
 
 out:
+	/* The tool position often jumps to a different spot when contact changes.
+	 * If tool contact changes, clear the history to prevent axis smoothing
+	 * from trying to average over the spatial discontinuity. */
+	if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_CONTACT) ||
+	    tablet_has_status(tablet, TABLET_TOOL_LEAVING_CONTACT)) {
+		tablet_history_reset(tablet);
+	}
+
 	tablet_history_push(tablet, &tablet->axes);
 	tablet_smoothen_axes(tablet, &axes);
 
