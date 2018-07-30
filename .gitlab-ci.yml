@@ -275,11 +275,11 @@ fedora:27@docker-prep:
     # create a Dockerfile with our dependencies
     - echo "FROM ubuntu:$UBUNTU_VERSION" > Dockerfile
     - echo "WORKDIR /app" >> Dockerfile
-    - echo "RUN apt-get update" >> Dockerfile
-    - echo "RUN apt-get install -y software-properties-common" >> Dockerfile
-    - echo "RUN add-apt-repository universe" >> Dockerfile
-    - echo "RUN apt-get update" >> Dockerfile
-    - echo "RUN apt-get install -y $UBUNTU_DEBS" >> Dockerfile
+    - echo "RUN DEBIAN_FRONTEND=noninteractive apt-get update" >> Dockerfile
+    - echo "RUN DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common" >> Dockerfile
+    - echo "RUN DEBIAN_FRONTEND=noninteractive add-apt-repository universe" >> Dockerfile
+    - echo "RUN DEBIAN_FRONTEND=noninteractive apt-get update" >> Dockerfile
+    - echo "RUN DEBIAN_FRONTEND=noninteractive apt-get install -y $UBUNTU_DEBS" >> Dockerfile
 
     # create the docker image
     - docker build --tag $UBUNTU_DOCKER_IMAGE:latest --tag $UBUNTU_DOCKER_IMAGE:$CI_JOB_ID .
