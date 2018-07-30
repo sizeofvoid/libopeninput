@@ -151,9 +151,11 @@ variables:
     - TODAY_SECS=$(date -u +%s)
     - IMG_SECS=$(date -u --date="$IMG_DATE" +%s)
     - echo "today $TODAY_SECS, image $IMG_SECS"
+    - echo "image age $(($TODAY_SECS - $IMG_SECS))s"
 
     # check if image is less than a week old
     - test $(($IMG_SECS + 604800)) -gt $TODAY_SECS
+
 
     # export an artefact telling the next stage that the image is valid
     - touch .img_ready
