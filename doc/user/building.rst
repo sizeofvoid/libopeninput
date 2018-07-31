@@ -162,7 +162,7 @@ Build dependencies
 ..............................................................................
 
 libinput has a few build-time dependencies that must be installed prior to
-running configure.
+running meson.
 
 .. note:: The build dependencies for some distributions can be found in the
 	`GitLab Continuous Integration file <https://gitlab.freedesktop.org/libinput/libinput/blob/master/.gitlab-ci.yml>`_.
@@ -194,8 +194,8 @@ with one of the following commands:
 
 
 
-If dependencies are missing, a message ``No package 'foo' found`` will be
-shown during the configure stage. See
+If dependencies are missing, meson shows a message ``No package 'foo'
+found``.  See
 `this blog post here <https://who-t.blogspot.com.au/2014/05/configure-fails-with-no-package-foo.html>`_
 for instructions on how to fix it.
 
@@ -232,67 +232,12 @@ features. To keep dependencies in check on some builds, the graphical
 features of the :ref:`tools` can be disabled. By default, the ``debug-gui``
 feature of the ``libinput`` tool is enabled and if the required libraries are
 not available, the build will fail. If the feature is not required, use the
-```--disable-debug-gui``` argument when :ref:`building`.
+```-Ddebug-gui``` argument when :ref:`building`.
 
 
 ::
 
      $> meson --prefix=/usr -Ddebug-gui=false builddir
-
-
-.. _building_autotools:
-
-..............................................................................
-Building with autotools
-..............................................................................
-
-**libinput no longer supports building with autotools.** These
-instructions are kept for users for libinput versions up to 1.8.x.
-
-A build with automake is usually the process below. A successful build
-requires the :ref:`building_dependencies` to be installed at configure
-time.
-
-
-::
-
-     $> git clone https://gitlab.freedesktop.org/libinput/libinput
-     $> cd libinput
-     $> ./autogen.sh --prefix=/usr --libdir=/usr/lib64
-     $> make
-     $> sudo make install
-     $> sudo udevadm hwdb --update
-
-
-.. note:: On Debian-based distributions including Ubuntu and its derivatives skip the
-	``--libdir=/usr/lib64`` argument.
-
-To uninstall libinput as detailed in section :ref:`reverting_install`, run
-
-
-::
-
-     $> sudo make uninstall
-     # WARNING: Do not restart the computer/X/the Wayland compositor after make
-     # uninstall, reinstall the system package immediately!
-
-
-To disable libwacom as detailed in section :ref:`building_libwacom`, run
-
-
-::
-
-     $> ./autogen.sh --disable-libwacom --prefix=/usr --libdir=/usr/lib64
-
-
-To disable the graphical helper tool as detailed in section
-:ref:`building_debug_gui`, run
-
-
-::
-
-     $> ./autogen.sh --disable-debug-gui --prefix=/usr --libdir=/usr/lib64
-
 
 
 .. _building_against:
