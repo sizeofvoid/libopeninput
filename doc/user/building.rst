@@ -303,8 +303,16 @@ Building against libinput
 
 libinput provides a
 `pkg-config <https://www.freedesktop.org/wiki/Software/pkg-config/>`_ file.
-Software that uses libinput should use pkg-config and the
-``PKG_CHECK_MODULES`` autoconf macro.
+Software that uses autotools should use the ``PKG_CHECK_MODULES`` autoconf
+macro: ::
+
+    PKG_CHECK_MODULES(LIBINPUT, "libinput")
+
+Software that uses meson should use the ``dependency()`` function: ::
+
+    pkgconfig = import('pkgconfig')
+    dep_libinput = dependency('libinput')
+
 Otherwise, the most rudimentary way to compile and link a program against
 libinput is:
 
