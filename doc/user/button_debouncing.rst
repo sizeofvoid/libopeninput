@@ -32,8 +32,8 @@ immediately and most release events are delivered immediately. The
 does not enable this method unless a faulty event sequence is detected. A
 message is printed to the log when spurious deboucing was detected.
 
-Note that libinput's debouncing intended to correct hardware damage or
-substandard hardware. Debouncing is also used as an accessibility feature
+libinput's debouncing is supposed to correct hardware damage or
+substandard hardware. Debouncing also exists as an accessibility feature
 but the requirements are different. In the accessibility feature, multiple
 physical key presses, usually caused by involuntary muscle movement, must be
 filtered to only one key press. This feature must be implemented higher in
@@ -49,3 +49,8 @@ correspond to the buttons 'pressed' and 'released' states, respectively.
     :align: center
 
     Diagram illustrating button debouncing"
+
+
+Some devices send events in bursts, erroneously triggering the button
+debouncing detection. Please :ref:`file a bug <reporting_bugs>` if that
+occurs for your device.

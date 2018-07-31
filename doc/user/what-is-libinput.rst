@@ -14,11 +14,10 @@ what libinput is **not**.
 What libinput is
 ------------------------------------------------------------------------------
 
-libinput is an input stack for applications that need full input device
-processing by commonly used input devices. That includes mice, keyboards,
-touchpads, touchscreens and graphics tablets. libinput handles
-device-specific quirks and provides an easy-to-use API to receive
-events from devices.
+libinput is an input stack for processes that need to provide events from
+commonly used input devices. That includes mice, keyboards, touchpads,
+touchscreens and graphics tablets. libinput handles device-specific quirks
+and provides an easy-to-use API to receive events from devices.
 
 libinput is designed to handle all input devices available on a system but
 it is possible to limit which devices libinput has access to.
@@ -31,6 +30,10 @@ libinput restricts device-specific features to those devices that require
 those features. One example for this are the top software buttons on the
 touchpad in the Lenovo T440. While there may be use-cases for providing top
 software buttons on other devices, libinput does not do so.
+
+`This introductory blog post from 2015
+<https://who-t.blogspot.com/2015/06/libinput-and-lack-of-device-types.html>`_
+describes some of the motivations.
 
 .. _what_libinput_is_not:
 

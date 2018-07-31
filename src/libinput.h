@@ -912,6 +912,13 @@ libinput_event_get_touch_event(struct libinput_event *event);
  * Return the gesture event that is this input event. If the event type does
  * not match the gesture event types, this function returns NULL.
  *
+ * A gesture's lifetime has three distinct stages: begin, update and end, each
+ * with their own event types. Begin is sent when the fingers are first set
+ * down or libinput decides that the gesture begins. For @ref
+ * LIBINPUT_EVENT_GESTURE_PINCH_BEGIN this sets the initial scale. Any
+ * events changing properties of the gesture are sent as update events. On
+ * termination of the gesture, an end event is sent.
+ *
  * The inverse of this function is libinput_event_gesture_get_base_event().
  *
  * @return A gesture event, or NULL for other events
@@ -1634,7 +1641,11 @@ libinput_event_gesture_get_base_event(struct libinput_event_gesture *event);
  * to differentiate between 3 or 4 finger swipes.
  *
  * This function can be called on all gesture events and the returned finger
- * count value will not change during a sequence.
+ * count value remains the same for the lifetime of a gesture. Thus, if a
+ * user puts down a fourth finger during a three-finger swipe gesture,
+ * libinput will end the three-finger gesture and, if applicable, start a
+ * four-finger swipe gesture. A caller may decide that those gestures are
+ * semantically identical and continue the two gestures as one single gesture.
  *
  * @return the number of fingers used for a gesture
  */

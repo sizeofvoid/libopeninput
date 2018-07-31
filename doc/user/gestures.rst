@@ -4,42 +4,25 @@
 Gestures
 ==============================================================================
 
-libinput supports basic gestures on touchpads and other indirect input
-devices. Two types of gestures are supported: :ref:`gestures_pinch` and
-@ref gestures_swipe. Support for gestures depends on the hardware device, most
-touchpads support both gestures and any device that may send gesture events
-has the **LIBINPUT_DEVICE_CAP_GESTURE** capability set.
-
-Note that libinput **does not** support gestures on touchscreens, see
-:ref:`gestures_touchscreens`.
+libinput supports :ref:`gestures_pinch` and :ref:`gestures_swipe` on most
+modern touchpads and other indirect touch devices. Note that libinput **does
+not** support gestures on touchscreens, see :ref:`gestures_touchscreens`.
 
 .. _gestures_lifetime:
 
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 Lifetime of a gesture
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
-A gesture's lifetime has three distinct stages: begin, update and end, each
-with their own event types. Begin is sent when the fingers are first set
-down or libinput decides that the gesture begins. For :ref:`gestures_pinch`
-this sets the initial scale. Any events changing properties of the gesture
-are sent as update events. On termination of the gesture, an end event is
-sent.
+A gesture starts when the finger position and/or finger motion is
+unambiguous as to what gesture to trigger and continues until the first
+finger belonging to this gesture is lifted.
 
-A gesture includes the finger count (see
-**libinput_event_gesture_get_finger_count()**) and that finger count remains the
-same for the lifetime of a gesture. Thus, if a user puts down a fourth
-finger during a three-finger swipe gesture, libinput will end
-the three-finger gesture and, if applicable, start a four-finger swipe
-gesture. A caller may decide that those gestures are semantically identical
-and continue the two gestures as one single gesture.
-
-**LIBINPUT_EVENT_GESTURE_PINCH_BEGIN**
-**LIBINPUT_EVENT_GESTURE_PINCH_UPDATE**
-**LIBINPUT_EVENT_GESTURE_PINCH_END**
-**LIBINPUT_EVENT_GESTURE_PINCH_BEGIN**
-**LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE**
-**LIBINPUT_EVENT_GESTURE_SWIPE_END**
+A single gesture cannot change the finger count. For example, if a user
+puts down a fourth finger during a three-finger swipe gesture, libinput will
+end the three-finger gesture and, if applicable, start a four-finger swipe
+gesture. A caller may however decide that those gestures are semantically
+identical Tand continue the two gestures as one single gesture.
 
 .. _gestures_pinch:
 
@@ -59,7 +42,7 @@ to the initial finger position.
 .. figure:: pinch-gestures.svg
     :align: center
 
-    The pinch and rotate gestures"
+    The pinch and rotate gestures
 
 The illustration above shows a basic pinch in the left image and a rotate in
 the right angle. Not shown is a movement of the logical center if the
@@ -85,7 +68,7 @@ gesture into an action or limit a gesture to specific directions only.
 .. figure:: swipe-gestures.svg
     :align: center
 
-    The swipe gestures"
+    The swipe gestures
 
 The illustration above shows a vertical three-finger swipe. The coordinates
 provided during the gesture are the movements of the logical center.
@@ -107,14 +90,13 @@ screen as well as the context of those virtual objects:
 .. figure:: touchscreen-gestures.svg
     :align: center
 
-    Context-sensitivity of touchscreen gestures"
+    Context-sensitivity of touchscreen gestures
 
-In this example, the finger movements are identical but in the left case
-both fingers are located within the same window, thus suggesting an attempt
-to zoom. In the right case  both fingers are located on a window border,
-thus suggesting a window movement. libinput only has knowledge of the finger
-coordinates (and even then only in device coordinates, not in screen
-coordinates) and thus cannot differentiate the two.
+In the above example, the finger movements are identical but in the left
+case both fingers are located within the same window, thus suggesting an
+attempt to zoom. In the right case  both fingers are located on a window
+border, thus suggesting a window movement. libinput has no knowledge of the
+window coordinates and thus cannot differentiate the two.
 
 .. _gestures_softbuttons:
 
@@ -124,14 +106,14 @@ Gestures with enabled software buttons
 
 If the touchpad device is a :ref:`Clickpad <touchpads_buttons_clickpads>`, it
 is recommended that a caller switches to :ref:`clickfinger`.
-Usually fingers placed in a :ref:`software button area <software_buttons>` is not
-considered for gestures, resulting in some gestures to be interpreted as
-pointer motion or two-finger scroll events.
+Usually fingers placed in a :ref:`software button area <software_buttons>`
+are not considered for gestures, resulting in some gestures to be
+interpreted as pointer motion or two-finger scroll events.
 
 .. figure:: pinch-gestures-softbuttons.svg
     :align: center
 
-    Interference of software buttons and pinch gestures"
+    Interference of software buttons and pinch gestures
 
 In the example above, the software button area is highlighted in red. The
 user executes a three-finger pinch gesture, with the thumb remaining in the
@@ -161,7 +143,7 @@ determined.
 .. figure:: gesture-2fg-ambiguity.svg
     :align: center
 
-    Ambiguity of three-finger gestures on two-finger touchpads"
+    Ambiguity of three-finger gestures on two-finger touchpads
 
 The image above illustrates this ambiguity. The index and middle finger are
 set down first, the data stream from both finger positions looks identical.
