@@ -129,6 +129,8 @@ overwriting manually installed files.
 SELinux adjustments
 ..............................................................................
 
+.. note:: This section only applies to meson version < 0.42.0
+
 On systems with SELinux, overwriting the distribution-provided package with
 a manually built libinput may cause SELinux denials. This usually manifests
 when gdm does not start because it is denied access to libinput. The journal
