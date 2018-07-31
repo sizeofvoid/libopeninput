@@ -199,46 +199,39 @@ found``.  See
 `this blog post here <https://who-t.blogspot.com.au/2014/05/configure-fails-with-no-package-foo.html>`_
 for instructions on how to fix it.
 
-.. _building_libwacom:
+.. _building_conditional:
 
-..............................................................................
-Building without libwacom
-..............................................................................
+------------------------------------------------------------------------------
+Conditional builds
+------------------------------------------------------------------------------
 
-libwacom is required by libinput's tablet code to gather additional
-information about tablets that is not available from the kernel device
-itself. libwacom is required by default but can be skipped when
-:ref:`building`.
+libinput supports several meson options to disable parts of the build. See
+the ``meson_options.txt`` file in the source tree for a full list of
+available options. The default build enables most options and thus requires
+more build dependencies. On systems where build dependencies are an issue,
+options may be disabled with this meson command: ::
 
+    meson --prefix=/usr -Dsomefeature=false builddir
 
-::
+Where ``-Dsomefeature=false`` may be one of:
 
-     $> meson --prefix=/usr -Dlibwacom=false builddir
-
-
-It is not recommended to disable libwacom unless libinput is used in an
-environment where tablet support is not required. libinput provides tablet
-support even without libwacom, but some features may be missing or working
-differently.
-
-.. _building_debug_gui:
-
-..............................................................................
-Building without the graphical helper tool
-..............................................................................
-
-The :ref:`tools` provide commandline features as well as graphical debugging
-features. To keep dependencies in check on some builds, the graphical
-features of the :ref:`tools` can be disabled. By default, the ``debug-gui``
-feature of the ``libinput`` tool is enabled and if the required libraries are
-not available, the build will fail. If the feature is not required, use the
-```-Ddebug-gui``` argument when :ref:`building`.
-
-
-::
-
-     $> meson --prefix=/usr -Ddebug-gui=false builddir
-
+- ``-Ddocumentation=false``
+    Disables the documentation build (this website). Building the
+    documentation is only needed on the maintainer machine.
+- ``-Dtests=false``
+    Disables the test suite. The test suite is only needed on developer
+    systems.
+- ``-Ddebug-gui=false``
+    Disables the ``libinput debug-gui`` helper tool (see :ref:`tools`),
+    dropping GTK and other build dependencies. The debug-gui is only
+    required for troubleshooting.
+- ``-Dlibwacom=false``
+    libwacom is required by libinput's tablet code to gather additional
+    information about tablets that is not available from the kernel device.
+    It is not recommended to disable libwacom unless libinput is used in an
+    environment where tablet support is not required. libinput provides tablet
+    support even without libwacom, but some features may be missing or working
+    differently.
 
 .. _building_against:
 
