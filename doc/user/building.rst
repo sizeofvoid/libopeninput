@@ -55,16 +55,16 @@ We recommend that users disable the documentation, it's not usually required
 for testing and reduces the number of dependencies needed.
 
 The ``prefix`` or other options can be changed later with the
-``mesonconf`` command. For example:
+``meson configure`` command. For example:
 
 ::
 
-     $> mesonconf builddir/ -Dprefix=/some/other/prefix -Ddocumentation=true
+     $> meson configure builddir/ -Dprefix=/some/other/prefix -Ddocumentation=true
      $> ninja -C builddir
      $> sudo ninja -C builddir/ install
 
 
-Running ``mesonconf builddir/`` with no other arguments lists all
+Running ``meson configure builddir/`` with no other arguments lists all
 configurable options meson provides.
 
 To rebuild from scratch, simply remove the build directory and run meson
