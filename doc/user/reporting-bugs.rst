@@ -8,11 +8,10 @@ A new bug can be filed here:
 https://gitlab.freedesktop.org/libinput/libinput/issues/new
 
 .. note:: libinput has lots of users but very few developers. It is in your own
-      interested to follow these steps precisely to ensure your bug can be
+      interested to follow the steps here precisely to ensure your bug can be
       dealt with efficiently.
 
-When reporting bugs against libinput, please follow the instructions below
-and provide the required data. You will need:
+When reporting bugs against libinput, you will need:
 
 - a reliable :ref:`reproducer <reporting_bugs_reproducer>` for the bug
 - an :ref:`evemu recording <evemu>` of the device while the bug is reproduced
@@ -36,8 +35,8 @@ Stay technical, on-topic, and keep the description concise.
 Obtaining the libinput version
 ------------------------------------------------------------------------------
 
-If your libinput version is older than the current stable branch, you will
-get asked to try the latest version. If you run a distribution-provided
+If your libinput version is older than the current stable branch, please try
+the latest version. If you run a distribution-provided
 libinput, use the package manager to get the **full** package name and
 version of libinput, e.g.
 
@@ -69,8 +68,8 @@ Once you can reproduce it, use the :ref:`libinput-debug-events` helper tool.
 The output is textual and can help identify whether the bug is in libinput
 at all. Note that any configuration options you have set must be specified
 on the commandline, see the :ref:`libinput-debug-events`
-"libinput-debug-events" man page. Use the ``--verbose`` flag to get more
-information about how libinput processes events.
+man page. Use the ``--verbose`` flag to get more information about how
+libinput processes events.
 
 If the bug cannot be reproduced with the :ref:`libinput-debug-events` helper,
 even with the correct configuration options set, it is likely not a bug in
@@ -105,8 +104,8 @@ Reporting touchpad bugs
 
 When you file a bug, please attach the following information:
 
-- a virtual description of your input device, see :ref:`evemu`. This is the
-  most important piece of information, do not forget it!
+- a virtual description of your input device, see :ref:`libinput-record`.
+  This is the most important piece of information, do not forget it!
 - the output from udevadm info, see :ref:`udev_info`.
 - the vendor model number of your laptop (e.g. "Lenovo Thinkpad T440s")
 - and the content of ``/sys/class/dmi/id/modalias``.
@@ -129,8 +128,8 @@ Reporting mouse bugs
 
 When you file a bug, please attach the following information:
 
-- a virtual description of your input device, see :ref:`evemu`. This is the
-  most important piece of information, do not forget it!
+- a virtual description of your input device, see :ref:`libinput-record`.
+  This is the most important piece of information, do not forget it!
 - the vendor model number of the device (e.g. "Logitech M325")
 - the output from udevadm info, see :ref:`udev_info`.
 
@@ -152,8 +151,8 @@ the issue is.
 
 When you file a bug, please attach the following information:
 
-- a virtual description of your input device, see :ref:`evemu`. This is the
-  most important piece of information, do not forget it!
+- a virtual description of your input device, see :ref:`libinput-record`.
+  This is the most important piece of information, do not forget it!
 
 .. _reporting_bugs_trackpoint:
 
@@ -163,8 +162,8 @@ Reporting trackpoint bugs
 
 When you file a bug, please attach the following information:
 
-- a virtual description of your input device, see :ref:`evemu`. This is the
-  most important piece of information, do not forget it!
+- a virtual description of your input device, see :ref:`libinput-record`.
+  This is the most important piece of information, do not forget it!
 - the vendor model number of the device (e.g. "Logitech M325")
 - the output from udevadm info, see :ref:`udev_info`.
 - the output of ``libinput measure trackpoint-range``
@@ -181,8 +180,8 @@ All other devices
 
 When you file a bug, please attach the following information:
 
-- a virtual description of your input device, see :ref:`evemu`. This is the
-  most important piece of information, do not forget it!
+- a virtual description of your input device, see :ref:`libinput-record`.
+  This is the most important piece of information, do not forget it!
 - the vendor model number of the device (e.g. "Sony Plastation3 controller")
 
 .. _udev_info:
@@ -221,8 +220,8 @@ node for your device. An example output is below: ::
 Recording devices with evemu
 ------------------------------------------------------------------------------
 
-.. note:: Where available, the :ref:`libinput-record` tools should be used instead
-          of evemu
+.. warning:: Where available, the :ref:`libinput-record` tools should be used instead
+             of evemu
 
 `evemu-record <https://www.freedesktop.org/wiki/Evemu/>`_ records the
 device capabilities together with the event stream from the kernel. On our
@@ -275,10 +274,10 @@ device. For example, to replay the sequence recorded in the example above: ::
 If the bug is triggered by replaying on your device, attach the recording to
 the bug report.
 
-.. note:: libinput does not affect the evemu recording. libinput and evemu talk
-          directly to the kernel's device nodes. An evemu recording is not
-          influenced by the libinput version or whether a libinput context is
-          currently active.
+libinput does not affect the evemu recording. libinput and evemu talk
+directly to the kernel's device nodes. An evemu recording is not
+influenced by the libinput version or whether a libinput context is
+currently active.
 
 .. graphviz:: evemu.gv
 

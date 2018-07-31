@@ -21,6 +21,7 @@ src_extra = [
 	'dot/libinput-stack-xorg.gv',
 	'dot/libinput-stack-gnome.gv',
 	'dot/evemu.gv',
+	'dot/libinput-record.gv',
 	# svgs
 	'svg/button-debouncing-wave-diagram.svg',
 	'svg/button-scrolling.svg',

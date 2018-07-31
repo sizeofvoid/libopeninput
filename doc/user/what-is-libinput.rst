@@ -14,26 +14,23 @@ what libinput is **not**.
 What libinput is
 ------------------------------------------------------------------------------
 
-libinput is an input stack to be used by those applications that need full
-input device processing by commonly used input devices. That includes mice,
-keyboards, touchpads, touchscreens and graphics tablets. libinput handles
-device-specific quirks and provides an easy-to-use interface to receive
+libinput is an input stack for applications that need full input device
+processing by commonly used input devices. That includes mice, keyboards,
+touchpads, touchscreens and graphics tablets. libinput handles
+device-specific quirks and provides an easy-to-use API to receive
 events from devices.
 
-libinput is designed to handle all input devices available on a system. It
-is possible to limit the devices that employ libinput. For example, the use
-of xf86-input-libinput depends on xorg.conf snippets for specific
-devices. But libinput works best if it handles all input devices as this
-allows for cross-device monitoring of events and smarter handling of
-features that affect multiple devices.
+libinput is designed to handle all input devices available on a system but
+it is possible to limit which devices libinput has access to.
+For example, the use of xf86-input-libinput depends on xorg.conf snippets
+for specific devices. But libinput works best if it handles all input
+devices as this allows for smarter handling of features that affect multiple
+devices.
 
-libinput restricts device-specific features to applicable devices only.
-Devices with specific hardware properties may expose extra features, but
-these features are not made available on other devices, even where it may be
-possible to do so. One example for this are the top software buttons on the
-touchpad in the Lenovo T440 and similar devices. While there may be
-use-cases for providing top software buttons on other devices, libinput does
-not do so.
+libinput restricts device-specific features to those devices that require
+those features. One example for this are the top software buttons on the
+touchpad in the Lenovo T440. While there may be use-cases for providing top
+software buttons on other devices, libinput does not do so.
 
 .. _what_libinput_is_not:
 
@@ -49,10 +46,9 @@ not land in libinput master until the devices are commonly available.
 
 libinput is **not** a box of legos. It does not provide the pieces to
 assemble a selection of features. Many features can be disabled through
-configuration options, but some features are hardcoded or hardcoded on some
-devices. This usually matches the intended use of the device. There are
-plenty of use-cases to provide out-of-the-ordinary features, but libinput is
-not the place to support these.
+configuration options, but some features are hardcoded and/or only available
+on some devices. There are plenty of use-cases to provide niche features,
+but libinput is not the place to support these.
 
 libinput is **not** a showcase for features. There are a lot of potential
 features that could be provided on input devices. But unless they have

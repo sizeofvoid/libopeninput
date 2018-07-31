@@ -152,16 +152,20 @@ the available options.
 libinput record and libinput replay
 ------------------------------------------------------------------------------
 
+.. note:: For libinput versions 1.10 and older, use :ref:`evemu`.
+
 The ``libinput record`` command records the **kernel** events from a specific
 device node. The recorded sequence can be replayed with the ``libinput
 replay`` command. This pair of tools is crucial to capturing bugs and
 reproducing them on a developer's machine.
 
-.. note:: These tools are shipped with libinput, but the recorded events
-          are **kernel events** and independent of the libinput context. libinput
-          does not need to be running, it does not matter whether a user is
-          running X.Org or Wayland or even what version of libinput is currently
-          running.
+.. graphviz:: libinput-record.gv
+	:align: center
+
+The recorded events are **kernel events** and independent of the
+libinput context. libinput does not need to be running, it does
+not matter whether a user is running X.Org or Wayland or even what
+version of libinput is currently running.
 
 The use of the tools is straightforward, just run without arguments, piping
 the output into a file: ::
@@ -196,12 +200,16 @@ the user select one. Supply the number (17 in this case for
 events to the file it is redirected to. More arguments are available, see
 the **libinput-record(1)** man page.
 
+.. note:: When reproducing a bug that crashes libinput, run inside ``screen`` or
+          ``tmux``.
+
 Reproduce the bug, ctrl+c and attach the output file to a bug report.
 For data protection, ``libinput record`` obscures key codes by default, any
 alphanumeric key shows up as letter "a".
 
-.. note:: When reproducing a bug that crashes libinput, run inside ``screen`` or
-          ``tmux``.
+.. warning:: The longer the recording, the harder it is to identify the event
+	     sequence triggering the bug. Please keep the event sequence as
+	     short as possible.
 
 The recording can be replayed with the ``libinput replay`` command: ::
 
