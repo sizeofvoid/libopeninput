@@ -159,9 +159,9 @@ This issue is tracked in https://github.com/mesonbuild/meson/issues/1967.
 
 .. _building_dependencies:
 
-..............................................................................
+------------------------------------------------------------------------------
 Build dependencies
-..............................................................................
+------------------------------------------------------------------------------
 
 libinput has a few build-time dependencies that must be installed prior to
 running meson.
