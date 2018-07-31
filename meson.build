@@ -490,7 +490,7 @@ configure_file(input : 'tools/libinput-measure-fuzz.man',
 	       )
 
 configure_file(input: 'tools/libinput-measure-touchpad-tap.py',
-	       output: 'libinput-measure-touchpad_tap',
+	       output: 'libinput-measure-touchpad-tap',
 	       configuration : config_noop,
 	       install : true,
 	       install_dir : libinput_tool_path
