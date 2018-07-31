@@ -198,7 +198,7 @@ with one of the following commands:
 
 If dependencies are missing, meson shows a message ``No package 'foo'
 found``.  See
-`this blog post here <https://who-t.blogspot.com.au/2014/05/configure-fails-with-no-package-foo.html>`_
+`this blog post here <https://who-t.blogspot.com/2018/07/meson-fails-with-native-dependency-not-found.html>`_
 for instructions on how to fix it.
 
 .. _building_conditional:
