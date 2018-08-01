@@ -21,9 +21,8 @@ even though some hardware can distinguish between that many fingers.
 Tap-to-click default setting
 ------------------------------------------------------------------------------
 
-Tapping is **disabled** by default on most devices, see [this
-commit](https://gitlab.freedesktop.org/libinput/libinput/commit/2219c12c3aa45b80f235e761e87c17fb9ec70eae)
-because:
+Tapping is **disabled** by default on most devices, see
+:commit:`2219c12c3` because:
 
 - if you don't know that tapping is a thing (or enabled by default), you get
   spurious button events that make the desktop feel buggy.

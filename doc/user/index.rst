@@ -68,5 +68,4 @@ file for the full license information.
 .....
 About
 .....
-Documentation generated from git commit
-`__GIT_VERSION__ <https://gitlab.freedesktop.org/libinput/libinput/commit/__GIT_VERSION__>`_
+Documentation generated from :commit:`__GIT_VERSION__`.

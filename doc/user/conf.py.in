@@ -41,6 +41,7 @@ release = '@PROJECT_VERSION@'
 extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.graphviz',
+    'sphinx.ext.extlinks',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -167,4 +168,9 @@ from recommonmark.parser import CommonMarkParser
 
 source_parsers = {
     '.md': CommonMarkParser,
+}
+
+extlinks = { 'commit' :
+		('https://gitlab.freedesktop.org/libinput/libinput/commit/%s',
+			'git commit ')
 }
