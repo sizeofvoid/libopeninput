@@ -1201,7 +1201,7 @@ fallback_keyboard_pair_tablet_mode(struct evdev_device *keyboard,
 		return;
 
 	evdev_log_debug(keyboard,
-			"tablet_mode_switch: activated for %s<->%s\n",
+			"tablet_mode_switch: paired %s<->%s\n",
 			keyboard->devname,
 			tablet_mode_switch->devname);
 
