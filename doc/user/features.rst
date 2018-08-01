@@ -13,7 +13,7 @@ to be useful.
 .. toctree::
    :maxdepth: 1
 
-   button_debouncing.rst
+   button-debouncing.rst
    clickpad-softbuttons.rst
    gestures.rst
    middle-button-emulation.rst

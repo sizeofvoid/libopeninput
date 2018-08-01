@@ -68,7 +68,7 @@ src_rst = files(
 	'absolute-coordinate-ranges.rst',
 	'architecture.rst',
 	'building.rst',
-	'button_debouncing.rst',
+	'button-debouncing.rst',
 	'clickpad-softbuttons.rst',
 	'contributing.rst',
 	'device-configuration-via-udev.rst',
