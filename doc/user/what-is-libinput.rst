@@ -106,3 +106,49 @@ does not know whether libinput is in use.
 libinput and xf86-input-libinput are not a requirement, the driver will only
 handle those devices explicitly assigned through an xorg.conf.d snippets. It
 is possible to mix xf86-input-libinput with other X.Org drivers.
+
+------------------------------------------------------------------------------
+Device types
+------------------------------------------------------------------------------
+
+libinput handles all common devices used to interact with a desktop system.
+This includes mice, keyboards, touchscreens, touchpads and graphics tablets.
+libinput does not expose the device type to the caller, it solely provides
+capabilities and the attached features (see
+`this blog post <https://who-t.blogspot.com/2015/06/libinput-and-lack-of-device-types.html>`_).
+
+For example, a touchpad in libinput is a device that provides pointer
+events, gestures and has a number of :ref:`config_options` such as
+:ref:`tapping`. A caller may present the device as touchpad to the user, or
+simply as device with a config knob to enable or disable tapping.
+
+..............................................................................
+Handled device types
+..............................................................................
+
+- :ref:`Touchpads`
+- Touchscreens
+- Mice
+- Keyboards
+- Virtual absolute pointing devices such as those used by QEMU or VirtualBox
+- Switches (Lid Switch and Tablet Mode switch)
+- Graphics tablets
+- :ref:`Trackpoints`
+
+If a device falls into one of the above categories but does not work as
+expected, please :ref:`file a bug <reporting_bugs>`.
+
+..............................................................................
+Unhandled device types
+..............................................................................
+
+libinput does not handle some devices. The primary reason is that these
+device have no clear interaction with a desktop environment.
+
+Joysticks:
+     Joysticks have one or more axes and one or more buttons. Beyond that it is
+     difficult to find common ground between joysticks and much of the
+     interaction is application-specific, not system-specific. libinput does not
+     provide support for joysticks for that reason, any abstraction libinput
+     would provide for joysticks would be so generic that libinput would
+     merely introduce complexity and processing delays for no real benefit.

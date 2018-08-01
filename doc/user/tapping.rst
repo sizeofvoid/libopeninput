@@ -60,7 +60,7 @@ Note that drag lock only applies if tap-and-drag is be enabled.
 .. figure:: tap-n-drag.svg
     :align: center
 
-    Tap-and-drag process"
+    Tap-and-drag process
 
 The above diagram explains the process, a tap (a) followed by a finger held
 down (b) starts the drag process and logically holds the left mouse button

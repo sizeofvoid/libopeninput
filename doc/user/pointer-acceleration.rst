@@ -91,7 +91,7 @@ and after :ref:`motion_normalization` is applied.
 .. figure:: ptraccel-linear.svg
     :align: center
 
-    Linear pointer acceleration"
+    Linear pointer acceleration
 
 The image above shows the linear pointer acceleration settings at various
 speeds. The line for 0.0 is the default acceleration curve, speed settings
@@ -117,7 +117,7 @@ coordinates (see :ref:`motion_normalization`).
 .. figure:: ptraccel-low-dpi.svg
     :align: center
 
-    Pointer acceleration for low-dpi devices"
+    Pointer acceleration for low-dpi devices
 
 The image above shows the default pointer acceleration curve for a speed of
 0.0 at different DPI settings. A device with low DPI has the acceleration
@@ -138,7 +138,7 @@ deceleration factor.
 .. figure:: ptraccel-touchpad.svg
     :align: center
 
-    Pointer acceleration curve for touchpads"
+    Pointer acceleration curve for touchpads
 
 The image above shows the touchpad acceleration profile in comparison to the
 :ref:`ptraccel-linear`. The shape of the curve is identical but vertically squashed.
@@ -171,7 +171,7 @@ consistent behavior across different touchpad devices.
 .. figure:: ptraccel-trackpoint.svg
     :align: center
 
-    Pointer acceleration curves for trackpoints"
+    Pointer acceleration curves for trackpoints
 
 The image above shows the trackpoint acceleration profile for the speed in
 units/ms.

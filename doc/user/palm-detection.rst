@@ -108,7 +108,8 @@ tapping motion, it does not generate an emulated button event. Touch 'D'
 likewise occurs within the exclusion zone but in the bottom half. libinput
 will generate a button event for this touch.
 
-@image html palm-detection.svg
+.. figure:: palm-detection.svg
+    :align: center
 
 .. _trackpoint-disabling:
 
@@ -200,7 +201,8 @@ thumb hanging mostly off the touchpad will have a small surface area.
 libinput has a definitive thumb zone where any touch is considered a resting
 thumb.
 
-@image html thumb-detection.svg
+.. figure:: thumb-detection.svg
+    :align: center
 
 The picture above shows the two detection areas. In the larger (light red)
 area, a touch is labelled as thumb when it exceeds a device-specific

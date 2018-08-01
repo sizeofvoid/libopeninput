@@ -12,7 +12,7 @@ the space bar.
 .. figure:: button-scrolling.svg
     :align: center
 
-    A trackpoint"
+    A trackpoint
 
 libinput always treats the buttons below the space bar as the buttons that
 belong to the trackpoint even on the few laptops where the buttons are not

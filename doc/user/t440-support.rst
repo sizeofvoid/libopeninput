@@ -24,7 +24,7 @@ the respective area:
 .. figure:: top-software-buttons.svg
     :align: center
 
-    Left, right and middle-button click with top software button areas"
+    Left, right and middle-button click with top software button areas
 
 This page only covers the top software buttons, the bottom button behavior
 is covered in :ref:`Clickpad software buttons <clickpad_softbuttons>`.

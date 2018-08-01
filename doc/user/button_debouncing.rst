@@ -48,7 +48,7 @@ correspond to the buttons 'pressed' and 'released' states, respectively.
 .. figure:: button-debouncing-wave-diagram.svg
     :align: center
 
-    Diagram illustrating button debouncing"
+    Diagram illustrating button debouncing
 
 
 Some devices send events in bursts, erroneously triggering the button

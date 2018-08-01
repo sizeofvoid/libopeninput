@@ -5,14 +5,14 @@ Scrolling
 ==============================================================================
 
 libinput supports three different types of scrolling methods:
-:ref:`twofinger_scrolling`, @ref edge_scrolling and @ref button_scrolling. Some
-devices support multiple methods, though only one can be enabled at a time.
-As a general overview:
+:ref:`twofinger_scrolling`, :ref:`edge_scrolling` and
+:ref:`button_scrolling`. Some devices support multiple methods, though only
+one can be enabled at a time. As a general overview:
 
 - touchpad devices with physical buttons below the touchpad support edge and
   two-finger scrolling
-- touchpad devices without physical buttons (:ref:`clickpad_softbuttons`
-  "clickpads") support two-finger scrolling only
+- touchpad devices without physical buttons (:ref:`ClickPads <clickpad_softbuttons>`)
+  support two-finger scrolling only
 - pointing sticks provide on-button scrolling by default
 - mice and other pointing devices support on-button scrolling but it is not
   enabled by default
@@ -50,7 +50,7 @@ vertically or horizontally.
 .. figure:: twofinger-scrolling.svg
     :align: center
 
-    Vertical and horizontal two-finger scrolling"
+    Vertical and horizontal two-finger scrolling
 
 For scrolling to trigger, a built-in distance threshold has to be met but once
 engaged any movement will scroll. In other words, to start scrolling a
@@ -79,7 +79,7 @@ scroll).
 .. figure:: edge-scrolling.svg
     :align: center
 
-    Vertical and horizontal edge scrolling"
+    Vertical and horizontal edge scrolling
 
 Due to the layout of the edges, diagonal scrolling is not possible. The
 behavior of edge scrolling using both edges at the same time is undefined.
@@ -105,7 +105,7 @@ scroll events when the trackstick's middle mouse button is held down.
 .. figure:: button-scrolling.svg
     :align: center
 
-    Button scrolling"
+    Button scrolling
 
 The button may be changed with
 **libinput_device_config_scroll_set_button()** but must be on the same device as

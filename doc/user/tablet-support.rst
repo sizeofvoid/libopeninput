@@ -12,7 +12,7 @@ Apple iPad.
 .. figure:: tablet.svg
     :align: center
 
-    Illustration of a graphics tablet"
+    Illustration of a graphics tablet
 
 .. _tablet-tools:
 
@@ -36,7 +36,7 @@ across multiple kernel devices.
 .. figure:: tablet-interfaces.svg
     :align: center
 
-    Difference between Pad and Tool buttons"
+    Difference between Pad and Tool buttons
 
 Touch events on the tablet integrated into a screen itself are exposed
 through the **LIBINPUT_DEVICE_CAP_TOUCH** capability. Touch events on a
@@ -118,7 +118,7 @@ additionally provide tilt information along the x and y axis.
 .. figure:: tablet-axes.svg
     :align: center
 
-    Illustration of the distance, pressure and tilt axes"
+    Illustration of the distance, pressure and tilt axes
 
 The granularity and precision of the distance and pressure axes varies
 between tablet devices and cannot usually be mapped into a physical unit.
@@ -258,7 +258,7 @@ the caller to ignore these events.
 .. figure:: tablet-out-of-bounds.svg
     :align: center
 
-    Illustration of the out-of-bounds area on a tablet"
+    Illustration of the out-of-bounds area on a tablet
 
 In the image above, the display area is shown in black. The red area around
 the display illustrates the sensor area that generates input events. Events
@@ -321,7 +321,7 @@ point.
 .. figure:: tablet-left-handed.svg
     :align: center
 
-    Tablet axes in right- and left-handed mode"
+    Tablet axes in right- and left-handed mode
 
 Pad buttons are not affected by left-handed mode; the number of each button
 remains the same even when the perceived physical location of the button
@@ -377,7 +377,7 @@ device.
 .. figure:: tablet-intuos-modes.svg
     :align: center
 
-    Modes on an Intuos Pro-like tablet"
+    Modes on an Intuos Pro-like tablet
 
 In the image above, the Intuos Pro-like tablet provides 4 LEDs to indicate
 the currently active modes. The button inside the touch ring cycles through
@@ -392,7 +392,7 @@ and all subsequent events.
 .. figure:: tablet-cintiq24hd-modes.svg
     :align: center
 
-    Modes on an Cintiq 24HD-like tablet"
+    Modes on an Cintiq 24HD-like tablet
 
 In the image above, the Cintiq 24HD-like tablet provides 3 LEDs on each side
 of the tablet to indicate the currently active mode for that group of

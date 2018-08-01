@@ -136,7 +136,8 @@ Model-specific configuration
 ------------------------------------------------------------------------------
 
 As of libinput 1.12, model-specific configuration is stored in the
-:ref:`device-quirks` and not in the hwdb anymore. Please see @ref device-quirks for
+:ref:`device-quirks` and not in the hwdb anymore. Please see
+:ref:`device-quirks` for
 details.
 
 .. _model_specific_configuration_x220fw81:

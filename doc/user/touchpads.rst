@@ -49,7 +49,7 @@ whole, i.e. a user presses down on the touch area and triggers a physical
 click. Clickpads thus only provide a single button, everything else needs to
 be software-emulated. See :ref:`clickpad_softbuttons` for more information.
 
-Clickpads are labelled by the kernel with the @c INPUT_PROP_BUTTONPAD input
+Clickpads are labelled by the kernel with the **INPUT_PROP_BUTTONPAD** input
 property.
 
 .. _touchpads_buttons_forcepads:
@@ -86,9 +86,9 @@ Single-touch touchpads
 Single-finger touchpads can track a single touchpoint. Most single-touch
 touchpads can also detect three fingers on the touchpad, but no positional
 information is provided for those. In libinput, these touches are termed
-"fake touches". The kernel sends @c BTN_TOOL_DOUBLETAP,
-@c BTN_TOOL_TRIPLETAP, @c BTN_TOOL_QUADTAP and @c BTN_TOOL_QUINTTAP events when
-multiple fingers are detected.
+"fake touches". The kernel sends **BTN_TOOL_DOUBLETAP**,
+**BTN_TOOL_TRIPLETAP**, **BTN_TOOL_QUADTAP** and **BTN_TOOL_QUINTTAP**
+events when multiple fingers are detected.
 
 .. _touchpads_touch_mt:
 
@@ -106,10 +106,10 @@ provide an ellipse and the orientation of the ellipse for each touch point.
 Other touchpads provide a pressure value for each touch point (see
 :ref:`touchpads_pressure_handling`).
 
-Note that the kernel sends @c BTN_TOOL_DOUBLETAP,
-@c BTN_TOOL_TRIPLETAP, @c BTN_TOOL_QUADTAP and @c BTN_TOOL_QUINTTAP events for
-all touches for backwards compatibility. libinput ignores these events if
-the touchpad can track touches correctly.
+Note that the kernel sends **BTN_TOOL_DOUBLETAP**,
+**BTN_TOOL_TRIPLETAP**, **BTN_TOOL_QUADTAP** and **BTN_TOOL_QUINTTAP**
+events for all touches for backwards compatibility. libinput ignores these
+events if the touchpad can track touches correctly.
 
 .. _touchpads_touch_partial_mt:
 
@@ -125,8 +125,8 @@ five.
 
 The number of slots may limit which features are available in libinput.
 Any device with two slots can support two-finger scrolling, but
-:ref:`thumb-detection` or @ref palm_detection may be limited if only two slots are
-available.
+:ref:`thumb-detection` or :ref:`palm_detection` may be limited if only two
+slots are available.
 
 .. _touchpads_touch_semi_mt:
 
@@ -144,7 +144,7 @@ Many semi-mt touchpads also have a lower resolution for the second touch, or
 both touches. This may limit some features such as :ref:`gestures` or
 :ref:`scrolling`.
 
-Semi-mt are labelled by the kernel with the @c INPUT_PROP_SEMI_MT input
+Semi-mt are labelled by the kernel with the **INPUT_PROP_SEMI_MT** input
 property.
 
 .. _touchpads_mis:
