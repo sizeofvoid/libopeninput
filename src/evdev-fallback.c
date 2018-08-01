@@ -1213,8 +1213,10 @@ fallback_keyboard_pair_tablet_mode(struct evdev_device *keyboard,
 
 	if (evdev_device_switch_get_state(tablet_mode_switch,
 					  LIBINPUT_SWITCH_TABLET_MODE)
-		    == LIBINPUT_SWITCH_STATE_ON)
+		    == LIBINPUT_SWITCH_STATE_ON) {
+		evdev_log_debug(keyboard, "tablet-mode: suspending device\n");
 		fallback_suspend(dispatch, keyboard);
+	}
 }
 
 static void
