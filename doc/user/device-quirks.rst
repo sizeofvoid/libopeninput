@@ -116,8 +116,8 @@ List of supported device quirks
 ------------------------------------------------------------------------------
 
 This list is a guide for developers to ease the process of submitting
-patches upstream. This section shows device quirks supported in git
-commit @includedoc git-version.dox
+patches upstream. This section shows device quirks supported in
+|git_version|.
 
 .. warning:: Quirks are internal API and may change at any time for any reason.
              No guarantee is given that any quirk below works on your version of

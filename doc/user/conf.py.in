@@ -12,10 +12,11 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath('@BUILDDIR@'))
 
 # -- Project information -----------------------------------------------------
 
@@ -174,3 +175,23 @@ extlinks = { 'commit' :
 		('https://gitlab.freedesktop.org/libinput/libinput/commit/%s',
 			'git commit ')
 }
+
+# -- git version hack -------------------------------------------------
+#
+# meson doesn't take configuration_data() for vcs_tag, so we cannot replace
+# two substrings in the same file.
+#
+# sphinx cannot do ..include:: without linebreaks, so in-line replacements
+# are a no-go.
+#
+# Work around this by generating a mini python module in meson through
+# vcs_tag, then use that to generate the replacements in rst_prolog.
+
+import git_version
+
+rst_prolog = """
+   .. |git_version| replace:: :commit:`{}`
+   .. |git_version_full| replace:: :commit:`{}`
+
+""".format(git_version.get_git_version(),
+	   git_version.get_git_version_full)
