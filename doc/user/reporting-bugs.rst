@@ -7,9 +7,9 @@ Reporting bugs
 A new bug can be filed here:
 https://gitlab.freedesktop.org/libinput/libinput/issues/new
 
-.. note:: libinput has lots of users but very few developers. It is in your own
-      interested to follow the steps here precisely to ensure your bug can be
-      dealt with efficiently.
+.. hint:: libinput has lots of users but very few developers. It is in your
+	   own interest to follow the steps here precisely to ensure your bug can be
+	   dealt with efficiently.
 
 When reporting bugs against libinput, you will need:
 
@@ -315,7 +315,7 @@ Your distribution may pick a patch up immediately and ship the fix
 even before the next stable branch update is released. For example, Fedora
 does this frequently.
 
-.. note:: If a bug needs to be fixed urgently, file a bug in your
+.. hint:: If a bug needs to be fixed urgently, file a bug in your
           distribution's bug tracker.
 
 Patches on git master will end up in the next libinput release. Once your

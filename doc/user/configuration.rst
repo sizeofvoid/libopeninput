@@ -6,7 +6,7 @@ Configuration options
 
 Below is a list of configurable options exposed to the users.
 
-.. note:: Not all configuration options are available on all devices. Use
+.. hint:: Not all configuration options are available on all devices. Use
 	  :ref:`libinput list-devices <libinput-list-devices>` to show the
 	  configuration options for local devices.
 
