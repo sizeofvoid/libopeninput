@@ -43,7 +43,8 @@ https://gitlab.freedesktop.org/libinput/libinput/issues/
 Where possible, please provide the `libinput record` output
 of the input device and/or the event sequence in question.
 
-See @ref reporting_bugs for more info.
+See https://wayland.freedesktop.org/libinput/doc/latest/reporting-bugs.html
+for more info.
 
 Documentation
 -------------
