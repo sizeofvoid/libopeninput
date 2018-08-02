@@ -1886,6 +1886,96 @@ START_TEST(touchpad_3fg_tap_btntool_pointerjump)
 }
 END_TEST
 
+START_TEST(touchpad_3fg_tap_slot_release_btntool)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	/* Synaptics touchpads sometimes end one touch point after
+	 * setting BTN_TOOL_TRIPLETAP.
+	 * https://gitlab.freedesktop.org/libinput/libinput/issues/99
+	 */
+	litest_drain_events(li);
+	litest_enable_tap(dev->libinput_device);
+
+	/* touch 1 down */
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
+	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, 1);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 2200);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3200);
+	litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 78);
+	litest_event(dev, EV_ABS, ABS_X, 2200);
+	litest_event(dev, EV_ABS, ABS_Y, 3200);
+	litest_event(dev, EV_ABS, ABS_PRESSURE, 78);
+	litest_event(dev, EV_KEY, BTN_TOOL_FINGER, 1);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+	msleep(2);
+
+	/* touch 2 and TRIPLETAP down */
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 1);
+	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, 1);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 2500);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3800);
+	litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 73);
+	litest_event(dev, EV_KEY, BTN_TOOL_FINGER, 0);
+	litest_event(dev, EV_KEY, BTN_TOOL_TRIPLETAP, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+	msleep(2);
+
+	/* touch 2 up, coordinate jump + ends slot 1, TRIPLETAP stays */
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 2500);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3800);
+	litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 78);
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 1);
+	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, -1);
+	litest_event(dev, EV_ABS, ABS_X, 2500);
+	litest_event(dev, EV_ABS, ABS_Y, 3800);
+	litest_event(dev, EV_ABS, ABS_PRESSURE, 78);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+	msleep(2);
+
+	/* slot 2 reactivated
+	 */
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 2500);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3800);
+	litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 78);
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 1);
+	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, 3);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 3500);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3500);
+	litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 73);
+	litest_event(dev, EV_ABS, ABS_X, 2200);
+	litest_event(dev, EV_ABS, ABS_Y, 3200);
+	litest_event(dev, EV_ABS, ABS_PRESSURE, 78);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	/* now end all three */
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
+	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, -1);
+	litest_event(dev, EV_ABS, ABS_MT_SLOT, 1);
+	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, -1);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 0);
+	litest_event(dev, EV_KEY, BTN_TOOL_TRIPLETAP, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_timeout_tap();
+	libinput_dispatch(li);
+
+	litest_assert_button_event(li, BTN_MIDDLE,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_MIDDLE,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(touchpad_4fg_tap)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3454,6 +3544,8 @@ TEST_COLLECTION(touchpad_tap)
 	litest_add("tap-3fg:3fg", touchpad_3fg_tap_hover_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("tap-3fg:3fg", touchpad_3fg_tap_pressure_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add_for_device("tap-3fg:3fg", touchpad_3fg_tap_btntool_pointerjump, LITEST_SYNAPTICS_TOPBUTTONPAD);
+	litest_add_for_device("tap-3fg:3fg", touchpad_3fg_tap_slot_release_btntool, LITEST_SYNAPTICS_TOPBUTTONPAD);
+
 	litest_add("tap-4fg:4fg", touchpad_4fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add("tap-4fg:4fg", touchpad_4fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add("tap-5fg:5fg", touchpad_5fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);

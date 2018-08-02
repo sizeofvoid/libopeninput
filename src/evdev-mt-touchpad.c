@@ -554,7 +554,7 @@ tp_restore_synaptics_touches(struct tp_dispatch *tp,
 		return;
 
 	if (tp->nfingers_down >= nfake_touches ||
-	    tp->nfingers_down == tp->num_slots)
+	    (tp->nfingers_down == tp->num_slots && nfake_touches == tp->num_slots))
 		return;
 
 	/* Synaptics devices may end touch 2 on BTN_TOOL_TRIPLETAP
