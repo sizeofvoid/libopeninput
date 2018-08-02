@@ -838,35 +838,6 @@ START_TEST(wheel_click_count_parser)
 }
 END_TEST
 
-struct parser_test_float {
-	char *tag;
-	double expected_value;
-};
-
-START_TEST(trackpoint_accel_parser)
-{
-	struct parser_test_float tests[] = {
-		{ "0.5", 0.5 },
-		{ "1.0", 1.0 },
-		{ "2.0", 2.0 },
-		{ "fail1.0", 0.0 },
-		{ "1.0fail", 0.0 },
-		{ "0,5", 0.0 },
-		{ NULL, 0.0 }
-	};
-	int i;
-	double accel;
-
-	for (i = 0; tests[i].tag != NULL; i++) {
-		accel = parse_trackpoint_accel_property(tests[i].tag);
-		ck_assert(accel == tests[i].expected_value);
-	}
-
-	accel = parse_trackpoint_accel_property(NULL);
-	ck_assert_double_eq(accel, 0.0);
-}
-END_TEST
-
 struct parser_test_dimension {
 	char *tag;
 	bool success;
@@ -1048,33 +1019,6 @@ START_TEST(range_prop_parser)
 
 	success = parse_range_property(NULL, NULL, NULL);
 	ck_assert(success == false);
-}
-END_TEST
-
-START_TEST(palm_pressure_parser)
-{
-	struct parser_test tests[] = {
-		{ "1", 1 },
-		{ "10", 10 },
-		{ "255", 255 },
-		{ "360", 360 },
-
-		{ "-12", 0 },
-		{ "0", 0 },
-		{ "-0", 0 },
-		{ "a", 0 },
-		{ "10a", 0 },
-		{ "10-", 0 },
-		{ "sadfasfd", 0 },
-		{ NULL, 0 }
-	};
-
-	int i, angle;
-
-	for (i = 0; tests[i].tag != NULL; i++) {
-		angle = parse_palm_pressure_property(tests[i].tag);
-		ck_assert_int_eq(angle, tests[i].expected_value);
-	}
 }
 END_TEST
 
@@ -1798,12 +1742,10 @@ TEST_COLLECTION(misc)
 	litest_add_deviceless("misc:parser", dpi_parser);
 	litest_add_deviceless("misc:parser", wheel_click_parser);
 	litest_add_deviceless("misc:parser", wheel_click_count_parser);
-	litest_add_deviceless("misc:parser", trackpoint_accel_parser);
 	litest_add_deviceless("misc:parser", dimension_prop_parser);
 	litest_add_deviceless("misc:parser", reliability_prop_parser);
 	litest_add_deviceless("misc:parser", calibration_prop_parser);
 	litest_add_deviceless("misc:parser", range_prop_parser);
-	litest_add_deviceless("misc:parser", palm_pressure_parser);
 	litest_add_deviceless("misc:parser", safe_atoi_test);
 	litest_add_deviceless("misc:parser", safe_atoi_base_16_test);
 	litest_add_deviceless("misc:parser", safe_atoi_base_8_test);
