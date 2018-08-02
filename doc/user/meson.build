@@ -21,6 +21,8 @@ sphinx_conf_py = configure_file(input : 'conf.py.in',
 				install : false)
 
 src_extra = [
+	'.htaccess',
+	'404.html',
 	# dot drawings
 	'dot/seats-sketch.gv',
 	'dot/seats-sketch-libinput.gv',
