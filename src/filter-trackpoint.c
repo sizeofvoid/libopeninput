@@ -185,6 +185,7 @@ struct motion_filter *
 create_pointer_accelerator_filter_trackpoint(double multiplier)
 {
 	struct trackpoint_accelerator *filter;
+	struct pointer_delta_smoothener *smoothener;
 
 	assert(multiplier > 0.0);
 
@@ -209,6 +210,11 @@ create_pointer_accelerator_filter_trackpoint(double multiplier)
 	trackers_init(&filter->trackers);
 
 	filter->base.interface = &accelerator_interface_trackpoint;
+
+	smoothener = zalloc(sizeof(*smoothener));
+	smoothener->threshold = ms2us(10);
+	smoothener->value = ms2us(10);
+	filter->trackers.smoothener = smoothener;
 
 	return &filter->base;
 }
