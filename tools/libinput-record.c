@@ -215,8 +215,6 @@ print_evdev_event(struct record_context *ctx, struct input_event *ev)
 		unsigned long time, dt;
 
 		time = us2ms(tv2us(&ev->time));
-		if (last_ms == 0)
-			last_ms = time;
 		dt = time - last_ms;
 		last_ms = time;
 
