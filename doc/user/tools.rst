@@ -21,6 +21,8 @@ The most common tools used are:
   see :ref:`here <libinput-record>`
 - ``libinput measure``: measure properties on a kernel device,
   see :ref:`here <libinput-measure>`
+- ``libinput quirks``: show quirks assigned to a device, see
+  :ref:`here <libinput-quirks>`
 
 Most the tools must be run as root to have access to the kernel's
 ``/dev/input/event*`` device files.
@@ -299,3 +301,17 @@ measure specific properties on the device. These tools generally measure one
 thing and one thing only and their usage is highly specific to the tool.
 Please see the **libinput-measure(1)** man page for information about what
 tools are available and the man page for each respective tool.
+
+.. _libinput-quirks:
+
+------------------------------------------------------------------------------
+Listing quirks assigned to a device
+------------------------------------------------------------------------------
+
+The ``libinput quirks`` tool can show quirks applied for any given device. ::
+
+     $ libinput quirks list /dev/input/event0
+     AttrLidSwitchReliability=reliable
+
+If the tool's output is empty, no quirk is applied. See :ref:`device-quirks`
+for more information.
