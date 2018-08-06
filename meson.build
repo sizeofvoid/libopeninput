@@ -730,7 +730,7 @@ if get_option('tests')
 		'test/litest-device-ms-surface-cover.c',
 		'test/litest-device-protocol-a-touch-screen.c',
 		'test/litest-device-qemu-usb-tablet.c',
-		'test/litest-device-synaptics.c',
+		'test/litest-device-synaptics-x220.c',
 		'test/litest-device-synaptics-hover.c',
 		'test/litest-device-synaptics-i2c.c',
 		'test/litest-device-synaptics-rmi4.c',
