@@ -70,10 +70,10 @@ This tool takes an action as first argument, the most common invocation is
 devices. ::
 
      $ libinput quirks list /dev/input/event19
-     Device has no quirks defined
      $ libinput quirks list /dev/input/event0
-     AttrLidSwitchReliability
+     AttrLidSwitchReliability=reliable
 
+The device `event19` does not have any quirks assigned.
 
 When called with the ``--verbose`` argument, ``libinput quirks list`` prints
 information about all files and its attempts to match the device: ::
