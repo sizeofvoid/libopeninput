@@ -176,13 +176,12 @@ src_sphinx = custom_target('sphinx-sources',
 			   build_by_default: true)
 
 
-# drop '-a' once we are happy with all this
 # do not use -j, it breaks on Ubuntu
 sphinx_output_dir = 'Documentation'
 custom_target('sphinx',
 	      input : [ sphinx_conf_py, git_version_page ] + src_rst + src_extra + dst_404s,
 	      output : [ sphinx_output_dir ],
-	      command : [ sphinx, '-q', '-b', 'html', '-a',
+	      command : [ sphinx, '-q', '-b', 'html',
 			  meson.current_build_dir(), sphinx_output_dir],
 	      depends: [ src_sphinx ],
 	      build_by_default : true)
