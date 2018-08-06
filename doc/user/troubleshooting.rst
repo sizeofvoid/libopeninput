@@ -9,3 +9,4 @@ Troubleshooting
 
    tools.rst
    device-quirks.rst
+   touchpad-pressure-debugging.rst
