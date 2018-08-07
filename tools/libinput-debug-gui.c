@@ -64,6 +64,11 @@ struct window {
 	/* sprite position */
 	double x, y;
 
+	/* these are for the delta coordinates, but they're not
+	 * deltas, they are converted into abs positions */
+	size_t ndeltas;
+	struct point deltas[64];
+
 	/* abs position */
 	int absx, absy;
 
@@ -267,6 +272,26 @@ draw_tablet(struct window *w, cairo_t *cr)
 		  0, 2 * M_PI);
 	cairo_fill(cr);
 	cairo_restore(cr);
+
+	/* pointer deltas */
+	mask = ARRAY_LENGTH(w->deltas);
+	first = max(w->ndeltas + 1, mask) - mask;
+	last = w->ndeltas;
+
+	cairo_save(cr);
+	cairo_set_source_rgb(cr, .8, .5, .2);
+
+	x = w->deltas[first % mask].x;
+	y = w->deltas[first % mask].y;
+	cairo_move_to(cr, x, y);
+
+	for (i = first + 1; i < last; i++) {
+		x = w->deltas[i % mask].x;
+		y = w->deltas[i % mask].y;
+		cairo_line_to(cr, x, y);
+	}
+
+	cairo_stroke(cr);
 
 	/* tablet deltas */
 	mask = ARRAY_LENGTH(w->tool.deltas);
@@ -541,11 +566,22 @@ handle_event_motion(struct libinput_event *ev, struct window *w)
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
 	double dx = libinput_event_pointer_get_dx(p),
 	       dy = libinput_event_pointer_get_dy(p);
+	struct point point;
+	const int mask = ARRAY_LENGTH(w->deltas);
+	size_t idx;
 
 	w->x += dx;
 	w->y += dy;
 	w->x = clip(w->x, 0.0, w->width);
 	w->y = clip(w->y, 0.0, w->height);
+
+	idx = w->ndeltas % mask;
+	point = w->deltas[idx];
+	idx = (w->ndeltas + 1) % mask;
+	point.x += libinput_event_pointer_get_dx_unaccelerated(p);
+	point.y += libinput_event_pointer_get_dy_unaccelerated(p);
+	w->deltas[idx] = point;
+	w->ndeltas++;
 }
 
 static void

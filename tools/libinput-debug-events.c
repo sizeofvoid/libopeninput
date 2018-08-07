@@ -316,10 +316,12 @@ print_motion_event(struct libinput_event *ev)
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
 	double x = libinput_event_pointer_get_dx(p);
 	double y = libinput_event_pointer_get_dy(p);
+	double ux = libinput_event_pointer_get_dx_unaccelerated(p);
+	double uy = libinput_event_pointer_get_dy_unaccelerated(p);
 
 	print_event_time(libinput_event_pointer_get_time(p));
 
-	printq("%6.2f/%6.2f\n", x, y);
+	printq("%6.2f/%6.2f (%+6.2f/%+6.2f)\n", x, y, ux, uy);
 }
 
 static void
