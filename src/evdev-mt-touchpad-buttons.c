@@ -47,7 +47,8 @@
  */
 
 static inline const char*
-button_state_to_str(enum button_state state) {
+button_state_to_str(enum button_state state)
+{
 	switch(state) {
 	CASE_RETURN_STRING(BUTTON_STATE_NONE);
 	CASE_RETURN_STRING(BUTTON_STATE_AREA);
@@ -61,7 +62,8 @@ button_state_to_str(enum button_state state) {
 }
 
 static inline const char*
-button_event_to_str(enum button_event event) {
+button_event_to_str(enum button_event event)
+{
 	switch(event) {
 	CASE_RETURN_STRING(BUTTON_EVENT_IN_BOTTOM_R);
 	CASE_RETURN_STRING(BUTTON_EVENT_IN_BOTTOM_M);
