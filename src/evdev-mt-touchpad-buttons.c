@@ -173,25 +173,25 @@ tp_button_set_state(struct tp_dispatch *tp,
 
 	switch (t->button.state) {
 	case BUTTON_STATE_NONE:
-		t->button.curr = 0;
+		t->button.current = 0;
 		break;
 	case BUTTON_STATE_AREA:
-		t->button.curr = BUTTON_EVENT_IN_AREA;
+		t->button.current = BUTTON_EVENT_IN_AREA;
 		break;
 	case BUTTON_STATE_BOTTOM:
-		t->button.curr = event;
+		t->button.current = event;
 		break;
 	case BUTTON_STATE_TOP:
 		break;
 	case BUTTON_STATE_TOP_NEW:
-		t->button.curr = event;
+		t->button.current = event;
 		tp_button_set_enter_timer(tp, t);
 		break;
 	case BUTTON_STATE_TOP_TO_IGNORE:
 		tp_button_set_leave_timer(tp, t);
 		break;
 	case BUTTON_STATE_IGNORE:
-		t->button.curr = 0;
+		t->button.current = 0;
 		break;
 	}
 }
@@ -258,7 +258,7 @@ tp_button_bottom_handle_event(struct tp_dispatch *tp,
 	case BUTTON_EVENT_IN_BOTTOM_R:
 	case BUTTON_EVENT_IN_BOTTOM_M:
 	case BUTTON_EVENT_IN_BOTTOM_L:
-		if (event != t->button.curr)
+		if (event != t->button.current)
 			tp_button_set_state(tp,
 					    t,
 					    BUTTON_STATE_BOTTOM,
@@ -294,7 +294,7 @@ tp_button_top_handle_event(struct tp_dispatch *tp,
 	case BUTTON_EVENT_IN_TOP_R:
 	case BUTTON_EVENT_IN_TOP_M:
 	case BUTTON_EVENT_IN_TOP_L:
-		if (event != t->button.curr)
+		if (event != t->button.current)
 			tp_button_set_state(tp,
 					    t,
 					    BUTTON_STATE_TOP_NEW,
@@ -327,7 +327,7 @@ tp_button_top_new_handle_event(struct tp_dispatch *tp,
 	case BUTTON_EVENT_IN_TOP_R:
 	case BUTTON_EVENT_IN_TOP_M:
 	case BUTTON_EVENT_IN_TOP_L:
-		if (event != t->button.curr)
+		if (event != t->button.current)
 			tp_button_set_state(tp,
 					    t,
 					    BUTTON_STATE_TOP_NEW,
@@ -359,7 +359,7 @@ tp_button_top_to_ignore_handle_event(struct tp_dispatch *tp,
 	case BUTTON_EVENT_IN_TOP_R:
 	case BUTTON_EVENT_IN_TOP_M:
 	case BUTTON_EVENT_IN_TOP_L:
-		if (event == t->button.curr)
+		if (event == t->button.current)
 			tp_button_set_state(tp,
 					    t,
 					    BUTTON_STATE_TOP,
@@ -405,7 +405,7 @@ tp_button_ignore_handle_event(struct tp_dispatch *tp,
 		tp_button_set_state(tp, t, BUTTON_STATE_NONE, event);
 		break;
 	case BUTTON_EVENT_PRESS:
-		t->button.curr = BUTTON_EVENT_IN_AREA;
+		t->button.current = BUTTON_EVENT_IN_AREA;
 		break;
 	case BUTTON_EVENT_RELEASE:
 		break;
@@ -1119,7 +1119,7 @@ tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 		uint32_t area = 0;
 
 		tp_for_each_touch(tp, t) {
-			switch (t->button.curr) {
+			switch (t->button.current) {
 			case BUTTON_EVENT_IN_AREA:
 				area |= AREA;
 				break;

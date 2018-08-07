@@ -194,7 +194,7 @@ struct tp_touch {
 	struct {
 		enum button_state state;
 		/* We use button_event here so we can use == on events */
-		enum button_event curr;
+		enum button_event current;
 		struct libinput_timer timer;
 	} button;
 
