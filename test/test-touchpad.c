@@ -1008,9 +1008,15 @@ START_TEST(touchpad_edge_scroll_buttonareas_click_stops_scroll)
 
 	libinput_event_destroy(event);
 
-	/* within button areas -> no movement */
+	/* move within button areas but we cancelled the scroll so now we
+	 * get pointer motion events when moving.
+	 *
+	 * This is not ideal behavior, but the use-case of horizontal
+	 * edge scrolling, click, then scrolling without lifting the finger
+	 * is so small we'll let it pass.
+	 */
 	litest_touch_move_to(dev, 0, 70, 95, 90, 95, 10, 0);
-	litest_assert_empty_queue(li);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
 	litest_button_click(dev, BTN_LEFT, false);
 

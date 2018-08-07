@@ -457,6 +457,35 @@ tp_button_handle_event(struct tp_dispatch *tp,
 				button_state_to_str(t->button.state));
 }
 
+static inline void
+tp_button_check_for_movement(struct tp_dispatch *tp, struct tp_touch *t)
+{
+	struct device_coords delta;
+	struct phys_coords mm;
+	double vector_length;
+
+	switch (t->button.state) {
+	case BUTTON_STATE_NONE:
+	case BUTTON_STATE_AREA:
+	case BUTTON_STATE_TOP:
+	case BUTTON_STATE_TOP_NEW:
+	case BUTTON_STATE_TOP_TO_IGNORE:
+	case BUTTON_STATE_IGNORE:
+		/* No point calculating if we're not going to use it */
+		return;
+	case BUTTON_STATE_BOTTOM:
+		break;
+	}
+
+	delta.x = t->point.x - t->button.initial.x;
+	delta.y = t->point.y - t->button.initial.y;
+	mm = evdev_device_unit_delta_to_mm(tp->device, &delta);
+	vector_length = hypot(mm.x, mm.y);
+
+	if (vector_length > 5.0 /* mm */)
+		t->button.has_moved = true;
+}
+
 void
 tp_button_handle_state(struct tp_dispatch *tp, uint64_t time)
 {
@@ -466,25 +495,37 @@ tp_button_handle_state(struct tp_dispatch *tp, uint64_t time)
 		if (t->state == TOUCH_NONE || t->state == TOUCH_HOVERING)
 			continue;
 
+		if (t->state == TOUCH_BEGIN) {
+			t->button.initial = t->point;
+			t->button.has_moved = false;
+		}
+
 		if (t->state == TOUCH_END) {
 			tp_button_handle_event(tp, t, BUTTON_EVENT_UP, time);
 		} else if (t->dirty) {
 			enum button_event event;
 
-			if (is_inside_bottom_right_area(tp, t))
-				event = BUTTON_EVENT_IN_BOTTOM_R;
-			else if (is_inside_bottom_middle_area(tp, t))
-				event = BUTTON_EVENT_IN_BOTTOM_M;
-			else if (is_inside_bottom_left_area(tp, t))
-				event = BUTTON_EVENT_IN_BOTTOM_L;
-			else if (is_inside_top_right_area(tp, t))
-				event = BUTTON_EVENT_IN_TOP_R;
-			else if (is_inside_top_middle_area(tp, t))
-				event = BUTTON_EVENT_IN_TOP_M;
-			else if (is_inside_top_left_area(tp, t))
-				event = BUTTON_EVENT_IN_TOP_L;
-			else
+			if (is_inside_bottom_button_area(tp, t)) {
+				if (is_inside_bottom_right_area(tp, t))
+					event = BUTTON_EVENT_IN_BOTTOM_R;
+				else if (is_inside_bottom_middle_area(tp, t))
+					event = BUTTON_EVENT_IN_BOTTOM_M;
+				else if (is_inside_bottom_left_area(tp, t))
+					event = BUTTON_EVENT_IN_BOTTOM_L;
+
+				/* In the bottom area we check for movement
+				 * within the area. Top area - meh */
+				tp_button_check_for_movement(tp, t);
+			} else if (is_inside_top_button_area(tp, t)) {
+				if (is_inside_top_right_area(tp, t))
+					event = BUTTON_EVENT_IN_TOP_R;
+				else if (is_inside_top_middle_area(tp, t))
+					event = BUTTON_EVENT_IN_TOP_M;
+				else if (is_inside_top_left_area(tp, t))
+					event = BUTTON_EVENT_IN_TOP_L;
+			} else {
 				event = BUTTON_EVENT_IN_AREA;
+			}
 
 			tp_button_handle_event(tp, t, event, time);
 		}
@@ -1211,7 +1252,7 @@ bool
 tp_button_touch_active(const struct tp_dispatch *tp,
 		       const struct tp_touch *t)
 {
-	return t->button.state == BUTTON_STATE_AREA;
+	return t->button.state == BUTTON_STATE_AREA || t->button.has_moved;
 }
 
 bool

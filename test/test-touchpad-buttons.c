@@ -1422,6 +1422,8 @@ START_TEST(clickpad_softbutton_left_to_right)
 
 	litest_touch_down(dev, 0, 20, 90);
 	litest_touch_move_to(dev, 0, 20, 90, 90, 90, 10, 0);
+	litest_drain_events(li);
+
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
@@ -1456,6 +1458,8 @@ START_TEST(clickpad_softbutton_right_to_left)
 
 	litest_touch_down(dev, 0, 90, 90);
 	litest_touch_move_to(dev, 0, 90, 90, 20, 90, 10, 0);
+	litest_drain_events(li);
+
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 

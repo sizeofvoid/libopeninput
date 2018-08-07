@@ -196,6 +196,8 @@ struct tp_touch {
 		/* We use button_event here so we can use == on events */
 		enum button_event current;
 		struct libinput_timer timer;
+		struct device_coords initial;
+		bool has_moved; /* has moved more than threshold */
 	} button;
 
 	struct {
