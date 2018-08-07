@@ -59,6 +59,10 @@ movements will translate into tiny scroll movements.
 Scrolling in both directions at once is possible by meeting the required
 distance thresholds to enable each direction separately.
 
+When a scroll gesture remains close to perfectly straight, it will be held to
+exact 90-degree angles; but if the gesture moves diagonally, it is free to
+scroll in any direction.
+
 Two-finger scrolling requires the touchpad to track both touch points with
 reasonable precision. Unfortunately, some so-called "semi-mt" touchpads can
 only track the bounding box of the two fingers rather than the actual
