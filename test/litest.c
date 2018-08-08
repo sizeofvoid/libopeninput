@@ -103,175 +103,53 @@ static inline char *litest_install_quirks(struct list *created_files_list);
 #define litest_vlog(...) { /* __VA_ARGS__ */ }
 #endif
 
-#if HAVE_LIBUNWIND
-#define UNW_LOCAL_ONLY
-#include <libunwind.h>
-#include <dlfcn.h>
-
-static char cwd[PATH_MAX];
-
-static bool
-litest_backtrace_get_lineno(const char *executable,
-			    unw_word_t addr,
-			    char *file_return,
-			    int *line_return)
-{
-#if HAVE_ADDR2LINE
-	FILE* f;
-	char buffer[PATH_MAX];
-	char *s;
-	unsigned int i;
-
-	if (!cwd[0]) {
-		if (getcwd(cwd, sizeof(cwd)) == NULL)
-			cwd[0] = 0; /* contents otherwise undefined. */
-	}
-
-	sprintf (buffer,
-		 ADDR2LINE " -C -e %s -i %lx",
-		 executable,
-		 (unsigned long) addr);
-
-	f = popen(buffer, "r");
-	if (f == NULL) {
-		litest_log("Failed to execute: %s\n", buffer);
-		return false;
-	}
-
-	buffer[0] = '?';
-	if (fgets(buffer, sizeof(buffer), f) == NULL) {
-		pclose(f);
-		return false;
-	}
-	pclose(f);
-
-	if (buffer[0] == '?')
-		return false;
-
-	s = strrchr(buffer, ':');
-	if (!s)
-		return false;
-
-	*s = '\0';
-	s++;
-	sscanf(s, "%d", line_return);
-
-	/* now strip cwd from buffer */
-	s = buffer;
-	i = 0;
-	while(i < strlen(cwd) && *s != '\0' && cwd[i] == *s) {
-		*s = '\0';
-		s++;
-		i++;
-	}
-
-	if (i > 0)
-		*(--s) = '.';
-	strcpy(file_return, s);
-
-	return true;
-#else /* HAVE_ADDR2LINE */
-	return false;
-#endif
-}
-
 static void
 litest_backtrace(void)
 {
-	unw_cursor_t cursor;
-	unw_context_t context;
-	unw_word_t off;
-	unw_proc_info_t pip;
-	int ret;
-	char procname[256];
-	Dl_info dlinfo;
+#if HAVE_GSTACK
+	pid_t parent, child;
+	int pipefd[2];
 
-	pip.unwind_info = NULL;
-	ret = unw_getcontext(&context);
-	if (ret) {
-		litest_log("unw_getcontext failed: %s [%d]\n",
-			   unw_strerror(ret),
-			   ret);
+	if (pipe(pipefd) == -1)
 		return;
+
+	parent = getpid();
+	child = fork();
+
+	if (child == 0) {
+		char pid[8];
+
+		close(pipefd[0]);
+		dup2(pipefd[1], STDOUT_FILENO);
+
+		sprintf(pid, "%d", parent);
+
+		execlp("gstack", "gstack", pid, NULL);
+		exit(errno);
 	}
 
-	ret = unw_init_local(&cursor, &context);
-	if (ret) {
-		litest_log("unw_init_local failed: %s [%d]\n",
-			   unw_strerror(ret),
-			   ret);
-		return;
+	/* parent */
+	char buf[1024];
+	int status, nread;
+
+	close(pipefd[1]);
+	waitpid(child, &status, 0);
+
+	status = WEXITSTATUS(status);
+	if (status != 0) {
+		litest_log("ERROR: gstack failed, no backtrace available: %s\n",
+			   strerror(status));
+	} else {
+		litest_log("\nBacktrace:\n");
+		while ((nread = read(pipefd[0], buf, sizeof(buf) - 1)) > 0) {
+			buf[nread] = '\0';
+			litest_log("%s", buf);
+		}
+		litest_log("\n");
 	}
-
-	litest_log("\nBacktrace:\n");
-	ret = unw_step(&cursor);
-	while (ret > 0) {
-		char file[PATH_MAX];
-		int line;
-		bool have_lineno = false;
-		const char *filename = "?";
-		int i = 0;
-
-		ret = unw_get_proc_info(&cursor, &pip);
-		if (ret) {
-			litest_log("unw_get_proc_info failed: %s [%d]\n",
-				   unw_strerror(ret),
-				   ret);
-			break;
-		}
-
-		ret = unw_get_proc_name(&cursor, procname, 256, &off);
-		if (ret && ret != -UNW_ENOMEM) {
-			if (ret != -UNW_EUNSPEC)
-				litest_log("unw_get_proc_name failed: %s [%d]\n",
-					   unw_strerror(ret),
-					   ret);
-			procname[0] = '?';
-			procname[1] = 0;
-		}
-
-		if (dladdr((void *)(pip.start_ip + off), &dlinfo) &&
-		    dlinfo.dli_fname &&
-		    *dlinfo.dli_fname) {
-			filename = dlinfo.dli_fname;
-			have_lineno = litest_backtrace_get_lineno(filename,
-								  (pip.start_ip + off),
-								  file,
-								  &line);
-		}
-
-		if (have_lineno) {
-			litest_log("%d: %s() (%s:%d)\n",
-				   i,
-				   procname,
-				   file,
-				   line);
-		} else  {
-			litest_log("%d: %s (%s%s+%#x) [%p]\n",
-				   i,
-				   filename,
-				   procname,
-				   ret == -UNW_ENOMEM ? "..." : "",
-				   (int)off,
-				   (void *)(pip.start_ip + off));
-		}
-
-		i++;
-		ret = unw_step(&cursor);
-		if (ret < 0)
-			litest_log("unw_step failed: %s [%d]\n",
-				   unw_strerror(ret),
-				   ret);
-	}
-	litest_log("\n");
-}
-#else /* HAVE_LIBUNWIND */
-static inline void
-litest_backtrace(void)
-{
-	/* thou shall install libunwind */
-}
+	close(pipefd[0]);
 #endif
+}
 
 LIBINPUT_ATTRIBUTE_PRINTF(5, 6)
 __attribute__((noreturn))

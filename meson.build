@@ -643,18 +643,12 @@ executable('test-build-cxx',
 if get_option('tests')
 	dep_check = dependency('check', version : '>= 0.9.10')
 	valgrind = find_program('valgrind')
-	addr2line = find_program('addr2line')
-
-	if addr2line.found()
-		config_h.set('HAVE_ADDR2LINE', '1')
-		config_h.set_quoted('ADDR2LINE', addr2line.path())
-	endif
 
 	leftover_rules = find_program('test/check-leftover-udev-rules.sh')
 	test('leftover-rules', leftover_rules, is_parallel : false)
 
-	dep_libunwind = dependency('libunwind', required : false)
-	config_h.set10('HAVE_LIBUNWIND', dep_libunwind.found())
+	gstack = find_program('gstack', required : false)
+	config_h.set10('HAVE_GSTACK', gstack.found())
 
 	# for inhibit support during test run
 	dep_libsystemd = dependency('libsystemd', version : '>= 221', required : false)
@@ -748,7 +742,6 @@ if get_option('tests')
 	deps_litest = [
 		dep_libinput,
 		dep_check,
-		dep_libunwind,
 		dep_udev,
 		dep_libevdev,
 		dep_dl,
