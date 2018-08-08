@@ -86,7 +86,7 @@ foreach s404 : src_404s
 	endif
 endforeach
 
-src_extra = [
+src_rst = files(
 	# dot drawings
 	'dot/seats-sketch.gv',
 	'dot/seats-sketch-libinput.gv',
@@ -127,9 +127,7 @@ src_extra = [
 	'svg/touchscreen-gestures.svg',
 	'svg/trackpoint-delta-illustration.svg',
 	'svg/twofinger-scrolling.svg',
-]
-
-src_rst = files(
+	# rst files
 	'absolute-axes.rst',
 	'absolute-coordinate-ranges.rst',
 	'architecture.rst',
@@ -169,19 +167,28 @@ src_rst = files(
 	'configuration.rst',
 )
 
-src_sphinx = custom_target('sphinx-sources',
-			   input : [src_rst, src_extra],
-			   output : '.',
-			   command : [prg_install, '-t', '@OUTDIR@', '@INPUT@'],
-			   build_by_default: true)
+config_noop = configuration_data()
+# Set a dummy replacement to silence meson warnings:
+# meson.build:487: WARNING: Got an empty configuration_data() object and
+# 		   found no substitutions in the input file 'foo'. If you
+# 		   want to copy a file to the build dir, use the 'copy:'
+# 		   keyword argument added in 0.47.0
+config_noop.set('dummy', 'dummy')
+src_sphinx = []
+foreach f : src_rst
+	sf = configure_file(input: f,
+			    output: '@PLAINNAME@',
+			    configuration : config_noop,
+			    install : false)
+	src_sphinx += [ sf ]
+endforeach
 
 
 # do not use -j, it breaks on Ubuntu
 sphinx_output_dir = 'Documentation'
 custom_target('sphinx',
-	      input : [ sphinx_conf_py, git_version_page ] + src_rst + src_extra + dst_404s,
+	      input : [ sphinx_conf_py, git_version_page ] + src_sphinx + dst_404s,
 	      output : [ sphinx_output_dir ],
 	      command : [ sphinx, '-q', '-b', 'html',
 			  meson.current_build_dir(), sphinx_output_dir],
-	      depends: [ src_sphinx ],
 	      build_by_default : true)

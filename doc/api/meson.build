@@ -46,11 +46,22 @@ src_doxygen = files(
 	'style/libinputdoxygen.css',
 )
 
-doxyfiles = custom_target('doxyfiles',
-			  input : src_doxygen,
-			  output : 'doxyfiles',
-			  command : [prg_install, '-t', '@OUTDIR@', '@INPUT@'],
-			  build_by_default: true)
+config_noop = configuration_data()
+# Set a dummy replacement to silence meson warnings:
+# meson.build:487: WARNING: Got an empty configuration_data() object and
+# 		   found no substitutions in the input file 'foo'. If you
+# 		   want to copy a file to the build dir, use the 'copy:'
+# 		   keyword argument added in 0.47.0
+config_noop.set('dummy', 'dummy')
+
+doxyfiles = []
+foreach f : src_doxygen
+	df = configure_file(input: f,
+			    output: '@PLAINNAME@',
+			    configuration : config_noop,
+			    install : false)
+	doxyfiles += [ df ]
+endforeach
 
 doc_config = configuration_data()
 doc_config.set('PACKAGE_NAME', meson.project_name())
@@ -63,9 +74,9 @@ doxyfile = configure_file(input : 'libinput.doxygen.in',
 			  install : false)
 
 custom_target('doxygen',
-	      input : [ doxyfile, mainpage ] + src_doxygen,
+	      input : [ doxyfiles, doxyfile, mainpage ] + src_doxygen,
 	      output : [ '.' ],
 	      command : [ doxygen, doxyfile ],
 	      install : false,
-	      depends: [doxyfiles, mainpage ],
+	      depends: [ mainpage ],
 	      build_by_default : true)
