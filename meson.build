@@ -660,7 +660,7 @@ if get_option('tests')
 	dep_libsystemd = dependency('libsystemd', version : '>= 221', required : false)
 	config_h.set10('HAVE_LIBSYSTEMD', dep_libsystemd.found())
 
-	lib_litest_sources = [
+	litest_sources = [
 		'test/litest.h',
 		'test/litest-int.h',
 		'test/litest-device-acer-hawaii-keyboard.c',
@@ -766,12 +766,6 @@ if get_option('tests')
 			    join_paths(meson.build_root(), '80-libinput-test-device.rules'))
 	config_h.set_quoted('LIBINPUT_DEVICE_GROUPS_RULES_FILE',
 			    join_paths(meson.build_root(), '80-libinput-device-groups.rules'))
-	lib_litest = static_library('litest',
-				    lib_litest_sources,
-				    include_directories : [includes_src, includes_include],
-				    dependencies : deps_litest)
-	dep_litest = declare_dependency(link_with : lib_litest,
-					dependencies : deps_litest)
 
 	def_no_main = '-DLITEST_NO_MAIN'
 	def_disable_backtrace = '-DLITEST_DISABLE_BACKTRACE_LOGGING'
@@ -779,7 +773,7 @@ if get_option('tests')
 		def_no_main,
 		def_disable_backtrace
 	]
-	test_litest_selftest_sources = lib_litest_sources + [
+	test_litest_selftest_sources = litest_sources + [
 		'test/litest-selftest.c',
 		'test/litest.c',
 		'test/litest-int.h',
@@ -793,7 +787,7 @@ if get_option('tests')
 					  install : false)
 	test('test-litest-selftest', test_litest_selftest)
 
-	libinput_test_runner_sources = lib_litest_sources + [
+	libinput_test_runner_sources = litest_sources + [
 		'src/libinput-util.h',
 		'src/libinput-util.c',
 		'test/test-udev.c',
