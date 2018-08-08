@@ -184,7 +184,6 @@ litest_backtrace(void)
 	int ret;
 	char procname[256];
 	Dl_info dlinfo;
-	/* filename and i are unused ifdef LITEST_SHUTUP */
 
 	pip.unwind_info = NULL;
 	ret = unw_getcontext(&context);
