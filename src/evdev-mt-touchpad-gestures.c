@@ -80,6 +80,18 @@ tp_get_touches_delta(struct tp_dispatch *tp, bool average)
 	return delta;
 }
 
+static void
+tp_gesture_init_scroll(struct tp_dispatch *tp)
+{
+	struct phys_coords zero = {0.0, 0.0};
+	tp->scroll.active.h = false;
+	tp->scroll.active.v = false;
+	tp->scroll.duration.h = 0;
+	tp->scroll.duration.v = 0;
+	tp->scroll.vector = zero;
+	tp->scroll.time_prev = 0;
+}
+
 static inline struct device_float_coords
 tp_get_combined_touches_delta(struct tp_dispatch *tp)
 {
@@ -108,7 +120,7 @@ tp_gesture_start(struct tp_dispatch *tp, uint64_t time)
 				       __func__);
 		break;
 	case GESTURE_STATE_SCROLL:
-		/* NOP */
+		tp_gesture_init_scroll(tp);
 		break;
 	case GESTURE_STATE_PINCH:
 		gesture_notify_pinch(&tp->device->base, time,
@@ -234,6 +246,134 @@ tp_gesture_set_scroll_buildup(struct tp_dispatch *tp)
 
 	average = device_float_average(d0, d1);
 	tp->device->scroll.buildup = tp_normalize_delta(tp, average);
+}
+
+static void
+tp_gesture_apply_scroll_constraints(struct tp_dispatch *tp,
+				  struct device_float_coords *raw,
+				  struct normalized_coords *delta,
+				  uint64_t time)
+{
+	uint64_t tdelta = 0;
+	struct phys_coords delta_mm, vector;
+	double vector_decay, vector_length, slope;
+
+	const uint64_t ACTIVE_THRESHOLD = ms2us(100),
+		       INACTIVE_THRESHOLD = ms2us(50),
+		       EVENT_TIMEOUT = ms2us(100);
+
+	/* Both axes active == true means free scrolling is enabled */
+	if (tp->scroll.active.h && tp->scroll.active.v)
+		return;
+
+	/* Determine time delta since last movement event */
+	if (tp->scroll.time_prev != 0)
+		tdelta = time - tp->scroll.time_prev;
+	if (tdelta > EVENT_TIMEOUT)
+		tdelta = 0;
+	tp->scroll.time_prev = time;
+
+	/* Delta since last movement event in mm */
+	delta_mm = tp_phys_delta(tp, *raw);
+
+	/* Old vector data "fades" over time. This is a two-part linear
+	 * approximation of an exponential function - for example, for
+	 * EVENT_TIMEOUT of 100, vector_decay = (0.97)^tdelta. This linear
+	 * approximation allows easier tweaking of EVENT_TIMEOUT and is faster.
+	 */
+	if (tdelta > 0) {
+		double recent, later;
+		recent = ((EVENT_TIMEOUT / 2.0) - tdelta) /
+			 (EVENT_TIMEOUT / 2.0);
+		later = (EVENT_TIMEOUT - tdelta) /
+			(EVENT_TIMEOUT * 2.0);
+		vector_decay = tdelta <= (0.33 * EVENT_TIMEOUT) ?
+			       recent : later;
+	} else {
+		vector_decay = 0.0;
+	}
+
+	/* Calculate windowed vector from delta + weighted historic data */
+	vector.x = (tp->scroll.vector.x * vector_decay) + delta_mm.x;
+	vector.y = (tp->scroll.vector.y * vector_decay) + delta_mm.y;
+	vector_length = hypot(vector.x, vector.y);
+	tp->scroll.vector = vector;
+
+	/* We care somewhat about distance and speed, but more about
+	 * consistency of direction over time. Keep track of the time spent
+	 * primarily along each axis. If one axis is active, time spent NOT
+	 * moving much in the other axis is subtracted, allowing a switch of
+	 * axes in a single scroll + ability to "break out" and go diagonal.
+	 *
+	 * Slope to degree conversions (infinity = 90°, 0 = 0°):
+	 */
+	const double DEGREE_75 = 3.73;
+	const double DEGREE_60 = 1.73;
+	const double DEGREE_30 = 0.57;
+	const double DEGREE_15 = 0.27;
+	slope = (vector.x != 0) ? fabs(vector.y / vector.x) : INFINITY;
+
+	/* Ensure vector is big enough (in mm per EVENT_TIMEOUT) to be confident
+	 * of direction. Larger = harder to enable diagonal/free scrolling.
+	 */
+	const double MIN_VECTOR = 0.25;
+
+	if (slope >= DEGREE_30 && vector_length > MIN_VECTOR) {
+		tp->scroll.duration.v += tdelta;
+		if (tp->scroll.duration.v > ACTIVE_THRESHOLD)
+			tp->scroll.duration.v = ACTIVE_THRESHOLD;
+		if (slope >= DEGREE_75) {
+			if (tp->scroll.duration.h > tdelta)
+				tp->scroll.duration.h -= tdelta;
+			else
+				tp->scroll.duration.h = 0;
+		}
+	}
+	if (slope < DEGREE_60  && vector_length > MIN_VECTOR) {
+		tp->scroll.duration.h += tdelta;
+		if (tp->scroll.duration.h > ACTIVE_THRESHOLD)
+			tp->scroll.duration.h = ACTIVE_THRESHOLD;
+		if (slope < DEGREE_15) {
+			if (tp->scroll.duration.v > tdelta)
+				tp->scroll.duration.v -= tdelta;
+			else
+				tp->scroll.duration.v = 0;
+		}
+	}
+
+	if (tp->scroll.duration.h == ACTIVE_THRESHOLD) {
+		tp->scroll.active.h = true;
+		if (tp->scroll.duration.v < INACTIVE_THRESHOLD)
+			tp->scroll.active.v = false;
+	}
+	if (tp->scroll.duration.v == ACTIVE_THRESHOLD) {
+		tp->scroll.active.v = true;
+		if (tp->scroll.duration.h < INACTIVE_THRESHOLD)
+			tp->scroll.active.h = false;
+	}
+
+	/* If vector is big enough in a diagonal direction, always unlock
+	 * both axes regardless of thresholds
+	 */
+	if (vector_length > 5.0 && slope < 1.73 && slope >= 0.57) {
+		tp->scroll.active.v = true;
+		tp->scroll.active.h = true;
+	}
+
+	/* If only one axis is active, constrain motion accordingly. If both
+	 * are set, we've detected deliberate diagonal movement; enable free
+	 * scrolling for the life of the gesture.
+	 */
+	if (!tp->scroll.active.h && tp->scroll.active.v)
+		delta->x = 0.0;
+	if (tp->scroll.active.h && !tp->scroll.active.v)
+		delta->y = 0.0;
+
+	/* If we haven't determined an axis, use the slope in the meantime */
+	if (!tp->scroll.active.h && !tp->scroll.active.v) {
+		delta->x = (slope >= DEGREE_60) ? 0.0 : delta->x;
+		delta->y = (slope < DEGREE_30) ? 0.0 : delta->y;
+	}
 }
 
 static enum tp_gesture_state
@@ -408,6 +548,7 @@ tp_gesture_handle_state_scroll(struct tp_dispatch *tp, uint64_t time)
 		return GESTURE_STATE_SCROLL;
 
 	tp_gesture_start(tp, time);
+	tp_gesture_apply_scroll_constraints(tp, &raw, &delta, time);
 	evdev_post_scroll(tp->device,
 			  time,
 			  LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
