@@ -476,6 +476,12 @@ configure_file(input : 'tools/libinput-measure.man',
 	       )
 
 config_noop = configuration_data()
+# Set a dummy replacement to silence meson warnings:
+# meson.build:487: WARNING: Got an empty configuration_data() object and
+# 		   found no substitutions in the input file 'foo'. If you
+# 		   want to copy a file to the build dir, use the 'copy:'
+# 		   keyword argument added in 0.47.0
+config_noop.set('dummy', 'dummy')
 configure_file(input: 'tools/libinput-measure-fuzz.py',
 	       output: 'libinput-measure-fuzz',
 	       configuration : config_noop,
