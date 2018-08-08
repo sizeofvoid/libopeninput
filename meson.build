@@ -475,6 +475,14 @@ configure_file(input : 'tools/libinput-measure.man',
 	       install_dir : dir_man1,
 	       )
 
+src_python_tools = files(
+	      'tools/libinput-measure-fuzz.py',
+	      'tools/libinput-measure-touchpad-tap.py',
+	      'tools/libinput-measure-touchpad-pressure.py',
+	      'tools/libinput-measure-touch-size.py',
+	      'tools/libinput-measure-trackpoint-range.py',
+)
+
 config_noop = configuration_data()
 # Set a dummy replacement to silence meson warnings:
 # meson.build:487: WARNING: Got an empty configuration_data() object and
@@ -482,71 +490,30 @@ config_noop = configuration_data()
 # 		   want to copy a file to the build dir, use the 'copy:'
 # 		   keyword argument added in 0.47.0
 config_noop.set('dummy', 'dummy')
-configure_file(input: 'tools/libinput-measure-fuzz.py',
-	       output: 'libinput-measure-fuzz',
-	       configuration : config_noop,
-	       install : true,
-	       install_dir : libinput_tool_path
-	       )
-configure_file(input : 'tools/libinput-measure-fuzz.man',
-	       output : 'libinput-measure-fuzz.1',
-	       configuration : man_config,
-	       install : true,
-	       install_dir : dir_man1,
-	       )
+foreach t : src_python_tools
+	configure_file(input: t,
+		       output: '@BASENAME@',
+		       configuration : config_noop,
+		       install : true,
+		       install_dir : libinput_tool_path
+		      )
+endforeach
 
-configure_file(input: 'tools/libinput-measure-touchpad-tap.py',
-	       output: 'libinput-measure-touchpad-tap',
-	       configuration : config_noop,
-	       install : true,
-	       install_dir : libinput_tool_path
-	       )
-configure_file(input : 'tools/libinput-measure-touchpad-tap.man',
-	       output : 'libinput-measure-touchpad-tap.1',
-	       configuration : man_config,
-	       install : true,
-	       install_dir : dir_man1,
-	       )
+src_man = files(
+	      'tools/libinput-measure-fuzz.man',
+	      'tools/libinput-measure-touchpad-tap.man',
+	      'tools/libinput-measure-touchpad-pressure.man',
+	      'tools/libinput-measure-touch-size.man',
+	      'tools/libinput-measure-trackpoint-range.man',
+)
 
-configure_file(input: 'tools/libinput-measure-touchpad-pressure.py',
-	       output: 'libinput-measure-touchpad-pressure',
-	       configuration : config_noop,
-	       install : true,
-	       install_dir : libinput_tool_path
-	       )
-
-configure_file(input : 'tools/libinput-measure-touchpad-pressure.man',
-	       output : 'libinput-measure-touchpad-pressure.1',
-	       configuration : man_config,
-	       install : true,
-	       install_dir : dir_man1,
-	       )
-configure_file(input: 'tools/libinput-measure-touch-size.py',
-	       output: 'libinput-measure-touch-size',
-	       configuration : config_noop,
-	       install : true,
-	       install_dir : libinput_tool_path
-	       )
-
-configure_file(input : 'tools/libinput-measure-touch-size.man',
-	       output : 'libinput-measure-touch-size.1',
-	       configuration : man_config,
-	       install : true,
-	       install_dir : dir_man1,
-	       )
-
-configure_file(input: 'tools/libinput-measure-trackpoint-range.py',
-	       output: 'libinput-measure-trackpoint-range',
-	       configuration : config_noop,
-	       install : true,
-	       install_dir : libinput_tool_path
-	       )
-configure_file(input : 'tools/libinput-measure-trackpoint-range.man',
-	       output : 'libinput-measure-trackpoint-range.1',
-	       configuration : man_config,
-	       install : true,
-	       install_dir : dir_man1,
-	       )
+foreach m : src_man
+	configure_file(input : m,
+		       output : '@BASENAME@.1',
+		       configuration : man_config,
+		       install : true,
+		       install_dir : dir_man1)
+endforeach
 
 libinput_record_sources = [ 'tools/libinput-record.c', git_version_h ]
 executable('libinput-record',
