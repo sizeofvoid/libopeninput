@@ -1092,6 +1092,7 @@ litest_send_file(int sock, int fd)
 {
 	char buf[40960];
 	int n = read(fd, buf, 40960);
+	litest_assert_int_gt(n, 0);
 	return write(sock, buf, n);
 }
 
