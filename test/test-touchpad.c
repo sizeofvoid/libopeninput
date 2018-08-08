@@ -213,6 +213,149 @@ START_TEST(touchpad_2fg_scroll_diagonal)
 }
 END_TEST
 
+static bool
+is_single_axis_2fg_scroll(struct litest_device *dev,
+			   enum libinput_pointer_axis axis)
+{
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_pointer *ptrev;
+	enum libinput_pointer_axis on_axis = axis;
+	enum libinput_pointer_axis off_axis =
+		(axis == LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL) ?
+		LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL :
+		LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL;
+	bool has_on_axis, has_off_axis;
+	bool val = true;
+
+	event = libinput_get_event(li);
+	while (event) {
+		litest_assert_event_type(event, LIBINPUT_EVENT_POINTER_AXIS);
+		ptrev = litest_is_axis_event(event, on_axis,
+				LIBINPUT_POINTER_AXIS_SOURCE_FINGER);
+
+		has_on_axis = libinput_event_pointer_has_axis(ptrev, on_axis);
+		has_off_axis = libinput_event_pointer_has_axis(ptrev, off_axis);
+
+		if (has_on_axis && has_off_axis) {
+			val = (libinput_event_pointer_get_axis_value(ptrev, off_axis) == 0.0);
+			break;
+		}
+
+		ck_assert(has_on_axis);
+		ck_assert(!has_off_axis);
+
+		libinput_event_destroy(event);
+		event = libinput_get_event(li);
+	}
+
+	libinput_event_destroy(event);
+	return val;
+}
+
+START_TEST(touchpad_2fg_scroll_axis_lock)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	enum libinput_pointer_axis axis;
+	double delta[4][2] = {
+		{ 7,  40},
+		{ 7, -40},
+		{-7,  40},
+		{-7, -40}
+	};
+	/* 10 degrees off from horiz/vert should count as straight */
+
+	if (!litest_has_2fg_scroll(dev))
+		return;
+
+	litest_enable_2fg_scroll(dev);
+	litest_drain_events(li);
+
+	axis = LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL;
+	for (int i = 0; i < 4; i++) {
+		test_2fg_scroll(dev, delta[i][0], delta[i][1], false);
+		ck_assert(is_single_axis_2fg_scroll(dev, axis));
+		litest_assert_empty_queue(li);
+	}
+
+	axis = LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL;
+	for (int i = 0; i < 4; i++) {
+		test_2fg_scroll(dev, delta[i][1], delta[i][0], false);
+		ck_assert(is_single_axis_2fg_scroll(dev, axis));
+		litest_assert_empty_queue(li);
+	}
+}
+END_TEST
+
+START_TEST(touchpad_2fg_scroll_axis_lock_switch)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	enum libinput_pointer_axis axis;
+
+	if (!litest_has_2fg_scroll(dev))
+		return;
+
+	litest_enable_2fg_scroll(dev);
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 20, 20);
+	litest_touch_down(dev, 1, 25, 20);
+
+	/* Move roughly straight horizontally for >100ms to set axis lock */
+	litest_touch_move_two_touches(dev, 20, 20, 25, 20, 55, 10, 10, 15);
+	libinput_dispatch(li);
+	litest_wait_for_event_of_type(li,
+				      LIBINPUT_EVENT_POINTER_AXIS,
+				      -1);
+
+	axis = LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL;
+	ck_assert(is_single_axis_2fg_scroll(dev, axis));
+	litest_drain_events(li);
+
+	msleep(200);
+	libinput_dispatch(li);
+
+	/* Move roughly vertically for >100ms to switch axis lock. This will
+	 * contain some horizontal movement while the lock changes; don't
+	 * check for single-axis yet
+	 */
+	litest_touch_move_two_touches(dev, 75, 30, 80, 30, 2, 20, 10, 15);
+	libinput_dispatch(li);
+	litest_wait_for_event_of_type(li,
+				      LIBINPUT_EVENT_POINTER_AXIS,
+				      -1);
+	litest_drain_events(li);
+
+	/* Move some more, roughly vertically, and check new axis lock */
+	litest_touch_move_two_touches(dev, 77, 50, 82, 50, 1, 40, 10, 15);
+	libinput_dispatch(li);
+	litest_wait_for_event_of_type(li,
+				      LIBINPUT_EVENT_POINTER_AXIS,
+				      -1);
+
+	axis = LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL;
+	ck_assert(is_single_axis_2fg_scroll(dev, axis));
+	litest_drain_events(li);
+
+	/* Move in a clear diagonal direction to ensure the lock releases */
+	litest_touch_move_two_touches(dev, 78, 90, 83, 90, -60, -60, 30, 15);
+	libinput_dispatch(li);
+	litest_wait_for_event_of_type(li,
+				      LIBINPUT_EVENT_POINTER_AXIS,
+				      -1);
+
+	axis = LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL;
+	ck_assert(!is_single_axis_2fg_scroll(dev, axis));
+
+	litest_touch_up(dev, 1);
+	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+	litest_drain_events(li);
+}
+END_TEST
+
 START_TEST(touchpad_2fg_scroll_slow_distance)
 {
 	struct litest_device *dev = litest_current_device();
@@ -6444,6 +6587,9 @@ TEST_COLLECTION(touchpad)
 
 	litest_add("touchpad:scroll", touchpad_2fg_scroll, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add("touchpad:scroll", touchpad_2fg_scroll_diagonal, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("touchpad:scroll", touchpad_2fg_scroll_axis_lock, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("touchpad:scroll", touchpad_2fg_scroll_axis_lock_switch, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+
 	litest_add("touchpad:scroll", touchpad_2fg_scroll_slow_distance, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:scroll", touchpad_2fg_scroll_return_to_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:scroll", touchpad_2fg_scroll_source, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
