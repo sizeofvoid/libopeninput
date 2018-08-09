@@ -273,7 +273,7 @@ parse_dimension_property(const char *prop, size_t *w, size_t *h)
 	if (sscanf(prop, "%dx%d", &x, &y) != 2)
 		return false;
 
-	if (x < 0 || y < 0)
+	if (x <= 0 || y <= 0)
 		return false;
 
 	*w = (size_t)x;

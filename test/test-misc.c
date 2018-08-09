@@ -851,7 +851,7 @@ START_TEST(dimension_prop_parser)
 		{ "1x20", true, 1, 20 },
 		{ "1x8000", true, 1, 8000 },
 		{ "238492x428210", true, 238492, 428210 },
-		{ "0x0", true, 0, 0 },
+		{ "0x0", false, 0, 0 },
 		{ "-10x10", false, 0, 0 },
 		{ "-1", false, 0, 0 },
 		{ "1x-99", false, 0, 0 },
@@ -861,7 +861,7 @@ START_TEST(dimension_prop_parser)
 		{ "abd", false, 0, 0 },
 		{ "xabd", false, 0, 0 },
 		{ "0xaf", false, 0, 0 },
-		{ "0x0x", true, 0, 0 },
+		{ "0x0x", false, 0, 0 },
 		{ "x10", false, 0, 0 },
 		{ NULL, false, 0, 0 }
 	};
