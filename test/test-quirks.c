@@ -830,6 +830,317 @@ START_TEST(quirks_parse_dmi_invalid)
 }
 END_TEST
 
+typedef bool (*qparsefunc) (struct quirks *q, enum quirk which, void* data);
+
+/*
+   Helper for generic testing, matches on a mouse device with the given
+   quirk set to the given string. Creates a data directory, inits the quirks
+   and calls func() to return the value in data. The func has to take the
+   right data, otherwise boom. Usage:
+   rc = test_attr_parse(dev, QUIRK_ATTR_SIZE_HINT,
+                        "10x30", quirks_get_dimensions,
+			&some_struct_quirks_dimensions);
+   if (rc == false) // failed to parse
+   else // struct now contains the 10, 30 values
+ */
+static bool
+test_attr_parse(struct litest_device *dev,
+		enum quirk which,
+		const char *str,
+		qparsefunc func,
+		void *data)
+{
+	struct udev_device *ud = libinput_device_get_udev_device(dev->libinput_device);
+	struct quirks_context *ctx;
+	struct data_dir dd;
+	char buf[512];
+	bool result;
+
+	snprintf(buf,
+		 sizeof(buf),
+		 "[Section name]\n"
+		 "MatchUdevType=mouse\n"
+		 "%s=%s\n",
+		 quirk_get_name(which),
+		 str);
+
+	dd = make_data_dir(buf);
+	ctx = quirks_init_subsystem(dd.dirname,
+				    NULL,
+				    log_handler,
+				    NULL,
+				    QLOG_CUSTOM_LOG_PRIORITIES);
+	if (ctx != NULL) {
+		struct quirks *q;
+		q = quirks_fetch_for_device(ctx, ud);
+		ck_assert_notnull(q);
+		ck_assert(func(q, which, data));
+		ck_assert(quirks_has_quirk(q, which));
+		quirks_unref(q);
+		result = true;
+	} else {
+		result = false;
+	}
+
+	cleanup_data_dir(dd);
+	udev_device_unref(ud);
+	return result;
+}
+
+struct qtest_dim {
+		const char *str;
+		bool success;
+		int w, h;
+};
+
+START_TEST(quirks_parse_dimension_attr)
+{
+	struct litest_device *dev = litest_current_device();
+	enum quirk attrs[] = {
+		QUIRK_ATTR_SIZE_HINT,
+		QUIRK_ATTR_RESOLUTION_HINT,
+	};
+	enum quirk *a;
+	struct qtest_dim test_values[] = {
+		{ "10x10", true, 10, 10 },
+		{ "20x30", true, 20, 30 },
+		{ "-10x30", false, 0, 0 },
+		{ "10:30", false, 0, 0 },
+		{ "30", false, 0, 0 },
+		{ "0x00", false, 0, 0 },
+		{ "0xa0", false, 0, 0 },
+	};
+	struct qtest_dim *t;
+
+	ARRAY_FOR_EACH(attrs, a) {
+		ARRAY_FOR_EACH(test_values, t) {
+			struct quirk_dimensions dim;
+			bool rc;
+
+			rc = test_attr_parse(dev,
+					     *a,
+					     t->str,
+					     (qparsefunc)quirks_get_dimensions,
+					     &dim);
+			ck_assert_int_eq(rc, t->success);
+			if (!rc)
+				continue;
+
+			ck_assert_int_eq(dim.x, t->w);
+			ck_assert_int_eq(dim.y, t->h);
+		}
+	}
+}
+END_TEST
+
+struct qtest_range {
+		const char *str;
+		bool success;
+		int hi, lo;
+};
+
+START_TEST(quirks_parse_range_attr)
+{
+	struct litest_device *dev = litest_current_device();
+	enum quirk attrs[] = {
+		QUIRK_ATTR_TOUCH_SIZE_RANGE,
+		QUIRK_ATTR_PRESSURE_RANGE,
+	};
+	enum quirk *a;
+	struct qtest_range test_values[] = {
+		{ "20:10", true, 20, 10 },
+		{ "30:5", true, 30, 5 },
+		{ "30:-10", true, 30, -10 },
+		{ "-30:-100", true, -30, -100 },
+
+		{ "5:10", false, 0, 0 },
+		{ "5:5", false, 0, 0 },
+		{ "-10:5", false, 0, 0 },
+		{ "-10:-5", false, 0, 0 },
+		{ "10x30", false, 0, 0 },
+		{ "30x10", false, 0, 0 },
+		{ "30", false, 0, 0 },
+		{ "0x00", false, 0, 0 },
+		{ "0xa0", false, 0, 0 },
+		{ "0x10:0x5", false, 0, 0 },
+	};
+	struct qtest_range *t;
+
+	ARRAY_FOR_EACH(attrs, a) {
+		ARRAY_FOR_EACH(test_values, t) {
+			struct quirk_range r;
+			bool rc;
+
+			rc = test_attr_parse(dev,
+					     *a,
+					     t->str,
+					     (qparsefunc)quirks_get_range,
+					     &r);
+			ck_assert_int_eq(rc, t->success);
+			if (!rc)
+				continue;
+
+			ck_assert_int_eq(r.lower, t->lo);
+			ck_assert_int_eq(r.upper, t->hi);
+		}
+	}
+}
+END_TEST
+
+struct qtest_uint {
+	const char *str;
+	bool success;
+	uint32_t val;
+};
+
+START_TEST(quirks_parse_uint_attr)
+{
+	struct litest_device *dev = litest_current_device();
+	enum quirk attrs[] = {
+		QUIRK_ATTR_PALM_SIZE_THRESHOLD,
+		QUIRK_ATTR_PALM_PRESSURE_THRESHOLD,
+		QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD,
+	};
+	enum quirk *a;
+	struct qtest_uint test_values[] = {
+		{ "10", true, 10 },
+		{ "0", true, 0 },
+		{ "5", true, 5 },
+		{ "65535", true, 65535 },
+		{ "4294967295", true, 4294967295 },
+		{ "-10", false, 0 },
+		{ "0x10", false, 0 },
+		{ "0xab", false, 0 },
+		{ "ab", false, 0 },
+	};
+	struct qtest_uint *t;
+
+	ARRAY_FOR_EACH(attrs, a) {
+		ARRAY_FOR_EACH(test_values, t) {
+			uint32_t v;
+			bool rc;
+
+			rc = test_attr_parse(dev,
+					     *a,
+					     t->str,
+					     (qparsefunc)quirks_get_uint32,
+					     &v);
+			ck_assert_int_eq(rc, t->success);
+			if (!rc)
+				continue;
+
+			ck_assert_int_eq(v, t->val);
+		}
+	}
+}
+END_TEST
+
+struct qtest_double {
+	const char *str;
+	bool success;
+	double val;
+};
+
+START_TEST(quirks_parse_double_attr)
+{
+	struct litest_device *dev = litest_current_device();
+	enum quirk attrs[] = {
+		QUIRK_ATTR_TRACKPOINT_MULTIPLIER,
+	};
+	enum quirk *a;
+	struct qtest_double test_values[] = {
+		{ "10", true, 10.0 },
+		{ "10.0", true, 10.0 },
+		{ "-10.0", true, -10.0 },
+		{ "0", true, 0.0 },
+		{ "0.0", true, 0.0 },
+		{ "5.1", true, 5.1 },
+		{ "-5.9", true, -5.9 },
+		{ "65535", true, 65535 },
+		{ "4294967295", true, 4294967295 },
+		{ "4294967295.123", true, 4294967295.123 },
+		/* our safe_atoi parses hex even though we don't really want
+		 * to */
+		{ "0x10", false, 0 },
+		{ "0xab", false, 0 },
+		{ "ab", false, 0 },
+		{ "10:5", false, 0 },
+		{ "10x5", false, 0 },
+	};
+	struct qtest_double *t;
+
+	ARRAY_FOR_EACH(attrs, a) {
+		ARRAY_FOR_EACH(test_values, t) {
+			double v;
+			bool rc;
+
+			rc = test_attr_parse(dev,
+					     *a,
+					     t->str,
+					     (qparsefunc)quirks_get_double,
+					     &v);
+			ck_assert_int_eq(rc, t->success);
+			if (!rc)
+				continue;
+
+			ck_assert_int_eq(v, t->val);
+		}
+	}
+}
+END_TEST
+
+struct qtest_str {
+	const char *str;
+	enum quirk where;
+};
+
+START_TEST(quirks_parse_string_attr)
+{
+	struct litest_device *dev = litest_current_device();
+	enum quirk attrs[] = {
+		QUIRK_ATTR_TPKBCOMBO_LAYOUT,
+		QUIRK_ATTR_LID_SWITCH_RELIABILITY,
+		QUIRK_ATTR_KEYBOARD_INTEGRATION,
+	};
+	enum quirk *a;
+	struct qtest_str test_values[] = {
+		{ "below", QUIRK_ATTR_TPKBCOMBO_LAYOUT },
+		{ "reliable", QUIRK_ATTR_LID_SWITCH_RELIABILITY },
+		{ "write_open", QUIRK_ATTR_LID_SWITCH_RELIABILITY },
+		{ "internal", QUIRK_ATTR_KEYBOARD_INTEGRATION },
+		{ "external", QUIRK_ATTR_KEYBOARD_INTEGRATION },
+
+		{ "10", 0 },
+		{ "-10", 0 },
+		{ "0", 0 },
+		{ "", 0 },
+		{ "banana", 0 },
+		{ "honk honk", 0 },
+		{ "0x12", 0 },
+		{ "0xa", 0 },
+		{ "0.0", 0 },
+	};
+	struct qtest_str *t;
+
+	ARRAY_FOR_EACH(attrs, a) {
+		ARRAY_FOR_EACH(test_values, t) {
+			bool rc;
+			char *do_not_use; /* freed before we can use it */
+
+			rc = test_attr_parse(dev,
+					     *a,
+					     t->str,
+					     (qparsefunc)quirks_get_string,
+					     &do_not_use);
+			if (*a == t->where)
+				ck_assert_int_eq(rc, true);
+			else
+				ck_assert_int_eq(rc, false);
+		}
+	}
+}
+END_TEST
+
 START_TEST(quirks_model_one)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1010,6 +1321,12 @@ TEST_COLLECTION(quirks)
 	litest_add_deviceless("quirks:parsing", quirks_parse_udev_invalid);
 	litest_add_deviceless("quirks:parsing", quirks_parse_dmi);
 	litest_add_deviceless("quirks:parsing", quirks_parse_dmi_invalid);
+
+	litest_add_for_device("quirks:parsing", quirks_parse_dimension_attr, LITEST_MOUSE);
+	litest_add_for_device("quirks:parsing", quirks_parse_range_attr, LITEST_MOUSE);
+	litest_add_for_device("quirks:parsing", quirks_parse_uint_attr, LITEST_MOUSE);
+	litest_add_for_device("quirks:parsing", quirks_parse_double_attr, LITEST_MOUSE);
+	litest_add_for_device("quirks:parsing", quirks_parse_string_attr, LITEST_MOUSE);
 
 	litest_add_for_device("quirks:model", quirks_model_one, LITEST_MOUSE);
 	litest_add_for_device("quirks:model", quirks_model_zero, LITEST_MOUSE);
