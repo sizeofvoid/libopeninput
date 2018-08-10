@@ -74,8 +74,8 @@
 	"/80-libinput-device-groups-litest-XXXXXX.rules"
 
 static int jobs = 8;
-static int in_debugger = -1;
-static int verbose = 0;
+static bool in_debugger = false;
+static bool verbose = false;
 const char *filter_test = NULL;
 const char *filter_device = NULL;
 const char *filter_group = NULL;
@@ -1093,7 +1093,7 @@ litest_run(int argc, char **argv)
 	}
 
 	if (getenv("LITEST_VERBOSE"))
-		verbose = 1;
+		verbose = true;
 
 #if DISABLE_DEVICE_TESTS
 	quirks_dir = safe_strdup(LIBINPUT_QUIRKS_SRCDIR);
@@ -3927,7 +3927,7 @@ litest_parse_argv(int argc, char **argv)
 		case OPT_LIST:
 			return LITEST_MODE_LIST;
 		case OPT_VERBOSE:
-			verbose = 1;
+			verbose = true;
 			break;
 		default:
 			fprintf(stderr, "usage: %s [--list]\n", argv[0]);
@@ -3942,11 +3942,11 @@ litest_parse_argv(int argc, char **argv)
 }
 
 #ifndef LITEST_NO_MAIN
-static int
+static bool
 is_debugger_attached(void)
 {
 	int status;
-	int rc;
+	bool rc;
 	int pid = fork();
 
 	if (pid == -1)
@@ -3958,9 +3958,9 @@ is_debugger_attached(void)
 			waitpid(ppid, NULL, 0);
 			ptrace(PTRACE_CONT, ppid, NULL, 0);
 			ptrace(PTRACE_DETACH, ppid, NULL, 0);
-			rc = 0;
+			rc = false;
 		} else {
-			rc = 1;
+			rc = true;
 		}
 		_exit(rc);
 	} else {
@@ -3968,7 +3968,7 @@ is_debugger_attached(void)
 		rc = WEXITSTATUS(status);
 	}
 
-	return rc;
+	return !!rc;
 }
 
 static void
