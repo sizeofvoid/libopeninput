@@ -340,6 +340,25 @@ START_TEST(quirks_parse_error_unknown_model)
 }
 END_TEST
 
+START_TEST(quirks_parse_error_unknown_prefix)
+{
+	struct quirks_context *ctx;
+	const char quirks_file[] =
+	"[Section name]\n"
+	"MatchUdevType=mouse\n"
+	"Fooblahblah=10x10\n";
+	struct data_dir dd = make_data_dir(quirks_file);
+
+	ctx = quirks_init_subsystem(dd.dirname,
+				    NULL,
+				    log_handler,
+				    NULL,
+				    QLOG_CUSTOM_LOG_PRIORITIES);
+	ck_assert(ctx == NULL);
+	cleanup_data_dir(dd);
+}
+END_TEST
+
 START_TEST(quirks_parse_error_model_not_one)
 {
 	struct quirks_context *ctx;
@@ -729,6 +748,10 @@ START_TEST(quirks_parse_udev)
 	"\n"
 	"[Section name]\n"
 	"MatchUdevType=keyboard\n"
+	"ModelAppleTouchpad=1\n"
+	"\n"
+	"[Section name]\n"
+	"MatchUdevType=joystick\n"
 	"ModelAppleTouchpad=1\n";
 	struct data_dir dd = make_data_dir(quirks_file);
 
@@ -1285,6 +1308,45 @@ START_TEST(quirks_model_synaptics_serial)
 }
 END_TEST
 
+START_TEST(quirks_call_NULL)
+{
+	ck_assert(!quirks_fetch_for_device(NULL, NULL));
+
+	ck_assert(!quirks_get_uint32(NULL, 0, NULL));
+	ck_assert(!quirks_get_int32(NULL, 0, NULL));
+	ck_assert(!quirks_get_range(NULL, 0, NULL));
+	ck_assert(!quirks_get_dimensions(NULL, 0, NULL));
+	ck_assert(!quirks_get_double(NULL, 0, NULL));
+	ck_assert(!quirks_get_string(NULL, 0, NULL));
+	ck_assert(!quirks_get_bool(NULL, 0, NULL));
+}
+END_TEST
+
+START_TEST(quirks_ctx_ref)
+{
+	struct quirks_context *ctx, *ctx2;
+	const char quirks_file[] =
+	"[Section name]\n"
+	"MatchUdevType=mouse\n"
+	"AttrSizeHint=10x10\n";
+	struct data_dir dd = make_data_dir(quirks_file);
+
+	ctx = quirks_init_subsystem(dd.dirname,
+				    NULL,
+				    log_handler,
+				    NULL,
+				    QLOG_CUSTOM_LOG_PRIORITIES);
+	ck_assert_notnull(ctx);
+	ctx2 = quirks_context_ref(ctx);
+	litest_assert_ptr_eq(ctx, ctx2);
+	ctx2 = quirks_context_unref(ctx);
+	litest_assert_ptr_eq(ctx2, NULL);
+	ctx2 = quirks_context_unref(ctx);
+	litest_assert_ptr_eq(ctx2, NULL);
+	cleanup_data_dir(dd);
+}
+END_TEST
+
 TEST_COLLECTION(quirks)
 {
 	litest_add_deviceless("quirks:datadir", quirks_invalid_dir);
@@ -1303,6 +1365,7 @@ TEST_COLLECTION(quirks)
 	litest_add_deviceless("quirks:parsing", quirks_parse_error_unknown_match);
 	litest_add_deviceless("quirks:parsing", quirks_parse_error_unknown_attr);
 	litest_add_deviceless("quirks:parsing", quirks_parse_error_unknown_model);
+	litest_add_deviceless("quirks:parsing", quirks_parse_error_unknown_prefix);
 	litest_add_deviceless("quirks:parsing", quirks_parse_error_model_not_one);
 	litest_add_deviceless("quirks:parsing", quirks_parse_comment_inline);
 	litest_add_deviceless("quirks:parsing", quirks_parse_comment_empty);
@@ -1335,4 +1398,7 @@ TEST_COLLECTION(quirks)
 	litest_add("quirks:devices", quirks_model_wacom, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("quirks:devices", quirks_model_apple, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("quirks:devices", quirks_model_synaptics_serial, LITEST_TOUCHPAD, LITEST_ANY);
+
+	litest_add_deviceless("quirks:misc", quirks_call_NULL);
+	litest_add_deviceless("quirks:misc", quirks_ctx_ref);
 }
