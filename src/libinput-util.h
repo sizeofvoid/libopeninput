@@ -571,7 +571,7 @@ safe_atod(const char *str, double *val)
 		return false;
 	if (*str != '\0' && *endptr != '\0')
 		return false;
-	if (isnan(v) || isinf(v))
+	if (v != 0.0 && !isnormal(v))
 		return false;
 
 	*val = v;
