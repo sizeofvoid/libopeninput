@@ -773,10 +773,9 @@ if get_option('tests')
 		def_no_main,
 		def_disable_backtrace
 	]
-	test_litest_selftest_sources = litest_sources + [
+	test_litest_selftest_sources = [
 		'test/litest-selftest.c',
 		'test/litest.c',
-		'test/litest-int.h',
 		'test/litest.h'
 	]
 	test_litest_selftest = executable('test-litest-selftest',
