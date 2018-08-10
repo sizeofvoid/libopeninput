@@ -76,6 +76,7 @@
 static int jobs = 8;
 static bool in_debugger = false;
 static bool verbose = false;
+static bool run_deviceless = false;
 const char *filter_test = NULL;
 const char *filter_device = NULL;
 const char *filter_group = NULL;
@@ -887,15 +888,13 @@ litest_run_suite(struct list *tests, int which, int max, int error_fd)
 			TCase *tc;
 			char *sname, *tname;
 
-#if DISABLE_DEVICE_TESTS
 			/* We run deviceless tests as part of the normal
 			 * test suite runner, just in case. Filtering
 			 * all the other ones out just for the case where
 			 * we can't run the full runner.
 			 */
-			if (!t->deviceless)
+			if (run_deviceless && !t->deviceless)
 				continue;
-#endif
 
 			count = (count + 1) % max;
 			if (max != 1 && (count % max) != which)
@@ -1030,12 +1029,14 @@ static inline int
 inhibit(void)
 {
 	int lock_fd = -1;
-#if !DISABLE_DEVICE_TESTS
 #if HAVE_LIBSYSTEMD
 	sd_bus_error error = SD_BUS_ERROR_NULL;
 	sd_bus_message *m = NULL;
 	sd_bus *bus = NULL;
 	int rc;
+
+	if (run_deviceless)
+		return -1;
 
 	rc = sd_bus_open_system(&bus);
 	if (rc != 0) {
@@ -1073,7 +1074,6 @@ out:
 	sd_bus_close(bus);
 	sd_bus_unref(bus);
 #endif
-#endif
 	return lock_fd;
 }
 
@@ -1095,12 +1095,12 @@ litest_run(int argc, char **argv)
 	if (getenv("LITEST_VERBOSE"))
 		verbose = true;
 
-#if DISABLE_DEVICE_TESTS
-	quirks_dir = safe_strdup(LIBINPUT_QUIRKS_SRCDIR);
-#else
-	litest_init_udev_rules(&created_files_list);
-	quirks_dir = litest_install_quirks(&created_files_list);
-#endif
+	if (run_deviceless) {
+		quirks_dir = safe_strdup(LIBINPUT_QUIRKS_SRCDIR);
+	} else {
+		litest_init_udev_rules(&created_files_list);
+		quirks_dir = litest_install_quirks(&created_files_list);
+	}
 	setenv("LIBINPUT_QUIRKS_DIR", quirks_dir, 1);
 	free(quirks_dir);
 
@@ -3873,6 +3873,7 @@ litest_parse_argv(int argc, char **argv)
 		OPT_FILTER_TEST,
 		OPT_FILTER_DEVICE,
 		OPT_FILTER_GROUP,
+		OPT_FILTER_DEVICELESS,
 		OPT_JOBS,
 		OPT_LIST,
 		OPT_VERBOSE,
@@ -3881,6 +3882,7 @@ litest_parse_argv(int argc, char **argv)
 		{ "filter-test", 1, 0, OPT_FILTER_TEST },
 		{ "filter-device", 1, 0, OPT_FILTER_DEVICE },
 		{ "filter-group", 1, 0, OPT_FILTER_GROUP },
+		{ "filter-deviceless", 0, 0, OPT_FILTER_DEVICELESS },
 		{ "jobs", 1, 0, OPT_JOBS },
 		{ "list", 0, 0, OPT_LIST },
 		{ "verbose", 0, 0, OPT_VERBOSE },
@@ -3928,6 +3930,9 @@ litest_parse_argv(int argc, char **argv)
 			return LITEST_MODE_LIST;
 		case OPT_VERBOSE:
 			verbose = true;
+			break;
+		case OPT_FILTER_DEVICELESS:
+			run_deviceless = true;
 			break;
 		default:
 			fprintf(stderr, "usage: %s [--list]\n", argv[0]);
@@ -4023,11 +4028,6 @@ setup_tests(void)
 static int
 check_device_access(void)
 {
-#if !DISABLE_DEVICE_TESTS
-	/* You don't get to skip the deviceless tests */
-	if (getenv("SKIP_LIBINPUT_TEST_SUITE_RUNNER"))
-		return 77;
-
 	if (getuid() != 0) {
 		fprintf(stderr,
 			"%s must be run as root.\n",
@@ -4041,7 +4041,6 @@ check_device_access(void)
 			"uinput device is missing, skipping tests.\n");
 		return 77;
 	}
-#endif /* DISABLE_DEVICE_TESTS */
 
 	return 0;
 }
@@ -4051,12 +4050,12 @@ disable_tty(void)
 {
 	int tty_mode = -1;
 
-#if !DISABLE_DEVICE_TESTS
 	/* If we're running 'normally' on the VT, disable the keyboard to
 	 * avoid messing up our host. But if we're inside gdb or running
 	 * without forking, leave it as-is.
 	 */
-	if (jobs > 1 &&
+	if (!run_deviceless &&
+	    jobs > 1 &&
 	    !in_debugger &&
 	    getenv("CK_FORK") == NULL &&
 	    isatty(STDIN_FILENO) &&
@@ -4075,7 +4074,6 @@ disable_tty(void)
 				fprintf(stderr, "Failed to set terminal attribute: %d - %s\n", errno, strerror(errno));
 #endif
 	}
-#endif /* DISABLE_DEVICE_TESTS */
 
 	return tty_mode;
 }
@@ -4097,9 +4095,14 @@ main(int argc, char **argv)
 	if (mode == LITEST_MODE_ERROR)
 		return EXIT_FAILURE;
 
-	rc = check_device_access();
-	if (rc != 0)
-		return rc;
+	/* You don't get to skip the deviceless tests */
+	if (!run_deviceless) {
+		if (getenv("SKIP_LIBINPUT_TEST_SUITE_RUNNER"))
+			return 77;
+
+		if ((rc = check_device_access()) != 0)
+			return rc;
+	}
 
 	litest_init_test_devices();
 
