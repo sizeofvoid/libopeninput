@@ -28,6 +28,7 @@
 #include "config.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <locale.h>
@@ -556,6 +557,24 @@ safe_atod(const char *str, double *val)
 	char *endptr;
 	double v;
 	locale_t c_locale;
+	size_t slen = strlen(str);
+
+	/* We don't have a use-case where we want to accept hex for a double
+	 * or any of the other values strtod can parse */
+	for (size_t i = 0; i < slen; i++) {
+		char c = str[i];
+
+		if (isdigit(c))
+		       continue;
+		switch(c) {
+		case '+':
+		case '-':
+		case '.':
+			break;
+		default:
+			return false;
+		}
+	}
 
 	/* Create a "C" locale to force strtod to use '.' as separator */
 	c_locale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);

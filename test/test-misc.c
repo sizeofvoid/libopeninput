@@ -945,8 +945,7 @@ START_TEST(calibration_prop_parser)
 		{ "1 2 3 4 5 6", true, DEFAULT_VALUES },
 		{ "6.00012 3.244 4.238 5.2421 6.0134 8.860", true,
 			{ 6.00012, 3.244, 4.238, 5.2421, 6.0134, 8.860 }},
-		{ "0xff 2 3 4 5 6", true,
-			{ 255, 2, 3, 4, 5, 6 }},
+		{ "0xff 2 3 4 5 6", false, DEFAULT_VALUES },
 		{ NULL, false, DEFAULT_VALUES }
 	};
 	bool success;
@@ -1271,9 +1270,9 @@ START_TEST(safe_atod_test)
 		{ "2147483647", true, 2147483647 },
 		{ "-2147483648", true, -2147483648 },
 		{ "4294967295", true, 4294967295 },
-		{ "0x0", true, 0 },
-		{ "0x10", true, 0x10 },
-		{ "0xaf", true, 0xaf },
+		{ "0x0", false, 0 },
+		{ "0x10", false, 0 },
+		{ "0xaf", false, 0 },
 		{ "x80", false, 0 },
 		{ "0.0", true, 0.0 },
 		{ "0.1", true, 0.1 },
