@@ -442,7 +442,7 @@ START_TEST(quirks_parse_bustype_invalid)
 	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
-	"MatchBustype=venga\n"
+	"MatchBus=venga\n"
 	"ModelAppleTouchpad=1\n";
 	struct data_dir dd = make_data_dir(quirks_file);
 
