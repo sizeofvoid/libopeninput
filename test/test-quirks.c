@@ -420,6 +420,46 @@ START_TEST(quirks_parse_comment_empty)
 }
 END_TEST
 
+START_TEST(quirks_parse_string_quotes_single)
+{
+	struct quirks_context *ctx;
+	const char quirks_file[] =
+	"[Section name]\n"
+	"MatchUdevType=mouse\n"
+	"AttrKeyboardIntegration='internal'\n";
+	struct data_dir dd = make_data_dir(quirks_file);
+
+	ctx = quirks_init_subsystem(dd.dirname,
+				    NULL,
+				    log_handler,
+				    NULL,
+				    QLOG_CUSTOM_LOG_PRIORITIES);
+	ck_assert(ctx == NULL);
+	quirks_context_unref(ctx);
+	cleanup_data_dir(dd);
+}
+END_TEST
+
+START_TEST(quirks_parse_string_quotes_double)
+{
+	struct quirks_context *ctx;
+	const char quirks_file[] =
+	"[Section name]\n"
+	"MatchUdevType=mouse\n"
+	"AttrKeyboardIntegration=\"internal\"\n";
+	struct data_dir dd = make_data_dir(quirks_file);
+
+	ctx = quirks_init_subsystem(dd.dirname,
+				    NULL,
+				    log_handler,
+				    NULL,
+				    QLOG_CUSTOM_LOG_PRIORITIES);
+	ck_assert(ctx == NULL);
+	quirks_context_unref(ctx);
+	cleanup_data_dir(dd);
+}
+END_TEST
+
 START_TEST(quirks_parse_bustype)
 {
 	struct quirks_context *ctx;
@@ -1369,6 +1409,8 @@ TEST_COLLECTION(quirks)
 	litest_add_deviceless("quirks:parsing", quirks_parse_error_model_not_one);
 	litest_add_deviceless("quirks:parsing", quirks_parse_comment_inline);
 	litest_add_deviceless("quirks:parsing", quirks_parse_comment_empty);
+	litest_add_deviceless("quirks:parsing", quirks_parse_string_quotes_single);
+	litest_add_deviceless("quirks:parsing", quirks_parse_string_quotes_double);
 
 	litest_add_deviceless("quirks:parsing", quirks_parse_bustype);
 	litest_add_deviceless("quirks:parsing", quirks_parse_bustype_invalid);

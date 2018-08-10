@@ -762,7 +762,7 @@ parse_value_line(struct quirks_context *ctx, struct section *s, const char *line
 		goto out;
 
 	/* Whatever the value is, it's not supposed to be in quotes */
-	if (value[0] == '"')
+	if (value[0] == '"' || value[0] == '\'')
 		goto out;
 
 	if (strneq(key, "Match", 5))
