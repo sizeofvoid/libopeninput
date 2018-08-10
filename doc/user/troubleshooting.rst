@@ -10,4 +10,5 @@ Troubleshooting
    tools.rst
    device-quirks.rst
    touchpad-jumping-cursors.rst
+   touchpad-jitter.rst
    touchpad-pressure-debugging.rst
