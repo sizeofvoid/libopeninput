@@ -24,6 +24,5 @@ to be useful.
    tablet-support.rst
    switches.rst
    touchpad-jitter.rst
-   touchpad-jumping-cursors.rst
    touchpad-pressure.rst
    trackpoints.rst
