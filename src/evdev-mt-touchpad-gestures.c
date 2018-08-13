@@ -316,7 +316,7 @@ tp_gesture_apply_scroll_constraints(struct tp_dispatch *tp,
 	/* Ensure vector is big enough (in mm per EVENT_TIMEOUT) to be confident
 	 * of direction. Larger = harder to enable diagonal/free scrolling.
 	 */
-	const double MIN_VECTOR = 0.25;
+	const double MIN_VECTOR = 0.15;
 
 	if (slope >= DEGREE_30 && vector_length > MIN_VECTOR) {
 		tp->scroll.duration.v += tdelta;
