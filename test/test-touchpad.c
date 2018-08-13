@@ -5540,12 +5540,54 @@ START_TEST(touchpad_jump_finger_motion)
 	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10, 0);
 	litest_drain_events(li);
 
+	/* this test uses a specific test device to trigger a >20mm jump to
+	 * test jumps. These numbers may not work on any other device  */
 	litest_disable_log_handler(li);
 	litest_touch_move_to(dev, 0, 90, 30, 20, 80, 1, 0);
 	litest_assert_empty_queue(li);
 	litest_restore_log_handler(li);
 
 	litest_touch_move_to(dev, 0, 20, 80, 21, 81, 10, 0);
+	litest_touch_up(dev, 0);
+
+	/* expect lots of little events, no big jump */
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	do {
+		double dx, dy;
+
+		ptrev = litest_is_motion_event(event);
+		dx = libinput_event_pointer_get_dx(ptrev);
+		dy = libinput_event_pointer_get_dy(ptrev);
+		ck_assert_int_lt(abs((int)dx), 20);
+		ck_assert_int_lt(abs((int)dy), 20);
+
+		libinput_event_destroy(event);
+		event = libinput_get_event(li);
+	} while (event != NULL);
+}
+END_TEST
+
+START_TEST(touchpad_jump_delta)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_pointer *ptrev;
+
+	litest_touch_down(dev, 0, 20, 30);
+	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10, 0);
+	litest_drain_events(li);
+
+	/* this test uses a specific test device to trigger a >7mm but <20mm
+	 * jump to test the delta jumps. These numbers may not work on any
+	 * other device  */
+	litest_disable_log_handler(li);
+	litest_touch_move_to(dev, 0, 90, 30, 90, 80, 1, 0);
+	litest_assert_empty_queue(li);
+	litest_restore_log_handler(li);
+
+	litest_touch_move_to(dev, 0, 90, 80, 91, 81, 10, 0);
 	litest_touch_up(dev, 0);
 
 	/* expect lots of little events, no big jump */
@@ -6749,6 +6791,7 @@ TEST_COLLECTION(touchpad)
 	litest_add("touchpad:time", touchpad_time_usec, LITEST_TOUCHPAD, LITEST_ANY);
 
 	litest_add_for_device("touchpad:jumps", touchpad_jump_finger_motion, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device("touchpad:jumps", touchpad_jump_delta, LITEST_SYNAPTICS_CLICKPAD_X220);
 
 	litest_add_for_device("touchpad:sendevents", touchpad_disabled_on_mouse, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_for_device("touchpad:sendevents", touchpad_disabled_on_mouse_suspend_mouse, LITEST_SYNAPTICS_CLICKPAD_X220);
