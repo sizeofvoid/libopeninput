@@ -510,7 +510,7 @@ tp_button_handle_state(struct tp_dispatch *tp, uint64_t time)
 					event = BUTTON_EVENT_IN_BOTTOM_R;
 				else if (is_inside_bottom_middle_area(tp, t))
 					event = BUTTON_EVENT_IN_BOTTOM_M;
-				else if (is_inside_bottom_left_area(tp, t))
+				else
 					event = BUTTON_EVENT_IN_BOTTOM_L;
 
 				/* In the bottom area we check for movement
@@ -521,7 +521,7 @@ tp_button_handle_state(struct tp_dispatch *tp, uint64_t time)
 					event = BUTTON_EVENT_IN_TOP_R;
 				else if (is_inside_top_middle_area(tp, t))
 					event = BUTTON_EVENT_IN_TOP_M;
-				else if (is_inside_top_left_area(tp, t))
+				else
 					event = BUTTON_EVENT_IN_TOP_L;
 			} else {
 				event = BUTTON_EVENT_IN_AREA;
