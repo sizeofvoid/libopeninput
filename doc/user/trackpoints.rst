@@ -43,8 +43,9 @@ this concept. As the pressure
 decreases, the delta decrease first, then the reporting rate until the
 trackpoint is in a neutral state and no events are reported. Trackpoint data
 is hart to generalize, see
-<a href="https://who-t.blogspot.com/2018/06/observations-on-trackpoint-input-data.html">
-Observations on trackpoint input data</a> for more details.
+`Observations on trackpoint input data
+<a href="https://who-t.blogspot.com/2018/06/observations-on-trackpoint-input-data.html">`_
+for more details.
 
 .. figure:: trackpoint-delta-illustration.svg
     :align: center
@@ -114,9 +115,10 @@ Values below zero are invalid.
 	preferences. The multiplier normalizes the input data into a range that
 	can then be configured with the speed setting.
 
-To adjust the local multiplier, first :ref:`building_libinput`
-"build libinput from git master". It is not required to install libinput
-from git. The below assumes that all :ref:`building_dependencies` are already
+To adjust the local multiplier, first
+:ref:`build libinput from git master <building_libinput>`. It is not
+required to install libinput from git. The below assumes that all
+:ref:`building_dependencies` are already
 installed.
 
 
