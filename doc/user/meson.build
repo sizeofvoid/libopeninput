@@ -160,6 +160,7 @@ src_rst = files(
 	'touchpad-jitter.rst',
 	'touchpads.rst',
 	'trackpoints.rst',
+	'trackpoint-configuration.rst',
 	'what-is-libinput.rst',
 	'features.rst',
 	'development.rst',

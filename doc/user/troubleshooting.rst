@@ -12,3 +12,4 @@ Troubleshooting
    touchpad-jumping-cursors.rst
    touchpad-jitter.rst
    touchpad-pressure-debugging.rst
+   trackpoint-configuration.rst

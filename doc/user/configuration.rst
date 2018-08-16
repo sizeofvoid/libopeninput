@@ -50,6 +50,9 @@ buttons enabled for the trackpoint. Available options are
 **disabled on external mouse** (disable the device while an external mouse
 is plugged in).
 
+
+.. _config_pointer_acceleration:
+
 ------------------------------------------------------------------------------
 Pointer acceleration
 ------------------------------------------------------------------------------
