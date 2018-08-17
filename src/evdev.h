@@ -175,6 +175,7 @@ struct evdev_device {
 	bool is_suspended;
 	int dpi; /* HW resolution */
 	double trackpoint_multiplier; /* trackpoint constant multiplier */
+	bool use_velocity_averaging; /* whether averaging should be applied on velocity calculation */
 	struct ratelimit syn_drop_limit; /* ratelimit for SYN_DROPPED logging */
 	struct ratelimit nonpointer_rel_limit; /* ratelimit for REL_* events from non-pointer devices */
 	uint32_t model_flags;

@@ -639,6 +639,7 @@ tools_list_device_quirks(struct quirks_context *ctx,
 		QUIRK_ATTR_RESOLUTION_HINT,
 		QUIRK_ATTR_TRACKPOINT_MULTIPLIER,
 		QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD,
+		QUIRK_ATTR_USE_VELOCITY_AVERAGING,
 	};
 	enum quirk *q;
 
@@ -720,6 +721,10 @@ tools_list_device_quirks(struct quirks_context *ctx,
 		case QUIRK_ATTR_TRACKPOINT_MULTIPLIER:
 			quirks_get_double(quirks, *q, &d);
 			snprintf(buf, sizeof(buf), "%s=%0.2f\n", name, d);
+			callback(userdata, buf);
+			break;
+		case QUIRK_ATTR_USE_VELOCITY_AVERAGING:
+			snprintf(buf, sizeof(buf), "%s=1", name);
 			callback(userdata, buf);
 			break;
 		}

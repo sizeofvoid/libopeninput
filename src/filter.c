@@ -91,10 +91,8 @@ filter_get_type(struct motion_filter *filter)
 }
 
 void
-trackers_init(struct pointer_trackers *trackers)
+trackers_init(struct pointer_trackers *trackers, int ntrackers)
 {
-	const int ntrackers = 16;
-
 	trackers->trackers = zalloc(ntrackers *
 				    sizeof(*trackers->trackers));
 	trackers->ntrackers = ntrackers;

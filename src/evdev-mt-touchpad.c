@@ -2660,6 +2660,8 @@ tp_init_accel(struct tp_dispatch *tp)
 	struct evdev_device *device = tp->device;
 	int res_x, res_y;
 	struct motion_filter *filter;
+	int dpi = device->dpi;
+	bool use_v_avg = device->use_velocity_averaging;
 
 	res_x = tp->device->abs.absinfo_x->resolution;
 	res_y = tp->device->abs.absinfo_y->resolution;
@@ -2677,11 +2679,14 @@ tp_init_accel(struct tp_dispatch *tp)
 
 	if (tp->device->model_flags & EVDEV_MODEL_LENOVO_X230 ||
 	    tp->device->model_flags & EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81)
-		filter = create_pointer_accelerator_filter_lenovo_x230(tp->device->dpi);
+		filter = create_pointer_accelerator_filter_lenovo_x230(dpi, use_v_avg);
 	else if (libevdev_get_id_bustype(device->evdev) == BUS_BLUETOOTH)
-		filter = create_pointer_accelerator_filter_touchpad(device->dpi, ms2us(50), ms2us(10));
+		filter = create_pointer_accelerator_filter_touchpad(dpi,
+								    ms2us(50),
+								    ms2us(10),
+								    use_v_avg);
 	else
-		filter = create_pointer_accelerator_filter_touchpad(device->dpi, 0, 0);
+		filter = create_pointer_accelerator_filter_touchpad(dpi, 0, 0, use_v_avg);
 
 	if (!filter)
 		return false;

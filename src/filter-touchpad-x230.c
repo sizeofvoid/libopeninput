@@ -331,7 +331,7 @@ struct motion_filter_interface accelerator_interface_x230 = {
  * Don't touch this.
  */
 struct motion_filter *
-create_pointer_accelerator_filter_lenovo_x230(int dpi)
+create_pointer_accelerator_filter_lenovo_x230(int dpi, bool use_velocity_averaging)
 {
 	struct pointer_accelerator_x230 *filter;
 
@@ -340,7 +340,7 @@ create_pointer_accelerator_filter_lenovo_x230(int dpi)
 	filter->profile = touchpad_lenovo_x230_accel_profile;
 	filter->last_velocity = 0.0;
 
-	trackers_init(&filter->trackers);
+	trackers_init(&filter->trackers, use_velocity_averaging ? 16 : 2);
 
 	filter->threshold = X230_THRESHOLD;
 	filter->accel = X230_ACCELERATION; /* unitless factor */

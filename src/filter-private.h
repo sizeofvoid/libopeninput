@@ -71,7 +71,7 @@ struct pointer_trackers {
 	struct pointer_delta_smoothener *smoothener;
 };
 
-void trackers_init(struct pointer_trackers *trackers);
+void trackers_init(struct pointer_trackers *trackers, int ntrackers);
 void trackers_free(struct pointer_trackers *trackers);
 
 void

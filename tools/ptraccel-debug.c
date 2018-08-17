@@ -222,6 +222,7 @@ main(int argc, char **argv)
 	double custom_deltas[1024];
 	double speed = 0.0;
 	int dpi = 1000;
+	bool use_averaging = false;
 	const char *filter_type = "linear";
 	accel_profile_func_t profile = NULL;
 	double tp_multiplier = 1.0;
@@ -314,19 +315,25 @@ main(int argc, char **argv)
 	}
 
 	if (streq(filter_type, "linear")) {
-		filter = create_pointer_accelerator_filter_linear(dpi);
+		filter = create_pointer_accelerator_filter_linear(dpi,
+								  use_averaging);
 		profile = pointer_accel_profile_linear;
 	} else if (streq(filter_type, "low-dpi")) {
-		filter = create_pointer_accelerator_filter_linear_low_dpi(dpi);
+		filter = create_pointer_accelerator_filter_linear_low_dpi(dpi,
+									  use_averaging);
 		profile = pointer_accel_profile_linear_low_dpi;
 	} else if (streq(filter_type, "touchpad")) {
-		filter = create_pointer_accelerator_filter_touchpad(dpi, 0, 0);
+		filter = create_pointer_accelerator_filter_touchpad(dpi,
+								    0, 0,
+								    use_averaging);
 		profile = touchpad_accel_profile_linear;
 	} else if (streq(filter_type, "x230")) {
-		filter = create_pointer_accelerator_filter_lenovo_x230(dpi);
+		filter = create_pointer_accelerator_filter_lenovo_x230(dpi,
+								       use_averaging);
 		profile = touchpad_lenovo_x230_accel_profile;
 	} else if (streq(filter_type, "trackpoint")) {
-		filter = create_pointer_accelerator_filter_trackpoint(tp_multiplier);
+		filter = create_pointer_accelerator_filter_trackpoint(tp_multiplier,
+								      use_averaging);
 		profile = trackpoint_accel_profile;
 	} else {
 		fprintf(stderr, "Invalid filter type %s\n", filter_type);

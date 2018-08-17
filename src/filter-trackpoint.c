@@ -182,7 +182,7 @@ struct motion_filter_interface accelerator_interface_trackpoint = {
 };
 
 struct motion_filter *
-create_pointer_accelerator_filter_trackpoint(double multiplier)
+create_pointer_accelerator_filter_trackpoint(double multiplier, bool use_velocity_averaging)
 {
 	struct trackpoint_accelerator *filter;
 	struct pointer_delta_smoothener *smoothener;
@@ -207,7 +207,7 @@ create_pointer_accelerator_filter_trackpoint(double multiplier)
 
 	filter->multiplier = multiplier;
 
-	trackers_init(&filter->trackers);
+	trackers_init(&filter->trackers, use_velocity_averaging ? 16 : 2);
 
 	filter->base.interface = &accelerator_interface_trackpoint;
 

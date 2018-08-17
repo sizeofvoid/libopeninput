@@ -956,11 +956,14 @@ evdev_init_accel(struct evdev_device *device,
 	if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT)
 		filter = create_pointer_accelerator_filter_flat(device->dpi);
 	else if (device->tags & EVDEV_TAG_TRACKPOINT)
-		filter = create_pointer_accelerator_filter_trackpoint(device->trackpoint_multiplier);
+		filter = create_pointer_accelerator_filter_trackpoint(device->trackpoint_multiplier,
+								      device->use_velocity_averaging);
 	else if (device->dpi < DEFAULT_MOUSE_DPI)
-		filter = create_pointer_accelerator_filter_linear_low_dpi(device->dpi);
+		filter = create_pointer_accelerator_filter_linear_low_dpi(device->dpi,
+									  device->use_velocity_averaging);
 	else
-		filter = create_pointer_accelerator_filter_linear(device->dpi);
+		filter = create_pointer_accelerator_filter_linear(device->dpi,
+								  device->use_velocity_averaging);
 
 	if (!filter)
 		return false;
@@ -1206,6 +1209,29 @@ evdev_get_trackpoint_multiplier(struct evdev_device *device)
 			       multiplier);
 
 	return multiplier;
+}
+
+static inline bool
+evdev_need_velocity_averaging(struct evdev_device *device)
+{
+	struct quirks_context *quirks;
+	struct quirks *q;
+	bool use_velocity_averaging = false; /* default off unless we have quirk */
+
+	quirks = evdev_libinput_context(device)->quirks;
+	q = quirks_fetch_for_device(quirks, device->udev_device);
+	if (q) {
+		quirks_get_bool(q,
+				QUIRK_ATTR_USE_VELOCITY_AVERAGING,
+				&use_velocity_averaging);
+		quirks_unref(q);
+	}
+
+	if (use_velocity_averaging)
+		evdev_log_info(device,
+			       "velocity averaging is turned on\n");
+
+	return use_velocity_averaging;
 }
 
 static inline int
@@ -1716,6 +1742,8 @@ evdev_configure_device(struct evdev_device *device)
 	if (udev_tags & EVDEV_UDEV_TAG_TOUCHPAD) {
 		if (udev_tags & EVDEV_UDEV_TAG_TABLET)
 			evdev_tag_tablet_touchpad(device);
+		/* whether velocity should be averaged, false by default */
+		device->use_velocity_averaging = evdev_need_velocity_averaging(device);
 		dispatch = evdev_mt_touchpad_create(device);
 		evdev_log_info(device, "device is a touchpad\n");
 		return dispatch;
@@ -1727,6 +1755,8 @@ evdev_configure_device(struct evdev_device *device)
 		evdev_tag_trackpoint(device, device->udev_device);
 		device->dpi = evdev_read_dpi_prop(device);
 		device->trackpoint_multiplier = evdev_get_trackpoint_multiplier(device);
+		/* whether velocity should be averaged, false by default */
+		device->use_velocity_averaging = evdev_need_velocity_averaging(device);
 
 		device->seat_caps |= EVDEV_DEVICE_POINTER;
 

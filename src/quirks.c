@@ -267,6 +267,7 @@ quirk_get_name(enum quirk q)
 	case QUIRK_ATTR_RESOLUTION_HINT:		return "AttrResolutionHint";
 	case QUIRK_ATTR_TRACKPOINT_MULTIPLIER:		return "AttrTrackpointMultiplier";
 	case QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD:	return "AttrThumbPressureThreshold";
+	case QUIRK_ATTR_USE_VELOCITY_AVERAGING:		return "AttrUseVelocityAveraging";
 	default:
 		abort();
 	}
@@ -643,6 +644,7 @@ parse_attr(struct quirks_context *ctx,
 	struct quirk_dimensions dim;
 	struct quirk_range range;
 	unsigned int v;
+	bool b;
 	double d;
 
 	if (streq(key, quirk_get_name(QUIRK_ATTR_SIZE_HINT))) {
@@ -715,6 +717,17 @@ parse_attr(struct quirks_context *ctx,
 			goto out;
 		p->type = PT_DOUBLE;
 		p->value.d = d;
+		rc = true;
+	} else if (streq(key, quirk_get_name(QUIRK_ATTR_USE_VELOCITY_AVERAGING))) {
+		p->id = QUIRK_ATTR_USE_VELOCITY_AVERAGING;
+		if (streq(value, "1"))
+			b = true;
+		else if (streq(value, "0"))
+			b = false;
+		else
+			goto out;
+		p->type = PT_BOOL;
+		p->value.b = b;
 		rc = true;
 	} else if (streq(key, quirk_get_name(QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD))) {
 		p->id = QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD;

@@ -310,14 +310,14 @@ struct motion_filter_interface accelerator_interface = {
 };
 
 static struct pointer_accelerator *
-create_default_filter(int dpi)
+create_default_filter(int dpi, bool use_velocity_averaging)
 {
 	struct pointer_accelerator *filter;
 
 	filter = zalloc(sizeof *filter);
 	filter->last_velocity = 0.0;
 
-	trackers_init(&filter->trackers);
+	trackers_init(&filter->trackers, use_velocity_averaging ? 16 : 2);
 
 	filter->threshold = DEFAULT_THRESHOLD;
 	filter->accel = DEFAULT_ACCELERATION;
@@ -328,11 +328,11 @@ create_default_filter(int dpi)
 }
 
 struct motion_filter *
-create_pointer_accelerator_filter_linear(int dpi)
+create_pointer_accelerator_filter_linear(int dpi, bool use_velocity_averaging)
 {
 	struct pointer_accelerator *filter;
 
-	filter = create_default_filter(dpi);
+	filter = create_default_filter(dpi, use_velocity_averaging);
 	if (!filter)
 		return NULL;
 

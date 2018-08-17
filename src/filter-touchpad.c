@@ -318,7 +318,8 @@ struct motion_filter_interface accelerator_interface_touchpad = {
 struct motion_filter *
 create_pointer_accelerator_filter_touchpad(int dpi,
 	uint64_t event_delta_smooth_threshold,
-	uint64_t event_delta_smooth_value)
+	uint64_t event_delta_smooth_value,
+	bool use_velocity_averaging)
 {
 	struct touchpad_accelerator *filter;
 	struct pointer_delta_smoothener *smoothener;
@@ -326,7 +327,7 @@ create_pointer_accelerator_filter_touchpad(int dpi,
 	filter = zalloc(sizeof *filter);
 	filter->last_velocity = 0.0;
 
-	trackers_init(&filter->trackers);
+	trackers_init(&filter->trackers, use_velocity_averaging ? 16 : 2);
 
 	filter->threshold = 130;
 	filter->dpi = dpi;
