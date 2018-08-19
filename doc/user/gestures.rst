@@ -22,7 +22,7 @@ A single gesture cannot change the finger count. For example, if a user
 puts down a fourth finger during a three-finger swipe gesture, libinput will
 end the three-finger gesture and, if applicable, start a four-finger swipe
 gesture. A caller may however decide that those gestures are semantically
-identical Tand continue the two gestures as one single gesture.
+identical and continue the two gestures as one single gesture.
 
 .. _gestures_pinch:
 

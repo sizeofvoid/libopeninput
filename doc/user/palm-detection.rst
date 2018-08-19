@@ -192,7 +192,7 @@ libinput uses two triggers for thumb detection: pressure and
 location. A touch exceeding a pressure threshold is considered a thumb if it
 is within the thumb detection zone.
 
-.. note:: "Pressure" on touchpads is synonymous with "contact area", a large touch
+.. note:: "Pressure" on touchpads is synonymous with "contact area." A large touch
 	surface area has a higher pressure and thus hints at a thumb or palm
 	touching the surface.
 

@@ -136,7 +136,7 @@ devices is something other than 1:1. A normalized axes thus is only useful to
 determine that the stylus is e.g. at 78% from the left, 34% from the top of
 the device. Without knowing the per-axis resolution, these numbers are
 meaningless. Worse, calculation based on previous coordinates is simply wrong:
-a movement from 0/0 to 50%/50% is not a 45% degree line.
+a movement from 0/0 to 50%/50% is not a 45-degree line.
 
 This could be alleviated by providing resolution and information about the
 aspect ratio to the caller. Which shifts processing and likely errors into the

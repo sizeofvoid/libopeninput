@@ -5,7 +5,7 @@ Touchpad pressure-based touch detection
 ==============================================================================
 
 libinput uses the touchpad pressure values and/or touch size values to
-detect wether a finger has been placed on the touchpad. This is
+detect whether a finger has been placed on the touchpad. This is
 :ref:`kernel_pressure_information` and combines with a libinput-specific hardware
 database to adjust the thresholds on a per-device basis. libinput uses
 these thresholds primarily to filter out accidental light touches but
