@@ -153,6 +153,7 @@ src_rst = files(
 	'tapping.rst',
 	'test-suite.rst',
 	'timestamps.rst',
+	'tablet-debugging.rst',
 	'tools.rst',
 	'touchpad-jumping-cursors.rst',
 	'touchpad-pressure.rst',

@@ -13,3 +13,4 @@ Troubleshooting
    touchpad-jitter.rst
    touchpad-pressure-debugging.rst
    trackpoint-configuration.rst
+   tablet-debugging.rst
