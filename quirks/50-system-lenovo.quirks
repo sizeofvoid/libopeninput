@@ -80,9 +80,3 @@ ModelLenovoCarbonX16th=1
 MatchName=AT Translated Set 2 keyboard
 MatchDMIModalias=dmi:*svnIBM:*pvrThinkPadX41Tablet:*
 ModelTabletModeNoSuspend=1
-
-[Lenovo UltraNav SK-8845 (USB keyboard) Trackpoint]
-MatchBus=usb
-MatchVendor=0x06CB
-MatchProduct=0x0009
-AttrTrackpointMultiplier=2.5
