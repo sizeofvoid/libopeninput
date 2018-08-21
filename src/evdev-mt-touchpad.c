@@ -674,6 +674,18 @@ tp_process_key(struct tp_dispatch *tp,
 }
 
 static void
+tp_process_msc(struct tp_dispatch *tp,
+	       const struct input_event *e,
+	       uint64_t time)
+{
+	if (e->code != MSC_TIMESTAMP)
+		return;
+
+	tp->quirks.msc_timestamp.now = e->value;
+	tp->queued |= TOUCHPAD_EVENT_TIMESTAMP;
+}
+
+static void
 tp_unpin_finger(const struct tp_dispatch *tp, struct tp_touch *t)
 {
 	struct phys_coords mm;
@@ -1549,10 +1561,131 @@ tp_detect_thumb_while_moving(struct tp_dispatch *tp)
 	second->thumb.state = THUMB_STATE_YES;
 }
 
+/**
+ * Rewrite the motion history so that previous points' timestamps are the
+ * current point's timestamp minus whatever MSC_TIMESTAMP gives us.
+ *
+ * This must be called before tp_motion_history_push()
+ *
+ * @param t The touch point
+ * @param jumping_interval The large time interval in µs
+ * @param normal_interval Normal hw interval in µs
+ * @param time Current time in µs
+ */
+static inline void
+tp_motion_history_fix_last(struct tp_dispatch *tp,
+			   struct tp_touch *t,
+			   unsigned int jumping_interval,
+			   unsigned int normal_interval,
+			   uint64_t time)
+{
+	if (t->state != TOUCH_UPDATE)
+		return;
+
+	/* We know the coordinates are correct because the touchpad should
+	 * get that bit right. But the timestamps we got from the kernel are
+	 * messed up, so we go back in the history and fix them.
+	 *
+	 * This way the next delta is huge but it's over a large time, so
+	 * the pointer accel code should do the right thing.
+	 */
+	for (int i = 0; i < (int)t->history.count; i++) {
+		struct tp_history_point *p;
+
+		p = tp_motion_history_offset(t, i);
+		p->time = time - jumping_interval - normal_interval * i;
+	}
+}
+
+static void
+tp_process_msc_timestamp(struct tp_dispatch *tp, uint64_t time)
+{
+	struct msc_timestamp *m = &tp->quirks.msc_timestamp;
+
+	/* Pointer jump detection based on MSC_TIMESTAMP.
+
+	   MSC_TIMESTAMP gets reset after a kernel timeout (1s) and on some
+	   devices (Dell XPS) the i2c controller sleeps after a timeout. On
+	   wakeup, some events are swallowed, triggering a cursor jump. The
+	   event sequence after a sleep is always:
+
+	   initial finger down:
+		   ABS_X/Y	x/y
+		   MSC_TIMESTAMP 0
+		   SYN_REPORT +2500ms
+	   second event:
+		   ABS_X/Y	x+n/y+n        # normal movement
+		   MSC_TIMESTAMP 7300          # the hw interval
+		   SYN_REPORT +2ms
+	   third event:
+		   ABS_X/Y	x+lots/y+lots  # pointer jump!
+		   MSC_TIMESTAMP 123456        # well above the hw interval
+		   SYN_REPORT +2ms
+	   fourth event:
+		   ABS_X/Y	x+lots+n/y+lots+n  # all normal again
+		   MSC_TIMESTAMP 123456 + 7300
+		   SYN_REPORT +8ms
+
+	   Our approach is to detect the 0 timestamp, check the interval on
+	   the next event and then calculate the movement for one fictious
+	   event instead, swallowing all other movements. So if the time
+	   delta is equivalent to 10 events and the movement is x, we
+	   instead pretend there was movement of x/10.
+	 */
+	if (m->now == 0) {
+		m->state = JUMP_STATE_EXPECT_FIRST;
+		m->interval = 0;
+		return;
+	}
+
+	switch(m->state) {
+	case JUMP_STATE_EXPECT_FIRST:
+		if (m->now > ms2us(20)) {
+			m->state = JUMP_STATE_IGNORE;
+		} else {
+			m->state = JUMP_STATE_EXPECT_DELAY;
+			m->interval = m->now;
+		}
+		break;
+	case JUMP_STATE_EXPECT_DELAY:
+		if (m->now > m->interval * 2) {
+			uint32_t tdelta; /* µs */
+			struct tp_touch *t;
+
+			/* The current time is > 2 times the interval so we
+			 * have a jump. Fix the motion history */
+			tdelta = m->now - m->interval;
+
+			tp_for_each_touch(tp, t) {
+				tp_motion_history_fix_last(tp,
+							   t,
+							   tdelta,
+							   m->interval,
+							   time);
+			}
+			m->state = JUMP_STATE_IGNORE;
+
+			/* We need to restart the acceleration filter to forget its history.
+			 * The current point becomes the first point in the history there
+			 * (including timestamp) and that accelerates correctly.
+			 * This has a potential to be incorrect but since we only ever see
+			 * those jumps over the first three events it doesn't matter.
+			 */
+			filter_restart(tp->device->pointer.filter, tp, time - tdelta);
+		}
+		break;
+	case JUMP_STATE_IGNORE:
+		break;
+	}
+}
+
 static void
 tp_pre_process_state(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *t;
+
+	if (tp->queued & TOUCHPAD_EVENT_TIMESTAMP)
+		tp_process_msc_timestamp(tp, time);
 
 	tp_process_fake_touches(tp, time);
 	tp_unhover_touches(tp, time);
@@ -1786,6 +1919,9 @@ tp_interface_process(struct evdev_dispatch *dispatch,
 		break;
 	case EV_KEY:
 		tp_process_key(tp, e, time);
+		break;
+	case EV_MSC:
+		tp_process_msc(tp, e, time);
 		break;
 	case EV_SYN:
 		tp_handle_state(tp, time);

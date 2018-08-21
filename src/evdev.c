@@ -1917,6 +1917,10 @@ evdev_drain_fd(int fd)
 static inline void
 evdev_pre_configure_model_quirks(struct evdev_device *device)
 {
+	struct quirks_context *quirks;
+	struct quirks *q;
+	char *prop;
+
 	/* The Cyborg RAT has a mode button that cycles through event codes.
 	 * On press, we get a release for the current mode and a press for the
 	 * next mode:
@@ -1990,8 +1994,17 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 					    EV_ABS,
 					    ABS_MT_TOOL_TYPE);
 
-	/* We don't care about them and it can cause unnecessary wakeups */
-	libevdev_disable_event_code(device->evdev, EV_MSC, MSC_TIMESTAMP);
+	/* Generally we don't care about MSC_TIMESTAMP and it can cause
+	 * unnecessary wakeups but on some devices we need to watch it for
+	 * pointer jumps */
+	quirks = evdev_libinput_context(device)->quirks;
+	q = quirks_fetch_for_device(quirks, device->udev_device);
+	if (!q ||
+	    !quirks_get_string(q, QUIRK_ATTR_MSC_TIMESTAMP, &prop) ||
+	    !streq(prop, "watch")) {
+		libevdev_disable_event_code(device->evdev, EV_MSC, MSC_TIMESTAMP);
+	}
+	quirks_unref(q);
 }
 
 static void
