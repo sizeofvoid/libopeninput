@@ -80,3 +80,12 @@ ModelLenovoCarbonX16th=1
 MatchName=AT Translated Set 2 keyboard
 MatchDMIModalias=dmi:*svnIBM:*pvrThinkPadX41Tablet:*
 ModelTabletModeNoSuspend=1
+
+# Lenovo MIIX 720 comes with a detachable keyboard. We must not disable
+# the keyboard because some keys are still accessible on the screen and
+# volume rocker. See
+# https://gitlab.freedesktop.org/libinput/libinput/issues/115
+[Lenovo MIIX 720]
+MatchName=AT Raw Set 2 keyboard
+MatchDMIModalias=dmi:*svnLENOVO:*pvrLenovoMIIX720-12IKB:*
+ModelTabletModeNoSuspend=1

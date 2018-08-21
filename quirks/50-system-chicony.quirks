@@ -7,3 +7,11 @@ MatchBus=usb
 MatchVendor=0x4F2
 MatchProduct=0x1558
 AttrTPKComboLayout=below
+
+# Lenovo MIIX 720 comes with a detachable touchpad-keyboard combo
+[Chicony Lenovo MIIX 720 Touchpad]
+MatchUdevType=touchpad
+MatchBus=0x03
+MatchVendor=0x17ef
+MatchProduct=0x60a6
+AttrTPKComboLayout=below
