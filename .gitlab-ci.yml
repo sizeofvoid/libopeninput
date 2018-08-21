@@ -161,7 +161,7 @@ variables:
     - touch .img_ready
   artifacts:
     name: image-$CURRENT_DOCKER_IMAGE-check
-    expire_in: 20 min
+    expire_in: 6 hrs
     paths:
       - .img_ready
   allow_failure: true
