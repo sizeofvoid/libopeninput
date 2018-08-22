@@ -1199,6 +1199,14 @@ match_fill_bus_vid_pid(struct match *m,
 		m->bus = BT_PS2;
 		m->bits |= M_BUS;
 		break;
+	case BUS_RMI:
+		m->bus = BT_RMI;
+		m->bits |= M_BUS;
+		break;
+	case BUS_I2C:
+		m->bus = BT_I2C;
+		m->bits |= M_BUS;
+		break;
 	default:
 		break;
 	}
