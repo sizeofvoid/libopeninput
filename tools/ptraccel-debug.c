@@ -224,7 +224,7 @@ main(int argc, char **argv)
 	int dpi = 1000;
 	const char *filter_type = "linear";
 	accel_profile_func_t profile = NULL;
-	int tp_range_max = 20;
+	double tp_multiplier = 1.0;
 
 	enum {
 		OPT_HELP = 1,
@@ -326,7 +326,7 @@ main(int argc, char **argv)
 		filter = create_pointer_accelerator_filter_lenovo_x230(dpi);
 		profile = touchpad_lenovo_x230_accel_profile;
 	} else if (streq(filter_type, "trackpoint")) {
-		filter = create_pointer_accelerator_filter_trackpoint(tp_range_max);
+		filter = create_pointer_accelerator_filter_trackpoint(tp_multiplier);
 		profile = trackpoint_accel_profile;
 	} else {
 		fprintf(stderr, "Invalid filter type %s\n", filter_type);
