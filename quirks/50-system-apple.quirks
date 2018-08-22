@@ -34,7 +34,7 @@ MatchProduct=0x030E
 AttrSizeHint=130x110
 AttrTouchSizeRange=20:10
 AttrPalmSizeThreshold=900
-AttrThumbSizeThreshold=800
+AttrThumbSizeThreshold=700
 
 [Apple Touchpad OneButton]
 MatchUdevType=touchpad
