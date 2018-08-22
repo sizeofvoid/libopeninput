@@ -496,6 +496,17 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	if (first_mm < 1 && second_mm < 1)
 		return GESTURE_STATE_UNKNOWN;
 
+	/* If both touches are within 7mm vertically and 40mm horizontally,
+	 * assume scroll/swipe */
+	if (distance_mm.x < 40 && distance_mm.y < 7.0) {
+		if (tp->gesture.finger_count == 2) {
+			tp_gesture_set_scroll_buildup(tp);
+			return GESTURE_STATE_SCROLL;
+		} else if (tp->gesture.enabled) {
+			return GESTURE_STATE_SWIPE;
+		}
+	}
+
 	/* If one touch exceeds the outer threshold while the other has not
 	 * yet passed the inner threshold, this is not a valid gesture.
 	 * If thumb detection is enabled, and one of the touches is >20mm

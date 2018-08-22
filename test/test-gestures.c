@@ -517,6 +517,17 @@ START_TEST(gestures_pinch)
 					    LIBINPUT_DEVICE_CAP_GESTURE))
 		return;
 
+	/* If the device is too small to provide a finger spread wide enough
+	 * to avoid the scroll bias, skip the test */
+	if (cardinal == E || cardinal == W) {
+		double w = 0, h = 0;
+		libinput_device_get_size(dev->libinput_device, &w, &h);
+		/* 0.6 because the code below gives us points like 20/y and
+		 * 80/y. 45 because the threshold in the code is 40mm */
+		if (w * 0.6 < 45)
+			return;
+	}
+
 	dir_x = cardinals[cardinal][0];
 	dir_y = cardinals[cardinal][1];
 
@@ -833,6 +844,17 @@ START_TEST(gestures_spread)
 	    !libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
 		return;
+
+	/* If the device is too small to provide a finger spread wide enough
+	 * to avoid the scroll bias, skip the test */
+	if (cardinal == E || cardinal == W) {
+		double w = 0, h = 0;
+		libinput_device_get_size(dev->libinput_device, &w, &h);
+		/* 0.6 because the code below gives us points like 20/y and
+		 * 80/y. 45 because the threshold in the code is 40mm */
+		if (w * 0.6 < 45)
+			return;
+	}
 
 	dir_x = cardinals[cardinal][0];
 	dir_y = cardinals[cardinal][1];
