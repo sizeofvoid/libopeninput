@@ -269,6 +269,7 @@ quirk_get_name(enum quirk q)
 	case QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD:	return "AttrThumbPressureThreshold";
 	case QUIRK_ATTR_USE_VELOCITY_AVERAGING:		return "AttrUseVelocityAveraging";
 	case QUIRK_ATTR_THUMB_SIZE_THRESHOLD:		return "AttrThumbSizeThreshold";
+	case QUIRK_ATTR_MSC_TIMESTAMP:			return "AttrMscTimestamp";
 	default:
 		abort();
 	}
@@ -743,6 +744,13 @@ parse_attr(struct quirks_context *ctx,
 			goto out;
 		p->type = PT_UINT;
 		p->value.u = v;
+		rc = true;
+	} else if (streq(key, quirk_get_name(QUIRK_ATTR_MSC_TIMESTAMP))) {
+		p->id = QUIRK_ATTR_MSC_TIMESTAMP;
+		if (!streq(value, "watch"))
+			goto out;
+		p->type = PT_STRING;
+		p->value.s = safe_strdup(value);
 		rc = true;
 	} else {
 		qlog_error(ctx, "Unknown key %s in %s\n", key, s->name);
