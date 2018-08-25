@@ -31,6 +31,7 @@
 
 #define DEFAULT_GESTURE_SWITCH_TIMEOUT ms2us(100)
 #define DEFAULT_GESTURE_SWIPE_TIMEOUT ms2us(150)
+#define DEFAULT_GESTURE_PINCH_TIMEOUT ms2us(150)
 
 static inline const char*
 gesture_state_to_str(enum tp_gesture_state state)
@@ -496,9 +497,10 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	if (first_mm < 1 && second_mm < 1)
 		return GESTURE_STATE_UNKNOWN;
 
-	/* If both touches are within 7mm vertically and 40mm horizontally,
-	 * assume scroll/swipe */
-	if (distance_mm.x < 40 && distance_mm.y < 7.0) {
+	/* If both touches are within 7mm vertically and 40mm horizontally
+	 * past the timeout, assume scroll/swipe */
+	if (distance_mm.x < 40.0 && distance_mm.y < 7.0 &&
+	    time > (tp->gesture.initial_time + DEFAULT_GESTURE_SWIPE_TIMEOUT)) {
 		if (tp->gesture.finger_count == 2) {
 			tp_gesture_set_scroll_buildup(tp);
 			return GESTURE_STATE_SCROLL;
@@ -539,8 +541,9 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	if ((first_mm < inner) || (second_mm < inner))
 		return GESTURE_STATE_UNKNOWN;
 
-	/* Both touches have exceeded the inner threshold; get their directions
-	 * gesture. G directions so we know if it's a pinch or swipe/scroll.
+	/* Both touches have exceeded the inner threshold, so we have a valid
+	 * gesture. Update gesture initial time and get directions so we know
+	 * if it's a pinch or swipe/scroll.
 	 */
 	dir1 = tp_gesture_get_direction(tp, first);
 	dir2 = tp_gesture_get_direction(tp, second);
