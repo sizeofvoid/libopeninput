@@ -1294,6 +1294,9 @@ fallback_keyboard_pair_tablet_mode(struct evdev_device *keyboard,
 	struct fallback_dispatch *dispatch =
 		fallback_dispatch(keyboard->dispatch);
 
+	if ((keyboard->tags & EVDEV_TAG_EXTERNAL_KEYBOARD))
+		return;
+
 	if ((keyboard->tags &
 	     (EVDEV_TAG_TRACKPOINT|EVDEV_TAG_INTERNAL_KEYBOARD)) == 0)
 		return;
