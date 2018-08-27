@@ -2226,13 +2226,17 @@ START_TEST(pad_buttons_ignored)
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_drain_events(li);
 
-	for (button = BTN_0; button < BTN_MOUSE; button++) {
+	for (button = BTN_0; button < BTN_MOUSE; button++)
 		litest_event(dev, EV_KEY, button, 1);
-		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	for (button = BTN_0; button < BTN_MOUSE; button++)
 		litest_event(dev, EV_KEY, button, 0);
-		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
-	}
+
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
 
 	litest_assert_empty_queue(li);
 }
