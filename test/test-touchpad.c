@@ -4255,11 +4255,18 @@ START_TEST(touchpad_dwt_disable_during_touch)
 
 	litest_keyboard_key(keyboard, KEY_A, true);
 	litest_keyboard_key(keyboard, KEY_A, false);
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
 	litest_touch_down(touchpad, 0, 50, 50);
+
+	litest_keyboard_key(keyboard, KEY_A, true);
+	litest_keyboard_key(keyboard, KEY_A, false);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
 	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
 	litest_assert_empty_queue(li);
+
+	litest_timeout_dwt_long();
+	libinput_dispatch(li);
 
 	disable_dwt(touchpad);
 
