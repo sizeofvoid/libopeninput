@@ -5580,11 +5580,11 @@ START_TEST(touchpad_jump_delta)
 	 * jump to test the delta jumps. These numbers may not work on any
 	 * other device  */
 	litest_disable_log_handler(li);
-	litest_touch_move_to(dev, 0, 90, 30, 90, 80, 1, 0);
+	litest_touch_move(dev, 0, 90, 88);
 	litest_assert_empty_queue(li);
 	litest_restore_log_handler(li);
 
-	litest_touch_move_to(dev, 0, 90, 80, 91, 81, 10, 0);
+	litest_touch_move_to(dev, 0, 90, 88, 91, 89, 10, 0);
 	litest_touch_up(dev, 0);
 
 	/* expect lots of little events, no big jump */
