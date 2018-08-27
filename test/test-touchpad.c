@@ -4231,7 +4231,7 @@ START_TEST(touchpad_dwt_disabled)
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_touch_up(touchpad, 0);
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
@@ -4264,7 +4264,7 @@ START_TEST(touchpad_dwt_disable_during_touch)
 	litest_keyboard_key(keyboard, KEY_A, false);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_assert_empty_queue(li);
 
 	litest_timeout_dwt_long();
@@ -4273,7 +4273,7 @@ START_TEST(touchpad_dwt_disable_during_touch)
 	disable_dwt(touchpad);
 
 	/* touch already down -> keeps being ignored */
-	litest_touch_move_to(touchpad, 0, 70, 50, 50, 70, 10, 1);
+	litest_touch_move_to(touchpad, 0, 70, 50, 50, 70, 10, 0);
 	litest_touch_up(touchpad, 0);
 
 	litest_assert_empty_queue(li);
@@ -4306,7 +4306,7 @@ START_TEST(touchpad_dwt_disable_before_touch)
 
 	/* touch down during timeout -> still discarded */
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_assert_empty_queue(li);
 
 	litest_delete_device(keyboard);
@@ -4340,7 +4340,7 @@ START_TEST(touchpad_dwt_disable_during_key_release)
 	litest_touch_down(touchpad, 0, 50, 50);
 	libinput_dispatch(li);
 	litest_timeout_dwt_long();
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
 	litest_delete_device(keyboard);
@@ -4372,7 +4372,7 @@ START_TEST(touchpad_dwt_disable_during_key_hold)
 	litest_touch_down(touchpad, 0, 50, 50);
 	libinput_dispatch(li);
 	litest_timeout_dwt_long();
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
 	litest_delete_device(keyboard);
@@ -4399,13 +4399,13 @@ START_TEST(touchpad_dwt_enable_during_touch)
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
 	enable_dwt(touchpad);
 
 	/* touch already down -> still sends events */
-	litest_touch_move_to(touchpad, 0, 70, 50, 50, 70, 10, 1);
+	litest_touch_move_to(touchpad, 0, 70, 50, 50, 70, 10, 0);
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
@@ -4436,7 +4436,7 @@ START_TEST(touchpad_dwt_enable_before_touch)
 	libinput_dispatch(li);
 
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
 	litest_delete_device(keyboard);
@@ -4473,7 +4473,7 @@ START_TEST(touchpad_dwt_enable_during_tap)
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_BUTTON);
 
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
@@ -4510,12 +4510,12 @@ START_TEST(touchpad_dwt_remove_kbd_while_active)
 	litest_delete_device(keyboard);
 	litest_drain_events(li);
 
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
@@ -4538,7 +4538,7 @@ START_TEST(touchpad_dwt_apple)
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_touch_up(touchpad, 0);
 	libinput_dispatch(li);
 	litest_assert_empty_queue(li);
@@ -4564,7 +4564,7 @@ START_TEST(touchpad_dwt_acer_hawaii)
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
@@ -4576,7 +4576,7 @@ START_TEST(touchpad_dwt_acer_hawaii)
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_touch_up(touchpad, 0);
 	libinput_dispatch(li);
 	litest_assert_empty_queue(li);
@@ -4604,7 +4604,7 @@ START_TEST(touchpad_dwt_multiple_keyboards)
 	litest_drain_events(li);
 
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
@@ -4615,7 +4615,7 @@ START_TEST(touchpad_dwt_multiple_keyboards)
 	litest_drain_events(li);
 
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
@@ -4646,7 +4646,7 @@ START_TEST(touchpad_dwt_multiple_keyboards_bothkeys)
 	litest_drain_events(li);
 
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
@@ -4681,7 +4681,7 @@ START_TEST(touchpad_dwt_multiple_keyboards_bothkeys_modifier)
 	 * ctrl+B across two devices is *not* a dwt modifier combo
 	 */
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
@@ -4724,7 +4724,7 @@ START_TEST(touchpad_dwt_multiple_keyboards_remove)
 	litest_drain_events(li);
 
 	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 0);
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
