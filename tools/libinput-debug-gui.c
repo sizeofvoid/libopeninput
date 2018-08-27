@@ -55,6 +55,7 @@ struct point {
 };
 
 struct window {
+	bool grab;
 	struct tools_options options;
 
 	GtkWidget *win;
@@ -455,8 +456,6 @@ map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 static void
 window_init(struct window *w)
 {
-	memset(w, 0, sizeof(*w));
-
 	w->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_widget_set_events(w->win, 0);
 	gtk_window_set_title(GTK_WINDOW(w->win), "libinput debugging tool");
@@ -922,12 +921,11 @@ usage(void) {
 int
 main(int argc, char **argv)
 {
-	struct window w;
+	struct window w = {0};
 	struct tools_options options;
 	struct libinput *li;
 	enum tools_backend backend = BACKEND_UDEV;
 	const char *seat_or_device = "seat0";
-	bool grab = false;
 	bool verbose = false;
 
 	gtk_init(&argc, &argv);
@@ -974,7 +972,7 @@ main(int argc, char **argv)
 			seat_or_device = optarg;
 			break;
 		case OPT_GRAB:
-			grab = true;
+			w.grab = true;
 			break;
 		case OPT_VERBOSE:
 			verbose = true;
@@ -994,7 +992,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	li = tools_open_backend(backend, seat_or_device, verbose, &grab);
+	li = tools_open_backend(backend, seat_or_device, verbose, &w.grab);
 	if (!li)
 		return 1;
 
