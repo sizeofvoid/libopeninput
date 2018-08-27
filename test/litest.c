@@ -1994,17 +1994,11 @@ litest_touch_move_to(struct litest_device *d,
 		     double x_to, double y_to,
 		     int steps, int sleep_ms)
 {
-	for (int i = 1; i < steps; i++) {
-		litest_touch_move(d, slot,
-				  x_from + (x_to - x_from)/steps * i,
-				  y_from + (y_to - y_from)/steps * i);
-		if (sleep_ms) {
-			libinput_dispatch(d->libinput);
-			msleep(sleep_ms);
-			libinput_dispatch(d->libinput);
-		}
-	}
-	litest_touch_move(d, slot, x_to, y_to);
+	litest_touch_move_to_extended(d, slot,
+				      x_from, y_from,
+				      x_to, y_to,
+				      NULL,
+				      steps, sleep_ms);
 }
 
 void
@@ -2015,7 +2009,7 @@ litest_touch_move_to_extended(struct litest_device *d,
 			      struct axis_replacement *axes,
 			      int steps, int sleep_ms)
 {
-	for (int i = 1; i < steps - 1; i++) {
+	for (int i = 1; i < steps; i++) {
 		litest_touch_move_extended(d, slot,
 					   x_from + (x_to - x_from)/steps * i,
 					   y_from + (y_to - y_from)/steps * i,
