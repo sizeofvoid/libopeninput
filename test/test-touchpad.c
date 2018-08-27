@@ -165,7 +165,7 @@ START_TEST(touchpad_2fg_scroll)
 }
 END_TEST
 
-START_TEST(touchpad_2fg_scroll_diagonal)
+START_TEST(touchpad_2fg_scroll_initially_diagonal)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -182,6 +182,7 @@ START_TEST(touchpad_2fg_scroll_diagonal)
 	litest_touch_down(dev, 0, 45, 30);
 	litest_touch_down(dev, 1, 55, 30);
 
+	/* start diagonally */
 	litest_touch_move_two_touches(dev, 45, 30, 55, 30, 10, 10, 10, 0);
 	libinput_dispatch(li);
 	litest_wait_for_event_of_type(li,
@@ -194,6 +195,7 @@ START_TEST(touchpad_2fg_scroll_diagonal)
 		litest_touch_move(dev, 0, 55, 41 + i);
 	litest_drain_events(li);
 
+	/* scroll vertical only and make sure the horiz axis is never set */
 	for (i = 6; i < 10; i++) {
 		litest_touch_move(dev, 0, 55, 41 + i);
 		libinput_dispatch(li);
@@ -6629,7 +6631,7 @@ TEST_COLLECTION(touchpad)
 	litest_add("touchpad:motion", touchpad_2fg_no_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 
 	litest_add("touchpad:scroll", touchpad_2fg_scroll, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
-	litest_add("touchpad:scroll", touchpad_2fg_scroll_diagonal, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("touchpad:scroll", touchpad_2fg_scroll_initially_diagonal, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add("touchpad:scroll", touchpad_2fg_scroll_axis_lock, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add("touchpad:scroll", touchpad_2fg_scroll_axis_lock_switch, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 
