@@ -4100,7 +4100,7 @@ touch_arbitration(struct litest_device *dev,
 	litest_drain_events(li);
 
 	litest_touch_down(finger, 0, 30, 30);
-	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
 	litest_assert_empty_queue(li);
 
 	litest_tablet_motion(dev, 10, 10, axes);
@@ -4115,13 +4115,13 @@ touch_arbitration(struct litest_device *dev,
 	libinput_dispatch(li);
 
 	/* finger still down */
-	litest_touch_move_to(finger, 0, 80, 80, 30, 30, 10, 1);
+	litest_touch_move_to(finger, 0, 80, 80, 30, 30, 10);
 	litest_touch_up(finger, 0);
 	litest_assert_empty_queue(li);
 
 	/* lift finger, expect expect events */
 	litest_touch_down(finger, 0, 30, 30);
-	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
 	litest_touch_up(finger, 0);
 	libinput_dispatch(li);
 
@@ -4163,18 +4163,18 @@ touch_arbitration_stop_touch(struct litest_device *dev,
 
 	finger = litest_add_device(li, other);
 	litest_touch_down(finger, 0, 30, 30);
-	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_tablet_motion(dev, 10, 10, axes);
 	litest_tablet_motion(dev, 20, 40, axes);
 	litest_drain_events(li);
 
-	litest_touch_move_to(finger, 0, 80, 80, 30, 30, 10, 1);
+	litest_touch_move_to(finger, 0, 80, 80, 30, 30, 10);
 	/* start another finger to make sure that one doesn't send events
 	   either */
 	litest_touch_down(finger, 1, 30, 30);
-	litest_touch_move_to(finger, 1, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(finger, 1, 30, 30, 80, 80, 10);
 	litest_assert_empty_queue(li);
 
 	litest_tablet_motion(dev, 10, 10, axes);
@@ -4185,12 +4185,12 @@ touch_arbitration_stop_touch(struct litest_device *dev,
 	litest_drain_events(li);
 
 	/* Finger needs to be lifted for events to happen*/
-	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
 	litest_assert_empty_queue(li);
-	litest_touch_move_to(finger, 1, 80, 80, 30, 30, 10, 1);
+	litest_touch_move_to(finger, 1, 80, 80, 30, 30, 10);
 	litest_assert_empty_queue(li);
 	litest_touch_up(finger, 0);
-	litest_touch_move_to(finger, 1, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(finger, 1, 30, 30, 80, 80, 10);
 	litest_assert_empty_queue(li);
 	litest_touch_up(finger, 1);
 	libinput_dispatch(li);
@@ -4199,7 +4199,7 @@ touch_arbitration_stop_touch(struct litest_device *dev,
 	libinput_dispatch(li);
 
 	litest_touch_down(finger, 0, 30, 30);
-	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
 	litest_touch_up(finger, 0);
 	libinput_dispatch(li);
 
@@ -4260,7 +4260,7 @@ touch_arbitration_suspend_touch(struct litest_device *dev,
 	litest_drain_events(li);
 
 	litest_touch_down(dev, 0, 30, 30);
-	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10);
 	litest_touch_up(dev, 0);
 	litest_assert_empty_queue(li);
 
@@ -4274,13 +4274,13 @@ touch_arbitration_suspend_touch(struct litest_device *dev,
 	libinput_dispatch(li);
 
 	litest_touch_down(dev, 0, 30, 30);
-	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10);
 	litest_touch_up(dev, 0);
 	litest_assert_empty_queue(li);
 
 	/* Touch device is still disabled */
 	litest_touch_down(dev, 0, 30, 30);
-	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10);
 	litest_touch_up(dev, 0);
 	litest_assert_empty_queue(li);
 
@@ -4290,7 +4290,7 @@ touch_arbitration_suspend_touch(struct litest_device *dev,
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_touch_down(dev, 0, 30, 30);
-	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10);
 	litest_touch_up(dev, 0);
 	libinput_dispatch(li);
 
@@ -4332,7 +4332,7 @@ touch_arbitration_remove_touch(struct litest_device *dev,
 
 	finger = litest_add_device(li, other);
 	litest_touch_down(finger, 0, 30, 30);
-	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_drain_events(li);
@@ -4385,7 +4385,7 @@ touch_arbitration_remove_tablet(struct litest_device *dev,
 	litest_drain_events(li);
 
 	litest_touch_down(dev, 0, 30, 30);
-	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10);
 	litest_assert_empty_queue(li);
 
 	litest_delete_device(tablet);
@@ -4397,12 +4397,12 @@ touch_arbitration_remove_tablet(struct litest_device *dev,
 	libinput_dispatch(li);
 
 	/* Touch is still down, don't enable */
-	litest_touch_move_to(dev, 0, 80, 80, 30, 30, 10, 1);
+	litest_touch_move_to(dev, 0, 80, 80, 30, 30, 10);
 	litest_touch_up(dev, 0);
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 0, 30, 30);
-	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10);
 	litest_touch_up(dev, 0);
 	libinput_dispatch(li);
 
@@ -4453,7 +4453,7 @@ START_TEST(intuos_touch_arbitration_keep_ignoring)
 
 	/* a touch during pen interaction stays a palm after the pen lifts.
 	 */
-	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10, 1);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
 	litest_touch_up(finger, 0);
 	libinput_dispatch(li);
 

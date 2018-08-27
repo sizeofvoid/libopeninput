@@ -198,7 +198,7 @@ START_TEST(device_disable_touchpad)
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 0, 50, 50);
-	litest_touch_move_to(dev, 0, 50, 50, 90, 90, 10, 0);
+	litest_touch_move_to(dev, 0, 50, 50, 90, 90, 10);
 	litest_touch_up(dev, 0);
 
 	litest_assert_empty_queue(li);
@@ -230,7 +230,7 @@ START_TEST(device_disable_touch)
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 0, 50, 50);
-	litest_touch_move_to(dev, 0, 50, 50, 90, 90, 10, 0);
+	litest_touch_move_to(dev, 0, 50, 50, 90, 90, 10);
 	litest_touch_up(dev, 0);
 
 	litest_assert_empty_queue(li);
@@ -254,7 +254,7 @@ START_TEST(device_disable_touch_during_touch)
 	device = dev->libinput_device;
 
 	litest_touch_down(dev, 0, 50, 50);
-	litest_touch_move_to(dev, 0, 50, 50, 90, 90, 10, 0);
+	litest_touch_move_to(dev, 0, 50, 50, 90, 90, 10);
 	litest_drain_events(li);
 
 	status = libinput_device_config_send_events_set_mode(device,
@@ -273,11 +273,11 @@ START_TEST(device_disable_touch_during_touch)
 
 	litest_assert_empty_queue(li);
 
-	litest_touch_move_to(dev, 0, 90, 90, 50, 50, 10, 0);
+	litest_touch_move_to(dev, 0, 90, 90, 50, 50, 10);
 	litest_touch_up(dev, 0);
 
 	litest_touch_down(dev, 0, 50, 50);
-	litest_touch_move_to(dev, 0, 50, 50, 90, 90, 10, 0);
+	litest_touch_move_to(dev, 0, 50, 50, 90, 90, 10);
 	litest_touch_up(dev, 0);
 
 	litest_assert_empty_queue(li);
@@ -1377,7 +1377,7 @@ START_TEST(device_quirks_apple_magicmouse)
 
 	/* ensure we get no events from the touch */
 	litest_touch_down(dev, 0, 50, 50);
-	litest_touch_move_to(dev, 0, 50, 50, 80, 80, 10, 0);
+	litest_touch_move_to(dev, 0, 50, 50, 80, 80, 10);
 	litest_touch_up(dev, 0);
 	litest_assert_empty_queue(li);
 }

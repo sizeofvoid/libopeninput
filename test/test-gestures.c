@@ -85,12 +85,8 @@ START_TEST(gestures_swipe_3fg)
 	litest_touch_down(dev, 1, 50, 40);
 	litest_touch_down(dev, 2, 60, 40);
 	libinput_dispatch(li);
-	litest_touch_move_three_touches(dev,
-					40, 40,
-					50, 40,
-					60, 40,
-					dir_x, dir_y,
-					10, 0);
+	litest_touch_move_three_touches(dev, 40, 40, 50, 40, 60, 40, dir_x,
+					dir_y, 10);
 	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
@@ -193,11 +189,7 @@ START_TEST(gestures_swipe_3fg_btntool)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
 	libinput_dispatch(li);
-	litest_touch_move_two_touches(dev,
-				      40, 40,
-				      50, 40,
-				      dir_x, dir_y,
-				      10, 0);
+	litest_touch_move_two_touches(dev, 40, 40, 50, 40, dir_x, dir_y, 10);
 	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
@@ -427,11 +419,7 @@ START_TEST(gestures_swipe_4fg_btntool)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
 	libinput_dispatch(li);
-	litest_touch_move_two_touches(dev,
-				      40, 40,
-				      50, 40,
-				      dir_x, dir_y,
-				      10, 0);
+	litest_touch_move_two_touches(dev, 40, 40, 50, 40, dir_x, dir_y, 10);
 	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
@@ -536,11 +524,11 @@ START_TEST(gestures_pinch_vertical_position)
 				nfingers);
 	libinput_event_destroy(event);
 
-	litest_touch_move_to(dev, 0, 40, 30.5, 40, 36, 5, 0);
-	litest_touch_move_to(dev, 1, 50, 70.5, 50, 76, 5, 0);
-	litest_touch_move_to(dev, 2, 60, 70.5, 60, 76, 5, 0);
+	litest_touch_move_to(dev, 0, 40, 30.5, 40, 36, 5);
+	litest_touch_move_to(dev, 1, 50, 70.5, 50, 76, 5);
+	litest_touch_move_to(dev, 2, 60, 70.5, 60, 76, 5);
 	if (nfingers > 3)
-		litest_touch_move_to(dev, 3, 70, 70.5, 60, 76, 5, 0);
+		litest_touch_move_to(dev, 3, 70, 70.5, 60, 76, 5);
 	libinput_dispatch(li);
 
 	litest_assert_only_typed_events(li,
@@ -981,12 +969,8 @@ START_TEST(gestures_time_usec)
 	litest_touch_down(dev, 1, 50, 40);
 	litest_touch_down(dev, 2, 60, 40);
 	libinput_dispatch(li);
-	litest_touch_move_three_touches(dev,
-					40, 40,
-					50, 40,
-					60, 40,
-					0, 30,
-					30, 0);
+	litest_touch_move_three_touches(dev, 40, 40, 50, 40, 60, 40, 0, 30,
+					30);
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
@@ -1017,11 +1001,7 @@ START_TEST(gestures_3fg_buttonarea_scroll)
 	/* third finger in btnarea */
 	litest_touch_down(dev, 2, 50, 99);
 	libinput_dispatch(li);
-	litest_touch_move_two_touches(dev,
-					40, 20,
-					30, 20,
-					0, 40,
-					10, 0);
+	litest_touch_move_two_touches(dev, 40, 20, 30, 20, 0, 40, 10);
 
 	litest_touch_up(dev, 0);
 	litest_touch_up(dev, 1);
@@ -1049,7 +1029,7 @@ START_TEST(gestures_3fg_buttonarea_scroll_btntool)
 	litest_event(dev, EV_KEY, BTN_TOOL_TRIPLETAP, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
-	litest_touch_move_to(dev, 1, 30, 20, 30, 70, 10, 0);
+	litest_touch_move_to(dev, 1, 30, 20, 30, 70, 10);
 
 	litest_touch_up(dev, 1);
 	libinput_dispatch(li);

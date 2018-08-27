@@ -1992,13 +1992,13 @@ litest_touch_move_to(struct litest_device *d,
 		     unsigned int slot,
 		     double x_from, double y_from,
 		     double x_to, double y_to,
-		     int steps, int sleep_ms)
+		     int steps)
 {
 	litest_touch_move_to_extended(d, slot,
 				      x_from, y_from,
 				      x_to, y_to,
 				      NULL,
-				      steps, sleep_ms);
+				      steps);
 }
 
 void
@@ -2007,10 +2007,9 @@ litest_touch_move_to_extended(struct litest_device *d,
 			      double x_from, double y_from,
 			      double x_to, double y_to,
 			      struct axis_replacement *axes,
-			      int steps, int sleep_ms)
+			      int steps)
 {
-	if (sleep_ms == 0)
-		sleep_ms = 10;
+	int sleep_ms = 10;
 
 	for (int i = 1; i < steps; i++) {
 		litest_touch_move_extended(d, slot,
@@ -2105,10 +2104,9 @@ litest_touch_move_two_touches(struct litest_device *d,
 			      double x0, double y0,
 			      double x1, double y1,
 			      double dx, double dy,
-			      int steps, int sleep_ms)
+			      int steps)
 {
-	if (sleep_ms == 0)
-		sleep_ms = 10;
+	int sleep_ms = 10;
 
 	for (int i = 1; i < steps; i++) {
 		litest_push_event_frame(d);
@@ -2133,10 +2131,9 @@ litest_touch_move_three_touches(struct litest_device *d,
 				double x1, double y1,
 				double x2, double y2,
 				double dx, double dy,
-				int steps, int sleep_ms)
+				int steps)
 {
-	if (sleep_ms == 0)
-		sleep_ms = 10;
+	int sleep_ms = 10;
 
 	for (int i = 0; i < steps - 1; i++) {
 		litest_touch_move(d, 0, x0 + dx / steps * i,
@@ -2220,10 +2217,9 @@ litest_hover_move_to(struct litest_device *d,
 		     unsigned int slot,
 		     double x_from, double y_from,
 		     double x_to, double y_to,
-		     int steps, int sleep_ms)
+		     int steps)
 {
-	if (sleep_ms == 0)
-		sleep_ms = 10;
+	int sleep_ms = 10;
 
 	for (int i = 0; i < steps - 1; i++) {
 		litest_hover_move(d, slot,
@@ -2241,10 +2237,9 @@ litest_hover_move_two_touches(struct litest_device *d,
 			      double x0, double y0,
 			      double x1, double y1,
 			      double dx, double dy,
-			      int steps, int sleep_ms)
+			      int steps)
 {
-	if (sleep_ms == 0)
-		sleep_ms = 10;
+	int sleep_ms = 10;
 
 	for (int i = 0; i < steps - 1; i++) {
 		litest_push_event_frame(d);
