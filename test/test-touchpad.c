@@ -3327,12 +3327,6 @@ START_TEST(touchpad_dwt)
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
-	/* within timeout - no events */
-	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
-	litest_touch_up(touchpad, 0);
-	litest_assert_empty_queue(li);
-
 	litest_timeout_dwt_short();
 	libinput_dispatch(li);
 
@@ -3373,12 +3367,6 @@ START_TEST(touchpad_dwt_ext_and_int_keyboard)
 	litest_touch_up(touchpad, 0);
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
-
-	/* within timeout - no events */
-	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10, 1);
-	litest_touch_up(touchpad, 0);
-	litest_assert_empty_queue(li);
 
 	litest_timeout_dwt_short();
 	libinput_dispatch(li);
