@@ -1442,13 +1442,19 @@ tp_need_motion_history_reset(struct tp_dispatch *tp)
 }
 
 static bool
-tp_detect_jumps(const struct tp_dispatch *tp, struct tp_touch *t)
+tp_detect_jumps(const struct tp_dispatch *tp,
+		struct tp_touch *t,
+		uint64_t time)
 {
 	struct device_coords delta;
 	struct phys_coords mm;
 	struct tp_history_point *last;
-	double distance;
+	double abs_distance, rel_distance;
 	bool is_jump = false;
+	uint64_t tdelta;
+	/* Reference interval from the touchpad the various thresholds
+	 * were measured from */
+	unsigned int reference_interval = ms2us(12);
 
 	/* We haven't seen pointer jumps on Wacom tablets yet, so exclude
 	 * those.
@@ -1464,19 +1470,35 @@ tp_detect_jumps(const struct tp_dispatch *tp, struct tp_touch *t)
 	/* called before tp_motion_history_push, so offset 0 is the most
 	 * recent coordinate */
 	last = tp_motion_history_offset(t, 0);
+	tdelta = time - last->time;
+
+	/* For test devices we always force the time delta to 12, at least
+	   until the test suite actually does proper intervals. */
+	if (tp->device->model_flags & EVDEV_MODEL_TEST_DEVICE)
+		reference_interval = tdelta;
+
+	/* If the last frame is more than 25ms ago, we have irregular
+	 * frames, who knows what's a pointer jump here and what's
+	 * legitimate movement.... */
+	if (tdelta > 2 * reference_interval || tdelta == 0)
+		return false;
+
+	/* We historically expected ~12ms frame intervals, so the numbers
+	   below are normalized to that (and that's also where the
+	   measured data came from) */
 	delta.x = abs(t->point.x - last->point.x);
 	delta.y = abs(t->point.y - last->point.y);
 	mm = evdev_device_unit_delta_to_mm(tp->device, &delta);
-
-	distance = hypot(mm.x, mm.y);
+	abs_distance = hypot(mm.x, mm.y) * reference_interval/tdelta;
+	rel_distance = abs_distance - t->jumps.last_delta_mm;
 
 	/* Cursor jump if:
 	 * - current single-event delta is >20mm, or
-	 * - we increased the delta by over 7mm within a frame.
+	 * - we increased the delta by over 7mm within a 12ms frame.
+	 *   (12ms simply because that's what I measured)
 	 */
-	is_jump = distance > 20.0 ||
-		 (distance - t->jumps.last_delta_mm) > 7;
-	t->jumps.last_delta_mm = distance;
+	is_jump = abs_distance > 20.0 || rel_distance > 7;
+	t->jumps.last_delta_mm = abs_distance;
 
 	return is_jump;
 }
@@ -1582,7 +1604,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 			continue;
 		}
 
-		if (tp_detect_jumps(tp, t)) {
+		if (tp_detect_jumps(tp, t, time)) {
 			if (!tp->semi_mt)
 				evdev_log_bug_kernel(tp->device,
 					       "Touch jump detected and discarded.\n"

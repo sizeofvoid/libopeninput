@@ -1355,6 +1355,12 @@ evdev_read_model_flags(struct evdev_device *device)
 		model_flags |= EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81;
 	}
 
+	if (parse_udev_flag(device, device->udev_device,
+			    "LIBINPUT_TEST_DEVICE")) {
+		evdev_log_debug(device, "is a test device\n");
+		model_flags |= EVDEV_MODEL_TEST_DEVICE;
+	}
+
 	return model_flags;
 }
 
