@@ -523,11 +523,11 @@ START_TEST(gestures_pinch_vertical_position)
 	/* This is actually a small swipe gesture, all three fingers moving
 	 * down but we're checking for the code that triggers based on
 	 * finger position. */
-	litest_touch_move_to(dev, 0, 40, 30, 40, 30.5, 1, 0);
-	litest_touch_move_to(dev, 1, 50, 70, 50, 70.5, 1, 0);
-	litest_touch_move_to(dev, 2, 60, 70, 60, 70.5, 1, 0);
+	litest_touch_move(dev, 0, 40, 30.5);
+	litest_touch_move(dev, 1, 50, 70.5);
+	litest_touch_move(dev, 2, 60, 70.5);
 	if (nfingers > 3)
-		litest_touch_move_to(dev, 3, 70, 70, 70, 70.5, 1, 0);
+		litest_touch_move(dev, 3, 70, 70.5);
 	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
