@@ -5327,29 +5327,29 @@ START_TEST(touchpad_tool_tripletap_touch_count_late)
 	/* touch 1 down */
 	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
 	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, 1);
-	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 1200);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 2200);
 	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3200);
 	litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 78);
-	litest_event(dev, EV_ABS, ABS_X, 1200);
+	litest_event(dev, EV_ABS, ABS_X, 2200);
 	litest_event(dev, EV_ABS, ABS_Y, 3200);
 	litest_event(dev, EV_ABS, ABS_PRESSURE, 78);
 	litest_event(dev, EV_KEY, BTN_TOOL_FINGER, 1);
 	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
-	msleep(2);
+	msleep(10);
 
 	/* touch 2 and TRIPLETAP down */
 	litest_event(dev, EV_ABS, ABS_MT_SLOT, 1);
 	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, 1);
-	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 2200);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 3200);
 	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3200);
 	litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 73);
 	litest_event(dev, EV_KEY, BTN_TOOL_FINGER, 0);
 	litest_event(dev, EV_KEY, BTN_TOOL_TRIPLETAP, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
-	msleep(2);
+	msleep(10);
 
 	/* touch 2 up, coordinate jump + ends slot 1, TRIPLETAP stays */
 	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
@@ -5363,7 +5363,7 @@ START_TEST(touchpad_tool_tripletap_touch_count_late)
 	litest_event(dev, EV_ABS, ABS_PRESSURE, 78);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
-	msleep(2);
+	msleep(10);
 
 	/* slot 2 reactivated:
 	 * Note, slot is activated close enough that we don't accidentally
@@ -5384,7 +5384,7 @@ START_TEST(touchpad_tool_tripletap_touch_count_late)
 	litest_event(dev, EV_ABS, ABS_PRESSURE, 78);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
-	msleep(2);
+	msleep(10);
 
 	/* now a click should trigger middle click */
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
