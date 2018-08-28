@@ -2722,7 +2722,7 @@ START_TEST(touchpad_tap_palm_on_touch_hold_move)
 	litest_touch_move_to(dev, 0, 50, 50, 60, 60, 10, 1);
 	litest_drain_events(li);
 
-	litest_touch_move_to_extended(dev, 0, 50, 50, 50, 50, axes, 1, 1);
+	litest_touch_move_to_extended(dev, 0, 60, 60, 60, 60, axes, 1, 1);
 	litest_touch_up(dev, 0);
 
 	libinput_dispatch(li);
