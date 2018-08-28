@@ -1926,6 +1926,7 @@ START_TEST(touchpad_3fg_tap_slot_release_btntool)
 	msleep(2);
 
 	/* touch 2 up, coordinate jump + ends slot 1, TRIPLETAP stays */
+	litest_disable_log_handler(li);
 	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
 	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 2500);
 	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3800);
@@ -1955,6 +1956,7 @@ START_TEST(touchpad_3fg_tap_slot_release_btntool)
 	litest_event(dev, EV_ABS, ABS_PRESSURE, 78);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
+	litest_restore_log_handler(li);
 
 	/* now end all three */
 	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);

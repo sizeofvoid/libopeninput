@@ -5350,6 +5350,7 @@ START_TEST(touchpad_tool_tripletap_touch_count_late)
 	msleep(10);
 
 	/* touch 2 up, coordinate jump + ends slot 1, TRIPLETAP stays */
+	litest_disable_log_handler(li);
 	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
 	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 4000);
 	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 4000);
@@ -5383,6 +5384,7 @@ START_TEST(touchpad_tool_tripletap_touch_count_late)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
 	msleep(10);
+	litest_restore_log_handler(li);
 
 	/* now a click should trigger middle click */
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);

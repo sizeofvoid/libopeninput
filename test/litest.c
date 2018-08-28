@@ -622,6 +622,10 @@ litest_log_handler(struct libinput *libinput,
 		    !strstr(format, "offset negative"))
 		litest_abort_msg("libinput bug triggered, aborting.\n");
 	}
+
+	if (strstr(format, "Touch jump detected and discarded")) {
+		litest_abort_msg("libinput touch jump triggered, aborting.\n");
+	}
 }
 
 static char *
