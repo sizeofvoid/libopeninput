@@ -864,7 +864,7 @@ START_TEST(touchpad_2fg_tap_n_drag)
 	litest_touch_up(dev, 0);
 	litest_touch_down(dev, 0, 30, 70);
 	litest_touch_down(dev, 1, 80, 70);
-	litest_touch_move_to(dev, 0, 30, 70, 30, 30, 5, 40);
+	litest_touch_move_to(dev, 0, 30, 70, 30, 30, 10, 10);
 	libinput_dispatch(li);
 
 	litest_assert_button_event(li, BTN_LEFT,
@@ -944,7 +944,7 @@ START_TEST(touchpad_2fg_tap_n_drag_3fg)
 	litest_touch_up(dev, 0);
 	litest_touch_down(dev, 0, 30, 70);
 	litest_touch_down(dev, 1, 80, 90);
-	litest_touch_move_to(dev, 0, 30, 70, 30, 30, 5, 40);
+	litest_touch_move_to(dev, 0, 30, 70, 30, 30, 10, 10);
 	libinput_dispatch(li);
 
 	litest_assert_button_event(li, BTN_LEFT,

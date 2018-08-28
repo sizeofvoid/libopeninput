@@ -306,7 +306,7 @@ START_TEST(touchpad_2fg_scroll_axis_lock_switch)
 	litest_touch_down(dev, 1, 25, 20);
 
 	/* Move roughly straight horizontally for >100ms to set axis lock */
-	litest_touch_move_two_touches(dev, 20, 20, 25, 20, 55, 10, 10, 15);
+	litest_touch_move_two_touches(dev, 20, 20, 25, 20, 55, 10, 15, 10);
 	libinput_dispatch(li);
 	litest_wait_for_event_of_type(li,
 				      LIBINPUT_EVENT_POINTER_AXIS,
@@ -323,7 +323,7 @@ START_TEST(touchpad_2fg_scroll_axis_lock_switch)
 	 * contain some horizontal movement while the lock changes; don't
 	 * check for single-axis yet
 	 */
-	litest_touch_move_two_touches(dev, 75, 30, 80, 30, 2, 20, 10, 15);
+	litest_touch_move_two_touches(dev, 75, 30, 80, 30, 2, 20, 15, 10);
 	libinput_dispatch(li);
 	litest_wait_for_event_of_type(li,
 				      LIBINPUT_EVENT_POINTER_AXIS,
@@ -331,7 +331,7 @@ START_TEST(touchpad_2fg_scroll_axis_lock_switch)
 	litest_drain_events(li);
 
 	/* Move some more, roughly vertically, and check new axis lock */
-	litest_touch_move_two_touches(dev, 77, 50, 82, 50, 1, 40, 10, 15);
+	litest_touch_move_two_touches(dev, 77, 50, 82, 50, 1, 40, 15, 10);
 	libinput_dispatch(li);
 	litest_wait_for_event_of_type(li,
 				      LIBINPUT_EVENT_POINTER_AXIS,
@@ -342,7 +342,7 @@ START_TEST(touchpad_2fg_scroll_axis_lock_switch)
 	litest_drain_events(li);
 
 	/* Move in a clear diagonal direction to ensure the lock releases */
-	litest_touch_move_two_touches(dev, 78, 90, 83, 90, -60, -60, 30, 15);
+	litest_touch_move_two_touches(dev, 78, 90, 83, 90, -60, -60, 20, 10);
 	libinput_dispatch(li);
 	litest_wait_for_event_of_type(li,
 				      LIBINPUT_EVENT_POINTER_AXIS,
@@ -861,8 +861,8 @@ START_TEST(touchpad_edge_scroll_no_edge_after_motion)
 
 	/* moving into the edge zone must not trigger scroll events */
 	litest_touch_down(dev, 0, 20, 20);
-	litest_touch_move_to(dev, 0, 20, 20, 99, 20, 12, 0);
-	litest_touch_move_to(dev, 0, 99, 20, 99, 80, 12, 0);
+	litest_touch_move_to(dev, 0, 20, 20, 99, 20, 22, 10);
+	litest_touch_move_to(dev, 0, 99, 20, 99, 80, 22, 10);
 	litest_touch_up(dev, 0);
 	libinput_dispatch(li);
 
@@ -908,7 +908,7 @@ START_TEST(touchpad_edge_scroll_no_2fg)
 
 	litest_touch_down(dev, 0, 49, 50);
 	litest_touch_down(dev, 1, 51, 50);
-	litest_touch_move_two_touches(dev, 49, 50, 51, 50, 20, 30, 5, 0);
+	litest_touch_move_two_touches(dev, 49, 50, 51, 50, 20, 30, 10, 10);
 	libinput_dispatch(li);
 	litest_touch_up(dev, 0);
 	litest_touch_up(dev, 1);
@@ -1285,7 +1285,7 @@ START_TEST(touchpad_palm_detect_palm_stays_palm)
 	litest_drain_events(li);
 
 	litest_touch_down(dev, 0, 99, 20);
-	litest_touch_move_to(dev, 0, 99, 20, 75, 99, 10, 0);
+	litest_touch_move_to(dev, 0, 99, 20, 75, 99, 20, 10);
 	litest_touch_up(dev, 0);
 	litest_assert_empty_queue(li);
 }
@@ -1304,7 +1304,7 @@ START_TEST(touchpad_palm_detect_top_palm_stays_palm)
 	litest_drain_events(li);
 
 	litest_touch_down(dev, 0, 20, 1);
-	litest_touch_move_to(dev, 0, 20, 1, 90, 30, 10, 0);
+	litest_touch_move_to(dev, 0, 20, 1, 50, 30, 20, 10);
 	litest_touch_up(dev, 0);
 
 	litest_assert_empty_queue(li);
@@ -3277,7 +3277,7 @@ START_TEST(touchpad_initial_state)
 	else
 		y = 30;
 	litest_touch_down(dev, 0, x, y);
-	litest_touch_move_to(dev, 0, x, y, 80, 80, 10, 1);
+	litest_touch_move_to(dev, 0, x, y, 70, 70, 10, 10);
 	litest_touch_up(dev, 0);
 	libinput_dispatch(libinput1);
 	libinput_dispatch(libinput2);
@@ -5504,7 +5504,7 @@ START_TEST(touchpad_time_usec)
 	litest_drain_events(li);
 
 	litest_touch_down(dev, 0, 50, 50);
-	litest_touch_move_to(dev, 0, 50, 50, 80, 50, 5, 0);
+	litest_touch_move_to(dev, 0, 50, 50, 80, 50, 20, 10);
 	litest_touch_up(dev, 0);
 
 	libinput_dispatch(li);

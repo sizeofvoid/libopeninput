@@ -1266,14 +1266,14 @@ START_TEST(clickpad_softbutton_left_1st_fg_move)
 	litest_assert_empty_queue(li);
 
 	/* move out of the area, then wait for softbutton timer */
-	litest_touch_move_to(dev, 0, 20, 90, 90, 20, 10, 0);
+	litest_touch_move_to(dev, 0, 20, 90, 50, 50, 20, 10);
 	libinput_dispatch(li);
 	litest_timeout_softbuttons();
 	libinput_dispatch(li);
 	litest_drain_events(li);
 
 	/* move down left, expect motion */
-	litest_touch_move_to(dev, 0, 90, 20, 20, 90, 10, 0);
+	litest_touch_move_to(dev, 0, 50, 50, 20, 90, 20, 10);
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
@@ -1420,8 +1420,8 @@ START_TEST(clickpad_softbutton_left_to_right)
 		-> expect right button event
 	*/
 
-	litest_touch_down(dev, 0, 20, 90);
-	litest_touch_move_to(dev, 0, 20, 90, 90, 90, 10, 0);
+	litest_touch_down(dev, 0, 30, 90);
+	litest_touch_move_to(dev, 0, 30, 90, 90, 90, 10, 10);
 	litest_drain_events(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
@@ -1456,8 +1456,8 @@ START_TEST(clickpad_softbutton_right_to_left)
 		-> expect left button event
 	*/
 
-	litest_touch_down(dev, 0, 90, 90);
-	litest_touch_move_to(dev, 0, 90, 90, 20, 90, 10, 0);
+	litest_touch_down(dev, 0, 80, 90);
+	litest_touch_move_to(dev, 0, 80, 90, 30, 90, 10, 10);
 	litest_drain_events(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
