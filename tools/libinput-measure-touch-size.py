@@ -268,9 +268,13 @@ class Device(object):
                 if event.value > -1:
                     self.start_new_sequence(event.value)
                 else:
-                    s = self.current_sequence()
-                    s.finalize()
-                    print("\r{}".format(s))
+                    try:
+                        s = self.current_sequence()
+                        s.finalize()
+                        print("\r{}".format(s))
+                    except IndexError:
+                        # If the finger was down during start
+                        pass
         elif event.code == evdev.ecodes.ABS_MT_TOUCH_MAJOR:
                 self.touch.major = event.value
         elif event.code == evdev.ecodes.ABS_MT_TOUCH_MINOR:
@@ -280,11 +284,14 @@ class Device(object):
 
     def handle_syn(self, event):
         if self.touch.dirty:
-            self.current_sequence().append(self.touch)
-            print("\r{}".format(self.current_sequence()), end="")
-            self.touch = Touch(major=self.touch.major,
-                               minor=self.touch.minor,
-                               orientation=self.touch.orientation)
+            try:
+                self.current_sequence().append(self.touch)
+                print("\r{}".format(self.current_sequence()), end="")
+                self.touch = Touch(major=self.touch.major,
+                                   minor=self.touch.minor,
+                                   orientation=self.touch.orientation)
+            except IndexError:
+                pass
 
     def handle_event(self, event):
         if event.type == evdev.ecodes.EV_ABS:

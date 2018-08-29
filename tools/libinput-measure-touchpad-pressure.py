@@ -240,13 +240,21 @@ def handle_abs(device, event):
         if event.value > -1:
             device.start_new_sequence(event.value)
         else:
-            s = device.current_sequence()
-            s.finalize()
-            print("\r{}".format(s))
+            try:
+                s = device.current_sequence()
+                s.finalize()
+                print("\r{}".format(s))
+            except IndexError:
+                # If the finger was down at startup
+                pass
     elif event.code == evdev.ecodes.ABS_MT_PRESSURE:
-        s = device.current_sequence()
-        s.append(Touch(pressure=event.value))
-        print("\r{}".format(s), end="")
+        try:
+            s = device.current_sequence()
+            s.append(Touch(pressure=event.value))
+            print("\r{}".format(s), end="")
+        except IndexError:
+            # If the finger was down at startup
+            pass
 
 
 def handle_event(device, event):
