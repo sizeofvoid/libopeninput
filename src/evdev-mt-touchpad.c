@@ -1124,9 +1124,9 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	}
 
 	/* If the thumb moves by more than 7mm, it's not a resting thumb */
-	if (t->state == TOUCH_BEGIN)
+	if (t->state == TOUCH_BEGIN) {
 		t->thumb.initial = t->point;
-	else if (t->state == TOUCH_UPDATE) {
+	} else if (t->state == TOUCH_UPDATE) {
 		struct device_float_coords delta;
 		struct phys_coords mm;
 
