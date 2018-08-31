@@ -471,11 +471,13 @@ static enum tp_gesture_state
 tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *first = tp->gesture.touches[0],
-			*second = tp->gesture.touches[1];
+			*second = tp->gesture.touches[1],
+			*thumb;
 	uint32_t dir1, dir2;
 	struct device_coords delta;
 	struct phys_coords first_moved, second_moved, distance_mm;
 	double first_mm, second_mm; /* movement since gesture start in mm */
+	double thumb_mm, finger_mm;
 	double inner = 1.5; /* inner threshold in mm - count this touch */
 	double outer = 4.0; /* outer threshold in mm - ignore other touch */
 
@@ -497,6 +499,17 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	if (first_mm < 1 && second_mm < 1)
 		return GESTURE_STATE_UNKNOWN;
 
+	/* Pick the thumb as the lowest point on the touchpad */
+	if (first->point.y > second->point.y) {
+		thumb = first;
+		thumb_mm = first_mm;
+		finger_mm = second_mm;
+	} else {
+		thumb = second;
+		thumb_mm = second_mm;
+		finger_mm = first_mm;
+	}
+
 	/* If both touches are within 7mm vertically and 40mm horizontally
 	 * past the timeout, assume scroll/swipe */
 	if ((!tp->gesture.enabled ||
@@ -511,29 +524,35 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	}
 
 	/* If one touch exceeds the outer threshold while the other has not
-	 * yet passed the inner threshold, this is not a valid gesture.
-	 * If thumb detection is enabled, and one of the touches is >20mm
-	 * below the other, cancel the gesture and mark the thumb.
-	 *
-	 * Give the thumb a larger effective outer threshold for more reliable
-	 * detection of pinch vs. resting thumb.
+	 * yet passed the inner threshold, there is either a resting thumb,
+	 * or the user is doing "one-finger-scroll," where one touch stays in
+	 * place while the other moves.
 	 */
-	if (tp->thumb.detect_thumbs && distance_mm.y > 20.0 &&
-	    time > (tp->gesture.initial_time + DEFAULT_GESTURE_SWIPE_TIMEOUT)) {
-		if ((first->point.y >= second->point.y) &&
-		   ((first_mm >= outer * 2.0) ||
-		   (second_mm >= outer))) {
-			tp_gesture_cancel(tp, time);
-			first->thumb.state = THUMB_STATE_YES;
+	if (first_mm >= outer || second_mm >= outer) {
+		/* If thumb detection is enabled, and thumb is still while
+		 * finger moves, cancel gestures and mark lower as thumb.
+		 * This applies to all gestures (2, 3, 4+ fingers), but allows
+		 * more thumb motion on >2 finger gestures during detection.
+		 */
+		if (tp->thumb.detect_thumbs && thumb_mm < inner) {
+			tp_thumb_set_state(tp, thumb, THUMB_STATE_YES);
 			return GESTURE_STATE_NONE;
 		}
-		if ((second->point.y >= first->point.y) &&
-		    ((second_mm >= outer * 2.0) ||
-		    (first_mm >= outer))) {
-			tp_gesture_cancel(tp, time);
-			second->thumb.state = THUMB_STATE_YES;
-			return GESTURE_STATE_NONE;
+
+		/* If gestures detection is disabled, or if finger is still
+		 * while thumb moves, assume this is "one-finger scrolling."
+		 * This applies only to 2-finger gestures.
+		 */
+		if ((!tp->gesture.enabled || finger_mm < inner) &&
+		    tp->gesture.finger_count == 2) {
+			tp_gesture_set_scroll_buildup(tp);
+			return GESTURE_STATE_SCROLL;
 		}
+
+		/* If we get here, either both fingers have passed the inner
+		 * threshold (handled below), or >2 fingers are involved
+		 * (handled in a future event when both have moved enough).
+		 */
 	}
 
 	/* If either touch is still inside the inner threshold, we can't
