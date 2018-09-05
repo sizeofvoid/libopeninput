@@ -444,6 +444,11 @@ tablet_tool_process_delta(struct tablet_dispatch *tablet,
 		delta.y = axes->point.y - tablet->last_smooth_point.y;
 	}
 
+	if (axes->point.x != tablet->last_smooth_point.x)
+		set_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_X);
+	if (axes->point.y != tablet->last_smooth_point.y)
+		set_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_Y);
+
 	tablet->last_smooth_point = axes->point;
 
 	accel.x = 1.0 * delta.x;

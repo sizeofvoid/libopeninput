@@ -630,6 +630,78 @@ START_TEST(tip_up_motion)
 }
 END_TEST
 
+START_TEST(tip_up_motion_one_axis)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tablet_event;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 0 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+	unsigned int axis = _i; /* ranged test */
+	double x, y, last_x, last_y;
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_drain_events(li);
+
+	/* enough events to get the history going */
+	litest_axis_set_value(axes, ABS_PRESSURE, 20);
+	for (int i = 1; i < 10; i++) {
+		litest_push_event_frame(dev);
+		litest_tablet_motion(dev, 10 + i, 10 + i, axes);
+		litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_pop_event_frame(dev);
+
+	}
+	litest_drain_events(li);
+
+	litest_tablet_motion(dev, 20, 20, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	last_x = libinput_event_tablet_tool_get_x(tablet_event);
+	last_y = libinput_event_tablet_tool_get_y(tablet_event);
+	libinput_event_destroy(event);
+
+	/* move x on tip up, make sure x/y changed */
+	litest_axis_set_value(axes, ABS_PRESSURE, 0);
+	litest_push_event_frame(dev);
+	switch (axis) {
+	case ABS_X:
+		litest_tablet_motion(dev, 40, 20, axes);
+		break;
+	case ABS_Y:
+		litest_tablet_motion(dev, 20, 40, axes);
+		break;
+	default:
+		abort();
+	}
+	litest_event(dev, EV_KEY, BTN_TOUCH, 0);
+	litest_pop_event_frame(dev);
+
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
+	ck_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+			 LIBINPUT_TABLET_TOOL_TIP_UP);
+	ck_assert(libinput_event_tablet_tool_x_has_changed(tablet_event));
+	ck_assert(libinput_event_tablet_tool_y_has_changed(tablet_event));
+	x = libinput_event_tablet_tool_get_x(tablet_event);
+	y = libinput_event_tablet_tool_get_y(tablet_event);
+	ck_assert_double_ne(last_x, x);
+	ck_assert_double_ne(last_y, y);
+	libinput_event_destroy(event);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(tip_state_proximity)
 {
 	struct litest_device *dev = litest_current_device();
@@ -4683,6 +4755,7 @@ END_TEST
 TEST_COLLECTION(tablet)
 {
 	struct range with_timeout = { 0, 2 };
+	struct range xyaxes = { ABS_X, ABS_Y + 1 };
 
 	litest_add("tablet:tool", tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool", tool_user_data, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
@@ -4720,6 +4793,7 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:tip", tip_up_btn_change, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tip", tip_down_motion, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tip", tip_up_motion, LITEST_TABLET, LITEST_ANY);
+	litest_add_ranged("tablet:tip", tip_up_motion_one_axis, LITEST_TABLET, LITEST_ANY, &xyaxes);
 	litest_add("tablet:tip", tip_state_proximity, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tip", tip_state_axis, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tip", tip_state_button, LITEST_TABLET, LITEST_ANY);
