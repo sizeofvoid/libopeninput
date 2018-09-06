@@ -4077,6 +4077,78 @@ START_TEST(relative_delta)
 }
 END_TEST
 
+START_TEST(relative_no_delta_on_tip)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+	double dx, dy;
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_drain_events(li);
+
+	litest_tablet_motion(dev, 20, 10, axes);
+	litest_drain_events(li);
+
+	/* tip down */
+	litest_axis_set_value(axes, ABS_DISTANCE, 0);
+	litest_axis_set_value(axes, ABS_PRESSURE, 30);
+	litest_push_event_frame(dev);
+	litest_tablet_motion(dev, 30, 20, axes);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
+	litest_pop_event_frame(dev);
+
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_TIP);
+	ck_assert(libinput_event_tablet_tool_x_has_changed(tev));
+	ck_assert(libinput_event_tablet_tool_y_has_changed(tev));
+	dx = libinput_event_tablet_tool_get_dx(tev);
+	dy = libinput_event_tablet_tool_get_dy(tev);
+	ck_assert(dx == 0.0);
+	ck_assert(dy == 0.0);
+	libinput_event_destroy(event);
+
+	/* normal motion */
+	litest_tablet_motion(dev, 40, 30, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	dx = libinput_event_tablet_tool_get_dx(tev);
+	dy = libinput_event_tablet_tool_get_dy(tev);
+	ck_assert(dx > 0.0);
+	ck_assert(dy > 0.0);
+	libinput_event_destroy(event);
+
+	/* tip up */
+	litest_axis_set_value(axes, ABS_DISTANCE, 10);
+	litest_axis_set_value(axes, ABS_PRESSURE, 0);
+	litest_push_event_frame(dev);
+	litest_tablet_motion(dev, 50, 40, axes);
+	litest_event(dev, EV_KEY, BTN_TOUCH, 0);
+	litest_pop_event_frame(dev);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_TIP);
+	ck_assert(libinput_event_tablet_tool_x_has_changed(tev));
+	ck_assert(libinput_event_tablet_tool_y_has_changed(tev));
+	dx = libinput_event_tablet_tool_get_dx(tev);
+	dy = libinput_event_tablet_tool_get_dy(tev);
+	ck_assert(dx == 0.0);
+	ck_assert(dy == 0.0);
+	libinput_event_destroy(event);
+}
+END_TEST
+
 START_TEST(relative_calibration)
 {
 	struct litest_device *dev = litest_current_device();
@@ -4840,6 +4912,7 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:relative", relative_no_profile, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:relative", relative_no_delta_prox_in, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:relative", relative_delta, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:relative", relative_no_delta_on_tip, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:relative", relative_calibration, LITEST_TABLET, LITEST_ANY);
 
 	litest_add_for_device("tablet:touch-arbitration", intuos_touch_arbitration, LITEST_WACOM_INTUOS);

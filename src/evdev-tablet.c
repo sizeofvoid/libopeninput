@@ -436,8 +436,12 @@ tablet_tool_process_delta(struct tablet_dispatch *tablet,
 	struct device_coords delta = { 0, 0 };
 	struct device_float_coords accel;
 
+	/* When tool contact changes, we probably got a cursor jump. Don't
+	   try to calculate a delta for that event */
 	if (!tablet_has_status(tablet,
 			       TABLET_TOOL_ENTERING_PROXIMITY) &&
+	    !tablet_has_status(tablet, TABLET_TOOL_ENTERING_CONTACT) &&
+	    !tablet_has_status(tablet, TABLET_TOOL_LEAVING_CONTACT) &&
 	    (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_X) ||
 	     bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_Y))) {
 		delta.x = axes->point.x - tablet->last_smooth_point.x;
