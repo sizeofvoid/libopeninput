@@ -1138,6 +1138,11 @@ litest_install_model_quirks(struct list *created_files_list)
 				LIBINPUT_DEVICE_GROUPS_RULES_FILE,
 				warning);
 	list_insert(created_files_list, &file->link);
+
+	file = litest_copy_file(UDEV_MODEL_QUIRKS_RULE_FILE,
+				LIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE,
+				warning);
+	list_insert(created_files_list, &file->link);
 }
 
 static char *

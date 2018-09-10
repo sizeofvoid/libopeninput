@@ -52,10 +52,10 @@ static struct litest_device_interface interface = {
 
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 1500, 10, 0, 0 },
-	{ ABS_Y, 0, 2500, 10, 0, 0 },
+	{ ABS_Y, 0, 2500, 12, 0, 0 },
 	{ ABS_MT_SLOT, 0, 9, 0, 0, 0 },
 	{ ABS_MT_POSITION_X, 0, 1500, 10, 0, 0 },
-	{ ABS_MT_POSITION_Y, 0, 2500, 10, 0, 0 },
+	{ ABS_MT_POSITION_Y, 0, 2500, 12, 0, 0 },
 	{ ABS_MT_PRESSURE, 0, 255, 0, 0, 0 },
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ .value = -1 },

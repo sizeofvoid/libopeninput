@@ -911,6 +911,31 @@ START_TEST(touch_fuzz)
 }
 END_TEST
 
+START_TEST(touch_fuzz_property)
+{
+	struct litest_device *dev = litest_current_device();
+	struct udev_device *d;
+	const char *prop;
+	int fuzz;
+
+	ck_assert_int_eq(libevdev_get_abs_fuzz(dev->evdev, ABS_X), 0);
+	ck_assert_int_eq(libevdev_get_abs_fuzz(dev->evdev, ABS_Y), 0);
+
+	d = libinput_device_get_udev_device(dev->libinput_device);
+	prop = udev_device_get_property_value(d, "LIBINPUT_FUZZ_00");
+	ck_assert_notnull(prop);
+	ck_assert(safe_atoi(prop, &fuzz));
+	ck_assert_int_eq(fuzz, 10); /* device-specific */
+
+	prop = udev_device_get_property_value(d, "LIBINPUT_FUZZ_01");
+	ck_assert_notnull(prop);
+	ck_assert(safe_atoi(prop, &fuzz));
+	ck_assert_int_eq(fuzz, 12); /* device-specific */
+
+	udev_device_unref(d);
+}
+END_TEST
+
 START_TEST(touch_release_on_unplug)
 {
 	struct litest_device *dev;
@@ -1308,6 +1333,7 @@ TEST_COLLECTION(touch)
 	litest_add("touch:time", touch_time_usec, LITEST_TOUCH, LITEST_TOUCHPAD);
 
 	litest_add_for_device("touch:fuzz", touch_fuzz, LITEST_MULTITOUCH_FUZZ_SCREEN);
+	litest_add_for_device("touch:fuzz", touch_fuzz_property, LITEST_MULTITOUCH_FUZZ_SCREEN);
 
 	litest_add_no_device("touch:release", touch_release_on_unplug);
 

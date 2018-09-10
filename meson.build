@@ -165,6 +165,11 @@ configure_file(input : 'udev/80-libinput-device-groups.rules.in',
 	       install : true,
 	       install_dir : dir_udev_rules,
 	       configuration : udev_rules_config)
+configure_file(input : 'udev/90-libinput-model-quirks.rules.in',
+              output : '90-libinput-model-quirks.rules',
+              install : true,
+              install_dir : dir_udev_rules,
+              configuration : udev_rules_config)
 
 litest_udev_rules_config = configuration_data()
 litest_udev_rules_config.set('UDEV_TEST_PATH', meson.build_root() + '/')
@@ -172,6 +177,10 @@ litest_groups_rules_file = configure_file(input : 'udev/80-libinput-device-group
 	       output : '80-libinput-device-groups-litest.rules',
 	       install : false,
 	       configuration : litest_udev_rules_config)
+litest_model_quirks_file = configure_file(input : 'udev/90-libinput-model-quirks.rules.in',
+					  output : '90-libinput-model-quirks-litest.rules',
+					  install : false,
+					  configuration : litest_udev_rules_config)
 
 ############ libepoll-shim (BSD) ############
 
@@ -760,6 +769,8 @@ if get_option('tests')
 			    join_paths(meson.build_root(), '80-libinput-test-device.rules'))
 	config_h.set_quoted('LIBINPUT_DEVICE_GROUPS_RULES_FILE',
 			    join_paths(meson.build_root(), '80-libinput-device-groups.rules'))
+	config_h.set_quoted('LIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE',
+			    join_paths(meson.build_root(), '90-libinput-model-quirks.rules'))
 
 	def_no_main = '-DLITEST_NO_MAIN'
 	def_disable_backtrace = '-DLITEST_DISABLE_BACKTRACE_LOGGING'
