@@ -490,7 +490,6 @@ src_python_tools = files(
 	      'tools/libinput-measure-touchpad-tap.py',
 	      'tools/libinput-measure-touchpad-pressure.py',
 	      'tools/libinput-measure-touch-size.py',
-	      'tools/libinput-measure-trackpoint-range.py',
 )
 
 config_noop = configuration_data()
@@ -514,7 +513,6 @@ src_man = files(
 	      'tools/libinput-measure-touchpad-tap.man',
 	      'tools/libinput-measure-touchpad-pressure.man',
 	      'tools/libinput-measure-touch-size.man',
-	      'tools/libinput-measure-trackpoint-range.man',
 )
 
 foreach m : src_man
