@@ -538,7 +538,7 @@ safe_atou_base(const char *str, unsigned int *val, int base)
 	if (*str != '\0' && *endptr != '\0')
 		return false;
 
-	if (v > UINT_MAX)
+	if ((long)v < 0)
 		return false;
 
 	*val = v;
