@@ -697,7 +697,7 @@ tools_list_device_quirks(struct quirks_context *ctx,
 		case QUIRK_ATTR_SIZE_HINT:
 		case QUIRK_ATTR_RESOLUTION_HINT:
 			quirks_get_dimensions(quirks, *q, &dim);
-			snprintf(buf, sizeof(buf), "%s=%ldx%ld", name, dim.x, dim.y);
+			snprintf(buf, sizeof(buf), "%s=%zdx%zd", name, dim.x, dim.y);
 			callback(userdata, buf);
 			break;
 		case QUIRK_ATTR_TOUCH_SIZE_RANGE:
