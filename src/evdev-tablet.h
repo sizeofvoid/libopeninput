@@ -200,6 +200,12 @@ axis_to_evcode(const enum libinput_tablet_tool_axis axis)
 	case LIBINPUT_TABLET_TOOL_AXIS_SLIDER:
 		evcode = ABS_WHEEL;
 		break;
+	case LIBINPUT_TABLET_TOOL_AXIS_SIZE_MAJOR:
+		evcode = ABS_MT_TOUCH_MAJOR;
+		break;
+	case LIBINPUT_TABLET_TOOL_AXIS_SIZE_MINOR:
+		evcode = ABS_MT_TOUCH_MINOR;
+		break;
 	default:
 		abort();
 	}

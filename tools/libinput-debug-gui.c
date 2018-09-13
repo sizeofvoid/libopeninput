@@ -134,6 +134,8 @@ struct window {
 		double pressure;
 		double distance;
 		double tilt_x, tilt_y;
+		double rotation;
+		double size_major, size_minor;
 
 		/* these are for the delta coordinates, but they're not
 		 * deltas, they are converted into abs positions */
@@ -473,12 +475,35 @@ draw_tablet(struct window *w, cairo_t *cr)
 		cairo_set_source_rgb(cr, .2, .8, .8);
 
 	cairo_translate(cr, w->tool.x, w->tool.y);
+	/* scale of 2.5 is large enough to make the marker visible around the
+	   physical totem */
+	cairo_scale(cr,
+		    1.0 + w->tool.size_major * 2.5,
+		    1.0 + w->tool.size_minor * 2.5);
 	cairo_scale(cr, 1.0 + w->tool.tilt_x/30.0, 1.0 + w->tool.tilt_y/30.0);
+	if (w->tool.rotation)
+		cairo_rotate(cr, w->tool.rotation * M_PI/180.0);
+	if (w->tool.pressure)
+		cairo_set_source_rgb(cr, .8, .8, .2);
 	cairo_arc(cr, 0, 0,
 		  1 + 10 * max(w->tool.pressure, w->tool.distance),
 		  0, 2 * M_PI);
 	cairo_fill(cr);
 	cairo_restore(cr);
+
+	/* The line to indicate the origin */
+	if (w->tool.size_major) {
+		cairo_save(cr);
+		cairo_scale(cr, 1.0, 1.0);
+		cairo_translate(cr, w->tool.x, w->tool.y);
+		if (w->tool.rotation)
+			cairo_rotate(cr, w->tool.rotation * M_PI/180.0);
+		cairo_set_source_rgb(cr, .0, .0, .0);
+		cairo_move_to(cr, 0, 0);
+		cairo_rel_line_to(cr, 0, -w->tool.size_major * 2.5);
+		cairo_stroke(cr);
+		cairo_restore(cr);
+	}
 
 	/* tablet deltas */
 	mask = ARRAY_LENGTH(w->tool.deltas);
@@ -1207,6 +1232,9 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 		w->tool.distance = libinput_event_tablet_tool_get_distance(t);
 		w->tool.tilt_x = libinput_event_tablet_tool_get_tilt_x(t);
 		w->tool.tilt_y = libinput_event_tablet_tool_get_tilt_y(t);
+		w->tool.rotation = libinput_event_tablet_tool_get_rotation(t);
+		w->tool.size_major = libinput_event_tablet_tool_get_size_major(t);
+		w->tool.size_minor = libinput_event_tablet_tool_get_size_minor(t);
 
 		/* Add the delta to the last position and store them as abs
 		 * coordinates */
