@@ -2164,16 +2164,22 @@ auto_assign_tablet_value(struct litest_device *d,
 			 int x, int y,
 			 struct axis_replacement *axes)
 {
+	static int tracking_id;
 	int value = ev->value;
 
 	if (value != LITEST_AUTO_ASSIGN || ev->type != EV_ABS)
 		return value;
 
 	switch (ev->code) {
+	case ABS_MT_TRACKING_ID:
+		value = ++tracking_id;
+		break;
 	case ABS_X:
+	case ABS_MT_POSITION_X:
 		value = litest_scale(d, ABS_X, x);
 		break;
 	case ABS_Y:
+	case ABS_MT_POSITION_Y:
 		value = litest_scale(d, ABS_Y, y);
 		break;
 	default:
@@ -3372,6 +3378,24 @@ void litest_assert_tablet_proximity_event(struct libinput *li,
 	litest_assert_event_type(event, type);
 	tev = libinput_event_get_tablet_tool_event(event);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tev),
+			     state);
+	libinput_event_destroy(event);
+}
+
+void litest_assert_tablet_tip_event(struct libinput *li,
+				    enum libinput_tablet_tool_tip_state state)
+{
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_TOOL_TIP;
+
+	litest_wait_for_event(li);
+	event = libinput_get_event(li);
+
+	litest_assert_notnull(event);
+	litest_assert_event_type(event, type);
+	tev = libinput_event_get_tablet_tool_event(event);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tev),
 			     state);
 	libinput_event_destroy(event);
 }

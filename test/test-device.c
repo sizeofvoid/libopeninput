@@ -1612,7 +1612,7 @@ TEST_COLLECTION(device)
 	litest_add("device:wheel", device_wheel_only, LITEST_WHEEL, LITEST_RELATIVE|LITEST_ABSOLUTE|LITEST_TABLET);
 	litest_add_no_device("device:accelerometer", device_accelerometer);
 
-	litest_add("device:udev tags", device_udev_tag_wacom_tablet, LITEST_TABLET, LITEST_ANY);
+	litest_add("device:udev tags", device_udev_tag_wacom_tablet, LITEST_TABLET, LITEST_TOTEM);
 
 	litest_add_no_device("device:invalid rel events", device_nonpointer_rel);
 	litest_add_no_device("device:invalid rel events", device_touchpad_rel);
@@ -1630,7 +1630,7 @@ TEST_COLLECTION(device)
 	litest_add("device:size", device_has_size, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("device:size", device_has_size, LITEST_TABLET, LITEST_ANY);
 	litest_add("device:size", device_has_no_size, LITEST_ANY,
-		   LITEST_TOUCHPAD|LITEST_TABLET|LITEST_TOUCH|LITEST_ABSOLUTE|LITEST_SINGLE_TOUCH);
+		   LITEST_TOUCHPAD|LITEST_TABLET|LITEST_TOUCH|LITEST_ABSOLUTE|LITEST_SINGLE_TOUCH|LITEST_TOTEM);
 
 	litest_add_for_device("device:output", device_get_output, LITEST_CALIBRATED_TOUCHSCREEN);
 	litest_add("device:output", device_no_output, LITEST_RELATIVE, LITEST_ANY);

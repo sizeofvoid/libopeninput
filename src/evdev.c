@@ -1728,6 +1728,14 @@ evdev_configure_device(struct evdev_device *device)
 			udev_tags &= ~EVDEV_UDEV_TAG_TOUCHSCREEN;
 	}
 
+	if (evdev_device_has_model_quirk(device,
+					 QUIRK_MODEL_DELL_CANVAS_TOTEM)) {
+		dispatch = evdev_totem_create(device);
+		device->seat_caps |= EVDEV_DEVICE_TABLET;
+		evdev_log_info(device, "device is a totem\n");
+		return dispatch;
+	}
+
 	/* libwacom assigns touchpad (or touchscreen) _and_ tablet to the
 	   tablet touch bits, so make sure we don't initialize the tablet
 	   interface for the touch device */

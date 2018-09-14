@@ -254,6 +254,7 @@ quirk_get_name(enum quirk q)
 	case QUIRK_MODEL_TOUCHPAD_VISIBLE_MARKER:	return "ModelTouchpadVisibleMarker";
 	case QUIRK_MODEL_TRACKBALL:			return "ModelTrackball";
 	case QUIRK_MODEL_WACOM_TOUCHPAD:		return "ModelWacomTouchpad";
+	case QUIRK_MODEL_DELL_CANVAS_TOTEM:		return "ModelDellCanvasTotem";
 
 	case QUIRK_ATTR_SIZE_HINT:			return "AttrSizeHint";
 	case QUIRK_ATTR_TOUCH_SIZE_RANGE:		return "AttrTouchSizeRange";

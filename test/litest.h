@@ -277,6 +277,8 @@ enum litest_device_type {
 	LITEST_AIPTEK,
 	LITEST_TOUCHSCREEN_INVALID_RANGE,
 	LITEST_TOUCHSCREEN_MT_TOOL_TYPE,
+	LITEST_DELL_CANVAS_TOTEM,
+	LITEST_DELL_CANVAS_TOTEM_TOUCH,
 };
 
 enum litest_device_feature {
@@ -314,6 +316,7 @@ enum litest_device_feature {
 	LITEST_NO_DEBOUNCE	= bit(28),
 	LITEST_TOOL_MOUSE	= bit(29),
 	LITEST_DIRECT		= bit(30),
+	LITEST_TOTEM		= bit(31),
 
 	_LITEST_DEVICE_FEATURE__FORCE_SIZE = LONG_MAX,
 };
@@ -761,6 +764,10 @@ litest_assert_tablet_button_event(struct libinput *li,
 void
 litest_assert_tablet_proximity_event(struct libinput *li,
 				     enum libinput_tablet_tool_proximity_state state);
+
+void
+litest_assert_tablet_tip_event(struct libinput *li,
+			       enum libinput_tablet_tool_tip_state state);
 
 void
 litest_assert_pad_button_event(struct libinput *li,

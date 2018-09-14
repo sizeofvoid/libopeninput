@@ -336,6 +336,7 @@ enum evdev_dispatch_type {
 	DISPATCH_TOUCHPAD,
 	DISPATCH_TABLET,
 	DISPATCH_TABLET_PAD,
+	DISPATCH_TOTEM,
 };
 
 struct evdev_dispatch {
@@ -430,6 +431,9 @@ evdev_lid_switch_dispatch_create(struct evdev_device *device);
 
 struct evdev_dispatch *
 fallback_dispatch_create(struct libinput_device *libinput_device);
+
+struct evdev_dispatch *
+evdev_totem_create(struct evdev_device *device);
 
 bool
 evdev_is_fake_mt_device(struct evdev_device *device);
@@ -921,7 +925,6 @@ evdev_phys_rect_to_units(const struct evdev_device *device,
 
 	return units;
 }
-
 
 static inline void
 evdev_device_init_abs_range_warnings(struct evdev_device *device)
