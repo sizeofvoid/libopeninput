@@ -1741,7 +1741,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 			if (!tp->semi_mt)
 				evdev_log_bug_kernel(tp->device,
 					       "Touch jump detected and discarded.\n"
-					       "See %stouchpad-jumping-cursor.html for details\n",
+					       "See %stouchpad-jumping-cursors.html for details\n",
 					       HTTP_DOC_LINK);
 			tp_motion_history_reset(t);
 		}
