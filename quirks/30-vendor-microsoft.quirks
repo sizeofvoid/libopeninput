@@ -14,5 +14,5 @@ AttrKeyboardIntegration=internal
 MatchUdevType=mouse
 MatchBus=usb
 MatchVendor=0x045E
-MatchProduct=0x8000
+MatchProduct=0x0800
 ModelBouncingKeys=1
