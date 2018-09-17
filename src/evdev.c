@@ -1955,8 +1955,12 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_HP_ZBOOK_STUDIO_G3))
 		libevdev_set_abs_maximum(device->evdev, ABS_MT_SLOT, 1);
 
-	/* Logitech Marble Mouse claims to have a middle button */
-	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_LOGITECH_MARBLE_MOUSE))
+	/* Logitech Marble Mouse claims to have a middle button, same for
+	 * the Kensington Orbit */
+	if (evdev_device_has_model_quirk(device,
+					 QUIRK_MODEL_LOGITECH_MARBLE_MOUSE) ||
+	    evdev_device_has_model_quirk(device,
+					 QUIRK_MODEL_KENSINGTON_ORBIT))
 		libevdev_disable_event_code(device->evdev, EV_KEY, BTN_MIDDLE);
 
 	/* Aiptek tablets have tilt but don't send events */

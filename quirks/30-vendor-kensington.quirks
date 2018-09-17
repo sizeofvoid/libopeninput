@@ -1,0 +1,6 @@
+[Kensington Orbit Scroll Wheel]
+MatchBus=usb
+MatchVendor=0x047d
+MatchProduct=0x2048
+ModelKensingtonOrbit=1
+ModelTrackball=1

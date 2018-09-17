@@ -240,6 +240,7 @@ quirk_get_name(enum quirk q)
 	case QUIRK_MODEL_HP_PAVILION_DM4_TOUCHPAD:	return "ModelHPPavilionDM4Touchpad";
 	case QUIRK_MODEL_HP_STREAM11_TOUCHPAD:		return "ModelHPStream11Touchpad";
 	case QUIRK_MODEL_HP_ZBOOK_STUDIO_G3:		return "ModelHPZBookStudioG3";
+	case QUIRK_MODEL_KENSINGTON_ORBIT:		return "ModelKensingtonOrbit";
 	case QUIRK_MODEL_LENOVO_CARBON_X1_6TH:		return "ModelLenovoCarbonX16th";
 	case QUIRK_MODEL_LENOVO_SCROLLPOINT:		return "ModelLenovoScrollPoint";
 	case QUIRK_MODEL_LENOVO_T450_TOUCHPAD:		return "ModelLenovoT450Touchpad";
