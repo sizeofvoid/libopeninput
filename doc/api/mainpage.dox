@@ -96,7 +96,7 @@ int main(void) {
 
 		// handle the event here
 
-		libinput_event_destroy(li);
+		libinput_event_destroy(event);
 		libinput_dispatch(li);
 	}
 
