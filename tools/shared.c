@@ -597,142 +597,79 @@ tools_list_device_quirks(struct quirks_context *ctx,
 	char buf[256];
 
 	struct quirks *quirks;
-	enum quirk qlist[] = {
-		QUIRK_MODEL_ALPS_TOUCHPAD,
-		QUIRK_MODEL_APPLE_TOUCHPAD,
-		QUIRK_MODEL_APPLE_MAGICMOUSE,
-		QUIRK_MODEL_TABLET_NO_TILT,
-		QUIRK_MODEL_APPLE_TOUCHPAD_ONEBUTTON,
-		QUIRK_MODEL_TOUCHPAD_VISIBLE_MARKER,
-		QUIRK_MODEL_CYBORG_RAT,
-		QUIRK_MODEL_CHROMEBOOK,
-		QUIRK_MODEL_HP6910_TOUCHPAD,
-		QUIRK_MODEL_HP8510_TOUCHPAD,
-		QUIRK_MODEL_HP_PAVILION_DM4_TOUCHPAD,
-		QUIRK_MODEL_HP_STREAM11_TOUCHPAD,
-		QUIRK_MODEL_HP_ZBOOK_STUDIO_G3,
-		QUIRK_MODEL_TABLET_NO_PROXIMITY_OUT,
-		QUIRK_MODEL_LENOVO_SCROLLPOINT,
-		QUIRK_MODEL_LENOVO_X230,
-		QUIRK_MODEL_LENOVO_T450_TOUCHPAD,
-		QUIRK_MODEL_TABLET_MODE_NO_SUSPEND,
-		QUIRK_MODEL_LENOVO_CARBON_X1_6TH,
-		QUIRK_MODEL_TRACKBALL,
-		QUIRK_MODEL_LOGITECH_MARBLE_MOUSE,
-		QUIRK_MODEL_BOUNCING_KEYS,
-		QUIRK_MODEL_SYNAPTICS_SERIAL_TOUCHPAD,
-		QUIRK_MODEL_SYSTEM76_BONOBO,
-		QUIRK_MODEL_CLEVO_W740SU,
-		QUIRK_MODEL_SYSTEM76_GALAGO,
-		QUIRK_MODEL_SYSTEM76_KUDU,
-		QUIRK_MODEL_WACOM_TOUCHPAD,
-
-
-		QUIRK_ATTR_SIZE_HINT,
-		QUIRK_ATTR_TOUCH_SIZE_RANGE,
-		QUIRK_ATTR_PALM_SIZE_THRESHOLD,
-		QUIRK_ATTR_LID_SWITCH_RELIABILITY,
-		QUIRK_ATTR_KEYBOARD_INTEGRATION,
-		QUIRK_ATTR_TPKBCOMBO_LAYOUT,
-		QUIRK_ATTR_PRESSURE_RANGE,
-		QUIRK_ATTR_PALM_PRESSURE_THRESHOLD,
-		QUIRK_ATTR_RESOLUTION_HINT,
-		QUIRK_ATTR_TRACKPOINT_MULTIPLIER,
-		QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD,
-		QUIRK_ATTR_USE_VELOCITY_AVERAGING,
-		QUIRK_ATTR_THUMB_SIZE_THRESHOLD,
-		QUIRK_ATTR_MSC_TIMESTAMP,
-	};
-	enum quirk *q;
+	enum quirk q;
 
 	quirks = quirks_fetch_for_device(ctx, device);
 	if (!quirks)
 		return;
 
-	ARRAY_FOR_EACH(qlist, q) {
-		const char *name;
-		struct quirk_dimensions dim;
-		struct quirk_range r;
-		uint32_t v;
-		char *s;
-		double d;
+	q = QUIRK_MODEL_ALPS_TOUCHPAD;
+	do {
+		if (quirks_has_quirk(quirks, q)) {
+			const char *name;
 
-		if (!quirks_has_quirk(quirks, *q))
-			continue;
-
-		name = quirk_get_name(*q);
-
-		switch (*q) {
-		case QUIRK_MODEL_ALPS_TOUCHPAD:
-		case QUIRK_MODEL_APPLE_MAGICMOUSE:
-		case QUIRK_MODEL_APPLE_TOUCHPAD:
-		case QUIRK_MODEL_APPLE_TOUCHPAD_ONEBUTTON:
-		case QUIRK_MODEL_BOUNCING_KEYS:
-		case QUIRK_MODEL_CHROMEBOOK:
-		case QUIRK_MODEL_CLEVO_W740SU:
-		case QUIRK_MODEL_CYBORG_RAT:
-		case QUIRK_MODEL_HP6910_TOUCHPAD:
-		case QUIRK_MODEL_HP8510_TOUCHPAD:
-		case QUIRK_MODEL_HP_PAVILION_DM4_TOUCHPAD:
-		case QUIRK_MODEL_HP_STREAM11_TOUCHPAD:
-		case QUIRK_MODEL_HP_ZBOOK_STUDIO_G3:
-		case QUIRK_MODEL_LENOVO_CARBON_X1_6TH:
-		case QUIRK_MODEL_LENOVO_SCROLLPOINT:
-		case QUIRK_MODEL_LENOVO_T450_TOUCHPAD:
-		case QUIRK_MODEL_LENOVO_X230:
-		case QUIRK_MODEL_LOGITECH_MARBLE_MOUSE:
-		case QUIRK_MODEL_SYNAPTICS_SERIAL_TOUCHPAD:
-		case QUIRK_MODEL_SYSTEM76_BONOBO:
-		case QUIRK_MODEL_SYSTEM76_GALAGO:
-		case QUIRK_MODEL_SYSTEM76_KUDU:
-		case QUIRK_MODEL_TABLET_MODE_NO_SUSPEND:
-		case QUIRK_MODEL_TABLET_NO_PROXIMITY_OUT:
-		case QUIRK_MODEL_TABLET_NO_TILT:
-		case QUIRK_MODEL_TOUCHPAD_VISIBLE_MARKER:
-		case QUIRK_MODEL_TRACKBALL:
-		case QUIRK_MODEL_WACOM_TOUCHPAD:
+			name = quirk_get_name(q);
 			snprintf(buf, sizeof(buf), "%s=1", name);
 			callback(userdata, buf);
-			break;
-		case QUIRK_ATTR_SIZE_HINT:
-		case QUIRK_ATTR_RESOLUTION_HINT:
-			quirks_get_dimensions(quirks, *q, &dim);
-			snprintf(buf, sizeof(buf), "%s=%zdx%zd", name, dim.x, dim.y);
-			callback(userdata, buf);
-			break;
-		case QUIRK_ATTR_TOUCH_SIZE_RANGE:
-		case QUIRK_ATTR_PRESSURE_RANGE:
-			quirks_get_range(quirks, *q, &r);
-			snprintf(buf, sizeof(buf), "%s=%d:%d", name, r.upper, r.lower);
-			callback(userdata, buf);
-			break;
-		case QUIRK_ATTR_PALM_SIZE_THRESHOLD:
-		case QUIRK_ATTR_PALM_PRESSURE_THRESHOLD:
-		case QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD:
-		case QUIRK_ATTR_THUMB_SIZE_THRESHOLD:
-			quirks_get_uint32(quirks, *q, &v);
-			snprintf(buf, sizeof(buf), "%s=%u", name, v);
-			callback(userdata, buf);
-			break;
-		case QUIRK_ATTR_LID_SWITCH_RELIABILITY:
-		case QUIRK_ATTR_KEYBOARD_INTEGRATION:
-		case QUIRK_ATTR_TPKBCOMBO_LAYOUT:
-		case QUIRK_ATTR_MSC_TIMESTAMP:
-			quirks_get_string(quirks, *q, &s);
-			snprintf(buf, sizeof(buf), "%s=%s", name, s);
-			callback(userdata, buf);
-			break;
-		case QUIRK_ATTR_TRACKPOINT_MULTIPLIER:
-			quirks_get_double(quirks, *q, &d);
-			snprintf(buf, sizeof(buf), "%s=%0.2f\n", name, d);
-			callback(userdata, buf);
-			break;
-		case QUIRK_ATTR_USE_VELOCITY_AVERAGING:
-			snprintf(buf, sizeof(buf), "%s=1", name);
-			callback(userdata, buf);
-			break;
 		}
-	}
+	} while(++q < _QUIRK_LAST_MODEL_QUIRK_);
+
+	q = QUIRK_ATTR_SIZE_HINT;
+	do {
+		if (quirks_has_quirk(quirks, q)) {
+			const char *name;
+			struct quirk_dimensions dim;
+			struct quirk_range r;
+			uint32_t v;
+			char *s;
+			double d;
+
+			name = quirk_get_name(q);
+
+			switch (q) {
+			case QUIRK_ATTR_SIZE_HINT:
+			case QUIRK_ATTR_RESOLUTION_HINT:
+				quirks_get_dimensions(quirks, q, &dim);
+				snprintf(buf, sizeof(buf), "%s=%zdx%zd", name, dim.x, dim.y);
+				callback(userdata, buf);
+				break;
+			case QUIRK_ATTR_TOUCH_SIZE_RANGE:
+			case QUIRK_ATTR_PRESSURE_RANGE:
+				quirks_get_range(quirks, q, &r);
+				snprintf(buf, sizeof(buf), "%s=%d:%d", name, r.upper, r.lower);
+				callback(userdata, buf);
+				break;
+			case QUIRK_ATTR_PALM_SIZE_THRESHOLD:
+			case QUIRK_ATTR_PALM_PRESSURE_THRESHOLD:
+			case QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD:
+			case QUIRK_ATTR_THUMB_SIZE_THRESHOLD:
+				quirks_get_uint32(quirks, q, &v);
+				snprintf(buf, sizeof(buf), "%s=%u", name, v);
+				callback(userdata, buf);
+				break;
+			case QUIRK_ATTR_LID_SWITCH_RELIABILITY:
+			case QUIRK_ATTR_KEYBOARD_INTEGRATION:
+			case QUIRK_ATTR_TPKBCOMBO_LAYOUT:
+			case QUIRK_ATTR_MSC_TIMESTAMP:
+				quirks_get_string(quirks, q, &s);
+				snprintf(buf, sizeof(buf), "%s=%s", name, s);
+				callback(userdata, buf);
+				break;
+			case QUIRK_ATTR_TRACKPOINT_MULTIPLIER:
+				quirks_get_double(quirks, q, &d);
+				snprintf(buf, sizeof(buf), "%s=%0.2f\n", name, d);
+				callback(userdata, buf);
+				break;
+			case QUIRK_ATTR_USE_VELOCITY_AVERAGING:
+				snprintf(buf, sizeof(buf), "%s=1", name);
+				callback(userdata, buf);
+				break;
+			default:
+				abort();
+				break;
+			}
+		}
+	} while(++q < _QUIRK_LAST_ATTR_QUIRK_);
 
 	quirks_unref(quirks);
 }

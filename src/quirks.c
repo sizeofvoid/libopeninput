@@ -565,38 +565,8 @@ parse_model(struct quirks_context *ctx,
 	    const char *key,
 	    const char *value)
 {
-	enum quirk quirks[] = {
-		QUIRK_MODEL_ALPS_TOUCHPAD,
-		QUIRK_MODEL_APPLE_MAGICMOUSE,
-		QUIRK_MODEL_APPLE_TOUCHPAD,
-		QUIRK_MODEL_APPLE_TOUCHPAD_ONEBUTTON,
-		QUIRK_MODEL_BOUNCING_KEYS,
-		QUIRK_MODEL_CHROMEBOOK,
-		QUIRK_MODEL_CLEVO_W740SU,
-		QUIRK_MODEL_CYBORG_RAT,
-		QUIRK_MODEL_HP6910_TOUCHPAD,
-		QUIRK_MODEL_HP8510_TOUCHPAD,
-		QUIRK_MODEL_HP_PAVILION_DM4_TOUCHPAD,
-		QUIRK_MODEL_HP_STREAM11_TOUCHPAD,
-		QUIRK_MODEL_HP_ZBOOK_STUDIO_G3,
-		QUIRK_MODEL_LENOVO_CARBON_X1_6TH,
-		QUIRK_MODEL_LENOVO_SCROLLPOINT,
-		QUIRK_MODEL_LENOVO_T450_TOUCHPAD,
-		QUIRK_MODEL_LENOVO_X230,
-		QUIRK_MODEL_LOGITECH_MARBLE_MOUSE,
-		QUIRK_MODEL_SYNAPTICS_SERIAL_TOUCHPAD,
-		QUIRK_MODEL_SYSTEM76_BONOBO,
-		QUIRK_MODEL_SYSTEM76_GALAGO,
-		QUIRK_MODEL_SYSTEM76_KUDU,
-		QUIRK_MODEL_TABLET_MODE_NO_SUSPEND,
-		QUIRK_MODEL_TABLET_NO_PROXIMITY_OUT,
-		QUIRK_MODEL_TABLET_NO_TILT,
-		QUIRK_MODEL_TOUCHPAD_VISIBLE_MARKER,
-		QUIRK_MODEL_TRACKBALL,
-		QUIRK_MODEL_WACOM_TOUCHPAD,
-	};
 	bool b;
-	enum quirk *q;
+	enum quirk q = QUIRK_MODEL_ALPS_TOUCHPAD;
 
 	assert(strneq(key, "Model", 5));
 
@@ -607,17 +577,17 @@ parse_model(struct quirks_context *ctx,
 	else
 		return false;
 
-	ARRAY_FOR_EACH(quirks, q) {
-		if (streq(key, quirk_get_name(*q))) {
+	do {
+		if (streq(key, quirk_get_name(q))) {
 			struct property *p = property_new();
-			p->id = *q,
+			p->id = q,
 			p->type = PT_BOOL;
 			p->value.b = b;
 			list_append(&s->properties, &p->link);
 			s->has_property = true;
 			return true;
 		}
-	}
+	} while (++q < _QUIRK_LAST_MODEL_QUIRK_);
 
 	qlog_error(ctx, "Unknown key %s in %s\n", key, s->name);
 
