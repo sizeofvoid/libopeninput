@@ -95,6 +95,18 @@ struct phys_coords {
 	double y;
 };
 
+/* A rectangle in mm, x/y is the top-left corner */
+struct phys_rect {
+	double x, y;
+	double w, h;
+};
+
+/* A rectangle in device coordinates, x/y is the top-left corner */
+struct device_coord_rect {
+	int x, y;
+	int w, h;
+};
+
 /* A pair of tilt flags */
 struct wheel_tilt_flags {
 	bool vertical, horizontal;
@@ -810,4 +822,19 @@ device_float_get_direction(const struct device_float_coords coords)
 {
 	return xy_get_direction(coords.x, coords.y);
 }
+
+/**
+ * Returns true if the point is within the given rectangle, including the
+ * left edge but excluding the right edge.
+ */
+static inline bool
+point_in_rect(const struct device_coords *point,
+	      const struct device_coord_rect *rect)
+{
+	return (point->x >= rect->x &&
+		point->x < rect->x + rect->w &&
+		point->y >= rect->y &&
+		point->y < rect->y + rect->h);
+}
+
 #endif /* LIBINPUT_PRIVATE_H */

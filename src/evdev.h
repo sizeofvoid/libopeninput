@@ -147,6 +147,7 @@ enum evdev_debounce_state {
 enum evdev_arbitration_state {
 	ARBITRATION_NOT_ACTIVE,
 	ARBITRATION_IGNORE_ALL,
+	ARBITRATION_IGNORE_RECT,
 };
 
 struct evdev_device {
@@ -303,11 +304,22 @@ struct evdev_dispatch_interface {
 			   struct evdev_dispatch *dispatch);
 
 	/* For touch arbitration, called on the device that should
-	 * enable/disable touch capabilities */
-	void (*toggle_touch)(struct evdev_dispatch *dispatch,
-			     struct evdev_device *device,
-			     enum evdev_arbitration_state which,
-			     uint64_t now);
+	 * enable/disable touch capabilities.
+	 */
+	void (*touch_arbitration_toggle)(struct evdev_dispatch *dispatch,
+					 struct evdev_device *device,
+					 enum evdev_arbitration_state which,
+					 const struct phys_rect *rect, /* may be NULL */
+					 uint64_t now);
+
+	/* Called when touch arbitration is on, updates the area where touch
+	 * arbitration should apply.
+	 */
+	void (*touch_arbitration_update_rect)(struct evdev_dispatch *dispatch,
+					      struct evdev_device *device,
+					      const struct phys_rect *rect,
+					      uint64_t now);
+
 
 	/* Return the state of the given switch */
 	enum libinput_switch_state
@@ -879,6 +891,33 @@ evdev_device_mm_to_units(const struct evdev_device *device,
 
 	return units;
 }
+
+static inline struct device_coord_rect
+evdev_phys_rect_to_units(const struct evdev_device *device,
+			 const struct phys_rect *mm)
+{
+	struct device_coord_rect units = {0};
+	const struct input_absinfo *absx, *absy;
+
+	if (device->abs.absinfo_x == NULL ||
+	    device->abs.absinfo_y == NULL) {
+		log_bug_libinput(evdev_libinput_context(device),
+				 "%s: is not an abs device\n",
+				 device->devname);
+		return units;
+	}
+
+	absx = device->abs.absinfo_x;
+	absy = device->abs.absinfo_y;
+
+	units.x = mm->x * absx->resolution + absx->minimum;
+	units.y = mm->y * absy->resolution + absy->minimum;
+	units.w = mm->w * absx->resolution;
+	units.h = mm->h * absy->resolution;
+
+	return units;
+}
+
 
 static inline void
 evdev_device_init_abs_range_warnings(struct evdev_device *device)

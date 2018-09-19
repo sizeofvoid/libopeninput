@@ -1634,11 +1634,12 @@ tablet_set_touch_device_enabled(struct evdev_device *touch_device,
 		which = ARBITRATION_IGNORE_ALL;
 
 	dispatch = touch_device->dispatch;
-	if (dispatch->interface->toggle_touch)
-		dispatch->interface->toggle_touch(dispatch,
-						  touch_device,
-						  which,
-						  time);
+	if (dispatch->interface->touch_arbitration_toggle)
+		dispatch->interface->touch_arbitration_toggle(dispatch,
+							      touch_device,
+							      which,
+							      NULL,
+							      time);
 }
 
 static inline void
@@ -1941,7 +1942,8 @@ static struct evdev_dispatch_interface tablet_interface = {
 	.device_suspended = NULL,
 	.device_resumed = NULL,
 	.post_added = tablet_check_initial_proximity,
-	.toggle_touch = NULL,
+	.touch_arbitration_toggle = NULL,
+	.touch_arbitration_update_rect = NULL,
 	.get_switch_state = NULL,
 };
 

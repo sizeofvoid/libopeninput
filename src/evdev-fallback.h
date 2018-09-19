@@ -147,6 +147,7 @@ struct fallback_dispatch {
 	struct {
 		enum evdev_arbitration_state state;
 		bool in_arbitration;
+		struct device_coord_rect rect;
 		struct libinput_timer arbitration_timer;
 	} arbitration;
 };

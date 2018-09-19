@@ -872,6 +872,21 @@ fallback_any_button_down(struct fallback_dispatch *dispatch,
 }
 
 static inline bool
+fallback_arbitrate_touch(struct fallback_dispatch *dispatch,
+			 struct mt_slot *slot)
+{
+	bool discard = false;
+
+	if (dispatch->arbitration.state == ARBITRATION_IGNORE_RECT &&
+	    point_in_rect(&slot->point, &dispatch->arbitration.rect)) {
+		slot->palm_state = PALM_IS_PALM;
+		discard = true;
+	}
+
+	return discard;
+}
+
+static inline bool
 fallback_flush_mt_events(struct fallback_dispatch *dispatch,
 			 struct evdev_device *device,
 			 uint64_t time)
@@ -900,10 +915,13 @@ fallback_flush_mt_events(struct fallback_dispatch *dispatch,
 		} else if (slot->palm_state == PALM_NONE) {
 			switch (slot->state) {
 			case SLOT_STATE_BEGIN:
-				sent = fallback_flush_mt_down(dispatch,
-							      device,
-							      i,
-							      time);
+				if (!fallback_arbitrate_touch(dispatch,
+							     slot)) {
+					sent = fallback_flush_mt_down(dispatch,
+								      device,
+								      i,
+								      time);
+				}
 				break;
 			case SLOT_STATE_UPDATE:
 				sent = fallback_flush_mt_motion(dispatch,
@@ -1044,12 +1062,16 @@ fallback_interface_process(struct evdev_dispatch *evdev_dispatch,
 static void
 cancel_touches(struct fallback_dispatch *dispatch,
 	       struct evdev_device *device,
+	       const struct device_coord_rect *rect,
 	       uint64_t time)
 {
 	unsigned int idx;
 	bool need_frame = false;
 
-	need_frame = fallback_flush_st_cancel(dispatch, device, time);
+	if (!rect || point_in_rect(&dispatch->abs.point, rect))
+		need_frame = fallback_flush_st_cancel(dispatch,
+						      device,
+						      time);
 
 	for (idx = 0; idx < dispatch->mt.slots_len; idx++) {
 		struct mt_slot *slot = &dispatch->mt.slots[idx];
@@ -1057,7 +1079,8 @@ cancel_touches(struct fallback_dispatch *dispatch,
 		if (slot->seat_slot == -1)
 			continue;
 
-		if (fallback_flush_mt_cancel(dispatch, device, idx, time))
+		if ((!rect || point_in_rect(&slot->point, rect)) &&
+		    fallback_flush_mt_cancel(dispatch, device, idx, time))
 			need_frame = true;
 	}
 
@@ -1125,7 +1148,7 @@ fallback_return_to_neutral_state(struct fallback_dispatch *dispatch,
 	if ((time = libinput_now(libinput)) == 0)
 		return;
 
-	cancel_touches(dispatch, device, time);
+	cancel_touches(dispatch, device, NULL, time);
 	release_pressed_keys(dispatch, device, time);
 	memset(dispatch->hw_key_mask, 0, sizeof(dispatch->hw_key_mask));
 	memset(dispatch->hw_key_mask, 0, sizeof(dispatch->last_hw_key_mask));
@@ -1199,9 +1222,11 @@ static void
 fallback_interface_toggle_touch(struct evdev_dispatch *evdev_dispatch,
 				struct evdev_device *device,
 				enum evdev_arbitration_state which,
+				const struct phys_rect *phys_rect,
 				uint64_t time)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
+	struct device_coord_rect rect = {0};
 
 	if (which == dispatch->arbitration.state)
 		return;
@@ -1217,6 +1242,12 @@ fallback_interface_toggle_touch(struct evdev_dispatch *evdev_dispatch,
 		 * event is caught as palm touch. */
 		libinput_timer_set(&dispatch->arbitration.arbitration_timer,
 				   time + ms2us(90));
+		break;
+	case ARBITRATION_IGNORE_RECT:
+		assert(phys_rect);
+		rect = evdev_phys_rect_to_units(device, phys_rect);
+		cancel_touches(dispatch, device, &rect, time);
+		dispatch->arbitration.rect = rect;
 		break;
 	case ARBITRATION_IGNORE_ALL:
 		libinput_timer_cancel(&dispatch->arbitration.arbitration_timer);
@@ -1421,7 +1452,8 @@ struct evdev_dispatch_interface fallback_interface = {
 	.device_suspended = fallback_interface_device_removed, /* treat as remove */
 	.device_resumed = fallback_interface_device_added,   /* treat as add */
 	.post_added = fallback_interface_sync_initial_state,
-	.toggle_touch = fallback_interface_toggle_touch,
+	.touch_arbitration_toggle = fallback_interface_toggle_touch,
+	.touch_arbitration_update_rect = NULL,
 	.get_switch_state = fallback_interface_get_switch_state,
 };
 

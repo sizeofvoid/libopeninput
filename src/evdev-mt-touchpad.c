@@ -2693,6 +2693,7 @@ static void
 tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 			  struct evdev_device *device,
 			  enum evdev_arbitration_state which,
+			  const struct phys_rect *rect,
 			  uint64_t time)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
@@ -2702,6 +2703,7 @@ tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 
 	switch (which) {
 	case ARBITRATION_IGNORE_ALL:
+	case ARBITRATION_IGNORE_RECT:
 		libinput_timer_cancel(&tp->arbitration.arbitration_timer);
 		tp_clear_state(tp);
 		tp->arbitration.state = which;
@@ -2730,7 +2732,8 @@ static struct evdev_dispatch_interface tp_interface = {
 	.device_suspended = tp_interface_device_removed, /* treat as remove */
 	.device_resumed = tp_interface_device_added,   /* treat as add */
 	.post_added = NULL,
-	.toggle_touch = tp_interface_toggle_touch,
+	.touch_arbitration_toggle = tp_interface_toggle_touch,
+	.touch_arbitration_update_rect = NULL,
 	.get_switch_state = NULL,
 };
 
