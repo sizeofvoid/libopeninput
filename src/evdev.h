@@ -144,6 +144,11 @@ enum evdev_debounce_state {
 	DEBOUNCE_ACTIVE,
 };
 
+enum evdev_arbitration_state {
+	ARBITRATION_NOT_ACTIVE,
+	ARBITRATION_IGNORE_ALL,
+};
+
 struct evdev_device {
 	struct libinput_device base;
 
@@ -301,7 +306,7 @@ struct evdev_dispatch_interface {
 	 * enable/disable touch capabilities */
 	void (*toggle_touch)(struct evdev_dispatch *dispatch,
 			     struct evdev_device *device,
-			     bool enable,
+			     enum evdev_arbitration_state which,
 			     uint64_t now);
 
 	/* Return the state of the given switch */

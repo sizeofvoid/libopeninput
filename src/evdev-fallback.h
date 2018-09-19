@@ -141,11 +141,11 @@ struct fallback_dispatch {
 		struct list paired_keyboard_list;
 	} lid;
 
-	/* pen/touch arbitration has a delayed state, if ignore_events is
-	 * true we want to ignore events, in_arbitration actually filters.
+	/* pen/touch arbitration has a delayed state,
+	 * in_arbitration is what decides when to filter.
 	 */
 	struct {
-		bool ignore_events;
+		enum evdev_arbitration_state state;
 		bool in_arbitration;
 		struct libinput_timer arbitration_timer;
 	} arbitration;

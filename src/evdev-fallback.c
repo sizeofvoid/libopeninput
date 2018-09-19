@@ -1196,20 +1196,16 @@ fallback_interface_sync_initial_state(struct evdev_device *device,
 static void
 fallback_interface_toggle_touch(struct evdev_dispatch *evdev_dispatch,
 				struct evdev_device *device,
-				bool enable,
+				enum evdev_arbitration_state which,
 				uint64_t time)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
-	bool ignore_events = !enable;
 
-	if (ignore_events == dispatch->arbitration.ignore_events)
+	if (which == dispatch->arbitration.state)
 		return;
 
-	if (ignore_events) {
-		libinput_timer_cancel(&dispatch->arbitration.arbitration_timer);
-		fallback_return_to_neutral_state(dispatch, device);
-		dispatch->arbitration.in_arbitration = true;
-	} else {
+	switch (which) {
+	case ARBITRATION_NOT_ACTIVE:
 		/* if in-kernel arbitration is in use and there is a touch
 		 * and a pen in proximity, lifting the pen out of proximity
 		 * causes a touch begin for the touch. On a hand-lift the
@@ -1219,9 +1215,15 @@ fallback_interface_toggle_touch(struct evdev_dispatch *evdev_dispatch,
 		 * event is caught as palm touch. */
 		libinput_timer_set(&dispatch->arbitration.arbitration_timer,
 				   time + ms2us(90));
+		break;
+	case ARBITRATION_IGNORE_ALL:
+		libinput_timer_cancel(&dispatch->arbitration.arbitration_timer);
+		fallback_return_to_neutral_state(dispatch, device);
+		dispatch->arbitration.in_arbitration = true;
+		break;
 	}
 
-	dispatch->arbitration.ignore_events = ignore_events;
+	dispatch->arbitration.state = which;
 }
 
 static void

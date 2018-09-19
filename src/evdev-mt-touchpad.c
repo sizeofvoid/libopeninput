@@ -1028,7 +1028,7 @@ tp_palm_detect_arbitration_triggered(struct tp_dispatch *tp,
 				     struct tp_touch *t,
 				     uint64_t time)
 {
-	if (!tp->arbitration.in_arbitration)
+	if (tp->arbitration.state == ARBITRATION_NOT_ACTIVE)
 		return false;
 
 	t->palm.state = PALM_ARBITRATION;
@@ -2685,27 +2685,28 @@ tp_arbitration_timeout(uint64_t now, void *data)
 {
 	struct tp_dispatch *tp = data;
 
-	if (tp->arbitration.in_arbitration)
-		tp->arbitration.in_arbitration = false;
+	if (tp->arbitration.state != ARBITRATION_NOT_ACTIVE)
+		tp->arbitration.state = ARBITRATION_NOT_ACTIVE;
 }
 
 static void
 tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 			  struct evdev_device *device,
-			  bool enable,
+			  enum evdev_arbitration_state which,
 			  uint64_t time)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
-	bool arbitrate = !enable;
 
-	if (arbitrate == tp->arbitration.in_arbitration)
+	if (which == tp->arbitration.state)
 		return;
 
-	if (arbitrate) {
+	switch (which) {
+	case ARBITRATION_IGNORE_ALL:
 		libinput_timer_cancel(&tp->arbitration.arbitration_timer);
 		tp_clear_state(tp);
-		tp->arbitration.in_arbitration = true;
-	} else {
+		tp->arbitration.state = which;
+		break;
+	case ARBITRATION_NOT_ACTIVE:
 		/* if in-kernel arbitration is in use and there is a touch
 		 * and a pen in proximity, lifting the pen out of proximity
 		 * causes a touch begin for the touch. On a hand-lift the
@@ -2715,6 +2716,7 @@ tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 		 * event is caught as palm touch. */
 		libinput_timer_set(&tp->arbitration.arbitration_timer,
 				   time + ms2us(90));
+		break;
 	}
 }
 
@@ -3231,7 +3233,7 @@ tp_init_palmdetect_arbitration(struct tp_dispatch *tp,
 			    tp_libinput_context(tp),
 			    timer_name,
 			    tp_arbitration_timeout, tp);
-	tp->arbitration.in_arbitration = false;
+	tp->arbitration.state = ARBITRATION_NOT_ACTIVE;
 }
 
 static void

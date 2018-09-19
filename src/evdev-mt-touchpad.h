@@ -270,7 +270,7 @@ struct tp_dispatch {
 
 	/* pen/touch arbitration */
 	struct {
-		bool in_arbitration;
+		enum evdev_arbitration_state state;
 		struct libinput_timer arbitration_timer;
 	} arbitration;
 

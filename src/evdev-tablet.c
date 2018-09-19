@@ -1623,15 +1623,21 @@ tablet_set_touch_device_enabled(struct evdev_device *touch_device,
 				uint64_t time)
 {
 	struct evdev_dispatch *dispatch;
+	enum evdev_arbitration_state which;
 
 	if (touch_device == NULL)
 		return;
+
+	if (enable)
+		which = ARBITRATION_NOT_ACTIVE;
+	else
+		which = ARBITRATION_IGNORE_ALL;
 
 	dispatch = touch_device->dispatch;
 	if (dispatch->interface->toggle_touch)
 		dispatch->interface->toggle_touch(dispatch,
 						  touch_device,
-						  enable,
+						  which,
 						  time);
 }
 
