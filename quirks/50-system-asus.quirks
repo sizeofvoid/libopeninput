@@ -9,3 +9,8 @@ ModelTouchpadVisibleMarker=1
 MatchName=*ETPS/2 Elantech Touchpad*
 MatchDMIModalias=dmi:*svnASUSTeKComputerInc.:pnUX21E:*
 AttrPressureRange=24:10
+
+[Asus UX302LA]
+MatchName=*ETPS/2 Elantech Touchpad*
+MatchDMIModalias=dmi:*svnASUSTeKCOMPUTERINC.:pnUX302LA:*
+ModelAsusUX302LATouchpad=1

@@ -231,6 +231,7 @@ quirk_get_name(enum quirk q)
 	case QUIRK_MODEL_APPLE_MAGICMOUSE:		return "ModelAppleMagicMouse";
 	case QUIRK_MODEL_APPLE_TOUCHPAD:		return "ModelAppleTouchpad";
 	case QUIRK_MODEL_APPLE_TOUCHPAD_ONEBUTTON:	return "ModelAppleTouchpadOneButton";
+	case QUIRK_MODEL_ASUS_UX320LA_TOUCHPAD:		return "ModelAsusUX302LATouchpad";
 	case QUIRK_MODEL_BOUNCING_KEYS:			return "ModelBouncingKeys";
 	case QUIRK_MODEL_CHROMEBOOK:			return "ModelChromebook";
 	case QUIRK_MODEL_CLEVO_W740SU:			return "ModelClevoW740SU";

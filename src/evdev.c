@@ -1976,6 +1976,20 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 					    EV_ABS,
 					    ABS_MT_TOOL_TYPE);
 
+	/* Asus UX302LA touchpad doesn't update the pressure values once two
+	 * fingers are down. So let's just pretend it doesn't have pressure
+	 * at all. https://gitlab.freedesktop.org/libinput/libinput/issues/145
+	 */
+	if (evdev_device_has_model_quirk(device,
+					 QUIRK_MODEL_ASUS_UX320LA_TOUCHPAD)) {
+		libevdev_disable_event_code(device->evdev,
+					    EV_ABS,
+					    ABS_MT_PRESSURE);
+		libevdev_disable_event_code(device->evdev,
+					    EV_ABS,
+					    ABS_PRESSURE);
+	}
+
 	/* Generally we don't care about MSC_TIMESTAMP and it can cause
 	 * unnecessary wakeups but on some devices we need to watch it for
 	 * pointer jumps */
