@@ -36,6 +36,7 @@
 #include "libinput-private.h"
 #include "timer.h"
 #include "filter.h"
+#include "quirks.h"
 
 /* The fake resolution value for abs devices without resolution */
 #define EVDEV_FAKE_RESOLUTION 1
@@ -98,38 +99,23 @@ enum evdev_middlebutton_event {
 	MIDDLEBUTTON_EVENT_ALL_UP,
 };
 
+/**
+ * model flags are used as shortcut for quirks that need to be checked
+ * multiple times in timing-sensitive paths. For quirks that need to be
+ * checked only once, use the quirk directly.
+ */
 enum evdev_device_model {
 	EVDEV_MODEL_DEFAULT = 0,
-	EVDEV_MODEL_LENOVO_X230			= (1 << 0),
-	EVDEV_MODEL_CHROMEBOOK			= (1 << 1),
-	EVDEV_MODEL_SYSTEM76_BONOBO		= (1 << 2),
-	EVDEV_MODEL_SYSTEM76_GALAGO		= (1 << 3),
-	EVDEV_MODEL_SYSTEM76_KUDU		= (1 << 4),
-	EVDEV_MODEL_CLEVO_W740SU		= (1 << 5),
-	EVDEV_MODEL_APPLE_TOUCHPAD		= (1 << 6),
-	EVDEV_MODEL_WACOM_TOUCHPAD		= (1 << 7),
-	EVDEV_MODEL_ALPS_TOUCHPAD		= (1 << 8),
-	EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD	= (1 << 9),
-	EVDEV_MODEL_TEST_DEVICE			= (1 << 10),
-	EVDEV_MODEL_BOUNCING_KEYS		= (1 << 11),
-	EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81	= (1 << 12),
-	EVDEV_MODEL_LENOVO_CARBON_X1_6TH	= (1 << 13),
-	EVDEV_MODEL_CYBORG_RAT			= (1 << 14),
-	EVDEV_MODEL_HP_STREAM11_TOUCHPAD	= (1 << 16),
-	EVDEV_MODEL_LENOVO_T450_TOUCHPAD	= (1 << 17),
-	EVDEV_MODEL_TOUCHPAD_VISIBLE_MARKER	= (1 << 18),
-	EVDEV_MODEL_TRACKBALL			= (1 << 19),
-	EVDEV_MODEL_APPLE_MAGICMOUSE		= (1 << 20),
-	EVDEV_MODEL_HP8510_TOUCHPAD		= (1 << 21),
-	EVDEV_MODEL_HP6910_TOUCHPAD		= (1 << 22),
-	EVDEV_MODEL_HP_ZBOOK_STUDIO_G3		= (1 << 23),
-	EVDEV_MODEL_HP_PAVILION_DM4_TOUCHPAD	= (1 << 24),
-	EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON	= (1 << 25),
-	EVDEV_MODEL_LOGITECH_MARBLE_MOUSE	= (1 << 26),
-	EVDEV_MODEL_TABLET_NO_PROXIMITY_OUT	= (1 << 27),
-	EVDEV_MODEL_TABLET_NO_TILT		= (1 << 29),
-	EVDEV_MODEL_TABLET_MODE_NO_SUSPEND	= (1 << 30),
-	EVDEV_MODEL_LENOVO_SCROLLPOINT		= (1 << 31),
+	EVDEV_MODEL_WACOM_TOUCHPAD		= (1 << 1),
+	EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD	= (1 << 2),
+	EVDEV_MODEL_LENOVO_T450_TOUCHPAD	= (1 << 4),
+	EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON	= (1 << 5),
+	EVDEV_MODEL_LENOVO_SCROLLPOINT		= (1 << 6),
+
+	/* udev tags, not true quirks */
+	EVDEV_MODEL_TEST_DEVICE			= (1 << 20),
+	EVDEV_MODEL_TRACKBALL			= (1 << 21),
+	EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81	= (1 << 22),
 };
 
 enum evdev_button_scroll_state {
@@ -352,6 +338,30 @@ evdev_verify_dispatch_type(struct evdev_dispatch *dispatch,
 struct evdev_device *
 evdev_device_create(struct libinput_seat *seat,
 		    struct udev_device *device);
+
+static inline struct libinput *
+evdev_libinput_context(const struct evdev_device *device)
+{
+	return device->base.seat->libinput;
+}
+
+static inline bool
+evdev_device_has_model_quirk(struct evdev_device *device,
+			     enum quirk model_quirk)
+{
+	struct quirks_context *quirks;
+	struct quirks *q;
+	bool result = false;
+
+	assert(quirk_get_name(model_quirk) != NULL);
+
+	quirks = evdev_libinput_context(device)->quirks;
+	q = quirks_fetch_for_device(quirks, device->udev_device);
+	quirks_get_bool(q, model_quirk, &result);
+	quirks_unref(q);
+
+	return result;
+}
 
 void
 evdev_transform_absolute(struct evdev_device *device,
@@ -691,12 +701,6 @@ evdev_hysteresis(const struct device_coords *in,
 	result.x = (dx >= 0) ? in->x - lag_x : in->x + lag_x;
 	result.y = (dy >= 0) ? in->y - lag_y : in->y + lag_y;
 	return result;
-}
-
-static inline struct libinput *
-evdev_libinput_context(const struct evdev_device *device)
-{
-	return device->base.seat->libinput;
 }
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)

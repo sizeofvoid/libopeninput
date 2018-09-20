@@ -2605,7 +2605,8 @@ evdev_tag_touchpad(struct evdev_device *device,
 
 	switch (bustype) {
 	case BUS_USB:
-		if (device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD)
+		if (evdev_device_has_model_quirk(device,
+						 QUIRK_MODEL_APPLE_TOUCHPAD))
 			 evdev_tag_touchpad_internal(device);
 		break;
 	case BUS_BLUETOOTH:
@@ -2756,7 +2757,8 @@ tp_init_slots(struct tp_dispatch *tp,
 	 * for single-finger movement. See fdo bug 91135
 	 */
 	if (tp->semi_mt ||
-	    device->model_flags & EVDEV_MODEL_HP_PAVILION_DM4_TOUCHPAD) {
+	    evdev_device_has_model_quirk(tp->device,
+					 QUIRK_MODEL_HP_PAVILION_DM4_TOUCHPAD)) {
 		tp->num_slots = 1;
 		tp->slot = 0;
 		tp->has_mt = false;
@@ -2841,7 +2843,7 @@ tp_init_accel(struct tp_dispatch *tp)
 	tp->accel.y_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_y;
 	tp->accel.xy_scale_coeff = 1.0 * res_x/res_y;
 
-	if (tp->device->model_flags & EVDEV_MODEL_LENOVO_X230 ||
+	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_X230) ||
 	    tp->device->model_flags & EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81)
 		filter = create_pointer_accelerator_filter_lenovo_x230(dpi, use_v_avg);
 	else if (libevdev_get_id_bustype(device->evdev) == BUS_BLUETOOTH)
@@ -2875,7 +2877,8 @@ tp_scroll_get_methods(struct tp_dispatch *tp)
 	/* Any movement with more than one finger has random cursor
 	 * jumps. Don't allow for 2fg scrolling on this device, see
 	 * fdo bug 91135 */
-	if (tp->device->model_flags & EVDEV_MODEL_HP_PAVILION_DM4_TOUCHPAD)
+	if (evdev_device_has_model_quirk(tp->device,
+					 QUIRK_MODEL_HP_PAVILION_DM4_TOUCHPAD))
 		return LIBINPUT_CONFIG_SCROLL_EDGE;
 
 	if (tp->ntouches >= 2)

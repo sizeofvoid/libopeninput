@@ -615,7 +615,8 @@ tp_init_softbuttons(struct tp_dispatch *tp,
 	 * On touchpads with visible markings we reduce the size of the
 	 * middle button since users have a visual guide.
 	 */
-	if (tp->device->model_flags & EVDEV_MODEL_TOUCHPAD_VISIBLE_MARKER) {
+	if (evdev_device_has_model_quirk(device,
+					 QUIRK_MODEL_TOUCHPAD_VISIBLE_MARKER)) {
 		mm.x = width/2 - 5; /* 10mm wide */
 		edges = evdev_device_mm_to_units(device, &mm);
 		mb_le = edges.x;
@@ -739,14 +740,13 @@ static enum libinput_config_click_method
 tp_click_get_default_method(struct tp_dispatch *tp)
 {
 	struct evdev_device *device = tp->device;
-	uint32_t clickfinger_models = EVDEV_MODEL_CHROMEBOOK |
-				      EVDEV_MODEL_SYSTEM76_BONOBO |
-				      EVDEV_MODEL_SYSTEM76_GALAGO |
-				      EVDEV_MODEL_SYSTEM76_KUDU |
-				      EVDEV_MODEL_CLEVO_W740SU |
-				      EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON;
 
-	if (device->model_flags & clickfinger_models)
+	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_CHROMEBOOK) ||
+	    evdev_device_has_model_quirk(device, QUIRK_MODEL_SYSTEM76_BONOBO) ||
+	    evdev_device_has_model_quirk(device, QUIRK_MODEL_SYSTEM76_GALAGO) ||
+	    evdev_device_has_model_quirk(device, QUIRK_MODEL_SYSTEM76_KUDU) ||
+	    evdev_device_has_model_quirk(device, QUIRK_MODEL_CLEVO_W740SU) ||
+	    evdev_device_has_model_quirk(device, QUIRK_MODEL_APPLE_TOUCHPAD_ONEBUTTON))
 		return LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
 
 	if (!tp->buttons.is_clickpad)
@@ -862,7 +862,8 @@ tp_init_middlebutton_emulation(struct tp_dispatch *tp,
 	if (!libevdev_has_event_code(device->evdev, EV_KEY, BTN_MIDDLE)) {
 		enable_by_default = true;
 		want_config_option = false;
-	} else if (device->model_flags & EVDEV_MODEL_ALPS_TOUCHPAD) {
+	} else if (evdev_device_has_model_quirk(device,
+						QUIRK_MODEL_ALPS_TOUCHPAD)) {
 		enable_by_default = true;
 		want_config_option = true;
 	} else

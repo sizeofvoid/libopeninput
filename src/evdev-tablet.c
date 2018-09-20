@@ -2105,7 +2105,8 @@ tablet_init(struct tablet_dispatch *tablet,
 
 	tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 
-	if (device->model_flags & EVDEV_MODEL_TABLET_NO_PROXIMITY_OUT)
+	if (evdev_device_has_model_quirk(device,
+					 QUIRK_MODEL_TABLET_NO_PROXIMITY_OUT))
 		want_proximity_quirk = true;
 
 	if (want_proximity_quirk)
