@@ -490,6 +490,31 @@ fallback_flush_st_up(struct fallback_dispatch *dispatch,
 	return true;
 }
 
+static bool
+fallback_flush_st_cancel(struct fallback_dispatch *dispatch,
+			 struct evdev_device *device,
+			 uint64_t time)
+{
+	struct libinput_device *base = &device->base;
+	struct libinput_seat *seat = base->seat;
+	int seat_slot;
+
+	if (!(device->seat_caps & EVDEV_DEVICE_TOUCH))
+		return false;
+
+	seat_slot = dispatch->abs.seat_slot;
+	dispatch->abs.seat_slot = -1;
+
+	if (seat_slot == -1)
+		return false;
+
+	seat->slot_map &= ~(1 << seat_slot);
+
+	touch_notify_touch_cancel(base, time, -1, seat_slot);
+
+	return true;
+}
+
 static void
 fallback_process_touch_button(struct fallback_dispatch *dispatch,
 			      struct evdev_device *device,
@@ -1015,14 +1040,14 @@ fallback_interface_process(struct evdev_dispatch *evdev_dispatch,
 }
 
 static void
-release_touches(struct fallback_dispatch *dispatch,
-		struct evdev_device *device,
-		uint64_t time)
+cancel_touches(struct fallback_dispatch *dispatch,
+	       struct evdev_device *device,
+	       uint64_t time)
 {
 	unsigned int idx;
 	bool need_frame = false;
 
-	need_frame = fallback_flush_st_up(dispatch, device, time);
+	need_frame = fallback_flush_st_cancel(dispatch, device, time);
 
 	for (idx = 0; idx < dispatch->mt.slots_len; idx++) {
 		struct mt_slot *slot = &dispatch->mt.slots[idx];
@@ -1030,7 +1055,7 @@ release_touches(struct fallback_dispatch *dispatch,
 		if (slot->seat_slot == -1)
 			continue;
 
-		if (fallback_flush_mt_up(dispatch, device, idx, time))
+		if (fallback_flush_mt_cancel(dispatch, device, idx, time))
 			need_frame = true;
 	}
 
@@ -1098,7 +1123,7 @@ fallback_return_to_neutral_state(struct fallback_dispatch *dispatch,
 	if ((time = libinput_now(libinput)) == 0)
 		return;
 
-	release_touches(dispatch, device, time);
+	cancel_touches(dispatch, device, time);
 	release_pressed_keys(dispatch, device, time);
 	memset(dispatch->hw_key_mask, 0, sizeof(dispatch->hw_key_mask));
 	memset(dispatch->hw_key_mask, 0, sizeof(dispatch->last_hw_key_mask));

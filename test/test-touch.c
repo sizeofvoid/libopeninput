@@ -955,7 +955,7 @@ START_TEST(touch_release_on_unplug)
 	libinput_dispatch(li);
 
 	ev = libinput_get_event(li);
-	litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_UP);
+	litest_is_touch_event(ev, LIBINPUT_EVENT_TOUCH_CANCEL);
 	libinput_event_destroy(ev);
 
 	ev = libinput_get_event(li);

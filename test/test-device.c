@@ -264,7 +264,7 @@ START_TEST(device_disable_touch_during_touch)
 	/* after disabling sendevents we require a touch up */
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
-	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_UP);
+	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_CANCEL);
 	libinput_event_destroy(event);
 
 	event = libinput_get_event(li);
