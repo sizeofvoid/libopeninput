@@ -1466,10 +1466,23 @@ litest_add_device_with_overrides(struct libinput *libinput,
 	libinput_device_ref(d->libinput_device);
 
 	if (d->interface) {
-		d->interface->min[ABS_X] = libevdev_get_abs_minimum(d->evdev, ABS_X);
-		d->interface->max[ABS_X] = libevdev_get_abs_maximum(d->evdev, ABS_X);
-		d->interface->min[ABS_Y] = libevdev_get_abs_minimum(d->evdev, ABS_Y);
-		d->interface->max[ABS_Y] = libevdev_get_abs_maximum(d->evdev, ABS_Y);
+		unsigned int code;
+
+		code = ABS_X;
+		if (!libevdev_has_event_code(d->evdev, EV_ABS, code))
+			code = ABS_MT_POSITION_X;
+		if (libevdev_has_event_code(d->evdev, EV_ABS, code)) {
+			d->interface->min[ABS_X] = libevdev_get_abs_minimum(d->evdev, code);
+			d->interface->max[ABS_X] = libevdev_get_abs_maximum(d->evdev, code);
+		}
+
+		code = ABS_Y;
+		if (!libevdev_has_event_code(d->evdev, EV_ABS, code))
+			code = ABS_MT_POSITION_Y;
+		if (libevdev_has_event_code(d->evdev, EV_ABS, code)) {
+			d->interface->min[ABS_Y] = libevdev_get_abs_minimum(d->evdev, code);
+			d->interface->max[ABS_Y] = libevdev_get_abs_maximum(d->evdev, code);
+		}
 	}
 	return d;
 }
