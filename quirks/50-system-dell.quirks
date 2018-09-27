@@ -51,4 +51,4 @@ AttrTrackpointMultiplier=1.5
 [Latitude E7470 Trackpoint]
 MatchName=*DualPoint Stick
 MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE7470*
-AttrTrackpointMultiplier=0.6
+AttrTrackpointMultiplier=0.125
