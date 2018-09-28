@@ -2664,7 +2664,7 @@ tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 	} else {
 		/* if in-kernel arbitration is in use and there is a touch
 		 * and a pen in proximity, lifting the pen out of proximity
-		 * causes a touch being for the touch. On a hand-lift the
+		 * causes a touch begin for the touch. On a hand-lift the
 		 * proximity out precedes the touch up by a few ms, so we
 		 * get what looks like a tap. Fix this by delaying
 		 * arbitration by just a little bit so that any touch in
