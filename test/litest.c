@@ -1885,6 +1885,23 @@ litest_slot_start(struct litest_device *d,
 }
 
 void
+litest_touch_sequence(struct litest_device *d,
+		      unsigned int slot,
+		      double x_from,
+		      double y_from,
+		      double x_to,
+		      double y_to,
+		      int steps)
+{
+	litest_touch_down(d, slot, x_from, y_from);
+	litest_touch_move_to(d, slot,
+			     x_from, y_from,
+			     x_to, y_to,
+			     steps);
+	litest_touch_up(d, slot);
+}
+
+void
 litest_touch_down(struct litest_device *d,
 		  unsigned int slot,
 		  double x,

@@ -4247,6 +4247,8 @@ START_TEST(touch_arbitration)
 	struct litest_device *finger;
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
+		{ ABS_TILT_X, 80 },
+		{ ABS_TILT_Y, 80 },
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
@@ -4267,8 +4269,8 @@ START_TEST(touch_arbitration)
 	litest_tablet_motion(dev, 20, 40, axes);
 	litest_drain_events(li);
 
-	litest_touch_down(finger, 0, 30, 30);
-	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
+	litest_touch_down(finger, 0, 21, 41);
+	litest_touch_move_to(finger, 0, 21, 41, 80, 80, 10);
 	litest_assert_empty_queue(li);
 
 	litest_tablet_motion(dev, 10, 10, axes);
@@ -4301,6 +4303,80 @@ START_TEST(touch_arbitration)
 						LIBINPUT_EVENT_POINTER_MOTION);
 	else
 		litest_assert_touch_sequence(li);
+
+	litest_delete_device(finger);
+}
+END_TEST
+
+START_TEST(touch_arbitration_outside_rect)
+{
+	struct litest_device *dev = litest_current_device();
+	enum litest_device_type other;
+	struct litest_device *finger;
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_TILT_X, 80 },
+		{ ABS_TILT_Y, 80 },
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+	double x, y;
+	bool is_touchpad;
+
+	other = paired_device(dev);
+	if (other == LITEST_NO_DEVICE)
+		return;
+
+	finger = litest_add_device(li, other);
+	litest_drain_events(li);
+
+	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
+	if (is_touchpad)
+		return;
+
+	x = 20;
+	y = 45;
+
+	litest_tablet_proximity_in(dev, x, y - 1, axes);
+	litest_drain_events(li);
+
+	/* these are in percent, but the pen/finger have different
+	 * resolution and the rect works in mm, so the numbers below are
+	 * hand-picked for the test device */
+	litest_tablet_motion(dev, x, y, axes);
+	litest_drain_events(li);
+
+	/* left of rect */
+	litest_touch_sequence(finger, 0, x - 10, y + 2, x - 10, y + 20, 30);
+	libinput_dispatch(li);
+	litest_assert_touch_sequence(li);
+
+	/* above rect */
+	litest_touch_sequence(finger, 0, x + 2, y - 35, x + 20, y - 10, 30);
+	libinput_dispatch(li);
+	litest_assert_touch_sequence(li);
+
+	/* right of rect */
+	litest_touch_sequence(finger, 0, x + 80, y + 2, x + 20, y + 10, 30);
+	libinput_dispatch(li);
+	litest_assert_touch_sequence(li);
+
+#if 0
+	/* This *should* work but the Cintiq test devices is <200mm
+	   high, so we can't test for anything below the tip */
+	x = 20;
+	y = 10;
+	litest_tablet_proximity_out(dev);
+	litest_tablet_motion(dev, x, y, axes);
+	litest_tablet_proximity_in(dev, x, y - 1, axes);
+	litest_drain_events(li);
+
+	/* below rect */
+	litest_touch_sequence(finger, 0, x + 2, y + 80, x + 20, y + 20, 30);
+	libinput_dispatch(li);
+	litest_assert_touch_sequence(li);
+#endif
 
 	litest_delete_device(finger);
 }
@@ -4913,6 +4989,7 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:touch-arbitration", touch_arbitration_remove_tablet, LITEST_TOUCH, LITEST_ANY);
 	litest_add("tablet:touch-arbitration", touch_arbitration_keep_ignoring, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:touch-arbitration", touch_arbitration_late_touch_lift, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:touch-arbitration", touch_arbitration_outside_rect, LITEST_TABLET | LITEST_DIRECT, LITEST_ANY);
 
 	litest_add_for_device("tablet:quirks", huion_static_btn_tool_pen, LITEST_HUION_TABLET);
 	litest_add_for_device("tablet:quirks", huion_static_btn_tool_pen_no_timeout_during_usage, LITEST_HUION_TABLET);

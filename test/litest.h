@@ -531,6 +531,15 @@ litest_touch_move_extended(struct litest_device *d,
 			   struct axis_replacement *axes);
 
 void
+litest_touch_sequence(struct litest_device *d,
+		      unsigned int slot,
+		      double x1,
+		      double y1,
+		      double x2,
+		      double y2,
+		      int steps);
+
+void
 litest_touch_down(struct litest_device *d,
 		  unsigned int slot,
 		  double x,

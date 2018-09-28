@@ -1376,6 +1376,69 @@ tablet_update_proximity_state(struct tablet_dispatch *tablet,
 	tablet_set_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
 }
 
+static struct phys_rect
+tablet_calculate_arbitration_rect(struct tablet_dispatch *tablet)
+{
+	struct evdev_device *device = tablet->device;
+	struct phys_rect r = {0};
+	struct phys_coords mm;
+
+	mm = evdev_device_units_to_mm(device, &tablet->axes.point);
+
+	/* The rect we disable is 20mm left of the tip, 50mm north of the
+	 * tip, and 200x200mm large.
+	 * If the stylus is tilted left (tip further right than the eraser
+	 * end) assume left-handed mode.
+	 *
+	 * Obviously if we'd run out of the boundaries, we rescale the rect
+	 * accordingly.
+	 */
+	if (tablet->axes.tilt.x > 0) {
+		r.x = mm.x - 20;
+		r.w = 200;
+	} else {
+		r.x = mm.x + 20;
+		r.w = 200;
+		r.x -= r.w;
+	}
+
+	if (r.x < 0) {
+		r.w -= r.x;
+		r.x = 0;
+	}
+
+	r.y = mm.y - 50;
+	r.h = 200;
+	if (r.y < 0) {
+		r.h -= r.y;
+		r.y = 0;
+	}
+
+	return r;
+}
+
+static inline void
+tablet_update_touch_device_rect(struct tablet_dispatch *tablet,
+				const struct tablet_axes *axes,
+				uint64_t time)
+{
+	struct evdev_dispatch *dispatch;
+	struct phys_rect rect = {0};
+
+	if (tablet->touch_device == NULL ||
+	    tablet->arbitration != ARBITRATION_IGNORE_RECT)
+		return;
+
+	rect = tablet_calculate_arbitration_rect(tablet);
+
+	dispatch = tablet->touch_device->dispatch;
+	if (dispatch->interface->touch_arbitration_update_rect)
+		dispatch->interface->touch_arbitration_update_rect(dispatch,
+								   tablet->touch_device,
+								   &rect,
+								   time);
+}
+
 static inline bool
 tablet_send_proximity_in(struct tablet_dispatch *tablet,
 			 struct libinput_tablet_tool *tool,
@@ -1549,7 +1612,8 @@ tablet_send_events(struct tablet_dispatch *tablet,
 		 * update */
 		tablet_unset_status(tablet, TABLET_AXES_UPDATED);
 	} else {
-		tablet_check_notify_axes(tablet, device, tool, &axes, time);
+		if (tablet_check_notify_axes(tablet, device, tool, &axes, time))
+			tablet_update_touch_device_rect(tablet, &axes, time);
 	}
 
 	assert(tablet->axes.delta.x == 0);
@@ -1618,27 +1682,25 @@ tablet_flush(struct tablet_dispatch *tablet,
 }
 
 static inline void
-tablet_set_touch_device_enabled(struct evdev_device *touch_device,
-				bool enable,
+tablet_set_touch_device_enabled(struct tablet_dispatch *tablet,
+				enum evdev_arbitration_state which,
+				const struct phys_rect *rect,
 				uint64_t time)
 {
+	struct evdev_device *touch_device = tablet->touch_device;
 	struct evdev_dispatch *dispatch;
-	enum evdev_arbitration_state which;
 
 	if (touch_device == NULL)
 		return;
 
-	if (enable)
-		which = ARBITRATION_NOT_ACTIVE;
-	else
-		which = ARBITRATION_IGNORE_ALL;
+	tablet->arbitration = which;
 
 	dispatch = touch_device->dispatch;
 	if (dispatch->interface->touch_arbitration_toggle)
 		dispatch->interface->touch_arbitration_toggle(dispatch,
 							      touch_device,
 							      which,
-							      NULL,
+							      rect,
 							      time);
 }
 
@@ -1647,18 +1709,33 @@ tablet_toggle_touch_device(struct tablet_dispatch *tablet,
 			   struct evdev_device *tablet_device,
 			   uint64_t time)
 {
-	bool enable_events;
+	enum evdev_arbitration_state which;
+	struct phys_rect r = {0};
+	struct phys_rect *rect = NULL;
 
-	enable_events = tablet_has_status(tablet,
-					  TABLET_TOOL_OUT_OF_RANGE) ||
-			tablet_has_status(tablet, TABLET_NONE) ||
-			tablet_has_status(tablet,
-					  TABLET_TOOL_LEAVING_PROXIMITY) ||
-			tablet_has_status(tablet,
-					  TABLET_TOOL_OUT_OF_PROXIMITY);
+	if (tablet_has_status(tablet,
+			      TABLET_TOOL_OUT_OF_RANGE) ||
+	    tablet_has_status(tablet, TABLET_NONE) ||
+	    tablet_has_status(tablet,
+			      TABLET_TOOL_LEAVING_PROXIMITY) ||
+	    tablet_has_status(tablet,
+			      TABLET_TOOL_OUT_OF_PROXIMITY)) {
+		which = ARBITRATION_NOT_ACTIVE;
+	} else if (tablet->axes.tilt.x == 0) {
+		which = ARBITRATION_IGNORE_ALL;
+	} else if (tablet->arbitration != ARBITRATION_IGNORE_RECT) {
+		/* This enables rect-based arbitration, updates are sent
+		 * elsewhere */
+		r = tablet_calculate_arbitration_rect(tablet);
+		rect = &r;
+		which = ARBITRATION_IGNORE_RECT;
+	} else {
+		return;
+	}
 
-	tablet_set_touch_device_enabled(tablet->touch_device,
-					enable_events,
+	tablet_set_touch_device_enabled(tablet,
+					which,
+					rect,
 					time);
 }
 
@@ -1837,7 +1914,10 @@ tablet_suspend(struct evdev_dispatch *dispatch,
 	struct libinput *li = tablet_libinput_context(tablet);
 	uint64_t now = libinput_now(li);
 
-	tablet_set_touch_device_enabled(tablet->touch_device, true, now);
+	tablet_set_touch_device_enabled(tablet,
+					ARBITRATION_NOT_ACTIVE,
+					NULL,
+					now);
 
 	if (!tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY)) {
 		tablet_set_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);

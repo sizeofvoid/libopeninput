@@ -1219,6 +1219,24 @@ fallback_interface_sync_initial_state(struct evdev_device *device,
 }
 
 static void
+fallback_interface_update_rect(struct evdev_dispatch *evdev_dispatch,
+			       struct evdev_device *device,
+				const struct phys_rect *phys_rect,
+				uint64_t time)
+{
+	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
+	struct device_coord_rect rect = {0};
+
+	assert(phys_rect);
+
+	/* Existing touches do not change, we just update the rect and only
+	 * new touches in these areas will be ignored. If you want to paint
+	 * over your finger, be my guest. */
+	rect = evdev_phys_rect_to_units(device, phys_rect);
+	dispatch->arbitration.rect = rect;
+}
+
+static void
 fallback_interface_toggle_touch(struct evdev_dispatch *evdev_dispatch,
 				struct evdev_device *device,
 				enum evdev_arbitration_state which,
@@ -1453,7 +1471,7 @@ struct evdev_dispatch_interface fallback_interface = {
 	.device_resumed = fallback_interface_device_added,   /* treat as add */
 	.post_added = fallback_interface_sync_initial_state,
 	.touch_arbitration_toggle = fallback_interface_toggle_touch,
-	.touch_arbitration_update_rect = NULL,
+	.touch_arbitration_update_rect = fallback_interface_update_rect,
 	.get_switch_state = fallback_interface_get_switch_state,
 };
 

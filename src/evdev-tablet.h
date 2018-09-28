@@ -84,6 +84,7 @@ struct tablet_dispatch {
 
 	/* The paired touch device on devices with both pen & touch */
 	struct evdev_device *touch_device;
+	enum evdev_arbitration_state arbitration;
 
 	struct {
 		bool need_to_force_prox_out;
