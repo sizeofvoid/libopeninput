@@ -621,6 +621,8 @@ fallback_process_touch(struct fallback_dispatch *dispatch,
 					slot->palm_state = PALM_NONE;
 					break;
 				}
+			} else {
+				slot->palm_state = PALM_NONE;
 			}
 		} else {
 			dispatch->pending_event |= EVDEV_ABSOLUTE_MT;
