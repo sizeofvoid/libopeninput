@@ -98,6 +98,9 @@ tp_calculate_motion_speed(struct tp_dispatch *tp, struct tp_touch *t)
 	if (!tp->has_mt || tp->semi_mt)
 		return;
 
+	if (t->state != TOUCH_UPDATE)
+		return;
+
 	/* This doesn't kick in until we have at least 4 events in the
 	 * motion history. As a side-effect, this automatically handles the
 	 * 2fg scroll where a finger is down and moving fast before the
@@ -332,6 +335,7 @@ tp_begin_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->thumb.first_touch_time = time;
 	t->tap.is_thumb = false;
 	t->tap.is_palm = false;
+	t->speed.exceeded_count = 0;
 	assert(tp->nfingers_down >= 1);
 	tp->hysteresis.last_motion_time = time;
 }
@@ -409,6 +413,7 @@ tp_end_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->pinned.is_pinned = false;
 	t->time = time;
 	t->palm.time = 0;
+	t->speed.exceeded_count = 0;
 	tp->queued |= TOUCHPAD_EVENT_MOTION;
 }
 

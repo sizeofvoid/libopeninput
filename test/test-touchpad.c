@@ -6274,6 +6274,42 @@ START_TEST(touchpad_speed_ignore_finger_edgescroll)
 }
 END_TEST
 
+START_TEST(touchpad_speed_ignore_hovering_finger)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOUCH_MAJOR, 1 },
+		{ ABS_MT_TOUCH_MINOR, 1 },
+		{ -1, 0 }
+	};
+
+	litest_drain_events(li);
+
+	/* first finger down but below touch size. we use slot 2 because
+	 * it's easier this way for litest */
+	litest_touch_down_extended(dev, 2, 20, 20, axes);
+	litest_touch_move_to_extended(dev, 2, 20, 20, 60, 80, axes, 20);
+	litest_drain_events(li);
+
+	/* second, third finger down withn same frame */
+	litest_push_event_frame(dev);
+	litest_touch_down(dev, 0, 59, 70);
+	litest_touch_down(dev, 1, 65, 70);
+	litest_pop_event_frame(dev);
+
+	litest_touch_move_two_touches(dev, 59, 70, 65, 70, 0, 30, 10);
+	libinput_dispatch(li);
+
+	litest_touch_up(dev, 2);
+	libinput_dispatch(li);
+	litest_touch_up(dev, 1);
+	litest_touch_up(dev, 0);
+
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
+}
+END_TEST
+
 enum suspend {
 	SUSPEND_EXT_MOUSE = 1,
 	SUSPEND_SENDEVENTS,
@@ -6778,6 +6814,7 @@ TEST_COLLECTION(touchpad)
 	litest_add("touchpad:speed", touchpad_speed_ignore_finger, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add("touchpad:speed", touchpad_speed_allow_nearby_finger, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add("touchpad:speed", touchpad_speed_ignore_finger_edgescroll, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add_for_device("touchpad:speed", touchpad_speed_ignore_hovering_finger, LITEST_BCM5974);
 
 	litest_add_ranged("touchpad:suspend", touchpad_suspend_abba, LITEST_TOUCHPAD, LITEST_ANY, &suspends);
 	litest_add_ranged("touchpad:suspend", touchpad_suspend_abab, LITEST_TOUCHPAD, LITEST_ANY, &suspends);
