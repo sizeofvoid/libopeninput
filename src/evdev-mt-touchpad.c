@@ -1143,6 +1143,28 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 		}
 	}
 
+	/* If the finger is below the upper thumb line and we have another
+	 * finger in the same area, neither finger is a thumb (unless we've
+	 * already labeled it as such).
+	 */
+	if (t->point.y > tp->thumb.upper_thumb_line &&
+	    tp->nfingers_down > 1) {
+		struct tp_touch *other;
+
+		tp_for_each_touch(tp, other) {
+			if (other->state != TOUCH_BEGIN &&
+			    other->state != TOUCH_UPDATE)
+				continue;
+
+			if (other->point.y > tp->thumb.upper_thumb_line) {
+				t->thumb.state = THUMB_STATE_NO;
+				if (other->thumb.state == THUMB_STATE_MAYBE)
+					other->thumb.state = THUMB_STATE_NO;
+				break;
+			}
+		}
+	}
+
 	/* Note: a thumb at the edge of the touchpad won't trigger the
 	 * threshold, the surface area is usually too small. So we have a
 	 * two-stage detection: pressure and time within the area.

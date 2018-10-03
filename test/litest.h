@@ -820,6 +820,9 @@ void
 litest_timeout_hysteresis(void);
 
 void
+litest_timeout_thumb(void);
+
+void
 litest_push_event_frame(struct litest_device *dev);
 
 void
