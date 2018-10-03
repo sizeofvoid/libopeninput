@@ -247,6 +247,11 @@ in the udev rules files). ::
 
     sudo udevadm test /sys/class/input/eventX
 
+.. warning::  ``udevadm test`` does not run commands specified in ``RUN``
+	      directives. This affects the udev properties relying on e.g.
+	      the udev keyboard builtin such as the :ref:`touchpad_jitter`
+	      workarounds.
+
 .. _hwdb_modifying:
 
 ..............................................................................
