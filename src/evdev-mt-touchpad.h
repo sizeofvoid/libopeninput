@@ -209,6 +209,7 @@ struct tp_touch {
 		struct libinput_timer timer;
 		struct device_coords initial;
 		bool has_moved; /* has moved more than threshold */
+		uint64_t initial_time;
 	} button;
 
 	struct {

@@ -511,6 +511,43 @@ START_TEST(touchpad_2fg_scroll_return_to_motion)
 }
 END_TEST
 
+START_TEST(touchpad_2fg_scroll_from_btnareas)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	if (!litest_has_2fg_scroll(dev) ||
+	    !litest_has_btnareas(dev))
+		return;
+
+	litest_enable_2fg_scroll(dev);
+	litest_enable_buttonareas(dev);
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 30, 95);
+	litest_touch_down(dev, 1, 50, 95);
+	libinput_dispatch(li);
+
+	/* First finger moves out of the area first but it's a scroll
+	 * motion, should not trigger POINTER_MOTION */
+	for (int i = 0; i < 5; i++) {
+		litest_touch_move(dev, 0, 30, 95 - i);
+	}
+	libinput_dispatch(li);
+
+	for (int i = 0; i < 20; i++) {
+		litest_touch_move(dev, 0, 30, 90 - i);
+		litest_touch_move(dev, 1, 30, 95 - i);
+	}
+	libinput_dispatch(li);
+
+	litest_touch_up(dev, 0);
+	litest_touch_up(dev, 1);
+
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
+}
+END_TEST
+
 START_TEST(touchpad_scroll_natural_defaults)
 {
 	struct litest_device *dev = litest_current_device();
@@ -6713,6 +6750,7 @@ TEST_COLLECTION(touchpad)
 	litest_add("touchpad:scroll", touchpad_2fg_scroll_return_to_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:scroll", touchpad_2fg_scroll_source, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:scroll", touchpad_2fg_scroll_semi_mt, LITEST_SEMI_MT, LITEST_SINGLE_TOUCH);
+	litest_add("touchpad:scroll", touchpad_2fg_scroll_from_btnareas, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:scroll", touchpad_scroll_natural_defaults, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:scroll", touchpad_scroll_natural_enable_config, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:scroll", touchpad_scroll_natural_2fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
