@@ -61,7 +61,7 @@ value in case the ``libinput measure fuzz`` tool fails.
 
 Check with ``udevadm info /sys/class/input/eventX`` (replace your device node
 number) whether an existing hwdb override exists. If the ``EVDEV_ABS_``
-properties are present, the hwdb overried exists. Find the file that
+properties are present, the hwdb override exists. Find the file that
 contains that entry, most likely in ``/etc/udev/hwdb.d`` or
 ``/usr/lib/udev/hwdb.d``.
 
