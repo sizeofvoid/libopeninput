@@ -464,6 +464,9 @@ tp_button_check_for_movement(struct tp_dispatch *tp, struct tp_touch *t)
 	struct phys_coords mm;
 	double vector_length;
 
+	if (t->button.has_moved)
+		return;
+
 	switch (t->button.state) {
 	case BUTTON_STATE_NONE:
 	case BUTTON_STATE_AREA:
