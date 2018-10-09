@@ -865,6 +865,127 @@ START_TEST(tablet_mode_disable_touchpad_on_init)
 }
 END_TEST
 
+START_TEST(tablet_mode_disable_touchpad_on_resume)
+{
+	struct litest_device *sw = litest_current_device();
+	struct litest_device *touchpad;
+	struct libinput *li = sw->libinput;
+	struct libinput_event *event;
+	bool have_switch_toggle = false;
+
+	if (!switch_has_tablet_mode(sw))
+		return;
+
+	touchpad = switch_init_paired_touchpad(li);
+	litest_disable_tap(touchpad->libinput_device);
+	litest_drain_events(li);
+
+	libinput_suspend(li);
+	litest_switch_action(sw,
+			     LIBINPUT_SWITCH_TABLET_MODE,
+			     LIBINPUT_SWITCH_STATE_ON);
+	litest_drain_events(li);
+	libinput_resume(li);
+	libinput_dispatch(li);
+
+	while ((event = libinput_get_event(li))) {
+		enum libinput_event_type type;
+
+		type = libinput_event_get_type(event);
+		switch (type) {
+		case LIBINPUT_EVENT_DEVICE_ADDED:
+			break;
+		case LIBINPUT_EVENT_SWITCH_TOGGLE:
+			litest_is_switch_event(event,
+					       LIBINPUT_SWITCH_TABLET_MODE,
+					       LIBINPUT_SWITCH_STATE_ON);
+			have_switch_toggle = true;
+			break;
+		default:
+			ck_abort();
+		}
+		libinput_event_destroy(event);
+	}
+
+	ck_assert(have_switch_toggle);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	litest_switch_action(sw,
+			     LIBINPUT_SWITCH_TABLET_MODE,
+			     LIBINPUT_SWITCH_STATE_OFF);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	litest_is_switch_event(event,
+			       LIBINPUT_SWITCH_TABLET_MODE,
+			       LIBINPUT_SWITCH_STATE_OFF);
+	libinput_event_destroy(event);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10);
+	litest_touch_up(touchpad, 0);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_delete_device(touchpad);
+}
+END_TEST
+
+START_TEST(tablet_mode_enable_touchpad_on_resume)
+{
+	struct litest_device *sw = litest_current_device();
+	struct litest_device *touchpad;
+	struct libinput *li = sw->libinput;
+	struct libinput_event *event;
+
+	if (!switch_has_tablet_mode(sw))
+		return;
+
+	touchpad = switch_init_paired_touchpad(li);
+	litest_disable_tap(touchpad->libinput_device);
+	litest_drain_events(li);
+
+	litest_switch_action(sw,
+			     LIBINPUT_SWITCH_TABLET_MODE,
+			     LIBINPUT_SWITCH_STATE_ON);
+	libinput_suspend(li);
+	litest_drain_events(li);
+
+	litest_switch_action(sw,
+			     LIBINPUT_SWITCH_TABLET_MODE,
+			     LIBINPUT_SWITCH_STATE_OFF);
+
+	libinput_resume(li);
+	libinput_dispatch(li);
+
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_ADDED);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10);
+	litest_touch_up(touchpad, 0);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_switch_action(sw,
+			     LIBINPUT_SWITCH_TABLET_MODE,
+			     LIBINPUT_SWITCH_STATE_ON);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	litest_is_switch_event(event,
+			       LIBINPUT_SWITCH_TABLET_MODE,
+			       LIBINPUT_SWITCH_STATE_ON);
+	libinput_event_destroy(event);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10);
+	litest_touch_up(touchpad, 0);
+	litest_assert_empty_queue(li);
+
+	litest_delete_device(touchpad);
+}
+END_TEST
+
 START_TEST(tablet_mode_disable_keyboard)
 {
 	struct litest_device *sw = litest_current_device();
@@ -933,6 +1054,109 @@ START_TEST(tablet_mode_disable_keyboard_on_init)
 	litest_keyboard_key(keyboard, KEY_A, true);
 	litest_keyboard_key(keyboard, KEY_A, false);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
+	litest_delete_device(keyboard);
+}
+END_TEST
+
+START_TEST(tablet_mode_disable_keyboard_on_resume)
+{
+	struct litest_device *sw = litest_current_device();
+	struct litest_device *keyboard;
+	struct libinput *li = sw->libinput;
+	struct libinput_event *event;
+	bool have_switch_toggle = false;
+
+	if (!switch_has_tablet_mode(sw))
+		return;
+
+	keyboard = litest_add_device(li, LITEST_KEYBOARD);
+	litest_drain_events(li);
+	libinput_suspend(li);
+
+	litest_switch_action(sw,
+			     LIBINPUT_SWITCH_TABLET_MODE,
+			     LIBINPUT_SWITCH_STATE_ON);
+	litest_drain_events(li);
+
+	libinput_resume(li);
+	libinput_dispatch(li);
+
+	while ((event = libinput_get_event(li))) {
+		enum libinput_event_type type;
+
+		type = libinput_event_get_type(event);
+		switch (type) {
+		case LIBINPUT_EVENT_DEVICE_ADDED:
+			break;
+		case LIBINPUT_EVENT_SWITCH_TOGGLE:
+			litest_is_switch_event(event,
+					       LIBINPUT_SWITCH_TABLET_MODE,
+					       LIBINPUT_SWITCH_STATE_ON);
+			have_switch_toggle = true;
+			break;
+		default:
+			ck_abort();
+		}
+		libinput_event_destroy(event);
+	}
+
+	ck_assert(have_switch_toggle);
+
+	litest_keyboard_key(keyboard, KEY_A, true);
+	litest_keyboard_key(keyboard, KEY_A, false);
+	litest_assert_empty_queue(li);
+
+	litest_switch_action(sw,
+			     LIBINPUT_SWITCH_TABLET_MODE,
+			     LIBINPUT_SWITCH_STATE_OFF);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_SWITCH_TOGGLE);
+
+	litest_keyboard_key(keyboard, KEY_A, true);
+	litest_keyboard_key(keyboard, KEY_A, false);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
+	litest_delete_device(keyboard);
+}
+END_TEST
+
+START_TEST(tablet_mode_enable_keyboard_on_resume)
+{
+	struct litest_device *sw = litest_current_device();
+	struct litest_device *keyboard;
+	struct libinput *li = sw->libinput;
+
+	if (!switch_has_tablet_mode(sw))
+		return;
+
+	keyboard = litest_add_device(li, LITEST_KEYBOARD);
+	litest_switch_action(sw,
+			     LIBINPUT_SWITCH_TABLET_MODE,
+			     LIBINPUT_SWITCH_STATE_ON);
+	litest_drain_events(li);
+	libinput_suspend(li);
+	litest_drain_events(li);
+
+	litest_switch_action(sw,
+			     LIBINPUT_SWITCH_TABLET_MODE,
+			     LIBINPUT_SWITCH_STATE_OFF);
+
+	libinput_resume(li);
+	libinput_dispatch(li);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_ADDED);
+
+	litest_keyboard_key(keyboard, KEY_A, true);
+	litest_keyboard_key(keyboard, KEY_A, false);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
+	litest_switch_action(sw,
+			     LIBINPUT_SWITCH_TABLET_MODE,
+			     LIBINPUT_SWITCH_STATE_ON);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_SWITCH_TOGGLE);
+
+	litest_keyboard_key(keyboard, KEY_A, true);
+	litest_keyboard_key(keyboard, KEY_A, false);
+	litest_assert_empty_queue(li);
 
 	litest_delete_device(keyboard);
 }
@@ -1071,8 +1295,12 @@ TEST_COLLECTION(switch)
 	litest_add_for_device("lid:keypress", lid_key_press, LITEST_GPIO_KEYS);
 
 	litest_add("tablet-mode:touchpad", tablet_mode_disable_touchpad_on_init, LITEST_SWITCH, LITEST_ANY);
+	litest_add("tablet-mode:touchpad", tablet_mode_disable_touchpad_on_resume, LITEST_SWITCH, LITEST_ANY);
+	litest_add("tablet-mode:touchpad", tablet_mode_enable_touchpad_on_resume, LITEST_SWITCH, LITEST_ANY);
 	litest_add("tablet-mode:keyboard", tablet_mode_disable_keyboard, LITEST_SWITCH, LITEST_ANY);
 	litest_add("tablet-mode:keyboard", tablet_mode_disable_keyboard_on_init, LITEST_SWITCH, LITEST_ANY);
+	litest_add("tablet-mode:keyboard", tablet_mode_disable_keyboard_on_resume, LITEST_SWITCH, LITEST_ANY);
+	litest_add("tablet-mode:keyboard", tablet_mode_enable_keyboard_on_resume, LITEST_SWITCH, LITEST_ANY);
 	litest_add("tablet-mode:trackpoint", tablet_mode_disable_trackpoint, LITEST_SWITCH, LITEST_ANY);
 	litest_add("tablet-mode:trackpoint", tablet_mode_disable_trackpoint_on_init, LITEST_SWITCH, LITEST_ANY);
 
