@@ -34,6 +34,7 @@
 #include <libudev.h>
 #include <dirent.h>
 #include <fnmatch.h>
+#include <libgen.h>
 
 #include "libinput-versionsort.h"
 #include "libinput-util.h"
@@ -413,7 +414,9 @@ section_new(const char *path, const char *name)
 {
 	struct section *s = zalloc(sizeof(*s));
 
-	xasprintf(&s->name, "%s (%s)", name, basename(path));
+	char *path_dup = safe_strdup(path);
+	xasprintf(&s->name, "%s (%s)", name, basename(path_dup));
+	free(path_dup);
 	list_init(&s->link);
 	list_init(&s->properties);
 
