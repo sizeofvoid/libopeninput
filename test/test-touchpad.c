@@ -6732,6 +6732,40 @@ out:
 }
 END_TEST
 
+START_TEST(touchpad_end_start_touch)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_enable_tap(dev->libinput_device);
+
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_move(dev, 0, 50.1, 50.1);
+	libinput_dispatch(li);
+
+	litest_push_event_frame(dev);
+	litest_touch_up(dev, 0);
+	litest_touch_down(dev, 0, 50.2, 50.2);
+	litest_pop_event_frame(dev);
+
+	litest_disable_log_handler(li);
+	libinput_dispatch(li);
+	litest_restore_log_handler(li);
+
+	litest_assert_empty_queue(li);
+
+	litest_timeout_tap();
+	libinput_dispatch(li);
+
+	litest_touch_move_to(dev, 0, 50.2, 50.2, 50, 70, 10);
+	litest_touch_up(dev, 0);
+
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+}
+END_TEST
+
 TEST_COLLECTION(touchpad)
 {
 	struct range suspends = { SUSPEND_EXT_MOUSE, SUSPEND_COUNT };
@@ -6928,4 +6962,8 @@ TEST_COLLECTION(touchpad)
 
 	litest_add_ranged("touchpad:suspend", touchpad_suspend_abba, LITEST_TOUCHPAD, LITEST_ANY, &suspends);
 	litest_add_ranged("touchpad:suspend", touchpad_suspend_abab, LITEST_TOUCHPAD, LITEST_ANY, &suspends);
+
+	/* Happens on the "Wacom Intuos Pro M Finger" but our test device
+	 * has the same properties */
+	litest_add_for_device("touchpad:bugs", touchpad_end_start_touch, LITEST_WACOM_FINGER);
 }

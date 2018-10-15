@@ -305,6 +305,18 @@ tp_new_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	    t->state == TOUCH_HOVERING)
 		return;
 
+	/* Bug #161: touch ends in the same event frame where it restarts
+	   again. That's a kernel bug, so let's complain. */
+	if (t->state == TOUCH_MAYBE_END) {
+		evdev_log_bug_kernel(tp->device,
+				     "touch %d ended and began in in same frame.\n",
+				     t->index);
+		tp->nfingers_down++;
+		t->state = TOUCH_UPDATE;
+		t->has_ended = false;
+		return;
+	}
+
 	/* we begin the touch as hovering because until BTN_TOUCH happens we
 	 * don't know if it's a touch down or not. And BTN_TOUCH may happen
 	 * after ABS_MT_TRACKING_ID */
