@@ -1926,7 +1926,8 @@ tp_debug_touch_state(struct tp_dispatch *tp,
 			t->pressure,
 			tp_touch_active(tp, t) ? "" : "inactive");
 	}
-	evdev_log_debug(device, "touch state: %s\n", buf);
+	if (buf[0] != '\0')
+		evdev_log_debug(device, "touch state: %s\n", buf);
 }
 
 static void
