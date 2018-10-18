@@ -81,6 +81,11 @@ MatchName=AT Translated Set 2 keyboard
 MatchDMIModalias=dmi:*svnIBM:*pvrThinkPadX41Tablet:*
 ModelTabletModeNoSuspend=1
 
+[Lenovo X60 Tablet]
+MatchName=AT Translated Set 2 keyboard
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX60Tablet:*
+ModelTabletModeNoSuspend=1
+
 # Lenovo X220 Tablet special bezel buttons are associated to the
 # keyboard and would therefore mistakenly be deactivated as well.
 # See https://gitlab.freedesktop.org/libinput/libinput/issues/154
