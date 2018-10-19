@@ -4,4 +4,4 @@
 MatchUdevType=tablet
 MatchBus=usb
 MatchVendor=0x08CA
-ModelTabletNoTilt=1
+AttrEventCodeDisable=ABS_TILT_X;ABS_TILT_Y;

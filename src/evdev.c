@@ -1902,51 +1902,6 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	const struct quirk_tuples *t;
 	char *prop;
 
-	/* The Cyborg RAT has a mode button that cycles through event codes.
-	 * On press, we get a release for the current mode and a press for the
-	 * next mode:
-	 * E: 0.000001 0004 0004 589833	# EV_MSC / MSC_SCAN             589833
-	 * E: 0.000001 0001 0118 0000	# EV_KEY / (null)               0
-	 * E: 0.000001 0004 0004 589834	# EV_MSC / MSC_SCAN             589834
-	 * E: 0.000001 0001 0119 0001	# EV_KEY / (null)               1
-	 * E: 0.000001 0000 0000 0000	# ------------ SYN_REPORT (0) ---------- +0ms
-	 * E: 0.705000 0004 0004 589834	# EV_MSC / MSC_SCAN             589834
-	 * E: 0.705000 0001 0119 0000	# EV_KEY / (null)               0
-	 * E: 0.705000 0004 0004 589835	# EV_MSC / MSC_SCAN             589835
-	 * E: 0.705000 0001 011a 0001	# EV_KEY / (null)               1
-	 * E: 0.705000 0000 0000 0000	# ------------ SYN_REPORT (0) ---------- +705ms
-	 * E: 1.496995 0004 0004 589833	# EV_MSC / MSC_SCAN             589833
-	 * E: 1.496995 0001 0118 0001	# EV_KEY / (null)               1
-	 * E: 1.496995 0004 0004 589835	# EV_MSC / MSC_SCAN             589835
-	 * E: 1.496995 0001 011a 0000	# EV_KEY / (null)               0
-	 * E: 1.496995 0000 0000 0000	# ------------ SYN_REPORT (0) ---------- +791ms
-	 *
-	 * https://bugs.freedesktop.org/show_bug.cgi?id=92127
-	 *
-	 * Disable the event codes to avoid stuck buttons.
-	 */
-	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_CYBORG_RAT)) {
-		libevdev_disable_event_code(device->evdev, EV_KEY, 0x118);
-		libevdev_disable_event_code(device->evdev, EV_KEY, 0x119);
-		libevdev_disable_event_code(device->evdev, EV_KEY, 0x11a);
-	}
-	/* The Apple MagicMouse has a touchpad built-in but the kernel still
-	 * emulates a full 2/3 button mouse for us. Ignore anything from the
-	 * ABS interface
-	 */
-	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_APPLE_MAGICMOUSE))
-		libevdev_disable_event_type(device->evdev, EV_ABS);
-
-	/* Claims to have double/tripletap but doesn't actually send it
-	 * https://bugzilla.redhat.com/show_bug.cgi?id=1351285 and
-	 * https://bugs.freedesktop.org/show_bug.cgi?id=98538
-	 */
-	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_HP8510_TOUCHPAD) ||
-	    evdev_device_has_model_quirk(device, QUIRK_MODEL_HP6910_TOUCHPAD)) {
-		libevdev_disable_event_code(device->evdev, EV_KEY, BTN_TOOL_DOUBLETAP);
-		libevdev_disable_event_code(device->evdev, EV_KEY, BTN_TOOL_TRIPLETAP);
-	}
-
 	/* Touchpad is a clickpad but INPUT_PROP_BUTTONPAD is not set, see
 	 * fdo bug 97147. Remove when RMI4 is commonplace */
 	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_HP_STREAM11_TOUCHPAD))
@@ -1957,41 +1912,6 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	 * https://bugs.freedesktop.org/show_bug.cgi?id=98100 */
 	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_HP_ZBOOK_STUDIO_G3))
 		libevdev_set_abs_maximum(device->evdev, ABS_MT_SLOT, 1);
-
-	/* Logitech Marble Mouse claims to have a middle button, same for
-	 * the Kensington Orbit */
-	if (evdev_device_has_model_quirk(device,
-					 QUIRK_MODEL_LOGITECH_MARBLE_MOUSE) ||
-	    evdev_device_has_model_quirk(device,
-					 QUIRK_MODEL_KENSINGTON_ORBIT))
-		libevdev_disable_event_code(device->evdev, EV_KEY, BTN_MIDDLE);
-
-	/* Aiptek tablets have tilt but don't send events */
-	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_TABLET_NO_TILT)) {
-		libevdev_disable_event_code(device->evdev, EV_ABS, ABS_TILT_X);
-		libevdev_disable_event_code(device->evdev, EV_ABS, ABS_TILT_Y);
-	}
-
-	/* Lenovo Carbon X1 6th gen sends bogus ABS_MT_TOOL_TYPE events for
-	 * MT_TOOL_PALM */
-	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_CARBON_X1_6TH))
-		libevdev_disable_event_code(device->evdev,
-					    EV_ABS,
-					    ABS_MT_TOOL_TYPE);
-
-	/* Asus UX302LA touchpad doesn't update the pressure values once two
-	 * fingers are down. So let's just pretend it doesn't have pressure
-	 * at all. https://gitlab.freedesktop.org/libinput/libinput/issues/145
-	 */
-	if (evdev_device_has_model_quirk(device,
-					 QUIRK_MODEL_ASUS_UX320LA_TOUCHPAD)) {
-		libevdev_disable_event_code(device->evdev,
-					    EV_ABS,
-					    ABS_MT_PRESSURE);
-		libevdev_disable_event_code(device->evdev,
-					    EV_ABS,
-					    ABS_PRESSURE);
-	}
 
 	/* Generally we don't care about MSC_TIMESTAMP and it can cause
 	 * unnecessary wakeups but on some devices we need to watch it for
@@ -2018,6 +1938,12 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 				libevdev_disable_event_code(device->evdev,
 							    type,
 							    code);
+			evdev_log_debug(device,
+					"quirks: disabling %s %s (%#x %#x)\n",
+					libevdev_event_type_get_name(type),
+					libevdev_event_code_get_name(type, code),
+					type,
+					code);
 		}
 	}
 

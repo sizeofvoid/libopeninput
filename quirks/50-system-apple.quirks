@@ -19,12 +19,15 @@ ModelAppleTouchpad=1
 MatchName=*Apple Inc. Apple Internal Keyboard*
 AttrKeyboardIntegration=internal
 
+# The Apple MagicMouse has a touchpad built-in but the kernel still
+# emulates a full 2/3 button mouse for us. Ignore anything from the
+# ABS interface
 [Apple MagicMouse]
 MatchUdevType=mouse
 MatchBus=bluetooth
 MatchVendor=0x05AC
 MatchProduct=0x030D
-ModelAppleMagicMouse=1
+AttrEventCodeDisable=EV_ABS
 
 [Apple Magic Trackpad v1 (2010, clickpad)]
 MatchUdevType=touchpad

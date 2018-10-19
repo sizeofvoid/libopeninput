@@ -4,12 +4,13 @@
 MatchName=*Logitech M570*
 ModelTrackball=1
 
+# Logitech Marble Mouse claims to have a middle button
 [Logitech Marble Mouse Trackball]
 MatchUdevType=mouse
 MatchBus=usb
 MatchVendor=0x46D
 MatchProduct=0xC408
-ModelLogitechMarbleMouse=1
+AttrEventCodeDisable=BTN_MIDDLE
 
 [Logitech K400]
 MatchUdevType=mouse

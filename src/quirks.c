@@ -231,25 +231,17 @@ quirk_get_name(enum quirk q)
 {
 	switch(q) {
 	case QUIRK_MODEL_ALPS_TOUCHPAD:			return "ModelALPSTouchpad";
-	case QUIRK_MODEL_APPLE_MAGICMOUSE:		return "ModelAppleMagicMouse";
 	case QUIRK_MODEL_APPLE_TOUCHPAD:		return "ModelAppleTouchpad";
 	case QUIRK_MODEL_APPLE_TOUCHPAD_ONEBUTTON:	return "ModelAppleTouchpadOneButton";
-	case QUIRK_MODEL_ASUS_UX320LA_TOUCHPAD:		return "ModelAsusUX302LATouchpad";
 	case QUIRK_MODEL_BOUNCING_KEYS:			return "ModelBouncingKeys";
 	case QUIRK_MODEL_CHROMEBOOK:			return "ModelChromebook";
 	case QUIRK_MODEL_CLEVO_W740SU:			return "ModelClevoW740SU";
-	case QUIRK_MODEL_CYBORG_RAT:			return "ModelCyborgRat";
-	case QUIRK_MODEL_HP6910_TOUCHPAD:		return "ModelHP6910Touchpad";
-	case QUIRK_MODEL_HP8510_TOUCHPAD:		return "ModelHP8510Touchpad";
 	case QUIRK_MODEL_HP_PAVILION_DM4_TOUCHPAD:	return "ModelHPPavilionDM4Touchpad";
 	case QUIRK_MODEL_HP_STREAM11_TOUCHPAD:		return "ModelHPStream11Touchpad";
 	case QUIRK_MODEL_HP_ZBOOK_STUDIO_G3:		return "ModelHPZBookStudioG3";
-	case QUIRK_MODEL_KENSINGTON_ORBIT:		return "ModelKensingtonOrbit";
-	case QUIRK_MODEL_LENOVO_CARBON_X1_6TH:		return "ModelLenovoCarbonX16th";
 	case QUIRK_MODEL_LENOVO_SCROLLPOINT:		return "ModelLenovoScrollPoint";
 	case QUIRK_MODEL_LENOVO_T450_TOUCHPAD:		return "ModelLenovoT450Touchpad";
 	case QUIRK_MODEL_LENOVO_X230:			return "ModelLenovoX230";
-	case QUIRK_MODEL_LOGITECH_MARBLE_MOUSE:		return "ModelLogitechMarbleMouse";
 	case QUIRK_MODEL_SYNAPTICS_SERIAL_TOUCHPAD:	return "ModelSynapticsSerialTouchpad";
 	case QUIRK_MODEL_SYSTEM76_BONOBO:		return "ModelSystem76Bonobo";
 	case QUIRK_MODEL_SYSTEM76_GALAGO:		return "ModelSystem76Galago";
