@@ -1899,6 +1899,7 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 {
 	struct quirks_context *quirks;
 	struct quirks *q;
+	const struct quirk_tuples *t;
 	char *prop;
 
 	/* The Cyborg RAT has a mode button that cycles through event codes.
@@ -2002,7 +2003,26 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	    !streq(prop, "watch")) {
 		libevdev_disable_event_code(device->evdev, EV_MSC, MSC_TIMESTAMP);
 	}
+
+	if (q && quirks_get_tuples(q, QUIRK_ATTR_EVENT_CODE_DISABLE, &t)) {
+		int type, code;
+
+		for (size_t i = 0; i < t->ntuples; i++) {
+			type = t->tuples[i].first;
+			code = t->tuples[i].second;
+
+			if (code == EVENT_CODE_UNDEFINED)
+				libevdev_disable_event_type(device->evdev,
+							    type);
+			else
+				libevdev_disable_event_code(device->evdev,
+							    type,
+							    code);
+		}
+	}
+
 	quirks_unref(q);
+
 }
 
 static void

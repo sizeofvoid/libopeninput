@@ -217,7 +217,7 @@ src_libinput_util = [
 ]
 libinput_util = static_library('libinput-util',
 			       src_libinput_util,
-			       dependencies : dep_udev,
+			       dependencies : [dep_udev, dep_libevdev],
 			       include_directories : includes_include)
 dep_libinput_util = declare_dependency(link_with : libinput_util)
 

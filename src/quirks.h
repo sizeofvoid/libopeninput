@@ -50,6 +50,14 @@ struct quirk_range {
 	int lower, upper;
 };
 
+struct quirk_tuples {
+	struct {
+		int first;
+		int second;
+	} tuples[32];
+	size_t ntuples;
+};
+
 /**
  * Quirks known to libinput
  */
@@ -102,7 +110,7 @@ enum quirk {
 	QUIRK_ATTR_USE_VELOCITY_AVERAGING,
 	QUIRK_ATTR_THUMB_SIZE_THRESHOLD,
 	QUIRK_ATTR_MSC_TIMESTAMP,
-
+	QUIRK_ATTR_EVENT_CODE_DISABLE,
 
 	_QUIRK_LAST_ATTR_QUIRK_, /* Guard: do not modify */
 };
@@ -293,3 +301,16 @@ bool
 quirks_get_range(struct quirks *q,
 		 enum quirk which,
 		 struct quirk_range *val);
+
+/**
+ * Get the tuples of the given quirk.
+ * This function will assert if the quirk type does not match the
+ * requested type. If the quirk is not set for this device, tuples is
+ * unchanged.
+ *
+ * @return true if the quirk value is valid, false otherwise.
+ */
+bool
+quirks_get_tuples(struct quirks *q,
+		  enum quirk which,
+		  const struct quirk_tuples **tuples);

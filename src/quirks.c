@@ -57,6 +57,7 @@ enum property_type {
 	PT_DIMENSION,
 	PT_RANGE,
 	PT_DOUBLE,
+	PT_TUPLES,
 };
 
 /**
@@ -75,9 +76,10 @@ struct property {
 		uint32_t u;
 		int32_t i;
 		char *s;
+		double d;
 		struct quirk_dimensions dim;
 		struct quirk_range range;
-		double d;
+		struct quirk_tuples tuples;
 	} value;
 };
 
@@ -273,6 +275,7 @@ quirk_get_name(enum quirk q)
 	case QUIRK_ATTR_USE_VELOCITY_AVERAGING:		return "AttrUseVelocityAveraging";
 	case QUIRK_ATTR_THUMB_SIZE_THRESHOLD:		return "AttrThumbSizeThreshold";
 	case QUIRK_ATTR_MSC_TIMESTAMP:			return "AttrMscTimestamp";
+	case QUIRK_ATTR_EVENT_CODE_DISABLE:		return "AttrEventCodeDisable";
 	default:
 		abort();
 	}
@@ -726,6 +729,22 @@ parse_attr(struct quirks_context *ctx,
 			goto out;
 		p->type = PT_STRING;
 		p->value.s = safe_strdup(value);
+		rc = true;
+	} else if (streq(key, quirk_get_name(QUIRK_ATTR_EVENT_CODE_DISABLE))) {
+		size_t nevents = 32;
+		struct input_event events[nevents];
+		p->id = QUIRK_ATTR_EVENT_CODE_DISABLE;
+		if (!parse_evcode_property(value, events, &nevents) ||
+		    nevents == 0)
+			goto out;
+
+		for (size_t i = 0; i < nevents; i++) {
+			p->value.tuples.tuples[i].first = events[i].type;
+			p->value.tuples.tuples[i].second = events[i].code;
+		}
+		p->value.tuples.ntuples = nevents;
+		p->type = PT_TUPLES;
+
 		rc = true;
 	} else {
 		qlog_error(ctx, "Unknown key %s in %s\n", key, s->name);
@@ -1540,6 +1559,26 @@ quirks_get_range(struct quirks *q,
 
 	assert(p->type == PT_RANGE);
 	*val = p->value.range;
+
+	return true;
+}
+
+bool
+quirks_get_tuples(struct quirks *q,
+		  enum quirk which,
+		  const struct quirk_tuples **tuples)
+{
+	struct property *p;
+
+	if (!q)
+		return false;
+
+	p = quirk_find_prop(q, which);
+	if (!p)
+		return false;
+
+	assert(p->type == PT_TUPLES);
+	*tuples = &p->value.tuples;
 
 	return true;
 }

@@ -177,3 +177,7 @@ AttrTPKComboLayout=below
     Indicates the position of the touchpad on an external touchpad+keyboard
     combination device. This is a string enum. Don't specify it unless the
     touchpad is below.
+AttrEventCodeDisable=EV_ABS;BTN_STYLUS;EV_KEY:0x123;
+    Disables the evdev event type/code tuples on the device. Entries may be
+    a named event type, or a named event code, or a named event type with a
+    hexadecimal event code, separated by a single colon.

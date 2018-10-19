@@ -44,6 +44,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <linux/input.h>
 
 #include "libinput.h"
 
@@ -426,6 +427,8 @@ int parse_mouse_wheel_click_count_property(const char *prop);
 bool parse_dimension_property(const char *prop, size_t *width, size_t *height);
 bool parse_calibration_property(const char *prop, float calibration[6]);
 bool parse_range_property(const char *prop, int *hi, int *lo);
+#define EVENT_CODE_UNDEFINED 0xffff
+bool parse_evcode_property(const char *prop, struct input_event *events, size_t *nevents);
 
 enum tpkbcombo_layout {
 	TPKBCOMBO_LAYOUT_UNKNOWN,

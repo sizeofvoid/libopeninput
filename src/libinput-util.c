@@ -36,6 +36,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <libevdev/libevdev.h>
 
 #include "libinput-util.h"
 #include "libinput-private.h"
@@ -396,6 +397,125 @@ parse_range_property(const char *prop, int *hi, int *lo)
 	*lo = second;
 
 	return true;
+}
+
+static bool
+parse_evcode_string(const char *s, int *type_out, int *code_out)
+{
+	int type, code;
+
+	if (strneq(s, "EV_", 3)) {
+		type = libevdev_event_type_from_name(s);
+		if (type == -1)
+			return false;
+
+		code = EVENT_CODE_UNDEFINED;
+	} else {
+		struct map {
+			const char *str;
+			int type;
+		} map[] = {
+			{ "KEY_", EV_KEY },
+			{ "BTN_", EV_KEY },
+			{ "ABS_", EV_ABS },
+			{ "REL_", EV_REL },
+			{ "SW_", EV_SW },
+		};
+		struct map *m;
+		bool found = false;
+
+		ARRAY_FOR_EACH(map, m) {
+			if (!strneq(s, m->str, strlen(m->str)))
+				continue;
+
+			type = m->type;
+			code = libevdev_event_code_from_name(type, s);
+			if (code == -1)
+				return false;
+
+			found = true;
+			break;
+		}
+		if (!found)
+			return false;
+	}
+
+	*type_out = type;
+	*code_out = code;
+
+	return true;
+}
+
+/**
+ * Parses a string of the format "EV_ABS;KEY_A;BTN_TOOL_DOUBLETAP;ABS_X;"
+ * where each element must be a named event type OR a named event code OR a
+ * tuple in the form of EV_KEY:0x123, i.e. a named event type followed by a
+ * hex event code.
+ *
+ * events must point to an existing array of size nevents.
+ * nevents specifies the size of the array in events and returns the number
+ * of items, elements exceeding nevents are simply ignored, just make sure
+ * events is large enough for your use-case.
+ *
+ * The results are returned as input events with type and code set, all
+ * other fields undefined. Where only the event type is specified, the code
+ * is set to EVENT_CODE_UNDEFINED.
+ *
+ * On success, events contains nevents events.
+ */
+bool
+parse_evcode_property(const char *prop, struct input_event *events, size_t *nevents)
+{
+	char **strv = NULL;
+	bool rc = false;
+	size_t ncodes = 0;
+	size_t idx;
+	struct input_event evs[*nevents];
+
+	memset(evs, 0, sizeof evs);
+
+	strv = strv_from_string(prop, ";");
+	if (!strv)
+		goto out;
+
+	for (idx = 0; strv[idx]; idx++)
+		ncodes++;
+
+	/* A randomly chosen max so we avoid crazy quirks */
+	if (ncodes == 0 || ncodes > 32)
+		goto out;
+
+	ncodes = min(*nevents, ncodes);
+	for (idx = 0; strv[idx]; idx++) {
+		char *s = strv[idx];
+
+		int type, code;
+
+		if (strstr(s, ":") == NULL) {
+			if (!parse_evcode_string(s, &type, &code))
+				goto out;
+		} else {
+			int consumed;
+			char stype[13] = {0}; /* EV_FF_STATUS + '\0' */
+
+			if (sscanf(s, "%12[A-Z_]:%x%n", stype, &code, &consumed) != 2 ||
+			    strlen(s) != (size_t)consumed ||
+			    (type = libevdev_event_type_from_name(stype)) == -1 ||
+			    code < 0 || code > libevdev_event_type_get_max(type))
+			    goto out;
+		}
+
+		evs[idx].type = type;
+		evs[idx].code = code;
+	}
+
+	memcpy(events, evs, ncodes * sizeof *events);
+	*nevents = ncodes;
+	rc = true;
+
+out:
+	strv_free(strv);
+	return rc;
 }
 
 /**

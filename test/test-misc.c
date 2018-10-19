@@ -1013,6 +1013,81 @@ START_TEST(range_prop_parser)
 }
 END_TEST
 
+START_TEST(evcode_prop_parser)
+{
+	struct parser_test_tuple {
+		const char *prop;
+		bool success;
+		size_t ntuples;
+		int tuples[20];
+	} tests[] = {
+		{ "EV_KEY", true, 1, {EV_KEY, 0xffff} },
+		{ "EV_ABS;", true, 1, {EV_ABS, 0xffff} },
+		{ "ABS_X;", true, 1, {EV_ABS, ABS_X} },
+		{ "SW_TABLET_MODE;", true, 1, {EV_SW, SW_TABLET_MODE} },
+		{ "EV_SW", true, 1, {EV_SW, 0xffff} },
+		{ "ABS_Y", true, 1, {EV_ABS, ABS_Y} },
+		{ "EV_ABS:0x00", true, 1, {EV_ABS, ABS_X} },
+		{ "EV_ABS:01", true, 1, {EV_ABS, ABS_Y} },
+		{ "ABS_TILT_X;ABS_TILT_Y;", true, 2,
+			{ EV_ABS, ABS_TILT_X,
+			  EV_ABS, ABS_TILT_Y} },
+		{ "BTN_TOOL_DOUBLETAP;EV_KEY;KEY_A", true, 3,
+			{ EV_KEY, BTN_TOOL_DOUBLETAP,
+			  EV_KEY, 0xffff,
+			  EV_KEY, KEY_A } },
+		{ "REL_Y;ABS_Z;BTN_STYLUS", true, 3,
+			{ EV_REL, REL_Y,
+			  EV_ABS, ABS_Z,
+			  EV_KEY, BTN_STYLUS } },
+		{ "REL_Y;EV_KEY:0x123;BTN_STYLUS", true, 3,
+			{ EV_REL, REL_Y,
+			  EV_KEY, 0x123,
+			  EV_KEY, BTN_STYLUS } },
+		{ .prop = "", .success = false },
+		{ .prop = "EV_FOO", .success = false },
+		{ .prop = "EV_KEY;EV_FOO", .success = false },
+		{ .prop = "BTN_STYLUS;EV_FOO", .success = false },
+		{ .prop = "BTN_UNKNOWN", .success = false },
+		{ .prop = "BTN_UNKNOWN;EV_KEY", .success = false },
+		{ .prop = "PR_UNKNOWN", .success = false },
+		{ .prop = "BTN_STYLUS;PR_UNKNOWN;ABS_X", .success = false },
+		{ .prop = "EV_REL:0xffff", .success = false },
+		{ .prop = "EV_REL:0x123.", .success = false },
+		{ .prop = "EV_REL:ffff", .success = false },
+		{ .prop = "EV_REL:blah", .success = false },
+		{ .prop = "KEY_A:0x11", .success = false },
+		{ .prop = "EV_KEY:0x11 ", .success = false },
+		{ .prop = "EV_KEY:0x11not", .success = false },
+		{ .prop = "none", .success = false },
+		{ .prop = NULL },
+	};
+	struct parser_test_tuple *t = tests;
+
+	for (int i = 0; tests[i].prop; i++) {
+		bool success;
+		size_t nevents = 32;
+		struct input_event events[nevents];
+
+		t = &tests[i];
+		success = parse_evcode_property(t->prop, events, &nevents);
+		ck_assert(success == t->success);
+		if (!success)
+			continue;
+
+		ck_assert_int_eq(nevents, t->ntuples);
+		for (size_t j = 0; j < nevents; j++) {
+			int type, code;
+
+			type = events[j].type;
+			code = events[j].code;
+			ck_assert_int_eq(t->tuples[j * 2], type);
+			ck_assert_int_eq(t->tuples[j * 2 + 1], code);
+		}
+	}
+}
+END_TEST
+
 START_TEST(time_conversion)
 {
 	ck_assert_int_eq(us(10), 10);
@@ -1728,6 +1803,7 @@ TEST_COLLECTION(misc)
 	litest_add_deviceless("misc:parser", reliability_prop_parser);
 	litest_add_deviceless("misc:parser", calibration_prop_parser);
 	litest_add_deviceless("misc:parser", range_prop_parser);
+	litest_add_deviceless("misc:parser", evcode_prop_parser);
 	litest_add_deviceless("misc:parser", safe_atoi_test);
 	litest_add_deviceless("misc:parser", safe_atoi_base_16_test);
 	litest_add_deviceless("misc:parser", safe_atoi_base_8_test);
