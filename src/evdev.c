@@ -1144,21 +1144,23 @@ static inline struct wheel_angle
 evdev_read_wheel_click_props(struct evdev_device *device)
 {
 	struct wheel_angle angles;
+	const char *wheel_count = "MOUSE_WHEEL_CLICK_COUNT";
+	const char *wheel_angle = "MOUSE_WHEEL_CLICK_ANGLE";
+	const char *hwheel_count = "MOUSE_WHEEL_CLICK_COUNT_HORIZONTAL";
+	const char *hwheel_angle = "MOUSE_WHEEL_CLICK_ANGLE_HORIZONTAL";
 
 	/* CLICK_COUNT overrides CLICK_ANGLE */
-	if (!evdev_read_wheel_click_count_prop(device,
-					      "MOUSE_WHEEL_CLICK_COUNT",
-					      &angles.y))
-		evdev_read_wheel_click_prop(device,
-					    "MOUSE_WHEEL_CLICK_ANGLE",
-					    &angles.y);
-	if (!evdev_read_wheel_click_count_prop(device,
-					      "MOUSE_WHEEL_CLICK_COUNT_HORIZONTAL",
-					      &angles.x)) {
-		if (!evdev_read_wheel_click_prop(device,
-						 "MOUSE_WHEEL_CLICK_ANGLE_HORIZONTAL",
-						 &angles.x))
-			angles.x = angles.y;
+	if (evdev_read_wheel_click_count_prop(device, wheel_count, &angles.y) ||
+	    evdev_read_wheel_click_prop(device, wheel_angle, &angles.y)) {
+		evdev_log_debug(device,
+				"wheel: vert click angle: %.2f\n", angles.y);
+	}
+	if (evdev_read_wheel_click_count_prop(device, hwheel_count, &angles.x) ||
+	    evdev_read_wheel_click_prop(device, hwheel_angle, &angles.x)) {
+		evdev_log_debug(device,
+				"wheel: horizontal click angle: %.2f\n", angles.y);
+	} else {
+		angles.x = angles.y;
 	}
 
 	return angles;
