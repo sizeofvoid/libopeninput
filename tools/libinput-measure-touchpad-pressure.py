@@ -170,7 +170,12 @@ class Device(object):
         caps = all_caps.get(evdev.ecodes.EV_ABS, [])
         p = [cap[1] for cap in caps if cap[0] == evdev.ecodes.ABS_MT_PRESSURE]
         if not p:
-            raise InvalidDeviceError("device does not have ABS_MT_PRESSURE")
+            p = [cap[1] for cap in caps if cap[0] == evdev.ecodes.ABS_PRESSURE]
+            if not p:
+                raise InvalidDeviceError("device does not have ABS_PRESSURE/ABS_MT_PRESSURE")
+            self.has_mt_pressure = False
+        else:
+            self.has_mt_pressure = True
 
         p = p[0]
         prange = p.max - p.min
@@ -247,7 +252,8 @@ def handle_abs(device, event):
             except IndexError:
                 # If the finger was down at startup
                 pass
-    elif event.code == evdev.ecodes.ABS_MT_PRESSURE:
+    elif ((event.code == evdev.ecodes.ABS_MT_PRESSURE) or
+          (event.code == evdev.ecodes.ABS_PRESSURE and not device.has_mt_pressure)):
         try:
             s = device.current_sequence()
             s.append(Touch(pressure=event.value))
