@@ -944,11 +944,11 @@ main(int argc, char **argv)
 
 		switch(c) {
 		case '?':
-			exit(1);
+			exit(EXIT_INVALID_USAGE);
 			break;
 		case 'h':
 			usage();
-			exit(0);
+			exit(EXIT_SUCCESS);
 			break;
 		case OPT_SHOW_KEYCODES:
 			show_keycodes = true;
@@ -973,7 +973,7 @@ main(int argc, char **argv)
 		default:
 			if (tools_parse_option(c, optarg, &options) != 0) {
 				usage();
-				return 1;
+				return EXIT_INVALID_USAGE;
 			}
 			break;
 		}
@@ -982,7 +982,7 @@ main(int argc, char **argv)
 
 	if (optind < argc) {
 		usage();
-		return 1;
+		return EXIT_INVALID_USAGE;
 	}
 
 	memset(&act, 0, sizeof(act));
@@ -997,11 +997,11 @@ main(int argc, char **argv)
 
 	li = tools_open_backend(backend, seat_or_device, verbose, &grab);
 	if (!li)
-		return 1;
+		return EXIT_FAILURE;
 
 	mainloop(li);
 
 	libinput_unref(li);
 
-	return 0;
+	return EXIT_SUCCESS;
 }

@@ -576,7 +576,7 @@ tools_exec_command(const char *prefix, int real_argc, char **real_argv)
 				"libinput: %s is not a libinput command or not installed. "
 				"See 'libinput --help'\n",
 				command);
-
+			return EXIT_INVALID_USAGE;
 		} else {
 			fprintf(stderr,
 				"Failed to execute '%s' (%s)\n",

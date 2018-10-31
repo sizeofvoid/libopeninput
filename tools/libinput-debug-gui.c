@@ -968,7 +968,7 @@ main(int argc, char **argv)
 
 		switch(c) {
 		case '?':
-			exit(1);
+			exit(EXIT_INVALID_USAGE);
 			break;
 		case 'h':
 			usage();
@@ -991,7 +991,7 @@ main(int argc, char **argv)
 		default:
 			if (tools_parse_option(c, optarg, &options) != 0) {
 				usage();
-				return 1;
+				return EXIT_INVALID_USAGE;
 			}
 			break;
 		}
@@ -1000,12 +1000,12 @@ main(int argc, char **argv)
 
 	if (optind < argc) {
 		usage();
-		return 1;
+		return EXIT_INVALID_USAGE;
 	}
 
 	li = tools_open_backend(backend, seat_or_device, verbose, &w.grab);
 	if (!li)
-		return 1;
+		return EXIT_FAILURE;
 
 	libinput_set_user_data(li, &w);
 
@@ -1019,5 +1019,5 @@ main(int argc, char **argv)
 	window_cleanup(&w);
 	libinput_unref(li);
 
-	return 0;
+	return EXIT_SUCCESS;
 }

@@ -98,13 +98,13 @@ main(int argc, char **argv)
 			return EXIT_SUCCESS;
 		default:
 			usage();
-			return EXIT_FAILURE;
+			return EXIT_INVALID_USAGE;
 		}
 	}
 
 	if (optind >= argc) {
 		usage();
-		return EXIT_FAILURE;
+		return EXIT_INVALID_USAGE;
 	}
 
 	argv += optind;

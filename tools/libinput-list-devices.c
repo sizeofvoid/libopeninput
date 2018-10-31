@@ -388,7 +388,7 @@ main(int argc, char **argv)
 			return 0;
 		} else {
 			usage();
-			return 1;
+			return EXIT_INVALID_USAGE;
 		}
 	}
 

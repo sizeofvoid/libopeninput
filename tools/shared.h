@@ -30,6 +30,8 @@
 #include <quirks.h>
 #include <libinput.h>
 
+#define EXIT_INVALID_USAGE 2
+
 enum configuration_options {
 	OPT_TAP_ENABLE = 256,
 	OPT_TAP_DISABLE,
