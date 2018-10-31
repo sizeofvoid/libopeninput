@@ -916,7 +916,7 @@ sockets_init(struct libinput *li)
 
 static void
 usage(void) {
-	printf("Usage: libinput debug-gui [options] [--udev <seat>|--device /dev/input/event0]\n");
+	printf("Usage: libinput debug-gui [options] [--udev <seat>|[--device] /dev/input/event0]\n");
 }
 
 static gboolean
@@ -933,7 +933,7 @@ main(int argc, char **argv)
 	struct window w = {0};
 	struct tools_options options;
 	struct libinput *li;
-	enum tools_backend backend = BACKEND_UDEV;
+	enum tools_backend backend = BACKEND_NONE;
 	const char *seat_or_device = "seat0";
 	bool verbose = false;
 
@@ -999,8 +999,14 @@ main(int argc, char **argv)
 	}
 
 	if (optind < argc) {
-		usage();
-		return EXIT_INVALID_USAGE;
+		if (optind < argc - 1 || backend != BACKEND_NONE) {
+			usage();
+			return EXIT_INVALID_USAGE;
+		}
+		backend = BACKEND_DEVICE;
+		seat_or_device = argv[optind];
+	} else if (backend == BACKEND_NONE) {
+		backend = BACKEND_UDEV;
 	}
 
 	li = tools_open_backend(backend, seat_or_device, verbose, &w.grab);

@@ -80,6 +80,7 @@ enum configuration_options {
 	{ "set-speed",                 required_argument, 0, OPT_SPEED }
 
 enum tools_backend {
+	BACKEND_NONE,
 	BACKEND_DEVICE,
 	BACKEND_UDEV
 };

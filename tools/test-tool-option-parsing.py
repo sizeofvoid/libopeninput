@@ -135,6 +135,7 @@ class TestToolWithOptions(object):
         self.run_command_missing_arg(['--device'])
         self.run_command_success(['--device', '/dev/input/event0'])
         self.run_command_success(['--device', '/dev/input/event1'])
+        self.run_command_success(['/dev/input/event0'])
 
     def test_options_pattern(self):
         for option in self.options['pattern']:

@@ -2,7 +2,11 @@
 .SH NAME
 libinput\-debug\-events \- debug helper for libinput
 .SH SYNOPSIS
-.B libinput debug\-events [\-\-help] [\-\-show\-keycodes] [\-\-udev \fI<seat>\fB|\-\-device \fI/dev/input/event0\fB] \fI[configuration options]\fB
+.B libinput debug\-events \fI[options]\fB
+.PP
+.B libinput debug\-events \fI[options]\fB \-\-udev \fI<seat>\fB
+.PP
+.B libinput debug\-events \fI[options]\fB [\-\-device] \fI/dev/input/event0\fB
 .SH DESCRIPTION
 .PP
 The
@@ -17,7 +21,8 @@ This tool usually needs to be run as root to have access to the
 .SH OPTIONS
 .TP 8
 .B \-\-device \fI/dev/input/event0\fR
-Use the given device with the path backend
+Use the given device with the path backend. The \fB\-\-device\fR argument may be
+omitted.
 .TP 8
 .B \-\-grab
 Exclusively grab all opened devices. This will prevent events from being

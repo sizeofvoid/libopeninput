@@ -904,7 +904,7 @@ main(int argc, char **argv)
 {
 	struct libinput *li;
 	struct timespec tp;
-	enum tools_backend backend = BACKEND_UDEV;
+	enum tools_backend backend = BACKEND_NONE;
 	const char *seat_or_device = "seat0";
 	bool grab = false;
 	bool verbose = false;
@@ -981,8 +981,14 @@ main(int argc, char **argv)
 	}
 
 	if (optind < argc) {
-		usage();
-		return EXIT_INVALID_USAGE;
+		if (optind < argc - 1 || backend != BACKEND_NONE) {
+			usage();
+			return EXIT_INVALID_USAGE;
+		}
+		backend = BACKEND_DEVICE;
+		seat_or_device = argv[optind];
+	} else if (backend == BACKEND_NONE) {
+		backend = BACKEND_UDEV;
 	}
 
 	memset(&act, 0, sizeof(act));
