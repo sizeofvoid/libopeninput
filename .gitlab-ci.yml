@@ -56,6 +56,8 @@ variables:
   FREEBSD_DOCKER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/freebsd/11.2
   # Until we have a VM with full access, we cannot run the test suite runner
   SKIP_LIBINPUT_TEST_SUITE_RUNNER: 1
+  # udev isn't available/working properly in the containers
+  UDEV_NOT_AVAILABLE: 1
   # When using docker-in-docker (dind), it's wise to use the overlayfs driver
   # for improved performance.
   DOCKER_DRIVER: overlay2

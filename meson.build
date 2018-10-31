@@ -577,12 +577,12 @@ endif
 
 libinput_sources = [ 'tools/libinput-tool.c' ]
 
-executable('libinput',
-	   libinput_sources,
-	   dependencies : deps_tools,
-	   include_directories : [includes_src, includes_include],
-	   install : true
-	   )
+libinput_tool = executable('libinput',
+			   libinput_sources,
+			   dependencies : deps_tools,
+			   include_directories : [includes_src, includes_include],
+			   install : true
+			  )
 configure_file(input : 'tools/libinput.man',
 	       output : 'libinput.1',
 	       configuration : man_config,
@@ -597,6 +597,14 @@ executable('ptraccel-debug',
 	   include_directories : [includes_src, includes_include],
 	   install : false
 	   )
+
+# Don't run the test during a release build because we rely on the magic
+# subtool lookup
+if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimized'
+	test('tool-option-parsing',
+	     find_program('tools/test-tool-option-parsing.py'),
+	     args : [libinput_tool.full_path()])
+endif
 
 # the libinput tools check whether we execute from the builddir, this is
 # the test to verify that lookup. We test twice, once as normal test

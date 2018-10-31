@@ -70,3 +70,9 @@
    ...
    fun:execute_command
 }
+{
+   python:Py_GetProgramFullPath
+   Memcheck:Cond
+   ...
+   fun:Py_GetProgramFullPath
+}
