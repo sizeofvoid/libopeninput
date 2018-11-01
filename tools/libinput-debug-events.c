@@ -878,21 +878,10 @@ static void
 mainloop(struct libinput *li)
 {
 	struct pollfd fds;
-	struct sigaction act;
 
 	fds.fd = libinput_get_fd(li);
 	fds.events = POLLIN;
 	fds.revents = 0;
-
-	memset(&act, 0, sizeof(act));
-	act.sa_sigaction = sighandler;
-	act.sa_flags = SA_SIGINFO;
-
-	if (sigaction(SIGINT, &act, NULL) == -1) {
-		fprintf(stderr, "Failed to set up signal handling (%s)\n",
-				strerror(errno));
-		return;
-	}
 
 	/* Handle already-pending device added events */
 	if (handle_and_print_events(li))
@@ -919,6 +908,7 @@ main(int argc, char **argv)
 	const char *seat_or_device = "seat0";
 	bool grab = false;
 	bool verbose = false;
+	struct sigaction act;
 
 	clock_gettime(CLOCK_MONOTONIC, &tp);
 	start_time = tp.tv_sec * 1000 + tp.tv_nsec / 1000000;
@@ -993,6 +983,16 @@ main(int argc, char **argv)
 	if (optind < argc) {
 		usage();
 		return 1;
+	}
+
+	memset(&act, 0, sizeof(act));
+	act.sa_sigaction = sighandler;
+	act.sa_flags = SA_SIGINFO;
+
+	if (sigaction(SIGINT, &act, NULL) == -1) {
+		fprintf(stderr, "Failed to set up signal handling (%s)\n",
+				strerror(errno));
+		return EXIT_FAILURE;
 	}
 
 	li = tools_open_backend(backend, seat_or_device, verbose, &grab);
