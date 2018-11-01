@@ -37,6 +37,7 @@
 
 #include <gtk/gtk.h>
 #include <glib.h>
+#include <glib-unix.h>
 
 #include <libinput.h>
 #include <libinput-util.h>
@@ -918,6 +919,14 @@ usage(void) {
 	printf("Usage: libinput debug-gui [options] [--udev <seat>|--device /dev/input/event0]\n");
 }
 
+static gboolean
+signal_handler(void *data)
+{
+	gtk_main_quit();
+
+	return FALSE;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -929,6 +938,8 @@ main(int argc, char **argv)
 	bool verbose = false;
 
 	gtk_init(&argc, &argv);
+
+	g_unix_signal_add(SIGINT, signal_handler, NULL);
 
 	tools_init_options(&options);
 
