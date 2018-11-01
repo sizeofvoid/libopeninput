@@ -308,9 +308,6 @@ udev_device_from_devnode(struct libinput *libinput,
 
 	while (dev && !udev_device_get_is_initialized(dev)) {
 		udev_device_unref(dev);
-		msleep(10);
-		dev = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
-
 		count++;
 		if (count > 200) {
 			log_bug_libinput(libinput,
@@ -318,6 +315,8 @@ udev_device_from_devnode(struct libinput *libinput,
 					devnode);
 			return NULL;
 		}
+		msleep(10);
+		dev = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
 	}
 
 	return dev;
