@@ -95,6 +95,13 @@ MatchName=AT Translated Set 2 keyboard
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX220Tablet:*
 ModelTabletModeNoSuspend=1
 
+# Special bezel button deactivation with
+# keyboard also applies to X230 Tablet
+[Lenovo X230 Tablet]
+MatchName=AT Translated Set 2 keyboard
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX230Tablet:*
+ModelTabletModeNoSuspend=1
+
 # Lenovo MIIX 720 comes with a detachable keyboard. We must not disable
 # the keyboard because some keys are still accessible on the screen and
 # volume rocker. See
