@@ -25,6 +25,7 @@
 #  e.g. fedora:29@build-default
 
 stages:
+  - bootstrapping    # creates the initial container image (optional)
   - container_check  # check if the current container images are up to date
   - container_prep   # rebuild the container images if previous step failed
   - build            # for actually building things
@@ -50,17 +51,17 @@ variables:
   MESON_BUILDDIR: "build dir"
   NINJA_ARGS: 'test'
   MESON_ARGS: ''
-  FEDORA_CONTAINER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/fedora/$FEDORA_VERSION
-  UBUNTU_CONTAINER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/ubuntu/$UBUNTU_VERSION
-  ARCH_CONTAINER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/arch/rolling
-  FREEBSD_CONTAINER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/freebsd/11.2
+  # We do not use CI_PROJECT_NAMESPACE or CI_REGISTRY_IMAGE because we want
+  # forks to use these particular images
+  PROJECT_NAMESPACE: libinput
+  FEDORA_CONTAINER_IMAGE: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/fedora/$FEDORA_VERSION
+  UBUNTU_CONTAINER_IMAGE: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/ubuntu/$UBUNTU_VERSION
+  ARCH_CONTAINER_IMAGE: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/arch/rolling
+  FREEBSD_CONTAINER_IMAGE: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/freebsd/11.2
   # Until we have a VM with full access, we cannot run the test suite runner
   SKIP_LIBINPUT_TEST_SUITE_RUNNER: 1
   # udev isn't available/working properly in the containers
   UDEV_NOT_AVAILABLE: 1
-  # When using docker-in-docker (dind), it's wise to use the overlayfs driver
-  # for improved performance.
-  DOCKER_DRIVER: overlay2
   GIT_DEPTH: 1
 
 .default_artifacts: &default_artifacts
@@ -95,54 +96,36 @@ variables:
 
 #################################################################
 #                                                               #
+#                    bootstrapping stage                        #
+#                                                               #
+#################################################################
+
+# we need a minimalist image capable of buildah, podman, skopeo, curl,
+# jq, date and test. Instead of using a full fedora and install the
+# dependencies, we can build an alpine container through buildah with
+# the script at `ci/bootstrap.sh`
+bootstrap:
+  stage: bootstrapping
+  when: manual
+  image: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
+  script:
+    - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - bash ci/bootstrap.sh $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
+    - podman images
+    - podman push --quiet $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
+    # add an extra tag to the docker registry:
+    - skopeo copy docker://$CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest docker://$CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:$CI_JOB_ID
+  <<: *restrict_container_creation
+
+#################################################################
+#                                                               #
 #                   container check stage                       #
 #                                                               #
 #################################################################
 
-# we need a minimalist image capable of skopeo, curl, jq, date and
-# test. Instead of using a full fedora and install the dependencies,
-# we can build an alpine container through buildah with the following
-# script:
-# -----
-# #!/bin/bash
-#
-# # build container
-#
-# buildcntr1=$(buildah from golang:alpine)
-# buildmnt1=$(buildah mount $buildcntr1)
-#
-# buildah run $buildcntr1 apk add --update \
-#                                 --no-cache \
-#                                 --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ \
-#                                 --allow-untrusted \
-#                                 git make gcc musl-dev glib-dev ostree-dev \
-#                                 gpgme-dev linux-headers btrfs-progs-dev \
-#                                 libselinux-dev lvm2-dev
-# buildah run $buildcntr1 git clone https://github.com/projectatomic/skopeo.git /go/src/skopeo
-# buildah config --workingdir /go/src/skopeo $buildcntr1
-# buildah run $buildcntr1 go get -d -v ./...
-# buildah run $buildcntr1 make binary-local
-#
-#
-# buildcntr2=$(buildah from alpine:latest)
-# buildmnt2=$(buildah mount $buildcntr2)
-# buildah run $buildcntr2 apk add --update \
-#                                 --no-cache \
-#                                 --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ \
-#                                 --allow-untrusted \
-#                                 jq curl glib gpgme ostree lvm2 libselinux
-# cp $buildmnt1/go/src/skopeo/skopeo $buildmnt2/usr/bin/skopeo
-#
-# buildah unmount $buildcntr2
-# buildah commit $buildcntr2 container://registry.freedesktop.org/libinput/libinput/skopeo:latest
-#
-# #clean up build
-#
-# buildah rm $buildcntr1 $buildcntr2
-# -----
 .container-check: &container_check
   stage: container_check
-  image: registry.freedesktop.org/libinput/libinput/skopeo:latest
+  image: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
   script:
     # get the full container image name (CURRENT_CONTAINER_IMAGE still has indirections)
     - CONTAINER_IMAGE=$(eval echo "$CURRENT_CONTAINER_IMAGE")
@@ -157,7 +140,6 @@ variables:
 
     # check if image is less than a week old
     - test $(($IMG_SECS + 604800)) -gt $TODAY_SECS
-
 
     # export an artefact telling the next stage that the image is valid
     - touch .img_ready
@@ -223,30 +205,34 @@ freebsd:11.2@container-check:
 # stage had a build failure, i.e. the image is too old or if it is
 # missing some dependencies.
 #
-.fedora@container-prep: &fedora_container_prep
+
+.container-prep:
   stage: container_prep
-  image: docker:stable
-  services:
-    - docker:dind
-  script:
+  image: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
+  before_script:
     # if the check was successful, we just skip recreating the container image
     - test -e .img_ready && exit 0
 
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-
-    # create a Dockerfile with our dependencies
-    - echo "FROM fedora:$FEDORA_VERSION" > Dockerfile
-    - echo "WORKDIR /app" >> Dockerfile
-    - echo "RUN dnf upgrade -y ; dnf clean all" >> Dockerfile
-    - echo "RUN dnf install -y $FEDORA_RPMS ; dnf clean all" >> Dockerfile
-
-    # create the docker image
-    - docker build --tag $FEDORA_CONTAINER_IMAGE:latest --tag $FEDORA_CONTAINER_IMAGE:$CI_JOB_ID .
-
-    # push the docker image to the libinput registry
-    - docker push $FEDORA_CONTAINER_IMAGE:latest
-    - docker push $FEDORA_CONTAINER_IMAGE:$CI_JOB_ID
+    # log in to the registry
+    - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   <<: *restrict_container_creation
+
+.fedora@container-prep: &fedora_container_prep
+  extends: .container-prep
+  script:
+    - buildcntr=$(buildah from --quiet fedora:$FEDORA_VERSION)
+    - buildah run $buildcntr dnf upgrade -y
+    - buildah run $buildcntr dnf install -y $FEDORA_RPMS
+    - buildah run $buildcntr dnf clean all
+    - buildah config --workingdir /app $buildcntr
+    # tag the current container
+    - buildah commit --quiet $buildcntr $FEDORA_CONTAINER_IMAGE:latest
+    # clean up the working container
+    - buildah rm $buildcntr
+
+    # push the container image to the libinput registry
+    - podman push --quiet $FEDORA_CONTAINER_IMAGE:latest
+    - skopeo copy docker://$FEDORA_CONTAINER_IMAGE:latest docker://$FEDORA_CONTAINER_IMAGE:$CI_JOB_ID
 
 fedora:28@container-prep:
   variables:
@@ -266,36 +252,28 @@ fedora:29@container-prep:
     # Note: we can not use $FEDORA_VERSION here
     - fedora:29@container-check
 
-# FIXME: we should clean up the apt cache between each run
 .ubuntu@container-prep: &ubuntu_container_prep
-  stage: container_prep
-  image: docker:stable
-  services:
-    - docker:dind
+  extends: .container-prep
   script:
-    # if the check was successful, we just skip recreating the container image
-    - test -e .img_ready && exit 0
+    - buildcntr=$(buildah from --quiet ubuntu:$UBUNTU_VERSION)
+    - buildah run $buildcntr env DEBIAN_FRONTEND=noninteractive apt-get update
+    - buildah run $buildcntr env DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common
+    - buildah run $buildcntr env DEBIAN_FRONTEND=noninteractive add-apt-repository universe
+    - buildah run $buildcntr env DEBIAN_FRONTEND=noninteractive apt-get update
+    - buildah run $buildcntr env DEBIAN_FRONTEND=noninteractive apt-get install -y $UBUNTU_DEBS
+    - buildah run $buildcntr env DEBIAN_FRONTEND=noninteractive apt-get clean
+    - buildah config --workingdir /app $buildcntr
+    # tag the current container
+    - buildah commit --quiet $buildcntr $UBUNTU_CONTAINER_IMAGE:latest
+    # clean up the working container
+    - buildah rm $buildcntr
 
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-
-    # create a Dockerfile with our dependencies
-    - echo "FROM ubuntu:$UBUNTU_VERSION" > Dockerfile
-    - echo "WORKDIR /app" >> Dockerfile
-    - echo "RUN DEBIAN_FRONTEND=noninteractive apt-get update" >> Dockerfile
-    - echo "RUN DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common" >> Dockerfile
-    - echo "RUN DEBIAN_FRONTEND=noninteractive add-apt-repository universe" >> Dockerfile
-    - echo "RUN DEBIAN_FRONTEND=noninteractive apt-get update" >> Dockerfile
-    - echo "RUN DEBIAN_FRONTEND=noninteractive apt-get install -y $UBUNTU_DEBS" >> Dockerfile
-
-    # create the docker image
-    - docker build --tag $UBUNTU_CONTAINER_IMAGE:latest --tag $UBUNTU_CONTAINER_IMAGE:$CI_JOB_ID .
-
-    # push the docker image to the libinput registry
-    - docker push $UBUNTU_CONTAINER_IMAGE:latest
-    - docker push $UBUNTU_CONTAINER_IMAGE:$CI_JOB_ID
-  <<: *restrict_container_creation
+    # push the container image to the libinput registry
+    - podman push --quiet $UBUNTU_CONTAINER_IMAGE:latest
+    - skopeo copy docker://$UBUNTU_CONTAINER_IMAGE:latest docker://$UBUNTU_CONTAINER_IMAGE:$CI_JOB_ID
 
 ubuntu:17.10@container-prep:
+  extends: .ubuntu@container-prep
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "17.10"
@@ -314,29 +292,22 @@ ubuntu:18.04@container-prep:
     - ubuntu:18.04@container-check
 
 .arch@container-prep: &arch_container_prep
-  stage: container_prep
-  image: docker:stable
-  services:
-    - docker:dind
+  extends: .container-prep
   script:
-    # if the check was successful, we just skip recreating the docker image
-    - test -e .img_ready && exit 0
+    - buildcntr=$(buildah from --quiet base/archlinux)
+    - buildah run $buildcntr pacman -S --refresh
+    - buildah run $buildcntr pacman -S --sysupgrade --noconfirm
+    - buildah run $buildcntr pacman -S --noconfirm $ARCH_PKGS
+    - buildah run $buildcntr pacman -S --clean --noconfirm
+    - buildah config --workingdir /app $buildcntr
+    # tag the current container
+    - buildah commit --quiet $buildcntr $ARCH_CONTAINER_IMAGE:latest
+    # clean up the working container
+    - buildah rm $buildcntr
 
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-
-    # create a Dockerfile with our dependencies
-    - echo "FROM base/archlinux" > Dockerfile
-    - echo "WORKDIR /app" >> Dockerfile
-    - echo "RUN pacman -S --refresh; pacman -S --sysupgrade --noconfirm; pacman -S --clean --noconfirm" >> Dockerfile
-    - echo "RUN pacman -S --noconfirm $ARCH_PKGS; pacman -S --clean --noconfirm" >> Dockerfile
-
-    # create the docker image
-    - docker build --tag $ARCH_CONTAINER_IMAGE:latest --tag $ARCH_CONTAINER_IMAGE:$CI_JOB_ID .
-
-    # push the docker image to the libinput registry
-    - docker push $ARCH_CONTAINER_IMAGE:latest
-    - docker push $ARCH_CONTAINER_IMAGE:$CI_JOB_ID
-  <<: *restrict_container_creation
+    # push the container image to the libinput registry
+    - podman push --quiet $ARCH_CONTAINER_IMAGE:latest
+    - skopeo copy docker://$ARCH_CONTAINER_IMAGE:latest docker://$ARCH_CONTAINER_IMAGE:$CI_JOB_ID
 
 arch:rolling@container-prep:
   variables:
@@ -346,30 +317,21 @@ arch:rolling@container-prep:
     - arch:rolling@container-check
 
 .freebsd@container-prep: &freebsd_container_prep
-  stage: container_prep
-  image: docker:stable
-  services:
-    - docker:dind
+  extends: .container-prep
   script:
-    # if the check was successful, we just skip recreating the container image
-    - test -e .img_ready && exit 0
+    - buildcntr=$(buildah from --quiet  myfreeweb/freebsd-cross:latest)
+    - buildah run $buildcntr apk add --no-cache $FREEBSD_BUILD_PKGS
+    - buildah run $buildcntr pkg -r /freebsd update -f
+    - buildah run $buildcntr pkg -r /freebsd install -y $FREEBSD_PKGS
+    - buildah config --workingdir /app $buildcntr
+    # tag the current container
+    - buildah commit --quiet $buildcntr $FREEBSD_CONTAINER_IMAGE:latest
+    # clean up the working container
+    - buildah rm $buildcntr
 
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-
-    # create a Dockerfile with our dependencies
-    - echo "FROM myfreeweb/freebsd-cross:latest" > Dockerfile
-    - echo "WORKDIR /app" >> Dockerfile
-    - echo "RUN apk add --no-cache $FREEBSD_BUILD_PKGS" >> Dockerfile
-    - echo "RUN pkg -r /freebsd update -f" >> Dockerfile
-    - echo "RUN pkg -r /freebsd install -y $FREEBSD_PKGS" >> Dockerfile
-
-    # create the docker image
-    - docker build --tag $FREEBSD_CONTAINER_IMAGE:latest --tag $FREEBSD_CONTAINER_IMAGE:$CI_JOB_ID .
-
-    # push the docker image to the libinput registry
-    - docker push $FREEBSD_CONTAINER_IMAGE:latest
-    - docker push $FREEBSD_CONTAINER_IMAGE:$CI_JOB_ID
-  <<: *restrict_container_creation
+    # push the container image to the libinput registry
+    - podman push --quiet $FREEBSD_CONTAINER_IMAGE:latest
+    - skopeo copy docker://$FREEBSD_CONTAINER_IMAGE:latest docker://$FREEBSD_CONTAINER_IMAGE:$CI_JOB_ID
 
 freebsd:11.2@container-prep:
   variables:
@@ -441,7 +403,7 @@ freebsd:11.2@force-container-prep:
 #
 .container-clean: &container_clean
   stage: container_check
-  image: registry.freedesktop.org/libinput/libinput/skopeo:latest
+  image: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
   script:
     # get the full container image name (CURRENT_CONTAINER_IMAGE still has indirections)
     - CONTAINER_IMAGE=$(eval echo "$CURRENT_CONTAINER_IMAGE")
@@ -457,7 +419,7 @@ freebsd:11.2@force-container-prep:
     - token=$(eval echo "\$$tokenname")
 
     # request a token for the registry API
-    - REGISTRY_TOKEN=$(curl https://gitlab.freedesktop.org/jwt/auth --get
+    - REGISTRY_TOKEN=$(curl https://$CI_REGISTRY/jwt/auth --get
                              --silent --show-error
                              -d client_id=docker
                              -d offline_token=true
@@ -489,6 +451,12 @@ freebsd:11.2@force-container-prep:
   dependencies: []
   allow_failure: true
   <<: *restrict_container_creation
+
+bootstrap@container-clean:
+  extends: .container-clean
+  variables:
+    GIT_STRATEGY: none
+    CURRENT_CONTAINER_IMAGE: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers
 
 fedora:28@container-clean:
   variables:
@@ -718,7 +686,7 @@ freebsd:11.2@default-build:
 #
 
 wayland-web:
-  image: registry.freedesktop.org/libinput/libinput/jq:latest
+  image: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
   stage: deploy
   script:
     - curl --request POST
