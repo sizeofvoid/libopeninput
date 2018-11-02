@@ -223,6 +223,7 @@ freebsd:11.2@docker-check:
 #
 .fedora@docker-prep: &fedora_docker_prep
   stage: docker_prep
+  image: docker:stable
   services:
     - docker:dind
   script:
@@ -266,6 +267,7 @@ fedora:29@docker-prep:
 # FIXME: we should clean up the apt cache between each run
 .ubuntu@docker-prep: &ubuntu_docker_prep
   stage: docker_prep
+  image: docker:stable
   services:
     - docker:dind
   script:
@@ -311,6 +313,7 @@ ubuntu:18.04@docker-prep:
 
 .arch@docker-prep: &arch_docker_prep
   stage: docker_prep
+  image: docker:stable
   services:
     - docker:dind
   script:
@@ -342,6 +345,7 @@ arch:rolling@docker-prep:
 
 .freebsd@docker-prep: &freebsd_docker_prep
   stage: docker_prep
+  image: docker:stable
   services:
     - docker:dind
   script:
