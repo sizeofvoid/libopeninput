@@ -132,7 +132,7 @@ variables:
 # cp $buildmnt1/go/src/skopeo/skopeo $buildmnt2/usr/bin/skopeo
 #
 # buildah unmount $buildcntr2
-# buildah commit $buildcntr2 registry.freedesktop.org/libinput/libinput/skopeo:latest
+# buildah commit $buildcntr2 docker://registry.freedesktop.org/libinput/libinput/skopeo:latest
 #
 # #clean up build
 #
