@@ -22,7 +22,7 @@
 #
 # All jobs must follow the naming scheme of
 # <distribution>:<version>@activity:
-#  e.g. fedora:28@build-default
+#  e.g. fedora:29@build-default
 
 stages:
   - docker_check  # check if the current docker images are up to date
@@ -177,10 +177,10 @@ fedora:28@docker-check:
     CURRENT_DOCKER_IMAGE: $FEDORA_DOCKER_IMAGE:latest
   <<: *docker_check
 
-fedora:27@docker-check:
+fedora:29@docker-check:
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: 27
+    FEDORA_VERSION: 29
     CURRENT_DOCKER_IMAGE: $FEDORA_DOCKER_IMAGE:latest
   <<: *docker_check
 
@@ -254,14 +254,14 @@ fedora:28@docker-prep:
     # Note: we can not use $FEDORA_VERSION here
     - fedora:28@docker-check
 
-fedora:27@docker-prep:
+fedora:29@docker-prep:
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: 27
+    FEDORA_VERSION: 29
   <<: *fedora_docker_prep
   dependencies:
     # Note: we can not use $FEDORA_VERSION here
-    - fedora:27@docker-check
+    - fedora:29@docker-check
 
 # FIXME: we should clean up the apt cache between each run
 .ubuntu@docker-prep: &ubuntu_docker_prep
@@ -384,10 +384,10 @@ fedora:28@force-docker-prep:
   when: manual
   dependencies: []
 
-fedora:27@force-docker-prep:
+fedora:29@force-docker-prep:
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: 27
+    FEDORA_VERSION: 29
   <<: *fedora_docker_prep
   when: manual
   dependencies: []
@@ -491,10 +491,10 @@ fedora:28@docker-clean:
     CURRENT_DOCKER_IMAGE: $FEDORA_DOCKER_IMAGE
   <<: *docker_clean
 
-fedora:27@docker-clean:
+fedora:29@docker-clean:
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: 27
+    FEDORA_VERSION: 29
     CURRENT_DOCKER_IMAGE: $FEDORA_DOCKER_IMAGE
   <<: *docker_clean
 
@@ -540,34 +540,34 @@ freebsd:11.2@docker-clean:
   <<: *default_artifacts
   dependencies: []
 
-fedora:27@default-build:
-  variables:
-    FEDORA_VERSION: 27
-  <<: *fedora_template
-  <<: *default_build
-
-.fedora:28@template: &fedora_28_template
-  variables:
-    FEDORA_VERSION: 28
-  <<: *fedora_template
-
 fedora:28@default-build:
-  <<: *fedora_28_template
-  <<: *default_build
-
-fedora:28@default-build-release:
-  <<: *fedora_28_template
-  <<: *default_build
   variables:
     FEDORA_VERSION: 28
+  <<: *fedora_template
+  <<: *default_build
+
+.fedora:29@template: &fedora_29_template
+  variables:
+    FEDORA_VERSION: 29
+  <<: *fedora_template
+
+fedora:29@default-build:
+  <<: *fedora_29_template
+  <<: *default_build
+
+fedora:29@default-build-release:
+  <<: *fedora_29_template
+  <<: *default_build
+  variables:
+    FEDORA_VERSION: 29
     MESON_ARGS: "-Dbuildtype=release"
     CFLAGS: "-Werror"
 
-fedora:28@scan-build:
-  <<: *fedora_28_template
+fedora:29@scan-build:
+  <<: *fedora_29_template
   <<: *default_build
   variables:
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 29
     NINJA_ARGS: scan-build
   before_script:
     - dnf install -y clang-analyzer findutils
@@ -581,74 +581,74 @@ fedora:28@scan-build:
 # run them on one image, they shouldn't fail on one distro
 # when they succeed on another.
 
-fedora:28@build-no-libwacom:
-  <<: *fedora_28_template
+fedora:29@build-no-libwacom:
+  <<: *fedora_29_template
   <<: *default_build
   variables:
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 29
     MESON_ARGS: "-Dlibwacom=false"
 
-fedora:28@build-no-libwacom-nodeps:
-  <<: *fedora_28_template
+fedora:29@build-no-libwacom-nodeps:
+  <<: *fedora_29_template
   <<: *default_build
   variables:
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 29
     MESON_ARGS: "-Dlibwacom=false"
   before_script:
     - dnf remove -y libwacom libwacom-devel
 
-fedora:28@build-no-docs:
-  <<: *fedora_28_template
+fedora:29@build-no-docs:
+  <<: *fedora_29_template
   <<: *default_build
   variables:
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 29
     MESON_ARGS: "-Ddocumentation=false"
 
-fedora:28@build-no-docs-nodeps:
-  <<: *fedora_28_template
+fedora:29@build-no-docs-nodeps:
+  <<: *fedora_29_template
   <<: *default_build
   variables:
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 29
     MESON_ARGS: "-Ddocumentation=false"
   before_script:
     - dnf remove -y doxygen graphviz
 
-fedora:28@build-no-debuggui:
-  <<: *fedora_28_template
+fedora:29@build-no-debuggui:
+  <<: *fedora_29_template
   <<: *default_build
   variables:
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 29
     MESON_ARGS: "-Ddebug-gui=false"
 
-fedora:28@build-no-debuggui-nodeps:
-  <<: *fedora_28_template
+fedora:29@build-no-debuggui-nodeps:
+  <<: *fedora_29_template
   <<: *default_build
   variables:
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 29
     MESON_ARGS: "-Ddebug-gui=false"
   before_script:
     - dnf remove -y gtk3-devel
 
-fedora:28@build-no-tests:
-  <<: *fedora_28_template
+fedora:29@build-no-tests:
+  <<: *fedora_29_template
   <<: *default_build
   variables:
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 29
     MESON_ARGS: "-Dtests=false"
 
-fedora:28@build-no-tests-nodeps:
-  <<: *fedora_28_template
+fedora:29@build-no-tests-nodeps:
+  <<: *fedora_29_template
   <<: *default_build
   variables:
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 29
     MESON_ARGS: "-Dtests=false"
   before_script:
     - dnf remove -y check-devel
 
-fedora:28@valgrind:
-  <<: *fedora_28_template
+fedora:29@valgrind:
+  <<: *fedora_29_template
   variables:
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 29
   script:
    - rm -rf "$MESON_BUILDDIR"
    - meson "$MESON_BUILDDIR" $MESON_ARGS
