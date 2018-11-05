@@ -682,7 +682,7 @@ tools_list_device_quirks(struct quirks_context *ctx,
 				break;
 			case QUIRK_ATTR_TRACKPOINT_MULTIPLIER:
 				quirks_get_double(quirks, q, &d);
-				snprintf(buf, sizeof(buf), "%s=%0.2f\n", name, d);
+				snprintf(buf, sizeof(buf), "%s=%0.2f", name, d);
 				callback(userdata, buf);
 				break;
 			case QUIRK_ATTR_USE_VELOCITY_AVERAGING:
