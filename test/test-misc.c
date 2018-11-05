@@ -1062,7 +1062,7 @@ START_TEST(evcode_prop_parser)
 		{ .prop = "none", .success = false },
 		{ .prop = NULL },
 	};
-	struct parser_test_tuple *t = tests;
+	struct parser_test_tuple *t;
 
 	for (int i = 0; tests[i].prop; i++) {
 		bool success;
