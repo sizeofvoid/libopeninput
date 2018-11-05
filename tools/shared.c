@@ -588,6 +588,31 @@ tools_exec_command(const char *prefix, int real_argc, char **real_argv)
 	return EXIT_FAILURE;
 }
 
+static void
+sprintf_event_codes(char *buf, size_t sz, struct quirks *quirks)
+{
+	const struct quirk_tuples *t;
+	size_t off = 0;
+	int printed;
+	const char *name;
+
+	quirks_get_tuples(quirks, QUIRK_ATTR_EVENT_CODE_DISABLE, &t);
+	name = quirk_get_name(QUIRK_ATTR_EVENT_CODE_DISABLE);
+	printed = snprintf(buf, sz, "%s=", name);
+	assert(printed != -1);
+	off += printed;
+
+	for (size_t i = 0; off < sz && i < t->ntuples; i++) {
+		const char *name = libevdev_event_code_get_name(
+						t->tuples[i].first,
+						t->tuples[i].second);
+
+		printed = snprintf(buf + off, sz - off, "%s;", name);
+		assert(printed != -1);
+		off += printed;
+	}
+}
+
 void
 tools_list_device_quirks(struct quirks_context *ctx,
 			 struct udev_device *device,
@@ -662,6 +687,10 @@ tools_list_device_quirks(struct quirks_context *ctx,
 				break;
 			case QUIRK_ATTR_USE_VELOCITY_AVERAGING:
 				snprintf(buf, sizeof(buf), "%s=1", name);
+				callback(userdata, buf);
+				break;
+			case QUIRK_ATTR_EVENT_CODE_DISABLE:
+				sprintf_event_codes(buf, sizeof(buf), quirks);
 				callback(userdata, buf);
 				break;
 			default:
