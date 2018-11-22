@@ -86,6 +86,15 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_POINTER_AXIS:
 		type = "POINTER_AXIS";
 		break;
+	case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL:
+		type = "POINTER_SCROLL_WHEEL";
+		break;
+	case LIBINPUT_EVENT_POINTER_SCROLL_FINGER:
+		type = "POINTER_SCROLL_FINGER";
+		break;
+	case LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS:
+		type = "POINTER_SCROLL_CONTINUOUS";
+		break;
 	case LIBINPUT_EVENT_TOUCH_DOWN:
 		type = "TOUCH_DOWN";
 		break;
@@ -156,7 +165,7 @@ print_event_header(struct libinput_event *ev)
 
 	prefix = (last_device != dev) ? '-' : ' ';
 
-	printq("%c%-7s  %-16s ",
+	printq("%c%-7s  %-23s ",
 	       prefix,
 	       libinput_device_get_sysname(dev),
 	       type);
@@ -474,46 +483,49 @@ static void
 print_pointer_axis_event(struct libinput_event *ev)
 {
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
-	double v = 0, h = 0;
-	int dv = 0, dh = 0;
+	double v = 0, h = 0, v120 = 0, h120 = 0;
 	const char *have_vert = "",
 		   *have_horiz = "";
 	const char *source = "invalid";
+	enum libinput_pointer_axis axis;
+	enum libinput_event_type type;
 
-	switch (libinput_event_pointer_get_axis_source(p)) {
-	case LIBINPUT_POINTER_AXIS_SOURCE_WHEEL:
+	type = libinput_event_get_type(ev);
+
+	switch (type) {
+	case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL:
 		source = "wheel";
 		break;
-	case LIBINPUT_POINTER_AXIS_SOURCE_FINGER:
+	case LIBINPUT_EVENT_POINTER_SCROLL_FINGER:
 		source = "finger";
 		break;
-	case LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS:
+	case LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS:
 		source = "continuous";
 		break;
-	case LIBINPUT_POINTER_AXIS_SOURCE_WHEEL_TILT:
-		source = "tilt";
+	default:
+		abort();
 		break;
 	}
 
-	if (libinput_event_pointer_has_axis(p,
-				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
-		v = libinput_event_pointer_get_axis_value(p,
-			      LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
-		dv = libinput_event_pointer_get_axis_value_discrete(p,
-			      LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+	axis = LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL;
+	if (libinput_event_pointer_has_axis(p, axis)) {
+		v = libinput_event_pointer_get_scroll_value(p, axis);
+		if (type == LIBINPUT_EVENT_POINTER_SCROLL_WHEEL)
+			v120 = libinput_event_pointer_get_scroll_value_v120(p, axis);
 		have_vert = "*";
 	}
-	if (libinput_event_pointer_has_axis(p,
-				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
-		h = libinput_event_pointer_get_axis_value(p,
-			      LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
-		dh = libinput_event_pointer_get_axis_value_discrete(p,
-			      LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
+	axis = LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL;
+	if (libinput_event_pointer_has_axis(p, axis)) {
+		h = libinput_event_pointer_get_scroll_value(p, axis);
+		if (type == LIBINPUT_EVENT_POINTER_SCROLL_WHEEL)
+			h120 = libinput_event_pointer_get_scroll_value_v120(p, axis);
 		have_horiz = "*";
 	}
+
 	print_event_time(libinput_event_pointer_get_time(p));
-	printq("vert %.2f/%d%s horiz %.2f/%d%s (%s)\n",
-	       v, dv, have_vert, h, dh, have_horiz, source);
+	printq("vert %.2f/%.1f%s horiz %.2f/%.1f%s (%s)\n",
+	       v, v120, have_vert,
+	       h, h120, have_horiz, source);
 }
 
 static void
@@ -833,9 +845,12 @@ handle_and_print_events(struct libinput *li)
 
 	tools_dispatch(li);
 	while ((ev = libinput_get_event(li))) {
-		print_event_header(ev);
+		enum libinput_event_type type = libinput_event_get_type(ev);
 
-		switch (libinput_event_get_type(ev)) {
+		if (type != LIBINPUT_EVENT_POINTER_AXIS)
+			print_event_header(ev);
+
+		switch (type) {
 		case LIBINPUT_EVENT_NONE:
 			abort();
 		case LIBINPUT_EVENT_DEVICE_ADDED:
@@ -859,6 +874,11 @@ handle_and_print_events(struct libinput *li)
 			print_pointer_button_event(ev);
 			break;
 		case LIBINPUT_EVENT_POINTER_AXIS:
+			/* ignore */
+			break;
+		case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL:
+		case LIBINPUT_EVENT_POINTER_SCROLL_FINGER:
+		case LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS:
 			print_pointer_axis_event(ev);
 			break;
 		case LIBINPUT_EVENT_TOUCH_DOWN:

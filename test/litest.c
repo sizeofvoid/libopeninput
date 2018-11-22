@@ -3097,6 +3097,15 @@ litest_event_type_str(enum libinput_event_type type)
 	case LIBINPUT_EVENT_POINTER_AXIS:
 		str = "AXIS";
 		break;
+	case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL:
+		str = "SCROLL_WHEEL";
+		break;
+	case LIBINPUT_EVENT_POINTER_SCROLL_FINGER:
+		str = "SCROLL_FINGER";
+		break;
+	case LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS:
+		str = "SCROLL_CONTINUOUS";
+		break;
 	case LIBINPUT_EVENT_TOUCH_DOWN:
 		str = "TOUCH DOWN";
 		break;
@@ -3549,22 +3558,40 @@ litest_is_button_event(struct libinput_event *event,
 
 struct libinput_event_pointer *
 litest_is_axis_event(struct libinput_event *event,
+		     enum libinput_event_type axis_type,
 		     enum libinput_pointer_axis axis,
 		     enum libinput_pointer_axis_source source)
 {
 	struct libinput_event_pointer *ptrev;
-	enum libinput_event_type type = LIBINPUT_EVENT_POINTER_AXIS;
+
+	litest_assert(axis_type == LIBINPUT_EVENT_POINTER_SCROLL_WHEEL ||
+		      axis_type == LIBINPUT_EVENT_POINTER_SCROLL_FINGER ||
+		      axis_type == LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS);
 
 	litest_assert_ptr_notnull(event);
-	litest_assert_event_type(event, type);
+	litest_assert_event_type_is_one_of(event,
+					   LIBINPUT_EVENT_POINTER_AXIS,
+					   axis_type);
 	ptrev = libinput_event_get_pointer_event(event);
 	litest_assert(libinput_event_pointer_has_axis(ptrev, axis));
 
 	if (source != 0)
-		litest_assert_int_eq(libinput_event_pointer_get_axis_source(ptrev),
+		litest_assert_int_eq(litest_event_pointer_get_axis_source(ptrev),
 				     source);
 
 	return ptrev;
+}
+
+bool
+litest_is_high_res_axis_event(struct libinput_event *event)
+{
+	litest_assert_event_type_is_one_of(event,
+					   LIBINPUT_EVENT_POINTER_AXIS,
+					   LIBINPUT_EVENT_POINTER_SCROLL_WHEEL,
+					   LIBINPUT_EVENT_POINTER_SCROLL_FINGER,
+					   LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS);
+
+	return (libinput_event_get_type(event) != LIBINPUT_EVENT_POINTER_AXIS);
 }
 
 struct libinput_event_pointer *
@@ -3751,6 +3778,53 @@ litest_is_proximity_event(struct libinput_event *event,
 	return tev;
 }
 
+double
+litest_event_pointer_get_value(struct libinput_event_pointer *ptrev,
+			       enum libinput_pointer_axis axis)
+{
+	struct libinput_event *event;
+	enum libinput_event_type type;
+
+	event = libinput_event_pointer_get_base_event(ptrev);
+	type = libinput_event_get_type(event);
+
+	switch (type) {
+	case LIBINPUT_EVENT_POINTER_AXIS:
+		return libinput_event_pointer_get_axis_value(ptrev, axis);
+	case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL:
+		return libinput_event_pointer_get_scroll_value_v120(ptrev, axis);
+	case LIBINPUT_EVENT_POINTER_SCROLL_FINGER:
+	case LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS:
+		return libinput_event_pointer_get_scroll_value(ptrev, axis);
+	default:
+		abort();
+	}
+}
+
+enum libinput_pointer_axis_source
+litest_event_pointer_get_axis_source(struct libinput_event_pointer *ptrev)
+{
+	struct libinput_event *event;
+	enum libinput_event_type type;
+
+	event = libinput_event_pointer_get_base_event(ptrev);
+	type = libinput_event_get_type(event);
+
+	if (type == LIBINPUT_EVENT_POINTER_AXIS)
+		return libinput_event_pointer_get_axis_source(ptrev);
+
+	switch (type) {
+	case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL:
+		return LIBINPUT_POINTER_AXIS_SOURCE_WHEEL;
+	case LIBINPUT_EVENT_POINTER_SCROLL_FINGER:
+		return LIBINPUT_POINTER_AXIS_SOURCE_FINGER;
+	case LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS:
+		return LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS;
+	default:
+		abort();
+	}
+}
+
 void litest_assert_tablet_proximity_event(struct libinput *li,
 					  enum libinput_tablet_tool_proximity_state state)
 {
@@ -3912,50 +3986,109 @@ litest_assert_pad_key_event(struct libinput *li,
 
 void
 litest_assert_scroll(struct libinput *li,
+		     enum libinput_event_type axis_type,
 		     enum libinput_pointer_axis axis,
 		     int minimum_movement)
 {
-	struct libinput_event *event, *next_event;
+	struct libinput_event *event;
 	struct libinput_event_pointer *ptrev;
+	bool last_hi_res_event_found, last_low_res_event_found;
 	int value;
 	int nevents = 0;
 
+	litest_assert(axis_type == LIBINPUT_EVENT_POINTER_SCROLL_WHEEL ||
+		      axis_type == LIBINPUT_EVENT_POINTER_SCROLL_FINGER ||
+		      axis_type == LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS);
+
+	last_hi_res_event_found = false;
+	last_low_res_event_found = false;
 	event = libinput_get_event(li);
-	next_event = libinput_get_event(li);
-	litest_assert_ptr_notnull(next_event); /* At least 1 scroll + stop scroll */
+	litest_assert_ptr_notnull(event);
 
 	while (event) {
-		ptrev = litest_is_axis_event(event, axis, 0);
+		int min = minimum_movement;
+
+		ptrev = litest_is_axis_event(event, axis_type, axis, 0);
 		nevents++;
 
-		if (next_event) {
-			int min = minimum_movement;
+		/* Due to how the hysteresis works on touchpad
+		 * events, the first event is reduced by the
+		 * hysteresis margin that can cause the first event
+		 * go under the minimum we expect for all other
+		 * events */
+		if (nevents == 1)
+			min = minimum_movement/2;
 
-			value = libinput_event_pointer_get_axis_value(ptrev,
-								      axis);
-			/* Due to how the hysteresis works on touchpad
-			 * events, the first event is reduced by the
-			 * hysteresis margin that can cause the first event
-			 * go under the minimum we expect for all other
-			 * events */
-			if (nevents == 1)
-				min = minimum_movement/2;
+		value = litest_event_pointer_get_value(ptrev, axis);
+		if (litest_is_high_res_axis_event(event)) {
+			litest_assert(!last_hi_res_event_found);
 
-			/* Normal scroll event, check dir */
+			if (axis_type == LIBINPUT_EVENT_POINTER_SCROLL_WHEEL)
+				min *= 120;
+
+			if (value == 0)
+				last_hi_res_event_found = true;
+		} else {
+			litest_assert(!last_low_res_event_found);
+
+			if (value == 0)
+				last_low_res_event_found = true;
+		}
+
+		if (value != 0) {
 			if (minimum_movement > 0)
 				litest_assert_int_ge(value, min);
 			else
 				litest_assert_int_le(value, min);
-		} else {
-			/* Last scroll event, must be 0 */
-			ck_assert_double_eq(
-				libinput_event_pointer_get_axis_value(ptrev, axis),
-				0.0);
 		}
+
 		libinput_event_destroy(event);
-		event = next_event;
-		next_event = libinput_get_event(li);
+		event = libinput_get_event(li);
 	}
+
+	litest_assert(last_low_res_event_found);
+	litest_assert(last_hi_res_event_found);
+}
+
+void
+litest_assert_axis_end_sequence(struct libinput *li,
+				enum libinput_event_type axis_type,
+				enum libinput_pointer_axis axis,
+				enum libinput_pointer_axis_source source)
+{
+	struct libinput_event *event;
+	struct libinput_event_pointer *ptrev;
+	bool last_hi_res_event_found, last_low_res_event_found;
+	double val;
+	int i;
+
+	litest_assert(axis_type == LIBINPUT_EVENT_POINTER_SCROLL_WHEEL ||
+		      axis_type == LIBINPUT_EVENT_POINTER_SCROLL_FINGER ||
+		      axis_type == LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS);
+
+	last_hi_res_event_found = false;
+	last_low_res_event_found = false;
+
+	/* both high and low scroll end events must be sent */
+	for (i = 0; i < 2; i++) {
+		event = libinput_get_event(li);
+		ptrev = litest_is_axis_event(event, axis_type, axis, source);
+		val = litest_event_pointer_get_value(ptrev, axis);
+		ck_assert(val == 0.0);
+
+		if (litest_is_high_res_axis_event(event)) {
+			litest_assert(!last_hi_res_event_found);
+			last_hi_res_event_found = true;
+		} else {
+			litest_assert(!last_low_res_event_found);
+			last_low_res_event_found = true;
+		}
+
+		libinput_event_destroy(event);
+	}
+
+	litest_assert(last_low_res_event_found);
+	litest_assert(last_hi_res_event_found);
 }
 
 void
@@ -3972,6 +4105,30 @@ litest_assert_only_typed_events(struct libinput *li,
 
 	while (event) {
 		litest_assert_event_type(event, type);
+		libinput_event_destroy(event);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+	}
+}
+
+void
+litest_assert_only_axis_events(struct libinput *li,
+			       enum libinput_event_type axis_type)
+{
+	struct libinput_event *event;
+
+	litest_assert(axis_type == LIBINPUT_EVENT_POINTER_SCROLL_WHEEL ||
+		      axis_type == LIBINPUT_EVENT_POINTER_SCROLL_FINGER ||
+		      axis_type == LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS);
+
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	litest_assert_notnull(event);
+
+	while (event) {
+		litest_assert_event_type_is_one_of(event,
+						   LIBINPUT_EVENT_POINTER_AXIS,
+						   axis_type);
 		libinput_event_destroy(event);
 		libinput_dispatch(li);
 		event = libinput_get_event(li);

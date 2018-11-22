@@ -77,13 +77,25 @@ START_TEST(trackpoint_scroll)
 	litest_drain_events(li);
 
 	litest_button_scroll(dev, BTN_MIDDLE, 1, 6);
-	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, 6);
+	litest_assert_scroll(li,
+			     LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS,
+			     LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+			     6);
 	litest_button_scroll(dev, BTN_MIDDLE, 1, -7);
-	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, -7);
+	litest_assert_scroll(li,
+			     LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS,
+			     LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+			     -7);
 	litest_button_scroll(dev, BTN_MIDDLE, 8, 1);
-	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, 8);
+	litest_assert_scroll(li,
+			     LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS,
+			     LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL,
+			     8);
 	litest_button_scroll(dev, BTN_MIDDLE, -9, 1);
-	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, -9);
+	litest_assert_scroll(li,
+			     LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS,
+			     LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL,
+			     -9);
 
 	/* scroll smaller than the threshold should not generate axis events */
 	litest_button_scroll(dev, BTN_MIDDLE, 1, 1);
@@ -147,7 +159,7 @@ START_TEST(trackpoint_scroll_source)
 	while ((event = libinput_get_event(li))) {
 		ptrev = libinput_event_get_pointer_event(event);
 
-		ck_assert_int_eq(libinput_event_pointer_get_axis_source(ptrev),
+		ck_assert_int_eq(litest_event_pointer_get_axis_source(ptrev),
 				 LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
 
 		libinput_event_destroy(event);

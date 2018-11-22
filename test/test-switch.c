@@ -406,18 +406,17 @@ START_TEST(switch_disable_touchpad_edge_scroll_interrupt)
 	litest_timeout_edgescroll();
 	litest_touch_move_to(touchpad, 0, 99, 20, 99, 30, 10);
 	libinput_dispatch(li);
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
+	litest_assert_only_axis_events(li, LIBINPUT_EVENT_POINTER_SCROLL_FINGER);
 
 	litest_grab_device(sw);
 	litest_switch_action(sw, which, LIBINPUT_SWITCH_STATE_ON);
 	litest_ungrab_device(sw);
 	libinput_dispatch(li);
 
-	event = libinput_get_event(li);
-	litest_is_axis_event(event,
-			     LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
-			     LIBINPUT_POINTER_AXIS_SOURCE_FINGER);
-	libinput_event_destroy(event);
+	litest_assert_axis_end_sequence(li,
+					LIBINPUT_EVENT_POINTER_SCROLL_FINGER,
+					LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+					LIBINPUT_POINTER_AXIS_SOURCE_FINGER);
 
 	event = libinput_get_event(li);
 	litest_is_switch_event(event, which, LIBINPUT_SWITCH_STATE_ON);

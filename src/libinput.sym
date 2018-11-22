@@ -314,3 +314,8 @@ LIBINPUT_1.15 {
 	libinput_event_tablet_pad_get_key;
 	libinput_event_tablet_pad_get_key_state;
 } LIBINPUT_1.14;
+
+LIBINPUT_1.19 {
+	libinput_event_pointer_get_scroll_value_v120;
+	libinput_event_pointer_get_scroll_value;
+} LIBINPUT_1.15;

@@ -375,12 +375,11 @@ evdev_device_transform_y(struct evdev_device *device,
 }
 
 void
-evdev_notify_axis(struct evdev_device *device,
-		  uint64_t time,
-		  uint32_t axes,
-		  enum libinput_pointer_axis_source source,
-		  const struct normalized_coords *delta_in,
-		  const struct discrete_coords *discrete_in)
+evdev_notify_axis_legacy_wheel(struct evdev_device *device,
+			       uint64_t time,
+			       uint32_t axes,
+			       const struct normalized_coords *delta_in,
+			       const struct discrete_coords *discrete_in)
 {
 	struct normalized_coords delta = *delta_in;
 	struct discrete_coords discrete = *discrete_in;
@@ -397,12 +396,73 @@ evdev_notify_axis(struct evdev_device *device,
 		discrete.y *= -1;
 	}
 
-	pointer_notify_axis(&device->base,
-			    time,
-			    axes,
-			    source,
-			    &delta,
-			    &discrete);
+	pointer_notify_axis_legacy_wheel(&device->base,
+					 time,
+					 axes,
+					 &delta,
+					 &discrete);
+}
+
+void
+evdev_notify_axis_wheel(struct evdev_device *device,
+			uint64_t time,
+			uint32_t axes,
+			const struct normalized_coords *delta_in,
+			const struct wheel_v120 *v120_in)
+{
+	struct normalized_coords delta = *delta_in;
+	struct wheel_v120 v120 = *v120_in;
+
+	if (device->scroll.natural_scrolling_enabled) {
+		delta.x *= -1;
+		delta.y *= -1;
+		v120.x *= -1;
+		v120.y *= -1;
+	}
+
+	pointer_notify_axis_wheel(&device->base,
+				  time,
+				  axes,
+				  &delta,
+				  &v120);
+}
+
+void
+evdev_notify_axis_finger(struct evdev_device *device,
+			uint64_t time,
+			uint32_t axes,
+			const struct normalized_coords *delta_in)
+{
+	struct normalized_coords delta = *delta_in;
+
+	if (device->scroll.natural_scrolling_enabled) {
+		delta.x *= -1;
+		delta.y *= -1;
+	}
+
+	pointer_notify_axis_finger(&device->base,
+				  time,
+				  axes,
+				  &delta);
+}
+
+void
+evdev_notify_axis_continous(struct evdev_device *device,
+			    uint64_t time,
+			    uint32_t axes,
+			    const struct normalized_coords *delta_in)
+{
+	struct normalized_coords delta = *delta_in;
+
+	if (device->scroll.natural_scrolling_enabled) {
+		delta.x *= -1;
+		delta.y *= -1;
+	}
+
+	pointer_notify_axis_continuous(&device->base,
+				       time,
+				       axes,
+				       &delta);
 }
 
 static void
@@ -2688,7 +2748,6 @@ evdev_post_scroll(struct evdev_device *device,
 		event.x = 0.0;
 
 	if (!normalized_is_zero(event)) {
-		const struct discrete_coords zero_discrete = { 0.0, 0.0 };
 		uint32_t axes = device->scroll.direction;
 
 		if (event.y == 0.0)
@@ -2696,12 +2755,19 @@ evdev_post_scroll(struct evdev_device *device,
 		if (event.x == 0.0)
 			axes &= ~bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
 
-		evdev_notify_axis(device,
-				  time,
-				  axes,
-				  source,
-				  &event,
-				  &zero_discrete);
+		switch (source) {
+		case LIBINPUT_POINTER_AXIS_SOURCE_FINGER:
+			evdev_notify_axis_finger(device, time, axes, &event);
+			break;
+		case LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS:
+			evdev_notify_axis_continous(device, time, axes, &event);
+			break;
+		default:
+			evdev_log_bug_libinput(device,
+					       "Posting invalid scroll source %d\n",
+					       source);
+			break;
+		}
 	}
 }
 
@@ -2711,16 +2777,29 @@ evdev_stop_scroll(struct evdev_device *device,
 		  enum libinput_pointer_axis_source source)
 {
 	const struct normalized_coords zero = { 0.0, 0.0 };
-	const struct discrete_coords zero_discrete = { 0.0, 0.0 };
 
 	/* terminate scrolling with a zero scroll event */
-	if (device->scroll.direction != 0)
-		pointer_notify_axis(&device->base,
-				    time,
-				    device->scroll.direction,
-				    source,
-				    &zero,
-				    &zero_discrete);
+	if (device->scroll.direction != 0) {
+		switch (source) {
+		case LIBINPUT_POINTER_AXIS_SOURCE_FINGER:
+			pointer_notify_axis_finger(&device->base,
+						   time,
+						   device->scroll.direction,
+						   &zero);
+			break;
+		case LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS:
+			pointer_notify_axis_continuous(&device->base,
+						       time,
+						       device->scroll.direction,
+						       &zero);
+			break;
+		default:
+			evdev_log_bug_libinput(device,
+					       "Stopping invalid scroll source %d\n",
+					       source);
+			break;
+		}
+	}
 
 	device->scroll.buildup.x = 0;
 	device->scroll.buildup.y = 0;

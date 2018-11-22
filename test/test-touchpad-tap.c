@@ -1735,7 +1735,7 @@ START_TEST(touchpad_tap_n_drag_2fg_scroll)
 	litest_assert_button_event(li, button,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
+	litest_assert_only_axis_events(li, LIBINPUT_EVENT_POINTER_SCROLL_FINGER);
 
 	litest_assert_empty_queue(li);
 }
@@ -1824,7 +1824,7 @@ START_TEST(touchpad_tap_n_drag_draglock_2fg_scroll)
 	litest_assert_button_event(li, button,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
+	litest_assert_only_axis_events(li, LIBINPUT_EVENT_POINTER_SCROLL_FINGER);
 
 	litest_assert_empty_queue(li);
 }

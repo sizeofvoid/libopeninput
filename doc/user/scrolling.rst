@@ -130,6 +130,9 @@ button is logically held down, motion events are converted to scroll events.
 Scroll sources
 ------------------------------------------------------------------------------
 
+.. note:: Scroll sources are deprecated with libinput 1.19. The scroll
+   source is now encoded in the event type.
+
 libinput provides a pointer axis *source* for each scroll event. The
 source can be obtained with the **libinput_event_pointer_get_axis_source()**
 function and is one of **wheel**, **finger**, or **continuous**. The source

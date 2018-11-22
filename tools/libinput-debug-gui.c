@@ -85,10 +85,6 @@ struct point {
 	double x, y;
 };
 
-struct device_user_data {
-	struct point scroll_accumulated;
-};
-
 struct evdev_device {
 	struct list node;
 	struct libevdev *evdev;
@@ -1287,7 +1283,6 @@ register_evdev_device(struct window *w, struct libinput_device *dev)
 	const char *device_node;
 	int fd;
 	struct evdev_device *d;
-	struct device_user_data *data;
 
 	ud = libinput_device_get_udev_device(dev);
 	device_node = udev_device_get_devnode(ud);
@@ -1309,9 +1304,6 @@ register_evdev_device(struct window *w, struct libinput_device *dev)
 	d->fd = fd;
 	d->evdev = evdev;
 	d->libinput_device =libinput_device_ref(dev);
-
-	data = zalloc(sizeof *data);
-	libinput_device_set_user_data(dev, data);
 
 	c = g_io_channel_unix_new(fd);
 	g_io_channel_set_encoding(c, NULL, NULL);
@@ -1463,44 +1455,33 @@ static void
 handle_event_axis(struct libinput_event *ev, struct window *w)
 {
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
-	struct libinput_device *dev = libinput_event_get_device(ev);
-	struct device_user_data *data = libinput_device_get_user_data(dev);
 	double value;
-	int discrete;
+	enum libinput_pointer_axis axis;
+	enum libinput_event_type type;
 
-	assert(data);
+	type = libinput_event_get_type(ev);
 
-	if (libinput_event_pointer_has_axis(p,
-			LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
-		value = libinput_event_pointer_get_axis_value(p,
-				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+	axis = LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL;
+	if (libinput_event_pointer_has_axis(p, axis)) {
+		value = libinput_event_pointer_get_scroll_value(p, axis);
 		w->scroll.vy += value;
 		w->scroll.vy = clip(w->scroll.vy, 0, w->height);
-		data->scroll_accumulated.y += value;
 
-		discrete = libinput_event_pointer_get_axis_value_discrete(p,
-				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
-		if (discrete) {
-			w->scroll.vy_discrete += data->scroll_accumulated.y;
+		if (type == LIBINPUT_EVENT_POINTER_SCROLL_WHEEL) {
+			w->scroll.vy_discrete += value;
 			w->scroll.vy_discrete = clip(w->scroll.vy_discrete, 0, w->height);
-			data->scroll_accumulated.y = 0;
 		}
 	}
 
-	if (libinput_event_pointer_has_axis(p,
-			LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
-		value = libinput_event_pointer_get_axis_value(p,
-				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
+	axis = LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL;
+	if (libinput_event_pointer_has_axis(p, axis)) {
+		value = libinput_event_pointer_get_scroll_value(p, axis);
 		w->scroll.hx += value;
 		w->scroll.hx = clip(w->scroll.hx, 0, w->width);
-		data->scroll_accumulated.x += value;
 
-		discrete = libinput_event_pointer_get_axis_value_discrete(p,
-				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
-		if (discrete) {
-			w->scroll.hx_discrete += data->scroll_accumulated.x;
+		if (type == LIBINPUT_EVENT_POINTER_SCROLL_WHEEL) {
+			w->scroll.hx_discrete += value;
 			w->scroll.hx_discrete = clip(w->scroll.hx_discrete, 0, w->width);
-			data->scroll_accumulated.x = 0;
 		}
 	}
 }
@@ -1798,6 +1779,11 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 		case LIBINPUT_EVENT_TOUCH_FRAME:
 			break;
 		case LIBINPUT_EVENT_POINTER_AXIS:
+			/* ignore */
+			break;
+		case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL:
+		case LIBINPUT_EVENT_POINTER_SCROLL_FINGER:
+		case LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS:
 			handle_event_axis(ev, w);
 			break;
 		case LIBINPUT_EVENT_POINTER_BUTTON:

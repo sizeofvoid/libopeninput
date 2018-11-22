@@ -167,6 +167,7 @@ src_rst = files(
 	'trackpoints.rst',
 	'trackpoint-configuration.rst',
 	'what-is-libinput.rst',
+	'wheel-api.rst',
 	'features.rst',
 	'development.rst',
 	'troubleshooting.rst',

@@ -230,59 +230,88 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 {
 	struct normalized_coords wheel_degrees = { 0.0, 0.0 };
 	struct discrete_coords discrete = { 0.0, 0.0 };
+	struct wheel_v120 v120 = { 0.0, 0.0 };
 
 	if (!(device->seat_caps & EVDEV_DEVICE_POINTER))
 		return;
 
 	if (dispatch->wheel.is_inhibited) {
-		dispatch->wheel.delta.x = 0;
-		dispatch->wheel.delta.y = 0;
+		dispatch->wheel.hi_res.x = 0;
+		dispatch->wheel.hi_res.y = 0;
+		dispatch->wheel.lo_res.x = 0;
+		dispatch->wheel.lo_res.y = 0;
 		return;
 	}
 
 	if (device->model_flags & EVDEV_MODEL_LENOVO_SCROLLPOINT) {
 		struct normalized_coords unaccel = { 0.0, 0.0 };
 
-		dispatch->wheel.delta.y *= -1;
-		normalize_delta(device, &dispatch->wheel.delta, &unaccel);
+		dispatch->wheel.hi_res.y *= -1;
+		normalize_delta(device, &dispatch->wheel.hi_res, &unaccel);
 		evdev_post_scroll(device,
 				  time,
 				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
 				  &unaccel);
-		dispatch->wheel.delta.x = 0;
-		dispatch->wheel.delta.y = 0;
+		dispatch->wheel.hi_res.x = 0;
+		dispatch->wheel.hi_res.y = 0;
 
 		return;
 	}
 
-	if (dispatch->wheel.delta.y != 0) {
-		wheel_degrees.y = -1 * dispatch->wheel.delta.y *
-					device->scroll.wheel_click_angle.y;
-		discrete.y = -1 * dispatch->wheel.delta.y;
+	if (dispatch->wheel.hi_res.y != 0) {
+		int value = dispatch->wheel.hi_res.y;
 
-		evdev_notify_axis(
+		v120.y = -1 * value;
+		wheel_degrees.y = -1 * value/120.0 * device->scroll.wheel_click_angle.y;
+		evdev_notify_axis_wheel(
 			device,
 			time,
 			bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
-			LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
 			&wheel_degrees,
-			&discrete);
-		dispatch->wheel.delta.y = 0;
+			&v120);
+		dispatch->wheel.hi_res.y = 0;
 	}
 
-	if (dispatch->wheel.delta.x != 0) {
-		wheel_degrees.x = dispatch->wheel.delta.x *
-					device->scroll.wheel_click_angle.x;
-		discrete.x = dispatch->wheel.delta.x;
+	if (dispatch->wheel.lo_res.y != 0) {
+		int value = dispatch->wheel.lo_res.y;
 
-		evdev_notify_axis(
+		wheel_degrees.y = -1 * value * device->scroll.wheel_click_angle.y;
+		discrete.y = -1 * value;
+		evdev_notify_axis_legacy_wheel(
+			device,
+			time,
+			bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
+			&wheel_degrees,
+			&discrete);
+		dispatch->wheel.lo_res.y = 0;
+	}
+
+	if (dispatch->wheel.hi_res.x != 0) {
+		int value = dispatch->wheel.hi_res.x;
+
+		v120.x = value;
+		wheel_degrees.x = value/120.0 * device->scroll.wheel_click_angle.x;
+		evdev_notify_axis_wheel(
 			device,
 			time,
 			bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
-			LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
+			&wheel_degrees,
+			&v120);
+		dispatch->wheel.hi_res.x = 0;
+	}
+
+	if (dispatch->wheel.lo_res.x != 0) {
+		int value = dispatch->wheel.lo_res.x;
+
+		wheel_degrees.x = value * device->scroll.wheel_click_angle.x;
+		discrete.x = value;
+		evdev_notify_axis_legacy_wheel(
+			device,
+			time,
+			bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
 			&wheel_degrees,
 			&discrete);
-		dispatch->wheel.delta.x = 0;
+		dispatch->wheel.lo_res.x = 0;
 	}
 }
 
@@ -855,11 +884,23 @@ fallback_process_relative(struct fallback_dispatch *dispatch,
 		dispatch->pending_event |= EVDEV_RELATIVE_MOTION;
 		break;
 	case REL_WHEEL:
-		dispatch->wheel.delta.y += e->value;
+		dispatch->wheel.lo_res.y += e->value;
+		if (dispatch->wheel.emulate_hi_res_wheel)
+			dispatch->wheel.hi_res.y += e->value * 120;
 		dispatch->pending_event |= EVDEV_WHEEL;
 		break;
 	case REL_HWHEEL:
-		dispatch->wheel.delta.x += e->value;
+		dispatch->wheel.lo_res.x += e->value;
+		if (dispatch->wheel.emulate_hi_res_wheel)
+			dispatch->wheel.hi_res.x += e->value * 120;
+		dispatch->pending_event |= EVDEV_WHEEL;
+		break;
+	case REL_WHEEL_HI_RES:
+		dispatch->wheel.hi_res.y += e->value;
+		dispatch->pending_event |= EVDEV_WHEEL;
+		break;
+	case REL_HWHEEL_HI_RES:
+		dispatch->wheel.hi_res.x += e->value;
 		dispatch->pending_event |= EVDEV_WHEEL;
 		break;
 	}
@@ -1771,6 +1812,22 @@ fallback_dispatch_create(struct libinput_device *libinput_device)
 					enable_by_default,
 					want_config);
 	}
+
+	/* On kernel < 5.0 we need to emulate high-resolution
+	   wheel scroll events */
+	if ((libevdev_has_event_code(device->evdev,
+				     EV_REL,
+				     REL_WHEEL) &&
+	     !libevdev_has_event_code(device->evdev,
+				      EV_REL,
+				      REL_WHEEL_HI_RES)) ||
+	    (libevdev_has_event_code(device->evdev,
+				     EV_REL,
+				     REL_HWHEEL) &&
+	     !libevdev_has_event_code(device->evdev,
+				      EV_REL,
+				     REL_HWHEEL_HI_RES)))
+	    dispatch->wheel.emulate_hi_res_wheel = true;
 
 	fallback_init_debounce(dispatch);
 	fallback_init_arbitration(dispatch, device);

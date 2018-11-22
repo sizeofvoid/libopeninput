@@ -426,7 +426,6 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 	struct device_float_coords fraw;
 	struct normalized_coords normalized, tmp;
 	const struct normalized_coords zero = { 0.0, 0.0 };
-	const struct discrete_coords zero_discrete = { 0.0, 0.0 };
 
 	tp_for_each_touch(tp, t) {
 		if (!t->dirty)
@@ -444,11 +443,10 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 			case EDGE_NONE:
 				if (t->scroll.direction != -1) {
 					/* Send stop scroll event */
-					evdev_notify_axis(device, time,
-						bit(t->scroll.direction),
-						LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
-						&zero,
-						&zero_discrete);
+					evdev_notify_axis_finger(device,
+								 time,
+								 bit(t->scroll.direction),
+								 &zero);
 					t->scroll.direction = -1;
 				}
 				continue;
@@ -494,11 +492,9 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 		if (*delta == 0.0)
 			continue;
 
-		evdev_notify_axis(device, time,
-				  bit(axis),
-				  LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
-				  &normalized,
-				  &zero_discrete);
+		evdev_notify_axis_finger(device, time,
+					 bit(axis),
+					 &normalized);
 		t->scroll.direction = axis;
 
 		tp_edge_scroll_handle_event(tp, t, SCROLL_EVENT_POSTED, time);
@@ -513,15 +509,13 @@ tp_edge_scroll_stop_events(struct tp_dispatch *tp, uint64_t time)
 	struct evdev_device *device = tp->device;
 	struct tp_touch *t;
 	const struct normalized_coords zero = { 0.0, 0.0 };
-	const struct discrete_coords zero_discrete = { 0.0, 0.0 };
 
 	tp_for_each_touch(tp, t) {
 		if (t->scroll.direction != -1) {
-			evdev_notify_axis(device, time,
-					    bit(t->scroll.direction),
-					    LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
-					    &zero,
-					    &zero_discrete);
+			evdev_notify_axis_finger(device,
+						 time,
+						 bit(t->scroll.direction),
+						 &zero);
 			t->scroll.direction = -1;
 			/* reset touch to area state, avoids loading the
 			 * state machine with special case handling */
