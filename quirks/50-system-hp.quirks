@@ -33,3 +33,11 @@ ModelHPZBookStudioG3=1
 MatchName=*Cypress APA Trackpad *cyapa*
 MatchDMIModalias=dmi:*svnHewlett-Packard*:pnFalco*
 AttrPressureRange=12:8
+
+[HP Spectre x360 Convertable 15-bl1xx]
+MatchUdevType=touchpad
+MatchName=*SynPS/2 Synaptics TouchPad
+MatchDMIModalias=dmi:*svnHP:pnHPSpectrex360Convertible15-bl1XX:*
+AttrPressureRange=55:40
+AttrThumbPressureThreshold=90
+AttrPalmPressureThreshold=100
