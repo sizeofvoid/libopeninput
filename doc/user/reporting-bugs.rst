@@ -288,7 +288,7 @@ My bug was closed as fixed, what now?
 ------------------------------------------------------------------------------
 
 libinput's policy on closing bugs is: once the fix for a given bug is on git
-master, the bug is considered fixed and the bugzilla entry will be closed
+master, the bug is considered fixed and the gitlab issue will be closed
 accordingly.
 
 Of course, unless you actually run git master, the bug will continue to
