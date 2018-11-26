@@ -2,10 +2,10 @@
 #
 # This is a bit complicated for two reasons:
 # - we really want to run dnf/apt/... only once, updating on the test runner for
-#   each job takes forever. So we create a docker image for each distribution
-#   tested, then run the tests on this docker image.
+#   each job takes forever. So we create a container image for each distribution
+#   tested, then run the tests on this container image.
 #
-#   Creating a docker image is time-consuming, so we only do so for pushes to
+#   Creating a container image is time-consuming, so we only do so for pushes to
 #   libinput directly (not merge requests) and if the current image is 'old'.
 #
 # - GitLab only allows one script: set per job but we have a bunch of commands
@@ -25,10 +25,10 @@
 #  e.g. fedora:29@build-default
 
 stages:
-  - docker_check  # check if the current docker images are up to date
-  - docker_prep   # rebuild the docker images if previous step failed
-  - build         # for actually building things
-  - deploy        # trigger wayland's website generation
+  - container_check  # check if the current container images are up to date
+  - container_prep   # rebuild the container images if previous step failed
+  - build            # for actually building things
+  - deploy           # trigger wayland's website generation
 
 variables:
   ###############################################################################
@@ -50,10 +50,10 @@ variables:
   MESON_BUILDDIR: "build dir"
   NINJA_ARGS: 'test'
   MESON_ARGS: ''
-  FEDORA_DOCKER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/fedora/$FEDORA_VERSION
-  UBUNTU_DOCKER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/ubuntu/$UBUNTU_VERSION
-  ARCH_DOCKER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/arch/rolling
-  FREEBSD_DOCKER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/freebsd/11.2
+  FEDORA_CONTAINER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/fedora/$FEDORA_VERSION
+  UBUNTU_CONTAINER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/ubuntu/$UBUNTU_VERSION
+  ARCH_CONTAINER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/arch/rolling
+  FREEBSD_CONTAINER_IMAGE: $CI_REGISTRY/libinput/$CI_PROJECT_NAME/freebsd/11.2
   # Until we have a VM with full access, we cannot run the test suite runner
   SKIP_LIBINPUT_TEST_SUITE_RUNNER: 1
   # udev isn't available/working properly in the containers
@@ -79,7 +79,7 @@ variables:
    - meson configure "$MESON_BUILDDIR"
    - ninja -C "$MESON_BUILDDIR" $NINJA_ARGS
 
-# special rule to not expose the docker creation runners to other users
+# special rule to not expose the container creation runners to other users
 # than those who have set up the CI to push on the registry.
 # Users who have write access to libinput/libinput will have write
 # access to the registry, so the libinput/libinput is a catch-all for
@@ -87,7 +87,7 @@ variables:
 #
 # we can add as many users as we want by adding a new line like:
 #   - $GITLAB_USER_LOGIN == "someone"
-.restrict_docker_creation: &restrict_docker_creation
+.restrict_container_creation: &restrict_container_creation
   only:
     variables:
       # Note: this is a set of logical OR, not AND
@@ -95,7 +95,7 @@ variables:
 
 #################################################################
 #                                                               #
-#                     docker check stage                        #
+#                   container check stage                       #
 #                                                               #
 #################################################################
 
@@ -134,21 +134,21 @@ variables:
 # cp $buildmnt1/go/src/skopeo/skopeo $buildmnt2/usr/bin/skopeo
 #
 # buildah unmount $buildcntr2
-# buildah commit $buildcntr2 docker://registry.freedesktop.org/libinput/libinput/skopeo:latest
+# buildah commit $buildcntr2 container://registry.freedesktop.org/libinput/libinput/skopeo:latest
 #
 # #clean up build
 #
 # buildah rm $buildcntr1 $buildcntr2
 # -----
-.docker-check: &docker_check
-  stage: docker_check
+.container-check: &container_check
+  stage: container_check
   image: registry.freedesktop.org/libinput/libinput/skopeo:latest
   script:
-    # get the full docker image name (CURRENT_DOCKER_IMAGE still has indirections)
-    - DOCKER_IMAGE=$(eval echo "$CURRENT_DOCKER_IMAGE")
+    # get the full container image name (CURRENT_CONTAINER_IMAGE still has indirections)
+    - CONTAINER_IMAGE=$(eval echo "$CURRENT_CONTAINER_IMAGE")
 
     # get the date of the current image
-    - IMG_DATE=$(skopeo inspect docker://$DOCKER_IMAGE | jq -r '.Created' | cut -dT -f1)
+    - IMG_DATE=$(skopeo inspect docker://$CONTAINER_IMAGE | jq -r '.Created' | cut -dT -f1)
 
     - TODAY_SECS=$(date -u +%s)
     - IMG_SECS=$(date -u --date="$IMG_DATE" +%s)
@@ -162,74 +162,74 @@ variables:
     # export an artefact telling the next stage that the image is valid
     - touch .img_ready
   artifacts:
-    name: image-$CURRENT_DOCKER_IMAGE-check
+    name: image-$CURRENT_CONTAINER_IMAGE-check
     expire_in: 6 hrs
     paths:
       - .img_ready
   allow_failure: true
-  <<: *restrict_docker_creation
+  <<: *restrict_container_creation
 
 
 # TODO: check that the RPMS/DEBS are all in the current images
 
-fedora:28@docker-check:
+fedora:28@container-check:
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 28
-    CURRENT_DOCKER_IMAGE: $FEDORA_DOCKER_IMAGE:latest
-  <<: *docker_check
+    CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE:latest
+  <<: *container_check
 
-fedora:29@docker-check:
+fedora:29@container-check:
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 29
-    CURRENT_DOCKER_IMAGE: $FEDORA_DOCKER_IMAGE:latest
-  <<: *docker_check
+    CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE:latest
+  <<: *container_check
 
-ubuntu:17.10@docker-check:
+ubuntu:17.10@container-check:
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "17.10"
-    CURRENT_DOCKER_IMAGE: $UBUNTU_DOCKER_IMAGE:latest
-  <<: *docker_check
+    CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE:latest
+  <<: *container_check
 
-ubuntu:18.04@docker-check:
+ubuntu:18.04@container-check:
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "18.04"
-    CURRENT_DOCKER_IMAGE: $UBUNTU_DOCKER_IMAGE:latest
-  <<: *docker_check
+    CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE:latest
+  <<: *container_check
 
-arch:rolling@docker-check:
+arch:rolling@container-check:
   variables:
     GIT_STRATEGY: none
-    CURRENT_DOCKER_IMAGE: $ARCH_DOCKER_IMAGE:latest
-  <<: *docker_check
+    CURRENT_CONTAINER_IMAGE: $ARCH_CONTAINER_IMAGE:latest
+  <<: *container_check
 
-freebsd:11.2@docker-check:
+freebsd:11.2@container-check:
   variables:
     GIT_STRATEGY: none
-    CURRENT_DOCKER_IMAGE: $FREEBSD_DOCKER_IMAGE:latest
-  <<: *docker_check
+    CURRENT_CONTAINER_IMAGE: $FREEBSD_CONTAINER_IMAGE:latest
+  <<: *container_check
 
 #################################################################
 #                                                               #
-#                     docker prep stage                         #
+#                   container prep stage                        #
 #                                                               #
 #################################################################
 
 #
-# This stage will recreate the docker images only if the previous
+# This stage will recreate the container images only if the previous
 # stage had a build failure, i.e. the image is too old or if it is
 # missing some dependencies.
 #
-.fedora@docker-prep: &fedora_docker_prep
-  stage: docker_prep
+.fedora@container-prep: &fedora_container_prep
+  stage: container_prep
   image: docker:stable
   services:
     - docker:dind
   script:
-    # if the check was successful, we just skip recreating the docker image
+    # if the check was successful, we just skip recreating the container image
     - test -e .img_ready && exit 0
 
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -241,39 +241,39 @@ freebsd:11.2@docker-check:
     - echo "RUN dnf install -y $FEDORA_RPMS ; dnf clean all" >> Dockerfile
 
     # create the docker image
-    - docker build --tag $FEDORA_DOCKER_IMAGE:latest --tag $FEDORA_DOCKER_IMAGE:$CI_JOB_ID .
+    - docker build --tag $FEDORA_CONTAINER_IMAGE:latest --tag $FEDORA_CONTAINER_IMAGE:$CI_JOB_ID .
 
     # push the docker image to the libinput registry
-    - docker push $FEDORA_DOCKER_IMAGE:latest
-    - docker push $FEDORA_DOCKER_IMAGE:$CI_JOB_ID
-  <<: *restrict_docker_creation
+    - docker push $FEDORA_CONTAINER_IMAGE:latest
+    - docker push $FEDORA_CONTAINER_IMAGE:$CI_JOB_ID
+  <<: *restrict_container_creation
 
-fedora:28@docker-prep:
+fedora:28@container-prep:
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 28
-  <<: *fedora_docker_prep
+  <<: *fedora_container_prep
   dependencies:
     # Note: we can not use $FEDORA_VERSION here
-    - fedora:28@docker-check
+    - fedora:28@container-check
 
-fedora:29@docker-prep:
+fedora:29@container-prep:
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 29
-  <<: *fedora_docker_prep
+  <<: *fedora_container_prep
   dependencies:
     # Note: we can not use $FEDORA_VERSION here
-    - fedora:29@docker-check
+    - fedora:29@container-check
 
 # FIXME: we should clean up the apt cache between each run
-.ubuntu@docker-prep: &ubuntu_docker_prep
-  stage: docker_prep
+.ubuntu@container-prep: &ubuntu_container_prep
+  stage: container_prep
   image: docker:stable
   services:
     - docker:dind
   script:
-    # if the check was successful, we just skip recreating the docker image
+    # if the check was successful, we just skip recreating the container image
     - test -e .img_ready && exit 0
 
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -288,33 +288,33 @@ fedora:29@docker-prep:
     - echo "RUN DEBIAN_FRONTEND=noninteractive apt-get install -y $UBUNTU_DEBS" >> Dockerfile
 
     # create the docker image
-    - docker build --tag $UBUNTU_DOCKER_IMAGE:latest --tag $UBUNTU_DOCKER_IMAGE:$CI_JOB_ID .
+    - docker build --tag $UBUNTU_CONTAINER_IMAGE:latest --tag $UBUNTU_CONTAINER_IMAGE:$CI_JOB_ID .
 
     # push the docker image to the libinput registry
-    - docker push $UBUNTU_DOCKER_IMAGE:latest
-    - docker push $UBUNTU_DOCKER_IMAGE:$CI_JOB_ID
-  <<: *restrict_docker_creation
+    - docker push $UBUNTU_CONTAINER_IMAGE:latest
+    - docker push $UBUNTU_CONTAINER_IMAGE:$CI_JOB_ID
+  <<: *restrict_container_creation
 
-ubuntu:17.10@docker-prep:
+ubuntu:17.10@container-prep:
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "17.10"
-  <<: *ubuntu_docker_prep
+  <<: *ubuntu_container_prep
   dependencies:
     # Note: we can not use $UBUNTU_VERSION here
-    - ubuntu:17.10@docker-check
+    - ubuntu:17.10@container-check
 
-ubuntu:18.04@docker-prep:
+ubuntu:18.04@container-prep:
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "18.04"
-  <<: *ubuntu_docker_prep
+  <<: *ubuntu_container_prep
   dependencies:
     # Note: we can not use $UBUNTU_VERSION here
-    - ubuntu:18.04@docker-check
+    - ubuntu:18.04@container-check
 
-.arch@docker-prep: &arch_docker_prep
-  stage: docker_prep
+.arch@container-prep: &arch_container_prep
+  stage: container_prep
   image: docker:stable
   services:
     - docker:dind
@@ -331,27 +331,27 @@ ubuntu:18.04@docker-prep:
     - echo "RUN pacman -S --noconfirm $ARCH_PKGS; pacman -S --clean --noconfirm" >> Dockerfile
 
     # create the docker image
-    - docker build --tag $ARCH_DOCKER_IMAGE:latest --tag $ARCH_DOCKER_IMAGE:$CI_JOB_ID .
+    - docker build --tag $ARCH_CONTAINER_IMAGE:latest --tag $ARCH_CONTAINER_IMAGE:$CI_JOB_ID .
 
     # push the docker image to the libinput registry
-    - docker push $ARCH_DOCKER_IMAGE:latest
-    - docker push $ARCH_DOCKER_IMAGE:$CI_JOB_ID
-  <<: *restrict_docker_creation
+    - docker push $ARCH_CONTAINER_IMAGE:latest
+    - docker push $ARCH_CONTAINER_IMAGE:$CI_JOB_ID
+  <<: *restrict_container_creation
 
-arch:rolling@docker-prep:
+arch:rolling@container-prep:
   variables:
     GIT_STRATEGY: none
-  <<: *arch_docker_prep
+  <<: *arch_container_prep
   dependencies:
-    - arch:rolling@docker-check
+    - arch:rolling@container-check
 
-.freebsd@docker-prep: &freebsd_docker_prep
-  stage: docker_prep
+.freebsd@container-prep: &freebsd_container_prep
+  stage: container_prep
   image: docker:stable
   services:
     - docker:dind
   script:
-    # if the check was successful, we just skip recreating the docker image
+    # if the check was successful, we just skip recreating the container image
     - test -e .img_ready && exit 0
 
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -364,89 +364,89 @@ arch:rolling@docker-prep:
     - echo "RUN pkg -r /freebsd install -y $FREEBSD_PKGS" >> Dockerfile
 
     # create the docker image
-    - docker build --tag $FREEBSD_DOCKER_IMAGE:latest --tag $FREEBSD_DOCKER_IMAGE:$CI_JOB_ID .
+    - docker build --tag $FREEBSD_CONTAINER_IMAGE:latest --tag $FREEBSD_CONTAINER_IMAGE:$CI_JOB_ID .
 
     # push the docker image to the libinput registry
-    - docker push $FREEBSD_DOCKER_IMAGE:latest
-    - docker push $FREEBSD_DOCKER_IMAGE:$CI_JOB_ID
-  <<: *restrict_docker_creation
+    - docker push $FREEBSD_CONTAINER_IMAGE:latest
+    - docker push $FREEBSD_CONTAINER_IMAGE:$CI_JOB_ID
+  <<: *restrict_container_creation
 
-freebsd:11.2@docker-prep:
+freebsd:11.2@container-prep:
   variables:
     GIT_STRATEGY: none
-  <<: *freebsd_docker_prep
+  <<: *freebsd_container_prep
   dependencies:
     # Note: we can not use $FREEBSD_VERSION here
-    - freebsd:11.2@docker-check
+    - freebsd:11.2@container-check
 
 # Add some manual runners to be able to recreate the cache on a day
 # the list of the rpms changed
 
-fedora:28@force-docker-prep:
+fedora:28@force-container-prep:
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 28
-  <<: *fedora_docker_prep
+  <<: *fedora_container_prep
   when: manual
   dependencies: []
 
-fedora:29@force-docker-prep:
+fedora:29@force-container-prep:
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 29
-  <<: *fedora_docker_prep
+  <<: *fedora_container_prep
   when: manual
   dependencies: []
 
-ubuntu:17.10@force-docker-prep:
+ubuntu:17.10@force-container-prep:
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "17.10"
-  <<: *ubuntu_docker_prep
+  <<: *ubuntu_container_prep
   when: manual
   dependencies: []
 
-ubuntu:18.04@force-docker-prep:
+ubuntu:18.04@force-container-prep:
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "18.04"
-  <<: *ubuntu_docker_prep
+  <<: *ubuntu_container_prep
   when: manual
   dependencies: []
 
-arch:rolling@force-docker-prep:
+arch:rolling@force-container-prep:
   variables:
     GIT_STRATEGY: none
-  <<: *arch_docker_prep
+  <<: *arch_container_prep
   when: manual
   dependencies: []
 
-freebsd:11.2@force-docker-prep:
+freebsd:11.2@force-container-prep:
   variables:
     GIT_STRATEGY: none
-  <<: *freebsd_docker_prep
+  <<: *freebsd_container_prep
   when: manual
   dependencies: []
 
 #################################################################
 #                                                               #
-#                     docker clean stage                        #
+#                   container clean stage                       #
 #                 run during the check stage                    #
 #                                                               #
 #################################################################
 
 #
-# This stage will look for the docker images we currently have in
+# This stage will look for the container images we currently have in
 # the registry and will remove any that are not tagged as 'latest'
 #
-.docker-clean: &docker_clean
-  stage: docker_check
+.container-clean: &container_clean
+  stage: container_check
   image: registry.freedesktop.org/libinput/libinput/skopeo:latest
   script:
-    # get the full docker image name (CURRENT_DOCKER_IMAGE still has indirections)
-    - DOCKER_IMAGE=$(eval echo "$CURRENT_DOCKER_IMAGE")
-    - REPOSITORY=$(echo $DOCKER_IMAGE | cut -f2- -d/)
-    - IMAGE_PATH=$(echo $DOCKER_IMAGE | cut -f1 -d:)
+    # get the full container image name (CURRENT_CONTAINER_IMAGE still has indirections)
+    - CONTAINER_IMAGE=$(eval echo "$CURRENT_CONTAINER_IMAGE")
+    - REPOSITORY=$(echo $CONTAINER_IMAGE | cut -f2- -d/)
+    - IMAGE_PATH=$(echo $CONTAINER_IMAGE | cut -f1 -d:)
 
     # get the r/w token from the settings to access the registry
     #
@@ -488,47 +488,47 @@ freebsd:11.2@force-docker-prep:
       ;done
   dependencies: []
   allow_failure: true
-  <<: *restrict_docker_creation
+  <<: *restrict_container_creation
 
-fedora:28@docker-clean:
+fedora:28@container-clean:
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 28
-    CURRENT_DOCKER_IMAGE: $FEDORA_DOCKER_IMAGE
-  <<: *docker_clean
+    CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
+  <<: *container_clean
 
-fedora:29@docker-clean:
+fedora:29@container-clean:
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 29
-    CURRENT_DOCKER_IMAGE: $FEDORA_DOCKER_IMAGE
-  <<: *docker_clean
+    CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
+  <<: *container_clean
 
-ubuntu:17.10@docker-clean:
+ubuntu:17.10@container-clean:
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "17.10"
-    CURRENT_DOCKER_IMAGE: $UBUNTU_DOCKER_IMAGE
-  <<: *docker_clean
+    CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
+  <<: *container_clean
 
-ubuntu:18.04@docker-clean:
+ubuntu:18.04@container-clean:
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "18.04"
-    CURRENT_DOCKER_IMAGE: $UBUNTU_DOCKER_IMAGE
-  <<: *docker_clean
+    CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
+  <<: *container_clean
 
-arch:rolling@docker-clean:
+arch:rolling@container-clean:
   variables:
     GIT_STRATEGY: none
-    CURRENT_DOCKER_IMAGE: $ARCH_DOCKER_IMAGE
-  <<: *docker_clean
+    CURRENT_CONTAINER_IMAGE: $ARCH_CONTAINER_IMAGE
+  <<: *container_clean
 
-freebsd:11.2@docker-clean:
+freebsd:11.2@container-clean:
   variables:
     GIT_STRATEGY: none
-    CURRENT_DOCKER_IMAGE: $FREEBSD_DOCKER_IMAGE
-  <<: *docker_clean
+    CURRENT_CONTAINER_IMAGE: $FREEBSD_CONTAINER_IMAGE
+  <<: *container_clean
 
 #################################################################
 #                                                               #
@@ -542,7 +542,7 @@ freebsd:11.2@docker-clean:
 
 .fedora@template: &fedora_template
   stage: build
-  image: $FEDORA_DOCKER_IMAGE:latest
+  image: $FEDORA_CONTAINER_IMAGE:latest
   <<: *default_artifacts
   dependencies: []
 
@@ -667,7 +667,7 @@ fedora:29@valgrind:
 
 .ubuntu@template: &ubuntu_template
   stage: build
-  image: $UBUNTU_DOCKER_IMAGE:latest
+  image: $UBUNTU_CONTAINER_IMAGE:latest
   <<: *default_artifacts
   dependencies: []
 
@@ -688,7 +688,7 @@ ubuntu:18.04@default-build:
 #
 .arch@template: &arch_template
   stage: build
-  image: $ARCH_DOCKER_IMAGE:latest
+  image: $ARCH_CONTAINER_IMAGE:latest
   <<: *default_artifacts
   dependencies: []
 
@@ -701,7 +701,7 @@ arch:rolling@default-build:
 #
 .freebsd@template: &freebsd_template
   stage: build
-  image: $FREEBSD_DOCKER_IMAGE:latest
+  image: $FREEBSD_CONTAINER_IMAGE:latest
   variables:
     MESON_ARGS: '--cross-file freebsd -Ddocumentation=false -Dtests=false -Depoll-dir=/freebsd/usr/local/'
     # Can't run FreeBSD tests on Linux machine, so NINJA_ARGS shouldn't be "test"
