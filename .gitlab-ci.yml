@@ -390,6 +390,7 @@ freebsd:11.2@force-container-prep:
   script:
     # get the full container image name (CURRENT_CONTAINER_IMAGE still has indirections)
     - CONTAINER_IMAGE=$(eval echo "$CURRENT_CONTAINER_IMAGE")
+    - GITLAB=$(echo $CI_PROJECT_URL | cut -f3 -d/)
     - REPOSITORY=$(echo $CONTAINER_IMAGE | cut -f2- -d/)
     - IMAGE_PATH=$(echo $CONTAINER_IMAGE | cut -f1 -d:)
 
@@ -402,7 +403,7 @@ freebsd:11.2@force-container-prep:
     - token=$(eval echo "\$$tokenname")
 
     # request a token for the registry API
-    - REGISTRY_TOKEN=$(curl https://$CI_REGISTRY/jwt/auth --get
+    - REGISTRY_TOKEN=$(curl https://$GITLAB/jwt/auth --get
                              --silent --show-error
                              -d client_id=docker
                              -d offline_token=true
