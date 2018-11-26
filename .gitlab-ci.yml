@@ -123,7 +123,7 @@ bootstrap:
 #                                                               #
 #################################################################
 
-.container-check: &container_check
+.container-check:
   stage: container_check
   image: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
   script:
@@ -155,44 +155,44 @@ bootstrap:
 # TODO: check that the RPMS/DEBS are all in the current images
 
 fedora:28@container-check:
+  extends: .container-check
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 28
     CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE:latest
-  <<: *container_check
 
 fedora:29@container-check:
+  extends: .container-check
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 29
     CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE:latest
-  <<: *container_check
 
 ubuntu:17.10@container-check:
+  extends: .container-check
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "17.10"
     CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE:latest
-  <<: *container_check
 
 ubuntu:18.04@container-check:
+  extends: .container-check
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "18.04"
     CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE:latest
-  <<: *container_check
 
 arch:rolling@container-check:
+  extends: .container-check
   variables:
     GIT_STRATEGY: none
     CURRENT_CONTAINER_IMAGE: $ARCH_CONTAINER_IMAGE:latest
-  <<: *container_check
 
 freebsd:11.2@container-check:
+  extends: .container-check
   variables:
     GIT_STRATEGY: none
     CURRENT_CONTAINER_IMAGE: $FREEBSD_CONTAINER_IMAGE:latest
-  <<: *container_check
 
 #################################################################
 #                                                               #
@@ -217,7 +217,7 @@ freebsd:11.2@container-check:
     - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   <<: *restrict_container_creation
 
-.fedora@container-prep: &fedora_container_prep
+.fedora@container-prep:
   extends: .container-prep
   script:
     - buildcntr=$(buildah from --quiet fedora:$FEDORA_VERSION)
@@ -235,24 +235,24 @@ freebsd:11.2@container-check:
     - skopeo copy docker://$FEDORA_CONTAINER_IMAGE:latest docker://$FEDORA_CONTAINER_IMAGE:$CI_JOB_ID
 
 fedora:28@container-prep:
+  extends: .fedora@container-prep
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 28
-  <<: *fedora_container_prep
   dependencies:
     # Note: we can not use $FEDORA_VERSION here
     - fedora:28@container-check
 
 fedora:29@container-prep:
+  extends: .fedora@container-prep
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 29
-  <<: *fedora_container_prep
   dependencies:
     # Note: we can not use $FEDORA_VERSION here
     - fedora:29@container-check
 
-.ubuntu@container-prep: &ubuntu_container_prep
+.ubuntu@container-prep:
   extends: .container-prep
   script:
     - buildcntr=$(buildah from --quiet ubuntu:$UBUNTU_VERSION)
@@ -277,21 +277,20 @@ ubuntu:17.10@container-prep:
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "17.10"
-  <<: *ubuntu_container_prep
   dependencies:
     # Note: we can not use $UBUNTU_VERSION here
     - ubuntu:17.10@container-check
 
 ubuntu:18.04@container-prep:
+  extends: .ubuntu@container-prep
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "18.04"
-  <<: *ubuntu_container_prep
   dependencies:
     # Note: we can not use $UBUNTU_VERSION here
     - ubuntu:18.04@container-check
 
-.arch@container-prep: &arch_container_prep
+.arch@container-prep:
   extends: .container-prep
   script:
     - buildcntr=$(buildah from --quiet base/archlinux)
@@ -310,13 +309,13 @@ ubuntu:18.04@container-prep:
     - skopeo copy docker://$ARCH_CONTAINER_IMAGE:latest docker://$ARCH_CONTAINER_IMAGE:$CI_JOB_ID
 
 arch:rolling@container-prep:
+  extends: .arch@container-prep
   variables:
     GIT_STRATEGY: none
-  <<: *arch_container_prep
   dependencies:
     - arch:rolling@container-check
 
-.freebsd@container-prep: &freebsd_container_prep
+.freebsd@container-prep:
   extends: .container-prep
   script:
     - buildcntr=$(buildah from --quiet  myfreeweb/freebsd-cross:latest)
@@ -334,9 +333,9 @@ arch:rolling@container-prep:
     - skopeo copy docker://$FREEBSD_CONTAINER_IMAGE:latest docker://$FREEBSD_CONTAINER_IMAGE:$CI_JOB_ID
 
 freebsd:11.2@container-prep:
+  extends: .freebsd@container-prep
   variables:
     GIT_STRATEGY: none
-  <<: *freebsd_container_prep
   dependencies:
     # Note: we can not use $FREEBSD_VERSION here
     - freebsd:11.2@container-check
@@ -345,48 +344,32 @@ freebsd:11.2@container-prep:
 # the list of the rpms changed
 
 fedora:28@force-container-prep:
-  variables:
-    GIT_STRATEGY: none
-    FEDORA_VERSION: 28
-  <<: *fedora_container_prep
+  extends: fedora:28@container-prep
   when: manual
   dependencies: []
 
 fedora:29@force-container-prep:
-  variables:
-    GIT_STRATEGY: none
-    FEDORA_VERSION: 29
-  <<: *fedora_container_prep
+  extends: fedora:29@container-prep
   when: manual
   dependencies: []
 
 ubuntu:17.10@force-container-prep:
-  variables:
-    GIT_STRATEGY: none
-    UBUNTU_VERSION: "17.10"
-  <<: *ubuntu_container_prep
+  extends: ubuntu:17.10@container-prep
   when: manual
   dependencies: []
 
 ubuntu:18.04@force-container-prep:
-  variables:
-    GIT_STRATEGY: none
-    UBUNTU_VERSION: "18.04"
-  <<: *ubuntu_container_prep
+  extends: ubuntu:18.04@container-prep
   when: manual
   dependencies: []
 
 arch:rolling@force-container-prep:
-  variables:
-    GIT_STRATEGY: none
-  <<: *arch_container_prep
+  extends: arch:rolling@container-prep
   when: manual
   dependencies: []
 
 freebsd:11.2@force-container-prep:
-  variables:
-    GIT_STRATEGY: none
-  <<: *freebsd_container_prep
+  extends: freebsd:11.2@container-prep
   when: manual
   dependencies: []
 
@@ -401,7 +384,7 @@ freebsd:11.2@force-container-prep:
 # This stage will look for the container images we currently have in
 # the registry and will remove any that are not tagged as 'latest'
 #
-.container-clean: &container_clean
+.container-clean:
   stage: container_check
   image: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
   script:
@@ -459,44 +442,44 @@ bootstrap@container-clean:
     CURRENT_CONTAINER_IMAGE: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers
 
 fedora:28@container-clean:
+  extends: .container-clean
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 28
     CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
-  <<: *container_clean
 
 fedora:29@container-clean:
+  extends: .container-clean
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 29
     CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
-  <<: *container_clean
 
 ubuntu:17.10@container-clean:
+  extends: .container-clean
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "17.10"
     CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
-  <<: *container_clean
 
 ubuntu:18.04@container-clean:
+  extends: .container-clean
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "18.04"
     CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
-  <<: *container_clean
 
 arch:rolling@container-clean:
+  extends: .container-clean
   variables:
     GIT_STRATEGY: none
     CURRENT_CONTAINER_IMAGE: $ARCH_CONTAINER_IMAGE
-  <<: *container_clean
 
 freebsd:11.2@container-clean:
+  extends: .container-clean
   variables:
     GIT_STRATEGY: none
     CURRENT_CONTAINER_IMAGE: $FREEBSD_CONTAINER_IMAGE
-  <<: *container_clean
 
 #################################################################
 #                                                               #
@@ -504,42 +487,39 @@ freebsd:11.2@container-clean:
 #                                                               #
 #################################################################
 
+.build@template:
+  stage: build
+  <<: *default_artifacts
+  <<: *default_build
+  dependencies: []
+
 #
 # Fedora
 #
 
-.fedora@template: &fedora_template
-  stage: build
+.fedora-build@template:
+  extends: .build@template
   image: $FEDORA_CONTAINER_IMAGE:latest
-  <<: *default_artifacts
-  dependencies: []
 
 fedora:28@default-build:
+  extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 28
-  <<: *fedora_template
-  <<: *default_build
-
-.fedora:29@template: &fedora_29_template
-  variables:
-    FEDORA_VERSION: 29
-  <<: *fedora_template
 
 fedora:29@default-build:
-  <<: *fedora_29_template
-  <<: *default_build
+  extends: .fedora-build@template
+  variables:
+    FEDORA_VERSION: 29
 
 fedora:29@default-build-release:
-  <<: *fedora_29_template
-  <<: *default_build
+  extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
     MESON_ARGS: "-Dbuildtype=release"
     CFLAGS: "-Werror"
 
 fedora:29@scan-build:
-  <<: *fedora_29_template
-  <<: *default_build
+  extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
     NINJA_ARGS: scan-build
@@ -556,15 +536,13 @@ fedora:29@scan-build:
 # when they succeed on another.
 
 fedora:29@build-no-libwacom:
-  <<: *fedora_29_template
-  <<: *default_build
+  extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
     MESON_ARGS: "-Dlibwacom=false"
 
 fedora:29@build-no-libwacom-nodeps:
-  <<: *fedora_29_template
-  <<: *default_build
+  extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
     MESON_ARGS: "-Dlibwacom=false"
@@ -572,15 +550,13 @@ fedora:29@build-no-libwacom-nodeps:
     - dnf remove -y libwacom libwacom-devel
 
 fedora:29@build-no-docs:
-  <<: *fedora_29_template
-  <<: *default_build
+  extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
     MESON_ARGS: "-Ddocumentation=false"
 
 fedora:29@build-no-docs-nodeps:
-  <<: *fedora_29_template
-  <<: *default_build
+  extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
     MESON_ARGS: "-Ddocumentation=false"
@@ -588,15 +564,13 @@ fedora:29@build-no-docs-nodeps:
     - dnf remove -y doxygen graphviz
 
 fedora:29@build-no-debuggui:
-  <<: *fedora_29_template
-  <<: *default_build
+  extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
     MESON_ARGS: "-Ddebug-gui=false"
 
 fedora:29@build-no-debuggui-nodeps:
-  <<: *fedora_29_template
-  <<: *default_build
+  extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
     MESON_ARGS: "-Ddebug-gui=false"
@@ -604,15 +578,13 @@ fedora:29@build-no-debuggui-nodeps:
     - dnf remove -y gtk3-devel
 
 fedora:29@build-no-tests:
-  <<: *fedora_29_template
-  <<: *default_build
+  extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
     MESON_ARGS: "-Dtests=false"
 
 fedora:29@build-no-tests-nodeps:
-  <<: *fedora_29_template
-  <<: *default_build
+  extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
     MESON_ARGS: "-Dtests=false"
@@ -620,9 +592,10 @@ fedora:29@build-no-tests-nodeps:
     - dnf remove -y check-devel
 
 fedora:29@valgrind:
-  <<: *fedora_29_template
+  extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
+  # note: we override the default_build here by providing a new script
   script:
    - rm -rf "$MESON_BUILDDIR"
    - meson "$MESON_BUILDDIR" $MESON_ARGS
@@ -633,53 +606,43 @@ fedora:29@valgrind:
 # Ubuntu
 #
 
-.ubuntu@template: &ubuntu_template
-  stage: build
+.ubuntu@template:
+  extends: .build@template
   image: $UBUNTU_CONTAINER_IMAGE:latest
-  <<: *default_artifacts
-  dependencies: []
 
 ubuntu:17.10@default-build:
+  extends: .ubuntu@template
   variables:
     UBUNTU_VERSION: "17.10"
-  <<: *ubuntu_template
-  <<: *default_build
 
 ubuntu:18.04@default-build:
+  extends: .ubuntu@template
   variables:
     UBUNTU_VERSION: "17.10"
-  <<: *ubuntu_template
-  <<: *default_build
 
 #
 # Arch
 #
-.arch@template: &arch_template
-  stage: build
+.arch@template:
+  extends: .build@template
   image: $ARCH_CONTAINER_IMAGE:latest
-  <<: *default_artifacts
-  dependencies: []
 
 arch:rolling@default-build:
-  <<: *arch_template
-  <<: *default_build
+  extends: .arch@template
 
 #
 # FreeBSD
 #
-.freebsd@template: &freebsd_template
-  stage: build
+.freebsd@template:
+  extends: .build@template
   image: $FREEBSD_CONTAINER_IMAGE:latest
   variables:
     MESON_ARGS: '--cross-file freebsd -Ddocumentation=false -Dtests=false -Depoll-dir=/freebsd/usr/local/'
     # Can't run FreeBSD tests on Linux machine, so NINJA_ARGS shouldn't be "test"
     NINJA_ARGS: ''
-  <<: *default_artifacts
-  dependencies: []
 
 freebsd:11.2@default-build:
-  <<: *freebsd_template
-  <<: *default_build
+  extends: .freebsd@template
 
 #
 # deploy
