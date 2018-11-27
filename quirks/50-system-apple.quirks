@@ -52,3 +52,10 @@ MatchBus=usb
 MatchVendor=0x05AC
 MatchProduct=0x0237
 AttrPalmSizeThreshold=1000
+
+[Apple Laptop Touchpad (MacBookPro11,2 among others)]
+MatchUdevType=touchpad
+MatchBus=usb
+MatchVendor=0x5AC
+MatchProduct=0x0262
+AttrPalmSizeThreshold=1600
