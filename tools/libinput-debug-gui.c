@@ -91,8 +91,10 @@ struct window {
 	int absx, absy;
 
 	/* scroll bar positions */
-	double vx, vy;
-	double hx, hy;
+	struct {
+		double vx, vy;
+		double hx, hy;
+	} scroll;
 
 	/* touch positions */
 	struct touch touches[32];
@@ -330,8 +332,8 @@ draw_scrollbars(struct window *w, cairo_t *cr)
 
 	cairo_save(cr);
 	cairo_set_source_rgb(cr, .4, .8, 0);
-	cairo_rectangle(cr, w->vx - 10, w->vy - 20, 20, 40);
-	cairo_rectangle(cr, w->hx - 20, w->hy - 10, 40, 20);
+	cairo_rectangle(cr, w->scroll.vx - 10, w->scroll.vy - 20, 20, 40);
+	cairo_rectangle(cr, w->scroll.hx - 20, w->scroll.hy - 10, 40, 20);
 	cairo_fill(cr);
 	cairo_restore(cr);
 }
@@ -615,10 +617,10 @@ map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 	w->x = w->width/2;
 	w->y = w->height/2;
 
-	w->vx = w->width/2;
-	w->vy = w->height/2;
-	w->hx = w->width/2;
-	w->hy = w->height/2;
+	w->scroll.vx = w->width/2;
+	w->scroll.vy = w->height/2;
+	w->scroll.hx = w->width/2;
+	w->scroll.hy = w->height/2;
 
 	w->swipe.x = w->width/2;
 	w->swipe.y = w->height/2;
@@ -975,16 +977,16 @@ handle_event_axis(struct libinput_event *ev, struct window *w)
 			LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
 		value = libinput_event_pointer_get_axis_value(p,
 				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
-		w->vy += value;
-		w->vy = clip(w->vy, 0, w->height);
+		w->scroll.vy += value;
+		w->scroll.vy = clip(w->scroll.vy, 0, w->height);
 	}
 
 	if (libinput_event_pointer_has_axis(p,
 			LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
 		value = libinput_event_pointer_get_axis_value(p,
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
-		w->hx += value;
-		w->hx = clip(w->hx, 0, w->width);
+		w->scroll.hx += value;
+		w->scroll.hx = clip(w->scroll.hx, 0, w->width);
 	}
 }
 
