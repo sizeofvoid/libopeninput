@@ -62,6 +62,10 @@ struct point {
 	double x, y;
 };
 
+struct device_user_data {
+	struct point scroll_accumulated;
+};
+
 struct evdev_device {
 	struct list node;
 	struct libevdev *evdev;
@@ -94,6 +98,9 @@ struct window {
 	struct {
 		double vx, vy;
 		double hx, hy;
+
+		double vx_discrete, vy_discrete;
+		double hx_discrete, hy_discrete;
 	} scroll;
 
 	/* touch positions */
@@ -330,11 +337,19 @@ static inline void
 draw_scrollbars(struct window *w, cairo_t *cr)
 {
 
+	/* normal scrollbars */
 	cairo_save(cr);
 	cairo_set_source_rgb(cr, .4, .8, 0);
 	cairo_rectangle(cr, w->scroll.vx - 10, w->scroll.vy - 20, 20, 40);
 	cairo_rectangle(cr, w->scroll.hx - 20, w->scroll.hy - 10, 40, 20);
 	cairo_fill(cr);
+
+	/* discrete scrollbars */
+	cairo_set_source_rgb(cr, .8, .4, 0);
+	cairo_rectangle(cr, w->scroll.vx_discrete - 5, w->scroll.vy_discrete - 10, 10, 20);
+	cairo_rectangle(cr, w->scroll.hx_discrete - 10, w->scroll.hy_discrete - 5, 20, 10);
+	cairo_fill(cr);
+
 	cairo_restore(cr);
 }
 
@@ -621,6 +636,10 @@ map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 	w->scroll.vy = w->height/2;
 	w->scroll.hx = w->width/2;
 	w->scroll.hy = w->height/2;
+	w->scroll.vx_discrete = w->width/2;
+	w->scroll.vy_discrete = w->height/2;
+	w->scroll.hx_discrete = w->width/2;
+	w->scroll.hy_discrete = w->height/2;
 
 	w->swipe.x = w->width/2;
 	w->swipe.y = w->height/2;
@@ -802,6 +821,7 @@ register_evdev_device(struct window *w, struct libinput_device *dev)
 	const char *device_node;
 	int fd;
 	struct evdev_device *d;
+	struct device_user_data *data;
 
 	ud = libinput_device_get_udev_device(dev);
 	device_node = udev_device_get_devnode(ud);
@@ -823,6 +843,9 @@ register_evdev_device(struct window *w, struct libinput_device *dev)
 	d->fd = fd;
 	d->evdev = evdev;
 	d->libinput_device =libinput_device_ref(dev);
+
+	data = zalloc(sizeof *data);
+	libinput_device_set_user_data(dev, data);
 
 	c = g_io_channel_unix_new(fd);
 	g_io_channel_set_encoding(c, NULL, NULL);
@@ -846,6 +869,7 @@ unregister_evdev_device(struct window *w, struct libinput_device *dev)
 
 		list_remove(&d->node);
 		g_source_remove(d->source_id);
+		free(libinput_device_get_user_data(d->libinput_device));
 		libinput_device_unref(d->libinput_device);
 		libevdev_free(d->evdev);
 		close(d->fd);
@@ -971,7 +995,12 @@ static void
 handle_event_axis(struct libinput_event *ev, struct window *w)
 {
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
+	struct libinput_device *dev = libinput_event_get_device(ev);
+	struct device_user_data *data = libinput_device_get_user_data(dev);
 	double value;
+	int discrete;
+
+	assert(data);
 
 	if (libinput_event_pointer_has_axis(p,
 			LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
@@ -979,6 +1008,15 @@ handle_event_axis(struct libinput_event *ev, struct window *w)
 				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
 		w->scroll.vy += value;
 		w->scroll.vy = clip(w->scroll.vy, 0, w->height);
+		data->scroll_accumulated.y += value;
+
+		discrete = libinput_event_pointer_get_axis_value_discrete(p,
+				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+		if (discrete) {
+			w->scroll.vy_discrete += data->scroll_accumulated.y;
+			w->scroll.vy_discrete = clip(w->scroll.vy_discrete, 0, w->height);
+			data->scroll_accumulated.y = 0;
+		}
 	}
 
 	if (libinput_event_pointer_has_axis(p,
@@ -987,6 +1025,15 @@ handle_event_axis(struct libinput_event *ev, struct window *w)
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
 		w->scroll.hx += value;
 		w->scroll.hx = clip(w->scroll.hx, 0, w->width);
+		data->scroll_accumulated.x += value;
+
+		discrete = libinput_event_pointer_get_axis_value_discrete(p,
+				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
+		if (discrete) {
+			w->scroll.hx_discrete += data->scroll_accumulated.x;
+			w->scroll.hx_discrete = clip(w->scroll.hx_discrete, 0, w->width);
+			data->scroll_accumulated.x = 0;
+		}
 	}
 }
 

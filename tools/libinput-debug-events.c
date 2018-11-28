@@ -457,6 +457,7 @@ print_pointer_axis_event(struct libinput_event *ev)
 {
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
 	double v = 0, h = 0;
+	int dv = 0, dh = 0;
 	const char *have_vert = "",
 		   *have_horiz = "";
 	const char *source = "invalid";
@@ -480,17 +481,21 @@ print_pointer_axis_event(struct libinput_event *ev)
 				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
 		v = libinput_event_pointer_get_axis_value(p,
 			      LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+		dv = libinput_event_pointer_get_axis_value_discrete(p,
+			      LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
 		have_vert = "*";
 	}
 	if (libinput_event_pointer_has_axis(p,
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
 		h = libinput_event_pointer_get_axis_value(p,
 			      LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
+		dh = libinput_event_pointer_get_axis_value_discrete(p,
+			      LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
 		have_horiz = "*";
 	}
 	print_event_time(libinput_event_pointer_get_time(p));
-	printq("vert %.2f%s horiz %.2f%s (%s)\n",
-	       v, have_vert, h, have_horiz, source);
+	printq("vert %.2f/%d%s horiz %.2f/%d%s (%s)\n",
+	       v, dv, have_vert, h, dh, have_horiz, source);
 }
 
 static void
