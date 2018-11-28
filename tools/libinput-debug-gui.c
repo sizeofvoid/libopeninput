@@ -820,6 +820,8 @@ handle_event_device_notify(struct libinput_event *ev)
 	if (libinput_event_get_type(ev) == LIBINPUT_EVENT_DEVICE_ADDED) {
 		type = "added";
 		register_evdev_device(w, dev);
+		tools_device_apply_config(libinput_event_get_device(ev),
+					  &w->options);
 	} else {
 		type = "removed";
 		unregister_evdev_device(w, dev);
@@ -829,9 +831,6 @@ handle_event_device_notify(struct libinput_event *ev)
 	    libinput_device_get_sysname(dev),
 	    libinput_device_get_name(dev),
 	    type);
-
-	tools_device_apply_config(libinput_event_get_device(ev),
-				  &w->options);
 
 	if (libinput_event_get_type(ev) == LIBINPUT_EVENT_DEVICE_ADDED) {
 		for (i = 0; i < ARRAY_LENGTH(w->devices); i++) {

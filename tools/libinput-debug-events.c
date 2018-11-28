@@ -782,10 +782,12 @@ handle_and_print_events(struct libinput *li)
 		case LIBINPUT_EVENT_NONE:
 			abort();
 		case LIBINPUT_EVENT_DEVICE_ADDED:
-		case LIBINPUT_EVENT_DEVICE_REMOVED:
 			print_device_notify(ev);
 			tools_device_apply_config(libinput_event_get_device(ev),
 						  &options);
+			break;
+		case LIBINPUT_EVENT_DEVICE_REMOVED:
+			print_device_notify(ev);
 			break;
 		case LIBINPUT_EVENT_KEYBOARD_KEY:
 			print_key_event(li, ev);
