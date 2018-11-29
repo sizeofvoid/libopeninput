@@ -296,6 +296,8 @@ ubuntu:18.04@container-prep:
     - buildcntr=$(buildah from --quiet base/archlinux)
     - buildah run $buildcntr pacman -S --refresh
     - buildah run $buildcntr pacman -S --sysupgrade --noconfirm
+    # linux-firmware uses 460M for something we don't need..
+    - buildah run $buildcntr pacman -R --noconfirm linux-firmware
     - buildah run $buildcntr pacman -S --noconfirm $ARCH_PKGS
     - buildah run $buildcntr pacman -S --clean --noconfirm
     - buildah config --workingdir /app $buildcntr
