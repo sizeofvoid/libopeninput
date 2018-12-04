@@ -619,7 +619,7 @@ ubuntu:17.10@default-build:
 ubuntu:18.04@default-build:
   extends: .ubuntu@template
   variables:
-    UBUNTU_VERSION: "17.10"
+    UBUNTU_VERSION: "18.04"
 
 #
 # Arch
