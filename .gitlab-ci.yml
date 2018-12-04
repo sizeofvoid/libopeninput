@@ -168,11 +168,11 @@ fedora:29@container-check:
     FEDORA_VERSION: 29
     CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE:latest
 
-ubuntu:17.10@container-check:
+ubuntu:18.10@container-check:
   extends: .container-check
   variables:
     GIT_STRATEGY: none
-    UBUNTU_VERSION: "17.10"
+    UBUNTU_VERSION: "18.10"
     CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE:latest
 
 ubuntu:18.04@container-check:
@@ -272,14 +272,14 @@ fedora:29@container-prep:
     - podman push --quiet $UBUNTU_CONTAINER_IMAGE:latest
     - skopeo copy docker://$UBUNTU_CONTAINER_IMAGE:latest docker://$UBUNTU_CONTAINER_IMAGE:$CI_JOB_ID
 
-ubuntu:17.10@container-prep:
+ubuntu:18.10@container-prep:
   extends: .ubuntu@container-prep
   variables:
     GIT_STRATEGY: none
-    UBUNTU_VERSION: "17.10"
+    UBUNTU_VERSION: "18.10"
   dependencies:
     # Note: we can not use $UBUNTU_VERSION here
-    - ubuntu:17.10@container-check
+    - ubuntu:18.10@container-check
 
 ubuntu:18.04@container-prep:
   extends: .ubuntu@container-prep
@@ -353,8 +353,8 @@ fedora:29@force-container-prep:
   when: manual
   dependencies: []
 
-ubuntu:17.10@force-container-prep:
-  extends: ubuntu:17.10@container-prep
+ubuntu:18.10@force-container-prep:
+  extends: ubuntu:18.10@container-prep
   when: manual
   dependencies: []
 
@@ -456,11 +456,11 @@ fedora:29@container-clean:
     FEDORA_VERSION: 29
     CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
 
-ubuntu:17.10@container-clean:
+ubuntu:18.10@container-clean:
   extends: .container-clean
   variables:
     GIT_STRATEGY: none
-    UBUNTU_VERSION: "17.10"
+    UBUNTU_VERSION: "18.10"
     CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
 
 ubuntu:18.04@container-clean:
@@ -611,10 +611,10 @@ fedora:29@valgrind:
   extends: .build@template
   image: $UBUNTU_CONTAINER_IMAGE:latest
 
-ubuntu:17.10@default-build:
+ubuntu:18.10@default-build:
   extends: .ubuntu@template
   variables:
-    UBUNTU_VERSION: "17.10"
+    UBUNTU_VERSION: "18.10"
 
 ubuntu:18.04@default-build:
   extends: .ubuntu@template
