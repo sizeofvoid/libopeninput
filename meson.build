@@ -107,7 +107,7 @@ endif
 pkgconfig = import('pkgconfig')
 dep_udev = dependency('libudev')
 dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
-dep_libevdev = dependency('libevdev', version : '>= 0.4')
+dep_libevdev = dependency('libevdev')
 dep_lm = cc.find_library('m', required : false)
 dep_rt = cc.find_library('rt', required : false)
 
