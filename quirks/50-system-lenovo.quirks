@@ -20,6 +20,11 @@ MatchName=Synaptics tm2964-001
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT440p*
 ModelLenovoT450Touchpad=1
 
+[Lenovo T480s Touchpad]
+MatchName=Elan Touchpad
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT480s*
+ModelLenovoT480sTouchpad=1
+
 [Lenovo X200 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20?:*
