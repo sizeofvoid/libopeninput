@@ -82,7 +82,7 @@ accelerator_set_speed_flat(struct motion_filter *filter,
 
 	assert(speed_adjustment >= -1.0 && speed_adjustment <= 1.0);
 
-	/* Speed rage is 0-200% of the nominal speed, with 0 mapping to the
+	/* Speed range is 0-200% of the nominal speed, with 0 mapping to the
 	 * nominal speed. Anything above 200 is pointless, we're already
 	 * skipping over ever second pixel at 200% speed.
 	 */
