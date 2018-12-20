@@ -431,7 +431,7 @@ def write_udev_rule(device, fuzz):
 
 def main(args):
     parser = argparse.ArgumentParser(
-            description='Print fuzz settings'
+            description='Print fuzz settings and/or suggest udev rules for the fuzz to be adjusted.'
     )
     parser.add_argument('path', metavar='/dev/input/event0',
                         nargs='?', type=str, help='Path to device (optional)')
