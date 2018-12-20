@@ -145,6 +145,7 @@ devices:
         57: [0, 65535, 0, 0, 0]
         58: [0, 255, 0, 0, 0]
       properties: [0, 2, 4]
+    hid: [12, 23, 34, 45, ...]
     udev:
       properties:
       - ID_INPUT_MOUSE=1
@@ -224,6 +225,9 @@ the device node recorded
 .TP 8
 .B evdev
 A dictionary with the evdev device information.
+.TP 8
+.B hid
+A list of integers representing the HID report descriptor bytes.
 .TP 8
 .B udev
 A dictionary with the udev device information.

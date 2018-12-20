@@ -1615,6 +1615,52 @@ print_evdev_description(struct record_context *ctx, struct record_device *dev)
 }
 
 static inline void
+print_hid_report_descriptor(struct record_context *ctx,
+			    struct record_device *dev)
+{
+	const char *prefix = "/dev/input/event";
+	const char *node;
+	char syspath[PATH_MAX];
+	unsigned char buf[1024];
+	int len;
+	int fd;
+	bool first = true;
+
+	/* we take the shortcut rather than the proper udev approach, the
+	   report_descriptor is available in sysfs and two devices up from
+	   our device. 2 digits for the event number should be enough.
+	   This approach won't work for /dev/input/by-id devices. */
+	if (!strneq(dev->devnode, prefix, strlen(prefix)) ||
+	    strlen(dev->devnode) > strlen(prefix) + 2)
+		return;
+
+	node = &dev->devnode[strlen(prefix)];
+	len = snprintf(syspath,
+		       sizeof(syspath),
+		       "/sys/class/input/event%s/device/device/report_descriptor",
+		       node);
+	if (len < 55 || len > 56)
+		return;
+
+	fd = open(syspath, O_RDONLY);
+	if (fd == -1)
+		return;
+
+	iprintf(ctx, "hid: [");
+
+	while ((len = read(fd, buf, sizeof(buf))) > 0) {
+		for (int i = 0; i < len; i++) {
+			/* YAML requires decimal */
+			noiprintf(ctx, "%s%u",first ? "" : ", ", buf[i]);
+			first = false;
+		}
+	}
+	noiprintf(ctx, " ]\n");
+
+	close(fd);
+}
+
+static inline void
 print_udev_properties(struct record_context *ctx, struct record_device *dev)
 {
 	struct udev *udev = NULL;
@@ -1778,6 +1824,7 @@ print_device_description(struct record_context *ctx, struct record_device *dev)
 	iprintf(ctx, "- node: %s\n", dev->devnode);
 
 	print_evdev_description(ctx, dev);
+	print_hid_report_descriptor(ctx, dev);
 	print_udev_properties(ctx, dev);
 	print_device_quirks(ctx, dev);
 	print_libinput_description(ctx, dev);
