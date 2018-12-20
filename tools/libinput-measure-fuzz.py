@@ -110,11 +110,11 @@ class Device(object):
 
         if axes[0x35] is not None:
             if axes[0x35] != axes[0x00]:
-                raise InvalidConfigurationError('fuzz for ABS_X differs from ABS_MT_POSITION_X')
+                print_bold('WARNING: fuzz mismatch ABS_X: {}, ABS_MT_POSITION_X: {}'.format(axes[0x00], axes[0x35]))
 
         if axes[0x36] is not None:
             if axes[0x36] != axes[0x01]:
-                raise InvalidConfigurationError('fuzz for ABS_Y differs from ABS_MT_POSITION_Y')
+                print_bold('WARNING: fuzz mismatch ABS_Y: {}, ABS_MT_POSITION_Y: {}'.format(axes[0x01], axes[0x36]))
 
         xfuzz = axes[0x35] or axes[0x00]
         yfuzz = axes[0x36] or axes[0x01]
