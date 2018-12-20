@@ -435,7 +435,7 @@ def main(args):
     )
     parser.add_argument('path', metavar='/dev/input/event0',
                         nargs='?', type=str, help='Path to device (optional)')
-    parser.add_argument('--fuzz',  type=int, help='Suggsted fuzz')
+    parser.add_argument('--fuzz',  type=int, help='Suggested fuzz')
     args = parser.parse_args()
 
     try:
