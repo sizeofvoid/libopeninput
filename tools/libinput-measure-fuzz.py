@@ -455,7 +455,7 @@ def main(args):
     except PermissionError as e:
         print('Permission denied, please re-run as root')
     except InvalidConfigurationError as e:
-        print('Error: {}'.format(e.message))
+        print('Error: {}'.format(e))
     except KeyboardInterrupt as e:
         print('Exited on user request')
 
