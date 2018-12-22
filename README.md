@@ -15,11 +15,11 @@ User documentation
 ------------------
 
 Documentation explaining features available in libinput is available
-[here](https://wayland.freedesktop.org/libinput/doc/latest/pages.html).
+[here](https://wayland.freedesktop.org/libinput/doc/latest/features.html).
 
-This includes the [FAQ](https://wayland.freedesktop.org/libinput/doc/latest/faq.html)
+This includes the [FAQ](https://wayland.freedesktop.org/libinput/doc/latest/faqs.html)
 and the instructions on
-[reporting bugs](https://wayland.freedesktop.org/libinput/doc/latest/reporting_bugs.html).
+[reporting bugs](https://wayland.freedesktop.org/libinput/doc/latest/reporting-bugs.html).
 
 
 Source code
@@ -32,7 +32,7 @@ For a list of current and past releases visit:
 https://www.freedesktop.org/wiki/Software/libinput/
 
 Build instructions:
-https://wayland.freedesktop.org/libinput/doc/latest/building_libinput.html
+https://wayland.freedesktop.org/libinput/doc/latest/building.html
 
 Reporting Bugs
 --------------
@@ -49,11 +49,11 @@ for more info.
 Documentation
 -------------
 
-- Developer API documentation: https://wayland.freedesktop.org/libinput/doc/latest/modules.html
+- Developer API documentation: https://wayland.freedesktop.org/libinput/doc/latest/development.html
 - High-level documentation about libinput's features:
-  https://wayland.freedesktop.org/libinput/doc/latest/pages.html
+  https://wayland.freedesktop.org/libinput/doc/latest/features.html
 - Build instructions:
-  https://wayland.freedesktop.org/libinput/doc/latest/building_libinput.html
+  https://wayland.freedesktop.org/libinput/doc/latest/building.html
 - Documentation for previous versions of libinput: https://wayland.freedesktop.org/libinput/doc/
 
 Examples of how to use libinput are the debugging tools in the libinput
