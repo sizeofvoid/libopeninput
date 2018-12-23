@@ -6289,6 +6289,8 @@ START_TEST(touchpad_palm_detect_touch_size)
 		return;
 
 	litest_drain_events(li);
+
+	/* apply insufficient pressure */
 	litest_axis_set_value(axes, ABS_MT_TOUCH_MAJOR, 30);
 	litest_axis_set_value(axes, ABS_MT_TOUCH_MINOR, 30);
 	litest_touch_down_extended(dev, 0, 50, 50, axes);
@@ -6296,10 +6298,166 @@ START_TEST(touchpad_palm_detect_touch_size)
 	litest_assert_only_typed_events(li,
 					LIBINPUT_EVENT_POINTER_MOTION);
 
+	/* apply sufficient pressure */
 	litest_axis_set_value_unchecked(axes, ABS_MT_TOUCH_MAJOR, 90);
 	litest_axis_set_value(axes, ABS_MT_TOUCH_MINOR, 90);
 	litest_touch_move_to_extended(dev, 0, 80, 80, 50, 50, axes, 10);
 	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touchpad_palm_detect_touch_size_late)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOUCH_MAJOR, 0 },
+		{ ABS_MT_TOUCH_MINOR, 0 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_touch_size(dev) ||
+	    litest_touchpad_is_external(dev))
+		return;
+
+	litest_drain_events(li);
+
+	/* apply insufficient pressure */
+	litest_axis_set_value(axes, ABS_MT_TOUCH_MAJOR, 30);
+	litest_axis_set_value(axes, ABS_MT_TOUCH_MINOR, 30);
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 70, 80, 90, 10);
+	litest_drain_events(li);
+	libinput_dispatch(li);
+	litest_touch_move_to_extended(dev, 0, 80, 90, 50, 20, axes, 10);
+	litest_touch_up(dev, 0);
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_POINTER_MOTION);
+
+	/* apply sufficient pressure */
+	litest_axis_set_value_unchecked(axes, ABS_MT_TOUCH_MAJOR, 90);
+	litest_axis_set_value(axes, ABS_MT_TOUCH_MINOR, 90);
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 70, 80, 90, 10);
+	litest_drain_events(li);
+	libinput_dispatch(li);
+	litest_touch_move_to_extended(dev, 0, 80, 90, 50, 20, axes, 10);
+	litest_touch_up(dev, 0);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touchpad_palm_detect_touch_size_keep_palm)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOUCH_MAJOR, 0 },
+		{ ABS_MT_TOUCH_MINOR, 0 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_touch_size(dev) ||
+	    litest_touchpad_is_external(dev))
+		return;
+
+	litest_drain_events(li);
+
+	/* apply insufficient pressure */
+	litest_axis_set_value(axes, ABS_MT_TOUCH_MAJOR, 30);
+	litest_axis_set_value(axes, ABS_MT_TOUCH_MINOR, 30);
+	litest_touch_down(dev, 0, 80, 90);
+	litest_touch_move_to_extended(dev, 0, 80, 90, 50, 20, axes, 10);
+	litest_touch_move_to(dev, 0, 50, 20, 80, 90, 10);
+	litest_touch_up(dev, 0);
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_POINTER_MOTION);
+
+	/* apply sufficient pressure */
+	litest_axis_set_value_unchecked(axes, ABS_MT_TOUCH_MAJOR, 90);
+	litest_axis_set_value(axes, ABS_MT_TOUCH_MINOR, 90);
+	litest_touch_down(dev, 0, 80, 90);
+	litest_touch_move_to_extended(dev, 0, 80, 90, 50, 20, axes, 10);
+	litest_touch_move_to(dev, 0, 50, 20, 80, 90, 10);
+	litest_touch_up(dev, 0);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touchpad_palm_detect_touch_size_after_edge)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOUCH_MAJOR, 0 },
+		{ ABS_MT_TOUCH_MINOR, 0 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_touch_size(dev) ||
+	    litest_touchpad_is_external(dev) ||
+	    !touchpad_has_palm_detect_size(dev) ||
+	    !litest_has_2fg_scroll(dev))
+		return;
+
+	litest_enable_2fg_scroll(dev);
+	litest_drain_events(li);
+
+	/* apply sufficient pressure */
+	litest_axis_set_value_unchecked(axes, ABS_MT_TOUCH_MAJOR, 90);
+	litest_axis_set_value(axes, ABS_MT_TOUCH_MINOR, 90);
+	litest_touch_down(dev, 0, 99, 50);
+	litest_touch_move_to_extended(dev, 0, 99, 50, 20, 50, axes, 20);
+	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_POINTER_MOTION);
+}
+END_TEST
+
+START_TEST(touchpad_palm_detect_touch_size_after_dwt)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *keyboard;
+	struct libinput *li = touchpad->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_TOUCH_MAJOR, 0 },
+		{ ABS_MT_TOUCH_MINOR, 0 },
+		{ -1, 0 }
+	};
+
+	if (!touchpad_has_touch_size(touchpad) ||
+	    litest_touchpad_is_external(touchpad))
+		return;
+
+	keyboard = dwt_init_paired_keyboard(li, touchpad);
+	litest_drain_events(li);
+
+	litest_keyboard_key(keyboard, KEY_A, true);
+	litest_keyboard_key(keyboard, KEY_A, false);
+	litest_drain_events(li);
+
+	/* apply sufficient pressure */
+	litest_axis_set_value(axes, ABS_MT_TOUCH_MAJOR, 90);
+	litest_axis_set_value(axes, ABS_MT_TOUCH_MINOR, 90);
+
+	/* within dwt timeout, dwt blocks events */
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to_extended(touchpad, 0, 50, 50, 20, 50, axes, 20);
+	litest_assert_empty_queue(li);
+
+	litest_timeout_dwt_short();
+	libinput_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	/* after dwt timeout, pressure blocks events */
+	litest_touch_move_to_extended(touchpad, 0, 20, 50, 50, 50, axes, 20);
+	litest_touch_up(touchpad, 0);
+
+	litest_assert_empty_queue(li);
+
+	litest_delete_device(keyboard);
 }
 END_TEST
 
@@ -6826,7 +6984,12 @@ TEST_COLLECTION(touchpad)
 	litest_add("touchpad:palm", touchpad_palm_detect_tool_palm_on_off, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:palm", touchpad_palm_detect_tool_palm_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:palm", touchpad_palm_detect_tool_palm_tap_after, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+
 	litest_add("touchpad:palm", touchpad_palm_detect_touch_size, LITEST_APPLE_CLICKPAD, LITEST_ANY);
+	litest_add("touchpad:palm", touchpad_palm_detect_touch_size_late, LITEST_APPLE_CLICKPAD, LITEST_ANY);
+	litest_add("touchpad:palm", touchpad_palm_detect_touch_size_keep_palm, LITEST_APPLE_CLICKPAD, LITEST_ANY);
+	litest_add("touchpad:palm", touchpad_palm_detect_touch_size_after_edge, LITEST_APPLE_CLICKPAD, LITEST_ANY);
+	litest_add("touchpad:palm", touchpad_palm_detect_touch_size_after_dwt, LITEST_APPLE_CLICKPAD, LITEST_ANY);
 
 	litest_add("touchpad:palm", touchpad_palm_detect_pressure, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:palm", touchpad_palm_detect_pressure_late, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
