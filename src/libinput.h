@@ -3159,7 +3159,8 @@ libinput_set_user_data(struct libinput *libinput,
  *
  * @param libinput A previously initialized libinput context
  * @return The caller-specific data previously assigned in
- * libinput_create_udev().
+ * libinput_set_user_data(), libinput_path_create_context() or
+ * libinput_udev_create_context().
  */
 void *
 libinput_get_user_data(struct libinput *libinput);
