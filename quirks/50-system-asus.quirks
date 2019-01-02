@@ -17,3 +17,15 @@ AttrPressureRange=24:10
 MatchName=*ETPS/2 Elantech Touchpad*
 MatchDMIModalias=dmi:*svnASUSTeKCOMPUTERINC.:pnUX302LA:*
 AttrEventCodeDisable=ABS_MT_PRESSURE;ABS_PRESSURE;
+
+# Asus VivoBook Flip 14 TP412UA tablet switch seems misbehaving, always
+# indicating tablet position
+[Asus TP412UA Keyboard]
+MatchName=AT Translated Set 2 keyboard
+MatchDMIModalias=dmi:*svnASUSTeKCOMPUTERINC.:pnVivoBookFlip14_ASUSFlipTP412UA:*
+ModelTabletModeNoSuspend=1
+
+[Asus TP412UA Touchpad]
+MatchName=*ELAN*Touchpad*
+MatchDMIModalias=dmi:*svnASUSTeKCOMPUTERINC.:pnVivoBookFlip14_ASUSFlipTP412UA:*
+ModelTabletModeNoSuspend=1
