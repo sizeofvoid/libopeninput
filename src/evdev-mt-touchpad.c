@@ -2504,6 +2504,10 @@ tp_pair_tablet_mode_switch(struct evdev_device *touchpad,
 	if (touchpad->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD)
 		return;
 
+	if (evdev_device_has_model_quirk(touchpad,
+					 QUIRK_MODEL_TABLET_MODE_NO_SUSPEND))
+		return;
+
 	evdev_log_debug(touchpad,
 			"tablet_mode_switch: activated for %s<->%s\n",
 			touchpad->devname,
