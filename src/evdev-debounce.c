@@ -287,7 +287,7 @@ debounce_release_delayed_handle_event(struct fallback_dispatch *fallback, enum d
 		log_debounce_bug(fallback, event);
 		break;
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
-		debounce_set_state(fallback, DEBOUNCE_STATE_RELEASE_WAITING);
+		debounce_set_state(fallback, DEBOUNCE_STATE_RELEASED);
 		debounce_notify_button(fallback,
 				       LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
