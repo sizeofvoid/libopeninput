@@ -74,13 +74,13 @@ debounce_state_to_str(enum debounce_state state)
 	switch(state) {
 	CASE_RETURN_STRING(DEBOUNCE_STATE_IS_UP);
 	CASE_RETURN_STRING(DEBOUNCE_STATE_IS_DOWN);
-	CASE_RETURN_STRING(DEBOUNCE_STATE_DOWN_WAITING);
-	CASE_RETURN_STRING(DEBOUNCE_STATE_RELEASE_PENDING);
-	CASE_RETURN_STRING(DEBOUNCE_STATE_RELEASE_DELAYED);
-	CASE_RETURN_STRING(DEBOUNCE_STATE_RELEASE_WAITING);
-	CASE_RETURN_STRING(DEBOUNCE_STATE_MAYBE_SPURIOUS);
-	CASE_RETURN_STRING(DEBOUNCE_STATE_RELEASED);
-	CASE_RETURN_STRING(DEBOUNCE_STATE_PRESS_PENDING);
+	CASE_RETURN_STRING(DEBOUNCE_STATE_IS_DOWN_WAITING);
+	CASE_RETURN_STRING(DEBOUNCE_STATE_IS_UP_DELAYING);
+	CASE_RETURN_STRING(DEBOUNCE_STATE_IS_UP_DELAYING_SPURIOUS);
+	CASE_RETURN_STRING(DEBOUNCE_STATE_IS_UP_DETECTING_SPURIOUS);
+	CASE_RETURN_STRING(DEBOUNCE_STATE_IS_DOWN_DETECTING_SPURIOUS);
+	CASE_RETURN_STRING(DEBOUNCE_STATE_IS_UP_WAITING);
+	CASE_RETURN_STRING(DEBOUNCE_STATE_IS_DOWN_DELAYING);
 	CASE_RETURN_STRING(DEBOUNCE_STATE_DISABLED);
 	}
 
@@ -115,7 +115,7 @@ debounce_set_state(struct fallback_dispatch *fallback,
 		   enum debounce_state new_state)
 {
 	assert(new_state >= DEBOUNCE_STATE_IS_UP &&
-	       new_state <= DEBOUNCE_STATE_PRESS_PENDING);
+	       new_state <= DEBOUNCE_STATE_IS_DOWN_DELAYING);
 
 	fallback->debounce.state = new_state;
 }
@@ -186,7 +186,7 @@ debounce_is_up_handle_event(struct fallback_dispatch *fallback, enum debounce_ev
 	case DEBOUNCE_EVENT_PRESS:
 		fallback->debounce.button_time = time;
 		debounce_set_timer(fallback, time);
-		debounce_set_state(fallback, DEBOUNCE_STATE_DOWN_WAITING);
+		debounce_set_state(fallback, DEBOUNCE_STATE_IS_DOWN_WAITING);
 		debounce_notify_button(fallback,
 				       LIBINPUT_BUTTON_STATE_PRESSED);
 		break;
@@ -212,9 +212,9 @@ debounce_is_down_handle_event(struct fallback_dispatch *fallback, enum debounce_
 		debounce_set_timer(fallback, time);
 		debounce_set_timer_short(fallback, time);
 		if (fallback->debounce.spurious_enabled) {
-			debounce_set_state(fallback, DEBOUNCE_STATE_RELEASE_DELAYED);
+			debounce_set_state(fallback, DEBOUNCE_STATE_IS_UP_DELAYING_SPURIOUS);
 		} else {
-			debounce_set_state(fallback, DEBOUNCE_STATE_RELEASE_WAITING);
+			debounce_set_state(fallback, DEBOUNCE_STATE_IS_UP_DETECTING_SPURIOUS);
 			debounce_notify_button(fallback,
 					       LIBINPUT_BUTTON_STATE_RELEASED);
 		}
@@ -229,14 +229,14 @@ debounce_is_down_handle_event(struct fallback_dispatch *fallback, enum debounce_
 }
 
 static void
-debounce_down_waiting_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
+debounce_is_down_waiting_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
 		log_debounce_bug(fallback, event);
 		break;
 	case DEBOUNCE_EVENT_RELEASE:
-		debounce_set_state(fallback, DEBOUNCE_STATE_RELEASE_PENDING);
+		debounce_set_state(fallback, DEBOUNCE_STATE_IS_UP_DELAYING);
 		/* Note: In the debouncing RPR case, we use the last
 		 * release's time stamp */
 		fallback->debounce.button_time = time;
@@ -254,11 +254,11 @@ debounce_down_waiting_handle_event(struct fallback_dispatch *fallback, enum debo
 }
 
 static void
-debounce_release_pending_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
+debounce_is_up_delaying_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
-		debounce_set_state(fallback, DEBOUNCE_STATE_DOWN_WAITING);
+		debounce_set_state(fallback, DEBOUNCE_STATE_IS_DOWN_WAITING);
 		break;
 	case DEBOUNCE_EVENT_RELEASE:
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
@@ -274,7 +274,7 @@ debounce_release_pending_handle_event(struct fallback_dispatch *fallback, enum d
 }
 
 static void
-debounce_release_delayed_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
+debounce_is_up_delaying_spurious_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
@@ -287,7 +287,7 @@ debounce_release_delayed_handle_event(struct fallback_dispatch *fallback, enum d
 		log_debounce_bug(fallback, event);
 		break;
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
-		debounce_set_state(fallback, DEBOUNCE_STATE_RELEASED);
+		debounce_set_state(fallback, DEBOUNCE_STATE_IS_UP_WAITING);
 		debounce_notify_button(fallback,
 				       LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
@@ -300,14 +300,14 @@ debounce_release_delayed_handle_event(struct fallback_dispatch *fallback, enum d
 }
 
 static void
-debounce_release_waiting_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
+debounce_is_up_detecting_spurious_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
 		/* Note: in a bouncing PRP case, we use the last press
 		 * event time */
 		fallback->debounce.button_time = time;
-		debounce_set_state(fallback, DEBOUNCE_STATE_MAYBE_SPURIOUS);
+		debounce_set_state(fallback, DEBOUNCE_STATE_IS_DOWN_DETECTING_SPURIOUS);
 		break;
 	case DEBOUNCE_EVENT_RELEASE:
 		log_debounce_bug(fallback, event);
@@ -316,7 +316,7 @@ debounce_release_waiting_handle_event(struct fallback_dispatch *fallback, enum d
 		debounce_set_state(fallback, DEBOUNCE_STATE_IS_UP);
 		break;
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
-		debounce_set_state(fallback, DEBOUNCE_STATE_RELEASED);
+		debounce_set_state(fallback, DEBOUNCE_STATE_IS_UP_WAITING);
 		break;
 	case DEBOUNCE_EVENT_OTHERBUTTON:
 		debounce_set_state(fallback, DEBOUNCE_STATE_IS_UP);
@@ -325,14 +325,14 @@ debounce_release_waiting_handle_event(struct fallback_dispatch *fallback, enum d
 }
 
 static void
-debounce_maybe_spurious_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
+debounce_is_down_detecting_spurious_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
 		log_debounce_bug(fallback, event);
 		break;
 	case DEBOUNCE_EVENT_RELEASE:
-		debounce_set_state(fallback, DEBOUNCE_STATE_RELEASE_WAITING);
+		debounce_set_state(fallback, DEBOUNCE_STATE_IS_UP_DETECTING_SPURIOUS);
 		break;
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
 		debounce_cancel_timer(fallback);
@@ -351,14 +351,14 @@ debounce_maybe_spurious_handle_event(struct fallback_dispatch *fallback, enum de
 }
 
 static void
-debounce_released_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
+debounce_is_up_waiting_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
 		/* Note: in a debouncing PRP case, we use the last press'
 		 * time */
 		fallback->debounce.button_time = time;
-		debounce_set_state(fallback, DEBOUNCE_STATE_PRESS_PENDING);
+		debounce_set_state(fallback, DEBOUNCE_STATE_IS_DOWN_DELAYING);
 		break;
 	case DEBOUNCE_EVENT_RELEASE:
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
@@ -372,14 +372,14 @@ debounce_released_handle_event(struct fallback_dispatch *fallback, enum debounce
 }
 
 static void
-debounce_press_pending_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
+debounce_is_down_delaying_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
 		log_debounce_bug(fallback, event);
 		break;
 	case DEBOUNCE_EVENT_RELEASE:
-		debounce_set_state(fallback, DEBOUNCE_STATE_RELEASED);
+		debounce_set_state(fallback, DEBOUNCE_STATE_IS_UP_WAITING);
 		break;
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
 		log_debounce_bug(fallback, event);
@@ -437,26 +437,26 @@ debounce_handle_event(struct fallback_dispatch *fallback,
 	case DEBOUNCE_STATE_IS_DOWN:
 		debounce_is_down_handle_event(fallback, event, time);
 		break;
-	case DEBOUNCE_STATE_DOWN_WAITING:
-		debounce_down_waiting_handle_event(fallback, event, time);
+	case DEBOUNCE_STATE_IS_DOWN_WAITING:
+		debounce_is_down_waiting_handle_event(fallback, event, time);
 		break;
-	case DEBOUNCE_STATE_RELEASE_PENDING:
-		debounce_release_pending_handle_event(fallback, event, time);
+	case DEBOUNCE_STATE_IS_UP_DELAYING:
+		debounce_is_up_delaying_handle_event(fallback, event, time);
 		break;
-	case DEBOUNCE_STATE_RELEASE_DELAYED:
-		debounce_release_delayed_handle_event(fallback, event, time);
+	case DEBOUNCE_STATE_IS_UP_DELAYING_SPURIOUS:
+		debounce_is_up_delaying_spurious_handle_event(fallback, event, time);
 		break;
-	case DEBOUNCE_STATE_RELEASE_WAITING:
-		debounce_release_waiting_handle_event(fallback, event, time);
+	case DEBOUNCE_STATE_IS_UP_DETECTING_SPURIOUS:
+		debounce_is_up_detecting_spurious_handle_event(fallback, event, time);
 		break;
-	case DEBOUNCE_STATE_MAYBE_SPURIOUS:
-		debounce_maybe_spurious_handle_event(fallback, event, time);
+	case DEBOUNCE_STATE_IS_DOWN_DETECTING_SPURIOUS:
+		debounce_is_down_detecting_spurious_handle_event(fallback, event, time);
 		break;
-	case DEBOUNCE_STATE_RELEASED:
-		debounce_released_handle_event(fallback, event, time);
+	case DEBOUNCE_STATE_IS_UP_WAITING:
+		debounce_is_up_waiting_handle_event(fallback, event, time);
 		break;
-	case DEBOUNCE_STATE_PRESS_PENDING:
-		debounce_press_pending_handle_event(fallback, event, time);
+	case DEBOUNCE_STATE_IS_DOWN_DELAYING:
+		debounce_is_down_delaying_handle_event(fallback, event, time);
 		break;
 	case DEBOUNCE_STATE_DISABLED:
 		debounce_disabled_handle_event(fallback, event, time);
