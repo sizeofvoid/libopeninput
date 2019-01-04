@@ -4546,9 +4546,10 @@ START_TEST(touch_arbitration_remove_tablet)
 }
 END_TEST
 
-START_TEST(intuos_touch_arbitration_keep_ignoring)
+START_TEST(touch_arbitration_keep_ignoring)
 {
 	struct litest_device *tablet = litest_current_device();
+	enum litest_device_type other;
 	struct litest_device *finger;
 	struct libinput *li = tablet->libinput;
 	struct axis_replacement axes[] = {
@@ -4557,7 +4558,11 @@ START_TEST(intuos_touch_arbitration_keep_ignoring)
 		{ -1, -1 }
 	};
 
-	finger = litest_add_device(li, LITEST_WACOM_FINGER);
+	other = paired_device(tablet);
+	if (other == LITEST_NO_DEVICE)
+		return;
+
+	finger = litest_add_device(li, other);
 	litest_tablet_proximity_in(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 20, 40, axes);
@@ -4895,8 +4900,8 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:touch-arbitration", touch_arbitration_suspend_touch_device, LITEST_TOUCH, LITEST_ANY);
 	litest_add("tablet:touch-arbitration", touch_arbitration_remove_touch, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:touch-arbitration", touch_arbitration_remove_tablet, LITEST_TOUCH, LITEST_ANY);
+	litest_add("tablet:touch-arbitration", touch_arbitration_keep_ignoring, LITEST_TABLET, LITEST_ANY);
 
-	litest_add_for_device("tablet:touch-arbitration", intuos_touch_arbitration_keep_ignoring, LITEST_WACOM_INTUOS);
 	litest_add_for_device("tablet:touch-arbitration", intuos_touch_arbitration_late_touch_lift, LITEST_WACOM_INTUOS);
 
 	litest_add_for_device("tablet:quirks", huion_static_btn_tool_pen, LITEST_HUION_TABLET);
