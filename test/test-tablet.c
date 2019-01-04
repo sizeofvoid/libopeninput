@@ -4630,9 +4630,11 @@ START_TEST(intuos_touch_arbitration_late_touch_lift)
 	litest_drain_events(li);
 
 	/* with kernel arbitration, a finger + stylus in prox only generates
-	 * stylus events. When lifting the hand off, the stylus goes out of
-	 * prox when the hand is still touching. A few ms later, the hand
-	 * goes out of prox, this can generate a fake tap event.
+	 * stylus events. When a user lifts the hand with the stylus, the
+	 * stylus usually goes out of prox while the hand is still touching
+	 * the surface. This causes a touch down event now that the stylus
+	 * is out of proximity. A few ms later, the hand really lifts off
+	 * the surface, causing a touch down and thus a fake tap event.
 	 */
 	litest_touch_down(finger, 0, 30, 30);
 	litest_touch_up(finger, 0);
