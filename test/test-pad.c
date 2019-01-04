@@ -66,12 +66,15 @@ START_TEST(pad_time)
 	struct libinput_event_tablet_pad *pev;
 	unsigned int code;
 	uint64_t time, time_usec, oldtime;
+	bool has_buttons = false;
 
 	litest_drain_events(li);
 
-	for (code = BTN_0; code < KEY_MAX; code++) {
+	for (code = BTN_0; code < BTN_DIGI; code++) {
 		if (!libevdev_has_event_code(dev->evdev, EV_KEY, code))
 			continue;
+
+		has_buttons = true;
 
 		litest_button_click(dev, code, 1);
 		litest_button_click(dev, code, 0);
@@ -88,7 +91,11 @@ START_TEST(pad_time)
 		break;
 	}
 
+	if (!has_buttons)
+		return;
+
 	ev = libinput_get_event(li);
+	ck_assert_notnull(ev);
 	ck_assert_int_eq(libinput_event_get_type(ev),
 			 LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 	pev = libinput_event_get_tablet_pad_event(ev);
@@ -160,7 +167,7 @@ START_TEST(pad_num_buttons)
 	unsigned int code;
 	unsigned int nbuttons = 0;
 
-	for (code = BTN_0; code < KEY_MAX; code++) {
+	for (code = BTN_0; code < KEY_OK; code++) {
 		/* BTN_STYLUS is set for compatibility reasons but not
 		 * actually hooked up */
 		if (code == BTN_STYLUS)
@@ -338,7 +345,7 @@ START_TEST(pad_button_mode_groups)
 
 	litest_drain_events(li);
 
-	for (code = BTN_0; code < KEY_MAX; code++) {
+	for (code = BTN_0; code < KEY_OK; code++) {
 		unsigned int mode, index;
 		struct libinput_tablet_pad_mode_group *group;
 

@@ -2131,6 +2131,7 @@ START_TEST(tool_id)
 	case 0xc6: /* Cintiq 12WX */
 	case 0xf4: /* Cintiq 24HD */
 	case 0x333: /* Cintiq 13HD */
+	case 0x350: /* Cintiq Pro 16 */
 		tool_id = 2083;
 		break;
 	default:
