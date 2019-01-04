@@ -372,7 +372,7 @@ debounce_released_handle_event(struct fallback_dispatch *fallback, enum debounce
 }
 
 static void
-debounce_press_pending_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
+debounce_press_pending_handle_event(struct fallback_dispatch *fallback, enum debounce_event event, uint64_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
@@ -394,7 +394,7 @@ debounce_press_pending_event(struct fallback_dispatch *fallback, enum debounce_e
 }
 
 static void
-debounce_disabled_event(struct fallback_dispatch *fallback,
+debounce_disabled_handle_event(struct fallback_dispatch *fallback,
 			enum debounce_event event,
 			uint64_t time)
 {
@@ -456,10 +456,10 @@ debounce_handle_event(struct fallback_dispatch *fallback,
 		debounce_released_handle_event(fallback, event, time);
 		break;
 	case DEBOUNCE_STATE_PRESS_PENDING:
-		debounce_press_pending_event(fallback, event, time);
+		debounce_press_pending_handle_event(fallback, event, time);
 		break;
 	case DEBOUNCE_STATE_DISABLED:
-		debounce_disabled_event(fallback, event, time);
+		debounce_disabled_handle_event(fallback, event, time);
 		break;
 	}
 
