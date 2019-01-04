@@ -1346,6 +1346,7 @@ litest_create(enum litest_device_type which,
 		ck_abort_msg("Invalid device type %d\n", which);
 
 	d = zalloc(sizeof(*d));
+	d->which = which;
 
 	/* device has custom create method */
 	if (dev->create) {

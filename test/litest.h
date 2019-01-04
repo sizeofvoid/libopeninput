@@ -348,6 +348,7 @@ struct litest_semi_mt {
 };
 
 struct litest_device {
+	enum litest_device_type which;
 	struct libevdev *evdev;
 	struct libevdev_uinput *uinput;
 	struct libinput *libinput;
