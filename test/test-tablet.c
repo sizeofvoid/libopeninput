@@ -4225,8 +4225,7 @@ END_TEST
 
 static void
 touch_arbitration(struct litest_device *dev,
-		  enum litest_device_type other,
-		  bool is_touchpad)
+		  enum litest_device_type other)
 {
 	struct litest_device *finger;
 	struct libinput *li = dev->libinput;
@@ -4235,9 +4234,12 @@ touch_arbitration(struct litest_device *dev,
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
+	bool is_touchpad;
 
 	finger = litest_add_device(li, other);
 	litest_drain_events(li);
+
+	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_tablet_motion(dev, 10, 10, axes);
@@ -4281,22 +4283,20 @@ touch_arbitration(struct litest_device *dev,
 
 START_TEST(intuos_touch_arbitration)
 {
-	touch_arbitration(litest_current_device(), LITEST_WACOM_FINGER, true);
+	touch_arbitration(litest_current_device(), LITEST_WACOM_FINGER);
 }
 END_TEST
 
 START_TEST(cintiq_touch_arbitration)
 {
 	touch_arbitration(litest_current_device(),
-			  LITEST_WACOM_CINTIQ_13HDT_FINGER,
-			  false);
+			  LITEST_WACOM_CINTIQ_13HDT_FINGER);
 }
 END_TEST
 
 static void
 touch_arbitration_stop_touch(struct litest_device *dev,
-			     enum litest_device_type other,
-			     bool is_touchpad)
+			     enum litest_device_type other)
 {
 	struct litest_device *finger;
 	struct libinput *li = dev->libinput;
@@ -4305,8 +4305,12 @@ touch_arbitration_stop_touch(struct litest_device *dev,
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
+	bool is_touchpad;
 
 	finger = litest_add_device(li, other);
+
+	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
+
 	litest_touch_down(finger, 0, 30, 30);
 	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
 
@@ -4361,23 +4365,20 @@ touch_arbitration_stop_touch(struct litest_device *dev,
 START_TEST(intuos_touch_arbitration_stop_touch)
 {
 	touch_arbitration_stop_touch(litest_current_device(),
-				     LITEST_WACOM_FINGER,
-				     true);
+				     LITEST_WACOM_FINGER);
 }
 END_TEST
 
 START_TEST(cintiq_touch_arbitration_stop_touch)
 {
 	touch_arbitration_stop_touch(litest_current_device(),
-				     LITEST_WACOM_CINTIQ_13HDT_FINGER,
-				     false);
+				     LITEST_WACOM_CINTIQ_13HDT_FINGER);
 }
 END_TEST
 
 static void
 touch_arbitration_suspend_touch(struct litest_device *dev,
-				enum litest_device_type other,
-				bool is_touchpad)
+				enum litest_device_type other)
 {
 	struct litest_device *tablet;
 	struct libinput *li = dev->libinput;
@@ -4387,8 +4388,11 @@ touch_arbitration_suspend_touch(struct litest_device *dev,
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
+	bool is_touchpad;
 
 	tablet = litest_add_device(li, other);
+
+	is_touchpad = !libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
 
 	/* we can't force a device suspend, but we can at least make sure
 	   the device doesn't send events */
@@ -4449,23 +4453,20 @@ touch_arbitration_suspend_touch(struct litest_device *dev,
 START_TEST(intuos_touch_arbitration_suspend_touch_device)
 {
 	touch_arbitration_suspend_touch(litest_current_device(),
-					LITEST_WACOM_INTUOS,
-					true);
+					LITEST_WACOM_INTUOS);
 }
 END_TEST
 
 START_TEST(cintiq_touch_arbitration_suspend_touch_device)
 {
 	touch_arbitration_suspend_touch(litest_current_device(),
-					LITEST_WACOM_CINTIQ_13HDT_PEN,
-					false);
+					LITEST_WACOM_CINTIQ_13HDT_PEN);
 }
 END_TEST
 
 static void
 touch_arbitration_remove_touch(struct litest_device *dev,
-			       enum litest_device_type other,
-			       bool is_touchpad)
+			       enum litest_device_type other)
 {
 	struct litest_device *finger;
 	struct libinput *li = dev->libinput;
@@ -4496,23 +4497,20 @@ touch_arbitration_remove_touch(struct litest_device *dev,
 START_TEST(intuos_touch_arbitration_remove_touch)
 {
 	touch_arbitration_remove_touch(litest_current_device(),
-				       LITEST_WACOM_FINGER,
-				       true);
+				       LITEST_WACOM_FINGER);
 }
 END_TEST
 
 START_TEST(cintiq_touch_arbitration_remove_touch)
 {
 	touch_arbitration_remove_touch(litest_current_device(),
-				       LITEST_WACOM_CINTIQ_13HDT_FINGER,
-				       false);
+				       LITEST_WACOM_CINTIQ_13HDT_FINGER);
 }
 END_TEST
 
 static void
 touch_arbitration_remove_tablet(struct litest_device *dev,
-				enum litest_device_type other,
-				bool is_touchpad)
+				enum litest_device_type other)
 {
 	struct litest_device *tablet;
 	struct libinput *li = dev->libinput;
@@ -4521,8 +4519,12 @@ touch_arbitration_remove_tablet(struct litest_device *dev,
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
+	bool is_touchpad;
 
 	tablet = litest_add_device(li, other);
+
+	is_touchpad = !libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
+
 	libinput_dispatch(li);
 	litest_tablet_proximity_in(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 10, 10, axes);
@@ -4560,16 +4562,14 @@ touch_arbitration_remove_tablet(struct litest_device *dev,
 START_TEST(intuos_touch_arbitration_remove_tablet)
 {
 	touch_arbitration_remove_tablet(litest_current_device(),
-					LITEST_WACOM_INTUOS,
-					true);
+					LITEST_WACOM_INTUOS);
 }
 END_TEST
 
 START_TEST(cintiq_touch_arbitration_remove_tablet)
 {
 	touch_arbitration_remove_tablet(litest_current_device(),
-					LITEST_WACOM_CINTIQ_13HDT_PEN,
-					false);
+					LITEST_WACOM_CINTIQ_13HDT_PEN);
 }
 END_TEST
 
