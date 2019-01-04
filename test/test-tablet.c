@@ -4585,7 +4585,6 @@ START_TEST(intuos_touch_arbitration_keep_ignoring)
 	};
 
 	finger = litest_add_device(li, LITEST_WACOM_FINGER);
-	litest_enable_tap(finger->libinput_device);
 	litest_tablet_proximity_in(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 20, 40, axes);
