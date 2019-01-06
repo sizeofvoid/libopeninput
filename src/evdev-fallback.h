@@ -118,10 +118,6 @@ struct fallback_dispatch {
 
 	enum evdev_event_type pending_event;
 
-	/* true if we're reading events (i.e. not suspended) but we're
-	   ignoring them */
-	bool ignore_events;
-
 	struct {
 		unsigned int button_code;
 		uint64_t button_time;
@@ -144,6 +140,15 @@ struct fallback_dispatch {
 		 */
 		struct list paired_keyboard_list;
 	} lid;
+
+	/* pen/touch arbitration has a delayed state, if ignore_events is
+	 * true we want to ignore events, in_arbitration actually filters.
+	 */
+	struct {
+		bool ignore_events;
+		bool in_arbitration;
+		struct libinput_timer arbitration_timer;
+	} arbitration;
 };
 
 static inline struct fallback_dispatch*

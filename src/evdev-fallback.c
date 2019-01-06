@@ -1017,7 +1017,7 @@ fallback_interface_process(struct evdev_dispatch *evdev_dispatch,
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 
-	if (dispatch->ignore_events)
+	if (dispatch->arbitration.in_arbitration)
 		return;
 
 	switch (event->type) {
@@ -1202,13 +1202,26 @@ fallback_interface_toggle_touch(struct evdev_dispatch *evdev_dispatch,
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 	bool ignore_events = !enable;
 
-	if (ignore_events == dispatch->ignore_events)
+	if (ignore_events == dispatch->arbitration.ignore_events)
 		return;
 
-	if (ignore_events)
+	if (ignore_events) {
+		libinput_timer_cancel(&dispatch->arbitration.arbitration_timer);
 		fallback_return_to_neutral_state(dispatch, device);
+		dispatch->arbitration.in_arbitration = true;
+	} else {
+		/* if in-kernel arbitration is in use and there is a touch
+		 * and a pen in proximity, lifting the pen out of proximity
+		 * causes a touch begin for the touch. On a hand-lift the
+		 * proximity out precedes the touch up by a few ms, so we
+		 * get what looks like a tap. Fix this by delaying
+		 * arbitration by just a little bit so that any touch in
+		 * event is caught as palm touch. */
+		libinput_timer_set(&dispatch->arbitration.arbitration_timer,
+				   time + ms2us(90));
+	}
 
-	dispatch->ignore_events = ignore_events;
+	dispatch->arbitration.ignore_events = ignore_events;
 }
 
 static void
@@ -1216,6 +1229,7 @@ fallback_interface_destroy(struct evdev_dispatch *evdev_dispatch)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 
+	libinput_timer_destroy(&dispatch->arbitration.arbitration_timer);
 	libinput_timer_destroy(&dispatch->debounce.timer);
 	libinput_timer_destroy(&dispatch->debounce.timer_short);
 
@@ -1596,6 +1610,33 @@ fallback_dispatch_init_switch(struct fallback_dispatch *dispatch,
 	libinput_device_init_event_listener(&dispatch->tablet_mode.other.listener);
 }
 
+static void
+fallback_arbitration_timeout(uint64_t now, void *data)
+{
+	struct fallback_dispatch *dispatch = data;
+
+	if (dispatch->arbitration.in_arbitration)
+		dispatch->arbitration.in_arbitration = false;
+}
+
+static void
+fallback_init_arbitration(struct fallback_dispatch *dispatch,
+			  struct evdev_device *device)
+{
+	char timer_name[64];
+
+	snprintf(timer_name,
+		 sizeof(timer_name),
+		  "%s arbitration",
+		  evdev_device_get_sysname(device));
+	libinput_timer_init(&dispatch->arbitration.arbitration_timer,
+			    evdev_libinput_context(device),
+			    timer_name,
+			    fallback_arbitration_timeout,
+			    dispatch);
+	dispatch->arbitration.in_arbitration = false;
+}
+
 struct evdev_dispatch *
 fallback_dispatch_create(struct libinput_device *libinput_device)
 {
@@ -1652,6 +1693,7 @@ fallback_dispatch_create(struct libinput_device *libinput_device)
 	}
 
 	fallback_init_debounce(dispatch);
+	fallback_init_arbitration(dispatch, device);
 
 	return &dispatch->base;
 }

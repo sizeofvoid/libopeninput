@@ -4287,6 +4287,9 @@ START_TEST(touch_arbitration)
 	litest_touch_up(finger, 0);
 	litest_assert_empty_queue(li);
 
+	litest_timeout_touch_arbitration();
+	libinput_dispatch(li);
+
 	/* lift finger, expect expect events */
 	litest_touch_down(finger, 0, 30, 30);
 	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
@@ -4585,9 +4588,10 @@ START_TEST(touch_arbitration_keep_ignoring)
 }
 END_TEST
 
-START_TEST(intuos_touch_arbitration_late_touch_lift)
+START_TEST(touch_arbitration_late_touch_lift)
 {
 	struct litest_device *tablet = litest_current_device();
+	enum litest_device_type other;
 	struct litest_device *finger;
 	struct libinput *li = tablet->libinput;
 	struct axis_replacement axes[] = {
@@ -4595,9 +4599,16 @@ START_TEST(intuos_touch_arbitration_late_touch_lift)
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
+	bool is_touchpad;
 
-	finger = litest_add_device(li, LITEST_WACOM_FINGER);
-	litest_enable_tap(finger->libinput_device);
+	other = paired_device(tablet);
+	if (other == LITEST_NO_DEVICE)
+		return;
+
+	finger = litest_add_device(li, other);
+	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
+	if (is_touchpad)
+		litest_enable_tap(finger->libinput_device);
 	litest_tablet_proximity_in(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 20, 40, axes);
@@ -4901,8 +4912,7 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:touch-arbitration", touch_arbitration_remove_touch, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:touch-arbitration", touch_arbitration_remove_tablet, LITEST_TOUCH, LITEST_ANY);
 	litest_add("tablet:touch-arbitration", touch_arbitration_keep_ignoring, LITEST_TABLET, LITEST_ANY);
-
-	litest_add_for_device("tablet:touch-arbitration", intuos_touch_arbitration_late_touch_lift, LITEST_WACOM_INTUOS);
+	litest_add("tablet:touch-arbitration", touch_arbitration_late_touch_lift, LITEST_TABLET, LITEST_ANY);
 
 	litest_add_for_device("tablet:quirks", huion_static_btn_tool_pen, LITEST_HUION_TABLET);
 	litest_add_for_device("tablet:quirks", huion_static_btn_tool_pen_no_timeout_during_usage, LITEST_HUION_TABLET);
