@@ -139,7 +139,7 @@ static int events[] = {
 
 TEST_DEVICE("wacom-cintiq-tablet",
 	.type = LITEST_WACOM_CINTIQ,
-	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT,
+	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT | LITEST_DIRECT,
 	.interface = &interface,
 
 	.name = "Wacom Cintiq 12WX",

@@ -328,6 +328,7 @@ enum litest_device_feature {
 	LITEST_IGNORED = 1 << 27,
 	LITEST_NO_DEBOUNCE = 1 << 28,
 	LITEST_TOOL_MOUSE = 1 << 29,
+	LITEST_DIRECT = 1 << 30,
 };
 
 /* this is a semi-mt device, so we keep track of the touches that the tests

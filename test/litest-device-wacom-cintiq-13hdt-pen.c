@@ -137,7 +137,7 @@ static const char udev_rule[] =
 
 TEST_DEVICE("wacom-cintiq-13hdt-pen-tablet",
 	.type = LITEST_WACOM_CINTIQ_13HDT_PEN,
-	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT,
+	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT | LITEST_DIRECT,
 	.interface = &interface,
 
 	.name = "Wacom Cintiq 13 HD touch Pen",
