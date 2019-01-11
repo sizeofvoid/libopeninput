@@ -713,6 +713,9 @@ evdev_log_msg(struct evdev_device *device,
 	va_list args;
 	char buf[1024];
 
+	if (!is_logged(evdev_libinput_context(device), priority))
+		return;
+
 	/* Anything info and above is user-visible, use the device name */
 	snprintf(buf,
 		 sizeof(buf),
@@ -740,6 +743,9 @@ evdev_log_msg_ratelimit(struct evdev_device *device,
 	char buf[1024];
 
 	enum ratelimit_state state;
+
+	if (!is_logged(evdev_libinput_context(device), priority))
+		return;
 
 	state = ratelimit_test(ratelimit);
 	if (state == RATELIMIT_EXCEEDED)

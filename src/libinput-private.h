@@ -404,6 +404,15 @@ typedef void (*libinput_source_dispatch_t)(void *data);
 #define log_bug_libinput_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, "libinput bug: " __VA_ARGS__)
 #define log_bug_client_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, "client bug: " __VA_ARGS__)
 
+static inline bool
+is_logged(const struct libinput *libinput,
+	  enum libinput_log_priority priority)
+{
+       return libinput->log_handler &&
+               libinput->log_priority <= priority;
+}
+
+
 void
 log_msg_ratelimit(struct libinput *libinput,
 		  struct ratelimit *ratelimit,

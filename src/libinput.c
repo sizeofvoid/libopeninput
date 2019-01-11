@@ -262,8 +262,7 @@ log_msg_va(struct libinput *libinput,
 	   const char *format,
 	   va_list args)
 {
-	if (libinput->log_handler &&
-	    libinput->log_priority <= priority)
+	if (is_logged(libinput, priority))
 		libinput->log_handler(libinput, priority, format, args);
 }
 
