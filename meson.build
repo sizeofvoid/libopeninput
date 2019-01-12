@@ -1,4 +1,4 @@
-project('libinput', 'c', 'cpp',
+project('libinput', 'c',
 	version : '1.12.3',
 	license : 'MIT/Expat',
 	default_options : [ 'c_std=gnu99', 'warning_level=2' ],
@@ -651,12 +651,14 @@ executable('test-build-linker',
 	   include_directories : [includes_src, includes_include],
 	   dependencies : [ dep_libinput, dep_libinput_util ],
 	   install : false)
-# test including from C++
-executable('test-build-cxx',
-	   'test/build-cxx.cc',
-	   dependencies : [dep_udev],
-	   include_directories : [includes_src, includes_include],
-	   install : false)
+# test including from C++ (in case CPP compiler is available)
+if add_languages('cpp', required: false)
+	executable('test-build-cxx',
+		   'test/build-cxx.cc',
+		   dependencies : [dep_udev],
+		   include_directories : [includes_src, includes_include],
+		   install : false)
+endif
 
 # This is the test suite runner, we allow disabling that one because of
 # dependencies
