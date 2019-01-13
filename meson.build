@@ -251,6 +251,7 @@ quirks_data = [
 	'quirks/10-generic-trackball.quirks',
 	'quirks/30-vendor-aiptek.quirks',
 	'quirks/30-vendor-alps.quirks',
+	'quirks/30-vendor-contour.quirks',
 	'quirks/30-vendor-cyapa.quirks',
 	'quirks/30-vendor-elantech.quirks',
 	'quirks/30-vendor-huion.quirks',
