@@ -228,7 +228,7 @@ device capabilities together with the event stream from the kernel. On our
 side, this allows us to recreate a virtual device identical to your device
 and re-play the event sequence, hopefully triggering the same bug.
 
-evemu-record takes a <tt>/dev/input/eventX</tt> event node, but without arguments
+evemu-record takes a ``/dev/input/eventX`` event node, but without arguments
 it will simply show the list of devices and let you select: ::
 
      $ sudo evemu-record > scroll.evemu
