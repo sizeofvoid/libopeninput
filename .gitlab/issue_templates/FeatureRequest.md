@@ -29,4 +29,4 @@ to provide as many details as possible -->
 
 
 
-/label ~RFE ~needs-investigation
+/label ~enhancement ~"needs triage"

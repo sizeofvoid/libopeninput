@@ -28,4 +28,4 @@ please reproduce with a current version instead -->
 console output, logs, and code as it's very hard to read otherwise.) -->
 
 
-/label ~bug ~needs-investigation
+/label ~bug ~"needs triage"
