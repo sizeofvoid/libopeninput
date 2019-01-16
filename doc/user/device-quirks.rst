@@ -144,6 +144,8 @@ ModelTouchpadVisibleMarker
 ModelTabletModeNoSuspend
     Indicates that the device does not need to be
     suspended in :ref:`switches_tablet_mode`.
+ModelTabletModeSwitchUnreliable
+    Indicates that this tablet mode switch's state cannot be relied upon.
 ModelTrackball
     Reserved for trackballs
 ModelBouncingKeys

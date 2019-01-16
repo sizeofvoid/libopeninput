@@ -20,12 +20,7 @@ AttrEventCodeDisable=ABS_MT_PRESSURE;ABS_PRESSURE;
 
 # Asus VivoBook Flip 14 TP412UA tablet switch seems misbehaving, always
 # indicating tablet position
-[Asus TP412UA Keyboard]
-MatchName=AT Translated Set 2 keyboard
+[Asus TP412UA Tablet Mode Switch]
+MatchName=*Intel Virtual Button*
 MatchDMIModalias=dmi:*svnASUSTeKCOMPUTERINC.:pnVivoBookFlip14_ASUSFlipTP412UA:*
-ModelTabletModeNoSuspend=1
-
-[Asus TP412UA Touchpad]
-MatchName=*ELAN*Touchpad*
-MatchDMIModalias=dmi:*svnASUSTeKCOMPUTERINC.:pnVivoBookFlip14_ASUSFlipTP412UA:*
-ModelTabletModeNoSuspend=1
+ModelTabletModeSwitchUnreliable=1
