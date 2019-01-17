@@ -53,6 +53,10 @@ This option requires that a
 \fB\-\-output-file\fR is specified and that all devices to be recorded are
 given on the commandline.
 .TP 8
+.B \-\-show\-keycodes
+Show keycodes as-is in the recording. By default, common keys are obfuscated
+and printed as \fBKEY_A\fR to avoid information leaks.
+.TP 8
 .B \-\-with-libinput
 Record libinput events alongside device events.
 .B THIS FEATURE IS EXPERIMENTAL.
