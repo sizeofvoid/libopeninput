@@ -790,7 +790,7 @@ enum libinput_event_type {
 	 */
 	LIBINPUT_EVENT_TABLET_PAD_BUTTON = 700,
 	/**
-	 * A status change on a tablet ring with the
+	 * A status change on a tablet ring with the @ref
 	 * LIBINPUT_DEVICE_CAP_TABLET_PAD capability.
 	 */
 	LIBINPUT_EVENT_TABLET_PAD_RING,
