@@ -392,6 +392,10 @@ pad_notify_button_mask(struct pad_dispatch *pad,
 							 button,
 							 state,
 							 group);
+			} else if (map_is_key(map)) {
+				uint32_t key = map_value(map);
+
+				tablet_pad_notify_key(base, time, key, state);
 			} else {
 				abort();
 			}
@@ -612,6 +616,26 @@ pad_init_buttons_from_kernel(struct pad_dispatch *pad,
 }
 
 static void
+pad_init_keys(struct pad_dispatch *pad, struct evdev_device *device)
+{
+	unsigned int codes[] = {
+		KEY_BUTTONCONFIG,
+		KEY_ONSCREEN_KEYBOARD,
+		KEY_CONTROLPANEL,
+	};
+	unsigned int *code;
+
+	/* Wacom's keys are the only ones we know anything about */
+	if (libevdev_get_id_vendor(device->evdev) != VENDOR_ID_WACOM)
+		return;
+
+	ARRAY_FOR_EACH(codes, code) {
+		if (libevdev_has_event_code(device->evdev, EV_KEY, *code))
+			map_set_key_map(pad->button_map[*code], *code);
+	}
+}
+
+static void
 pad_init_buttons(struct pad_dispatch *pad,
 		 struct evdev_device *device)
 {
@@ -623,6 +647,7 @@ pad_init_buttons(struct pad_dispatch *pad,
 	if (!pad_init_buttons_from_libwacom(pad, device))
 		pad_init_buttons_from_kernel(pad, device);
 
+	pad_init_keys(pad, device);
 }
 
 static void
@@ -716,6 +741,15 @@ evdev_tablet_pad_create(struct evdev_device *device)
 	pad->sendevents.config.get_default_mode = pad_sendevents_get_default_mode;
 
 	return &pad->base;
+}
+
+int
+evdev_device_tablet_pad_has_key(struct evdev_device *device, uint32_t code)
+{
+	if (!(device->seat_caps & EVDEV_DEVICE_TABLET_PAD))
+		return -1;
+
+	return libevdev_has_event_code(device->evdev, EV_KEY, code);
 }
 
 int

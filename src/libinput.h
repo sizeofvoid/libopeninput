@@ -845,6 +845,12 @@ enum libinput_event_type {
 	 * A button pressed on a device with the @ref
 	 * LIBINPUT_DEVICE_CAP_TABLET_PAD capability.
 	 *
+	 * A button differs from @ref LIBINPUT_EVENT_TABLET_PAD_KEY in that
+	 * buttons are sequentially indexed from 0 and do not carry any
+	 * other information.  Keys have a specific functionality assigned
+	 * to them. The key code thus carries a semantic meaning, a button
+	 * number does not.
+	 *
 	 * This event is not to be confused with the button events emitted
 	 * by tools on a tablet (@ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON).
 	 *
@@ -866,6 +872,19 @@ enum libinput_event_type {
 	 * @since 1.3
 	 */
 	LIBINPUT_EVENT_TABLET_PAD_STRIP,
+
+	/**
+	 * A key pressed on a device with the @ref
+	 * LIBINPUT_DEVICE_CAP_TABLET_PAD capability.
+	 *
+	 * A key differs from @ref LIBINPUT_EVENT_TABLET_PAD_BUTTON in that
+	 * keys have a specific functionality assigned to them (buttons are
+	 * sequentially ordered). The key code thus carries a semantic
+	 * meaning, a button number does not.
+	 *
+	 * @since 1.15
+	 */
+	LIBINPUT_EVENT_TABLET_PAD_KEY,
 
 	LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN = 800,
 	LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
@@ -3065,12 +3084,53 @@ libinput_event_tablet_pad_get_button_state(struct libinput_event_tablet_pad *eve
 /**
  * @ingroup event_tablet_pad
  *
+ * Return the key code that triggered this event, e.g. KEY_CONTROLPANEL. The
+ * list of key codes is defined in linux/input-event-codes.h.
+ *
+ * For events that are not of type @ref LIBINPUT_EVENT_TABLET_PAD_KEY,
+ * this function returns 0.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_PAD_KEY. For other events, this function
+ * returns 0.
+ *
+ * @param event The libinput tablet pad event
+ * @return the key code triggering this event
+ *
+ * @since 1.15
+ */
+uint32_t
+libinput_event_tablet_pad_get_key(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet_pad
+ *
+ * Return the key state of the event.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_PAD_KEY. For other events, this function
+ * returns 0.
+ *
+ * @param event The libinput tablet pad event
+ * @return the key state triggering this event
+ *
+ * @since 1.15
+ */
+enum libinput_key_state
+libinput_event_tablet_pad_get_key_state(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet_pad
+ *
  * Returns the mode the button, ring, or strip that triggered this event is
  * in, at the time of the event.
  *
  * The mode is a virtual grouping of functionality, usually based on some
  * visual feedback like LEDs on the pad. Mode indices start at 0, a device
  * that does not support modes always returns 0.
+ *
+ * @note Pad keys are not part of a mode group. It is an application bug to
+ * call this function for @ref LIBINPUT_EVENT_TABLET_PAD_KEY.
  *
  * Mode switching is controlled by libinput and more than one mode may exist
  * on the tablet. This function returns the mode that this event's button,
@@ -3101,6 +3161,9 @@ libinput_event_tablet_pad_get_mode(struct libinput_event_tablet_pad *event);
  * this event is considered in. The mode is a virtual grouping of
  * functionality, usually based on some visual feedback like LEDs on the
  * pad.
+ *
+ * @note Pad keys are not part of a mode group. It is an application bug to
+ * call this function for @ref LIBINPUT_EVENT_TABLET_PAD_KEY.
  *
  * The returned mode group is not refcounted and may become invalid after
  * the next call to libinput. Use libinput_tablet_pad_mode_group_ref() and
@@ -4152,6 +4215,24 @@ libinput_device_tablet_pad_get_num_rings(struct libinput_device *device);
  */
 int
 libinput_device_tablet_pad_get_num_strips(struct libinput_device *device);
+
+/**
+ * @ingroup device
+ *
+ * Check if a @ref LIBINPUT_DEVICE_CAP_TABLET_PAD device has a key with the
+ * given code (see linux/input-event-codes.h).
+ *
+ * @param device A current input device
+ * @param code Key code to check for, e.g. <i>KEY_ESC</i>
+ *
+ * @return 1 if the device supports this key code, 0 if it does not, -1
+ * on error.
+ *
+ * @since 1.15
+ */
+int
+libinput_device_tablet_pad_has_key(struct libinput_device *device,
+				   uint32_t code);
 
 /**
  * @ingroup device

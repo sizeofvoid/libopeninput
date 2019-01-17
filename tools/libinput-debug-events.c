@@ -140,6 +140,9 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
 		type = "TABLET_PAD_STRIP";
 		break;
+	case LIBINPUT_EVENT_TABLET_PAD_KEY:
+		type = "TABLET_PAD_KEY";
+		break;
 	case LIBINPUT_EVENT_SWITCH_TOGGLE:
 		type = "SWITCH_TOGGLE";
 		break;
@@ -765,6 +768,32 @@ print_tablet_pad_strip_event(struct libinput_event *ev)
 }
 
 static void
+print_tablet_pad_key_event(struct libinput_event *ev)
+{
+	struct libinput_event_tablet_pad *p = libinput_event_get_tablet_pad_event(ev);
+	enum libinput_key_state state;
+	uint32_t key;
+	const char *keyname;
+
+	print_event_time(libinput_event_tablet_pad_get_time(p));
+
+	key = libinput_event_tablet_pad_get_key(p);
+	if (!show_keycodes && (key >= KEY_ESC && key < KEY_ZENKAKUHANKAKU)) {
+		keyname = "***";
+		key = -1;
+	} else {
+		keyname = libevdev_event_code_get_name(EV_KEY, key);
+		keyname = keyname ? keyname : "???";
+	}
+	state = libinput_event_tablet_pad_get_key_state(p);
+	printq("%s (%d) %s\n",
+	       keyname,
+	       key,
+	       state == LIBINPUT_KEY_STATE_PRESSED ? "pressed" : "released");
+}
+
+
+static void
 print_switch_event(struct libinput_event *ev)
 {
 	struct libinput_event_switch *sw = libinput_event_get_switch_event(ev);
@@ -878,6 +907,9 @@ handle_and_print_events(struct libinput *li)
 			break;
 		case LIBINPUT_EVENT_TABLET_PAD_STRIP:
 			print_tablet_pad_strip_event(ev);
+			break;
+		case LIBINPUT_EVENT_TABLET_PAD_KEY:
+			print_tablet_pad_key_event(ev);
 			break;
 		case LIBINPUT_EVENT_SWITCH_TOGGLE:
 			print_switch_event(ev);

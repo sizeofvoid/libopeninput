@@ -751,6 +751,10 @@ struct libinput_event_tablet_pad *
 litest_is_pad_strip_event(struct libinput_event *event,
 			  unsigned int number,
 			  enum libinput_tablet_pad_strip_axis_source source);
+struct libinput_event_tablet_pad *
+litest_is_pad_key_event(struct libinput_event *event,
+			unsigned int key,
+			enum libinput_key_state state);
 
 struct libinput_event_switch *
 litest_is_switch_event(struct libinput_event *event,
@@ -796,6 +800,10 @@ void
 litest_assert_pad_button_event(struct libinput *li,
 				    unsigned int button,
 				    enum libinput_button_state state);
+void
+litest_assert_pad_key_event(struct libinput *li,
+			    unsigned int key,
+			    enum libinput_key_state state);
 struct libevdev_uinput *
 litest_create_uinput_device(const char *name,
 			    struct input_id *id,

@@ -2975,6 +2975,9 @@ litest_event_type_str(enum libinput_event_type type)
 	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
 		str = "TABLET PAD STRIP";
 		break;
+	case LIBINPUT_EVENT_TABLET_PAD_KEY:
+		str = "TABLET PAD KEY";
+		break;
 	case LIBINPUT_EVENT_SWITCH_TOGGLE:
 		str = "SWITCH TOGGLE";
 		break;
@@ -3600,6 +3603,27 @@ litest_is_pad_strip_event(struct libinput_event *event,
 	return p;
 }
 
+struct libinput_event_tablet_pad *
+litest_is_pad_key_event(struct libinput_event *event,
+			unsigned int key,
+			enum libinput_key_state state)
+{
+	struct libinput_event_tablet_pad *p;
+	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_PAD_KEY;
+
+	litest_assert(event != NULL);
+	litest_assert_event_type(event, type);
+
+	p = libinput_event_get_tablet_pad_event(event);
+	litest_assert(p != NULL);
+
+	litest_assert_int_eq(libinput_event_tablet_pad_get_key(p), key);
+	litest_assert_int_eq(libinput_event_tablet_pad_get_key_state(p),
+			     state);
+
+	return p;
+}
+
 struct libinput_event_switch *
 litest_is_switch_event(struct libinput_event *event,
 		       enum libinput_switch sw,
@@ -3631,6 +3655,21 @@ litest_assert_pad_button_event(struct libinput *li,
 	event = libinput_get_event(li);
 
 	pev = litest_is_pad_button_event(event, button, state);
+	libinput_event_destroy(libinput_event_tablet_pad_get_base_event(pev));
+}
+
+void
+litest_assert_pad_key_event(struct libinput *li,
+			    unsigned int key,
+			    enum libinput_key_state state)
+{
+	struct libinput_event *event;
+	struct libinput_event_tablet_pad *pev;
+
+	litest_wait_for_event(li);
+	event = libinput_get_event(li);
+
+	pev = litest_is_pad_key_event(event, key, state);
 	libinput_event_destroy(libinput_event_tablet_pad_get_base_event(pev));
 }
 
