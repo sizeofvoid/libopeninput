@@ -786,7 +786,7 @@ enum libinput_event_type {
 	 * LIBINPUT_DEVICE_CAP_TABLET_PAD capability.
 	 *
 	 * This event is not to be confused with the button events emitted
-	 * by tools on a tablet. See @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
+	 * by tools on a tablet (@ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON).
 	 */
 	LIBINPUT_EVENT_TABLET_PAD_BUTTON = 700,
 	/**
