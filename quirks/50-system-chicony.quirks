@@ -12,6 +12,6 @@ AttrTPKComboLayout=below
 [Chicony Lenovo MIIX 720 Touchpad]
 MatchUdevType=touchpad
 MatchBus=usb
-MatchVendor=0x17ef
-MatchProduct=0x60a6
+MatchVendor=0x17EF
+MatchProduct=0x60A6
 AttrTPKComboLayout=below

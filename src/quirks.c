@@ -438,6 +438,15 @@ section_destroy(struct section *s)
 	free(s);
 }
 
+static inline bool
+parse_hex(const char *value, unsigned int *parsed)
+{
+	return strneq(value, "0x", 2) &&
+	       safe_atou_base(value, parsed, 16) &&
+	       strspn(value, "0123456789xABCDEF") == strlen(value) &&
+	       *parsed <= 0xFFFF;
+}
+
 /**
  * Parse a MatchFooBar=banana line.
  *
@@ -483,9 +492,7 @@ parse_match(struct quirks_context *ctx,
 		unsigned int vendor;
 
 		check_set_bit(s, M_VID);
-		if (!strneq(value, "0x", 2) ||
-		    !safe_atou_base(value, &vendor, 16) ||
-		    vendor > 0xFFFF)
+		if (!parse_hex(value, &vendor))
 			goto out;
 
 		s->match.vendor = vendor;
@@ -493,9 +500,7 @@ parse_match(struct quirks_context *ctx,
 		unsigned int product;
 
 		check_set_bit(s, M_PID);
-		if (!strneq(value, "0x", 2) ||
-		    !safe_atou_base(value, &product, 16) ||
-		    product > 0xFFFF)
+		if (!parse_hex(value, &product))
 			goto out;
 
 		s->match.product = product;
@@ -503,9 +508,7 @@ parse_match(struct quirks_context *ctx,
 		unsigned int version;
 
 		check_set_bit(s, M_VERSION);
-		if (!strneq(value, "0x", 2) ||
-		    !safe_atou_base(value, &version, 16) ||
-		    version > 0xFFFF)
+		if (!parse_hex(value, &version))
 			goto out;
 
 		s->match.version = version;
