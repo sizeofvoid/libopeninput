@@ -949,7 +949,7 @@ litest_fork_subtests(struct list *tests, int max_forks)
 		int rc;
 		int pipefd[2];
 
-		rc = pipe2(pipefd, O_NONBLOCK|O_NONBLOCK);
+		rc = pipe2(pipefd, O_NONBLOCK);
 		assert(rc != -1);
 
 		pid = fork();
