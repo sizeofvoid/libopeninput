@@ -122,22 +122,12 @@ config_h.set10('HAVE_LIBWACOM', have_libwacom)
 if have_libwacom
 	dep_libwacom = dependency('libwacom', version : '>= 0.20')
 
-	code = '''
-	#include <libwacom/libwacom.h>
-	int main(void) { libwacom_get_paired_device(NULL); }
-	'''
-	result = cc.links(code,
-			  name : 'libwacom_get_paired_device check',
-			  dependencies : dep_libwacom)
+	result = cc.has_function('libwacom_get_paired_device',
+				 dependencies: dep_libwacom)
 	config_h.set10('HAVE_LIBWACOM_GET_PAIRED_DEVICE', result)
 
-	code = '''
-	#include <libwacom/libwacom.h>
-	int main(void) { libwacom_get_button_evdev_code(NULL, 'A'); }
-	'''
-	result = cc.links(code,
-			  name : 'libwacom_get_button_evdev_code check',
-			  dependencies : dep_libwacom)
+	result = cc.has_function('libwacom_get_button_evdev_code',
+				 dependencies: dep_libwacom)
 	config_h.set10('HAVE_LIBWACOM_GET_BUTTON_EVDEV_CODE', result)
 else
 	dep_libwacom = declare_dependency()
