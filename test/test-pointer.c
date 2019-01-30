@@ -1181,6 +1181,32 @@ START_TEST(pointer_scroll_button_middle_emulation)
 }
 END_TEST
 
+START_TEST(pointer_scroll_button_device_remove_while_down)
+{
+	struct libinput *li;
+	struct litest_device *dev;
+
+	li = litest_create_context();
+
+	dev = litest_add_device(li, LITEST_MOUSE);
+	libinput_device_config_scroll_set_method(dev->libinput_device,
+						 LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
+	libinput_device_config_scroll_set_button(dev->libinput_device,
+						 BTN_LEFT);
+	litest_drain_events(li);
+
+	litest_event(dev, EV_KEY, BTN_LEFT, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	/* delete the device  while the timer is still active */
+	litest_delete_device(dev);
+	libinput_dispatch(li);
+
+	libinput_unref(li);
+}
+END_TEST
+
 START_TEST(pointer_scroll_nowheel_defaults)
 {
 	struct litest_device *dev = litest_current_device();
@@ -2606,6 +2632,7 @@ TEST_COLLECTION(pointer)
 	litest_add("pointer:scroll", pointer_scroll_button_noscroll, LITEST_ANY, LITEST_RELATIVE|LITEST_BUTTON);
 	litest_add("pointer:scroll", pointer_scroll_button_no_event_before_timeout, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add("pointer:scroll", pointer_scroll_button_middle_emulation, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
+	litest_add("pointer:scroll", pointer_scroll_button_device_remove_while_down, LITEST_ANY, LITEST_RELATIVE|LITEST_BUTTON);
 	litest_add("pointer:scroll", pointer_scroll_nowheel_defaults, LITEST_RELATIVE|LITEST_BUTTON, LITEST_WHEEL);
 	litest_add_for_device("pointer:scroll", pointer_scroll_defaults_logitech_marble , LITEST_LOGITECH_TRACKBALL);
 	litest_add("pointer:scroll", pointer_scroll_natural_defaults, LITEST_WHEEL, LITEST_TABLET);
