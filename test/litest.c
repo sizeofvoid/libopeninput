@@ -1597,8 +1597,10 @@ litest_delete_device(struct litest_device *d)
 		libinput_path_remove_device(d->libinput_device);
 		libinput_device_unref(d->libinput_device);
 	}
-	if (d->owns_context)
+	if (d->owns_context) {
+		libinput_dispatch(d->libinput);
 		libinput_unref(d->libinput);
+	}
 	close(libevdev_get_fd(d->evdev));
 	libevdev_free(d->evdev);
 	libevdev_uinput_destroy(d->uinput);
