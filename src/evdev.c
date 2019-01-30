@@ -2641,6 +2641,7 @@ evdev_device_remove(struct evdev_device *device)
 	evdev_log_info(device, "device removed\n");
 
 	libinput_timer_cancel(&device->scroll.timer);
+	libinput_timer_cancel(&device->middlebutton.timer);
 
 	list_for_each(dev, &device->base.seat->devices_list, link) {
 		struct evdev_device *d = evdev_device(dev);
