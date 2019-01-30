@@ -1095,7 +1095,7 @@ release_pressed_keys(struct fallback_dispatch *dispatch,
 				LIBINPUT_KEY_STATE_RELEASED);
 			break;
 		case KEY_TYPE_BUTTON:
-			evdev_pointer_notify_physical_button(
+			evdev_pointer_notify_button(
 				device,
 				time,
 				evdev_to_left_handed(device, code),
