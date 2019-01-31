@@ -32,6 +32,29 @@
 #include "libinput-util.h"
 #include "litest.h"
 
+START_TEST(touchpad_button)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_LEFT))
+		return;
+
+	litest_drain_events(li);
+
+	litest_button_click(dev, BTN_LEFT, true);
+	libinput_dispatch(li);
+	litest_assert_button_event(li,
+				   BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_button_click(dev, BTN_LEFT, false);
+	libinput_dispatch(li);
+	litest_assert_button_event(li,
+				   BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+}
+END_TEST
+
 START_TEST(touchpad_click_defaults_clickfinger)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1984,6 +2007,8 @@ END_TEST
 
 TEST_COLLECTION(touchpad_buttons)
 {
+	litest_add("touchpad:button", touchpad_button, LITEST_TOUCHPAD, LITEST_CLICKPAD);
+
 	litest_add("touchpad:clickfinger", touchpad_1fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:clickfinger", touchpad_1fg_clickfinger_no_touch, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:clickfinger", touchpad_2fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
