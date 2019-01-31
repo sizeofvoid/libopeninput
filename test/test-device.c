@@ -1496,6 +1496,72 @@ START_TEST(device_seat_phys_name)
 }
 END_TEST
 
+START_TEST(device_button_down_remove)
+{
+	struct litest_device *lidev = litest_current_device();
+	struct litest_device *dev;
+	struct libinput *li;
+
+	for (int code = 0; code < KEY_MAX; code++) {
+		struct libinput_event *event;
+		struct libinput_event_pointer *p;
+		bool have_down = false,
+		     have_up = false;
+		const char *keyname;
+		int button_down = 0, button_up = 0;
+
+		keyname = libevdev_event_code_get_name(EV_KEY, code);
+		if (!keyname ||
+		    !strneq(keyname, "BTN_", 4) ||
+		    strneq(keyname, "BTN_TOOL_", 9))
+			continue;
+
+		if (!libevdev_has_event_code(lidev->evdev, EV_KEY, code))
+			continue;
+
+		li = litest_create_context();
+		dev = litest_add_device(li, lidev->which);
+		litest_drain_events(li);
+
+		/* Clickpads require a touch down to trigger the button
+		 * press */
+		if (libevdev_has_property(lidev->evdev, INPUT_PROP_BUTTONPAD)) {
+			litest_touch_down(dev, 0, 20, 90);
+			libinput_dispatch(li);
+		}
+
+		litest_event(dev, EV_KEY, code, 1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+
+		litest_delete_device(dev);
+		libinput_dispatch(li);
+
+		while ((event = libinput_get_event(li))) {
+			if (libinput_event_get_type(event) !=
+			    LIBINPUT_EVENT_POINTER_BUTTON) {
+				libinput_event_destroy(event);
+				continue;
+			}
+
+			p = libinput_event_get_pointer_event(event);
+			if (libinput_event_pointer_get_button_state(p)) {
+				ck_assert(button_down == 0);
+				button_down = libinput_event_pointer_get_button(p);
+			} else {
+				ck_assert(button_up == 0);
+				button_up = libinput_event_pointer_get_button(p);
+				ck_assert_int_eq(button_down, button_up);
+			}
+			libinput_event_destroy(event);
+		}
+
+		libinput_unref(li);
+		ck_assert_int_eq(have_down, have_up);
+	}
+}
+END_TEST
+
 TEST_COLLECTION(device)
 {
 	struct range abs_range = { 0, ABS_MISC };
@@ -1571,4 +1637,6 @@ TEST_COLLECTION(device)
 	litest_add("device:output", device_no_output, LITEST_KEYS, LITEST_ANY);
 
 	litest_add("device:seat", device_seat_phys_name, LITEST_ANY, LITEST_ANY);
+
+	litest_add("device:button", device_button_down_remove, LITEST_BUTTON, LITEST_ANY);
 }
