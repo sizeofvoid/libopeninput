@@ -702,8 +702,8 @@ START_TEST(ratelimit_helpers)
 	struct ratelimit rl;
 	unsigned int i, j;
 
-	/* 10 attempts every 100ms */
-	ratelimit_init(&rl, ms2us(500), 10);
+	/* 10 attempts every 1000ms */
+	ratelimit_init(&rl, ms2us(1000), 10);
 
 	for (j = 0; j < 3; ++j) {
 		/* a burst of 9 attempts must succeed */
@@ -731,8 +731,8 @@ START_TEST(ratelimit_helpers)
 					 RATELIMIT_EXCEEDED);
 		}
 
-		/* but after 500ms the counter is reset */
-		msleep(450); /* +50ms to account for time drifts */
+		/* but after 1000ms the counter is reset */
+		msleep(950); /* +50ms to account for time drifts */
 	}
 }
 END_TEST
