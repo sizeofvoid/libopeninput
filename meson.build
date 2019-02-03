@@ -633,7 +633,7 @@ executable('test-build-std-gnuc90',
 	   'test/build-pedantic.c',
 	   dependencies : [dep_udev],
 	   include_directories : [includes_src, includes_include],
-	   c_args : ['-std=gnu90', '-Werror'],
+	   c_args : ['-std=gnu89', '-Werror'],
 	   install : false)
 # test for linking with the minimal linker flags
 executable('test-build-linker',
