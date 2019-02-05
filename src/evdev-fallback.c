@@ -903,7 +903,7 @@ fallback_flush_mt_events(struct fallback_dispatch *dispatch,
 
 		/* Any palm state other than PALM_NEW means we've either
 		 * already cancelled the touch or the touch was never
-		 * a finger anyway and we didn't send the being.
+		 * a finger anyway and we didn't send the begin.
 		 */
 		if (slot->palm_state == PALM_NEW) {
 			if (slot->state != SLOT_STATE_BEGIN)
