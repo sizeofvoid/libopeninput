@@ -97,6 +97,14 @@ if cc.has_header('xlocale.h')
 	config_h.set('HAVE_XLOCALE_H', '1')
 endif
 
+code = '''
+#include <locale.h>
+void main(void) { newlocale(LC_NUMERIC_MASK, "C", (locale_t)0); }
+'''
+if cc.links(code, name : 'locale.h')
+	config_h.set('HAVE_LOCALE_H', '1')
+endif
+
 if not cc.has_header_symbol('sys/ptrace.h', 'PTRACE_ATTACH', prefix : prefix)
 	config_h.set('PTRACE_ATTACH', 'PT_ATTACH')
 	config_h.set('PTRACE_CONT', 'PT_CONTINUE')
