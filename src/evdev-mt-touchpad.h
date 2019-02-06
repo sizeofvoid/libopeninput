@@ -38,11 +38,11 @@
 
 enum touchpad_event {
 	TOUCHPAD_EVENT_NONE		= 0,
-	TOUCHPAD_EVENT_MOTION		= (1 << 0),
-	TOUCHPAD_EVENT_BUTTON_PRESS	= (1 << 1),
-	TOUCHPAD_EVENT_BUTTON_RELEASE	= (1 << 2),
-	TOUCHPAD_EVENT_OTHERAXIS	= (1 << 3),
-	TOUCHPAD_EVENT_TIMESTAMP	= (1 << 4),
+	TOUCHPAD_EVENT_MOTION		= bit(0),
+	TOUCHPAD_EVENT_BUTTON_PRESS	= bit(1),
+	TOUCHPAD_EVENT_BUTTON_RELEASE	= bit(2),
+	TOUCHPAD_EVENT_OTHERAXIS	= bit(3),
+	TOUCHPAD_EVENT_TIMESTAMP	= bit(4),
 };
 
 enum touch_state {
@@ -118,9 +118,9 @@ enum tp_tap_touch_state {
 
 /* For edge scrolling, so we only care about right and bottom */
 enum tp_edge {
-	EDGE_NONE = 0,
-	EDGE_RIGHT = (1 << 0),
-	EDGE_BOTTOM = (1 << 1),
+	EDGE_NONE	= 0,
+	EDGE_RIGHT	= bit(0),
+	EDGE_BOTTOM	= bit(1),
 };
 
 enum tp_edge_scroll_touch_state {

@@ -81,6 +81,7 @@
 
 #define CASE_RETURN_STRING(a) case a: return #a
 
+#define bit(x_) (1UL << (x_))
 /*
  * This list data structure is a verbatim copy from wayland-util.h from the
  * Wayland project; except that wl_ prefix has been removed.

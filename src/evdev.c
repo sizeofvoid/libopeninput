@@ -53,18 +53,18 @@
 #define DEFAULT_BUTTON_SCROLL_TIMEOUT ms2us(200)
 
 enum evdev_device_udev_tags {
-        EVDEV_UDEV_TAG_INPUT = (1 << 0),
-        EVDEV_UDEV_TAG_KEYBOARD = (1 << 1),
-        EVDEV_UDEV_TAG_MOUSE = (1 << 2),
-        EVDEV_UDEV_TAG_TOUCHPAD = (1 << 3),
-        EVDEV_UDEV_TAG_TOUCHSCREEN = (1 << 4),
-        EVDEV_UDEV_TAG_TABLET = (1 << 5),
-        EVDEV_UDEV_TAG_JOYSTICK = (1 << 6),
-        EVDEV_UDEV_TAG_ACCELEROMETER = (1 << 7),
-        EVDEV_UDEV_TAG_TABLET_PAD = (1 << 8),
-        EVDEV_UDEV_TAG_POINTINGSTICK = (1 << 9),
-        EVDEV_UDEV_TAG_TRACKBALL = (1 << 10),
-        EVDEV_UDEV_TAG_SWITCH = (1 << 11),
+        EVDEV_UDEV_TAG_INPUT		= bit(0),
+        EVDEV_UDEV_TAG_KEYBOARD		= bit(1),
+        EVDEV_UDEV_TAG_MOUSE		= bit(2),
+        EVDEV_UDEV_TAG_TOUCHPAD		= bit(3),
+        EVDEV_UDEV_TAG_TOUCHSCREEN	= bit(4),
+        EVDEV_UDEV_TAG_TABLET		= bit(5),
+        EVDEV_UDEV_TAG_JOYSTICK		= bit(6),
+        EVDEV_UDEV_TAG_ACCELEROMETER	= bit(7),
+        EVDEV_UDEV_TAG_TABLET_PAD	= bit(8),
+        EVDEV_UDEV_TAG_POINTINGSTICK	= bit(9),
+        EVDEV_UDEV_TAG_TRACKBALL	= bit(10),
+        EVDEV_UDEV_TAG_SWITCH		= bit(11),
 };
 
 struct evdev_udev_tag_match {
