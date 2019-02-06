@@ -21,8 +21,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef EVDEV_BUTTONSET_WACOM_H
-#define EVDEV_BUTTONSET_WACOM_H
+#ifndef EVDEV_TABLET_PAD_H
+#define EVDEV_TABLET_PAD_H
 
 #include "evdev.h"
 
