@@ -49,6 +49,13 @@ libinput_timer_init(struct libinput_timer *timer,
 void
 libinput_timer_destroy(struct libinput_timer *timer)
 {
+	if (timer->link.prev != NULL && timer->link.prev != NULL &&
+	    !list_empty(&timer->link)) {
+		log_bug_libinput(timer->libinput,
+				 "timer: %s has not been cancelled\n",
+				 timer->timer_name);
+		assert(!"timer not cancelled");
+	}
 	free(timer->timer_name);
 }
 
@@ -200,6 +207,18 @@ libinput_timer_subsys_init(struct libinput *libinput)
 void
 libinput_timer_subsys_destroy(struct libinput *libinput)
 {
+#ifndef NDEBUG
+	if (!list_empty(&libinput->timer.list)) {
+		struct libinput_timer *t;
+
+		list_for_each(t, &libinput->timer.list, link) {
+			log_bug_libinput(libinput,
+					 "timer: %s still present on shutdown\n",
+					 t->timer_name);
+		}
+	}
+#endif
+
 	/* All timer users should have destroyed their timers now */
 	assert(list_empty(&libinput->timer.list));
 
