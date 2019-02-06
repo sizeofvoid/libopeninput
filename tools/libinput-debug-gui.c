@@ -47,8 +47,14 @@
 
 #define clip(val_, min_, max_) min((max_), max((min_), (val_)))
 
+enum touch_state {
+	TOUCH_ACTIVE,
+	TOUCH_ENDED,
+	TOUCH_CANCELLED,
+};
+
 struct touch {
-	int active;
+	enum touch_state state;
 	int x, y;
 };
 
@@ -332,12 +338,17 @@ draw_touchpoints(struct window *w, cairo_t *cr)
 {
 	struct touch *t;
 
-	cairo_set_source_rgb(cr, .8, .2, .2);
-
 	ARRAY_FOR_EACH(w->touches, t) {
 		cairo_save(cr);
+		if (t->state == TOUCH_ACTIVE)
+			cairo_set_source_rgb(cr, .8, .2, .2);
+		else
+			cairo_set_source_rgb(cr, .8, .4, .4);
 		cairo_arc(cr, t->x, t->y, 10, 0, 2 * M_PI);
-		cairo_fill(cr);
+		if (t->state == TOUCH_CANCELLED)
+			cairo_stroke(cr);
+		else
+			cairo_fill(cr);
 		cairo_restore(cr);
 	}
 }
@@ -898,15 +909,21 @@ handle_event_touch(struct libinput_event *ev, struct window *w)
 
 	touch = &w->touches[slot];
 
-	if (libinput_event_get_type(ev) == LIBINPUT_EVENT_TOUCH_UP) {
-		touch->active = 0;
+	switch (libinput_event_get_type(ev)) {
+	case LIBINPUT_EVENT_TOUCH_UP:
+		touch->state = TOUCH_ENDED;
 		return;
+	case LIBINPUT_EVENT_TOUCH_CANCEL:
+		touch->state = TOUCH_CANCELLED;
+		return;
+	default:
+		break;
 	}
 
 	x = libinput_event_touch_get_x_transformed(t, w->width),
 	y = libinput_event_touch_get_y_transformed(t, w->height);
 
-	touch->active = 1;
+	touch->state = TOUCH_ACTIVE;
 	touch->x = (int)x;
 	touch->y = (int)y;
 }
@@ -1145,13 +1162,13 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 		case LIBINPUT_EVENT_TOUCH_DOWN:
 		case LIBINPUT_EVENT_TOUCH_MOTION:
 		case LIBINPUT_EVENT_TOUCH_UP:
+		case LIBINPUT_EVENT_TOUCH_CANCEL:
 			handle_event_touch(ev, w);
+			break;
+		case LIBINPUT_EVENT_TOUCH_FRAME:
 			break;
 		case LIBINPUT_EVENT_POINTER_AXIS:
 			handle_event_axis(ev, w);
-			break;
-		case LIBINPUT_EVENT_TOUCH_CANCEL:
-		case LIBINPUT_EVENT_TOUCH_FRAME:
 			break;
 		case LIBINPUT_EVENT_POINTER_BUTTON:
 			handle_event_button(ev, w);
