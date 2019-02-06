@@ -314,7 +314,11 @@ enum litest_device_feature {
 	LITEST_NO_DEBOUNCE	= bit(28),
 	LITEST_TOOL_MOUSE	= bit(29),
 	LITEST_DIRECT		= bit(30),
+
+	_LITEST_DEVICE_FEATURE__FORCE_SIZE = LONG_MAX,
 };
+
+static_assert(sizeof(enum litest_device_feature) >= 8, "enum size expected to be 8");
 
 /* this is a semi-mt device, so we keep track of the touches that the tests
  * send and modify them so that the first touch is always slot 0 and sends
