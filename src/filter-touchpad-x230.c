@@ -129,37 +129,6 @@ calculate_acceleration(struct pointer_accelerator_x230 *accel,
 	return factor; /* unitless factor */
 }
 
-/**
- * Calculate the acceleration factor for the given delta with the timestamp.
- *
- * @param accel The acceleration filter
- * @param unaccelerated The raw delta in the device's dpi
- * @param data Caller-specific data
- * @param time Current time in µs
- *
- * @return A unitless acceleration factor, to be applied to the delta
- */
-static inline double
-calculate_acceleration_factor(struct pointer_accelerator_x230 *accel,
-			      const struct device_float_coords *unaccelerated,
-			      void *data,
-			      uint64_t time)
-{
-	double velocity; /* units/us in device-native dpi*/
-	double accel_factor;
-
-	trackers_feed(&accel->trackers, unaccelerated, time);
-	velocity = trackers_velocity(&accel->trackers, time);
-	accel_factor = calculate_acceleration(accel,
-					      data,
-					      velocity,
-					      accel->last_velocity,
-					      time);
-	accel->last_velocity = velocity;
-
-	return accel_factor;
-}
-
 static struct normalized_coords
 accelerator_filter_x230(struct motion_filter *filter,
 			const struct device_float_coords *raw,

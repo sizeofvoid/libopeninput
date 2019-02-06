@@ -43,21 +43,6 @@ struct tablet_accelerator_flat {
 	       yres_scale; /* 1000dpi : tablet res */
 };
 
-struct trackpoint_accelerator {
-	struct motion_filter base;
-
-	struct device_float_coords history[4];
-	size_t history_size;
-
-	double scale_factor;
-	double max_accel;
-	double max_delta;
-
-	double incline; /* incline of the function */
-	double offset; /* offset of the function */
-};
-
-
 static inline struct normalized_coords
 tablet_accelerator_filter_flat_mouse(struct tablet_accelerator_flat *filter,
 				     const struct device_float_coords *units)
