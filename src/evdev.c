@@ -1974,7 +1974,7 @@ libevdev_log_func(const struct libevdev *evdev,
 		  va_list args)
 {
 	struct libinput *libinput = data;
-	enum libinput_log_priority pri = LIBEVDEV_LOG_ERROR;
+	enum libinput_log_priority pri = LIBINPUT_LOG_PRIORITY_ERROR;
 	const char prefix[] = "libevdev: ";
 	char fmt[strlen(format) + strlen(prefix) + 1];
 
