@@ -4382,6 +4382,46 @@ START_TEST(touch_arbitration_outside_rect)
 }
 END_TEST
 
+START_TEST(touch_arbitration_remove_after)
+{
+	struct litest_device *dev = litest_current_device();
+	enum litest_device_type other;
+	struct litest_device *finger;
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_TILT_X, 80 },
+		{ ABS_TILT_Y, 80 },
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+	bool is_touchpad;
+
+	other = paired_device(dev);
+	if (other == LITEST_NO_DEVICE)
+		return;
+
+	finger = litest_add_device(li, other);
+	litest_drain_events(li);
+
+	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
+	if (is_touchpad)
+		return;
+
+	litest_tablet_proximity_in(dev, 50, 50, axes);
+	litest_drain_events(li);
+
+	litest_touch_down(finger, 0, 70, 70);
+	litest_drain_events(li);
+	litest_tablet_proximity_out(dev);
+	libinput_dispatch(li);
+
+	/* Delete the device immediately after the tablet goes out of prox.
+	 * This merely tests that the arbitration timer gets cleaned up */
+	litest_delete_device(finger);
+}
+END_TEST
+
 START_TEST(touch_arbitration_stop_touch)
 {
 	struct litest_device *dev = litest_current_device();
@@ -4990,6 +5030,7 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:touch-arbitration", touch_arbitration_keep_ignoring, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:touch-arbitration", touch_arbitration_late_touch_lift, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:touch-arbitration", touch_arbitration_outside_rect, LITEST_TABLET | LITEST_DIRECT, LITEST_ANY);
+	litest_add("tablet:touch-arbitration", touch_arbitration_remove_after, LITEST_TABLET | LITEST_DIRECT, LITEST_ANY);
 
 	litest_add_for_device("tablet:quirks", huion_static_btn_tool_pen, LITEST_HUION_TABLET);
 	litest_add_for_device("tablet:quirks", huion_static_btn_tool_pen_no_timeout_during_usage, LITEST_HUION_TABLET);

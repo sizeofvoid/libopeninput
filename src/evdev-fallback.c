@@ -1171,6 +1171,7 @@ fallback_interface_remove(struct evdev_dispatch *evdev_dispatch)
 
 	libinput_timer_cancel(&dispatch->debounce.timer);
 	libinput_timer_cancel(&dispatch->debounce.timer_short);
+	libinput_timer_cancel(&dispatch->arbitration.arbitration_timer);
 
 	libinput_device_remove_event_listener(&dispatch->tablet_mode.other.listener);
 
