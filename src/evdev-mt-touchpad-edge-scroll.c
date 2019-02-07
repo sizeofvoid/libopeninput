@@ -412,7 +412,7 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 				if (t->scroll.direction != -1) {
 					/* Send stop scroll event */
 					evdev_notify_axis(device, time,
-						AS_MASK(t->scroll.direction),
+						bit(t->scroll.direction),
 						LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
 						&zero,
 						&zero_discrete);
@@ -462,7 +462,7 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 			continue;
 
 		evdev_notify_axis(device, time,
-				  AS_MASK(axis),
+				  bit(axis),
 				  LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
 				  &normalized,
 				  &zero_discrete);
@@ -485,7 +485,7 @@ tp_edge_scroll_stop_events(struct tp_dispatch *tp, uint64_t time)
 	tp_for_each_touch(tp, t) {
 		if (t->scroll.direction != -1) {
 			evdev_notify_axis(device, time,
-					    AS_MASK(t->scroll.direction),
+					    bit(t->scroll.direction),
 					    LIBINPUT_POINTER_AXIS_SOURCE_FINGER,
 					    &zero,
 					    &zero_discrete);

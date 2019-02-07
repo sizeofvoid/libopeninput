@@ -685,7 +685,7 @@ libinput_event_pointer_has_axis(struct libinput_event_pointer *event,
 	switch (axis) {
 	case LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL:
 	case LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL:
-		return !!(event->axes & AS_MASK(axis));
+		return !!(event->axes & bit(axis));
 	}
 
 	return 0;

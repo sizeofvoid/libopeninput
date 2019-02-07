@@ -238,7 +238,7 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 		evdev_notify_axis(
 			device,
 			time,
-			AS_MASK(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
+			bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
 			source,
 			&wheel_degrees,
 			&discrete);
@@ -257,7 +257,7 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 		evdev_notify_axis(
 			device,
 			time,
-			AS_MASK(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
+			bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
 			source,
 			&wheel_degrees,
 			&discrete);

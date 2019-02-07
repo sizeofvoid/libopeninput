@@ -2398,7 +2398,7 @@ evdev_is_scrolling(const struct evdev_device *device,
 	assert(axis == LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL ||
 	       axis == LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
 
-	return (device->scroll.direction & AS_MASK(axis)) != 0;
+	return (device->scroll.direction & bit(axis)) != 0;
 }
 
 static inline void
@@ -2408,7 +2408,7 @@ evdev_start_scrolling(struct evdev_device *device,
 	assert(axis == LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL ||
 	       axis == LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
 
-	device->scroll.direction |= AS_MASK(axis);
+	device->scroll.direction |= bit(axis);
 }
 
 void
@@ -2473,9 +2473,9 @@ evdev_post_scroll(struct evdev_device *device,
 		uint32_t axes = device->scroll.direction;
 
 		if (event.y == 0.0)
-			axes &= ~AS_MASK(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+			axes &= ~bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
 		if (event.x == 0.0)
-			axes &= ~AS_MASK(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
+			axes &= ~bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
 
 		evdev_notify_axis(device,
 				  time,
