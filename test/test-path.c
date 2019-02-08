@@ -190,6 +190,38 @@ START_TEST(path_create_invalid_file)
 }
 END_TEST
 
+START_TEST(path_create_pathmax_file)
+{
+	struct libinput *li;
+	struct libinput_device *device;
+	char *path;
+	struct counter counter;
+
+	path = zalloc(PATH_MAX * 2);
+	memset(path, 'a', PATH_MAX * 2 - 1);
+
+	counter.open_func_count = 0;
+	counter.close_func_count = 0;
+
+	li = libinput_path_create_context(&counting_interface, &counter);
+
+	litest_set_log_handler_bug(li);
+	ck_assert(li != NULL);
+	device = libinput_path_add_device(li, path);
+	ck_assert(device == NULL);
+
+	ck_assert_int_eq(counter.open_func_count, 0);
+	ck_assert_int_eq(counter.close_func_count, 0);
+
+	litest_restore_log_handler(li);
+	libinput_unref(li);
+	ck_assert_int_eq(counter.close_func_count, 0);
+
+	free(path);
+}
+END_TEST
+
+
 START_TEST(path_create_destroy)
 {
 	struct libinput *li;
@@ -987,6 +1019,7 @@ TEST_COLLECTION(path)
 	litest_add_no_device("path:create", path_create_invalid);
 	litest_add_no_device("path:create", path_create_invalid_file);
 	litest_add_no_device("path:create", path_create_invalid_kerneldev);
+	litest_add_no_device("path:create", path_create_pathmax_file);
 	litest_add_no_device("path:create", path_create_destroy);
 	litest_add("path:create", path_force_destroy, LITEST_ANY, LITEST_ANY);
 	litest_add_no_device("path:create", path_set_user_data);

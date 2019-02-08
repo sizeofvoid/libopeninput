@@ -331,6 +331,13 @@ libinput_path_add_device(struct libinput *libinput,
 	struct udev_device *udev_device;
 	struct libinput_device *device;
 
+	if (strlen(path) > PATH_MAX) {
+		log_bug_client(libinput,
+			       "Unexpected path, limited to %d characters.\n",
+			       PATH_MAX);
+		return NULL;
+	}
+
 	if (libinput->interface_backend != &interface_backend) {
 		log_bug_client(libinput, "Mismatching backends.\n");
 		return NULL;
