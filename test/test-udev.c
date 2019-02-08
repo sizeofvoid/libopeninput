@@ -130,6 +130,30 @@ START_TEST(udev_create_empty_seat)
 }
 END_TEST
 
+START_TEST(udev_create_seat_too_long)
+{
+	struct libinput *li;
+	struct udev *udev;
+	char seatname[258];
+
+	memset(seatname, 'a', sizeof(seatname) - 1);
+	seatname[sizeof(seatname) - 1] = '\0';
+
+	udev = udev_new();
+	ck_assert(udev != NULL);
+
+	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	litest_set_log_handler_bug(li);
+
+	ck_assert_int_eq(libinput_udev_assign_seat(li, seatname), -1);
+
+	litest_assert_empty_queue(li);
+
+	libinput_unref(li);
+	udev_unref(udev);
+}
+END_TEST
+
 START_TEST(udev_set_user_data)
 {
 	struct libinput *li;
@@ -651,6 +675,7 @@ TEST_COLLECTION(udev)
 	litest_add_no_device("udev:create", udev_create_NULL);
 	litest_add_no_device("udev:create", udev_create_seat0);
 	litest_add_no_device("udev:create", udev_create_empty_seat);
+	litest_add_no_device("udev:create", udev_create_seat_too_long);
 	litest_add_no_device("udev:create", udev_set_user_data);
 
 	litest_add_no_device("udev:seat", udev_added_seat_default);
