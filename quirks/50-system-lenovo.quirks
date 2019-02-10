@@ -25,6 +25,11 @@ MatchName=Elan Touchpad
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT480s*
 ModelLenovoT480sTouchpad=1
 
+[Lenovo L380 Touchpad]
+MatchName=Elan Touchpad
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadL380*
+ModelLenovoL380Touchpad=1
+
 [Lenovo X200 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20?:*

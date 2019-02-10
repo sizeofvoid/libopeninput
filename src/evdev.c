@@ -1915,8 +1915,10 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 					 INPUT_PROP_BUTTONPAD);
 
 	/* Touchpad is a clickpad but INPUT_PROP_BUTTONPAD is not set, see
-	 * https://gitlab.freedesktop.org/libinput/libinput/issues/177 */
-	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_T480S_TOUCHPAD))
+	 * https://gitlab.freedesktop.org/libinput/libinput/issues/177 and
+	 * https://gitlab.freedesktop.org/libinput/libinput/issues/234 */
+	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_T480S_TOUCHPAD) ||
+	    evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_L380_TOUCHPAD))
 		libevdev_enable_property(device->evdev,
 					 INPUT_PROP_BUTTONPAD);
 
