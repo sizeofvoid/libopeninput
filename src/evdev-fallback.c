@@ -101,7 +101,8 @@ post_trackpoint_scroll(struct evdev_device *device,
 		return false;
 	case BUTTONSCROLL_BUTTON_DOWN:
 		/* if the button is down but scroll is not active, we're within the
-		   timeout where swallow motion events but don't post scroll buttons */
+		   timeout where we swallow motion events but don't post
+		   scroll buttons */
 		evdev_log_debug(device, "btnscroll: discarding\n");
 		return true;
 	case BUTTONSCROLL_READY:
