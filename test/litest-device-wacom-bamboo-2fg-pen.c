@@ -109,7 +109,7 @@ static const char udev_rule[] =
 
 TEST_DEVICE("wacom-bamboo-2fg-pen",
 	.type = LITEST_WACOM_BAMBOO_2FG_PEN,
-	.features = LITEST_TABLET | LITEST_DISTANCE,
+	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_HOVER,
 	.interface = &interface,
 
 	.name = "Wacom Bamboo 2FG 4x5 Pen",

@@ -93,7 +93,7 @@ static int events[] = {
 
 TEST_DEVICE("wacom-isdv4-tablet",
 	.type = LITEST_WACOM_ISDV4,
-	.features = LITEST_TABLET,
+	.features = LITEST_TABLET | LITEST_HOVER,
 	.interface = &interface,
 
 	.name = "Wacom ISDv4 E6 Pen",

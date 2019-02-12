@@ -227,7 +227,7 @@ static const char quirk_file[] =
 
 TEST_DEVICE("waltop-tablet",
 	.type = LITEST_WALTOP,
-	.features = LITEST_TABLET | LITEST_WHEEL | LITEST_TILT,
+	.features = LITEST_TABLET | LITEST_WHEEL | LITEST_TILT | LITEST_HOVER,
 	.interface = &interface,
 
 	.name = "         WALTOP     Batteryless Tablet ", /* sic */

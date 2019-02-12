@@ -100,7 +100,7 @@ static int events[] = {
 
 TEST_DEVICE("wacom-bamboo-tablet",
 	.type = LITEST_WACOM_BAMBOO,
-	.features = LITEST_TABLET | LITEST_DISTANCE,
+	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_HOVER,
 	.interface = &interface,
 
 	.name = "Wacom Bamboo 16FG 4x5 Pen",

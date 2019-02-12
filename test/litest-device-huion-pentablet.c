@@ -95,7 +95,7 @@ static const char quirk_file[] =
 
 TEST_DEVICE("huion-tablet",
 	.type = LITEST_HUION_TABLET,
-	.features = LITEST_TABLET,
+	.features = LITEST_TABLET | LITEST_HOVER,
 	.interface = &interface,
 
 	.name = "HUION PenTablet Pen",

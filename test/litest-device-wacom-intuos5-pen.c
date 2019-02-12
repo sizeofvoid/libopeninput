@@ -153,7 +153,7 @@ static const char udev_rule[] =
 
 TEST_DEVICE("wacom-intuos-tablet",
 	.type = LITEST_WACOM_INTUOS,
-	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT | LITEST_TOOL_MOUSE,
+	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT | LITEST_TOOL_MOUSE | LITEST_HOVER,
 	.interface = &interface,
 
 	.name = "Wacom Intuos5 touch M Pen",

@@ -128,7 +128,7 @@ static int events[] = {
 
 TEST_DEVICE("wacom-cintiq-24hd-tablet",
 	.type = LITEST_WACOM_CINTIQ_24HD,
-	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT | LITEST_DIRECT,
+	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT | LITEST_DIRECT | LITEST_HOVER,
 	.interface = &interface,
 
 	.name = "Wacom Cintiq 24 HD Pen",
