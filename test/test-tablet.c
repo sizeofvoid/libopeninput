@@ -4021,6 +4021,11 @@ START_TEST(relative_delta)
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_drain_events(li);
 
+	/* flush the motion history */
+	for (int i = 0; i < 5; i ++)
+		litest_tablet_motion(dev, 10 + i, 10, axes);
+	litest_drain_events(li);
+
 	litest_tablet_motion(dev, 20, 10, axes);
 	libinput_dispatch(li);
 
@@ -4033,6 +4038,11 @@ START_TEST(relative_delta)
 	ck_assert(dy == 0.0);
 	libinput_event_destroy(event);
 
+	/* flush the motion history */
+	for (int i = 0; i < 5; i ++)
+		litest_tablet_motion(dev, 20 - i, 10, axes);
+	litest_drain_events(li);
+
 	litest_tablet_motion(dev, 5, 10, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
@@ -4044,7 +4054,12 @@ START_TEST(relative_delta)
 	ck_assert(dy == 0.0);
 	libinput_event_destroy(event);
 
-	litest_tablet_motion(dev, 10, 20, axes);
+	/* flush the motion history */
+	for (int i = 0; i < 5; i ++)
+		litest_tablet_motion(dev, 5, 10 + i, axes);
+	litest_drain_events(li);
+
+	litest_tablet_motion(dev, 5, 20, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
@@ -4055,7 +4070,13 @@ START_TEST(relative_delta)
 	ck_assert(dy > 0.0);
 	libinput_event_destroy(event);
 
-	litest_tablet_motion(dev, 10, 5, axes);
+
+	/* flush the motion history */
+	for (int i = 0; i < 5; i ++)
+		litest_tablet_motion(dev, 5, 20 - i, axes);
+	litest_drain_events(li);
+
+	litest_tablet_motion(dev, 5, 10, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
