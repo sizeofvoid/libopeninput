@@ -1484,6 +1484,8 @@ START_TEST(motion)
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
+	bool x_changed, y_changed;
+	double reported_x, reported_y;
 
 	litest_drain_events(li);
 
@@ -1491,34 +1493,22 @@ START_TEST(motion)
 	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	x_changed = libinput_event_tablet_tool_x_has_changed(tablet_event);
+	y_changed = libinput_event_tablet_tool_y_has_changed(tablet_event);
+	ck_assert(x_changed);
+	ck_assert(y_changed);
 
-	do {
-		bool x_changed, y_changed;
-		double reported_x, reported_y;
+	reported_x = libinput_event_tablet_tool_get_x(tablet_event);
+	reported_y = libinput_event_tablet_tool_get_y(tablet_event);
 
-		tablet_event = libinput_event_get_tablet_tool_event(event);
-		ck_assert_int_eq(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	litest_assert_double_lt(reported_x, reported_y);
 
-		x_changed = libinput_event_tablet_tool_x_has_changed(
-							tablet_event);
-		y_changed = libinput_event_tablet_tool_y_has_changed(
-							tablet_event);
+	last_reported_x = reported_x;
+	last_reported_y = reported_y;
 
-		ck_assert(x_changed);
-		ck_assert(y_changed);
-
-		reported_x = libinput_event_tablet_tool_get_x(tablet_event);
-		reported_y = libinput_event_tablet_tool_get_y(tablet_event);
-
-		litest_assert_double_lt(reported_x, reported_y);
-
-		last_reported_x = reported_x;
-		last_reported_y = reported_y;
-
-		libinput_event_destroy(event);
-		event = libinput_get_event(li);
-	} while (event != NULL);
+	libinput_event_destroy(event);
 
 	for (test_x = 10, test_y = 90;
 	     test_x <= 100;
