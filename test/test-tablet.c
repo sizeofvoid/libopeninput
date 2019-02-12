@@ -4965,17 +4965,17 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:button", button_down_up, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:button", button_seat_count, LITEST_TABLET, LITEST_ANY);
 	litest_add_no_device("tablet:button", button_up_on_delete);
-	litest_add("tablet:tip", tip_down_up, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:tip", tip_down_up, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add("tablet:tip", tip_down_prox_in, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tip", tip_up_prox_out, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:tip", tip_down_btn_change, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:tip", tip_up_btn_change, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:tip", tip_down_motion, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:tip", tip_up_motion, LITEST_TABLET, LITEST_ANY);
-	litest_add_ranged("tablet:tip", tip_up_motion_one_axis, LITEST_TABLET, LITEST_ANY, &xyaxes);
-	litest_add("tablet:tip", tip_state_proximity, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:tip", tip_state_axis, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:tip", tip_state_button, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:tip", tip_down_btn_change, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add("tablet:tip", tip_up_btn_change, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add("tablet:tip", tip_down_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add("tablet:tip", tip_up_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add_ranged("tablet:tip", tip_up_motion_one_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY, &xyaxes);
+	litest_add("tablet:tip", tip_state_proximity, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add("tablet:tip", tip_state_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add("tablet:tip", tip_state_button, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add_no_device("tablet:tip", tip_up_on_delete);
 	litest_add("tablet:motion", motion, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:motion", motion_event_state, LITEST_TABLET, LITEST_ANY);
@@ -5019,7 +5019,7 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:relative", relative_no_profile, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:relative", relative_no_delta_prox_in, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:relative", relative_delta, LITEST_TABLET, LITEST_ANY);
-	litest_add("tablet:relative", relative_no_delta_on_tip, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:relative", relative_no_delta_on_tip, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add("tablet:relative", relative_calibration, LITEST_TABLET, LITEST_ANY);
 
 	litest_add("tablet:touch-arbitration", touch_arbitration, LITEST_TABLET, LITEST_ANY);
