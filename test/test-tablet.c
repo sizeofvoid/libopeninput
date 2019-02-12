@@ -3525,6 +3525,9 @@ START_TEST(tablet_pressure_min_max)
 	};
 	double p;
 
+	if (!libevdev_has_event_code(dev->evdev, EV_ABS, ABS_PRESSURE))
+		return;
+
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_drain_events(li);
 	libinput_dispatch(li);
