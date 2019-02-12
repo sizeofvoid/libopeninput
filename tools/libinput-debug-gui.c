@@ -100,6 +100,8 @@ struct window {
 	/* l/m/r mouse buttons */
 	struct {
 		bool l, m, r;
+		bool other;
+		const char *other_name;
 	} buttons;
 
 	/* touchpad swipe */
@@ -367,6 +369,40 @@ draw_abs_pointer(struct window *w, cairo_t *cr)
 }
 
 static inline void
+draw_other_button (struct window *w, cairo_t *cr)
+{
+	const char *name = w->buttons.other_name;
+	cairo_text_extents_t te;
+	cairo_font_extents_t fe;
+
+	cairo_save(cr);
+
+	if (!w->buttons.other)
+		goto outline;
+
+	if (!name)
+		name = "undefined";
+
+	cairo_set_source_rgb(cr, .2, .8, .8);
+	cairo_rectangle(cr, w->width/2 - 40, w->height - 150, 80, 30);
+	cairo_fill(cr);
+
+	cairo_set_source_rgb(cr, 0, 0, 0);
+	cairo_text_extents(cr, name, &te);
+	cairo_font_extents(cr, &fe);
+	/* center of the rectangle */
+	cairo_move_to(cr, w->width/2, w->height - 150 + 15);
+	cairo_rel_move_to(cr, -te.width/2, -fe.descent + te.height/2);
+	cairo_show_text(cr, name);
+
+outline:
+	cairo_set_source_rgb(cr, 0, 0, 0);
+	cairo_rectangle(cr, w->width/2 - 40, w->height - 150, 80, 30);
+	cairo_stroke(cr);
+	cairo_restore(cr);
+}
+
+static inline void
 draw_buttons(struct window *w, cairo_t *cr)
 {
 	cairo_save(cr);
@@ -388,6 +424,8 @@ draw_buttons(struct window *w, cairo_t *cr)
 	cairo_rectangle(cr, w->width/2 + 30, w->height - 200, 70, 30);
 	cairo_stroke(cr);
 	cairo_restore(cr);
+
+	draw_other_button(w, cr);
 }
 
 static inline void
@@ -999,6 +1037,10 @@ handle_event_button(struct libinput_event *ev, struct window *w)
 	case BTN_MIDDLE:
 		w->buttons.m = is_press;
 		break;
+	default:
+		w->buttons.other = is_press;
+		w->buttons.other_name = libevdev_event_code_get_name(EV_KEY,
+								     button);
 	}
 
 }
