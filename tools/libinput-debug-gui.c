@@ -98,7 +98,9 @@ struct window {
 	struct touch touches[32];
 
 	/* l/m/r mouse buttons */
-	int l, m, r;
+	struct {
+		bool l, m, r;
+	} buttons;
 
 	/* touchpad swipe */
 	struct {
@@ -368,13 +370,14 @@ static inline void
 draw_buttons(struct window *w, cairo_t *cr)
 {
 	cairo_save(cr);
-	if (w->l || w->m || w->r) {
+
+	if (w->buttons.l || w->buttons.m || w->buttons.r) {
 		cairo_set_source_rgb(cr, .2, .8, .8);
-		if (w->l)
+		if (w->buttons.l)
 			cairo_rectangle(cr, w->width/2 - 100, w->height - 200, 70, 30);
-		if (w->m)
+		if (w->buttons.m)
 			cairo_rectangle(cr, w->width/2 - 20, w->height - 200, 40, 30);
-		if (w->r)
+		if (w->buttons.r)
 			cairo_rectangle(cr, w->width/2 + 30, w->height - 200, 70, 30);
 		cairo_fill(cr);
 	}
@@ -982,19 +985,19 @@ handle_event_button(struct libinput_event *ev, struct window *w)
 {
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
 	unsigned int button = libinput_event_pointer_get_button(p);
-	int is_press;
+	bool is_press;
 
 	is_press = libinput_event_pointer_get_button_state(p) == LIBINPUT_BUTTON_STATE_PRESSED;
 
 	switch (button) {
 	case BTN_LEFT:
-		w->l = is_press;
+		w->buttons.l = is_press;
 		break;
 	case BTN_RIGHT:
-		w->r = is_press;
+		w->buttons.r = is_press;
 		break;
 	case BTN_MIDDLE:
-		w->m = is_press;
+		w->buttons.m = is_press;
 		break;
 	}
 
