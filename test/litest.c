@@ -2601,6 +2601,48 @@ litest_drain_events(struct libinput *li)
 	}
 }
 
+
+void
+litest_drain_events_of_type(struct libinput *li, ...)
+{
+	enum libinput_event_type type;
+	enum libinput_event_type types[32] = {LIBINPUT_EVENT_NONE};
+	size_t ntypes = 0;
+	va_list args;
+
+	va_start(args, li);
+	type = va_arg(args, int);
+	while ((int)type != -1) {
+		litest_assert(type > 0);
+		litest_assert(ntypes < ARRAY_LENGTH(types));
+		types[ntypes++] = type;
+		type = va_arg(args, int);
+	}
+	va_end(args);
+
+	libinput_dispatch(li);
+	type = libinput_next_event_type(li);
+	while (type !=  LIBINPUT_EVENT_NONE) {
+		struct libinput_event *event;
+		bool found = false;
+
+		type = libinput_next_event_type(li);
+
+		for (size_t i = 0; i < ntypes; i++) {
+			if (type == types[i]) {
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+			return;
+
+		event = libinput_get_event(li);
+		libinput_event_destroy(event);
+		libinput_dispatch(li);
+	}
+}
+
 static const char *
 litest_event_type_str(enum libinput_event_type type)
 {

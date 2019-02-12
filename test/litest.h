@@ -676,6 +676,9 @@ void
 litest_drain_events(struct libinput *li);
 
 void
+litest_drain_events_of_type(struct libinput *li, ...);
+
+void
 litest_assert_event_type(struct libinput_event *event,
 			 enum libinput_event_type want);
 

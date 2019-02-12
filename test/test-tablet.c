@@ -2642,11 +2642,7 @@ START_TEST(tool_in_prox_before_start)
 	li = litest_create_context();
 	libinput_path_add_device(li, devnode);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_DEVICE_ADDED,
-				      -1);
-	event = libinput_get_event(li);
-	libinput_event_destroy(event);
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED, -1);
 
 	litest_assert_empty_queue(li);
 
