@@ -44,7 +44,7 @@ variables:
   ###############################################################################
   FEDORA_RPMS: 'git gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark                          valgrind libwacom-devel cairo-devel   gtk3-devel   glib2-devel    mtdev-devel'
   UBUNTU_DEBS: 'git gcc g++     pkg-config         meson check       libudev-dev   libevdev-dev   doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme valgrind libwacom-dev   libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev'
-  ARCH_PKGS:   'git gcc         pkgconfig          meson check       libsystemd    libevdev       doxygen graphviz  python-sphinx  python-recommonmark                          valgrind libwacom                     gtk3                        mtdev      '
+  ARCH_PKGS:   'git gcc         pkgconfig          meson check       libsystemd    libevdev       doxygen graphviz  python-sphinx  python-recommonmark                          valgrind libwacom                     gtk3                        mtdev      diffutils'
   FREEBSD_BUILD_PKGS: 'meson'
   FREEBSD_PKGS: 'libepoll-shim                                       libudev-devd  libevdev                                          libwacom                     gtk3                        libmtdev   '
   ############################ end of package lists #############################
@@ -293,10 +293,12 @@ ubuntu:18.04@container-prep:
 .arch@container-prep:
   extends: .container-prep
   script:
-    - buildcntr=$(buildah from --quiet base/archlinux)
+    - buildcntr=$(buildah from --quiet archlinux/base)
     - buildah run $buildcntr pacman -S --refresh
     - buildah run $buildcntr pacman -S --sysupgrade --noconfirm
     - buildah run $buildcntr pacman -S --noconfirm $ARCH_PKGS
+    # in case it doesn't exist yet, otherwise pacman clean fails
+    - buildah run $buildcntr mkdir -p /var/cache/pacman/pkg
     - buildah run $buildcntr pacman -S --clean --noconfirm
     - buildah config --workingdir /app $buildcntr
     # tag the current container
