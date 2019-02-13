@@ -3394,7 +3394,7 @@ tp_init_default_resolution(struct tp_dispatch *tp,
 
 	/* we only get here if
 	 * - the touchpad provides no resolution
-	 * - the udev hwdb didn't override the resoluion
+	 * - the udev hwdb didn't override the resolution
 	 * - no ATTR_SIZE_HINT is set
 	 *
 	 * The majority of touchpads that triggers all these conditions
