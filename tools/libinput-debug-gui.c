@@ -595,12 +595,12 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	draw_evdev_rel(w, cr);
 	draw_evdev_abs(w, cr);
 
+	draw_tablet(w, cr);
 	draw_gestures(w, cr);
 	draw_scrollbars(w, cr);
 	draw_touchpoints(w, cr);
 	draw_abs_pointer(w, cr);
 	draw_buttons(w, cr);
-	draw_tablet(w, cr);
 	draw_pointer(w, cr);
 
 	return TRUE;
