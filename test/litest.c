@@ -63,11 +63,8 @@
 
 #define UDEV_RULES_D "/run/udev/rules.d"
 #define UDEV_RULE_PREFIX "99-litest-"
-#define UDEV_HWDB_D "/etc/udev/hwdb.d"
 #define UDEV_MODEL_QUIRKS_RULE_FILE UDEV_RULES_D \
 	"/91-litest-model-quirks-REMOVEME-XXXXXX.rules"
-#define UDEV_MODEL_QUIRKS_HWDB_FILE UDEV_HWDB_D \
-	"/91-litest-model-quirks-REMOVEME-XXXXXX.hwdb"
 #define UDEV_TEST_DEVICE_RULE_FILE UDEV_RULES_D \
 	"/91-litest-test-device-REMOVEME-XXXXXXX.rules"
 #define UDEV_DEVICE_GROUPS_FILE UDEV_RULES_D \
@@ -271,7 +268,6 @@ static void
 litest_reload_udev_rules(void)
 {
 	litest_system("udevadm control --reload-rules");
-	litest_system("udevadm hwdb --update");
 }
 
 static void
@@ -1124,8 +1120,7 @@ litest_install_model_quirks(struct list *created_files_list)
 			 "# WARNING: REMOVE THIS FILE\n"
 			 "# This is a run-time file for the libinput test suite and\n"
 			 "# should be removed on exit. If the test-suite is not currently \n"
-			 "# running, remove this file and update your hwdb: \n"
-			 "#       sudo udevadm hwdb --update\n"
+			 "# running, remove this file\n"
 			 "#################################################################\n\n";
 	struct created_file *file;
 
@@ -1254,7 +1249,6 @@ static inline void
 litest_init_udev_rules(struct list *created_files)
 {
 	mkdir_p(UDEV_RULES_D);
-	mkdir_p(UDEV_HWDB_D);
 
 	litest_install_model_quirks(created_files);
 	litest_init_all_device_udev_rules(created_files);
