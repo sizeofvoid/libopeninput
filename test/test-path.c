@@ -94,7 +94,7 @@ START_TEST(path_create_NULL)
 	li = libinput_path_create_context(NULL, NULL);
 	ck_assert(li == NULL);
 	li = libinput_path_create_context(&counting_interface, &counter);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	libinput_unref(li);
 
 	ck_assert_int_eq(counter.open_func_count, 0);
@@ -113,7 +113,7 @@ START_TEST(path_create_invalid)
 	counter.close_func_count = 0;
 
 	li = libinput_path_create_context(&counting_interface, &counter);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 
 	litest_disable_log_handler(li);
 
@@ -140,7 +140,7 @@ START_TEST(path_create_invalid_kerneldev)
 	counter.close_func_count = 0;
 
 	li = libinput_path_create_context(&counting_interface, &counter);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 
 	litest_disable_log_handler(li);
 
@@ -177,7 +177,7 @@ START_TEST(path_create_invalid_file)
 
 	litest_disable_log_handler(li);
 
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	device = libinput_path_add_device(li, path);
 	ck_assert(device == NULL);
 
@@ -206,7 +206,7 @@ START_TEST(path_create_pathmax_file)
 	li = libinput_path_create_context(&counting_interface, &counter);
 
 	litest_set_log_handler_bug(li);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	device = libinput_path_add_device(li, path);
 	ck_assert(device == NULL);
 
@@ -240,7 +240,7 @@ START_TEST(path_create_destroy)
 					     -1);
 
 	li = libinput_path_create_context(&counting_interface, &counter);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 
 	litest_disable_log_handler(li);
 
@@ -248,7 +248,7 @@ START_TEST(path_create_destroy)
 
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	ck_assert_int_eq(counter.open_func_count, 1);
 
@@ -282,7 +282,7 @@ START_TEST(path_set_user_data)
 	int data1, data2;
 
 	li = libinput_path_create_context(&simple_interface, &data1);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert(libinput_get_user_data(li) == &data1);
 	libinput_set_user_data(li, &data2);
 	ck_assert(libinput_get_user_data(li) == &data2);
@@ -304,14 +304,14 @@ START_TEST(path_added_seat)
 	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 
 	type = libinput_event_get_type(event);
 	ck_assert_int_eq(type, LIBINPUT_EVENT_DEVICE_ADDED);
 
 	device = libinput_event_get_device(event);
 	seat = libinput_device_get_seat(device);
-	ck_assert(seat != NULL);
+	ck_assert_notnull(seat);
 
 	seat_name = libinput_seat_get_logical_name(seat);
 	ck_assert_str_eq(seat_name, "default");
@@ -355,7 +355,7 @@ START_TEST(path_seat_change)
 	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 
 	ck_assert_int_eq(libinput_event_get_type(event),
 			 LIBINPUT_EVENT_DEVICE_REMOVED);
@@ -364,7 +364,7 @@ START_TEST(path_seat_change)
 	libinput_event_destroy(event);
 
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 	ck_assert_int_eq(libinput_event_get_type(event),
 			 LIBINPUT_EVENT_DEVICE_ADDED);
 	ck_assert(libinput_event_get_device(event) != device);
@@ -433,7 +433,7 @@ START_TEST(path_add_device)
 
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(dev->uinput));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	libinput_dispatch(li);
 
@@ -493,7 +493,8 @@ START_TEST(path_device_sysname)
 	ck_assert_notnull(device);
 	sysname = libinput_device_get_sysname(device);
 
-	ck_assert(sysname != NULL && strlen(sysname) > 1);
+	ck_assert_notnull(sysname);
+	ck_assert_int_gt(strlen(sysname), 1);
 	ck_assert(strchr(sysname, '/') == NULL);
 	ck_assert_int_eq(strncmp(sysname, "event", 5), 0);
 
@@ -511,7 +512,7 @@ START_TEST(path_remove_device)
 
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(dev->uinput));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 	litest_drain_events(li);
 
 	libinput_path_remove_device(device);
@@ -541,7 +542,7 @@ START_TEST(path_double_remove_device)
 
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(dev->uinput));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 	litest_drain_events(li);
 
 	libinput_path_remove_device(device);
@@ -578,11 +579,11 @@ START_TEST(path_suspend)
 					     -1);
 
 	li = libinput_path_create_context(&simple_interface, userdata);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	libinput_suspend(li);
 	libinput_resume(li);
@@ -608,11 +609,11 @@ START_TEST(path_double_suspend)
 					     -1);
 
 	li = libinput_path_create_context(&simple_interface, userdata);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	libinput_suspend(li);
 	libinput_suspend(li);
@@ -639,11 +640,11 @@ START_TEST(path_double_resume)
 					     -1);
 
 	li = libinput_path_create_context(&simple_interface, userdata);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	libinput_suspend(li);
 	libinput_resume(li);
@@ -678,11 +679,11 @@ START_TEST(path_add_device_suspend_resume)
 					      -1);
 
 	li = libinput_path_create_context(&simple_interface, userdata);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput1));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 	libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput2));
 
 	libinput_dispatch(li);
@@ -756,14 +757,14 @@ START_TEST(path_add_device_suspend_resume_fail)
 					      -1);
 
 	li = libinput_path_create_context(&simple_interface, userdata);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput1));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput2));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	libinput_dispatch(li);
 
@@ -843,11 +844,11 @@ START_TEST(path_add_device_suspend_resume_remove_device)
 					      -1);
 
 	li = libinput_path_create_context(&simple_interface, userdata);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput1));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput2));
 
@@ -928,11 +929,11 @@ START_TEST(path_seat_recycle)
 					     -1);
 
 	li = libinput_path_create_context(&simple_interface, userdata);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	libinput_dispatch(li);
 
@@ -941,12 +942,12 @@ START_TEST(path_seat_recycle)
 	type = libinput_event_get_type(ev);
 	ck_assert_int_eq(type, LIBINPUT_EVENT_DEVICE_ADDED);
 	device = libinput_event_get_device(ev);
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 	saved_seat = libinput_device_get_seat(device);
 	libinput_seat_set_user_data(saved_seat, &data);
 	libinput_seat_ref(saved_seat);
 	libinput_event_destroy(ev);
-	ck_assert(saved_seat != NULL);
+	ck_assert_notnull(saved_seat);
 
 	litest_assert_empty_queue(li);
 
@@ -962,7 +963,7 @@ START_TEST(path_seat_recycle)
 	type = libinput_event_get_type(ev);
 	ck_assert_int_eq(type, LIBINPUT_EVENT_DEVICE_ADDED);
 	device = libinput_event_get_device(ev);
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	seat = libinput_device_get_seat(device);
 	user_data = libinput_seat_get_user_data(seat);

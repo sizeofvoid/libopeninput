@@ -515,10 +515,10 @@ START_TEST(touch_calibrated_screen_udev)
 	int rc;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
 	libinput_dispatch(li);

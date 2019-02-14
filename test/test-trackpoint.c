@@ -117,7 +117,7 @@ START_TEST(trackpoint_middlebutton_noscroll)
 	litest_assert_button_event(li, BTN_MIDDLE, 1);
 
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 	ck_assert_int_eq(libinput_event_get_type(event), LIBINPUT_EVENT_POINTER_MOTION);
 	libinput_event_destroy(event);
 

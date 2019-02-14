@@ -71,7 +71,7 @@ START_TEST(touchpad_1fg_motion)
 	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 
 	while (event) {
 		ck_assert_int_eq(libinput_event_get_type(event),

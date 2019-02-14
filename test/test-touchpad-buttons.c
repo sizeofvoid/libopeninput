@@ -1300,7 +1300,7 @@ START_TEST(clickpad_softbutton_left_1st_fg_move)
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 	while (event) {
 		struct libinput_event_pointer *p;
 
@@ -1366,7 +1366,7 @@ START_TEST(clickpad_softbutton_left_2nd_fg_move)
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 	while (event) {
 		struct libinput_event_pointer *p;
 		double x, y;
@@ -1397,7 +1397,7 @@ START_TEST(clickpad_softbutton_left_2nd_fg_move)
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 	while (event) {
 		struct libinput_event_pointer *p;
 		double x, y;

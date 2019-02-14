@@ -2033,7 +2033,7 @@ START_TEST(bad_distance_events)
 	litest_drain_events(li);
 
 	absinfo = libevdev_get_abs_info(dev->evdev, ABS_DISTANCE);
-	ck_assert(absinfo != NULL);
+	ck_assert_notnull(absinfo);
 
 	litest_event(dev, EV_ABS, ABS_DISTANCE, absinfo->maximum);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);

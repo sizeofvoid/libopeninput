@@ -1174,7 +1174,7 @@ START_TEST(device_nonpointer_rel)
 	li = litest_create_context();
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	litest_disable_log_handler(li);
 	for (i = 0; i < 100; i++) {
@@ -1216,7 +1216,7 @@ START_TEST(device_touchpad_rel)
 	li = litest_create_context();
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	for (i = 0; i < 100; i++) {
 		libevdev_uinput_write_event(uinput, EV_REL, REL_X, 1);
@@ -1255,7 +1255,7 @@ START_TEST(device_touch_rel)
 	li = litest_create_context();
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	litest_disable_log_handler(li);
 	for (i = 0; i < 100; i++) {
@@ -1293,7 +1293,7 @@ START_TEST(device_abs_rel)
 	li = litest_create_context();
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	for (i = 0; i < 100; i++) {
 		libevdev_uinput_write_event(uinput, EV_REL, REL_X, 1);

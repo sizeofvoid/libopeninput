@@ -66,7 +66,7 @@ START_TEST(udev_create_NULL)
 	ck_assert(li == NULL);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, NULL), -1);
 
 	libinput_unref(li);
@@ -82,10 +82,10 @@ START_TEST(udev_create_seat0)
 	int fd;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
 	fd = libinput_get_fd(li);
@@ -94,7 +94,7 @@ START_TEST(udev_create_seat0)
 	/* expect at least one event */
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 
 	libinput_event_destroy(event);
 	libinput_unref(li);
@@ -110,11 +110,11 @@ START_TEST(udev_create_empty_seat)
 	int fd;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	/* expect a libinput reference, but no events */
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seatdoesntexist"), 0);
 
 	fd = libinput_get_fd(li);
@@ -140,7 +140,7 @@ START_TEST(udev_create_seat_too_long)
 	seatname[sizeof(seatname) - 1] = '\0';
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	ck_assert_notnull(li);
@@ -162,10 +162,10 @@ START_TEST(udev_set_user_data)
 	int data1, data2;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, &data1, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert(libinput_get_user_data(li) == &data1);
 	libinput_set_user_data(li, &data2);
 	ck_assert(libinput_get_user_data(li) == &data2);
@@ -191,10 +191,10 @@ START_TEST(udev_added_seat_default)
 	int default_seat_found = 0;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 	libinput_dispatch(li);
 
@@ -207,7 +207,7 @@ START_TEST(udev_added_seat_default)
 
 		device = libinput_event_get_device(event);
 		seat = libinput_device_get_seat(device);
-		ck_assert(seat != NULL);
+		ck_assert_notnull(seat);
 
 		seat_name = libinput_seat_get_logical_name(seat);
 		default_seat_found = streq(seat_name, "default");
@@ -237,15 +237,15 @@ START_TEST(udev_change_seat)
 	int rc;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 
 	ck_assert_int_eq(libinput_event_get_type(event),
 			 LIBINPUT_EVENT_DEVICE_ADDED);
@@ -304,10 +304,10 @@ START_TEST(udev_double_suspend)
 	int fd;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
 	fd = libinput_get_fd(li);
@@ -316,7 +316,7 @@ START_TEST(udev_double_suspend)
 	/* expect at least one event */
 	ck_assert_int_ge(libinput_dispatch(li), 0);
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 
 	libinput_suspend(li);
 	libinput_suspend(li);
@@ -336,10 +336,10 @@ START_TEST(udev_double_resume)
 	int fd;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
 	fd = libinput_get_fd(li);
@@ -348,7 +348,7 @@ START_TEST(udev_double_resume)
 	/* expect at least one event */
 	ck_assert_int_ge(libinput_dispatch(li), 0);
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 
 	libinput_suspend(li);
 	libinput_resume(li);
@@ -388,10 +388,10 @@ START_TEST(udev_suspend_resume)
 	int num_devices = 0;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
 	fd = libinput_get_fd(li);
@@ -426,10 +426,10 @@ START_TEST(udev_resume_before_seat)
 	int rc;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 
 	rc = libinput_resume(li);
 	ck_assert_int_eq(rc, 0);
@@ -446,10 +446,10 @@ START_TEST(udev_suspend_resume_before_seat)
 	int rc;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 
 	libinput_suspend(li);
 	rc = libinput_resume(li);
@@ -469,10 +469,10 @@ START_TEST(udev_device_sysname)
 	struct udev *udev;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
 	libinput_dispatch(li);
@@ -486,7 +486,8 @@ START_TEST(udev_device_sysname)
 
 		device = libinput_event_get_device(ev);
 		sysname = libinput_device_get_sysname(device);
-		ck_assert(sysname != NULL && strlen(sysname) > 1);
+		ck_assert_notnull(sysname);
+		ck_assert_int_gt(strlen(sysname), 1);
 		ck_assert(strchr(sysname, '/') == NULL);
 		ck_assert_int_eq(strncmp(sysname, "event", 5), 0);
 		libinput_event_destroy(ev);
@@ -510,10 +511,10 @@ START_TEST(udev_seat_recycle)
 	void *user_data;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
 	libinput_dispatch(li);
@@ -524,7 +525,7 @@ START_TEST(udev_seat_recycle)
 				break;
 
 			device = libinput_event_get_device(ev);
-			ck_assert(device != NULL);
+			ck_assert_notnull(device);
 			saved_seat = libinput_device_get_seat(device);
 			libinput_seat_set_user_data(saved_seat, &data);
 			libinput_seat_ref(saved_seat);
@@ -536,7 +537,7 @@ START_TEST(udev_seat_recycle)
 		libinput_event_destroy(ev);
 	}
 
-	ck_assert(saved_seat != NULL);
+	ck_assert_notnull(saved_seat);
 
 	libinput_suspend(li);
 
@@ -549,7 +550,7 @@ START_TEST(udev_seat_recycle)
 		switch (libinput_event_get_type(ev)) {
 		case LIBINPUT_EVENT_DEVICE_ADDED:
 			device = libinput_event_get_device(ev);
-			ck_assert(device != NULL);
+			ck_assert_notnull(device);
 
 			seat = libinput_device_get_seat(device);
 			user_data = libinput_seat_get_user_data(seat);
@@ -579,10 +580,10 @@ START_TEST(udev_path_add_device)
 	struct libinput_device *device;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
 	litest_set_log_handler_bug(li);
@@ -603,17 +604,17 @@ START_TEST(udev_path_remove_device)
 	struct libinput_event *event;
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 	libinput_dispatch(li);
 
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED, -1);
 	event = libinput_get_event(li);
 	device = libinput_event_get_device(event);
-	ck_assert(device != NULL);
+	ck_assert_notnull(device);
 
 	/* no effect bug a bug log msg */
 	litest_set_log_handler_bug(li);
@@ -639,17 +640,17 @@ START_TEST(udev_ignore_device)
 	devname = libevdev_get_name(dev->evdev);
 
 	udev = udev_new();
-	ck_assert(udev != NULL);
+	ck_assert_notnull(udev);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
-	ck_assert(li != NULL);
+	ck_assert_notnull(li);
 	litest_restore_log_handler(li);
 
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
-	ck_assert(event != NULL);
+	ck_assert_notnull(event);
 	while (event) {
 		if (libinput_event_get_type(event) ==
 		    LIBINPUT_EVENT_DEVICE_ADDED) {
