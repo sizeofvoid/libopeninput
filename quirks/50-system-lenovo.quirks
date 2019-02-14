@@ -70,6 +70,12 @@ MatchName=*TPPS/2 IBM TrackPoint*
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX1Carbon4th*
 AttrTrackpointMultiplier=0.5
 
+[Lenovo X1 Carbon 6th Trackpoint]
+MatchUdevType=pointingstick
+MatchName=*TPPS/2 Elan TrackPoint*
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX1Carbon6th*
+AttrTrackpointMultiplier=0.4
+
 [Lenovo ThinkPad Compact USB Keyboard with TrackPoint]
 MatchUdevType=keyboard
 MatchBus=usb
