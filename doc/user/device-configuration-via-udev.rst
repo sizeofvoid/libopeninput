@@ -234,7 +234,7 @@ that update causes a hwdb change).
 
 To update the binary file on-disk, run: ::
 
-    sudo udevadm hwdb --update
+    sudo systemd-hwdb update
 
 Then, to trigger a reload of all properties on your device, run: ::
 

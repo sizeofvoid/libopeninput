@@ -41,7 +41,7 @@ When running libinput versions 1.11.x or earlier, you must run
 
 ::
 
-     $> sudo udevadm hwdb --update
+     $> sudo systemd-hwdb update
 
 
 Additional options may also be specified. For example:
