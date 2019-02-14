@@ -322,15 +322,14 @@ draw_gestures(struct window *w, cairo_t *cr)
 	cairo_stroke(cr);
 
 	cairo_restore(cr);
-
 }
 
 static inline void
 draw_scrollbars(struct window *w, cairo_t *cr)
 {
-	cairo_set_source_rgb(cr, .4, .8, 0);
 
 	cairo_save(cr);
+	cairo_set_source_rgb(cr, .4, .8, 0);
 	cairo_rectangle(cr, w->vx - 10, w->vy - 20, 20, 40);
 	cairo_rectangle(cr, w->hx - 20, w->hy - 10, 40, 20);
 	cairo_fill(cr);
@@ -342,8 +341,8 @@ draw_touchpoints(struct window *w, cairo_t *cr)
 {
 	struct touch *t;
 
+	cairo_save(cr);
 	ARRAY_FOR_EACH(w->touches, t) {
-		cairo_save(cr);
 		if (t->state == TOUCH_ACTIVE)
 			cairo_set_source_rgb(cr, .8, .2, .2);
 		else
@@ -353,16 +352,16 @@ draw_touchpoints(struct window *w, cairo_t *cr)
 			cairo_stroke(cr);
 		else
 			cairo_fill(cr);
-		cairo_restore(cr);
 	}
+	cairo_restore(cr);
 }
 
 static inline void
 draw_abs_pointer(struct window *w, cairo_t *cr)
 {
-	cairo_set_source_rgb(cr, .2, .4, .8);
 
 	cairo_save(cr);
+	cairo_set_source_rgb(cr, .2, .4, .8);
 	cairo_arc(cr, w->absx, w->absy, 10, 0, 2 * M_PI);
 	cairo_fill(cr);
 	cairo_restore(cr);
@@ -441,22 +440,16 @@ draw_tablet(struct window *w, cairo_t *cr)
 	if (w->tool.x_in && w->tool.y_in) {
 		cairo_rectangle(cr, w->tool.x_in - 15, w->tool.y_in - 15, 30, 30);
 		cairo_stroke(cr);
-		cairo_restore(cr);
-		cairo_save(cr);
 	}
 
 	if (w->tool.x_down && w->tool.y_down) {
 		cairo_rectangle(cr, w->tool.x_down - 10, w->tool.y_down - 10, 20, 20);
 		cairo_stroke(cr);
-		cairo_restore(cr);
-		cairo_save(cr);
 	}
 
 	if (w->tool.x_up && w->tool.y_up) {
 		cairo_rectangle(cr, w->tool.x_up - 10, w->tool.y_up - 10, 20, 20);
 		cairo_stroke(cr);
-		cairo_restore(cr);
-		cairo_save(cr);
 	}
 
 	if (w->tool.pressure)
@@ -489,7 +482,7 @@ draw_tablet(struct window *w, cairo_t *cr)
 	}
 
 	cairo_stroke(cr);
-
+	cairo_restore(cr);
 }
 
 static inline void
@@ -513,7 +506,6 @@ draw_pointer(struct window *w, cairo_t *cr)
 	first = max(w->ndeltas + 1, mask) - mask;
 	last = w->ndeltas;
 
-	cairo_save(cr);
 	cairo_set_source_rgb(cr, .8, .5, .2);
 
 	x = w->deltas[first % mask].x;
@@ -583,6 +575,7 @@ draw_background(struct window *w, cairo_t *cr)
 		cairo_stroke(cr);
 	}
 
+	cairo_restore(cr);
 }
 
 static gboolean
