@@ -434,7 +434,6 @@ draw_tablet(struct window *w, cairo_t *cr)
 	double x, y;
 	int first, last;
 	size_t mask;
-	int i;
 
 	/* tablet tool, square for prox-in location */
 	cairo_save(cr);
@@ -471,26 +470,6 @@ draw_tablet(struct window *w, cairo_t *cr)
 	cairo_fill(cr);
 	cairo_restore(cr);
 
-	/* pointer deltas */
-	mask = ARRAY_LENGTH(w->deltas);
-	first = max(w->ndeltas + 1, mask) - mask;
-	last = w->ndeltas;
-
-	cairo_save(cr);
-	cairo_set_source_rgb(cr, .8, .5, .2);
-
-	x = w->deltas[first % mask].x;
-	y = w->deltas[first % mask].y;
-	cairo_move_to(cr, x, y);
-
-	for (i = first + 1; i < last; i++) {
-		x = w->deltas[i % mask].x;
-		y = w->deltas[i % mask].y;
-		cairo_line_to(cr, x, y);
-	}
-
-	cairo_stroke(cr);
-
 	/* tablet deltas */
 	mask = ARRAY_LENGTH(w->tool.deltas);
 	first = max(w->tool.ndeltas + 1, mask) - mask;
@@ -503,7 +482,7 @@ draw_tablet(struct window *w, cairo_t *cr)
 	y = w->tool.deltas[first % mask].y;
 	cairo_move_to(cr, x, y);
 
-	for (i = first + 1; i < last; i++) {
+	for (int i = first + 1; i < last; i++) {
 		x = w->tool.deltas[i % mask].x;
 		y = w->tool.deltas[i % mask].y;
 		cairo_line_to(cr, x, y);
@@ -516,6 +495,10 @@ draw_tablet(struct window *w, cairo_t *cr)
 static inline void
 draw_pointer(struct window *w, cairo_t *cr)
 {
+	double x, y;
+	int first, last;
+	size_t mask;
+
 	/* draw pointer sprite */
 	cairo_set_source_rgb(cr, 0, 0, 0);
 	cairo_save(cr);
@@ -524,6 +507,26 @@ draw_pointer(struct window *w, cairo_t *cr)
 	cairo_rel_line_to(cr, -10, 0);
 	cairo_rel_line_to(cr, 0, -15);
 	cairo_fill(cr);
+
+	/* pointer deltas */
+	mask = ARRAY_LENGTH(w->deltas);
+	first = max(w->ndeltas + 1, mask) - mask;
+	last = w->ndeltas;
+
+	cairo_save(cr);
+	cairo_set_source_rgb(cr, .8, .5, .2);
+
+	x = w->deltas[first % mask].x;
+	y = w->deltas[first % mask].y;
+	cairo_move_to(cr, x, y);
+
+	for (int i = first + 1; i < last; i++) {
+		x = w->deltas[i % mask].x;
+		y = w->deltas[i % mask].y;
+		cairo_line_to(cr, x, y);
+	}
+
+	cairo_stroke(cr);
 	cairo_restore(cr);
 }
 
