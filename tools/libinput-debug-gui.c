@@ -436,7 +436,7 @@ draw_tablet(struct window *w, cairo_t *cr)
 
 	/* tablet tool, square for prox-in location */
 	cairo_save(cr);
-	cairo_set_source_rgb(cr, .8, .8, .8);
+	cairo_set_source_rgb(cr, .2, .6, .6);
 	if (w->tool.x_in && w->tool.y_in) {
 		cairo_rectangle(cr, w->tool.x_in - 15, w->tool.y_in - 15, 30, 30);
 		cairo_stroke(cr);
@@ -453,7 +453,7 @@ draw_tablet(struct window *w, cairo_t *cr)
 	}
 
 	if (w->tool.pressure)
-		cairo_set_source_rgb(cr, .8, .8, .2);
+		cairo_set_source_rgb(cr, .2, .8, .8);
 
 	cairo_translate(cr, w->tool.x, w->tool.y);
 	cairo_scale(cr, 1.0 + w->tool.tilt_x/30.0, 1.0 + w->tool.tilt_y/30.0);
