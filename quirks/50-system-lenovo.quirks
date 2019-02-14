@@ -64,6 +64,12 @@ MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX1Carbon3rd:*
 ModelLenovoT450Touchpad=1
 AttrPalmPressureThreshold=150
 
+[Lenovo X1 Carbon 4th Trackpoint]
+MatchUdevType=pointingstick
+MatchName=*TPPS/2 IBM TrackPoint*
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX1Carbon4th*
+AttrTrackpointMultiplier=0.5
+
 [Lenovo ThinkPad Compact USB Keyboard with TrackPoint]
 MatchUdevType=keyboard
 MatchBus=usb
