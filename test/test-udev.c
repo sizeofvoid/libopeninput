@@ -143,6 +143,7 @@ START_TEST(udev_create_seat_too_long)
 	ck_assert(udev != NULL);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	ck_assert_notnull(li);
 	litest_set_log_handler_bug(li);
 
 	ck_assert_int_eq(libinput_udev_assign_seat(li, seatname), -1);
