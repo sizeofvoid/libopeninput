@@ -80,14 +80,6 @@ START_TEST(pad_time)
 		litest_button_click(dev, code, 0);
 		libinput_dispatch(li);
 
-		switch (code) {
-		case BTN_STYLUS:
-			litest_assert_empty_queue(li);
-			continue;
-		default:
-			break;
-		}
-
 		break;
 	}
 
