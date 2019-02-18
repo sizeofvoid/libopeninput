@@ -179,7 +179,7 @@ Once the thresholds are decided on (e.g. 10 and 8), they can be enabled with
      AttrTouchSizeRange=10:8
 
 The first line is the match line and should be adjusted for the device name
-(see evemu-record's output) and for the local system, based on the
+(see :ref:`libinput record <libinput-record>`'s output) and for the local system, based on the
 information in ``/sys/class/dmi/id/modalias``. The modalias should be
 shortened to the specific system's information, usually system vendor (svn)
 and product name (pn).

@@ -14,7 +14,7 @@ https://gitlab.freedesktop.org/libinput/libinput/issues/new
 When reporting bugs against libinput, you will need:
 
 - a reliable :ref:`reproducer <reporting_bugs_reproducer>` for the bug
-- an :ref:`evemu recording <evemu>` of the device while the bug is reproduced
+- a :ref:`recording <libinput-record>` of the device while the bug is reproduced
 - device-specific information, see
 
      - :ref:`reporting_bugs_touchpad`

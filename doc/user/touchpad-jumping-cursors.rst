@@ -16,7 +16,7 @@ the text **"Touch jump detected and discarded."** and a link to this page.
 
 In most cases, this is a bug in the kernel driver and to libinput it appears
 that the touch point moves from its previous position. The pointer jump can
-usually be seen in the evemu-record output for the device:
+usually be seen in the :ref:`libinput record <libinput-record>` output for the device:
 
 
 ::
@@ -53,6 +53,6 @@ represent a physical move of almost 50mm. libinput detects some of these
 jumps and discards the movement but otherwise continues as usual. However,
 the bug should be fixed at the kernel level.
 
-When you encounter the warning in the log, please generate an evemu
-recording of your touchpad and file a bug. See :ref:`reporting_bugs` for more
-details.
+When you encounter the warning in the log, please generate a recording of
+your touchpad with :ref:`libinput record <libinput-record>` and file a bug.
+See :ref:`reporting_bugs` for more details.
