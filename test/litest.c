@@ -3570,7 +3570,7 @@ litest_timeout_softbuttons(void)
 void
 litest_timeout_buttonscroll(void)
 {
-	msleep(300);
+	msleep(45);
 }
 
 void
