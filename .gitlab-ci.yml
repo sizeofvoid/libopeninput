@@ -147,8 +147,8 @@ variables:
         LOCAL_IMG_SECS=UPSTREAM_IMG_SECS ;
       fi
 
-    # check if image is less than a week old
-    - test $(($LOCAL_IMG_SECS + 604800)) -gt $TODAY_SECS && exit 0
+    # if the image exists and we are not in the scheduled pipeline, exit
+    - test $LOCAL_IMG_SECS -gt 0 -a $CI_PIPELINE_SOURCE != "schedule" && exit 0
 
 
 fedora:28@container-prep:
@@ -307,6 +307,8 @@ freebsd:11.2@container-prep:
       ;done
   dependencies: []
   allow_failure: true
+  only:
+    - schedules
 
 fedora:28@container-clean:
   extends: .container-clean
