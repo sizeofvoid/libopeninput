@@ -25,7 +25,6 @@
 #  e.g. fedora:29@build-default
 
 stages:
-  - bootstrapping    # creates the initial container image (optional)
   - container_check  # check if the current container images are up to date
   - container_prep   # rebuild the container images if previous step failed
   - build            # for actually building things
@@ -54,6 +53,7 @@ variables:
   # We do not use CI_PROJECT_NAMESPACE or CI_REGISTRY_IMAGE because we want
   # forks to use these particular images
   PROJECT_NAMESPACE: libinput
+  BUILDAH_IMAGE: $CI_REGISTRY/wayland/ci-templates/buildah:latest
   FEDORA_CONTAINER_IMAGE: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/fedora/$FEDORA_VERSION
   UBUNTU_CONTAINER_IMAGE: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/ubuntu/$UBUNTU_VERSION
   ARCH_CONTAINER_IMAGE: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/arch/rolling
@@ -96,36 +96,13 @@ variables:
 
 #################################################################
 #                                                               #
-#                    bootstrapping stage                        #
-#                                                               #
-#################################################################
-
-# we need a minimalist image capable of buildah, podman, skopeo, curl,
-# jq, date and test. Instead of using a full fedora and install the
-# dependencies, we can build an alpine container through buildah with
-# the script at `ci/bootstrap.sh`
-bootstrap:
-  stage: bootstrapping
-  when: manual
-  image: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
-  script:
-    - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - bash ci/bootstrap.sh $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
-    - podman images
-    - podman push --quiet $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
-    # add an extra tag to the docker registry:
-    - skopeo copy docker://$CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest docker://$CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:$CI_JOB_ID
-  <<: *restrict_container_creation
-
-#################################################################
-#                                                               #
 #                   container check stage                       #
 #                                                               #
 #################################################################
 
 .container-check:
   stage: container_check
-  image: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
+  image: $BUILDAH_IMAGE
   script:
     # get the full container image name (CURRENT_CONTAINER_IMAGE still has indirections)
     - CONTAINER_IMAGE=$(eval echo "$CURRENT_CONTAINER_IMAGE")
@@ -208,7 +185,7 @@ freebsd:11.2@container-check:
 
 .container-prep:
   stage: container_prep
-  image: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
+  image: $BUILDAH_IMAGE
   before_script:
     # if the check was successful, we just skip recreating the container image
     - test -e .img_ready && exit 0
@@ -388,7 +365,7 @@ freebsd:11.2@force-container-prep:
 #
 .container-clean:
   stage: container_check
-  image: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
+  image: $BUILDAH_IMAGE
   script:
     # get the full container image name (CURRENT_CONTAINER_IMAGE still has indirections)
     - CONTAINER_IMAGE=$(eval echo "$CURRENT_CONTAINER_IMAGE")
@@ -437,12 +414,6 @@ freebsd:11.2@force-container-prep:
   dependencies: []
   allow_failure: true
   <<: *restrict_container_creation
-
-bootstrap@container-clean:
-  extends: .container-clean
-  variables:
-    GIT_STRATEGY: none
-    CURRENT_CONTAINER_IMAGE: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers
 
 fedora:28@container-clean:
   extends: .container-clean
@@ -654,7 +625,7 @@ freebsd:11.2@default-build:
 #
 
 wayland-web:
-  image: $CI_REGISTRY/$PROJECT_NAMESPACE/$CI_PROJECT_NAME/containers:latest
+  image: $BUILDAH_IMAGE
   stage: deploy
   script:
     - curl --request POST
