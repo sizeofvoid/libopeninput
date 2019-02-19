@@ -25,10 +25,10 @@
 #  e.g. fedora:29@build-default
 
 stages:
-  - container_check  # check if the current container images are up to date
-  - container_prep   # rebuild the container images if previous step failed
+  - container_prep   # rebuild the container images if there is a change
   - build            # for actually building things
   - deploy           # trigger wayland's website generation
+  - container_clean  # clean up unused container images
 
 variables:
   ###############################################################################
@@ -277,23 +277,28 @@ freebsd:11.2@container-prep:
 #################################################################
 #                                                               #
 #                   container clean stage                       #
-#                 run during the check stage                    #
+#                 run during the clean stage                    #
 #                                                               #
 #################################################################
 
 #
 # This stage will look for the container images we currently have in
-# the registry and will remove any that are not tagged as 'latest'
+# the registry and will remove any that are not tagged with the provided
+# $container_image:$tag
 #
 .container-clean:
-  stage: container_check
+  stage: container_clean
   image: $BUILDAH_IMAGE
   script:
     # get the full container image name (CURRENT_CONTAINER_IMAGE still has indirections)
     - CONTAINER_IMAGE=$(eval echo "$CURRENT_CONTAINER_IMAGE")
     - GITLAB=$(echo $CI_PROJECT_URL | cut -f3 -d/)
-    - REPOSITORY=$(echo $CONTAINER_IMAGE | cut -f2- -d/)
+    - REPOSITORY=$(echo $CONTAINER_IMAGE | cut -f2- -d/ | cut -f1 -d:)
     - IMAGE_PATH=$(echo $CONTAINER_IMAGE | cut -f1 -d:)
+    - LATEST_TAG=$(echo $CONTAINER_IMAGE | cut -f2 -d:)
+
+    # log in to the registry (read only)
+    - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
     # get the r/w token from the settings to access the registry
     #
@@ -315,10 +320,14 @@ freebsd:11.2@container-prep:
                              | sed -r 's/(\{"token":"|"\})//g')
 
     # get the digest of the latest image
-    - LATEST_MANIFEST=$(skopeo inspect docker://$IMAGE_PATH:latest | jq -r '.Digest')
+    - LATEST_MANIFEST=$(skopeo inspect docker://$IMAGE_PATH:$LATEST_TAG | jq -r '.Digest')
 
     # get the list of tags
-    - TAGS=$(skopeo inspect docker://$IMAGE_PATH | jq -r '.RepoTags[]')
+    - TAGS=$(skopeo inspect docker://$IMAGE_PATH:$LATEST_TAG | jq -r '.RepoTags[]')
+    # FIXME: is the above command working properly? If not, use below:
+    # - TAGS=$(curl -X GET -H "accept:application/vnd.docker.distribution.manifest.v2+json"
+    #                      -H "authorization:Bearer $REGISTRY_TOKEN"
+    #                      https://$CI_REGISTRY/v2/$REPOSITORY/tags/list | jq -r '.tags[]')
 
     # iterate over the tags
     - for tag in $TAGS;
@@ -330,7 +339,7 @@ freebsd:11.2@container-prep:
             curl https://$CI_REGISTRY/v2/$REPOSITORY/manifests/$MANIFEST --silent
                  -H "accept:application/vnd.docker.distribution.manifest.v2+json"
                  -H "authorization:Bearer $REGISTRY_TOKEN"
-                 --fail --show-error -X DELETE
+                 --fail --show-error -X DELETE || true
           ;fi
       ;done
   dependencies: []
