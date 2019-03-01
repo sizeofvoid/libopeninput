@@ -1841,6 +1841,8 @@ select_device(void)
 	int ndev, selected_device;
 	int rc;
 	char *device_path;
+	bool has_eaccess;
+	int available_devices = 0;
 
 	ndev = scandir("/dev/input", &namelist, is_event_node, versionsort);
 	if (ndev <= 0)
@@ -1857,8 +1859,11 @@ select_device(void)
 			 "/dev/input/%s",
 			 namelist[i]->d_name);
 		fd = open(path, O_RDONLY);
-		if (fd < 0)
+		if (fd < 0) {
+			if (errno == EACCES)
+				has_eaccess = true;
 			continue;
+		}
 
 		rc = libevdev_new_from_fd(fd, &device);
 		close(fd);
@@ -1867,11 +1872,20 @@ select_device(void)
 
 		fprintf(stderr, "%s:	%s\n", path, libevdev_get_name(device));
 		libevdev_free(device);
+		available_devices++;
 	}
 
 	for (int i = 0; i < ndev; i++)
 		free(namelist[i]);
 	free(namelist);
+
+	if (available_devices == 0) {
+		fprintf(stderr, "No devices available. ");
+		if (has_eaccess)
+				fprintf(stderr, "Please re-run as root.");
+		fprintf(stderr, "\n");
+		return NULL;
+	}
 
 	fprintf(stderr, "Select the device event number: ");
 	rc = scanf("%d", &selected_device);
@@ -2425,7 +2439,6 @@ main(int argc, char **argv)
 
 		path = ndevices <= 0 ? select_device() : safe_strdup(argv[optind++]);
 		if (path == NULL) {
-			fprintf(stderr, "Invalid device path\n");
 			goto out;
 		}
 
