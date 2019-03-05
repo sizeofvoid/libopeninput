@@ -1070,7 +1070,7 @@ merge_events(const int *orig, const int *override)
 }
 
 static inline struct created_file *
-litest_copy_file(const char *dest, const char *src, const char *header)
+litest_copy_file(const char *dest, const char *src, const char *header, bool is_file)
 {
 	int in, out, length;
 	struct created_file *file;
@@ -1099,15 +1099,21 @@ litest_copy_file(const char *dest, const char *src, const char *header)
 		litest_assert_int_eq(write(out, header, length), length);
 	}
 
-	in = open(src, O_RDONLY);
-	if (in == -1)
-		litest_abort_msg("Failed to open file %s (%s)\n",
-				 src,
-				 strerror(errno));
-	/* lazy, just check for error and empty file copy */
-	litest_assert_int_gt(litest_send_file(out, in), 0);
+	if (is_file) {
+		in = open(src, O_RDONLY);
+		if (in == -1)
+			litest_abort_msg("Failed to open file %s (%s)\n",
+					 src,
+					 strerror(errno));
+		/* lazy, just check for error and empty file copy */
+		litest_assert_int_gt(litest_send_file(out, in), 0);
+		close(in);
+	} else {
+		size_t written = write(out, src, strlen(src));
+		litest_assert_int_eq(written, strlen(src));
+
+	}
 	close(out);
-	close(in);
 
 	return file;
 }
@@ -1123,20 +1129,26 @@ litest_install_model_quirks(struct list *created_files_list)
 			 "# running, remove this file\n"
 			 "#################################################################\n\n";
 	struct created_file *file;
+	const char *test_device_udev_rule = "KERNELS==\"*input*\", "
+					    "ATTRS{name}==\"litest *\", "
+					    "ENV{LIBINPUT_TEST_DEVICE}=\"1\"";
 
 	file = litest_copy_file(UDEV_TEST_DEVICE_RULE_FILE,
-				LIBINPUT_TEST_DEVICE_RULES_FILE,
-				warning);
+				test_device_udev_rule,
+				warning,
+				false);
 	list_insert(created_files_list, &file->link);
 
 	file = litest_copy_file(UDEV_DEVICE_GROUPS_FILE,
 				LIBINPUT_DEVICE_GROUPS_RULES_FILE,
-				warning);
+				warning,
+				true);
 	list_insert(created_files_list, &file->link);
 
 	file = litest_copy_file(UDEV_MODEL_QUIRKS_RULE_FILE,
 				LIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE,
-				warning);
+				warning,
+				true);
 	list_insert(created_files_list, &file->link);
 }
 
@@ -1195,7 +1207,7 @@ litest_install_quirks(struct list *created_files_list)
 		snprintf(src, sizeof(src), "%s/%s",
 			 LIBINPUT_QUIRKS_SRCDIR, filename);
 		snprintf(dest, sizeof(dest), "%s/%s", dirname, filename);
-		file = litest_copy_file(dest, src, NULL);
+		file = litest_copy_file(dest, src, NULL, true);
 		list_append(created_files_list, &file->link);
 		q++;
 	}

@@ -773,11 +773,6 @@ if get_option('tests')
 		dep_libquirks,
 	]
 
-	configure_file(input : 'udev/80-libinput-test-device.rules',
-		       output : '80-libinput-test-device.rules',
-		       install : false,
-		       configuration : udev_rules_config)
-
 	litest_config_h = configuration_data()
 	litest_config_h.set_quoted('LIBINPUT_TEST_DEVICE_RULES_FILE',
 			    join_paths(meson.build_root(), '80-libinput-test-device.rules'))
