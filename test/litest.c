@@ -74,6 +74,7 @@ static int jobs = 8;
 static bool in_debugger = false;
 static bool verbose = false;
 static bool run_deviceless = false;
+static bool skip_quirks_install = false;
 const char *filter_test = NULL;
 const char *filter_device = NULL;
 const char *filter_group = NULL;
@@ -89,7 +90,14 @@ struct list created_files_list; /* list of all files to remove at the end of
 
 static void litest_init_udev_rules(struct list *created_files_list);
 static void litest_remove_udev_rules(struct list *created_files_list);
-static inline char *litest_install_quirks(struct list *created_files_list);
+
+enum quirks_setup_mode {
+	QUIRKS_SETUP_USE_SRCDIR,
+	QUIRKS_SETUP_ONLY_DEVICE,
+	QUIRKS_SETUP_FULL,
+};
+static void litest_setup_quirks(struct list *created_files_list,
+				enum quirks_setup_mode mode);
 
 /* defined for the litest selftest */
 #ifndef LITEST_DISABLE_BACKTRACE_LOGGING
@@ -745,8 +753,13 @@ litest_run_suite(struct list *tests, int which, int max, int error_fd)
 	};
 	struct name *n, *tmp;
 	struct list testnames;
+	const char *data_path;
 
-	quirks_context = quirks_init_subsystem(getenv("LIBINPUT_QUIRKS_DIR"),
+	data_path = getenv("LIBINPUT_QUIRKS_DIR");
+	if (!data_path)
+		data_path = LIBINPUT_QUIRKS_DIR;
+
+	quirks_context = quirks_init_subsystem(data_path,
 					       NULL,
 					       quirk_log_handler,
 					       NULL,
@@ -960,7 +973,6 @@ litest_run(int argc, char **argv)
 {
 	int failed = 0;
 	int inhibit_lock_fd;
-	char *quirks_dir;
 
 	list_init(&created_files_list);
 
@@ -974,13 +986,18 @@ litest_run(int argc, char **argv)
 		verbose = true;
 
 	if (run_deviceless) {
-		quirks_dir = safe_strdup(LIBINPUT_QUIRKS_SRCDIR);
+		litest_setup_quirks(&created_files_list,
+				    QUIRKS_SETUP_USE_SRCDIR);
 	} else {
+		enum quirks_setup_mode mode;
 		litest_init_udev_rules(&created_files_list);
-		quirks_dir = litest_install_quirks(&created_files_list);
+
+
+		mode = skip_quirks_install ?
+				QUIRKS_SETUP_ONLY_DEVICE :
+				QUIRKS_SETUP_FULL;
+		litest_setup_quirks(&created_files_list, mode);
 	}
-	setenv("LIBINPUT_QUIRKS_DIR", quirks_dir, 1);
-	free(quirks_dir);
 
 	litest_setup_sighandler(SIGINT);
 
@@ -1233,23 +1250,36 @@ litest_install_device_quirks(struct list *created_files_list,
 	}
 }
 
-static char *
-litest_install_quirks(struct list *created_files_list)
+static void
+litest_setup_quirks(struct list *created_files_list,
+		    enum quirks_setup_mode mode)
 {
-	struct created_file *file;
-	char dirname[] = "/run/litest-XXXXXX";
+	struct created_file *file = NULL;
+	const char *dirname;
+	char tmpdir[] = "/run/litest-XXXXXX";
 
-	litest_assert_notnull(mkdtemp(dirname));
-	litest_assert_int_ne(chmod(dirname, 0755), -1);
+	switch (mode) {
+	case QUIRKS_SETUP_USE_SRCDIR:
+		dirname = LIBINPUT_QUIRKS_SRCDIR;
+		break;
+	case QUIRKS_SETUP_ONLY_DEVICE:
+		dirname = LIBINPUT_QUIRKS_DIR;
+		litest_install_device_quirks(created_files_list, dirname);
+		break;
+	case QUIRKS_SETUP_FULL:
+		litest_assert_notnull(mkdtemp(tmpdir));
+		litest_assert_int_ne(chmod(tmpdir, 0755), -1);
+		file = zalloc(sizeof *file);
+		file->path = safe_strdup(tmpdir);
+		dirname = tmpdir;
 
-	litest_install_source_quirks(created_files_list, dirname);
-	litest_install_device_quirks(created_files_list, dirname);
+		litest_install_source_quirks(created_files_list, dirname);
+		litest_install_device_quirks(created_files_list, dirname);
+		list_append(created_files_list, &file->link);
+		break;
+	}
 
-	file = zalloc(sizeof *file);
-	file->path = safe_strdup(dirname);
-	list_append(created_files_list, &file->link);
-
-	return safe_strdup(dirname);
+	setenv("LIBINPUT_QUIRKS_DIR", dirname, 1);
 }
 
 static inline void
@@ -3870,12 +3900,14 @@ litest_parse_argv(int argc, char **argv)
 		OPT_JOBS,
 		OPT_LIST,
 		OPT_VERBOSE,
+		OPT_SYSTEM_QUIRKS,
 	};
 	static const struct option opts[] = {
 		{ "filter-test", 1, 0, OPT_FILTER_TEST },
 		{ "filter-device", 1, 0, OPT_FILTER_DEVICE },
 		{ "filter-group", 1, 0, OPT_FILTER_GROUP },
 		{ "filter-deviceless", 0, 0, OPT_FILTER_DEVICELESS },
+		{ "use-system-quirks", 0, 0, OPT_SYSTEM_QUIRKS },
 		{ "jobs", 1, 0, OPT_JOBS },
 		{ "list", 0, 0, OPT_LIST },
 		{ "verbose", 0, 0, OPT_VERBOSE },
@@ -3951,6 +3983,9 @@ litest_parse_argv(int argc, char **argv)
 			break;
 		case OPT_FILTER_DEVICELESS:
 			run_deviceless = true;
+			break;
+		case OPT_SYSTEM_QUIRKS:
+			skip_quirks_install = true;
 			break;
 		}
 	}
