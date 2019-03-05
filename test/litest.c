@@ -58,6 +58,7 @@
 #include "litest-int.h"
 #include "libinput-util.h"
 #include "quirks.h"
+#include "builddir.h"
 
 #include <linux/kd.h>
 
@@ -3900,26 +3901,31 @@ litest_parse_argv(int argc, char **argv)
 		OPT_JOBS,
 		OPT_LIST,
 		OPT_VERBOSE,
-		OPT_SYSTEM_QUIRKS,
 	};
 	static const struct option opts[] = {
 		{ "filter-test", 1, 0, OPT_FILTER_TEST },
 		{ "filter-device", 1, 0, OPT_FILTER_DEVICE },
 		{ "filter-group", 1, 0, OPT_FILTER_GROUP },
 		{ "filter-deviceless", 0, 0, OPT_FILTER_DEVICELESS },
-		{ "use-system-quirks", 0, 0, OPT_SYSTEM_QUIRKS },
 		{ "jobs", 1, 0, OPT_JOBS },
 		{ "list", 0, 0, OPT_LIST },
 		{ "verbose", 0, 0, OPT_VERBOSE },
 		{ "help", 0, 0, 'h'},
 		{ 0, 0, 0, 0}
 	};
-
 	enum {
 		JOBS_DEFAULT,
 		JOBS_SINGLE,
 		JOBS_CUSTOM
 	} want_jobs = JOBS_DEFAULT;
+	char *builddir;
+
+	/* If we are not running from the builddir, we assume we're running
+	 * against the system as installed */
+	builddir = builddir_lookup();
+	if (!builddir)
+		skip_quirks_install = true;
+	free(builddir);
 
 	if (in_debugger)
 		want_jobs = JOBS_SINGLE;
@@ -3983,9 +3989,6 @@ litest_parse_argv(int argc, char **argv)
 			break;
 		case OPT_FILTER_DEVICELESS:
 			run_deviceless = true;
-			break;
-		case OPT_SYSTEM_QUIRKS:
-			skip_quirks_install = true;
 			break;
 		}
 	}

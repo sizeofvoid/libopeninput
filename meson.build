@@ -406,6 +406,7 @@ dep_tools_shared = declare_dependency(link_with : lib_tools_shared,
 
 man_config = configuration_data()
 man_config.set('LIBINPUT_VERSION', meson.project_version())
+man_config.set('LIBINPUT_DATA_DIR', dir_data)
 
 deps_tools = [ dep_tools_shared, dep_libinput ]
 libinput_debug_events_sources = [ 'tools/libinput-debug-events.c' ]
@@ -843,11 +844,19 @@ if get_option('tests')
 		'test/test-switch.c',
 		'test/test-quirks.c',
 	]
-	libinput_test_runner = executable('libinput-test-suite-runner',
+	libinput_test_runner = executable('libinput-test-suite',
 					  libinput_test_runner_sources,
 					  include_directories : [includes_src, includes_include],
 					  dependencies : deps_litest,
-					  install : false)
+					  install_dir : libinput_tool_path,
+					  install : get_option('install-tests'))
+	configure_file(input : 'test/libinput-test-suite.man',
+		       output : 'libinput-test-suite.1',
+		       configuration : man_config,
+		       install : true,
+		       install_dir : dir_man1,
+		       )
+
 	test('libinput-test-suite-runner',
 	     libinput_test_runner,
 	     timeout : 1200)

@@ -5,8 +5,8 @@ libinput test suite
 ==============================================================================
 
 libinput ships with a number of tests all run automatically on ``ninja test``.
-The primary test suite is the ``libinput-test-suite-runner``. When testing,
-the ``libinput-test-suite-runner`` should always be invoked to check for
+The primary test suite is the ``libinput-test-suite``. When testing,
+the ``libinput-test-suite`` should always be invoked to check for
 behavior changes. The test suite relies on the kernel and udev to function
 correctly. It is not suitable for running inside containers.
 
@@ -66,7 +66,7 @@ run for a device.
 
 ::
 
-     $ ./builddir/libinput-test-suite-runner --list
+     $ ./builddir/libinput-test-suite --list
      ...
      pointer:left-handed:
 	pointer_left_handed_during_click_multiple_buttons:
@@ -121,7 +121,7 @@ basic shell-style function name matching. For example:
 
 ::
 
-     $ ./builddir/libinput-test-suite-runner --filter-test="*1fg_tap*"
+     $ ./builddir/libinput-test-suite --filter-test="*1fg_tap*"
 
 
 The ``--filter-device`` argument enables selective running of tests through
@@ -131,7 +131,7 @@ litest-specific shortnames, see the output of ``--list``. For example:
 
 ::
 
-     $ ./builddir/libinput-test-suite-runner --filter-device="synaptics*"
+     $ ./builddir/libinput-test-suite --filter-device="synaptics*"
 
 
 The ``--filter-group`` argument enables selective running of test groups
@@ -141,7 +141,7 @@ litest-specific test groups, see the output of ``--list``. For example:
 
 ::
 
-     $ ./builddir/libinput-test-suite-runner --filter-group="touchpad:*hover*"
+     $ ./builddir/libinput-test-suite --filter-group="touchpad:*hover*"
 
 
 The ``--filter-device`` and ``--filter-group`` arguments can be combined with
@@ -160,5 +160,33 @@ environment variable, if set, also enables verbose mode.
 
 ::
 
-     $ ./builddir/libinput-test-suite-runner --verbose
+     $ ./builddir/libinput-test-suite --verbose
      $ LITEST_VERBOSE=1 ninja test
+
+.. _test-installed:
+
+------------------------------------------------------------------------------
+Installing the test suite
+------------------------------------------------------------------------------
+
+If libinput is configured to install the tests, the test suite is available
+as the ``libinput test-suite`` command. When run as installed binary, the
+behavior of the test suite changes:
+
+- the ``libinput.so`` used is the one in the library lookup paths
+- no system-wide quirks are installed by the test suite, only those specific
+  to the test devices
+- test device-specific quirks are installed in the system-wide quirks
+  directory, usually ``/usr/share/libinput/``.
+
+It is not advisable to run ``libinput test-suite`` on a production machine.
+Data loss may occur. The primary use-case for the installed test suite is
+verification of distribution composes.
+
+.. note:: The ``prefix`` is still used by the test suite. For verification
+	of a system package, the test suite must be configured with the same prefix.
+
+To configure libinput to install the tests, use the ``-Dinstall-tests=true``
+meson option::
+
+  $ meson builddir -Dtests=true -Dinstall-tests=true <other options>
