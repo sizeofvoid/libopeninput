@@ -4081,7 +4081,7 @@ main(int argc, char **argv)
 	}
 
 	if (setrlimit(RLIMIT_CORE, &corelimit) != 0)
-		perror("WARNING: Core dumps not disabled. Reason");
+		perror("WARNING: Core dumps not disabled");
 
 	tty_mode = disable_tty();
 
