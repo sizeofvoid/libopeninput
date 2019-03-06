@@ -36,6 +36,7 @@
 #include <libevdev/libevdev.h>
 #include <libinput-util.h>
 
+#include "builddir.h"
 #include "shared.h"
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
@@ -313,8 +314,11 @@ tools_open_device(const char *path, bool verbose, bool *grab)
 static void
 tools_setenv_quirks_dir(void)
 {
-	if (tools_execdir_is_builddir(NULL, 0))
+	char *builddir = builddir_lookup();
+	if (builddir) {
 		setenv("LIBINPUT_QUIRKS_DIR", LIBINPUT_QUIRKS_SRCDIR, 0);
+		free(builddir);
+	}
 }
 
 struct libinput *
@@ -475,70 +479,21 @@ out:
 	return is_touchpad;
 }
 
-/**
- * Try to read the directory we're executing from and if it matches the
- * builddir, return it.
- *
- * @param execdir_out If not NULL, set to the exec directory
- * @param sz Size of execdir_out
- *
- * @return true if the execdir is the builddir, false otherwise.
- *
- * If execdir_out is NULL and szt is 0, it merely returns true/false.
- */
-bool
-tools_execdir_is_builddir(char *execdir_out, size_t sz)
-{
-	char execdir[PATH_MAX] = {0};
-	char *pathsep;
-	ssize_t nread;
-
-	/* In the case of release builds, the builddir is
-	   the empty string */
-	if (streq(MESON_BUILD_ROOT, ""))
-		return false;
-
-	nread = readlink("/proc/self/exe", execdir, sizeof(execdir) - 1);
-	if (nread <= 0 || nread == sizeof(execdir) - 1)
-		return false;
-
-	/* readlink doesn't terminate the string and readlink says
-	   anything past sz is undefined */
-	execdir[++nread] = '\0';
-
-	pathsep = strrchr(execdir, '/');
-	if (!pathsep)
-		return false;
-
-	*pathsep = '\0';
-	if (!streq(execdir, MESON_BUILD_ROOT))
-		return false;
-
-	if (sz > 0) {
-		assert(execdir_out != NULL);
-		assert(sz >= (size_t)nread);
-		snprintf(execdir_out, nread, "%s", execdir);
-	}
-	return true;
-}
-
 static inline void
 setup_path(void)
 {
 	const char *path = getenv("PATH");
 	char new_path[PATH_MAX];
-	char builddir[PATH_MAX];
 	const char *extra_path = LIBINPUT_TOOL_PATH;
-
-	if (tools_execdir_is_builddir(builddir, sizeof(builddir)))
-		extra_path = builddir;
+	char *builddir = builddir_lookup();
 
 	snprintf(new_path,
 		 sizeof(new_path),
 		 "%s:%s",
-		 extra_path,
+		 builddir ? builddir : extra_path,
 		 path ? path : "");
 	setenv("PATH", new_path, 1);
+	free(builddir);
 }
 
 int

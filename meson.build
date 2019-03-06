@@ -281,6 +281,7 @@ install_data(quirks_data, install_dir : dir_data)
 src_libquirks = [
 	'src/quirks.c',
 	'src/quirks.h',
+	'src/builddir.h',
 ]
 
 deps_libquirks = [dep_udev, dep_libinput_util]
@@ -393,7 +394,8 @@ endif
 libinput_tool_path = dir_libexec
 config_h.set_quoted('LIBINPUT_TOOL_PATH', libinput_tool_path)
 tools_shared_sources = [ 'tools/shared.c',
-			 'tools/shared.h' ]
+			 'tools/shared.h',
+			 'src/builddir.h' ]
 deps_tools_shared = [ dep_libinput, dep_libevdev ]
 lib_tools_shared = static_library('tools_shared',
 				  tools_shared_sources,
@@ -610,7 +612,7 @@ endif
 # the test to verify that lookup. We test twice, once as normal test
 # run from the builddir, once after copying to /tmp
 test_builddir_lookup = executable('test-builddir-lookup',
-				  'tools/test-builddir-lookup.c',
+				  'test/test-builddir-lookup.c',
 				  dependencies : [ dep_tools_shared],
 				  include_directories : [includes_src, includes_include],
 				  install : false)
@@ -618,7 +620,7 @@ test('tools-builddir-lookup',
      test_builddir_lookup,
      args : ['--builddir-is-set'])
 test('tools-builddir-lookup-installed',
-     find_program('tools/helper-copy-and-exec-from-tmp.sh'),
+     find_program('test/helper-copy-and-exec-from-tmp.sh'),
      args : [test_builddir_lookup.full_path(), '--builddir-is-null'],
      env : ['LD_LIBRARY_PATH=@0@'.format(meson.build_root())],
      workdir : '/tmp')

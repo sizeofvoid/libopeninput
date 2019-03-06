@@ -123,7 +123,4 @@ tools_list_device_quirks(struct quirks_context *ctx,
 			 void (*callback)(void *userdata, const char *str),
 			 void *userdata);
 
-bool
-tools_execdir_is_builddir(char *execdir_out, size_t sz);
-
 #endif

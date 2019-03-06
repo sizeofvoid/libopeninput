@@ -32,6 +32,7 @@
 #include "libinput-util.h"
 #include "quirks.h"
 #include "shared.h"
+#include "builddir.h"
 
 static bool verbose = false;
 
@@ -162,8 +163,10 @@ main(int argc, char **argv)
 
 	/* Overriding the data dir means no custom override file */
 	if (!data_path) {
-		if (tools_execdir_is_builddir(NULL, 0)) {
+		char *builddir = builddir_lookup();
+		if (builddir) {
 			data_path = LIBINPUT_QUIRKS_SRCDIR;
+			free(builddir);
 		} else {
 			data_path = LIBINPUT_QUIRKS_DIR;
 			override_file = LIBINPUT_QUIRKS_OVERRIDE_FILE;

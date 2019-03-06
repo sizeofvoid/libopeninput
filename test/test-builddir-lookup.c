@@ -23,34 +23,34 @@
 
 #include "config.h"
 #include "libinput-util.h"
-#include "shared.h"
+#include "builddir.h"
 
-int main(int argc, char **argv) {
-	char builddir[PATH_MAX];
+int
+main(int argc, char **argv)
+{
+	char *builddir;
 	char *mode;
-	bool rc, rc2;
 
 	assert(argc == 2);
 	mode = argv[1];
 
-	rc = tools_execdir_is_builddir(builddir, sizeof(builddir));
-	rc2 = tools_execdir_is_builddir(NULL, 0);
+	builddir = builddir_lookup();
 	if (streq(mode, "--builddir-is-null")) {
-		assert(rc == false);
-		assert(rc == rc2);
+		assert(builddir == NULL);
 	} else if (streq(mode, "--builddir-is-set")) {
 		/* In the case of release builds, the builddir is
 		   the empty string */
 		if (streq(MESON_BUILD_ROOT, "")) {
-			assert(rc == false);
+			assert(builddir == NULL);
 		} else {
-			assert(rc == true);
+			assert(builddir);
 			assert(streq(MESON_BUILD_ROOT, builddir));
 		}
-		assert(rc == rc2);
 	} else {
 		abort();
 	}
+
+	free(builddir);
 
 	return 0;
 }
