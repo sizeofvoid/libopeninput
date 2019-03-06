@@ -3848,6 +3848,7 @@ litest_parse_argv(int argc, char **argv)
 		{ "jobs", 1, 0, OPT_JOBS },
 		{ "list", 0, 0, OPT_LIST },
 		{ "verbose", 0, 0, OPT_VERBOSE },
+		{ "help", 0, 0, 'h'},
 		{ 0, 0, 0, 0}
 	};
 
@@ -3868,6 +3869,30 @@ litest_parse_argv(int argc, char **argv)
 		if (c == -1)
 			break;
 		switch(c) {
+		default:
+		case 'h':
+			printf("Usage: %s [--verbose] [--jobs] [--filter-...]\n"
+			       "\n"
+			       "Options:\n"
+			       "    --filter-test=.... \n"
+			       "          Glob to filter on test names\n"
+			       "    --filter-device=.... \n"
+			       "          Glob to filter on device names\n"
+			       "    --filter-group=.... \n"
+			       "          Glob to filter on test groups\n"
+			       "    --filter-deviceless=.... \n"
+			       "          Glob to filter on tests that do not create test devices\n"
+			       "    --verbose\n"
+			       "          Enable verbose output\n"
+			       "    --jobs 8\n"
+			       "          Number of parallel test suites to run (default: 8)\n"
+			       "    --list\n"
+			       "          List all tests\n"
+			       "\n"
+			       "See the libinput-test-suite(1) man page for details.\n",
+			       program_invocation_short_name);
+			exit(c != 'h');
+			break;
 		case OPT_FILTER_TEST:
 			filter_test = optarg;
 			if (want_jobs == JOBS_DEFAULT)
@@ -3896,9 +3921,6 @@ litest_parse_argv(int argc, char **argv)
 		case OPT_FILTER_DEVICELESS:
 			run_deviceless = true;
 			break;
-		default:
-			fprintf(stderr, "usage: %s [--list]\n", argv[0]);
-			return LITEST_MODE_ERROR;
 		}
 	}
 
