@@ -800,6 +800,13 @@ if get_option('tests')
 					  install : false)
 	test('test-litest-selftest', test_litest_selftest)
 
+	def_LT_VERSION = '-DLIBINPUT_LT_VERSION="@0@:@1@:@2@"'.format(libinput_lt_c, libinput_lt_r, libinput_lt_a)
+	test_library_version = executable('test-library-version',
+					  ['test/test-library-version.c'],
+					  c_args : [ def_LT_VERSION ],
+					  install : false)
+	test('test-library-version', test_library_version)
+
 	libinput_test_runner_sources = litest_sources + [
 		'src/libinput-util.h',
 		'src/libinput-util.c',
@@ -822,12 +829,10 @@ if get_option('tests')
 		'test/test-switch.c',
 		'test/test-quirks.c',
 	]
-	def_LT_VERSION = '-DLIBINPUT_LT_VERSION="@0@:@1@:@2@"'.format(libinput_lt_c, libinput_lt_r, libinput_lt_a)
 	libinput_test_runner = executable('libinput-test-suite-runner',
 					  libinput_test_runner_sources,
 					  include_directories : [includes_src, includes_include],
 					  dependencies : deps_litest,
-					  c_args : [ def_LT_VERSION ],
 					  install : false)
 	test('libinput-test-suite-runner',
 	     libinput_test_runner,
