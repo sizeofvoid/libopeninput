@@ -62,7 +62,7 @@ run for a device.
 
 ::
 
-     $ ./test/libinput-test-suite-runner --list
+     $ ./builddir/libinput-test-suite-runner --list
      ...
      pointer:left-handed:
 	pointer_left_handed_during_click_multiple_buttons:
@@ -117,7 +117,7 @@ basic shell-style function name matching. For example:
 
 ::
 
-     $ ./test/libinput-test-suite-runner --filter-test="*1fg_tap*"
+     $ ./builddir/libinput-test-suite-runner --filter-test="*1fg_tap*"
 
 
 The ``--filter-device`` argument enables selective running of tests through
@@ -127,7 +127,7 @@ litest-specific shortnames, see the output of ``--list``. For example:
 
 ::
 
-     $ ./test/libinput-test-suite-runner --filter-device="synaptics*"
+     $ ./builddir/libinput-test-suite-runner --filter-device="synaptics*"
 
 
 The ``--filter-group`` argument enables selective running of test groups
@@ -137,7 +137,7 @@ litest-specific test groups, see the output of ``--list``. For example:
 
 ::
 
-     $ ./test/libinput-test-suite-runner --filter-group="touchpad:*hover*"
+     $ ./builddir/libinput-test-suite-runner --filter-group="touchpad:*hover*"
 
 
 The ``--filter-device`` and ``--filter-group`` arguments can be combined with
@@ -156,5 +156,5 @@ environment variable, if set, also enables verbose mode.
 
 ::
 
-     $ ./test/libinput-test-suite-runner --verbose
+     $ ./builddir/libinput-test-suite-runner --verbose
      $ LITEST_VERBOSE=1 ninja test
