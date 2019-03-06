@@ -22,6 +22,7 @@
  */
 
 #include "config.h"
+#include "litest-config.h"
 
 #ifndef LITEST_H
 #define LITEST_H

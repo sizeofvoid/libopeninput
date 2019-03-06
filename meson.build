@@ -778,11 +778,12 @@ if get_option('tests')
 		       install : false,
 		       configuration : udev_rules_config)
 
-	config_h.set_quoted('LIBINPUT_TEST_DEVICE_RULES_FILE',
+	litest_config_h = configuration_data()
+	litest_config_h.set_quoted('LIBINPUT_TEST_DEVICE_RULES_FILE',
 			    join_paths(meson.build_root(), '80-libinput-test-device.rules'))
-	config_h.set_quoted('LIBINPUT_DEVICE_GROUPS_RULES_FILE',
+	litest_config_h.set_quoted('LIBINPUT_DEVICE_GROUPS_RULES_FILE',
 			    join_paths(meson.build_root(), '80-libinput-device-groups.rules'))
-	config_h.set_quoted('LIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE',
+	litest_config_h.set_quoted('LIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE',
 			    join_paths(meson.build_root(), '90-libinput-model-quirks.rules'))
 
 	def_no_main = '-DLITEST_NO_MAIN'
@@ -853,6 +854,9 @@ if get_option('tests')
 					'--suppressions=' + valgrind_suppressions_file ],
 			env :  valgrind_env,
 			timeout_multiplier : 100)
+	configure_file(output : 'litest-config.h',
+		       install : false,
+		       configuration : litest_config_h)
 endif
 ############ output files ############
 configure_file(output : 'config.h', install : false, configuration : config_h)
