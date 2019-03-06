@@ -1179,24 +1179,22 @@ litest_init_device_quirk_file(const char *data_dir,
 	return safe_strdup(path);
 }
 
-
-static char *
-litest_install_quirks(struct list *created_files_list)
+/**
+ * Install the quirks from the quirks/ source directory.
+ */
+static void
+litest_install_source_quirks(struct list *created_files_list,
+			     const char *dirname)
 {
-	struct litest_test_device *dev;
-	struct created_file *file;
-	char dirname[] = "/run/litest-XXXXXX";
+	const char *quirksdir = "quirks/";
 	char **quirks, **q;
-
-	litest_assert_notnull(mkdtemp(dirname));
-	litest_assert_int_ne(chmod(dirname, 0755), -1);
 
 	quirks = strv_from_string(LIBINPUT_QUIRKS_FILES, ":");
 	litest_assert(quirks);
 
 	q = quirks;
 	while (*q) {
-		const char *quirksdir = "quirks/";
+		struct created_file *file;
 		char *filename;
 		char dest[PATH_MAX];
 		char src[PATH_MAX];
@@ -1212,8 +1210,16 @@ litest_install_quirks(struct list *created_files_list)
 		q++;
 	}
 	strv_free(quirks);
+}
 
-	/* Now add the per-device special config files */
+/**
+ * Install the quirks from the various litest test devices
+ */
+static void
+litest_install_device_quirks(struct list *created_files_list,
+			     const char *dirname)
+{
+	struct litest_test_device *dev;
 
 	list_for_each(dev, &devices, node) {
 		char *path;
@@ -1225,6 +1231,19 @@ litest_install_quirks(struct list *created_files_list)
 			list_insert(created_files_list, &file->link);
 		}
 	}
+}
+
+static char *
+litest_install_quirks(struct list *created_files_list)
+{
+	struct created_file *file;
+	char dirname[] = "/run/litest-XXXXXX";
+
+	litest_assert_notnull(mkdtemp(dirname));
+	litest_assert_int_ne(chmod(dirname, 0755), -1);
+
+	litest_install_source_quirks(created_files_list, dirname);
+	litest_install_device_quirks(created_files_list, dirname);
 
 	file = zalloc(sizeof *file);
 	file->path = safe_strdup(dirname);
