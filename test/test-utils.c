@@ -1,0 +1,1083 @@
+/*
+ * Copyright © 2014 Red Hat, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+#include <config.h>
+
+#include <check.h>
+#include <libinput-util.h>
+
+#include "libinput-util.h"
+#define  TEST_VERSIONSORT
+#include "libinput-versionsort.h"
+
+#include "check-double-macros.h"
+
+START_TEST(bitfield_helpers)
+{
+	/* This value has a bit set on all of the word boundaries we want to
+	 * test: 0, 1, 7, 8, 31, 32, and 33
+	 */
+	unsigned char read_bitfield[] = { 0x83, 0x1, 0x0, 0x80, 0x3 };
+	unsigned char write_bitfield[ARRAY_LENGTH(read_bitfield)] = {0};
+	size_t i;
+
+	/* Now check that the bitfield we wrote to came out to be the same as
+	 * the bitfield we were writing from */
+	for (i = 0; i < ARRAY_LENGTH(read_bitfield) * 8; i++) {
+		switch (i) {
+		case 0:
+		case 1:
+		case 7:
+		case 8:
+		case 31:
+		case 32:
+		case 33:
+			ck_assert(bit_is_set(read_bitfield, i));
+			set_bit(write_bitfield, i);
+			break;
+		default:
+			ck_assert(!bit_is_set(read_bitfield, i));
+			clear_bit(write_bitfield, i);
+			break;
+		}
+	}
+
+	ck_assert_int_eq(memcmp(read_bitfield,
+				write_bitfield,
+				sizeof(read_bitfield)),
+			 0);
+}
+END_TEST
+
+START_TEST(matrix_helpers)
+{
+	struct matrix m1, m2, m3;
+	float f[6] = { 1, 2, 3, 4, 5, 6 };
+	int x, y;
+	int row, col;
+
+	matrix_init_identity(&m1);
+
+	for (row = 0; row < 3; row++) {
+		for (col = 0; col < 3; col++) {
+			ck_assert_int_eq(m1.val[row][col],
+					 (row == col) ? 1 : 0);
+		}
+	}
+	ck_assert(matrix_is_identity(&m1));
+
+	matrix_from_farray6(&m2, f);
+	ck_assert_int_eq(m2.val[0][0], 1);
+	ck_assert_int_eq(m2.val[0][1], 2);
+	ck_assert_int_eq(m2.val[0][2], 3);
+	ck_assert_int_eq(m2.val[1][0], 4);
+	ck_assert_int_eq(m2.val[1][1], 5);
+	ck_assert_int_eq(m2.val[1][2], 6);
+	ck_assert_int_eq(m2.val[2][0], 0);
+	ck_assert_int_eq(m2.val[2][1], 0);
+	ck_assert_int_eq(m2.val[2][2], 1);
+
+	x = 100;
+	y = 5;
+	matrix_mult_vec(&m1, &x, &y);
+	ck_assert_int_eq(x, 100);
+	ck_assert_int_eq(y, 5);
+
+	matrix_mult(&m3, &m1, &m1);
+	ck_assert(matrix_is_identity(&m3));
+
+	matrix_init_scale(&m2, 2, 4);
+	ck_assert_int_eq(m2.val[0][0], 2);
+	ck_assert_int_eq(m2.val[0][1], 0);
+	ck_assert_int_eq(m2.val[0][2], 0);
+	ck_assert_int_eq(m2.val[1][0], 0);
+	ck_assert_int_eq(m2.val[1][1], 4);
+	ck_assert_int_eq(m2.val[1][2], 0);
+	ck_assert_int_eq(m2.val[2][0], 0);
+	ck_assert_int_eq(m2.val[2][1], 0);
+	ck_assert_int_eq(m2.val[2][2], 1);
+
+	matrix_mult_vec(&m2, &x, &y);
+	ck_assert_int_eq(x, 200);
+	ck_assert_int_eq(y, 20);
+
+	matrix_init_translate(&m2, 10, 100);
+	ck_assert_int_eq(m2.val[0][0], 1);
+	ck_assert_int_eq(m2.val[0][1], 0);
+	ck_assert_int_eq(m2.val[0][2], 10);
+	ck_assert_int_eq(m2.val[1][0], 0);
+	ck_assert_int_eq(m2.val[1][1], 1);
+	ck_assert_int_eq(m2.val[1][2], 100);
+	ck_assert_int_eq(m2.val[2][0], 0);
+	ck_assert_int_eq(m2.val[2][1], 0);
+	ck_assert_int_eq(m2.val[2][2], 1);
+
+	matrix_mult_vec(&m2, &x, &y);
+	ck_assert_int_eq(x, 210);
+	ck_assert_int_eq(y, 120);
+
+	matrix_to_farray6(&m2, f);
+	ck_assert_int_eq(f[0], 1);
+	ck_assert_int_eq(f[1], 0);
+	ck_assert_int_eq(f[2], 10);
+	ck_assert_int_eq(f[3], 0);
+	ck_assert_int_eq(f[4], 1);
+	ck_assert_int_eq(f[5], 100);
+}
+END_TEST
+
+START_TEST(ratelimit_helpers)
+{
+	struct ratelimit rl;
+	unsigned int i, j;
+
+	/* 10 attempts every 1000ms */
+	ratelimit_init(&rl, ms2us(1000), 10);
+
+	for (j = 0; j < 3; ++j) {
+		/* a burst of 9 attempts must succeed */
+		for (i = 0; i < 9; ++i) {
+			ck_assert_int_eq(ratelimit_test(&rl),
+					 RATELIMIT_PASS);
+		}
+
+		/* the 10th attempt reaches the threshold */
+		ck_assert_int_eq(ratelimit_test(&rl), RATELIMIT_THRESHOLD);
+
+		/* ..then further attempts must fail.. */
+		ck_assert_int_eq(ratelimit_test(&rl), RATELIMIT_EXCEEDED);
+
+		/* ..regardless of how often we try. */
+		for (i = 0; i < 100; ++i) {
+			ck_assert_int_eq(ratelimit_test(&rl),
+					 RATELIMIT_EXCEEDED);
+		}
+
+		/* ..even after waiting 20ms */
+		msleep(100);
+		for (i = 0; i < 100; ++i) {
+			ck_assert_int_eq(ratelimit_test(&rl),
+					 RATELIMIT_EXCEEDED);
+		}
+
+		/* but after 1000ms the counter is reset */
+		msleep(950); /* +50ms to account for time drifts */
+	}
+}
+END_TEST
+
+struct parser_test {
+	char *tag;
+	int expected_value;
+};
+
+START_TEST(dpi_parser)
+{
+	struct parser_test tests[] = {
+		{ "450 *1800 3200", 1800 },
+		{ "*450 1800 3200", 450 },
+		{ "450 1800 *3200", 3200 },
+		{ "450 1800 3200", 3200 },
+		{ "450 1800 failboat", 0 },
+		{ "450 1800 *failboat", 0 },
+		{ "0 450 1800 *3200", 0 },
+		{ "450@37 1800@12 *3200@6", 3200 },
+		{ "450@125 1800@125   *3200@125  ", 3200 },
+		{ "450@125 *1800@125  3200@125", 1800 },
+		{ "*this @string fails", 0 },
+		{ "12@34 *45@", 0 },
+		{ "12@a *45@", 0 },
+		{ "12@a *45@25", 0 },
+		{ "                                      * 12, 450, 800", 0 },
+		{ "                                      *12, 450, 800", 12 },
+		{ "*12, *450, 800", 12 },
+		{ "*-23412, 450, 800", 0 },
+		{ "112@125, 450@125, 800@125, 900@-125", 0 },
+		{ "", 0 },
+		{ "   ", 0 },
+		{ "* ", 0 },
+		{ NULL, 0 }
+	};
+	int i, dpi;
+
+	for (i = 0; tests[i].tag != NULL; i++) {
+		dpi = parse_mouse_dpi_property(tests[i].tag);
+		ck_assert_int_eq(dpi, tests[i].expected_value);
+	}
+
+	dpi = parse_mouse_dpi_property(NULL);
+	ck_assert_int_eq(dpi, 0);
+}
+END_TEST
+
+START_TEST(wheel_click_parser)
+{
+	struct parser_test tests[] = {
+		{ "1", 1 },
+		{ "10", 10 },
+		{ "-12", -12 },
+		{ "360", 360 },
+
+		{ "0", 0 },
+		{ "-0", 0 },
+		{ "a", 0 },
+		{ "10a", 0 },
+		{ "10-", 0 },
+		{ "sadfasfd", 0 },
+		{ "361", 0 },
+		{ NULL, 0 }
+	};
+
+	int i, angle;
+
+	for (i = 0; tests[i].tag != NULL; i++) {
+		angle = parse_mouse_wheel_click_angle_property(tests[i].tag);
+		ck_assert_int_eq(angle, tests[i].expected_value);
+	}
+}
+END_TEST
+
+START_TEST(wheel_click_count_parser)
+{
+	struct parser_test tests[] = {
+		{ "1", 1 },
+		{ "10", 10 },
+		{ "-12", -12 },
+		{ "360", 360 },
+
+		{ "0", 0 },
+		{ "-0", 0 },
+		{ "a", 0 },
+		{ "10a", 0 },
+		{ "10-", 0 },
+		{ "sadfasfd", 0 },
+		{ "361", 0 },
+		{ NULL, 0 }
+	};
+
+	int i, angle;
+
+	for (i = 0; tests[i].tag != NULL; i++) {
+		angle = parse_mouse_wheel_click_count_property(tests[i].tag);
+		ck_assert_int_eq(angle, tests[i].expected_value);
+	}
+
+	angle = parse_mouse_wheel_click_count_property(NULL);
+	ck_assert_int_eq(angle, 0);
+}
+END_TEST
+
+START_TEST(dimension_prop_parser)
+{
+	struct parser_test_dimension {
+		char *tag;
+		bool success;
+		int x, y;
+	} tests[] = {
+		{ "10x10", true, 10, 10 },
+		{ "1x20", true, 1, 20 },
+		{ "1x8000", true, 1, 8000 },
+		{ "238492x428210", true, 238492, 428210 },
+		{ "0x0", false, 0, 0 },
+		{ "-10x10", false, 0, 0 },
+		{ "-1", false, 0, 0 },
+		{ "1x-99", false, 0, 0 },
+		{ "0", false, 0, 0 },
+		{ "100", false, 0, 0 },
+		{ "", false, 0, 0 },
+		{ "abd", false, 0, 0 },
+		{ "xabd", false, 0, 0 },
+		{ "0xaf", false, 0, 0 },
+		{ "0x0x", false, 0, 0 },
+		{ "x10", false, 0, 0 },
+		{ NULL, false, 0, 0 }
+	};
+	int i;
+	size_t x, y;
+	bool success;
+
+	for (i = 0; tests[i].tag != NULL; i++) {
+		x = y = 0xad;
+		success = parse_dimension_property(tests[i].tag, &x, &y);
+		ck_assert(success == tests[i].success);
+		if (success) {
+			ck_assert_int_eq(x, tests[i].x);
+			ck_assert_int_eq(y, tests[i].y);
+		} else {
+			ck_assert_int_eq(x, 0xad);
+			ck_assert_int_eq(y, 0xad);
+		}
+	}
+
+	success = parse_dimension_property(NULL, &x, &y);
+	ck_assert(success == false);
+}
+END_TEST
+
+START_TEST(reliability_prop_parser)
+{
+	struct parser_test_reliability {
+		char *tag;
+		bool success;
+		enum switch_reliability reliability;
+	} tests[] = {
+		{ "reliable", true, RELIABILITY_RELIABLE },
+		{ "unreliable", false, 0 },
+		{ "", false, 0 },
+		{ "0", false, 0 },
+		{ "1", false, 0 },
+		{ NULL, false, 0, }
+	};
+	enum switch_reliability r;
+	bool success;
+	int i;
+
+	for (i = 0; tests[i].tag != NULL; i++) {
+		r = 0xaf;
+		success = parse_switch_reliability_property(tests[i].tag, &r);
+		ck_assert(success == tests[i].success);
+		if (success)
+			ck_assert_int_eq(r, tests[i].reliability);
+		else
+			ck_assert_int_eq(r, 0xaf);
+	}
+
+	success = parse_switch_reliability_property(NULL, &r);
+	ck_assert(success == true);
+	ck_assert_int_eq(r, RELIABILITY_UNKNOWN);
+
+	success = parse_switch_reliability_property("foo", NULL);
+	ck_assert(success == false);
+}
+END_TEST
+
+START_TEST(calibration_prop_parser)
+{
+#define DEFAULT_VALUES { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 }
+	const float untouched[6] = DEFAULT_VALUES;
+	struct parser_test_calibration {
+		char *prop;
+		bool success;
+		float values[6];
+	} tests[] = {
+		{ "", false, DEFAULT_VALUES },
+		{ "banana", false, DEFAULT_VALUES },
+		{ "1 2 3 a 5 6", false, DEFAULT_VALUES },
+		{ "2", false, DEFAULT_VALUES },
+		{ "2 3 4 5 6", false, DEFAULT_VALUES },
+		{ "1 2 3 4 5 6", true, DEFAULT_VALUES },
+		{ "6.00012 3.244 4.238 5.2421 6.0134 8.860", true,
+			{ 6.00012, 3.244, 4.238, 5.2421, 6.0134, 8.860 }},
+		{ "0xff 2 3 4 5 6", false, DEFAULT_VALUES },
+		{ NULL, false, DEFAULT_VALUES }
+	};
+	bool success;
+	float calibration[6];
+	int rc;
+	int i;
+
+	for (i = 0; tests[i].prop != NULL; i++) {
+		memcpy(calibration, untouched, sizeof(calibration));
+
+		success = parse_calibration_property(tests[i].prop,
+						     calibration);
+		ck_assert_int_eq(success, tests[i].success);
+		if (success)
+			rc = memcmp(tests[i].values,
+				    calibration,
+				    sizeof(calibration));
+		else
+			rc = memcmp(untouched,
+				    calibration,
+				    sizeof(calibration));
+		ck_assert_int_eq(rc, 0);
+	}
+
+	memcpy(calibration, untouched, sizeof(calibration));
+
+	success = parse_calibration_property(NULL, calibration);
+	ck_assert(success == false);
+	rc = memcmp(untouched, calibration, sizeof(calibration));
+	ck_assert_int_eq(rc, 0);
+}
+END_TEST
+
+START_TEST(range_prop_parser)
+{
+	struct parser_test_range {
+		char *tag;
+		bool success;
+		int hi, lo;
+	} tests[] = {
+		{ "10:8", true, 10, 8 },
+		{ "100:-1", true, 100, -1 },
+		{ "-203813:-502023", true, -203813, -502023 },
+		{ "238492:28210", true, 238492, 28210 },
+		{ "none", true, 0, 0 },
+		{ "0:0", false, 0, 0 },
+		{ "", false, 0, 0 },
+		{ "abcd", false, 0, 0 },
+		{ "10:30:10", false, 0, 0 },
+		{ NULL, false, 0, 0 }
+	};
+	int i;
+	int hi, lo;
+	bool success;
+
+	for (i = 0; tests[i].tag != NULL; i++) {
+		hi = lo = 0xad;
+		success = parse_range_property(tests[i].tag, &hi, &lo);
+		ck_assert(success == tests[i].success);
+		if (success) {
+			ck_assert_int_eq(hi, tests[i].hi);
+			ck_assert_int_eq(lo, tests[i].lo);
+		} else {
+			ck_assert_int_eq(hi, 0xad);
+			ck_assert_int_eq(lo, 0xad);
+		}
+	}
+
+	success = parse_range_property(NULL, NULL, NULL);
+	ck_assert(success == false);
+}
+END_TEST
+
+START_TEST(evcode_prop_parser)
+{
+	struct parser_test_tuple {
+		const char *prop;
+		bool success;
+		size_t ntuples;
+		int tuples[20];
+	} tests[] = {
+		{ "EV_KEY", true, 1, {EV_KEY, 0xffff} },
+		{ "EV_ABS;", true, 1, {EV_ABS, 0xffff} },
+		{ "ABS_X;", true, 1, {EV_ABS, ABS_X} },
+		{ "SW_TABLET_MODE;", true, 1, {EV_SW, SW_TABLET_MODE} },
+		{ "EV_SW", true, 1, {EV_SW, 0xffff} },
+		{ "ABS_Y", true, 1, {EV_ABS, ABS_Y} },
+		{ "EV_ABS:0x00", true, 1, {EV_ABS, ABS_X} },
+		{ "EV_ABS:01", true, 1, {EV_ABS, ABS_Y} },
+		{ "ABS_TILT_X;ABS_TILT_Y;", true, 2,
+			{ EV_ABS, ABS_TILT_X,
+			  EV_ABS, ABS_TILT_Y} },
+		{ "BTN_TOOL_DOUBLETAP;EV_KEY;KEY_A", true, 3,
+			{ EV_KEY, BTN_TOOL_DOUBLETAP,
+			  EV_KEY, 0xffff,
+			  EV_KEY, KEY_A } },
+		{ "REL_Y;ABS_Z;BTN_STYLUS", true, 3,
+			{ EV_REL, REL_Y,
+			  EV_ABS, ABS_Z,
+			  EV_KEY, BTN_STYLUS } },
+		{ "REL_Y;EV_KEY:0x123;BTN_STYLUS", true, 3,
+			{ EV_REL, REL_Y,
+			  EV_KEY, 0x123,
+			  EV_KEY, BTN_STYLUS } },
+		{ .prop = "", .success = false },
+		{ .prop = "EV_FOO", .success = false },
+		{ .prop = "EV_KEY;EV_FOO", .success = false },
+		{ .prop = "BTN_STYLUS;EV_FOO", .success = false },
+		{ .prop = "BTN_UNKNOWN", .success = false },
+		{ .prop = "BTN_UNKNOWN;EV_KEY", .success = false },
+		{ .prop = "PR_UNKNOWN", .success = false },
+		{ .prop = "BTN_STYLUS;PR_UNKNOWN;ABS_X", .success = false },
+		{ .prop = "EV_REL:0xffff", .success = false },
+		{ .prop = "EV_REL:0x123.", .success = false },
+		{ .prop = "EV_REL:ffff", .success = false },
+		{ .prop = "EV_REL:blah", .success = false },
+		{ .prop = "KEY_A:0x11", .success = false },
+		{ .prop = "EV_KEY:0x11 ", .success = false },
+		{ .prop = "EV_KEY:0x11not", .success = false },
+		{ .prop = "none", .success = false },
+		{ .prop = NULL },
+	};
+	struct parser_test_tuple *t;
+
+	for (int i = 0; tests[i].prop; i++) {
+		bool success;
+		size_t nevents = 32;
+		struct input_event events[nevents];
+
+		t = &tests[i];
+		success = parse_evcode_property(t->prop, events, &nevents);
+		ck_assert(success == t->success);
+		if (!success)
+			continue;
+
+		ck_assert_int_eq(nevents, t->ntuples);
+		for (size_t j = 0; j < nevents; j++) {
+			int type, code;
+
+			type = events[j].type;
+			code = events[j].code;
+			ck_assert_int_eq(t->tuples[j * 2], type);
+			ck_assert_int_eq(t->tuples[j * 2 + 1], code);
+		}
+	}
+}
+END_TEST
+
+START_TEST(time_conversion)
+{
+	ck_assert_int_eq(us(10), 10);
+	ck_assert_int_eq(ns2us(10000), 10);
+	ck_assert_int_eq(ms2us(10), 10000);
+	ck_assert_int_eq(s2us(1), 1000000);
+	ck_assert_int_eq(us2ms(10000), 10);
+}
+END_TEST
+
+struct atoi_test {
+	char *str;
+	bool success;
+	int val;
+};
+
+START_TEST(safe_atoi_test)
+{
+	struct atoi_test tests[] = {
+		{ "10", true, 10 },
+		{ "20", true, 20 },
+		{ "-1", true, -1 },
+		{ "2147483647", true, 2147483647 },
+		{ "-2147483648", true, -2147483648 },
+		{ "4294967295", false, 0 },
+		{ "0x0", false, 0 },
+		{ "-10x10", false, 0 },
+		{ "1x-99", false, 0 },
+		{ "", false, 0 },
+		{ "abd", false, 0 },
+		{ "xabd", false, 0 },
+		{ "0xaf", false, 0 },
+		{ "0x0x", false, 0 },
+		{ "x10", false, 0 },
+		{ NULL, false, 0 }
+	};
+	int v;
+	bool success;
+
+	for (int i = 0; tests[i].str != NULL; i++) {
+		v = 0xad;
+		success = safe_atoi(tests[i].str, &v);
+		ck_assert(success == tests[i].success);
+		if (success)
+			ck_assert_int_eq(v, tests[i].val);
+		else
+			ck_assert_int_eq(v, 0xad);
+	}
+}
+END_TEST
+
+START_TEST(safe_atoi_base_16_test)
+{
+	struct atoi_test tests[] = {
+		{ "10", true, 0x10 },
+		{ "20", true, 0x20 },
+		{ "-1", true, -1 },
+		{ "0x10", true, 0x10 },
+		{ "0xff", true, 0xff },
+		{ "abc", true, 0xabc },
+		{ "-10", true, -0x10 },
+		{ "0x0", true, 0 },
+		{ "0", true, 0 },
+		{ "0x-99", false, 0 },
+		{ "0xak", false, 0 },
+		{ "0x", false, 0 },
+		{ "x10", false, 0 },
+		{ NULL, false, 0 }
+	};
+
+	int v;
+	bool success;
+
+	for (int i = 0; tests[i].str != NULL; i++) {
+		v = 0xad;
+		success = safe_atoi_base(tests[i].str, &v, 16);
+		ck_assert(success == tests[i].success);
+		if (success)
+			ck_assert_int_eq(v, tests[i].val);
+		else
+			ck_assert_int_eq(v, 0xad);
+	}
+}
+END_TEST
+
+START_TEST(safe_atoi_base_8_test)
+{
+	struct atoi_test tests[] = {
+		{ "7", true, 07 },
+		{ "10", true, 010 },
+		{ "20", true, 020 },
+		{ "-1", true, -1 },
+		{ "010", true, 010 },
+		{ "0ff", false, 0 },
+		{ "abc", false, 0},
+		{ "0xabc", false, 0},
+		{ "-10", true, -010 },
+		{ "0", true, 0 },
+		{ "00", true, 0 },
+		{ "0x0", false, 0 },
+		{ "0x-99", false, 0 },
+		{ "0xak", false, 0 },
+		{ "0x", false, 0 },
+		{ "x10", false, 0 },
+		{ NULL, false, 0 }
+	};
+
+	int v;
+	bool success;
+
+	for (int i = 0; tests[i].str != NULL; i++) {
+		v = 0xad;
+		success = safe_atoi_base(tests[i].str, &v, 8);
+		ck_assert(success == tests[i].success);
+		if (success)
+			ck_assert_int_eq(v, tests[i].val);
+		else
+			ck_assert_int_eq(v, 0xad);
+	}
+}
+END_TEST
+
+struct atou_test {
+	char *str;
+	bool success;
+	unsigned int val;
+};
+
+START_TEST(safe_atou_test)
+{
+	struct atou_test tests[] = {
+		{ "10", true, 10 },
+		{ "20", true, 20 },
+		{ "-1", false, 0 },
+		{ "2147483647", true, 2147483647 },
+		{ "-2147483648", false, 0},
+		{ "0x0", false, 0 },
+		{ "-10x10", false, 0 },
+		{ "1x-99", false, 0 },
+		{ "", false, 0 },
+		{ "abd", false, 0 },
+		{ "xabd", false, 0 },
+		{ "0xaf", false, 0 },
+		{ "0x0x", false, 0 },
+		{ "x10", false, 0 },
+		{ NULL, false, 0 }
+	};
+	unsigned int v;
+	bool success;
+
+	for (int i = 0; tests[i].str != NULL; i++) {
+		v = 0xad;
+		success = safe_atou(tests[i].str, &v);
+		ck_assert(success == tests[i].success);
+		if (success)
+			ck_assert_int_eq(v, tests[i].val);
+		else
+			ck_assert_int_eq(v, 0xad);
+	}
+}
+END_TEST
+
+START_TEST(safe_atou_base_16_test)
+{
+	struct atou_test tests[] = {
+		{ "10", true, 0x10 },
+		{ "20", true, 0x20 },
+		{ "-1", false, 0 },
+		{ "0x10", true, 0x10 },
+		{ "0xff", true, 0xff },
+		{ "abc", true, 0xabc },
+		{ "-10", false, 0 },
+		{ "0x0", true, 0 },
+		{ "0", true, 0 },
+		{ "0x-99", false, 0 },
+		{ "0xak", false, 0 },
+		{ "0x", false, 0 },
+		{ "x10", false, 0 },
+		{ NULL, false, 0 }
+	};
+
+	unsigned int v;
+	bool success;
+
+	for (int i = 0; tests[i].str != NULL; i++) {
+		v = 0xad;
+		success = safe_atou_base(tests[i].str, &v, 16);
+		ck_assert(success == tests[i].success);
+		if (success)
+			ck_assert_int_eq(v, tests[i].val);
+		else
+			ck_assert_int_eq(v, 0xad);
+	}
+}
+END_TEST
+
+START_TEST(safe_atou_base_8_test)
+{
+	struct atou_test tests[] = {
+		{ "7", true, 07 },
+		{ "10", true, 010 },
+		{ "20", true, 020 },
+		{ "-1", false, 0 },
+		{ "010", true, 010 },
+		{ "0ff", false, 0 },
+		{ "abc", false, 0},
+		{ "0xabc", false, 0},
+		{ "-10", false, 0 },
+		{ "0", true, 0 },
+		{ "00", true, 0 },
+		{ "0x0", false, 0 },
+		{ "0x-99", false, 0 },
+		{ "0xak", false, 0 },
+		{ "0x", false, 0 },
+		{ "x10", false, 0 },
+		{ NULL, false, 0 }
+	};
+
+	unsigned int v;
+	bool success;
+
+	for (int i = 0; tests[i].str != NULL; i++) {
+		v = 0xad;
+		success = safe_atou_base(tests[i].str, &v, 8);
+		ck_assert(success == tests[i].success);
+		if (success)
+			ck_assert_int_eq(v, tests[i].val);
+		else
+			ck_assert_int_eq(v, 0xad);
+	}
+}
+END_TEST
+
+START_TEST(safe_atod_test)
+{
+	struct atod_test {
+		char *str;
+		bool success;
+		double val;
+	} tests[] = {
+		{ "10", true, 10 },
+		{ "20", true, 20 },
+		{ "-1", true, -1 },
+		{ "2147483647", true, 2147483647 },
+		{ "-2147483648", true, -2147483648 },
+		{ "4294967295", true, 4294967295 },
+		{ "0x0", false, 0 },
+		{ "0x10", false, 0 },
+		{ "0xaf", false, 0 },
+		{ "x80", false, 0 },
+		{ "0.0", true, 0.0 },
+		{ "0.1", true, 0.1 },
+		{ "1.2", true, 1.2 },
+		{ "-324.9", true, -324.9 },
+		{ "9324.9", true, 9324.9 },
+		{ "NAN", false, 0 },
+		{ "INFINITY", false, 0 },
+		{ "-10x10", false, 0 },
+		{ "1x-99", false, 0 },
+		{ "", false, 0 },
+		{ "abd", false, 0 },
+		{ "xabd", false, 0 },
+		{ "0x0x", false, 0 },
+		{ NULL, false, 0 }
+	};
+	double v;
+	bool success;
+
+	for (int i = 0; tests[i].str != NULL; i++) {
+		v = 0xad;
+		success = safe_atod(tests[i].str, &v);
+		ck_assert(success == tests[i].success);
+		if (success)
+			ck_assert_int_eq(v, tests[i].val);
+		else
+			ck_assert_int_eq(v, 0xad);
+	}
+}
+END_TEST
+
+START_TEST(strsplit_test)
+{
+	struct strsplit_test {
+		const char *string;
+		const char *delim;
+		const char *results[10];
+	} tests[] = {
+		{ "one two three", " ", { "one", "two", "three", NULL } },
+		{ "one", " ", { "one", NULL } },
+		{ "one two ", " ", { "one", "two", NULL } },
+		{ "one  two", " ", { "one", "two", NULL } },
+		{ " one two", " ", { "one", "two", NULL } },
+		{ "one", "\t \r", { "one", NULL } },
+		{ "one two three", " t", { "one", "wo", "hree", NULL } },
+		{ " one two three", "te", { " on", " ", "wo ", "hr", NULL } },
+		{ "one", "ne", { "o", NULL } },
+		{ "onene", "ne", { "o", NULL } },
+		{ NULL, NULL, { NULL }}
+	};
+	struct strsplit_test *t = tests;
+
+	while (t->string) {
+		char **strv;
+		int idx = 0;
+		strv = strv_from_string(t->string, t->delim);
+		while (t->results[idx]) {
+			ck_assert_str_eq(t->results[idx], strv[idx]);
+			idx++;
+		}
+		ck_assert_ptr_eq(strv[idx], NULL);
+		strv_free(strv);
+		t++;
+	}
+
+	/* Special cases */
+	ck_assert_ptr_eq(strv_from_string("", " "), NULL);
+	ck_assert_ptr_eq(strv_from_string(" ", " "), NULL);
+	ck_assert_ptr_eq(strv_from_string("     ", " "), NULL);
+	ck_assert_ptr_eq(strv_from_string("oneoneone", "one"), NULL);
+}
+END_TEST
+
+START_TEST(kvsplit_double_test)
+{
+	struct kvsplit_dbl_test {
+		const char *string;
+		const char *psep;
+		const char *kvsep;
+		ssize_t nresults;
+		struct {
+			double a;
+			double b;
+		} results[32];
+	} tests[] = {
+		{ "1:2;3:4;5:6", ";", ":", 3, { {1, 2}, {3, 4}, {5, 6}}},
+		{ "1.0x2.3 -3.2x4.5 8.090909x-6.00", " ", "x", 3, { {1.0, 2.3}, {-3.2, 4.5}, {8.090909, -6}}},
+
+		{ "1:2", "x", ":", 1, {{1, 2}}},
+		{ "1:2", ":", "x", -1, {}},
+		{ "1:2", NULL, "x", -1, {}},
+		{ "1:2", "", "x", -1, {}},
+		{ "1:2", "x", NULL, -1, {}},
+		{ "1:2", "x", "", -1, {}},
+		{ "a:b", "x", ":", -1, {}},
+		{ "", " ", "x", -1, {}},
+		{ "1.2.3.4.5", ".", "", -1, {}},
+		{ NULL }
+	};
+	struct kvsplit_dbl_test *t = tests;
+
+	while (t->string) {
+		struct key_value_double *result = NULL;
+		ssize_t npairs;
+
+		npairs = kv_double_from_string(t->string,
+					       t->psep,
+					       t->kvsep,
+					       &result);
+		ck_assert_int_eq(npairs, t->nresults);
+
+		for (ssize_t i = 0; i < npairs; i++) {
+			ck_assert_double_eq(t->results[i].a, result[i].key);
+			ck_assert_double_eq(t->results[i].b, result[i].value);
+		}
+
+
+		free(result);
+		t++;
+	}
+}
+END_TEST
+
+START_TEST(strjoin_test)
+{
+	struct strjoin_test {
+		char *strv[10];
+		const char *joiner;
+		const char *result;
+	} tests[] = {
+		{ { "one", "two", "three", NULL }, " ", "one two three" },
+		{ { "one", NULL }, "x", "one" },
+		{ { "one", "two", NULL }, "x", "onextwo" },
+		{ { "one", "two", NULL }, ",", "one,two" },
+		{ { "one", "two", NULL }, ", ", "one, two" },
+		{ { "one", "two", NULL }, "one", "oneonetwo" },
+		{ { "one", "two", NULL }, NULL, NULL },
+		{ { "", "", "", NULL }, " ", "  " },
+		{ { "a", "b", "c", NULL }, "", "abc" },
+		{ { "", "b", "c", NULL }, "x", "xbxc" },
+		{ { "", "", "", NULL }, "", "" },
+		{ { NULL }, NULL, NULL }
+	};
+	struct strjoin_test *t = tests;
+	struct strjoin_test nulltest = { {NULL}, "x", NULL };
+
+	while (t->strv[0]) {
+		char *str;
+		str = strv_join(t->strv, t->joiner);
+		if (t->result == NULL)
+			ck_assert(str == NULL);
+		else
+			ck_assert_str_eq(str, t->result);
+		free(str);
+		t++;
+	}
+
+	ck_assert(strv_join(nulltest.strv, "x") == NULL);
+}
+END_TEST
+
+START_TEST(list_test_insert)
+{
+	struct list_test {
+		int val;
+		struct list node;
+	} tests[] = {
+		{ .val  = 1 },
+		{ .val  = 2 },
+		{ .val  = 3 },
+		{ .val  = 4 },
+	};
+	struct list_test *t;
+	struct list head;
+	int val;
+
+	list_init(&head);
+
+	ARRAY_FOR_EACH(tests, t) {
+		list_insert(&head, &t->node);
+	}
+
+	val = 4;
+	list_for_each(t, &head, node) {
+		ck_assert_int_eq(t->val, val);
+		val--;
+	}
+
+	ck_assert_int_eq(val, 0);
+}
+END_TEST
+
+START_TEST(list_test_append)
+{
+	struct list_test {
+		int val;
+		struct list node;
+	} tests[] = {
+		{ .val  = 1 },
+		{ .val  = 2 },
+		{ .val  = 3 },
+		{ .val  = 4 },
+	};
+	struct list_test *t;
+	struct list head;
+	int val;
+
+	list_init(&head);
+
+	ARRAY_FOR_EACH(tests, t) {
+		list_append(&head, &t->node);
+	}
+
+	val = 1;
+	list_for_each(t, &head, node) {
+		ck_assert_int_eq(t->val, val);
+		val++;
+	}
+	ck_assert_int_eq(val, 5);
+}
+END_TEST
+
+START_TEST(strverscmp_test)
+{
+	ck_assert_int_eq(libinput_strverscmp("", ""), 0);
+	ck_assert_int_gt(libinput_strverscmp("0.0.1", ""), 0);
+	ck_assert_int_lt(libinput_strverscmp("", "0.0.1"), 0);
+	ck_assert_int_eq(libinput_strverscmp("0.0.1", "0.0.1"), 0);
+	ck_assert_int_eq(libinput_strverscmp("0.0.1", "0.0.2"), -1);
+	ck_assert_int_eq(libinput_strverscmp("0.0.2", "0.0.1"), 1);
+	ck_assert_int_eq(libinput_strverscmp("0.0.1", "0.1.0"), -1);
+	ck_assert_int_eq(libinput_strverscmp("0.1.0", "0.0.1"), 1);
+}
+END_TEST
+
+static Suite *
+litest_utils_suite(void)
+{
+	TCase *tc;
+	Suite *s;
+
+	s = suite_create("litest:utils");
+	tc = tcase_create("utils");
+
+	tcase_add_test(tc, bitfield_helpers);
+	tcase_add_test(tc, matrix_helpers);
+	tcase_add_test(tc, ratelimit_helpers);
+	tcase_add_test(tc, dpi_parser);
+	tcase_add_test(tc, wheel_click_parser);
+	tcase_add_test(tc, wheel_click_count_parser);
+	tcase_add_test(tc, dimension_prop_parser);
+	tcase_add_test(tc, reliability_prop_parser);
+	tcase_add_test(tc, calibration_prop_parser);
+	tcase_add_test(tc, range_prop_parser);
+	tcase_add_test(tc, evcode_prop_parser);
+	tcase_add_test(tc, safe_atoi_test);
+	tcase_add_test(tc, safe_atoi_base_16_test);
+	tcase_add_test(tc, safe_atoi_base_8_test);
+	tcase_add_test(tc, safe_atou_test);
+	tcase_add_test(tc, safe_atou_base_16_test);
+	tcase_add_test(tc, safe_atou_base_8_test);
+	tcase_add_test(tc, safe_atod_test);
+	tcase_add_test(tc, strsplit_test);
+	tcase_add_test(tc, kvsplit_double_test);
+	tcase_add_test(tc, strjoin_test);
+	tcase_add_test(tc, time_conversion);
+
+	tcase_add_test(tc, list_test_insert);
+	tcase_add_test(tc, list_test_append);
+	tcase_add_test(tc, strverscmp_test);
+
+	return s;
+}
+
+int main(int argc, char **argv)
+{
+	int nfailed;
+	Suite *s;
+	SRunner *sr;
+
+        /* when running under valgrind we're using nofork mode, so a signal
+         * raised by a test will fail in valgrind. There's nothing to
+         * memcheck here anyway, so just skip the valgrind test */
+        if (getenv("USING_VALGRIND"))
+            return EXIT_SUCCESS;
+
+	s = litest_utils_suite();
+        sr = srunner_create(s);
+
+	srunner_run_all(sr, CK_ENV);
+	nfailed = srunner_ntests_failed(sr);
+	srunner_free(sr);
+
+	return (nfailed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+}

@@ -807,6 +807,18 @@ if get_option('tests')
 					  install : false)
 	test('test-library-version', test_library_version)
 
+	test_utils_sources = [
+		'src/libinput-util.h',
+		'src/libinput-util.c',
+		'test/test-utils.c',
+	]
+	test_utils = executable('test-utils',
+				test_utils_sources,
+				include_directories : [includes_src, includes_include],
+				dependencies : deps_litest,
+				install: false)
+	test('test-utils', test_utils)
+
 	libinput_test_runner_sources = litest_sources + [
 		'src/libinput-util.h',
 		'src/libinput-util.c',
