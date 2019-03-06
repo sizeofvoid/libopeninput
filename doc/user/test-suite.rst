@@ -7,7 +7,11 @@ libinput test suite
 libinput ships with a number of tests all run automatically on ``ninja test``.
 The primary test suite is the ``libinput-test-suite-runner``. When testing,
 the ``libinput-test-suite-runner`` should always be invoked to check for
-behavior changes.
+behavior changes. The test suite relies on the kernel and udev to function
+correctly. It is not suitable for running inside containers.
+
+.. note:: ``ninja test`` runs more than just the test suite, you **must**
+	run all tests for full coverage.
 
 The test suite runner uses
 `Check <http://check.sourceforge.net/doc/check_html/>`_ underneath the hood
