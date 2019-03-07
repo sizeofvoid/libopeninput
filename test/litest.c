@@ -4100,6 +4100,6 @@ main(int argc, char **argv)
 #endif
 	}
 
-	return failed_tests;
+	return min(failed_tests, 255);
 }
 #endif
