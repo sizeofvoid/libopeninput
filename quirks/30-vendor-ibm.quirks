@@ -39,3 +39,9 @@ MatchUdevType=mouse
 MatchVendor=0x17EF
 MatchProduct=0x6049
 ModelLenovoScrollPoint=1
+
+[IBM USB Travel Keyboard with Ultra Nav Mouse]
+MatchUdevType=pointingstick
+MatchVendor=0x04B3
+MatchProduct=0x301E
+AttrTrackpointMultiplier=1.50
