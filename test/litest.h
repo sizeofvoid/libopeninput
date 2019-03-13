@@ -35,6 +35,8 @@
 #include <libinput.h>
 #include <math.h>
 
+#include "check-double-macros.h"
+
 #include "libinput-util.h"
 #include "quirks.h"
 
@@ -1126,61 +1128,4 @@ litest_send_file(int sock, int fd)
 	return write(sock, buf, n);
 }
 
-#undef ck_assert_double_eq
-#undef ck_assert_double_ne
-#undef ck_assert_double_lt
-#undef ck_assert_double_le
-#undef ck_assert_double_gt
-#undef ck_assert_double_ge
-
-#define CK_DOUBLE_EQ_EPSILON 1E-3
-#define ck_assert_double_eq(X,Y)  \
-	do { \
-		double _ck_x = X; \
-		double _ck_y = Y; \
-		ck_assert_msg(fabs(_ck_x - _ck_y) < CK_DOUBLE_EQ_EPSILON, \
-			      "Assertion '" #X " == " #Y \
-			      "' failed: "#X"==%f, "#Y"==%f", \
-			      _ck_x, \
-			      _ck_y); \
-	} while (0)
-
-#define ck_assert_double_ne(X,Y)  \
-	do { \
-		double _ck_x = X; \
-		double _ck_y = Y; \
-		ck_assert_msg(fabs(_ck_x - _ck_y) > CK_DOUBLE_EQ_EPSILON, \
-			      "Assertion '" #X " != " #Y \
-			      "' failed: "#X"==%f, "#Y"==%f", \
-			      _ck_x, \
-			      _ck_y); \
-	} while (0)
-
-#define _ck_assert_double_eq(X, OP, Y)  \
-	do { \
-		double _ck_x = X; \
-		double _ck_y = Y; \
-		ck_assert_msg(_ck_x OP _ck_y || \
-			      fabs(_ck_x - _ck_y) < CK_DOUBLE_EQ_EPSILON, \
-			      "Assertion '" #X#OP#Y \
-			      "' failed: "#X"==%f, "#Y"==%f", \
-			      _ck_x, \
-			      _ck_y); \
-	} while (0)
-
-#define _ck_assert_double_ne(X, OP,Y) \
-	do { \
-		double _ck_x = X; \
-		double _ck_y = Y; \
-		ck_assert_msg(_ck_x OP _ck_y && \
-			      fabs(_ck_x - _ck_y) > CK_DOUBLE_EQ_EPSILON, \
-			      "Assertion '" #X#OP#Y \
-			      "' failed: "#X"==%f, "#Y"==%f", \
-			      _ck_x, \
-			      _ck_y); \
-	} while (0)
-#define ck_assert_double_lt(X, Y) _ck_assert_double_ne(X, <, Y)
-#define ck_assert_double_le(X, Y) _ck_assert_double_eq(X, <=, Y)
-#define ck_assert_double_gt(X, Y) _ck_assert_double_ne(X, >, Y)
-#define ck_assert_double_ge(X, Y) _ck_assert_double_eq(X, >=, Y)
 #endif /* LITEST_H */
