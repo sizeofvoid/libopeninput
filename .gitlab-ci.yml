@@ -25,9 +25,13 @@
 #  e.g. fedora:29@build-default
 
 include:
+  # Arch container builder template
+  - project: 'wayland/ci-templates'
+    ref: c73dae8b84697ef18e2dbbf4fed7386d9652b0cd # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+    file: '/templates/arch.yml'
   # Fedora container builder template
   - project: 'wayland/ci-templates'
-    ref: 00d48e70de4fe1887f697f4299316f73adaae912 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+    ref: c73dae8b84697ef18e2dbbf4fed7386d9652b0cd # see https://docs.gitlab.com/ee/ci/yaml/#includefile
     file: '/templates/fedora.yml'
 
 stages:
@@ -60,14 +64,14 @@ variables:
   # libinput version
   FEDORA_TAG: '2019-03-15.0'
   UBUNTU_TAG: libinput-2
-  ARCH_TAG: libinput-2
+  ARCH_TAG: '2019-03-15.0'
   FREEBSD_TAG: libinput-2
 
   UPSTREAM_REPO: libinput/libinput
   BUILDAH_IMAGE: $CI_REGISTRY/wayland/ci-templates/buildah:latest
   FEDORA_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/fedora/$FEDORA_VERSION:$FEDORA_TAG
   UBUNTU_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ubuntu/$UBUNTU_VERSION:$UBUNTU_TAG
-  ARCH_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/arch/rolling:$ARCH_TAG
+  ARCH_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/archlinux/rolling:$ARCH_TAG
   FREEBSD_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/freebsd/11.2:$FREEBSD_TAG
 
   MESON_BUILDDIR: "build dir"
@@ -203,38 +207,19 @@ ubuntu:18.04@container-prep:
     DISTRIB_FLAVOR: ubuntu
     DISTRIB_VERSION: $UBUNTU_VERSION
     TAG: $UBUNTU_TAG
-
-
-.arch@container-prep:
-  stage: container_prep
-  image: $BUILDAH_IMAGE
   <<: *check_if_older_than_a_week
-  script:
-    - buildcntr=$(buildah from --quiet archlinux/base)
-    - buildah run $buildcntr pacman -S --refresh
-    - buildah run $buildcntr pacman -S --sysupgrade --noconfirm
-    - buildah run $buildcntr pacman -S --noconfirm $ARCH_PKGS
-    # in case it doesn't exist yet, otherwise pacman clean fails
-    - buildah run $buildcntr mkdir -p /var/cache/pacman/pkg
-    - buildah run $buildcntr pacman -S --clean --noconfirm
-    - buildah config --workingdir /app $buildcntr
-    # tag the current container
-    - buildah commit --quiet $buildcntr $ARCH_CONTAINER_IMAGE
-    # clean up the working container
-    - buildah rm $buildcntr
 
-    # push the container image to the libinput registry
-    - podman push --quiet $ARCH_CONTAINER_IMAGE
-    - skopeo copy docker://$ARCH_CONTAINER_IMAGE docker://$CI_REGISTRY_IMAGE/arch/rolling:$CI_JOB_ID
 
 arch:rolling@container-prep:
-  extends: .arch@container-prep
+  extends: .arch@container-build
+  stage: container_prep
   variables:
     GIT_STRATEGY: none
     ARCH_VERSION: rolling
-    DISTRIB_FLAVOR: arch
+    DISTRIB_FLAVOR: archlinux
     DISTRIB_VERSION: $ARCH_VERSION
     TAG: $ARCH_TAG
+  <<: *check_if_older_than_a_week
 
 .freebsd@container-prep:
   stage: container_prep
