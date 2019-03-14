@@ -488,6 +488,55 @@ START_TEST(touchpad_1fg_multitap_n_drag_timeout)
 }
 END_TEST
 
+START_TEST(touchpad_1fg_tap_drag_high_delay)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	int range = _i, /* looped test */
+	    ntaps;
+
+	litest_enable_tap(dev->libinput_device);
+	litest_enable_drag_lock(dev->libinput_device);
+
+	litest_drain_events(li);
+
+	for (ntaps = 0; ntaps <= range; ntaps++) {
+		/* Tap timeout is 180ms after a touch or release. Make sure we
+		* go over 180ms for touch+release, but stay under 180ms for
+		* each single event. */
+		litest_touch_down(dev, 0, 50, 50);
+		libinput_dispatch(li);
+		msleep(100);
+		litest_touch_up(dev, 0);
+		libinput_dispatch(li);
+		msleep(100);
+	}
+
+	libinput_dispatch(li);
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 50, 50, 70, 10);
+	libinput_dispatch(li);
+
+	for (ntaps = 0; ntaps < range; ntaps++) {
+		litest_assert_button_event(li, BTN_LEFT,
+					   LIBINPUT_BUTTON_STATE_PRESSED);
+		litest_assert_button_event(li, BTN_LEFT,
+					   LIBINPUT_BUTTON_STATE_RELEASED);
+	}
+
+	litest_assert_button_event(li, BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_touch_up(dev, 0);
+	litest_assert_button_event(li, BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(touchpad_1fg_multitap_n_drag_tap)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3502,6 +3551,7 @@ END_TEST
 
 TEST_COLLECTION(touchpad_tap)
 {
+	struct range any_tap_range = {1, 4};
 	struct range multitap_range = {3, 5};
 	struct range tap_map_range = { LIBINPUT_CONFIG_TAP_MAP_LRM,
 				       LIBINPUT_CONFIG_TAP_MAP_LMR + 1 };
@@ -3511,6 +3561,7 @@ TEST_COLLECTION(touchpad_tap)
 
 	litest_add("tap-1fg:1fg", touchpad_1fg_tap, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("tap-1fg:1fg", touchpad_1fg_doubletap, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add_ranged("tap-1fg:1fg", touchpad_1fg_tap_drag_high_delay, LITEST_TOUCHPAD, LITEST_ANY, &any_tap_range);
 	litest_add_ranged("tap-multitap:1fg", touchpad_1fg_multitap, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
 	litest_add_ranged("tap-multitap:1fg", touchpad_1fg_multitap_timeout, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
 	litest_add_ranged("tap-multitap:1fg", touchpad_1fg_multitap_n_drag_timeout, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
