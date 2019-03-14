@@ -24,6 +24,12 @@
 # <distribution>:<version>@activity:
 #  e.g. fedora:29@build-default
 
+include:
+  # Fedora container builder template
+  - project: 'wayland/ci-templates'
+    ref: 00d48e70de4fe1887f697f4299316f73adaae912 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+    file: '/templates/fedora.yml'
+
 stages:
   - container_prep   # rebuild the container images if there is a change
   - build            # for actually building things
@@ -48,11 +54,11 @@ variables:
   FREEBSD_PKGS: 'libepoll-shim                                       libudev-devd  libevdev                                          libwacom                     gtk3                        libmtdev   '
   ############################ end of package lists #############################
 
-  # these tags should be incremented each time the list of packages is updated
+  # these tags should be updated each time the list of packages is updated
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG: libinput-2
+  FEDORA_TAG: '2019-03-15.0'
   UBUNTU_TAG: libinput-2
   ARCH_TAG: libinput-2
   FREEBSD_TAG: libinput-2
@@ -135,42 +141,27 @@ variables:
     - test $(($LOCAL_IMG_SECS + 604800)) -gt $TODAY_SECS && exit 0
 
 
-.fedora@container-prep:
-  stage: container_prep
-  image: $BUILDAH_IMAGE
-  <<: *check_if_older_than_a_week
-  script:
-    - buildcntr=$(buildah from --quiet fedora:$FEDORA_VERSION)
-    - buildah run $buildcntr dnf upgrade -y
-    - buildah run $buildcntr dnf install -y $FEDORA_RPMS
-    - buildah run $buildcntr dnf clean all
-    - buildah config --workingdir /app $buildcntr
-    # tag the current container
-    - buildah commit --quiet $buildcntr $FEDORA_CONTAINER_IMAGE
-    # clean up the working container
-    - buildah rm $buildcntr
-
-    # push the container image to the libinput registry
-    - podman push --quiet $FEDORA_CONTAINER_IMAGE
-    - skopeo copy docker://$FEDORA_CONTAINER_IMAGE docker://$CI_REGISTRY_IMAGE/fedora/$FEDORA_VERSION:$CI_JOB_ID
-
 fedora:28@container-prep:
-  extends: .fedora@container-prep
+  extends: .fedora@container-build
+  stage: container_prep
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 28
     DISTRIB_FLAVOR: fedora
     DISTRIB_VERSION: $FEDORA_VERSION
     TAG: $FEDORA_TAG
+  <<: *check_if_older_than_a_week
 
 fedora:29@container-prep:
-  extends: .fedora@container-prep
+  extends: .fedora@container-build
+  stage: container_prep
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 29
     DISTRIB_FLAVOR: fedora
     DISTRIB_VERSION: $FEDORA_VERSION
     TAG: $FEDORA_TAG
+  <<: *check_if_older_than_a_week
 
 
 .ubuntu@container-prep:
