@@ -29,8 +29,7 @@ import sys
 import argparse
 import subprocess
 try:
-    import evdev
-    import evdev.ecodes
+    import libevdev
     import pyudev
 except ModuleNotFoundError as e:
     print('Error: {}'.format(str(e)), file=sys.stderr)
@@ -70,15 +69,15 @@ class InvalidDeviceError(Exception):
     pass
 
 
-class Device(object):
+class Device(libevdev.Device):
     def __init__(self, path):
         if path is None:
             self.path = self.find_touch_device()
         else:
             self.path = path
 
-        self.device = evdev.InputDevice(self.path)
-        self.name = self.device.name
+        fd = open(self.path, 'rb')
+        super().__init__(fd)
         context = pyudev.Context()
         self.udev_device = pyudev.Devices.from_device_file(context, self.path)
 
@@ -133,37 +132,18 @@ class Device(object):
         Returns a tuple of (xfuzz, yfuzz) with the fuzz as set on the device
         axis. Returns None if no fuzz is set.
         '''
-        # capabilities returns a dict with the EV_* codes as key,
-        # each of which is a list of tuples of (code, AbsInfo)
-        #
-        # Get the abs list first (or empty list if missing),
-        # then extract the touch major absinfo from that
-        caps = self.device.capabilities(absinfo=True).get(
-                evdev.ecodes.EV_ABS, []
-               )
-        codes = [cap[0] for cap in caps]
-
-        if evdev.ecodes.ABS_X not in codes or evdev.ecodes.ABS_Y not in codes:
+        if not self.has(libevdev.EV_ABS.ABS_X) or not self.has(libevdev.EV_ABS.ABS_Y):
             raise InvalidDeviceError('device does not have x/y axes')
 
-        if (evdev.ecodes.ABS_MT_POSITION_X in codes) != (evdev.ecodes.ABS_MT_POSITION_Y in codes):
+        if self.has(libevdev.EV_ABS.ABS_MT_POSITION_X) != self.has(libevdev.EV_ABS.ABS_MT_POSITION_Y):
             raise InvalidDeviceError('device does not have both multitouch axes')
 
-        axes = {
-                0x00: None,
-                0x01: None,
-                0x35: None,
-                0x36: None,
-        }
+        xfuzz = self.absinfo[libevdev.EV_ABS.ABS_X].fuzz or \
+                self.absinfo[libevdev.EV_ABS.ABS_MT_POSITION_X].fuzz
+        yfuzz = self.absinfo[libevdev.EV_ABS.ABS_Y].fuzz or \
+                self.absinfo[libevdev.EV_ABS.ABS_MT_POSITION_Y].fuzz
 
-        for c in caps:
-            if c[0] in axes.keys():
-                axes[c[0]] = c[1].fuzz
-
-        xfuzz = axes[0x35] or axes[0x00]
-        yfuzz = axes[0x36] or axes[0x01]
-
-        if xfuzz is None and yfuzz is None:
+        if xfuzz is 0 and yfuzz is 0:
             return None
 
         return (xfuzz, yfuzz)
