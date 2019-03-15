@@ -665,7 +665,6 @@ endif
 # dependencies
 if get_option('tests')
 	dep_check = dependency('check', version : '>= 0.9.10')
-	valgrind = find_program('valgrind')
 
 	leftover_rules = find_program('test/check-leftover-udev-rules.sh')
 	test('leftover-rules', leftover_rules, is_parallel : false)
@@ -865,18 +864,23 @@ if get_option('tests')
 	     libinput_test_runner,
 	     args: ['--filter-deviceless'])
 
-	valgrind_env = environment()
-	valgrind_env.set('CK_FORK', 'no')
-	valgrind_env.set('USING_VALGRIND', '1')
-	valgrind_suppressions_file = join_paths(dir_src_test, 'valgrind.suppressions')
-	add_test_setup('valgrind',
-			exe_wrapper : [ valgrind,
-					'--leak-check=full',
-					'--gen-suppressions=all',
-					'--error-exitcode=3',
-					'--suppressions=' + valgrind_suppressions_file ],
-			env :  valgrind_env,
-			timeout_multiplier : 100)
+	valgrind = find_program('valgrind', required : false)
+	if valgrind.found()
+		valgrind_env = environment()
+		valgrind_env.set('CK_FORK', 'no')
+		valgrind_env.set('USING_VALGRIND', '1')
+		valgrind_suppressions_file = join_paths(dir_src_test, 'valgrind.suppressions')
+		add_test_setup('valgrind',
+				exe_wrapper : [ valgrind,
+						'--leak-check=full',
+						'--gen-suppressions=all',
+						'--error-exitcode=3',
+						'--suppressions=' + valgrind_suppressions_file ],
+				env :  valgrind_env,
+				timeout_multiplier : 100)
+	else
+		message('valgrind not found, disabling valgrind test suite')
+	endif
 	configure_file(output : 'litest-config.h',
 		       install : false,
 		       configuration : litest_config_h)

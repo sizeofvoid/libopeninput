@@ -42,9 +42,9 @@ variables:
   # See the documentation here:                                                 #
   # https://wayland.freedesktop.org/libinput/doc/latest/building_libinput.html  #
   ###############################################################################
-  FEDORA_RPMS: 'git gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark                          valgrind libwacom-devel cairo-devel   gtk3-devel   glib2-devel    mtdev-devel'
-  UBUNTU_DEBS: 'git gcc g++     pkg-config         meson check       libudev-dev   libevdev-dev   doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme valgrind libwacom-dev   libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev'
-  ARCH_PKGS:   'git gcc         pkgconfig          meson check       libsystemd    libevdev       doxygen graphviz  python-sphinx  python-recommonmark                          valgrind libwacom                     gtk3                        mtdev      diffutils'
+  FEDORA_RPMS: 'git gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark                          libwacom-devel cairo-devel   gtk3-devel   glib2-devel    mtdev-devel'
+  UBUNTU_DEBS: 'git gcc g++     pkg-config         meson check       libudev-dev   libevdev-dev   doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme libwacom-dev   libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev'
+  ARCH_PKGS:   'git gcc         pkgconfig          meson check       libsystemd    libevdev       doxygen graphviz  python-sphinx  python-recommonmark                          libwacom                     gtk3                        mtdev      diffutils'
   FREEBSD_BUILD_PKGS: 'meson'
   FREEBSD_PKGS: 'libepoll-shim                                       libudev-devd  libevdev                                          libwacom                     gtk3                        libmtdev   '
   ############################ end of package lists #############################
@@ -598,6 +598,8 @@ fedora:29@valgrind:
   extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
+  before_script:
+    - dnf install -y valgrind
   # note: we override the default_build here by providing a new script
   script:
    - rm -rf "$MESON_BUILDDIR"
