@@ -28,8 +28,7 @@ import sys
 import subprocess
 import argparse
 try:
-    import evdev
-    import evdev.ecodes
+    import libevdev
     import pyudev
 except ModuleNotFoundError as e:
     print('Error: {}'.format(str(e)), file=sys.stderr)
@@ -150,41 +149,33 @@ class InvalidDeviceError(Exception):
     pass
 
 
-class Device(object):
+class Device(libevdev.Device):
     def __init__(self, path):
         if path is None:
             self.path = self.find_touchpad_device()
         else:
             self.path = path
 
-        self.device = evdev.InputDevice(self.path)
+        fd = open(self.path, 'rb')
+        super().__init__(fd)
 
-        print("Using {}: {}\n".format(self.device.name, self.path))
+        print("Using {}: {}\n".format(self.name, self.path))
 
-        # capabilities rturns a dict with the EV_* codes as key,
-        # each of which is a list of tuples of (code, AbsInfo)
-        #
-        # Get the abs list first (or empty list if missing),
-        # then extract the pressure absinfo from that
-        all_caps = self.device.capabilities(absinfo=True)
-        caps = all_caps.get(evdev.ecodes.EV_ABS, [])
-        p = [cap[1] for cap in caps if cap[0] == evdev.ecodes.ABS_MT_PRESSURE]
-        if not p:
-            p = [cap[1] for cap in caps if cap[0] == evdev.ecodes.ABS_PRESSURE]
-            if not p:
-                raise InvalidDeviceError("device does not have ABS_PRESSURE/ABS_MT_PRESSURE")
+        self.has_mt_pressure = True
+        absinfo = self.absinfo[libevdev.EV_ABS.ABS_MT_PRESSURE]
+        if absinfo is None:
+            absinfo = self.absinfo[libevdev.EV_ABS.ABS_PRESSURE]
             self.has_mt_pressure = False
-        else:
-            self.has_mt_pressure = True
+            if absinfo is None:
+                raise InvalidDeviceError("device does not have ABS_PRESSURE/ABS_MT_PRESSURE")
 
-        p = p[0]
-        prange = p.max - p.min
+        prange = absinfo.maximum - absinfo.minimum
 
         # libinput defaults
-        self.down = int(p.min + 0.12 * prange)
-        self.up = int(p.min + 0.10 * prange)
+        self.down = int(absinfo.minimum + 0.12 * prange)
+        self.up = int(absinfo.minimum + 0.10 * prange)
         self.palm = 130  # the libinput default
-        self.thumb = p.max
+        self.thumb = absinfo.maximum
 
         self._init_thresholds_from_quirks()
         self.sequences = []
@@ -230,10 +221,10 @@ class Device(object):
 
 def handle_key(device, event):
     tapcodes = [
-        evdev.ecodes.BTN_TOOL_DOUBLETAP,
-        evdev.ecodes.BTN_TOOL_TRIPLETAP,
-        evdev.ecodes.BTN_TOOL_QUADTAP,
-        evdev.ecodes.BTN_TOOL_QUINTTAP
+        libevdev.EV_KEY.BTN_TOOL_DOUBLETAP,
+        libevdev.EV_KEY.BTN_TOOL_TRIPLETAP,
+        libevdev.EV_KEY.BTN_TOOL_QUADTAP,
+        libevdev.EV_KEY.BTN_TOOL_QUINTTAP
     ]
     if event.code in tapcodes and event.value > 0:
         print("\rThis tool cannot handle multiple fingers, "
@@ -241,7 +232,7 @@ def handle_key(device, event):
 
 
 def handle_abs(device, event):
-    if event.code == evdev.ecodes.ABS_MT_TRACKING_ID:
+    if event.matches(libevdev.EV_ABS.ABS_MT_TRACKING_ID):
         if event.value > -1:
             device.start_new_sequence(event.value)
         else:
@@ -252,8 +243,8 @@ def handle_abs(device, event):
             except IndexError:
                 # If the finger was down at startup
                 pass
-    elif ((event.code == evdev.ecodes.ABS_MT_PRESSURE) or
-          (event.code == evdev.ecodes.ABS_PRESSURE and not device.has_mt_pressure)):
+    elif (event.matches(libevdev.EV_ABS.ABS_MT_PRESSURE) or
+          (event.matches(libevdev.EV_ABS.ABS_PRESSURE) and not device.has_mt_pressure)):
         try:
             s = device.current_sequence()
             s.append(Touch(pressure=event.value))
@@ -264,9 +255,9 @@ def handle_abs(device, event):
 
 
 def handle_event(device, event):
-    if event.type == evdev.ecodes.EV_ABS:
+    if event.matches(libevdev.EV_ABS):
         handle_abs(device, event)
-    elif event.type == evdev.ecodes.EV_KEY:
+    elif event.matches(libevdev.EV_KEY):
         handle_key(device, event)
 
 
@@ -278,8 +269,9 @@ def loop(device):
     print("Place a single finger on the touchpad to measure pressure values.\n"
           "Ctrl+C to exit\n")
 
-    for event in device.device.read_loop():
-        handle_event(device, event)
+    while True:
+        for event in device.events():
+            handle_event(device, event)
 
 
 def colon_tuple(string):
