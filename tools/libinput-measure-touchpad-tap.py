@@ -27,8 +27,7 @@
 import sys
 import argparse
 try:
-    import evdev
-    import evdev.ecodes
+    import libevdev
     import textwrap
     import pyudev
 except ModuleNotFoundError as e:
@@ -83,27 +82,18 @@ class InvalidDeviceError(Exception):
     pass
 
 
-class Device(object):
+class Device(libevdev.Device):
     def __init__(self, path):
         if path is None:
             self.path = self._find_touch_device()
         else:
             self.path = path
+        fd = open(self.path, 'rb')
+        super().__init__(fd)
 
-        self.device = evdev.InputDevice(self.path)
+        print("Using {}: {}\n".format(self.name, self.path))
 
-        print("Using {}: {}\n".format(self.device.name, self.path))
-
-        # capabilities returns a dict with the EV_* codes as key,
-        # each of which is a list of tuples of (code, AbsInfo)
-        #
-        # Get the abs list first (or empty list if missing),
-        # then extract the pressure absinfo from that
-        codes = self.device.capabilities(absinfo=True).get(
-                evdev.ecodes.EV_KEY, []
-               )
-
-        if evdev.ecodes.BTN_TOUCH not in codes:
+        if not self.has(libevdev.EV_KEY.BTN_TOUCH):
             raise InvalidDeviceError("device does not have BTN_TOUCH")
 
         self.touches = []
@@ -141,16 +131,16 @@ class Device(object):
                 end='')
 
     def handle_key(self, event):
-        tapcodes = [evdev.ecodes.BTN_TOOL_DOUBLETAP,
-                    evdev.ecodes.BTN_TOOL_TRIPLETAP,
-                    evdev.ecodes.BTN_TOOL_QUADTAP,
-                    evdev.ecodes.BTN_TOOL_QUINTTAP]
+        tapcodes = [libevdev.EV_KEY.BTN_TOOL_DOUBLETAP,
+                    libevdev.EV_KEY.BTN_TOOL_TRIPLETAP,
+                    libevdev.EV_KEY.BTN_TOOL_QUADTAP,
+                    libevdev.EV_KEY.BTN_TOOL_QUINTTAP]
         if event.code in tapcodes and event.value > 0:
             error("\rThis tool cannot handle multiple fingers, "
                   "output will be invalid")
             return
 
-        if event.code == evdev.ecodes.BTN_TOUCH:
+        if event.matches(libevdev.EV_KEY.BTN_TOUCH):
             self.handle_btn_touch(event)
 
     def handle_syn(self, event):
@@ -161,12 +151,13 @@ class Device(object):
                                orientation=self.touch.orientation)
 
     def handle_event(self, event):
-        if event.type == evdev.ecodes.EV_KEY:
+        if event.matches(libevdev.EV_KEY):
             self.handle_key(event)
 
     def read_events(self):
-        for event in self.device.read_loop():
-            self.handle_event(event)
+        while True:
+            for event in self.events():
+                self.handle_event(event)
 
     def print_summary(self):
         deltas = sorted(t.tdelta for t in self.touches)
