@@ -33,6 +33,10 @@ include:
   - project: 'wayland/ci-templates'
     ref: c73dae8b84697ef18e2dbbf4fed7386d9652b0cd # see https://docs.gitlab.com/ee/ci/yaml/#includefile
     file: '/templates/fedora.yml'
+  # Ubuntu container builder template
+  - project: 'wayland/ci-templates'
+    ref: c73dae8b84697ef18e2dbbf4fed7386d9652b0cd # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+    file: '/templates/ubuntu.yml'
 
 stages:
   - container_prep   # rebuild the container images if there is a change
@@ -51,11 +55,11 @@ variables:
   # See the documentation here:                                                 #
   # https://wayland.freedesktop.org/libinput/doc/latest/building_libinput.html  #
   ###############################################################################
-  FEDORA_RPMS: 'git gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark                          libwacom-devel cairo-devel   gtk3-devel   glib2-devel    mtdev-devel'
-  UBUNTU_DEBS: 'git gcc g++     pkg-config         meson check       libudev-dev   libevdev-dev   doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme libwacom-dev   libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev'
-  ARCH_PKGS:   'git gcc         pkgconfig          meson check       libsystemd    libevdev       doxygen graphviz  python-sphinx  python-recommonmark                          libwacom                     gtk3                        mtdev      diffutils'
+  FEDORA_RPMS:        'git gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark                          libwacom-devel cairo-devel   gtk3-devel   glib2-devel    mtdev-devel'
+  UBUNTU_CUSTOM_DEBS: 'git gcc g++     pkg-config         meson check       libudev-dev   libevdev-dev   doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme libwacom-dev   libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev'
+  ARCH_PKGS:          'git gcc         pkgconfig          meson check       libsystemd    libevdev       doxygen graphviz  python-sphinx  python-recommonmark                          libwacom                     gtk3                        mtdev      diffutils'
   FREEBSD_BUILD_PKGS: 'meson'
-  FREEBSD_PKGS: 'libepoll-shim                                       libudev-devd  libevdev                                          libwacom                     gtk3                        libmtdev   '
+  FREEBSD_PKGS:       'libepoll-shim                                        libudev-devd  libevdev                                                                                     libwacom                     gtk3                        libmtdev   '
   ############################ end of package lists #############################
 
   # these tags should be updated each time the list of packages is updated
@@ -63,9 +67,11 @@ variables:
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
   FEDORA_TAG: '2019-03-15.0'
-  UBUNTU_TAG: libinput-2
+  UBUNTU_TAG: '2019-03-15.0'
   ARCH_TAG: '2019-03-15.0'
-  FREEBSD_TAG: libinput-2
+  FREEBSD_TAG: '2019-03-15.0'
+
+  UBUNTU_EXEC: "bash .gitlab-ci/ubuntu_install.sh $UBUNTU_CUSTOM_DEBS"
 
   UPSTREAM_REPO: libinput/libinput
   BUILDAH_IMAGE: $CI_REGISTRY/wayland/ci-templates/buildah:latest
@@ -168,39 +174,20 @@ fedora:29@container-prep:
   <<: *check_if_older_than_a_week
 
 
-.ubuntu@container-prep:
-  stage: container_prep
-  image: $BUILDAH_IMAGE
-  <<: *check_if_older_than_a_week
-  script:
-    - buildcntr=$(buildah from --quiet ubuntu:$UBUNTU_VERSION)
-    - buildah run $buildcntr env DEBIAN_FRONTEND=noninteractive apt-get update
-    - buildah run $buildcntr env DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common
-    - buildah run $buildcntr env DEBIAN_FRONTEND=noninteractive add-apt-repository universe
-    - buildah run $buildcntr env DEBIAN_FRONTEND=noninteractive apt-get update
-    - buildah run $buildcntr env DEBIAN_FRONTEND=noninteractive apt-get install -y $UBUNTU_DEBS
-    - buildah run $buildcntr env DEBIAN_FRONTEND=noninteractive apt-get clean
-    - buildah config --workingdir /app $buildcntr
-    # tag the current container
-    - buildah commit --quiet $buildcntr $UBUNTU_CONTAINER_IMAGE
-    # clean up the working container
-    - buildah rm $buildcntr
-
-    # push the container image to the libinput registry
-    - podman push --quiet $UBUNTU_CONTAINER_IMAGE
-    - skopeo copy docker://$UBUNTU_CONTAINER_IMAGE docker://$CI_REGISTRY_IMAGE/ubuntu/$UBUNTU_VERSION:$CI_JOB_ID
-
 ubuntu:18.10@container-prep:
-  extends: .ubuntu@container-prep
+  extends: .ubuntu@container-build
+  stage: container_prep
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "18.10"
     DISTRIB_FLAVOR: ubuntu
     DISTRIB_VERSION: $UBUNTU_VERSION
     TAG: $UBUNTU_TAG
+  <<: *check_if_older_than_a_week
 
 ubuntu:18.04@container-prep:
-  extends: .ubuntu@container-prep
+  extends: .ubuntu@container-build
+  stage: container_prep
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "18.04"
