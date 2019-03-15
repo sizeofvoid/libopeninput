@@ -28,8 +28,7 @@ import sys
 import subprocess
 import argparse
 try:
-    import evdev
-    import evdev.ecodes
+    import libevdev
     import pyudev
 except ModuleNotFoundError as e:
     print('Error: {}'.format(str(e)), file=sys.stderr)
@@ -178,32 +177,23 @@ class InvalidDeviceError(Exception):
     pass
 
 
-class Device(object):
+class Device(libevdev.Device):
     def __init__(self, path):
         if path is None:
             self.path = self.find_touch_device()
         else:
             self.path = path
 
-        self.device = evdev.InputDevice(self.path)
+        fd = open(self.path, 'rb')
+        super().__init__(fd)
 
-        print("Using {}: {}\n".format(self.device.name, self.path))
+        print("Using {}: {}\n".format(self.name, self.path))
 
-        # capabilities returns a dict with the EV_* codes as key,
-        # each of which is a list of tuples of (code, AbsInfo)
-        #
-        # Get the abs list first (or empty list if missing),
-        # then extract the touch major absinfo from that
-        caps = self.device.capabilities(absinfo=True).get(
-                evdev.ecodes.EV_ABS, []
-               )
-        codes = [cap[0] for cap in caps]
-
-        if evdev.ecodes.ABS_MT_TOUCH_MAJOR not in codes:
+        if not self.has(libevdev.EV_ABS.ABS_MT_TOUCH_MAJOR):
             raise InvalidDeviceError("device does not have ABS_MT_TOUCH_MAJOR")
 
-        self.has_minor = evdev.ecodes.ABS_MT_TOUCH_MINOR in codes
-        self.has_orientation = evdev.ecodes.ABS_MT_ORIENTATION in codes
+        self.has_minor = self.has(libevdev.EV_ABS.ABS_MT_TOUCH_MINOR)
+        self.has_orientation = self.has(libevdev.EV_ABS.ABS_MT_ORIENTATION)
 
         self.up = 0
         self.down = 0
@@ -255,16 +245,16 @@ class Device(object):
         return self.sequences[-1]
 
     def handle_key(self, event):
-        tapcodes = [evdev.ecodes.BTN_TOOL_DOUBLETAP,
-                    evdev.ecodes.BTN_TOOL_TRIPLETAP,
-                    evdev.ecodes.BTN_TOOL_QUADTAP,
-                    evdev.ecodes.BTN_TOOL_QUINTTAP]
+        tapcodes = [libevdev.EV_KEY.BTN_TOOL_DOUBLETAP,
+                    libevdev.EV_KEY.BTN_TOOL_TRIPLETAP,
+                    libevdev.EV_KEY.BTN_TOOL_QUADTAP,
+                    libevdev.EV_KEY.BTN_TOOL_QUINTTAP]
         if event.code in tapcodes and event.value > 0:
                 print("\rThis tool cannot handle multiple fingers, "
                       "output will be invalid", file=sys.stderr)
 
     def handle_abs(self, event):
-        if event.code == evdev.ecodes.ABS_MT_TRACKING_ID:
+        if event.matches(libevdev.EV_ABS.ABS_MT_TRACKING_ID):
                 if event.value > -1:
                     self.start_new_sequence(event.value)
                 else:
@@ -275,11 +265,11 @@ class Device(object):
                     except IndexError:
                         # If the finger was down during start
                         pass
-        elif event.code == evdev.ecodes.ABS_MT_TOUCH_MAJOR:
+        elif event.matches(libevdev.EV_ABS.ABS_MT_TOUCH_MAJOR):
                 self.touch.major = event.value
-        elif event.code == evdev.ecodes.ABS_MT_TOUCH_MINOR:
+        elif event.matches(libevdev.EV_ABS.ABS_MT_TOUCH_MINOR):
                 self.touch.minor = event.value
-        elif event.code == evdev.ecodes.ABS_MT_ORIENTATION:
+        elif event.matches(libevdev.EV_ABS.ABS_MT_ORIENTATION):
                 self.touch.orientation = event.value
 
     def handle_syn(self, event):
@@ -294,11 +284,11 @@ class Device(object):
                 pass
 
     def handle_event(self, event):
-        if event.type == evdev.ecodes.EV_ABS:
+        if event.matches(libevdev.EV_ABS):
             self.handle_abs(event)
-        elif event.type == evdev.ecodes.EV_KEY:
+        elif event.matches(libevdev.EV_KEY):
             self.handle_key(event)
-        elif event.type == evdev.ecodes.EV_SYN:
+        elif event.matches(libevdev.EV_SYN):
             self.handle_syn(event)
 
     def read_events(self):
@@ -309,8 +299,9 @@ class Device(object):
         print("Place a single finger on the device to measure touch size.\n"
               "Ctrl+C to exit\n")
 
-        for event in self.device.read_loop():
-            self.handle_event(event)
+        while True:
+            for event in self.events():
+                self.handle_event(event)
 
 
 def colon_tuple(string):
