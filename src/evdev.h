@@ -125,6 +125,14 @@ enum evdev_button_scroll_state {
 	BUTTONSCROLL_SCROLLING,		/* have sent scroll events */
 };
 
+enum evdev_button_scroll_lock_state {
+	BUTTONSCROLL_LOCK_DISABLED,
+	BUTTONSCROLL_LOCK_IDLE,
+	BUTTONSCROLL_LOCK_FIRSTDOWN,
+	BUTTONSCROLL_LOCK_FIRSTUP,
+	BUTTONSCROLL_LOCK_SECONDDOWN,
+};
+
 enum evdev_debounce_state {
 	/**
 	 * Initial state, no debounce but monitoring events
@@ -224,6 +232,10 @@ struct evdev_device {
 		struct wheel_angle wheel_click_angle;
 
 		struct wheel_tilt_flags is_tilt;
+
+		enum evdev_button_scroll_lock_state lock_state;
+		bool want_lock_enabled;
+		bool lock_enabled;
 	} scroll;
 
 	struct {
@@ -556,6 +568,10 @@ evdev_init_natural_scroll(struct evdev_device *device);
 void
 evdev_init_button_scroll(struct evdev_device *device,
 			 void (*change_scroll_method)(struct evdev_device *));
+
+void
+evdev_set_button_scroll_lock_enabled(struct evdev_device *device,
+				     bool enabled);
 
 int
 evdev_update_key_down_count(struct evdev_device *device,

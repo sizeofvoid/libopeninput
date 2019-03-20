@@ -2496,6 +2496,27 @@ litest_button_scroll(struct litest_device *dev,
 }
 
 void
+litest_button_scroll_locked(struct litest_device *dev,
+			    unsigned int button,
+			    double dx, double dy)
+{
+	struct libinput *li = dev->libinput;
+
+	litest_button_click_debounced(dev, li, button, 1);
+	litest_button_click_debounced(dev, li, button, 0);
+
+	libinput_dispatch(li);
+	litest_timeout_buttonscroll();
+	libinput_dispatch(li);
+
+	litest_event(dev, EV_REL, REL_X, dx);
+	litest_event(dev, EV_REL, REL_Y, dy);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	libinput_dispatch(li);
+}
+
+void
 litest_keyboard_key(struct litest_device *d, unsigned int key, bool is_press)
 {
 	struct input_event *ev;

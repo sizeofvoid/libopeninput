@@ -4149,6 +4149,45 @@ libinput_device_config_scroll_get_default_button(struct libinput_device *device)
 	return device->config.scroll_method->get_default_button(device);
 }
 
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_scroll_set_button_lock(struct libinput_device *device,
+					      enum libinput_config_scroll_button_lock_state state)
+{
+	if ((libinput_device_config_scroll_get_methods(device) &
+	     LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN) == 0)
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	switch (state) {
+	case LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_ENABLED:
+	case LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED:
+		break;
+	default:
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+	}
+
+	return device->config.scroll_method->set_button_lock(device, state);
+}
+
+LIBINPUT_EXPORT enum libinput_config_scroll_button_lock_state
+libinput_device_config_scroll_get_button_lock(struct libinput_device *device)
+{
+	if ((libinput_device_config_scroll_get_methods(device) &
+	     LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN) == 0)
+		return LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED;
+
+	return device->config.scroll_method->get_button_lock(device);
+}
+
+LIBINPUT_EXPORT enum libinput_config_scroll_button_lock_state
+libinput_device_config_scroll_get_default_button_lock(struct libinput_device *device)
+{
+	if ((libinput_device_config_scroll_get_methods(device) &
+	     LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN) == 0)
+		return LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED;
+
+	return device->config.scroll_method->get_default_button_lock(device);
+}
+
 LIBINPUT_EXPORT int
 libinput_device_config_dwt_is_available(struct libinput_device *device)
 {

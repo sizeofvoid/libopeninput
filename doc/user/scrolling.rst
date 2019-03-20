@@ -117,6 +117,13 @@ the motion events. Cross-device scrolling is not supported but
 for one exception: libinput's :ref:`t440_support` enables the use of the middle
 button for button scrolling (even when the touchpad is disabled).
 
+If the scroll button lock is enabled (see
+**libinput_device_config_scroll_set_button_lock()**), the button does not
+need to be held down. Pressing and releasing the button once enables the
+button lock, the button is now considered logically held down. Pressing and
+releasing the button a second time logically releases the button. While the
+button is logically held down, motion events are converted to scroll events.
+
 .. _scroll_sources:
 
 ------------------------------------------------------------------------------

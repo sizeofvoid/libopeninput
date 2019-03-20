@@ -5594,6 +5594,81 @@ libinput_device_config_scroll_get_button(struct libinput_device *device);
 uint32_t
 libinput_device_config_scroll_get_default_button(struct libinput_device *device);
 
+enum libinput_config_scroll_button_lock_state {
+	LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED,
+	LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_ENABLED,
+};
+
+/**
+ * @ingroup config
+ *
+ * Set the scroll button lock. If the state is
+ * @ref LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED, the button must
+ * physically be held down for button scrolling to work.
+ * If the state is
+ * @ref LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_ENABLED, the button is considered
+ * logically down after the first press and release sequence, and logically
+ * up after the second press and release sequence.
+ *
+ * @param device The device to configure
+ * @param state The state to set the scroll button lock to
+ *
+ * @return A config status code. Disabling the scroll button lock on
+ * device that does not support button scrolling always succeeds.
+ *
+ * @see libinput_device_config_scroll_set_button
+ * @see libinput_device_config_scroll_get_button
+ * @see libinput_device_config_scroll_get_default_button
+ */
+enum libinput_config_status
+libinput_device_config_scroll_set_button_lock(struct libinput_device *device,
+					      enum libinput_config_scroll_button_lock_state state);
+
+/**
+ * @ingroup config
+ *
+ * Get the current scroll button lock state.
+ *
+ * If @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN scroll method is not
+ * supported, or no button is set, this function returns @ref
+ * LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED.
+ *
+ * @note The return value is independent of the currently selected
+ * scroll-method. For the scroll button lock to activate, a device must have
+ * the @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN method enabled, and a
+ * non-zero button set as scroll button.
+ *
+ * @param device The device to configure
+ * @return The scroll button lock state
+ *
+ * @see libinput_device_config_scroll_set_button
+ * @see libinput_device_config_scroll_set_button_lock
+ * @see libinput_device_config_scroll_get_button_lock
+ * @see libinput_device_config_scroll_get_default_button_lock
+ */
+enum libinput_config_scroll_button_lock_state
+libinput_device_config_scroll_get_button_lock(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Get the default scroll button lock state.
+ *
+ * If @ref LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN scroll method is not
+ * supported, or no button is set, this function returns @ref
+ * LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED.
+ *
+ * @param device The device to configure
+ * @return The default scroll button lock state
+ *
+ * @see libinput_device_config_scroll_set_button
+ * @see libinput_device_config_scroll_set_button_lock
+ * @see libinput_device_config_scroll_get_button_lock
+ * @see libinput_device_config_scroll_get_default_button_lock
+ */
+enum libinput_config_scroll_button_lock_state
+libinput_device_config_scroll_get_default_button_lock(struct libinput_device *device);
+
 /**
  * @ingroup config
  *

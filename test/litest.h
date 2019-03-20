@@ -663,6 +663,10 @@ void
 litest_button_scroll(struct litest_device *d,
 		     unsigned int button,
 		     double dx, double dy);
+void
+litest_button_scroll_locked(struct litest_device *d,
+			    unsigned int button,
+			    double dx, double dy);
 
 void
 litest_keyboard_key(struct litest_device *d,

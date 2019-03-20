@@ -272,6 +272,10 @@ struct libinput_device_config_scroll_method {
 						  uint32_t button);
 	uint32_t (*get_button)(struct libinput_device *device);
 	uint32_t (*get_default_button)(struct libinput_device *device);
+	enum libinput_config_status (*set_button_lock)(struct libinput_device *device,
+						       enum libinput_config_scroll_button_lock_state);
+	enum libinput_config_scroll_button_lock_state (*get_button_lock)(struct libinput_device *device);
+	enum libinput_config_scroll_button_lock_state (*get_default_button_lock)(struct libinput_device *device);
 };
 
 struct libinput_device_config_click_method {

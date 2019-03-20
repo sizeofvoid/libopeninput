@@ -83,6 +83,7 @@ tools_init_options(struct tools_options *options)
 	options->click_method = -1;
 	options->scroll_method = -1;
 	options->scroll_button = -1;
+	options->scroll_button_lock = -1;
 	options->speed = 0.0;
 	options->profile = LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
 }
@@ -197,6 +198,12 @@ tools_parse_option(int option,
 				optarg);
 			return 1;
 		}
+		break;
+	case OPT_SCROLL_BUTTON_LOCK_ENABLE:
+		options->scroll_button_lock = true;
+		break;
+	case OPT_SCROLL_BUTTON_LOCK_DISABLE:
+		options->scroll_button_lock = false;
 		break;
 	case OPT_SPEED:
 		if (!optarg)
@@ -407,6 +414,10 @@ tools_device_apply_config(struct libinput_device *device,
 	if (options->scroll_button != -1)
 		libinput_device_config_scroll_set_button(device,
 							 options->scroll_button);
+	if (options->scroll_button_lock != -1)
+		libinput_device_config_scroll_set_button_lock(device,
+							      options->scroll_button_lock);
+
 
 	if (libinput_device_config_accel_is_available(device)) {
 		libinput_device_config_accel_set_speed(device,

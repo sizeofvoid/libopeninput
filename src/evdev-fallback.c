@@ -1499,7 +1499,8 @@ fallback_change_scroll_method(struct evdev_device *device)
 	struct fallback_dispatch *dispatch = fallback_dispatch(device->dispatch);
 
 	if (device->scroll.want_method == device->scroll.method &&
-	    device->scroll.want_button == device->scroll.button)
+	    device->scroll.want_button == device->scroll.button &&
+	    device->scroll.want_lock_enabled == device->scroll.lock_enabled)
 		return;
 
 	if (fallback_any_button_down(dispatch, device))
@@ -1507,6 +1508,8 @@ fallback_change_scroll_method(struct evdev_device *device)
 
 	device->scroll.method = device->scroll.want_method;
 	device->scroll.button = device->scroll.want_button;
+	device->scroll.lock_enabled = device->scroll.want_lock_enabled;
+	evdev_set_button_scroll_lock_enabled(device, device->scroll.lock_enabled);
 }
 
 static int
