@@ -117,7 +117,7 @@ variables:
 # is too old or if it is missing some dependencies.
 #
 
-.check_if_older_than_a_week: &check_if_older_than_a_week
+.pull_upstream_or_rebuild: &pull_upstream_or_rebuild
   before_script:
     # log in to the registry
     - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -125,31 +125,17 @@ variables:
     # get the full container image name (DISTRIB_VERSION still has indirections)
     - IMAGE=$(eval echo "$DISTRIB_FLAVOR/$DISTRIB_VERSION:$TAG")
 
-    # check if our image is already in the current registry and get its date
-    - LOCAL_IMG_DATE=$(skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE | jq -r '.Created' | cut -dT -f1 ||
-                     echo 1970-01-01)
-
-    # get the date of the upstream image
-    - UPSTREAM_IMG_DATE=$(skopeo inspect docker://$CI_REGISTRY/$UPSTREAM_REPO/$IMAGE | jq -r '.Created' | cut -dT -f1 ||
-                        echo 1970-01-01)
-
-    - TODAY_SECS=$(date -u +%s)
-    - LOCAL_IMG_SECS=$(date -u --date="$LOCAL_IMG_DATE" +%s)
-    - UPSTREAM_IMG_SECS=$(date -u --date="$UPSTREAM_IMG_DATE" +%s)
-    - echo "today $TODAY_SECS, local image $LOCAL_IMG_SECS, upstream image $UPSTREAM_IMG_SECS"
-    - echo "image ages $(($TODAY_SECS - $LOCAL_IMG_SECS))s and $(($TODAY_SECS - $UPSTREAM_IMG_SECS))s"
-
-    # if the upstream image is more recent, use it
-    - if [[ $UPSTREAM_IMG_SECS -gt $LOCAL_IMG_SECS ]] ;
+    - |
+      # force rebuild if schedule, reuse otherwise
+      if [[ $CI_PIPELINE_SOURCE != "schedule" ]] ;
       then
-        skopeo copy docker://$CI_REGISTRY/$UPSTREAM_REPO/$IMAGE
-                    docker://$CI_REGISTRY_IMAGE/$IMAGE ;
-        LOCAL_IMG_SECS=UPSTREAM_IMG_SECS ;
+        # pull the latest upstream image if it exists
+        skopeo copy docker://$CI_REGISTRY/$UPSTREAM_REPO/$IMAGE \
+                    docker://$CI_REGISTRY_IMAGE/$IMAGE && exit 0 || true ;
+
+        # check if our image is already in the current registry
+        skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
       fi
-
-    # if the image exists and we are not in the scheduled pipeline, exit
-    - test $LOCAL_IMG_SECS -gt 0 -a $CI_PIPELINE_SOURCE != "schedule" && exit 0
-
 
 fedora:28@container-prep:
   extends: .fedora@container-build
@@ -160,7 +146,7 @@ fedora:28@container-prep:
     DISTRIB_FLAVOR: fedora
     DISTRIB_VERSION: $FEDORA_VERSION
     TAG: $FEDORA_TAG
-  <<: *check_if_older_than_a_week
+  <<: *pull_upstream_or_rebuild
 
 fedora:29@container-prep:
   extends: .fedora@container-build
@@ -171,7 +157,7 @@ fedora:29@container-prep:
     DISTRIB_FLAVOR: fedora
     DISTRIB_VERSION: $FEDORA_VERSION
     TAG: $FEDORA_TAG
-  <<: *check_if_older_than_a_week
+  <<: *pull_upstream_or_rebuild
 
 
 ubuntu:18.10@container-prep:
@@ -183,7 +169,7 @@ ubuntu:18.10@container-prep:
     DISTRIB_FLAVOR: ubuntu
     DISTRIB_VERSION: $UBUNTU_VERSION
     TAG: $UBUNTU_TAG
-  <<: *check_if_older_than_a_week
+  <<: *pull_upstream_or_rebuild
 
 ubuntu:18.04@container-prep:
   extends: .ubuntu@container-build
@@ -194,7 +180,7 @@ ubuntu:18.04@container-prep:
     DISTRIB_FLAVOR: ubuntu
     DISTRIB_VERSION: $UBUNTU_VERSION
     TAG: $UBUNTU_TAG
-  <<: *check_if_older_than_a_week
+  <<: *pull_upstream_or_rebuild
 
 
 arch:rolling@container-prep:
@@ -206,12 +192,12 @@ arch:rolling@container-prep:
     DISTRIB_FLAVOR: archlinux
     DISTRIB_VERSION: $ARCH_VERSION
     TAG: $ARCH_TAG
-  <<: *check_if_older_than_a_week
+  <<: *pull_upstream_or_rebuild
 
 .freebsd@container-prep:
   stage: container_prep
   image: $BUILDAH_IMAGE
-  <<: *check_if_older_than_a_week
+  <<: *pull_upstream_or_rebuild
   script:
     - buildcntr=$(buildah from --quiet  myfreeweb/freebsd-cross:latest)
     - buildah run $buildcntr apk add --no-cache $FREEBSD_BUILD_PKGS
