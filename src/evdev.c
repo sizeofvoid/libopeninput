@@ -2112,8 +2112,7 @@ evdev_device_create(struct libinput_seat *seat,
 	return device;
 
 err:
-	if (fd >= 0)
-		close_restricted(libinput, fd);
+	close_restricted(libinput, fd);
 	if (device)
 		evdev_device_destroy(device);
 
