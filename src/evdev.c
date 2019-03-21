@@ -2273,8 +2273,7 @@ evdev_read_fuzz_prop(struct evdev_device *device, unsigned int code)
 	if (prop == NULL)
 		return 0;
 
-	rc = safe_atoi(prop, &fuzz);
-	if (rc == -1 || fuzz < 0) {
+	if (safe_atoi(prop, &fuzz) == false || fuzz < 0) {
 		evdev_log_bug_libinput(device,
 				       "invalid LIBINPUT_FUZZ property value: %s\n",
 				       prop);
