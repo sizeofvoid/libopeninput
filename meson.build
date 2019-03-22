@@ -776,8 +776,6 @@ if get_option('tests')
 	]
 
 	litest_config_h = configuration_data()
-	litest_config_h.set_quoted('LIBINPUT_TEST_DEVICE_RULES_FILE',
-			    join_paths(meson.build_root(), '80-libinput-test-device.rules'))
 	litest_config_h.set_quoted('LIBINPUT_DEVICE_GROUPS_RULES_FILE',
 			    join_paths(meson.build_root(), '80-libinput-device-groups.rules'))
 	litest_config_h.set_quoted('LIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE',
