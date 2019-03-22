@@ -28,7 +28,7 @@
 
 #define NAME "All event codes keyboard"
 
-static void all_codes_create(struct litest_device *d);
+static bool all_codes_create(struct litest_device *d);
 
 static struct input_id input_id = {
 	.bustype = 0x11,
@@ -48,7 +48,7 @@ TEST_DEVICE("keyboard-all-codes",
 	.absinfo = NULL,
 )
 
-static void
+static bool
 all_codes_create(struct litest_device *d)
 {
 	int events[KEY_MAX * 2 + 2];
@@ -70,4 +70,5 @@ all_codes_create(struct litest_device *d)
 								 &input_id,
 								 NULL,
 								 events);
+	return false;
 }

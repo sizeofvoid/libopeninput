@@ -44,8 +44,11 @@ struct litest_test_device {
 	* For such devices, no overrides are possible. If create is NULL,
 	* the information in name, id, events, absinfo is used to
 	* create the device instead.
+	*
+	* @return true if the device needs to be created by litest, false if
+	*	the device creates itself
 	*/
-	void (*create)(struct litest_device *d);
+	bool (*create)(struct litest_device *d);
 
 	/**
 	 * The device name. Only used when create is NULL.

@@ -1395,6 +1395,7 @@ litest_create(enum litest_device_type which,
 	const char *path;
 	int fd, rc;
 	bool found = false;
+	bool create_device = true;
 
 	list_for_each(dev, &devices, node) {
 		if (dev->type == which) {
@@ -1411,16 +1412,18 @@ litest_create(enum litest_device_type which,
 
 	/* device has custom create method */
 	if (dev->create) {
-		dev->create(d);
+		create_device = dev->create(d);
 		if (abs_override || events_override) {
 			litest_abort_msg("Custom create cannot be overridden");
 		}
-	} else {
-		abs = merge_absinfo(dev->absinfo, abs_override);
-		events = merge_events(dev->events, events_override);
-		name = name_override ? name_override : dev->name;
-		id = id_override ? id_override : dev->id;
+	}
 
+	abs = merge_absinfo(dev->absinfo, abs_override);
+	events = merge_events(dev->events, events_override);
+	name = name_override ? name_override : dev->name;
+	id = id_override ? id_override : dev->id;
+
+	if (create_device) {
 		d->uinput = litest_create_uinput_device_from_description(name,
 									 id,
 									 abs,
