@@ -75,7 +75,7 @@ static int jobs = 8;
 static bool in_debugger = false;
 static bool verbose = false;
 static bool run_deviceless = false;
-static bool skip_quirks_install = false;
+static bool use_system_rules_quirks = false;
 const char *filter_test = NULL;
 const char *filter_device = NULL;
 const char *filter_group = NULL;
@@ -994,7 +994,7 @@ litest_run(int argc, char **argv)
 		litest_init_udev_rules(&created_files_list);
 
 
-		mode = skip_quirks_install ?
+		mode = use_system_rules_quirks ?
 				QUIRKS_SETUP_ONLY_DEVICE :
 				QUIRKS_SETUP_FULL;
 		litest_setup_quirks(&created_files_list, mode);
@@ -1156,6 +1156,11 @@ litest_install_model_quirks(struct list *created_files_list)
 				warning,
 				false);
 	list_insert(created_files_list, &file->link);
+
+	/* Ony install the litest device rule when we're running as system
+	 * test suite, we expect the others to be in place already */
+	if (use_system_rules_quirks)
+		return;
 
 	file = litest_copy_file(UDEV_DEVICE_GROUPS_FILE,
 				LIBINPUT_DEVICE_GROUPS_RULES_FILE,
@@ -3924,7 +3929,7 @@ litest_parse_argv(int argc, char **argv)
 	 * against the system as installed */
 	builddir = builddir_lookup();
 	if (!builddir)
-		skip_quirks_install = true;
+		use_system_rules_quirks = true;
 	free(builddir);
 
 	if (in_debugger)
