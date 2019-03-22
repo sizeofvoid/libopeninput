@@ -209,6 +209,7 @@ TEST_COLLECTION(log)
 	litest_add_deviceless("log:logging", log_handler_NULL);
 	litest_add_no_device("log:logging", log_priority);
 
-	litest_add_ranged("log:warnings", log_axisrange_warning, LITEST_TOUCH, LITEST_ANY, &axes);
+	/* mtdev clips to axis ranges */
+	litest_add_ranged("log:warnings", log_axisrange_warning, LITEST_TOUCH, LITEST_PROTOCOL_A, &axes);
 	litest_add_ranged("log:warnings", log_axisrange_warning, LITEST_TOUCHPAD, LITEST_ANY, &axes);
 }

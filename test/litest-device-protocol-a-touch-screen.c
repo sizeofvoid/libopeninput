@@ -197,7 +197,7 @@ static int events[] = {
 
 TEST_DEVICE("protocol-a",
 	.type = LITEST_PROTOCOL_A_SCREEN,
-	.features = LITEST_PROTOCOL_A,
+	.features = LITEST_PROTOCOL_A|LITEST_TOUCH,
 	.create = protocolA_create,
 
 	.interface = &interface,
