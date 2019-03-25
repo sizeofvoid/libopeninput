@@ -1440,10 +1440,10 @@ litest_create(enum litest_device_type which,
 				break;
 			}
 		}
-
-		free(abs);
-		free(events);
 	}
+
+	free(abs);
+	free(events);
 
 	path = libevdev_uinput_get_devnode(d->uinput);
 	litest_assert(path != NULL);

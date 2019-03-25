@@ -1841,7 +1841,7 @@ select_device(void)
 	int ndev, selected_device;
 	int rc;
 	char *device_path;
-	bool has_eaccess;
+	bool has_eaccess = false;
 	int available_devices = 0;
 
 	ndev = scandir("/dev/input", &namelist, is_event_node, versionsort);
