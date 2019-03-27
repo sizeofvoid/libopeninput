@@ -2400,7 +2400,7 @@ libinput_event_tablet_tool_get_time_usec(struct libinput_event_tablet_tool *even
  * mapped to an eraser-like virtual tool.
  *
  * If supported by the hardware, a more specific tool id is always
- * available, see * libinput_tablet_tool_get_tool_id().
+ * available, see libinput_tablet_tool_get_tool_id().
  *
  * @param tool The libinput tool
  * @return The tool type for this tool object

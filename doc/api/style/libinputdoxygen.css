@@ -1,14 +1,23 @@
+@import url("https://fonts.googleapis.com/css?family=Roboto+Mono");
+
 dd {
     margin-left: 30px;
 }
 
 .title {
-	font-size: 400%;
-	font-weight: 200;
+	font-size: 200%;
+	font-weight: bold;
+}
+
+.title .ingroups {
+	font-size: 200%;
 }
 
 h1 {
 	font-size: 300%;
+	background-image: none;
+	background-color: #D6E5FF;
+	padding-left: 10px;
 }
 
 h2 {
@@ -44,4 +53,44 @@ h2 {
 /* Main menu sub-items like file-list, etc */
 #main-menu li ul {
 	display: none;
+}
+
+.paramname {
+	padding-right: 10px;
+}
+
+.memtitle {
+	background-image: none;
+	background-color: #F0F0F0;
+}
+
+.memproto {
+	background-color: #F0F0F0;
+}
+
+.headertitle {
+	background-image: none;
+	background-color: #F0F0F0;
+}
+
+td.fieldname {
+	font-family: 'Roboto Mono', monospace;
+}
+
+.fieldtable th {
+	background-image: none;
+	background-color: #F0F0F0;
+}
+
+body {
+	letter-spacing: 0px;
+}
+
+.mdescLeft, .mdescRight, .memItemLeft, .memItemRight, .memTemplItemLeft, .memTemplItemRight, .memTemplParams {
+	background-color: #F0F0F0;
+}
+
+a {
+	color: #2873b0;
+
 }
