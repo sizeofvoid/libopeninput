@@ -76,3 +76,9 @@
    ...
    fun:Py_GetProgramFullPath
 }
+{
+   python:_PyEval_EvalFrameDefault
+   Memcheck:Cond
+   ...
+   fun:_PyEval_EvalFrameDefault
+}
