@@ -210,15 +210,16 @@ if __name__ == '__main__':
         sys.exit(77)
 
     parser = argparse.ArgumentParser(description='Verify a libinput tool\'s option parsing')
-    parser.add_argument('tool_path', metavar='/path/to/builddir/libinput',
-                        type=str, nargs='?',
+    parser.add_argument('--tool-path', metavar='/path/to/builddir/libinput',
+                        type=str,
                         help='Path to the libinput tool in the builddir')
     parser.add_argument('--verbose', action='store_true')
-    args = parser.parse_args()
+    args, remainder = parser.parse_known_args()
     if args.tool_path is not None:
         TestLibinputTool.libinput_tool = args.tool_path
     verbosity = 1
     if args.verbose:
         verbosity = 3
-    del sys.argv[1:]
-    unittest.main(verbosity=verbosity)
+
+    argv = [sys.argv[0], *remainder]
+    unittest.main(verbosity=verbosity, argv=argv)

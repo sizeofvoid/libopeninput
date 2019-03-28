@@ -605,7 +605,7 @@ executable('ptraccel-debug',
 if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimized'
 	test('tool-option-parsing',
 	     find_program('tools/test-tool-option-parsing.py'),
-	     args : [libinput_tool.full_path()],
+	     args : ['--tool-path', libinput_tool.full_path()],
 	     timeout : 120)
 endif
 
