@@ -229,7 +229,7 @@ print_evdev_event(struct record_context *ctx, struct input_event *ev)
 
 		snprintf(desc,
 			 sizeof(desc),
-			 "%s / %-20s %4d%s",
+			 "%s / %-20s %6d%s",
 			 tname,
 			 cname,
 			 ev->value,
@@ -237,7 +237,7 @@ print_evdev_event(struct record_context *ctx, struct input_event *ev)
 	}
 
 	iprintf(ctx,
-		"- [%3lu, %6u, %3d, %3d, %5d] # %s\n",
+		"- [%3lu, %6u, %3d, %3d, %6d] # %s\n",
 		ev->time.tv_sec,
 		(unsigned int)ev->time.tv_usec,
 		ev->type,
