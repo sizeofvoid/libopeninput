@@ -259,8 +259,8 @@ quirks_data = [
 	'quirks/30-vendor-microsoft.quirks',
 	'quirks/30-vendor-razer.quirks',
 	'quirks/30-vendor-synaptics.quirks',
-	'quirks/30-vendor-wacom.quirks',
 	'quirks/30-vendor-vmware.quirks',
+	'quirks/30-vendor-wacom.quirks',
 	'quirks/50-system-acer.quirks',
 	'quirks/50-system-apple.quirks',
 	'quirks/50-system-asus.quirks',
@@ -273,6 +273,10 @@ quirks_data = [
 	'quirks/50-system-system76.quirks',
 	'quirks/50-system-toshiba.quirks',
 ]
+
+test('quirks-in-meson.build',
+     find_program('quirks/test-quirks-in-meson.build.sh'),
+     args : [meson.source_root()])
 
 config_h.set_quoted('LIBINPUT_QUIRKS_FILES', ':'.join(quirks_data))
 config_h.set_quoted('LIBINPUT_QUIRKS_SRCDIR', dir_src_quirks)
