@@ -271,6 +271,7 @@ quirks_data = [
 	'quirks/50-system-hp.quirks',
 	'quirks/50-system-lenovo.quirks',
 	'quirks/50-system-system76.quirks',
+	'quirks/50-system-toshiba.quirks',
 ]
 
 config_h.set_quoted('LIBINPUT_QUIRKS_FILES', ':'.join(quirks_data))
