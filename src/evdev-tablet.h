@@ -74,9 +74,11 @@ struct tablet_dispatch {
 	struct button_state button_state;
 	struct button_state prev_button_state;
 
-	enum libinput_tablet_tool_type current_tool_type;
-	uint32_t current_tool_id;
-	uint32_t current_tool_serial;
+	struct {
+		enum libinput_tablet_tool_type type;
+		uint32_t id;
+		uint32_t serial;
+	} current_tool;
 
 	uint32_t cursor_proximity_threshold;
 

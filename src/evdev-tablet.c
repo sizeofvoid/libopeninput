@@ -234,7 +234,7 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 	/* tool_id is the identifier for the tool we can use in libwacom
 	 * to identify it (if we have one anyway) */
 	case ABS_MISC:
-		tablet->current_tool_id = e->value;
+		tablet->current_tool.id = e->value;
 		break;
 	/* Intuos 3 strip data. Should only happen on the Pad device, not on
 	   the Pen device. */
@@ -278,7 +278,7 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 	assert(tool != LIBINPUT_TOOL_NONE);
 
 	if (enabled) {
-		tablet->current_tool_type = tool;
+		tablet->current_tool.type = tool;
 		tablet_set_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 	}
@@ -566,8 +566,8 @@ tablet_update_rotation(struct tablet_dispatch *tablet,
 {
 	/* We must check ROTATION_Z after TILT_X/Y so that the tilt axes are
 	 * already normalized and set if we have the mouse/lens tool */
-	if (tablet->current_tool_type == LIBINPUT_TABLET_TOOL_TYPE_MOUSE ||
-	    tablet->current_tool_type == LIBINPUT_TABLET_TOOL_TYPE_LENS) {
+	if (tablet->current_tool.type == LIBINPUT_TABLET_TOOL_TYPE_MOUSE ||
+	    tablet->current_tool.type == LIBINPUT_TABLET_TOOL_TYPE_LENS) {
 		tablet_update_mouse_rotation(tablet, device);
 		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_TILT_X);
 		clear_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_TILT_Y);
@@ -819,7 +819,7 @@ tablet_process_misc(struct tablet_dispatch *tablet,
 	switch (e->code) {
 	case MSC_SERIAL:
 		if (e->value != -1)
-			tablet->current_tool_serial = e->value;
+			tablet->current_tool.serial = e->value;
 
 		break;
 	case MSC_SCAN:
@@ -1192,8 +1192,8 @@ sanitize_mouse_lens_rotation(struct tablet_dispatch *tablet)
 {
 	/* If we have a mouse/lens cursor and the tilt changed, the rotation
 	   changed. Mark this, calculate the angle later */
-	if ((tablet->current_tool_type == LIBINPUT_TABLET_TOOL_TYPE_MOUSE ||
-	    tablet->current_tool_type == LIBINPUT_TABLET_TOOL_TYPE_LENS) &&
+	if ((tablet->current_tool.type == LIBINPUT_TABLET_TOOL_TYPE_MOUSE ||
+	    tablet->current_tool.type == LIBINPUT_TABLET_TOOL_TYPE_LENS) &&
 	    (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_TILT_X) ||
 	     bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_TILT_Y)))
 		set_bit(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
@@ -1641,13 +1641,13 @@ tablet_flush(struct tablet_dispatch *tablet,
 {
 	struct libinput_tablet_tool *tool;
 
-	if (tablet->current_tool_type == LIBINPUT_TOOL_NONE)
+	if (tablet->current_tool.type == LIBINPUT_TOOL_NONE)
 		return;
 
 	tool = tablet_get_tool(tablet,
-			       tablet->current_tool_type,
-			       tablet->current_tool_id,
-			       tablet->current_tool_serial);
+			       tablet->current_tool.type,
+			       tablet->current_tool.id,
+			       tablet->current_tool.serial);
 
 	if (!tool)
 		return; /* OOM */
@@ -1823,7 +1823,7 @@ tablet_proximity_quirk_update(struct tablet_dispatch *tablet,
 	 * BTN_TOOL_PEN and move on from there. */
 	if (e->type == EV_SYN &&
 	    tablet_has_status(tablet, TABLET_AXES_UPDATED) &&
-	    tablet->current_tool_type == LIBINPUT_TOOL_NONE) {
+	    tablet->current_tool.type == LIBINPUT_TOOL_NONE) {
 		tablet->quirks.proximity_out_forced = true;
 		tablet->quirks.need_to_force_prox_out = true;
 	}
@@ -2000,7 +2000,7 @@ tablet_check_initial_proximity(struct evdev_device *device,
 	if (tablet->quirks.need_to_force_prox_out)
 		tablet_proximity_out_quirk_set_timer(tablet, libinput_now(li));
 
-	tablet->current_tool_id =
+	tablet->current_tool.id =
 		libevdev_get_event_value(device->evdev,
 					 EV_ABS,
 					 ABS_MISC);
@@ -2009,7 +2009,7 @@ tablet_check_initial_proximity(struct evdev_device *device,
 	 * to 0 for now. On the first real event from the device we get the
 	 * serial (if any) and that event will be converted into a proximity
 	 * event */
-	tablet->current_tool_serial = 0;
+	tablet->current_tool.serial = 0;
 }
 
 static struct evdev_dispatch_interface tablet_interface = {
@@ -2157,7 +2157,7 @@ tablet_init(struct tablet_dispatch *tablet,
 	tablet->base.interface = &tablet_interface;
 	tablet->device = device;
 	tablet->status = TABLET_NONE;
-	tablet->current_tool_type = LIBINPUT_TOOL_NONE;
+	tablet->current_tool.type = LIBINPUT_TOOL_NONE;
 	list_init(&tablet->tool_list);
 
 	if (tablet_reject_device(device))
