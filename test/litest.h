@@ -78,24 +78,6 @@ struct test_collection {
 	}; \
 	static void (name##_setup)(void)
 
-extern void litest_setup_tests_udev(void);
-extern void litest_setup_tests_path(void);
-extern void litest_setup_tests_pointer(void);
-extern void litest_setup_tests_touch(void);
-extern void litest_setup_tests_log(void);
-extern void litest_setup_tests_tablet(void);
-extern void litest_setup_tests_pad(void);
-extern void litest_setup_tests_touchpad(void);
-extern void litest_setup_tests_touchpad_tap(void);
-extern void litest_setup_tests_touchpad_buttons(void);
-extern void litest_setup_tests_trackpoint(void);
-extern void litest_setup_tests_trackball(void);
-extern void litest_setup_tests_misc(void);
-extern void litest_setup_tests_keyboard(void);
-extern void litest_setup_tests_device(void);
-extern void litest_setup_tests_gestures(void);
-extern void litest_setup_tests_lid(void);
-
 void
 litest_fail_condition(const char *file,
 		      int line,
