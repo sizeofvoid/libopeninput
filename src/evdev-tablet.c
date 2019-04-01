@@ -278,6 +278,11 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 	assert(tool != LIBINPUT_TOOL_NONE);
 
 	if (enabled) {
+		if (tablet->current_tool.is_active)
+			evdev_log_bug_kernel(device,
+					     "Tool directly switched from %d to %d",
+					     tablet->current_tool.type,
+					     tool);
 		tablet->current_tool.type = tool;
 		tablet_set_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
 		tablet_unset_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
@@ -285,6 +290,8 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 	else if (!tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY)) {
 		tablet_set_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
 	}
+
+	tablet->current_tool.is_active = enabled;
 }
 
 static inline double
@@ -2158,6 +2165,7 @@ tablet_init(struct tablet_dispatch *tablet,
 	tablet->device = device;
 	tablet->status = TABLET_NONE;
 	tablet->current_tool.type = LIBINPUT_TOOL_NONE;
+	tablet->current_tool.is_active = false;
 	list_init(&tablet->tool_list);
 
 	if (tablet_reject_device(device))

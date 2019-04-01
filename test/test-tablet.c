@@ -2684,6 +2684,48 @@ START_TEST(tool_in_prox_before_start)
 }
 END_TEST
 
+static void tool_switch_warning(struct libinput *libinput,
+				enum libinput_log_priority priority,
+				const char *format,
+				va_list args)
+{
+	int *warning_triggered = (int*)libinput_get_user_data(libinput);
+
+	if (priority == LIBINPUT_LOG_PRIORITY_ERROR &&
+	    strstr(format, "Tool directly switched"))
+		(*warning_triggered)++;
+}
+
+
+START_TEST(tool_direct_switch)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+	int warning_triggered = 0;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
+		return;
+
+	libinput_set_user_data(li, &warning_triggered);
+	libinput_log_set_handler(li, tool_switch_warning);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_drain_events(li);
+
+	litest_event(dev, EV_KEY, BTN_TOOL_RUBBER, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	ck_assert_int_eq(warning_triggered, 1);
+	litest_restore_log_handler(li);
+}
+END_TEST
+
 START_TEST(mouse_tool)
 {
 	struct litest_device *dev = litest_current_device();
@@ -4952,6 +4994,7 @@ TEST_COLLECTION(tablet)
 	litest_add_no_device("tablet:tool", tool_capabilities);
 	litest_add("tablet:tool", tool_type, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tool", tool_in_prox_before_start, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:tool", tool_direct_switch, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tool_serial", tool_unique, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", tool_serial, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool_serial", tool_id, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
