@@ -10,7 +10,7 @@ dd {
 }
 
 .title .ingroups {
-	font-size: 200%;
+	font-size: 50%;
 }
 
 h1 {
@@ -93,4 +93,9 @@ body {
 a {
 	color: #2873b0;
 
+}
+
+.navpath ul {
+	background-image: none;
+	background-color: #F0F0F0;
 }
