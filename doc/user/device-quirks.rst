@@ -135,9 +135,6 @@ ModelALPSTouchpad, ModelAppleTouchpad, ModelWacomTouchpad, ModelChromebook
 ModelTabletNoTilt
     Indicates that the tablet stylus does not provide tilt axis
     information, even if the kernel exposes that axis.
-ModelTabletNoProximityOut
-    Indicates that the tablet stylus does not send correct proximity out
-    events.
 ModelTouchpadVisibleMarker
     Indicates the touchpad has a drawn-on visible marker between the software
     buttons.

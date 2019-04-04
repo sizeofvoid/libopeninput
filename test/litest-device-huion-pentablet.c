@@ -88,11 +88,6 @@ static int events[] = {
 	-1, -1,
 };
 
-static const char quirk_file[] =
-"[litest HUION tablet]\n"
-"MatchName=litest HUION PenTablet Pen\n"
-"ModelTabletNoProximityOut=1\n";
-
 TEST_DEVICE("huion-tablet",
 	.type = LITEST_HUION_TABLET,
 	.features = LITEST_TABLET | LITEST_HOVER,
@@ -102,5 +97,4 @@ TEST_DEVICE("huion-tablet",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.quirk_file = quirk_file,
 )

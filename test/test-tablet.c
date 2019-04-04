@@ -291,18 +291,6 @@ START_TEST(tip_down_prox_in)
 }
 END_TEST
 
-static inline bool
-tablet_has_proxout_quirk(struct litest_device *dev)
-{
-	bool is_set = false;
-	if (!quirks_get_bool(dev->quirks,
-			     QUIRK_MODEL_TABLET_NO_PROXIMITY_OUT,
-			     &is_set))
-		return false;
-
-	return is_set;
-}
-
 START_TEST(tip_up_prox_out)
 {
 	struct litest_device *dev = litest_current_device();
@@ -314,9 +302,6 @@ START_TEST(tip_up_prox_out)
 		{ ABS_PRESSURE, 30 },
 		{ -1, -1 }
 	};
-
-	if (tablet_has_proxout_quirk(dev))
-		return;
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
@@ -4390,6 +4375,10 @@ START_TEST(touch_arbitration_outside_rect)
 	x = 20;
 	y = 45;
 
+	/* disable prox-out timer quirk */
+	litest_tablet_proximity_in(dev, x, y - 1, axes);
+	litest_tablet_proximity_out(dev);
+
 	litest_tablet_proximity_in(dev, x, y - 1, axes);
 	litest_drain_events(li);
 
@@ -4400,17 +4389,17 @@ START_TEST(touch_arbitration_outside_rect)
 	litest_drain_events(li);
 
 	/* left of rect */
-	litest_touch_sequence(finger, 0, x - 10, y + 2, x - 10, y + 20, 30);
+	litest_touch_sequence(finger, 0, x - 10, y + 2, x - 10, y + 20, 3);
 	libinput_dispatch(li);
 	litest_assert_touch_sequence(li);
 
 	/* above rect */
-	litest_touch_sequence(finger, 0, x + 2, y - 35, x + 20, y - 10, 30);
+	litest_touch_sequence(finger, 0, x + 2, y - 35, x + 20, y - 10, 3);
 	libinput_dispatch(li);
 	litest_assert_touch_sequence(li);
 
 	/* right of rect */
-	litest_touch_sequence(finger, 0, x + 80, y + 2, x + 20, y + 10, 30);
+	litest_touch_sequence(finger, 0, x + 80, y + 2, x + 20, y + 10, 3);
 	libinput_dispatch(li);
 	litest_assert_touch_sequence(li);
 
@@ -4495,6 +4484,11 @@ START_TEST(touch_arbitration_stop_touch)
 
 	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
 
+	/* disable prox-out timer quirk */
+	litest_tablet_proximity_in(dev, 30, 30, axes);
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(li);
+
 	litest_touch_down(finger, 0, 30, 30);
 	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
 
@@ -4504,6 +4498,12 @@ START_TEST(touch_arbitration_stop_touch)
 	litest_drain_events(li);
 
 	litest_touch_move_to(finger, 0, 80, 80, 30, 30, 10);
+	litest_assert_empty_queue(li);
+
+	/* tablet event so we don't time out for proximity */
+	litest_tablet_motion(dev, 30, 40, axes);
+	litest_drain_events(li);
+
 	/* start another finger to make sure that one doesn't send events
 	   either */
 	litest_touch_down(finger, 1, 30, 30);
@@ -4517,6 +4517,9 @@ START_TEST(touch_arbitration_stop_touch)
 	litest_tablet_proximity_out(dev);
 	litest_drain_events(li);
 
+	litest_timeout_tablet_proxout();
+	litest_drain_events(li);
+
 	/* Finger needs to be lifted for events to happen*/
 	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
 	litest_assert_empty_queue(li);
@@ -4528,11 +4531,8 @@ START_TEST(touch_arbitration_stop_touch)
 	litest_touch_up(finger, 1);
 	libinput_dispatch(li);
 
-	litest_timeout_touch_arbitration();
-	libinput_dispatch(li);
-
 	litest_touch_down(finger, 0, 30, 30);
-	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 3);
 	litest_touch_up(finger, 0);
 	libinput_dispatch(li);
 
