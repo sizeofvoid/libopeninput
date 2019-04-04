@@ -280,7 +280,7 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 	if (enabled) {
 		if (tablet->current_tool.is_active)
 			evdev_log_bug_kernel(device,
-					     "Tool directly switched from %d to %d",
+					     "Tool directly switched from %d to %d\n",
 					     tablet->current_tool.type,
 					     tool);
 		tablet->current_tool.type = tool;
