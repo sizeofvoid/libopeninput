@@ -74,12 +74,13 @@ struct tablet_dispatch {
 	struct button_state button_state;
 	struct button_state prev_button_state;
 
+	uint32_t tool_state;
+	uint32_t prev_tool_state;
+
 	struct {
 		enum libinput_tablet_tool_type type;
 		uint32_t id;
 		uint32_t serial;
-
-		bool is_active;	 /* evdev protocol state */
 	} current_tool;
 
 	uint32_t cursor_proximity_threshold;
