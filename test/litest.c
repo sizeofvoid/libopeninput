@@ -1698,6 +1698,9 @@ litest_event(struct litest_device *d, unsigned int type,
 {
 	int ret;
 
+	if (!libevdev_has_event_code(d->evdev, type, code))
+		return;
+
 	if (d->skip_ev_syn && type == EV_SYN && code == SYN_REPORT)
 		return;
 
