@@ -1258,8 +1258,10 @@ START_TEST(proximity_range_enter)
 	litest_drain_events(li);
 
 	litest_push_event_frame(dev);
+	litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 1);
+	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_pop_event_frame(dev);
 	litest_assert_empty_queue(li);
 
@@ -1276,7 +1278,12 @@ START_TEST(proximity_range_enter)
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 
+	litest_push_event_frame(dev);
+	litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_tablet_proximity_out(dev);
+	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 0);
+	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
+	litest_pop_event_frame(dev);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -1293,8 +1300,10 @@ START_TEST(proximity_range_in_out)
 	litest_drain_events(li);
 
 	litest_push_event_frame(dev);
+	litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 1);
+	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_pop_event_frame(dev);
 	libinput_dispatch(li);
 	litest_assert_tablet_proximity_event(li,
@@ -1315,7 +1324,12 @@ START_TEST(proximity_range_in_out)
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 
+	litest_push_event_frame(dev);
+	litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_tablet_proximity_out(dev);
+	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 0);
+	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
+	litest_pop_event_frame(dev);
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_assert_empty_queue(li);
@@ -1334,8 +1348,10 @@ START_TEST(proximity_range_button_click)
 	litest_drain_events(li);
 
 	litest_push_event_frame(dev);
+	litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 1);
+	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_pop_event_frame(dev);
 	litest_drain_events(li);
 
@@ -1346,7 +1362,12 @@ START_TEST(proximity_range_button_click)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
 
+	litest_push_event_frame(dev);
+	litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_tablet_proximity_out(dev);
+	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 0);
+	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
+	litest_pop_event_frame(dev);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -1361,8 +1382,10 @@ START_TEST(proximity_range_button_press)
 	};
 
 	litest_push_event_frame(dev);
+	litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 1);
+	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_pop_event_frame(dev);
 	litest_drain_events(li);
 
@@ -1389,7 +1412,12 @@ START_TEST(proximity_range_button_press)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
 
+	litest_push_event_frame(dev);
+	litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_tablet_proximity_out(dev);
+	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 0);
+	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
+	litest_pop_event_frame(dev);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -1404,8 +1432,10 @@ START_TEST(proximity_range_button_release)
 	};
 
 	litest_push_event_frame(dev);
+	litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 1);
+	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_pop_event_frame(dev);
 	litest_drain_events(li);
 
@@ -1432,7 +1462,12 @@ START_TEST(proximity_range_button_release)
 					  BTN_STYLUS,
 					  LIBINPUT_BUTTON_STATE_RELEASED);
 
+	litest_push_event_frame(dev);
+	litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_tablet_proximity_out(dev);
+	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 0);
+	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
+	litest_pop_event_frame(dev);
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 }
@@ -1771,8 +1806,10 @@ START_TEST(left_handed_mouse_rotation)
 	litest_drain_events(li);
 
 	litest_push_event_frame(dev);
+	litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 1);
+	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_pop_event_frame(dev);
 
 	litest_drain_events(li);
@@ -2811,8 +2848,10 @@ START_TEST(mouse_rotation)
 	litest_drain_events(li);
 
 	litest_push_event_frame(dev);
+	litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 1);
+	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_pop_event_frame(dev);
 
 	litest_drain_events(li);
