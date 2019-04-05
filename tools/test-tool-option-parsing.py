@@ -54,7 +54,7 @@ class TestLibinputTool(unittest.TestCase):
         # never get rc 2 (invalid usage)
         self.assertIn(rc, [0, 1])
 
-    def run_command_unrecognised_option(self, args):
+    def run_command_unrecognized_option(self, args):
         rc, stdout, stderr = self.run_command(args)
         self.assertEqual(rc, 2)
         self.assertTrue(stdout.startswith('Usage') or stdout == '')
@@ -66,7 +66,7 @@ class TestLibinputTool(unittest.TestCase):
         self.assertTrue(stdout.startswith('Usage') or stdout == '')
         self.assertIn('requires an argument', stderr)
 
-    def run_command_unrecognised_tool(self, args):
+    def run_command_unrecognized_tool(self, args):
         rc, stdout, stderr = self.run_command(args)
         self.assertEqual(rc, 2)
         self.assertTrue(stdout.startswith('Usage') or stdout == '')
@@ -89,16 +89,16 @@ class TestLibinputCommand(TestLibinputTool):
         self.assertEqual(stderr, '')
 
     def test_invalid_arguments(self):
-        self.run_command_unrecognised_option(['--banana'])
-        self.run_command_unrecognised_option(['--foo'])
-        self.run_command_unrecognised_option(['--quiet'])
-        self.run_command_unrecognised_option(['--verbose'])
-        self.run_command_unrecognised_option(['--quiet', 'foo'])
+        self.run_command_unrecognized_option(['--banana'])
+        self.run_command_unrecognized_option(['--foo'])
+        self.run_command_unrecognized_option(['--quiet'])
+        self.run_command_unrecognized_option(['--verbose'])
+        self.run_command_unrecognized_option(['--quiet', 'foo'])
 
     def test_invalid_tools(self):
-        self.run_command_unrecognised_tool(['foo'])
-        self.run_command_unrecognised_tool(['debug'])
-        self.run_command_unrecognised_tool(['foo', '--quiet'])
+        self.run_command_unrecognized_tool(['foo'])
+        self.run_command_unrecognized_tool(['debug'])
+        self.run_command_unrecognized_tool(['foo', '--quiet'])
 
 
 class TestToolWithOptions(object):
@@ -183,9 +183,9 @@ class TestDebugEvents(TestToolWithOptions, TestLibinputTool):
         self.assertEqual(rc, 0)
 
     def test_invalid_arguments(self):
-        self.run_command_unrecognised_option(['--banana'])
-        self.run_command_unrecognised_option(['--foo'])
-        self.run_command_unrecognised_option(['--version'])
+        self.run_command_unrecognized_option(['--banana'])
+        self.run_command_unrecognized_option(['--foo'])
+        self.run_command_unrecognized_option(['--version'])
 
 
 class TestDebugGUI(TestToolWithOptions, TestLibinputTool):
@@ -201,10 +201,10 @@ class TestDebugGUI(TestToolWithOptions, TestLibinputTool):
         self.assertEqual(rc, 0)
 
     def test_invalid_arguments(self):
-        self.run_command_unrecognised_option(['--quiet'])
-        self.run_command_unrecognised_option(['--banana'])
-        self.run_command_unrecognised_option(['--foo'])
-        self.run_command_unrecognised_option(['--version'])
+        self.run_command_unrecognized_option(['--quiet'])
+        self.run_command_unrecognized_option(['--banana'])
+        self.run_command_unrecognized_option(['--foo'])
+        self.run_command_unrecognized_option(['--version'])
 
 
 if __name__ == '__main__':
