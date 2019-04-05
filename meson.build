@@ -610,7 +610,7 @@ if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimi
 	test('tool-option-parsing',
 	     find_program('tools/test-tool-option-parsing.py'),
 	     args : ['--tool-path', libinput_tool.full_path()],
-	     timeout : 120)
+	     timeout : 240)
 endif
 
 # the libinput tools check whether we execute from the builddir, this is

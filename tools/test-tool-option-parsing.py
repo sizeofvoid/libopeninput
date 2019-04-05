@@ -41,12 +41,14 @@ class TestLibinputTool(unittest.TestCase):
             args.insert(1, self.subtool)
 
         with subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
-            time.sleep(0.1)
-            p.send_signal(3) # SIGQUIT
-            p.wait()
+            try:
+                p.wait(0.7)
+            except subprocess.TimeoutExpired:
+                p.send_signal(3) # SIGQUIT
+            stdout, stderr = p.communicate(timeout=2)
             if p.returncode == -3:
                 p.returncode = 0
-            return p.returncode, p.stdout.read().decode('UTF-8'), p.stderr.read().decode('UTF-8')
+            return p.returncode, stdout.decode('UTF-8'), stderr.decode('UTF-8')
 
     def run_command_success(self, args):
         rc, stdout, stderr = self.run_command(args)
