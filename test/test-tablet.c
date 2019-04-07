@@ -4546,7 +4546,7 @@ START_TEST(touch_arbitration_stop_touch)
 	/* start another finger to make sure that one doesn't send events
 	   either */
 	litest_touch_down(finger, 1, 30, 30);
-	litest_touch_move_to(finger, 1, 30, 30, 80, 80, 10);
+	litest_touch_move_to(finger, 1, 30, 30, 80, 80, 3);
 	litest_assert_empty_queue(li);
 
 	litest_tablet_motion(dev, 10, 10, axes);
@@ -4560,12 +4560,12 @@ START_TEST(touch_arbitration_stop_touch)
 	litest_drain_events(li);
 
 	/* Finger needs to be lifted for events to happen*/
-	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
+	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 3);
 	litest_assert_empty_queue(li);
-	litest_touch_move_to(finger, 1, 80, 80, 30, 30, 10);
+	litest_touch_move_to(finger, 1, 80, 80, 30, 30, 3);
 	litest_assert_empty_queue(li);
 	litest_touch_up(finger, 0);
-	litest_touch_move_to(finger, 1, 30, 30, 80, 80, 10);
+	litest_touch_move_to(finger, 1, 30, 30, 80, 80, 3);
 	litest_assert_empty_queue(li);
 	litest_touch_up(finger, 1);
 	libinput_dispatch(li);
