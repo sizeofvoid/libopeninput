@@ -1050,19 +1050,20 @@ START_TEST(proximity_out_clear_buttons)
 	struct libinput_event_tablet_tool *tablet_event;
 	struct libinput_event *event;
 	uint32_t button;
-
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
+	bool have_proximity = false;
+	double x = 50, y = 50;
 
 	litest_drain_events(li);
 
 	/* Test that proximity out events send button releases for any currently
 	 * pressed stylus buttons
 	 */
-	for (button = BTN_TOUCH + 1; button <= BTN_STYLUS2; button++) {
+	for (button = BTN_STYLUS; button <= BTN_STYLUS2; button++) {
 		bool button_released = false;
 		uint32_t event_button = 0;
 		enum libinput_button_state state;
@@ -1070,7 +1071,9 @@ START_TEST(proximity_out_clear_buttons)
 		if (!libevdev_has_event_code(dev->evdev, EV_KEY, button))
 			continue;
 
-		litest_tablet_proximity_in(dev, 10, 10, axes);
+		litest_tablet_proximity_in(dev, x++, y++, axes);
+		litest_drain_events(li);
+
 		litest_event(dev, EV_KEY, button, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 		litest_tablet_proximity_out(dev);
@@ -1079,8 +1082,16 @@ START_TEST(proximity_out_clear_buttons)
 		litest_timeout_tablet_proxout();
 		libinput_dispatch(li);
 
-		while ((event = libinput_get_event(li))) {
+		event = libinput_get_event(li);
+		ck_assert_notnull(event);
+		do {
 			tablet_event = libinput_event_get_tablet_tool_event(event);
+
+			if (libinput_event_get_type(event) ==
+			    LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY) {
+				have_proximity = true;
+				break;
+			}
 
 			if (libinput_event_get_type(event) ==
 			    LIBINPUT_EVENT_TABLET_TOOL_BUTTON) {
@@ -1094,15 +1105,15 @@ START_TEST(proximity_out_clear_buttons)
 			}
 
 			libinput_event_destroy(event);
-		}
+		} while ((event = libinput_get_event(li)));
 
 		ck_assert_msg(button_released,
 			      "Button %s (%d) was not released.",
 			      libevdev_event_code_get_name(EV_KEY, button),
 			      event_button);
+		litest_assert(have_proximity);
+		litest_assert_empty_queue(li);
 	}
-
-	litest_assert_empty_queue(li);
 }
 END_TEST
 
