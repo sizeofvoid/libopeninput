@@ -58,6 +58,9 @@ static int
 get_axis_default(struct litest_device *d, unsigned int evcode, int32_t *value)
 {
 	switch (evcode) {
+	case ABS_DISTANCE:
+		*value = 0;
+		return 0;
 	case ABS_PRESSURE:
 		*value = 100;
 		return 0;

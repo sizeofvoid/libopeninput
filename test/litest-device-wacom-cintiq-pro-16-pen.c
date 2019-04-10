@@ -75,6 +75,7 @@ static int
 get_axis_default(struct litest_device *d, unsigned int evcode, int32_t *value)
 {
 	switch (evcode) {
+	case ABS_Z:
 	case ABS_TILT_X:
 	case ABS_TILT_Y:
 		*value = 0;

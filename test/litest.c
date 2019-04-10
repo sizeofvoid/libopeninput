@@ -1776,8 +1776,16 @@ litest_auto_assign_value(struct litest_device *d,
 		break;
 	default:
 		if (!axis_replacement_value(d, axes, ev->code, &value) &&
-		    d->interface->get_axis_default)
-			d->interface->get_axis_default(d, ev->code, &value);
+		    d->interface->get_axis_default) {
+			int error = d->interface->get_axis_default(d,
+								   ev->code,
+								   &value);
+			if (error) {
+				litest_abort_msg("Failed to get default axis value for %s (%d)\n",
+						 libevdev_event_code_get_name(EV_ABS, ev->code),
+						 ev->code);
+			}
+		}
 		break;
 	}
 
@@ -2152,8 +2160,14 @@ auto_assign_tablet_value(struct litest_device *d,
 		break;
 	default:
 		if (!axis_replacement_value(d, axes, ev->code, &value) &&
-		    d->interface->get_axis_default)
-			d->interface->get_axis_default(d, ev->code, &value);
+		    d->interface->get_axis_default) {
+			int error = d->interface->get_axis_default(d, ev->code, &value);
+			if (error) {
+				litest_abort_msg("Failed to get default axis value for %s (%d)\n",
+						 libevdev_event_code_get_name(EV_ABS, ev->code),
+						 ev->code);
+			}
+		}
 		break;
 	}
 
