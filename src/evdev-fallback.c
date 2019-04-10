@@ -311,7 +311,7 @@ fallback_flush_mt_down(struct fallback_dispatch *dispatch,
 	if (seat_slot == -1)
 		return false;
 
-	seat->slot_map |= 1 << seat_slot;
+	seat->slot_map |= bit(seat_slot);
 	point = slot->point;
 	slot->hysteresis_center = point;
 	evdev_transform_absolute(device, &point);
@@ -374,7 +374,7 @@ fallback_flush_mt_up(struct fallback_dispatch *dispatch,
 	if (seat_slot == -1)
 		return false;
 
-	seat->slot_map &= ~(1 << seat_slot);
+	seat->slot_map &= ~bit(seat_slot);
 
 	touch_notify_touch_up(base, time, slot_idx, seat_slot);
 
@@ -402,7 +402,7 @@ fallback_flush_mt_cancel(struct fallback_dispatch *dispatch,
 	if (seat_slot == -1)
 		return false;
 
-	seat->slot_map &= ~(1 << seat_slot);
+	seat->slot_map &= ~bit(seat_slot);
 
 	touch_notify_touch_cancel(base, time, slot_idx, seat_slot);
 
@@ -434,7 +434,7 @@ fallback_flush_st_down(struct fallback_dispatch *dispatch,
 	if (seat_slot == -1)
 		return false;
 
-	seat->slot_map |= 1 << seat_slot;
+	seat->slot_map |= bit(seat_slot);
 
 	point = dispatch->abs.point;
 	evdev_transform_absolute(device, &point);
@@ -484,7 +484,7 @@ fallback_flush_st_up(struct fallback_dispatch *dispatch,
 	if (seat_slot == -1)
 		return false;
 
-	seat->slot_map &= ~(1 << seat_slot);
+	seat->slot_map &= ~bit(seat_slot);
 
 	touch_notify_touch_up(base, time, -1, seat_slot);
 
@@ -509,7 +509,7 @@ fallback_flush_st_cancel(struct fallback_dispatch *dispatch,
 	if (seat_slot == -1)
 		return false;
 
-	seat->slot_map &= ~(1 << seat_slot);
+	seat->slot_map &= ~bit(seat_slot);
 
 	touch_notify_touch_cancel(base, time, -1, seat_slot);
 
