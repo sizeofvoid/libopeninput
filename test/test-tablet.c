@@ -1034,6 +1034,9 @@ START_TEST(proximity_out_button_up)
 	litest_pop_event_frame(dev);
 	libinput_dispatch(li);
 
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+
 	litest_assert_tablet_button_event(li,
 					  BTN_STYLUS,
 					  LIBINPUT_BUTTON_STATE_RELEASED);
