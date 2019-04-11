@@ -916,7 +916,7 @@ litest_fork_subtests(struct list *tests, int max_forks)
 
 	/* parent process only */
 	while (wait(&status) != -1 && errno != ECHILD) {
-		if (WEXITSTATUS(status) != 0)
+		if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
 			failed = 1;
 	}
 
