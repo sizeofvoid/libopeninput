@@ -1788,6 +1788,8 @@ tablet_proximity_out_quirk_timer_func(uint64_t now, void *data)
 		return;
 	}
 
+	evdev_log_debug(tablet->device, "tablet: forcing proximity after timeout\n");
+
 	tablet->quirks.proximity_out_in_progress = true;
 	ARRAY_FOR_EACH(events, e) {
 		tablet->base.interface->process(&tablet->base,
