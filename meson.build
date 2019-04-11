@@ -275,7 +275,9 @@ quirks_data = [
 
 test('quirks-in-meson.build',
      find_program('quirks/test-quirks-in-meson.build.sh'),
-     args : [meson.source_root()])
+     args : [meson.source_root()],
+     suite : ['all']
+     )
 
 config_h.set_quoted('LIBINPUT_QUIRKS_FILES', ':'.join(quirks_data))
 config_h.set_quoted('LIBINPUT_QUIRKS_SRCDIR', dir_src_quirks)
@@ -438,7 +440,8 @@ libinput_quirks = executable('libinput-quirks',
 			    )
 test('validate-quirks',
      libinput_quirks,
-     args: ['validate', '--data-dir=@0@'.format(dir_src_quirks)]
+     args: ['validate', '--data-dir=@0@'.format(dir_src_quirks)],
+     suite : ['all']
      )
 
 configure_file(input : 'tools/libinput-quirks.man',
@@ -469,7 +472,9 @@ libinput_list_devices = executable('libinput-list-devices',
 				   install_dir : libinput_tool_path,
 				   install : true,
 				  )
-test('list-devices', libinput_list_devices)
+test('list-devices',
+     libinput_list_devices,
+     suite : ['all', 'root', 'hardware'])
 
 configure_file(input : 'tools/libinput-list-devices.man',
 	       output : 'libinput-list-devices.1',
@@ -610,6 +615,7 @@ if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimi
 	test('tool-option-parsing',
 	     find_program('tools/test-tool-option-parsing.py'),
 	     args : ['--tool-path', libinput_tool.full_path()],
+	     suite : ['all', 'root'],
 	     timeout : 240)
 endif
 
@@ -623,18 +629,21 @@ test_builddir_lookup = executable('test-builddir-lookup',
 				  install : false)
 test('tools-builddir-lookup',
      test_builddir_lookup,
-     args : ['--builddir-is-set'])
+     args : ['--builddir-is-set'],
+     suite : ['all'])
 test('tools-builddir-lookup-installed',
      find_program('test/helper-copy-and-exec-from-tmp.sh'),
      args : [test_builddir_lookup.full_path(), '--builddir-is-null'],
      env : ['LD_LIBRARY_PATH=@0@'.format(meson.build_root())],
+     suite : ['all'],
      workdir : '/tmp')
 
 ############ tests ############
 
 test('symbols-leak-test',
      find_program('test/symbols-leak-test'),
-     args : [ join_paths(dir_src, 'libinput.sym'), dir_src])
+     args : [ join_paths(dir_src, 'libinput.sym'), dir_src],
+     suite : ['all'])
 
 # build-test only
 executable('test-build-pedantic',
@@ -671,7 +680,10 @@ if get_option('tests')
 	dep_check = dependency('check', version : '>= 0.9.10')
 
 	leftover_rules = find_program('test/check-leftover-udev-rules.sh')
-	test('leftover-rules', leftover_rules, is_parallel : false)
+	test('leftover-rules',
+	     leftover_rules,
+	     is_parallel : false,
+	     suite : ['all'])
 
 	gstack = find_program('gstack', required : false)
 	config_h.set10('HAVE_GSTACK', gstack.found())
@@ -802,14 +814,18 @@ if get_option('tests')
 					  dependencies : deps_litest,
 					  c_args : defs_litest_selftest,
 					  install : false)
-	test('test-litest-selftest', test_litest_selftest)
+	test('test-litest-selftest',
+	     test_litest_selftest,
+	     suite : ['all'])
 
 	def_LT_VERSION = '-DLIBINPUT_LT_VERSION="@0@:@1@:@2@"'.format(libinput_lt_c, libinput_lt_r, libinput_lt_a)
 	test_library_version = executable('test-library-version',
 					  ['test/test-library-version.c'],
 					  c_args : [ def_LT_VERSION ],
 					  install : false)
-	test('test-library-version', test_library_version)
+	test('test-library-version',
+	     test_library_version,
+	     suite : ['all'])
 
 	test_utils_sources = [
 		'src/libinput-util.h',
@@ -821,7 +837,9 @@ if get_option('tests')
 				include_directories : [includes_src, includes_include],
 				dependencies : deps_litest,
 				install: false)
-	test('test-utils', test_utils)
+	test('test-utils',
+	     test_utils,
+	     suite : ['all'])
 
 	libinput_test_runner_sources = litest_sources + [
 		'src/libinput-util.h',
@@ -860,10 +878,12 @@ if get_option('tests')
 
 	test('libinput-test-suite-runner',
 	     libinput_test_runner,
+	     suite : ['all', 'valgrind', 'root', 'hardware'],
 	     timeout : 1200)
 
 	test('libinput-test-deviceless',
 	     libinput_test_runner,
+	     suite : ['all', 'valgrind'],
 	     args: ['--filter-deviceless'])
 
 	valgrind = find_program('valgrind', required : false)

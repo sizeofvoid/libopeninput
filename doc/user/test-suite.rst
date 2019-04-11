@@ -4,18 +4,37 @@
 libinput test suite
 ==============================================================================
 
-libinput ships with a number of tests all run automatically on ``ninja test``.
-The primary test suite is the ``libinput-test-suite``. When testing,
-the ``libinput-test-suite`` should always be invoked to check for
-behavior changes. The test suite relies on the kernel and udev to function
-correctly. It is not suitable for running inside containers.
+libinput's primary test suite can be invoked with
 
-.. note:: ``ninja test`` runs more than just the test suite, you **must**
-	run all tests for full coverage.
+::
 
-The test suite runner uses
-`Check <http://check.sourceforge.net/doc/check_html/>`_ underneath the hood
-but most of the functionality is abstracted into *litest* wrappers.
+	$ sudo ./builddir/libinput-test-suite
+
+When developing libinput, the ``libinput-test-suite`` should always be
+run to check for behavior changes and/or regressions. For quick iteration,
+the number of tests to run can be filtered, see :ref:`test-filtering`.
+This allows for developers to verify a subset of tests (e.g.
+touchpad tap-to-click) while hacking on that specific feature and only run
+the full suite when development is done finished.
+
+.. note:: The test suite relies on udev and the kernel, specifically uinput.
+	It creates virtual input devices and replays the events. This may
+	interfere with your running session. The test suite is not suitable
+	for running inside containers.
+
+In addition, libinput ships with a set of (primarily janitorial) tests that
+must pass for any merge request. These tests are invoked by calling
+``meson test -C builddir`` (or ``ninja test``). The ``libinput-test-suite`` is
+part of that test set by default.
+
+The upstream CI runs all these tests but not the ``libinput-test-suite``.
+This CI is run for every merge request.
+
+.. _test-job-control:
+
+------------------------------------------------------------------------------
+Job control in the test suite
+------------------------------------------------------------------------------
 
 The test suite runner has a make-like job control enabled by the ``-j`` or
 ``--jobs`` flag and will fork off as many parallel processes as given by this
@@ -47,8 +66,8 @@ Permissions required to run tests
 Most tests require the creation of uinput devices and access to the
 resulting ``/dev/input/eventX`` nodes. Some tests require temporary udev rules.
 **This usually requires the tests to be run as root**. If not run as
-root, the test suite runner will exit with status 77, interpreted as
-"skipped" by ninja.
+root, the test suite runner will exit with status 77, an exit status
+interpreted as "skipped".
 
 .. _test-filtering:
 
@@ -161,7 +180,7 @@ environment variable, if set, also enables verbose mode.
 ::
 
      $ ./builddir/libinput-test-suite --verbose
-     $ LITEST_VERBOSE=1 ninja test
+     $ LITEST_VERBOSE=1 meson test -C builddir
 
 .. _test-installed:
 
@@ -190,3 +209,35 @@ To configure libinput to install the tests, use the ``-Dinstall-tests=true``
 meson option::
 
   $ meson builddir -Dtests=true -Dinstall-tests=true <other options>
+
+.. _test-meson-suites:
+
+------------------------------------------------------------------------------
+Meson test suites
+------------------------------------------------------------------------------
+
+This section is primarily of interest to distributors that want to run test
+or developers working on libinput's CI.
+
+Tests invoked by ``meson test`` are grouped into test suites, the test suite
+names identify when the respective test can be run:
+
+- ``valgrind``: tests that can be run under valgrind (in addition to a
+  normal run)
+- ``root``: tests that must be run as root
+- ``hardware``: tests that require a VM or physical machine
+- ``all``: all tests, only needed because of
+  `meson bug 5340 <https://github.com/mesonbuild/meson/issues/5340>`_
+
+The suite names can be provided as filters to ``meson test
+--suite=<suitename>`` or ``meson test --no-suite=<suitename>``.
+For example, if running a container-based CI, you may specify the test
+suites as:
+
+::
+
+   $ meson test --no-suite=machine  # only run container-friendly tests
+   $ meson test --suite=valgrind --setup=valgrind  # run all valgrind-compatible tests
+   $ meson test --no-suite=root  # run all tests not requiring root
+
+These suites are subject to change at any time.
