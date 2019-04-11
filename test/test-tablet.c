@@ -1093,6 +1093,7 @@ START_TEST(proximity_out_clear_buttons)
 			if (libinput_event_get_type(event) ==
 			    LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY) {
 				have_proximity = true;
+				libinput_event_destroy(event);
 				break;
 			}
 

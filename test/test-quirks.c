@@ -940,6 +940,7 @@ test_attr_parse(struct litest_device *dev,
 		ck_assert(func(q, which, data));
 		ck_assert(quirks_has_quirk(q, which));
 		quirks_unref(q);
+		quirks_context_unref(ctx);
 		result = true;
 	} else {
 		result = false;
