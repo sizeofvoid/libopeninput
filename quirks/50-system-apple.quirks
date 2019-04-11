@@ -14,6 +14,14 @@ MatchVendor=0x05AC
 MatchBus=bluetooth
 MatchUdevType=touchpad
 ModelAppleTouchpad=1
+AttrTouchSizeRange=150:130
+
+[Apple Touchpads Bluetooth (new vendor ID)]
+MatchVendor=0x004C
+MatchBus=bluetooth
+MatchUdevType=touchpad
+ModelAppleTouchpad=1
+AttrTouchSizeRange=150:130
 
 [Apple Internal Keyboard]
 MatchName=*Apple Inc. Apple Internal Keyboard*
