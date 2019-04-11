@@ -797,7 +797,7 @@ tp_click_get_default_method(struct tp_dispatch *tp)
 
 	if (!tp->buttons.is_clickpad)
 		return LIBINPUT_CONFIG_CLICK_METHOD_NONE;
-	else if (libevdev_get_id_vendor(tp->device->evdev) == VENDOR_ID_APPLE)
+	else if (evdev_device_has_model_quirk(device, QUIRK_MODEL_APPLE_TOUCHPAD))
 		return LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER;
 
 	return LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS;
