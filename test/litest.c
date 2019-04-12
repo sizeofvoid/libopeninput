@@ -118,6 +118,11 @@ litest_backtrace(void)
 	pid_t parent, child;
 	int pipefd[2];
 
+	if (RUNNING_ON_VALGRIND) {
+		litest_log("  Using valgrind, omitting backtrace\n");
+		return;
+	}
+
 	if (pipe(pipefd) == -1)
 		return;
 
