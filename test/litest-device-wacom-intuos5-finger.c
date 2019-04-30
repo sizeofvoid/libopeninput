@@ -112,7 +112,7 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"rule_end\"";
 
-TEST_DEVICE("wacom-finger",
+TEST_DEVICE("wacom-intuos5-finger",
 	.type = LITEST_WACOM_FINGER,
 	.features = LITEST_TOUCHPAD,
 	.interface = &interface,

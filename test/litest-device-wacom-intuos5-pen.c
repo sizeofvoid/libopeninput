@@ -151,7 +151,7 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"rule_end\"";
 
-TEST_DEVICE("wacom-intuos-tablet",
+TEST_DEVICE("wacom-intuos5-tablet",
 	.type = LITEST_WACOM_INTUOS,
 	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT | LITEST_TOOL_MOUSE | LITEST_HOVER,
 	.interface = &interface,
