@@ -2096,6 +2096,7 @@ START_TEST(touchpad_palm_clickfinger_size_2fg)
 	litest_assert_empty_queue(li);
 }
 END_TEST
+
 START_TEST(touchpad_left_handed)
 {
 	struct litest_device *dev = litest_current_device();
@@ -2427,6 +2428,64 @@ START_TEST(touchpad_left_handed_clickpad_delayed)
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
+}
+END_TEST
+
+static inline bool
+touchpad_has_rotation(struct libevdev *evdev)
+{
+	return libevdev_get_id_vendor(evdev) == VENDOR_ID_WACOM;
+}
+
+START_TEST(touchpad_left_handed_rotation)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *d = dev->libinput_device;
+	struct libinput *li = dev->libinput;
+	enum libinput_config_status status;
+	struct libinput_event *event;
+	struct libinput_event_pointer *p;
+	bool rotate = touchpad_has_rotation(dev->evdev);
+
+	if (!libinput_device_config_left_handed_is_available(d))
+		return;
+
+	status = libinput_device_config_left_handed_set(d, 1);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 20, 80);
+	litest_touch_move_to(dev, 0, 20, 80, 80, 20, 20);
+	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	ck_assert_notnull(event);
+	do {
+		double x, y, ux, uy;
+
+		p = litest_is_motion_event(event);
+
+		x = libinput_event_pointer_get_dx(p);
+		y = libinput_event_pointer_get_dy(p);
+		ux = libinput_event_pointer_get_dx_unaccelerated(p);
+		uy = libinput_event_pointer_get_dy_unaccelerated(p);
+
+		if (rotate) {
+			ck_assert_double_lt(x, 0);
+			ck_assert_double_gt(y, 0);
+			ck_assert_double_lt(ux, 0);
+			ck_assert_double_gt(uy, 0);
+		} else {
+			ck_assert_double_gt(x, 0);
+			ck_assert_double_lt(y, 0);
+			ck_assert_double_gt(ux, 0);
+			ck_assert_double_lt(uy, 0);
+		}
+
+		libinput_event_destroy(event);
+	} while ((event = libinput_get_event(li)));
 }
 END_TEST
 
@@ -7010,6 +7069,7 @@ TEST_COLLECTION(touchpad)
 	litest_add("touchpad:left-handed", touchpad_left_handed_tapping_2fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:left-handed", touchpad_left_handed_delayed, LITEST_TOUCHPAD|LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add("touchpad:left-handed", touchpad_left_handed_clickpad_delayed, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
+	litest_add("touchpad:left-handed", touchpad_left_handed_rotation, LITEST_TOUCHPAD, LITEST_ANY);
 
 	/* Semi-MT hover tests aren't generic, they only work on this device and
 	 * ignore the semi-mt capability (it doesn't matter for the tests) */
