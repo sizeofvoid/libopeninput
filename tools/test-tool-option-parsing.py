@@ -215,9 +215,6 @@ class TestDebugGUI(TestToolWithOptions, TestLibinputTool):
 
 
 if __name__ == '__main__':
-    if os.environ.get('USING_VALGRIND'):
-        sys.exit(77)
-
     parser = argparse.ArgumentParser(description='Verify a libinput tool\'s option parsing')
     parser.add_argument('--tool-path', metavar='/path/to/builddir/libinput',
                         type=str,
