@@ -485,6 +485,11 @@ struct tp_dispatch {
 		struct libinput_event_listener listener;
 		struct evdev_device *tablet_mode_switch;
 	} tablet_mode_switch;
+
+	struct {
+		/* true if the axes need rotation when left-handed is on*/
+		bool rotate;
+	} left_handed;
 };
 
 static inline struct tp_dispatch*

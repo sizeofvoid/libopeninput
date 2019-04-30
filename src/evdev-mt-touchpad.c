@@ -28,6 +28,10 @@
 #include <stdbool.h>
 #include <limits.h>
 
+#if HAVE_LIBWACOM
+#include <libwacom/libwacom.h>
+#endif
+
 #include "quirks.h"
 #include "evdev-mt-touchpad.h"
 
@@ -464,6 +468,30 @@ tp_get_delta(struct tp_touch *t)
 	return delta;
 }
 
+static inline int32_t
+rotated(struct tp_dispatch *tp, unsigned int code, int value)
+{
+	const struct input_absinfo *absinfo;
+
+	if (!tp->device->left_handed.enabled ||
+	    !tp->left_handed.rotate)
+		return value;
+
+	switch (code) {
+	case ABS_X:
+	case ABS_MT_POSITION_X:
+		absinfo = tp->device->abs.absinfo_x;
+		break;
+	case ABS_Y:
+	case ABS_MT_POSITION_Y:
+		absinfo = tp->device->abs.absinfo_y;
+		break;
+	default:
+		abort();
+	}
+	return absinfo->maximum - (value - absinfo->minimum);
+}
+
 static void
 tp_process_absolute(struct tp_dispatch *tp,
 		    const struct input_event *e,
@@ -476,7 +504,7 @@ tp_process_absolute(struct tp_dispatch *tp,
 		evdev_device_check_abs_axis_range(tp->device,
 						  e->code,
 						  e->value);
-		t->point.x = e->value;
+		t->point.x = rotated(tp, e->code, e->value);
 		t->time = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
@@ -485,7 +513,7 @@ tp_process_absolute(struct tp_dispatch *tp,
 		evdev_device_check_abs_axis_range(tp->device,
 						  e->code,
 						  e->value);
-		t->point.y = e->value;
+		t->point.y = rotated(tp, e->code, e->value);
 		t->time = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
@@ -536,7 +564,7 @@ tp_process_absolute_st(struct tp_dispatch *tp,
 		evdev_device_check_abs_axis_range(tp->device,
 						  e->code,
 						  e->value);
-		t->point.x = e->value;
+		t->point.x = rotated(tp, e->code, e->value);
 		t->time = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
@@ -545,7 +573,7 @@ tp_process_absolute_st(struct tp_dispatch *tp,
 		evdev_device_check_abs_axis_range(tp->device,
 						  e->code,
 						  e->value);
-		t->point.y = e->value;
+		t->point.y = rotated(tp, e->code, e->value);
 		t->time = time;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
@@ -3700,11 +3728,80 @@ tp_change_to_left_handed(struct evdev_device *device)
 	device->left_handed.enabled = device->left_handed.want_enabled;
 }
 
+static bool
+tp_init_left_handed_rotation(struct tp_dispatch *tp,
+			     struct evdev_device *device)
+{
+	bool rotate = false;
+#if HAVE_LIBWACOM
+	WacomDeviceDatabase *db;
+	WacomDevice **devices = NULL,
+		    **d;
+	WacomDevice *dev;
+	uint32_t vid = evdev_device_get_id_vendor(device),
+		 pid = evdev_device_get_id_product(device);
+
+	db = libwacom_database_new();
+	if (!db) {
+		evdev_log_info(device,
+			       "Failed to initialize libwacom context.\n");
+		goto out;
+	}
+
+	/* Check if we have a device with the same vid/pid. If not,
+	   we need to loop through all devices and check their paired
+	   device. */
+	dev = libwacom_new_from_usbid(db, vid, pid, NULL);
+	if (dev) {
+		rotate = libwacom_is_reversible(dev);
+		libwacom_destroy(dev);
+		goto out;
+	}
+
+	devices = libwacom_list_devices_from_database(db, NULL);
+	if (!devices)
+		goto out;
+	d = devices;
+	while(*d) {
+		const WacomMatch *paired;
+
+		paired = libwacom_get_paired_device(*d);
+		if (paired &&
+		    libwacom_match_get_vendor_id(paired) == vid &&
+		    libwacom_match_get_product_id(paired) == pid) {
+			rotate = libwacom_is_reversible(dev);
+			break;
+		}
+		d++;
+	}
+
+	free(devices);
+out:
+	if (db)
+		libwacom_database_destroy(db);
+#endif
+
+	return rotate;
+}
+
+static void
+tp_init_left_handed(struct tp_dispatch *tp,
+		    struct evdev_device *device)
+{
+	bool want_left_handed = true;
+
+	if (device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON)
+		want_left_handed = false;
+	if (want_left_handed)
+		evdev_init_left_handed(device, tp_change_to_left_handed);
+
+	tp->left_handed.rotate = tp_init_left_handed_rotation(tp, device);
+}
+
 struct evdev_dispatch *
 evdev_mt_touchpad_create(struct evdev_device *device)
 {
 	struct tp_dispatch *tp;
-	bool want_left_handed = true;
 
 	evdev_tag_touchpad(device, device->udev_device);
 
@@ -3723,10 +3820,7 @@ evdev_mt_touchpad_create(struct evdev_device *device)
 	tp->sendevents.config.get_mode = tp_sendevents_get_mode;
 	tp->sendevents.config.get_default_mode = tp_sendevents_get_default_mode;
 
-	if (device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON)
-		want_left_handed = false;
-	if (want_left_handed)
-		evdev_init_left_handed(device, tp_change_to_left_handed);
+	tp_init_left_handed(tp, device);
 
 	return &tp->base;
 }
