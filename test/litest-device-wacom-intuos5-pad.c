@@ -100,7 +100,7 @@ static const char udev_rule[] =
 "\n"
 "LABEL=\"pad_end\"";
 
-TEST_DEVICE("wacom-pad",
+TEST_DEVICE("wacom-intuos5-pad",
 	.type = LITEST_WACOM_INTUOS5_PAD,
 	.features = LITEST_TABLET_PAD | LITEST_RING,
 	.interface = &interface,
