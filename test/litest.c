@@ -54,6 +54,8 @@
 #include <termios.h>
 #endif
 
+#include <valgrind/valgrind.h>
+
 #include "litest.h"
 #include "litest-int.h"
 #include "libinput-util.h"
@@ -623,7 +625,7 @@ litest_log_handler(struct libinput *libinput,
 		/* valgrind is too slow and some of our offsets are too
 		 * short, don't abort if during a valgrind run we get a
 		 * negative offset */
-		if (!getenv("USING_VALGRIND") ||
+		if (!RUNNING_ON_VALGRIND ||
 		    !strstr(format, "offset negative"))
 		litest_abort_msg("libinput bug triggered, aborting.\n");
 	}

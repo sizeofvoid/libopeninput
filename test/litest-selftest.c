@@ -3,6 +3,8 @@
 #include <check.h>
 #include <signal.h>
 
+#include <valgrind/valgrind.h>
+
 #include "litest.h"
 
 START_TEST(litest_assert_trigger)
@@ -446,7 +448,7 @@ main (int argc, char **argv)
         /* when running under valgrind we're using nofork mode, so a signal
          * raised by a test will fail in valgrind. There's nothing to
          * memcheck here anyway, so just skip the valgrind test */
-        if (getenv("USING_VALGRIND"))
+        if (RUNNING_ON_VALGRIND)
             return EXIT_SUCCESS;
 
 	s = litest_assert_macros_suite();

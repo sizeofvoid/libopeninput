@@ -776,7 +776,8 @@ if get_option('tests')
 		'test/litest-device-xen-virtual-pointer.c',
 		'test/litest-device-vmware-virtual-usb-mouse.c',
 		'test/litest-device-yubikey.c',
-		'test/litest.c'
+		'test/litest.c',
+		'include/valgrind/valgrind.h'
 	]
 
 	dep_dl = cc.find_library('dl')
@@ -890,7 +891,6 @@ if get_option('tests')
 	if valgrind.found()
 		valgrind_env = environment()
 		valgrind_env.set('CK_FORK', 'no')
-		valgrind_env.set('USING_VALGRIND', '1')
 		valgrind_suppressions_file = join_paths(dir_src_test, 'valgrind.suppressions')
 		add_test_setup('valgrind',
 				exe_wrapper : [ valgrind,
