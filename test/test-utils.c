@@ -1072,7 +1072,7 @@ int main(int argc, char **argv)
          * raised by a test will fail in valgrind. There's nothing to
          * memcheck here anyway, so just skip the valgrind test */
         if (RUNNING_ON_VALGRIND)
-            return EXIT_SUCCESS;
+            return 77;
 
 	s = litest_utils_suite();
         sr = srunner_create(s);
