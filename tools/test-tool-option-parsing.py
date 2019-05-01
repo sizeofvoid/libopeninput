@@ -26,6 +26,7 @@
 import argparse
 import os
 import unittest
+import resource
 import sys
 import subprocess
 import time
@@ -35,12 +36,16 @@ class TestLibinputTool(unittest.TestCase):
     libinput_tool = 'libinput'
     subtool = None
 
+    def _disable_coredump(self):
+            resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+
     def run_command(self, args):
         args = [self.libinput_tool] + args
         if self.subtool is not None:
             args.insert(1, self.subtool)
 
-        with subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+        with subprocess.Popen(args, preexec_fn=self._disable_coredump,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
             try:
                 p.wait(0.7)
             except subprocess.TimeoutExpired:
