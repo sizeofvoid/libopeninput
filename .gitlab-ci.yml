@@ -81,8 +81,9 @@ variables:
   FREEBSD_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/freebsd/11.2:$FREEBSD_TAG
 
   MESON_BUILDDIR: "build dir"
-  NINJA_ARGS: 'test'
+  NINJA_ARGS: ''
   MESON_ARGS: ''
+  MESON_TEST_ARGS: '--no-suite=hardware'
 
   # Until we have a VM with full access, we cannot run the test suite runner
   SKIP_LIBINPUT_TEST_SUITE_RUNNER: 1
@@ -105,6 +106,7 @@ variables:
    - meson "$MESON_BUILDDIR" $MESON_ARGS
    - meson configure "$MESON_BUILDDIR"
    - ninja -C "$MESON_BUILDDIR" $NINJA_ARGS
+   - if test x"$MESON_TEST_ARGS" != "x"; then echo "Running meson test -C \"$MESON_BUILDDIR\" $MESON_TEST_ARGS"; meson test -C "$MESON_BUILDDIR" $MESON_TEST_ARGS; fi
 
 #################################################################
 #                                                               #
@@ -450,15 +452,9 @@ fedora:29@valgrind:
   extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
+    MESON_TEST_ARGS: '--suite=valgrind --no-suite=hardware --setup=valgrind'
   before_script:
     - dnf install -y valgrind
-  # note: we override the default_build here by providing a new script
-  script:
-   - rm -rf "$MESON_BUILDDIR"
-   - meson "$MESON_BUILDDIR" $MESON_ARGS
-   - meson configure "$MESON_BUILDDIR"
-   - meson test -C "$MESON_BUILDDIR" --setup=valgrind
-
 #
 # Ubuntu
 #
@@ -495,8 +491,8 @@ arch:rolling@default-build:
   image: $FREEBSD_CONTAINER_IMAGE
   variables:
     MESON_ARGS: '--cross-file freebsd -Ddocumentation=false -Dtests=false -Depoll-dir=/freebsd/usr/local/'
-    # Can't run FreeBSD tests on Linux machine, so NINJA_ARGS shouldn't be "test"
-    NINJA_ARGS: ''
+    # Can't run FreeBSD tests on Linux machine, so MESON_TEST_ARGS shouldn't be "test"
+    MESON_TEST_ARGS: ''
 
 freebsd:11.2@default-build:
   extends: .freebsd@template
