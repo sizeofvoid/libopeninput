@@ -4180,14 +4180,8 @@ main(int argc, char **argv)
 	if (mode == LITEST_MODE_ERROR)
 		return EXIT_FAILURE;
 
-	/* You don't get to skip the deviceless tests */
-	if (!run_deviceless) {
-		if (getenv("SKIP_LIBINPUT_TEST_SUITE_RUNNER"))
-			return 77;
-
-		if ((rc = check_device_access()) != 0)
+	if (!run_deviceless && (rc = check_device_access()) != 0)
 			return rc;
-	}
 
 	litest_init_test_devices();
 

@@ -85,8 +85,6 @@ variables:
   MESON_ARGS: ''
   MESON_TEST_ARGS: '--no-suite=hardware'
 
-  # Until we have a VM with full access, we cannot run the test suite runner
-  SKIP_LIBINPUT_TEST_SUITE_RUNNER: 1
   # udev isn't available/working properly in the containers
   UDEV_NOT_AVAILABLE: 1
   GIT_DEPTH: 1
