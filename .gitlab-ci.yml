@@ -67,7 +67,7 @@ variables:
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
   FEDORA_TAG: '2019-05-02.0'
-  UBUNTU_TAG: '2019-03-15.0'
+  UBUNTU_TAG: '2019-05-02.0'
   ARCH_TAG: '2019-04-14.0'
   FREEBSD_TAG: '2019-03-15.0'
 
@@ -171,12 +171,12 @@ ubuntu:18.10@container-prep:
     TAG: $UBUNTU_TAG
   <<: *pull_upstream_or_rebuild
 
-ubuntu:18.04@container-prep:
+ubuntu:19.04@container-prep:
   extends: .ubuntu@container-build
   stage: container_prep
   variables:
     GIT_STRATEGY: none
-    UBUNTU_VERSION: "18.04"
+    UBUNTU_VERSION: "19.04"
     DISTRIB_FLAVOR: ubuntu
     DISTRIB_VERSION: $UBUNTU_VERSION
     TAG: $UBUNTU_TAG
@@ -317,11 +317,11 @@ ubuntu:18.10@container-clean:
     UBUNTU_VERSION: "18.10"
     CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
 
-ubuntu:18.04@container-clean:
+ubuntu:19.04@container-clean:
   extends: .container-clean
   variables:
     GIT_STRATEGY: none
-    UBUNTU_VERSION: "18.04"
+    UBUNTU_VERSION: "19.04"
     CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
 
 arch:rolling@container-clean:
@@ -472,10 +472,10 @@ ubuntu:18.10@default-build:
   variables:
     UBUNTU_VERSION: "18.10"
 
-ubuntu:18.04@default-build:
+ubuntu:19.04@default-build:
   extends: .ubuntu@template
   variables:
-    UBUNTU_VERSION: "18.04"
+    UBUNTU_VERSION: "19.04"
 
 #
 # Arch
