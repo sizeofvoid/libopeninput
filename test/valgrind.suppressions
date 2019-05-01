@@ -32,6 +32,13 @@
    fun:g_malloc0
 }
 {
+   <g_get_language_names_malloc>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:g_get_language_names_with_category
+}
+{
    libunwind:msync_uninitialized_bytes
    Memcheck:Param
    msync(start)
