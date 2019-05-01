@@ -66,7 +66,7 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG: '2019-03-15.0'
+  FEDORA_TAG: '2019-05-02.0'
   UBUNTU_TAG: '2019-03-15.0'
   ARCH_TAG: '2019-04-14.0'
   FREEBSD_TAG: '2019-03-15.0'
@@ -137,12 +137,12 @@ variables:
         skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
       fi
 
-fedora:28@container-prep:
+fedora:30@container-prep:
   extends: .fedora@container-build
   stage: container_prep
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 30
     DISTRIB_FLAVOR: fedora
     DISTRIB_VERSION: $FEDORA_VERSION
     TAG: $FEDORA_TAG
@@ -296,11 +296,11 @@ freebsd:11.2@container-prep:
   only:
     - schedules
 
-fedora:28@container-clean:
+fedora:30@container-clean:
   extends: .container-clean
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 30
     CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
 
 fedora:29@container-clean:
@@ -356,10 +356,10 @@ freebsd:11.2@container-clean:
   extends: .build@template
   image: $FEDORA_CONTAINER_IMAGE
 
-fedora:28@default-build:
+fedora:30@default-build:
   extends: .fedora-build@template
   variables:
-    FEDORA_VERSION: 28
+    FEDORA_VERSION: 30
 
 fedora:29@default-build:
   extends: .fedora-build@template
