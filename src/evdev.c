@@ -50,7 +50,7 @@
 #endif
 
 #define DEFAULT_WHEEL_CLICK_ANGLE 15
-#define DEFAULT_BUTTON_SCROLL_TIMEOUT ms2us(38)
+#define DEFAULT_BUTTON_SCROLL_TIMEOUT ms2us(200)
 
 enum evdev_device_udev_tags {
         EVDEV_UDEV_TAG_INPUT		= bit(0),
