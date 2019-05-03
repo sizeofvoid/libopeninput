@@ -2506,7 +2506,7 @@ tp_pair_lid_switch(struct evdev_device *touchpad,
 
 	if (tp->lid_switch.lid_switch == NULL) {
 		evdev_log_debug(touchpad,
-				"lid_switch: activated for %s<->%s\n",
+				"lid: activated for %s<->%s\n",
 				touchpad->devname,
 				lid_switch->devname);
 
@@ -2537,7 +2537,7 @@ tp_pair_tablet_mode_switch(struct evdev_device *touchpad,
 		return;
 
 	evdev_log_debug(touchpad,
-			"tablet_mode_switch: activated for %s<->%s\n",
+			"tablet-mode: activated for %s<->%s\n",
 			touchpad->devname,
 			tablet_mode_switch->devname);
 
