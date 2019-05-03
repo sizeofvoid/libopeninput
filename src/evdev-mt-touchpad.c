@@ -43,6 +43,11 @@
 #define FAKE_FINGER_OVERFLOW (1 << 7)
 #define THUMB_IGNORE_SPEED_THRESHOLD 20 /* mm/s */
 
+enum notify {
+	DONT_NOTIFY,
+	DO_NOTIFY,
+};
+
 static inline struct tp_history_point*
 tp_motion_history_offset(struct tp_touch *t, int offset)
 {
@@ -473,8 +478,7 @@ rotated(struct tp_dispatch *tp, unsigned int code, int value)
 {
 	const struct input_absinfo *absinfo;
 
-	if (!tp->device->left_handed.enabled ||
-	    !tp->left_handed.rotate)
+	if (!tp->left_handed.rotate)
 		return value;
 
 	switch (code) {
@@ -1936,6 +1940,24 @@ tp_post_events(struct tp_dispatch *tp, uint64_t time)
 }
 
 static void
+tp_apply_rotation(struct evdev_device *device)
+{
+	struct tp_dispatch *tp = (struct tp_dispatch *)device->dispatch;
+
+	if (tp->left_handed.want_rotate == tp->left_handed.rotate)
+		return;
+
+	if (tp->nfingers_down)
+		return;
+
+	tp->left_handed.rotate = tp->left_handed.want_rotate;
+
+	evdev_log_debug(device,
+			"touchpad-rotation: rotation is %s\n",
+			tp->left_handed.rotate ? "on" : "off");
+}
+
+static void
 tp_handle_state(struct tp_dispatch *tp,
 		uint64_t time)
 {
@@ -1945,6 +1967,7 @@ tp_handle_state(struct tp_dispatch *tp,
 	tp_post_process_state(tp, time);
 
 	tp_clickpad_middlebutton_apply_config(tp->device);
+	tp_apply_rotation(tp->device);
 }
 
 static inline void
@@ -2554,6 +2577,63 @@ tp_pair_tablet_mode_switch(struct evdev_device *touchpad,
 }
 
 static void
+tp_change_rotation(struct evdev_device *device, enum notify notify)
+{
+	struct tp_dispatch *tp = (struct tp_dispatch *)device->dispatch;
+	struct evdev_device *tablet_device = tp->left_handed.tablet_device;
+	bool tablet_is_left, touchpad_is_left;
+
+	if (!tp->left_handed.must_rotate)
+		return;
+
+	touchpad_is_left = device->left_handed.enabled;
+	tablet_is_left = tp->left_handed.tablet_left_handed_state;
+
+	tp->left_handed.want_rotate = touchpad_is_left || tablet_is_left;
+
+	tp_apply_rotation(device);
+
+	if (notify == DO_NOTIFY && tablet_device) {
+		struct evdev_dispatch *dispatch = tablet_device->dispatch;
+
+		if (dispatch->interface->left_handed_toggle)
+			dispatch->interface->left_handed_toggle(dispatch,
+								tablet_device,
+								tp->left_handed.want_rotate);
+	}
+}
+
+static void
+tp_pair_tablet(struct evdev_device *touchpad,
+	       struct evdev_device *tablet)
+{
+	struct tp_dispatch *tp = (struct tp_dispatch*)touchpad->dispatch;
+
+	if (!tp->left_handed.must_rotate)
+		return;
+
+	if ((tablet->seat_caps & EVDEV_DEVICE_TABLET) == 0)
+		return;
+
+	if (libinput_device_get_device_group(&touchpad->base) !=
+	    libinput_device_get_device_group(&tablet->base))
+		return;
+
+	tp->left_handed.tablet_device = tablet;
+
+	evdev_log_debug(touchpad,
+			"touchpad-rotation: %s will rotate %s\n",
+			touchpad->devname,
+			tablet->devname);
+
+	if (libinput_device_config_left_handed_get(&tablet->base)) {
+		tp->left_handed.want_rotate = true;
+		tp->left_handed.tablet_left_handed_state = true;
+		tp_change_rotation(touchpad, DONT_NOTIFY);
+	}
+}
+
+static void
 tp_interface_device_added(struct evdev_device *device,
 			  struct evdev_device *added_device)
 {
@@ -2563,6 +2643,7 @@ tp_interface_device_added(struct evdev_device *device,
 	tp_dwt_pair_keyboard(device, added_device);
 	tp_pair_lid_switch(device, added_device);
 	tp_pair_tablet_mode_switch(device, added_device);
+	tp_pair_tablet(device, added_device);
 
 	if (tp->sendevents.current_mode !=
 	    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE)
@@ -2627,6 +2708,17 @@ tp_interface_device_removed(struct evdev_device *device,
 		}
 		if (!found)
 			tp_resume(tp, device, SUSPEND_EXTERNAL_MOUSE);
+	}
+
+	if (removed_device == tp->left_handed.tablet_device) {
+		tp->left_handed.tablet_device = NULL;
+		tp->left_handed.tablet_left_handed_state = false;
+
+		/* Slight awkwardness: removing the tablet causes the
+		 * touchpad to rotate back to normal if only the tablet was
+		 * set to left-handed. Niche case, nothing to worry about
+		 */
+		tp_change_rotation(device, DO_NOTIFY);
 	}
 }
 
@@ -2750,6 +2842,30 @@ tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 	}
 }
 
+/* Called when the tablet toggles to left-handed */
+static void
+touchpad_left_handed_toggled(struct evdev_dispatch *dispatch,
+			     struct evdev_device *device,
+			     bool left_handed_enabled)
+{
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
+
+	if (!tp->left_handed.tablet_device)
+		return;
+
+	evdev_log_debug(device,
+			"touchpad-rotation: tablet is %s\n",
+			left_handed_enabled ? "left-handed" : "right-handed");
+
+	/* Our left-handed config is independent even though rotation is
+	 * locked. So we rotate when either device is left-handed. But it
+	 * can only be actually changed when the device is in a neutral
+	 * state, hence the want_rotate.
+	 */
+	tp->left_handed.tablet_left_handed_state = left_handed_enabled;
+	tp_change_rotation(device, DONT_NOTIFY);
+}
+
 static struct evdev_dispatch_interface tp_interface = {
 	.process = tp_interface_process,
 	.suspend = tp_interface_suspend,
@@ -2763,6 +2879,7 @@ static struct evdev_dispatch_interface tp_interface = {
 	.touch_arbitration_toggle = tp_interface_toggle_touch,
 	.touch_arbitration_update_rect = NULL,
 	.get_switch_state = NULL,
+	.left_handed_toggle = touchpad_left_handed_toggled,
 };
 
 static void
@@ -3726,11 +3843,11 @@ tp_change_to_left_handed(struct evdev_device *device)
 	 * so checking physical buttons is enough */
 
 	device->left_handed.enabled = device->left_handed.want_enabled;
+	tp_change_rotation(device, DO_NOTIFY);
 }
 
 static bool
-tp_init_left_handed_rotation(struct tp_dispatch *tp,
-			     struct evdev_device *device)
+tp_requires_rotation(struct tp_dispatch *tp, struct evdev_device *device)
 {
 	bool rotate = false;
 #if HAVE_LIBWACOM
@@ -3793,12 +3910,13 @@ tp_init_left_handed(struct tp_dispatch *tp,
 {
 	bool want_left_handed = true;
 
+	tp->left_handed.must_rotate = tp_requires_rotation(tp, device);
+
 	if (device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON)
 		want_left_handed = false;
 	if (want_left_handed)
 		evdev_init_left_handed(device, tp_change_to_left_handed);
 
-	tp->left_handed.rotate = tp_init_left_handed_rotation(tp, device);
 }
 
 struct evdev_dispatch *

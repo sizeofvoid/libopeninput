@@ -487,8 +487,12 @@ struct tp_dispatch {
 	} tablet_mode_switch;
 
 	struct {
-		/* true if the axes need rotation when left-handed is on*/
 		bool rotate;
+		bool want_rotate;
+
+		bool must_rotate; /* true if we should rotate when applicable */
+		struct evdev_device *tablet_device;
+		bool tablet_left_handed_state;
 	} left_handed;
 };
 
