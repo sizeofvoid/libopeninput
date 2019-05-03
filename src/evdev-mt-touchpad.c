@@ -3734,12 +3734,15 @@ tp_init_left_handed_rotation(struct tp_dispatch *tp,
 {
 	bool rotate = false;
 #if HAVE_LIBWACOM
-	WacomDeviceDatabase *db;
+	WacomDeviceDatabase *db = NULL;
 	WacomDevice **devices = NULL,
 		    **d;
 	WacomDevice *dev;
 	uint32_t vid = evdev_device_get_id_vendor(device),
 		 pid = evdev_device_get_id_product(device);
+
+	if ((device->tags & EVDEV_TAG_TABLET_TOUCHPAD) == 0)
+		goto out;
 
 	db = libwacom_database_new();
 	if (!db) {
