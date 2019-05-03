@@ -1969,8 +1969,14 @@ tablet_device_added(struct evdev_device *device,
 	/* Touch screens or external touchpads only */
 	if (evdev_device_has_capability(added_device, LIBINPUT_DEVICE_CAP_TOUCH) ||
 	    (evdev_device_has_capability(added_device, LIBINPUT_DEVICE_CAP_POINTER) &&
-	     (added_device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD)))
-	    tablet->touch_device = added_device;
+	     (added_device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD))) {
+		evdev_log_debug(device,
+				"touch-arbitration: activated for %s<->%s\n",
+				device->devname,
+				added_device->devname);
+		tablet->touch_device = added_device;
+	}
+
 }
 
 static void
