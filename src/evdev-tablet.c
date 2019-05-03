@@ -2129,8 +2129,8 @@ static void
 tablet_init_left_handed(struct evdev_device *device)
 {
 	if (evdev_tablet_has_left_handed(device))
-		    evdev_init_left_handed(device,
-					   tablet_change_to_left_handed);
+		evdev_init_left_handed(device,
+				       tablet_change_to_left_handed);
 }
 
 static bool
