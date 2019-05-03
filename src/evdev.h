@@ -325,6 +325,10 @@ struct evdev_dispatch_interface {
 	enum libinput_switch_state
 		(*get_switch_state)(struct evdev_dispatch *dispatch,
 				    enum libinput_switch which);
+
+	void (*left_handed_toggle)(struct evdev_dispatch *dispatch,
+				   struct evdev_device *device,
+				   bool left_handed_enabled);
 };
 
 enum evdev_dispatch_type {
