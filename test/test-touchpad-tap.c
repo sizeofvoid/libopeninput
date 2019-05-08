@@ -936,8 +936,8 @@ START_TEST(touchpad_2fg_tap_n_drag_3fg_btntool)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_abs_maximum(dev->evdev,
-				     ABS_MT_SLOT) > 2)
+	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) > 2 ||
+	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
 	litest_enable_tap(dev->libinput_device);
@@ -1676,7 +1676,8 @@ START_TEST(touchpad_3fg_tap_pressure_btntool)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) >= 2)
+	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) >= 2 ||
+	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
 	/* libinput doesn't export when it uses pressure detection, so we
@@ -1736,8 +1737,9 @@ START_TEST(touchpad_3fg_tap_hover_btntool)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) >= 2)
-	    return;
+	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) >= 2 ||
+	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
+		return;
 
 	/* libinput doesn't export when it uses pressure detection, so we
 	 * need to reconstruct this here. Specifically, semi-mt devices are
@@ -1789,8 +1791,8 @@ START_TEST(touchpad_3fg_tap_btntool)
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
 	unsigned int button = 0;
 
-	if (libevdev_get_abs_maximum(dev->evdev,
-				     ABS_MT_SLOT) > 2)
+	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) > 2 ||
+	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
 	litest_enable_tap(dev->libinput_device);
@@ -1839,8 +1841,8 @@ START_TEST(touchpad_3fg_tap_btntool_inverted)
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
 	unsigned int button = 0;
 
-	if (libevdev_get_abs_maximum(dev->evdev,
-				     ABS_MT_SLOT) > 2)
+	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) > 2 ||
+	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
 	litest_enable_tap(dev->libinput_device);
@@ -1889,8 +1891,8 @@ START_TEST(touchpad_3fg_tap_btntool_pointerjump)
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
 	unsigned int button = 0;
 
-	if (libevdev_get_abs_maximum(dev->evdev,
-				     ABS_MT_SLOT) > 2)
+	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) > 2 ||
+	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
 	litest_enable_tap(dev->libinput_device);

@@ -173,6 +173,7 @@ START_TEST(gestures_swipe_3fg_btntool)
 	};
 
 	if (libevdev_get_num_slots(dev->evdev) > 2 ||
+	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP) ||
 	    !libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
 		return;
