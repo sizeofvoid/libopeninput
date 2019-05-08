@@ -71,8 +71,10 @@ static struct input_id input_id = {
 };
 
 static int events[] = {
+	EV_KEY, BTN_TOOL_FINGER,
 	EV_KEY, BTN_TOUCH,
-	INPUT_PROP_MAX, INPUT_PROP_DIRECT,
+	EV_KEY, BTN_TOOL_DOUBLETAP,
+	INPUT_PROP_MAX, INPUT_PROP_POINTER,
 	-1, -1,
 };
 
@@ -87,7 +89,7 @@ static const char udev_rule[] =
 
 TEST_DEVICE("wacom-bamboo-2fg-finger",
 	.type = LITEST_WACOM_BAMBOO_2FG_FINGER,
-	.features = LITEST_TOUCH,
+	.features = LITEST_TOUCHPAD,
 	.interface = &interface,
 
 	.name = "Wacom Bamboo 2F 4x5 Finger",
