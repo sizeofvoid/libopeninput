@@ -175,6 +175,12 @@ class TestToolWithOptions(object):
             self.run_command_success(['--{}'.format(option), str(maximum)])
             self.run_command_success(['--{}={}'.format(option, maximum)])
 
+    def test_apply_to(self):
+        self.run_command_missing_arg(['--apply-to'])
+        self.run_command_success(['--apply-to', '*foo*'])
+        self.run_command_success(['--apply-to', 'foobar'])
+        self.run_command_success(['--apply-to', 'any'])
+
 
 class TestDebugEvents(TestToolWithOptions, TestLibinputTool):
     subtool = 'debug-events'

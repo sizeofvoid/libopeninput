@@ -219,6 +219,15 @@ tools_parse_option(int option,
 			 "%s",
 			 optarg);
 		break;
+	case OPT_APPLY_TO:
+		if (!optarg)
+			return 1;
+
+		snprintf(options->match,
+			 sizeof(options->match),
+			 "%s",
+			 optarg);
+		break;
 	}
 
 	return 0;
@@ -349,6 +358,19 @@ void
 tools_device_apply_config(struct libinput_device *device,
 			  struct tools_options *options)
 {
+	const char *name = libinput_device_get_name(device);
+
+	if (libinput_device_config_send_events_get_modes(device) &
+	      LIBINPUT_CONFIG_SEND_EVENTS_DISABLED &&
+	    fnmatch(options->disable_pattern, name, 0) != FNM_NOMATCH) {
+		libinput_device_config_send_events_set_mode(device,
+					    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	}
+
+	if (strlen(options->match) > 0 &&
+	    fnmatch(options->match, name, 0) == FNM_NOMATCH)
+		return;
+
 	if (options->tapping != -1)
 		libinput_device_config_tap_set_enabled(device, options->tapping);
 	if (options->tap_map != (enum libinput_config_tap_button_map)-1)
@@ -388,15 +410,6 @@ tools_device_apply_config(struct libinput_device *device,
 		if (options->profile != LIBINPUT_CONFIG_ACCEL_PROFILE_NONE)
 			libinput_device_config_accel_set_profile(device,
 								 options->profile);
-	}
-
-	if (libinput_device_config_send_events_get_modes(device) &
-	      LIBINPUT_CONFIG_SEND_EVENTS_DISABLED &&
-	    fnmatch(options->disable_pattern,
-		    libinput_device_get_name(device),
-		   0) !=  FNM_NOMATCH) {
-		libinput_device_config_send_events_set_mode(device,
-					    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	}
 }
 

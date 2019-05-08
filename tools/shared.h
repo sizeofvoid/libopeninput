@@ -54,6 +54,7 @@ enum configuration_options {
 	OPT_SPEED,
 	OPT_PROFILE,
 	OPT_DISABLE_SENDEVENTS,
+	OPT_APPLY_TO,
 };
 
 #define CONFIGURATION_OPTIONS \
@@ -77,7 +78,8 @@ enum configuration_options {
 	{ "set-scroll-button",         required_argument, 0, OPT_SCROLL_BUTTON }, \
 	{ "set-profile",               required_argument, 0, OPT_PROFILE }, \
 	{ "set-tap-map",               required_argument, 0, OPT_TAP_MAP }, \
-	{ "set-speed",                 required_argument, 0, OPT_SPEED }
+	{ "set-speed",                 required_argument, 0, OPT_SPEED },\
+	{ "apply-to",                  required_argument, 0, OPT_APPLY_TO }
 
 enum tools_backend {
 	BACKEND_NONE,
@@ -86,6 +88,8 @@ enum tools_backend {
 };
 
 struct tools_options {
+	char match[256];
+
 	int tapping;
 	int drag;
 	int drag_lock;

@@ -49,8 +49,14 @@ The default behavior is equivalent to \-\-udev "seat0".
 Use verbose output
 .SS libinput configuration options
 .TP 8
+.B \-\-apply-to="pattern"
+Configuration options are only applied where the device name matches the
+pattern. This pattern has no effect on the \fB\-\-disable-sendevents\fR
+option.
+.TP 8
 .B \-\-disable-sendevents="pattern"
 Set the send-events option to disabled for the devices matching patterns.
+This option is not affected by the \fB\-\-apply-to="pattern"\fR option.
 .TP 8
 .B \-\-enable\-tap|\-\-disable\-tap
 Enable or disable tap-to-click
