@@ -850,11 +850,22 @@ litest_run_suite(struct list *tests, int which, int max, int error_fd)
 
 		trs = srunner_failures(sr);
 		for (int i = 0; i < failed; i++) {
+			char tname[256];
+			char *c = tname;
+
+			/* tr_tcname is in the form "suite:testcase", let's
+			 * convert this to "suite(testcase)" to make
+			 * double-click selection in the terminal a bit
+			 * easier. */
+			snprintf(tname, sizeof(tname), "%s)", tr_tcname(trs[i]));
+			if ((c = index(c, ':')))
+				*c = '(';
+
 			dprintf(error_fd,
-				":: Failure: %s:%d:%s\n",
+				":: Failure: %s:%d: %s\n",
 				tr_lfile(trs[i]),
 				tr_lno(trs[i]),
-				tr_tcname(trs[i]));
+				tname);
 		}
 		free(trs);
 	}
