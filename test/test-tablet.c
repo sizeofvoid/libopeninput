@@ -4943,6 +4943,479 @@ START_TEST(touch_arbitration_late_touch_lift)
 }
 END_TEST
 
+static void
+verify_left_handed_tablet_motion(struct litest_device *tablet,
+				 struct libinput *li,
+				 int x, int y,
+				 bool left_handed)
+{
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *t;
+
+	/* proximity in/out must be handled by caller */
+
+	for (int i = 5; i < 25; i += 5) {
+		litest_tablet_motion(tablet, x + i, y - i, NULL);
+		libinput_dispatch(li);
+	}
+
+	event = libinput_get_event(li);
+	t = litest_is_tablet_event(event,
+				   LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	x = libinput_event_tablet_tool_get_x(t);
+	y = libinput_event_tablet_tool_get_y(t);
+	libinput_event_destroy(event);
+
+	event = libinput_get_event(li);
+	litest_assert_ptr_notnull(event);
+
+	while (event) {
+		double last_x = x, last_y = y;
+
+		t = litest_is_tablet_event(event,
+					   LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		x = libinput_event_tablet_tool_get_x(t);
+		y = libinput_event_tablet_tool_get_y(t);
+
+		if (left_handed) {
+			litest_assert_double_lt(x, last_x);
+			litest_assert_double_gt(y, last_y);
+		} else {
+			litest_assert_double_gt(x, last_x);
+			litest_assert_double_lt(y, last_y);
+		}
+
+		libinput_event_destroy(event);
+		event = libinput_get_event(li);
+	} while (event);
+}
+
+static void
+verify_left_handed_tablet_sequence(struct litest_device *tablet,
+				   struct libinput *li,
+				   bool left_handed)
+{
+	double x, y;
+
+	/* verifies a whole sequence, including prox in/out and timeouts */
+	x = 60;
+	y = 60;
+	litest_tablet_proximity_in(tablet, x, y, NULL);
+	libinput_dispatch(li);
+	litest_drain_events(li);
+	verify_left_handed_tablet_motion(tablet, li, x, y, left_handed);
+	litest_tablet_proximity_out(tablet);
+	libinput_dispatch(li);
+	litest_timeout_tablet_proxout();
+	litest_drain_events(li);
+}
+
+static void
+verify_left_handed_touch_motion(struct litest_device *finger,
+				struct libinput *li,
+				double x, double y,
+				bool left_handed)
+{
+	struct libinput_event *event;
+	struct libinput_event_pointer *p;
+
+	/* touch down/up must be handled by caller */
+
+	litest_touch_move_to(finger, 0, x + 1, y - 1, x + 20, y - 20, 10);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	p = litest_is_motion_event(event);
+	x = libinput_event_pointer_get_dx(p);
+	y = libinput_event_pointer_get_dy(p);
+	libinput_event_destroy(event);
+
+	event = libinput_get_event(li);
+	ck_assert_notnull(event);
+
+	while (event) {
+		p = litest_is_motion_event(event);
+		x = libinput_event_pointer_get_dx(p);
+		y = libinput_event_pointer_get_dy(p);
+
+		if (left_handed) {
+			litest_assert(x < 0);
+			litest_assert(y > 0);
+		} else {
+			litest_assert(x > 0);
+			litest_assert(y < 0);
+		}
+
+		libinput_event_destroy(event);
+		event = libinput_get_event(li);
+	} while (event);
+}
+
+static void
+verify_left_handed_touch_sequence(struct litest_device *finger,
+				  struct libinput *li,
+				  bool left_handed)
+{
+	double x, y;
+
+	/* verifies a whole sequence, including prox in/out and timeouts */
+
+	x = 10;
+	y = 30;
+	litest_touch_down(finger, 0, x, y);
+	litest_drain_events(li);
+	verify_left_handed_touch_motion(finger, li, x, y, left_handed);
+	litest_touch_up(finger, 0);
+	libinput_dispatch(li);
+}
+
+START_TEST(tablet_rotation_left_handed)
+{
+	struct litest_device *tablet = litest_current_device();
+	enum litest_device_type other;
+	struct litest_device *finger;
+	struct libinput *li = tablet->libinput;
+	unsigned int transition = _i; /* ranged test */
+	bool tablet_from, touch_from, tablet_to, touch_to;
+	bool enabled_from, enabled_to;
+
+	other = paired_device(tablet);
+	if (other == LITEST_NO_DEVICE)
+		return;
+
+	finger = litest_add_device(li, other);
+	litest_drain_events(li);
+
+	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
+		goto out;
+
+	tablet_from = !!(transition & bit(0));
+	touch_from  = !!(transition & bit(1));
+	tablet_to   = !!(transition & bit(2));
+	touch_to    = !!(transition & bit(3));
+
+	enabled_from = tablet_from || touch_from;
+	enabled_to   = tablet_to   || touch_to;
+
+	libinput_device_config_left_handed_set(tablet->libinput_device,
+					       tablet_from);
+	libinput_device_config_left_handed_set(finger->libinput_device,
+					       touch_from);
+	verify_left_handed_tablet_sequence(tablet, li, enabled_from);
+	verify_left_handed_touch_sequence(finger, li, enabled_from);
+
+	libinput_device_config_left_handed_set(tablet->libinput_device,
+					       tablet_to);
+	libinput_device_config_left_handed_set(finger->libinput_device,
+					       touch_to);
+	verify_left_handed_tablet_sequence(tablet, li, enabled_to);
+	verify_left_handed_touch_sequence(finger, li, enabled_to);
+
+out:
+	litest_delete_device(finger);
+}
+END_TEST
+
+START_TEST(tablet_rotation_left_handed_configuration)
+{
+	struct litest_device *tablet = litest_current_device();
+	enum litest_device_type other;
+	struct litest_device *finger;
+	struct libinput *li = tablet->libinput;
+	unsigned int transition = _i; /* ranged test */
+	bool tablet_from, touch_from, tablet_to, touch_to;
+	bool tablet_enabled, touch_enabled;
+	struct libinput_device *tablet_dev, *touch_dev;
+
+	other = paired_device(tablet);
+	if (other == LITEST_NO_DEVICE)
+		return;
+
+	finger = litest_add_device(li, other);
+	litest_drain_events(li);
+
+	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
+		goto out;
+
+	tablet_from = !!(transition & bit(0));
+	touch_from  = !!(transition & bit(1));
+	tablet_to   = !!(transition & bit(2));
+	touch_to    = !!(transition & bit(3));
+
+	tablet_dev = tablet->libinput_device;
+	touch_dev = finger->libinput_device;
+
+	/* Make sure that toggling one device doesn't toggle the other one */
+
+	libinput_device_config_left_handed_set(tablet_dev, tablet_from);
+	libinput_device_config_left_handed_set(touch_dev, touch_from);
+	libinput_dispatch(li);
+	tablet_enabled = libinput_device_config_left_handed_get(tablet_dev);
+	touch_enabled = libinput_device_config_left_handed_get(touch_dev);
+	ck_assert_int_eq(tablet_enabled, tablet_from);
+	ck_assert_int_eq(touch_enabled, touch_from);
+
+	libinput_device_config_left_handed_set(tablet_dev, tablet_to);
+	libinput_device_config_left_handed_set(touch_dev, touch_to);
+	libinput_dispatch(li);
+	tablet_enabled = libinput_device_config_left_handed_get(tablet_dev);
+	touch_enabled = libinput_device_config_left_handed_get(touch_dev);
+	ck_assert_int_eq(tablet_enabled, tablet_to);
+	ck_assert_int_eq(touch_enabled, touch_to);
+
+out:
+	litest_delete_device(finger);
+}
+END_TEST
+
+START_TEST(tablet_rotation_left_handed_while_in_prox)
+{
+	struct litest_device *tablet = litest_current_device();
+	enum litest_device_type other;
+	struct litest_device *finger;
+	struct libinput *li = tablet->libinput;
+	unsigned int transition = _i; /* ranged test */
+	bool tablet_from, touch_from, tablet_to, touch_to;
+	bool enabled_from, enabled_to;
+	double x, y;
+
+	other = paired_device(tablet);
+	if (other == LITEST_NO_DEVICE)
+		return;
+
+	finger = litest_add_device(li, other);
+	litest_drain_events(li);
+
+	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
+		goto out;
+
+	tablet_from = !!(transition & bit(0));
+	touch_from  = !!(transition & bit(1));
+	tablet_to   = !!(transition & bit(2));
+	touch_to    = !!(transition & bit(3));
+
+	enabled_from = tablet_from || touch_from;
+	enabled_to   = tablet_to   || touch_to;
+
+	libinput_device_config_left_handed_set(finger->libinput_device,
+					       touch_from);
+	libinput_device_config_left_handed_set(tablet->libinput_device,
+					       tablet_from);
+
+
+	/* Tablet in-prox when setting to left-handed */
+	x = 60;
+	y = 60;
+	litest_tablet_proximity_in(tablet, x, y, NULL);
+	libinput_dispatch(li);
+	litest_drain_events(li);
+
+	libinput_device_config_left_handed_set(tablet->libinput_device,
+					       tablet_to);
+	libinput_device_config_left_handed_set(finger->libinput_device,
+					       touch_to);
+
+	/* not yet neutral, so still whatever the original was */
+	verify_left_handed_tablet_motion(tablet, li, x, y, enabled_from);
+	litest_drain_events(li);
+
+	/* test pointer, should be left-handed already */
+#if 0
+	/* Touch arbitration discards events, so we can't check for the
+	   right behaviour here. */
+	verify_left_handed_touch_sequence(finger, li, enabled_to);
+#else
+	x = 10;
+	y = 30;
+	litest_touch_down(finger, 0, x, y);
+	litest_touch_move_to(finger, 0, x, y, x + 10, y - 10, 10);
+	litest_touch_up(finger, 0);
+	libinput_dispatch(li);
+	/* this will fail once we have location-based touch arbitration on
+	 * touchpads */
+	litest_assert_empty_queue(li);
+#endif
+	litest_tablet_proximity_out(tablet);
+	libinput_dispatch(li);
+	litest_timeout_tablet_proxout();
+	litest_drain_events(li);
+
+	/* now both should've switched */
+	verify_left_handed_tablet_sequence(tablet, li, enabled_to);
+	verify_left_handed_touch_sequence(finger, li, enabled_to);
+
+out:
+	litest_delete_device(finger);
+}
+END_TEST
+
+START_TEST(tablet_rotation_left_handed_while_touch_down)
+{
+	struct litest_device *tablet = litest_current_device();
+	enum litest_device_type other;
+	struct litest_device *finger;
+	struct libinput *li = tablet->libinput;
+	unsigned int transition = _i; /* ranged test */
+	bool tablet_from, touch_from, tablet_to, touch_to;
+	bool enabled_from, enabled_to;
+
+	double x, y;
+
+	other = paired_device(tablet);
+	if (other == LITEST_NO_DEVICE)
+		return;
+
+	finger = litest_add_device(li, other);
+	litest_drain_events(li);
+
+	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
+		goto out;
+
+	tablet_from = !!(transition & bit(0));
+	touch_from  = !!(transition & bit(1));
+	tablet_to   = !!(transition & bit(2));
+	touch_to    = !!(transition & bit(3));
+
+	enabled_from = tablet_from || touch_from;
+	enabled_to   = tablet_to   || touch_to;
+
+	libinput_device_config_left_handed_set(finger->libinput_device,
+					       touch_from);
+	libinput_device_config_left_handed_set(tablet->libinput_device,
+					       tablet_from);
+
+	/* Touch down when setting to left-handed */
+	x = 10;
+	y = 30;
+	litest_touch_down(finger, 0, x, y);
+	libinput_dispatch(li);
+	litest_drain_events(li);
+
+	libinput_device_config_left_handed_set(tablet->libinput_device,
+					       tablet_to);
+	libinput_device_config_left_handed_set(finger->libinput_device,
+					       touch_to);
+
+	/* not yet neutral, so still whatever the original was */
+	verify_left_handed_touch_motion(finger, li, x, y, enabled_from);
+	litest_assert_empty_queue(li);
+
+	/* test tablet, should be left-handed already */
+	verify_left_handed_tablet_sequence(tablet, li, enabled_to);
+
+	litest_touch_up(finger, 0);
+	litest_drain_events(li);
+
+	/* now both should've switched */
+	verify_left_handed_tablet_sequence(tablet, li, enabled_to);
+	verify_left_handed_touch_sequence(finger, li, enabled_to);
+
+out:
+	litest_delete_device(finger);
+}
+END_TEST
+
+START_TEST(tablet_rotation_left_handed_add_touchpad)
+{
+	struct litest_device *tablet = litest_current_device();
+	enum litest_device_type other;
+	struct litest_device *finger;
+	struct libinput *li = tablet->libinput;
+	unsigned int transition = _i; /* ranged test */
+	bool tablet_from, touch_from, tablet_to, touch_to;
+	bool enabled_from, enabled_to;
+
+	other = paired_device(tablet);
+	if (other == LITEST_NO_DEVICE)
+		return;
+
+	tablet_from = !!(transition & bit(0));
+	touch_from  = !!(transition & bit(1));
+	tablet_to   = !!(transition & bit(2));
+	touch_to    = !!(transition & bit(3));
+
+	enabled_from = tablet_from || touch_from;
+	enabled_to   = tablet_to   || touch_to;
+
+	/* change left-handed before touchpad appears */
+
+	libinput_device_config_left_handed_set(tablet->libinput_device,
+					       tablet_from);
+
+	finger = litest_add_device(li, other);
+	litest_drain_events(li);
+
+	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
+		goto out;
+
+	libinput_device_config_left_handed_set(finger->libinput_device,
+					       touch_from);
+
+	verify_left_handed_touch_sequence(finger, li, enabled_from);
+	verify_left_handed_tablet_sequence(tablet, li, enabled_from);
+
+	libinput_device_config_left_handed_set(tablet->libinput_device,
+					       tablet_to);
+	libinput_device_config_left_handed_set(finger->libinput_device,
+					       touch_to);
+
+	verify_left_handed_touch_sequence(finger, li, enabled_to);
+	verify_left_handed_tablet_sequence(tablet, li, enabled_to);
+
+out:
+	litest_delete_device(finger);
+}
+END_TEST
+
+START_TEST(tablet_rotation_left_handed_add_tablet)
+{
+	struct litest_device *finger = litest_current_device();
+	enum litest_device_type other;
+	struct litest_device *tablet;
+	struct libinput *li = finger->libinput;
+	unsigned int transition = _i; /* ranged test */
+	bool tablet_from, touch_from, tablet_to, touch_to;
+	bool enabled_from, enabled_to;
+
+	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
+		return;
+
+	other = paired_device(finger);
+	if (other == LITEST_NO_DEVICE)
+		return;
+
+	tablet_from = !!(transition & bit(0));
+	touch_from  = !!(transition & bit(1));
+	tablet_to   = !!(transition & bit(2));
+	touch_to    = !!(transition & bit(3));
+
+	enabled_from = tablet_from || touch_from;
+	enabled_to   = tablet_to   || touch_to;
+
+	/* change left-handed before tablet appears */
+	libinput_device_config_left_handed_set(finger->libinput_device,
+					       touch_from);
+
+	tablet = litest_add_device(li, other);
+	litest_drain_events(li);
+
+	libinput_device_config_left_handed_set(tablet->libinput_device,
+					       tablet_from);
+
+	verify_left_handed_touch_sequence(finger, li, enabled_from);
+	verify_left_handed_tablet_sequence(tablet, li, enabled_from);
+
+	libinput_device_config_left_handed_set(tablet->libinput_device,
+					       tablet_to);
+	libinput_device_config_left_handed_set(finger->libinput_device,
+					       touch_to);
+
+	verify_left_handed_touch_sequence(finger, li, enabled_to);
+	verify_left_handed_tablet_sequence(tablet, li, enabled_to);
+
+	litest_delete_device(tablet);
+}
+END_TEST
 START_TEST(huion_static_btn_tool_pen)
 {
 	struct litest_device *dev = litest_current_device();
@@ -5126,6 +5599,7 @@ TEST_COLLECTION(tablet)
 {
 	struct range with_timeout = { 0, 2 };
 	struct range xyaxes = { ABS_X, ABS_Y + 1 };
+	struct range lh_transitions = {0, 16}; /* 2 bits for in, 2 bits for out */
 
 	litest_add("tablet:tool", tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool", tool_user_data, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
@@ -5224,6 +5698,13 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:touch-arbitration", touch_arbitration_late_touch_lift, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:touch-arbitration", touch_arbitration_outside_rect, LITEST_TABLET | LITEST_DIRECT, LITEST_ANY);
 	litest_add("tablet:touch-arbitration", touch_arbitration_remove_after, LITEST_TABLET | LITEST_DIRECT, LITEST_ANY);
+
+	litest_add_ranged("tablet:touch-rotation", tablet_rotation_left_handed, LITEST_TABLET, LITEST_ANY, &lh_transitions);
+	litest_add_ranged("tablet:touch-rotation", tablet_rotation_left_handed_configuration, LITEST_TABLET, LITEST_ANY, &lh_transitions);
+	litest_add_ranged("tablet:touch-rotation", tablet_rotation_left_handed_while_in_prox, LITEST_TABLET, LITEST_ANY, &lh_transitions);
+	litest_add_ranged("tablet:touch-rotation", tablet_rotation_left_handed_while_touch_down, LITEST_TABLET, LITEST_ANY, &lh_transitions);
+	litest_add_ranged("tablet:touch-rotation", tablet_rotation_left_handed_add_touchpad, LITEST_TABLET, LITEST_ANY, &lh_transitions);
+	litest_add_ranged("tablet:touch-rotation", tablet_rotation_left_handed_add_tablet, LITEST_TOUCHPAD, LITEST_ANY, &lh_transitions);
 
 	litest_add_for_device("tablet:quirks", huion_static_btn_tool_pen, LITEST_HUION_TABLET);
 	litest_add_for_device("tablet:quirks", huion_static_btn_tool_pen_no_timeout_during_usage, LITEST_HUION_TABLET);
