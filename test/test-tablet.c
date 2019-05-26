@@ -4514,10 +4514,6 @@ START_TEST(touch_arbitration_outside_rect)
 	x = 20;
 	y = 45;
 
-	/* disable prox-out timer quirk */
-	litest_tablet_proximity_in(dev, x, y - 1, axes);
-	litest_tablet_proximity_out(dev);
-
 	litest_tablet_proximity_in(dev, x, y - 1, axes);
 	litest_drain_events(li);
 
@@ -4531,16 +4527,25 @@ START_TEST(touch_arbitration_outside_rect)
 	litest_touch_sequence(finger, 0, x - 10, y + 2, x - 10, y + 20, 3);
 	libinput_dispatch(li);
 	litest_assert_touch_sequence(li);
+	/* tablet event so we don't time out for proximity */
+	litest_tablet_motion(dev, x, y - 0.1, axes);
+	litest_drain_events(li);
 
 	/* above rect */
 	litest_touch_sequence(finger, 0, x + 2, y - 35, x + 20, y - 10, 3);
 	libinput_dispatch(li);
 	litest_assert_touch_sequence(li);
+	/* tablet event so we don't time out for proximity */
+	litest_tablet_motion(dev, x, y + 0.1, axes);
+	litest_drain_events(li);
 
 	/* right of rect */
 	litest_touch_sequence(finger, 0, x + 80, y + 2, x + 20, y + 10, 3);
 	libinput_dispatch(li);
 	litest_assert_touch_sequence(li);
+	/* tablet event so we don't time out for proximity */
+	litest_tablet_motion(dev, x, y - 0.1, axes);
+	litest_drain_events(li);
 
 #if 0
 	/* This *should* work but the Cintiq test devices is <200mm
@@ -4622,11 +4627,6 @@ START_TEST(touch_arbitration_stop_touch)
 	finger = litest_add_device(li, other);
 
 	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
-
-	/* disable prox-out timer quirk */
-	litest_tablet_proximity_in(dev, 30, 30, axes);
-	litest_tablet_proximity_out(dev);
-	litest_drain_events(li);
 
 	litest_touch_down(finger, 0, 30, 30);
 	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
