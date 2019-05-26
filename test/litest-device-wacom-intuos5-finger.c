@@ -108,7 +108,9 @@ static const char udev_rule[] =
 "KERNEL!=\"event*\", GOTO=\"rule_end\"\n"
 "\n"
 "ATTRS{name}==\"litest Wacom Intuos5 touch M Finger*\",\\\n"
-"    ENV{LIBINPUT_DEVICE_GROUP}=\"wacom-i5-group\"\n"
+"    ENV{LIBINPUT_DEVICE_GROUP}=\"wacom-i5-group\",\\\n"
+"    ENV{ID_INPUT_TABLET}=\"1\",\\\n"
+"    ENV{ID_INPUT_TOUCHPAD}=\"1\"\n"
 "\n"
 "LABEL=\"rule_end\"";
 

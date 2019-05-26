@@ -83,7 +83,9 @@ static const char udev_rule[] =
 "KERNEL!=\"event*\", GOTO=\"rule_end\"\n"
 "\n"
 "ATTRS{name}==\"litest Wacom Bamboo 2FG 4x5 Finger*\",\\\n"
-"    ENV{LIBINPUT_DEVICE_GROUP}=\"wacom-bamboo-2fg-group\"\n"
+"    ENV{LIBINPUT_DEVICE_GROUP}=\"wacom-bamboo-2fg-group\",\\\n"
+"    ENV{ID_INPUT_TABLET}=\"1\",\\\n"
+"    ENV{ID_INPUT_TOUCHPAD}=\"1\"\n"
 "\n"
 "LABEL=\"rule_end\"";
 
