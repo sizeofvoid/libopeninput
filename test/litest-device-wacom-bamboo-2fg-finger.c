@@ -94,7 +94,7 @@ TEST_DEVICE("wacom-bamboo-2fg-finger",
 	.features = LITEST_TOUCHPAD,
 	.interface = &interface,
 
-	.name = "Wacom Bamboo 2F 4x5 Finger",
+	.name = "Wacom Bamboo 2FG 4x5 Finger",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
