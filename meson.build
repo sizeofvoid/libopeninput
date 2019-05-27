@@ -215,7 +215,7 @@ src_libinput_util = [
 ]
 libinput_util = static_library('libinput-util',
 			       src_libinput_util,
-			       dependencies : [dep_udev, dep_libevdev],
+			       dependencies : [dep_udev, dep_libevdev, dep_libwacom],
 			       include_directories : includes_include)
 dep_libinput_util = declare_dependency(link_with : libinput_util)
 
@@ -233,7 +233,7 @@ src_libfilter = [
 		'src/filter-private.h'
 ]
 libfilter = static_library('filter', src_libfilter,
-			   dependencies : dep_udev,
+			   dependencies : [dep_udev, dep_libwacom],
 			   include_directories : includes_include)
 dep_libfilter = declare_dependency(link_with : libfilter)
 
@@ -290,7 +290,7 @@ src_libquirks = [
 	'src/builddir.h',
 ]
 
-deps_libquirks = [dep_udev, dep_libinput_util]
+deps_libquirks = [dep_udev, dep_libwacom, dep_libinput_util]
 libquirks = static_library('quirks', src_libquirks,
 			   dependencies : deps_libquirks,
 			   include_directories : includes_include)

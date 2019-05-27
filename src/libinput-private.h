@@ -31,6 +31,10 @@
 #include <math.h>
 #include <stdarg.h>
 
+#if HAVE_LIBWACOM
+#include <libwacom/libwacom.h>
+#endif
+
 #include "linux/input.h"
 
 #include "libinput.h"
@@ -155,6 +159,13 @@ struct libinput {
 
 	bool quirks_initialized;
 	struct quirks_context *quirks;
+
+#if HAVE_LIBWACOM
+	struct {
+		WacomDeviceDatabase *db;
+		size_t refcount;
+	} libwacom;
+#endif
 };
 
 typedef void (*libinput_seat_destroy_func) (struct libinput_seat *seat);
@@ -836,5 +847,16 @@ point_in_rect(const struct device_coords *point,
 		point->y >= rect->y &&
 		point->y < rect->y + rect->h);
 }
+
+#if HAVE_LIBWACOM
+WacomDeviceDatabase *
+libinput_libwacom_ref(struct libinput *li);
+void
+libinput_libwacom_unref(struct libinput *li);
+#else
+static inline void *libinput_libwacom_ref(struct libinput *li) { return NULL; }
+static inline void libinput_libwacom_unref(struct libinput *li) {}
+#endif
+
 
 #endif /* LIBINPUT_PRIVATE_H */

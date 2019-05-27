@@ -490,16 +490,14 @@ static int
 pad_init_leds_from_libwacom(struct pad_dispatch *pad,
 			    struct evdev_device *device)
 {
+	struct libinput *li = pad_libinput_context(pad);
 	WacomDeviceDatabase *db = NULL;
 	WacomDevice *wacom = NULL;
 	int rc = 1;
 
-	db = libwacom_database_new();
-	if (!db) {
-		evdev_log_info(device,
-			       "Failed to initialize libwacom context.\n");
+	db = libinput_libwacom_ref(li);
+	if (!db)
 		goto out;
-	}
 
 	wacom = libwacom_new_from_path(db,
 				       udev_device_get_devnode(device->udev_device),
@@ -522,7 +520,7 @@ out:
 	if (wacom)
 		libwacom_destroy(wacom);
 	if (db)
-		libwacom_database_destroy(db);
+		libinput_libwacom_unref(li);
 
 	if (rc != 0)
 		pad_destroy_leds(pad);

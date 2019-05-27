@@ -913,15 +913,13 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 	WacomStylusType type;
 	WacomAxisTypeFlags axes;
 
-	db = libwacom_database_new();
-	if (!db) {
-		evdev_log_info(tablet->device,
-			       "Failed to initialize libwacom context.\n");
-		goto out;
-	}
+	db = tablet_libinput_context(tablet)->libwacom.db;
+	if (!db)
+		return rc;
+
 	s = libwacom_stylus_get_for_id(db, tool->tool_id);
 	if (!s)
-		goto out;
+		return rc;
 
 	type = libwacom_stylus_get_type(s);
 	if (type == WSTYLUS_PUCK) {
@@ -965,9 +963,6 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
 
 	rc = 0;
-out:
-	if (db)
-		libwacom_database_destroy(db);
 #endif
 	return rc;
 }
@@ -1990,6 +1985,7 @@ tablet_destroy(struct evdev_dispatch *dispatch)
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 	struct libinput_tablet_tool *tool, *tmp;
+	struct libinput *li = tablet_libinput_context(tablet);
 
 	libinput_timer_cancel(&tablet->quirks.prox_out_timer);
 	libinput_timer_destroy(&tablet->quirks.prox_out_timer);
@@ -1997,6 +1993,8 @@ tablet_destroy(struct evdev_dispatch *dispatch)
 	list_for_each_safe(tool, tmp, &tablet->tool_list, link) {
 		libinput_tablet_tool_unref(tool);
 	}
+
+	libinput_libwacom_unref(li);
 
 	free(tablet);
 }
@@ -2317,6 +2315,9 @@ struct evdev_dispatch *
 evdev_tablet_create(struct evdev_device *device)
 {
 	struct tablet_dispatch *tablet;
+	struct libinput *li = evdev_libinput_context(device);
+
+	libinput_libwacom_ref(li);
 
 	/* Stop false positives caused by the forced proximity code */
 	if (getenv("LIBINPUT_RUNNING_TEST_SUITE"))

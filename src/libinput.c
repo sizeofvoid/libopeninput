@@ -4164,3 +4164,37 @@ libinput_device_config_rotation_get_default_angle(struct libinput_device *device
 
 	return device->config.rotation->get_default_angle(device);
 }
+
+#if HAVE_LIBWACOM
+WacomDeviceDatabase *
+libinput_libwacom_ref(struct libinput *li)
+{
+	WacomDeviceDatabase *db = NULL;
+	if (!li->libwacom.db) {
+		db = libwacom_database_new();
+		if (!db) {
+			log_error(li,
+				  "Failed to initialize libwacom context\n");
+			return NULL;
+		}
+
+		li->libwacom.db = db;
+		li->libwacom.refcount = 0;
+	}
+
+	li->libwacom.refcount++;
+	db = li->libwacom.db;
+	return db;
+}
+
+void
+libinput_libwacom_unref(struct libinput *li)
+{
+	assert(li->libwacom.refcount >= 1);
+
+	if (--li->libwacom.refcount == 0) {
+		libwacom_database_destroy(li->libwacom.db);
+		li->libwacom.db = NULL;
+	}
+}
+#endif

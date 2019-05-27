@@ -2700,17 +2700,15 @@ evdev_tablet_has_left_handed(struct evdev_device *device)
 {
 	bool has_left_handed = false;
 #if HAVE_LIBWACOM
-	WacomDeviceDatabase *db;
+	struct libinput *li = evdev_libinput_context(device);
+	WacomDeviceDatabase *db = NULL;
 	WacomDevice *d = NULL;
 	WacomError *error;
 	const char *devnode;
 
-	db = libwacom_database_new();
-	if (!db) {
-		evdev_log_info(device,
-			       "failed to initialize libwacom context.\n");
+	db = libinput_libwacom_ref(li);
+	if (!db)
 		goto out;
-	}
 
 	error = libwacom_error_new();
 	devnode = udev_device_get_devnode(device->udev_device);
@@ -2737,7 +2735,8 @@ evdev_tablet_has_left_handed(struct evdev_device *device)
 		libwacom_error_free(&error);
 	if (d)
 		libwacom_destroy(d);
-	libwacom_database_destroy(db);
+	if (db)
+		libinput_libwacom_unref(li);
 
 out:
 #endif

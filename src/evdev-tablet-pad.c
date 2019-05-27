@@ -529,17 +529,15 @@ pad_init_buttons_from_libwacom(struct pad_dispatch *pad,
 {
 	bool rc = false;
 #if HAVE_LIBWACOM_GET_BUTTON_EVDEV_CODE
+	struct libinput *li = pad_libinput_context(pad);
 	WacomDeviceDatabase *db = NULL;
 	WacomDevice *tablet = NULL;
 	int num_buttons;
 	int map = 0;
 
-	db = libwacom_database_new();
-	if (!db) {
-		evdev_log_info(device,
-			       "Failed to initialize libwacom context.\n");
+	db = libinput_libwacom_ref(li);
+	if (!db)
 		goto out;
-	}
 
 	tablet = libwacom_new_from_usbid(db,
 					 evdev_device_get_id_vendor(device),
@@ -566,7 +564,7 @@ out:
 	if (tablet)
 		libwacom_destroy(tablet);
 	if (db)
-		libwacom_database_destroy(db);
+		libinput_libwacom_unref(li);
 #endif
 	return rc;
 }

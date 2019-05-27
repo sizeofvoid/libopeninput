@@ -3851,6 +3851,7 @@ tp_requires_rotation(struct tp_dispatch *tp, struct evdev_device *device)
 {
 	bool rotate = false;
 #if HAVE_LIBWACOM
+	struct libinput *li = tp_libinput_context(tp);
 	WacomDeviceDatabase *db = NULL;
 	WacomDevice **devices = NULL,
 		    **d;
@@ -3861,12 +3862,9 @@ tp_requires_rotation(struct tp_dispatch *tp, struct evdev_device *device)
 	if ((device->tags & EVDEV_TAG_TABLET_TOUCHPAD) == 0)
 		goto out;
 
-	db = libwacom_database_new();
-	if (!db) {
-		evdev_log_info(device,
-			       "Failed to initialize libwacom context.\n");
+	db = libinput_libwacom_ref(li);
+	if (!db)
 		goto out;
-	}
 
 	/* Check if we have a device with the same vid/pid. If not,
 	   we need to loop through all devices and check their paired
@@ -3896,9 +3894,12 @@ tp_requires_rotation(struct tp_dispatch *tp, struct evdev_device *device)
 	}
 
 	free(devices);
+
 out:
+	/* We don't need to keep it around for the touchpad, we're done with
+	 * it until the device dies. */
 	if (db)
-		libwacom_database_destroy(db);
+		libinput_libwacom_unref(li);
 #endif
 
 	return rotate;
