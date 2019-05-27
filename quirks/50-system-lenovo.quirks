@@ -76,12 +76,19 @@ MatchName=*TPPS/2 Elan TrackPoint*
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX1Carbon6th*
 AttrTrackpointMultiplier=0.4
 
-[Lenovo ThinkPad Compact USB Keyboard with TrackPoint]
+[Lenovo ThinkPad Compact USB Keyboard with TrackPoint (keyboard)]
 MatchUdevType=keyboard
 MatchBus=usb
 MatchVendor=0x17EF
 MatchProduct=0x6047
 AttrKeyboardIntegration=external
+
+[Lenovo ThinkPad Compact USB Keyboard with TrackPoint (trackpoint)]
+MatchUdevType=pointingstick
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x6047
+AttrPointingStickIntegration=external
 
 # Lenovo Thinkpad Yoga (not the consumer versions) disables the keyboard
 # mechanically. We must not disable the keyboard because some keys are

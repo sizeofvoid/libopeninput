@@ -1382,8 +1382,8 @@ fallback_tablet_mode_switch_event(uint64_t time,
 }
 
 static void
-fallback_keyboard_pair_tablet_mode(struct evdev_device *keyboard,
-				   struct evdev_device *tablet_mode_switch)
+fallback_pair_tablet_mode(struct evdev_device *keyboard,
+			  struct evdev_device *tablet_mode_switch)
 {
 	struct fallback_dispatch *dispatch =
 		fallback_dispatch(keyboard->dispatch);
@@ -1391,8 +1391,12 @@ fallback_keyboard_pair_tablet_mode(struct evdev_device *keyboard,
 	if ((keyboard->tags & EVDEV_TAG_EXTERNAL_KEYBOARD))
 		return;
 
-	if ((keyboard->tags &
-	     (EVDEV_TAG_TRACKPOINT|EVDEV_TAG_INTERNAL_KEYBOARD)) == 0)
+	if ((keyboard->tags & EVDEV_TAG_TRACKPOINT)) {
+		if (keyboard->tags & EVDEV_TAG_EXTERNAL_MOUSE)
+			return;
+	/* This filters out all internal keyboard-like devices (Video
+	 * Switch) */
+	} else if ((keyboard->tags & EVDEV_TAG_INTERNAL_KEYBOARD) == 0)
 		return;
 
 	if (evdev_device_has_model_quirk(keyboard,
@@ -1429,7 +1433,7 @@ fallback_interface_device_added(struct evdev_device *device,
 				struct evdev_device *added_device)
 {
 	fallback_lid_pair_keyboard(device, added_device);
-	fallback_keyboard_pair_tablet_mode(device, added_device);
+	fallback_pair_tablet_mode(device, added_device);
 }
 
 static void

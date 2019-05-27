@@ -1205,6 +1205,39 @@ START_TEST(quirks_parse_string_attr)
 }
 END_TEST
 
+START_TEST(quirks_parse_integration_attr)
+{
+	struct litest_device *dev = litest_current_device();
+	char *do_not_use; /* freed before we can use it */
+	bool
+
+	rc = test_attr_parse(dev,
+			     QUIRK_ATTR_KEYBOARD_INTEGRATION,
+			     "internal",
+			     (qparsefunc)quirks_get_string,
+			     &do_not_use);
+	ck_assert(rc);
+	rc = test_attr_parse(dev,
+			     QUIRK_ATTR_KEYBOARD_INTEGRATION,
+			     "external",
+			     (qparsefunc)quirks_get_string,
+			     &do_not_use);
+	ck_assert(rc);
+	rc = test_attr_parse(dev,
+			     QUIRK_ATTR_TRACKPOINT_INTEGRATION,
+			     "internal",
+			     (qparsefunc)quirks_get_string,
+			     &do_not_use);
+	ck_assert(rc);
+	rc = test_attr_parse(dev,
+			     QUIRK_ATTR_TRACKPOINT_INTEGRATION,
+			     "external",
+			     (qparsefunc)quirks_get_string,
+			     &do_not_use);
+	ck_assert(rc);
+}
+END_TEST
+
 START_TEST(quirks_model_one)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1433,6 +1466,7 @@ TEST_COLLECTION(quirks)
 	litest_add_for_device("quirks:parsing", quirks_parse_uint_attr, LITEST_MOUSE);
 	litest_add_for_device("quirks:parsing", quirks_parse_double_attr, LITEST_MOUSE);
 	litest_add_for_device("quirks:parsing", quirks_parse_string_attr, LITEST_MOUSE);
+	litest_add_for_device("quirks:parsing", quirks_parse_integration_attr, LITEST_MOUSE);
 
 	litest_add_for_device("quirks:model", quirks_model_one, LITEST_MOUSE);
 	litest_add_for_device("quirks:model", quirks_model_zero, LITEST_MOUSE);

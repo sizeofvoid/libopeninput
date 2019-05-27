@@ -180,3 +180,6 @@ AttrEventCodeDisable=EV_ABS;BTN_STYLUS;EV_KEY:0x123;
     Disables the evdev event type/code tuples on the device. Entries may be
     a named event type, or a named event code, or a named event type with a
     hexadecimal event code, separated by a single colon.
+AttrPointingStickIntegration=internal|external
+    Indicates the integration of the pointing stick. This is a string enum.
+    Only needed for external pointing sticks. These are rare.
