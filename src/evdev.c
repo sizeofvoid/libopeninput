@@ -387,10 +387,34 @@ static void
 evdev_tag_trackpoint(struct evdev_device *device,
 		     struct udev_device *udev_device)
 {
-	if (libevdev_has_property(device->evdev,
-				  INPUT_PROP_POINTING_STICK) ||
-	    parse_udev_flag(device, udev_device, "ID_INPUT_POINTINGSTICK"))
-		device->tags |= EVDEV_TAG_TRACKPOINT;
+	struct quirks_context *quirks;
+	struct quirks *q;
+	char *prop;
+
+	if (!libevdev_has_property(device->evdev,
+				  INPUT_PROP_POINTING_STICK) &&
+	    !parse_udev_flag(device, udev_device, "ID_INPUT_POINTINGSTICK"))
+		return;
+
+	device->tags |= EVDEV_TAG_TRACKPOINT;
+
+	quirks = evdev_libinput_context(device)->quirks;
+	q = quirks_fetch_for_device(quirks, device->udev_device);
+	if (q && quirks_get_string(q, QUIRK_ATTR_TRACKPOINT_INTEGRATION, &prop)) {
+		if (streq(prop, "internal")) {
+			/* noop, this is the default anyway */
+		} else if (streq(prop, "external")) {
+			device->tags |= EVDEV_TAG_EXTERNAL_MOUSE;
+			evdev_log_info(device,
+				       "is an external pointing stick\n");
+		} else {
+			evdev_log_info(device,
+				       "tagged with unknown value %s\n",
+				       prop);
+		}
+	}
+
+	quirks_unref(q);
 }
 
 static inline void
