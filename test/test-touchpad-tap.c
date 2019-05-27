@@ -3561,57 +3561,57 @@ TEST_COLLECTION(touchpad_tap)
 	struct range range_3fg = {0, 3};
 	struct range range_4fg = {0, 4};
 
-	litest_add("tap-1fg:1fg", touchpad_1fg_tap, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("tap-1fg:1fg", touchpad_1fg_doubletap, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add_ranged("tap-1fg:1fg", touchpad_1fg_tap_drag_high_delay, LITEST_TOUCHPAD, LITEST_ANY, &any_tap_range);
-	litest_add_ranged("tap-multitap:1fg", touchpad_1fg_multitap, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
-	litest_add_ranged("tap-multitap:1fg", touchpad_1fg_multitap_timeout, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
-	litest_add_ranged("tap-multitap:1fg", touchpad_1fg_multitap_n_drag_timeout, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
-	litest_add_ranged("tap-multitap:1fg", touchpad_1fg_multitap_n_drag_tap, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
-	litest_add_ranged("tap-multitap:1fg", touchpad_1fg_multitap_n_drag_move, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
-	litest_add_ranged("tap-multitap:1fg", touchpad_1fg_multitap_n_drag_2fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &multitap_range);
-	litest_add_ranged("tap-multitap:1fg", touchpad_1fg_multitap_n_drag_click, LITEST_CLICKPAD, LITEST_ANY, &multitap_range);
-	litest_add("tap-1fg:1fg", touchpad_1fg_tap_n_drag, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("tap-1fg:1fg", touchpad_1fg_tap_n_drag_draglock, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("tap-1fg:1fg", touchpad_1fg_tap_n_drag_draglock_tap, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("tap-1fg:1fg", touchpad_1fg_tap_n_drag_draglock_timeout, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("tap-2fg:2fg", touchpad_2fg_tap_n_drag, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
-	litest_add("tap-2fg:2fg", touchpad_2fg_tap_n_drag_3fg_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_APPLE_CLICKPAD);
-	litest_add("tap-2fg:2fg", touchpad_2fg_tap_n_drag_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
-	litest_add_ranged("tap-2fg:2fg", touchpad_2fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT, &tap_map_range);
-	litest_add_ranged("tap-2fg:2fg", touchpad_2fg_tap_inverted, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &tap_map_range);
-	litest_add("tap-2fg:2fg", touchpad_2fg_tap_move_on_release, LITEST_TOUCHPAD|LITEST_SEMI_MT, LITEST_SINGLE_TOUCH);
-	litest_add("tap-2fg:2fg", touchpad_2fg_tap_n_hold_first, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
-	litest_add("tap-2fg:2fg", touchpad_2fg_tap_n_hold_second, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
-	litest_add("tap-2fg:2fg", touchpad_2fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
-	litest_add("tap-2fg:2fg", touchpad_1fg_tap_click, LITEST_TOUCHPAD|LITEST_BUTTON, LITEST_CLICKPAD);
-	litest_add("tap-2fg:2fg", touchpad_2fg_tap_click, LITEST_TOUCHPAD|LITEST_BUTTON, LITEST_SINGLE_TOUCH|LITEST_CLICKPAD);
+	litest_add("tap:1fg", touchpad_1fg_tap, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("tap:1fg", touchpad_1fg_doubletap, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add_ranged("tap:1fg", touchpad_1fg_tap_drag_high_delay, LITEST_TOUCHPAD, LITEST_ANY, &any_tap_range);
+	litest_add_ranged("tap:1fg", touchpad_1fg_multitap, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
+	litest_add_ranged("tap:1fg", touchpad_1fg_multitap_timeout, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
+	litest_add_ranged("tap:1fg", touchpad_1fg_multitap_n_drag_timeout, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
+	litest_add_ranged("tap:1fg", touchpad_1fg_multitap_n_drag_tap, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
+	litest_add_ranged("tap:1fg", touchpad_1fg_multitap_n_drag_move, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
+	litest_add_ranged("tap:1fg", touchpad_1fg_multitap_n_drag_2fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &multitap_range);
+	litest_add_ranged("tap:1fg", touchpad_1fg_multitap_n_drag_click, LITEST_CLICKPAD, LITEST_ANY, &multitap_range);
+	litest_add("tap:1fg", touchpad_1fg_tap_n_drag, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("tap:1fg", touchpad_1fg_tap_n_drag_draglock, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("tap:1fg", touchpad_1fg_tap_n_drag_draglock_tap, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("tap:1fg", touchpad_1fg_tap_n_drag_draglock_timeout, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("tap:2fg", touchpad_2fg_tap_n_drag, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add("tap:2fg", touchpad_2fg_tap_n_drag_3fg_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_APPLE_CLICKPAD);
+	litest_add("tap:2fg", touchpad_2fg_tap_n_drag_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add_ranged("tap:2fg", touchpad_2fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT, &tap_map_range);
+	litest_add_ranged("tap:2fg", touchpad_2fg_tap_inverted, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &tap_map_range);
+	litest_add("tap:2fg", touchpad_2fg_tap_move_on_release, LITEST_TOUCHPAD|LITEST_SEMI_MT, LITEST_SINGLE_TOUCH);
+	litest_add("tap:2fg", touchpad_2fg_tap_n_hold_first, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add("tap:2fg", touchpad_2fg_tap_n_hold_second, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add("tap:2fg", touchpad_2fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("tap:2fg", touchpad_1fg_tap_click, LITEST_TOUCHPAD|LITEST_BUTTON, LITEST_CLICKPAD);
+	litest_add("tap:2fg", touchpad_2fg_tap_click, LITEST_TOUCHPAD|LITEST_BUTTON, LITEST_SINGLE_TOUCH|LITEST_CLICKPAD);
 
-	litest_add("tap-2fg:2fg", touchpad_2fg_tap_click_apple, LITEST_APPLE_CLICKPAD, LITEST_ANY);
-	litest_add("tap-2fg:2fg", touchpad_no_2fg_tap_after_move, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
-	litest_add("tap-2fg:2fg", touchpad_no_2fg_tap_after_timeout, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
-	litest_add("tap-2fg:2fg", touchpad_no_first_fg_tap_after_move, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
-	litest_add_ranged("tap-3fg:3fg", touchpad_3fg_tap_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &tap_map_range);
-	litest_add_ranged("tap-3fg:3fg", touchpad_3fg_tap_btntool_inverted, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &tap_map_range);
-	litest_add_ranged("tap-3fg:3fg", touchpad_3fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &tap_map_range);
-	litest_add("tap-3fg:3fg", touchpad_3fg_tap_tap_again, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
-	litest_add("tap-3fg:3fg", touchpad_3fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
-	litest_add("tap-3fg:3fg", touchpad_3fg_tap_hover_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
-	litest_add("tap-3fg:3fg", touchpad_3fg_tap_pressure_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
-	litest_add_for_device("tap-3fg:3fg", touchpad_3fg_tap_btntool_pointerjump, LITEST_SYNAPTICS_TOPBUTTONPAD);
-	litest_add_for_device("tap-3fg:3fg", touchpad_3fg_tap_slot_release_btntool, LITEST_SYNAPTICS_TOPBUTTONPAD);
+	litest_add("tap:2fg", touchpad_2fg_tap_click_apple, LITEST_APPLE_CLICKPAD, LITEST_ANY);
+	litest_add("tap:2fg", touchpad_no_2fg_tap_after_move, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("tap:2fg", touchpad_no_2fg_tap_after_timeout, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("tap:2fg", touchpad_no_first_fg_tap_after_move, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add_ranged("tap:3fg", touchpad_3fg_tap_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &tap_map_range);
+	litest_add_ranged("tap:3fg", touchpad_3fg_tap_btntool_inverted, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &tap_map_range);
+	litest_add_ranged("tap:3fg", touchpad_3fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &tap_map_range);
+	litest_add("tap:3fg", touchpad_3fg_tap_tap_again, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add("tap:3fg", touchpad_3fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add("tap:3fg", touchpad_3fg_tap_hover_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add("tap:3fg", touchpad_3fg_tap_pressure_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add_for_device("tap:3fg", touchpad_3fg_tap_btntool_pointerjump, LITEST_SYNAPTICS_TOPBUTTONPAD);
+	litest_add_for_device("tap:3fg", touchpad_3fg_tap_slot_release_btntool, LITEST_SYNAPTICS_TOPBUTTONPAD);
 
-	litest_add("tap-4fg:4fg", touchpad_4fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
-	litest_add("tap-4fg:4fg", touchpad_4fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
-	litest_add("tap-5fg:5fg", touchpad_5fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
-	litest_add("tap-5fg:5fg", touchpad_5fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("tap:4fg", touchpad_4fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("tap:4fg", touchpad_4fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("tap:5fg", touchpad_5fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("tap:5fg", touchpad_5fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 
 	/* Real buttons don't interfere with tapping, so don't run those for
 	   pads with buttons */
-	litest_add("tap-1fg:1fg", touchpad_1fg_double_tap_click, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add("tap-1fg:1fg", touchpad_1fg_tap_n_drag_click, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add_ranged("tap-multitap:1fg", touchpad_1fg_multitap_n_drag_tap_click, LITEST_CLICKPAD, LITEST_ANY, &multitap_range);
-	litest_add("tap-1fg:1fg", touchpad_1fg_tap_n_drag_draglock_tap_click, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add("tap:1fg", touchpad_1fg_double_tap_click, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add("tap:1fg", touchpad_1fg_tap_n_drag_click, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add_ranged("tap:1fg", touchpad_1fg_multitap_n_drag_tap_click, LITEST_CLICKPAD, LITEST_ANY, &multitap_range);
+	litest_add("tap:1fg", touchpad_1fg_tap_n_drag_draglock_tap_click, LITEST_CLICKPAD, LITEST_ANY);
 
 	litest_add("tap:config", touchpad_tap_default_disabled, LITEST_TOUCHPAD|LITEST_BUTTON, LITEST_ANY);
 	litest_add("tap:config", touchpad_tap_default_enabled, LITEST_TOUCHPAD, LITEST_BUTTON);
@@ -3626,8 +3626,8 @@ TEST_COLLECTION(touchpad_tap)
 	litest_add("tap:config", touchpad_tap_get_map_no_tapping, LITEST_ANY, LITEST_TOUCHPAD);
 	litest_add("tap:config", touchpad_tap_map_delayed, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 
-	litest_add("tap-1fg:1fg", clickpad_1fg_tap_click, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add("tap-2fg:2fg", clickpad_2fg_tap_click, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH|LITEST_APPLE_CLICKPAD);
+	litest_add("tap:1fg", clickpad_1fg_tap_click, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add("tap:2fg", clickpad_2fg_tap_click, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH|LITEST_APPLE_CLICKPAD);
 
 	litest_add("tap:draglock", touchpad_drag_lock_default_disabled, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("tap:draglock", touchpad_drag_lock_default_unavailable, LITEST_ANY, LITEST_TOUCHPAD);
@@ -3639,7 +3639,7 @@ TEST_COLLECTION(touchpad_tap)
 	litest_add("tap:drag", touchpad_drag_config_enabledisable, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("tap:drag", touchpad_drag_disabled, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("tap:drag", touchpad_drag_disabled_immediate, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add_ranged("tap-multitap:drag", touchpad_drag_disabled_multitap_no_drag, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
+	litest_add_ranged("tap:1fg", touchpad_drag_disabled_multitap_no_drag, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
 
 	litest_add("tap:palm", touchpad_tap_palm_on_idle, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("tap:palm", touchpad_tap_palm_on_touch, LITEST_TOUCHPAD, LITEST_ANY);
