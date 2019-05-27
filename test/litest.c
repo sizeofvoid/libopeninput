@@ -3962,6 +3962,7 @@ litest_parse_argv(int argc, char **argv)
 		JOBS_CUSTOM
 	} want_jobs = JOBS_DEFAULT;
 	char *builddir;
+	char *jobs_env;
 
 	/* If we are not running from the builddir, we assume we're running
 	 * against the system as installed */
@@ -3972,6 +3973,13 @@ litest_parse_argv(int argc, char **argv)
 
 	if (in_debugger)
 		want_jobs = JOBS_SINGLE;
+
+	if ((jobs_env = getenv("LITEST_JOBS"))) {
+		if (!safe_atoi(jobs_env, &jobs)) {
+			fprintf(stderr, "LITEST_JOBS environment variable must be positive integer\n");
+			exit(EXIT_FAILURE);
+		}
+	}
 
 	while(1) {
 		int c;
@@ -3997,7 +4005,8 @@ litest_parse_argv(int argc, char **argv)
 			       "    --verbose\n"
 			       "          Enable verbose output\n"
 			       "    --jobs 8\n"
-			       "          Number of parallel test suites to run (default: 8)\n"
+			       "          Number of parallel test suites to run (default: 8).\n"
+			       "	  This overrides the LITEST_JOBS environment variable.\n"
 			       "    --list\n"
 			       "          List all tests\n"
 			       "\n"
