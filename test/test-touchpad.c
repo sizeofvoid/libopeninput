@@ -172,6 +172,7 @@ START_TEST(touchpad_2fg_scroll_initially_diagonal)
 	struct libinput_event *event;
 	struct libinput_event_pointer *ptrev;
 	int i;
+	int expected_nevents;
 
 	if (!litest_has_2fg_scroll(dev))
 		return;
@@ -196,18 +197,27 @@ START_TEST(touchpad_2fg_scroll_initially_diagonal)
 	litest_drain_events(li);
 
 	/* scroll vertical only and make sure the horiz axis is never set */
+	expected_nevents = 0;
 	for (i = 6; i < 10; i++) {
 		litest_touch_move(dev, 0, 55, 41 + i);
-		libinput_dispatch(li);
+		expected_nevents++;
+	}
 
-		event = libinput_get_event(li);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+
+	do {
 		ptrev = litest_is_axis_event(event,
 				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
 				LIBINPUT_POINTER_AXIS_SOURCE_FINGER);
 		ck_assert(!libinput_event_pointer_has_axis(ptrev,
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL));
 		libinput_event_destroy(event);
-	}
+		event = libinput_get_event(li);
+		expected_nevents--;
+	} while (event);
+
+	ck_assert_int_eq(expected_nevents, 0);
 
 	litest_touch_up(dev, 1);
 	litest_touch_up(dev, 0);
