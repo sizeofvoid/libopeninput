@@ -1227,6 +1227,7 @@ match_fill_udev_type(struct match *m,
 		{ "ID_INPUT_TABLET_PAD", UDEV_TABLET_PAD },
 		{ "ID_INPUT_JOYSTICK", UDEV_JOYSTICK },
 		{ "ID_INPUT_KEYBOARD", UDEV_KEYBOARD },
+		{ "ID_INPUT_KEY", UDEV_KEYBOARD },
 	};
 	struct ut_map *map;
 
