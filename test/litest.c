@@ -4184,7 +4184,7 @@ main(int argc, char **argv)
 	int rc;
 
 	in_debugger = is_debugger_attached();
-	if (in_debugger)
+	if (in_debugger || RUNNING_ON_VALGRIND)
 		setenv("CK_FORK", "no", 0);
 
 	mode = litest_parse_argv(argc, argv);

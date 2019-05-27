@@ -889,8 +889,6 @@ if get_option('tests')
 
 	valgrind = find_program('valgrind', required : false)
 	if valgrind.found()
-		valgrind_env = environment()
-		valgrind_env.set('CK_FORK', 'no')
 		valgrind_suppressions_file = join_paths(dir_src_test, 'valgrind.suppressions')
 		add_test_setup('valgrind',
 				exe_wrapper : [ valgrind,
@@ -898,7 +896,6 @@ if get_option('tests')
 						'--gen-suppressions=all',
 						'--error-exitcode=3',
 						'--suppressions=' + valgrind_suppressions_file ],
-				env :  valgrind_env,
 				timeout_multiplier : 100)
 	else
 		message('valgrind not found, disabling valgrind test suite')
