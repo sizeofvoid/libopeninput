@@ -356,27 +356,27 @@ freebsd:11.2@container-clean:
   extends: .build@template
   image: $FEDORA_CONTAINER_IMAGE
 
-fedora:30@default-build:
-  extends: .fedora-build@template
-  variables:
-    FEDORA_VERSION: 30
-
 fedora:29@default-build:
   extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
 
-fedora:29@default-build-release:
+fedora:30@default-build:
   extends: .fedora-build@template
   variables:
-    FEDORA_VERSION: 29
+    FEDORA_VERSION: 30
+
+fedora:30@default-build-release:
+  extends: .fedora-build@template
+  variables:
+    FEDORA_VERSION: 30
     MESON_ARGS: "-Dbuildtype=release"
     CFLAGS: "-Werror"
 
-fedora:29@scan-build:
+fedora:30@scan-build:
   extends: .fedora-build@template
   variables:
-    FEDORA_VERSION: 29
+    FEDORA_VERSION: 30
     NINJA_ARGS: scan-build
   before_script:
     - dnf install -y clang-analyzer findutils
@@ -390,66 +390,66 @@ fedora:29@scan-build:
 # run them on one image, they shouldn't fail on one distro
 # when they succeed on another.
 
-fedora:29@build-no-libwacom:
+fedora:30@build-no-libwacom:
   extends: .fedora-build@template
   variables:
-    FEDORA_VERSION: 29
+    FEDORA_VERSION: 30
     MESON_ARGS: "-Dlibwacom=false"
 
-fedora:29@build-no-libwacom-nodeps:
+fedora:30@build-no-libwacom-nodeps:
   extends: .fedora-build@template
   variables:
-    FEDORA_VERSION: 29
+    FEDORA_VERSION: 30
     MESON_ARGS: "-Dlibwacom=false"
   before_script:
     - dnf remove -y libwacom libwacom-devel
 
-fedora:29@build-no-docs:
+fedora:30@build-no-docs:
   extends: .fedora-build@template
   variables:
-    FEDORA_VERSION: 29
+    FEDORA_VERSION: 30
     MESON_ARGS: "-Ddocumentation=false"
 
-fedora:29@build-no-docs-nodeps:
+fedora:30@build-no-docs-nodeps:
   extends: .fedora-build@template
   variables:
-    FEDORA_VERSION: 29
+    FEDORA_VERSION: 30
     MESON_ARGS: "-Ddocumentation=false"
   before_script:
     - dnf remove -y doxygen graphviz
 
-fedora:29@build-no-debuggui:
+fedora:30@build-no-debuggui:
   extends: .fedora-build@template
   variables:
-    FEDORA_VERSION: 29
+    FEDORA_VERSION: 30
     MESON_ARGS: "-Ddebug-gui=false"
 
-fedora:29@build-no-debuggui-nodeps:
+fedora:30@build-no-debuggui-nodeps:
   extends: .fedora-build@template
   variables:
-    FEDORA_VERSION: 29
+    FEDORA_VERSION: 30
     MESON_ARGS: "-Ddebug-gui=false"
   before_script:
     - dnf remove -y gtk3-devel
 
-fedora:29@build-no-tests:
+fedora:30@build-no-tests:
   extends: .fedora-build@template
   variables:
-    FEDORA_VERSION: 29
+    FEDORA_VERSION: 30
     MESON_ARGS: "-Dtests=false"
 
-fedora:29@build-no-tests-nodeps:
+fedora:30@build-no-tests-nodeps:
   extends: .fedora-build@template
   variables:
-    FEDORA_VERSION: 29
+    FEDORA_VERSION: 30
     MESON_ARGS: "-Dtests=false"
   before_script:
     - dnf remove -y check-devel
 
-fedora:29@valgrind:
+fedora:30@valgrind:
   extends: .fedora-build@template
   variables:
-    FEDORA_VERSION: 29
+    FEDORA_VERSION: 30
     MESON_TEST_ARGS: '--suite=valgrind --no-suite=hardware --setup=valgrind'
   before_script:
     - dnf install -y valgrind
