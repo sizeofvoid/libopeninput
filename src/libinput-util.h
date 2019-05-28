@@ -27,6 +27,10 @@
 
 #include "config.h"
 
+#ifdef NDEBUG
+#warning "libinput relies on assert(). #defining NDEBUG is not recommended"
+#endif
+
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
