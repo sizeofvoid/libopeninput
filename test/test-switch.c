@@ -1205,6 +1205,7 @@ START_TEST(tablet_mode_disable_trackpoint)
 	litest_delete_device(trackpoint);
 }
 END_TEST
+
 START_TEST(tablet_mode_disable_trackpoint_on_init)
 {
 	struct litest_device *sw = litest_current_device();
