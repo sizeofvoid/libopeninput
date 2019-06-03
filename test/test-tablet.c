@@ -4987,7 +4987,7 @@ verify_left_handed_tablet_motion(struct litest_device *tablet,
 
 		libinput_event_destroy(event);
 		event = libinput_get_event(li);
-	} while (event);
+	}
 }
 
 static void
@@ -5048,7 +5048,7 @@ verify_left_handed_touch_motion(struct litest_device *finger,
 
 		libinput_event_destroy(event);
 		event = libinput_get_event(li);
-	} while (event);
+	}
 }
 
 static void
