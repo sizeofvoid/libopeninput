@@ -24,7 +24,7 @@ The most common tools used are:
 - ``libinput quirks``: show quirks assigned to a device, see
   :ref:`here <libinput-quirks>`
 
-Most the tools must be run as root to have access to the kernel's
+Most of the tools must be run as root to have access to the kernel's
 ``/dev/input/event*`` device files.
 
 .. _libinput-list-devices:
@@ -69,7 +69,7 @@ The above listing shows example output for a touchpad. The
 default configuration for this device, for options that have more than a
 binary state all available options are listed, with the default one prefixed
 with an asterisk (``*``). In the example above, the default click method is
-button-areas but clickinger is available.
+button-areas but clickfinger is available.
 
 .. note:: This tool is intended for human-consumption and may change its output
           at any time.
