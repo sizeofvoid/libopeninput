@@ -14,14 +14,29 @@ dd {
 }
 
 h1 {
-	font-size: 300%;
-	background-image: none;
-	background-color: #D6E5FF;
-	padding-left: 10px;
+	font-size: 150%;
+	color: #354C7B;
+	background: none;
+	border-bottom: 1px solid #879ECB;
+	font-size: 150%;
+	font-weight: normal;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	padding-left: 0px;
+	width: 100%;
 }
 
 h2 {
-	font-size: 200%;
+	font-size: 120%;
+	color: #354C7B;
+	background: none;
+	border-bottom: 1px solid #879ECB;
+	font-size: 150%;
+	font-weight: normal;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	padding-left: 0px;
+	width: 100%;
 }
 
 .sm-dox li {
@@ -71,6 +86,10 @@ h2 {
 .headertitle {
 	background-image: none;
 	background-color: #F0F0F0;
+}
+
+div.header {
+	border: none;
 }
 
 td.fieldname {
