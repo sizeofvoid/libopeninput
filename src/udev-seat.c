@@ -391,13 +391,6 @@ libinput_udev_assign_seat(struct libinput *libinput,
 		return -1;
 	}
 
-	/* We cannot do this during udev_create_context because the log
-	 * handler isn't set up there but we really want to log to the right
-	 * place if the quirks run into parser errors. So we have to do it
-	 * here since we can expect the log handler to be set up by now.
-	 */
-	libinput_init_quirks(libinput);
-
 	if (libinput->interface_backend != &interface_backend) {
 		log_bug_client(libinput, "Mismatching backends.\n");
 		return -1;
@@ -405,6 +398,13 @@ libinput_udev_assign_seat(struct libinput *libinput,
 
 	if (input->seat_id != NULL)
 		return -1;
+
+	/* We cannot do this during udev_create_context because the log
+	 * handler isn't set up there but we really want to log to the right
+	 * place if the quirks run into parser errors. So we have to do it
+	 * here since we can expect the log handler to be set up by now.
+	 */
+	libinput_init_quirks(libinput);
 
 	input->seat_id = safe_strdup(seat_id);
 
