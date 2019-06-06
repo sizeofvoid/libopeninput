@@ -121,15 +121,15 @@ path_seat_get_named(struct path_input *input,
 	return NULL;
 }
 
-static struct libinput_device *
-path_device_enable(struct path_input *input,
-		   struct udev_device *udev_device,
-		   const char *seat_logical_name_override)
+static struct path_seat *
+path_seat_get_for_device(struct path_input *input,
+			 struct udev_device *udev_device,
+			 const char *seat_logical_name_override)
 {
-	struct path_seat *seat;
-	struct evdev_device *device = NULL;
+	struct path_seat *seat = NULL;
 	char *seat_name = NULL, *seat_logical_name = NULL;
-	const char *seat_prop, *output_name;
+	const char *seat_prop;
+
 	const char *devnode, *sysname;
 
 	devnode = udev_device_get_devnode(udev_device);
@@ -155,18 +155,40 @@ path_device_enable(struct path_input *input,
 
 	seat = path_seat_get_named(input, seat_name, seat_logical_name);
 
-	if (seat) {
-		libinput_seat_ref(&seat->base);
-	} else {
+	if (!seat)
 		seat = path_seat_create(input, seat_name, seat_logical_name);
-		if (!seat) {
-			log_info(&input->base,
-				 "%s: failed to create seat for device '%s'.\n",
-				 sysname,
-				 devnode);
-			goto out;
-		}
+	if (!seat) {
+		log_info(&input->base,
+			 "%s: failed to create seat for device '%s'.\n",
+			 sysname,
+			 devnode);
+		goto out;
 	}
+
+	libinput_seat_ref(&seat->base);
+out:
+	free(seat_name);
+	free(seat_logical_name);
+
+	return seat;
+}
+
+static struct libinput_device *
+path_device_enable(struct path_input *input,
+		   struct udev_device *udev_device,
+		   const char *seat_logical_name_override)
+{
+	struct path_seat *seat;
+	struct evdev_device *device = NULL;
+	const char *output_name;
+	const char *devnode, *sysname;
+
+	devnode = udev_device_get_devnode(udev_device);
+	sysname = udev_device_get_sysname(udev_device);
+
+	seat = path_seat_get_for_device(input, udev_device, seat_logical_name_override);
+	if (!seat)
+		goto out;
 
 	device = evdev_device_create(&seat->base, udev_device);
 	libinput_seat_unref(&seat->base);
@@ -191,9 +213,6 @@ path_device_enable(struct path_input *input,
 	device->output_name = safe_strdup(output_name);
 
 out:
-	free(seat_name);
-	free(seat_logical_name);
-
 	return device ? &device->base : NULL;
 }
 
