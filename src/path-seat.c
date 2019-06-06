@@ -233,6 +233,14 @@ path_input_enable(struct libinput *libinput)
 }
 
 static void
+path_device_destroy(struct path_device *dev)
+{
+	list_remove(&dev->link);
+	udev_device_unref(dev->udev_device);
+	free(dev);
+}
+
+static void
 path_input_destroy(struct libinput *input)
 {
 	struct path_input *path_input = (struct path_input*)input;
@@ -240,10 +248,8 @@ path_input_destroy(struct libinput *input)
 
 	udev_unref(path_input->udev);
 
-	list_for_each_safe(dev, tmp, &path_input->path_list, link) {
-		udev_device_unref(dev->udev_device);
-		free(dev);
-	}
+	list_for_each_safe(dev, tmp, &path_input->path_list, link)
+		path_device_destroy(dev);
 
 }
 
@@ -263,11 +269,8 @@ path_create_device(struct libinput *libinput,
 
 	device = path_device_enable(input, udev_device, seat_name);
 
-	if (!device) {
-		udev_device_unref(dev->udev_device);
-		list_remove(&dev->link);
-		free(dev);
-	}
+	if (!device)
+		path_device_destroy(dev);
 
 	return device;
 }
@@ -416,9 +419,7 @@ libinput_path_remove_device(struct libinput_device *device)
 
 	list_for_each(dev, &input->path_list, link) {
 		if (dev->udev_device == evdev->udev_device) {
-			list_remove(&dev->link);
-			udev_device_unref(dev->udev_device);
-			free(dev);
+			path_device_destroy(dev);
 			break;
 		}
 	}
