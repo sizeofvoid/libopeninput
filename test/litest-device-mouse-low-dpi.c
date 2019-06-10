@@ -45,7 +45,6 @@ static int events[] = {
 static const char udev_rule[] =
 "ACTION==\"remove\", GOTO=\"touchpad_end\"\n"
 "KERNEL!=\"event*\", GOTO=\"touchpad_end\"\n"
-"ENV{ID_INPUT_TOUCHPAD}==\"\", GOTO=\"touchpad_end\"\n"
 "\n"
 "ATTRS{name}==\"litest Low DPI Mouse*\",\\\n"
 "    ENV{MOUSE_DPI}=\"400@125\"\n"
