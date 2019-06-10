@@ -64,11 +64,11 @@ test_relative_event(struct litest_device *dev, int dx, int dy)
 	actual_dir = atan2(ev_dx, ev_dy);
 
 	/* Check the length of the motion vector (tolerate 1.0 indifference). */
-	litest_assert(fabs(expected_length) >= actual_length);
+	litest_assert_double_ge(fabs(expected_length), actual_length);
 
 	/* Check the direction of the motion vector (tolerate 2π/4 radians
 	 * indifference). */
-	litest_assert(fabs(expected_dir - actual_dir) < M_PI_2);
+	litest_assert_double_lt(fabs(expected_dir - actual_dir), M_PI_2);
 
 	libinput_event_destroy(event);
 
@@ -220,7 +220,7 @@ test_absolute_event(struct litest_device *dev, double x, double y)
 	litest_assert_int_eq(libinput_event_get_type(event), type);
 
 	ptrev = libinput_event_get_pointer_event(event);
-	litest_assert(ptrev != NULL);
+	litest_assert_ptr_notnull(ptrev);
 
 	ex = libinput_event_pointer_get_absolute_x_transformed(ptrev, 100);
 	ey = libinput_event_pointer_get_absolute_y_transformed(ptrev, 100);

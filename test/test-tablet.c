@@ -5058,11 +5058,11 @@ verify_left_handed_touch_motion(struct litest_device *finger,
 		y = libinput_event_pointer_get_dy(p);
 
 		if (left_handed) {
-			litest_assert(x < 0);
-			litest_assert(y > 0);
+			litest_assert_double_lt(x, 0);
+			litest_assert_double_gt(y, 0);
 		} else {
-			litest_assert(x > 0);
-			litest_assert(y < 0);
+			litest_assert_double_gt(x, 0);
+			litest_assert_double_lt(y, 0);
 		}
 
 		libinput_event_destroy(event);
