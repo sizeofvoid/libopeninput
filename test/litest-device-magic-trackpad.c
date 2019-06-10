@@ -105,16 +105,6 @@ static int events[] = {
 	-1, -1
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"touchpad_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"touchpad_end\"\n"
-"ENV{ID_INPUT_TOUCHPAD}==\"\", GOTO=\"touchpad_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Apple Wireless Trackpad\","
-"    ENV{ID_INPUT_TOUCHPAD_INTEGRATION}=\"external\"\n"
-"\n"
-"LABEL=\"touchpad_end\"";
-
 TEST_DEVICE("magic-trackpad",
 	.type = LITEST_MAGIC_TRACKPAD,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD |
@@ -125,5 +115,9 @@ TEST_DEVICE("magic-trackpad",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
+
+	.udev_properties = {
+		{ "ID_INPUT_TOUCHPAD_INTEGRATION", "external" },
+		{ NULL },
+	},
 )

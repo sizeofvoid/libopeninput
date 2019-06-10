@@ -142,15 +142,6 @@ static int events[] = {
 	-1, -1,
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"rule_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"rule_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Wacom Intuos5 touch M Pen*\",\\\n"
-"    ENV{LIBINPUT_DEVICE_GROUP}=\"wacom-i5-group\"\n"
-"\n"
-"LABEL=\"rule_end\"";
-
 TEST_DEVICE("wacom-intuos5-tablet",
 	.type = LITEST_WACOM_INTUOS,
 	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT | LITEST_TOOL_MOUSE | LITEST_HOVER,
@@ -160,5 +151,8 @@ TEST_DEVICE("wacom-intuos5-tablet",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
+	.udev_properties = {
+		{ "LIBINPUT_DEVICE_GROUP", "wacom-i5-group" },
+		{ NULL },
+	},
 )

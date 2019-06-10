@@ -70,16 +70,6 @@ static int events[] = {
 	-1, -1
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"calibrated_touchscreen_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"calibrated_touchscreen_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Calibrated Touchscreen*\",\\\n"
-"    ENV{LIBINPUT_CALIBRATION_MATRIX}=\"1.2 3.4 5.6 7.8 9.10 11.12\",\\\n"
-"    ENV{WL_OUTPUT}=\"myOutput\"\n"
-"\n"
-"LABEL=\"calibrated_touchscreen_end\"";
-
 TEST_DEVICE("calibrated-touchscreen",
 	.type = LITEST_CALIBRATED_TOUCHSCREEN,
 	.features = LITEST_TOUCH,
@@ -89,5 +79,9 @@ TEST_DEVICE("calibrated-touchscreen",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
+	.udev_properties = {
+	{ "LIBINPUT_CALIBRATION_MATRIX", "1.2 3.4 5.6 7.8 9.10 11.12" },
+	{ "WL_OUTPUT", "myOutput" },
+	{ NULL }
+	},
 )

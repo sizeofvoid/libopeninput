@@ -633,6 +633,11 @@ strv_free(char **strv) {
 	free (strv);
 }
 
+struct key_value_str{
+	char *key;
+	char *value;
+};
+
 struct key_value_double {
 	double key;
 	double value;

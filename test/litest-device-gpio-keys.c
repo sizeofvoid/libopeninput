@@ -42,15 +42,6 @@ static int events[] = {
 	-1, -1,
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"switch_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"switch_end\"\n"
-"\n"
-"ATTRS{name}==\"litest gpio-keys*\",\\\n"
-"    ENV{ID_INPUT_SWITCH}=\"1\"\n"
-"\n"
-"LABEL=\"switch_end\"";
-
 static const char quirk_file[] =
 "[litest gpio quirk]\n"
 "MatchName=litest gpio-keys\n"
@@ -66,6 +57,9 @@ TEST_DEVICE("gpio-keys",
 	.events = events,
 	.absinfo = NULL,
 
-	.udev_rule = udev_rule,
 	.quirk_file = quirk_file,
+	.udev_properties = {
+		{ "ID_INPUT_SWITCH", "1" },
+		{ NULL },
+	}
 )

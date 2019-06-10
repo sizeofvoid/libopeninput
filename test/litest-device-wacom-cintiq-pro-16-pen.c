@@ -133,15 +133,6 @@ static int events[] = {
 	-1, -1,
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"rule_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"rule_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Wacom Cintiq Pro 16 Pen*\",\\\n"
-"    ENV{LIBINPUT_DEVICE_GROUP}=\"wacom-pro16-group\"\n"
-"\n"
-"LABEL=\"rule_end\"";
-
 TEST_DEVICE("wacom-cintiq-pro16-pen",
 	.type = LITEST_WACOM_CINTIQ_PRO16_PEN,
 	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT | LITEST_DIRECT | LITEST_HOVER,
@@ -151,5 +142,8 @@ TEST_DEVICE("wacom-cintiq-pro16-pen",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
+	.udev_properties = {
+		{ "LIBINPUT_DEVICE_GROUP", "wacom-pro16-group" },
+		{ NULL },
+	},
 )

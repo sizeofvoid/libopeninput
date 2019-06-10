@@ -85,15 +85,6 @@ static int events[] = {
 	-1, -1,
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"pad_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"pad_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Wacom Intuos3 4x6 Pad*\",\\\n"
-"    ENV{ID_INPUT_TABLET_PAD}=\"1\"\n"
-"\n"
-"LABEL=\"pad_end\"";
-
 TEST_DEVICE("wacom-intuos3-pad",
 	.type = LITEST_WACOM_INTUOS3_PAD,
 	.features = LITEST_TABLET_PAD | LITEST_STRIP,
@@ -103,5 +94,8 @@ TEST_DEVICE("wacom-intuos3-pad",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
+	.udev_properties = {
+		{ "ID_INPUT_TABLET_PAD", "1" },
+		{ NULL },
+	},
 )

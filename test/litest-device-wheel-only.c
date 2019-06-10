@@ -37,15 +37,6 @@ static int events[] = {
 	-1 , -1,
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"wheel_only_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"wheel_only_end\"\n"
-"\n"
-"ATTRS{name}==\"litest wheel only device*\",\\\n"
-"    ENV{ID_INPUT_KEY}=\"1\"\n"
-"\n"
-"LABEL=\"wheel_only_end\"";
-
 TEST_DEVICE("wheel-only",
 	.type = LITEST_WHEEL_ONLY,
 	.features = LITEST_WHEEL,
@@ -55,5 +46,8 @@ TEST_DEVICE("wheel-only",
 	.id = &input_id,
 	.absinfo = NULL,
 	.events = events,
-	.udev_rule = udev_rule,
+	.udev_properties = {
+		{ "ID_INPUT_KEY", "1" },
+		{ NULL },
+	},
 )

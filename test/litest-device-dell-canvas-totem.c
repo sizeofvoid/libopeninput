@@ -107,15 +107,6 @@ static int events[] = {
 	-1, -1,
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"totem_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"totem_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Advanced Silicon S.A. CoolTouch® System System Multi Axis*\",\\\n"
-"    ENV{LIBINPUT_DEVICE_GROUP}=\"dell-canvas-totem-group\"\n"
-"\n"
-"LABEL=\"totem_end\"";
-
 TEST_DEVICE("dell-canvas-totem",
 	.type = LITEST_DELL_CANVAS_TOTEM,
 	.features = LITEST_TOTEM | LITEST_TABLET,
@@ -125,5 +116,8 @@ TEST_DEVICE("dell-canvas-totem",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
+	.udev_properties = {
+	 { "LIBINPUT_DEVICE_GROUP", "dell-canvas-totem-group" },
+	 { NULL },
+	},
 )

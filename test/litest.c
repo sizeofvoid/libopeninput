@@ -1385,9 +1385,10 @@ litest_init_device_udev_rules(struct litest_test_device *dev)
 	int fd;
 	FILE *f;
 	char *path = NULL;
+	const struct key_value_str *kv;
 	static int count;
 
-	if (!dev->udev_rule)
+	if (!dev->udev_properties)
 		return NULL;
 
 	rc = xasprintf(&path,
@@ -1406,7 +1407,19 @@ litest_init_device_udev_rules(struct litest_test_device *dev)
 	litest_assert_int_ne(fd, -1);
 	f = fdopen(fd, "w");
 	litest_assert_notnull(f);
-	litest_assert_int_ge(fputs(dev->udev_rule, f), 0);
+	fprintf(f, "ACTION==\"remove\", GOTO=\"rule%d_end\"\n", count);
+	fprintf(f, "KERNEL!=\"event*\", GOTO=\"rule%d_end\"\n", count);
+
+	fprintf(f, "ATTRS{name}==\"litest %s*\"", dev->name);
+
+	kv = dev->udev_properties;
+	while (kv->key) {
+		fprintf(f, ", \\\n\tENV{%s}=\"%s\"", kv->key, kv->value);
+		kv++;
+	}
+
+	fprintf(f, "\n");
+	fprintf(f, "LABEL=\"rule%d_end\"", count);;
 	fclose(f);
 
 	return path;

@@ -101,15 +101,6 @@ static int events[] = {
 	-1, -1,
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"pad_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"pad_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Wacom Bamboo 2FG 4x5 Pen*\",\\\n"
-"    ENV{LIBINPUT_DEVICE_GROUP}=\"wacom-bamboo-2fg-group\"\n"
-"\n"
-"LABEL=\"pad_end\"";
-
 TEST_DEVICE("wacom-bamboo-2fg-pen",
 	.type = LITEST_WACOM_BAMBOO_2FG_PEN,
 	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_HOVER,
@@ -119,5 +110,8 @@ TEST_DEVICE("wacom-bamboo-2fg-pen",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
+	.udev_properties = {
+		{ "LIBINPUT_DEVICE_GROUP", "wacom-bamboo-2fg-group" },
+		{ NULL },
+	},
 )

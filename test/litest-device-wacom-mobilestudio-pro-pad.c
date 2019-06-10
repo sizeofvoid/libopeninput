@@ -96,16 +96,6 @@ static int events[] = {
 	-1, -1,
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"pad_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"pad_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Wacom MobileStudio Pro 16 Pad*\",\\\n"
-"    ENV{ID_INPUT_TABLET}=\"1\",\\\n"
-"    ENV{ID_INPUT_TABLET_PAD}=\"1\"\\\n"
-"\n"
-"LABEL=\"pad_end\"";
-
 TEST_DEVICE("wacom-mobilestudio-pro16-pad",
 	.type = LITEST_WACOM_MOBILESTUDIO_PRO_16_PAD,
 	.features = LITEST_TABLET_PAD | LITEST_RING,
@@ -115,5 +105,9 @@ TEST_DEVICE("wacom-mobilestudio-pro16-pad",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
+	.udev_properties = {
+		{ "ID_INPUT_TABLET", "1" },
+		{ "ID_INPUT_TABLET_PAD", "1" },
+		{ NULL },
+	},
 )

@@ -43,16 +43,6 @@ static int events[] = {
 	-1 , -1,
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"wheel_wheel_tilt_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"wheel_wheel_tilt_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Wheel Tilt Mouse*\",\\\n"
-"    ENV{MOUSE_WHEEL_TILT_HORIZONTAL}=\"1\",\\\n"
-"    ENV{MOUSE_WHEEL_TILT_VERTICAL}=\"1\"\n"
-"\n"
-"LABEL=\"wheel_wheel_tilt_end\"";
-
 TEST_DEVICE("mouse-wheel-tilt",
 	.type = LITEST_MOUSE_WHEEL_TILT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
@@ -62,5 +52,9 @@ TEST_DEVICE("mouse-wheel-tilt",
 	.id = &input_id,
 	.absinfo = NULL,
 	.events = events,
-	.udev_rule = udev_rule,
+	.udev_properties = {
+		{ "MOUSE_WHEEL_TILT_HORIZONTAL", "1" },
+		{ "MOUSE_WHEEL_TILT_VERTICAL", "1" },
+		{ NULL },
+	}
 )

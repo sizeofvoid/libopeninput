@@ -90,16 +90,6 @@ static int events[] = {
 	-1, -1,
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"pad_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"pad_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Wacom Intuos5 touch M Pad*\",\\\n"
-"    ENV{LIBINPUT_DEVICE_GROUP}=\"wacom-i5-group\",\\\n"
-"    ENV{ID_INPUT_TABLET_PAD}=\"1\"\n"
-"\n"
-"LABEL=\"pad_end\"";
-
 TEST_DEVICE("wacom-intuos5-pad",
 	.type = LITEST_WACOM_INTUOS5_PAD,
 	.features = LITEST_TABLET_PAD | LITEST_RING,
@@ -109,5 +99,9 @@ TEST_DEVICE("wacom-intuos5-pad",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
+	.udev_properties = {
+		{ "ID_INPUT_TABLET_PAD", "1" },
+		{ "LIBINPUT_DEVICE_GROUP", "wacom-i5-group" },
+		{ NULL },
+	},
 )

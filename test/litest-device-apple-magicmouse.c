@@ -82,24 +82,6 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-/* Force MOUSE_DPI to the empty string. As of systemd commit f013e99e160f
- * ID_BUS=bluetooth now triggers the hwdb entry for this device. This causes
- * test case failures because deltas change. Detecting old vs new systemd is
- * hard, and because our rules are 99-prefixed we can't set ID_BUS ourselves
- * on older systemd.
- * So let's go the easy way and unset MOUSE_DPI so we can continue to use
- * the current tests.
- */
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"mouse_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"mouse_end\"\n"
-"ENV{ID_INPUT_MOUSE}==\"\", GOTO=\"mouse_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Apple Magic Mouse\","
-"    ENV{MOUSE_DPI}=\"\""
-"\n"
-"LABEL=\"mouse_end\"";
-
 TEST_DEVICE("magicmouse",
 	.type = LITEST_MAGICMOUSE,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
@@ -109,5 +91,17 @@ TEST_DEVICE("magicmouse",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
+
+	/* Force MOUSE_DPI to the empty string. As of systemd commit f013e99e160f
+	 * ID_BUS=bluetooth now triggers the hwdb entry for this device. This causes
+	 * test case failures because deltas change. Detecting old vs new systemd is
+	 * hard, and because our rules are 99-prefixed we can't set ID_BUS ourselves
+	 * on older systemd.
+	 * So let's go the easy way and unset MOUSE_DPI so we can continue to use
+	 * the current tests.
+	 */
+	.udev_properties = {
+		{ "MOUSE_DPI", "" },
+		{ NULL },
+	},
 )

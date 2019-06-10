@@ -60,16 +60,6 @@ static int events[] = {
 	-1, -1,
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"pad_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"pad_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Wacom Cintiq Pro 16 Pad*\",\\\n"
-"    ENV{ID_INPUT_TABLET_PAD}=\"1\",\\\n"
-"    ENV{LIBINPUT_DEVICE_GROUP}=\"wacom-pro16-group\"\n"
-"\n"
-"LABEL=\"pad_end\"";
-
 TEST_DEVICE("wacom-cintiq-pro16-pad",
 	.type = LITEST_WACOM_CINTIQ_PRO16_PAD,
 	.features = LITEST_TABLET_PAD,
@@ -79,5 +69,9 @@ TEST_DEVICE("wacom-cintiq-pro16-pad",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
-	.udev_rule = udev_rule,
+	.udev_properties = {
+		{ "ID_INPUT_TABLET_PAD", "1" },
+		{ "LIBINPUT_DEVICE_GROUP", "wacom-pro16-group" },
+		{ NULL },
+	},
 )

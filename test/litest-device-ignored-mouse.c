@@ -42,16 +42,6 @@ static int events[] = {
 	-1 , -1,
 };
 
-static const char udev_rule[] =
-"ACTION==\"remove\", GOTO=\"mouse_end\"\n"
-"KERNEL!=\"event*\", GOTO=\"mouse_end\"\n"
-"ENV{ID_INPUT_MOUSE}==\"\", GOTO=\"mouse_end\"\n"
-"\n"
-"ATTRS{name}==\"litest Ignored Mouse*\",\\\n"
-"    ENV{LIBINPUT_IGNORE_DEVICE}=\"1\"\n"
-"\n"
-"LABEL=\"mouse_end\"";
-
 TEST_DEVICE("ignored-mouse",
 	.type = LITEST_IGNORED_MOUSE,
 	.features = LITEST_IGNORED | LITEST_BUTTON | LITEST_RELATIVE,
@@ -61,5 +51,8 @@ TEST_DEVICE("ignored-mouse",
 	.id = &input_id,
 	.absinfo = NULL,
 	.events = events,
-	.udev_rule = udev_rule,
+	.udev_properties = {
+	  { "LIBINPUT_IGNORE_DEVICE", "1" },
+	  { NULL },
+	},
 )
