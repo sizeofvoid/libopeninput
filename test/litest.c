@@ -658,24 +658,61 @@ litest_log_handler(struct libinput *libinput,
 	}
 }
 
-static char *
-litest_init_device_udev_rules(struct litest_test_device *dev);
+static void
+litest_init_device_udev_rules(struct litest_test_device *dev, FILE *f)
+{
+	const struct key_value_str *kv;
+	static int count;
+
+	if (!dev->udev_properties)
+		return;
+
+	count++;
+
+	fprintf(f, "# %s\n", dev->shortname);
+	fprintf(f, "ACTION==\"remove\", GOTO=\"rule%d_end\"\n", count);
+	fprintf(f, "KERNEL!=\"event*\", GOTO=\"rule%d_end\"\n", count);
+
+	fprintf(f, "ATTRS{name}==\"litest %s*\"", dev->name);
+
+	kv = dev->udev_properties;
+	while (kv->key) {
+		fprintf(f, ", \\\n\tENV{%s}=\"%s\"", kv->key, kv->value);
+		kv++;
+	}
+
+	fprintf(f, "\n");
+	fprintf(f, "LABEL=\"rule%d_end\"\n\n", count);;
+}
 
 static void
 litest_init_all_device_udev_rules(struct list *created_files)
 {
+	struct created_file *file = zalloc(sizeof(*file));
 	struct litest_test_device *dev;
+	char *path = NULL;
+	FILE *f;
+	int rc;
+	int fd;
 
-	list_for_each(dev, &devices, node) {
-		char *udev_file;
+	rc = xasprintf(&path,
+		      "%s/%s-XXXXXX.rules",
+		      UDEV_RULES_D,
+		      UDEV_RULE_PREFIX);
+	litest_assert_int_gt(rc, 0);
 
-		udev_file = litest_init_device_udev_rules(dev);
-		if (udev_file) {
-			struct created_file *file = zalloc(sizeof(*file));
-			file->path = udev_file;
-			list_insert(created_files, &file->link);
-		}
-	}
+	fd = mkstemps(path, 6);
+	litest_assert_int_ne(fd, -1);
+	f = fdopen(fd, "w");
+	litest_assert_notnull(f);
+
+	list_for_each(dev, &devices, node)
+		litest_init_device_udev_rules(dev, f);
+
+	fclose(f);
+
+	file->path = path;
+	list_insert(created_files, &file->link);
 }
 
 static int
@@ -1376,53 +1413,6 @@ litest_remove_udev_rules(struct list *created_files_list)
 
 	if (reload_udev)
 		litest_reload_udev_rules();
-}
-
-static char *
-litest_init_device_udev_rules(struct litest_test_device *dev)
-{
-	int rc;
-	int fd;
-	FILE *f;
-	char *path = NULL;
-	const struct key_value_str *kv;
-	static int count;
-
-	if (!dev->udev_properties)
-		return NULL;
-
-	rc = xasprintf(&path,
-		      "%s/%s%03d-%s-XXXXXX.rules",
-		      UDEV_RULES_D,
-		      UDEV_RULE_PREFIX,
-		      ++count,
-		      dev->shortname);
-	litest_assert_int_eq(rc,
-			     (int)(
-				   strlen(UDEV_RULES_D) +
-				   strlen(UDEV_RULE_PREFIX) +
-				   strlen(dev->shortname) + 18));
-
-	fd = mkstemps(path, 6);
-	litest_assert_int_ne(fd, -1);
-	f = fdopen(fd, "w");
-	litest_assert_notnull(f);
-	fprintf(f, "ACTION==\"remove\", GOTO=\"rule%d_end\"\n", count);
-	fprintf(f, "KERNEL!=\"event*\", GOTO=\"rule%d_end\"\n", count);
-
-	fprintf(f, "ATTRS{name}==\"litest %s*\"", dev->name);
-
-	kv = dev->udev_properties;
-	while (kv->key) {
-		fprintf(f, ", \\\n\tENV{%s}=\"%s\"", kv->key, kv->value);
-		kv++;
-	}
-
-	fprintf(f, "\n");
-	fprintf(f, "LABEL=\"rule%d_end\"", count);;
-	fclose(f);
-
-	return path;
 }
 
 /**
