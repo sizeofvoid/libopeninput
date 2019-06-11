@@ -173,10 +173,15 @@ START_TEST(touchpad_2fg_scroll_initially_diagonal)
 	struct libinput_event_pointer *ptrev;
 	int i;
 	int expected_nevents;
+	double w, h;
+	double ratio;
+	double ydelta;
 
 	if (!litest_has_2fg_scroll(dev))
 		return;
 
+	ck_assert_int_eq(libinput_device_get_size(dev->libinput_device, &w, &h), 0);
+	ratio = w/h;
 	litest_enable_2fg_scroll(dev);
 	litest_drain_events(li);
 
@@ -184,7 +189,8 @@ START_TEST(touchpad_2fg_scroll_initially_diagonal)
 	litest_touch_down(dev, 1, 55, 30);
 
 	/* start diagonally */
-	litest_touch_move_two_touches(dev, 45, 30, 55, 30, 10, 10, 10);
+	ydelta = 15 * ratio;
+	litest_touch_move_two_touches(dev, 45, 30, 55, 30, 15, ydelta, 10);
 	libinput_dispatch(li);
 	litest_wait_for_event_of_type(li,
 				      LIBINPUT_EVENT_POINTER_AXIS,
@@ -193,13 +199,13 @@ START_TEST(touchpad_2fg_scroll_initially_diagonal)
 
 	/* get rid of any touch history still adding x deltas sideways */
 	for (i = 0; i < 5; i++)
-		litest_touch_move(dev, 0, 55, 41 + i);
+		litest_touch_move(dev, 0, 60, 30 + ydelta + (i * ratio));
 	litest_drain_events(li);
 
 	/* scroll vertical only and make sure the horiz axis is never set */
 	expected_nevents = 0;
-	for (i = 6; i < 10; i++) {
-		litest_touch_move(dev, 0, 55, 41 + i);
+	for (i = 6; i < 15; i++) {
+		litest_touch_move(dev, 0, 60, 30 + ydelta + i * ratio);
 		expected_nevents++;
 	}
 
