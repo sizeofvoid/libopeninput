@@ -1551,7 +1551,6 @@ litest_add_device_with_overrides(struct libinput *libinput,
 	d->quirks = quirks_fetch_for_device(quirks_context, ud);
 	udev_device_unref(ud);
 
-	litest_assert_ptr_notnull(d->libinput_device);
 	libinput_device_ref(d->libinput_device);
 
 	if (d->interface) {
