@@ -1189,6 +1189,8 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 	struct point point;
 	int idx;
 	const int mask = ARRAY_LENGTH(w->tool.deltas);
+	bool is_press;
+	unsigned int button;
 
 	x = libinput_event_tablet_tool_get_x_transformed(t, w->width);
 	y = libinput_event_tablet_tool_get_y_transformed(t, w->height);
@@ -1248,6 +1250,38 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 		w->tool.ndeltas++;
 		break;
 	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
+		is_press = libinput_event_tablet_tool_get_button_state(t) == LIBINPUT_BUTTON_STATE_PRESSED;
+		button = libinput_event_tablet_tool_get_button(t);
+
+		w->buttons.other = is_press;
+		w->buttons.other_name = libevdev_event_code_get_name(EV_KEY,
+								     button);
+		break;
+	default:
+		abort();
+	}
+}
+
+static void
+handle_event_tablet_pad(struct libinput_event *ev, struct window *w)
+{
+	struct libinput_event_tablet_pad *p = libinput_event_get_tablet_pad_event(ev);
+	bool is_press;
+	unsigned int button;
+	static const char *pad_buttons[] = {
+		"Pad 0", "Pad 1", "Pad 2", "Pad 3", "Pad 4", "Pad 5",
+		"Pad 6", "Pad 7", "Pad 8", "Pad 9", "Pad >= 10"
+	};
+
+	switch (libinput_event_get_type(ev)) {
+	case LIBINPUT_EVENT_TABLET_PAD_BUTTON:
+		is_press = libinput_event_tablet_pad_get_button_state(p) == LIBINPUT_BUTTON_STATE_PRESSED;
+		button = libinput_event_tablet_pad_get_button_number(p);
+		w->buttons.other = is_press;
+		w->buttons.other_name = pad_buttons[min(button, 10)];
+		break;
+	case LIBINPUT_EVENT_TABLET_PAD_RING:
+	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
 		break;
 	default:
 		abort();
@@ -1317,6 +1351,7 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 		case LIBINPUT_EVENT_TABLET_PAD_BUTTON:
 		case LIBINPUT_EVENT_TABLET_PAD_RING:
 		case LIBINPUT_EVENT_TABLET_PAD_STRIP:
+			handle_event_tablet_pad(ev, w);
 			break;
 		case LIBINPUT_EVENT_SWITCH_TOGGLE:
 			break;
