@@ -104,6 +104,11 @@ MatchName=AT Translated Set 2 keyboard
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPad*Yoga*:*
 ModelTabletModeNoSuspend=1
 
+[Lenovo X1 Yoga Trackpoint 1st gen]
+MatchName=*TPPS/2 IBM TrackPoint
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX1Yoga1st:*
+AttrTrackpointMultiplier=1.25
+
 # Lenovo Carbon X1 6th gen (RMI4 only, PS/2 is broken on this device,
 # sends bogus ABS_MT_TOOL_TYPE events for MT_TOOL_PALM
 [Lenovo Carbon X1 6th gen]
