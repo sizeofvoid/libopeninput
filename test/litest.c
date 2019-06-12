@@ -208,6 +208,24 @@ litest_fail_comparison_int(const char *file,
 
 __attribute__((noreturn))
 void
+litest_fail_comparison_double(const char *file,
+			      int line,
+			      const char *func,
+			      const char *operator,
+			      double a,
+			      double b,
+			      const char *astr,
+			      const char *bstr)
+{
+	litest_log("FAILED COMPARISON: %s %s %s\n", astr, operator, bstr);
+	litest_log("Resolved to: %.3f %s %.3f\n", a, operator, b);
+	litest_log("in %s() (%s:%d)\n", func, file, line);
+	litest_backtrace();
+	abort();
+}
+
+__attribute__((noreturn))
+void
 litest_fail_comparison_ptr(const char *file,
 			   int line,
 			   const char *func,
