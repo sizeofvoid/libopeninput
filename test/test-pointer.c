@@ -35,16 +35,19 @@
 #include "litest.h"
 
 static void
-test_relative_event(struct litest_device *dev, int dx, int dy)
+test_relative_event(struct litest_device *dev, double dx, double dy)
 {
 	struct libinput *li = dev->libinput;
 	struct libinput_event_pointer *ptrev;
 	struct libinput_event *event;
+	struct udev_device *ud;
 	double ev_dx, ev_dy;
 	double expected_dir;
 	double expected_length;
 	double actual_dir;
 	double actual_length;
+	const char *prop;
+	int dpi = 1000;
 
 	litest_event(dev, EV_REL, REL_X, dx);
 	litest_event(dev, EV_REL, REL_Y, dy);
@@ -54,6 +57,22 @@ test_relative_event(struct litest_device *dev, int dx, int dy)
 
 	event = libinput_get_event(li);
 	ptrev = litest_is_motion_event(event);
+
+	/* low-dpi devices scale up, not down, especially for slow motion.
+	 * so a 1 unit movement in a 200dpi mouse still sends a 1 pixel
+	 * movement. Work aorund this here by checking for the MOUSE_DPI
+	 * property.
+	 */
+	ud = libinput_device_get_udev_device(dev->libinput_device);
+	litest_assert_ptr_notnull(ud);
+	prop = udev_device_get_property_value(ud, "MOUSE_DPI");
+	if (prop) {
+		dpi = parse_mouse_dpi_property(prop);
+
+		dx *= 1000.0/dpi;
+		dy *= 1000.0/dpi;
+	}
+	udev_device_unref(ud);
 
 	expected_length = sqrt(4 * dx*dx + 4 * dy*dy);
 	expected_dir = atan2(dx, dy);
