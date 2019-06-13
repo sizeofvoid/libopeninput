@@ -144,6 +144,17 @@ struct window {
 	} tool;
 
 	struct {
+		struct {
+			double position;
+			int number;
+		} ring;
+		struct {
+			double position;
+			int number;
+		} strip;
+	} pad;
+
+	struct {
 		int rel_x, rel_y; /* REL_X/Y */
 		int x, y;	  /* ABS_X/Y */
 		struct {
@@ -387,11 +398,23 @@ draw_abs_pointer(struct window *w, cairo_t *cr)
 }
 
 static inline void
+draw_text(cairo_t *cr, const char *text, double x, double y)
+{
+	cairo_text_extents_t te;
+	cairo_font_extents_t fe;
+
+	cairo_text_extents(cr, text, &te);
+	cairo_font_extents(cr, &fe);
+	/* center of the rectangle */
+	cairo_move_to(cr, x, y);
+	cairo_rel_move_to(cr, -te.width/2, -fe.descent + te.height/2);
+	cairo_show_text(cr, text);
+}
+
+static inline void
 draw_other_button (struct window *w, cairo_t *cr)
 {
 	const char *name = w->buttons.other_name;
-	cairo_text_extents_t te;
-	cairo_font_extents_t fe;
 
 	cairo_save(cr);
 
@@ -406,12 +429,8 @@ draw_other_button (struct window *w, cairo_t *cr)
 	cairo_fill(cr);
 
 	cairo_set_source_rgb(cr, 0, 0, 0);
-	cairo_text_extents(cr, name, &te);
-	cairo_font_extents(cr, &fe);
-	/* center of the rectangle */
-	cairo_move_to(cr, w->width/2, w->height - 150 + 15);
-	cairo_rel_move_to(cr, -te.width/2, -fe.descent + te.height/2);
-	cairo_show_text(cr, name);
+
+	draw_text(cr, name, w->width/2, w->height - 150 + 15);
 
 outline:
 	cairo_set_source_rgb(cr, 0, 0, 0);
@@ -444,6 +463,67 @@ draw_buttons(struct window *w, cairo_t *cr)
 	cairo_restore(cr);
 
 	draw_other_button(w, cr);
+}
+
+static inline void
+draw_pad(struct window *w, cairo_t *cr)
+{
+	double rx, ry;
+	double pos;
+	char number[3];
+
+	rx = w->width/2 - 200;
+	ry = w->height/2 + 100;
+
+	cairo_save(cr);
+	/* outer ring */
+	cairo_set_source_rgb(cr, .7, .7, .0);
+	cairo_arc(cr, rx, ry, 50, 0, 2 * M_PI);
+	cairo_fill(cr);
+
+	/* inner ring */
+	cairo_set_source_rgb(cr, 1., 1., 1.);
+	cairo_arc(cr, rx, ry, 30, 0, 2 * M_PI);
+	cairo_fill(cr);
+
+	/* marker */
+	/* libinput has degrees and 0 is north, cairo has radians and 0 is
+	 * east */
+	if (w->pad.ring.position != -1) {
+		pos = (w->pad.ring.position + 270) * M_PI/180.0;
+		cairo_set_source_rgb(cr, .0, .0, .0);
+		cairo_set_line_width(cr, 20);
+		cairo_arc(cr, rx, ry, 40, pos - M_PI/8 , pos + M_PI/8);
+		cairo_stroke(cr);
+
+		snprintf(number, sizeof(number), "%d", w->pad.ring.number);
+		cairo_set_source_rgb(cr, .0, .0, .0);
+		draw_text(cr, number, rx, ry);
+
+	}
+
+	cairo_restore(cr);
+
+	rx = w->width/2 - 300;
+	ry = w->height/2 + 50;
+
+	cairo_save(cr);
+	cairo_set_source_rgb(cr, .7, .7, .0);
+	cairo_rectangle(cr, rx, ry, 20, 100);
+	cairo_fill(cr);
+
+	if (w->pad.strip.position != -1) {
+		pos = w->pad.strip.position * 80;
+		cairo_set_source_rgb(cr, .0, .0, .0);
+		cairo_rectangle(cr, rx, ry + pos, 20, 20);
+		cairo_fill(cr);
+
+		snprintf(number, sizeof(number), "%d", w->pad.strip.number);
+		cairo_set_source_rgb(cr, .0, .0, .0);
+		draw_text(cr, number, rx + 10, ry - 10);
+	}
+
+	cairo_restore(cr);
 }
 
 static inline void
@@ -633,6 +713,7 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	draw_evdev_rel(w, cr);
 	draw_evdev_abs(w, cr);
 
+	draw_pad(w, cr);
 	draw_tablet(w, cr);
 	draw_gestures(w, cr);
 	draw_scrollbars(w, cr);
@@ -713,6 +794,9 @@ window_init(struct window *w)
 	gtk_widget_set_events(w->area, 0);
 	gtk_container_add(GTK_CONTAINER(w->win), w->area);
 	gtk_widget_show_all(w->win);
+
+	w->pad.ring.position = -1;
+	w->pad.strip.position = -1;
 }
 
 static void
@@ -1272,6 +1356,8 @@ handle_event_tablet_pad(struct libinput_event *ev, struct window *w)
 		"Pad 0", "Pad 1", "Pad 2", "Pad 3", "Pad 4", "Pad 5",
 		"Pad 6", "Pad 7", "Pad 8", "Pad 9", "Pad >= 10"
 	};
+	double position;
+	double number;
 
 	switch (libinput_event_get_type(ev)) {
 	case LIBINPUT_EVENT_TABLET_PAD_BUTTON:
@@ -1281,7 +1367,16 @@ handle_event_tablet_pad(struct libinput_event *ev, struct window *w)
 		w->buttons.other_name = pad_buttons[min(button, 10)];
 		break;
 	case LIBINPUT_EVENT_TABLET_PAD_RING:
+		position = libinput_event_tablet_pad_get_ring_position(p);
+		number = libinput_event_tablet_pad_get_ring_number(p);
+		w->pad.ring.number = number;
+		w->pad.ring.position = position;
+		break;
 	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
+		position = libinput_event_tablet_pad_get_strip_position(p);
+		number = libinput_event_tablet_pad_get_strip_number(p);
+		w->pad.strip.number = number;
+		w->pad.strip.position = position;
 		break;
 	default:
 		abort();
