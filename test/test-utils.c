@@ -517,8 +517,8 @@ START_TEST(evcode_prop_parser)
 
 	for (int i = 0; tests[i].prop; i++) {
 		bool success;
-		size_t nevents = 32;
-		struct input_event events[nevents];
+		struct input_event events[32];
+		size_t nevents = ARRAY_LENGTH(events);
 
 		t = &tests[i];
 		success = parse_evcode_property(t->prop, events, &nevents);

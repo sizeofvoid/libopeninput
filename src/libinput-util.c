@@ -470,7 +470,8 @@ parse_evcode_property(const char *prop, struct input_event *events, size_t *neve
 	bool rc = false;
 	size_t ncodes = 0;
 	size_t idx;
-	struct input_event evs[*nevents];
+	/* A randomly chosen max so we avoid crazy quirks */
+	struct input_event evs[32];
 
 	memset(evs, 0, sizeof evs);
 
@@ -481,8 +482,7 @@ parse_evcode_property(const char *prop, struct input_event *events, size_t *neve
 	for (idx = 0; strv[idx]; idx++)
 		ncodes++;
 
-	/* A randomly chosen max so we avoid crazy quirks */
-	if (ncodes == 0 || ncodes > 32)
+	if (ncodes == 0 || ncodes > ARRAY_LENGTH(evs))
 		goto out;
 
 	ncodes = min(*nevents, ncodes);
