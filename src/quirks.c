@@ -913,8 +913,13 @@ parse_file(struct quirks_context *ctx, const char *path)
 			section = section_new(path, line);
 			list_append(&ctx->sections, &section->link);
 			break;
-		/* entries must start with A-Z */
-		case 'A'...'Z':
+		default:
+			/* entries must start with A-Z */
+			if (line[0] < 'A' && line[0] > 'Z') {
+				qlog_parser(ctx, "%s:%d: Unexpected line %s\n",
+						 path, lineno, line);
+				goto out;
+			}
 			switch (state) {
 			case STATE_SECTION:
 				qlog_parser(ctx, "%s:%d: expected [Section], got %s\n",
@@ -949,10 +954,6 @@ parse_file(struct quirks_context *ctx, const char *path)
 				goto out;
 			}
 			break;
-		default:
-			qlog_parser(ctx, "%s:%d: Unexpected line %s\n",
-					 path, lineno, line);
-			goto out;
 		}
 	}
 
