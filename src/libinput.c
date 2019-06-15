@@ -1959,7 +1959,7 @@ open_restricted(struct libinput *libinput,
 void
 close_restricted(struct libinput *libinput, int fd)
 {
-	return libinput->interface->close_restricted(fd, libinput->user_data);
+	libinput->interface->close_restricted(fd, libinput->user_data);
 }
 
 bool
