@@ -245,10 +245,12 @@ tp_get_touch(struct tp_dispatch *tp, unsigned int slot)
 static inline unsigned int
 tp_fake_finger_count(struct tp_dispatch *tp)
 {
+	unsigned int fake_touches =
+		tp->fake_touches & ~(FAKE_FINGER_OVERFLOW|0x1);
+
 	/* Only one of BTN_TOOL_DOUBLETAP/TRIPLETAP/... may be set at any
 	 * time */
-	if (__builtin_popcount(
-		       tp->fake_touches & ~(FAKE_FINGER_OVERFLOW|0x1)) > 1)
+	if (fake_touches & (fake_touches - 1))
 		evdev_log_bug_kernel(tp->device,
 				     "Invalid fake finger state %#x\n",
 				     tp->fake_touches);
