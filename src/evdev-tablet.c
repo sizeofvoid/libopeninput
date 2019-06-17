@@ -1702,8 +1702,9 @@ static inline void
 tablet_proximity_out_quirk_set_timer(struct tablet_dispatch *tablet,
 				     uint64_t time)
 {
-	libinput_timer_set(&tablet->quirks.prox_out_timer,
-			   time + FORCED_PROXOUT_TIMEOUT);
+	if (tablet->quirks.need_to_force_prox_out)
+		libinput_timer_set(&tablet->quirks.prox_out_timer,
+				   time + FORCED_PROXOUT_TIMEOUT);
 }
 
 static void
@@ -2312,6 +2313,12 @@ tablet_init(struct tablet_dispatch *tablet,
 	}
 
 	tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
+
+	/* We always enable the proximity out quirk, but disable it once a
+	   device gives us the right event sequence */
+	tablet->quirks.need_to_force_prox_out = true;
+	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_WACOM_ISDV4_PEN))
+		tablet->quirks.need_to_force_prox_out = false;
 
 	libinput_timer_init(&tablet->quirks.prox_out_timer,
 			    tablet_libinput_context(tablet),

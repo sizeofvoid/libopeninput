@@ -299,6 +299,7 @@ enum litest_device_type {
 	LITEST_TOUCHSCREEN_MT_TOOL_TYPE,
 	LITEST_DELL_CANVAS_TOTEM,
 	LITEST_DELL_CANVAS_TOTEM_TOUCH,
+	LITEST_WACOM_ISDV4_4200_PEN,
 };
 
 enum litest_device_feature {

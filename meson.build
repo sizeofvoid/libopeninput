@@ -770,6 +770,7 @@ if get_option('tests')
 		'test/litest-device-wacom-intuos5-finger.c',
 		'test/litest-device-wacom-intuos5-pad.c',
 		'test/litest-device-wacom-intuos5-pen.c',
+		'test/litest-device-wacom-isdv4-4200-pen.c',
 		'test/litest-device-wacom-isdv4-e6-pen.c',
 		'test/litest-device-wacom-isdv4-e6-finger.c',
 		'test/litest-device-wacom-mobilestudio-pro-pad.c',

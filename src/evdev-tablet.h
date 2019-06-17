@@ -102,6 +102,7 @@ struct tablet_dispatch {
 	} rotation;
 
 	struct {
+		bool need_to_force_prox_out;
 		struct libinput_timer prox_out_timer;
 		bool proximity_out_forced;
 		uint64_t last_event_time;
