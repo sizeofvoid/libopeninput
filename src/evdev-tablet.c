@@ -806,6 +806,7 @@ tablet_process_key(struct tablet_dispatch *tablet,
 	case BTN_TOOL_MOUSE:
 	case BTN_TOOL_LENS:
 		type = tablet_evcode_to_tool(e->code);
+		tablet_set_status(tablet, TABLET_TOOL_UPDATED);
 		if (e->value)
 			tablet->tool_state |= bit(type);
 		else
@@ -1721,13 +1722,22 @@ tablet_update_tool_state(struct tablet_dispatch *tablet,
 	 *   BTN_TOOL_PEN and the state for the tool was 0, this device will
 	 *   never send the event.
 	 * We don't do this for pure button events because we discard those.
+	 *
+	 * But: on some devices the proximity out is delayed by the kernel,
+	 * so we get it after our forced prox-out has triggered. In that
+	 * case we need to just ignore the change.
 	 */
-	if (tablet_has_status(tablet, TABLET_AXES_UPDATED) &&
-	    (tablet->quirks.proximity_out_forced ||
-	     (tablet->tool_state == 0 &&
-	      tablet->current_tool.type == LIBINPUT_TOOL_NONE))) {
-		tablet->tool_state = bit(LIBINPUT_TABLET_TOOL_TYPE_PEN);
-		tablet->quirks.proximity_out_forced = false;
+	if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
+		if (tablet->quirks.proximity_out_forced) {
+			if (!tablet_has_status(tablet, TABLET_TOOL_UPDATED) ||
+			    tablet->tool_state)
+				tablet->tool_state = bit(LIBINPUT_TABLET_TOOL_TYPE_PEN);
+			tablet->quirks.proximity_out_forced = false;
+		} else if (tablet->tool_state == 0 &&
+			    tablet->current_tool.type == LIBINPUT_TOOL_NONE) {
+			tablet->tool_state = bit(LIBINPUT_TABLET_TOOL_TYPE_PEN);
+			tablet->quirks.proximity_out_forced = false;
+		}
 	}
 
 	if (tablet->tool_state == tablet->prev_tool_state)
@@ -1886,6 +1896,7 @@ tablet_reset_state(struct tablet_dispatch *tablet)
 	memcpy(&tablet->prev_button_state,
 	       &tablet->button_state,
 	       sizeof(tablet->button_state));
+	tablet_unset_status(tablet, TABLET_TOOL_UPDATED);
 }
 
 static void
