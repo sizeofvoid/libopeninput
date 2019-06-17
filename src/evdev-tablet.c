@@ -1735,7 +1735,7 @@ tablet_update_tool_state(struct tablet_dispatch *tablet,
 
 	/* Kernel tools are supposed to be mutually exclusive, if we have
 	 * two set discard the most recent one. */
-	if (__builtin_popcount(tablet->tool_state) > 1) {
+	if (tablet->tool_state & (tablet->tool_state - 1)) {
 		evdev_log_bug_kernel(device,
 				     "Multiple tools active simultaneously (%#x)\n",
 				     tablet->tool_state);
