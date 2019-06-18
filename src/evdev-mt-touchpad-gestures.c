@@ -642,10 +642,11 @@ tp_gesture_post_gesture(struct tp_dispatch *tp, uint64_t time)
 		tp->gesture.state =
 			tp_gesture_handle_state_pinch(tp, time);
 
-	evdev_log_debug(tp->device,
-			"gesture state: %s → %s\n",
-			gesture_state_to_str(oldstate),
-			gesture_state_to_str(tp->gesture.state));
+	if (oldstate != tp->gesture.state)
+		evdev_log_debug(tp->device,
+				"gesture state: %s → %s\n",
+				gesture_state_to_str(oldstate),
+				gesture_state_to_str(tp->gesture.state));
 }
 
 void

@@ -912,12 +912,13 @@ tp_tap_handle_event(struct tp_dispatch *tp,
 	if (tp->tap.state == TAP_STATE_IDLE || tp->tap.state == TAP_STATE_DEAD)
 		tp_tap_clear_timer(tp);
 
-	evdev_log_debug(tp->device,
-		  "tap: touch %d state %s → %s → %s\n",
-		  t ? (int)t->index : -1,
-		  tap_state_to_str(current),
-		  tap_event_to_str(event),
-		  tap_state_to_str(tp->tap.state));
+	if (current != tp->tap.state)
+		evdev_log_debug(tp->device,
+			  "tap: touch %d state %s → %s → %s\n",
+			  t ? (int)t->index : -1,
+			  tap_state_to_str(current),
+			  tap_event_to_str(event),
+			  tap_state_to_str(tp->tap.state));
 }
 
 static bool
