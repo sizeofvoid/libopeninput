@@ -3500,9 +3500,9 @@ tp_init_thumb(struct tp_dispatch *tp)
 	quirks_unref(q);
 
 	evdev_log_debug(device,
-			"thumb: enabled thumb detection%s%s\n",
-			tp->thumb.use_pressure ? " (+pressure)" : "",
-			tp->thumb.use_size ? " (+size)" : "");
+			"thumb: enabled thumb detection (area%s%s)\n",
+			tp->thumb.use_pressure ? ", pressure" : "",
+			tp->thumb.use_size ? ", size" : "");
 }
 
 static bool
