@@ -779,6 +779,17 @@ tp_touch_active(const struct tp_dispatch *tp, const struct tp_touch *t)
 		tp_edge_scroll_touch_active(tp, t);
 }
 
+bool
+tp_touch_active_for_gesture(const struct tp_dispatch *tp, const struct tp_touch *t)
+{
+	return (t->state == TOUCH_BEGIN || t->state == TOUCH_UPDATE) &&
+		t->palm.state == PALM_NONE &&
+		!t->pinned.is_pinned &&
+		!tp_thumb_ignored(tp, t) &&
+		tp_button_touch_active(tp, t) &&
+		tp_edge_scroll_touch_active(tp, t);
+}
+
 static inline bool
 tp_palm_was_in_side_edge(const struct tp_dispatch *tp, const struct tp_touch *t)
 {

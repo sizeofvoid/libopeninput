@@ -569,6 +569,10 @@ tp_filter_motion_unaccelerated(struct tp_dispatch *tp,
 bool
 tp_touch_active(const struct tp_dispatch *tp, const struct tp_touch *t);
 
+bool
+tp_touch_active_for_gesture(const struct tp_dispatch *tp,
+			    const struct tp_touch *t);
+
 int
 tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time);
 

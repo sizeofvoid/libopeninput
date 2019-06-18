@@ -55,7 +55,7 @@ tp_get_touches_delta(struct tp_dispatch *tp, bool average)
 	for (i = 0; i < tp->num_slots; i++) {
 		t = &tp->touches[i];
 
-		if (!tp_touch_active(tp, t))
+		if (!tp_touch_active_for_gesture(tp, t))
 			continue;
 
 		nactive++;
@@ -174,7 +174,7 @@ tp_gesture_get_active_touches(const struct tp_dispatch *tp,
 	memset(touches, 0, count * sizeof(struct tp_touch *));
 
 	tp_for_each_touch(tp, t) {
-		if (tp_touch_active(tp, t)) {
+		if (tp_touch_active_for_gesture(tp, t)) {
 			touches[n++] = t;
 			if (n == count)
 				return count;
@@ -758,7 +758,7 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time)
 	struct tp_touch *t;
 
 	tp_for_each_touch(tp, t) {
-		if (tp_touch_active(tp, t))
+		if (tp_touch_active_for_gesture(tp, t))
 			active_touches++;
 	}
 
