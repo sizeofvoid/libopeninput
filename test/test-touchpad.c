@@ -5357,8 +5357,8 @@ START_TEST(touchpad_tool_tripletap_touch_count)
 	/* touch 2 down */
 	litest_event(dev, EV_ABS, ABS_MT_SLOT, 1);
 	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, 1);
-	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 2200);
-	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3200);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 3500);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3500);
 	litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 73);
 	litest_event(dev, EV_KEY, BTN_TOOL_FINGER, 0);
 	litest_event(dev, EV_KEY, BTN_TOOL_DOUBLETAP, 1);
@@ -5382,11 +5382,7 @@ START_TEST(touchpad_tool_tripletap_touch_count)
 	libinput_dispatch(li);
 	msleep(2);
 
-	/* slot 2 reactivated:
-	 * Note, slot is activated close enough that we don't accidentally
-	 * trigger the clickfinger distance check, remains to be seen if
-	 * that is true for real-world interaction.
-	 */
+	/* slot 2 reactivated */
 	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
 	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 4000);
 	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 4000);
@@ -5467,8 +5463,8 @@ START_TEST(touchpad_tool_tripletap_touch_count_late)
 	/* touch 2 and TRIPLETAP down */
 	litest_event(dev, EV_ABS, ABS_MT_SLOT, 1);
 	litest_event(dev, EV_ABS, ABS_MT_TRACKING_ID, 1);
-	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 3200);
-	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3200);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 3500);
+	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 3500);
 	litest_event(dev, EV_ABS, ABS_MT_PRESSURE, 73);
 	litest_event(dev, EV_KEY, BTN_TOOL_FINGER, 0);
 	litest_event(dev, EV_KEY, BTN_TOOL_TRIPLETAP, 1);
@@ -5491,11 +5487,7 @@ START_TEST(touchpad_tool_tripletap_touch_count_late)
 	libinput_dispatch(li);
 	msleep(10);
 
-	/* slot 2 reactivated:
-	 * Note, slot is activated close enough that we don't accidentally
-	 * trigger the clickfinger distance check, remains to be seen if
-	 * that is true for real-world interaction.
-	 */
+	/* slot 2 reactivated */
 	litest_event(dev, EV_ABS, ABS_MT_SLOT, 0);
 	litest_event(dev, EV_ABS, ABS_MT_POSITION_X, 4000);
 	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 4000);
