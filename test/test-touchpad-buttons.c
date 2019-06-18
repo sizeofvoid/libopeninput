@@ -500,11 +500,10 @@ START_TEST(touchpad_3fg_clickfinger_distance)
 	litest_touch_down(dev, 0, 90, 90);
 	litest_touch_down(dev, 1, 10, 15);
 	litest_touch_down(dev, 2, 10, 15);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_touch_up(dev, 0);
 	litest_touch_up(dev, 1);
