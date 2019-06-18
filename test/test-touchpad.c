@@ -5060,7 +5060,33 @@ START_TEST(touchpad_thumb_area_update_no_motion)
 }
 END_TEST
 
-START_TEST(touchpad_thumb_area_moving)
+START_TEST(touchpad_thumb_area_small_move)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_disable_tap(dev->libinput_device);
+	litest_enable_clickfinger(dev);
+
+	if (!has_thumb_detect(dev))
+		return;
+
+	litest_drain_events(li);
+
+	/* movement less than the threshold */
+	litest_touch_down(dev, 0, 50, 99);
+	libinput_dispatch(li);
+	litest_timeout_thumb();
+	libinput_dispatch(li);
+
+	litest_touch_move_to(dev, 0, 50, 99, 52, 99, 10);
+	litest_touch_up(dev, 0);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touchpad_thumb_area_large_move)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -7076,7 +7102,8 @@ TEST_COLLECTION(touchpad)
 
 	litest_add("touchpad:thumb", touchpad_thumb_area_begin_no_motion, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_area_update_no_motion, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add("touchpad:thumb", touchpad_thumb_area_moving, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add("touchpad:thumb", touchpad_thumb_area_small_move, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add("touchpad:thumb", touchpad_thumb_area_large_move, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_speed_empty_slots, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:thumb", touchpad_thumb_area_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_area_btnarea, LITEST_CLICKPAD, LITEST_ANY);
