@@ -497,7 +497,7 @@ START_TEST(touchpad_3fg_clickfinger_distance)
 
 	litest_drain_events(li);
 
-	litest_touch_down(dev, 0, 90, 90);
+	litest_touch_down(dev, 0, 90, 70);
 	litest_touch_down(dev, 1, 10, 15);
 	litest_touch_down(dev, 2, 10, 15);
 
