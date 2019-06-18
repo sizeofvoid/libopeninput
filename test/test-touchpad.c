@@ -5148,7 +5148,7 @@ START_TEST(touchpad_thumb_area_clickfinger)
 	   Shouldn't matter in real life */
 	litest_touch_move_extended(dev, 0, 55, 99, axes);
 	libinput_dispatch(li);
-	litest_touch_down(dev, 1, 60, 99);
+	litest_touch_down(dev, 1, 60, 50);
 	libinput_dispatch(li);
 	litest_button_click(dev, BTN_LEFT, true);
 
@@ -5175,7 +5175,7 @@ START_TEST(touchpad_thumb_area_clickfinger)
 	   Shouldn't matter in real life */
 	litest_touch_move_extended(dev, 1, 60, 99, axes);
 	libinput_dispatch(li);
-	litest_touch_down(dev, 0, 50, 99);
+	litest_touch_down(dev, 0, 50, 50);
 	libinput_dispatch(li);
 	litest_button_click(dev, BTN_LEFT, true);
 
