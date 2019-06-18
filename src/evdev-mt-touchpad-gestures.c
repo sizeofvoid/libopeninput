@@ -30,8 +30,7 @@
 #include "evdev-mt-touchpad.h"
 
 #define DEFAULT_GESTURE_SWITCH_TIMEOUT ms2us(100)
-#define DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT ms2us(150)
-#define DEFAULT_GESTURE_2FG_PINCH_TIMEOUT ms2us(75)
+#define DEFAULT_GESTURE_SWIPE_TIMEOUT ms2us(150)
 
 static inline const char*
 gesture_state_to_str(enum tp_gesture_state state)
@@ -475,7 +474,7 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	vert_distance = abs(first->point.y - second->point.y);
 	horiz_distance = abs(first->point.x - second->point.x);
 
-	if (time > (tp->gesture.initial_time + DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT)) {
+	if (time > (tp->gesture.initial_time + DEFAULT_GESTURE_SWIPE_TIMEOUT)) {
 		/* for two-finger gestures, if the fingers stay unmoving for a
 		 * while, assume (slow) scroll */
 		if (tp->gesture.finger_count == 2) {
@@ -500,7 +499,7 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 		}
 	}
 
-	if (time > (tp->gesture.initial_time + DEFAULT_GESTURE_2FG_SCROLL_TIMEOUT)) {
+	if (time > (tp->gesture.initial_time + DEFAULT_GESTURE_SWIPE_TIMEOUT)) {
 		mm = evdev_convert_xy_to_mm(tp->device, horiz_distance, vert_distance);
 		if (tp->gesture.finger_count == 2 && mm.x > 40 && mm.y > 40)
 			return GESTURE_STATE_PINCH;
