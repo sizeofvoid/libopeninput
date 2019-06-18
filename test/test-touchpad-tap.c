@@ -1696,8 +1696,8 @@ START_TEST(touchpad_3fg_tap_pressure_btntool)
 	litest_touch_down(dev, 1, 70, 50);
 	libinput_dispatch(li);
 
-	litest_touch_move_to(dev, 0, 50, 50, 50, 70, 10);
-	litest_touch_move_to(dev, 1, 70, 50, 50, 70, 10);
+	litest_timeout_tap();
+	libinput_dispatch(li);
 	litest_drain_events(li);
 
 	/* drop below the pressure threshold in the same frame as starting a
