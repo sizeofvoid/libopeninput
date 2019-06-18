@@ -677,4 +677,7 @@ tp_palm_tap_is_palm(const struct tp_dispatch *tp, const struct tp_touch *t);
 void
 tp_clickpad_middlebutton_apply_config(struct evdev_device *device);
 
+bool
+tp_thumb_ignored(const struct tp_dispatch *tp, const struct tp_touch *t);
+
 #endif
