@@ -158,6 +158,8 @@ tp_init_thumb(struct tp_dispatch *tp)
 	struct quirks_context *quirks;
 	struct quirks *q;
 
+	tp->thumb.detect_thumbs = false;
+
 	if (!tp->buttons.is_clickpad)
 		return;
 
