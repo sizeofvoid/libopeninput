@@ -691,6 +691,9 @@ void
 tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time);
 
 void
+tp_detect_thumb_while_moving(struct tp_dispatch *tp);
+
+void
 tp_init_thumb(struct tp_dispatch *tp);
 
 void

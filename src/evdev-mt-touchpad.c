@@ -1494,52 +1494,6 @@ tp_detect_jumps(const struct tp_dispatch *tp,
 	return is_jump;
 }
 
-static void
-tp_detect_thumb_while_moving(struct tp_dispatch *tp)
-{
-	struct tp_touch *t;
-	struct tp_touch *first = NULL,
-			*second = NULL;
-	struct device_coords distance;
-	struct phys_coords mm;
-
-	tp_for_each_touch(tp, t) {
-		if (t->state == TOUCH_NONE ||
-		    t->state == TOUCH_HOVERING)
-			continue;
-
-		if (t->state != TOUCH_BEGIN)
-			first = t;
-		else
-			second = t;
-
-		if (first && second)
-			break;
-	}
-
-	assert(first);
-	assert(second);
-
-	if (tp->scroll.method == LIBINPUT_CONFIG_SCROLL_2FG) {
-		/* If the second finger comes down next to the other one, we
-		 * assume this is a scroll motion.
-		 */
-		distance.x = abs(first->point.x - second->point.x);
-		distance.y = abs(first->point.y - second->point.y);
-		mm = evdev_device_unit_delta_to_mm(tp->device, &distance);
-
-		if (mm.x <= 25 && mm.y <= 15)
-			return;
-	}
-
-	/* Finger are too far apart or 2fg scrolling is disabled, mark
-	 * second finger as thumb */
-	evdev_log_debug(tp->device,
-			"touch %d is speed-based thumb\n",
-			second->index);
-	tp_thumb_set_state(tp, second, THUMB_STATE_YES);
-}
-
 /**
  * Rewrite the motion history so that previous points' timestamps are the
  * current point's timestamp minus whatever MSC_TIMESTAMP gives us.
