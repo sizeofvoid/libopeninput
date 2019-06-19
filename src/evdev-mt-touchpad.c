@@ -1537,7 +1537,7 @@ tp_detect_thumb_while_moving(struct tp_dispatch *tp)
 	evdev_log_debug(tp->device,
 			"touch %d is speed-based thumb\n",
 			second->index);
-	second->thumb.state = THUMB_STATE_YES;
+	tp_thumb_set_state(tp, second, THUMB_STATE_YES);
 }
 
 /**

@@ -690,4 +690,9 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time);
 void
 tp_init_thumb(struct tp_dispatch *tp);
 
+void
+tp_thumb_set_state(struct tp_dispatch *tp,
+		   struct tp_touch *t,
+		   enum tp_thumb_state state);
+
 #endif

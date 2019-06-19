@@ -46,10 +46,25 @@ thumb_state_to_str(enum tp_thumb_state state)
 }
 
 void
+tp_thumb_set_state(struct tp_dispatch *tp,
+		   struct tp_touch *t,
+		   enum tp_thumb_state state)
+{
+	if (t->thumb.state == state)
+		return;
+
+	evdev_log_debug(tp->device,
+			"thumb: touch %d, %s → %s\n",
+			t->index,
+			thumb_state_to_str(t->thumb.state),
+			thumb_state_to_str(state));
+
+	t->thumb.state = state;
+}
+
+void
 tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 {
-	enum tp_thumb_state state = t->thumb.state;
-
 	/* once a thumb, always a thumb, once ruled out always ruled out */
 	if (!tp->thumb.detect_thumbs ||
 	    t->thumb.state != THUMB_STATE_MAYBE)
@@ -58,8 +73,8 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	if (t->point.y < tp->thumb.upper_thumb_line) {
 		/* if a potential thumb is above the line, it won't ever
 		 * label as thumb */
-		t->thumb.state = THUMB_STATE_NO;
-		goto out;
+		tp_thumb_set_state(tp, t, THUMB_STATE_NO);
+		return;
 	}
 
 	/* If the thumb moves by more than 7mm, it's not a resting thumb */
@@ -72,8 +87,8 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 		delta = device_delta(t->point, t->thumb.initial);
 		mm = tp_phys_delta(tp, delta);
 		if (length_in_mm(mm) > 7) {
-			t->thumb.state = THUMB_STATE_NO;
-			goto out;
+			tp_thumb_set_state(tp, t, THUMB_STATE_NO);
+			return;
 		}
 	}
 
@@ -91,9 +106,11 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 				continue;
 
 			if (other->point.y > tp->thumb.upper_thumb_line) {
-				t->thumb.state = THUMB_STATE_NO;
+				tp_thumb_set_state(tp, t, THUMB_STATE_NO);
 				if (other->thumb.state == THUMB_STATE_MAYBE)
-					other->thumb.state = THUMB_STATE_NO;
+					tp_thumb_set_state(tp,
+							   other,
+							   THUMB_STATE_NO);
 				break;
 			}
 		}
@@ -107,15 +124,15 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	 */
 	if (tp->thumb.use_pressure &&
 	    t->pressure > tp->thumb.pressure_threshold) {
-		t->thumb.state = THUMB_STATE_YES;
+		tp_thumb_set_state(tp, t, THUMB_STATE_YES);
 	} else if (tp->thumb.use_size &&
 		 (t->major > tp->thumb.size_threshold) &&
 		 (t->minor < (tp->thumb.size_threshold * 0.6))) {
-		t->thumb.state = THUMB_STATE_YES;
+		tp_thumb_set_state(tp, t, THUMB_STATE_YES);
 	} else if (t->point.y > tp->thumb.lower_thumb_line &&
 		 tp->scroll.method != LIBINPUT_CONFIG_SCROLL_EDGE &&
 		 t->thumb.first_touch_time + THUMB_MOVE_TIMEOUT < time) {
-		t->thumb.state = THUMB_STATE_YES;
+		tp_thumb_set_state(tp, t, THUMB_STATE_YES);
 	}
 
 	/* now what? we marked it as thumb, so:
@@ -128,13 +145,6 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	 * - tapping: honour thumb on begin, ignore it otherwise for now,
 	 *   this gets a tad complicated otherwise
 	 */
-out:
-	if (t->thumb.state != state)
-		evdev_log_debug(tp->device,
-			  "thumb state: touch %d, %s → %s\n",
-			  t->index,
-			  thumb_state_to_str(state),
-			  thumb_state_to_str(t->thumb.state));
 }
 
 void
