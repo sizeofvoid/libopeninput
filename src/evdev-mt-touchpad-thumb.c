@@ -63,6 +63,12 @@ tp_thumb_set_state(struct tp_dispatch *tp,
 }
 
 void
+tp_thumb_reset(struct tp_dispatch *tp, struct tp_touch *t)
+{
+	t->thumb.state = THUMB_STATE_MAYBE;
+}
+
+void
 tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 {
 	/* once a thumb, always a thumb, once ruled out always ruled out */

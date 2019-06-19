@@ -685,6 +685,9 @@ bool
 tp_thumb_ignored(const struct tp_dispatch *tp, const struct tp_touch *t);
 
 void
+tp_thumb_reset(struct tp_dispatch *tp, struct tp_touch *t);
+
+void
 tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time);
 
 void
