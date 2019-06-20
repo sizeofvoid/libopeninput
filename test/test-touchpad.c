@@ -5130,11 +5130,11 @@ START_TEST(touchpad_thumb_speed_empty_slots)
 	/* scroll in slots 1 and 2, despite another finger down this is a
 	 * 2fg gesture */
 	litest_touch_down(dev, 1, 50, 50);
-	litest_touch_down(dev, 2, 90, 50);
+	litest_touch_down(dev, 2, 55, 50);
 	libinput_dispatch(li);
 	for (int i = 0, y = 50; i < 10; i++, y++) {
 		litest_touch_move_to(dev, 1, 50, y, 50, y + 1, 1);
-		litest_touch_move_to(dev, 2, 50, y, 50, y + 1, 1);
+		litest_touch_move_to(dev, 2, 55, y, 50, y + 1, 1);
 	}
 	libinput_dispatch(li);
 	litest_touch_up(dev, 1);
