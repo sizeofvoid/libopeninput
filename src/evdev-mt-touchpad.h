@@ -688,10 +688,15 @@ void
 tp_thumb_reset(struct tp_dispatch *tp, struct tp_touch *t);
 
 void
-tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time);
+tp_thumb_update_touch(struct tp_dispatch *tp,
+		      struct tp_touch *t,
+		      uint64_t time);
 
 void
 tp_detect_thumb_while_moving(struct tp_dispatch *tp);
+
+void
+tp_thumb_update_multifinger(struct tp_dispatch *tp);
 
 void
 tp_init_thumb(struct tp_dispatch *tp);

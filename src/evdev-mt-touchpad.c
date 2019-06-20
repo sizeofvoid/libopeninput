@@ -1679,7 +1679,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 			tp_motion_history_reset(t);
 		}
 
-		tp_thumb_detect(tp, t, time);
+		tp_thumb_update_touch(tp, t, time);
 		tp_palm_detect(tp, t, time);
 		tp_detect_wobbling(tp, t, time);
 		tp_motion_hysteresis(tp, t);
@@ -1722,7 +1722,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 	if (have_new_touch &&
 	    tp->nfingers_down == 2 &&
 	    speed_exceeded_count > 5)
-		tp_detect_thumb_while_moving(tp);
+		tp_thumb_update_multifinger(tp);
 
 	if (restart_filter)
 		filter_restart(tp->device->pointer.filter, tp, time);

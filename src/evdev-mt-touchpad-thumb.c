@@ -102,7 +102,9 @@ tp_thumb_detect_pressure_size(const struct tp_dispatch *tp,
 }
 
 void
-tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+tp_thumb_update_touch(struct tp_dispatch *tp,
+		      struct tp_touch *t,
+		      uint64_t time)
 {
 	/* once a thumb, always a thumb, once ruled out always ruled out */
 	if (!tp->thumb.detect_thumbs ||
@@ -178,7 +180,7 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 }
 
 void
-tp_detect_thumb_while_moving(struct tp_dispatch *tp)
+tp_thumb_update_multifinger(struct tp_dispatch *tp)
 {
 	struct tp_touch *t;
 	struct tp_touch *first = NULL,
