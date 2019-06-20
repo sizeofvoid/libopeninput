@@ -5553,14 +5553,18 @@ START_TEST(touchpad_slot_swap)
 	litest_drain_events(li);
 
 	for (first = 0; first <= 1; first++) {
+		const double start[2][2] = {{50, 50}, {70, 70}};
 		second = 1 - first;
 
-		litest_touch_down(dev, 0, 50, 50);
+		litest_touch_down(dev, 0, start[0][0], start[0][1]);
 		libinput_dispatch(li);
-		litest_touch_down(dev, 1, 70, 70);
+		litest_touch_down(dev, 1, start[1][0], start[1][1]);
 		libinput_dispatch(li);
 
-		litest_touch_move_to(dev, first, 50, 50, 50, 30, 10);
+		litest_touch_move_to(dev, first,
+				     start[first][0],
+				     start[first][1],
+				     50, 30, 10);
 		litest_drain_events(li);
 
 		/* release touch 0, continue other slot with 0's coords */
