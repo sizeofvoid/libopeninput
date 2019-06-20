@@ -99,8 +99,7 @@ START_TEST(touchpad_2fg_no_motion)
 
 	litest_touch_down(dev, 0, 20, 20);
 	litest_touch_down(dev, 1, 70, 20);
-	litest_touch_move_to(dev, 0, 20, 20, 80, 80, 20);
-	litest_touch_move_to(dev, 1, 70, 20, 80, 50, 20);
+	litest_touch_move_two_touches(dev, 20, 20, 70, 20, 20, 30, 20);
 	litest_touch_up(dev, 1);
 	litest_touch_up(dev, 0);
 
