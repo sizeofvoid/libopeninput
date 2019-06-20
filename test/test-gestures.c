@@ -29,6 +29,10 @@
 #include "libinput-util.h"
 #include "litest.h"
 
+enum cardinal {
+	N, NE, E, SE, S, SW, W, NW, NCARDINALS
+};
+
 START_TEST(gestures_cap)
 {
 	struct litest_device *dev = litest_current_device();
@@ -62,7 +66,7 @@ START_TEST(gestures_swipe_3fg)
 	double dx, dy;
 	int cardinal = _i; /* ranged test */
 	double dir_x, dir_y;
-	int cardinals[8][2] = {
+	int cardinals[NCARDINALS][2] = {
 		{ 0, 30 },
 		{ 30, 30 },
 		{ 30, 0 },
@@ -161,7 +165,7 @@ START_TEST(gestures_swipe_3fg_btntool)
 	double dx, dy;
 	int cardinal = _i; /* ranged test */
 	double dir_x, dir_y;
-	int cardinals[8][2] = {
+	int cardinals[NCARDINALS][2] = {
 		{ 0, 30 },
 		{ 30, 30 },
 		{ 30, 0 },
@@ -264,7 +268,7 @@ START_TEST(gestures_swipe_4fg)
 	double dx, dy;
 	int cardinal = _i; /* ranged test */
 	double dir_x, dir_y;
-	int cardinals[8][2] = {
+	int cardinals[NCARDINALS][2] = {
 		{ 0, 3 },
 		{ 3, 3 },
 		{ 3, 0 },
@@ -391,7 +395,7 @@ START_TEST(gestures_swipe_4fg_btntool)
 	double dx, dy;
 	int cardinal = _i; /* ranged test */
 	double dir_x, dir_y;
-	int cardinals[8][2] = {
+	int cardinals[NCARDINALS][2] = {
 		{ 0, 30 },
 		{ 30, 30 },
 		{ 30, 0 },
@@ -549,7 +553,7 @@ START_TEST(gestures_pinch)
 	int i;
 	double scale, oldscale;
 	double angle;
-	int cardinals[8][2] = {
+	int cardinals[NCARDINALS][2] = {
 		{ 0, 30 },
 		{ 30, 30 },
 		{ 30, 0 },
@@ -650,7 +654,7 @@ START_TEST(gestures_pinch_3fg)
 	int i;
 	double scale, oldscale;
 	double angle;
-	int cardinals[8][2] = {
+	int cardinals[NCARDINALS][2] = {
 		{ 0, 30 },
 		{ 30, 30 },
 		{ 30, 0 },
@@ -755,7 +759,7 @@ START_TEST(gestures_pinch_4fg)
 	int i;
 	double scale, oldscale;
 	double angle;
-	int cardinals[8][2] = {
+	int cardinals[NCARDINALS][2] = {
 		{ 0, 30 },
 		{ 30, 30 },
 		{ 30, 0 },
@@ -866,7 +870,7 @@ START_TEST(gestures_spread)
 	int i;
 	double scale, oldscale;
 	double angle;
-	int cardinals[8][2] = {
+	int cardinals[NCARDINALS][2] = {
 		{ 0, 30 },
 		{ 30, 30 },
 		{ 30, 0 },
@@ -1040,8 +1044,7 @@ END_TEST
 
 TEST_COLLECTION(gestures)
 {
-	/* N, NE, ... */
-	struct range cardinals = { 0, 8 };
+	struct range cardinals = { N, N + NCARDINALS };
 	struct range fingers = { 3, 5 };
 
 	litest_add("gestures:cap", gestures_cap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
