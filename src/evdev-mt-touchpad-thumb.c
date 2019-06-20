@@ -68,6 +68,39 @@ tp_thumb_reset(struct tp_dispatch *tp, struct tp_touch *t)
 	t->thumb.state = THUMB_STATE_MAYBE;
 }
 
+static bool
+tp_thumb_in_exclusion_area(const struct tp_dispatch *tp,
+			   const struct tp_touch *t,
+			   uint64_t time)
+{
+	return (t->point.y > tp->thumb.lower_thumb_line &&
+		tp->scroll.method != LIBINPUT_CONFIG_SCROLL_EDGE &&
+	        t->thumb.first_touch_time + THUMB_MOVE_TIMEOUT < time);
+
+}
+
+static bool
+tp_thumb_detect_pressure_size(const struct tp_dispatch *tp,
+			      const struct tp_touch *t,
+			      uint64_t time)
+{
+	bool is_thumb = false;
+
+	if (tp->thumb.use_pressure &&
+	    t->pressure > tp->thumb.pressure_threshold &&
+	    tp_thumb_in_exclusion_area(tp, t, time)) {
+		is_thumb = true;
+	}
+
+	if (tp->thumb.use_size &&
+	    (t->major > tp->thumb.size_threshold) &&
+	    (t->minor < (tp->thumb.size_threshold * 0.6))) {
+		is_thumb = true;
+	}
+
+	return is_thumb;
+}
+
 void
 tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 {
@@ -128,18 +161,9 @@ tp_thumb_detect(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	 * A finger that remains at the very bottom of the touchpad becomes
 	 * a thumb.
 	 */
-	if (tp->thumb.use_pressure &&
-	    t->pressure > tp->thumb.pressure_threshold) {
+	if (tp_thumb_detect_pressure_size(tp, t, time) ||
+	    tp_thumb_in_exclusion_area(tp, t, time))
 		tp_thumb_set_state(tp, t, THUMB_STATE_YES);
-	} else if (tp->thumb.use_size &&
-		 (t->major > tp->thumb.size_threshold) &&
-		 (t->minor < (tp->thumb.size_threshold * 0.6))) {
-		tp_thumb_set_state(tp, t, THUMB_STATE_YES);
-	} else if (t->point.y > tp->thumb.lower_thumb_line &&
-		 tp->scroll.method != LIBINPUT_CONFIG_SCROLL_EDGE &&
-		 t->thumb.first_touch_time + THUMB_MOVE_TIMEOUT < time) {
-		tp_thumb_set_state(tp, t, THUMB_STATE_YES);
-	}
 
 	/* now what? we marked it as thumb, so:
 	 *
