@@ -552,7 +552,7 @@ START_TEST(touchpad_2fg_scroll_from_btnareas)
 
 	for (int i = 0; i < 20; i++) {
 		litest_touch_move(dev, 0, 30, 90 - i);
-		litest_touch_move(dev, 1, 30, 95 - i);
+		litest_touch_move(dev, 1, 50, 95 - i);
 	}
 	libinput_dispatch(li);
 
