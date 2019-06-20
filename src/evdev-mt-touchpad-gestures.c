@@ -499,12 +499,13 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 
 	/* If both touches are within 7mm vertically and 40mm horizontally
 	 * past the timeout, assume scroll/swipe */
-	if (distance_mm.x < 40.0 && distance_mm.y < 7.0 &&
+	if ((!tp->gesture.enabled ||
+	     (distance_mm.x < 40.0 && distance_mm.y < 7.0)) &&
 	    time > (tp->gesture.initial_time + DEFAULT_GESTURE_SWIPE_TIMEOUT)) {
 		if (tp->gesture.finger_count == 2) {
 			tp_gesture_set_scroll_buildup(tp);
 			return GESTURE_STATE_SCROLL;
-		} else if (tp->gesture.enabled) {
+		} else {
 			return GESTURE_STATE_SWIPE;
 		}
 	}
