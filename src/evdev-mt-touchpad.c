@@ -353,8 +353,6 @@ tp_begin_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->was_down = true;
 	tp->nfingers_down++;
 	t->palm.time = time;
-	tp_thumb_reset(tp, t);
-	t->thumb.first_touch_time = time;
 	t->tap.is_thumb = false;
 	t->tap.is_palm = false;
 	t->speed.exceeded_count = 0;
@@ -784,7 +782,7 @@ tp_touch_active_for_gesture(const struct tp_dispatch *tp, const struct tp_touch 
 	return (t->state == TOUCH_BEGIN || t->state == TOUCH_UPDATE) &&
 		t->palm.state == PALM_NONE &&
 		!t->pinned.is_pinned &&
-		!tp_thumb_ignored(tp, t) &&
+		!tp_thumb_ignored_for_gesture(tp, t) &&
 		tp_button_touch_active(tp, t) &&
 		tp_edge_scroll_touch_active(tp, t);
 }
@@ -1717,11 +1715,9 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 		}
 	}
 
-	/* If we have one touch that exceeds the speed and we get a new
-	 * touch down while doing that, the second touch is a thumb */
-	if (have_new_touch &&
-	    tp->nfingers_down == 2 &&
-	    speed_exceeded_count > 5)
+	if (tp->thumb.detect_thumbs &&
+	    have_new_touch &&
+	    tp->nfingers_down >= 2)
 		tp_thumb_update_multifinger(tp);
 
 	if (restart_filter)
@@ -1769,6 +1765,9 @@ tp_post_process_state(struct tp_dispatch *tp, uint64_t time)
 	tp->buttons.old_state = tp->buttons.state;
 
 	tp->queued = TOUCHPAD_EVENT_NONE;
+
+	if (tp->nfingers_down == 0)
+		tp_thumb_reset(tp);
 
 	tp_tap_post_process_state(tp);
 }
@@ -1961,6 +1960,8 @@ tp_clear_state(struct tp_dispatch *tp)
 	 *
 	 * Then lift all touches so the touchpad is in a neutral state.
 	 *
+	 * Then reset thumb state.
+	 *
 	 */
 	tp_release_all_buttons(tp, now);
 	tp_release_all_taps(tp, now);
@@ -1969,6 +1970,8 @@ tp_clear_state(struct tp_dispatch *tp)
 		tp_end_sequence(tp, t, now);
 	}
 	tp_release_fake_touches(tp);
+
+	tp_thumb_reset(tp);
 
 	tp_handle_state(tp, now);
 }
@@ -3300,7 +3303,6 @@ tp_init_sendevents(struct tp_dispatch *tp,
 			    timer_name,
 			    tp_keyboard_timeout, tp);
 }
-
 
 static bool
 tp_pass_sanity_check(struct tp_dispatch *tp,

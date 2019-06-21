@@ -5006,7 +5006,7 @@ has_thumb_detect(struct litest_device *dev)
 	return h >= 50.0;
 }
 
-START_TEST(touchpad_thumb_area_begin_no_motion)
+START_TEST(touchpad_thumb_lower_area_movement)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -5018,86 +5018,38 @@ START_TEST(touchpad_thumb_area_begin_no_motion)
 
 	litest_drain_events(li);
 
+	/* Thumb below lower line - slow movement - no events */
 	litest_touch_down(dev, 0, 50, 99);
-	libinput_dispatch(li);
-	litest_timeout_thumb();
-	libinput_dispatch(li);
-	litest_touch_move_to(dev, 0, 50, 99, 80, 99, 10);
+	litest_touch_move_to(dev, 0, 55, 99, 60, 99, 50);
+	litest_assert_empty_queue(li);
+
+	/* Thumb below lower line - fast movement - events */
+	litest_touch_move_to(dev, 0, 60, 99, 90, 99, 30);
 	litest_touch_up(dev, 0);
 
-	litest_assert_empty_queue(li);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 }
 END_TEST
 
-START_TEST(touchpad_thumb_area_update_no_motion)
+START_TEST(touchpad_thumb_lower_area_movement_rethumb)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	litest_disable_tap(dev->libinput_device);
-	litest_enable_clickfinger(dev);
-
 	if (!has_thumb_detect(dev))
 		return;
 
-	litest_drain_events(li);
-
-	litest_touch_down(dev, 0, 59, 99);
-	litest_touch_move_to(dev, 0, 59, 99, 61, 99, 10);
-	libinput_dispatch(li);
-	/* the first move may trigger events, but not after the timeout */
-	litest_drain_events(li);
-	litest_timeout_thumb();
-	libinput_dispatch(li);
-	litest_touch_move_to(dev, 0, 61, 99, 80, 99, 10);
-	litest_touch_up(dev, 0);
-
-	litest_assert_empty_queue(li);
-}
-END_TEST
-
-START_TEST(touchpad_thumb_area_small_move)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-
 	litest_disable_tap(dev->libinput_device);
-	litest_enable_clickfinger(dev);
-
-	if (!has_thumb_detect(dev))
-		return;
 
 	litest_drain_events(li);
 
-	/* movement less than the threshold */
+	/* Thumb below lower line - fast movement - events */
 	litest_touch_down(dev, 0, 50, 99);
-	libinput_dispatch(li);
-	litest_timeout_thumb();
-	libinput_dispatch(li);
-
-	litest_touch_move_to(dev, 0, 50, 99, 52, 99, 10);
-	litest_touch_up(dev, 0);
-
-	litest_assert_empty_queue(li);
-}
-END_TEST
-
-START_TEST(touchpad_thumb_area_large_move)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-
-	litest_disable_tap(dev->libinput_device);
-	litest_enable_clickfinger(dev);
-
-	if (!has_thumb_detect(dev))
-		return;
-
+	litest_touch_move_to(dev, 0, 50, 99, 90, 99, 30);
 	litest_drain_events(li);
 
-	/* moving within the area triggers events */
-	litest_touch_down(dev, 0, 50, 99);
-	litest_touch_move_to(dev, 0, 50, 99, 80, 99, 10);
+	/* slow movement after being a non-touch - still events */
+	litest_touch_move_to(dev, 0, 90, 99, 60, 99, 50);
 	litest_touch_up(dev, 0);
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
@@ -5147,10 +5099,6 @@ START_TEST(touchpad_thumb_area_clickfinger)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 31 },
-		{ -1, 0 }
-	};
 
 	if (!has_thumb_detect(dev))
 		return;
@@ -5162,13 +5110,7 @@ START_TEST(touchpad_thumb_area_clickfinger)
 
 	litest_drain_events(li);
 
-	litest_touch_down(dev, 0, 50, 99);
-	libinput_dispatch(li);
-	litest_timeout_thumb();
-	libinput_dispatch(li);
-	/* Need an extra event because the thumb doesn't have proper timers.
-	   Shouldn't matter in real life */
-	litest_touch_move_extended(dev, 0, 55, 99, axes);
+	litest_touch_down(dev, 0, 50, 99); /* thumb */
 	libinput_dispatch(li);
 	litest_touch_down(dev, 1, 60, 50);
 	libinput_dispatch(li);
@@ -5189,13 +5131,7 @@ START_TEST(touchpad_thumb_area_clickfinger)
 
 	litest_drain_events(li);
 
-	litest_touch_down(dev, 1, 60, 99);
-	libinput_dispatch(li);
-	litest_timeout_thumb();
-	libinput_dispatch(li);
-	/* Need an extra event because the thumb doesn't have proper timers.
-	   Shouldn't matter in real life */
-	litest_touch_move_extended(dev, 1, 60, 99, axes);
+	litest_touch_down(dev, 1, 60, 99); /* thumb */
 	libinput_dispatch(li);
 	litest_touch_down(dev, 0, 50, 50);
 	libinput_dispatch(li);
@@ -5217,10 +5153,6 @@ START_TEST(touchpad_thumb_area_btnarea)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct axis_replacement axes[] = {
-		{ ABS_MT_PRESSURE, 31 },
-		{ -1, 0 }
-	};
 
 	if (!has_thumb_detect(dev))
 		return;
@@ -5232,11 +5164,8 @@ START_TEST(touchpad_thumb_area_btnarea)
 
 	litest_drain_events(li);
 
-	litest_touch_down(dev, 0, 90, 99);
+	litest_touch_down(dev, 0, 90, 99); /* thumb */
 	libinput_dispatch(li);
-	litest_timeout_thumb();
-	libinput_dispatch(li);
-	litest_touch_move_extended(dev, 0, 95, 99, axes);
 	litest_button_click(dev, BTN_LEFT, true);
 
 	/* button areas work as usual with a thumb */
@@ -5265,17 +5194,17 @@ START_TEST(touchpad_thumb_no_doublethumb)
 
 	litest_drain_events(li);
 
+	/* two touches in thumb area but we can't have two thumbs */
 	litest_touch_down(dev, 0, 50, 99);
+	/* random sleep interval. we don't have a thumb timer, but let's not
+	 * put both touches down and move them immediately because that
+	 * should always be a scroll event anyway. Go with a delay in
+	 * between to make it more likely that this is really testing thumb
+	 * detection.
+	 */
+	msleep(200);
+	libinput_dispatch(li);
 	litest_touch_down(dev, 1, 70, 99);
-	/* move touch to trigger the thumb detection */
-	litest_touch_move(dev, 0, 50, 99.2);
-
-	libinput_dispatch(li);
-	litest_timeout_thumb();
-	libinput_dispatch(li);
-
-	/* move touch to trigger the thumb detection */
-	litest_touch_move(dev, 1, 70, 99.2);
 	libinput_dispatch(li);
 
 	litest_touch_move_two_touches(dev, 50, 99, 70, 99, 0, -20, 10);
@@ -5283,42 +5212,6 @@ START_TEST(touchpad_thumb_no_doublethumb)
 	litest_touch_up(dev, 1);
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
-}
-END_TEST
-
-START_TEST(touchpad_thumb_no_doublethumb_with_timeout)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-
-	litest_disable_tap(dev->libinput_device);
-	litest_enable_clickfinger(dev);
-
-	if (!has_thumb_detect(dev))
-		return;
-
-	litest_drain_events(li);
-
-	litest_touch_down(dev, 0, 50, 99.9);
-	libinput_dispatch(li);
-	litest_timeout_thumb();
-	libinput_dispatch(li);
-	/* Thumbs don't have a timeout handler, so we have to move the thumb
-	 * a bit to trigger. */
-	litest_touch_move(dev, 0, 50, 99.8);
-
-	/* first touch should now be a thumb */
-
-	litest_touch_down(dev, 1, 70, 99.9);
-	libinput_dispatch(li);
-	litest_timeout_thumb();
-	libinput_dispatch(li);
-	litest_touch_move(dev, 1, 70, 99.8);
-	litest_touch_move_two_touches(dev, 50, 99, 70, 99, 0, -20, 10);
-	litest_touch_up(dev, 0);
-	litest_touch_up(dev, 1);
-
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 }
 END_TEST
 
@@ -7137,15 +7030,12 @@ TEST_COLLECTION(touchpad)
 	litest_add_for_device("touchpad:dwt", touchpad_dwt_multiple_keyboards_bothkeys_modifier, LITEST_SYNAPTICS_I2C);
 	litest_add_ranged_for_device("touchpad:dwt", touchpad_dwt_multiple_keyboards_remove, LITEST_SYNAPTICS_I2C, &twice);
 
-	litest_add("touchpad:thumb", touchpad_thumb_area_begin_no_motion, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add("touchpad:thumb", touchpad_thumb_area_update_no_motion, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add("touchpad:thumb", touchpad_thumb_area_small_move, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add("touchpad:thumb", touchpad_thumb_area_large_move, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add("touchpad:thumb", touchpad_thumb_lower_area_movement, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add("touchpad:thumb", touchpad_thumb_lower_area_movement_rethumb, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_speed_empty_slots, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add("touchpad:thumb", touchpad_thumb_area_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_area_btnarea, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:thumb", touchpad_thumb_no_doublethumb, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add("touchpad:thumb", touchpad_thumb_no_doublethumb_with_timeout, LITEST_CLICKPAD, LITEST_ANY);
 
 	litest_add_for_device("touchpad:bugs", touchpad_tool_tripletap_touch_count, LITEST_SYNAPTICS_TOPBUTTONPAD);
 	litest_add_for_device("touchpad:bugs", touchpad_tool_tripletap_touch_count_late, LITEST_SYNAPTICS_TOPBUTTONPAD);

@@ -139,9 +139,13 @@ enum tp_gesture_state {
 };
 
 enum tp_thumb_state {
-	THUMB_STATE_NO,
-	THUMB_STATE_YES,
-	THUMB_STATE_MAYBE,
+	THUMB_STATE_FINGER,
+	THUMB_STATE_JAILED,
+	THUMB_STATE_PINCH,
+	THUMB_STATE_SUPPRESSED,
+	THUMB_STATE_REVIVED,
+	THUMB_STATE_REVIVED_JAILED,
+	THUMB_STATE_DEAD,
 };
 
 enum tp_jump_state {
@@ -236,12 +240,6 @@ struct tp_touch {
 	struct {
 		struct device_coords initial;
 	} gesture;
-
-	struct {
-		enum tp_thumb_state state;
-		uint64_t first_touch_time;
-		struct device_coords initial;
-	} thumb;
 
 	struct {
 		double last_speed; /* speed in mm/s at last sample */
@@ -457,6 +455,10 @@ struct tp_dispatch {
 
 		bool use_size;
 		int size_threshold;
+
+		enum tp_thumb_state state;
+		unsigned int index;
+		bool pinch_eligible;
 	} thumb;
 
 	struct {
@@ -685,7 +687,14 @@ bool
 tp_thumb_ignored(const struct tp_dispatch *tp, const struct tp_touch *t);
 
 void
-tp_thumb_reset(struct tp_dispatch *tp, struct tp_touch *t);
+tp_thumb_reset(struct tp_dispatch *tp);
+
+bool
+tp_thumb_ignored_for_gesture(const struct tp_dispatch *tp, const struct tp_touch *t);
+
+bool
+tp_thumb_ignored_for_tap(const struct tp_dispatch *tp,
+			 const struct tp_touch *t);
 
 void
 tp_thumb_suppress(struct tp_dispatch *tp, struct tp_touch *t);
@@ -703,10 +712,5 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp);
 
 void
 tp_init_thumb(struct tp_dispatch *tp);
-
-void
-tp_thumb_set_state(struct tp_dispatch *tp,
-		   struct tp_touch *t,
-		   enum tp_thumb_state state);
 
 #endif

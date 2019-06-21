@@ -25,70 +25,79 @@
 #include "config.h"
 #include "evdev-mt-touchpad.h"
 
-#define THUMB_MOVE_TIMEOUT ms2us(300)
-
-bool
-tp_thumb_ignored(const struct tp_dispatch *tp, const struct tp_touch *t)
-{
-	return t->thumb.state == THUMB_STATE_YES;
-}
+/* distance between fingers to assume it is not a scroll */
+#define SCROLL_MM_X 35
+#define SCROLL_MM_Y 25
 
 static inline const char*
 thumb_state_to_str(enum tp_thumb_state state)
 {
 	switch(state){
-	CASE_RETURN_STRING(THUMB_STATE_NO);
-	CASE_RETURN_STRING(THUMB_STATE_YES);
-	CASE_RETURN_STRING(THUMB_STATE_MAYBE);
+	CASE_RETURN_STRING(THUMB_STATE_FINGER);
+	CASE_RETURN_STRING(THUMB_STATE_JAILED);
+	CASE_RETURN_STRING(THUMB_STATE_PINCH);
+	CASE_RETURN_STRING(THUMB_STATE_SUPPRESSED);
+	CASE_RETURN_STRING(THUMB_STATE_REVIVED);
+	CASE_RETURN_STRING(THUMB_STATE_REVIVED_JAILED);
+	CASE_RETURN_STRING(THUMB_STATE_DEAD);
 	}
 
 	return NULL;
 }
 
-void
+static void
 tp_thumb_set_state(struct tp_dispatch *tp,
 		   struct tp_touch *t,
 		   enum tp_thumb_state state)
 {
-	if (t->thumb.state == state)
+	unsigned int index = t ? t->index : UINT_MAX;
+
+	if (tp->thumb.state == state && tp->thumb.index == index)
 		return;
 
 	evdev_log_debug(tp->device,
 			"thumb: touch %d, %s → %s\n",
-			t->index,
-			thumb_state_to_str(t->thumb.state),
+			(int)index,
+			thumb_state_to_str(tp->thumb.state),
 			thumb_state_to_str(state));
 
-	t->thumb.state = state;
+	tp->thumb.state = state;
+	tp->thumb.index = index;
 }
 
 void
-tp_thumb_reset(struct tp_dispatch *tp, struct tp_touch *t)
+tp_thumb_reset(struct tp_dispatch *tp)
 {
-	t->thumb.state = THUMB_STATE_MAYBE;
+	tp->thumb.state = THUMB_STATE_FINGER;
+	tp->thumb.index = UINT_MAX;
+	tp->thumb.pinch_eligible = true;
+}
+
+static void
+tp_thumb_lift(struct tp_dispatch *tp)
+{
+	tp->thumb.state = THUMB_STATE_FINGER;
+	tp->thumb.index = UINT_MAX;
 }
 
 static bool
 tp_thumb_in_exclusion_area(const struct tp_dispatch *tp,
-			   const struct tp_touch *t,
-			   uint64_t time)
+			   const struct tp_touch *t)
 {
 	return (t->point.y > tp->thumb.lower_thumb_line &&
-		tp->scroll.method != LIBINPUT_CONFIG_SCROLL_EDGE &&
-	        t->thumb.first_touch_time + THUMB_MOVE_TIMEOUT < time);
+		tp->scroll.method != LIBINPUT_CONFIG_SCROLL_EDGE);
 
 }
 
 static bool
 tp_thumb_detect_pressure_size(const struct tp_dispatch *tp,
-			      const struct tp_touch *t,
-			      uint64_t time)
+			      const struct tp_touch *t)
 {
 	bool is_thumb = false;
 
 	if (tp->thumb.use_pressure &&
 	    t->pressure > tp->thumb.pressure_threshold &&
-	    tp_thumb_in_exclusion_area(tp, t, time)) {
+	    tp_thumb_in_exclusion_area(tp, t)) {
 		is_thumb = true;
 	}
 
@@ -101,10 +110,94 @@ tp_thumb_detect_pressure_size(const struct tp_dispatch *tp,
 	return is_thumb;
 }
 
+static bool
+tp_thumb_needs_jail(const struct tp_dispatch *tp, const struct tp_touch *t)
+{
+	if (t->point.y < tp->thumb.upper_thumb_line)
+		return false;
+
+	if (!tp_thumb_in_exclusion_area(tp, t) &&
+	    !tp_thumb_detect_pressure_size(tp, t))
+		return false;
+
+	if (t->speed.exceeded_count >= 10)
+		return false;
+
+	return true;
+}
+
+bool
+tp_thumb_ignored(const struct tp_dispatch *tp, const struct tp_touch *t)
+{
+	return (tp->thumb.detect_thumbs &&
+		tp->thumb.index == t->index &&
+		(tp->thumb.state == THUMB_STATE_JAILED ||
+		 tp->thumb.state == THUMB_STATE_PINCH ||
+		 tp->thumb.state == THUMB_STATE_SUPPRESSED ||
+		 tp->thumb.state == THUMB_STATE_REVIVED_JAILED ||
+		 tp->thumb.state == THUMB_STATE_DEAD));
+}
+
+bool
+tp_thumb_ignored_for_tap(const struct tp_dispatch *tp,
+			 const struct tp_touch *t)
+{
+	return (tp->thumb.detect_thumbs &&
+		tp->thumb.index == t->index &&
+		(tp->thumb.state == THUMB_STATE_PINCH ||
+		 tp->thumb.state == THUMB_STATE_SUPPRESSED ||
+		 tp->thumb.state == THUMB_STATE_DEAD));
+}
+
+bool
+tp_thumb_ignored_for_gesture(const struct tp_dispatch *tp,
+			     const struct tp_touch *t)
+{
+	return (tp->thumb.detect_thumbs &&
+		tp->thumb.index == t->index &&
+		(tp->thumb.state == THUMB_STATE_JAILED ||
+		 tp->thumb.state == THUMB_STATE_SUPPRESSED ||
+		 tp->thumb.state == THUMB_STATE_REVIVED_JAILED ||
+		 tp->thumb.state == THUMB_STATE_DEAD));
+}
+
 void
 tp_thumb_suppress(struct tp_dispatch *tp, struct tp_touch *t)
 {
-	tp_thumb_set_state(tp, t, THUMB_STATE_YES);
+	if(tp->thumb.state == THUMB_STATE_FINGER ||
+	   tp->thumb.state == THUMB_STATE_JAILED ||
+	   tp->thumb.state == THUMB_STATE_PINCH ||
+	   tp->thumb.index != t->index) {
+		tp_thumb_set_state(tp, t, THUMB_STATE_SUPPRESSED);
+		return;
+	}
+
+	tp_thumb_set_state(tp, t, THUMB_STATE_DEAD);
+}
+
+static void
+tp_thumb_pinch(struct tp_dispatch *tp, struct tp_touch *t)
+{
+	if(tp->thumb.state == THUMB_STATE_FINGER ||
+	   tp->thumb.state == THUMB_STATE_JAILED ||
+	   tp->thumb.index != t->index)
+		tp_thumb_set_state(tp, t, THUMB_STATE_PINCH);
+	else if (tp->thumb.state != THUMB_STATE_PINCH)
+		tp_thumb_suppress(tp, t);
+}
+
+static void
+tp_thumb_revive(struct tp_dispatch *tp, struct tp_touch *t)
+{
+	if((tp->thumb.state != THUMB_STATE_SUPPRESSED &&
+	    tp->thumb.state != THUMB_STATE_PINCH) ||
+	   (tp->thumb.index != t->index))
+		return;
+
+	if(tp_thumb_needs_jail(tp, t))
+		tp_thumb_set_state(tp, t, THUMB_STATE_REVIVED_JAILED);
+	else
+		tp_thumb_set_state(tp, t, THUMB_STATE_REVIVED);
 }
 
 void
@@ -112,77 +205,62 @@ tp_thumb_update_touch(struct tp_dispatch *tp,
 		      struct tp_touch *t,
 		      uint64_t time)
 {
-	/* once a thumb, always a thumb, once ruled out always ruled out */
-	if (!tp->thumb.detect_thumbs ||
-	    t->thumb.state != THUMB_STATE_MAYBE)
+	if (!tp->thumb.detect_thumbs)
 		return;
 
-	if (t->point.y < tp->thumb.upper_thumb_line) {
-		/* if a potential thumb is above the line, it won't ever
-		 * label as thumb */
-		tp_thumb_set_state(tp, t, THUMB_STATE_NO);
-		return;
-	}
-
-	/* If the thumb moves by more than 7mm, it's not a resting thumb */
-	if (t->state == TOUCH_BEGIN) {
-		t->thumb.initial = t->point;
-	} else if (t->state == TOUCH_UPDATE) {
-		struct device_float_coords delta;
-		struct phys_coords mm;
-
-		delta = device_delta(t->point, t->thumb.initial);
-		mm = tp_phys_delta(tp, delta);
-		if (length_in_mm(mm) > 7) {
-			tp_thumb_set_state(tp, t, THUMB_STATE_NO);
-			return;
-		}
-	}
-
-	/* If the finger is below the upper thumb line and we have another
-	 * finger in the same area, neither finger is a thumb (unless we've
-	 * already labeled it as such).
+	/* Once any active touch exceeds the speed threshold, don't
+	 * try to detect pinches until all touches lift.
 	 */
-	if (t->point.y > tp->thumb.upper_thumb_line &&
-	    tp->nfingers_down > 1) {
-		struct tp_touch *other;
+	if (t->speed.exceeded_count >= 10 &&
+	    tp->thumb.pinch_eligible &&
+	    tp->gesture.state == GESTURE_STATE_NONE) {
+		tp->thumb.pinch_eligible = false;
+		if(tp->thumb.state == THUMB_STATE_PINCH) {
+			struct tp_touch *thumb;
+			tp_for_each_touch(tp, thumb) {
+				if (thumb->index != tp->thumb.index)
+					continue;
 
-		tp_for_each_touch(tp, other) {
-			if (other->state != TOUCH_BEGIN &&
-			    other->state != TOUCH_UPDATE)
-				continue;
-
-			if (other->point.y > tp->thumb.upper_thumb_line) {
-				tp_thumb_set_state(tp, t, THUMB_STATE_NO);
-				if (other->thumb.state == THUMB_STATE_MAYBE)
-					tp_thumb_set_state(tp,
-							   other,
-							   THUMB_STATE_NO);
+				tp_thumb_set_state(tp, thumb, THUMB_STATE_SUPPRESSED);
 				break;
 			}
 		}
 	}
 
-	/* Note: a thumb at the edge of the touchpad won't trigger the
-	 * threshold, the surface area is usually too small. So we have a
-	 * two-stage detection: pressure and time within the area.
-	 * A finger that remains at the very bottom of the touchpad becomes
-	 * a thumb.
-	 */
-	if (tp_thumb_detect_pressure_size(tp, t, time) ||
-	    tp_thumb_in_exclusion_area(tp, t, time))
-		tp_thumb_set_state(tp, t, THUMB_STATE_YES);
+	/* Handle the thumb lifting off the touchpad */
+	if (t->state == TOUCH_END && t->index == tp->thumb.index) {
+		tp_thumb_lift(tp);
+		return;
+	}
 
-	/* now what? we marked it as thumb, so:
-	 *
-	 * - pointer motion must ignore this touch
-	 * - clickfinger must ignore this touch for finger count
-	 * - software buttons are unaffected
-	 * - edge scrolling unaffected
-	 * - gestures: unaffected
-	 * - tapping: honour thumb on begin, ignore it otherwise for now,
-	 *   this gets a tad complicated otherwise
+	/* If this touch is not the only one, thumb updates happen by context
+	 * instead of here
 	 */
+	if (tp->nfingers_down > 1)
+		return;
+
+	/* If we arrived here by other fingers lifting off, revive current touch
+	 * if appropriate
+	 */
+	tp_thumb_revive(tp, t);
+
+	/* First new touch below the lower_thumb_line, or below the upper_thumb_
+	 * line if hardware can't verify it's a finger, starts as JAILED.
+	 */
+	if (t->state == TOUCH_BEGIN && tp_thumb_needs_jail(tp, t)) {
+		tp_thumb_set_state(tp, t, THUMB_STATE_JAILED);
+		return;
+	}
+
+	/* If a touch breaks the speed threshold, or leaves the thumb area
+	 * (upper or lower, depending on HW detection), it "escapes" jail.
+	 */
+	if (tp->thumb.state == THUMB_STATE_JAILED &&
+	    !(tp_thumb_needs_jail(tp, t)))
+		tp_thumb_set_state(tp, t, THUMB_STATE_FINGER);
+	if (tp->thumb.state == THUMB_STATE_REVIVED_JAILED &&
+	    !(tp_thumb_needs_jail(tp, t)))
+		tp_thumb_set_state(tp, t, THUMB_STATE_REVIVED);
 }
 
 void
@@ -190,45 +268,81 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp)
 {
 	struct tp_touch *t;
 	struct tp_touch *first = NULL,
-			*second = NULL;
+			*second = NULL,
+			*newest = NULL;
 	struct device_coords distance;
 	struct phys_coords mm;
+	unsigned int speed_exceeded_count = 0;
 
+	/* Get the first and second bottom-most touches, the max speed exceeded
+	 * count overall, and the newest touch (or one of them, if more).
+	 */
 	tp_for_each_touch(tp, t) {
 		if (t->state == TOUCH_NONE ||
 		    t->state == TOUCH_HOVERING)
 			continue;
 
-		if (t->state != TOUCH_BEGIN)
-			first = t;
-		else
-			second = t;
+		if (t->state == TOUCH_BEGIN)
+			newest = t;
 
-		if (first && second)
-			break;
+		speed_exceeded_count = max(speed_exceeded_count,
+		                           t->speed.exceeded_count);
+
+		if (!first) {
+			first = t;
+			continue;
+		}
+
+		if (t->point.y > first->point.y) {
+			second = first;
+			first = t;
+			continue;
+		}
+
+		if (!second || t->point.y > second->point.y ) {
+			second = t;
+		}
 	}
+
+	if (!first || !second)
+		return;
 
 	assert(first);
 	assert(second);
 
-	if (tp->scroll.method == LIBINPUT_CONFIG_SCROLL_2FG) {
-		/* If the second finger comes down next to the other one, we
-		 * assume this is a scroll motion.
-		 */
-		distance.x = abs(first->point.x - second->point.x);
-		distance.y = abs(first->point.y - second->point.y);
-		mm = evdev_device_unit_delta_to_mm(tp->device, &distance);
+	distance.x = abs(first->point.x - second->point.x);
+	distance.y = abs(first->point.y - second->point.y);
+	mm = evdev_device_unit_delta_to_mm(tp->device, &distance);
 
-		if (mm.x <= 25 && mm.y <= 15)
-			return;
+	/* Speed-based thumb detection: if an existing touch is moving, and
+	 * a new touch arrives, mark it as a thumb if it doesn't qualify as a
+	 * 2-finger scroll.
+	 */
+	if (newest &&
+	    tp->nfingers_down == 2 &&
+	    speed_exceeded_count > 5 &&
+	    (tp->scroll.method != LIBINPUT_CONFIG_SCROLL_2FG ||
+	     (mm.x > SCROLL_MM_X || mm.y > SCROLL_MM_Y))) {
+		evdev_log_debug(tp->device,
+				"touch %d is speed-based thumb\n",
+				newest->index);
+		tp_thumb_suppress(tp, newest);
+		return;
 	}
 
-	/* Finger are too far apart or 2fg scrolling is disabled, mark
-	 * second finger as thumb */
-	evdev_log_debug(tp->device,
-			"touch %d is speed-based thumb\n",
-			second->index);
-	tp_thumb_suppress(tp, second);
+	/* Position-based thumb detection: When a new touch arrives, check the
+	 * two lowest touches. If they qualify for 2-finger scrolling, clear
+	 * thumb status. If not, mark the lower touch (based on pinch_eligible)
+	 * as either PINCH or SUPPRESSED.
+	 */
+	if (mm.y > SCROLL_MM_Y) {
+		if (tp->thumb.pinch_eligible)
+			tp_thumb_pinch(tp, first);
+		else
+			tp_thumb_suppress(tp, first);
+	} else {
+		tp_thumb_lift(tp);
+	}
 }
 
 void
@@ -288,6 +402,8 @@ tp_init_thumb(struct tp_dispatch *tp)
 			tp->thumb.size_threshold = threshold;
 		}
 	}
+
+	tp_thumb_reset(tp);
 
 	quirks_unref(q);
 

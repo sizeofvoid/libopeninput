@@ -549,10 +549,16 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 			return GESTURE_STATE_SCROLL;
 		}
 
-		/* If we get here, either both fingers have passed the inner
-		 * threshold (handled below), or >2 fingers are involved
-		 * (handled in a future event when both have moved enough).
+		/* If more than 2 fingers are involved, and the thumb moves
+		 * while the fingers stay still, assume a pinch if eligible.
 		 */
+		if (finger_mm < inner &&
+		    tp->gesture.finger_count > 2 &&
+		    tp->gesture.enabled &&
+		    tp->thumb.pinch_eligible) {
+			tp_gesture_init_pinch(tp);
+			return GESTURE_STATE_PINCH;
+		}
 	}
 
 	/* If either touch is still inside the inner threshold, we can't
@@ -711,8 +717,8 @@ tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time)
 	if (tp->gesture.finger_count == 0)
 		return;
 
-	/* When tap-and-dragging, or a clickpad is clicked force 1fg mode */
-	if (tp_tap_dragging(tp) || (tp->buttons.is_clickpad && tp->buttons.state)) {
+	/* When tap-and-dragging, force 1fg mode. */
+	if (tp_tap_dragging(tp)) {
 		tp_gesture_cancel(tp, time);
 		tp->gesture.finger_count = 1;
 		tp->gesture.finger_count_pending = 0;

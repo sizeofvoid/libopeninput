@@ -817,9 +817,9 @@ START_TEST(touchpad_clickfinger_3fg_tool_position)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
 
-	litest_assert_button_event(li, BTN_MIDDLE,
+	litest_assert_button_event(li, BTN_RIGHT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
-	litest_assert_button_event(li, BTN_MIDDLE,
+	litest_assert_button_event(li, BTN_RIGHT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 }
 END_TEST
