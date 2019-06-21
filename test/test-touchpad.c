@@ -5553,7 +5553,7 @@ START_TEST(touchpad_slot_swap)
 	litest_drain_events(li);
 
 	for (first = 0; first <= 1; first++) {
-		const double start[2][2] = {{50, 50}, {70, 70}};
+		const double start[2][2] = {{50, 50}, {60, 60}};
 		second = 1 - first;
 
 		litest_touch_down(dev, 0, start[0][0], start[0][1]);
@@ -5561,28 +5561,35 @@ START_TEST(touchpad_slot_swap)
 		litest_touch_down(dev, 1, start[1][0], start[1][1]);
 		libinput_dispatch(li);
 
-		litest_touch_move_to(dev, first,
-				     start[first][0],
-				     start[first][1],
-				     50, 30, 10);
+		litest_touch_move_two_touches(dev,
+					      start[first][0],
+					      start[first][1],
+					      start[second][0],
+					      start[second][1],
+					      30, 30, 10);
 		litest_drain_events(li);
 
 		/* release touch 0, continue other slot with 0's coords */
 		litest_push_event_frame(dev);
 		litest_touch_up(dev, first);
-		litest_touch_move(dev, second, 50, 30.1);
+		litest_touch_move(dev, second,
+				  start[second][0] + 30,
+				  start[second][1] + 30.1);
 		litest_pop_event_frame(dev);
 		libinput_dispatch(li);
-		/* drain a potential scroll stop */
-		litest_drain_events(li);
 		/* If a gesture was detected, we need to go past the gesture
 		 * timeout to trigger events. So let's move a bit first to
 		 * make sure it looks continuous, then wait, then move again
 		 * to make sure we trigger events */
-		litest_touch_move_to(dev, second, 50, 30, 50, 21, 10);
+		litest_touch_move_to(dev, second,
+				     start[first][0] + 30,
+				     start[first][1] + 30,
+				     50, 21, 10);
 		libinput_dispatch(li);
 		litest_timeout_gesture();
 		libinput_dispatch(li);
+		/* drain a potential scroll stop */
+		litest_drain_events(li);
 		litest_touch_move_to(dev, second, 50, 21, 50, 11, 20);
 		libinput_dispatch(li);
 		event = libinput_get_event(li);
