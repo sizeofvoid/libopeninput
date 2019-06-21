@@ -102,6 +102,12 @@ tp_thumb_detect_pressure_size(const struct tp_dispatch *tp,
 }
 
 void
+tp_thumb_suppress(struct tp_dispatch *tp, struct tp_touch *t)
+{
+	tp_thumb_set_state(tp, t, THUMB_STATE_YES);
+}
+
+void
 tp_thumb_update_touch(struct tp_dispatch *tp,
 		      struct tp_touch *t,
 		      uint64_t time)
@@ -222,7 +228,7 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp)
 	evdev_log_debug(tp->device,
 			"touch %d is speed-based thumb\n",
 			second->index);
-	tp_thumb_set_state(tp, second, THUMB_STATE_YES);
+	tp_thumb_suppress(tp, second);
 }
 
 void

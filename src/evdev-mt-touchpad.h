@@ -688,6 +688,9 @@ void
 tp_thumb_reset(struct tp_dispatch *tp, struct tp_touch *t);
 
 void
+tp_thumb_suppress(struct tp_dispatch *tp, struct tp_touch *t);
+
+void
 tp_thumb_update_touch(struct tp_dispatch *tp,
 		      struct tp_touch *t,
 		      uint64_t time);

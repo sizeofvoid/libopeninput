@@ -535,7 +535,7 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 		 * more thumb motion on >2 finger gestures during detection.
 		 */
 		if (tp->thumb.detect_thumbs && thumb_mm < inner) {
-			tp_thumb_set_state(tp, thumb, THUMB_STATE_YES);
+			tp_thumb_suppress(tp, thumb);
 			return GESTURE_STATE_NONE;
 		}
 
