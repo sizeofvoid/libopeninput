@@ -167,7 +167,7 @@ class Device(libevdev.Device):
             absinfo = self.absinfo[libevdev.EV_ABS.ABS_PRESSURE]
             self.has_mt_pressure = False
             if absinfo is None:
-                raise InvalidDeviceError("device does not have ABS_PRESSURE/ABS_MT_PRESSURE")
+                raise InvalidDeviceError("Device does not have ABS_PRESSURE or ABS_MT_PRESSURE")
 
         prange = absinfo.maximum - absinfo.minimum
 
@@ -320,7 +320,8 @@ def main(args):
     except (PermissionError, OSError):
         print("Error: failed to open device")
     except InvalidDeviceError as e:
-        print("Error: {}".format(e))
+        print("This device does not have the capabilities for pressure-based touch detection.");
+        print("Details: {}".format(e))
 
 
 if __name__ == "__main__":

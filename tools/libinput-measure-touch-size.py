@@ -190,7 +190,7 @@ class Device(libevdev.Device):
         print("Using {}: {}\n".format(self.name, self.path))
 
         if not self.has(libevdev.EV_ABS.ABS_MT_TOUCH_MAJOR):
-            raise InvalidDeviceError("device does not have ABS_MT_TOUCH_MAJOR")
+            raise InvalidDeviceError("Device does not have ABS_MT_TOUCH_MAJOR")
 
         self.has_minor = self.has(libevdev.EV_ABS.ABS_MT_TOUCH_MINOR)
         self.has_orientation = self.has(libevdev.EV_ABS.ABS_MT_ORIENTATION)
@@ -345,7 +345,8 @@ def main(args):
     except (PermissionError, OSError):
         print("Error: failed to open device")
     except InvalidDeviceError as e:
-        print("Error: {}".format(e))
+        print("This device does not have the capabilities for size-based touch detection.");
+        print("Details: {}".format(e))
 
 
 if __name__ == "__main__":
