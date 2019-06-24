@@ -27,6 +27,9 @@ required for a touchpad device and how to add the required
 change at any time**. Users are advised to :ref:`report a bug <reporting_bugs>`
 with the updated pressure ranges when testing has completed.
 
+.. note:: Most distributions ship ``libinput measure`` in a separate
+	``libinput-utils`` package.
+
 Use the ``libinput measure touchpad-pressure`` tool provided by libinput.
 This tool will search for your touchpad device and print some pressure
 statistics, including whether a touch is/was considered logically down.
@@ -123,6 +126,9 @@ required for a touchpad device and how to add the required
 :ref:`device-quirks` locally. Note that the quirk is **not public API** and **may
 change at any time**. Users are advised to :ref:`report a bug <reporting_bugs>`
 with the updated pressure ranges when testing has completed.
+
+.. note:: Most distributions ship ``libinput measure`` in a separate
+	``libinput-utils`` package.
 
 Use the ``libinput measure touch-size`` tool provided by libinput.
 This tool will search for your touchpad device and print some touch size
