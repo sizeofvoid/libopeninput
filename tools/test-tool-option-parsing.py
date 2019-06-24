@@ -206,6 +206,11 @@ class TestDebugGUI(TestToolWithOptions, TestLibinputTool):
 
     @classmethod
     def setUpClass(cls):
+        # This is set by meson
+        debug_gui_enabled = @MESON_ENABLED_DEBUG_GUI@
+        if not debug_gui_enabled:
+            raise unittest.SkipTest()
+
         if not os.getenv('DISPLAY') and not os.getenv('WAYLAND_DISPLAY'):
             raise unittest.SkipTest()
 

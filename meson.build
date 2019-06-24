@@ -612,8 +612,14 @@ executable('ptraccel-debug',
 # Don't run the test during a release build because we rely on the magic
 # subtool lookup
 if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimized'
+	config_tool_option_test = configuration_data()
+	config_tool_option_test.set('MESON_ENABLED_DEBUG_GUI', get_option('debug-gui'))
+	tool_option_test = configure_file(input: 'tools/test-tool-option-parsing.py',
+					  output: '@BASENAME@',
+					  configuration : config_tool_option_test,
+					  install : false)
 	test('tool-option-parsing',
-	     find_program('tools/test-tool-option-parsing.py'),
+	     tool_option_test,
 	     args : ['--tool-path', libinput_tool.full_path()],
 	     suite : ['all', 'root'],
 	     timeout : 240)
