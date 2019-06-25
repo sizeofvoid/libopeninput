@@ -1616,10 +1616,10 @@ evdev_extract_abs_axes(struct evdev_device *device,
 		device->abs.is_fake_resolution = true;
 
 	if (udev_tags & (EVDEV_UDEV_TAG_TOUCHPAD|EVDEV_UDEV_TAG_TOUCHSCREEN)) {
-		if ((fuzz = evdev_read_fuzz_prop(device, ABS_X)))
-		    libevdev_set_abs_fuzz(evdev, ABS_X, fuzz);
-		if ((fuzz = evdev_read_fuzz_prop(device, ABS_Y)))
-		    libevdev_set_abs_fuzz(evdev, ABS_Y, fuzz);
+		fuzz = evdev_read_fuzz_prop(device, ABS_X);
+		libevdev_set_abs_fuzz(evdev, ABS_X, fuzz);
+		fuzz = evdev_read_fuzz_prop(device, ABS_Y);
+		libevdev_set_abs_fuzz(evdev, ABS_Y, fuzz);
 	}
 
 	device->abs.absinfo_x = libevdev_get_abs_info(evdev, ABS_X);
@@ -2298,23 +2298,44 @@ evdev_read_fuzz_prop(struct evdev_device *device, unsigned int code)
 	char name[32];
 	int rc;
 	int fuzz = 0;
+	const struct input_absinfo *abs;
 
 	rc = snprintf(name, sizeof(name), "LIBINPUT_FUZZ_%02x", code);
 	if (rc == -1)
 		return 0;
 
 	prop = udev_device_get_property_value(device->udev_device, name);
-	if (prop == NULL)
-		return 0;
-
-	if (safe_atoi(prop, &fuzz) == false || fuzz < 0) {
+	if (prop && (safe_atoi(prop, &fuzz) == false || fuzz < 0)) {
 		evdev_log_bug_libinput(device,
 				       "invalid LIBINPUT_FUZZ property value: %s\n",
 				       prop);
 		return 0;
 	}
 
-	return fuzz;
+	/* The udev callout should have set the kernel fuzz to zero.
+	 * If the kernel fuzz is nonzero, something has gone wrong there, so
+	 * let's complain but still use a fuzz of zero for our view of the
+	 * device. Otherwise, the kernel will use the nonzero fuzz, we then
+	 * use the same fuzz on top of the pre-fuzzed data and that leads to
+	 * unresponsive behaviur.
+	 */
+	abs = libevdev_get_abs_info(device->evdev, code);
+	if (!abs || abs->fuzz == 0)
+		return fuzz;
+
+	if (prop) {
+		evdev_log_bug_libinput(device,
+				       "kernel fuzz of %d even with LIBINPUT_FUZZ_%02x present\n",
+				       abs->fuzz,
+				       code);
+	} else {
+		evdev_log_bug_libinput(device,
+				       "kernel fuzz of %d but LIBINPUT_FUZZ_%02x is missing\n",
+				       abs->fuzz,
+				       code);
+	}
+
+	return 0;
 }
 
 bool

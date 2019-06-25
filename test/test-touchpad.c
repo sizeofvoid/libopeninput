@@ -6956,6 +6956,22 @@ START_TEST(touchpad_end_start_touch)
 }
 END_TEST
 
+START_TEST(touchpad_fuzz)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libevdev *evdev = dev->evdev;
+
+	/* We expect our udev callout to always set this to 0 */
+	ck_assert_int_eq(libevdev_get_abs_fuzz(evdev, ABS_X), 0);
+	ck_assert_int_eq(libevdev_get_abs_fuzz(evdev, ABS_Y), 0);
+
+	if (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_X))
+		ck_assert_int_eq(libevdev_get_abs_fuzz(evdev, ABS_MT_POSITION_X), 0);
+	if (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_Y))
+		ck_assert_int_eq(libevdev_get_abs_fuzz(evdev, ABS_MT_POSITION_Y), 0);
+}
+END_TEST
+
 TEST_COLLECTION(touchpad)
 {
 	struct range suspends = { SUSPEND_EXT_MOUSE, SUSPEND_COUNT };
@@ -7160,4 +7176,6 @@ TEST_COLLECTION(touchpad)
 	/* Happens on the "Wacom Intuos Pro M Finger" but our test device
 	 * has the same properties */
 	litest_add_for_device("touchpad:bugs", touchpad_end_start_touch, LITEST_WACOM_FINGER);
+
+	litest_add("touchpad:fuzz", touchpad_fuzz, LITEST_TOUCHPAD, LITEST_ANY);
 }
