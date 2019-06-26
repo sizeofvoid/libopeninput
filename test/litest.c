@@ -66,8 +66,8 @@
 
 #define UDEV_RULES_D "/run/udev/rules.d"
 #define UDEV_RULE_PREFIX "99-litest-"
-#define UDEV_MODEL_QUIRKS_RULE_FILE UDEV_RULES_D \
-	"/91-litest-model-quirks-REMOVEME-XXXXXX.rules"
+#define UDEV_FUZZ_OVERRIDE_RULE_FILE UDEV_RULES_D \
+	"/91-litest-fuzz-override-REMOVEME-XXXXXX.rules"
 #define UDEV_TEST_DEVICE_RULE_FILE UDEV_RULES_D \
 	"/91-litest-test-device-REMOVEME-XXXXXXX.rules"
 #define UDEV_DEVICE_GROUPS_FILE UDEV_RULES_D \
@@ -1241,8 +1241,8 @@ litest_install_model_quirks(struct list *created_files_list)
 				true);
 	list_insert(created_files_list, &file->link);
 
-	file = litest_copy_file(UDEV_MODEL_QUIRKS_RULE_FILE,
-				LIBINPUT_MODEL_QUIRKS_UDEV_RULES_FILE,
+	file = litest_copy_file(UDEV_FUZZ_OVERRIDE_RULE_FILE,
+				LIBINPUT_FUZZ_OVERRIDE_UDEV_RULES_FILE,
 				warning,
 				true);
 	list_insert(created_files_list, &file->link);
