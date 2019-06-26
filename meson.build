@@ -250,7 +250,7 @@ quirks_data = [
 	'quirks/30-vendor-aiptek.quirks',
 	'quirks/30-vendor-alps.quirks',
 	'quirks/30-vendor-contour.quirks',
-	'quirks/30-vendor-cyapa.quirks',
+	'quirks/30-vendor-cypress.quirks',
 	'quirks/30-vendor-elantech.quirks',
 	'quirks/30-vendor-ibm.quirks',
 	'quirks/30-vendor-kensington.quirks',
