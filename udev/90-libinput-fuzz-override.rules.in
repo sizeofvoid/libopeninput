@@ -6,7 +6,15 @@
 ACTION!="add|change", GOTO="libinput_fuzz_override_end"
 KERNEL!="event*", GOTO="libinput_fuzz_override_end"
 
-ATTRS{capabilities/abs}!="0", IMPORT{program}="@UDEV_TEST_PATH@libinput-fuzz-override %S%p"
+# libinput-fuzz-override must only be called once per device, otherwise
+# we'll lose the fuzz information
+ATTRS{capabilities/abs}!="0", \
+	ENV{ID_INPUT_TOUCHPAD}=="1", \
+	IMPORT{program}="@UDEV_TEST_PATH@libinput-fuzz-override %S%p", \
+	GOTO="libinput_fuzz_override_end"
+ATTRS{capabilities/abs}!="0", \
+	ENV{ID_INPUT_TOUCHSCREEN}=="1", \
+	IMPORT{program}="@UDEV_TEST_PATH@libinput-fuzz-override %S%p", \
+	GOTO="libinput_fuzz_override_end"
 
-LABEL="libinput_model_quirks_end"
-
+LABEL="libinput_fuzz_override_end"
