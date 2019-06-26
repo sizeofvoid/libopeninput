@@ -4257,6 +4257,9 @@ libinput_libwacom_ref(struct libinput *li)
 void
 libinput_libwacom_unref(struct libinput *li)
 {
+	if (!li->libwacom.db)
+		return;
+
 	assert(li->libwacom.refcount >= 1);
 
 	if (--li->libwacom.refcount == 0) {
