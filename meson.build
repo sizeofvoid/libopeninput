@@ -826,7 +826,8 @@ if get_option('tests')
 					  install : false)
 	test('test-litest-selftest',
 	     test_litest_selftest,
-	     suite : ['all'])
+	     suite : ['all'],
+	     timeout : 100)
 
 	def_LT_VERSION = '-DLIBINPUT_LT_VERSION="@0@:@1@:@2@"'.format(libinput_lt_c, libinput_lt_r, libinput_lt_a)
 	test_library_version = executable('test-library-version',
