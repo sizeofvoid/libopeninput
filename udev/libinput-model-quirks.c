@@ -110,9 +110,7 @@ int main(int argc, char **argv)
 	if (!device)
 		goto out;
 
-	if (udev_device_get_property_value(device, "ID_INPUT_TOUCHPAD") ||
-	    udev_device_get_property_value(device, "ID_INPUT_TOUCHSCREEN"))
-		handle_absfuzz(device);
+	handle_absfuzz(device);
 
 	rc = 0;
 
