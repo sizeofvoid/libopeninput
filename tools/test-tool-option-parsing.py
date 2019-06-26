@@ -32,28 +32,33 @@ import subprocess
 import time
 
 
+def _disable_coredump():
+    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+
+
+def run_command(args):
+    with subprocess.Popen(args, preexec_fn=_disable_coredump,
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
+        try:
+            p.wait(0.7)
+        except subprocess.TimeoutExpired:
+            p.send_signal(3)  # SIGQUIT
+        stdout, stderr = p.communicate(timeout=2)
+        if p.returncode == -3:
+            p.returncode = 0
+        return p.returncode, stdout.decode('UTF-8'), stderr.decode('UTF-8')
+
+
 class TestLibinputTool(unittest.TestCase):
     libinput_tool = 'libinput'
     subtool = None
-
-    def _disable_coredump(self):
-            resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
 
     def run_command(self, args):
         args = [self.libinput_tool] + args
         if self.subtool is not None:
             args.insert(1, self.subtool)
 
-        with subprocess.Popen(args, preexec_fn=self._disable_coredump,
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE) as p:
-            try:
-                p.wait(0.7)
-            except subprocess.TimeoutExpired:
-                p.send_signal(3) # SIGQUIT
-            stdout, stderr = p.communicate(timeout=2)
-            if p.returncode == -3:
-                p.returncode = 0
-            return p.returncode, stdout.decode('UTF-8'), stderr.decode('UTF-8')
+        return run_command(args)
 
     def run_command_success(self, args):
         rc, stdout, stderr = self.run_command(args)
@@ -212,6 +217,12 @@ class TestDebugGUI(TestToolWithOptions, TestLibinputTool):
             raise unittest.SkipTest()
 
         if not os.getenv('DISPLAY') and not os.getenv('WAYLAND_DISPLAY'):
+            raise unittest.SkipTest()
+
+        # 77 means gtk_init() failed, which is probably because you can't
+        # connect to the display server.
+        rc, _, _ = run_command([TestLibinputTool.libinput_tool, cls.subtool, '--help'])
+        if rc == 77:
             raise unittest.SkipTest()
 
     def test_verbose_quiet(self):

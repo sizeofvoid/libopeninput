@@ -1492,7 +1492,8 @@ main(int argc, char **argv)
 	const char *seat_or_device = "seat0";
 	bool verbose = false;
 
-	gtk_init(&argc, &argv);
+	if (!gtk_init_check(&argc, &argv))
+		return 77;
 
 	g_unix_signal_add(SIGINT, signal_handler, NULL);
 
