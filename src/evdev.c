@@ -1602,7 +1602,8 @@ evdev_reject_device(struct evdev_device *device)
 }
 
 static void
-evdev_extract_abs_axes(struct evdev_device *device)
+evdev_extract_abs_axes(struct evdev_device *device,
+		       enum evdev_device_udev_tags udev_tags)
 {
 	struct libevdev *evdev = device->evdev;
 	int fuzz;
@@ -1614,10 +1615,12 @@ evdev_extract_abs_axes(struct evdev_device *device)
 	if (evdev_fix_abs_resolution(device, ABS_X, ABS_Y))
 		device->abs.is_fake_resolution = true;
 
-	if ((fuzz = evdev_read_fuzz_prop(device, ABS_X)))
-	    libevdev_set_abs_fuzz(evdev, ABS_X, fuzz);
-	if ((fuzz = evdev_read_fuzz_prop(device, ABS_Y)))
-	    libevdev_set_abs_fuzz(evdev, ABS_Y, fuzz);
+	if (udev_tags & (EVDEV_UDEV_TAG_TOUCHPAD|EVDEV_UDEV_TAG_TOUCHSCREEN)) {
+		if ((fuzz = evdev_read_fuzz_prop(device, ABS_X)))
+		    libevdev_set_abs_fuzz(evdev, ABS_X, fuzz);
+		if ((fuzz = evdev_read_fuzz_prop(device, ABS_Y)))
+		    libevdev_set_abs_fuzz(evdev, ABS_Y, fuzz);
+	}
 
 	device->abs.absinfo_x = libevdev_get_abs_info(evdev, ABS_X);
 	device->abs.absinfo_y = libevdev_get_abs_info(evdev, ABS_Y);
@@ -1722,7 +1725,7 @@ evdev_configure_device(struct evdev_device *device)
 		evdev_fix_android_mt(device);
 
 	if (libevdev_has_event_code(evdev, EV_ABS, ABS_X)) {
-		evdev_extract_abs_axes(device);
+		evdev_extract_abs_axes(device, udev_tags);
 
 		if (evdev_is_fake_mt_device(device))
 			udev_tags &= ~EVDEV_UDEV_TAG_TOUCHSCREEN;
