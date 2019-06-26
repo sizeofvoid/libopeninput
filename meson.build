@@ -897,10 +897,22 @@ if get_option('tests')
 		       install_dir : dir_man1,
 		       )
 
-	test('libinput-test-suite-runner',
-	     libinput_test_runner,
-	     suite : ['all', 'valgrind', 'root', 'hardware'],
-	     timeout : 1200)
+	# Update this list and the one in litest.c when new group names are
+	# required
+        groups = [
+		'config', 'context', 'device', 'events', 'gestures', 'keyboard', 'lid',
+		'log', 'misc', 'pad', 'path', 'pointer', 'quirks', 'switch', 'tablet',
+		'tablet-mode', 'tap', 'timer', 'totem', 'touch', 'touchpad', 'trackball',
+		'trackpoint', 'udev',
+	]
+	foreach group : groups
+		test('libinput-test-suite-@0@'.format(group),
+		     libinput_test_runner,
+		     suite : ['all', 'valgrind', 'root', 'hardware'],
+		     args : ['--filter-group=@0@:*'.format(group)],
+		     is_parallel : false,
+		     timeout : 1200)
+        endforeach
 
 	test('libinput-test-deviceless',
 	     libinput_test_runner,

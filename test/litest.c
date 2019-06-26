@@ -381,6 +381,25 @@ static struct suite *
 get_suite(const char *name)
 {
 	struct suite *s;
+	/* this is the list meson calls, ensure we don't miss out on tests */
+	const char * allowed_suites[] = {
+		"config:", "context:", "device:", "events:", "gestures:",
+		"keyboard:", "lid:", "log:", "misc:", "pad:", "path:",
+		"pointer:", "quirks:", "switch:", "tablet:", "tablet-mode:",
+		"tap:", "timer:", "totem:", "touch:", "touchpad:",
+		"trackball:", "trackpoint:", "udev:",
+	};
+	const char **allowed;
+	bool found = false;
+
+	ARRAY_FOR_EACH(allowed_suites, allowed) {
+		if (strneq(name, *allowed, strlen(*allowed))) {
+			found = true;
+			break;
+		}
+	}
+	if (!found)
+		litest_abort_msg("Suite name '%s' is not allowed\n", name);
 
 	list_for_each(s, &all_tests, node) {
 		if (streq(s->name, name))
