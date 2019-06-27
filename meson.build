@@ -803,9 +803,11 @@ if get_option('tests')
 
 	litest_config_h = configuration_data()
 	litest_config_h.set_quoted('LIBINPUT_DEVICE_GROUPS_RULES_FILE',
-			    join_paths(meson.build_root(), '80-libinput-device-groups.rules'))
+			    join_paths(meson.build_root(),
+				       '80-libinput-device-groups-litest.rules'))
 	litest_config_h.set_quoted('LIBINPUT_FUZZ_OVERRIDE_UDEV_RULES_FILE',
-			    join_paths(meson.build_root(), '90-libinput-fuzz-override.rules'))
+			    join_paths(meson.build_root(),
+				       '90-libinput-fuzz-override-litest.rules'))
 
 	def_no_main = '-DLITEST_NO_MAIN'
 	def_disable_backtrace = '-DLITEST_DISABLE_BACKTRACE_LOGGING'
