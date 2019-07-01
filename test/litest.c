@@ -400,8 +400,8 @@ static void
 litest_add_tcase(const char *suite_name,
 		 const char *funcname,
 		 void *func,
-		 enum litest_device_feature required,
-		 enum litest_device_feature excluded,
+		 int64_t required,
+		 int64_t excluded,
 		 const struct range *range)
 {
 	struct suite *suite;
@@ -515,8 +515,8 @@ void
 _litest_add(const char *name,
 	    const char *funcname,
 	    void *func,
-	    enum litest_device_feature required,
-	    enum litest_device_feature excluded)
+	    int64_t required,
+	    int64_t excluded)
 {
 	_litest_add_ranged(name,
 			   funcname,
@@ -530,8 +530,8 @@ void
 _litest_add_ranged(const char *name,
 		   const char *funcname,
 		   void *func,
-		   enum litest_device_feature required,
-		   enum litest_device_feature excluded,
+		   int64_t required,
+		   int64_t excluded,
 		   const struct range *range)
 {
 	litest_add_tcase(name, funcname, func, required, excluded, range);
