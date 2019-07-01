@@ -4071,8 +4071,6 @@ litest_parse_argv(int argc, char **argv)
 			break;
 		case OPT_FILTER_GROUP:
 			filter_group = optarg;
-			if (want_jobs == JOBS_DEFAULT)
-				want_jobs = JOBS_SINGLE;
 			break;
 		case 'j':
 		case OPT_JOBS:
