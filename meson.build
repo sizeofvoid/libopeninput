@@ -180,6 +180,19 @@ litest_fuzz_override_file = configure_file(input : 'udev/90-libinput-fuzz-overri
 					   install : false,
 					   configuration : litest_udev_rules_config)
 
+############ Check for leftover udev rules ########
+
+# This test should be defined first so we don't waste time testing anything
+# else if we're about to fail anyway. ninja test will execute tests in the
+# order of them defined in meson.build
+
+if get_option('tests')
+	test('leftover-rules',
+	     find_program('test/check-leftover-udev-rules.sh'),
+	     is_parallel : false,
+	     suite : ['all'])
+endif
+
 ############ libepoll-shim (BSD) ############
 
 if cc.has_header_symbol('sys/epoll.h', 'epoll_create1', prefix : prefix)
@@ -684,12 +697,6 @@ endif
 # dependencies
 if get_option('tests')
 	dep_check = dependency('check', version : '>= 0.9.10')
-
-	leftover_rules = find_program('test/check-leftover-udev-rules.sh')
-	test('leftover-rules',
-	     leftover_rules,
-	     is_parallel : false,
-	     suite : ['all'])
 
 	gstack = find_program('gstack', required : false)
 	config_h.set10('HAVE_GSTACK', gstack.found())
