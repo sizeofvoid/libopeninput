@@ -312,7 +312,7 @@ tools_open_device(const char *path, bool verbose, bool *grab)
 
 	device = libinput_path_add_device(li, path);
 	if (!device) {
-		fprintf(stderr, "Failed to initialized device %s\n", path);
+		fprintf(stderr, "Failed to initialize device %s\n", path);
 		libinput_unref(li);
 		li = NULL;
 	}
