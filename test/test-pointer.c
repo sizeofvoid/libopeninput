@@ -68,6 +68,7 @@ test_relative_event(struct litest_device *dev, double dx, double dy)
 	prop = udev_device_get_property_value(ud, "MOUSE_DPI");
 	if (prop) {
 		dpi = parse_mouse_dpi_property(prop);
+		ck_assert_int_ne(dpi, 0);
 
 		dx *= 1000.0/dpi;
 		dy *= 1000.0/dpi;

@@ -111,6 +111,8 @@ START_TEST(button_seat_count)
 	case BTN_0:
 		dev2 = litest_add_device(li, LITEST_DELL_CANVAS_TOTEM);
 		break;
+	default:
+		ck_abort();
 	}
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
