@@ -664,7 +664,7 @@ litest_init_device_udev_rules(struct litest_test_device *dev, FILE *f)
 	const struct key_value_str *kv;
 	static int count;
 
-	if (!dev->udev_properties)
+	if (dev->udev_properties[0].key == NULL)
 		return;
 
 	count++;
