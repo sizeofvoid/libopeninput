@@ -159,6 +159,7 @@ src_rst = files(
 	'touchpad-pressure.rst',
 	'touchpad-pressure-debugging.rst',
 	'touchpad-jitter.rst',
+	'touchpad-thumb-detection.rst',
 	'touchpads.rst',
 	'trackpoints.rst',
 	'trackpoint-configuration.rst',
