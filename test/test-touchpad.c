@@ -7165,9 +7165,9 @@ TEST_COLLECTION(touchpad)
 	litest_add("touchpad:touch-size", touchpad_touch_size, LITEST_APPLE_CLICKPAD, LITEST_ANY);
 	litest_add("touchpad:touch-size", touchpad_touch_size_2fg, LITEST_APPLE_CLICKPAD, LITEST_ANY);
 
-	litest_add("touchpad:speed", touchpad_speed_ignore_finger, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
-	litest_add("touchpad:speed", touchpad_speed_allow_nearby_finger, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
-	litest_add("touchpad:speed", touchpad_speed_ignore_finger_edgescroll, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("touchpad:speed", touchpad_speed_ignore_finger, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("touchpad:speed", touchpad_speed_allow_nearby_finger, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add("touchpad:speed", touchpad_speed_ignore_finger_edgescroll, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add_for_device("touchpad:speed", touchpad_speed_ignore_hovering_finger, LITEST_BCM5974);
 
 	litest_add_ranged("touchpad:suspend", touchpad_suspend_abba, LITEST_TOUCHPAD, LITEST_ANY, &suspends);
