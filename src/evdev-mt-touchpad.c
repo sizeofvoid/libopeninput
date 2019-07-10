@@ -1698,7 +1698,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 		 * never count down. Let's see how far we get with that.
 		 */
 		if (t->speed.last_speed > THUMB_IGNORE_SPEED_THRESHOLD) {
-			if (t->speed.exceeded_count < 10)
+			if (t->speed.exceeded_count < 15)
 				t->speed.exceeded_count++;
 		} else if (t->speed.exceeded_count > 0) {
 				t->speed.exceeded_count--;

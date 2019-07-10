@@ -6498,6 +6498,9 @@ START_TEST(touchpad_speed_ignore_finger)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
+	if (!has_thumb_detect(dev))
+		return;
+
 	if (litest_has_clickfinger(dev))
 		litest_enable_clickfinger(dev);
 
@@ -6520,6 +6523,9 @@ START_TEST(touchpad_speed_allow_nearby_finger)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
+
+	if (!has_thumb_detect(dev))
+		return;
 
 	if (!litest_has_2fg_scroll(dev))
 		return;
@@ -6549,6 +6555,9 @@ START_TEST(touchpad_speed_ignore_finger_edgescroll)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
+
+	if (!has_thumb_detect(dev))
+		return;
 
 	litest_enable_edge_scroll(dev);
 	if (litest_has_clickfinger(dev))
@@ -6580,6 +6589,9 @@ START_TEST(touchpad_speed_ignore_hovering_finger)
 		{ ABS_MT_TOUCH_MINOR, 1 },
 		{ -1, 0 }
 	};
+
+	if (!has_thumb_detect(dev))
+		return;
 
 	litest_drain_events(li);
 
