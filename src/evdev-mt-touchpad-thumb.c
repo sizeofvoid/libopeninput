@@ -113,10 +113,12 @@ tp_thumb_detect_pressure_size(const struct tp_dispatch *tp,
 static bool
 tp_thumb_needs_jail(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
-	if (t->point.y < tp->thumb.upper_thumb_line)
+	if (t->point.y < tp->thumb.upper_thumb_line ||
+	    tp->scroll.method == LIBINPUT_CONFIG_SCROLL_EDGE)
 		return false;
 
 	if (!tp_thumb_in_exclusion_area(tp, t) &&
+           (tp->thumb.use_size || tp->thumb.use_pressure) &&
 	    !tp_thumb_detect_pressure_size(tp, t))
 		return false;
 
