@@ -314,11 +314,12 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp)
 	distance.y = abs(first->point.y - second->point.y);
 	mm = evdev_device_unit_delta_to_mm(tp->device, &distance);
 
-	/* Speed-based thumb detection: if an existing touch is moving, and
+	/* Speed-based thumb detection: if an existing finger is moving, and
 	 * a new touch arrives, mark it as a thumb if it doesn't qualify as a
 	 * 2-finger scroll.
 	 */
 	if (newest &&
+	    tp->thumb.state == THUMB_STATE_FINGER &&
 	    tp->nfingers_down == 2 &&
 	    speed_exceeded_count > 5 &&
 	    (tp->scroll.method != LIBINPUT_CONFIG_SCROLL_2FG ||
