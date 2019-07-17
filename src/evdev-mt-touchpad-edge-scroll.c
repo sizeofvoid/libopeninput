@@ -260,12 +260,13 @@ tp_edge_scroll_handle_event(struct tp_dispatch *tp,
 		break;
 	}
 
-	evdev_log_debug(tp->device,
-			"edge-scroll: touch %d state %s → %s → %s\n",
-			t->index,
-			edge_state_to_str(current),
-			edge_event_to_str(event),
-			edge_state_to_str(t->scroll.edge_state));
+	if (current != t->scroll.edge_state)
+		evdev_log_debug(tp->device,
+				"edge-scroll: touch %d state %s → %s → %s\n",
+				t->index,
+				edge_state_to_str(current),
+				edge_event_to_str(event),
+				edge_state_to_str(t->scroll.edge_state));
 }
 
 static void
@@ -398,8 +399,7 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 		if (!t->dirty)
 			continue;
 
-		if (t->palm.state != PALM_NONE ||
-		    t->thumb.state == THUMB_STATE_YES)
+		if (t->palm.state != PALM_NONE || tp_thumb_ignored(tp, t))
 			continue;
 
 		/* only scroll with the finger in the previous edge */

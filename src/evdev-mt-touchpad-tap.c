@@ -912,12 +912,13 @@ tp_tap_handle_event(struct tp_dispatch *tp,
 	if (tp->tap.state == TAP_STATE_IDLE || tp->tap.state == TAP_STATE_DEAD)
 		tp_tap_clear_timer(tp);
 
-	evdev_log_debug(tp->device,
-		  "tap: touch %d state %s → %s → %s\n",
-		  t ? (int)t->index : -1,
-		  tap_state_to_str(current),
-		  tap_event_to_str(event),
-		  tap_state_to_str(tp->tap.state));
+	if (current != tp->tap.state)
+		evdev_log_debug(tp->device,
+			  "tap: touch %d state %s → %s → %s\n",
+			  t ? (int)t->index : -1,
+			  tap_state_to_str(current),
+			  tap_event_to_str(event),
+			  tap_state_to_str(tp->tap.state));
 }
 
 static bool
@@ -1014,7 +1015,7 @@ tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time)
 			/* The simple version: if a touch is a thumb on
 			 * begin we ignore it. All other thumb touches
 			 * follow the normal tap state for now */
-			if (t->thumb.state == THUMB_STATE_YES) {
+			if (tp_thumb_ignored_for_tap(tp, t)) {
 				t->tap.is_thumb = true;
 				continue;
 			}
@@ -1039,7 +1040,7 @@ tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time)
 			}
 			t->tap.state = TAP_TOUCH_STATE_IDLE;
 		} else if (tp->tap.state != TAP_STATE_IDLE &&
-			   t->thumb.state == THUMB_STATE_YES) {
+			   tp_thumb_ignored(tp, t)) {
 			tp_tap_handle_event(tp, t, TAP_EVENT_THUMB, time);
 		} else if (tp->tap.state != TAP_STATE_IDLE &&
 			   tp_tap_exceeds_motion_threshold(tp, t)) {

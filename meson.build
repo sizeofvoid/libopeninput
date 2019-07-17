@@ -325,6 +325,7 @@ src_libinput = src_libfilter + [
 	'src/evdev-mt-touchpad.c',
 	'src/evdev-mt-touchpad.h',
 	'src/evdev-mt-touchpad-tap.c',
+	'src/evdev-mt-touchpad-thumb.c',
 	'src/evdev-mt-touchpad-buttons.c',
 	'src/evdev-mt-touchpad-edge-scroll.c',
 	'src/evdev-mt-touchpad-gestures.c',
