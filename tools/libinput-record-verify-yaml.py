@@ -51,6 +51,8 @@ class TestYaml(unittest.TestCase):
         devices = self.yaml['devices']
         for d in devices:
             events = d['events']
+            if not events:
+                raise unittest.SkipTest()
             for e in events:
                 try:
                     libinput = e['libinput']
@@ -183,6 +185,8 @@ class TestYaml(unittest.TestCase):
         devices = self.yaml['devices']
         for d in devices:
             events = d['events']
+            if not events:
+                raise unittest.SkipTest()
             for e in events:
                 self.assertTrue('evdev' in e or 'libinput' in e)
 
@@ -190,6 +194,8 @@ class TestYaml(unittest.TestCase):
         devices = self.yaml['devices']
         for d in devices:
             events = d['events']
+            if not events:
+                raise unittest.SkipTest()
             for e in events:
                 try:
                     evdev = e['evdev']
@@ -210,6 +216,8 @@ class TestYaml(unittest.TestCase):
         devices = self.yaml['devices']
         for d in devices:
             events = d['events']
+            if not events:
+                raise unittest.SkipTest()
             for e in events:
                 try:
                     evdev = e['evdev']
@@ -222,6 +230,8 @@ class TestYaml(unittest.TestCase):
         devices = self.yaml['devices']
         for d in devices:
             events = d['events']
+            if not events:
+                raise unittest.SkipTest()
             for e in events:
                 try:
                     libinput = e['libinput']
@@ -373,6 +383,8 @@ class TestYaml(unittest.TestCase):
         devices = self.yaml['devices']
         for d in devices:
             events = d['events']
+            if not events:
+                raise unittest.SkipTest()
             for e in events:
                 try:
                     evdev = e['libinput']
