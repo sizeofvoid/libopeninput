@@ -45,6 +45,7 @@
 #include "libinput-version.h"
 #include "libinput-git-version.h"
 #include "shared.h"
+#include "builddir.h"
 
 static const int FILE_VERSION_NUMBER = 1;
 
@@ -1735,9 +1736,16 @@ print_device_quirks(struct record_context *ctx, struct record_device *dev)
 	struct quirks_context *quirks;
 	const char *data_path = LIBINPUT_QUIRKS_DIR;
 	const char *override_file = LIBINPUT_QUIRKS_OVERRIDE_FILE;
+	const char *builddir = NULL;
 
 	if (stat(dev->devnode, &st) < 0)
 		return;
+
+	if ((builddir = builddir_lookup())) {
+		setenv("LIBINPUT_QUIRKS_DIR", LIBINPUT_QUIRKS_SRCDIR, 0);
+		data_path = LIBINPUT_QUIRKS_SRCDIR;
+		override_file = NULL;
+	}
 
 	quirks = quirks_init_subsystem(data_path,
 				       override_file,
