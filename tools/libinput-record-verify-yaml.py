@@ -657,10 +657,11 @@ if __name__ == '__main__':
     parser.add_argument('recording', metavar='recorded-file.yaml',
                         type=str, help='Path to device recording')
     parser.add_argument('--verbose', action='store_true')
-    args = parser.parse_args()
+    args, remainder = parser.parse_known_args()
     TestYaml.filename = args.recording
     verbosity = 1
     if args.verbose:
         verbosity = 3
-    del sys.argv[1:]
-    unittest.main(verbosity=verbosity)
+
+    argv = [sys.argv[0], *remainder]
+    unittest.main(argv=argv, verbosity=verbosity)
