@@ -94,7 +94,8 @@ find_tree_distance(struct udev_device *a, struct udev_device *b)
 static void
 wacom_handle_ekr(struct udev_device *device,
 		 int *vendor_id,
-		 int *product_id)
+		 int *product_id,
+		 const char **phys_attr)
 {
 	struct udev *udev;
 	struct udev_enumerate *e;
@@ -109,7 +110,7 @@ wacom_handle_ekr(struct udev_device *device,
 
 	udev_list_entry_foreach(entry, udev_enumerate_get_list_entry(e)) {
 		struct udev_device *d;
-		const char *path;
+		const char *path, *phys;
 		const char *pidstr, *vidstr;
 		int pid, vid, dist;
 
@@ -124,8 +125,9 @@ wacom_handle_ekr(struct udev_device *device,
 
 		vidstr = udev_device_get_property_value(d, "ID_VENDOR_ID");
 		pidstr = udev_device_get_property_value(d, "ID_MODEL_ID");
+		phys = udev_device_get_sysattr_value(d, "phys");
 
-		if (vidstr && pidstr &&
+		if (vidstr && pidstr && phys &&
 		    safe_atoi_base(vidstr, &vid, 16) &&
 		    safe_atoi_base(pidstr, &pid, 16) &&
 		    vid == VENDOR_ID_WACOM &&
@@ -135,6 +137,9 @@ wacom_handle_ekr(struct udev_device *device,
 				*vendor_id = vid;
 				*product_id = pid;
 				best_dist = dist;
+
+				free((char*)*phys_attr);
+				*phys_attr = strdup(phys);
 			}
 		}
 
@@ -150,7 +155,8 @@ int main(int argc, char **argv)
 	struct udev *udev = NULL;
 	struct udev_device *device = NULL;
 	const char *syspath,
-	           *phys = NULL;
+	           *phys = NULL,
+	           *physmatch = NULL;
 	const char *product;
 	int bustype, vendor_id, product_id, version;
 	char group[1024];
@@ -207,7 +213,8 @@ int main(int argc, char **argv)
 		    if (product_id == PRODUCT_ID_WACOM_EKR)
 			    wacom_handle_ekr(device,
 					     &vendor_id,
-					     &product_id);
+					     &product_id,
+					     &physmatch);
 		    /* This is called for the EKR as well */
 		    wacom_handle_paired(device,
 					&vendor_id,
@@ -220,7 +227,7 @@ int main(int argc, char **argv)
 		     bustype,
 		     vendor_id,
 		     product_id,
-		     phys);
+		     physmatch ? physmatch : phys);
 	}
 
 	str = strstr(group, "/input");
