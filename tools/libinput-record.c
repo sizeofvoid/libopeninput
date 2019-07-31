@@ -1736,7 +1736,7 @@ print_device_quirks(struct record_context *ctx, struct record_device *dev)
 	struct quirks_context *quirks;
 	const char *data_path = LIBINPUT_QUIRKS_DIR;
 	const char *override_file = LIBINPUT_QUIRKS_OVERRIDE_FILE;
-	const char *builddir = NULL;
+	char *builddir = NULL;
 
 	if (stat(dev->devnode, &st) < 0)
 		return;
@@ -1746,6 +1746,8 @@ print_device_quirks(struct record_context *ctx, struct record_device *dev)
 		data_path = LIBINPUT_QUIRKS_SRCDIR;
 		override_file = NULL;
 	}
+
+	free(builddir);
 
 	quirks = quirks_init_subsystem(data_path,
 				       override_file,
@@ -1777,6 +1779,7 @@ print_device_quirks(struct record_context *ctx, struct record_device *dev)
 out:
 	udev_device_unref(udev_device);
 	udev_unref(udev);
+	quirks_context_unref(quirks);
 }
 static inline void
 print_libinput_description(struct record_context *ctx,
