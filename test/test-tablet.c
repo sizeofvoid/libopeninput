@@ -4505,6 +4505,8 @@ START_TEST(touch_arbitration)
 		{ -1, -1 }
 	};
 	bool is_touchpad;
+	double x, y;
+	double tx, ty;
 
 	other = paired_device(dev);
 	if (other == LITEST_NO_DEVICE)
@@ -4520,12 +4522,18 @@ START_TEST(touch_arbitration)
 	litest_tablet_motion(dev, 20, 40, axes);
 	litest_drain_events(li);
 
-	litest_touch_down(finger, 0, 21, 41);
-	litest_touch_move_to(finger, 0, 21, 41, 80, 80, 10);
-	litest_assert_empty_queue(li);
+	tx = 20;
+	ty = 40;
+	x = 21;
+	y = 41;
+	litest_touch_down(finger, 0, x, y);
 
-	litest_tablet_motion(dev, 10, 10, axes);
-	litest_tablet_motion(dev, 20, 40, axes);
+	/* We need to intersperce the touch events with tablets so we don't
+	   trigger the tablet proximity timeout. */
+	for (int i = 0; i < 60; i += 5) {
+		litest_touch_move(finger, 0, x + i, y + i);
+		litest_tablet_motion(dev, tx + 0.1 * i, ty + 0.1 * i, axes);
+	}
 	litest_assert_only_typed_events(li,
 					LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 	litest_tablet_proximity_out(dev);
@@ -5253,6 +5261,7 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 	bool tablet_from, touch_from, tablet_to, touch_to;
 	bool enabled_from, enabled_to;
 	double x, y;
+	double tx, ty;
 
 	other = paired_device(tablet);
 	if (other == LITEST_NO_DEVICE)
@@ -5279,9 +5288,9 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 
 
 	/* Tablet in-prox when setting to left-handed */
-	x = 60;
-	y = 60;
-	litest_tablet_proximity_in(tablet, x, y, NULL);
+	tx = 60;
+	ty = 60;
+	litest_tablet_proximity_in(tablet, tx, ty, NULL);
 	libinput_dispatch(li);
 	litest_drain_events(li);
 
@@ -5291,7 +5300,7 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 					       touch_to);
 
 	/* not yet neutral, so still whatever the original was */
-	verify_left_handed_tablet_motion(tablet, li, x, y, enabled_from);
+	verify_left_handed_tablet_motion(tablet, li, tx, ty, enabled_from);
 	litest_drain_events(li);
 
 	/* test pointer, should be left-handed already */
@@ -5303,12 +5312,21 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 	x = 10;
 	y = 30;
 	litest_touch_down(finger, 0, x, y);
-	litest_touch_move_to(finger, 0, x, y, x + 10, y - 10, 10);
+
+	/* We need to intersperce the touch events with tablets so we don't
+	   trigger the tablet proximity timeout. */
+	for (int i = 0; i < 10; i++) {
+		litest_touch_move(finger, 0, x + i, y - i);
+		litest_tablet_motion(tablet,
+				     tx + 0.1 * i, ty + 0.1 * i,
+				     NULL);
+	}
+
 	litest_touch_up(finger, 0);
 	libinput_dispatch(li);
 	/* this will fail once we have location-based touch arbitration on
 	 * touchpads */
-	litest_assert_empty_queue(li);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 #endif
 	litest_tablet_proximity_out(tablet);
 	libinput_dispatch(li);
