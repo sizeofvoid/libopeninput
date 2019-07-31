@@ -2460,7 +2460,8 @@ main(int argc, char **argv)
 	rc = mainloop(&ctx);
 out:
 	list_for_each_safe(d, tmp, &ctx.devices, link) {
-		libinput_device_unref(d->device);
+		if (d->device)
+			libinput_device_unref(d->device);
 		free(d->events);
 		free(d->devnode);
 		libevdev_free(d->evdev);
