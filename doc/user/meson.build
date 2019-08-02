@@ -17,8 +17,7 @@ git_version_page = vcs_tag(command : ['git', 'log', '-1', '--format=%H'],
 
 sphinx_conf_py = configure_file(input : 'conf.py.in',
 				output : 'conf.py',
-				configuration : sphinx_config,
-				install : false)
+				configuration : sphinx_config)
 
 # 404 replacements for old URLs
 # The switch to sphinx caused a few pages to be renamed, sphinx uses
@@ -80,8 +79,7 @@ foreach s404 : src_404s
 		config_404.set('TARGET', '@0@.html'.format(tname))
 		c = configure_file(input : '404.rst',
 				   output : '@0@.rst'.format(oname),
-				   configuration : config_404,
-				   install : false)
+				   configuration : config_404)
 		dst_404s += [c]
 	endif
 endforeach
@@ -181,8 +179,7 @@ src_sphinx = []
 foreach f : src_rst
 	sf = configure_file(input: f,
 			    output: '@PLAINNAME@',
-			    configuration : config_noop,
-			    install : false)
+			    configuration : config_noop)
 	src_sphinx += [ sf ]
 endforeach
 

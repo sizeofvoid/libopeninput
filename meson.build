@@ -160,12 +160,10 @@ udev_rules_config = configuration_data()
 udev_rules_config.set('UDEV_TEST_PATH', '')
 configure_file(input : 'udev/80-libinput-device-groups.rules.in',
 	       output : '80-libinput-device-groups.rules',
-	       install : true,
 	       install_dir : dir_udev_rules,
 	       configuration : udev_rules_config)
 configure_file(input : 'udev/90-libinput-fuzz-override.rules.in',
 	       output : '90-libinput-fuzz-override.rules',
-	       install : true,
 	       install_dir : dir_udev_rules,
 	       configuration : udev_rules_config)
 
@@ -173,11 +171,9 @@ litest_udev_rules_config = configuration_data()
 litest_udev_rules_config.set('UDEV_TEST_PATH', meson.build_root() + '/')
 litest_groups_rules_file = configure_file(input : 'udev/80-libinput-device-groups.rules.in',
 	       output : '80-libinput-device-groups-litest.rules',
-	       install : false,
 	       configuration : litest_udev_rules_config)
 litest_fuzz_override_file = configure_file(input : 'udev/90-libinput-fuzz-override.rules.in',
 					   output : '90-libinput-fuzz-override-litest.rules',
-					   install : false,
 					   configuration : litest_udev_rules_config)
 
 ############ Check for leftover udev rules ########
@@ -364,7 +360,6 @@ libinput_version_h = configure_file(
 		input : 'src/libinput-version.h.in',
 		output : 'libinput-version.h',
 		configuration : libinput_version_h_config,
-		install : false,
 )
 
 mapfile = join_paths(dir_src, 'libinput.sym')
@@ -440,7 +435,6 @@ executable('libinput-debug-events',
 configure_file(input : 'tools/libinput-debug-events.man',
 	       output : 'libinput-debug-events.1',
 	       configuration : man_config,
-	       install : true,
 	       install_dir : dir_man1,
 	       )
 
@@ -461,20 +455,17 @@ test('validate-quirks',
 configure_file(input : 'tools/libinput-quirks.man',
 	       output : 'libinput-quirks.1',
 	       configuration : man_config,
-	       install : true,
 	       install_dir : dir_man1,
 	       )
 # Same man page for the subtools to stay consistent with the other tools
 configure_file(input : 'tools/libinput-quirks.man',
 	       output : 'libinput-quirks-list.1',
 	       configuration : man_config,
-	       install : true,
 	       install_dir : dir_man1,
 	       )
 configure_file(input : 'tools/libinput-quirks.man',
 	       output : 'libinput-quirks-validate.1',
 	       configuration : man_config,
-	       install : true,
 	       install_dir : dir_man1,
 	       )
 
@@ -493,7 +484,6 @@ test('list-devices',
 configure_file(input : 'tools/libinput-list-devices.man',
 	       output : 'libinput-list-devices.1',
 	       configuration : man_config,
-	       install : true,
 	       install_dir : dir_man1,
 	       )
 
@@ -508,7 +498,6 @@ executable('libinput-measure',
 configure_file(input : 'tools/libinput-measure.man',
 	       output : 'libinput-measure.1',
 	       configuration : man_config,
-	       install : true,
 	       install_dir : dir_man1,
 	       )
 
@@ -530,7 +519,6 @@ foreach t : src_python_tools
 	configure_file(input: t,
 		       output: '@BASENAME@',
 		       configuration : config_noop,
-		       install : true,
 		       install_dir : libinput_tool_path
 		      )
 endforeach
@@ -546,7 +534,6 @@ foreach m : src_man
 	configure_file(input : m,
 		       output : '@BASENAME@.1',
 		       configuration : man_config,
-		       install : true,
 		       install_dir : dir_man1)
 endforeach
 
@@ -561,7 +548,6 @@ executable('libinput-record',
 configure_file(input : 'tools/libinput-record.man',
 	       output : 'libinput-record.1',
 	       configuration : man_config,
-	       install : true,
 	       install_dir : dir_man1,
 	       )
 
@@ -570,7 +556,6 @@ install_data('tools/libinput-replay',
 configure_file(input : 'tools/libinput-replay.man',
 	       output : 'libinput-replay.1',
 	       configuration : man_config,
-	       install : true,
 	       install_dir : dir_man1,
 	       )
 
@@ -595,7 +580,6 @@ if get_option('debug-gui')
 	configure_file(input : 'tools/libinput-debug-gui.man',
 		       output : 'libinput-debug-gui.1',
 		       configuration : man_config,
-		       install : true,
 		       install_dir : dir_man1,
 		       )
 endif
@@ -611,7 +595,6 @@ libinput_tool = executable('libinput',
 configure_file(input : 'tools/libinput.man',
 	       output : 'libinput.1',
 	       configuration : man_config,
-	       install : true,
 	       install_dir : dir_man1,
 	       )
 
@@ -630,8 +613,7 @@ if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimi
 	config_tool_option_test.set('MESON_ENABLED_DEBUG_GUI', get_option('debug-gui'))
 	tool_option_test = configure_file(input: 'tools/test-tool-option-parsing.py',
 					  output: '@BASENAME@',
-					  configuration : config_tool_option_test,
-					  install : false)
+					  configuration : config_tool_option_test)
 	test('tool-option-parsing',
 	     tool_option_test,
 	     args : ['--tool-path', libinput_tool.full_path()],
@@ -894,7 +876,6 @@ if get_option('tests')
 	configure_file(input : 'test/libinput-test-suite.man',
 		       output : 'libinput-test-suite.1',
 		       configuration : man_config,
-		       install : true,
 		       install_dir : dir_man1,
 		       )
 
@@ -937,8 +918,7 @@ if get_option('tests')
 		message('valgrind not found, disabling valgrind test suite')
 	endif
 	configure_file(output : 'litest-config.h',
-		       install : false,
 		       configuration : litest_config_h)
 endif
 ############ output files ############
-configure_file(output : 'config.h', install : false, configuration : config_h)
+configure_file(output : 'config.h', configuration : config_h)

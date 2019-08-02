@@ -58,8 +58,7 @@ doxyfiles = []
 foreach f : src_doxygen
 	df = configure_file(input: f,
 			    output: '@PLAINNAME@',
-			    configuration : config_noop,
-			    install : false)
+			    configuration : config_noop)
 	doxyfiles += [ df ]
 endforeach
 
@@ -70,8 +69,7 @@ doc_config.set('builddir', meson.current_build_dir())
 
 doxyfile = configure_file(input : 'libinput.doxygen.in',
 			  output : 'libinput.doxygen',
-			  configuration : doc_config,
-			  install : false)
+			  configuration : doc_config)
 
 custom_target('doxygen',
 	      input : [ doxyfiles, doxyfile, mainpage ] + src_doxygen,
