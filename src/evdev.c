@@ -2210,6 +2210,9 @@ evdev_device_calibrate(struct evdev_device *device,
 	matrix_from_farray6(&transform, calibration);
 	device->abs.apply_calibration = !matrix_is_identity(&transform);
 
+	/* back up the user matrix so we can return it on request */
+	matrix_from_farray6(&device->abs.usermatrix, calibration);
+
 	if (!device->abs.apply_calibration) {
 		matrix_init_identity(&device->abs.calibration);
 		return;
@@ -2237,9 +2240,6 @@ evdev_device_calibrate(struct evdev_device *device,
 	 * Matrix maths requires the normalize/un-normalize in reverse
 	 * order.
 	 */
-
-	/* back up the user matrix so we can return it on request */
-	matrix_from_farray6(&device->abs.usermatrix, calibration);
 
 	/* Un-Normalize */
 	matrix_init_translate(&translate,
