@@ -354,12 +354,32 @@ static inline double
 normalize_pressure(const struct input_absinfo *absinfo,
 		   struct libinput_tablet_tool *tool)
 {
-	int offset = tool->has_pressure_offset ?
-			tool->pressure_offset : absinfo->minimum;
-	double range = absinfo->maximum - offset;
-	double value = (absinfo->value - offset) / range;
+	int offset;
+	double range;
+	double value;
 
-	return value;
+	/**
+	 * If the tool has a pressure offset, we use that as the lower bound
+	 * for the scaling range. If not, we use the upper threshold as the
+	 * lower bound, so once we get past that minimum physical pressure
+	 * we have logical 0 pressure.
+	 *
+	 * This means that there is a small range (lower-upper) where
+	 * different physical pressure (default: 1-5%) result in the same
+	 * logical pressure. This is, hopefully, not noticable.
+	 *
+	 * Note that that lower-upper range gives us a negative pressure, so
+	 * we have to clip to 0 for those.
+	 */
+
+	if (tool->has_pressure_offset)
+		offset = tool->pressure_offset;
+	else
+		offset = tool->pressure_threshold.upper;
+	range = absinfo->maximum - offset;
+	value = (absinfo->value - offset) / range;
+
+	return max(0.0, value);
 }
 
 static inline double

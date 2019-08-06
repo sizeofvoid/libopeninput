@@ -3348,10 +3348,11 @@ START_TEST(tablet_pressure_distance_exclusive)
 	};
 	double pressure, distance;
 
-	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_tablet_proximity_in(dev, 5, 50, axes);
 	litest_drain_events(li);
 
-	litest_axis_set_value(axes, ABS_PRESSURE, 2);
+	/* We have pressure but we're still below the tip threshold */
+	litest_axis_set_value(axes, ABS_PRESSURE, 1);
 	litest_tablet_motion(dev, 70, 70, axes);
 	libinput_dispatch(li);
 
@@ -3361,7 +3362,22 @@ START_TEST(tablet_pressure_distance_exclusive)
 	pressure = libinput_event_tablet_tool_get_pressure(tev);
 	distance = libinput_event_tablet_tool_get_distance(tev);
 
-	ck_assert_double_ne(pressure, 0.0);
+	ck_assert_double_eq(pressure, 0.0);
+	ck_assert_double_eq(distance, 0.0);
+	libinput_event_destroy(event);
+
+	/* We have pressure and we're above the threshold now */
+	litest_axis_set_value(axes, ABS_PRESSURE, 5.5);
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_TIP);
+
+	pressure = libinput_event_tablet_tool_get_pressure(tev);
+	distance = libinput_event_tablet_tool_get_distance(tev);
+
+	ck_assert_double_gt(pressure, 0.0);
 	ck_assert_double_eq(distance, 0.0);
 
 	libinput_event_destroy(event);
@@ -3769,8 +3785,8 @@ START_TEST(tablet_pressure_min_max)
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tev;
 	struct axis_replacement axes[] = {
-		{ ABS_DISTANCE, 0 },
-		{ ABS_PRESSURE, 2 },
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
 		{ -1, -1 },
 	};
 	double p;
@@ -3782,7 +3798,8 @@ START_TEST(tablet_pressure_min_max)
 	litest_drain_events(li);
 	libinput_dispatch(li);
 
-	litest_axis_set_value(axes, ABS_PRESSURE, 0);
+	litest_axis_set_value(axes, ABS_DISTANCE, 0);
+	litest_axis_set_value(axes, ABS_PRESSURE, 1);
 	litest_tablet_motion(dev, 5, 50, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
