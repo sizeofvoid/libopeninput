@@ -1271,6 +1271,11 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 
 	offset = pressure->value - pressure->minimum;
 
+	/* If we have an event that falls below the current offset, adjust
+	 * the offset downwards. A fast contact can start with a
+	 * higher-than-needed pressure offset and then we'd be tied into a
+	 * high pressure offset for the rest of the session.
+	 */
 	if (tool->has_pressure_offset) {
 		if (offset < tool->pressure_offset)
 			tool->pressure_offset = offset;
