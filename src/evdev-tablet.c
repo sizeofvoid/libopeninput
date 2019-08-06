@@ -354,9 +354,9 @@ static inline double
 normalize_pressure(const struct input_absinfo *absinfo,
 		   struct libinput_tablet_tool *tool)
 {
-	double range = absinfo->maximum - absinfo->minimum;
 	int offset = tool->has_pressure_offset ?
 			tool->pressure_offset : absinfo->minimum;
+	double range = absinfo->maximum - offset;
 	double value = (absinfo->value - offset) / range;
 
 	return value;

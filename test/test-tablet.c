@@ -3567,6 +3567,7 @@ START_TEST(tablet_pressure_offset)
 	};
 	double pressure;
 
+	/* This activates the pressure thresholds */
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_drain_events(li);
 
@@ -3594,9 +3595,8 @@ START_TEST(tablet_pressure_offset)
 	pressure = libinput_event_tablet_tool_get_pressure(tev);
 
 	/* we can't actually get a real 0.0 because that would trigger a tip
-	 * up. but it's close enough to zero that ck_assert_double_eq won't
-	 * notice */
-	ck_assert_double_eq(pressure, 0.0);
+	   up. but it's close enough to zero. */
+	ck_assert_double_lt(pressure, 0.01);
 
 	libinput_event_destroy(event);
 	litest_drain_events(li);
@@ -3613,6 +3613,22 @@ START_TEST(tablet_pressure_offset)
 
 	ck_assert_double_lt(pressure, 0.015);
 	libinput_event_destroy(event);
+
+
+	/* Make sure we can reach the upper range too */
+	litest_axis_set_value(axes, ABS_PRESSURE, 100);
+	litest_tablet_motion(dev, 70, 70, axes);
+
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+	pressure = libinput_event_tablet_tool_get_pressure(tev);
+
+	ck_assert_double_ge(pressure, 1.0);
+	libinput_event_destroy(event);
+
 }
 END_TEST
 
@@ -3713,8 +3729,8 @@ START_TEST(tablet_pressure_offset_increase)
 	tev = litest_is_tablet_event(event,
 				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 	pressure = libinput_event_tablet_tool_get_pressure(tev);
-	/* Pressure should be around 10% */
-	ck_assert_double_eq_tol(pressure, 0.10, 0.01);
+	/* offset 20, value 30 leaves us with 12% of the remaining 90 range */
+	ck_assert_double_eq_tol(pressure, 0.12, 0.01);
 	libinput_event_destroy(event);
 
 	litest_drain_events(li);
