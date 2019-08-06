@@ -356,8 +356,8 @@ normalize_pressure(const struct input_absinfo *absinfo,
 {
 	double range = absinfo->maximum - absinfo->minimum;
 	int offset = tool->has_pressure_offset ?
-			tool->pressure_offset : 0;
-	double value = (absinfo->value - offset - absinfo->minimum) / range;
+			tool->pressure_offset : absinfo->minimum;
+	double value = (absinfo->value - offset) / range;
 
 	return value;
 }
@@ -1269,7 +1269,7 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 	if (!pressure || !distance)
 		return;
 
-	offset = pressure->value - pressure->minimum;
+	offset = pressure->value;
 
 	/* If we have an event that falls below the current offset, adjust
 	 * the offset downwards. A fast contact can start with a
@@ -1282,7 +1282,7 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 		return;
 	}
 
-	if (offset == 0)
+	if (offset <= pressure->minimum)
 		return;
 
 	/* we only set a pressure offset on proximity in */
