@@ -3778,12 +3778,12 @@ START_TEST(tablet_pressure_min_max)
 	if (!libevdev_has_event_code(dev->evdev, EV_ABS, ABS_PRESSURE))
 		return;
 
-	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_tablet_proximity_in(dev, 5, 50, axes);
 	litest_drain_events(li);
 	libinput_dispatch(li);
 
 	litest_axis_set_value(axes, ABS_PRESSURE, 0);
-	litest_tablet_motion(dev, 5, 100, axes);
+	litest_tablet_motion(dev, 5, 50, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
@@ -3794,18 +3794,18 @@ START_TEST(tablet_pressure_min_max)
 
 	/* skip over pressure-based tip down */
 	litest_axis_set_value(axes, ABS_PRESSURE, 90);
-	litest_tablet_motion(dev, 5, 100, axes);
+	litest_tablet_motion(dev, 5, 50, axes);
 	litest_drain_events(li);
 
 	/* need to fill the motion history */
 	litest_axis_set_value(axes, ABS_PRESSURE, 100);
-	litest_tablet_motion(dev, 5, 100, axes);
-	litest_tablet_motion(dev, 6, 100, axes);
-	litest_tablet_motion(dev, 7, 100, axes);
-	litest_tablet_motion(dev, 8, 100, axes);
+	litest_tablet_motion(dev, 5, 50, axes);
+	litest_tablet_motion(dev, 6, 50, axes);
+	litest_tablet_motion(dev, 7, 50, axes);
+	litest_tablet_motion(dev, 8, 50, axes);
 	litest_drain_events(li);
 
-	litest_tablet_motion(dev, 5, 100, axes);
+	litest_tablet_motion(dev, 5, 50, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
