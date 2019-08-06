@@ -1292,19 +1292,19 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 	if (offset > axis_range_percentage(pressure, 20)) {
 		evdev_log_error(device,
 			 "Ignoring pressure offset greater than 20%% detected on tool %s (serial %#x). "
-			 "See http://wayland.freedesktop.org/libinput/doc/%s/tablet-support.html\n",
+			 "See %stablet-support.html\n",
 			 tablet_tool_type_to_string(tool->type),
 			 tool->serial,
-			 LIBINPUT_VERSION);
+			 HTTP_DOC_LINK);
 		return;
 	}
 
 	evdev_log_info(device,
 		 "Pressure offset detected on tool %s (serial %#x).  "
-		 "See http://wayland.freedesktop.org/libinput/doc/%s/tablet-support.html\n",
+		 "See %stablet-support.html\n",
 		 tablet_tool_type_to_string(tool->type),
 		 tool->serial,
-		 LIBINPUT_VERSION);
+		 HTTP_DOC_LINK);
 	tool->pressure_offset = offset;
 	tool->has_pressure_offset = true;
 	tool->pressure_threshold.lower = pressure->minimum;
