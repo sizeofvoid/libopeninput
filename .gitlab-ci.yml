@@ -27,15 +27,15 @@
 include:
   # Arch container builder template
   - project: 'wayland/ci-templates'
-    ref: c73dae8b84697ef18e2dbbf4fed7386d9652b0cd # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+    ref: adfcd8c318d3398d0547960e45daa34d3b48bce6 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
     file: '/templates/arch.yml'
   # Fedora container builder template
   - project: 'wayland/ci-templates'
-    ref: c73dae8b84697ef18e2dbbf4fed7386d9652b0cd # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+    ref: adfcd8c318d3398d0547960e45daa34d3b48bce6 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
     file: '/templates/fedora.yml'
   # Ubuntu container builder template
   - project: 'wayland/ci-templates'
-    ref: c73dae8b84697ef18e2dbbf4fed7386d9652b0cd # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+    ref: adfcd8c318d3398d0547960e45daa34d3b48bce6 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
     file: '/templates/ubuntu.yml'
 
 stages:
@@ -199,10 +199,11 @@ arch:rolling@container-prep:
   image: $BUILDAH_IMAGE
   <<: *pull_upstream_or_rebuild
   script:
+    - export BUILDAH_RUN="buildah run --isolation chroot"
     - buildcntr=$(buildah from --quiet  myfreeweb/freebsd-cross:latest)
-    - buildah run $buildcntr apk add --no-cache $FREEBSD_BUILD_PKGS
-    - buildah run $buildcntr pkg -r /freebsd update -f
-    - buildah run $buildcntr pkg -r /freebsd install -y $FREEBSD_PKGS
+    - $BUILDAH_RUN $buildcntr apk add --no-cache $FREEBSD_BUILD_PKGS
+    - $BUILDAH_RUN $buildcntr pkg -r /freebsd update -f
+    - $BUILDAH_RUN $buildcntr pkg -r /freebsd install -y $FREEBSD_PKGS
     - buildah config --workingdir /app $buildcntr
     # tag the current container
     - buildah commit --quiet $buildcntr $FREEBSD_CONTAINER_IMAGE
