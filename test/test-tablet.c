@@ -3611,9 +3611,7 @@ START_TEST(tablet_pressure_offset)
 
 	pressure = libinput_event_tablet_tool_get_pressure(tev);
 
-	/* can't use the double_eq here, the pressure value is too tiny */
-	ck_assert(pressure > 0.0);
-	ck_assert(pressure < 1.0);
+	ck_assert_double_lt(pressure, 0.015);
 	libinput_event_destroy(event);
 }
 END_TEST
@@ -3642,7 +3640,7 @@ START_TEST(tablet_pressure_offset_decrease)
 	litest_tablet_proximity_out(dev);
 	litest_drain_events(li);
 
-	/* a reduced pressure value must reduce the offset */
+	/* a higher pressure value leaves it as-is */
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
@@ -3668,9 +3666,9 @@ START_TEST(tablet_pressure_offset_decrease)
 
 	pressure = libinput_event_tablet_tool_get_pressure(tev);
 
-	/* can't use the double_eq here, the pressure value is too tiny */
-	ck_assert(pressure > 0.0);
-	ck_assert(pressure < 1.0);
+	/* offset is 10, value is 15, so that's a around 5% of the
+	 * remaining range */
+	ck_assert_double_eq_tol(pressure, 0.05, 0.01);
 	libinput_event_destroy(event);
 }
 END_TEST
@@ -3715,9 +3713,8 @@ START_TEST(tablet_pressure_offset_increase)
 	tev = litest_is_tablet_event(event,
 				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 	pressure = libinput_event_tablet_tool_get_pressure(tev);
-	/* can't use the double_eq here, the pressure value is too tiny */
-	ck_assert(pressure > 0.0);
-	ck_assert(pressure < 1.0);
+	/* Pressure should be around 10% */
+	ck_assert_double_eq_tol(pressure, 0.10, 0.01);
 	libinput_event_destroy(event);
 
 	litest_drain_events(li);
