@@ -252,10 +252,17 @@ freebsd:11.2@container-prep:
     # get the r/w token from the settings to access the registry
     #
     # each developer needs to register a secret variable that contains
-    # a personal token with api access in the form of:
-    # PERSONAL_TOKEN_$USER (for example PERSONAL_TOKEN_bentiss)
+    # a personal token with api access. The token
+    # - must be named PERSONAL_TOKEN_$USER (for example PERSONAL_TOKEN_bentiss)
+    # - must be registered in the CI/CD Variables section as type file
+    # - value must be a netrc file as a single-line string:
+    #   default login <user> password <token value>
+    #   e.g. "default login bentiss password 1235abcde"
     - tokenname="PERSONAL_TOKEN_$GITLAB_USER_LOGIN"
-    - token=$(eval echo "\$$tokenname")
+    - netrcfile=$(eval echo "\$$tokenname")
+    - if [[ ! -f "$netrcfile" ]]; then
+         echo "No netrc file found or token is missing, skipping job" && false;
+      fi
 
     # request a token for the registry API
     - REGISTRY_TOKEN=$(curl https://$GITLAB/jwt/auth --get
@@ -265,7 +272,7 @@ freebsd:11.2@container-prep:
                              -d service=container_registry
                              -d "scope=repository:$REPOSITORY:pull,*"
                              --fail
-                             --user $GITLAB_USER_LOGIN:$token
+                             --netrc-file "$netrcfile"
                              | sed -r 's/(\{"token":"|"\})//g')
 
     # get the digest of the latest image
