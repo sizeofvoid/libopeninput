@@ -43,7 +43,7 @@ def run_command(args):
             p.wait(0.7)
         except subprocess.TimeoutExpired:
             p.send_signal(3)  # SIGQUIT
-        stdout, stderr = p.communicate(timeout=2)
+        stdout, stderr = p.communicate(timeout=5)
         if p.returncode == -3:
             p.returncode = 0
         return p.returncode, stdout.decode('UTF-8'), stderr.decode('UTF-8')
