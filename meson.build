@@ -405,6 +405,10 @@ if get_option('documentation')
 	subdir('doc/user')
 endif
 
+############ shell completion #########
+
+subdir('completion/zsh')
+
 ############ tools ############
 libinput_tool_path = dir_libexec
 config_h.set_quoted('LIBINPUT_TOOL_PATH', libinput_tool_path)
