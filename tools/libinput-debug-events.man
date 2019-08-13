@@ -65,7 +65,7 @@ Enable or disable tap-to-click
 Enable or disable tap-and-drag
 .TP 8
 .B \-\-enable\-drag-lock|\-\-disable\-drag\-lock
-Enable or disable tap-and-drag
+Enable or disable drag-lock
 .TP 8
 .B \-\-enable\-natural\-scrolling|\-\-disable\-natural\-scrolling
 Enable or disable natural scrolling
