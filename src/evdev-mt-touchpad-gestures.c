@@ -717,8 +717,13 @@ tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time)
 	if (tp->gesture.finger_count == 0)
 		return;
 
-	/* When tap-and-dragging, force 1fg mode. */
-	if (tp_tap_dragging(tp)) {
+	/* When tap-and-dragging, force 1fg mode. On clickpads, if the
+	 * physical button is down, don't allow gestures unless the button
+	 * is held down by a *thumb*, specifically.
+	 */
+	if (tp_tap_dragging(tp) ||
+	    (tp->buttons.is_clickpad && tp->buttons.state &&
+	     tp->thumb.state == THUMB_STATE_FINGER)) {
 		tp_gesture_cancel(tp, time);
 		tp->gesture.finger_count = 1;
 		tp->gesture.finger_count_pending = 0;
