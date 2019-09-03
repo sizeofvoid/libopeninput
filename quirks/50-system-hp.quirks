@@ -53,3 +53,9 @@ MatchBus=usb
 MatchVendor=0x044E
 MatchProduct=0x1221
 AttrTPKComboLayout=below
+
+[HP Elite x2 1013 G3 Keyboard]
+MatchUdevType=keyboard
+MatchBus=ps2
+MatchDMIModalias=dmi:*svnHP:pnHPElitex21013G3:*
+AttrKeyboardIntegration=external
