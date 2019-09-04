@@ -157,8 +157,7 @@ def loop(args, recording):
         d['__uinput'] = uinput  # cheaper to hide it in the dict then work around it
         d['__index'] = idx
 
-    stop = False
-    while not stop:
+    while True:
         input('Hit enter to start replaying')
 
         processes = []
