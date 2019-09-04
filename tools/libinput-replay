@@ -149,14 +149,7 @@ def wrap(func, *args):
 
 
 def loop(args, recording):
-    version = fetch(recording, 'version')
-    if version != SUPPORTED_FILE_VERSION:
-        raise YamlException('Invalid file format: {}, expected {}'.format(version, SUPPORTED_FILE_VERSION))
-
-    ndevices = fetch(recording, 'ndevices')
     devices = fetch(recording, 'devices')
-    if ndevices != len(devices):
-        error('WARNING: truncated file, expected {} devices, got {}'.format(ndevices, len(devices)))
 
     for idx, d in enumerate(devices):
         uinput = create(d)
@@ -182,6 +175,17 @@ def loop(args, recording):
         del processes
 
 
+def check_file(recording):
+    version = fetch(recording, 'version')
+    if version != SUPPORTED_FILE_VERSION:
+        raise YamlException('Invalid file format: {}, expected {}'.format(version, SUPPORTED_FILE_VERSION))
+
+    ndevices = fetch(recording, 'ndevices')
+    devices = fetch(recording, 'devices')
+    if ndevices != len(devices):
+        error('WARNING: truncated file, expected {} devices, got {}'.format(ndevices, len(devices)))
+
+
 def main():
     parser = argparse.ArgumentParser(
             description='Replay a device recording'
@@ -194,6 +198,7 @@ def main():
     try:
         with open(args.recording) as f:
             y = yaml.safe_load(f)
+            check_file(recording)
             loop(args, y)
     except KeyboardInterrupt:
         pass
