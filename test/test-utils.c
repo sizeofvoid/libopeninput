@@ -24,11 +24,18 @@
 #include <config.h>
 
 #include <check.h>
-#include <libinput-util.h>
 
 #include <valgrind/valgrind.h>
 
-#include "libinput-util.h"
+#include "util-list.h"
+#include "util-strings.h"
+#include "util-time.h"
+#include "util-prop-parsers.h"
+#include "util-macros.h"
+#include "util-bits.h"
+#include "util-ratelimit.h"
+#include "util-matrix.h"
+
 #define  TEST_VERSIONSORT
 #include "libinput-versionsort.h"
 

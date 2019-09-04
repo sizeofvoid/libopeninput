@@ -218,9 +218,45 @@ else
 endif
 
 ############ libinput-util.a ############
+
+# Basic compilation test to make sure the headers include and define all the
+# necessary bits.
+util_headers = [
+		'util-bits.h',
+		'util-list.h',
+		'util-macros.h',
+		'util-matrix.h',
+		'util-prop-parsers.h',
+		'util-ratelimit.h',
+		'util-strings.h',
+		'util-time.h',
+]
+foreach h: util_headers
+	c = configuration_data()
+	c.set_quoted('FILE', h)
+	testfile = configure_file(input : 'test/test-util-includes.c',
+			          output : 'test-util-includes-@0@.c'.format(h),
+				  configuration : c)
+	executable('test-build-@0@'.format(h),
+		   testfile, join_paths(dir_src, h),
+		   include_directories : [includes_src, includes_include],
+		   install : false)
+endforeach
+
 src_libinput_util = [
-		'src/libinput-util.c',
-		'src/libinput-util.h'
+	'src/util-bits.h',
+	'src/util-list.c',
+	'src/util-list.h',
+	'src/util-macros.h',
+	'src/util-matrix.h',
+	'src/util-ratelimit.c',
+	'src/util-ratelimit.h',
+	'src/util-strings.h',
+	'src/util-strings.c',
+	'src/util-time.h',
+	'src/util-prop-parsers.h',
+	'src/util-prop-parsers.c',
+	'src/libinput-util.h',
 ]
 libinput_util = static_library('libinput-util',
 			       src_libinput_util,
@@ -836,7 +872,6 @@ if get_option('tests')
 
 	test_utils_sources = [
 		'src/libinput-util.h',
-		'src/libinput-util.c',
 		'test/test-utils.c',
 	]
 	test_utils = executable('test-utils',
@@ -850,7 +885,6 @@ if get_option('tests')
 
 	libinput_test_runner_sources = litest_sources + [
 		'src/libinput-util.h',
-		'src/libinput-util.c',
 		'test/test-udev.c',
 		'test/test-path.c',
 		'test/test-pointer.c',

@@ -22,51 +22,24 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LIBINPUT_UTIL_H
-#define LIBINPUT_UTIL_H
+#pragma once
 
 #include "config.h"
 
-#ifdef NDEBUG
-#warning "libinput relies on assert(). #defining NDEBUG is not recommended"
-#endif
+#include <stdint.h>
 
+enum ratelimit_state {
+	RATELIMIT_EXCEEDED,
+	RATELIMIT_THRESHOLD,
+	RATELIMIT_PASS,
+};
 
-#include "libinput.h"
+struct ratelimit {
+	uint64_t interval;
+	uint64_t begin;
+	unsigned int burst;
+	unsigned int num;
+};
 
-#include "util-bits.h"
-#include "util-macros.h"
-#include "util-list.h"
-#include "util-matrix.h"
-#include "util-strings.h"
-#include "util-ratelimit.h"
-#include "util-prop-parsers.h"
-#include "util-time.h"
-
-#define VENDOR_ID_APPLE 0x5ac
-#define VENDOR_ID_CHICONY 0x4f2
-#define VENDOR_ID_LOGITECH 0x46d
-#define VENDOR_ID_WACOM 0x56a
-#define VENDOR_ID_SYNAPTICS_SERIAL 0x002
-#define PRODUCT_ID_APPLE_KBD_TOUCHPAD 0x273
-#define PRODUCT_ID_APPLE_APPLETOUCH 0x21a
-#define PRODUCT_ID_SYNAPTICS_SERIAL 0x007
-#define PRODUCT_ID_WACOM_EKR 0x0331
-
-/* The HW DPI rate we normalize to before calculating pointer acceleration */
-#define DEFAULT_MOUSE_DPI 1000
-#define DEFAULT_TRACKPOINT_SENSITIVITY 128
-
-#ifdef DEBUG_TRACE
-#define debug_trace(...) \
-	do { \
-	printf("%s:%d %s() - ", __FILE__, __LINE__, __func__); \
-	printf(__VA_ARGS__); \
-	} while (0)
-#else
-#define debug_trace(...) { }
-#endif
-
-#define LIBINPUT_EXPORT __attribute__ ((visibility("default")))
-
-#endif /* LIBINPUT_UTIL_H */
+void ratelimit_init(struct ratelimit *r, uint64_t ival_ms, unsigned int burst);
+enum ratelimit_state ratelimit_test(struct ratelimit *r);
