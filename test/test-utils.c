@@ -546,6 +546,83 @@ START_TEST(evcode_prop_parser)
 }
 END_TEST
 
+START_TEST(evdev_abs_parser)
+{
+	struct test {
+		uint32_t which;
+		const char *prop;
+		int min, max, res, fuzz, flat;
+
+	} tests[] = {
+		{ .which = (ABS_MASK_MIN|ABS_MASK_MAX),
+		  .prop = "1:2",
+		  .min = 1, .max = 2 },
+		{ .which = (ABS_MASK_MIN|ABS_MASK_MAX),
+		  .prop = "1:2:",
+		  .min = 1, .max = 2 },
+		{ .which = (ABS_MASK_MIN|ABS_MASK_MAX|ABS_MASK_RES),
+		  .prop = "10:20:30",
+		  .min = 10, .max = 20, .res = 30 },
+		{ .which = (ABS_MASK_RES),
+		  .prop = "::100",
+		  .res = 100 },
+		{ .which = (ABS_MASK_MIN),
+		  .prop = "10:",
+		  .min = 10 },
+		{ .which = (ABS_MASK_MAX|ABS_MASK_RES),
+		  .prop = ":10:1001",
+		  .max = 10, .res = 1001 },
+		{ .which = (ABS_MASK_MIN|ABS_MASK_MAX|ABS_MASK_RES|ABS_MASK_FUZZ),
+		  .prop = "1:2:3:4",
+		  .min = 1, .max = 2, .res = 3, .fuzz = 4},
+		{ .which = (ABS_MASK_MIN|ABS_MASK_MAX|ABS_MASK_RES|ABS_MASK_FUZZ|ABS_MASK_FLAT),
+		  .prop = "1:2:3:4:5",
+		  .min = 1, .max = 2, .res = 3, .fuzz = 4, .flat = 5},
+		{ .which = (ABS_MASK_MIN|ABS_MASK_RES|ABS_MASK_FUZZ|ABS_MASK_FLAT),
+		  .prop = "1::3:4:50",
+		  .min = 1, .res = 3, .fuzz = 4, .flat = 50},
+		{ .which = ABS_MASK_FUZZ|ABS_MASK_FLAT,
+		  .prop = ":::5:60",
+		  .fuzz = 5, .flat = 60},
+		{ .which = ABS_MASK_FUZZ,
+		  .prop = ":::5:",
+		  .fuzz = 5 },
+		{ .which = ABS_MASK_RES, .prop = "::12::",
+		  .res = 12 },
+		/* Malformed property but parsing this one makes us more
+		 * future proof */
+		{ .which = (ABS_MASK_RES|ABS_MASK_FUZZ|ABS_MASK_FLAT),
+		  .prop = "::12:1:2:3:4:5:6",
+		  .res = 12, .fuzz = 1, .flat = 2 },
+		{ .which = 0, .prop = ":::::" },
+		{ .which = 0, .prop = ":" },
+		{ .which = 0, .prop = "" },
+		{ .which = 0, .prop = ":asb::::" },
+		{ .which = 0, .prop = "foo" },
+	};
+	struct test *t;
+
+	ARRAY_FOR_EACH(tests, t) {
+		struct input_absinfo abs;
+		uint32_t mask;
+
+		mask = parse_evdev_abs_prop(t->prop, &abs);
+		ck_assert_int_eq(mask, t->which);
+
+		if (t->which & ABS_MASK_MIN)
+			ck_assert_int_eq(abs.minimum, t->min);
+		if (t->which & ABS_MASK_MAX)
+			ck_assert_int_eq(abs.maximum, t->max);
+		if (t->which & ABS_MASK_RES)
+			ck_assert_int_eq(abs.resolution, t->res);
+		if (t->which & ABS_MASK_FUZZ)
+			ck_assert_int_eq(abs.fuzz, t->fuzz);
+		if (t->which & ABS_MASK_FLAT)
+			ck_assert_int_eq(abs.flat, t->flat);
+	}
+}
+END_TEST
+
 START_TEST(time_conversion)
 {
 	ck_assert_int_eq(us(10), 10);
@@ -1050,6 +1127,7 @@ litest_utils_suite(void)
 	tcase_add_test(tc, calibration_prop_parser);
 	tcase_add_test(tc, range_prop_parser);
 	tcase_add_test(tc, evcode_prop_parser);
+	tcase_add_test(tc, evdev_abs_parser);
 	tcase_add_test(tc, safe_atoi_test);
 	tcase_add_test(tc, safe_atoi_base_16_test);
 	tcase_add_test(tc, safe_atoi_base_8_test);

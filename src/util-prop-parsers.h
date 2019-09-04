@@ -28,6 +28,7 @@
 #include <linux/input.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 int parse_mouse_dpi_property(const char *prop);
 int parse_mouse_wheel_click_angle_property(const char *prop);
@@ -54,3 +55,13 @@ enum switch_reliability {
 bool
 parse_switch_reliability_property(const char *prop,
 				  enum switch_reliability *reliability);
+
+enum {
+	ABS_MASK_MIN = 0x1,
+	ABS_MASK_MAX = 0x2,
+	ABS_MASK_RES = 0x4,
+	ABS_MASK_FUZZ = 0x8,
+	ABS_MASK_FLAT = 0x10,
+};
+
+uint32_t parse_evdev_abs_prop(const char *prop, struct input_absinfo *abs);

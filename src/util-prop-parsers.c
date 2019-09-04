@@ -401,3 +401,70 @@ out:
 	strv_free(strv);
 	return rc;
 }
+
+/**
+ * Parse the property value for the EVDEV_ABS_00 properties. Spec is
+ *  EVDEV_ABS_00=min:max:res:fuzz:flat
+ * where any element may be empty and subsequent elements may not be
+ * present. So we have to parse
+ *  EVDEV_ABS_00=min:max:res
+ *  EVDEV_ABS_00=::res
+ *  EVDEV_ABS_00=::res:fuzz:
+ *
+ * Returns a mask of the bits set and the absinfo struct with the values.
+ * The abs value for an unset bit is undefined.
+ */
+uint32_t
+parse_evdev_abs_prop(const char *prop, struct input_absinfo *abs)
+{
+	char *str = strdup(prop);
+	char *current, *next;
+	uint32_t mask = 0;
+	int bit = ABS_MASK_MIN;
+	int *val;
+	int values[5];
+
+	/* basic sanity check: 5 digits for min/max, 3 for resolution, fuzz,
+	 * flat and the colons. That's plenty, anything over is garbage */
+	if (strlen(prop) > 24)
+		goto out;
+
+	current = str;
+	val = values;
+	while (current && *current != '\0' && bit <= ABS_MASK_FLAT) {
+		if (*current != ':') {
+			int v;
+			next = index(current, ':');
+			if (next)
+				*next = '\0';
+
+			if (!safe_atoi(current, &v)) {
+				mask = 0;
+				goto out;
+			}
+			*val = v;
+			mask |= bit;
+			current = next ? ++next : NULL;
+		} else {
+			current++;
+		}
+		bit <<= 1;
+		val++;
+	}
+
+	if (mask & ABS_MASK_MIN)
+		abs->minimum = values[0];
+	if (mask & ABS_MASK_MAX)
+		abs->maximum = values[1];
+	if (mask & ABS_MASK_RES)
+		abs->resolution = values[2];
+	if (mask & ABS_MASK_FUZZ)
+		abs->fuzz = values[3];
+	if (mask & ABS_MASK_FLAT)
+		abs->flat = values[4];
+
+out:
+	free(str);
+
+	return mask;
+}
