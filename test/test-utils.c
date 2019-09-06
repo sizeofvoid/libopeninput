@@ -1068,12 +1068,6 @@ int main(int argc, char **argv)
 	Suite *s;
 	SRunner *sr;
 
-        /* when running under valgrind we're using nofork mode, so a signal
-         * raised by a test will fail in valgrind. There's nothing to
-         * memcheck here anyway, so just skip the valgrind test */
-        if (RUNNING_ON_VALGRIND)
-            return 77;
-
 	s = litest_utils_suite();
         sr = srunner_create(s);
 
