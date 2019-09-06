@@ -39,13 +39,16 @@
 #include <unistd.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include "libinput-versionsort.h"
-#include "libinput-util.h"
 #include "libinput-version.h"
 #include "libinput-git-version.h"
 #include "shared.h"
 #include "builddir.h"
+#include "util-list.h"
+#include "util-time.h"
+#include "util-macros.h"
 
 static const int FILE_VERSION_NUMBER = 1;
 

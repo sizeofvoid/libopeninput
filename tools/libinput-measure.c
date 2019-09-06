@@ -31,8 +31,6 @@
 #include <unistd.h>
 #include <libudev.h>
 
-#include <libinput-util.h>
-
 #include "shared.h"
 
 static inline void

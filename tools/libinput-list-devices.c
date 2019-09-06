@@ -31,8 +31,8 @@
 #include <libudev.h>
 
 #include <libinput.h>
-#include <libinput-util.h>
 #include <libinput-version.h>
+#include "util-strings.h"
 
 #include "shared.h"
 

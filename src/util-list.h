@@ -28,6 +28,7 @@
 #include "config.h"
 
 #include <stdbool.h>
+#include <stddef.h>
 
 /*
  * This list data structure is a verbatim copy from wayland-util.h from the

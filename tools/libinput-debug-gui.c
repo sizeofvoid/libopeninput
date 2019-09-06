@@ -24,6 +24,7 @@
 
 #include <linux/input.h>
 
+#include <assert.h>
 #include <cairo.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -41,7 +42,9 @@
 #include <libevdev/libevdev.h>
 
 #include <libinput.h>
-#include <libinput-util.h>
+#include "util-strings.h"
+#include "util-macros.h"
+#include "util-list.h"
 
 #include "shared.h"
 
