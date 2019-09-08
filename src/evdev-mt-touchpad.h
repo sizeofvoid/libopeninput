@@ -27,7 +27,6 @@
 #include <stdbool.h>
 
 #include "evdev.h"
-#include "filter.h"
 #include "timer.h"
 
 #define TOUCHPAD_HISTORY_LENGTH 4
