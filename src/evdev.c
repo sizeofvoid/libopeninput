@@ -36,7 +36,6 @@
 #include <fcntl.h>
 #include <mtdev-plumbing.h>
 #include <assert.h>
-#include <time.h>
 #include <math.h>
 
 #include "libinput.h"
