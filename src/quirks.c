@@ -38,7 +38,6 @@
 
 #include "libinput-versionsort.h"
 #include "libinput-util.h"
-#include "libinput-private.h"
 
 #include "quirks.h"
 
