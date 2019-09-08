@@ -25,7 +25,6 @@
 
 #include <math.h>
 #include <stdbool.h>
-#include <limits.h>
 
 #include "evdev-mt-touchpad.h"
 
