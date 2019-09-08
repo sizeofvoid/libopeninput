@@ -25,18 +25,15 @@
 
 #include <errno.h>
 #include <inttypes.h>
-#include <fcntl.h>
 #include <getopt.h>
 #include <poll.h>
 #include <stdio.h>
-#include <stdarg.h>
+#include <stdlib.h>
 #include <signal.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include <libudev.h>
 #include "linux/input.h"
-#include <sys/ioctl.h>
 
 #include <libinput.h>
 #include <libevdev/libevdev.h>
