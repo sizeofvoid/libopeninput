@@ -23,12 +23,9 @@
 
 #include "config.h"
 
-#include <errno.h>
 #include <limits.h>
 #include <math.h>
 #include <string.h>
-#include <unistd.h>
-#include "linux/input.h"
 
 #include "evdev-mt-touchpad.h"
 
