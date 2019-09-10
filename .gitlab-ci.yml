@@ -462,6 +462,20 @@ fedora:30@valgrind:
     MESON_TEST_ARGS: '--suite=valgrind --no-suite=hardware --setup=valgrind'
   before_script:
     - dnf install -y valgrind
+
+# Python checks, only run on Fedora
+
+fedora:30@usr-bin-env-python:
+  extends: .fedora-build@template
+  variables:
+    FEDORA_VERSION: 30
+  script:
+    - |
+      if git grep -l '^#!/usr/bin/python'; then
+        echo "Use '/usr/bin/env python3' in the above files";
+        /bin/false
+      fi
+
 #
 # Ubuntu
 #
