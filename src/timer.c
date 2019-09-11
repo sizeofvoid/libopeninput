@@ -25,7 +25,6 @@
 
 #include <assert.h>
 #include <errno.h>
-#include <inttypes.h>
 #include <string.h>
 #include <sys/timerfd.h>
 #include <unistd.h>
