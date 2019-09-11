@@ -127,14 +127,14 @@ def replay(device, verbose):
         # The first event may have a nonzero offset but we want to replay
         # immediately regardless.
         if not handled_first_event:
-            offset -= sec + usec/1.e6
+            offset -= sec + usec / 1.e6
             handled_first_event = True
 
-        evtime = sec + usec/1e6 + offset
+        evtime = sec + usec / 1e6 + offset
         now = time.time()
 
-        if evtime - now > 150/1e6:  # 150 µs error margin
-            time.sleep(evtime - now - 150/1e6)
+        if evtime - now > 150 / 1e6:  # 150 µs error margin
+            time.sleep(evtime - now - 150 / 1e6)
 
         evs = [libevdev.InputEvent(libevdev.evbit(e[2], e[3]), value=e[4], sec=e[0], usec=e[1]) for e in evdev]
         uinput.send_events(evs)
@@ -224,9 +224,7 @@ def check_file(recording):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-            description='Replay a device recording'
-    )
+    parser = argparse.ArgumentParser(description='Replay a device recording')
     parser.add_argument('recording', metavar='recorded-file.yaml',
                         type=str, help='Path to device recording')
     parser.add_argument('--verbose', action='store_true')

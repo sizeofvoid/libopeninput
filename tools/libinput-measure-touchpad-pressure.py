@@ -99,12 +99,12 @@ class TouchSequence(object):
 
     def avg(self):
         """Average pressure value of this sequence"""
-        return int(sum([p.pressure for p in self.points])/len(self.points))
+        return int(sum([p.pressure for p in self.points]) / len(self.points))
 
     def median(self):
         """Median pressure value of this sequence"""
         ps = sorted([p.pressure for p in self.points])
-        idx = int(len(self.points)/2)
+        idx = int(len(self.points) / 2)
         return ps[idx]
 
     def __str__(self):
@@ -280,7 +280,7 @@ def colon_tuple(string):
         t = tuple([int(x) for x in ts])
         if len(t) == 2 and t[0] >= t[1]:
             return t
-    except:
+    except: # noqa
         pass
 
     msg = "{} is not in format N:M (N >= M)".format(string)
@@ -320,7 +320,7 @@ def main(args):
     except (PermissionError, OSError):
         print("Error: failed to open device")
     except InvalidDeviceError as e:
-        print("This device does not have the capabilities for pressure-based touch detection.");
+        print("This device does not have the capabilities for pressure-based touch detection.")
         print("Details: {}".format(e))
 
 

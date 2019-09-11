@@ -115,28 +115,28 @@ class TestLibinputCommand(TestLibinputTool):
 
 class TestToolWithOptions(object):
     options = {
-            'pattern': ['sendevents'],
-            # enable/disable options
-            'enable-disable': [
-                        'tap',
-                        'drag',
-                        'drag-lock',
-                        'middlebutton',
-                        'natural-scrolling',
-                        'left-handed',
-                        'dwt'
-            ],
-            # options with distinct values
-            'enums': {
-                'set-click-method': ['none', 'clickfinger', 'buttonareas'],
-                'set-scroll-method': ['none', 'twofinger', 'edge', 'button'],
-                'set-profile': ['adaptive', 'flat'],
-                'set-tap-map': ['lrm', 'lmr'],
-            },
-            # options with a range
-            'ranges': {
-                'set-speed': (float, -1.0, +1.0),
-            }
+        'pattern': ['sendevents'],
+        # enable/disable options
+        'enable-disable': [
+            'tap',
+            'drag',
+            'drag-lock',
+            'middlebutton',
+            'natural-scrolling',
+            'left-handed',
+            'dwt'
+        ],
+        # options with distinct values
+        'enums': {
+            'set-click-method': ['none', 'clickfinger', 'buttonareas'],
+            'set-scroll-method': ['none', 'twofinger', 'edge', 'button'],
+            'set-profile': ['adaptive', 'flat'],
+            'set-tap-map': ['lrm', 'lmr'],
+        },
+        # options with a range
+        'ranges': {
+            'set-speed': (float, -1.0, +1.0),
+        }
     }
 
     def test_udev_seat(self):
@@ -171,7 +171,7 @@ class TestToolWithOptions(object):
         for option, values in self.options['ranges'].items():
             range_type, minimum, maximum = values
             self.assertEqual(range_type, float)
-            step = (maximum - minimum)/10.0
+            step = (maximum - minimum) / 10.0
             value = minimum
             while value < maximum:
                 self.run_command_success(['--{}'.format(option), str(value)])
@@ -212,7 +212,7 @@ class TestDebugGUI(TestToolWithOptions, TestLibinputTool):
     @classmethod
     def setUpClass(cls):
         # This is set by meson
-        debug_gui_enabled = @MESON_ENABLED_DEBUG_GUI@
+        debug_gui_enabled = @MESON_ENABLED_DEBUG_GUI@ # noqa
         if not debug_gui_enabled:
             raise unittest.SkipTest()
 

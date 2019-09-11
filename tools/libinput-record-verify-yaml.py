@@ -61,7 +61,7 @@ class TestYaml(unittest.TestCase):
 
                 for ev in libinput:
                     if (filter is None or ev['type'] == filter or
-                        isinstance(filter, list) and ev['type'] in filter):
+                            isinstance(filter, list) and ev['type'] in filter):
                         yield ev
 
     def test_sections_exist(self):
@@ -632,7 +632,8 @@ class TestYaml(unittest.TestCase):
                 self.assertTrue(isinstance(wd, 1))
                 self.assertGreaterEqual(wd, 0.0)
 
-                def sign(x): (1, -1)[x < 0]
+                def sign(x):
+                    (1, -1)[x < 0]
                 self.assertTrue(sign(w), sign(wd))
             except KeyError:
                 pass
