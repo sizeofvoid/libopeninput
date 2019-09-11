@@ -30,9 +30,7 @@
 #include <linux/input.h>
 #include <libevdev/libevdev.h>
 
-#include "util-strings.h"
 #include "util-macros.h"
-#include "util-bits.h"
 
 static void
 reset_absfuzz_to_zero(struct udev_device *device)
