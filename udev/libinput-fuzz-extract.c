@@ -23,13 +23,9 @@
 
 #include "config.h"
 
-#include <errno.h>
 #include <fcntl.h>
-#include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
 #include <unistd.h>
 #include <libudev.h>
 #include <linux/input.h>
