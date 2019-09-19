@@ -335,15 +335,18 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp)
 
 	/* Position-based thumb detection: When a new touch arrives, check the
 	 * two lowest touches. If they qualify for 2-finger scrolling, clear
-	 * thumb status. If not, mark the lower touch (based on pinch_eligible)
-	 * as either PINCH or SUPPRESSED.
+	 * thumb status.
+	 *
+	 * If they were in distinct diagonal position, then mark the lower
+	 * touch (based on pinch_eligible) as either PINCH or SUPPRESSED. If
+	 * we're too close together for a thumb, lift that.
 	 */
-	if (mm.y > SCROLL_MM_Y) {
+	if (mm.y > SCROLL_MM_Y && mm.x > SCROLL_MM_X) {
 		if (tp->thumb.pinch_eligible)
 			tp_thumb_pinch(tp, first);
 		else
 			tp_thumb_suppress(tp, first);
-	} else {
+	} else if (mm.x < SCROLL_MM_X && mm.y < SCROLL_MM_Y) {
 		tp_thumb_lift(tp);
 	}
 }
