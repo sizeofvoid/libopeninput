@@ -309,9 +309,6 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp)
 	if (!first || !second)
 		return;
 
-	assert(first);
-	assert(second);
-
 	distance.x = abs(first->point.x - second->point.x);
 	distance.y = abs(first->point.y - second->point.y);
 	mm = evdev_device_unit_delta_to_mm(tp->device, &distance);
