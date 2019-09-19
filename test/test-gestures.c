@@ -259,6 +259,58 @@ START_TEST(gestures_swipe_3fg_btntool)
 }
 END_TEST
 
+START_TEST(gestures_swipe_3fg_btntool_pinch_like)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_gesture *gevent;
+
+	if (libevdev_get_num_slots(dev->evdev) > 2 ||
+	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP) ||
+	    !libinput_device_has_capability(dev->libinput_device,
+					    LIBINPUT_DEVICE_CAP_GESTURE))
+		return;
+
+	litest_drain_events(li);
+
+	/* Technically a pinch position + pinch movement, but expect swipe
+	 * for nfingers > nslots */
+	litest_touch_down(dev, 0, 20, 60);
+	litest_touch_down(dev, 1, 50, 20);
+	litest_event(dev, EV_KEY, BTN_TOOL_DOUBLETAP, 0);
+	litest_event(dev, EV_KEY, BTN_TOOL_TRIPLETAP, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+	libinput_dispatch(li);
+	litest_touch_move_to(dev, 0, 20, 60, 10, 80, 20);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	gevent = litest_is_gesture_event(event,
+					 LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
+					 3);
+	libinput_event_destroy(event);
+
+	while ((event = libinput_get_event(li)) != NULL) {
+		gevent = litest_is_gesture_event(event,
+						 LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
+						 3);
+		libinput_event_destroy(event);
+	}
+
+	litest_touch_up(dev, 0);
+	litest_touch_up(dev, 1);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	gevent = litest_is_gesture_event(event,
+					 LIBINPUT_EVENT_GESTURE_SWIPE_END,
+					 3);
+	ck_assert(!libinput_event_gesture_get_cancelled(gevent));
+	libinput_event_destroy(event);
+}
+END_TEST
+
 START_TEST(gestures_swipe_4fg)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1021,6 +1073,7 @@ TEST_COLLECTION(gestures)
 
 	litest_add_ranged("gestures:swipe", gestures_swipe_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add_ranged("gestures:swipe", gestures_swipe_3fg_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
+	litest_add("gestures:swipe", gestures_swipe_3fg_btntool_pinch_like, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add_ranged("gestures:swipe", gestures_swipe_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add_ranged("gestures:swipe", gestures_swipe_4fg_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add_ranged("gestures:pinch", gestures_pinch, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);

@@ -481,6 +481,12 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	double inner = 1.5; /* inner threshold in mm - count this touch */
 	double outer = 4.0; /* outer threshold in mm - ignore other touch */
 
+	/* If we have more fingers than slots, we don't know where the
+	 * fingers are. Default to swipe */
+	if (tp->gesture.enabled && tp->gesture.finger_count > 2 &&
+	    tp->gesture.finger_count > tp->num_slots)
+		return GESTURE_STATE_SWIPE;
+
 	/* Need more margin for error when there are more fingers */
 	outer += 2.0 * (tp->gesture.finger_count - 2);
 	inner += 0.5 * (tp->gesture.finger_count - 2);
