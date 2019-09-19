@@ -477,12 +477,12 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	struct phys_coords first_moved, second_moved, distance_mm;
 	double first_mm, second_mm; /* movement since gesture start in mm */
 	double thumb_mm, finger_mm;
-	double inner = 1.5; /* inner threshold in mm - count this touch */
-	double outer = 4.0; /* outer threshold in mm - ignore other touch */
+	double min_move = 1.5; /* min movement threshold in mm - count this touch */
+	double max_move = 4.0; /* max movement threshold in mm - ignore other touch */
 
 	/* Need more margin for error when there are more fingers */
-	outer += 2.0 * (tp->gesture.finger_count - 2);
-	inner += 0.5 * (tp->gesture.finger_count - 2);
+	max_move += 2.0 * (tp->gesture.finger_count - 2);
+	min_move += 0.5 * (tp->gesture.finger_count - 2);
 
 	first_moved = tp_gesture_mm_moved(tp, first);
 	first_mm = hypot(first_moved.x, first_moved.y);
@@ -522,18 +522,18 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 		}
 	}
 
-	/* If one touch exceeds the outer threshold while the other has not
-	 * yet passed the inner threshold, there is either a resting thumb,
+	/* If one touch exceeds the max_move threshold while the other has not
+	 * yet passed the min_move threshold, there is either a resting thumb,
 	 * or the user is doing "one-finger-scroll," where one touch stays in
 	 * place while the other moves.
 	 */
-	if (first_mm >= outer || second_mm >= outer) {
+	if (first_mm >= max_move || second_mm >= max_move) {
 		/* If thumb detection is enabled, and thumb is still while
 		 * finger moves, cancel gestures and mark lower as thumb.
 		 * This applies to all gestures (2, 3, 4+ fingers), but allows
 		 * more thumb motion on >2 finger gestures during detection.
 		 */
-		if (tp->thumb.detect_thumbs && thumb_mm < inner) {
+		if (tp->thumb.detect_thumbs && thumb_mm < min_move) {
 			tp_thumb_suppress(tp, thumb);
 			return GESTURE_STATE_NONE;
 		}
@@ -542,7 +542,7 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 		 * while thumb moves, assume this is "one-finger scrolling."
 		 * This applies only to 2-finger gestures.
 		 */
-		if ((!tp->gesture.enabled || finger_mm < inner) &&
+		if ((!tp->gesture.enabled || finger_mm < min_move) &&
 		    tp->gesture.finger_count == 2) {
 			tp_gesture_set_scroll_buildup(tp);
 			return GESTURE_STATE_SCROLL;
@@ -551,7 +551,7 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 		/* If more than 2 fingers are involved, and the thumb moves
 		 * while the fingers stay still, assume a pinch if eligible.
 		 */
-		if (finger_mm < inner &&
+		if (finger_mm < min_move &&
 		    tp->gesture.finger_count > 2 &&
 		    tp->gesture.enabled &&
 		    tp->thumb.pinch_eligible) {
@@ -560,15 +560,15 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 		}
 	}
 
-	/* If either touch is still inside the inner threshold, we can't
+	/* If either touch is still below the min_move threshold, we can't
 	 * tell what kind of gesture this is.
 	 */
-	if ((first_mm < inner) || (second_mm < inner))
+	if ((first_mm < min_move) || (second_mm < min_move))
 		return GESTURE_STATE_UNKNOWN;
 
-	/* Both touches have exceeded the inner threshold, so we have a valid
-	 * gesture. Update gesture initial time and get directions so we know
-	 * if it's a pinch or swipe/scroll.
+	/* Both touches have exceeded the min_move threshold, so we have a
+	 * valid gesture. Update gesture initial time and get directions so
+	 * we know if it's a pinch or swipe/scroll.
 	 */
 	dir1 = tp_gesture_get_direction(tp, first);
 	dir2 = tp_gesture_get_direction(tp, second);
