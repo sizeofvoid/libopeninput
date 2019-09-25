@@ -1171,8 +1171,8 @@ START_TEST(pointer_scroll_button_middle_emulation)
 
 	litest_drain_events(li);
 
-	litest_button_click_debounced(dev, li, BTN_LEFT, 1);
-	litest_button_click_debounced(dev, li, BTN_RIGHT, 1);
+	litest_button_click(dev, BTN_LEFT, 1);
+	litest_button_click(dev, BTN_RIGHT, 1);
 	libinput_dispatch(li);
 	litest_timeout_buttonscroll();
 	libinput_dispatch(li);
@@ -1184,8 +1184,8 @@ START_TEST(pointer_scroll_button_middle_emulation)
 
 	libinput_dispatch(li);
 
-	litest_button_click_debounced(dev, li, BTN_LEFT, 0);
-	litest_button_click_debounced(dev, li, BTN_RIGHT, 0);
+	litest_button_click(dev, BTN_LEFT, 0);
+	litest_button_click(dev, BTN_RIGHT, 0);
 	libinput_dispatch(li);
 
 	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, -1);
