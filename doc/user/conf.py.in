@@ -167,10 +167,6 @@ texinfo_documents = [
 
 from recommonmark.parser import CommonMarkParser
 
-source_parsers = {
-    '.md': CommonMarkParser,
-}
-
 extlinks = { 'commit' :
 		('https://gitlab.freedesktop.org/libinput/libinput/commit/%s',
 			'git commit ')
