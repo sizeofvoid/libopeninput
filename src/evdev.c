@@ -1952,6 +1952,7 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	 * https://gitlab.freedesktop.org/libinput/libinput/issues/177 and
 	 * https://gitlab.freedesktop.org/libinput/libinput/issues/234 */
 	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_T480S_TOUCHPAD) ||
+	    evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_T490S_TOUCHPAD) ||
 	    evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_L380_TOUCHPAD))
 		libevdev_enable_property(device->evdev,
 					 INPUT_PROP_BUTTONPAD);
