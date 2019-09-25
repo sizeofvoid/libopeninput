@@ -4041,7 +4041,7 @@ libinput_device_get_size(struct libinput_device *device,
  * @ingroup device
  *
  * Check if a @ref LIBINPUT_DEVICE_CAP_POINTER device has a button with the
- * given code (see linux/input.h).
+ * given code (see linux/input-event-codes.h).
  *
  * @param device A current input device
  * @param code Button code to check for, e.g. <i>BTN_LEFT</i>
@@ -4056,7 +4056,7 @@ libinput_device_pointer_has_button(struct libinput_device *device, uint32_t code
  * @ingroup device
  *
  * Check if a @ref LIBINPUT_DEVICE_CAP_KEYBOARD device has a key with the
- * given code (see linux/input.h).
+ * given code (see linux/input-event-codes.h).
  *
  * @param device A current input device
  * @param code Key code to check for, e.g. <i>KEY_ESC</i>
