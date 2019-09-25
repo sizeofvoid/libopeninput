@@ -1808,6 +1808,18 @@ out:
 
 }
 
+static struct libinput_tablet_tool *
+tablet_get_current_tool(struct tablet_dispatch *tablet)
+{
+	if (tablet->current_tool.type == LIBINPUT_TOOL_NONE)
+		return NULL;
+
+	return tablet_get_tool(tablet,
+			       tablet->current_tool.type,
+			       tablet->current_tool.id,
+			       tablet->current_tool.serial);
+}
+
 static void
 tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
@@ -1816,14 +1828,8 @@ tablet_flush(struct tablet_dispatch *tablet,
 	struct libinput_tablet_tool *tool;
 
 	tablet_update_tool_state(tablet, device, time);
-	if (tablet->current_tool.type == LIBINPUT_TOOL_NONE)
-		return;
 
-	tool = tablet_get_tool(tablet,
-			       tablet->current_tool.type,
-			       tablet->current_tool.id,
-			       tablet->current_tool.serial);
-
+	tool = tablet_get_current_tool(tablet);
 	if (!tool)
 		return; /* OOM */
 
