@@ -77,7 +77,7 @@ struct litest_test_device {
 	const char *udev_rule;
 	const char *quirk_file;
 
-	const struct key_value_str udev_properties[];
+	const struct key_value_str udev_properties[32];
 };
 
 struct litest_device_interface {
