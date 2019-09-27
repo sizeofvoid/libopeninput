@@ -553,7 +553,7 @@ evdev_middlebutton_handle_event(struct evdev_device *device,
 	}
 
 	evdev_log_debug(device,
-			"middlebuttonstate: %s → %s → %s, rc %d\n",
+			"middlebutton state: %s → %s → %s, rc %d\n",
 			middlebutton_state_to_str(current),
 			middlebutton_event_to_str(event),
 			middlebutton_state_to_str(device->middlebutton.state),
