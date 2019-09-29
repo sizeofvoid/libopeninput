@@ -1944,6 +1944,11 @@ tablet_proximity_out_quirk_timer_func(uint64_t now, void *data)
 	};
 	struct input_event *e;
 
+	if (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT)) {
+		tablet_proximity_out_quirk_set_timer(tablet, now);
+		return;
+	}
+
 	if (tablet->quirks.last_event_time > now - FORCED_PROXOUT_TIMEOUT) {
 		tablet_proximity_out_quirk_set_timer(tablet,
 						     tablet->quirks.last_event_time);
