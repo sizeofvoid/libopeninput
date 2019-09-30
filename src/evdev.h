@@ -216,6 +216,10 @@ struct evdev_device {
 		 * used at runtime to enable/disable the feature */
 		bool natural_scrolling_enabled;
 
+		/* set during device init to invert direction of
+		 * horizontal scrolling */
+		bool invert_horizontal_scrolling;
+
 		/* angle per REL_WHEEL click in degrees */
 		struct wheel_angle wheel_click_angle;
 
