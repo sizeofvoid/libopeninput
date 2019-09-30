@@ -287,15 +287,13 @@ START_TEST(gestures_swipe_3fg_btntool_pinch_like)
 	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
-	gevent = litest_is_gesture_event(event,
-					 LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
-					 3);
+	litest_is_gesture_event(event, LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN, 3);
 	libinput_event_destroy(event);
 
 	while ((event = libinput_get_event(li)) != NULL) {
-		gevent = litest_is_gesture_event(event,
-						 LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
-						 3);
+		litest_is_gesture_event(event,
+					LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
+					3);
 		libinput_event_destroy(event);
 	}
 
