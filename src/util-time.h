@@ -28,6 +28,7 @@
 #include <time.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <linux/input.h>
 
 static inline void
 msleep(unsigned int ms)
