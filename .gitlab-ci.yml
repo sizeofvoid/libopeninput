@@ -24,18 +24,20 @@
 # <distribution>:<version>@activity:
 #  e.g. fedora:29@build-default
 
+.templates_sha: &template_sha ff90ddcf059bfce35bd5f9b89a59d5d0c912b458 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+
 include:
   # Arch container builder template
   - project: 'wayland/ci-templates'
-    ref: ff90ddcf059bfce35bd5f9b89a59d5d0c912b458 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+    ref: *template_sha
     file: '/templates/arch.yml'
   # Fedora container builder template
   - project: 'wayland/ci-templates'
-    ref: ff90ddcf059bfce35bd5f9b89a59d5d0c912b458 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+    ref: *template_sha
     file: '/templates/fedora.yml'
   # Ubuntu container builder template
   - project: 'wayland/ci-templates'
-    ref: ff90ddcf059bfce35bd5f9b89a59d5d0c912b458 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+    ref: *template_sha
     file: '/templates/ubuntu.yml'
 
 stages:
@@ -71,7 +73,7 @@ variables:
   UBUNTU_TAG: '2019-08-07.0'
   ARCH_TAG: '2019-08-07.0'
   FREEBSD_TAG: '2019-08-07.0'
-  QEMU_TAG: 'qemu-vm-2019-08-06.1'
+  QEMU_TAG: 'qemu-vm-2019-10-04.0'
 
   UBUNTU_EXEC: "bash .gitlab-ci/ubuntu_install.sh $UBUNTU_CUSTOM_DEBS"
 
