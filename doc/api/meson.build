@@ -37,7 +37,7 @@ mainpage = vcs_tag(command : ['git', 'log', '-1', '--format=%h'],
 
 src_doxygen = files(
 	# source files
-	join_paths(meson.source_root(), 'src', 'libinput.h'),
+	'../../src/libinput.h',
 	# style files
 	'style/header.html',
 	'style/footer.html',

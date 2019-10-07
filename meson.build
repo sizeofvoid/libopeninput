@@ -12,9 +12,9 @@ dir_libexec     = join_paths(get_option('prefix'), get_option('libexecdir'), 'li
 dir_lib         = join_paths(get_option('prefix'), get_option('libdir'))
 dir_man1        = join_paths(get_option('prefix'), get_option('mandir'), 'man1')
 dir_system_udev = join_paths(get_option('prefix'), 'lib', 'udev')
-dir_src_quirks  = join_paths(meson.source_root(), 'quirks')
-dir_src_test    = join_paths(meson.source_root(), 'test')
-dir_src         = join_paths(meson.source_root(), 'src')
+dir_src_quirks  = join_paths(meson.current_source_dir(), 'quirks')
+dir_src_test    = join_paths(meson.current_source_dir(), 'test')
+dir_src         = join_paths(meson.current_source_dir(), 'src')
 
 dir_udev = get_option('udev-dir')
 if dir_udev == ''
@@ -52,7 +52,7 @@ add_project_arguments(cppflags, language : 'cpp')
 config_h = configuration_data()
 config_h.set('_GNU_SOURCE', '1')
 if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimized'
-	config_h.set_quoted('MESON_BUILD_ROOT', meson.build_root())
+	config_h.set_quoted('MESON_BUILD_ROOT', meson.current_build_dir())
 else
 	config_h.set_quoted('MESON_BUILD_ROOT', '')
 endif
@@ -176,7 +176,7 @@ configure_file(input : 'udev/90-libinput-fuzz-override.rules.in',
 	       configuration : udev_rules_config)
 
 litest_udev_rules_config = configuration_data()
-litest_udev_rules_config.set('UDEV_TEST_PATH', meson.build_root() + '/')
+litest_udev_rules_config.set('UDEV_TEST_PATH', meson.current_build_dir() + '/')
 litest_groups_rules_file = configure_file(input : 'udev/80-libinput-device-groups.rules.in',
 	       output : '80-libinput-device-groups-litest.rules',
 	       configuration : litest_udev_rules_config)
@@ -328,7 +328,7 @@ quirks_data = [
 
 test('quirks-in-meson.build',
      find_program('quirks/test-quirks-in-meson.build.sh'),
-     args : [meson.source_root()],
+     args : [meson.current_source_dir()],
      suite : ['all']
      )
 
@@ -684,7 +684,7 @@ test('tools-builddir-lookup',
 test('tools-builddir-lookup-installed',
      find_program('test/helper-copy-and-exec-from-tmp.sh'),
      args : [test_builddir_lookup.full_path(), '--builddir-is-null'],
-     env : ['LD_LIBRARY_PATH=@0@'.format(meson.build_root())],
+     env : ['LD_LIBRARY_PATH=@0@'.format(meson.current_build_dir())],
      suite : ['all'],
      workdir : '/tmp')
 
@@ -841,10 +841,10 @@ if get_option('tests')
 
 	litest_config_h = configuration_data()
 	litest_config_h.set_quoted('LIBINPUT_DEVICE_GROUPS_RULES_FILE',
-			    join_paths(meson.build_root(),
+			    join_paths(meson.current_build_dir(),
 				       '80-libinput-device-groups-litest.rules'))
 	litest_config_h.set_quoted('LIBINPUT_FUZZ_OVERRIDE_UDEV_RULES_FILE',
-			    join_paths(meson.build_root(),
+			    join_paths(meson.current_build_dir(),
 				       '90-libinput-fuzz-override-litest.rules'))
 
 	def_no_main = '-DLITEST_NO_MAIN'
