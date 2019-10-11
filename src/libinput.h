@@ -835,7 +835,7 @@ enum libinput_event_type {
 	 * This event is not to be confused with the button events emitted
 	 * by the tablet pad. See @ref LIBINPUT_EVENT_TABLET_PAD_BUTTON.
 	 *
-	 * @see LIBINPUT_EVENT_TABLET_BUTTON
+	 * @see LIBINPUT_EVENT_TABLET_PAD_BUTTON
 	 *
 	 * @since 1.2
 	 */
