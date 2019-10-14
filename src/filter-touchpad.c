@@ -189,10 +189,19 @@ touchpad_constant_filter(struct motion_filter *filter,
 	struct touchpad_accelerator *accel =
 		(struct touchpad_accelerator *)filter;
 	struct normalized_coords normalized;
+	/* We need to use the same baseline here as the accelerated code,
+	 * otherwise our unaccelerated speed is different to the accelerated
+	 * speed on the plateau.
+	 *
+	 * This is a hack, the baseline should be incorporated into the
+	 * TP_MAGIC_SLOWDOWN so we only have one number here but meanwhile
+	 * this will do.
+	 */
+	const double baseline = 0.9;
 
 	normalized = normalize_for_dpi(unaccelerated, accel->dpi);
-	normalized.x = TP_MAGIC_SLOWDOWN * normalized.x;
-	normalized.y = TP_MAGIC_SLOWDOWN * normalized.y;
+	normalized.x = baseline * TP_MAGIC_SLOWDOWN * normalized.x;
+	normalized.y = baseline * TP_MAGIC_SLOWDOWN * normalized.y;
 
 	return normalized;
 }
