@@ -150,13 +150,13 @@ START_TEST(touchpad_2fg_scroll)
 	litest_drain_events(li);
 
 	test_2fg_scroll(dev, 0.1, 40, false);
-	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, 10);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, 9);
 	test_2fg_scroll(dev, 0.1, -40, false);
-	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, -10);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, -9);
 	test_2fg_scroll(dev, 40, 0.1, false);
-	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, 10);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, 9);
 	test_2fg_scroll(dev, -40, 0.1, false);
-	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, -10);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, -9);
 
 	/* 2fg scroll smaller than the threshold should not generate events */
 	test_2fg_scroll(dev, 0.1, 0.1, true);
@@ -602,13 +602,13 @@ START_TEST(touchpad_scroll_natural_2fg)
 	libinput_device_config_scroll_set_natural_scroll_enabled(dev->libinput_device, 1);
 
 	test_2fg_scroll(dev, 0.1, 40, false);
-	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, -10);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, -9);
 	test_2fg_scroll(dev, 0.1, -40, false);
-	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, 10);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, 9);
 	test_2fg_scroll(dev, 40, 0.1, false);
-	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, -10);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, -9);
 	test_2fg_scroll(dev, -40, 0.1, false);
-	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, 10);
+	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, 9);
 
 }
 END_TEST
