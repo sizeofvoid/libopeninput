@@ -408,7 +408,7 @@ fedora:30@test-suite-vm:
     - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; meson \"$MESON_BUILDDIR\" $MESON_ARGS"
     - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; meson configure \"$MESON_BUILDDIR\" "
     - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; ninja -C \"$MESON_BUILDDIR\" $NINJA_ARGS"
-    - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; meson test -C \"$MESON_BUILDDIR\" --print-errorlogs" && touch .success || true
+    - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; meson test -C \"$MESON_BUILDDIR\" $MESON_TEST_ARGS --print-errorlogs" && touch .success || true
 
     # no matter the results of the tests, we want to fetch the logs
     - scp -P 5555 -r localhost:$CI_PROJECT_NAME/$MESON_BUILDDIR .
@@ -438,6 +438,10 @@ fedora:30@test-suite-vm:
 
   allow_failure: true
 
+fedora:30@test-suite-vm-valgrind:
+  extends: fedora:30@test-suite-vm
+  variables:
+    MESON_TEST_ARGS: '--suite=valgrind --setup=valgrind'
 
 .fedora-build@template:
   extends: .build@template
