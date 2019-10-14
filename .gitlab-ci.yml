@@ -42,7 +42,9 @@ include:
 
 stages:
   - container_prep   # rebuild the container images if there is a change
-  - build            # for actually building things
+  - build            # for actually building and testing things in a container
+  - VM               # for running the test suite in a VM
+  - distro           # distribs test
   - deploy           # trigger wayland's website generation
   - container_clean  # clean up unused container images
 
@@ -390,7 +392,7 @@ freebsd:11.2@container-clean:
   fi
 
 fedora:30@test-suite-vm:
-  stage: build
+  stage: VM
   image: $QEMU_CONTAINER_IMAGE
   tags:
     - kvm
@@ -437,6 +439,7 @@ fedora:30@test-suite-vm:
       - console.out
 
   allow_failure: true
+  needs: ['fedora:30@qemu-prep']
 
 fedora:30@test-suite-vm-valgrind:
   extends: fedora:30@test-suite-vm
@@ -448,21 +451,27 @@ fedora:30@test-suite-vm-valgrind:
   image: $FEDORA_CONTAINER_IMAGE
 
 fedora:29@default-build:
+  stage: distro
   extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 29
+  needs: ['fedora:29@container-prep']
 
 fedora:30@default-build:
+  stage: distro
   extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 30
+  needs: ['fedora:30@container-prep']
 
 fedora:30@default-build-release:
+  stage: distro
   extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Dbuildtype=release"
     CFLAGS: "-Werror"
+  needs: ['fedora:30@container-prep']
 
 fedora:30@scan-build:
   extends: .fedora-build@template
@@ -476,6 +485,7 @@ fedora:30@scan-build:
     - test $(find "$MESON_BUILDDIR"/meson-logs/scanbuild -maxdepth 0 ! -empty -exec echo "not empty" \; | wc -l) -eq 0 && exit 0
     - echo "Check scan-build results"
     - /bin/false
+  needs: ['fedora:30@container-prep']
 
 # Below jobs are build option combinations. We only
 # run them on one image, they shouldn't fail on one distro
@@ -486,6 +496,7 @@ fedora:30@build-no-libwacom:
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Dlibwacom=false"
+  needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-libwacom-nodeps:
   extends: .fedora-build@template
@@ -494,12 +505,14 @@ fedora:30@build-no-libwacom-nodeps:
     MESON_ARGS: "-Dlibwacom=false"
   before_script:
     - dnf remove -y libwacom libwacom-devel
+  needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-docs:
   extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Ddocumentation=false"
+  needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-docs-nodeps:
   extends: .fedora-build@template
@@ -508,12 +521,14 @@ fedora:30@build-no-docs-nodeps:
     MESON_ARGS: "-Ddocumentation=false"
   before_script:
     - dnf remove -y doxygen graphviz
+  needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-debuggui:
   extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Ddebug-gui=false"
+  needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-debuggui-nodeps:
   extends: .fedora-build@template
@@ -522,12 +537,14 @@ fedora:30@build-no-debuggui-nodeps:
     MESON_ARGS: "-Ddebug-gui=false"
   before_script:
     - dnf remove -y gtk3-devel
+  needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-tests:
   extends: .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Dtests=false"
+  needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-tests-nodeps:
   extends: .fedora-build@template
@@ -536,6 +553,7 @@ fedora:30@build-no-tests-nodeps:
     MESON_ARGS: "-Dtests=false"
   before_script:
     - dnf remove -y check-devel
+  needs: ['fedora:30@container-prep']
 
 fedora:30@valgrind:
   extends: .fedora-build@template
@@ -544,11 +562,14 @@ fedora:30@valgrind:
     MESON_TEST_ARGS: '--suite=valgrind --no-suite=hardware --setup=valgrind'
   before_script:
     - dnf install -y valgrind
+  needs: ['fedora:30@container-prep']
+
 #
 # Ubuntu
 #
 
 .ubuntu@template:
+  stage: distro
   extends: .build@template
   image: $UBUNTU_CONTAINER_IMAGE
 
@@ -556,26 +577,31 @@ ubuntu:18.10@default-build:
   extends: .ubuntu@template
   variables:
     UBUNTU_VERSION: "18.10"
+  needs: ['ubuntu:18.10@container-prep']
 
 ubuntu:19.04@default-build:
   extends: .ubuntu@template
   variables:
     UBUNTU_VERSION: "19.04"
+  needs: ['ubuntu:19.04@container-prep']
 
 #
 # Arch
 #
 .arch@template:
+  stage: distro
   extends: .build@template
   image: $ARCH_CONTAINER_IMAGE
 
 arch:rolling@default-build:
   extends: .arch@template
+  needs: ['arch:rolling@container-prep']
 
 #
 # FreeBSD
 #
 .freebsd@template:
+  stage: distro
   extends: .build@template
   image: $FREEBSD_CONTAINER_IMAGE
   variables:
@@ -585,6 +611,7 @@ arch:rolling@default-build:
 
 freebsd:11.2@default-build:
   extends: .freebsd@template
+  needs: ['freebsd:11.2@container-prep']
 
 #
 # deploy
