@@ -977,9 +977,7 @@ fallback_handle_state(struct fallback_dispatch *dispatch,
 	if (dispatch->pending_event & EVDEV_ABSOLUTE_TOUCH_DOWN) {
 		if (fallback_flush_st_down(dispatch, device, time))
 			need_touch_frame = true;
-	}
-
-	if (dispatch->pending_event & EVDEV_ABSOLUTE_MOTION) {
+	} else if (dispatch->pending_event & EVDEV_ABSOLUTE_MOTION) {
 		if (device->seat_caps & EVDEV_DEVICE_TOUCH) {
 			if (fallback_flush_st_motion(dispatch,
 						     device,
