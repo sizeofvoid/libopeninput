@@ -64,6 +64,25 @@ START_TEST(touch_frame_events)
 }
 END_TEST
 
+START_TEST(touch_downup_no_motion)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_drain_events(li);
+
+	litest_touch_down(dev, 0, 10, 10);
+	libinput_dispatch(li);
+
+	litest_assert_touch_down_frame(li);
+
+	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_assert_touch_up_frame(li);
+}
+END_TEST
+
 START_TEST(touch_abs_transform)
 {
 	struct litest_device *dev;
@@ -1322,6 +1341,8 @@ TEST_COLLECTION(touch)
 	struct range axes = { ABS_X, ABS_Y + 1};
 
 	litest_add("touch:frame", touch_frame_events, LITEST_TOUCH, LITEST_ANY);
+	litest_add("touch:down", touch_downup_no_motion, LITEST_TOUCH, LITEST_ANY);
+	litest_add("touch:down", touch_downup_no_motion, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
 	litest_add_no_device("touch:abs-transform", touch_abs_transform);
 	litest_add("touch:slots", touch_seat_slot, LITEST_TOUCH, LITEST_TOUCHPAD);
 	litest_add_no_device("touch:slots", touch_many_slots);
