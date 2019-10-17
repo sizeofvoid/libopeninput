@@ -50,6 +50,15 @@ add_project_arguments(cppflags, language : 'cpp')
 
 # config.h
 config_h = configuration_data()
+
+doc_url_base = 'https://wayland.freedesktop.org/libinput/doc'
+if libinput_version[2].to_int() >= 90
+	doc_url = '@0@/latest'.format(doc_url_base)
+else
+	doc_url = '@0@/@1@'.format(doc_url_base, meson.project_version())
+endif
+config_h.set_quoted('HTTP_DOC_LINK', doc_url)
+
 config_h.set('_GNU_SOURCE', '1')
 if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimized'
 	config_h.set_quoted('MESON_BUILD_ROOT', meson.current_build_dir())

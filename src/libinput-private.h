@@ -41,12 +41,6 @@
 #include "libinput-util.h"
 #include "libinput-version.h"
 
-#if LIBINPUT_VERSION_MICRO >= 90
-#define HTTP_DOC_LINK "https://wayland.freedesktop.org/libinput/doc/latest/"
-#else
-#define HTTP_DOC_LINK "https://wayland.freedesktop.org/libinput/doc/" LIBINPUT_VERSION "/"
-#endif
-
 struct libinput_source;
 
 /* A coordinate pair in device coordinates */
