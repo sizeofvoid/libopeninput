@@ -8,6 +8,7 @@ sphinx_config = configuration_data()
 sphinx_config.set('PROJECT_NAME', meson.project_name())
 sphinx_config.set('PROJECT_VERSION', meson.project_version())
 sphinx_config.set('BUILDDIR', meson.current_build_dir())
+sphinx_config.set('HTTP_DOC_LINK', doc_url)
 
 git_version_page = vcs_tag(command : ['git', 'log', '-1', '--format=%H'],
 			   fallback : 'unknown',
@@ -137,7 +138,6 @@ src_rst = files(
 	'device-quirks.rst',
 	'faqs.rst',
 	'gestures.rst',
-	'index.rst',
 	'middle-button-emulation.rst',
 	'normalization-of-relative-motion.rst',
 	'palm-detection.rst',
@@ -182,6 +182,10 @@ foreach f : src_rst
 			    configuration : config_noop)
 	src_sphinx += [ sf ]
 endforeach
+
+configure_file(input: 'index.rst',
+	       output: 'index.rst',
+	       configuration: sphinx_config)
 
 
 # do not use -j, it breaks on Ubuntu
