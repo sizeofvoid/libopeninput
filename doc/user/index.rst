@@ -11,7 +11,7 @@
   reporting-bugs
   troubleshooting
   development
-  API documentation <@HTTP_DOC_LINK@>
+  API documentation <@HTTP_DOC_LINK@/api/>
 
 
 ++++++++++++++++++++++++++++++
