@@ -42,6 +42,18 @@ This is a symptom of an invalid trackpoint multiplier. These devices need
 pointer acceleration accordingly. See :ref:`trackpoint_range` for a detailed
 explanation.
 
+.. _faq_pointer_acceleration:
+
+------------------------------------------------------------------------------
+Why is libinput's pointer acceleration worse than synaptics/evdev
+------------------------------------------------------------------------------
+
+This is a known problem affecting some devices and/or use-case but the exact
+cause is still unknown. It may be a device-specific issue, it may be a bug
+in libinput's acceleration code, it may be a disagreement about how pointer
+acceleration should feel. Unfortunately this is something that affected
+users need to investigate and analyze.
+
 .. _faq_enable_tapping:
 
 ------------------------------------------------------------------------------
