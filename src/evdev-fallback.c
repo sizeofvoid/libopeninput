@@ -1225,7 +1225,7 @@ fallback_interface_update_rect(struct evdev_dispatch *evdev_dispatch,
 				uint64_t time)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
-	struct device_coord_rect rect = {0};
+	struct device_coord_rect rect;
 
 	assert(phys_rect);
 
