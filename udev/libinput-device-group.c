@@ -95,7 +95,7 @@ static void
 wacom_handle_ekr(struct udev_device *device,
 		 int *vendor_id,
 		 int *product_id,
-		 const char **phys_attr)
+		 char **phys_attr)
 {
 	struct udev *udev;
 	struct udev_enumerate *e;
@@ -138,7 +138,7 @@ wacom_handle_ekr(struct udev_device *device,
 				*product_id = pid;
 				best_dist = dist;
 
-				free((char*)*phys_attr);
+				free(*phys_attr);
 				*phys_attr = strdup(phys);
 			}
 		}
@@ -155,8 +155,7 @@ int main(int argc, char **argv)
 	struct udev *udev = NULL;
 	struct udev_device *device = NULL;
 	const char *syspath,
-	           *phys = NULL,
-	           *physmatch = NULL;
+	           *phys = NULL;
 	const char *product;
 	int bustype, vendor_id, product_id, version;
 	char group[1024];
@@ -208,6 +207,8 @@ int main(int argc, char **argv)
 		   &version) != 4) {
 		snprintf(group, sizeof(group), "%s:%s", product, phys);
 	} else {
+	    char *physmatch = NULL;
+
 #if HAVE_LIBWACOM_GET_PAIRED_DEVICE
 	    if (vendor_id == VENDOR_ID_WACOM) {
 		    if (product_id == PRODUCT_ID_WACOM_EKR)
@@ -228,6 +229,8 @@ int main(int argc, char **argv)
 		     vendor_id,
 		     product_id,
 		     physmatch ? physmatch : phys);
+
+	    free(physmatch);
 	}
 
 	str = strstr(group, "/input");
