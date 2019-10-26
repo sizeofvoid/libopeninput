@@ -1,6 +1,7 @@
 .TH libinput-list-devices "1" "" "libinput @LIBINPUT_VERSION@" "libinput Manual"
 .SH NAME
-libinput\-list\-devices \- list local devices as recognized by libinput
+libinput\-list\-devices \- list local devices as recognized by libinput and
+default values of their configuration
 .SH SYNOPSIS
 .B libinput list\-devices [\-\-help]
 .SH DESCRIPTION
