@@ -12,9 +12,8 @@ tool creates a libinput context on the default seat "seat0" and lists all
 devices recognized by libinput. Each device shows available configurations
 the respective default configuration setting.
 .PP
-For configuration options that allow multiple different settings
-(e.g. scrolling), all available settings are listed. The default setting is
-prefixed by an asterisk (*).
+For options that allow more settings than "enabled/disabled", all available ones
+are listed. The default setting is prefixed by an asterisk (*).
 .PP
 This tool usually needs to be run as root to have access to the
 /dev/input/eventX nodes.
