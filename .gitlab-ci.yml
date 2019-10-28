@@ -139,17 +139,14 @@ variables:
     # get the full container image name (DISTRIB_VERSION still has indirections)
     - IMAGE=$(eval echo "$DISTRIB_FLAVOR/$DISTRIB_VERSION:$TAG")
 
-    - |
-      # force rebuild if schedule, reuse otherwise
-      if [[ $CI_PIPELINE_SOURCE != "schedule" ]] ;
-      then
-        # pull the latest upstream image if it exists
-        skopeo copy docker://$CI_REGISTRY/$UPSTREAM_REPO/$IMAGE \
-                    docker://$CI_REGISTRY_IMAGE/$IMAGE && exit 0 || true ;
+    # force rebuild if schedule, reuse otherwise
+    - if [[ $CI_PIPELINE_SOURCE == "schedule" ]] ; then touch .scheduled; fi
+    # pull the latest upstream image if it exists
+    - test -e .scheduled || skopeo copy docker://$CI_REGISTRY/$UPSTREAM_REPO/$IMAGE
+                  docker://$CI_REGISTRY_IMAGE/$IMAGE && exit 0 || true ;
 
-        # check if our image is already in the current registry
-        skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
-      fi
+    # check if our image is already in the current registry
+    - test -e .scheduled || skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
 
 fedora:30@qemu-prep:
   extends: .fedora@qemu-build
