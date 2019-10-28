@@ -46,6 +46,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/sysinfo.h>
 #include <libudev.h>
 #if HAVE_LIBSYSTEMD
 #include <systemd/sd-bus.h>
@@ -73,7 +74,7 @@
 #define UDEV_DEVICE_GROUPS_FILE UDEV_RULES_D \
 	"/80-libinput-device-groups-litest-XXXXXX.rules"
 
-static int jobs = 8;
+static int jobs;
 static bool in_debugger = false;
 static bool verbose = false;
 static bool run_deviceless = false;
@@ -4272,6 +4273,8 @@ main(int argc, char **argv)
 	in_debugger = is_debugger_attached();
 	if (in_debugger || RUNNING_ON_VALGRIND)
 		setenv("CK_FORK", "no", 0);
+
+	jobs = get_nprocs() * 2;
 
 	mode = litest_parse_argv(argc, argv);
 	if (mode == LITEST_MODE_ERROR)
