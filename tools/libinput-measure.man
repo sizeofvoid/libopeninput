@@ -28,7 +28,7 @@ Measure touch fuzz to avoid pointer jitter
 .B libinput\-measure\-touch\-size(1)
 Measure touch size and orientation
 .TP 8
-.B libinput\-measure\-touchpad\-tap\-time(1)
+.B libinput\-measure\-touchpad\-tap(1)
 Measure tap-to-click time
 .TP 8
 .B libinput\-measure\-touchpad\-pressure(1)
