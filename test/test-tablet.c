@@ -5174,12 +5174,6 @@ verify_left_handed_touch_motion(struct litest_device *finger,
 	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
-	p = litest_is_motion_event(event);
-	x = libinput_event_pointer_get_dx(p);
-	y = libinput_event_pointer_get_dy(p);
-	libinput_event_destroy(event);
-
-	event = libinput_get_event(li);
 	ck_assert_notnull(event);
 
 	while (event) {
