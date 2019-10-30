@@ -1037,7 +1037,6 @@ START_TEST(touchpad_clickfinger_click_drag)
 		} else {
 			litest_event(dev, EV_KEY, BTN_TOOL_DOUBLETAP, 0);
 		}
-		button = BTN_MIDDLE;
 	}
 
 	litest_touch_up(dev, 0);
