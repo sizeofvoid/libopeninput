@@ -871,6 +871,8 @@ START_TEST(touch_initial_state)
 
 		libinput_event_destroy(ev1);
 		libinput_event_destroy(ev2);
+		ev1 = NULL;
+		ev2 = NULL;
 	}
 
 	libinput_event_destroy(ev1);
