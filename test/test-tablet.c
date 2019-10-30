@@ -2902,12 +2902,28 @@ START_TEST(tool_direct_switch_skip_tool_update)
 	libinput_tablet_tool_ref(tool);
 	libinput_event_destroy(event);
 
-	/* Direct tool switch after proximity in is ignored */
-	litest_disable_log_handler(li);
 	litest_event(dev, EV_KEY, BTN_TOOL_RUBBER, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_assert_empty_queue(li);
-	litest_restore_log_handler(li);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	ck_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tev),
+			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+	ck_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev), tool);
+	libinput_event_destroy(event);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	ck_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tev),
+			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+	ck_assert_ptr_ne(libinput_event_tablet_tool_get_tool(tev), tool);
+	libinput_tablet_tool_unref(tool);
+	tool = libinput_event_tablet_tool_get_tool(tev);
+	libinput_tablet_tool_ref(tool);
+	libinput_event_destroy(event);
 
 	litest_tablet_motion(dev, 20, 30, axes);
 	libinput_dispatch(li);
@@ -2919,18 +2935,36 @@ START_TEST(tool_direct_switch_skip_tool_update)
 			 tool);
 	libinput_event_destroy(event);
 
-	/* Direct tool switch during sequence in is ignored */
-	litest_disable_log_handler(li);
 	litest_event(dev, EV_KEY, BTN_TOOL_RUBBER, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_assert_empty_queue(li);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	ck_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tev),
+			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+	ck_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev),
+			 tool);
+	libinput_event_destroy(event);
 
 	litest_push_event_frame(dev);
 	litest_event(dev, EV_KEY, BTN_TOOL_RUBBER, 1);
 	litest_tablet_motion(dev, 30, 40, axes);
 	litest_pop_event_frame(dev);
 	libinput_dispatch(li);
-	litest_restore_log_handler(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	ck_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tev),
+			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+	ck_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev),
+			 tool);
+	libinput_event_destroy(event);
+
+	litest_tablet_motion(dev, 40, 30, axes);
+	libinput_dispatch(li);
 
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
@@ -2939,7 +2973,10 @@ START_TEST(tool_direct_switch_skip_tool_update)
 			 tool);
 	libinput_event_destroy(event);
 
+	litest_push_event_frame(dev);
+	litest_event(dev, EV_KEY, BTN_TOOL_RUBBER, 0);
 	litest_tablet_proximity_out(dev);
+	litest_pop_event_frame(dev);
 	libinput_dispatch(li);
 	litest_timeout_tablet_proxout();
 	libinput_dispatch(li);
