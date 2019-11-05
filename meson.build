@@ -959,7 +959,6 @@ if get_option('tests')
 	valgrind = find_program('valgrind', required : false)
 	if valgrind.found()
 		valgrind_env = environment()
-		valgrind_env.set('LITEST_JOBS', '4')
 		valgrind_suppressions_file = join_paths(dir_src_test, 'valgrind.suppressions')
 		add_test_setup('valgrind',
 				exe_wrapper : [ valgrind,

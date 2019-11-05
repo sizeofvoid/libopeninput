@@ -4274,7 +4274,9 @@ main(int argc, char **argv)
 	if (in_debugger || RUNNING_ON_VALGRIND)
 		setenv("CK_FORK", "no", 0);
 
-	jobs = get_nprocs() * 2;
+	jobs = get_nprocs();
+	if (!RUNNING_ON_VALGRIND)
+		jobs *= 2;
 
 	mode = litest_parse_argv(argc, argv);
 	if (mode == LITEST_MODE_ERROR)
