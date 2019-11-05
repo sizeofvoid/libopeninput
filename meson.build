@@ -495,6 +495,20 @@ configure_file(input : 'tools/libinput-debug-events.man',
 	       install_dir : dir_man1,
 	       )
 
+libinput_debug_tablet_sources = [ 'tools/libinput-debug-tablet.c' ]
+executable('libinput-debug-tablet',
+	   libinput_debug_tablet_sources,
+	   dependencies : deps_tools,
+	   include_directories : [includes_src, includes_include],
+	   install_dir : libinput_tool_path,
+	   install : true)
+
+configure_file(input : 'tools/libinput-debug-tablet.man',
+	       output : 'libinput-debug-tablet.1',
+	       configuration : man_config,
+	       install_dir : dir_man1,
+	       )
+
 libinput_quirks_sources = [ 'tools/libinput-quirks.c' ]
 libinput_quirks = executable('libinput-quirks',
 			     libinput_quirks_sources,

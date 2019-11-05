@@ -39,6 +39,9 @@ Print all events as seen by libinput
 .B libinput\-debug\-gui(1)
 Show a GUI to visualize libinput's events
 .TP 8
+.B libinput\-debug\-tablet(1)
+A commandline tool to debug tablet axis values
+.TP 8
 .B libinput\-list\-devices(1)
 List all devices recognized by libinput
 .TP 8
