@@ -43,7 +43,7 @@ libinput_so_version = '@0@.@1@.@2@'.format((libinput_lt_c - libinput_lt_a),
 
 # Compiler setup
 cc = meson.get_compiler('c')
-cppflags = ['-Wno-unused-parameter', '-g', '-fvisibility=hidden']
+cppflags = ['-Wno-unused-parameter', '-fvisibility=hidden']
 cflags = cppflags + ['-Wmissing-prototypes', '-Wstrict-prototypes']
 add_project_arguments(cflags, language : 'c')
 add_project_arguments(cppflags, language : 'cpp')
