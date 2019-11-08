@@ -209,6 +209,7 @@ print_state(struct context *ctx)
 		lines_printed++;
 	}
 	printf("libinput:\n");
+	print_line("tip: %s", ctx->tip_is_down ? "down" : "up");
 	print_bar("x:", ctx->x, ctx->x_norm);
 	print_bar("y:", ctx->y, ctx->y_norm);
 	print_bar("tilt x:", ctx->tx, (ctx->tx + 90)/180);
@@ -220,7 +221,7 @@ print_state(struct context *ctx)
 	print_buttons(ctx,
 		      ctx->buttons_down,
 		      ARRAY_LENGTH(ctx->buttons_down));
-	lines_printed += 10;
+	lines_printed += 11;
 
 	printf("evdev:\n");
 	print_bar("ABS_X:", ctx->abs.x, normalize(ctx->evdev, ABS_X, ctx->abs.x));
@@ -351,7 +352,6 @@ handle_tablet_tip_event(struct context *ctx, struct libinput_event *ev)
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
 
 	ctx->tip_is_down = libinput_event_tablet_tool_get_tip_state(t) == LIBINPUT_TABLET_TOOL_TIP_DOWN;
-
 }
 
 static void
