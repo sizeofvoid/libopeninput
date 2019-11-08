@@ -61,6 +61,8 @@ struct context {
 	double tx, ty;
 	double dist, pressure;
 	double rotation, slider;
+	unsigned int buttons_down[32];
+	unsigned int evdev_buttons_down[32];
 
 	/* libevdev device state */
 	struct {
@@ -84,6 +86,24 @@ print_line(const char *format, ...)
 	n = vprintf(format, args);
 	va_end(args);
 	printf("%.*s\n", width - n, empty);
+}
+
+static void
+print_buttons(struct context *ctx, unsigned int *buttons, size_t sz)
+{
+	char buf[256] = {0};
+	size_t len = 0;
+
+	for (size_t i = 0; i < sz; i++) {
+		const char *name;
+
+		if (buttons[i] == 0)
+			continue;
+
+		name = libevdev_event_code_get_name(EV_KEY, buttons[i]);
+		len += snprintf(&buf[len], sizeof(buf) - len, "%s ", name);
+	}
+	print_line("  buttons: %s", buf);
 }
 
 static void
@@ -197,7 +217,10 @@ print_state(struct context *ctx)
 	print_bar("pressure:", ctx->pressure, ctx->pressure);
 	print_bar("rotation:", ctx->rotation, ctx->rotation/360.0);
 	print_bar("slider:", ctx->slider, (ctx->slider + 1.0)/2.0);
-	lines_printed += 9;
+	print_buttons(ctx,
+		      ctx->buttons_down,
+		      ARRAY_LENGTH(ctx->buttons_down));
+	lines_printed += 10;
 
 	printf("evdev:\n");
 	print_bar("ABS_X:", ctx->abs.x, normalize(ctx->evdev, ABS_X, ctx->abs.x));
@@ -207,7 +230,10 @@ print_state(struct context *ctx)
 	print_bar("ABS_TILT_Y:", ctx->abs.tilt_y, normalize(ctx->evdev, ABS_TILT_Y, ctx->abs.tilt_y));
 	print_bar("ABS_DISTANCE:", ctx->abs.distance, normalize(ctx->evdev, ABS_DISTANCE, ctx->abs.distance));
 	print_bar("ABS_PRESSURE:", ctx->abs.pressure, normalize(ctx->evdev, ABS_PRESSURE, ctx->abs.pressure));
-	lines_printed += 8;
+	print_buttons(ctx,
+		      ctx->evdev_buttons_down,
+		      ARRAY_LENGTH(ctx->evdev_buttons_down));
+	lines_printed += 9;
 
 	return lines_printed;
 }
@@ -275,6 +301,28 @@ update_tablet_axes(struct context *ctx, struct libinput_event_tablet_tool *t)
 }
 
 static void
+handle_tablet_button_event(struct context *ctx, struct libinput_event *ev)
+{
+	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
+	unsigned int button = libinput_event_tablet_tool_get_button(t);
+	enum libinput_button_state state = libinput_event_tablet_tool_get_button_state(t);
+
+	for (size_t i = 0; i < ARRAY_LENGTH(ctx->buttons_down); i++) {
+		if (state == LIBINPUT_BUTTON_STATE_PRESSED) {
+		    if (ctx->buttons_down[i] == 0) {
+				ctx->buttons_down[i] = button;
+				break;
+		    }
+		} else {
+			if (ctx->buttons_down[i] == button) {
+				ctx->buttons_down[i] = 0;
+				break;
+			}
+		}
+	}
+}
+
+static void
 handle_tablet_axis_event(struct context *ctx, struct libinput_event *ev)
 {
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
@@ -325,6 +373,9 @@ handle_libinput_events(struct context *ctx)
 		case LIBINPUT_EVENT_DEVICE_REMOVED:
 			handle_device_removed(ctx, ev);
 			break;
+		case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
+			handle_tablet_button_event(ctx, ev);
+			break;
 		case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
 			handle_tablet_axis_event(ctx, ev);
 			break;
@@ -349,35 +400,57 @@ handle_libevdev_events(struct context *ctx)
 	struct libevdev *evdev = ctx->evdev;
 	struct input_event event;
 
+#define evbit(_t, _c) (((_t) << 16) | (_c))
+
 	if (!evdev)
 		return;
 
 	while (libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event)
 	       == LIBEVDEV_READ_STATUS_SUCCESS)
 	{
-		if (event.type != EV_ABS)
-			continue;
-
-		switch (event.code) {
-		case ABS_X:
+		switch(evbit(event.type, event.code)) {
+		case evbit(EV_KEY, BTN_TOOL_PEN):
+		case evbit(EV_KEY, BTN_TOOL_RUBBER):
+		case evbit(EV_KEY, BTN_TOOL_BRUSH):
+		case evbit(EV_KEY, BTN_TOOL_PENCIL):
+		case evbit(EV_KEY, BTN_TOOL_AIRBRUSH):
+		case evbit(EV_KEY, BTN_TOOL_MOUSE):
+		case evbit(EV_KEY, BTN_TOOL_LENS):
+			ctx->evdev_buttons_down[event.code - BTN_TOOL_PEN] = event.value ?  event.code : 0;
+			break;
+		/* above tools should be mutually exclusive but let's leave
+		 * enough space */
+		case evbit(EV_KEY, BTN_TOUCH):
+			ctx->evdev_buttons_down[7] = event.value ? event.code : 0;
+			break;
+		case evbit(EV_KEY, BTN_STYLUS):
+			ctx->evdev_buttons_down[8] = event.value ? event.code : 0;
+			break;
+		case evbit(EV_KEY, BTN_STYLUS2):
+			ctx->evdev_buttons_down[9] = event.value ? event.code : 0;
+			break;
+		case evbit(EV_KEY, BTN_STYLUS3):
+			ctx->evdev_buttons_down[10] = event.value ? event.code : 0;
+			break;
+		case evbit(EV_ABS, ABS_X):
 			ctx->abs.x = event.value;
 			break;
-		case ABS_Y:
+		case evbit(EV_ABS, ABS_Y):
 			ctx->abs.y = event.value;
 			break;
-		case ABS_Z:
+		case evbit(EV_ABS, ABS_Z):
 			ctx->abs.z = event.value;
 			break;
-		case ABS_PRESSURE:
+		case evbit(EV_ABS, ABS_PRESSURE):
 			ctx->abs.pressure = event.value;
 			break;
-		case ABS_TILT_X:
+		case evbit(EV_ABS, ABS_TILT_X):
 			ctx->abs.tilt_x = event.value;
 			break;
-		case ABS_TILT_Y:
+		case evbit(EV_ABS, ABS_TILT_Y):
 			ctx->abs.tilt_y = event.value;
 			break;
-		case ABS_DISTANCE:
+		case evbit(EV_ABS, ABS_DISTANCE):
 			ctx->abs.distance = event.value;
 			break;
 		}
