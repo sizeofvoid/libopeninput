@@ -241,7 +241,7 @@ print_evdev_event(struct record_context *ctx, struct input_event *ev)
 	}
 
 	iprintf(ctx,
-		"- [%3lu, %6u, %3d, %3d, %6d] # %s\n",
+		"- [%3lu, %6u, %3d, %3d, %7d] # %s\n",
 		ev->time.tv_sec,
 		(unsigned int)ev->time.tv_usec,
 		ev->type,
