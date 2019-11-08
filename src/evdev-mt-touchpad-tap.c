@@ -157,6 +157,14 @@ tp_tap_clear_timer(struct tp_dispatch *tp)
 }
 
 static void
+tp_tap_move_to_dead(struct tp_dispatch *tp, struct tp_touch *t)
+{
+	tp->tap.state = TAP_STATE_DEAD;
+	t->tap.state = TAP_TOUCH_STATE_DEAD;
+	tp_tap_clear_timer(tp);
+}
+
+static void
 tp_tap_idle_handle_event(struct tp_dispatch *tp,
 			 struct tp_touch *t,
 			 enum tap_event event, uint64_t time)
@@ -217,8 +225,10 @@ tp_tap_touch_handle_event(struct tp_dispatch *tp,
 			tp->tap.state = TAP_STATE_IDLE;
 		}
 		break;
-	case TAP_EVENT_TIMEOUT:
 	case TAP_EVENT_MOTION:
+		tp_tap_move_to_dead(tp, t);
+		break;
+	case TAP_EVENT_TIMEOUT:
 		tp->tap.state = TAP_STATE_HOLD;
 		tp_tap_clear_timer(tp);
 		break;
@@ -257,6 +267,8 @@ tp_tap_hold_handle_event(struct tp_dispatch *tp,
 		tp->tap.state = TAP_STATE_IDLE;
 		break;
 	case TAP_EVENT_MOTION:
+		tp_tap_move_to_dead(tp, t);
+		break;
 	case TAP_EVENT_TIMEOUT:
 		break;
 	case TAP_EVENT_BUTTON:
@@ -332,8 +344,8 @@ tp_tap_touch2_handle_event(struct tp_dispatch *tp,
 		tp_tap_set_timer(tp, time);
 		break;
 	case TAP_EVENT_MOTION:
-		tp_tap_clear_timer(tp);
-		/* fallthrough */
+		tp_tap_move_to_dead(tp, t);
+		break;
 	case TAP_EVENT_TIMEOUT:
 		tp->tap.state = TAP_STATE_TOUCH_2_HOLD;
 		break;
@@ -367,6 +379,8 @@ tp_tap_touch2_hold_handle_event(struct tp_dispatch *tp,
 		tp->tap.state = TAP_STATE_HOLD;
 		break;
 	case TAP_EVENT_MOTION:
+		tp_tap_move_to_dead(tp, t);
+		break;
 	case TAP_EVENT_TIMEOUT:
 		tp->tap.state = TAP_STATE_TOUCH_2_HOLD;
 		break;
@@ -407,6 +421,8 @@ tp_tap_touch2_release_handle_event(struct tp_dispatch *tp,
 		tp->tap.state = TAP_STATE_IDLE;
 		break;
 	case TAP_EVENT_MOTION:
+		tp_tap_move_to_dead(tp, t);
+		break;
 	case TAP_EVENT_TIMEOUT:
 		tp->tap.state = TAP_STATE_HOLD;
 		break;
@@ -455,6 +471,8 @@ tp_tap_touch3_handle_event(struct tp_dispatch *tp,
 		tp_tap_clear_timer(tp);
 		break;
 	case TAP_EVENT_MOTION:
+		tp_tap_move_to_dead(tp, t);
+		break;
 	case TAP_EVENT_TIMEOUT:
 		tp->tap.state = TAP_STATE_TOUCH_3_HOLD;
 		tp_tap_clear_timer(tp);
@@ -497,6 +515,8 @@ tp_tap_touch3_hold_handle_event(struct tp_dispatch *tp,
 		tp->tap.state = TAP_STATE_TOUCH_2_HOLD;
 		break;
 	case TAP_EVENT_MOTION:
+		tp_tap_move_to_dead(tp, t);
+		break;
 	case TAP_EVENT_TIMEOUT:
 		break;
 	case TAP_EVENT_BUTTON:

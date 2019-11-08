@@ -3628,6 +3628,26 @@ litest_assert_only_typed_events(struct libinput *li,
 }
 
 void
+litest_assert_no_typed_events(struct libinput *li,
+			      enum libinput_event_type type)
+{
+	struct libinput_event *event;
+
+	litest_assert(type != LIBINPUT_EVENT_NONE);
+
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+
+	while (event) {
+		litest_assert_int_ne(libinput_event_get_type(event),
+                                     type);
+		libinput_event_destroy(event);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+	}
+}
+
+void
 litest_assert_touch_sequence(struct libinput *li)
 {
 	struct libinput_event *event;
