@@ -337,6 +337,7 @@ litest_add_tcase_no_device(struct suite *suite,
 	const char *test_name = funcname;
 
 	if (filter_device &&
+	    strstr(test_name, filter_device) == NULL &&
 	    fnmatch(filter_device, test_name, 0) != 0)
 		return;
 
@@ -362,6 +363,7 @@ litest_add_tcase_deviceless(struct suite *suite,
 	const char *test_name = funcname;
 
 	if (filter_device &&
+	    strstr(test_name, filter_device) == NULL &&
 	    fnmatch(filter_device, test_name, 0) != 0)
 		return;
 
@@ -431,10 +433,12 @@ litest_add_tcase(const char *suite_name,
 	litest_assert(excluded >= LITEST_DEVICELESS);
 
 	if (filter_test &&
+	    strstr(funcname, filter_test) == NULL &&
 	    fnmatch(filter_test, funcname, 0) != 0)
 		return;
 
 	if (filter_group &&
+	    strstr(suite_name, filter_group) == NULL &&
 	    fnmatch(filter_group, suite_name, 0) != 0)
 		return;
 
@@ -456,6 +460,7 @@ litest_add_tcase(const char *suite_name,
 				continue;
 
 			if (filter_device &&
+			    strstr(dev->shortname, filter_device) == NULL &&
 			    fnmatch(filter_device, dev->shortname, 0) != 0)
 				continue;
 			if ((dev->features & required) != required ||
@@ -477,6 +482,7 @@ litest_add_tcase(const char *suite_name,
 				continue;
 
 			if (filter_device &&
+			    strstr(dev->shortname, filter_device) == NULL &&
 			    fnmatch(filter_device, dev->shortname, 0) != 0)
 				continue;
 
@@ -580,16 +586,19 @@ _litest_add_ranged_for_device(const char *name,
 	litest_assert(type < LITEST_NO_DEVICE);
 
 	if (filter_test &&
+	    strstr(funcname, filter_test) == NULL &&
 	    fnmatch(filter_test, funcname, 0) != 0)
 		return;
 
 	if (filter_group &&
+	    strstr(name, filter_group) == NULL &&
 	    fnmatch(filter_group, name, 0) != 0)
 		return;
 
 	s = get_suite(name);
 	list_for_each(dev, &devices, node) {
 		if (filter_device &&
+		    strstr(dev->shortname, filter_device) == NULL &&
 		    fnmatch(filter_device, dev->shortname, 0) != 0) {
 			device_filtered = true;
 			continue;
