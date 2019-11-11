@@ -6057,7 +6057,7 @@ START_TEST(touchpad_pressure_btntool)
 	libinput_dispatch(li);
 
 	/* make one finger real */
-	litest_touch_move_to(dev, 0, 40, 50, 41, 52, 10);
+	litest_touch_move(dev, 0, 40, 50);
 	litest_drain_events(li);
 
 	/* tripletap should now be 3 fingers tap */
