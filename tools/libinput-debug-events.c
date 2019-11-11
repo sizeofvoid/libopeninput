@@ -155,7 +155,7 @@ print_event_header(struct libinput_event *ev)
 static void
 print_event_time(uint32_t time)
 {
-	printq("%+6.2fs	", (time - start_time) / 1000.0);
+	printq("%+6.2fs	", start_time ? (time - start_time) / 1000.0 : 0);
 }
 
 static inline void
@@ -908,8 +908,16 @@ mainloop(struct libinput *li)
 		fprintf(stderr, "Expected device added events on startup but got none. "
 				"Maybe you don't have the right permissions?\n");
 
-	while (!stop && poll(&fds, 1, -1) > -1)
-		handle_and_print_events(li);
+	/* time offset starts with our first received event */
+	if (poll(&fds, 1, -1) > -1) {
+		struct timespec tp;
+
+		clock_gettime(CLOCK_MONOTONIC, &tp);
+		start_time = tp.tv_sec * 1000 + tp.tv_nsec / 1000000;
+		do {
+			handle_and_print_events(li);
+		} while (!stop && poll(&fds, 1, -1) > -1);
+	}
 
 	printf("\n");
 }
@@ -923,15 +931,11 @@ int
 main(int argc, char **argv)
 {
 	struct libinput *li;
-	struct timespec tp;
 	enum tools_backend backend = BACKEND_NONE;
 	const char *seat_or_device = "seat0";
 	bool grab = false;
 	bool verbose = false;
 	struct sigaction act;
-
-	clock_gettime(CLOCK_MONOTONIC, &tp);
-	start_time = tp.tv_sec * 1000 + tp.tv_nsec / 1000000;
 
 	tools_init_options(&options);
 
