@@ -35,10 +35,8 @@
 
 /*****************************************
  * BEFORE YOU EDIT THIS FILE, look at the state diagram in
- * doc/touchpad-softbutton-state-machine.svg, or online at
- * https://drive.google.com/file/d/0B1NwWmji69nocUs1cVJTbkdwMFk/edit?usp=sharing
- * (it's a http://draw.io diagram)
- *
+ * doc/touchpad-softbutton-state-machine.svg (generated with
+ * https://draw.io).
  * Any changes in this file must be represented in the diagram.
  *
  * The state machine only affects the soft button area code.
