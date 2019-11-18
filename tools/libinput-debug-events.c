@@ -155,7 +155,7 @@ print_event_header(struct libinput_event *ev)
 static void
 print_event_time(uint32_t time)
 {
-	printq("%+6.2fs	", start_time ? (time - start_time) / 1000.0 : 0);
+	printq("%+6.3fs	", start_time ? (time - start_time) / 1000.0 : 0);
 }
 
 static inline void
