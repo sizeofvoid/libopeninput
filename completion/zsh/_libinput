@@ -7,6 +7,7 @@
 		"list-devices:List all devices recognized by libinput"
 		"debug-events:Print all events as seen by libinput"
 		"debug-gui:Show a GUI to visualize libinput's events"
+		"debug-tablet:Show tablet axis and button values"
 		"measure:Measure various properties of devices"
 		"record:Record the events from a device"
 		"replay:Replay the events from a device"
@@ -88,6 +89,15 @@ __all_seats()
 		'--device=[Use the given device with the path backend]:device:_files -W /dev/input/ -P /dev/input/' \
 		'--udev=[Listen for notifications on the given seat]:seat:_libinput_all_seats'
 }
+
+(( $+functions[_libinput_debug-tablet] )) || _libinput_debug-tablet()
+{
+	_arguments \
+		'--help[Show debug-tablet help and exit]' \
+		'--device=[Use the given device with the path backend]:device:_files -W /dev/input/ -P /dev/input/' \
+		'--udev=[Use the first tablet device on the given seat]:seat:_libinput_all_seats'
+}
+
 
 (( $+functions[_libinput_measure] )) || _libinput_measure()
 {
