@@ -3498,7 +3498,10 @@ START_TEST(touchpad_tap_palm_multitap_down_again)
 		msleep(10);
 	}
 
-	for (ntaps = 0; ntaps <= 2 * range; ntaps++) {
+	litest_timeout_tap();
+	libinput_dispatch(li);
+
+	for (ntaps = 0; ntaps <= 2 * range + 1; ntaps++) {
 		litest_assert_button_event(li,
 					   BTN_LEFT,
 					   LIBINPUT_BUTTON_STATE_PRESSED);
