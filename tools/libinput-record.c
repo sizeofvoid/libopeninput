@@ -48,6 +48,7 @@
 #include "builddir.h"
 #include "util-list.h"
 #include "util-time.h"
+#include "util-input-event.h"
 #include "util-macros.h"
 
 static const int FILE_VERSION_NUMBER = 1;
@@ -199,8 +200,9 @@ print_evdev_event(struct record_context *ctx, struct input_event *ev)
 	const char *cname;
 	bool was_modified = false;
 	char desc[1024];
+	uint64_t time = input_event_time(ev) - ctx->offset;
 
-	ev->time = us2tv(tv2us(&ev->time) - ctx->offset);
+	input_event_set_time(ev, time);
 
 	/* Don't leak passwords unless the user wants to */
 	if (!ctx->show_keycodes)
@@ -218,7 +220,7 @@ print_evdev_event(struct record_context *ctx, struct input_event *ev)
 		static unsigned long last_ms = 0;
 		unsigned long time, dt;
 
-		time = us2ms(tv2us(&ev->time));
+		time = us2ms(input_event_time(ev));
 		dt = time - last_ms;
 		last_ms = time;
 
@@ -242,8 +244,8 @@ print_evdev_event(struct record_context *ctx, struct input_event *ev)
 
 	iprintf(ctx,
 		"- [%3lu, %6u, %3d, %3d, %7d] # %s\n",
-		ev->time.tv_sec,
-		(unsigned int)ev->time.tv_usec,
+		ev->input_event_sec,
+		(unsigned int)ev->input_event_usec,
 		ev->type,
 		ev->code,
 		ev->value,
@@ -271,16 +273,18 @@ handle_evdev_frame(struct record_context *ctx, struct record_device *d)
 	while (libevdev_next_event(evdev,
 				   LIBEVDEV_READ_FLAG_NORMAL,
 				   &e) == LIBEVDEV_READ_STATUS_SUCCESS) {
+		uint64_t time;
 
 		if (ctx->offset == 0)
-			ctx->offset = tv2us(&e.time);
+			ctx->offset = input_event_time(&e);
 
 		if (d->nevents == d->events_sz)
 			resize(d->events, d->events_sz);
 
 		event = &d->events[d->nevents++];
 		event->type = EVDEV;
-		event->time = tv2us(&e.time) - ctx->offset;
+		time = input_event_time(&e);
+		input_event_set_time(&e, time - ctx->offset);
 		event->u.evdev = e;
 		count++;
 

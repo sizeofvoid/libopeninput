@@ -240,6 +240,7 @@ endif
 # necessary bits.
 util_headers = [
 		'util-bits.h',
+		'util-input-event.h',
 		'util-list.h',
 		'util-macros.h',
 		'util-matrix.h',

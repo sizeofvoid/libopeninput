@@ -28,6 +28,7 @@
 #include <string.h>
 #include "linux/input.h"
 
+#include "util-input-event.h"
 #include "evdev-mt-touchpad.h"
 
 #define DEFAULT_BUTTON_ENTER_TIMEOUT ms2us(100)
@@ -1141,14 +1142,12 @@ tp_notify_clickpadbutton(struct tp_dispatch *tp,
 	if (tp->buttons.trackpoint) {
 		if (is_topbutton) {
 			struct evdev_dispatch *dispatch = tp->buttons.trackpoint->dispatch;
-			struct input_event event;
-			struct input_event syn_report = {{ 0, 0 }, EV_SYN, SYN_REPORT, 0 };
+			struct input_event event, syn_report;
+			int value;
 
-			event.time = us2tv(time);
-			event.type = EV_KEY;
-			event.code = button;
-			event.value = (state == LIBINPUT_BUTTON_STATE_PRESSED) ? 1 : 0;
-			syn_report.time = event.time;
+			value = (state == LIBINPUT_BUTTON_STATE_PRESSED) ? 1 : 0;
+			event = input_event_init(time, EV_KEY, button, value);
+			syn_report = input_event_init(time, EV_SYN, SYN_REPORT, 0);
 			dispatch->interface->process(dispatch,
 						     tp->buttons.trackpoint,
 						     &event,

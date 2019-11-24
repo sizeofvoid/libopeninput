@@ -43,6 +43,7 @@
 #include "filter.h"
 #include "libinput-private.h"
 #include "quirks.h"
+#include "util-input-event.h"
 
 #if HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
@@ -939,7 +940,7 @@ evdev_print_event(struct evdev_device *device,
 {
 	static uint32_t offset = 0;
 	static uint32_t last_time = 0;
-	uint32_t time = us2ms(tv2us(&e->time));
+	uint32_t time = us2ms(input_event_time(e));
 
 	if (offset == 0) {
 		offset = time;
@@ -971,7 +972,7 @@ static inline void
 evdev_process_event(struct evdev_device *device, struct input_event *e)
 {
 	struct evdev_dispatch *dispatch = device->dispatch;
-	uint64_t time = tv2us(&e->time);
+	uint64_t time = input_event_time(e);
 
 #if 0
 	evdev_print_event(device, e);
