@@ -64,7 +64,7 @@ class TestLibinputTool(unittest.TestCase):
         rc, stdout, stderr = self.run_command(args)
         # if we're running as user, we might fail the command but we should
         # never get rc 2 (invalid usage)
-        self.assertIn(rc, [0, 1])
+        self.assertIn(rc, [0, 1], msg=(stdout, stderr))
 
     def run_command_unrecognized_option(self, args):
         rc, stdout, stderr = self.run_command(args)
