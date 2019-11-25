@@ -511,7 +511,7 @@ main(int argc, char **argv)
 	struct context ctx;
 	struct libinput *li;
 	enum tools_backend backend = BACKEND_NONE;
-	const char *seat_or_device = "seat0";
+	char *seat_or_device[2] = {"seat0", NULL};
 	struct sigaction act;
 	bool grab = false;
 
@@ -548,11 +548,11 @@ main(int argc, char **argv)
 			break;
 		case OPT_DEVICE:
 			backend = BACKEND_DEVICE;
-			seat_or_device = optarg;
+			seat_or_device[0] = optarg;
 			break;
 		case OPT_UDEV:
 			backend = BACKEND_UDEV;
-			seat_or_device = optarg;
+			seat_or_device[0] = optarg;
 			break;
 		}
 
@@ -564,7 +564,7 @@ main(int argc, char **argv)
 			return EXIT_INVALID_USAGE;
 		}
 		backend = BACKEND_DEVICE;
-		seat_or_device = argv[optind];
+		seat_or_device[0] = argv[optind];
 	} else if (backend == BACKEND_NONE) {
 		backend = BACKEND_UDEV;
 	}

@@ -205,6 +205,12 @@ class TestDebugEvents(TestToolWithOptions, TestLibinputTool):
         self.run_command_unrecognized_option(['--foo'])
         self.run_command_unrecognized_option(['--version'])
 
+    def test_multiple_devices(self):
+        self.run_command_success(['--device', '/dev/input/event0', '/dev/input/event1'])
+        # same event path multiple times? meh, your problem
+        self.run_command_success(['--device', '/dev/input/event0', '/dev/input/event0'])
+        self.run_command_success(['/dev/input/event0', '/dev/input/event1'])
+
 
 class TestDebugGUI(TestToolWithOptions, TestLibinputTool):
     subtool = 'debug-gui'

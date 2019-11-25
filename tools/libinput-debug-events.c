@@ -38,6 +38,8 @@
 #include <libinput.h>
 #include <libevdev/libevdev.h>
 
+#include "util-strings.h"
+#include "util-macros.h"
 #include "shared.h"
 
 static uint32_t start_time;
@@ -924,7 +926,7 @@ mainloop(struct libinput *li)
 
 static void
 usage(void) {
-	printf("Usage: libinput debug-events [options] [--udev <seat>|--device /dev/input/event0]\n");
+	printf("Usage: libinput debug-events [options] [--udev <seat>|--device /dev/input/event0 ...]\n");
 }
 
 int
@@ -932,7 +934,8 @@ main(int argc, char **argv)
 {
 	struct libinput *li;
 	enum tools_backend backend = BACKEND_NONE;
-	const char *seat_or_device = "seat0";
+	char *seat_or_devices[64] = {NULL};
+	size_t ndevices = 0;
 	bool grab = false;
 	bool verbose = false;
 	struct sigaction act;
@@ -981,12 +984,25 @@ main(int argc, char **argv)
 			be_quiet = true;
 			break;
 		case OPT_DEVICE:
+			if (backend == BACKEND_UDEV ||
+			    ndevices >= ARRAY_LENGTH(seat_or_devices)) {
+				usage();
+				return EXIT_INVALID_USAGE;
+
+			}
 			backend = BACKEND_DEVICE;
-			seat_or_device = optarg;
+			seat_or_devices[ndevices++] = safe_strdup(optarg);
 			break;
 		case OPT_UDEV:
+			if (backend == BACKEND_DEVICE ||
+			    ndevices >= ARRAY_LENGTH(seat_or_devices)) {
+				usage();
+				return EXIT_INVALID_USAGE;
+
+			}
 			backend = BACKEND_UDEV;
-			seat_or_device = optarg;
+			seat_or_devices[0] = safe_strdup(optarg);
+			ndevices = 1;
 			break;
 		case OPT_GRAB:
 			grab = true;
@@ -1005,14 +1021,18 @@ main(int argc, char **argv)
 	}
 
 	if (optind < argc) {
-		if (optind < argc - 1 || backend != BACKEND_NONE) {
+		if (backend == BACKEND_UDEV) {
 			usage();
 			return EXIT_INVALID_USAGE;
 		}
 		backend = BACKEND_DEVICE;
-		seat_or_device = argv[optind];
+		do {
+			seat_or_devices[ndevices++] = safe_strdup(argv[optind]);
+		} while(++optind < argc);
 	} else if (backend == BACKEND_NONE) {
 		backend = BACKEND_UDEV;
+		seat_or_devices[0] = safe_strdup("seat0");
+		ndevices = 1;
 	}
 
 	memset(&act, 0, sizeof(act));
@@ -1025,9 +1045,12 @@ main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	li = tools_open_backend(backend, seat_or_device, verbose, &grab);
+	li = tools_open_backend(backend, seat_or_devices, verbose, &grab);
 	if (!li)
 		return EXIT_FAILURE;
+
+	while (ndevices-- > 0)
+		free(seat_or_devices[ndevices]);
 
 	mainloop(li);
 
