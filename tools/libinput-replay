@@ -111,8 +111,10 @@ def replay(device, verbose):
         return
     uinput = device['__uinput']
 
-    offset = time.time()
-    handled_first_event = False
+    # The first event may have a nonzero offset but we want to replay
+    # immediately regardless. When replaying multiple devices, the first
+    # offset is the offset from the first event on any device.
+    offset = time.time() - device['__first_event_offset']
 
     # each 'evdev' set contains one SYN_REPORT so we only need to check for
     # the time offset once per event
@@ -123,13 +125,6 @@ def replay(device, verbose):
             continue
 
         (sec, usec, evtype, evcode, value) = evdev[0]
-
-        # The first event may have a nonzero offset but we want to replay
-        # immediately regardless.
-        if not handled_first_event:
-            offset -= sec + usec / 1.e6
-            handled_first_event = True
-
         evtime = sec + usec / 1e6 + offset
         now = time.time()
 
@@ -142,6 +137,22 @@ def replay(device, verbose):
             print_events(uinput.devnode, device['__index'], evs)
 
 
+def first_timestamp(device):
+    try:
+        events = fetch(device, 'events')
+        if events is None:
+            raise YamlException('No events from this device')
+
+        evdev = fetch(events[0], 'evdev')
+        (sec, usec, *_) = evdev[0]
+
+        return sec + usec / 1.e6
+
+    except YamlException:
+        import math
+        return math.inf
+
+
 def wrap(func, *args):
     try:
         func(*args)
@@ -152,11 +163,16 @@ def wrap(func, *args):
 def loop(args, recording):
     devices = fetch(recording, 'devices')
 
+    # All devices need to start replaying at the same time, so let's find
+    # the very first event and offset everything by that timestamp.
+    toffset = min([first_timestamp(d) for d in devices])
+
     for idx, d in enumerate(devices):
         uinput = create(d)
         print('{}: {}'.format(uinput.devnode, uinput.name))
         d['__uinput'] = uinput  # cheaper to hide it in the dict then work around it
         d['__index'] = idx
+        d['__first_event_offset'] = toffset
 
     while True:
         input('Hit enter to start replaying')
