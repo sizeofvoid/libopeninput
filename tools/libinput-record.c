@@ -2387,6 +2387,9 @@ main(int argc, char **argv)
 		case OPT_LIBINPUT:
 			with_libinput = true;
 			break;
+		default:
+			usage();
+			goto out;
 		}
 	}
 
