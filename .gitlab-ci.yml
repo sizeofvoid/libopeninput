@@ -625,6 +625,9 @@ fedora:31@default-build:
   variables:
     FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
+  artifacts:
+    reports:
+      junit: '$MESON_BUILDDIR/junit-*.xml'
 
 fedora:30@default-build:
   stage: distro

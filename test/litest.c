@@ -82,6 +82,7 @@ static bool use_system_rules_quirks = false;
 const char *filter_test = NULL;
 const char *filter_device = NULL;
 const char *filter_group = NULL;
+const char *xml_prefix = NULL;
 static struct quirks_context *quirks_context;
 
 struct created_file {
@@ -831,6 +832,68 @@ quirk_log_handler(struct libinput *unused,
 	vfprintf(stderr, format, args);
 }
 
+static void
+litest_export_xml(SRunner *sr, const char *xml_prefix)
+{
+	TestResult **results;
+	int nresults, nfailed;
+	char *filename;
+	int fd;
+
+	/* This is the minimum-effort implementation here because its only
+	 * real purpose is to make test logs look pretty in the gitlab CI.
+	 *
+	 * Which means:
+	 * - there's no filename validation, if you supply a filename that
+	 *   mkstemps doesn't like, things go boom.
+	 * - every fork writes out a separate junit.xml file. gitlab is better
+	 *   at collecting lots of files than I am at writing code to collect
+	 *   this across forks to write out only one file.
+	 * - most of the content is pretty useless because libcheck only gives
+	 *   us minimal information. the libcheck XML file has more info like
+	 *   the duration of each test but it's more complicated to extract
+	 *   and we don't need it for now.
+	 */
+	filename = safe_strdup(xml_prefix);
+	fd = mkstemps(filename, 4);
+
+	results = srunner_results(sr);
+	nresults = srunner_ntests_run(sr);
+	nfailed = srunner_ntests_failed(sr);
+
+	dprintf(fd, "<?xml version=\"1.0\"?>\n");
+	dprintf(fd, "<testsuites id=\"%s\" tests=\"%d\" failures=\"%d\">\n",
+		filename,
+		nresults,
+		nfailed);
+	dprintf(fd, "  <testsuite>\n");
+	for (int i = 0; i < nresults; i++) {
+		TestResult *r = results[i];
+
+		dprintf(fd, "    <testcase id=\"%s\" name=\"%s\" %s>\n",
+			tr_tcname(r),
+			tr_tcname(r),
+			tr_rtype(r) == CK_PASS ? "/" : "");
+		if (tr_rtype(r) != CK_PASS) {
+			dprintf(fd, "      <failure message=\"%s:%d\">\n",
+				tr_lfile(r),
+				tr_lno(r));
+			dprintf(fd, "        %s:%d\n", tr_lfile(r), tr_lno(r));
+			dprintf(fd, "        %s\n", tr_tcname(r));
+			dprintf(fd, "\n");
+			dprintf(fd, "        %s\n", tr_msg(r));
+			dprintf(fd, "      </failure>\n");
+			dprintf(fd, "    </testcase>\n");
+		}
+	}
+	dprintf(fd, "  </testsuite>\n");
+	dprintf(fd, "</testsuites>\n");
+
+	free(results);
+	close(fd);
+	free(filename);
+}
+
 static int
 litest_run_suite(struct list *tests, int which, int max, int error_fd)
 {
@@ -928,6 +991,10 @@ litest_run_suite(struct list *tests, int which, int max, int error_fd)
 		goto out;
 
 	srunner_run_all(sr, CK_ENV);
+	if (xml_prefix)
+		litest_export_xml(sr, xml_prefix);
+
+
 	failed = srunner_ntests_failed(sr);
 	if (failed) {
 		TestResult **trs;
@@ -4050,6 +4117,7 @@ litest_parse_argv(int argc, char **argv)
 		OPT_FILTER_DEVICE,
 		OPT_FILTER_GROUP,
 		OPT_FILTER_DEVICELESS,
+		OPT_XML_PREFIX,
 		OPT_JOBS,
 		OPT_LIST,
 		OPT_VERBOSE,
@@ -4059,6 +4127,7 @@ litest_parse_argv(int argc, char **argv)
 		{ "filter-device", 1, 0, OPT_FILTER_DEVICE },
 		{ "filter-group", 1, 0, OPT_FILTER_GROUP },
 		{ "filter-deviceless", 0, 0, OPT_FILTER_DEVICELESS },
+		{ "xml-output", 1, 0, OPT_XML_PREFIX },
 		{ "jobs", 1, 0, OPT_JOBS },
 		{ "list", 0, 0, OPT_LIST },
 		{ "verbose", 0, 0, OPT_VERBOSE },
@@ -4111,6 +4180,10 @@ litest_parse_argv(int argc, char **argv)
 			       "          Glob to filter on test groups\n"
 			       "    --filter-deviceless=.... \n"
 			       "          Glob to filter on tests that do not create test devices\n"
+			       "    --xml-output=/path/to/file-XXXXXXX.xml\n"
+			       "          Write test output in libcheck's XML format\n"
+			       "          to the given files. The file must match the format\n"
+			       "          prefix-XXXXXX.xml and only the prefix is your choice.\n"
 			       "    --verbose\n"
 			       "          Enable verbose output\n"
 			       "    --jobs 8\n"
@@ -4135,6 +4208,9 @@ litest_parse_argv(int argc, char **argv)
 			break;
 		case OPT_FILTER_GROUP:
 			filter_group = optarg;
+			break;
+		case OPT_XML_PREFIX:
+			xml_prefix = optarg;
 			break;
 		case 'j':
 		case OPT_JOBS:
