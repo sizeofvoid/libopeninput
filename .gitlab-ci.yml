@@ -135,6 +135,27 @@ variables:
 #                                                               #
 #################################################################
 
+
+check-commit:
+  image: $FEDORA_CONTAINER_IMAGE
+  stage: prep
+  script:
+    - pip3 install GitPython
+    - pip3 install pytest
+    - |
+      pytest --junitxml=results.xml \
+             --tb=line \
+             --assert=plain \
+             ./.gitlab-ci/check-commit.py
+  except:
+    - master@libinput/libinput
+  variables:
+    GIT_DEPTH: 100
+    FEDORA_VERSION: 31
+  artifacts:
+    reports:
+      junit: results.xml
+
 #
 # This stage will recreate the container images only if the image
 # is too old or if it is missing some dependencies.
