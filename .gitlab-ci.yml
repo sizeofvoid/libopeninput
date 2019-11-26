@@ -44,7 +44,7 @@ include:
     file: '/templates/ubuntu.yml'
 
 stages:
-  - container_prep   # rebuild the container images if there is a change
+  - prep             # prep work like rebuilding the container images if there is a change
   - build            # for actually building and testing things in a container
   - VM               # for running the test suite in a VM
   - valgrind         # for running the test suite under valgrind in a VM
@@ -131,7 +131,7 @@ variables:
 
 #################################################################
 #                                                               #
-#                    container prep stage                       #
+#                          prep stage                           #
 #                                                               #
 #################################################################
 
@@ -162,7 +162,7 @@ fedora:30@qemu-prep:
     - .fedora@qemu-build
     - .policy
     - .pull_upstream_or_rebuild
-  stage: container_prep
+  stage: prep
   tags:
     - kvm
   variables:
@@ -180,7 +180,7 @@ fedora:30@container-prep:
     - .fedora@container-build
     - .policy
     - .pull_upstream_or_rebuild
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 30
@@ -193,7 +193,7 @@ fedora:31@container-prep:
     - .fedora@container-build
     - .policy
     - .pull_upstream_or_rebuild
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 31
@@ -207,7 +207,7 @@ ubuntu:19.10@container-prep:
     - .ubuntu@container-build
     - .policy
     - .pull_upstream_or_rebuild
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "19.10"
@@ -220,7 +220,7 @@ ubuntu:19.04@container-prep:
     - .ubuntu@container-build
     - .policy
     - .pull_upstream_or_rebuild
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "19.04"
@@ -234,7 +234,7 @@ arch:rolling@container-prep:
     - .arch@container-build
     - .policy
     - .pull_upstream_or_rebuild
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     ARCH_VERSION: rolling
@@ -247,7 +247,7 @@ alpine:latest@container-prep:
     - .alpine@container-build
     - .policy
     - .pull_upstream_or_rebuild
-  stage: container_prep
+  stage: prep
   variables:
     GIT_STRATEGY: none
     ALPINE_VERSION: latest
@@ -259,7 +259,7 @@ alpine:latest@container-prep:
   extends:
     - .policy
     - .pull_upstream_or_rebuild
-  stage: container_prep
+  stage: prep
   image: $BUILDAH_IMAGE
   script:
     - export BUILDAH_RUN="buildah run --isolation chroot"
