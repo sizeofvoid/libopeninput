@@ -2292,7 +2292,7 @@ init_libinput(struct record_context *ctx)
 static inline void
 usage(void)
 {
-	printf("Usage: %s [--help] [--multiple|--all] [--autorestart] [--output-file filename] [/dev/input/event0] [...]\n"
+	printf("Usage: %s [--help] [--all] [--autorestart] [--output-file filename] [/dev/input/event0] [...]\n"
 	       "Common use-cases:\n"
 	       "\n"
 	       " sudo %s -o recording.yml\n"
@@ -2303,7 +2303,7 @@ usage(void)
 	       "    As above, but restarts after 2s of inactivity on the device.\n"
 	       "    Note, the output file is only the prefix.\n"
 	       "\n"
-	       " sudo %s --multiple -o recording.yml /dev/input/event3 /dev/input/event4\n"
+	       " sudo %s -o recording.yml /dev/input/event3 /dev/input/event4\n"
 	       "    Records the two devices into the same recordings file.\n"
 	       "\n"
 	       "For more information, see the %s(1) man page\n",
@@ -2343,7 +2343,7 @@ main(int argc, char **argv)
 	};
 	struct record_device *d, *tmp;
 	const char *output_arg = NULL;
-	bool multiple = false, all = false, with_libinput = false;
+	bool all = false, with_libinput = false;
 	int ndevices;
 	int rc = EXIT_FAILURE;
 
@@ -2379,8 +2379,7 @@ main(int argc, char **argv)
 		case OPT_KEYCODES:
 			ctx.show_keycodes = true;
 			break;
-		case OPT_MULTIPLE:
-			multiple = true;
+		case OPT_MULTIPLE: /* deprecated */
 			break;
 		case OPT_ALL:
 			all = true;
@@ -2395,12 +2394,6 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (all && multiple) {
-		fprintf(stderr,
-			"Only one of --multiple and --all allowed.\n");
-		goto out;
-	}
-
 	if (ctx.timeout > 0 && output_arg == NULL) {
 		fprintf(stderr,
 			"Option --autorestart requires --output-file\n");
@@ -2411,32 +2404,14 @@ main(int argc, char **argv)
 
 	ndevices = argc - optind;
 
-	if (multiple) {
-		if (output_arg == NULL) {
-			fprintf(stderr,
-				"Option --multiple requires --output-file\n");
-			goto out;
-		}
-
-		if (ndevices <= 1) {
-			fprintf(stderr,
-				"Option --multiple requires all device nodes on the commandline\n");
-			goto out;
-		}
-
-		for (int i = ndevices; i > 0; i -= 1) {
-			char *devnode = safe_strdup(argv[optind + i - 1]);
-
-			if (!init_device(&ctx, devnode))
-				goto out;
-		}
-	} else if (all) {
+	if (all) {
 		char **devices; /* NULL-terminated */
 		char **d;
 
 		if (output_arg == NULL) {
 			fprintf(stderr,
 				"Option --all requires --output-file\n");
+			rc = EXIT_INVALID_USAGE;
 			goto out;
 		}
 
@@ -2452,13 +2427,22 @@ main(int argc, char **argv)
 		}
 
 		strv_free(devices);
-	} else {
-		char *path;
-
-		if (ndevices > 1) {
-			fprintf(stderr, "More than one device, do you want --multiple?\n");
+	} else if (ndevices > 1) {
+		if (ndevices > 1 && output_arg == NULL) {
+			fprintf(stderr,
+				"Recording multiple devices requires --output-file\n");
+			rc = EXIT_INVALID_USAGE;
 			goto out;
 		}
+
+		for (int i = ndevices; i > 0; i -= 1) {
+			char *devnode = safe_strdup(argv[optind + i - 1]);
+
+			if (!init_device(&ctx, devnode))
+				goto out;
+		}
+	} else {
+		char *path;
 
 		path = ndevices <= 0 ? select_device() : safe_strdup(argv[optind++]);
 		if (path == NULL) {
