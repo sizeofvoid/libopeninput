@@ -112,7 +112,7 @@ variables:
   # cancel run when a newer version is pushed to the branch
   interruptible: true
 
-.default_artifacts: &default_artifacts
+.default_artifacts:
   artifacts:
     name: "meson-logs-$CI_JOB_NAME"
     when: always
@@ -121,7 +121,7 @@ variables:
       - $MESON_BUILDDIR/meson-logs
 
 # The default build instructions
-.default_build: &default_build
+.default_build:
   script:
     - rm -rf "$MESON_BUILDDIR"
     - meson "$MESON_BUILDDIR" $MESON_ARGS
@@ -433,9 +433,9 @@ freebsd:11.2@container-clean:
 .build@template:
   extends:
     - .policy
+    - .default_artifacts
+    - .default_build
   stage: build
-  <<: *default_artifacts
-  <<: *default_build
   dependencies: []
 
 #
