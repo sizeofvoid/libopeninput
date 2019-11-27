@@ -103,6 +103,15 @@ variables:
   UDEV_NOT_AVAILABLE: 1
   GIT_DEPTH: 1
 
+.policy:
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+  # cancel run when a newer version is pushed to the branch
+  interruptible: true
+
 .default_artifacts: &default_artifacts
   artifacts:
     name: "meson-logs-$CI_JOB_NAME"
@@ -151,6 +160,7 @@ variables:
 fedora:30@qemu-prep:
   extends:
     - .fedora@qemu-build
+    - .policy
   stage: container_prep
   tags:
     - kvm
@@ -168,6 +178,7 @@ fedora:30@qemu-prep:
 fedora:30@container-prep:
   extends:
     - .fedora@container-build
+    - .policy
   stage: container_prep
   variables:
     GIT_STRATEGY: none
@@ -180,6 +191,7 @@ fedora:30@container-prep:
 fedora:31@container-prep:
   extends:
     - .fedora@container-build
+    - .policy
   stage: container_prep
   variables:
     GIT_STRATEGY: none
@@ -193,6 +205,7 @@ fedora:31@container-prep:
 ubuntu:19.10@container-prep:
   extends:
     - .ubuntu@container-build
+    - .policy
   stage: container_prep
   variables:
     GIT_STRATEGY: none
@@ -205,6 +218,7 @@ ubuntu:19.10@container-prep:
 ubuntu:19.04@container-prep:
   extends:
     - .ubuntu@container-build
+    - .policy
   stage: container_prep
   variables:
     GIT_STRATEGY: none
@@ -218,6 +232,7 @@ ubuntu:19.04@container-prep:
 arch:rolling@container-prep:
   extends:
     - .arch@container-build
+    - .policy
   stage: container_prep
   variables:
     GIT_STRATEGY: none
@@ -230,6 +245,7 @@ arch:rolling@container-prep:
 alpine:latest@container-prep:
   extends:
     - .alpine@container-build
+    - .policy
   stage: container_prep
   variables:
     GIT_STRATEGY: none
@@ -240,6 +256,8 @@ alpine:latest@container-prep:
   <<: *pull_upstream_or_rebuild
 
 .freebsd@container-prep:
+  extends:
+    - .policy
   stage: container_prep
   image: $BUILDAH_IMAGE
   <<: *pull_upstream_or_rebuild
@@ -284,6 +302,8 @@ freebsd:11.2@container-prep:
 # $container_image:$tag
 #
 .container-clean:
+  extends:
+    - .policy
   stage: container_clean
   image: $BUILDAH_IMAGE
   script:
@@ -411,6 +431,8 @@ freebsd:11.2@container-clean:
 #################################################################
 
 .build@template:
+  extends:
+    - .policy
   stage: build
   <<: *default_artifacts
   <<: *default_build
@@ -433,6 +455,8 @@ freebsd:11.2@container-clean:
 # - SUITE_NAMES: all elements will be expanded to libinput-test-suite-$value
 # Set one or the other, not both.
 .fedora:30@test-suite-vm:
+  extends:
+    - .policy
   stage: VM
   image: $QEMU_CONTAINER_IMAGE
   tags:
@@ -487,7 +511,6 @@ freebsd:11.2@container-clean:
 
   allow_failure: true
   needs: ['fedora:30@qemu-prep']
-
 
 # in reverse order of duration to get the slowest ones started first
 fedora:30@vm-touchpad:
