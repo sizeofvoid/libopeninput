@@ -2345,7 +2345,7 @@ main(int argc, char **argv)
 	const char *output_arg = NULL;
 	bool multiple = false, all = false, with_libinput = false;
 	int ndevices;
-	int rc = 1;
+	int rc = EXIT_FAILURE;
 
 	list_init(&ctx.devices);
 
@@ -2361,12 +2361,13 @@ main(int argc, char **argv)
 		case 'h':
 		case OPT_HELP:
 			usage();
-			rc = 0;
+			rc = EXIT_SUCCESS;
 			goto out;
 		case OPT_AUTORESTART:
 			if (!safe_atoi(optarg, &ctx.timeout) ||
 			    ctx.timeout <= 0) {
 				usage();
+				rc = EXIT_INVALID_USAGE;
 				goto out;
 			}
 			ctx.timeout = ctx.timeout * 1000;
@@ -2389,6 +2390,7 @@ main(int argc, char **argv)
 			break;
 		default:
 			usage();
+			rc = EXIT_INVALID_USAGE;
 			goto out;
 		}
 	}
