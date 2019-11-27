@@ -149,7 +149,8 @@ variables:
     - test -e .scheduled || skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
 
 fedora:30@qemu-prep:
-  extends: .fedora@qemu-build
+  extends:
+    - .fedora@qemu-build
   stage: container_prep
   tags:
     - kvm
@@ -165,7 +166,8 @@ fedora:30@qemu-prep:
   <<: *pull_upstream_or_rebuild
 
 fedora:30@container-prep:
-  extends: .fedora@container-build
+  extends:
+    - .fedora@container-build
   stage: container_prep
   variables:
     GIT_STRATEGY: none
@@ -176,7 +178,8 @@ fedora:30@container-prep:
   <<: *pull_upstream_or_rebuild
 
 fedora:31@container-prep:
-  extends: .fedora@container-build
+  extends:
+    - .fedora@container-build
   stage: container_prep
   variables:
     GIT_STRATEGY: none
@@ -188,7 +191,8 @@ fedora:31@container-prep:
 
 
 ubuntu:19.10@container-prep:
-  extends: .ubuntu@container-build
+  extends:
+    - .ubuntu@container-build
   stage: container_prep
   variables:
     GIT_STRATEGY: none
@@ -199,7 +203,8 @@ ubuntu:19.10@container-prep:
   <<: *pull_upstream_or_rebuild
 
 ubuntu:19.04@container-prep:
-  extends: .ubuntu@container-build
+  extends:
+    - .ubuntu@container-build
   stage: container_prep
   variables:
     GIT_STRATEGY: none
@@ -211,7 +216,8 @@ ubuntu:19.04@container-prep:
 
 
 arch:rolling@container-prep:
-  extends: .arch@container-build
+  extends:
+    - .arch@container-build
   stage: container_prep
   variables:
     GIT_STRATEGY: none
@@ -222,7 +228,8 @@ arch:rolling@container-prep:
   <<: *pull_upstream_or_rebuild
 
 alpine:latest@container-prep:
-  extends: .alpine@container-build
+  extends:
+    - .alpine@container-build
   stage: container_prep
   variables:
     GIT_STRATEGY: none
@@ -254,7 +261,8 @@ alpine:latest@container-prep:
     - skopeo copy docker://$FREEBSD_CONTAINER_IMAGE docker://$CI_REGISTRY_IMAGE/freebsd/$FREEBSD_VERSION:$CI_JOB_ID
 
 freebsd:11.2@container-prep:
-  extends: .freebsd@container-prep
+  extends:
+    - .freebsd@container-prep
   variables:
     GIT_STRATEGY: none
     FREEBSD_VERSION: "11.2"
@@ -344,47 +352,54 @@ freebsd:11.2@container-prep:
     - schedules
 
 fedora:30@container-clean:
-  extends: .container-clean
+  extends:
+    - .container-clean
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 30
     CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
 
 fedora:31@container-clean:
-  extends: .container-clean
+  extends:
+    - .container-clean
   variables:
     GIT_STRATEGY: none
     FEDORA_VERSION: 31
     CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
 
 ubuntu:19.10@container-clean:
-  extends: .container-clean
+  extends:
+    - .container-clean
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "19.10"
     CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
 
 ubuntu:19.04@container-clean:
-  extends: .container-clean
+  extends:
+    - .container-clean
   variables:
     GIT_STRATEGY: none
     UBUNTU_VERSION: "19.04"
     CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
 
 arch:rolling@container-clean:
-  extends: .container-clean
+  extends:
+    - .container-clean
   variables:
     GIT_STRATEGY: none
     CURRENT_CONTAINER_IMAGE: $ARCH_CONTAINER_IMAGE
 
 alpine:latest@container-clean:
-  extends: .container-clean
+  extends:
+    - .container-clean
   variables:
     GIT_STRATEGY: none
     CURRENT_CONTAINER_IMAGE: $ALPINE_CONTAINER_IMAGE
 
 freebsd:11.2@container-clean:
-  extends: .container-clean
+  extends:
+    - .container-clean
   variables:
     GIT_STRATEGY: none
     CURRENT_CONTAINER_IMAGE: $FREEBSD_CONTAINER_IMAGE
@@ -476,93 +491,109 @@ freebsd:11.2@container-clean:
 
 # in reverse order of duration to get the slowest ones started first
 fedora:30@vm-touchpad:
-  extends: .fedora:30@test-suite-vm
+  extends:
+    - .fedora:30@test-suite-vm
   variables:
     SUITE_NAMES: 'touchpad'
 
 fedora:30@vm-tap:
-  extends: .fedora:30@test-suite-vm
+  extends:
+    - .fedora:30@test-suite-vm
   variables:
     SUITE_NAMES: 'tap'
 
 fedora:30@vm-tablet:
-  extends: .fedora:30@test-suite-vm
+  extends:
+    - .fedora:30@test-suite-vm
   variables:
     SUITE_NAMES: 'tablet'
 
 fedora:30@vm-gestures-device:
-  extends: .fedora:30@test-suite-vm
+  extends:
+    - .fedora:30@test-suite-vm
   variables:
     SUITE_NAMES: 'gestures device'
 
 fedora:30@vm-others:
-  extends: .fedora:30@test-suite-vm
+  extends:
+    - .fedora:30@test-suite-vm
   variables:
     SUITE_NAMES: 'context config misc events totem udev lid log timer tablet-mode quirks trackball pad path keyboard switch touch trackpoint'
 
 fedora:30@vm-pointer:
-  extends: .fedora:30@test-suite-vm
+  extends:
+    - .fedora:30@test-suite-vm
   variables:
     SUITE_NAMES: 'pointer'
 
 fedora:30@valgrind-touchpad:
   stage: valgrind
-  extends: fedora:30@vm-touchpad
+  extends:
+    - fedora:30@vm-touchpad
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 fedora:30@valgrind-tap:
   stage: valgrind
-  extends: fedora:30@vm-tap
+  extends:
+    - fedora:30@vm-tap
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 fedora:30@valgrind-tablet:
   stage: valgrind
-  extends: fedora:30@vm-tablet
+  extends:
+    - fedora:30@vm-tablet
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 fedora:30@valgrind-gestures-device:
   stage: valgrind
-  extends: fedora:30@vm-gestures-device
+  extends:
+    - fedora:30@vm-gestures-device
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 
 fedora:30@valgrind-others:
   stage: valgrind
-  extends: fedora:30@vm-others
+  extends:
+    - fedora:30@vm-others
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 fedora:30@valgrind-pointer:
   stage: valgrind
-  extends: fedora:30@vm-pointer
+  extends:
+    - fedora:30@vm-pointer
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 .fedora-build@template:
-  extends: .build@template
+  extends:
+    - .build@template
   image: $FEDORA_CONTAINER_IMAGE
 
 fedora:31@default-build:
   stage: distro
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
 
 fedora:30@default-build:
   stage: distro
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
   needs: ['fedora:30@container-prep']
 
 fedora:30@default-build-release:
   stage: distro
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Dbuildtype=release"
@@ -570,7 +601,8 @@ fedora:30@default-build-release:
   needs: ['fedora:30@container-prep']
 
 fedora:30@scan-build:
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     NINJA_ARGS: scan-build
@@ -588,14 +620,16 @@ fedora:30@scan-build:
 # when they succeed on another.
 
 fedora:30@build-no-libwacom:
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Dlibwacom=false"
   needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-libwacom-nodeps:
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Dlibwacom=false"
@@ -604,14 +638,16 @@ fedora:30@build-no-libwacom-nodeps:
   needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-docs:
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Ddocumentation=false"
   needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-docs-nodeps:
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Ddocumentation=false"
@@ -620,14 +656,16 @@ fedora:30@build-no-docs-nodeps:
   needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-debuggui:
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Ddebug-gui=false"
   needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-debuggui-nodeps:
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Ddebug-gui=false"
@@ -636,14 +674,16 @@ fedora:30@build-no-debuggui-nodeps:
   needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-tests:
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Dtests=false"
   needs: ['fedora:30@container-prep']
 
 fedora:30@build-no-tests-nodeps:
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_ARGS: "-Dtests=false"
@@ -652,7 +692,8 @@ fedora:30@build-no-tests-nodeps:
   needs: ['fedora:30@container-prep']
 
 fedora:30@valgrind:
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
     MESON_TEST_ARGS: '--suite=valgrind --no-suite=hardware --setup=valgrind'
@@ -663,7 +704,8 @@ fedora:30@valgrind:
 # Python checks, only run on Fedora
 
 fedora:30@usr-bin-env-python:
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
   script:
@@ -675,7 +717,8 @@ fedora:30@usr-bin-env-python:
   needs: ['fedora:30@container-prep']
 
 fedora:30@flake8:
-  extends: .fedora-build@template
+  extends:
+    - .fedora-build@template
   variables:
     FEDORA_VERSION: 30
   before_script:
@@ -690,17 +733,20 @@ fedora:30@flake8:
 
 .ubuntu@template:
   stage: distro
-  extends: .build@template
+  extends:
+    - .build@template
   image: $UBUNTU_CONTAINER_IMAGE
 
 ubuntu:19.10@default-build:
-  extends: .ubuntu@template
+  extends:
+    - .ubuntu@template
   variables:
     UBUNTU_VERSION: "19.10"
   needs: ['ubuntu:19.10@container-prep']
 
 ubuntu:19.04@default-build:
-  extends: .ubuntu@template
+  extends:
+    - .ubuntu@template
   variables:
     UBUNTU_VERSION: "19.04"
   needs: ['ubuntu:19.04@container-prep']
@@ -710,11 +756,13 @@ ubuntu:19.04@default-build:
 #
 .arch@template:
   stage: distro
-  extends: .build@template
+  extends:
+    - .build@template
   image: $ARCH_CONTAINER_IMAGE
 
 arch:rolling@default-build:
-  extends: .arch@template
+  extends:
+    - .arch@template
   needs: ['arch:rolling@container-prep']
 
 #
@@ -723,11 +771,13 @@ arch:rolling@default-build:
 
 .alpine@template:
   stage: distro
-  extends: .build@template
+  extends:
+    - .build@template
   image: $ALPINE_CONTAINER_IMAGE
 
 alpine:latest@default-build:
-  extends: .alpine@template
+  extends:
+    - .alpine@template
   needs: ['alpine:latest@container-prep']
   variables:
     # alpine doesn't have python-recommonmark
@@ -742,7 +792,8 @@ alpine:latest@default-build:
 #
 .freebsd@template:
   stage: distro
-  extends: .build@template
+  extends:
+    - .build@template
   image: $FREEBSD_CONTAINER_IMAGE
   variables:
     MESON_ARGS: '--cross-file freebsd -Ddocumentation=false -Dtests=false -Depoll-dir=/freebsd/usr/local/'
@@ -750,7 +801,8 @@ alpine:latest@default-build:
     MESON_TEST_ARGS: ''
 
 freebsd:11.2@default-build:
-  extends: .freebsd@template
+  extends:
+    - .freebsd@template
   needs: ['freebsd:11.2@container-prep']
 
 #
