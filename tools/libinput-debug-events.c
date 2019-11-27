@@ -38,6 +38,7 @@
 #include <libinput.h>
 #include <libevdev/libevdev.h>
 
+#include "libinput-version.h"
 #include "util-strings.h"
 #include "util-macros.h"
 #include "shared.h"
@@ -1044,6 +1045,9 @@ main(int argc, char **argv)
 				strerror(errno));
 		return EXIT_FAILURE;
 	}
+
+	if (verbose)
+		printf("libinput version: %s\n", LIBINPUT_VERSION);
 
 	li = tools_open_backend(backend, seat_or_devices, verbose, &grab);
 	if (!li)

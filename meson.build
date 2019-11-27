@@ -482,7 +482,10 @@ man_config.set('LIBINPUT_VERSION', meson.project_version())
 man_config.set('LIBINPUT_DATA_DIR', dir_data)
 
 deps_tools = [ dep_tools_shared, dep_libinput ]
-libinput_debug_events_sources = [ 'tools/libinput-debug-events.c' ]
+libinput_debug_events_sources = [
+	'tools/libinput-debug-events.c',
+	libinput_version_h,
+]
 executable('libinput-debug-events',
 	   libinput_debug_events_sources,
 	   dependencies : deps_tools,
