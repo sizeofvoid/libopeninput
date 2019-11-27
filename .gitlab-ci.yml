@@ -119,6 +119,8 @@ variables:
     expire_in: 1 week
     paths:
       - $MESON_BUILDDIR/meson-logs
+    reports:
+      junit: $MESON_BUILDDIR/junit-*.xml
 
 # The default build instructions
 .default_build:
@@ -127,7 +129,16 @@ variables:
     - meson "$MESON_BUILDDIR" $MESON_ARGS
     - meson configure "$MESON_BUILDDIR"
     - ninja -C "$MESON_BUILDDIR" $NINJA_ARGS
-    - if test x"$MESON_TEST_ARGS" != "x"; then echo "Running meson test -C \"$MESON_BUILDDIR\" $MESON_TEST_ARGS"; meson test -C "$MESON_BUILDDIR" $MESON_TEST_ARGS; fi
+    - if test x"$MESON_TEST_ARGS" != "x"; then
+        echo "Running meson test -C \"$MESON_BUILDDIR\" $MESON_TEST_ARGS";
+        meson test -C "$MESON_BUILDDIR" $MESON_TEST_ARGS || touch .failed;
+        ./.gitlab-ci/meson-junit-report.py
+                --project-name=libinput
+                --job-id="$CI_JOB_ID"
+                --output="$MESON_BUILDDIR/junit-$CI_JOB_NAME-report.xml"
+                "$MESON_BUILDDIR/meson-logs/testlog.json";
+        test -f .failed && exit 1;
+      fi
 
 #################################################################
 #                                                               #
@@ -625,9 +636,6 @@ fedora:31@default-build:
   variables:
     FEDORA_VERSION: 31
   needs: ['fedora:31@container-prep']
-  artifacts:
-    reports:
-      junit: '$MESON_BUILDDIR/junit-*.xml'
 
 fedora:30@default-build:
   stage: distro
