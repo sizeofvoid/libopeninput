@@ -491,13 +491,13 @@ freebsd:11.2@container-clean:
     - *check_tainted
 
     - "scp -P 5555 -r $PWD localhost:"
-    - ssh localhost -p 5555 rm -rf $CI_PROJECT_NAME/"$MESON_BUILDDIR"
-    - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; meson \"$MESON_BUILDDIR\" $MESON_ARGS"
-    - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; meson configure \"$MESON_BUILDDIR\" "
-    - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; ninja -C \"$MESON_BUILDDIR\" $NINJA_ARGS"
-    - echo "meson test -C \"$MESON_BUILDDIR\" $MESON_TEST_ARGS $SUITES --print-errorlogs"
-    - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; meson test -C \"$MESON_BUILDDIR\" $MESON_TEST_ARGS --print-errorlogs $SUITES" && touch .success || true
-
+    - echo "CI_JOB_ID=\"$CI_JOB_ID\"" > sshenv
+    - echo "CI_JOB_NAME=\"$CI_JOB_NAME\"" >> sshenv
+    - echo "MESON_BUILDDIR=\"$MESON_BUILDDIR\"" >> sshenv
+    - echo "MESON_TEST_ARGS=\"$MESON_TEST_ARGS $SUITES\"" >> sshenv
+    - echo "NINJA_ARGS=\"$NINJA_ARGS\"" >> sshenv
+    - "scp -P 5555 sshenv localhost:~/$CI_PROJECT_NAME/.meson_environment"
+    - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; .gitlab-ci/meson-build.sh" && touch .success || true
     # no matter the results of the tests, we want to fetch the logs
     - scp -P 5555 -r localhost:$CI_PROJECT_NAME/$MESON_BUILDDIR .
 
@@ -523,6 +523,8 @@ freebsd:11.2@container-clean:
     paths:
       - $MESON_BUILDDIR/meson-logs
       - console.out
+    reports:
+      junit: $MESON_BUILDDIR/junit-*.xml
 
   allow_failure: true
   needs: ['fedora:30@qemu-prep']

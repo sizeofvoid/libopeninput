@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [[ -f .meson_environment ]]; then
+	. .meson_environment
+fi
+
 if [[ -z "$MESON_BUILDDIR" ]]; then
 	echo "\$MESON_BUILDDIR undefined."
 	exit 1
@@ -37,7 +41,7 @@ fi
 
 # we still want to generate the reports, even if meson test fails
 set +e
-meson test -C "$MESON_BUILDDIR" $MESON_TEST_ARGS
+meson test -C "$MESON_BUILDDIR" $MESON_TEST_ARGS --print-errorlogs
 exit_code=$?
 set -e
 
