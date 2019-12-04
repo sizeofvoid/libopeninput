@@ -9,22 +9,44 @@ import git
 import os
 import pytest
 
-# Environment variables set by gitlab
-CI_COMMIT_SHA = os.environ['CI_COMMIT_SHA']
-CI_MERGE_REQUEST_TARGET_BRANCH_NAME = 'master'
-CI_SERVER_HOST = os.environ['CI_SERVER_HOST']
+if os.environ.get('CI'):
+    # Environment variables set by gitlab
+    CI_COMMIT_SHA = os.environ['CI_COMMIT_SHA']
+    CI_MERGE_REQUEST_TARGET_BRANCH_NAME = 'master'
+    CI_SERVER_HOST = os.environ['CI_SERVER_HOST']
+    UPSTREAM = 'upstream'
+else:
+    # Local emulation mode when called directly
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Commit message checker - local emulation mode')
+    parser.add_argument('--sha', help='The commit message to start at (default: HEAD}',
+                        default='HEAD')
+    parser.add_argument('--branch', help='The branch name to merge to (default: master)',
+                        default='master')
+    parser.add_argument('--remote', help='The remote name (default: origin)',
+                        default='origin')
+    args = parser.parse_args()
+
+    CI_COMMIT_SHA = args.sha
+    CI_MERGE_REQUEST_TARGET_BRANCH_NAME = args.branch
+    CI_SERVER_HOST = None
+    UPSTREAM = 'origin'
+    print(f'Running in local testing mode.')
+
+print(f'Merging {CI_COMMIT_SHA} into {CI_MERGE_REQUEST_TARGET_BRANCH_NAME}')
 
 # We need to add the real libinput as remote, our origin here is the user's
 # fork.
 repo = git.Repo('.')
-if 'upstream' not in repo.remotes:
+if UPSTREAM not in repo.remotes:
     upstream = repo.create_remote('upstream', f'https://{CI_SERVER_HOST}/libinput/libinput.git')
     upstream.fetch()
 
 sha = CI_COMMIT_SHA
 branch = CI_MERGE_REQUEST_TARGET_BRANCH_NAME
 
-commits = list(repo.iter_commits(f'upstream/{branch}..{sha}'))
+commits = list(repo.iter_commits(f'{UPSTREAM}/{branch}..{sha}'))
 
 
 def error(commit, message, long_message=''):
@@ -44,6 +66,7 @@ def error(commit, message, long_message=''):
            f'{long_message}\n\n'
            f'{info}\n\n')
     return msg
+
 
 @pytest.mark.parametrize('commit', commits)
 class TestCommits:
@@ -82,3 +105,7 @@ class TestCommits:
                 error(commit, 'Second line in commit message must be emtpy')
         except IndexError:
             pass
+
+
+if __name__ == '__main__':
+    pytest.main([__file__])
