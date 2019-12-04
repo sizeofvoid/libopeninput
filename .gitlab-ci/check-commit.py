@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# vim: set expandtab shiftwidth=4:
+# -*- Mode: python; coding: utf-8; indent-tabs-mode: nil -*- */
 #
 # This script tests a few things against the commit messages, search for
 # `def test_` to see the actual tests run.
@@ -26,10 +28,22 @@ commits = list(repo.iter_commits(f'upstream/{branch}..{sha}'))
 
 
 def error(commit, message, long_message=''):
-    if long_message:
-        long_message = '\n\n\t' + long_message.replace('\n', '\n\t')
-    return f'on commit {str(commit)[:8]} "{commit.summary}": {message}{long_message}'
+    info = ('After correcting the above issue(s), force-push to the same branch.\n'
+            'This will re-trigger the CI.\n\n'
+            'A list of requirements for commit messages is available at\n'
+            'https://gitlab.freedesktop.org/libinput/libinput/blob/master/CODING_STYLE.md')
 
+    msg = (f'\n'
+           f'Commit message check failed: {message}\n\n'
+           f'  commit: {str(commit)}\n'
+           f'  author: {commit.author.name} <{commit.author.email}>\n'
+           f'\n'
+           f'  {commit.summary}\n'
+           f'\n'
+           f'\n'
+           f'{long_message}\n\n'
+           f'{info}\n\n')
+    return msg
 
 @pytest.mark.parametrize('commit', commits)
 class TestCommits:
@@ -44,7 +58,8 @@ class TestCommits:
         if not commit.message.startswith('Revert "'):
             assert 'Signed-off-by:' in commit.message, \
                 error(commit, 'missing Signed-off-by tag',
-                      'Please add the required "Signed-off-by: author information" line to the commit message')
+                      'Please add the required "Signed-off-by: author information" line\n'
+                      'to the commit message')
 
     def test_fixup(self, commit):
         assert not commit.message.startswith('fixup!'), \
