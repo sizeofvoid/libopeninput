@@ -12,6 +12,11 @@ import pytest
 if os.environ.get('CI'):
     # Environment variables set by gitlab
     CI_COMMIT_SHA = os.environ['CI_COMMIT_SHA']
+    # This is intentionally hardcoded to master. CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    # is only available when run with only: [merge_requests]
+    # but that generates a detached pipeline with only this job in it.
+    # Since merging into a non-master branch is not a thing in libinput
+    # anyway, we can hardcode this here.
     CI_MERGE_REQUEST_TARGET_BRANCH_NAME = 'master'
     CI_SERVER_HOST = os.environ['CI_SERVER_HOST']
     UPSTREAM = 'upstream'
