@@ -15,8 +15,9 @@ CI_SERVER_HOST = os.environ['CI_SERVER_HOST']
 # We need to add the real libinput as remote, our origin here is the user's
 # fork.
 repo = git.Repo('.')
-upstream = repo.create_remote('upstream', f'https://{CI_SERVER_HOST}/libinput/libinput.git')
-upstream.fetch()
+if 'upstream' not in repo.remotes:
+    upstream = repo.create_remote('upstream', f'https://{CI_SERVER_HOST}/libinput/libinput.git')
+    upstream.fetch()
 
 sha = CI_COMMIT_SHA
 branch = CI_MERGE_REQUEST_TARGET_BRANCH_NAME
