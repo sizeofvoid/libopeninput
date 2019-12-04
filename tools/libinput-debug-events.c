@@ -935,7 +935,7 @@ main(int argc, char **argv)
 {
 	struct libinput *li;
 	enum tools_backend backend = BACKEND_NONE;
-	char *seat_or_devices[64] = {NULL};
+	char *seat_or_devices[60] = {NULL};
 	size_t ndevices = 0;
 	bool grab = false;
 	bool verbose = false;
@@ -1028,6 +1028,10 @@ main(int argc, char **argv)
 		}
 		backend = BACKEND_DEVICE;
 		do {
+			if (ndevices >= ARRAY_LENGTH(seat_or_devices)) {
+				usage();
+				return EXIT_INVALID_USAGE;
+			}
 			seat_or_devices[ndevices++] = safe_strdup(argv[optind]);
 		} while(++optind < argc);
 	} else if (backend == BACKEND_NONE) {

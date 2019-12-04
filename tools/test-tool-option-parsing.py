@@ -212,6 +212,11 @@ class TestDebugEvents(TestToolWithOptions, TestLibinputTool):
         self.run_command_success(['--device', '/dev/input/event0', '/dev/input/event0'])
         self.run_command_success(['/dev/input/event0', '/dev/input/event1'])
 
+    def test_too_many_devices(self):
+        # Too many arguments just bails with the usage message
+        rc, stdout, stderr = self.run_command(['/dev/input/event0'] * 61)
+        self.assertEqual(rc, 2, msg=(stdout, stderr))
+
 
 class TestDebugGUI(TestToolWithOptions, TestLibinputTool):
     subtool = 'debug-gui'
