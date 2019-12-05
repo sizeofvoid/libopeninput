@@ -79,7 +79,7 @@ Enable or disable middle button emulation
 .B \-\-enable\-dwt|\-\-disable\-dwt
 Enable or disable disable-while-typing
 .TP 8
-.B \-\-enable\scroll-button-lock|\-\-disable\-scroll-button-lock
+.B \-\-enable\-scroll-button-lock|\-\-disable\-scroll-button-lock
 Enable or disable the scroll button lock
 .TP 8
 .B \-\-set\-click\-method=[none|clickfinger|buttonareas]
