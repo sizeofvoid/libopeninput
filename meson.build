@@ -318,6 +318,7 @@ quirks_data = [
 	'quirks/30-vendor-ibm.quirks',
 	'quirks/30-vendor-kensington.quirks',
 	'quirks/30-vendor-logitech.quirks',
+	'quirks/30-vendor-madcatz.quirks',
 	'quirks/30-vendor-microsoft.quirks',
 	'quirks/30-vendor-razer.quirks',
 	'quirks/30-vendor-synaptics.quirks',
