@@ -130,8 +130,10 @@ variables:
 
 
 check-commit:
-  image: $FEDORA_CONTAINER_IMAGE
+  image: golang:alpine
   stage: prep
+  before_script:
+    - apk add python3 git
   script:
     - pip3 install GitPython
     - pip3 install pytest
@@ -144,7 +146,6 @@ check-commit:
     - master@libinput/libinput
   variables:
     GIT_DEPTH: 100
-    FEDORA_VERSION: 31
   artifacts:
     reports:
       junit: results.xml
