@@ -53,9 +53,9 @@ config_h = configuration_data()
 
 doc_url_base = 'https://wayland.freedesktop.org/libinput/doc'
 if libinput_version[2].to_int() >= 90
-	doc_url = '@0@/latest'.format(doc_url_base)
+	doc_url = '@0@/latest/'.format(doc_url_base)
 else
-	doc_url = '@0@/@1@'.format(doc_url_base, meson.project_version())
+	doc_url = '@0@/@1@/'.format(doc_url_base, meson.project_version())
 endif
 config_h.set_quoted('HTTP_DOC_LINK', doc_url)
 
