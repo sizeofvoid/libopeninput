@@ -57,7 +57,7 @@ The example output shows five completed touch sequences and one ongoing one.
 For each, the respective minimum and maximum pressure values are printed as
 well as some statistics. The ``tags`` show that sequence was considered
 logically down at some point. This is an interactive tool and its output may
-change frequently. Refer to the <i>libinput-measure-touchpad-pressure(1)</i> man
+change frequently. Refer to the **libinput-measure-touchpad-pressure(1)** man
 page for more details.
 
 By default, this tool uses the :ref:`device-quirks` for the pressure range. To
@@ -157,7 +157,7 @@ The example output shows five completed touch sequences. For each, the
 respective minimum and maximum pressure values are printed as well as some
 statistics. The ``down`` and ``palm`` tags show that sequence was considered
 logically down or a palm at some point. This is an interactive tool and its
-output may change frequently. Refer to the <i>libinput-measure-touch-size(1)</i> man
+output may change frequently. Refer to the **libinput-measure-touch-size(1)** man
 page for more details.
 
 By default, this tool uses the :ref:`device-quirks` for the touch size range. To
