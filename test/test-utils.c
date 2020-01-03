@@ -1156,7 +1156,7 @@ int main(int argc, char **argv)
 	SRunner *sr;
 
 	s = litest_utils_suite();
-        sr = srunner_create(s);
+	sr = srunner_create(s);
 
 	srunner_run_all(sr, CK_ENV);
 	nfailed = srunner_ntests_failed(sr);
