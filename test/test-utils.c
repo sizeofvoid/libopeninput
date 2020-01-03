@@ -1144,6 +1144,8 @@ litest_utils_suite(void)
 	tcase_add_test(tc, list_test_append);
 	tcase_add_test(tc, strverscmp_test);
 
+	suite_add_tcase(s, tc);
+
 	return s;
 }
 
