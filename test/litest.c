@@ -243,7 +243,7 @@ struct test {
 	struct list node;
 	char *name;
 	char *devname;
-	void *func;
+	const void *func;
 	void *setup;
 	void *teardown;
 
@@ -309,7 +309,7 @@ litest_reload_udev_rules(void)
 static void
 litest_add_tcase_for_device(struct suite *suite,
 			    const char *funcname,
-			    void *func,
+			    const void *func,
 			    const struct litest_test_device *dev,
 			    const struct range *range)
 {
@@ -330,7 +330,7 @@ litest_add_tcase_for_device(struct suite *suite,
 
 static void
 litest_add_tcase_no_device(struct suite *suite,
-			   void *func,
+			   const void *func,
 			   const char *funcname,
 			   const struct range *range)
 {
@@ -356,7 +356,7 @@ litest_add_tcase_no_device(struct suite *suite,
 
 static void
 litest_add_tcase_deviceless(struct suite *suite,
-			    void *func,
+			    const void *func,
 			    const char *funcname,
 			    const struct range *range)
 {
@@ -422,7 +422,7 @@ get_suite(const char *name)
 static void
 litest_add_tcase(const char *suite_name,
 		 const char *funcname,
-		 void *func,
+		 const void *func,
 		 int64_t required,
 		 int64_t excluded,
 		 const struct range *range)
@@ -506,7 +506,7 @@ litest_add_tcase(const char *suite_name,
 }
 
 void
-_litest_add_no_device(const char *name, const char *funcname, void *func)
+_litest_add_no_device(const char *name, const char *funcname, const void *func)
 {
 	_litest_add(name, funcname, func, LITEST_DISABLE_DEVICE, LITEST_DISABLE_DEVICE);
 }
@@ -514,7 +514,7 @@ _litest_add_no_device(const char *name, const char *funcname, void *func)
 void
 _litest_add_ranged_no_device(const char *name,
 			     const char *funcname,
-			     void *func,
+			     const void *func,
 			     const struct range *range)
 {
 	_litest_add_ranged(name,
@@ -528,7 +528,7 @@ _litest_add_ranged_no_device(const char *name,
 void
 _litest_add_deviceless(const char *name,
 		       const char *funcname,
-		       void *func)
+		       const void *func)
 {
 	_litest_add_ranged(name,
 			   funcname,
@@ -541,7 +541,7 @@ _litest_add_deviceless(const char *name,
 void
 _litest_add(const char *name,
 	    const char *funcname,
-	    void *func,
+	    const void *func,
 	    int64_t required,
 	    int64_t excluded)
 {
@@ -556,7 +556,7 @@ _litest_add(const char *name,
 void
 _litest_add_ranged(const char *name,
 		   const char *funcname,
-		   void *func,
+		   const void *func,
 		   int64_t required,
 		   int64_t excluded,
 		   const struct range *range)
@@ -567,7 +567,7 @@ _litest_add_ranged(const char *name,
 void
 _litest_add_for_device(const char *name,
 		       const char *funcname,
-		       void *func,
+		       const void *func,
 		       enum litest_device_type type)
 {
 	_litest_add_ranged_for_device(name, funcname, func, type, NULL);
@@ -576,7 +576,7 @@ _litest_add_for_device(const char *name,
 void
 _litest_add_ranged_for_device(const char *name,
 			      const char *funcname,
-			      void *func,
+			      const void *func,
 			      enum litest_device_type type,
 			      const struct range *range)
 {

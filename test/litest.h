@@ -437,40 +437,40 @@ void litest_set_log_handler_bug(struct libinput *libinput);
 void
 _litest_add(const char *name,
 	    const char *funcname,
-	    void *func,
+	    const void *func,
 	    int64_t required_feature,
 	    int64_t excluded_feature);
 void
 _litest_add_ranged(const char *name,
 		   const char *funcname,
-		   void *func,
+		   const void *func,
 		   int64_t required,
 		   int64_t excluded,
 		   const struct range *range);
 void
 _litest_add_for_device(const char *name,
 		       const char *funcname,
-		       void *func,
+		       const void *func,
 		       enum litest_device_type type);
 void
 _litest_add_ranged_for_device(const char *name,
 			      const char *funcname,
-			      void *func,
+			      const void *func,
 			      enum litest_device_type type,
 			      const struct range *range);
 void
 _litest_add_no_device(const char *name,
 		      const char *funcname,
-		      void *func);
+		      const void *func);
 void
 _litest_add_ranged_no_device(const char *name,
 			     const char *funcname,
-			     void *func,
+			     const void *func,
 			     const struct range *range);
 void
 _litest_add_deviceless(const char *name,
 		       const char *funcname,
-		       void *func);
+		       const void *func);
 
 struct litest_device *
 litest_create_device(enum litest_device_type which);
