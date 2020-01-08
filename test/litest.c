@@ -1954,10 +1954,11 @@ slot_start(struct litest_device *d,
 
 	send_btntool(d, !touching);
 
-	if (d->interface->touch_down) {
-		d->interface->touch_down(d, slot, x, y);
-		return;
-	}
+	/* If the test device overrides touch_down and says it didn't
+	 * handle the event, let's continue normally */
+	if (d->interface->touch_down &&
+	    d->interface->touch_down(d, slot, x, y))
+	    return;
 
 	for (ev = d->interface->touch_down_events;
 	     ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1;
@@ -1991,10 +1992,9 @@ slot_move(struct litest_device *d,
 {
 	struct input_event *ev;
 
-	if (d->interface->touch_move) {
-		d->interface->touch_move(d, slot, x, y);
+	if (d->interface->touch_move &&
+	    d->interface->touch_move(d, slot, x, y))
 		return;
-	}
 
 	for (ev = d->interface->touch_move_events;
 	     ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1;
@@ -2036,8 +2036,8 @@ touch_up(struct litest_device *d, unsigned int slot)
 
 	send_btntool(d, false);
 
-	if (d->interface->touch_up) {
-		d->interface->touch_up(d, slot);
+	if (d->interface->touch_up &&
+	    d->interface->touch_up(d, slot)) {
 		return;
 	} else if (d->interface->touch_up_events) {
 		ev = d->interface->touch_up_events;
