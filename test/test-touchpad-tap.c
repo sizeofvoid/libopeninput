@@ -981,8 +981,7 @@ START_TEST(touchpad_2fg_tap_n_drag_3fg)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_abs_maximum(dev->evdev,
-				     ABS_MT_SLOT) <= 2)
+	if (libevdev_get_num_slots(dev->evdev) < 3)
 		return;
 
 	litest_enable_tap(dev->libinput_device);
@@ -1523,8 +1522,7 @@ START_TEST(touchpad_3fg_tap)
 	unsigned int button = 0;
 	int i;
 
-	if (libevdev_get_abs_maximum(dev->evdev,
-				     ABS_MT_SLOT) <= 2)
+	if (libevdev_get_num_slots(dev->evdev) < 3)
 		return;
 
 	litest_enable_tap(dev->libinput_device);
@@ -1675,7 +1673,7 @@ START_TEST(touchpad_3fg_tap_pressure_btntool)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) >= 2 ||
+	if (libevdev_get_num_slots(dev->evdev) >= 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
@@ -1736,7 +1734,7 @@ START_TEST(touchpad_3fg_tap_hover_btntool)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) >= 2 ||
+	if (libevdev_get_num_slots(dev->evdev) >= 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
@@ -1790,7 +1788,7 @@ START_TEST(touchpad_3fg_tap_btntool)
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
 	unsigned int button = 0;
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) > 2 ||
+	if (libevdev_get_num_slots(dev->evdev) > 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
@@ -1840,7 +1838,7 @@ START_TEST(touchpad_3fg_tap_btntool_inverted)
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
 	unsigned int button = 0;
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) > 2 ||
+	if (libevdev_get_num_slots(dev->evdev) > 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
@@ -1890,7 +1888,7 @@ START_TEST(touchpad_3fg_tap_btntool_pointerjump)
 	enum libinput_config_tap_button_map map = _i; /* ranged test */
 	unsigned int button = 0;
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) > 2 ||
+	if (libevdev_get_num_slots(dev->evdev) > 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
@@ -2033,8 +2031,7 @@ START_TEST(touchpad_3fg_tap_after_scroll)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_abs_maximum(dev->evdev,
-				     ABS_MT_SLOT) <= 2)
+	if (libevdev_get_num_slots(dev->evdev) <= 3)
 		return;
 
 	litest_enable_2fg_scroll(dev);
@@ -2070,8 +2067,7 @@ START_TEST(touchpad_4fg_tap)
 	struct libinput *li = dev->libinput;
 	int i;
 
-	if (libevdev_get_abs_maximum(dev->evdev,
-				     ABS_MT_SLOT) <= 3)
+	if (libevdev_get_num_slots(dev->evdev) <= 4)
 		return;
 
 	litest_enable_tap(dev->libinput_device);
@@ -2102,8 +2098,7 @@ START_TEST(touchpad_4fg_tap_quickrelease)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_abs_maximum(dev->evdev,
-				     ABS_MT_SLOT) <= 3)
+	if (libevdev_get_num_slots(dev->evdev) <= 4)
 		return;
 
 	litest_enable_tap(dev->libinput_device);
@@ -2140,7 +2135,7 @@ START_TEST(touchpad_move_after_touch)
 	struct libinput *li = dev->libinput;
 	int nfingers = _i; /* ranged test */
 
-	if (nfingers > libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) + 1)
+	if (nfingers > libevdev_get_num_slots(dev->evdev))
 		return;
 
 	litest_enable_tap(dev->libinput_device);
@@ -2212,8 +2207,7 @@ START_TEST(touchpad_5fg_tap)
 	struct libinput *li = dev->libinput;
 	int i;
 
-	if (libevdev_get_abs_maximum(dev->evdev,
-				     ABS_MT_SLOT) <= 4)
+	if (libevdev_get_num_slots(dev->evdev) < 5)
 		return;
 
 	litest_enable_tap(dev->libinput_device);
@@ -2246,8 +2240,7 @@ START_TEST(touchpad_5fg_tap_quickrelease)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_abs_maximum(dev->evdev,
-				     ABS_MT_SLOT) <= 4)
+	if (libevdev_get_num_slots(dev->evdev) < 5)
 		return;
 
 	litest_enable_tap(dev->libinput_device);
