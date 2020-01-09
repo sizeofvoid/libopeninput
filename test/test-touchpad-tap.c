@@ -936,7 +936,7 @@ START_TEST(touchpad_2fg_tap_n_drag_3fg_btntool)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) > 2 ||
+	if (libevdev_get_num_slots(dev->evdev) > 2 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
@@ -1586,7 +1586,7 @@ START_TEST(touchpad_3fg_tap_tap_again)
 	struct libinput *li = dev->libinput;
 	int i;
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) <= 2)
+	if (libevdev_get_num_slots(dev->evdev) < 3)
 		return;
 
 	litest_enable_tap(dev->libinput_device);
@@ -1637,8 +1637,7 @@ START_TEST(touchpad_3fg_tap_quickrelease)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_abs_maximum(dev->evdev,
-				     ABS_MT_SLOT) <= 2)
+	if (libevdev_get_num_slots(dev->evdev) < 3)
 		return;
 
 	litest_enable_tap(dev->libinput_device);
@@ -2141,7 +2140,7 @@ START_TEST(touchpad_move_after_touch)
 	struct libinput *li = dev->libinput;
 	int nfingers = _i; /* ranged test */
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) <= nfingers)
+	if (nfingers > libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) + 1)
 		return;
 
 	litest_enable_tap(dev->libinput_device);
@@ -3212,7 +3211,7 @@ START_TEST(touchpad_tap_palm_on_touch_3)
 	int which = _i; /* ranged test */
 	int this = which % 3;
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) <= 3)
+	if (libevdev_get_num_slots(dev->evdev) < 3)
 		return;
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -3258,7 +3257,7 @@ START_TEST(touchpad_tap_palm_on_touch_3_retouch)
 	int which = _i; /* ranged test */
 	int this = which % 3;
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) <= 3)
+	if (libevdev_get_num_slots(dev->evdev) < 3)
 		return;
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -3309,7 +3308,7 @@ START_TEST(touchpad_tap_palm_on_touch_4)
 	int which = _i; /* ranged test */
 	int this = which % 4;
 
-	if (libevdev_get_abs_maximum(dev->evdev, ABS_MT_SLOT) <= 4)
+	if (libevdev_get_num_slots(dev->evdev) < 4)
 		return;
 
 	if (!touchpad_has_palm_pressure(dev))
