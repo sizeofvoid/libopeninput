@@ -77,7 +77,7 @@ START_TEST(gestures_swipe_3fg)
 		{ -30, 30 },
 	};
 
-	if (libevdev_get_num_slots(dev->evdev) < 3)
+	if (litest_slot_count(dev) < 3)
 		return;
 
 	dir_x = cardinals[cardinal][0];
@@ -176,7 +176,7 @@ START_TEST(gestures_swipe_3fg_btntool)
 		{ -30, 30 },
 	};
 
-	if (libevdev_get_num_slots(dev->evdev) > 2 ||
+	if (litest_slot_count(dev) > 2 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP) ||
 	    !libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
@@ -266,7 +266,7 @@ START_TEST(gestures_swipe_3fg_btntool_pinch_like)
 	struct libinput_event *event;
 	struct libinput_event_gesture *gevent;
 
-	if (libevdev_get_num_slots(dev->evdev) > 2 ||
+	if (litest_slot_count(dev) > 2 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP) ||
 	    !libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
@@ -330,7 +330,7 @@ START_TEST(gestures_swipe_4fg)
 	};
 	int i;
 
-	if (libevdev_get_num_slots(dev->evdev) < 4)
+	if (litest_slot_count(dev) < 4)
 		return;
 
 	dir_x = cardinals[cardinal][0];
@@ -456,7 +456,7 @@ START_TEST(gestures_swipe_4fg_btntool)
 		{ -30, 30 },
 	};
 
-	if (libevdev_get_num_slots(dev->evdev) > 2 ||
+	if (litest_slot_count(dev) > 2 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_QUADTAP) ||
 	    !libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
@@ -562,7 +562,7 @@ START_TEST(gestures_pinch)
 		{ -30, 30 },
 	};
 
-	if (libevdev_get_num_slots(dev->evdev) < 2 ||
+	if (litest_slot_count(dev) < 2 ||
 	    !libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
 		return;
@@ -674,7 +674,7 @@ START_TEST(gestures_pinch_3fg)
 		{ -30, 30 },
 	};
 
-	if (libevdev_get_num_slots(dev->evdev) < 3)
+	if (litest_slot_count(dev) < 3)
 		return;
 
 	dir_x = cardinals[cardinal][0];
@@ -779,7 +779,7 @@ START_TEST(gestures_pinch_4fg)
 		{ -30, 30 },
 	};
 
-	if (libevdev_get_num_slots(dev->evdev) < 4)
+	if (litest_slot_count(dev) < 4)
 		return;
 
 	dir_x = cardinals[cardinal][0];
@@ -890,7 +890,7 @@ START_TEST(gestures_spread)
 		{ -30, 30 },
 	};
 
-	if (libevdev_get_num_slots(dev->evdev) < 2 ||
+	if (litest_slot_count(dev) < 2 ||
 	    !libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
 		return;
@@ -985,7 +985,7 @@ START_TEST(gestures_time_usec)
 	struct libinput_event_gesture *gevent;
 	uint64_t time_usec;
 
-	if (libevdev_get_num_slots(dev->evdev) < 3)
+	if (litest_slot_count(dev) < 3)
 		return;
 
 	litest_drain_events(li);
@@ -1014,7 +1014,7 @@ START_TEST(gestures_3fg_buttonarea_scroll)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_num_slots(dev->evdev) < 3)
+	if (litest_slot_count(dev) < 3)
 		return;
 
 	litest_enable_buttonareas(dev);
@@ -1040,7 +1040,7 @@ START_TEST(gestures_3fg_buttonarea_scroll_btntool)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_num_slots(dev->evdev) > 2)
+	if (litest_slot_count(dev) > 2)
 		return;
 
 	litest_enable_buttonareas(dev);

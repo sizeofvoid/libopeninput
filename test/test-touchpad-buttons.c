@@ -219,7 +219,7 @@ START_TEST(touchpad_3fg_clickfinger)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_num_slots(dev->evdev) < 3)
+	if (litest_slot_count(dev) < 3)
 		return;
 
 	litest_enable_clickfinger(dev);
@@ -253,7 +253,7 @@ START_TEST(touchpad_3fg_clickfinger_btntool)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_num_slots(dev->evdev) >= 3 ||
+	if (litest_slot_count(dev) >= 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
@@ -293,7 +293,7 @@ START_TEST(touchpad_4fg_clickfinger)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 
-	if (libevdev_get_num_slots(dev->evdev) < 4)
+	if (litest_slot_count(dev) < 4)
 		return;
 
 	litest_enable_clickfinger(dev);
@@ -337,7 +337,7 @@ START_TEST(touchpad_4fg_clickfinger_btntool_2slots)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 
-	if (libevdev_get_num_slots(dev->evdev) >= 3 ||
+	if (litest_slot_count(dev) >= 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_QUADTAP))
 		return;
 
@@ -382,7 +382,7 @@ START_TEST(touchpad_4fg_clickfinger_btntool_3slots)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 
-	if (libevdev_get_num_slots(dev->evdev) != 3 ||
+	if (litest_slot_count(dev) != 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
@@ -489,7 +489,7 @@ START_TEST(touchpad_3fg_clickfinger_distance)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_num_slots(dev->evdev) < 3)
+	if (litest_slot_count(dev) < 3)
 		return;
 
 	litest_enable_clickfinger(dev);
@@ -522,7 +522,7 @@ START_TEST(touchpad_3fg_clickfinger_distance_btntool)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (libevdev_get_num_slots(dev->evdev) > 2)
+	if (litest_slot_count(dev) > 2)
 		return;
 
 	litest_enable_clickfinger(dev);
@@ -963,7 +963,7 @@ START_TEST(touchpad_clickfinger_click_drag)
 	struct libinput *li = dev->libinput;
 	int nfingers = _i; /* ranged test */
 	unsigned int button;
-	int nslots = libevdev_get_num_slots(dev->evdev);
+	int nslots = litest_slot_count(dev);
 
 	litest_enable_clickfinger(dev);
 	litest_drain_events(li);

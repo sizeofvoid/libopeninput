@@ -1149,4 +1149,9 @@ litest_send_file(int sock, int fd)
 	return write(sock, buf, n);
 }
 
+static inline int litest_slot_count(struct litest_device *dev)
+{
+	return libevdev_get_num_slots(dev->evdev);
+}
+
 #endif /* LITEST_H */
