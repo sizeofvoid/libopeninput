@@ -300,6 +300,7 @@ enum litest_device_type {
 	LITEST_DELL_CANVAS_TOTEM,
 	LITEST_DELL_CANVAS_TOTEM_TOUCH,
 	LITEST_WACOM_ISDV4_4200_PEN,
+	LITEST_ALPS_3FG,
 };
 
 #define LITEST_DEVICELESS	-2
@@ -1151,6 +1152,9 @@ litest_send_file(int sock, int fd)
 
 static inline int litest_slot_count(struct litest_device *dev)
 {
+	if (dev->which == LITEST_ALPS_3FG)
+		return 2;
+
 	return libevdev_get_num_slots(dev->evdev);
 }
 

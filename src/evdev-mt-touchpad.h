@@ -268,6 +268,7 @@ struct tp_dispatch {
 		struct libinput_timer arbitration_timer;
 	} arbitration;
 
+	unsigned int nactive_slots;		/* number of active slots */
 	unsigned int num_slots;			/* number of slots */
 	unsigned int ntouches;			/* no slots inc. fakes */
 	struct tp_touch *touches;		/* len == ntouches */

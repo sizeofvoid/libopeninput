@@ -525,10 +525,14 @@ tp_process_absolute(struct tp_dispatch *tp,
 		tp->slot = e->value;
 		break;
 	case ABS_MT_TRACKING_ID:
-		if (e->value != -1)
+		if (e->value != -1) {
+			tp->nactive_slots += 1;
 			tp_new_touch(tp, t, time);
-		else
+		} else {
+			assert(tp->nactive_slots >= 1);
+			tp->nactive_slots -= 1;
 			tp_end_sequence(tp, t, time);
+		}
 		break;
 	case ABS_MT_PRESSURE:
 		t->pressure = e->value;
@@ -637,6 +641,32 @@ tp_process_fake_touches(struct tp_dispatch *tp,
 	if (tp->device->model_flags &
 	    EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD)
 		tp_restore_synaptics_touches(tp, time);
+
+	/* ALPS touchpads always set 3 slots in the kernel, even
+	 * where they support less than that. So we get BTN_TOOL_TRIPLETAP
+	 * but never slot 2 because our slot count is wrong.
+	 * This also means that the third touch falls through the cracks and
+	 * is ignored.
+	 *
+	 * All touchpad devices have at least one slot so we only do this
+	 * for 2 touches or higher.
+	 */
+	if (nfake_touches > 1 && tp->has_mt &&
+	    nfake_touches > tp->nactive_slots &&
+	    tp->nactive_slots < tp->num_slots) {
+		evdev_log_bug_kernel(tp->device,
+				     "Wrong slot count (%d), reducing to %d\n",
+				     tp->num_slots,
+				     tp->nactive_slots);
+		/* This should be safe since we fill the slots from the
+		 * first one so hiding the excessive slots shouldn't matter.
+		 * There are sequences where we could accidentally lose an
+		 * actual touch point but that requires specially crafted
+		 * sequences and let's deal with that when it happens.
+		 */
+		tp->num_slots = tp->nactive_slots;
+	}
+
 
 	start = tp->has_mt ? tp->num_slots : 0;
 	for (i = start; i < tp->ntouches; i++) {
