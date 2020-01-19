@@ -29,6 +29,7 @@
 #include <mtdev-plumbing.h>
 
 #include "evdev-fallback.h"
+#include "util-input-event.h"
 
 static void
 fallback_keyboard_notify_key(struct fallback_dispatch *dispatch,
@@ -701,10 +702,10 @@ fallback_lid_keyboard_event(uint64_t time,
 	if (dispatch->lid.reliability == RELIABILITY_WRITE_OPEN) {
 		int fd = libevdev_get_fd(dispatch->device->evdev);
 		int rc;
-		struct input_event ev[2] = {
-			{{ 0, 0 }, EV_SW, SW_LID, 0 },
-			{{ 0, 0 }, EV_SYN, SYN_REPORT, 0 },
-		};
+		struct input_event ev[2];
+
+		ev[0] = input_event_init(0, EV_SW, SW_LID, 0);
+		ev[1] = input_event_init(0, EV_SYN, SYN_REPORT, 0);
 
 		rc = write(fd, ev, sizeof(ev));
 
