@@ -10,6 +10,7 @@
   faqs
   reporting-bugs
   troubleshooting
+  contributing
   development
   API documentation <@HTTP_DOC_LINK@/api/>
 
