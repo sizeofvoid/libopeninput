@@ -531,6 +531,9 @@ freebsd:11.2@container-clean:
       junit: $MESON_BUILDDIR/junit-*.xml
 
   allow_failure: true
+  retry:
+    max: 2
+    when: script_failure
   needs: ['fedora:30@qemu-prep']
 
 # in reverse order of duration to get the slowest ones started first
