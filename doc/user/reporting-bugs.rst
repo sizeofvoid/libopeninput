@@ -64,7 +64,11 @@ For the vast majority of bugs you should not take longer than 5 seconds or
 three interactions (clicks, touches, taps, ...) with the device to
 reproduce. If it takes longer than that, you can narrow it down further.
 
-Once you can reproduce it, use the :ref:`libinput-debug-events` helper tool.
+Once you can reproduce it, use the :ref:`libinput-debug-events` helper
+tool::
+
+ $> libinput debug-events --verbose
+
 The output is textual and can help identify whether the bug is in libinput
 at all. Note that any configuration options you have set must be specified
 on the commandline, see the :ref:`libinput-debug-events`
