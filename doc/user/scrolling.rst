@@ -52,9 +52,9 @@ vertically or horizontally.
 
     Vertical and horizontal two-finger scrolling
 
-For scrolling to trigger, a built-in distance threshold has to be met but once
-engaged any movement will scroll. In other words, to start scrolling a
-sufficiently large movement is required, once scrolling tiny amounts of
+For scrolling to trigger, a built-in distance threshold has to be met, but once
+engaged, any movement will scroll. In other words: to start scrolling, a
+sufficiently large movement is required; once scrolling, tiny amounts of
 movements will translate into tiny scroll movements.
 Scrolling in both directions at once is possible by meeting the required
 distance thresholds to enable each direction separately.
