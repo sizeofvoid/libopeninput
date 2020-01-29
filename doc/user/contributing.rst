@@ -219,18 +219,24 @@ same file(s) as the patch being sent.
 Commit Messages
 ------------------------------------------------------------------------------
 
-Read `on commit messages <http://who-t.blogspot.de/2009/12/on-commit-messages.html>`_
-as a general guideline on what commit messages should contain.
+Commit messages **must** contain a **Signed-off-by** line with your name
+and email address. An example is: ::
 
-Commit messages **should** contain a **Signed-off-by** line with your name
-and email address. If you're not the patch's original author, you should
+    A description of this commit, and it's great work.
+
+    Signed-off-by: Claire Someone <name@domain>
+
+If you're not the patch's original author, you should
 also gather S-o-b's by them (and/or whomever gave the patch to you.) The
 significance of this is that it certifies that you created the patch, that
 it was created under an appropriate open source license, or provided to you
 under those terms. This lets us indicate a chain of responsibility for the
-copyright status of the code.
+copyright status of the code. An example is: ::
 
-We won't reject patches that lack S-o-b, but it is strongly recommended.
+    A description of this commit, and it's great work.
+
+    Signed-off-by: Claire Someone <name@domain>
+    Signed-off-by: Ferris Crab <name@domain>
 
 When you re-send patches, revised or not, it would be very good to document the
 changes compared to the previous revision in the commit message and/or the
@@ -238,6 +244,10 @@ merge request. If you have already received Reviewed-by or Acked-by tags, you
 should evaluate whether they still apply and include them in the respective
 commit messages. Otherwise the tags may be lost, reviewers miss the credit they
 deserve, and the patches may cause redundant review effort.
+
+For further reading, please see
+`'on commit messages' <http://who-t.blogspot.de/2009/12/on-commit-messages.html>`_
+as a general guideline on what commit messages should contain.
 
 ------------------------------------------------------------------------------
 Coding Style
