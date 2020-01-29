@@ -581,7 +581,7 @@ print_proximity_event(struct libinput_event *ev)
 		abort();
 	}
 
-	printq("\t%s (%#" PRIx64 ", id %#" PRIx64 ") %s ",
+	printq("\t%-8s (%#" PRIx64 ", id %#" PRIx64 ") %s ",
 	       tool_str,
 	       libinput_tablet_tool_get_serial(tool),
 	       libinput_tablet_tool_get_tool_id(tool),
