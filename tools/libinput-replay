@@ -116,6 +116,10 @@ def replay(device, verbose):
     # offset is the offset from the first event on any device.
     offset = time.time() - device['__first_event_offset']
 
+    if offset < 0:
+        error('WARNING: event time offset is in the future, refusing to replay')
+        return
+
     # each 'evdev' set contains one SYN_REPORT so we only need to check for
     # the time offset once per event
     for event in events:
