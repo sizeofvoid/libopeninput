@@ -6,11 +6,23 @@ Contributing to libinput
 ==============================================================================
 
 
-So you want to contribute to libinput? Great! Here's a bunch of information
-that should get you started.
+So you want to contribute to libinput? Great! We'd love to help you be a part
+of our community. Here is some important information to help you.
 
 .. contents::
     :local:
+
+------------------------------------------------------------------------------
+Code of Conduct
+------------------------------------------------------------------------------
+
+As a freedesktop.org project, libinput follows the `freedesktop.org
+Contributor Covenant <https://www.freedesktop.org/wiki/CodeOfConduct>`_.
+
+Please conduct yourself in a respectful and civilised manner when
+interacting with community members on mailing lists, IRC, or bug trackers.
+The community represents the project as a whole, and abusive or bullying
+behaviour is not tolerated by the project.
 
 ------------------------------------------------------------------------------
 Contact
@@ -31,7 +43,7 @@ feature, just file `an issue in our issue tracker
 most efficient way to get answers.
 
 ------------------------------------------------------------------------------
-What to hack on?
+What to work on?
 ------------------------------------------------------------------------------
 
 If you don't already know what you want to improve or fix with libinput,
@@ -45,7 +57,6 @@ possible future feature to libinput.
 Another good place to help out with is the documentation. For anything you
 find in these pages that isn't clear enough please feel free to reword it
 and add what is missing.
-
 
 ------------------------------------------------------------------------------
 Getting the code
@@ -65,7 +76,7 @@ will be:
 You can omit the last step if you only want to test locally.
 
 ------------------------------------------------------------------------------
-Hacking on things
+Working on the code
 ------------------------------------------------------------------------------
 
 libinput has a roughly three-parts architecture: 
@@ -91,7 +102,7 @@ sphinx. Simply running ``ninja -C builddir`` will rebuild it and the final
 product ends up in ``builddir/Documentation``.
 
 ------------------------------------------------------------------------------
-Testing things
+Testing the code
 ------------------------------------------------------------------------------
 
 libinput provides a bunch of :ref:`tools` to debug any changes - without
@@ -102,8 +113,8 @@ The two most useful ones are :ref:`libinput debug-events
 Both tools can be run from the build directory directly and are great for
 quick test iterations::
 
-  $> sudo ./builddir/libinput-debug-events --verbose 
-  $> sudo ./builddir/libinput-debug-gui --verbose 
+  $> sudo ./builddir/libinput-debug-events --verbose
+  $> sudo ./builddir/libinput-debug-gui --verbose
 
 The former provides purely textual output and is useful for verifying event
 streams from buttons, etc. The latter is particularly useful when you are
@@ -272,14 +283,3 @@ web interface though, so we do recommend using this to go through the review
 process, even if you use other clients to track the list of available
 patches.
 
-------------------------------------------------------------------------------
-Code of Conduct
-------------------------------------------------------------------------------
-
-As a freedesktop.org project, libinput follows the `freedesktop.org
-Contributor Covenant <https://www.freedesktop.org/wiki/CodeOfConduct>`_.
-
-Please conduct yourself in a respectful and civilised manner when
-interacting with community members on mailing lists, IRC, or bug trackers.
-The community represents the project as a whole, and abusive or bullying
-behaviour is not tolerated by the project.
