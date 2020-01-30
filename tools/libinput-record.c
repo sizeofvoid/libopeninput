@@ -279,18 +279,19 @@ handle_evdev_frame(struct record_context *ctx, struct record_device *d)
 	while (libevdev_next_event(evdev,
 				   LIBEVDEV_READ_FLAG_NORMAL,
 				   &e) == LIBEVDEV_READ_STATUS_SUCCESS) {
-		uint64_t time;
+		uint64_t time = input_event_time(&e);
 
 		if (ctx->offset == 0)
-			ctx->offset = input_event_time(&e);
+			ctx->offset = time;
+		else
+			time = time_offset(ctx, time);
 
 		if (d->nevents == d->events_sz)
 			resize(d->events, d->events_sz);
 
 		event = &d->events[d->nevents++];
 		event->type = EVDEV;
-		time = input_event_time(&e);
-		input_event_set_time(&e, time - ctx->offset);
+		event->time = time;
 		event->u.evdev = e;
 		count++;
 
