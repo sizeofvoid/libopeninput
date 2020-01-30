@@ -194,6 +194,12 @@ noiprintf(const struct record_context *ctx, const char *format, ...)
 	assert(rc != -1 && (unsigned int)rc > 0);
 }
 
+static inline uint64_t
+time_offset(struct record_context *ctx, uint64_t time)
+{
+	return ctx->offset ? time - ctx->offset : 0;
+}
+
 static inline void
 print_evdev_event(struct record_context *ctx, struct input_event *ev)
 {
@@ -373,9 +379,7 @@ buffer_key_event(struct record_context *ctx,
 		abort();
 	}
 
-	time = ctx->offset ?
-		libinput_event_keyboard_get_time_usec(k) - ctx->offset : 0;
-
+	time = time_offset(ctx, libinput_event_keyboard_get_time_usec(k));
 	state = libinput_event_keyboard_get_key_state(k);
 
 	key = libinput_event_keyboard_get_key(k);
@@ -415,9 +419,7 @@ buffer_motion_event(struct record_context *ctx,
 		abort();
 	}
 
-	time = ctx->offset ?
-		libinput_event_pointer_get_time_usec(p) - ctx->offset : 0;
-
+	time = time_offset(ctx, libinput_event_pointer_get_time_usec(p));
 	event->time = time;
 	snprintf(event->u.libinput.msg,
 		 sizeof(event->u.libinput.msg),
@@ -450,8 +452,7 @@ buffer_absmotion_event(struct record_context *ctx,
 		abort();
 	}
 
-	time = ctx->offset ?
-		libinput_event_pointer_get_time_usec(p) - ctx->offset : 0;
+	time = time_offset(ctx, libinput_event_pointer_get_time_usec(p));
 
 	event->time = time;
 	snprintf(event->u.libinput.msg,
@@ -483,8 +484,7 @@ buffer_pointer_button_event(struct record_context *ctx,
 		abort();
 	}
 
-	time = ctx->offset ?
-		libinput_event_pointer_get_time_usec(p) - ctx->offset : 0;
+	time = time_offset(ctx, libinput_event_pointer_get_time_usec(p));
 	button = libinput_event_pointer_get_button(p);
 	state = libinput_event_pointer_get_button_state(p);
 
@@ -519,8 +519,7 @@ buffer_pointer_axis_event(struct record_context *ctx,
 		abort();
 	}
 
-	time = ctx->offset ?
-		libinput_event_pointer_get_time_usec(p) - ctx->offset : 0;
+	time = time_offset(ctx, libinput_event_pointer_get_time_usec(p));
 	if (libinput_event_pointer_has_axis(p,
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
 		h = libinput_event_pointer_get_axis_value(p,
@@ -590,8 +589,7 @@ buffer_touch_event(struct record_context *ctx,
 		abort();
 	}
 
-	time = ctx->offset ?
-		libinput_event_touch_get_time_usec(t) - ctx->offset : 0;
+	time = time_offset(ctx, libinput_event_touch_get_time_usec(t));
 
 	if (etype != LIBINPUT_EVENT_TOUCH_FRAME) {
 		slot = libinput_event_touch_get_slot(t);
@@ -674,8 +672,7 @@ buffer_gesture_event(struct record_context *ctx,
 		abort();
 	}
 
-	time = ctx->offset ?
-		libinput_event_gesture_get_time_usec(g) - ctx->offset : 0;
+	time = time_offset(ctx, libinput_event_gesture_get_time_usec(g));
 	event->time = time;
 
 	switch (etype) {
@@ -858,10 +855,7 @@ buffer_tablet_tool_proximity_event(struct record_context *ctx,
 	}
 
 	prox = libinput_event_tablet_tool_get_proximity_state(t);
-
-	time = ctx->offset ?
-		libinput_event_tablet_tool_get_time_usec(t) - ctx->offset : 0;
-
+	time = time_offset(ctx, libinput_event_tablet_tool_get_time_usec(t));
 	axes = buffer_tablet_axes(t);
 
 	idx = 0;
@@ -917,9 +911,7 @@ buffer_tablet_tool_button_event(struct record_context *ctx,
 
 	button = libinput_event_tablet_tool_get_button(t);
 	state = libinput_event_tablet_tool_get_button_state(t);
-
-	time = ctx->offset ?
-		libinput_event_tablet_tool_get_time_usec(t) - ctx->offset : 0;
+	time = time_offset(ctx, libinput_event_tablet_tool_get_time_usec(t));
 
 	event->time = time;
 	snprintf(event->u.libinput.msg,
@@ -972,10 +964,7 @@ buffer_tablet_tool_event(struct record_context *ctx,
 	}
 
 	tip = libinput_event_tablet_tool_get_tip_state(t);
-
-	time = ctx->offset ?
-		libinput_event_tablet_tool_get_time_usec(t) - ctx->offset : 0;
-
+	time = time_offset(ctx, libinput_event_tablet_tool_get_time_usec(t));
 	axes = buffer_tablet_axes(t);
 
 	event->time = time;
@@ -1012,9 +1001,7 @@ buffer_tablet_pad_button_event(struct record_context *ctx,
 		abort();
 	}
 
-	time = ctx->offset ?
-		libinput_event_tablet_pad_get_time_usec(p) - ctx->offset : 0;
-
+	time = time_offset(ctx, libinput_event_tablet_pad_get_time_usec(p));
 	button = libinput_event_tablet_pad_get_button_number(p),
 	state = libinput_event_tablet_pad_get_button_state(p);
 	mode = libinput_event_tablet_pad_get_mode(p);
@@ -1082,9 +1069,7 @@ buffer_tablet_pad_ringstrip_event(struct record_context *ctx,
 		abort();
 	}
 
-	time = ctx->offset ?
-		libinput_event_tablet_pad_get_time_usec(p) - ctx->offset : 0;
-
+	time = time_offset(ctx, libinput_event_tablet_pad_get_time_usec(p));
 	mode = libinput_event_tablet_pad_get_mode(p);
 
 	event->time = time;
@@ -1119,9 +1104,7 @@ buffer_switch_event(struct record_context *ctx,
 		abort();
 	}
 
-	time = ctx->offset ?
-		libinput_event_switch_get_time_usec(s) - ctx->offset : 0;
-
+	time = time_offset(ctx, libinput_event_switch_get_time_usec(s));
 	sw = libinput_event_switch_get_switch(s);
 	state = libinput_event_switch_get_switch_state(s);
 
