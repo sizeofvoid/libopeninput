@@ -762,6 +762,10 @@ litest_is_switch_event(struct libinput_event *event,
 		       enum libinput_switch sw,
 		       enum libinput_switch_state state);
 
+struct libinput_event_tablet_tool *
+litest_is_proximity_event(struct libinput_event *event,
+			  enum libinput_tablet_tool_proximity_state state);
+
 void
 litest_assert_key_event(struct libinput *li, unsigned int key,
 			enum libinput_key_state state);
