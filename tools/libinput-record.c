@@ -81,6 +81,8 @@ struct record_device {
 	struct list link;
 	char *devnode;		/* device node of the source device */
 	struct libevdev *evdev;
+	struct libevdev *evdev_prev; /* previous value, used for EV_ABS
+					deltas */
 	struct libinput_device *device;
 
 	struct event *events;
@@ -201,9 +203,11 @@ time_offset(struct record_context *ctx, uint64_t time)
 }
 
 static inline void
-print_evdev_event(struct record_context *ctx, struct input_event *ev)
+print_evdev_event(struct record_context *ctx,
+		  struct record_device *dev,
+		  struct input_event *ev)
 {
-	const char *cname;
+	const char *tname, *cname;
 	bool was_modified = false;
 	char desc[1024];
 	uint64_t time = input_event_time(ev) - ctx->offset;
@@ -214,6 +218,7 @@ print_evdev_event(struct record_context *ctx, struct input_event *ev)
 	if (!ctx->show_keycodes)
 		was_modified = obfuscate_keycode(ev);
 
+	tname = libevdev_event_type_get_name(ev->type);
 	cname = libevdev_event_code_get_name(ev->type, ev->code);
 
 	if (ev->type == EV_SYN && ev->code == SYN_MT_REPORT) {
@@ -236,9 +241,87 @@ print_evdev_event(struct record_context *ctx, struct input_event *ev)
 			cname,
 			ev->value,
 			dt);
-	} else {
-		const char *tname = libevdev_event_type_get_name(ev->type);
+	} else if (ev->type == EV_ABS) {
+		int oldval = 0;
+		enum { DELTA, SLOT_DELTA, NO_DELTA } want = DELTA;
+		int delta = 0;
 
+		/* We want to print deltas for abs axes but there are a few
+		 * that we don't care about for actual deltas because
+		 * they're meaningless.
+		 *
+		 * Also, any slotted axis needs to be printed per slot
+		 */
+		switch (ev->code) {
+		case ABS_MT_SLOT:
+			libevdev_set_event_value(dev->evdev_prev,
+						 ev->type,
+						 ev->code,
+						 ev->value);
+			want = NO_DELTA;
+			break;
+		case ABS_MT_TRACKING_ID:
+		case ABS_MT_BLOB_ID:
+			want = NO_DELTA;
+			break;
+		case ABS_MT_TOUCH_MAJOR ... ABS_MT_POSITION_Y:
+		case ABS_MT_PRESSURE ... ABS_MT_TOOL_Y:
+			if (libevdev_get_num_slots(dev->evdev_prev) > 0)
+				want = SLOT_DELTA;
+			break;
+		default:
+			break;
+		}
+
+		switch (want) {
+		case DELTA:
+			oldval = libevdev_get_event_value(dev->evdev_prev,
+							  ev->type,
+							  ev->code);
+			libevdev_set_event_value(dev->evdev_prev,
+						 ev->type,
+						 ev->code,
+						 ev->value);
+			break;
+		case SLOT_DELTA: {
+			int slot = libevdev_get_current_slot(dev->evdev_prev);
+			oldval = libevdev_get_slot_value(dev->evdev_prev,
+							 slot,
+							 ev->code);
+			libevdev_set_slot_value(dev->evdev_prev,
+						slot,
+						ev->code,
+						ev->value);
+			break;
+		}
+		case NO_DELTA:
+			break;
+
+		}
+
+		delta = ev->value - oldval;
+
+		switch (want) {
+		case DELTA:
+		case SLOT_DELTA:
+			snprintf(desc,
+				 sizeof(desc),
+				 "%s / %-20s %6d (%+d)",
+				 tname,
+				 cname,
+				 ev->value,
+				 delta);
+			break;
+		case NO_DELTA:
+			snprintf(desc,
+				 sizeof(desc),
+				 "%s / %-20s %6d",
+				 tname,
+				 cname,
+				 ev->value);
+			break;
+		}
+	} else {
 		snprintf(desc,
 			 sizeof(desc),
 			 "%s / %-20s %6d%s",
@@ -1248,7 +1331,7 @@ print_cached_events(struct record_context *ctx,
 
 		switch (e->type) {
 		case EVDEV:
-			print_evdev_event(ctx, &e->u.evdev);
+			print_evdev_event(ctx, d, &e->u.evdev);
 			break;
 		case LIBINPUT:
 			iprintf(ctx, "- %s\n", e->u.libinput.msg);
@@ -2199,6 +2282,8 @@ init_device(struct record_context *ctx, char *path)
 	}
 
 	rc = libevdev_new_from_fd(fd, &d->evdev);
+	if (rc == 0)
+		rc = libevdev_new_from_fd(fd, &d->evdev_prev);
 	if (rc != 0) {
 		fprintf(stderr,
 			"Failed to create context for %s (%s)\n",
