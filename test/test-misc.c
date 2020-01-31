@@ -660,7 +660,7 @@ static void timer_offset_warning(struct libinput *libinput,
 	int *warning_triggered = (int*)libinput_get_user_data(libinput);
 
 	if (priority == LIBINPUT_LOG_PRIORITY_ERROR &&
-	    strstr(format, "offset negative"))
+	    strstr(format, "scheduled expiry is in the past"))
 		(*warning_triggered)++;
 }
 
