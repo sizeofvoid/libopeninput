@@ -1755,8 +1755,8 @@ tablet_update_tool_state(struct tablet_dispatch *tablet,
 	 */
 	if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
 		if (tablet->quirks.proximity_out_forced) {
-			if (!tablet_has_status(tablet, TABLET_TOOL_UPDATED) ||
-			    tablet->tool_state)
+			if (!tablet_has_status(tablet, TABLET_TOOL_UPDATED)  &&
+			    !tablet->tool_state)
 				tablet->tool_state = bit(LIBINPUT_TABLET_TOOL_TYPE_PEN);
 			tablet->quirks.proximity_out_forced = false;
 		} else if (tablet->tool_state == 0 &&

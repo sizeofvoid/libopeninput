@@ -2954,6 +2954,84 @@ START_TEST(tool_direct_switch_skip_tool_update)
 }
 END_TEST
 
+START_TEST(tool_direct_switch_with_forced_proxout)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
+		return;
+
+	litest_drain_events(li);
+
+	/* This is a *very* specific event sequence to trigger a bug:
+	   - pen proximity in
+	   - pen proximity forced out
+	   - eraser proximity in without axis movement
+	   - eraser axis move
+	 */
+
+	/* pen prox in */
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	litest_is_proximity_event(event,
+				  LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+	libinput_event_destroy(event);
+
+	/* pen motion */
+	litest_tablet_motion(dev, 20, 30, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	libinput_event_destroy(event);
+
+	/* pen forced prox out */
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+
+	/* actual prox out for tablets that don't do forced prox out */
+	litest_tablet_proximity_out(dev);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	litest_is_proximity_event(event,
+				  LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+	libinput_event_destroy(event);
+
+	/* eraser prox in without axes */
+	litest_event(dev, EV_KEY, BTN_TOOL_RUBBER, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	litest_is_proximity_event(event,
+				  LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+	libinput_event_destroy(event);
+
+	/* eraser motion */
+	litest_tablet_motion(dev, 30, 40, axes);
+	litest_tablet_motion(dev, 40, 50, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	libinput_event_destroy(event);
+
+	event = libinput_get_event(li);
+	litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	libinput_event_destroy(event);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(mouse_tool)
 {
 	struct litest_device *dev = litest_current_device();
@@ -5756,6 +5834,7 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:tool", tool_type, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tool", tool_in_prox_before_start, LITEST_TABLET, LITEST_TOTEM);
 	litest_add("tablet:tool", tool_direct_switch_skip_tool_update, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:tool", tool_direct_switch_with_forced_proxout, LITEST_TABLET, LITEST_ANY);
 
 	/* Tablets hold back the proximity until the first event from the
 	 * kernel, the totem sends it immediately */
