@@ -340,6 +340,7 @@ enum litest_device_type {
 #define LITEST_TOOL_MOUSE	bit(29)
 #define LITEST_DIRECT		bit(30)
 #define LITEST_TOTEM		bit(31)
+#define LITEST_FORCED_PROXOUT	bit(32)
 
 /* this is a semi-mt device, so we keep track of the touches that the tests
  * send and modify them so that the first touch is always slot 0 and sends
