@@ -1940,11 +1940,18 @@ tablet_toggle_touch_device(struct tablet_dispatch *tablet,
 static inline void
 tablet_reset_state(struct tablet_dispatch *tablet)
 {
+	struct button_state zero = {0};
+
 	/* Update state */
 	memcpy(&tablet->prev_button_state,
 	       &tablet->button_state,
 	       sizeof(tablet->button_state));
 	tablet_unset_status(tablet, TABLET_TOOL_UPDATED);
+
+	if (memcmp(&tablet->button_state, &zero, sizeof(zero)) == 0)
+		tablet_unset_status(tablet, TABLET_BUTTONS_DOWN);
+	else
+		tablet_set_status(tablet, TABLET_BUTTONS_DOWN);
 }
 
 static void
@@ -1966,7 +1973,8 @@ tablet_proximity_out_quirk_timer_func(uint64_t now, void *data)
 	};
 	struct input_event *e;
 
-	if (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT)) {
+	if (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ||
+	    tablet_has_status(tablet, TABLET_BUTTONS_DOWN)) {
 		tablet_proximity_out_quirk_set_timer(tablet, now);
 		return;
 	}

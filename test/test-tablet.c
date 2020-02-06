@@ -1098,9 +1098,6 @@ START_TEST(proximity_out_clear_buttons)
 		litest_tablet_proximity_out(dev);
 		libinput_dispatch(li);
 
-		litest_timeout_tablet_proxout();
-		libinput_dispatch(li);
-
 		event = libinput_get_event(li);
 		ck_assert_notnull(event);
 		do {
@@ -1557,6 +1554,50 @@ START_TEST(proximity_out_not_during_contact)
 	litest_axis_set_value(axes, ABS_PRESSURE, 0);
 	litest_tablet_motion(dev, 14, 14, axes);
 	litest_drain_events(li);
+
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+
+	/* The forced prox out */
+	litest_assert_tablet_proximity_event(li,
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+
+	litest_tablet_proximity_out(dev);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(proximity_out_not_during_buttonpress)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_tablet_motion(dev, 12, 12, axes);
+	litest_drain_events(li);
+
+	litest_event(dev, EV_KEY, BTN_STYLUS, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
+
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+
+	/* No forced proxout yet */
+	litest_assert_empty_queue(li);
+
+	litest_event(dev, EV_KEY, BTN_STYLUS, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 
 	litest_timeout_tablet_proxout();
 	libinput_dispatch(li);
@@ -5846,7 +5887,7 @@ TEST_COLLECTION(tablet)
 	litest_add_no_device("tablet:tool_serial", tools_with_serials);
 	litest_add_no_device("tablet:tool_serial", tools_without_serials);
 	litest_add_for_device("tablet:tool_serial", tool_delayed_serial, LITEST_WACOM_HID4800_PEN);
-	litest_add("tablet:proximity", proximity_out_clear_buttons, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:proximity", proximity_out_clear_buttons, LITEST_TABLET, LITEST_FORCED_PROXOUT);
 	litest_add("tablet:proximity", proximity_in_out, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_in_button_down, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_out_button_up, LITEST_TABLET, LITEST_ANY);
@@ -5859,6 +5900,7 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:proximity", proximity_range_button_release, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_out_slow_event, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_out_not_during_contact, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
+	litest_add("tablet:proximity", proximity_out_not_during_buttonpress, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add_for_device("tablet:proximity", proximity_out_no_timeout, LITEST_WACOM_ISDV4_4200_PEN);
 
 	litest_add_no_device("tablet:proximity", proximity_out_on_delete);
