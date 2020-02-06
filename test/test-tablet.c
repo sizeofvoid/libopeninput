@@ -2823,9 +2823,10 @@ START_TEST(tool_in_prox_before_start)
 	litest_timeout_tablet_proxout();
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
-				      -1);
+	event = libinput_get_event(li);
+	litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	libinput_event_destroy(event);
+
 	libinput_unref(li);
 }
 END_TEST
