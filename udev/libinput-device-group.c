@@ -247,7 +247,7 @@ int main(int argc, char **argv)
 	if (str && str > strrchr(group, '-'))
 		*str = '\0';
 
-	printf("%s\n", group);
+	printf("LIBINPUT_DEVICE_GROUP=%s\n", group);
 
 	rc = 0;
 out:
