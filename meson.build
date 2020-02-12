@@ -767,6 +767,7 @@ if get_option('tests')
 	litest_sources = [
 		'test/litest.h',
 		'test/litest-int.h',
+		'test/litest-device-absinfo-override.c',
 		'test/litest-device-acer-hawaii-keyboard.c',
 		'test/litest-device-acer-hawaii-touchpad.c',
 		'test/litest-device-aiptek-tablet.c',

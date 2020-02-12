@@ -692,6 +692,7 @@ litest_init_device_udev_rules(struct litest_test_device *dev, FILE *f)
 {
 	const struct key_value_str *kv;
 	static int count;
+	bool need_keyboard_builtin = false;
 
 	if (dev->udev_properties[0].key == NULL)
 		return;
@@ -707,10 +708,27 @@ litest_init_device_udev_rules(struct litest_test_device *dev, FILE *f)
 	kv = dev->udev_properties;
 	while (kv->key) {
 		fprintf(f, ", \\\n\tENV{%s}=\"%s\"", kv->key, kv->value);
+		if (strneq(kv->key, "EVDEV_ABS_", 10))
+			need_keyboard_builtin = true;
 		kv++;
 	}
-
 	fprintf(f, "\n");
+
+	/* Special case: the udev keyboard builtin is only run for hwdb
+	 * matches but we don't set any up in litest. So instead scan the
+	 * device's udev properties for any EVDEV_ABS properties and where
+	 * they exist, force a (re-)run of the keyboard builtin to set up
+	 * the evdev device correctly.
+	 * This needs to be done as separate rule apparently, otherwise the
+	 * ENV variables aren't set yet by the time the builtin runs.
+	 */
+	if (need_keyboard_builtin) {
+		fprintf(f, ""
+			"ATTRS{name}==\"litest %s*\","
+			" IMPORT{builtin}+=\"keyboard\"\n",
+			dev->name);
+	}
+
 	fprintf(f, "LABEL=\"rule%d_end\"\n\n", count);;
 }
 
