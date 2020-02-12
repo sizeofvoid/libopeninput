@@ -66,7 +66,6 @@
 #include <linux/kd.h>
 
 #define UDEV_RULES_D "/run/udev/rules.d"
-#define UDEV_RULE_PREFIX "99-litest-"
 #define UDEV_FUZZ_OVERRIDE_RULE_FILE UDEV_RULES_D \
 	"/91-litest-fuzz-override-REMOVEME-XXXXXX.rules"
 #define UDEV_TEST_DEVICE_RULE_FILE UDEV_RULES_D \
@@ -726,9 +725,8 @@ litest_init_all_device_udev_rules(struct list *created_files)
 	int fd;
 
 	rc = xasprintf(&path,
-		      "%s/%s-XXXXXX.rules",
-		      UDEV_RULES_D,
-		      UDEV_RULE_PREFIX);
+		      "%s/99-litest-XXXXXX.rules",
+		      UDEV_RULES_D);
 	litest_assert_int_gt(rc, 0);
 
 	fd = mkstemps(path, 6);
