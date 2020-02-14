@@ -3570,6 +3570,67 @@ START_TEST(touchpad_initial_state)
 }
 END_TEST
 
+/* This just tests that we don't completely screw up in one specific case.
+ * The test likely needs to be removed if it starts failing in the future.
+ *
+ * Where we get touch releases during SYN_DROPPED, libevdev < 1.9.0 gives us
+ * wrong event sequence during sync, see
+ * https://gitlab.freedesktop.org/libevdev/libevdev/merge_requests/19
+ *
+ * libinput 1.15.1 ended up dropping our slot count to 0, making the
+ * touchpad unusable, see #422. This test just checks that we can still move
+ * the pointer and scroll where we trigger such a sequence. This tests for
+ * the worst-case scenario - where we previously reset to a slot count of 0.
+ *
+ * However, the exact behavior depends on how many slots were
+ * stopped/restarted during SYN_DROPPED, a single test is barely useful.
+ * libinput will still do the wrong thing if you start with e.g. 3fg on the
+ * touchpad and release one or two of them. But since this needs to be fixed
+ * in libevdev, here is the most important test.
+ */
+START_TEST(touchpad_state_after_syn_dropped_2fg_change)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_drain_events(li);
+	litest_disable_tap(dev->libinput_device);
+
+	litest_touch_down(dev, 0, 10, 10);
+	libinput_dispatch(li);
+
+	/* Force a SYN_DROPPED */
+	for (int i = 0; i < 500; i++)
+		litest_touch_move(dev, 0, 10 + 0.1 * i, 10 + 0.1 * i);
+
+	/* still within SYN_DROPPED */
+	litest_touch_up(dev, 0);
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_down(dev, 1, 70, 50);
+
+	libinput_dispatch(li);
+	litest_drain_events(li);
+
+	litest_touch_up(dev, 0);
+	litest_touch_up(dev, 1);
+
+	/* 2fg scrolling still works? */
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_down(dev, 1, 70, 50);
+	litest_touch_move_two_touches(dev, 50, 50, 70, 50, 0, -20, 10);
+	litest_touch_up(dev, 0);
+	litest_touch_up(dev, 1);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
+
+	/* pointer motion still works? */
+	litest_touch_down(dev, 0, 50, 50);
+	for (int i = 0; i < 10; i++)
+		litest_touch_move(dev, 0, 10 + 0.1 * i, 10 + 0.1 * i);
+	litest_touch_up(dev, 0);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+}
+END_TEST
+
 START_TEST(touchpad_dwt)
 {
 	struct litest_device *touchpad = litest_current_device();
@@ -6991,6 +7052,7 @@ TEST_COLLECTION(touchpad)
 	litest_add_for_device("touchpad:trackpoint", touchpad_trackpoint_no_trackpoint, LITEST_SYNAPTICS_TRACKPOINT_BUTTONS);
 
 	litest_add_ranged("touchpad:state", touchpad_initial_state, LITEST_TOUCHPAD, LITEST_ANY, &axis_range);
+	litest_add("touchpad:state", touchpad_state_after_syn_dropped_2fg_change, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 
 	litest_add("touchpad:dwt", touchpad_dwt, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add_for_device("touchpad:dwt", touchpad_dwt_ext_and_int_keyboard, LITEST_SYNAPTICS_I2C);
