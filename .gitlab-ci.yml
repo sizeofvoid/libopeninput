@@ -509,17 +509,12 @@ freebsd:11.2@container-clean:
 
     - ssh localhost -p 5555 halt || true
     - sleep 2
-    - kill $(pgrep qemu)
+    - pkill qemu || true
 
     - if [[ ! -e .success ]] ;
       then
         exit 1 ;
       fi
-
-  after_script:
-    # no matter the results of the tests, we want to kill the VM
-    - kill $(pgrep qemu)
-
   artifacts:
     name: "qemu-meson-logs-$CI_JOB_NAME"
     when: always
