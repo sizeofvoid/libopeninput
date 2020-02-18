@@ -1429,7 +1429,7 @@ print_system_header(struct record_context *ctx)
 {
 	struct utsname u;
 	const char *kernel = "unknown";
-	FILE *dmi;
+	FILE *dmi, *osrelease;
 	char buf[2048] = "unknown";
 
 	if (uname(&u) != -1)
@@ -1447,6 +1447,30 @@ print_system_header(struct record_context *ctx)
 
 	iprintf(ctx, "system:\n");
 	indent_push(ctx);
+
+	osrelease = fopen("/etc/os-release", "r");
+	if (!osrelease)
+		fopen("/usr/lib/os-release", "r");
+	if (osrelease) {
+		char *distro = NULL, *version = NULL;
+
+		while (fgets(buf, sizeof(buf), osrelease)) {
+			buf[strlen(buf) - 1] = '\0'; /* linebreak */
+
+			if (!distro && strneq(buf, "ID=", 3))
+				distro = safe_strdup(&buf[3]);
+			else if (!version && strneq(buf, "VERSION_ID=", 11))
+				version = safe_strdup(&buf[11]);
+
+			if (distro && version) {
+				iprintf(ctx, "os: \"%s:%s\"\n", distro, version);
+				break;
+			}
+		}
+		free(distro);
+		free(version);
+		fclose(osrelease);
+	}
 	iprintf(ctx, "kernel: \"%s\"\n", kernel);
 	iprintf(ctx, "dmi: \"%s\"\n", buf);
 	indent_pop(ctx);

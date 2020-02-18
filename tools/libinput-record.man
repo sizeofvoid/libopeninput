@@ -106,6 +106,7 @@ ndevices: 2
 libinput:
   version: 1.10.0
 system:
+  os: "fedora:26"
   kernel: "4.13.9-200.fc26.x86_64"
   dmi: "dmi:bvnLENOVO:bvrGJET72WW(2.22):bd02/21/2014:svnLENOVO:..."
 devices:
@@ -205,6 +206,9 @@ libinput version
 
 .SS system
 Information about the system
+.TP 8
+.B os: string
+Distribution ID and version, see \fIos-release(5)\fR
 .TP 8
 .B kernel: string
 Kernel version, see \fIuname(1)\fR
