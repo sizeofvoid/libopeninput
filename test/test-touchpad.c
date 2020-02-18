@@ -3570,6 +3570,63 @@ START_TEST(touchpad_initial_state)
 }
 END_TEST
 
+START_TEST(touchpad_fingers_down_before_init)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li;
+
+	int finger_count = _i; /* looped test */
+	unsigned int map[] = {0, BTN_TOOL_PEN, BTN_TOOL_DOUBLETAP,
+			      BTN_TOOL_TRIPLETAP, BTN_TOOL_QUADTAP,
+			      BTN_TOOL_QUINTTAP};
+
+	dev = litest_current_device();
+
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, map[finger_count]))
+		return;
+
+	/* Fingers down but before we have the real context */
+	for (int i = 0; i < finger_count; i++) {
+		if (litest_slot_count(dev) >= finger_count) {
+			litest_touch_down(dev, i, 20 + 10 * i, 30);
+		} else {
+			litest_event(dev, EV_KEY, map[finger_count], 1);
+		}
+	}
+
+	litest_drain_events(dev->libinput);
+
+	/* create anew context that already has the fingers down */
+	li = litest_create_context();
+	libinput_path_add_device(li,
+				 libevdev_uinput_get_devnode(dev->uinput));
+	litest_drain_events(li);
+
+	for (int x = 0; x < 10; x++) {
+		for (int i = 0; i < finger_count; i++) {
+			if (litest_slot_count(dev) < finger_count)
+				break;
+			litest_touch_move(dev, i, 20 + 10 * i + x, 30);
+		}
+	}
+	libinput_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	for (int i = 0; i < finger_count; i++) {
+		if (litest_slot_count(dev) >= finger_count) {
+			litest_touch_up(dev, i);
+		} else {
+			litest_event(dev, EV_KEY, map[finger_count], 0);
+		}
+	}
+
+	litest_assert_empty_queue(li);
+
+	libinput_unref(li);
+}
+END_TEST
+
+
 /* This just tests that we don't completely screw up in one specific case.
  * The test likely needs to be removed if it starts failing in the future.
  *
@@ -6940,6 +6997,7 @@ TEST_COLLECTION(touchpad)
 	struct range suspends = { SUSPEND_EXT_MOUSE, SUSPEND_COUNT };
 	struct range axis_range = {ABS_X, ABS_Y + 1};
 	struct range twice = {0, 2 };
+	struct range five_fingers = {1, 6};
 
 	litest_add("touchpad:motion", touchpad_1fg_motion, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("touchpad:motion", touchpad_2fg_no_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
@@ -7052,6 +7110,7 @@ TEST_COLLECTION(touchpad)
 	litest_add_for_device("touchpad:trackpoint", touchpad_trackpoint_no_trackpoint, LITEST_SYNAPTICS_TRACKPOINT_BUTTONS);
 
 	litest_add_ranged("touchpad:state", touchpad_initial_state, LITEST_TOUCHPAD, LITEST_ANY, &axis_range);
+	litest_add_ranged("touchpad:state", touchpad_fingers_down_before_init, LITEST_TOUCHPAD, LITEST_ANY, &five_fingers);
 	litest_add("touchpad:state", touchpad_state_after_syn_dropped_2fg_change, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 
 	litest_add("touchpad:dwt", touchpad_dwt, LITEST_TOUCHPAD, LITEST_ANY);
