@@ -1430,17 +1430,17 @@ print_system_header(struct record_context *ctx)
 	struct utsname u;
 	const char *kernel = "unknown";
 	FILE *dmi;
-	char modalias[2048] = "unknown";
+	char buf[2048] = "unknown";
 
 	if (uname(&u) != -1)
 		kernel = u.release;
 
 	dmi = fopen("/sys/class/dmi/id/modalias", "r");
 	if (dmi) {
-		if (fgets(modalias, sizeof(modalias), dmi)) {
-			modalias[strlen(modalias) - 1] = '\0'; /* linebreak */
+		if (fgets(buf, sizeof(buf), dmi)) {
+			buf[strlen(buf) - 1] = '\0'; /* linebreak */
 		} else {
-			sprintf(modalias, "unknown");
+			sprintf(buf, "unknown");
 		}
 		fclose(dmi);
 	}
@@ -1448,7 +1448,7 @@ print_system_header(struct record_context *ctx)
 	iprintf(ctx, "system:\n");
 	indent_push(ctx);
 	iprintf(ctx, "kernel: \"%s\"\n", kernel);
-	iprintf(ctx, "dmi: \"%s\"\n", modalias);
+	iprintf(ctx, "dmi: \"%s\"\n", buf);
 	indent_pop(ctx);
 }
 
