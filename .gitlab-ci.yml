@@ -490,7 +490,7 @@ freebsd:11.2@container-clean:
     - echo "Testing $SUITES"
   script:
     # start our vm, no args required
-    - /app/start_vm.sh
+    - /app/start_vm.sh || (echo "Error - Failed to start the VM." && exit 1)
 
     - *check_tainted
 
