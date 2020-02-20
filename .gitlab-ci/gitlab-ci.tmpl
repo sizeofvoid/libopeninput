@@ -442,85 +442,24 @@ freebsd:11.2@container-clean:
     when: script_failure
   needs: ['fedora:30@qemu-prep']
 
-# in reverse order of duration to get the slowest ones started first
-fedora:30@vm-touchpad:
+{% for suite in test_suites %}
+fedora:30@vm-{{suite.name}}:
   extends:
     - .fedora:30@test-suite-vm
   variables:
-    SUITE_NAMES: 'touchpad'
+    SUITE_NAMES: '{{suite.suites}}'
 
-fedora:30@vm-tap:
-  extends:
-    - .fedora:30@test-suite-vm
-  variables:
-    SUITE_NAMES: 'tap'
+{% endfor %}
 
-fedora:30@vm-tablet:
-  extends:
-    - .fedora:30@test-suite-vm
-  variables:
-    SUITE_NAMES: 'tablet'
-
-fedora:30@vm-gestures-device:
-  extends:
-    - .fedora:30@test-suite-vm
-  variables:
-    SUITE_NAMES: 'gestures device'
-
-fedora:30@vm-others:
-  extends:
-    - .fedora:30@test-suite-vm
-  variables:
-    SUITE_NAMES: 'context config misc events totem udev lid log timer tablet-mode quirks trackball pad path keyboard switch touch trackpoint'
-
-fedora:30@vm-pointer:
-  extends:
-    - .fedora:30@test-suite-vm
-  variables:
-    SUITE_NAMES: 'pointer'
-
-fedora:30@valgrind-touchpad:
+{% for suite in test_suites %}
+fedora:30@valgrind-{{suite.name}}:
   stage: valgrind
   extends:
-    - fedora:30@vm-touchpad
+    - fedora:30@vm-{{suite.name}}
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
-fedora:30@valgrind-tap:
-  stage: valgrind
-  extends:
-    - fedora:30@vm-tap
-  variables:
-    MESON_TEST_ARGS: '--setup=valgrind'
-
-fedora:30@valgrind-tablet:
-  stage: valgrind
-  extends:
-    - fedora:30@vm-tablet
-  variables:
-    MESON_TEST_ARGS: '--setup=valgrind'
-
-fedora:30@valgrind-gestures-device:
-  stage: valgrind
-  extends:
-    - fedora:30@vm-gestures-device
-  variables:
-    MESON_TEST_ARGS: '--setup=valgrind'
-
-
-fedora:30@valgrind-others:
-  stage: valgrind
-  extends:
-    - fedora:30@vm-others
-  variables:
-    MESON_TEST_ARGS: '--setup=valgrind'
-
-fedora:30@valgrind-pointer:
-  stage: valgrind
-  extends:
-    - fedora:30@vm-pointer
-  variables:
-    MESON_TEST_ARGS: '--setup=valgrind'
+{% endfor %}
 
 .fedora-build@template:
   extends:

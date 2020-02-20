@@ -15,13 +15,25 @@ distributions = [
     {'name': 'alpine', 'version': 'latest'},
 ]
 
+# in reverse order of duration to get the slowest ones started first
+test_suites = [
+    {'name': 'touchpad', 'suites': 'touchpad'},
+    {'name': 'tap', 'suites': 'tap'},
+    {'name': 'tablet', 'suites': 'tablet'},
+    {'name': 'gestures-device', 'suites': 'gestures device'},
+    {'name': 'others',
+     'suites': 'context config misc events totem udev lid log timer tablet-mode quirks trackball pad path keyboard switch touch trackpoint'},
+    {'name': 'pointer', 'suites': 'pointer'}
+]
+
 
 def generate_template():
     env = jinja2.Environment(loader=jinja2.FileSystemLoader('./.gitlab-ci'),
                              trim_blocks=True, lstrip_blocks=True)
 
     template = env.get_template('gitlab-ci.tmpl')
-    config = {'distributions': distributions}
+    config = {'distributions': distributions,
+              'test_suites': test_suites}
     with open('.gitlab-ci.yml', 'w') as fd:
         template.stream(config).dump(fd)
 

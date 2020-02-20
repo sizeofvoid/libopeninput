@@ -553,7 +553,6 @@ freebsd:11.2@container-clean:
     when: script_failure
   needs: ['fedora:30@qemu-prep']
 
-# in reverse order of duration to get the slowest ones started first
 fedora:30@vm-touchpad:
   extends:
     - .fedora:30@test-suite-vm
@@ -590,6 +589,7 @@ fedora:30@vm-pointer:
   variables:
     SUITE_NAMES: 'pointer'
 
+
 fedora:30@valgrind-touchpad:
   stage: valgrind
   extends:
@@ -618,7 +618,6 @@ fedora:30@valgrind-gestures-device:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
-
 fedora:30@valgrind-others:
   stage: valgrind
   extends:
@@ -632,6 +631,7 @@ fedora:30@valgrind-pointer:
     - fedora:30@vm-pointer
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
+
 
 .fedora-build@template:
   extends:
