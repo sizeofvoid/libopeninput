@@ -3580,8 +3580,6 @@ START_TEST(touchpad_fingers_down_before_init)
 			      BTN_TOOL_TRIPLETAP, BTN_TOOL_QUADTAP,
 			      BTN_TOOL_QUINTTAP};
 
-	dev = litest_current_device();
-
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, map[finger_count]))
 		return;
 
