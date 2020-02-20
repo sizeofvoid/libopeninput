@@ -27,11 +27,11 @@
 .templates_sha: &template_sha b7030c2cd0d6ccc5f6d4f8299bafa4daa9240d71 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
-  {% for distribution in distributions|map(attribute='name')|unique()|sort() %}
-  # {{ distribution.capitalize() }} container builder template
+  {% for template in templates %}
+  # {{ template.capitalize() }} container builder template
   - project: 'wayland/ci-templates'
     ref: *template_sha
-    file: '/templates/{{distribution}}.yml'
+    file: '/templates/{{template}}.yml'
   {% endfor %}
 
 stages:

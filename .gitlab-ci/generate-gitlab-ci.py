@@ -26,6 +26,8 @@ distributions = [
     }
 ]
 
+templates = sorted(set([x['name'] for x in distributions]))
+
 # in reverse order of duration to get the slowest ones started first
 test_suites = [
     {'name': 'touchpad', 'suites': 'touchpad'},
@@ -44,7 +46,8 @@ def generate_template():
 
     template = env.get_template('gitlab-ci.tmpl')
     config = {'distributions': distributions,
-              'test_suites': test_suites}
+              'test_suites': test_suites,
+              'templates': templates}
     with open('.gitlab-ci.yml', 'w') as fd:
         template.stream(config).dump(fd)
 
