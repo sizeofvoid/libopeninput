@@ -27,22 +27,12 @@
 .templates_sha: &template_sha b7030c2cd0d6ccc5f6d4f8299bafa4daa9240d71 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
-  # Alpine container builder template
+  {% for distribution in distributions|map(attribute='name')|unique()|sort() %}
+  # {{ distribution.capitalize() }} container builder template
   - project: 'wayland/ci-templates'
     ref: *template_sha
-    file: '/templates/alpine.yml'
-  # Arch container builder template
-  - project: 'wayland/ci-templates'
-    ref: *template_sha
-    file: '/templates/arch.yml'
-  # Fedora container builder template
-  - project: 'wayland/ci-templates'
-    ref: *template_sha
-    file: '/templates/fedora.yml'
-  # Ubuntu container builder template
-  - project: 'wayland/ci-templates'
-    ref: *template_sha
-    file: '/templates/ubuntu.yml'
+    file: '/templates/{{distribution}}.yml'
+  {% endfor %}
 
 stages:
   - prep             # prep work like rebuilding the container images if there is a change
@@ -211,84 +201,21 @@ fedora:30@qemu-prep:
     TAG: $QEMU_TAG
   allow_failure: true
 
-fedora:30@container-prep:
+{% for distro in distributions %}
+{{distro.name}}:{{distro.version}}@container-prep:
   extends:
-    - .fedora@container-build
+    - .{{distro.name}}@container-build
     - .policy
     - .pull_upstream_or_rebuild
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: '30'
-    DISTRIB_FLAVOR: fedora
-    DISTRIB_VERSION: $FEDORA_VERSION
-    TAG: $FEDORA_TAG
+    {{distro.name.upper()}}_VERSION: '{{distro.version}}'
+    DISTRIB_FLAVOR: {{distro.flavor|default(distro.name)}}
+    DISTRIB_VERSION: ${{distro.name.upper()}}_VERSION
+    TAG: ${{distro.name.upper()}}_TAG
 
-fedora:31@container-prep:
-  extends:
-    - .fedora@container-build
-    - .policy
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    FEDORA_VERSION: '31'
-    DISTRIB_FLAVOR: fedora
-    DISTRIB_VERSION: $FEDORA_VERSION
-    TAG: $FEDORA_TAG
-
-ubuntu:19.10@container-prep:
-  extends:
-    - .ubuntu@container-build
-    - .policy
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    UBUNTU_VERSION: '19.10'
-    DISTRIB_FLAVOR: ubuntu
-    DISTRIB_VERSION: $UBUNTU_VERSION
-    TAG: $UBUNTU_TAG
-
-ubuntu:19.04@container-prep:
-  extends:
-    - .ubuntu@container-build
-    - .policy
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    UBUNTU_VERSION: '19.04'
-    DISTRIB_FLAVOR: ubuntu
-    DISTRIB_VERSION: $UBUNTU_VERSION
-    TAG: $UBUNTU_TAG
-
-arch:rolling@container-prep:
-  extends:
-    - .arch@container-build
-    - .policy
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    ARCH_VERSION: 'rolling'
-    DISTRIB_FLAVOR: archlinux
-    DISTRIB_VERSION: $ARCH_VERSION
-    TAG: $ARCH_TAG
-
-alpine:latest@container-prep:
-  extends:
-    - .alpine@container-build
-    - .policy
-    - .pull_upstream_or_rebuild
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    ALPINE_VERSION: 'latest'
-    DISTRIB_FLAVOR: alpine
-    DISTRIB_VERSION: $ALPINE_VERSION
-    TAG: $ALPINE_TAG
-
+{% endfor %}
 
 .freebsd@container-prep:
   extends:
@@ -408,54 +335,16 @@ freebsd:11.2@container-prep:
   only:
     - schedules
 
-fedora:30@container-clean:
+{% for distro in distributions %}
+{{distro.name}}:{{distro.version}}@container-clean:
   extends:
     - .container-clean
   variables:
     GIT_STRATEGY: none
-    FEDORA_VERSION: '30'
-    CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
+    {{distro.name.upper()}}_VERSION: '{{distro.version}}'
+    CURRENT_CONTAINER_IMAGE: ${{distro.name.upper()}}_CONTAINER_IMAGE
 
-fedora:31@container-clean:
-  extends:
-    - .container-clean
-  variables:
-    GIT_STRATEGY: none
-    FEDORA_VERSION: '31'
-    CURRENT_CONTAINER_IMAGE: $FEDORA_CONTAINER_IMAGE
-
-ubuntu:19.10@container-clean:
-  extends:
-    - .container-clean
-  variables:
-    GIT_STRATEGY: none
-    UBUNTU_VERSION: '19.10'
-    CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
-
-ubuntu:19.04@container-clean:
-  extends:
-    - .container-clean
-  variables:
-    GIT_STRATEGY: none
-    UBUNTU_VERSION: '19.04'
-    CURRENT_CONTAINER_IMAGE: $UBUNTU_CONTAINER_IMAGE
-
-arch:rolling@container-clean:
-  extends:
-    - .container-clean
-  variables:
-    GIT_STRATEGY: none
-    ARCH_VERSION: 'rolling'
-    CURRENT_CONTAINER_IMAGE: $ARCH_CONTAINER_IMAGE
-
-alpine:latest@container-clean:
-  extends:
-    - .container-clean
-  variables:
-    GIT_STRATEGY: none
-    ALPINE_VERSION: 'latest'
-    CURRENT_CONTAINER_IMAGE: $ALPINE_CONTAINER_IMAGE
-
+{% endfor %}
 
 freebsd:11.2@container-clean:
   extends:
@@ -894,3 +783,4 @@ wayland-web:
   variables:
     DOT: "%2E"
     SLASH: "%2F"
+
