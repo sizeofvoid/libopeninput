@@ -854,6 +854,9 @@ wayland-web:
            --form "token=<$WAYLAND_WEB_TOKEN"
            --form ref=master
            https://gitlab.freedesktop.org/api/v4/projects/wayland${SLASH}wayland${DOT}freedesktop${DOT}org/trigger/pipeline
+  except:
+    refs:
+      - schedules
   only:
     refs:
       - master
