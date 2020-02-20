@@ -638,22 +638,22 @@ fedora:30@valgrind-pointer:
   extends:
     - .build@template
   image: $FEDORA_CONTAINER_IMAGE
+  variables:
+    FEDORA_VERSION: 30
+  needs: ['fedora:30@container-prep']
 
-fedora:30@default-build-release:
+default-build-release@fedora:30:
   stage: distro
   extends:
     - .fedora-build@template
   variables:
-    FEDORA_VERSION: 30
     MESON_ARGS: "-Dbuildtype=release"
     CFLAGS: "-Werror"
-  needs: ['fedora:30@container-prep']
 
-fedora:30@scan-build:
+scan-build@fedora:30:
   extends:
     - .fedora-build@template
   variables:
-    FEDORA_VERSION: 30
     NINJA_ARGS: scan-build
   before_script:
     - dnf install -y clang-analyzer findutils
@@ -662,119 +662,94 @@ fedora:30@scan-build:
     - test $(find "$MESON_BUILDDIR"/meson-logs/scanbuild -maxdepth 0 ! -empty -exec echo "not empty" \; | wc -l) -eq 0 && exit 0
     - echo "Check scan-build results"
     - /bin/false
-  needs: ['fedora:30@container-prep']
 
 # Below jobs are build option combinations. We only
 # run them on one image, they shouldn't fail on one distro
 # when they succeed on another.
 
-fedora:30@build-no-libwacom:
+build-no-libwacom@fedora:30:
   extends:
     - .fedora-build@template
   variables:
-    FEDORA_VERSION: 30
     MESON_ARGS: "-Dlibwacom=false"
-  needs: ['fedora:30@container-prep']
 
-fedora:30@build-no-libwacom-nodeps:
+build-no-libwacom-nodeps@fedora:30:
   extends:
     - .fedora-build@template
   variables:
-    FEDORA_VERSION: 30
     MESON_ARGS: "-Dlibwacom=false"
   before_script:
     - dnf remove -y libwacom libwacom-devel
-  needs: ['fedora:30@container-prep']
 
-fedora:30@build-no-docs:
+build-no-docs@fedora:30:
   extends:
     - .fedora-build@template
   variables:
-    FEDORA_VERSION: 30
     MESON_ARGS: "-Ddocumentation=false"
-  needs: ['fedora:30@container-prep']
 
-fedora:30@build-no-docs-nodeps:
+build-no-docs-nodeps@fedora:30:
   extends:
     - .fedora-build@template
   variables:
-    FEDORA_VERSION: 30
     MESON_ARGS: "-Ddocumentation=false"
   before_script:
     - dnf remove -y doxygen graphviz
-  needs: ['fedora:30@container-prep']
 
-fedora:30@build-no-debuggui:
+build-no-debuggui@fedora:30:
   extends:
     - .fedora-build@template
   variables:
-    FEDORA_VERSION: 30
     MESON_ARGS: "-Ddebug-gui=false"
-  needs: ['fedora:30@container-prep']
 
-fedora:30@build-no-debuggui-nodeps:
+build-no-debuggui-nodeps@fedora:30:
   extends:
     - .fedora-build@template
   variables:
-    FEDORA_VERSION: 30
     MESON_ARGS: "-Ddebug-gui=false"
   before_script:
     - dnf remove -y gtk3-devel
-  needs: ['fedora:30@container-prep']
 
-fedora:30@build-no-tests:
+build-no-tests@fedora:30:
   extends:
     - .fedora-build@template
   variables:
-    FEDORA_VERSION: 30
     MESON_ARGS: "-Dtests=false"
-  needs: ['fedora:30@container-prep']
 
-fedora:30@build-no-tests-nodeps:
+build-no-tests-nodeps@fedora:30:
   extends:
     - .fedora-build@template
   variables:
-    FEDORA_VERSION: 30
     MESON_ARGS: "-Dtests=false"
   before_script:
     - dnf remove -y check-devel
-  needs: ['fedora:30@container-prep']
 
-fedora:30@valgrind:
+valgrind@fedora:30:
   extends:
     - .fedora-build@template
   variables:
-    FEDORA_VERSION: 30
     MESON_TEST_ARGS: '--suite=valgrind --no-suite=hardware --setup=valgrind'
   before_script:
     - dnf install -y valgrind
-  needs: ['fedora:30@container-prep']
 
 # Python checks, only run on Fedora
 
-fedora:30@usr-bin-env-python:
+usr-bin-env-python@fedora:30:
   extends:
     - .fedora-build@template
-  variables:
-    FEDORA_VERSION: 30
   script:
     - |
       if git grep -l '^#!/usr/bin/python'; then
         echo "Use '/usr/bin/env python3' in the above files";
         /bin/false
       fi
-  needs: ['fedora:30@container-prep']
 
-fedora:30@flake8:
+flake8@fedora:30:
   extends:
     - .fedora-build@template
-  variables:
-    FEDORA_VERSION: 30
   before_script:
     - dnf install -y python3-flake8
   script:
     - flake8-3 --ignore=W501,E501,W504 $(git grep -l '^#!/usr/bin/env python3')
-  needs: ['fedora:30@container-prep']
 
 #################################################################
 #                                                               #
