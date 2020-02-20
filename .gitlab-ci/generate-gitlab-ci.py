@@ -12,7 +12,18 @@ distributions = [
     {'name': 'ubuntu', 'version': '19.04'},
     {'name': 'arch', 'version': 'rolling',
      'flavor': 'archlinux'},  # see https://gitlab.freedesktop.org/wayland/ci-templates/merge_requests/19
-    {'name': 'alpine', 'version': 'latest'},
+    {
+        'name': 'alpine', 'version': 'latest',
+        'build': {
+            'extra_variables': [
+                'MESON_ARGS: \'-Ddocumentation=false\' # alpine does not have python-recommonmark',
+                # We don't run the tests on alpine. The litest-selftest fails
+                # for any tcase_add_exit_test/tcase_add_test_raise_signal
+                # but someone more invested in musl will have to figure that out.
+                'MESON_TEST_ARGS: \'\' # litest-selftest fails on musl',
+            ]
+        },
+    }
 ]
 
 # in reverse order of duration to get the slowest ones started first

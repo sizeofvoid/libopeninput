@@ -461,26 +461,11 @@ fedora:30@valgrind-{{suite.name}}:
 
 {% endfor %}
 
+
 .fedora-build@template:
   extends:
     - .build@template
   image: $FEDORA_CONTAINER_IMAGE
-
-fedora:31@default-build:
-  stage: distro
-  extends:
-    - .fedora-build@template
-  variables:
-    FEDORA_VERSION: 31
-  needs: ['fedora:31@container-prep']
-
-fedora:30@default-build:
-  stage: distro
-  extends:
-    - .fedora-build@template
-  variables:
-    FEDORA_VERSION: 30
-  needs: ['fedora:30@container-prep']
 
 fedora:30@default-build-release:
   stage: distro
@@ -619,65 +604,30 @@ fedora:30@flake8:
     - flake8-3 --ignore=W501,E501,W504 $(git grep -l '^#!/usr/bin/env python3')
   needs: ['fedora:30@container-prep']
 
-#
-# Ubuntu
-#
+#################################################################
+#                                                               #
+#                        distro stage                           #
+#                                                               #
+#################################################################
 
-.ubuntu@template:
+{% for distro in distributions %}
+{{distro.name}}:{{distro.version}}@default-build:
   stage: distro
   extends:
     - .build@template
-  image: $UBUNTU_CONTAINER_IMAGE
-
-ubuntu:19.10@default-build:
-  extends:
-    - .ubuntu@template
+  image: ${{distro.name.upper()}}_CONTAINER_IMAGE
   variables:
-    UBUNTU_VERSION: "19.10"
-  needs: ['ubuntu:19.10@container-prep']
+    {{distro.name.upper()}}_VERSION: '{{distro.version}}'
+    {# Where we have extra_variables defined, add them to the list #}
+    {% if distro.build is defined and distro.build.extra_variables is defined %}
+    {% for var in distro.build.extra_variables %}
+    {{var}}
+    {% endfor %}
+    {% endif %}
+  needs: ['{{distro.name}}:{{distro.version}}@container-prep']
 
-ubuntu:19.04@default-build:
-  extends:
-    - .ubuntu@template
-  variables:
-    UBUNTU_VERSION: "19.04"
-  needs: ['ubuntu:19.04@container-prep']
 
-#
-# Arch
-#
-.arch@template:
-  stage: distro
-  extends:
-    - .build@template
-  image: $ARCH_CONTAINER_IMAGE
-
-arch:rolling@default-build:
-  extends:
-    - .arch@template
-  needs: ['arch:rolling@container-prep']
-
-#
-# Alpine
-#
-
-.alpine@template:
-  stage: distro
-  extends:
-    - .build@template
-  image: $ALPINE_CONTAINER_IMAGE
-
-alpine:latest@default-build:
-  extends:
-    - .alpine@template
-  needs: ['alpine:latest@container-prep']
-  variables:
-    # alpine doesn't have python-recommonmark
-    MESON_ARGS: '-Ddocumentation=false'
-    # We don't run the tests on alpine. The litest-selftest fails
-    # for any tcase_add_exit_test/tcase_add_test_raise_signal
-    # but someone more invested in musl will have to figure that out.
-    MESON_TEST_ARGS: ''
+{% endfor %}
 
 #
 # FreeBSD
