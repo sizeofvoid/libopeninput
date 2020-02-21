@@ -511,7 +511,7 @@ main(int argc, char **argv)
 	struct context ctx;
 	struct libinput *li;
 	enum tools_backend backend = BACKEND_NONE;
-	char *seat_or_device[2] = {"seat0", NULL};
+	const char *seat_or_device[2] = {"seat0", NULL};
 	struct sigaction act;
 	bool grab = false;
 

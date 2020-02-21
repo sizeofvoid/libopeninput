@@ -967,7 +967,7 @@ main(int argc, char **argv)
 {
 	struct libinput *li;
 	enum tools_backend backend = BACKEND_NONE;
-	char *seat_or_devices[60] = {NULL};
+	const char *seat_or_devices[60] = {NULL};
 	size_t ndevices = 0;
 	bool grab = false;
 	bool verbose = false;
@@ -1024,7 +1024,7 @@ main(int argc, char **argv)
 
 			}
 			backend = BACKEND_DEVICE;
-			seat_or_devices[ndevices++] = safe_strdup(optarg);
+			seat_or_devices[ndevices++] = optarg;
 			break;
 		case OPT_UDEV:
 			if (backend == BACKEND_DEVICE ||
@@ -1034,7 +1034,7 @@ main(int argc, char **argv)
 
 			}
 			backend = BACKEND_UDEV;
-			seat_or_devices[0] = safe_strdup(optarg);
+			seat_or_devices[0] = optarg;
 			ndevices = 1;
 			break;
 		case OPT_GRAB:
@@ -1064,12 +1064,11 @@ main(int argc, char **argv)
 				usage();
 				return EXIT_INVALID_USAGE;
 			}
-			seat_or_devices[ndevices++] = safe_strdup(argv[optind]);
+			seat_or_devices[ndevices++] = argv[optind];
 		} while(++optind < argc);
 	} else if (backend == BACKEND_NONE) {
 		backend = BACKEND_UDEV;
-		seat_or_devices[0] = safe_strdup("seat0");
-		ndevices = 1;
+		seat_or_devices[0] = "seat0";
 	}
 
 	memset(&act, 0, sizeof(act));
@@ -1088,9 +1087,6 @@ main(int argc, char **argv)
 	li = tools_open_backend(backend, seat_or_devices, verbose, &grab);
 	if (!li)
 		return EXIT_FAILURE;
-
-	while (ndevices-- > 0)
-		free(seat_or_devices[ndevices]);
 
 	mainloop(li);
 

@@ -1521,7 +1521,7 @@ main(int argc, char **argv)
 	struct tools_options options;
 	struct libinput *li;
 	enum tools_backend backend = BACKEND_NONE;
-	char *seat_or_device[2] = {"seat0", NULL};
+	const char *seat_or_device[2] = {"seat0", NULL};
 	bool verbose = false;
 
 	if (!gtk_init_check(&argc, &argv))

@@ -376,7 +376,7 @@ main(int argc, char **argv)
 	struct libinput *li;
 	struct libinput_event *ev;
 	bool grab = false;
-	char *seat[2] = {"seat0", NULL};
+	const char *seat[2] = {"seat0", NULL};
 
 	/* This is kept for backwards-compatibility with the old
 	   libinput-list-devices */
