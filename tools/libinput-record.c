@@ -1450,7 +1450,7 @@ print_system_header(struct record_context *ctx)
 
 	osrelease = fopen("/etc/os-release", "r");
 	if (!osrelease)
-		fopen("/usr/lib/os-release", "r");
+		osrelease = fopen("/usr/lib/os-release", "r");
 	if (osrelease) {
 		char *distro = NULL, *version = NULL;
 
