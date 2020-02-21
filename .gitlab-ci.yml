@@ -655,6 +655,7 @@ scan-build@fedora:30:
     - .fedora-build@template
   variables:
     NINJA_ARGS: scan-build
+    MESON_TEST_ARGS: ''
   before_script:
     - dnf install -y clang-analyzer findutils
   after_script:
