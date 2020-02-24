@@ -560,11 +560,23 @@ fedora:30@vm-touchpad:
   variables:
     SUITE_NAMES: 'touchpad'
 
+fedora:30@vm-touchpad-no-libwacom:
+  extends:
+    - fedora:30@vm-touchpad
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
 fedora:30@vm-tap:
   extends:
     - .fedora:30@test-suite-vm
   variables:
     SUITE_NAMES: 'tap'
+
+fedora:30@vm-tap-no-libwacom:
+  extends:
+    - fedora:30@vm-tap
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
 
 fedora:30@vm-tablet:
   extends:
@@ -572,11 +584,23 @@ fedora:30@vm-tablet:
   variables:
     SUITE_NAMES: 'tablet'
 
+fedora:30@vm-tablet-no-libwacom:
+  extends:
+    - fedora:30@vm-tablet
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
 fedora:30@vm-gestures-device:
   extends:
     - .fedora:30@test-suite-vm
   variables:
     SUITE_NAMES: 'gestures device'
+
+fedora:30@vm-gestures-device-no-libwacom:
+  extends:
+    - fedora:30@vm-gestures-device
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
 
 fedora:30@vm-others:
   extends:
@@ -584,11 +608,23 @@ fedora:30@vm-others:
   variables:
     SUITE_NAMES: 'context config misc events totem udev lid log timer tablet-mode quirks trackball pad path keyboard switch touch trackpoint'
 
+fedora:30@vm-others-no-libwacom:
+  extends:
+    - fedora:30@vm-others
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
 fedora:30@vm-pointer:
   extends:
     - .fedora:30@test-suite-vm
   variables:
     SUITE_NAMES: 'pointer'
+
+fedora:30@vm-pointer-no-libwacom:
+  extends:
+    - fedora:30@vm-pointer
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
 
 
 fedora:30@valgrind-touchpad:

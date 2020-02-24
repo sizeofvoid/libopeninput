@@ -450,6 +450,12 @@ fedora:30@vm-{{suite.name}}:
   variables:
     SUITE_NAMES: '{{suite.suites}}'
 
+fedora:30@vm-{{suite.name}}-no-libwacom:
+  extends:
+    - fedora:30@vm-{{suite.name}}
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
 {% endfor %}
 
 {% for suite in test_suites %}
