@@ -1,4 +1,4 @@
-# vim: set expandtab shiftwidth=2 tabstop=8 textwidth=0:
+# vim: set expandtab shiftwidth=2 tabstop=8 textwidth=0 filetype=yaml:
 #
 # This is a bit complicated for two reasons:
 # - we really want to run dnf/apt/... only once, updating on the test runner for
