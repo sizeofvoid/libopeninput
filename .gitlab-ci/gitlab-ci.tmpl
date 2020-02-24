@@ -408,6 +408,7 @@ freebsd:11.2@container-clean:
     - "scp -P 5555 -r $PWD localhost:"
     - echo "CI_JOB_ID=\"$CI_JOB_ID\"" > sshenv
     - echo "CI_JOB_NAME=\"$CI_JOB_NAME\"" >> sshenv
+    - echo "MESON_ARGS=\"$MESON_ARGS\"" >> sshenv
     - echo "MESON_BUILDDIR=\"$MESON_BUILDDIR\"" >> sshenv
     - echo "MESON_TEST_ARGS=\"$MESON_TEST_ARGS $SUITES\"" >> sshenv
     - echo "NINJA_ARGS=\"$NINJA_ARGS\"" >> sshenv
