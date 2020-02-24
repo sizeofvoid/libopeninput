@@ -10,8 +10,7 @@ distributions = [
     {'name': 'fedora', 'version': '31'},
     {'name': 'ubuntu', 'version': '19.10'},
     {'name': 'ubuntu', 'version': '19.04'},
-    {'name': 'arch', 'version': 'rolling',
-     'flavor': 'archlinux'},  # see https://gitlab.freedesktop.org/wayland/ci-templates/merge_requests/19
+    {'name': 'arch', 'version': 'rolling'},
     {
         'name': 'alpine', 'version': 'latest',
         'build': {

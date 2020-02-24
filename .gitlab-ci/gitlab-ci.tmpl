@@ -24,7 +24,7 @@
 # <distribution>:<version>@activity:
 #  e.g. fedora:31@build-default
 
-.templates_sha: &template_sha b7030c2cd0d6ccc5f6d4f8299bafa4daa9240d71 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha 8410d3382c4ba5e83da76a027cb332169f2a95ad # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   {% for template in templates %}
@@ -67,12 +67,12 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2019-12-12.0'
-  UBUNTU_TAG:  '2019-12-12.0'
-  ARCH_TAG:    '2019-12-12.0'
-  ALPINE_TAG:  '2019-12-12.0'
-  FREEBSD_TAG: '2019-12-12.0'
-  QEMU_TAG:    'qemu-vm-2019-12-12.0'
+  FEDORA_TAG:  '2019-12-24.0'
+  UBUNTU_TAG:  '2019-12-24.0'
+  ARCH_TAG:    '2019-12-24.0'
+  ALPINE_TAG:  '2019-12-24.0'
+  FREEBSD_TAG: '2019-12-24.0'
+  QEMU_TAG:    'qemu-vm-2020-02-24.0'
 
   UBUNTU_EXEC: "bash .gitlab-ci/ubuntu_install.sh $UBUNTU_CUSTOM_DEBS"
 
@@ -80,7 +80,7 @@ variables:
   BUILDAH_IMAGE:           $CI_REGISTRY/wayland/ci-templates/buildah:latest
   FEDORA_CONTAINER_IMAGE:  $CI_REGISTRY_IMAGE/fedora/$FEDORA_VERSION:$FEDORA_TAG
   UBUNTU_CONTAINER_IMAGE:  $CI_REGISTRY_IMAGE/ubuntu/$UBUNTU_VERSION:$UBUNTU_TAG
-  ARCH_CONTAINER_IMAGE:    $CI_REGISTRY_IMAGE/archlinux/$ARCH_VERSION:$ARCH_TAG
+  ARCH_CONTAINER_IMAGE:    $CI_REGISTRY_IMAGE/arch/$ARCH_VERSION:$ARCH_TAG
   ALPINE_CONTAINER_IMAGE:  $CI_REGISTRY_IMAGE/alpine/$ALPINE_VERSION:$ALPINE_TAG
   FREEBSD_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/freebsd/11.2:$FREEBSD_TAG
   QEMU_CONTAINER_IMAGE:    $CI_REGISTRY_IMAGE/fedora/$FEDORA_VERSION:$QEMU_TAG
@@ -211,7 +211,7 @@ fedora:30@qemu-prep:
   variables:
     GIT_STRATEGY: none
     {{distro.name.upper()}}_VERSION: '{{distro.version}}'
-    DISTRIB_FLAVOR: {{distro.flavor|default(distro.name)}}
+    DISTRIB_FLAVOR: {{distro.name}}
     DISTRIB_VERSION: ${{distro.name.upper()}}_VERSION
     TAG: ${{distro.name.upper()}}_TAG
 
