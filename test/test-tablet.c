@@ -5327,6 +5327,7 @@ verify_left_handed_touch_sequence(struct litest_device *finger,
 
 START_TEST(tablet_rotation_left_handed)
 {
+#if HAVE_LIBWACOM
 	struct litest_device *tablet = litest_current_device();
 	enum litest_device_type other;
 	struct litest_device *finger;
@@ -5369,11 +5370,13 @@ START_TEST(tablet_rotation_left_handed)
 
 out:
 	litest_delete_device(finger);
+#endif
 }
 END_TEST
 
 START_TEST(tablet_rotation_left_handed_configuration)
 {
+#if HAVE_LIBWACOM
 	struct litest_device *tablet = litest_current_device();
 	enum litest_device_type other;
 	struct litest_device *finger;
@@ -5421,11 +5424,13 @@ START_TEST(tablet_rotation_left_handed_configuration)
 
 out:
 	litest_delete_device(finger);
+#endif
 }
 END_TEST
 
 START_TEST(tablet_rotation_left_handed_while_in_prox)
 {
+#if HAVE_LIBWACOM
 	struct litest_device *tablet = litest_current_device();
 	enum litest_device_type other;
 	struct litest_device *finger;
@@ -5512,11 +5517,13 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 
 out:
 	litest_delete_device(finger);
+#endif
 }
 END_TEST
 
 START_TEST(tablet_rotation_left_handed_while_touch_down)
 {
+#if HAVE_LIBWACOM
 	struct litest_device *tablet = litest_current_device();
 	enum litest_device_type other;
 	struct litest_device *finger;
@@ -5578,11 +5585,13 @@ START_TEST(tablet_rotation_left_handed_while_touch_down)
 
 out:
 	litest_delete_device(finger);
+#endif
 }
 END_TEST
 
 START_TEST(tablet_rotation_left_handed_add_touchpad)
 {
+#if HAVE_LIBWACOM
 	struct litest_device *tablet = litest_current_device();
 	enum litest_device_type other;
 	struct litest_device *finger;
@@ -5630,11 +5639,13 @@ START_TEST(tablet_rotation_left_handed_add_touchpad)
 
 out:
 	litest_delete_device(finger);
+#endif
 }
 END_TEST
 
 START_TEST(tablet_rotation_left_handed_add_tablet)
 {
+#if HAVE_LIBWACOM
 	struct litest_device *finger = litest_current_device();
 	enum litest_device_type other;
 	struct litest_device *tablet;
@@ -5680,8 +5691,10 @@ START_TEST(tablet_rotation_left_handed_add_tablet)
 	verify_left_handed_tablet_sequence(tablet, li, enabled_to);
 
 	litest_delete_device(tablet);
+#endif
 }
 END_TEST
+
 START_TEST(huion_static_btn_tool_pen)
 {
 	struct litest_device *dev = litest_current_device();
