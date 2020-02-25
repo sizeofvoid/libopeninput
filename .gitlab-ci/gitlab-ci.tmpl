@@ -444,25 +444,25 @@ freebsd:11.2@container-clean:
   needs: ['fedora:30@qemu-prep']
 
 {% for suite in test_suites %}
-fedora:30@vm-{{suite.name}}:
+vm-{{suite.name}}:
   extends:
     - .fedora:30@test-suite-vm
   variables:
     SUITE_NAMES: '{{suite.suites}}'
 
-fedora:30@vm-{{suite.name}}-no-libwacom:
+vm-{{suite.name}}-no-libwacom:
   extends:
-    - fedora:30@vm-{{suite.name}}
+    - vm-{{suite.name}}
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
 {% endfor %}
 
 {% for suite in test_suites %}
-fedora:30@valgrind-{{suite.name}}:
+vm-valgrind-{{suite.name}}:
   stage: valgrind
   extends:
-    - fedora:30@vm-{{suite.name}}
+    - vm-{{suite.name}}
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
