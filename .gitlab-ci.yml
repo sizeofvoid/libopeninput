@@ -495,15 +495,13 @@ freebsd:11.2@container-clean:
 # - SUITES: the meson test suites to run, or
 # - SUITE_NAMES: all elements will be expanded to libinput-test-suite-$value
 # Set one or the other, not both.
-.fedora:30@test-suite-vm:
+.test-suite-vm:
   extends:
     - .policy
   stage: VM
-  image: $QEMU_CONTAINER_IMAGE
   tags:
     - kvm
   variables:
-    FEDORA_VERSION: 30
     MESON_BUILDDIR: build_dir
     # remove the global --no-suite=hardware
     MESON_TEST_ARGS: ''
@@ -552,7 +550,15 @@ freebsd:11.2@container-clean:
   retry:
     max: 2
     when: script_failure
+
+
+.fedora:30@test-suite-vm:
+  extends: .test-suite-vm
+  image: $QEMU_CONTAINER_IMAGE
+  variables:
+    FEDORA_VERSION: 30
   needs: ['fedora:30@qemu-prep']
+
 
 vm-touchpad:
   extends:
