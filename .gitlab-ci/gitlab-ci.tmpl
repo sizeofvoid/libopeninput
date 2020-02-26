@@ -67,12 +67,12 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2019-12-24.0'
-  UBUNTU_TAG:  '2019-12-24.0'
-  ARCH_TAG:    '2019-12-24.0'
-  ALPINE_TAG:  '2019-12-24.0'
-  FREEBSD_TAG: '2019-12-24.0'
-  QEMU_TAG:    'qemu-vm-2020-02-24.0'
+  FEDORA_TAG:  '2020-02-26.0'
+  UBUNTU_TAG:  '2020-02-26.0'
+  ARCH_TAG:    '2020-02-26.0'
+  ALPINE_TAG:  '2020-02-26.0'
+  FREEBSD_TAG: '2020-02-26.0'
+  QEMU_TAG:    'qemu-vm-2020-02-26.0'
 
   UBUNTU_EXEC: "bash .gitlab-ci/ubuntu_install.sh $UBUNTU_CUSTOM_DEBS"
 
@@ -171,7 +171,7 @@ check-commit:
     - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
     # get the full container image name (DISTRIB_VERSION still has indirections)
-    - IMAGE=$(eval echo "$DISTRIB_FLAVOR/$DISTRIB_VERSION:$TAG")
+    - IMAGE=$(eval echo "$DISTRIB_NAME/$DISTRIB_VERSION:$TAG")
 
     # force rebuild if schedule, reuse otherwise
     - if [[ $CI_PIPELINE_SOURCE == "schedule" ]] ; then touch .scheduled; fi
@@ -196,7 +196,7 @@ fedora:30@qemu-prep:
     FEDORA_VERSION: 30
     FEDORA_TAG: $QEMU_TAG
     FEDORA_RPMS: $FEDORA_QEMU_RPMS
-    DISTRIB_FLAVOR: fedora
+    DISTRIB_NAME: fedora
     DISTRIB_VERSION: $FEDORA_VERSION
     TAG: $QEMU_TAG
   allow_failure: true
@@ -211,7 +211,7 @@ fedora:30@qemu-prep:
   variables:
     GIT_STRATEGY: none
     {{distro.name.upper()}}_VERSION: '{{distro.version}}'
-    DISTRIB_FLAVOR: {{distro.name}}
+    DISTRIB_NAME: {{distro.name}}
     DISTRIB_VERSION: ${{distro.name.upper()}}_VERSION
     TAG: ${{distro.name.upper()}}_TAG
 
@@ -248,7 +248,7 @@ freebsd:11.2@container-prep:
   variables:
     GIT_STRATEGY: none
     FREEBSD_VERSION: "11.2"
-    DISTRIB_FLAVOR: freebsd
+    DISTRIB_NAME: freebsd
     DISTRIB_VERSION: $FREEBSD_VERSION
     TAG: $FREEBSD_TAG
 
