@@ -609,11 +609,14 @@ tp_restore_synaptics_touches(struct tp_dispatch *tp,
 	    (tp->nfingers_down == tp->num_slots && nfake_touches == tp->num_slots))
 		return;
 
-	/* Synaptics devices may end touch 2 on BTN_TOOL_TRIPLETAP
-	 * and start it again on the next frame with different coordinates
-	 * (#91352). We search the touches we have, if there is one that has
-	 * just ended despite us being on tripletap, we move it back to
-	 * update.
+	/* Synaptics devices may end touch 2 on transition to/fro
+	 * BTN_TOOL_TRIPLETAP and start it again on the next frame with
+	 * different coordinates (bz#91352, gitlab#434). We search the
+	 * touches we have, if there is one that has just ended despite us
+	 * being on tripletap, we move it back to update.
+	 *
+	 * Note: we only handle the transition from 2 to 3 touches, not the
+	 * other way round (see gitlab#434)
 	 */
 	for (i = 0; i < tp->num_slots; i++) {
 		struct tp_touch *t = tp_get_touch(tp, i);
