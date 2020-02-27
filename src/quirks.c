@@ -229,7 +229,7 @@ const char *
 quirk_get_name(enum quirk q)
 {
 	switch(q) {
-	case QUIRK_MODEL_ALPS_TOUCHPAD:			return "ModelALPSTouchpad";
+	case QUIRK_MODEL_ALPS_SERIAL_TOUCHPAD:		return "ModelALPSSerialTouchpad";
 	case QUIRK_MODEL_APPLE_TOUCHPAD:		return "ModelAppleTouchpad";
 	case QUIRK_MODEL_APPLE_TOUCHPAD_ONEBUTTON:	return "ModelAppleTouchpadOneButton";
 	case QUIRK_MODEL_BOUNCING_KEYS:			return "ModelBouncingKeys";
@@ -574,7 +574,7 @@ parse_model(struct quirks_context *ctx,
 	    const char *value)
 {
 	bool b;
-	enum quirk q = QUIRK_MODEL_ALPS_TOUCHPAD;
+	enum quirk q = QUIRK_MODEL_ALPS_SERIAL_TOUCHPAD;
 
 	assert(strneq(key, "Model", 5));
 

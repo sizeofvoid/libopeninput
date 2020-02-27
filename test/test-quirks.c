@@ -1313,7 +1313,7 @@ START_TEST(quirks_model_alps)
 	bool exists, value = false;
 
 	q = dev->quirks;
-	exists = quirks_get_bool(q, QUIRK_MODEL_ALPS_TOUCHPAD, &value);
+	exists = quirks_get_bool(q, QUIRK_MODEL_ALPS_SERIAL_TOUCHPAD, &value);
 
 	if (strstr(libinput_device_get_name(device), "ALPS")) {
 		ck_assert(exists);

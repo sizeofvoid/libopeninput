@@ -616,7 +616,7 @@ tools_list_device_quirks(struct quirks_context *ctx,
 	if (!quirks)
 		return;
 
-	q = QUIRK_MODEL_ALPS_TOUCHPAD;
+	q = QUIRK_MODEL_ALPS_SERIAL_TOUCHPAD;
 	do {
 		if (quirks_has_quirk(quirks, q)) {
 			const char *name;

@@ -906,7 +906,7 @@ tp_init_middlebutton_emulation(struct tp_dispatch *tp,
 		enable_by_default = true;
 		want_config_option = false;
 	} else if (evdev_device_has_model_quirk(device,
-						QUIRK_MODEL_ALPS_TOUCHPAD)) {
+						QUIRK_MODEL_ALPS_SERIAL_TOUCHPAD)) {
 		enable_by_default = true;
 		want_config_option = true;
 	} else
