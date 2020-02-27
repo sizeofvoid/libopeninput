@@ -645,11 +645,13 @@ tp_process_fake_touches(struct tp_dispatch *tp,
 	    EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD)
 		tp_restore_synaptics_touches(tp, time);
 
-	/* ALPS touchpads always set 3 slots in the kernel, even
+	/* ALPS serial touchpads always set 3 slots in the kernel, even
 	 * where they support less than that. So we get BTN_TOOL_TRIPLETAP
 	 * but never slot 2 because our slot count is wrong.
 	 * This also means that the third touch falls through the cracks and
 	 * is ignored.
+	 *
+	 * See https://gitlab.freedesktop.org/libinput/libinput/issues/408
 	 *
 	 * All touchpad devices have at least one slot so we only do this
 	 * for 2 touches or higher.
@@ -665,7 +667,8 @@ tp_process_fake_touches(struct tp_dispatch *tp,
 	 * For a long explanation of what happens, see
 	 * https://gitlab.freedesktop.org/libevdev/libevdev/merge_requests/19
 	 */
-	if (nfake_touches > 1 && tp->has_mt &&
+	if (tp->device->model_flags & EVDEV_MODEL_ALPS_SERIAL_TOUCHPAD &&
+	    nfake_touches > 1 && tp->has_mt &&
 	    tp->nactive_slots > 0 &&
 	    nfake_touches > tp->nactive_slots &&
 	    tp->nactive_slots < tp->num_slots) {
