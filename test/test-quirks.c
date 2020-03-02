@@ -63,6 +63,7 @@ make_data_dir(const char *file_content)
 		litest_assert_int_eq(rc, (int)(strlen(dirname) + 16));
 
 		fp = fopen(filename, "w+");
+		litest_assert_notnull(fp);
 		rc = fputs(file_content, fp);
 		fclose(fp);
 		litest_assert_int_ge(rc, 0);
