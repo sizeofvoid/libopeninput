@@ -1430,37 +1430,26 @@ print_system_header(struct record_context *ctx)
 	struct utsname u;
 	const char *kernel = "unknown";
 	FILE *dmi, *osrelease;
-	char buf[2048] = "unknown";
-
-	if (uname(&u) != -1)
-		kernel = u.release;
-
-	dmi = fopen("/sys/class/dmi/id/modalias", "r");
-	if (dmi) {
-		if (fgets(buf, sizeof(buf), dmi)) {
-			buf[strlen(buf) - 1] = '\0'; /* linebreak */
-		} else {
-			sprintf(buf, "unknown");
-		}
-		fclose(dmi);
-	}
+	char dmistr[2048] = "unknown";
 
 	iprintf(ctx, "system:\n");
 	indent_push(ctx);
 
+	/* /etc/os-release version and distribution name */
 	osrelease = fopen("/etc/os-release", "r");
 	if (!osrelease)
 		osrelease = fopen("/usr/lib/os-release", "r");
 	if (osrelease) {
 		char *distro = NULL, *version = NULL;
+		char osrstr[256] = "unknown";
 
-		while (fgets(buf, sizeof(buf), osrelease)) {
-			buf[strlen(buf) - 1] = '\0'; /* linebreak */
+		while (fgets(osrstr, sizeof(osrstr), osrelease)) {
+			osrstr[strlen(osrstr) - 1] = '\0'; /* linebreak */
 
-			if (!distro && strneq(buf, "ID=", 3))
-				distro = safe_strdup(&buf[3]);
-			else if (!version && strneq(buf, "VERSION_ID=", 11))
-				version = safe_strdup(&buf[11]);
+			if (!distro && strneq(osrstr, "ID=", 3))
+				distro = safe_strdup(&osrstr[3]);
+			else if (!version && strneq(osrstr, "VERSION_ID=", 11))
+				version = safe_strdup(&osrstr[11]);
 
 			if (distro && version) {
 				iprintf(ctx, "os: \"%s:%s\"\n", distro, version);
@@ -1471,8 +1460,23 @@ print_system_header(struct record_context *ctx)
 		free(version);
 		fclose(osrelease);
 	}
+
+	/* kernel version */
+	if (uname(&u) != -1)
+		kernel = u.release;
 	iprintf(ctx, "kernel: \"%s\"\n", kernel);
-	iprintf(ctx, "dmi: \"%s\"\n", buf);
+
+	/* dmi modalias */
+	dmi = fopen("/sys/class/dmi/id/modalias", "r");
+	if (dmi) {
+		if (fgets(dmistr, sizeof(dmistr), dmi)) {
+			dmistr[strlen(dmistr) - 1] = '\0'; /* linebreak */
+		} else {
+			sprintf(dmistr, "unknown");
+		}
+		fclose(dmi);
+	}
+	iprintf(ctx, "dmi: \"%s\"\n", dmistr);
 	indent_pop(ctx);
 }
 
