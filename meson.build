@@ -577,7 +577,22 @@ configure_file(input : 'tools/libinput-measure.man',
 	       install_dir : dir_man1,
 	       )
 
+libinput_analyze_sources = [ 'tools/libinput-analyze.c' ]
+executable('libinput-analyze',
+	   libinput_analyze_sources,
+	   dependencies : deps_tools,
+	   include_directories : [includes_src, includes_include],
+	   install_dir : libinput_tool_path,
+	   install : true,
+	   )
+configure_file(input : 'tools/libinput-analyze.man',
+	       output : 'libinput-analyze.1',
+	       configuration : man_config,
+	       install_dir : dir_man1,
+	       )
+
 src_python_tools = files(
+	      'tools/libinput-analyze-per-slot-delta.py',
 	      'tools/libinput-measure-fuzz.py',
 	      'tools/libinput-measure-touchpad-tap.py',
 	      'tools/libinput-measure-touchpad-pressure.py',
