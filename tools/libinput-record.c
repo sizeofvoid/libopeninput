@@ -2582,6 +2582,7 @@ main(int argc, char **argv)
 	if (ctx.timeout > 0 && output_arg == NULL) {
 		fprintf(stderr,
 			"Option --autorestart requires --output-file\n");
+		rc = EXIT_INVALID_USAGE;
 		goto out;
 	}
 
