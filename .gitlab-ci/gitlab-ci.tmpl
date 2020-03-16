@@ -54,10 +54,10 @@ variables:
   # See the documentation here:                                                 #
   # https://wayland.freedesktop.org/libinput/doc/latest/building_libinput.html  #
   ###############################################################################
-  FEDORA_RPMS:        'git gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx_rtd_theme libwacom-devel cairo-devel   gtk3-devel   glib2-devel    mtdev-devel diffutils'
-  FEDORA_QEMU_RPMS:   'git gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx_rtd_theme libwacom-devel cairo-devel   gtk3-devel   glib2-devel    mtdev-devel diffutils valgrind'
-  UBUNTU_CUSTOM_DEBS: 'git gcc g++     pkg-config         meson check       libudev-dev   libevdev-dev   doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme libwacom-dev   libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev'
-  ARCH_PKGS:          'git gcc         pkgconfig          meson check       libsystemd    libevdev       doxygen graphviz python-sphinx  python-recommonmark  python-sphinx_rtd_theme  libwacom                     gtk3                        mtdev      diffutils'
+  FEDORA_RPMS:        'git gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx_rtd_theme python3-pytest-xdist libwacom-devel cairo-devel   gtk3-devel   glib2-devel    mtdev-devel diffutils'
+  FEDORA_QEMU_RPMS:   'git gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx_rtd_theme python3-pytest-xdist libwacom-devel cairo-devel   gtk3-devel   glib2-devel    mtdev-devel diffutils valgrind'
+  UBUNTU_CUSTOM_DEBS: 'git gcc g++     pkg-config         meson check       libudev-dev   libevdev-dev   doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev   libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev'
+  ARCH_PKGS:          'git gcc         pkgconfig          meson check       libsystemd    libevdev       doxygen graphviz python-sphinx  python-recommonmark  python-sphinx_rtd_theme  python-pytest-xdist  libwacom                     gtk3                        mtdev      diffutils'
   FREEBSD_BUILD_PKGS: 'meson'
   FREEBSD_PKGS:       'libepoll-shim                                        libudev-devd  libevdev                                                                                     libwacom                     gtk3                        libmtdev   '
   ALPINE_PKGS:        'git gcc build-base pkgconfig       meson check-dev   eudev-dev     libevdev-dev                                                                                 libwacom-dev   cairo-dev     gtk+3.0-dev  mtdev-dev bash'
@@ -67,12 +67,12 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2020-02-26.0'
-  UBUNTU_TAG:  '2020-02-26.0'
-  ARCH_TAG:    '2020-02-26.0'
+  FEDORA_TAG:  '2020-03-16.0'
+  UBUNTU_TAG:  '2020-03-16.0'
+  ARCH_TAG:    '2020-03-16.0'
   ALPINE_TAG:  '2020-02-26.0'
   FREEBSD_TAG: '2020-02-26.0'
-  QEMU_TAG:    'qemu-vm-2020-02-26.0'
+  QEMU_TAG:    'qemu-vm-2020-03-16.0'
 
   UBUNTU_EXEC: "bash .gitlab-ci/ubuntu_install.sh $UBUNTU_CUSTOM_DEBS"
 

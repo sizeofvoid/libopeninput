@@ -701,13 +701,16 @@ executable('ptraccel-debug',
 # subtool lookup
 if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimized'
 	config_tool_option_test = configuration_data()
+	config_tool_option_test.set('DISABLE_WARNING', 'yes')
 	config_tool_option_test.set('MESON_ENABLED_DEBUG_GUI', get_option('debug-gui'))
-	tool_option_test = configure_file(input: 'tools/test-tool-option-parsing.py',
-					  output: '@BASENAME@',
+	config_tool_option_test.set('MESON_BUILD_ROOT', meson.current_build_dir())
+	config_tool_option_test.set('TOOL_PATH', libinput_tool.full_path())
+	tool_option_test = configure_file(input: 'tools/test_tool_option_parsing.py',
+					  output: '@PLAINNAME@',
 					  configuration : config_tool_option_test)
 	test('tool-option-parsing',
 	     tool_option_test,
-	     args : ['--tool-path', libinput_tool.full_path()],
+	     args : [tool_option_test, '-n', 'auto'],
 	     suite : ['all', 'root'],
 	     timeout : 240)
 endif
