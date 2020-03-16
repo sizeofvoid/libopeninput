@@ -269,6 +269,7 @@ class TestRecord(TestLibinputTool):
 
     def test_all(self):
         self.run_command_success(['--all', '-o', self.outfile])
+        self.run_command_success(['--all', self.outfile])
 
     def test_autorestart(self):
         self.run_command_success(['--autorestart=2'])
@@ -280,9 +281,14 @@ class TestRecord(TestLibinputTool):
 
     def test_device_single(self):
         self.run_command_success(['/dev/input/event0'])
+        self.run_command_success(['/dev/input/event0', self.outfile])
+        self.run_command_success([self.outfile, '/dev/input/event0'])
+        self.run_command_success([self.outfile, '/dev/input/event0'])
 
     def test_device_multiple(self):
         self.run_command_success(['-o', self.outfile, '/dev/input/event0', '/dev/input/event1'])
+        self.run_command_success([self.outfile, '/dev/input/event0', '/dev/input/event1'])
+        self.run_command_success(['/dev/input/event0', '/dev/input/event1', self.outfile])
 
 
 if __name__ == '__main__':

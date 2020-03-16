@@ -2411,6 +2411,28 @@ usage(void)
 	       program_invocation_short_name);
 }
 
+enum ftype {
+	F_FILE = 8,
+	F_DEVICE,
+	F_NOEXIST,
+};
+
+static inline enum ftype is_char_dev(const char *path)
+{
+	struct stat st;
+
+	if (strneq(path, "/dev", 4))
+		return F_DEVICE;
+
+	if (stat(path, &st) != 0) {
+		if (errno == ENOENT)
+			return F_NOEXIST;
+		return F_FILE;
+	}
+
+	return S_ISCHR(st.st_mode) ? F_DEVICE : F_FILE;
+}
+
 enum options {
 	OPT_AUTORESTART,
 	OPT_HELP,
@@ -2491,6 +2513,72 @@ main(int argc, char **argv)
 		}
 	}
 
+	ndevices = argc - optind;
+
+	/* We allow for multiple arguments after the options, *one* of which
+	 * may be the output file. That one must be the first or the last to
+	 * prevent users from running
+	 *   libinput record /dev/input/event0 output.yml /dev/input/event1
+	 * because this will only backfire anyway.
+	 */
+	if (ndevices >= 1 && output_arg == NULL) {
+		char *first, *last;
+		enum ftype ftype_first;
+
+		first = argv[optind];
+		last = argv[argc - 1];
+
+		ftype_first = is_char_dev(first);
+		if (ndevices == 1) {
+			/* arg is *not* a char device, so let's assume it's
+			 * the output file */
+			if (ftype_first != F_DEVICE) {
+				output_arg = first;
+				optind++;
+				ndevices--;
+			}
+		/* multiple arguments, yay */
+		} else {
+			enum ftype ftype_last = is_char_dev(last);
+			/*
+			   first is device, last is file -> last
+			   first is device, last is device -> noop
+			   first is device, last !exist -> last
+			   first is file, last is device -> first
+			   first is file, last is file -> error
+			   first is file, last !exist -> error
+			   first !exist, last is device -> first
+			   first !exist, last is file -> error
+			   first !exit, last !exist -> error
+			 */
+#define _m(f, l) (((f) << 8) | (l))
+			switch (_m(ftype_first, ftype_last)) {
+			case _m(F_FILE,    F_DEVICE):
+			case _m(F_FILE,    F_NOEXIST):
+			case _m(F_NOEXIST, F_DEVICE):
+				output_arg = first;
+				optind++;
+				ndevices--;
+				break;
+			case _m(F_DEVICE,  F_FILE):
+			case _m(F_DEVICE,  F_NOEXIST):
+				output_arg = last;
+				ndevices--;
+				break;
+			case _m(F_DEVICE,  F_DEVICE):
+				break;
+			case _m(F_FILE,    F_FILE):
+			case _m(F_NOEXIST, F_FILE):
+			case _m(F_NOEXIST, F_NOEXIST):
+				fprintf(stderr, "Ambiguous device vs output file list. Please use --output-file.\n");
+				rc = EXIT_INVALID_USAGE;
+				goto out;
+			}
+#undef _m
+		}
+	}
+
+
 	if (ctx.timeout > 0 && output_arg == NULL) {
 		fprintf(stderr,
 			"Option --autorestart requires --output-file\n");
@@ -2499,15 +2587,13 @@ main(int argc, char **argv)
 
 	ctx.outfile = safe_strdup(output_arg);
 
-	ndevices = argc - optind;
-
 	if (all) {
 		char **devices; /* NULL-terminated */
 		char **d;
 
 		if (output_arg == NULL) {
 			fprintf(stderr,
-				"Option --all requires --output-file\n");
+				"Option --all requires an output file\n");
 			rc = EXIT_INVALID_USAGE;
 			goto out;
 		}
@@ -2527,7 +2613,7 @@ main(int argc, char **argv)
 	} else if (ndevices > 1) {
 		if (ndevices > 1 && output_arg == NULL) {
 			fprintf(stderr,
-				"Recording multiple devices requires --output-file\n");
+				"Recording multiple devices requires an output file\n");
 			rc = EXIT_INVALID_USAGE;
 			goto out;
 		}

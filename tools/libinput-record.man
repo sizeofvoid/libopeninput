@@ -10,7 +10,17 @@ prints them in a format that can later be replayed with the \fBlibinput
 replay(1)\fR tool.  This tool needs to run as root to read from the device.
 .PP
 The output of this tool is YAML, see \fBFILE FORMAT\fR for more details.
-By default it prints to stdout unless the \fB-o\fR option is given.
+By default it prints to stdout unless an output file is provided. For
+example, these are valid invocations:
+
+.B libinput record /dev/input/event3 touchpad.yml
+
+.B libinput record recording.yml
+
+.B libinput record --all all-devices.yml
+
+.B libinput record /dev/input/event3 /dev/input/event4 tp-and-keyboard.yml
+
 .PP
 The events recorded are independent of libinput itself, updating or
 removing libinput will not change the event stream.
@@ -44,6 +54,9 @@ greater than 0.
 .PD 1
 Specifies the output file to use. If \fB\-\-autorestart\fR is given,
 the filename is used as prefix only.
+Where \-\-output-file is not given and the first \fBor\fR last argument is 
+not an input device, the first \fBor\fR last argument will be the output
+file.
 .TP 8
 .B \-\-show\-keycodes
 Show keycodes as-is in the recording. By default, common keys are obfuscated
