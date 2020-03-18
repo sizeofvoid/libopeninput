@@ -1,4 +1,13 @@
 # vim: set expandtab shiftwidth=2 tabstop=8 textwidth=0 filetype=yaml:
+
+{# You're looking at the template here, so you can ignore the below
+   warning. This is the right file to edit #}
+########################################
+#                                      #
+# THIS FILE IS GENERATED, DO NOT EDIT  #
+#                                      #
+########################################
+
 #
 # This is a bit complicated for two reasons:
 # - we really want to run dnf/apt/... only once, updating on the test runner for
@@ -27,11 +36,13 @@
 .templates_sha: &template_sha 395535ce90eb48e260c0dff12c35d9237e22c539 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
-  {% for template in templates %}
-  # {{ template.capitalize() }} container builder template
+  {% for distro in distributions|sort(attribute="name") %}
+  {% if distro.ci_templates %}
+  # {{ distro.name.capitalize() }} container builder template
   - project: 'freedesktop/ci-templates'
     ref: *template_sha
-    file: '/templates/{{template}}.yml'
+    file: '/templates/{{distro.name}}.yml'
+  {% endif %}
   {% endfor %}
 
 stages:
@@ -67,12 +78,14 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2020-03-17.0'
-  UBUNTU_TAG:  '2020-03-17.0'
-  ARCH_TAG:    '2020-03-17.0'
-  ALPINE_TAG:  '2020-03-17.0'
-  FREEBSD_TAG: '2020-03-17.0'
-  QEMU_TAG:    'qemu-vm-2020-03-17.0'
+{% for distro in distributions %}
+  {{"%-13s"| format(distro.name.upper() + '_TAG:')}}'{{distro.tag}}'
+{% endfor %}
+{% for distro in distributions %}
+{% if distro.want_qemu %}
+  QEMU_TAG:    'qemu-vm-{{distro.tag}}'
+{% endif %}
+{% endfor %}
 
   UBUNTU_EXEC: "bash .gitlab-ci/ubuntu_install.sh $UBUNTU_CUSTOM_DEBS"
 
@@ -122,9 +135,9 @@ check-ci-script:
   stage: prep
   before_script:
     - apk add python3 git
-    - pip3 install --user jinja2
+    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
-    - python3 ./.gitlab-ci/generate-gitlab-ci.py
+    - ci-fairy generate-template --config .gitlab-ci/config.yml .gitlab-ci/gitlab-ci.tmpl -o .gitlab-ci.yml
     - git diff --exit-code && exit 0 || true
     - echo "Committed gitlab-ci.yml differs from generated gitlab-ci.yml. Please verify"
     - exit 1
@@ -180,7 +193,8 @@ fedora:30@qemu-prep:
   allow_failure: true
 
 {% for distro in distributions %}
-{{distro.name}}:{{distro.version}}@container-prep:
+{% for version in distro.versions %}
+{{distro.name}}:{{version}}@container-prep:
   extends:
     - .fdo.container-build@{{distro.name}}
     - .policy
@@ -188,13 +202,14 @@ fedora:30@qemu-prep:
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: '{{distro.version}}'
+    FDO_DISTRIBUTION_VERSION: '{{version}}'
     FDO_DISTRIBUTION_PACKAGES: ${{distro.name.upper()}}_PACKAGES
     FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_TAG
  {% if version == 'ubuntu'%}
     FDO_DISTRIBUTION_EXEC: $UBUNTU_EXEC
  {% endif %}
 
+{% endfor %}
 {% endfor %}
 
 
@@ -285,16 +300,18 @@ freebsd:11.2@container-prep:
     - schedules
 
 {% for distro in distributions %}
-{{distro.name}}:{{distro.version}}@container-clean:
+{% for version in distro.versions %}
+{{distro.name}}:{{version}}@container-clean:
   extends:
     - .container-clean
   variables:
     GIT_STRATEGY: none
-    {{distro.name.upper()}}_VERSION: '{{distro.version}}'
+    {{distro.name.upper()}}_VERSION: '{{version}}'
     CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/{{distro.name}}/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-    FDO_DISTRIBUTION_VERSION: '{{distro.version}}'
+    FDO_DISTRIBUTION_VERSION: '{{version}}'
     FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_TAG
 
+{% endfor %}
 {% endfor %}
 
 freebsd:11.2@container-clean:
@@ -554,13 +571,14 @@ flake8@fedora:30:
 #################################################################
 
 {% for distro in distributions %}
-{{distro.name}}:{{distro.version}}@default-build:
+{% for version in distro.versions %}
+{{distro.name}}:{{version}}@default-build:
   stage: distro
   extends:
     - .build@template
     - .fdo.distribution-image@{{distro.name}}
   variables:
-    FDO_DISTRIBUTION_VERSION: '{{distro.version}}'
+    FDO_DISTRIBUTION_VERSION: '{{version}}'
     FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_TAG
     {# Where we have extra_variables defined, add them to the list #}
     {% if distro.build is defined and distro.build.extra_variables is defined %}
@@ -568,9 +586,10 @@ flake8@fedora:30:
     {{var}}
     {% endfor %}
     {% endif %}
-  needs: ['{{distro.name}}:{{distro.version}}@container-prep']
+  needs: ['{{distro.name}}:{{version}}@container-prep']
 
 
+{% endfor %}
 {% endfor %}
 
 #

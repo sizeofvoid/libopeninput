@@ -1,4 +1,11 @@
 # vim: set expandtab shiftwidth=2 tabstop=8 textwidth=0 filetype=yaml:
+
+########################################
+#                                      #
+# THIS FILE IS GENERATED, DO NOT EDIT  #
+#                                      #
+########################################
+
 #
 # This is a bit complicated for two reasons:
 # - we really want to run dnf/apt/... only once, updating on the test runner for
@@ -132,9 +139,9 @@ check-ci-script:
   stage: prep
   before_script:
     - apk add python3 git
-    - pip3 install --user jinja2
+    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
-    - python3 ./.gitlab-ci/generate-gitlab-ci.py
+    - ci-fairy generate-template --config .gitlab-ci/config.yml .gitlab-ci/gitlab-ci.tmpl -o .gitlab-ci.yml
     - git diff --exit-code && exit 0 || true
     - echo "Committed gitlab-ci.yml differs from generated gitlab-ci.yml. Please verify"
     - exit 1
