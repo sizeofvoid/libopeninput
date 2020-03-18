@@ -137,7 +137,7 @@ check-ci-script:
     - apk add python3 git
     - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
-    - ci-fairy generate-template --config .gitlab-ci/config.yml .gitlab-ci/gitlab-ci.tmpl -o .gitlab-ci.yml
+    - ci-fairy generate-template
     - git diff --exit-code && exit 0 || true
     - echo "Committed gitlab-ci.yml differs from generated gitlab-ci.yml. Please verify"
     - exit 1
