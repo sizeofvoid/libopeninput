@@ -262,74 +262,23 @@ freebsd:11.2@container-prep:
 # the registry and will remove any that are not tagged with the provided
 # $container_image:$tag
 #
-# Note that we want to use the latest buildah image, and for that
-# we use one of the .fdo.container-build@distribution by replacing the
-# `script`.
 .container-clean:
-  extends:
-    - .fdo.container-build@fedora
-    - .policy
   stage: container_clean
+  extends:
+    - .policy
+  image: golang:alpine
+  before_script:
+    - apk add python3 git
+    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
-    # get the full container image name (CURRENT_CONTAINER_IMAGE still has indirections)
-    - CONTAINER_IMAGE=$(eval echo "$CURRENT_CONTAINER_IMAGE")
-    - GITLAB=$(echo $CI_PROJECT_URL | cut -f3 -d/)
-    - REPOSITORY=$(echo $CONTAINER_IMAGE | cut -f2- -d/ | cut -f1 -d:)
-    - IMAGE_PATH=$(echo $CONTAINER_IMAGE | cut -f1 -d:)
-    - LATEST_TAG=$(echo $CONTAINER_IMAGE | cut -f2 -d:)
-
-    # log in to the registry (read only)
-    - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-
-    # get the r/w token from the settings to access the registry
-    #
-    # each developer needs to register a secret variable that contains
-    # a personal token with api access. The token
-    # - must be named PERSONAL_TOKEN_$USER (for example PERSONAL_TOKEN_bentiss)
-    # - must be registered in the CI/CD Variables section as type file
-    # - value must be a netrc file as a single-line string:
-    #   default login <user> password <token value>
-    #   e.g. "default login bentiss password 1235abcde"
-    - tokenname="PERSONAL_TOKEN_$GITLAB_USER_LOGIN"
-    - netrcfile=$(eval echo "\$$tokenname")
-    - if [[ ! -f "$netrcfile" ]]; then
-         echo "No netrc file found or token is missing, skipping job" && false;
-      fi
-
-    # request a token for the registry API
-    - REGISTRY_TOKEN=$(curl https://$GITLAB/jwt/auth --get
-                             --silent --show-error
-                             -d client_id=docker
-                             -d offline_token=true
-                             -d service=container_registry
-                             -d "scope=repository:$REPOSITORY:pull,*"
-                             --fail
-                             --netrc-file "$netrcfile"
-                             | sed -r 's/(\{"token":"|"\})//g')
-
-    # get the digest of the latest image
-    - LATEST_MANIFEST=$(skopeo inspect docker://$IMAGE_PATH:$LATEST_TAG | jq -r '.Digest')
-
-    # get the list of tags
-    - TAGS=$(skopeo inspect docker://$IMAGE_PATH:$LATEST_TAG | jq -r '.RepoTags[]')
-    # FIXME: is the above command working properly? If not, use below:
-    # - TAGS=$(curl -X GET -H "accept:application/vnd.docker.distribution.manifest.v2+json"
-    #                      -H "authorization:Bearer $REGISTRY_TOKEN"
-    #                      https://$CI_REGISTRY/v2/$REPOSITORY/tags/list | jq -r '.tags[]')
-
-    # iterate over the tags
-    - for tag in $TAGS;
-      do
-        MANIFEST=$(skopeo inspect docker://$IMAGE_PATH:$tag | jq -r '.Digest');
-        if test x"$MANIFEST" != x"$LATEST_MANIFEST";
-          then
-            echo removing $tag as $MANIFEST;
-            curl https://$CI_REGISTRY/v2/$REPOSITORY/manifests/$MANIFEST --silent
-                 -H "accept:application/vnd.docker.distribution.manifest.v2+json"
-                 -H "authorization:Bearer $REGISTRY_TOKEN"
-                 --fail --show-error -X DELETE || true
-          ;fi
-      ;done
+    # Go to your Profile, Settings, Access Tokens
+    # Create a personal token with 'api' scope, copy the value.
+    # Go to CI/CD, Schedules, schedule a new monthly job (or edit the existing one)
+    # Define a variable of type File named AUTHFILE. Content is that token
+    # value.
+    - ci-fairy -v --authfile $AUTHFILE delete-image
+            --repository $FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION
+            --exclude-tag $FDO_DISTRIBUTION_TAG
   dependencies: []
   allow_failure: true
   only:
