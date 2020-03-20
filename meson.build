@@ -619,6 +619,7 @@ src_man = files(
 	      'tools/libinput-measure-touchpad-tap.man',
 	      'tools/libinput-measure-touchpad-pressure.man',
 	      'tools/libinput-measure-touch-size.man',
+	      'tools/libinput-analyze-per-slot-delta.man',
 )
 
 foreach m : src_man

@@ -53,6 +53,9 @@ Record the events from a device
 .TP 8
 .B libinput\-replay(1)
 Replay the events from a device
+.TP 8
+.B libinput\-analyze(1)
+Analyze events from a device
 .SH LIBINPUT
 Part of the
 .B libinput(1)
