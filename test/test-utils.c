@@ -1033,6 +1033,44 @@ START_TEST(strjoin_test)
 }
 END_TEST
 
+START_TEST(strstrip_test)
+{
+	struct strstrip_test {
+		const char *string;
+		const char *expected;
+		const char *what;
+	} tests[] = {
+		{ "foo",		"foo",		"1234" },
+		{ "\"bar\"",		"bar",		"\"" },
+		{ "'bar'",		"bar",		"'" },
+		{ "\"bar\"",		"\"bar\"",	"'" },
+		{ "'bar'",		"'bar'",	"\"" },
+		{ "\"bar\"",		"bar",		"\"" },
+		{ "\"\"",		"",		"\"" },
+		{ "\"foo\"bar\"",	"foo\"bar",	"\"" },
+		{ "\"'foo\"bar\"",	"foo\"bar",	"\"'" },
+		{ "abcfooabcbarbca",	"fooabcbar",	"abc" },
+		{ "xxxxfoo",		"foo",		"x" },
+		{ "fooyyyy",		"foo",		"y" },
+		{ "xxxxfooyyyy",	"foo",		"xy" },
+		{ "x xfooy y",		" xfooy ",	"xy" },
+		{ " foo\n",		"foo",		" \n" },
+		{ "",			"",		"abc" },
+		{ "",			"",		"" },
+		{ NULL , NULL, NULL }
+	};
+	struct strstrip_test *t = tests;
+
+	while (t->string) {
+		char *str;
+		str = strstrip(t->string, t->what);
+		ck_assert_str_eq(str, t->expected);
+		free(str);
+		t++;
+	}
+}
+END_TEST
+
 START_TEST(list_test_insert)
 {
 	struct list_test {
@@ -1138,6 +1176,7 @@ litest_utils_suite(void)
 	tcase_add_test(tc, strsplit_test);
 	tcase_add_test(tc, kvsplit_double_test);
 	tcase_add_test(tc, strjoin_test);
+	tcase_add_test(tc, strstrip_test);
 	tcase_add_test(tc, time_conversion);
 
 	tcase_add_test(tc, list_test_insert);
