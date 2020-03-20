@@ -24,11 +24,17 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
-import pytest
 import resource
 import sys
 import subprocess
 import logging
+
+try:
+    import pytest
+except ImportError:
+    print('Failed to import pytest. Skipping.', file=sys.stderr)
+    sys.exit(77)
+
 
 logger = logging.getLogger('test')
 logger.setLevel(logging.DEBUG)
