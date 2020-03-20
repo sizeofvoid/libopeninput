@@ -1447,9 +1447,9 @@ print_system_header(struct record_context *ctx)
 			osrstr[strlen(osrstr) - 1] = '\0'; /* linebreak */
 
 			if (!distro && strneq(osrstr, "ID=", 3))
-				distro = safe_strdup(&osrstr[3]);
+				distro = strstrip(&osrstr[3], "\"'");
 			else if (!version && strneq(osrstr, "VERSION_ID=", 11))
-				version = safe_strdup(&osrstr[11]);
+				version = strstrip(&osrstr[11], "\"'");
 
 			if (distro && version) {
 				iprintf(ctx, "os: \"%s:%s\"\n", distro, version);
