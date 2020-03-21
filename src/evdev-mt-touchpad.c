@@ -1718,10 +1718,11 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 
 		if (tp_detect_jumps(tp, t, time)) {
 			if (!tp->semi_mt)
-				evdev_log_bug_kernel(tp->device,
-					       "Touch jump detected and discarded.\n"
-					       "See %stouchpad-jumping-cursors.html for details\n",
-					       HTTP_DOC_LINK);
+				evdev_log_bug_kernel_ratelimit(tp->device,
+						&tp->jump.warning,
+					        "Touch jump detected and discarded.\n"
+					        "See %stouchpad-jumping-cursors.html for details\n",
+					        HTTP_DOC_LINK);
 			tp_motion_history_reset(t);
 		}
 
@@ -3580,6 +3581,9 @@ tp_init(struct tp_dispatch *tp,
 
 	if (!use_touch_size)
 		tp_init_pressure(tp, device);
+
+	/* 5 warnings per 2 hours should be enough */
+	ratelimit_init(&tp->jump.warning, s2us(2 * 60 * 60), 5);
 
 	/* Set the dpi to that of the x axis, because that's what we normalize
 	   to when needed*/
