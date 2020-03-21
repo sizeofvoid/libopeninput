@@ -395,7 +395,10 @@ pad_notify_button_mask(struct pad_dispatch *pad,
 			} else if (map_is_key(map)) {
 				uint32_t key = map_value(map);
 
-				tablet_pad_notify_key(base, time, key, state);
+				tablet_pad_notify_key(base,
+						      time,
+						      key,
+						      (enum libinput_key_state)state);
 			} else {
 				abort();
 			}
