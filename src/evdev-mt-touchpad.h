@@ -279,6 +279,10 @@ struct tp_dispatch {
 	 */
 	unsigned int fake_touches;
 
+	struct {
+		struct ratelimit warning;
+	} jump;
+
 	/* if pressure goes above high -> touch down,
 	   if pressure then goes below low -> touch up */
 	struct {
