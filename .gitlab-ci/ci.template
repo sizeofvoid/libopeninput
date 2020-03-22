@@ -37,7 +37,7 @@
 
 include:
   {% for distro in distributions|sort(attribute="name") %}
-  {% if distro.ci_templates %}
+  {% if not distro.does_not_have_ci_templates %}
   # {{ distro.name.capitalize() }} container builder template
   - project: 'freedesktop/ci-templates'
     ref: *template_sha

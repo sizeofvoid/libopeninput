@@ -13,18 +13,15 @@ distributions:
       - '31'
       - '32'
     want_qemu: true
-    ci_templates: true
   - name: ubuntu
     tag: *default_tag
     versions:
       - '19.10'
       - '19.04'
-    ci_templates: true
   - name: arch
     tag: *default_tag
     versions:
       - 'rolling'
-    ci_templates: true
   - name: alpine
     tag: *default_tag
     versions:
@@ -36,10 +33,9 @@ distributions:
         # for any tcase_add_exit_test/tcase_add_test_raise_signal
         # but someone more invested in musl will have to figure that out.
         - "MESON_TEST_ARGS: '' # litest-selftest fails on musl"
-    ci_templates: true
   - name: freebsd
     tag: *default_tag
-    ci_templates: false
+    does_not_have_ci_templates: true
 
 test_suites:
   - name: touchpad
