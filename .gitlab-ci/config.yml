@@ -11,6 +11,7 @@ distributions:
     versions:
       - '30'
       - '31'
+      - '32'
     want_qemu: true
     ci_templates: true
   - name: ubuntu
