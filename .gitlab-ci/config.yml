@@ -13,6 +13,7 @@ distributions:
       - '31'
       - '32'
     want_qemu: true
+    use_for_custom_build_tests: true
   - name: ubuntu
     tag: *default_tag
     versions:

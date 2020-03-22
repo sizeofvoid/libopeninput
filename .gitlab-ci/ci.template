@@ -454,27 +454,29 @@ vm-valgrind-{{suite.name}}:
 
 {% endfor %} {# for if distro.want_qemu #}
 
-.fedora-build@template:
+{% for distro in distributions if distro.use_for_custom_build_tests %}
+{% set version = "{}".format(distro.versions|last()) %}
+.{{distro.name}}-build@template:
   extends:
     - .fdo.distribution-image@fedora
     - .build@template
   variables:
-    FDO_DISTRIBUTION_VERSION: '32'
-    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+    FDO_DISTRIBUTION_VERSION: '{{version}}'
+    FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_TAG
   needs:
-    - "fedora:32@container-prep"
+    - "{{distro.name}}:{{version}}@container-prep"
 
-default-build-release@fedora:32:
+default-build-release@{{distro.name}}:{{version}}:
   stage: distro
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   variables:
     MESON_ARGS: "-Dbuildtype=release"
     CFLAGS: "-Werror"
 
-scan-build@fedora:32:
+scan-build@{{distro.name}}:{{version}}:
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   variables:
     NINJA_ARGS: scan-build
     MESON_TEST_ARGS: ''
@@ -490,65 +492,65 @@ scan-build@fedora:32:
 # run them on one image, they shouldn't fail on one distro
 # when they succeed on another.
 
-build-no-libwacom@fedora:32:
+build-no-libwacom@{{distro.name}}:{{version}}:
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   variables:
     MESON_ARGS: "-Dlibwacom=false"
 
-build-no-libwacom-nodeps@fedora:32:
+build-no-libwacom-nodeps@{{distro.name}}:{{version}}:
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   variables:
     MESON_ARGS: "-Dlibwacom=false"
   before_script:
     - dnf remove -y libwacom libwacom-devel
 
-build-no-docs@fedora:32:
+build-no-docs@{{distro.name}}:{{version}}:
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   variables:
     MESON_ARGS: "-Ddocumentation=false"
 
-build-no-docs-nodeps@fedora:32:
+build-no-docs-nodeps@{{distro.name}}:{{version}}:
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   variables:
     MESON_ARGS: "-Ddocumentation=false"
   before_script:
     - dnf remove -y doxygen graphviz
 
-build-no-debuggui@fedora:32:
+build-no-debuggui@{{distro.name}}:{{version}}:
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   variables:
     MESON_ARGS: "-Ddebug-gui=false"
 
-build-no-debuggui-nodeps@fedora:32:
+build-no-debuggui-nodeps@{{distro.name}}:{{version}}:
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   variables:
     MESON_ARGS: "-Ddebug-gui=false"
   before_script:
     - dnf remove -y gtk3-devel
 
-build-no-tests@fedora:32:
+build-no-tests@{{distro.name}}:{{version}}:
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   variables:
     MESON_ARGS: "-Dtests=false"
 
-build-no-tests-nodeps@fedora:32:
+build-no-tests-nodeps@{{distro.name}}:{{version}}:
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   variables:
     MESON_ARGS: "-Dtests=false"
   before_script:
     - dnf remove -y check-devel
 
-valgrind@fedora:32:
+valgrind@{{distro.name}}:{{version}}:
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   variables:
     MESON_TEST_ARGS: '--suite=valgrind --no-suite=hardware --setup=valgrind'
   before_script:
@@ -556,9 +558,9 @@ valgrind@fedora:32:
 
 # Python checks, only run on Fedora
 
-usr-bin-env-python@fedora:32:
+usr-bin-env-python@{{distro.name}}:{{version}}:
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   script:
     - |
       if git grep -l '^#!/usr/bin/python'; then
@@ -566,14 +568,15 @@ usr-bin-env-python@fedora:32:
         /bin/false
       fi
 
-flake8@fedora:32:
+flake8@{{distro.name}}:{{version}}:
   extends:
-    - .fedora-build@template
+    - .{{distro.name}}-build@template
   before_script:
     - dnf install -y python3-flake8
   script:
     - flake8-3 --ignore=W501,E501,W504 $(git grep -l '^#!/usr/bin/env python3')
 
+{% endfor %}
 #################################################################
 #                                                               #
 #                        distro stage                           #
