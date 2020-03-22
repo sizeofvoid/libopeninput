@@ -81,7 +81,7 @@ strv_from_string(const char *in, const char *separators)
 	assert(in != NULL);
 
 	s = in;
-	while ((word = next_word(&s, &l, separators)) != NULL)
+	while (next_word(&s, &l, separators) != NULL)
 	       nelems++;
 
 	if (nelems == 0)
