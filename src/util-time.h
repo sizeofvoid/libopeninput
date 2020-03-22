@@ -25,10 +25,13 @@
 
 #include "config.h"
 
+#include <assert.h>
 #include <time.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <linux/input.h>
+
+#include "util-macros.h"
 
 static inline void
 msleep(unsigned int ms)
@@ -81,4 +84,43 @@ us2tv(uint64_t time)
 	tv.tv_usec = time % ms2us(1000);
 
 	return tv;
+}
+
+struct human_time {
+	unsigned int value;
+	const char *unit;
+};
+
+/**
+ * Converts a time delta in µs to a human-readable time like "2h" or "4d"
+ */
+static inline struct human_time
+to_human_time(uint64_t us)
+{
+	struct human_time t;
+	struct c {
+		const char *unit;
+		unsigned int change_from_previous;
+		uint64_t limit;
+	} conversion[] = {
+		{"us", 1, 5000},
+		{"ms", 1000, 5000},
+		{"s", 1000, 120},
+		{"min", 60, 120},
+		{"h", 60, 48},
+		{"d", 24, ~0},
+	};
+	struct c *c;
+	uint64_t value = us;
+
+	ARRAY_FOR_EACH(conversion, c) {
+		value = value/c->change_from_previous;
+		if (value < c->limit) {
+			t.unit = c->unit;
+			t.value = value;
+			return t;
+		}
+	}
+
+	assert(!"We should never get here");
 }

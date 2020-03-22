@@ -633,6 +633,37 @@ START_TEST(time_conversion)
 }
 END_TEST
 
+START_TEST(human_time)
+{
+	struct ht_tests {
+		uint64_t interval;
+		unsigned int value;
+		const char *unit;
+	} tests[] = {
+		{ 0, 0, "us" },
+		{ 123, 123, "us" },
+		{ ms2us(5), 5, "ms" },
+		{ ms2us(100), 100, "ms" },
+		{ s2us(5), 5, "s" },
+		{ s2us(100), 100, "s" },
+		{ s2us(120), 2, "min" },
+		{ 5 * s2us(60), 5, "min" },
+		{ 120 * s2us(60), 2, "h" },
+		{ 5 * 60 * s2us(60), 5, "h" },
+		{ 48 * 60 * s2us(60), 2, "d" },
+		{ 1000 * 24 * 60 * s2us(60), 1000, "d" },
+		{ 0, 0, NULL },
+	};
+	for (int i = 0; tests[i].unit != NULL; i++) {
+		struct human_time ht;
+
+		ht = to_human_time(tests[i].interval);
+		ck_assert_int_eq(ht.value, tests[i].value);
+		ck_assert_str_eq(ht.unit, tests[i].unit);
+	}
+}
+END_TEST
+
 struct atoi_test {
 	char *str;
 	bool success;
@@ -1178,6 +1209,7 @@ litest_utils_suite(void)
 	tcase_add_test(tc, strjoin_test);
 	tcase_add_test(tc, strstrip_test);
 	tcase_add_test(tc, time_conversion);
+	tcase_add_test(tc, human_time);
 
 	tcase_add_test(tc, list_test_insert);
 	tcase_add_test(tc, list_test_append);

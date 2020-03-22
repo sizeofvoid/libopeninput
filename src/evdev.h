@@ -814,12 +814,17 @@ evdev_log_msg_ratelimit(struct evdev_device *device,
 	log_msg_va(evdev_libinput_context(device), priority, buf, args);
 	va_end(args);
 
-	if (state == RATELIMIT_THRESHOLD)
+	if (state == RATELIMIT_THRESHOLD) {
+		struct human_time ht = to_human_time(ratelimit->interval);
 		evdev_log_msg(device,
 			      priority,
-			      "WARNING: log rate limit exceeded (%d msgs per %dms). Discarding future messages.\n",
+			      "WARNING: log rate limit exceeded (%d msgs per %d%s). "
+			      "Discarding future messages.\n",
 			      ratelimit->burst,
-			      us2ms(ratelimit->interval));
+			      ht.value,
+			      ht.unit);
+
+	}
 }
 
 #define evdev_log_debug(d_, ...) evdev_log_msg((d_), LIBINPUT_LOG_PRIORITY_DEBUG, __VA_ARGS__)
