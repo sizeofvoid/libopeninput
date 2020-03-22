@@ -322,6 +322,7 @@ quirks_data = [
 	'quirks/30-vendor-microsoft.quirks',
 	'quirks/30-vendor-razer.quirks',
 	'quirks/30-vendor-synaptics.quirks',
+	'quirks/30-vendor-trust.quirks',
 	'quirks/30-vendor-vmware.quirks',
 	'quirks/30-vendor-wacom.quirks',
 	'quirks/50-system-acer.quirks',
