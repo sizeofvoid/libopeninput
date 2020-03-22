@@ -416,7 +416,8 @@ freebsd:11.2@container-clean:
   variables:
     FDO_DISTRIBUTION_VERSION: 32
     FDO_DISTRIBUTION_TAG: $QEMU_TAG
-  needs: ['fedora:32@qemu-prep']
+  needs:
+    - "fedora:32@qemu-prep"
 
 
 {% for suite in test_suites %}
@@ -452,7 +453,8 @@ vm-valgrind-{{suite.name}}:
   variables:
     FDO_DISTRIBUTION_VERSION: '32'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
-  needs: ['fedora:32@container-prep']
+  needs:
+    - "fedora:32@container-prep"
 
 default-build-release@fedora:32:
   stage: distro
@@ -586,7 +588,8 @@ flake8@fedora:32:
     {{var}}
     {% endfor %}
     {% endif %}
-  needs: ['{{distro.name}}:{{version}}@container-prep']
+  needs:
+    - "{{distro.name}}:{{version}}@container-prep"
 
 
 {% endfor %}
@@ -608,7 +611,8 @@ flake8@fedora:32:
 freebsd:11.2@default-build:
   extends:
     - .freebsd@template
-  needs: ['freebsd:11.2@container-prep']
+  needs:
+    - "freebsd:11.2@container-prep"
 
 #
 # deploy

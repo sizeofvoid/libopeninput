@@ -541,7 +541,8 @@ freebsd:11.2@container-clean:
   variables:
     FDO_DISTRIBUTION_VERSION: 32
     FDO_DISTRIBUTION_TAG: $QEMU_TAG
-  needs: ['fedora:32@qemu-prep']
+  needs:
+    - "fedora:32@qemu-prep"
 
 
 vm-touchpad:
@@ -668,7 +669,8 @@ vm-valgrind-pointer:
   variables:
     FDO_DISTRIBUTION_VERSION: '32'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
-  needs: ['fedora:32@container-prep']
+  needs:
+    - "fedora:32@container-prep"
 
 default-build-release@fedora:32:
   stage: distro
@@ -794,7 +796,8 @@ fedora:30@default-build:
   variables:
     FDO_DISTRIBUTION_VERSION: '30'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
-  needs: ['fedora:30@container-prep']
+  needs:
+    - "fedora:30@container-prep"
 
 
 fedora:31@default-build:
@@ -805,7 +808,8 @@ fedora:31@default-build:
   variables:
     FDO_DISTRIBUTION_VERSION: '31'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
-  needs: ['fedora:31@container-prep']
+  needs:
+    - "fedora:31@container-prep"
 
 
 fedora:32@default-build:
@@ -816,7 +820,8 @@ fedora:32@default-build:
   variables:
     FDO_DISTRIBUTION_VERSION: '32'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
-  needs: ['fedora:32@container-prep']
+  needs:
+    - "fedora:32@container-prep"
 
 
 ubuntu:19.10@default-build:
@@ -827,7 +832,8 @@ ubuntu:19.10@default-build:
   variables:
     FDO_DISTRIBUTION_VERSION: '19.10'
     FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
-  needs: ['ubuntu:19.10@container-prep']
+  needs:
+    - "ubuntu:19.10@container-prep"
 
 
 ubuntu:19.04@default-build:
@@ -838,7 +844,8 @@ ubuntu:19.04@default-build:
   variables:
     FDO_DISTRIBUTION_VERSION: '19.04'
     FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
-  needs: ['ubuntu:19.04@container-prep']
+  needs:
+    - "ubuntu:19.04@container-prep"
 
 
 arch:rolling@default-build:
@@ -849,7 +856,8 @@ arch:rolling@default-build:
   variables:
     FDO_DISTRIBUTION_VERSION: 'rolling'
     FDO_DISTRIBUTION_TAG: $ARCH_TAG
-  needs: ['arch:rolling@container-prep']
+  needs:
+    - "arch:rolling@container-prep"
 
 
 alpine:latest@default-build:
@@ -862,7 +870,8 @@ alpine:latest@default-build:
     FDO_DISTRIBUTION_TAG: $ALPINE_TAG
     MESON_ARGS: '-Ddocumentation=false' # alpine does not have python-recommonmark
     MESON_TEST_ARGS: '' # litest-selftest fails on musl
-  needs: ['alpine:latest@container-prep']
+  needs:
+    - "alpine:latest@container-prep"
 
 
 
@@ -882,7 +891,8 @@ alpine:latest@default-build:
 freebsd:11.2@default-build:
   extends:
     - .freebsd@template
-  needs: ['freebsd:11.2@container-prep']
+  needs:
+    - "freebsd:11.2@container-prep"
 
 #
 # deploy
