@@ -15,10 +15,10 @@ detailed instructions to report bugs
 <!-- Note: if your libinput version is older than the current stable version,
 please reproduce with a current version instead -->
 
-- [ ] libinput version: 
-- [ ] hardware information:
-- [ ] `libinput record` output: <!-- do not paste, **attach** the file -->
-- [ ] `libinput debug-events --verbose` output: <!-- do not paste, **attach the file -->
+- libinput version: 
+- hardware information:
+- `libinput record` output: do not paste, **attach** the file
+- `libinput debug-events --verbose` output: do not paste, **attach the file**
 
 <!-- 
 
