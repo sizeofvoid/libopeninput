@@ -177,9 +177,12 @@ check-commit:
     # force rebuild if schedule, reuse otherwise
     - if [[ $CI_PIPELINE_SOURCE == "schedule" ]] ; then export FDO_FORCE_REBUILD=1; fi
 
-fedora:32@qemu-prep:
+{# qemu builds are only done for the latest version of any distribution #}
+{% for distro in distributions if distro.want_qemu %}
+{% set version = "{}".format(distro.versions|last()) %}
+{{distro.name}}:{{version}}@qemu-prep:
   extends:
-    - .fdo.qemu-build@fedora
+    - .fdo.qemu-build@{{distro.name}}
     - .policy
     - .rebuild_for_schedule
   stage: prep
@@ -187,10 +190,11 @@ fedora:32@qemu-prep:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: 32
+    FDO_DISTRIBUTION_VERSION: {{version}}
     FDO_DISTRIBUTION_TAG: $QEMU_TAG
-    FDO_DISTRIBUTION_PACKAGES: $FEDORA_QEMU_RPMS
+    FDO_DISTRIBUTION_PACKAGES: ${{distro.name.upper()}}_QEMU_RPMS
   allow_failure: true
+{% endfor %}
 
 {% for distro in distributions %}
 {% for version in distro.versions %}
@@ -410,20 +414,23 @@ freebsd:11.2@container-clean:
     when: script_failure
 
 
-.fedora:32@test-suite-vm:
+{# qemu tests are only done for the latest version of any distribution #}
+{% for distro in distributions if distro.want_qemu %}
+{% set version = "{}".format(distro.versions|last()) %}
+.{{distro.name}}:{{version}}@test-suite-vm:
   extends:
     - .test-suite-vm
   variables:
-    FDO_DISTRIBUTION_VERSION: 32
+    FDO_DISTRIBUTION_VERSION: {{version}}
     FDO_DISTRIBUTION_TAG: $QEMU_TAG
   needs:
-    - "fedora:32@qemu-prep"
+    - "{{distro.name}}:{{version}}@qemu-prep"
 
 
 {% for suite in test_suites %}
 vm-{{suite.name}}:
   extends:
-    - .fedora:32@test-suite-vm
+    - .{{distro.name}}:{{version}}@test-suite-vm
   variables:
     SUITE_NAMES: '{{suite.suites}}'
 
@@ -445,6 +452,7 @@ vm-valgrind-{{suite.name}}:
 
 {% endfor %}
 
+{% endfor %} {# for if distro.want_qemu #}
 
 .fedora-build@template:
   extends:
