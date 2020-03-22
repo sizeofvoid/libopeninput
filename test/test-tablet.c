@@ -1611,34 +1611,6 @@ START_TEST(proximity_out_not_during_buttonpress)
 }
 END_TEST
 
-START_TEST(proximity_out_no_timeout)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-	struct axis_replacement axes[] = {
-		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
-	};
-
-	litest_drain_events(li);
-
-	litest_tablet_proximity_in(dev, 10, 10, axes);
-	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
-	litest_tablet_motion(dev, 12, 12, axes);
-	litest_drain_events(li);
-
-	litest_timeout_tablet_proxout();
-	litest_assert_empty_queue(li);
-
-	litest_tablet_proximity_out(dev);
-	/* The forced prox out */
-	litest_assert_tablet_proximity_event(li,
-					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
-	litest_assert_empty_queue(li);
-}
-END_TEST
-
 START_TEST(proximity_out_on_delete)
 {
 	struct libinput *li = litest_create_context();
@@ -4776,6 +4748,10 @@ START_TEST(touch_arbitration_outside_rect)
 	x = 20;
 	y = 45;
 
+	/* disable prox-out timer quirk */
+	litest_tablet_proximity_in(dev, x, y - 1, axes);
+	litest_tablet_proximity_out(dev);
+
 	litest_tablet_proximity_in(dev, x, y - 1, axes);
 	litest_drain_events(li);
 
@@ -4789,25 +4765,16 @@ START_TEST(touch_arbitration_outside_rect)
 	litest_touch_sequence(finger, 0, x - 10, y + 2, x - 10, y + 20, 3);
 	libinput_dispatch(li);
 	litest_assert_touch_sequence(li);
-	/* tablet event so we don't time out for proximity */
-	litest_tablet_motion(dev, x, y - 0.1, axes);
-	litest_drain_events(li);
 
 	/* above rect */
 	litest_touch_sequence(finger, 0, x + 2, y - 35, x + 20, y - 10, 3);
 	libinput_dispatch(li);
 	litest_assert_touch_sequence(li);
-	/* tablet event so we don't time out for proximity */
-	litest_tablet_motion(dev, x, y + 0.1, axes);
-	litest_drain_events(li);
 
 	/* right of rect */
 	litest_touch_sequence(finger, 0, x + 80, y + 2, x + 20, y + 10, 3);
 	libinput_dispatch(li);
 	litest_assert_touch_sequence(li);
-	/* tablet event so we don't time out for proximity */
-	litest_tablet_motion(dev, x, y - 0.1, axes);
-	litest_drain_events(li);
 
 #if 0
 	/* This *should* work but the Cintiq test devices is <200mm
@@ -4889,6 +4856,11 @@ START_TEST(touch_arbitration_stop_touch)
 	finger = litest_add_device(li, other);
 
 	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
+
+	/* disable prox-out timer quirk */
+	litest_tablet_proximity_in(dev, 30, 30, axes);
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(li);
 
 	litest_touch_down(finger, 0, 30, 30);
 	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
@@ -5914,8 +5886,6 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:proximity", proximity_out_slow_event, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_out_not_during_contact, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_out_not_during_buttonpress, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
-	litest_add_for_device("tablet:proximity", proximity_out_no_timeout, LITEST_WACOM_ISDV4_4200_PEN);
-
 	litest_add_no_device("tablet:proximity", proximity_out_on_delete);
 	litest_add("tablet:button", button_down_up, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:button", button_seat_count, LITEST_TABLET, LITEST_ANY);

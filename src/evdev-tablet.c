@@ -1827,11 +1827,10 @@ tablet_update_tool_state(struct tablet_dispatch *tablet,
 			 * events it means the tablet will give us the right
 			 * events after all and we can disable our
 			 * timer-based proximity out.
-			 *
-			 * We can't do so permanently though, some tablets
-			 * send the correct event sequence occasionally but
-			 * are broken otherwise.
 			 */
+			if (!tablet->quirks.proximity_out_in_progress)
+				tablet->quirks.need_to_force_prox_out = false;
+
 			libinput_timer_cancel(&tablet->quirks.prox_out_timer);
 		}
 	}
@@ -2012,12 +2011,14 @@ tablet_proximity_out_quirk_timer_func(uint64_t now, void *data)
 
 	evdev_log_debug(tablet->device, "tablet: forcing proximity after timeout\n");
 
+	tablet->quirks.proximity_out_in_progress = true;
 	ARRAY_FOR_EACH(events, e) {
 		tablet->base.interface->process(&tablet->base,
 						 tablet->device,
 						 e,
 						 now);
 	}
+	tablet->quirks.proximity_out_in_progress = false;
 
 	tablet->quirks.proximity_out_forced = true;
 }
@@ -2181,7 +2182,8 @@ tablet_check_initial_proximity(struct evdev_device *device,
 		return;
 
 	tablet_update_tool(tablet, device, tool, state);
-	tablet_proximity_out_quirk_set_timer(tablet, libinput_now(li));
+	if (tablet->quirks.need_to_force_prox_out)
+		tablet_proximity_out_quirk_set_timer(tablet, libinput_now(li));
 
 	tablet->current_tool.id =
 		libevdev_get_event_value(device->evdev,
@@ -2402,8 +2404,6 @@ tablet_init(struct tablet_dispatch *tablet,
 	/* We always enable the proximity out quirk, but disable it once a
 	   device gives us the right event sequence */
 	tablet->quirks.need_to_force_prox_out = true;
-	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_WACOM_ISDV4_PEN))
-		tablet->quirks.need_to_force_prox_out = false;
 
 	libinput_timer_init(&tablet->quirks.prox_out_timer,
 			    tablet_libinput_context(tablet),
