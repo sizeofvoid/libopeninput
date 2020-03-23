@@ -9,6 +9,7 @@
 		"debug-gui:Show a GUI to visualize libinput's events"
 		"debug-tablet:Show tablet axis and button values"
 		"measure:Measure various properties of devices"
+		"analyze:Analyze device data"
 		"record:Record the events from a device"
 		"replay:Replay the events from a device"
 	)
@@ -160,6 +161,33 @@ __all_seats()
 		'--help[Show help message and exit]' \
 		'--format=dat[Specify the data format to be printed. The default is "summary"]'
 		':device:_files -W /dev/input/ -P /dev/input/'
+}
+
+(( $+functions[_libinput_analyze] )) || _libinput_analyze()
+{
+	local curcontext=$curcontext state line ret=1
+	local features
+	features=(
+		"per-slot-delta:analyze relative movement per touch per slot"
+	)
+
+	_arguments -C \
+		'--help[Print help and exit]' \
+		':feature:->feature' \
+		'*:: :->option-or-argument'
+
+	case $state in
+		(feature)
+			_describe -t features 'feature' features
+			;;
+		(option-or-argument)
+			curcontext=${curcontext%:*:*}:libinput-analyze-$words[1]:
+			if ! _call_function ret _libinput_analyze_$words[1]; then
+				_message "unknown feature: $words[1]"
+			fi
+			;;
+	esac
+	return ret
 }
 
 (( $+functions[_libinput_record] )) || _libinput_record()
