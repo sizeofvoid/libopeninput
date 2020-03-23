@@ -1611,6 +1611,80 @@ START_TEST(proximity_out_not_during_buttonpress)
 }
 END_TEST
 
+START_TEST(proximity_out_disables_forced)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	/* A correct proximity out sequence from the device should disable
+	   the forced proximity out */
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(li);
+
+	/* expect no timeout-based prox out */
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_drain_events(li);
+
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+
+	litest_assert_empty_queue(li);
+	litest_tablet_proximity_out(dev);
+	litest_assert_tablet_proximity_event(li,
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+	libinput_dispatch(li);
+}
+END_TEST
+
+START_TEST(proximity_out_disables_forced_after_forced)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	/* A correct proximity out sequence from the device should disable
+	   the forced proximity out, even when we had a forced prox-out */
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_drain_events(li);
+
+	/* timeout-based forced prox out */
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+	litest_assert_tablet_proximity_event(li,
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+	litest_assert_empty_queue(li);
+
+	/* now send the real prox out (we're already in proximity out) and
+	 * that should disable the proxout quirk */
+	litest_tablet_proximity_out(dev);
+	libinput_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	/* same again, but this time we expect no timeout-based prox out */
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_drain_events(li);
+
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+
+	litest_assert_empty_queue(li);
+	litest_tablet_proximity_out(dev);
+	litest_assert_tablet_proximity_event(li,
+					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+	libinput_dispatch(li);
+}
+END_TEST
+
 START_TEST(proximity_out_on_delete)
 {
 	struct libinput *li = litest_create_context();
@@ -5885,6 +5959,8 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:proximity", proximity_out_slow_event, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_out_not_during_contact, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add("tablet:proximity", proximity_out_not_during_buttonpress, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
+	litest_add("tablet:proximity", proximity_out_disables_forced, LITEST_TABLET, LITEST_FORCED_PROXOUT|LITEST_TOTEM);
+	litest_add("tablet:proximity", proximity_out_disables_forced_after_forced, LITEST_TABLET, LITEST_FORCED_PROXOUT|LITEST_TOTEM);
 	litest_add_no_device("tablet:proximity", proximity_out_on_delete);
 	litest_add("tablet:button", button_down_up, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:button", button_seat_count, LITEST_TABLET, LITEST_ANY);
