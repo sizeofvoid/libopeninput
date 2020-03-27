@@ -54,6 +54,7 @@ class Slot:
     y = 0
     dx = 0
     dy = 0
+    used = False
     dirty = False
 
 
@@ -118,6 +119,7 @@ def main(argv):
 
     if args.use_st:
         print("Warning: slot coordinates on FINGER/DOUBLETAP change may be incorrect")
+        slots[0].used = True
 
     slot = 0
     last_time = None
@@ -165,6 +167,10 @@ def main(argv):
                     slot = e.value
                     s = slots[slot]
                     s.dirty = True
+                    # bcm5974 cycles through slot numbers, so let's say all below
+                    # our current slot number was used
+                    for sl in slots[:slot + 1]:
+                        sl.used = True
                 elif evbit == libevdev.EV_ABS.ABS_MT_TRACKING_ID:
                     if e.value == -1:
                         s.state = SlotState.END
@@ -204,7 +210,7 @@ def main(argv):
                     last_time = t
 
                 print("{:2d}.{:06d} {:+4d}ms: ".format(e.sec, e.usec, tdelta), end='')
-                for sl in slots:
+                for sl in [s for s in slots if s.used]:
                     if sl.state == SlotState.NONE:
                         print(marker_empty_slot, end='')
                     elif sl.state == SlotState.BEGIN:
