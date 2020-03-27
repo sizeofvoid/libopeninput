@@ -5813,17 +5813,10 @@ START_TEST(huion_static_btn_tool_pen_disable_quirk_on_prox_out)
 						     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	}
 
-	litest_push_event_frame(dev);
-	litest_tablet_proximity_out(dev);
-	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 0);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_pop_event_frame(dev);
-
 	litest_tablet_proximity_in(dev, 50, 50, NULL);
 	libinput_dispatch(li);
 	litest_assert_tablet_proximity_event(li,
 			     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
-	libinput_dispatch(li);
 
 	for (i = 0; i < 10; i++) {
 		litest_tablet_motion(dev, 50 + i, 50 + i, NULL);
@@ -5832,6 +5825,12 @@ START_TEST(huion_static_btn_tool_pen_disable_quirk_on_prox_out)
 
 	litest_assert_only_typed_events(li,
 					LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+	libinput_dispatch(li);
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+
+	litest_assert_empty_queue(li);
 
 	litest_push_event_frame(dev);
 	litest_tablet_proximity_out(dev);

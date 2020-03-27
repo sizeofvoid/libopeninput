@@ -1766,6 +1766,16 @@ tablet_update_tool_state(struct tablet_dispatch *tablet,
 	int state;
 	uint32_t doubled_up_new_tool_bit = 0;
 
+	/* we were already out of proximity but now got a tool update but
+	 * our tool state is zero - i.e. we got a valid prox out from the
+	 * device.
+	 */
+	if (tablet->quirks.proximity_out_forced &&
+	    tablet_has_status(tablet, TABLET_TOOL_UPDATED) &&
+	    !tablet->tool_state) {
+		tablet->quirks.need_to_force_prox_out = false;
+		tablet->quirks.proximity_out_forced = false;
+	}
 	/* We need to emulate a BTN_TOOL_PEN if we get an axis event (i.e.
 	 * stylus is def. in proximity) and:
 	 * - we forced a proximity out before, or
