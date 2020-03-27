@@ -123,12 +123,22 @@ def main(argv):
 
     slot = 0
     last_time = None
+    tool_bits = {
+        libevdev.EV_KEY.BTN_TOUCH: 0,
+        libevdev.EV_KEY.BTN_TOOL_DOUBLETAP: 0,
+        libevdev.EV_KEY.BTN_TOOL_TRIPLETAP: 0,
+        libevdev.EV_KEY.BTN_TOOL_QUADTAP: 0,
+        libevdev.EV_KEY.BTN_TOOL_QUINTTAP: 0,
+    }
 
     for event in device['events']:
         for evdev in event['evdev']:
             s = slots[slot]
             e = InputEvent(evdev)
             evbit = libevdev.evbit(e.evtype, e.evcode)
+
+            if evbit in tool_bits:
+                tool_bits[evbit] = e.value
 
             if args.use_st:
                 # Note: this relies on the EV_KEY events to come in before the
@@ -190,16 +200,6 @@ def main(argv):
                     s.y = e.value
                     s.dirty = True
 
-            if (evbit == libevdev.EV_KEY.BTN_TOUCH or
-                    (evbit == libevdev.EV_KEY.BTN_TOOL_DOUBLETAP and nslots < 2) or
-                    (evbit == libevdev.EV_KEY.BTN_TOOL_TRIPLETAP and nslots < 3) or
-                    (evbit == libevdev.EV_KEY.BTN_TOOL_QUADTAP and nslots < 4) or
-                    (evbit == libevdev.EV_KEY.BTN_TOOL_QUINTTAP and nslots < 5)):
-                print('            {} {} {} {}'.format(marker_button,
-                                                       evbit.name,
-                                                       e.value,
-                                                       marker_button))
-
             if evbit == libevdev.EV_SYN.SYN_REPORT:
                 if last_time is None:
                     last_time = e.sec * 1000000 + e.usec
@@ -209,7 +209,22 @@ def main(argv):
                     tdelta = int((t - last_time) / 1000)  # ms
                     last_time = t
 
-                print("{:2d}.{:06d} {:+4d}ms: ".format(e.sec, e.usec, tdelta), end='')
+                tools = [
+                    (libevdev.EV_KEY.BTN_TOOL_QUINTTAP, 'QIN'),
+                    (libevdev.EV_KEY.BTN_TOOL_QUADTAP, 'QAD'),
+                    (libevdev.EV_KEY.BTN_TOOL_TRIPLETAP, 'TRI'),
+                    (libevdev.EV_KEY.BTN_TOOL_DOUBLETAP, 'DBL'),
+                    (libevdev.EV_KEY.BTN_TOUCH, 'TOU'),
+                ]
+
+                for bit, string in tools:
+                    if tool_bits[bit]:
+                        tool_state = string
+                        break
+                else:
+                    tool_state = '   '
+
+                print("{:2d}.{:06d} {:+5d}ms {}: ".format(e.sec, e.usec, tdelta, tool_state), end='')
                 for sl in [s for s in slots if s.used]:
                     if sl.state == SlotState.NONE:
                         print(marker_empty_slot, end='')
