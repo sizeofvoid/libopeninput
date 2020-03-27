@@ -15,12 +15,12 @@ KERNEL!="event*", GOTO="libinput_fuzz_override_end"
 # about that.
 ATTRS{capabilities/abs}!="0", \
 	ENV{ID_INPUT_TOUCHPAD}=="1", \
-	IMPORT{program}+="@UDEV_TEST_PATH@libinput-fuzz-extract %S%p", \
+	IMPORT{program}="@UDEV_TEST_PATH@libinput-fuzz-extract %S%p", \
 	RUN{program}+="@UDEV_TEST_PATH@libinput-fuzz-to-zero %S%p", \
 	GOTO="libinput_fuzz_override_end"
 ATTRS{capabilities/abs}!="0", \
 	ENV{ID_INPUT_TOUCHSCREEN}=="1", \
-	IMPORT{program}+="@UDEV_TEST_PATH@libinput-fuzz-extract %S%p", \
+	IMPORT{program}="@UDEV_TEST_PATH@libinput-fuzz-extract %S%p", \
 	RUN{program}+="@UDEV_TEST_PATH@libinput-fuzz-to-zero %S%p", \
 	GOTO="libinput_fuzz_override_end"
 

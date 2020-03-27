@@ -725,7 +725,7 @@ litest_init_device_udev_rules(struct litest_test_device *dev, FILE *f)
 	if (need_keyboard_builtin) {
 		fprintf(f, ""
 			"ATTRS{name}==\"litest %s*\","
-			" IMPORT{builtin}+=\"keyboard\"\n",
+			" IMPORT{builtin}=\"keyboard\"\n",
 			dev->name);
 	}
 
