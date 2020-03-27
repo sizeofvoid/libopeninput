@@ -57,15 +57,12 @@
 #define DEFAULT_MOUSE_DPI 1000
 #define DEFAULT_TRACKPOINT_SENSITIVITY 128
 
-#ifdef DEBUG_TRACE
-#define debug_trace(...) \
+#define trace(...) \
 	do { \
-	printf("%s:%d %s() - ", __FILE__, __LINE__, __func__); \
+	printf("%s() - \033[0;31m", __func__); \
 	printf(__VA_ARGS__); \
+	printf("\033[0m"); \
 	} while (0)
-#else
-#define debug_trace(...) { }
-#endif
 
 #define LIBINPUT_EXPORT __attribute__ ((visibility("default")))
 
