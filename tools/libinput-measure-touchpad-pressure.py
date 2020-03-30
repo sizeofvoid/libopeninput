@@ -346,6 +346,10 @@ def main(args):
         '--palm-threshold', metavar='t', type=int,
         help='Threshold when a touch is a palm'
     )
+    parser.add_argument(
+        '--thumb-threshold', metavar='t', type=int,
+        help='Threshold when a touch is a thumb'
+    )
     args = parser.parse_args()
 
     try:
@@ -356,6 +360,9 @@ def main(args):
 
         if args.palm_threshold is not None:
             device.palm = args.palm_threshold
+
+        if args.thumb_threshold is not None:
+            device.thumb = args.thumb_threshold
 
         loop(device)
     except KeyboardInterrupt:
