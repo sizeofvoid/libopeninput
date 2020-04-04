@@ -390,28 +390,30 @@ tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 	first = touches[0];
 	second = touches[1];
 
-	/* For 3+ finger gestures we cheat. A human hand's finger
-	 * arrangement means that for a 3 or 4 finger swipe gesture, the
-	 * fingers are roughly arranged in a horizontal line.
-	 * They will all move in the same direction, so we can simply look
-	 * at the left and right-most ones only. If we have fake touches, we
-	 * just take the left/right-most real touch position, since the fake
-	 * touch has the same location as one of those.
+	/* For 3+ finger gestures, we only really need to track two touches.
+	 * The human hand's finger arrangement means that for a pinch, the
+	 * bottom-most touch will always be the thumb, and the top-most touch
+	 * will always be one of the fingers.
 	 *
-	 * For a 3 or 4 finger pinch gesture, 2 or 3 fingers are roughly in
-	 * a horizontal line, with the thumb below and left (right-handed
-	 * users) or right (left-handed users). Again, the row of non-thumb
-	 * fingers moves identically so we can look at the left and
-	 * right-most only and then treat it like a two-finger
-	 * gesture.
+	 * For 3+ finger swipes, the fingers will likely (but not necessarily)
+	 * be in a horizontal line. They all move together, regardless, so it
+	 * doesn't really matter which two of those touches we track.
+	 *
+	 * Tracking top and bottom is a change from previous versions, where
+	 * we tracked leftmost and rightmost. This change enables:
+	 *
+	 * - More accurate pinch detection if thumb is near the center
+	 * - Better resting-thumb detection while two-finger scrolling
+	 * - On capable hardware, allow 3- or 4-finger swipes with resting
+	 *   thumb or held-down clickpad
 	 */
 	if (ntouches > 2) {
 		second = touches[0];
 
 		for (i = 1; i < ntouches && i < tp->num_slots; i++) {
-			if (touches[i]->point.x < first->point.x)
+			if (touches[i]->point.y < first->point.y)
 				first = touches[i];
-			else if (touches[i]->point.x > second->point.x)
+			else if (touches[i]->point.y >= second->point.y)
 				second = touches[i];
 		}
 

@@ -158,6 +158,7 @@ struct tp_touch {
 	bool dirty;
 	struct device_coords point;
 	uint64_t time;
+	uint64_t initial_time;
 	int pressure;
 	bool is_tool_palm; /* MT_TOOL_PALM */
 	int major, minor;

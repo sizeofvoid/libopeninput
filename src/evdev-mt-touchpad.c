@@ -350,6 +350,7 @@ tp_begin_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 	t->dirty = true;
 	t->state = TOUCH_BEGIN;
 	t->time = time;
+	t->initial_time = time;
 	t->was_down = true;
 	tp->nfingers_down++;
 	t->palm.time = time;

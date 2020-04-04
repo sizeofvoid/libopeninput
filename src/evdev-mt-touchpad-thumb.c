@@ -28,6 +28,7 @@
 /* distance between fingers to assume it is not a scroll */
 #define SCROLL_MM_X 35
 #define SCROLL_MM_Y 25
+#define THUMB_TIMEOUT ms2us(100)
 
 static inline const char*
 thumb_state_to_str(enum tp_thumb_state state)
@@ -271,13 +272,15 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp)
 	struct tp_touch *t;
 	struct tp_touch *first = NULL,
 			*second = NULL,
-			*newest = NULL;
+			*newest = NULL,
+			*oldest = NULL;
 	struct device_coords distance;
 	struct phys_coords mm;
+
 	unsigned int speed_exceeded_count = 0;
 
 	/* Get the first and second bottom-most touches, the max speed exceeded
-	 * count overall, and the newest touch (or one of them, if more).
+	 * count overall, and the newest and oldest touches.
 	 */
 	tp_for_each_touch(tp, t) {
 		if (t->state == TOUCH_NONE ||
@@ -289,6 +292,10 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp)
 
 		speed_exceeded_count = max(speed_exceeded_count,
 		                           t->speed.exceeded_count);
+
+		if (!oldest || t->initial_time < oldest->initial_time) {
+			oldest = t;
+		}
 
 		if (!first) {
 			first = t;
@@ -315,11 +322,12 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp)
 
 	/* Speed-based thumb detection: if an existing finger is moving, and
 	 * a new touch arrives, mark it as a thumb if it doesn't qualify as a
-	 * 2-finger scroll.
+	 * 2-finger scroll. Also account for a thumb dropping onto the touchpad
+	 * while scrolling or swiping.
 	 */
 	if (newest &&
 	    tp->thumb.state == THUMB_STATE_FINGER &&
-	    tp->nfingers_down == 2 &&
+	    tp->nfingers_down >= 2 &&
 	    speed_exceeded_count > 5 &&
 	    (tp->scroll.method != LIBINPUT_CONFIG_SCROLL_2FG ||
 	     (mm.x > SCROLL_MM_X || mm.y > SCROLL_MM_Y))) {
@@ -330,20 +338,43 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp)
 		return;
 	}
 
-	/* Position-based thumb detection: When a new touch arrives, check the
-	 * two lowest touches. If they qualify for 2-finger scrolling, clear
-	 * thumb status.
+	/* Contextual thumb detection: When a new touch arrives, check the
+	 * timing and position of the two lowest touches.
 	 *
-	 * If they were in distinct diagonal position, then mark the lower
-	 * touch (based on pinch_eligible) as either PINCH or SUPPRESSED. If
-	 * we're too close together for a thumb, lift that.
+	 * If both touches are very close, regardless of timing, and no matter
+	 * their absolute position on the touchpad, count them both as live
+	 * to support responsive two-finger scrolling.
 	 */
-	if (mm.y > SCROLL_MM_Y && mm.x > SCROLL_MM_X) {
+
+	if (mm.x < SCROLL_MM_X && mm.y < SCROLL_MM_Y) {
+		tp_thumb_lift(tp);
+		return;
+	}
+
+	/* If all the touches arrived within a very short time, and all of them
+	 * are above the lower_thumb_line, assume the touches are all live to
+	 * enable double, triple, and quadruple taps, clicks, and gestures. (If
+	 * there is an actual resting thumb, it will be detected later based on
+	 * the behavior of the other touches.)
+	 */
+
+	if ((newest->initial_time - oldest->initial_time) < THUMB_TIMEOUT &&
+         first->point.y < tp->thumb.lower_thumb_line) {
+		tp_thumb_lift(tp);
+		return;
+	}
+
+	/* If we're past the THUMB_TIMEOUT, and the touches are relatively far
+	 * apart, then the new touch is unlikely to be a tap or clickfinger.
+	 * Proceed with pre-1.14.901 thumb detection.
+	*/
+
+	if (mm.y > SCROLL_MM_Y) {
 		if (tp->thumb.pinch_eligible)
 			tp_thumb_pinch(tp, first);
 		else
 			tp_thumb_suppress(tp, first);
-	} else if (mm.x < SCROLL_MM_X && mm.y < SCROLL_MM_Y) {
+	} else {
 		tp_thumb_lift(tp);
 	}
 }
