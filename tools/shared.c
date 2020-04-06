@@ -620,9 +620,11 @@ tools_list_device_quirks(struct quirks_context *ctx,
 	do {
 		if (quirks_has_quirk(quirks, q)) {
 			const char *name;
+			bool b;
 
 			name = quirk_get_name(q);
-			snprintf(buf, sizeof(buf), "%s=1", name);
+			quirks_get_bool(quirks, q, &b);
+			snprintf(buf, sizeof(buf), "%s=%d", name, b ? 1 : 0);
 			callback(userdata, buf);
 		}
 	} while(++q < _QUIRK_LAST_MODEL_QUIRK_);
