@@ -18,6 +18,14 @@ rely on the output.
 .B \-\-help
 Print help
 .TP 8
+.B \-\-ignore-below=<units or mm>
+Ignore any movement below the given threshold. The threshold is in
+mm if \fB\-\-use-mm\fR is selected or in device units otherwise.
+.TP 8
+.B \-\-threshold=<units or mm>
+Color any movement above this threshold in red. The threshold is in
+mm if \fB\-\-use-mm\fR is selected or in device units otherwise.
+.TP 8
 .B \-\-use-mm
 Print data in mm instead of device units
 .TP 8

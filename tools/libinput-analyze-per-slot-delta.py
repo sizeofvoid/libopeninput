@@ -40,37 +40,81 @@ COLOR_RESET = '\x1b[0m'
 COLOR_RED = '\x1b[6;31m'
 
 
-def print_data(dx, dy, is_absolute=False, color=None):
-    if dx != 0 and dy != 0:
-        t = math.atan2(dx, dy)
-        t += math.pi  # in [0, 2pi] range now
+class SlotFormatter():
+    width = 16
 
-        if t == 0:
-            t = 0.01
-        else:
-            t = t * 180.0 / math.pi
+    def __init__(self, is_absolute=False, resolution=None,
+                 threshold=None, ignore_below=None):
+        self.threshold = threshold
+        self.ignore_below = ignore_below
+        self.resolution = resolution
+        self.is_absolute = is_absolute
+        self.slots = []
+        self.have_data = False
+        self.filtered = False
 
-        directions = ['↖↑', '↖←', '↙←', '↙↓', '↓↘', '→↘', '→↗', '↑↗']
-        direction = "{:3.0f}".format(t)
-        direction = directions[int(t / 45)]
-    elif dy == 0:
-        if dx < 0:
-            direction = '←←'
-        else:
-            direction = '→→'
-    else:
-        if dy < 0:
-            direction = '↑↑'
-        else:
-            direction = '↓↓'
+    def __str__(self):
+        return ' | '.join(self.slots)
 
-    if not is_absolute:
-        if isinstance(dx, int) and isinstance(dy, int):
-            print("{} {}{:+4d}/{:+4d}{} | ".format(direction, color, dx, dy, COLOR_RESET), end='')
+    def format_slot(self, slot):
+        if slot.state == SlotState.BEGIN:
+            self.slots.append('+++++++'.center(self.width))
+            self.have_data = True
+        elif slot.state == SlotState.END:
+            self.slots.append('-------'.center(self.width))
+            self.have_data = True
+        elif slot.state == SlotState.NONE:
+            self.slots.append(('*' * (self.width - 2)).center(self.width))
+        elif not slot.dirty:
+            self.slots.append(' '.center(self.width))
         else:
-            print("{} {}{:+3.2f}/{:+03.2f}{} | ".format(direction, color, dx, dy, COLOR_RESET), end='')
-    else:
-        print("{} {}{:4d}/{:4d}{} | ".format(direction, color, dx, dy, COLOR_RESET), end='')
+            if self.resolution is not None:
+                dx, dy = slot.dx / self.resolution[0], slot.dy / self.resolution[1]
+            else:
+                dx, dy = slot.dx, slot.dy
+            if dx != 0 and dy != 0:
+                t = math.atan2(dx, dy)
+                t += math.pi  # in [0, 2pi] range now
+
+                if t == 0:
+                    t = 0.01
+                else:
+                    t = t * 180.0 / math.pi
+
+                directions = ['↖↑', '↖←', '↙←', '↙↓', '↓↘', '→↘', '→↗', '↑↗']
+                direction = directions[int(t / 45)]
+            elif dy == 0:
+                if dx < 0:
+                    direction = '←←'
+                else:
+                    direction = '→→'
+            else:
+                if dy < 0:
+                    direction = '↑↑'
+                else:
+                    direction = '↓↓'
+
+            color = ''
+            reset = ''
+            if not self.is_absolute:
+                if self.ignore_below is not None or self.threshold is not None:
+                    dist = math.hypot(dx, dy)
+                    if self.ignore_below is not None and dist < self.ignore_below:
+                        self.slots.append(' '.center(self.width))
+                        self.filtered = True
+                        return
+                    if self.threshold is not None and dist >= self.threshold:
+                        color = COLOR_RED
+                        reset = COLOR_RESET
+                if isinstance(dx, int) and isinstance(dy, int):
+                    string = "{} {}{:+4d}/{:+4d}{}".format(direction, color, dx, dy, reset)
+                else:
+                    string = "{} {}{:+3.2f}/{:+03.2f}{}".format(direction, color, dx, dy, reset)
+            else:
+                x, y = slot.x, slot.y
+                string = "{} {}{:4d}/{:4d}{}".format(direction, color, x, y, reset)
+            self.have_data = True
+            self.slots.append(string.ljust(self.width + len(color) + len(reset)))
 
 
 class SlotState:
@@ -115,6 +159,8 @@ def main(argv):
     parser.add_argument("--use-absolute", action='store_true', help="Use absolute coordinates, not deltas")
     parser.add_argument("path", metavar="recording",
                         nargs=1, help="Path to libinput-record YAML file")
+    parser.add_argument("--threshold", type=float, default=None, help="Mark any delta above this treshold")
+    parser.add_argument("--ignore-below", type=float, default=None, help="Ignore any delta below this theshold")
     args = parser.parse_args()
 
     if not sys.stdout.isatty():
@@ -134,10 +180,6 @@ def main(argv):
 
     slots = [Slot(i) for i in range(0, nslots)]
 
-    marker_begin_slot = "   ++++++    | "  # noqa
-    marker_end_slot   = "   ------    | "  # noqa
-    marker_empty_slot = " *********** | "  # noqa
-    marker_no_data    = "             | "  # noqa
     marker_button     = "..............."  # noqa
 
     if args.use_mm:
@@ -146,11 +188,6 @@ def main(argv):
         if not xres or not yres:
             print("Error: device doesn't have a resolution, cannot use mm")
             sys.exit(1)
-
-        marker_empty_slot = " ************* | "  # noqa
-        marker_no_data =    "               | "  # noqa
-        marker_begin_slot = "    ++++++     | "  # noqa
-        marker_end_slot =   "    ------     | "  # noqa
 
     if args.use_st:
         print("Warning: slot coordinates on FINGER/DOUBLETAP change may be incorrect")
@@ -165,6 +202,8 @@ def main(argv):
         libevdev.EV_KEY.BTN_TOOL_QUADTAP: 0,
         libevdev.EV_KEY.BTN_TOOL_QUINTTAP: 0,
     }
+
+    nskipped_lines = 0
 
     for event in device['events']:
         for evdev in event['evdev']:
@@ -259,37 +298,29 @@ def main(argv):
                 else:
                     tool_state = '   '
 
-                print("{:2d}.{:06d} {:+5d}ms {}: ".format(e.sec, e.usec, tdelta, tool_state), end='')
+                fmt = SlotFormatter(is_absolute=args.use_absolute,
+                                    resolution=(xres, yres) if args.use_mm else None,
+                                    threshold=args.threshold,
+                                    ignore_below=args.ignore_below)
                 for sl in [s for s in slots if s.used]:
-                    if sl.state == SlotState.NONE:
-                        print(marker_empty_slot, end='')
-                    elif sl.state == SlotState.BEGIN:
-                        print(marker_begin_slot, end='')
-                    elif sl.state == SlotState.END:
-                        print(marker_end_slot, end='')
-                    elif not sl.dirty:
-                        print(marker_no_data, end='')
-                    else:
-                        if args.use_mm:
-                            sl.dx /= xres
-                            sl.dy /= yres
-                            color = COLOR_RESET
-                            if math.hypot(sl.dx, sl.dy) > 7:
-                                color = COLOR_RED
-                            print_data(sl.dx, sl.dy, color=color)
-                        elif args.use_absolute:
-                            print_data(sl.x, sl.y, is_absolute=True)
-                        else:
-                            print_data(sl.dx, sl.dy)
-                        s.dx = 0
-                        s.dy = 0
+                    fmt.format_slot(sl)
+
+                    sl.dirty = False
+                    sl.dx = 0
+                    sl.dy = 0
                     if sl.state == SlotState.BEGIN:
                         sl.state = SlotState.UPDATE
                     elif sl.state == SlotState.END:
                         sl.state = SlotState.NONE
 
-                    sl.dirty = False
-                print("")
+                if fmt.have_data:
+                    if nskipped_lines > 0:
+                        print("")
+                        nskipped_lines = 0
+                    print("{:2d}.{:06d} {:+5d}ms {}: {}".format(e.sec, e.usec, tdelta, tool_state, fmt))
+                elif fmt.filtered:
+                    nskipped_lines += 1
+                    print("\r", " " * 21, "... {} below threshold".format(nskipped_lines), flush=True, end='')
 
 
 if __name__ == '__main__':
