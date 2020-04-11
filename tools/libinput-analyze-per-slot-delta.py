@@ -181,8 +181,6 @@ def main(argv):
     slots = [Slot(i) for i in range(0, nslots)]
     slots[0].used = True
 
-    marker_button     = "..............."  # noqa
-
     if args.use_mm:
         xres = 1.0 * absinfo[libevdev.EV_ABS.ABS_X.value][4]
         yres = 1.0 * absinfo[libevdev.EV_ABS.ABS_Y.value][4]
