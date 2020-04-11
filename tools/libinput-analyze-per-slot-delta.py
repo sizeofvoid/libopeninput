@@ -81,7 +81,6 @@ class SlotState:
 
 
 class Slot:
-    index = 0
     state = SlotState.NONE
     x = 0
     y = 0
@@ -89,6 +88,9 @@ class Slot:
     dy = 0
     used = False
     dirty = False
+
+    def __init__(self, index):
+        self.index = index
 
 
 class InputEvent:
@@ -130,7 +132,7 @@ def main(argv):
     if args.use_st:
         nslots = 1
 
-    slots = [Slot() for _ in range(0, nslots)]
+    slots = [Slot(i) for i in range(0, nslots)]
 
     marker_begin_slot = "   ++++++    | "  # noqa
     marker_end_slot   = "   ------    | "  # noqa
