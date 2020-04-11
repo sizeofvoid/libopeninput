@@ -40,6 +40,39 @@ COLOR_RESET = '\x1b[0m'
 COLOR_RED = '\x1b[6;31m'
 
 
+def print_data(dx, dy, is_absolute=False, color=None):
+    if dx != 0 and dy != 0:
+        t = math.atan2(dx, dy)
+        t += math.pi  # in [0, 2pi] range now
+
+        if t == 0:
+            t = 0.01
+        else:
+            t = t * 180.0 / math.pi
+
+        directions = ['↖↑', '↖←', '↙←', '↙↓', '↓↘', '→↘', '→↗', '↑↗']
+        direction = "{:3.0f}".format(t)
+        direction = directions[int(t / 45)]
+    elif dy == 0:
+        if dx < 0:
+            direction = '←←'
+        else:
+            direction = '→→'
+    else:
+        if dy < 0:
+            direction = '↑↑'
+        else:
+            direction = '↓↓'
+
+    if not is_absolute:
+        if isinstance(dx, int) and isinstance(dy, int):
+            print("{} {}{:+4d}/{:+4d}{} | ".format(direction, color, dx, dy, COLOR_RESET), end='')
+        else:
+            print("{} {}{:+3.2f}/{:+03.2f}{} | ".format(direction, color, dx, dy, COLOR_RESET), end='')
+    else:
+        print("{} {}{:4d}/{:4d}{} | ".format(direction, color, dx, dy, COLOR_RESET), end='')
+
+
 class SlotState:
     NONE = 0
     BEGIN = 1
@@ -235,41 +268,17 @@ def main(argv):
                     elif not sl.dirty:
                         print(marker_no_data, end='')
                     else:
-                        if sl.dx != 0 and sl.dy != 0:
-                            t = math.atan2(sl.dx, sl.dy)
-                            t += math.pi  # in [0, 2pi] range now
-
-                            if t == 0:
-                                t = 0.01
-                            else:
-                                t = t * 180.0 / math.pi
-
-                            directions = ['↖↑', '↖←', '↙←', '↙↓', '↓↘', '→↘', '→↗', '↑↗']
-                            direction = "{:3.0f}".format(t)
-                            direction = directions[int(t / 45)]
-                        elif sl.dy == 0:
-                            if sl.dx < 0:
-                                direction = '←←'
-                            else:
-                                direction = '→→'
-                        else:
-                            if sl.dy < 0:
-                                direction = '↑↑'
-                            else:
-                                direction = '↓↓'
-
-                        color = COLOR_RESET
-
                         if args.use_mm:
                             sl.dx /= xres
                             sl.dy /= yres
+                            color = COLOR_RESET
                             if math.hypot(sl.dx, sl.dy) > 7:
                                 color = COLOR_RED
-                            print("{} {}{:+3.2f}/{:+03.2f}{} | ".format(direction, color, sl.dx, sl.dy, COLOR_RESET), end='')
+                            print_data(sl.dx, sl.dy, color=color)
                         elif args.use_absolute:
-                            print("{} {}{:4d}/{:4d}{} | ".format(direction, color, sl.x, sl.y, COLOR_RESET), end='')
+                            print_data(sl.x, sl.y, is_absolute=True)
                         else:
-                            print("{} {}{:4d}/{:4d}{} | ".format(direction, color, sl.dx, sl.dy, COLOR_RESET), end='')
+                            print_data(sl.dx, sl.dy)
                         s.dx = 0
                         s.dy = 0
                     if sl.state == SlotState.BEGIN:
