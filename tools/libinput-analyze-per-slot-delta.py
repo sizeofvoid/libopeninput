@@ -179,6 +179,7 @@ def main(argv):
         nslots = 1
 
     slots = [Slot(i) for i in range(0, nslots)]
+    slots[0].used = True
 
     marker_button     = "..............."  # noqa
 
