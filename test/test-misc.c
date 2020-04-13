@@ -688,6 +688,43 @@ START_TEST(timer_offset_bug_warning)
 }
 END_TEST
 
+static void timer_delay_warning(struct libinput *libinput,
+				enum libinput_log_priority priority,
+				const char *format,
+				va_list args)
+{
+	int *warning_triggered = (int*)libinput_get_user_data(libinput);
+
+	if (priority == LIBINPUT_LOG_PRIORITY_ERROR &&
+	    strstr(format, "event processing lagging behind by"))
+		(*warning_triggered)++;
+}
+
+
+START_TEST(timer_delay_bug_warning)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	int warning_triggered = 0;
+
+	litest_drain_events(li);
+
+	for (int i = 0; i < 10; i++) {
+		litest_button_click(dev, BTN_LEFT, true);
+		libinput_dispatch(li);
+		litest_button_click(dev, BTN_LEFT, false);
+		msleep(11);
+
+		libinput_set_user_data(li, &warning_triggered);
+		libinput_log_set_handler(li, timer_delay_warning);
+		libinput_dispatch(li);
+	}
+
+	ck_assert_int_ge(warning_triggered, 1);
+	litest_restore_log_handler(li);
+}
+END_TEST
+
 START_TEST(timer_flush)
 {
 	struct libinput *li;
@@ -855,6 +892,7 @@ TEST_COLLECTION(misc)
 	litest_add_deviceless("config:status string", config_status_string);
 
 	litest_add_for_device("timer:offset-warning", timer_offset_bug_warning, LITEST_SYNAPTICS_TOUCHPAD);
+	litest_add_for_device("timer:delay-warning", timer_delay_bug_warning, LITEST_MOUSE);
 	litest_add_no_device("timer:flush", timer_flush);
 
 	litest_add_no_device("misc:fd", fd_no_event_leak);

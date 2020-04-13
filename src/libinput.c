@@ -2100,9 +2100,18 @@ libinput_get_fd(struct libinput *libinput)
 LIBINPUT_EXPORT int
 libinput_dispatch(struct libinput *libinput)
 {
+	static uint8_t take_time_snapshot;
 	struct libinput_source *source;
 	struct epoll_event ep[32];
 	int i, count;
+
+	/* Every 10 calls to libinput_dispatch() we take the current time so
+	 * we can check the delay between our current time and the event
+	 * timestamps */
+	if ((++take_time_snapshot % 10) == 0)
+		libinput->dispatch_time = libinput_now(libinput);
+	else if (libinput->dispatch_time)
+		libinput->dispatch_time = 0;
 
 	count = epoll_wait(libinput->epoll_fd, ep, ARRAY_LENGTH(ep), 0);
 	if (count < 0)

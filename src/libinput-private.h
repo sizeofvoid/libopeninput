@@ -156,6 +156,7 @@ struct libinput {
 	struct list device_group_list;
 
 	uint64_t last_event_time;
+	uint64_t dispatch_time;
 
 	bool quirks_initialized;
 	struct quirks_context *quirks;

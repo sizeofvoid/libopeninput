@@ -1018,6 +1018,31 @@ evdev_sync_device(struct evdev_device *device)
 	return rc == -EAGAIN ? 0 : rc;
 }
 
+static inline void
+evdev_note_time_delay(struct evdev_device *device,
+		      const struct input_event *ev)
+{
+	struct libinput *libinput = evdev_libinput_context(device);
+	uint32_t tdelta;
+
+	/* if we have a current libinput_dispatch() snapshot, compare our
+	 * event time with the one from the snapshot. If we have more than
+	 * 10ms delay, complain about it. This catches delays in processing
+	 * where there is no steady event flow and thus SYN_DROPPED may not
+	 * get hit by the kernel despite us being too slow.
+	 */
+	if (libinput->dispatch_time == 0)
+		return;
+
+	tdelta = us2ms(libinput->dispatch_time - input_event_time(ev));
+	if (tdelta > 10) {
+		evdev_log_bug_client_ratelimit(device,
+					       &device->delay_warning_limit,
+					       "event processing lagging behind by %dms, your system is too slow\n",
+					       tdelta);
+	}
+}
+
 static void
 evdev_device_dispatch(void *data)
 {
@@ -1025,6 +1050,7 @@ evdev_device_dispatch(void *data)
 	struct libinput *libinput = evdev_libinput_context(device);
 	struct input_event ev;
 	int rc;
+	bool once = false;
 
 	/* If the compositor is repainting, this function is called only once
 	 * per frame and we have to process all the events available on the
@@ -1047,6 +1073,10 @@ evdev_device_dispatch(void *data)
 			if (rc == 0)
 				rc = LIBEVDEV_READ_STATUS_SUCCESS;
 		} else if (rc == LIBEVDEV_READ_STATUS_SUCCESS) {
+			if (!once) {
+				evdev_note_time_delay(device, &ev);
+				once = true;
+			}
 			evdev_device_dispatch_one(device, &ev);
 		}
 	} while (rc == LIBEVDEV_READ_STATUS_SUCCESS);
@@ -2208,6 +2238,8 @@ evdev_device_create(struct libinput_seat *seat,
 
 	/* at most 5 SYN_DROPPED log-messages per 30s */
 	ratelimit_init(&device->syn_drop_limit, s2us(30), 5);
+	/* at most 5 "delayed processing" log messages per minute */
+	ratelimit_init(&device->delay_warning_limit, s2us(60), 5);
 	/* at most 5 log-messages per 5s */
 	ratelimit_init(&device->nonpointer_rel_limit, s2us(5), 5);
 
