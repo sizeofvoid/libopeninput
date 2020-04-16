@@ -208,17 +208,16 @@ def main(argv):
         for evdev in event['evdev']:
             s = slots[slot]
             e = InputEvent(evdev)
-            evbit = libevdev.evbit(e.evtype, e.evcode)
 
-            if evbit in tool_bits:
-                tool_bits[evbit] = e.value
+            if e.code in tool_bits:
+                tool_bits[e.code] = e.value
 
             if args.use_st:
                 # Note: this relies on the EV_KEY events to come in before the
                 # x/y events, otherwise the last/first event in each slot will
                 # be wrong.
-                if (evbit == libevdev.EV_KEY.BTN_TOOL_FINGER or
-                        evbit == libevdev.EV_KEY.BTN_TOOL_PEN):
+                if (e.code == libevdev.EV_KEY.BTN_TOOL_FINGER or
+                        e.code == libevdev.EV_KEY.BTN_TOOL_PEN):
                     slot = 0
                     s = slots[slot]
                     s.dirty = True
@@ -226,7 +225,7 @@ def main(argv):
                         s.state = SlotState.BEGIN
                     else:
                         s.state = SlotState.END
-                elif evbit == libevdev.EV_KEY.BTN_TOOL_DOUBLETAP:
+                elif e.code == libevdev.EV_KEY.BTN_TOOL_DOUBLETAP:
                     if len(slots) > 1:
                         slot = 1
                     s = slots[slot]
@@ -235,18 +234,18 @@ def main(argv):
                         s.state = SlotState.BEGIN
                     else:
                         s.state = SlotState.END
-                elif evbit == libevdev.EV_ABS.ABS_X:
+                elif e.code == libevdev.EV_ABS.ABS_X:
                     if s.state == SlotState.UPDATE:
                         s.dx = e.value - s.x
                     s.x = e.value
                     s.dirty = True
-                elif evbit == libevdev.EV_ABS.ABS_Y:
+                elif e.code == libevdev.EV_ABS.ABS_Y:
                     if s.state == SlotState.UPDATE:
                         s.dy = e.value - s.y
                     s.y = e.value
                     s.dirty = True
             else:
-                if evbit == libevdev.EV_ABS.ABS_MT_SLOT:
+                if e.code == libevdev.EV_ABS.ABS_MT_SLOT:
                     slot = e.value
                     s = slots[slot]
                     s.dirty = True
@@ -254,7 +253,7 @@ def main(argv):
                     # our current slot number was used
                     for sl in slots[:slot + 1]:
                         sl.used = True
-                elif evbit == libevdev.EV_ABS.ABS_MT_TRACKING_ID:
+                elif e.code == libevdev.EV_ABS.ABS_MT_TRACKING_ID:
                     if e.value == -1:
                         s.state = SlotState.END
                     else:
@@ -262,18 +261,18 @@ def main(argv):
                         s.dx = 0
                         s.dy = 0
                     s.dirty = True
-                elif evbit == libevdev.EV_ABS.ABS_MT_POSITION_X:
+                elif e.code == libevdev.EV_ABS.ABS_MT_POSITION_X:
                     if s.state == SlotState.UPDATE:
                         s.dx = e.value - s.x
                     s.x = e.value
                     s.dirty = True
-                elif evbit == libevdev.EV_ABS.ABS_MT_POSITION_Y:
+                elif e.code == libevdev.EV_ABS.ABS_MT_POSITION_Y:
                     if s.state == SlotState.UPDATE:
                         s.dy = e.value - s.y
                     s.y = e.value
                     s.dirty = True
 
-            if evbit == libevdev.EV_SYN.SYN_REPORT:
+            if e.code == libevdev.EV_SYN.SYN_REPORT:
                 if last_time is None:
                     last_time = e.sec * 1000000 + e.usec
                     tdelta = 0
