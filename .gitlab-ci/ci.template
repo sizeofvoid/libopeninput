@@ -451,8 +451,7 @@ vm-valgrind-{{suite.name}}:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 {% endfor %}
-
-{% endfor %} {# for if distro.want_qemu #}
+{% endfor %}{# for if distro.want_qemu #}
 
 {% for distro in distributions if distro.use_for_custom_build_tests %}
 {% set version = "{}".format(distro.versions|last()) %}

@@ -661,7 +661,6 @@ vm-valgrind-pointer:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 
-
 .fedora-build@template:
   extends:
     - .fdo.distribution-image@fedora
