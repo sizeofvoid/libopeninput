@@ -244,18 +244,6 @@ ubuntu:19.10@container-prep:
     FDO_DISTRIBUTION_PACKAGES: $UBUNTU_PACKAGES
     FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
 
-ubuntu:19.04@container-prep:
-  extends:
-    - .fdo.container-build@ubuntu
-    - .policy
-    - .rebuild_for_schedule
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: '19.04'
-    FDO_DISTRIBUTION_PACKAGES: $UBUNTU_PACKAGES
-    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
-
 arch:rolling@container-prep:
   extends:
     - .fdo.container-build@arch
@@ -406,16 +394,6 @@ ubuntu:19.10@container-clean:
     UBUNTU_VERSION: '19.10'
     CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ubuntu/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
     FDO_DISTRIBUTION_VERSION: '19.10'
-    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
-
-ubuntu:19.04@container-clean:
-  extends:
-    - .container-clean
-  variables:
-    GIT_STRATEGY: none
-    UBUNTU_VERSION: '19.04'
-    CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ubuntu/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-    FDO_DISTRIBUTION_VERSION: '19.04'
     FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
 
 arch:rolling@container-clean:
@@ -833,18 +811,6 @@ ubuntu:19.10@default-build:
     FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
   needs:
     - "ubuntu:19.10@container-prep"
-
-
-ubuntu:19.04@default-build:
-  stage: distro
-  extends:
-    - .build@template
-    - .fdo.distribution-image@ubuntu
-  variables:
-    FDO_DISTRIBUTION_VERSION: '19.04'
-    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
-  needs:
-    - "ubuntu:19.04@container-prep"
 
 
 arch:rolling@default-build:

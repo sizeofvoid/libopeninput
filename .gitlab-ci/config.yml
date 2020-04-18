@@ -18,7 +18,6 @@ distributions:
     tag: *default_tag
     versions:
       - '19.10'
-      - '19.04'
   - name: arch
     tag: *default_tag
     versions:
