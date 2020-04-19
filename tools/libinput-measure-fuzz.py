@@ -277,10 +277,10 @@ def reload_and_trigger_udev(device):
     print('Running systemd-hwdb update')
     subprocess.run(['systemd-hwdb', 'update'], check=True)
     syspath = device.path.replace('/dev/input/', '/sys/class/input/')
-    time.sleep(1)
+    time.sleep(2)
     print('Running udevadm trigger {}'.format(syspath))
     subprocess.run(['udevadm', 'trigger', syspath], check=True)
-    time.sleep(1)
+    time.sleep(2)
 
 
 def test_hwdb_entry(device, fuzz):
