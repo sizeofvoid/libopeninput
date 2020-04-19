@@ -269,8 +269,8 @@ def handle_existing_entry(device, fuzz):
 def reload_and_trigger_udev(device):
     import time
 
-    print('Running udevadm hwdb --update')
-    subprocess.run(['udevadm', 'hwdb', '--update'], check=True)
+    print('Running systemd-hwdb update')
+    subprocess.run(['systemd-hwdb', 'update'], check=True)
     syspath = device.path.replace('/dev/input/', '/sys/class/input/')
     time.sleep(1)
     print('Running udevadm trigger {}'.format(syspath))
