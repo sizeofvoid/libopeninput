@@ -284,7 +284,7 @@ def test_hwdb_entry(device, fuzz):
 
     d = Device(device.path)
     f = d.check_axes()
-    if fuzz == f[0] and fuzz == f[1]:
+    if f is not None and fuzz == f[0] and fuzz == f[1]:
         print_green('Success')
         return True
     else:
