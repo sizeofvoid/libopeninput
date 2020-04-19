@@ -45,6 +45,7 @@ OVERRIDE_HWDB_FILE = '/etc/udev/hwdb.d/99-touchpad-fuzz-override.hwdb'
 class tcolors:
     GREEN = '\033[92m'
     RED = '\033[91m'
+    YELLOW = '\033[93m'
     BOLD = '\033[1m'
     NORMAL = '\033[0m'
 
@@ -55,6 +56,10 @@ def print_bold(msg, **kwargs):
 
 def print_green(msg, **kwargs):
     print(tcolors.BOLD + tcolors.GREEN + msg + tcolors.NORMAL, **kwargs)
+
+
+def print_yellow(msg, **kwargs):
+    print(tcolors.BOLD + tcolors.YELLOW + msg + tcolors.NORMAL, **kwargs)
 
 
 def print_red(msg, **kwargs):
@@ -125,7 +130,7 @@ class Device(libevdev.Device):
                 (xfuzz is None and yfuzz is not None)):
             raise InvalidConfigurationError('fuzz should be set for both axes')
 
-        return (xfuzz, yfuzz)
+        return (int(xfuzz), int(yfuzz))
 
     def check_axes(self):
         '''
@@ -284,12 +289,24 @@ def test_hwdb_entry(device, fuzz):
 
     d = Device(device.path)
     f = d.check_axes()
-    if f is not None and fuzz == f[0] and fuzz == f[1]:
-        print_green('Success')
-        return True
+    if f is not None:
+        if f == (fuzz, fuzz):
+            print_yellow('Warning')
+            print_bold('The hwdb applied to the device but libinput\'s udev '
+                       'rules have not picked it up. This should only happen'
+                       'if libinput is not installed')
+            return True
+        else:
+            print_red('Error')
+            return False
     else:
-        print_red('Error')
-        return False
+        f = d.check_property()
+        if f is not None and f == (fuzz, fuzz):
+            print_green('Success')
+            return True
+        else:
+            print_red('Error')
+            return False
 
 
 def check_file_for_lines(path, template):
