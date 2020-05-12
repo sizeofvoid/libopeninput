@@ -2681,10 +2681,15 @@ evdev_tag_touchpad(struct evdev_device *device,
 		}
 	}
 
-	/* simple approach: touchpads on USB or Bluetooth are considered
-	 * external, anything else is internal. Exception is Apple -
-	 * internal touchpads are connected over USB and it doesn't have
-	 * external USB touchpads anyway.
+	/* The hwdb is the authority on integration, these heuristics are
+	 * the fallback only (they precede the hwdb too).
+	 *
+	 * Simple approach: USB is unknown, with the exception
+	 * of Apple where internal touchpads are connected over USB and it
+	 * doesn't have external USB touchpads anyway.
+	 *
+	 * Bluetooth touchpads are considered external, anything else is
+	 * internal.
 	 */
 	bustype = libevdev_get_id_bustype(device->evdev);
 	vendor = libevdev_get_id_vendor(device->evdev);
