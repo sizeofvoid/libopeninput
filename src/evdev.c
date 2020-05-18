@@ -1306,21 +1306,6 @@ evdev_read_wheel_click_props(struct evdev_device *device)
 	return angles;
 }
 
-static inline struct wheel_tilt_flags
-evdev_read_wheel_tilt_props(struct evdev_device *device)
-{
-	struct wheel_tilt_flags flags;
-
-	flags.vertical = parse_udev_flag(device,
-					 device->udev_device,
-					 "MOUSE_WHEEL_TILT_VERTICAL");
-
-	flags.horizontal = parse_udev_flag(device,
-					 device->udev_device,
-					 "MOUSE_WHEEL_TILT_HORIZONTAL");
-	return flags;
-}
-
 static inline double
 evdev_get_trackpoint_multiplier(struct evdev_device *device)
 {
@@ -2232,7 +2217,6 @@ evdev_device_create(struct libinput_seat *seat,
 	device->scroll.direction = 0;
 	device->scroll.wheel_click_angle =
 		evdev_read_wheel_click_props(device);
-	device->scroll.is_tilt = evdev_read_wheel_tilt_props(device);
 	device->model_flags = evdev_read_model_flags(device);
 	device->dpi = DEFAULT_MOUSE_DPI;
 

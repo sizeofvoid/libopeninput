@@ -233,8 +233,6 @@ struct evdev_device {
 		/* angle per REL_WHEEL click in degrees */
 		struct wheel_angle wheel_click_angle;
 
-		struct wheel_tilt_flags is_tilt;
-
 		enum evdev_button_scroll_lock_state lock_state;
 		bool want_lock_enabled;
 		bool lock_enabled;

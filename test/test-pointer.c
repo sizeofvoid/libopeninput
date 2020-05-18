@@ -602,33 +602,6 @@ out:
 	return angle;
 }
 
-static enum libinput_pointer_axis_source
-wheel_source(struct litest_device *dev, int which)
-{
-	struct udev_device *d;
-	bool is_tilt = false;
-
-	d = libinput_device_get_udev_device(dev->libinput_device);
-	litest_assert_ptr_notnull(d);
-
-	switch(which) {
-	case REL_WHEEL:
-		is_tilt = !!udev_device_get_property_value(d, "MOUSE_WHEEL_TILT_VERTICAL");
-		break;
-	case REL_HWHEEL:
-		is_tilt = !!udev_device_get_property_value(d, "MOUSE_WHEEL_TILT_HORIZONTAL");
-		break;
-	default:
-		litest_abort_msg("Invalid source axis %d\n", which);
-		break;
-	}
-
-	udev_device_unref(d);
-	return is_tilt ?
-		LIBINPUT_POINTER_AXIS_SOURCE_WHEEL_TILT :
-		LIBINPUT_POINTER_AXIS_SOURCE_WHEEL;
-}
-
 static void
 test_wheel_event(struct litest_device *dev, int which, int amount)
 {
@@ -641,7 +614,7 @@ test_wheel_event(struct litest_device *dev, int which, int amount)
 	double scroll_step, expected, discrete;
 
 	scroll_step = wheel_click_angle(dev, which);
-	source = wheel_source(dev, which);
+	source = LIBINPUT_POINTER_AXIS_SOURCE_WHEEL;
 	expected = amount * scroll_step;
 	discrete = amount;
 

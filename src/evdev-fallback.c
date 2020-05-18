@@ -208,7 +208,6 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 {
 	struct normalized_coords wheel_degrees = { 0.0, 0.0 };
 	struct discrete_coords discrete = { 0.0, 0.0 };
-	enum libinput_pointer_axis_source source;
 
 	if (!(device->seat_caps & EVDEV_DEVICE_POINTER))
 		return;
@@ -233,15 +232,11 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 					device->scroll.wheel_click_angle.y;
 		discrete.y = -1 * dispatch->wheel.y;
 
-		source = device->scroll.is_tilt.vertical ?
-				LIBINPUT_POINTER_AXIS_SOURCE_WHEEL_TILT:
-				LIBINPUT_POINTER_AXIS_SOURCE_WHEEL;
-
 		evdev_notify_axis(
 			device,
 			time,
 			bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
-			source,
+			LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
 			&wheel_degrees,
 			&discrete);
 		dispatch->wheel.y = 0;
@@ -252,15 +247,11 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 					device->scroll.wheel_click_angle.x;
 		discrete.x = dispatch->wheel.x;
 
-		source = device->scroll.is_tilt.horizontal ?
-				LIBINPUT_POINTER_AXIS_SOURCE_WHEEL_TILT:
-				LIBINPUT_POINTER_AXIS_SOURCE_WHEEL;
-
 		evdev_notify_axis(
 			device,
 			time,
 			bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
-			source,
+			LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
 			&wheel_degrees,
 			&discrete);
 		dispatch->wheel.x = 0;

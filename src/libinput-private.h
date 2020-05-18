@@ -111,11 +111,6 @@ struct phys_ellipsis {
 	double minor;
 };
 
-/* A pair of tilt flags */
-struct wheel_tilt_flags {
-	bool vertical, horizontal;
-};
-
 struct libinput_interface_backend {
 	int (*resume)(struct libinput *libinput);
 	void (*suspend)(struct libinput *libinput);
