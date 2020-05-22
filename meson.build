@@ -289,6 +289,7 @@ src_libfilter = [
 		'src/filter-low-dpi.c',
 		'src/filter-mouse.c',
 		'src/filter-touchpad.c',
+		'src/filter-touchpad-flat.c',
 		'src/filter-touchpad-x230.c',
 		'src/filter-tablet.c',
 		'src/filter-trackpoint.c',

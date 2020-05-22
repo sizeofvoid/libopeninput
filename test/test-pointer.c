@@ -1917,39 +1917,6 @@ START_TEST(pointer_accel_profile_defaults)
 }
 END_TEST
 
-START_TEST(pointer_accel_profile_defaults_noprofile)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput_device *device = dev->libinput_device;
-	enum libinput_config_status status;
-	enum libinput_config_accel_profile profile;
-	uint32_t profiles;
-
-	ck_assert(libinput_device_config_accel_is_available(device));
-
-	profile = libinput_device_config_accel_get_default_profile(device);
-	ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
-
-	profile = libinput_device_config_accel_get_profile(device);
-	ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
-
-	profiles = libinput_device_config_accel_get_profiles(device);
-	ck_assert_int_eq(profiles, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
-
-	status = libinput_device_config_accel_set_profile(device,
-							  LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT);
-	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
-	profile = libinput_device_config_accel_get_profile(device);
-	ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
-
-	status = libinput_device_config_accel_set_profile(device,
-							  LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE);
-	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
-	profile = libinput_device_config_accel_get_profile(device);
-	ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
-}
-END_TEST
-
 START_TEST(pointer_accel_profile_invalid)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3213,7 +3180,7 @@ TEST_COLLECTION(pointer)
 	litest_add("pointer:accel", pointer_accel_defaults_absolute_relative, LITEST_ABSOLUTE|LITEST_RELATIVE, LITEST_ANY);
 	litest_add("pointer:accel", pointer_accel_direction_change, LITEST_RELATIVE, LITEST_POINTINGSTICK);
 	litest_add("pointer:accel", pointer_accel_profile_defaults, LITEST_RELATIVE, LITEST_TOUCHPAD);
-	litest_add("pointer:accel", pointer_accel_profile_defaults_noprofile, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("pointer:accel", pointer_accel_profile_defaults, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("pointer:accel", pointer_accel_profile_invalid, LITEST_RELATIVE, LITEST_ANY);
 	litest_add("pointer:accel", pointer_accel_profile_noaccel, LITEST_ANY, LITEST_TOUCHPAD|LITEST_RELATIVE|LITEST_TABLET);
 	litest_add("pointer:accel", pointer_accel_profile_flat_motion_relative, LITEST_RELATIVE, LITEST_TOUCHPAD);

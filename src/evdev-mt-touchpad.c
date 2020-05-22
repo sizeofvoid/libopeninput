@@ -2917,33 +2917,12 @@ tp_init_slots(struct tp_dispatch *tp,
 	return true;
 }
 
-static uint32_t
-tp_accel_config_get_profiles(struct libinput_device *libinput_device)
-{
-	return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
-}
-
 static enum libinput_config_status
 tp_accel_config_set_profile(struct libinput_device *libinput_device,
-			    enum libinput_config_accel_profile profile)
-{
-	return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
-}
-
-static enum libinput_config_accel_profile
-tp_accel_config_get_profile(struct libinput_device *libinput_device)
-{
-	return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
-}
-
-static enum libinput_config_accel_profile
-tp_accel_config_get_default_profile(struct libinput_device *libinput_device)
-{
-	return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
-}
+			    enum libinput_config_accel_profile profile);
 
 static bool
-tp_init_accel(struct tp_dispatch *tp)
+tp_init_accel(struct tp_dispatch *tp, enum libinput_config_accel_profile which)
 {
 	struct evdev_device *device = tp->device;
 	int res_x, res_y;
@@ -2965,8 +2944,10 @@ tp_init_accel(struct tp_dispatch *tp)
 	tp->accel.y_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_y;
 	tp->accel.xy_scale_coeff = 1.0 * res_x/res_y;
 
-	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_X230) ||
-	    tp->device->model_flags & EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81)
+	if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT)
+		filter = create_pointer_accelerator_filter_touchpad_flat(dpi);
+	else if (evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_X230) ||
+		 tp->device->model_flags & EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81)
 		filter = create_pointer_accelerator_filter_lenovo_x230(dpi, use_v_avg);
 	else if (libevdev_get_id_bustype(device->evdev) == BUS_BLUETOOTH)
 		filter = create_pointer_accelerator_filter_touchpad(dpi,
@@ -2981,14 +2962,47 @@ tp_init_accel(struct tp_dispatch *tp)
 
 	evdev_device_init_pointer_acceleration(tp->device, filter);
 
-	/* we override the profile hooks for accel configuration with hooks
-	 * that don't allow selection of profiles */
-	device->pointer.config.get_profiles = tp_accel_config_get_profiles;
 	device->pointer.config.set_profile = tp_accel_config_set_profile;
-	device->pointer.config.get_profile = tp_accel_config_get_profile;
-	device->pointer.config.get_default_profile = tp_accel_config_get_default_profile;
 
 	return true;
+}
+
+static enum libinput_config_status
+tp_accel_config_set_speed(struct libinput_device *device, double speed)
+{
+	struct evdev_device *dev = evdev_device(device);
+
+	if (!filter_set_speed(dev->pointer.filter, speed))
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static enum libinput_config_status
+tp_accel_config_set_profile(struct libinput_device *libinput_device,
+			    enum libinput_config_accel_profile profile)
+{
+	struct evdev_device *device = evdev_device(libinput_device);
+	struct tp_dispatch *tp = tp_dispatch(device->dispatch);
+	struct motion_filter *filter;
+	double speed;
+
+	filter = device->pointer.filter;
+	if (filter_get_type(filter) == profile)
+		return LIBINPUT_CONFIG_STATUS_SUCCESS;
+
+	speed = filter_get_speed(filter);
+	device->pointer.filter = NULL;
+
+	if (tp_init_accel(tp, profile)) {
+		tp_accel_config_set_speed(libinput_device, speed);
+		filter_destroy(filter);
+	} else {
+		device->pointer.filter = filter;
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+	}
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
 }
 
 static uint32_t
@@ -3597,7 +3611,7 @@ tp_init(struct tp_dispatch *tp,
 
 	tp_init_hysteresis(tp);
 
-	if (!tp_init_accel(tp))
+	if (!tp_init_accel(tp, LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE))
 		return false;
 
 	tp_init_tap(tp);

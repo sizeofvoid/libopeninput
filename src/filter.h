@@ -120,6 +120,9 @@ create_pointer_accelerator_filter_touchpad(int dpi,
 	bool use_velocity_averaging);
 
 struct motion_filter *
+create_pointer_accelerator_filter_touchpad_flat(int dpi);
+
+struct motion_filter *
 create_pointer_accelerator_filter_lenovo_x230(int dpi, bool use_velocity_averaging);
 
 struct motion_filter *
