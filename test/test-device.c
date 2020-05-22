@@ -179,6 +179,46 @@ START_TEST(device_disable)
 }
 END_TEST
 
+START_TEST(device_disable_tablet)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_device *device;
+	enum libinput_config_status status;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	device = dev->libinput_device;
+
+	litest_drain_events(li);
+
+	status = libinput_device_config_send_events_set_mode(device,
+			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	/* no event from disabling */
+	litest_assert_empty_queue(li);
+
+	litest_tablet_proximity_in(dev, 60, 60, axes);
+	for (int i = 60; i < 70; i++) {
+		litest_tablet_motion(dev, i, i, axes);
+		libinput_dispatch(li);
+	}
+	litest_tablet_proximity_out(dev);
+
+	litest_assert_empty_queue(li);
+
+	/* no event from resuming */
+	status = libinput_device_config_send_events_set_mode(device,
+			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(device_disable_touchpad)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1573,6 +1613,7 @@ TEST_COLLECTION(device)
 	litest_add("device:sendevents", device_sendevents_config_touchpad_superset, LITEST_TOUCHPAD, LITEST_TABLET);
 	litest_add("device:sendevents", device_sendevents_config_default, LITEST_ANY, LITEST_TABLET);
 	litest_add("device:sendevents", device_disable, LITEST_RELATIVE, LITEST_TABLET);
+	litest_add("device:sendevents", device_disable_tablet, LITEST_TABLET, LITEST_ANY);
 	litest_add("device:sendevents", device_disable_touchpad, LITEST_TOUCHPAD, LITEST_TABLET);
 	litest_add("device:sendevents", device_disable_touch, LITEST_TOUCH, LITEST_ANY);
 	litest_add("device:sendevents", device_disable_touch_during_touch, LITEST_TOUCH, LITEST_ANY);

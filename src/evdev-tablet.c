@@ -2400,6 +2400,7 @@ tablet_init(struct tablet_dispatch *tablet,
 	if (rc != 0)
 		return rc;
 
+	evdev_init_sendevents(device, &tablet->base);
 	tablet_init_left_handed(device);
 
 	for (axis = LIBINPUT_TABLET_TOOL_AXIS_X;
