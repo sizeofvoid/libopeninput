@@ -803,8 +803,9 @@ tp_tap_handle_event(struct tp_dispatch *tp,
 
 	if (current != tp->tap.state)
 		evdev_log_debug(tp->device,
-			  "tap: touch %d state %s → %s → %s\n",
+			  "tap: touch %d (%s), tap state %s → %s → %s\n",
 			  t ? (int)t->index : -1,
+			  t ? touch_state_to_str(t->state) : "",
 			  tap_state_to_str(current),
 			  tap_event_to_str(event),
 			  tap_state_to_str(tp->tap.state));

@@ -53,6 +53,20 @@ enum touch_state {
 	TOUCH_END = 5,
 };
 
+static inline const char *
+touch_state_to_str(enum touch_state state)
+{
+	switch(state) {
+	CASE_RETURN_STRING(TOUCH_NONE);
+	CASE_RETURN_STRING(TOUCH_HOVERING);
+	CASE_RETURN_STRING(TOUCH_BEGIN);
+	CASE_RETURN_STRING(TOUCH_UPDATE);
+	CASE_RETURN_STRING(TOUCH_MAYBE_END);
+	CASE_RETURN_STRING(TOUCH_END);
+	}
+	return NULL;
+}
+
 enum touch_palm_state {
 	PALM_NONE = 0,
 	PALM_EDGE,

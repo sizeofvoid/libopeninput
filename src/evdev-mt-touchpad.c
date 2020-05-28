@@ -1201,8 +1201,9 @@ out:
 		break;
 	}
 	evdev_log_debug(tp->device,
-		  "palm: touch %d, palm detected (%s)\n",
+		  "palm: touch %d (%s), palm detected (%s)\n",
 		  t->index,
+		  touch_state_to_str(t->state),
 		  palm_state);
 }
 
