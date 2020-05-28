@@ -1386,8 +1386,9 @@ fallback_pair_tablet_mode(struct evdev_device *keyboard,
 			return;
 	/* This filters out all internal keyboard-like devices (Video
 	 * Switch) */
-	} else if ((keyboard->tags & EVDEV_TAG_INTERNAL_KEYBOARD) == 0)
+	} else if ((keyboard->tags & EVDEV_TAG_INTERNAL_KEYBOARD) == 0) {
 		return;
+	}
 
 	if (evdev_device_has_model_quirk(keyboard,
 					 QUIRK_MODEL_TABLET_MODE_NO_SUSPEND))
