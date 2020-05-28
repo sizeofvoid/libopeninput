@@ -1165,4 +1165,26 @@ static inline int litest_slot_count(struct litest_device *dev)
 	return libevdev_get_num_slots(dev->evdev);
 }
 
+static inline bool
+litest_has_palm_detect_size(struct litest_device *dev)
+{
+	double width, height;
+	unsigned int vendor;
+	unsigned int bustype;
+	int rc;
+
+	vendor = libinput_device_get_id_vendor(dev->libinput_device);
+	bustype = libevdev_get_id_bustype(dev->evdev);
+	if (vendor == VENDOR_ID_WACOM)
+		return 0;
+	if (bustype == BUS_BLUETOOTH)
+		return 0;
+	if (vendor == VENDOR_ID_APPLE)
+		return 1;
+
+	rc = libinput_device_get_size(dev->libinput_device, &width, &height);
+
+	return rc == 0 && width >= 70;
+}
+
 #endif /* LITEST_H */
