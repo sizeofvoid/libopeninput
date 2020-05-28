@@ -1923,15 +1923,20 @@ evdev_configure_device(struct evdev_device *device)
 
 		if (libevdev_has_event_code(evdev, EV_SW, SW_TABLET_MODE)) {
 		    if (evdev_device_has_model_quirk(device,
-				 QUIRK_MODEL_TABLET_MODE_SWITCH_UNRELIABLE))
+				 QUIRK_MODEL_TABLET_MODE_SWITCH_UNRELIABLE)) {
 			    evdev_log_info(device,
-				"device is an unreliable tablet mode switch.\n");
-		    else
+				"device is an unreliable tablet mode switch, filtering events.\n");
+			    libevdev_disable_event_code(device->evdev,
+							EV_SW,
+							SW_TABLET_MODE);
+		    } else {
 			    device->tags |= EVDEV_TAG_TABLET_MODE_SWITCH;
-
-		    device->seat_caps |= EVDEV_DEVICE_SWITCH;
-		    evdev_log_info(device, "device is a switch device\n");
+			    device->seat_caps |= EVDEV_DEVICE_SWITCH;
+		    }
 		}
+
+		if (device->seat_caps & EVDEV_DEVICE_SWITCH)
+		    evdev_log_info(device, "device is a switch device\n");
 	}
 
 	if (device->seat_caps & EVDEV_DEVICE_POINTER &&

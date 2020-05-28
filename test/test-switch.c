@@ -47,6 +47,14 @@ START_TEST(switch_has_cap)
 {
 	struct litest_device *dev = litest_current_device();
 
+	/* Need to check for this specific device here because the
+	 * unreliable tablet mode switch removes the capability too */
+	if (dev->which == LITEST_TABLET_MODE_UNRELIABLE) {
+		ck_assert(!libinput_device_has_capability(dev->libinput_device,
+							  LIBINPUT_DEVICE_CAP_SWITCH));
+		return;
+	}
+
 	ck_assert(libinput_device_has_capability(dev->libinput_device,
 						 LIBINPUT_DEVICE_CAP_SWITCH));
 
@@ -66,16 +74,33 @@ START_TEST(switch_has_lid_switch)
 }
 END_TEST
 
+static bool
+tablet_mode_switch_is_reliable(struct litest_device *dev)
+{
+	bool is_unreliable = false;
+
+       quirks_get_bool(dev->quirks,
+		QUIRK_MODEL_TABLET_MODE_SWITCH_UNRELIABLE,
+		&is_unreliable);
+
+	return !is_unreliable;
+}
+
 START_TEST(switch_has_tablet_mode_switch)
 {
 	struct litest_device *dev = litest_current_device();
+	int has_switch;
 
 	if (!libevdev_has_event_code(dev->evdev, EV_SW, SW_TABLET_MODE))
 		return;
 
-	ck_assert_int_eq(libinput_device_switch_has_switch(dev->libinput_device,
-							   LIBINPUT_SWITCH_TABLET_MODE),
-			 1);
+	has_switch = libinput_device_switch_has_switch(dev->libinput_device,
+						       LIBINPUT_SWITCH_TABLET_MODE);
+
+	if (!tablet_mode_switch_is_reliable(dev))
+		ck_assert_int_ne(has_switch, 1);
+	else
+		ck_assert_int_eq(has_switch, 1);
 }
 END_TEST
 
