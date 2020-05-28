@@ -3654,6 +3654,40 @@ START_TEST(touchpad_tap_palm_dwt_tap)
 }
 END_TEST
 
+START_TEST(touchpad_tap_palm_3fg_start)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	if (litest_slot_count(dev) < 3 ||
+	    !litest_has_palm_detect_size(dev))
+		return;
+
+	litest_enable_tap(dev->libinput_device);
+	litest_drain_events(li);
+
+	litest_push_event_frame(dev);
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_down(dev, 1, 55, 55);
+	litest_touch_down(dev, 2, 99, 55); /* edge palm */
+	litest_pop_event_frame(dev);
+	libinput_dispatch(li);
+
+	litest_touch_up(dev, 2); /* release the palm */
+	litest_assert_empty_queue(li);
+
+	litest_touch_up(dev, 0);
+	litest_touch_up(dev, 1);
+
+	libinput_dispatch(li);
+	litest_assert_button_event(li, BTN_RIGHT,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_RIGHT,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 TEST_COLLECTION(touchpad_tap)
 {
 	struct range any_tap_range = {1, 4};
@@ -3769,4 +3803,5 @@ TEST_COLLECTION(touchpad_tap)
 	litest_add_ranged("tap:palm", touchpad_tap_palm_multitap_click, LITEST_TOUCHPAD, LITEST_ANY, &multitap_range);
 	litest_add("tap:palm", touchpad_tap_palm_click_then_tap, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("tap:palm", touchpad_tap_palm_dwt_tap, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add("tap:palm", touchpad_tap_palm_3fg_start, LITEST_TOUCHPAD, LITEST_ANY);
 }
