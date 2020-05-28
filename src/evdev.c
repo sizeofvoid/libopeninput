@@ -2234,11 +2234,8 @@ evdev_device_create(struct libinput_seat *seat,
 	evdev_pre_configure_model_quirks(device);
 
 	device->dispatch = evdev_configure_device(device);
-	if (device->dispatch == NULL) {
-		if (device->seat_caps == 0)
-			unhandled_device = 1;
+	if (device->dispatch == NULL || device->seat_caps == 0)
 		goto err;
-	}
 
 	device->source =
 		libinput_add_fd(libinput, fd, evdev_device_dispatch, device);
@@ -2256,8 +2253,10 @@ evdev_device_create(struct libinput_seat *seat,
 
 err:
 	close_restricted(libinput, fd);
-	if (device)
+	if (device) {
+		unhandled_device = device->seat_caps == 0;
 		evdev_device_destroy(device);
+	}
 
 	return unhandled_device ? EVDEV_UNHANDLED_DEVICE :  NULL;
 }

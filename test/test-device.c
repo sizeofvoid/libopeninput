@@ -1472,6 +1472,27 @@ START_TEST(device_capability_check_invalid)
 }
 END_TEST
 
+START_TEST(device_capability_nocaps_ignored)
+{
+	struct libevdev_uinput *uinput;
+	struct libinput *li;
+	struct libinput_device *device;
+
+	/* SW_MAX isn't handled in libinput so the device is processed but
+	 * ends up without seat capabilities and is ignored. */
+	uinput = litest_create_uinput_device("test device", NULL,
+					     EV_SW, SW_MAX,
+					     -1);
+	li = litest_create_context();
+	device = libinput_path_add_device(li,
+					  libevdev_uinput_get_devnode(uinput));
+	litest_assert_ptr_null(device);
+
+	libinput_unref(li);
+	libevdev_uinput_destroy(uinput);
+}
+END_TEST
+
 START_TEST(device_has_size)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1667,6 +1688,7 @@ TEST_COLLECTION(device)
 
 	litest_add("device:capability", device_capability_at_least_one, LITEST_ANY, LITEST_ANY);
 	litest_add("device:capability", device_capability_check_invalid, LITEST_ANY, LITEST_ANY);
+	litest_add_no_device("device:capability", device_capability_nocaps_ignored);
 
 	litest_add("device:size", device_has_size, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("device:size", device_has_size, LITEST_TABLET, LITEST_ANY);
