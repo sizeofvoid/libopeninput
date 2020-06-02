@@ -748,6 +748,10 @@ tp_process_key(struct tp_dispatch *tp,
 	       const struct input_event *e,
 	       uint64_t time)
 {
+	/* ignore kernel key repeat */
+	if (e->value == 2)
+		return;
+
 	switch (e->code) {
 		case BTN_LEFT:
 		case BTN_MIDDLE:

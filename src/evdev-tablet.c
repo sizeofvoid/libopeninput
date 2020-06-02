@@ -812,6 +812,10 @@ tablet_process_key(struct tablet_dispatch *tablet,
 {
 	enum libinput_tablet_tool_type type;
 
+	/* ignore kernel key repeat */
+	if (e->value == 2)
+		return;
+
 	switch (e->code) {
 	case BTN_TOOL_FINGER:
 		evdev_log_bug_libinput(device,

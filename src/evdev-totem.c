@@ -181,6 +181,10 @@ totem_process_key(struct totem_dispatch *totem,
 		  struct input_event *e,
 		  uint64_t time)
 {
+	/* ignore kernel key repeat */
+	if (e->value == 2)
+		return;
+
 	switch(e->code) {
 	case BTN_0:
 		totem->button_state_now = !!e->value;

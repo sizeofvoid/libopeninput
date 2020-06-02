@@ -332,6 +332,10 @@ pad_process_key(struct pad_dispatch *pad,
 	uint32_t button = e->code;
 	uint32_t is_press = e->value != 0;
 
+	/* ignore kernel key repeat */
+	if (e->value == 2)
+		return;
+
 	pad_button_set_down(pad, button, is_press);
 }
 
