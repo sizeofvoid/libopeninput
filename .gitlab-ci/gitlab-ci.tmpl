@@ -127,7 +127,7 @@ check-ci-script:
   image: golang:alpine
   stage: prep
   before_script:
-    - apk add python3 git
+    - apk add python3 py-pip git
     - pip3 install --user jinja2
   script:
     - python3 ./.gitlab-ci/generate-gitlab-ci.py
@@ -143,7 +143,7 @@ check-commit:
   image: golang:alpine
   stage: prep
   before_script:
-    - apk add python3 git
+    - apk add python3 py-pip git
   script:
     - pip3 install GitPython
     - pip3 install pytest
