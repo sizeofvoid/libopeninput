@@ -227,12 +227,20 @@ def main(argv):
                     else:
                         s.state = SlotState.END
                 elif e.code == libevdev.EV_ABS.ABS_X:
-                    if s.state == SlotState.UPDATE:
+                    # If recording started after touch down
+                    if s.state == SlotState.NONE:
+                        s.state = SlotState.BEGIN
+                        s.dx, s.dy = 0, 0
+                    elif s.state == SlotState.UPDATE:
                         s.dx = e.value - s.x
                     s.x = e.value
                     s.dirty = True
                 elif e.code == libevdev.EV_ABS.ABS_Y:
-                    if s.state == SlotState.UPDATE:
+                    # If recording started after touch down
+                    if s.state == SlotState.NONE:
+                        s.state = SlotState.BEGIN
+                        s.dx, s.dy = 0, 0
+                    elif s.state == SlotState.UPDATE:
                         s.dy = e.value - s.y
                     s.y = e.value
                     s.dirty = True
@@ -254,12 +262,20 @@ def main(argv):
                         s.dy = 0
                     s.dirty = True
                 elif e.code == libevdev.EV_ABS.ABS_MT_POSITION_X:
-                    if s.state == SlotState.UPDATE:
+                    # If recording started after touch down
+                    if s.state == SlotState.NONE:
+                        s.state = SlotState.BEGIN
+                        s.dx, s.dy = 0, 0
+                    elif s.state == SlotState.UPDATE:
                         s.dx = e.value - s.x
                     s.x = e.value
                     s.dirty = True
                 elif e.code == libevdev.EV_ABS.ABS_MT_POSITION_Y:
-                    if s.state == SlotState.UPDATE:
+                    # If recording started after touch down
+                    if s.state == SlotState.NONE:
+                        s.state = SlotState.BEGIN
+                        s.dx, s.dy = 0, 0
+                    elif s.state == SlotState.UPDATE:
                         s.dy = e.value - s.y
                     s.y = e.value
                     s.dirty = True
