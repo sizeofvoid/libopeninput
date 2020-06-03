@@ -137,15 +137,6 @@ class Slot:
         self.index = index
 
 
-class InputEvent:
-    def __init__(self, data):
-        self.sec = data[0]
-        self.usec = data[1]
-        self.evtype = data[2]
-        self.evcode = data[3]
-        self.value = data[4]
-
-
 def main(argv):
     global COLOR_RESET
     global COLOR_RED
@@ -207,7 +198,8 @@ def main(argv):
     for event in device['events']:
         for evdev in event['evdev']:
             s = slots[slot]
-            e = InputEvent(evdev)
+            e = libevdev.InputEvent(code=libevdev.evbit(evdev[2], evdev[3]),
+                                    value=evdev[4], sec=evdev[0], usec=evdev[1])
 
             if e.code in tool_bits:
                 tool_bits[e.code] = e.value
