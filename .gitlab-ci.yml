@@ -155,14 +155,9 @@ check-commit:
   stage: prep
   before_script:
     - apk add python3 py-pip git
+    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
-    - pip3 install GitPython
-    - pip3 install pytest
-    - |
-      pytest --junitxml=results.xml \
-             --tb=line \
-             --assert=plain \
-             ./.gitlab-ci/check-commit.py
+    - ci-fairy check-commits --signed-off-by --junit-xml=results.xml
   except:
     - master@libinput/libinput
   variables:
