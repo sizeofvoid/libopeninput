@@ -167,6 +167,24 @@ check-commit:
       junit: results.xml
 
 #
+# Verify that the merge request has the allow-collaboration checkbox ticked
+#
+
+check-merge-request:
+  image: golang:alpine
+  stage: prep
+  before_script:
+    - apk add python3 py-pip git
+    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
+  script:
+    - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
+  artifacts:
+    when: on_failure
+    reports:
+      junit: results.xml
+  allow_failure: true
+
+#
 # This stage will recreate the container images only if the image
 # is too old or if it is missing some dependencies.
 #
