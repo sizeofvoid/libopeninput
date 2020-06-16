@@ -1102,6 +1102,54 @@ START_TEST(strstrip_test)
 }
 END_TEST
 
+START_TEST(strendswith_test)
+{
+	struct strendswith_test {
+		const char *string;
+		const char *suffix;
+		bool expected;
+	} tests[] = {
+		{ "foobar", "bar", true },
+		{ "foobar", "foo", false },
+		{ "foobar", "foobar", true },
+		{ "foo", "foobar", false },
+		{ "foobar", "", false },
+		{ "", "", false },
+		{ "", "foo", false },
+		{ NULL, NULL, false },
+	};
+
+	for (struct strendswith_test *t = tests; t->string; t++) {
+		ck_assert_int_eq(strendswith(t->string, t->suffix),
+				 t->expected);
+	}
+}
+END_TEST
+
+START_TEST(strstartswith_test)
+{
+	struct strstartswith_test {
+		const char *string;
+		const char *suffix;
+		bool expected;
+	} tests[] = {
+		{ "foobar", "foo", true },
+		{ "foobar", "bar", false },
+		{ "foobar", "foobar", true },
+		{ "foo", "foobar", false },
+		{ "foo", "", false },
+		{ "", "", false },
+		{ "foo", "", false },
+		{ NULL, NULL, false },
+	};
+
+	for (struct strstartswith_test *t = tests; t->string; t++) {
+		ck_assert_int_eq(strstartswith(t->string, t->suffix),
+				 t->expected);
+	}
+}
+END_TEST
+
 START_TEST(list_test_insert)
 {
 	struct list_test {
@@ -1208,6 +1256,8 @@ litest_utils_suite(void)
 	tcase_add_test(tc, kvsplit_double_test);
 	tcase_add_test(tc, strjoin_test);
 	tcase_add_test(tc, strstrip_test);
+	tcase_add_test(tc, strendswith_test);
+	tcase_add_test(tc, strstartswith_test);
 	tcase_add_test(tc, time_conversion);
 	tcase_add_test(tc, human_time);
 
