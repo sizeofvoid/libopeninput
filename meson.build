@@ -307,48 +307,10 @@ libinput_data_override_path = join_paths(dir_sysconf, 'local-overrides.quirks')
 config_h.set_quoted('LIBINPUT_QUIRKS_DIR', dir_data)
 config_h.set_quoted('LIBINPUT_QUIRKS_OVERRIDE_FILE', libinput_data_override_path)
 
-quirks_data = [
-	'quirks/10-generic-keyboard.quirks',
-	'quirks/10-generic-lid.quirks',
-	'quirks/10-generic-trackball.quirks',
-	'quirks/30-vendor-aiptek.quirks',
-	'quirks/30-vendor-alps.quirks',
-	'quirks/30-vendor-contour.quirks',
-	'quirks/30-vendor-cypress.quirks',
-	'quirks/30-vendor-elantech.quirks',
-	'quirks/30-vendor-ibm.quirks',
-	'quirks/30-vendor-kensington.quirks',
-	'quirks/30-vendor-logitech.quirks',
-	'quirks/30-vendor-madcatz.quirks',
-	'quirks/30-vendor-microsoft.quirks',
-	'quirks/30-vendor-razer.quirks',
-	'quirks/30-vendor-synaptics.quirks',
-	'quirks/30-vendor-trust.quirks',
-	'quirks/30-vendor-vmware.quirks',
-	'quirks/30-vendor-wacom.quirks',
-	'quirks/50-system-acer.quirks',
-	'quirks/50-system-apple.quirks',
-	'quirks/50-system-asus.quirks',
-	'quirks/50-system-chicony.quirks',
-	'quirks/50-system-cyborg.quirks',
-	'quirks/50-system-dell.quirks',
-	'quirks/50-system-google.quirks',
-	'quirks/50-system-hp.quirks',
-	'quirks/50-system-lenovo.quirks',
-	'quirks/50-system-system76.quirks',
-	'quirks/50-system-toshiba.quirks',
-]
-
-test('quirks-in-meson.build',
-     find_program('quirks/test-quirks-in-meson.build.sh'),
-     args : [meson.current_source_dir()],
-     suite : ['all']
-     )
-
-config_h.set_quoted('LIBINPUT_QUIRKS_FILES', ':'.join(quirks_data))
 config_h.set_quoted('LIBINPUT_QUIRKS_SRCDIR', dir_src_quirks)
-
-install_data(quirks_data, install_dir : dir_data)
+install_subdir('quirks',
+	       exclude_files: ['README.md'],
+	       install_dir : dir_data)
 
 src_libquirks = [
 	'src/quirks.c',

@@ -1392,6 +1392,10 @@ litest_init_device_quirk_file(const char *data_dir,
 	return safe_strdup(path);
 }
 
+static int is_quirks_file(const struct dirent *dir) {
+	return strendswith(dir->d_name, ".quirks");
+}
+
 /**
  * Install the quirks from the quirks/ source directory.
  */
@@ -1399,30 +1403,30 @@ static void
 litest_install_source_quirks(struct list *created_files_list,
 			     const char *dirname)
 {
-	const char *quirksdir = "quirks/";
-	char **quirks, **q;
+	struct dirent **namelist;
+	int ndev;
 
-	quirks = strv_from_string(LIBINPUT_QUIRKS_FILES, ":");
-	litest_assert(quirks);
+	ndev = scandir(LIBINPUT_QUIRKS_SRCDIR,
+		       &namelist,
+		       is_quirks_file,
+		       versionsort);
+	litest_assert_int_ge(ndev, 0);
 
-	q = quirks;
-	while (*q) {
+	for (int idx = 0; idx < ndev; idx++) {
 		struct created_file *file;
 		char *filename;
 		char dest[PATH_MAX];
 		char src[PATH_MAX];
 
-		litest_assert(strstartswith(*q, quirksdir));
-		filename = &(*q)[strlen(quirksdir)];
-
+		filename = namelist[idx]->d_name;
 		snprintf(src, sizeof(src), "%s/%s",
 			 LIBINPUT_QUIRKS_SRCDIR, filename);
 		snprintf(dest, sizeof(dest), "%s/%s", dirname, filename);
 		file = litest_copy_file(dest, src, NULL, true);
 		list_append(created_files_list, &file->link);
-		q++;
+		free(namelist[idx]);
 	}
-	strv_free(quirks);
+	free(namelist);
 }
 
 /**
