@@ -396,7 +396,7 @@ get_suite(const char *name)
 	bool found = false;
 
 	ARRAY_FOR_EACH(allowed_suites, allowed) {
-		if (strneq(name, *allowed, strlen(*allowed))) {
+		if (strstartswith(name, *allowed)) {
 			found = true;
 			break;
 		}
@@ -1412,7 +1412,7 @@ litest_install_source_quirks(struct list *created_files_list,
 		char dest[PATH_MAX];
 		char src[PATH_MAX];
 
-		litest_assert(strneq(*q, quirksdir, strlen(quirksdir)));
+		litest_assert(strstartswith(*q, quirksdir));
 		filename = &(*q)[strlen(quirksdir)];
 
 		snprintf(src, sizeof(src), "%s/%s",
@@ -1795,9 +1795,7 @@ udev_wait_for_device_event(struct udev_monitor *udev_monitor,
 		}
 
 		udev_syspath = udev_device_get_syspath(udev_device);
-		if (udev_syspath && strneq(udev_syspath,
-					   syspath,
-					   strlen(syspath)))
+		if (udev_syspath && strstartswith(udev_syspath, syspath))
 			break;
 
 		udev_device_unref(udev_device);

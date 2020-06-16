@@ -309,7 +309,7 @@ parse_evcode_string(const char *s, int *type_out, int *code_out)
 		bool found = false;
 
 		ARRAY_FOR_EACH(map, m) {
-			if (!strneq(s, m->str, strlen(m->str)))
+			if (!strstartswith(s, m->str))
 				continue;
 
 			type = m->type;

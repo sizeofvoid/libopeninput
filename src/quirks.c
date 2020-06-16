@@ -978,15 +978,7 @@ out:
 
 static int
 is_data_file(const struct dirent *dir) {
-	const char *suffix = ".quirks";
-	const int slen = strlen(suffix);
-	int offset;
-
-	offset = strlen(dir->d_name) - slen;
-	if (offset <= 0)
-		return 0;
-
-	return strneq(&dir->d_name[offset], suffix, slen);
+	return strendswith(dir->d_name, ".quirks");
 }
 
 static inline bool

@@ -1733,7 +1733,7 @@ print_hid_report_descriptor(struct record_context *ctx,
 	   report_descriptor is available in sysfs and two devices up from
 	   our device. 2 digits for the event number should be enough.
 	   This approach won't work for /dev/input/by-id devices. */
-	if (!strneq(dev->devnode, prefix, strlen(prefix)) ||
+	if (!strstartswith(dev->devnode, prefix) ||
 	    strlen(dev->devnode) > strlen(prefix) + 2)
 		return;
 
