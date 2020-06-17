@@ -334,6 +334,7 @@ quirks_data = [
 	'quirks/50-system-google.quirks',
 	'quirks/50-system-hp.quirks',
 	'quirks/50-system-lenovo.quirks',
+	'quirks/50-system-sony.quirks',
 	'quirks/50-system-system76.quirks',
 	'quirks/50-system-toshiba.quirks',
 ]
