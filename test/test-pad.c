@@ -176,7 +176,7 @@ END_TEST
 
 START_TEST(pad_button_intuos)
 {
-#if !HAVE_LIBWACOM_GET_BUTTON_EVDEV_CODE
+#if !HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	unsigned int code;
@@ -236,7 +236,7 @@ END_TEST
 
 START_TEST(pad_button_bamboo)
 {
-#if !HAVE_LIBWACOM_GET_BUTTON_EVDEV_CODE
+#if !HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	unsigned int code;
@@ -286,7 +286,7 @@ END_TEST
 
 START_TEST(pad_button_libwacom)
 {
-#if HAVE_LIBWACOM_GET_BUTTON_EVDEV_CODE
+#if HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	WacomDeviceDatabase *db = NULL;

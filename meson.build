@@ -136,15 +136,7 @@ includes_src = include_directories('src')
 have_libwacom = get_option('libwacom')
 config_h.set10('HAVE_LIBWACOM', have_libwacom)
 if have_libwacom
-	dep_libwacom = dependency('libwacom', version : '>= 0.20')
-
-	result = cc.has_function('libwacom_get_paired_device',
-				 dependencies: dep_libwacom)
-	config_h.set10('HAVE_LIBWACOM_GET_PAIRED_DEVICE', result)
-
-	result = cc.has_function('libwacom_get_button_evdev_code',
-				 dependencies: dep_libwacom)
-	config_h.set10('HAVE_LIBWACOM_GET_BUTTON_EVDEV_CODE', result)
+	dep_libwacom = dependency('libwacom', version : '>= 0.27')
 else
 	dep_libwacom = declare_dependency()
 endif

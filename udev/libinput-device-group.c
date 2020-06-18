@@ -30,7 +30,7 @@
 
 #include "libinput-util.h"
 
-#if HAVE_LIBWACOM_GET_PAIRED_DEVICE
+#if HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
 
 static void
@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 	} else {
 	    char *physmatch = NULL;
 
-#if HAVE_LIBWACOM_GET_PAIRED_DEVICE
+#if HAVE_LIBWACOM
 	    if (vendor_id == VENDOR_ID_WACOM) {
 		    if (product_id == PRODUCT_ID_WACOM_EKR)
 			    wacom_handle_ekr(device,

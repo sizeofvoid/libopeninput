@@ -550,7 +550,7 @@ pad_init_buttons_from_libwacom(struct pad_dispatch *pad,
 			       struct evdev_device *device)
 {
 	bool rc = false;
-#if HAVE_LIBWACOM_GET_BUTTON_EVDEV_CODE
+#if HAVE_LIBWACOM
 	struct libinput *li = pad_libinput_context(pad);
 	WacomDeviceDatabase *db = NULL;
 	WacomDevice *tablet = NULL;
