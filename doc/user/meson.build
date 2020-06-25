@@ -194,5 +194,6 @@ custom_target('sphinx',
 	      input : [ sphinx_conf_py, git_version_page ] + src_sphinx + dst_404s,
 	      output : [ sphinx_output_dir ],
 	      command : [ sphinx, '-q', '-b', 'html',
+			  '-d', join_paths(meson.current_build_dir(), 'doctrees'),
 			  meson.current_build_dir(), sphinx_output_dir],
 	      build_by_default : true)
