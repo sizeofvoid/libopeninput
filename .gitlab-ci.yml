@@ -172,7 +172,7 @@ check-commit:
 
 check-merge-request:
   image: golang:alpine
-  stage: prep
+  stage: deploy
   before_script:
     - apk add python3 py-pip git
     - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
