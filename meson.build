@@ -2,7 +2,7 @@ project('libinput', 'c',
 	version : '1.15.900',
 	license : 'MIT/Expat',
 	default_options : [ 'c_std=gnu99', 'warning_level=2' ],
-	meson_version : '>= 0.41.0')
+	meson_version : '>= 0.45.0')
 
 libinput_version = meson.project_version().split('.')
 
@@ -310,7 +310,8 @@ config_h.set_quoted('LIBINPUT_QUIRKS_OVERRIDE_FILE', libinput_data_override_path
 config_h.set_quoted('LIBINPUT_QUIRKS_SRCDIR', dir_src_quirks)
 install_subdir('quirks',
 	       exclude_files: ['README.md'],
-	       install_dir : dir_data)
+	       install_dir : dir_data,
+	       strip_directory : true)
 
 src_libquirks = [
 	'src/quirks.c',
