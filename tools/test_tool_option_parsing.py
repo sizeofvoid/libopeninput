@@ -105,7 +105,7 @@ class LibinputTool(object):
         rc, stdout, stderr = self.run_command(args)
         assert rc == 2, (rc, stdout, stderr)
         assert stdout.startswith('Usage') or stdout == ''
-        assert 'is not a libinput command' in stderr
+        assert 'is not installed' in stderr
 
 
 class LibinputDebugGui(LibinputTool):
