@@ -185,20 +185,13 @@ check-merge-request:
   allow_failure: true
 
 #
-# This stage will recreate the container images only if the image
-# is too old or if it is missing some dependencies.
+# Note: images are rebuilt weekly with a scheduled pipeline with FDO_FORCE_REBUILD set
 #
-
-.rebuild_for_schedule:
-  before_script:
-    # force rebuild if schedule, reuse otherwise
-    - if [[ $CI_PIPELINE_SOURCE == "schedule" ]] ; then export FDO_FORCE_REBUILD=1; fi
-
+#
 fedora:32@qemu-prep:
   extends:
     - .fdo.qemu-build@fedora
     - .policy
-    - .rebuild_for_schedule
   stage: prep
   tags:
     - kvm
@@ -213,7 +206,6 @@ fedora:30@container-prep:
   extends:
     - .fdo.container-build@fedora
     - .policy
-    - .rebuild_for_schedule
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -225,7 +217,6 @@ fedora:31@container-prep:
   extends:
     - .fdo.container-build@fedora
     - .policy
-    - .rebuild_for_schedule
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -237,7 +228,6 @@ fedora:32@container-prep:
   extends:
     - .fdo.container-build@fedora
     - .policy
-    - .rebuild_for_schedule
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -249,7 +239,6 @@ ubuntu:19.10@container-prep:
   extends:
     - .fdo.container-build@ubuntu
     - .policy
-    - .rebuild_for_schedule
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -261,7 +250,6 @@ arch:rolling@container-prep:
   extends:
     - .fdo.container-build@arch
     - .policy
-    - .rebuild_for_schedule
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -273,7 +261,6 @@ alpine:latest@container-prep:
   extends:
     - .fdo.container-build@alpine
     - .policy
-    - .rebuild_for_schedule
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -298,16 +285,15 @@ alpine:latest@container-prep:
     # get the full container image name
     - export IMAGE=freebsd/$FREEBSD_VERSION:$FREEBSD_TAG
 
-    # force rebuild if schedule, reuse otherwise
-    - if [[ $CI_PIPELINE_SOURCE == "schedule" ]] ; then touch .scheduled; fi
+    - if [[ x"$FDO_FORCE_REBUILD" != x ]] ; then touch .rebuild; fi
 
     # pull the latest upstream image if it exists
-    - test -e .scheduled || skopeo copy --dest-creds $CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD
+    - test -e .rebuild || skopeo copy --dest-creds $CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD
                                  docker://$CI_REGISTRY/$FDO_UPSTREAM_REPO/$IMAGE
                                  docker://$CI_REGISTRY_IMAGE/$IMAGE && exit 0 || true ;
 
     # check if our image is already in the current registry
-    - test -e .scheduled || skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
+    - test -e .rebuild || skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
 
     - export BUILDAH_RUN="buildah run --isolation chroot"
     - export BUILDAH_COMMIT="buildah commit --format docker"
