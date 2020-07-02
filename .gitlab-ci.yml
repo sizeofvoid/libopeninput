@@ -758,6 +758,49 @@ flake8@fedora:32:
   script:
     - flake8-3 --ignore=W501,E501,W504 $(git grep -l '^#!/usr/bin/env python3')
 
+
+#
+# coverity run
+#
+# This requires the COVERITY_SCAN_TOKEN. Log into scan.coverity.com and get
+# the token from the respective project settings page.
+# Schedule a pipeline and set a variable COVERITY_SCAN_TOKEN with the token value.
+# https://gitlab.freedesktop.org/$CI_PROJECT_PATH/-/pipeline_schedules
+# Email from coverity will be sent to the GITLAB_USER_EMAIL that scheduled the
+# job.
+#
+# Coverity ratelimits submissions and the coverity tools download is about
+# 700M, do not run this too often.
+#
+coverity:
+  extends:
+    - .fdo.distribution-image@fedora
+    - .policy
+  stage: build
+  variables:
+    # coverity doesn't work on Fedora 32
+    FDO_DISTRIBUTION_VERSION: '31'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+  only:
+    variables:
+      - $COVERITY_SCAN_TOKEN
+  script:
+    - curl https://scan.coverity.com/download/linux64
+        -o /tmp/cov-analysis-linux64.tgz
+        --form project=$CI_PROJECT_NAME
+        --form token=$COVERITY_SCAN_TOKEN
+    - tar xfz /tmp/cov-analysis-linux64.tgz
+    # coverity has special build options in meson, make sure we enable those
+    - meson coverity-build -Ddocumentation=false -Dcoverity=true
+    - cov-analysis-linux64-*/bin/cov-build --dir cov-int  ninja -C coverity-build
+    - tar cfz cov-int.tar.gz cov-int
+    - curl https://scan.coverity.com/builds?project=$CI_PROJECT_NAME
+        --form token=$COVERITY_SCAN_TOKEN --form email=$GITLAB_USER_EMAIL
+        --form file=@cov-int.tar.gz --form version="$(git describe --tags)"
+        --form description="$(git describe --tags) / $CI_COMMIT_TITLE / $CI_COMMIT_REF_NAME:$CI_PIPELINE_ID"
+  needs:
+    - "fedora:31@container-prep"
+
 #################################################################
 #                                                               #
 #                        distro stage                           #
