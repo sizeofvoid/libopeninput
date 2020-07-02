@@ -809,6 +809,8 @@ window_init(struct window *w)
 	list_init(&w->evdev_devices);
 
 	w->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	if (getenv("LIBINPUT_RUNNING_TEST_SUITE"))
+		gtk_window_iconify(GTK_WINDOW(w->win));
 	gtk_widget_set_events(w->win, 0);
 	gtk_window_set_title(GTK_WINDOW(w->win), "libinput debugging tool");
 	gtk_window_set_default_size(GTK_WINDOW(w->win), 1024, 768);

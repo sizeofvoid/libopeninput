@@ -354,6 +354,8 @@ def main():
 
     args += ['@MESON_BUILD_ROOT@']
 
+    os.environ['LIBINPUT_RUNNING_TEST_SUITE'] = '1'
+
     return subprocess.run([sys.executable] + args).returncode
 
 
