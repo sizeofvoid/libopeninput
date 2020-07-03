@@ -1134,7 +1134,7 @@ inhibit(void)
 				&error,
 				&m,
 				"ssss",
-				"handle-lid-switch:handle-power-key:handle-suspend-key:handle-hibernate-key",
+				"sleep:shutdown:handle-lid-switch:handle-power-key:handle-suspend-key:handle-hibernate-key",
 				"libinput test-suite runner",
 				"testing in progress",
 				"block");
