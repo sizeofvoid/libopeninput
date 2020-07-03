@@ -669,6 +669,7 @@ START_TEST(timer_offset_bug_warning)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	int warning_triggered = 0;
+	void *old_user_data;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_drain_events(li);
@@ -678,6 +679,7 @@ START_TEST(timer_offset_bug_warning)
 
 	litest_timeout_tap();
 
+	old_user_data = libinput_get_user_data(li);
 	libinput_set_user_data(li, &warning_triggered);
 	libinput_log_set_handler(li, timer_offset_warning);
 	libinput_dispatch(li);
@@ -685,6 +687,8 @@ START_TEST(timer_offset_bug_warning)
 	/* triggered for touch down and touch up */
 	ck_assert_int_eq(warning_triggered, 2);
 	litest_restore_log_handler(li);
+
+	libinput_set_user_data(li, old_user_data);
 }
 END_TEST
 
@@ -706,7 +710,9 @@ START_TEST(timer_delay_bug_warning)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	int warning_triggered = 0;
+	void *old_user_data;
 
+	old_user_data = libinput_get_user_data(li);
 	litest_drain_events(li);
 
 	for (int i = 0; i < 10; i++) {
@@ -720,8 +726,10 @@ START_TEST(timer_delay_bug_warning)
 		libinput_dispatch(li);
 	}
 
+
 	ck_assert_int_ge(warning_triggered, 1);
 	litest_restore_log_handler(li);
+	libinput_set_user_data(li, old_user_data);
 }
 END_TEST
 

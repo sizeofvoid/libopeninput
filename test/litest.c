@@ -769,13 +769,41 @@ litest_init_all_device_udev_rules(struct list *created_files)
 static int
 open_restricted(const char *path, int flags, void *userdata)
 {
-	int fd = open(path, flags);
-	return fd < 0 ? -errno : fd;
+	const char prefix[] = "/dev/input/event";
+	struct litest_context *ctx = userdata;
+	struct path *p;
+	int fd;
+
+	litest_assert_ptr_notnull(ctx);
+
+	fd = open(path, flags);
+	if (fd < 0)
+		return -errno;
+
+	if (strneq(path, prefix, strlen(prefix))) {
+		p = zalloc(sizeof *p);
+		p->path = safe_strdup(path);
+		p->fd = fd;
+		list_append(&ctx->paths, &p->link);
+	}
+
+	return fd;
 }
 
 static void
 close_restricted(int fd, void *userdata)
 {
+	struct litest_context *ctx = userdata;
+	struct path *p, *tmp;
+
+	list_for_each_safe(p, tmp, &ctx->paths, link) {
+		if (p->fd != fd)
+			continue;
+		list_remove(&p->link);
+		free(p->path);
+		free(p);
+	}
+
 	close(fd);
 }
 
@@ -1620,8 +1648,13 @@ litest_create(enum litest_device_type which,
 struct libinput *
 litest_create_context(void)
 {
-	struct libinput *libinput =
-		libinput_path_create_context(&interface, NULL);
+	struct libinput *libinput;
+	struct litest_context *ctx;
+
+	ctx = zalloc(sizeof *ctx);
+	list_init(&ctx->paths);
+
+	libinput = libinput_path_create_context(&interface, ctx);
 	litest_assert_notnull(libinput);
 
 	libinput_log_set_handler(libinput, litest_log_handler);
@@ -1634,7 +1667,18 @@ litest_create_context(void)
 void
 litest_destroy_context(struct libinput *li)
 {
+	struct path *p, *tmp;
+	struct litest_context *ctx;
+
+
+	ctx = libinput_get_user_data(li);
+	litest_assert_ptr_notnull(ctx);
 	libinput_unref(li);
+
+	list_for_each_safe(p, tmp, &ctx->paths, link) {
+		litest_abort_msg("Device paths should be removed by now");
+	}
+	free(ctx);
 }
 
 void

@@ -131,6 +131,16 @@ struct litest_device_interface {
 	int max[2]; /* x/y axis maximum */
 };
 
+struct path {
+	struct list link;
+	char *path;
+	int fd;
+};
+
+struct litest_context {
+	struct list paths;
+};
+
 void litest_set_current_device(struct litest_device *device);
 int litest_scale(const struct litest_device *d, unsigned int axis, double val);
 void litest_generic_device_teardown(void);

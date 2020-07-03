@@ -4073,9 +4073,11 @@ START_TEST(tablet_pressure_offset_exceed_threshold)
 	};
 	double pressure;
 	int warning_triggered = 0;
+	void *old_user_data;
 
 	litest_drain_events(li);
 
+	old_user_data = libinput_get_user_data(li);
 	libinput_set_user_data(li, &warning_triggered);
 
 	libinput_log_set_handler(li, pressure_threshold_warning);
@@ -4090,6 +4092,8 @@ START_TEST(tablet_pressure_offset_exceed_threshold)
 
 	ck_assert_int_eq(warning_triggered, 1);
 	litest_restore_log_handler(li);
+
+	libinput_set_user_data(li, old_user_data);
 }
 END_TEST
 
