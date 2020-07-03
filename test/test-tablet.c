@@ -202,7 +202,7 @@ START_TEST(button_up_on_delete)
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	libevdev_free(evdev);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -923,7 +923,7 @@ START_TEST(tip_up_on_delete)
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -1698,7 +1698,7 @@ START_TEST(proximity_out_on_delete)
 
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -2575,7 +2575,7 @@ START_TEST(tools_with_serials)
 
 	litest_delete_device(dev[0]);
 	litest_delete_device(dev[1]);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -2619,7 +2619,7 @@ START_TEST(tools_without_serials)
 
 	litest_delete_device(dev[0]);
 	litest_delete_device(dev[1]);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -2768,7 +2768,7 @@ START_TEST(tool_capabilities)
 
 	litest_delete_device(bamboo);
 	litest_delete_device(intuos);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -2914,7 +2914,7 @@ START_TEST(tool_in_prox_before_start)
 	litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	libinput_event_destroy(event);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 

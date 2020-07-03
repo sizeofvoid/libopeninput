@@ -1632,6 +1632,12 @@ litest_create_context(void)
 }
 
 void
+litest_destroy_context(struct libinput *li)
+{
+	libinput_unref(li);
+}
+
+void
 litest_disable_log_handler(struct libinput *libinput)
 {
 	libinput_log_set_handler(libinput, NULL);
@@ -1834,7 +1840,7 @@ litest_delete_device(struct litest_device *d)
 	}
 	if (d->owns_context) {
 		libinput_dispatch(d->libinput);
-		libinput_unref(d->libinput);
+		litest_destroy_context(d->libinput);
 	}
 	close(libevdev_get_fd(d->evdev));
 	libevdev_free(d->evdev);

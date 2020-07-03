@@ -312,7 +312,7 @@ START_TEST(pointer_absolute_initial_state)
 		libinput_event_destroy(ev2);
 	}
 
-	libinput_unref(libinput2);
+	litest_destroy_context(libinput2);
 }
 END_TEST
 
@@ -490,7 +490,7 @@ START_TEST(pointer_button_auto_release)
 		ck_assert_int_eq(buttons[i].released, 1);
 	}
 
-	libinput_unref(libinput);
+	litest_destroy_context(libinput);
 }
 END_TEST
 
@@ -861,7 +861,7 @@ START_TEST(pointer_seat_button_count)
 
 	for (i = 0; i < num_devices; ++i)
 		litest_delete_device(devices[i]);
-	libinput_unref(libinput);
+	litest_destroy_context(libinput);
 }
 END_TEST
 
@@ -1196,7 +1196,7 @@ START_TEST(pointer_scroll_button_device_remove_while_down)
 	litest_delete_device(dev);
 	libinput_dispatch(li);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -3094,7 +3094,7 @@ START_TEST(debounce_remove_device_button_up)
 	litest_timeout_debounce();
 	libinput_dispatch(li);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -3119,7 +3119,7 @@ START_TEST(debounce_remove_device_button_down)
 	litest_timeout_debounce();
 	libinput_dispatch(li);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 

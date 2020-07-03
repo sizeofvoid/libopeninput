@@ -193,7 +193,7 @@ START_TEST(totem_proximity_in_on_init)
 
 	litest_assert_empty_queue(li);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -231,7 +231,7 @@ START_TEST(totem_proximity_out_on_suspend)
 	libinput_event_destroy(event);
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -453,7 +453,7 @@ START_TEST(totem_button_down_on_init)
 	libinput_dispatch(li);
 	litest_assert_tablet_button_event(li, BTN_0, LIBINPUT_BUTTON_STATE_RELEASED);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -480,7 +480,7 @@ START_TEST(totem_button_up_on_delete)
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	libevdev_free(evdev);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 

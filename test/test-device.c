@@ -454,7 +454,7 @@ START_TEST(device_reenable_syspath_changed)
 
 	litest_delete_device(litest_device);
 	libinput_device_unref(device1);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -488,7 +488,7 @@ START_TEST(device_reenable_device_removed)
 	litest_assert_empty_queue(li);
 
 	libinput_device_unref(device);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -843,7 +843,7 @@ START_TEST(device_group_ref)
 	ck_assert_notnull(libinput_device_group_unref(group));
 	ck_assert(libinput_device_group_unref(group) == NULL);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -871,7 +871,7 @@ START_TEST(device_group_leak)
 	libinput_path_remove_device(device);
 
 	libevdev_uinput_destroy(uinput);
-	libinput_unref(li);
+	litest_destroy_context(li);
 
 	/* the device group leaks, check valgrind */
 }
@@ -894,7 +894,7 @@ START_TEST(abs_device_no_absx)
 					  libevdev_uinput_get_devnode(uinput));
 	litest_restore_log_handler(li);
 	ck_assert(device == NULL);
-	libinput_unref(li);
+	litest_destroy_context(li);
 
 	libevdev_uinput_destroy(uinput);
 }
@@ -917,7 +917,7 @@ START_TEST(abs_device_no_absy)
 					  libevdev_uinput_get_devnode(uinput));
 	litest_restore_log_handler(li);
 	ck_assert(device == NULL);
-	libinput_unref(li);
+	litest_destroy_context(li);
 
 	libevdev_uinput_destroy(uinput);
 }
@@ -943,7 +943,7 @@ START_TEST(abs_mt_device_no_absy)
 					  libevdev_uinput_get_devnode(uinput));
 	litest_restore_log_handler(li);
 	ck_assert(device == NULL);
-	libinput_unref(li);
+	litest_destroy_context(li);
 
 	libevdev_uinput_destroy(uinput);
 }
@@ -969,7 +969,7 @@ START_TEST(abs_mt_device_no_absx)
 					  libevdev_uinput_get_devnode(uinput));
 	litest_restore_log_handler(li);
 	ck_assert(device == NULL);
-	libinput_unref(li);
+	litest_destroy_context(li);
 
 	libevdev_uinput_destroy(uinput);
 }
@@ -1010,7 +1010,7 @@ START_TEST(abs_device_no_range)
 	assert_device_ignored(li, absinfo);
 
 	litest_restore_log_handler(li);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -1038,7 +1038,7 @@ START_TEST(abs_mt_device_no_range)
 		assert_device_ignored(li, absinfo);
 
 	litest_restore_log_handler(li);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -1062,7 +1062,7 @@ START_TEST(abs_device_missing_res)
 	assert_device_ignored(li, absinfo);
 
 	litest_restore_log_handler(li);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -1089,7 +1089,7 @@ START_TEST(abs_mt_device_missing_res)
 	assert_device_ignored(li, absinfo);
 
 	litest_restore_log_handler(li);
-	libinput_unref(li);
+	litest_destroy_context(li);
 
 }
 END_TEST
@@ -1123,7 +1123,7 @@ START_TEST(ignore_joystick)
 	litest_assert_ptr_null(device);
 	libevdev_uinput_destroy(uinput);
 	litest_restore_log_handler(li);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -1161,7 +1161,7 @@ START_TEST(device_accelerometer)
 	litest_assert_ptr_null(device);
 	libevdev_uinput_destroy(uinput);
 	litest_restore_log_handler(li);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -1209,7 +1209,7 @@ START_TEST(device_nonpointer_rel)
 	}
 	litest_restore_log_handler(li);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 	libevdev_uinput_destroy(uinput);
 }
 END_TEST
@@ -1249,7 +1249,7 @@ START_TEST(device_touchpad_rel)
 		libinput_dispatch(li);
 	}
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 	libevdev_uinput_destroy(uinput);
 }
 END_TEST
@@ -1290,7 +1290,7 @@ START_TEST(device_touch_rel)
 	}
 	litest_restore_log_handler(li);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 	libevdev_uinput_destroy(uinput);
 }
 END_TEST
@@ -1326,7 +1326,7 @@ START_TEST(device_abs_rel)
 		libinput_dispatch(li);
 	}
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 	libevdev_uinput_destroy(uinput);
 }
 END_TEST
@@ -1472,7 +1472,7 @@ START_TEST(device_capability_nocaps_ignored)
 					  libevdev_uinput_get_devnode(uinput));
 	litest_assert_ptr_null(device);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 	libevdev_uinput_destroy(uinput);
 }
 END_TEST
@@ -1601,7 +1601,7 @@ START_TEST(device_button_down_remove)
 			libinput_event_destroy(event);
 		}
 
-		libinput_unref(li);
+		litest_destroy_context(li);
 		ck_assert_int_eq(have_down, have_up);
 	}
 }

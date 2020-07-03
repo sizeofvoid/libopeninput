@@ -3546,7 +3546,7 @@ START_TEST(touchpad_initial_state)
 		libinput_event_destroy(ev2);
 	}
 
-	libinput_unref(libinput2);
+	litest_destroy_context(libinput2);
 }
 END_TEST
 
@@ -3600,7 +3600,7 @@ START_TEST(touchpad_fingers_down_before_init)
 
 	litest_assert_empty_queue(li);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -5613,7 +5613,7 @@ START_TEST(touchpad_finger_always_down)
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 

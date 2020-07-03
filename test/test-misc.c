@@ -144,7 +144,7 @@ START_TEST(event_conversion_device_notify)
 		libinput_event_destroy(event);
 	}
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 	libevdev_uinput_destroy(uinput);
 
 	ck_assert_int_gt(device_added, 0);
@@ -793,7 +793,8 @@ START_TEST(timer_flush)
 
 	litest_delete_device(keyboard);
 	litest_delete_device(touchpad);
-	libinput_unref(li);
+
+	litest_destroy_context(li);
 }
 END_TEST
 

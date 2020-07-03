@@ -878,7 +878,7 @@ START_TEST(touch_initial_state)
 	libinput_event_destroy(ev1);
 	libinput_event_destroy(ev2);
 
-	libinput_unref(libinput2);
+	litest_destroy_context(libinput2);
 }
 END_TEST
 
@@ -1003,7 +1003,7 @@ START_TEST(touch_release_on_unplug)
 	litest_assert_event_type(ev, LIBINPUT_EVENT_DEVICE_REMOVED);
 	libinput_event_destroy(ev);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 

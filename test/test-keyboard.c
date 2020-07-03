@@ -96,7 +96,7 @@ START_TEST(keyboard_seat_key_count)
 
 	for (i = 0; i < num_devices; ++i)
 		litest_delete_device(devices[i]);
-	libinput_unref(libinput);
+	litest_destroy_context(libinput);
 }
 END_TEST
 
@@ -157,8 +157,8 @@ START_TEST(keyboard_ignore_no_pressed_release)
 
 	litest_assert_empty_queue(libinput);
 	litest_delete_device(dev);
-	libinput_unref(libinput);
-	libinput_unref(unused_libinput);
+	litest_destroy_context(libinput);
+	litest_destroy_context(unused_libinput);
 }
 END_TEST
 
@@ -258,7 +258,7 @@ START_TEST(keyboard_key_auto_release)
 		ck_assert_int_eq(keys[i].released, 1);
 	}
 
-	libinput_unref(libinput);
+	litest_destroy_context(libinput);
 }
 END_TEST
 

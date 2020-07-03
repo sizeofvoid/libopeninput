@@ -57,7 +57,7 @@ START_TEST(log_default_priority)
 
 	ck_assert_int_eq(pri, LIBINPUT_LOG_PRIORITY_ERROR);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -78,7 +78,7 @@ START_TEST(log_handler_invoked)
 
 	ck_assert_int_gt(log_handler_called, 0);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 
 	log_handler_context = NULL;
 	log_handler_called = 0;
@@ -99,7 +99,7 @@ START_TEST(log_handler_NULL)
 
 	ck_assert_int_eq(log_handler_called, 0);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 
 	log_handler_called = 0;
 }
@@ -127,7 +127,7 @@ START_TEST(log_priority)
 	libinput_path_add_device(li, "/dev/input/event0");
 	ck_assert_int_gt(log_handler_called, 1);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 
 	log_handler_context = NULL;
 	log_handler_called = 0;

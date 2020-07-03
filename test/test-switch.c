@@ -220,8 +220,7 @@ START_TEST(switch_down_on_init)
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
 
-	libinput_unref(li);
-
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -254,7 +253,7 @@ START_TEST(switch_not_down_on_init)
 
 	litest_switch_action(dev, sw, LIBINPUT_SWITCH_STATE_OFF);
 	litest_assert_empty_queue(li);
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -639,7 +638,7 @@ START_TEST(switch_suspend_with_keyboard)
 	litest_delete_device(sw);
 	libinput_dispatch(li);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -674,7 +673,7 @@ START_TEST(switch_suspend_with_touchpad)
 	litest_delete_device(touchpad);
 	litest_drain_events(li);
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 }
 END_TEST
 
@@ -723,7 +722,7 @@ START_TEST(lid_update_hw_on_key)
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li2);
 
-	libinput_unref(li2);
+	litest_destroy_context(li2);
 	litest_delete_device(keyboard);
 }
 END_TEST
@@ -775,7 +774,7 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 		;
 	ck_assert(!libevdev_get_event_value(evdev, EV_SW, SW_LID));
 
-	libinput_unref(li);
+	litest_destroy_context(li);
 	litest_delete_device(keyboard);
 }
 END_TEST
@@ -830,7 +829,7 @@ START_TEST(lid_update_hw_on_key_multiple_keyboards)
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li2);
 
-	libinput_unref(li2);
+	litest_destroy_context(li2);
 	litest_delete_device(keyboard1);
 	litest_delete_device(keyboard2);
 }
