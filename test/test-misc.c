@@ -105,7 +105,7 @@ START_TEST(event_conversion_device_notify)
 					   EV_KEY, BTN_MIDDLE,
 					   EV_KEY, BTN_LEFT,
 					   -1, -1);
-	li = libinput_path_create_context(&simple_interface, NULL);
+	li = litest_create_context();
 	litest_restore_log_handler(li); /* use the default litest handler */
 	libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 

@@ -35,22 +35,6 @@
 static int log_handler_called;
 static struct libinput *log_handler_context;
 
-static int open_restricted(const char *path, int flags, void *data)
-{
-	int fd;
-	fd = open(path, flags);
-	return fd < 0 ? -errno : fd;
-}
-static void close_restricted(int fd, void *data)
-{
-	close(fd);
-}
-
-static const struct libinput_interface simple_interface = {
-	.open_restricted = open_restricted,
-	.close_restricted = close_restricted,
-};
-
 static void
 simple_log_handler(struct libinput *libinput,
 		   enum libinput_log_priority priority,
@@ -68,7 +52,7 @@ START_TEST(log_default_priority)
 	enum libinput_log_priority pri;
 	struct libinput *li;
 
-	li = libinput_path_create_context(&simple_interface, NULL);
+	li = litest_create_context();
 	pri = libinput_log_get_priority(li);
 
 	ck_assert_int_eq(pri, LIBINPUT_LOG_PRIORITY_ERROR);
@@ -84,7 +68,7 @@ START_TEST(log_handler_invoked)
 	log_handler_context = NULL;
 	log_handler_called = 0;
 
-	li = libinput_path_create_context(&simple_interface, NULL);
+	li = litest_create_context();
 
 	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
 	libinput_log_set_handler(li, simple_log_handler);
@@ -107,7 +91,7 @@ START_TEST(log_handler_NULL)
 
 	log_handler_called = 0;
 
-	li = libinput_path_create_context(&simple_interface, NULL);
+	li = litest_create_context();
 	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
 	libinput_log_set_handler(li, NULL);
 
@@ -128,7 +112,7 @@ START_TEST(log_priority)
 	log_handler_context = NULL;
 	log_handler_called = 0;
 
-	li = libinput_path_create_context(&simple_interface, NULL);
+	li = litest_create_context();
 	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_ERROR);
 	libinput_log_set_handler(li, simple_log_handler);
 	log_handler_context = li;

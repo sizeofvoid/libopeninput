@@ -799,22 +799,6 @@ START_TEST(device_user_data)
 }
 END_TEST
 
-static int open_restricted(const char *path, int flags, void *data)
-{
-	int fd;
-	fd = open(path, flags);
-	return fd < 0 ? -errno : fd;
-}
-static void close_restricted(int fd, void *data)
-{
-	close(fd);
-}
-
-const struct libinput_interface simple_interface = {
-	.open_restricted = open_restricted,
-	.close_restricted = close_restricted,
-};
-
 START_TEST(device_group_get)
 {
 	struct litest_device *dev = litest_current_device();
@@ -877,7 +861,7 @@ START_TEST(device_group_leak)
 					     EV_REL, REL_Y,
 					     -1);
 
-	li = libinput_path_create_context(&simple_interface, NULL);
+	li = litest_create_context();
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
 
