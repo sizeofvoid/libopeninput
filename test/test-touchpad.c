@@ -6650,6 +6650,9 @@ START_TEST(touchpad_suspend_abba)
 	tabletmode = litest_add_device(li, LITEST_THINKPAD_EXTRABUTTONS);
 	extmouse = litest_add_device(li, LITEST_MOUSE);
 
+	litest_grab_device(lid);
+	litest_grab_device(tabletmode);
+
 	litest_disable_tap(tp->libinput_device);
 
 	/* ABBA test for touchpad internal suspend:
@@ -6763,6 +6766,8 @@ START_TEST(touchpad_suspend_abba)
 	}
 
 out:
+	litest_ungrab_device(lid);
+	litest_ungrab_device(tabletmode);
 	litest_delete_device(lid);
 	litest_delete_device(tabletmode);
 	litest_delete_device(extmouse);
@@ -6783,6 +6788,8 @@ START_TEST(touchpad_suspend_abab)
 	lid = litest_add_device(li, LITEST_LID_SWITCH);
 	tabletmode = litest_add_device(li, LITEST_THINKPAD_EXTRABUTTONS);
 	extmouse = litest_add_device(li, LITEST_MOUSE);
+	litest_grab_device(lid);
+	litest_grab_device(tabletmode);
 
 	litest_disable_tap(tp->libinput_device);
 
@@ -6914,6 +6921,8 @@ START_TEST(touchpad_suspend_abab)
 	}
 
 out:
+	litest_ungrab_device(lid);
+	litest_ungrab_device(tabletmode);
 	litest_delete_device(lid);
 	litest_delete_device(tabletmode);
 	litest_delete_device(extmouse);

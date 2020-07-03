@@ -60,6 +60,13 @@
    fun:libevdev_grab
 }
 {
+   ioctl:grab
+   Memcheck:Param
+   ioctl(generic)
+   fun:ioctl
+   fun:grab_device
+}
+{
    bash:execute_command
    Memcheck:Cond
    ...

@@ -263,6 +263,49 @@ struct litest_device *litest_current_device(void)
 	return current_device;
 }
 
+static void
+grab_device(struct litest_device *device, bool mode)
+{
+	struct libinput *li = libinput_device_get_context(device->libinput_device);
+	struct litest_context *ctx = libinput_get_user_data(li);
+	struct udev_device *udev_device;
+	const char *devnode;
+	struct path *p;
+
+	udev_device = libinput_device_get_udev_device(device->libinput_device);
+	litest_assert_ptr_notnull(udev_device);
+
+	devnode = udev_device_get_devnode(udev_device);
+
+	/* Note: in some tests we create multiple devices for the same path.
+	 * This will only grab the first device in the list but we're using
+	 * list_insert() so the first device is the latest that was
+	 * initialized, so we should be good.
+	 */
+	list_for_each(p, &ctx->paths, link) {
+		if (streq(p->path, devnode)) {
+			int rc = ioctl(p->fd, EVIOCGRAB, (void*)mode ? 1 : 0);
+			ck_assert_int_gt(rc, -1);
+			udev_device_unref(udev_device);
+			return;
+		}
+	}
+	litest_abort_msg("Failed to find device %s to %sgrab\n",
+			 devnode, mode ? "" : "un");
+}
+
+void
+litest_grab_device(struct litest_device *device)
+{
+	grab_device(device, true);
+}
+
+void
+litest_ungrab_device(struct litest_device *device)
+{
+	grab_device(device, false);
+}
+
 void litest_set_current_device(struct litest_device *device)
 {
 	current_device = device;
@@ -784,7 +827,13 @@ open_restricted(const char *path, int flags, void *userdata)
 		p = zalloc(sizeof *p);
 		p->path = safe_strdup(path);
 		p->fd = fd;
-		list_append(&ctx->paths, &p->link);
+		/* We specifically insert here so that the most-recently
+		 * opened path is the first one in the list. This helps when
+		 * we have multiple test devices with the same device path,
+		 * the fd of the most recent device is the first one to get
+		 * grabbed
+		 */
+		list_insert(&ctx->paths, &p->link);
 	}
 
 	return fd;

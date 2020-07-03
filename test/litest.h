@@ -514,6 +514,12 @@ struct litest_device *
 litest_current_device(void);
 
 void
+litest_grab_device(struct litest_device *d);
+
+void
+litest_ungrab_device(struct litest_device *d);
+
+void
 litest_delete_device(struct litest_device *d);
 
 void
