@@ -76,7 +76,7 @@ protocolA_down(struct litest_device *d, unsigned int slot, double x, double y)
 
 		if (first) {
 			litest_event(d, EV_ABS, ABS_X, s->x);
-			litest_event(d, EV_ABS, ABS_X, s->y);
+			litest_event(d, EV_ABS, ABS_Y, s->y);
 			first = false;
 		}
 
