@@ -561,7 +561,7 @@ tools_exec_command(const char *prefix, int real_argc, char **real_argv)
 	if (rc) {
 		if (errno == ENOENT) {
 			fprintf(stderr,
-				"libinput: %s is not installed.",
+				"libinput: %s is not installed\n",
 				command);
 			return EXIT_INVALID_USAGE;
 		} else {
