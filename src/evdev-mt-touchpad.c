@@ -1499,6 +1499,13 @@ tp_detect_jumps(const struct tp_dispatch *tp,
 	 * were measured from */
 	unsigned int reference_interval = ms2us(12);
 
+	/* On some touchpads the firmware does funky stuff and we cannot
+	 * have our own jump detection, e.g. Lenovo Carbon X1 Gen 6 (see
+	 * issue #506)
+	 */
+	if (tp->jump.detection_disabled)
+		return false;
+
 	/* We haven't seen pointer jumps on Wacom tablets yet, so exclude
 	 * those.
 	 */
@@ -3627,6 +3634,14 @@ tp_init(struct tp_dispatch *tp,
 	tp_init_scroll(tp, device);
 	tp_init_gesture(tp);
 	tp_init_thumb(tp);
+
+	/* Lenovo X1 Gen6 buffers the events in a weird way, making jump
+	 * detection impossible. See
+	 * https://gitlab.freedesktop.org/libinput/libinput/-/issues/506
+	 */
+	if (evdev_device_has_model_quirk(device,
+					 QUIRK_MODEL_LENOVO_X1GEN6_TOUCHPAD))
+		tp->jump.detection_disabled = true;
 
 	device->seat_caps |= EVDEV_DEVICE_POINTER;
 	if (tp->gesture.enabled)

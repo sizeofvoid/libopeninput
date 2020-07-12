@@ -136,6 +136,7 @@ AttrTrackpointMultiplier=1.25
 MatchName=Synaptics TM3288-011
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX1Carbon6th:*
 AttrEventCodeDisable=ABS_MT_TOOL_TYPE
+ModelLenovoX1Gen6Touchpad=1
 
 [Lenovo X41 Tablet]
 MatchName=AT Translated Set 2 keyboard

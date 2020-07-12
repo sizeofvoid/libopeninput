@@ -295,6 +295,7 @@ struct tp_dispatch {
 	unsigned int fake_touches;
 
 	struct {
+		bool detection_disabled;
 		struct ratelimit warning;
 	} jump;
 
