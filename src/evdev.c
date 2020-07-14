@@ -1812,9 +1812,10 @@ evdev_configure_device(struct evdev_device *device)
 
 	/* libwacom *adds* TABLET, TOUCHPAD but leaves JOYSTICK in place, so
 	   make sure we only ignore real joystick devices */
-	if (udev_tags == (EVDEV_UDEV_TAG_INPUT|EVDEV_UDEV_TAG_JOYSTICK)) {
-		evdev_log_info(device,
-			       "device is a joystick, ignoring\n");
+	const unsigned int joystick_tag = EVDEV_UDEV_TAG_JOYSTICK;
+	const unsigned int joystick_or_tablet_tag = EVDEV_UDEV_TAG_JOYSTICK|EVDEV_UDEV_TAG_TABLET;
+	if ((udev_tags & joystick_or_tablet_tag) == joystick_tag) {
+		evdev_log_info(device, "device is a joystick, ignoring\n");
 		return NULL;
 	}
 
