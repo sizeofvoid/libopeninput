@@ -134,7 +134,7 @@ AttrTrackpointMultiplier=1.25
 # sends bogus ABS_MT_TOOL_TYPE events for MT_TOOL_PALM
 [Lenovo Carbon X1 6th gen]
 MatchName=Synaptics TM3288-011
-MatchDMIModalias=dmi:*svnLenovo:*pvrThinkPadX1Carbon6th:*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX1Carbon6th:*
 AttrEventCodeDisable=ABS_MT_TOOL_TYPE
 
 [Lenovo X41 Tablet]
