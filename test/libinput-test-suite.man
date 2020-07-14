@@ -76,7 +76,7 @@ devices created by this test suite:
 .RS 4
 .nf
 .B "Section ""InputClass""
-.B "        Identifier ""libinput test suite blacklist""
+.B "        Identifier ""Ignore libinput test suite devices""
 .B "        MatchProduct ""litest""
 .B "        Option ""Ignore"" ""on""
 .B "EndSection"
