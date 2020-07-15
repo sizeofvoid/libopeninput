@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2020-03-17.0'
+.default_tag: &default_tag '2020-07-22.0'
 
 distributions:
   - name: fedora

@@ -84,12 +84,12 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2020-03-17.0'
-  UBUNTU_TAG:  '2020-03-17.0'
-  ARCH_TAG:    '2020-03-17.0'
-  ALPINE_TAG:  '2020-03-17.0'
-  FREEBSD_TAG: '2020-03-17.0'
-  QEMU_TAG:    'qemu-vm-2020-03-17.0'
+  FEDORA_TAG:  '2020-07-22.0'
+  UBUNTU_TAG:  '2020-07-22.0'
+  ARCH_TAG:    '2020-07-22.0'
+  ALPINE_TAG:  '2020-07-22.0'
+  FREEBSD_TAG: '2020-07-22.0'
+  QEMU_TAG:    'qemu-vm-2020-07-22.0'
 
   UBUNTU_EXEC: "bash .gitlab-ci/ubuntu_install.sh $UBUNTU_CUSTOM_DEBS"
 
@@ -904,6 +904,30 @@ freebsd:11.2@default-build:
 #
 # deploy
 #
+
+build rpm:
+  extends:
+    - .fdo.distribution-image@fedora
+    - .policy
+  stage: deploy
+  variables:
+    FDO_DISTRIBUTION_VERSION: '32'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+  needs:
+    - "fedora:32@container-prep"
+  script:
+    - dnf install -y rpmdevtools jq
+    - meson "$MESON_BUILDDIR"
+    - VERSION=$(meson introspect "$MESON_BUILDDIR" --projectinfo | jq -r .version)
+    - sed -e "s/@PIPELINEID@/${CI_PIPELINE_ID}/"
+          -e "s/@GITVERSION@/${CI_COMMIT_SHA}/"
+          -e "s/@VERSION@/${VERSION}/" .gitlab-ci/libinput.spec.in > libinput.spec
+    - git config --local user.name 'gitlab CI'
+    - git config --local user.email 'noreply@nowhere'
+    - git add libinput.spec && git commit -m 'Add libinput.spec for build testing' libinput.spec
+    - cd "$MESON_BUILDDIR"
+    - meson dist --no-test
+    - rpmbuild -ta meson-dist/libinput*.tar.xz
 
 wayland-web:
   image: alpine:latest
