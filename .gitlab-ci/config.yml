@@ -39,20 +39,20 @@ distributions:
 
 test_suites:
   - name: touchpad
-    suites: 
+    suites:
       touchpad
-  - name: tap 
-    suites: 
+  - name: tap
+    suites:
       tap
-  - name: tablet 
-    suites: 
+  - name: tablet
+    suites:
       tablet
-  - name: gestures-device 
-    suites: 
-      gestures 
+  - name: gestures-device
+    suites:
+      gestures
       device
   - name: others
-    suites: 
+    suites:
       context
       config
       misc
@@ -72,5 +72,5 @@ test_suites:
       touch
       trackpoint
   - name: pointer
-    suites: 
+    suites:
       pointer
