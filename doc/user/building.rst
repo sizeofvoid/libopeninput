@@ -121,7 +121,7 @@ overwriting manually installed files.
 - **Fedora 22** and later: ``sudo dnf reinstall libinput``
 - **RHEL/CentOS/Fedora 21** and earlier: ``sudo yum reinstall libinput``
 - **openSUSE**: ``sudo zypper install --force libinput10``
-- **Arch**: ``sudo packman -S libinput``
+- **Arch**: ``sudo pacman -S libinput``
 
 .. _building_selinux:
 
