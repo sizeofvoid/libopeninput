@@ -692,9 +692,14 @@ START_TEST(switch_suspend_with_touchpad)
 	litest_drain_events(li);
 
 	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
-	litest_delete_device(touchpad);
-	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
 	litest_drain_events(li);
+
+	litest_grab_device(sw);
+	litest_switch_action(sw, which, LIBINPUT_SWITCH_STATE_ON);
+	litest_drain_events(li);
+	litest_switch_action(sw, which, LIBINPUT_SWITCH_STATE_OFF);
+	litest_drain_events(li);
+	litest_ungrab_device(sw);
 
 	litest_delete_device(sw);
 	litest_drain_events(li);
