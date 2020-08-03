@@ -65,6 +65,12 @@ MatchName=*DualPoint Stick
 MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE7470*
 AttrTrackpointMultiplier=0.125
 
+[Precision 7x50 Touchpad]
+MatchBus=i2c
+MatchUdevType=touchpad
+MatchDMIModalias=dmi:*svnDellInc.:pnPrecision7?50*
+AttrInputPropDisable=INPUT_PROP_BUTTONPAD
+
 # The touch device has the same vid/pid as the totem, the MatchName
 # directive is required here
 [Canvas Totem]
