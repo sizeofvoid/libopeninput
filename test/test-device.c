@@ -1462,10 +1462,11 @@ START_TEST(device_capability_nocaps_ignored)
 	struct libinput *li;
 	struct libinput_device *device;
 
-	/* SW_MAX isn't handled in libinput so the device is processed but
-	 * ends up without seat capabilities and is ignored. */
+	/* SW_PEN_INSERTED isn't handled in libinput so the device is
+	 * processed but ends up without seat capabilities and is ignored.
+	 */
 	uinput = litest_create_uinput_device("test device", NULL,
-					     EV_SW, SW_MAX,
+					     EV_SW, SW_PEN_INSERTED,
 					     -1);
 	li = litest_create_context();
 	device = libinput_path_add_device(li,
