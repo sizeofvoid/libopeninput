@@ -1810,8 +1810,6 @@ evdev_configure_device(struct evdev_device *device)
 		evdev_disable_accelerometer_axes(device);
 	}
 
-	/* libwacom *adds* TABLET, TOUCHPAD but leaves JOYSTICK in place, so
-	   make sure we only ignore real joystick devices */
 	if (udev_tags == (EVDEV_UDEV_TAG_INPUT|EVDEV_UDEV_TAG_JOYSTICK)) {
 		evdev_log_info(device,
 			       "device is a joystick, ignoring\n");
