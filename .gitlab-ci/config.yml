@@ -9,7 +9,6 @@ distributions:
   - name: fedora
     tag: *default_tag
     versions:
-      - '30'
       - '31'
       - '32'
     want_qemu: true
