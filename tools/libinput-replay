@@ -218,7 +218,12 @@ def create_device_quirk(device):
 def setup_quirks(recording):
     devices = fetch(recording, 'devices')
     overrides = None
-    quirks = [create_device_quirk(d) for d in devices if 'quirks' in d]
+    quirks = []
+    for d in devices:
+        if 'quirks' in d:
+            quirk = create_device_quirk(d)
+            if quirk:
+                quirks.append(quirk)
     if not quirks:
         return None
 
