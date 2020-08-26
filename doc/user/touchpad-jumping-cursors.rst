@@ -64,3 +64,17 @@ See :ref:`reporting_bugs` for more details.
 Note that it most cases, libinput cannot actually fix the issue. Filing a
 bug is useful to figure out if there are other factors at play or whether
 there are heuristics we can employ to reduce the impact.
+
+------------------------------------------------------------------------------
+AlpsPS/2 ALPS DualPoint TouchPad jumping to 4095/0
+------------------------------------------------------------------------------
+
+A special case of pointer jumps happens on ``AlpsPS/2 ALPS DualPoint TouchPad``
+devices found in the Lenovo ThinkPad E465 and E550 and likely others with
+the same touchpad hardware. On those devices, the touchpad occasionally
+sends an event for the second finger to move to position 4095/0 before
+moving back to the original position. libinput detects this movement and
+removes it but depending on the interaction this may cause a smaller jump
+later when the coordinates reset to the new position of the finger.
+
+Some more information is available in `Gitlab Issue #492 <https://gitlab.freedesktop.org/libinput/libinput/-/issues/492>`__.

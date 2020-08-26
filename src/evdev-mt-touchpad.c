@@ -1542,6 +1542,19 @@ tp_detect_jumps(const struct tp_dispatch *tp,
 	abs_distance = hypot(mm.x, mm.y) * reference_interval/tdelta;
 	rel_distance = abs_distance - t->jumps.last_delta_mm;
 
+	/* Special case for the ALPS devices in the Lenovo ThinkPad E465,
+	 * E550. These devices send occasional 4095/0 events on two fingers
+	 * before snapping back to the correct position.
+	 * https://gitlab.freedesktop.org/libinput/libinput/-/issues/492
+	 * The specific values are hardcoded here, if this ever happens on
+	 * any other device we can make it absmax/absmin instead.
+	 */
+	if (tp->device->model_flags & EVDEV_MODEL_ALPS_SERIAL_TOUCHPAD &&
+	    t->point.x == 4095 && t->point.y == 0) {
+		t->point = last->point;
+		return true;
+	}
+
 	/* Cursor jump if:
 	 * - current single-event delta is >20mm, or
 	 * - we increased the delta by over 7mm within a 12ms frame.
