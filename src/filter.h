@@ -158,6 +158,6 @@ touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
 double
 trackpoint_accel_profile(struct motion_filter *filter,
 			 void *data,
-			 double delta,
+			 double velocity,
 			 uint64_t time);
 #endif /* FILTER_H */

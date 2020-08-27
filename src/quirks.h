@@ -118,7 +118,7 @@ enum quirk {
  * tools, not user consumption. Do not display this in a GUI.
  */
 const char*
-quirk_get_name(enum quirk which);
+quirk_get_name(enum quirk q);
 
 /**
  * Log priorities used if custom logging is enabled.

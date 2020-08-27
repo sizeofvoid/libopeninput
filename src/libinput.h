@@ -5061,7 +5061,7 @@ libinput_device_config_accel_get_profiles(struct libinput_device *device);
  */
 enum libinput_config_status
 libinput_device_config_accel_set_profile(struct libinput_device *device,
-					 enum libinput_config_accel_profile mode);
+					 enum libinput_config_accel_profile profile);
 
 /**
  * @ingroup config

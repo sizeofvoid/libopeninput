@@ -103,6 +103,6 @@ void
 pad_destroy_leds(struct pad_dispatch *pad);
 void
 pad_button_update_mode(struct libinput_tablet_pad_mode_group *g,
-		       unsigned int pressed_button,
+		       unsigned int button_index,
 		       enum libinput_button_state state);
 #endif

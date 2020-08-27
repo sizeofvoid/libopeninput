@@ -640,7 +640,7 @@ tp_button_is_inside_softbutton_area(const struct tp_dispatch *tp,
 
 void
 tp_release_all_taps(struct tp_dispatch *tp,
-		    uint64_t time);
+		    uint64_t now);
 
 void
 tp_tap_suspend(struct tp_dispatch *tp, uint64_t time);
