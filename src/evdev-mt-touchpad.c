@@ -3218,8 +3218,6 @@ tp_init_dwt(struct tp_dispatch *tp,
 	tp->dwt.config.get_default_enabled = tp_dwt_config_get_default;
 	tp->dwt.dwt_enabled = tp_dwt_default_enabled(tp);
 	device->base.config.dwt = &tp->dwt.config;
-
-	return;
 }
 
 static inline void
