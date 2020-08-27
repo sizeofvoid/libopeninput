@@ -987,7 +987,7 @@ START_TEST(touch_release_on_unplug)
 	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 10);
 	litest_drain_events(li);
 
-	/* Touch is still down when device is removed, espect a release */
+	/* Touch is still down when device is removed, expect a release */
 	litest_delete_device(dev);
 	libinput_dispatch(li);
 

@@ -11,7 +11,7 @@ MatchUdevType=touchpad
 MatchDMIModalias=dmi:*svnDellInc.:*
 AttrMscTimestamp=watch
 
-[Dell Lattitude E6220 Touchpad]
+[Dell Latitude E6220 Touchpad]
 MatchName=*AlpsPS/2 ALPS GlidePoint
 MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE6220:*
 AttrPressureRange=100:90

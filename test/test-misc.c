@@ -771,7 +771,7 @@ START_TEST(timer_flush)
 	libinput_dispatch(li);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
-	/* Ingore 'timer offset negative' warnings */
+	/* Ignore 'timer offset negative' warnings */
 	litest_disable_log_handler(li);
 
 	/* now mess with the timing

@@ -1426,7 +1426,7 @@ litest_install_model_quirks(struct list *created_files_list)
 				false);
 	list_insert(created_files_list, &file->link);
 
-	/* Ony install the litest device rule when we're running as system
+	/* Only install the litest device rule when we're running as system
 	 * test suite, we expect the others to be in place already */
 	if (use_system_rules_quirks)
 		return;

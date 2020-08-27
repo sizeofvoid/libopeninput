@@ -5,7 +5,7 @@ libinput Features
 ==============================================================================
 
 Below is a list of features supported by libinput. The availability of
-features usually depends on the device type and a device's capabilties.
+features usually depends on the device type and a device's capabilities.
 Not all features are user-configurable, some rely on :ref:`device-quirks`
 to be useful.
 

@@ -196,7 +196,7 @@ __all_seats()
 		'--help[Show help message and exit]' \
 		'--all[Record all /dev/input/event* devices available on the system]' \
 		'--autorestart=[Terminate the current recording after s seconds of device inactivity]' \
-		{-o+,--output=}'[Speficy the output file to use]:file:_files -g "*.yml"' \
+		{-o+,--output=}'[Specify the output file to use]:file:_files -g "*.yml"' \
 		'--multiple[Record multiple devices at once]' \
 		'--show-keycodes[Show keycodes as-is in the recording]' \
 		'--with-libinput[Record libinput events alongside device events]' \

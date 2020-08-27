@@ -218,7 +218,7 @@ Why don't synclient and syndaemon work with libinput?
 
 Synclient and syndaemon rely on X input device properties that are specific
 to the xf86-input-synaptics X.Org input driver. Both were written when the
-synaptics driver was the only commmon touchpad driver in existence. They
+synaptics driver was the only common touchpad driver in existence. They
 assume that if the properties aren't available, no touchpad is available
 either. The xf86-input-libinput X.Org input driver does not export these
 driver-specific properties, synclient/syndaemon will thus not detect the

@@ -164,7 +164,7 @@ START_TEST(device_disable)
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	litest_assert_empty_queue(li);
 
-	/* event from renabled device */
+	/* event from re-enabled device */
 	litest_event(dev, EV_REL, REL_X, 10);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 

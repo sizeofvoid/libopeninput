@@ -6,7 +6,7 @@ Device quirks
 
 libinput requires extra information from devices that is not always readily
 available. For example, some touchpads are known to have jumping cursors
-under specific conditions. libinput ships a set of files containting the
+under specific conditions. libinput ships a set of files containing the
 so-called model quirks to provide that information. Model quirks are usually
 installed under ``/usr/share/libinput/<filename>.quirks`` and are standard
 ``.ini`` files. A file may contain multiple section headers (``[some

@@ -365,7 +365,7 @@ normalize_pressure(const struct input_absinfo *absinfo,
 	 *
 	 * This means that there is a small range (lower-upper) where
 	 * different physical pressure (default: 1-5%) result in the same
-	 * logical pressure. This is, hopefully, not noticable.
+	 * logical pressure. This is, hopefully, not noticeable.
 	 *
 	 * Note that that lower-upper range gives us a negative pressure, so
 	 * we have to clip to 0 for those.
@@ -1707,7 +1707,7 @@ tablet_send_events(struct tablet_dispatch *tablet,
 		 */
 		axes = tablet->axes;
 
-		/* Dont' send an axis event, but we may have a tip event
+		/* Don't send an axis event, but we may have a tip event
 		 * update */
 		tablet_unset_status(tablet, TABLET_AXES_UPDATED);
 	} else {

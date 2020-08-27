@@ -24,7 +24,7 @@ This tool usually needs to be run as root to have access to the
 /dev/input/eventX nodes.
 .SH OPTIONS
 This tool must be provided the physical dimensions of the device in mm.
-For example, if your touchpad is 100mm wide and 55mm heigh, run this tool as
+For example, if your touchpad is 100mm wide and 55mm high, run this tool as
 .B libinput measure touchpad-size 100x55
 .PP
 If a device node is given, this tool opens that device node. Otherwise, this

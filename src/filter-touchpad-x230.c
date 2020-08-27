@@ -112,7 +112,7 @@ calculate_acceleration(struct pointer_accelerator_x230 *accel,
 {
 	double factor;
 
-	/* Use Simpson's rule to calculate the avarage acceleration between
+	/* Use Simpson's rule to calculate the average acceleration between
 	 * the previous motion and the most recent. */
 	factor = acceleration_profile(accel, data, velocity, time);
 	factor += acceleration_profile(accel, data, last_velocity, time);

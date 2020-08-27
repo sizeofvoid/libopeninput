@@ -305,7 +305,7 @@ updated its package accordingly.
 
 Whether the bug fix ends up in your distribution depends on a number of
 things. Any given bug fix **may** be cherry-picked into the current stable
-branch, depending on its severity, impact, and likelyhood to cause
+branch, depending on its severity, impact, and likelihood to cause
 regressions. Once cherry-picked it will land in the next stable branch
 release. These are usually a few weeks apart.
 

@@ -285,7 +285,7 @@ calculate_acceleration_simpsons(struct motion_filter *filter,
 {
 	double factor;
 
-	/* Use Simpson's rule to calculate the avarage acceleration between
+	/* Use Simpson's rule to calculate the average acceleration between
 	 * the previous motion and the most recent. */
 	factor = profile(filter, data, velocity, time);
 	factor += profile(filter, data, last_velocity, time);

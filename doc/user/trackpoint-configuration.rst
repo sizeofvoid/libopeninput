@@ -20,7 +20,7 @@ User-specific preferences can be adjusted with the
 The magic trackpoint multiplier
 ------------------------------------------------------------------------------
 
-To accomodate for the wildly different input data on trackpoint, libinput
+To accommodate for the wildly different input data on trackpoint, libinput
 uses a multiplier that is applied to input deltas. Trackpoints that send
 comparatively high deltas can be "slowed down", trackpoints that send low
 deltas can be "sped up" to match the expected range. The actual acceleration

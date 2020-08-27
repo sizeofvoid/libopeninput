@@ -153,7 +153,7 @@ tp_motion_history_push(struct tp_touch *t)
  * human can move like that within thresholds.
  *
  * We encode left moves as zeroes, and right as ones. We also drop
- * the array to all zeroes when contraints are not satisfied. Then we
+ * the array to all zeroes when constraints are not satisfied. Then we
  * search for the pattern {1,0,1}. It can't match {Left, Right, Left},
  * but it does match {Left, Right, Left, Right}, so it's okay.
  *
@@ -611,7 +611,7 @@ tp_restore_synaptics_touches(struct tp_dispatch *tp,
 	    (tp->nfingers_down == tp->num_slots && nfake_touches == tp->num_slots))
 		return;
 
-	/* Synaptics devices may end touch 2 on transition to/fro
+	/* Synaptics devices may end touch 2 on transition to/from
 	 * BTN_TOOL_TRIPLETAP and start it again on the next frame with
 	 * different coordinates (bz#91352, gitlab#434). We search the
 	 * touches we have, if there is one that has just ended despite us
@@ -1639,7 +1639,7 @@ tp_process_msc_timestamp(struct tp_dispatch *tp, uint64_t time)
 		   SYN_REPORT +8ms
 
 	   Our approach is to detect the 0 timestamp, check the interval on
-	   the next event and then calculate the movement for one fictious
+	   the next event and then calculate the movement for one fictitious
 	   event instead, swallowing all other movements. So if the time
 	   delta is equivalent to 10 events and the movement is x, we
 	   instead pretend there was movement of x/10.
@@ -2973,7 +2973,7 @@ tp_init_accel(struct tp_dispatch *tp, enum libinput_config_accel_profile which)
 	 * Normalize motion events to the default mouse DPI as base
 	 * (unaccelerated) speed. This also evens out any differences in x
 	 * and y resolution, so that a circle on the
-	 * touchpad does not turn into an elipse on the screen.
+	 * touchpad does not turn into an ellipse on the screen.
 	 */
 	tp->accel.x_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_x;
 	tp->accel.y_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_y;

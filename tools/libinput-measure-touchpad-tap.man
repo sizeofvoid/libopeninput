@@ -66,7 +66,7 @@ prints comments at the top of the file to describe each column.
 .B WARNING:
 The data contained in the output is grouped by different sort orders. For
 example, the first few columns may list tap information in the 'natural'
-sort order (i.e. as they occured), the data in the next few columns may list
+sort order (i.e. as they occurred), the data in the next few columns may list
 tap information sorted by the delta time between touch down and touch up.
 Comparing columns across these group boundaries will compare data of two
 different touch points and result in invalid analysis.

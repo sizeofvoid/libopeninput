@@ -50,7 +50,7 @@ struct motion_filter;
  * @param time The time of the delta
  *
  * @return A set of normalized coordinates that can be used for pixel
- * movement. The normalized coordiantes are scaled to the default dpi range,
+ * movement. The normalized coordinates are scaled to the default dpi range,
  * i.e. regardless of the resolution of the underlying device, the returned
  * values always reflect a 1000dpi mouse.
  *

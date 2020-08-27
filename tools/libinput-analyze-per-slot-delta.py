@@ -150,8 +150,8 @@ def main(argv):
     parser.add_argument("--use-absolute", action='store_true', help="Use absolute coordinates, not deltas")
     parser.add_argument("path", metavar="recording",
                         nargs=1, help="Path to libinput-record YAML file")
-    parser.add_argument("--threshold", type=float, default=None, help="Mark any delta above this treshold")
-    parser.add_argument("--ignore-below", type=float, default=None, help="Ignore any delta below this theshold")
+    parser.add_argument("--threshold", type=float, default=None, help="Mark any delta above this threshold")
+    parser.add_argument("--ignore-below", type=float, default=None, help="Ignore any delta below this threshold")
     args = parser.parse_args()
 
     if not sys.stdout.isatty():

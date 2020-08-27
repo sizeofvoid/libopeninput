@@ -5,7 +5,7 @@ Trackpoints and Pointing Sticks
 ==============================================================================
 
 This page provides an overview of trackpoint handling in libinput, also
-refered to as Pointing Stick or Trackstick. The device itself is usually a
+referred to as Pointing Stick or Trackstick. The device itself is usually a
 round plastic stick between the G, H and B keys with a set of buttons below
 the space bar.
 

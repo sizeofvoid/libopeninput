@@ -249,7 +249,7 @@ parse_tpkbcombo_layout_poperty(const char *prop,
 
 /**
  * Parses a string of the format "a:b" where both a and b must be integer
- * numbers and a > b. Also allowed is the special string vaule "none" which
+ * numbers and a > b. Also allowed is the special string value "none" which
  * amounts to unsetting the property.
  *
  * @param prop The value of the property

@@ -189,7 +189,7 @@ class Device(libevdev.Device):
               #    point within each group. Comparing data across groups
               #    will result in invalid analysis.
               # Columns (1-indexed):
-              # Group 1, sorted by time of occurence
+              # Group 1, sorted by time of occurrence
               #  1: touch down time in ms, offset by first event
               #  2: touch up time in ms, offset by first event
               #  3: time delta in ms);

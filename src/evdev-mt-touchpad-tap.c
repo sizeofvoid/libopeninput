@@ -1442,7 +1442,7 @@ tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time)
 		if (t->tap.is_thumb)
 			continue;
 
-		/* A palm tap needs to be properly relased because we might
+		/* A palm tap needs to be properly released because we might
 		 * be who-knows-where in the state machine. Otherwise, we
 		 * ignore any event from it.
 		 */
