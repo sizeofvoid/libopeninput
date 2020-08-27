@@ -2200,12 +2200,17 @@ mainloop(struct record_context *ctx)
 				fprintf(stderr, "Error: %m\n");
 				autorestart = false;
 				break;
-			} else if (rc == 0) {
+			}
+
+			if (rc == 0) {
 				fprintf(stderr,
 					" ... timeout%s\n",
 					had_events ? "" : " (file is empty)");
 				break;
-			} else if (fds[0].revents != 0) { /* signal */
+
+			}
+
+			if (fds[0].revents != 0) { /* signal */
 				autorestart = false;
 				break;
 			}

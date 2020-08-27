@@ -128,7 +128,9 @@ device_added(struct udev_device *udev_device,
 			 sysname,
 			 devnode);
 		return 0;
-	} else if (device == NULL) {
+	}
+
+	if (device == NULL) {
 		log_info(&input->base,
 			 "%-7s - failed to create input device '%s'\n",
 			 sysname,

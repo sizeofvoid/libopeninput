@@ -44,8 +44,8 @@ tap_default(struct libinput_device *device)
 
 	if (libinput_device_config_tap_get_default_enabled(device))
 		return "enabled";
-	else
-		return "disabled";
+
+	return "disabled";
 }
 
 static const char *
@@ -56,8 +56,8 @@ drag_default(struct libinput_device *device)
 
 	if (libinput_device_config_tap_get_default_drag_enabled(device))
 		return "enabled";
-	else
-		return "disabled";
+
+	return "disabled";
 }
 
 static const char *
@@ -68,8 +68,8 @@ draglock_default(struct libinput_device *device)
 
 	if (libinput_device_config_tap_get_default_drag_lock_enabled(device))
 		return "enabled";
-	else
-		return "disabled";
+
+	return "disabled";
 }
 
 static const char*
@@ -80,8 +80,8 @@ left_handed_default(struct libinput_device *device)
 
 	if (libinput_device_config_left_handed_get_default(device))
 		return "enabled";
-	else
-		return "disabled";
+
+	return "disabled";
 }
 
 static const char *
@@ -92,8 +92,8 @@ nat_scroll_default(struct libinput_device *device)
 
 	if (libinput_device_config_scroll_get_default_natural_scroll_enabled(device))
 		return "enabled";
-	else
-		return "disabled";
+
+	return "disabled";
 }
 
 static const char *
@@ -104,8 +104,8 @@ middle_emulation_default(struct libinput_device *device)
 
 	if (libinput_device_config_middle_emulation_get_default_enabled(device))
 		return "enabled";
-	else
-		return "disabled";
+
+	return "disabled";
 }
 
 static char *
@@ -222,8 +222,8 @@ dwt_default(struct libinput_device *device)
 
 	if (libinput_device_config_dwt_get_default_enabled(device))
 		return "enabled";
-	else
-		return "disabled";
+
+	return "disabled";
 }
 
 static char *
@@ -384,13 +384,15 @@ main(int argc, char **argv)
 		if (streq(argv[1], "--help")) {
 			usage();
 			return 0;
-		} else if (streq(argv[1], "--version")) {
+		}
+
+		if (streq(argv[1], "--version")) {
 			printf("%s\n", LIBINPUT_VERSION);
 			return 0;
-		} else {
-			usage();
-			return EXIT_INVALID_USAGE;
 		}
+
+		usage();
+		return EXIT_INVALID_USAGE;
 	}
 
 	li = tools_open_backend(BACKEND_UDEV, seat, false, &grab);

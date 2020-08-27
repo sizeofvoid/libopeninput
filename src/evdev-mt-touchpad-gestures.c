@@ -383,8 +383,7 @@ tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 	if (!tp->gesture.enabled) {
 		if (ntouches == 2)
 			return GESTURE_STATE_SCROLL;
-		else
-			return GESTURE_STATE_NONE;
+		return GESTURE_STATE_NONE;
 	}
 
 	first = touches[0];
@@ -525,9 +524,8 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 		if (tp->gesture.finger_count == 2) {
 			tp_gesture_set_scroll_buildup(tp);
 			return GESTURE_STATE_SCROLL;
-		} else {
-			return GESTURE_STATE_SWIPE;
 		}
+		return GESTURE_STATE_SWIPE;
 	}
 
 	/* If one touch exceeds the max_move threshold while the other has not
@@ -589,7 +587,9 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 		if (tp->gesture.finger_count == 2) {
 			tp_gesture_set_scroll_buildup(tp);
 			return GESTURE_STATE_SCROLL;
-		} else if (tp->gesture.enabled) {
+		}
+
+		if (tp->gesture.enabled) {
 			return GESTURE_STATE_SWIPE;
 		}
 	}

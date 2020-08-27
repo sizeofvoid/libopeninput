@@ -763,8 +763,8 @@ evdev_scroll_get_button_lock(struct libinput_device *device)
 
 	if (evdev->scroll.lock_state == BUTTONSCROLL_LOCK_DISABLED)
 		return LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED;
-	else
-		return LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_ENABLED;
+
+	return LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_ENABLED;
 }
 
 static enum libinput_config_scroll_button_lock_state
@@ -1806,7 +1806,9 @@ evdev_configure_device(struct evdev_device *device)
 		evdev_log_info(device,
 			 "device is an accelerometer, ignoring\n");
 		return NULL;
-	} else if (udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER) {
+	}
+
+	if (udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER) {
 		evdev_disable_accelerometer_axes(device);
 	}
 
@@ -1853,7 +1855,9 @@ evdev_configure_device(struct evdev_device *device)
 		evdev_log_info(device, "device is a tablet pad\n");
 		return dispatch;
 
-	} else if ((udev_tags & tablet_tags) == EVDEV_UDEV_TAG_TABLET) {
+	}
+
+	if ((udev_tags & tablet_tags) == EVDEV_UDEV_TAG_TABLET) {
 		dispatch = evdev_tablet_create(device);
 		device->seat_caps |= EVDEV_DEVICE_TABLET;
 		evdev_log_info(device, "device is a tablet\n");

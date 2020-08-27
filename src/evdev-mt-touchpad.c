@@ -256,8 +256,9 @@ tp_fake_finger_count(struct tp_dispatch *tp)
 
 	if (tp->fake_touches & FAKE_FINGER_OVERFLOW)
 		return FAKE_FINGER_OVERFLOW;
-	else /* don't count BTN_TOUCH */
-		return ffs(tp->fake_touches >> 1);
+
+	/* don't count BTN_TOUCH */
+	return ffs(tp->fake_touches >> 1);
 }
 
 static inline bool
@@ -898,7 +899,9 @@ tp_palm_detect_dwt_triggered(struct tp_dispatch *tp,
 		t->palm.state = PALM_TYPING;
 		t->palm.first = t->point;
 		return true;
-	} else if (!tp->dwt.keyboard_active &&
+	}
+
+	if (!tp->dwt.keyboard_active &&
 		   t->state == TOUCH_UPDATE &&
 		   t->palm.state == PALM_TYPING) {
 		/* If a touch has started before the first or after the last
@@ -932,7 +935,9 @@ tp_palm_detect_trackpoint_triggered(struct tp_dispatch *tp,
 	    tp->palm.trackpoint_active) {
 		t->palm.state = PALM_TRACKPOINT;
 		return true;
-	} else if (t->palm.state == PALM_TRACKPOINT &&
+	}
+
+	if (t->palm.state == PALM_TRACKPOINT &&
 		   t->state == TOUCH_UPDATE &&
 		   !tp->palm.trackpoint_active) {
 
@@ -1074,7 +1079,9 @@ tp_palm_detect_edge(struct tp_dispatch *tp,
 				  t->index);
 		}
 		return false;
-	} else if (tp_palm_detect_multifinger(tp, t, time)) {
+	}
+
+	if (tp_palm_detect_multifinger(tp, t, time)) {
 		return false;
 	}
 
@@ -2327,7 +2334,8 @@ tp_want_dwt(struct evdev_device *touchpad,
 	   considered a happy couple */
 	if (touchpad->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD)
 		return vendor_tp == vendor_kbd && product_tp == product_kbd;
-	else if (keyboard->tags & EVDEV_TAG_INTERNAL_KEYBOARD)
+
+	if (keyboard->tags & EVDEV_TAG_INTERNAL_KEYBOARD)
 		return true;
 
 	/* keyboard is not tagged as internal keyboard and it's not part of
@@ -2684,14 +2692,16 @@ evdev_tag_touchpad(struct evdev_device *device,
 		if (streq(prop, "internal")) {
 			evdev_tag_touchpad_internal(device);
 			return;
-		} else if (streq(prop, "external")) {
+		}
+
+		if (streq(prop, "external")) {
 			evdev_tag_touchpad_external(device);
 			return;
-		} else {
-			evdev_log_info(device,
-				       "tagged with unknown value %s\n",
-				       prop);
 		}
+
+		evdev_log_info(device,
+			       "tagged with unknown value %s\n",
+			       prop);
 	}
 
 	/* The hwdb is the authority on integration, these heuristics are
