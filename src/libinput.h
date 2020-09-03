@@ -5053,7 +5053,7 @@ libinput_device_config_accel_get_profiles(struct libinput_device *device);
  * mode.
  *
  * @param device The device to configure
- * @param mode The mode to set the device to.
+ * @param profile The profile to set the device to.
  *
  * @return A config status code
  *
