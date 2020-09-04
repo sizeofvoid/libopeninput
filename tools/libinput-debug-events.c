@@ -289,7 +289,7 @@ print_device_notify(struct libinput_event *ev)
 }
 
 static void
-print_key_event(struct libinput *li, struct libinput_event *ev)
+print_key_event(struct libinput_event *ev)
 {
 	struct libinput_event_keyboard *k = libinput_event_get_keyboard_event(ev);
 	enum libinput_key_state state;
@@ -840,7 +840,7 @@ handle_and_print_events(struct libinput *li)
 			print_device_notify(ev);
 			break;
 		case LIBINPUT_EVENT_KEYBOARD_KEY:
-			print_key_event(li, ev);
+			print_key_event(ev);
 			break;
 		case LIBINPUT_EVENT_POINTER_MOTION:
 			print_motion_event(ev);
