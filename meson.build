@@ -411,13 +411,6 @@ git_version_h = vcs_tag(command : ['git', 'describe'],
 			input : 'src/libinput-git-version.h.in',
 			output :'libinput-git-version.h')
 
-if meson.version().version_compare('<0.43.0')
-	# Restore the SELinux context for the libinput.so.a.b.c on install
-	# meson bug https://github.com/mesonbuild/meson/issues/1967
-	meson.add_install_script('src/libinput-restore-selinux-context.sh',
-				 dir_lib, lib_libinput.full_path())
-endif
-
 ############ documentation ############
 
 if get_option('documentation')
