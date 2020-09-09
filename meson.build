@@ -45,11 +45,22 @@ cc = meson.get_compiler('c')
 cflags = [
 	'-Wno-unused-parameter',
 	'-Wmissing-prototypes',
-	'-Wstrict-prototypes'
+	'-Wstrict-prototypes',
+	'-Wundef',
+	'-Wlogical-op',
+	'-Wpointer-arith',
+	'-Wuninitialized',
+	'-Winit-self',
+	'-Wstrict-prototypes',
+	'-Wimplicit-fallthrough',
+	'-Wredundant-decls',
+	'-Wincompatible-pointer-types',
+	'-Wformat=2',
+	'-Wmissing-declarations',
 
 	'-fvisibility=hidden',
 ]
-add_project_arguments(cflags, language : 'c')
+add_project_arguments(cc.get_supported_arguments(cflags), language : 'c')
 
 # config.h
 config_h = configuration_data()
