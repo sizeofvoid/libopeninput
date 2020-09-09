@@ -378,11 +378,13 @@ struct libinput_tablet_tool {
 	int refcount;
 	void *user_data;
 
-	/* The pressure threshold assumes a pressure_offset of 0 */
-	struct threshold pressure_threshold;
-	/* pressure_offset includes axis->minimum */
-	int pressure_offset;
-	bool has_pressure_offset;
+	struct {
+		/* The pressure threshold assumes a pressure_offset of 0 */
+		struct threshold threshold;
+		/* pressure_offset includes axis->minimum */
+		int offset;
+		bool has_offset;
+	} pressure;
 };
 
 struct libinput_tablet_pad_mode_group {

@@ -88,10 +88,10 @@ totem_new_tool(struct totem_dispatch *totem)
 		.refcount = 1,
 	};
 
-	tool->pressure_offset = 0;
-	tool->has_pressure_offset = false;
-	tool->pressure_threshold.lower = 0;
-	tool->pressure_threshold.upper = 1;
+	tool->pressure.offset = 0;
+	tool->pressure.has_offset = false;
+	tool->pressure.threshold.lower = 0;
+	tool->pressure.threshold.upper = 1;
 
 	set_bit(tool->axis_caps, LIBINPUT_TABLET_TOOL_AXIS_X);
 	set_bit(tool->axis_caps, LIBINPUT_TABLET_TOOL_AXIS_Y);
