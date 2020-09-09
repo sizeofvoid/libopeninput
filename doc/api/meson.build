@@ -26,19 +26,11 @@ src_doxygen = files(
 	'style/libinputdoxygen.css',
 )
 
-config_noop = configuration_data()
-# Set a dummy replacement to silence meson warnings:
-# meson.build:487: WARNING: Got an empty configuration_data() object and
-# 		   found no substitutions in the input file 'foo'. If you
-# 		   want to copy a file to the build dir, use the 'copy:'
-# 		   keyword argument added in 0.47.0
-config_noop.set('dummy', 'dummy')
-
 doxyfiles = []
 foreach f : src_doxygen
 	df = configure_file(input: f,
 			    output: '@PLAINNAME@',
-			    configuration : config_noop)
+			    copy : true)
 	doxyfiles += [ df ]
 endforeach
 
