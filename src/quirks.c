@@ -916,7 +916,7 @@ parse_file(struct quirks_context *ctx, const char *path)
 			break;
 		default:
 			/* entries must start with A-Z */
-			if (line[0] < 'A' && line[0] > 'Z') {
+			if (line[0] < 'A' || line[0] > 'Z') {
 				qlog_parser(ctx, "%s:%d: Unexpected line %s\n",
 						 path, lineno, line);
 				goto out;
