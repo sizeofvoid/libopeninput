@@ -1821,7 +1821,7 @@ libinput_init_quirks(struct libinput *libinput)
 		log_error(libinput,
 			  "Failed to load the device quirks from %s%s%s. "
 			  "This will negatively affect device behavior. "
-			  "See %sdevice-quirks.html for details.\n",
+			  "See %s/device-quirks.html for details.\n",
 			  data_path,
 			  override_file ? " and " : "",
 			  override_file ? override_file : "",

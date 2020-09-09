@@ -1003,7 +1003,7 @@ evdev_device_check_abs_axis_range(struct evdev_device *device,
 		log_info_ratelimit(evdev_libinput_context(device),
 				   &device->abs.warning_range.range_warn_limit,
 				   "Axis %#x value %d is outside expected range [%d, %d]\n"
-				   "See %sabsolute_coordinate_ranges.html for details\n",
+				   "See %s/absolute_coordinate_ranges.html for details\n",
 				   code, value, min, max,
 				   HTTP_DOC_LINK);
 	}

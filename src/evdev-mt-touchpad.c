@@ -201,7 +201,7 @@ tp_detect_wobbling(struct tp_dispatch *tp,
 			tp->hysteresis.enabled = true;
 			evdev_log_debug(tp->device,
 					"hysteresis enabled. "
-					"See %stouchpad-jitter.html for details\n",
+					"See %s/touchpad-jitter.html for details\n",
 					HTTP_DOC_LINK);
 		}
 	}
@@ -1754,7 +1754,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 				evdev_log_bug_kernel_ratelimit(tp->device,
 						&tp->jump.warning,
 					        "Touch jump detected and discarded.\n"
-					        "See %stouchpad-jumping-cursors.html for details\n",
+					        "See %s/touchpad-jumping-cursors.html for details\n",
 					        HTTP_DOC_LINK);
 			tp_motion_history_reset(t);
 		}
@@ -3494,7 +3494,7 @@ tp_init_hysteresis(struct tp_dispatch *tp)
 	if (tp->hysteresis.enabled)
 		evdev_log_debug(tp->device,
 				"hysteresis enabled. "
-				"See %stouchpad-jitter.html for details\n",
+				"See %s/touchpad-jitter.html for details\n",
 				HTTP_DOC_LINK);
 }
 

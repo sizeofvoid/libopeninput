@@ -162,7 +162,7 @@ debounce_enable_spurious(struct fallback_dispatch *fallback)
 	fallback->debounce.spurious_enabled = true;
 	evdev_log_info(fallback->device,
 		       "Enabling spurious button debouncing, "
-		       "see %sbutton-debouncing.html for details\n",
+		       "see %s/button-debouncing.html for details\n",
 		       HTTP_DOC_LINK);
 }
 
