@@ -22,7 +22,6 @@ if dir_udev == ''
 endif
 dir_udev_callouts = dir_udev
 dir_udev_rules    = join_paths(dir_udev, 'rules.d')
-dir_udev_hwdb     = join_paths(dir_udev, 'hwdb.d')
 
 
 # We use libtool-version numbers because it's easier to understand.
