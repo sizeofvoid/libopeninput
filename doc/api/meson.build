@@ -9,26 +9,6 @@ if not dot.found()
 	error('Program "dot" not found or not executable. Try building with -Ddocumentation=false')
 endif
 
-doxygen_version_cmd = run_command(doxygen.path(), '--version')
-if doxygen_version_cmd.returncode() != 0
-	error('Command "doxygen --version" failed.')
-endif
-doxygen_version = doxygen_version_cmd.stdout()
-if doxygen_version.version_compare('< 1.8.3')
-	error('doxygen needs to be at least version 1.8.3 (have @0@)'.format(doxygen_version))
-endif
-grep = find_program('grep')
-dot_version_cmd = run_command(dot.path(), '-V')
-if dot_version_cmd.returncode() != 0
-	error('Command "dot -V" failed.')
-endif
-# dot -V output is (to stderr):
-# 	dot - graphviz version 2.38.0 (20140413.2041)
-dot_version = dot_version_cmd.stderr().split(' ')[4]
-if dot_version.version_compare('< 2.26')
-	error('Graphviz dot needs to be at least version 2.26 (have @0@)'.format(dot_version))
-endif
-
 mainpage = vcs_tag(command : ['git', 'log', '-1', '--format=%h'],
 		 fallback : 'unknown',
 		 input : 'mainpage.dox',
