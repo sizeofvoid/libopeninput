@@ -5932,7 +5932,7 @@ TEST_COLLECTION(tablet)
 	litest_add("tablet:tool", tool_user_data, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add("tablet:tool", tool_capability, LITEST_TABLET, LITEST_ANY);
 	litest_add_no_device("tablet:tool", tool_capabilities);
-	litest_add("tablet:tool", tool_type, LITEST_TABLET, LITEST_ANY);
+	litest_add("tablet:tool", tool_type, LITEST_TABLET, LITEST_FORCED_PROXOUT);
 	litest_add("tablet:tool", tool_in_prox_before_start, LITEST_TABLET, LITEST_TOTEM);
 	litest_add("tablet:tool", tool_direct_switch_skip_tool_update, LITEST_TABLET, LITEST_ANY);
 	litest_add("tablet:tool", tool_direct_switch_with_forced_proxout, LITEST_TABLET, LITEST_ANY);
