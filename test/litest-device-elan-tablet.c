@@ -26,7 +26,7 @@
 #include "litest.h"
 #include "litest-int.h"
 
-static struct input_event proximity_in[] = {
+static struct input_event proximity_in_events[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
@@ -35,19 +35,55 @@ static struct input_event proximity_in[] = {
 	{ .type = -1, .code = -1 },
 };
 
-static struct input_event proximity_out[] = {
+static struct input_event proximity_out_events[] = {
 	{ .type = EV_KEY, .code = LITEST_BTN_TOOL_AUTO, .value = 0 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
 
-static struct input_event motion[] = {
+static struct input_event motion_events[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
+
+static bool
+proximity_in(struct litest_device *d,
+	     unsigned int tool_type,
+	     double x, double y,
+	     struct axis_replacement *axes)
+{
+	/* nothing special needed for the pen tool, so let litest handle
+	 * this */
+	if (tool_type == BTN_TOOL_PEN)
+		return false;
+
+	/* a non-pen tool requires the pen to be in proximity as well.  */
+	x = litest_scale(d, ABS_X, x);
+	y = litest_scale(d, ABS_Y, y);
+	litest_event(d, EV_ABS, ABS_X, x);
+	litest_event(d, EV_ABS, ABS_X, y);
+	litest_event(d, EV_KEY, BTN_TOOL_PEN, 1);
+	litest_event(d, EV_SYN, SYN_REPORT, 0);
+
+	/* litest will append the proximity_in_events if we return false,
+	 * including the right tool event */
+	return false;
+}
+
+static bool
+proximity_out(struct litest_device *d, unsigned int tool_type)
+{
+	/* a non-pen tool requires the pen to go out of proximity as well.
+	 * litest will append the proximity_out_events if we return false
+	 */
+	if (tool_type != BTN_TOOL_PEN)
+		litest_event(d, EV_KEY, BTN_TOOL_PEN, 0);
+
+	return false;
+}
 
 static int
 get_axis_default(struct litest_device *d, unsigned int evcode, int32_t *value)
@@ -61,9 +97,11 @@ get_axis_default(struct litest_device *d, unsigned int evcode, int32_t *value)
 }
 
 static struct litest_device_interface interface = {
-	.tablet_proximity_in_events = proximity_in,
-	.tablet_proximity_out_events = proximity_out,
-	.tablet_motion_events = motion,
+	.tablet_proximity_in_events = proximity_in_events,
+	.tablet_proximity_out_events = proximity_out_events,
+	.tablet_motion_events = motion_events,
+	.tablet_proximity_in = proximity_in,
+	.tablet_proximity_out = proximity_out,
 
 	.get_axis_default = get_axis_default,
 };
@@ -82,6 +120,11 @@ static struct input_id input_id = {
 	.version = 0x100,
 };
 
+/* Note: this tablet is one that sets both BTN_TOOL_PEN and BTN_TOOL_RUBBER,
+ * see https://gitlab.freedesktop.org/libinput/libinput/-/issues/259
+ * The one in the issue isn't the exact same model, but only the pid and x/y
+ * axis max differs differs.
+ */
 static int events[] = {
 	EV_KEY, BTN_TOOL_PEN,
 	EV_KEY, BTN_TOOL_RUBBER,

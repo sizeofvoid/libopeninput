@@ -2478,6 +2478,12 @@ litest_tablet_proximity_in(struct litest_device *d, int x, int y, struct axis_re
 {
 	struct input_event *ev;
 
+	/* If the test device overrides proximity_in and says it didn't
+	 * handle the event, let's continue normally */
+	if (d->interface->tablet_proximity_in &&
+	    d->interface->tablet_proximity_in(d, d->interface->tool_type, x, y, axes))
+		return;
+
 	ev = d->interface->tablet_proximity_in_events;
 	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
 		int value;
@@ -2499,6 +2505,12 @@ void
 litest_tablet_proximity_out(struct litest_device *d)
 {
 	struct input_event *ev;
+
+	/* If the test device overrides proximity_out and says it didn't
+	 * handle the event, let's continue normally */
+	if (d->interface->tablet_proximity_out &&
+	    d->interface->tablet_proximity_out(d, d->interface->tool_type))
+		return;
 
 	ev = d->interface->tablet_proximity_out_events;
 	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {

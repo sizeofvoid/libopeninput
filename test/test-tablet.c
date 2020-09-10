@@ -2812,6 +2812,8 @@ START_TEST(tool_type)
 	litest_drain_events(li);
 
 	for (tt = types; tt->code != -1; tt++) {
+		enum libinput_tablet_tool_type type;
+
 		if (!libevdev_has_event_code(dev->evdev,
 					     EV_KEY,
 					     tt->code))
@@ -2829,9 +2831,27 @@ START_TEST(tool_type)
 		t = litest_is_tablet_event(event,
 				   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 		tool = libinput_event_tablet_tool_get_tool(t);
+		type = libinput_tablet_tool_get_type(tool);
 
-		ck_assert_int_eq(libinput_tablet_tool_get_type(tool),
-				 tt->type);
+		/* Devices with doubled-up tool bits send the pen
+		 * in-prox and immediately out-of-prox before the real tool
+		 * type. Drop those two and continue with what we expect is
+		 * the real prox in event */
+		if (tt->type != LIBINPUT_TABLET_TOOL_TYPE_PEN &&
+		    type == LIBINPUT_TABLET_TOOL_TYPE_PEN) {
+			libinput_event_destroy(event);
+			event = libinput_get_event(li);
+			t = litest_is_tablet_event(event,
+					   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+			libinput_event_destroy(event);
+			event = libinput_get_event(li);
+			t = litest_is_tablet_event(event,
+					   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+			tool = libinput_event_tablet_tool_get_tool(t);
+			type = libinput_tablet_tool_get_type(tool);
+		}
+
+		ck_assert_int_eq(type, tt->type);
 
 		libinput_event_destroy(event);
 		litest_assert_empty_queue(li);
