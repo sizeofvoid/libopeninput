@@ -2807,6 +2807,7 @@ START_TEST(tool_type)
 		{ -1, -1 }
 	};
 	struct tool_type_match *tt;
+	double x = 50, y = 50;
 
 	litest_drain_events(li);
 
@@ -2821,7 +2822,7 @@ START_TEST(tool_type)
 			continue;
 
 		litest_tablet_set_tool_type(dev, tt->code);
-		litest_tablet_proximity_in(dev, 50, 50, axes);
+		litest_tablet_proximity_in(dev, x, y, axes);
 		libinput_dispatch(li);
 
 		event = libinput_get_event(li);
@@ -2837,6 +2838,9 @@ START_TEST(tool_type)
 
 		litest_tablet_proximity_out(dev);
 		litest_drain_events(li);
+
+		x++;
+		y++;
 	}
 }
 END_TEST
