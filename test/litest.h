@@ -604,6 +604,10 @@ litest_touch_move_three_touches(struct litest_device *d,
 				int steps);
 
 void
+litest_tablet_set_tool_type(struct litest_device *d,
+			    unsigned int code);
+
+void
 litest_tablet_proximity_in(struct litest_device *d,
 			   int x, int y,
 			   struct axis_replacement *axes);

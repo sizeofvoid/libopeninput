@@ -65,6 +65,8 @@
 
 #include <linux/kd.h>
 
+#define evbit(t, c) ((t) << 16U | (c & 0xffff))
+
 #define UDEV_RULES_D "/run/udev/rules.d"
 #define UDEV_FUZZ_OVERRIDE_RULE_FILE UDEV_RULES_D \
 	"/91-litest-fuzz-override-REMOVEME-XXXXXX.rules"
@@ -1812,6 +1814,7 @@ litest_add_device_with_overrides(struct libinput *libinput,
 			d->interface->min[ABS_Y] = libevdev_get_abs_minimum(d->evdev, code);
 			d->interface->max[ABS_Y] = libevdev_get_abs_maximum(d->evdev, code);
 		}
+		d->interface->tool_type = BTN_TOOL_PEN;
 	}
 	return d;
 }
@@ -2444,15 +2447,50 @@ tablet_ignore_event(const struct input_event *ev, int value)
 }
 
 void
+litest_tablet_set_tool_type(struct litest_device *d, unsigned int code)
+{
+	switch (code) {
+	case BTN_TOOL_PEN:
+	case BTN_TOOL_RUBBER:
+	case BTN_TOOL_BRUSH:
+	case BTN_TOOL_PENCIL:
+	case BTN_TOOL_AIRBRUSH:
+	case BTN_TOOL_MOUSE:
+	case BTN_TOOL_LENS:
+		break;
+	default:
+		abort();
+	}
+
+	d->interface->tool_type = code;
+}
+
+static void
+litest_tool_event(struct litest_device *d, int value)
+{
+	unsigned int tool = d->interface->tool_type;
+
+	litest_event(d, EV_KEY, tool, value);
+}
+
+void
 litest_tablet_proximity_in(struct litest_device *d, int x, int y, struct axis_replacement *axes)
 {
 	struct input_event *ev;
 
 	ev = d->interface->tablet_proximity_in_events;
 	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
-		int value = auto_assign_tablet_value(d, ev, x, y, axes);
-		if (!tablet_ignore_event(ev, value))
-			litest_event(d, ev->type, ev->code, value);
+		int value;
+
+		switch (evbit(ev->type, ev->code)) {
+		case evbit(EV_KEY, LITEST_BTN_TOOL_AUTO):
+			litest_tool_event(d, ev->value);
+			break;
+		default:
+			value = auto_assign_tablet_value(d, ev, x, y, axes);
+			if (!tablet_ignore_event(ev, value))
+				litest_event(d, ev->type, ev->code, value);
+		}
 		ev++;
 	}
 }
@@ -2464,9 +2502,18 @@ litest_tablet_proximity_out(struct litest_device *d)
 
 	ev = d->interface->tablet_proximity_out_events;
 	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
-		int value = auto_assign_tablet_value(d, ev, -1, -1, NULL);
-		if (!tablet_ignore_event(ev, value))
-			litest_event(d, ev->type, ev->code, value);
+		int value;
+
+		switch (evbit(ev->type, ev->code)) {
+		case evbit(EV_KEY, LITEST_BTN_TOOL_AUTO):
+			litest_tool_event(d, ev->value);
+			break;
+		default:
+			value = auto_assign_tablet_value(d, ev, -1, -1, NULL);
+			if (!tablet_ignore_event(ev, value))
+				litest_event(d, ev->type, ev->code, value);
+			break;
+		}
 		ev++;
 	}
 }

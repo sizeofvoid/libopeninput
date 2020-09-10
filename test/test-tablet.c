@@ -2820,12 +2820,8 @@ START_TEST(tool_type)
 		    !tablet_has_mouse(dev))
 			continue;
 
-		litest_push_event_frame(dev);
-		litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
+		litest_tablet_set_tool_type(dev, tt->code);
 		litest_tablet_proximity_in(dev, 50, 50, axes);
-		litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
-		litest_event(dev, EV_KEY, tt->code, 1);
-		litest_pop_event_frame(dev);
 		libinput_dispatch(li);
 
 		event = libinput_get_event(li);
@@ -2839,12 +2835,7 @@ START_TEST(tool_type)
 		libinput_event_destroy(event);
 		litest_assert_empty_queue(li);
 
-		litest_push_event_frame(dev);
-		litest_filter_event(dev, EV_KEY, BTN_TOOL_PEN);
 		litest_tablet_proximity_out(dev);
-		litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
-		litest_event(dev, EV_KEY, tt->code, 0);
-		litest_pop_event_frame(dev);
 		litest_drain_events(li);
 	}
 }

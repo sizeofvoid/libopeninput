@@ -31,6 +31,9 @@
 /* Use as designater for litest to change the value */
 #define LITEST_AUTO_ASSIGN INT_MIN
 
+/* Special event code to auto-assign the BTN_TOOL_PEN and friends */
+#define LITEST_BTN_TOOL_AUTO (KEY_MAX << 1)
+
 struct litest_test_device {
 	struct list node; /* global test device list */
 
@@ -129,6 +132,8 @@ struct litest_device_interface {
 
 	int min[2]; /* x/y axis minimum */
 	int max[2]; /* x/y axis maximum */
+
+	unsigned int tool_type;
 };
 
 struct path {
