@@ -58,6 +58,10 @@ Where \-\-output-file is not given and the first \fBor\fR last argument is
 not an input device, the first \fBor\fR last argument will be the output
 file.
 .TP 8
+.B \-\-grab
+Exclusively grab all opened devices. This will prevent events from being
+delivered to the host system.
+.TP 8
 .B \-\-show\-keycodes
 Show keycodes as-is in the recording. By default, common keys are obfuscated
 and printed as \fBKEY_A\fR to avoid information leaks.

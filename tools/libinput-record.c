@@ -2295,7 +2295,7 @@ mainloop(struct record_context *ctx)
 }
 
 static inline bool
-init_device(struct record_context *ctx, char *path)
+init_device(struct record_context *ctx, char *path, bool grab)
 {
 	struct record_device *d;
 	int fd, rc;
@@ -2323,6 +2323,17 @@ init_device(struct record_context *ctx, char *path)
 			d->devnode,
 			strerror(-rc));
 		goto error;
+	}
+
+	if (grab) {
+		rc = libevdev_grab(d->evdev, LIBEVDEV_GRAB);
+		if (rc != 0) {
+			fprintf(stderr,
+				"Grab failed on %s: %s\n",
+				path,
+				strerror(-rc));
+			goto error;
+		}
 	}
 
 	libevdev_set_clock_id(d->evdev, CLOCK_MONOTONIC);
@@ -2446,6 +2457,7 @@ enum options {
 	OPT_MULTIPLE,
 	OPT_ALL,
 	OPT_LIBINPUT,
+	OPT_GRAB,
 };
 
 int
@@ -2463,11 +2475,12 @@ main(int argc, char **argv)
 		{ "all", no_argument, 0, OPT_ALL },
 		{ "help", no_argument, 0, OPT_HELP },
 		{ "with-libinput", no_argument, 0, OPT_LIBINPUT },
+		{ "grab", no_argument, 0, OPT_GRAB },
 		{ 0, 0, 0, 0 },
 	};
 	struct record_device *d, *tmp;
 	const char *output_arg = NULL;
-	bool all = false, with_libinput = false;
+	bool all = false, with_libinput = false, grab = false;
 	int ndevices;
 	int rc = EXIT_FAILURE;
 
@@ -2510,6 +2523,9 @@ main(int argc, char **argv)
 			break;
 		case OPT_LIBINPUT:
 			with_libinput = true;
+			break;
+		case OPT_GRAB:
+			grab = true;
 			break;
 		default:
 			usage();
@@ -2608,7 +2624,7 @@ main(int argc, char **argv)
 		d = devices;
 
 		while (*d) {
-			if (!init_device(&ctx, safe_strdup(*d))) {
+			if (!init_device(&ctx, safe_strdup(*d), grab)) {
 				strv_free(devices);
 				goto out;
 			}
@@ -2627,7 +2643,7 @@ main(int argc, char **argv)
 		for (int i = ndevices; i > 0; i -= 1) {
 			char *devnode = safe_strdup(argv[optind + i - 1]);
 
-			if (!init_device(&ctx, devnode))
+			if (!init_device(&ctx, devnode, grab))
 				goto out;
 		}
 	} else {
@@ -2638,7 +2654,7 @@ main(int argc, char **argv)
 			goto out;
 		}
 
-		if (!init_device(&ctx, path))
+		if (!init_device(&ctx, path, grab))
 			goto out;
 	}
 
