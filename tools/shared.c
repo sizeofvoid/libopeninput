@@ -437,13 +437,16 @@ static char*
 find_device(const char *udev_tag)
 {
 	struct udev *udev;
-	struct udev_enumerate *e;
+	struct udev_enumerate *e = NULL;
 	struct udev_list_entry *entry = NULL;
 	struct udev_device *device;
 	const char *path, *sysname;
 	char *device_node = NULL;
 
 	udev = udev_new();
+	if (!udev)
+		goto out;
+
 	e = udev_enumerate_new(udev);
 	udev_enumerate_add_match_subsystem(e, "input");
 	udev_enumerate_scan_devices(e);
@@ -468,6 +471,7 @@ find_device(const char *udev_tag)
 		if (device_node)
 			break;
 	}
+out:
 	udev_enumerate_unref(e);
 	udev_unref(udev);
 
@@ -499,6 +503,9 @@ is_touchpad_device(const char *devnode)
 		return false;
 
 	udev = udev_new();
+	if (!udev)
+		goto out;
+
 	dev = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
 	if (!dev)
 		goto out;
