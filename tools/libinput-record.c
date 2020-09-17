@@ -1956,12 +1956,16 @@ select_device(void)
 	char *device_path;
 	bool has_eaccess = false;
 	int available_devices = 0;
+	const char *prefix = "";
+
+	if (!isatty(STDERR_FILENO))
+		prefix = "# ";
 
 	ndev = scandir("/dev/input", &namelist, is_event_node, versionsort);
 	if (ndev <= 0)
 		return NULL;
 
-	fprintf(stderr, "Available devices:\n");
+	fprintf(stderr, "%sAvailable devices:\n", prefix);
 	for (int i = 0; i < ndev; i++) {
 		struct libevdev *device;
 		char path[PATH_MAX];
@@ -1983,7 +1987,7 @@ select_device(void)
 		if (rc != 0)
 			continue;
 
-		fprintf(stderr, "%s:	%s\n", path, libevdev_get_name(device));
+		fprintf(stderr, "%s%s:	%s\n", prefix, path, libevdev_get_name(device));
 		libevdev_free(device);
 		available_devices++;
 	}
@@ -2000,7 +2004,7 @@ select_device(void)
 		return NULL;
 	}
 
-	fprintf(stderr, "Select the device event number: ");
+	fprintf(stderr, "%sSelect the device event number: ", prefix);
 	rc = scanf("%d", &selected_device);
 
 	if (rc != 1 || selected_device < 0)
@@ -2166,7 +2170,9 @@ mainloop(struct record_context *ctx)
 				ctx->output_file);
 			break;
 		}
-		fprintf(stderr, "Recording to '%s'.\n", ctx->output_file);
+		fprintf(stderr, "%sRecording to '%s'.\n",
+			isatty(STDERR_FILENO) ? "" : "# ",
+			ctx->output_file);
 
 		print_header(ctx);
 		if (autorestart)
