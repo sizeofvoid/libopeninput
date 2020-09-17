@@ -1997,10 +1997,9 @@ select_device(void)
 	free(namelist);
 
 	if (available_devices == 0) {
-		fprintf(stderr, "No devices available. ");
-		if (has_eaccess)
-				fprintf(stderr, "Please re-run as root.");
-		fprintf(stderr, "\n");
+		fprintf(stderr,
+			"No devices available.%s\n",
+			has_eaccess ? " Please re-run as root." : "");
 		return NULL;
 	}
 
