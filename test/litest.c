@@ -4058,7 +4058,7 @@ litest_assert_touch_cancel(struct libinput *li)
 void
 litest_timeout_tap(void)
 {
-	msleep(200);
+	msleep(300);
 }
 
 void

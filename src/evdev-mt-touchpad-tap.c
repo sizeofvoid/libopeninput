@@ -30,7 +30,9 @@
 #include "evdev-mt-touchpad.h"
 
 #define DEFAULT_TAP_TIMEOUT_PERIOD ms2us(180)
-#define DEFAULT_DRAG_TIMEOUT_PERIOD ms2us(300)
+#define DEFAULT_DRAG_TIMEOUT_PERIOD_BASE ms2us(160)
+#define DEFAULT_DRAG_TIMEOUT_PERIOD_PERFINGER ms2us(20)
+#define DEFAULT_DRAGLOCK_TIMEOUT_PERIOD ms2us(300)
 #define DEFAULT_TAP_MOVE_THRESHOLD 1.3 /* mm */
 
 enum tap_event {
@@ -163,9 +165,20 @@ tp_tap_set_timer(struct tp_dispatch *tp, uint64_t time)
 }
 
 static void
-tp_tap_set_drag_timer(struct tp_dispatch *tp, uint64_t time)
+tp_tap_set_drag_timer(struct tp_dispatch *tp, uint64_t time,
+		      int nfingers_tapped)
 {
-	libinput_timer_set(&tp->tap.timer, time + DEFAULT_DRAG_TIMEOUT_PERIOD);
+	libinput_timer_set(&tp->tap.timer,
+			   time + DEFAULT_DRAG_TIMEOUT_PERIOD_BASE +
+			   (nfingers_tapped *
+			    DEFAULT_DRAG_TIMEOUT_PERIOD_PERFINGER));
+}
+
+static void
+tp_tap_set_draglock_timer(struct tp_dispatch *tp, uint64_t time)
+{
+	libinput_timer_set(&tp->tap.timer,
+			   time + DEFAULT_DRAGLOCK_TIMEOUT_PERIOD);
 }
 
 static void
@@ -234,7 +247,7 @@ tp_tap_touch_handle_event(struct tp_dispatch *tp,
 		if (tp->tap.drag_enabled) {
 			tp->tap.state = TAP_STATE_1FGTAP_TAPPED;
 			tp->tap.saved_release_time = time;
-			tp_tap_set_timer(tp, time);
+			tp_tap_set_drag_timer(tp, time, 1);
 		} else {
 			tp_tap_notify(tp,
 				      time,
@@ -443,7 +456,7 @@ tp_tap_touch2_release_handle_event(struct tp_dispatch *tp,
 			      LIBINPUT_BUTTON_STATE_PRESSED);
 		if (tp->tap.drag_enabled) {
 			tp->tap.state = TAP_STATE_2FGTAP_TAPPED;
-			tp_tap_set_timer(tp, time);
+			tp_tap_set_drag_timer(tp, time, 2);
 		} else {
 			tp_tap_notify(tp,
 				      tp->tap.saved_release_time,
@@ -475,6 +488,9 @@ tp_tap_touch2_release_handle_event(struct tp_dispatch *tp,
 			      1,
 			      LIBINPUT_BUTTON_STATE_PRESSED);
 		if (tp->tap.drag_enabled) {
+			/* For a single-finger tap the timer delay is the same
+			 * as for the release of the finger that became a palm,
+			 * no reset necessary */
 			tp->tap.state = TAP_STATE_1FGTAP_TAPPED;
 		} else {
 			tp_tap_notify(tp,
@@ -651,7 +667,7 @@ tp_tap_touch3_release2_handle_event(struct tp_dispatch *tp,
 			      LIBINPUT_BUTTON_STATE_PRESSED);
 		if (tp->tap.drag_enabled) {
 			tp->tap.state = TAP_STATE_3FGTAP_TAPPED;
-			tp_tap_set_timer(tp, time);
+			tp_tap_set_drag_timer(tp, time, 3);
 		} else {
 			tp_tap_notify(tp,
 				      tp->tap.saved_release_time,
@@ -701,6 +717,12 @@ tp_tap_touch3_release2_handle_event(struct tp_dispatch *tp,
 			      2,
 			      LIBINPUT_BUTTON_STATE_PRESSED);
 		if (tp->tap.drag_enabled) {
+			/* Resetting the timer to the appropriate delay
+			 * for a two-finger tap would be ideal, but the
+			 * timestamp of the last real finger release is lost,
+			 * so the in-progress similar delay for release
+			 * of the finger which became a palm instead
+			 * will have to do */
 			tp->tap.state = TAP_STATE_2FGTAP_TAPPED;
 		} else {
 			tp_tap_notify(tp,
@@ -942,7 +964,7 @@ tp_tap_dragging_handle_event(struct tp_dispatch *tp,
 			};
 			assert(nfingers_tapped >= 1 && nfingers_tapped <= 3);
 			tp->tap.state = dest[nfingers_tapped - 1];
-			tp_tap_set_drag_timer(tp, time);
+			tp_tap_set_draglock_timer(tp, time);
 		} else {
 			tp_tap_notify(tp,
 				      time,
