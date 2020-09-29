@@ -45,7 +45,7 @@ doxyfile = configure_file(input : 'libinput.doxygen.in',
 
 custom_target('doxygen',
 	      input : [ doxyfiles, doxyfile, mainpage ] + src_doxygen,
-	      output : [ '.' ],
+	      output : [ 'html' ],
 	      command : [ doxygen, doxyfile ],
 	      install : false,
 	      depends: [ mainpage ],
