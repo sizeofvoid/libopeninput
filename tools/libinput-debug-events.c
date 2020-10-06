@@ -824,7 +824,7 @@ handle_and_print_events(struct libinput *li)
 	int rc = -1;
 	struct libinput_event *ev;
 
-	libinput_dispatch(li);
+	tools_dispatch(li);
 	while ((ev = libinput_get_event(li))) {
 		print_event_header(ev);
 

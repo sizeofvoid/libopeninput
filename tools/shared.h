@@ -132,4 +132,6 @@ tools_list_device_quirks(struct quirks_context *ctx,
 			 void (*callback)(void *userdata, const char *str),
 			 void *userdata);
 
+void
+tools_dispatch(struct libinput *libinput);
 #endif

@@ -43,6 +43,15 @@
 #include "util-macros.h"
 #include "util-strings.h"
 
+static uint32_t dispatch_counter = 0;
+
+void
+tools_dispatch(struct libinput *libinput)
+{
+	dispatch_counter++;
+	libinput_dispatch(libinput);
+}
+
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void
 log_handler(struct libinput *li,
@@ -51,6 +60,7 @@ log_handler(struct libinput *li,
 	    va_list args)
 {
 	static int is_tty = -1;
+	static uint32_t last_dispatch_no = 0;
 
 	if (is_tty == -1)
 		is_tty = isatty(STDOUT_FILENO);
@@ -62,6 +72,14 @@ log_handler(struct libinput *li,
 			printf(ANSI_HIGHLIGHT);
 	}
 
+	if (priority < LIBINPUT_LOG_PRIORITY_INFO) {
+		if (dispatch_counter != last_dispatch_no) {
+			last_dispatch_no = dispatch_counter;
+			printf("%4u: ", dispatch_counter);
+		} else {
+			printf(" %4s ", "...");
+		}
+	}
 	vprintf(format, args);
 
 	if (is_tty && priority >= LIBINPUT_LOG_PRIORITY_INFO)
