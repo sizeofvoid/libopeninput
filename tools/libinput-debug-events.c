@@ -917,7 +917,6 @@ handle_and_print_events(struct libinput *li)
 		}
 
 		libinput_event_destroy(ev);
-		libinput_dispatch(li);
 		rc = 0;
 	}
 	return rc;
