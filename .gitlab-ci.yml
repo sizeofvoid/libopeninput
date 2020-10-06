@@ -760,6 +760,8 @@ coverity:
     # coverity doesn't work on Fedora 32
     FDO_DISTRIBUTION_VERSION: '31'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+    # so git-describe works, or should work
+    GIT_DEPTH: 200
   only:
     variables:
       - $COVERITY_SCAN_TOKEN
@@ -777,6 +779,12 @@ coverity:
         --form token=$COVERITY_SCAN_TOKEN --form email=$GITLAB_USER_EMAIL
         --form file=@cov-int.tar.gz --form version="$(git describe --tags)"
         --form description="$(git describe --tags) / $CI_COMMIT_TITLE / $CI_COMMIT_REF_NAME:$CI_PIPELINE_ID"
+  artifacts:
+    name: "coverity-submit-data"
+    when: always
+    expire_in: 1 week
+    paths:
+      - cov-int.tar.gz
   needs:
     - "fedora:31@container-prep"
 
