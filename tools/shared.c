@@ -61,15 +61,24 @@ log_handler(struct libinput *li,
 {
 	static int is_tty = -1;
 	static uint32_t last_dispatch_no = 0;
+	static bool color_toggle = false;
 
 	if (is_tty == -1)
 		is_tty = isatty(STDOUT_FILENO);
 
 	if (is_tty) {
-		if (priority >= LIBINPUT_LOG_PRIORITY_ERROR)
+		if (priority >= LIBINPUT_LOG_PRIORITY_ERROR) {
 			printf(ANSI_RED);
-		else if (priority >= LIBINPUT_LOG_PRIORITY_INFO)
+		} else if (priority >= LIBINPUT_LOG_PRIORITY_INFO) {
 			printf(ANSI_HIGHLIGHT);
+		} else if (priority == LIBINPUT_LOG_PRIORITY_DEBUG) {
+			if (dispatch_counter != last_dispatch_no)
+				color_toggle = !color_toggle;
+			uint8_t r = 0,
+				g = 135,
+				b = 95 + (color_toggle ? 80 :0);
+			printf("\x1B[38;2;%u;%u;%um", r, g, b);
+		}
 	}
 
 	if (priority < LIBINPUT_LOG_PRIORITY_INFO) {
@@ -82,7 +91,7 @@ log_handler(struct libinput *li,
 	}
 	vprintf(format, args);
 
-	if (is_tty && priority >= LIBINPUT_LOG_PRIORITY_INFO)
+	if (is_tty)
 		printf(ANSI_NORMAL);
 }
 
