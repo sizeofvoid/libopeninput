@@ -194,7 +194,7 @@ get_key_type(uint16_t code)
 		return KEY_TYPE_KEY;
 	if (code >= BTN_DPAD_UP && code <= BTN_DPAD_RIGHT)
 		return KEY_TYPE_BUTTON;
-	if (code >= KEY_ALS_TOGGLE && code <= KEY_ONSCREEN_KEYBOARD)
+	if (code >= KEY_ALS_TOGGLE && code < BTN_TRIGGER_HAPPY)
 		return KEY_TYPE_KEY;
 	if (code >= BTN_TRIGGER_HAPPY && code <= BTN_TRIGGER_HAPPY40)
 		return KEY_TYPE_BUTTON;
