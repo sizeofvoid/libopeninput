@@ -64,6 +64,7 @@ struct tablet_dispatch {
 		unsigned int index;
 		unsigned int count;
 		struct tablet_axes samples[TABLET_HISTORY_LENGTH];
+		size_t size;
 	} history;
 
 	unsigned char axis_caps[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];

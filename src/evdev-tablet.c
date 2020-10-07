@@ -89,7 +89,7 @@ tablet_force_button_presses(struct tablet_dispatch *tablet)
 static inline size_t
 tablet_history_size(const struct tablet_dispatch *tablet)
 {
-	return ARRAY_LENGTH(tablet->history.samples);
+	return tablet->history.size;
 }
 
 static inline void
@@ -2344,6 +2344,55 @@ tablet_init_left_handed(struct evdev_device *device)
 				       tablet_change_to_left_handed);
 }
 
+static void
+tablet_init_smoothing(struct evdev_device *device,
+		      struct tablet_dispatch *tablet)
+{
+	size_t history_size = ARRAY_LENGTH(tablet->history.samples);
+#if HAVE_LIBWACOM
+	const char *devnode;
+	WacomDeviceDatabase *db;
+	WacomDevice *libwacom_device = NULL;
+	const int *stylus_ids;
+	int nstyli;
+	bool is_aes = false;
+	int vid = evdev_device_get_id_vendor(device);
+
+	/* Wacom-specific check for whether smoothing is required:
+	 * libwacom keeps all the AES pens in a single group, so any device
+	 * that supports AES pens will list all AES pens. 0x11 is one of the
+	 * lenovo pens so we use that as the flag of whether the tablet
+	 * is an AES tablet
+	 */
+	if (vid != VENDOR_ID_WACOM)
+		goto out;
+
+	db = tablet_libinput_context(tablet)->libwacom.db;
+	if (!db)
+		goto out;
+
+	devnode = udev_device_get_devnode(device->udev_device);
+	libwacom_device = libwacom_new_from_path(db, devnode, WFALLBACK_NONE, NULL);
+	if (!libwacom_device)
+		goto out;
+
+	stylus_ids = libwacom_get_supported_styli(libwacom_device, &nstyli);
+	for (int i = 0; i < nstyli; i++) {
+		if (stylus_ids[i] == 0x11) {
+			is_aes = true;
+			break;
+		}
+	}
+
+	if (is_aes)
+		history_size = 1;
+
+	libwacom_destroy(libwacom_device);
+out:
+#endif
+	tablet->history.size = history_size;
+}
+
 static bool
 tablet_reject_device(struct evdev_device *device)
 {
@@ -2408,6 +2457,7 @@ tablet_init(struct tablet_dispatch *tablet,
 
 	evdev_init_sendevents(device, &tablet->base);
 	tablet_init_left_handed(device);
+	tablet_init_smoothing(device, tablet);
 
 	for (axis = LIBINPUT_TABLET_TOOL_AXIS_X;
 	     axis <= LIBINPUT_TABLET_TOOL_AXIS_MAX;

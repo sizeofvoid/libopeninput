@@ -5988,6 +5988,86 @@ START_TEST(huion_static_btn_tool_pen_disable_quirk_on_prox_out)
 }
 END_TEST
 
+START_TEST(tablet_smoothing)
+{
+#if HAVE_LIBWACOM
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	double x, y;
+	struct point {
+		double x, y;
+	} coordinates[100];
+	size_t npoints = 0;
+	size_t idx = 0;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	libinput_dispatch(li);
+	litest_drain_events(li);
+
+	/* Move in a straight line, collect the resulting points */
+	for (x = 11, y = 11; x < 50; x++, y++) {
+		struct libinput_event *event;
+		struct libinput_event_tablet_tool *tev;
+		struct point *p = &coordinates[npoints++];
+
+		litest_assert(npoints <= ARRAY_LENGTH(coordinates));
+
+		litest_tablet_motion(dev, x, y, axes);
+		libinput_dispatch(li);
+
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event,
+					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		p->x = libinput_event_tablet_tool_get_x(tev);
+		p->y = libinput_event_tablet_tool_get_y(tev);
+
+		libinput_event_destroy(event);
+	}
+
+	litest_tablet_proximity_out(dev);
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	libinput_dispatch(li);
+	litest_drain_events(li);
+
+	/* Move in a wobbly line, collect every second point */
+	for (x = 11, y = 11; x < 50; x++, y++) {
+		struct libinput_event *event;
+		struct libinput_event_tablet_tool *tev;
+		double ex, ey;
+		struct point *p = &coordinates[idx++];
+
+		litest_assert(idx <= npoints);
+
+		/* point off position */
+		litest_tablet_motion(dev, x - 2, y + 1, axes);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		libinput_event_destroy(event);
+
+		/* same position as before */
+		litest_tablet_motion(dev, x, y, axes);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event,
+					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		ex = libinput_event_tablet_tool_get_x(tev);
+		ey = libinput_event_tablet_tool_get_y(tev);
+
+		ck_assert_double_eq(ex, p->x);
+		ck_assert_double_eq(ey, p->y);
+	}
+#endif
+}
+END_TEST
+
 TEST_COLLECTION(tablet)
 {
 	struct range with_timeout = { 0, 2 };
@@ -6112,4 +6192,6 @@ TEST_COLLECTION(tablet)
 	litest_add_for_device("tablet:quirks", huion_static_btn_tool_pen, LITEST_HUION_TABLET);
 	litest_add_for_device("tablet:quirks", huion_static_btn_tool_pen_no_timeout_during_usage, LITEST_HUION_TABLET);
 	litest_add_ranged_for_device("tablet:quirks", huion_static_btn_tool_pen_disable_quirk_on_prox_out, LITEST_HUION_TABLET, &with_timeout);
+
+	litest_add_for_device("tablet:smoothing", tablet_smoothing, LITEST_WACOM_HID4800_PEN);
 }
