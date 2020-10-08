@@ -635,18 +635,41 @@ START_TEST(tip_up_motion_one_axis)
 	};
 	unsigned int axis = _i; /* ranged test */
 	double x, y, last_x, last_y;
+	double start_x = 20,
+	       start_y = 20;
 
-	litest_tablet_proximity_in(dev, 10, 10, axes);
-	litest_drain_events(li);
+	switch (axis) {
+	case ABS_X:
+		start_x = 15;
+		start_y = 20;
+		break;
+	case ABS_Y:
+		start_x = 20;
+		start_y = 15;
+		break;
+	default:
+		abort();
+	}
 
-	/* enough events to get the history going */
+	/* generate enough events to fill the history and move alonge the
+	 * current axis to avoid axis smoothing interference */
+	litest_tablet_proximity_in(dev, start_x, start_y, axes);
 	litest_axis_set_value(axes, ABS_PRESSURE, 20);
-	for (int i = 1; i < 10; i++) {
+	for (int i = 0; i < 5; i++) {
 		litest_push_event_frame(dev);
-		litest_tablet_motion(dev, 10 + i, 10 + i, axes);
+		litest_tablet_motion(dev, start_x, start_y, axes);
 		litest_event(dev, EV_KEY, BTN_TOUCH, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 		litest_pop_event_frame(dev);
+
+		switch (axis) {
+		case ABS_X:
+			start_x++;
+			break;
+		case ABS_Y:
+			start_y++;
+			break;
+		}
 
 	}
 	litest_drain_events(li);
@@ -670,8 +693,6 @@ START_TEST(tip_up_motion_one_axis)
 	case ABS_Y:
 		litest_tablet_motion(dev, 20, 40, axes);
 		break;
-	default:
-		abort();
 	}
 	litest_event(dev, EV_KEY, BTN_TOUCH, 0);
 	litest_pop_event_frame(dev);
@@ -682,12 +703,24 @@ START_TEST(tip_up_motion_one_axis)
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
 	ck_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
-	ck_assert(libinput_event_tablet_tool_x_has_changed(tablet_event));
-	ck_assert(libinput_event_tablet_tool_y_has_changed(tablet_event));
 	x = libinput_event_tablet_tool_get_x(tablet_event);
 	y = libinput_event_tablet_tool_get_y(tablet_event);
-	ck_assert_double_ne(last_x, x);
-	ck_assert_double_ne(last_y, y);
+
+	switch(axis) {
+	case ABS_X:
+		ck_assert(libinput_event_tablet_tool_x_has_changed(tablet_event));
+		ck_assert(!libinput_event_tablet_tool_y_has_changed(tablet_event));
+		ck_assert_double_ne(last_x, x);
+		ck_assert_double_eq(last_y, y);
+		break;
+	case ABS_Y:
+		ck_assert(!libinput_event_tablet_tool_x_has_changed(tablet_event));
+		ck_assert(libinput_event_tablet_tool_y_has_changed(tablet_event));
+		ck_assert_double_eq(last_x, x);
+		ck_assert_double_ne(last_y, y);
+		break;
+	}
+
 	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
