@@ -76,37 +76,6 @@ ASSERT_INT_SIZE(enum libinput_config_middle_emulation_state);
 ASSERT_INT_SIZE(enum libinput_config_scroll_method);
 ASSERT_INT_SIZE(enum libinput_config_dwt_state);
 
-static inline bool
-check_event_type(struct libinput *libinput,
-		 const char *function_name,
-		 unsigned int type_in,
-		 ...)
-{
-	bool rc = false;
-	va_list args;
-	unsigned int type_permitted;
-
-	va_start(args, type_in);
-	type_permitted = va_arg(args, unsigned int);
-
-	while (type_permitted != (unsigned int)-1) {
-		if (type_permitted == type_in) {
-			rc = true;
-			break;
-		}
-		type_permitted = va_arg(args, unsigned int);
-	}
-
-	va_end(args);
-
-	if (!rc)
-		log_bug_client(libinput,
-			       "Invalid event type %d passed to %s()\n",
-			       type_in, function_name);
-
-	return rc;
-}
-
 static inline const char *
 event_type_to_str(enum libinput_event_type type)
 {
@@ -143,6 +112,39 @@ event_type_to_str(enum libinput_event_type type)
 	}
 
 	return NULL;
+}
+
+static inline bool
+check_event_type(struct libinput *libinput,
+		 const char *function_name,
+		 unsigned int type_in,
+		 ...)
+{
+	bool rc = false;
+	va_list args;
+	unsigned int type_permitted;
+
+	va_start(args, type_in);
+	type_permitted = va_arg(args, unsigned int);
+
+	while (type_permitted != (unsigned int)-1) {
+		if (type_permitted == type_in) {
+			rc = true;
+			break;
+		}
+		type_permitted = va_arg(args, unsigned int);
+	}
+
+	va_end(args);
+
+	if (!rc) {
+		const char *name = event_type_to_str(type_in);
+		log_bug_client(libinput,
+			       "Invalid event type %s (%d) passed to %s()\n",
+			       name, type_in, function_name);
+	}
+
+	return rc;
 }
 
 struct libinput_source {
