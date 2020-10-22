@@ -287,28 +287,28 @@ details on the hwdb and how to modify it locally.
 .. _faq_timer_offset:
 
 ------------------------------------------------------------------------------
-What causes the "timer offset negative" warning?
+What causes the "your system is too slow" warning?
 ------------------------------------------------------------------------------
 
 libinput relies on the caller to call **libinput_dispatch()** whenever data is
-available on the epoll-fd. Doing so will process the state of all devices
-and can trigger some timers to be set (e.g. palm detection, tap-to-click,
-disable-while-typing, etc.). Internally, libinput's time offsets are always
-based on the event time of the triggering event.
+available. **libinput_dispatch()** will process the state of all devices,
+including some time-sensitive features (e.g. palm detection, tap-to-click,
+disable-while-typing, etc.).
 
-For example, a touch event with time T may trigger a timer for the time T +
-180ms. When setting a timer, libinput checks the wall clock time to ensure
-that this time T + offset is still in the future. If not, the warning is
-logged.
+If the time between the event and the call to **libinput_dispatch()**
+is excessive, those features may not work correctly. For example, a delay in
+touch event processing may cause wrong or missing tap-to-click events or
+a palm may not be detected correctly.
 
 When this warning appears, it simply means that too much time has passed
-between the event occurring (and the epoll-fd triggering) and the current
-time. In almost all cases this is an indication of the caller being
-overloaded and not handling events as speedily as required.
+between the event occurring and the current time. In almost all cases this
+is an indication of the caller being overloaded and not handling events as
+speedily as required.
 
 The warning has no immediate effect on libinput's behavior but some of the
-functionality that relies on the timer may be impeded (e.g. palms are not
-detected as they should be).
+functionality that relies on the timer may be impeded. This is not a bug in
+libinput. libinput does not control how quickly **libinput_dispatch()** is
+called.
 
 .. _faq_wayland:
 
