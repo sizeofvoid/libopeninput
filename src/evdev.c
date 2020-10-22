@@ -2225,8 +2225,8 @@ evdev_device_create(struct libinput_seat *seat,
 
 	/* at most 5 SYN_DROPPED log-messages per 30s */
 	ratelimit_init(&device->syn_drop_limit, s2us(30), 5);
-	/* at most 5 "delayed processing" log messages per minute */
-	ratelimit_init(&device->delay_warning_limit, s2us(60), 5);
+	/* at most 5 "delayed processing" log messages per hour */
+	ratelimit_init(&device->delay_warning_limit, s2us(60 * 60), 5);
 	/* at most 5 log-messages per 5s */
 	ratelimit_init(&device->nonpointer_rel_limit, s2us(5), 5);
 
