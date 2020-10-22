@@ -2087,6 +2087,32 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 		libevdev_disable_event_code(device->evdev, EV_MSC, MSC_TIMESTAMP);
 	}
 
+	if (quirks_get_tuples(q, QUIRK_ATTR_EVENT_CODE_ENABLE, &t)) {
+		for (size_t i = 0; i < t->ntuples; i++) {
+			const struct input_absinfo absinfo = {
+				.minimum = 0,
+				.maximum = 1,
+			};
+
+			int type = t->tuples[i].first;
+			int code = t->tuples[i].second;
+
+			if (code == EVENT_CODE_UNDEFINED)
+				libevdev_enable_event_type(device->evdev, type);
+			else
+				libevdev_enable_event_code(device->evdev,
+							    type,
+							    code,
+							    type == EV_ABS ?  &absinfo : NULL);
+			evdev_log_debug(device,
+					"quirks: enabling %s %s (%#x %#x)\n",
+					libevdev_event_type_get_name(type),
+					libevdev_event_code_get_name(type, code),
+					type,
+					code);
+		}
+	}
+
 	if (quirks_get_tuples(q, QUIRK_ATTR_EVENT_CODE_DISABLE, &t)) {
 		for (size_t i = 0; i < t->ntuples; i++) {
 			int type = t->tuples[i].first;

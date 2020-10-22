@@ -1419,6 +1419,81 @@ START_TEST(device_quirks_logitech_marble_mouse)
 }
 END_TEST
 
+char *debug_messages[64] = { NULL };
+
+static void
+debug_log_handler(struct libinput *libinput,
+		  enum libinput_log_priority priority,
+		  const char *format,
+		  va_list args)
+{
+	char *message;
+	int n;
+
+	if (priority != LIBINPUT_LOG_PRIORITY_DEBUG)
+		return;
+
+	n = xvasprintf(&message, format, args);
+	litest_assert_int_gt(n, 0);
+
+	for (size_t idx = 0; idx < ARRAY_LENGTH(debug_messages); idx++) {
+		if (debug_messages[idx] == NULL) {
+			debug_messages[idx] = message;
+			return;
+		}
+	}
+
+	litest_abort_msg("Out of space for debug messages");
+}
+
+START_TEST(device_quirks)
+{
+	struct libinput *li;
+	struct litest_device *dev;
+	struct libinput_device *device;
+	char **message;
+	bool disable_key_f1 = false,
+	     enable_btn_left = false;
+
+	li = litest_create_context();
+	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
+	libinput_log_set_handler(li, debug_log_handler);
+	dev = litest_add_device(li, LITEST_KEYBOARD_QUIRKED);
+	device = dev->libinput_device;
+
+	ck_assert(libinput_device_pointer_has_button(device,
+						     BTN_LEFT));
+	ck_assert(libinput_device_pointer_has_button(dev->libinput_device,
+						     BTN_RIGHT));
+	ck_assert(!libinput_device_keyboard_has_key(dev->libinput_device,
+						    KEY_F1));
+	ck_assert(!libinput_device_keyboard_has_key(dev->libinput_device,
+						    KEY_F2));
+	ck_assert(!libinput_device_keyboard_has_key(dev->libinput_device,
+						    KEY_F3));
+
+	/* Scrape the debug messages for confirmation that our quirks are
+	 * triggered, the above checks cannot work non-key codes */
+	message = debug_messages;
+	while (*message) {
+		if (strstr(*message, "disabling EV_KEY KEY_F1"))
+			disable_key_f1 = true;
+		if (strstr(*message, "enabling EV_KEY BTN_LEFT"))
+			enable_btn_left = true;
+
+		message++;
+	}
+
+	ck_assert(disable_key_f1);
+	ck_assert(enable_btn_left);
+
+	litest_disable_log_handler(li);
+
+	litest_delete_device(dev);
+	litest_destroy_context(li);
+}
+END_TEST
+
 START_TEST(device_capability_at_least_one)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1670,6 +1745,7 @@ TEST_COLLECTION(device)
 	litest_add_for_device("device:quirks", device_quirks_cyborg_rat_mode_button, LITEST_CYBORG_RAT);
 	litest_add_for_device("device:quirks", device_quirks_apple_magicmouse, LITEST_MAGICMOUSE);
 	litest_add_for_device("device:quirks", device_quirks_logitech_marble_mouse, LITEST_LOGITECH_TRACKBALL);
+	litest_add_no_device("device:quirks", device_quirks);
 
 	litest_add("device:capability", device_capability_at_least_one, LITEST_ANY, LITEST_ANY);
 	litest_add("device:capability", device_capability_check_invalid, LITEST_ANY, LITEST_ANY);

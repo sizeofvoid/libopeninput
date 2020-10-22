@@ -273,6 +273,7 @@ quirk_get_name(enum quirk q)
 	case QUIRK_ATTR_THUMB_SIZE_THRESHOLD:		return "AttrThumbSizeThreshold";
 	case QUIRK_ATTR_MSC_TIMESTAMP:			return "AttrMscTimestamp";
 	case QUIRK_ATTR_EVENT_CODE_DISABLE:		return "AttrEventCodeDisable";
+	case QUIRK_ATTR_EVENT_CODE_ENABLE:		return "AttrEventCodeEnable";
 	default:
 		abort();
 	}
@@ -737,10 +738,15 @@ parse_attr(struct quirks_context *ctx,
 		p->type = PT_STRING;
 		p->value.s = safe_strdup(value);
 		rc = true;
-	} else if (streq(key, quirk_get_name(QUIRK_ATTR_EVENT_CODE_DISABLE))) {
+	} else if (streq(key, quirk_get_name(QUIRK_ATTR_EVENT_CODE_DISABLE)) ||
+		   streq(key, quirk_get_name(QUIRK_ATTR_EVENT_CODE_ENABLE))) {
 		struct input_event events[32];
 		size_t nevents = ARRAY_LENGTH(events);
-		p->id = QUIRK_ATTR_EVENT_CODE_DISABLE;
+		if (streq(key, quirk_get_name(QUIRK_ATTR_EVENT_CODE_DISABLE)))
+		    p->id = QUIRK_ATTR_EVENT_CODE_DISABLE;
+		else
+		    p->id = QUIRK_ATTR_EVENT_CODE_ENABLE;
+
 		if (!parse_evcode_property(value, events, &nevents) ||
 		    nevents == 0)
 			goto out;

@@ -111,6 +111,18 @@ xasprintf(char **strp, const char *fmt, ...)
 	return rc;
 }
 
+__attribute__ ((format (printf, 2, 0)))
+static inline int
+xvasprintf(char **strp, const char *fmt, va_list args)
+{
+	int rc = 0;
+	rc = vasprintf(strp, fmt, args);
+	if ((rc == -1) && strp)
+		*strp = NULL;
+
+	return rc;
+}
+
 static inline bool
 safe_atoi_base(const char *str, int *val, int base)
 {
