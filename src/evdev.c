@@ -2058,21 +2058,6 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	size_t nprops = 0;
 	char *prop;
 
-	/* Touchpad is a clickpad but INPUT_PROP_BUTTONPAD is not set, see
-	 * fdo bug 97147. Remove when RMI4 is commonplace */
-	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_HP_STREAM11_TOUCHPAD))
-		libevdev_enable_property(device->evdev,
-					 INPUT_PROP_BUTTONPAD);
-
-	/* Touchpad is a clickpad but INPUT_PROP_BUTTONPAD is not set, see
-	 * https://gitlab.freedesktop.org/libinput/libinput/issues/177 and
-	 * https://gitlab.freedesktop.org/libinput/libinput/issues/234 */
-	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_T480S_TOUCHPAD) ||
-	    evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_T490S_TOUCHPAD) ||
-	    evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_L380_TOUCHPAD))
-		libevdev_enable_property(device->evdev,
-					 INPUT_PROP_BUTTONPAD);
-
 	/* Touchpad claims to have 4 slots but only ever sends 2
 	 * https://bugs.freedesktop.org/show_bug.cgi?id=98100 */
 	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_HP_ZBOOK_STUDIO_G3))
