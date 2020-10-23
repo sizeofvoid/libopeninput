@@ -2087,7 +2087,7 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 		libevdev_disable_event_code(device->evdev, EV_MSC, MSC_TIMESTAMP);
 	}
 
-	if (q && quirks_get_tuples(q, QUIRK_ATTR_EVENT_CODE_DISABLE, &t)) {
+	if (quirks_get_tuples(q, QUIRK_ATTR_EVENT_CODE_DISABLE, &t)) {
 		int type, code;
 
 		for (size_t i = 0; i < t->ntuples; i++) {
@@ -2111,7 +2111,6 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	}
 
 	quirks_unref(q);
-
 }
 
 static void
