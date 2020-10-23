@@ -2088,11 +2088,9 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	}
 
 	if (quirks_get_tuples(q, QUIRK_ATTR_EVENT_CODE_DISABLE, &t)) {
-		int type, code;
-
 		for (size_t i = 0; i < t->ntuples; i++) {
-			type = t->tuples[i].first;
-			code = t->tuples[i].second;
+			int type = t->tuples[i].first;
+			int code = t->tuples[i].second;
 
 			if (code == EVENT_CODE_UNDEFINED)
 				libevdev_disable_event_type(device->evdev,
