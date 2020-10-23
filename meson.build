@@ -139,6 +139,9 @@ pkgconfig = import('pkgconfig')
 dep_udev = dependency('libudev')
 dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
 dep_libevdev = dependency('libevdev')
+config_h.set10('HAVE_LIBEVDEV_DISABLE_PROPERTY',
+		dep_libevdev.version().version_compare('>= 1.9.902'))
+
 dep_lm = cc.find_library('m', required : false)
 dep_rt = cc.find_library('rt', required : false)
 

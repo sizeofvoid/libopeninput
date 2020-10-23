@@ -1454,6 +1454,10 @@ START_TEST(device_quirks)
 	char **message;
 	bool disable_key_f1 = false,
 	     enable_btn_left = false;
+#if HAVE_LIBEVDEV_DISABLE_PROPERTY
+	bool disable_pointingstick = false,
+	     enable_buttonpad = false;
+#endif
 
 	li = litest_create_context();
 	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
@@ -1480,12 +1484,22 @@ START_TEST(device_quirks)
 			disable_key_f1 = true;
 		if (strstr(*message, "enabling EV_KEY BTN_LEFT"))
 			enable_btn_left = true;
-
+#if HAVE_LIBEVDEV_DISABLE_PROPERTY
+		if (strstr(*message, "enabling INPUT_PROP_BUTTONPAD"))
+			enable_buttonpad = true;
+		if (strstr(*message, "disabling INPUT_PROP_POINTING_STICK"))
+			disable_pointingstick = true;
+#endif
+		free(*message);
 		message++;
 	}
 
 	ck_assert(disable_key_f1);
 	ck_assert(enable_btn_left);
+#if HAVE_LIBEVDEV_DISABLE_PROPERTY
+	ck_assert(enable_buttonpad);
+	ck_assert(disable_pointingstick);
+#endif
 
 	litest_disable_log_handler(li);
 

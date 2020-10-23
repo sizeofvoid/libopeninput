@@ -191,6 +191,10 @@ static int events[] = {
 	EV_LED, LED_NUML,
 	EV_LED, LED_CAPSL,
 	EV_LED, LED_SCROLLL,
+
+	/* gets disabled */
+	INPUT_PROP_MAX, INPUT_PROP_POINTING_STICK,
+
 	-1, -1,
 };
 
@@ -201,7 +205,18 @@ static const char quirk_file[] =
 "\n"
 "[litest Quirked keyboard disable F1-F3]\n"
 "MatchName=litest Quirked Keyboard\n"
-"AttrEventCodeDisable=KEY_F1;EV_KEY:0x3c;KEY_F3\n";
+"AttrEventCodeDisable=KEY_F1;EV_KEY:0x3c;KEY_F3\n"
+#if HAVE_LIBEVDEV_DISABLE_PROPERTY
+"\n"
+"[litest Quirked keyboard enable buttonpad]\n"
+"MatchName=litest Quirked Keyboard\n"
+"AttrInputPropEnable=INPUT_PROP_BUTTONPAD\n"
+"\n"
+"[litest Quirked keyboard disable pointingstick]\n"
+"MatchName=litest Quirked Keyboard\n"
+"AttrInputPropDisable=INPUT_PROP_POINTING_STICK\n"
+#endif
+;
 
 TEST_DEVICE("keyboard-quirked",
 	.type = LITEST_KEYBOARD_QUIRKED,

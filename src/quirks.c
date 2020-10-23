@@ -57,6 +57,14 @@ enum property_type {
 	PT_RANGE,
 	PT_DOUBLE,
 	PT_TUPLES,
+	PT_UINT_ARRAY,
+};
+
+struct quirk_array {
+	union {
+		uint32_t u[32];
+	} data;
+	size_t nelements;
 };
 
 /**
@@ -79,6 +87,7 @@ struct property {
 		struct quirk_dimensions dim;
 		struct quirk_range range;
 		struct quirk_tuples tuples;
+		struct quirk_array array;
 	} value;
 };
 
@@ -274,6 +283,8 @@ quirk_get_name(enum quirk q)
 	case QUIRK_ATTR_MSC_TIMESTAMP:			return "AttrMscTimestamp";
 	case QUIRK_ATTR_EVENT_CODE_DISABLE:		return "AttrEventCodeDisable";
 	case QUIRK_ATTR_EVENT_CODE_ENABLE:		return "AttrEventCodeEnable";
+	case QUIRK_ATTR_INPUT_PROP_DISABLE:		return "AttrInputPropDisable";
+	case QUIRK_ATTR_INPUT_PROP_ENABLE:		return "AttrInputPropEnable";
 	default:
 		abort();
 	}
@@ -757,6 +768,24 @@ parse_attr(struct quirks_context *ctx,
 		}
 		p->value.tuples.ntuples = nevents;
 		p->type = PT_TUPLES;
+
+		rc = true;
+	} else if (streq(key, quirk_get_name(QUIRK_ATTR_INPUT_PROP_DISABLE)) ||
+		   streq(key, quirk_get_name(QUIRK_ATTR_INPUT_PROP_ENABLE))) {
+		unsigned int props[INPUT_PROP_CNT];
+		size_t nprops = ARRAY_LENGTH(props);
+		if (streq(key, quirk_get_name(QUIRK_ATTR_INPUT_PROP_DISABLE)))
+			p->id = QUIRK_ATTR_INPUT_PROP_DISABLE;
+		else
+			p->id = QUIRK_ATTR_INPUT_PROP_ENABLE;
+
+		if (!parse_input_prop_property(value, props, &nprops) ||
+		    nprops == 0)
+			goto out;
+
+		memcpy(p->value.array.data.u, props, nprops * sizeof(unsigned int));
+		p->value.array.nelements = nprops;
+		p->type = PT_UINT_ARRAY;
 
 		rc = true;
 	} else {
@@ -1586,6 +1615,28 @@ quirks_get_tuples(struct quirks *q,
 
 	assert(p->type == PT_TUPLES);
 	*tuples = &p->value.tuples;
+
+	return true;
+}
+
+bool
+quirks_get_uint32_array(struct quirks *q,
+			enum quirk which,
+			const uint32_t **array,
+			size_t *nelements)
+{
+	struct property *p;
+
+	if (!q)
+		return false;
+
+	p = quirk_find_prop(q, which);
+	if (!p)
+		return false;
+
+	assert(p->type == PT_UINT_ARRAY);
+	*array = p->value.array.data.u;
+	*nelements = p->value.array.nelements;
 
 	return true;
 }

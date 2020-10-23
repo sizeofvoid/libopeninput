@@ -2054,6 +2054,8 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	struct quirks_context *quirks;
 	struct quirks *q;
 	const struct quirk_tuples *t;
+	const uint32_t *props = NULL;
+	size_t nprops = 0;
 	char *prop;
 
 	/* Touchpad is a clickpad but INPUT_PROP_BUTTONPAD is not set, see
@@ -2132,6 +2134,39 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 					type,
 					code);
 		}
+	}
+
+	if (quirks_get_uint32_array(q,
+				    QUIRK_ATTR_INPUT_PROP_ENABLE,
+				    &props,
+				    &nprops)) {
+		for (size_t idx = 0; idx < nprops; idx++) {
+			unsigned int p = props[idx];
+			libevdev_enable_property(device->evdev, p);
+			evdev_log_debug(device,
+					"quirks: enabling %s (%#x)\n",
+					libevdev_property_get_name(p),
+					p);
+		}
+	}
+
+	if (quirks_get_uint32_array(q,
+					 QUIRK_ATTR_INPUT_PROP_DISABLE,
+					 &props,
+					 &nprops)) {
+#if HAVE_LIBEVDEV_DISABLE_PROPERTY
+		for (size_t idx = 0; idx < nprops; idx++) {
+			unsigned int p = props[idx];
+			libevdev_disable_property(device->evdev, p);
+			evdev_log_debug(device,
+					"quirks: disabling %s (%#x)\n",
+					libevdev_property_get_name(p),
+					p);
+		}
+#else
+		evdev_log_error(device,
+				"quirks: a quirk for this device requires newer libevdev than installed\n");
+#endif
 	}
 
 	quirks_unref(q);
