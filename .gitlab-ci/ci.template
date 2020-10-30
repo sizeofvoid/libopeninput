@@ -8,18 +8,17 @@
 #                                      #
 ########################################
 
-#
 # This is a bit complicated for two reasons:
 # - we really want to run dnf/apt/... only once, updating on the test runner for
 #   each job takes forever. So we create a container image for each distribution
 #   tested, then run the tests on this container image.
 #
-#   Creating a container image is time-consuming, so we only do so for pushes to
-#   libinput directly (not merge requests) and if the current image is 'old'.
+#   This is handled by the ci-templates, ensuring containers are only rebuilt
+#   when the TAG changes.
 #
 # - GitLab only allows one script: set per job but we have a bunch of commands
 #   we need to re-run for each build (meson && ninja && etc). YAML cannot merge
-#   arrays templates so we're screwed.
+#   arrays so we're screwed.
 #
 #   So instead we use a default_build template and override everything with
 #   variables. The only two variables that matter:
@@ -52,7 +51,7 @@ stages:
   - valgrind         # for running the test suite under valgrind in a VM
   - distro           # distribs test
   - deploy           # trigger wayland's website generation
-  - container_clean  # clean up unused container images
+  - container_clean  # clean up unused container images (scheduled jobs only)
 
 variables:
   ###############################################################################
@@ -678,9 +677,11 @@ freebsd:11.2@default-build:
   needs:
     - "freebsd:11.2@container-prep"
 
-#
-# deploy
-#
+#################################################################
+#                                                               #
+#                        deploy stage                           #
+#                                                               #
+#################################################################
 
 build rpm:
   extends:
