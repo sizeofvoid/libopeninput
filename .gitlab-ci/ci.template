@@ -314,7 +314,6 @@ freebsd:11.2@container-prep:
     - .container-clean
   variables:
     GIT_STRATEGY: none
-    {{distro.name.upper()}}_VERSION: '{{version}}'
     CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/{{distro.name}}/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
     FDO_DISTRIBUTION_VERSION: '{{version}}'
     FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_TAG
