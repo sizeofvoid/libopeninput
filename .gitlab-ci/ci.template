@@ -374,27 +374,25 @@ freebsd:11.2@container-clean:
     - echo "Testing $SUITES"
   script:
     # start our vm, no args required
-    - /app/start_vm.sh || (echo "Error - Failed to start the VM." && exit 1)
+    - /app/vmctl start || (echo "Error - Failed to start the VM." && exit 1)
 
     - *check_tainted
 
-    - "scp -P 5555 -r $PWD localhost:"
+    - "scp -r $PWD vm:"
     - echo "CI_JOB_ID=\"$CI_JOB_ID\"" > sshenv
     - echo "CI_JOB_NAME=\"$CI_JOB_NAME\"" >> sshenv
     - echo "MESON_ARGS=\"$MESON_ARGS\"" >> sshenv
     - echo "MESON_BUILDDIR=\"$MESON_BUILDDIR\"" >> sshenv
     - echo "MESON_TEST_ARGS=\"$MESON_TEST_ARGS $SUITES\"" >> sshenv
     - echo "NINJA_ARGS=\"$NINJA_ARGS\"" >> sshenv
-    - "scp -P 5555 sshenv localhost:~/$CI_PROJECT_NAME/.meson_environment"
-    - ssh localhost -p 5555 "cd $CI_PROJECT_NAME ; .gitlab-ci/meson-build.sh" && touch .success || true
+    - "scp sshenv vm:~/$CI_PROJECT_NAME/.meson_environment"
+    - /app/vmctl exec "cd $CI_PROJECT_NAME ; .gitlab-ci/meson-build.sh" && touch .success || true
     # no matter the results of the tests, we want to fetch the logs
-    - scp -P 5555 -r localhost:$CI_PROJECT_NAME/$MESON_BUILDDIR .
+    - scp -r vm:$CI_PROJECT_NAME/$MESON_BUILDDIR .
 
     - *check_tainted
 
-    - ssh localhost -p 5555 halt || true
-    - sleep 2
-    - pkill qemu || true
+    - /app/vmctl stop
 
     - if [[ ! -e .success ]] ;
       then
