@@ -119,6 +119,13 @@ variables:
     reports:
       junit: $MESON_BUILDDIR/junit-*.xml
 
+
+.ci_fairy_image:
+  image: python:alpine
+  before_script:
+    - apk add git
+    - pip install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
+
 #################################################################
 #                                                               #
 #                          prep stage                           #
@@ -130,11 +137,9 @@ variables:
 # $SRCDIR/.gitlab-ci/generate-gitlab-ci.py
 #
 check-ci-script:
-  image: golang:alpine
+  extends:
+    - .ci_fairy_image
   stage: prep
-  before_script:
-    - apk add python3 py-pip git
-    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
     - ci-fairy generate-template
     - git diff --exit-code && exit 0 || true
@@ -146,11 +151,9 @@ check-ci-script:
 #
 
 check-commit:
-  image: golang:alpine
+  extends:
+    - .ci_fairy_image
   stage: prep
-  before_script:
-    - apk add python3 py-pip git
-    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
     - ci-fairy check-commits --signed-off-by --junit-xml=results.xml
   except:
@@ -166,11 +169,9 @@ check-commit:
 #
 
 check-merge-request:
-  image: golang:alpine
+  extends:
+    - .ci_fairy_image
   stage: deploy
-  before_script:
-    - apk add python3 py-pip git
-    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
   script:
     - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
   artifacts:
@@ -285,13 +286,10 @@ freebsd:11.2@container-prep:
 # $container_image:$tag
 #
 .container-clean:
-  stage: container_clean
   extends:
     - .policy
-  image: golang:alpine
-  before_script:
-    - apk add python3 py-pip git
-    - pip3 install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
+    - .ci_fairy_image
+  stage: container_clean
   script:
     # Go to your Profile, Settings, Access Tokens
     # Create a personal token with 'api' scope, copy the value.
