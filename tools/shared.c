@@ -609,15 +609,15 @@ tools_exec_command(const char *prefix, int real_argc, char **real_argv)
 }
 
 static void
-sprintf_event_codes(char *buf, size_t sz, struct quirks *quirks)
+sprintf_event_codes(char *buf, size_t sz, struct quirks *quirks, enum quirk q)
 {
 	const struct quirk_tuples *t;
 	size_t off = 0;
 	int printed;
 	const char *name;
 
-	quirks_get_tuples(quirks, QUIRK_ATTR_EVENT_CODE_DISABLE, &t);
-	name = quirk_get_name(QUIRK_ATTR_EVENT_CODE_DISABLE);
+	quirks_get_tuples(quirks, q, &t);
+	name = quirk_get_name(q);
 	printed = snprintf(buf, sz, "%s=", name);
 	assert(printed != -1);
 	off += printed;
@@ -627,6 +627,29 @@ sprintf_event_codes(char *buf, size_t sz, struct quirks *quirks)
 						t->tuples[i].first,
 						t->tuples[i].second);
 
+		printed = snprintf(buf + off, sz - off, "%s;", name);
+		assert(printed != -1);
+		off += printed;
+	}
+}
+
+static void
+sprintf_input_props(char *buf, size_t sz, struct quirks *quirks, enum quirk q)
+{
+	const uint32_t *properties;
+	size_t nprops = 0;
+	size_t off = 0;
+	int printed;
+	const char *name;
+
+	quirks_get_uint32_array(quirks, q, &properties, &nprops);
+	name = quirk_get_name(q);
+	printed = snprintf(buf, sz, "%s=", name);
+	assert(printed != -1);
+	off += printed;
+
+	for (size_t i = 0; off < sz && i < nprops; i++) {
+		const char *name = libevdev_property_get_name(properties[i]);
 		printed = snprintf(buf + off, sz - off, "%s;", name);
 		assert(printed != -1);
 		off += printed;
@@ -713,7 +736,13 @@ tools_list_device_quirks(struct quirks_context *ctx,
 				callback(userdata, buf);
 				break;
 			case QUIRK_ATTR_EVENT_CODE_DISABLE:
-				sprintf_event_codes(buf, sizeof(buf), quirks);
+			case QUIRK_ATTR_EVENT_CODE_ENABLE:
+				sprintf_event_codes(buf, sizeof(buf), quirks, q);
+				callback(userdata, buf);
+				break;
+			case QUIRK_ATTR_INPUT_PROP_DISABLE:
+			case QUIRK_ATTR_INPUT_PROP_ENABLE:
+				sprintf_input_props(buf, sizeof(buf), quirks, q);
 				callback(userdata, buf);
 				break;
 			default:
