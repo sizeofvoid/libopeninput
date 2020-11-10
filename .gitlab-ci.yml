@@ -907,6 +907,9 @@ wayland-web:
   except:
     refs:
       - schedules
+  variables:
+    MESON_ARGS: '-Ddebug-gui=false -Dlibwacom=false -Dtests=false'
+    MESON_BUILDDIR: 'builddir'
   only:
     refs:
       - master
