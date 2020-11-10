@@ -35,7 +35,7 @@
 static inline char *
 builddir_lookup(void)
 {
-	char execdir[PATH_MAX] = {0};
+	char execdir[PATH_MAX];
 	char *pathsep;
 	ssize_t nread;
 

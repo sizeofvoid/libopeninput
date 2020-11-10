@@ -358,8 +358,9 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp)
 	 * the behavior of the other touches.)
 	 */
 
-	if ((newest->initial_time - oldest->initial_time) < THUMB_TIMEOUT &&
-         first->point.y < tp->thumb.lower_thumb_line) {
+	if (newest &&
+	    (newest->initial_time - oldest->initial_time) < THUMB_TIMEOUT &&
+	    first->point.y < tp->thumb.lower_thumb_line) {
 		tp_thumb_lift(tp);
 		return;
 	}

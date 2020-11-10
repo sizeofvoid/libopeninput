@@ -350,7 +350,7 @@ END_TEST
 
 START_TEST(zalloc_overflow)
 {
-	zalloc(-1);
+	zalloc((size_t)-1);
 }
 END_TEST
 

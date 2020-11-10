@@ -2874,8 +2874,8 @@ START_TEST(tool_type)
 		    type == LIBINPUT_TABLET_TOOL_TYPE_PEN) {
 			libinput_event_destroy(event);
 			event = libinput_get_event(li);
-			t = litest_is_tablet_event(event,
-					   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+			litest_is_tablet_event(event,
+					       LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 			libinput_event_destroy(event);
 			event = libinput_get_event(li);
 			t = litest_is_tablet_event(event,
