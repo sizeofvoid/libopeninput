@@ -30,7 +30,7 @@
 # <distribution>:<version>@activity:
 #  e.g. fedora:31@build-default
 
-.templates_sha: &template_sha d303fafa66bbca44cc5bdb337d5773b5f019b70d # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha 4f06663cd1507136a0f8440925a2521098adb298 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   # Alpine container builder template
@@ -88,13 +88,13 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2020-11-09.0'
-  DEBIAN_TAG:  '2020-11-09.0'
-  UBUNTU_TAG:  '2020-11-09.0'
-  ARCH_TAG:    '2020-11-09.0'
-  ALPINE_TAG:  '2020-11-09.0'
-  FREEBSD_TAG: '2020-11-09.0'
-  QEMU_TAG:    'qemu-vm-2020-11-09.0'
+  FEDORA_TAG:  '2020-11-12.0'
+  DEBIAN_TAG:  '2020-11-12.0'
+  UBUNTU_TAG:  '2020-11-12.0'
+  ARCH_TAG:    '2020-11-12.0'
+  ALPINE_TAG:  '2020-11-12.0'
+  FREEBSD_TAG: '2020-11-12.0'
+  QEMU_TAG:    'qemu-vm-2020-11-12.0'
 
   FREEBSD_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/freebsd/11.2:$FREEBSD_TAG
   FDO_UPSTREAM_REPO: libinput/libinput
