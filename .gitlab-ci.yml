@@ -41,6 +41,10 @@ include:
   - project: 'freedesktop/ci-templates'
     ref: *template_sha
     file: '/templates/arch.yml'
+  # Debian container builder template
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file: '/templates/debian.yml'
   # Fedora container builder template
   - project: 'freedesktop/ci-templates'
     ref: *template_sha
@@ -72,6 +76,7 @@ variables:
   ###############################################################################
   FEDORA_PACKAGES:    'git-core gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx_rtd_theme python3-pytest-xdist libwacom-devel cairo-devel   gtk3-devel   glib2-devel    mtdev-devel diffutils'
   FEDORA_QEMU_RPMS:   'git-core gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx_rtd_theme python3-pytest-xdist libwacom-devel cairo-devel   gtk3-devel   glib2-devel    mtdev-devel diffutils valgrind'
+  DEBIAN_PACKAGES:    'git      gcc g++     pkg-config         meson check       libudev-dev   libevdev-dev   doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev   libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev'
   UBUNTU_PACKAGES:    'git      gcc g++     pkg-config         meson check       libudev-dev   libevdev-dev   doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev   libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev'
   ARCH_PACKAGES:      'git      gcc         pkgconfig          meson check       libsystemd    libevdev       doxygen graphviz python-sphinx  python-recommonmark  python-sphinx_rtd_theme  python-pytest-xdist  libwacom                     gtk3                        mtdev      diffutils'
   FREEBSD_BUILD_PKGS: 'meson'
@@ -84,6 +89,7 @@ variables:
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
   FEDORA_TAG:  '2020-07-22.0'
+  DEBIAN_TAG:  '2020-07-22.0'
   UBUNTU_TAG:  '2020-07-22.0'
   ARCH_TAG:    '2020-07-22.0'
   ALPINE_TAG:  '2020-07-22.0'
@@ -224,6 +230,17 @@ fedora:32@container-prep:
     FDO_DISTRIBUTION_PACKAGES: $FEDORA_PACKAGES
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
 
+debian:stable@container-prep:
+  extends:
+    - .fdo.container-build@debian
+    - .policy
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: 'stable'
+    FDO_DISTRIBUTION_PACKAGES: $DEBIAN_PACKAGES
+    FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
+
 ubuntu:19.10@container-prep:
   extends:
     - .fdo.container-build@ubuntu
@@ -358,6 +375,15 @@ fedora:32@container-clean:
     CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/fedora/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
     FDO_DISTRIBUTION_VERSION: '32'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+
+debian:stable@container-clean:
+  extends:
+    - .container-clean
+  variables:
+    GIT_STRATEGY: none
+    CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/debian/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
+    FDO_DISTRIBUTION_VERSION: 'stable'
+    FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
 
 ubuntu:19.10@container-clean:
   extends:
@@ -743,13 +769,12 @@ flake8@fedora:32:
 #
 coverity:
   extends:
-    - .fdo.distribution-image@fedora
+    - .fdo.distribution-image@debian
     - .policy
   stage: build
   variables:
-    # coverity doesn't work on Fedora 32
-    FDO_DISTRIBUTION_VERSION: '31'
-    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+    FDO_DISTRIBUTION_VERSION: 'stable'
+    FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
     # so git-describe works, or should work
     GIT_DEPTH: 200
   only:
@@ -776,7 +801,7 @@ coverity:
     paths:
       - cov-int.tar.gz
   needs:
-    - "fedora:31@container-prep"
+    - "debian:stable@container-prep"
 
 #################################################################
 #                                                               #
@@ -806,6 +831,18 @@ fedora:32@default-build:
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
   needs:
     - "fedora:32@container-prep"
+
+
+debian:stable@default-build:
+  stage: distro
+  extends:
+    - .build@template
+    - .fdo.distribution-image@debian
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'stable'
+    FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
+  needs:
+    - "debian:stable@container-prep"
 
 
 ubuntu:19.10@default-build:

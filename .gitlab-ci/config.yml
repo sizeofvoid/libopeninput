@@ -13,6 +13,10 @@ distributions:
       - '32'
     want_qemu: true
     use_for_custom_build_tests: true
+  - name: debian
+    tag: *default_tag
+    versions:
+      - 'stable'
   - name: ubuntu
     tag: *default_tag
     versions:
