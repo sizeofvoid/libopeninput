@@ -87,8 +87,6 @@ variables:
 {% endif %}
 {% endfor %}
 
-  UBUNTU_EXEC: "bash .gitlab-ci/ubuntu_install.sh $UBUNTU_CUSTOM_DEBS"
-
   FREEBSD_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/freebsd/11.2:$FREEBSD_TAG
   FDO_UPSTREAM_REPO: libinput/libinput
 
@@ -215,9 +213,6 @@ check-merge-request:
     FDO_DISTRIBUTION_VERSION: '{{version}}'
     FDO_DISTRIBUTION_PACKAGES: ${{distro.name.upper()}}_PACKAGES
     FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_TAG
- {% if version == 'ubuntu'%}
-    FDO_DISTRIBUTION_EXEC: $UBUNTU_EXEC
- {% endif %}
 
 {% endfor %}
 {% endfor %}

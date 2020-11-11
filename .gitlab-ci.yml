@@ -96,8 +96,6 @@ variables:
   FREEBSD_TAG: '2020-11-09.0'
   QEMU_TAG:    'qemu-vm-2020-11-09.0'
 
-  UBUNTU_EXEC: "bash .gitlab-ci/ubuntu_install.sh $UBUNTU_CUSTOM_DEBS"
-
   FREEBSD_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/freebsd/11.2:$FREEBSD_TAG
   FDO_UPSTREAM_REPO: libinput/libinput
 
