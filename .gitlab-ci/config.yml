@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2020-11-12.1'
+.default_tag: &default_tag '2020-11-16.0'
 
 distributions:
   - name: fedora
@@ -34,7 +34,7 @@ distributions:
       - glib2-devel
       - mtdev-devel
       - diffutils
-      - valgrind
+      - valgrind        # for the valgrind run, optional
   - name: debian
     tag: *default_tag
     versions:
@@ -59,6 +59,7 @@ distributions:
       - libgtk-3-dev
       - libglib2.0-dev
       - libmtdev-dev
+      - curl            # for the coverity job
   - name: ubuntu
     tag: *default_tag
     versions:
