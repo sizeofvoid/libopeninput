@@ -3,7 +3,7 @@
 # This file contains lookup rules for libinput model-specific quirks.
 # IT IS NOT A STABLE API AND SUBJECT TO CHANGE AT ANY TIME
 
-ACTION!="add|change", GOTO="libinput_fuzz_override_end"
+ACTION=="remove", GOTO="libinput_fuzz_override_end"
 KERNEL!="event*", GOTO="libinput_fuzz_override_end"
 
 # Two-step process: fuzz-extract sets the LIBINPUT_FUZZ property and
