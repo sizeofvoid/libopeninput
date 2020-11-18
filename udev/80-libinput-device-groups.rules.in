@@ -1,4 +1,4 @@
-ACTION!="add|change", GOTO="libinput_device_group_end"
+ACTION=="remove", GOTO="libinput_device_group_end"
 KERNEL!="event[0-9]*", GOTO="libinput_device_group_end"
 
 ATTRS{phys}=="?*", IMPORT{program}="@UDEV_TEST_PATH@libinput-device-group %S%p"
