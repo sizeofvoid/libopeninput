@@ -133,8 +133,7 @@ check-ci-script:
     - .fdo.ci-fairy
   stage: prep
   script:
-    - ci-fairy generate-template
-    - git diff --exit-code && exit 0 || true
+    - ci-fairy generate-template --verify && exit 0 || true
     - echo "Committed gitlab-ci.yml differs from generated gitlab-ci.yml. Please verify"
     - exit 1
 
