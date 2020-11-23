@@ -32,7 +32,7 @@
 # <distribution>:<version>@activity:
 #  e.g. fedora:31@build-default
 
-.templates_sha: &template_sha 4f06663cd1507136a0f8440925a2521098adb298 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha 16f790f93f893394b70d7048fb0e8a981ceaa3c5 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
 
 include:
   {% for distro in distributions|sort(attribute="name") %}
@@ -43,6 +43,9 @@ include:
     file: '/templates/{{distro.name}}.yml'
   {% endif %}
   {% endfor %}
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file: '/templates/ci-fairy.yml'
 
 stages:
   - prep             # prep work like rebuilding the container images if there is a change
@@ -115,12 +118,6 @@ variables:
       junit: $MESON_BUILDDIR/junit-*.xml
 
 
-.ci_fairy_image:
-  image: python:alpine
-  before_script:
-    - apk add git
-    - pip install git+http://gitlab.freedesktop.org/freedesktop/ci-templates
-
 #################################################################
 #                                                               #
 #                          prep stage                           #
@@ -133,7 +130,7 @@ variables:
 #
 check-ci-script:
   extends:
-    - .ci_fairy_image
+    - .fdo.ci-fairy
   stage: prep
   script:
     - ci-fairy generate-template
@@ -147,7 +144,7 @@ check-ci-script:
 
 check-commit:
   extends:
-    - .ci_fairy_image
+    - .fdo.ci-fairy
   stage: prep
   script:
     - ci-fairy check-commits --signed-off-by --junit-xml=results.xml
@@ -165,7 +162,7 @@ check-commit:
 
 check-merge-request:
   extends:
-    - .ci_fairy_image
+    - .fdo.ci-fairy
   stage: deploy
   script:
     - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
@@ -280,7 +277,7 @@ freebsd:11.2@container-prep:
 .container-clean:
   extends:
     - .policy
-    - .ci_fairy_image
+    - .fdo.ci-fairy
   stage: container_clean
   script:
     # Go to your Profile, Settings, Access Tokens
