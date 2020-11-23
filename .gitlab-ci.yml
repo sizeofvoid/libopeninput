@@ -58,6 +58,7 @@ include:
     file: '/templates/ci-fairy.yml'
 
 stages:
+  - sanity check     # CI/commit checks
   - prep             # prep work like rebuilding the container images if there is a change
   - build            # for actually building and testing things in a container
   - VM               # for running the test suite in a VM
@@ -132,7 +133,7 @@ variables:
 
 #################################################################
 #                                                               #
-#                          prep stage                           #
+#                     sanity check stage                        #
 #                                                               #
 #################################################################
 
@@ -143,7 +144,7 @@ variables:
 check-ci-script:
   extends:
     - .fdo.ci-fairy
-  stage: prep
+  stage: sanity check
   script:
     - ci-fairy generate-template --verify && exit 0 || true
     - echo "Committed gitlab-ci.yml differs from generated gitlab-ci.yml. Please verify"
@@ -156,7 +157,7 @@ check-ci-script:
 check-commit:
   extends:
     - .fdo.ci-fairy
-  stage: prep
+  stage: sanity check
   script:
     - ci-fairy check-commits --signed-off-by --junit-xml=results.xml
   except:
@@ -167,21 +168,11 @@ check-commit:
     reports:
       junit: results.xml
 
-#
-# Verify that the merge request has the allow-collaboration checkbox ticked
-#
-
-check-merge-request:
-  extends:
-    - .fdo.ci-fairy
-  stage: deploy
-  script:
-    - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
-  artifacts:
-    when: on_failure
-    reports:
-      junit: results.xml
-  allow_failure: true
+#################################################################
+#                                                               #
+#                          prep stage                           #
+#                                                               #
+#################################################################
 
 #
 # Note: images are rebuilt weekly with a scheduled pipeline with FDO_FORCE_REBUILD set
@@ -933,6 +924,22 @@ freebsd:11.2@default-build:
 #                        deploy stage                           #
 #                                                               #
 #################################################################
+
+#
+# Verify that the merge request has the allow-collaboration checkbox ticked
+#
+
+check-merge-request:
+  extends:
+    - .fdo.ci-fairy
+  stage: deploy
+  script:
+    - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
+  artifacts:
+    when: on_failure
+    reports:
+      junit: results.xml
+  allow_failure: true
 
 build rpm:
   extends:
