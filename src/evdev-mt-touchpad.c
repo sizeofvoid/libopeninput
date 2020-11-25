@@ -1534,10 +1534,10 @@ tp_detect_jumps(const struct tp_dispatch *tp,
 	if (tp->device->model_flags & EVDEV_MODEL_TEST_DEVICE)
 		reference_interval = tdelta;
 
-	/* If the last frame is more than 25ms ago, we have irregular
+	/* If the last frame is more than 30ms ago, we have irregular
 	 * frames, who knows what's a pointer jump here and what's
 	 * legitimate movement.... */
-	if (tdelta > 2 * reference_interval || tdelta == 0)
+	if (tdelta > 2.5 * reference_interval || tdelta == 0)
 		return false;
 
 	/* We historically expected ~12ms frame intervals, so the numbers
