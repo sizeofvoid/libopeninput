@@ -1305,6 +1305,53 @@ START_TEST(quirks_model_zero)
 }
 END_TEST
 
+START_TEST(quirks_model_override)
+{
+	struct litest_device *dev = litest_current_device();
+	struct udev_device *ud = libinput_device_get_udev_device(dev->libinput_device);
+	struct quirks_context *ctx;
+	char *quirks_file;
+	struct data_dir dd;
+	struct quirks *q;
+	bool isset;
+	bool set = _i; /* ranged test */
+
+	/* Test model quirks override by setting, then unsetting (or the
+	   other way round) */
+	int rc = xasprintf(&quirks_file,
+			   "[first]\n"
+			   "MatchUdevType=mouse\n"
+			   "ModelAppleTouchpad=%d\n"
+			   "\n"
+			   "[second]\n"
+			   "MatchUdevType=mouse\n"
+			   "ModelAppleTouchpad=%d\n",
+			   set ? 0 : 1,
+			   set ? 1 : 0);
+	ck_assert_int_ne(rc, -1);
+
+	dd = make_data_dir(quirks_file);
+
+	ctx = quirks_init_subsystem(dd.dirname,
+				    NULL,
+				    log_handler,
+				    NULL,
+				    QLOG_CUSTOM_LOG_PRIORITIES);
+	ck_assert_notnull(ctx);
+
+	q = quirks_fetch_for_device(ctx, ud);
+	ck_assert_notnull(q);
+
+	ck_assert(quirks_get_bool(q, QUIRK_MODEL_APPLE_TOUCHPAD, &isset));
+	ck_assert(isset == set);
+
+	quirks_unref(q);
+	quirks_context_unref(ctx);
+	cleanup_data_dir(dd);
+	udev_device_unref(ud);
+}
+END_TEST
+
 START_TEST(quirks_model_alps)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1424,6 +1471,8 @@ END_TEST
 
 TEST_COLLECTION(quirks)
 {
+	struct range boolean = {0, 2};
+
 	litest_add_deviceless("quirks:datadir", quirks_invalid_dir);
 	litest_add_deviceless("quirks:datadir", quirks_empty_dir);
 
@@ -1471,6 +1520,7 @@ TEST_COLLECTION(quirks)
 
 	litest_add_for_device("quirks:model", quirks_model_one, LITEST_MOUSE);
 	litest_add_for_device("quirks:model", quirks_model_zero, LITEST_MOUSE);
+	litest_add_ranged_for_device("quirks:model", quirks_model_override, LITEST_MOUSE, &boolean);
 
 	litest_add("quirks:devices", quirks_model_alps, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add("quirks:devices", quirks_model_wacom, LITEST_TOUCHPAD, LITEST_ANY);
