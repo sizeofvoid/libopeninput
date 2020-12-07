@@ -28,6 +28,11 @@ MatchDMIModalias=dmi:*svnDellInc.:*pnXPS139333*
 AttrPressureRange=15:10
 AttrPalmPressureThreshold=150
 
+[Dell XPS 15 9500 Touchpad]
+MatchName=* Touchpad
+MatchDMIModalias=dmi:*svnDellInc.:pnXPS159500:*
+ModelTouchpadVisibleMarker=0
+
 [Dell Latitude D620 Trackpoint]
 MatchName=*DualPoint Stick
 MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeD620*
