@@ -190,7 +190,6 @@ fedora:32@qemu-prep:
     FDO_DISTRIBUTION_VERSION: 32
     FDO_DISTRIBUTION_TAG: $QEMU_TAG
     FDO_DISTRIBUTION_PACKAGES: $FEDORA_PACKAGES
-  allow_failure: true
 
 fedora:31@container-prep:
   extends:
@@ -505,7 +504,6 @@ freebsd:11.2@container-clean:
     reports:
       junit: $MESON_BUILDDIR/junit-*.xml
 
-  allow_failure: true
   retry:
     max: 2
     when: script_failure

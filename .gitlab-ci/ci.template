@@ -181,7 +181,6 @@ check-commit:
     FDO_DISTRIBUTION_VERSION: {{version}}
     FDO_DISTRIBUTION_TAG: $QEMU_TAG
     FDO_DISTRIBUTION_PACKAGES: ${{distro.name.upper()}}_PACKAGES
-  allow_failure: true
 {% endfor %}
 
 {% for distro in distributions %}
@@ -385,7 +384,6 @@ freebsd:11.2@container-clean:
     reports:
       junit: $MESON_BUILDDIR/junit-*.xml
 
-  allow_failure: true
   retry:
     max: 2
     when: script_failure
