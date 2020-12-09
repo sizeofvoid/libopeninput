@@ -1349,6 +1349,7 @@ START_TEST(quirks_model_override)
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 	udev_device_unref(ud);
+	free(quirks_file);
 }
 END_TEST
 
