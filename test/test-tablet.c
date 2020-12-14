@@ -6063,6 +6063,8 @@ START_TEST(tablet_smoothing)
 
 		ck_assert_double_eq(ex, p->x);
 		ck_assert_double_eq(ey, p->y);
+
+		libinput_event_destroy(event);
 	}
 #endif
 }
