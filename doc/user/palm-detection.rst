@@ -157,6 +157,11 @@ Notable behaviors of libinput's disable-while-typing feature:
   typing.
 - Physical buttons work even while the touchpad is disabled. This includes
   :ref:`software-emulated buttons <t440_support>`.
+- libinput pairs touchpads and keyboards for the disable-while-typing
+  feature. In the most common case, the internal touchpad is paired only
+  with the internal keyboard. Typing on an external keyboard will thus not
+  disable the touchpad. Some devices require a :ref:`quirk <device-quirks>`
+  to be correctly paired.
 
 Disable-while-typing can be enabled and disabled by calling
 **libinput_device_config_dwt_set_enabled()**.

@@ -135,8 +135,9 @@ Disable while typing
 ------------------------------------------------------------------------------
 
 DWT is the most generic form of palm detection on touchpad. While the user
-is typing the touchpad is disabled, the touchpad is enabled after a timeout.
-See :ref:`disable-while-typing` for more info.
+is typing on an internal keyboard the touchpad is disabled, the touchpad
+is enabled again after a timeout.  See :ref:`disable-while-typing` for more
+info.
 
 Disable-while-typing can be enabled or disabled, it is enabled by default on
 most touchpads.
