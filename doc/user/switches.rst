@@ -34,9 +34,11 @@ This handling of lid switches is transparent to the user, no notifications
 are sent and the device appears as enabled at all times.
 
 On some devices, the device's lid state does not always reflect the physical
-state and the lid state may report as closed even when the lid is physicall
+state and the lid state may report as closed even when the lid is physically
 open. libinput employs some heuristics to detect user input (specificially
-typing) to re-enable the touchpad on those devices.
+typing) to re-enable the touchpad on those devices. Where input is detected,
+libinput updates the lid status of the kernel device so other consumers of
+the kernel events also get the accurate state.
 
 .. _switches_tablet_mode:
 
