@@ -209,7 +209,7 @@ def handle_existing_entry(device, fuzz):
         return False
     else:
         print_red('not found')
-        print('Checking in {}... '.format(DEFAULT_HWDB_FILE, template), end='')
+        print('Checking in {}... '.format(DEFAULT_HWDB_FILE), end='')
         entry, prefix, lineno = check_file_for_lines(DEFAULT_HWDB_FILE, template)
         if entry is not None:
             print_green('found')

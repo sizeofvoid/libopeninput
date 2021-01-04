@@ -753,7 +753,7 @@ flake8@fedora:32:
   before_script:
     - dnf install -y python3-flake8
   script:
-    - flake8-3 --ignore=W501,E501,W504 $(git grep -l '^#!/usr/bin/env python3')
+    - flake8-3 --ignore=W501,E501,W504,E741 $(git grep -l '^#!/usr/bin/env python3')
 
 
 #
