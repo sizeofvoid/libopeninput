@@ -16,6 +16,29 @@ The build instruction on this page detail how to overwrite your
 system-provided libinput with one from the git repository, see
 see :ref:`reverting_install` to revert to the previous state.
 
+.. _distribution_repos:
+
+------------------------------------------------------------------------------
+Distribution repositories for libinput from git
+------------------------------------------------------------------------------
+
+Some distributions provide package repositories for users that want to test
+the latest libinput without building it manually.
+
+.. note:: The list below is provided for convenience. The libinput community
+   cannot provide any guarantees that the packages in those repositories are
+   correct, up-to-date and/or unmodified from the git branch. Due dilligence
+   is recommended.
+
+The following repositories provide an up-to-date package for libinput:
+
+- **Arch:** https://aur.archlinux.org/packages/libinput-git/
+- **Fedora:** https://copr.fedorainfracloud.org/coprs/whot/libinput-git/
+
+Please follow the respective repositories for instructions on how to enable
+the repository and install libinput.
+
+
 .. _building:
 
 ------------------------------------------------------------------------------
