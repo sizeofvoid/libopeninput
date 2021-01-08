@@ -1270,6 +1270,28 @@ START_TEST(strverscmp_test)
 }
 END_TEST
 
+START_TEST(streq_test)
+{
+	ck_assert(streq("", "") == true);
+	ck_assert(streq(NULL, NULL) == true);
+	ck_assert(streq("0.0.1", "") == false);
+	ck_assert(streq("foo", NULL) == false);
+	ck_assert(streq(NULL, "foo") == false);
+	ck_assert(streq("0.0.1", "0.0.1") == true);
+}
+END_TEST
+
+START_TEST(strneq_test)
+{
+	ck_assert(strneq("", "", 1) == true);
+	ck_assert(strneq(NULL, NULL, 1) == true);
+	ck_assert(strneq("0.0.1", "", 6) == false);
+	ck_assert(strneq("foo", NULL, 5) == false);
+	ck_assert(strneq(NULL, "foo", 5) == false);
+	ck_assert(strneq("0.0.1", "0.0.1", 6) == true);
+}
+END_TEST
+
 static Suite *
 litest_utils_suite(void)
 {
@@ -1311,6 +1333,8 @@ litest_utils_suite(void)
 	tcase_add_test(tc, list_test_insert);
 	tcase_add_test(tc, list_test_append);
 	tcase_add_test(tc, strverscmp_test);
+	tcase_add_test(tc, streq_test);
+	tcase_add_test(tc, strneq_test);
 
 	suite_add_tcase(s, tc);
 
