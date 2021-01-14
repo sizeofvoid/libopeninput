@@ -136,6 +136,14 @@ MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX1Yoga1st:*
 AttrTrackpointMultiplier=1.25
 
+# A true pressurepad so let's not use pressure for contact size
+# https://gitlab.freedesktop.org/libinput/libinput/-/issues/562
+[Lenovo Yoga 9i Pressurepad]
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xCE37
+AttrEventCodeDisable=ABS_MT_PRESSURE;ABS_PRESSURE;
+
 # Lenovo Carbon X1 6th gen (RMI4 only, PS/2 is broken on this device,
 # sends bogus ABS_MT_TOOL_TYPE events for MT_TOOL_PALM
 [Lenovo Carbon X1 6th gen]

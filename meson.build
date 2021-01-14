@@ -806,6 +806,7 @@ if get_option('tests')
 		'test/litest-device-synaptics-x220.c',
 		'test/litest-device-synaptics-hover.c',
 		'test/litest-device-synaptics-i2c.c',
+		'test/litest-device-synaptics-pressurepad.c',
 		'test/litest-device-synaptics-rmi4.c',
 		'test/litest-device-synaptics-st.c',
 		'test/litest-device-synaptics-t440.c',

@@ -1795,6 +1795,9 @@ touchpad_has_palm_pressure(struct litest_device *dev)
 {
 	struct libevdev *evdev = dev->evdev;
 
+	if (dev->which == LITEST_SYNAPTICS_PRESSUREPAD)
+		return false;
+
 	if (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_PRESSURE))
 		return true;
 
@@ -5912,6 +5915,9 @@ static inline bool
 touchpad_has_pressure(struct litest_device *dev)
 {
 	struct libevdev *evdev = dev->evdev;
+
+	if (dev->which == LITEST_SYNAPTICS_PRESSUREPAD)
+		return false;
 
 	if (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_PRESSURE))
 		return true;
