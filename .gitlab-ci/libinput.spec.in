@@ -110,6 +110,7 @@ intended to be run by users.
 %{_libexecdir}/libinput/libinput-replay
 %{_libexecdir}/libinput/libinput-analyze
 %{_libexecdir}/libinput/libinput-analyze-per-slot-delta
+%{_libexecdir}/libinput/libinput-analyze-touch-down-state
 %{_mandir}/man1/libinput-debug-gui.1*
 %{_mandir}/man1/libinput-debug-tablet.1*
 %{_mandir}/man1/libinput-measure.1*
@@ -125,6 +126,7 @@ intended to be run by users.
 %{_mandir}/man1/libinput-replay.1*
 %{_mandir}/man1/libinput-analyze.1*
 %{_mandir}/man1/libinput-analyze-per-slot-delta.1*
+%{_mandir}/man1/libinput-analyze-touch-down-state.1*
 
 %files test
 %{_libexecdir}/libinput/libinput-test-suite

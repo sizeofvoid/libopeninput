@@ -24,6 +24,9 @@ Features that can be analyzed include
 .TP 8
 .B libinput\-analyze\-per-slot-delta(1)
 analyze the delta per event per slot
+.TP 8
+.B libinput\-analyze\-touch-down-state(1)
+analyze the state of each touch in a recording
 .SH LIBINPUT
 Part of the
 .B libinput(1)

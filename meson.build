@@ -560,6 +560,7 @@ configure_file(input : 'tools/libinput-analyze.man',
 
 src_python_tools = files(
 	      'tools/libinput-analyze-per-slot-delta.py',
+	      'tools/libinput-analyze-touch-down-state.py',
 	      'tools/libinput-measure-fuzz.py',
 	      'tools/libinput-measure-touchpad-size.py',
 	      'tools/libinput-measure-touchpad-tap.py',
@@ -589,6 +590,7 @@ src_man = files(
 	      'tools/libinput-measure-touchpad-pressure.man',
 	      'tools/libinput-measure-touch-size.man',
 	      'tools/libinput-analyze-per-slot-delta.man',
+	      'tools/libinput-analyze-touch-down-state.man',
 )
 
 foreach m : src_man
