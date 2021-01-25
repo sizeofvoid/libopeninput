@@ -2116,6 +2116,7 @@ mainloop(struct record_context *ctx)
 	bool autorestart = (ctx->timeout > 0);
 	struct pollfd fds[ctx->ndevices + 2];
 	struct pollfd *signal_fd = &fds[0];
+	struct pollfd *libinput_fd = NULL;
 	unsigned int nfds = 0;
 	struct record_device *d = NULL;
 	sigset_t mask;
@@ -2141,9 +2142,8 @@ mainloop(struct record_context *ctx)
 	nfds++;
 
 	if (ctx->libinput) {
-		fds[1].fd = libinput_get_fd(ctx->libinput);
-		nfds++;
-		assert(nfds == 2);
+		libinput_fd = &fds[nfds++];
+		libinput_fd->fd = libinput_get_fd(ctx->libinput);
 	}
 
 	list_for_each(d, &ctx->devices, link) {
@@ -2236,7 +2236,7 @@ mainloop(struct record_context *ctx)
 
 			/* This shouldn't pull any events off unless caused
 			 * by libinput-internal timeouts (e.g. tapping) */
-			if (ctx->libinput && fds[1].revents) {
+			if (ctx->libinput && libinput_fd->revents) {
 				size_t count, offset;
 
 				libinput_dispatch(ctx->libinput);
