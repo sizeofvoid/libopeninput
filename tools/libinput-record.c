@@ -2115,6 +2115,7 @@ mainloop(struct record_context *ctx)
 {
 	bool autorestart = (ctx->timeout > 0);
 	struct pollfd fds[ctx->ndevices + 2];
+	struct pollfd *signal_fd = &fds[0];
 	unsigned int nfds = 0;
 	struct record_device *d = NULL;
 	sigset_t mask;
@@ -2135,8 +2136,8 @@ mainloop(struct record_context *ctx)
 		};
 	}
 
-	fds[0].fd = signalfd(-1, &mask, SFD_NONBLOCK);
-	assert(fds[0].fd != -1);
+	signal_fd->fd = signalfd(-1, &mask, SFD_NONBLOCK);
+	assert(signal_fd->fd != -1);
 	nfds++;
 
 	if (ctx->libinput) {
@@ -2218,7 +2219,7 @@ mainloop(struct record_context *ctx)
 
 			}
 
-			if (fds[0].revents != 0) { /* signal */
+			if (signal_fd->revents != 0) { /* signal */
 				autorestart = false;
 				break;
 			}
@@ -2295,7 +2296,7 @@ mainloop(struct record_context *ctx)
 		ctx->output_file = NULL;
 	} while (autorestart);
 
-	close(fds[0].fd);
+	close(signal_fd->fd);
 
 	sigprocmask(SIG_UNBLOCK, &mask, NULL);
 
