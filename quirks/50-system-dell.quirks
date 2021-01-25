@@ -11,6 +11,12 @@ MatchUdevType=touchpad
 MatchDMIModalias=dmi:*svnDellInc.:*
 AttrMscTimestamp=watch
 
+[Dell Inspiron 15R N5110 Touchpad]
+MatchUdevType=touchpad
+MatchName=*AlpsPS/2 ALPS GlidePoint
+MatchDMIModalias=dmi:*svnDellInc.:*pnInspironN5110*
+AttrPressureRange=100:95
+
 [Dell Latitude E6220 Touchpad]
 MatchName=*AlpsPS/2 ALPS GlidePoint
 MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE6220:*
