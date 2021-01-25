@@ -26,14 +26,17 @@
 
 import sys
 import argparse
+
 try:
     import libevdev
     import textwrap
     import pyudev
 except ModuleNotFoundError as e:
-    print('Error: {}'.format(e), file=sys.stderr)
-    print('One or more python modules are missing. Please install those '
-          'modules and re-run this tool.')
+    print("Error: {}".format(e), file=sys.stderr)
+    print(
+        "One or more python modules are missing. Please install those "
+        "modules and re-run this tool."
+    )
     sys.exit(1)
 
 print_dest = sys.stdout
@@ -66,7 +69,7 @@ class Touch(object):
 
     @up.setter
     def up(self, up):
-        assert(up > self.down)
+        assert up > self.down
         self._up = up
 
     @property
@@ -88,7 +91,7 @@ class Device(libevdev.Device):
             self.path = self._find_touch_device()
         else:
             self.path = path
-        fd = open(self.path, 'rb')
+        fd = open(self.path, "rb")
         super().__init__(fd)
 
         print("Using {}: {}\n".format(self.name, self.path))
@@ -101,18 +104,19 @@ class Device(libevdev.Device):
     def _find_touch_device(self):
         context = pyudev.Context()
         device_node = None
-        for device in context.list_devices(subsystem='input'):
-            if (not device.device_node or
-                    not device.device_node.startswith('/dev/input/event')):
+        for device in context.list_devices(subsystem="input"):
+            if not device.device_node or not device.device_node.startswith(
+                "/dev/input/event"
+            ):
                 continue
 
             # pick the touchpad by default, fallback to the first
             # touchscreen only when there is no touchpad
-            if device.get('ID_INPUT_TOUCHPAD', 0):
+            if device.get("ID_INPUT_TOUCHPAD", 0):
                 device_node = device.device_node
                 break
 
-            if device.get('ID_INPUT_TOUCHSCREEN', 0) and device_node is None:
+            if device.get("ID_INPUT_TOUCHSCREEN", 0) and device_node is None:
                 device_node = device.device_node
 
         if device_node is not None:
@@ -127,17 +131,19 @@ class Device(libevdev.Device):
             self.touches.append(t)
         else:
             self.touches[-1].up = tv2us(event.sec, event.usec)
-            msg("\rTouch sequences detected: {}".format(len(self.touches)),
-                end='')
+            msg("\rTouch sequences detected: {}".format(len(self.touches)), end="")
 
     def handle_key(self, event):
-        tapcodes = [libevdev.EV_KEY.BTN_TOOL_DOUBLETAP,
-                    libevdev.EV_KEY.BTN_TOOL_TRIPLETAP,
-                    libevdev.EV_KEY.BTN_TOOL_QUADTAP,
-                    libevdev.EV_KEY.BTN_TOOL_QUINTTAP]
+        tapcodes = [
+            libevdev.EV_KEY.BTN_TOOL_DOUBLETAP,
+            libevdev.EV_KEY.BTN_TOOL_TRIPLETAP,
+            libevdev.EV_KEY.BTN_TOOL_QUADTAP,
+            libevdev.EV_KEY.BTN_TOOL_QUINTTAP,
+        ]
         if event.code in tapcodes and event.value > 0:
-            error("\rThis tool cannot handle multiple fingers, "
-                  "output will be invalid")
+            error(
+                "\rThis tool cannot handle multiple fingers, " "output will be invalid"
+            )
             return
 
         if event.matches(libevdev.EV_KEY.BTN_TOUCH):
@@ -146,9 +152,11 @@ class Device(libevdev.Device):
     def handle_syn(self, event):
         if self.touch.dirty:
             self.current_sequence().append(self.touch)
-            self.touch = Touch(major=self.touch.major,
-                               minor=self.touch.minor,
-                               orientation=self.touch.orientation)
+            self.touch = Touch(
+                major=self.touch.major,
+                minor=self.touch.minor,
+                orientation=self.touch.orientation,
+            )
 
     def handle_event(self, event):
         if event.matches(libevdev.EV_KEY):
@@ -182,7 +190,9 @@ class Device(libevdev.Device):
 
     def print_dat(self):
         print("# libinput-measure-touchpad-tap")
-        print(textwrap.dedent('''\
+        print(
+            textwrap.dedent(
+                """\
               # File contents:
               #    This file contains multiple prints of the data in
               #    different sort order. Row number is index of touch
@@ -197,7 +207,9 @@ class Device(libevdev.Device):
               #  4: touch down time in ms, offset by first event
               #  5: touch up time in ms, offset by first event
               #  6: time delta in ms
-              '''))
+              """
+            )
+        )
 
         deltas = [t for t in self.touches]
         deltas_sorted = sorted(deltas, key=lambda t: t.tdelta)
@@ -205,28 +217,44 @@ class Device(libevdev.Device):
         offset = deltas[0].down
 
         for t1, t2 in zip(deltas, deltas_sorted):
-            print(t1.down - offset, t1.up - offset, t1.tdelta,
-                  t2.down - offset, t2.up - offset, t2.tdelta)
+            print(
+                t1.down - offset,
+                t1.up - offset,
+                t1.tdelta,
+                t2.down - offset,
+                t2.up - offset,
+                t2.tdelta,
+            )
 
     def print(self, format):
         if not self.touches:
             error("No tap data available")
             return
 
-        if format == 'summary':
+        if format == "summary":
             self.print_summary()
-        elif format == 'dat':
+        elif format == "dat":
             self.print_dat()
 
 
 def main(args):
-    parser = argparse.ArgumentParser(description="Measure tap-to-click properties of devices")
-    parser.add_argument('path', metavar='/dev/input/event0',
-                        nargs='?', type=str, help='Path to device (optional)')
-    parser.add_argument('--format', metavar='format',
-                        choices=['summary', 'dat'],
-                        default='summary',
-                        help='data format to print ("summary" or "dat")')
+    parser = argparse.ArgumentParser(
+        description="Measure tap-to-click properties of devices"
+    )
+    parser.add_argument(
+        "path",
+        metavar="/dev/input/event0",
+        nargs="?",
+        type=str,
+        help="Path to device (optional)",
+    )
+    parser.add_argument(
+        "--format",
+        metavar="format",
+        choices=["summary", "dat"],
+        default="summary",
+        help='data format to print ("summary" or "dat")',
+    )
     args = parser.parse_args()
 
     if not sys.stdout.isatty():
@@ -235,13 +263,15 @@ def main(args):
 
     try:
         device = Device(args.path)
-        error("Ready for recording data.\n"
-              "Tap the touchpad multiple times with a single finger only.\n"
-              "For useful data we recommend at least 20 taps.\n"
-              "Ctrl+C to exit")
+        error(
+            "Ready for recording data.\n"
+            "Tap the touchpad multiple times with a single finger only.\n"
+            "For useful data we recommend at least 20 taps.\n"
+            "Ctrl+C to exit"
+        )
         device.read_events()
     except KeyboardInterrupt:
-        msg('')
+        msg("")
         device.print(args.format)
     except (PermissionError, OSError) as e:
         error("Error: failed to open device. {}".format(e))

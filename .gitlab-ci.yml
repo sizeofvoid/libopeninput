@@ -747,13 +747,14 @@ usr-bin-env-python@fedora:33:
         /bin/false
       fi
 
-flake8@fedora:33:
+python-format@fedora:33:
   extends:
     - .fedora-build@template
   before_script:
-    - dnf install -y python3-flake8
+    - dnf install -y black
   script:
-    - flake8-3 --ignore=W501,E501,W504,E741 $(git grep -l '^#!/usr/bin/env python3')
+    - black $(git grep -l '^#!/usr/bin/env python3')
+    - git diff --exit-code || (echo "Please run Black against all Python files" && false)
 
 
 #

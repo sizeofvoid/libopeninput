@@ -36,15 +36,16 @@ import yaml
 import libevdev
 
 
-COLOR_RESET = '\x1b[0m'
-COLOR_RED = '\x1b[6;31m'
+COLOR_RESET = "\x1b[0m"
+COLOR_RED = "\x1b[6;31m"
 
 
-class SlotFormatter():
+class SlotFormatter:
     width = 16
 
-    def __init__(self, is_absolute=False, resolution=None,
-                 threshold=None, ignore_below=None):
+    def __init__(
+        self, is_absolute=False, resolution=None, threshold=None, ignore_below=None
+    ):
         self.threshold = threshold
         self.ignore_below = ignore_below
         self.resolution = resolution
@@ -54,19 +55,19 @@ class SlotFormatter():
         self.filtered = False
 
     def __str__(self):
-        return ' | '.join(self.slots)
+        return " | ".join(self.slots)
 
     def format_slot(self, slot):
         if slot.state == SlotState.BEGIN:
-            self.slots.append('+++++++'.center(self.width))
+            self.slots.append("+++++++".center(self.width))
             self.have_data = True
         elif slot.state == SlotState.END:
-            self.slots.append('-------'.center(self.width))
+            self.slots.append("-------".center(self.width))
             self.have_data = True
         elif slot.state == SlotState.NONE:
-            self.slots.append(('*' * (self.width - 2)).center(self.width))
+            self.slots.append(("*" * (self.width - 2)).center(self.width))
         elif not slot.dirty:
-            self.slots.append(' '.center(self.width))
+            self.slots.append(" ".center(self.width))
         else:
             if self.resolution is not None:
                 dx, dy = slot.dx / self.resolution[0], slot.dy / self.resolution[1]
@@ -81,35 +82,39 @@ class SlotFormatter():
                 else:
                     t = t * 180.0 / math.pi
 
-                directions = ['↖↑', '↖←', '↙←', '↙↓', '↓↘', '→↘', '→↗', '↑↗']
+                directions = ["↖↑", "↖←", "↙←", "↙↓", "↓↘", "→↘", "→↗", "↑↗"]
                 direction = directions[int(t / 45)]
             elif dy == 0:
                 if dx < 0:
-                    direction = '←←'
+                    direction = "←←"
                 else:
-                    direction = '→→'
+                    direction = "→→"
             else:
                 if dy < 0:
-                    direction = '↑↑'
+                    direction = "↑↑"
                 else:
-                    direction = '↓↓'
+                    direction = "↓↓"
 
-            color = ''
-            reset = ''
+            color = ""
+            reset = ""
             if not self.is_absolute:
                 if self.ignore_below is not None or self.threshold is not None:
                     dist = math.hypot(dx, dy)
                     if self.ignore_below is not None and dist < self.ignore_below:
-                        self.slots.append(' '.center(self.width))
+                        self.slots.append(" ".center(self.width))
                         self.filtered = True
                         return
                     if self.threshold is not None and dist >= self.threshold:
                         color = COLOR_RED
                         reset = COLOR_RESET
                 if isinstance(dx, int) and isinstance(dy, int):
-                    string = "{} {}{:+4d}/{:+4d}{}".format(direction, color, dx, dy, reset)
+                    string = "{} {}{:+4d}/{:+4d}{}".format(
+                        direction, color, dx, dy, reset
+                    )
                 else:
-                    string = "{} {}{:+3.2f}/{:+03.2f}{}".format(direction, color, dx, dy, reset)
+                    string = "{} {}{:+3.2f}/{:+03.2f}{}".format(
+                        direction, color, dx, dy, reset
+                    )
             else:
                 x, y = slot.x, slot.y
                 string = "{} {}{:4d}/{:4d}{}".format(direction, color, x, y, reset)
@@ -144,23 +149,46 @@ def main(argv):
     slots = []
     xres, yres = 1, 1
 
-    parser = argparse.ArgumentParser(description="Measure delta between event frames for each slot")
-    parser.add_argument("--use-mm", action='store_true', help="Use mm instead of device deltas")
-    parser.add_argument("--use-st", action='store_true', help="Use ABS_X/ABS_Y instead of ABS_MT_POSITION_X/Y")
-    parser.add_argument("--use-absolute", action='store_true', help="Use absolute coordinates, not deltas")
-    parser.add_argument("path", metavar="recording",
-                        nargs=1, help="Path to libinput-record YAML file")
-    parser.add_argument("--threshold", type=float, default=None, help="Mark any delta above this threshold")
-    parser.add_argument("--ignore-below", type=float, default=None, help="Ignore any delta below this threshold")
+    parser = argparse.ArgumentParser(
+        description="Measure delta between event frames for each slot"
+    )
+    parser.add_argument(
+        "--use-mm", action="store_true", help="Use mm instead of device deltas"
+    )
+    parser.add_argument(
+        "--use-st",
+        action="store_true",
+        help="Use ABS_X/ABS_Y instead of ABS_MT_POSITION_X/Y",
+    )
+    parser.add_argument(
+        "--use-absolute",
+        action="store_true",
+        help="Use absolute coordinates, not deltas",
+    )
+    parser.add_argument(
+        "path", metavar="recording", nargs=1, help="Path to libinput-record YAML file"
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=None,
+        help="Mark any delta above this threshold",
+    )
+    parser.add_argument(
+        "--ignore-below",
+        type=float,
+        default=None,
+        help="Ignore any delta below this threshold",
+    )
     args = parser.parse_args()
 
     if not sys.stdout.isatty():
-        COLOR_RESET = ''
-        COLOR_RED = ''
+        COLOR_RESET = ""
+        COLOR_RED = ""
 
     yml = yaml.safe_load(open(args.path[0]))
-    device = yml['devices'][0]
-    absinfo = device['evdev']['absinfo']
+    device = yml["devices"][0]
+    absinfo = device["evdev"]["absinfo"]
     try:
         nslots = absinfo[libevdev.EV_ABS.ABS_MT_SLOT.value][1] + 1
     except KeyError:
@@ -195,11 +223,15 @@ def main(argv):
 
     nskipped_lines = 0
 
-    for event in device['events']:
-        for evdev in event['evdev']:
+    for event in device["events"]:
+        for evdev in event["evdev"]:
             s = slots[slot]
-            e = libevdev.InputEvent(code=libevdev.evbit(evdev[2], evdev[3]),
-                                    value=evdev[4], sec=evdev[0], usec=evdev[1])
+            e = libevdev.InputEvent(
+                code=libevdev.evbit(evdev[2], evdev[3]),
+                value=evdev[4],
+                sec=evdev[0],
+                usec=evdev[1],
+            )
 
             if e.code in tool_bits:
                 tool_bits[e.code] = e.value
@@ -208,8 +240,10 @@ def main(argv):
                 # Note: this relies on the EV_KEY events to come in before the
                 # x/y events, otherwise the last/first event in each slot will
                 # be wrong.
-                if (e.code == libevdev.EV_KEY.BTN_TOOL_FINGER or
-                        e.code == libevdev.EV_KEY.BTN_TOOL_PEN):
+                if (
+                    e.code == libevdev.EV_KEY.BTN_TOOL_FINGER
+                    or e.code == libevdev.EV_KEY.BTN_TOOL_PEN
+                ):
                     slot = 0
                     s = slots[slot]
                     s.dirty = True
@@ -251,7 +285,7 @@ def main(argv):
                     s.dirty = True
                     # bcm5974 cycles through slot numbers, so let's say all below
                     # our current slot number was used
-                    for sl in slots[:slot + 1]:
+                    for sl in slots[: slot + 1]:
                         sl.used = True
                 elif e.code == libevdev.EV_ABS.ABS_MT_TRACKING_ID:
                     if e.value == -1:
@@ -290,11 +324,11 @@ def main(argv):
                     last_time = t
 
                 tools = [
-                    (libevdev.EV_KEY.BTN_TOOL_QUINTTAP, 'QIN'),
-                    (libevdev.EV_KEY.BTN_TOOL_QUADTAP, 'QAD'),
-                    (libevdev.EV_KEY.BTN_TOOL_TRIPLETAP, 'TRI'),
-                    (libevdev.EV_KEY.BTN_TOOL_DOUBLETAP, 'DBL'),
-                    (libevdev.EV_KEY.BTN_TOUCH, 'TOU'),
+                    (libevdev.EV_KEY.BTN_TOOL_QUINTTAP, "QIN"),
+                    (libevdev.EV_KEY.BTN_TOOL_QUADTAP, "QAD"),
+                    (libevdev.EV_KEY.BTN_TOOL_TRIPLETAP, "TRI"),
+                    (libevdev.EV_KEY.BTN_TOOL_DOUBLETAP, "DBL"),
+                    (libevdev.EV_KEY.BTN_TOUCH, "TOU"),
                 ]
 
                 for bit, string in tools:
@@ -302,12 +336,14 @@ def main(argv):
                         tool_state = string
                         break
                 else:
-                    tool_state = '   '
+                    tool_state = "   "
 
-                fmt = SlotFormatter(is_absolute=args.use_absolute,
-                                    resolution=(xres, yres) if args.use_mm else None,
-                                    threshold=args.threshold,
-                                    ignore_below=args.ignore_below)
+                fmt = SlotFormatter(
+                    is_absolute=args.use_absolute,
+                    resolution=(xres, yres) if args.use_mm else None,
+                    threshold=args.threshold,
+                    ignore_below=args.ignore_below,
+                )
                 for sl in [s for s in slots if s.used]:
                     fmt.format_slot(sl)
 
@@ -323,11 +359,21 @@ def main(argv):
                     if nskipped_lines > 0:
                         print("")
                         nskipped_lines = 0
-                    print("{:2d}.{:06d} {:+5d}ms {}: {}".format(e.sec, e.usec, tdelta, tool_state, fmt))
+                    print(
+                        "{:2d}.{:06d} {:+5d}ms {}: {}".format(
+                            e.sec, e.usec, tdelta, tool_state, fmt
+                        )
+                    )
                 elif fmt.filtered:
                     nskipped_lines += 1
-                    print("\r", " " * 21, "... {} below threshold".format(nskipped_lines), flush=True, end='')
+                    print(
+                        "\r",
+                        " " * 21,
+                        "... {} below threshold".format(nskipped_lines),
+                        flush=True,
+                        end="",
+                    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv)

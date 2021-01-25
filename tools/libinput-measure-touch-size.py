@@ -27,21 +27,25 @@
 import sys
 import subprocess
 import argparse
+
 try:
     import libevdev
     import pyudev
 except ModuleNotFoundError as e:
-    print('Error: {}'.format(str(e)), file=sys.stderr)
-    print('One or more python modules are missing. Please install those '
-          'modules and re-run this tool.')
+    print("Error: {}".format(str(e)), file=sys.stderr)
+    print(
+        "One or more python modules are missing. Please install those "
+        "modules and re-run this tool."
+    )
     sys.exit(1)
 
 
 class Range(object):
     """Class to keep a min/max of a value around"""
+
     def __init__(self):
-        self.min = float('inf')
-        self.max = float('-inf')
+        self.min = float("inf")
+        self.max = float("-inf")
 
     def update(self, value):
         self.min = min(self.min, value)
@@ -148,7 +152,9 @@ class TouchSequence(object):
             self.major_range.min, self.major_range.max
         )
         if self.device.has_minor:
-            s += "minor: [{:3d}..{:3d}] ".format(self.minor_range.min, self.minor_range.max)
+            s += "minor: [{:3d}..{:3d}] ".format(
+                self.minor_range.min, self.minor_range.max
+            )
         if self.was_down:
             s += " down"
         if self.was_palm:
@@ -160,10 +166,12 @@ class TouchSequence(object):
 
     def _str_state(self):
         touch = self.points[-1]
-        s = "{}, tags: {} {} {}".format(touch,
-                                        "down" if self.is_down else "    ",
-                                        "palm" if self.is_palm else "    ",
-                                        "thumb" if self.is_thumb else "     ")
+        s = "{}, tags: {} {} {}".format(
+            touch,
+            "down" if self.is_down else "    ",
+            "palm" if self.is_palm else "    ",
+            "thumb" if self.is_thumb else "     ",
+        )
         return s
 
 
@@ -178,7 +186,7 @@ class Device(libevdev.Device):
         else:
             self.path = path
 
-        fd = open(self.path, 'rb')
+        fd = open(self.path, "rb")
         super().__init__(fd)
 
         print("Using {}: {}\n".format(self.name, self.path))
@@ -200,13 +208,15 @@ class Device(libevdev.Device):
 
     def find_touch_device(self):
         context = pyudev.Context()
-        for device in context.list_devices(subsystem='input'):
-            if not device.get('ID_INPUT_TOUCHPAD', 0) and \
-               not device.get('ID_INPUT_TOUCHSCREEN', 0):
+        for device in context.list_devices(subsystem="input"):
+            if not device.get("ID_INPUT_TOUCHPAD", 0) and not device.get(
+                "ID_INPUT_TOUCHSCREEN", 0
+            ):
                 continue
 
-            if not device.device_node or \
-                    not device.device_node.startswith('/dev/input/event'):
+            if not device.device_node or not device.device_node.startswith(
+                "/dev/input/event"
+            ):
                 continue
 
             return device.device_node
@@ -215,21 +225,24 @@ class Device(libevdev.Device):
         sys.exit(1)
 
     def _init_thresholds_from_quirks(self):
-        command = ['libinput', 'quirks', 'list', self.path]
+        command = ["libinput", "quirks", "list", self.path]
         cmd = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if cmd.returncode != 0:
-            print("Error querying quirks: {}".format(cmd.stderr.decode('utf-8')), file=sys.stderr)
+            print(
+                "Error querying quirks: {}".format(cmd.stderr.decode("utf-8")),
+                file=sys.stderr,
+            )
             return
 
-        stdout = cmd.stdout.decode('utf-8')
-        quirks = [q.split('=') for q in stdout.split('\n')]
+        stdout = cmd.stdout.decode("utf-8")
+        quirks = [q.split("=") for q in stdout.split("\n")]
 
         for q in quirks:
-            if q[0] == 'AttrPalmSizeThreshold':
+            if q[0] == "AttrPalmSizeThreshold":
                 self.palm = int(q[1])
-            elif q[0] == 'AttrTouchSizeRange':
+            elif q[0] == "AttrTouchSizeRange":
                 self.down, self.up = colon_tuple(q[1])
-            elif q[0] == 'AttrThumbSizeThreshold':
+            elif q[0] == "AttrThumbSizeThreshold":
                 self.thumb = int(q[1])
 
     def start_new_sequence(self, tracking_id):
@@ -239,13 +252,17 @@ class Device(libevdev.Device):
         return self.sequences[-1]
 
     def handle_key(self, event):
-        tapcodes = [libevdev.EV_KEY.BTN_TOOL_DOUBLETAP,
-                    libevdev.EV_KEY.BTN_TOOL_TRIPLETAP,
-                    libevdev.EV_KEY.BTN_TOOL_QUADTAP,
-                    libevdev.EV_KEY.BTN_TOOL_QUINTTAP]
+        tapcodes = [
+            libevdev.EV_KEY.BTN_TOOL_DOUBLETAP,
+            libevdev.EV_KEY.BTN_TOOL_TRIPLETAP,
+            libevdev.EV_KEY.BTN_TOOL_QUADTAP,
+            libevdev.EV_KEY.BTN_TOOL_QUINTTAP,
+        ]
         if event.code in tapcodes and event.value > 0:
-            print("\rThis tool cannot handle multiple fingers, "
-                  "output will be invalid", file=sys.stderr)
+            print(
+                "\rThis tool cannot handle multiple fingers, " "output will be invalid",
+                file=sys.stderr,
+            )
 
     def handle_abs(self, event):
         if event.matches(libevdev.EV_ABS.ABS_MT_TRACKING_ID):
@@ -271,9 +288,11 @@ class Device(libevdev.Device):
             try:
                 self.current_sequence().append(self.touch)
                 print("\r{}".format(self.current_sequence()), end="")
-                self.touch = Touch(major=self.touch.major,
-                                   minor=self.touch.minor,
-                                   orientation=self.touch.orientation)
+                self.touch = Touch(
+                    major=self.touch.major,
+                    minor=self.touch.minor,
+                    orientation=self.touch.orientation,
+                )
             except IndexError:
                 pass
 
@@ -290,8 +309,10 @@ class Device(libevdev.Device):
         print("Touch sizes used: {}:{}".format(self.down, self.up))
         print("Palm size used: {}".format(self.palm))
         print("Thumb size used: {}".format(self.thumb))
-        print("Place a single finger on the device to measure touch size.\n"
-              "Ctrl+C to exit\n")
+        print(
+            "Place a single finger on the device to measure touch size.\n"
+            "Ctrl+C to exit\n"
+        )
 
         while True:
             for event in self.events():
@@ -300,11 +321,11 @@ class Device(libevdev.Device):
 
 def colon_tuple(string):
     try:
-        ts = string.split(':')
+        ts = string.split(":")
         t = tuple([int(x) for x in ts])
         if len(t) == 2 and t[0] >= t[1]:
             return t
-    except: # noqa
+    except:  # noqa
         pass
 
     msg = "{} is not in format N:M (N >= M)".format(string)
@@ -313,13 +334,25 @@ def colon_tuple(string):
 
 def main(args):
     parser = argparse.ArgumentParser(description="Measure touch size and orientation")
-    parser.add_argument('path', metavar='/dev/input/event0',
-                        nargs='?', type=str, help='Path to device (optional)')
-    parser.add_argument('--touch-thresholds', metavar='down:up',
-                        type=colon_tuple,
-                        help='Thresholds when a touch is logically down or up')
-    parser.add_argument('--palm-threshold', metavar='t',
-                        type=int, help='Threshold when a touch is a palm')
+    parser.add_argument(
+        "path",
+        metavar="/dev/input/event0",
+        nargs="?",
+        type=str,
+        help="Path to device (optional)",
+    )
+    parser.add_argument(
+        "--touch-thresholds",
+        metavar="down:up",
+        type=colon_tuple,
+        help="Thresholds when a touch is logically down or up",
+    )
+    parser.add_argument(
+        "--palm-threshold",
+        metavar="t",
+        type=int,
+        help="Threshold when a touch is a palm",
+    )
     args = parser.parse_args()
 
     try:
@@ -337,7 +370,9 @@ def main(args):
     except (PermissionError, OSError):
         print("Error: failed to open device")
     except InvalidDeviceError as e:
-        print("This device does not have the capabilities for size-based touch detection.")
+        print(
+            "This device does not have the capabilities for size-based touch detection."
+        )
         print("Details: {}".format(e))
 
 

@@ -27,13 +27,16 @@
 import sys
 import subprocess
 import argparse
+
 try:
     import libevdev
     import pyudev
 except ModuleNotFoundError as e:
-    print('Error: {}'.format(str(e)), file=sys.stderr)
-    print('One or more python modules are missing. Please install those '
-          'modules and re-run this tool.')
+    print("Error: {}".format(str(e)), file=sys.stderr)
+    print(
+        "One or more python modules are missing. Please install those "
+        "modules and re-run this tool."
+    )
     sys.exit(1)
 
 
@@ -48,35 +51,35 @@ class TableFormatter(object):
         return sum(self.colwidths) + 1
 
     def headers(self, args):
-        s = '|'
+        s = "|"
         align = self.ALIGNMENT - 1  # account for |
 
         for arg in args:
             # +2 because we want space left/right of text
             w = ((len(arg) + 2 + align) // align) * align
             self.colwidths.append(w + 1)
-            s += ' {:^{width}s} |'.format(arg, width=w - 2)
+            s += " {:^{width}s} |".format(arg, width=w - 2)
 
         return s
 
     def values(self, args):
-        s = '|'
+        s = "|"
         for w, arg in zip(self.colwidths, args):
             w -= 1  # width includes | separator
             if type(arg) == str:
                 # We want space margins for strings
-                s += ' {:{width}s} |'.format(arg, width=w - 2)
+                s += " {:{width}s} |".format(arg, width=w - 2)
             elif type(arg) == bool:
-                s += '{:^{width}s}|'.format('x' if arg else ' ', width=w)
+                s += "{:^{width}s}|".format("x" if arg else " ", width=w)
             else:
-                s += '{:^{width}d}|'.format(arg, width=w)
+                s += "{:^{width}d}|".format(arg, width=w)
 
         if len(args) < len(self.colwidths):
-            s += '|'.rjust(self.width - len(s), ' ')
+            s += "|".rjust(self.width - len(s), " ")
         return s
 
     def separator(self):
-        return '+' + '-' * (self.width - 2) + '+'
+        return "+" + "-" * (self.width - 2) + "+"
 
 
 fmt = TableFormatter()
@@ -84,9 +87,10 @@ fmt = TableFormatter()
 
 class Range(object):
     """Class to keep a min/max of a value around"""
+
     def __init__(self):
-        self.min = float('inf')
-        self.max = float('-inf')
+        self.min = float("inf")
+        self.max = float("-inf")
 
     def update(self, value):
         self.min = min(self.min, value)
@@ -157,19 +161,47 @@ class TouchSequence(object):
 
     def _str_summary(self):
         if not self.points:
-            return fmt.values([self.tracking_id, False, False, False, False,
-                              'No pressure values recorded'])
+            return fmt.values(
+                [
+                    self.tracking_id,
+                    False,
+                    False,
+                    False,
+                    False,
+                    "No pressure values recorded",
+                ]
+            )
 
-        s = fmt.values([self.tracking_id, self.was_down, True, self.was_palm,
-                        self.was_thumb, self.prange.min, self.prange.max, 0,
-                        self.avg(), self.median()])
+        s = fmt.values(
+            [
+                self.tracking_id,
+                self.was_down,
+                True,
+                self.was_palm,
+                self.was_thumb,
+                self.prange.min,
+                self.prange.max,
+                0,
+                self.avg(),
+                self.median(),
+            ]
+        )
 
         return s
 
     def _str_state(self):
-        s = fmt.values([self.tracking_id, self.is_down, not self.is_down,
-                        self.is_palm, self.is_thumb, self.prange.min,
-                        self.prange.max, self.points[-1].pressure])
+        s = fmt.values(
+            [
+                self.tracking_id,
+                self.is_down,
+                not self.is_down,
+                self.is_palm,
+                self.is_thumb,
+                self.prange.min,
+                self.prange.max,
+                self.points[-1].pressure,
+            ]
+        )
         return s
 
 
@@ -184,7 +216,7 @@ class Device(libevdev.Device):
         else:
             self.path = path
 
-        fd = open(self.path, 'rb')
+        fd = open(self.path, "rb")
         super().__init__(fd)
 
         print("Using {}: {}\n".format(self.name, self.path))
@@ -195,7 +227,9 @@ class Device(libevdev.Device):
             absinfo = self.absinfo[libevdev.EV_ABS.ABS_PRESSURE]
             self.has_mt_pressure = False
             if absinfo is None:
-                raise InvalidDeviceError("Device does not have ABS_PRESSURE or ABS_MT_PRESSURE")
+                raise InvalidDeviceError(
+                    "Device does not have ABS_PRESSURE or ABS_MT_PRESSURE"
+                )
 
         prange = absinfo.maximum - absinfo.minimum
 
@@ -210,12 +244,13 @@ class Device(libevdev.Device):
 
     def find_touchpad_device(self):
         context = pyudev.Context()
-        for device in context.list_devices(subsystem='input'):
-            if not device.get('ID_INPUT_TOUCHPAD', 0):
+        for device in context.list_devices(subsystem="input"):
+            if not device.get("ID_INPUT_TOUCHPAD", 0):
                 continue
 
-            if not device.device_node or \
-               not device.device_node.startswith('/dev/input/event'):
+            if not device.device_node or not device.device_node.startswith(
+                "/dev/input/event"
+            ):
                 continue
 
             return device.device_node
@@ -223,21 +258,24 @@ class Device(libevdev.Device):
         sys.exit(1)
 
     def _init_thresholds_from_quirks(self):
-        command = ['libinput', 'quirks', 'list', self.path]
+        command = ["libinput", "quirks", "list", self.path]
         cmd = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if cmd.returncode != 0:
-            print("Error querying quirks: {}".format(cmd.stderr.decode('utf-8')), file=sys.stderr)
+            print(
+                "Error querying quirks: {}".format(cmd.stderr.decode("utf-8")),
+                file=sys.stderr,
+            )
             return
 
-        stdout = cmd.stdout.decode('utf-8')
-        quirks = [q.split('=') for q in stdout.split('\n')]
+        stdout = cmd.stdout.decode("utf-8")
+        quirks = [q.split("=") for q in stdout.split("\n")]
 
         for q in quirks:
-            if q[0] == 'AttrPalmPressureThreshold':
+            if q[0] == "AttrPalmPressureThreshold":
                 self.palm = int(q[1])
-            elif q[0] == 'AttrPressureRange':
+            elif q[0] == "AttrPressureRange":
                 self.down, self.up = colon_tuple(q[1])
-            elif q[0] == 'AttrThumbPressureThreshold':
+            elif q[0] == "AttrThumbPressureThreshold":
                 self.thumb = int(q[1])
 
     def start_new_sequence(self, tracking_id):
@@ -252,11 +290,13 @@ def handle_key(device, event):
         libevdev.EV_KEY.BTN_TOOL_DOUBLETAP,
         libevdev.EV_KEY.BTN_TOOL_TRIPLETAP,
         libevdev.EV_KEY.BTN_TOOL_QUADTAP,
-        libevdev.EV_KEY.BTN_TOOL_QUINTTAP
+        libevdev.EV_KEY.BTN_TOOL_QUINTTAP,
     ]
     if event.code in tapcodes and event.value > 0:
-        print('\r\033[2KThis tool cannot handle multiple fingers, '
-              'output will be invalid')
+        print(
+            "\r\033[2KThis tool cannot handle multiple fingers, "
+            "output will be invalid"
+        )
 
 
 def handle_abs(device, event):
@@ -271,8 +311,9 @@ def handle_abs(device, event):
             except IndexError:
                 # If the finger was down at startup
                 pass
-    elif (event.matches(libevdev.EV_ABS.ABS_MT_PRESSURE) or
-          (event.matches(libevdev.EV_ABS.ABS_PRESSURE) and not device.has_mt_pressure)):
+    elif event.matches(libevdev.EV_ABS.ABS_MT_PRESSURE) or (
+        event.matches(libevdev.EV_ABS.ABS_PRESSURE) and not device.has_mt_pressure
+    ):
         try:
             s = device.current_sequence()
             s.append(Touch(pressure=event.value))
@@ -290,24 +331,26 @@ def handle_event(device, event):
 
 
 def loop(device):
-    print('This is an interactive tool')
+    print("This is an interactive tool")
     print()
     print("Place a single finger on the touchpad to measure pressure values.")
-    print('Check that:')
-    print('- touches subjectively perceived as down are tagged as down')
-    print('- touches with a thumb are tagged as thumb')
-    print('- touches with a palm are tagged as palm')
+    print("Check that:")
+    print("- touches subjectively perceived as down are tagged as down")
+    print("- touches with a thumb are tagged as thumb")
+    print("- touches with a palm are tagged as palm")
     print()
-    print('If the touch states do not match the interaction, re-run')
-    print('with --touch-thresholds=down:up using observed pressure values.')
-    print('See --help for more options.')
+    print("If the touch states do not match the interaction, re-run")
+    print("with --touch-thresholds=down:up using observed pressure values.")
+    print("See --help for more options.")
     print()
     print("Press Ctrl+C to exit")
     print()
 
-    headers = fmt.headers(['Touch', 'down', 'up', 'palm', 'thumb', 'min', 'max', 'p', 'avg', 'median'])
+    headers = fmt.headers(
+        ["Touch", "down", "up", "palm", "thumb", "min", "max", "p", "avg", "median"]
+    )
     print(fmt.separator())
-    print(fmt.values(['Thresh', device.down, device.up, device.palm, device.thumb]))
+    print(fmt.values(["Thresh", device.down, device.up, device.palm, device.thumb]))
     print(fmt.separator())
     print(headers)
     print(fmt.separator())
@@ -319,11 +362,11 @@ def loop(device):
 
 def colon_tuple(string):
     try:
-        ts = string.split(':')
+        ts = string.split(":")
         t = tuple([int(x) for x in ts])
         if len(t) == 2 and t[0] >= t[1]:
             return t
-    except: # noqa
+    except:  # noqa
         pass
 
     msg = "{} is not in format N:M (N >= M)".format(string)
@@ -331,24 +374,31 @@ def colon_tuple(string):
 
 
 def main(args):
-    parser = argparse.ArgumentParser(
-        description="Measure touchpad pressure values"
+    parser = argparse.ArgumentParser(description="Measure touchpad pressure values")
+    parser.add_argument(
+        "path",
+        metavar="/dev/input/event0",
+        nargs="?",
+        type=str,
+        help="Path to device (optional)",
     )
     parser.add_argument(
-        'path', metavar='/dev/input/event0', nargs='?', type=str,
-        help='Path to device (optional)'
+        "--touch-thresholds",
+        metavar="down:up",
+        type=colon_tuple,
+        help="Thresholds when a touch is logically down or up",
     )
     parser.add_argument(
-        '--touch-thresholds', metavar='down:up', type=colon_tuple,
-        help='Thresholds when a touch is logically down or up'
+        "--palm-threshold",
+        metavar="t",
+        type=int,
+        help="Threshold when a touch is a palm",
     )
     parser.add_argument(
-        '--palm-threshold', metavar='t', type=int,
-        help='Threshold when a touch is a palm'
-    )
-    parser.add_argument(
-        '--thumb-threshold', metavar='t', type=int,
-        help='Threshold when a touch is a thumb'
+        "--thumb-threshold",
+        metavar="t",
+        type=int,
+        help="Threshold when a touch is a thumb",
     )
     args = parser.parse_args()
 
@@ -366,13 +416,15 @@ def main(args):
 
         loop(device)
     except KeyboardInterrupt:
-        print('\r\033[2K{}'.format(fmt.separator()))
+        print("\r\033[2K{}".format(fmt.separator()))
         print()
 
     except (PermissionError, OSError):
         print("Error: failed to open device")
     except InvalidDeviceError as e:
-        print("This device does not have the capabilities for pressure-based touch detection.")
+        print(
+            "This device does not have the capabilities for pressure-based touch detection."
+        )
         print("Details: {}".format(e))
 
 
