@@ -2117,8 +2117,6 @@ mainloop(struct record_context *ctx)
 	struct pollfd fds[ctx->ndevices + 2];
 	unsigned int nfds = 0;
 	struct record_device *d = NULL;
-	struct record_device *first_device = NULL;
-	struct timespec ts;
 	sigset_t mask;
 
 	assert(ctx->timeout != 0);
@@ -2157,6 +2155,8 @@ mainloop(struct record_context *ctx)
 	 * start time. Otherwise, the first event starts the recording time.
 	 */
 	if (ctx->ndevices > 1) {
+		struct timespec ts;
+
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 		ctx->offset = s2us(ts.tv_sec) + ns2us(ts.tv_nsec);
 	}
@@ -2164,6 +2164,7 @@ mainloop(struct record_context *ctx)
 	do {
 		int rc;
 		bool had_events = false; /* we delete files without events */
+		struct record_device *first_device = NULL;
 
 		if (!open_output_file(ctx, autorestart)) {
 			fprintf(stderr,
