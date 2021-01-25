@@ -2129,24 +2129,26 @@ mainloop(struct record_context *ctx)
 	sigaddset(&mask, SIGQUIT);
 	sigprocmask(SIG_BLOCK, &mask, NULL);
 
+	for (size_t i = 0; i < ARRAY_LENGTH(fds); i++) {
+		fds[i] = (struct pollfd) {
+			.fd = -1,
+			.events = POLLIN,
+			.revents = 0,
+		};
+	}
+
 	fds[0].fd = signalfd(-1, &mask, SFD_NONBLOCK);
-	fds[0].events = POLLIN;
-	fds[0].revents = 0;
 	assert(fds[0].fd != -1);
 	nfds++;
 
 	if (ctx->libinput) {
 		fds[1].fd = libinput_get_fd(ctx->libinput);
-		fds[1].events = POLLIN;
-		fds[1].revents = 0;
 		nfds++;
 		assert(nfds == 2);
 	}
 
 	list_for_each(d, &ctx->devices, link) {
 		fds[nfds].fd = libevdev_get_fd(d->evdev);
-		fds[nfds].events = POLLIN;
-		fds[nfds].revents = 0;
 		assert(fds[nfds].fd != -1);
 		nfds++;
 	}
