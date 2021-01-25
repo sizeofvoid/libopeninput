@@ -29,6 +29,7 @@
 #include <libevdev/libevdev.h>
 #include <libudev.h>
 #include <sys/signalfd.h>
+#include <sys/timerfd.h>
 #include <sys/utsname.h>
 #include <sys/stat.h>
 #include <string.h>
@@ -2110,12 +2111,38 @@ print_progress_bar(void)
 	fprintf(stderr, "\rReceiving events: [%*s%*s]", foo, "*", 21 - foo, " ");
 }
 
+static inline void
+print_wall_time(struct record_context *ctx)
+{
+	time_t t = time(NULL);
+	struct tm tm;
+
+	localtime_r(&t, &tm);
+	iprintf(ctx, "# Current time is %02d:%02d:%02d\n", tm.tm_hour, tm.tm_min, tm.tm_sec);
+}
+
+static inline void
+arm_timer(int timerfd)
+{
+	time_t t = time(NULL);
+	struct tm tm;
+	struct itimerspec interval = {
+		.it_value = { 0, 0 },
+		.it_interval = { 5, 0 },
+	};
+
+	localtime_r(&t, &tm);
+	interval.it_value.tv_sec = 5 - (tm.tm_sec % 5);
+	timerfd_settime(timerfd, 0, &interval, NULL);
+}
+
 static int
 mainloop(struct record_context *ctx)
 {
 	bool autorestart = (ctx->timeout > 0);
-	struct pollfd fds[ctx->ndevices + 2];
+	struct pollfd fds[ctx->ndevices + 3];
 	struct pollfd *signal_fd = &fds[0];
+	struct pollfd *time_fd = &fds[1];
 	struct pollfd *libinput_fd = NULL;
 	unsigned int nfds = 0;
 	struct record_device *d = NULL;
@@ -2139,6 +2166,11 @@ mainloop(struct record_context *ctx)
 
 	signal_fd->fd = signalfd(-1, &mask, SFD_NONBLOCK);
 	assert(signal_fd->fd != -1);
+	nfds++;
+
+	time_fd->fd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
+	assert(time_fd->fd != -1);
+	arm_timer(time_fd->fd);
 	nfds++;
 
 	if (ctx->libinput) {
@@ -2165,6 +2197,8 @@ mainloop(struct record_context *ctx)
 	do {
 		int rc;
 		bool had_events = false; /* we delete files without events */
+		bool had_events_since_last_time = false;
+		bool skipped_timer_print = false;
 		struct record_device *first_device = NULL;
 
 		if (!open_output_file(ctx, autorestart)) {
@@ -2193,6 +2227,7 @@ mainloop(struct record_context *ctx)
 						link);
 		print_device_description(ctx, first_device);
 
+		print_wall_time(ctx);
 		iprintf(ctx, "events:\n");
 		indent_push(ctx);
 
@@ -2224,6 +2259,28 @@ mainloop(struct record_context *ctx)
 				break;
 			}
 
+			if (time_fd->revents) { /* timer expiry */
+				char discard[64];
+				read(time_fd->fd, discard, sizeof(discard));
+
+				if (had_events_since_last_time) {
+					print_wall_time(ctx);
+					had_events_since_last_time = false;
+					skipped_timer_print = false;
+				} else {
+					skipped_timer_print = true;
+				}
+
+				if (rc == 1) /* no other fds have data */
+					continue;
+			}
+
+			if (skipped_timer_print) {
+				print_wall_time(ctx);
+				had_events_since_last_time = false;
+				skipped_timer_print = false;
+			}
+
 			/* Pull off the evdev events first since they cause
 			 * libinput events.
 			 * handle_events de-queues libinput events so by the
@@ -2231,6 +2288,7 @@ mainloop(struct record_context *ctx)
 			 * events and libinput events roughly in sync.
 			 */
 			had_events = true;
+			had_events_since_last_time = true;
 			list_for_each(d, &ctx->devices, link)
 				handle_events(ctx, d, d == first_device);
 
@@ -2297,6 +2355,7 @@ mainloop(struct record_context *ctx)
 	} while (autorestart);
 
 	close(signal_fd->fd);
+	close(time_fd->fd);
 
 	sigprocmask(SIG_UNBLOCK, &mask, NULL);
 
