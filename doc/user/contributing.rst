@@ -28,7 +28,7 @@ behaviour is not tolerated by the project.
 Contact
 ------------------------------------------------------------------------------
 
-Questions can be asked on ``#wayland-devel`` on freenode or on the
+Questions can be asked on ``#wayland`` on freenode or on the
 `wayland-devel@lists.freedesktop.org
 <https://lists.freedesktop.org/mailman/listinfo/wayland-devel>`_ mailing
 list.
