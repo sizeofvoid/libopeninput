@@ -519,6 +519,7 @@ executable('libinput-analyze',
 
 src_python_tools = files(
 	      'tools/libinput-analyze-per-slot-delta.py',
+	      'tools/libinput-analyze-recording.py',
 	      'tools/libinput-analyze-touch-down-state.py',
 	      'tools/libinput-measure-fuzz.py',
 	      'tools/libinput-measure-touchpad-size.py',
@@ -912,6 +913,7 @@ src_man += files(
 	'tools/libinput.man',
 	'tools/libinput-analyze.man',
 	'tools/libinput-analyze-per-slot-delta.man',
+	'tools/libinput-analyze-recording.man',
 	'tools/libinput-analyze-touch-down-state.man',
 	'tools/libinput-debug-events.man',
 	'tools/libinput-debug-tablet.man',
