@@ -66,15 +66,18 @@ All `Attr` tag values are specific to that attribute.
 Parser errors
 -------------
 
-The following will cause parser errors and are considered invalid data
-files:
+The following requirements must be met:
 
-* Whitespace at the beginning of the line
-* Sections without a `Match*` entry
-* Sections with the same `Match*` entry repeated
-* Sections without at least one of `Model*` or `Attr` entries
-* A `Model` tag with a value other than `1` or `0`
-* A string property with enclosing quotes
+* No whitespace is allowed at the beginning of the line
+* A Section must have at least one `Match*` entry
+* A Section must not repeat `Match*` entry
+* A Section must have at least one of `Model*` or `Attr*` entries
+* A `Model` tag may only have the value `1` or `0`
+* String properties must not be enclosed in quotes
+* Hex numbers must use uppercase letters (e.g. `0x12AB`)
+
+Failure to meet these requirements will cause a parser error and the quirks
+files will not be used.
 
 Debugging
 ---------
