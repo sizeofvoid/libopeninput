@@ -50,7 +50,7 @@ If you don't already know what you want to improve or fix with libinput,
 then a good way of finding something is to search for the ``help needed``
 tag in our `issue tracker <https://gitlab.freedesktop.org/libinput/libinput/issues?label_name%5B%5D=help+needed>`_.
 These are issues that have been triaged to some degree and deemed to be a
-possible future feature to libinput. 
+possible future feature to libinput.
 
 .. note:: Some of these issue may require specific hardware to reproduce.
 
@@ -79,11 +79,11 @@ You can omit the last step if you only want to test locally.
 Working on the code
 ------------------------------------------------------------------------------
 
-libinput has a roughly three-parts architecture: 
+libinput has a roughly three-parts architecture:
 
 -  the front-end code which handles the ``libinput_some_function()`` API calls in ``libinput.c``
 -  the generic evdev interface handling which maps those API calls to the
-   backend calls (``evdev.c``). 
+   backend calls (``evdev.c``).
 - there are device-specific backends which do most of the actual work -
   ``evdev-mt-touchpad.c`` is the one for touchpads for example.
 
