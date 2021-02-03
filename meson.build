@@ -7,7 +7,8 @@ project('libinput', 'c',
 libinput_version = meson.project_version().split('.')
 
 dir_data        = join_paths(get_option('prefix'), get_option('datadir'), 'libinput')
-dir_sysconf     = join_paths(get_option('prefix'), get_option('sysconfdir'), 'libinput')
+dir_etc         = join_paths(get_option('prefix'), get_option('sysconfdir'))
+dir_overrides   = join_paths(get_option('prefix'), get_option('sysconfdir'), 'libinput')
 dir_libexec     = join_paths(get_option('prefix'), get_option('libexecdir'), 'libinput')
 dir_lib         = join_paths(get_option('prefix'), get_option('libdir'))
 dir_man1        = join_paths(get_option('prefix'), get_option('mandir'), 'man1')
@@ -312,7 +313,7 @@ dep_libfilter = declare_dependency(link_with : libfilter)
 
 ############ libquirks.a #############
 libinput_data_path = dir_data
-libinput_data_override_path = join_paths(dir_sysconf, 'local-overrides.quirks')
+libinput_data_override_path = join_paths(dir_overrides, 'local-overrides.quirks')
 config_h.set_quoted('LIBINPUT_QUIRKS_DIR', dir_data)
 config_h.set_quoted('LIBINPUT_QUIRKS_OVERRIDE_FILE', libinput_data_override_path)
 
@@ -333,6 +334,9 @@ libquirks = static_library('quirks', src_libquirks,
 			   dependencies : deps_libquirks,
 			   include_directories : includes_include)
 dep_libquirks = declare_dependency(link_with : libquirks)
+
+# Create /etc/libinput
+install_subdir('libinput', install_dir : dir_etc)
 
 ############ libinput.so ############
 install_headers('src/libinput.h')

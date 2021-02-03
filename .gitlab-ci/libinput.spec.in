@@ -73,6 +73,7 @@ intended to be run by users.
 
 %files
 %doc COPYING
+%dir %{_sysconfdir}/libinput
 %{_libdir}/libinput.so.*
 %{udevdir}/libinput-device-group
 %{udevdir}/libinput-fuzz-extract
