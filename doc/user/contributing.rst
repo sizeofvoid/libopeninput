@@ -149,32 +149,75 @@ Any patches should be sent via a Merge Request (see the `GitLab docs
 in the `libinput GitLab instance hosted by freedesktop.org
 <https://gitlab.freedesktop.org/libinput/libinput>`_.
 
-To submit a merge request, you need to
+Below are the steps required to submit a merge request. They do not
+replace `learning git <https://git-scm.com/doc>`__ but they should be
+sufficient to make some of the more confusing steps obvious.
 
 - `Register an account <https://gitlab.freedesktop.org/users/sign_in>`_ in
   the freedesktop.org GitLab instance.
 - `Fork libinput <https://gitlab.freedesktop.org/libinput/libinput/forks/new>`_
   into your username's namespace
-- Get libinput's main repository: ::
+- Get libinput's main repository. git will call this repository ``origin``. ::
 
     git clone https://gitlab.freedesktop.org/libinput/libinput.git
 
 - Add the forked git repository to your remotes (replace ``USERNAME``
-  with your username): ::
+  with your username). git will call this repository ``gitlab``. ::
 
     cd /path/to/libinput.git
     git remote add gitlab git@gitlab.freedesktop.org:USERNAME/libinput.git
     git fetch gitlab
 
-- Push your changes to your fork: ::
+- Create a new branch and commit your changes to that branch. ::
 
-    git push gitlab BRANCHNAME
+    git switch -C mynewbranch
+    # edit files, make changes
+    git add file1 file2
+    git commit -s
+    # edit commit message in the editor
 
-- Submit a merge request. The URL for a merge request is: ::
+  Replace ``mynewbranch`` (here and in the commands below) with a meaningful
+  name. See :ref:`contributing_commit_messages` for details on the commit
+  message format.
+
+- Push your changes to your fork and submit a merge request ::
+
+    git push gitlab mynewbranch
+
+  This command will print the URL to file a merge request, you then only
+  have to click through. Alternatively you can go to:
 
     https://gitlab.freedesktop.org/USERNAME/libinput/merge_requests
 
   Select your branch name to merge and ``libinput/libinput`` ``master`` as target branch.
+
+- Verify that the CI completes successfully by visiting the merge request
+  page. A successful pipeline shows only green ticks, failure is indicated
+  by a red cross or a yellow exclamation mark (see
+  the `GitLab Docs
+  <https://docs.gitlab.com/ee/ci/pipelines/#pipeline-mini-graphs>`__). For
+  details about the failures, click on the failed jobs in the pipelines
+  and/or click the ``Expand`` button in the box for the test summaries.
+
+  A merge request without a successful pipeline may never be looked at by a
+  maintainer.
+
+- If changes are requested by the maintainers, please **amend** the
+  commit(s) and **force-push** the updated branch. ::
+
+    # edits in file foo.c
+    git add foo.c
+    git commit --amend
+    git push -f gitlab mynewbranch
+
+  A force-push will re-trigger the CI and notify the merge request that new
+  changes are available.
+
+  If the branch contains more than one commit, please look at
+  `git interactive rebases
+  <https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History>`__
+  to learn how to change multiple commits, or squash new changes into older
+  commits.
 
 ------------------------------------------------------------------------------
 Commit History
@@ -214,6 +257,8 @@ describes the change. For example: ::
 
 If in doubt what prefix to use, look at other commits that change the
 same file(s) as the patch being sent.
+
+.. _contributing_commit_messages:
 
 ------------------------------------------------------------------------------
 Commit Messages
