@@ -3610,6 +3610,26 @@ out:
 	return rc;
 }
 
+static void
+tp_init_pressurepad(struct tp_dispatch *tp,
+		    struct evdev_device *device)
+{
+	/* On traditional touchpads, the pressure value equals contact
+	 * size. On PressurePads, pressure is a real physical axis for the
+	 * force down. So we disable it here because we don't do anything
+	 * with it anyway and using it for touch size messes things up.
+	 *
+	 * The kernel/udev set the resolution to non-zero on those devices
+	 * to indicate that the value is in a known axis space.
+	 *
+	 * See also #562
+	 */
+	if (libevdev_get_abs_resolution(device->evdev, ABS_MT_PRESSURE) != 0) {
+		libevdev_disable_event_code(device->evdev, EV_ABS, ABS_MT_PRESSURE);
+		libevdev_disable_event_code(device->evdev, EV_ABS, ABS_PRESSURE);
+	}
+}
+
 static int
 tp_init(struct tp_dispatch *tp,
 	struct evdev_device *device)
@@ -3625,9 +3645,11 @@ tp_init(struct tp_dispatch *tp,
 		return false;
 
 	tp_init_default_resolution(tp, device);
+	tp_init_pressurepad(tp, device);
 
 	if (!tp_init_slots(tp, device))
 		return false;
+
 
 	evdev_device_init_abs_range_warnings(device);
 	use_touch_size = tp_init_touch_size(tp, device);

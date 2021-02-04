@@ -1799,7 +1799,8 @@ touchpad_has_palm_pressure(struct litest_device *dev)
 		return false;
 
 	if (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_PRESSURE))
-		return true;
+		return libevdev_get_abs_resolution(evdev,
+						   ABS_MT_PRESSURE) == 0;
 
 	return false;
 }
@@ -5920,7 +5921,8 @@ touchpad_has_pressure(struct litest_device *dev)
 		return false;
 
 	if (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_PRESSURE))
-		return true;
+		return libevdev_get_abs_resolution(evdev,
+						   ABS_MT_PRESSURE) == 0;
 
 	if (libevdev_has_event_code(evdev, EV_ABS, ABS_PRESSURE) &&
 	    !libevdev_has_event_code(evdev, EV_ABS, ABS_MT_SLOT))

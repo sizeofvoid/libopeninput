@@ -777,6 +777,7 @@ if get_option('tests')
 		'test/litest-device-dell-canvas-totem-touch.c',
 		'test/litest-device-elantech-touchpad.c',
 		'test/litest-device-elan-tablet.c',
+		'test/litest-device-generic-pressurepad.c',
 		'test/litest-device-generic-singletouch.c',
 		'test/litest-device-gpio-keys.c',
 		'test/litest-device-huion-pentablet.c',

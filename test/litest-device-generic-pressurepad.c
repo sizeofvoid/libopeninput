@@ -26,11 +26,11 @@
 #include "litest.h"
 #include "litest-int.h"
 
-/*
- * Device from https://gitlab.freedesktop.org/libinput/libinput/-/issues/562
- *
- * This device relies on a quirk to disable the pressure axis, resolution is
- * not set on ABS_PRESSURE.
+/* This is the same device as the one from
+   https://gitlab.freedesktop.org/libinput/libinput/-/issues/562
+
+   Except this one has a different input_id and sets the pressure
+   resolution to test the generic pressure handling.
  */
 
 static struct input_event down[] = {
@@ -83,8 +83,8 @@ static struct litest_device_interface interface = {
 
 static struct input_id input_id = {
 	.bustype = 0x18,
-	.vendor = 0x6cb,
-	.product = 0xce37,
+	.vendor = 0x123,
+	.product = 0x4567,
 };
 
 static int events[] = {
@@ -103,22 +103,22 @@ static int events[] = {
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 1224, 0, 0, 12 },
 	{ ABS_Y, 0, 756, 0, 0, 12 },
-	{ ABS_PRESSURE, 0, 255, 0, 0, 0 }, /* note: resolution zero */
+	{ ABS_PRESSURE, 0, 255, 0, 0, 40 }, /* some random resolution */
 	{ ABS_MT_SLOT, 0, 4, 0, 0, 0 },
 	{ ABS_MT_POSITION_X, 0, 1224, 0, 0, 12 },
 	{ ABS_MT_POSITION_Y, 0, 756, 0, 0, 12 },
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
-	{ ABS_MT_PRESSURE, 0, 255, 0, 0, 0 }, /* note: resolution zero */
+	{ ABS_MT_PRESSURE, 0, 255, 0, 0, 40 }, /* some random resolution */
 	{ ABS_MT_TOOL_TYPE, 0, 2, 0, 0, 0 },
 	{ .value = -1 }
 };
 
-TEST_DEVICE("synaptics-pressurepad",
-	.type = LITEST_SYNAPTICS_PRESSUREPAD,
+TEST_DEVICE("generic-pressurepad",
+	.type = LITEST_GENERIC_PRESSUREPAD,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
 	.interface = &interface,
 
-	.name = "SYNA2B31:00 06CB:CE37 Touchpad",
+	.name = "Some Generic Pressurepad Touchpad",
 	.id = &input_id,
 	.events = events,
 	.absinfo = absinfo,
