@@ -1702,79 +1702,79 @@ TEST_COLLECTION(device)
 	struct range abs_range = { 0, ABS_MISC };
 	struct range abs_mt_range = { ABS_MT_SLOT + 1, ABS_CNT };
 
-	litest_add("device:sendevents", device_sendevents_config, LITEST_ANY, LITEST_TOUCHPAD|LITEST_TABLET);
-	litest_add("device:sendevents", device_sendevents_config_invalid, LITEST_ANY, LITEST_TABLET);
-	litest_add("device:sendevents", device_sendevents_config_touchpad, LITEST_TOUCHPAD, LITEST_TABLET);
-	litest_add("device:sendevents", device_sendevents_config_touchpad_superset, LITEST_TOUCHPAD, LITEST_TABLET);
-	litest_add("device:sendevents", device_sendevents_config_default, LITEST_ANY, LITEST_TABLET);
-	litest_add("device:sendevents", device_disable, LITEST_RELATIVE, LITEST_TABLET);
-	litest_add("device:sendevents", device_disable_tablet, LITEST_TABLET, LITEST_ANY);
-	litest_add("device:sendevents", device_disable_touchpad, LITEST_TOUCHPAD, LITEST_TABLET);
-	litest_add("device:sendevents", device_disable_touch, LITEST_TOUCH, LITEST_ANY);
-	litest_add("device:sendevents", device_disable_touch_during_touch, LITEST_TOUCH, LITEST_ANY);
-	litest_add("device:sendevents", device_disable_touch, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
-	litest_add("device:sendevents", device_disable_touch_during_touch, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
-	litest_add("device:sendevents", device_disable_events_pending, LITEST_RELATIVE, LITEST_TOUCHPAD|LITEST_TABLET);
-	litest_add("device:sendevents", device_double_disable, LITEST_ANY, LITEST_TABLET);
-	litest_add("device:sendevents", device_double_enable, LITEST_ANY, LITEST_TABLET);
-	litest_add_no_device("device:sendevents", device_reenable_syspath_changed);
-	litest_add_no_device("device:sendevents", device_reenable_device_removed);
-	litest_add_for_device("device:sendevents", device_disable_release_buttons, LITEST_MOUSE);
-	litest_add_for_device("device:sendevents", device_disable_release_keys, LITEST_KEYBOARD);
-	litest_add("device:sendevents", device_disable_release_tap, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("device:sendevents", device_disable_release_tap_n_drag, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("device:sendevents", device_disable_release_softbutton, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
-	litest_add("device:sendevents", device_disable_topsoftbutton, LITEST_TOPBUTTONPAD, LITEST_ANY);
-	litest_add("device:id", device_ids, LITEST_ANY, LITEST_ANY);
-	litest_add_for_device("device:context", device_context, LITEST_SYNAPTICS_CLICKPAD_X220);
-	litest_add_for_device("device:context", device_user_data, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add(device_sendevents_config, LITEST_ANY, LITEST_TOUCHPAD|LITEST_TABLET);
+	litest_add(device_sendevents_config_invalid, LITEST_ANY, LITEST_TABLET);
+	litest_add(device_sendevents_config_touchpad, LITEST_TOUCHPAD, LITEST_TABLET);
+	litest_add(device_sendevents_config_touchpad_superset, LITEST_TOUCHPAD, LITEST_TABLET);
+	litest_add(device_sendevents_config_default, LITEST_ANY, LITEST_TABLET);
+	litest_add(device_disable, LITEST_RELATIVE, LITEST_TABLET);
+	litest_add(device_disable_tablet, LITEST_TABLET, LITEST_ANY);
+	litest_add(device_disable_touchpad, LITEST_TOUCHPAD, LITEST_TABLET);
+	litest_add(device_disable_touch, LITEST_TOUCH, LITEST_ANY);
+	litest_add(device_disable_touch_during_touch, LITEST_TOUCH, LITEST_ANY);
+	litest_add(device_disable_touch, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
+	litest_add(device_disable_touch_during_touch, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
+	litest_add(device_disable_events_pending, LITEST_RELATIVE, LITEST_TOUCHPAD|LITEST_TABLET);
+	litest_add(device_double_disable, LITEST_ANY, LITEST_TABLET);
+	litest_add(device_double_enable, LITEST_ANY, LITEST_TABLET);
+	litest_add_no_device(device_reenable_syspath_changed);
+	litest_add_no_device(device_reenable_device_removed);
+	litest_add_for_device(device_disable_release_buttons, LITEST_MOUSE);
+	litest_add_for_device(device_disable_release_keys, LITEST_KEYBOARD);
+	litest_add(device_disable_release_tap, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(device_disable_release_tap_n_drag, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(device_disable_release_softbutton, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
+	litest_add(device_disable_topsoftbutton, LITEST_TOPBUTTONPAD, LITEST_ANY);
+	litest_add(device_ids, LITEST_ANY, LITEST_ANY);
+	litest_add_for_device(device_context, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device(device_user_data, LITEST_SYNAPTICS_CLICKPAD_X220);
 
-	litest_add("device:udev", device_get_udev_handle, LITEST_ANY, LITEST_ANY);
+	litest_add(device_get_udev_handle, LITEST_ANY, LITEST_ANY);
 
-	litest_add("device:group", device_group_get, LITEST_ANY, LITEST_ANY);
-	litest_add_no_device("device:group", device_group_ref);
-	litest_add_no_device("device:group", device_group_leak);
+	litest_add(device_group_get, LITEST_ANY, LITEST_ANY);
+	litest_add_no_device(device_group_ref);
+	litest_add_no_device(device_group_leak);
 
-	litest_add_no_device("device:invalid devices", abs_device_no_absx);
-	litest_add_no_device("device:invalid devices", abs_device_no_absy);
-	litest_add_no_device("device:invalid devices", abs_mt_device_no_absx);
-	litest_add_no_device("device:invalid devices", abs_mt_device_no_absy);
-	litest_add_ranged_no_device("device:invalid devices", abs_device_no_range, &abs_range);
-	litest_add_ranged_no_device("device:invalid devices", abs_mt_device_no_range, &abs_mt_range);
-	litest_add_no_device("device:invalid devices", abs_device_missing_res);
-	litest_add_no_device("device:invalid devices", abs_mt_device_missing_res);
-	litest_add_no_device("device:invalid devices", ignore_joystick);
+	litest_add_no_device(abs_device_no_absx);
+	litest_add_no_device(abs_device_no_absy);
+	litest_add_no_device(abs_mt_device_no_absx);
+	litest_add_no_device(abs_mt_device_no_absy);
+	litest_add_ranged_no_device(abs_device_no_range, &abs_range);
+	litest_add_ranged_no_device(abs_mt_device_no_range, &abs_mt_range);
+	litest_add_no_device(abs_device_missing_res);
+	litest_add_no_device(abs_mt_device_missing_res);
+	litest_add_no_device(ignore_joystick);
 
-	litest_add("device:wheel", device_wheel_only, LITEST_WHEEL, LITEST_RELATIVE|LITEST_ABSOLUTE|LITEST_TABLET);
-	litest_add_no_device("device:accelerometer", device_accelerometer);
+	litest_add(device_wheel_only, LITEST_WHEEL, LITEST_RELATIVE|LITEST_ABSOLUTE|LITEST_TABLET);
+	litest_add_no_device(device_accelerometer);
 
-	litest_add("device:udev tags", device_udev_tag_wacom_tablet, LITEST_TABLET, LITEST_TOTEM);
+	litest_add(device_udev_tag_wacom_tablet, LITEST_TABLET, LITEST_TOTEM);
 
-	litest_add_no_device("device:invalid rel events", device_nonpointer_rel);
-	litest_add_no_device("device:invalid rel events", device_touchpad_rel);
-	litest_add_no_device("device:invalid rel events", device_touch_rel);
-	litest_add_no_device("device:invalid rel events", device_abs_rel);
+	litest_add_no_device(device_nonpointer_rel);
+	litest_add_no_device(device_touchpad_rel);
+	litest_add_no_device(device_touch_rel);
+	litest_add_no_device(device_abs_rel);
 
-	litest_add_for_device("device:quirks", device_quirks_no_abs_mt_y, LITEST_ANKER_MOUSE_KBD);
-	litest_add_for_device("device:quirks", device_quirks_cyborg_rat_mode_button, LITEST_CYBORG_RAT);
-	litest_add_for_device("device:quirks", device_quirks_apple_magicmouse, LITEST_MAGICMOUSE);
-	litest_add_for_device("device:quirks", device_quirks_logitech_marble_mouse, LITEST_LOGITECH_TRACKBALL);
-	litest_add_no_device("device:quirks", device_quirks);
+	litest_add_for_device(device_quirks_no_abs_mt_y, LITEST_ANKER_MOUSE_KBD);
+	litest_add_for_device(device_quirks_cyborg_rat_mode_button, LITEST_CYBORG_RAT);
+	litest_add_for_device(device_quirks_apple_magicmouse, LITEST_MAGICMOUSE);
+	litest_add_for_device(device_quirks_logitech_marble_mouse, LITEST_LOGITECH_TRACKBALL);
+	litest_add_no_device(device_quirks);
 
-	litest_add("device:capability", device_capability_at_least_one, LITEST_ANY, LITEST_ANY);
-	litest_add("device:capability", device_capability_check_invalid, LITEST_ANY, LITEST_ANY);
-	litest_add_no_device("device:capability", device_capability_nocaps_ignored);
+	litest_add(device_capability_at_least_one, LITEST_ANY, LITEST_ANY);
+	litest_add(device_capability_check_invalid, LITEST_ANY, LITEST_ANY);
+	litest_add_no_device(device_capability_nocaps_ignored);
 
-	litest_add("device:size", device_has_size, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("device:size", device_has_size, LITEST_TABLET, LITEST_ANY);
-	litest_add("device:size", device_has_no_size, LITEST_ANY,
+	litest_add(device_has_size, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(device_has_size, LITEST_TABLET, LITEST_ANY);
+	litest_add(device_has_no_size, LITEST_ANY,
 		   LITEST_TOUCHPAD|LITEST_TABLET|LITEST_TOUCH|LITEST_ABSOLUTE|LITEST_SINGLE_TOUCH|LITEST_TOTEM);
 
-	litest_add_for_device("device:output", device_get_output, LITEST_CALIBRATED_TOUCHSCREEN);
-	litest_add("device:output", device_no_output, LITEST_RELATIVE, LITEST_ANY);
-	litest_add("device:output", device_no_output, LITEST_KEYS, LITEST_ANY);
+	litest_add_for_device(device_get_output, LITEST_CALIBRATED_TOUCHSCREEN);
+	litest_add(device_no_output, LITEST_RELATIVE, LITEST_ANY);
+	litest_add(device_no_output, LITEST_KEYS, LITEST_ANY);
 
-	litest_add("device:seat", device_seat_phys_name, LITEST_ANY, LITEST_ANY);
+	litest_add(device_seat_phys_name, LITEST_ANY, LITEST_ANY);
 
-	litest_add("device:button", device_button_down_remove, LITEST_BUTTON, LITEST_ANY);
+	litest_add(device_button_down_remove, LITEST_BUTTON, LITEST_ANY);
 }

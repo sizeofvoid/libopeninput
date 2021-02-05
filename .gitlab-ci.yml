@@ -535,11 +535,23 @@ vm-tap:
   extends:
     - .fedora:33@test-suite-vm
   variables:
-    SUITE_NAMES: 'tap'
+    SUITE_NAMES: 'touchpad-tap'
 
 vm-tap-no-libwacom:
   extends:
     - vm-tap
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
+vm-touchpad-buttons:
+  extends:
+    - .fedora:33@test-suite-vm
+  variables:
+    SUITE_NAMES: 'touchpad-buttons'
+
+vm-touchpad-buttons-no-libwacom:
+  extends:
+    - vm-touchpad-buttons
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
@@ -567,15 +579,39 @@ vm-gestures-device-no-libwacom:
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
-vm-others:
+vm-backends:
   extends:
     - .fedora:33@test-suite-vm
   variables:
-    SUITE_NAMES: 'context config misc events totem udev lid log timer tablet-mode quirks trackball pad path keyboard switch touch trackpoint'
+    SUITE_NAMES: 'path udev'
 
-vm-others-no-libwacom:
+vm-backends-no-libwacom:
   extends:
-    - vm-others
+    - vm-backends
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
+vm-misc:
+  extends:
+    - .fedora:33@test-suite-vm
+  variables:
+    SUITE_NAMES: 'log misc quirks'
+
+vm-misc-no-libwacom:
+  extends:
+    - vm-misc
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
+vm-other devices:
+  extends:
+    - .fedora:33@test-suite-vm
+  variables:
+    SUITE_NAMES: 'keyboard pad switch trackball trackpoint totem touch'
+
+vm-other devices-no-libwacom:
+  extends:
+    - vm-other devices
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
@@ -606,6 +642,13 @@ vm-valgrind-tap:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
+vm-valgrind-touchpad-buttons:
+  stage: valgrind
+  extends:
+    - vm-touchpad-buttons
+  variables:
+    MESON_TEST_ARGS: '--setup=valgrind'
+
 vm-valgrind-tablet:
   stage: valgrind
   extends:
@@ -620,10 +663,24 @@ vm-valgrind-gestures-device:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 
-vm-valgrind-others:
+vm-valgrind-backends:
   stage: valgrind
   extends:
-    - vm-others
+    - vm-backends
+  variables:
+    MESON_TEST_ARGS: '--setup=valgrind'
+
+vm-valgrind-misc:
+  stage: valgrind
+  extends:
+    - vm-misc
+  variables:
+    MESON_TEST_ARGS: '--setup=valgrind'
+
+vm-valgrind-other devices:
+  stage: valgrind
+  extends:
+    - vm-other devices
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
 

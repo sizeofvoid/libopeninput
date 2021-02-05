@@ -1342,53 +1342,53 @@ TEST_COLLECTION(touch)
 {
 	struct range axes = { ABS_X, ABS_Y + 1};
 
-	litest_add("touch:frame", touch_frame_events, LITEST_TOUCH, LITEST_ANY);
-	litest_add("touch:down", touch_downup_no_motion, LITEST_TOUCH, LITEST_ANY);
-	litest_add("touch:down", touch_downup_no_motion, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
-	litest_add_no_device("touch:abs-transform", touch_abs_transform);
-	litest_add("touch:slots", touch_seat_slot, LITEST_TOUCH, LITEST_TOUCHPAD);
-	litest_add_no_device("touch:slots", touch_many_slots);
-	litest_add("touch:double-touch-down-up", touch_double_touch_down_up, LITEST_TOUCH, LITEST_PROTOCOL_A);
-	litest_add("touch:calibration", touch_calibration_scale, LITEST_TOUCH, LITEST_TOUCHPAD);
-	litest_add("touch:calibration", touch_calibration_scale, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
-	litest_add("touch:calibration", touch_calibration_rotation, LITEST_TOUCH, LITEST_TOUCHPAD);
-	litest_add("touch:calibration", touch_calibration_rotation, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
-	litest_add("touch:calibration", touch_calibration_translation, LITEST_TOUCH, LITEST_TOUCHPAD);
-	litest_add("touch:calibration", touch_calibration_translation, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
-	litest_add_for_device("touch:calibration", touch_calibrated_screen_path, LITEST_CALIBRATED_TOUCHSCREEN);
-	litest_add_for_device("touch:calibration", touch_calibrated_screen_udev, LITEST_CALIBRATED_TOUCHSCREEN);
-	litest_add("touch:calibration", touch_calibration_config, LITEST_TOUCH, LITEST_ANY);
+	litest_add(touch_frame_events, LITEST_TOUCH, LITEST_ANY);
+	litest_add(touch_downup_no_motion, LITEST_TOUCH, LITEST_ANY);
+	litest_add(touch_downup_no_motion, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
+	litest_add_no_device(touch_abs_transform);
+	litest_add(touch_seat_slot, LITEST_TOUCH, LITEST_TOUCHPAD);
+	litest_add_no_device(touch_many_slots);
+	litest_add(touch_double_touch_down_up, LITEST_TOUCH, LITEST_PROTOCOL_A);
+	litest_add(touch_calibration_scale, LITEST_TOUCH, LITEST_TOUCHPAD);
+	litest_add(touch_calibration_scale, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
+	litest_add(touch_calibration_rotation, LITEST_TOUCH, LITEST_TOUCHPAD);
+	litest_add(touch_calibration_rotation, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
+	litest_add(touch_calibration_translation, LITEST_TOUCH, LITEST_TOUCHPAD);
+	litest_add(touch_calibration_translation, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
+	litest_add_for_device(touch_calibrated_screen_path, LITEST_CALIBRATED_TOUCHSCREEN);
+	litest_add_for_device(touch_calibrated_screen_udev, LITEST_CALIBRATED_TOUCHSCREEN);
+	litest_add(touch_calibration_config, LITEST_TOUCH, LITEST_ANY);
 
-	litest_add("touch:left-handed", touch_no_left_handed, LITEST_TOUCH, LITEST_ANY);
+	litest_add(touch_no_left_handed, LITEST_TOUCH, LITEST_ANY);
 
-	litest_add("touch:fake-mt", fake_mt_exists, LITEST_FAKE_MT, LITEST_ANY);
-	litest_add("touch:fake-mt", fake_mt_no_touch_events, LITEST_FAKE_MT, LITEST_ANY);
+	litest_add(fake_mt_exists, LITEST_FAKE_MT, LITEST_ANY);
+	litest_add(fake_mt_no_touch_events, LITEST_FAKE_MT, LITEST_ANY);
 
-	litest_add("touch:protocol a", touch_protocol_a_init, LITEST_PROTOCOL_A, LITEST_ANY);
-	litest_add("touch:protocol a", touch_protocol_a_touch, LITEST_PROTOCOL_A, LITEST_ANY);
-	litest_add("touch:protocol a", touch_protocol_a_2fg_touch, LITEST_PROTOCOL_A, LITEST_ANY);
+	litest_add(touch_protocol_a_init, LITEST_PROTOCOL_A, LITEST_ANY);
+	litest_add(touch_protocol_a_touch, LITEST_PROTOCOL_A, LITEST_ANY);
+	litest_add(touch_protocol_a_2fg_touch, LITEST_PROTOCOL_A, LITEST_ANY);
 
-	litest_add_ranged("touch:state", touch_initial_state, LITEST_TOUCH, LITEST_PROTOCOL_A, &axes);
+	litest_add_ranged(touch_initial_state, LITEST_TOUCH, LITEST_PROTOCOL_A, &axes);
 
-	litest_add("touch:time", touch_time_usec, LITEST_TOUCH, LITEST_TOUCHPAD);
+	litest_add(touch_time_usec, LITEST_TOUCH, LITEST_TOUCHPAD);
 
-	litest_add_for_device("touch:fuzz", touch_fuzz, LITEST_MULTITOUCH_FUZZ_SCREEN);
-	litest_add_for_device("touch:fuzz", touch_fuzz_property, LITEST_MULTITOUCH_FUZZ_SCREEN);
+	litest_add_for_device(touch_fuzz, LITEST_MULTITOUCH_FUZZ_SCREEN);
+	litest_add_for_device(touch_fuzz_property, LITEST_MULTITOUCH_FUZZ_SCREEN);
 
-	litest_add_no_device("touch:release", touch_release_on_unplug);
+	litest_add_no_device(touch_release_on_unplug);
 
-	litest_add_for_device("touch:range", touch_invalid_range_over, LITEST_TOUCHSCREEN_INVALID_RANGE);
-	litest_add_for_device("touch:range", touch_invalid_range_under, LITEST_TOUCHSCREEN_INVALID_RANGE);
+	litest_add_for_device(touch_invalid_range_over, LITEST_TOUCHSCREEN_INVALID_RANGE);
+	litest_add_for_device(touch_invalid_range_under, LITEST_TOUCHSCREEN_INVALID_RANGE);
 
-	litest_add("touch:count", touch_count_st, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
-	litest_add("touch:count", touch_count_mt, LITEST_TOUCH, LITEST_SINGLE_TOUCH|LITEST_PROTOCOL_A);
-	litest_add("touch:count", touch_count_unknown, LITEST_PROTOCOL_A, LITEST_ANY);
-	litest_add("touch:count", touch_count_invalid, LITEST_ANY, LITEST_TOUCH|LITEST_SINGLE_TOUCH|LITEST_PROTOCOL_A);
+	litest_add(touch_count_st, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
+	litest_add(touch_count_mt, LITEST_TOUCH, LITEST_SINGLE_TOUCH|LITEST_PROTOCOL_A);
+	litest_add(touch_count_unknown, LITEST_PROTOCOL_A, LITEST_ANY);
+	litest_add(touch_count_invalid, LITEST_ANY, LITEST_TOUCH|LITEST_SINGLE_TOUCH|LITEST_PROTOCOL_A);
 
-	litest_add("touch:tool", touch_palm_detect_tool_palm, LITEST_TOUCH, LITEST_ANY);
-	litest_add("touch:tool", touch_palm_detect_tool_palm_on_off, LITEST_TOUCH, LITEST_ANY);
-	litest_add("touch:tool", touch_palm_detect_tool_palm_keep_type, LITEST_TOUCH, LITEST_ANY);
-	litest_add("touch:tool", touch_palm_detect_tool_palm_2fg, LITEST_TOUCH, LITEST_SINGLE_TOUCH);
-	litest_add("touch:tool", touch_palm_detect_tool_palm_on_off_2fg, LITEST_TOUCH, LITEST_SINGLE_TOUCH);
-	litest_add("touch:tool", touch_palm_detect_tool_palm_keep_type_2fg, LITEST_TOUCH, LITEST_ANY);
+	litest_add(touch_palm_detect_tool_palm, LITEST_TOUCH, LITEST_ANY);
+	litest_add(touch_palm_detect_tool_palm_on_off, LITEST_TOUCH, LITEST_ANY);
+	litest_add(touch_palm_detect_tool_palm_keep_type, LITEST_TOUCH, LITEST_ANY);
+	litest_add(touch_palm_detect_tool_palm_2fg, LITEST_TOUCH, LITEST_SINGLE_TOUCH);
+	litest_add(touch_palm_detect_tool_palm_on_off_2fg, LITEST_TOUCH, LITEST_SINGLE_TOUCH);
+	litest_add(touch_palm_detect_tool_palm_keep_type_2fg, LITEST_TOUCH, LITEST_ANY);
 }

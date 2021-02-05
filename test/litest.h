@@ -440,20 +440,20 @@ void litest_disable_log_handler(struct libinput *libinput);
 void litest_restore_log_handler(struct libinput *libinput);
 void litest_set_log_handler_bug(struct libinput *libinput);
 
-#define litest_add(name_, func_, ...) \
-	_litest_add(name_, #func_, func_, __VA_ARGS__)
-#define litest_add_ranged(name_, func_, ...) \
-	_litest_add_ranged(name_, #func_, func_, __VA_ARGS__)
-#define litest_add_for_device(name_, func_, ...) \
-	_litest_add_for_device(name_, #func_, func_, __VA_ARGS__)
-#define litest_add_ranged_for_device(name_, func_, ...) \
-	_litest_add_ranged_for_device(name_, #func_, func_, __VA_ARGS__)
-#define litest_add_no_device(name_, func_) \
-	_litest_add_no_device(name_, #func_, func_)
-#define litest_add_ranged_no_device(name_, func_, ...) \
-	_litest_add_ranged_no_device(name_, #func_, func_, __VA_ARGS__)
-#define litest_add_deviceless(name_, func_) \
-	_litest_add_deviceless(name_, #func_, func_)
+#define litest_add(func_, ...) \
+	_litest_add(__FILE__, #func_, func_, __VA_ARGS__)
+#define litest_add_ranged(func_, ...) \
+	_litest_add_ranged(__FILE__, #func_, func_, __VA_ARGS__)
+#define litest_add_for_device(func_, ...) \
+	_litest_add_for_device(__FILE__, #func_, func_, __VA_ARGS__)
+#define litest_add_ranged_for_device(func_, ...) \
+	_litest_add_ranged_for_device(__FILE__, #func_, func_, __VA_ARGS__)
+#define litest_add_no_device(func_) \
+	_litest_add_no_device(__FILE__, #func_, func_)
+#define litest_add_ranged_no_device(func_, ...) \
+	_litest_add_ranged_no_device(__FILE__, #func_, func_, __VA_ARGS__)
+#define litest_add_deviceless(func_) \
+	_litest_add_deviceless(__FILE__, #func_, func_)
 
 void
 _litest_add(const char *name,

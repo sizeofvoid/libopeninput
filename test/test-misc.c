@@ -880,24 +880,24 @@ END_TEST
 
 TEST_COLLECTION(misc)
 {
-	litest_add_no_device("events:conversion", event_conversion_device_notify);
-	litest_add_for_device("events:conversion", event_conversion_pointer, LITEST_MOUSE);
-	litest_add_for_device("events:conversion", event_conversion_pointer_abs, LITEST_XEN_VIRTUAL_POINTER);
-	litest_add_for_device("events:conversion", event_conversion_key, LITEST_KEYBOARD);
-	litest_add_for_device("events:conversion", event_conversion_touch, LITEST_WACOM_TOUCH);
-	litest_add_for_device("events:conversion", event_conversion_gesture, LITEST_BCM5974);
-	litest_add_for_device("events:conversion", event_conversion_tablet, LITEST_WACOM_CINTIQ);
-	litest_add_for_device("events:conversion", event_conversion_tablet_pad, LITEST_WACOM_INTUOS5_PAD);
-	litest_add_for_device("events:conversion", event_conversion_switch, LITEST_LID_SWITCH);
+	litest_add_no_device(event_conversion_device_notify);
+	litest_add_for_device(event_conversion_pointer, LITEST_MOUSE);
+	litest_add_for_device(event_conversion_pointer_abs, LITEST_XEN_VIRTUAL_POINTER);
+	litest_add_for_device(event_conversion_key, LITEST_KEYBOARD);
+	litest_add_for_device(event_conversion_touch, LITEST_WACOM_TOUCH);
+	litest_add_for_device(event_conversion_gesture, LITEST_BCM5974);
+	litest_add_for_device(event_conversion_tablet, LITEST_WACOM_CINTIQ);
+	litest_add_for_device(event_conversion_tablet_pad, LITEST_WACOM_INTUOS5_PAD);
+	litest_add_for_device(event_conversion_switch, LITEST_LID_SWITCH);
 
-	litest_add_deviceless("context:refcount", context_ref_counting);
-	litest_add_deviceless("config:status string", config_status_string);
+	litest_add_deviceless(context_ref_counting);
+	litest_add_deviceless(config_status_string);
 
-	litest_add_for_device("timer:offset-warning", timer_offset_bug_warning, LITEST_SYNAPTICS_TOUCHPAD);
-	litest_add_for_device("timer:delay-warning", timer_delay_bug_warning, LITEST_MOUSE);
-	litest_add_no_device("timer:flush", timer_flush);
+	litest_add_for_device(timer_offset_bug_warning, LITEST_SYNAPTICS_TOUCHPAD);
+	litest_add_for_device(timer_delay_bug_warning, LITEST_MOUSE);
+	litest_add_no_device(timer_flush);
 
-	litest_add_no_device("misc:fd", fd_no_event_leak);
+	litest_add_no_device(fd_no_event_leak);
 
-	litest_add_for_device("misc:system", udev_absinfo_override, LITEST_ABSINFO_OVERRIDE);
+	litest_add_for_device(udev_absinfo_override, LITEST_ABSINFO_OVERRIDE);
 }

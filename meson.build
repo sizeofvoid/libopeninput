@@ -922,8 +922,8 @@ if get_option('tests')
 	     test_utils,
 	     suite : ['all'])
 
-	libinput_test_runner_sources = litest_sources + [
-		'src/libinput-util.h',
+	# When adding new files to this list, update the CI
+	tests_sources = [
 		'test/test-udev.c',
 		'test/test-path.c',
 		'test/test-pointer.c',
@@ -944,6 +944,9 @@ if get_option('tests')
 		'test/test-switch.c',
 		'test/test-quirks.c',
 	]
+	libinput_test_runner_sources = litest_sources + tests_sources + [
+		'src/libinput-util.h',
+	]
 	libinput_test_runner = executable('libinput-test-suite',
 					  libinput_test_runner_sources,
 					  include_directories : [includes_src, includes_include],
@@ -956,19 +959,13 @@ if get_option('tests')
 		       install_dir : dir_man1,
 		       )
 
-	# Update this list and the one in litest.c when new group names are
-	# required
-        groups = [
-		'config', 'context', 'device', 'events', 'gestures', 'keyboard', 'lid',
-		'log', 'misc', 'pad', 'path', 'pointer', 'quirks', 'switch', 'tablet',
-		'tablet-mode', 'tap', 'timer', 'totem', 'touch', 'touchpad', 'trackball',
-		'trackpoint', 'udev',
-	]
-	foreach group : groups
+	foreach testfile : tests_sources
+		tfile = testfile.split('test/test-')[1]
+		group = tfile.split('.c')[0]
 		test('libinput-test-suite-@0@'.format(group),
 		     libinput_test_runner,
 		     suite : ['all', 'valgrind', 'root', 'hardware'],
-		     args : ['--filter-group=@0@:*'.format(group),
+		     args : ['--filter-group=@0@'.format(group),
 			     '--xml-output=junit-@0@-XXXXXX.xml'.format(group)],
 		     is_parallel : false,
 		     timeout : 1200)

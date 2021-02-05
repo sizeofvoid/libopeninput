@@ -478,17 +478,17 @@ END_TEST
 
 TEST_COLLECTION(keyboard)
 {
-	litest_add_no_device("keyboard:seat key count", keyboard_seat_key_count);
-	litest_add_no_device("keyboard:key counting", keyboard_ignore_no_pressed_release);
-	litest_add_no_device("keyboard:key counting", keyboard_key_auto_release);
-	litest_add("keyboard:keys", keyboard_has_key, LITEST_KEYS, LITEST_ANY);
-	litest_add("keyboard:keys", keyboard_keys_bad_device, LITEST_ANY, LITEST_ANY);
-	litest_add("keyboard:time", keyboard_time_usec, LITEST_KEYS, LITEST_ANY);
+	litest_add_no_device(keyboard_seat_key_count);
+	litest_add_no_device(keyboard_ignore_no_pressed_release);
+	litest_add_no_device(keyboard_key_auto_release);
+	litest_add(keyboard_has_key, LITEST_KEYS, LITEST_ANY);
+	litest_add(keyboard_keys_bad_device, LITEST_ANY, LITEST_ANY);
+	litest_add(keyboard_time_usec, LITEST_KEYS, LITEST_ANY);
 
-	litest_add("keyboard:events", keyboard_no_buttons, LITEST_KEYS, LITEST_ANY);
-	litest_add("keyboard:events", keyboard_frame_order, LITEST_KEYS, LITEST_ANY);
+	litest_add(keyboard_no_buttons, LITEST_KEYS, LITEST_ANY);
+	litest_add(keyboard_frame_order, LITEST_KEYS, LITEST_ANY);
 
-	litest_add("keyboard:leds", keyboard_leds, LITEST_ANY, LITEST_ANY);
+	litest_add(keyboard_leds, LITEST_ANY, LITEST_ANY);
 
-	litest_add("keyboard:scroll", keyboard_no_scroll, LITEST_KEYS, LITEST_WHEEL);
+	litest_add(keyboard_no_scroll, LITEST_KEYS, LITEST_WHEEL);
 }

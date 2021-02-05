@@ -429,25 +429,6 @@ static struct suite *
 get_suite(const char *name)
 {
 	struct suite *s;
-	/* this is the list meson calls, ensure we don't miss out on tests */
-	const char * allowed_suites[] = {
-		"config:", "context:", "device:", "events:", "gestures:",
-		"keyboard:", "lid:", "log:", "misc:", "pad:", "path:",
-		"pointer:", "quirks:", "switch:", "tablet:", "tablet-mode:",
-		"tap:", "timer:", "totem:", "touch:", "touchpad:",
-		"trackball:", "trackpoint:", "udev:",
-	};
-	const char **allowed;
-	bool found = false;
-
-	ARRAY_FOR_EACH(allowed_suites, allowed) {
-		if (strstartswith(name, *allowed)) {
-			found = true;
-			break;
-		}
-	}
-	if (!found)
-		litest_abort_msg("Suite name '%s' is not allowed\n", name);
 
 	list_for_each(s, &all_tests, node) {
 		if (streq(s->name, name))
@@ -464,13 +445,28 @@ get_suite(const char *name)
 }
 
 static void
-litest_add_tcase(const char *suite_name,
+create_suite_name(const char *filename, char suitename[64])
+{
+	char *trunk = trunkname(filename);
+	char *p = trunk;
+
+	/* strip the test- prefix */
+	if (strstartswith(trunk, "test-"))
+		p += 5;
+
+	snprintf(suitename, 64, "%s", p);
+	free(trunk);
+}
+
+static void
+litest_add_tcase(const char *filename,
 		 const char *funcname,
 		 const void *func,
 		 int64_t required,
 		 int64_t excluded,
 		 const struct range *range)
 {
+	char suite_name[65];
 	struct suite *suite;
 	bool added = false;
 
@@ -482,9 +478,9 @@ litest_add_tcase(const char *suite_name,
 	    fnmatch(filter_test, funcname, 0) != 0)
 		return;
 
-	if (filter_group &&
-	    strstr(suite_name, filter_group) == NULL &&
-	    fnmatch(filter_group, suite_name, 0) != 0)
+	create_suite_name(filename, suite_name);
+
+	if (filter_group && fnmatch(filter_group, suite_name, 0) != 0)
 		return;
 
 	suite = get_suite(suite_name);
@@ -618,7 +614,7 @@ _litest_add_for_device(const char *name,
 }
 
 void
-_litest_add_ranged_for_device(const char *name,
+_litest_add_ranged_for_device(const char *filename,
 			      const char *funcname,
 			      const void *func,
 			      enum litest_device_type type,
@@ -627,6 +623,7 @@ _litest_add_ranged_for_device(const char *name,
 	struct suite *s;
 	struct litest_test_device *dev;
 	bool device_filtered = false;
+	char suite_name[64];
 
 	litest_assert(type < LITEST_NO_DEVICE);
 
@@ -635,12 +632,11 @@ _litest_add_ranged_for_device(const char *name,
 	    fnmatch(filter_test, funcname, 0) != 0)
 		return;
 
-	if (filter_group &&
-	    strstr(name, filter_group) == NULL &&
-	    fnmatch(filter_group, name, 0) != 0)
+	create_suite_name(filename, suite_name);
+	if (filter_group && fnmatch(filter_group, suite_name, 0) != 0)
 		return;
 
-	s = get_suite(name);
+	s = get_suite(suite_name);
 	list_for_each(dev, &devices, node) {
 		if (filter_device &&
 		    strstr(dev->shortname, filter_device) == NULL &&

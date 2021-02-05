@@ -410,16 +410,16 @@ END_TEST
 
 TEST_COLLECTION(trackpoint)
 {
-	litest_add("trackpoint:middlebutton", trackpoint_middlebutton, LITEST_POINTINGSTICK, LITEST_ANY);
-	litest_add("trackpoint:middlebutton", trackpoint_middlebutton_noscroll, LITEST_POINTINGSTICK, LITEST_ANY);
-	litest_add("trackpoint:scroll", trackpoint_scroll, LITEST_POINTINGSTICK, LITEST_ANY);
-	litest_add("trackpoint:scroll", trackpoint_scroll_source, LITEST_POINTINGSTICK, LITEST_ANY);
-	litest_add("trackpoint:left-handed", trackpoint_topsoftbuttons_left_handed_trackpoint, LITEST_TOPBUTTONPAD, LITEST_ANY);
-	litest_add("trackpoint:left-handed", trackpoint_topsoftbuttons_left_handed_touchpad, LITEST_TOPBUTTONPAD, LITEST_ANY);
-	litest_add("trackpoint:left-handed", trackpoint_topsoftbuttons_left_handed_both, LITEST_TOPBUTTONPAD, LITEST_ANY);
+	litest_add(trackpoint_middlebutton, LITEST_POINTINGSTICK, LITEST_ANY);
+	litest_add(trackpoint_middlebutton_noscroll, LITEST_POINTINGSTICK, LITEST_ANY);
+	litest_add(trackpoint_scroll, LITEST_POINTINGSTICK, LITEST_ANY);
+	litest_add(trackpoint_scroll_source, LITEST_POINTINGSTICK, LITEST_ANY);
+	litest_add(trackpoint_topsoftbuttons_left_handed_trackpoint, LITEST_TOPBUTTONPAD, LITEST_ANY);
+	litest_add(trackpoint_topsoftbuttons_left_handed_touchpad, LITEST_TOPBUTTONPAD, LITEST_ANY);
+	litest_add(trackpoint_topsoftbuttons_left_handed_both, LITEST_TOPBUTTONPAD, LITEST_ANY);
 
-	litest_add("trackpoint:palmdetect", trackpoint_palmdetect, LITEST_POINTINGSTICK, LITEST_ANY);
-	litest_add("trackpoint:palmdetect", trackpoint_palmdetect_resume_touch, LITEST_POINTINGSTICK, LITEST_ANY);
-	litest_add("trackpoint:palmdetect", trackpoint_palmdetect_require_min_events, LITEST_POINTINGSTICK, LITEST_ANY);
-	litest_add("trackpoint:palmdetect", trackpoint_palmdetect_require_min_events_timeout, LITEST_POINTINGSTICK, LITEST_ANY);
+	litest_add(trackpoint_palmdetect, LITEST_POINTINGSTICK, LITEST_ANY);
+	litest_add(trackpoint_palmdetect_resume_touch, LITEST_POINTINGSTICK, LITEST_ANY);
+	litest_add(trackpoint_palmdetect_require_min_events, LITEST_POINTINGSTICK, LITEST_ANY);
+	litest_add(trackpoint_palmdetect_require_min_events_timeout, LITEST_POINTINGSTICK, LITEST_ANY);
 }

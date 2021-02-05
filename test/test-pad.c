@@ -984,38 +984,38 @@ END_TEST
 
 TEST_COLLECTION(tablet_pad)
 {
-	litest_add("pad:cap", pad_cap, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:cap", pad_no_cap, LITEST_ANY, LITEST_TABLET_PAD);
+	litest_add(pad_cap, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_no_cap, LITEST_ANY, LITEST_TABLET_PAD);
 
-	litest_add("pad:time", pad_time, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_time, LITEST_TABLET_PAD, LITEST_ANY);
 
-	litest_add("pad:button", pad_num_buttons, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:button", pad_num_buttons_libwacom, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:button", pad_button_intuos, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:button", pad_button_bamboo, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:button", pad_button_libwacom, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:button", pad_button_mode_groups, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_num_buttons, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_num_buttons_libwacom, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_button_intuos, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_button_bamboo, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_button_libwacom, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_button_mode_groups, LITEST_TABLET_PAD, LITEST_ANY);
 
-	litest_add("pad:ring", pad_has_ring, LITEST_RING, LITEST_ANY);
-	litest_add("pad:ring", pad_ring, LITEST_RING, LITEST_ANY);
-	litest_add("pad:ring", pad_ring_finger_up, LITEST_RING, LITEST_ANY);
+	litest_add(pad_has_ring, LITEST_RING, LITEST_ANY);
+	litest_add(pad_ring, LITEST_RING, LITEST_ANY);
+	litest_add(pad_ring_finger_up, LITEST_RING, LITEST_ANY);
 
-	litest_add("pad:strip", pad_has_strip, LITEST_STRIP, LITEST_ANY);
-	litest_add("pad:strip", pad_strip, LITEST_STRIP, LITEST_ANY);
-	litest_add("pad:strip", pad_strip_finger_up, LITEST_STRIP, LITEST_ANY);
+	litest_add(pad_has_strip, LITEST_STRIP, LITEST_ANY);
+	litest_add(pad_strip, LITEST_STRIP, LITEST_ANY);
+	litest_add(pad_strip_finger_up, LITEST_STRIP, LITEST_ANY);
 
-	litest_add_for_device("pad:left_handed", pad_left_handed_default, LITEST_WACOM_INTUOS5_PAD);
-	litest_add_for_device("pad:left_handed", pad_no_left_handed, LITEST_WACOM_INTUOS3_PAD);
-	litest_add_for_device("pad:left_handed", pad_left_handed_ring, LITEST_WACOM_INTUOS5_PAD);
+	litest_add_for_device(pad_left_handed_default, LITEST_WACOM_INTUOS5_PAD);
+	litest_add_for_device(pad_no_left_handed, LITEST_WACOM_INTUOS3_PAD);
+	litest_add_for_device(pad_left_handed_ring, LITEST_WACOM_INTUOS5_PAD);
 	/* None of the current strip tablets are left-handed */
 
-	litest_add("pad:modes", pad_mode_groups, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:modes", pad_mode_groups_userdata, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:modes", pad_mode_groups_ref, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:modes", pad_mode_group_mode, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:modes", pad_mode_group_has, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:modes", pad_mode_group_has_invalid, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add("pad:modes", pad_mode_group_has_no_toggle, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_mode_groups, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_mode_groups_userdata, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_mode_groups_ref, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_mode_group_mode, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_mode_group_has, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_mode_group_has_invalid, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_mode_group_has_no_toggle, LITEST_TABLET_PAD, LITEST_ANY);
 
-	litest_add("pad:keys", pad_keys, LITEST_TABLET_PAD, LITEST_ANY);
+	litest_add(pad_keys, LITEST_TABLET_PAD, LITEST_ANY);
 }

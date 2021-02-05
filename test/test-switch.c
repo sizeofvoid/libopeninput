@@ -1370,40 +1370,40 @@ TEST_COLLECTION(switch)
 	struct range switches = { LIBINPUT_SWITCH_LID,
 				  LIBINPUT_SWITCH_TABLET_MODE + 1};
 
-	litest_add("switch:has", switch_has_cap, LITEST_SWITCH, LITEST_ANY);
-	litest_add("switch:has", switch_has_lid_switch, LITEST_SWITCH, LITEST_ANY);
-	litest_add("switch:has", switch_has_tablet_mode_switch, LITEST_SWITCH, LITEST_ANY);
-	litest_add_ranged("switch:toggle", switch_toggle, LITEST_SWITCH, LITEST_ANY, &switches);
-	litest_add_ranged("switch:toggle", switch_toggle_double, LITEST_SWITCH, LITEST_ANY, &switches);
-	litest_add_ranged("switch:toggle", switch_down_on_init, LITEST_SWITCH, LITEST_ANY, &switches);
-	litest_add("switch:toggle", switch_not_down_on_init, LITEST_SWITCH, LITEST_ANY);
-	litest_add_ranged("switch:touchpad", switch_disable_touchpad, LITEST_SWITCH, LITEST_ANY, &switches);
-	litest_add_ranged("switch:touchpad", switch_disable_touchpad_during_touch, LITEST_SWITCH, LITEST_ANY, &switches);
-	litest_add_ranged("switch:touchpad", switch_disable_touchpad_edge_scroll, LITEST_SWITCH, LITEST_ANY, &switches);
-	litest_add_ranged("switch:touchpad", switch_disable_touchpad_edge_scroll_interrupt, LITEST_SWITCH, LITEST_ANY, &switches);
-	litest_add_ranged("switch:touchpad", switch_disable_touchpad_already_open, LITEST_SWITCH, LITEST_ANY, &switches);
-	litest_add_ranged("switch:touchpad", switch_dont_resume_disabled_touchpad, LITEST_SWITCH, LITEST_ANY, &switches);
-	litest_add_ranged("switch:touchpad", switch_dont_resume_disabled_touchpad_external_mouse, LITEST_SWITCH, LITEST_ANY, &switches);
+	litest_add(switch_has_cap, LITEST_SWITCH, LITEST_ANY);
+	litest_add(switch_has_lid_switch, LITEST_SWITCH, LITEST_ANY);
+	litest_add(switch_has_tablet_mode_switch, LITEST_SWITCH, LITEST_ANY);
+	litest_add_ranged(switch_toggle, LITEST_SWITCH, LITEST_ANY, &switches);
+	litest_add_ranged(switch_toggle_double, LITEST_SWITCH, LITEST_ANY, &switches);
+	litest_add_ranged(switch_down_on_init, LITEST_SWITCH, LITEST_ANY, &switches);
+	litest_add(switch_not_down_on_init, LITEST_SWITCH, LITEST_ANY);
+	litest_add_ranged(switch_disable_touchpad, LITEST_SWITCH, LITEST_ANY, &switches);
+	litest_add_ranged(switch_disable_touchpad_during_touch, LITEST_SWITCH, LITEST_ANY, &switches);
+	litest_add_ranged(switch_disable_touchpad_edge_scroll, LITEST_SWITCH, LITEST_ANY, &switches);
+	litest_add_ranged(switch_disable_touchpad_edge_scroll_interrupt, LITEST_SWITCH, LITEST_ANY, &switches);
+	litest_add_ranged(switch_disable_touchpad_already_open, LITEST_SWITCH, LITEST_ANY, &switches);
+	litest_add_ranged(switch_dont_resume_disabled_touchpad, LITEST_SWITCH, LITEST_ANY, &switches);
+	litest_add_ranged(switch_dont_resume_disabled_touchpad_external_mouse, LITEST_SWITCH, LITEST_ANY, &switches);
 
-	litest_add_ranged_no_device("switch:keyboard", switch_suspend_with_keyboard, &switches);
-	litest_add_ranged_no_device("switch:touchpad", switch_suspend_with_touchpad, &switches);
+	litest_add_ranged_no_device(switch_suspend_with_keyboard, &switches);
+	litest_add_ranged_no_device(switch_suspend_with_touchpad, &switches);
 
-	litest_add("lid:keyboard", lid_open_on_key, LITEST_SWITCH, LITEST_ANY);
-	litest_add("lid:keyboard", lid_open_on_key_touchpad_enabled, LITEST_SWITCH, LITEST_ANY);
-	litest_add_for_device("lid:buggy", lid_update_hw_on_key, LITEST_LID_SWITCH_SURFACE3);
-	litest_add_for_device("lid:buggy", lid_update_hw_on_key_closed_on_init, LITEST_LID_SWITCH_SURFACE3);
-	litest_add_for_device("lid:buggy", lid_update_hw_on_key_multiple_keyboards, LITEST_LID_SWITCH_SURFACE3);
-	litest_add_for_device("lid:keypress", lid_key_press, LITEST_GPIO_KEYS);
+	litest_add(lid_open_on_key, LITEST_SWITCH, LITEST_ANY);
+	litest_add(lid_open_on_key_touchpad_enabled, LITEST_SWITCH, LITEST_ANY);
+	litest_add_for_device(lid_update_hw_on_key, LITEST_LID_SWITCH_SURFACE3);
+	litest_add_for_device(lid_update_hw_on_key_closed_on_init, LITEST_LID_SWITCH_SURFACE3);
+	litest_add_for_device(lid_update_hw_on_key_multiple_keyboards, LITEST_LID_SWITCH_SURFACE3);
+	litest_add_for_device(lid_key_press, LITEST_GPIO_KEYS);
 
-	litest_add("tablet-mode:touchpad", tablet_mode_disable_touchpad_on_init, LITEST_SWITCH, LITEST_ANY);
-	litest_add("tablet-mode:touchpad", tablet_mode_disable_touchpad_on_resume, LITEST_SWITCH, LITEST_ANY);
-	litest_add("tablet-mode:touchpad", tablet_mode_enable_touchpad_on_resume, LITEST_SWITCH, LITEST_ANY);
-	litest_add("tablet-mode:keyboard", tablet_mode_disable_keyboard, LITEST_SWITCH, LITEST_ANY);
-	litest_add("tablet-mode:keyboard", tablet_mode_disable_keyboard_on_init, LITEST_SWITCH, LITEST_ANY);
-	litest_add("tablet-mode:keyboard", tablet_mode_disable_keyboard_on_resume, LITEST_SWITCH, LITEST_ANY);
-	litest_add("tablet-mode:keyboard", tablet_mode_enable_keyboard_on_resume, LITEST_SWITCH, LITEST_ANY);
-	litest_add("tablet-mode:trackpoint", tablet_mode_disable_trackpoint, LITEST_SWITCH, LITEST_ANY);
-	litest_add("tablet-mode:trackpoint", tablet_mode_disable_trackpoint_on_init, LITEST_SWITCH, LITEST_ANY);
+	litest_add(tablet_mode_disable_touchpad_on_init, LITEST_SWITCH, LITEST_ANY);
+	litest_add(tablet_mode_disable_touchpad_on_resume, LITEST_SWITCH, LITEST_ANY);
+	litest_add(tablet_mode_enable_touchpad_on_resume, LITEST_SWITCH, LITEST_ANY);
+	litest_add(tablet_mode_disable_keyboard, LITEST_SWITCH, LITEST_ANY);
+	litest_add(tablet_mode_disable_keyboard_on_init, LITEST_SWITCH, LITEST_ANY);
+	litest_add(tablet_mode_disable_keyboard_on_resume, LITEST_SWITCH, LITEST_ANY);
+	litest_add(tablet_mode_enable_keyboard_on_resume, LITEST_SWITCH, LITEST_ANY);
+	litest_add(tablet_mode_disable_trackpoint, LITEST_SWITCH, LITEST_ANY);
+	litest_add(tablet_mode_disable_trackpoint_on_init, LITEST_SWITCH, LITEST_ANY);
 
-	litest_add("lid:dock", dock_toggle, LITEST_SWITCH, LITEST_ANY);
+	litest_add(dock_toggle, LITEST_SWITCH, LITEST_ANY);
 }

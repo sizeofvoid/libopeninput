@@ -148,7 +148,10 @@ test_suites:
       - touchpad
   - name: tap
     suites:
-      - tap
+      - touchpad-tap
+  - name: touchpad-buttons
+    suites:
+      - touchpad-buttons
   - name: tablet
     suites:
       - tablet
@@ -156,26 +159,24 @@ test_suites:
     suites:
       - gestures
       - device
-  - name: others
+  - name: backends
     suites:
-      - context
-      - config
-      - misc
-      - events
-      - totem
-      - udev
-      - lid
-      - log
-      - timer
-      - tablet-mode
-      - quirks
-      - trackball
-      - pad
       - path
+      - udev
+  - name: misc
+    suites:
+      - log
+      - misc
+      - quirks
+  - name: other devices
+    suites:
       - keyboard
+      - pad
       - switch
-      - touch
+      - trackball
       - trackpoint
+      - totem
+      - touch
   - name: pointer
     suites:
       - pointer

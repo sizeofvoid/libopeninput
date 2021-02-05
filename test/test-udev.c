@@ -674,25 +674,25 @@ END_TEST
 
 TEST_COLLECTION(udev)
 {
-	litest_add_no_device("udev:create", udev_create_NULL);
-	litest_add_no_device("udev:create", udev_create_seat0);
-	litest_add_no_device("udev:create", udev_create_empty_seat);
-	litest_add_no_device("udev:create", udev_create_seat_too_long);
-	litest_add_no_device("udev:create", udev_set_user_data);
+	litest_add_no_device(udev_create_NULL);
+	litest_add_no_device(udev_create_seat0);
+	litest_add_no_device(udev_create_empty_seat);
+	litest_add_no_device(udev_create_seat_too_long);
+	litest_add_no_device(udev_set_user_data);
 
-	litest_add_no_device("udev:seat", udev_added_seat_default);
-	litest_add_no_device("udev:seat", udev_change_seat);
+	litest_add_no_device(udev_added_seat_default);
+	litest_add_no_device(udev_change_seat);
 
-	litest_add_for_device("udev:suspend", udev_double_suspend, LITEST_SYNAPTICS_CLICKPAD_X220);
-	litest_add_for_device("udev:suspend", udev_double_resume, LITEST_SYNAPTICS_CLICKPAD_X220);
-	litest_add_for_device("udev:suspend", udev_suspend_resume, LITEST_SYNAPTICS_CLICKPAD_X220);
-	litest_add_for_device("udev:suspend", udev_resume_before_seat, LITEST_SYNAPTICS_CLICKPAD_X220);
-	litest_add_for_device("udev:suspend", udev_suspend_resume_before_seat, LITEST_SYNAPTICS_CLICKPAD_X220);
-	litest_add_for_device("udev:device events", udev_device_sysname, LITEST_SYNAPTICS_CLICKPAD_X220);
-	litest_add_for_device("udev:seat", udev_seat_recycle, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device(udev_double_suspend, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device(udev_double_resume, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device(udev_suspend_resume, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device(udev_resume_before_seat, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device(udev_suspend_resume_before_seat, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device(udev_device_sysname, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_for_device(udev_seat_recycle, LITEST_SYNAPTICS_CLICKPAD_X220);
 
-	litest_add_no_device("udev:path", udev_path_add_device);
-	litest_add_for_device("udev:path", udev_path_remove_device, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_no_device(udev_path_add_device);
+	litest_add_for_device(udev_path_remove_device, LITEST_SYNAPTICS_CLICKPAD_X220);
 
-	litest_add_no_device("udev:ignore", udev_ignore_device);
+	litest_add_no_device(udev_ignore_device);
 }

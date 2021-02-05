@@ -586,20 +586,20 @@ END_TEST
 
 TEST_COLLECTION(totem)
 {
-	litest_add("totem:tool", totem_type, LITEST_TOTEM, LITEST_ANY);
-	litest_add("totem:tool", totem_axes, LITEST_TOTEM, LITEST_ANY);
-	litest_add("totem:proximity", totem_proximity_in_out, LITEST_TOTEM, LITEST_ANY);
-	litest_add("totem:proximity", totem_proximity_in_on_init, LITEST_TOTEM, LITEST_ANY);
-	litest_add("totem:proximity", totem_proximity_out_on_suspend, LITEST_TOTEM, LITEST_ANY);
+	litest_add(totem_type, LITEST_TOTEM, LITEST_ANY);
+	litest_add(totem_axes, LITEST_TOTEM, LITEST_ANY);
+	litest_add(totem_proximity_in_out, LITEST_TOTEM, LITEST_ANY);
+	litest_add(totem_proximity_in_on_init, LITEST_TOTEM, LITEST_ANY);
+	litest_add(totem_proximity_out_on_suspend, LITEST_TOTEM, LITEST_ANY);
 
-	litest_add("totem:axes", totem_motion, LITEST_TOTEM, LITEST_ANY);
-	litest_add("totem:axes", totem_rotation, LITEST_TOTEM, LITEST_ANY);
-	litest_add("totem:axes", totem_size, LITEST_TOTEM, LITEST_ANY);
-	litest_add("totem:button", totem_button, LITEST_TOTEM, LITEST_ANY);
-	litest_add("totem:button", totem_button_down_on_init, LITEST_TOTEM, LITEST_ANY);
-	litest_add_no_device("totem:button", totem_button_up_on_delete);
+	litest_add(totem_motion, LITEST_TOTEM, LITEST_ANY);
+	litest_add(totem_rotation, LITEST_TOTEM, LITEST_ANY);
+	litest_add(totem_size, LITEST_TOTEM, LITEST_ANY);
+	litest_add(totem_button, LITEST_TOTEM, LITEST_ANY);
+	litest_add(totem_button_down_on_init, LITEST_TOTEM, LITEST_ANY);
+	litest_add_no_device(totem_button_up_on_delete);
 
-	litest_add("totem:arbitration", totem_arbitration_below, LITEST_TOTEM, LITEST_ANY);
-	litest_add("totem:arbitration", totem_arbitration_during, LITEST_TOTEM, LITEST_ANY);
-	litest_add("totem:arbitration", totem_arbitration_outside_rect, LITEST_TOTEM, LITEST_ANY);
+	litest_add(totem_arbitration_below, LITEST_TOTEM, LITEST_ANY);
+	litest_add(totem_arbitration_during, LITEST_TOTEM, LITEST_ANY);
+	litest_add(totem_arbitration_outside_rect, LITEST_TOTEM, LITEST_ANY);
 }

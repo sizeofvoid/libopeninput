@@ -1474,60 +1474,60 @@ TEST_COLLECTION(quirks)
 {
 	struct range boolean = {0, 2};
 
-	litest_add_deviceless("quirks:datadir", quirks_invalid_dir);
-	litest_add_deviceless("quirks:datadir", quirks_empty_dir);
+	litest_add_deviceless(quirks_invalid_dir);
+	litest_add_deviceless(quirks_empty_dir);
 
-	litest_add_deviceless("quirks:structure", quirks_section_empty);
-	litest_add_deviceless("quirks:structure", quirks_section_double);
-	litest_add_deviceless("quirks:structure", quirks_section_missing_match);
-	litest_add_deviceless("quirks:structure", quirks_section_missing_attr);
-	litest_add_deviceless("quirks:structure", quirks_section_match_after_attr);
-	litest_add_deviceless("quirks:structure", quirks_section_duplicate_match);
-	litest_add_deviceless("quirks:structure", quirks_section_duplicate_attr);
+	litest_add_deviceless(quirks_section_empty);
+	litest_add_deviceless(quirks_section_double);
+	litest_add_deviceless(quirks_section_missing_match);
+	litest_add_deviceless(quirks_section_missing_attr);
+	litest_add_deviceless(quirks_section_match_after_attr);
+	litest_add_deviceless(quirks_section_duplicate_match);
+	litest_add_deviceless(quirks_section_duplicate_attr);
 
-	litest_add_deviceless("quirks:parsing", quirks_parse_error_section);
-	litest_add_deviceless("quirks:parsing", quirks_parse_error_trailing_whitespace);
-	litest_add_deviceless("quirks:parsing", quirks_parse_error_unknown_match);
-	litest_add_deviceless("quirks:parsing", quirks_parse_error_unknown_attr);
-	litest_add_deviceless("quirks:parsing", quirks_parse_error_unknown_model);
-	litest_add_deviceless("quirks:parsing", quirks_parse_error_unknown_prefix);
-	litest_add_deviceless("quirks:parsing", quirks_parse_error_model_not_one);
-	litest_add_deviceless("quirks:parsing", quirks_parse_comment_inline);
-	litest_add_deviceless("quirks:parsing", quirks_parse_comment_empty);
-	litest_add_deviceless("quirks:parsing", quirks_parse_string_quotes_single);
-	litest_add_deviceless("quirks:parsing", quirks_parse_string_quotes_double);
+	litest_add_deviceless(quirks_parse_error_section);
+	litest_add_deviceless(quirks_parse_error_trailing_whitespace);
+	litest_add_deviceless(quirks_parse_error_unknown_match);
+	litest_add_deviceless(quirks_parse_error_unknown_attr);
+	litest_add_deviceless(quirks_parse_error_unknown_model);
+	litest_add_deviceless(quirks_parse_error_unknown_prefix);
+	litest_add_deviceless(quirks_parse_error_model_not_one);
+	litest_add_deviceless(quirks_parse_comment_inline);
+	litest_add_deviceless(quirks_parse_comment_empty);
+	litest_add_deviceless(quirks_parse_string_quotes_single);
+	litest_add_deviceless(quirks_parse_string_quotes_double);
 
-	litest_add_deviceless("quirks:parsing", quirks_parse_bustype);
-	litest_add_deviceless("quirks:parsing", quirks_parse_bustype_invalid);
-	litest_add_deviceless("quirks:parsing", quirks_parse_vendor);
-	litest_add_deviceless("quirks:parsing", quirks_parse_vendor_invalid);
-	litest_add_deviceless("quirks:parsing", quirks_parse_product);
-	litest_add_deviceless("quirks:parsing", quirks_parse_product_invalid);
-	litest_add_deviceless("quirks:parsing", quirks_parse_version);
-	litest_add_deviceless("quirks:parsing", quirks_parse_version_invalid);
-	litest_add_deviceless("quirks:parsing", quirks_parse_name);
-	litest_add_deviceless("quirks:parsing", quirks_parse_name_invalid);
-	litest_add_deviceless("quirks:parsing", quirks_parse_udev);
-	litest_add_deviceless("quirks:parsing", quirks_parse_udev_invalid);
-	litest_add_deviceless("quirks:parsing", quirks_parse_dmi);
-	litest_add_deviceless("quirks:parsing", quirks_parse_dmi_invalid);
+	litest_add_deviceless(quirks_parse_bustype);
+	litest_add_deviceless(quirks_parse_bustype_invalid);
+	litest_add_deviceless(quirks_parse_vendor);
+	litest_add_deviceless(quirks_parse_vendor_invalid);
+	litest_add_deviceless(quirks_parse_product);
+	litest_add_deviceless(quirks_parse_product_invalid);
+	litest_add_deviceless(quirks_parse_version);
+	litest_add_deviceless(quirks_parse_version_invalid);
+	litest_add_deviceless(quirks_parse_name);
+	litest_add_deviceless(quirks_parse_name_invalid);
+	litest_add_deviceless(quirks_parse_udev);
+	litest_add_deviceless(quirks_parse_udev_invalid);
+	litest_add_deviceless(quirks_parse_dmi);
+	litest_add_deviceless(quirks_parse_dmi_invalid);
 
-	litest_add_for_device("quirks:parsing", quirks_parse_dimension_attr, LITEST_MOUSE);
-	litest_add_for_device("quirks:parsing", quirks_parse_range_attr, LITEST_MOUSE);
-	litest_add_for_device("quirks:parsing", quirks_parse_uint_attr, LITEST_MOUSE);
-	litest_add_for_device("quirks:parsing", quirks_parse_double_attr, LITEST_MOUSE);
-	litest_add_for_device("quirks:parsing", quirks_parse_string_attr, LITEST_MOUSE);
-	litest_add_for_device("quirks:parsing", quirks_parse_integration_attr, LITEST_MOUSE);
+	litest_add_for_device(quirks_parse_dimension_attr, LITEST_MOUSE);
+	litest_add_for_device(quirks_parse_range_attr, LITEST_MOUSE);
+	litest_add_for_device(quirks_parse_uint_attr, LITEST_MOUSE);
+	litest_add_for_device(quirks_parse_double_attr, LITEST_MOUSE);
+	litest_add_for_device(quirks_parse_string_attr, LITEST_MOUSE);
+	litest_add_for_device(quirks_parse_integration_attr, LITEST_MOUSE);
 
-	litest_add_for_device("quirks:model", quirks_model_one, LITEST_MOUSE);
-	litest_add_for_device("quirks:model", quirks_model_zero, LITEST_MOUSE);
-	litest_add_ranged_for_device("quirks:model", quirks_model_override, LITEST_MOUSE, &boolean);
+	litest_add_for_device(quirks_model_one, LITEST_MOUSE);
+	litest_add_for_device(quirks_model_zero, LITEST_MOUSE);
+	litest_add_ranged_for_device(quirks_model_override, LITEST_MOUSE, &boolean);
 
-	litest_add("quirks:devices", quirks_model_alps, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("quirks:devices", quirks_model_wacom, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("quirks:devices", quirks_model_apple, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add("quirks:devices", quirks_model_synaptics_serial, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(quirks_model_alps, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(quirks_model_wacom, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(quirks_model_apple, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(quirks_model_synaptics_serial, LITEST_TOUCHPAD, LITEST_ANY);
 
-	litest_add_deviceless("quirks:misc", quirks_call_NULL);
-	litest_add_deviceless("quirks:misc", quirks_ctx_ref);
+	litest_add_deviceless(quirks_call_NULL);
+	litest_add_deviceless(quirks_ctx_ref);
 }
