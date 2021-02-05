@@ -61,7 +61,7 @@ stages:
   - sanity check     # CI/commit checks
   - prep             # prep work like rebuilding the container images if there is a change
   - build            # for actually building and testing things in a container
-  - VM               # for running the test suite in a VM
+  - test-suite       # for running the test suite in a VM
   - valgrind         # for running the test suite under valgrind in a VM
   - distro           # distribs test
   - deploy           # trigger wayland's website generation
@@ -458,7 +458,7 @@ freebsd:11.2@container-clean:
   extends:
     - .policy
     - .fdo.distribution-image@fedora
-  stage: VM
+  stage: test-suite
   tags:
     - kvm
   variables:
