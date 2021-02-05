@@ -4616,22 +4616,19 @@ main(int argc, char **argv)
 	if (mode == LITEST_MODE_ERROR)
 		return EXIT_FAILURE;
 
-	if (!run_deviceless && (rc = check_device_access()) != 0)
-			return rc;
-
 	litest_init_test_devices();
-
 	list_init(&all_tests);
-
-	setenv("CK_DEFAULT_TIMEOUT", "30", 0);
-	setenv("LIBINPUT_RUNNING_TEST_SUITE", "1", 1);
-
 	setup_tests();
-
 	if (mode == LITEST_MODE_LIST) {
 		litest_list_tests(&all_tests);
 		return EXIT_SUCCESS;
 	}
+
+	if (!run_deviceless && (rc = check_device_access()) != 0)
+		return rc;
+
+	setenv("CK_DEFAULT_TIMEOUT", "30", 0);
+	setenv("LIBINPUT_RUNNING_TEST_SUITE", "1", 1);
 
 	if (setrlimit(RLIMIT_CORE, &corelimit) != 0)
 		perror("WARNING: Core dumps not disabled");
