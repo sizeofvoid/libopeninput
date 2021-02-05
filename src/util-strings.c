@@ -155,3 +155,34 @@ strv_join(char **strv, const char *joiner)
 
 	return str;
 }
+
+/**
+ * Similar to basename() but returns the trunk only without the (last)
+ * trailing suffix, so that:
+ *
+ * - foo.c returns foo
+ * - foo.a.b returns foo.a
+ * - foo returns foo
+ * - foo/ returns ""
+ *
+ * @return an allocated string representing the trunk name of the file
+ */
+char *
+trunkname(const char *filename)
+{
+	/* See basename(3), there are two versions and they depend on
+	 * whether libgen.h is included. We can't be sure which basename()
+	 * applies here, so let's play it safe and assume it's the POSIX
+	 * one. */
+	char *tmp = strdup(filename);
+	char *base = basename(tmp);
+	char *suffix;
+	char *trunk;
+
+	if ((suffix = rindex(base, '.')))
+	    *suffix = '\0';
+
+	trunk = strdup(base);
+	free(tmp);
+	return trunk;
+}

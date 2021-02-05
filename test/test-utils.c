@@ -1292,6 +1292,32 @@ START_TEST(strneq_test)
 }
 END_TEST
 
+START_TEST(trunkname_test)
+{
+	struct test {
+		const char *path;
+		const char *expected;
+	} tests[] = {
+		{ "foo.c", "foo" },
+		{ "/path/to/foo.h", "foo" },
+		{ "../bar.foo", "bar" },
+		{ "./bar.foo.baz", "bar.foo" },
+		{ "./", "" },
+		{ "/", "" },
+		{ "/bar/", "" },
+		{ "/bar", "bar" },
+		{ "", "" },
+	};
+	struct test *t;
+
+	ARRAY_FOR_EACH(tests, t) {
+		char *result = trunkname(t->path);
+		ck_assert_str_eq(result, t->expected);
+		free(result);
+	}
+}
+END_TEST
+
 static Suite *
 litest_utils_suite(void)
 {
@@ -1335,6 +1361,7 @@ litest_utils_suite(void)
 	tcase_add_test(tc, strverscmp_test);
 	tcase_add_test(tc, streq_test);
 	tcase_add_test(tc, strneq_test);
+	tcase_add_test(tc, trunkname_test);
 
 	suite_add_tcase(s, tc);
 
