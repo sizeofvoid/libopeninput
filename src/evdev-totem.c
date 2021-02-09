@@ -717,7 +717,7 @@ static bool
 totem_reject_device(struct evdev_device *device)
 {
 	struct libevdev *evdev = device->evdev;
-	bool has_xy, has_slot, has_tool_dial, has_size;
+	bool has_xy, has_slot, has_tool_dial, has_size, has_touch_size;
 	double w, h;
 
 	has_xy = libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_X) &&
@@ -726,19 +726,21 @@ totem_reject_device(struct evdev_device *device)
 	has_tool_dial = libevdev_has_event_code(evdev, EV_ABS, ABS_MT_TOOL_TYPE) &&
 			libevdev_get_abs_maximum(evdev, ABS_MT_TOOL_TYPE) >= MT_TOOL_DIAL;
 	has_size = evdev_device_get_size(device, &w, &h) == 0;
-	has_size |= libevdev_get_abs_resolution(device->evdev, ABS_MT_TOUCH_MAJOR) > 0;
-	has_size |= libevdev_get_abs_resolution(device->evdev, ABS_MT_TOUCH_MINOR) > 0;
+	has_touch_size =
+		libevdev_get_abs_resolution(device->evdev, ABS_MT_TOUCH_MAJOR) > 0 ||
+		libevdev_get_abs_resolution(device->evdev, ABS_MT_TOUCH_MINOR) > 0;
 
-	if (has_xy && has_slot && has_tool_dial && has_size)
+	if (has_xy && has_slot && has_tool_dial && has_size && has_touch_size)
 		return false;
 
 	evdev_log_bug_libinput(device,
-			       "missing totem capabilities:%s%s%s%s. "
+			       "missing totem capabilities:%s%s%s%s%s. "
 			       "Ignoring this device.\n",
 			       has_xy ? "" : " xy",
 			       has_slot ? "" : " slot",
 			       has_tool_dial ? "" : " dial",
-			       has_size ? "" : " resolutions");
+			       has_size ? "" : " resolutions",
+			       has_touch_size ? "" : " touch-size");
 	return true;
 }
 
