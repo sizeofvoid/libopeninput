@@ -715,17 +715,16 @@ START_TEST(timer_delay_bug_warning)
 	old_user_data = libinput_get_user_data(li);
 	litest_drain_events(li);
 
+	libinput_set_user_data(li, &warning_triggered);
+	libinput_log_set_handler(li, timer_delay_warning);
+
 	for (int i = 0; i < 10; i++) {
 		litest_button_click(dev, BTN_LEFT, true);
 		libinput_dispatch(li);
 		litest_button_click(dev, BTN_LEFT, false);
 		msleep(11);
-
-		libinput_set_user_data(li, &warning_triggered);
-		libinput_log_set_handler(li, timer_delay_warning);
 		libinput_dispatch(li);
 	}
-
 
 	ck_assert_int_ge(warning_triggered, 1);
 	litest_restore_log_handler(li);
