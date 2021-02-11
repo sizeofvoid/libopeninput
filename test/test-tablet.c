@@ -5996,7 +5996,7 @@ START_TEST(tablet_smoothing)
 	double x, y;
 	struct point {
 		double x, y;
-	} coordinates[100];
+	} coordinates[100] = {0};
 	size_t npoints = 0;
 	size_t idx = 0;
 	struct axis_replacement axes[] = {
