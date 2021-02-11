@@ -887,7 +887,6 @@ TEST_COLLECTION(misc)
 {
 	litest_add_no_device("events:conversion", event_conversion_device_notify);
 	litest_add_for_device("events:conversion", event_conversion_pointer, LITEST_MOUSE);
-	litest_add_for_device("events:conversion", event_conversion_pointer, LITEST_MOUSE);
 	litest_add_for_device("events:conversion", event_conversion_pointer_abs, LITEST_XEN_VIRTUAL_POINTER);
 	litest_add_for_device("events:conversion", event_conversion_key, LITEST_KEYBOARD);
 	litest_add_for_device("events:conversion", event_conversion_touch, LITEST_WACOM_TOUCH);
