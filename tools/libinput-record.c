@@ -2289,8 +2289,9 @@ mainloop(struct record_context *ctx)
 			 */
 			had_events = true;
 			had_events_since_last_time = true;
-			list_for_each(d, &ctx->devices, link)
+			list_for_each(d, &ctx->devices, link) {
 				handle_events(ctx, d, d == first_device);
+			}
 
 			/* This shouldn't pull any events off unless caused
 			 * by libinput-internal timeouts (e.g. tapping) */
