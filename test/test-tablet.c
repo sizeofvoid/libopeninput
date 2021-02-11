@@ -4008,18 +4008,6 @@ START_TEST(tablet_pressure_offset_increase)
 }
 END_TEST
 
-static void pressure_threshold_warning(struct libinput *libinput,
-				       enum libinput_log_priority priority,
-				       const char *format,
-				       va_list args)
-{
-	int *warning_triggered = (int*)libinput_get_user_data(libinput);
-
-	if (priority == LIBINPUT_LOG_PRIORITY_ERROR &&
-	    strstr(format, "pressure offset greater"))
-		(*warning_triggered)++;
-}
-
 START_TEST(tablet_pressure_min_max)
 {
 	struct litest_device *dev = litest_current_device();
@@ -4106,6 +4094,19 @@ START_TEST(tablet_pressure_range)
 	}
 }
 END_TEST
+
+static void
+pressure_threshold_warning(struct libinput *libinput,
+			   enum libinput_log_priority priority,
+			   const char *format,
+			   va_list args)
+{
+	int *warning_triggered = (int*)libinput_get_user_data(libinput);
+
+	if (priority == LIBINPUT_LOG_PRIORITY_ERROR &&
+	    strstr(format, "pressure offset greater"))
+		(*warning_triggered)++;
+}
 
 START_TEST(tablet_pressure_offset_exceed_threshold)
 {
