@@ -2277,7 +2277,6 @@ mainloop(struct record_context *ctx)
 
 			if (skipped_timer_print) {
 				print_wall_time(ctx);
-				had_events_since_last_time = false;
 				skipped_timer_print = false;
 			}
 
