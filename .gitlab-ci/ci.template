@@ -485,7 +485,8 @@ scan-build@{{distro.name}}:{{version}}:
     MESON_TEST_ARGS: ''
   before_script:
     - dnf install -y clang-analyzer findutils
-  after_script:
+  script:
+    - .gitlab-ci/meson-build.sh
     - test ! -d "$MESON_BUILDDIR"/meson-logs/scanbuild && exit 0
     - test $(find "$MESON_BUILDDIR"/meson-logs/scanbuild -maxdepth 0 ! -empty -exec echo "not empty" \; | wc -l) -eq 0 && exit 0
     - echo "Check scan-build results"
