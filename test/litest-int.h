@@ -149,6 +149,7 @@ struct path {
 };
 
 struct litest_context {
+	struct litest_user_data *user_data;
 	struct list paths;
 };
 

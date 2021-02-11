@@ -4101,7 +4101,8 @@ pressure_threshold_warning(struct libinput *libinput,
 			   const char *format,
 			   va_list args)
 {
-	int *warning_triggered = (int*)libinput_get_user_data(libinput);
+	struct litest_user_data *user_data = libinput_get_user_data(libinput);
+	int *warning_triggered = user_data->private;
 
 	if (priority == LIBINPUT_LOG_PRIORITY_ERROR &&
 	    strstr(format, "pressure offset greater"))
@@ -4121,12 +4122,11 @@ START_TEST(tablet_pressure_offset_exceed_threshold)
 	};
 	double pressure;
 	int warning_triggered = 0;
-	void *old_user_data;
+	struct litest_user_data *user_data = libinput_get_user_data(li);
 
 	litest_drain_events(li);
 
-	old_user_data = libinput_get_user_data(li);
-	libinput_set_user_data(li, &warning_triggered);
+	user_data->private = &warning_triggered;
 
 	libinput_log_set_handler(li, pressure_threshold_warning);
 	litest_tablet_proximity_in(dev, 5, 100, axes);
@@ -4140,8 +4140,6 @@ START_TEST(tablet_pressure_offset_exceed_threshold)
 
 	ck_assert_int_eq(warning_triggered, 1);
 	litest_restore_log_handler(li);
-
-	libinput_set_user_data(li, old_user_data);
 }
 END_TEST
 

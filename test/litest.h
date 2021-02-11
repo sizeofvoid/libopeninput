@@ -78,6 +78,16 @@ struct test_collection {
 	}; \
 	static void (name##_setup)(void)
 
+
+/**
+ * litest itself needs the user_data to store some test-suite-specific
+ * information. Tests must not override this pointer, any data they need
+ * they can hang off the private pointer in this struct.
+ */
+struct litest_user_data {
+	void *private;
+};
+
 void
 litest_fail_condition(const char *file,
 		      int line,

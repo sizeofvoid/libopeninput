@@ -657,7 +657,8 @@ static void timer_offset_warning(struct libinput *libinput,
 				 const char *format,
 				 va_list args)
 {
-	int *warning_triggered = (int*)libinput_get_user_data(libinput);
+	struct litest_user_data *user_data = libinput_get_user_data(libinput);
+	int *warning_triggered = user_data->private;
 
 	if (priority == LIBINPUT_LOG_PRIORITY_ERROR &&
 	    strstr(format, "scheduled expiry is in the past"))
@@ -669,7 +670,7 @@ START_TEST(timer_offset_bug_warning)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	int warning_triggered = 0;
-	void *old_user_data;
+	struct litest_user_data *user_data = libinput_get_user_data(li);
 
 	litest_enable_tap(dev->libinput_device);
 	litest_drain_events(li);
@@ -679,16 +680,13 @@ START_TEST(timer_offset_bug_warning)
 
 	litest_timeout_tap();
 
-	old_user_data = libinput_get_user_data(li);
-	libinput_set_user_data(li, &warning_triggered);
+	user_data->private = &warning_triggered;
 	libinput_log_set_handler(li, timer_offset_warning);
 	libinput_dispatch(li);
 
 	/* triggered for touch down and touch up */
 	ck_assert_int_eq(warning_triggered, 2);
 	litest_restore_log_handler(li);
-
-	libinput_set_user_data(li, old_user_data);
 }
 END_TEST
 
@@ -697,25 +695,24 @@ static void timer_delay_warning(struct libinput *libinput,
 				const char *format,
 				va_list args)
 {
-	int *warning_triggered = (int*)libinput_get_user_data(libinput);
+	struct litest_user_data *user_data = libinput_get_user_data(libinput);
+	int *warning_triggered = user_data->private;
 
 	if (priority == LIBINPUT_LOG_PRIORITY_ERROR &&
 	    strstr(format, "event processing lagging behind by"))
 		(*warning_triggered)++;
 }
 
-
 START_TEST(timer_delay_bug_warning)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	int warning_triggered = 0;
-	void *old_user_data;
+	struct litest_user_data *user_data = libinput_get_user_data(li);
 
-	old_user_data = libinput_get_user_data(li);
 	litest_drain_events(li);
 
-	libinput_set_user_data(li, &warning_triggered);
+	user_data->private = &warning_triggered;
 	libinput_log_set_handler(li, timer_delay_warning);
 
 	for (int i = 0; i < 10; i++) {
@@ -728,7 +725,6 @@ START_TEST(timer_delay_bug_warning)
 
 	ck_assert_int_ge(warning_triggered, 1);
 	litest_restore_log_handler(li);
-	libinput_set_user_data(li, old_user_data);
 }
 END_TEST
 
