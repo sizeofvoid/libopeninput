@@ -715,10 +715,9 @@ START_TEST(timer_delay_bug_warning)
 	user_data->private = &warning_triggered;
 	libinput_log_set_handler(li, timer_delay_warning);
 
-	for (int i = 0; i < 10; i++) {
-		litest_button_click(dev, BTN_LEFT, true);
-		libinput_dispatch(li);
-		litest_button_click(dev, BTN_LEFT, false);
+	for (int i = 0; i < 20; i++) {
+		litest_event(dev, EV_REL, REL_X, -1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 		msleep(11);
 		libinput_dispatch(li);
 	}
