@@ -552,6 +552,29 @@ python-format@{{distro.name}}:{{version}}:
     - black $(git grep -l '^#!/usr/bin/env python3')
     - git diff --exit-code || (echo "Please run Black against all Python files" && false)
 
+# A job to check we're actually running all test suites in the CI
+check-test-suites:
+  extends:
+    - .{{distro.name}}-build@template
+  before_script:
+    - dnf install -y jq
+  script:
+    - meson builddir
+    - meson introspect builddir --test | jq -r '.[].name' | grep 'libinput-test-suite' | sort > meson-testsuites
+    - |
+      cat <<EOF > ci-testsuites ;
+{% for suite in test_suites %}
+{% for name in suite.suites %}
+        libinput-test-suite-{{name}}
+{% endfor %}
+{% endfor %}
+      EOF
+    - sort -o ci-testsuites ci-testsuites
+    - diff -u8 -w ci-testsuites meson-testsuites || (echo "Some test suites are not run in the CI" && false)
+  only:
+    changes:
+      - "meson.build"
+      - ".gitlab-ci.yml"
 {% endfor %}
 
 #

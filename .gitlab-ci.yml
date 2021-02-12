@@ -814,6 +814,43 @@ python-format@fedora:33:
     - black $(git grep -l '^#!/usr/bin/env python3')
     - git diff --exit-code || (echo "Please run Black against all Python files" && false)
 
+# A job to check we're actually running all test suites in the CI
+check-test-suites:
+  extends:
+    - .fedora-build@template
+  before_script:
+    - dnf install -y jq
+  script:
+    - meson builddir
+    - meson introspect builddir --test | jq -r '.[].name' | grep 'libinput-test-suite' | sort > meson-testsuites
+    - |
+      cat <<EOF > ci-testsuites ;
+        libinput-test-suite-touchpad
+        libinput-test-suite-touchpad-tap
+        libinput-test-suite-touchpad-buttons
+        libinput-test-suite-tablet
+        libinput-test-suite-gestures
+        libinput-test-suite-device
+        libinput-test-suite-path
+        libinput-test-suite-udev
+        libinput-test-suite-log
+        libinput-test-suite-misc
+        libinput-test-suite-quirks
+        libinput-test-suite-keyboard
+        libinput-test-suite-pad
+        libinput-test-suite-switch
+        libinput-test-suite-trackball
+        libinput-test-suite-trackpoint
+        libinput-test-suite-totem
+        libinput-test-suite-touch
+        libinput-test-suite-pointer
+      EOF
+    - sort -o ci-testsuites ci-testsuites
+    - diff -u8 -w ci-testsuites meson-testsuites || (echo "Some test suites are not run in the CI" && false)
+  only:
+    changes:
+      - "meson.build"
+      - ".gitlab-ci.yml"
 
 #
 # coverity run
