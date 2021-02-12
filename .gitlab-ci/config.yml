@@ -145,37 +145,37 @@ distributions:
 test_suites:
   - name: touchpad
     suites:
-      touchpad
+      - touchpad
   - name: tap
     suites:
-      tap
+      - tap
   - name: tablet
     suites:
-      tablet
+      - tablet
   - name: gestures-device
     suites:
-      gestures
-      device
+      - gestures
+      - device
   - name: others
     suites:
-      context
-      config
-      misc
-      events
-      totem
-      udev
-      lid
-      log
-      timer
-      tablet-mode
-      quirks
-      trackball
-      pad
-      path
-      keyboard
-      switch
-      touch
-      trackpoint
+      - context
+      - config
+      - misc
+      - events
+      - totem
+      - udev
+      - lid
+      - log
+      - timer
+      - tablet-mode
+      - quirks
+      - trackball
+      - pad
+      - path
+      - keyboard
+      - switch
+      - touch
+      - trackpoint
   - name: pointer
     suites:
-      pointer
+      - pointer

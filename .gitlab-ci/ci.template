@@ -407,7 +407,7 @@ vm-{{suite.name}}:
   extends:
     - .{{distro.name}}:{{version}}@test-suite-vm
   variables:
-    SUITE_NAMES: '{{suite.suites}}'
+    SUITE_NAMES: '{{suite.suites|join(' ')}}'
 
 vm-{{suite.name}}-no-libwacom:
   extends:
