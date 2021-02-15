@@ -1600,6 +1600,14 @@ END_TEST
 
 START_TEST(touchpad_tap_n_drag_2fg)
 {
+	/* Test: tap with 1-3 fingers (multiple times), then a 1fg move
+	 * followed by a second finger down and *both* fingers moving.
+	 * This is a special behavior catering for the use-case when a user
+	 * needs a second finger down to "hold" the drag while resetting the
+	 * first finger.
+	 * Even though it's 2fg movement, we expect it to behave like a 1fg
+	 * drag. This behavior may change in the future.
+	 */
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	int nfingers = _i; /* ranged test */
@@ -1669,6 +1677,86 @@ START_TEST(touchpad_tap_n_drag_2fg)
 
 	litest_assert_button_event(li, button,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touchpad_tap_n_drag_2fg_scroll)
+{
+	/* Test: tap with 1-3 fingers, then immediate 2fg scroll.
+	 * We expect this to be a tap followed by a scroll.
+	 */
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	int nfingers = _i; /* ranged test */
+	unsigned int button = 0;
+
+	if (nfingers > litest_slot_count(dev))
+		return;
+
+	litest_enable_2fg_scroll(dev);
+	litest_enable_tap(dev->libinput_device);
+	litest_disable_drag_lock(dev->libinput_device);
+
+	switch (nfingers) {
+	case 1:
+		button = BTN_LEFT;
+		break;
+	case 2:
+		button = BTN_RIGHT;
+		break;
+	case 3:
+		button = BTN_MIDDLE;
+		break;
+	default:
+		abort();
+	}
+
+	litest_drain_events(li);
+
+	switch (nfingers) {
+	case 3:
+		litest_touch_down(dev, 2, 60, 30);
+		/* fallthrough */
+	case 2:
+		litest_touch_down(dev, 1, 50, 30);
+		/* fallthrough */
+	case 1:
+		litest_touch_down(dev, 0, 40, 30);
+		/* fallthrough */
+		break;
+	}
+	switch (nfingers) {
+	case 3:
+		litest_touch_up(dev, 2);
+		/* fallthrough */
+	case 2:
+		litest_touch_up(dev, 1);
+		/* fallthrough */
+	case 1:
+		litest_touch_up(dev, 0);
+		/* fallthrough */
+		break;
+	}
+
+	/* Two fingers down + move to trigger scrolling */
+	libinput_dispatch(li);
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_down(dev, 1, 70, 50);
+	libinput_dispatch(li);
+	litest_touch_move_two_touches(dev, 50, 50, 70, 40, 0, 20, 10);
+	libinput_dispatch(li);
+	litest_touch_up(dev, 0);
+	litest_touch_up(dev, 1);
+	libinput_dispatch(li);
+
+	litest_assert_button_event(li, button,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, button,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_AXIS);
 
 	litest_assert_empty_queue(li);
 }
@@ -1768,6 +1856,14 @@ END_TEST
 
 START_TEST(touchpad_tap_n_drag_3fg)
 {
+	/* Test: tap with 1-3 fingers (multiple times), then a 1fg move
+	 * followed by a second finger down and *both* fingers moving.
+	 * This is a special behavior catering for the use-case when a user
+	 * needs a second finger down to "hold" the drag while resetting the
+	 * first finger.
+	 * Even though it's 2fg movement, we expect it to behave like a 1fg
+	 * drag. This behavior may change in the future.
+	 */
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	int nfingers = _i; /* ranged test */
@@ -1818,10 +1914,12 @@ START_TEST(touchpad_tap_n_drag_3fg)
 		/* fallthrough */
 		break;
 	}
+	/* 1fg down triggers the drag */
 	litest_touch_down(dev, 0, 30, 70);
 	libinput_dispatch(li);
 	litest_timeout_tap();
 	libinput_dispatch(li);
+	/* 2fg is allowed now without cancelling the drag */
 	litest_touch_down(dev, 1, 80, 90);
 	litest_touch_move_to(dev, 0, 30, 70, 30, 30, 10);
 	libinput_dispatch(li);
@@ -1843,6 +1941,97 @@ START_TEST(touchpad_tap_n_drag_3fg)
 	litest_touch_up(dev, 2);
 	litest_touch_up(dev, 1);
 	litest_touch_up(dev, 0);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(touchpad_tap_n_drag_3fg_swipe)
+{
+	/* Test: tap with 1-3 fingers, then immediate 3fg swipe.
+	 * We expect this to be a tap followed by a swipe.
+	 */
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	int nfingers = _i; /* ranged test */
+	unsigned int button = 0;
+
+	if (litest_slot_count(dev) < 3)
+		return;
+
+	litest_enable_tap(dev->libinput_device);
+
+	switch (nfingers) {
+	case 1:
+		button = BTN_LEFT;
+		break;
+	case 2:
+		button = BTN_RIGHT;
+		break;
+	case 3:
+		button = BTN_MIDDLE;
+		break;
+	default:
+		abort();
+	}
+
+	litest_drain_events(li);
+
+	switch (nfingers) {
+	case 3:
+		litest_touch_down(dev, 2, 60, 30);
+		/* fallthrough */
+	case 2:
+		litest_touch_down(dev, 1, 50, 30);
+		/* fallthrough */
+	case 1:
+		litest_touch_down(dev, 0, 40, 30);
+		/* fallthrough */
+		break;
+	}
+	switch (nfingers) {
+	case 3:
+		litest_touch_up(dev, 2);
+		/* fallthrough */
+	case 2:
+		litest_touch_up(dev, 1);
+		/* fallthrough */
+	case 1:
+		litest_touch_up(dev, 0);
+		/* fallthrough */
+		break;
+	}
+
+
+	litest_touch_down(dev, 0, 30, 50);
+	litest_touch_down(dev, 1, 50, 50);
+	litest_touch_down(dev, 2, 80, 50);
+	libinput_dispatch(li);
+	litest_touch_move_three_touches(dev,
+					30, 50,
+					50, 50,
+					80, 50,
+					0, 20,
+					10);
+	libinput_dispatch(li);
+
+	litest_assert_button_event(li, button,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, button,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+
+	litest_assert_gesture_event(li,
+				    LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
+				    3);
+	litest_assert_only_typed_events(li,
+					LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE);
+
+	litest_touch_up(dev, 2);
+	litest_touch_up(dev, 1);
+	litest_touch_up(dev, 0);
+	litest_assert_gesture_event(li,
+				    LIBINPUT_EVENT_GESTURE_SWIPE_END,
+				    3);
 
 	litest_assert_empty_queue(li);
 }
@@ -5286,8 +5475,10 @@ TEST_COLLECTION(touchpad_tap)
 
 	litest_add_ranged(touchpad_tap_n_drag, LITEST_TOUCHPAD, LITEST_ANY, &range_multifinger_tap);
 	litest_add_ranged(touchpad_tap_n_drag_2fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &range_multifinger_tap);
+	litest_add_ranged(touchpad_tap_n_drag_2fg_scroll, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &range_multifinger_tap);
 	litest_add_ranged(touchpad_tap_n_drag_3fg_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_APPLE_CLICKPAD, &range_multifinger_tap);
 	litest_add_ranged(touchpad_tap_n_drag_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &range_multifinger_tap);
+	litest_add_ranged(touchpad_tap_n_drag_3fg_swipe, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &range_multifinger_tap);
 	litest_add_ranged(touchpad_tap_n_drag_draglock, LITEST_TOUCHPAD, LITEST_ANY, &range_multifinger_tap);
 	litest_add_ranged(touchpad_tap_n_drag_draglock_tap, LITEST_TOUCHPAD, LITEST_ANY, &range_multifinger_doubletap);
 	litest_add_ranged(touchpad_tap_n_drag_draglock_timeout, LITEST_TOUCHPAD, LITEST_ANY, &range_multifinger_tap);

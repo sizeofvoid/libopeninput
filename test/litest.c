@@ -3646,6 +3646,20 @@ litest_is_gesture_event(struct libinput_event *event,
 	return gevent;
 }
 
+void
+litest_assert_gesture_event(struct libinput *li,
+			    enum libinput_event_type type,
+			    int nfingers)
+{
+	struct libinput_event *event;
+
+	litest_wait_for_event(li);
+	event = libinput_get_event(li);
+
+	litest_is_gesture_event(event, type, nfingers);
+	libinput_event_destroy(event);
+}
+
 struct libinput_event_tablet_tool *
 litest_is_tablet_event(struct libinput_event *event,
 		       enum libinput_event_type type)

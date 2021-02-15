@@ -839,6 +839,12 @@ void
 litest_assert_pad_key_event(struct libinput *li,
 			    unsigned int key,
 			    enum libinput_key_state state);
+
+void
+litest_assert_gesture_event(struct libinput *li,
+			    enum libinput_event_type type,
+			    int nfingers);
+
 struct libevdev_uinput *
 litest_create_uinput_device(const char *name,
 			    struct input_id *id,
