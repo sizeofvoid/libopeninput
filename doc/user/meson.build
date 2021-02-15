@@ -4,6 +4,11 @@ if not sphinx.found()
 	error('Program "sphinx-build" not found or not executable. Try building with -Ddocumentation=false')
 endif
 
+yq = find_program('yq', required : false)
+if not yq.found()
+	warning('Program "yq" not found or not executable. Dependency list will not be built.')
+endif
+
 sphinx_config = configuration_data()
 sphinx_config.set('PROJECT_NAME', meson.project_name())
 sphinx_config.set('PROJECT_VERSION', meson.project_version())
@@ -180,6 +185,19 @@ configure_file(input: 'index.rst',
 	       output: 'index.rst',
 	       configuration: sphinx_config)
 
+dependencies_config = configuration_data()
+if yq.found()
+	distributions = ['fedora', 'ubuntu', 'debian', 'arch', 'alpine']
+	foreach distro : distributions
+		yq_filter = '.distributions[] | select(.name == "@0@") | .packages | join(" ")'.format(distro)
+		deps = run_command(yq, '-r', yq_filter,
+				   join_paths(meson.source_root(), '.gitlab-ci', 'config.yml')).stdout()
+		dependencies_config.set('@0@_PACKAGES'.format(distro.to_upper()), deps)
+endforeach
+endif
+configure_file(input: 'dependencies.rst',
+	       output: 'dependencies.rst',
+	       configuration: dependencies_config)
 
 # do not use -j, it breaks on Ubuntu
 sphinx_output_dir = 'Documentation'

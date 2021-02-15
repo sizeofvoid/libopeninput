@@ -224,6 +224,14 @@ found``.  See
 `this blog post here <https://who-t.blogspot.com/2018/07/meson-fails-with-native-dependency-not-found.html>`_
 for instructions on how to fix it.
 
+..............................................................................
+Build dependencies per distribution
+..............................................................................
+
+
+.. include:: dependencies.rst
+
+
 .. _building_conditional:
 
 ------------------------------------------------------------------------------
