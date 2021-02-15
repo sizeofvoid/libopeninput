@@ -3835,13 +3835,12 @@ litest_assert_pad_button_event(struct libinput *li,
 			       enum libinput_button_state state)
 {
 	struct libinput_event *event;
-	struct libinput_event_tablet_pad *pev;
 
 	litest_wait_for_event(li);
 	event = libinput_get_event(li);
 
-	pev = litest_is_pad_button_event(event, button, state);
-	libinput_event_destroy(libinput_event_tablet_pad_get_base_event(pev));
+	litest_is_pad_button_event(event, button, state);
+	libinput_event_destroy(event);
 }
 
 void
@@ -3850,13 +3849,12 @@ litest_assert_pad_key_event(struct libinput *li,
 			    enum libinput_key_state state)
 {
 	struct libinput_event *event;
-	struct libinput_event_tablet_pad *pev;
 
 	litest_wait_for_event(li);
 	event = libinput_get_event(li);
 
-	pev = litest_is_pad_key_event(event, key, state);
-	libinput_event_destroy(libinput_event_tablet_pad_get_base_event(pev));
+	litest_is_pad_key_event(event, key, state);
+	libinput_event_destroy(event);
 }
 
 void
