@@ -3920,8 +3920,7 @@ litest_assert_only_typed_events(struct libinput *li,
 	litest_assert_notnull(event);
 
 	while (event) {
-		litest_assert_int_eq(libinput_event_get_type(event),
-                                     type);
+		litest_assert_event_type(event, type);
 		libinput_event_destroy(event);
 		libinput_dispatch(li);
 		event = libinput_get_event(li);
