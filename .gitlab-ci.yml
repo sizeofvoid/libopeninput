@@ -62,6 +62,7 @@ stages:
   - prep             # prep work like rebuilding the container images if there is a change
   - build            # for actually building and testing things in a container
   - test-suite       # for running the test suite in a VM
+  - test-suite-no-libwacom # for running the test suite in a VM (libwacom disabled)
   - valgrind         # for running the test suite under valgrind in a VM
   - distro           # distribs test
   - deploy           # trigger wayland's website generation
@@ -528,6 +529,7 @@ vm-touchpad:
 vm-touchpad-no-libwacom:
   extends:
     - vm-touchpad
+  stage: test-suite-no-libwacom
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
@@ -540,6 +542,7 @@ vm-tap:
 vm-tap-no-libwacom:
   extends:
     - vm-tap
+  stage: test-suite-no-libwacom
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
@@ -552,6 +555,7 @@ vm-touchpad-buttons:
 vm-touchpad-buttons-no-libwacom:
   extends:
     - vm-touchpad-buttons
+  stage: test-suite-no-libwacom
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
@@ -564,6 +568,7 @@ vm-tablet:
 vm-tablet-no-libwacom:
   extends:
     - vm-tablet
+  stage: test-suite-no-libwacom
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
@@ -576,6 +581,7 @@ vm-gestures-device:
 vm-gestures-device-no-libwacom:
   extends:
     - vm-gestures-device
+  stage: test-suite-no-libwacom
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
@@ -588,6 +594,7 @@ vm-backends:
 vm-backends-no-libwacom:
   extends:
     - vm-backends
+  stage: test-suite-no-libwacom
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
@@ -600,6 +607,7 @@ vm-misc:
 vm-misc-no-libwacom:
   extends:
     - vm-misc
+  stage: test-suite-no-libwacom
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
@@ -612,6 +620,7 @@ vm-other devices:
 vm-other devices-no-libwacom:
   extends:
     - vm-other devices
+  stage: test-suite-no-libwacom
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
@@ -624,6 +633,7 @@ vm-pointer:
 vm-pointer-no-libwacom:
   extends:
     - vm-pointer
+  stage: test-suite-no-libwacom
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 

@@ -52,6 +52,7 @@ stages:
   - prep             # prep work like rebuilding the container images if there is a change
   - build            # for actually building and testing things in a container
   - test-suite       # for running the test suite in a VM
+  - test-suite-no-libwacom # for running the test suite in a VM (libwacom disabled)
   - valgrind         # for running the test suite under valgrind in a VM
   - distro           # distribs test
   - deploy           # trigger wayland's website generation
@@ -412,6 +413,7 @@ vm-{{suite.name}}:
 vm-{{suite.name}}-no-libwacom:
   extends:
     - vm-{{suite.name}}
+  stage: test-suite-no-libwacom
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
