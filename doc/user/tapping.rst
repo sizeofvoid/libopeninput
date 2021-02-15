@@ -49,6 +49,11 @@ Tap-and-drag is optional and can be enabled or disabled with
 **libinput_device_config_tap_set_drag_enabled()**. Most devices have
 tap-and-drag enabled by default.
 
+.. note:: Dragging is always done with one finger. The number of fingers on
+          the initial tap decide the type of button click. For example, to
+          middle-click drag, tap with three fingers followed by a
+          single-finger drag.
+
 Also optional is a feature called "drag lock". With drag lock disabled, lifting
 the finger will stop any drag process. When enabled, libinput will ignore a
 finger up event during a drag process, provided the finger is set down again
