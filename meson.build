@@ -24,6 +24,8 @@ endif
 dir_udev_callouts = dir_udev
 dir_udev_rules    = join_paths(dir_udev, 'rules.d')
 
+# Collection of man pages, we'll append to that
+src_man = files()
 
 # We use libtool-version numbers because it's easier to understand.
 # Before making a release, the libinput_so_*
@@ -449,10 +451,6 @@ lib_tools_shared = static_library('tools_shared',
 dep_tools_shared = declare_dependency(link_with : lib_tools_shared,
 				      dependencies : deps_tools_shared)
 
-man_config = configuration_data()
-man_config.set('LIBINPUT_VERSION', meson.project_version())
-man_config.set('LIBINPUT_DATA_DIR', dir_data)
-
 deps_tools = [ dep_tools_shared, dep_libinput ]
 libinput_debug_events_sources = [
 	'tools/libinput-debug-events.c',
@@ -465,11 +463,6 @@ executable('libinput-debug-events',
 	   install_dir : libinput_tool_path,
 	   install : true
 	   )
-configure_file(input : 'tools/libinput-debug-events.man',
-	       output : 'libinput-debug-events.1',
-	       configuration : man_config,
-	       install_dir : dir_man1,
-	       )
 
 libinput_debug_tablet_sources = [ 'tools/libinput-debug-tablet.c' ]
 executable('libinput-debug-tablet',
@@ -479,11 +472,6 @@ executable('libinput-debug-tablet',
 	   install_dir : libinput_tool_path,
 	   install : true)
 
-configure_file(input : 'tools/libinput-debug-tablet.man',
-	       output : 'libinput-debug-tablet.1',
-	       configuration : man_config,
-	       install_dir : dir_man1,
-	       )
 
 libinput_quirks_sources = [ 'tools/libinput-quirks.c' ]
 libinput_quirks = executable('libinput-quirks',
@@ -499,23 +487,6 @@ test('validate-quirks',
      suite : ['all']
      )
 
-configure_file(input : 'tools/libinput-quirks.man',
-	       output : 'libinput-quirks.1',
-	       configuration : man_config,
-	       install_dir : dir_man1,
-	       )
-# Same man page for the subtools to stay consistent with the other tools
-configure_file(input : 'tools/libinput-quirks.man',
-	       output : 'libinput-quirks-list.1',
-	       configuration : man_config,
-	       install_dir : dir_man1,
-	       )
-configure_file(input : 'tools/libinput-quirks.man',
-	       output : 'libinput-quirks-validate.1',
-	       configuration : man_config,
-	       install_dir : dir_man1,
-	       )
-
 libinput_list_devices_sources = [ 'tools/libinput-list-devices.c' ]
 libinput_list_devices = executable('libinput-list-devices',
 				   libinput_list_devices_sources,
@@ -528,12 +499,6 @@ test('list-devices',
      libinput_list_devices,
      suite : ['all', 'root', 'hardware'])
 
-configure_file(input : 'tools/libinput-list-devices.man',
-	       output : 'libinput-list-devices.1',
-	       configuration : man_config,
-	       install_dir : dir_man1,
-	       )
-
 libinput_measure_sources = [ 'tools/libinput-measure.c' ]
 executable('libinput-measure',
 	   libinput_measure_sources,
@@ -542,11 +507,6 @@ executable('libinput-measure',
 	   install_dir : libinput_tool_path,
 	   install : true,
 	   )
-configure_file(input : 'tools/libinput-measure.man',
-	       output : 'libinput-measure.1',
-	       configuration : man_config,
-	       install_dir : dir_man1,
-	       )
 
 libinput_analyze_sources = [ 'tools/libinput-analyze.c' ]
 executable('libinput-analyze',
@@ -556,11 +516,6 @@ executable('libinput-analyze',
 	   install_dir : libinput_tool_path,
 	   install : true,
 	   )
-configure_file(input : 'tools/libinput-analyze.man',
-	       output : 'libinput-analyze.1',
-	       configuration : man_config,
-	       install_dir : dir_man1,
-	       )
 
 src_python_tools = files(
 	      'tools/libinput-analyze-per-slot-delta.py',
@@ -580,23 +535,6 @@ foreach t : src_python_tools
 		      )
 endforeach
 
-src_man = files(
-	      'tools/libinput-measure-fuzz.man',
-	      'tools/libinput-measure-touchpad-size.man',
-	      'tools/libinput-measure-touchpad-tap.man',
-	      'tools/libinput-measure-touchpad-pressure.man',
-	      'tools/libinput-measure-touch-size.man',
-	      'tools/libinput-analyze-per-slot-delta.man',
-	      'tools/libinput-analyze-touch-down-state.man',
-)
-
-foreach m : src_man
-	configure_file(input : m,
-		       output : '@BASENAME@.1',
-		       configuration : man_config,
-		       install_dir : dir_man1)
-endforeach
-
 libinput_record_sources = [ 'tools/libinput-record.c', git_version_h ]
 executable('libinput-record',
 	   libinput_record_sources,
@@ -605,19 +543,9 @@ executable('libinput-record',
 	   install_dir : libinput_tool_path,
 	   install : true,
 	   )
-configure_file(input : 'tools/libinput-record.man',
-	       output : 'libinput-record.1',
-	       configuration : man_config,
-	       install_dir : dir_man1,
-	       )
 
 install_data('tools/libinput-replay',
 	     install_dir : libinput_tool_path)
-configure_file(input : 'tools/libinput-replay.man',
-	       output : 'libinput-replay.1',
-	       configuration : man_config,
-	       install_dir : dir_man1,
-	       )
 
 if get_option('debug-gui')
 	dep_gtk = dependency('gtk+-3.0', version : '>= 3.20')
@@ -637,11 +565,7 @@ if get_option('debug-gui')
 		   install_dir : libinput_tool_path,
 		   install : true
 		   )
-	configure_file(input : 'tools/libinput-debug-gui.man',
-		       output : 'libinput-debug-gui.1',
-		       configuration : man_config,
-		       install_dir : dir_man1,
-		       )
+	src_man += files('tools/libinput-debug-gui.man')
 endif
 
 libinput_sources = [ 'tools/libinput-tool.c' ]
@@ -652,11 +576,6 @@ libinput_tool = executable('libinput',
 			   include_directories : [includes_src, includes_include],
 			   install : true
 			  )
-configure_file(input : 'tools/libinput.man',
-	       output : 'libinput.1',
-	       configuration : man_config,
-	       install_dir : dir_man1,
-	       )
 
 ptraccel_debug_sources = [ 'tools/ptraccel-debug.c' ]
 executable('ptraccel-debug',
@@ -946,11 +865,8 @@ if get_option('tests')
 					  dependencies : deps_litest,
 					  install_dir : libinput_tool_path,
 					  install : get_option('install-tests'))
-	configure_file(input : 'test/libinput-test-suite.man',
-		       output : 'libinput-test-suite.1',
-		       configuration : man_config,
-		       install_dir : dir_man1,
-		       )
+
+	src_man += 'test/libinput-test-suite.man'
 
 	foreach testfile : tests_sources
 		tfile = testfile.split('test/test-')[1]
@@ -988,5 +904,49 @@ if get_option('tests')
 	configure_file(output : 'litest-config.h',
 		       configuration : litest_config_h)
 endif
+
+
+############ man pages ############
+man_config = configuration_data()
+man_config.set('LIBINPUT_VERSION', meson.project_version())
+man_config.set('LIBINPUT_DATA_DIR', dir_data)
+src_man += files(
+	'tools/libinput.man',
+	'tools/libinput-analyze.man',
+	'tools/libinput-analyze-per-slot-delta.man',
+	'tools/libinput-analyze-touch-down-state.man',
+	'tools/libinput-debug-events.man',
+	'tools/libinput-debug-tablet.man',
+	'tools/libinput-list-devices.man',
+	'tools/libinput-measure.man',
+	'tools/libinput-measure-fuzz.man',
+	'tools/libinput-measure-touchpad-size.man',
+	'tools/libinput-measure-touchpad-tap.man',
+	'tools/libinput-measure-touchpad-pressure.man',
+	'tools/libinput-measure-touch-size.man',
+	'tools/libinput-quirks.man',
+	'tools/libinput-record.man',
+	'tools/libinput-replay.man',
+)
+
+foreach m : src_man
+	configure_file(input : m,
+		       output : '@BASENAME@.1',
+		       configuration : man_config,
+		       install_dir : dir_man1)
+endforeach
+
+# Same man page for the subtools to stay consistent with the other tools
+configure_file(input : 'tools/libinput-quirks.man',
+	       output : 'libinput-quirks-list.1',
+	       configuration : man_config,
+	       install_dir : dir_man1,
+	       )
+configure_file(input : 'tools/libinput-quirks.man',
+	       output : 'libinput-quirks-validate.1',
+	       configuration : man_config,
+	       install_dir : dir_man1,
+	       )
+
 ############ output files ############
 configure_file(output : 'config.h', configuration : config_h)
