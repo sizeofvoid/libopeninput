@@ -572,17 +572,10 @@ src_python_tools = files(
 	      'tools/libinput-measure-touch-size.py',
 )
 
-config_noop = configuration_data()
-# Set a dummy replacement to silence meson warnings:
-# meson.build:487: WARNING: Got an empty configuration_data() object and
-# 		   found no substitutions in the input file 'foo'. If you
-# 		   want to copy a file to the build dir, use the 'copy:'
-# 		   keyword argument added in 0.47.0
-config_noop.set('dummy', 'dummy')
 foreach t : src_python_tools
 	configure_file(input: t,
 		       output: '@BASENAME@',
-		       configuration : config_noop,
+		       copy: true,
 		       install_dir : libinput_tool_path
 		      )
 endforeach
