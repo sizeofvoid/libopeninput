@@ -127,6 +127,23 @@ struct record_context {
 	bool stop;
 };
 
+#define resize(array_, sz_) \
+{ \
+	size_t new_size = (sz_) + 1000; \
+	void *tmp = realloc((array_), new_size * sizeof(*(array_))); \
+	assert(tmp); \
+	(array_)  = tmp; \
+	(sz_) = new_size; \
+}
+
+static struct event *
+next_event(struct record_device *d)
+{
+	if (d->nevents == d->events_sz)
+		resize(d->events, d->events_sz);
+	return &d->events[d->nevents++];
+}
+
 typedef void (*source_dispatch_t)(struct record_context *ctx,
 				  int fd,
 				  void *user_data);
@@ -365,15 +382,6 @@ print_evdev_event(struct record_context *ctx,
 		desc);
 }
 
-#define resize(array_, sz_) \
-{ \
-	size_t new_size = (sz_) + 1000; \
-	void *tmp = realloc((array_), new_size * sizeof(*(array_))); \
-	assert(tmp); \
-	(array_)  = tmp; \
-	(sz_) = new_size; \
-}
-
 static size_t
 handle_evdev_frame(struct record_context *ctx, struct record_device *d)
 {
@@ -393,10 +401,7 @@ handle_evdev_frame(struct record_context *ctx, struct record_device *d)
 		else
 			time = time_offset(ctx, time);
 
-		if (d->nevents == d->events_sz)
-			resize(d->events, d->events_sz);
-
-		event = &d->events[d->nevents++];
+		event = next_event(d);
 		event->type = EVDEV;
 		event->time = time;
 		event->u.evdev = e;
@@ -422,11 +427,8 @@ handle_evdev_frame(struct record_context *ctx, struct record_device *d)
 
 	if (d->touch.slot_state != d->touch.last_slot_state) {
 		d->touch.last_slot_state = d->touch.slot_state;
-		if (d->nevents == d->events_sz)
-			resize(d->events, d->events_sz);
-
 		if (d->touch.slot_state == 0) {
-			event = &d->events[d->nevents++];
+			event = next_event(d);
 			event->type = COMMENT;
 			event->time = last_time;
 			snprintf(event->u.comment,
@@ -1399,10 +1401,7 @@ handle_libinput_events(struct record_context *ctx,
 			assert(found);
 		}
 
-		if (current->nevents == current->events_sz)
-			resize(current->events, current->events_sz);
-
-		event = &current->events[current->nevents++];
+		event = next_event(current);
 		event->type = LIBINPUT;
 		buffer_libinput_event(ctx, e, event);
 
