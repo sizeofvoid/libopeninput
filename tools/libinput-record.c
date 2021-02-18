@@ -115,7 +115,7 @@ struct record_context {
 	struct libinput *libinput;
 };
 
-static inline bool
+static bool
 obfuscate_keycode(struct input_event *ev)
 {
 	switch (ev->type) {
@@ -136,13 +136,13 @@ obfuscate_keycode(struct input_event *ev)
 	return false;
 }
 
-static inline void
+static void
 indent_push(struct record_context *ctx)
 {
 	ctx->indent += 2;
 }
 
-static inline void
+static void
 indent_pop(struct record_context *ctx)
 {
 	assert(ctx->indent >= 2);
@@ -152,7 +152,7 @@ indent_pop(struct record_context *ctx)
 /**
  * Indented dprintf, indentation is given as second parameter.
  */
-static inline void
+static void
 iprintf(const struct record_context *ctx, const char *format, ...)
 {
 	va_list args;
@@ -185,7 +185,7 @@ iprintf(const struct record_context *ctx, const char *format, ...)
 /**
  * Normal printf, just wrapped for the context
  */
-static inline void
+static void
 noiprintf(const struct record_context *ctx, const char *format, ...)
 {
 	va_list args;
@@ -197,13 +197,13 @@ noiprintf(const struct record_context *ctx, const char *format, ...)
 	assert(rc != -1 && (unsigned int)rc > 0);
 }
 
-static inline uint64_t
+static uint64_t
 time_offset(struct record_context *ctx, uint64_t time)
 {
 	return ctx->offset ? time - ctx->offset : 0;
 }
 
-static inline void
+static void
 print_evdev_event(struct record_context *ctx,
 		  struct record_device *dev,
 		  struct input_event *ev)
@@ -351,7 +351,7 @@ print_evdev_event(struct record_context *ctx,
 	(sz_) = new_size; \
 }
 
-static inline size_t
+static size_t
 handle_evdev_frame(struct record_context *ctx, struct record_device *d)
 {
 	struct libevdev *evdev = d->evdev;
@@ -1349,7 +1349,7 @@ print_cached_events(struct record_context *ctx,
 	indent_pop(ctx);
 }
 
-static inline size_t
+static size_t
 handle_libinput_events(struct record_context *ctx,
 		       struct record_device *d)
 {
@@ -1390,7 +1390,7 @@ handle_libinput_events(struct record_context *ctx,
 	return count;
 }
 
-static inline void
+static void
 handle_events(struct record_context *ctx, struct record_device *d, bool print)
 {
 	while(true) {
@@ -1413,7 +1413,7 @@ handle_events(struct record_context *ctx, struct record_device *d, bool print)
 	}
 }
 
-static inline void
+static void
 print_libinput_header(struct record_context *ctx)
 {
 	iprintf(ctx, "libinput:\n");
@@ -1425,7 +1425,7 @@ print_libinput_header(struct record_context *ctx)
 	indent_pop(ctx);
 }
 
-static inline void
+static void
 print_system_header(struct record_context *ctx)
 {
 	struct utsname u;
@@ -1481,7 +1481,7 @@ print_system_header(struct record_context *ctx)
 	indent_pop(ctx);
 }
 
-static inline void
+static void
 print_header(struct record_context *ctx)
 {
 	iprintf(ctx, "version: %d\n", FILE_VERSION_NUMBER);
@@ -1490,7 +1490,7 @@ print_header(struct record_context *ctx)
 	print_system_header(ctx);
 }
 
-static inline void
+static void
 print_description_abs(struct record_context *ctx,
 		      struct libevdev *dev,
 		      unsigned int code)
@@ -1508,7 +1508,7 @@ print_description_abs(struct record_context *ctx,
 	iprintf(ctx, "#       Resolution %6d\n", abs->resolution);
 }
 
-static inline void
+static void
 print_description_state(struct record_context *ctx,
 			struct libevdev *dev,
 			unsigned int type,
@@ -1518,7 +1518,7 @@ print_description_state(struct record_context *ctx,
 	iprintf(ctx, "#       State %d\n", state);
 }
 
-static inline void
+static void
 print_description_codes(struct record_context *ctx,
 			struct libevdev *dev,
 			unsigned int type)
@@ -1559,7 +1559,7 @@ print_description_codes(struct record_context *ctx,
 	}
 }
 
-static inline void
+static void
 print_description(struct record_context *ctx, struct libevdev *dev)
 {
 	const struct input_absinfo *x, *y;
@@ -1608,7 +1608,7 @@ print_description(struct record_context *ctx, struct libevdev *dev)
 	}
 }
 
-static inline void
+static void
 print_bits_info(struct record_context *ctx, struct libevdev *dev)
 {
 	iprintf(ctx, "name: \"%s\"\n", libevdev_get_name(dev));
@@ -1620,7 +1620,7 @@ print_bits_info(struct record_context *ctx, struct libevdev *dev)
 		libevdev_get_id_version(dev));
 }
 
-static inline void
+static void
 print_bits_absinfo(struct record_context *ctx, struct libevdev *dev)
 {
 	const struct input_absinfo *abs;
@@ -1648,7 +1648,7 @@ print_bits_absinfo(struct record_context *ctx, struct libevdev *dev)
 	indent_pop(ctx);
 }
 
-static inline void
+static void
 print_bits_codes(struct record_context *ctx,
 		 struct libevdev *dev,
 		 unsigned int type)
@@ -1673,7 +1673,7 @@ print_bits_codes(struct record_context *ctx,
 	noiprintf(ctx, "] # %s\n", libevdev_event_type_get_name(type));
 }
 
-static inline void
+static void
 print_bits_types(struct record_context *ctx, struct libevdev *dev)
 {
 	iprintf(ctx, "codes:\n");
@@ -1686,7 +1686,7 @@ print_bits_types(struct record_context *ctx, struct libevdev *dev)
 	indent_pop(ctx);
 }
 
-static inline void
+static void
 print_bits_props(struct record_context *ctx, struct libevdev *dev)
 {
 	bool first = true;
@@ -1701,7 +1701,7 @@ print_bits_props(struct record_context *ctx, struct libevdev *dev)
 	noiprintf(ctx, "]\n"); /* last entry, no comma */
 }
 
-static inline void
+static void
 print_evdev_description(struct record_context *ctx, struct record_device *dev)
 {
 	struct libevdev *evdev = dev->evdev;
@@ -1718,7 +1718,7 @@ print_evdev_description(struct record_context *ctx, struct record_device *dev)
 	indent_pop(ctx);
 }
 
-static inline void
+static void
 print_hid_report_descriptor(struct record_context *ctx,
 			    struct record_device *dev)
 {
@@ -1764,7 +1764,7 @@ print_hid_report_descriptor(struct record_context *ctx,
 	close(fd);
 }
 
-static inline void
+static void
 print_udev_properties(struct record_context *ctx, struct record_device *dev)
 {
 	struct udev *udev = NULL;
@@ -1830,7 +1830,7 @@ list_print(void *userdata, const char *val)
 	iprintf(ctx, "- %s\n", val);
 }
 
-static inline void
+static void
 print_device_quirks(struct record_context *ctx, struct record_device *dev)
 {
 	struct udev *udev = NULL;
@@ -1884,7 +1884,8 @@ out:
 	udev_unref(udev);
 	quirks_context_unref(quirks);
 }
-static inline void
+
+static void
 print_libinput_description(struct record_context *ctx,
 			   struct record_device *dev)
 {
@@ -1932,7 +1933,7 @@ print_libinput_description(struct record_context *ctx,
 	indent_pop(ctx);
 }
 
-static inline void
+static void
 print_device_description(struct record_context *ctx, struct record_device *dev)
 {
 	iprintf(ctx, "- node: %s\n", dev->devnode);
@@ -1948,7 +1949,7 @@ static int is_event_node(const struct dirent *dir) {
 	return strneq(dir->d_name, "event", 5);
 }
 
-static inline char *
+static char *
 select_device(void)
 {
 	struct dirent **namelist;
@@ -2017,7 +2018,7 @@ select_device(void)
 	return device_path;
 }
 
-static inline char **
+static char **
 all_devices(void)
 {
 	struct dirent **namelist;
@@ -2098,7 +2099,7 @@ open_output_file(struct record_context *ctx, bool is_prefix)
 	return true;
 }
 
-static inline void
+static void
 print_progress_bar(void)
 {
 	static uint8_t foo = 0;
@@ -2111,7 +2112,7 @@ print_progress_bar(void)
 	fprintf(stderr, "\rReceiving events: [%*s%*s]", foo, "*", 21 - foo, " ");
 }
 
-static inline void
+static void
 print_wall_time(struct record_context *ctx)
 {
 	time_t t = time(NULL);
@@ -2121,7 +2122,7 @@ print_wall_time(struct record_context *ctx)
 	iprintf(ctx, "# Current time is %02d:%02d:%02d\n", tm.tm_hour, tm.tm_min, tm.tm_sec);
 }
 
-static inline void
+static void
 arm_timer(int timerfd)
 {
 	time_t t = time(NULL);
@@ -2362,7 +2363,7 @@ mainloop(struct record_context *ctx)
 	return 0;
 }
 
-static inline bool
+static bool
 init_device(struct record_context *ctx, char *path, bool grab)
 {
 	struct record_device *d;
@@ -2436,7 +2437,7 @@ const struct libinput_interface interface = {
 	.close_restricted = close_restricted,
 };
 
-static inline bool
+static bool
 init_libinput(struct record_context *ctx)
 {
 	struct record_device *dev;
@@ -2470,7 +2471,7 @@ init_libinput(struct record_context *ctx)
 	return true;
 }
 
-static inline void
+static void
 usage(void)
 {
 	printf("Usage: %s [--help] [--all] [--autorestart] [--output-file filename] [/dev/input/event0] [...]\n"
@@ -2501,7 +2502,8 @@ enum ftype {
 	F_NOEXIST,
 };
 
-static inline enum ftype is_char_dev(const char *path)
+static enum ftype
+is_char_dev(const char *path)
 {
 	struct stat st;
 
