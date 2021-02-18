@@ -1724,7 +1724,6 @@ print_hid_report_descriptor(struct record_context *ctx,
 			    struct record_device *dev)
 {
 	const char *prefix = "/dev/input/event";
-	const char *node;
 	char syspath[PATH_MAX];
 	unsigned char buf[1024];
 	int len;
@@ -1733,18 +1732,16 @@ print_hid_report_descriptor(struct record_context *ctx,
 
 	/* we take the shortcut rather than the proper udev approach, the
 	   report_descriptor is available in sysfs and two devices up from
-	   our device. 2 digits for the event number should be enough.
+	   our device.
 	   This approach won't work for /dev/input/by-id devices. */
-	if (!strstartswith(dev->devnode, prefix) ||
-	    strlen(dev->devnode) > strlen(prefix) + 2)
+	if (!strstartswith(dev->devnode, prefix))
 		return;
 
-	node = &dev->devnode[strlen(prefix)];
 	len = snprintf(syspath,
 		       sizeof(syspath),
-		       "/sys/class/input/event%s/device/device/report_descriptor",
-		       node);
-	if (len < 55 || len > 56)
+		       "/sys/class/input/%s/device/device/report_descriptor",
+		       safe_basename(dev->devnode));
+	if (len <= 0)
 		return;
 
 	fd = open(syspath, O_RDONLY);
