@@ -24,6 +24,7 @@
 #include "config.h"
 
 #include <errno.h>
+#include <sys/epoll.h>
 #include <inttypes.h>
 #include <linux/input.h>
 #include <libevdev/libevdev.h>
@@ -113,6 +114,28 @@ struct record_context {
 	unsigned int indent;
 
 	struct libinput *libinput;
+
+	int epoll_fd;
+	struct list sources;
+
+	struct {
+		bool had_events_since_last_time;
+		bool skipped_timer_print;
+	} timestamps;
+
+	bool had_events;
+	bool stop;
+};
+
+typedef void (*source_dispatch_t)(struct record_context *ctx,
+				  int fd,
+				  void *user_data);
+
+struct source {
+	source_dispatch_t dispatch;
+	void *user_data;
+	int fd;
+	struct list link;
 };
 
 static bool
@@ -2134,52 +2157,167 @@ arm_timer(int timerfd)
 	timerfd_settime(timerfd, 0, &interval, NULL);
 }
 
+static struct source *
+add_source(struct record_context *ctx,
+	   int fd,
+	   source_dispatch_t dispatch,
+	   void *user_data)
+{
+	struct source *source;
+	struct epoll_event ep;
+
+	assert(fd != -1);
+
+	source = zalloc(sizeof *source);
+	source->dispatch = dispatch;
+	source->user_data = user_data;
+	source->fd = fd;
+	list_append(&ctx->sources, &source->link);
+
+	memset(&ep, 0, sizeof ep);
+	ep.events = EPOLLIN;
+	ep.data.ptr = source;
+
+	if (epoll_ctl(ctx->epoll_fd, EPOLL_CTL_ADD, fd, &ep) < 0) {
+		free(source);
+		return NULL;
+	}
+
+	return source;
+}
+
+static void
+destroy_source(struct record_context *ctx, struct source *source)
+{
+	list_remove(&source->link);
+	epoll_ctl(ctx->epoll_fd, EPOLL_CTL_DEL, source->fd, NULL);
+	close(source->fd);
+	free(source);
+}
+
+static void
+signalfd_dispatch(struct record_context *ctx, int fd, void *data)
+{
+	struct signalfd_siginfo fdsi;
+
+	read(fd, &fdsi, sizeof(fdsi));
+
+	ctx->stop = true;
+}
+
+static void
+timefd_dispatch(struct record_context *ctx, int fd, void *data)
+{
+	char discard[64];
+
+	read(fd, discard, sizeof(discard));
+
+	if (ctx->timestamps.had_events_since_last_time) {
+		print_wall_time(ctx);
+		ctx->timestamps.had_events_since_last_time = false;
+		ctx->timestamps.skipped_timer_print = false;
+	} else {
+		ctx->timestamps.skipped_timer_print = true;
+	}
+}
+
+static void
+evdev_dispatch(struct record_context *ctx, int fd, void *data)
+{
+	struct record_device *first_device = NULL;
+	struct record_device *this_device = data;
+
+	if (ctx->timestamps.skipped_timer_print) {
+		print_wall_time(ctx);
+		ctx->timestamps.skipped_timer_print = false;
+	}
+
+	ctx->had_events = true;
+	ctx->timestamps.had_events_since_last_time = true;
+
+	first_device = list_first_entry(&ctx->devices, first_device, link);
+	handle_events(ctx, this_device, this_device == first_device);
+}
+
+static void
+libinput_ctx_dispatch(struct record_context *ctx, int fd, void *data)
+{
+	struct record_device *first_device = NULL;
+	size_t count, offset;
+
+	/* This function should only handle events caused by internal
+	 * timeouts etc. The real input events caused by the evdev devices
+	 * are already processed in handle_events */
+	first_device = list_first_entry(&ctx->devices, first_device, link);
+	libinput_dispatch(ctx->libinput);
+	offset = first_device->nevents;
+	count = handle_libinput_events(ctx, first_device);
+	if (count) {
+		print_cached_events(ctx,
+				    first_device,
+				    offset,
+				    count);
+	}
+}
+
+static int
+dispatch_sources(struct record_context *ctx)
+{
+	struct source *source;
+	struct epoll_event ep[64];
+	int i, count;
+
+	count = epoll_wait(ctx->epoll_fd, ep, ARRAY_LENGTH(ep), ctx->timeout);
+	if (count < 0)
+		return -errno;
+
+	for (i = 0; i < count; ++i) {
+		source = ep[i].data.ptr;
+		if (source->fd == -1)
+			continue;
+		source->dispatch(ctx, source->fd, source->user_data);
+	}
+
+	return count;
+}
+
 static int
 mainloop(struct record_context *ctx)
 {
 	bool autorestart = (ctx->timeout > 0);
-	struct pollfd fds[ctx->ndevices + 3];
-	struct pollfd *signal_fd = &fds[0];
-	struct pollfd *time_fd = &fds[1];
-	struct pollfd *libinput_fd = NULL;
-	unsigned int nfds = 0;
+	struct source *source, *tmp;
 	struct record_device *d = NULL;
 	sigset_t mask;
+	int sigfd, timerfd;
 
 	assert(ctx->timeout != 0);
 	assert(!list_empty(&ctx->devices));
+
+	ctx->epoll_fd = epoll_create1(0);
+	assert(ctx->epoll_fd >= 0);
 
 	sigemptyset(&mask);
 	sigaddset(&mask, SIGINT);
 	sigaddset(&mask, SIGQUIT);
 	sigprocmask(SIG_BLOCK, &mask, NULL);
 
-	for (size_t i = 0; i < ARRAY_LENGTH(fds); i++) {
-		fds[i] = (struct pollfd) {
-			.fd = -1,
-			.events = POLLIN,
-			.revents = 0,
-		};
-	}
+	sigfd = signalfd(-1, &mask, SFD_NONBLOCK);
+	add_source(ctx, sigfd, signalfd_dispatch, NULL);
 
-	signal_fd->fd = signalfd(-1, &mask, SFD_NONBLOCK);
-	assert(signal_fd->fd != -1);
-	nfds++;
-
-	time_fd->fd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
-	assert(time_fd->fd != -1);
-	arm_timer(time_fd->fd);
-	nfds++;
-
-	if (ctx->libinput) {
-		libinput_fd = &fds[nfds++];
-		libinput_fd->fd = libinput_get_fd(ctx->libinput);
-	}
+	timerfd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC|TFD_NONBLOCK);
+	add_source(ctx, timerfd, timefd_dispatch, NULL);
+	arm_timer(timerfd);
 
 	list_for_each(d, &ctx->devices, link) {
-		fds[nfds].fd = libevdev_get_fd(d->evdev);
-		assert(fds[nfds].fd != -1);
-		nfds++;
+		add_source(ctx, libevdev_get_fd(d->evdev), evdev_dispatch, d);
+	}
+
+	if (ctx->libinput) {
+		/* See the note in the dispatch function */
+		add_source(ctx,
+			   libinput_get_fd(ctx->libinput),
+			   libinput_ctx_dispatch,
+			   NULL);
 	}
 
 	/* If we have more than one device, the time starts at recording
@@ -2193,10 +2331,6 @@ mainloop(struct record_context *ctx)
 	}
 
 	do {
-		int rc;
-		bool had_events = false; /* we delete files without events */
-		bool had_events_since_last_time = false;
-		bool skipped_timer_print = false;
 		struct record_device *first_device = NULL;
 
 		if (!open_output_file(ctx, autorestart)) {
@@ -2208,6 +2342,8 @@ mainloop(struct record_context *ctx)
 		fprintf(stderr, "%sRecording to '%s'.\n",
 			isatty(STDERR_FILENO) ? "" : "# ",
 			ctx->output_file);
+
+		ctx->had_events = false;
 
 		print_header(ctx);
 		if (autorestart)
@@ -2237,75 +2373,23 @@ mainloop(struct record_context *ctx)
 		}
 
 		while (true) {
-			rc = poll(fds, nfds, ctx->timeout);
-			if (rc == -1) { /* error */
-				fprintf(stderr, "Error: %m\n");
-				autorestart = false;
+			int rc = dispatch_sources(ctx);
+			if (rc < 0) { /* error */
+				fprintf(stderr, "Error: %s\n", strerror(-rc));
+				ctx->stop = true;
 				break;
 			}
+
+			/* set by the signalfd handler */
+			if (ctx->stop)
+				break;
 
 			if (rc == 0) {
 				fprintf(stderr,
 					" ... timeout%s\n",
-					had_events ? "" : " (file is empty)");
+					ctx->had_events ? "" : " (file is empty)");
 				break;
 
-			}
-
-			if (signal_fd->revents != 0) { /* signal */
-				autorestart = false;
-				break;
-			}
-
-			if (time_fd->revents) { /* timer expiry */
-				char discard[64];
-				read(time_fd->fd, discard, sizeof(discard));
-
-				if (had_events_since_last_time) {
-					print_wall_time(ctx);
-					had_events_since_last_time = false;
-					skipped_timer_print = false;
-				} else {
-					skipped_timer_print = true;
-				}
-
-				if (rc == 1) /* no other fds have data */
-					continue;
-			}
-
-			if (skipped_timer_print) {
-				print_wall_time(ctx);
-				skipped_timer_print = false;
-			}
-
-			/* Pull off the evdev events first since they cause
-			 * libinput events.
-			 * handle_events de-queues libinput events so by the
-			 * time we finish that, we hopefully have all evdev
-			 * events and libinput events roughly in sync.
-			 */
-			had_events = true;
-			had_events_since_last_time = true;
-			list_for_each(d, &ctx->devices, link) {
-				handle_events(ctx, d, d == first_device);
-			}
-
-			/* This shouldn't pull any events off unless caused
-			 * by libinput-internal timeouts (e.g. tapping) */
-			if (ctx->libinput && libinput_fd->revents) {
-				size_t count, offset;
-
-				libinput_dispatch(ctx->libinput);
-				offset = first_device->nevents;
-				count = handle_libinput_events(ctx,
-							       first_device);
-				if (count) {
-					print_cached_events(ctx,
-							    first_device,
-							    offset,
-							    count);
-				}
-				rc--;
 			}
 
 			if (ctx->out_fd != STDOUT_FILENO)
@@ -2340,7 +2424,7 @@ mainloop(struct record_context *ctx)
 
 		/* If we didn't have events, delete the file. */
 		if (!isatty(ctx->out_fd)) {
-			if (!had_events && ctx->output_file) {
+			if (!ctx->had_events && ctx->output_file) {
 				fprintf(stderr, "No events recorded, deleting '%s'\n", ctx->output_file);
 				unlink(ctx->output_file);
 			}
@@ -2350,12 +2434,14 @@ mainloop(struct record_context *ctx)
 		}
 		free(ctx->output_file);
 		ctx->output_file = NULL;
-	} while (autorestart);
-
-	close(signal_fd->fd);
-	close(time_fd->fd);
+	} while (autorestart && !ctx->stop);
 
 	sigprocmask(SIG_UNBLOCK, &mask, NULL);
+
+	list_for_each_safe(source, tmp, &ctx->sources, link) {
+		destroy_source(ctx, source);
+	}
+	close(ctx->epoll_fd);
 
 	return 0;
 }
@@ -2552,6 +2638,7 @@ main(int argc, char **argv)
 	int rc = EXIT_FAILURE;
 
 	list_init(&ctx.devices);
+	list_init(&ctx.sources);
 
 	while (1) {
 		int c;
