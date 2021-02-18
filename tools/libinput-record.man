@@ -285,8 +285,8 @@ A list of the recorded events. The list contains dictionaries
 Information about the events. The content is a list of dictionaries, with
 the string identifying the type of event sequence.
 .TP 8
-.B { evdev: [ {"data": [sec, usec, type, code, value]}, ...] }
-Each \fBinput_event\fR dictionary contains the contents of a \fBstruct
+.B { evdev: [ [sec, usec, type, code, value], ...] }
+Each \fBevdev\fR dictionary contains the contents of a \fBstruct
 input_event\fR in decimal format. The last item in the list is always the
 \fBSYN_REPORT\fR of this event frame. The next event frame starts a new
 \fBevdev\fR dictionary entry in the parent \fBevents\fR list.
