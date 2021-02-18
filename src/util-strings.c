@@ -157,6 +157,30 @@ strv_join(char **strv, const char *joiner)
 }
 
 /**
+ * Return a pointer to the basename within filename.
+ * If the filename the empty string or a directory (i.e. the last char of
+ * filename is '/') NULL is returned.
+ */
+const char *
+safe_basename(const char *filename)
+{
+	const char *basename;
+
+	if (*filename == '\0')
+		return NULL;
+
+	basename = strrchr(filename, '/');
+	if (basename == NULL)
+		return filename;
+
+	if (*(basename + 1) == '\0')
+		return NULL;
+
+	return basename + 1;
+}
+
+
+/**
  * Similar to basename() but returns the trunk only without the (last)
  * trailing suffix, so that:
  *
@@ -170,19 +194,15 @@ strv_join(char **strv, const char *joiner)
 char *
 trunkname(const char *filename)
 {
-	/* See basename(3), there are two versions and they depend on
-	 * whether libgen.h is included. We can't be sure which basename()
-	 * applies here, so let's play it safe and assume it's the POSIX
-	 * one. */
-	char *tmp = strdup(filename);
-	char *base = basename(tmp);
+	const char *base = safe_basename(filename);
 	char *suffix;
-	char *trunk;
 
-	if ((suffix = rindex(base, '.')))
-	    *suffix = '\0';
+	if (base == NULL)
+		return strdup("");
 
-	trunk = strdup(base);
-	free(tmp);
-	return trunk;
+	suffix = rindex(base, '.');
+	if (suffix == NULL)
+		return strdup(base);
+	else
+		return strndup(base, suffix-base);
 }

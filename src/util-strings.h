@@ -392,5 +392,8 @@ strstartswith(const char *str, const char *prefix)
 	return prefixlen > 0 ? strneq(str, prefix, strlen(prefix)) : false;
 }
 
+const char *
+safe_basename(const char *filename);
+
 char *
 trunkname(const char *filename);

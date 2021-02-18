@@ -1292,6 +1292,35 @@ START_TEST(strneq_test)
 }
 END_TEST
 
+START_TEST(basename_test)
+{
+	struct test {
+		const char *path;
+		const char *expected;
+	} tests[] = {
+		{ "a", "a" },
+		{ "foo.c", "foo.c" },
+		{ "foo", "foo" },
+		{ "/path/to/foo.h", "foo.h" },
+		{ "../bar.foo", "bar.foo" },
+		{ "./bar.foo.baz", "bar.foo.baz" },
+		{ "./", NULL },
+		{ "/", NULL },
+		{ "/bar/", NULL },
+		{ "/bar", "bar" },
+		{ "", NULL },
+	};
+	struct test *t;
+
+	ARRAY_FOR_EACH(tests, t) {
+		const char *result = safe_basename(t->path);
+		if (t->expected == NULL)
+			ck_assert(result == NULL);
+		else
+			ck_assert_str_eq(result, t->expected);
+	}
+}
+END_TEST
 START_TEST(trunkname_test)
 {
 	struct test {
@@ -1300,6 +1329,7 @@ START_TEST(trunkname_test)
 	} tests[] = {
 		{ "foo.c", "foo" },
 		{ "/path/to/foo.h", "foo" },
+		{ "/path/to/foo", "foo" },
 		{ "../bar.foo", "bar" },
 		{ "./bar.foo.baz", "bar.foo" },
 		{ "./", "" },
@@ -1362,6 +1392,7 @@ litest_utils_suite(void)
 	tcase_add_test(tc, streq_test);
 	tcase_add_test(tc, strneq_test);
 	tcase_add_test(tc, trunkname_test);
+	tcase_add_test(tc, basename_test);
 
 	suite_add_tcase(s, tc);
 
