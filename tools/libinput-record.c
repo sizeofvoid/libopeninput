@@ -150,7 +150,7 @@ indent_pop(struct record_context *ctx)
 }
 
 /**
- * Indented dprintf, indentation is given as second parameter.
+ * Indented dprintf, indentation is in the context
  */
 static void
 iprintf(const struct record_context *ctx, const char *format, ...)
