@@ -309,7 +309,9 @@ def test_libinput_debug_gui_verbose(libinput_debug_gui):
     libinput_debug_gui.run_command_success(["--verbose"])
 
 
-@pytest.mark.parametrize("arg", ["--help", "--show-keycodes", "--with-libinput"])
+@pytest.mark.parametrize(
+    "arg", ["--help", "--show-keycodes", "--with-libinput", "--with-hidraw"]
+)
 def test_libinput_record_args(libinput_record, arg):
     libinput_record.run_command_success([arg])
 

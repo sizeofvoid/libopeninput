@@ -54,7 +54,7 @@ greater than 0.
 .PD 1
 Specifies the output file to use. If \fB\-\-autorestart\fR is given,
 the filename is used as prefix only.
-Where \-\-output-file is not given and the first \fBor\fR last argument is 
+Where \-\-output-file is not given and the first \fBor\fR last argument is
 not an input device, the first \fBor\fR last argument will be the output
 file.
 .TP 8
@@ -71,6 +71,13 @@ Record libinput events alongside device events.
 .B THIS FEATURE IS EXPERIMENTAL.
 See section
 .B RECORDING LIBINPUT EVENTS
+for more details.
+.TP 8
+.B \-\-with-hidraw
+Record hidraw events alongside device events.
+.B DO NOT TYPE SENSITIVE DATA.
+See
+.B RECORDING HID REPORTS
 for more details.
 
 .SH RECORDING MULTIPLE DEVICES
@@ -107,6 +114,15 @@ event stream before processing.
 Note that the libinput context created by \fBlibinput\-record\fR does not
 affect the running desktop session and does not (can not!) copy any
 configuration options from that session.
+
+.SH RECORDING HID REPORTS
+When the \fB\-\-with-hidraw\fR commandline option is given,
+\fBlibinput\-record\fR searches for the hidraw node(s) of the given devices
+and prints any incoming HID reports from those devices.
+.PP
+HID reports are \fBnot obfuscated\fR and a sufficiently
+motivated person could recover the key strokes from the logs. Do not type
+passwords while recording HID reports.
 
 .SH FILE FORMAT
 The output file format is in YAML and intended to be both human-readable and
@@ -167,6 +183,9 @@ devices:
       - ModelAppleTouchpad=1
       - AttrSizeHint=32x32
     events:
+      - hid:
+         time: [ 0, 0]
+	 hidraw0: [1, 2, 3, 4]
       - evdev:
         - [  0,      0,   3,  57,  1420] # EV_ABS / ABS_MT_TRACKING_ID   1420
         - [  0,      0,   3,  53,  1218] # EV_ABS / ABS_MT_POSITION_X    1218
@@ -290,7 +309,15 @@ Each \fBevdev\fR dictionary contains the contents of a \fBstruct
 input_event\fR in decimal format. The last item in the list is always the
 \fBSYN_REPORT\fR of this event frame. The next event frame starts a new
 \fBevdev\fR dictionary entry in the parent \fBevents\fR list.
-
+.TP 8
+.B { hid: "hidrawX": [ 12, 34, 56 ], ...] }
+The \fBhid\fR dictionary contains the hid reports in decimal format, with
+the hidraw node as key. The special key \fBtime\fR denotes the current time
+when the report was read from the kernel.
+.PP
+Note that the kernel does not provide timestamps for hidraw events and the
+timestamps provided are from \fBclock_gettime(3)\fR. They may be greater
+than a subsequent evdev event's timestamp.
 .SH NOTES
 .PP
 This tool records events from the kernel and is independent of libinput. In

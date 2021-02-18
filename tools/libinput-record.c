@@ -70,7 +70,7 @@ enum indent {
 	I_LIBINPUTDEV = 4,		/* nodes inside libinput: (the
 					   device description */
 	I_EVENTTYPE = 4,		/* event type (evdev:, libinput:,
-					   ...) */
+					   hidraw:) */
 	I_EVENT = 6,			/* event data */
 };
 
@@ -82,6 +82,7 @@ struct record_device {
 	struct libevdev *evdev_prev; /* previous value, used for EV_ABS
 					deltas */
 	struct libinput_device *device;
+	struct list hidraw_devices;
 
 	struct {
 		bool is_touch_device;
@@ -90,6 +91,13 @@ struct record_device {
 	} touch;
 
 	FILE *fp;
+};
+
+struct hidraw {
+	struct list link;
+	struct record_device *device;
+	int fd;
+	char *name;
 };
 
 struct record_context {
@@ -1209,6 +1217,55 @@ print_libinput_event(struct record_device *dev, struct libinput_event *e)
 }
 
 static bool
+handle_hidraw(struct hidraw *hidraw)
+{
+	struct record_device *d = hidraw->device;
+	unsigned char report[4096];
+	const char *sep = "";
+	struct timespec ts;
+	struct timeval tv;
+	uint64_t time;
+
+	int rc = read(hidraw->fd, report, sizeof(report));
+	if (rc <= 0)
+		return false;
+
+	/* hidraw doesn't give us a timestamps, we have to make them up */
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	time = s2us(ts.tv_sec) + ns2us(ts.tv_nsec);
+
+	/* The first evdev event is guaranteed to have an event time earlier
+	   than now, so we don't set the offset here, we rely on the evdev
+	   events to do so. This potentially leaves us with multiple hidraw
+	   events at timestap 0 but it's too niche to worry about.  */
+	if (d->ctx->offset == 0)
+		time = 0;
+	else
+		time = time_offset(d->ctx, time);
+
+	tv = us2tv(time);
+
+	iprintf(d->fp, I_EVENTTYPE, "- hid:\n");
+	iprintf(d->fp, I_EVENT, "time: [%3lu, %6lu]\n", tv.tv_sec, tv.tv_usec);
+	iprintf(d->fp, I_EVENT, "%s: [", hidraw->name);
+
+	for (int byte = 0; byte < rc; byte++) {
+		if (byte % 16 == 0) {
+			iprintf(d->fp, I_NONE, "%s\n", sep);
+			iprintf(d->fp, I_EVENT, "  ");
+			iprintf(d->fp, I_NONE, "0x%02x", report[byte]);
+		} else {
+			iprintf(d->fp, I_NONE, "%s0x%02x", sep, report[byte]);
+		}
+		sep = ", ";
+	}
+	iprintf(d->fp, I_NONE, "\n");
+	iprintf(d->fp, I_EVENT, "]\n");
+
+	return true;
+}
+
+static bool
 handle_libinput_events(struct record_context *ctx,
 		       struct record_device *d,
 		       bool start_frame)
@@ -2087,6 +2144,16 @@ libinput_ctx_dispatch(struct record_context *ctx, int fd, void *data)
 	handle_libinput_events(ctx, ctx->first_device, true);
 }
 
+static void
+hidraw_dispatch(struct record_context *ctx, int fd, void *data)
+{
+	struct hidraw *hidraw = data;
+
+	ctx->had_events = true;
+	ctx->timestamps.had_events_since_last_time = true;
+	handle_hidraw(hidraw);
+}
+
 static int
 dispatch_sources(struct record_context *ctx)
 {
@@ -2136,7 +2203,13 @@ mainloop(struct record_context *ctx)
 	arm_timer(timerfd);
 
 	list_for_each(d, &ctx->devices, link) {
+		struct hidraw *hidraw;
+
 		add_source(ctx, libevdev_get_fd(d->evdev), evdev_dispatch, d);
+
+		list_for_each(hidraw, &d->hidraw_devices, link) {
+			add_source(ctx, hidraw->fd, hidraw_dispatch, hidraw);
+		}
 	}
 
 	if (ctx->libinput) {
@@ -2291,6 +2364,8 @@ init_device(struct record_context *ctx, const char *path, bool grab)
 	d->ctx = ctx;
 	d->devnode = safe_strdup(path);
 
+	list_init(&d->hidraw_devices);
+
 	fd = open(d->devnode, O_RDONLY|O_NONBLOCK);
 	if (fd < 0) {
 		fprintf(stderr,
@@ -2384,6 +2459,52 @@ init_libinput(struct record_context *ctx)
 		/* FIXME: this needs to be a commandline option */
 		libinput_device_config_tap_set_enabled(d,
 					       LIBINPUT_CONFIG_TAP_ENABLED);
+	}
+
+	return true;
+}
+
+static bool
+init_hidraw(struct record_context *ctx)
+{
+	struct record_device *dev;
+
+	list_for_each(dev, &ctx->devices, link) {
+		char syspath[PATH_MAX];
+		DIR *dir;
+		struct dirent *entry;
+
+		snprintf(syspath,
+			 sizeof(syspath),
+			 "/sys/class/input/%s/device/device/hidraw",
+			 safe_basename(dev->devnode));
+		dir = opendir(syspath);
+		if (!dir)
+			continue;
+
+		while ((entry = readdir(dir))) {
+			char hidraw_node[PATH_MAX];
+			int fd;
+			struct hidraw *hidraw = NULL;
+
+			if (!strstartswith(entry->d_name, "hidraw"))
+				continue;
+
+			snprintf(hidraw_node,
+				 sizeof(hidraw_node),
+				 "/dev/%s",
+				 entry->d_name);
+			fd = open(hidraw_node, O_RDONLY|O_NONBLOCK);
+			if (fd == -1)
+				continue;
+
+			hidraw = zalloc(sizeof(*hidraw));
+			hidraw->fd = fd;
+			hidraw->name = strdup(entry->d_name);
+			hidraw->device = dev;
+			list_insert(&dev->hidraw_devices, &hidraw->link);
+		}
+		closedir(dir);
 	}
 
 	return true;
@@ -2506,6 +2627,7 @@ enum options {
 	OPT_MULTIPLE,
 	OPT_ALL,
 	OPT_LIBINPUT,
+	OPT_HIDRAW,
 	OPT_GRAB,
 };
 
@@ -2524,12 +2646,16 @@ main(int argc, char **argv)
 		{ "all", no_argument, 0, OPT_ALL },
 		{ "help", no_argument, 0, OPT_HELP },
 		{ "with-libinput", no_argument, 0, OPT_LIBINPUT },
+		{ "with-hidraw", no_argument, 0, OPT_HIDRAW },
 		{ "grab", no_argument, 0, OPT_GRAB },
 		{ 0, 0, 0, 0 },
 	};
 	struct record_device *d;
 	const char *output_arg = NULL;
-	bool all = false, with_libinput = false, grab = false;
+	bool all = false,
+	     with_libinput = false,
+	     with_hidraw = false,
+	     grab = false;
 	int ndevices;
 	int rc = EXIT_FAILURE;
 	char **paths = NULL;
@@ -2574,6 +2700,10 @@ main(int argc, char **argv)
 			break;
 		case OPT_LIBINPUT:
 			with_libinput = true;
+			break;
+		case OPT_HIDRAW:
+			with_hidraw = true;
+			fprintf(stderr, "# WARNING: do not type passwords while recording HID reports\n");
 			break;
 		case OPT_GRAB:
 			grab = true;
@@ -2650,10 +2780,22 @@ main(int argc, char **argv)
 	if (with_libinput && !init_libinput(&ctx))
 		goto out;
 
+	if (with_hidraw && !init_hidraw(&ctx))
+		goto out;
+
 	rc = mainloop(&ctx);
 out:
 	strv_free(paths);
 	list_for_each_safe(d, &ctx.devices, link) {
+		struct hidraw *hidraw;
+
+		list_for_each_safe(hidraw, &d->hidraw_devices, link) {
+			close(hidraw->fd);
+			list_remove(&hidraw->link);
+			free(hidraw->name);
+			free(hidraw);
+		}
+
 		if (d->device)
 			libinput_device_unref(d->device);
 		free(d->devnode);

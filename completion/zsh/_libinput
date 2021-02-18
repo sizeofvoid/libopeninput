@@ -223,6 +223,7 @@ __all_seats()
 		'--multiple[Record multiple devices at once]' \
 		'--show-keycodes[Show keycodes as-is in the recording]' \
 		'--with-libinput[Record libinput events alongside device events]' \
+		'--with-hidraw[Record hidraw events alongside device events]' \
 		'*::device:_files -W /dev/input/ -P /dev/input/'
 }
 
