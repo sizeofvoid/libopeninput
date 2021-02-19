@@ -90,9 +90,9 @@ Note that when recording multiple devices, only the first device is printed
 immediately, all other devices and their events are printed on exit.
 
 .SH RECORDING LIBINPUT EVENTS
-When the \fB\-\-with-libinput\fR switch is provided, \fBlibinput\-record\fR
-initializes a libinput context for the devices being recorded. Events from
-these contexts are printed alongside the evdev events.
+When the \fB\-\-with-libinput\fR commandline option is given,
+\fBlibinput\-record\fR initializes a libinput context for the devices being
+recorded. Events from these contexts are printed alongside the evdev events.
 .B THIS FEATURE IS EXPERIMENTAL.
 .PP
 The primary purpose of this feature is debugging and event analysis, no
