@@ -209,20 +209,17 @@ def replay(device, verbose):
 
 
 def first_timestamp(device):
-    try:
-        events = fetch(device, "events")
-        if events is None:
-            raise YamlException("No events from this device")
+    events = fetch(device, "events")
+    for e in events or []:
+        try:
+            evdev = fetch(e, "evdev")
+            (sec, usec, *_) = evdev[0]
+            return sec + usec / 1.0e6
+        except YamlException:
+            pass
 
-        evdev = fetch(events[0], "evdev")
-        (sec, usec, *_) = evdev[0]
-
-        return sec + usec / 1.0e6
-
-    except YamlException:
-        import math
-
-        return math.inf
+    import math
+    return math.inf
 
 
 def wrap(func, *args):
