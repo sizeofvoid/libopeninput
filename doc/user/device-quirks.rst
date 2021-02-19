@@ -157,7 +157,7 @@ AttrTouchSizeRange=N:M, AttrPalmSizeThreshold=O
     Specifies the touch size required to trigger a press (N) and to trigger
     a release (M). O > N > M. See :ref:`touchpad_touch_size_hwdb` for more
     details.
-AttrTouchPressureRange=N:M, AttrPalmPressureThreshold=O, AttrThumbPressureThreshold=P
+AttrPressureRange=N:M, AttrPalmPressureThreshold=O, AttrThumbPressureThreshold=P
     Specifies the touch pressure required to trigger a press (N) and to
     trigger a release (M), when a palm touch is triggered (O) and when a
     thumb touch is triggered (P). O > P > N > M. See
