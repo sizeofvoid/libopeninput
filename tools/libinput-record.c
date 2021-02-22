@@ -1484,6 +1484,7 @@ print_system_header(struct record_context *ctx)
 static void
 print_header(struct record_context *ctx)
 {
+	iprintf(ctx, "# libinput record\n");
 	iprintf(ctx, "version: %d\n", FILE_VERSION_NUMBER);
 	iprintf(ctx, "ndevices: %d\n", ctx->ndevices);
 	print_libinput_header(ctx);
