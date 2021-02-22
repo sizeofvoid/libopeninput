@@ -1655,7 +1655,7 @@ print_bits_codes(struct record_context *ctx,
 		 unsigned int type)
 {
 	int max;
-	bool first = true;
+	const char *sep = "";
 
 	max = libevdev_event_type_get_max(type);
 	if (max == -1)
@@ -1667,8 +1667,8 @@ print_bits_codes(struct record_context *ctx,
 		if (!libevdev_has_event_code(dev, type, code))
 			continue;
 
-		noiprintf(ctx, "%s%d", first ? "" : ", ", code);
-		first = false;
+		noiprintf(ctx, "%s%d", sep, code);
+		sep = ", ";
 	}
 
 	noiprintf(ctx, "] # %s\n", libevdev_event_type_get_name(type));
@@ -1690,13 +1690,13 @@ print_bits_types(struct record_context *ctx, struct libevdev *dev)
 static void
 print_bits_props(struct record_context *ctx, struct libevdev *dev)
 {
-	bool first = true;
+	const char *sep = "";
 
 	iprintf(ctx, "properties: [");
 	for (unsigned int prop = 0; prop < INPUT_PROP_CNT; prop++) {
 		if (libevdev_has_property(dev, prop)) {
-			noiprintf(ctx, "%s%d", first ? "" : ", ", prop);
-			first = false;
+			noiprintf(ctx, "%s%d", sep, prop);
+			sep = ", ";
 		}
 	}
 	noiprintf(ctx, "]\n"); /* last entry, no comma */
@@ -1729,7 +1729,7 @@ print_hid_report_descriptor(struct record_context *ctx,
 	unsigned char buf[1024];
 	int len;
 	int fd;
-	bool first = true;
+	const char *sep = "";
 
 	/* we take the shortcut rather than the proper udev approach, the
 	   report_descriptor is available in sysfs and two devices up from
@@ -1756,11 +1756,11 @@ print_hid_report_descriptor(struct record_context *ctx,
 	while ((len = read(fd, buf, sizeof(buf))) > 0) {
 		for (int i = 0; i < len; i++) {
 			/* YAML requires decimal */
-			noiprintf(ctx, "%s%u",first ? "" : ", ", buf[i]);
-			first = false;
+			noiprintf(ctx, "%s%u", sep, buf[i]);
+			sep = ", ";
 		}
 	}
-	noiprintf(ctx, " ]\n");
+	noiprintf(ctx, "]\n");
 
 	close(fd);
 }
@@ -1905,7 +1905,7 @@ print_libinput_description(struct record_context *ctx,
 		{LIBINPUT_DEVICE_CAP_SWITCH, "switch"},
 	};
 	struct cap *cap;
-	bool is_first;
+	const char *sep = "";
 
 	if (!device)
 		return;
@@ -1917,12 +1917,11 @@ print_libinput_description(struct record_context *ctx,
 		iprintf(ctx, "size: [%.f, %.f]\n", w, h);
 
 	iprintf(ctx, "capabilities: [");
-	is_first = true;
 	ARRAY_FOR_EACH(caps, cap) {
 		if (!libinput_device_has_capability(device, cap->cap))
 			continue;
-		noiprintf(ctx, "%s%s", is_first ? "" : ", ", cap->name);
-		is_first = false;
+		noiprintf(ctx, "%s%s", sep, cap->name);
+		sep = ", ";
 	}
 	noiprintf(ctx, "]\n");
 
