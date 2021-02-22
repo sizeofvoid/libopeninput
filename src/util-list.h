@@ -53,15 +53,17 @@ bool list_empty(const struct list *list);
 #define list_first_entry(head, pos, member)				\
 	container_of((head)->next, __typeof__(*pos), member)
 
+#define list_first_entry_by_type(head, container_type, member)		\
+	container_of((head)->next, container_type, member)
+
 #define list_for_each(pos, head, member)				\
-	for (pos = 0, pos = list_first_entry(head, pos, member);	\
+	for (pos = list_first_entry_by_type(head, __typeof__(*pos), member); \
 	     &pos->member != (head);					\
-	     pos = list_first_entry(&pos->member, pos, member))
+	     pos = list_first_entry_by_type(&pos->member, __typeof__(*pos), member))
 
 #define list_for_each_safe(pos, tmp, head, member)			\
-	for (pos = 0, tmp = 0,						\
-	     pos = list_first_entry(head, pos, member),			\
-	     tmp = list_first_entry(&pos->member, tmp, member);		\
+	for (pos = list_first_entry_by_type(head, __typeof__(*pos), member), \
+	     tmp = list_first_entry_by_type(&pos->member, __typeof__(*tmp), member); \
 	     &pos->member != (head);					\
 	     pos = tmp,							\
-	     tmp = list_first_entry(&pos->member, tmp, member))
+	     tmp = list_first_entry_by_type(&pos->member, __typeof__(*tmp), member))
