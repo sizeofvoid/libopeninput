@@ -841,9 +841,9 @@ static void
 close_restricted(int fd, void *userdata)
 {
 	struct litest_context *ctx = userdata;
-	struct path *p, *tmp;
+	struct path *p;
 
-	list_for_each_safe(p, tmp, &ctx->paths, link) {
+	list_for_each_safe(p, &ctx->paths, link) {
 		if (p->fd != fd)
 			continue;
 		list_remove(&p->link);
@@ -862,9 +862,9 @@ struct libinput_interface interface = {
 static void
 litest_signal(int sig)
 {
-	struct created_file *f, *tmp;
+	struct created_file *f;
 
-	list_for_each_safe(f, tmp, &created_files_list, link) {
+	list_for_each_safe(f, &created_files_list, link) {
 		list_remove(&f->link);
 		unlink(f->path);
 		rmdir(f->path);
@@ -897,12 +897,12 @@ litest_setup_sighandler(int sig)
 static void
 litest_free_test_list(struct list *tests)
 {
-	struct suite *s, *snext;
+	struct suite *s;
 
-	list_for_each_safe(s, snext, tests, node) {
-		struct test *t, *tnext;
+	list_for_each_safe(s, tests, node) {
+		struct test *t;
 
-		list_for_each_safe(t, tnext, &s->tests, node) {
+		list_for_each_safe(t, &s->tests, node) {
 			free(t->name);
 			free(t->devname);
 			list_remove(&t->node);
@@ -1002,7 +1002,7 @@ litest_run_suite(struct list *tests, int which, int max, int error_fd)
 		struct list node;
 		char *name;
 	};
-	struct name *n, *tmp;
+	struct name *n;
 	struct list testnames;
 	const char *data_path;
 
@@ -1118,7 +1118,7 @@ litest_run_suite(struct list *tests, int which, int max, int error_fd)
 	}
 	srunner_free(sr);
 out:
-	list_for_each_safe(n, tmp, &testnames, node) {
+	list_for_each_safe(n, &testnames, node) {
 		free(n->name);
 		free(n);
 	}
@@ -1594,12 +1594,12 @@ litest_init_udev_rules(struct list *created_files)
 static inline void
 litest_remove_udev_rules(struct list *created_files_list)
 {
-	struct created_file *f, *tmp;
+	struct created_file *f;
 	bool reload_udev;
 
 	reload_udev = !list_empty(created_files_list);
 
-	list_for_each_safe(f, tmp, created_files_list, link) {
+	list_for_each_safe(f, created_files_list, link) {
 		list_remove(&f->link);
 		unlink(f->path);
 		rmdir(f->path);
@@ -1714,7 +1714,7 @@ litest_create_context(void)
 void
 litest_destroy_context(struct libinput *li)
 {
-	struct path *p, *tmp;
+	struct path *p;
 	struct litest_context *ctx;
 
 
@@ -1722,7 +1722,7 @@ litest_destroy_context(struct libinput *li)
 	litest_assert_ptr_notnull(ctx);
 	libinput_unref(li);
 
-	list_for_each_safe(p, tmp, &ctx->paths, link) {
+	list_for_each_safe(p, &ctx->paths, link) {
 		litest_abort_msg("Device paths should be removed by now");
 	}
 	free(ctx);

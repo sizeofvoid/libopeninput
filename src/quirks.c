@@ -435,14 +435,14 @@ section_new(const char *path, const char *name)
 static inline void
 section_destroy(struct section *s)
 {
-	struct property *p, *tmp;
+	struct property *p;
 
 	free(s->name);
 	free(s->match.name);
 	free(s->match.dmi);
 	free(s->match.dt);
 
-	list_for_each_safe(p, tmp, &s->properties, link)
+	list_for_each_safe(p, &s->properties, link)
 		property_cleanup(p);
 
 	assert(list_empty(&s->properties));
@@ -1099,7 +1099,7 @@ quirks_context_ref(struct quirks_context *ctx)
 struct quirks_context *
 quirks_context_unref(struct quirks_context *ctx)
 {
-	struct section *s, *tmp;
+	struct section *s;
 
 	if (!ctx)
 		return NULL;
@@ -1113,7 +1113,7 @@ quirks_context_unref(struct quirks_context *ctx)
 	/* Caller needs to clean up before calling this */
 	assert(list_empty(&ctx->quirks));
 
-	list_for_each_safe(s, tmp, &ctx->sections, link) {
+	list_for_each_safe(s, &ctx->sections, link) {
 		section_destroy(s);
 	}
 

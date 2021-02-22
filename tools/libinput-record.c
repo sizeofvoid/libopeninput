@@ -2284,7 +2284,7 @@ static int
 mainloop(struct record_context *ctx)
 {
 	bool autorestart = (ctx->timeout > 0);
-	struct source *source, *tmp;
+	struct source *source;
 	struct record_device *d = NULL;
 	sigset_t mask;
 	int sigfd, timerfd;
@@ -2437,7 +2437,7 @@ mainloop(struct record_context *ctx)
 
 	sigprocmask(SIG_UNBLOCK, &mask, NULL);
 
-	list_for_each_safe(source, tmp, &ctx->sources, link) {
+	list_for_each_safe(source, &ctx->sources, link) {
 		destroy_source(ctx, source);
 	}
 	close(ctx->epoll_fd);
@@ -2630,7 +2630,7 @@ main(int argc, char **argv)
 		{ "grab", no_argument, 0, OPT_GRAB },
 		{ 0, 0, 0, 0 },
 	};
-	struct record_device *d, *tmp;
+	struct record_device *d;
 	const char *output_arg = NULL;
 	bool all = false, with_libinput = false, grab = false;
 	int ndevices;
@@ -2816,7 +2816,7 @@ main(int argc, char **argv)
 
 	rc = mainloop(&ctx);
 out:
-	list_for_each_safe(d, tmp, &ctx.devices, link) {
+	list_for_each_safe(d, &ctx.devices, link) {
 		if (d->device)
 			libinput_device_unref(d->device);
 		free(d->events);

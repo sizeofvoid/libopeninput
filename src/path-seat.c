@@ -52,9 +52,9 @@ static void
 path_disable_device(struct evdev_device *device)
 {
 	struct libinput_seat *seat = device->base.seat;
-	struct evdev_device *dev, *next;
+	struct evdev_device *dev;
 
-	list_for_each_safe(dev, next,
+	list_for_each_safe(dev,
 			   &seat->devices_list, base.link) {
 		if (dev != device)
 			continue;
@@ -68,12 +68,12 @@ static void
 path_input_disable(struct libinput *libinput)
 {
 	struct path_input *input = (struct path_input*)libinput;
-	struct path_seat *seat, *tmp;
-	struct evdev_device *device, *next;
+	struct path_seat *seat;
+	struct evdev_device *device;
 
-	list_for_each_safe(seat, tmp, &input->base.seat_list, base.link) {
+	list_for_each_safe(seat, &input->base.seat_list, base.link) {
 		libinput_seat_ref(&seat->base);
-		list_for_each_safe(device, next,
+		list_for_each_safe(device,
 				   &seat->base.devices_list, base.link)
 			path_disable_device(device);
 		libinput_seat_unref(&seat->base);
@@ -241,11 +241,11 @@ static void
 path_input_destroy(struct libinput *input)
 {
 	struct path_input *path_input = (struct path_input*)input;
-	struct path_device *dev, *tmp;
+	struct path_device *dev;
 
 	udev_unref(path_input->udev);
 
-	list_for_each_safe(dev, tmp, &path_input->path_list, link)
+	list_for_each_safe(dev, &path_input->path_list, link)
 		path_device_destroy(dev);
 
 }

@@ -151,13 +151,13 @@ static void
 pad_led_group_destroy(struct libinput_tablet_pad_mode_group *g)
 {
 	struct pad_led_group *group = (struct pad_led_group *)g;
-	struct pad_mode_toggle_button *button, *tmp;
-	struct pad_mode_led *led, *tmpled;
+	struct pad_mode_toggle_button *button;
+	struct pad_mode_led *led;
 
-	list_for_each_safe(button, tmp, &group->toggle_button_list, link)
+	list_for_each_safe(button, &group->toggle_button_list, link)
 		pad_mode_toggle_button_destroy(button);
 
-	list_for_each_safe(led, tmpled, &group->led_list, link)
+	list_for_each_safe(led, &group->led_list, link)
 		pad_led_destroy(g->device->seat->libinput, led);
 
 	free(group);
@@ -577,9 +577,9 @@ pad_init_leds(struct pad_dispatch *pad,
 void
 pad_destroy_leds(struct pad_dispatch *pad)
 {
-	struct libinput_tablet_pad_mode_group *group, *tmpgrp;
+	struct libinput_tablet_pad_mode_group *group;
 
-	list_for_each_safe(group, tmpgrp, &pad->modes.mode_group_list, link)
+	list_for_each_safe(group, &pad->modes.mode_group_list, link)
 		libinput_tablet_pad_mode_group_unref(group);
 }
 

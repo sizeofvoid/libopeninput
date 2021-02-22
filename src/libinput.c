@@ -1844,9 +1844,9 @@ libinput_seat_destroy(struct libinput_seat *seat);
 static void
 libinput_drop_destroyed_sources(struct libinput *libinput)
 {
-	struct libinput_source *source, *next;
+	struct libinput_source *source;
 
-	list_for_each_safe(source, next, &libinput->source_destroy_list, link)
+	list_for_each_safe(source, &libinput->source_destroy_list, link)
 		free(source);
 	list_init(&libinput->source_destroy_list);
 }
@@ -1862,10 +1862,10 @@ LIBINPUT_EXPORT struct libinput *
 libinput_unref(struct libinput *libinput)
 {
 	struct libinput_event *event;
-	struct libinput_device *device, *next_device;
-	struct libinput_seat *seat, *next_seat;
-	struct libinput_tablet_tool *tool, *next_tool;
-	struct libinput_device_group *group, *next_group;
+	struct libinput_device *device;
+	struct libinput_seat *seat;
+	struct libinput_tablet_tool *tool;
+	struct libinput_device_group *group;
 
 	if (libinput == NULL)
 		return NULL;
@@ -1884,8 +1884,8 @@ libinput_unref(struct libinput *libinput)
 
 	free(libinput->events);
 
-	list_for_each_safe(seat, next_seat, &libinput->seat_list, link) {
-		list_for_each_safe(device, next_device,
+	list_for_each_safe(seat, &libinput->seat_list, link) {
+		list_for_each_safe(device,
 				   &seat->devices_list,
 				   link)
 			libinput_device_destroy(device);
@@ -1894,13 +1894,12 @@ libinput_unref(struct libinput *libinput)
 	}
 
 	list_for_each_safe(group,
-			   next_group,
 			   &libinput->device_group_list,
 			   link) {
 		libinput_device_group_destroy(group);
 	}
 
-	list_for_each_safe(tool, next_tool, &libinput->tool_list, link) {
+	list_for_each_safe(tool, &libinput->tool_list, link) {
 		libinput_tablet_tool_unref(tool);
 	}
 
@@ -2225,7 +2224,7 @@ post_device_event(struct libinput_device *device,
 		  enum libinput_event_type type,
 		  struct libinput_event *event)
 {
-	struct libinput_event_listener *listener, *tmp;
+	struct libinput_event_listener *listener;
 #if 0
 	struct libinput *libinput = device->seat->libinput;
 
@@ -2240,7 +2239,7 @@ post_device_event(struct libinput_device *device,
 
 	init_event_base(event, device, type);
 
-	list_for_each_safe(listener, tmp, &device->event_listeners, link)
+	list_for_each_safe(listener, &device->event_listeners, link)
 		listener->notify_func(time, event, listener->notify_func_data);
 
 	libinput_post_event(device->seat->libinput, event);

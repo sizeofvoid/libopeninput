@@ -2098,13 +2098,13 @@ static void
 tablet_destroy(struct evdev_dispatch *dispatch)
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
-	struct libinput_tablet_tool *tool, *tmp;
+	struct libinput_tablet_tool *tool;
 	struct libinput *li = tablet_libinput_context(tablet);
 
 	libinput_timer_cancel(&tablet->quirks.prox_out_timer);
 	libinput_timer_destroy(&tablet->quirks.prox_out_timer);
 
-	list_for_each_safe(tool, tmp, &tablet->tool_list, link) {
+	list_for_each_safe(tool, &tablet->tool_list, link) {
 		libinput_tablet_tool_unref(tool);
 	}
 

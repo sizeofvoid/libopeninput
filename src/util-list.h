@@ -61,9 +61,9 @@ bool list_empty(const struct list *list);
 	     &pos->member != (head);					\
 	     pos = list_first_entry_by_type(&pos->member, __typeof__(*pos), member))
 
-#define list_for_each_safe(pos, tmp, head, member)			\
-	for (pos = list_first_entry_by_type(head, __typeof__(*pos), member), \
-	     tmp = list_first_entry_by_type(&pos->member, __typeof__(*tmp), member); \
+#define list_for_each_safe(pos, head, member)				\
+	pos = list_first_entry_by_type(head, __typeof__(*pos), member);			\
+	for (__typeof__(pos) _tmp = list_first_entry_by_type(&pos->member, __typeof__(*_tmp), member); \
 	     &pos->member != (head);					\
-	     pos = tmp,							\
-	     tmp = list_first_entry_by_type(&pos->member, __typeof__(*tmp), member))
+	     pos = _tmp,						\
+	     _tmp = list_first_entry_by_type(&pos->member, __typeof__(*_tmp), member))

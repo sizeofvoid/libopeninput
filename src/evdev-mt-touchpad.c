@@ -2614,7 +2614,7 @@ tp_interface_device_removed(struct evdev_device *device,
 			    struct evdev_device *removed_device)
 {
 	struct tp_dispatch *tp = (struct tp_dispatch*)device->dispatch;
-	struct evdev_paired_keyboard *kbd, *tmp;
+	struct evdev_paired_keyboard *kbd;
 
 	if (removed_device == tp->buttons.trackpoint) {
 		/* Clear any pending releases for the trackpoint */
@@ -2628,7 +2628,7 @@ tp_interface_device_removed(struct evdev_device *device,
 		tp->buttons.trackpoint = NULL;
 	}
 
-	list_for_each_safe(kbd, tmp, &tp->dwt.paired_keyboard_list, link) {
+	list_for_each_safe(kbd, &tp->dwt.paired_keyboard_list, link) {
 		if (kbd->device == removed_device) {
 			evdev_paired_keyboard_destroy(kbd);
 			tp->dwt.keyboard_active = false;

@@ -1158,7 +1158,7 @@ static void
 fallback_interface_remove(struct evdev_dispatch *evdev_dispatch)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
-	struct evdev_paired_keyboard *kbd, *tmp;
+	struct evdev_paired_keyboard *kbd;
 
 	libinput_timer_cancel(&dispatch->debounce.timer);
 	libinput_timer_cancel(&dispatch->debounce.timer_short);
@@ -1167,7 +1167,6 @@ fallback_interface_remove(struct evdev_dispatch *evdev_dispatch)
 	libinput_device_remove_event_listener(&dispatch->tablet_mode.other.listener);
 
 	list_for_each_safe(kbd,
-			   tmp,
 			   &dispatch->lid.paired_keyboard_list,
 			   link) {
 		evdev_paired_keyboard_destroy(kbd);
@@ -1433,10 +1432,9 @@ fallback_interface_device_removed(struct evdev_device *device,
 {
 	struct fallback_dispatch *dispatch =
 			fallback_dispatch(device->dispatch);
-	struct evdev_paired_keyboard *kbd, *tmp;
+	struct evdev_paired_keyboard *kbd;
 
 	list_for_each_safe(kbd,
-			   tmp,
 			   &dispatch->lid.paired_keyboard_list,
 			   link) {
 		if (!kbd->device)
