@@ -2199,7 +2199,7 @@ signalfd_dispatch(struct record_context *ctx, int fd, void *data)
 {
 	struct signalfd_siginfo fdsi;
 
-	read(fd, &fdsi, sizeof(fdsi));
+	(void)read(fd, &fdsi, sizeof(fdsi));
 
 	ctx->stop = true;
 }
@@ -2209,7 +2209,7 @@ timefd_dispatch(struct record_context *ctx, int fd, void *data)
 {
 	char discard[64];
 
-	read(fd, discard, sizeof(discard));
+	(void)read(fd, discard, sizeof(discard));
 
 	if (ctx->timestamps.had_events_since_last_time) {
 		print_wall_time(ctx);
