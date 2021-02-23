@@ -26,6 +26,7 @@
 import os
 import sys
 import time
+import math
 import multiprocessing
 import argparse
 from pathlib import Path
@@ -218,8 +219,7 @@ def first_timestamp(device):
         except YamlException:
             pass
 
-    import math
-    return math.inf
+    return None
 
 
 def wrap(func, *args):
@@ -232,9 +232,12 @@ def wrap(func, *args):
 def loop(args, recording):
     devices = fetch(recording, "devices")
 
+    first_timestamps = tuple(
+        filter(lambda x: x is not None, [first_timestamp(d) for d in devices])
+    )
     # All devices need to start replaying at the same time, so let's find
     # the very first event and offset everything by that timestamp.
-    toffset = min([first_timestamp(d) for d in devices])
+    toffset = min(first_timestamps or [math.inf])
 
     for idx, d in enumerate(devices):
         uinput = create(d)
@@ -242,6 +245,10 @@ def loop(args, recording):
         d["__uinput"] = uinput  # cheaper to hide it in the dict then work around it
         d["__index"] = idx
         d["__first_event_offset"] = toffset
+
+    if not first_timestamps:
+        input("No events in recording. Hit enter to quit")
+        return
 
     while True:
         input("Hit enter to start replaying")
