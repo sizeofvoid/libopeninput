@@ -525,6 +525,7 @@ src_python_tools = files(
 	      'tools/libinput-measure-touchpad-tap.py',
 	      'tools/libinput-measure-touchpad-pressure.py',
 	      'tools/libinput-measure-touch-size.py',
+	      'tools/libinput-replay.py'
 )
 
 foreach t : src_python_tools
@@ -543,9 +544,6 @@ executable('libinput-record',
 	   install_dir : libinput_tool_path,
 	   install : true,
 	   )
-
-install_data('tools/libinput-replay',
-	     install_dir : libinput_tool_path)
 
 if get_option('debug-gui')
 	dep_gtk = dependency('gtk+-3.0', version : '>= 3.20')
