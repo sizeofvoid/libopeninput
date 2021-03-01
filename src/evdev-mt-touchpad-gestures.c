@@ -636,7 +636,7 @@ tp_gesture_handle_state_swipe(struct tp_dispatch *tp, uint64_t time)
 	delta = tp_filter_motion(tp, &raw, time);
 
 	if (!normalized_is_zero(delta) || !device_float_is_zero(raw)) {
-		unaccel = tp_normalize_delta(tp, raw);
+		unaccel = tp_filter_motion_unaccelerated(tp, &raw, time);
 		tp_gesture_start(tp, time);
 		gesture_notify_swipe(&tp->device->base, time,
 				     LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
@@ -674,7 +674,7 @@ tp_gesture_handle_state_pinch(struct tp_dispatch *tp, uint64_t time)
 	    scale == tp->gesture.prev_scale && angle_delta == 0.0)
 		return GESTURE_STATE_PINCH;
 
-	unaccel = tp_normalize_delta(tp, fdelta);
+	unaccel = tp_filter_motion_unaccelerated(tp, &fdelta, time);
 	tp_gesture_start(tp, time);
 	gesture_notify_pinch(&tp->device->base, time,
 			     LIBINPUT_EVENT_GESTURE_PINCH_UPDATE,
