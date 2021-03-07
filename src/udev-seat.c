@@ -184,7 +184,7 @@ udev_input_add_devices(struct udev_input *input, struct udev *udev)
 			continue;
 
 		sysname = udev_device_get_sysname(device);
-		if (strncmp("event", sysname, 5) != 0) {
+		if (!strneq("event", sysname, 5)) {
 			udev_device_unref(device);
 			continue;
 		}
@@ -228,7 +228,7 @@ evdev_udev_handler(void *data)
 	if (!action)
 		goto out;
 
-	if (strncmp("event", udev_device_get_sysname(udev_device), 5) != 0)
+	if (!strneq("event", udev_device_get_sysname(udev_device), 5))
 		goto out;
 
 	if (streq(action, "add"))
