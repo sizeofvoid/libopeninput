@@ -220,6 +220,11 @@ def main(argv):
         libevdev.EV_KEY.BTN_TOOL_QUADTAP: 0,
         libevdev.EV_KEY.BTN_TOOL_QUINTTAP: 0,
     }
+    btn_state = {
+        libevdev.EV_KEY.BTN_LEFT: 0,
+        libevdev.EV_KEY.BTN_MIDDLE: 0,
+        libevdev.EV_KEY.BTN_RIGHT: 0,
+    }
 
     nskipped_lines = 0
 
@@ -235,6 +240,8 @@ def main(argv):
 
             if e.code in tool_bits:
                 tool_bits[e.code] = e.value
+            if e.code in btn_state:
+                btn_state[e.code] = e.value
 
             if args.use_st:
                 # Note: this relies on the EV_KEY events to come in before the
@@ -338,6 +345,17 @@ def main(argv):
                 else:
                     tool_state = "   "
 
+                buttons = [
+                    (libevdev.EV_KEY.BTN_LEFT, "L"),
+                    (libevdev.EV_KEY.BTN_MIDDLE, "M"),
+                    (libevdev.EV_KEY.BTN_RIGHT, "R"),
+                ]
+
+                button_state = (
+                    "".join([string for bit, string in buttons if btn_state[bit]])
+                    or "."
+                )
+
                 fmt = SlotFormatter(
                     is_absolute=args.use_absolute,
                     resolution=(xres, yres) if args.use_mm else None,
@@ -360,8 +378,8 @@ def main(argv):
                         print("")
                         nskipped_lines = 0
                     print(
-                        "{:2d}.{:06d} {:+5d}ms {}: {}".format(
-                            e.sec, e.usec, tdelta, tool_state, fmt
+                        "{:2d}.{:06d} {:+5d}ms {} {} {}".format(
+                            e.sec, e.usec, tdelta, tool_state, button_state, fmt
                         )
                     )
                 elif fmt.filtered:
