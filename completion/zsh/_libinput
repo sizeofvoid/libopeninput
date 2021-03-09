@@ -163,12 +163,35 @@ __all_seats()
 		':device:_files -W /dev/input/ -P /dev/input/'
 }
 
+(( $+functions[_libinput_analyze_per-slot-delta] )) || _libinput_analyze_per-slot-delta()
+{
+	_arguments \
+		'--help[Show help message and exit]' \
+		':recording:_files'
+}
+
+(( $+functions[_libinput_analyze_touch-down-state] )) || _libinput_analyze_touch-down-state()
+{
+	_arguments \
+		'--help[Show help message and exit]' \
+		':recording:_files'
+}
+
+(( $+functions[_libinput_analyze_recording] )) || _libinput_analyze_recording()
+{
+	_arguments \
+		'--help[Show help message and exit]' \
+		':recording:_files'
+}
+
 (( $+functions[_libinput_analyze] )) || _libinput_analyze()
 {
 	local curcontext=$curcontext state line ret=1
 	local features
 	features=(
 		"per-slot-delta:analyze relative movement per touch per slot"
+		"recording:analyze a recording by printing a pretty table"
+		"touch-down-state:analyze a recording for logical touch down states"
 	)
 
 	_arguments -C \
