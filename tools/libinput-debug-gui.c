@@ -765,6 +765,8 @@ map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 	w->x = w->width/2;
 	w->y = w->height/2;
+	w->deltas[0].x = w->x;
+	w->deltas[0].y = w->y;
 
 	w->scroll.vx = w->width/2;
 	w->scroll.vy = w->height/2;
