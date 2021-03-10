@@ -88,6 +88,7 @@ struct window {
 
 	/* sprite position */
 	struct point pointer;
+	struct point unaccelerated;
 
 	/* these are for the delta coordinates, but they're not
 	 * deltas, they are converted into abs positions */
@@ -651,6 +652,15 @@ draw_pointer(struct window *w, cairo_t *cr)
 	cairo_rel_line_to(cr, 0, -15);
 	cairo_fill(cr);
 
+	/* draw unaccelerated sprite */
+	cairo_set_source_rgb(cr, 0.7, 0.7, 0.7);
+	cairo_save(cr);
+	cairo_move_to(cr, w->unaccelerated.x, w->unaccelerated.y);
+	cairo_rel_line_to(cr, -5, -10);
+	cairo_rel_line_to(cr, 10, 0);
+	cairo_rel_line_to(cr, -5, 10);
+	cairo_fill(cr);
+
 	/* pointer deltas */
 	mask = ARRAY_LENGTH(w->deltas);
 	first = max(w->ndeltas + 1, mask) - mask;
@@ -765,6 +775,8 @@ map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 	w->pointer.x = w->width/2;
 	w->pointer.y = w->height/2;
+	w->unaccelerated.x = w->width/2;
+	w->unaccelerated.y = w->height/2;
 	w->deltas[0].x = w->pointer.x;
 	w->deltas[0].y = w->pointer.y;
 
@@ -1071,20 +1083,22 @@ handle_event_motion(struct libinput_event *ev, struct window *w)
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
 	double dx = libinput_event_pointer_get_dx(p),
 	       dy = libinput_event_pointer_get_dy(p);
+	double dx_unaccel = libinput_event_pointer_get_dx_unaccelerated(p),
+	       dy_unaccel = libinput_event_pointer_get_dy_unaccelerated(p);
 	struct point point;
 	const int mask = ARRAY_LENGTH(w->deltas);
 	size_t idx;
 
-	w->pointer.x += dx;
-	w->pointer.y += dy;
-	w->pointer.x = clip(w->pointer.x, 0.0, w->width);
-	w->pointer.y = clip(w->pointer.y, 0.0, w->height);
+	w->pointer.x = clip(w->pointer.x + dx, 0.0, w->width);
+	w->pointer.y = clip(w->pointer.y + dy, 0.0, w->height);
+	w->unaccelerated.x = clip(w->unaccelerated.x + dx_unaccel, 0.0, w->width);
+	w->unaccelerated.y = clip(w->unaccelerated.y + dy_unaccel, 0.0, w->height);
 
 	idx = w->ndeltas % mask;
 	point = w->deltas[idx];
 	idx = (w->ndeltas + 1) % mask;
-	point.x += libinput_event_pointer_get_dx_unaccelerated(p);
-	point.y += libinput_event_pointer_get_dy_unaccelerated(p);
+	point.x += dx_unaccel;
+	point.y += dy_unaccel;
 	w->deltas[idx] = point;
 	w->ndeltas++;
 }

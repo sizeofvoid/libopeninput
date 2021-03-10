@@ -51,6 +51,14 @@ The cursor is displayed as black triangle. Various markers are displayed in
 light grey to help debug cusor positioning. The cursor movement is
 the one as seen by libinput and may not match the cursor movement of the
 display server.
+.PP
+The unaccelerated cusor motion is displayed as a grey upside-down triangle.
+The movement of this cursor typically reflects the relative motion in device
+units and can differ significantly to the normal cursor movement.
+.PP
+The unaccelerated cursor motion is also displayed as a yellow snake. This is
+the connected set of recent deltas. Unlike the unaccelerated cursor, these
+coordinates are not clipped to the window.
 .TP 8
 .B Button testing
 Four oblongs are displayed at the bottom. The top three are left, middle,
