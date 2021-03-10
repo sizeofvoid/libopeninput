@@ -27,6 +27,11 @@ libinput applies a dpi-dependent acceleration function. At low speeds, a
 movement speed increases, acceleration is applied - at high speeds a low-dpi
 device will roughly feel the same as a higher-dpi mouse.
 
+The reason for the normalization is convenience: a caller can assume that a
+delta of 1 should result in a movement of 1 pixel on a traditional
+(low-dpi) screen. On screens with high resolutions, the caller must scale
+according to the UI scale factors.
+
 This normalization only applies to accelerated coordinates, unaccelerated
 coordinates are left in device-units. It is up to the caller to interpret
 those coordinates correctly.
