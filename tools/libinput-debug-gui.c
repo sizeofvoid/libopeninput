@@ -95,7 +95,7 @@ struct window {
 	struct point deltas[64];
 
 	/* abs position */
-	int absx, absy;
+	struct point abs;
 
 	/* scroll bar positions */
 	struct {
@@ -396,7 +396,7 @@ draw_abs_pointer(struct window *w, cairo_t *cr)
 
 	cairo_save(cr);
 	cairo_set_source_rgb(cr, .2, .4, .8);
-	cairo_arc(cr, w->absx, w->absy, 10, 0, 2 * M_PI);
+	cairo_arc(cr, w->abs.x, w->abs.y, 10, 0, 2 * M_PI);
 	cairo_fill(cr);
 	cairo_restore(cr);
 }
@@ -1096,8 +1096,8 @@ handle_event_absmotion(struct libinput_event *ev, struct window *w)
 	double x = libinput_event_pointer_get_absolute_x_transformed(p, w->width),
 	       y = libinput_event_pointer_get_absolute_y_transformed(p, w->height);
 
-	w->absx = x;
-	w->absy = y;
+	w->abs.x = x;
+	w->abs.y = y;
 }
 
 static void
