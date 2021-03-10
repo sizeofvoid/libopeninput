@@ -87,7 +87,7 @@ struct window {
 	int width, height; /* of window */
 
 	/* sprite position */
-	double x, y;
+	struct point pointer;
 
 	/* these are for the delta coordinates, but they're not
 	 * deltas, they are converted into abs positions */
@@ -645,7 +645,7 @@ draw_pointer(struct window *w, cairo_t *cr)
 	/* draw pointer sprite */
 	cairo_set_source_rgb(cr, 0, 0, 0);
 	cairo_save(cr);
-	cairo_move_to(cr, w->x, w->y);
+	cairo_move_to(cr, w->pointer.x, w->pointer.y);
 	cairo_rel_line_to(cr, 10, 15);
 	cairo_rel_line_to(cr, -10, 0);
 	cairo_rel_line_to(cr, 0, -15);
@@ -763,10 +763,10 @@ map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 	gtk_window_get_size(GTK_WINDOW(widget), &w->width, &w->height);
 
-	w->x = w->width/2;
-	w->y = w->height/2;
-	w->deltas[0].x = w->x;
-	w->deltas[0].y = w->y;
+	w->pointer.x = w->width/2;
+	w->pointer.y = w->height/2;
+	w->deltas[0].x = w->pointer.x;
+	w->deltas[0].y = w->pointer.y;
 
 	w->scroll.vx = w->width/2;
 	w->scroll.vy = w->height/2;
@@ -1075,10 +1075,10 @@ handle_event_motion(struct libinput_event *ev, struct window *w)
 	const int mask = ARRAY_LENGTH(w->deltas);
 	size_t idx;
 
-	w->x += dx;
-	w->y += dy;
-	w->x = clip(w->x, 0.0, w->width);
-	w->y = clip(w->y, 0.0, w->height);
+	w->pointer.x += dx;
+	w->pointer.y += dy;
+	w->pointer.x = clip(w->pointer.x, 0.0, w->width);
+	w->pointer.y = clip(w->pointer.y, 0.0, w->height);
 
 	idx = w->ndeltas % mask;
 	point = w->deltas[idx];
