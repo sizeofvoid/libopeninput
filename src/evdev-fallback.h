@@ -96,7 +96,10 @@ struct fallback_dispatch {
 	} mt;
 
 	struct device_coords rel;
-	struct device_coords wheel;
+
+	struct {
+		struct device_coords delta;
+	} wheel;
 
 	struct {
 		/* The struct for the tablet mode switch device itself */

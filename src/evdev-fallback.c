@@ -215,22 +215,22 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 	if (device->model_flags & EVDEV_MODEL_LENOVO_SCROLLPOINT) {
 		struct normalized_coords unaccel = { 0.0, 0.0 };
 
-		dispatch->wheel.y *= -1;
-		normalize_delta(device, &dispatch->wheel, &unaccel);
+		dispatch->wheel.delta.y *= -1;
+		normalize_delta(device, &dispatch->wheel.delta, &unaccel);
 		evdev_post_scroll(device,
 				  time,
 				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
 				  &unaccel);
-		dispatch->wheel.x = 0;
-		dispatch->wheel.y = 0;
+		dispatch->wheel.delta.x = 0;
+		dispatch->wheel.delta.y = 0;
 
 		return;
 	}
 
-	if (dispatch->wheel.y != 0) {
-		wheel_degrees.y = -1 * dispatch->wheel.y *
+	if (dispatch->wheel.delta.y != 0) {
+		wheel_degrees.y = -1 * dispatch->wheel.delta.y *
 					device->scroll.wheel_click_angle.y;
-		discrete.y = -1 * dispatch->wheel.y;
+		discrete.y = -1 * dispatch->wheel.delta.y;
 
 		evdev_notify_axis(
 			device,
@@ -239,13 +239,13 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 			LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
 			&wheel_degrees,
 			&discrete);
-		dispatch->wheel.y = 0;
+		dispatch->wheel.delta.y = 0;
 	}
 
-	if (dispatch->wheel.x != 0) {
-		wheel_degrees.x = dispatch->wheel.x *
+	if (dispatch->wheel.delta.x != 0) {
+		wheel_degrees.x = dispatch->wheel.delta.x *
 					device->scroll.wheel_click_angle.x;
-		discrete.x = dispatch->wheel.x;
+		discrete.x = dispatch->wheel.delta.x;
 
 		evdev_notify_axis(
 			device,
@@ -254,7 +254,7 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 			LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
 			&wheel_degrees,
 			&discrete);
-		dispatch->wheel.x = 0;
+		dispatch->wheel.delta.x = 0;
 	}
 }
 
@@ -827,11 +827,11 @@ fallback_process_relative(struct fallback_dispatch *dispatch,
 		dispatch->pending_event |= EVDEV_RELATIVE_MOTION;
 		break;
 	case REL_WHEEL:
-		dispatch->wheel.y += e->value;
+		dispatch->wheel.delta.y += e->value;
 		dispatch->pending_event |= EVDEV_WHEEL;
 		break;
 	case REL_HWHEEL:
-		dispatch->wheel.x += e->value;
+		dispatch->wheel.delta.x += e->value;
 		dispatch->pending_event |= EVDEV_WHEEL;
 		break;
 	}
