@@ -5183,7 +5183,7 @@ START_TEST(touchpad_thumb_speed_empty_slots)
 	libinput_dispatch(li);
 	for (int i = 0, y = 50; i < 10; i++, y++) {
 		litest_touch_move_to(dev, 1, 50, y, 50, y + 1, 1);
-		litest_touch_move_to(dev, 2, 55, y, 50, y + 1, 1);
+		litest_touch_move_to(dev, 2, 55, y, 55, y + 1, 1);
 	}
 	libinput_dispatch(li);
 	litest_touch_up(dev, 1);
@@ -5983,7 +5983,7 @@ START_TEST(touchpad_pressure_2fg)
 	litest_touch_down(dev, 0, 30, 50);
 	litest_touch_down_extended(dev, 1, 50, 50, axes);
 	libinput_dispatch(li);
-	litest_touch_move_to(dev, 0, 50, 50, 80, 80, 10);
+	litest_touch_move_to(dev, 0, 30, 50, 80, 80, 10);
 	libinput_dispatch(li);
 	litest_assert_only_typed_events(li,
 					LIBINPUT_EVENT_POINTER_MOTION);
