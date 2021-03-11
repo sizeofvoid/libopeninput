@@ -5169,15 +5169,16 @@ START_TEST(touchpad_thumb_speed_empty_slots)
 
 	litest_drain_events(li);
 
-	/* exceed the speed movement threshold in slot 0 */
+	/* exceed the speed movement threshold in slot 0, then lift the
+	 * finger */
 	litest_touch_down(dev, 0, 50, 20);
 	litest_touch_move_to(dev, 0, 50, 20, 70, 99, 15);
 	litest_touch_up(dev, 0);
 
 	litest_drain_events(li);
 
-	/* scroll in slots 1 and 2, despite another finger down this is a
-	 * 2fg gesture */
+	/* now scroll in slots 1 and 2, this should be a normal scroll event
+	 * despite slot 0 exceeding the speed threshold earlier */
 	litest_touch_down(dev, 1, 50, 50);
 	litest_touch_down(dev, 2, 55, 50);
 	libinput_dispatch(li);
