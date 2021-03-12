@@ -169,7 +169,6 @@ START_TEST(touchpad_2fg_scroll_initially_diagonal)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
 	int i;
 	int expected_nevents;
 	double w, h;
@@ -212,6 +211,8 @@ START_TEST(touchpad_2fg_scroll_initially_diagonal)
 	event = libinput_get_event(li);
 
 	do {
+		struct libinput_event_pointer *ptrev;
+
 		ptrev = litest_is_axis_event(event,
 				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
 				LIBINPUT_POINTER_AXIS_SOURCE_FINGER);
@@ -816,7 +817,6 @@ START_TEST(touchpad_edge_scroll_timeout)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
 	double width = 0, height = 0;
 	int nevents = 0;
 	double mm; /* one mm in percent of the device */
@@ -860,6 +860,7 @@ START_TEST(touchpad_edge_scroll_timeout)
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS, -1);
 
 	while ((event = libinput_get_event(li))) {
+		struct libinput_event_pointer *ptrev;
 		double value;
 
 		ptrev = litest_is_axis_event(event,
@@ -928,7 +929,6 @@ START_TEST(touchpad_edge_scroll_source)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
 
 	litest_drain_events(li);
 	litest_enable_edge_scroll(dev);
@@ -940,6 +940,7 @@ START_TEST(touchpad_edge_scroll_source)
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS, -1);
 
 	while ((event = libinput_get_event(li))) {
+		struct libinput_event_pointer *ptrev;
 		ck_assert_int_eq(libinput_event_get_type(event),
 				 LIBINPUT_EVENT_POINTER_AXIS);
 		ptrev = libinput_event_get_pointer_event(event);
@@ -2596,7 +2597,6 @@ START_TEST(touchpad_left_handed_rotation)
 	struct libinput *li = dev->libinput;
 	enum libinput_config_status status;
 	struct libinput_event *event;
-	struct libinput_event_pointer *p;
 	bool rotate = touchpad_has_rotation(dev->evdev);
 
 	if (!libinput_device_config_left_handed_is_available(d))
@@ -2615,6 +2615,7 @@ START_TEST(touchpad_left_handed_rotation)
 	event = libinput_get_event(li);
 	ck_assert_notnull(event);
 	do {
+		struct libinput_event_pointer *p;
 		double x, y, ux, uy;
 
 		p = litest_is_motion_event(event);
@@ -3498,8 +3499,6 @@ START_TEST(touchpad_initial_state)
 {
 	struct litest_device *dev;
 	struct libinput *libinput1, *libinput2;
-	struct libinput_event *ev1, *ev2;
-	struct libinput_event_pointer *p1, *p2;
 	int axis = _i; /* looped test */
 	int x = 40, y = 60;
 
@@ -3533,6 +3532,9 @@ START_TEST(touchpad_initial_state)
 	litest_wait_for_event(libinput2);
 
 	while (libinput_next_event_type(libinput1)) {
+		struct libinput_event *ev1, *ev2;
+		struct libinput_event_pointer *p1, *p2;
+
 		ev1 = libinput_get_event(libinput1);
 		ev2 = libinput_get_event(libinput2);
 
@@ -5533,7 +5535,6 @@ START_TEST(touchpad_slot_swap)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
 	int first, second;
 
 	/* Synaptics touchpads sometimes end the wrong touchpoint on finger
@@ -5585,6 +5586,8 @@ START_TEST(touchpad_slot_swap)
 		libinput_dispatch(li);
 		event = libinput_get_event(li);
 		do {
+			struct libinput_event_pointer *ptrev;
+
 			ptrev = litest_is_motion_event(event);
 			ck_assert_double_eq(libinput_event_pointer_get_dx(ptrev), 0.0);
 			ck_assert_double_lt(libinput_event_pointer_get_dy(ptrev), 1.0);
@@ -5627,7 +5630,6 @@ START_TEST(touchpad_time_usec)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
 
 	litest_disable_tap(dev->libinput_device);
 
@@ -5643,6 +5645,7 @@ START_TEST(touchpad_time_usec)
 	ck_assert_notnull(event);
 
 	while (event) {
+		struct libinput_event_pointer *ptrev;
 		uint64_t utime;
 
 		ptrev = litest_is_motion_event(event);
@@ -5661,7 +5664,6 @@ START_TEST(touchpad_jump_finger_motion)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
 
 	litest_touch_down(dev, 0, 20, 30);
 	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10);
@@ -5681,6 +5683,7 @@ START_TEST(touchpad_jump_finger_motion)
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	do {
+		struct libinput_event_pointer *ptrev;
 		double dx, dy;
 
 		ptrev = litest_is_motion_event(event);
@@ -5700,7 +5703,6 @@ START_TEST(touchpad_jump_delta)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-	struct libinput_event_pointer *ptrev;
 
 	litest_touch_down(dev, 0, 20, 30);
 	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10);
@@ -5721,6 +5723,7 @@ START_TEST(touchpad_jump_delta)
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
 	do {
+		struct libinput_event_pointer *ptrev;
 		double dx, dy;
 
 		ptrev = litest_is_motion_event(event);
