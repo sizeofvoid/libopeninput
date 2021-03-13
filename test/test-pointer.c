@@ -675,6 +675,30 @@ START_TEST(pointer_scroll_wheel)
 }
 END_TEST
 
+START_TEST(pointer_scroll_wheel_pressed_noscroll)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_drain_events(li);
+
+	litest_button_click_debounced(dev, li, BTN_MIDDLE, true);
+	litest_drain_events(li);
+
+	for (int i = 0; i < 10; i++) {
+		litest_event(dev, EV_REL, REL_WHEEL, 1);
+		litest_event(dev, EV_REL, REL_HWHEEL, 1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	}
+
+	libinput_dispatch(li);
+
+	litest_assert_empty_queue(li);
+
+	litest_button_click_debounced(dev, li, BTN_MIDDLE, false);
+}
+END_TEST
+
 START_TEST(pointer_scroll_natural_defaults)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3141,6 +3165,7 @@ TEST_COLLECTION(pointer)
 	litest_add_for_device(pointer_button_has_no_button, LITEST_KEYBOARD);
 	litest_add(pointer_recover_from_lost_button_count, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add(pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
+	litest_add_for_device(pointer_scroll_wheel_pressed_noscroll, LITEST_MOUSE);
 	litest_add(pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add(pointer_scroll_button_noscroll, LITEST_ABSOLUTE|LITEST_BUTTON, LITEST_RELATIVE);
 	litest_add(pointer_scroll_button_noscroll, LITEST_ANY, LITEST_RELATIVE|LITEST_BUTTON);

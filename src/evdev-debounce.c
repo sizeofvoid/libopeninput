@@ -176,7 +176,7 @@ debounce_notify_button(struct fallback_dispatch *fallback,
 
 	code = evdev_to_left_handed(device, code);
 
-	evdev_pointer_notify_physical_button(device, time, code, state);
+	fallback_notify_physical_button(fallback, device, time, code, state);
 }
 
 static void

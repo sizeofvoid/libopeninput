@@ -61,6 +61,19 @@ fallback_lid_notify_toggle(struct fallback_dispatch *dispatch,
 	}
 }
 
+void
+fallback_notify_physical_button(struct fallback_dispatch *dispatch,
+				struct evdev_device *device,
+				uint64_t time,
+				int button,
+				enum libinput_button_state state)
+{
+	if (button == BTN_MIDDLE)
+		dispatch->wheel.is_inhibited = (state == LIBINPUT_BUTTON_STATE_PRESSED);
+
+	evdev_pointer_notify_physical_button(device, time, button, state);
+}
+
 static enum libinput_switch_state
 fallback_interface_get_switch_state(struct evdev_dispatch *evdev_dispatch,
 				    enum libinput_switch sw)
@@ -211,6 +224,12 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 
 	if (!(device->seat_caps & EVDEV_DEVICE_POINTER))
 		return;
+
+	if (dispatch->wheel.is_inhibited) {
+		dispatch->wheel.delta.x = 0;
+		dispatch->wheel.delta.y = 0;
+		return;
+	}
 
 	if (device->model_flags & EVDEV_MODEL_LENOVO_SCROLLPOINT) {
 		struct normalized_coords unaccel = { 0.0, 0.0 };

@@ -99,6 +99,7 @@ struct fallback_dispatch {
 
 	struct {
 		struct device_coords delta;
+		bool is_inhibited;
 	} wheel;
 
 	struct {
@@ -244,5 +245,11 @@ get_key_down_count(struct evdev_device *device, int code)
 void fallback_init_debounce(struct fallback_dispatch *dispatch);
 void fallback_debounce_handle_state(struct fallback_dispatch *dispatch,
 				    uint64_t time);
+void
+fallback_notify_physical_button(struct fallback_dispatch *dispatch,
+				struct evdev_device *device,
+				uint64_t time,
+				int button,
+				enum libinput_button_state state);
 
 #endif
