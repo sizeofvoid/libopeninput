@@ -25,6 +25,7 @@
 
 #include <check.h>
 #include <libinput.h>
+#include <valgrind/valgrind.h>
 
 #include "libinput-util.h"
 #include "litest.h"
@@ -1062,6 +1063,103 @@ START_TEST(gestures_3fg_buttonarea_scroll_btntool)
 }
 END_TEST
 
+START_TEST(gestures_swipe_3fg_unaccel)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	double reference_ux = 0, reference_uy = 0;
+
+	/**
+	 * This magic number is an artifact of the acceleration code.
+	 * The maximum factor in the touchpad accel profile is 4.8 times the
+	 * speed setting (1.000875 at default setting 0). The factor
+	 * applied to the const acceleration is the 0.9 baseline.
+	 * So our two sets of coordinates are:
+	 * accel = 4.8 * delta * normalize_magic
+	 * unaccel = 0.9 * delta * normalize_magic
+	 *
+	 * Since delta and the normalization magic are the same for both,
+	 * our accelerated deltas can be a maximum of 4.8/0.9 bigger than
+	 * the unaccelerated deltas.
+	 *
+	 * If any of the accel methods numbers change, this will have to
+	 * change here too.
+	 */
+	const double max_factor = 5.34;
+
+	if (litest_slot_count(dev) < 3)
+		return;
+
+	litest_drain_events(li);
+	litest_touch_down(dev, 0, 40, 20);
+	litest_touch_down(dev, 1, 50, 20);
+	litest_touch_down(dev, 2, 60, 20);
+	libinput_dispatch(li);
+	litest_touch_move_three_touches(dev,
+					40, 20,
+					50, 20,
+					60, 20,
+					30, 40,
+					10);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	litest_is_gesture_event(event,
+				LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
+				3);
+	libinput_event_destroy(event);
+	event = libinput_get_event(li);
+	do {
+		struct libinput_event_gesture *gevent;
+		double dx, dy;
+		double ux, uy;
+
+		gevent = litest_is_gesture_event(event,
+						 LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
+						 3);
+		dx = libinput_event_gesture_get_dx(gevent);
+		dy = libinput_event_gesture_get_dy(gevent);
+		ux = libinput_event_gesture_get_dx_unaccelerated(gevent);
+		uy = libinput_event_gesture_get_dy_unaccelerated(gevent);
+
+		ck_assert_double_ne(ux, 0.0);
+		ck_assert_double_ne(uy, 0.0);
+
+		if (!reference_ux)
+			reference_ux = ux;
+		if (!reference_uy)
+			reference_uy = uy;
+
+		/* The unaccelerated delta should be the same for every
+		 * event, but we have rounding errors since we only control
+		 * input data as percentage of the touchpad size.
+		 * so we just eyeball it */
+		ck_assert_double_gt(ux, reference_ux - 2);
+		ck_assert_double_lt(ux, reference_ux + 2);
+		ck_assert_double_gt(uy, reference_uy - 2);
+		ck_assert_double_lt(uy, reference_uy + 2);
+
+		/* All our touchpads are large enough to make this is a fast
+		 * swipe, we don't expect deceleration, unaccel should
+		 * always be less than accel delta */
+		ck_assert_double_lt(ux, dx);
+		ck_assert_double_lt(ux, dx);
+
+		/* Check our accelerated delta is within the expected
+		 * maximum. */
+		ck_assert_double_lt(dx, ux * max_factor);
+		ck_assert_double_lt(dy, uy * max_factor);
+
+		libinput_event_destroy(event);
+	} while ((event = libinput_get_event(li)));
+
+	litest_touch_up(dev, 0);
+	litest_touch_up(dev, 1);
+	litest_touch_up(dev, 2);
+}
+END_TEST
+
 TEST_COLLECTION(gestures)
 {
 	struct range cardinals = { N, N + NCARDINALS };
@@ -1083,4 +1181,8 @@ TEST_COLLECTION(gestures)
 	litest_add(gestures_3fg_buttonarea_scroll_btntool, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
 
 	litest_add(gestures_time_usec, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+
+	/* Timing-sensitive test, valgrind is too slow */
+	if (!RUNNING_ON_VALGRIND)
+		litest_add(gestures_swipe_3fg_unaccel, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 }
