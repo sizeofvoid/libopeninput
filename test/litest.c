@@ -2576,21 +2576,18 @@ litest_touch_move_three_touches(struct litest_device *d,
 {
 	int sleep_ms = 10;
 
-	for (int i = 0; i < steps - 1; i++) {
-		litest_touch_move(d, 0, x0 + dx / steps * i,
-					y0 + dy / steps * i);
-		litest_touch_move(d, 1, x1 + dx / steps * i,
-					y1 + dy / steps * i);
-		litest_touch_move(d, 2, x2 + dx / steps * i,
-					y2 + dy / steps * i);
+	for (int i = 1; i <= steps; i++) {
+		double step_x = dx / steps * i;
+		double step_y = dy / steps * i;
+
+		litest_touch_move(d, 0, x0 + step_x, y0 + step_y);
+		litest_touch_move(d, 1, x1 + step_x, y1 + step_y);
+		litest_touch_move(d, 2, x2 + step_x, y2 + step_y);
 
 		libinput_dispatch(d->libinput);
 		msleep(sleep_ms);
-		libinput_dispatch(d->libinput);
 	}
-	litest_touch_move(d, 0, x0 + dx, y0 + dy);
-	litest_touch_move(d, 1, x1 + dx, y1 + dy);
-	litest_touch_move(d, 2, x2 + dx, y2 + dy);
+	libinput_dispatch(d->libinput);
 }
 
 void
