@@ -3114,7 +3114,7 @@ litest_event_type_str(enum libinput_event_type type)
 		str = "TOUCH FRAME";
 		break;
 	case LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN:
-		str = "GESTURE SWIPE START";
+		str = "GESTURE SWIPE BEGIN";
 		break;
 	case LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE:
 		str = "GESTURE SWIPE UPDATE";
@@ -3123,7 +3123,7 @@ litest_event_type_str(enum libinput_event_type type)
 		str = "GESTURE SWIPE END";
 		break;
 	case LIBINPUT_EVENT_GESTURE_PINCH_BEGIN:
-		str = "GESTURE PINCH START";
+		str = "GESTURE PINCH BEGIN";
 		break;
 	case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE:
 		str = "GESTURE PINCH UPDATE";
