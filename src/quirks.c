@@ -111,6 +111,7 @@ enum bustype {
 	BT_PS2,
 	BT_RMI,
 	BT_I2C,
+	BT_SPI,
 };
 
 enum udev_type {
@@ -499,6 +500,8 @@ parse_match(struct quirks_context *ctx,
 			s->match.bus = BT_RMI;
 		else if (streq(value, "i2c"))
 			s->match.bus = BT_I2C;
+		else if (streq(value, "spi"))
+			s->match.bus = BT_SPI;
 		else
 			goto out;
 	} else if (streq(key, "MatchVendor")) {
@@ -1239,6 +1242,10 @@ match_fill_bus_vid_pid(struct match *m,
 		break;
 	case BUS_I2C:
 		m->bus = BT_I2C;
+		m->bits |= M_BUS;
+		break;
+	case BUS_SPI:
+		m->bus = BT_SPI;
 		m->bits |= M_BUS;
 		break;
 	default:
