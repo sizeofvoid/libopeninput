@@ -2580,9 +2580,11 @@ litest_touch_move_three_touches(struct litest_device *d,
 		double step_x = dx / steps * i;
 		double step_y = dy / steps * i;
 
+		litest_push_event_frame(d);
 		litest_touch_move(d, 0, x0 + step_x, y0 + step_y);
 		litest_touch_move(d, 1, x1 + step_x, y1 + step_y);
 		litest_touch_move(d, 2, x2 + step_x, y2 + step_y);
+		litest_pop_event_frame(d);
 
 		libinput_dispatch(d->libinput);
 		msleep(sleep_ms);
