@@ -50,7 +50,7 @@ struct touchpad_accelerator {
 
 	struct pointer_trackers trackers;
 
-	double threshold;	/* units/us */
+	double threshold;	/* mm/s */
 	double accel;		/* unitless factor */
 
 	int dpi;
@@ -233,7 +233,7 @@ touchpad_accel_profile_linear(struct motion_filter *filter,
 {
 	struct touchpad_accelerator *accel_filter =
 		(struct touchpad_accelerator *)filter;
-	const double threshold = accel_filter->threshold; /* units/us */
+	const double threshold = accel_filter->threshold; /* mm/s */
 	const double baseline = 0.9;
 	double factor; /* unitless */
 

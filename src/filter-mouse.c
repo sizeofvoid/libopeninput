@@ -38,8 +38,8 @@
  * Default parameters for pointer acceleration profiles.
  */
 
-#define DEFAULT_THRESHOLD v_ms2us(0.4)		/* in units/us */
-#define MINIMUM_THRESHOLD v_ms2us(0.2)		/* in units/us */
+#define DEFAULT_THRESHOLD v_ms2us(0.4)		/* in 1000dpi units/us */
+#define MINIMUM_THRESHOLD v_ms2us(0.2)		/* in 1000dpi units/us */
 #define DEFAULT_ACCELERATION 2.0		/* unitless factor */
 #define DEFAULT_INCLINE 1.1			/* unitless factor */
 
@@ -53,7 +53,7 @@ struct pointer_accelerator {
 
 	struct pointer_trackers trackers;
 
-	double threshold;	/* units/us */
+	double threshold;	/* 1000dpi units/us */
 	double accel;		/* unitless factor */
 	double incline;		/* incline of the function */
 
@@ -231,7 +231,7 @@ pointer_accel_profile_linear(struct motion_filter *filter,
 	struct pointer_accelerator *accel_filter =
 		(struct pointer_accelerator *)filter;
 	const double max_accel = accel_filter->accel; /* unitless factor */
-	const double threshold = accel_filter->threshold; /* units/us */
+	const double threshold = accel_filter->threshold; /* 1000dpi units/us */
 	const double incline = accel_filter->incline;
 	double factor; /* unitless */
 
