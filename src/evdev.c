@@ -1024,6 +1024,7 @@ evdev_note_time_delay(struct evdev_device *device,
 {
 	struct libinput *libinput = evdev_libinput_context(device);
 	uint32_t tdelta;
+	uint32_t eventtime = input_event_time(ev);
 
 	/* if we have a current libinput_dispatch() snapshot, compare our
 	 * event time with the one from the snapshot. If we have more than
@@ -1031,10 +1032,11 @@ evdev_note_time_delay(struct evdev_device *device,
 	 * where there is no steady event flow and thus SYN_DROPPED may not
 	 * get hit by the kernel despite us being too slow.
 	 */
-	if (libinput->dispatch_time == 0)
+	if (libinput->dispatch_time == 0 ||
+	    eventtime > libinput->dispatch_time)
 		return;
 
-	tdelta = us2ms(libinput->dispatch_time - input_event_time(ev));
+	tdelta = us2ms(libinput->dispatch_time - eventtime);
 	if (tdelta > 10) {
 		evdev_log_bug_client_ratelimit(device,
 					       &device->delay_warning_limit,
