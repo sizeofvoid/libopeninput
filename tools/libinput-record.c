@@ -2064,6 +2064,9 @@ all_devices(void)
 	return devices;
 
 error:
+	for (int i = 0; i < ndev; i++)
+		free(namelist[i]);
+	free(namelist);
 	if (devices)
 		strv_free(devices);
 	return NULL;
