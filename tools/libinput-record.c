@@ -2601,6 +2601,67 @@ is_char_dev(const char *path)
 	return S_ISCHR(st.st_mode) ? F_DEVICE : F_FILE;
 }
 
+enum fposition {
+	ERROR,
+	NOFILE,
+	FIRST,
+	LAST,
+};
+
+static enum fposition
+find_output_file(int argc, char *argv[], const char **output_file)
+{
+	char *first, *last;
+	enum ftype ftype_first, ftype_last;
+
+	first = argv[0];
+
+	ftype_first = is_char_dev(first);
+	if (argc == 1) {
+		/* arg is *not* a char device, so let's assume it's
+		 * the output file */
+		if (ftype_first != F_DEVICE) {
+			*output_file = first;
+			return FIRST;
+		}
+	}
+
+	/* multiple arguments, yay */
+	last = argv[argc - 1];
+	ftype_last = is_char_dev(last);
+	/*
+	   first is device, last is file -> last
+	   first is device, last is device -> noop
+	   first is device, last !exist -> last
+	   first is file, last is device -> first
+	   first is file, last is file -> error
+	   first is file, last !exist -> error
+	   first !exist, last is device -> first
+	   first !exist, last is file -> error
+	   first !exit, last !exist -> error
+	 */
+#define _m(f, l) (((f) << 8) | (l))
+	switch (_m(ftype_first, ftype_last)) {
+	case _m(F_FILE,    F_DEVICE):
+	case _m(F_FILE,    F_NOEXIST):
+	case _m(F_NOEXIST, F_DEVICE):
+		*output_file = first;
+		return FIRST;
+	case _m(F_DEVICE,  F_FILE):
+	case _m(F_DEVICE,  F_NOEXIST):
+		*output_file = last;
+		return LAST;
+	case _m(F_DEVICE,  F_DEVICE):
+		break;
+	case _m(F_FILE,    F_FILE):
+	case _m(F_NOEXIST, F_FILE):
+	case _m(F_NOEXIST, F_NOEXIST):
+		return ERROR;
+	}
+#undef _m
+	return NOFILE;
+}
+
 enum options {
 	OPT_AUTORESTART,
 	OPT_HELP,
@@ -2696,62 +2757,21 @@ main(int argc, char **argv)
 	 * because this will only backfire anyway.
 	 */
 	if (ndevices >= 1 && output_arg == NULL) {
-		char *first, *last;
-		enum ftype ftype_first;
-
-		first = argv[optind];
-		last = argv[argc - 1];
-
-		ftype_first = is_char_dev(first);
-		if (ndevices == 1) {
-			/* arg is *not* a char device, so let's assume it's
-			 * the output file */
-			if (ftype_first != F_DEVICE) {
-				output_arg = first;
-				optind++;
-				ndevices--;
-			}
-		/* multiple arguments, yay */
-		} else {
-			enum ftype ftype_last = is_char_dev(last);
-			/*
-			   first is device, last is file -> last
-			   first is device, last is device -> noop
-			   first is device, last !exist -> last
-			   first is file, last is device -> first
-			   first is file, last is file -> error
-			   first is file, last !exist -> error
-			   first !exist, last is device -> first
-			   first !exist, last is file -> error
-			   first !exit, last !exist -> error
-			 */
-#define _m(f, l) (((f) << 8) | (l))
-			switch (_m(ftype_first, ftype_last)) {
-			case _m(F_FILE,    F_DEVICE):
-			case _m(F_FILE,    F_NOEXIST):
-			case _m(F_NOEXIST, F_DEVICE):
-				output_arg = first;
-				optind++;
-				ndevices--;
-				break;
-			case _m(F_DEVICE,  F_FILE):
-			case _m(F_DEVICE,  F_NOEXIST):
-				output_arg = last;
-				ndevices--;
-				break;
-			case _m(F_DEVICE,  F_DEVICE):
-				break;
-			case _m(F_FILE,    F_FILE):
-			case _m(F_NOEXIST, F_FILE):
-			case _m(F_NOEXIST, F_NOEXIST):
-				fprintf(stderr, "Ambiguous device vs output file list. Please use --output-file.\n");
-				rc = EXIT_INVALID_USAGE;
-				goto out;
-			}
-#undef _m
+		enum fposition pos = find_output_file(argc - optind,
+						      &argv[optind],
+						      &output_arg);
+		if (pos == ERROR) {
+			fprintf(stderr,
+				"Ambiguous device vs output file list. "
+				"Please use --output-file.\n");
+			return EXIT_INVALID_USAGE;
 		}
-	}
 
+		if (pos == FIRST || pos == LAST)
+			ndevices--;
+		if (pos == FIRST)
+			optind++;
+	}
 
 	if (ctx.timeout > 0 && output_arg == NULL) {
 		fprintf(stderr,
