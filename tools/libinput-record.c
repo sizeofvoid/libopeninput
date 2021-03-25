@@ -2042,7 +2042,6 @@ all_devices(void)
 {
 	struct dirent **namelist;
 	int ndev;
-	int rc;
 	char **devices = NULL;
 
 	ndev = scandir("/dev/input", &namelist, is_event_node, versionsort);
@@ -2053,9 +2052,9 @@ all_devices(void)
 	for (int i = 0; i < ndev; i++) {
 		char *device_path;
 
-		rc = xasprintf(&device_path,
-			       "/dev/input/%s",
-			       namelist[i]->d_name);
+		int rc = xasprintf(&device_path,
+				   "/dev/input/%s",
+				   namelist[i]->d_name);
 		if (rc == -1)
 			goto error;
 
