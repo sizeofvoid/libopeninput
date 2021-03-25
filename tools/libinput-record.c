@@ -2782,16 +2782,16 @@ main(int argc, char **argv)
 
 	ctx.outfile = safe_strdup(output_arg);
 
+	if (output_arg == NULL && (all || ndevices > 1)) {
+		fprintf(stderr,
+			"Recording multiple devices requires an output file\n");
+		rc = EXIT_INVALID_USAGE;
+		goto out;
+	}
+
 	if (all) {
 		char **devices; /* NULL-terminated */
 		char **d;
-
-		if (output_arg == NULL) {
-			fprintf(stderr,
-				"Option --all requires an output file\n");
-			rc = EXIT_INVALID_USAGE;
-			goto out;
-		}
 
 		devices = all_devices();
 		d = devices;
@@ -2806,13 +2806,6 @@ main(int argc, char **argv)
 
 		strv_free(devices);
 	} else if (ndevices > 1) {
-		if (ndevices > 1 && output_arg == NULL) {
-			fprintf(stderr,
-				"Recording multiple devices requires an output file\n");
-			rc = EXIT_INVALID_USAGE;
-			goto out;
-		}
-
 		for (int i = ndevices; i > 0; i -= 1) {
 			char *devnode = safe_strdup(argv[optind + i - 1]);
 
