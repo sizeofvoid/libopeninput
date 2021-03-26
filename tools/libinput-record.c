@@ -110,7 +110,7 @@ struct record_context {
 	char *outfile; /* file name given on cmdline */
 	char *output_file; /* full file name with suffix */
 
-	int out_fd;
+	FILE *out_file;
 	unsigned int indent;
 
 	struct libinput *libinput;
@@ -216,7 +216,7 @@ iprintf(const struct record_context *ctx, const char *format, ...)
 
 	snprintf(fmt, sizeof(fmt), "%s%s", &space[len - indent - 1], format);
 	va_start(args, format);
-	rc = vdprintf(ctx->out_fd, fmt, args);
+	rc = vfprintf(ctx->out_file, fmt, args);
 	va_end(args);
 
 	assert(rc != -1 && (unsigned int)rc > indent);
@@ -232,7 +232,7 @@ noiprintf(const struct record_context *ctx, const char *format, ...)
 	int rc;
 
 	va_start(args, format);
-	rc = vdprintf(ctx->out_fd, format, args);
+	rc = vfprintf(ctx->out_file, format, args);
 	va_end(args);
 	assert(rc != -1 && (unsigned int)rc > 0);
 }
@@ -2102,20 +2102,20 @@ init_output_file(const char *file, bool is_prefix)
 static bool
 open_output_file(struct record_context *ctx, bool is_prefix)
 {
-	int out_fd;
+	FILE *out_file;
 
 	if (ctx->outfile) {
 		char *fname = init_output_file(ctx->outfile, is_prefix);
 		ctx->output_file = fname;
-		out_fd = open(fname, O_WRONLY|O_CREAT|O_TRUNC, 0666);
-		if (out_fd < 0)
+		out_file = fopen(fname, "w");
+		if (!out_file)
 			return false;
 	} else {
 		ctx->output_file = safe_strdup("stdout");
-		out_fd = STDOUT_FILENO;
+		out_file = stdout;
 	}
 
-	ctx->out_fd = out_fd;
+	ctx->out_file = out_file;
 
 	return true;
 }
@@ -2393,7 +2393,7 @@ mainloop(struct record_context *ctx)
 
 			}
 
-			if (ctx->out_fd != STDOUT_FILENO)
+			if (ctx->out_file != stdout)
 				print_progress_bar();
 
 		}
@@ -2421,17 +2421,15 @@ mainloop(struct record_context *ctx)
 		indent_pop(ctx); /* devices: */
 		assert(ctx->indent == 0);
 
-		fsync(ctx->out_fd);
-
 		/* If we didn't have events, delete the file. */
-		if (!isatty(ctx->out_fd)) {
+		if (!isatty(fileno(ctx->out_file))) {
 			if (!ctx->had_events && ctx->output_file) {
 				fprintf(stderr, "No events recorded, deleting '%s'\n", ctx->output_file);
 				unlink(ctx->output_file);
 			}
 
-			close(ctx->out_fd);
-			ctx->out_fd = -1;
+			fclose(ctx->out_file);
+			ctx->out_file = NULL;
 		}
 		free(ctx->output_file);
 		ctx->output_file = NULL;
