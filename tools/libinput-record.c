@@ -2466,7 +2466,7 @@ init_device(struct record_context *ctx, const char *path, bool grab)
 	if (libevdev_get_num_slots(d->evdev) > 0)
 		d->touch.is_touch_device = true;
 
-	list_insert(&ctx->devices, &d->link);
+	list_append(&ctx->devices, &d->link);
 	ctx->ndevices++;
 
 	return true;
