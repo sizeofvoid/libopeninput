@@ -55,6 +55,26 @@
 
 static const int FILE_VERSION_NUMBER = 1;
 
+/* Indentation levels for the various data nodes */
+enum indent {
+	I_NONE = 0,
+	I_TOPLEVEL = 0,
+	I_LIBINPUT = 2,			/* nodes inside libinput: */
+	I_SYSTEM = 0,			/* nodes inside system:   */
+	I_DEVICE = 2,			/* nodes inside devices:  */
+	I_EVDEV = 4,			/* nodes inside evdev:    */
+	I_EVDEV_DATA = 6,		/* nodes below evdev:	  */
+	I_UDEV = 4,			/* nodes inside udev:     */
+	I_UDEV_DATA = 6,		/* nodes below udev:      */
+	I_QUIRKS = 4,			/* nodes inside quirks:	  */
+	I_LIBINPUTDEV = 4,		/* nodes inside libinput: (the
+					   device description */
+	I_EVENTTYPE = 4,		/* event type (evdev:, libinput:,
+					   ...) */
+	I_EVENT = 6,			/* event data */
+};
+
+
 /* libinput is not designed to keep events past immediate use so we need to
  * cache our events. Simplest way to do this is to just cache the printf
  * output */
@@ -111,7 +131,6 @@ struct record_context {
 	char *output_file; /* full file name with suffix */
 
 	FILE *out_file;
-	unsigned int indent;
 
 	struct libinput *libinput;
 
@@ -176,31 +195,19 @@ obfuscate_keycode(struct input_event *ev)
 	return false;
 }
 
-static void
-indent_push(struct record_context *ctx)
-{
-	ctx->indent += 2;
-}
-
-static void
-indent_pop(struct record_context *ctx)
-{
-	assert(ctx->indent >= 2);
-	ctx->indent -= 2;
-}
-
 /**
  * Indented dprintf, indentation is in the context
  */
-LIBINPUT_ATTRIBUTE_PRINTF(2, 3)
+LIBINPUT_ATTRIBUTE_PRINTF(3, 4)
 static void
-iprintf(const struct record_context *ctx, const char *format, ...)
+iprintf(const struct record_context *ctx,
+	enum indent indent,
+	const char *format, ...)
 {
 	va_list args;
 	char fmt[1024];
 	static const char space[] = "                                     ";
 	static const size_t len = sizeof(space);
-	unsigned int indent = ctx->indent;
 	int rc;
 
 	assert(indent < len);
@@ -212,7 +219,7 @@ iprintf(const struct record_context *ctx, const char *format, ...)
 	 * This is only needed because I don't want to deal with open/close
 	 * lists statements.
 	 */
-	if (format[0] == '-')
+	if (format[0] == '-' && indent > 0)
 		indent -= 2;
 
 	snprintf(fmt, sizeof(fmt), "%s%s", &space[len - indent - 1], format);
@@ -221,21 +228,6 @@ iprintf(const struct record_context *ctx, const char *format, ...)
 	va_end(args);
 
 	assert(rc != -1 && (unsigned int)rc > indent);
-}
-
-/**
- * Normal printf, just wrapped for the context
- */
-static void
-noiprintf(const struct record_context *ctx, const char *format, ...)
-{
-	va_list args;
-	int rc;
-
-	va_start(args, format);
-	rc = vfprintf(ctx->out_file, format, args);
-	va_end(args);
-	assert(rc != -1 && (unsigned int)rc > 0);
 }
 
 static uint64_t
@@ -374,6 +366,7 @@ print_evdev_event(struct record_context *ctx,
 	}
 
 	iprintf(ctx,
+		I_EVENT,
 		"- [%3lu, %6u, %3d, %3d, %7d] # %s\n",
 		ev->input_event_sec,
 		(unsigned int)ev->input_event_usec,
@@ -1320,7 +1313,6 @@ print_cached_events(struct record_context *ctx,
 	}
 
 	idx = offset;
-	indent_push(ctx);
 	while (idx < offset + len) {
 		struct event *e;
 
@@ -1331,27 +1323,24 @@ print_cached_events(struct record_context *ctx,
 			if (last_time == 0 || e->time != last_time)
 				new_frame = true;
 
-			indent_pop(ctx);
-
 			switch(e->type) {
 			case EVDEV:
 				if (new_frame)
-					iprintf(ctx, "- evdev:\n");
+					iprintf(ctx, I_EVENTTYPE, "- evdev:\n");
 				else
-					iprintf(ctx, "evdev:\n");
+					iprintf(ctx, I_EVENTTYPE, "evdev:\n");
 				break;
 			case LIBINPUT:
 				if (new_frame)
-					iprintf(ctx, "- libinput:\n");
+					iprintf(ctx, I_EVENTTYPE, "- libinput:\n");
 				else
-					iprintf(ctx, "libinput:\n");
+					iprintf(ctx, I_EVENTTYPE, "libinput:\n");
 				break;
 			case COMMENT:
 				break;
 			default:
 				abort();
 			}
-			indent_push(ctx);
 
 			last_type = e->type;
 		}
@@ -1361,10 +1350,10 @@ print_cached_events(struct record_context *ctx,
 			print_evdev_event(ctx, d, &e->u.evdev);
 			break;
 		case LIBINPUT:
-			iprintf(ctx, "- %s\n", e->u.libinput.msg);
+			iprintf(ctx, I_EVENT, "- %s\n", e->u.libinput.msg);
 			break;
 		case COMMENT:
-			iprintf(ctx, "%s", e->u.comment);
+			iprintf(ctx, I_EVENT, "%s", e->u.comment);
 			break;
 		default:
 			abort();
@@ -1372,7 +1361,6 @@ print_cached_events(struct record_context *ctx,
 
 		last_time = e->time;
 	}
-	indent_pop(ctx);
 }
 
 static size_t
@@ -1439,13 +1427,11 @@ handle_events(struct record_context *ctx, struct record_device *d, bool print)
 static void
 print_libinput_header(struct record_context *ctx)
 {
-	iprintf(ctx, "libinput:\n");
-	indent_push(ctx);
-	iprintf(ctx, "version: \"%s\"\n", LIBINPUT_VERSION);
-	iprintf(ctx, "git: \"%s\"\n", LIBINPUT_GIT_VERSION);
+	iprintf(ctx, I_TOPLEVEL, "libinput:\n");
+	iprintf(ctx, I_LIBINPUT, "version: \"%s\"\n", LIBINPUT_VERSION);
+	iprintf(ctx, I_LIBINPUT, "git: \"%s\"\n", LIBINPUT_GIT_VERSION);
 	if (ctx->timeout > 0)
-		iprintf(ctx, "autorestart: %d\n", ctx->timeout);
-	indent_pop(ctx);
+		iprintf(ctx, I_LIBINPUT, "autorestart: %d\n", ctx->timeout);
 }
 
 static void
@@ -1456,8 +1442,7 @@ print_system_header(struct record_context *ctx)
 	FILE *dmi, *osrelease;
 	char dmistr[2048] = "unknown";
 
-	iprintf(ctx, "system:\n");
-	indent_push(ctx);
+	iprintf(ctx, I_TOPLEVEL, "system:\n");
 
 	/* /etc/os-release version and distribution name */
 	osrelease = fopen("/etc/os-release", "r");
@@ -1476,7 +1461,11 @@ print_system_header(struct record_context *ctx)
 				version = strstrip(&osrstr[11], "\"'");
 
 			if (distro && version) {
-				iprintf(ctx, "os: \"%s:%s\"\n", distro, version);
+				iprintf(ctx,
+					I_SYSTEM,
+					"os: \"%s:%s\"\n",
+					distro,
+					version);
 				break;
 			}
 		}
@@ -1488,7 +1477,7 @@ print_system_header(struct record_context *ctx)
 	/* kernel version */
 	if (uname(&u) != -1)
 		kernel = u.release;
-	iprintf(ctx, "kernel: \"%s\"\n", kernel);
+	iprintf(ctx, I_SYSTEM, "kernel: \"%s\"\n", kernel);
 
 	/* dmi modalias */
 	dmi = fopen("/sys/class/dmi/id/modalias", "r");
@@ -1500,16 +1489,15 @@ print_system_header(struct record_context *ctx)
 		}
 		fclose(dmi);
 	}
-	iprintf(ctx, "dmi: \"%s\"\n", dmistr);
-	indent_pop(ctx);
+	iprintf(ctx, I_SYSTEM, "dmi: \"%s\"\n", dmistr);
 }
 
 static void
 print_header(struct record_context *ctx)
 {
-	iprintf(ctx, "# libinput record\n");
-	iprintf(ctx, "version: %d\n", FILE_VERSION_NUMBER);
-	iprintf(ctx, "ndevices: %d\n", ctx->ndevices);
+	iprintf(ctx, I_TOPLEVEL, "# libinput record\n");
+	iprintf(ctx, I_TOPLEVEL, "version: %d\n", FILE_VERSION_NUMBER);
+	iprintf(ctx, I_TOPLEVEL, "ndevices: %d\n", ctx->ndevices);
 	print_libinput_header(ctx);
 	print_system_header(ctx);
 }
@@ -1524,12 +1512,12 @@ print_description_abs(struct record_context *ctx,
 	abs = libevdev_get_abs_info(dev, code);
 	assert(abs);
 
-	iprintf(ctx, "#       Value      %6d\n", abs->value);
-	iprintf(ctx, "#       Min        %6d\n", abs->minimum);
-	iprintf(ctx, "#       Max        %6d\n", abs->maximum);
-	iprintf(ctx, "#       Fuzz       %6d\n", abs->fuzz);
-	iprintf(ctx, "#       Flat       %6d\n", abs->flat);
-	iprintf(ctx, "#       Resolution %6d\n", abs->resolution);
+	iprintf(ctx, I_EVDEV, "#       Value      %6d\n", abs->value);
+	iprintf(ctx, I_EVDEV, "#       Min        %6d\n", abs->minimum);
+	iprintf(ctx, I_EVDEV, "#       Max        %6d\n", abs->maximum);
+	iprintf(ctx, I_EVDEV, "#       Fuzz       %6d\n", abs->fuzz);
+	iprintf(ctx, I_EVDEV, "#       Flat       %6d\n", abs->flat);
+	iprintf(ctx, I_EVDEV, "#       Resolution %6d\n", abs->resolution);
 }
 
 static void
@@ -1539,7 +1527,7 @@ print_description_state(struct record_context *ctx,
 			unsigned int code)
 {
 	int state = libevdev_get_event_value(dev, type, code);
-	iprintf(ctx, "#       State %d\n", state);
+	iprintf(ctx, I_EVDEV, "#       State %d\n", state);
 }
 
 static void
@@ -1554,6 +1542,7 @@ print_description_codes(struct record_context *ctx,
 		return;
 
 	iprintf(ctx,
+		I_EVDEV,
 		"# Event type %d (%s)\n",
 		type,
 		libevdev_event_type_get_name(type));
@@ -1566,6 +1555,7 @@ print_description_codes(struct record_context *ctx,
 			continue;
 
 		iprintf(ctx,
+			I_EVDEV,
 			"#   Event code %d (%s)\n",
 			code,
 			libevdev_event_code_get_name(type,
@@ -1588,8 +1578,9 @@ print_description(struct record_context *ctx, struct libevdev *dev)
 {
 	const struct input_absinfo *x, *y;
 
-	iprintf(ctx, "# Name: %s\n", libevdev_get_name(dev));
+	iprintf(ctx, I_EVDEV, "# Name: %s\n", libevdev_get_name(dev));
 	iprintf(ctx,
+		I_EVDEV,
 		"# ID: bus %#02x vendor %#02x product %#02x version %#02x\n",
 		libevdev_get_id_bustype(dev),
 		libevdev_get_id_vendor(dev),
@@ -1604,14 +1595,15 @@ print_description(struct record_context *ctx, struct libevdev *dev)
 
 			w = (x->maximum - x->minimum)/x->resolution;
 			h = (y->maximum - y->minimum)/y->resolution;
-			iprintf(ctx, "# Size in mm: %dx%d\n", w, h);
+			iprintf(ctx, I_EVDEV, "# Size in mm: %dx%d\n", w, h);
 		} else {
 			iprintf(ctx,
+				I_EVDEV,
 				"# Size in mm: unknown, missing resolution\n");
 		}
 	}
 
-	iprintf(ctx, "# Supported Events:\n");
+	iprintf(ctx, I_EVDEV, "# Supported Events:\n");
 
 	for (unsigned int type = 0; type < EV_CNT; type++) {
 		if (!libevdev_has_event_type(dev, type))
@@ -1620,11 +1612,12 @@ print_description(struct record_context *ctx, struct libevdev *dev)
 		print_description_codes(ctx, dev, type);
 	}
 
-	iprintf(ctx, "# Properties:\n");
+	iprintf(ctx, I_EVDEV, "# Properties:\n");
 
 	for (unsigned int prop = 0; prop < INPUT_PROP_CNT; prop++) {
 		if (libevdev_has_property(dev, prop)) {
 			iprintf(ctx,
+				I_EVDEV,
 				"#    Property %d (%s)\n",
 				prop,
 				libevdev_property_get_name(prop));
@@ -1635,8 +1628,9 @@ print_description(struct record_context *ctx, struct libevdev *dev)
 static void
 print_bits_info(struct record_context *ctx, struct libevdev *dev)
 {
-	iprintf(ctx, "name: \"%s\"\n", libevdev_get_name(dev));
+	iprintf(ctx, I_EVDEV, "name: \"%s\"\n", libevdev_get_name(dev));
 	iprintf(ctx,
+		I_EVDEV,
 		"id: [%d, %d, %d, %d]\n",
 		libevdev_get_id_bustype(dev),
 		libevdev_get_id_vendor(dev),
@@ -1652,15 +1646,14 @@ print_bits_absinfo(struct record_context *ctx, struct libevdev *dev)
 	if (!libevdev_has_event_type(dev, EV_ABS))
 		return;
 
-	iprintf(ctx, "absinfo:\n");
-	indent_push(ctx);
-
+	iprintf(ctx, I_EVDEV, "absinfo:\n");
 	for (unsigned int code = 0; code < ABS_CNT; code++) {
 		abs = libevdev_get_abs_info(dev, code);
 		if (!abs)
 			continue;
 
 		iprintf(ctx,
+			I_EVDEV_DATA,
 			"%d: [%d, %d, %d, %d, %d]\n",
 			code,
 			abs->minimum,
@@ -1669,7 +1662,6 @@ print_bits_absinfo(struct record_context *ctx, struct libevdev *dev)
 			abs->flat,
 			abs->resolution);
 	}
-	indent_pop(ctx);
 }
 
 static void
@@ -1684,30 +1676,28 @@ print_bits_codes(struct record_context *ctx,
 	if (max == -1)
 		return;
 
-	iprintf(ctx, "%d: [", type);
+	iprintf(ctx, I_EVDEV_DATA, "%d: [", type);
 
 	for (unsigned int code = 0; code <= (unsigned int)max; code++) {
 		if (!libevdev_has_event_code(dev, type, code))
 			continue;
 
-		noiprintf(ctx, "%s%d", sep, code);
+		iprintf(ctx, I_NONE, "%s%d", sep, code);
 		sep = ", ";
 	}
 
-	noiprintf(ctx, "] # %s\n", libevdev_event_type_get_name(type));
+	iprintf(ctx, I_NONE, "] # %s\n", libevdev_event_type_get_name(type));
 }
 
 static void
 print_bits_types(struct record_context *ctx, struct libevdev *dev)
 {
-	iprintf(ctx, "codes:\n");
-	indent_push(ctx);
+	iprintf(ctx, I_EVDEV, "codes:\n");
 	for (unsigned int type = 0; type < EV_CNT; type++) {
 		if (!libevdev_has_event_type(dev, type))
 			continue;
 		print_bits_codes(ctx, dev, type);
 	}
-	indent_pop(ctx);
 }
 
 static void
@@ -1715,14 +1705,14 @@ print_bits_props(struct record_context *ctx, struct libevdev *dev)
 {
 	const char *sep = "";
 
-	iprintf(ctx, "properties: [");
+	iprintf(ctx, I_EVDEV, "properties: [");
 	for (unsigned int prop = 0; prop < INPUT_PROP_CNT; prop++) {
 		if (libevdev_has_property(dev, prop)) {
-			noiprintf(ctx, "%s%d", sep, prop);
+			iprintf(ctx, I_NONE, "%s%d", sep, prop);
 			sep = ", ";
 		}
 	}
-	noiprintf(ctx, "]\n"); /* last entry, no comma */
+	iprintf(ctx, I_NONE, "]\n"); /* last entry, no comma */
 }
 
 static void
@@ -1730,16 +1720,13 @@ print_evdev_description(struct record_context *ctx, struct record_device *dev)
 {
 	struct libevdev *evdev = dev->evdev;
 
-	iprintf(ctx, "evdev:\n");
-	indent_push(ctx);
+	iprintf(ctx, I_DEVICE, "evdev:\n");
 
 	print_description(ctx, evdev);
 	print_bits_info(ctx, evdev);
 	print_bits_types(ctx, evdev);
 	print_bits_absinfo(ctx, evdev);
 	print_bits_props(ctx, evdev);
-
-	indent_pop(ctx);
 }
 
 static void
@@ -1771,16 +1758,16 @@ print_hid_report_descriptor(struct record_context *ctx,
 	if (fd == -1)
 		return;
 
-	iprintf(ctx, "hid: [");
+	iprintf(ctx, I_DEVICE, "hid: [");
 
 	while ((len = read(fd, buf, sizeof(buf))) > 0) {
 		for (int i = 0; i < len; i++) {
 			/* YAML requires decimal */
-			noiprintf(ctx, "%s%u", sep, buf[i]);
+			iprintf(ctx, I_NONE, "%s%u", sep, buf[i]);
 			sep = ", ";
 		}
 	}
-	noiprintf(ctx, "]\n");
+	iprintf(ctx, I_NONE, "]\n");
 
 	close(fd);
 }
@@ -1804,11 +1791,9 @@ print_udev_properties(struct record_context *ctx, struct record_device *dev)
 	if (!udev_device)
 		goto out;
 
-	iprintf(ctx, "udev:\n");
-	indent_push(ctx);
+	iprintf(ctx, I_DEVICE, "udev:\n");
 
-	iprintf(ctx, "properties:\n");
-	indent_push(ctx);
+	iprintf(ctx, I_UDEV, "properties:\n");
 
 	entry = udev_device_get_properties_list_entry(udev_device);
 	while (entry) {
@@ -1822,14 +1807,12 @@ print_udev_properties(struct record_context *ctx, struct record_device *dev)
 		    strneq(key, "MOUSE_DPI", 9) ||
 		    strneq(key, "POINTINGSTICK_", 14)) {
 			value = udev_list_entry_get_value(entry);
-			iprintf(ctx, "- %s=%s\n", key, value);
+			iprintf(ctx, I_UDEV_DATA, "- %s=%s\n", key, value);
 		}
 
 		entry = udev_list_entry_get_next(entry);
 	}
 
-	indent_pop(ctx);
-	indent_pop(ctx);
 out:
 	udev_device_unref(udev_device);
 	udev_unref(udev);
@@ -1848,7 +1831,7 @@ list_print(void *userdata, const char *val)
 {
 	struct record_context *ctx = userdata;
 
-	iprintf(ctx, "- %s\n", val);
+	iprintf(ctx, I_QUIRKS, "- %s\n", val);
 }
 
 static void
@@ -1894,12 +1877,8 @@ print_device_quirks(struct record_context *ctx, struct record_device *dev)
 	if (!udev_device)
 		goto out;
 
-	iprintf(ctx, "quirks:\n");
-	indent_push(ctx);
-
+	iprintf(ctx, I_DEVICE, "quirks:\n");
 	tools_list_device_quirks(quirks, udev_device, list_print, ctx);
-
-	indent_pop(ctx);
 out:
 	udev_device_unref(udev_device);
 	udev_unref(udev);
@@ -1930,33 +1909,30 @@ print_libinput_description(struct record_context *ctx,
 	if (!device)
 		return;
 
-	iprintf(ctx, "libinput:\n");
-	indent_push(ctx);
-
+	iprintf(ctx, I_DEVICE, "libinput:\n");
 	if (libinput_device_get_size(device, &w, &h) == 0)
-		iprintf(ctx, "size: [%.f, %.f]\n", w, h);
+		iprintf(ctx, I_LIBINPUTDEV, "size: [%.f, %.f]\n", w, h);
 
-	iprintf(ctx, "capabilities: [");
+	iprintf(ctx, I_LIBINPUTDEV, "capabilities: [");
 	ARRAY_FOR_EACH(caps, cap) {
 		if (!libinput_device_has_capability(device, cap->cap))
 			continue;
-		noiprintf(ctx, "%s%s", sep, cap->name);
+		iprintf(ctx, I_NONE, "%s%s", sep, cap->name);
 		sep = ", ";
 	}
-	noiprintf(ctx, "]\n");
+	iprintf(ctx, I_NONE, "]\n");
 
 	/* Configuration options should be printed here, but since they
 	 * don't reflect the user-configured ones their usefulness is
 	 * questionable. We need the ability to specify the options like in
 	 * debug-events.
 	 */
-	indent_pop(ctx);
 }
 
 static void
 print_device_description(struct record_context *ctx, struct record_device *dev)
 {
-	iprintf(ctx, "- node: %s\n", dev->devnode);
+	iprintf(ctx, I_DEVICE, "- node: %s\n", dev->devnode);
 
 	print_evdev_description(ctx, dev);
 	print_hid_report_descriptor(ctx, dev);
@@ -2141,7 +2117,10 @@ print_wall_time(struct record_context *ctx)
 	struct tm tm;
 
 	localtime_r(&t, &tm);
-	iprintf(ctx, "# Current time is %02d:%02d:%02d\n", tm.tm_hour, tm.tm_min, tm.tm_sec);
+	iprintf(ctx,
+		I_NONE,
+		"# Current time is %02d:%02d:%02d\n",
+		tm.tm_hour, tm.tm_min, tm.tm_sec);
 }
 
 static void
@@ -2350,11 +2329,11 @@ mainloop(struct record_context *ctx)
 		print_header(ctx);
 		if (autorestart)
 			iprintf(ctx,
+				I_NONE,
 				"# Autorestart timeout: %d\n",
 				ctx->timeout);
 
-		iprintf(ctx, "devices:\n");
-		indent_push(ctx);
+		iprintf(ctx, I_TOPLEVEL, "devices:\n");
 
 		/* we only print the first device's description, the
 		 * rest is assembled after CTRL+C */
@@ -2364,8 +2343,7 @@ mainloop(struct record_context *ctx)
 		print_device_description(ctx, first_device);
 
 		print_wall_time(ctx);
-		iprintf(ctx, "events:\n");
-		indent_push(ctx);
+		iprintf(ctx, I_DEVICE, "events:\n");
 
 		if (ctx->libinput) {
 			size_t count;
@@ -2398,12 +2376,12 @@ mainloop(struct record_context *ctx)
 				print_progress_bar();
 
 		}
-		indent_pop(ctx); /* events: */
 
 		if (autorestart) {
-			noiprintf(ctx,
-				  "# Closing after %ds inactivity",
-				  ctx->timeout/1000);
+			iprintf(ctx,
+				I_NONE,
+				"# Closing after %ds inactivity",
+				ctx->timeout/1000);
 		}
 
 		/* First device is printed, now append all the data from the
@@ -2413,14 +2391,9 @@ mainloop(struct record_context *ctx)
 				continue;
 
 			print_device_description(ctx, d);
-			iprintf(ctx, "events:\n");
-			indent_push(ctx);
+			iprintf(ctx, I_DEVICE, "events:\n");
 			print_cached_events(ctx, d, 0, -1);
-			indent_pop(ctx);
 		}
-
-		indent_pop(ctx); /* devices: */
-		assert(ctx->indent == 0);
 
 		/* If we didn't have events, delete the file. */
 		if (!isatty(fileno(ctx->out_file))) {
