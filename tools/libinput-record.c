@@ -192,6 +192,7 @@ indent_pop(struct record_context *ctx)
 /**
  * Indented dprintf, indentation is in the context
  */
+LIBINPUT_ATTRIBUTE_PRINTF(2, 3)
 static void
 iprintf(const struct record_context *ctx, const char *format, ...)
 {
