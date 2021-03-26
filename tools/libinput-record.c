@@ -130,10 +130,12 @@ struct record_context {
 	struct list devices;
 	int ndevices;
 
-	char *outfile; /* file name given on cmdline */
-	char *output_file; /* full file name with suffix */
+	struct {
+		char *name;		 /* file name given on cmdline */
+		char *name_with_suffix;  /* full file name with suffix */
+		FILE *fp;
+	} output_file;
 
-	FILE *out_file;
 
 	struct libinput *libinput;
 
@@ -227,7 +229,7 @@ iprintf(const struct record_context *ctx,
 
 	snprintf(fmt, sizeof(fmt), "%s%s", &space[len - indent - 1], format);
 	va_start(args, format);
-	rc = vfprintf(ctx->out_file, fmt, args);
+	rc = vfprintf(ctx->output_file.fp, fmt, args);
 	va_end(args);
 
 	assert(rc != -1 && (unsigned int)rc > indent);
@@ -2084,18 +2086,18 @@ open_output_file(struct record_context *ctx, bool is_prefix)
 {
 	FILE *out_file;
 
-	if (ctx->outfile) {
-		char *fname = init_output_file(ctx->outfile, is_prefix);
-		ctx->output_file = fname;
+	if (ctx->output_file.name) {
+		char *fname = init_output_file(ctx->output_file.name, is_prefix);
+		ctx->output_file.name_with_suffix = fname;
 		out_file = fopen(fname, "w");
 		if (!out_file)
 			return false;
 	} else {
-		ctx->output_file = safe_strdup("stdout");
+		ctx->output_file.name_with_suffix = safe_strdup("stdout");
 		out_file = stdout;
 	}
 
-	ctx->out_file = out_file;
+	ctx->output_file.fp = out_file;
 
 	return true;
 }
@@ -2314,12 +2316,12 @@ mainloop(struct record_context *ctx)
 		if (!open_output_file(ctx, autorestart)) {
 			fprintf(stderr,
 				"Failed to open '%s'\n",
-				ctx->output_file);
+				ctx->output_file.name_with_suffix);
 			break;
 		}
 		fprintf(stderr, "%sRecording to '%s'.\n",
 			isatty(STDERR_FILENO) ? "" : "# ",
-			ctx->output_file);
+			ctx->output_file.name_with_suffix);
 
 		ctx->had_events = false;
 
@@ -2366,7 +2368,7 @@ mainloop(struct record_context *ctx)
 
 			}
 
-			if (ctx->out_file != stdout)
+			if (ctx->output_file.fp != stdout)
 				print_progress_bar();
 
 		}
@@ -2390,17 +2392,19 @@ mainloop(struct record_context *ctx)
 		}
 
 		/* If we didn't have events, delete the file. */
-		if (!isatty(fileno(ctx->out_file))) {
-			if (!ctx->had_events && ctx->output_file) {
-				fprintf(stderr, "No events recorded, deleting '%s'\n", ctx->output_file);
-				unlink(ctx->output_file);
+		if (!isatty(fileno(ctx->output_file.fp))) {
+			if (!ctx->had_events && ctx->output_file.name_with_suffix) {
+				fprintf(stderr,
+					"No events recorded, deleting '%s'\n",
+					ctx->output_file.name_with_suffix);
+				unlink(ctx->output_file.name_with_suffix);
 			}
 
-			fclose(ctx->out_file);
-			ctx->out_file = NULL;
+			fclose(ctx->output_file.fp);
+			ctx->output_file.fp = NULL;
 		}
-		free(ctx->output_file);
-		ctx->output_file = NULL;
+		free(ctx->output_file.name_with_suffix);
+		ctx->output_file.name_with_suffix = NULL;
 	} while (autorestart && !ctx->stop);
 
 	sigprocmask(SIG_UNBLOCK, &mask, NULL);
@@ -2751,7 +2755,7 @@ main(int argc, char **argv)
 		goto out;
 	}
 
-	ctx.outfile = safe_strdup(output_arg);
+	ctx.output_file.name = safe_strdup(output_arg);
 
 	if (output_arg == NULL && (all || ndevices > 1)) {
 		fprintf(stderr,
