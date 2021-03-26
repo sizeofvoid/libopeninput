@@ -124,6 +124,9 @@ struct record_context {
 
 	uint64_t offset;
 
+	/* The first device to be added */
+	struct record_device *first_device;
+
 	struct list devices;
 	int ndevices;
 
@@ -2205,7 +2208,6 @@ timefd_dispatch(struct record_context *ctx, int fd, void *data)
 static void
 evdev_dispatch(struct record_context *ctx, int fd, void *data)
 {
-	struct record_device *first_device = NULL;
 	struct record_device *this_device = data;
 
 	if (ctx->timestamps.skipped_timer_print) {
@@ -2216,26 +2218,23 @@ evdev_dispatch(struct record_context *ctx, int fd, void *data)
 	ctx->had_events = true;
 	ctx->timestamps.had_events_since_last_time = true;
 
-	first_device = list_first_entry(&ctx->devices, first_device, link);
-	handle_events(ctx, this_device, this_device == first_device);
+	handle_events(ctx, this_device, this_device == ctx->first_device);
 }
 
 static void
 libinput_ctx_dispatch(struct record_context *ctx, int fd, void *data)
 {
-	struct record_device *first_device = NULL;
 	size_t count, offset;
 
 	/* This function should only handle events caused by internal
 	 * timeouts etc. The real input events caused by the evdev devices
 	 * are already processed in handle_events */
-	first_device = list_first_entry(&ctx->devices, first_device, link);
 	libinput_dispatch(ctx->libinput);
-	offset = first_device->nevents;
-	count = handle_libinput_events(ctx, first_device);
+	offset = ctx->first_device->nevents;
+	count = handle_libinput_events(ctx, ctx->first_device);
 	if (count) {
 		print_cached_events(ctx,
-				    first_device,
+				    ctx->first_device,
 				    offset,
 				    count);
 	}
@@ -2312,8 +2311,6 @@ mainloop(struct record_context *ctx)
 	}
 
 	do {
-		struct record_device *first_device = NULL;
-
 		if (!open_output_file(ctx, autorestart)) {
 			fprintf(stderr,
 				"Failed to open '%s'\n",
@@ -2337,10 +2334,7 @@ mainloop(struct record_context *ctx)
 
 		/* we only print the first device's description, the
 		 * rest is assembled after CTRL+C */
-		first_device = list_first_entry(&ctx->devices,
-						first_device,
-						link);
-		print_device_description(ctx, first_device);
+		print_device_description(ctx, ctx->first_device);
 
 		print_wall_time(ctx);
 		iprintf(ctx, I_DEVICE, "events:\n");
@@ -2348,8 +2342,8 @@ mainloop(struct record_context *ctx)
 		if (ctx->libinput) {
 			size_t count;
 			libinput_dispatch(ctx->libinput);
-			count = handle_libinput_events(ctx, first_device);
-			print_cached_events(ctx, first_device, 0, count);
+			count = handle_libinput_events(ctx, ctx->first_device);
+			print_cached_events(ctx, ctx->first_device, 0, count);
 		}
 
 		while (true) {
@@ -2467,6 +2461,8 @@ init_device(struct record_context *ctx, const char *path, bool grab)
 		d->touch.is_touch_device = true;
 
 	list_append(&ctx->devices, &d->link);
+	if (!ctx->first_device)
+		ctx->first_device = d;
 	ctx->ndevices++;
 
 	return true;
