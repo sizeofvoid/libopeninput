@@ -1022,6 +1022,44 @@ START_TEST(strsplit_test)
 }
 END_TEST
 
+START_TEST(strargv_test)
+{
+	struct argv_test {
+		int argc;
+		char *argv[10];
+		int expected;
+	} tests[] = {
+		{ 0, {NULL}, 0 },
+		{ 1, {"hello", "World"}, 1 },
+		{ 2, {"hello", "World"}, 2 },
+		{ 2, {"", " "}, 2 },
+		{ 2, {"", NULL}, 0 },
+		{ 2, {NULL, NULL}, 0 },
+		{ 1, {NULL, NULL}, 0 },
+		{ 3, {"hello", NULL, "World"}, 0 },
+	};
+	struct argv_test *t;
+
+	ARRAY_FOR_EACH(tests, t) {
+		char **strv = strv_from_argv(t->argc, t->argv);
+
+		if (t->expected == 0) {
+			ck_assert(strv == NULL);
+		} else {
+			int count = 0;
+			char **s = strv;
+			while (*s) {
+				ck_assert_str_eq(*s, t->argv[count]);
+				count++;
+				s++;
+			}
+			ck_assert_int_eq(t->expected, count);
+			strv_free(strv);
+		}
+	}
+}
+END_TEST
+
 START_TEST(kvsplit_double_test)
 {
 	struct kvsplit_dbl_test {
@@ -1378,6 +1416,7 @@ litest_utils_suite(void)
 	tcase_add_test(tc, safe_atou_base_8_test);
 	tcase_add_test(tc, safe_atod_test);
 	tcase_add_test(tc, strsplit_test);
+	tcase_add_test(tc, strargv_test);
 	tcase_add_test(tc, kvsplit_double_test);
 	tcase_add_test(tc, strjoin_test);
 	tcase_add_test(tc, strstrip_test);

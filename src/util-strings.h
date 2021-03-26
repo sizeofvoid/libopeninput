@@ -252,6 +252,7 @@ safe_atod(const char *str, double *val)
 	return true;
 }
 
+char **strv_from_argv(int argc, char **argv);
 char **strv_from_string(const char *in, const char *separator);
 char *strv_join(char **strv, const char *joiner);
 

@@ -2448,13 +2448,13 @@ mainloop(struct record_context *ctx)
 }
 
 static bool
-init_device(struct record_context *ctx, char *path, bool grab)
+init_device(struct record_context *ctx, const char *path, bool grab)
 {
 	struct record_device *d;
 	int fd, rc;
 
 	d = zalloc(sizeof(*d));
-	d->devnode = path;
+	d->devnode = safe_strdup(path);
 	d->nevents = 0;
 	d->events_sz = 5000;
 	d->events = zalloc(d->events_sz * sizeof(*d->events));
@@ -2698,6 +2698,7 @@ main(int argc, char **argv)
 	bool all = false, with_libinput = false, grab = false;
 	int ndevices;
 	int rc = EXIT_FAILURE;
+	char **paths = NULL;
 
 	list_init(&ctx.devices);
 	list_init(&ctx.sources);
@@ -2791,39 +2792,25 @@ main(int argc, char **argv)
 		goto out;
 	}
 
+	/* Now collect all device paths and init our device struct */
 	if (all) {
-		char **devices; /* NULL-terminated */
-		char **d;
-
-		devices = all_devices();
-		d = devices;
-
-		while (*d) {
-			if (!init_device(&ctx, safe_strdup(*d), grab)) {
-				strv_free(devices);
-				goto out;
-			}
-			d++;
-		}
-
-		strv_free(devices);
-	} else if (ndevices > 1) {
-		for (int i = ndevices; i > 0; i -= 1) {
-			char *devnode = safe_strdup(argv[optind + i - 1]);
-
-			if (!init_device(&ctx, devnode, grab))
-				goto out;
-		}
+		paths = all_devices();
+	} else if (ndevices >= 1) {
+		paths = strv_from_argv(ndevices, &argv[optind]);
 	} else {
-		char *path;
-
-		path = ndevices <= 0 ? select_device() : safe_strdup(argv[optind++]);
+		char *path = select_device();
 		if (path == NULL) {
 			goto out;
 		}
 
-		if (!init_device(&ctx, path, grab))
+		paths = strv_from_argv(1, &path);
+		free(path);
+	}
+
+	for (char **p = paths; *p; p++) {
+		if (!init_device(&ctx, *p, grab)) {
 			goto out;
+		}
 	}
 
 	if (with_libinput && !init_libinput(&ctx))
@@ -2831,6 +2818,7 @@ main(int argc, char **argv)
 
 	rc = mainloop(&ctx);
 out:
+	strv_free(paths);
 	list_for_each_safe(d, &ctx.devices, link) {
 		if (d->device)
 			libinput_device_unref(d->device);
