@@ -387,7 +387,7 @@ handle_evdev_frame(struct record_device *d)
 		if (d->touch.slot_state == 0) {
 			iprintf(d->fp,
 				I_EVENT,
-				 "                               # Touch device in neutral state\n");
+				 "                                 # Touch device in neutral state\n");
 		}
 	}
 
