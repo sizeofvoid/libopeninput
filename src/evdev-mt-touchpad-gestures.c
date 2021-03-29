@@ -203,6 +203,33 @@ tp_gesture_get_active_touches(const struct tp_dispatch *tp,
 	return n;
 }
 
+static inline int
+tp_gesture_same_directions(int dir1, int dir2)
+{
+	/*
+	 * In some cases (semi-mt touchpads) we may seen one finger move
+	 * e.g. N/NE and the other W/NW so we not only check for overlapping
+	 * directions, but also for neighboring bits being set.
+	 * The ((dira & 0x80) && (dirb & 0x01)) checks are to check for bit 0
+	 * and 7 being set as they also represent neighboring directions.
+	 */
+	return ((dir1 | (dir1 >> 1)) & dir2) ||
+		((dir2 | (dir2 >> 1)) & dir1) ||
+		((dir1 & 0x80) && (dir2 & 0x01)) ||
+		((dir2 & 0x80) && (dir1 & 0x01));
+}
+
+static struct phys_coords
+tp_gesture_mm_moved(struct tp_dispatch *tp, struct tp_touch *t)
+{
+	struct device_coords delta;
+
+	delta.x = abs(t->point.x - t->gesture.initial.x);
+	delta.y = abs(t->point.y - t->gesture.initial.y);
+
+	return evdev_device_unit_delta_to_mm(tp->device, &delta);
+}
+
 static uint32_t
 tp_gesture_get_direction(struct tp_dispatch *tp, struct tp_touch *touch)
 {
@@ -232,6 +259,16 @@ tp_gesture_get_pinch_info(struct tp_dispatch *tp,
 	*angle = atan2(normalized.y, normalized.x) * 180.0 / M_PI;
 
 	*center = device_average(first->point, second->point);
+}
+
+static inline void
+tp_gesture_init_pinch(struct tp_dispatch *tp)
+{
+	tp_gesture_get_pinch_info(tp,
+				  &tp->gesture.initial_distance,
+				  &tp->gesture.angle,
+				  &tp->gesture.center);
+	tp->gesture.prev_scale = 1.0;
 }
 
 static void
@@ -439,42 +476,6 @@ tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 	return GESTURE_STATE_UNKNOWN;
 }
 
-static inline int
-tp_gesture_same_directions(int dir1, int dir2)
-{
-	/*
-	 * In some cases (semi-mt touchpads) we may seen one finger move
-	 * e.g. N/NE and the other W/NW so we not only check for overlapping
-	 * directions, but also for neighboring bits being set.
-	 * The ((dira & 0x80) && (dirb & 0x01)) checks are to check for bit 0
-	 * and 7 being set as they also represent neighboring directions.
-	 */
-	return ((dir1 | (dir1 >> 1)) & dir2) ||
-		((dir2 | (dir2 >> 1)) & dir1) ||
-		((dir1 & 0x80) && (dir2 & 0x01)) ||
-		((dir2 & 0x80) && (dir1 & 0x01));
-}
-
-static inline void
-tp_gesture_init_pinch(struct tp_dispatch *tp)
-{
-	tp_gesture_get_pinch_info(tp,
-				  &tp->gesture.initial_distance,
-				  &tp->gesture.angle,
-				  &tp->gesture.center);
-	tp->gesture.prev_scale = 1.0;
-}
-
-static struct phys_coords
-tp_gesture_mm_moved(struct tp_dispatch *tp, struct tp_touch *t)
-{
-	struct device_coords delta;
-
-	delta.x = abs(t->point.x - t->gesture.initial.x);
-	delta.y = abs(t->point.y - t->gesture.initial.y);
-
-	return evdev_device_unit_delta_to_mm(tp->device, &delta);
-}
 
 static enum tp_gesture_state
 tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
