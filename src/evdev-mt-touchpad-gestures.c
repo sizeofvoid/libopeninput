@@ -32,6 +32,8 @@
 #define DEFAULT_GESTURE_SWIPE_TIMEOUT ms2us(150)
 #define DEFAULT_GESTURE_PINCH_TIMEOUT ms2us(150)
 
+#define PINCH_DISAMBIGUATION_MOVE_THRESHOLD 1.5 /* mm */
+
 static inline const char*
 gesture_state_to_str(enum tp_gesture_state state)
 {
@@ -546,6 +548,33 @@ tp_gesture_detect_motion_gestures(struct tp_dispatch *tp, uint64_t time)
 	return GESTURE_STATE_PINCH;
 }
 
+static bool
+tp_gesture_is_pinch(struct tp_dispatch *tp)
+{
+	struct tp_touch *first = tp->gesture.touches[0],
+			*second = tp->gesture.touches[1];
+	uint32_t dir1, dir2;
+	struct phys_coords first_moved, second_moved;
+	double first_mm, second_mm;
+
+	dir1 = tp_gesture_get_direction(tp, first);
+	dir2 = tp_gesture_get_direction(tp, second);
+	if (tp_gesture_same_directions(dir1, dir2))
+		return false;
+
+	first_moved = tp_gesture_mm_moved(tp, first);
+	first_mm = hypot(first_moved.x, first_moved.y);
+	if (first_mm < PINCH_DISAMBIGUATION_MOVE_THRESHOLD)
+		return false;
+
+	second_moved = tp_gesture_mm_moved(tp, second);
+	second_mm = hypot(second_moved.x, second_moved.y);
+	if (second_mm < PINCH_DISAMBIGUATION_MOVE_THRESHOLD)
+		return false;
+
+	return true;
+}
+
 static enum tp_gesture_state
 tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 {
@@ -623,6 +652,16 @@ tp_gesture_handle_state_scroll(struct tp_dispatch *tp, uint64_t time)
 
 	if (tp->scroll.method != LIBINPUT_CONFIG_SCROLL_2FG)
 		return GESTURE_STATE_SCROLL;
+
+	/* We may confuse a pinch for a scroll initially,
+	 * allow ourselves to correct our guess.
+	 */
+	if (time < (tp->gesture.initial_time + DEFAULT_GESTURE_PINCH_TIMEOUT) &&
+	    tp_gesture_is_pinch(tp)) {
+		tp_gesture_cancel(tp, time);
+		tp_gesture_init_pinch(tp);
+		return GESTURE_STATE_PINCH;
+	}
 
 	raw = tp_get_average_touches_delta(tp);
 

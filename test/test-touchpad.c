@@ -3401,9 +3401,9 @@ START_TEST(touchpad_trackpoint_buttons_2fg_scroll)
 
 	litest_drain_events(li);
 
-	litest_touch_down(touchpad, 0, 49, 70);
-	litest_touch_down(touchpad, 1, 51, 70);
-	litest_touch_move_two_touches(touchpad, 49, 70, 51, 70, 0, -40, 10);
+	litest_touch_down(touchpad, 0, 40, 70);
+	litest_touch_down(touchpad, 1, 60, 70);
+	litest_touch_move_two_touches(touchpad, 40, 70, 60, 70, 0, -40, 10);
 
 	libinput_dispatch(li);
 	litest_wait_for_event(li);
