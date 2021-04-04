@@ -447,3 +447,19 @@ tp_init_thumb(struct tp_dispatch *tp)
 			tp->thumb.use_pressure ? ", pressure" : "",
 			tp->thumb.use_size ? ", size" : "");
 }
+
+struct tp_touch*
+tp_thumb_get_touch(struct tp_dispatch *tp)
+{
+	struct tp_touch *thumb;
+
+	if (tp->thumb.index == UINT_MAX)
+		return NULL;
+
+	tp_for_each_touch(tp, thumb) {
+		if (thumb->index == tp->thumb.index)
+			return thumb;
+	}
+
+	return NULL;
+}

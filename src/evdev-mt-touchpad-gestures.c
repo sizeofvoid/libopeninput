@@ -773,6 +773,22 @@ tp_gesture_post_gesture(struct tp_dispatch *tp, uint64_t time)
 				gesture_state_to_str(tp->gesture.state));
 }
 
+static bool
+tp_gesture_thumb_moved(struct tp_dispatch *tp)
+{
+	struct tp_touch *thumb;
+	struct phys_coords thumb_moved;
+	double thumb_mm;
+
+	thumb = tp_thumb_get_touch(tp);
+	if (!thumb)
+		return false;
+
+	thumb_moved = tp_gesture_mm_moved(tp, thumb);
+	thumb_mm = hypot(thumb_moved.x, thumb_moved.y);
+	return thumb_mm >= PINCH_DISAMBIGUATION_MOVE_THRESHOLD;
+}
+
 void
 tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time)
 {
@@ -794,6 +810,13 @@ tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time)
 	/* Don't send events when we're unsure in which mode we are */
 	if (tp->gesture.finger_count_pending)
 		return;
+
+	/* When pinching, the thumb tends to move slower than the finger,
+	 * so we may suppress it too early. Give it some time to move.
+	 */
+	if (time < (tp->gesture.initial_time + DEFAULT_GESTURE_PINCH_TIMEOUT) &&
+	    tp_gesture_thumb_moved(tp))
+		tp_thumb_reset(tp);
 
 	switch (tp->gesture.finger_count) {
 	case 1:

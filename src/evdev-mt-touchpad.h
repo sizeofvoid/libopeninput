@@ -743,4 +743,7 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp);
 void
 tp_init_thumb(struct tp_dispatch *tp);
 
+struct tp_touch*
+tp_thumb_get_touch(struct tp_dispatch *tp);
+
 #endif
