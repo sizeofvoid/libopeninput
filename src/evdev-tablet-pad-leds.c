@@ -132,7 +132,7 @@ pad_led_new(struct libinput *libinput, const char *prefix, int group, int mode)
 	if (rc == -1)
 		goto error;
 
-	fd = open_restricted(libinput, path, O_RDONLY);
+	fd = open_restricted(libinput, path, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
 	if (fd < 0) {
 		errno = -fd;
 		goto error;
