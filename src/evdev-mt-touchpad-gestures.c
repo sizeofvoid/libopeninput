@@ -138,11 +138,10 @@ tp_gesture_start(struct tp_dispatch *tp, uint64_t time)
 	tp->gesture.started = true;
 }
 
-static void
-tp_gesture_post_pointer_motion(struct tp_dispatch *tp, uint64_t time)
+static struct device_float_coords
+tp_get_raw_pointer_motion(struct tp_dispatch *tp)
 {
 	struct device_float_coords raw;
-	struct normalized_coords delta;
 
 	/* When a clickpad is clicked, combine motion of all active touches */
 	if (tp->buttons.is_clickpad && tp->buttons.state)
@@ -150,6 +149,16 @@ tp_gesture_post_pointer_motion(struct tp_dispatch *tp, uint64_t time)
 	else
 		raw = tp_get_average_touches_delta(tp);
 
+	return raw;
+}
+
+static void
+tp_gesture_post_pointer_motion(struct tp_dispatch *tp, uint64_t time)
+{
+	struct device_float_coords raw;
+	struct normalized_coords delta;
+
+	raw = tp_get_raw_pointer_motion(tp);
 	delta = tp_filter_motion(tp, &raw, time);
 
 	if (!normalized_is_zero(delta) || !device_float_is_zero(raw)) {
