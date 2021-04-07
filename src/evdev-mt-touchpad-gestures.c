@@ -415,70 +415,7 @@ tp_gesture_apply_scroll_constraints(struct tp_dispatch *tp,
 }
 
 static enum tp_gesture_state
-tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
-{
-	struct tp_touch *first, *second;
-	struct tp_touch *touches[4];
-	unsigned int ntouches;
-	unsigned int i;
-
-	ntouches = tp_gesture_get_active_touches(tp, touches, 4);
-	if (ntouches < 2)
-		return GESTURE_STATE_NONE;
-
-	if (!tp->gesture.enabled) {
-		if (ntouches == 2)
-			return GESTURE_STATE_SCROLL;
-		return GESTURE_STATE_NONE;
-	}
-
-	first = touches[0];
-	second = touches[1];
-
-	/* For 3+ finger gestures, we only really need to track two touches.
-	 * The human hand's finger arrangement means that for a pinch, the
-	 * bottom-most touch will always be the thumb, and the top-most touch
-	 * will always be one of the fingers.
-	 *
-	 * For 3+ finger swipes, the fingers will likely (but not necessarily)
-	 * be in a horizontal line. They all move together, regardless, so it
-	 * doesn't really matter which two of those touches we track.
-	 *
-	 * Tracking top and bottom is a change from previous versions, where
-	 * we tracked leftmost and rightmost. This change enables:
-	 *
-	 * - More accurate pinch detection if thumb is near the center
-	 * - Better resting-thumb detection while two-finger scrolling
-	 * - On capable hardware, allow 3- or 4-finger swipes with resting
-	 *   thumb or held-down clickpad
-	 */
-	if (ntouches > 2) {
-		second = touches[0];
-
-		for (i = 1; i < ntouches && i < tp->num_slots; i++) {
-			if (touches[i]->point.y < first->point.y)
-				first = touches[i];
-			else if (touches[i]->point.y >= second->point.y)
-				second = touches[i];
-		}
-
-		if (first == second)
-			return GESTURE_STATE_NONE;
-
-	}
-
-	tp->gesture.initial_time = time;
-	first->gesture.initial = first->point;
-	second->gesture.initial = second->point;
-	tp->gesture.touches[0] = first;
-	tp->gesture.touches[1] = second;
-
-	return GESTURE_STATE_UNKNOWN;
-}
-
-
-static enum tp_gesture_state
-tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
+tp_gesture_detect_motion_gestures(struct tp_dispatch *tp, uint64_t time)
 {
 	struct tp_touch *first = tp->gesture.touches[0],
 			*second = tp->gesture.touches[1],
@@ -607,6 +544,75 @@ tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 	/* If the touches are moving away from each other, this is a pinch */
 	tp_gesture_init_pinch(tp);
 	return GESTURE_STATE_PINCH;
+}
+
+static enum tp_gesture_state
+tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
+{
+	struct tp_touch *first, *second;
+	struct tp_touch *touches[4];
+	unsigned int ntouches;
+	unsigned int i;
+
+	ntouches = tp_gesture_get_active_touches(tp, touches, 4);
+	if (ntouches < 2)
+		return GESTURE_STATE_NONE;
+
+	if (!tp->gesture.enabled) {
+		if (ntouches == 2)
+			return GESTURE_STATE_SCROLL;
+		return GESTURE_STATE_NONE;
+	}
+
+	first = touches[0];
+	second = touches[1];
+
+	/* For 3+ finger gestures, we only really need to track two touches.
+	 * The human hand's finger arrangement means that for a pinch, the
+	 * bottom-most touch will always be the thumb, and the top-most touch
+	 * will always be one of the fingers.
+	 *
+	 * For 3+ finger swipes, the fingers will likely (but not necessarily)
+	 * be in a horizontal line. They all move together, regardless, so it
+	 * doesn't really matter which two of those touches we track.
+	 *
+	 * Tracking top and bottom is a change from previous versions, where
+	 * we tracked leftmost and rightmost. This change enables:
+	 *
+	 * - More accurate pinch detection if thumb is near the center
+	 * - Better resting-thumb detection while two-finger scrolling
+	 * - On capable hardware, allow 3- or 4-finger swipes with resting
+	 *   thumb or held-down clickpad
+	 */
+	if (ntouches > 2) {
+		second = touches[0];
+
+		for (i = 1; i < ntouches && i < tp->num_slots; i++) {
+			if (touches[i]->point.y < first->point.y)
+				first = touches[i];
+			else if (touches[i]->point.y >= second->point.y)
+				second = touches[i];
+		}
+
+		if (first == second)
+			return GESTURE_STATE_NONE;
+
+	}
+
+	tp->gesture.initial_time = time;
+	first->gesture.initial = first->point;
+	second->gesture.initial = second->point;
+	tp->gesture.touches[0] = first;
+	tp->gesture.touches[1] = second;
+
+	return GESTURE_STATE_UNKNOWN;
+}
+
+
+static enum tp_gesture_state
+tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
+{
+	return tp_gesture_detect_motion_gestures(tp, time);
 }
 
 static enum tp_gesture_state
