@@ -180,7 +180,7 @@ iprintf(FILE *fp,
 	int rc;
 
 	assert(indent < len);
-	assert(strlen(format) > 1);
+	assert(strlen(format) >= 1);
 
 	/* Special case: if we're printing a new list item, we want less
 	 * indentation because the '- ' takes up one level of indentation
