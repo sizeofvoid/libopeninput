@@ -1024,7 +1024,7 @@ evdev_note_time_delay(struct evdev_device *device,
 {
 	struct libinput *libinput = evdev_libinput_context(device);
 	uint32_t tdelta;
-	uint32_t eventtime = input_event_time(ev);
+	uint64_t eventtime = input_event_time(ev);
 
 	/* if we have a current libinput_dispatch() snapshot, compare our
 	 * event time with the one from the snapshot. If we have more than
