@@ -2812,7 +2812,7 @@ gesture_notify(struct libinput_device *device,
 	       uint64_t time,
 	       enum libinput_event_type type,
 	       int finger_count,
-	       int cancelled,
+	       bool cancelled,
 	       const struct normalized_coords *delta,
 	       const struct normalized_coords *unaccel,
 	       double scale,
@@ -2855,7 +2855,7 @@ void
 gesture_notify_swipe_end(struct libinput_device *device,
 			 uint64_t time,
 			 int finger_count,
-			 int cancelled)
+			 bool cancelled)
 {
 	const struct normalized_coords zero = { 0.0, 0.0 };
 
@@ -2882,7 +2882,7 @@ gesture_notify_pinch_end(struct libinput_device *device,
 			 uint64_t time,
 			 int finger_count,
 			 double scale,
-			 int cancelled)
+			 bool cancelled)
 {
 	const struct normalized_coords zero = { 0.0, 0.0 };
 

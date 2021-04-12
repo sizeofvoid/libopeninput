@@ -608,7 +608,7 @@ void
 gesture_notify_swipe_end(struct libinput_device *device,
 			 uint64_t time,
 			 int finger_count,
-			 int cancelled);
+			 bool cancelled);
 
 void
 gesture_notify_pinch(struct libinput_device *device,
@@ -625,7 +625,7 @@ gesture_notify_pinch_end(struct libinput_device *device,
 			 uint64_t time,
 			 int finger_count,
 			 double scale,
-			 int cancelled);
+			 bool cancelled);
 
 void
 tablet_notify_axis(struct libinput_device *device,
