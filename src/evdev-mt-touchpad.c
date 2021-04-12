@@ -1855,7 +1855,7 @@ tp_post_process_state(struct tp_dispatch *tp, uint64_t time)
 static void
 tp_post_events(struct tp_dispatch *tp, uint64_t time)
 {
-	int filter_motion = 0;
+	bool ignore_motion = false;
 
 	/* Only post (top) button events while suspended */
 	if (tp->device->is_suspended) {
@@ -1863,10 +1863,10 @@ tp_post_events(struct tp_dispatch *tp, uint64_t time)
 		return;
 	}
 
-	filter_motion |= tp_tap_handle_state(tp, time);
-	filter_motion |= tp_post_button_events(tp, time);
+	ignore_motion |= tp_tap_handle_state(tp, time);
+	ignore_motion |= tp_post_button_events(tp, time);
 
-	if (filter_motion ||
+	if (ignore_motion ||
 	    tp->palm.trackpoint_active ||
 	    tp->dwt.keyboard_active) {
 		tp_edge_scroll_stop_events(tp, time);
