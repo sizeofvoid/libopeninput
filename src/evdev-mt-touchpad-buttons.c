@@ -935,6 +935,28 @@ tp_init_middlebutton_emulation(struct tp_dispatch *tp,
 				want_config_option);
 }
 
+static bool
+tp_guess_clickpad(const struct tp_dispatch *tp, struct evdev_device *device)
+{
+	bool is_clickpad;
+
+	is_clickpad = libevdev_has_property(device->evdev, INPUT_PROP_BUTTONPAD);
+
+	if (libevdev_has_event_code(device->evdev, EV_KEY, BTN_MIDDLE) ||
+	    libevdev_has_event_code(device->evdev, EV_KEY, BTN_RIGHT)) {
+		if (is_clickpad)
+			evdev_log_bug_kernel(device,
+					     "clickpad advertising right button\n");
+	} else if (libevdev_has_event_code(device->evdev, EV_KEY, BTN_LEFT) &&
+		   !is_clickpad &&
+		   libevdev_get_id_vendor(device->evdev) != VENDOR_ID_APPLE) {
+			evdev_log_bug_kernel(device,
+					     "non clickpad without right button?\n");
+	}
+
+	return is_clickpad;
+}
+
 void
 tp_init_buttons(struct tp_dispatch *tp,
 		struct evdev_device *device)
@@ -943,22 +965,10 @@ tp_init_buttons(struct tp_dispatch *tp,
 	const struct input_absinfo *absinfo_x, *absinfo_y;
 	int i;
 
-	tp->buttons.is_clickpad = libevdev_has_property(device->evdev,
-							INPUT_PROP_BUTTONPAD);
+	tp->buttons.is_clickpad = tp_guess_clickpad(tp, device);
+
 	tp->buttons.has_topbuttons = libevdev_has_property(device->evdev,
 						        INPUT_PROP_TOPBUTTONPAD);
-
-	if (libevdev_has_event_code(device->evdev, EV_KEY, BTN_MIDDLE) ||
-	    libevdev_has_event_code(device->evdev, EV_KEY, BTN_RIGHT)) {
-		if (tp->buttons.is_clickpad)
-			evdev_log_bug_kernel(device,
-					     "clickpad advertising right button\n");
-	} else if (libevdev_has_event_code(device->evdev, EV_KEY, BTN_LEFT) &&
-		   !tp->buttons.is_clickpad &&
-		   libevdev_get_id_vendor(device->evdev) != VENDOR_ID_APPLE) {
-			evdev_log_bug_kernel(device,
-					     "non clickpad without right button?\n");
-	}
 
 	absinfo_x = device->abs.absinfo_x;
 	absinfo_y = device->abs.absinfo_y;
