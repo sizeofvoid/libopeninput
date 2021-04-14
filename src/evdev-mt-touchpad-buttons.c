@@ -940,7 +940,6 @@ tp_guess_clickpad(const struct tp_dispatch *tp, struct evdev_device *device)
 {
 	bool is_clickpad;
 	bool has_left = libevdev_has_event_code(device->evdev, EV_KEY, BTN_LEFT),
-	     has_middle = libevdev_has_event_code(device->evdev, EV_KEY, BTN_MIDDLE),
 	     has_right = libevdev_has_event_code(device->evdev, EV_KEY, BTN_RIGHT);
 
 	is_clickpad = libevdev_has_property(device->evdev, INPUT_PROP_BUTTONPAD);
@@ -952,22 +951,17 @@ tp_guess_clickpad(const struct tp_dispatch *tp, struct evdev_device *device)
 	 *   single physical button
 	 * - Wacom touch devices have neither left nor right buttons
 	 */
-	if (!is_clickpad && has_left && !has_right &&
-	    (tp->device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON) == 0) {
+	if (is_clickpad) {
+		if (has_right) {
+			evdev_log_bug_kernel(device,
+					     "clickpad with right button, assuming it is not a clickpad\n");
+			is_clickpad = false;
+		}
+	} else if (has_left && !has_right &&
+		   (tp->device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON) == 0) {
 		evdev_log_bug_kernel(device,
 				     "missing right button, assuming it is a clickpad.\n");
 		is_clickpad = true;
-	}
-
-	if (has_middle || has_right) {
-		if (is_clickpad)
-			evdev_log_bug_kernel(device,
-					     "clickpad advertising right button\n");
-	} else if (has_left &
-		   !is_clickpad &&
-		   libevdev_get_id_vendor(device->evdev) != VENDOR_ID_APPLE) {
-			evdev_log_bug_kernel(device,
-					     "non clickpad without right button?\n");
 	}
 
 	return is_clickpad;
