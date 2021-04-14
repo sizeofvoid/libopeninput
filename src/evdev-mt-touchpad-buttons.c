@@ -943,8 +943,21 @@ tp_guess_clickpad(const struct tp_dispatch *tp, struct evdev_device *device)
 	     has_middle = libevdev_has_event_code(device->evdev, EV_KEY, BTN_MIDDLE),
 	     has_right = libevdev_has_event_code(device->evdev, EV_KEY, BTN_RIGHT);
 
-
 	is_clickpad = libevdev_has_property(device->evdev, INPUT_PROP_BUTTONPAD);
+
+	/* A non-clickpad without a right button is a clickpad, assume the
+	 * kernel is wrong.
+	 * Exceptions here:
+	 * - The one-button Apple touchpad (discontinued in 2008) has a
+	 *   single physical button
+	 * - Wacom touch devices have neither left nor right buttons
+	 */
+	if (!is_clickpad && has_left && !has_right &&
+	    (tp->device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON) == 0) {
+		evdev_log_bug_kernel(device,
+				     "missing right button, assuming it is a clickpad.\n");
+		is_clickpad = true;
+	}
 
 	if (has_middle || has_right) {
 		if (is_clickpad)

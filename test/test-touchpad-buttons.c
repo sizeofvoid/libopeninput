@@ -2053,6 +2053,51 @@ START_TEST(clickpad_middleemulation_click_disable_while_down)
 }
 END_TEST
 
+START_TEST(touchpad_non_clickpad_detection)
+{
+	struct libinput *li;
+	struct libinput_device *device;
+	struct libevdev_uinput *uinput;
+	static struct input_absinfo absinfo[] = {
+		{ ABS_X, 1472, 5472, 0, 0, 75 },
+		{ ABS_Y, 1408, 4448, 0, 0, 129 },
+		{ ABS_PRESSURE, 0, 255, 0, 0, 0 },
+		{ ABS_TOOL_WIDTH, 0, 15, 0, 0, 0 },
+		{ ABS_MT_SLOT, 0, 1, 0, 0, 0 },
+		{ ABS_MT_POSITION_X, 1472, 5472, 0, 0, 75 },
+		{ ABS_MT_POSITION_Y, 1408, 4448, 0, 0, 129 },
+		{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
+		{ ABS_MT_PRESSURE, 0, 255, 0, 0, 0 },
+		{ .value = -1 }
+	};
+	uint32_t methods;
+
+	/* Create a touchpad with only a left button but missing
+	 * INPUT_PROP_BUTTONPAD. We should treat this as clickpad.
+	 */
+	uinput = litest_create_uinput_abs_device("litest NonClickpad",
+						 NULL,
+						 absinfo,
+						 EV_KEY, BTN_LEFT,
+						 EV_KEY, BTN_TOOL_FINGER,
+						 EV_KEY, BTN_TOUCH,
+						 -1);
+
+	li = litest_create_context();
+	device = libinput_path_add_device(li,
+					  libevdev_uinput_get_devnode(uinput));
+
+	methods = libinput_device_config_click_get_methods(device);
+	ck_assert(methods & LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS);
+	ck_assert(methods & LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER);
+
+
+	libinput_path_remove_device(device);
+	libevdev_uinput_destroy(uinput);
+	litest_destroy_context(li);
+}
+END_TEST
+
 TEST_COLLECTION(touchpad_buttons)
 {
 	struct range finger_count = {1, 4};
@@ -2122,4 +2167,6 @@ TEST_COLLECTION(touchpad_buttons)
 	litest_add(clickpad_middleemulation_click_middle_right, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(clickpad_middleemulation_click_enable_while_down, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(clickpad_middleemulation_click_disable_while_down, LITEST_CLICKPAD, LITEST_ANY);
+
+	litest_add_no_device(touchpad_non_clickpad_detection);
 }
