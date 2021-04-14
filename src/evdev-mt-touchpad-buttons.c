@@ -939,15 +939,18 @@ static bool
 tp_guess_clickpad(const struct tp_dispatch *tp, struct evdev_device *device)
 {
 	bool is_clickpad;
+	bool has_left = libevdev_has_event_code(device->evdev, EV_KEY, BTN_LEFT),
+	     has_middle = libevdev_has_event_code(device->evdev, EV_KEY, BTN_MIDDLE),
+	     has_right = libevdev_has_event_code(device->evdev, EV_KEY, BTN_RIGHT);
+
 
 	is_clickpad = libevdev_has_property(device->evdev, INPUT_PROP_BUTTONPAD);
 
-	if (libevdev_has_event_code(device->evdev, EV_KEY, BTN_MIDDLE) ||
-	    libevdev_has_event_code(device->evdev, EV_KEY, BTN_RIGHT)) {
+	if (has_middle || has_right) {
 		if (is_clickpad)
 			evdev_log_bug_kernel(device,
 					     "clickpad advertising right button\n");
-	} else if (libevdev_has_event_code(device->evdev, EV_KEY, BTN_LEFT) &&
+	} else if (has_left &
 		   !is_clickpad &&
 		   libevdev_get_id_vendor(device->evdev) != VENDOR_ID_APPLE) {
 			evdev_log_bug_kernel(device,
