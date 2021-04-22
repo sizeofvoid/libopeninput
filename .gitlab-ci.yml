@@ -225,17 +225,6 @@ debian:stable@container-prep:
     FDO_DISTRIBUTION_PACKAGES: $DEBIAN_PACKAGES
     FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
 
-ubuntu:20.04@container-prep:
-  extends:
-    - .fdo.container-build@ubuntu
-    - .policy
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: '20.04'
-    FDO_DISTRIBUTION_PACKAGES: $UBUNTU_PACKAGES
-    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
-
 ubuntu:20.10@container-prep:
   extends:
     - .fdo.container-build@ubuntu
@@ -244,6 +233,17 @@ ubuntu:20.10@container-prep:
   variables:
     GIT_STRATEGY: none
     FDO_DISTRIBUTION_VERSION: '20.10'
+    FDO_DISTRIBUTION_PACKAGES: $UBUNTU_PACKAGES
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+
+ubuntu:21.04@container-prep:
+  extends:
+    - .fdo.container-build@ubuntu
+    - .policy
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: '21.04'
     FDO_DISTRIBUTION_PACKAGES: $UBUNTU_PACKAGES
     FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
 
@@ -380,15 +380,6 @@ debian:stable@container-clean:
     FDO_DISTRIBUTION_VERSION: 'stable'
     FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
 
-ubuntu:20.04@container-clean:
-  extends:
-    - .container-clean
-  variables:
-    GIT_STRATEGY: none
-    CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ubuntu/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-    FDO_DISTRIBUTION_VERSION: '20.04'
-    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
-
 ubuntu:20.10@container-clean:
   extends:
     - .container-clean
@@ -396,6 +387,15 @@ ubuntu:20.10@container-clean:
     GIT_STRATEGY: none
     CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ubuntu/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
     FDO_DISTRIBUTION_VERSION: '20.10'
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+
+ubuntu:21.04@container-clean:
+  extends:
+    - .container-clean
+  variables:
+    GIT_STRATEGY: none
+    CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ubuntu/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
+    FDO_DISTRIBUTION_VERSION: '21.04'
     FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
 
 arch:rolling@container-clean:
@@ -953,18 +953,6 @@ debian:stable@default-build:
     - "debian:stable@container-prep"
 
 
-ubuntu:20.04@default-build:
-  stage: distro
-  extends:
-    - .build@template
-    - .fdo.distribution-image@ubuntu
-  variables:
-    FDO_DISTRIBUTION_VERSION: '20.04'
-    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
-  needs:
-    - "ubuntu:20.04@container-prep"
-
-
 ubuntu:20.10@default-build:
   stage: distro
   extends:
@@ -975,6 +963,18 @@ ubuntu:20.10@default-build:
     FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
   needs:
     - "ubuntu:20.10@container-prep"
+
+
+ubuntu:21.04@default-build:
+  stage: distro
+  extends:
+    - .build@template
+    - .fdo.distribution-image@ubuntu
+  variables:
+    FDO_DISTRIBUTION_VERSION: '21.04'
+    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
+  needs:
+    - "ubuntu:21.04@container-prep"
 
 
 arch:rolling@default-build:

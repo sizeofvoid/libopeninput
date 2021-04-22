@@ -63,8 +63,8 @@ distributions:
   - name: ubuntu
     tag: *default_tag
     versions:
-      - '20.04'
       - '20.10'
+      - '21.04'
     packages:
       - git
       - gcc
