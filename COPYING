@@ -31,4 +31,4 @@ This copy is provided to provide consistent behavior regardless which kernel
 version libinput is compiled against. The header is used during compilation
 only, libinput does not link against GPL libraries.
 
-[1] https://gitlab.freedesktop.org/libinput/libinput/blob/master/include/linux/input.h
+[1] https://gitlab.freedesktop.org/libinput/libinput/blob/main/include/linux/input.h

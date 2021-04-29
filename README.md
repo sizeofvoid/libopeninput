@@ -60,8 +60,8 @@ Examples of how to use libinput are the debugging tools in the libinput
 repository. Developers are encouraged to look at those tools for a
 real-world (yet simple) example on how to use libinput.
 
-- A commandline debugging tool: https://gitlab.freedesktop.org/libinput/libinput/tree/master/tools/libinput-debug-events.c
-- A GTK application that draws cursor/touch/tablet positions: https://gitlab.freedesktop.org/libinput/libinput/tree/master/tools/libinput-debug-gui.c
+- A commandline debugging tool: https://gitlab.freedesktop.org/libinput/libinput/tree/main/tools/libinput-debug-events.c
+- A GTK application that draws cursor/touch/tablet positions: https://gitlab.freedesktop.org/libinput/libinput/tree/main/tools/libinput-debug-gui.c
 
 License
 -------
@@ -75,7 +75,7 @@ libinput is licensed under the MIT license.
 > and/or sell copies of the Software, and to permit persons to whom the
 > Software is furnished to do so, subject to the following conditions: [...]
 
-See the [COPYING](https://gitlab.freedesktop.org/libinput/libinput/tree/master/COPYING)
+See the [COPYING](https://gitlab.freedesktop.org/libinput/libinput/tree/main/COPYING)
 file for the full license information.
 
 About

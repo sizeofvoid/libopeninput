@@ -25,7 +25,7 @@ aparser.add_argument(
     "--branch",
     metavar="NAME",
     help="Branch of the project being tested",
-    default="master",
+    default="main",
 )
 aparser.add_argument(
     "--output",

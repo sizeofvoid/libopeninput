@@ -150,7 +150,7 @@ check-commit:
   script:
     - ci-fairy check-commits --signed-off-by --junit-xml=results.xml
   except:
-    - master@libinput/libinput
+    - main@libinput/libinput
   variables:
     GIT_DEPTH: 100
   artifacts:
@@ -734,7 +734,7 @@ wayland-web:
     MESON_BUILDDIR: 'builddir'
   only:
     refs:
-      - master
+      - main
     variables:
       - $CI_PROJECT_PATH == "libinput/libinput"
 

@@ -189,7 +189,7 @@ sufficient to make some of the more confusing steps obvious.
 
     https://gitlab.freedesktop.org/USERNAME/libinput/merge_requests
 
-  Select your branch name to merge and ``libinput/libinput`` ``master`` as target branch.
+  Select your branch name to merge and ``libinput/libinput`` ``main`` as target branch.
 
 - Verify that the CI completes successfully by visiting the merge request
   page. A successful pipeline shows only green ticks, failure is indicated
@@ -299,7 +299,7 @@ Coding Style
 ------------------------------------------------------------------------------
 
 Please see the `CODING_STYLE.md
-<https://gitlab.freedesktop.org/libinput/libinput/blob/master/CODING_STYLE.md>`_
+<https://gitlab.freedesktop.org/libinput/libinput/blob/main/CODING_STYLE.md>`_
 document in the source tree.
 
 ------------------------------------------------------------------------------

@@ -190,7 +190,7 @@ libinput has a few build-time dependencies that must be installed prior to
 running meson.
 
 .. hint:: The build dependencies for some distributions can be found in the
-	`GitLab Continuous Integration file <https://gitlab.freedesktop.org/libinput/libinput/blob/master/.gitlab-ci.yml>`_.
+	`GitLab Continuous Integration file <https://gitlab.freedesktop.org/libinput/libinput/blob/main/.gitlab-ci.yml>`_.
 	Search for **FEDORA_RPMS** in the **variables:** definition
 	and check the list for an entry for your distribution.
 
