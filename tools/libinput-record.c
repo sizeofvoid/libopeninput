@@ -1597,11 +1597,25 @@ print_hid_report_descriptor(struct record_device *dev)
 
 	while ((len = read(fd, buf, sizeof(buf))) > 0) {
 		for (int i = 0; i < len; i++) {
-			iprintf(dev->fp, I_NONE, "%s0x%02x", sep, buf[i]);
+			/* We can't have a trailing comma, so our line-break
+			 * handling is awkward.
+			 * For a linebreak: print the comma, break, indent,
+			 *    then just the hex code.
+			 * For the other values: print the comma plus the
+			 *    hex code, unindented.
+			 */
+			if (i % 16 == 0) {
+				iprintf(dev->fp, I_NONE, "%s\n", sep);
+				iprintf(dev->fp, I_DEVICE, "  ");
+				iprintf(dev->fp, I_NONE, "0x%02x", buf[i]);
+			} else {
+				iprintf(dev->fp, I_NONE, "%s0x%02x", sep, buf[i]);
+			}
 			sep = ", ";
 		}
 	}
-	iprintf(dev->fp, I_NONE, "]\n");
+	iprintf(dev->fp, I_NONE, "\n");
+	iprintf(dev->fp, I_DEVICE, "]\n");
 
 	close(fd);
 }
