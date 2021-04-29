@@ -140,7 +140,7 @@ in ``linux/input-event-codes.h``. For touchpads ``ABS_X``, ``ABS_Y``,
 
 Once a match and override rule has been found, follow the instructions at
 the top of the
-`60-evdev.hwdb <https://github.com/systemd/systemd/blob/master/hwdb/60-evdev.hwdb>`_
+`60-evdev.hwdb <https://github.com/systemd/systemd/blob/main/hwdb.d/60-evdev.hwdb>`_
 file to save it locally and trigger the udev hwdb reload. Rebooting is
 always a good idea. If the match string is correct, the new properties will
 show up in the
