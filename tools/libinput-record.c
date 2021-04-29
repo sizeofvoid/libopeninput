@@ -1597,8 +1597,7 @@ print_hid_report_descriptor(struct record_device *dev)
 
 	while ((len = read(fd, buf, sizeof(buf))) > 0) {
 		for (int i = 0; i < len; i++) {
-			/* YAML requires decimal */
-			iprintf(dev->fp, I_NONE, "%s%u", sep, buf[i]);
+			iprintf(dev->fp, I_NONE, "%s0x%02x", sep, buf[i]);
 			sep = ", ";
 		}
 	}
