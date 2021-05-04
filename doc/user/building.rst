@@ -284,6 +284,11 @@ Software that uses meson should use the ``dependency()`` function: ::
     pkgconfig = import('pkgconfig')
     dep_libinput = dependency('libinput')
 
+Software that uses CMake should use: ::
+
+    find_package(Libinput)
+    target_link_libraries(myprogram PRIVATE Libinput::Libinput)
+
 Otherwise, the most rudimentary way to compile and link a program against
 libinput is:
 
