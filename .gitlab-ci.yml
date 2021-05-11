@@ -92,13 +92,13 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2021-01-04.1'
-  DEBIAN_TAG:  '2021-01-04.1'
-  UBUNTU_TAG:  '2021-01-04.1'
-  ARCH_TAG:    '2021-01-04.1'
-  ALPINE_TAG:  '2021-01-04.1'
-  FREEBSD_TAG: '2021-01-04.1'
-  QEMU_TAG:    'qemu-vm-2021-01-04.1'
+  FEDORA_TAG:  '2021-05-12.0'
+  DEBIAN_TAG:  '2021-05-12.0'
+  UBUNTU_TAG:  '2021-05-12.0'
+  ARCH_TAG:    '2021-05-12.0'
+  ALPINE_TAG:  '2021-05-12.0'
+  FREEBSD_TAG: '2021-05-12.0'
+  QEMU_TAG:    'qemu-vm-2021-05-12.0'
 
   FREEBSD_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/freebsd/11.2:$FREEBSD_TAG
   FDO_UPSTREAM_REPO: libinput/libinput
@@ -179,7 +179,7 @@ check-commit:
 # Note: images are rebuilt weekly with a scheduled pipeline with FDO_FORCE_REBUILD set
 #
 #
-fedora:33@qemu-prep:
+fedora:34@qemu-prep:
   extends:
     - .fdo.qemu-build@fedora
     - .policy
@@ -188,20 +188,9 @@ fedora:33@qemu-prep:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: 33
+    FDO_DISTRIBUTION_VERSION: 34
     FDO_DISTRIBUTION_TAG: $QEMU_TAG
     FDO_DISTRIBUTION_PACKAGES: $FEDORA_PACKAGES
-
-fedora:32@container-prep:
-  extends:
-    - .fdo.container-build@fedora
-    - .policy
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: '32'
-    FDO_DISTRIBUTION_PACKAGES: $FEDORA_PACKAGES
-    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
 
 fedora:33@container-prep:
   extends:
@@ -211,6 +200,17 @@ fedora:33@container-prep:
   variables:
     GIT_STRATEGY: none
     FDO_DISTRIBUTION_VERSION: '33'
+    FDO_DISTRIBUTION_PACKAGES: $FEDORA_PACKAGES
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+
+fedora:34@container-prep:
+  extends:
+    - .fdo.container-build@fedora
+    - .policy
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: '34'
     FDO_DISTRIBUTION_PACKAGES: $FEDORA_PACKAGES
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
 
@@ -353,15 +353,6 @@ freebsd:11.2@container-prep:
   only:
     - schedules
 
-fedora:32@container-clean:
-  extends:
-    - .container-clean
-  variables:
-    GIT_STRATEGY: none
-    CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/fedora/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-    FDO_DISTRIBUTION_VERSION: '32'
-    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
-
 fedora:33@container-clean:
   extends:
     - .container-clean
@@ -369,6 +360,15 @@ fedora:33@container-clean:
     GIT_STRATEGY: none
     CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/fedora/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
     FDO_DISTRIBUTION_VERSION: '33'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+
+fedora:34@container-clean:
+  extends:
+    - .container-clean
+  variables:
+    GIT_STRATEGY: none
+    CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/fedora/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
+    FDO_DISTRIBUTION_VERSION: '34'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
 
 debian:stable@container-clean:
@@ -510,19 +510,19 @@ freebsd:11.2@container-clean:
     when: script_failure
 
 
-.fedora:33@test-suite-vm:
+.fedora:34@test-suite-vm:
   extends:
     - .test-suite-vm
   variables:
-    FDO_DISTRIBUTION_VERSION: 33
+    FDO_DISTRIBUTION_VERSION: 34
     FDO_DISTRIBUTION_TAG: $QEMU_TAG
   needs:
-    - "fedora:33@qemu-prep"
+    - "fedora:34@qemu-prep"
 
 
 vm-touchpad:
   extends:
-    - .fedora:33@test-suite-vm
+    - .fedora:34@test-suite-vm
   variables:
     SUITE_NAMES: 'touchpad'
 
@@ -535,7 +535,7 @@ vm-touchpad-no-libwacom:
 
 vm-tap:
   extends:
-    - .fedora:33@test-suite-vm
+    - .fedora:34@test-suite-vm
   variables:
     SUITE_NAMES: 'touchpad-tap'
 
@@ -548,7 +548,7 @@ vm-tap-no-libwacom:
 
 vm-touchpad-buttons:
   extends:
-    - .fedora:33@test-suite-vm
+    - .fedora:34@test-suite-vm
   variables:
     SUITE_NAMES: 'touchpad-buttons'
 
@@ -561,7 +561,7 @@ vm-touchpad-buttons-no-libwacom:
 
 vm-tablet:
   extends:
-    - .fedora:33@test-suite-vm
+    - .fedora:34@test-suite-vm
   variables:
     SUITE_NAMES: 'tablet'
 
@@ -574,7 +574,7 @@ vm-tablet-no-libwacom:
 
 vm-gestures-device:
   extends:
-    - .fedora:33@test-suite-vm
+    - .fedora:34@test-suite-vm
   variables:
     SUITE_NAMES: 'gestures device'
 
@@ -587,7 +587,7 @@ vm-gestures-device-no-libwacom:
 
 vm-backends:
   extends:
-    - .fedora:33@test-suite-vm
+    - .fedora:34@test-suite-vm
   variables:
     SUITE_NAMES: 'path udev'
 
@@ -600,7 +600,7 @@ vm-backends-no-libwacom:
 
 vm-misc:
   extends:
-    - .fedora:33@test-suite-vm
+    - .fedora:34@test-suite-vm
   variables:
     SUITE_NAMES: 'log misc quirks'
 
@@ -613,7 +613,7 @@ vm-misc-no-libwacom:
 
 vm-other devices:
   extends:
-    - .fedora:33@test-suite-vm
+    - .fedora:34@test-suite-vm
   variables:
     SUITE_NAMES: 'keyboard pad switch trackball trackpoint totem touch'
 
@@ -626,7 +626,7 @@ vm-other devices-no-libwacom:
 
 vm-pointer:
   extends:
-    - .fedora:33@test-suite-vm
+    - .fedora:34@test-suite-vm
   variables:
     SUITE_NAMES: 'pointer'
 
@@ -707,12 +707,12 @@ vm-valgrind-pointer:
     - .fdo.distribution-image@fedora
     - .build@template
   variables:
-    FDO_DISTRIBUTION_VERSION: '33'
+    FDO_DISTRIBUTION_VERSION: '34'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
   needs:
-    - "fedora:33@container-prep"
+    - "fedora:34@container-prep"
 
-default-build-release@fedora:33:
+default-build-release@fedora:34:
   stage: distro
   extends:
     - .fedora-build@template
@@ -720,7 +720,7 @@ default-build-release@fedora:33:
     MESON_ARGS: "-Dbuildtype=release"
     CFLAGS: "-Werror"
 
-scan-build@fedora:33:
+scan-build@fedora:34:
   extends:
     - .fedora-build@template
   variables:
@@ -739,13 +739,13 @@ scan-build@fedora:33:
 # run them on one image, they shouldn't fail on one distro
 # when they succeed on another.
 
-build-no-libwacom@fedora:33:
+build-no-libwacom@fedora:34:
   extends:
     - .fedora-build@template
   variables:
     MESON_ARGS: "-Dlibwacom=false"
 
-build-no-libwacom-nodeps@fedora:33:
+build-no-libwacom-nodeps@fedora:34:
   extends:
     - .fedora-build@template
   variables:
@@ -753,13 +753,13 @@ build-no-libwacom-nodeps@fedora:33:
   before_script:
     - dnf remove -y libwacom libwacom-devel
 
-build-no-docs@fedora:33:
+build-no-docs@fedora:34:
   extends:
     - .fedora-build@template
   variables:
     MESON_ARGS: "-Ddocumentation=false"
 
-build-no-docs-nodeps@fedora:33:
+build-no-docs-nodeps@fedora:34:
   extends:
     - .fedora-build@template
   variables:
@@ -767,13 +767,13 @@ build-no-docs-nodeps@fedora:33:
   before_script:
     - dnf remove -y doxygen graphviz
 
-build-no-debuggui@fedora:33:
+build-no-debuggui@fedora:34:
   extends:
     - .fedora-build@template
   variables:
     MESON_ARGS: "-Ddebug-gui=false"
 
-build-no-debuggui-nodeps@fedora:33:
+build-no-debuggui-nodeps@fedora:34:
   extends:
     - .fedora-build@template
   variables:
@@ -781,13 +781,13 @@ build-no-debuggui-nodeps@fedora:33:
   before_script:
     - dnf remove -y gtk3-devel
 
-build-no-tests@fedora:33:
+build-no-tests@fedora:34:
   extends:
     - .fedora-build@template
   variables:
     MESON_ARGS: "-Dtests=false"
 
-build-no-tests-nodeps@fedora:33:
+build-no-tests-nodeps@fedora:34:
   extends:
     - .fedora-build@template
   variables:
@@ -795,7 +795,7 @@ build-no-tests-nodeps@fedora:33:
   before_script:
     - dnf remove -y check-devel
 
-valgrind@fedora:33:
+valgrind@fedora:34:
   extends:
     - .fedora-build@template
   variables:
@@ -805,7 +805,7 @@ valgrind@fedora:33:
 
 # Python checks, only run on Fedora
 
-usr-bin-env-python@fedora:33:
+usr-bin-env-python@fedora:34:
   extends:
     - .fedora-build@template
   script:
@@ -815,7 +815,7 @@ usr-bin-env-python@fedora:33:
         /bin/false
       fi
 
-python-format@fedora:33:
+python-format@fedora:34:
   extends:
     - .fedora-build@template
   before_script:
@@ -917,18 +917,6 @@ coverity:
 #                                                               #
 #################################################################
 
-fedora:32@default-build:
-  stage: distro
-  extends:
-    - .build@template
-    - .fdo.distribution-image@fedora
-  variables:
-    FDO_DISTRIBUTION_VERSION: '32'
-    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
-  needs:
-    - "fedora:32@container-prep"
-
-
 fedora:33@default-build:
   stage: distro
   extends:
@@ -939,6 +927,18 @@ fedora:33@default-build:
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
   needs:
     - "fedora:33@container-prep"
+
+
+fedora:34@default-build:
+  stage: distro
+  extends:
+    - .build@template
+    - .fdo.distribution-image@fedora
+  variables:
+    FDO_DISTRIBUTION_VERSION: '34'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+  needs:
+    - "fedora:34@container-prep"
 
 
 debian:stable@default-build:
@@ -1051,10 +1051,10 @@ build rpm:
     - .policy
   stage: deploy
   variables:
-    FDO_DISTRIBUTION_VERSION: '32'
+    FDO_DISTRIBUTION_VERSION: '34'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
   needs:
-    - "fedora:32@container-prep"
+    - "fedora:33@container-prep"
   script:
     - dnf install -y rpmdevtools jq
     - meson "$MESON_BUILDDIR"
