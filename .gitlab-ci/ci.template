@@ -704,10 +704,10 @@ build rpm:
     - .policy
   stage: deploy
   variables:
-    FDO_DISTRIBUTION_VERSION: '32'
+    FDO_DISTRIBUTION_VERSION: '34'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
   needs:
-    - "fedora:32@container-prep"
+    - "fedora:33@container-prep"
   script:
     - dnf install -y rpmdevtools jq
     - meson "$MESON_BUILDDIR"
