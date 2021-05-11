@@ -454,16 +454,16 @@ scan-build@{{distro.name}}:{{version}}:
   extends:
     - .{{distro.name}}-build@template
   variables:
-    NINJA_ARGS: scan-build
+    NINJA_ARGS: ''
     MESON_TEST_ARGS: ''
   before_script:
-    - dnf install -y clang-analyzer findutils
+    - dnf install -y clang-analyzer
   script:
     - .gitlab-ci/meson-build.sh
-    - test ! -d "$MESON_BUILDDIR"/meson-logs/scanbuild && exit 0
-    - test $(find "$MESON_BUILDDIR"/meson-logs/scanbuild -maxdepth 0 ! -empty -exec echo "not empty" \; | wc -l) -eq 0 && exit 0
-    - echo "Check scan-build results"
-    - /bin/false
+    - export SCANBUILD="$PWD/.gitlab-ci/scanbuild-wrapper.sh"
+    - ninja -C "$MESON_BUILDDIR" scan-build
+  after_script:
+    - .gitlab-ci/scanbuild-plist-to-junit.py "$MESON_BUILDDIR"/meson-logs/scanbuild/ > "$MESON_BUILDDIR"/junit-scan-build.xml
 
 # Below jobs are build option combinations. We only
 # run them on one image, they shouldn't fail on one distro
