@@ -156,9 +156,18 @@ obfuscate_keycode(struct input_event *ev)
 {
 	switch (ev->type) {
 	case EV_KEY:
-		if (ev->code >= KEY_ESC && ev->code < KEY_ZENKAKUHANKAKU) {
-			ev->code = KEY_A;
-			return true;
+		switch (ev->code) {
+		case KEY_ESC:
+		case KEY_TAB:
+		case KEY_ENTER:
+		case KEY_LEFTCTRL:
+			break;
+		default:
+			if ((ev->code > KEY_ESC && ev->code < KEY_CAPSLOCK) ||
+			    (ev->code >= KEY_KP7 && ev->code <= KEY_KPDOT)) {
+				ev->code = KEY_A;
+				return true;
+			}
 		}
 		break;
 	case EV_MSC:
