@@ -168,6 +168,27 @@ def print_events(devnode, indent, evs):
         )
 
 
+def collect_events(frame):
+    evs = []
+    events_skipped = False
+    for (sec, usec, evtype, evcode, value) in frame:
+        if evtype == libevdev.EV_KEY.value and value == 2:  # key repeat
+            events_skipped = True
+            continue
+
+        e = libevdev.InputEvent(
+            libevdev.evbit(evtype, evcode), value=value, sec=sec, usec=usec
+        )
+        evs.append(e)
+
+    # If we skipped some events and now all we have left is the
+    # SYN_REPORTs, we drop the SYN_REPORTs as well.
+    if events_skipped and all(e for e in evs if e.matches(libevdev.EV_SYN.SYN_REPORT)):
+        return []
+    else:
+        return evs
+
+
 def replay(device, verbose):
     events = fetch(device, "events")
     if events is None:
@@ -191,19 +212,16 @@ def replay(device, verbose):
         except YamlException:
             continue
 
-        (sec, usec, evtype, evcode, value) = evdev[0]
-        evtime = sec + usec / 1e6 + offset
+        evs = collect_events(evdev)
+        if not evs:
+            continue
+
+        evtime = evs[0].sec + evs[0].usec / 1e6 + offset
         now = time.time()
 
         if evtime - now > 150 / 1e6:  # 150 µs error margin
             time.sleep(evtime - now - 150 / 1e6)
 
-        evs = [
-            libevdev.InputEvent(
-                libevdev.evbit(e[2], e[3]), value=e[4], sec=e[0], usec=e[1]
-            )
-            for e in evdev
-        ]
         uinput.send_events(evs)
         if verbose:
             print_events(uinput.devnode, device["__index"], evs)
