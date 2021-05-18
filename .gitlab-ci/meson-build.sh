@@ -20,6 +20,9 @@ if [[ -z "$CI_JOB_ID" ]] || [[ -z "$CI_JOB_NAME" ]]; then
 	echo " CI_JOB_NAME=$CI_JOB_NAME"
 fi
 
+if [[ -n "$FDO_CI_CONCURRENT" ]]; then
+	NINJA_ARGS="-j${FDO_CI_CONCURRENT} $NINJA_ARGS"
+fi
 
 echo "*************************************************"
 echo "builddir: $MESON_BUILDDIR"
