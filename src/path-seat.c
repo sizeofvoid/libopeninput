@@ -414,7 +414,7 @@ libinput_path_remove_device(struct libinput_device *device)
 		return;
 	}
 
-	list_for_each(dev, &input->path_list, link) {
+	list_for_each_safe(dev, &input->path_list, link) {
 		if (dev->udev_device == evdev->udev_device) {
 			path_device_destroy(dev);
 			break;

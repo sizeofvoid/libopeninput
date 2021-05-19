@@ -1016,7 +1016,7 @@ unregister_evdev_device(struct window *w, struct libinput_device *dev)
 {
 	struct evdev_device *d;
 
-	list_for_each(d, &w->evdev_devices, node) {
+	list_for_each_safe(d, &w->evdev_devices, node) {
 		if (d->libinput_device != dev)
 			continue;
 

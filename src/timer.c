@@ -136,7 +136,7 @@ libinput_timer_handler(struct libinput *libinput , uint64_t now)
 	struct libinput_timer *timer;
 
 restart:
-	list_for_each(timer, &libinput->timer.list, link) {
+	list_for_each_safe(timer, &libinput->timer.list, link) {
 		if (timer->expire == 0)
 			continue;
 
