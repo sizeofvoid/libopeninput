@@ -1036,10 +1036,10 @@ static void
 handle_event_device_notify(struct libinput_event *ev)
 {
 	struct libinput_device *dev = libinput_event_get_device(ev);
+	struct libinput_device **device;
 	struct libinput *li;
 	struct window *w;
 	const char *type;
-	size_t i;
 
 	li = libinput_event_get_context(ev);
 	w = libinput_get_user_data(li);
@@ -1060,17 +1060,17 @@ handle_event_device_notify(struct libinput_event *ev)
 	    type);
 
 	if (libinput_event_get_type(ev) == LIBINPUT_EVENT_DEVICE_ADDED) {
-		for (i = 0; i < ARRAY_LENGTH(w->devices); i++) {
-			if (w->devices[i] == NULL) {
-				w->devices[i] = libinput_device_ref(dev);
+		ARRAY_FOR_EACH(w->devices, device) {
+			if (*device == NULL) {
+				*device = libinput_device_ref(dev);
 				break;
 			}
 		}
 	} else  {
-		for (i = 0; i < ARRAY_LENGTH(w->devices); i++) {
-			if (w->devices[i] == dev) {
-				libinput_device_unref(w->devices[i]);
-				w->devices[i] = NULL;
+		ARRAY_FOR_EACH(w->devices, device) {
+			if (*device == dev) {
+				libinput_device_unref(*device);
+				*device = NULL;
 				break;
 			}
 		}

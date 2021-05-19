@@ -306,17 +306,18 @@ handle_tablet_button_event(struct context *ctx, struct libinput_event *ev)
 {
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
 	unsigned int button = libinput_event_tablet_tool_get_button(t);
+	unsigned int *btn;
 	enum libinput_button_state state = libinput_event_tablet_tool_get_button_state(t);
 
-	for (size_t i = 0; i < ARRAY_LENGTH(ctx->buttons_down); i++) {
+	ARRAY_FOR_EACH(ctx->buttons_down, btn) {
 		if (state == LIBINPUT_BUTTON_STATE_PRESSED) {
-		    if (ctx->buttons_down[i] == 0) {
-				ctx->buttons_down[i] = button;
+		    if (*btn == 0) {
+				*btn = button;
 				break;
 		    }
 		} else {
-			if (ctx->buttons_down[i] == button) {
-				ctx->buttons_down[i] = 0;
+			if (*btn == button) {
+				*btn = 0;
 				break;
 			}
 		}
