@@ -57,7 +57,9 @@
 
    7 and 8 are cases where the first event happens within the first timeout
    but the second event is outside that timeout (but within the timeout of
-   the second event). These cases are currently unhandled.
+   the second event). These cases are handled by restarting the timer on every
+   event that could be part of a bouncing sequence, which makes these cases
+   indistinguishable from 5 and 6.
 */
 
 enum debounce_event {
@@ -236,6 +238,7 @@ debounce_is_down_waiting_handle_event(struct fallback_dispatch *fallback, enum d
 		log_debounce_bug(fallback, event);
 		break;
 	case DEBOUNCE_EVENT_RELEASE:
+		debounce_set_timer(fallback, time);
 		debounce_set_state(fallback, DEBOUNCE_STATE_IS_UP_DELAYING);
 		/* Note: In the debouncing RPR case, we use the last
 		 * release's time stamp */
@@ -258,6 +261,7 @@ debounce_is_up_delaying_handle_event(struct fallback_dispatch *fallback, enum de
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
+		debounce_set_timer(fallback, time);
 		debounce_set_state(fallback, DEBOUNCE_STATE_IS_DOWN_WAITING);
 		break;
 	case DEBOUNCE_EVENT_RELEASE:
@@ -304,6 +308,8 @@ debounce_is_up_detecting_spurious_handle_event(struct fallback_dispatch *fallbac
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
+		debounce_set_timer(fallback, time);
+		debounce_set_timer_short(fallback, time);
 		/* Note: in a bouncing PRP case, we use the last press
 		 * event time */
 		fallback->debounce.button_time = time;
@@ -332,6 +338,8 @@ debounce_is_down_detecting_spurious_handle_event(struct fallback_dispatch *fallb
 		log_debounce_bug(fallback, event);
 		break;
 	case DEBOUNCE_EVENT_RELEASE:
+		debounce_set_timer(fallback, time);
+		debounce_set_timer_short(fallback, time);
 		debounce_set_state(fallback, DEBOUNCE_STATE_IS_UP_DETECTING_SPURIOUS);
 		break;
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
@@ -355,6 +363,7 @@ debounce_is_up_waiting_handle_event(struct fallback_dispatch *fallback, enum deb
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
+		debounce_set_timer(fallback, time);
 		/* Note: in a debouncing PRP case, we use the last press'
 		 * time */
 		fallback->debounce.button_time = time;
@@ -379,6 +388,7 @@ debounce_is_down_delaying_handle_event(struct fallback_dispatch *fallback, enum 
 		log_debounce_bug(fallback, event);
 		break;
 	case DEBOUNCE_EVENT_RELEASE:
+		debounce_set_timer(fallback, time);
 		debounce_set_state(fallback, DEBOUNCE_STATE_IS_UP_WAITING);
 		break;
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
