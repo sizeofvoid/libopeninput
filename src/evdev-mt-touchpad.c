@@ -2019,6 +2019,7 @@ tp_interface_destroy(struct evdev_dispatch *dispatch)
 	libinput_timer_destroy(&tp->dwt.keyboard_timer);
 	libinput_timer_destroy(&tp->tap.timer);
 	libinput_timer_destroy(&tp->gesture.finger_count_switch_timer);
+	libinput_timer_destroy(&tp->gesture.hold_timer);
 	free(tp->touches);
 	free(tp);
 }

@@ -164,6 +164,8 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_trackpoint)
 	struct libinput_event *event;
 	struct libinput_device *device;
 
+	litest_disable_hold_gestures(touchpad->libinput_device);
+
 	trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
 	litest_drain_events(li);
 	/* touchpad right-handed, trackpoint left-handed */
@@ -207,6 +209,8 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_touchpad)
 	struct libinput_event *event;
 	struct libinput_device *device;
 
+	litest_disable_hold_gestures(touchpad->libinput_device);
+
 	trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
 	litest_drain_events(li);
 	/* touchpad left-handed, trackpoint right-handed */
@@ -247,6 +251,8 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_both)
 	enum libinput_config_status status;
 	struct libinput_event *event;
 	struct libinput_device *device;
+
+	litest_disable_hold_gestures(touchpad->libinput_device);
 
 	trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
 	litest_drain_events(li);
@@ -293,6 +299,7 @@ START_TEST(trackpoint_palmdetect)
 	int i;
 
 	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	litest_disable_hold_gestures(touchpad->libinput_device);
 	litest_drain_events(li);
 
 	for (i = 0; i < 10; i++) {
@@ -328,6 +335,7 @@ START_TEST(trackpoint_palmdetect_resume_touch)
 	int i;
 
 	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	litest_disable_hold_gestures(touchpad->libinput_device);
 	litest_drain_events(li);
 
 	for (i = 0; i < 10; i++) {
@@ -361,6 +369,7 @@ START_TEST(trackpoint_palmdetect_require_min_events)
 	struct libinput *li = trackpoint->libinput;
 
 	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	litest_disable_hold_gestures(touchpad->libinput_device);
 	litest_drain_events(li);
 
 	/* A single event does not trigger palm detection */
@@ -386,6 +395,7 @@ START_TEST(trackpoint_palmdetect_require_min_events_timeout)
 	struct libinput *li = trackpoint->libinput;
 
 	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	litest_disable_hold_gestures(touchpad->libinput_device);
 	litest_drain_events(li);
 
 	for (int i = 0; i < 10; i++) {

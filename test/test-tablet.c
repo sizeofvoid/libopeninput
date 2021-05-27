@@ -4810,6 +4810,9 @@ START_TEST(touch_arbitration)
 
 	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
 
+	if (is_touchpad)
+		litest_disable_hold_gestures(finger->libinput_device);
+
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_tablet_motion(dev, 10, 10, axes);
 	litest_tablet_motion(dev, 20, 40, axes);
@@ -4999,6 +5002,9 @@ START_TEST(touch_arbitration_stop_touch)
 
 	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
 
+	if (is_touchpad)
+		litest_disable_hold_gestures(finger->libinput_device);
+
 	/* disable prox-out timer quirk */
 	litest_tablet_proximity_in(dev, 30, 30, axes);
 	litest_tablet_proximity_out(dev);
@@ -5083,6 +5089,9 @@ START_TEST(touch_arbitration_suspend_touch_device)
 	tablet = litest_add_device(li, other);
 
 	is_touchpad = !libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
+
+	if (is_touchpad)
+		litest_disable_hold_gestures(dev->libinput_device);
 
 	/* we can't force a device suspend, but we can at least make sure
 	   the device doesn't send events */
@@ -5197,6 +5206,9 @@ START_TEST(touch_arbitration_remove_tablet)
 
 	is_touchpad = !libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
 
+	if (is_touchpad)
+		litest_disable_hold_gestures(dev->libinput_device);
+
 	libinput_dispatch(li);
 	litest_tablet_proximity_in(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 10, 10, axes);
@@ -5290,8 +5302,11 @@ START_TEST(touch_arbitration_late_touch_lift)
 
 	finger = litest_add_device(li, other);
 	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
-	if (is_touchpad)
+	if (is_touchpad) {
 		litest_enable_tap(finger->libinput_device);
+		litest_disable_hold_gestures(finger->libinput_device);
+	}
+
 	litest_tablet_proximity_in(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 20, 40, axes);
@@ -5739,6 +5754,7 @@ START_TEST(tablet_rotation_left_handed_add_touchpad)
 
 	libinput_device_config_left_handed_set(finger->libinput_device,
 					       touch_from);
+	litest_disable_hold_gestures(finger->libinput_device);
 
 	verify_left_handed_touch_sequence(finger, li, enabled_from);
 	verify_left_handed_tablet_sequence(tablet, li, enabled_from);
@@ -5786,6 +5802,7 @@ START_TEST(tablet_rotation_left_handed_add_tablet)
 	/* change left-handed before tablet appears */
 	libinput_device_config_left_handed_set(finger->libinput_device,
 					       touch_from);
+	litest_disable_hold_gestures(finger->libinput_device);
 
 	tablet = litest_add_device(li, other);
 	litest_drain_events(li);
