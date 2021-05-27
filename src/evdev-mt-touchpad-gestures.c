@@ -879,9 +879,11 @@ tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 }
 
 static void
-tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
+tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time,
+				bool ignore_motion)
 {
-	tp_gesture_detect_motion_gestures(tp, time);
+	if (!ignore_motion)
+		tp_gesture_detect_motion_gestures(tp, time);
 }
 
 static void
@@ -983,13 +985,14 @@ tp_gesture_handle_state_pinch(struct tp_dispatch *tp, uint64_t time)
 }
 
 static void
-tp_gesture_post_gesture(struct tp_dispatch *tp, uint64_t time)
+tp_gesture_post_gesture(struct tp_dispatch *tp, uint64_t time,
+			bool ignore_motion)
 {
 	if (tp->gesture.state == GESTURE_STATE_NONE)
 		tp_gesture_handle_state_none(tp, time);
 
 	if (tp->gesture.state == GESTURE_STATE_UNKNOWN)
-		tp_gesture_handle_state_unknown(tp, time);
+		tp_gesture_handle_state_unknown(tp, time, ignore_motion);
 
 	if (tp->gesture.state == GESTURE_STATE_POINTER_MOTION)
 		tp_gesture_handle_state_pointer_motion(tp, time);
@@ -1021,7 +1024,8 @@ tp_gesture_thumb_moved(struct tp_dispatch *tp)
 }
 
 void
-tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time)
+tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time,
+		       bool ignore_motion)
 {
 	if (tp->gesture.finger_count == 0)
 		return;
@@ -1055,7 +1059,7 @@ tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time)
 		tp_thumb_reset(tp);
 
 	if (tp->gesture.finger_count <= 4)
-		tp_gesture_post_gesture(tp, time);
+		tp_gesture_post_gesture(tp, time, ignore_motion);
 }
 
 void

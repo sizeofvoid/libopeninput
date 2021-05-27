@@ -703,7 +703,8 @@ void
 tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time);
 
 void
-tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time);
+tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time,
+		       bool ignore_motion);
 
 void
 tp_gesture_stop_twofinger_scroll(struct tp_dispatch *tp, uint64_t time);
