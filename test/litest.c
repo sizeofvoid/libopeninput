@@ -4144,6 +4144,12 @@ litest_timeout_gesture_scroll(void)
 }
 
 void
+litest_timeout_gesture_hold(void)
+{
+	msleep(300);
+}
+
+void
 litest_timeout_trackpoint(void)
 {
 	msleep(320);

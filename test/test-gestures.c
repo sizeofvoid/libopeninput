@@ -34,8 +34,13 @@ enum cardinal {
 	N, NE, E, SE, S, SW, W, NW, NCARDINALS
 };
 
+enum hold_gesture_behaviour {
+   HOLD_GESTURE_IGNORE,
+   HOLD_GESTURE_REQUIRE,
+};
+
 static void
-test_gesture_swipe_3fg(int cardinal)
+test_gesture_swipe_3fg(int cardinal, enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -66,9 +71,22 @@ test_gesture_swipe_3fg(int cardinal)
 	litest_touch_down(dev, 1, 50, 40);
 	litest_touch_down(dev, 2, 60, 40);
 	libinput_dispatch(li);
+
+	if (hold == HOLD_GESTURE_REQUIRE)
+		litest_timeout_gesture_hold();
+
 	litest_touch_move_three_touches(dev, 40, 40, 50, 40, 60, 40, dir_x,
 					dir_y, 10);
 	libinput_dispatch(li);
+
+	if (hold == HOLD_GESTURE_REQUIRE) {
+		litest_assert_gesture_event(li,
+					    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+					    3);
+		litest_assert_gesture_event(li,
+					    LIBINPUT_EVENT_GESTURE_HOLD_END,
+					    3);
+	}
 
 	event = libinput_get_event(li);
 	gevent = litest_is_gesture_event(event,
@@ -133,7 +151,7 @@ test_gesture_swipe_3fg(int cardinal)
 }
 
 static void
-test_gesture_swipe_4fg(int cardinal)
+test_gesture_swipe_4fg(int cardinal, enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -167,6 +185,9 @@ test_gesture_swipe_4fg(int cardinal)
 	litest_touch_down(dev, 3, 70, 40);
 	libinput_dispatch(li);
 
+	if (hold == HOLD_GESTURE_REQUIRE)
+		litest_timeout_gesture_hold();
+
 	for (i = 0; i < 8; i++) {
 		litest_push_event_frame(dev);
 
@@ -194,6 +215,15 @@ test_gesture_swipe_4fg(int cardinal)
 	}
 
 	libinput_dispatch(li);
+
+	if (hold == HOLD_GESTURE_REQUIRE) {
+		litest_assert_gesture_event(li,
+					    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+					    4);
+		litest_assert_gesture_event(li,
+					    LIBINPUT_EVENT_GESTURE_HOLD_END,
+					    4);
+	}
 
 	event = libinput_get_event(li);
 	gevent = litest_is_gesture_event(event,
@@ -259,7 +289,7 @@ test_gesture_swipe_4fg(int cardinal)
 }
 
 static void
-test_gesture_pinch_2fg(int cardinal)
+test_gesture_pinch_2fg(int cardinal, enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -306,6 +336,9 @@ test_gesture_pinch_2fg(int cardinal)
 	litest_touch_down(dev, 1, 50 - dir_x, 50 - dir_y);
 	libinput_dispatch(li);
 
+	if (hold == HOLD_GESTURE_REQUIRE)
+		litest_timeout_gesture_hold();
+
 	for (i = 0; i < 8; i++) {
 		litest_push_event_frame(dev);
 		if (dir_x > 0.0)
@@ -326,6 +359,15 @@ test_gesture_pinch_2fg(int cardinal)
 				  50 - dir_y);
 		litest_pop_event_frame(dev);
 		libinput_dispatch(li);
+	}
+
+	if (hold == HOLD_GESTURE_REQUIRE) {
+		litest_assert_gesture_event(li,
+					LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+					2);
+		litest_assert_gesture_event(li,
+					LIBINPUT_EVENT_GESTURE_HOLD_END,
+					2);
 	}
 
 	event = libinput_get_event(li);
@@ -370,7 +412,7 @@ test_gesture_pinch_2fg(int cardinal)
 }
 
 static void
-test_gesture_pinch_3fg(int cardinal)
+test_gesture_pinch_3fg(int cardinal, enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -405,6 +447,9 @@ test_gesture_pinch_3fg(int cardinal)
 	litest_touch_down(dev, 2, 51 - dir_x, 51 - dir_y);
 	libinput_dispatch(li);
 
+	if (hold == HOLD_GESTURE_REQUIRE)
+		litest_timeout_gesture_hold();
+
 	for (i = 0; i < 8; i++) {
 		litest_push_event_frame(dev);
 		if (dir_x > 0.0)
@@ -431,6 +476,14 @@ test_gesture_pinch_3fg(int cardinal)
 		libinput_dispatch(li);
 	}
 
+	if (hold == HOLD_GESTURE_REQUIRE) {
+		litest_assert_gesture_event(li,
+					LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+					3);
+		litest_assert_gesture_event(li,
+					LIBINPUT_EVENT_GESTURE_HOLD_END,
+					3);
+	}
 	event = libinput_get_event(li);
 	gevent = litest_is_gesture_event(event,
 					 LIBINPUT_EVENT_GESTURE_PINCH_BEGIN,
@@ -474,7 +527,7 @@ test_gesture_pinch_3fg(int cardinal)
 }
 
 static void
-test_gesture_pinch_4fg(int cardinal)
+test_gesture_pinch_4fg(int cardinal, enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -510,6 +563,9 @@ test_gesture_pinch_4fg(int cardinal)
 	litest_touch_down(dev, 3, 52 - dir_x, 52 - dir_y);
 	libinput_dispatch(li);
 
+	if (hold == HOLD_GESTURE_REQUIRE)
+		litest_timeout_gesture_hold();
+
 	for (i = 0; i < 7; i++) {
 		litest_push_event_frame(dev);
 		if (dir_x > 0.0)
@@ -538,6 +594,15 @@ test_gesture_pinch_4fg(int cardinal)
 				  52 - dir_y);
 		litest_pop_event_frame(dev);
 		libinput_dispatch(li);
+	}
+
+	if (hold == HOLD_GESTURE_REQUIRE) {
+		litest_assert_gesture_event(li,
+					LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+					4);
+		litest_assert_gesture_event(li,
+					LIBINPUT_EVENT_GESTURE_HOLD_END,
+					4);
 	}
 
 	event = libinput_get_event(li);
@@ -584,7 +649,7 @@ test_gesture_pinch_4fg(int cardinal)
 }
 
 static void
-test_gesture_spread(int cardinal)
+test_gesture_spread(int cardinal, enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -631,6 +696,9 @@ test_gesture_spread(int cardinal)
 	litest_touch_down(dev, 1, 50 - dir_x, 50 - dir_y);
 	libinput_dispatch(li);
 
+	if (hold == HOLD_GESTURE_REQUIRE)
+		litest_timeout_gesture_hold();
+
 	for (i = 0; i < 15; i++) {
 		litest_push_event_frame(dev);
 		if (dir_x > 0.0)
@@ -651,6 +719,15 @@ test_gesture_spread(int cardinal)
 				  50 - dir_y);
 		litest_pop_event_frame(dev);
 		libinput_dispatch(li);
+	}
+
+	if (hold == HOLD_GESTURE_REQUIRE) {
+		litest_assert_gesture_event(li,
+					LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+					2);
+		litest_assert_gesture_event(li,
+					LIBINPUT_EVENT_GESTURE_HOLD_END,
+					2);
 	}
 
 	event = libinput_get_event(li);
@@ -693,7 +770,7 @@ test_gesture_spread(int cardinal)
 }
 
 static void
-test_gesture_3fg_buttonarea_scroll(void)
+test_gesture_3fg_buttonarea_scroll(enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -710,11 +787,25 @@ test_gesture_3fg_buttonarea_scroll(void)
 	/* third finger in btnarea */
 	litest_touch_down(dev, 2, 50, 99);
 	libinput_dispatch(li);
+
+	if (hold == HOLD_GESTURE_REQUIRE)
+		litest_timeout_gesture_hold();
+
 	litest_touch_move_two_touches(dev, 40, 20, 30, 20, 0, 40, 10);
 
 	litest_touch_up(dev, 0);
 	litest_touch_up(dev, 1);
 	libinput_dispatch(li);
+
+	if (hold == HOLD_GESTURE_REQUIRE) {
+		litest_assert_gesture_event(li,
+					LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+					2);
+		litest_assert_gesture_event(li,
+					LIBINPUT_EVENT_GESTURE_HOLD_END,
+					2);
+	}
+
 	litest_assert_scroll(li, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, 4);
 }
 
@@ -745,7 +836,7 @@ END_TEST
 START_TEST(gestures_swipe_3fg)
 {
 	int cardinal = _i; /* ranged test */
-	test_gesture_swipe_3fg(cardinal);
+	test_gesture_swipe_3fg(cardinal, HOLD_GESTURE_IGNORE);
 }
 END_TEST
 
@@ -905,7 +996,7 @@ END_TEST
 START_TEST(gestures_swipe_4fg)
 {
 	int cardinal = _i; /* ranged test */
-	test_gesture_swipe_4fg(cardinal);
+	test_gesture_swipe_4fg(cardinal, HOLD_GESTURE_IGNORE);
 }
 END_TEST
 
@@ -1015,28 +1106,28 @@ END_TEST
 START_TEST(gestures_pinch)
 {
 	int cardinal = _i; /* ranged test */
-	test_gesture_pinch_2fg(cardinal);
+	test_gesture_pinch_2fg(cardinal, HOLD_GESTURE_IGNORE);
 }
 END_TEST
 
 START_TEST(gestures_pinch_3fg)
 {
 	int cardinal = _i; /* ranged test */
-	test_gesture_pinch_3fg(cardinal);
+	test_gesture_pinch_3fg(cardinal, HOLD_GESTURE_IGNORE);
 }
 END_TEST
 
 START_TEST(gestures_pinch_4fg)
 {
 	int cardinal = _i; /* ranged test */
-	test_gesture_pinch_4fg(cardinal);
+	test_gesture_pinch_4fg(cardinal, HOLD_GESTURE_IGNORE);
 }
 END_TEST
 
 START_TEST(gestures_spread)
 {
 	int cardinal = _i; /* ranged test */
-	test_gesture_spread(cardinal);
+	test_gesture_spread(cardinal, HOLD_GESTURE_IGNORE);
 }
 END_TEST
 
@@ -1074,7 +1165,7 @@ END_TEST
 
 START_TEST(gestures_3fg_buttonarea_scroll)
 {
-	test_gesture_3fg_buttonarea_scroll();
+	test_gesture_3fg_buttonarea_scroll(HOLD_GESTURE_IGNORE);
 }
 END_TEST
 
