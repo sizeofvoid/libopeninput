@@ -40,6 +40,7 @@ gesture_state_to_str(enum tp_gesture_state state)
 	switch (state) {
 	CASE_RETURN_STRING(GESTURE_STATE_NONE);
 	CASE_RETURN_STRING(GESTURE_STATE_UNKNOWN);
+	CASE_RETURN_STRING(GESTURE_STATE_POINTER_MOTION);
 	CASE_RETURN_STRING(GESTURE_STATE_SCROLL);
 	CASE_RETURN_STRING(GESTURE_STATE_PINCH);
 	CASE_RETURN_STRING(GESTURE_STATE_SWIPE);
@@ -134,6 +135,8 @@ tp_gesture_start(struct tp_dispatch *tp, uint64_t time)
 				     LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
 				     tp->gesture.finger_count,
 				     &zero, &zero);
+		break;
+	case GESTURE_STATE_POINTER_MOTION:
 		break;
 	}
 
@@ -447,6 +450,13 @@ tp_gesture_detect_motion_gestures(struct tp_dispatch *tp, uint64_t time)
 	double min_move = 1.5; /* min movement threshold in mm - count this touch */
 	double max_move = 4.0; /* max movement threshold in mm - ignore other touch */
 
+	if (tp->gesture.finger_count == 1) {
+		if (tp_has_pending_pointer_motion(tp, time))
+			return GESTURE_STATE_POINTER_MOTION;
+
+		return GESTURE_STATE_UNKNOWN;
+	}
+
 	/* If we have more fingers than slots, we don't know where the
 	 * fingers are. Default to swipe */
 	if (tp->gesture.enabled && tp->gesture.finger_count > 2 &&
@@ -602,7 +612,7 @@ tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 
 	ntouches = tp_gesture_get_active_touches(tp, touches, 4);
 	if (ntouches < 2)
-		return GESTURE_STATE_NONE;
+		return GESTURE_STATE_UNKNOWN;
 
 	if (!tp->gesture.enabled) {
 		if (ntouches == 2)
@@ -659,6 +669,14 @@ static enum tp_gesture_state
 tp_gesture_handle_state_unknown(struct tp_dispatch *tp, uint64_t time)
 {
 	return tp_gesture_detect_motion_gestures(tp, time);
+}
+
+static enum tp_gesture_state
+tp_gesture_handle_state_pointer_motion(struct tp_dispatch *tp, uint64_t time)
+{
+	if (tp->queued & TOUCHPAD_EVENT_MOTION)
+		tp_gesture_post_pointer_motion(tp, time);
+	return GESTURE_STATE_POINTER_MOTION;
 }
 
 static enum tp_gesture_state
@@ -771,6 +789,10 @@ tp_gesture_post_gesture(struct tp_dispatch *tp, uint64_t time)
 		tp->gesture.state =
 			tp_gesture_handle_state_unknown(tp, time);
 
+	if (tp->gesture.state == GESTURE_STATE_POINTER_MOTION)
+		tp->gesture.state =
+			tp_gesture_handle_state_pointer_motion(tp, time);
+
 	if (tp->gesture.state == GESTURE_STATE_SCROLL)
 		tp->gesture.state =
 			tp_gesture_handle_state_scroll(tp, time);
@@ -819,7 +841,10 @@ tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time)
 	if (tp_tap_dragging(tp) ||
 	    (tp->buttons.is_clickpad && tp->buttons.state &&
 	     tp->thumb.state == THUMB_STATE_FINGER)) {
-		tp_gesture_cancel(tp, time);
+		if (tp->gesture.state != GESTURE_STATE_POINTER_MOTION) {
+			tp_gesture_cancel(tp, time);
+			tp->gesture.state = GESTURE_STATE_POINTER_MOTION;
+		}
 		tp->gesture.finger_count = 1;
 		tp->gesture.finger_count_pending = 0;
 	}
@@ -835,17 +860,8 @@ tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time)
 	    tp_gesture_thumb_moved(tp))
 		tp_thumb_reset(tp);
 
-	switch (tp->gesture.finger_count) {
-	case 1:
-		if (tp->queued & TOUCHPAD_EVENT_MOTION)
-			tp_gesture_post_pointer_motion(tp, time);
-		break;
-	case 2:
-	case 3:
-	case 4:
+	if (tp->gesture.finger_count <= 4)
 		tp_gesture_post_gesture(tp, time);
-		break;
-	}
 }
 
 void
@@ -890,6 +906,8 @@ tp_gesture_end(struct tp_dispatch *tp, uint64_t time, bool cancelled)
 					 time,
 					 tp->gesture.finger_count,
 					 cancelled);
+		break;
+	case GESTURE_STATE_POINTER_MOTION:
 		break;
 	}
 
