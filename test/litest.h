@@ -37,6 +37,7 @@
 
 #include "check-double-macros.h"
 
+#include "libinput-private-config.h"
 #include "libinput-util.h"
 #include "quirks.h"
 
@@ -1159,6 +1160,30 @@ litest_sendevents_ext_mouse(struct litest_device *dev)
 	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
 	status = libinput_device_config_send_events_set_mode(device,
 				    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE);
+	litest_assert_int_eq(status, expected);
+}
+
+static inline void
+litest_enable_hold_gestures(struct libinput_device *device)
+{
+	enum libinput_config_status status, expected;
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_gesture_set_hold_enabled(device,
+								 LIBINPUT_CONFIG_HOLD_ENABLED);
+
+	litest_assert_int_eq(status, expected);
+}
+
+static inline void
+litest_disable_hold_gestures(struct libinput_device *device)
+{
+	enum libinput_config_status status, expected;
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_gesture_set_hold_enabled(device,
+								 LIBINPUT_CONFIG_HOLD_DISABLED);
+
 	litest_assert_int_eq(status, expected);
 }
 

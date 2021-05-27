@@ -38,6 +38,7 @@
 #include "linux/input.h"
 
 #include "libinput.h"
+#include "libinput-private-config.h"
 #include "libinput-util.h"
 #include "libinput-version.h"
 
@@ -307,6 +308,13 @@ struct libinput_device_config_rotation {
 	unsigned int (*get_default_angle)(struct libinput_device *device);
 };
 
+struct libinput_device_config_gesture {
+	enum libinput_config_status (*set_hold_enabled)(struct libinput_device *device,
+			 enum libinput_config_hold_state enabled);
+	enum libinput_config_hold_state (*get_hold_enabled)(struct libinput_device *device);
+	enum libinput_config_hold_state (*get_hold_default)(struct libinput_device *device);
+};
+
 struct libinput_device_config {
 	struct libinput_device_config_tap *tap;
 	struct libinput_device_config_calibration *calibration;
@@ -319,6 +327,7 @@ struct libinput_device_config {
 	struct libinput_device_config_middle_emulation *middle_emulation;
 	struct libinput_device_config_dwt *dwt;
 	struct libinput_device_config_rotation *rotation;
+	struct libinput_device_config_gesture *gesture;
 };
 
 struct libinput_device_group {

@@ -1160,6 +1160,78 @@ START_TEST(gestures_swipe_3fg_unaccel)
 }
 END_TEST
 
+START_TEST(gestures_hold_config_default_disabled)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	ck_assert_int_eq(libinput_device_config_gesture_hold_is_available(device),
+			 0);
+	ck_assert_int_eq(libinput_device_config_gesture_get_hold_default_enabled(device),
+			 LIBINPUT_CONFIG_HOLD_DISABLED);
+	ck_assert_int_eq(libinput_device_config_gesture_get_hold_default_enabled(device),
+			 LIBINPUT_CONFIG_HOLD_DISABLED);
+}
+END_TEST
+
+START_TEST(gestures_hold_config_default_enabled)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	ck_assert_int_eq(libinput_device_config_gesture_hold_is_available(device),
+			 1);
+	ck_assert_int_eq(libinput_device_config_gesture_get_hold_default_enabled(device),
+			 LIBINPUT_CONFIG_HOLD_ENABLED);
+	ck_assert_int_eq(libinput_device_config_gesture_get_hold_enabled(device),
+			 LIBINPUT_CONFIG_HOLD_ENABLED);
+}
+END_TEST
+
+START_TEST(gestures_hold_config_set_invalid)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	ck_assert_int_eq(libinput_device_config_gesture_set_hold_enabled(device, -1),
+			 LIBINPUT_CONFIG_STATUS_INVALID);
+	ck_assert_int_eq(libinput_device_config_gesture_set_hold_enabled(device, 2),
+			 LIBINPUT_CONFIG_STATUS_INVALID);
+}
+END_TEST
+
+START_TEST(gestures_hold_config_is_available)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	ck_assert_int_eq(libinput_device_config_gesture_hold_is_available(device),
+			 1);
+	ck_assert_int_eq(libinput_device_config_gesture_get_hold_enabled(device),
+			 LIBINPUT_CONFIG_HOLD_ENABLED);
+	ck_assert_int_eq(libinput_device_config_gesture_set_hold_enabled(device, LIBINPUT_CONFIG_HOLD_DISABLED),
+			 LIBINPUT_CONFIG_STATUS_SUCCESS);
+	ck_assert_int_eq(libinput_device_config_gesture_get_hold_enabled(device),
+			 LIBINPUT_CONFIG_HOLD_DISABLED);
+}
+END_TEST
+
+START_TEST(gestures_hold_config_is_not_available)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	ck_assert_int_eq(libinput_device_config_gesture_hold_is_available(device),
+			 0);
+	ck_assert_int_eq(libinput_device_config_gesture_get_hold_enabled(device),
+			 LIBINPUT_CONFIG_HOLD_DISABLED);
+	ck_assert_int_eq(libinput_device_config_gesture_set_hold_enabled(device, LIBINPUT_CONFIG_HOLD_ENABLED),
+			 LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	ck_assert_int_eq(libinput_device_config_gesture_set_hold_enabled(device, LIBINPUT_CONFIG_HOLD_DISABLED),
+			 LIBINPUT_CONFIG_STATUS_SUCCESS);
+}
+END_TEST
+
 TEST_COLLECTION(gestures)
 {
 	struct range cardinals = { N, N + NCARDINALS };
@@ -1181,6 +1253,12 @@ TEST_COLLECTION(gestures)
 	litest_add(gestures_3fg_buttonarea_scroll_btntool, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
 
 	litest_add(gestures_time_usec, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+
+	litest_add(gestures_hold_config_default_disabled, LITEST_TOUCHPAD|LITEST_SEMI_MT, LITEST_ANY);
+	litest_add(gestures_hold_config_default_enabled, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add(gestures_hold_config_set_invalid, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(gestures_hold_config_is_available, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
+	litest_add(gestures_hold_config_is_not_available, LITEST_TOUCHPAD|LITEST_SEMI_MT, LITEST_ANY);
 
 	/* Timing-sensitive test, valgrind is too slow */
 	if (!RUNNING_ON_VALGRIND)

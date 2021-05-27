@@ -346,6 +346,7 @@ struct tp_dispatch {
 	} accel;
 
 	struct {
+		struct libinput_device_config_gesture config;
 		bool enabled;
 		bool started;
 		unsigned int finger_count;
@@ -358,6 +359,7 @@ struct tp_dispatch {
 		double prev_scale;
 		double angle;
 		struct device_float_coords center;
+		bool hold_enabled;
 	} gesture;
 
 	struct {

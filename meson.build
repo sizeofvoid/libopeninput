@@ -345,6 +345,8 @@ install_headers('src/libinput.h')
 src_libinput = src_libfilter + [
 	'src/libinput.c',
 	'src/libinput.h',
+	'src/libinput-private-config.c',
+	'src/libinput-private-config.h',
 	'src/libinput-private.h',
 	'src/evdev.c',
 	'src/evdev.h',
@@ -670,6 +672,8 @@ if get_option('tests')
 	config_h.set10('HAVE_LIBSYSTEMD', dep_libsystemd.found())
 
 	litest_sources = [
+		'src/libinput-private-config.c',
+		'src/libinput-private-config.h',
 		'test/litest.h',
 		'test/litest-int.h',
 		'test/litest-device-absinfo-override.c',

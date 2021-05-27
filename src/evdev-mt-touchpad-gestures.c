@@ -1185,10 +1185,51 @@ tp_gesture_are_gestures_enabled(struct tp_dispatch *tp)
 	return (!tp->semi_mt && tp->num_slots > 1);
 }
 
+static enum libinput_config_status
+tp_gesture_set_hold_enabled(struct libinput_device *device,
+			    enum libinput_config_hold_state enabled)
+{
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
+
+	if (!tp_gesture_are_gestures_enabled(tp))
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	tp->gesture.hold_enabled = (enabled == LIBINPUT_CONFIG_HOLD_ENABLED);
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static enum libinput_config_hold_state
+tp_gesture_is_hold_enabled(struct libinput_device *device)
+{
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
+
+	return tp->gesture.hold_enabled ? LIBINPUT_CONFIG_HOLD_ENABLED :
+					  LIBINPUT_CONFIG_HOLD_DISABLED;
+}
+
+static enum libinput_config_hold_state
+tp_gesture_get_hold_default(struct libinput_device *device)
+{
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
+
+	return tp_gesture_are_gestures_enabled(tp) ?
+	       LIBINPUT_CONFIG_HOLD_ENABLED :
+	       LIBINPUT_CONFIG_HOLD_DISABLED;
+}
+
 void
 tp_init_gesture(struct tp_dispatch *tp)
 {
 	char timer_name[64];
+
+	tp->gesture.config.set_hold_enabled = tp_gesture_set_hold_enabled;
+	tp->gesture.config.get_hold_enabled = tp_gesture_is_hold_enabled;
+	tp->gesture.config.get_hold_default = tp_gesture_get_hold_default;
+	tp->device->base.config.gesture = &tp->gesture.config;
 
 	/* two-finger scrolling is always enabled, this flag just
 	 * decides whether we detect pinch. semi-mt devices are too
@@ -1196,6 +1237,7 @@ tp_init_gesture(struct tp_dispatch *tp)
 	tp->gesture.enabled = tp_gesture_are_gestures_enabled(tp);
 
 	tp->gesture.state = GESTURE_STATE_NONE;
+	tp->gesture.hold_enabled = tp_gesture_are_gestures_enabled(tp);
 
 	snprintf(timer_name,
 		 sizeof(timer_name),
