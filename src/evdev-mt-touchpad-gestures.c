@@ -28,6 +28,7 @@
 
 #include "evdev-mt-touchpad.h"
 
+#define QUICK_GESTURE_HOLD_TIMEOUT ms2us(40)
 #define DEFAULT_GESTURE_HOLD_TIMEOUT ms2us(180)
 #define DEFAULT_GESTURE_SWITCH_TIMEOUT ms2us(100)
 #define DEFAULT_GESTURE_SWIPE_TIMEOUT ms2us(150)
@@ -477,10 +478,25 @@ log_gesture_bug(struct tp_dispatch *tp, enum gesture_event event)
 }
 
 static bool
+tp_gesture_is_quick_hold(struct tp_dispatch *tp)
+{
+	/* When 1 or 2 fingers are used to hold, always use a "quick" hold to
+	 * make the hold to stop kinetic scrolling user interaction feel more
+	 * natural.
+	 */
+	return (tp->gesture.finger_count == 1) ||
+	       (tp->gesture.finger_count == 2);
+}
+
+static bool
 tp_gesture_use_hold_timer(struct tp_dispatch *tp)
 {
 	/* When tap is not enabled, always use the timer */
 	if (!tp->tap.enabled)
+		return true;
+
+	/* Always use the timer if it is a quick hold */
+	if (tp_gesture_is_quick_hold(tp))
 		return true;
 
 	/* If the number of fingers on the touchpad exceeds the number of
@@ -510,12 +526,17 @@ tp_gesture_use_hold_timer(struct tp_dispatch *tp)
 static void
 tp_gesture_set_hold_timer(struct tp_dispatch *tp, uint64_t time)
 {
+	uint64_t timeout;
+
 	if (!tp->gesture.hold_enabled)
 		return;
 
 	if (tp_gesture_use_hold_timer(tp)) {
-		libinput_timer_set(&tp->gesture.hold_timer,
-				   time + DEFAULT_GESTURE_HOLD_TIMEOUT);
+		timeout = tp_gesture_is_quick_hold(tp) ?
+			  QUICK_GESTURE_HOLD_TIMEOUT :
+			  DEFAULT_GESTURE_HOLD_TIMEOUT;
+
+		libinput_timer_set(&tp->gesture.hold_timer, time + timeout);
 	}
 }
 
@@ -750,6 +771,10 @@ static void
 tp_gesture_hold_timeout(uint64_t now, void *data)
 {
 	struct tp_dispatch *tp = data;
+
+	if (tp_tap_dragging_or_double_tapping(tp) || tp_tap_dragging(tp))
+		return;
+
 	tp_gesture_handle_event(tp, GESTURE_EVENT_HOLD_TIMEOUT, now);
 }
 
@@ -759,7 +784,8 @@ tp_gesture_tap_timeout(struct tp_dispatch *tp, uint64_t time)
 	if (!tp->gesture.hold_enabled)
 		return;
 
-	tp_gesture_handle_event(tp, GESTURE_EVENT_HOLD_TIMEOUT, time);
+	if (!tp_gesture_is_quick_hold(tp))
+		tp_gesture_handle_event(tp, GESTURE_EVENT_HOLD_TIMEOUT, time);
 }
 
 static void
@@ -1261,6 +1287,13 @@ void
 tp_gesture_cancel(struct tp_dispatch *tp, uint64_t time)
 {
 	tp_gesture_end(tp, time, true);
+}
+
+void
+tp_gesture_cancel_motion_gestures(struct tp_dispatch *tp, uint64_t time)
+{
+	if (tp->gesture.started && tp->gesture.state != GESTURE_STATE_HOLD)
+		tp_gesture_end(tp, time, true);
 }
 
 void

@@ -897,6 +897,9 @@ void
 litest_timeout_gesture_hold(void);
 
 void
+litest_timeout_gesture_quick_hold(void);
+
+void
 litest_timeout_trackpoint(void);
 
 void

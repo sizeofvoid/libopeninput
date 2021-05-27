@@ -669,6 +669,9 @@ tp_tap_resume(struct tp_dispatch *tp, uint64_t time);
 bool
 tp_tap_dragging(const struct tp_dispatch *tp);
 
+bool
+tp_tap_dragging_or_double_tapping(const struct tp_dispatch *tp);
+
 void
 tp_edge_scroll_init(struct tp_dispatch *tp, struct evdev_device *device);
 
@@ -702,6 +705,9 @@ tp_gesture_stop(struct tp_dispatch *tp, uint64_t time);
 
 void
 tp_gesture_cancel(struct tp_dispatch *tp, uint64_t time);
+
+void
+tp_gesture_cancel_motion_gestures(struct tp_dispatch *tp, uint64_t time);
 
 void
 tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time);

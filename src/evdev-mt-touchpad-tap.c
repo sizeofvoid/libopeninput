@@ -1656,3 +1656,16 @@ tp_tap_dragging(const struct tp_dispatch *tp)
 		return false;
 	}
 }
+
+bool
+tp_tap_dragging_or_double_tapping(const struct tp_dispatch *tp)
+{
+	switch (tp->tap.state) {
+	case TAP_STATE_1FGTAP_DRAGGING_OR_DOUBLETAP:
+	case TAP_STATE_2FGTAP_DRAGGING_OR_DOUBLETAP:
+	case TAP_STATE_3FGTAP_DRAGGING_OR_DOUBLETAP:
+		return true;
+	default:
+		return false;
+	}
+}

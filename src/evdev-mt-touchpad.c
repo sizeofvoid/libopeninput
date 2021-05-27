@@ -1874,7 +1874,7 @@ tp_post_events(struct tp_dispatch *tp, uint64_t time)
 
 	if (ignore_motion) {
 		tp_edge_scroll_stop_events(tp, time);
-		tp_gesture_cancel(tp, time);
+		tp_gesture_cancel_motion_gestures(tp, time);
 		tp_gesture_post_events(tp, time, true);
 		return;
 	}

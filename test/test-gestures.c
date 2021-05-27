@@ -1574,10 +1574,144 @@ START_TEST(gestures_hold_then_3fg_buttonarea_scroll)
 }
 END_TEST
 
+START_TEST(gestures_hold_once_on_double_tap)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	if (!libinput_device_has_capability(dev->libinput_device,
+					    LIBINPUT_DEVICE_CAP_GESTURE))
+		return;
+
+	litest_enable_tap(dev->libinput_device);
+	litest_drain_events(li);
+
+	/* First tap, a hold gesture must be generated */
+	litest_touch_down(dev, 0, 50, 50);
+	libinput_dispatch(li);
+	litest_timeout_gesture_quick_hold();
+	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_assert_gesture_event(li,
+				    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+				    1);
+	litest_assert_gesture_event(li,
+				    LIBINPUT_EVENT_GESTURE_HOLD_END,
+				    1);
+	litest_assert_button_event(li, BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_empty_queue(li);
+
+	/* Double tap, don't generate an extra hold gesture */
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+	litest_timeout_gesture_quick_hold();
+
+	litest_assert_button_event(li, BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_LEFT,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(gestures_hold_once_tap_n_drag)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	int nfingers = _i; /* ranged test */
+	unsigned int button = 0;
+
+	if (nfingers > litest_slot_count(dev))
+		return;
+
+	if (!libinput_device_has_capability(dev->libinput_device,
+					    LIBINPUT_DEVICE_CAP_GESTURE))
+		return;
+
+	litest_enable_tap(dev->libinput_device);
+	litest_disable_drag_lock(dev->libinput_device);
+	litest_drain_events(li);
+
+	switch (nfingers) {
+	case 1:
+		button = BTN_LEFT;
+		break;
+	case 2:
+		button = BTN_RIGHT;
+		break;
+	case 3:
+		button = BTN_MIDDLE;
+		break;
+	default:
+		abort();
+	}
+
+	switch (nfingers) {
+	case 3:
+		litest_touch_down(dev, 2, 60, 30);
+		/* fallthrough */
+	case 2:
+		litest_touch_down(dev, 1, 50, 30);
+		/* fallthrough */
+	case 1:
+		litest_touch_down(dev, 0, 40, 30);
+		break;
+	}
+	libinput_dispatch(li);
+	litest_timeout_gesture_quick_hold();
+
+	switch (nfingers) {
+	case 3:
+		litest_touch_up(dev, 2);
+		/* fallthrough */
+	case 2:
+		litest_touch_up(dev, 1);
+		/* fallthrough */
+	case 1:
+		litest_touch_up(dev, 0);
+		break;
+	}
+	libinput_dispatch(li);
+
+	/* "Quick" hold gestures are only generated when using 1 or 2 fingers */
+	if (nfingers == 1 || nfingers == 2) {
+		litest_assert_gesture_event(li,
+					    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+					    nfingers);
+		litest_assert_gesture_event(li,
+					    LIBINPUT_EVENT_GESTURE_HOLD_END,
+					    nfingers);
+	}
+
+	/* Tap and drag, don't generate an extra hold gesture */
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_move_to(dev, 0, 50, 50, 80, 80, 20);
+	libinput_dispatch(li);
+
+	litest_assert_button_event(li, button,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_assert_button_event(li, button,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 TEST_COLLECTION(gestures)
 {
 	struct range cardinals = { N, N + NCARDINALS };
 	struct range range_hold = { 1, 5 };
+	struct range range_multifinger_tap = {1, 4};
 
 	litest_add(gestures_cap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add(gestures_nocap, LITEST_ANY, LITEST_TOUCHPAD);
@@ -1614,6 +1748,9 @@ TEST_COLLECTION(gestures)
 	litest_add_ranged(gestures_hold_then_pinch_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add_ranged(gestures_hold_then_spread, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add(gestures_hold_then_3fg_buttonarea_scroll, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
+
+	litest_add(gestures_hold_once_on_double_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add_ranged(gestures_hold_once_tap_n_drag, LITEST_TOUCHPAD, LITEST_ANY, &range_multifinger_tap);
 
 	/* Timing-sensitive test, valgrind is too slow */
 	if (!RUNNING_ON_VALGRIND)
