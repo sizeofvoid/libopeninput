@@ -154,6 +154,23 @@ tp_get_raw_pointer_motion(struct tp_dispatch *tp)
 	return raw;
 }
 
+static bool
+tp_has_pending_pointer_motion(struct tp_dispatch *tp, uint64_t time)
+{
+	struct device_float_coords raw;
+
+	if (!(tp->queued & TOUCHPAD_EVENT_MOTION))
+		return false;
+
+	/* Checking for raw pointer motion is enough in this case.
+	 * Calling tp_filter_motion is intentionally omitted to avoid calling
+	 * it twice (here and in tp_gesture_post_pointer_motion) with the same
+	 * event.
+	 */
+	raw = tp_get_raw_pointer_motion(tp);
+	return !device_float_is_zero(raw);
+}
+
 static void
 tp_gesture_post_pointer_motion(struct tp_dispatch *tp, uint64_t time)
 {
