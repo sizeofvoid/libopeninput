@@ -131,6 +131,11 @@ struct window {
 	} pinch;
 
 	struct {
+		int nfingers;
+		bool active;
+	} hold;
+
+	struct {
 		double x, y;
 		double x_in, y_in;
 		double x_down, y_down;
@@ -311,19 +316,18 @@ draw_outline:
 static inline void
 draw_gestures(struct window *w, cairo_t *cr)
 {
-	int i;
 	int offset;
 
 	/* swipe */
 	cairo_save(cr);
 	cairo_translate(cr, w->swipe.x, w->swipe.y);
-	for (i = 0; i < w->swipe.nfingers; i++) {
+	for (int i = 0; i < w->swipe.nfingers; i++) {
 		cairo_set_source_rgb(cr, .8, .8, .4);
 		cairo_arc(cr, (i - 2) * 40, 0, 20, 0, 2 * M_PI);
 		cairo_fill(cr);
 	}
 
-	for (i = 0; i < 4; i++) { /* 4 fg max */
+	for (int i = 0; i < 4; i++) { /* 4 fg max */
 		cairo_set_source_rgb(cr, 0, 0, 0);
 		cairo_arc(cr, (i - 2) * 40, 0, 20, 0, 2 * M_PI);
 		cairo_stroke(cr);
@@ -347,6 +351,29 @@ draw_gestures(struct window *w, cairo_t *cr)
 	cairo_stroke(cr);
 	cairo_arc(cr, -offset, offset, 20, 0, 2 * M_PI);
 	cairo_stroke(cr);
+
+	cairo_restore(cr);
+
+	/* hold */
+	cairo_save(cr);
+	cairo_translate(cr, w->width/2, w->height/2 + 100);
+
+	for (int i = 4; i > 0; i--) { /* 4 fg max */
+		double r, g, b, hold_alpha;
+
+		r = .4 + .2 * (i % 2);
+		g = .2;
+		b = .2;
+		hold_alpha = (w->hold.active && i <= w->hold.nfingers) ? 1 : .5;
+
+		cairo_set_source_rgba(cr, r, g, b, hold_alpha);
+		cairo_arc(cr, 0, 0, 20 * i, 0, 2 * M_PI);
+		cairo_fill(cr);
+
+		cairo_set_source_rgba(cr, 0, 0, 0, hold_alpha);
+		cairo_arc(cr, 0, 0, 20 * i, 0, 2 * M_PI);
+		cairo_stroke(cr);
+	}
 
 	cairo_restore(cr);
 }
@@ -1312,6 +1339,28 @@ handle_event_pinch(struct libinput_event *ev, struct window *w)
 }
 
 static void
+handle_event_hold(struct libinput_event *ev, struct window *w)
+{
+	struct libinput_event_gesture *g = libinput_event_get_gesture_event(ev);
+	int nfingers;
+
+	nfingers = libinput_event_gesture_get_finger_count(g);
+
+	switch (libinput_event_get_type(ev)) {
+	case LIBINPUT_EVENT_GESTURE_HOLD_BEGIN:
+		w->hold.nfingers = nfingers;
+		w->hold.active = true;
+		break;
+	case LIBINPUT_EVENT_GESTURE_HOLD_END:
+		w->hold.nfingers = nfingers;
+		w->hold.active = false;
+		break;
+	default:
+		abort();
+	}
+}
+
+static void
 handle_event_tablet(struct libinput_event *ev, struct window *w)
 {
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
@@ -1484,6 +1533,10 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 		case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE:
 		case LIBINPUT_EVENT_GESTURE_PINCH_END:
 			handle_event_pinch(ev, w);
+			break;
+		case LIBINPUT_EVENT_GESTURE_HOLD_BEGIN:
+		case LIBINPUT_EVENT_GESTURE_HOLD_END:
+			handle_event_hold(ev, w);
 			break;
 		case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
 		case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
