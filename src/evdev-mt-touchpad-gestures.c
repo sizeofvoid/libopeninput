@@ -979,10 +979,16 @@ tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 
 	ntouches = tp_gesture_get_active_touches(tp, touches, 4);
 
+	first = touches[0];
+	second = touches[1];
+
 	if (ntouches == 0)
 		return;
 
 	if (ntouches == 1) {
+		first->gesture.initial = first->point;
+		tp->gesture.touches[0] = first;
+
 		tp_gesture_handle_event(tp,
 					GESTURE_EVENT_FINGER_DETECTED,
 					time);
@@ -995,9 +1001,6 @@ tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 
 		return;
 	}
-
-	first = touches[0];
-	second = touches[1];
 
 	/* For 3+ finger gestures, we only really need to track two touches.
 	 * The human hand's finger arrangement means that for a pinch, the
