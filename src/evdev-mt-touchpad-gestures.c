@@ -811,6 +811,9 @@ tp_gesture_detect_motion_gestures(struct tp_dispatch *tp, uint64_t time)
 	double min_move = 1.5; /* min movement threshold in mm - count this touch */
 	double max_move = 4.0; /* max movement threshold in mm - ignore other touch */
 
+	first_moved = tp_gesture_mm_moved(tp, first);
+	first_mm = hypot(first_moved.x, first_moved.y);
+
 	if (tp->gesture.finger_count == 1) {
 		if (tp_has_pending_pointer_motion(tp, time)) {
 			tp_gesture_handle_event(tp,
@@ -831,9 +834,6 @@ tp_gesture_detect_motion_gestures(struct tp_dispatch *tp, uint64_t time)
 	/* Need more margin for error when there are more fingers */
 	max_move += 2.0 * (tp->gesture.finger_count - 2);
 	min_move += 0.5 * (tp->gesture.finger_count - 2);
-
-	first_moved = tp_gesture_mm_moved(tp, first);
-	first_mm = hypot(first_moved.x, first_moved.y);
 
 	second_moved = tp_gesture_mm_moved(tp, second);
 	second_mm = hypot(second_moved.x, second_moved.y);
