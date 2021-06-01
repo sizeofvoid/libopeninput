@@ -957,6 +957,12 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time)
 	}
 }
 
+static bool
+tp_gesture_are_gestures_enabled(struct tp_dispatch *tp)
+{
+	return (!tp->semi_mt && tp->num_slots > 1);
+}
+
 void
 tp_init_gesture(struct tp_dispatch *tp)
 {
@@ -965,7 +971,7 @@ tp_init_gesture(struct tp_dispatch *tp)
 	/* two-finger scrolling is always enabled, this flag just
 	 * decides whether we detect pinch. semi-mt devices are too
 	 * unreliable to do pinch gestures. */
-	tp->gesture.enabled = !tp->semi_mt && tp->num_slots > 1;
+	tp->gesture.enabled = tp_gesture_are_gestures_enabled(tp);
 
 	tp->gesture.state = GESTURE_STATE_NONE;
 
