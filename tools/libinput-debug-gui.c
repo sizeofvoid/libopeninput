@@ -845,6 +845,12 @@ map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 }
 
 static void
+window_quit(struct window *w)
+{
+	gtk_main_quit();
+}
+
+static void
 window_init(struct window *w)
 {
 	list_init(&w->evdev_devices);
@@ -859,7 +865,7 @@ window_init(struct window *w)
 	gtk_window_set_resizable(GTK_WINDOW(w->win), TRUE);
 	gtk_widget_realize(w->win);
 	g_signal_connect(G_OBJECT(w->win), "map-event", G_CALLBACK(map_event_cb), w);
-	g_signal_connect(G_OBJECT(w->win), "delete-event", G_CALLBACK(gtk_main_quit), NULL);
+	g_signal_connect(G_OBJECT(w->win), "delete-event", G_CALLBACK(window_quit), w);
 
 	w->area = gtk_drawing_area_new();
 	gtk_widget_set_events(w->area, 0);
@@ -1520,7 +1526,7 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 		case LIBINPUT_EVENT_KEYBOARD_KEY:
 			if (handle_event_keyboard(ev, w)) {
 				libinput_event_destroy(ev);
-				gtk_main_quit();
+				window_quit(w);
 				return FALSE;
 			}
 			break;
@@ -1579,7 +1585,10 @@ usage(void) {
 static gboolean
 signal_handler(void *data)
 {
-	gtk_main_quit();
+	struct libinput *li = data;
+	struct window *w = libinput_get_user_data(li);
+
+	window_quit(w);
 
 	return FALSE;
 }
@@ -1596,8 +1605,6 @@ main(int argc, char **argv)
 
 	if (!gtk_init_check(&argc, &argv))
 		return 77;
-
-	g_unix_signal_add(SIGINT, signal_handler, NULL);
 
 	tools_init_options(&options);
 
@@ -1672,6 +1679,8 @@ main(int argc, char **argv)
 		return EXIT_FAILURE;
 
 	libinput_set_user_data(li, &w);
+
+	g_unix_signal_add(SIGINT, signal_handler, li);
 
 	window_init(&w);
 	w.options = options;
