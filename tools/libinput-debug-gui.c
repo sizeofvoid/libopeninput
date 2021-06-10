@@ -82,6 +82,8 @@ struct window {
 	struct tools_options options;
 	struct list evdev_devices;
 
+	GMainLoop *event_loop;
+
 	GtkWidget *win;
 	GtkWidget *area;
 	int width, height; /* of window */
@@ -847,7 +849,15 @@ map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 static void
 window_quit(struct window *w)
 {
-	gtk_main_quit();
+	g_main_loop_quit(w->event_loop);
+}
+
+static void
+window_delete_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	struct window *w = data;
+
+	window_quit(w);
 }
 
 static void
@@ -865,7 +875,7 @@ window_init(struct window *w)
 	gtk_window_set_resizable(GTK_WINDOW(w->win), TRUE);
 	gtk_widget_realize(w->win);
 	g_signal_connect(G_OBJECT(w->win), "map-event", G_CALLBACK(map_event_cb), w);
-	g_signal_connect(G_OBJECT(w->win), "delete-event", G_CALLBACK(window_quit), w);
+	g_signal_connect(G_OBJECT(w->win), "delete-event", G_CALLBACK(window_delete_event_cb), w);
 
 	w->area = gtk_drawing_area_new();
 	gtk_widget_set_events(w->area, 0);
@@ -1687,7 +1697,8 @@ main(int argc, char **argv)
 	sockets_init(li);
 	handle_event_libinput(NULL, 0, li);
 
-	gtk_main();
+	w.event_loop = g_main_loop_new(NULL, FALSE);
+	g_main_loop_run(w.event_loop);
 
 	window_cleanup(&w);
 	libinput_unref(li);
