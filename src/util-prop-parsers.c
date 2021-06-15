@@ -474,7 +474,7 @@ out:
 uint32_t
 parse_evdev_abs_prop(const char *prop, struct input_absinfo *abs)
 {
-	char *str = strdup(prop);
+	char *str = safe_strdup(prop);
 	char *current, *next;
 	uint32_t mask = 0;
 	int bit = ABS_MASK_MIN;

@@ -139,7 +139,7 @@ wacom_handle_ekr(struct udev_device *device,
 				best_dist = dist;
 
 				free(*phys_attr);
-				*phys_attr = strdup(phys);
+				*phys_attr = safe_strdup(phys);
 			}
 		}
 

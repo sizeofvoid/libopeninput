@@ -139,7 +139,7 @@ path_seat_get_for_device(struct path_input *input,
 		seat_logical_name = safe_strdup(seat_logical_name_override);
 	} else {
 		seat_prop = udev_device_get_property_value(udev_device, "WL_SEAT");
-		seat_logical_name = strdup(seat_prop ? seat_prop : default_seat_name);
+		seat_logical_name = safe_strdup(seat_prop ? seat_prop : default_seat_name);
 	}
 
 	if (!seat_logical_name) {

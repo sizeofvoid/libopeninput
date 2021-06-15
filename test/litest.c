@@ -1566,7 +1566,7 @@ mkdir_p(const char *dir)
 	if (streq(dir, "/"))
 		return;
 
-	path = strdup(dir);
+	path = safe_strdup(dir);
 	parent = dirname(path);
 
 	mkdir_p(parent);

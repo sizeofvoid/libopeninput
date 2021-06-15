@@ -1986,7 +1986,7 @@ init_output_file(const char *file, bool is_prefix)
 		snprintf(name, sizeof(name), "%s", file);
 	}
 
-	return strdup(name);
+	return safe_strdup(name);
 }
 
 static bool
@@ -2509,7 +2509,7 @@ init_hidraw(struct record_context *ctx)
 
 			hidraw = zalloc(sizeof(*hidraw));
 			hidraw->fd = fd;
-			hidraw->name = strdup(entry->d_name);
+			hidraw->name = safe_strdup(entry->d_name);
 			hidraw->device = dev;
 			list_insert(&dev->hidraw_devices, &hidraw->link);
 		}

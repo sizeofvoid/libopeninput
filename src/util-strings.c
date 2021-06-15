@@ -228,11 +228,11 @@ trunkname(const char *filename)
 	char *suffix;
 
 	if (base == NULL)
-		return strdup("");
+		return safe_strdup("");
 
 	suffix = rindex(base, '.');
 	if (suffix == NULL)
-		return strdup(base);
+		return safe_strdup(base);
 	else
 		return strndup(base, suffix-base);
 }
