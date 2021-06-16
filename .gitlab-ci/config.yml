@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2021-07-28.1'
+.default_tag: &default_tag '2021-07-30.0'
 
 distributions:
   - name: fedora
@@ -31,7 +31,7 @@ distributions:
       - python3-pytest-xdist
       - libwacom-devel
       - cairo-devel
-      - gtk3-devel
+      - gtk4-devel
       - glib2-devel
       - mtdev-devel
       - diffutils
@@ -105,7 +105,7 @@ distributions:
       - python-sphinx_rtd_theme
       - python-pytest-xdist
       - libwacom
-      - gtk3
+      - gtk4
       - mtdev
       - diffutils
   - name: alpine
@@ -122,7 +122,7 @@ distributions:
       - libevdev-dev
       - libwacom-dev
       - cairo-dev
-      - gtk+3.0-dev
+      - gtk4.0-dev
       - mtdev-dev
       - bash
     build:
