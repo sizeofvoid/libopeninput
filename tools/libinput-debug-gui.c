@@ -48,6 +48,16 @@
 
 #include "shared.h"
 
+#ifdef GDK_WINDOWING_WAYLAND
+	#include <wayland-client.h>
+	#include "pointer-constraints-unstable-v1-client-protocol.h"
+	#if HAVE_GTK4
+		#include <gdk/wayland/gdkwayland.h>
+	#else
+		#include <gdk/gdkwayland.h>
+	#endif
+#endif
+
 #define clip(val_, min_, max_) min((max_), max((min_), (val_)))
 
 enum touch_state {
@@ -99,6 +109,16 @@ struct window {
 
 	/* abs position */
 	struct point abs;
+
+	/* Wayland and X11 pointer locking */
+	struct {
+		bool locked;
+
+#ifdef GDK_WINDOWING_WAYLAND
+		struct zwp_pointer_constraints_v1 *wayland_pointer_constraints;
+		struct zwp_locked_pointer_v1 *wayland_locked_pointer;
+#endif
+	} lock_pointer;
 
 	/* scroll bar positions */
 	struct {
@@ -180,6 +200,125 @@ struct window {
 
 	struct libinput_device *devices[50];
 };
+
+#ifdef GDK_WINDOWING_WAYLAND
+static void
+wayland_registry_global(void *data,
+			struct wl_registry *registry,
+			uint32_t name,
+			const char *interface,
+			uint32_t version)
+{
+	struct window *w = data;
+
+	if (!g_strcmp0(interface, "zwp_pointer_constraints_v1")) {
+		w->lock_pointer.wayland_pointer_constraints =
+			wl_registry_bind(registry,
+					 name,
+					 &zwp_pointer_constraints_v1_interface,
+					 1);
+        }
+}
+
+static void
+wayland_registry_global_remove(void *data,
+			       struct wl_registry *wl_registry,
+			       uint32_t name)
+{
+
+}
+
+struct wl_registry_listener registry_listener = {
+	wayland_registry_global,
+	wayland_registry_global_remove
+};
+
+static bool
+wayland_lock_pointer(struct window *w)
+{
+	GdkDisplay *gdk_display;
+	GdkSeat *gdk_seat;
+	GdkDevice *gdk_device;
+	struct wl_display *display;
+	struct wl_registry *registry;
+	struct wl_pointer *wayland_pointer;
+	struct wl_surface *surface;
+
+	w->lock_pointer.wayland_pointer_constraints = NULL;
+
+	gdk_display = gdk_display_get_default();
+	display = gdk_wayland_display_get_wl_display(gdk_display);
+
+	gdk_seat = gdk_display_get_default_seat(gdk_display);
+	gdk_device = gdk_seat_get_pointer(gdk_seat);
+	wayland_pointer = gdk_wayland_device_get_wl_pointer(gdk_device);
+
+	registry = wl_display_get_registry(display);
+	wl_registry_add_listener(registry, &registry_listener, w);
+	wl_display_roundtrip(display);
+
+	if (!w->lock_pointer.wayland_pointer_constraints)
+		return false;
+
+#if HAVE_GTK4
+	GtkNative *window = gtk_widget_get_native(w->win);
+	GdkSurface *gdk_surface = gtk_native_get_surface(window);
+	surface = gdk_wayland_surface_get_wl_surface(gdk_surface);
+#else
+	GdkWindow *window = gtk_widget_get_window(w->win);
+	surface = gdk_wayland_window_get_wl_surface(window);
+#endif
+
+	w->lock_pointer.wayland_locked_pointer =
+		zwp_pointer_constraints_v1_lock_pointer(w->lock_pointer.wayland_pointer_constraints,
+							surface,
+							wayland_pointer,
+							NULL,
+							ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+
+	return true;
+}
+
+static void
+wayland_unlock_pointer(struct window *w)
+{
+	w->lock_pointer.wayland_pointer_constraints = NULL;
+	zwp_locked_pointer_v1_destroy(w->lock_pointer.wayland_locked_pointer);
+}
+
+static inline bool
+backend_is_wayland(void)
+{
+	return GDK_IS_WAYLAND_DISPLAY(gdk_display_get_default());
+}
+#endif /* GDK_WINDOWING_WAYLAND */
+
+static bool
+window_lock_pointer(struct window *w)
+{
+	w->lock_pointer.locked = false;
+
+#ifdef GDK_WINDOWING_WAYLAND
+	if (backend_is_wayland())
+		w->lock_pointer.locked = wayland_lock_pointer(w);
+#endif
+
+	return w->lock_pointer.locked;
+}
+
+static void
+window_unlock_pointer(struct window *w)
+{
+	if (!w->lock_pointer.locked)
+		return;
+
+	w->lock_pointer.locked = false;
+
+#ifdef GDK_WINDOWING_WAYLAND
+	if (backend_is_wayland())
+		wayland_unlock_pointer(w);
+#endif
+}
 
 LIBINPUT_ATTRIBUTE_PRINTF(1, 2)
 static inline void
@@ -852,6 +991,8 @@ map_event_cb(GtkDrawingArea *widget, int width, int height, gpointer data)
 				       NULL);
 
 	gtk_widget_set_cursor_from_name(w->win, "none");
+
+	window_lock_pointer(w);
 }
 #else
 static void
@@ -859,7 +1000,6 @@ map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 	struct window *w = data;
 	GdkDisplay *display;
-	GdkSeat *seat;
 	GdkWindow *window;
 
 	window_place_ui_elements(widget, w);
@@ -873,16 +1013,7 @@ map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 			      gdk_cursor_new_for_display(display,
 							 GDK_BLANK_CURSOR));
 
-	seat = gdk_display_get_default_seat(display);
-	gdk_seat_grab(seat,
-		      window,
-		      GDK_SEAT_CAPABILITY_ALL_POINTING,
-		      FALSE, /* owner-events */
-		      NULL, /* cursor */
-		      NULL, /* triggering event */
-		      NULL, /* prepare_func */
-		      NULL /* prepare_func_data */
-		     );
+	window_lock_pointer(w);
 }
 #endif
 
@@ -1781,6 +1912,7 @@ main(int argc, char **argv)
 	w.event_loop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(w.event_loop);
 
+	window_unlock_pointer(&w);
 	window_cleanup(&w);
 	libinput_unref(li);
 

@@ -149,6 +149,7 @@ distributions:
       - gtk3
       - libmtdev
       - bash
+      - wayland
     build:
       extra_variables:
         - "MESON_ARGS: '-Dtests=false -Ddocumentation=false' # doxygen drags down too many deps"

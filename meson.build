@@ -559,12 +559,39 @@ if get_option('debug-gui')
 
 	dep_cairo = dependency('cairo')
 	dep_glib = dependency('glib-2.0')
+	dep_wayland_client = dependency('wayland-client', required : false)
+	dep_wayland_protocols = dependency('wayland-protocols', required : false)
 
 	debug_gui_sources = [ 'tools/libinput-debug-gui.c' ]
+
+	if dep_wayland_client.found() and dep_wayland_protocols.found()
+		wayland_scanner = find_program('wayland-scanner')
+		wlproto_dir = dep_wayland_protocols.get_pkgconfig_variable('pkgdatadir')
+
+		proto_name = 'pointer-constraints-unstable-v1'
+		input = files(join_paths(wlproto_dir, 'unstable/pointer-constraints/@0@.xml'.format(proto_name)))
+
+		wayland_headers = custom_target('@0@ client header'.format(proto_name),
+			input: input,
+			output: '@0@-client-protocol.h'.format(proto_name),
+			command: [wayland_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
+		)
+
+		wayland_sources = custom_target('@0@ source'.format(proto_name),
+			input: input,
+			output: '@0@-protocol.c'.format(proto_name),
+			command: [wayland_scanner, 'private-code', '@INPUT@', '@OUTPUT@'],
+		)
+
+		debug_gui_sources += [ wayland_headers, wayland_sources ]
+	endif
+
 	deps_debug_gui = [
 			dep_gtk,
 			dep_cairo,
 			dep_glib,
+			dep_wayland_client,
+			dep_wayland_protocols,
 			] + deps_tools
 	executable('libinput-debug-gui',
 		   debug_gui_sources,
