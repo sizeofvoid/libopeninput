@@ -8,6 +8,10 @@
 #                                      #
 ########################################
 
+# To change the gitlab CI, edit .gitlab-ci/ci.template and/or .gitlab-ci/config.yaml
+# and run ci-fairy generate-template. For details, see
+# https://freedesktop.pages.freedesktop.org/ci-templates/ci-fairy.html#templating-gitlab-ci-yml
+
 # This is a bit complicated for two reasons:
 # - we really want to run dnf/apt/... only once, updating on the test runner for
 #   each job takes forever. So we create a container image for each distribution
