@@ -1080,6 +1080,9 @@ evdev_device_dispatch(void *data)
 				once = true;
 			}
 			evdev_device_dispatch_one(device, &ev);
+		} else if (rc == -ENODEV) {
+			evdev_device_remove(device);
+			return;
 		}
 	} while (rc == LIBEVDEV_READ_STATUS_SUCCESS);
 

@@ -904,6 +904,42 @@ START_TEST(path_add_device_suspend_resume_remove_device)
 }
 END_TEST
 
+START_TEST(path_device_gone)
+{
+	struct libinput *li;
+	struct libinput_device *device;
+	struct libevdev_uinput *uinput;
+	struct libinput_event *event;
+
+	uinput = litest_create_uinput_device("test device", NULL,
+					     EV_KEY, BTN_LEFT,
+					     EV_KEY, BTN_RIGHT,
+					     EV_REL, REL_X,
+					     EV_REL, REL_Y,
+					     -1);
+
+	li = libinput_path_create_context(&simple_interface, NULL);
+	ck_assert_notnull(li);
+
+	device = libinput_path_add_device(li,
+					  libevdev_uinput_get_devnode(uinput));
+	ck_assert_notnull(device);
+
+	litest_drain_events(li);
+
+	libevdev_uinput_destroy(uinput);
+
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	ck_assert_notnull(event);
+	litest_assert_event_type(event, LIBINPUT_EVENT_DEVICE_REMOVED);
+	libinput_event_destroy(event);
+
+	libinput_unref(li);
+}
+END_TEST
+
 START_TEST(path_seat_recycle)
 {
 	struct libinput *li;
@@ -1036,6 +1072,7 @@ TEST_COLLECTION(path)
 	litest_add_no_device(path_add_invalid_path);
 	litest_add_for_device(path_remove_device, LITEST_SYNAPTICS_CLICKPAD_X220);
 	litest_add_for_device(path_double_remove_device, LITEST_SYNAPTICS_CLICKPAD_X220);
+	litest_add_no_device(path_device_gone);
 	litest_add_no_device(path_seat_recycle);
 	litest_add_for_device(path_udev_assign_seat, LITEST_SYNAPTICS_CLICKPAD_X220);
 
