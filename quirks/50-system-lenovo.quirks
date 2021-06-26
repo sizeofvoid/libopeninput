@@ -237,4 +237,10 @@ MatchVendor=0x27C6
 MatchProduct=0x01E8
 AttrEventCodeDisable=ABS_MT_PRESSURE;ABS_PRESSURE;
 
+# Duet 7i tablet switch activated by folding keyboard cover, or removing it.
+# We must not disable volume rocker 'keyboard'.
+[Lenovo Duet 7i]
+MatchName=AT Raw Set 2 keyboard
+MatchDMIModalias=dmi:*svnLENOVO:*pvrYogaDuet713IML05:*
+ModelTabletModeNoSuspend=1
 
