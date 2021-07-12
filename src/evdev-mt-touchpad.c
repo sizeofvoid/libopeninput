@@ -1916,6 +1916,7 @@ tp_handle_state(struct tp_dispatch *tp,
 	tp_apply_rotation(tp->device);
 }
 
+LIBINPUT_UNUSED
 static inline void
 tp_debug_touch_state(struct tp_dispatch *tp,
 		     struct evdev_device *device)
