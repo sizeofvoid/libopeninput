@@ -67,7 +67,10 @@ log_handler(struct libinput *this_is_null,
 	}
 
 	snprintf(buf, sizeof(buf), "%s: %s", prefix, format);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 	vfprintf(out, buf, args);
+#pragma GCC diagnostic pop
 }
 
 static void

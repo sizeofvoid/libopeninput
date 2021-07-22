@@ -2191,7 +2191,10 @@ libevdev_log_func(const struct libevdev *evdev,
 
 	snprintf(fmt, sizeof(fmt), "%s%s", prefix, format);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 	log_msg_va(libinput, pri, fmt, args);
+#pragma GCC diagnostic pop
 }
 
 static bool

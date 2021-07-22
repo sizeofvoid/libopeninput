@@ -775,7 +775,10 @@ evdev_log_msg(struct evdev_device *device,
 		 format);
 
 	va_start(args, format);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 	log_msg_va(evdev_libinput_context(device), priority, buf, args);
+#pragma GCC diagnostic pop
 	va_end(args);
 
 }
@@ -810,7 +813,10 @@ evdev_log_msg_ratelimit(struct evdev_device *device,
 		 format);
 
 	va_start(args, format);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 	log_msg_va(evdev_libinput_context(device), priority, buf, args);
+#pragma GCC diagnostic pop
 	va_end(args);
 
 	if (state == RATELIMIT_THRESHOLD) {

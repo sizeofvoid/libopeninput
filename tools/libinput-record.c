@@ -210,7 +210,10 @@ iprintf(FILE *fp,
 
 	snprintf(fmt, sizeof(fmt), "%s%s", &space[len - indent - 1], format);
 	va_start(args, format);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 	rc = vfprintf(fp, fmt, args);
+#pragma GCC diagnostic pop
 	va_end(args);
 
 	assert(rc != -1 && (unsigned int)rc > indent);
