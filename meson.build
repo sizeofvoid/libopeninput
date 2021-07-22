@@ -59,6 +59,7 @@ cflags = [
 	'-Wredundant-decls',
 	'-Wincompatible-pointer-types',
 	'-Wformat=2',
+	'-Wno-missing-field-initializers',
 	'-Wmissing-declarations',
 
 	'-fvisibility=hidden',
