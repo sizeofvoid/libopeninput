@@ -110,12 +110,10 @@ the library path and that all symlinks point to the new library.
 
 ::
 
-     $> ls -l /usr/lib64/libinput.*
-     -rwxr-xr-x 1 root root    946 Apr 28  2015 /usr/lib64/libinput.la
-     lrwxrwxrwx 1 root root     19 Feb  1 15:12 /usr/lib64/libinput.so -> libinput.so.10.13.0
-     lrwxrwxrwx 1 root root     19 Feb  1 15:12 /usr/lib64/libinput.so.10 -> libinput.so.10.13.0
-     -rwxr-xr-x 1 root root 204992 Feb  1 15:12 /usr/lib64/libinput.so.10.13.0
-
+     $> ldconfig -p | grep libinput | awk '{print $NF}' | xargs ls -l
+     lrwxrwxrwx 1 root root      14 lug 22 13:06 /usr/lib/x86_64-linux-gnu/libinput.so -> libinput.so.10
+     lrwxrwxrwx 1 root root      19 lug 22 13:06 /usr/lib/x86_64-linux-gnu/libinput.so.10 -> libinput.so.10.13.0
+     -rwxr-xr-x 1 root root 1064144 lug 22 13:06 /usr/lib/x86_64-linux-gnu/libinput.so.10.13.0
 
 .. _reverting_install:
 
