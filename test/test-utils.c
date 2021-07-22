@@ -1295,6 +1295,39 @@ START_TEST(list_test_append)
 }
 END_TEST
 
+START_TEST(list_test_foreach)
+{
+	struct list_test {
+		int val;
+		struct list node;
+	} tests[] = {
+		{ .val  = 1 },
+		{ .val  = 2 },
+		{ .val  = 3 },
+		{ .val  = 4 },
+	};
+	struct list_test *t;
+	struct list head;
+
+	list_init(&head);
+
+	ARRAY_FOR_EACH(tests, t) {
+		list_append(&head, &t->node);
+	}
+
+	/* Make sure both loop macros are a single line statement */
+	if (false)
+		list_for_each(t, &head, node) {
+			ck_abort_msg("We should not get here");
+		}
+
+	if (false)
+		list_for_each_safe(t, &head, node) {
+			ck_abort_msg("We should not get here");
+		}
+}
+END_TEST
+
 START_TEST(strverscmp_test)
 {
 	ck_assert_int_eq(libinput_strverscmp("", ""), 0);
@@ -1427,6 +1460,7 @@ litest_utils_suite(void)
 
 	tcase_add_test(tc, list_test_insert);
 	tcase_add_test(tc, list_test_append);
+	tcase_add_test(tc, list_test_foreach);
 	tcase_add_test(tc, strverscmp_test);
 	tcase_add_test(tc, streq_test);
 	tcase_add_test(tc, strneq_test);

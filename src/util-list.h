@@ -189,8 +189,10 @@ bool list_empty(const struct list *list);
  * @endcode
  */
 #define list_for_each_safe(pos, head, member)				\
-	pos = list_first_entry_by_type(head, __typeof__(*pos), member);			\
-	for (__typeof__(pos) _tmp = list_first_entry_by_type(&pos->member, __typeof__(*_tmp), member); \
+	for (__typeof__(pos) _tmp = ({ \
+				     pos = list_first_entry_by_type(head, __typeof__(*pos), member);	\
+				     list_first_entry_by_type(&pos->member, __typeof__(*_tmp), member); \
+				     }); \
 	     &pos->member != (head);					\
 	     pos = _tmp,						\
 	     _tmp = list_first_entry_by_type(&pos->member, __typeof__(*_tmp), member))
