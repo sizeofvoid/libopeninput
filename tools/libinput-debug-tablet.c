@@ -72,6 +72,7 @@ struct context {
 	} abs;
 };
 
+LIBINPUT_ATTRIBUTE_PRINTF(1, 2)
 static void
 print_line(const char *format, ...)
 {

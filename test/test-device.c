@@ -1421,6 +1421,7 @@ END_TEST
 
 char *debug_messages[64] = { NULL };
 
+LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void
 debug_log_handler(struct libinput *libinput,
 		  enum libinput_log_priority priority,

@@ -35,6 +35,7 @@
 
 static bool verbose = false;
 
+LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void
 log_handler(struct libinput *this_is_null,
 	    enum libinput_log_priority priority,
