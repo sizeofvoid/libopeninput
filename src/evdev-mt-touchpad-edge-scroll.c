@@ -404,7 +404,7 @@ tp_edge_scroll_handle_state(struct tp_dispatch *tp, uint64_t time)
 					"touch %d: unexpected state %d\n",
 					t->index,
 					t->state);
-			/* fallthrough */
+			_fallthrough_;
 		case TOUCH_END:
 			tp_edge_scroll_handle_event(tp,
 						    t,

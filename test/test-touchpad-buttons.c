@@ -963,11 +963,11 @@ START_TEST(touchpad_clickfinger_click_drag)
 		case 3:
 			if (nslots >= nfingers)
 				litest_touch_move(dev, 2, 60, 50 + i);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			if (nslots >= nfingers)
 				litest_touch_move(dev, 1, 50, 50 + i);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_move(dev, 0, 40, 50 + i);
 			break;

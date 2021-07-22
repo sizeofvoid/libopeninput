@@ -110,10 +110,10 @@ START_TEST(touchpad_doubletap)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -122,10 +122,10 @@ START_TEST(touchpad_doubletap)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -135,10 +135,10 @@ START_TEST(touchpad_doubletap)
 	switch (nfingers2) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -147,10 +147,10 @@ START_TEST(touchpad_doubletap)
 	switch (nfingers2) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -236,10 +236,10 @@ START_TEST(touchpad_multitap)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -247,10 +247,10 @@ START_TEST(touchpad_multitap)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -326,10 +326,10 @@ START_TEST(touchpad_multitap_n_drag_move)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -337,10 +337,10 @@ START_TEST(touchpad_multitap_n_drag_move)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -438,10 +438,10 @@ START_TEST(touchpad_multitap_n_drag_2fg)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -449,10 +449,10 @@ START_TEST(touchpad_multitap_n_drag_2fg)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -552,10 +552,10 @@ START_TEST(touchpad_multitap_n_drag_click)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -563,10 +563,10 @@ START_TEST(touchpad_multitap_n_drag_click)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -653,10 +653,10 @@ START_TEST(touchpad_multitap_timeout)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -665,10 +665,10 @@ START_TEST(touchpad_multitap_timeout)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -743,10 +743,10 @@ START_TEST(touchpad_multitap_n_drag_timeout)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -755,10 +755,10 @@ START_TEST(touchpad_multitap_n_drag_timeout)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -857,10 +857,10 @@ START_TEST(touchpad_multitap_n_drag_high_delay)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -871,10 +871,10 @@ START_TEST(touchpad_multitap_n_drag_high_delay)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -950,10 +950,10 @@ START_TEST(touchpad_multitap_n_drag_tap)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -962,10 +962,10 @@ START_TEST(touchpad_multitap_n_drag_tap)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -1065,10 +1065,10 @@ START_TEST(touchpad_multitap_n_drag_tap_click)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -1077,10 +1077,10 @@ START_TEST(touchpad_multitap_n_drag_tap_click)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -1186,10 +1186,10 @@ START_TEST(touchpad_tap_n_drag)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1197,10 +1197,10 @@ START_TEST(touchpad_tap_n_drag)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -1268,10 +1268,10 @@ START_TEST(touchpad_tap_n_drag_draglock)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1279,10 +1279,10 @@ START_TEST(touchpad_tap_n_drag_draglock)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -1353,10 +1353,10 @@ START_TEST(touchpad_tap_n_drag_draglock_tap)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1364,10 +1364,10 @@ START_TEST(touchpad_tap_n_drag_draglock_tap)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -1396,10 +1396,10 @@ START_TEST(touchpad_tap_n_drag_draglock_tap)
 	switch (nfingers2) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1407,10 +1407,10 @@ START_TEST(touchpad_tap_n_drag_draglock_tap)
 	switch (nfingers2) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -1456,10 +1456,10 @@ START_TEST(touchpad_tap_n_drag_draglock_tap_click)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1467,10 +1467,10 @@ START_TEST(touchpad_tap_n_drag_draglock_tap_click)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -1541,10 +1541,10 @@ START_TEST(touchpad_tap_n_drag_draglock_timeout)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1552,10 +1552,10 @@ START_TEST(touchpad_tap_n_drag_draglock_timeout)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -1620,10 +1620,10 @@ START_TEST(touchpad_tap_n_drag_2fg)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1631,10 +1631,10 @@ START_TEST(touchpad_tap_n_drag_2fg)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -1699,10 +1699,10 @@ START_TEST(touchpad_tap_n_drag_2fg_scroll)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1710,10 +1710,10 @@ START_TEST(touchpad_tap_n_drag_2fg_scroll)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -1779,10 +1779,10 @@ START_TEST(touchpad_tap_n_drag_draglock_2fg_scroll)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1790,10 +1790,10 @@ START_TEST(touchpad_tap_n_drag_draglock_2fg_scroll)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -1870,7 +1870,7 @@ START_TEST(touchpad_tap_n_drag_3fg_btntool)
 		break;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1880,10 +1880,10 @@ START_TEST(touchpad_tap_n_drag_3fg_btntool)
 		litest_event(dev, EV_KEY, BTN_TOOL_TRIPLETAP, 0);
 		litest_event(dev, EV_KEY, BTN_TOOL_DOUBLETAP, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -1961,10 +1961,10 @@ START_TEST(touchpad_tap_n_drag_3fg)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1972,10 +1972,10 @@ START_TEST(touchpad_tap_n_drag_3fg)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -2047,10 +2047,10 @@ START_TEST(touchpad_tap_n_drag_3fg_swipe)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -2058,10 +2058,10 @@ START_TEST(touchpad_tap_n_drag_3fg_swipe)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -2139,10 +2139,10 @@ START_TEST(touchpad_tap_n_drag_draglock_3fg_swipe)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -2150,10 +2150,10 @@ START_TEST(touchpad_tap_n_drag_draglock_3fg_swipe)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -2665,10 +2665,10 @@ START_TEST(touchpad_double_tap_click)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -2676,10 +2676,10 @@ START_TEST(touchpad_double_tap_click)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -2741,10 +2741,10 @@ START_TEST(touchpad_tap_n_drag_click)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -2752,10 +2752,10 @@ START_TEST(touchpad_tap_n_drag_click)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -3433,16 +3433,16 @@ START_TEST(touchpad_move_after_touch)
 	switch(nfingers) {
 	case 5:
 		litest_touch_down(dev, 4, 70, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 4:
 		litest_touch_down(dev, 3, 70, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -3465,16 +3465,16 @@ START_TEST(touchpad_move_after_touch)
 	switch(nfingers) {
 	case 5:
 		litest_touch_up(dev, 4);
-		/* fallthrough */
+		_fallthrough_;
 	case 4:
 		litest_touch_up(dev, 3);
-		/* fallthrough */
+		_fallthrough_;
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -3909,10 +3909,10 @@ START_TEST(touchpad_drag_disabled)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -3921,10 +3921,10 @@ START_TEST(touchpad_drag_disabled)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -3984,10 +3984,10 @@ START_TEST(touchpad_drag_disabled_immediate)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -3997,10 +3997,10 @@ START_TEST(touchpad_drag_disabled_immediate)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -4065,10 +4065,10 @@ START_TEST(touchpad_drag_disabled_multitap_no_drag)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -4076,10 +4076,10 @@ START_TEST(touchpad_drag_disabled_multitap_no_drag)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -4346,10 +4346,10 @@ START_TEST(touchpad_tap_palm_on_tapped)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -4357,10 +4357,10 @@ START_TEST(touchpad_tap_palm_on_tapped)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -4428,10 +4428,10 @@ START_TEST(touchpad_tap_palm_on_tapped_palm_down)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -4439,10 +4439,10 @@ START_TEST(touchpad_tap_palm_on_tapped_palm_down)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -4528,10 +4528,10 @@ START_TEST(touchpad_tap_palm_on_tapped_doubletap)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -4539,10 +4539,10 @@ START_TEST(touchpad_tap_palm_on_tapped_doubletap)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -4561,10 +4561,10 @@ START_TEST(touchpad_tap_palm_on_tapped_doubletap)
 	switch (nfingers2) {
 	case 3:
 		litest_touch_down(dev, 3, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 2, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 1, 40, 30);
 		break;
@@ -4572,10 +4572,10 @@ START_TEST(touchpad_tap_palm_on_tapped_doubletap)
 	switch (nfingers2) {
 	case 3:
 		litest_touch_up(dev, 3);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 1);
 		break;
@@ -4641,10 +4641,10 @@ START_TEST(touchpad_tap_palm_on_drag)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -4652,10 +4652,10 @@ START_TEST(touchpad_tap_palm_on_drag)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -4726,10 +4726,10 @@ START_TEST(touchpad_tap_palm_on_drag_2fg)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -4737,10 +4737,10 @@ START_TEST(touchpad_tap_palm_on_drag_2fg)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -5039,10 +5039,10 @@ START_TEST(touchpad_tap_palm_after_tap)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -5050,10 +5050,10 @@ START_TEST(touchpad_tap_palm_after_tap)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -5121,10 +5121,10 @@ START_TEST(touchpad_tap_palm_multitap)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -5132,10 +5132,10 @@ START_TEST(touchpad_tap_palm_multitap)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -5207,10 +5207,10 @@ START_TEST(touchpad_tap_palm_multitap_timeout)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -5218,10 +5218,10 @@ START_TEST(touchpad_tap_palm_multitap_timeout)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -5292,10 +5292,10 @@ START_TEST(touchpad_tap_palm_multitap_down_again)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -5303,10 +5303,10 @@ START_TEST(touchpad_tap_palm_multitap_down_again)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;
@@ -5325,10 +5325,10 @@ START_TEST(touchpad_tap_palm_multitap_down_again)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 3, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 2, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 1, 40, 30);
 			break;
@@ -5336,10 +5336,10 @@ START_TEST(touchpad_tap_palm_multitap_down_again)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 3);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 1);
 			break;
@@ -5408,10 +5408,10 @@ START_TEST(touchpad_tap_palm_multitap_click)
 		switch (nfingers) {
 		case 3:
 			litest_touch_down(dev, 2, 60, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_down(dev, 1, 50, 30);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_down(dev, 0, 40, 30);
 			break;
@@ -5419,10 +5419,10 @@ START_TEST(touchpad_tap_palm_multitap_click)
 		switch (nfingers) {
 		case 3:
 			litest_touch_up(dev, 2);
-			/* fallthrough */
+			_fallthrough_;
 		case 2:
 			litest_touch_up(dev, 1);
-			/* fallthrough */
+			_fallthrough_;
 		case 1:
 			litest_touch_up(dev, 0);
 			break;

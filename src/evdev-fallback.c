@@ -121,7 +121,7 @@ post_trackpoint_scroll(struct evdev_device *device,
 		return true;
 	case BUTTONSCROLL_READY:
 		device->scroll.button_scroll_state = BUTTONSCROLL_SCROLLING;
-		/* fallthrough */
+		_fallthrough_;
 	case BUTTONSCROLL_SCROLLING:
 		evdev_post_scroll(device, time,
 				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,

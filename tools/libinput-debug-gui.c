@@ -1407,7 +1407,7 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 			w->tool.y_up = y;
 			w->tool.is_down = false;
 		}
-		/* fallthrough */
+		_fallthrough_;
 	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
 		w->tool.x = x;
 		w->tool.y = y;

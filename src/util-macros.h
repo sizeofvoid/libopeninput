@@ -57,3 +57,5 @@
 
 
 #define CASE_RETURN_STRING(a) case a: return #a
+
+#define _fallthrough_ __attribute__((fallthrough))

@@ -823,13 +823,13 @@ test_gesture_hold(int nfingers)
 	switch (nfingers) {
 	case 4:
 		litest_touch_down(dev, 3, 70, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -850,13 +850,13 @@ test_gesture_hold(int nfingers)
 	switch (nfingers) {
 	case 4:
 		litest_touch_up(dev, 3);
-		/* fallthrough */
+		_fallthrough_;
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
@@ -888,13 +888,13 @@ test_gesture_hold_cancel(int nfingers)
 	switch (nfingers) {
 	case 4:
 		litest_touch_down(dev, 3, 70, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1655,10 +1655,10 @@ START_TEST(gestures_hold_once_tap_n_drag)
 	switch (nfingers) {
 	case 3:
 		litest_touch_down(dev, 2, 60, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_down(dev, 1, 50, 30);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_down(dev, 0, 40, 30);
 		break;
@@ -1669,10 +1669,10 @@ START_TEST(gestures_hold_once_tap_n_drag)
 	switch (nfingers) {
 	case 3:
 		litest_touch_up(dev, 2);
-		/* fallthrough */
+		_fallthrough_;
 	case 2:
 		litest_touch_up(dev, 1);
-		/* fallthrough */
+		_fallthrough_;
 	case 1:
 		litest_touch_up(dev, 0);
 		break;
