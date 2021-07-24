@@ -3268,24 +3268,58 @@ litest_print_event(struct libinput_event *event)
 	fprintf(stderr, "\n");
 }
 
+#define litest_assert_event_type_is_one_of(...) \
+    _litest_assert_event_type_is_one_of(__VA_ARGS__, -1)
+
+static void
+_litest_assert_event_type_is_one_of(struct libinput_event *event, ...)
+{
+	va_list args;
+	enum libinput_event_type expected_type;
+	enum libinput_event_type actual_type = libinput_event_get_type(event);
+	bool match = false;
+
+	va_start(args, event);
+	expected_type = va_arg(args, int);
+	while ((int)expected_type != -1 && !match) {
+		match = (actual_type == expected_type);
+		expected_type = va_arg(args, int);
+	}
+	va_end(args);
+
+	if (match)
+		return;
+
+	fprintf(stderr,
+		"FAILED EVENT TYPE: %s: have %s (%d) but want ",
+		libinput_device_get_name(libinput_event_get_device(event)),
+		litest_event_get_type_str(event),
+		libinput_event_get_type(event));
+
+	va_start(args, event);
+	expected_type = va_arg(args, int);
+	while ((int)expected_type != -1) {
+		fprintf(stderr,
+			"%s (%d)",
+			litest_event_type_str(expected_type),
+			expected_type);
+		expected_type = va_arg(args, int);
+
+		if ((int)expected_type != -1)
+			fprintf(stderr, " || ");
+	}
+
+	fprintf(stderr, "\nWrong event is: ");
+	litest_print_event(event);
+	litest_backtrace();
+	abort();
+}
+
 void
 litest_assert_event_type(struct libinput_event *event,
 			 enum libinput_event_type want)
 {
-	if (libinput_event_get_type(event) == want)
-		return;
-
-	fprintf(stderr,
-		"FAILED EVENT TYPE: %s: have %s (%d) but want %s (%d)\n",
-		libinput_device_get_name(libinput_event_get_device(event)),
-		litest_event_get_type_str(event),
-		libinput_event_get_type(event),
-		litest_event_type_str(want),
-		want);
-	fprintf(stderr, "Wrong event is: ");
-	litest_print_event(event);
-	litest_backtrace();
-	abort();
+	litest_assert_event_type_is_one_of(event, want);
 }
 
 void
