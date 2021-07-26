@@ -40,12 +40,10 @@
 
 include:
   {% for distro in distributions|sort(attribute="name") %}
-  {% if not distro.does_not_have_ci_templates %}
   # {{ distro.name.capitalize() }} container builder template
   - project: 'freedesktop/ci-templates'
     ref: *template_sha
     file: '/templates/{{distro.name}}.yml'
-  {% endif %}
   {% endfor %}
   - project: 'freedesktop/ci-templates'
     ref: *template_sha
@@ -76,7 +74,6 @@ variables:
 {% for distro in distributions %}
   {{"%-17s" | format(distro.name.upper() + '_PACKAGES:')}} '{{ distro.packages|join(' ')}}'
 {% endfor %}
-  FREEBSD_BUILD_PKGS: 'meson'
   ############################ end of package lists #############################
 
   # these tags should be updated each time the list of packages is updated
@@ -92,7 +89,6 @@ variables:
 {% endif %}
 {% endfor %}
 
-  FREEBSD_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/freebsd/11.2:$FREEBSD_TAG
   FDO_UPSTREAM_REPO: libinput/libinput
 
   MESON_BUILDDIR: "build dir"
@@ -183,12 +179,14 @@ check-commit:
     - kvm
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: {{version}}
+    FDO_DISTRIBUTION_VERSION: "{{version}}"
     FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_QEMU_TAG
     FDO_DISTRIBUTION_PACKAGES: ${{distro.name.upper()}}_PACKAGES
+
 {% endfor %}
 
 {% for distro in distributions %}
+{% if not distro.skip_container %}
 {% for version in distro.versions %}
 {{distro.name}}:{{version}}@container-prep:
   extends:
@@ -202,58 +200,8 @@ check-commit:
     FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_TAG
 
 {% endfor %}
+{% endif %}
 {% endfor %}
-
-
-# Note that we want to use the latest buildah image, and for that
-# we use one of the .fdo.container-build@distribution by replacing the
-# `script`.
-.freebsd@container-prep:
-  extends:
-    - .policy
-    - .fdo.container-build@fedora
-  stage: prep
-  script:
-    # log in to the registry
-    - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-
-    # get the full container image name
-    - export IMAGE=freebsd/$FREEBSD_VERSION:$FREEBSD_TAG
-
-    - if [[ x"$FDO_FORCE_REBUILD" != x ]] ; then touch .rebuild; fi
-
-    # pull the latest upstream image if it exists
-    - test -e .rebuild || skopeo copy --dest-creds $CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD
-                                 docker://$CI_REGISTRY/$FDO_UPSTREAM_REPO/$IMAGE
-                                 docker://$CI_REGISTRY_IMAGE/$IMAGE && exit 0 || true ;
-
-    # check if our image is already in the current registry
-    - test -e .rebuild || skopeo inspect docker://$CI_REGISTRY_IMAGE/$IMAGE > /dev/null && exit 0 || true ;
-
-    - export BUILDAH_RUN="buildah run --isolation chroot"
-    - export BUILDAH_COMMIT="buildah commit --format docker"
-    - buildcntr=$(buildah from --quiet  myfreeweb/freebsd-cross:latest)
-    - $BUILDAH_RUN $buildcntr apk add --no-cache $FREEBSD_BUILD_PKGS
-    - $BUILDAH_RUN $buildcntr pkg -r /freebsd update -f
-    - $BUILDAH_RUN $buildcntr pkg -r /freebsd install -y $FREEBSD_PACKAGES
-    - buildah config --workingdir /app $buildcntr
-    # tag the current container
-    - $BUILDAH_COMMIT $buildcntr $FREEBSD_CONTAINER_IMAGE
-    # clean up the working container
-    - buildah rm $buildcntr
-
-    # push the container image to the libinput registry
-    - podman push --quiet $FREEBSD_CONTAINER_IMAGE
-    - skopeo copy --dest-creds $CI_REGISTRY_USER:$CI_REGISTRY_PASSWORD
-        docker://$FREEBSD_CONTAINER_IMAGE
-        docker://$CI_REGISTRY_IMAGE/freebsd/$FREEBSD_VERSION:$CI_JOB_ID
-
-freebsd:11.2@container-prep:
-  extends:
-    - .freebsd@container-prep
-  variables:
-    GIT_STRATEGY: none
-    FREEBSD_VERSION: "11.2"
 
 
 #################################################################
@@ -288,6 +236,7 @@ freebsd:11.2@container-prep:
     - schedules
 
 {% for distro in distributions %}
+{% if not distro.skip_container %}
 {% for version in distro.versions %}
 {{distro.name}}:{{version}}@container-clean:
   extends:
@@ -299,14 +248,8 @@ freebsd:11.2@container-prep:
     FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_TAG
 
 {% endfor %}
+{% endif %}
 {% endfor %}
-
-freebsd:11.2@container-clean:
-  extends:
-    - .container-clean
-  variables:
-    GIT_STRATEGY: none
-    CURRENT_CONTAINER_IMAGE: $FREEBSD_CONTAINER_IMAGE
 
 #################################################################
 #                                                               #
@@ -404,6 +347,7 @@ freebsd:11.2@container-clean:
 {# qemu tests are only done for the latest version of any distribution #}
 {% for distro in distributions if distro.want_qemu %}
 {% set version = "{}".format(distro.versions|last()) %}
+{% if distro.use_for_custom_build_tests %}
 .{{distro.name}}:{{version}}@test-suite-vm:
   extends:
     - .test-suite-vm
@@ -439,6 +383,7 @@ vm-valgrind-{{suite.name}}:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 {% endfor %}
+{% endif %}
 {% endfor %}{# for if distro.want_qemu #}
 
 {% for distro in distributions if distro.use_for_custom_build_tests %}
@@ -646,6 +591,7 @@ coverity:
 #################################################################
 
 {% for distro in distributions %}
+{% if not distro.skip_container %}
 {% for version in distro.versions %}
 {{distro.name}}:{{version}}@default-build:
   stage: distro
@@ -666,26 +612,27 @@ coverity:
 
 
 {% endfor %}
-{% endfor %}
-
-#
-# FreeBSD
-#
-.freebsd@template:
+{% else %}
+{% set version = "{}".format(distro.versions|last()) %}
+{{distro.name}}:{{version}}@default-build:
   stage: distro
   extends:
-    - .build@template
-  image: $FREEBSD_CONTAINER_IMAGE
+    - .build-in-qemu@template
+    - .fdo.distribution-image@{{distro.name}}
   variables:
-    MESON_ARGS: '--cross-file freebsd -Ddocumentation=false -Dtests=false -Depoll-dir=/freebsd/usr/local/'
-    # Can't run FreeBSD tests on Linux machine, so MESON_TEST_ARGS shouldn't be "test"
-    MESON_TEST_ARGS: ''
-
-freebsd:11.2@default-build:
-  extends:
-    - .freebsd@template
+    FDO_DISTRIBUTION_VERSION: '{{version}}'
+    FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_QEMU_TAG
+    {# Where we have extra_variables defined, add them to the list #}
+    {% if distro.build is defined and distro.build.extra_variables is defined %}
+    {% for var in distro.build.extra_variables %}
+    {{var}}
+    {% endfor %}
+    {% endif %}
   needs:
-    - "freebsd:11.2@container-prep"
+    - "{{distro.name}}:{{version}}@qemu-prep"
+
+{% endif %}
+{% endfor %}
 
 #################################################################
 #                                                               #
