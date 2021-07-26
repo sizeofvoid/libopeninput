@@ -88,7 +88,7 @@ variables:
 {% endfor %}
 {% for distro in distributions %}
 {% if distro.want_qemu %}
-  QEMU_TAG:    'qemu-vm-{{distro.tag}}'
+  {{"%-20s"| format(distro.name.upper() + '_QEMU_TAG:')}} '{{distro.name}}-qemu-vm-{{distro.tag}}'
 {% endif %}
 {% endfor %}
 
@@ -184,7 +184,7 @@ check-commit:
   variables:
     GIT_STRATEGY: none
     FDO_DISTRIBUTION_VERSION: {{version}}
-    FDO_DISTRIBUTION_TAG: $QEMU_TAG
+    FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_QEMU_TAG
     FDO_DISTRIBUTION_PACKAGES: ${{distro.name.upper()}}_PACKAGES
 {% endfor %}
 
@@ -402,7 +402,7 @@ freebsd:11.2@container-clean:
     - .test-suite-vm
   variables:
     FDO_DISTRIBUTION_VERSION: {{version}}
-    FDO_DISTRIBUTION_TAG: $QEMU_TAG
+    FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_QEMU_TAG
   needs:
     - "{{distro.name}}:{{version}}@qemu-prep"
 

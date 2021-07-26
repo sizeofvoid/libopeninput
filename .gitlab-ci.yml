@@ -102,7 +102,7 @@ variables:
   ARCH_TAG:    '2021-05-12.0'
   ALPINE_TAG:  '2021-05-12.0'
   FREEBSD_TAG: '2021-05-12.0'
-  QEMU_TAG:    'qemu-vm-2021-05-12.0'
+  FEDORA_QEMU_TAG:     'fedora-qemu-vm-2021-05-12.0'
 
   FREEBSD_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/freebsd/11.2:$FREEBSD_TAG
   FDO_UPSTREAM_REPO: libinput/libinput
@@ -193,7 +193,7 @@ fedora:34@qemu-prep:
   variables:
     GIT_STRATEGY: none
     FDO_DISTRIBUTION_VERSION: 34
-    FDO_DISTRIBUTION_TAG: $QEMU_TAG
+    FDO_DISTRIBUTION_TAG: $FEDORA_QEMU_TAG
     FDO_DISTRIBUTION_PACKAGES: $FEDORA_PACKAGES
 
 fedora:33@container-prep:
@@ -519,7 +519,7 @@ freebsd:11.2@container-clean:
     - .test-suite-vm
   variables:
     FDO_DISTRIBUTION_VERSION: 34
-    FDO_DISTRIBUTION_TAG: $QEMU_TAG
+    FDO_DISTRIBUTION_TAG: $FEDORA_QEMU_TAG
   needs:
     - "fedora:34@qemu-prep"
 
