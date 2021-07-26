@@ -2344,18 +2344,17 @@ tablet_init_left_handed(struct evdev_device *device)
 				       tablet_change_to_left_handed);
 }
 
-static void
-tablet_init_smoothing(struct evdev_device *device,
-		      struct tablet_dispatch *tablet)
+static bool
+tablet_is_aes(struct evdev_device *device,
+	      struct tablet_dispatch *tablet)
 {
-	size_t history_size = ARRAY_LENGTH(tablet->history.samples);
+	bool is_aes = false;
 #if HAVE_LIBWACOM
 	const char *devnode;
 	WacomDeviceDatabase *db;
 	WacomDevice *libwacom_device = NULL;
 	const int *stylus_ids;
 	int nstyli;
-	bool is_aes = false;
 	int vid = evdev_device_get_id_vendor(device);
 
 	/* Wacom-specific check for whether smoothing is required:
@@ -2384,12 +2383,36 @@ tablet_init_smoothing(struct evdev_device *device,
 		}
 	}
 
-	if (is_aes)
-		history_size = 1;
-
 	libwacom_destroy(libwacom_device);
+
 out:
 #endif
+	return is_aes;
+}
+
+static void
+tablet_init_smoothing(struct evdev_device *device,
+		      struct tablet_dispatch *tablet)
+{
+	size_t history_size = ARRAY_LENGTH(tablet->history.samples);
+	struct quirks_context *quirks = NULL;
+	struct quirks *q = NULL;
+	bool use_smoothing = true;
+
+	quirks = evdev_libinput_context(device)->quirks;
+	q = quirks_fetch_for_device(quirks, device->udev_device);
+
+	/* By default, always enable smoothing except on AES devices.
+	 * AttrTabletSmoothing can override this, if necessary.
+	 */
+	if (!q || !quirks_get_bool(q, QUIRK_ATTR_TABLET_SMOOTHING, &use_smoothing))
+		use_smoothing = !tablet_is_aes(device, tablet);
+
+	/* Setting the history size to 1 means we never do any actual smoothing. */
+	if (!use_smoothing)
+		history_size = 1;
+
+	quirks_unref(q);
 	tablet->history.size = history_size;
 }
 

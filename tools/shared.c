@@ -732,6 +732,7 @@ tools_list_device_quirks(struct quirks_context *ctx,
 				callback(userdata, buf);
 				break;
 			case QUIRK_ATTR_USE_VELOCITY_AVERAGING:
+			case QUIRK_ATTR_TABLET_SMOOTHING:
 				snprintf(buf, sizeof(buf), "%s=1", name);
 				callback(userdata, buf);
 				break;
