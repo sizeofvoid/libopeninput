@@ -190,3 +190,6 @@ AttrInputPropEnable=INPUT_PROP_BUTTONPAD;INPUT_PROP_POINTER;
 AttrPointingStickIntegration=internal|external
     Indicates the integration of the pointing stick. This is a string enum.
     Only needed for external pointing sticks. These are rare.
+AttrTabletSmoothing=1|0
+    Enables (1) or disables (0) input smoothing for tablet devices. Smoothing is enabled
+    by default, except on AES devices.
