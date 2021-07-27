@@ -74,83 +74,6 @@ gesture into an action or limit a gesture to specific directions only.
 The illustration above shows a vertical three-finger swipe. The coordinates
 provided during the gesture are the movements of the logical center.
 
-.. _gestures_touchscreens:
-
-------------------------------------------------------------------------------
-Touchscreen gestures
-------------------------------------------------------------------------------
-
-Touchscreen gestures are **not** interpreted by libinput. Rather, any touch
-point is passed to the caller and any interpretation of gestures is up to
-the caller or, eventually, the X or Wayland client.
-
-Interpreting gestures on a touchscreen requires context that libinput does
-not have, such as the location of windows and other virtual objects on the
-screen as well as the context of those virtual objects:
-
-.. figure:: touchscreen-gestures.svg
-    :align: center
-
-    Context-sensitivity of touchscreen gestures
-
-In the above example, the finger movements are identical but in the left
-case both fingers are located within the same window, thus suggesting an
-attempt to zoom. In the right case  both fingers are located on a window
-border, thus suggesting a window movement. libinput has no knowledge of the
-window coordinates and thus cannot differentiate the two.
-
-.. _gestures_softbuttons:
-
-------------------------------------------------------------------------------
-Gestures with enabled software buttons
-------------------------------------------------------------------------------
-
-If the touchpad device is a :ref:`Clickpad <touchpads_buttons_clickpads>`, it
-is recommended that a caller switches to :ref:`clickfinger`.
-Usually fingers placed in a :ref:`software button area <software_buttons>`
-are not considered for gestures, resulting in some gestures to be
-interpreted as pointer motion or two-finger scroll events.
-
-.. figure:: pinch-gestures-softbuttons.svg
-    :align: center
-
-    Interference of software buttons and pinch gestures
-
-In the example above, the software button area is highlighted in red. The
-user executes a three-finger pinch gesture, with the thumb remaining in the
-software button area. libinput ignores fingers within the software button
-areas, the movement of the remaining fingers is thus interpreted as a
-two-finger scroll motion.
-
-.. _gestures_twofinger_touchpads:
-
-------------------------------------------------------------------------------
-Gestures on two-finger touchpads
-------------------------------------------------------------------------------
-
-As of kernel 4.2, many :ref:`touchpads_touch_partial_mt` provide only two
-slots. This affects how gestures can be interpreted. Touchpads with only two
-slots can identify two touches by position but can usually tell that there
-is a third (or fourth) finger down on the touchpad - without providing
-positional information for that finger.
-
-Touchpoints are assigned in sequential order and only the first two touch
-points are trackable. For libinput this produces an ambiguity where it is
-impossible to detect whether a gesture is a pinch gesture or a swipe gesture
-whenever a user puts the index and middle finger down first. Since the third
-finger does not have positional information, it's location cannot be
-determined.
-
-.. figure:: gesture-2fg-ambiguity.svg
-    :align: center
-
-    Ambiguity of three-finger gestures on two-finger touchpads
-
-The image above illustrates this ambiguity. The index and middle finger are
-set down first, the data stream from both finger positions looks identical.
-In this case, libinput assumes the fingers are in a horizontal arrangement
-(the right image above) and use a swipe gesture.
-
 .. _gestures_hold:
 
 ------------------------------------------------------------------------------
@@ -371,3 +294,80 @@ reliable enough. libinput may change internal timeouts and thresholds
 depending on whether tap-to-click is enabled and the hold gesture event may
 not match touch sequences that a user would expect to be a tap-to-click
 interaction.
+
+.. _gestures_touchscreens:
+
+------------------------------------------------------------------------------
+Touchscreen gestures
+------------------------------------------------------------------------------
+
+Touchscreen gestures are **not** interpreted by libinput. Rather, any touch
+point is passed to the caller and any interpretation of gestures is up to
+the caller or, eventually, the X or Wayland client.
+
+Interpreting gestures on a touchscreen requires context that libinput does
+not have, such as the location of windows and other virtual objects on the
+screen as well as the context of those virtual objects:
+
+.. figure:: touchscreen-gestures.svg
+    :align: center
+
+    Context-sensitivity of touchscreen gestures
+
+In the above example, the finger movements are identical but in the left
+case both fingers are located within the same window, thus suggesting an
+attempt to zoom. In the right case  both fingers are located on a window
+border, thus suggesting a window movement. libinput has no knowledge of the
+window coordinates and thus cannot differentiate the two.
+
+.. _gestures_softbuttons:
+
+------------------------------------------------------------------------------
+Gestures with enabled software buttons
+------------------------------------------------------------------------------
+
+If the touchpad device is a :ref:`Clickpad <touchpads_buttons_clickpads>`, it
+is recommended that a caller switches to :ref:`clickfinger`.
+Usually fingers placed in a :ref:`software button area <software_buttons>`
+are not considered for gestures, resulting in some gestures to be
+interpreted as pointer motion or two-finger scroll events.
+
+.. figure:: pinch-gestures-softbuttons.svg
+    :align: center
+
+    Interference of software buttons and pinch gestures
+
+In the example above, the software button area is highlighted in red. The
+user executes a three-finger pinch gesture, with the thumb remaining in the
+software button area. libinput ignores fingers within the software button
+areas, the movement of the remaining fingers is thus interpreted as a
+two-finger scroll motion.
+
+.. _gestures_twofinger_touchpads:
+
+------------------------------------------------------------------------------
+Gestures on two-finger touchpads
+------------------------------------------------------------------------------
+
+As of kernel 4.2, many :ref:`touchpads_touch_partial_mt` provide only two
+slots. This affects how gestures can be interpreted. Touchpads with only two
+slots can identify two touches by position but can usually tell that there
+is a third (or fourth) finger down on the touchpad - without providing
+positional information for that finger.
+
+Touchpoints are assigned in sequential order and only the first two touch
+points are trackable. For libinput this produces an ambiguity where it is
+impossible to detect whether a gesture is a pinch gesture or a swipe gesture
+whenever a user puts the index and middle finger down first. Since the third
+finger does not have positional information, it's location cannot be
+determined.
+
+.. figure:: gesture-2fg-ambiguity.svg
+    :align: center
+
+    Ambiguity of three-finger gestures on two-finger touchpads
+
+The image above illustrates this ambiguity. The index and middle finger are
+set down first, the data stream from both finger positions looks identical.
+In this case, libinput assumes the fingers are in a horizontal arrangement
+(the right image above) and use a swipe gesture.
