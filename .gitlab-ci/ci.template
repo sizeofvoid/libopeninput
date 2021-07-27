@@ -36,7 +36,7 @@
 # <distribution>:<version>@activity:
 #  e.g. fedora:31@build-default
 
-.templates_sha: &template_sha 18194044f0f984c8815bc9a1a146582f6bf15d41 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha 007f3e2fe2235328e77d3cd4ce007ab41cd9ce6c
 
 include:
   {% for distro in distributions|sort(attribute="name") %}
