@@ -200,19 +200,18 @@ longer be considered the current hold gesture. A **end(cancelled)** event
 applies to the whole gesture (all fingers). For example, a pointer motion on
 a touchpad may trigger this sequence:
 
-+----------------+---------------------+
-| Action         |  Event              |
-+================+=====================+
-|Finger 1 down   | **hold begin**      |
-+----------------+---------------------+
-|Finger 1 motion | | **hold cancel**   |
-|                | | **pointer motion**|
-|                |                     |
-+----------------+---------------------+
-|Finger 1 motion | **pointer motion**  |
-+----------------+---------------------+
-|Finger 1 up     | *no event*          |
-+----------------+---------------------+
++-------------------+-----------------------+
+| Action            |  Event                |
++===================+=======================+
+| | Finger 1 down   | | **hold begin**      |
++-------------------+-----------------------+
+| | Finger 1 motion | | **hold cancel**     |
+| |                 | | **pointer motion**  |
++-------------------+-----------------------+
+| | Finger 1 motion | | **pointer motion**  |
++-------------------+-----------------------+
+| | Finger 1 up     | | *no event*          |
++-------------------+-----------------------+
 
 .. note:: Many interactions with a touchpad will start with a hold
           gesture that is then cancelled as that gesture turns into e.g.
@@ -221,49 +220,45 @@ a touchpad may trigger this sequence:
 
 A two-finger scroll motion on a touchpad may trigger this sequence:
 
-+------------------+---------------------+--------------+
-| Action           |  Event              | Finger count |
-+==================+=====================+==============+
-|Finger 1 down     | **hold begin**      | 1            |
-+------------------+---------------------+--------------+
-|Finger 2 down     | **hold cancel**     | 1            |
-|                  | **hold begin**      | 2            |
-+------------------+---------------------+--------------+
-|Finger 1+2 motion | | **hold cancel**   | 2            |
-|                  | | **pointer axis**  |              |
-|                  |                     |              |
-+------------------+---------------------+--------------+
-|Finger 1+2 motion | **pointer axis**    |              |
-+------------------+---------------------+--------------+
-| | Finger 1 up    | **pointer axis**    |              |
-| | Finger 2 up    | (scroll stop)       |              |
-|                  |                     |              |
-+------------------+---------------------+--------------+
++------------------------+---------------------+--------------+
+| Action                 |  Event              | Finger count |
++========================+=====================+==============+
+| | Finger 1 down        | | **hold begin**    | | 1          |
++------------------------+---------------------+--------------+
+| | Finger 2 down        | | **hold cancel**   | | 1          |
+| |                      | | **hold begin**    | | 2          |
++------------------------+---------------------+--------------+
+| | Finger 1+2 motion    | | **hold cancel**   | | 2          |
+| |                      | | **pointer axis**  | |            |
++------------------------+---------------------+--------------+
+| | Finger 1+2 motion    | | **pointer axis**  |              |
++------------------------+---------------------+--------------+
+| | Finger 1 up          | | **pointer axis**  |              |
+| | Finger 2 up          | | (scroll stop)     |              |
++------------------------+---------------------+--------------+
 
 A three-finger-swipe on a touchpad may trigger this sequence:
 
-+------------------+---------------------+--------------+
-| Action           |  Event              | Finger count |
-+==================+=====================+==============+
-|Finger 1 down     | **hold begin**      | 1            |
-+------------------+---------------------+--------------+
-|Finger 2 down     | **hold cancel**     | 1            |
-|                  | **hold begin**      | 2            |
-+------------------+---------------------+--------------+
-|Finger 3 down     | **hold cancel**     | 2            |
-|                  | **hold begin**      | 3            |
-+------------------+---------------------+--------------+
-|Finger motion     | | **hold cancel**   | 3            |
-|                  | | **swipe begin**   | 3            |
-|                  |                     |              |
-+------------------+---------------------+--------------|
-|Finger motion     | **swipe update**    | 3            |
-+------------------+---------------------+--------------+
-| | Finger 1 up    | **swipe end**       | 3            |
-| | Finger 2 up    |                     |              |
-| | Finger 3 up    |                     |              |
-|                  |                     |              |
-+------------------+---------------------+--------------+
++---------------------+---------------------+--------------+
+| Action              |  Event              | Finger count |
++=====================+=====================+==============+
+| | Finger 1 down     |  | **hold begin**   | | 1          |
++---------------------+---------------------+--------------+
+| | Finger 2 down     | | **hold cancel**   | | 1          |
+| |                   | | **hold begin**    | | 2          |
++---------------------+---------------------+--------------+
+| | Finger 3 down     | | **hold cancel**   | | 2          |
+| |                   | | **hold begin**    | | 3          |
++---------------------+---------------------+--------------+
+| | Finger motion     | | **hold cancel**   | | 3          |
+| |                   | | **swipe begin**   | | 3          |
++---------------------+---------------------+--------------+
+| | Finger motion     | | **swipe update**  | | 3          |
++---------------------+---------------------+--------------+
+| | Finger 1 up       | | **swipe end**     | | 3          |
+| | Finger 2 up       | |                   | |            |
+| | Finger 3 up       | |                   | |            |
++---------------------+---------------------+--------------+
 
 Single-finger hold gestures
 ...........................
@@ -284,21 +279,19 @@ It is thus the responsibility of the caller to determine where hold gestures
 transition in and out of other interactions. For example, a two-finger hold
 may produce a cancelled single-finger hold gesture first:
 
-+----------------+---------------------+--------------+--------------+
-| Action         |  Event              | Finger count | Notes        |
-+================+=====================+==============+==============+
-|Finger 1 down   | **hold begin**      | 1            |              |
-+----------------+---------------------+--------------+--------------+
-|Finger 1 motion | | **hold cancel**   | 1            | tiny deltas  |
-|                | | **pointer motion**|              |              |
-|                |                     |              |              |
-+----------------+---------------------+--------------+--------------+
-|Finger 2 down   | **hold begin**      | 2            |              |
-+----------------+---------------------+--------------+--------------+
-| | Finger 1 up  | **hold end**        |              |              |
-| | Finger 2 up  |                     |              |              |
-|                |                     |              |              |
-+----------------+---------------------+--------------+--------------+
++--------------------+----------------------+--------------+--------------+
+| Action             |  Event               | Finger count | Notes        |
++====================+======================+==============+==============+
+| | Finger 1 down    | | **hold begin**     | | 1          |              |
++--------------------+----------------------+--------------+--------------+
+| | Finger 1 motion  | | **hold cancel**    | | 1          | | tiny deltas|
+| |                  | | **pointer motion** | |            | |            |
++--------------------+----------------------+--------------+--------------+
+| | Finger 2 down    | | **hold begin**     | | 2          |              |
++--------------------+----------------------+--------------+--------------+
+| | Finger 1 up      | | **hold end**       | |            |              |
+| | Finger 2 up      | |                    | |            |              |
++--------------------+----------------------+--------------+--------------+
 
 Note how the second hold gesture started with a finger count of 2 - without
 the user ever lifting the first finger. Cancellation of hold gesture does
@@ -308,19 +301,18 @@ A hold gesture may start after a previous gesture completed. For example, a
 single finger move-and-hold may trigger different sequences for the same
 user interaction:
 
-+----------------+---------------------+----------------+--------------+
-| Action         |  Device 1           | Device 2       | Notes        |
-+================+=====================+================+==============+
-|Finger 1 down   | **hold begin**      | **hold begin** |              |
-+----------------+---------------------+----------------+--------------+
-|Finger 1 motion | | **hold cancel**   |                | tiny deltas  |
-|                | | **pointer motion**|                |              |
-|                |                     |                |              |
-+----------------+---------------------+----------------+--------------+
-|                | **hold begin**      |                |              |
-+----------------+---------------------+----------------+--------------+
-| Finger 1 up    | **hold end**        | **hold end**   |              |
-+----------------+---------------------+----------------+--------------+
++--------------------+---------------------+-------------------+--------------+
+| Action             |  Device 1           | Device 2          | Notes        |
++====================+=====================+===================+==============+
+| | Finger 1 down    | | **hold begin**    |  | **hold begin** |              |
++--------------------+---------------------+-------------------+--------------+
+| | Finger 1 motion  | | **hold cancel**   |                   | | tiny deltas|
+|                    | | **pointer motion**|                   | |            |
++--------------------+---------------------+-------------------+--------------+
+|                    | |  **hold begin**   |                   |              |
++--------------------+---------------------+-------------------+--------------+
+| |  Finger 1 up     | |  **hold end**     | |  **hold end**   |              |
++--------------------+---------------------+-------------------+--------------+
 
 A caller that wants to use hold gestures must thus be able to infer the same
 interaction based on a stream of pointer motion events with small deltas.
