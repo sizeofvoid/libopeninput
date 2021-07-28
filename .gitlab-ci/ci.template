@@ -108,6 +108,7 @@ variables:
       - stuck_or_timeout_failure
   # cancel run when a newer version is pushed to the branch
   interruptible: true
+  dependencies: []
 
 .default_artifacts:
   artifacts:
@@ -230,7 +231,6 @@ check-commit:
     - ci-fairy -v --authfile $AUTHFILE delete-image
             --repository $FDO_DISTRIBUTION_NAME/$FDO_DISTRIBUTION_VERSION
             --exclude-tag $FDO_DISTRIBUTION_TAG
-  dependencies: []
   allow_failure: true
   only:
     - schedules
@@ -240,6 +240,7 @@ check-commit:
 {% for version in distro.versions %}
 {{distro.name}}:{{version}}@container-clean:
   extends:
+    - .policy
     - .container-clean
   variables:
     GIT_STRATEGY: none
@@ -264,7 +265,6 @@ check-commit:
   stage: build
   script:
     - .gitlab-ci/meson-build.sh
-  dependencies: []
 
 #
 # Fedora
@@ -647,6 +647,7 @@ coverity:
 check-merge-request:
   extends:
     - .fdo.ci-fairy
+    - .policy
   stage: deploy
   script:
     - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
