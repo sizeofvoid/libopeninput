@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+set -x
 if [[ -f .meson_environment ]]; then
 	. .meson_environment
 fi
