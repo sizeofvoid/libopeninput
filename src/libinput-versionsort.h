@@ -29,7 +29,7 @@
 #include <dirent.h>
 
 #if !defined(HAVE_VERSIONSORT) || defined(TEST_VERSIONSORT)
-static int
+static inline int
 libinput_strverscmp(const char *l0, const char *r0)
 {
 	const unsigned char *l = (const void *)l0;
@@ -65,13 +65,13 @@ libinput_strverscmp(const char *l0, const char *r0)
 /* Defined with libinput_ names for testing from platforms with native functions. */
 
 #ifndef HAVE_VERSIONSORT
-static int
+static inline int
 strverscmp(const char *l0, const char *r0)
 {
 	return libinput_strverscmp(l0, r0);
 }
 
-static int
+static inline int
 versionsort(const struct dirent **a, const struct dirent **b)
 {
 	return libinput_strverscmp((*a)->d_name, (*b)->d_name);
