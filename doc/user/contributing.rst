@@ -140,6 +140,8 @@ run by the CI on merge requests, you can run those locally with ::
 So it always pays to run that before submitting. This will also run the code
 through valgrind and pick up any memory leaks.
 
+.. _contributing_submitting_code:
+
 ------------------------------------------------------------------------------
 Submitting Code
 ------------------------------------------------------------------------------
@@ -338,3 +340,96 @@ web interface though, so we do recommend using this to go through the review
 process, even if you use other clients to track the list of available
 patches.
 
+------------------------------------------------------------------------------
+Failed pipeline errors
+------------------------------------------------------------------------------
+
+After submitting your merge request to GitLab, you might receive an email
+informing you that your pipeline failed.
+
+Visit your merge request page and check the `pipeline mini graph
+<https://docs.gitlab.com/ee/ci/pipelines/#pipeline-mini-graphs>`_ to know which
+step failed.
+
+Follow the appropriate section to fix the errors.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Missing "Signed-off-by: author information"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As explained in :ref:`contributing_commit_messages`, every commit must contain a
+Signed-off-by line with your name and email address.
+
+When this line is not present, it can be added to your commit afterwards:
+
+  git commit --amend -s
+
+If the merge request contains more than one commit, it must be added to all of
+them:
+
+  git rebase --interactive --exec 'git commit --amend -s' main
+
+Once the problem is fixed, force-push your branch. See
+:ref:`contributing_submitting_code` for more details about how to push your code
+and interactive rebases.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Committed gitlab-ci.yml differs from generated gitlab-ci.yml. Please verify
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When your merge request modifies the CI templates, you might see this error
+mainly due two reasons: the wrong file was modified and/or
+``ci-fairy generate-template`` wasn't run.
+
+``.gitlab-ci.yaml`` is auto generated, changes should be made in:
+
+- ``.gitlab-ci/ci.template``
+
+- ``.gitlab-ci/config.yaml``
+
+Once the changes are ready, run
+`ci-fairy <https://freedesktop.pages.freedesktop.org/ci-templates/ci-fairy.html#templating-gitlab-ci-yml>`_
+to update ``.gitlab-ci.yaml``:
+
+  ci-fairy generate-template
+
+Finally, force-push you changes. See :ref:`contributing_submitting_code` for
+more details.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Build errors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Usually, checking the CI log is enough to catch this errors. However, your merge
+request is built using different configurations you might have not tested.
+
+In order to fix this kind of problems, you can compile libinput using the same
+flags used by the CI.
+
+For example, if an error is found in the ``build-no-libwacom`` step, open the
+log and search the build options:
+
+  [...]
+  + rm -rf 'build dir'
+  + meson 'build dir' -Dlibwacom=false
+  The Meson build system
+  [...]
+
+Use the same flags to fix the issue and force-push you changes. See
+:ref:`contributing_submitting_code` for more details.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Test errors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The test suite is run for your merge request to check for bugs, regressions and
+memory leaks among other issues.
+
+Open the CI error log and search for a message similar to:
+
+  :: Failure: ../test/test-touchpad.c:465: touchpad_2fg_scroll_slow_distance(synaptics-t440)
+
+See :ref:`test-suite` to learn how to run the failing tests.
+
+Once the tests are fixed, force-push you changes. See
+:ref:`contributing_submitting_code` for more details.

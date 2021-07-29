@@ -137,7 +137,10 @@ check-ci-script:
   stage: sanity check
   script:
     - ci-fairy generate-template --verify && exit 0 || true
-    - echo "Committed gitlab-ci.yml differs from generated gitlab-ci.yml. Please verify"
+    - >
+      printf "%s\n" \
+        "Committed gitlab-ci.yml differs from generated gitlab-ci.yml. Please verify" \
+        "https://wayland.freedesktop.org/libinput/doc/latest/contributing.html"
     - exit 1
 
 #
@@ -149,7 +152,12 @@ check-commit:
     - .fdo.ci-fairy
   stage: sanity check
   script:
-    - ci-fairy check-commits --signed-off-by --junit-xml=results.xml
+    - ci-fairy check-commits --signed-off-by --junit-xml=results.xml && exit 0 || true
+    - >
+      printf "%s\n" \
+        "Error checking commit format. Please verify" \
+        "https://wayland.freedesktop.org/libinput/doc/latest/contributing.html"
+    - exit 1
   except:
     - main@libinput/libinput
   variables:
