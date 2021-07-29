@@ -793,13 +793,8 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 }
 
 static void
-map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
+window_place_ui_elements(GtkWidget *widget, struct window *w)
 {
-	struct window *w = data;
-	GdkDisplay *display;
-	GdkSeat *seat;
-	GdkWindow *window;
-
 	gtk_window_get_size(GTK_WINDOW(widget), &w->width, &w->height);
 
 	w->pointer.x = w->width/2;
@@ -824,6 +819,17 @@ map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 	w->pinch.scale = 1.0;
 	w->pinch.x = w->width/2;
 	w->pinch.y = w->height/2;
+}
+
+static void
+map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	struct window *w = data;
+	GdkDisplay *display;
+	GdkSeat *seat;
+	GdkWindow *window;
+
+	window_place_ui_elements(widget, w);
 
 	g_signal_connect(G_OBJECT(w->area), "draw", G_CALLBACK(draw), w);
 
