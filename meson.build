@@ -550,7 +550,13 @@ executable('libinput-record',
 	   )
 
 if get_option('debug-gui')
-	dep_gtk = dependency('gtk+-3.0', version : '>= 3.20')
+	dep_gtk = dependency('gtk4', version : '>= 4.0', required : false)
+	config_h.set10('HAVE_GTK4', dep_gtk.found())
+	if not dep_gtk.found()
+		dep_gtk = dependency('gtk+-3.0', version : '>= 3.20')
+		config_h.set10('HAVE_GTK3', dep_gtk.found())
+	endif
+
 	dep_cairo = dependency('cairo')
 	dep_glib = dependency('glib-2.0')
 

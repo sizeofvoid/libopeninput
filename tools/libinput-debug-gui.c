@@ -792,10 +792,27 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	return TRUE;
 }
 
+#if HAVE_GTK4
+static void
+draw_gtk4(GtkDrawingArea *widget,
+	  cairo_t *cr,
+	  int width,
+	  int height,
+	  gpointer data)
+{
+	draw(GTK_WIDGET(widget), cr, data);
+}
+#endif
+
 static void
 window_place_ui_elements(GtkWidget *widget, struct window *w)
 {
+#if HAVE_GTK4
+	w->width = gtk_widget_get_width(w->area);
+	w->height = gtk_widget_get_height(w->area);
+#else
 	gtk_window_get_size(GTK_WINDOW(widget), &w->width, &w->height);
+#endif
 
 	w->pointer.x = w->width/2;
 	w->pointer.y = w->height/2;
@@ -821,6 +838,22 @@ window_place_ui_elements(GtkWidget *widget, struct window *w)
 	w->pinch.y = w->height/2;
 }
 
+#if HAVE_GTK4
+static void
+map_event_cb(GtkDrawingArea *widget, int width, int height, gpointer data)
+{
+	struct window *w = data;
+
+	window_place_ui_elements(GTK_WIDGET(widget), w);
+
+	gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(w->area),
+				       draw_gtk4,
+				       w,
+				       NULL);
+
+	gtk_widget_set_cursor_from_name(w->win, "none");
+}
+#else
 static void
 map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
@@ -851,6 +884,7 @@ map_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 		      NULL /* prepare_func_data */
 		     );
 }
+#endif
 
 static void
 window_quit(struct window *w)
@@ -858,6 +892,17 @@ window_quit(struct window *w)
 	g_main_loop_quit(w->event_loop);
 }
 
+#if HAVE_GTK4
+static gboolean
+window_delete_event_cb(GtkWindow *window, gpointer data)
+{
+	struct window *w = data;
+
+	window_quit(w);
+
+	return TRUE;
+}
+#else
 static void
 window_delete_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
@@ -865,28 +910,51 @@ window_delete_event_cb(GtkWidget *widget, GdkEvent *event, gpointer data)
 
 	window_quit(w);
 }
+#endif
 
 static void
 window_init(struct window *w)
 {
 	list_init(&w->evdev_devices);
 
+#if HAVE_GTK4
+	w->win = gtk_window_new();
+#else
 	w->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	if (getenv("LIBINPUT_RUNNING_TEST_SUITE"))
+#endif
+
+	if (getenv("LIBINPUT_RUNNING_TEST_SUITE")) {
+#if HAVE_GTK4
+		gtk_window_minimize(GTK_WINDOW(w->win));
+#else
 		gtk_window_iconify(GTK_WINDOW(w->win));
-	gtk_widget_set_events(w->win, 0);
+#endif
+	}
+
 	gtk_window_set_title(GTK_WINDOW(w->win), "libinput debugging tool");
 	gtk_window_set_default_size(GTK_WINDOW(w->win), 1024, 768);
 	gtk_window_maximize(GTK_WINDOW(w->win));
 	gtk_window_set_resizable(GTK_WINDOW(w->win), TRUE);
 	gtk_widget_realize(w->win);
+
+	w->area = gtk_drawing_area_new();
+
+#if HAVE_GTK4
+	g_signal_connect(G_OBJECT(w->area), "resize", G_CALLBACK(map_event_cb), w);
+	g_signal_connect(G_OBJECT(w->win), "close-request", G_CALLBACK(window_delete_event_cb), w);
+
+	gtk_window_set_child(GTK_WINDOW(w->win), w->area);
+	gtk_widget_show(w->win);
+#else
 	g_signal_connect(G_OBJECT(w->win), "map-event", G_CALLBACK(map_event_cb), w);
 	g_signal_connect(G_OBJECT(w->win), "delete-event", G_CALLBACK(window_delete_event_cb), w);
 
-	w->area = gtk_drawing_area_new();
+	gtk_widget_set_events(w->win, 0);
 	gtk_widget_set_events(w->area, 0);
+
 	gtk_container_add(GTK_CONTAINER(w->win), w->area);
 	gtk_widget_show_all(w->win);
+#endif
 
 	w->pad.ring.position = -1;
 	w->pad.strip.position = -1;
@@ -1618,8 +1686,15 @@ main(int argc, char **argv)
 	enum tools_backend backend = BACKEND_NONE;
 	const char *seat_or_device[2] = {"seat0", NULL};
 	bool verbose = false;
+	bool gtk_init = false;
 
-	if (!gtk_init_check(&argc, &argv))
+#if HAVE_GTK4
+	gtk_init = gtk_init_check();
+#else
+	gtk_init = gtk_init_check(&argc, &argv);
+#endif
+
+	if (!gtk_init)
 		return 77;
 
 	tools_init_options(&options);
