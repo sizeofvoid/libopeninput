@@ -58,6 +58,16 @@
 	#endif
 #endif
 
+#ifdef GDK_WINDOWING_X11
+	#include <X11/X.h>
+	#include <X11/Xlib.h>
+	#if HAVE_GTK4
+		#include <gdk/x11/gdkx.h>
+	#else
+		#include <gdk/gdkx.h>
+	#endif
+#endif
+
 #define clip(val_, min_, max_) min((max_), max((min_), (val_)))
 
 enum touch_state {
@@ -293,6 +303,51 @@ backend_is_wayland(void)
 }
 #endif /* GDK_WINDOWING_WAYLAND */
 
+#ifdef GDK_WINDOWING_X11
+static bool
+x_lock_pointer(struct window *w)
+{
+	Display *x_display;
+	Window x_win;
+	int result;
+
+	x_display = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
+
+#if HAVE_GTK4
+	GtkNative *window = gtk_widget_get_native(w->win);
+	GdkSurface *surface = gtk_native_get_surface(window);
+	x_win = GDK_SURFACE_XID(surface);
+#else
+	GdkWindow *window = gtk_widget_get_window(w->win);
+	x_win = GDK_WINDOW_XID(window);
+#endif
+
+	result = XGrabPointer(x_display, x_win,
+			      False, NoEventMask,
+			      GrabModeAsync, GrabModeAsync,
+			      x_win,
+			      None,
+			      CurrentTime);
+	return (result == GrabSuccess);
+}
+
+static void
+x_unlock_pointer(struct window *w)
+{
+	Display *x_display;
+
+	x_display = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
+
+	XUngrabPointer(x_display, CurrentTime);
+}
+
+static inline bool
+backend_is_x11(void)
+{
+	return GDK_IS_X11_DISPLAY(gdk_display_get_default());
+}
+#endif /* GDK_WINDOWING_X11 */
+
 static bool
 window_lock_pointer(struct window *w)
 {
@@ -301,6 +356,11 @@ window_lock_pointer(struct window *w)
 #ifdef GDK_WINDOWING_WAYLAND
 	if (backend_is_wayland())
 		w->lock_pointer.locked = wayland_lock_pointer(w);
+#endif
+
+#ifdef GDK_WINDOWING_X11
+	if (backend_is_x11())
+		w->lock_pointer.locked = x_lock_pointer(w);
 #endif
 
 	return w->lock_pointer.locked;
@@ -317,6 +377,11 @@ window_unlock_pointer(struct window *w)
 #ifdef GDK_WINDOWING_WAYLAND
 	if (backend_is_wayland())
 		wayland_unlock_pointer(w);
+#endif
+
+#ifdef GDK_WINDOWING_X11
+	if (backend_is_x11())
+		x_unlock_pointer(w);
 #endif
 }
 

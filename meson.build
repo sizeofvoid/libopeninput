@@ -561,6 +561,7 @@ if get_option('debug-gui')
 	dep_glib = dependency('glib-2.0')
 	dep_wayland_client = dependency('wayland-client', required : false)
 	dep_wayland_protocols = dependency('wayland-protocols', required : false)
+	dep_x11 = dependency('x11', required : false)
 
 	debug_gui_sources = [ 'tools/libinput-debug-gui.c' ]
 
@@ -592,6 +593,7 @@ if get_option('debug-gui')
 			dep_glib,
 			dep_wayland_client,
 			dep_wayland_protocols,
+			dep_x11,
 			] + deps_tools
 	executable('libinput-debug-gui',
 		   debug_gui_sources,
