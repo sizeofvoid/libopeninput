@@ -135,8 +135,7 @@ distributions:
         - "MESON_TEST_ARGS: '' # litest-selftest fails on musl"
   - name: freebsd
     tag: *default_tag
-    want_qemu: true
-    skip_container: true
+    qemu_based: true
     versions:
       - '13.0'
     packages:

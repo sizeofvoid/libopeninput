@@ -208,12 +208,19 @@ check-commit:
 {% endfor %}
 
 {% for distro in distributions %}
-{% if not distro.skip_container %}
 {% for version in distro.versions %}
 {{distro.name}}:{{version}}@container-prep:
   extends:
+{% if distro.qemu_based %}
+    - .fdo.qemu-build@{{distro.name}}
+{% else %}
     - .fdo.container-build@{{distro.name}}
+{% endif %}
     - .policy
+{% if distro.qemu_based %}
+  tags:
+    - kvm
+{% endif %}
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -222,7 +229,6 @@ check-commit:
     FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_TAG
 
 {% endfor %}
-{% endif %}
 {% endfor %}
 
 
@@ -257,7 +263,6 @@ check-commit:
     - schedules
 
 {% for distro in distributions %}
-{% if not distro.skip_container %}
 {% for version in distro.versions %}
 {{distro.name}}:{{version}}@container-clean:
   extends:
@@ -270,7 +275,6 @@ check-commit:
     FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_TAG
 
 {% endfor %}
-{% endif %}
 {% endfor %}
 
 #################################################################
@@ -366,7 +370,7 @@ check-commit:
 
 
 {# qemu tests are only done for the latest version of any distribution #}
-{% for distro in distributions if distro.want_qemu %}
+{% for distro in distributions if distro.use_for_qemu_tests %}
 {% set version = "{}".format(distro.versions|last()) %}
 {% if distro.use_for_custom_build_tests %}
 .{{distro.name}}:{{version}}@test-suite-vm:
@@ -405,7 +409,7 @@ vm-valgrind-{{suite.name}}:
 
 {% endfor %}
 {% endif %}
-{% endfor %}{# for if distro.want_qemu #}
+{% endfor %}{# for if distro.use_for_qemu_tests #}
 
 {% for distro in distributions if distro.use_for_custom_build_tests %}
 {% set version = "{}".format(distro.versions|last()) %}
@@ -612,7 +616,7 @@ coverity:
 #################################################################
 
 {% for distro in distributions %}
-{% if not distro.skip_container %}
+{% if not distro.qemu_based %}
 {% for version in distro.versions %}
 {{distro.name}}:{{version}}@default-build:
   stage: distro
@@ -642,7 +646,7 @@ coverity:
     - .fdo.distribution-image@{{distro.name}}
   variables:
     FDO_DISTRIBUTION_VERSION: '{{version}}'
-    FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_QEMU_TAG
+    FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_TAG
     {# Where we have extra_variables defined, add them to the list #}
     {% if distro.build is defined and distro.build.extra_variables is defined %}
     {% for var in distro.build.extra_variables %}
@@ -650,7 +654,7 @@ coverity:
     {% endfor %}
     {% endif %}
   needs:
-    - "{{distro.name}}:{{version}}@qemu-prep"
+    - "{{distro.name}}:{{version}}@container-prep"
 
 {% endif %}
 {% endfor %}
