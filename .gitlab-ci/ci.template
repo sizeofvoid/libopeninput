@@ -39,15 +39,14 @@
 .templates_sha: &template_sha 0c312d9c7255f46e741d43bcd1930f09cd12efe7
 
 include:
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file:
+      - '/templates/ci-fairy.yml'
   {% for distro in distributions|sort(attribute="name") %}
-  # {{ distro.name.capitalize() }} container builder template
-  - project: 'freedesktop/ci-templates'
-    ref: *template_sha
-    file: '/templates/{{distro.name}}.yml'
+      # {{ distro.name.capitalize() }} container builder template
+      - '/templates/{{distro.name}}.yml'
   {% endfor %}
-  - project: 'freedesktop/ci-templates'
-    ref: *template_sha
-    file: '/templates/ci-fairy.yml'
 
 stages:
   - sanity check     # CI/commit checks

@@ -37,33 +37,22 @@
 .templates_sha: &template_sha 0c312d9c7255f46e741d43bcd1930f09cd12efe7
 
 include:
-  # Alpine container builder template
   - project: 'freedesktop/ci-templates'
     ref: *template_sha
-    file: '/templates/alpine.yml'
-  # Arch container builder template
-  - project: 'freedesktop/ci-templates'
-    ref: *template_sha
-    file: '/templates/arch.yml'
-  # Debian container builder template
-  - project: 'freedesktop/ci-templates'
-    ref: *template_sha
-    file: '/templates/debian.yml'
-  # Fedora container builder template
-  - project: 'freedesktop/ci-templates'
-    ref: *template_sha
-    file: '/templates/fedora.yml'
-  # Freebsd container builder template
-  - project: 'freedesktop/ci-templates'
-    ref: *template_sha
-    file: '/templates/freebsd.yml'
-  # Ubuntu container builder template
-  - project: 'freedesktop/ci-templates'
-    ref: *template_sha
-    file: '/templates/ubuntu.yml'
-  - project: 'freedesktop/ci-templates'
-    ref: *template_sha
-    file: '/templates/ci-fairy.yml'
+    file:
+      - '/templates/ci-fairy.yml'
+      # Alpine container builder template
+      - '/templates/alpine.yml'
+      # Arch container builder template
+      - '/templates/arch.yml'
+      # Debian container builder template
+      - '/templates/debian.yml'
+      # Fedora container builder template
+      - '/templates/fedora.yml'
+      # Freebsd container builder template
+      - '/templates/freebsd.yml'
+      # Ubuntu container builder template
+      - '/templates/ubuntu.yml'
 
 stages:
   - sanity check     # CI/commit checks
