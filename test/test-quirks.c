@@ -1206,6 +1206,49 @@ START_TEST(quirks_parse_string_attr)
 }
 END_TEST
 
+struct qtest_bool {
+	const char *str;
+	bool success;
+	bool val;
+};
+
+START_TEST(quirks_parse_bool_attr)
+{
+	struct litest_device *dev = litest_current_device();
+	enum quirk attrs[] = {
+	        QUIRK_ATTR_USE_VELOCITY_AVERAGING,
+		QUIRK_ATTR_TABLET_SMOOTHING,
+	};
+	enum quirk *a;
+	struct qtest_bool test_values[] = {
+		{ "0", true, false },
+		{ "1", true, true },
+		{ "2", false, false },
+		{ "-1", false, false },
+		{ "a", false, false },
+	};
+	struct qtest_bool *t;
+
+	ARRAY_FOR_EACH(attrs, a) {
+		ARRAY_FOR_EACH(test_values, t) {
+			bool v;
+			bool rc;
+
+			rc = test_attr_parse(dev,
+					     *a,
+					     t->str,
+					     (qparsefunc)quirks_get_bool,
+					     &v);
+			ck_assert(rc == t->success);
+			if (!rc)
+				continue;
+
+			ck_assert(v == t->val);
+		}
+	}
+}
+END_TEST
+
 START_TEST(quirks_parse_integration_attr)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1517,6 +1560,7 @@ TEST_COLLECTION(quirks)
 	litest_add_for_device(quirks_parse_uint_attr, LITEST_MOUSE);
 	litest_add_for_device(quirks_parse_double_attr, LITEST_MOUSE);
 	litest_add_for_device(quirks_parse_string_attr, LITEST_MOUSE);
+	litest_add_for_device(quirks_parse_bool_attr, LITEST_MOUSE);
 	litest_add_for_device(quirks_parse_integration_attr, LITEST_MOUSE);
 
 	litest_add_for_device(quirks_model_one, LITEST_MOUSE);
