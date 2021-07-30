@@ -372,7 +372,6 @@ check-commit:
 {# qemu tests are only done for the latest version of any distribution #}
 {% for distro in distributions if distro.use_for_qemu_tests %}
 {% set version = "{}".format(distro.versions|last()) %}
-{% if distro.use_for_custom_build_tests %}
 .{{distro.name}}:{{version}}@test-suite-vm:
   extends:
     - .test-suite-vm
@@ -408,7 +407,6 @@ vm-valgrind-{{suite.name}}:
     MESON_TEST_ARGS: '--setup=valgrind'
 
 {% endfor %}
-{% endif %}
 {% endfor %}{# for if distro.use_for_qemu_tests #}
 
 {% for distro in distributions if distro.use_for_custom_build_tests %}
