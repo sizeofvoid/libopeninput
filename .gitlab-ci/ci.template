@@ -364,9 +364,6 @@ check-commit:
     - if ! [[ -z $SUITE_NAMES ]]; then SUITES=$(echo $SUITE_NAMES | sed 's/\([^ ]*\)/libinput-test-suite-\1/g'); fi
     - echo "Testing $SUITES"
     - export MESON_TEST_ARGS="$MESON_TEST_ARGS $SUITES"
-  retry:
-    max: 2
-    when: script_failure
 
 
 {# qemu tests are only done for the latest version of any distribution #}
