@@ -36,7 +36,7 @@
 # <distribution>:<version>@activity:
 #  e.g. fedora:31@build-default
 
-.templates_sha: &template_sha 0c312d9c7255f46e741d43bcd1930f09cd12efe7
+.templates_sha: &template_sha 25459a8d343961918a7398e4b3c147e450926569
 
 include:
   - project: 'freedesktop/ci-templates'
@@ -81,11 +81,6 @@ variables:
   # libinput version
 {% for distro in distributions %}
   {{"%-13s"| format(distro.name.upper() + '_TAG:')}}'{{distro.tag}}'
-{% endfor %}
-{% for distro in distributions %}
-{% if distro.want_qemu %}
-  {{"%-20s"| format(distro.name.upper() + '_QEMU_TAG:')}} '{{distro.name}}-qemu-vm-{{distro.tag}}'
-{% endif %}
 {% endfor %}
 
   FDO_UPSTREAM_REPO: libinput/libinput
@@ -189,24 +184,6 @@ check-commit:
 # Note: images are rebuilt weekly with a scheduled pipeline with FDO_FORCE_REBUILD set
 #
 #
-{# qemu builds are only done for the latest version of any distribution #}
-{% for distro in distributions if distro.want_qemu %}
-{% set version = "{}".format(distro.versions|last()) %}
-{{distro.name}}:{{version}}@qemu-prep:
-  extends:
-    - .fdo.qemu-build@{{distro.name}}
-    - .policy
-  stage: prep
-  tags:
-    - kvm
-  variables:
-    GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: "{{version}}"
-    FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_QEMU_TAG
-    FDO_DISTRIBUTION_PACKAGES: ${{distro.name.upper()}}_PACKAGES
-
-{% endfor %}
-
 {% for distro in distributions %}
 {% for version in distro.versions %}
 {{distro.name}}:{{version}}@container-prep:
@@ -291,6 +268,27 @@ check-commit:
   script:
     - .gitlab-ci/meson-build.sh
 
+
+# Run meson and meson test in the container image through qemu
+.build-in-b2c@template:
+  extends:
+    - .policy
+    - .fdo.b2c-image@fedora
+    - .default_artifacts
+  tags:
+    - kvm
+  variables:
+    MESON_BUILDDIR: build_dir
+    B2C_KERNEL: {{ b2c.kernel }}
+    B2C_VERSION: {{ b2c.version }}
+    B2C_IMAGE: $FDO_DISTRIBUTION_IMAGE
+    B2C_COMMAND: .gitlab-ci/meson-build.sh
+  script:
+    # pull b2c
+    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/mupuf/boot2container/-/raw/{{b2c.version}}/vm2c.py
+    - chmod +x /app/boot2container
+    - /app/boot2container
+
 #
 # Fedora
 #
@@ -355,7 +353,7 @@ check-commit:
 # Set one or the other, not both.
 .test-suite-vm:
   extends:
-    - .build-in-qemu@template
+    - .build-in-b2c@template
   stage: test-suite
   variables:
     # remove the global --no-suite=hardware
@@ -374,9 +372,9 @@ check-commit:
     - .test-suite-vm
   variables:
     FDO_DISTRIBUTION_VERSION: {{version}}
-    FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_QEMU_TAG
+    FDO_DISTRIBUTION_TAG: ${{distro.name.upper()}}_TAG
   needs:
-    - "{{distro.name}}:{{version}}@qemu-prep"
+    - "{{distro.name}}:{{version}}@container-prep"
 
 
 {% for suite in test_suites %}

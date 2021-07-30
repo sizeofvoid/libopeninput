@@ -10,8 +10,7 @@ distributions:
     tag: *default_tag
     versions:
       - '35'
-      - '36' # last is picked for qemu
-    want_qemu: true
+      - '36'
     use_for_custom_build_tests: true
     use_for_qemu_tests: true
     packages:
@@ -195,3 +194,7 @@ test_suites:
   - name: pointer
     suites:
       - pointer
+
+b2c:
+  version: v0.9.8
+  kernel: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v5.19/bzImage
