@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2022-06-10.0'
+.default_tag: &default_tag '2022-08-08.0'
 
 distributions:
   - name: fedora
@@ -36,6 +36,7 @@ distributions:
       - diffutils
       - wayland-protocols-devel
       - valgrind        # for the valgrind run, optional
+      - systemd-udev    # for the qemu run, optional
   - name: debian
     tag: *default_tag
     versions:
