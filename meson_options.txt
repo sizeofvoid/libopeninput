@@ -24,8 +24,8 @@ option('install-tests',
        description: 'Install the libinput test command [default=false]')
 option('documentation',
        type: 'boolean',
-       value: true,
-       description: 'Build the documentation [default=true]')
+       value: false,
+       description: 'Build the documentation [default=false]')
 option('coverity',
        type: 'boolean',
        value: false,

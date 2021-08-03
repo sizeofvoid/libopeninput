@@ -737,11 +737,11 @@ build-no-libwacom-nodeps@fedora:34:
   before_script:
     - dnf remove -y libwacom libwacom-devel
 
-build-no-docs@fedora:34:
+build-docs@fedora:34:
   extends:
     - .fedora-build@template
   variables:
-    MESON_ARGS: "-Ddocumentation=false"
+    MESON_ARGS: "-Ddocumentation=true"
 
 build-no-docs-nodeps@fedora:34:
   extends:
@@ -1056,7 +1056,7 @@ wayland-web:
     refs:
       - schedules
   variables:
-    MESON_ARGS: '-Ddebug-gui=false -Dlibwacom=false -Dtests=false'
+    MESON_ARGS: '-Ddocumentation=true -Ddebug-gui=false -Dlibwacom=false -Dtests=false'
     MESON_BUILDDIR: 'builddir'
   only:
     refs:
