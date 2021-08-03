@@ -22,7 +22,8 @@ if [[ -z "$CI_JOB_ID" ]] || [[ -z "$CI_JOB_NAME" ]]; then
 fi
 
 if [[ -n "$FDO_CI_CONCURRENT" ]]; then
-	NINJA_ARGS="-j${FDO_CI_CONCURRENT} $NINJA_ARGS"
+	NINJA_ARGS="-j$FDO_CI_CONCURRENT $NINJA_ARGS"
+	MESON_TESTTHREADS="$FDO_CI_CONCURRENT"
 fi
 
 echo "*************************************************"

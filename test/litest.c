@@ -4627,14 +4627,18 @@ main(int argc, char **argv)
 	int tty_mode = -1;
 	int failed_tests;
 	int rc;
+	const char *meson_testthreads;
 
 	in_debugger = is_debugger_attached();
 	if (in_debugger || RUNNING_ON_VALGRIND)
 		setenv("CK_FORK", "no", 0);
 
-	jobs = get_nprocs();
-	if (!RUNNING_ON_VALGRIND)
-		jobs *= 2;
+	if ((meson_testthreads = getenv("MESON_TESTTHREADS")) == NULL ||
+	     !safe_atoi(meson_testthreads, &jobs)) {
+		jobs = get_nprocs();
+		if (!RUNNING_ON_VALGRIND)
+			jobs *= 2;
+	}
 
 	mode = litest_parse_argv(argc, argv);
 	if (mode == LITEST_MODE_ERROR)
