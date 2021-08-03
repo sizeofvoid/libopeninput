@@ -175,10 +175,6 @@ START_TEST(udev_set_user_data)
 }
 END_TEST
 
-/**
- * This test only works if there's at least one device in the system that is
- * assigned the default seat. Should cover the 99% case.
- */
 START_TEST(udev_added_seat_default)
 {
 	struct libinput *li;
@@ -187,8 +183,7 @@ START_TEST(udev_added_seat_default)
 	struct libinput_device *device;
 	struct libinput_seat *seat;
 	const char *seat_name;
-	enum libinput_event_type type;
-	int default_seat_found = 0;
+	struct litest_device *dev;
 
 	udev = udev_new();
 	ck_assert_notnull(udev);
@@ -198,33 +193,30 @@ START_TEST(udev_added_seat_default)
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 	libinput_dispatch(li);
 
-	while (!default_seat_found && (event = libinput_get_event(li))) {
-		type = libinput_event_get_type(event);
-		if (type != LIBINPUT_EVENT_DEVICE_ADDED) {
-			libinput_event_destroy(event);
-			continue;
-		}
+	/* Drop any events from other devices */
+	litest_drain_events(li);
 
-		device = libinput_event_get_device(event);
-		seat = libinput_device_get_seat(device);
-		ck_assert_notnull(seat);
+	/* Now create our own device, it should be in the "default"
+	 * logical seat. This test may fail if there is a local rule changing
+	 * that, but it'll be fine for the 99% case. */
+	dev = litest_create(LITEST_MOUSE, NULL, NULL, NULL, NULL);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED, -1);
+	event = libinput_get_event(li);
+	device = libinput_event_get_device(event);
+	seat = libinput_device_get_seat(device);
+	ck_assert_notnull(seat);
 
-		seat_name = libinput_seat_get_logical_name(seat);
-		default_seat_found = streq(seat_name, "default");
-		libinput_event_destroy(event);
-	}
-
-	ck_assert(default_seat_found);
+	seat_name = libinput_seat_get_logical_name(seat);
+	ck_assert_str_eq(seat_name, "default");
+	libinput_event_destroy(event);
 
 	libinput_unref(li);
 	udev_unref(udev);
+
+	litest_delete_device(dev);
 }
 END_TEST
 
-/**
- * This test only works if there's at least one device in the system that is
- * assigned the default seat. Should cover the 99% case.
- */
 START_TEST(udev_change_seat)
 {
 	struct libinput *li;
@@ -235,6 +227,7 @@ START_TEST(udev_change_seat)
 	const char *seat1_name;
 	const char *seat2_name = "new seat";
 	int rc;
+	struct litest_device *dev;
 
 	udev = udev_new();
 	ck_assert_notnull(udev);
@@ -244,12 +237,15 @@ START_TEST(udev_change_seat)
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 	libinput_dispatch(li);
 
+	/* Drop any events from other devices */
+	litest_drain_events(li);
+
+	/* Now create our own device, it should be in the "default"
+	 * logical seat. This test may fail if there is a local rule changing
+	 * that, but it'll be fine for the 99% case. */
+	dev = litest_create(LITEST_MOUSE, NULL, NULL, NULL, NULL);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED, -1);
 	event = libinput_get_event(li);
-	ck_assert_notnull(event);
-
-	ck_assert_int_eq(libinput_event_get_type(event),
-			 LIBINPUT_EVENT_DEVICE_ADDED);
-
 	device = libinput_event_get_device(event);
 	libinput_device_ref(device);
 
@@ -261,6 +257,7 @@ START_TEST(udev_change_seat)
 
 	litest_drain_events(li);
 
+	/* Changing the logical seat name will remove and re-add the device */
 	rc = libinput_device_set_seat_logical_name(device,
 						   seat2_name);
 	ck_assert_int_eq(rc, 0);
@@ -293,6 +290,8 @@ START_TEST(udev_change_seat)
 
 	libinput_unref(li);
 	udev_unref(udev);
+
+	litest_delete_device(dev);
 }
 END_TEST
 
