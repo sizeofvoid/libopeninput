@@ -406,7 +406,7 @@ freebsd:13.0@container-clean:
     B2C_KERNEL: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v5.19/bzImage
     B2C_VERSION: v0.9.8
     B2C_IMAGE: $FDO_DISTRIBUTION_IMAGE
-    B2C_COMMAND: .gitlab-ci/meson-build.sh
+    B2C_COMMAND: .gitlab-ci/start-in-systemd.sh
   script:
     # pull b2c
     - curl -L -o /app/boot2container https://gitlab.freedesktop.org/mupuf/boot2container/-/raw/v0.9.8/vm2c.py

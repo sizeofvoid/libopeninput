@@ -282,7 +282,7 @@ check-commit:
     B2C_KERNEL: {{ b2c.kernel }}
     B2C_VERSION: {{ b2c.version }}
     B2C_IMAGE: $FDO_DISTRIBUTION_IMAGE
-    B2C_COMMAND: .gitlab-ci/meson-build.sh
+    B2C_COMMAND: .gitlab-ci/start-in-systemd.sh
   script:
     # pull b2c
     - curl -L -o /app/boot2container https://gitlab.freedesktop.org/mupuf/boot2container/-/raw/{{b2c.version}}/vm2c.py
