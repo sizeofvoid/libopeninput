@@ -71,6 +71,15 @@ fallback_notify_physical_button(struct fallback_dispatch *dispatch,
 	if (button == BTN_MIDDLE)
 		dispatch->wheel.is_inhibited = (state == LIBINPUT_BUTTON_STATE_PRESSED);
 
+	/* Lenovo TrackPoint Keyboard II sends its own scroll events when its
+	 * trackpoint is moved while the middle button is pressed.
+	 * Do not inhibit the scroll events.
+	 * https://gitlab.freedesktop.org/libinput/libinput/-/issues/651
+	 */
+	if (evdev_device_has_model_quirk(device,
+					 QUIRK_MODEL_LENOVO_TRACKPOINT_KEYBOARD_2))
+		dispatch->wheel.is_inhibited = false;
+
 	evdev_pointer_notify_physical_button(device, time, button, state);
 }
 
