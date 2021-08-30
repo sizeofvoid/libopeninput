@@ -1448,7 +1448,7 @@ debug_log_handler(struct libinput *libinput,
 		  const char *format,
 		  va_list args)
 {
-	char *message;
+	char *message, **dmsg;
 	int n;
 
 	if (priority != LIBINPUT_LOG_PRIORITY_DEBUG)
@@ -1457,9 +1457,9 @@ debug_log_handler(struct libinput *libinput,
 	n = xvasprintf(&message, format, args);
 	litest_assert_int_gt(n, 0);
 
-	for (size_t idx = 0; idx < ARRAY_LENGTH(debug_messages); idx++) {
-		if (debug_messages[idx] == NULL) {
-			debug_messages[idx] = message;
+	ARRAY_FOR_EACH(debug_messages, dmsg) {
+		if (*dmsg == NULL) {
+			*dmsg = message;
 			return;
 		}
 	}
