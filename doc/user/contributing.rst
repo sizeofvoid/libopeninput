@@ -360,12 +360,12 @@ Missing "Signed-off-by: author information"
 As explained in :ref:`contributing_commit_messages`, every commit must contain a
 Signed-off-by line with your name and email address.
 
-When this line is not present, it can be added to your commit afterwards:
+When this line is not present, it can be added to your commit afterwards: ::
 
   git commit --amend -s
 
 If the merge request contains more than one commit, it must be added to all of
-them:
+them: ::
 
   git rebase --interactive --exec 'git commit --amend -s' main
 
@@ -389,7 +389,7 @@ mainly due two reasons: the wrong file was modified and/or
 
 Once the changes are ready, run
 `ci-fairy <https://freedesktop.pages.freedesktop.org/ci-templates/ci-fairy.html#templating-gitlab-ci-yml>`_
-to update ``.gitlab-ci.yaml``:
+to update ``.gitlab-ci.yaml``: ::
 
   ci-fairy generate-template
 
@@ -407,7 +407,7 @@ In order to fix this kind of problems, you can compile libinput using the same
 flags used by the CI.
 
 For example, if an error is found in the ``build-no-libwacom`` step, open the
-log and search the build options:
+log and search the build options: ::
 
   [...]
   + rm -rf 'build dir'
@@ -425,7 +425,7 @@ Test errors
 The test suite is run for your merge request to check for bugs, regressions and
 memory leaks among other issues.
 
-Open the CI error log and search for a message similar to:
+Open the CI error log and search for a message similar to: ::
 
   :: Failure: ../test/test-touchpad.c:465: touchpad_2fg_scroll_slow_distance(synaptics-t440)
 
