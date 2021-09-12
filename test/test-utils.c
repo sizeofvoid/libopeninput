@@ -471,6 +471,38 @@ START_TEST(range_prop_parser)
 }
 END_TEST
 
+START_TEST(boolean_prop_parser)
+{
+	struct parser_test_range {
+		char *tag;
+		bool success;
+		bool b;
+	} tests[] = {
+		{ "0", true, false },
+		{ "1", true, true },
+		{ "-1", false, false },
+		{ "2", false, false },
+		{ "abcd", false, false },
+		{ NULL, false, false }
+	};
+	int i;
+	bool success, b;
+
+	for (i = 0; tests[i].tag != NULL; i++) {
+		b = false;
+		success = parse_boolean_property(tests[i].tag, &b);
+		ck_assert(success == tests[i].success);
+		if (success)
+			ck_assert_int_eq(b, tests[i].b);
+		else
+			ck_assert_int_eq(b, false);
+	}
+
+	success = parse_boolean_property(NULL, NULL);
+	ck_assert(success == false);
+}
+END_TEST
+
 START_TEST(evcode_prop_parser)
 {
 	struct parser_test_tuple {
@@ -1438,6 +1470,7 @@ litest_utils_suite(void)
 	tcase_add_test(tc, reliability_prop_parser);
 	tcase_add_test(tc, calibration_prop_parser);
 	tcase_add_test(tc, range_prop_parser);
+	tcase_add_test(tc, boolean_prop_parser);
 	tcase_add_test(tc, evcode_prop_parser);
 	tcase_add_test(tc, input_prop_parser);
 	tcase_add_test(tc, evdev_abs_parser);

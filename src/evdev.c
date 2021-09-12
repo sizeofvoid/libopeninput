@@ -94,19 +94,21 @@ parse_udev_flag(struct evdev_device *device,
 		const char *property)
 {
 	const char *val;
+	bool b;
 
 	val = udev_device_get_property_value(udev_device, property);
 	if (!val)
 		return false;
 
-	if (streq(val, "1"))
-		return true;
-	if (!streq(val, "0"))
+	if (!parse_boolean_property(val, &b)) {
 		evdev_log_error(device,
 				"property %s has invalid value '%s'\n",
 				property,
 				val);
-	return false;
+		return false;
+	}
+
+	return b;
 }
 
 int

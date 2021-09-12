@@ -283,6 +283,22 @@ parse_range_property(const char *prop, int *hi, int *lo)
 	return true;
 }
 
+bool
+parse_boolean_property(const char *prop, bool *b)
+{
+	if (!prop)
+		return false;
+
+	if (streq(prop, "1"))
+		*b = true;
+	else if (streq(prop, "0"))
+		*b = false;
+	else
+		return false;
+
+	return true;
+}
+
 static bool
 parse_evcode_string(const char *s, int *type_out, int *code_out)
 {
