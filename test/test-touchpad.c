@@ -5119,6 +5119,23 @@ START_TEST(touchpad_dwt_multiple_keyboards)
 }
 END_TEST
 
+START_TEST(touchpad_dwt_remove_before_keyboard)
+{
+	struct litest_device *keyboard = litest_current_device();
+	struct litest_device *touchpad;
+	struct libinput *li = keyboard->libinput;
+
+	touchpad = litest_add_device(li, LITEST_SYNAPTICS_RMI4);
+	ck_assert(has_disable_while_typing(touchpad));
+
+	libinput_dispatch(li);
+
+	/* remove the touchpad before the keyboard.
+	 * this test can fail in valgrind only */
+	litest_delete_device(touchpad);
+}
+END_TEST
+
 START_TEST(touchpad_dwt_multiple_keyboards_bothkeys)
 {
 	struct litest_device *touchpad = litest_current_device();
@@ -7293,6 +7310,7 @@ TEST_COLLECTION(touchpad)
 	litest_add_for_device(touchpad_dwt_multiple_keyboards_bothkeys, LITEST_SYNAPTICS_I2C);
 	litest_add_for_device(touchpad_dwt_multiple_keyboards_bothkeys_modifier, LITEST_SYNAPTICS_I2C);
 	litest_add_ranged_for_device(touchpad_dwt_multiple_keyboards_remove, LITEST_SYNAPTICS_I2C, &twice);
+	litest_add_for_device(touchpad_dwt_remove_before_keyboard, LITEST_KEYBOARD);
 
 	litest_add(touchpad_thumb_lower_area_movement, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_thumb_lower_area_movement_rethumb, LITEST_CLICKPAD, LITEST_ANY);

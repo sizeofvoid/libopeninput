@@ -1999,8 +1999,14 @@ static void
 tp_interface_remove(struct evdev_dispatch *dispatch)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
+	struct evdev_paired_keyboard *kbd;
 
 	libinput_timer_cancel(&tp->arbitration.arbitration_timer);
+
+	list_for_each_safe(kbd, &tp->dwt.paired_keyboard_list, link) {
+		evdev_paired_keyboard_destroy(kbd);
+	}
+	tp->dwt.keyboard_active = false;
 
 	tp_remove_tap(tp);
 	tp_remove_buttons(tp);
