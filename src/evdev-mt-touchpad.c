@@ -3667,8 +3667,8 @@ tp_init(struct tp_dispatch *tp,
 	if (!use_touch_size)
 		tp_init_pressure(tp, device);
 
-	/* 5 warnings per 2 hours should be enough */
-	ratelimit_init(&tp->jump.warning, s2us(2 * 60 * 60), 5);
+	/* 5 warnings per 24 hours should be enough */
+	ratelimit_init(&tp->jump.warning, h2us(24), 5);
 
 	/* Set the dpi to that of the x axis, because that's what we normalize
 	   to when needed*/

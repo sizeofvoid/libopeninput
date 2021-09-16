@@ -63,6 +63,12 @@ s2us(uint64_t s)
 	return ms2us(s * 1000);
 }
 
+static inline uint64_t
+h2us(uint64_t h)
+{
+	return s2us(h * 3600);
+}
+
 static inline uint32_t
 us2ms(uint64_t us)
 {

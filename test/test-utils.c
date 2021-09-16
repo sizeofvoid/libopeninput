@@ -707,6 +707,7 @@ START_TEST(time_conversion)
 	ck_assert_int_eq(ns2us(10000), 10);
 	ck_assert_int_eq(ms2us(10), 10000);
 	ck_assert_int_eq(s2us(1), 1000000);
+	ck_assert_int_eq(h2us(2), s2us(2 * 60 * 60));
 	ck_assert_int_eq(us2ms(10000), 10);
 }
 END_TEST
