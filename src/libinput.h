@@ -1561,8 +1561,8 @@ libinput_event_pointer_get_axis_value(struct libinput_event_pointer *event,
  * libinput_event_pointer_get_scroll_value_v120() for a simpler API of
  * handling scroll wheel events of different step sizes.
  *
- * If the source is @ref LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS, no
- * terminating event is guaranteed (though it may happen).
+ * If the source is @ref LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS, libinput
+ * guarantees that a scroll sequence is terminated with a scroll value of 0.
  * The coordinate system is identical to the cursor movement, i.e. a
  * scroll value of 1 represents the equivalent relative motion of 1.
  *
@@ -1642,8 +1642,8 @@ libinput_event_pointer_get_axis_value_discrete(struct libinput_event_pointer *ev
  * libinput_event_pointer_get_scroll_value_v120() for a simpler API of
  * handling scroll wheel events of different step sizes.
  *
- * If the event is @ref LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS, no
- * terminating event is guaranteed (though it may happen).
+ * If the event is @ref LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS, libinput
+ * guarantees that a scroll sequence is terminated with a scroll value of 0.
  * The coordinate system is identical to the cursor movement, i.e. a
  * scroll value of 1 represents the equivalent relative motion of 1.
  *
