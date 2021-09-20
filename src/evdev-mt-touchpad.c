@@ -2406,14 +2406,13 @@ tp_pair_trackpoint(struct evdev_device *touchpad,
 			struct evdev_device *trackpoint)
 {
 	struct tp_dispatch *tp = (struct tp_dispatch*)touchpad->dispatch;
-	unsigned int bus_tp = libevdev_get_id_bustype(touchpad->evdev),
-		     bus_trp = libevdev_get_id_bustype(trackpoint->evdev);
+	unsigned int bus_trp = libevdev_get_id_bustype(trackpoint->evdev);
 	bool tp_is_internal, trp_is_internal;
 
 	if ((trackpoint->tags & EVDEV_TAG_TRACKPOINT) == 0)
 		return;
 
-	tp_is_internal = bus_tp != BUS_USB && bus_tp != BUS_BLUETOOTH;
+	tp_is_internal = !!(touchpad->tags & EVDEV_TAG_INTERNAL_TOUCHPAD);
 	trp_is_internal = bus_trp != BUS_USB && bus_trp != BUS_BLUETOOTH;
 
 	if (tp->buttons.trackpoint == NULL &&
