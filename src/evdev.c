@@ -415,6 +415,11 @@ evdev_notify_axis_wheel(struct evdev_device *device,
 	struct normalized_coords delta = *delta_in;
 	struct wheel_v120 v120 = *v120_in;
 
+	if (device->scroll.invert_horizontal_scrolling) {
+		delta.x *= -1;
+		v120.x *= -1;
+	}
+
 	if (device->scroll.natural_scrolling_enabled) {
 		delta.x *= -1;
 		delta.y *= -1;
