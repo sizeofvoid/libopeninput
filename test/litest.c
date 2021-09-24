@@ -1750,7 +1750,8 @@ litest_bug_log_handler(struct libinput *libinput,
 		       va_list args)
 {
 	if (strstr(format, "client bug: ") ||
-	    strstr(format, "libinput bug: "))
+	    strstr(format, "libinput bug: ") ||
+	    strstr(format, "kernel bug: "))
 		return;
 
 	litest_abort_msg("Expected bug statement in log msg, aborting.\n");
