@@ -14,3 +14,4 @@ Troubleshooting
    touchpad-pressure-debugging.rst
    trackpoint-configuration.rst
    tablet-debugging.rst
+   incorrectly-enabled-hires.rst

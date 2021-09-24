@@ -102,6 +102,7 @@ struct fallback_dispatch {
 		struct device_coords hi_res;
 		bool emulate_hi_res_wheel;
 		bool is_inhibited;
+		bool hi_res_event_received;
 	} wheel;
 
 	struct {

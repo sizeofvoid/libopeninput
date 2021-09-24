@@ -235,6 +235,18 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 	if (!(device->seat_caps & EVDEV_DEVICE_POINTER))
 		return;
 
+	if (!dispatch->wheel.emulate_hi_res_wheel &&
+	    !dispatch->wheel.hi_res_event_received &&
+	    (dispatch->wheel.lo_res.x != 0 || dispatch->wheel.lo_res.y != 0)) {
+		evdev_log_bug_kernel(device,
+				     "device supports high-resolution scroll but only low-resolution events have been received.\n"
+				     "See %s/incorrectly-enabled-hires.html for details\n",
+				     HTTP_DOC_LINK);
+		dispatch->wheel.emulate_hi_res_wheel = true;
+		dispatch->wheel.hi_res.x = dispatch->wheel.lo_res.x * 120;
+		dispatch->wheel.hi_res.y = dispatch->wheel.lo_res.y * 120;
+	}
+
 	if (dispatch->wheel.is_inhibited) {
 		dispatch->wheel.hi_res.x = 0;
 		dispatch->wheel.hi_res.y = 0;
@@ -897,10 +909,12 @@ fallback_process_relative(struct fallback_dispatch *dispatch,
 		break;
 	case REL_WHEEL_HI_RES:
 		dispatch->wheel.hi_res.y += e->value;
+		dispatch->wheel.hi_res_event_received = true;
 		dispatch->pending_event |= EVDEV_WHEEL;
 		break;
 	case REL_HWHEEL_HI_RES:
 		dispatch->wheel.hi_res.x += e->value;
+		dispatch->wheel.hi_res_event_received = true;
 		dispatch->pending_event |= EVDEV_WHEEL;
 		break;
 	}
