@@ -366,6 +366,9 @@ START_TEST(event_conversion_gesture)
 
 	litest_touch_down(dev, 0, 70, 30);
 	litest_touch_down(dev, 1, 30, 70);
+	libinput_dispatch(li);
+	litest_timeout_gesture_hold();
+
 	for (i = 0; i < 8; i++) {
 		litest_push_event_frame(dev);
 		litest_touch_move(dev, 0, 70 - i * 5, 30 + i * 5);
@@ -379,7 +382,7 @@ START_TEST(event_conversion_gesture)
 		type = libinput_event_get_type(event);
 
 		if (type >= LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN &&
-		    type <= LIBINPUT_EVENT_GESTURE_PINCH_END) {
+		    type <= LIBINPUT_EVENT_GESTURE_HOLD_END) {
 			struct libinput_event_gesture *g;
 			struct libinput_event *base;
 			g = libinput_event_get_gesture_event(event);
