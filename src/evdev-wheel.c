@@ -30,88 +30,14 @@
 #include "evdev-fallback.h"
 #include "util-input-event.h"
 
-void
-fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
-				struct evdev_device *device,
-				struct input_event *e, uint64_t time)
-{
-	switch (e->code) {
-	case REL_WHEEL:
-		dispatch->wheel.lo_res.y += e->value;
-		if (dispatch->wheel.emulate_hi_res_wheel)
-			dispatch->wheel.hi_res.y += e->value * 120;
-		dispatch->pending_event |= EVDEV_WHEEL;
-		break;
-	case REL_HWHEEL:
-		dispatch->wheel.lo_res.x += e->value;
-		if (dispatch->wheel.emulate_hi_res_wheel)
-			dispatch->wheel.hi_res.x += e->value * 120;
-		dispatch->pending_event |= EVDEV_WHEEL;
-		break;
-	case REL_WHEEL_HI_RES:
-		dispatch->wheel.hi_res.y += e->value;
-		dispatch->wheel.hi_res_event_received = true;
-		dispatch->pending_event |= EVDEV_WHEEL;
-		break;
-	case REL_HWHEEL_HI_RES:
-		dispatch->wheel.hi_res.x += e->value;
-		dispatch->wheel.hi_res_event_received = true;
-		dispatch->pending_event |= EVDEV_WHEEL;
-		break;
-	}
-}
-
-void
-fallback_wheel_notify_physical_button(struct fallback_dispatch *dispatch,
-				      struct evdev_device *device,
-				      uint64_t time,
-				      int button,
-				      enum libinput_button_state state)
-{
-	if (button == BTN_MIDDLE)
-		dispatch->wheel.is_inhibited = (state == LIBINPUT_BUTTON_STATE_PRESSED);
-
-	/* Lenovo TrackPoint Keyboard II sends its own scroll events when its
-	 * trackpoint is moved while the middle button is pressed.
-	 * Do not inhibit the scroll events.
-	 * https://gitlab.freedesktop.org/libinput/libinput/-/issues/651
-	 */
-	if (evdev_device_has_model_quirk(device,
-					 QUIRK_MODEL_LENOVO_TRACKPOINT_KEYBOARD_2))
-		dispatch->wheel.is_inhibited = false;
-}
-
-void
-fallback_wheel_handle_state(struct fallback_dispatch *dispatch,
-			    struct evdev_device *device,
-			    uint64_t time)
+static void
+wheel_flush_scroll(struct fallback_dispatch *dispatch,
+		   struct evdev_device *device,
+		   uint64_t time)
 {
 	struct normalized_coords wheel_degrees = { 0.0, 0.0 };
 	struct discrete_coords discrete = { 0.0, 0.0 };
 	struct wheel_v120 v120 = { 0.0, 0.0 };
-
-	if (!(device->seat_caps & EVDEV_DEVICE_POINTER))
-		return;
-
-	if (!dispatch->wheel.emulate_hi_res_wheel &&
-	    !dispatch->wheel.hi_res_event_received &&
-	    (dispatch->wheel.lo_res.x != 0 || dispatch->wheel.lo_res.y != 0)) {
-		evdev_log_bug_kernel(device,
-				     "device supports high-resolution scroll but only low-resolution events have been received.\n"
-				     "See %s/incorrectly-enabled-hires.html for details\n",
-				     HTTP_DOC_LINK);
-		dispatch->wheel.emulate_hi_res_wheel = true;
-		dispatch->wheel.hi_res.x = dispatch->wheel.lo_res.x * 120;
-		dispatch->wheel.hi_res.y = dispatch->wheel.lo_res.y * 120;
-	}
-
-	if (dispatch->wheel.is_inhibited) {
-		dispatch->wheel.hi_res.x = 0;
-		dispatch->wheel.hi_res.y = 0;
-		dispatch->wheel.lo_res.x = 0;
-		dispatch->wheel.lo_res.y = 0;
-		return;
-	}
 
 	if (device->model_flags & EVDEV_MODEL_LENOVO_SCROLLPOINT) {
 		struct normalized_coords unaccel = { 0.0, 0.0 };
@@ -183,6 +109,88 @@ fallback_wheel_handle_state(struct fallback_dispatch *dispatch,
 			&discrete);
 		dispatch->wheel.lo_res.x = 0;
 	}
+}
+
+void
+fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
+				struct evdev_device *device,
+				struct input_event *e, uint64_t time)
+{
+	switch (e->code) {
+	case REL_WHEEL:
+		dispatch->wheel.lo_res.y += e->value;
+		if (dispatch->wheel.emulate_hi_res_wheel)
+			dispatch->wheel.hi_res.y += e->value * 120;
+		dispatch->pending_event |= EVDEV_WHEEL;
+		break;
+	case REL_HWHEEL:
+		dispatch->wheel.lo_res.x += e->value;
+		if (dispatch->wheel.emulate_hi_res_wheel)
+			dispatch->wheel.hi_res.x += e->value * 120;
+		dispatch->pending_event |= EVDEV_WHEEL;
+		break;
+	case REL_WHEEL_HI_RES:
+		dispatch->wheel.hi_res.y += e->value;
+		dispatch->wheel.hi_res_event_received = true;
+		dispatch->pending_event |= EVDEV_WHEEL;
+		break;
+	case REL_HWHEEL_HI_RES:
+		dispatch->wheel.hi_res.x += e->value;
+		dispatch->wheel.hi_res_event_received = true;
+		dispatch->pending_event |= EVDEV_WHEEL;
+		break;
+	}
+}
+
+void
+fallback_wheel_notify_physical_button(struct fallback_dispatch *dispatch,
+				      struct evdev_device *device,
+				      uint64_t time,
+				      int button,
+				      enum libinput_button_state state)
+{
+	if (button == BTN_MIDDLE)
+		dispatch->wheel.is_inhibited = (state == LIBINPUT_BUTTON_STATE_PRESSED);
+
+	/* Lenovo TrackPoint Keyboard II sends its own scroll events when its
+	 * trackpoint is moved while the middle button is pressed.
+	 * Do not inhibit the scroll events.
+	 * https://gitlab.freedesktop.org/libinput/libinput/-/issues/651
+	 */
+	if (evdev_device_has_model_quirk(device,
+					 QUIRK_MODEL_LENOVO_TRACKPOINT_KEYBOARD_2))
+		dispatch->wheel.is_inhibited = false;
+}
+
+void
+fallback_wheel_handle_state(struct fallback_dispatch *dispatch,
+			    struct evdev_device *device,
+			    uint64_t time)
+{
+	if (!(device->seat_caps & EVDEV_DEVICE_POINTER))
+		return;
+
+	if (!dispatch->wheel.emulate_hi_res_wheel &&
+	    !dispatch->wheel.hi_res_event_received &&
+	    (dispatch->wheel.lo_res.x != 0 || dispatch->wheel.lo_res.y != 0)) {
+		evdev_log_bug_kernel(device,
+				     "device supports high-resolution scroll but only low-resolution events have been received.\n"
+				     "See %s/incorrectly-enabled-hires.html for details\n",
+				     HTTP_DOC_LINK);
+		dispatch->wheel.emulate_hi_res_wheel = true;
+		dispatch->wheel.hi_res.x = dispatch->wheel.lo_res.x * 120;
+		dispatch->wheel.hi_res.y = dispatch->wheel.lo_res.y * 120;
+	}
+
+	if (dispatch->wheel.is_inhibited) {
+		dispatch->wheel.hi_res.x = 0;
+		dispatch->wheel.hi_res.y = 0;
+		dispatch->wheel.lo_res.x = 0;
+		dispatch->wheel.lo_res.y = 0;
+		return;
+	}
+
+	wheel_flush_scroll(dispatch, device, time);
 }
 
 void
