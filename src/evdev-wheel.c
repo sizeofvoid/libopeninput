@@ -30,6 +30,124 @@
 #include "evdev-fallback.h"
 #include "util-input-event.h"
 
+enum wheel_event {
+	WHEEL_EVENT_PRESS,
+	WHEEL_EVENT_RELEASE,
+	WHEEL_EVENT_SCROLL,
+};
+
+static inline const char *
+wheel_state_to_str(enum wheel_state state)
+{
+	switch(state) {
+	CASE_RETURN_STRING(WHEEL_STATE_NONE);
+	CASE_RETURN_STRING(WHEEL_STATE_PRESSED);
+	CASE_RETURN_STRING(WHEEL_STATE_SCROLLING);
+	}
+	return NULL;
+}
+
+static inline const char*
+wheel_event_to_str(enum wheel_event event)
+{
+	switch(event) {
+	CASE_RETURN_STRING(WHEEL_EVENT_PRESS);
+	CASE_RETURN_STRING(WHEEL_EVENT_RELEASE);
+	CASE_RETURN_STRING(WHEEL_EVENT_SCROLL);
+	}
+	return NULL;
+}
+
+static inline void
+log_wheel_bug(struct fallback_dispatch *dispatch, enum wheel_event event)
+{
+	evdev_log_bug_libinput(dispatch->device,
+			       "invalid wheel event %s in state %s\n",
+			       wheel_event_to_str(event),
+			       wheel_state_to_str(dispatch->wheel.state));
+}
+
+static void
+wheel_handle_event_on_state_none(struct fallback_dispatch *dispatch,
+				 enum wheel_event event,
+				 uint64_t time)
+{
+	switch (event) {
+	case WHEEL_EVENT_PRESS:
+		dispatch->wheel.state = WHEEL_STATE_PRESSED;
+		break;
+	case WHEEL_EVENT_SCROLL:
+		dispatch->wheel.state = WHEEL_STATE_SCROLLING;
+		break;
+	case WHEEL_EVENT_RELEASE:
+		log_wheel_bug(dispatch, event);
+		break;
+	}
+}
+
+static void
+wheel_handle_event_on_state_pressed(struct fallback_dispatch *dispatch,
+				    enum wheel_event event,
+				    uint64_t time)
+{
+	switch (event) {
+	case WHEEL_EVENT_RELEASE:
+		dispatch->wheel.state = WHEEL_STATE_NONE;
+		break;
+	case WHEEL_EVENT_SCROLL:
+		/* Ignore scroll while the wheel is pressed */
+		break;
+	case WHEEL_EVENT_PRESS:
+		log_wheel_bug(dispatch, event);
+		break;
+	}
+}
+
+static void
+wheel_handle_event_on_state_scrolling(struct fallback_dispatch *dispatch,
+				      enum wheel_event event,
+				      uint64_t time)
+{
+	switch (event) {
+	case WHEEL_EVENT_PRESS:
+		dispatch->wheel.state = WHEEL_STATE_PRESSED;
+		break;
+	case WHEEL_EVENT_SCROLL:
+		break;
+	case WHEEL_EVENT_RELEASE:
+		log_wheel_bug(dispatch, event);
+		break;
+	}
+}
+
+static void
+wheel_handle_event(struct fallback_dispatch *dispatch,
+		   enum wheel_event event,
+		   uint64_t time)
+{
+	enum wheel_state oldstate = dispatch->wheel.state;
+
+	switch (oldstate) {
+	case WHEEL_STATE_NONE:
+		wheel_handle_event_on_state_none(dispatch, event, time);
+		break;
+	case WHEEL_STATE_PRESSED:
+		wheel_handle_event_on_state_pressed(dispatch, event, time);
+		break;
+	case WHEEL_STATE_SCROLLING:
+		wheel_handle_event_on_state_scrolling(dispatch, event, time);
+		break;
+	}
+
+	if (oldstate != dispatch->wheel.state) {
+		evdev_log_debug(dispatch->device,
+				"wheel state %s → %s → %s\n",
+				wheel_state_to_str(oldstate),
+				wheel_event_to_str(event),
+				wheel_state_to_str(dispatch->wheel.state));
+	}
+}
+
 static void
 wheel_flush_scroll(struct fallback_dispatch *dispatch,
 		   struct evdev_device *device,
@@ -111,6 +229,33 @@ wheel_flush_scroll(struct fallback_dispatch *dispatch,
 	}
 }
 
+static void
+wheel_handle_state_none(struct fallback_dispatch *dispatch,
+			struct evdev_device *device,
+			uint64_t time)
+{
+
+}
+
+static void
+wheel_handle_state_pressed(struct fallback_dispatch *dispatch,
+			   struct evdev_device *device,
+			   uint64_t time)
+{
+	dispatch->wheel.hi_res.x = 0;
+	dispatch->wheel.hi_res.y = 0;
+	dispatch->wheel.lo_res.x = 0;
+	dispatch->wheel.lo_res.y = 0;
+}
+
+static void
+wheel_handle_state_scrolling(struct fallback_dispatch *dispatch,
+			     struct evdev_device *device,
+			     uint64_t time)
+{
+	wheel_flush_scroll(dispatch, device, time);
+}
+
 void
 fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 				struct evdev_device *device,
@@ -122,22 +267,26 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 		if (dispatch->wheel.emulate_hi_res_wheel)
 			dispatch->wheel.hi_res.y += e->value * 120;
 		dispatch->pending_event |= EVDEV_WHEEL;
+		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case REL_HWHEEL:
 		dispatch->wheel.lo_res.x += e->value;
 		if (dispatch->wheel.emulate_hi_res_wheel)
 			dispatch->wheel.hi_res.x += e->value * 120;
 		dispatch->pending_event |= EVDEV_WHEEL;
+		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case REL_WHEEL_HI_RES:
 		dispatch->wheel.hi_res.y += e->value;
 		dispatch->wheel.hi_res_event_received = true;
 		dispatch->pending_event |= EVDEV_WHEEL;
+		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case REL_HWHEEL_HI_RES:
 		dispatch->wheel.hi_res.x += e->value;
 		dispatch->wheel.hi_res_event_received = true;
 		dispatch->pending_event |= EVDEV_WHEEL;
+		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	}
 }
@@ -149,9 +298,6 @@ fallback_wheel_notify_physical_button(struct fallback_dispatch *dispatch,
 				      int button,
 				      enum libinput_button_state state)
 {
-	if (button == BTN_MIDDLE)
-		dispatch->wheel.is_inhibited = (state == LIBINPUT_BUTTON_STATE_PRESSED);
-
 	/* Lenovo TrackPoint Keyboard II sends its own scroll events when its
 	 * trackpoint is moved while the middle button is pressed.
 	 * Do not inhibit the scroll events.
@@ -159,7 +305,14 @@ fallback_wheel_notify_physical_button(struct fallback_dispatch *dispatch,
 	 */
 	if (evdev_device_has_model_quirk(device,
 					 QUIRK_MODEL_LENOVO_TRACKPOINT_KEYBOARD_2))
-		dispatch->wheel.is_inhibited = false;
+		return;
+
+	if (button == BTN_MIDDLE) {
+		if (state == LIBINPUT_BUTTON_STATE_PRESSED)
+			wheel_handle_event(dispatch, WHEEL_EVENT_PRESS, time);
+		else
+			wheel_handle_event(dispatch, WHEEL_EVENT_RELEASE, time);
+	}
 }
 
 void
@@ -182,21 +335,25 @@ fallback_wheel_handle_state(struct fallback_dispatch *dispatch,
 		dispatch->wheel.hi_res.y = dispatch->wheel.lo_res.y * 120;
 	}
 
-	if (dispatch->wheel.is_inhibited) {
-		dispatch->wheel.hi_res.x = 0;
-		dispatch->wheel.hi_res.y = 0;
-		dispatch->wheel.lo_res.x = 0;
-		dispatch->wheel.lo_res.y = 0;
-		return;
+	switch (dispatch->wheel.state) {
+	case WHEEL_STATE_NONE:
+		wheel_handle_state_none(dispatch, device, time);
+		break;
+	case WHEEL_STATE_PRESSED:
+		wheel_handle_state_pressed(dispatch, device, time);
+		break;
+	case WHEEL_STATE_SCROLLING:
+		wheel_handle_state_scrolling(dispatch, device, time);
+		break;
 	}
-
-	wheel_flush_scroll(dispatch, device, time);
 }
 
 void
 fallback_init_wheel(struct fallback_dispatch *dispatch,
 		    struct evdev_device *device)
 {
+	dispatch->wheel.state = WHEEL_STATE_NONE;
+
 	/* On kernel < 5.0 we need to emulate high-resolution
 	   wheel scroll events */
 	if ((libevdev_has_event_code(device->evdev,

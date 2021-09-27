@@ -59,6 +59,12 @@ enum palm_state {
 	PALM_WAS_PALM, /* this touch sequence was a palm but isn't now */
 };
 
+enum wheel_state {
+	WHEEL_STATE_NONE,
+	WHEEL_STATE_PRESSED,
+	WHEEL_STATE_SCROLLING,
+};
+
 struct mt_slot {
 	bool dirty;
 	enum mt_slot_state state;
@@ -98,10 +104,10 @@ struct fallback_dispatch {
 	struct device_coords rel;
 
 	struct {
+		enum wheel_state state;
 		struct device_coords lo_res;
 		struct device_coords hi_res;
 		bool emulate_hi_res_wheel;
-		bool is_inhibited;
 		bool hi_res_event_received;
 	} wheel;
 
