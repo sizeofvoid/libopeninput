@@ -1109,6 +1109,7 @@ fallback_interface_remove(struct evdev_dispatch *evdev_dispatch)
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 	struct evdev_paired_keyboard *kbd;
 
+	libinput_timer_cancel(&dispatch->wheel.scroll_timer);
 	libinput_timer_cancel(&dispatch->debounce.timer);
 	libinput_timer_cancel(&dispatch->debounce.timer_short);
 	libinput_timer_cancel(&dispatch->arbitration.arbitration_timer);
@@ -1222,6 +1223,7 @@ fallback_interface_destroy(struct evdev_dispatch *evdev_dispatch)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 
+	libinput_timer_destroy(&dispatch->wheel.scroll_timer);
 	libinput_timer_destroy(&dispatch->arbitration.arbitration_timer);
 	libinput_timer_destroy(&dispatch->debounce.timer);
 	libinput_timer_destroy(&dispatch->debounce.timer_short);

@@ -895,6 +895,9 @@ void
 litest_timeout_buttonscroll(void);
 
 void
+litest_timeout_wheel_scroll(void);
+
+void
 litest_timeout_edgescroll(void);
 
 void

@@ -62,6 +62,7 @@ enum palm_state {
 enum wheel_state {
 	WHEEL_STATE_NONE,
 	WHEEL_STATE_PRESSED,
+	WHEEL_STATE_ACCUMULATING_SCROLL,
 	WHEEL_STATE_SCROLLING,
 };
 
@@ -109,6 +110,7 @@ struct fallback_dispatch {
 		struct device_coords hi_res;
 		bool emulate_hi_res_wheel;
 		bool hi_res_event_received;
+		struct libinput_timer scroll_timer;
 	} wheel;
 
 	struct {

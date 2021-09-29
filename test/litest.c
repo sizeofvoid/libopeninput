@@ -4300,6 +4300,12 @@ litest_timeout_finger_switch(void)
 }
 
 void
+litest_timeout_wheel_scroll(void)
+{
+	msleep(600);
+}
+
+void
 litest_timeout_edgescroll(void)
 {
 	msleep(300);
