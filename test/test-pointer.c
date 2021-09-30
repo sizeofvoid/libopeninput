@@ -796,8 +796,8 @@ START_TEST(pointer_scroll_wheel_hires)
 		test_hi_res_wheel_event(dev, axis, 6 * 120);
 
 		test_hi_res_wheel_event(dev, axis, 30);
-		test_hi_res_wheel_event(dev, axis, -40);
 		test_hi_res_wheel_event(dev, axis, -60);
+		test_hi_res_wheel_event(dev, axis, -40);
 		test_hi_res_wheel_event(dev, axis, 180);
 	}
 }
@@ -911,6 +911,44 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
 	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(pointer_scroll_wheel_inhibit_dir_change)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) &&
+	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
+		return;
+
+	litest_drain_events(dev->libinput);
+
+	/* Scroll one detent and a bit */
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 120);
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 30);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -150);
+
+	/* Scroll below the threshold in the oposite direction should be ignored */
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -30);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	/* But should be triggered if the scroll continues in the same direction */
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -120);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, 150);
+
+	/* Scroll above the threshold in the same dir should be triggered */
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 80);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -80);
 }
 END_TEST
 
@@ -3543,6 +3581,7 @@ TEST_COLLECTION(pointer)
 	litest_add(pointer_scroll_wheel_hires_send_only_lores_vertical, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_wheel_hires_send_only_lores_horizontal, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_wheel_inhibit_small_deltas, LITEST_WHEEL, LITEST_TABLET);
+	litest_add(pointer_scroll_wheel_inhibit_dir_change, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add(pointer_scroll_button_noscroll, LITEST_ABSOLUTE|LITEST_BUTTON, LITEST_RELATIVE);
 	litest_add(pointer_scroll_button_noscroll, LITEST_ANY, LITEST_RELATIVE|LITEST_BUTTON);

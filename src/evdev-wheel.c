@@ -39,6 +39,7 @@ enum wheel_event {
 	WHEEL_EVENT_SCROLL_ACCUMULATED,
 	WHEEL_EVENT_SCROLL,
 	WHEEL_EVENT_SCROLL_TIMEOUT,
+	WHEEL_EVENT_SCROLL_DIR_CHANGED,
 };
 
 static inline const char *
@@ -62,6 +63,7 @@ wheel_event_to_str(enum wheel_event event)
 	CASE_RETURN_STRING(WHEEL_EVENT_SCROLL_ACCUMULATED);
 	CASE_RETURN_STRING(WHEEL_EVENT_SCROLL);
 	CASE_RETURN_STRING(WHEEL_EVENT_SCROLL_TIMEOUT);
+	CASE_RETURN_STRING(WHEEL_EVENT_SCROLL_DIR_CHANGED);
 	}
 	return NULL;
 }
@@ -100,6 +102,8 @@ wheel_handle_event_on_state_none(struct fallback_dispatch *dispatch,
 	case WHEEL_EVENT_SCROLL:
 		dispatch->wheel.state = WHEEL_STATE_ACCUMULATING_SCROLL;
 		break;
+	case WHEEL_EVENT_SCROLL_DIR_CHANGED:
+		break;
 	case WHEEL_EVENT_RELEASE:
 	case WHEEL_EVENT_SCROLL_ACCUMULATED:
 	case WHEEL_EVENT_SCROLL_TIMEOUT:
@@ -118,6 +122,7 @@ wheel_handle_event_on_state_pressed(struct fallback_dispatch *dispatch,
 		dispatch->wheel.state = WHEEL_STATE_NONE;
 		break;
 	case WHEEL_EVENT_SCROLL:
+	case WHEEL_EVENT_SCROLL_DIR_CHANGED:
 		/* Ignore scroll while the wheel is pressed */
 		break;
 	case WHEEL_EVENT_PRESS:
@@ -144,6 +149,9 @@ wheel_handle_event_on_state_accumulating_scroll(struct fallback_dispatch *dispat
 	case WHEEL_EVENT_SCROLL:
 		/* Ignore scroll while accumulating deltas */
 		break;
+	case WHEEL_EVENT_SCROLL_DIR_CHANGED:
+		dispatch->wheel.state = WHEEL_STATE_NONE;
+		break;
 	case WHEEL_EVENT_RELEASE:
 	case WHEEL_EVENT_SCROLL_TIMEOUT:
 		log_wheel_bug(dispatch, event);
@@ -166,6 +174,10 @@ wheel_handle_event_on_state_scrolling(struct fallback_dispatch *dispatch,
 		wheel_set_scroll_timer(dispatch, time);
 		break;
 	case WHEEL_EVENT_SCROLL_TIMEOUT:
+		dispatch->wheel.state = WHEEL_STATE_NONE;
+		break;
+	case WHEEL_EVENT_SCROLL_DIR_CHANGED:
+		wheel_cancel_scroll_timer(dispatch);
 		dispatch->wheel.state = WHEEL_STATE_NONE;
 		break;
 	case WHEEL_EVENT_RELEASE:
@@ -330,6 +342,30 @@ wheel_handle_state_scrolling(struct fallback_dispatch *dispatch,
 	wheel_flush_scroll(dispatch, device, time);
 }
 
+static void
+wheel_handle_direction_change(struct fallback_dispatch *dispatch,
+			      struct input_event *e,
+			      uint64_t time)
+{
+	enum wheel_direction new_dir = WHEEL_DIR_UNKNOW;
+
+	switch (e->code) {
+	case REL_WHEEL_HI_RES:
+		new_dir = (e->value > 0) ? WHEEL_DIR_VPOS : WHEEL_DIR_VNEG;
+		break;
+	case REL_HWHEEL_HI_RES:
+		new_dir = (e->value > 0) ? WHEEL_DIR_HPOS : WHEEL_DIR_HNEG;
+		break;
+	}
+
+	if (new_dir != WHEEL_DIR_UNKNOW && new_dir != dispatch->wheel.dir) {
+		dispatch->wheel.dir = new_dir;
+		wheel_handle_event(dispatch,
+				   WHEEL_EVENT_SCROLL_DIR_CHANGED,
+				   time);
+	}
+}
+
 void
 fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 				struct evdev_device *device,
@@ -354,12 +390,14 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 		dispatch->wheel.hi_res.y += e->value;
 		dispatch->wheel.hi_res_event_received = true;
 		dispatch->pending_event |= EVDEV_WHEEL;
+		wheel_handle_direction_change(dispatch, e, time);
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case REL_HWHEEL_HI_RES:
 		dispatch->wheel.hi_res.x += e->value;
 		dispatch->wheel.hi_res_event_received = true;
 		dispatch->pending_event |= EVDEV_WHEEL;
+		wheel_handle_direction_change(dispatch, e, time);
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	}
@@ -442,6 +480,7 @@ fallback_init_wheel(struct fallback_dispatch *dispatch,
 	char timer_name[64];
 
 	dispatch->wheel.state = WHEEL_STATE_NONE;
+	dispatch->wheel.dir = WHEEL_DIR_UNKNOW;
 
 	/* On kernel < 5.0 we need to emulate high-resolution
 	   wheel scroll events */

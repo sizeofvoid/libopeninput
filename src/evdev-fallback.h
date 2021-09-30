@@ -66,6 +66,14 @@ enum wheel_state {
 	WHEEL_STATE_SCROLLING,
 };
 
+enum wheel_direction {
+	WHEEL_DIR_UNKNOW,
+	WHEEL_DIR_VPOS,
+	WHEEL_DIR_VNEG,
+	WHEEL_DIR_HPOS,
+	WHEEL_DIR_HNEG,
+};
+
 struct mt_slot {
 	bool dirty;
 	enum mt_slot_state state;
@@ -111,6 +119,7 @@ struct fallback_dispatch {
 		bool emulate_hi_res_wheel;
 		bool hi_res_event_received;
 		struct libinput_timer scroll_timer;
+		enum wheel_direction dir;
 	} wheel;
 
 	struct {
