@@ -1256,11 +1256,11 @@ tp_gesture_post_gesture(struct tp_dispatch *tp, uint64_t time,
 	if (tp->gesture.state == GESTURE_STATE_HOLD)
 		tp_gesture_handle_state_hold(tp, time, ignore_motion);
 
-	if (tp->gesture.state == GESTURE_STATE_HOLD_AND_MOTION)
-		tp_gesture_handle_state_hold_and_pointer_motion(tp, time);
-
 	if (tp->gesture.state == GESTURE_STATE_POINTER_MOTION)
 		tp_gesture_handle_state_pointer_motion(tp, time);
+
+	if (tp->gesture.state == GESTURE_STATE_HOLD_AND_MOTION)
+		tp_gesture_handle_state_hold_and_pointer_motion(tp, time);
 
 	if (tp->gesture.state == GESTURE_STATE_SCROLL)
 		tp_gesture_handle_state_scroll(tp, time);
