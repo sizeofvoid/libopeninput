@@ -1,7 +1,7 @@
 [StarBook Mk V]
 MatchName=STAR0001:00 093A:0255 Touchpad
 MatchUdevType=touchpad
-MatchDMIModalias=dmi:*svnStarLabs:pnLabTop*
+MatchDMIModalias=dmi:*svnStarLabs:pnStarBook*
 AttrEventCodeDisable=BTN_RIGHT
 
 [StarLabTop Mk IV - coreboot firmware]
@@ -11,7 +11,7 @@ MatchDMIModalias=dmi:*svnStarLabs:pnLabTop*
 AttrEventCodeDisable=BTN_RIGHT
 
 [StarLabTop Mk IV - AMI firmware]
-MatchName=Device:PCT1336:00 093A:1336 Touchpad
+MatchName=PCT1336:00 093A:1336 Touchpad
 MatchUdevType=touchpad
 MatchDMIModalias=dmi:*svnStarLabs:pnLabTop*
 AttrEventCodeDisable=BTN_RIGHT
