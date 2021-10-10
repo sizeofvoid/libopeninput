@@ -230,26 +230,35 @@ evdev_button_scroll_button(struct evdev_device *device,
 	}
 
 	if (is_press) {
-		enum timer_flags flags = TIMER_FLAG_NONE;
+		if (device->scroll.button < BTN_FORWARD) {
+			/* For mouse buttons 1-5 (0x110 to 0x114) we apply a timeout before scrolling
+			 * since the button could also be used for regular clicking. */
+			enum timer_flags flags = TIMER_FLAG_NONE;
 
-		device->scroll.button_scroll_state = BUTTONSCROLL_BUTTON_DOWN;
+			device->scroll.button_scroll_state = BUTTONSCROLL_BUTTON_DOWN;
 
-		/* Special case: if middle button emulation is enabled and
-		 * our scroll button is the left or right button, we only
-		 * get here *after* the middle button timeout has expired
-		 * for that button press. The time passed is the button-down
-		 * time though (which is in the past), so we have to allow
-		 * for a negative timer to be set.
-		 */
-		if (device->middlebutton.enabled &&
-		    (device->scroll.button == BTN_LEFT ||
-		     device->scroll.button == BTN_RIGHT)) {
-			flags = TIMER_FLAG_ALLOW_NEGATIVE;
+			/* Special case: if middle button emulation is enabled and
+			 * our scroll button is the left or right button, we only
+			 * get here *after* the middle button timeout has expired
+			 * for that button press. The time passed is the button-down
+			 * time though (which is in the past), so we have to allow
+			 * for a negative timer to be set.
+			 */
+			if (device->middlebutton.enabled &&
+				(device->scroll.button == BTN_LEFT ||
+				device->scroll.button == BTN_RIGHT)) {
+				flags = TIMER_FLAG_ALLOW_NEGATIVE;
+			}
+
+			libinput_timer_set_flags(&device->scroll.timer,
+						time + DEFAULT_BUTTON_SCROLL_TIMEOUT,
+						flags);
+		} else {
+			/* For extra mouse buttons numbered 6 or more (0x115+) we assume it is
+			 * dedicated exclusively to scrolling, so we don't apply the timeout
+			 * in order to provide immediate scrolling responsiveness. */
+			device->scroll.button_scroll_state = BUTTONSCROLL_READY;
 		}
-
-		libinput_timer_set_flags(&device->scroll.timer,
-					 time + DEFAULT_BUTTON_SCROLL_TIMEOUT,
-					 flags);
 		device->scroll.button_down_time = time;
 		evdev_log_debug(device, "btnscroll: down\n");
 	} else {
