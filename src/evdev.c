@@ -230,7 +230,7 @@ evdev_button_scroll_button(struct evdev_device *device,
 	}
 
 	if (is_press) {
-		if (device->scroll.button < BTN_FORWARD) {
+		if (device->scroll.button < BTN_MOUSE + 5) {
 			/* For mouse buttons 1-5 (0x110 to 0x114) we apply a timeout before scrolling
 			 * since the button could also be used for regular clicking. */
 			enum timer_flags flags = TIMER_FLAG_NONE;
