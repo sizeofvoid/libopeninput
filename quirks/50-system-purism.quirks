@@ -3,5 +3,5 @@
 [Librem 14v1 Touchpad]
 MatchName=HTIX5288:00 0911:5288 Touchpad
 MatchUdevType=touchpad
-MatchDMIModalias=dmi:*svnPurism:*pnLibrem14*
+MatchDMIModalias=dmi:*svnPurism:*pn[Ll]ibrem*14:*
 AttrEventCodeDisable=BTN_RIGHT
