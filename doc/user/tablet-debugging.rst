@@ -39,6 +39,6 @@ the ``libinput record`` tool.
 - **resolution** indicates that the device does not have a resolution set
   for the x and y axes. This can be fixed with a hwdb entry, locate and read
   the `60-evdev.hwdb
-  <https://github.com/systemd/systemd/tree/master/hwdb/60-evdev.hwdb>`__ file
+  <https://github.com/systemd/systemd/blob/main/hwdb.d/60-evdev.hwdb>`__ file
   on your machine and file a pull request with the fixes against
   `systemd <https://github.com/systemd/systemd/>`__.
