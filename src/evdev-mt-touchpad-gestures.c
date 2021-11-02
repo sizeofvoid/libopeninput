@@ -958,7 +958,7 @@ tp_gesture_detect_motion_gestures(struct tp_dispatch *tp, uint64_t time)
 		 */
 		if (tp->thumb.detect_thumbs && thumb_mm < min_move) {
 			tp_thumb_suppress(tp, thumb);
-			tp_gesture_handle_event(tp, GESTURE_EVENT_RESET, time);
+			tp_gesture_cancel(tp, time);
 			return;
 		}
 
