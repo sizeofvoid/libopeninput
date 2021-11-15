@@ -68,10 +68,13 @@ MOUSE_WHEEL_CLICK_ANGLE
 
 
 Below is an example udev rule to assign "seat1" to a device from vendor
-0x012a with the model ID of 0x034b. ::
+``0x012a`` with the model ID of ``0x034b``. ::
 
-     ACTION=="add|change", KERNEL=="event[0-9]*", ENV{ID_VENDOR_ID}=="012a", \
-     ENV{ID_MODEL_ID}=="034b", ENV{ID_SEAT}="seat1"
+   $ cat /etc/udev/rules.d/99-my-device-is-on-seat1.rules
+     ACTION=="add|change", KERNEL=="event[0-9]*", \
+     ENV{ID_VENDOR_ID}=="012a", \
+     ENV{ID_MODEL_ID}=="034b", \
+     ENV{ID_SEAT}="seat1"
 
 
 
@@ -96,10 +99,13 @@ handle some combinations for historical reasons.
 
 Below is an example udev rule  to remove an **ID_INPUT_TOUCHPAD** setting
 and change it into an **ID_INPUT_TABLET** setting. This rule would apply
-for a device with the vendor/model ID of 012a/034b. ::
+for a device with the vendor/model ID of ``012a``/``034b``. ::
 
-     ACTION=="add|change", KERNEL=="event[0-9]*", ENV{ID_VENDOR_ID}=="012a", \
-     ENV{ID_MODEL_ID}=="034b", ENV{ID_INPUT_TOUCHPAD}="", ENV{ID_INPUT_TABLET}="1"
+   $ cat /etc/udev/rules.d/99-my-device-is-a-tablet.rules
+     ACTION=="add|change", KERNEL=="event[0-9]*", \
+     ENV{ID_VENDOR_ID}=="012a", \
+     ENV{ID_MODEL_ID}=="034b", \
+     ENV{ID_INPUT_TOUCHPAD}="", ENV{ID_INPUT_TABLET}="1"
 
 
 
