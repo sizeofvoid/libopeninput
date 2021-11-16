@@ -272,3 +272,11 @@ MatchBus=bluetooth
 MatchVendor=0x17EF
 MatchProduct=0x60E1
 ModelLenovoTrackpointKeyboard2=1
+
+# Modifies pressure range to avoid random jumps.
+# https://gitlab.freedesktop.org/libinput/libinput/-/issues/407
+[Lenovo Yoga 2 Pro touchpad]
+MatchUdevType=touchpad
+MatchName=*SynPS/2 Synaptics TouchPad
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrLenovoYoga2Pro*
+AttrPressureRange=50:45
