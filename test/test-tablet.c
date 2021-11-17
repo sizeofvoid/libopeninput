@@ -252,6 +252,62 @@ START_TEST(tip_down_up)
 }
 END_TEST
 
+START_TEST(tip_down_up_eraser)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tablet_event;
+	struct libinput_tablet_tool *tool;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
+		return;
+
+	litest_tablet_set_tool_type(dev, BTN_TOOL_RUBBER);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_drain_events(li);
+
+	litest_axis_set_value(axes, ABS_DISTANCE, 0);
+	litest_axis_set_value(axes, ABS_PRESSURE, 30);
+	litest_tablet_tip_down(dev, 10, 10, axes);
+
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
+	ck_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
+	tool = libinput_event_tablet_tool_get_tool(tablet_event);
+	ck_assert_int_eq(libinput_tablet_tool_get_type(tool), LIBINPUT_TABLET_TOOL_TYPE_ERASER);
+	libinput_event_destroy(event);
+	litest_assert_empty_queue(li);
+
+	litest_axis_set_value(axes, ABS_DISTANCE, 10);
+	litest_axis_set_value(axes, ABS_PRESSURE, 0);
+	litest_tablet_tip_up(dev, 10, 10, axes);
+
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tablet_event = litest_is_tablet_event(event,
+					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
+	ck_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+			 LIBINPUT_TABLET_TOOL_TIP_UP);
+	tool = libinput_event_tablet_tool_get_tool(tablet_event);
+	ck_assert_int_eq(libinput_tablet_tool_get_type(tool), LIBINPUT_TABLET_TOOL_TYPE_ERASER);
+	libinput_event_destroy(event);
+
+	litest_assert_empty_queue(li);
+
+}
+END_TEST
+
 START_TEST(tip_down_prox_in)
 {
 	struct litest_device *dev = litest_current_device();
@@ -6060,6 +6116,7 @@ TEST_COLLECTION(tablet)
 	litest_add(tip_up_btn_change, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add(tip_down_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add(tip_up_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add(tip_down_up_eraser, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add_ranged(tip_up_motion_one_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY, &xyaxes);
 	litest_add(tip_state_proximity, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add(tip_state_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
