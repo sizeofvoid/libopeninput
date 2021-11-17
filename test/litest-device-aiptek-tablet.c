@@ -32,6 +32,7 @@ static struct input_event proximity_in[] = {
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	/* Note: this device does not send tilt, despite claiming it has it */
 	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_KEY, .code = LITEST_BTN_TOOL_AUTO, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
