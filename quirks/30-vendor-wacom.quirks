@@ -19,3 +19,10 @@ MatchBus=usb
 MatchVendor=0x56A
 MatchProduct=0x4200
 AttrEventCodeDisable=ABS_TILT_X;ABS_TILT_Y;
+
+[Wacom ISDV4 524c Pen]
+MatchUdevType=tablet
+MatchBus=usb
+MatchVendor=0x2D1F
+MatchProduct=0x524C
+AttrEventCodeDisable=ABS_TILT_X;ABS_TILT_Y;
