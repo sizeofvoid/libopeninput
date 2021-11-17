@@ -1810,20 +1810,35 @@ tablet_update_tool_state(struct tablet_dispatch *tablet,
 	if (tablet->tool_state == tablet->prev_tool_state)
 		return false;
 
-	/* Kernel tools are supposed to be mutually exclusive, if we have
-	 * two, we force a proximity out for the older tool and handle the
-	 * new tool as separate proximity in event.
+	/* Kernel tools are supposed to be mutually exclusive, but we may have
+	 * two bits set due to firmware/kernel bugs.
+	 * Two cases that have been seen in the wild:
+	 * - BTN_TOOL_PEN on proximity in, followed by
+	 *   BTN_TOOL_RUBBER later, see #259
+	 *   -> We force a prox-out of the pen, trigger prox-in for eraser
+	 * - BTN_TOOL_RUBBER on proximity in, but BTN_TOOL_PEN when
+	 *   the tip is down, see #702.
+	 *   -> We ignore BTN_TOOL_PEN
+	 * In both cases the eraser is what we want, so we bias
+	 * towards that.
 	 */
 	if (tablet->tool_state & (tablet->tool_state - 1)) {
-		/* tool_state has 2 bits set. We set the current tool state
-		 * to zero, thus setting everything up for a prox out on the
-		 * tool. Once that is set up, we change the tool state to be
-		 * the new one we just got so when we re-process this
-		 * function we now get the new tool as prox in.
-		 * Importantly, we basically rely on nothing else happening
-		 * in the meantime.
-		 */
 		doubled_up_new_tool_bit = tablet->tool_state ^ tablet->prev_tool_state;
+
+		/* The new tool is the pen. Ignore it */
+		if (doubled_up_new_tool_bit == bit(LIBINPUT_TABLET_TOOL_TYPE_PEN)) {
+			tablet->tool_state &= ~bit(LIBINPUT_TABLET_TOOL_TYPE_PEN);
+			return false;
+		}
+
+		/* The new tool is some tool other than pen (usually eraser).
+		 * We set the current tool state to zero, thus setting
+		 * everything up for a prox out on the tool. Once that is set
+		 * up, we change the tool state to be the new one we just got.
+		 * When we re-process this function we now get the new tool
+		 * as prox in. Importantly, we basically rely on nothing else
+		 * happening in the meantime.
+		 */
 		tablet->tool_state = 0;
 	}
 
