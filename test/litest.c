@@ -2542,6 +2542,36 @@ litest_tablet_motion(struct litest_device *d, int x, int y, struct axis_replacem
 }
 
 void
+litest_tablet_tip_down(struct litest_device *d,
+		       int x, int y,
+		       struct axis_replacement *axes)
+{
+	/* If the test device overrides tip_down and says it didn't
+	 * handle the event, let's continue normally */
+	if (d->interface->tablet_tip_down &&
+	    d->interface->tablet_tip_down(d, x, y, axes))
+		return;
+
+	litest_event(d, EV_KEY, BTN_TOUCH, 1);
+	litest_tablet_motion(d, x, y, axes);
+}
+
+void
+litest_tablet_tip_up(struct litest_device *d,
+		     int x, int y,
+		     struct axis_replacement *axes)
+{
+	/* If the test device overrides tip_down and says it didn't
+	 * handle the event, let's continue normally */
+	if (d->interface->tablet_tip_up &&
+	    d->interface->tablet_tip_up(d, x, y, axes))
+		return;
+
+	litest_event(d, EV_KEY, BTN_TOUCH, 0);
+	litest_tablet_motion(d, x, y, axes);
+}
+
+void
 litest_touch_move_two_touches(struct litest_device *d,
 			      double x0, double y0,
 			      double x1, double y1,
