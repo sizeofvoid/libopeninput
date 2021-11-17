@@ -13,7 +13,7 @@ MatchVendor=0x056A
 MatchProduct=0x0357
 AttrPalmSizeThreshold=5
 
-[Wacom ISDV4 Pen]
+[Wacom ISDV4 4200 Pen]
 MatchUdevType=tablet
 MatchBus=usb
 MatchVendor=0x56A
