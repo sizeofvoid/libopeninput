@@ -592,7 +592,7 @@ tp_process_button(struct tp_dispatch *tp,
 		  const struct input_event *e,
 		  uint64_t time)
 {
-	uint32_t mask = 1 << (e->code - BTN_LEFT);
+	uint32_t mask = bit(e->code - BTN_LEFT);
 
 	/* Ignore other buttons on clickpads */
 	if (tp->buttons.is_clickpad && e->code != BTN_LEFT) {

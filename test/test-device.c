@@ -56,7 +56,7 @@ START_TEST(device_sendevents_config_invalid)
 	device = dev->libinput_device;
 
 	status = libinput_device_config_send_events_set_mode(device,
-			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED | (1 << 4));
+			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED | bit(4));
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 }
 END_TEST

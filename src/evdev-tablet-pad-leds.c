@@ -412,7 +412,7 @@ pad_init_mode_buttons(struct pad_dispatch *pad,
 			return 1;
 		}
 
-		group->button_mask |= 1 << i;
+		group->button_mask |= bit(i);
 
 		if (flags & WACOM_BUTTON_MODESWITCH) {
 			struct pad_mode_toggle_button *b;
@@ -423,7 +423,7 @@ pad_init_mode_buttons(struct pad_dispatch *pad,
 				return 1;
 			g = (struct pad_led_group*)group;
 			list_insert(&g->toggle_button_list, &b->link);
-			group->toggle_button_mask |= 1 << i;
+			group->toggle_button_mask |= bit(i);
 		}
 	}
 

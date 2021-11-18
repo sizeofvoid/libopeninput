@@ -139,9 +139,9 @@ tp_tap_notify(struct tp_dispatch *tp,
 	button = button_map[tp->tap.map][nfingers - 1];
 
 	if (state == LIBINPUT_BUTTON_STATE_PRESSED)
-		tp->tap.buttons_pressed |= (1 << nfingers);
+		tp->tap.buttons_pressed |= bit(nfingers);
 	else
-		tp->tap.buttons_pressed &= ~(1 << nfingers);
+		tp->tap.buttons_pressed &= ~bit(nfingers);
 
 	evdev_pointer_notify_button(tp->device,
 				    time,
@@ -1603,7 +1603,7 @@ tp_release_all_taps(struct tp_dispatch *tp, uint64_t now)
 	int i;
 
 	for (i = 1; i <= 3; i++) {
-		if (tp->tap.buttons_pressed & (1 << i))
+		if (tp->tap.buttons_pressed & bit(i))
 			tp_tap_notify(tp, now, i, LIBINPUT_BUTTON_STATE_RELEASED);
 	}
 

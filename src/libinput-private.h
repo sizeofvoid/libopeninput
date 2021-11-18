@@ -865,7 +865,7 @@ xy_get_direction(double x, double y)
 		d1 = (int)(r + 0.9) % 8;
 		d2 = (int)(r + 0.1) % 8;
 
-		dir = (1 << d1) | (1 << d2);
+		dir = bit(d1) | bit(d2);
 	}
 
 	return dir;

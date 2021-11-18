@@ -48,6 +48,7 @@
 #include "libinput-git-version.h"
 #include "shared.h"
 #include "builddir.h"
+#include "util-bits.h"
 #include "util-list.h"
 #include "util-time.h"
 #include "util-input-event.h"
@@ -391,9 +392,9 @@ handle_evdev_frame(struct record_device *d)
 			assert(slot < sizeof(d->touch.slot_state) * 8);
 
 			if (e.value != -1)
-				d->touch.slot_state |= 1 << slot;
+				d->touch.slot_state |= bit(slot);
 			else
-				d->touch.slot_state &= ~(1 << slot);
+				d->touch.slot_state &= ~bit(slot);
 		}
 
 		if (e.type == EV_SYN && e.code == SYN_REPORT)

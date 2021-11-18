@@ -583,7 +583,7 @@ evdev_middlebutton_filter_button(struct evdev_device *device,
 	enum evdev_middlebutton_event event;
 	bool is_press = state == LIBINPUT_BUTTON_STATE_PRESSED;
 	int rc;
-	unsigned int bit = (button - BTN_LEFT);
+	unsigned int btnbit = (button - BTN_LEFT);
 	uint32_t old_mask = 0;
 
 	if (!device->middlebutton.enabled)
@@ -612,7 +612,7 @@ evdev_middlebutton_filter_button(struct evdev_device *device,
 	}
 
 	if (button < BTN_LEFT ||
-	    bit >= sizeof(device->middlebutton.button_mask) * 8) {
+	    btnbit >= sizeof(device->middlebutton.button_mask) * 8) {
 		evdev_log_bug_libinput(device,
 				       "Button mask too small for %s\n",
 				       libevdev_event_code_get_name(EV_KEY,
@@ -624,9 +624,9 @@ evdev_middlebutton_filter_button(struct evdev_device *device,
 
 	old_mask = device->middlebutton.button_mask;
 	if (is_press)
-		device->middlebutton.button_mask |= 1 << bit;
+		device->middlebutton.button_mask |= bit(btnbit);
 	else
-		device->middlebutton.button_mask &= ~(1 << bit);
+		device->middlebutton.button_mask &= ~bit(btnbit);
 
 	if (old_mask != device->middlebutton.button_mask &&
 	    device->middlebutton.button_mask == 0) {

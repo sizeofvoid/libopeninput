@@ -39,7 +39,7 @@
 #define DEFAULT_TRACKPOINT_EVENT_TIMEOUT ms2us(40)
 #define DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_1 ms2us(200)
 #define DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_2 ms2us(500)
-#define FAKE_FINGER_OVERFLOW (1 << 7)
+#define FAKE_FINGER_OVERFLOW bit(7)
 #define THUMB_IGNORE_SPEED_THRESHOLD 20 /* mm/s */
 
 enum notify {
@@ -198,7 +198,7 @@ tp_detect_wobbling(struct tp_dispatch *tp,
 	if (dx > 0) { /* right move */
 		static const char r_l_r = 0x5; /* {Right, Left, Right} */
 
-		t->hysteresis.x_motion_history |= (1 << 2);
+		t->hysteresis.x_motion_history |= bit(2);
 		if (t->hysteresis.x_motion_history == r_l_r) {
 			tp->hysteresis.enabled = true;
 			evdev_log_debug(tp->device,
@@ -303,10 +303,10 @@ tp_fake_finger_set(struct tp_dispatch *tp,
 
 	if (is_press) {
 		tp->fake_touches &= ~FAKE_FINGER_OVERFLOW;
-		tp->fake_touches |= 1 << shift;
+		tp->fake_touches |= bit(shift);
 
 	} else {
-		tp->fake_touches &= ~(0x1 << shift);
+		tp->fake_touches &= ~bit(shift);
 	}
 }
 

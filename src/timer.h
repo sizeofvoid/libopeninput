@@ -54,7 +54,7 @@ libinput_timer_set(struct libinput_timer *timer, uint64_t expire);
 
 enum timer_flags {
 	TIMER_FLAG_NONE = 0,
-	TIMER_FLAG_ALLOW_NEGATIVE = (1 << 0),
+	TIMER_FLAG_ALLOW_NEGATIVE = bit(0),
 };
 
 void

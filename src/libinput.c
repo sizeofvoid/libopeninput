@@ -3427,7 +3427,7 @@ libinput_tablet_pad_mode_group_has_button(struct libinput_tablet_pad_mode_group 
 	    libinput_device_tablet_pad_get_num_buttons(group->device))
 		return 0;
 
-	return !!(group->button_mask & (1 << button));
+	return !!(group->button_mask & bit(button));
 }
 
 LIBINPUT_EXPORT int
@@ -3438,7 +3438,7 @@ libinput_tablet_pad_mode_group_has_ring(struct libinput_tablet_pad_mode_group *g
 	    libinput_device_tablet_pad_get_num_rings(group->device))
 		return 0;
 
-	return !!(group->ring_mask & (1 << ring));
+	return !!(group->ring_mask & bit(ring));
 }
 
 LIBINPUT_EXPORT int
@@ -3449,7 +3449,7 @@ libinput_tablet_pad_mode_group_has_strip(struct libinput_tablet_pad_mode_group *
 	    libinput_device_tablet_pad_get_num_strips(group->device))
 		return 0;
 
-	return !!(group->strip_mask & (1 << strip));
+	return !!(group->strip_mask & bit(strip));
 }
 
 LIBINPUT_EXPORT int
@@ -3460,7 +3460,7 @@ libinput_tablet_pad_mode_group_button_is_toggle(struct libinput_tablet_pad_mode_
 	    libinput_device_tablet_pad_get_num_buttons(group->device))
 		return 0;
 
-	return !!(group->toggle_button_mask & (1 << button));
+	return !!(group->toggle_button_mask & bit(button));
 }
 
 LIBINPUT_EXPORT struct libinput_tablet_pad_mode_group *
