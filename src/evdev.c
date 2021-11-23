@@ -1854,12 +1854,64 @@ static bool
 evdev_device_is_joystick_or_gamepad(struct evdev_device *device)
 {
 	enum evdev_device_udev_tags udev_tags;
+	bool has_joystick_tags;
+	struct libevdev *evdev = device->evdev;
+	unsigned int code, num_joystick_btns = 0, num_keys = 0;
+
+	/* The EVDEV_UDEV_TAG_JOYSTICK is set when a joystick or gamepad button
+	 * is found. However, it can not be used to identify joysticks or
+	 * gamepads because there are keyboards that also have it. Even worse,
+	 * many joysticks also map KEY_* and thus are tagged as keyboards.
+	 *
+	 * In order to be able to detect joysticks and gamepads and
+	 * differentiate them from keyboards, apply the following rules:
+	 *
+	 *  1. The device is tagged as joystick but not as tablet
+	 *  2. It has at least 2 joystick buttons
+	 *  3. It doesn't have 10 keyboard keys */
 
 	udev_tags = evdev_device_get_udev_tags(device, device->udev_device);
-	if (udev_tags == (EVDEV_UDEV_TAG_INPUT|EVDEV_UDEV_TAG_JOYSTICK))
-		return true;
+	has_joystick_tags = (udev_tags & EVDEV_UDEV_TAG_JOYSTICK) &&
+			    !(udev_tags & EVDEV_UDEV_TAG_TABLET) &&
+			    !(udev_tags & EVDEV_UDEV_TAG_TABLET_PAD);
 
-	return false;
+	if (!has_joystick_tags)
+		return false;
+
+
+	for (code = BTN_JOYSTICK; code < BTN_DIGI; code++) {
+		if (libevdev_has_event_code(evdev, EV_KEY, code))
+			num_joystick_btns++;
+	}
+
+	for (code = BTN_TRIGGER_HAPPY; code <= BTN_TRIGGER_HAPPY40; code++) {
+		if (libevdev_has_event_code(evdev, EV_KEY, code))
+			num_joystick_btns++;
+	}
+
+	if (num_joystick_btns < 2) /* require at least 2 joystick buttons */
+		return false;
+
+
+	for (code = KEY_ESC; code <= KEY_MICMUTE; code++) {
+		if (libevdev_has_event_code(evdev, EV_KEY, code) )
+			num_keys++;
+	}
+
+	for (code = KEY_OK; code <= KEY_LIGHTS_TOGGLE; code++) {
+		if (libevdev_has_event_code(evdev, EV_KEY, code) )
+			num_keys++;
+	}
+
+	for (code = KEY_ALS_TOGGLE; code < BTN_TRIGGER_HAPPY; code++) {
+		if (libevdev_has_event_code(evdev, EV_KEY, code) )
+			num_keys++;
+	}
+
+	if (num_keys >= 10) /* should not have 10 keyboard keys */
+		return false;
+
+	return true;
 }
 
 static struct evdev_dispatch *
