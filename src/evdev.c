@@ -1850,6 +1850,18 @@ evdev_disable_accelerometer_axes(struct evdev_device *device)
 	libevdev_disable_event_code(evdev, EV_ABS, REL_Z);
 }
 
+static bool
+evdev_device_is_joystick_or_gamepad(struct evdev_device *device)
+{
+	enum evdev_device_udev_tags udev_tags;
+
+	udev_tags = evdev_device_get_udev_tags(device, device->udev_device);
+	if (udev_tags == (EVDEV_UDEV_TAG_INPUT|EVDEV_UDEV_TAG_JOYSTICK))
+		return true;
+
+	return false;
+}
+
 static struct evdev_dispatch *
 evdev_configure_device(struct evdev_device *device)
 {
@@ -1893,9 +1905,9 @@ evdev_configure_device(struct evdev_device *device)
 		evdev_disable_accelerometer_axes(device);
 	}
 
-	if (udev_tags == (EVDEV_UDEV_TAG_INPUT|EVDEV_UDEV_TAG_JOYSTICK)) {
+	if (evdev_device_is_joystick_or_gamepad(device)) {
 		evdev_log_info(device,
-			       "device is a joystick, ignoring\n");
+			       "device is a joystick or a gamepad, ignoring\n");
 		return NULL;
 	}
 
