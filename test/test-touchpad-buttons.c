@@ -2098,29 +2098,6 @@ START_TEST(touchpad_non_clickpad_detection)
 }
 END_TEST
 
-START_TEST(touchpad_clickpad_detection)
-{
-	struct litest_device *dev;
-	uint32_t methods;
-	int codes[] = {
-		INPUT_PROP_MAX, INPUT_PROP_BUTTONPAD,
-		-1, -1,
-	};
-
-	/* Create a device with LR buttons and INPUT_PROP_BUTTONPAD set - we
-	 * should ignore the property and assume it's a non-clickpad.
-	 * Only way to check that is to verify no click methods are set.
-	 */
-	dev = litest_create_device_with_overrides(LITEST_SYNAPTICS_TOUCHPAD,
-						  "litest Fake Clickpad",
-						  NULL, NULL, codes);
-
-	methods = libinput_device_config_click_get_methods(dev->libinput_device);
-	ck_assert(methods == 0);
-	litest_delete_device(dev);
-}
-END_TEST
-
 TEST_COLLECTION(touchpad_buttons)
 {
 	struct range finger_count = {1, 4};
@@ -2191,6 +2168,5 @@ TEST_COLLECTION(touchpad_buttons)
 	litest_add(clickpad_middleemulation_click_enable_while_down, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(clickpad_middleemulation_click_disable_while_down, LITEST_CLICKPAD, LITEST_ANY);
 
-	litest_add_no_device(touchpad_clickpad_detection);
 	litest_add_no_device(touchpad_non_clickpad_detection);
 }
