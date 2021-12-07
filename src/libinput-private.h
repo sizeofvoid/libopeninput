@@ -136,6 +136,8 @@ struct libinput {
 		struct libinput_source *source;
 		int fd;
 		uint64_t next_expiry;
+
+		struct ratelimit expiry_in_past_limit;
 	} timer;
 
 	struct libinput_event **events;
