@@ -1113,7 +1113,7 @@ evdev_note_time_delay(struct evdev_device *device,
 		return;
 
 	tdelta = us2ms(libinput->dispatch_time - eventtime);
-	if (tdelta > 10) {
+	if (tdelta > 20) {
 		evdev_log_bug_client_ratelimit(device,
 					       &device->delay_warning_limit,
 					       "event processing lagging behind by %dms, your system is too slow\n",

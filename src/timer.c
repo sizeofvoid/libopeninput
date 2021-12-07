@@ -92,9 +92,12 @@ libinput_timer_set_flags(struct libinput_timer *timer,
 			 uint32_t flags)
 {
 #ifndef NDEBUG
+	/* We only warn if we're more than 20ms behind */
+	const uint64_t timer_warning_limit = ms2us(20);
 	uint64_t now = libinput_now(timer->libinput);
 	if (expire < now) {
-		if ((flags & TIMER_FLAG_ALLOW_NEGATIVE) == 0)
+		if ((flags & TIMER_FLAG_ALLOW_NEGATIVE) == 0 &&
+		    now - expire > timer_warning_limit)
 			log_bug_client_ratelimit(timer->libinput,
 						 &timer->libinput->timer.expiry_in_past_limit,
 						 "timer %s: scheduled expiry is in the past (-%dms), your system is too slow\n",

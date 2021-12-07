@@ -721,7 +721,7 @@ START_TEST(timer_delay_bug_warning)
 	for (int i = 0; i < 20; i++) {
 		litest_event(dev, EV_REL, REL_X, -1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		msleep(11);
+		msleep(21);
 		libinput_dispatch(li);
 	}
 
