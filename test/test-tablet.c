@@ -5392,7 +5392,13 @@ verify_left_handed_touch_motion(struct litest_device *finger,
 	litest_touch_move_to(finger, 0, x + 1, y - 1, x + 20, y - 20, 10);
 	libinput_dispatch(li);
 
+	/* Allow for optional hold gesture to end */
 	event = libinput_get_event(li);
+	if (libinput_event_get_type(event) == LIBINPUT_EVENT_GESTURE_HOLD_END) {
+		libinput_event_destroy(event);
+		event = libinput_get_event(li);
+	}
+
 	ck_assert_notnull(event);
 
 	while (event) {
