@@ -1283,6 +1283,9 @@ tp_gesture_thumb_moved(struct tp_dispatch *tp)
 	if (!thumb)
 		return false;
 
+	if (!tp_touch_active_for_gesture(tp, thumb))
+		return false;
+
 	thumb_moved = tp_gesture_mm_moved(tp, thumb);
 	thumb_mm = hypot(thumb_moved.x, thumb_moved.y);
 	return thumb_mm >= PINCH_DISAMBIGUATION_MOVE_THRESHOLD;
