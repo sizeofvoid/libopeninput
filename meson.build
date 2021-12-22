@@ -835,7 +835,8 @@ if get_option('tests')
 	def_disable_backtrace = '-DLITEST_DISABLE_BACKTRACE_LOGGING'
 	defs_litest_selftest = [
 		def_no_main,
-		def_disable_backtrace
+		def_disable_backtrace,
+		'-Wno-unused',
 	]
 	test_litest_selftest_sources = [
 		'test/litest-selftest.c',
