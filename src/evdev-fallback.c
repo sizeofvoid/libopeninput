@@ -68,8 +68,6 @@ fallback_notify_physical_button(struct fallback_dispatch *dispatch,
 				int button,
 				enum libinput_button_state state)
 {
-	fallback_wheel_notify_physical_button(dispatch, device, time,
-					      button, state);
 	evdev_pointer_notify_physical_button(device, time, button, state);
 }
 

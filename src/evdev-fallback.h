@@ -61,7 +61,6 @@ enum palm_state {
 
 enum wheel_state {
 	WHEEL_STATE_NONE,
-	WHEEL_STATE_PRESSED,
 	WHEEL_STATE_ACCUMULATING_SCROLL,
 	WHEEL_STATE_SCROLLING,
 };
@@ -279,13 +278,6 @@ fallback_normalize_delta(struct evdev_device *device,
 void
 fallback_init_wheel(struct fallback_dispatch *dispatch,
 		    struct evdev_device *device);
-
-void
-fallback_wheel_notify_physical_button(struct fallback_dispatch *dispatch,
-				      struct evdev_device *device,
-				      uint64_t time,
-				      int button,
-				      enum libinput_button_state state);
 
 void
 fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
