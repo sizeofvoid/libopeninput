@@ -693,6 +693,7 @@ tools_list_device_quirks(struct quirks_context *ctx,
 			uint32_t v;
 			char *s;
 			double d;
+			bool b;
 
 			name = quirk_get_name(q);
 
@@ -733,7 +734,8 @@ tools_list_device_quirks(struct quirks_context *ctx,
 				break;
 			case QUIRK_ATTR_USE_VELOCITY_AVERAGING:
 			case QUIRK_ATTR_TABLET_SMOOTHING:
-				snprintf(buf, sizeof(buf), "%s=1", name);
+				quirks_get_bool(quirks, q, &b);
+				snprintf(buf, sizeof(buf), "%s=%d", name, b);
 				callback(userdata, buf);
 				break;
 			case QUIRK_ATTR_EVENT_CODE_DISABLE:
