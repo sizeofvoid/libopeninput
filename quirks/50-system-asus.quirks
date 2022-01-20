@@ -33,3 +33,11 @@ MatchVendor=0x0B05
 MatchProduct=0x19B6
 MatchUdevType=keyboard
 AttrKeyboardIntegration=internal
+
+# keyboard has a different vid/pid to the touchpad 
+# so libinput won't pair the two together and dwt isn't active.
+[Asus ROG Strix G15 2021 keyboard]
+MatchVendor=0x0B05
+MatchProduct=0x1866
+MatchUdevType=keyboard
+AttrKeyboardIntegration=internal
