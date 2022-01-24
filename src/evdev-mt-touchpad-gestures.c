@@ -734,13 +734,17 @@ tp_gesture_handle_event_on_state_scroll(struct tp_dispatch *tp,
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp->gesture.state = GESTURE_STATE_NONE;
 		break;
+	case GESTURE_EVENT_PINCH:
+		tp_gesture_init_pinch(tp);
+		tp_gesture_cancel(tp, time);
+		tp->gesture.state = GESTURE_STATE_PINCH;
+		break;
 	case GESTURE_EVENT_HOLD_AND_MOTION:
 	case GESTURE_EVENT_FINGER_DETECTED:
 	case GESTURE_EVENT_HOLD_TIMEOUT:
 	case GESTURE_EVENT_POINTER_MOTION:
 	case GESTURE_EVENT_SCROLL:
 	case GESTURE_EVENT_SWIPE:
-	case GESTURE_EVENT_PINCH:
 		log_gesture_bug(tp, event);
 		break;
 	}
@@ -1166,7 +1170,6 @@ tp_gesture_handle_state_scroll(struct tp_dispatch *tp, uint64_t time)
 	 */
 	if (time < (tp->gesture.initial_time + DEFAULT_GESTURE_PINCH_TIMEOUT) &&
 	    tp_gesture_is_pinch(tp)) {
-		tp_gesture_cancel(tp, time);
 		tp_gesture_handle_event(tp, GESTURE_EVENT_PINCH, time);
 		return;
 	}
