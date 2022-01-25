@@ -34,7 +34,7 @@
 # <distribution>:<version>@activity:
 #  e.g. fedora:31@build-default
 
-.templates_sha: &template_sha 007f3e2fe2235328e77d3cd4ce007ab41cd9ce6c
+.templates_sha: &template_sha 0c312d9c7255f46e741d43bcd1930f09cd12efe7
 
 include:
   # Alpine container builder template
