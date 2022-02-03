@@ -36,6 +36,11 @@ MatchName=AT Translated Set 2 keyboard
 MatchDMIModalias=dmi:*:svnHewlett-Packard:pnHPStreamx360ConvertiblePC11:*
 ModelTabletModeNoSuspend=1
 
+[HP Spectre x360 Convertible 15-bl000]
+MatchName=AT Translated Set 2 keyboard
+MatchDMIModalias=dmi:*:svnHP:pnHPSpectrex360Convertible15-bl0XX:*
+ModelTabletModeNoSuspend=1
+
 [HP ZBook Studio G3]
 MatchName=AlpsPS/2 ALPS GlidePoint
 MatchDMIModalias=dmi:*svnHP:pnHPZBookStudioG3:*
