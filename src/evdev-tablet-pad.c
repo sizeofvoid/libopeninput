@@ -556,15 +556,27 @@ pad_init_buttons_from_libwacom(struct pad_dispatch *pad,
 	WacomDevice *tablet = NULL;
 	int num_buttons;
 	int map = 0;
+	char event_path[64];
 
 	db = libinput_libwacom_ref(li);
 	if (!db)
 		goto out;
 
-	tablet = libwacom_new_from_usbid(db,
-					 evdev_device_get_id_vendor(device),
-					 evdev_device_get_id_product(device),
-					 NULL);
+	snprintf(event_path,
+		 sizeof(event_path),
+		 "/dev/input/%s",
+		 evdev_device_get_sysname(device));
+	tablet = libwacom_new_from_path(db,
+					event_path,
+					WFALLBACK_NONE,
+					NULL);
+	if (!tablet) {
+		tablet = libwacom_new_from_usbid(db,
+						 evdev_device_get_id_vendor(device),
+						 evdev_device_get_id_product(device),
+						 NULL);
+	}
+
 	if (!tablet)
 		goto out;
 
