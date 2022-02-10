@@ -170,8 +170,7 @@ When you file a bug, please attach the following information:
   This is the most important piece of information, do not forget it!
 - the vendor model number of the device (e.g. "Logitech M325")
 - the output from udevadm info, see :ref:`udev_info`.
-- the output of ``libinput measure trackpoint-range``
-- the sensitivity of the trackpoint (adjust the event node number as needed): ::
+- the sensitivity of the trackpoint if it exists (adjust the event node number as needed): ::
 
      $ cat /sys/class/input/event17/device/device/sensitivity
 
