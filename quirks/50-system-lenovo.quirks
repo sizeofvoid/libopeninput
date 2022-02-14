@@ -246,6 +246,13 @@ MatchVendor=0x048D
 MatchProduct=0xC101
 AttrKeyboardIntegration=internal
 
+[Lenovo Legion Y740 Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x048D
+MatchProduct=0xC936
+AttrKeyboardIntegration=internal
+
 # https://gitlab.freedesktop.org/libinput/libinput/-/issues/604
 [Lenovo Yoga Slim 9 14ITL5 Pressurepad]
 MatchBus=i2c
