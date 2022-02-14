@@ -157,8 +157,8 @@ sufficient to make some of the more confusing steps obvious.
 
 - `Register an account <https://gitlab.freedesktop.org/users/sign_in>`_ in
   the freedesktop.org GitLab instance.
-- `Fork libinput <https://gitlab.freedesktop.org/libinput/libinput/forks/new>`_
-  into your username's namespace
+- `Fork libinput <https://gitlab.freedesktop.org/libinput/libinput/-/forks/new>`_
+  into your username's namespace. Select public visibility.
 - Get libinput's main repository. git will call this repository ``origin``. ::
 
     git clone https://gitlab.freedesktop.org/libinput/libinput.git
