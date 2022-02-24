@@ -146,6 +146,20 @@ variables:
 #                                                               #
 #################################################################
 
+fail-if-fork-is-not-public:
+  stage: sanity check
+  script:
+    - |
+      if [ $CI_PROJECT_VISIBILITY != "public" ]; then
+           echo "*************************************************************************************"
+           echo "Project visibility must be set to 'public'"
+           echo "Change this in $CI_PROJECT_URL/edit under 'Visibility, project features, permissions'"
+           echo "*************************************************************************************"
+           exit 1
+      fi
+  except:
+    - main@libinput/libinput
+
 # Re-generate the CI script and make sure it's the one currently checked in
 # If this job fails, re-generate the gitlab-ci.yml script, see
 # $SRCDIR/.gitlab-ci/generate-gitlab-ci.py
