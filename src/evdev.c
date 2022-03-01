@@ -88,6 +88,19 @@ static const struct evdev_udev_tag_match evdev_udev_tag_matches[] = {
 	{"ID_INPUT_SWITCH",		EVDEV_UDEV_TAG_SWITCH},
 };
 
+static const unsigned int well_known_keyboard_keys[] = {
+	KEY_LEFTCTRL,
+	KEY_CAPSLOCK,
+	KEY_NUMLOCK,
+	KEY_INSERT,
+	KEY_MUTE,
+	KEY_CALC,
+	KEY_FILE,
+	KEY_MAIL,
+	KEY_PLAYPAUSE,
+	KEY_BRIGHTNESSDOWN,
+};
+
 static inline bool
 parse_udev_flag(struct evdev_device *device,
 		struct udev_device *udev_device,
@@ -1868,8 +1881,9 @@ evdev_device_is_joystick_or_gamepad(struct evdev_device *device)
 	 * differentiate them from keyboards, apply the following rules:
 	 *
 	 *  1. The device is tagged as joystick but not as tablet
-	 *  2. It has at least 2 joystick buttons
-	 *  3. It doesn't have 10 keyboard keys */
+	 *  2. The device doesn't have 4 well-known keyboard keys
+	 *  3. It has at least 2 joystick buttons
+	 *  4. It doesn't have 10 keyboard keys */
 
 	udev_tags = evdev_device_get_udev_tags(device, device->udev_device);
 	has_joystick_tags = (udev_tags & EVDEV_UDEV_TAG_JOYSTICK) &&
@@ -1879,6 +1893,17 @@ evdev_device_is_joystick_or_gamepad(struct evdev_device *device)
 	if (!has_joystick_tags)
 		return false;
 
+
+	unsigned int num_well_known_keys = 0;
+
+	for (size_t i = 0; i < ARRAY_LENGTH(well_known_keyboard_keys); i++) {
+		code = well_known_keyboard_keys[i];
+		if (libevdev_has_event_code(evdev, EV_KEY, code))
+			num_well_known_keys++;
+	}
+
+	if (num_well_known_keys >= 4) /* should not have 4 well-known keys */
+		return false;
 
 	for (code = BTN_JOYSTICK; code < BTN_DIGI; code++) {
 		if (libevdev_has_event_code(evdev, EV_KEY, code))
