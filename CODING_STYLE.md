@@ -52,26 +52,28 @@ somenamethatiswaytoolong(int a,
 - if it generates a static checker warning, it needs to be fixed or
   commented
 
-- declare variables at the top, try to keep them as local as possible.
+- declare variables before they are used, try to keep them as local as possible.
   Exception: if the same variable is re-used in multiple blocks, declare it
   at the top.
   Exception: basic loop variables, e.g. for (int i = 0; ...)
 
 ```c
 int a;
-int c;
 
 if (foo) {
         int b;
 
-        c = get_value();
-        usevalue(c);
+        a = get_value();
+        usevalue(a);
 }
 
 if (bar) {
-        c = get_value();
-        useit(c);
+        a = get_value();
+        useit(a);
 }
+
+int c = a * 100;
+useit(c);
 ```
 
 - do not mix function invocations and variable definitions.
