@@ -2885,7 +2885,6 @@ tp_init_slots(struct tp_dispatch *tp,
 		{ BTN_TOOL_TRIPLETAP, 3 },
 		{ BTN_TOOL_DOUBLETAP, 2 },
 	};
-	struct map *m;
 	unsigned int i, n_btn_tool_touches = 1;
 
 	absinfo = libevdev_get_abs_info(device->evdev, ABS_MT_SLOT);

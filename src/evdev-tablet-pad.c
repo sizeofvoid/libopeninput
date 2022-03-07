@@ -642,7 +642,6 @@ pad_init_keys(struct pad_dispatch *pad, struct evdev_device *device)
 		KEY_ONSCREEN_KEYBOARD,
 		KEY_CONTROLPANEL,
 	};
-	unsigned int *code;
 
 	/* Wacom's keys are the only ones we know anything about */
 	if (libevdev_get_id_vendor(device->evdev) != VENDOR_ID_WACOM)

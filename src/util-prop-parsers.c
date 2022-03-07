@@ -321,7 +321,6 @@ parse_evcode_string(const char *s, int *type_out, int *code_out)
 			{ "REL_", EV_REL },
 			{ "SW_", EV_SW },
 		};
-		struct map *m;
 		bool found = false;
 
 		ARRAY_FOR_EACH(map, m) {

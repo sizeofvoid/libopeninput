@@ -2734,7 +2734,6 @@ litest_button_click(struct litest_device *d,
 		    unsigned int button,
 		    bool is_press)
 {
-	struct input_event *ev;
 	struct input_event click[] = {
 		{ .type = EV_KEY, .code = button, .value = is_press ? 1 : 0 },
 		{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
@@ -2803,7 +2802,6 @@ litest_button_scroll_locked(struct litest_device *dev,
 void
 litest_keyboard_key(struct litest_device *d, unsigned int key, bool is_press)
 {
-	struct input_event *ev;
 	struct input_event click[] = {
 		{ .type = EV_KEY, .code = key, .value = is_press ? 1 : 0 },
 		{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },

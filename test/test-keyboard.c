@@ -111,7 +111,6 @@ START_TEST(keyboard_ignore_no_pressed_release)
 		EV_KEY, KEY_A,
 		-1, -1,
 	};
-	enum libinput_key_state *state;
 	enum libinput_key_state expected_states[] = {
 		LIBINPUT_KEY_STATE_PRESSED,
 		LIBINPUT_KEY_STATE_RELEASED,

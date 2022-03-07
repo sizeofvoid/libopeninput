@@ -603,8 +603,6 @@ draw_scrollbars(struct window *w, cairo_t *cr)
 static inline void
 draw_touchpoints(struct window *w, cairo_t *cr)
 {
-	struct touch *t;
-
 	cairo_save(cr);
 	ARRAY_FOR_EACH(w->touches, t) {
 		if (t->state == TOUCH_ACTIVE)
@@ -1155,7 +1153,6 @@ window_init(struct window *w)
 static void
 window_cleanup(struct window *w)
 {
-	struct libinput_device **dev;
 	ARRAY_FOR_EACH(w->devices, dev) {
 		if (*dev)
 			libinput_device_unref(*dev);
@@ -1165,8 +1162,6 @@ window_cleanup(struct window *w)
 static void
 change_ptraccel(struct window *w, double amount)
 {
-	struct libinput_device **dev;
-
 	ARRAY_FOR_EACH(w->devices, dev) {
 		double speed;
 		enum libinput_config_status status;
@@ -1341,7 +1336,6 @@ static void
 handle_event_device_notify(struct libinput_event *ev)
 {
 	struct libinput_device *dev = libinput_event_get_device(ev);
-	struct libinput_device **device;
 	struct libinput *li;
 	struct window *w;
 	const char *type;

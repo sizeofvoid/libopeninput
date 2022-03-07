@@ -41,6 +41,57 @@
 
 #include "check-double-macros.h"
 
+START_TEST(array_for_each)
+{
+	int ai[6];
+	char ac[10];
+	struct as {
+		int a;
+		char b;
+		int *ptr;
+	} as[32];
+
+	for (size_t i = 0; i < 6; i++)
+		ai[i] = 20 + i;
+	for (size_t i = 0; i < 10; i++)
+		ac[i] = 100 + i;
+	for (size_t i = 0; i < 32; i++) {
+		as[i].a = 10 + i;
+		as[i].b = 20 + i;
+		as[i].ptr = (int*)0xab + i;
+	}
+
+	int iexpected = 20;
+	ARRAY_FOR_EACH(ai, entry) {
+		ck_assert_int_eq(*entry, iexpected);
+		++iexpected;
+	}
+	ck_assert_int_eq(iexpected, 26);
+
+	int cexpected = 100;
+	ARRAY_FOR_EACH(ac, entry) {
+		ck_assert_int_eq(*entry, cexpected);
+		++cexpected;
+	}
+	ck_assert_int_eq(cexpected, 110);
+
+	struct as sexpected = {
+		.a = 10,
+		.b = 20,
+		.ptr = (int*)0xab,
+	};
+	ARRAY_FOR_EACH(as, entry) {
+		ck_assert_int_eq(entry->a, sexpected.a);
+		ck_assert_int_eq(entry->b, sexpected.b);
+		ck_assert_ptr_eq(entry->ptr, sexpected.ptr);
+		++sexpected.a;
+		++sexpected.b;
+		++sexpected.ptr;
+	}
+	ck_assert_int_eq(sexpected.a, 42);
+}
+END_TEST
+
 START_TEST(bitfield_helpers)
 {
 	/* This value has a bit set on all of the word boundaries we want to
@@ -678,7 +729,6 @@ START_TEST(evdev_abs_parser)
 		{ .which = 0, .prop = ":asb::::" },
 		{ .which = 0, .prop = "foo" },
 	};
-	struct test *t;
 
 	ARRAY_FOR_EACH(tests, t) {
 		struct input_absinfo abs;
@@ -1071,7 +1121,6 @@ START_TEST(strargv_test)
 		{ 1, {NULL, NULL}, 0 },
 		{ 3, {"hello", NULL, "World"}, 0 },
 	};
-	struct argv_test *t;
 
 	ARRAY_FOR_EACH(tests, t) {
 		char **strv = strv_from_argv(t->argc, t->argv);
@@ -1414,7 +1463,6 @@ START_TEST(basename_test)
 		{ "/bar", "bar" },
 		{ "", NULL },
 	};
-	struct test *t;
 
 	ARRAY_FOR_EACH(tests, t) {
 		const char *result = safe_basename(t->path);
@@ -1442,7 +1490,6 @@ START_TEST(trunkname_test)
 		{ "/bar", "bar" },
 		{ "", "" },
 	};
-	struct test *t;
 
 	ARRAY_FOR_EACH(tests, t) {
 		char *result = trunkname(t->path);
@@ -1460,6 +1507,8 @@ litest_utils_suite(void)
 
 	s = suite_create("litest:utils");
 	tc = tcase_create("utils");
+
+	tcase_add_test(tc, array_for_each);
 
 	tcase_add_test(tc, bitfield_helpers);
 	tcase_add_test(tc, matrix_helpers);

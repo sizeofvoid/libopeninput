@@ -1338,7 +1338,6 @@ match_fill_udev_type(struct match *m,
 		{ "ID_INPUT_KEYBOARD", UDEV_KEYBOARD },
 		{ "ID_INPUT_KEY", UDEV_KEYBOARD },
 	};
-	struct ut_map *map;
 
 	ARRAY_FOR_EACH(mappings, map) {
 		if (udev_prop(device, map->prop))

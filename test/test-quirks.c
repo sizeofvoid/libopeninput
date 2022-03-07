@@ -561,7 +561,6 @@ START_TEST(quirks_parse_vendor_invalid)
 	"MatchVendor=123\n"
 	"ModelAppleTouchpad=1\n",
 	};
-	const char **qf;
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
 		struct data_dir dd = make_data_dir(*qf);
@@ -622,7 +621,6 @@ START_TEST(quirks_parse_product_invalid)
 	"MatchProduct=123\n"
 	"ModelAppleTouchpad=1\n",
 	};
-	const char **qf;
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
 		struct data_dir dd = make_data_dir(*qf);
@@ -683,7 +681,6 @@ START_TEST(quirks_parse_version_invalid)
 	"MatchVersion=123\n"
 	"ModelAppleTouchpad=1\n",
 	};
-	const char **qf;
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
 		struct data_dir dd = make_data_dir(*qf);
@@ -747,7 +744,6 @@ START_TEST(quirks_parse_name_invalid)
 	"MatchName=\n"
 	"ModelAppleTouchpad=1\n",
 	};
-	const char **qf;
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
 		struct data_dir dd = make_data_dir(*qf);
@@ -821,7 +817,6 @@ START_TEST(quirks_parse_udev_invalid)
 	"MatchUdevType=123\n"
 	"ModelAppleTouchpad=1\n",
 	};
-	const char **qf;
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
 		struct data_dir dd = make_data_dir(*qf);
@@ -878,7 +873,6 @@ START_TEST(quirks_parse_dmi_invalid)
 	"MatchDMIModalias=foo\n"
 	"ModelAppleTouchpad=1\n",
 	};
-	const char **qf;
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
 		struct data_dir dd = make_data_dir(*qf);
@@ -965,7 +959,6 @@ START_TEST(quirks_parse_dimension_attr)
 		QUIRK_ATTR_SIZE_HINT,
 		QUIRK_ATTR_RESOLUTION_HINT,
 	};
-	enum quirk *a;
 	struct qtest_dim test_values[] = {
 		{ "10x10", true, 10, 10 },
 		{ "20x30", true, 20, 30 },
@@ -975,7 +968,6 @@ START_TEST(quirks_parse_dimension_attr)
 		{ "0x00", false, 0, 0 },
 		{ "0xa0", false, 0, 0 },
 	};
-	struct qtest_dim *t;
 
 	ARRAY_FOR_EACH(attrs, a) {
 		ARRAY_FOR_EACH(test_values, t) {
@@ -1011,7 +1003,6 @@ START_TEST(quirks_parse_range_attr)
 		QUIRK_ATTR_TOUCH_SIZE_RANGE,
 		QUIRK_ATTR_PRESSURE_RANGE,
 	};
-	enum quirk *a;
 	struct qtest_range test_values[] = {
 		{ "20:10", true, 20, 10 },
 		{ "30:5", true, 30, 5 },
@@ -1029,7 +1020,6 @@ START_TEST(quirks_parse_range_attr)
 		{ "0xa0", false, 0, 0 },
 		{ "0x10:0x5", false, 0, 0 },
 	};
-	struct qtest_range *t;
 
 	ARRAY_FOR_EACH(attrs, a) {
 		ARRAY_FOR_EACH(test_values, t) {
@@ -1066,7 +1056,6 @@ START_TEST(quirks_parse_uint_attr)
 		QUIRK_ATTR_PALM_PRESSURE_THRESHOLD,
 		QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD,
 	};
-	enum quirk *a;
 	struct qtest_uint test_values[] = {
 		{ "10", true, 10 },
 		{ "0", true, 0 },
@@ -1078,7 +1067,6 @@ START_TEST(quirks_parse_uint_attr)
 		{ "0xab", false, 0 },
 		{ "ab", false, 0 },
 	};
-	struct qtest_uint *t;
 
 	ARRAY_FOR_EACH(attrs, a) {
 		ARRAY_FOR_EACH(test_values, t) {
@@ -1112,7 +1100,6 @@ START_TEST(quirks_parse_double_attr)
 	enum quirk attrs[] = {
 		QUIRK_ATTR_TRACKPOINT_MULTIPLIER,
 	};
-	enum quirk *a;
 	struct qtest_double test_values[] = {
 		{ "10", true, 10.0 },
 		{ "10.0", true, 10.0 },
@@ -1132,7 +1119,6 @@ START_TEST(quirks_parse_double_attr)
 		{ "10:5", false, 0 },
 		{ "10x5", false, 0 },
 	};
-	struct qtest_double *t;
 
 	ARRAY_FOR_EACH(attrs, a) {
 		ARRAY_FOR_EACH(test_values, t) {
@@ -1167,7 +1153,6 @@ START_TEST(quirks_parse_string_attr)
 		QUIRK_ATTR_LID_SWITCH_RELIABILITY,
 		QUIRK_ATTR_KEYBOARD_INTEGRATION,
 	};
-	enum quirk *a;
 	struct qtest_str test_values[] = {
 		{ "below", QUIRK_ATTR_TPKBCOMBO_LAYOUT },
 		{ "reliable", QUIRK_ATTR_LID_SWITCH_RELIABILITY },
@@ -1185,7 +1170,6 @@ START_TEST(quirks_parse_string_attr)
 		{ "0xa", 0 },
 		{ "0.0", 0 },
 	};
-	struct qtest_str *t;
 
 	ARRAY_FOR_EACH(attrs, a) {
 		ARRAY_FOR_EACH(test_values, t) {
@@ -1219,7 +1203,6 @@ START_TEST(quirks_parse_bool_attr)
 	        QUIRK_ATTR_USE_VELOCITY_AVERAGING,
 		QUIRK_ATTR_TABLET_SMOOTHING,
 	};
-	enum quirk *a;
 	struct qtest_bool test_values[] = {
 		{ "0", true, false },
 		{ "1", true, true },
@@ -1227,7 +1210,6 @@ START_TEST(quirks_parse_bool_attr)
 		{ "-1", false, false },
 		{ "a", false, false },
 	};
-	struct qtest_bool *t;
 
 	ARRAY_FOR_EACH(attrs, a) {
 		ARRAY_FOR_EACH(test_values, t) {

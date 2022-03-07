@@ -307,7 +307,6 @@ handle_tablet_button_event(struct context *ctx, struct libinput_event *ev)
 {
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
 	unsigned int button = libinput_event_tablet_tool_get_button(t);
-	unsigned int *btn;
 	enum libinput_button_state state = libinput_event_tablet_tool_get_button_state(t);
 
 	ARRAY_FOR_EACH(ctx->buttons_down, btn) {

@@ -46,7 +46,6 @@ handle_absfuzz(struct udev_device *device)
 	struct libevdev *evdev = NULL;
 	int fd = -1;
 	int rc;
-	unsigned int *code;
 	unsigned int axes[] = {ABS_X,
 			       ABS_Y,
 			       ABS_MT_POSITION_X,
@@ -88,7 +87,6 @@ out:
 static void
 handle_evdev_abs(struct udev_device *device)
 {
-	unsigned int *code;
 	unsigned int axes[] = {ABS_X,
 			       ABS_Y,
 			       ABS_MT_POSITION_X,

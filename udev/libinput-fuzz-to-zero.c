@@ -39,7 +39,6 @@ reset_absfuzz_to_zero(struct udev_device *device)
 	struct libevdev *evdev = NULL;
 	int fd = -1;
 	int rc;
-	unsigned int *code;
 	unsigned int axes[] = {ABS_X,
 			       ABS_Y,
 			       ABS_MT_POSITION_X,

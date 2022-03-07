@@ -2026,7 +2026,6 @@ tablet_proximity_out_quirk_timer_func(uint64_t now, void *data)
 		  .code = SYN_REPORT,
 		  .value = 0 },
 	};
-	struct input_event *e;
 
 	if (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ||
 	    tablet_has_status(tablet, TABLET_BUTTONS_DOWN)) {

@@ -3346,7 +3346,6 @@ START_TEST(touchpad_trackpoint_buttons)
 		{ BTN_1, BTN_RIGHT },
 		{ BTN_2, BTN_MIDDLE },
 	};
-	const struct buttons *b;
 
 	trackpoint = litest_add_device(li,
 				       LITEST_TRACKPOINT);
@@ -4197,7 +4196,6 @@ START_TEST(touchpad_dwt_modifier_no_dwt)
 		KEY_RIGHTMETA,
 		KEY_LEFTMETA,
 	};
-	unsigned int *key;
 
 	if (!has_disable_while_typing(touchpad))
 		return;
@@ -4243,7 +4241,6 @@ START_TEST(touchpad_dwt_modifier_combo_no_dwt)
 		KEY_RIGHTMETA,
 		KEY_LEFTMETA,
 	};
-	unsigned int *key;
 
 	if (!has_disable_while_typing(touchpad))
 		return;
@@ -4293,7 +4290,6 @@ START_TEST(touchpad_dwt_modifier_combo_dwt_after)
 		KEY_RIGHTMETA,
 		KEY_LEFTMETA,
 	};
-	unsigned int *key;
 
 	if (!has_disable_while_typing(touchpad))
 		return;
@@ -4347,7 +4343,6 @@ START_TEST(touchpad_dwt_modifier_combo_dwt_remains)
 		KEY_RIGHTMETA,
 		KEY_LEFTMETA,
 	};
-	unsigned int *key;
 
 	if (!has_disable_while_typing(touchpad))
 		return;

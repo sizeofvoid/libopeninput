@@ -1820,7 +1820,6 @@ print_libinput_description(struct record_device *dev)
 		{LIBINPUT_DEVICE_CAP_GESTURE, "gesture"},
 		{LIBINPUT_DEVICE_CAP_SWITCH, "switch"},
 	};
-	struct cap *cap;
 	const char *sep = "";
 
 	if (!device)

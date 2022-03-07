@@ -1448,7 +1448,7 @@ debug_log_handler(struct libinput *libinput,
 		  const char *format,
 		  va_list args)
 {
-	char *message, **dmsg;
+	char *message;
 	int n;
 
 	if (priority != LIBINPUT_LOG_PRIORITY_DEBUG)
@@ -1542,7 +1542,6 @@ START_TEST(device_capability_at_least_one)
 		LIBINPUT_DEVICE_CAP_GESTURE,
 		LIBINPUT_DEVICE_CAP_SWITCH,
 	};
-	enum libinput_device_capability *cap;
 	int ncaps = 0;
 
 	ARRAY_FOR_EACH(caps, cap) {

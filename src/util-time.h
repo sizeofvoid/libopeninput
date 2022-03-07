@@ -116,7 +116,6 @@ to_human_time(uint64_t us)
 		{"h", 60, 48},
 		{"d", 24, ~0},
 	};
-	struct c *c;
 	uint64_t value = us;
 
 	ARRAY_FOR_EACH(conversion, c) {
