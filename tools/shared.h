@@ -48,6 +48,8 @@ enum configuration_options {
 	OPT_MIDDLEBUTTON_DISABLE,
 	OPT_DWT_ENABLE,
 	OPT_DWT_DISABLE,
+	OPT_DWTP_ENABLE,
+	OPT_DWTP_DISABLE,
 	OPT_CLICK_METHOD,
 	OPT_SCROLL_METHOD,
 	OPT_SCROLL_BUTTON,
@@ -75,6 +77,8 @@ enum configuration_options {
 	{ "disable-middlebutton",      no_argument,       0, OPT_MIDDLEBUTTON_DISABLE }, \
 	{ "enable-dwt",                no_argument,       0, OPT_DWT_ENABLE }, \
 	{ "disable-dwt",               no_argument,       0, OPT_DWT_DISABLE }, \
+	{ "enable-dwtp",               no_argument,       0, OPT_DWTP_ENABLE }, \
+	{ "disable-dwtp",              no_argument,       0, OPT_DWTP_DISABLE }, \
 	{ "enable-scroll-button-lock", no_argument,       0, OPT_SCROLL_BUTTON_LOCK_ENABLE }, \
 	{ "disable-scroll-button-lock",no_argument,       0, OPT_SCROLL_BUTTON_LOCK_DISABLE }, \
 	{ "set-click-method",          required_argument, 0, OPT_CLICK_METHOD }, \
@@ -107,6 +111,7 @@ struct tools_options {
 	int scroll_button_lock;
 	double speed;
 	int dwt;
+	int dwtp;
 	enum libinput_config_accel_profile profile;
 	char disable_pattern[64];
 };

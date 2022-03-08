@@ -306,6 +306,17 @@ struct libinput_device_config_dwt {
 			 struct libinput_device *device);
 };
 
+struct libinput_device_config_dwtp {
+	int (*is_available)(struct libinput_device *device);
+	enum libinput_config_status (*set_enabled)(
+			 struct libinput_device *device,
+			 enum libinput_config_dwtp_state enable);
+	enum libinput_config_dwtp_state (*get_enabled)(
+			 struct libinput_device *device);
+	enum libinput_config_dwtp_state (*get_default_enabled)(
+			 struct libinput_device *device);
+};
+
 struct libinput_device_config_rotation {
 	int (*is_available)(struct libinput_device *device);
 	enum libinput_config_status (*set_angle)(
@@ -333,6 +344,7 @@ struct libinput_device_config {
 	struct libinput_device_config_click_method *click_method;
 	struct libinput_device_config_middle_emulation *middle_emulation;
 	struct libinput_device_config_dwt *dwt;
+	struct libinput_device_config_dwtp *dwtp;
 	struct libinput_device_config_rotation *rotation;
 	struct libinput_device_config_gesture *gesture;
 };

@@ -32,6 +32,12 @@
 #include "libinput-util.h"
 #include "litest.h"
 
+static inline bool
+has_disable_while_trackpointing(struct litest_device *device)
+{
+	return libinput_device_config_dwtp_is_available(device->libinput_device);
+}
+
 START_TEST(trackpoint_middlebutton)
 {
 	struct litest_device *dev = litest_current_device();
@@ -303,6 +309,27 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_both)
 }
 END_TEST
 
+static inline void
+enable_dwtp(struct litest_device *dev)
+{
+	enum libinput_config_status status,
+				    expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_dwtp_set_enabled(dev->libinput_device,
+						LIBINPUT_CONFIG_DWTP_ENABLED);
+	litest_assert_int_eq(status, expected);
+}
+
+static inline void
+disable_dwtp(struct litest_device *dev)
+{
+	enum libinput_config_status status,
+				    expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_dwtp_set_enabled(dev->libinput_device,
+						LIBINPUT_CONFIG_DWTP_DISABLED);
+	litest_assert_int_eq(status, expected);
+}
+
+
 START_TEST(trackpoint_palmdetect)
 {
 	struct litest_device *trackpoint = litest_current_device();
@@ -311,6 +338,9 @@ START_TEST(trackpoint_palmdetect)
 	int i;
 
 	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	if (has_disable_while_trackpointing(touchpad))
+		enable_dwtp(touchpad);
+
 	litest_disable_hold_gestures(touchpad->libinput_device);
 	litest_drain_events(li);
 
@@ -339,6 +369,37 @@ START_TEST(trackpoint_palmdetect)
 }
 END_TEST
 
+START_TEST(trackpoint_palmdetect_dwtp_disabled)
+{
+	struct litest_device *trackpoint = litest_current_device();
+	struct litest_device *touchpad;
+	struct libinput *li = trackpoint->libinput;
+	int i;
+
+	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	if (has_disable_while_trackpointing(touchpad))
+		disable_dwtp(touchpad);
+
+	litest_disable_hold_gestures(touchpad->libinput_device);
+	litest_drain_events(li);
+
+	for (i = 0; i < 10; i++) {
+		litest_event(trackpoint, EV_REL, REL_X, 1);
+		litest_event(trackpoint, EV_REL, REL_Y, 1);
+		litest_event(trackpoint, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+	}
+	litest_drain_events(li);
+
+	litest_touch_down(touchpad, 0, 30, 30);
+	litest_touch_move_to(touchpad, 0, 30, 30, 80, 80, 10);
+	litest_touch_up(touchpad, 0);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_delete_device(touchpad);
+}
+END_TEST
+
 START_TEST(trackpoint_palmdetect_resume_touch)
 {
 	struct litest_device *trackpoint = litest_current_device();
@@ -347,6 +408,10 @@ START_TEST(trackpoint_palmdetect_resume_touch)
 	int i;
 
 	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+
+	if (has_disable_while_trackpointing(touchpad))
+		enable_dwtp(touchpad);
+
 	litest_disable_hold_gestures(touchpad->libinput_device);
 	litest_drain_events(li);
 
@@ -381,6 +446,10 @@ START_TEST(trackpoint_palmdetect_require_min_events)
 	struct libinput *li = trackpoint->libinput;
 
 	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+
+	if (has_disable_while_trackpointing(touchpad))
+		enable_dwtp(touchpad);
+
 	litest_disable_hold_gestures(touchpad->libinput_device);
 	litest_drain_events(li);
 
@@ -407,6 +476,10 @@ START_TEST(trackpoint_palmdetect_require_min_events_timeout)
 	struct libinput *li = trackpoint->libinput;
 
 	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+
+	if (has_disable_while_trackpointing(touchpad))
+		enable_dwtp(touchpad);
+
 	litest_disable_hold_gestures(touchpad->libinput_device);
 	litest_drain_events(li);
 
@@ -441,6 +514,7 @@ TEST_COLLECTION(trackpoint)
 	litest_add(trackpoint_topsoftbuttons_left_handed_both, LITEST_TOPBUTTONPAD, LITEST_ANY);
 
 	litest_add(trackpoint_palmdetect, LITEST_POINTINGSTICK, LITEST_ANY);
+	litest_add(trackpoint_palmdetect_dwtp_disabled, LITEST_POINTINGSTICK, LITEST_ANY);
 	litest_add(trackpoint_palmdetect_resume_touch, LITEST_POINTINGSTICK, LITEST_ANY);
 	litest_add(trackpoint_palmdetect_require_min_events, LITEST_POINTINGSTICK, LITEST_ANY);
 	litest_add(trackpoint_palmdetect_require_min_events_timeout, LITEST_POINTINGSTICK, LITEST_ANY);

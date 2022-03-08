@@ -226,6 +226,14 @@ print_device_options(struct libinput_device *dev)
 			printq(" dwt-off)");
 	}
 
+	if (libinput_device_config_dwtp_is_available(dev)) {
+		if (libinput_device_config_dwtp_get_enabled(dev) ==
+		    LIBINPUT_CONFIG_DWTP_ENABLED)
+			printq(" dwtp-on");
+		else
+			printq(" dwtp-off)");
+	}
+
 	if (libinput_device_has_capability(dev,
 					   LIBINPUT_DEVICE_CAP_TABLET_PAD)) {
 		int nbuttons, nstrips, nrings, ngroups;

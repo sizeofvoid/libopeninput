@@ -75,6 +75,7 @@ ASSERT_INT_SIZE(enum libinput_config_click_method);
 ASSERT_INT_SIZE(enum libinput_config_middle_emulation_state);
 ASSERT_INT_SIZE(enum libinput_config_scroll_method);
 ASSERT_INT_SIZE(enum libinput_config_dwt_state);
+ASSERT_INT_SIZE(enum libinput_config_dwtp_state);
 
 static inline const char *
 event_type_to_str(enum libinput_event_type type)
@@ -4514,6 +4515,48 @@ libinput_device_config_dwt_get_default_enabled(struct libinput_device *device)
 		return LIBINPUT_CONFIG_DWT_DISABLED;
 
 	return device->config.dwt->get_default_enabled(device);
+}
+
+LIBINPUT_EXPORT int
+libinput_device_config_dwtp_is_available(struct libinput_device *device)
+{
+	if (!device->config.dwtp)
+		return 0;
+
+	return device->config.dwtp->is_available(device);
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_dwtp_set_enabled(struct libinput_device *device,
+				       enum libinput_config_dwtp_state enable)
+{
+	if (enable != LIBINPUT_CONFIG_DWTP_ENABLED &&
+	    enable != LIBINPUT_CONFIG_DWTP_DISABLED)
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	if (!libinput_device_config_dwtp_is_available(device))
+		return enable ? LIBINPUT_CONFIG_STATUS_UNSUPPORTED :
+				LIBINPUT_CONFIG_STATUS_SUCCESS;
+
+	return device->config.dwtp->set_enabled(device, enable);
+}
+
+LIBINPUT_EXPORT enum libinput_config_dwtp_state
+libinput_device_config_dwtp_get_enabled(struct libinput_device *device)
+{
+	if (!libinput_device_config_dwtp_is_available(device))
+		return LIBINPUT_CONFIG_DWTP_DISABLED;
+
+	return device->config.dwtp->get_enabled(device);
+}
+
+LIBINPUT_EXPORT enum libinput_config_dwtp_state
+libinput_device_config_dwtp_get_default_enabled(struct libinput_device *device)
+{
+	if (!libinput_device_config_dwtp_is_available(device))
+		return LIBINPUT_CONFIG_DWTP_DISABLED;
+
+	return device->config.dwtp->get_default_enabled(device);
 }
 
 LIBINPUT_EXPORT int

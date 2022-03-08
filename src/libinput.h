@@ -6036,6 +6036,106 @@ libinput_device_config_dwt_get_default_enabled(struct libinput_device *device);
 /**
  * @ingroup config
  *
+ * Possible states for the disable-while-trackpointing feature.
+ *
+ * @since 1.21
+ */
+enum libinput_config_dwtp_state {
+	LIBINPUT_CONFIG_DWTP_DISABLED,
+	LIBINPUT_CONFIG_DWTP_ENABLED,
+};
+
+/**
+ * @ingroup config
+ *
+ * Check if this device supports configurable disable-while-trackpointing
+ * feature. This feature is usually available on Thinkpads and disables the
+ * touchpad while using the trackpoint. See the libinput documentation for
+ * details.
+ *
+ * @param device The device to configure
+ * @return 0 if this device does not support disable-while-trackpointing, or 1
+ * otherwise.
+ *
+ * @see libinput_device_config_dwtp_set_enabled
+ * @see libinput_device_config_dwtp_get_enabled
+ * @see libinput_device_config_dwtp_get_default_enabled
+ *
+ * @since 1.21
+ */
+int
+libinput_device_config_dwtp_is_available(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Enable or disable the disable-while-trackpointing feature. When enabled, the
+ * device will be disabled while using the trackpoint and for a short period
+ * after. See the libinput documentation for details.
+ *
+ * @note Enabling or disabling disable-while-trackpointing may not take effect
+ * immediately.
+ *
+ * @param device The device to configure
+ * @param enable @ref LIBINPUT_CONFIG_DWTP_DISABLED to disable
+ * disable-while-trackpointing, @ref LIBINPUT_CONFIG_DWTP_ENABLED to enable
+ *
+ * @return A config status code. Disabling disable-while-trackpointing on a
+ * device that does not support the feature always succeeds.
+ *
+ * @see libinput_device_config_dwtp_is_available
+ * @see libinput_device_config_dwtp_get_enabled
+ * @see libinput_device_config_dwtp_get_default_enabled
+ *
+ * @since 1.21
+ */
+enum libinput_config_status
+libinput_device_config_dwtp_set_enabled(struct libinput_device *device,
+				       enum libinput_config_dwtp_state enable);
+
+/**
+ * @ingroup config
+ *
+ * Check if the disable-while trackpointing feature is currently enabled on
+ * this device. If the device does not support disable-while-trackpointing,
+ * this function returns @ref LIBINPUT_CONFIG_DWTP_DISABLED.
+ *
+ * @param device The device to configure
+ * @return @ref LIBINPUT_CONFIG_DWTP_DISABLED if disabled, @ref
+ * LIBINPUT_CONFIG_DWTP_ENABLED if enabled.
+ *
+ * @see libinput_device_config_dwtp_is_available
+ * @see libinput_device_config_dwtp_set_enabled
+ * @see libinput_device_config_dwtp_get_default_enabled
+ *
+ * @since 1.21
+ */
+enum libinput_config_dwtp_state
+libinput_device_config_dwtp_get_enabled(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Check if the disable-while trackpointing feature is enabled on this device
+ * by default. If the device does not support disable-while-trackpointing, this
+ * function returns @ref LIBINPUT_CONFIG_DWTP_DISABLED.
+ *
+ * @param device The device to configure
+ * @return @ref LIBINPUT_CONFIG_DWTP_DISABLED if disabled, @ref
+ * LIBINPUT_CONFIG_DWTP_ENABLED if enabled.
+ *
+ * @see libinput_device_config_dwtp_is_available
+ * @see libinput_device_config_dwtp_set_enabled
+ * @see libinput_device_config_dwtp_get_enabled
+ *
+ * @since 1.21
+ */
+enum libinput_config_dwtp_state
+libinput_device_config_dwtp_get_default_enabled(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
  * Check whether a device can have a custom rotation applied.
  *
  * @param device The device to configure

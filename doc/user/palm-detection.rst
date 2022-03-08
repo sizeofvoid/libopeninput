@@ -27,6 +27,7 @@ hardware-specific capabilities.
 - :ref:`palm_exclusion_zones`
 - :ref:`trackpoint-disabling`
 - :ref:`disable-while-typing`
+- :ref:`disable-while-trackpointing`
 - :ref:`stylus-touch-arbitration`
 
 Palm detection is always enabled, with the exception of
@@ -165,6 +166,20 @@ Notable behaviors of libinput's disable-while-typing feature:
 
 Disable-while-typing can be enabled and disabled by calling
 **libinput_device_config_dwt_set_enabled()**.
+
+.. _disable-while-trackpointing:
+
+------------------------------------------------------------------------------
+Disable-while-trackpointing
+------------------------------------------------------------------------------
+
+libinput automatically disables the touchpad for a timeout after the trackpoint
+is moved, a feature referred to as "disable while trackpointing". libinput does
+not require an external command and the feature is currently enabled for all
+touchpads.
+
+Disable-while-trackpointing can be enabled and disabled by calling
+**libinput_device_config_dwtp_set_enabled()**.
 
 .. _stylus-touch-arbitration:
 

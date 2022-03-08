@@ -226,6 +226,18 @@ dwt_default(struct libinput_device *device)
 	return "disabled";
 }
 
+static const char *
+dwtp_default(struct libinput_device *device)
+{
+	if (!libinput_device_config_dwtp_is_available(device))
+		return "n/a";
+
+	if (libinput_device_config_dwtp_get_default_enabled(device))
+		return "enabled";
+
+	return "disabled";
+}
+
 static char *
 rotation_default(struct libinput_device *device)
 {
@@ -344,6 +356,7 @@ print_device_notify(struct libinput_event *ev)
 	free(str);
 
 	printf("Disable-w-typing: %s\n", dwt_default(dev));
+	printf("Disable-w-trackpointing: %s\n", dwtp_default(dev));
 
 	str = accel_profiles(dev);
 	printf("Accel profiles:   %s\n", str);

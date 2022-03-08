@@ -143,6 +143,18 @@ Disable-while-typing can be enabled or disabled, it is enabled by default on
 most touchpads.
 
 ------------------------------------------------------------------------------
+Disable while trackpointing
+------------------------------------------------------------------------------
+
+DWTP is a form of palm detecion for devices that have a trackpoint (like
+Thinkpads). While the user is using the trackpoint, the touchpad is disabled,
+being enabled again after a timeout. See :ref:`disable-while-trackpointing` for
+more info.
+
+Disable-while-trackpointing can be enabled or disabled, it is enabled by
+default.
+
+------------------------------------------------------------------------------
 Calibration
 ------------------------------------------------------------------------------
 

@@ -79,6 +79,9 @@ __all_seats()
 		+ '(dwt)' \
 		'--enable-dwt[Enable disable-while-typing]' \
 		'--disable-dwt[Disable disable-while-typing]'
+		+ '(dwtp)' \
+		'--enable-dwtp[Enable disable-while-trackpointing]' \
+		'--disable-dwtp[Disable disable-while-trackpointing]'
 }
 
 (( $+functions[_libinput_debug-gui] )) || _libinput_debug-gui()
