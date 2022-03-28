@@ -5392,13 +5392,7 @@ verify_left_handed_touch_motion(struct litest_device *finger,
 	litest_touch_move_to(finger, 0, x + 1, y - 1, x + 20, y - 20, 10);
 	libinput_dispatch(li);
 
-	/* Allow for optional hold gesture to end */
 	event = libinput_get_event(li);
-	if (libinput_event_get_type(event) == LIBINPUT_EVENT_GESTURE_HOLD_END) {
-		libinput_event_destroy(event);
-		event = libinput_get_event(li);
-	}
-
 	ck_assert_notnull(event);
 
 	while (event) {
@@ -5466,6 +5460,7 @@ START_TEST(tablet_rotation_left_handed)
 	enabled_from = tablet_from || touch_from;
 	enabled_to   = tablet_to   || touch_to;
 
+	litest_disable_hold_gestures(finger->libinput_device);
 	libinput_device_config_left_handed_set(tablet->libinput_device,
 					       tablet_from);
 	libinput_device_config_left_handed_set(finger->libinput_device,
@@ -5571,6 +5566,7 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 	enabled_from = tablet_from || touch_from;
 	enabled_to   = tablet_to   || touch_to;
 
+	litest_disable_hold_gestures(finger->libinput_device);
 	libinput_device_config_left_handed_set(finger->libinput_device,
 					       touch_from);
 	libinput_device_config_left_handed_set(tablet->libinput_device,
@@ -5664,6 +5660,7 @@ START_TEST(tablet_rotation_left_handed_while_touch_down)
 	enabled_from = tablet_from || touch_from;
 	enabled_to   = tablet_to   || touch_to;
 
+	litest_disable_hold_gestures(finger->libinput_device);
 	libinput_device_config_left_handed_set(finger->libinput_device,
 					       touch_from);
 	libinput_device_config_left_handed_set(tablet->libinput_device,
