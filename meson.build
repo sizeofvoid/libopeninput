@@ -16,6 +16,7 @@ dir_system_udev = get_option('prefix') / 'lib' / 'udev'
 dir_src_quirks  = meson.current_source_dir() / 'quirks'
 dir_src_test    = meson.current_source_dir() / 'test'
 dir_src         = meson.current_source_dir() / 'src'
+dir_gitlab_ci	= meson.current_source_dir() / '.gitlab-ci'
 
 dir_udev = get_option('udev-dir')
 if dir_udev == ''

@@ -194,7 +194,7 @@ if yq.found()
 	foreach distro : distributions
 		yq_filter = '.distributions[] | select(.name == "@0@") | .packages | join(" ")'.format(distro)
 		deps = run_command(yq, '-r', yq_filter,
-				   meson.source_root() / '.gitlab-ci' / 'config.yml',
+				   dir_gitlab_ci / 'config.yml',
 				   check: true).stdout()
 		dependencies_config.set('@0@_PACKAGES'.format(distro.to_upper()), deps)
 endforeach
