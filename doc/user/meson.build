@@ -139,6 +139,7 @@ src_rst = files(
 	'building.rst',
 	'button-debouncing.rst',
 	'clickpad-softbuttons.rst',
+	'clickpad-with-right-button.rst',
 	'contributing.rst',
 	'device-configuration-via-udev.rst',
 	'device-quirks.rst',
