@@ -43,6 +43,8 @@
 #include <xlocale.h>
 #endif
 
+#include "util-macros.h"
+
 static inline bool
 streq(const char *str1, const char *str2)
 {
@@ -398,3 +400,31 @@ safe_basename(const char *filename);
 
 char *
 trunkname(const char *filename);
+
+/**
+ * Return a copy of str with all % converted to %% to make the string
+ * acceptable as printf format.
+ */
+static inline char *
+str_sanitize(const char *str)
+{
+	if (!str)
+		return NULL;
+
+	if (!strchr(str, '%'))
+		return strdup(str);
+
+	size_t slen = min(strlen(str), 512);
+	char *sanitized = zalloc(2 * slen + 1);
+	const char *src = str;
+	char *dst = sanitized;
+
+	for (size_t i = 0; i < slen; i++) {
+		if (*src == '%')
+			*dst++ = '%';
+		*dst++ = *src++;
+	}
+	*dst = '\0';
+
+	return sanitized;
+}
