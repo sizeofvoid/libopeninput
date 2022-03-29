@@ -2356,19 +2356,19 @@ evdev_device_create(struct libinput_seat *seat,
 	struct libinput *libinput = seat->libinput;
 	struct evdev_device *device = NULL;
 	int rc;
-	int fd;
+	int fd = -1;
 	int unhandled_device = 0;
 	const char *devnode = udev_device_get_devnode(udev_device);
-	const char *sysname = udev_device_get_sysname(udev_device);
+	char *sysname = str_sanitize(udev_device_get_sysname(udev_device));
 
 	if (!devnode) {
 		log_info(libinput, "%s: no device node associated\n", sysname);
-		return NULL;
+		goto err;
 	}
 
 	if (udev_device_should_be_ignored(udev_device)) {
 		log_debug(libinput, "%s: device is ignored\n", sysname);
-		return NULL;
+		goto err;
 	}
 
 	/* Use non-blocking mode so that we can loop on read on
@@ -2382,13 +2382,15 @@ evdev_device_create(struct libinput_seat *seat,
 			 sysname,
 			 devnode,
 			 strerror(-fd));
-		return NULL;
+		goto err;
 	}
 
 	if (!evdev_device_have_same_syspath(udev_device, fd))
 		goto err;
 
 	device = zalloc(sizeof *device);
+	device->sysname = sysname;
+	sysname = NULL;
 
 	libinput_device_init(&device->base, seat);
 	libinput_seat_ref(seat);
@@ -2411,6 +2413,9 @@ evdev_device_create(struct libinput_seat *seat,
 	device->dispatch = NULL;
 	device->fd = fd;
 	device->devname = libevdev_get_name(device->evdev);
+	/* the log_prefix_name is used as part of a printf format string and
+	 * must not contain % directives, see evdev_log_msg */
+	device->log_prefix_name = str_sanitize(device->devname);
 	device->scroll.threshold = 5.0; /* Default may be overridden */
 	device->scroll.direction_lock_threshold = 5.0; /* Default may be overridden */
 	device->scroll.direction = 0;
@@ -2451,11 +2456,15 @@ evdev_device_create(struct libinput_seat *seat,
 	return device;
 
 err:
-	close_restricted(libinput, fd);
-	if (device) {
-		unhandled_device = device->seat_caps == 0;
-		evdev_device_destroy(device);
+	if (fd >= 0) {
+		close_restricted(libinput, fd);
+		if (device) {
+			unhandled_device = device->seat_caps == 0;
+			evdev_device_destroy(device);
+		}
 	}
+
+	free(sysname);
 
 	return unhandled_device ? EVDEV_UNHANDLED_DEVICE :  NULL;
 }
@@ -2469,7 +2478,7 @@ evdev_device_get_output(struct evdev_device *device)
 const char *
 evdev_device_get_sysname(struct evdev_device *device)
 {
-	return udev_device_get_sysname(device->udev_device);
+	return device->sysname;
 }
 
 const char *
@@ -3066,6 +3075,8 @@ evdev_device_destroy(struct evdev_device *device)
 	if (device->base.group)
 		libinput_device_group_unref(device->base.group);
 
+	free(device->log_prefix_name);
+	free(device->sysname);
 	free(device->output_name);
 	filter_destroy(device->pointer.filter);
 	libinput_timer_destroy(&device->scroll.timer);

@@ -1267,6 +1267,31 @@ START_TEST(strstartswith_test)
 }
 END_TEST
 
+START_TEST(strsanitize_test)
+{
+	struct strsanitize_test {
+		const char *string;
+		const char *expected;
+	} tests[] = {
+		{ "foobar", "foobar" },
+		{ "", "" },
+		{ "%", "%%" },
+		{ "%%%%", "%%%%%%%%" },
+		{ "x %s", "x %%s" },
+		{ "x %", "x %%" },
+		{ "%sx", "%%sx" },
+		{ "%s%s", "%%s%%s" },
+		{ NULL, NULL },
+	};
+
+	for (struct strsanitize_test *t = tests; t->string; t++) {
+		char *sanitized = str_sanitize(t->string);
+		ck_assert_str_eq(sanitized, t->expected);
+		free(sanitized);
+	}
+}
+END_TEST
+
 START_TEST(list_test_insert)
 {
 	struct list_test {
@@ -1489,6 +1514,7 @@ litest_utils_suite(void)
 	tcase_add_test(tc, strstrip_test);
 	tcase_add_test(tc, strendswith_test);
 	tcase_add_test(tc, strstartswith_test);
+	tcase_add_test(tc, strsanitize_test);
 	tcase_add_test(tc, time_conversion);
 	tcase_add_test(tc, human_time);
 
