@@ -61,7 +61,7 @@ enum indent {
 	I_NONE = 0,
 	I_TOPLEVEL = 0,
 	I_LIBINPUT = 2,			/* nodes inside libinput: */
-	I_SYSTEM = 0,			/* nodes inside system:   */
+	I_SYSTEM = 2,			/* nodes inside system:   */
 	I_DEVICE = 2,			/* nodes inside devices:  */
 	I_EVDEV = 4,			/* nodes inside evdev:    */
 	I_EVDEV_DATA = 6,		/* nodes below evdev:	  */
