@@ -1007,13 +1007,13 @@ evdev_read_switch_reliability_prop(struct evdev_device *device)
 	quirks = evdev_libinput_context(device)->quirks;
 	q = quirks_fetch_for_device(quirks, device->udev_device);
 	if (!q || !quirks_get_string(q, QUIRK_ATTR_LID_SWITCH_RELIABILITY, &prop)) {
-		r = RELIABILITY_UNKNOWN;
+		r = RELIABILITY_RELIABLE;
 	} else if (!parse_switch_reliability_property(prop, &r)) {
 		evdev_log_error(device,
 				"%s: switch reliability set to unknown value '%s'\n",
 				device->devname,
 				prop);
-		r = RELIABILITY_UNKNOWN;
+		r = RELIABILITY_RELIABLE;
 	} else if (r == RELIABILITY_WRITE_OPEN) {
 		evdev_log_info(device, "will write switch open events\n");
 	}

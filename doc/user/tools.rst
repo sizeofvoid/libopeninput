@@ -326,7 +326,7 @@ Listing quirks assigned to a device
 The ``libinput quirks`` tool can show quirks applied for any given device. ::
 
      $ libinput quirks list /dev/input/event0
-     AttrLidSwitchReliability=reliable
+     AttrLidSwitchReliability=unreliable
 
 If the tool's output is empty, no quirk is applied. See :ref:`device-quirks`
 for more information.

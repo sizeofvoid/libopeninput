@@ -71,7 +71,7 @@ devices. ::
 
      $ libinput quirks list /dev/input/event19
      $ libinput quirks list /dev/input/event0
-     AttrLidSwitchReliability=reliable
+     AttrLidSwitchReliability=unreliable
 
 The device `event19` does not have any quirks assigned.
 
@@ -162,10 +162,11 @@ AttrPressureRange=N:M, AttrPalmPressureThreshold=O, AttrThumbPressureThreshold=P
     trigger a release (M), when a palm touch is triggered (O) and when a
     thumb touch is triggered (P). O > P > N > M. See
     :ref:`touchpad_pressure_hwdb` for more details.
-AttrLidSwitchReliability=reliable|write_open
-    Indicates the reliability of the lid switch. This is a string enum. Do not
-    use "reliable" for any specific device. Very few devices need this, if in
-    doubt do not set. See :ref:`switches_lid` for details.
+AttrLidSwitchReliability=reliable|unreliable|write_open
+    Indicates the reliability of the lid switch. This is a string enum.
+    Very few devices need this, if in doubt do not set. See :ref:`switches_lid`
+    for details. libinput 1.21.0 changed the default from unreliable to
+    reliable, which may be removed from local overrides.
 AttrKeyboardIntegration=internal|external
     Indicates the integration of the keyboard. This is a string enum.
     Generally only needed for USB keyboards.

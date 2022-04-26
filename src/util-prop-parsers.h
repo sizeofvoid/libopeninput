@@ -49,8 +49,8 @@ bool parse_tpkbcombo_layout_poperty(const char *prop,
 				    enum tpkbcombo_layout *layout);
 
 enum switch_reliability {
-	RELIABILITY_UNKNOWN,
 	RELIABILITY_RELIABLE,
+	RELIABILITY_UNRELIABLE,
 	RELIABILITY_WRITE_OPEN,
 };
 

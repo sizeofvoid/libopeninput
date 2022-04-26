@@ -728,7 +728,8 @@ parse_attr(struct quirks_context *ctx,
 	} else if (streq(key, quirk_get_name(QUIRK_ATTR_LID_SWITCH_RELIABILITY))) {
 		p->id = QUIRK_ATTR_LID_SWITCH_RELIABILITY;
 		if (!streq(value, "reliable") &&
-		    !streq(value, "write_open"))
+		    !streq(value, "write_open") &&
+		    !streq(value, "unreliable"))
 			goto out;
 		p->type = PT_STRING;
 		p->value.s = safe_strdup(value);

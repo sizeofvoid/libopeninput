@@ -402,7 +402,8 @@ START_TEST(reliability_prop_parser)
 		enum switch_reliability reliability;
 	} tests[] = {
 		{ "reliable", true, RELIABILITY_RELIABLE },
-		{ "unreliable", false, 0 },
+		{ "unreliable", true, RELIABILITY_UNRELIABLE },
+		{ "write_open", true, RELIABILITY_WRITE_OPEN },
 		{ "", false, 0 },
 		{ "0", false, 0 },
 		{ "1", false, 0 },
@@ -424,7 +425,7 @@ START_TEST(reliability_prop_parser)
 
 	success = parse_switch_reliability_property(NULL, &r);
 	ck_assert(success == true);
-	ck_assert_int_eq(r, RELIABILITY_UNKNOWN);
+	ck_assert_int_eq(r, RELIABILITY_RELIABLE);
 
 	success = parse_switch_reliability_property("foo", NULL);
 	ck_assert(success == false);
