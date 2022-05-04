@@ -30,6 +30,7 @@
 # Input is a libinput record yaml file
 
 import argparse
+import os
 import sys
 import yaml
 import libevdev
@@ -94,6 +95,8 @@ def main(argv):
 
     ignored_axes = [libevdev.evbit(axis) for axis in args.ignore.split(",") if axis]
     only_axes = [libevdev.evbit(axis) for axis in args.only.split(",") if axis]
+
+    cr = "\r" if os.isatty(sys.stdout.fileno()) else ""
 
     yml = yaml.safe_load(open(args.path[0]))
     if yml["ndevices"] > 1:
@@ -182,7 +185,7 @@ def main(argv):
                 print(" | ".join(fields))
             else:
                 continuation_count += 1
-                print(f"\r ... +{continuation_count}", end="", flush=True)
+                print(f"{cr} ... +{continuation_count}", end="", flush=True)
 
     # Print out any rel/abs axes that not generate events in
     # this recording
