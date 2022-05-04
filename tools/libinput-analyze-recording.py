@@ -52,7 +52,7 @@ def format_value(code, value):
 
 
 # The list of axes we want to track
-def is_tracked_axis(code):
+def is_tracked_axis(code, allowlist, denylist):
     if code.type in (libevdev.EV_KEY, libevdev.EV_SW, libevdev.EV_SYN):
         return False
 
@@ -61,7 +61,10 @@ def is_tracked_axis(code):
         if libevdev.EV_ABS.ABS_MT_SLOT <= code <= libevdev.EV_ABS.ABS_MAX:
             return False
 
-    return True
+    if allowlist:
+        return code in allowlist
+    else:
+        return code not in denylist
 
 
 def main(argv):
@@ -71,7 +74,26 @@ def main(argv):
     parser.add_argument(
         "path", metavar="recording", nargs=1, help="Path to libinput-record YAML file"
     )
+    parser.add_argument(
+        "--ignore",
+        metavar="ABS_X,ABS_Y,...",
+        default="",
+        help="A comma-separated list of axis names to ignore",
+    )
+    parser.add_argument(
+        "--only",
+        metavar="ABS_X,ABS_Y,...",
+        default="",
+        help="A comma-separated list of axis names to print, ignoring all others",
+    )
+
     args = parser.parse_args()
+    if args.ignore and args.only:
+        print("Only one of --ignore and --only may be given", file=sys.stderr)
+        sys.exit(2)
+
+    ignored_axes = [libevdev.evbit(axis) for axis in args.ignore.split(",") if axis]
+    only_axes = [libevdev.evbit(axis) for axis in args.only.split(",") if axis]
 
     yml = yaml.safe_load(open(args.path[0]))
     if yml["ndevices"] > 1:
@@ -101,7 +123,9 @@ def main(argv):
         """
         used_axes = []
         for e in events:
-            if e.code not in used_axes and is_tracked_axis(e.code):
+            if e.code not in used_axes and is_tracked_axis(
+                e.code, only_axes, ignored_axes
+            ):
                 yield e.code
                 used_axes.append(e.code)
 
@@ -135,7 +159,7 @@ def main(argv):
         if e.code.type == libevdev.EV_KEY:
             keystate[e.code] = e.value
             keystate_changed = True
-        elif is_tracked_axis(e.code):
+        elif is_tracked_axis(e.code, only_axes, ignored_axes):
             current_frame[e.code] = e.value
         elif e.code == libevdev.EV_SYN.SYN_REPORT:
             fields = []
@@ -166,7 +190,10 @@ def main(argv):
     for evtype, evcodes in device["evdev"]["codes"].items():
         for c in evcodes:
             code = libevdev.evbit(int(evtype), int(c))
-            if is_tracked_axis(code) and code not in axes_in_use:
+            if (
+                is_tracked_axis(code, only_axes, ignored_axes)
+                and code not in axes_in_use
+            ):
                 unused_axes.append(code)
 
     if unused_axes:
