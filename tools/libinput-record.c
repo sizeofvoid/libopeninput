@@ -1291,7 +1291,10 @@ handle_libinput_events(struct record_context *ctx,
 	if (!e)
 		return false;
 
-	iprintf(d->fp, I_EVENTTYPE, "%slibinput:\n", start_frame ? "- " : "");
+	if (start_frame)
+		iprintf(d->fp, I_EVENTTYPE, "- libinput:\n");
+	else
+		iprintf(d->fp, I_EVENTTYPE, "libinput:\n");
 	do {
 		struct libinput_device *device = libinput_event_get_device(e);
 
