@@ -87,6 +87,12 @@ def main(argv):
         default="",
         help="A comma-separated list of axis names to print, ignoring all others",
     )
+    parser.add_argument(
+        "--print-state",
+        action="store_true",
+        default=False,
+        help="Always print all axis values, even unchanged ones",
+    )
 
     args = parser.parse_args()
     if args.ignore and args.only:
@@ -148,6 +154,7 @@ def main(argv):
     print(header_line)
     print("-" * len(header_line))
 
+    current_codes = []
     current_frame = {}  # {evdev-code: value}
     axes_in_use = {}  # to print axes never sending events
     last_fields = []  # to skip duplicate lines
@@ -164,12 +171,16 @@ def main(argv):
             keystate_changed = True
         elif is_tracked_axis(e.code, only_axes, ignored_axes):
             current_frame[e.code] = e.value
+            current_codes.append(e.code)
         elif e.code == libevdev.EV_SYN.SYN_REPORT:
             fields = []
             for a in axes:
-                s = format_value(a, current_frame[a]) if a in current_frame else " "
+                if args.print_state or a in current_codes:
+                    s = format_value(a, current_frame.get(a, 0))
+                else:
+                    s = ""
                 fields.append(s.rjust(max(MIN_FIELD_WIDTH, axes[a])))
-            current_frame = {}
+            current_codes = []
 
             if last_fields != fields or keystate_changed:
                 last_fields = fields.copy()
