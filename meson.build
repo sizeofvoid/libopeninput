@@ -139,6 +139,8 @@ if not cc.has_header_symbol('sys/ptrace.h', 'PTRACE_ATTACH', prefix : prefix)
 	config_h.set('PTRACE_DETACH', 'PT_DETACH')
 endif
 
+config_h.set10('HAVE_INSTALLED_TESTS', get_option('install-tests'))
+
 # Dependencies
 pkgconfig = import('pkgconfig')
 dep_udev = dependency('libudev')
@@ -697,6 +699,15 @@ if add_languages('cpp', required: false)
 		   install : false)
 endif
 
+libinput_test_sources = [ 'tools/libinput-test.c' ]
+executable('libinput-test',
+	   libinput_test_sources,
+	   dependencies : deps_tools,
+	   include_directories : [includes_src, includes_include],
+	   install_dir : libinput_tool_path,
+	   install : true,
+	   )
+
 # This is the test suite runner, we allow disabling that one because of
 # dependencies
 if get_option('tests')
@@ -954,6 +965,11 @@ endif
 man_config = configuration_data()
 man_config.set('LIBINPUT_VERSION', meson.project_version())
 man_config.set('LIBINPUT_DATA_DIR', dir_data)
+if get_option('install-tests')
+	man_config.set('HAVE_INSTALLED_TESTS', '.\"')
+else
+	man_config.set('HAVE_INSTALLED_TESTS', '')
+endif
 src_man += files(
 	'tools/libinput.man',
 	'tools/libinput-analyze.man',
@@ -972,6 +988,7 @@ src_man += files(
 	'tools/libinput-quirks.man',
 	'tools/libinput-record.man',
 	'tools/libinput-replay.man',
+	'tools/libinput-test.man',
 )
 
 foreach m : src_man
