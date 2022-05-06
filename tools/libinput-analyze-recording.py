@@ -102,7 +102,7 @@ def main(argv):
     ignored_axes = [libevdev.evbit(axis) for axis in args.ignore.split(",") if axis]
     only_axes = [libevdev.evbit(axis) for axis in args.only.split(",") if axis]
 
-    cr = "\r" if os.isatty(sys.stdout.fileno()) else ""
+    isatty = os.isatty(sys.stdout.fileno())
 
     yml = yaml.safe_load(open(args.path[0]))
     if yml["ndevices"] > 1:
@@ -187,8 +187,10 @@ def main(argv):
                 keystate_changed = False
 
                 if continuation_count:
-                    continuation_count = 0
+                    if not isatty:
+                        print(f" ... +{continuation_count}", end="")
                     print("")
+                    continuation_count = 0
 
                 fields.insert(0, f"{e.sec: 3d}.{e.usec//1000:03d}")
                 keys_down = [k.name for k, v in keystate.items() if v]
@@ -196,7 +198,8 @@ def main(argv):
                 print(" | ".join(fields))
             else:
                 continuation_count += 1
-                print(f"{cr} ... +{continuation_count}", end="", flush=True)
+                if isatty:
+                    print(f"\r ... +{continuation_count}", end="", flush=True)
 
     # Print out any rel/abs axes that not generate events in
     # this recording
