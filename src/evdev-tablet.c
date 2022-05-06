@@ -1257,8 +1257,6 @@ sanitize_pressure_distance(struct tablet_dispatch *tablet,
 
 	/* Keep distance and pressure mutually exclusive */
 	if (distance &&
-	    (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE) ||
-	     bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE)) &&
 	    distance->value > distance->minimum &&
 	    pressure->value > pressure->minimum) {
 		if (tool_in_contact) {
