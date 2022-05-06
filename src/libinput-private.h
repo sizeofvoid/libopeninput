@@ -407,10 +407,8 @@ struct libinput_tablet_tool {
 	void *user_data;
 
 	struct {
-		/* The pressure threshold assumes a pressure_offset of 0 */
-		struct threshold threshold;
-		/* pressure_offset includes axis->minimum */
-		int offset;
+		struct threshold threshold; /* in device coordinates */
+		int offset; /* in device coordinates */
 		bool has_offset;
 	} pressure;
 };

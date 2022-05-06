@@ -353,30 +353,20 @@ static inline double
 normalize_pressure(const struct input_absinfo *absinfo,
 		   struct libinput_tablet_tool *tool)
 {
-	int offset;
-	double range;
-	double value;
-
 	/**
-	 * If the tool has a pressure offset, we use that as the lower bound
-	 * for the scaling range. If not, we use the upper threshold as the
-	 * lower bound, so once we get past that minimum physical pressure
-	 * we have logical 0 pressure.
+	 * Note: the upper threshold takes the offset into account so that
+	 *            |- 4% -|
+	 * min |------X------X-------------------------| max
+	 *            |      |
+	 *            |      + upper threshold / tip trigger
+	 *            +- offset and lower threshold
 	 *
-	 * This means that there is a small range (lower-upper) where
-	 * different physical pressure (default: 1-5%) result in the same
-	 * logical pressure. This is, hopefully, not noticeable.
-	 *
-	 * Note that that lower-upper range gives us a negative pressure, so
-	 * we have to clip to 0 for those.
+	 * The axis is scaled into the range [lower, max] so that the lower
+	 * threshold is 0 pressure.
 	 */
-
-	if (tool->pressure.has_offset)
-		offset = tool->pressure.offset;
-	else
-		offset = tool->pressure.threshold.upper;
-	range = absinfo->maximum - offset;
-	value = (absinfo->value - offset) / range;
+	int base = tool->pressure.threshold.lower;
+	double range = absinfo->maximum - base;
+	double value = (absinfo->value - base) / range;
 
 	return max(0.0, value);
 }
@@ -1255,7 +1245,10 @@ sanitize_pressure_distance(struct tablet_dispatch *tablet,
 	if (!pressure_changed && !distance_changed)
 		return;
 
-	tool_in_contact = (pressure->value > tool->pressure.offset);
+	/* Note: this is an arbitrary "in contact" decision rather than "tip
+	 * down". We use the lower threshold as minimum pressure value,
+	 * anything less than that gets filtered away */
+	tool_in_contact = (pressure->value > tool->pressure.threshold.lower);
 
 	/* Keep distance and pressure mutually exclusive */
 	if (distance &&
@@ -1327,7 +1320,7 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 	 */
 	if (tool->pressure.has_offset) {
 		if (offset < tool->pressure.offset)
-			tool->pressure.offset = offset;
+			goto set_offset;
 		return;
 	}
 
@@ -1359,9 +1352,17 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 		 tablet_tool_type_to_string(tool->type),
 		 tool->serial,
 		 HTTP_DOC_LINK);
+set_offset:
 	tool->pressure.offset = offset;
 	tool->pressure.has_offset = true;
-	tool->pressure.threshold.lower = pressure->minimum;
+
+	/* Adjust the tresholds accordingly - we use the same gap (4% in
+	 * device coordinates) between upper and lower as before which isn't
+	 * technically correct (our range shrunk) but it's easy to calculate.
+	 */
+	int gap = tool->pressure.threshold.upper - tool->pressure.threshold.lower;
+	tool->pressure.threshold.lower = offset;
+	tool->pressure.threshold.upper = offset + gap;
 }
 
 static void
@@ -1391,9 +1392,6 @@ detect_tool_contact(struct tablet_dispatch *tablet,
 		return;
 	}
 	pressure = p->value;
-
-	if (tool->pressure.has_offset)
-		pressure -= (tool->pressure.offset - p->minimum);
 
 	if (pressure <= tool->pressure.threshold.lower &&
 	    tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT)) {
