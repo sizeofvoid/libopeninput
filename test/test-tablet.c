@@ -3807,7 +3807,7 @@ START_TEST(tablet_calibration_set_matrix)
 }
 END_TEST
 
-START_TEST(tablet_pressure_offset)
+START_TEST(tablet_pressure_offset_set)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -6157,7 +6157,7 @@ TEST_COLLECTION(tablet)
 
 	litest_add(tablet_pressure_min_max, LITEST_TABLET, LITEST_ANY);
 	litest_add_for_device(tablet_pressure_range, LITEST_WACOM_INTUOS);
-	litest_add_for_device(tablet_pressure_offset, LITEST_WACOM_INTUOS);
+	litest_add_for_device(tablet_pressure_offset_set, LITEST_WACOM_INTUOS);
 	litest_add_for_device(tablet_pressure_offset_decrease, LITEST_WACOM_INTUOS);
 	litest_add_for_device(tablet_pressure_offset_increase, LITEST_WACOM_INTUOS);
 	litest_add_for_device(tablet_pressure_offset_exceed_threshold, LITEST_WACOM_INTUOS);
