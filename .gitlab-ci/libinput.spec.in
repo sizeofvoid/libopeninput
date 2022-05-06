@@ -134,6 +134,7 @@ intended to be run by users.
 %files test
 %{_libexecdir}/libinput/libinput-test
 %{_libexecdir}/libinput/libinput-test-suite
+%{_libexecdir}/libinput/libinput-test-utils
 %{_mandir}/man1/libinput-test.1*
 %{_mandir}/man1/libinput-test-suite.1*
 

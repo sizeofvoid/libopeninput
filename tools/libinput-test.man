@@ -27,6 +27,9 @@ Tests that can be run are
 .B libinput\-test\-suite(1)
 Run the full test suite. This is the most complete set of tests to run in
 libinput.
+.TP 8
+.B libinput\-test\-utils
+Run the test suite suite for internal utility functions.
 .SH LIBINPUT
 Part of the
 .B libinput(1)

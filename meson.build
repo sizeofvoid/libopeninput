@@ -880,11 +880,12 @@ if get_option('tests')
 		'src/libinput-util.h',
 		'test/test-utils.c',
 	]
-	test_utils = executable('test-utils',
+	test_utils = executable('libinput-test-utils',
 				test_utils_sources,
 				include_directories : [includes_src, includes_include],
 				dependencies : deps_litest,
-				install: false)
+				install_dir : libinput_tool_path,
+				install : get_option('install-tests'))
 	test('test-utils',
 	     test_utils,
 	     suite : ['all'])
