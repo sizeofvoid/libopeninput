@@ -1249,8 +1249,10 @@ sanitize_pressure_distance(struct tablet_dispatch *tablet,
 	if (!pressure || !distance)
 		return;
 
-	if (!bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE) &&
-	    !bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE))
+	bool pressure_changed = bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+	bool distance_changed = bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_DISTANCE);
+
+	if (!pressure_changed && !distance_changed)
 		return;
 
 	tool_in_contact = (pressure->value > tool->pressure.offset);
@@ -1268,8 +1270,7 @@ sanitize_pressure_distance(struct tablet_dispatch *tablet,
 				  LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
 			tablet->axes.pressure = 0;
 		}
-	} else if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE) &&
-		   !tool_in_contact) {
+	} else if (pressure_changed && !tool_in_contact) {
 		/* Make sure that the last axis value sent to the caller is a 0 */
 		if (tablet->axes.pressure == 0)
 			clear_bit(tablet->changed_axes,
