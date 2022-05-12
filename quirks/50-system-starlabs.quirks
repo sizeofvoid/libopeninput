@@ -1,0 +1,6 @@
+[Star Labs Touchpad]
+MatchName=*Touchpad
+MatchUdevType=touchpad
+MatchDMIModalias=dmi:*svnStarLabs:*
+AttrEventCodeDisable=BTN_RIGHT
+AttrInputPropEnable=INPUT_PROP_BUTTONPAD
