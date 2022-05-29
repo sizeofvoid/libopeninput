@@ -49,18 +49,19 @@ accelerator_filter_touchpad_flat(struct motion_filter *filter,
 			const struct device_float_coords *unaccelerated,
 			void *data, uint64_t time)
 {
-	struct touchpad_accelerator_flat *accel_filter =
+	struct touchpad_accelerator_flat *accel =
 		(struct touchpad_accelerator_flat *)filter;
 	double factor; /* unitless factor */
-	struct normalized_coords accelerated;
+	struct normalized_coords normalized;
 
 	/* You want flat acceleration, you get flat acceleration for the
 	 * device */
-	factor = accel_filter->factor;
-	accelerated.x = TP_MAGIC_SLOWDOWN_FLAT * factor * unaccelerated->x;
-	accelerated.y = TP_MAGIC_SLOWDOWN_FLAT * factor * unaccelerated->y;
+	factor = accel->factor;
+	normalized = normalize_for_dpi(unaccelerated, accel->dpi);
+	normalized.x = TP_MAGIC_SLOWDOWN_FLAT * factor * normalized.x;
+	normalized.y = TP_MAGIC_SLOWDOWN_FLAT * factor * normalized.y;
 
-	return accelerated;
+	return normalized;
 }
 
 static struct normalized_coords
