@@ -632,6 +632,7 @@ test_high_and_low_wheel_events_value(struct litest_device *dev,
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL;
 
 	event = libinput_get_event(li);
+	litest_assert_notnull(event);
 
 	while(event) {
 		ptrev = litest_is_axis_event(event,
