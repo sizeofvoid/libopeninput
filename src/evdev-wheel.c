@@ -187,17 +187,22 @@ wheel_flush_scroll(struct fallback_dispatch *dispatch,
 	struct discrete_coords discrete = { 0.0, 0.0 };
 	struct wheel_v120 v120 = { 0.0, 0.0 };
 
+	/* This mouse has a trackstick instead of a mouse wheel and sends
+	 * trackstick data via REL_WHEEL. Normalize it like normal x/y coordinates.
+	 */
 	if (device->model_flags & EVDEV_MODEL_LENOVO_SCROLLPOINT) {
 		struct normalized_coords unaccel = { 0.0, 0.0 };
 
-		dispatch->wheel.hi_res.y *= -1;
-		fallback_normalize_delta(device, &dispatch->wheel.hi_res, &unaccel);
+		dispatch->wheel.lo_res.y *= -1;
+		fallback_normalize_delta(device, &dispatch->wheel.lo_res, &unaccel);
 		evdev_post_scroll(device,
 				  time,
 				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
 				  &unaccel);
 		dispatch->wheel.hi_res.x = 0;
 		dispatch->wheel.hi_res.y = 0;
+		dispatch->wheel.lo_res.x = 0;
+		dispatch->wheel.lo_res.y = 0;
 
 		return;
 	}

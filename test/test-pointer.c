@@ -900,6 +900,73 @@ START_TEST(pointer_scroll_wheel_inhibit_dir_change)
 }
 END_TEST
 
+START_TEST(pointer_scroll_wheel_lenovo_scrollpoint)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_pointer *ptrev;
+	double v;
+
+	litest_drain_events(dev->libinput);
+
+	/* Lenovo ScrollPoint has a trackstick instead of a wheel, data sent
+	 * via REL_WHEEL is close to x/y coordinate space.
+	 */
+	litest_event(dev, EV_REL, REL_WHEEL, 30);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_event(dev, EV_REL, REL_WHEEL, -60);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	/* Hi-res scroll event first */
+	event = libinput_get_event(li);
+	litest_assert(litest_is_high_res_axis_event(event));
+	ptrev = litest_is_axis_event(event,
+				     LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS,
+				     LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+				     LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
+
+	v = libinput_event_pointer_get_scroll_value(ptrev, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+	litest_assert_double_eq(v, -30.0);
+	libinput_event_destroy(event);
+
+	/* legacy lo-res scroll event */
+	event = libinput_get_event(li);
+	litest_assert(!litest_is_high_res_axis_event(event));
+	ptrev = litest_is_axis_event(event,
+				     LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS,
+				     LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+				     LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
+	v = libinput_event_pointer_get_axis_value(ptrev, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+	litest_assert_double_eq(v, -30.0);
+	libinput_event_destroy(event);
+
+	/* Hi-res scroll event first */
+	event = libinput_get_event(li);
+	ptrev = litest_is_axis_event(event,
+				     LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS,
+				     LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+				     LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
+
+	v = libinput_event_pointer_get_scroll_value(ptrev, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+	litest_assert_double_eq(v, 60.0);
+	libinput_event_destroy(event);
+
+	/* legacy lo-res scroll event */
+	event = libinput_get_event(li);
+	litest_assert(!litest_is_high_res_axis_event(event));
+	ptrev = litest_is_axis_event(event,
+				     LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS,
+				     LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+				     LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS);
+	v = libinput_event_pointer_get_axis_value(ptrev, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+	litest_assert_double_eq(v, 60.0);
+	libinput_event_destroy(event);
+
+}
+END_TEST
+
 START_TEST(pointer_scroll_natural_defaults)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1964,7 +2031,8 @@ START_TEST(pointer_scroll_nowheel_defaults)
 
 	/* button scrolling is only enabled if there is a
 	   middle button present */
-	if (libinput_device_pointer_has_button(device, BTN_MIDDLE))
+	if (libinput_device_pointer_has_button(device, BTN_MIDDLE) &&
+	    dev->which != LITEST_LENOVO_SCROLLPOINT)
 		expected = LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN;
 	else
 		expected = LIBINPUT_CONFIG_SCROLL_NO_SCROLL;
@@ -3528,6 +3596,7 @@ TEST_COLLECTION(pointer)
 	litest_add(pointer_scroll_wheel_hires_send_only_lores_horizontal, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_wheel_inhibit_small_deltas, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_wheel_inhibit_dir_change, LITEST_WHEEL, LITEST_TABLET);
+	litest_add_for_device(pointer_scroll_wheel_lenovo_scrollpoint, LITEST_LENOVO_SCROLLPOINT);
 	litest_add(pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add(pointer_scroll_button_noscroll, LITEST_ABSOLUTE|LITEST_BUTTON, LITEST_RELATIVE);
 	litest_add(pointer_scroll_button_noscroll, LITEST_ANY, LITEST_RELATIVE|LITEST_BUTTON);
