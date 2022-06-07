@@ -760,8 +760,8 @@ START_TEST(pointer_scroll_wheel_hires_send_only_lores_vertical)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) &&
-	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
+	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL) &&
+	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES))
 		return;
 
 	litest_drain_events(dev->libinput);
@@ -777,11 +777,6 @@ START_TEST(pointer_scroll_wheel_hires_send_only_lores_vertical)
 	libinput_dispatch(li);
 	test_high_and_low_wheel_events_value(dev, REL_WHEEL, 120);
 
-	litest_event(dev, EV_REL, REL_HWHEEL, 1);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, REL_HWHEEL, 120);
-
 	litest_assert_empty_queue(li);
 	litest_restore_log_handler(li);
 }
@@ -792,7 +787,7 @@ START_TEST(pointer_scroll_wheel_hires_send_only_lores_horizontal)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) &&
+	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL) &&
 	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
 		return;
 
@@ -804,10 +799,10 @@ START_TEST(pointer_scroll_wheel_hires_send_only_lores_horizontal)
 	libinput_dispatch(li);
 	test_high_and_low_wheel_events_value(dev, REL_HWHEEL, 240);
 
-	litest_event(dev, EV_REL, REL_WHEEL, -1);
+	litest_event(dev, EV_REL, REL_HWHEEL, -1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, REL_WHEEL, 120);
+	test_high_and_low_wheel_events_value(dev, REL_HWHEEL, -120);
 
 	litest_event(dev, EV_REL, REL_HWHEEL, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
