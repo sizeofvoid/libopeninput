@@ -820,7 +820,7 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 
 	litest_drain_events(dev->libinput);
 
-	/* Scroll deltas bellow the threshold (60) must be ignored */
+	/* Scroll deltas below the threshold (60) must be ignored */
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 15);
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 15);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
