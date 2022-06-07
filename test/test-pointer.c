@@ -756,59 +756,53 @@ START_TEST(pointer_scroll_wheel_hires)
 }
 END_TEST
 
-START_TEST(pointer_scroll_wheel_hires_send_only_lores_vertical)
+START_TEST(pointer_scroll_wheel_hires_send_only_lores)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
+	enum libinput_pointer_axis axis = _i; /* ranged test */
+	unsigned int lores_code, hires_code;
+	int direction;
 
-	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL) &&
-	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES))
+	switch (axis) {
+		case LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL:
+			lores_code = REL_WHEEL;
+			hires_code = REL_WHEEL_HI_RES;
+			direction = -1;
+			break;
+		case LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL:
+			lores_code = REL_HWHEEL;
+			hires_code = REL_HWHEEL_HI_RES;
+			direction = 1;
+			break;
+		default:
+			abort();
+	}
+
+	if (!libevdev_has_event_code(dev->evdev, EV_REL, lores_code) &&
+	    !libevdev_has_event_code(dev->evdev, EV_REL, hires_code))
 		return;
 
+	/* Device claims to have HI_RES, but doesn't send events for it. Make
+	 * sure we handle this correctly.
+	 */
 	litest_drain_events(dev->libinput);
 	litest_set_log_handler_bug(li);
 
-	litest_event(dev, EV_REL, REL_WHEEL, 1);
+	litest_event(dev, EV_REL, lores_code, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, REL_WHEEL, -120);
+	test_high_and_low_wheel_events_value(dev, lores_code, direction * 120);
 
-	litest_event(dev, EV_REL, REL_WHEEL, -1);
+	litest_event(dev, EV_REL, lores_code, -1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, REL_WHEEL, 120);
+	test_high_and_low_wheel_events_value(dev, lores_code, direction * -120);
 
-	litest_assert_empty_queue(li);
-	litest_restore_log_handler(li);
-}
-END_TEST
-
-START_TEST(pointer_scroll_wheel_hires_send_only_lores_horizontal)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-
-	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL) &&
-	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
-		return;
-
-	litest_drain_events(dev->libinput);
-	litest_set_log_handler_bug(li);
-
-	litest_event(dev, EV_REL, REL_HWHEEL, 2);
+	litest_event(dev, EV_REL, lores_code, 2);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	libinput_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, REL_HWHEEL, 240);
-
-	litest_event(dev, EV_REL, REL_HWHEEL, -1);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, REL_HWHEEL, -120);
-
-	litest_event(dev, EV_REL, REL_HWHEEL, 1);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, REL_HWHEEL, 120);
+	test_high_and_low_wheel_events_value(dev, lores_code, direction * 240);
 
 	litest_assert_empty_queue(li);
 	litest_restore_log_handler(li);
@@ -3579,6 +3573,8 @@ TEST_COLLECTION(pointer)
 	struct range compass = {0, 7}; /* cardinal directions */
 	struct range buttons = {BTN_LEFT, BTN_TASK + 1};
 	struct range buttonorder = {0, _MB_BUTTONORDER_COUNT};
+	struct range scroll_directions = {LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+					  LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL + 1};
 
 	litest_add(pointer_motion_relative, LITEST_RELATIVE, LITEST_POINTINGSTICK);
 	litest_add_for_device(pointer_motion_relative_zero, LITEST_MOUSE);
@@ -3592,8 +3588,7 @@ TEST_COLLECTION(pointer)
 	litest_add(pointer_recover_from_lost_button_count, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add(pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_wheel_hires, LITEST_WHEEL, LITEST_TABLET);
-	litest_add(pointer_scroll_wheel_hires_send_only_lores_vertical, LITEST_WHEEL, LITEST_TABLET);
-	litest_add(pointer_scroll_wheel_hires_send_only_lores_horizontal, LITEST_WHEEL, LITEST_TABLET);
+	litest_add_ranged(pointer_scroll_wheel_hires_send_only_lores, LITEST_WHEEL, LITEST_TABLET, &scroll_directions);
 	litest_add(pointer_scroll_wheel_inhibit_small_deltas, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_wheel_inhibit_dir_change, LITEST_WHEEL, LITEST_TABLET);
 	litest_add_for_device(pointer_scroll_wheel_lenovo_scrollpoint, LITEST_LENOVO_SCROLLPOINT);
