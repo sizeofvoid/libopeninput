@@ -679,16 +679,18 @@ check-merge-request:
       junit: results.xml
   allow_failure: true
 
+{% for distro in distributions if distro.name == "fedora" %}
+{% set version = "{}".format(distro.versions|last()) %}
 build rpm:
   extends:
     - .fdo.distribution-image@fedora
     - .policy
   stage: deploy
   variables:
-    FDO_DISTRIBUTION_VERSION: '34'
+    FDO_DISTRIBUTION_VERSION: '36'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
   needs:
-    - "fedora:33@container-prep"
+    - "fedora:36@container-prep"
   script:
     - dnf install -y rpmdevtools jq
     - meson "$MESON_BUILDDIR"
@@ -702,6 +704,7 @@ build rpm:
     - cd "$MESON_BUILDDIR"
     - meson dist --no-test
     - rpmbuild -ta meson-dist/libinput*.tar.xz
+{% endfor %}
 
 
 wayland-web:
