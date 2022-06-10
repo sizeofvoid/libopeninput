@@ -48,7 +48,7 @@
 
 #include "shared.h"
 
-#ifdef GDK_WINDOWING_WAYLAND
+#if HAVE_GTK_WAYLAND
 	#include <wayland-client.h>
 	#include "pointer-constraints-unstable-v1-client-protocol.h"
 	#if HAVE_GTK4
@@ -58,7 +58,7 @@
 	#endif
 #endif
 
-#ifdef GDK_WINDOWING_X11
+#if HAVE_GTK_X11
 	#include <X11/X.h>
 	#include <X11/Xlib.h>
 	#if HAVE_GTK4
@@ -120,7 +120,7 @@ struct window {
 	struct {
 		bool locked;
 
-#ifdef GDK_WINDOWING_WAYLAND
+#if HAVE_GTK_WAYLAND
 		struct zwp_pointer_constraints_v1 *wayland_pointer_constraints;
 		struct zwp_locked_pointer_v1 *wayland_locked_pointer;
 #endif
@@ -207,7 +207,7 @@ struct window {
 	struct libinput_device *devices[50];
 };
 
-#ifdef GDK_WINDOWING_WAYLAND
+#if HAVE_GTK_WAYLAND
 static void
 wayland_registry_global(void *data,
 			struct wl_registry *registry,
@@ -297,9 +297,9 @@ backend_is_wayland(void)
 {
 	return GDK_IS_WAYLAND_DISPLAY(gdk_display_get_default());
 }
-#endif /* GDK_WINDOWING_WAYLAND */
+#endif /* HAVE_GTK_WAYLAND */
 
-#ifdef GDK_WINDOWING_X11
+#if HAVE_GTK_X11
 static bool
 x_lock_pointer(struct window *w)
 {
@@ -342,19 +342,19 @@ backend_is_x11(void)
 {
 	return GDK_IS_X11_DISPLAY(gdk_display_get_default());
 }
-#endif /* GDK_WINDOWING_X11 */
+#endif /* HAVE_GTK_X11 */
 
 static bool
 window_lock_pointer(struct window *w)
 {
 	w->lock_pointer.locked = false;
 
-#ifdef GDK_WINDOWING_WAYLAND
+#if HAVE_GTK_WAYLAND
 	if (backend_is_wayland())
 		w->lock_pointer.locked = wayland_lock_pointer(w);
 #endif
 
-#ifdef GDK_WINDOWING_X11
+#if HAVE_GTK_X11
 	if (backend_is_x11())
 		w->lock_pointer.locked = x_lock_pointer(w);
 #endif
@@ -370,12 +370,12 @@ window_unlock_pointer(struct window *w)
 
 	w->lock_pointer.locked = false;
 
-#ifdef GDK_WINDOWING_WAYLAND
+#if HAVE_GTK_WAYLAND
 	if (backend_is_wayland())
 		wayland_unlock_pointer(w);
 #endif
 
-#ifdef GDK_WINDOWING_X11
+#if HAVE_GTK_X11
 	if (backend_is_x11())
 		x_unlock_pointer(w);
 #endif
