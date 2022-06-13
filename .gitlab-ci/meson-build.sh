@@ -44,18 +44,4 @@ if [[ -z "$MESON_TEST_ARGS" ]]; then
     exit 0
 fi
 
-# we still want to generate the reports, even if meson test fails
-set +e
 meson test -C "$MESON_BUILDDIR" $MESON_TEST_ARGS --print-errorlogs
-exit_code=$?
-set -e
-
-# We need the glob for the testlog so that it picks up those suffixed by a
-# suite (e.g. testlog-valgrind.json)
-./.gitlab-ci/meson-junit-report.py \
-	--project-name=libinput \
-	--job-id="$CI_JOB_ID" \
-	--output="$MESON_BUILDDIR/junit-$CI_JOB_NAME-report.xml" \
-	"$MESON_BUILDDIR"/meson-logs/testlog*.json; \
-
-exit $exit_code

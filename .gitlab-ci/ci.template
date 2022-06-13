@@ -118,7 +118,7 @@ variables:
     paths:
       - $MESON_BUILDDIR/meson-logs
     reports:
-      junit: $MESON_BUILDDIR/junit-*.xml
+      junit: $MESON_BUILDDIR/*junit*.xml
 
 
 #################################################################
@@ -343,7 +343,7 @@ check-commit:
       - $MESON_BUILDDIR/meson-logs
       - console.out
     reports:
-      junit: $MESON_BUILDDIR/junit-*.xml
+      junit: $MESON_BUILDDIR/*junit*.xml
 
 
 # Run in a test suite. Special variables:
