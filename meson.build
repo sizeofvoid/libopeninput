@@ -272,25 +272,16 @@ foreach h: util_headers
 			          output : 'test-util-includes-@0@.c'.format(h),
 				  configuration : c)
 	executable('test-build-@0@'.format(h),
-		   testfile, dir_src / h,
+		   testfile,
 		   include_directories : [includes_src, includes_include],
 		   install : false)
 endforeach
 
 src_libinput_util = [
-	'src/util-bits.h',
 	'src/util-list.c',
-	'src/util-list.h',
-	'src/util-macros.h',
-	'src/util-matrix.h',
 	'src/util-ratelimit.c',
-	'src/util-ratelimit.h',
-	'src/util-strings.h',
 	'src/util-strings.c',
-	'src/util-time.h',
-	'src/util-prop-parsers.h',
 	'src/util-prop-parsers.c',
-	'src/libinput-util.h',
 ]
 libinput_util = static_library('libinput-util',
 			       src_libinput_util,
@@ -309,8 +300,6 @@ src_libfilter = [
 		'src/filter-touchpad-x230.c',
 		'src/filter-tablet.c',
 		'src/filter-trackpoint.c',
-		'src/filter.h',
-		'src/filter-private.h'
 ]
 libfilter = static_library('filter', src_libfilter,
 			   dependencies : [dep_udev, dep_libwacom],
@@ -331,8 +320,6 @@ install_subdir('quirks',
 
 src_libquirks = [
 	'src/quirks.c',
-	'src/quirks.h',
-	'src/builddir.h',
 ]
 
 deps_libquirks = [dep_udev, dep_libwacom, dep_libinput_util]
@@ -348,36 +335,25 @@ install_subdir('libinput', install_dir : dir_etc)
 install_headers('src/libinput.h')
 src_libinput = src_libfilter + [
 	'src/libinput.c',
-	'src/libinput.h',
 	'src/libinput-private-config.c',
-	'src/libinput-private-config.h',
-	'src/libinput-private.h',
 	'src/evdev.c',
-	'src/evdev.h',
 	'src/evdev-debounce.c',
 	'src/evdev-fallback.c',
-	'src/evdev-fallback.h',
 	'src/evdev-totem.c',
 	'src/evdev-middle-button.c',
 	'src/evdev-mt-touchpad.c',
-	'src/evdev-mt-touchpad.h',
 	'src/evdev-mt-touchpad-tap.c',
 	'src/evdev-mt-touchpad-thumb.c',
 	'src/evdev-mt-touchpad-buttons.c',
 	'src/evdev-mt-touchpad-edge-scroll.c',
 	'src/evdev-mt-touchpad-gestures.c',
 	'src/evdev-tablet.c',
-	'src/evdev-tablet.h',
 	'src/evdev-tablet-pad.c',
-	'src/evdev-tablet-pad.h',
 	'src/evdev-tablet-pad-leds.c',
 	'src/evdev-wheel.c',
 	'src/path-seat.c',
 	'src/udev-seat.c',
-	'src/udev-seat.h',
 	'src/timer.c',
-	'src/timer.h',
-	'include/linux/input.h'
 ]
 
 deps_libinput = [
@@ -447,9 +423,7 @@ subdir('completion/zsh')
 ############ tools ############
 libinput_tool_path = dir_libexec
 config_h.set_quoted('LIBINPUT_TOOL_PATH', libinput_tool_path)
-tools_shared_sources = [ 'tools/shared.c',
-			 'tools/shared.h',
-			 'src/builddir.h' ]
+tools_shared_sources = [ 'tools/shared.c' ]
 deps_tools_shared = [ dep_libinput, dep_libevdev ]
 lib_tools_shared = static_library('tools_shared',
 				  tools_shared_sources,
@@ -730,9 +704,6 @@ if get_option('tests')
 
 	litest_sources = [
 		'src/libinput-private-config.c',
-		'src/libinput-private-config.h',
-		'test/litest.h',
-		'test/litest-int.h',
 		'test/litest-device-absinfo-override.c',
 		'test/litest-device-acer-hawaii-keyboard.c',
 		'test/litest-device-acer-hawaii-touchpad.c',
@@ -830,7 +801,6 @@ if get_option('tests')
 		'test/litest-device-vmware-virtual-usb-mouse.c',
 		'test/litest-device-yubikey.c',
 		'test/litest.c',
-		'include/valgrind/valgrind.h'
 	]
 
 	dep_dl = cc.find_library('dl')
@@ -863,7 +833,6 @@ if get_option('tests')
 	test_litest_selftest_sources = [
 		'test/litest-selftest.c',
 		'test/litest.c',
-		'test/litest.h'
 	]
 	test_litest_selftest = executable('test-litest-selftest',
 					  test_litest_selftest_sources,
@@ -886,7 +855,6 @@ if get_option('tests')
 	     suite : ['all'])
 
 	test_utils_sources = [
-		'src/libinput-util.h',
 		'test/test-utils.c',
 	]
 	test_utils = executable('libinput-test-utils',
@@ -921,9 +889,7 @@ if get_option('tests')
 		'test/test-switch.c',
 		'test/test-quirks.c',
 	]
-	libinput_test_runner_sources = litest_sources + tests_sources + [
-		'src/libinput-util.h',
-	]
+	libinput_test_runner_sources = litest_sources + tests_sources
 	libinput_test_runner = executable('libinput-test-suite',
 					  libinput_test_runner_sources,
 					  include_directories : [includes_src, includes_include],
