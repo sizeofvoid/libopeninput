@@ -542,35 +542,34 @@ if get_option('debug-gui')
 	dep_cairo = dependency('cairo')
 	dep_glib = dependency('glib-2.0')
 	dep_x11 = dependency('x11', required : false)
+	dep_wayland_client = dependency('wayland-client', required : false)
+	dep_wayland_protocols = dependency('wayland-protocols', required : false)
+
 	config_h.set10('HAVE_GTK_X11', have_gtk_x11 and dep_x11.found())
 
 	debug_gui_sources = [ 'tools/libinput-debug-gui.c' ]
 
-	if have_gtk_wayland
-		dep_wayland_client = dependency('wayland-client', required : false)
-		dep_wayland_protocols = dependency('wayland-protocols', required : false)
-		if dep_wayland_client.found() and dep_wayland_protocols.found()
-			wayland_scanner = find_program('wayland-scanner')
-			wlproto_dir = dep_wayland_protocols.get_pkgconfig_variable('pkgdatadir')
+	if have_gtk_wayland and dep_wayland_client.found() and dep_wayland_protocols.found()
+		wayland_scanner = find_program('wayland-scanner')
+		wlproto_dir = dep_wayland_protocols.get_pkgconfig_variable('pkgdatadir')
 
-			proto_name = 'pointer-constraints-unstable-v1'
-			input = files(wlproto_dir / 'unstable' / 'pointer-constraints' / '@0@.xml'.format(proto_name))
+		proto_name = 'pointer-constraints-unstable-v1'
+		input = files(wlproto_dir / 'unstable' / 'pointer-constraints' / '@0@.xml'.format(proto_name))
 
-			wayland_headers = custom_target('@0@ client header'.format(proto_name),
-				input: input,
-				output: '@0@-client-protocol.h'.format(proto_name),
-				command: [wayland_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
-			)
+		wayland_headers = custom_target('@0@ client header'.format(proto_name),
+			input: input,
+			output: '@0@-client-protocol.h'.format(proto_name),
+			command: [wayland_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
+		)
 
-			wayland_sources = custom_target('@0@ source'.format(proto_name),
-				input: input,
-				output: '@0@-protocol.c'.format(proto_name),
-				command: [wayland_scanner, 'private-code', '@INPUT@', '@OUTPUT@'],
-			)
+		wayland_sources = custom_target('@0@ source'.format(proto_name),
+			input: input,
+			output: '@0@-protocol.c'.format(proto_name),
+			command: [wayland_scanner, 'private-code', '@INPUT@', '@OUTPUT@'],
+		)
 
-			debug_gui_sources += [ wayland_headers, wayland_sources ]
-			config_h.set10('HAVE_GTK_WAYLAND', true)
-		endif
+		debug_gui_sources += [ wayland_headers, wayland_sources ]
+		config_h.set10('HAVE_GTK_WAYLAND', true)
 	endif
 
 	deps_debug_gui = [
