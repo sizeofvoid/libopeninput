@@ -777,7 +777,7 @@ build-no-debuggui-nodeps@fedora:36:
   variables:
     MESON_ARGS: "-Ddebug-gui=false"
   before_script:
-    - dnf remove -y gtk3-devel
+    - dnf remove -y gtk3-devel gtk4-devel
 
 build-no-tests@fedora:36:
   extends:
