@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2022-11-16.1'
+.default_tag: &default_tag '2022-11-16.2'
 
 distributions:
   - name: fedora
@@ -35,6 +35,10 @@ distributions:
       - mtdev-devel
       - diffutils
       - wayland-protocols-devel
+      - black           # for the Python black job, optional
+      - clang-analyzer  # for the scan-build job, optional
+      - jq              # for the test suite check job, optional
+      - rpmdevtools     # for the rpm build job, optional
       - valgrind        # for the valgrind run, optional
       # below packages are for the qemu runs, so optional
       - systemd-udev    # for the qemu run
