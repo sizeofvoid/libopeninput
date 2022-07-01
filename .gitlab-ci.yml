@@ -793,8 +793,6 @@ valgrind@fedora:36:
     - .fedora-build@template
   variables:
     MESON_TEST_ARGS: '--suite=valgrind --no-suite=hardware --setup=valgrind'
-  before_script:
-    - dnf install -y valgrind
 
 # Python checks, only run on Fedora
 
