@@ -246,6 +246,13 @@ MatchVendor=0x048D
 MatchProduct=0xC101
 AttrKeyboardIntegration=internal
 
+[Lenovo Legion 7 Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x048D
+MatchProduct=0xC968
+AttrKeyboardIntegration=internal
+
 [Lenovo Legion Y740 Keyboard]
 MatchUdevType=keyboard
 MatchBus=usb
