@@ -329,7 +329,11 @@ libquirks = static_library('quirks', src_libquirks,
 dep_libquirks = declare_dependency(link_with : libquirks)
 
 # Create /etc/libinput
-install_subdir('libinput', install_dir : dir_etc)
+if meson.version().version_compare('>= 0.60')
+	install_emptydir(dir_etc / 'libinput')
+else
+	install_subdir('libinput', install_dir : dir_etc)
+endif
 
 ############ libinput.so ############
 install_headers('src/libinput.h')
