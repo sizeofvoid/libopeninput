@@ -20,6 +20,13 @@ MatchName=*Microsoft Surface *Cover*
 MatchDMIModalias=dmi:*svnMicrosoftCorporation:*
 AttrKeyboardIntegration=internal
 
+[Microsoft Surface Laptop Studio Touchpad]
+MatchVendor=0x045E
+MatchProduct=0x09AF
+MatchUdevType=touchpad
+AttrPressureRange=25:10
+AttrPalmPressureThreshold=500
+
 [Microsoft Nano Transceiver v2.0]
 MatchUdevType=mouse
 MatchBus=usb
