@@ -281,6 +281,11 @@ MatchName=AT Raw Set 2 keyboard
 MatchDMIModalias=dmi:*svnLENOVO:*pvrYogaDuet713IML05:*
 ModelTabletModeNoSuspend=1
 
+[Lenovo IdeaPad Duet 3i]
+MatchName=AT Raw Set 2 keyboard
+MatchDMIModalias=dmi:*svnLENOVO:*pvrIdeaPadDuet310IGL5:*
+ModelTabletModeNoSuspend=1
+
 # Modifies pressure range to avoid random jumps.
 # https://gitlab.freedesktop.org/libinput/libinput/-/issues/407
 [Lenovo Yoga 2 Pro touchpad]
