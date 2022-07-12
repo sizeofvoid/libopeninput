@@ -5334,6 +5334,7 @@ START_TEST(touch_arbitration_late_touch_lift)
 }
 END_TEST
 
+#if HAVE_LIBWACOM
 static void
 verify_left_handed_tablet_motion(struct litest_device *tablet,
 				 struct libinput *li,
@@ -5453,6 +5454,7 @@ verify_left_handed_touch_sequence(struct litest_device *finger,
 	litest_touch_up(finger, 0);
 	libinput_dispatch(li);
 }
+#endif
 
 START_TEST(tablet_rotation_left_handed)
 {
