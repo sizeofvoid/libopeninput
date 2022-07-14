@@ -19,12 +19,14 @@ Pointer acceleration profiles
 ------------------------------------------------------------------------------
 
 The profile decides the general method of pointer acceleration.
-libinput currently supports two profiles: "adaptive" and "flat". The adaptive
-profile is the default profile for all devices and takes the current speed
-of the device into account when deciding on acceleration. The flat profile
-is simply a constant factor applied to all device deltas, regardless of the
-speed of motion (see :ref:`ptraccel-profile-flat`). Most of this document
-describes the adaptive pointer acceleration.
+libinput currently supports two profiles: **"adaptive"** and **"flat"**.
+
+- The **adaptive** profile is the default profile for all devices and takes the
+  current speed of the device into account when deciding on acceleration.
+- The **flat** profile is simply a constant factor applied to all device deltas,
+  regardless of the speed of motion (see :ref:`ptraccel-profile-flat`).
+
+Most of this document describes the adaptive pointer acceleration.
 
 .. _ptraccel-velocity:
 
