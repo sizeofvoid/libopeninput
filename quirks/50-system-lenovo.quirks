@@ -281,9 +281,10 @@ MatchName=AT Raw Set 2 keyboard
 MatchDMIModalias=dmi:*svnLENOVO:*pvrYogaDuet713IML05:*
 ModelTabletModeNoSuspend=1
 
-[Lenovo IdeaPad Duet 3i]
+# Lenovo IdeaPad Duet 3 also comes with a detachable keyboard.
+[Lenovo IdeaPad Duet 3]
 MatchName=AT Raw Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrIdeaPadDuet310IGL5:*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrIdeaPadDuet3*:*
 ModelTabletModeNoSuspend=1
 
 # Modifies pressure range to avoid random jumps.
