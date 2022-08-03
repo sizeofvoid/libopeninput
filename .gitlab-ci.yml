@@ -269,17 +269,6 @@ debian:stable@container-prep:
     FDO_DISTRIBUTION_PACKAGES: $DEBIAN_PACKAGES
     FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
 
-ubuntu:21.10@container-prep:
-  extends:
-    - .fdo.container-build@ubuntu
-    - .policy
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: '21.10'
-    FDO_DISTRIBUTION_PACKAGES: $UBUNTU_PACKAGES
-    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
-
 ubuntu:22.04@container-prep:
   extends:
     - .fdo.container-build@ubuntu
@@ -374,16 +363,6 @@ debian:stable@container-clean:
     CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/debian/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
     FDO_DISTRIBUTION_VERSION: 'stable'
     FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
-
-ubuntu:21.10@container-clean:
-  extends:
-    - .policy
-    - .container-clean
-  variables:
-    GIT_STRATEGY: none
-    CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ubuntu/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-    FDO_DISTRIBUTION_VERSION: '21.10'
-    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
 
 ubuntu:22.04@container-clean:
   extends:
@@ -949,18 +928,6 @@ debian:stable@default-build:
     FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
   needs:
     - "debian:stable@container-prep"
-
-
-ubuntu:21.10@default-build:
-  stage: distro
-  extends:
-    - .build@template
-    - .fdo.distribution-image@ubuntu
-  variables:
-    FDO_DISTRIBUTION_VERSION: '21.10'
-    FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
-  needs:
-    - "ubuntu:21.10@container-prep"
 
 
 ubuntu:22.04@default-build:

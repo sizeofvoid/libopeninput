@@ -65,7 +65,6 @@ distributions:
   - name: ubuntu
     tag: *default_tag
     versions:
-      - '21.10'
       - '22.04'
     packages:
       - git
