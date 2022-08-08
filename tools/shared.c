@@ -444,6 +444,9 @@ tools_device_apply_config(struct libinput_device *device,
 	if (options->dwt != -1)
 		libinput_device_config_dwt_set_enabled(device, options->dwt);
 
+	if (options->dwtp != -1)
+		libinput_device_config_dwtp_set_enabled(device, options->dwtp);
+
 	if (options->click_method != (enum libinput_config_click_method)-1)
 		libinput_device_config_click_set_method(device, options->click_method);
 
