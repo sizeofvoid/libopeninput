@@ -411,7 +411,7 @@ vm-valgrind-{{suite.name}}:
 {% set version = "{}".format(distro.versions|last()) %}
 .{{distro.name}}-build@template:
   extends:
-    - .fdo.distribution-image@fedora
+    - .fdo.distribution-image@{{distro.name}}
     - .build@template
   variables:
     FDO_DISTRIBUTION_VERSION: '{{version}}'
