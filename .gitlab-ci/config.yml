@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2022-08-08.0'
+.default_tag: &default_tag '2022-09-02.0'
 
 distributions:
   - name: fedora
@@ -36,7 +36,14 @@ distributions:
       - diffutils
       - wayland-protocols-devel
       - valgrind        # for the valgrind run, optional
-      - systemd-udev    # for the qemu run, optional
+      # below packages are for the qemu runs, so optional
+      - systemd-udev    # for the qemu run
+      - qemu-img
+      - qemu-system-x86-core
+      - qemu-system-aarch64-core
+      - jq
+      - python3-click
+      - python3-rich
   - name: debian
     tag: *default_tag
     versions:
