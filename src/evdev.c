@@ -2094,7 +2094,6 @@ evdev_configure_device(struct evdev_device *device)
 		if (libevdev_has_event_code(evdev, EV_SW, SW_LID)) {
 			device->seat_caps |= EVDEV_DEVICE_SWITCH;
 			device->tags |= EVDEV_TAG_LID_SWITCH;
-			evdev_log_info(device, "device is a switch device\n");
 		}
 
 		if (libevdev_has_event_code(evdev, EV_SW, SW_TABLET_MODE)) {
