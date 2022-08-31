@@ -36,7 +36,7 @@ echo "*************************************************"
 set -e
 
 rm -rf "$MESON_BUILDDIR"
-meson "$MESON_BUILDDIR" $MESON_ARGS
+meson setup "$MESON_BUILDDIR" $MESON_ARGS
 meson configure "$MESON_BUILDDIR"
 ninja -C "$MESON_BUILDDIR" $NINJA_ARGS
 
