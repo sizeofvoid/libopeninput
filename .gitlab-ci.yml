@@ -490,6 +490,7 @@ freebsd:13.0@container-clean:
     - if ! [[ -z $SUITE_NAMES ]]; then SUITES=$(echo $SUITE_NAMES | sed 's/\([^ ]*\)/libinput-test-suite-\1/g'); fi
     - echo "Testing $SUITES"
     - export MESON_TEST_ARGS="$MESON_TEST_ARGS $SUITES"
+    - export LITEST_JOBS="2"
 
 
 .fedora:36@test-suite-vm:
@@ -627,6 +628,7 @@ vm-valgrind-touchpad:
     - vm-touchpad
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 4
 
 vm-valgrind-tap:
   stage: valgrind
@@ -634,6 +636,7 @@ vm-valgrind-tap:
     - vm-tap
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 4
 
 vm-valgrind-touchpad-buttons:
   stage: valgrind
@@ -641,6 +644,7 @@ vm-valgrind-touchpad-buttons:
     - vm-touchpad-buttons
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 4
 
 vm-valgrind-tablet:
   stage: valgrind
@@ -648,6 +652,7 @@ vm-valgrind-tablet:
     - vm-tablet
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 4
 
 vm-valgrind-gestures-device:
   stage: valgrind
@@ -655,6 +660,7 @@ vm-valgrind-gestures-device:
     - vm-gestures-device
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 4
 
 vm-valgrind-backends:
   stage: valgrind
@@ -662,6 +668,7 @@ vm-valgrind-backends:
     - vm-backends
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 4
 
 vm-valgrind-misc:
   stage: valgrind
@@ -669,6 +676,7 @@ vm-valgrind-misc:
     - vm-misc
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 4
 
 vm-valgrind-other devices:
   stage: valgrind
@@ -676,6 +684,7 @@ vm-valgrind-other devices:
     - vm-other devices
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 4
 
 vm-valgrind-pointer:
   stage: valgrind
@@ -683,6 +692,7 @@ vm-valgrind-pointer:
     - vm-pointer
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 4
 
 
 .fedora-build@template:
