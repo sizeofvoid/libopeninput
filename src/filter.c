@@ -160,9 +160,9 @@ trackers_by_offset(struct pointer_trackers *trackers, unsigned int offset)
 }
 
 static double
-calculate_trackers_velocity(struct pointer_tracker *tracker,
-			   uint64_t time,
-			   struct pointer_delta_smoothener *smoothener)
+calculate_trackers_velocity(const struct pointer_tracker *tracker,
+			    uint64_t time,
+			    struct pointer_delta_smoothener *smoothener)
 {
 	uint64_t tdelta = time - tracker->time + 1;
 
@@ -174,8 +174,8 @@ calculate_trackers_velocity(struct pointer_tracker *tracker,
 }
 
 static double
-trackers_velocity_after_timeout(struct pointer_tracker *tracker,
-				 struct pointer_delta_smoothener *smoothener)
+trackers_velocity_after_timeout(const struct pointer_tracker *tracker,
+				struct pointer_delta_smoothener *smoothener)
 {
 	/* First movement after timeout needs special handling.
 	 *
