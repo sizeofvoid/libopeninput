@@ -189,8 +189,8 @@ trackers_velocity_after_timeout(struct pointer_tracker *tracker,
 	 * movement in normal use-cases (pause, move, pause, move)
 	 */
 	return calculate_trackers_velocity(tracker,
-					  tracker->time + MOTION_TIMEOUT,
-					  smoothener);
+					   tracker->time + MOTION_TIMEOUT,
+					   smoothener);
 }
 
 /**
@@ -269,7 +269,8 @@ trackers_velocity(struct pointer_trackers *trackers, uint64_t time)
  *
  * @param accel The acceleration filter
  * @param data Caller-specific data
- * @param velocity Velocity in device-units per µs
+ * @param velocity Velocity - depending on the caller this may be in
+ *		   device-units per µs or normalized per µs
  * @param last_velocity Previous velocity in device-units per µs
  * @param time Current time in µs
  *

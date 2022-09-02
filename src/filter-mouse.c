@@ -81,11 +81,12 @@ calculate_acceleration_factor(struct pointer_accelerator *accel,
 
 	trackers_feed(&accel->trackers, unaccelerated, time);
 	velocity = trackers_velocity(&accel->trackers, time);
+	/* This will call into our pointer_accel_profile_linear() profile func */
 	accel_factor = calculate_acceleration_simpsons(&accel->base,
 						       accel->profile,
 						       data,
-						       velocity,
-						       accel->last_velocity,
+						       velocity, /* normalized coords */
+						       accel->last_velocity, /* normalized coords */
 						       time);
 	accel->last_velocity = velocity;
 

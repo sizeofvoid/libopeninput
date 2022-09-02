@@ -46,8 +46,8 @@ struct touchpad_accelerator_flat {
 
 static struct normalized_coords
 accelerator_filter_touchpad_flat(struct motion_filter *filter,
-			const struct device_float_coords *unaccelerated,
-			void *data, uint64_t time)
+				 const struct device_float_coords *unaccelerated,
+				 void *data, uint64_t time)
 {
 	struct touchpad_accelerator_flat *accel =
 		(struct touchpad_accelerator_flat *)filter;
@@ -66,8 +66,8 @@ accelerator_filter_touchpad_flat(struct motion_filter *filter,
 
 static struct normalized_coords
 accelerator_filter_noop_touchpad_flat(struct motion_filter *filter,
-			     const struct device_float_coords *unaccelerated,
-			     void *data, uint64_t time)
+				      const struct device_float_coords *unaccelerated,
+				      void *data, uint64_t time)
 {
 	struct touchpad_accelerator_flat *accel =
 		(struct touchpad_accelerator_flat *) filter;
@@ -82,7 +82,7 @@ accelerator_filter_noop_touchpad_flat(struct motion_filter *filter,
 
 static bool
 accelerator_set_speed_touchpad_flat(struct motion_filter *filter,
-			   double speed_adjustment)
+				    double speed_adjustment)
 {
 	struct touchpad_accelerator_flat *accel_filter =
 		(struct touchpad_accelerator_flat *)filter;
