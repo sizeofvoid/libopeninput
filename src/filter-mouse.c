@@ -99,55 +99,25 @@ calculate_acceleration_factor(struct pointer_accelerator *accel,
 	return accel_factor;
 }
 
-/**
- * Generic filter that calculates the acceleration factor and applies it to
- * the coordinates.
- *
- * @param filter The acceleration filter
- * @param unaccelerated The raw delta in the device's dpi
- * @param data Caller-specific data
- * @param time Current time in µs
- *
- * @return An accelerated tuple of coordinates representing accelerated
- * motion, still in device units.
- */
 static struct normalized_coords
-accelerator_filter_generic(struct motion_filter *filter,
-			   const struct normalized_coords *unaccelerated,
-			   void *data, uint64_t time)
+accelerator_filter_linear(struct motion_filter *filter,
+			  const struct device_float_coords *unaccelerated,
+			  void *data, uint64_t time)
 {
 	struct pointer_accelerator *accel =
 		(struct pointer_accelerator *) filter;
-	double accel_value; /* unitless factor */
-	struct normalized_coords accelerated;
 
-	accel_value = calculate_acceleration_factor(accel,
-						    unaccelerated,
-						    data,
-						    time);
-
-	accelerated.x = accel_value * unaccelerated->x;
-	accelerated.y = accel_value * unaccelerated->y;
-
-	return accelerated;
-}
-
-static struct normalized_coords
-accelerator_filter_pre_normalized(struct motion_filter *filter,
-				  const struct device_float_coords *unaccelerated,
-				  void *data, uint64_t time)
-{
-	struct pointer_accelerator *accel =
-		(struct pointer_accelerator *) filter;
-	struct normalized_coords normalized, accelerated;
-
-	/* Accelerate for normalized units and return normalized units.
-	   API requires device_floats, so we just copy the bits around */
-	normalized = normalize_for_dpi(unaccelerated, accel->dpi);
-	accelerated = accelerator_filter_generic(filter,
-						 &normalized,
-						 data,
-						 time);
+	/* Accelerate for normalized units and return normalized units */
+	const struct normalized_coords normalized = normalize_for_dpi(unaccelerated,
+								      accel->dpi);
+	double accel_factor = calculate_acceleration_factor(accel,
+							    &normalized,
+							    data,
+							    time);
+	struct normalized_coords accelerated = {
+		.x = normalized.x * accel_factor,
+		.y = normalized.y * accel_factor,
+	};
 	return accelerated;
 }
 
@@ -301,7 +271,7 @@ pointer_accel_profile_linear(struct motion_filter *filter,
 
 struct motion_filter_interface accelerator_interface = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
-	.filter = accelerator_filter_pre_normalized,
+	.filter = accelerator_filter_linear,
 	.filter_constant = accelerator_filter_noop,
 	.restart = accelerator_restart,
 	.destroy = accelerator_destroy,

@@ -90,53 +90,24 @@ calculate_acceleration_factor(struct touchpad_accelerator *accel,
 	return accel_factor;
 }
 
-/**
- * Generic filter that calculates the acceleration factor and applies it to
- * the coordinates.
- *
- * @param filter The acceleration filter
- * @param unaccelerated The raw delta in the device's dpi
- * @param data Caller-specific data
- * @param time Current time in µs
- *
- * @return An accelerated tuple of coordinates representing accelerated
- * motion, still in device units.
- */
-static struct device_float_coords
-accelerator_filter_generic(struct motion_filter *filter,
-			   const struct device_float_coords *unaccelerated,
-			   void *data, uint64_t time)
-{
-	struct touchpad_accelerator *accel =
-		(struct touchpad_accelerator *) filter;
-	double accel_value; /* unitless factor */
-	struct device_float_coords accelerated;
-
-	accel_value = calculate_acceleration_factor(accel,
-						    unaccelerated,
-						    data,
-						    time);
-
-	accelerated.x = accel_value * unaccelerated->x;
-	accelerated.y = accel_value * unaccelerated->y;
-
-	return accelerated;
-}
-
 static struct normalized_coords
-accelerator_filter_post_normalized(struct motion_filter *filter,
-				   const struct device_float_coords *unaccelerated,
-				   void *data, uint64_t time)
+accelerator_filter_touchpad(struct motion_filter *filter,
+			    const struct device_float_coords *unaccelerated,
+			    void *data, uint64_t time)
 {
 	struct touchpad_accelerator *accel =
 		(struct touchpad_accelerator *) filter;
-	struct device_float_coords accelerated;
 
 	/* Accelerate for device units, normalize afterwards */
-	accelerated = accelerator_filter_generic(filter,
-						 unaccelerated,
-						 data,
-						 time);
+	double accel_factor = calculate_acceleration_factor(accel,
+							    unaccelerated,
+							    data,
+							    time);
+	const struct device_float_coords accelerated =  {
+		.x = unaccelerated->x * accel_factor,
+		.y = unaccelerated->y * accel_factor,
+	};
+
 	return normalize_for_dpi(&accelerated, accel->dpi);
 }
 
@@ -315,7 +286,7 @@ touchpad_accel_profile_linear(struct motion_filter *filter,
 
 struct motion_filter_interface accelerator_interface_touchpad = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
-	.filter = accelerator_filter_post_normalized,
+	.filter = accelerator_filter_touchpad,
 	.filter_constant = touchpad_constant_filter,
 	.restart = touchpad_accelerator_restart,
 	.destroy = touchpad_accelerator_destroy,

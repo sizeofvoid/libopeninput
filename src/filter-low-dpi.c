@@ -125,42 +125,23 @@ calculate_acceleration_factor(struct pointer_accelerator_low_dpi *accel,
 	return accel_factor;
 }
 
-static struct device_float_coords
-accelerator_filter_generic(struct motion_filter *filter,
+static struct normalized_coords
+accelerator_filter_low_dpi(struct motion_filter *filter,
 			   const struct device_float_coords *unaccelerated,
 			   void *data, uint64_t time)
 {
 	struct pointer_accelerator_low_dpi *accel =
 		(struct pointer_accelerator_low_dpi *) filter;
-	double accel_value; /* unitless factor */
-	struct device_float_coords accelerated;
-
-	accel_value = calculate_acceleration_factor(accel,
-						    unaccelerated,
-						    data,
-						    time);
-
-	accelerated.x = accel_value * unaccelerated->x;
-	accelerated.y = accel_value * unaccelerated->y;
-
-	return accelerated;
-}
-
-static struct normalized_coords
-accelerator_filter_unnormalized(struct motion_filter *filter,
-				const struct device_float_coords *unaccelerated,
-				void *data, uint64_t time)
-{
-	struct device_float_coords accelerated;
-	struct normalized_coords normalized;
 
 	/* Accelerate for device units and return device units */
-	accelerated = accelerator_filter_generic(filter,
-						 unaccelerated,
-						 data,
-						 time);
-	normalized.x = accelerated.x;
-	normalized.y = accelerated.y;
+	double accel_factor = calculate_acceleration_factor(accel,
+							    unaccelerated,
+							    data,
+							    time);
+	const struct normalized_coords normalized = {
+		.x = accel_factor * unaccelerated->x,
+		.y = accel_factor * unaccelerated->y,
+	};
 	return normalized;
 }
 
@@ -226,7 +207,7 @@ accelerator_set_speed(struct motion_filter *filter,
 
 struct motion_filter_interface accelerator_interface_low_dpi = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
-	.filter = accelerator_filter_unnormalized,
+	.filter = accelerator_filter_low_dpi,
 	.filter_constant = accelerator_filter_noop,
 	.restart = accelerator_restart,
 	.destroy = accelerator_destroy,
