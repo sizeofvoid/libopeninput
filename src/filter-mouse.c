@@ -196,7 +196,7 @@ accelerator_set_speed(struct motion_filter *filter,
 double
 pointer_accel_profile_linear(struct motion_filter *filter,
 			     void *data,
-			     double speed_in, /* in device units (units/µs) */
+			     double speed_in, /* in normalized units */
 			     uint64_t time)
 {
 	struct pointer_accelerator *accel_filter =
@@ -205,9 +205,6 @@ pointer_accel_profile_linear(struct motion_filter *filter,
 	const double threshold = accel_filter->threshold; /* 1000dpi units/us */
 	const double incline = accel_filter->incline;
 	double factor; /* unitless */
-
-	/* Normalize to 1000dpi, because the rest below relies on that */
-	speed_in = speed_in * DEFAULT_MOUSE_DPI/accel_filter->dpi;
 
 	/*
 	   Our acceleration function calculates a factor to accelerate input
