@@ -65,11 +65,18 @@ accelerator_filter_noop_flat(struct motion_filter *filter,
 			     const struct device_float_coords *unaccelerated,
 			     void *data, uint64_t time)
 {
-	const struct normalized_coords normalized = {
-		.x = unaccelerated->x,
-		.y = unaccelerated->y,
-	};
-	return normalized;
+	/* We map the unaccelerated flat filter to have the same behavior as
+	 * the "accelerated" flat filter.
+	 * The filter by definition is flat, i.e. it does not actually
+	 * apply any acceleration (merely a constant factor) and we can assume
+	 * that a user wants all mouse movement to have the same speed, mapped
+	 * 1:1 to the input speed.
+	 *
+	 * Thus we apply the same factor to our non-accelerated motion - this way
+	 * things like button scrolling end up having the same movement as
+	 * pointer motion.
+	 */
+	return accelerator_filter_flat(filter, unaccelerated, data, time);
 }
 
 static bool
