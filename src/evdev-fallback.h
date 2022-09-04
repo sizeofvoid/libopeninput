@@ -270,10 +270,6 @@ fallback_notify_physical_button(struct fallback_dispatch *dispatch,
 				uint64_t time,
 				int button,
 				enum libinput_button_state state);
-void
-fallback_normalize_delta(struct evdev_device *device,
-			 const struct device_coords *delta,
-			 struct normalized_coords *normalized);
 
 void
 fallback_init_wheel(struct fallback_dispatch *dispatch,

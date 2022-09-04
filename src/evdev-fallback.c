@@ -90,15 +90,6 @@ fallback_interface_get_switch_state(struct evdev_dispatch *evdev_dispatch,
 			LIBINPUT_SWITCH_STATE_OFF;
 }
 
-void
-fallback_normalize_delta(struct evdev_device *device,
-			 const struct device_coords *delta,
-			 struct normalized_coords *normalized)
-{
-	normalized->x = delta->x * DEFAULT_MOUSE_DPI / (double)device->dpi;
-	normalized->y = delta->y * DEFAULT_MOUSE_DPI / (double)device->dpi;
-}
-
 static inline bool
 post_button_scroll(struct evdev_device *device,
 		   struct device_float_coords raw,
