@@ -100,9 +100,9 @@ fallback_normalize_delta(struct evdev_device *device,
 }
 
 static inline bool
-post_trackpoint_scroll(struct evdev_device *device,
-		       struct normalized_coords unaccel,
-		       uint64_t time)
+post_button_scroll(struct evdev_device *device,
+		   struct normalized_coords unaccel,
+		   uint64_t time)
 {
 	if (device->scroll.method != LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN)
 		return false;
@@ -190,7 +190,7 @@ fallback_flush_relative_motion(struct fallback_dispatch *dispatch,
 	dispatch->rel.y = 0;
 
 	/* Use unaccelerated deltas for pointing stick scroll */
-	if (post_trackpoint_scroll(device, unaccel, time))
+	if (post_button_scroll(device, unaccel, time))
 		return;
 
 	if (device->pointer.filter) {
