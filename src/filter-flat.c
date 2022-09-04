@@ -65,10 +65,11 @@ accelerator_filter_noop_flat(struct motion_filter *filter,
 			     const struct device_float_coords *unaccelerated,
 			     void *data, uint64_t time)
 {
-	struct pointer_accelerator_flat *accel =
-		(struct pointer_accelerator_flat *) filter;
-
-	return normalize_for_dpi(unaccelerated, accel->dpi);
+	const struct normalized_coords normalized = {
+		.x = unaccelerated->x,
+		.y = unaccelerated->y,
+	};
+	return normalized;
 }
 
 static bool
