@@ -300,6 +300,7 @@ src_libfilter = [
 		'src/filter-touchpad-x230.c',
 		'src/filter-tablet.c',
 		'src/filter-trackpoint.c',
+		'src/filter-trackpoint-flat.c',
 ]
 libfilter = static_library('filter', src_libfilter,
 			   dependencies : [dep_udev, dep_libwacom],

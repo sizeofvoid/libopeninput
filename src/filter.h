@@ -129,6 +129,9 @@ struct motion_filter *
 create_pointer_accelerator_filter_trackpoint(double multiplier, bool use_velocity_averaging);
 
 struct motion_filter *
+create_pointer_accelerator_filter_trackpoint_flat(double multiplier);
+
+struct motion_filter *
 create_pointer_accelerator_filter_tablet(int xres, int yres);
 
 /*

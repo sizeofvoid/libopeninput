@@ -1186,17 +1186,23 @@ static inline bool
 evdev_init_accel(struct evdev_device *device,
 		 enum libinput_config_accel_profile which)
 {
-	struct motion_filter *filter;
+	struct motion_filter *filter = NULL;
 
-	if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT)
-		filter = create_pointer_accelerator_filter_flat(device->dpi);
-	else if (device->tags & EVDEV_TAG_TRACKPOINT)
-		filter = create_pointer_accelerator_filter_trackpoint(device->trackpoint_multiplier,
-								      device->use_velocity_averaging);
-	else if (device->dpi < DEFAULT_MOUSE_DPI)
-		filter = create_pointer_accelerator_filter_linear_low_dpi(device->dpi,
-									  device->use_velocity_averaging);
-	else
+	if (device->tags & EVDEV_TAG_TRACKPOINT) {
+		if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT)
+			filter = create_pointer_accelerator_filter_trackpoint_flat(device->trackpoint_multiplier);
+		else
+			filter = create_pointer_accelerator_filter_trackpoint(device->trackpoint_multiplier,
+									      device->use_velocity_averaging);
+	} else {
+		if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT)
+			filter = create_pointer_accelerator_filter_flat(device->dpi);
+		else if (device->dpi < DEFAULT_MOUSE_DPI)
+			filter = create_pointer_accelerator_filter_linear_low_dpi(device->dpi,
+										  device->use_velocity_averaging);
+	}
+
+	if (!filter)
 		filter = create_pointer_accelerator_filter_linear(device->dpi,
 								  device->use_velocity_averaging);
 
