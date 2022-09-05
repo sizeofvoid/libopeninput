@@ -269,7 +269,7 @@ pointer_accel_profile_linear(struct motion_filter *filter,
 	return factor;
 }
 
-struct motion_filter_interface accelerator_interface = {
+static const struct motion_filter_interface accelerator_interface = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_linear,
 	.filter_constant = accelerator_filter_noop,

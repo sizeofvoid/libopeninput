@@ -48,7 +48,7 @@ struct motion_filter_interface {
 
 struct motion_filter {
 	double speed_adjustment; /* normalized [-1, 1] */
-	struct motion_filter_interface *interface;
+	const struct motion_filter_interface *interface;
 };
 
 struct pointer_tracker {

@@ -205,7 +205,7 @@ accelerator_set_speed(struct motion_filter *filter,
 	return true;
 }
 
-struct motion_filter_interface accelerator_interface_low_dpi = {
+static const struct motion_filter_interface accelerator_interface_low_dpi = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_low_dpi,
 	.filter_constant = accelerator_filter_noop,

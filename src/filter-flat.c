@@ -100,7 +100,7 @@ accelerator_destroy_flat(struct motion_filter *filter)
 	free(accel);
 }
 
-struct motion_filter_interface accelerator_interface_flat = {
+static const struct motion_filter_interface accelerator_interface_flat = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT,
 	.filter = accelerator_filter_flat,
 	.filter_constant = accelerator_filter_noop_flat,

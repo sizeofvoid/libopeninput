@@ -171,7 +171,7 @@ trackpoint_accelerator_destroy(struct motion_filter *filter)
 	free(accel_filter);
 }
 
-struct motion_filter_interface accelerator_interface_trackpoint = {
+static const struct motion_filter_interface accelerator_interface_trackpoint = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = trackpoint_accelerator_filter,
 	.filter_constant = trackpoint_accelerator_filter_noop,

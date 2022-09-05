@@ -143,7 +143,7 @@ tablet_accelerator_destroy(struct motion_filter *filter)
 	free(accel_filter);
 }
 
-struct motion_filter_interface accelerator_interface_tablet = {
+static const struct motion_filter_interface accelerator_interface_tablet = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT,
 	.filter = tablet_accelerator_filter_flat,
 	.filter_constant = NULL,

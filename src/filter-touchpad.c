@@ -284,7 +284,7 @@ touchpad_accel_profile_linear(struct motion_filter *filter,
 	return factor * TP_MAGIC_SLOWDOWN;
 }
 
-struct motion_filter_interface accelerator_interface_touchpad = {
+static const struct motion_filter_interface accelerator_interface_touchpad = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_touchpad,
 	.filter_constant = touchpad_constant_filter,
