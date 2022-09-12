@@ -567,6 +567,10 @@ tablet_update_tilt(struct tablet_dispatch *tablet,
 {
 	const struct input_absinfo *absinfo;
 
+	if (!libevdev_has_event_code(device->evdev, EV_ABS, ABS_TILT_X) ||
+	    !libevdev_has_event_code(device->evdev, EV_ABS, ABS_TILT_Y))
+		return;
+
 	/* mouse rotation resets tilt to 0 so always fetch both axes if
 	 * either has changed */
 	if (bit_is_set(tablet->changed_axes,
