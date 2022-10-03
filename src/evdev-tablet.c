@@ -455,6 +455,10 @@ tablet_update_xy(struct tablet_dispatch *tablet,
 	const struct input_absinfo *absinfo;
 	int value;
 
+	if (!libevdev_has_event_code(device->evdev, EV_ABS, ABS_X) ||
+	    !libevdev_has_event_code(device->evdev, EV_ABS, ABS_Y))
+		return;
+
 	if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_X) ||
 	    bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_Y)) {
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_X);
@@ -528,6 +532,9 @@ tablet_update_pressure(struct tablet_dispatch *tablet,
 {
 	const struct input_absinfo *absinfo;
 
+	if (!libevdev_has_event_code(device->evdev, EV_ABS, ABS_PRESSURE))
+		return;
+
 	if (bit_is_set(tablet->changed_axes,
 		       LIBINPUT_TABLET_TOOL_AXIS_PRESSURE)) {
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
@@ -541,6 +548,9 @@ tablet_update_distance(struct tablet_dispatch *tablet,
 {
 	const struct input_absinfo *absinfo;
 
+	if (!libevdev_has_event_code(device->evdev, EV_ABS, ABS_DISTANCE))
+		return;
+
 	if (bit_is_set(tablet->changed_axes,
 		       LIBINPUT_TABLET_TOOL_AXIS_DISTANCE)) {
 		absinfo = libevdev_get_abs_info(device->evdev, ABS_DISTANCE);
@@ -553,6 +563,9 @@ tablet_update_slider(struct tablet_dispatch *tablet,
 		     struct evdev_device *device)
 {
 	const struct input_absinfo *absinfo;
+
+	if (!libevdev_has_event_code(device->evdev, EV_ABS, ABS_WHEEL))
+		return;
 
 	if (bit_is_set(tablet->changed_axes,
 		       LIBINPUT_TABLET_TOOL_AXIS_SLIDER)) {
@@ -596,6 +609,9 @@ tablet_update_artpen_rotation(struct tablet_dispatch *tablet,
 			      struct evdev_device *device)
 {
 	const struct input_absinfo *absinfo;
+
+	if (!libevdev_has_event_code(device->evdev, EV_ABS, ABS_Z))
+		return;
 
 	if (bit_is_set(tablet->changed_axes,
 		       LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z)) {
