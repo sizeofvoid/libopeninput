@@ -879,18 +879,15 @@ out:
 static bool
 parse_value_line(struct quirks_context *ctx, struct section *s, const char *line)
 {
-	char **strv;
-	const char *key, *value;
 	bool rc = false;
-
-	strv = strv_from_string(line, "=");
-	if (strv[0] == NULL || strv[1] == NULL || strv[2] != NULL) {
+	
+	size_t nelem;
+	char **strv = strv_from_string(line, "=", &nelem);
+	if (!strv || nelem != 2)
 		goto out;
-	}
 
-
-	key = strv[0];
-	value = strv[1];
+	const char *key = strv[0];
+	const char *value = strv[1];
 	if (strlen(key) == 0 || strlen(value) == 0)
 		goto out;
 

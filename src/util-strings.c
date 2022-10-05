@@ -91,47 +91,54 @@ strv_from_argv(int argc, char **argv)
 /**
  * Return a null-terminated string array with the tokens in the input
  * string, e.g. "one two\tthree" with a separator list of " \t" will return
- * an array [ "one", "two", "three", NULL ].
+ * an array [ "one", "two", "three", NULL ] and num elements 3.
  *
  * Use strv_free() to free the array.
  *
+ * Another example:
+ *   result = strv_from_string("+1-2++3--4++-+5-+-", "+-", &nelem)
+ *   result == [ "1", "2", "3", "4", "5", NULL ] and nelem == 5
+ * 
  * @param in Input string
  * @param separators List of separator characters
+ * @param num_elements Number of elements found in the input string
  *
  * @return A null-terminated string array or NULL on errors
  */
 char **
-strv_from_string(const char *in, const char *separators)
+strv_from_string(const char *in, const char *separators, size_t *num_elements)
 {
-	const char *s, *word;
-	char **strv = NULL;
-	int nelems = 0, idx;
-	size_t l;
-
 	assert(in != NULL);
 
-	s = in;
+	
+	const char *s = in;
+	size_t l, nelems = 0;
 	while (next_word(&s, &l, separators) != NULL)
-	       nelems++;
+		nelems++;
 
-	if (nelems == 0)
+	if (nelems == 0) {
+		*num_elements = 0;
 		return NULL;
+	}
 
-	nelems++; /* NULL-terminated */
-	strv = zalloc(nelems * sizeof *strv);
+	size_t strv_len = nelems + 1; /* NULL-terminated */
+	char **strv = zalloc(strv_len * sizeof *strv);
 
-	idx = 0;
-
+	size_t idx = 0;
+	const char *word;
 	s = in;
 	while ((word = next_word(&s, &l, separators)) != NULL) {
 		char *copy = strndup(word, l);
 		if (!copy) {
 			strv_free(strv);
+			*num_elements = 0;
 			return NULL;
 		}
 
 		strv[idx++] = copy;
 	}
+	
+	*num_elements = nelems;
 
 	return strv;
 }

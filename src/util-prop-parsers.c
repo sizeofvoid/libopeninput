@@ -176,32 +176,31 @@ parse_dimension_property(const char *prop, size_t *w, size_t *h)
 bool
 parse_calibration_property(const char *prop, float calibration_out[6])
 {
-	int idx;
-	char **strv;
-	float calibration[6];
-
 	if (!prop)
 		return false;
+	
+	bool rc = false;
 
-	strv = strv_from_string(prop, " ");
-	if (!strv)
-		return false;
+	size_t num_calibration;
+	char **strv = strv_from_string(prop, " ", &num_calibration);
+	if (!strv || num_calibration < 6)
+		goto out;
 
-	for (idx = 0; idx < 6; idx++) {
+	float calibration[6];
+	for (size_t idx = 0; idx < 6; idx++) {
 		double v;
-		if (strv[idx] == NULL || !safe_atod(strv[idx], &v)) {
-			strv_free(strv);
-			return false;
-		}
+		if (!safe_atod(strv[idx], &v))
+			goto out;
 
 		calibration[idx] = v;
 	}
 
-	strv_free(strv);
-
 	memcpy(calibration_out, calibration, sizeof(calibration));
+	rc = true;
 
-	return true;
+out:
+	strv_free(strv);
+	return rc;
 }
 
 bool
@@ -367,27 +366,19 @@ parse_evcode_string(const char *s, int *type_out, int *code_out)
 bool
 parse_evcode_property(const char *prop, struct input_event *events, size_t *nevents)
 {
-	char **strv = NULL;
 	bool rc = false;
-	size_t ncodes = 0;
-	size_t idx;
 	/* A randomly chosen max so we avoid crazy quirks */
 	struct input_event evs[32];
 
 	memset(evs, 0, sizeof evs);
 
-	strv = strv_from_string(prop, ";");
-	if (!strv)
-		goto out;
-
-	for (idx = 0; strv[idx]; idx++)
-		ncodes++;
-
-	if (ncodes == 0 || ncodes > ARRAY_LENGTH(evs))
+	size_t ncodes;
+	char **strv = strv_from_string(prop, ";", &ncodes);
+	if (!strv || ncodes == 0 || ncodes > ARRAY_LENGTH(evs))
 		goto out;
 
 	ncodes = min(*nevents, ncodes);
-	for (idx = 0; strv[idx]; idx++) {
+	for (size_t idx = 0; strv[idx]; idx++) {
 		char *s = strv[idx];
 
 		int type, code;
@@ -434,24 +425,16 @@ out:
 bool
 parse_input_prop_property(const char *prop, unsigned int *props_out, size_t *nprops)
 {
-	char **strv = NULL;
 	bool rc = false;
-	size_t count = 0;
-	size_t idx;
 	unsigned int props[INPUT_PROP_CNT]; /* doubling up on quirks is a bug */
 
-	strv = strv_from_string(prop, ";");
-	if (!strv)
-		goto out;
-
-	for (idx = 0; strv[idx]; idx++)
-		count++;
-
-	if (count == 0 || count > ARRAY_LENGTH(props))
+	size_t count;
+	char **strv = strv_from_string(prop, ";", &count);
+	if (!strv || count == 0 || count > ARRAY_LENGTH(props))
 		goto out;
 
 	count = min(*nprops, count);
-	for (idx = 0; strv[idx]; idx++) {
+	for (size_t idx = 0; strv[idx]; idx++) {
 		char *s = strv[idx];
 		unsigned int prop;
 

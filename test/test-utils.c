@@ -1070,39 +1070,48 @@ START_TEST(strsplit_test)
 		const char *string;
 		const char *delim;
 		const char *results[10];
+		const size_t nresults;
 	} tests[] = {
-		{ "one two three", " ", { "one", "two", "three", NULL } },
-		{ "one", " ", { "one", NULL } },
-		{ "one two ", " ", { "one", "two", NULL } },
-		{ "one  two", " ", { "one", "two", NULL } },
-		{ " one two", " ", { "one", "two", NULL } },
-		{ "one", "\t \r", { "one", NULL } },
-		{ "one two three", " t", { "one", "wo", "hree", NULL } },
-		{ " one two three", "te", { " on", " ", "wo ", "hr", NULL } },
-		{ "one", "ne", { "o", NULL } },
-		{ "onene", "ne", { "o", NULL } },
-		{ NULL, NULL, { NULL }}
+		{ "one two three", " ", { "one", "two", "three", NULL }, 3 },
+		{ "one two\tthree", " \t", { "one", "two", "three", NULL }, 3 },
+		{ "one", " ", { "one", NULL }, 1 },
+		{ "one two ", " ", { "one", "two", NULL }, 2 },
+		{ "one  two", " ", { "one", "two", NULL }, 2 },
+		{ " one two", " ", { "one", "two", NULL }, 2 },
+		{ "one", "\t \r", { "one", NULL }, 1 },
+		{ "one two three", " t", { "one", "wo", "hree", NULL }, 3 },
+		{ " one two three", "te", { " on", " ", "wo ", "hr", NULL }, 4 },
+		{ "one", "ne", { "o", NULL }, 1 },
+		{ "onene", "ne", { "o", NULL }, 1 },
+		{ "+1-2++3--4++-+5-+-", "+-", { "1", "2", "3", "4", "5", NULL }, 5 },
+		/* special cases */
+		{ "", " ", { NULL }, 0 },
+		{ " ", " ", { NULL }, 0 },
+		{ "     ", " ", { NULL }, 0 },
+		{ "oneoneone", "one", { NULL} , 0 },
+		{ NULL, NULL, { NULL }, 0}
 	};
 	struct strsplit_test *t = tests;
 
 	while (t->string) {
-		char **strv;
-		int idx = 0;
-		strv = strv_from_string(t->string, t->delim);
-		while (t->results[idx]) {
+		size_t nelem;
+		char **strv = strv_from_string(t->string, t->delim, &nelem);
+
+		for (size_t idx = 0; idx < t->nresults; idx++)			
 			ck_assert_str_eq(t->results[idx], strv[idx]);
-			idx++;
-		}
-		ck_assert_ptr_eq(strv[idx], NULL);
+		
+		ck_assert_uint_eq(nelem, t->nresults);
+		
+		/* When there are no elements validate return value is Null,
+		   otherwise validate result array is Null terminated. */
+		if(t->nresults == 0)
+			ck_assert_ptr_null(strv);
+		else
+			ck_assert_ptr_null(strv[t->nresults]);
+
 		strv_free(strv);
 		t++;
 	}
-
-	/* Special cases */
-	ck_assert_ptr_eq(strv_from_string("", " "), NULL);
-	ck_assert_ptr_eq(strv_from_string(" ", " "), NULL);
-	ck_assert_ptr_eq(strv_from_string("     ", " "), NULL);
-	ck_assert_ptr_eq(strv_from_string("oneoneone", "one"), NULL);
 }
 END_TEST
 

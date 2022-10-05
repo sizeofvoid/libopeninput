@@ -255,7 +255,7 @@ safe_atod(const char *str, double *val)
 }
 
 char **strv_from_argv(int argc, char **argv);
-char **strv_from_string(const char *in, const char *separator);
+char **strv_from_string(const char *in, const char *separator, size_t *num_elements);
 char *strv_join(char **strv, const char *joiner);
 
 static inline void
@@ -291,33 +291,26 @@ kv_double_from_string(const char *string,
 		      struct key_value_double **result_out)
 
 {
-	char **pairs;
-	char **pair;
 	struct key_value_double *result = NULL;
-	ssize_t npairs = 0;
-	unsigned int idx = 0;
 
 	if (!pair_separator || pair_separator[0] == '\0' ||
 	    !kv_separator || kv_separator[0] == '\0')
 		return -1;
 
-	pairs = strv_from_string(string, pair_separator);
-	if (!pairs)
-		return -1;
-
-	for (pair = pairs; *pair; pair++)
-		npairs++;
-
-	if (npairs == 0)
+	size_t npairs;
+	char **pairs = strv_from_string(string, pair_separator, &npairs);
+	if (!pairs || npairs == 0)
 		goto error;
 
 	result = zalloc(npairs * sizeof *result);
 
-	for (pair = pairs; *pair; pair++) {
-		char **kv = strv_from_string(*pair, kv_separator);
+	for (size_t idx = 0; idx < npairs; idx++) {
+		char *pair = pairs[idx];
+		size_t nelem;
+		char **kv = strv_from_string(pair, kv_separator, &nelem);
 		double k, v;
 
-		if (!kv || !kv[0] || !kv[1] || kv[2] ||
+		if (!kv || nelem != 2 ||
 		    !safe_atod(kv[0], &k) ||
 		    !safe_atod(kv[1], &v)) {
 			strv_free(kv);
@@ -326,7 +319,6 @@ kv_double_from_string(const char *string,
 
 		result[idx].key = k;
 		result[idx].value = v;
-		idx++;
 
 		strv_free(kv);
 	}
