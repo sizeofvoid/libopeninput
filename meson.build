@@ -551,6 +551,7 @@ if get_option('debug-gui')
 	dep_wayland_protocols = dependency('wayland-protocols', required : false)
 
 	config_h.set10('HAVE_GTK_X11', have_gtk_x11 and dep_x11.found())
+	config_h.set10('HAVE_GTK_WAYLAND', false)
 
 	debug_gui_sources = [ 'tools/libinput-debug-gui.c' ]
 
