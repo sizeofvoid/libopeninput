@@ -347,7 +347,8 @@ backend_is_x11(void)
 static bool
 window_lock_pointer(struct window *w)
 {
-	w->lock_pointer.locked = false;
+	if (w->lock_pointer.locked)
+		return true;
 
 #if HAVE_GTK_WAYLAND
 	if (backend_is_wayland())
