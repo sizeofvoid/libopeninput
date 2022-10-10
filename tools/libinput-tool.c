@@ -46,9 +46,11 @@ usage(void)
 	       "  debug-events\n"
 	       "	Print events to stdout\n"
 	       "\n"
+#if HAVE_DEBUG_GUI
 	       "  debug-gui\n"
 	       "	Display a simple GUI to visualize libinput's events.\n"
 	       "\n"
+#endif
 	       "  measure <feature>\n"
 	       "	Measure various device properties. See the man page for more info\n"
 	       "\n"

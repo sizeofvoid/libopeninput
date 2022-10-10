@@ -532,6 +532,7 @@ executable('libinput-record',
 	   install : true,
 	   )
 
+config_h.set10('HAVE_DEBUG_GUI', get_option('debug-gui'))
 if get_option('debug-gui')
 	dep_gtk = dependency('gtk4', version : '>= 4.0', required : false)
 	config_h.set10('HAVE_GTK4', dep_gtk.found())
