@@ -32,7 +32,9 @@ extern "C" {
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdarg.h>
+#ifndef __OpenBSD__
 #include <libudev.h>
+#endif
 
 #define LIBINPUT_ATTRIBUTE_PRINTF(_format, _args) \
 	__attribute__ ((format (printf, _format, _args)))
