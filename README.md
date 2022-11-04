@@ -17,8 +17,13 @@ This repository fork from https://gitlab.freedesktop.org/libinput/libinput.
 It is an attempt to extend libinput so that it works with wscons(4) and
 kqueue(2) and thus on OpenBSD.
 
+```
+$ meson setup builddir -Dlibwacom=false -Ddocumentation=false
+$ cd builddir && ninja
+```
+
 TODO:
-[ ] Build and Compile on OpenBSD
+[X] Build and Compile on OpenBSD
 [ ] Port logic from https://github.com/mpieuchot/libinput
 
 

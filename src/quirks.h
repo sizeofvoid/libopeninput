@@ -28,7 +28,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifndef __OpenBSD__
 #include <libudev.h>
+#endif
 
 #include "libinput.h"
 
