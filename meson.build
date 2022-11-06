@@ -355,7 +355,9 @@ libquirks = static_library('quirks', src_libquirks,
 dep_libquirks = declare_dependency(link_with : libquirks)
 
 # Create /etc/libinput
+if host_machine.system() != 'openbsd'
 install_subdir('libinput', install_dir : dir_etc)
+endif
 
 ############ libinput.so ############
 install_headers('src/libinput.h')
@@ -364,6 +366,8 @@ src_libinput = src_libfilter + [
 	'src/libinput_openbsd.c',
 	'src/libinput.h',
 	'src/libinput-private.h',
+	'src/udev-seat_openbsd.c',
+	'src/udev-seat.h',
 	'src/timer.c',
 	'src/timer.h',
 	'include/linux/input.h'
