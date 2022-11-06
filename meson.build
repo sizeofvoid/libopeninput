@@ -433,6 +433,7 @@ install_headers('include/linux/linux/input-event-codes.h', subdir: 'linux/linux'
 install_headers('include/linux/linux/input.h', subdir: 'linux/linux')
 
 install_headers('include/linux/input.h', subdir: 'linux')
+install_headers('include/linux/input-event-codes.h', subdir: 'linux')
 endif
 
 dep_libinput = declare_dependency(
