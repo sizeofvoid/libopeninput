@@ -361,6 +361,8 @@ src_libinput = src_libfilter + [
 	'src/libinput_openbsd.c',
 	'src/libinput.h',
 	'src/libinput-private.h',
+	'src/udev-seat_openbsd.c',
+	'src/udev-seat.h',
 	'src/timer.c',
 	'src/timer.h',
 	'include/linux/input.h'
