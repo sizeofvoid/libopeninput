@@ -26,9 +26,7 @@
 
 #include "config.h"
 
-#ifndef __OpenBSD__
 #include <libudev.h>
-#endif
 #include "libinput-private.h"
 
 struct udev_seat {

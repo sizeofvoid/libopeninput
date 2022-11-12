@@ -140,7 +140,7 @@ endif
 # Dependencies
 pkgconfig = import('pkgconfig')
 if host_machine.system() == 'openbsd'
-	dep_udev = []
+	dep_udev = dependency('libudev')
 	dep_mtdev = []
 	dep_libevdev = []
 else

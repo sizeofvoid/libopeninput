@@ -31,9 +31,7 @@
 #undef NDEBUG /* You don't get to disable asserts here */
 #include <assert.h>
 #include <stdlib.h>
-#ifndef __OpenBSD__
 #include <libudev.h>
-#endif
 #include <dirent.h>
 #include <fnmatch.h>
 #include <libgen.h>
