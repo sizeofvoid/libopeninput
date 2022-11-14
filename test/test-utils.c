@@ -1097,17 +1097,17 @@ START_TEST(strsplit_test)
 		size_t nelem;
 		char **strv = strv_from_string(t->string, t->delim, &nelem);
 
-		for (size_t idx = 0; idx < t->nresults; idx++)			
+		for (size_t idx = 0; idx < t->nresults; idx++)
 			ck_assert_str_eq(t->results[idx], strv[idx]);
-		
+
 		ck_assert_uint_eq(nelem, t->nresults);
-		
+
 		/* When there are no elements validate return value is Null,
 		   otherwise validate result array is Null terminated. */
 		if(t->nresults == 0)
-			ck_assert_ptr_null(strv);
+			ck_assert_ptr_eq(strv, NULL);
 		else
-			ck_assert_ptr_null(strv[t->nresults]);
+			ck_assert_ptr_eq(strv[t->nresults], NULL);
 
 		strv_free(strv);
 		t++;
