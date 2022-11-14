@@ -2285,7 +2285,13 @@ tp_key_ignore_for_dwt(unsigned int keycode)
 	if (tp_key_is_modifier(keycode))
 		return false;
 
-	return keycode >= KEY_F1;
+	switch (keycode) {
+	case KEY_ESC:
+	case KEY_KPASTERISK:
+		return true;
+	default:
+		return keycode >= KEY_F1;
+	}
 }
 
 static void

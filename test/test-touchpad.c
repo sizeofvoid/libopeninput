@@ -4195,6 +4195,9 @@ START_TEST(touchpad_dwt_modifier_no_dwt)
 		KEY_COMPOSE,
 		KEY_RIGHTMETA,
 		KEY_LEFTMETA,
+		KEY_ESC,
+		KEY_KPASTERISK,
+		KEY_F1,
 	};
 
 	if (!has_disable_while_typing(touchpad))
