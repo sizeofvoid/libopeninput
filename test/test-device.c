@@ -1477,7 +1477,11 @@ START_TEST(device_quirks)
 	     enable_btn_left = false;
 #if HAVE_LIBEVDEV_DISABLE_PROPERTY
 	bool disable_pointingstick = false,
-	     enable_buttonpad = false;
+	     enable_buttonpad = false,
+	     enable_direct = false,
+	     disable_direct = false,
+	     enable_semi_mt = false,
+	     disable_semi_mt = false;
 #endif
 
 	li = litest_create_context();
@@ -1490,6 +1494,8 @@ START_TEST(device_quirks)
 						     BTN_LEFT));
 	ck_assert(libinput_device_pointer_has_button(dev->libinput_device,
 						     BTN_RIGHT));
+	ck_assert(!libinput_device_pointer_has_button(device,
+						      BTN_MIDDLE));
 	ck_assert(!libinput_device_keyboard_has_key(dev->libinput_device,
 						    KEY_F1));
 	ck_assert(!libinput_device_keyboard_has_key(dev->libinput_device,
@@ -1510,6 +1516,22 @@ START_TEST(device_quirks)
 			enable_buttonpad = true;
 		if (strstr(*message, "disabling INPUT_PROP_POINTING_STICK"))
 			disable_pointingstick = true;
+		if (strstr(*message, "enabling INPUT_PROP_DIRECT")) {
+			ck_assert(!disable_direct);
+			enable_direct = true;
+		}
+		if (strstr(*message, "disabling INPUT_PROP_DIRECT")) {
+			ck_assert(enable_direct);
+			disable_direct = true;
+		}
+		if (strstr(*message, "enabling INPUT_PROP_SEMI_MT")) {
+			ck_assert(disable_semi_mt);
+			enable_semi_mt = true;
+		}
+		if (strstr(*message, "disabling INPUT_PROP_SEMI_MT")) {
+			ck_assert(!enable_semi_mt);
+			disable_semi_mt = true;
+		}
 #endif
 		free(*message);
 		message++;
@@ -1520,6 +1542,10 @@ START_TEST(device_quirks)
 #if HAVE_LIBEVDEV_DISABLE_PROPERTY
 	ck_assert(enable_buttonpad);
 	ck_assert(disable_pointingstick);
+	ck_assert(enable_direct);
+	ck_assert(disable_direct);
+	ck_assert(enable_semi_mt);
+	ck_assert(disable_semi_mt);
 #endif
 
 	litest_disable_log_handler(li);

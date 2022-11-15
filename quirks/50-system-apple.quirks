@@ -41,7 +41,7 @@ MatchUdevType=mouse
 MatchBus=bluetooth
 MatchVendor=0x05AC
 MatchProduct=0x030D
-AttrEventCodeDisable=EV_ABS
+AttrEventCode=-EV_ABS
 
 # The External Apple "Magic" trackpads, both the 1st and 2nd generations, have
 # pretty good built-in spurious touch filtering in the device firmware. Using

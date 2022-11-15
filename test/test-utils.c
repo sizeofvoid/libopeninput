@@ -560,47 +560,50 @@ START_TEST(evcode_prop_parser)
 	struct parser_test_tuple {
 		const char *prop;
 		bool success;
-		size_t ntuples;
-		int tuples[20];
+		size_t nevents;
+		struct input_event events[20];
 	} tests[] = {
-		{ "EV_KEY", true, 1, {EV_KEY, 0xffff} },
-		{ "EV_ABS;", true, 1, {EV_ABS, 0xffff} },
-		{ "ABS_X;", true, 1, {EV_ABS, ABS_X} },
-		{ "SW_TABLET_MODE;", true, 1, {EV_SW, SW_TABLET_MODE} },
-		{ "EV_SW", true, 1, {EV_SW, 0xffff} },
-		{ "ABS_Y", true, 1, {EV_ABS, ABS_Y} },
-		{ "EV_ABS:0x00", true, 1, {EV_ABS, ABS_X} },
-		{ "EV_ABS:01", true, 1, {EV_ABS, ABS_Y} },
-		{ "ABS_TILT_X;ABS_TILT_Y;", true, 2,
-			{ EV_ABS, ABS_TILT_X,
-			  EV_ABS, ABS_TILT_Y} },
-		{ "BTN_TOOL_DOUBLETAP;EV_KEY;KEY_A", true, 3,
-			{ EV_KEY, BTN_TOOL_DOUBLETAP,
-			  EV_KEY, 0xffff,
-			  EV_KEY, KEY_A } },
-		{ "REL_Y;ABS_Z;BTN_STYLUS", true, 3,
-			{ EV_REL, REL_Y,
-			  EV_ABS, ABS_Z,
-			  EV_KEY, BTN_STYLUS } },
-		{ "REL_Y;EV_KEY:0x123;BTN_STYLUS", true, 3,
-			{ EV_REL, REL_Y,
-			  EV_KEY, 0x123,
-			  EV_KEY, BTN_STYLUS } },
+		{ "+EV_KEY", true, 1, {{ .type = EV_KEY, .code = 0xffff, .value = 1 }} },
+		{ "-EV_ABS;", true, 1, {{ .type = EV_ABS, .code = 0xffff, .value = 0 }} },
+		{ "+ABS_X;", true, 1, {{ .type = EV_ABS, .code = ABS_X, .value = 1 }} },
+		{ "-SW_TABLET_MODE;", true, 1, {{ .type = EV_SW, .code = SW_TABLET_MODE, .value = 0 }} },
+		{ "+EV_SW", true, 1, {{ .type = EV_SW, .code = 0xffff, .value = 1 }} },
+		{ "-ABS_Y", true, 1, {{ .type = EV_ABS, .code = ABS_Y, .value = 0 }} },
+		{ "+EV_ABS:0x00", true, 1, {{ .type = EV_ABS, .code = ABS_X, .value = 1 }} },
+		{ "-EV_ABS:01", true, 1, {{ .type = EV_ABS, .code = ABS_Y, .value = 0 }} },
+		{ "+ABS_TILT_X;-ABS_TILT_Y;", true, 2,
+			{{ .type = EV_ABS, .code = ABS_TILT_X, .value = 1 },
+			 { .type = EV_ABS, .code = ABS_TILT_Y, .value = 0}} },
+		{ "+BTN_TOOL_DOUBLETAP;+EV_KEY;-KEY_A", true, 3,
+			{{ .type = EV_KEY, .code = BTN_TOOL_DOUBLETAP, .value = 1 } ,
+			 { .type = EV_KEY, .code = 0xffff, .value = 1 },
+			 { .type = EV_KEY, .code = KEY_A, .value = 0 }} },
+		{ "+REL_Y;-ABS_Z;+BTN_STYLUS", true, 3,
+			{{ .type = EV_REL, .code = REL_Y, .value = 1},
+			 { .type = EV_ABS, .code = ABS_Z, .value = 0},
+			 { .type = EV_KEY, .code = BTN_STYLUS, .value = 1 }} },
+		{ "-REL_Y;+EV_KEY:0x123;-BTN_STYLUS", true, 3,
+			{{ .type = EV_REL, .code = REL_Y, .value = 0 },
+			 { .type = EV_KEY, .code = 0x123, .value = 1 },
+			 { .type = EV_KEY, .code = BTN_STYLUS, .value = 0 }} },
 		{ .prop = "", .success = false },
-		{ .prop = "EV_FOO", .success = false },
-		{ .prop = "EV_KEY;EV_FOO", .success = false },
-		{ .prop = "BTN_STYLUS;EV_FOO", .success = false },
-		{ .prop = "BTN_UNKNOWN", .success = false },
-		{ .prop = "BTN_UNKNOWN;EV_KEY", .success = false },
-		{ .prop = "PR_UNKNOWN", .success = false },
-		{ .prop = "BTN_STYLUS;PR_UNKNOWN;ABS_X", .success = false },
-		{ .prop = "EV_REL:0xffff", .success = false },
-		{ .prop = "EV_REL:0x123.", .success = false },
-		{ .prop = "EV_REL:ffff", .success = false },
-		{ .prop = "EV_REL:blah", .success = false },
-		{ .prop = "KEY_A:0x11", .success = false },
-		{ .prop = "EV_KEY:0x11 ", .success = false },
-		{ .prop = "EV_KEY:0x11not", .success = false },
+		{ .prop = "+", .success = false },
+		{ .prop = "-", .success = false },
+		{ .prop = "!", .success = false },
+		{ .prop = "+EV_FOO", .success = false },
+		{ .prop = "+EV_KEY;-EV_FOO", .success = false },
+		{ .prop = "+BTN_STYLUS;-EV_FOO", .success = false },
+		{ .prop = "-BTN_UNKNOWN", .success = false },
+		{ .prop = "+BTN_UNKNOWN;+EV_KEY", .success = false },
+		{ .prop = "-PR_UNKNOWN", .success = false },
+		{ .prop = "-BTN_STYLUS;+PR_UNKNOWN;-ABS_X", .success = false },
+		{ .prop = "-EV_REL:0xffff", .success = false },
+		{ .prop = "-EV_REL:0x123.", .success = false },
+		{ .prop = "-EV_REL:ffff", .success = false },
+		{ .prop = "-EV_REL:blah", .success = false },
+		{ .prop = "+KEY_A:0x11", .success = false },
+		{ .prop = "+EV_KEY:0x11 ", .success = false },
+		{ .prop = "+EV_KEY:0x11not", .success = false },
 		{ .prop = "none", .success = false },
 		{ .prop = NULL },
 	};
@@ -617,14 +620,14 @@ START_TEST(evcode_prop_parser)
 		if (!success)
 			continue;
 
-		ck_assert_int_eq(nevents, t->ntuples);
+		ck_assert_int_eq(nevents, t->nevents);
 		for (size_t j = 0; j < nevents; j++) {
-			int type, code;
-
-			type = events[j].type;
-			code = events[j].code;
-			ck_assert_int_eq(t->tuples[j * 2], type);
-			ck_assert_int_eq(t->tuples[j * 2 + 1], code);
+			unsigned int type = events[j].type;
+			unsigned int code = events[j].code;
+			int value = events[j].value;
+			ck_assert_int_eq(t->events[j].type, type);
+			ck_assert_int_eq(t->events[j].code, code);
+			ck_assert_int_eq(t->events[j].value, value);
 		}
 	}
 }
@@ -636,16 +639,16 @@ START_TEST(input_prop_parser)
 		const char *prop;
 		bool success;
 		size_t nvals;
-		uint32_t values[20];
+		struct input_prop values[20];
 	} tests[] = {
-		{ "INPUT_PROP_BUTTONPAD", true, 1, {INPUT_PROP_BUTTONPAD}},
-		{ "INPUT_PROP_BUTTONPAD;INPUT_PROP_POINTER", true, 2,
-			{ INPUT_PROP_BUTTONPAD,
-			  INPUT_PROP_POINTER }},
-		{ "INPUT_PROP_BUTTONPAD;0x00;0x03", true, 3,
-			{ INPUT_PROP_BUTTONPAD,
-			  INPUT_PROP_POINTER,
-			  INPUT_PROP_SEMI_MT }},
+		{ "+INPUT_PROP_BUTTONPAD", true, 1, {{ INPUT_PROP_BUTTONPAD, true }}},
+		{ "+INPUT_PROP_BUTTONPAD;-INPUT_PROP_POINTER", true, 2,
+			{ { INPUT_PROP_BUTTONPAD, true },
+			  { INPUT_PROP_POINTER, false }}},
+		{ "+INPUT_PROP_BUTTONPAD;-0x00;+0x03", true, 3,
+			{ { INPUT_PROP_BUTTONPAD, true },
+			  { INPUT_PROP_POINTER, false },
+			  { INPUT_PROP_SEMI_MT, true }}},
 		{ .prop = "", .success = false },
 		{ .prop = "0xff", .success = false },
 		{ .prop = "INPUT_PROP", .success = false },
@@ -659,7 +662,7 @@ START_TEST(input_prop_parser)
 
 	for (int i = 0; tests[i].prop; i++) {
 		bool success;
-		uint32_t props[32];
+		struct input_prop props[32];
 		size_t nprops = ARRAY_LENGTH(props);
 
 		t = &tests[i];
@@ -670,7 +673,8 @@ START_TEST(input_prop_parser)
 
 		ck_assert_int_eq(nprops, t->nvals);
 		for (size_t j = 0; j < t->nvals; j++) {
-			ck_assert_int_eq(t->values[j], props[j]);
+			ck_assert_int_eq(t->values[j].prop, props[j].prop);
+			ck_assert_int_eq(t->values[j].enabled, props[j].enabled);
 		}
 	}
 }

@@ -2231,8 +2231,6 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	struct quirks_context *quirks;
 	struct quirks *q;
 	const struct quirk_tuples *t;
-	const uint32_t *props = NULL;
-	size_t nprops = 0;
 	char *prop;
 
 	/* Touchpad claims to have 4 slots but only ever sends 2
@@ -2251,7 +2249,7 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 		libevdev_disable_event_code(device->evdev, EV_MSC, MSC_TIMESTAMP);
 	}
 
-	if (quirks_get_tuples(q, QUIRK_ATTR_EVENT_CODE_ENABLE, &t)) {
+	if (quirks_get_tuples(q, QUIRK_ATTR_EVENT_CODE, &t)) {
 		for (size_t i = 0; i < t->ntuples; i++) {
 			const struct input_absinfo absinfo = {
 				.minimum = 0,
@@ -2260,16 +2258,27 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 
 			int type = t->tuples[i].first;
 			int code = t->tuples[i].second;
+			bool enable = t->tuples[i].third;
 
-			if (code == EVENT_CODE_UNDEFINED)
-				libevdev_enable_event_type(device->evdev, type);
-			else
-				libevdev_enable_event_code(device->evdev,
-							    type,
-							    code,
-							    type == EV_ABS ?  &absinfo : NULL);
+			if (code == EVENT_CODE_UNDEFINED) {
+				if (enable)
+					libevdev_enable_event_type(device->evdev, type);
+				else
+					libevdev_disable_event_type(device->evdev, type);
+			} else {
+				if (enable)
+					libevdev_enable_event_code(device->evdev,
+								   type,
+								   code,
+								   type == EV_ABS ?  &absinfo : NULL);
+				else
+					libevdev_disable_event_code(device->evdev,
+								    type,
+								    code);
+			}
 			evdev_log_debug(device,
-					"quirks: enabling %s %s (%#x %#x)\n",
+					"quirks: %s %s %s (%#x %#x)\n",
+					enable ? "enabling" : "disabling",
 					libevdev_event_type_get_name(type),
 					libevdev_event_code_get_name(type, code),
 					type,
@@ -2277,58 +2286,28 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 		}
 	}
 
-	if (quirks_get_tuples(q, QUIRK_ATTR_EVENT_CODE_DISABLE, &t)) {
-		for (size_t i = 0; i < t->ntuples; i++) {
-			int type = t->tuples[i].first;
-			int code = t->tuples[i].second;
+	if (quirks_get_tuples(q, QUIRK_ATTR_INPUT_PROP, &t)) {
+		for (size_t idx = 0; idx < t->ntuples; idx++) {
+			unsigned int p = t->tuples[idx].first;
+			bool enable = t->tuples[idx].second;
 
-			if (code == EVENT_CODE_UNDEFINED)
-				libevdev_disable_event_type(device->evdev,
-							    type);
-			else
-				libevdev_disable_event_code(device->evdev,
-							    type,
-							    code);
-			evdev_log_debug(device,
-					"quirks: disabling %s %s (%#x %#x)\n",
-					libevdev_event_type_get_name(type),
-					libevdev_event_code_get_name(type, code),
-					type,
-					code);
-		}
-	}
-
-	if (quirks_get_uint32_array(q,
-				    QUIRK_ATTR_INPUT_PROP_ENABLE,
-				    &props,
-				    &nprops)) {
-		for (size_t idx = 0; idx < nprops; idx++) {
-			unsigned int p = props[idx];
-			libevdev_enable_property(device->evdev, p);
-			evdev_log_debug(device,
-					"quirks: enabling %s (%#x)\n",
-					libevdev_property_get_name(p),
-					p);
-		}
-	}
-
-	if (quirks_get_uint32_array(q,
-					 QUIRK_ATTR_INPUT_PROP_DISABLE,
-					 &props,
-					 &nprops)) {
+			if (enable) {
+				libevdev_enable_property(device->evdev, p);
+			}
+			else {
 #if HAVE_LIBEVDEV_DISABLE_PROPERTY
-		for (size_t idx = 0; idx < nprops; idx++) {
-			unsigned int p = props[idx];
-			libevdev_disable_property(device->evdev, p);
+				libevdev_disable_property(device->evdev, p);
+#else
+				evdev_log_error(device,
+						"quirks: a quirk for this device requires newer libevdev than installed\n");
+#endif
+			}
 			evdev_log_debug(device,
-					"quirks: disabling %s (%#x)\n",
+					"quirks: %s %s (%#x)\n",
+					enable ? "enabling" : "disabling",
 					libevdev_property_get_name(p),
 					p);
 		}
-#else
-		evdev_log_error(device,
-				"quirks: a quirk for this device requires newer libevdev than installed\n");
-#endif
 	}
 
 	quirks_unref(q);

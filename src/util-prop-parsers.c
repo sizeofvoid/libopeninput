@@ -347,10 +347,10 @@ parse_evcode_string(const char *s, int *type_out, int *code_out)
 }
 
 /**
- * Parses a string of the format "EV_ABS;KEY_A;BTN_TOOL_DOUBLETAP;ABS_X;"
- * where each element must be a named event type OR a named event code OR a
- * tuple in the form of EV_KEY:0x123, i.e. a named event type followed by a
- * hex event code.
+ * Parses a string of the format "+EV_ABS;+KEY_A;-BTN_TOOL_DOUBLETAP;-ABS_X;"
+ * where each element must be + or - (enable/disable) followed by a named event
+ * type OR a named event code OR a tuple in the form of EV_KEY:0x123, i.e. a
+ * named event type followed by a hex event code.
  *
  * events must point to an existing array of size nevents.
  * nevents specifies the size of the array in events and returns the number
@@ -361,7 +361,8 @@ parse_evcode_string(const char *s, int *type_out, int *code_out)
  * other fields undefined. Where only the event type is specified, the code
  * is set to EVENT_CODE_UNDEFINED.
  *
- * On success, events contains nevents events.
+ * On success, events contains nevents events with each event's value set to 1
+ * or 0 depending on the + or - prefix.
  */
 bool
 parse_evcode_property(const char *prop, struct input_event *events, size_t *nevents)
@@ -380,6 +381,16 @@ parse_evcode_property(const char *prop, struct input_event *events, size_t *neve
 	ncodes = min(*nevents, ncodes);
 	for (size_t idx = 0; strv[idx]; idx++) {
 		char *s = strv[idx];
+		bool enable;
+
+		switch (*s) {
+		case '+': enable = true; break;
+		case '-': enable = false; break;
+		default:
+			goto out;
+		}
+
+		s++;
 
 		int type, code;
 
@@ -399,6 +410,7 @@ parse_evcode_property(const char *prop, struct input_event *events, size_t *neve
 
 		evs[idx].type = type;
 		evs[idx].code = code;
+		evs[idx].value = enable;
 	}
 
 	memcpy(events, evs, ncodes * sizeof *events);
@@ -411,9 +423,9 @@ out:
 }
 
 /**
- * Parses a string of the format "INPUT_PROP_BUTTONPAD;INPUT_PROP_POINTER;0x123;"
+ * Parses a string of the format "+INPUT_PROP_BUTTONPAD;-INPUT_PROP_POINTER;+0x123;"
  * where each element must be a named input prop OR a hexcode in the form
- * 0x1234
+ * 0x1234. The prefix for each element must be either '+' (enable) or '-' (disable).
  *
  * props must point to an existing array of size nprops.
  * nprops specifies the size of the array in props and returns the number
@@ -423,10 +435,10 @@ out:
  * On success, props contains nprops elements.
  */
 bool
-parse_input_prop_property(const char *prop, unsigned int *props_out, size_t *nprops)
+parse_input_prop_property(const char *prop, struct input_prop *props_out, size_t *nprops)
 {
 	bool rc = false;
-	unsigned int props[INPUT_PROP_CNT]; /* doubling up on quirks is a bug */
+	struct input_prop props[INPUT_PROP_CNT]; /* doubling up on quirks is a bug */
 
 	size_t count;
 	char **strv = strv_from_string(prop, ";", &count);
@@ -437,6 +449,16 @@ parse_input_prop_property(const char *prop, unsigned int *props_out, size_t *npr
 	for (size_t idx = 0; strv[idx]; idx++) {
 		char *s = strv[idx];
 		unsigned int prop;
+		bool enable;
+
+		switch (*s) {
+		case '+': enable = true; break;
+		case '-': enable = false; break;
+		default:
+			goto out;
+		}
+
+		s++;
 
 		if (safe_atou_base(s, &prop, 16)) {
 			if (prop > INPUT_PROP_MAX)
@@ -447,7 +469,8 @@ parse_input_prop_property(const char *prop, unsigned int *props_out, size_t *npr
 				goto out;
 			prop = (unsigned int)val;
 		}
-		props[idx] = prop;
+		props[idx].prop = prop;
+		props[idx].enabled = enable;
 	}
 
 	memcpy(props_out, props, count * sizeof *props);

@@ -4,7 +4,7 @@
 MatchUdevType=tablet
 MatchBus=usb
 MatchVendor=0x08CA
-AttrEventCodeDisable=ABS_TILT_X;ABS_TILT_Y;
+AttrEventCode=-ABS_TILT_X;-ABS_TILT_Y;
 
 [Aiptek 8000U pressure threshold]
 MatchUdevType=tablet

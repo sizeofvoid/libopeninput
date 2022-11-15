@@ -54,6 +54,7 @@ struct quirk_tuples {
 	struct {
 		int first;
 		int second;
+		int third;
 	} tuples[32];
 	size_t ntuples;
 };
@@ -104,10 +105,8 @@ enum quirk {
 	QUIRK_ATTR_TABLET_SMOOTHING,
 	QUIRK_ATTR_THUMB_SIZE_THRESHOLD,
 	QUIRK_ATTR_MSC_TIMESTAMP,
-	QUIRK_ATTR_EVENT_CODE_DISABLE,
-	QUIRK_ATTR_EVENT_CODE_ENABLE,
-	QUIRK_ATTR_INPUT_PROP_DISABLE,
-	QUIRK_ATTR_INPUT_PROP_ENABLE,
+	QUIRK_ATTR_EVENT_CODE,
+	QUIRK_ATTR_INPUT_PROP,
 
 	_QUIRK_LAST_ATTR_QUIRK_, /* Guard: do not modify */
 };

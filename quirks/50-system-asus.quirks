@@ -16,7 +16,7 @@ AttrPressureRange=24:10
 [Asus UX302LA]
 MatchName=*ETPS/2 Elantech Touchpad*
 MatchDMIModalias=dmi:*svnASUSTeKCOMPUTERINC.:pnUX302LA:*
-AttrEventCodeDisable=ABS_MT_PRESSURE;ABS_PRESSURE;
+AttrEventCode=-ABS_MT_PRESSURE;-ABS_PRESSURE;
 
 # Asus VivoBook Flip 14 TP412UA tablet switch seems misbehaving, always
 # indicating tablet position

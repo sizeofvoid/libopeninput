@@ -30,7 +30,7 @@ MyVendor OEM::
     MatchName=Foo Bar Touchpad
     MatchUdevtype=touchpad
     MatchDMIModAlias=dmi:*svnMyVendor:pnMyModel:*
-    AttrEventCodeDisable=BTN_RIGHT
+    AttrEventCode=-BTN_RIGHT
 
 The name of the device can be obtained using :ref:`libinput record <libinput-record>`,
 the modalias match is a shell-style glob against the value of ``/sys/class/dmi/id/modalias``.

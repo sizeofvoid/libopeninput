@@ -57,6 +57,6 @@ events are sent: ::
 The issue can be fixed by adding a quirk to unset the ``REL_WHEEL_HI_RES`` and
 ``REL_HWHEEL_HI_RES`` event codes: ::
 
-    AttrEventCodeDisable=REL_WHEEL_HI_RES;REL_HWHEEL_HI_RES;
+    AttrEventCode=-REL_WHEEL_HI_RES;-REL_HWHEEL_HI_RES;
 
 Please see :ref:`device-quirks` for details.

@@ -28,4 +28,4 @@ MatchBus=usb
 MatchVendor=0x06A3
 MatchProduct=0x0CD5
 # EV_KEY 0x118, 0x119, 0x11a
-AttrEventCodeDisable=EV_KEY:0x118;EV_KEY:0x119;EV_KEY:0x11a
+AttrEventCode=-EV_KEY:0x118;-EV_KEY:0x119;-EV_KEY:0x11a

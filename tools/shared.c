@@ -632,11 +632,13 @@ sprintf_event_codes(char *buf, size_t sz, struct quirks *quirks, enum quirk q)
 	off += printed;
 
 	for (size_t i = 0; off < sz && i < t->ntuples; i++) {
-		const char *name = libevdev_event_code_get_name(
-						t->tuples[i].first,
-						t->tuples[i].second);
+		unsigned int type = t->tuples[i].first;
+		unsigned int code = t->tuples[i].second;
+		bool enable = t->tuples[i].third;
 
-		printed = snprintf(buf + off, sz - off, "%s;", name);
+		const char *name = libevdev_event_code_get_name(type, code);
+
+		printed = snprintf(buf + off, sz - off, "%c%s;", enable ? '+' : '-', name);
 		assert(printed != -1);
 		off += printed;
 	}
@@ -645,21 +647,24 @@ sprintf_event_codes(char *buf, size_t sz, struct quirks *quirks, enum quirk q)
 static void
 sprintf_input_props(char *buf, size_t sz, struct quirks *quirks, enum quirk q)
 {
-	const uint32_t *properties;
-	size_t nprops = 0;
+	const struct quirk_tuples *t;
 	size_t off = 0;
 	int printed;
 	const char *name;
 
-	quirks_get_uint32_array(quirks, q, &properties, &nprops);
+	quirks_get_tuples(quirks, q, &t);
 	name = quirk_get_name(q);
 	printed = snprintf(buf, sz, "%s=", name);
 	assert(printed != -1);
 	off += printed;
 
-	for (size_t i = 0; off < sz && i < nprops; i++) {
-		const char *name = libevdev_property_get_name(properties[i]);
-		printed = snprintf(buf + off, sz - off, "%s;", name);
+	for (size_t i = 0; off < sz && i < t->ntuples; i++) {
+		unsigned int prop = t->tuples[i].first;
+		bool enable = t->tuples[i].second;
+
+		const char *name = libevdev_property_get_name(prop);
+
+		printed = snprintf(buf + off, sz - off, "%c%s;", enable ? '+' : '-', name);
 		assert(printed != -1);
 		off += printed;
 	}
@@ -747,13 +752,11 @@ tools_list_device_quirks(struct quirks_context *ctx,
 				snprintf(buf, sizeof(buf), "%s=%d", name, b);
 				callback(userdata, buf);
 				break;
-			case QUIRK_ATTR_EVENT_CODE_DISABLE:
-			case QUIRK_ATTR_EVENT_CODE_ENABLE:
+			case QUIRK_ATTR_EVENT_CODE:
 				sprintf_event_codes(buf, sizeof(buf), quirks, q);
 				callback(userdata, buf);
 				break;
-			case QUIRK_ATTR_INPUT_PROP_DISABLE:
-			case QUIRK_ATTR_INPUT_PROP_ENABLE:
+			case QUIRK_ATTR_INPUT_PROP:
 				sprintf_input_props(buf, sizeof(buf), quirks, q);
 				callback(userdata, buf);
 				break;

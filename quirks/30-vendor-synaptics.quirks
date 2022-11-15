@@ -16,4 +16,4 @@ ModelSynapticsSerialTouchpad=1
 [Synaptics 0911:5288 Touchpad]
 MatchUdevType=touchpad
 MatchName=* 0911:5288 Touchpad
-AttrEventCodeDisable=BTN_RIGHT
+AttrEventCode=-BTN_RIGHT

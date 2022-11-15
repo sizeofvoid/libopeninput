@@ -4,4 +4,4 @@ MatchBus=usb
 MatchVendor=0x047D
 MatchProduct=0x2048
 ModelTrackball=1
-AttrEventCodeDisable=BTN_MIDDLE
+AttrEventCode=-BTN_MIDDLE

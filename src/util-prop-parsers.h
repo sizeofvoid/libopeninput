@@ -30,6 +30,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+struct input_prop {
+	unsigned int prop;
+	bool enabled;
+};
+
 int parse_mouse_dpi_property(const char *prop);
 int parse_mouse_wheel_click_angle_property(const char *prop);
 int parse_mouse_wheel_click_count_property(const char *prop);
@@ -39,7 +44,7 @@ bool parse_range_property(const char *prop, int *hi, int *lo);
 bool parse_boolean_property(const char *prop, bool *b);
 #define EVENT_CODE_UNDEFINED 0xffff
 bool parse_evcode_property(const char *prop, struct input_event *events, size_t *nevents);
-bool parse_input_prop_property(const char *prop, unsigned int *props_out, size_t *nprops);
+bool parse_input_prop_property(const char *prop, struct input_prop *props_out, size_t *nprops);
 
 enum tpkbcombo_layout {
 	TPKBCOMBO_LAYOUT_UNKNOWN,

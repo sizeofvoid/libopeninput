@@ -199,22 +199,46 @@ static int events[] = {
 };
 
 static const char quirk_file[] =
-"[litest Quirked Keyboard enable rel]\n"
+"[litest Quirked Keyboard enable buttons]\n"
 "MatchName=litest Quirked Keyboard\n"
-"AttrEventCodeEnable=BTN_RIGHT;EV_KEY:0x110\n" /* BTN_LEFT */
+"AttrEventCode=+BTN_RIGHT;+BTN_MIDDLE;+EV_KEY:0x110\n" /* BTN_LEFT */
+"\n"
+"[litest Quirked Keyboard disable buttons]\n"
+"MatchName=litest Quirked Keyboard\n"
+"AttrEventCode=-BTN_MIDDLE;-BTN_RIGHT\n"
+"\n"
+"[litest Quirked Keyboard re-enable buttons]\n"
+"MatchName=litest Quirked Keyboard\n"
+"AttrEventCode=+BTN_RIGHT\n"
 "\n"
 "[litest Quirked keyboard disable F1-F3]\n"
 "MatchName=litest Quirked Keyboard\n"
-"AttrEventCodeDisable=KEY_F1;EV_KEY:0x3c;KEY_F3\n"
+"AttrEventCode=-KEY_F1;-EV_KEY:0x3c;-KEY_F3\n"
 #if HAVE_LIBEVDEV_DISABLE_PROPERTY
 "\n"
 "[litest Quirked keyboard enable buttonpad]\n"
 "MatchName=litest Quirked Keyboard\n"
-"AttrInputPropEnable=INPUT_PROP_BUTTONPAD\n"
+"AttrInputProp=+INPUT_PROP_BUTTONPAD\n"
 "\n"
 "[litest Quirked keyboard disable pointingstick]\n"
 "MatchName=litest Quirked Keyboard\n"
-"AttrInputPropDisable=INPUT_PROP_POINTING_STICK\n"
+"AttrInputProp=-INPUT_PROP_POINTING_STICK\n"
+"\n"
+"[litest Quirked keyboard enable direct]\n"
+"MatchName=litest Quirked Keyboard\n"
+"AttrInputProp=+INPUT_PROP_DIRECT\n"
+"\n"
+"[litest Quirked keyboard disable direct]\n"
+"MatchName=litest Quirked Keyboard\n"
+"AttrInputProp=-INPUT_PROP_DIRECT\n"
+"\n"
+"[litest Quirked keyboard disable semi-mt]\n"
+"MatchName=litest Quirked Keyboard\n"
+"AttrInputProp=-INPUT_PROP_SEMI_MT\n"
+"\n"
+"[litest Quirked keyboard enable semi-mt]\n"
+"MatchName=litest Quirked Keyboard\n"
+"AttrInputProp=+INPUT_PROP_SEMI_MT\n"
 #endif
 ;
 
