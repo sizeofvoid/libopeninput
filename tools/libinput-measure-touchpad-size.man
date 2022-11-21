@@ -10,7 +10,7 @@ The
 tool measures the size of a touchpad. This is an interactive tool. When
 executed, the tool will prompt the user to interact with the touchpad. The
 tool records the axis ranges and calculates the size and resolution based on
-those. On termination, the tool prints a hwdb entry that can be added to the 
+those. On termination, the tool prints a hwdb entry that can be added to the
 .B 60-evdev.hwdb
 file provided by system.
 .PP

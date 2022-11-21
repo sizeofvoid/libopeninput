@@ -98,7 +98,7 @@ strv_from_argv(int argc, char **argv)
  * Another example:
  *   result = strv_from_string("+1-2++3--4++-+5-+-", "+-", &nelem)
  *   result == [ "1", "2", "3", "4", "5", NULL ] and nelem == 5
- * 
+ *
  * @param in Input string
  * @param separators List of separator characters
  * @param num_elements Number of elements found in the input string
