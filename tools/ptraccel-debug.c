@@ -189,7 +189,7 @@ usage(void)
 	       "	linear	  ... the default motion filter\n"
 	       "	low-dpi	  ... low-dpi filter, use --dpi with this argument\n"
 	       "	touchpad  ... the touchpad motion filter\n"
-	       "	x230  	  ... custom filter for the Lenovo x230 touchpad\n"
+	       "	x230	  ... custom filter for the Lenovo x230 touchpad\n"
 	       "	trackpoint... trackpoint motion filter\n"
 	       "\n"
 	       "If extra arguments are present and mode is not given, mode defaults to 'sequence'\n"
