@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 #
 # simple check for exported symbols
 #
@@ -9,6 +9,12 @@ shift
 srcdir="$1"
 shift
 
+if [[ -z "$mapfile" || -z "$srcdir" ]]; then
+	echo "Usage: symbols-leak-test /path/to/mapfile /path/to/libinput/src"
+	exit 2
+fi
+
+set -e
 diff -a -u \
 	<(cat "$mapfile" | \
 		grep '^\s\+libinput_.*' | \
