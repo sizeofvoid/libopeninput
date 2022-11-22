@@ -862,7 +862,6 @@ evdev_scroll_get_default_button_lock(struct libinput_device *device)
 	return LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED;
 }
 
-
 void
 evdev_set_button_scroll_lock_enabled(struct evdev_device *device,
 				     bool enabled)
@@ -1898,7 +1897,6 @@ evdev_device_is_joystick_or_gamepad(struct evdev_device *device)
 
 	if (!has_joystick_tags)
 		return false;
-
 
 	unsigned int num_well_known_keys = 0;
 

@@ -35,7 +35,6 @@
  * Wayland project; except that wl_ prefix has been removed.
  */
 
-
 /**
  * Doubly linked list implementation. This struct is used for both the list
  * nodes and the list head. Use like this:

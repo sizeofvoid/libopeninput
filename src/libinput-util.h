@@ -31,7 +31,6 @@
 #warning "libinput relies on assert(). #defining NDEBUG is not recommended"
 #endif
 
-
 #include "libinput.h"
 
 #include "util-bits.h"

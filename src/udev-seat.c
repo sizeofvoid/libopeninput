@@ -41,7 +41,6 @@ udev_seat_create(struct udev_input *input,
 static struct udev_seat *
 udev_seat_get_named(struct udev_input *input, const char *seat_name);
 
-
 static inline bool
 filter_duplicates(struct udev_seat *udev_seat,
 		  struct udev_device *udev_device)

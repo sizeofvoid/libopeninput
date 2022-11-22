@@ -338,7 +338,6 @@ struct evdev_dispatch_interface {
 					      const struct phys_rect *rect,
 					      uint64_t now);
 
-
 	/* Return the state of the given switch */
 	enum libinput_switch_state
 		(*get_switch_state)(struct evdev_dispatch *dispatch,

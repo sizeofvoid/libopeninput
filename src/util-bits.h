@@ -37,7 +37,6 @@
 #define NLONGS(x) (((x) + LONG_BITS - 1) / LONG_BITS)
 #define NCHARS(x) ((size_t)(((x) + 7) / 8))
 
-
 /* This bitfield helper implementation is taken from from libevdev-util.h,
  * except that it has been modified to work with arrays of unsigned chars
  */

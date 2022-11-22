@@ -57,7 +57,6 @@ input_event_time(const struct input_event *e)
 	return tv2us(&tval);
 }
 
-
 static inline void
 input_event_set_time(struct input_event *e,
 		     uint64_t time)

@@ -146,7 +146,6 @@ trackpoint_accelerator_set_speed(struct motion_filter *filter,
 	filter->speed_adjustment = speed_adjustment;
 	accel_filter->speed_factor = speed_factor(speed_adjustment);
 
-
 	return true;
 }
 

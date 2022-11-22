@@ -1517,7 +1517,6 @@ quirks_fetch_for_device(struct quirks_context *ctx,
 	return q;
 }
 
-
 static inline struct property *
 quirk_find_prop(struct quirks *q, enum quirk which)
 {

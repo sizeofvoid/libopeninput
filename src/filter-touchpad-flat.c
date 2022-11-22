@@ -34,7 +34,6 @@
 #include "libinput-util.h"
 #include "filter-private.h"
 
-
 #define TP_MAGIC_SLOWDOWN_FLAT 0.2968
 
 struct touchpad_accelerator_flat {

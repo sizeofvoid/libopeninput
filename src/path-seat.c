@@ -44,7 +44,6 @@ struct path_seat {
 	struct libinput_seat base;
 };
 
-
 static const char default_seat[] = "seat0";
 static const char default_seat_name[] = "default";
 

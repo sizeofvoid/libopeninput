@@ -55,12 +55,10 @@
 #define ANSI_BRIGHT_CYAN	"\x1B[0;36;1m"
 #define ANSI_NORMAL		"\x1B[0m"
 
-
 #define ANSI_UP			"\x1B[%dA"
 #define ANSI_DOWN		"\x1B[%dB"
 #define ANSI_RIGHT		"\x1B[%dC"
 #define ANSI_LEFT		"\x1B[%dD"
-
 
 #define CASE_RETURN_STRING(a) case a: return #a
 

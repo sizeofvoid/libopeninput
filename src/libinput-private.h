@@ -467,7 +467,6 @@ is_logged(const struct libinput *libinput,
                libinput->log_priority <= priority;
 }
 
-
 void
 log_msg_ratelimit(struct libinput *libinput,
 		  struct ratelimit *ratelimit,
@@ -922,6 +921,5 @@ libinput_libwacom_unref(struct libinput *li);
 static inline void *libinput_libwacom_ref(struct libinput *li) { return NULL; }
 static inline void libinput_libwacom_unref(struct libinput *li) {}
 #endif
-
 
 #endif /* LIBINPUT_PRIVATE_H */

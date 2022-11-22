@@ -819,7 +819,6 @@ print_tablet_pad_key_event(struct libinput_event *ev)
 	       state == LIBINPUT_KEY_STATE_PRESSED ? "pressed" : "released");
 }
 
-
 static void
 print_switch_event(struct libinput_event *ev)
 {

@@ -460,7 +460,6 @@ tools_device_apply_config(struct libinput_device *device,
 		libinput_device_config_scroll_set_button_lock(device,
 							      options->scroll_button_lock);
 
-
 	if (libinput_device_config_accel_is_available(device)) {
 		libinput_device_config_accel_set_speed(device,
 						       options->speed);

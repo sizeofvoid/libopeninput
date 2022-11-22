@@ -110,7 +110,6 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 {
 	assert(in != NULL);
 
-
 	const char *s = in;
 	size_t l, nelems = 0;
 	while (next_word(&s, &l, separators) != NULL)
@@ -215,7 +214,6 @@ safe_basename(const char *filename)
 
 	return basename + 1;
 }
-
 
 /**
  * Similar to basename() but returns the trunk only without the (last)

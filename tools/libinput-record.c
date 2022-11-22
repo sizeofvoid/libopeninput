@@ -965,7 +965,6 @@ print_tablet_tool_button_event(struct record_device *dev,
 		abort();
 	}
 
-
 	button = libinput_event_tablet_tool_get_button(t);
 	state = libinput_event_tablet_tool_get_button_state(t);
 	time = time_offset(dev->ctx, libinput_event_tablet_tool_get_time_usec(t));
@@ -1070,7 +1069,6 @@ print_tablet_pad_button_event(struct record_device *dev,
 		mode,
 		libinput_tablet_pad_mode_group_button_is_toggle(group, button) ? "true" : "false"
 	       );
-
 
 }
 

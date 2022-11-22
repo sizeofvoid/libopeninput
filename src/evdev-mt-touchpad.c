@@ -679,7 +679,6 @@ tp_process_fake_touches(struct tp_dispatch *tp,
 		tp->num_slots = tp->nactive_slots;
 	}
 
-
 	start = tp->has_mt ? tp->num_slots : 0;
 	for (i = start; i < tp->ntouches; i++) {
 		t = tp_get_touch(tp, i);
@@ -2213,7 +2212,6 @@ tp_trackpoint_event(uint64_t time, struct libinput_event *event, void *data)
 	tp->palm.trackpoint_last_event_time = time;
 	tp->palm.trackpoint_event_count++;
 
-
 	/* Require at least three events before enabling palm detection */
 	if (tp->palm.trackpoint_event_count < 3) {
 		libinput_timer_set(&tp->palm.trackpoint_timer,
@@ -3618,7 +3616,6 @@ tp_init_pressure(struct tp_dispatch *tp,
 		lo = abs->minimum + 0.10 * range;
 	}
 
-
 	if (hi > abs->maximum || hi < abs->minimum ||
 	    lo > abs->maximum || lo < abs->minimum) {
 		evdev_log_bug_libinput(device,
@@ -3730,7 +3727,6 @@ tp_init(struct tp_dispatch *tp,
 
 	if (!tp_init_slots(tp, device))
 		return false;
-
 
 	evdev_device_init_abs_range_warnings(device);
 	use_touch_size = tp_init_touch_size(tp, device);

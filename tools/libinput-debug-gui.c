@@ -789,7 +789,6 @@ draw_tablet(struct window *w, cairo_t *cr)
 	}
 	cairo_restore(cr);
 
-
 	/* tablet tool, square for prox-in location */
 	cairo_save(cr);
 	cairo_set_source_rgb(cr, .2, .6, .6);
