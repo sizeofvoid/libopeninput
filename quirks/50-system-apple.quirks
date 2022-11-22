@@ -105,6 +105,15 @@ AttrSizeHint=104x75
 AttrTouchSizeRange=150:130
 AttrPalmSizeThreshold=1600
 
+[Apple Laptop Touchpad (MTP)]
+MatchUdevType=touchpad
+MatchName=Apple*MTP*
+MatchVendor=0x5AC
+ModelAppleTouchpad=1
+AttrSizeHint=104x75
+AttrTouchSizeRange=150:130
+AttrPalmSizeThreshold=1600
+
 # The Linux applespi driver currently uses the Synaptics vendor for some reason
 [Apple Laptop Touchpad (SPI)]
 MatchUdevType=touchpad
