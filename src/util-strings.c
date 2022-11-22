@@ -110,7 +110,7 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 {
 	assert(in != NULL);
 
-	
+
 	const char *s = in;
 	size_t l, nelems = 0;
 	while (next_word(&s, &l, separators) != NULL)
@@ -137,7 +137,7 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 
 		strv[idx++] = copy;
 	}
-	
+
 	*num_elements = nelems;
 
 	return strv;

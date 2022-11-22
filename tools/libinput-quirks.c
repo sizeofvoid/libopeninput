@@ -197,7 +197,7 @@ main(int argc, char **argv)
 	udev = udev_new();
 	if (!udev)
 		goto out;
-		
+
 	path = argv[optind];
 	if (strneq(path, "/sys/", 5)) {
 		device = udev_device_new_from_syspath(udev, path);

@@ -178,7 +178,7 @@ parse_calibration_property(const char *prop, float calibration_out[6])
 {
 	if (!prop)
 		return false;
-	
+
 	bool rc = false;
 
 	size_t num_calibration;

@@ -880,7 +880,7 @@ static bool
 parse_value_line(struct quirks_context *ctx, struct section *s, const char *line)
 {
 	bool rc = false;
-	
+
 	size_t nelem;
 	char **strv = strv_from_string(line, "=", &nelem);
 	if (!strv || nelem != 2)
