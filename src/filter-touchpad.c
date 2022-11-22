@@ -300,7 +300,6 @@ create_pointer_accelerator_filter_touchpad(int dpi,
 	bool use_velocity_averaging)
 {
 	struct touchpad_accelerator *filter;
-	struct pointer_delta_smoothener *smoothener;
 
 	filter = zalloc(sizeof *filter);
 	filter->last_velocity = 0.0;
@@ -312,11 +311,7 @@ create_pointer_accelerator_filter_touchpad(int dpi,
 
 	filter->base.interface = &accelerator_interface_touchpad;
 	filter->profile = touchpad_accel_profile_linear;
-
-	smoothener = zalloc(sizeof(*smoothener));
-	smoothener->threshold = event_delta_smooth_threshold,
-	smoothener->value = event_delta_smooth_value,
-	filter->trackers.smoothener = smoothener;
+	filter->trackers.smoothener = pointer_delta_smoothener_create(event_delta_smooth_threshold, event_delta_smooth_value);
 
 	return &filter->base;
 }

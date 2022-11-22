@@ -103,7 +103,7 @@ void
 trackers_free(struct pointer_trackers *trackers)
 {
 	free(trackers->trackers);
-	free(trackers->smoothener);
+	pointer_delta_smoothener_destroy(trackers->smoothener);
 }
 
 void

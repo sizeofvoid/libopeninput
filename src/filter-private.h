@@ -63,6 +63,22 @@ struct pointer_delta_smoothener {
 	uint64_t value;
 };
 
+static inline struct pointer_delta_smoothener *
+pointer_delta_smoothener_create(uint64_t event_delta_smooth_threshold,
+				uint64_t event_delta_smooth_value)
+{
+	struct pointer_delta_smoothener *s = zalloc(sizeof(*s));
+	s->threshold = event_delta_smooth_threshold;
+	s->value = event_delta_smooth_value;
+	return s;
+}
+
+static inline void
+pointer_delta_smoothener_destroy(struct pointer_delta_smoothener *smoothener)
+{
+	free(smoothener);
+}
+
 struct pointer_trackers {
 	struct pointer_tracker *trackers;
 	size_t ntrackers;
