@@ -2440,7 +2440,7 @@ static void close_restricted(int fd, void *user_data)
 	close(fd);
 }
 
-const struct libinput_interface interface = {
+static const struct libinput_interface interface = {
 	.open_restricted = open_restricted,
 	.close_restricted = close_restricted,
 };

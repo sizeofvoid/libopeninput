@@ -80,10 +80,10 @@ static bool in_debugger = false;
 static bool verbose = false;
 static bool run_deviceless = false;
 static bool use_system_rules_quirks = false;
-const char *filter_test = NULL;
-const char *filter_device = NULL;
-const char *filter_group = NULL;
-const char *xml_prefix = NULL;
+static const char *filter_test = NULL;
+static const char *filter_device = NULL;
+static const char *filter_group = NULL;
+static const char *xml_prefix = NULL;
 static struct quirks_context *quirks_context;
 
 struct created_file {
@@ -91,8 +91,8 @@ struct created_file {
 	char *path;
 };
 
-struct list created_files_list; /* list of all files to remove at the end of
-				   the test run */
+static struct list created_files_list; /* list of all files to remove at the end
+					  of the test run */
 
 static void litest_init_udev_rules(struct list *created_files_list);
 static void litest_remove_udev_rules(struct list *created_files_list);
@@ -319,7 +319,7 @@ void litest_generic_device_teardown(void)
 	current_device = NULL;
 }
 
-struct list devices;
+static struct list devices;
 
 static struct list all_tests;
 
@@ -854,7 +854,7 @@ close_restricted(int fd, void *userdata)
 	close(fd);
 }
 
-struct libinput_interface interface = {
+static struct libinput_interface interface = {
 	.open_restricted = open_restricted,
 	.close_restricted = close_restricted,
 };
