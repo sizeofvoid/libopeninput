@@ -50,6 +50,7 @@ struct pad_mode_led {
 	int mode_idx;
 };
 
+#if HAVE_LIBWACOM
 static inline struct pad_mode_toggle_button *
 pad_mode_toggle_button_new(struct pad_dispatch *pad,
 			   struct libinput_tablet_pad_mode_group *group,
@@ -62,6 +63,7 @@ pad_mode_toggle_button_new(struct pad_dispatch *pad,
 
 	return button;
 }
+#endif /* HAVE_LIBWACOM */
 
 static inline void
 pad_mode_toggle_button_destroy(struct pad_mode_toggle_button* button)
@@ -109,6 +111,7 @@ pad_led_destroy(struct libinput *libinput,
 	free(led);
 }
 
+#if HAVE_LIBWACOM
 static inline struct pad_mode_led *
 pad_led_new(struct libinput *libinput, const char *prefix, int group, int mode)
 {
@@ -146,6 +149,7 @@ error:
 	pad_led_destroy(libinput, led);
 	return NULL;
 }
+#endif /* HAVE_LIBWACOM */
 
 static void
 pad_led_group_destroy(struct libinput_tablet_pad_mode_group *g)
@@ -183,6 +187,7 @@ pad_group_new_basic(struct pad_dispatch *pad,
 	return group;
 }
 
+#if HAVE_LIBWACOM
 static inline bool
 is_litest_device(struct evdev_device *device)
 {
@@ -269,7 +274,6 @@ pad_led_get_sysfs_base_path(struct evdev_device *device,
 	return rc != -1;
 }
 
-#if HAVE_LIBWACOM
 static int
 pad_init_led_groups(struct pad_dispatch *pad,
 		    struct evdev_device *device,
