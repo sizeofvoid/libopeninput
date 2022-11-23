@@ -2675,11 +2675,13 @@ START_TEST(touchpad_left_handed_clickpad_delayed)
 }
 END_TEST
 
+#if HAVE_LIBWACOM
 static inline bool
 touchpad_has_rotation(struct libevdev *evdev)
 {
 	return libevdev_get_id_vendor(evdev) == VENDOR_ID_WACOM;
 }
+#endif /* HAVE_LIBWACOM */
 
 START_TEST(touchpad_left_handed_rotation)
 {
