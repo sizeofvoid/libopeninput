@@ -183,7 +183,7 @@ START_TEST(pad_button_intuos)
 	unsigned int expected_number = 0;
 	struct libinput_event *ev;
 	struct libinput_event_tablet_pad *pev;
-	unsigned int count;
+	unsigned int count = 0;
 
 	/* Intuos button mapping is sequential up from BTN_0 and continues
 	 * with BTN_A */
@@ -243,7 +243,7 @@ START_TEST(pad_button_bamboo)
 	unsigned int expected_number = 0;
 	struct libinput_event *ev;
 	struct libinput_event_tablet_pad *pev;
-	unsigned int count;
+	unsigned int count = 0;
 
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_LEFT))
 		return;
