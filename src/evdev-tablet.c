@@ -934,13 +934,12 @@ copy_button_cap(const struct tablet_dispatch *tablet,
 		set_bit(tool->buttons, button);
 }
 
+#if HAVE_LIBWACOM
 static inline int
 tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 			    struct libinput_tablet_tool *tool)
 {
 	int rc = 1;
-
-#if HAVE_LIBWACOM
 	WacomDeviceDatabase *db;
 	const WacomStylus *s = NULL;
 	int code;
@@ -997,9 +996,10 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
 
 	rc = 0;
-#endif
+
 	return rc;
 }
+#endif
 
 static void
 tool_set_bits(const struct tablet_dispatch *tablet,
