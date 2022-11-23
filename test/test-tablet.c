@@ -4891,7 +4891,7 @@ START_TEST(touch_arbitration_outside_rect)
 		return;
 
 	x = 20;
-	y = 45;
+	y = 70;
 
 	/* disable prox-out timer quirk */
 	litest_tablet_proximity_in(dev, x, y - 1, axes);
@@ -4912,7 +4912,7 @@ START_TEST(touch_arbitration_outside_rect)
 	litest_assert_touch_sequence(li);
 
 	/* above rect */
-	litest_touch_sequence(finger, 0, x + 2, y - 35, x + 20, y - 10, 3);
+	litest_touch_sequence(finger, 0, x + 2, y - 65, x + 20, y - 40, 3);
 	libinput_dispatch(li);
 	litest_assert_touch_sequence(li);
 

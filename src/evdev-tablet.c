@@ -1501,8 +1501,8 @@ tablet_calculate_arbitration_rect(struct tablet_dispatch *tablet)
 
 	mm = evdev_device_units_to_mm(device, &tablet->axes.point);
 
-	/* The rect we disable is 20mm left of the tip, 50mm north of the
-	 * tip, and 200x200mm large.
+	/* The rect we disable is 20mm left of the tip, 100mm north of the
+	 * tip, and 200x250mm large.
 	 * If the stylus is tilted left (tip further right than the eraser
 	 * end) assume left-handed mode.
 	 *
@@ -1523,8 +1523,8 @@ tablet_calculate_arbitration_rect(struct tablet_dispatch *tablet)
 		r.x = 0;
 	}
 
-	r.y = mm.y - 50;
-	r.h = 200;
+	r.y = mm.y - 100;
+	r.h = 250;
 	if (r.y < 0) {
 		r.h -= r.y;
 		r.y = 0;
