@@ -2056,8 +2056,10 @@ evdev_configure_device(struct evdev_device *device)
 	    udev_tags & EVDEV_UDEV_TAG_POINTINGSTICK) {
 		evdev_tag_external_mouse(device, device->udev_device);
 		evdev_tag_trackpoint(device, device->udev_device);
-		device->dpi = evdev_read_dpi_prop(device);
-		device->trackpoint_multiplier = evdev_get_trackpoint_multiplier(device);
+		if (device->tags & EVDEV_TAG_TRACKPOINT)
+			device->trackpoint_multiplier = evdev_get_trackpoint_multiplier(device);
+		else
+			device->dpi = evdev_read_dpi_prop(device);
 		/* whether velocity should be averaged, false by default */
 		device->use_velocity_averaging = evdev_need_velocity_averaging(device);
 
