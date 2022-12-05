@@ -6162,11 +6162,6 @@ libinput_device_config_rotation_is_available(struct libinput_device *device);
  * multiple of 360 or negative, the caller must ensure the correct ranging
  * before calling this function.
  *
- * libinput guarantees that this function accepts multiples of 90 degrees.
- * If a value is within the [0, 360[ range but not a multiple of 90 degrees,
- * this function may return LIBINPUT_CONFIG_STATUS_INVALID if the underlying
- * device or implementation does not support finer-grained rotation angles.
- *
  * The rotation angle is applied to all motion events emitted by the device.
  * Thus, rotating the device also changes the angle required or presented by
  * scrolling, gestures, etc.

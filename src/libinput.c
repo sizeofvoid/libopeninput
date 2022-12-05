@@ -4576,7 +4576,7 @@ libinput_device_config_rotation_set_angle(struct libinput_device *device,
 		return degrees_cw ? LIBINPUT_CONFIG_STATUS_UNSUPPORTED :
 				    LIBINPUT_CONFIG_STATUS_SUCCESS;
 
-	if (degrees_cw >= 360 || degrees_cw % 90)
+	if (degrees_cw >= 360)
 		return LIBINPUT_CONFIG_STATUS_INVALID;
 
 	return device->config.rotation->set_angle(device, degrees_cw);

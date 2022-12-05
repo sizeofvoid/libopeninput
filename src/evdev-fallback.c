@@ -151,20 +151,18 @@ fallback_filter_defuzz_touch(struct fallback_dispatch *dispatch,
 	return false;
 }
 
-static inline void
+static inline struct device_float_coords
 fallback_rotate_relative(struct fallback_dispatch *dispatch,
 			 struct evdev_device *device)
 {
-	struct device_coords rel = dispatch->rel;
+	struct device_float_coords rel = { dispatch->rel.x, dispatch->rel.y };
 
 	if (!device->base.config.rotation)
-		return;
+		return rel;
 
-	/* loss of precision for non-90 degrees, but we only support 90 deg
-	 * right now anyway */
-	matrix_mult_vec(&dispatch->rotation.matrix, &rel.x, &rel.y);
+	matrix_mult_vec_double(&dispatch->rotation.matrix, &rel.x, &rel.y);
 
-	dispatch->rel = rel;
+	return rel;
 }
 
 static void
@@ -174,15 +172,12 @@ fallback_flush_relative_motion(struct fallback_dispatch *dispatch,
 {
 	struct libinput_device *base = &device->base;
 	struct normalized_coords accel;
-	struct device_float_coords raw;
 
 	if (!(device->seat_caps & EVDEV_DEVICE_POINTER))
 		return;
 
-	fallback_rotate_relative(dispatch, device);
+	struct device_float_coords raw = fallback_rotate_relative(dispatch, device);
 
-	raw.x = dispatch->rel.x;
-	raw.y = dispatch->rel.y;
 	dispatch->rel.x = 0;
 	dispatch->rel.y = 0;
 
@@ -1488,7 +1483,7 @@ static void
 fallback_init_rotation(struct fallback_dispatch *dispatch,
 		       struct evdev_device *device)
 {
-	if ((device->model_flags & EVDEV_MODEL_TRACKBALL) == 0)
+	if (device->tags & EVDEV_TAG_TRACKPOINT)
 		return;
 
 	dispatch->rotation.config.is_available = fallback_rotation_config_is_available;
