@@ -100,6 +100,7 @@ intended to be run by users.
 %files utils
 %{_libexecdir}/libinput/libinput-debug-gui
 %{_libexecdir}/libinput/libinput-debug-tablet
+%{_libexecdir}/libinput/libinput-list-kernel-devices
 %{_libexecdir}/libinput/libinput-measure
 %{_libexecdir}/libinput/libinput-measure-fuzz
 %{_libexecdir}/libinput/libinput-measure-touchpad-tap
@@ -115,6 +116,7 @@ intended to be run by users.
 %{_libexecdir}/libinput/libinput-analyze-touch-down-state
 %{_mandir}/man1/libinput-debug-gui.1*
 %{_mandir}/man1/libinput-debug-tablet.1*
+%{_mandir}/man1/libinput-list-kernel-devices.1*
 %{_mandir}/man1/libinput-measure.1*
 %{_mandir}/man1/libinput-measure-fuzz.1*
 %{_mandir}/man1/libinput-measure-touchpad-tap.1*

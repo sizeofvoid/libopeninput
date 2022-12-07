@@ -45,6 +45,9 @@ A commandline tool to debug tablet axis values
 .B libinput\-list\-devices(1)
 List all devices recognized by libinput
 .TP 8
+.B libinput\-list\-kernel-devices(1)
+List all kernel devices available on this system
+.TP 8
 .B libinput\-measure(1)
 Measure various properties of devices
 .TP 8
