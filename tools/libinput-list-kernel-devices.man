@@ -8,11 +8,14 @@ libinput\-list\-kernel\-devices \- list all kernel input devices
 The
 .B "libinput list\-kernel\-devices"
 tool iterates through the list of available kernel devices and prints
-their device node and device name.
+their device node and device name. By default this tool lists evdev event nodes.
 .SH OPTIONS
 .TP 8
 .B \-\-help
 Print help
+.TP 8
+.B \-\-hid
+List HID devices instead of evdev device nodes
 .SH NOTES
 .PP
 A device may be available but not recognized by libinput. This may indicate

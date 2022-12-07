@@ -55,11 +55,62 @@ def list_devices():
         print(f"{k}:\t{devices[k]}")
 
 
+class HidDevice:
+    def __init__(self, name, driver, vendor, product, devpath):
+        self.name = name
+        self.driver = driver
+        self.vendor = vendor
+        self.product = product
+        self.devpath = devpath
+        self.hidraws = []
+        self.evdevs = []
+
+
+def list_hid_devices():
+    devices = []
+    context = pyudev.Context()
+    for device in context.list_devices(subsystem="hid"):
+        name = device.properties.get("HID_NAME")
+        driver = device.properties.get("DRIVER")
+        devpath = device.properties.get("DEVPATH")
+        id = device.properties.get("HID_ID") or "0:0:0"
+        _, vendor, product = (int(x, 16) for x in id.split(":"))
+        devices.append(HidDevice(name, driver, vendor, product, devpath))
+
+    for device in context.list_devices(subsystem="hidraw"):
+        devpath = device.properties["DEVPATH"]
+
+        for hid in devices:
+            if devpath.startswith(hid.devpath):
+                hid.hidraws.append(f"'{device.device_node}'")
+
+    for device in context.list_devices(subsystem="input"):
+        if (device.device_node or "").startswith("/dev/input/event"):
+            devpath = device.properties["DEVPATH"]
+
+            for hid in devices:
+                if devpath.startswith(hid.devpath):
+                    hid.evdevs.append(f"'{device.device_node}'")
+
+    print("hid:")
+    for d in devices:
+        print(f"- name:   '{d.name}'")
+        print(f"  id:     '{d.vendor:04x}:{d.product:04x}'")
+        print(f"  driver: '{d.driver}'")
+        print(f"  hidraw: [{', '.join(h for h in d.hidraws)}]")
+        print(f"  evdev:  [{', '.join(h for h in d.evdevs)}]")
+        print("")
+
+
 def main():
     parser = argparse.ArgumentParser(description="List kernel devices")
+    parser.add_argument("--hid", action="store_true", default=False)
     args = parser.parse_args()
 
-    list_devices()
+    if args.hid:
+        list_hid_devices()
+    else:
+        list_devices()
 
 
 if __name__ == "__main__":
