@@ -401,6 +401,10 @@ dep_libinput = declare_dependency(
 		link_with : lib_libinput,
 		dependencies : deps_libinput)
 
+if meson.version().version_compare('>= 0.54.0')
+	meson.override_dependency('libinput', dep_libinput)
+endif
+
 pkgconfig.generate(
 	filebase : 'libinput',
 	name : 'Libinput',
