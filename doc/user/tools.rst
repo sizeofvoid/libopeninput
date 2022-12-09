@@ -11,8 +11,10 @@ available in the **libinput(1)** man page.
 
 The most common tools used are:
 
-- ``libinput list-devices``: to list locally available devices,
+- ``libinput list-devices``: to list locally available devices as seen by libinput,
   see :ref:`here <libinput-list-devices>`
+- ``libinput list-kernel-devices``: to list locally available devices as seen by the kernel,
+  see :ref:`here <libinput-list-kernel-devices>`
 - ``libinput debug-events``: to monitor and debug events,
   see :ref:`here <libinput-debug-events>`
 - ``libinput debug-gui``: to visualize events,
@@ -72,6 +74,55 @@ default configuration for this device, for options that have more than a
 binary state all available options are listed, with the default one prefixed
 with an asterisk (``*``). In the example above, the default click method is
 button-areas but clickfinger is available.
+
+.. note:: This tool is intended for human-consumption and may change its output
+          at any time.
+
+.. _libinput-list-kernel-devices:
+
+------------------------------------------------------------------------------
+libinput list-kernel-devices
+------------------------------------------------------------------------------
+
+The ``libinput list-kernel-devices`` command shows the devices known by **the
+kernel**. This command can help identify issues when a device is not handled by
+libinput.
+
+::
+
+    $ libinput list-kernel-devices
+    /dev/input/event0:	Sleep Button
+    /dev/input/event1:	Power Button
+    /dev/input/event2:	Power Button
+    /dev/input/event3:	Microsoft Microsoft® 2.4GHz Transceiver v9.0
+    /dev/input/event4:	Microsoft Microsoft® 2.4GHz Transceiver v9.0 Mouse
+    [...]
+
+
+In some cases, knowing about the HID devices behind the kernel's event nodes
+can be useful. To list HID devices, supply the ``--hid`` commandline flag:
+
+::
+
+    $ libinput list-kernel-devices --hid
+    hid:
+    - name:   'Logitech Gaming Mouse G303'
+      id:     '046d:c080'
+      driver: 'hid-generic'
+      hidraw: ['/dev/hidraw6']
+      evdev:  ['/dev/input/event13']
+
+    - name:   'Logitech Gaming Mouse G303'
+      id:     '046d:c080'
+      driver: 'hid-generic'
+      hidraw: ['/dev/hidraw7']
+      evdev:  ['/dev/input/event14']
+
+    - name:   'Microsoft Microsoft® 2.4GHz Transceiver v9.0'
+      id:     '045e:07a5'
+      driver: 'hid-generic'
+      hidraw: ['/dev/hidraw0']
+      evdev:  ['/dev/input/event3']
 
 .. note:: This tool is intended for human-consumption and may change its output
           at any time.
