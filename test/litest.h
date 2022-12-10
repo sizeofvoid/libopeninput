@@ -1064,6 +1064,8 @@ litest_enable_2fg_scroll(struct litest_device *dev)
 
 	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
 	litest_assert_int_eq(status, expected);
+
+	libinput_device_config_scroll_set_natural_scroll_enabled(device, 0);
 }
 
 static inline void
@@ -1077,6 +1079,8 @@ litest_enable_edge_scroll(struct litest_device *dev)
 
 	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
 	litest_assert_int_eq(status, expected);
+
+	libinput_device_config_scroll_set_natural_scroll_enabled(device, 0);
 }
 
 static inline bool

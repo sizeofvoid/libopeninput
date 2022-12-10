@@ -3137,12 +3137,24 @@ tp_scroll_config_scroll_method_get_default_method(struct libinput_device *device
 	return tp_scroll_get_default_method(tp);
 }
 
+static int
+tp_scroll_config_natural_get_default(struct libinput_device *device)
+{
+	struct evdev_device *dev = evdev_device(device);
+
+	return (evdev_device_has_model_quirk(dev, QUIRK_MODEL_APPLE_TOUCHPAD) ||
+		evdev_device_has_model_quirk(dev, QUIRK_MODEL_APPLE_TOUCHPAD_ONEBUTTON));
+}
+
 static void
 tp_init_scroll(struct tp_dispatch *tp, struct evdev_device *device)
 {
 	tp_edge_scroll_init(tp, device);
 
 	evdev_init_natural_scroll(device);
+	/* Override natural scroll config for Apple touchpads */
+	device->scroll.config_natural.get_default_enabled = tp_scroll_config_natural_get_default;
+	device->scroll.natural_scrolling_enabled = tp_scroll_config_natural_get_default(&device->base);
 
 	tp->scroll.config_method.get_methods = tp_scroll_config_scroll_method_get_methods;
 	tp->scroll.config_method.set_method = tp_scroll_config_scroll_method_set_method;

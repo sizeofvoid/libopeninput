@@ -957,8 +957,7 @@ evdev_scroll_config_natural_get(struct libinput_device *device)
 static int
 evdev_scroll_config_natural_get_default(struct libinput_device *device)
 {
-	/* could enable this on Apple touchpads. could do that, could
-	 * very well do that... */
+	/* Overridden in evdev-mt-touchpad.c for Apple touchpads. */
 	return 0;
 }
 

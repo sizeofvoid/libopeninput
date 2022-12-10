@@ -611,9 +611,11 @@ START_TEST(touchpad_scroll_natural_defaults)
 {
 	struct litest_device *dev = litest_current_device();
 
+	int enabled = libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_APPLE;
+
 	ck_assert_int_ge(libinput_device_config_scroll_has_natural_scroll(dev->libinput_device), 1);
-	ck_assert_int_eq(libinput_device_config_scroll_get_natural_scroll_enabled(dev->libinput_device), 0);
-	ck_assert_int_eq(libinput_device_config_scroll_get_default_natural_scroll_enabled(dev->libinput_device), 0);
+	ck_assert_int_eq(libinput_device_config_scroll_get_natural_scroll_enabled(dev->libinput_device), enabled);
+	ck_assert_int_eq(libinput_device_config_scroll_get_default_natural_scroll_enabled(dev->libinput_device), enabled);
 }
 END_TEST
 
