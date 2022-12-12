@@ -1782,9 +1782,13 @@ print_device_quirks(struct record_device *dev)
 				       QLOG_CUSTOM_LOG_PRIORITIES);
 	if (!quirks) {
 		fprintf(stderr,
-			"Failed to initialize the device quirks. "
-			"Please see the above errors "
-			"and/or re-run with --verbose for more details\n");
+			"Failed to load the device quirks from %s%s%s. "
+			"This will negatively affect device behavior. "
+			"See %s/device-quirks.html for details.\n",
+			data_path,
+			override_file ? " and " : "",
+			override_file ? override_file : "",
+			HTTP_DOC_LINK);
 		return;
 	}
 
