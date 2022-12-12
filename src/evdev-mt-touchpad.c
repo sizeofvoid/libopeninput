@@ -2988,18 +2988,26 @@ tp_init_accel(struct tp_dispatch *tp, enum libinput_config_accel_profile which)
 	tp->accel.y_scale_coeff = (DEFAULT_MOUSE_DPI/25.4) / res_y;
 	tp->accel.xy_scale_coeff = 1.0 * res_x/res_y;
 
-	if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT)
+	if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT) {
 		filter = create_pointer_accelerator_filter_touchpad_flat(dpi);
-	else if (evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_X230) ||
-		 tp->device->model_flags & EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81)
+	} else if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM) {
+		filter = create_custom_accelerator_filter();
+	} else if (evdev_device_has_model_quirk(device, QUIRK_MODEL_LENOVO_X230) ||
+		 tp->device->model_flags & EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81) {
 		filter = create_pointer_accelerator_filter_lenovo_x230(dpi, use_v_avg);
-	else if (libevdev_get_id_bustype(device->evdev) == BUS_BLUETOOTH)
+	} else {
+		uint64_t eds_threshold = 0;
+		uint64_t eds_value = 0;
+
+		if (libevdev_get_id_bustype(device->evdev) == BUS_BLUETOOTH) {
+			eds_threshold = ms2us(50);
+			eds_value = ms2us(10);
+		}
 		filter = create_pointer_accelerator_filter_touchpad(dpi,
-								    ms2us(50),
-								    ms2us(10),
+								    eds_threshold,
+								    eds_value,
 								    use_v_avg);
-	else
-		filter = create_pointer_accelerator_filter_touchpad(dpi, 0, 0, use_v_avg);
+	}
 
 	if (!filter)
 		return false;

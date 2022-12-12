@@ -114,6 +114,12 @@ tools_init_options(struct tools_options *options)
 	options->scroll_button_lock = -1;
 	options->speed = 0.0;
 	options->profile = LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
+	/* initialize accel args */
+	static double points[] = {0.0, 1.0};
+	options->custom_points = points;
+	options->custom_npoints = ARRAY_LENGTH(points);
+	options->custom_type = LIBINPUT_ACCEL_TYPE_FALLBACK;
+	options->custom_step = 1.0;
 }
 
 int
@@ -252,6 +258,8 @@ tools_parse_option(int option,
 			options->profile = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE;
 		else if (streq(optarg, "flat"))
 		      options->profile = LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT;
+		else if (streq(optarg, "custom"))
+		      options->profile = LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM;
 		else
 		      return 1;
 		break;
@@ -273,8 +281,39 @@ tools_parse_option(int option,
 			 "%s",
 			 optarg);
 		break;
+	case OPT_CUSTOM_POINTS:
+		if (!optarg)
+			return 1;
+		options->custom_points = double_array_from_string(optarg,
+								  ";",
+								  &options->custom_npoints);
+		if (!options->custom_points || options->custom_npoints < 2) {
+			fprintf(stderr,
+				"Invalid --set-custom-points\n"
+				"Please provide at least 2 points separated by a semicolon\n"
+				" e.g. --set-custom-points=\"1.0;1.5\"\n");
+			return 1;
+		}
+		break;
+	case OPT_CUSTOM_STEP:
+		if (!optarg)
+			return 1;
+		options->custom_step = strtod(optarg, NULL);
+		break;
+	case OPT_CUSTOM_TYPE:
+		if (!optarg)
+			return 1;
+		if (streq(optarg, "fallback"))
+			options->custom_type = LIBINPUT_ACCEL_TYPE_FALLBACK;
+		else if (streq(optarg, "motion"))
+			options->custom_type = LIBINPUT_ACCEL_TYPE_MOTION;
+		else {
+			fprintf(stderr, "Invalid --set-custom-type\n"
+			                "Valid custom types: fallback|motion\n");
+			return 1;
+		}
+		break;
 	}
-
 	return 0;
 }
 
@@ -466,6 +505,18 @@ tools_device_apply_config(struct libinput_device *device,
 		if (options->profile != LIBINPUT_CONFIG_ACCEL_PROFILE_NONE)
 			libinput_device_config_accel_set_profile(device,
 								 options->profile);
+	}
+
+	if (options->profile == LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM) {
+		struct libinput_config_accel *config =
+			libinput_config_accel_create(LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
+		libinput_config_accel_set_points(config,
+						 options->custom_type,
+						 options->custom_step,
+						 options->custom_npoints,
+						 options->custom_points);
+		libinput_device_config_accel_apply(device, config);
+		libinput_config_accel_destroy(config);
 	}
 }
 

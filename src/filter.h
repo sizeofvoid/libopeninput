@@ -103,6 +103,10 @@ typedef double (*accel_profile_func_t)(struct motion_filter *filter,
 				       double velocity,
 				       uint64_t time);
 
+bool
+filter_set_accel_config(struct motion_filter *filter,
+		        struct libinput_config_accel *accel_config);
+
 /* Pointer acceleration types */
 struct motion_filter *
 create_pointer_accelerator_filter_flat(int dpi);
@@ -134,6 +138,9 @@ create_pointer_accelerator_filter_trackpoint_flat(double multiplier);
 struct motion_filter *
 create_pointer_accelerator_filter_tablet(int xres, int yres);
 
+struct motion_filter *
+create_custom_accelerator_filter(void);
+
 /*
  * Pointer acceleration profiles.
  */
@@ -163,4 +170,14 @@ trackpoint_accel_profile(struct motion_filter *filter,
 			 void *data,
 			 double velocity,
 			 uint64_t time);
+double
+custom_accel_profile_fallback(struct motion_filter *filter,
+			      void *data,
+			      double speed_in,
+			      uint64_t time);
+double
+custom_accel_profile_motion(struct motion_filter *filter,
+			    void *data,
+			    double speed_in,
+			    uint64_t time);
 #endif /* FILTER_H */

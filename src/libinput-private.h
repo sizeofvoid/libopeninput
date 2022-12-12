@@ -231,6 +231,39 @@ struct libinput_device_config_send_events {
 	enum libinput_config_send_events_mode (*get_default_mode)(struct libinput_device *device);
 };
 
+/**
+ * Custom acceleration function min number of points
+ * At least 2 points are required for linear interpolation
+ */
+#define LIBINPUT_ACCEL_NPOINTS_MIN 2
+
+/**
+ * Custom acceleration function max number of points
+ * an arbitrary limit of sample points
+ * it should be more than enough for everyone
+ */
+#define LIBINPUT_ACCEL_NPOINTS_MAX 64
+
+/**
+ * Custom acceleration function max step size
+ */
+#define LIBINPUT_ACCEL_STEP_MAX 10000
+
+struct libinput_config_accel_custom_func {
+	double step;
+	size_t npoints;
+	double points[LIBINPUT_ACCEL_NPOINTS_MAX];
+};
+
+struct libinput_config_accel {
+	enum libinput_config_accel_profile profile;
+
+	struct  {
+		struct libinput_config_accel_custom_func *fallback;
+		struct libinput_config_accel_custom_func *motion;
+	} custom;
+};
+
 struct libinput_device_config_accel {
 	int (*available)(struct libinput_device *device);
 	enum libinput_config_status (*set_speed)(struct libinput_device *device,
@@ -243,6 +276,8 @@ struct libinput_device_config_accel {
 						   enum libinput_config_accel_profile);
 	enum libinput_config_accel_profile (*get_profile)(struct libinput_device *device);
 	enum libinput_config_accel_profile (*get_default_profile)(struct libinput_device *device);
+	enum libinput_config_status (*set_accel_config)(struct libinput_device *device,
+						        struct libinput_config_accel *accel_config);
 };
 
 struct libinput_device_config_natural_scroll {

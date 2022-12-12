@@ -326,3 +326,10 @@ LIBINPUT_1.21 {
 	libinput_device_config_dwtp_get_enabled;
 	libinput_device_config_dwtp_get_default_enabled;
 } LIBINPUT_1.19;
+
+LIBINPUT_1.23 {
+	libinput_config_accel_create;
+	libinput_config_accel_destroy;
+	libinput_device_config_accel_apply;
+	libinput_config_accel_set_points;
+} LIBINPUT_1.21;

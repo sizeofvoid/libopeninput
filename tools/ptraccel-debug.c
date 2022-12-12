@@ -191,6 +191,10 @@ usage(void)
 	       "	touchpad  ... the touchpad motion filter\n"
 	       "	x230	  ... custom filter for the Lenovo x230 touchpad\n"
 	       "	trackpoint... trackpoint motion filter\n"
+	       "	custom    ... custom motion filter, use --custom-points and --custom-step with this argument\n"
+	       "--custom-points=\"<double>;...;<double>\"  ... n points defining a custom acceleration function\n"
+	       "--custom-step=<double>  ... distance along the x-axis between each point, \n"
+	       "                            starting from 0. defaults to 1.0\n"
 	       "\n"
 	       "If extra arguments are present and mode is not given, mode defaults to 'sequence'\n"
 	       "and the arguments are interpreted as sequence of delta x coordinates\n"
@@ -226,6 +230,13 @@ main(int argc, char **argv)
 	const char *filter_type = "linear";
 	accel_profile_func_t profile = NULL;
 	double tp_multiplier = 1.0;
+	struct libinput_config_accel_custom_func custom_func = {
+		.step = 1.0,
+		.npoints = 2,
+		.points = {0.0, 1.0},
+	};
+	struct libinput_config_accel *accel_config =
+		libinput_config_accel_create(LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
 
 	enum {
 		OPT_HELP = 1,
@@ -236,6 +247,8 @@ main(int argc, char **argv)
 		OPT_SPEED,
 		OPT_DPI,
 		OPT_FILTER,
+		OPT_CUSTOM_POINTS,
+		OPT_CUSTOM_STEP,
 	};
 
 	while (1) {
@@ -250,6 +263,8 @@ main(int argc, char **argv)
 			{"speed", 1, 0, OPT_SPEED },
 			{"dpi", 1, 0, OPT_DPI },
 			{"filter", 1, 0, OPT_FILTER },
+			{"custom-points", 1, 0, OPT_CUSTOM_POINTS },
+			{"custom-step", 1, 0, OPT_CUSTOM_STEP },
 			{0, 0, 0, 0}
 		};
 
@@ -307,6 +322,31 @@ main(int argc, char **argv)
 		case OPT_FILTER:
 			filter_type = optarg;
 			break;
+		case OPT_CUSTOM_POINTS: {
+			size_t npoints;
+			double *points = double_array_from_string(optarg,
+								  ";",
+								  &npoints);
+			if (!points ||
+			    npoints < LIBINPUT_ACCEL_NPOINTS_MIN ||
+			    npoints > LIBINPUT_ACCEL_NPOINTS_MAX) {
+				fprintf(stderr,
+					"Invalid --custom-points\n"
+					"Please provide at least 2 points separated by a semicolon\n"
+					" e.g. --custom-points=\"1.0;1.5\"\n");
+				free(points);
+				return 1;
+			}
+			custom_func.npoints = npoints;
+			memcpy(custom_func.points,
+			       points,
+			       sizeof(*points) * npoints);
+			free(points);
+			break;
+		}
+		case OPT_CUSTOM_STEP:
+			custom_func.step = strtod(optarg, NULL);
+			break;
 		default:
 			usage();
 			exit(1);
@@ -335,6 +375,15 @@ main(int argc, char **argv)
 		filter = create_pointer_accelerator_filter_trackpoint(tp_multiplier,
 								      use_averaging);
 		profile = trackpoint_accel_profile;
+	} else if (streq(filter_type, "custom")) {
+		libinput_config_accel_set_points(accel_config,
+						 LIBINPUT_ACCEL_TYPE_MOTION,
+						 custom_func.step,
+						 custom_func.npoints,
+						 custom_func.points);
+		filter = create_custom_accelerator_filter();
+		profile = custom_accel_profile_motion;
+		filter_set_accel_config(filter, accel_config);
 	} else {
 		fprintf(stderr, "Invalid filter type %s\n", filter_type);
 		return 1;
@@ -378,6 +427,7 @@ main(int argc, char **argv)
 		break;
 	}
 
+	libinput_config_accel_destroy(accel_config);
 	filter_destroy(filter);
 
 	return 0;

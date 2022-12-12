@@ -44,6 +44,8 @@ struct motion_filter_interface {
 	void (*destroy)(struct motion_filter *filter);
 	bool (*set_speed)(struct motion_filter *filter,
 			  double speed_adjustment);
+	bool (*set_accel_config)(struct motion_filter *filter,
+				 struct libinput_config_accel *accel_config);
 };
 
 struct motion_filter {

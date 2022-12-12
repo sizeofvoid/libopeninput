@@ -1119,6 +1119,50 @@ START_TEST(strsplit_test)
 }
 END_TEST
 
+START_TEST(double_array_from_string_test)
+{
+	struct double_array_from_string_test {
+		const char *string;
+		const char *delim;
+		const double array[10];
+		const size_t len;
+		const bool result;
+	} tests[] = {
+		{ "1 2 3", " ", { 1, 2, 3 }, 3 },
+		{ "1", " ", { 1 }, 1 },
+		{ "1,2.5,", ",", { 1, 2.5 }, 2 },
+		{ "1.0  2", " ", { 1, 2.0 }, 2 },
+		{ " 1 2", " ", { 1, 2 }, 2 },
+		{ " ; 1;2  3.5  ;;4.1", "; ", { 1, 2, 3.5, 4.1 }, 4 },
+		/* special cases */
+		{ "1 two", " ", { 0 }, 0 },
+		{ "one two", " ", { 0 }, 0 },
+		{ "one 2", " ", { 0 }, 0 },
+		{ "", " ", { 0 }, 0 },
+		{ " ", " ", { 0 }, 0 },
+		{ "    ", " ", { 0 }, 0 },
+		{ "", " ", { 0 }, 0 },
+		{ "oneoneone", "one", { 0 }, 0 },
+		{ NULL, NULL, { 0 }, 0 }
+	};
+	struct double_array_from_string_test *t = tests;
+
+	while (t->string) {
+		size_t len;
+		double *array = double_array_from_string(t->string,
+							 t->delim,
+							 &len);
+		ck_assert_int_eq(len, t->len);
+
+		for (size_t idx = 0; idx < len; idx++)
+			ck_assert_double_eq(array[idx], t->array[idx]);
+
+		free(array);
+		t++;
+	}
+}
+END_TEST
+
 START_TEST(strargv_test)
 {
 	struct argv_test {
@@ -1571,6 +1615,7 @@ litest_utils_suite(void)
 	tcase_add_test(tc, safe_atou_base_8_test);
 	tcase_add_test(tc, safe_atod_test);
 	tcase_add_test(tc, strsplit_test);
+	tcase_add_test(tc, double_array_from_string_test);
 	tcase_add_test(tc, strargv_test);
 	tcase_add_test(tc, kvsplit_double_test);
 	tcase_add_test(tc, strjoin_test);

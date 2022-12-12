@@ -89,6 +89,18 @@ filter_get_type(struct motion_filter *filter)
 	return filter->interface->type;
 }
 
+bool
+filter_set_accel_config(struct motion_filter *filter,
+			struct libinput_config_accel *accel_config)
+{
+	assert(filter_get_type(filter) == accel_config->profile);
+
+	if (!filter->interface->set_accel_config)
+		return false;
+
+	return filter->interface->set_accel_config(filter, accel_config);
+}
+
 void
 trackers_init(struct pointer_trackers *trackers, int ntrackers)
 {

@@ -75,6 +75,12 @@ us2ms(uint64_t us)
 	return (uint32_t)(us / 1000);
 }
 
+static inline double
+us2ms_f(uint64_t us)
+{
+	return (double)us / 1000.0;
+}
+
 static inline uint64_t
 tv2us(const struct timeval *tv)
 {

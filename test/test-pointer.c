@@ -2220,6 +2220,7 @@ START_TEST(pointer_accel_profile_defaults)
 	profiles = libinput_device_config_accel_get_profiles(device);
 	ck_assert(profiles & LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE);
 	ck_assert(profiles & LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT);
+	ck_assert(profiles & LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
 
 	status = libinput_device_config_accel_set_profile(device,
 							  LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT);
@@ -2235,6 +2236,90 @@ START_TEST(pointer_accel_profile_defaults)
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	profile = libinput_device_config_accel_get_profile(device);
 	ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE);
+
+	status = libinput_device_config_accel_set_profile(device,
+							  LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	profile = libinput_device_config_accel_get_profile(device);
+	ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
+}
+END_TEST
+
+START_TEST(pointer_accel_config_reset_to_defaults)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	double default_speed = libinput_device_config_accel_get_default_speed(device);
+
+	/* There are no settings for these profiles to toggle, so we expect it
+	 * to simply reset to defaults */
+	enum libinput_config_accel_profile profiles[] = {
+		LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
+		LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT,
+	};
+
+	ARRAY_FOR_EACH(profiles, profile) {
+		ck_assert_int_eq(libinput_device_config_accel_set_speed(device, 1.0),
+				 LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+		ck_assert_double_eq(libinput_device_config_accel_get_speed(device), 1.0);
+
+		struct libinput_config_accel *config =
+			libinput_config_accel_create(LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE);
+		ck_assert_int_eq(libinput_device_config_accel_apply(device, config),
+				 LIBINPUT_CONFIG_STATUS_SUCCESS);
+		ck_assert_double_eq(libinput_device_config_accel_get_speed(device),
+				    default_speed);
+		libinput_config_accel_destroy(config);
+	}
+}
+END_TEST
+
+START_TEST(pointer_accel_config)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	enum libinput_config_status status;
+	enum libinput_config_accel_profile profile;
+	double custom_speed[] = {0.1234, -0.567, 0.89};
+	double custom_step[] = {0.5, 0.003, 2.7};
+	double custom_npoints = 4;
+	double custom_points[3][4] = {{1.0, 2.0, 2.5, 2.6},
+				      {0.1, 0.3, 0.4, 0.45},
+				      {1.0, 3.0, 4.5, 4.5}};
+
+	ck_assert(libinput_device_config_accel_is_available(device));
+
+	struct libinput_config_accel *config_custom_default =
+		libinput_config_accel_create(LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
+	struct libinput_config_accel *config_custom_changed =
+		libinput_config_accel_create(LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
+
+	ck_assert_ptr_nonnull(config_custom_default);
+	ck_assert_ptr_nonnull(config_custom_changed);
+
+
+	for (size_t idx = 0; idx < ARRAY_LENGTH(custom_speed); idx++) {
+		status = libinput_config_accel_set_points(config_custom_changed,
+							  LIBINPUT_ACCEL_TYPE_FALLBACK,
+							  custom_step[idx],
+							  custom_npoints,
+							  custom_points[idx]);
+		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+		status = libinput_device_config_accel_apply(device, config_custom_changed);
+		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+		profile = libinput_device_config_accel_get_profile(device);
+		ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
+
+		status = libinput_device_config_accel_apply(device, config_custom_default);
+		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+		profile = libinput_device_config_accel_get_profile(device);
+		ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
+	}
+
+	libinput_config_accel_destroy(config_custom_default);
+	libinput_config_accel_destroy(config_custom_changed);
 }
 END_TEST
 
@@ -2256,6 +2341,10 @@ START_TEST(pointer_accel_profile_invalid)
 
 	status = libinput_device_config_accel_set_profile(device,
 			   LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE |LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+
+	status = libinput_device_config_accel_set_profile(device,
+			   LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM |LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
@@ -3633,6 +3722,8 @@ TEST_COLLECTION(pointer)
 	litest_add(pointer_accel_direction_change, LITEST_RELATIVE, LITEST_POINTINGSTICK);
 	litest_add(pointer_accel_profile_defaults, LITEST_RELATIVE, LITEST_TOUCHPAD);
 	litest_add(pointer_accel_profile_defaults, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(pointer_accel_config_reset_to_defaults, LITEST_RELATIVE, LITEST_ANY);
+	litest_add(pointer_accel_config, LITEST_RELATIVE, LITEST_ANY);
 	litest_add(pointer_accel_profile_invalid, LITEST_RELATIVE, LITEST_ANY);
 	litest_add(pointer_accel_profile_noaccel, LITEST_ANY, LITEST_TOUCHPAD|LITEST_RELATIVE|LITEST_TABLET);
 	litest_add(pointer_accel_profile_flat_motion_relative, LITEST_RELATIVE, LITEST_TOUCHPAD);

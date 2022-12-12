@@ -19,12 +19,16 @@ Pointer acceleration profiles
 ------------------------------------------------------------------------------
 
 The profile decides the general method of pointer acceleration.
-libinput currently supports two profiles: **"adaptive"** and **"flat"**.
+libinput currently supports three profiles: **"adaptive"**, **"flat"** and
+**custom**.
 
 - The **adaptive** profile is the default profile for all devices and takes the
   current speed of the device into account when deciding on acceleration.
 - The **flat** profile is simply a constant factor applied to all device deltas,
   regardless of the speed of motion (see :ref:`ptraccel-profile-flat`).
+- The **custom** profile allows the user to define a custom acceleration
+  function, giving full control over accelerations behavior at different speed
+  (see :ref:`ptraccel-profile-custom`).
 
 Most of this document describes the adaptive pointer acceleration.
 
@@ -198,3 +202,70 @@ Pointer acceleration on tablets
 Pointer acceleration for relative motion on tablet devices is a flat
 acceleration, with the speed setting slowing down or speeding up the pointer
 motion by a constant factor. Tablets do not allow for switchable profiles.
+
+.. _ptraccel-profile-custom:
+
+------------------------------------------------------------------------------
+The custom acceleration profile
+------------------------------------------------------------------------------
+
+libinput supports a user-defined custom acceleration profile, which can be
+adjusted for different movement types supported by a device. Movement types
+include pointer movement, scrolling, etc. but the set of supported
+movement types depends on the device.
+
+The custom pointer acceleration profile gives users full control over the
+acceleration behavior at different speeds. libinput exposes
+an acceleration function ``f(x)`` where the x axis is the device speed in
+device units per millisecond and the y axis is the pointer speed. By
+supplying the y axis values for this function, users can control the
+behavior of the device.
+
+The user should take into account the native device dpi and screen dpi in
+order to achieve the desired behavior/feel.
+
+The custom acceleration function is defined using ``n`` points which are spaced
+uniformly along the x axis, starting from 0 and continuing in constant steps.
+At least two points must be defined and there is an implementation-defined
+limit on how many points may be added.
+
+Thus the points defining the custom function are:
+``(0 * step, f[0]), (1 * step, f[1]), ..., ((n-1) * step, f[n-1])``
+where ``f`` is a list of ``n`` unitless values defining the acceleration
+factor for each velocity.
+When a velocity value does not lie exactly on those points, a linear
+interpolation of the two closest points will be calculated.
+When a velocity value is greater than the max point defined, a linear
+extrapolation of the two biggest points will be calculated.
+
+An example is the curve of ``0.0, 1.0`` with a step of ``1.0``. This curve
+is the equivalent of the flat acceleration profile with any input speed `N`
+mapped to the same pointer speed `N`. The curve `1.0, 1.0` neutralizes
+any input speed differences and results in a fixed pointer speed.
+
+Supported Movement types:
+
++---------------+---------------------------------+----------------------+
+| Movement type | Uses                            | supported by         |
++===============+=================================+======================+
+| Fallback      | Catch-all default movement type | All devices          |
++---------------+---------------------------------+----------------------+
+| Motion        | Used for pointer motion         | All devices          |
++---------------+---------------------------------+----------------------+
+
+If a user does not provide the fallback custom acceleration function, a
+flat acceleration function is used, i.e. no acceleration.
+
+The fallback acceleration may be used for different types of movements, it is
+strongly recommended that this acceleration function is a constant function.
+
+For example, a physical mouse usually has two movement types: pointer
+movement and scroll (wheel) movement. As there is no separate movement
+type for scroll yet, scroll movement is be accelerated using the Fallback
+acceleration function. Pointer movements is accelerated using the Motion
+acceleration function. If no Motion acceleration function is set, the
+Fallback acceleration function is used.
+
+When using custom acceleration profile, any calls to set the speed have no
+effect on the behavior of the custom acceleration function, but any future calls to
+get the speed will reflect the requested speed setting.

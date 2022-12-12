@@ -94,11 +94,28 @@ Set the desired scroll method
 .B \-\-set\-scroll\-button=BTN_MIDDLE
 Set the button to the given button code
 .TP 8
-.B \-\-set\-profile=[adaptive|flat]
+.B \-\-set\-profile=[adaptive|flat|custom]
 Set pointer acceleration profile
 .TP 8
 .B \-\-set\-speed=<value>
 Set pointer acceleration speed. The allowed range is [-1, 1].
+This only applies to the flat or adaptive profile.
+.TP 8
+.B \-\-set\-custom\-points="<value>;...;<value>"
+Sets the n points defining a custom acceleration function
+The points are defined in a semicolon-separated list of floating point
+non-negative numbers. Defaults to "0.0;1.0".
+This only applies to the custom profile.
+.TP 8
+.B \-\-set\-custom\-step=<value>
+Sets the distance along the x-axis between each point, starting from 0.
+Defaults to 1.0.
+This only applies to the custom profile.
+.TP 8
+.B \-\-set\-custom\-type=[fallback|motion]
+Sets the type of the custom acceleration function.
+Defaults to fallback.
+This only applies to the custom profile.
 .TP 8
 .B \-\-set\-tap\-map=[lrm|lmr]
 Set button mapping for tapping

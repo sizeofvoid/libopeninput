@@ -274,6 +274,47 @@ strv_free(char **strv) {
 	free (strv);
 }
 
+/**
+ * parse a string containing a list of doubles into a double array.
+ *
+ * @param in string to parse
+ * @param separator string used to separate double in list e.g. ","
+ * @param result double array
+ * @param length length of double array
+ * @return true when parsed successfully otherwise false
+ */
+static inline double *
+double_array_from_string(const char *in,
+			 const char *separator,
+			 size_t *length)
+{
+	double *result = NULL;
+	*length = 0;
+
+	size_t nelem;
+	char **strv = strv_from_string(in, separator, &nelem);
+	if (!strv)
+		return result;
+
+	double *numv = zalloc(sizeof(double) * nelem);
+	for (size_t idx = 0; idx < nelem; idx++) {
+		double val;
+		if (!safe_atod(strv[idx], &val))
+			goto out;
+
+		numv[idx] = val;
+	}
+
+	result = numv;
+	numv = NULL;
+	*length = nelem;
+
+out:
+	strv_free(strv);
+	free(numv);
+	return result;
+}
+
 struct key_value_str{
 	char *key;
 	char *value;

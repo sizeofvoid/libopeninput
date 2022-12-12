@@ -1187,7 +1187,9 @@ evdev_init_accel(struct evdev_device *device,
 {
 	struct motion_filter *filter = NULL;
 
-	if (device->tags & EVDEV_TAG_TRACKPOINT) {
+	if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM)
+		filter = create_custom_accelerator_filter();
+	else if (device->tags & EVDEV_TAG_TRACKPOINT) {
 		if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT)
 			filter = create_pointer_accelerator_filter_trackpoint_flat(device->trackpoint_multiplier);
 		else
@@ -1255,7 +1257,8 @@ evdev_accel_config_get_profiles(struct libinput_device *libinput_device)
 		return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
 
 	return LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE |
-		LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT;
+	       LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT |
+	       LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM;
 }
 
 static enum libinput_config_status
@@ -1304,6 +1307,20 @@ evdev_accel_config_get_default_profile(struct libinput_device *libinput_device)
 	return LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE;
 }
 
+static enum libinput_config_status
+evdev_set_accel_config(struct libinput_device *libinput_device,
+		       struct libinput_config_accel *accel_config)
+{
+	assert(evdev_accel_config_get_profile(libinput_device) == accel_config->profile);
+
+	struct evdev_device *dev = evdev_device(libinput_device);
+
+	if (!filter_set_accel_config(dev->pointer.filter, accel_config))
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
 void
 evdev_device_init_pointer_acceleration(struct evdev_device *device,
 				       struct motion_filter *filter)
@@ -1321,6 +1338,7 @@ evdev_device_init_pointer_acceleration(struct evdev_device *device,
 		device->pointer.config.set_profile = evdev_accel_config_set_profile;
 		device->pointer.config.get_profile = evdev_accel_config_get_profile;
 		device->pointer.config.get_default_profile = evdev_accel_config_get_default_profile;
+		device->pointer.config.set_accel_config = evdev_set_accel_config;
 		device->base.config.accel = &device->pointer.config;
 
 		default_speed = evdev_accel_config_get_default_speed(&device->base);
