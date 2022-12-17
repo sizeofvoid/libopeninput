@@ -1418,9 +1418,9 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 	if (offset <= pressure->minimum)
 		return;
 
-	if (offset > axis_range_percentage(pressure, 20)) {
+	if (offset > axis_range_percentage(pressure, 50)) {
 		evdev_log_error(device,
-			 "Ignoring pressure offset greater than 20%% detected on tool %s (serial %#x). "
+			 "Ignoring pressure offset greater than 50%% detected on tool %s (serial %#x). "
 			 "See %s/tablet-support.html\n",
 			 tablet_tool_type_to_string(tool->type),
 			 tool->serial,

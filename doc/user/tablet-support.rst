@@ -180,8 +180,8 @@ specifically:
   capable of detection distances,
 - pressure offset is only detected if the distance between the tool and the
   tablet is high enough,
-- pressure offset is only used if it is 20% or less of the pressure range
-  available to the tool. A pressure offset higher than 20% indicates either
+- pressure offset is only used if it is 50% or less of the pressure range
+  available to the tool. A pressure offset higher than 50% indicates either
   a misdetection or a tool that should be replaced, and
 - if a pressure value less than the current pressure offset is seen, the
   offset resets to that value.

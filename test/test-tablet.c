@@ -4115,7 +4115,7 @@ START_TEST(tablet_pressure_offset_exceed_threshold)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 70 },
-		{ ABS_PRESSURE, 30 },
+		{ ABS_PRESSURE, 60 },
 		{ -1, -1 },
 	};
 	int warning_triggered = 0;
@@ -4137,7 +4137,7 @@ START_TEST(tablet_pressure_offset_exceed_threshold)
 	libinput_log_set_handler(li, pressure_threshold_warning);
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	libinput_dispatch(li);
-	assert_pressure(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, 0.30);
+	assert_pressure(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, 0.60);
 
 	ck_assert_int_eq(warning_triggered, 1);
 	litest_restore_log_handler(li);
