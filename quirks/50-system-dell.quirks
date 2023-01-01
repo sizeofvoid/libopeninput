@@ -108,3 +108,8 @@ MatchBus=usb
 MatchVendor=0x2575
 MatchProduct=0x0204
 ModelDellCanvasTotem=1
+
+[Dell Latitude 5290 2-in-1]
+MatchName=AT Translated Set 2 keyboard
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude52902-in-1:*
+ModelTabletModeNoSuspend=1
