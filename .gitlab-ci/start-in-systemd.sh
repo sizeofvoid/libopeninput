@@ -37,7 +37,7 @@ Type=simple
 StandardOutput=journal+console
 EnvironmentFile=$B2C_WORKDIR/.b2c_env
 WorkingDirectory=$WORKDIR
-ExecStart=$WORKDIR/.gitlab-ci/meson-build.sh --skip-setup --skip-build
+ExecStart=$WORKDIR/.gitlab-ci/meson-build.sh --skip-setup --skip-build --run-test
 
 # exit the container on termination
 ExecStopPost=$post_command
