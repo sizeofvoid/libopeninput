@@ -203,10 +203,6 @@ check-whitespace:
 #                                                               #
 #################################################################
 
-#
-# Note: images are rebuilt weekly with a scheduled pipeline with FDO_FORCE_REBUILD set
-#
-#
 {% for distro in distributions %}
 {% for version in distro.versions %}
 {{distro.name}}:{{version}}@container-prep:

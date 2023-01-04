@@ -215,10 +215,6 @@ check-whitespace:
 #                                                               #
 #################################################################
 
-#
-# Note: images are rebuilt weekly with a scheduled pipeline with FDO_FORCE_REBUILD set
-#
-#
 fedora:36@container-prep:
   extends:
     - .fdo.container-build@fedora
