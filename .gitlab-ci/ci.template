@@ -328,7 +328,6 @@ check-whitespace:
 .build-in-qemu@template:
   extends:
     - .policy
-    - .fdo.distribution-image@fedora
   tags:
     - kvm
   variables:

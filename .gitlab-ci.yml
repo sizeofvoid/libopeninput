@@ -452,7 +452,6 @@ freebsd:13.1@container-clean:
 .build-in-qemu@template:
   extends:
     - .policy
-    - .fdo.distribution-image@fedora
   tags:
     - kvm
   variables:
