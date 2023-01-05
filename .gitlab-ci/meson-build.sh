@@ -53,7 +53,7 @@ if [[ -z "$CI_JOB_ID" ]] || [[ -z "$CI_JOB_NAME" ]]; then
 fi
 
 if [[ -n "$FDO_CI_CONCURRENT" ]]; then
-	NINJA_ARGS="-j$FDO_CI_CONCURRENT $NINJA_ARGS"
+	jobcount="-j$FDO_CI_CONCURRENT"
 	export MESON_TESTTHREADS="$FDO_CI_CONCURRENT"
 fi
 
@@ -62,6 +62,7 @@ echo "builddir: $MESON_BUILDDIR"
 echo "meson args: $MESON_ARGS"
 echo "ninja args: $NINJA_ARGS"
 echo "meson test args: $MESON_TEST_ARGS"
+echo "job count: ${jobcount-0}"
 echo "*************************************************"
 
 set -e
@@ -73,7 +74,10 @@ fi
 meson configure "$MESON_BUILDDIR"
 
 if [[ -z "$MESON_SKIP_BUILD" ]]; then
-	ninja -C "$MESON_BUILDDIR" $NINJA_ARGS
+	if [[ -n "$NINJA_ARGS" ]]; then
+		ninja_args="--ninja-args $NINJA_ARGS"
+	fi
+	meson compile -v -C "$MESON_BUILDDIR" $jobcount $ninja_args
 fi
 
 if [[ -n "$MESON_RUN_TEST" ]]; then
