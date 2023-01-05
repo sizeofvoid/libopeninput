@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#
+# SPDX-License-Identifier: MIT
 
 set -x
 if [[ -f .meson_environment ]]; then
