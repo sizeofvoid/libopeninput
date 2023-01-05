@@ -44,8 +44,9 @@ fi
 # run and debug locally.
 if [[ -z "$CI_JOB_ID" ]] || [[ -z "$CI_JOB_NAME" ]]; then
 	echo "Missing \$CI_JOB_ID or \$CI_JOB_NAME".
+	CI_PROJECT_NAME=$(basename "$PWD")
 	CI_JOB_ID=$(date +%s)
-	CI_JOB_NAME='libinput-job-local'
+	CI_JOB_NAME="$CI_PROJECT_NAME-job-local"
 	echo "Simulating gitlab environment: "
 	echo " CI_JOB_ID=$CI_JOB_ID"
 	echo " CI_JOB_NAME=$CI_JOB_NAME"
