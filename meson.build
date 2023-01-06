@@ -546,7 +546,12 @@ if get_option('debug-gui')
 		config_h.set10('HAVE_GTK3', dep_gtk.found())
 	endif
 
-	gtk_targets = dep_gtk.get_pkgconfig_variable('targets')
+	if meson.version().version_compare('>= 0.58')
+		gtk_targets = dep_gtk.get_variable('targets')
+	else
+		gtk_targets = dep_gtk.get_pkgconfig_variable('targets')
+	endif
+
 	have_gtk_wayland = gtk_targets.contains('wayland')
 	have_gtk_x11 = gtk_targets.contains('x11')
 
@@ -563,7 +568,11 @@ if get_option('debug-gui')
 
 	if have_gtk_wayland and dep_wayland_client.found() and dep_wayland_protocols.found()
 		wayland_scanner = find_program('wayland-scanner')
-		wlproto_dir = dep_wayland_protocols.get_pkgconfig_variable('pkgdatadir')
+		if meson.version().version_compare('>= 0.58')
+			wlproto_dir = dep_wayland_protocols.get_variable('pkgdatadir')
+		else
+			wlproto_dir = dep_wayland_protocols.get_pkgconfig_variable('pkgdatadir')
+		endif
 
 		proto_name = 'pointer-constraints-unstable-v1'
 		input = files(wlproto_dir / 'unstable' / 'pointer-constraints' / '@0@.xml'.format(proto_name))
