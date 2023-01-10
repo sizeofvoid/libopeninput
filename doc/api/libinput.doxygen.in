@@ -25,6 +25,7 @@ PREDEFINED             = LIBINPUT_ATTRIBUTE_PRINTF(f, a)= \
 DOTFILE_DIRS           = "@builddir@"
 EXAMPLE_PATH           = "@builddir@"
 SHOW_NAMESPACES        = NO
+HAVE_DOT               = YES
 
 HTML_HEADER = "@builddir@/header.html"
 HTML_FOOTER = "@builddir@/footer.html"
