@@ -113,3 +113,11 @@ ModelDellCanvasTotem=1
 MatchName=AT Translated Set 2 keyboard
 MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude52902-in-1:*
 ModelTabletModeNoSuspend=1
+
+# This is a true pressurepad so disable pressure for contact size
+# https://gitlab.freedesktop.org/libinput/libinput/-/issues/849
+[Dell Precision5680 Touchpad]
+MatchBus=i2c
+MatchVendor=0x27C6
+MatchProduct=0x0F60
+AttrEventCode=-ABS_MT_PRESSURE;-ABS_PRESSURE;
