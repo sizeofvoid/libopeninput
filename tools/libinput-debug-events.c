@@ -951,6 +951,9 @@ handle_and_print_events(struct libinput *li)
 		libinput_event_destroy(ev);
 		rc = 0;
 	}
+
+	fflush(stdout);
+
 	return rc;
 }
 
