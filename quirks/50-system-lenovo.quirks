@@ -147,7 +147,7 @@ AttrTrackpointMultiplier=1.25
 MatchBus=i2c
 MatchVendor=0x06CB
 MatchProduct=0xCE37
-AttrEventCode=-ABS_MT_PRESSURE;-ABS_PRESSURE;
+ModelPressurePad=1
 
 [Lenovo Yoga C930 Tablet]
 MatchBus=i2c
@@ -272,7 +272,7 @@ AttrKeyboardIntegration=internal
 MatchBus=i2c
 MatchVendor=0x27C6
 MatchProduct=0x01E8
-AttrEventCode=-ABS_MT_PRESSURE;-ABS_PRESSURE;
+ModelPressurePad=1
 
 # Duet 7i tablet switch activated by folding keyboard cover, or removing it.
 # We must not disable volume rocker 'keyboard'.

@@ -147,6 +147,10 @@ ModelBouncingKeys
     timestamps can not be relied upon.
 ModelSynapticsSerialTouchpad
     Reserved for touchpads made by Synaptics on the serial bus
+ModelPressurePad
+    Unlike in traditional touchpads, whose pressure value equals contact size,
+    on pressure pads pressure is a real physical axis.
+    Indicates that the device is a pressure pad.
 AttrSizeHint=NxM, AttrResolutionHint=N
     Hints at the width x height of the device in mm, or the resolution
     of the x/y axis in units/mm. These may only be used where they apply to
