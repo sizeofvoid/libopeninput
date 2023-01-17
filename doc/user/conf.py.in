@@ -169,7 +169,7 @@ from recommonmark.parser import CommonMarkParser
 
 extlinks = { 'commit' :
 		('https://gitlab.freedesktop.org/libinput/libinput/commit/%s',
-			'git commit ')
+			'git commit %s')
 }
 
 # -- git version hack -------------------------------------------------
