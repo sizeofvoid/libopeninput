@@ -78,7 +78,7 @@ installed.
      $ cd path/to/libinput.git
 
      # Use an approximate multiplier in the quirks file
-     $ cat > quirks/99-trackpont-override.quirks <<EOF
+     $ cat > quirks/99-trackpoint-override.quirks <<EOF
      [Trackpoint Override]
      MatchUdevType=pointingstick
      AttrTrackpointMultiplier=1.0
