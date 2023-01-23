@@ -77,6 +77,16 @@ MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX230:*
 AttrTrackpointMultiplier=0.25
 
+[Lenovo X280 Trackpoint]
+MatchName=*TPPS/2 Elan TrackPoint
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX280:*
+AttrTrackpointMultiplier=0.5
+
+[Lenovo X280 Touchpad]
+MatchName=Synaptics TM3381-002
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX280*
+AttrPalmSizeThreshold=6
+
 [Lenovo P50 Touchpad]
 MatchName=SynPS/2 Synaptics TouchPad
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadP50*:
