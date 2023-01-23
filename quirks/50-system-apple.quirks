@@ -114,6 +114,12 @@ AttrSizeHint=104x75
 AttrTouchSizeRange=150:130
 AttrPalmSizeThreshold=1600
 
+[Apple Laptop Keyboard (MTP)]
+MatchUdevType=keyboard
+MatchName=Apple*MTP*
+MatchVendor=0x5AC
+AttrKeyboardIntegration=internal
+
 # The Linux applespi driver currently uses the Synaptics vendor for some reason
 [Apple Laptop Touchpad (SPI)]
 MatchUdevType=touchpad
