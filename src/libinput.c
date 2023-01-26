@@ -4267,6 +4267,12 @@ libinput_config_accel_set_points(struct libinput_config_accel *config,
 	if (npoints < LIBINPUT_ACCEL_NPOINTS_MIN || npoints > LIBINPUT_ACCEL_NPOINTS_MAX)
 		return LIBINPUT_CONFIG_STATUS_INVALID;
 
+	for (size_t idx = 0; idx < npoints; idx++) {
+		if (points[idx] < LIBINPUT_ACCEL_POINT_MIN_VALUE ||
+		    points[idx] > LIBINPUT_ACCEL_POINT_MAX_VALUE)
+			return LIBINPUT_CONFIG_STATUS_INVALID;
+	}
+
 	struct libinput_config_accel_custom_func *func = libinput_config_accel_custom_func_create();
 
 	func->step = step;

@@ -2281,12 +2281,25 @@ START_TEST(pointer_accel_config)
 	struct libinput_device *device = dev->libinput_device;
 	enum libinput_config_status status;
 	enum libinput_config_accel_profile profile;
-	double custom_speed[] = {0.1234, -0.567, 0.89};
-	double custom_step[] = {0.5, 0.003, 2.7};
-	double custom_npoints = 4;
-	double custom_points[3][4] = {{1.0, 2.0, 2.5, 2.6},
-				      {0.1, 0.3, 0.4, 0.45},
-				      {1.0, 3.0, 4.5, 4.5}};
+	enum libinput_config_status valid = LIBINPUT_CONFIG_STATUS_SUCCESS,
+				    invalid = LIBINPUT_CONFIG_STATUS_INVALID;
+	enum libinput_config_accel_type fallback = LIBINPUT_ACCEL_TYPE_FALLBACK,
+					motion = LIBINPUT_ACCEL_TYPE_MOTION;
+	struct custom_config_test {
+		enum libinput_config_accel_type accel_type;
+		double step;
+		double points[4];
+		enum libinput_config_status expected_status;
+	} tests[] = {
+		{ fallback,  0.5, { 1.0, 2.0, 2.5, 2.6 },  valid },
+		{ motion,  0.003, { 0.1, 0.3, 0.4, 0.45 }, valid },
+		{ fallback,  2.7, { 1.0, 3.0, 4.5, 4.5 },  valid },
+		{ motion,      0, { 1.0, 2.0, 2.5, 2.6 },  invalid },
+		{ fallback,   -1, { 1.0, 2.0, 2.5, 2.6 },  invalid },
+		{ motion,   1e10, { 1.0, 2.0, 2.5, 2.6 },  invalid },
+		{ fallback,    1, { 1.0, 2.0, -2.5, 2.6 }, invalid },
+		{ motion,      1, { 1.0, 2.0, 1e10, 2.6 }, invalid },
+	};
 
 	ck_assert(libinput_device_config_accel_is_available(device));
 
@@ -2298,14 +2311,13 @@ START_TEST(pointer_accel_config)
 	ck_assert_ptr_nonnull(config_custom_default);
 	ck_assert_ptr_nonnull(config_custom_changed);
 
-
-	for (size_t idx = 0; idx < ARRAY_LENGTH(custom_speed); idx++) {
+	ARRAY_FOR_EACH(tests, t) {
 		status = libinput_config_accel_set_points(config_custom_changed,
-							  LIBINPUT_ACCEL_TYPE_FALLBACK,
-							  custom_step[idx],
-							  custom_npoints,
-							  custom_points[idx]);
-		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+							  t->accel_type,
+							  t->step,
+							  ARRAY_LENGTH(t->points),
+							  t->points);
+		ck_assert_int_eq(status, t->expected_status);
 
 		status = libinput_device_config_accel_apply(device, config_custom_changed);
 		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);

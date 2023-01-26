@@ -49,6 +49,12 @@ create_custom_accel_function(double step, const double *points, size_t npoints)
 	if (step <= 0 || step > LIBINPUT_ACCEL_STEP_MAX)
 		return NULL;
 
+	for (size_t idx = 0; idx < npoints; idx++) {
+		if (points[idx] < LIBINPUT_ACCEL_POINT_MIN_VALUE ||
+		    points[idx] > LIBINPUT_ACCEL_POINT_MAX_VALUE)
+			return NULL;
+	}
+
 	struct custom_accel_function *cf = zalloc(sizeof(*cf) + npoints * sizeof(*points));
 	cf->last_time = 0;
 	cf->step = step;
