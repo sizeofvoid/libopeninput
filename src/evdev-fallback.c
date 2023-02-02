@@ -808,9 +808,11 @@ fallback_arbitrate_touch(struct fallback_dispatch *dispatch,
 			 struct mt_slot *slot)
 {
 	bool discard = false;
+	struct device_coords point = slot->point;
+	evdev_transform_absolute(dispatch->device, &point);
 
 	if (dispatch->arbitration.state == ARBITRATION_IGNORE_RECT &&
-	    point_in_rect(&slot->point, &dispatch->arbitration.rect)) {
+	    point_in_rect(&point, &dispatch->arbitration.rect)) {
 		slot->palm_state = PALM_IS_PALM;
 		discard = true;
 	}
@@ -997,19 +999,24 @@ cancel_touches(struct fallback_dispatch *dispatch,
 {
 	unsigned int idx;
 	bool need_frame = false;
+	struct device_coords point;
 
-	if (!rect || point_in_rect(&dispatch->abs.point, rect))
+	point = dispatch->abs.point;
+	evdev_transform_absolute(device, &point);
+	if (!rect || point_in_rect(&point, rect))
 		need_frame = fallback_flush_st_cancel(dispatch,
 						      device,
 						      time);
 
 	for (idx = 0; idx < dispatch->mt.slots_len; idx++) {
 		struct mt_slot *slot = &dispatch->mt.slots[idx];
+		point = slot->point;
+		evdev_transform_absolute(device, &point);
 
 		if (slot->seat_slot == -1)
 			continue;
 
-		if ((!rect || point_in_rect(&slot->point, rect)) &&
+		if ((!rect || point_in_rect(&point, rect)) &&
 		    fallback_flush_mt_cancel(dispatch, device, idx, time))
 			need_frame = true;
 	}
