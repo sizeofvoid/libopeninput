@@ -15,6 +15,13 @@ simultaneously.
 .TP 8
 .B \-\-help
 Print help
+.TP 8
+.B \-\-once
+Only replay the recording once, then exit.
+.TP 8
+.B \-\-replay-after=s
+Replay the recording after waiting for s seconds. This replaces the default
+interactive prompt to start the replay.
 .SH NOTES
 .PP
 This tool replays events from a recording through the the kernel and is

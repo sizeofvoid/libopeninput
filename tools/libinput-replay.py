@@ -269,7 +269,10 @@ def loop(args, recording):
         return
 
     while True:
-        input("Hit enter to start replaying")
+        if args.replay_after >= 0:
+            time.sleep(args.replay_after)
+        else:
+            input("Hit enter to start replaying")
 
         processes = []
         for d in devices:
@@ -283,6 +286,9 @@ def loop(args, recording):
             p.join()
 
         del processes
+
+        if args.once:
+            break
 
 
 def create_device_quirk(device):
@@ -362,6 +368,18 @@ def main():
         metavar="recorded-file.yaml",
         type=str,
         help="Path to device recording",
+    )
+    parser.add_argument(
+        "--replay-after",
+        type=int,
+        default=-1,
+        help="Automatically replay once after N seconds",
+    )
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        default=False,
+        help="Stop and exit after one replay",
     )
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
