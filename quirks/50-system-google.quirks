@@ -100,6 +100,13 @@ ModelChromebook=1
 AttrPressureRange=6:4
 AttrThumbPressureThreshold=45
 
+[Google Chromebook Atlas]
+MatchUdevType=touchpad
+MatchName=ACPI0C50:01 04F3:30C5 Touchpad
+MatchDMIModalias=dmi:*svnGoogle:*pnAtlas*
+ModelChromebook=1
+AttrPressureRange=6:4
+
 [Google Chromebook Lazor Keyboard]
 MatchName=*cros_ec*
 MatchDeviceTree=*lazor*
