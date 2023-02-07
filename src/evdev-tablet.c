@@ -1506,7 +1506,7 @@ tablet_calculate_arbitration_rect(struct tablet_dispatch *tablet)
 	 * If the stylus is tilted left (tip further right than the eraser
 	 * end) assume left-handed mode.
 	 *
-	 * Obviously if we'd run out of the boundaries, we rescale the rect
+	 * Obviously if we'd run out of the boundaries, we clip the rect
 	 * accordingly.
 	 */
 	if (tablet->axes.tilt.x > 0) {
@@ -1519,14 +1519,14 @@ tablet_calculate_arbitration_rect(struct tablet_dispatch *tablet)
 	}
 
 	if (r.x < 0) {
-		r.w -= r.x;
+		r.w += r.x;
 		r.x = 0;
 	}
 
 	r.y = mm.y - 100;
 	r.h = 250;
 	if (r.y < 0) {
-		r.h -= r.y;
+		r.h += r.y;
 		r.y = 0;
 	}
 
