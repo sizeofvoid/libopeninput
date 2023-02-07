@@ -99,3 +99,8 @@ ModelInvertHorizontalScrolling=1
 MatchVendor=0x46D
 MatchProduct=0xB034
 ModelInvertHorizontalScrolling=1
+
+[Logitech MX Master 3B]
+MatchVendor=0x46D
+MatchProduct=0xB028
+ModelInvertHorizontalScrolling=1
