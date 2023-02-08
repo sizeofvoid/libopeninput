@@ -121,3 +121,9 @@ MatchBus=i2c
 MatchVendor=0x27C6
 MatchProduct=0x0F60
 ModelPressurePad=1
+
+[Dell Mayabay Touchpad]
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xCFA0
+ModelPressurePad=1
