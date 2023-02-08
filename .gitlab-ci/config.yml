@@ -208,5 +208,5 @@ test_suites:
       - pointer
 
 b2c:
-  version: v0.9.8
-  kernel: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v5.19/bzImage
+  version: v0.9.9
+  kernel: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v6.1/bzImage
