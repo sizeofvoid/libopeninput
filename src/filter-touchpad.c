@@ -113,26 +113,16 @@ accelerator_filter_touchpad(struct motion_filter *filter,
 
 /* Maps the [-1, 1] speed setting into a constant acceleration
  * range. This isn't a linear scale, we keep 0 as the 'optimized'
- * mid-point and scale down to 0 for setting -1 and up to 5 for
+ * mid-point and scale down to 0.05 for setting -1 and up to 5 for
  * setting 1. On the premise that if you want a faster cursor, it
  * doesn't matter as much whether you have 0.56789 or 0.56790,
  * but for lower settings it does because you may lose movements.
  * *shrug*.
- *
- * Magic numbers calculated by MyCurveFit.com, data points were
- *  0.0 0.0
- *  0.1 0.1 (because we need 4 points)
- *  1   1
- *  2   5
- *
- *  This curve fits nicely into the range necessary.
  */
 static inline double
 speed_factor(double s)
 {
-	s += 1; /* map to [0, 2] */
-	return 435837.2 + (0.04762636 - 435837.2)/(1 + pow(s/240.4549,
-							   2.377168));
+	return pow(s + 1, 2.38) * 0.95 + 0.05;
 }
 
 static bool
