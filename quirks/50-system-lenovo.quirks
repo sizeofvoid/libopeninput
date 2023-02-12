@@ -262,6 +262,11 @@ MatchVendor=0x048D
 MatchProduct=0xC101
 AttrKeyboardIntegration=internal
 
+[Lenovo Legion 5i Keyboard]
+MatchName=ITE Tech. Inc. ITE Device(8910) Keyboard
+MatchDMIModalias=dmi:*svnLENOVO:*pvrLegion515IAH7H:*
+AttrKeyboardIntegration=internal
+
 [Lenovo Legion 7 Keyboard]
 MatchUdevType=keyboard
 MatchBus=usb
