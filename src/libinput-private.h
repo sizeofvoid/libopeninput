@@ -271,6 +271,7 @@ struct libinput_config_accel {
 	struct  {
 		struct libinput_config_accel_custom_func *fallback;
 		struct libinput_config_accel_custom_func *motion;
+		struct libinput_config_accel_custom_func *scroll;
 	} custom;
 };
 

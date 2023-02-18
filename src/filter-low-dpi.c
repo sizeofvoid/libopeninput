@@ -210,6 +210,7 @@ static const struct motion_filter_interface accelerator_interface_low_dpi = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_low_dpi,
 	.filter_constant = accelerator_filter_noop,
+	.filter_scroll = accelerator_filter_noop,
 	.restart = accelerator_restart,
 	.destroy = accelerator_destroy,
 	.set_speed = accelerator_set_speed,

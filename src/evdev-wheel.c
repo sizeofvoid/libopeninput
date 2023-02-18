@@ -196,10 +196,10 @@ wheel_flush_scroll(struct fallback_dispatch *dispatch,
 			.y = dispatch->wheel.lo_res.y * -1,
 		};
 		const struct normalized_coords normalized =
-				filter_dispatch_constant(device->pointer.filter,
-						         &raw,
-							 device,
-							 time);
+				filter_dispatch_scroll(device->pointer.filter,
+						       &raw,
+						       device,
+						       time);
 		evdev_post_scroll(device,
 				  time,
 				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,

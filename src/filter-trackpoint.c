@@ -174,6 +174,7 @@ static const struct motion_filter_interface accelerator_interface_trackpoint = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = trackpoint_accelerator_filter,
 	.filter_constant = trackpoint_accelerator_filter_noop,
+	.filter_scroll = trackpoint_accelerator_filter_noop,
 	.restart = trackpoint_accelerator_restart,
 	.destroy = trackpoint_accelerator_destroy,
 	.set_speed = trackpoint_accelerator_set_speed,

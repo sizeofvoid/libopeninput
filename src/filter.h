@@ -82,6 +82,28 @@ filter_dispatch_constant(struct motion_filter *filter,
 			 const struct device_float_coords *unaccelerated,
 			 void *data, uint64_t time);
 
+/**
+ * Apply a scroll filter.
+ * Depending on the device, and the acceleration profile,
+ * this filter allows the user to accelerate the scroll movement.
+ *
+ * Takes a set of unaccelerated deltas and applies the scroll filter to it.
+ *
+ * @param filter The device's motion filter
+ * @param unaccelerated The unaccelerated delta in the device's dpi
+ * resolution as specified during filter creation. If a device has uneven
+ * resolution for x and y, one axis needs to be scaled to match the
+ * originally provided resolution.
+ * @param data Custom data
+ * @param time The time of the delta
+ *
+ * @see filter_dispatch
+ */
+struct normalized_coords
+filter_dispatch_scroll(struct motion_filter *filter,
+		       const struct device_float_coords *unaccelerated,
+		       void *data, uint64_t time);
+
 void
 filter_restart(struct motion_filter *filter,
 	       void *data, uint64_t time);
@@ -177,6 +199,11 @@ custom_accel_profile_fallback(struct motion_filter *filter,
 			      uint64_t time);
 double
 custom_accel_profile_motion(struct motion_filter *filter,
+			    void *data,
+			    double speed_in,
+			    uint64_t time);
+double
+custom_accel_profile_scroll(struct motion_filter *filter,
 			    void *data,
 			    double speed_in,
 			    uint64_t time);

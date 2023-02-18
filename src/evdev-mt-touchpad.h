@@ -607,6 +607,11 @@ tp_filter_motion_unaccelerated(struct tp_dispatch *tp,
 			       const struct device_float_coords *unaccelerated,
 			       uint64_t time);
 
+struct normalized_coords
+tp_filter_scroll(struct tp_dispatch *tp,
+		 const struct device_float_coords *unaccelerated,
+		 uint64_t time);
+
 bool
 tp_touch_active(const struct tp_dispatch *tp, const struct tp_touch *t);
 

@@ -307,9 +307,11 @@ tools_parse_option(int option,
 			options->custom_type = LIBINPUT_ACCEL_TYPE_FALLBACK;
 		else if (streq(optarg, "motion"))
 			options->custom_type = LIBINPUT_ACCEL_TYPE_MOTION;
+		else if (streq(optarg, "scroll"))
+			options->custom_type = LIBINPUT_ACCEL_TYPE_SCROLL;
 		else {
 			fprintf(stderr, "Invalid --set-custom-type\n"
-			                "Valid custom types: fallback|motion\n");
+			                "Valid custom types: fallback|motion|scroll\n");
 			return 1;
 		}
 		break;

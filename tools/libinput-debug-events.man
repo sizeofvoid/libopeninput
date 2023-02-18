@@ -112,7 +112,7 @@ Sets the distance along the x-axis between each point, starting from 0.
 Defaults to 1.0.
 This only applies to the custom profile.
 .TP 8
-.B \-\-set\-custom\-type=[fallback|motion]
+.B \-\-set\-custom\-type=[fallback|motion|scroll]
 Sets the type of the custom acceleration function.
 Defaults to fallback.
 This only applies to the custom profile.

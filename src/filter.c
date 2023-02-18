@@ -53,6 +53,14 @@ filter_dispatch_constant(struct motion_filter *filter,
 	return filter->interface->filter_constant(filter, unaccelerated, data, time);
 }
 
+struct normalized_coords
+filter_dispatch_scroll(struct motion_filter *filter,
+		       const struct device_float_coords *unaccelerated,
+		       void *data, uint64_t time)
+{
+	return filter->interface->filter_scroll(filter, unaccelerated, data, time);
+}
+
 void
 filter_restart(struct motion_filter *filter,
 	       void *data, uint64_t time)

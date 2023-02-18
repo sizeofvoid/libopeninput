@@ -252,6 +252,8 @@ Supported Movement types:
 +---------------+---------------------------------+----------------------+
 | Motion        | Used for pointer motion         | All devices          |
 +---------------+---------------------------------+----------------------+
+| Scroll        | Used for scroll movement        | Mouse, Touchpad      |
++---------------+---------------------------------+----------------------+
 
 If a user does not provide the fallback custom acceleration function, a
 flat acceleration function is used, i.e. no acceleration.
@@ -259,11 +261,12 @@ flat acceleration function is used, i.e. no acceleration.
 The fallback acceleration may be used for different types of movements, it is
 strongly recommended that this acceleration function is a constant function.
 
-For example, a physical mouse usually has two movement types: pointer
-movement and scroll (wheel) movement. As there is no separate movement
-type for scroll yet, scroll movement is be accelerated using the Fallback
-acceleration function. Pointer movements is accelerated using the Motion
-acceleration function. If no Motion acceleration function is set, the
+For example, a touchpad has multiple movement types: pointer
+movement, scroll movement, zoom movement (pinch), etc. As there is no separate
+movement type for zoom yet, zoom movement is accelerated using the Fallback
+acceleration function. Pointer movement is accelerated using the Motion
+acceleration function, and Scroll movement is accelerated using the Scroll
+acceleration function. If no Motion/Scroll acceleration function is set, the
 Fallback acceleration function is used.
 
 When using custom acceleration profile, any calls to set the speed have no

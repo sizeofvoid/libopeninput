@@ -4218,6 +4218,7 @@ libinput_config_accel_destroy(struct libinput_config_accel *accel_config)
 {
 	libinput_config_accel_custom_func_destroy(accel_config->custom.fallback);
 	libinput_config_accel_custom_func_destroy(accel_config->custom.motion);
+	libinput_config_accel_custom_func_destroy(accel_config->custom.scroll);
 	free(accel_config);
 }
 
@@ -4256,6 +4257,7 @@ libinput_config_accel_set_points(struct libinput_config_accel *config,
 	switch (accel_type) {
 	case LIBINPUT_ACCEL_TYPE_FALLBACK:
 	case LIBINPUT_ACCEL_TYPE_MOTION:
+	case LIBINPUT_ACCEL_TYPE_SCROLL:
 		break;
 	default:
 		return LIBINPUT_CONFIG_STATUS_INVALID;
@@ -4287,6 +4289,10 @@ libinput_config_accel_set_points(struct libinput_config_accel *config,
 	case LIBINPUT_ACCEL_TYPE_MOTION:
 		libinput_config_accel_custom_func_destroy(config->custom.motion);
 		config->custom.motion = func;
+		break;
+	case LIBINPUT_ACCEL_TYPE_SCROLL:
+		libinput_config_accel_custom_func_destroy(config->custom.scroll);
+		config->custom.scroll = func;
 		break;
 	}
 

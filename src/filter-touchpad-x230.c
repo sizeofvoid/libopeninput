@@ -287,6 +287,7 @@ static const struct motion_filter_interface accelerator_interface_x230 = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_x230,
 	.filter_constant = accelerator_filter_constant_x230,
+	.filter_scroll = accelerator_filter_constant_x230,
 	.restart = accelerator_restart_x230,
 	.destroy = accelerator_destroy_x230,
 	.set_speed = accelerator_set_speed_x230,

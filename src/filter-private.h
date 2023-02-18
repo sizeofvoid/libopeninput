@@ -38,6 +38,10 @@ struct motion_filter_interface {
 			   struct motion_filter *filter,
 			   const struct device_float_coords *unaccelerated,
 			   void *data, uint64_t time);
+	struct normalized_coords (*filter_scroll)(
+			   struct motion_filter *filter,
+			   const struct device_float_coords *unaccelerated,
+			   void *data, uint64_t time);
 	void (*restart)(struct motion_filter *filter,
 			void *data,
 			uint64_t time);

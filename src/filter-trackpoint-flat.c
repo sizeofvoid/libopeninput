@@ -129,6 +129,7 @@ static struct motion_filter_interface accelerator_interface_flat = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT,
 	.filter = trackpoint_flat_filter,
 	.filter_constant = trackpoint_flat_filter_noop,
+	.filter_scroll = trackpoint_flat_filter_noop,
 	.restart = NULL,
 	.destroy = trackpoint_flat_destroy,
 	.set_speed = trackpoint_flat_set_speed,

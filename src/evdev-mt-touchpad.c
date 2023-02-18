@@ -93,6 +93,24 @@ tp_filter_motion_unaccelerated(struct tp_dispatch *tp,
 					&raw, tp, time);
 }
 
+struct normalized_coords
+tp_filter_scroll(struct tp_dispatch *tp,
+		 const struct device_float_coords *unaccelerated,
+		 uint64_t time)
+{
+	struct device_float_coords raw;
+	const struct normalized_coords zero = { 0.0, 0.0 };
+
+	if (device_float_is_zero(*unaccelerated))
+		return zero;
+
+	/* Convert to device units with x/y in the same resolution */
+	raw = tp_scale_to_xaxis(tp, *unaccelerated);
+
+	return filter_dispatch_scroll(tp->device->pointer.filter,
+				      &raw, tp, time);
+}
+
 static inline void
 tp_calculate_motion_speed(struct tp_dispatch *tp,
 			  struct tp_touch *t,

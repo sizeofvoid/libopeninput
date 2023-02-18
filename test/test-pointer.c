@@ -2283,22 +2283,24 @@ START_TEST(pointer_accel_config)
 	enum libinput_config_accel_profile profile;
 	enum libinput_config_status valid = LIBINPUT_CONFIG_STATUS_SUCCESS,
 				    invalid = LIBINPUT_CONFIG_STATUS_INVALID;
-	enum libinput_config_accel_type fallback = LIBINPUT_ACCEL_TYPE_FALLBACK,
-					motion = LIBINPUT_ACCEL_TYPE_MOTION;
+	enum libinput_config_accel_type accel_types[] = {
+		LIBINPUT_ACCEL_TYPE_FALLBACK,
+		LIBINPUT_ACCEL_TYPE_MOTION,
+		LIBINPUT_ACCEL_TYPE_SCROLL,
+	};
 	struct custom_config_test {
-		enum libinput_config_accel_type accel_type;
 		double step;
 		double points[4];
 		enum libinput_config_status expected_status;
 	} tests[] = {
-		{ fallback,  0.5, { 1.0, 2.0, 2.5, 2.6 },  valid },
-		{ motion,  0.003, { 0.1, 0.3, 0.4, 0.45 }, valid },
-		{ fallback,  2.7, { 1.0, 3.0, 4.5, 4.5 },  valid },
-		{ motion,      0, { 1.0, 2.0, 2.5, 2.6 },  invalid },
-		{ fallback,   -1, { 1.0, 2.0, 2.5, 2.6 },  invalid },
-		{ motion,   1e10, { 1.0, 2.0, 2.5, 2.6 },  invalid },
-		{ fallback,    1, { 1.0, 2.0, -2.5, 2.6 }, invalid },
-		{ motion,      1, { 1.0, 2.0, 1e10, 2.6 }, invalid },
+		{ 0.5,   { 1.0, 2.0, 2.5, 2.6 },  valid },
+		{ 0.003, { 0.1, 0.3, 0.4, 0.45 }, valid },
+		{ 2.7,   { 1.0, 3.0, 4.5, 4.5 },  valid },
+		{ 0,     { 1.0, 2.0, 2.5, 2.6 },  invalid },
+		{ -1,    { 1.0, 2.0, 2.5, 2.6 },  invalid },
+		{ 1e10,  { 1.0, 2.0, 2.5, 2.6 },  invalid },
+		{ 1,     { 1.0, 2.0, -2.5, 2.6 }, invalid },
+		{ 1,     { 1.0, 2.0, 1e10, 2.6 }, invalid },
 	};
 
 	ck_assert(libinput_device_config_accel_is_available(device));
@@ -2312,22 +2314,24 @@ START_TEST(pointer_accel_config)
 	ck_assert_ptr_nonnull(config_custom_changed);
 
 	ARRAY_FOR_EACH(tests, t) {
-		status = libinput_config_accel_set_points(config_custom_changed,
-							  t->accel_type,
-							  t->step,
-							  ARRAY_LENGTH(t->points),
-							  t->points);
-		ck_assert_int_eq(status, t->expected_status);
+		ARRAY_FOR_EACH(accel_types, accel_type) {
+			status = libinput_config_accel_set_points(config_custom_changed,
+								  *accel_type,
+								  t->step,
+								  ARRAY_LENGTH(t->points),
+								  t->points);
+			ck_assert_int_eq(status, t->expected_status);
 
-		status = libinput_device_config_accel_apply(device, config_custom_changed);
-		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
-		profile = libinput_device_config_accel_get_profile(device);
-		ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
+			status = libinput_device_config_accel_apply(device, config_custom_changed);
+			ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+			profile = libinput_device_config_accel_get_profile(device);
+			ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
 
-		status = libinput_device_config_accel_apply(device, config_custom_default);
-		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
-		profile = libinput_device_config_accel_get_profile(device);
-		ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
+			status = libinput_device_config_accel_apply(device, config_custom_default);
+			ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+			profile = libinput_device_config_accel_get_profile(device);
+			ck_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
+		}
 	}
 
 	libinput_config_accel_destroy(config_custom_default);

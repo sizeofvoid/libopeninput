@@ -5364,6 +5364,11 @@ enum libinput_config_accel_type {
 	 * type is always supported.
 	 */
 	LIBINPUT_ACCEL_TYPE_MOTION,
+	/**
+	 * Acceleration type for scroll movement.
+	 * This type is supported by mouse and touchpad.
+	 */
+	LIBINPUT_ACCEL_TYPE_SCROLL,
 };
 
 /**

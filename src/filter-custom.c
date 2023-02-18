@@ -201,6 +201,7 @@ struct custom_accelerator {
 	struct {
 		struct custom_accel_function *fallback;
 		struct custom_accel_function *motion;
+		struct custom_accel_function *scroll;
 	} funcs;
 };
 
@@ -213,6 +214,8 @@ custom_accelerator_get_custom_function(struct custom_accelerator *f,
 		return f->funcs.fallback;
 	case LIBINPUT_ACCEL_TYPE_MOTION:
 		return f->funcs.motion ? f->funcs.motion : f->funcs.fallback;
+	case LIBINPUT_ACCEL_TYPE_SCROLL:
+		return f->funcs.scroll ? f->funcs.scroll : f->funcs.fallback;
 	}
 
 	return f->funcs.fallback;
@@ -262,6 +265,7 @@ custom_accelerator_destroy(struct motion_filter *filter)
 	/* destroy all custom movement functions */
 	custom_accel_function_destroy(f->funcs.fallback);
 	custom_accel_function_destroy(f->funcs.motion);
+	custom_accel_function_destroy(f->funcs.scroll);
 	free(f);
 }
 
@@ -284,7 +288,8 @@ custom_accelerator_set_accel_config(struct motion_filter *filter,
 		(struct custom_accelerator *)filter;
 
 	struct custom_accel_function *fallback = NULL,
-				     *motion = NULL;
+				     *motion = NULL,
+				     *scroll = NULL;
 
 	if (config->custom.fallback) {
 		fallback = create_custom_accel_function(config->custom.fallback->step,
@@ -302,17 +307,28 @@ custom_accelerator_set_accel_config(struct motion_filter *filter,
 			goto out;
 	}
 
+	if (config->custom.scroll) {
+		scroll = create_custom_accel_function(config->custom.scroll->step,
+						      config->custom.scroll->points,
+						      config->custom.scroll->npoints);
+		if (!scroll)
+			goto out;
+	}
+
 	custom_accel_function_destroy(f->funcs.fallback);
 	custom_accel_function_destroy(f->funcs.motion);
+	custom_accel_function_destroy(f->funcs.scroll);
 
 	f->funcs.fallback = fallback;
 	f->funcs.motion = motion;
+	f->funcs.scroll = scroll;
 
 	return true;
 
 out:
 	custom_accel_function_destroy(fallback);
 	custom_accel_function_destroy(motion);
+	custom_accel_function_destroy(scroll);
 
 	return false;
 }
@@ -365,10 +381,34 @@ custom_accelerator_filter_motion(struct motion_filter *filter,
 					 time);
 }
 
+double
+custom_accel_profile_scroll(struct motion_filter *filter,
+			    void *data,
+			    double speed_in,
+			    uint64_t time)
+{
+	return custom_accelerator_profile(LIBINPUT_ACCEL_TYPE_SCROLL,
+					  filter,
+					  speed_in);
+}
+
+static struct normalized_coords
+custom_accelerator_filter_scroll(struct motion_filter *filter,
+				 const struct device_float_coords *unaccelerated,
+				 void *data,
+				 uint64_t time)
+{
+	return custom_accelerator_filter(LIBINPUT_ACCEL_TYPE_SCROLL,
+					 filter,
+					 unaccelerated,
+					 time);
+}
+
 struct motion_filter_interface custom_accelerator_interface = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM,
 	.filter = custom_accelerator_filter_motion,
 	.filter_constant = custom_accelerator_filter_fallback,
+	.filter_scroll = custom_accelerator_filter_scroll,
 	.restart = custom_accelerator_restart,
 	.destroy = custom_accelerator_destroy,
 	.set_speed = custom_accelerator_set_speed,

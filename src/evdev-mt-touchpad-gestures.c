@@ -1176,8 +1176,8 @@ tp_gesture_handle_state_scroll(struct tp_dispatch *tp, uint64_t time)
 
 	raw = tp_get_average_touches_delta(tp);
 
-	/* scroll is not accelerated */
-	delta = tp_filter_motion_unaccelerated(tp, &raw, time);
+	/* scroll is not accelerated by default */
+	delta = tp_filter_scroll(tp, &raw, time);
 
 	if (normalized_is_zero(delta))
 		return;

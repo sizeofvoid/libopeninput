@@ -278,6 +278,7 @@ static const struct motion_filter_interface accelerator_interface_touchpad = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_touchpad,
 	.filter_constant = touchpad_constant_filter,
+	.filter_scroll = touchpad_constant_filter,
 	.restart = touchpad_accelerator_restart,
 	.destroy = touchpad_accelerator_destroy,
 	.set_speed = touchpad_accelerator_set_speed,
