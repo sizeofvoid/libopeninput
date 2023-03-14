@@ -54,6 +54,11 @@ include:
       # Ubuntu container builder template
       - '/templates/ubuntu.yml'
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_PIPELINE_SOURCE == 'push'
+
 stages:
   - sanity check     # CI/commit checks
   - prep             # prep work like rebuilding the container images if there is a change
