@@ -57,11 +57,11 @@ static struct litest_device_interface interface = {
 };
 
 static struct input_absinfo absinfo[] = {
-	{ ABS_X, 0, 1500, 0, 0, 0 },
-	{ ABS_Y, 0, 2500, 0, 0, 0 },
+	{ ABS_X, 0, 50000, 0, 0, 100 },
+	{ ABS_Y, 0, 33000, 0, 0, 100 },
 	{ ABS_MT_SLOT, 0, 9, 0, 0, 0 },
-	{ ABS_MT_POSITION_X, 0, 1500, 0, 0, 0 },
-	{ ABS_MT_POSITION_Y, 0, 2500, 0, 0, 0 },
+	{ ABS_MT_POSITION_X, 0, 50000, 0, 0, 100 },
+	{ ABS_MT_POSITION_Y, 0, 33000, 0, 0, 100 },
 	{ ABS_MT_ORIENTATION, -256, 255, 0, 0, 0 },
 	{ ABS_MT_TOUCH_MAJOR, 0, 255, 1, 0, 0 },
 	{ ABS_MT_TOUCH_MINOR, 0, 255, 1, 0, 0 },
