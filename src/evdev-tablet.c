@@ -2150,6 +2150,30 @@ tablet_setup_touch_arbitration(struct evdev_device *device,
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(device->dispatch);
 
+        /* We enable touch arbitration with the first touch screen/external
+         * touchpad we see. This may be wrong in some cases, so we have some
+         * heuristics in case we find a "better" device.
+         */
+        if (tablet->touch_device != NULL) {
+		struct libinput_device_group *group1 = libinput_device_get_device_group(&device->base);
+		struct libinput_device_group *group2 = libinput_device_get_device_group(&new_device->base);
+
+		/* same phsical device? -> better, otherwise keep the one we have */
+		if (group1 != group2)
+			return;
+
+		/* We found a better device, let's swap it out */
+		struct libinput *li = tablet_libinput_context(tablet);
+		tablet_set_touch_device_enabled(tablet,
+						ARBITRATION_NOT_ACTIVE,
+						NULL,
+						libinput_now(li));
+		evdev_log_debug(device,
+				"touch-arbitration: removing pairing for %s<->%s\n",
+				device->devname,
+				tablet->touch_device->devname);
+	}
+
 	evdev_log_debug(device,
 			"touch-arbitration: activated for %s<->%s\n",
 			device->devname,
@@ -2162,16 +2186,20 @@ tablet_setup_rotation(struct evdev_device *device,
 		      struct evdev_device *new_device)
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(device->dispatch);
+	struct libinput_device_group *group1 = libinput_device_get_device_group(&device->base);
+	struct libinput_device_group *group2 = libinput_device_get_device_group(&new_device->base);
 
-	evdev_log_debug(device,
-			"tablet-rotation: %s will rotate %s\n",
-			device->devname,
-			new_device->devname);
-	tablet->rotation.touch_device = new_device;
+	if (tablet->rotation.touch_device == NULL && (group1 == group2)) {
+		evdev_log_debug(device,
+				"tablet-rotation: %s will rotate %s\n",
+				device->devname,
+				new_device->devname);
+		tablet->rotation.touch_device = new_device;
 
-	if (libinput_device_config_left_handed_get(&new_device->base)) {
-		tablet->rotation.touch_device_left_handed_state = true;
-		tablet_change_rotation(device, DO_NOTIFY);
+		if (libinput_device_config_left_handed_get(&new_device->base)) {
+			tablet->rotation.touch_device_left_handed_state = true;
+			tablet_change_rotation(device, DO_NOTIFY);
+		}
 	}
 }
 
@@ -2180,10 +2208,6 @@ tablet_device_added(struct evdev_device *device,
 		    struct evdev_device *added_device)
 {
 	bool is_touchscreen, is_ext_touchpad;
-
-	if (libinput_device_get_device_group(&device->base) !=
-	    libinput_device_get_device_group(&added_device->base))
-		return;
 
 	is_touchscreen = evdev_device_has_capability(added_device,
 						     LIBINPUT_DEVICE_CAP_TOUCH);

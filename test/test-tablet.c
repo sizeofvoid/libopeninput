@@ -5338,6 +5338,34 @@ START_TEST(touch_arbitration_late_touch_lift)
 }
 END_TEST
 
+START_TEST(touch_arbitration_swap_device)
+{
+	struct litest_device *tablet = litest_current_device();
+	struct libinput *li = tablet->libinput;
+
+	enum litest_device_type paired = paired_device(tablet);
+	if (paired == LITEST_NO_DEVICE)
+		return;
+
+	/* First, add a normal touchscreen */
+	struct litest_device *touchscreen = litest_add_device(li, LITEST_GENERIC_MULTITOUCH_SCREEN);
+	libinput_device_config_gesture_set_hold_enabled(touchscreen->libinput_device,
+							LIBINPUT_CONFIG_HOLD_DISABLED);
+	litest_drain_events(li);
+	assert_touch_is_arbitrated(tablet, touchscreen);
+
+	/* Now add a better device to override the pairing */
+	struct litest_device *finger = litest_add_device(li, paired);
+	libinput_device_config_gesture_set_hold_enabled(finger->libinput_device,
+							LIBINPUT_CONFIG_HOLD_DISABLED);
+	litest_drain_events(li);
+	assert_touch_is_arbitrated(tablet, finger);
+
+	litest_delete_device(touchscreen);
+	litest_delete_device(finger);
+}
+END_TEST
+
 #if HAVE_LIBWACOM
 static void
 verify_left_handed_tablet_motion(struct litest_device *tablet,
@@ -6209,6 +6237,7 @@ TEST_COLLECTION(tablet)
 	litest_add(touch_arbitration_late_touch_lift, LITEST_TABLET, LITEST_ANY);
 	litest_add(touch_arbitration_outside_rect, LITEST_TABLET | LITEST_DIRECT, LITEST_ANY);
 	litest_add(touch_arbitration_remove_after, LITEST_TABLET | LITEST_DIRECT, LITEST_ANY);
+	litest_add(touch_arbitration_swap_device, LITEST_TABLET, LITEST_ANY);
 
 	litest_add_ranged(tablet_rotation_left_handed, LITEST_TABLET, LITEST_ANY, &lh_transitions);
 	litest_add_ranged(tablet_rotation_left_handed_configuration, LITEST_TABLET, LITEST_ANY, &lh_transitions);
