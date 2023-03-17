@@ -1261,14 +1261,6 @@ tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time)
 			t->tap.initial = t->point;
 			tp->tap.nfingers_down++;
 			tp_tap_handle_event(tp, t, TAP_EVENT_TOUCH, time);
-
-			/* If we think this is a palm, pretend there's a
-			 * motion event which will prevent tap clicks
-			 * without requiring extra states in the FSM.
-			 */
-			if (tp_palm_tap_is_palm(tp, t))
-				tp_tap_handle_event(tp, t, TAP_EVENT_MOTION, time);
-
 		} else if (t->state == TOUCH_END) {
 			if (t->was_down) {
 				assert(tp->tap.nfingers_down >= 1);

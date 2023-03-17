@@ -882,21 +882,6 @@ tp_palm_in_edge(const struct tp_dispatch *tp, const struct tp_touch *t)
 	return tp_palm_in_side_edge(tp, t) || tp_palm_in_top_edge(tp, t);
 }
 
-bool
-tp_palm_tap_is_palm(const struct tp_dispatch *tp, const struct tp_touch *t)
-{
-	if (t->state != TOUCH_BEGIN)
-		return false;
-
-	if (!tp_palm_in_edge(tp, t))
-		return false;
-
-	evdev_log_debug(tp->device,
-			"palm: touch %d: palm-tap detected\n",
-			t->index);
-	return true;
-}
-
 static bool
 tp_palm_detect_dwt_triggered(struct tp_dispatch *tp,
 			     struct tp_touch *t,
@@ -1097,13 +1082,6 @@ tp_palm_detect_edge(struct tp_dispatch *tp,
 	/* palm must start in exclusion zone, it's ok to move into
 	   the zone without being a palm */
 	if (t->state != TOUCH_BEGIN || !tp_palm_in_edge(tp, t))
-		return false;
-
-	/* don't detect palm in software button areas, it's
-	   likely that legitimate touches start in the area
-	   covered by the exclusion zone */
-	if (tp->buttons.is_clickpad &&
-	    tp_button_is_inside_softbutton_area(tp, t))
 		return false;
 
 	if (tp_touch_get_edge(tp, t) & EDGE_RIGHT)
