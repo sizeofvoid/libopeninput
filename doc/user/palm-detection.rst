@@ -92,9 +92,8 @@ Another exclusion zone is defined on the top edge of the touchpad. As with
 the edge zones, libinput detects vertical movements out of the edge zone and
 avoids palm detection on such touch sequences.
 
-Each side edge exclusion zone is divided into a top part and a bottom part.
-A touch starting in the top part of the exclusion zone does not trigger a
-tap (see :ref:`tapping`).
+A touch starting in the exclusion zone does not trigger a tap (see
+:ref:`tapping`).
 
 In the diagram below, the exclusion zones are painted red.
 Touch 'A' starts inside the exclusion zone and moves
@@ -104,10 +103,8 @@ despite moving out of the exclusion zone.
 Touch 'B' starts inside the exclusion zone but moves horizontally out of the
 zone. It is considered a valid touch and controls the cursor.
 
-Touch 'C' occurs in the top part of the exclusion zone. Despite being a
-tapping motion, it does not generate an emulated button event. Touch 'D'
-likewise occurs within the exclusion zone but in the bottom half. libinput
-will generate a button event for this touch.
+Touch 'C' occurs in the exclusion zone. Despite being a tapping motion, it does
+not generate an emulated button event.
 
 .. figure:: palm-detection.svg
     :align: center
