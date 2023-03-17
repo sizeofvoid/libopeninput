@@ -4784,12 +4784,11 @@ paired_device(struct litest_device *dev)
 	}
 }
 
-START_TEST(touch_arbitration)
+static void
+assert_touch_is_arbitrated(struct litest_device *dev, struct litest_device *finger)
 {
-	struct litest_device *dev = litest_current_device();
-	enum litest_device_type other;
-	struct litest_device *finger;
 	struct libinput *li = dev->libinput;
+	bool is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
 	struct axis_replacement axes[] = {
 		{ ABS_TILT_X, 80 },
 		{ ABS_TILT_Y, 80 },
@@ -4797,31 +4796,16 @@ START_TEST(touch_arbitration)
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
-	bool is_touchpad;
-	double x, y;
-	double tx, ty;
-
-	other = paired_device(dev);
-	if (other == LITEST_NO_DEVICE)
-		return;
-
-	finger = litest_add_device(li, other);
-	litest_drain_events(li);
-
-	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
-
-	if (is_touchpad)
-		litest_disable_hold_gestures(finger->libinput_device);
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_tablet_motion(dev, 10, 10, axes);
 	litest_tablet_motion(dev, 20, 40, axes);
 	litest_drain_events(li);
 
-	tx = 20;
-	ty = 40;
-	x = 21;
-	y = 41;
+	double tx = 20;
+	double ty = 40;
+	double x = 21;
+	double y = 41;
 	litest_touch_down(finger, 0, x, y);
 
 	/* We need to intersperce the touch events with tablets so we don't
@@ -4858,6 +4842,26 @@ START_TEST(touch_arbitration)
 						LIBINPUT_EVENT_POINTER_MOTION);
 	else
 		litest_assert_touch_sequence(li);
+}
+
+START_TEST(touch_arbitration)
+{
+	struct litest_device *dev = litest_current_device();
+	enum litest_device_type other;
+	struct libinput *li = dev->libinput;
+
+	other = paired_device(dev);
+	if (other == LITEST_NO_DEVICE)
+		return;
+
+	struct litest_device *finger = litest_add_device(li, other);
+	litest_drain_events(li);
+
+	bool is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
+	if (is_touchpad)
+		litest_disable_hold_gestures(finger->libinput_device);
+
+	assert_touch_is_arbitrated(dev, finger);
 
 	litest_delete_device(finger);
 }
