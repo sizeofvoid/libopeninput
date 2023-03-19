@@ -46,51 +46,51 @@ MatchVendor=0x046D
 MatchProduct=0x4011
 AttrPalmPressureThreshold=400
 
-[Logitech MX Master]
+[Logitech MX Master (4041)]
 MatchVendor=0x46D
 MatchProduct=0x4041
 ModelInvertHorizontalScrolling=1
-[Logitech MX Master]
+[Logitech MX Master (4060)]
 MatchVendor=0x46D
 MatchProduct=0x4060
 ModelInvertHorizontalScrolling=1
-[Logitech MX Master]
+[Logitech MX Master (4071)]
 MatchVendor=0x46D
 MatchProduct=0x4071
 ModelInvertHorizontalScrolling=1
 
 # MX Master has a different PID on bluetooth
-[Logitech MX Master]
+[Logitech MX Master (Bluetooth B012)]
 MatchVendor=0x46D
 MatchProduct=0xB012
 ModelInvertHorizontalScrolling=1
-[Logitech MX Master]
+[Logitech MX Master (Bluetooth B017)]
 MatchVendor=0x46D
 MatchProduct=0xB017
 ModelInvertHorizontalScrolling=1
-[Logitech MX Master]
+[Logitech MX Master (Bluetooth B01E)]
 MatchVendor=0x46D
 MatchProduct=0xB01E
 ModelInvertHorizontalScrolling=1
 
-[Logitech MX Master 2S]
+[Logitech MX Master 2S USB]
 MatchVendor=0x46D
 MatchProduct=0x4069
 ModelInvertHorizontalScrolling=1
 
 # MX Master 2S has a different PID on bluetooth
-[Logitech MX Master 2S]
+[Logitech MX Master 2S Bluetooth]
 MatchVendor=0x46D
 MatchProduct=0xB019
 ModelInvertHorizontalScrolling=1
 
-[Logitech MX Master 3]
+[Logitech MX Master 3 USB]
 MatchVendor=0x46D
 MatchProduct=0x4082
 ModelInvertHorizontalScrolling=1
 
 # MX Master 3 has a different PID on bluetooth
-[Logitech MX Master 3]
+[Logitech MX Master 3 Bluetooth]
 MatchVendor=0x46D
 MatchProduct=0xB023
 ModelInvertHorizontalScrolling=1

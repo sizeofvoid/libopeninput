@@ -121,7 +121,7 @@ MatchVendor=0x5AC
 AttrKeyboardIntegration=internal
 
 # The Linux applespi driver currently uses the Synaptics vendor for some reason
-[Apple Laptop Touchpad (SPI)]
+[Apple Laptop Touchpad (SPI) applespi driver]
 MatchUdevType=touchpad
 MatchBus=spi
 MatchVendor=0x6CB
