@@ -104,3 +104,8 @@ ModelInvertHorizontalScrolling=1
 MatchVendor=0x46D
 MatchProduct=0xB028
 ModelInvertHorizontalScrolling=1
+
+# Don't add quirks for the Logitech Bolt Receiver:
+# MatchVendor=0x046D
+# MatchProduct=0xC548
+# This receiver can be used with multiple mice.
