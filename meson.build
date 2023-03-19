@@ -478,6 +478,13 @@ test('validate-quirks',
      suite : ['all']
      )
 
+quirks_file_tester = find_program('test/test_quirks_files.py')
+test('validate-quirks-files',
+     quirks_file_tester,
+     suite : ['all'],
+     env: ['MESON_SOURCE_ROOT=@0@'.format(meson.project_source_root())],
+     )
+
 libinput_list_devices_sources = [ 'tools/libinput-list-devices.c' ]
 libinput_list_devices = executable('libinput-list-devices',
 				   libinput_list_devices_sources,
