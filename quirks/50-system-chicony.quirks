@@ -4,7 +4,7 @@
 [Acer Hawaii Keyboard]
 MatchUdevType=touchpad
 MatchBus=usb
-MatchVendor=0x4F2
+MatchVendor=0x04F2
 MatchProduct=0x1558
 AttrTPKComboLayout=below
 

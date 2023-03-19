@@ -30,7 +30,7 @@ AttrKeyboardIntegration=internal
 [Apple Internal Keyboard (SPI)]
 MatchUdevType=keyboard
 MatchBus=spi
-MatchVendor=0x5AC
+MatchVendor=0x05AC
 AttrKeyboardIntegration=internal
 
 # The Apple MagicMouse has a touchpad built-in but the kernel still
@@ -49,7 +49,7 @@ AttrEventCode=-EV_ABS
 [Apple Magic Trackpad v1 (2010, clickpad)]
 MatchUdevType=touchpad
 MatchBus=bluetooth
-MatchVendor=0x5AC
+MatchVendor=0x05AC
 MatchProduct=0x030E
 AttrSizeHint=130x110
 AttrTouchSizeRange=20:10
@@ -78,7 +78,7 @@ AttrPalmPressureThreshold=190
 [Apple Touchpad OneButton]
 MatchUdevType=touchpad
 MatchBus=usb
-MatchVendor=0x5AC
+MatchVendor=0x05AC
 MatchProduct=0x021A
 ModelAppleTouchpadOneButton=1
 
@@ -92,14 +92,14 @@ AttrPalmSizeThreshold=1000
 [Apple Laptop Touchpad (MacBookPro11,2 among others)]
 MatchUdevType=touchpad
 MatchBus=usb
-MatchVendor=0x5AC
+MatchVendor=0x05AC
 MatchProduct=0x0262
 AttrPalmSizeThreshold=1600
 
 [Apple Laptop Touchpad (SPI)]
 MatchUdevType=touchpad
 MatchBus=spi
-MatchVendor=0x5AC
+MatchVendor=0x05AC
 ModelAppleTouchpad=1
 AttrSizeHint=104x75
 AttrTouchSizeRange=150:130
@@ -108,7 +108,7 @@ AttrPalmSizeThreshold=1600
 [Apple Laptop Touchpad (MTP)]
 MatchUdevType=touchpad
 MatchName=Apple*MTP*
-MatchVendor=0x5AC
+MatchVendor=0x05AC
 ModelAppleTouchpad=1
 AttrSizeHint=104x75
 AttrTouchSizeRange=150:130
@@ -117,14 +117,14 @@ AttrPalmSizeThreshold=1600
 [Apple Laptop Keyboard (MTP)]
 MatchUdevType=keyboard
 MatchName=Apple*MTP*
-MatchVendor=0x5AC
+MatchVendor=0x05AC
 AttrKeyboardIntegration=internal
 
 # The Linux applespi driver currently uses the Synaptics vendor for some reason
 [Apple Laptop Touchpad (SPI) applespi driver]
 MatchUdevType=touchpad
 MatchBus=spi
-MatchVendor=0x6CB
+MatchVendor=0x06CB
 ModelAppleTouchpad=1
 AttrSizeHint=104x75
 AttrTouchSizeRange=150:130
