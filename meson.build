@@ -642,7 +642,7 @@ if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimi
 					  configuration : config_tool_option_test)
 	test('tool-option-parsing',
 	     tool_option_test,
-	     args : [tool_option_test, '-n', 'auto'],
+	     args : [tool_option_test],
 	     suite : ['all', 'root'],
 	     timeout : 240)
 endif
