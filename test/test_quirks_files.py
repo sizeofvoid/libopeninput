@@ -11,6 +11,27 @@ import os
 import pytest
 import re
 
+# see the IDs from
+# https://github.com/torvalds/linux/blob/master/drivers/hid/hid-ids.h#L772
+# https://github.com/torvalds/linux/blob/master/drivers/hid/hid-logitech-dj.c#L1826
+logitech_receivers = [
+    0xC50C,  # USB_DEVICE_ID_S510_RECEIVER
+    0xC517,  # USB_DEVICE_ID_S510_RECEIVER_2
+    0xC512,  # USB_DEVICE_ID_LOGITECH_CORDLESS_DESKTOP_LX500
+    0xC513,  # USB_DEVICE_ID_MX3000_RECEIVER
+    0xC51B,  # USB_DEVICE_ID_LOGITECH_27MHZ_MOUSE_RECEIVER
+    0xC52B,  # USB_DEVICE_ID_LOGITECH_UNIFYING_RECEIVER
+    0xC52F,  # USB_DEVICE_ID_LOGITECH_NANO_RECEIVER
+    0xC532,  # USB_DEVICE_ID_LOGITECH_UNIFYING_RECEIVER_2
+    0xC534,  # USB_DEVICE_ID_LOGITECH_NANO_RECEIVER_2
+    0xC539,  # USB_DEVICE_ID_LOGITECH_NANO_RECEIVER_LIGHTSPEED_1
+    0xC53F,  # USB_DEVICE_ID_LOGITECH_NANO_RECEIVER_LIGHTSPEED_1_1
+    0xC53A,  # USB_DEVICE_ID_LOGITECH_NANO_RECEIVER_POWERPLAY
+    0xC545,  # Bolt receiver, not listed in the kernel (yet)
+    0xC547,  # Bolt receiver, not listed in the kernel (yet)
+    0xC548,  # Bolt receiver, not listed in the kernel (yet)
+]
+
 
 def quirksdir():
     return Path(os.getenv("MESON_SOURCE_ROOT") or ".") / "quirks"
@@ -45,6 +66,21 @@ def test_matches_are_valid(quirksfile):
             assert re.match(
                 "0x[0-9A-F]{4}", pid
             ), f"{quirksfile}: {name}: {pid} must be uppercase hex (0xAB12)"
+
+
+def test_match_product_is_not_a_logitech_receiver(quirksfile):
+    quirks = configparser.ConfigParser(strict=True)
+    # Don't convert to lowercase
+    quirks.optionxform = lambda option: option  # type: ignore
+    quirks.read(quirksfile)
+
+    for name, section in filter(lambda n: n != "DEFAULT", quirks.items()):
+        vid = int(section.get("MatchVendor", "0x0"), 16)
+        if vid == 0x046D:
+            pid = int(section.get("MatchProduct", "0x0"), 16)
+            assert (
+                pid not in logitech_receivers
+            ), f"{quirksfile}: {name}: applies to a Logitech Receiver"
 
 
 def main():
