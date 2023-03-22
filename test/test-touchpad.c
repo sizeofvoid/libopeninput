@@ -1602,6 +1602,8 @@ START_TEST(touchpad_palm_detect_tap_softbuttons)
 	litest_disable_hold_gestures(dev->libinput_device);
 	litest_drain_events(li);
 
+	/* Two touches in the software button area, but inside
+	 * the palm detection edge zone -> expect palm detection */
 	litest_touch_down(dev, 0, 99, 99);
 	litest_touch_up(dev, 0);
 	libinput_dispatch(li);
@@ -1616,6 +1618,8 @@ START_TEST(touchpad_palm_detect_tap_softbuttons)
 	litest_timeout_tap();
 	litest_assert_empty_queue(li);
 
+	/* Two touches in the software button area, but
+	 * not in the palm detection edge zone -> expect taps */
 	litest_touch_down(dev, 0, 10, 99);
 	litest_touch_up(dev, 0);
 	libinput_dispatch(li);
@@ -1657,6 +1661,8 @@ START_TEST(touchpad_palm_detect_tap_clickfinger)
 	litest_disable_hold_gestures(dev->libinput_device);
 	litest_drain_events(li);
 
+	/* Taps in each of the 4 corners of the touchpad, all
+	 * inside the palm detection edge zone*/
 	litest_touch_down(dev, 0, 95, 5);
 	litest_touch_up(dev, 0);
 	libinput_dispatch(li);
