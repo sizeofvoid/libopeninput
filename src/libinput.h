@@ -4370,7 +4370,7 @@ libinput_device_switch_has_switch(struct libinput_device *device,
  *
  * @param device A current input device
  *
- * @return The number of buttons supported by the device.
+ * @return The number of buttons supported by the device. -1 on error.
  *
  * @since 1.3
  */
@@ -4385,7 +4385,7 @@ libinput_device_tablet_pad_get_num_buttons(struct libinput_device *device);
  *
  * @param device A current input device
  *
- * @return The number of rings or 0 if the device has no rings.
+ * @return The number of rings or 0 if the device has no rings. -1 on error.
  *
  * @see libinput_event_tablet_pad_get_ring_number
  *
@@ -4402,7 +4402,7 @@ libinput_device_tablet_pad_get_num_rings(struct libinput_device *device);
  *
  * @param device A current input device
  *
- * @return The number of strips or 0 if the device has no strips.
+ * @return The number of strips or 0 if the device has no strips. -1 on error.
  *
  * @see libinput_event_tablet_pad_get_strip_number
  *
