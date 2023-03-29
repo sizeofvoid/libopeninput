@@ -3703,7 +3703,7 @@ TEST_COLLECTION(pointer)
 	litest_add(pointer_scroll_button_noscroll, LITEST_ANY, LITEST_RELATIVE|LITEST_BUTTON);
 	litest_add(pointer_scroll_button_no_event_before_timeout, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add(pointer_scroll_button_middle_emulation, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
-	litest_add(pointer_scroll_button_device_remove_while_down, LITEST_ANY, LITEST_RELATIVE|LITEST_BUTTON);
+	litest_add_no_device(pointer_scroll_button_device_remove_while_down);
 
 	litest_add(pointer_scroll_button_lock, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add(pointer_scroll_button_lock_defaults, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);

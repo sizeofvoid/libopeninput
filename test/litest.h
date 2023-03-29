@@ -35,6 +35,10 @@
 #include <libinput.h>
 #include <math.h>
 
+#ifndef ck_assert_notnull
+#define ck_assert_notnull(ptr) ck_assert_ptr_ne(ptr, NULL)
+#endif
+
 #include "check-double-macros.h"
 
 #include "libinput-private-config.h"
@@ -981,10 +985,6 @@ litest_semi_mt_touch_up(struct litest_device *d,
 			struct litest_semi_mt *semi_mt,
 			unsigned int slot);
 
-#ifndef ck_assert_notnull
-#define ck_assert_notnull(ptr) ck_assert_ptr_ne(ptr, NULL)
-#endif
-
 static inline void
 litest_enable_tap(struct libinput_device *device)
 {
@@ -1259,7 +1259,8 @@ litest_send_file(int sock, int fd)
 	return write(sock, buf, n);
 }
 
-static inline int litest_slot_count(struct litest_device *dev)
+static inline int
+litest_slot_count(struct litest_device *dev)
 {
 	if (dev->which == LITEST_ALPS_3FG)
 		return 2;
