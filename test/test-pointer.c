@@ -1304,6 +1304,38 @@ START_TEST(pointer_left_handed_during_click_multiple_buttons)
 }
 END_TEST
 
+START_TEST(pointer_left_handed_disable_with_button_down)
+{
+	struct libinput *li = litest_create_context();
+	struct litest_device *dev = litest_add_device(li, LITEST_MOUSE);
+
+	enum libinput_config_status status;
+	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_drain_events(li);
+	litest_button_click_debounced(dev, li, BTN_LEFT, 1);
+	libinput_dispatch(li);
+	litest_assert_button_event(li,
+				   BTN_RIGHT,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+
+	litest_delete_device(dev);
+	libinput_dispatch(li);
+
+	litest_assert_button_event(li,
+				   BTN_RIGHT,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+
+	struct libinput_event *event = libinput_get_event(li);
+	litest_assert_event_type(event, LIBINPUT_EVENT_DEVICE_REMOVED);
+	litest_assert_empty_queue(li);
+	libinput_event_destroy(event);
+
+	litest_destroy_context(li);
+}
+END_TEST
+
 START_TEST(pointer_scroll_button)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3730,6 +3762,7 @@ TEST_COLLECTION(pointer)
 	litest_add(pointer_left_handed, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add(pointer_left_handed_during_click, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add(pointer_left_handed_during_click_multiple_buttons, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
+	litest_add_no_device(pointer_left_handed_disable_with_button_down);
 
 	litest_add(pointer_accel_defaults, LITEST_RELATIVE, LITEST_ANY);
 	litest_add(pointer_accel_invalid, LITEST_RELATIVE, LITEST_ANY);
