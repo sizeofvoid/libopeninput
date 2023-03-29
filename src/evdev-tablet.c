@@ -2145,10 +2145,40 @@ tablet_destroy(struct evdev_dispatch *dispatch)
 }
 
 static void
+tablet_setup_touch_arbitration(struct evdev_device *device,
+			       struct evdev_device *new_device)
+{
+	struct tablet_dispatch *tablet = tablet_dispatch(device->dispatch);
+
+	evdev_log_debug(device,
+			"touch-arbitration: activated for %s<->%s\n",
+			device->devname,
+			new_device->devname);
+	tablet->touch_device = new_device;
+}
+
+static void
+tablet_setup_rotation(struct evdev_device *device,
+		      struct evdev_device *new_device)
+{
+	struct tablet_dispatch *tablet = tablet_dispatch(device->dispatch);
+
+	evdev_log_debug(device,
+			"tablet-rotation: %s will rotate %s\n",
+			device->devname,
+			new_device->devname);
+	tablet->rotation.touch_device = new_device;
+
+	if (libinput_device_config_left_handed_get(&new_device->base)) {
+		tablet->rotation.touch_device_left_handed_state = true;
+		tablet_change_rotation(device, DO_NOTIFY);
+	}
+}
+
+static void
 tablet_device_added(struct evdev_device *device,
 		    struct evdev_device *added_device)
 {
-	struct tablet_dispatch *tablet = tablet_dispatch(device->dispatch);
 	bool is_touchscreen, is_ext_touchpad;
 
 	if (libinput_device_get_device_group(&device->base) !=
@@ -2160,28 +2190,12 @@ tablet_device_added(struct evdev_device *device,
 	is_ext_touchpad = evdev_device_has_capability(added_device,
 						      LIBINPUT_DEVICE_CAP_POINTER) &&
 			  (added_device->tags & EVDEV_TAG_EXTERNAL_TOUCHPAD);
-	/* Touch screens or external touchpads only */
-	if (is_touchscreen || is_ext_touchpad) {
-		evdev_log_debug(device,
-				"touch-arbitration: activated for %s<->%s\n",
-				device->devname,
-				added_device->devname);
-		tablet->touch_device = added_device;
-	}
 
-	if (is_ext_touchpad) {
-		evdev_log_debug(device,
-				"tablet-rotation: %s will rotate %s\n",
-				device->devname,
-				added_device->devname);
-		tablet->rotation.touch_device = added_device;
+	if (is_touchscreen || is_ext_touchpad)
+		tablet_setup_touch_arbitration(device, added_device);
 
-		if (libinput_device_config_left_handed_get(&added_device->base)) {
-			tablet->rotation.touch_device_left_handed_state = true;
-			tablet_change_rotation(device, DO_NOTIFY);
-		}
-	}
-
+	if (is_ext_touchpad)
+		tablet_setup_rotation(device, added_device);
 }
 
 static void
