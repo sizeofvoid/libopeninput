@@ -189,7 +189,7 @@ running meson.
 
 .. hint:: The build dependencies for some distributions can be found in the
 	`GitLab Continuous Integration file <https://gitlab.freedesktop.org/libinput/libinput/blob/main/.gitlab-ci.yml>`_.
-	Search for **FEDORA_RPMS** in the **variables:** definition
+	Search for **FEDORA_PACKAGES** in the **variables:** definition
 	and check the list for an entry for your distribution.
 
 In most cases, it is sufficient to install the dependencies that your
