@@ -3350,6 +3350,10 @@ tp_init_palmdetect_edge(struct tp_dispatch *tp,
 	    !tp_is_tpkb_combo_below(device))
 		return;
 
+	/* Edge palm detection hurts more than it helps on Apple touchpads. */
+	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_APPLE_TOUCHPAD))
+		return;
+
 	evdev_device_get_size(device, &width, &height);
 
 	/* Enable edge palm detection on touchpads >= 70 mm. Anything

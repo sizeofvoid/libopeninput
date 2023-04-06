@@ -1287,7 +1287,7 @@ litest_has_palm_detect_size(struct litest_device *dev)
 	if (bustype == BUS_BLUETOOTH)
 		return 0;
 	if (vendor == VENDOR_ID_APPLE)
-		return 1;
+		return 0;
 
 	rc = libinput_device_get_size(dev->libinput_device, &width, &height);
 
