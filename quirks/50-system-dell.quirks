@@ -45,6 +45,7 @@ AttrPalmPressureThreshold=150
 MatchName=* Touchpad
 MatchDMIModalias=dmi:*svnDellInc.:pnXPS159500:*
 ModelTouchpadVisibleMarker=0
+ModelTouchpadPhantomClicks=1
 
 [Dell Latitude D620 Trackpoint]
 MatchName=*DualPoint Stick

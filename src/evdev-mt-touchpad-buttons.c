@@ -1233,6 +1233,18 @@ tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 		struct tp_touch *t;
 		uint32_t area = 0;
 
+		if (evdev_device_has_model_quirk(tp->device,
+						 QUIRK_MODEL_TOUCHPAD_PHANTOM_CLICKS) &&
+		    tp->nactive_slots == 0) {
+			/* Some touchpads, notably those on the Dell XPS 15 9500,
+			 * are prone to registering touchpad clicks when the
+			 * case is sufficiently flexed. Ignore these by
+			 * disregarding any clicks that are registered without
+			 * touchpad touch. */
+			tp->buttons.click_pending = true;
+			return 0;
+		}
+
 		tp_for_each_touch(tp, t) {
 			switch (t->button.current) {
 			case BUTTON_EVENT_IN_AREA:

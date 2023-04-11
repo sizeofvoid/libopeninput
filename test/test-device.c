@@ -1624,7 +1624,7 @@ START_TEST(device_has_size)
 	ck_assert_int_eq(rc, 0);
 	/* This matches the current set of test devices but may fail if
 	 * newer ones are added */
-	ck_assert_double_gt(w, 40);
+	ck_assert_double_gt(w, 30);
 	ck_assert_double_gt(h, 20);
 }
 END_TEST

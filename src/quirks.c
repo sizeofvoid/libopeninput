@@ -267,6 +267,7 @@ quirk_get_name(enum quirk q)
 	case QUIRK_MODEL_TABLET_MODE_NO_SUSPEND:	return "ModelTabletModeNoSuspend";
 	case QUIRK_MODEL_TABLET_MODE_SWITCH_UNRELIABLE:	return "ModelTabletModeSwitchUnreliable";
 	case QUIRK_MODEL_TOUCHPAD_VISIBLE_MARKER:	return "ModelTouchpadVisibleMarker";
+	case QUIRK_MODEL_TOUCHPAD_PHANTOM_CLICKS:	return "ModelTouchpadPhantomClicks";
 	case QUIRK_MODEL_TRACKBALL:			return "ModelTrackball";
 	case QUIRK_MODEL_WACOM_TOUCHPAD:		return "ModelWacomTouchpad";
 	case QUIRK_MODEL_PRESSURE_PAD:			return "ModelPressurePad";
