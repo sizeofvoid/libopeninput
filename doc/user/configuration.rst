@@ -173,3 +173,7 @@ allowing the device to be used e.g. sideways or upside-down. For example, a
 trackball may be used in a 90° rotated position for accessibility reasons -
 such a rotated position allows triggering the buttons with the thumb or
 the non-dominant hand.
+
+Note that where a device rotation is higher than 160 but less than 200 degrees,
+the direction of wheels is also inverted. For all other angles, the wheel
+direction is left as-is.

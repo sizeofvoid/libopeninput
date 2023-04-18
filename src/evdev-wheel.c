@@ -323,6 +323,21 @@ wheel_handle_direction_change(struct fallback_dispatch *dispatch,
 	}
 }
 
+static void
+fallback_rotate_wheel(struct fallback_dispatch *dispatch,
+		      struct evdev_device *device,
+		      struct input_event *e)
+{
+	/* Special case: if we're upside down (-ish),
+	 * swap the direction of the wheels so that user-down
+	 * means scroll down. This isn't done for any other angle
+	 * since it's not clear what the heuristics should be.*/
+	if (dispatch->rotation.angle >= 160.0 &&
+	    dispatch->rotation.angle <= 220.0) {
+		e->value *= -1;
+	}
+}
+
 void
 fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 				struct evdev_device *device,
@@ -330,6 +345,7 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 {
 	switch (e->code) {
 	case REL_WHEEL:
+		fallback_rotate_wheel(dispatch, device, e);
 		dispatch->wheel.lo_res.y += e->value;
 		if (dispatch->wheel.emulate_hi_res_wheel)
 			dispatch->wheel.hi_res.y += e->value * 120;
@@ -337,6 +353,7 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case REL_HWHEEL:
+		fallback_rotate_wheel(dispatch, device, e);
 		dispatch->wheel.lo_res.x += e->value;
 		if (dispatch->wheel.emulate_hi_res_wheel)
 			dispatch->wheel.hi_res.x += e->value * 120;
@@ -344,6 +361,7 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case REL_WHEEL_HI_RES:
+		fallback_rotate_wheel(dispatch, device, e);
 		dispatch->wheel.hi_res.y += e->value;
 		dispatch->wheel.hi_res_event_received = true;
 		dispatch->pending_event |= EVDEV_WHEEL;
@@ -351,6 +369,7 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case REL_HWHEEL_HI_RES:
+		fallback_rotate_wheel(dispatch, device, e);
 		dispatch->wheel.hi_res.x += e->value;
 		dispatch->wheel.hi_res_event_received = true;
 		dispatch->pending_event |= EVDEV_WHEEL;

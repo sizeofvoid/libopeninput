@@ -628,6 +628,13 @@ test_high_and_low_wheel_events_value(struct litest_device *dev,
 		v120 *= -1;
 	}
 
+	double angle = libinput_device_config_rotation_get_angle(dev->libinput_device);
+	if (angle >= 160.0 && angle <= 220.0) {
+		expected *= -1;
+		discrete *= -1;
+		v120 *= -1;
+	}
+
 	axis = (which == REL_WHEEL || which == REL_WHEEL_HI_RES) ?
 				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL :
 				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL;
@@ -1057,6 +1064,38 @@ START_TEST(pointer_scroll_has_axis_invalid)
 	ck_assert_int_eq(libinput_event_pointer_has_axis(pev, 3), 0);
 	ck_assert_int_eq(libinput_event_pointer_has_axis(pev, 0xffff), 0);
 	libinput_event_destroy(event);
+}
+END_TEST
+
+START_TEST(pointer_scroll_with_rotation)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_device *device = dev->libinput_device;
+	double angle = _i * 20; /* ranged test */
+
+	litest_drain_events(li);
+	libinput_device_config_rotation_set_angle(device, angle);
+
+	/* make sure we hit at least one of the below two conditions */
+	ck_assert(libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL) ||
+		  libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL));
+
+	if (libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL)) {
+		test_wheel_event(dev, REL_WHEEL, -1);
+		test_wheel_event(dev, REL_WHEEL, 1);
+
+		test_wheel_event(dev, REL_WHEEL, -5);
+		test_wheel_event(dev, REL_WHEEL, 6);
+	}
+
+	if (libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL)) {
+		test_wheel_event(dev, REL_HWHEEL, -1);
+		test_wheel_event(dev, REL_HWHEEL, 1);
+
+		test_wheel_event(dev, REL_HWHEEL, -5);
+		test_wheel_event(dev, REL_HWHEEL, 6);
+	}
 }
 END_TEST
 
@@ -3713,6 +3752,7 @@ TEST_COLLECTION(pointer)
 	struct range buttonorder = {0, _MB_BUTTONORDER_COUNT};
 	struct range scroll_directions = {LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
 					  LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL + 1};
+	struct range rotation_20deg = {0, 18}; /* steps of 20 degrees */
 
 	litest_add(pointer_motion_relative, LITEST_RELATIVE, LITEST_POINTINGSTICK);
 	litest_add_for_device(pointer_motion_relative_zero, LITEST_MOUSE);
@@ -3754,6 +3794,7 @@ TEST_COLLECTION(pointer)
 	litest_add(pointer_scroll_natural_enable_config, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_natural_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_has_axis_invalid, LITEST_WHEEL, LITEST_TABLET);
+	litest_add_ranged(pointer_scroll_with_rotation, LITEST_WHEEL, LITEST_TABLET, &rotation_20deg);
 
 	litest_add(pointer_no_calibration, LITEST_ANY, LITEST_TOUCH|LITEST_SINGLE_TOUCH|LITEST_ABSOLUTE|LITEST_PROTOCOL_A|LITEST_TABLET);
 
