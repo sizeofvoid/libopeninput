@@ -150,3 +150,23 @@ See the **libinput_event_pointer_get_axis_source()** for details on the
 behavior of each scroll source.
 
 See also http://who-t.blogspot.com.au/2015/03/libinput-scroll-sources.html
+
+.. _natural_scrolling:
+
+------------------------------------------------------------------------------
+Natural scrolling vs. traditional scrolling
+------------------------------------------------------------------------------
+
+Natural scrolling is the term (probably) coined by Apple for matching
+the motion of the scroll device with the direction of the **content**.
+
+In traditional scrolling, moving the wheel down causes the scroll bar
+indicators to move down and the content to move up. In natural scrolling,
+moving the wheel down causes the content to move down and the scroll bar
+indicators to move up. This method of scrolling matches the interaction
+with content on touch screens where a movement down also moves the content
+down.
+
+libinput supports natural scrolling for all its scroll methods; it can
+be enabled with the
+**libinput_device_config_scroll_set_natural_scroll_enabled()** function.
