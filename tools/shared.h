@@ -62,6 +62,7 @@ enum configuration_options {
 	OPT_CUSTOM_POINTS,
 	OPT_CUSTOM_STEP,
 	OPT_CUSTOM_TYPE,
+	OPT_ROTATION_ANGLE,
 };
 
 #define CONFIGURATION_OPTIONS \
@@ -93,7 +94,8 @@ enum configuration_options {
 	{ "apply-to",                  required_argument, 0, OPT_APPLY_TO },\
 	{ "set-custom-points",         required_argument, 0, OPT_CUSTOM_POINTS },\
 	{ "set-custom-step",           required_argument, 0, OPT_CUSTOM_STEP },\
-	{ "set-custom-type",           required_argument, 0, OPT_CUSTOM_TYPE }
+	{ "set-custom-type",           required_argument, 0, OPT_CUSTOM_TYPE },\
+	{ "set-rotation-angle",        required_argument, 0, OPT_ROTATION_ANGLE }
 
 enum tools_backend {
 	BACKEND_NONE,
@@ -124,6 +126,7 @@ struct tools_options {
 	double custom_step;
 	size_t custom_npoints;
 	double *custom_points;
+	unsigned int angle;
 };
 
 void tools_init_options(struct tools_options *options);

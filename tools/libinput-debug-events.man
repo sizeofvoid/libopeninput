@@ -119,6 +119,9 @@ This only applies to the custom profile.
 .TP 8
 .B \-\-set\-tap\-map=[lrm|lmr]
 Set button mapping for tapping
+.TP 8
+.B \-\-set\-rotation\-angle=<degrees>
+Set the rotation angle in degrees (0 to 360).
 .SH NOTES
 .PP
 Events shown by this tool may not correspond to the events seen by a

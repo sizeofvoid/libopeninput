@@ -315,6 +315,14 @@ tools_parse_option(int option,
 			return 1;
 		}
 		break;
+	case OPT_ROTATION_ANGLE:
+		if (!optarg)
+			return 1;
+
+		if (!safe_atou(optarg, &options->angle)) {
+			fprintf(stderr, "Invalid --set-rotation-angle value\n");
+			return 1;
+		}
 	}
 	return 0;
 }
@@ -520,6 +528,9 @@ tools_device_apply_config(struct libinput_device *device,
 		libinput_device_config_accel_apply(device, config);
 		libinput_config_accel_destroy(config);
 	}
+
+	if (options->angle != 0)
+		libinput_device_config_rotation_set_angle(device, options->angle % 360);
 }
 
 static char*

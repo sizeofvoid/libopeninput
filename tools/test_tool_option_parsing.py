@@ -222,6 +222,7 @@ options = {
     # options with a range (and increment)
     "ranges": {
         "set-speed": (-1.0, +1.0, 0.1),
+        "set-rotation": (0, 360, 10),
     },
 }
 
