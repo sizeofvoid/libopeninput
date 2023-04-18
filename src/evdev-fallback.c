@@ -1502,7 +1502,6 @@ fallback_init_rotation(struct fallback_dispatch *dispatch,
 	dispatch->rotation.config.set_angle = fallback_rotation_config_set_angle;
 	dispatch->rotation.config.get_angle = fallback_rotation_config_get_angle;
 	dispatch->rotation.config.get_default_angle = fallback_rotation_config_get_default_angle;
-	dispatch->rotation.is_enabled = false;
 	matrix_init_identity(&dispatch->rotation.matrix);
 	device->base.config.rotation = &dispatch->rotation.config;
 }

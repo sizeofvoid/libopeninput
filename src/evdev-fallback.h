@@ -89,7 +89,6 @@ struct fallback_dispatch {
 	struct libinput_device_config_calibration calibration;
 
 	struct {
-		bool is_enabled;
 		int angle;
 		struct matrix matrix;
 		struct libinput_device_config_rotation config;
