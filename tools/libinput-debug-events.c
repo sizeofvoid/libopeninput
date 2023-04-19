@@ -494,7 +494,7 @@ print_pointer_axis_event(struct libinput_event *ev)
 	double v = 0, h = 0, v120 = 0, h120 = 0;
 	const char *have_vert = "",
 		   *have_horiz = "";
-	const char *source = "invalid";
+	const char *source = NULL;
 	enum libinput_pointer_axis axis;
 	enum libinput_event_type type;
 
@@ -746,7 +746,7 @@ static void
 print_tablet_pad_ring_event(struct libinput_event *ev)
 {
 	struct libinput_event_tablet_pad *p = libinput_event_get_tablet_pad_event(ev);
-	const char *source = "<invalid>";
+	const char *source = NULL;
 	unsigned int mode;
 
 	print_event_time(libinput_event_tablet_pad_get_time(p));
@@ -772,7 +772,7 @@ static void
 print_tablet_pad_strip_event(struct libinput_event *ev)
 {
 	struct libinput_event_tablet_pad *p = libinput_event_get_tablet_pad_event(ev);
-	const char *source = "<invalid>";
+	const char *source = NULL;
 	unsigned int mode;
 
 	print_event_time(libinput_event_tablet_pad_get_time(p));

@@ -45,7 +45,7 @@ log_handler(struct libinput *this_is_null,
 	FILE *out = stdout;
 	enum quirks_log_priorities p = (enum quirks_log_priorities)priority;
 	char buf[256] = {0};
-	const char *prefix = "";
+	const char *prefix = NULL;
 
 	switch (p) {
 	case QLOG_NOISE:
