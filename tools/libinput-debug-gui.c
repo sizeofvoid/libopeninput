@@ -1134,7 +1134,7 @@ window_init(struct window *w)
 	g_signal_connect(G_OBJECT(w->win), "close-request", G_CALLBACK(window_delete_event_cb), w);
 
 	gtk_window_set_child(GTK_WINDOW(w->win), w->area);
-	gtk_widget_show(w->win);
+	gtk_widget_set_visible(w->win, TRUE);
 #else
 	g_signal_connect(G_OBJECT(w->win), "map-event", G_CALLBACK(map_event_cb), w);
 	g_signal_connect(G_OBJECT(w->win), "delete-event", G_CALLBACK(window_delete_event_cb), w);
