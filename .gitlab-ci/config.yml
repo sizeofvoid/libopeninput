@@ -9,8 +9,8 @@ distributions:
   - name: fedora
     tag: *default_tag
     versions:
-      - '36'
       - '37'
+      - '38'
     use_for_custom_build_tests: true
     use_for_qemu_tests: true
     packages:
