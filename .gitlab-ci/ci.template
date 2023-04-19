@@ -705,10 +705,10 @@ build rpm:
     - .policy
   stage: deploy
   variables:
-    FDO_DISTRIBUTION_VERSION: '36'
+    FDO_DISTRIBUTION_VERSION: '{{version}}'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
   needs:
-    - "fedora:36@container-prep"
+    - "fedora:{{version}}@container-prep"
   script:
     - meson "$MESON_BUILDDIR"
     - VERSION=$(meson introspect "$MESON_BUILDDIR" --projectinfo | jq -r .version)
