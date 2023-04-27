@@ -219,9 +219,9 @@ options = {
         "set-profile": ["adaptive", "flat"],
         "set-tap-map": ["lrm", "lmr"],
     },
-    # options with a range
+    # options with a range (and increment)
     "ranges": {
-        "set-speed": (float, -1.0, +1.0),
+        "set-speed": (-1.0, +1.0, 0.1),
     },
 }
 
@@ -250,9 +250,7 @@ def test_options_enums(libinput_debug_tool, option):
 @pytest.mark.parametrize("option", options["ranges"].items())
 def test_options_ranges(libinput_debug_tool, option):
     name, values = option
-    range_type, minimum, maximum = values
-    assert range_type == float
-    step = (maximum - minimum) / 10.0
+    minimum, maximum, step = values
     value = minimum
     while value < maximum:
         libinput_debug_tool.run_command_success(["--{}".format(name), str(value)])
