@@ -42,3 +42,5 @@ Once the timeout expires at t4, libinput generates an event of
 
 Thus, the caller gets events with timestamps in the order t3, t1, t2,
 despite t3 > t2 > t1.
+
+libinput timestamps use **CLOCK_MONOTONIC**.
