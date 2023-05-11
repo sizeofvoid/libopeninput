@@ -116,14 +116,14 @@ struct litest_device_interface {
 
 	bool (*tablet_proximity_in)(struct litest_device *d,
 				    unsigned int tool_type,
-				    double x, double y,
+				    double *x, double *y,
 				    struct axis_replacement *axes);
 	bool (*tablet_proximity_out)(struct litest_device *d, unsigned int tool_type);
 	bool (*tablet_tip_down)(struct litest_device *d,
-				int x, int y,
+				double *x, double *y,
 				struct axis_replacement *axes);
 	bool (*tablet_tip_up)(struct litest_device *d,
-			      int x, int y,
+			      double *x, double *y,
 			      struct axis_replacement *axes);
 
 	/**

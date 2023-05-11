@@ -631,7 +631,7 @@ litest_tablet_set_tool_type(struct litest_device *d,
 
 void
 litest_tablet_proximity_in(struct litest_device *d,
-			   int x, int y,
+			   double x, double y,
 			   struct axis_replacement *axes);
 
 void
@@ -639,17 +639,17 @@ litest_tablet_proximity_out(struct litest_device *d);
 
 void
 litest_tablet_tip_down(struct litest_device *d,
-		       int x, int y,
+		       double x, double y,
 		       struct axis_replacement *axes);
 
 void
 litest_tablet_tip_up(struct litest_device *d,
-		     int x, int y,
+		     double x, double y,
 		     struct axis_replacement *axes);
 
 void
 litest_tablet_motion(struct litest_device *d,
-		     int x, int y,
+		     double x, double y,
 		     struct axis_replacement *axes);
 
 void

@@ -52,7 +52,7 @@ static struct input_event motion_events[] = {
 static bool
 proximity_in(struct litest_device *d,
 	     unsigned int tool_type,
-	     double x, double y,
+	     double *x, double *y,
 	     struct axis_replacement *axes)
 {
 	/* nothing special needed for the pen tool, so let litest handle
@@ -61,10 +61,10 @@ proximity_in(struct litest_device *d,
 		return false;
 
 	/* a non-pen tool requires the pen to be in proximity as well.  */
-	x = litest_scale(d, ABS_X, x);
-	y = litest_scale(d, ABS_Y, y);
-	litest_event(d, EV_ABS, ABS_X, x);
-	litest_event(d, EV_ABS, ABS_X, y);
+	int sx = litest_scale(d, ABS_X, *x);
+	int sy = litest_scale(d, ABS_Y, *y);
+	litest_event(d, EV_ABS, ABS_X, sx);
+	litest_event(d, EV_ABS, ABS_X, sy);
 	litest_event(d, EV_KEY, BTN_TOOL_PEN, 1);
 	litest_event(d, EV_SYN, SYN_REPORT, 0);
 

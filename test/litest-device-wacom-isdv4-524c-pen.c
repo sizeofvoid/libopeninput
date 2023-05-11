@@ -76,7 +76,7 @@ get_axis_default(struct litest_device *d, unsigned int evcode, int32_t *value)
 
 static bool prox_in(struct litest_device *d,
 		  unsigned int tool_type,
-		  double x, double y,
+		  double *x, double *y,
 		  struct axis_replacement *axes)
 {
 	struct priv *priv = d->private;
@@ -95,7 +95,7 @@ static bool prox_out(struct litest_device *d, unsigned int tool_type)
 
 static bool
 tip_down(struct litest_device *d,
-	 int x, int y,
+	 double *x, double *y,
 	 struct axis_replacement *axes)
 {
 	litest_event(d, EV_KEY, BTN_TOOL_PEN, 1);
@@ -104,7 +104,7 @@ tip_down(struct litest_device *d,
 
 static bool
 tip_up(struct litest_device *d,
-	 int x, int y,
+	 double* x, double *y,
 	 struct axis_replacement *axes)
 {
 	struct priv *priv = d->private;
