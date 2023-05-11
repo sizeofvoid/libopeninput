@@ -72,7 +72,7 @@ static int events[] = {
 
 TEST_DEVICE("calibrated-touchscreen",
 	.type = LITEST_CALIBRATED_TOUCHSCREEN,
-	.features = LITEST_TOUCH,
+	.features = LITEST_TOUCH|LITEST_PRECALIBRATED,
 	.interface = &interface,
 
 	.name = "Calibrated Touchscreen",

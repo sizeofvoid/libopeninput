@@ -6208,9 +6208,9 @@ TEST_COLLECTION(tablet)
 	litest_add(tablet_pressure_distance_exclusive, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 
 	/* The totem doesn't need calibration */
-	litest_add(tablet_calibration_has_matrix, LITEST_TABLET, LITEST_TOTEM);
-	litest_add(tablet_calibration_set_matrix, LITEST_TABLET, LITEST_TOTEM);
-	litest_add(tablet_calibration_set_matrix_delta, LITEST_TABLET, LITEST_TOTEM);
+	litest_add(tablet_calibration_has_matrix, LITEST_TABLET, LITEST_TOTEM|LITEST_PRECALIBRATED);
+	litest_add(tablet_calibration_set_matrix, LITEST_TABLET, LITEST_TOTEM|LITEST_PRECALIBRATED);
+	litest_add(tablet_calibration_set_matrix_delta, LITEST_TABLET, LITEST_TOTEM|LITEST_PRECALIBRATED);
 
 	litest_add(tablet_pressure_min_max, LITEST_TABLET, LITEST_ANY);
 	litest_add_for_device(tablet_pressure_range, LITEST_WACOM_INTUOS);
@@ -6226,7 +6226,7 @@ TEST_COLLECTION(tablet)
 	litest_add(relative_no_delta_prox_in, LITEST_TABLET, LITEST_ANY);
 	litest_add(relative_delta, LITEST_TABLET, LITEST_ANY);
 	litest_add(relative_no_delta_on_tip, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	litest_add(relative_calibration, LITEST_TABLET, LITEST_ANY);
+	litest_add(relative_calibration, LITEST_TABLET, LITEST_PRECALIBRATED);
 
 	litest_add(touch_arbitration, LITEST_TABLET, LITEST_ANY);
 	litest_add(touch_arbitration_stop_touch, LITEST_TABLET, LITEST_ANY);
