@@ -2536,6 +2536,12 @@ litest_tablet_motion(struct litest_device *d,
 {
 	struct input_event *ev;
 
+	/* If the test device overrides proximity_out and says it didn't
+	 * handle the event, let's continue normally */
+	if (d->interface->tablet_motion &&
+	    d->interface->tablet_motion(d, &x, &y, axes))
+		return;
+
 	ev = d->interface->tablet_motion_events;
 	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
 		int value = auto_assign_tablet_value(d, ev, x, y, axes);

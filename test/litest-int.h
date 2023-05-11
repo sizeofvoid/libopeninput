@@ -125,6 +125,9 @@ struct litest_device_interface {
 	bool (*tablet_tip_up)(struct litest_device *d,
 			      double *x, double *y,
 			      struct axis_replacement *axes);
+	bool (*tablet_motion)(struct litest_device *d,
+			      double *x, double *y,
+			      struct axis_replacement *axes);
 
 	/**
 	 * Pad events, LITEST_AUTO_ASSIGN is allowed on event values
