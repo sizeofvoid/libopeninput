@@ -804,6 +804,7 @@ if get_option('tests')
 		'test/litest-device-wacom-bamboo-2fg-pad.c',
 		'test/litest-device-wacom-bamboo-2fg-pen.c',
 		'test/litest-device-wacom-bamboo-16fg-pen.c',
+		'test/litest-device-wacom-calibrated-tablet.c',
 		'test/litest-device-wacom-cintiq-12wx-pen.c',
 		'test/litest-device-wacom-cintiq-13hdt-finger.c',
 		'test/litest-device-wacom-cintiq-13hdt-pad.c',
