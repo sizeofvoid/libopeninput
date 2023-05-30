@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 #
+# This script is sourced from here:
+# https://gitlab.freedesktop.org/whot/meson-helper
+#
 # SPDX-License-Identifier: MIT
 
 set -x
