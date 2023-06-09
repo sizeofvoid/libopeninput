@@ -976,6 +976,12 @@ if get_option('install-tests')
 else
 	man_config.set('HAVE_INSTALLED_TESTS', '')
 endif
+if get_option('debug-gui')
+	man_config.set('HAVE_DEBUG_GUI', '')
+else
+	man_config.set('HAVE_DEBUG_GUI', '.\"')
+endif
+
 src_man += files(
 	'tools/libinput.man',
 	'tools/libinput-analyze.man',

@@ -35,9 +35,9 @@ Print the version and exit
 .TP 8
 .B libinput\-debug\-events(1)
 Print all events as seen by libinput
-.TP 8
-.B libinput\-debug\-gui(1)
-Show a GUI to visualize libinput's events
+@HAVE_DEBUG_GUI@.TP 8
+@HAVE_DEBUG_GUI@.B libinput\-debug\-gui(1)
+@HAVE_DEBUG_GUI@Show a GUI to visualize libinput's events
 .TP 8
 .B libinput\-debug\-tablet(1)
 A commandline tool to debug tablet axis values
