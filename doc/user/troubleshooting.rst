@@ -16,3 +16,4 @@ Troubleshooting
    tablet-debugging.rst
    incorrectly-enabled-hires.rst
    clickpad-with-right-button.rst
+   ignoring-devices.rst

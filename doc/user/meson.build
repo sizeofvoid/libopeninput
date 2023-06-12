@@ -146,6 +146,7 @@ src_rst = files(
 	'faqs.rst',
 	'gestures.rst',
 	'incorrectly-enabled-hires.rst',
+	'ignoring-devices.rst',
 	'middle-button-emulation.rst',
 	'normalization-of-relative-motion.rst',
 	'palm-detection.rst',
