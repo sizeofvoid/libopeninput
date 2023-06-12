@@ -270,8 +270,9 @@ sure it's on point.
   "change foo to bar", not "changed foo to bar".
 - The text width of the commit should be 78 chars or less, especially the
   subject line.
-- The author and signed-off-by must be your real name and email address. We
-  do not accept the default `@users.noreply` gitlab addresses.
+- The author and signed-off-by must be the name you usually identify
+  as and email address. We do not accept the default `@users.noreply` gitlab
+  addresses.
   ```
   git config --global user.name Your Name
   git config --global user.email your@email
