@@ -3921,6 +3921,26 @@ START_TEST(tablet_pressure_offset_decrease)
 	 * account it's closer to 5% into the remaining effective 89% range
 	 */
 	assert_pressure(li, LIBINPUT_EVENT_TABLET_TOOL_TIP, 0.05);
+
+	/* a reduced pressure value during motion events must reduce the offset
+	 * - here back down to 5%.
+	 * FIXME: this causes a tip up event which is a bug but working around
+	 * this is more effort than it's worth for what should be quite a niche
+	 * case.
+	 */
+	litest_axis_set_value(axes, ABS_PRESSURE, 5);
+	litest_tablet_motion(dev, 75, 75, axes);
+	libinput_dispatch(li);
+	assert_pressure(li, LIBINPUT_EVENT_TABLET_TOOL_TIP, 0.0);
+	litest_drain_events(li);
+
+	/* back to 10% should now give us 5% pressure because we reduced the
+	 * offset */
+        litest_axis_set_value(axes, ABS_PRESSURE, 10);
+	litest_tablet_motion(dev, 75, 75, axes);
+	libinput_dispatch(li);
+	assert_pressure(li, LIBINPUT_EVENT_TABLET_TOOL_TIP, 0.05);
+	litest_drain_events(li);
 }
 END_TEST
 
