@@ -28,7 +28,7 @@ Below is an example udev rule  to assign **LIBINPUT_IGNORE_DEVICE** to the
 device with the vendor/model ID of ``012a``/``034b``. ::
 
   $ cat /etc/udev/rules.d/99-ignore-my-device.rules
-  ACTION=="add|change", KERNEL=="event[0-9]*", \
+  ACTION!="remove", KERNEL=="event[0-9]*", \
      ENV{ID_VENDOR_ID}=="012a", \
      ENV{ID_MODEL_ID}=="034b", \
      ENV{LIBINPUT_IGNORE_DEVICE}="1"
