@@ -3829,6 +3829,22 @@ START_TEST(tablet_pressure_offset_set)
 		{ -1, -1 },
 	};
 
+	litest_drain_events(li);
+
+	if (!libevdev_has_event_code(dev->evdev, EV_ABS, ABS_DISTANCE)) {
+		/* First two prox ins won't do anything, coming with 10% should give
+		 * us ~10% pressure */
+		for (int i = 0; i < 2; i++) {
+			litest_tablet_proximity_in(dev, 5, 100, axes);
+			libinput_dispatch(li);
+
+			assert_pressure(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, 0.20);
+			assert_pressure(li, LIBINPUT_EVENT_TABLET_TOOL_TIP, 0.20);
+			litest_tablet_proximity_out(dev);
+			litest_drain_events(li);
+		}
+	}
+
 	/* This activates the pressure offset */
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_drain_events(li);
@@ -3900,6 +3916,13 @@ START_TEST(tablet_pressure_offset_decrease)
 	litest_tablet_proximity_out(dev);
 	litest_drain_events(li);
 
+	/* offset 15 on prox in - this one is so we trigger on the next prox
+	 * in for the no-distance tablets */
+	litest_axis_set_value(axes, ABS_PRESSURE, 15);
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(li);
+
 	/* a reduced pressure value must reduce the offset */
 	litest_axis_set_value(axes, ABS_PRESSURE, 10);
 	litest_tablet_proximity_in(dev, 5, 100, axes);
@@ -3959,7 +3982,13 @@ START_TEST(tablet_pressure_offset_increase)
 	litest_tablet_proximity_out(dev);
 	litest_drain_events(li);
 
-	/* offset 30 on second prox in - must not change the offset */
+	/* offset 25 on second prox in - must not change the offset */
+	litest_axis_set_value(axes, ABS_PRESSURE, 25);
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(li);
+
+	/* offset 30 on third prox in - must not change the offset */
 	litest_axis_set_value(axes, ABS_PRESSURE, 30);
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_drain_events(li);
@@ -4091,6 +4120,15 @@ START_TEST(tablet_pressure_offset_exceed_threshold)
 	};
 	int warning_triggered = 0;
 	struct litest_user_data *user_data = libinput_get_user_data(li);
+
+	/* Tablet without distance: offset takes effect on third prox-in */
+	if (!libevdev_has_event_code(dev->evdev, EV_ABS, ABS_DISTANCE)) {
+		for (int i = 0; i < 2; i++) {
+			litest_tablet_proximity_in(dev, 5, 100, axes);
+			litest_tablet_proximity_out(dev);
+			libinput_dispatch(li);
+		}
+	}
 
 	litest_drain_events(li);
 
@@ -6150,6 +6188,7 @@ TEST_COLLECTION(tablet)
 	litest_add(tablet_calibration_set_matrix_delta, LITEST_TABLET, LITEST_TOTEM|LITEST_PRECALIBRATED);
 
 	litest_add(tablet_pressure_min_max, LITEST_TABLET, LITEST_ANY);
+	/* Tests for pressure offset with distance */
 	litest_add_for_device(tablet_pressure_range, LITEST_WACOM_INTUOS);
 	litest_add_for_device(tablet_pressure_offset_set, LITEST_WACOM_INTUOS);
 	litest_add_for_device(tablet_pressure_offset_decrease, LITEST_WACOM_INTUOS);
@@ -6157,6 +6196,14 @@ TEST_COLLECTION(tablet)
 	litest_add_for_device(tablet_pressure_offset_exceed_threshold, LITEST_WACOM_INTUOS);
 	litest_add_for_device(tablet_pressure_offset_none_for_zero_distance, LITEST_WACOM_INTUOS);
 	litest_add_for_device(tablet_pressure_offset_none_for_small_distance, LITEST_WACOM_INTUOS);
+	/* Tests for pressure offset without distance */
+	litest_add_for_device(tablet_pressure_range, LITEST_WACOM_HID4800_PEN);
+	litest_add_for_device(tablet_pressure_offset_set, LITEST_WACOM_HID4800_PEN);
+	litest_add_for_device(tablet_pressure_offset_decrease, LITEST_WACOM_HID4800_PEN);
+	litest_add_for_device(tablet_pressure_offset_increase, LITEST_WACOM_HID4800_PEN);
+	litest_add_for_device(tablet_pressure_offset_exceed_threshold, LITEST_WACOM_HID4800_PEN);
+
+
 	litest_add_for_device(tablet_distance_range, LITEST_WACOM_INTUOS);
 
 	litest_add(relative_no_profile, LITEST_TABLET, LITEST_ANY);

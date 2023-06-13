@@ -442,6 +442,13 @@ struct tablet_axes {
 	struct phys_ellipsis size;
 };
 
+enum pressure_heuristic_state {
+	PRESSURE_HEURISTIC_STATE_PROXIN1, /** First proximity in event */
+	PRESSURE_HEURISTIC_STATE_PROXIN2, /** Second proximity in event */
+	PRESSURE_HEURISTIC_STATE_DECIDE,  /** Decide on offset now */
+	PRESSURE_HEURISTIC_STATE_DONE,    /** Decision's been made, live with it */
+};
+
 struct libinput_tablet_tool {
 	struct list link;
 	uint32_t serial;
@@ -456,6 +463,8 @@ struct libinput_tablet_tool {
 		struct threshold threshold; /* in device coordinates */
 		int offset; /* in device coordinates */
 		bool has_offset;
+
+		enum pressure_heuristic_state heuristic_state;
 	} pressure;
 };
 

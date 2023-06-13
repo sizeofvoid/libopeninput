@@ -1085,7 +1085,7 @@ tool_set_pressure_thresholds(struct tablet_dispatch *tablet,
 			     struct libinput_tablet_tool *tool)
 {
 	struct evdev_device *device = tablet->device;
-	const struct input_absinfo *pressure;
+	const struct input_absinfo *pressure, *distance;
 	struct quirks_context *quirks = NULL;
 	struct quirks *q = NULL;
 	struct quirk_range r;
@@ -1101,7 +1101,14 @@ tool_set_pressure_thresholds(struct tablet_dispatch *tablet,
 	quirks = evdev_libinput_context(device)->quirks;
 	q = quirks_fetch_for_device(quirks, device->udev_device);
 
-	tool->pressure.offset = pressure->minimum;
+	distance = libevdev_get_abs_info(device->evdev, ABS_DISTANCE);
+	if (distance) {
+		tool->pressure.offset = pressure->minimum;
+		tool->pressure.heuristic_state = PRESSURE_HEURISTIC_STATE_DONE;
+	} else {
+		tool->pressure.offset = pressure->maximum;
+		tool->pressure.heuristic_state = PRESSURE_HEURISTIC_STATE_PROXIN1;
+	}
 
 	/* 5 and 1% of the pressure range */
 	hi = axis_range_percentage(pressure, 5);
@@ -1337,18 +1344,24 @@ update_pressure_offset(struct tablet_dispatch *tablet,
 		libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
 
 	if (!pressure ||
-	    !bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE) ||
-	    !tool->pressure.has_offset)
+	    !bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE))
 		return;
 
 	/* If we have an event that falls below the current offset, adjust
 	 * the offset downwards. A fast contact can start with a
 	 * higher-than-needed pressure offset and then we'd be tied into a
 	 * high pressure offset for the rest of the session.
+	 *
+	 * If we are still pending the offset decision, only update the observed
+	 * offset value, don't actually set it to have an offset.
 	 */
 	int offset = pressure->value;
-	if (offset < tool->pressure.offset)
-		set_pressure_offset(tool, offset);
+	if (tool->pressure.has_offset) {
+		if (offset < tool->pressure.offset)
+			set_pressure_offset(tool, offset);
+	} else if (tool->pressure.heuristic_state != PRESSURE_HEURISTIC_STATE_DONE) {
+		tool->pressure.offset = min(offset, tool->pressure.offset);
+	}
 }
 
 static void
@@ -1366,16 +1379,43 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 	pressure = libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
 	distance = libevdev_get_abs_info(device->evdev, ABS_DISTANCE);
 
-	if (!pressure || !distance)
+	if (!pressure)
 		return;
 
 	offset = pressure->value;
 	if (offset <= pressure->minimum)
 		return;
 
-	/* If we're closer than 50% of the distance axis, skip pressure
-	 * offset detection, too likely to be wrong */
-	if (distance->value < axis_range_percentage(distance, 50))
+	if (distance) {
+		/* If we're closer than 50% of the distance axis, skip pressure
+		 * offset detection, too likely to be wrong */
+		if (distance->value < axis_range_percentage(distance, 50))
+			return;
+	} else {
+                /* A device without distance will always have some pressure on
+                 * contact. Offset detection is delayed for a few proximity ins
+                 * in the hope we'll find the minimum value until then. That
+                 * offset is updated during motion events so by the time the
+                 * deciding prox-in arrives we should know the minimum offset.
+                 */
+                if (offset > pressure->minimum)
+			tool->pressure.offset = min(offset, tool->pressure.offset);
+
+		switch (tool->pressure.heuristic_state) {
+		case PRESSURE_HEURISTIC_STATE_PROXIN1:
+		case PRESSURE_HEURISTIC_STATE_PROXIN2:
+			tool->pressure.heuristic_state++;
+			return;
+		case PRESSURE_HEURISTIC_STATE_DECIDE:
+			tool->pressure.heuristic_state++;
+			offset = tool->pressure.offset;
+			break;
+		case PRESSURE_HEURISTIC_STATE_DONE:
+			return;
+		}
+	}
+
+	if (offset <= pressure->minimum)
 		return;
 
 	if (offset > axis_range_percentage(pressure, 20)) {
