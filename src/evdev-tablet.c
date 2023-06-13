@@ -1314,6 +1314,21 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet,
 }
 
 static void
+set_pressure_offset(struct libinput_tablet_tool *tool, int offset)
+{
+	tool->pressure.offset = offset;
+	tool->pressure.has_offset = true;
+
+	/* Adjust the tresholds accordingly - we use the same gap (4% in
+	 * device coordinates) between upper and lower as before which isn't
+	 * technically correct (our range shrunk) but it's easy to calculate.
+	 */
+	int gap = tool->pressure.threshold.upper - tool->pressure.threshold.lower;
+	tool->pressure.threshold.lower = offset;
+	tool->pressure.threshold.upper = offset + gap;
+}
+
+static void
 detect_pressure_offset(struct tablet_dispatch *tablet,
 		       struct evdev_device *device,
 		       struct libinput_tablet_tool *tool)
@@ -1372,17 +1387,9 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 		 tablet_tool_type_to_string(tool->type),
 		 tool->serial,
 		 HTTP_DOC_LINK);
-set_offset:
-	tool->pressure.offset = offset;
-	tool->pressure.has_offset = true;
 
-	/* Adjust the tresholds accordingly - we use the same gap (4% in
-	 * device coordinates) between upper and lower as before which isn't
-	 * technically correct (our range shrunk) but it's easy to calculate.
-	 */
-	int gap = tool->pressure.threshold.upper - tool->pressure.threshold.lower;
-	tool->pressure.threshold.lower = offset;
-	tool->pressure.threshold.upper = offset + gap;
+set_offset:
+	set_pressure_offset(tool, offset);
 }
 
 static void
