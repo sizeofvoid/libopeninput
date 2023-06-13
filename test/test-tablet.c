@@ -3922,7 +3922,6 @@ START_TEST(tablet_pressure_offset_decrease)
 	litest_tablet_proximity_out(dev);
 	litest_drain_events(li);
 
-	/* a higher pressure value leaves it as-is */
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
