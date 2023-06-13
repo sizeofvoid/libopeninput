@@ -1329,6 +1329,29 @@ set_pressure_offset(struct libinput_tablet_tool *tool, int offset)
 }
 
 static void
+update_pressure_offset(struct tablet_dispatch *tablet,
+		       struct evdev_device *device,
+		       struct libinput_tablet_tool *tool)
+{
+	const struct input_absinfo *pressure =
+		libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
+
+	if (!pressure ||
+	    !bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE) ||
+	    !tool->pressure.has_offset)
+		return;
+
+	/* If we have an event that falls below the current offset, adjust
+	 * the offset downwards. A fast contact can start with a
+	 * higher-than-needed pressure offset and then we'd be tied into a
+	 * high pressure offset for the rest of the session.
+	 */
+	int offset = pressure->value;
+	if (offset < tool->pressure.offset)
+		set_pressure_offset(tool, offset);
+}
+
+static void
 detect_pressure_offset(struct tablet_dispatch *tablet,
 		       struct evdev_device *device,
 		       struct libinput_tablet_tool *tool)
@@ -1336,8 +1359,8 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 	const struct input_absinfo *pressure, *distance;
 	int offset;
 
-	if (!bit_is_set(tablet->changed_axes,
-			LIBINPUT_TABLET_TOOL_AXIS_PRESSURE))
+	if (tool->pressure.has_offset ||
+	    !bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE))
 		return;
 
 	pressure = libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
@@ -1347,23 +1370,7 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 		return;
 
 	offset = pressure->value;
-
-	/* If we have an event that falls below the current offset, adjust
-	 * the offset downwards. A fast contact can start with a
-	 * higher-than-needed pressure offset and then we'd be tied into a
-	 * high pressure offset for the rest of the session.
-	 */
-	if (tool->pressure.has_offset) {
-		if (offset < tool->pressure.offset)
-			goto set_offset;
-		return;
-	}
-
 	if (offset <= pressure->minimum)
-		return;
-
-	/* we only set a pressure offset on proximity in */
-	if (!tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY))
 		return;
 
 	/* If we're closer than 50% of the distance axis, skip pressure
@@ -1388,7 +1395,6 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 		 tool->serial,
 		 HTTP_DOC_LINK);
 
-set_offset:
 	set_pressure_offset(tool, offset);
 }
 
@@ -1945,9 +1951,13 @@ reprocess:
 	} else if (tablet_has_status(tablet, TABLET_AXES_UPDATED) ||
 		   tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
 		if (tablet_has_status(tablet,
-				      TABLET_TOOL_ENTERING_PROXIMITY))
+				      TABLET_TOOL_ENTERING_PROXIMITY)) {
 			tablet_mark_all_axes_changed(tablet, tool);
-		detect_pressure_offset(tablet, device, tool);
+			update_pressure_offset(tablet, device, tool);
+			detect_pressure_offset(tablet, device, tool);
+		} else {
+			update_pressure_offset(tablet, device, tool);
+		}
 		detect_tool_contact(tablet, device, tool);
 		sanitize_tablet_axes(tablet, tool);
 	}
