@@ -1948,16 +1948,14 @@ reprocess:
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
 		if (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT))
 			tablet_set_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
-	} else if (tablet_has_status(tablet, TABLET_AXES_UPDATED) ||
-		   tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
-		if (tablet_has_status(tablet,
-				      TABLET_TOOL_ENTERING_PROXIMITY)) {
-			tablet_mark_all_axes_changed(tablet, tool);
-			update_pressure_offset(tablet, device, tool);
-			detect_pressure_offset(tablet, device, tool);
-		} else {
-			update_pressure_offset(tablet, device, tool);
-		}
+	} else if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
+		tablet_mark_all_axes_changed(tablet, tool);
+		update_pressure_offset(tablet, device, tool);
+		detect_pressure_offset(tablet, device, tool);
+		detect_tool_contact(tablet, device, tool);
+		sanitize_tablet_axes(tablet, tool);
+	} else if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
+		update_pressure_offset(tablet, device, tool);
 		detect_tool_contact(tablet, device, tool);
 		sanitize_tablet_axes(tablet, tool);
 	}
