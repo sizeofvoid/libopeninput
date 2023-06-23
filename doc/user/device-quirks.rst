@@ -112,11 +112,11 @@ output.
 .. _device-quirks-list:
 
 ------------------------------------------------------------------------------
-List of supported device quirks
+List of currently available device quirks
 ------------------------------------------------------------------------------
 
 This list is a guide for developers to ease the process of submitting
-patches upstream. This section shows device quirks supported in
+patches upstream. This section shows device quirks currently available in
 |git_version|.
 
 .. warning:: Quirks are internal API and may change at any time for any reason.
