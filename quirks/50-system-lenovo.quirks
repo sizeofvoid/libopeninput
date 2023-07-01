@@ -5,12 +5,6 @@ MatchName=*Synaptics*
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPad*:*
 AttrThumbPressureThreshold=100
 
-[Lenovo ThinkPad 13 2nd Generation TrackPoint]
-MatchUdevType=pointingstick
-MatchName=*ETPS/2 Elantech TrackPoint*
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPad132ndGen*
-AttrTrackpointMultiplier=1.75
-
 [Lenovo x230 Touchpad]
 MatchName=*SynPS/2 Synaptics TouchPad
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX230*
