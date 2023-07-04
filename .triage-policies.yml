@@ -6,7 +6,22 @@
 resource_rules:
   issues:
     rules:
-      []
+      - name: "Close kernel bugs"
+        conditions:
+          labels:
+            - "bugbot::kernel"
+        actions:
+          labels:
+            - "kernel"
+          remove_labels:
+            - "bugbot::kernel"
+          comment: |
+            This bug looks like a kernel issue and it cannot be fixed
+            in libinput directly. I'm closing this bug but do feel free
+            to continue discussing the issue here.
+
+            Kernel bugs are usually best sent to the [`linux-input` list](https://lore.kernel.org/linux-input/).
+          status: "close"
   merge_requests:
     rules:
       - name: "Remind contributor of commit rules"
