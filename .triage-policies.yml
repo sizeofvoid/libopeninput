@@ -1,0 +1,26 @@
+# This is a set of bugbot commands for issues and merge requests - setting any of the
+# bugbot::foo labels will trigger gitlab-triage to run with this ruleset (well, the
+# one we have on the main branch at the time)
+#
+# Note that for adding labels, the label must first created in the project.
+resource_rules:
+  issues:
+    rules:
+      []
+  merge_requests:
+    rules:
+      - name: "Remind contributor of commit rules"
+        conditions:
+          labels:
+            - "bugbot::commit-rules"
+        actions:
+          remove_labels:
+            - "bugbot::commit-rules"
+          comment: |
+            Hi. Looks like the pipeline failed because one or more of the commits in this MR do not meet our requirements.
+            Most commonly this is a missing Signed-off-by, sometimes its the format of the commit message itself.
+            The "Test summary" above has the details.
+
+            Please see [our docs for commit messages](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#commit-messages)
+            and [our docs for submitting code](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#submitting-code)
+            that explain how to amend and force-push to this repo.
