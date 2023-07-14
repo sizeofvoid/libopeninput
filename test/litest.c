@@ -3996,6 +3996,21 @@ litest_is_switch_event(struct libinput_event *event,
 }
 
 void
+litest_assert_switch_event(struct libinput *li,
+			   enum libinput_switch sw,
+			   enum libinput_switch_state state)
+{
+	struct libinput_event *event;
+
+	litest_wait_for_event(li);
+	event = libinput_get_event(li);
+
+	litest_is_switch_event(event, sw, state);
+
+	libinput_event_destroy(event);
+}
+
+void
 litest_assert_pad_button_event(struct libinput *li,
 			       unsigned int button,
 			       enum libinput_button_state state)

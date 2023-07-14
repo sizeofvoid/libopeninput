@@ -838,6 +838,11 @@ litest_assert_button_event(struct libinput *li,
 			   enum libinput_button_state state);
 
 void
+litest_assert_switch_event(struct libinput *li,
+			   enum libinput_switch sw,
+			   enum libinput_switch_state state);
+
+void
 litest_assert_scroll(struct libinput *li,
 		     enum libinput_event_type axis_type,
 		     enum libinput_pointer_axis axis,

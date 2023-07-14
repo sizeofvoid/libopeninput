@@ -1097,13 +1097,23 @@ START_TEST(tablet_mode_disable_keyboard)
 
 	litest_keyboard_key(keyboard, KEY_A, true);
 	litest_keyboard_key(keyboard, KEY_A, false);
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+	litest_keyboard_key(keyboard, KEY_B, true); /* KEY_B down but not up */
+	libinput_dispatch(li);
+
+	litest_assert_key_event(li, KEY_A, LIBINPUT_KEY_STATE_PRESSED);
+	litest_assert_key_event(li, KEY_A, LIBINPUT_KEY_STATE_RELEASED);
+	litest_assert_key_event(li, KEY_B, LIBINPUT_KEY_STATE_PRESSED); /* KEY_B down but not up */
 
 	litest_switch_action(sw,
 			     LIBINPUT_SWITCH_TABLET_MODE,
 			     LIBINPUT_SWITCH_STATE_ON);
-	litest_drain_events(li);
 
+	/* The key currently down must be released */
+	litest_assert_key_event(li, KEY_B, LIBINPUT_KEY_STATE_RELEASED);
+	litest_assert_switch_event(li, LIBINPUT_SWITCH_TABLET_MODE, LIBINPUT_SWITCH_STATE_ON);
+	litest_assert_empty_queue(li);
+
+	litest_keyboard_key(keyboard, KEY_B, false); /* release the kernel device */
 	litest_keyboard_key(keyboard, KEY_A, true);
 	litest_keyboard_key(keyboard, KEY_A, false);
 	litest_assert_empty_queue(li);
@@ -1111,11 +1121,16 @@ START_TEST(tablet_mode_disable_keyboard)
 	litest_switch_action(sw,
 			     LIBINPUT_SWITCH_TABLET_MODE,
 			     LIBINPUT_SWITCH_STATE_OFF);
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_SWITCH_TOGGLE);
+	litest_assert_switch_event(li, LIBINPUT_SWITCH_TABLET_MODE, LIBINPUT_SWITCH_STATE_OFF);
 
 	litest_keyboard_key(keyboard, KEY_A, true);
 	litest_keyboard_key(keyboard, KEY_A, false);
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+	litest_keyboard_key(keyboard, KEY_B, true);
+	litest_keyboard_key(keyboard, KEY_B, false);
+	litest_assert_key_event(li, KEY_A, LIBINPUT_KEY_STATE_PRESSED);
+	litest_assert_key_event(li, KEY_A, LIBINPUT_KEY_STATE_RELEASED);
+	litest_assert_key_event(li, KEY_B, LIBINPUT_KEY_STATE_PRESSED);
+	litest_assert_key_event(li, KEY_B, LIBINPUT_KEY_STATE_RELEASED);
 
 	litest_delete_device(keyboard);
 }
