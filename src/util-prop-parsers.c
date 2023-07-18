@@ -506,7 +506,7 @@ parse_evdev_abs_prop(const char *prop, struct input_absinfo *abs)
 
 	/* basic sanity check: 5 digits for min/max, 3 for resolution, fuzz,
 	 * flat and the colons. That's plenty, anything over is garbage */
-	if (strlen(prop) > 24)
+	if (!prop || strlen(prop) > 24)
 		goto out;
 
 	current = str;
