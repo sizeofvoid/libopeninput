@@ -39,6 +39,8 @@
 static const char *
 next_word(const char **state, size_t *len, const char *separators)
 {
+	assert(state != NULL);
+
 	const char *next = *state;
 	size_t l;
 
@@ -72,6 +74,7 @@ strv_from_argv(int argc, char **argv)
 	char **strv = NULL;
 
 	assert(argc >= 0);
+	assert(argv != NULL);
 
 	if (argc == 0)
 		return NULL;
@@ -109,6 +112,8 @@ char **
 strv_from_string(const char *in, const char *separators, size_t *num_elements)
 {
 	assert(in != NULL);
+	assert(separators != NULL);
+	assert(num_elements != NULL);
 
 	const char *s = in;
 	size_t l, nelems = 0;
@@ -159,6 +164,8 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 char *
 strv_join(char **strv, const char *joiner)
 {
+	assert(strv != NULL);
+
 	char **s;
 	char *str;
 	size_t slen = 0;
@@ -200,6 +207,8 @@ strv_join(char **strv, const char *joiner)
 const char *
 safe_basename(const char *filename)
 {
+	assert(filename != NULL);
+
 	const char *basename;
 
 	if (*filename == '\0')
@@ -229,6 +238,8 @@ safe_basename(const char *filename)
 char *
 trunkname(const char *filename)
 {
+	assert(filename != NULL);
+
 	const char *base = safe_basename(filename);
 	char *suffix;
 

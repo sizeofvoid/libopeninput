@@ -143,6 +143,8 @@ xvasprintf(char **strp, const char *fmt, va_list args)
 static inline bool
 safe_atoi_base(const char *str, int *val, int base)
 {
+	assert(str != NULL);
+
 	char *endptr;
 	long v;
 
@@ -167,12 +169,15 @@ safe_atoi_base(const char *str, int *val, int base)
 static inline bool
 safe_atoi(const char *str, int *val)
 {
+	assert(str != NULL);
 	return safe_atoi_base(str, val, 10);
 }
 
 static inline bool
 safe_atou_base(const char *str, unsigned int *val, int base)
 {
+	assert(str != NULL);
+
 	char *endptr;
 	unsigned long v;
 
@@ -197,12 +202,15 @@ safe_atou_base(const char *str, unsigned int *val, int base)
 static inline bool
 safe_atou(const char *str, unsigned int *val)
 {
+	assert(str != NULL);
 	return safe_atou_base(str, val, 10);
 }
 
 static inline bool
 safe_atod(const char *str, double *val)
 {
+	assert(str != NULL);
+
 	char *endptr;
 	double v;
 #ifdef HAVE_LOCALE_H
@@ -288,6 +296,10 @@ double_array_from_string(const char *in,
 			 const char *separator,
 			 size_t *length)
 {
+	assert(in != NULL);
+	assert(separator != NULL);
+	assert(length != NULL);
+
 	double *result = NULL;
 	*length = 0;
 
@@ -386,6 +398,8 @@ error:
 static inline char *
 strstrip(const char *input, const char *what)
 {
+	assert(input != NULL);
+
 	char *str, *last;
 
 	str = safe_strdup(&input[strspn(input, what)]);
@@ -409,6 +423,9 @@ strstrip(const char *input, const char *what)
 static inline bool
 strendswith(const char *str, const char *suffix)
 {
+	if (str == NULL)
+		return false;
+
 	size_t slen = strlen(str);
 	size_t suffixlen = strlen(suffix);
 	size_t offset;
@@ -423,6 +440,9 @@ strendswith(const char *str, const char *suffix)
 static inline bool
 strstartswith(const char *str, const char *prefix)
 {
+	if (str == NULL)
+		return false;
+
 	size_t prefixlen = strlen(prefix);
 
 	return prefixlen > 0 ? strneq(str, prefix, strlen(prefix)) : false;
