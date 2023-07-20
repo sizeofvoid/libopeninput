@@ -169,7 +169,7 @@ check-ci-script:
     - exit 1
 
 #
-# Verify that commit messages are as expected, signed-off, etc.
+# Verify that commit messages are as expected, etc.
 #
 
 check-commit:
@@ -177,7 +177,7 @@ check-commit:
     - .fdo.ci-fairy
   stage: sanity check
   script:
-    - ci-fairy -vv check-commits --signed-off-by --junit-xml=results.xml && exit 0 || true
+    - ci-fairy -vv check-commits --junit-xml=results.xml && exit 0 || true
     - >
       printf "%s\n" \
         "Error checking commit format. Please verify" \

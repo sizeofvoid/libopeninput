@@ -211,38 +211,6 @@ the approach chosen was correct. A good commit message also helps
 maintainers to decide if a given patch is suitable for stable branches or
 inclusion in a distribution.
 
-## Developer Certificate of Origin
-
-Your commit **must** be signed off with a line:
-```
-Signed-off-by: <your name> <your email address>
-```
-By signing off, you indicate the [developer certificate of origin](https://developercertificate.org/).
-
-> By making a contribution to this project, I certify that:
->
-> (a) The contribution was created in whole or in part by me and I
->     have the right to submit it under the open source license
->     indicated in the file; or
->
-> (b) The contribution is based upon previous work that, to the best
->     of my knowledge, is covered under an appropriate open source
->     license and I have the right under that license to submit that
->     work with modifications, whether created in whole or in part
->     by me, under the same open source license (unless I am
->     permitted to submit under a different license), as indicated
->     in the file; or
->
-> (c) The contribution was provided directly to me by some other
->     person who certified (a), (b) or (c) and I have not modified
->     it.
->
-> (d) I understand and agree that this project and the contribution
->     are public and that a record of the contribution (including all
->     personal information I submit with it, including my sign-off) is
->     maintained indefinitely and may be redistributed consistent with
->     this project or the open source license(s) involved.
-
 ## Commit message format
 
 The canonical git commit message format is:
@@ -257,8 +225,6 @@ supported.
 You can include extra data where required like:
 - benchmark one says 10s
 - benchmark two says 12s
-
-Signed-off-by: <your name> <your email>
 ```
 
 The subject line is the first thing everyone sees about this commit, so make
@@ -270,9 +236,8 @@ sure it's on point.
   "change foo to bar", not "changed foo to bar".
 - The text width of the commit should be 78 chars or less, especially the
   subject line.
-- The author and signed-off-by must be the name you usually identify
-  as and email address. We do not accept the default `@users.noreply` gitlab
-  addresses.
+- The author must be the name you usually identify as and email address. We do
+  not accept the default `@users.noreply` gitlab addresses.
   ```
   git config --global user.name Your Name
   git config --global user.email your@email

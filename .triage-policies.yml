@@ -33,8 +33,7 @@ resource_rules:
             - "bugbot::commit-rules"
           comment: |
             Hi. Looks like the pipeline failed because one or more of the commits in this MR do not meet our requirements.
-            Most commonly this is a missing Signed-off-by, sometimes its the format of the commit message itself.
-            The "Test summary" above has the details.
+            Most commonly this the format of the commit message itself. The "Test summary" above has the details.
 
             Please see [our docs for commit messages](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#commit-messages)
             and [our docs for submitting code](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#submitting-code)

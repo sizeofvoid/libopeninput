@@ -266,25 +266,6 @@ same file(s) as the patch being sent.
 Commit Messages
 ------------------------------------------------------------------------------
 
-Commit messages **must** contain a **Signed-off-by** line with your name
-and email address. An example is: ::
-
-    A description of this commit, and it's great work.
-
-    Signed-off-by: Claire Someone <name@domain>
-
-If you're not the patch's original author, you should
-also gather S-o-b's by them (and/or whomever gave the patch to you.) The
-significance of this is that it certifies that you created the patch, that
-it was created under an appropriate open source license, or provided to you
-under those terms. This lets us indicate a chain of responsibility for the
-copyright status of the code. An example is: ::
-
-    A description of this commit, and it's great work.
-
-    Signed-off-by: Claire Someone <name@domain>
-    Signed-off-by: Ferris Crab <name@domain>
-
 When you re-send patches, revised or not, it would be very good to document the
 changes compared to the previous revision in the commit message and/or the
 merge request. If you have already received Reviewed-by or Acked-by tags, you
@@ -352,26 +333,6 @@ Visit your merge request page and check the `pipeline mini graph
 step failed.
 
 Follow the appropriate section to fix the errors.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Missing "Signed-off-by: author information"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-As explained in :ref:`contributing_commit_messages`, every commit must contain a
-Signed-off-by line with your name and email address.
-
-When this line is not present, it can be added to your commit afterwards: ::
-
-  git commit --amend -s
-
-If the merge request contains more than one commit, it must be added to all of
-them: ::
-
-  git rebase --interactive --exec 'git commit --amend -s' main
-
-Once the problem is fixed, force-push your branch. See
-:ref:`contributing_submitting_code` for more details about how to push your code
-and interactive rebases.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Committed gitlab-ci.yml differs from generated gitlab-ci.yml. Please verify
