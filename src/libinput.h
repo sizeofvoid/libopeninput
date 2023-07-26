@@ -5237,7 +5237,7 @@ enum libinput_config_accel_profile {
 	 * on user defined custom acceleration functions for each movement
 	 * type.
 	 *
-	 * @see libinput_device_config_accel_set_points
+	 * @see libinput_config_accel_set_points
 	 */
 	LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM = (1 << 2),
 };
