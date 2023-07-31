@@ -315,3 +315,9 @@ MatchUdevType=touchpad
 MatchName=*SynPS/2 Synaptics TouchPad
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrLenovoYoga2Pro*
 AttrPressureRange=50:45
+
+[Lenovo Legion 7i 4090 Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrLegionY9000PIRX8H*
+AttrKeyboardIntegration=internal
