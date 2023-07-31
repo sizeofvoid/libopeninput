@@ -66,6 +66,14 @@ MatchDMIModalias=dmi:*svnHP:pnHPSpectrex360Convertible15-ch0xx:*
 AttrThumbPressureThreshold=90
 AttrPalmPressureThreshold=100
 
+# The HP stream x360's embedded-controller filters out events form its builtin
+# keyboard when in tablet-mode itself; and it has a volume up/down on the side.
+# Do not suspend the keyboard when in tablet-mode so that the volume up/down
+# button keeps working when in tablet-mode.
+[HP Spectre x360 Convertible 15-ch0xx Tablet Mode Switch]
+MatchName=AT Translated Set 2 keyboard
+MatchDMIModalias=dmi:*svnHP:pnHPSpectrex360Convertible15-ch0xx:*
+ModelTabletModeNoSuspend=1
 
 [HP Elite x2 1013 G3 Tablet Mode Switch]
 MatchName=*Intel Virtual Button*
