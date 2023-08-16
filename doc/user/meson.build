@@ -110,6 +110,7 @@ src_rst = files(
 	'svg/palm-detection.svg',
 	'svg/pinch-gestures.svg',
 	'svg/pinch-gestures-softbuttons.svg',
+	'svg/ptraccel-custom.svg',
 	'svg/ptraccel-linear.svg',
 	'svg/ptraccel-low-dpi.svg',
 	'svg/ptraccel-touchpad.svg',

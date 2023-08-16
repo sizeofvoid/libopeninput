@@ -20,7 +20,7 @@ Pointer acceleration profiles
 
 The profile decides the general method of pointer acceleration.
 libinput currently supports three profiles: **"adaptive"**, **"flat"** and
-**custom**.
+**"custom"**.
 
 - The **adaptive** profile is the default profile for all devices and takes the
   current speed of the device into account when deciding on acceleration.
@@ -231,17 +231,39 @@ limit on how many points may be added.
 
 Thus the points defining the custom function are:
 ``(0 * step, f[0]), (1 * step, f[1]), ..., ((n-1) * step, f[n-1])``
-where ``f`` is a list of ``n`` unitless values defining the acceleration
-factor for each velocity.
+where ``f`` is a list of ``n`` values defining the output velocity for each
+input velocity.
+The acceleration factor is defined by the ratio of the output velocity to the
+input velocity.
 When a velocity value does not lie exactly on those points, a linear
 interpolation of the two closest points will be calculated.
 When a velocity value is greater than the max point defined, a linear
 extrapolation of the two biggest points will be calculated.
 
+the calculation made by libinput: ::
+
+    input_delta = device delta units
+    delta_time = time in ms since last input_delta
+    input_speed = hypot(input_delta) / delta_time
+    output_speed = user_custom_function(input_speed)
+    acceleration_factor = output_speed / input_speed
+    output_delta = input_delta * acceleration_factor
+
 An example is the curve of ``0.0, 1.0`` with a step of ``1.0``. This curve
-is the equivalent of the flat acceleration profile with any input speed `N`
-mapped to the same pointer speed `N`. The curve `1.0, 1.0` neutralizes
+is the equivalent of the flat acceleration profile with any input speed ``N``
+mapped to the same pointer speed ``N``. The curve ``1.0, 1.0`` neutralizes
 any input speed differences and results in a fixed pointer speed.
+
+Another example is the custom acceleration function ``x**2``,
+sampling the function at ``4`` points up to
+a maximum input speed of ``9`` will give us a custom function with
+a step of ``3`` and points ``[0.0, 9.0, 36.0, 81.0]``:
+
+.. figure:: ptraccel-custom.svg
+    :align: center
+
+More sampled points can be added to improve the accuracy of the user custom
+function.
 
 Supported Movement types:
 
