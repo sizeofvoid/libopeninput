@@ -23,6 +23,7 @@
  */
 #include "config.h"
 #include "evdev-tablet.h"
+#include "util-input-event.h"
 
 #include <assert.h>
 #include <stdbool.h>
@@ -334,8 +335,7 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 static inline double
 normalize_slider(const struct input_absinfo *absinfo)
 {
-	double range = absinfo->maximum - absinfo->minimum;
-	double value = (absinfo->value - absinfo->minimum) / range;
+	double value = (absinfo->value - absinfo->minimum) / absinfo_range(absinfo);
 
 	return value * 2 - 1;
 }
@@ -343,8 +343,7 @@ normalize_slider(const struct input_absinfo *absinfo)
 static inline double
 normalize_distance(const struct input_absinfo *absinfo)
 {
-	double range = absinfo->maximum - absinfo->minimum;
-	double value = (absinfo->value - absinfo->minimum) / range;
+	double value = (absinfo->value - absinfo->minimum) / absinfo_range(absinfo);
 
 	return value;
 }
@@ -374,8 +373,7 @@ normalize_pressure(const struct input_absinfo *absinfo,
 static inline double
 adjust_tilt(const struct input_absinfo *absinfo)
 {
-	double range = absinfo->maximum - absinfo->minimum + 1;
-	double value = (absinfo->value - absinfo->minimum) / range;
+	double value = (absinfo->value - absinfo->minimum) / absinfo_range(absinfo);
 	const int WACOM_MAX_DEGREES = 64;
 
 	/* If resolution is nonzero, it's in units/radian. But require
@@ -433,8 +431,7 @@ static double
 convert_to_degrees(const struct input_absinfo *absinfo, double offset)
 {
 	/* range is [0, 360[, i.e. range + 1 */
-	double range = absinfo->maximum - absinfo->minimum + 1;
-	double value = (absinfo->value - absinfo->minimum) / range;
+	double value = (absinfo->value - absinfo->minimum) / absinfo_range(absinfo);
 
 	return fmod(value * 360.0 + offset, 360.0);
 }
@@ -1077,7 +1074,7 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 static inline int
 axis_range_percentage(const struct input_absinfo *a, double percent)
 {
-	return (a->maximum - a->minimum) * percent/100.0 + a->minimum;
+	return absinfo_range(a) * percent/100.0 + a->minimum;
 }
 
 static inline void

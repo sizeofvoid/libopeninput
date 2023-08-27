@@ -23,6 +23,7 @@
 
 #include "config.h"
 #include "evdev-tablet-pad.h"
+#include "util-input-event.h"
 
 #include <assert.h>
 #include <stdbool.h>
@@ -151,7 +152,7 @@ normalize_ring(const struct input_absinfo *absinfo)
 	   current logical rotation, increasing clockwise to 1. Wacom has
 	   0 on the left-most wheel position.
 	 */
-	double range = absinfo->maximum - absinfo->minimum + 1;
+	double range = absinfo_range(absinfo);
 	double value = (absinfo->value - absinfo->minimum) / range - 0.25;
 
 	if (value < 0.0)

@@ -34,6 +34,7 @@
 #include "libinput-util.h"
 #include "evdev-tablet.h"
 #include "litest.h"
+#include "util-input-event.h"
 
 START_TEST(totem_type)
 {
@@ -143,9 +144,9 @@ START_TEST(totem_proximity_in_on_init)
 	const struct input_absinfo *abs;
 
 	abs = libevdev_get_abs_info(dev->evdev, ABS_MT_POSITION_X);
-	w = (abs->maximum - abs->minimum + 1)/abs->resolution;
+	w = absinfo_range(abs)/abs->resolution;
 	abs = libevdev_get_abs_info(dev->evdev, ABS_MT_POSITION_Y);
-	h = (abs->maximum - abs->minimum + 1)/abs->resolution;
+	h = absinfo_range(abs)/abs->resolution;
 
 	litest_tablet_proximity_in(dev, 50, 50, NULL);
 

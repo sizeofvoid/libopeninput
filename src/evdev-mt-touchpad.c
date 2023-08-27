@@ -34,6 +34,7 @@
 
 #include "quirks.h"
 #include "evdev-mt-touchpad.h"
+#include "util-input-event.h"
 
 #define DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT ms2us(300)
 #define DEFAULT_TRACKPOINT_EVENT_TIMEOUT ms2us(40)
@@ -3629,7 +3630,7 @@ tp_init_pressure(struct tp_dispatch *tp,
 			goto out;
 		}
 	} else {
-		unsigned int range = abs->maximum - abs->minimum;
+		double range = absinfo_range(abs);
 
 		/* Approximately the synaptics defaults */
 		hi = abs->minimum + 0.12 * range;

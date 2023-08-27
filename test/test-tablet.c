@@ -35,6 +35,7 @@
 #include "libinput-util.h"
 #include "evdev-tablet.h"
 #include "litest.h"
+#include "util-input-event.h"
 
 static inline unsigned int
 pick_stylus_or_btn0(struct litest_device *dev)
@@ -1998,11 +1999,11 @@ rotate_event(struct litest_device *dev, int angle_degrees)
 
 	abs = libevdev_get_abs_info(dev->evdev, ABS_TILT_X);
 	ck_assert_notnull(abs);
-	tilt_center_x = (abs->maximum - abs->minimum + 1) / 2;
+	tilt_center_x = absinfo_range(abs) / 2;
 
 	abs = libevdev_get_abs_info(dev->evdev, ABS_TILT_Y);
 	ck_assert_notnull(abs);
-	tilt_center_y = (abs->maximum - abs->minimum + 1) / 2;
+	tilt_center_y = absinfo_range(abs) / 2;
 
 	x = cos(a) * 20 + tilt_center_x;
 	y = sin(a) * 20 + tilt_center_y;
@@ -2098,7 +2099,7 @@ START_TEST(left_handed_artpen_rotation)
 
 	abs = libevdev_get_abs_info(dev->evdev, ABS_Z);
 	ck_assert_notnull(abs);
-	scale = (abs->maximum - abs->minimum + 1)/360.0;
+	scale = absinfo_range(abs)/360.0;
 
 	litest_event(dev, EV_KEY, BTN_TOOL_BRUSH, 1);
 	litest_event(dev, EV_ABS, ABS_MISC, 0x804); /* Art Pen */
@@ -3343,9 +3344,9 @@ START_TEST(mouse_wheel)
 	for (i = 2; i < 5; i++) {
 		/* send  x/y events to make sure we reset the wheel */
 		abs = libevdev_get_abs_info(dev->evdev, ABS_X);
-		litest_event(dev, EV_ABS, ABS_X, (abs->maximum - abs->minimum)/i);
+		litest_event(dev, EV_ABS, ABS_X, absinfo_range(abs)/i);
 		abs = libevdev_get_abs_info(dev->evdev, ABS_Y);
-		litest_event(dev, EV_ABS, ABS_Y, (abs->maximum - abs->minimum)/i);
+		litest_event(dev, EV_ABS, ABS_Y, absinfo_range(abs)/i);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 		libinput_dispatch(li);
 
@@ -3436,7 +3437,7 @@ START_TEST(airbrush_slider)
 
 	litest_drain_events(li);
 
-	scale = abs->maximum - abs->minimum;
+	scale = absinfo_range(abs);
 	for (v = abs->minimum; v < abs->maximum; v += 8) {
 		litest_event(dev, EV_ABS, ABS_WHEEL, v);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -3510,7 +3511,7 @@ START_TEST(artpen_rotation)
 
 	abs = libevdev_get_abs_info(dev->evdev, ABS_Z);
 	ck_assert_notnull(abs);
-	scale = (abs->maximum - abs->minimum + 1)/360.0;
+	scale = absinfo_range(abs)/360.0;
 
 	litest_event(dev, EV_KEY, BTN_TOOL_BRUSH, 1);
 	litest_event(dev, EV_ABS, ABS_MISC, 0x804); /* Art Pen */

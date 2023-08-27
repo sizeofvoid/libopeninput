@@ -39,6 +39,7 @@
 
 #include "shared.h"
 #include "util-macros.h"
+#include "util-input-event.h"
 
 static volatile sig_atomic_t stop = 0;
 static struct tools_options options;
@@ -149,7 +150,7 @@ normalize(struct libevdev *evdev, int code, int value)
 	if (!abs)
 		return 0.0;
 
-	return 1.0 * (value - abs->minimum)/(abs->maximum - abs->minimum + 1);
+	return 1.0 * (value - abs->minimum)/absinfo_range(abs);
 }
 
 static int
