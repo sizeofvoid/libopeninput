@@ -374,7 +374,7 @@ normalize_pressure(const struct input_absinfo *absinfo,
 static inline double
 adjust_tilt(const struct input_absinfo *absinfo)
 {
-	double range = absinfo->maximum - absinfo->minimum;
+	double range = absinfo->maximum - absinfo->minimum + 1;
 	double value = (absinfo->value - absinfo->minimum) / range;
 	const int WACOM_MAX_DEGREES = 64;
 
