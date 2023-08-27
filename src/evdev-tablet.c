@@ -365,7 +365,7 @@ normalize_pressure(const struct input_absinfo *absinfo,
 	 * threshold is 0 pressure.
 	 */
 	int base = tool->pressure.threshold.lower;
-	double range = absinfo->maximum - base;
+	double range = absinfo->maximum - base + 1;
 	double value = (absinfo->value - base) / range;
 
 	return max(0.0, value);
