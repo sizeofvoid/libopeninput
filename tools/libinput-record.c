@@ -1490,7 +1490,7 @@ print_description(FILE *fp, struct libevdev *dev)
 	iprintf(fp, I_EVDEV, "# Name: %s\n", libevdev_get_name(dev));
 	iprintf(fp,
 		I_EVDEV,
-		"# ID: bus %#02x vendor %#02x product %#02x version %#02x\n",
+		"# ID: bus 0x%04x vendor 0x%04x product 0x%04x version 0x%04x\n",
 		libevdev_get_id_bustype(dev),
 		libevdev_get_id_vendor(dev),
 		libevdev_get_id_product(dev),
