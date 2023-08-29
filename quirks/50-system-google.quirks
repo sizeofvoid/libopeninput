@@ -111,3 +111,11 @@ AttrPressureRange=6:4
 MatchName=*cros_ec*
 MatchDeviceTree=*lazor*
 AttrKeyboardIntegration=internal
+
+[Google Chromebook Redrix]
+MatchUdevType=touchpad
+MatchName=ELAN2703:00 04F3:323B Touchpad
+MatchDMIModalias=dmi:*pn*Redrix*
+ModelChromebook=1
+AttrPressureRange=-0:-2
+AttrThumbPressureThreshold=45
