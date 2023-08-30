@@ -7,7 +7,7 @@ MatchUdevType=touchpad
 ModelAppleTouchpad=1
 AttrSizeHint=104x75
 AttrTouchSizeRange=150:130
-AttrPalmSizeThreshold=800
+AttrPalmSizeThreshold=1600
 
 [Apple Touchpads Bluetooth]
 MatchVendor=0x05AC
