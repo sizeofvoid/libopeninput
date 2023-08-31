@@ -2577,7 +2577,7 @@ is_char_dev(const char *path)
 
 enum fposition {
 	ERROR,
-	NOFILE,
+	NO_FILE,
 	FIRST,
 	LAST,
 };
@@ -2633,7 +2633,7 @@ find_output_file(int argc, char *argv[], const char **output_file)
 		return ERROR;
 	}
 #undef _m
-	return NOFILE;
+	return NO_FILE;
 }
 
 enum options {
