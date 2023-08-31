@@ -135,8 +135,14 @@ evdev_update_key_down_count(struct evdev_device *device,
 	if (pressed) {
 		key_count = ++device->key_count[code];
 	} else {
-		assert(device->key_count[code] > 0);
-		key_count = --device->key_count[code];
+		if (device->key_count[code] > 0) {
+			key_count = --device->key_count[code];
+		} else {
+			evdev_log_bug_libinput(device,
+					       "releasing key %s with count %d\n",
+					       libevdev_event_code_get_name(EV_KEY, code),
+					       device->key_count[code]);
+		}
 	}
 
 	if (key_count > 32) {
