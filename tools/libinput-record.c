@@ -1486,12 +1486,37 @@ static void
 print_description(FILE *fp, struct libevdev *dev)
 {
 	const struct input_absinfo *x, *y;
+	int bustype;
+	const char *busname;
+
+	bustype = libevdev_get_id_bustype(dev);
+	switch (bustype) {
+	case BUS_USB:
+		busname = " (usb) ";
+		break;
+	case BUS_BLUETOOTH:
+		busname = " (bluetooth) ";
+		break;
+	case BUS_I2C:
+		busname = " (i2c) ";
+		break;
+	case BUS_SPI:
+		busname = " (spi) ";
+		break;
+	case BUS_RMI:
+		busname = " (rmi) ";
+		break;
+	default:
+		busname = " ";
+		break;
+	}
 
 	iprintf(fp, I_EVDEV, "# Name: %s\n", libevdev_get_name(dev));
 	iprintf(fp,
 		I_EVDEV,
-		"# ID: bus 0x%04x vendor 0x%04x product 0x%04x version 0x%04x\n",
-		libevdev_get_id_bustype(dev),
+		"# ID: bus 0x%04x%svendor 0x%04x product 0x%04x version 0x%04x\n",
+		bustype,
+		busname,
 		libevdev_get_id_vendor(dev),
 		libevdev_get_id_product(dev),
 		libevdev_get_id_version(dev));
