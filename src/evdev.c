@@ -129,7 +129,7 @@ evdev_update_key_down_count(struct evdev_device *device,
 			    int code,
 			    int pressed)
 {
-	int key_count;
+	int key_count = 0;
 	assert(code >= 0 && code < KEY_CNT);
 
 	if (pressed) {
