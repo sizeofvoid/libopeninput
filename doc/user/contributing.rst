@@ -79,6 +79,15 @@ You can omit the last step if you only want to test locally.
 Working on the code
 ------------------------------------------------------------------------------
 
+If you are planning to send patches, it's a good idea to set up
+`pre-commit <https://pre-commit.com/>`_ with these commands::
+
+     $> pre-commit install
+     $> pre-commit install --hook-type pre-push
+
+This will check a few things before you commit and/or push to your repos to
+reduce the turnaround time for some common mistakes.
+
 libinput has a roughly three-parts architecture:
 
 -  the front-end code which handles the ``libinput_some_function()`` API calls in ``libinput.c``
