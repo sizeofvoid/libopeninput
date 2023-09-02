@@ -421,4 +421,3 @@ devices arbitration has to be done in userspace.
 libinput uses the **libinput_device_group** to decide on touch arbitration
 and automatically discards touch events whenever a tool is in proximity.
 The exact behavior is device-dependent.
-
