@@ -701,7 +701,7 @@ executable('test-build-linker',
 	   dependencies : [ dep_libinput, dep_libinput_util ],
 	   install : false)
 # test including from C++ (in case CPP compiler is available)
-if add_languages('cpp', required: false)
+if add_languages('cpp', native: false, required: false)
 	executable('test-build-cxx',
 		   'test/build-cxx.cc',
 		   dependencies : [dep_udev],
