@@ -208,7 +208,7 @@ verification of distribution composes.
 To configure libinput to install the tests, use the ``-Dinstall-tests=true``
 meson option::
 
-  $ meson builddir -Dtests=true -Dinstall-tests=true <other options>
+  $ meson setup builddir -Dtests=true -Dinstall-tests=true <other options>
 
 .. _test-meson-suites:
 

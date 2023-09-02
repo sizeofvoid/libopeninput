@@ -69,7 +69,7 @@ will be:
 
      $> git clone https://gitlab.freedesktop.org/libinput/libinput
      $> cd libinput
-     $> meson --prefix=/usr builddir/
+     $> meson setup --prefix=/usr builddir/
      $> ninja -C builddir/
      $> sudo ninja -C builddir/ install
 
