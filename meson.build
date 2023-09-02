@@ -2,7 +2,7 @@ project('libinput', 'c',
 	version : '1.24.0',
 	license : 'MIT/Expat',
 	default_options : [ 'c_std=gnu99', 'warning_level=2' ],
-	meson_version : '>= 0.49.0')
+	meson_version : '>= 0.56.0')
 
 libinput_version = meson.project_version().split('.')
 
