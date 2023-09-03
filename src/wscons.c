@@ -41,6 +41,36 @@ extern uint32_t wskey_transcode(int);
 
 static int old_value = -1;
 
+static int
+udev_input_enable(struct libinput *libinput)
+{
+	return 0;
+}
+
+static void
+udev_input_disable(struct libinput *libinput)
+{
+}
+
+static void
+udev_input_destroy(struct libinput *libinput)
+{
+}
+
+static int
+udev_device_change_seat(struct libinput_device *device,
+			const char *seat_name)
+{
+	return 0;
+}
+
+static const struct libinput_interface_backend interface_backend = {
+	.resume = udev_input_enable,
+	.suspend = udev_input_disable,
+	.destroy = udev_input_destroy,
+	.device_change_seat = udev_device_change_seat,
+};
+
 static void
 wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 {
@@ -236,32 +266,6 @@ libinput_udev_assign_seat(struct libinput *libinput, const char *seat_id)
 	}
 	return 0;
 }
-
-static int
-udev_input_enable(struct libinput *libinput)
-{
-	return 0;
-}
-
-static void
-udev_input_disable(struct libinput *libinput)
-{
-}
-static void
-udev_input_destroy(struct libinput *libinput)
-{
-}
-static void
-udev_device_change_seat(struct libinput *libinput)
-{
-}
-
-static const struct libinput_interface_backend interface_backend = {
-	.resume = udev_input_enable,
-	.suspend = udev_input_disable,
-	.destroy = udev_input_destroy,
-	.device_change_seat = udev_device_change_seat,
-};
 
 LIBINPUT_EXPORT struct libinput *
 libinput_path_create_context(const struct libinput_interface *interface,
