@@ -2330,6 +2330,35 @@ keyboard_notify_key(struct libinput_device *device,
 }
 
 void
+axis_notify_event(struct libinput_device *device,
+    uint64_t time,
+    const struct normalized_coords *delta,
+    const struct device_float_coords *raw)
+{
+	struct libinput_event_pointer *axis_event;
+	uint32_t axes;
+
+	axis_event = zalloc(sizeof *axis_event);
+	if (!axis_event)
+		return;
+	if (delta->x)
+		axes = bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
+	else
+		axes = bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+
+	*axis_event = (struct libinput_event_pointer) {
+		.time = time,
+		.delta = *delta,
+		.delta_raw = *raw,
+		.source = LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
+		.axes = axes,
+	};
+
+	post_device_event(device, time, LIBINPUT_EVENT_POINTER_SCROLL_WHEEL,
+	    &axis_event->base);
+}
+
+void
 pointer_notify_motion(struct libinput_device *device,
 		      uint64_t time,
 		      const struct normalized_coords *delta,
@@ -3288,7 +3317,7 @@ LIBINPUT_EXPORT struct libinput_tablet_pad_mode_group*
 libinput_device_tablet_pad_get_mode_group(struct libinput_device *device,
 					  unsigned int index)
 {
-	return 0xdeadbeef; // TODO
+	return NULL; // TODO
 }
 
 LIBINPUT_EXPORT unsigned int
