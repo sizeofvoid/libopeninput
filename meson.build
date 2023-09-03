@@ -365,7 +365,10 @@ src_libinput = src_libfilter + [
 	'src/udev-seat.h',
 	'src/timer.c',
 	'src/timer.h',
-	'include/linux/input.h'
+	'include/linux/input.h',
+	# OpenBSD
+	'src/wskbdmap.c',
+	'src/wscons.c'
 ]
 else
 src_libinput = src_libfilter + [
