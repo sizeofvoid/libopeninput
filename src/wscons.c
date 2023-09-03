@@ -30,6 +30,7 @@
 #include <dev/wscons/wsconsio.h>
 
 #include "libinput.h"
+#include "input-event-codes.h"
 #include "libinput-util.h"
 #include "libinput-private.h"
 
@@ -157,6 +158,13 @@ wscons_device_dispatch(void *data)
 	}
 }
 
+static void
+udev_seat_destroy(struct libinput_seat *seat)
+{
+	struct udev_seat *useat = (struct udev_seat*)seat;
+	free(useat);
+}
+
 static struct libinput_seat*
 wscons_seat_get(struct libinput *libinput, const char *seat_name_physical,
 	const char *seat_name_logical)
@@ -177,14 +185,15 @@ wscons_seat_get(struct libinput *libinput, const char *seat_name_physical,
 		return NULL;
 
 	libinput_seat_init(seat, libinput, seat_name_physical,
-		seat_name_logical);
+		seat_name_logical, udev_seat_destroy);
 
 	return seat;
 }
 
 LIBINPUT_EXPORT struct libinput *
 libinput_udev_create_context(const struct libinput_interface *interface,
-	void *user_data, struct udev *udev)
+			     void *user_data,
+			     struct udev *udev)
 {
 	struct libinput *libinput;
 
@@ -193,7 +202,7 @@ libinput_udev_create_context(const struct libinput_interface *interface,
 	if (libinput == NULL)
 		return NULL;
 
-	if (libinput_init(libinput, interface, user_data) != 0) {
+	if (libinput_init(libinput, interface, &interface_backend, user_data) != 0) {
 		free(libinput);
 		return NULL;
 	}
@@ -228,6 +237,31 @@ libinput_udev_assign_seat(struct libinput *libinput, const char *seat_id)
 	return 0;
 }
 
+static int
+udev_input_enable(struct libinput *libinput)
+{
+	return 0;
+}
+
+static void
+udev_input_disable(struct libinput *libinput)
+{
+}
+static void
+udev_input_destroy(struct libinput *libinput)
+{
+}
+static void
+udev_device_change_seat(struct libinput *libinput)
+{
+}
+
+static const struct libinput_interface_backend interface_backend = {
+	.resume = udev_input_enable,
+	.suspend = udev_input_disable,
+	.destroy = udev_input_destroy,
+	.device_change_seat = udev_device_change_seat,
+};
 
 LIBINPUT_EXPORT struct libinput *
 libinput_path_create_context(const struct libinput_interface *interface,
@@ -239,7 +273,7 @@ libinput_path_create_context(const struct libinput_interface *interface,
 	if (libinput == NULL)
 		return NULL;
 
-	if (libinput_init(libinput, interface, user_data) != 0) {
+	if (libinput_init(libinput, interface, &interface_backend, user_data) != 0) {
 		free(libinput);
 		return NULL;
 	}

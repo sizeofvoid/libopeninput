@@ -411,6 +411,9 @@ struct libinput_device {
 	void *user_data;
 	int refcount;
 	struct libinput_device_config config;
+	struct libinput_source *source;
+	char* devname;
+	int fd;
 };
 
 enum libinput_tablet_tool_axis {
