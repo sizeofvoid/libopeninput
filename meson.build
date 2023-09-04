@@ -262,9 +262,6 @@ else
 endif
 
 ############ libinput-util.a ############
-if host_machine.system() == 'openbsd'
-	dep_libinput_util = []
-else
 # Basic compilation test to make sure the headers include and define all the
 # necessary bits.
 util_headers = [
@@ -302,7 +299,6 @@ libinput_util = static_library('libinput-util',
 			       include_directories : includes_include)
 dep_libinput_util = declare_dependency(link_with : libinput_util)
 
-endif
 ############ libfilter.a ############
 src_libfilter = [
 		'src/filter.c',
@@ -359,14 +355,8 @@ install_headers('src/libinput.h')
 if host_machine.system() == 'openbsd'
 src_libinput = src_libfilter + [
 	'src/libinput_openbsd.c',
-	'src/libinput.h',
-	'src/libinput-private.h',
-	#'src/udev-seat_openbsd.c',
-	#'src/udev-seat.h',
+	'src/libinput-private-config.c',
 	'src/timer.c',
-	'src/timer.h',
-	'include/linux/input.h',
-	# OpenBSD
 	'src/wskbdmap.c',
 	'src/wscons.c'
 ]
