@@ -2197,7 +2197,7 @@ post_base_event(struct libinput_device *device,
 	libinput_post_event(libinput, event);
 }
 
-static void
+void
 post_device_event(struct libinput_device *device,
 		  uint64_t time,
 		  enum libinput_event_type type,
