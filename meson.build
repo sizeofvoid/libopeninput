@@ -413,7 +413,10 @@ mapfile = dir_src / 'libinput.sym'
 version_flag = '-Wl,--version-script,@0@'.format(mapfile)
 lib_libinput = shared_library('input',
 		src_libinput,
-		include_directories : [include_directories('.'),include_directories('include/linux/freebsd'), includes_include],
+		include_directories : [include_directories('.'),
+				       include_directories('include'),
+				       include_directories('include/linux/freebsd'),
+				       includes_include],
 		dependencies : deps_libinput,
 		version : libinput_so_version,
 		link_args : version_flag,
