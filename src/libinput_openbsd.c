@@ -526,6 +526,7 @@ libinput_event_keyboard_get_seat_key_count(
 			   0,
 			   LIBINPUT_EVENT_KEYBOARD_KEY);
 
+	fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->seat_key_count;
 }
 
@@ -594,6 +595,7 @@ libinput_event_pointer_get_dx_unaccelerated(
 			   0,
 			   LIBINPUT_EVENT_POINTER_MOTION);
 
+	// fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->delta_raw.x;
 }
 
@@ -606,19 +608,32 @@ libinput_event_pointer_get_dy_unaccelerated(
 			   0,
 			   LIBINPUT_EVENT_POINTER_MOTION);
 
+	// fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->delta_raw.y;
 }
 
 LIBINPUT_EXPORT double
 libinput_event_pointer_get_absolute_x(struct libinput_event_pointer *event)
 {
-	return 0xdeadbeef; // TODO
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE);
+
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (double)(-1);
 }
 
 LIBINPUT_EXPORT double
 libinput_event_pointer_get_absolute_y(struct libinput_event_pointer *event)
 {
-	return 0xdeadbeef; // TODO
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE);
+
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (double)(-1);
 }
 
 LIBINPUT_EXPORT double
@@ -626,7 +641,13 @@ libinput_event_pointer_get_absolute_x_transformed(
 	struct libinput_event_pointer *event,
 	uint32_t width)
 {
-	return 0xdeadbeef; // TODO
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE);
+
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (double)(-1);
 }
 
 LIBINPUT_EXPORT double
@@ -634,7 +655,13 @@ libinput_event_pointer_get_absolute_y_transformed(
 	struct libinput_event_pointer *event,
 	uint32_t height)
 {
-	return 0xdeadbeef; // TODO
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE);
+
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (double)(-1);
 }
 
 LIBINPUT_EXPORT uint32_t
@@ -668,6 +695,7 @@ libinput_event_pointer_get_seat_button_count(
 			   0,
 			   LIBINPUT_EVENT_POINTER_BUTTON);
 
+	// fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->seat_button_count;
 }
 
@@ -696,6 +724,7 @@ LIBINPUT_EXPORT double
 libinput_event_pointer_get_axis_value(struct libinput_event_pointer *event,
 				      enum libinput_pointer_axis axis)
 {
+	// XXX differnt 
 	struct libinput *libinput = event->base.device->seat->libinput;
 	double value = 0;
 
@@ -724,6 +753,7 @@ LIBINPUT_EXPORT double
 libinput_event_pointer_get_axis_value_discrete(struct libinput_event_pointer *event,
 					       enum libinput_pointer_axis axis)
 {
+	// XXX differnt 
 	struct libinput *libinput = event->base.device->seat->libinput;
 	double value = 0;
 
@@ -811,7 +841,9 @@ libinput_event_pointer_get_axis_source(struct libinput_event_pointer *event)
 			   0,
 			   LIBINPUT_EVENT_POINTER_AXIS);
 
-	return event->source;
+	// return event->source;
+	/* XXX impossible to return an error, so pick a source type. */
+	return LIBINPUT_POINTER_AXIS_SOURCE_WHEEL;
 }
 
 LIBINPUT_EXPORT uint32_t
@@ -855,6 +887,7 @@ libinput_event_touch_get_slot(struct libinput_event_touch *event)
 			   LIBINPUT_EVENT_TOUCH_MOTION,
 			   LIBINPUT_EVENT_TOUCH_CANCEL);
 
+	fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->slot;
 }
 
@@ -869,33 +902,62 @@ libinput_event_touch_get_seat_slot(struct libinput_event_touch *event)
 			   LIBINPUT_EVENT_TOUCH_MOTION,
 			   LIBINPUT_EVENT_TOUCH_CANCEL);
 
+	fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->seat_slot;
 }
 
 LIBINPUT_EXPORT double
 libinput_event_touch_get_x(struct libinput_event_touch *event)
 {
-	return 0xdeadbeef; // TODO
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TOUCH_DOWN,
+			   LIBINPUT_EVENT_TOUCH_MOTION);
+
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (double)(-1);
 }
 
 LIBINPUT_EXPORT double
 libinput_event_touch_get_x_transformed(struct libinput_event_touch *event,
 				       uint32_t width)
 {
-	return 0xdeadbeef; // TODO
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TOUCH_DOWN,
+			   LIBINPUT_EVENT_TOUCH_MOTION);
+
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (double)(-1);
 }
 
 LIBINPUT_EXPORT double
 libinput_event_touch_get_y_transformed(struct libinput_event_touch *event,
 				       uint32_t height)
 {
-	return 0xdeadbeef; // TODO
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TOUCH_DOWN,
+			   LIBINPUT_EVENT_TOUCH_MOTION);
+
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (double)(-1);
 }
 
 LIBINPUT_EXPORT double
 libinput_event_touch_get_y(struct libinput_event_touch *event)
 {
-	return 0xdeadbeef; // TODO
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TOUCH_DOWN,
+			   LIBINPUT_EVENT_TOUCH_MOTION);
+
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (double)(-1);
 }
 
 LIBINPUT_EXPORT uint32_t
@@ -949,6 +1011,7 @@ libinput_event_gesture_get_finger_count(struct libinput_event_gesture *event)
 			   LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
 			   LIBINPUT_EVENT_GESTURE_HOLD_END);
 
+	fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->finger_count;
 }
 
@@ -962,6 +1025,7 @@ libinput_event_gesture_get_cancelled(struct libinput_event_gesture *event)
 			   LIBINPUT_EVENT_GESTURE_SWIPE_END,
 			   LIBINPUT_EVENT_GESTURE_HOLD_END);
 
+	fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->cancelled;
 }
 
@@ -978,6 +1042,7 @@ libinput_event_gesture_get_dx(struct libinput_event_gesture *event)
 			   LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
 			   LIBINPUT_EVENT_GESTURE_SWIPE_END);
 
+	fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->delta.x;
 }
 
@@ -994,6 +1059,7 @@ libinput_event_gesture_get_dy(struct libinput_event_gesture *event)
 			   LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
 			   LIBINPUT_EVENT_GESTURE_SWIPE_END);
 
+	fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->delta.y;
 }
 
@@ -1011,6 +1077,7 @@ libinput_event_gesture_get_dx_unaccelerated(
 			   LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
 			   LIBINPUT_EVENT_GESTURE_SWIPE_END);
 
+	fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->delta_unaccel.x;
 }
 
@@ -1028,6 +1095,7 @@ libinput_event_gesture_get_dy_unaccelerated(
 			   LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
 			   LIBINPUT_EVENT_GESTURE_SWIPE_END);
 
+	fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->delta_unaccel.y;
 }
 
@@ -1041,6 +1109,7 @@ libinput_event_gesture_get_scale(struct libinput_event_gesture *event)
 			   LIBINPUT_EVENT_GESTURE_PINCH_UPDATE,
 			   LIBINPUT_EVENT_GESTURE_PINCH_END);
 
+	fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->scale;
 }
 
@@ -1054,6 +1123,7 @@ libinput_event_gesture_get_angle_delta(struct libinput_event_gesture *event)
 			   LIBINPUT_EVENT_GESTURE_PINCH_UPDATE,
 			   LIBINPUT_EVENT_GESTURE_PINCH_END);
 
+	fprintf(stderr, "%s: partial stub\n", __func__);
 	return event->angle;
 }
 
@@ -3247,7 +3317,24 @@ LIBINPUT_EXPORT int
 libinput_device_has_capability(struct libinput_device *device,
 			       enum libinput_device_capability capability)
 {
-	return 0xdeadbeef; // TODO
+	int rc = 0;
+
+	switch (capability) {
+	case LIBINPUT_DEVICE_CAP_POINTER:
+		if (strncmp(device->devname, "/dev/wsmouse", 12) == 0)
+			rc = 1;
+		break;
+	case LIBINPUT_DEVICE_CAP_KEYBOARD:
+		if (strncmp(device->devname, "/dev/wskbd", 10) == 0)
+			rc = 1;
+		break;
+	case LIBINPUT_DEVICE_CAP_TOUCH:
+	case LIBINPUT_DEVICE_CAP_GESTURE:
+	default:
+		break;
+	}
+
+	return rc;
 }
 
 LIBINPUT_EXPORT int
@@ -3255,69 +3342,80 @@ libinput_device_get_size(struct libinput_device *device,
 			 double *width,
 			 double *height)
 {
-	return 0xdeadbeef; // TODO
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (-1);
 }
 
 LIBINPUT_EXPORT int
 libinput_device_pointer_has_button(struct libinput_device *device, uint32_t code)
 {
-	return 0xdeadbeef; // TODO
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (-1);
 }
 
 LIBINPUT_EXPORT int
 libinput_device_keyboard_has_key(struct libinput_device *device, uint32_t code)
 {
-	return 0xdeadbeef; // TODO
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (-1);
 }
 
 LIBINPUT_EXPORT int
 libinput_device_touch_get_touch_count(struct libinput_device *device)
 {
-	return 0xdeadbeef; // TODO
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (-1);
 }
 
 LIBINPUT_EXPORT int
 libinput_device_switch_has_switch(struct libinput_device *device,
 				  enum libinput_switch sw)
 {
-	return 0xdeadbeef; // TODO
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (-1);
 }
 
 LIBINPUT_EXPORT int
 libinput_device_tablet_pad_has_key(struct libinput_device *device, uint32_t code)
 {
-	return 0xdeadbeef; // TODO
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (-1);
 }
 
 LIBINPUT_EXPORT int
 libinput_device_tablet_pad_get_num_buttons(struct libinput_device *device)
 {
-	return 0xdeadbeef; // TODO
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (-1);
 }
 
 LIBINPUT_EXPORT int
 libinput_device_tablet_pad_get_num_rings(struct libinput_device *device)
 {
-	return 0xdeadbeef; // TODO
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (-1);
 }
 
 LIBINPUT_EXPORT int
 libinput_device_tablet_pad_get_num_strips(struct libinput_device *device)
 {
-	return 0xdeadbeef; // TODO
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (-1);
 }
 
 LIBINPUT_EXPORT int
 libinput_device_tablet_pad_get_num_mode_groups(struct libinput_device *device)
 {
-	return 0xdeadbeef; // TODO
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (-1);
 }
 
 LIBINPUT_EXPORT struct libinput_tablet_pad_mode_group*
 libinput_device_tablet_pad_get_mode_group(struct libinput_device *device,
 					  unsigned int index)
 {
-	return NULL; // TODO
+	fprintf(stderr, "%s: stub\n", __func__);
+	return 0xdeadbeef;
 }
 
 LIBINPUT_EXPORT unsigned int
