@@ -344,10 +344,12 @@ libquirks = static_library('quirks', src_libquirks,
 dep_libquirks = declare_dependency(link_with : libquirks)
 
 # Create /etc/libinput
+if host_machine.system() != 'openbsd'
 if meson.version().version_compare('>= 0.60')
 	install_emptydir(dir_etc / 'libinput')
 else
 	install_subdir('libinput', install_dir : dir_etc)
+endif
 endif
 
 ############ libinput.so ############
