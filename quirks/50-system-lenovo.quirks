@@ -321,3 +321,9 @@ MatchUdevType=keyboard
 MatchBus=usb
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrLegionY9000PIRX8H*
 AttrKeyboardIntegration=internal
+
+[Lenovo Legion 5 Pro Gen7 AMD Keyboard]
+MatchUdevType=keyboard
+MatchName=ITE Tech. Inc. ITE Device(8910) Keyboard
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrLegion5Pro16ARH7H*
+AttrKeyboardIntegration=internal
