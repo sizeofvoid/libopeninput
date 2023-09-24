@@ -247,6 +247,15 @@ MatchVendor=0x048D
 MatchProduct=0xC100
 AttrKeyboardIntegration=internal
 
+# Tested on Legion 5 15ARH7H, should also work for Legion 5 Pro 16ARH7H
+# 048d:c102 Integrated Technology Express, Inc. ITE Device(8910)
+[Lenovo Legion 5 Keyboard (C102)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x048D
+MatchProduct=0xC102
+AttrKeyboardIntegration=internal
+
 [Lenovo Legion 5 Keyboard (C955)]
 MatchUdevType=keyboard
 MatchBus=usb
@@ -320,10 +329,4 @@ AttrPressureRange=50:45
 MatchUdevType=keyboard
 MatchBus=usb
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrLegionY9000PIRX8H*
-AttrKeyboardIntegration=internal
-
-[Lenovo Legion 5 Pro Gen7 AMD Keyboard]
-MatchUdevType=keyboard
-MatchName=ITE Tech. Inc. ITE Device(8910) Keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrLegion5Pro16ARH7H*
 AttrKeyboardIntegration=internal
