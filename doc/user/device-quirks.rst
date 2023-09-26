@@ -161,11 +161,15 @@ AttrTouchSizeRange=N:M, AttrPalmSizeThreshold=O
     Specifies the touch size required to trigger a press (N) and to trigger
     a release (M). O > N > M. See :ref:`touchpad_touch_size_hwdb` for more
     details.
+    An AttrPalmSizeThreshold of zero unsets any threshold that has been
+    inherited from another quirk.
 AttrPressureRange=N:M, AttrPalmPressureThreshold=O, AttrThumbPressureThreshold=P
     Specifies the touch pressure required to trigger a press (N) and to
     trigger a release (M), when a palm touch is triggered (O) and when a
     thumb touch is triggered (P). O > P > N > M. See
     :ref:`touchpad_pressure_hwdb` for more details.
+    An AttrPalmPressureThreshold of zero unsets any threshold that has been
+    inherited from another quirk.
 AttrLidSwitchReliability=reliable|unreliable|write_open
     Indicates the reliability of the lid switch. This is a string enum.
     Very few devices need this, if in doubt do not set. See :ref:`switches_lid`

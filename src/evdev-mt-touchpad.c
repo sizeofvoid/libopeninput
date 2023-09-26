@@ -3409,11 +3409,13 @@ tp_init_palmdetect_pressure(struct tp_dispatch *tp,
 	}
 
 	tp->palm.pressure_threshold = tp_read_palm_pressure_prop(tp, device);
-	tp->palm.use_pressure = true;
+	if (tp->palm.pressure_threshold != 0) {
+		tp->palm.use_pressure = true;
 
-	evdev_log_debug(device,
-			"palm: pressure threshold is %d\n",
-			tp->palm.pressure_threshold);
+		evdev_log_debug(device,
+				"palm: pressure threshold is %d\n",
+				tp->palm.pressure_threshold);
+	}
 }
 
 static inline void
@@ -3430,11 +3432,7 @@ tp_init_palmdetect_size(struct tp_dispatch *tp,
 		return;
 
 	if (quirks_get_uint32(q, QUIRK_ATTR_PALM_SIZE_THRESHOLD, &threshold)) {
-		if (threshold == 0) {
-			evdev_log_bug_client(device,
-					     "palm: ignoring invalid threshold %d\n",
-					     threshold);
-		} else {
+		if (threshold != 0) {
 			tp->palm.use_size = true;
 			tp->palm.size_threshold = threshold;
 		}
