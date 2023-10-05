@@ -78,7 +78,7 @@ __all_seats()
 		'--disable-middlebutton[Disable middle button emulation]' \
 		+ '(dwt)' \
 		'--enable-dwt[Enable disable-while-typing]' \
-		'--disable-dwt[Disable disable-while-typing]'
+		'--disable-dwt[Disable disable-while-typing]' \
 		+ '(dwtp)' \
 		'--enable-dwtp[Enable disable-while-trackpointing]' \
 		'--disable-dwtp[Disable disable-while-trackpointing]'
