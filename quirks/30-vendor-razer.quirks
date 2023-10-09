@@ -260,3 +260,17 @@ MatchBus=usb
 MatchVendor=0x1532
 MatchProduct=0x029E
 AttrKeyboardIntegration=internal
+
+[RazerBlade162023 Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x1532
+MatchProduct=0x029F
+AttrKeyboardIntegration=internal
+
+[RazerBlade182023 Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x1532
+MatchProduct=0x02A0
+AttrKeyboardIntegration=internal
