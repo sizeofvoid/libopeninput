@@ -119,6 +119,7 @@ MatchDMIModalias=dmi:*pn*Redrix*
 ModelChromebook=1
 AttrPressureRange=-0:-2
 AttrThumbPressureThreshold=45
+AttrPalmPressureThreshold=0
 
 [Google Chromebook Drobit]
 MatchUdevType=touchpad
