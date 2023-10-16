@@ -448,7 +448,6 @@ draw_evdev_abs(struct window *w, cairo_t *cr)
 	int x, y;
 
 	cairo_save(cr);
-	cairo_set_source_rgb(cr, .2, .2, .8);
 
 	center_x = w->width/2 + 400;
 	center_y = w->height/2;
@@ -495,6 +494,7 @@ draw_evdev_abs(struct window *w, cairo_t *cr)
 		if (!w->evdev.slots[i].active)
 			continue;
 
+		cairo_set_source_rgb(cr, .2, .2, .8);
 		x = w->evdev.slots[i].x;
 		y = w->evdev.slots[i].y;
 		x = 1.0 * (x - ax->minimum)/width * outline_width;
@@ -503,10 +503,21 @@ draw_evdev_abs(struct window *w, cairo_t *cr)
 		y += center_y - outline_height/2;
 		cairo_arc(cr, x, y, 10, 0, 2 * M_PI);
 		cairo_fill(cr);
+
+		char finger_text[3];
+		cairo_text_extents_t finger_text_extents;
+		snprintf(finger_text, 3, "%zu", i);
+		cairo_set_source_rgb(cr, 1.f, 1.f, 1.f);
+		cairo_set_font_size(cr, 12.0);
+		cairo_text_extents(cr, finger_text, &finger_text_extents);
+		cairo_move_to(cr, x - finger_text_extents.width/2,
+				  y + finger_text_extents.height/2);
+		cairo_show_text(cr, finger_text);
 	}
 
 draw_outline:
 	/* The touchpad outline */
+	cairo_set_source_rgb(cr, .2, .2, .8);
 	cairo_rectangle(cr,
 			center_x - outline_width/2,
 			center_y - outline_height/2,
@@ -970,6 +981,7 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 {
 	struct window *w = data;
 
+	cairo_set_font_size(cr, 12.0);
 	cairo_set_source_rgb(cr, 1, 1, 1);
 	cairo_rectangle(cr, 0, 0, w->width, w->height);
 	cairo_fill(cr);
