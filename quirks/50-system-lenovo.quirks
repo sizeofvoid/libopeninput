@@ -324,3 +324,10 @@ MatchUdevType=keyboard
 MatchBus=usb
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrLegionY9000PIRX8H*
 AttrKeyboardIntegration=internal
+
+[Lenovo LOQ 15IRH8 Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x048D
+MatchProduct=0xC986
+AttrKeyboardIntegration=internal
