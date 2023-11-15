@@ -303,7 +303,6 @@ check-whitespace:
   variables:
     MESON_BUILDDIR: build_dir
     B2C_KERNEL: {{ b2c.kernel }}
-    B2C_VERSION: {{ b2c.version }}
     B2C_IMAGE: $FDO_DISTRIBUTION_IMAGE
     B2C_COMMAND: .gitlab-ci/start-in-systemd.sh
   script:
@@ -311,7 +310,7 @@ check-whitespace:
     - .gitlab-ci/meson-build.sh --skip-test
 
     # pull b2c
-    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/mupuf/boot2container/-/raw/{{b2c.version}}/vm2c.py
+    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/gfx-ci/boot2container/-/raw/{{b2c.version}}/vm2c.py
     - chmod +x /app/boot2container
 
     # runs the test suite only

@@ -426,8 +426,7 @@ freebsd:13.1@container-clean:
     - kvm
   variables:
     MESON_BUILDDIR: build_dir
-    B2C_KERNEL: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v6.1/bzImage
-    B2C_VERSION: v0.9.9
+    B2C_KERNEL: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v6.5/bzImage
     B2C_IMAGE: $FDO_DISTRIBUTION_IMAGE
     B2C_COMMAND: .gitlab-ci/start-in-systemd.sh
   script:
@@ -435,7 +434,7 @@ freebsd:13.1@container-clean:
     - .gitlab-ci/meson-build.sh --skip-test
 
     # pull b2c
-    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/mupuf/boot2container/-/raw/v0.9.9/vm2c.py
+    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/gfx-ci/boot2container/-/raw/2ff65156ba67fa8a0c309a4fc16c5df1a88a3844/vm2c.py
     - chmod +x /app/boot2container
 
     # runs the test suite only
