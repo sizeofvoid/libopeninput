@@ -84,6 +84,11 @@ MatchName=*DualPoint Stick
 MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE7470*
 AttrTrackpointMultiplier=0.125
 
+[Latitude 7275]
+MatchName=*AT Translated Set 2 keyboard*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude7275:*
+ModelTabletModeNoSuspend=1
+
 [Latitude 7480 Touchpad]
 MatchName=DLL07A0*
 MatchDMIModalias=dmi:**bvnDellInc.:*:pnLatitude7480*
