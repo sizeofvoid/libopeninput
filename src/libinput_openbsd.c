@@ -3415,7 +3415,7 @@ libinput_device_tablet_pad_get_mode_group(struct libinput_device *device,
 					  unsigned int index)
 {
 	fprintf(stderr, "%s: stub\n", __func__);
-	return 0xdeadbeef;
+	return NULL;
 }
 
 LIBINPUT_EXPORT unsigned int
