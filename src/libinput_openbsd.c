@@ -36,9 +36,10 @@
 
 #include "libinput.h"
 #include "libinput-private.h"
-#include "evdev.h"
 #include "timer.h"
 #include "quirks.h"
+
+#include "wscons.h"
 
 #define require_event_type(li_, type_, retval_, ...)	\
 	if (type_ == LIBINPUT_EVENT_NONE) abort(); \

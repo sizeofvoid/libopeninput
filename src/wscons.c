@@ -21,15 +21,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <sys/ioctl.h>
 #include <assert.h>
 #include <fcntl.h>
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
 
-#include <dev/wscons/wsconsio.h>
 
 #include "libinput.h"
+#include "wscons.h"
 #include "input-event-codes.h"
 #include "libinput-util.h"
 #include "libinput-private.h"
@@ -37,8 +38,6 @@
 static const char default_seat[] = "seat0";
 static const char default_seat_name[] = "default";
 	
-extern uint32_t wskey_transcode(int);
-
 static int old_value = -1;
 
 static int
@@ -98,7 +97,7 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 			old_value = key;
 		}
 		keyboard_notify_key(device, time,
-				    wskey_transcode(key), kstate);
+		    wskey_transcode(wscons_device(device)->wskbd_type, key), kstate);
 		break;
 
 	case WSCONS_EVENT_MOUSE_UP:
@@ -296,8 +295,10 @@ libinput_path_add_device(struct libinput *libinput,
 	const char *path)
 {
 	struct libinput_seat *seat = NULL;
-	struct libinput_device *device;
+	struct libinput_device *device = NULL;
+	struct wscons_device *wscons_device;
 	int fd;
+	int type = -1;
 
 	fd = open_restricted(libinput, path,
 			     O_RDWR | O_NONBLOCK | O_CLOEXEC);
@@ -308,15 +309,22 @@ libinput_path_add_device(struct libinput *libinput,
 		return NULL;
 	}
 
-	device = calloc(1, sizeof(*device));
-	if (device == NULL)
+	if (ioctl(fd, WSKBDIO_GTYPE, &type) == -1) {
+		log_error(libinput, "getting WSKBD type: %s.\n",
+		    strerror(errno));
+	}
+	
+	wscons_device = calloc(1, sizeof(*wscons_device));
+	if (wscons_device == NULL)
 		return NULL;
+	wscons_device->wskbd_type = type;
 
 	/* Only one (default) seat is supported. */
 	seat = wscons_seat_get(libinput, default_seat, default_seat_name);
 	if (seat == NULL)
 		goto err;
 
+	device = &wscons_device->base;
 	libinput_device_init(device, seat);
 
 	device->fd = fd;
@@ -334,7 +342,8 @@ libinput_path_add_device(struct libinput *libinput,
 	return device;
 
 err:
-	close_restricted(libinput, device->fd);
+	if (device != NULL)
+		close_restricted(libinput, device->fd);
 	free(device);
 	return NULL;
 }
