@@ -725,7 +725,7 @@ LIBINPUT_EXPORT double
 libinput_event_pointer_get_axis_value(struct libinput_event_pointer *event,
 				      enum libinput_pointer_axis axis)
 {
-	// XXX differnt 
+	// XXX differnt
 	struct libinput *libinput = event->base.device->seat->libinput;
 	double value = 0;
 
@@ -754,7 +754,7 @@ LIBINPUT_EXPORT double
 libinput_event_pointer_get_axis_value_discrete(struct libinput_event_pointer *event,
 					       enum libinput_pointer_axis axis)
 {
-	// XXX differnt 
+	// XXX differnt
 	struct libinput *libinput = event->base.device->seat->libinput;
 	double value = 0;
 
@@ -1848,7 +1848,7 @@ void
 libinput_init_quirks(struct libinput *libinput)
 {
 	const char *data_path,
-	           *override_file = NULL;
+		   *override_file = NULL;
 	struct quirks_context *quirks;
 
 	if (libinput->quirks_initialized)

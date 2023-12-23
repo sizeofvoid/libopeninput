@@ -37,7 +37,7 @@
 
 static const char default_seat[] = "seat0";
 static const char default_seat_name[] = "default";
-	
+
 static int old_value = -1;
 
 static int
@@ -97,7 +97,7 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 			old_value = key;
 		}
 		keyboard_notify_key(device, time,
-		    wskey_transcode(wscons_device(device)->wskbd_type, key), kstate);
+		    wskey_transcode(wscons_device(device)->scanCodeMap, key), kstate);
 		break;
 
 	case WSCONS_EVENT_MOUSE_UP:
@@ -158,7 +158,7 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 		accel.y = wsevent->value/8;
 		axis_notify_event(device, time, &accel, &raw);
 		break;
-	      
+
 	case WSCONS_EVENT_SYNC:
 		break;
 
@@ -188,7 +188,7 @@ wscons_device_dispatch(void *data)
 		return;
 
 	count = len / sizeof(struct wscons_event);
-        for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++) {
 		wscons_process(device, &wsevents[i]);
 	}
 }

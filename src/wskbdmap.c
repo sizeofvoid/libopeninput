@@ -8,7 +8,7 @@ static uint32_t wsUsbMap[] = {
 	/* 1 */ KEY_RESERVED,
 	/* 2 */ KEY_RESERVED,
 	/* 3 */ KEY_RESERVED,
-	/* 4 */ KEY_A,		
+	/* 4 */ KEY_A,
 	/* 5 */ KEY_B,
 	/* 6 */ KEY_C,
 	/* 7 */ KEY_D,
@@ -325,7 +325,7 @@ static uint32_t wsXtMap[] = {
 	/* 82 */ KEY_KP0,
 	/* 83 */ KEY_KPDOT,
 	/* 84 */ KEY_RESERVED,
-	
+
 	/* 85 */ KEY_ZENKAKUHANKAKU,
 	/* 86 */ KEY_102ND,	/* backslash on uk, < on german */
 	/* 87 */ KEY_F11,
