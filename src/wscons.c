@@ -206,7 +206,6 @@ wscons_seat_get(struct libinput *libinput, const char *seat_name_physical,
 {
 	struct libinput_seat *seat;
 
-	fprintf(stderr, "%s: %d\n", __func__, __LINE__);
 	list_for_each(seat, &libinput->seat_list, link) {
 		if (streq(seat->physical_name, seat_name_physical) &&
 		    streq(seat->logical_name, seat_name_logical)) {
@@ -232,7 +231,6 @@ libinput_udev_create_context(const struct libinput_interface *interface,
 {
 	struct libinput *libinput;
 
-	fprintf(stderr, "%s: %d\n", __func__, __LINE__);
 	libinput = calloc(1, sizeof(*libinput));
 	if (libinput == NULL)
 		return NULL;
@@ -254,15 +252,12 @@ libinput_udev_assign_seat(struct libinput *libinput, const char *seat_id)
 	struct timespec ts;
 	struct libinput_event *event;
 
-	fprintf(stderr, "%s: %d\n", __func__, __LINE__);
-
 	/* Add standard muxes */
 	libinput_path_add_device(libinput, "/dev/wskbd");
 	libinput_path_add_device(libinput, "/dev/wsmouse");
 
 	seat = wscons_seat_get(libinput, default_seat, default_seat_name);
 	list_for_each(device, &seat->devices_list, link) {
-		fprintf(stderr, "   %s\n", device->devname);
 		clock_gettime(CLOCK_REALTIME, &ts);
 		time = s2us(ts.tv_sec) + ns2us(ts.tv_nsec);
 		event = calloc(1, sizeof(*event));
