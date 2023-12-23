@@ -21,7 +21,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <sys/ioctl.h>
 #include <assert.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -285,6 +284,22 @@ libinput_path_create_context(const struct libinput_interface *interface,
 	return libinput;
 }
 
+static int
+wscons_device_init(struct wscons_device *wscons_device)
+{
+	struct libinput_device *device = &wscons_device->base;
+
+	if (strncmp(device->devname, "/dev/wsmouse", 12) == 0) {
+		/* XXX handle tablets and touchpanel */
+		wscons_device->capability = LIBINPUT_DEVICE_CAP_POINTER;
+	} else if (strncmp(device->devname, "/dev/wskbd", 10) == 0)  {
+		wscons_device->capability = LIBINPUT_DEVICE_CAP_KEYBOARD;
+		if (wscons_keyboard_init(wscons_device) == -1)
+			return -1;
+	}
+	return 0;
+}
+
 LIBINPUT_EXPORT struct libinput_device *
 libinput_path_add_device(struct libinput *libinput,
 	const char *path)
@@ -293,7 +308,6 @@ libinput_path_add_device(struct libinput *libinput,
 	struct libinput_device *device = NULL;
 	struct wscons_device *wscons_device;
 	int fd;
-	int type = -1;
 
 	fd = open_restricted(libinput, path,
 			     O_RDWR | O_NONBLOCK | O_CLOEXEC);
@@ -304,15 +318,9 @@ libinput_path_add_device(struct libinput *libinput,
 		return NULL;
 	}
 
-	if (ioctl(fd, WSKBDIO_GTYPE, &type) == -1) {
-		log_error(libinput, "getting WSKBD type: %s.\n",
-		    strerror(errno));
-	}
-	
 	wscons_device = calloc(1, sizeof(*wscons_device));
 	if (wscons_device == NULL)
 		return NULL;
-	wscons_device->wskbd_type = type;
 
 	/* Only one (default) seat is supported. */
 	seat = wscons_seat_get(libinput, default_seat, default_seat_name);
@@ -332,6 +340,8 @@ libinput_path_add_device(struct libinput *libinput,
 	if (!device->source)
 		goto err;
 
+	if (wscons_device_init(wscons_device) == -1)
+		goto err;
 	list_insert(&seat->devices_list, &device->link);
 
 	return device;
@@ -339,7 +349,7 @@ libinput_path_add_device(struct libinput *libinput,
 err:
 	if (device != NULL)
 		close_restricted(libinput, device->fd);
-	free(device);
+	free(wscons_device);
 	return NULL;
 }
 

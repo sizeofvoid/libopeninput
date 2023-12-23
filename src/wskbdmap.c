@@ -1,3 +1,4 @@
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include "wscons.h"
@@ -238,6 +239,12 @@ static uint32_t wsUsbMap[] = {
 	/* 231 */ KEY_RIGHTMETA,	/* Right Meta */
 };
 #define WS_USB_MAP_SIZE (sizeof(wsUsbMap)/sizeof(*wsUsbMap))
+static
+struct TransMapRec wsUsb = {
+    0,
+    WS_USB_MAP_SIZE,
+    wsUsbMap
+};
 
 static uint32_t wsXtMap[] = {
 	/* 0 */ KEY_RESERVED,
@@ -482,20 +489,59 @@ static uint32_t wsXtMap[] = {
 };
 #define WS_XT_MAP_SIZE (sizeof(wsXtMap)/sizeof(*wsXtMap))
 
-uint32_t
-wskey_transcode(int wskbd_type, int wskey)
+static
+struct TransMapRec wsXt = {
+    0,
+    WS_XT_MAP_SIZE,
+    wsXtMap
+};
+
+static void
+printWsType(struct libinput *libinput, const char *name, const char *type)
 {
-	switch (wskbd_type) {
-	case WSKBD_TYPE_PC_XT:
-	case WSKBD_TYPE_PC_AT:
-		if (wskey < 0 || wskey >= (int)WS_XT_MAP_SIZE)
-			return KEY_UNKNOWN;
-		return wsXtMap[wskey];
-	case WSKBD_TYPE_USB:
-		if (wskey < 0 || wskey >= (int)WS_USB_MAP_SIZE)
-			return KEY_UNKNOWN;
-		return wsUsbMap[wskey];
-	default:
-		return KEY_RESERVED;
+    log_error(libinput, "%s: Keyboard type: %s\n", name, type);
+}
+
+int
+wscons_keyboard_init(struct wscons_device *device)
+{
+	struct libinput_device *libinput_device = &device->base;
+	struct libinput *libinput = libinput_device->seat->libinput;
+	int fd = libinput_device->fd;
+	int type;
+
+	if (ioctl(fd, WSKBDIO_GTYPE, &type) == -1) {
+		log_error(libinput, "getting WSKBD type: %s.\n",
+		    strerror(errno));
+		return -1;
 	}
+	switch (type) {
+	case WSKBD_TYPE_PC_XT:
+		printWsType(libinput, libinput_device->devname, "XT");
+		device->scanCodeMap = &wsXt;
+		break;
+	case WSKBD_TYPE_PC_AT:
+		printWsType(libinput, libinput_device->devname, "AT");
+		device->scanCodeMap = &wsXt;
+		break;
+	case WSKBD_TYPE_USB:
+		printWsType(libinput, libinput_device->devname, "USB");
+		device->scanCodeMap = &wsUsb;
+		break;
+	default:
+		log_error(libinput, "Unsupported wskbd type %d\n", type);
+		device->scanCodeMap = NULL;
+		break;
+	}
+	return 0;
+}
+
+uint32_t
+wskey_transcode(struct TransMapRec *map, int wskey)
+{
+	if (map == NULL)
+		return KEY_UNKNOWN;
+	if (wskey < map->begin || wskey >= map->end)
+		return KEY_UNKNOWN;
+	return map->map[wskey];
 }
