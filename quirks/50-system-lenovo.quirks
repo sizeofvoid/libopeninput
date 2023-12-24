@@ -331,3 +331,10 @@ MatchBus=usb
 MatchVendor=0x048D
 MatchProduct=0xC986
 AttrKeyboardIntegration=internal
+
+[Lenovo ThinkPad E14 v2]
+MatchUdevType=touchpad
+MatchName=*Elan Touchpad
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadE14Gen2*
+AttrPalmPressureThreshold=300
+AttrPressureRange=10:8
