@@ -3120,7 +3120,7 @@ evdev_device_destroy(struct evdev_device *device)
 bool
 evdev_tablet_has_left_handed(struct evdev_device *device)
 {
-	bool has_left_handed = false;
+	bool has_left_handed = true;
 #if HAVE_LIBWACOM
 	struct libinput *li = evdev_libinput_context(device);
 	WacomDeviceDatabase *db = NULL;
@@ -3141,8 +3141,7 @@ evdev_tablet_has_left_handed(struct evdev_device *device)
 				   error);
 
 	if (d) {
-		if (libwacom_is_reversible(d))
-			has_left_handed = true;
+		has_left_handed = !!libwacom_is_reversible(d);
 	} else if (libwacom_error_get_code(error) == WERROR_UNKNOWN_MODEL) {
 		evdev_log_info(device,
 			       "tablet '%s' unknown to libwacom\n",

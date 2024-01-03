@@ -1943,7 +1943,12 @@ START_TEST(no_left_handed)
 {
 	struct litest_device *dev = litest_current_device();
 
+	/* Without libwacom we default to left-handed being available */
+#if HAVE_LIBWACOM
 	ck_assert(!libinput_device_config_left_handed_is_available(dev->libinput_device));
+#else
+	ck_assert(libinput_device_config_left_handed_is_available(dev->libinput_device));
+#endif
 }
 END_TEST
 

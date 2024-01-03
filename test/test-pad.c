@@ -618,13 +618,19 @@ START_TEST(pad_no_left_handed)
 	struct libinput_device *device = dev->libinput_device;
 	enum libinput_config_status status;
 
+	/* Without libwacom we default to left-handed being available */
+#if HAVE_LIBWACOM
 	ck_assert(!libinput_device_config_left_handed_is_available(device));
+#else
+	ck_assert(libinput_device_config_left_handed_is_available(device));
+#endif
 
 	ck_assert_int_eq(libinput_device_config_left_handed_get_default(device),
 			 0);
 	ck_assert_int_eq(libinput_device_config_left_handed_get(device),
 			 0);
 
+#if HAVE_LIBWACOM
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 
@@ -640,6 +646,7 @@ START_TEST(pad_no_left_handed)
 			 0);
 	ck_assert_int_eq(libinput_device_config_left_handed_get_default(device),
 			 0);
+#endif
 }
 END_TEST
 
