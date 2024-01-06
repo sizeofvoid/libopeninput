@@ -1,4 +1,4 @@
-libinput
+lib(open)input
 ========
 
 libinput is a library that provides a full input stack for display servers
@@ -10,6 +10,22 @@ minimize the amount of custom input code the user of libinput needs to
 provide the common set of functionality that users expect. Input event
 processing includes scaling touch coordinates, generating
 relative pointer events from touchpads, pointer acceleration, etc.
+
+OpenBSD related changes
+-----------------------
+This repository fork from https://gitlab.freedesktop.org/libinput/libinput.
+It is an attempt to extend libinput so that it works with wscons(4) and
+kqueue(2) and thus on OpenBSD.
+
+```
+$ meson setup builddir -Dlibwacom=false -Ddocumentation=false
+$ cd builddir && ninja
+```
+
+TODO:
+[X] Build and Compile on OpenBSD
+[ ] Port logic from https://github.com/mpieuchot/libinput
+
 
 User documentation
 ------------------

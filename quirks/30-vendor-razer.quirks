@@ -260,4 +260,3 @@ MatchBus=usb
 MatchVendor=0x1532
 MatchProduct=0x029E
 AttrKeyboardIntegration=internal
-

@@ -839,7 +839,7 @@ check-test-suites:
   extends:
     - .fedora-build@template
   script:
-    - meson builddir
+    - meson setup builddir
     - meson introspect builddir --test | jq -r '.[].name' | grep 'libinput-test-suite' | sort > meson-testsuites
     - |
       cat <<EOF > ci-testsuites ;

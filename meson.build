@@ -2,7 +2,7 @@ project('libinput', 'c',
 	version : '1.24.0',
 	license : 'MIT/Expat',
 	default_options : [ 'c_std=gnu99', 'warning_level=2' ],
-	meson_version : '>= 0.49.0')
+	meson_version : '>= 0.56.0')
 
 libinput_version = meson.project_version().split('.')
 
@@ -143,11 +143,17 @@ config_h.set10('HAVE_INSTALLED_TESTS', get_option('install-tests'))
 
 # Dependencies
 pkgconfig = import('pkgconfig')
-dep_udev = dependency('libudev')
-dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
-dep_libevdev = dependency('libevdev')
-config_h.set10('HAVE_LIBEVDEV_DISABLE_PROPERTY',
-		dep_libevdev.version().version_compare('>= 1.9.902'))
+if host_machine.system() == 'openbsd'
+	dep_udev = dependency('libudev')
+	dep_mtdev = []
+	dep_libevdev = []
+else
+	dep_udev = dependency('libudev')
+	dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
+	dep_libevdev = dependency('libevdev')
+	config_h.set10('HAVE_LIBEVDEV_DISABLE_PROPERTY',
+			dep_libevdev.version().version_compare('>= 1.9.902'))
+endif
 
 dep_lm = cc.find_library('m', required : false)
 dep_rt = cc.find_library('rt', required : false)
@@ -158,7 +164,11 @@ includes_src = include_directories('src')
 
 ############ libwacom configuration ############
 
+if host_machine.system() == 'openbsd'
+have_libwacom = false
+else
 have_libwacom = get_option('libwacom')
+endif
 config_h.set10('HAVE_LIBWACOM', have_libwacom)
 if have_libwacom
 	dep_libwacom = dependency('libwacom', version : '>= 0.27')
@@ -167,7 +177,7 @@ else
 endif
 
 ############ udev bits ############
-
+if host_machine.system() != 'openbsd'
 executable('libinput-device-group',
 	   'udev/libinput-device-group.c',
 	   dependencies : [dep_udev, dep_libwacom],
@@ -222,6 +232,7 @@ if get_option('tests')
 	     suite : ['all'])
 endif
 
+endif
 ############ libepoll-shim (BSD) ############
 
 if cc.has_header_symbol('sys/epoll.h', 'epoll_create1', prefix : prefix)
@@ -251,7 +262,6 @@ else
 endif
 
 ############ libinput-util.a ############
-
 # Basic compilation test to make sure the headers include and define all the
 # necessary bits.
 util_headers = [
@@ -303,11 +313,14 @@ src_libfilter = [
 		'src/filter-trackpoint.c',
 		'src/filter-trackpoint-flat.c',
 ]
+if host_machine.system() == 'openbsd'
+	dep_libfilter = []
+else
 libfilter = static_library('filter', src_libfilter,
 			   dependencies : [dep_udev, dep_libwacom],
 			   include_directories : includes_include)
 dep_libfilter = declare_dependency(link_with : libfilter)
-
+endif
 ############ libquirks.a #############
 libinput_data_path = dir_data
 libinput_data_override_path = dir_overrides / 'local-overrides.quirks'
@@ -331,14 +344,25 @@ libquirks = static_library('quirks', src_libquirks,
 dep_libquirks = declare_dependency(link_with : libquirks)
 
 # Create /etc/libinput
+if host_machine.system() != 'openbsd'
 if meson.version().version_compare('>= 0.60')
 	install_emptydir(dir_etc / 'libinput')
 else
 	install_subdir('libinput', install_dir : dir_etc)
 endif
+endif
 
 ############ libinput.so ############
 install_headers('src/libinput.h')
+if host_machine.system() == 'openbsd'
+src_libinput = src_libfilter + [
+	'src/libinput_openbsd.c',
+	'src/libinput-private-config.c',
+	'src/timer.c',
+	'src/wskbdmap.c',
+	'src/wscons.c'
+]
+else
 src_libinput = src_libfilter + [
 	'src/libinput.c',
 	'src/libinput-private-config.c',
@@ -361,6 +385,7 @@ src_libinput = src_libfilter + [
 	'src/udev-seat.c',
 	'src/timer.c',
 ]
+endif
 
 deps_libinput = [
 	dep_mtdev,
@@ -390,13 +415,26 @@ mapfile = dir_src / 'libinput.sym'
 version_flag = '-Wl,--version-script,@0@'.format(mapfile)
 lib_libinput = shared_library('input',
 		src_libinput,
-		include_directories : [include_directories('.'), includes_include],
+		include_directories : [include_directories('.'),
+				       include_directories('include'),
+				       include_directories('include/linux/freebsd'),
+				       includes_include],
 		dependencies : deps_libinput,
 		version : libinput_so_version,
 		link_args : version_flag,
 		link_depends : mapfile,
 		install : true
 		)
+if host_machine.system() == 'openbsd'
+install_headers('include/linux/freebsd/input-event-codes.h', subdir: 'linux/freebsd')
+install_headers('include/linux/freebsd/input.h', subdir: 'linux/freebsd')
+
+install_headers('include/linux/linux/input-event-codes.h', subdir: 'linux/linux')
+install_headers('include/linux/linux/input.h', subdir: 'linux/linux')
+
+install_headers('include/linux/input.h', subdir: 'linux')
+install_headers('include/linux/input-event-codes.h', subdir: 'linux')
+endif
 
 dep_libinput = declare_dependency(
 		link_with : lib_libinput,
@@ -431,6 +469,8 @@ endif
 subdir('completion/zsh')
 
 ############ tools ############
+if host_machine.system() != 'openbsd'
+
 libinput_tool_path = dir_libexec
 config_h.set_quoted('LIBINPUT_TOOL_PATH', libinput_tool_path)
 tools_shared_sources = [ 'tools/shared.c' ]
@@ -673,7 +713,9 @@ test('tools-builddir-lookup-installed',
      suite : ['all'],
      workdir : '/tmp')
 
+endif
 ############ tests ############
+if host_machine.system() != 'openbsd'
 
 test('symbols-leak-test',
      find_program('test/symbols-leak-test'),
@@ -701,7 +743,7 @@ executable('test-build-linker',
 	   dependencies : [ dep_libinput, dep_libinput_util ],
 	   install : false)
 # test including from C++ (in case CPP compiler is available)
-if add_languages('cpp', required: false)
+if add_languages('cpp', native: false, required: false)
 	executable('test-build-cxx',
 		   'test/build-cxx.cc',
 		   dependencies : [dep_udev],
@@ -727,8 +769,10 @@ if get_option('tests')
 	config_h.set10('HAVE_GSTACK', gstack.found())
 
 	# for inhibit support during test run
+if host_machine.system() != 'openbsd'
 	dep_libsystemd = dependency('libsystemd', version : '>= 221', required : false)
 	config_h.set10('HAVE_LIBSYSTEMD', dep_libsystemd.found())
+endif
 
 	litest_sources = [
 		'src/libinput-private-config.c',
@@ -833,6 +877,7 @@ if get_option('tests')
 		'test/litest.c',
 	]
 
+if host_machine.system() != 'openbsd'
 	dep_dl = cc.find_library('dl')
 	deps_litest = [
 		dep_libinput,
@@ -844,6 +889,14 @@ if get_option('tests')
 		dep_libsystemd,
 		dep_libquirks,
 	]
+else
+	deps_litest = [
+		dep_libinput,
+		dep_check,
+		dep_lm,
+		dep_libquirks,
+	]
+endif
 
 	litest_config_h = configuration_data()
 	litest_config_h.set_quoted('LIBINPUT_DEVICE_GROUPS_RULES_FILE',
@@ -967,6 +1020,7 @@ if get_option('tests')
 endif
 
 
+endif
 ############ man pages ############
 man_config = configuration_data()
 man_config.set('LIBINPUT_VERSION', meson.project_version())
