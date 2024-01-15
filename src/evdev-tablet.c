@@ -1127,6 +1127,27 @@ out:
 }
 
 static struct libinput_tablet_tool *
+tablet_new_tool(struct tablet_dispatch *tablet,
+		enum libinput_tablet_tool_type type,
+		uint32_t tool_id,
+		uint32_t serial)
+{
+	struct libinput_tablet_tool *tool = zalloc(sizeof *tool);
+
+	*tool = (struct libinput_tablet_tool) {
+		.type = type,
+		.serial = serial,
+		.tool_id = tool_id,
+		.refcount = 1,
+	};
+
+	tool_set_pressure_thresholds(tablet, tool);
+	tool_set_bits(tablet, tool);
+
+	return tool;
+}
+
+static struct libinput_tablet_tool *
 tablet_get_tool(struct tablet_dispatch *tablet,
 		enum libinput_tablet_tool_type type,
 		uint32_t tool_id,
@@ -1176,18 +1197,7 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 	/* If we didn't already have the new_tool in our list of tools,
 	 * add it */
 	if (!tool) {
-		tool = zalloc(sizeof *tool);
-
-		*tool = (struct libinput_tablet_tool) {
-			.type = type,
-			.serial = serial,
-			.tool_id = tool_id,
-			.refcount = 1,
-		};
-
-		tool_set_pressure_thresholds(tablet, tool);
-		tool_set_bits(tablet, tool);
-
+		tool = tablet_new_tool(tablet, type, tool_id, serial);
 		list_insert(tool_list, &tool->link);
 	}
 
