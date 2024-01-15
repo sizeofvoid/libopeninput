@@ -4728,6 +4728,75 @@ libinput_device_config_rotation_get_default_angle(struct libinput_device *device
 	return device->config.rotation->get_default_angle(device);
 }
 
+LIBINPUT_EXPORT int
+libinput_tablet_tool_config_pressure_range_is_available(struct libinput_tablet_tool *tool)
+{
+	if (!tool->config.pressure_range.is_available)
+		return 0;
+
+	return tool->config.pressure_range.is_available(tool);
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_tablet_tool_config_pressure_range_set(struct libinput_tablet_tool *tool,
+					       double minimum,
+					       double maximum)
+{
+	if (!libinput_tablet_tool_config_pressure_range_is_available(tool))
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	if (minimum < 0.0 || minimum >= 1.0 ||
+	    maximum <= 0.0 || maximum > 1.0 ||
+	    maximum <= minimum)
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	return tool->config.pressure_range.set(tool, minimum, maximum);
+}
+
+LIBINPUT_EXPORT double
+libinput_tablet_tool_config_pressure_range_get_minimum(struct libinput_tablet_tool *tool)
+{
+	double min = 0.0, max = 1.0;
+
+	if (libinput_tablet_tool_config_pressure_range_is_available(tool))
+		tool->config.pressure_range.get(tool, &min, &max);
+
+	return min;
+}
+
+LIBINPUT_EXPORT double
+libinput_tablet_tool_config_pressure_range_get_maximum(struct libinput_tablet_tool *tool)
+{
+	double min = 0.0, max = 1.0;
+
+	if (libinput_tablet_tool_config_pressure_range_is_available(tool))
+		tool->config.pressure_range.get(tool, &min, &max);
+
+	return max;
+}
+
+LIBINPUT_EXPORT double
+libinput_tablet_tool_config_pressure_range_get_default_minimum(struct libinput_tablet_tool *tool)
+{
+	double min = 0.0, max = 1.0;
+
+	if (libinput_tablet_tool_config_pressure_range_is_available(tool))
+		tool->config.pressure_range.get_default(tool, &min, &max);
+
+	return min;
+}
+
+LIBINPUT_EXPORT double
+libinput_tablet_tool_config_pressure_range_get_default_maximum(struct libinput_tablet_tool *tool)
+{
+	double min = 0.0, max = 1.0;
+
+	if (libinput_tablet_tool_config_pressure_range_is_available(tool))
+		tool->config.pressure_range.get_default(tool, &min, &max);
+
+	return max;
+}
+
 #if HAVE_LIBWACOM
 WacomDeviceDatabase *
 libinput_libwacom_ref(struct libinput *li)

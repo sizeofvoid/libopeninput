@@ -6398,6 +6398,136 @@ libinput_device_config_rotation_get_angle(struct libinput_device *device);
 unsigned int
 libinput_device_config_rotation_get_default_angle(struct libinput_device *device);
 
+/**
+ * @ingroup config
+ *
+ * Check if a tablet tool can have a custom pressure range.
+ *
+ * @param tool The libinput tool
+ * @return Non-zero if a device has an adjustible pressure range, zero otherwise.
+ *
+ * @see libinput_tablet_tool_config_pressure_range_set
+ * @see libinput_tablet_tool_config_pressure_range_get_minimum
+ * @see libinput_tablet_tool_config_pressure_range_get_maximum
+ * @see libinput_tablet_tool_config_pressure_range_get_default_minimum
+ * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ *
+ * @since 1.25
+ */
+int
+libinput_tablet_tool_config_pressure_range_is_available(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ *
+ * Set the pressure range for this tablet tool. This maps the given logical
+ * pressure range into the available hardware pressure range so that a hardware
+ * pressure of the given minimum value maps into a logical pressure of 0.0 (as
+ * returned by libinput_event_tablet_tool_get_pressure()) and the hardware
+ * pressure of the given maximum value is mapped into the logical pressure
+ * of 1.0 (as returned by . libinput_event_tablet_tool_get_pressure())
+ *
+ * The minimum value must be less than the maximum value, libinput may
+ * libinput may require the values to have a specific distance to each other,
+ * i.e. that (maximium - minimum > N) for an implementation-defined value of N.
+ *
+ * @param tool The libinput tool
+ * @param minimum The minimum pressure value in the range [0.0, 1.0)
+ * @param maximum The maximum pressure value in the range (0.0, 1.0]
+ *
+ * @return A config status code
+ *
+ * @see libinput_tablet_tool_config_pressure_range_is_available
+ * @see libinput_tablet_tool_config_pressure_range_get_minimum
+ * @see libinput_tablet_tool_config_pressure_range_get_maximum
+ * @see libinput_tablet_tool_config_pressure_range_get_default_minimum
+ * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ */
+enum libinput_config_status
+libinput_tablet_tool_config_pressure_range_set(struct libinput_tablet_tool *tool,
+					       double minimum,
+					       double maximum);
+
+/**
+ * @ingroup config
+ *
+ * Get the minimum pressure value for this tablet tool, normalized to the
+ * range [0.0, 1.0] of the available hardware pressure.
+ *
+ * If the tool does not support pressure range configuration, the return value
+ * of this function is always 0.0.
+ *
+ * @param tool The libinput tool
+ * @return The minimum pressure value for this tablet tool
+ *
+ * @see libinput_tablet_tool_config_pressure_range_is_available
+ * @see libinput_tablet_tool_config_pressure_range_get_maximum
+ * @see libinput_tablet_tool_config_pressure_range_get_default_minimum
+ * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ */
+double
+libinput_tablet_tool_config_pressure_range_get_minimum(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ *
+ * Get the maximum pressure value for this tablet tool, normalized to the
+ * range [0.0, 1.0] of the available hardware pressure.
+ *
+ * If the tool does not support pressure range configuration, the return value
+ * of this function is always 1.0.
+ *
+ * @param tool The libinput tool
+ * @return The maximum pressure value for this tablet tool
+ *
+ * @see libinput_tablet_tool_config_pressure_range_is_available
+ * @see libinput_tablet_tool_config_pressure_range_get_minimum
+ * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ */
+double
+libinput_tablet_tool_config_pressure_range_get_maximum(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ *
+ * Get the minimum pressure value for this tablet tool, normalized to the
+ * range [0.0, 1.0] of the available hardware pressure.
+ *
+ * If the tool does not support pressure range configuration, the return value
+ * of this function is always 0.0.
+ *
+ * @param tool The libinput tool
+ * @return The minimum pressure value for this tablet tool
+ *
+ * @see libinput_tablet_tool_config_pressure_range_is_available
+ * @see libinput_tablet_tool_config_pressure_range_get_minimum
+ * @see libinput_tablet_tool_config_pressure_range_get_maximum
+ * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ */
+double
+libinput_tablet_tool_config_pressure_range_get_default_minimum(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ *
+ * Get the maximum pressure value for this tablet tool, normalized to the
+ * range [0.0, 1.0] of the available hardware pressure.
+ *
+ * If the tool does not support pressure range configuration, the return value
+ * of this function is always 1.0.
+ *
+ * @param tool The libinput tool
+ * @return The maximum pressure value for this tablet tool
+ *
+ * @see libinput_tablet_tool_config_pressure_range_is_available
+ * @see libinput_tablet_tool_config_pressure_range_get_maximum
+ * @see libinput_tablet_tool_config_pressure_range_get_maximum
+ * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ */
+double
+libinput_tablet_tool_config_pressure_range_get_default_maximum(struct libinput_tablet_tool *tool);
+
 #ifdef __cplusplus
 }
 #endif

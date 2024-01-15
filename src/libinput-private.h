@@ -72,6 +72,11 @@ struct normalized_range_coords {
 	double x, y;
 };
 
+/* A [0.0, 1.0] normalized range */
+struct normalized_range {
+	double min, max;
+};
+
 /* A pair of angles in degrees */
 struct wheel_angle {
 	double x, y;
@@ -449,6 +454,13 @@ enum pressure_heuristic_state {
 	PRESSURE_HEURISTIC_STATE_DONE,    /** Decision's been made, live with it */
 };
 
+struct libinput_tablet_tool_config_pressure_range {
+	int (*is_available)(struct libinput_tablet_tool *tool);
+	enum libinput_config_status (*set)(struct libinput_tablet_tool *tool, double min, double max);
+	void (*get)(struct libinput_tablet_tool *tool, double *min, double *max);
+	void (*get_default)(struct libinput_tablet_tool *tool, double *min, double *max);
+};
+
 struct libinput_tablet_tool {
 	struct list link;
 	uint32_t serial;
@@ -460,12 +472,22 @@ struct libinput_tablet_tool {
 	void *user_data;
 
 	struct {
+		/* The configured axis we actually work with */
+		struct input_absinfo abs_pressure;
+		struct normalized_range range;
+		struct normalized_range wanted_range;
+		bool has_configured_range;
+
 		struct threshold threshold; /* in device coordinates */
 		int offset; /* in device coordinates */
 		bool has_offset;
 
 		enum pressure_heuristic_state heuristic_state;
 	} pressure;
+
+	struct {
+		struct libinput_tablet_tool_config_pressure_range pressure_range;
+	} config;
 };
 
 struct libinput_tablet_pad_mode_group {

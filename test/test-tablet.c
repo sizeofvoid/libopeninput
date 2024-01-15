@@ -4150,6 +4150,317 @@ START_TEST(tablet_pressure_range)
 }
 END_TEST
 
+START_TEST(tablet_pressure_config)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 0 },
+		{ ABS_PRESSURE, 10 },
+		{ -1, -1 },
+	};
+
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_drain_events(li);
+	libinput_dispatch(li);
+
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	struct libinput_tablet_tool *tool = libinput_event_tablet_tool_get_tool(tev);
+
+	ck_assert(libinput_tablet_tool_config_pressure_range_is_available(tool));
+	ck_assert_double_eq(libinput_tablet_tool_config_pressure_range_get_minimum(tool), 0.0);
+	ck_assert_double_eq(libinput_tablet_tool_config_pressure_range_get_maximum(tool), 1.0);
+	ck_assert_double_eq(libinput_tablet_tool_config_pressure_range_get_default_minimum(tool), 0.0);
+	ck_assert_double_eq(libinput_tablet_tool_config_pressure_range_get_default_maximum(tool), 1.0);
+
+	ck_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 1.0),
+			 LIBINPUT_CONFIG_STATUS_SUCCESS);
+	ck_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.2, 0.5),
+			 LIBINPUT_CONFIG_STATUS_SUCCESS);
+	ck_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, -0.1, 1.0),
+			 LIBINPUT_CONFIG_STATUS_INVALID);
+	ck_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 0.0),
+			 LIBINPUT_CONFIG_STATUS_INVALID);
+	ck_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 1.0, 1.0),
+			 LIBINPUT_CONFIG_STATUS_INVALID);
+	ck_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 1.1),
+			 LIBINPUT_CONFIG_STATUS_INVALID);
+
+	/* The last successful one */
+	ck_assert_double_eq(libinput_tablet_tool_config_pressure_range_get_minimum(tool), 0.2);
+	ck_assert_double_eq(libinput_tablet_tool_config_pressure_range_get_maximum(tool), 0.5);
+	ck_assert_double_eq(libinput_tablet_tool_config_pressure_range_get_default_minimum(tool), 0.0);
+	ck_assert_double_eq(libinput_tablet_tool_config_pressure_range_get_default_maximum(tool), 1.0);
+
+	libinput_event_destroy(event);
+}
+END_TEST
+
+START_TEST(tablet_pressure_config_set_minimum)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct libinput_tablet_tool *tool;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 0 },
+		{ ABS_PRESSURE, 10 },
+		{ -1, -1 },
+	};
+	double p, old_pressure;
+
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_drain_events(li);
+	libinput_dispatch(li);
+
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	tool = libinput_event_tablet_tool_get_tool(tev);
+	p = libinput_event_tablet_tool_get_pressure(tev);
+	ck_assert_double_gt(p, 0.0);
+	old_pressure = p;
+
+	ck_assert(libinput_tablet_tool_config_pressure_range_is_available(tool));
+	ck_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.4, 1.0),
+			 LIBINPUT_CONFIG_STATUS_SUCCESS);
+	libinput_event_destroy(event);
+
+	/* config doesn't take effect until we're out of prox */
+	for (int pos = 71; pos < 80; pos++) {
+		litest_tablet_motion(dev, pos, pos, axes);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		p = libinput_event_tablet_tool_get_pressure(tev);
+		ck_assert_double_eq(p, old_pressure);
+		libinput_event_destroy(event);
+	}
+
+	litest_tablet_proximity_out(dev);
+	litest_timeout_tablet_proxout();
+	litest_drain_events(li);
+
+	/* 10% hw value is below our thresholds, so logical zero */
+	litest_axis_set_value(axes, ABS_PRESSURE, 10);
+	litest_tablet_proximity_in(dev, 70, 70, axes);
+	litest_drain_events(li);
+
+	for (int pos = 71; pos < 80; pos++) {
+		litest_tablet_motion(dev, pos, pos, axes);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		p = libinput_event_tablet_tool_get_pressure(tev);
+		ck_assert_double_eq(p, 0.00);
+		libinput_event_destroy(event);
+	}
+
+	/* 50% hw value mapped into a reduced range of 60% from hw range,
+	   plus the 1% minimum offset, so our output pressure is actually ~15% */
+	litest_axis_set_value(axes, ABS_PRESSURE, 50);
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_TIP);
+	p = libinput_event_tablet_tool_get_pressure(tev);
+	ck_assert_double_gt(p, 0.15);
+	ck_assert_double_le(p, 0.16);
+	libinput_event_destroy(event);
+
+	for (int pos = 71; pos < 80; pos++) {
+		litest_tablet_motion(dev, pos, pos, axes);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		p = libinput_event_tablet_tool_get_pressure(tev);
+		ck_assert_double_ge(p, 0.15);
+		ck_assert_double_le(p, 0.16);
+		libinput_event_destroy(event);
+	}
+}
+END_TEST
+
+START_TEST(tablet_pressure_config_set_maximum)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct libinput_tablet_tool *tool;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 0 },
+		{ ABS_PRESSURE, 10 },
+		{ -1, -1 },
+	};
+	double p, old_pressure;
+
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_drain_events(li);
+	libinput_dispatch(li);
+
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	tool = libinput_event_tablet_tool_get_tool(tev);
+	p = libinput_event_tablet_tool_get_pressure(tev);
+	ck_assert_double_gt(p, 0.0);
+	old_pressure = p;
+
+	ck_assert(libinput_tablet_tool_config_pressure_range_is_available(tool));
+	ck_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 0.6),
+			 LIBINPUT_CONFIG_STATUS_SUCCESS);
+	libinput_event_destroy(event);
+
+	/* config doesn't take effect until we're out of prox */
+	for (int pos = 71; pos < 80; pos++) {
+		litest_tablet_motion(dev, pos, pos, axes);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		p = libinput_event_tablet_tool_get_pressure(tev);
+		ck_assert_double_eq(p, old_pressure);
+		libinput_event_destroy(event);
+	}
+
+	litest_tablet_proximity_out(dev);
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+
+	litest_axis_set_value(axes, ABS_PRESSURE, 10);
+	litest_tablet_proximity_in(dev, 70, 70, axes);
+	litest_drain_events(li);
+
+	/* 10% hw value mapped into a reduced range of 60% from hw range,
+	   plus the 1% minimum offset so our output pressure is actually ~15% */
+	for (int pos = 71; pos < 80; pos++) {
+		litest_tablet_motion(dev, pos, pos, axes);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		p = libinput_event_tablet_tool_get_pressure(tev);
+		ck_assert_double_ge(p, 0.15);
+		ck_assert_double_le(p, 0.16);
+		ck_assert_double_gt(p, old_pressure);
+		libinput_event_destroy(event);
+	}
+
+	/* 50% hw value mapped into a reduced range of 60% from hw range,
+	   plus the 1% minimum offset, so our output pressure is actually ~83% */
+	litest_axis_set_value(axes, ABS_PRESSURE, 50);
+
+	for (int pos = 71; pos < 80; pos++) {
+		litest_tablet_motion(dev, pos, pos, axes);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		p = libinput_event_tablet_tool_get_pressure(tev);
+		ck_assert_double_ge(p, 0.82);
+		ck_assert_double_le(p, 0.84);
+		libinput_event_destroy(event);
+	}
+
+	for (int hwp = 60; hwp < 100; hwp += 10) {
+		litest_axis_set_value(axes, ABS_PRESSURE, hwp);
+
+		for (int pos = 71; pos < 80; pos++) {
+			litest_tablet_motion(dev, pos, pos, axes);
+			libinput_dispatch(li);
+			event = libinput_get_event(li);
+			tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+			p = libinput_event_tablet_tool_get_pressure(tev);
+			ck_assert_double_eq(p, 1.0);
+			libinput_event_destroy(event);
+		}
+	}
+}
+END_TEST
+
+START_TEST(tablet_pressure_config_set_range)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct libinput_tablet_tool *tool;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 0 },
+		{ ABS_PRESSURE, 10 },
+		{ -1, -1 },
+	};
+	double p, old_pressure;
+
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_drain_events(li);
+	libinput_dispatch(li);
+
+	litest_tablet_motion(dev, 70, 70, axes);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	tool = libinput_event_tablet_tool_get_tool(tev);
+	p = libinput_event_tablet_tool_get_pressure(tev);
+	ck_assert_double_gt(p, 0.0);
+	old_pressure = p;
+
+	ck_assert(libinput_tablet_tool_config_pressure_range_is_available(tool));
+	ck_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.4, 0.6),
+			 LIBINPUT_CONFIG_STATUS_SUCCESS);
+	libinput_event_destroy(event);
+
+	/* config doesn't take effect until we're out of prox */
+	for (int i = 71; i < 80; i++) {
+		litest_tablet_motion(dev, i, i, axes);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		p = libinput_event_tablet_tool_get_pressure(tev);
+		ck_assert_double_eq(p, old_pressure);
+		libinput_event_destroy(event);
+	}
+
+	litest_tablet_proximity_out(dev);
+	litest_timeout_tablet_proxout();
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 70, 70, axes);
+	litest_drain_events(li);
+
+	for (double pressure = 0.0, i = 71; pressure <= 100; pressure += 5, i += 0.2) {
+		litest_axis_set_value(axes, ABS_PRESSURE, pressure);
+		litest_tablet_motion(dev, i, i, axes);
+		libinput_dispatch(li);
+		event = libinput_get_event(li);
+		if (libinput_event_get_type(event) == LIBINPUT_EVENT_TABLET_TOOL_AXIS)
+			tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		else
+			tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_TIP);
+		p = libinput_event_tablet_tool_get_pressure(tev);
+		if (pressure <= 40) {
+			ck_assert_double_eq(p, 0.0);
+		} else if (pressure >= 60) {
+			ck_assert_double_eq(p, 1.0);
+		} else {
+			ck_assert_double_ge(p, (pressure - 1 - 40)/20.0);
+			ck_assert_double_le(p, (pressure - 40)/20.0);
+		}
+		libinput_event_destroy(event);
+	}
+}
+END_TEST
+
 static void
 pressure_threshold_warning(struct libinput *libinput,
 			   enum libinput_log_priority priority,
@@ -6335,6 +6646,10 @@ TEST_COLLECTION(tablet)
 	litest_add_for_device(tablet_pressure_offset_increase, LITEST_WACOM_HID4800_PEN);
 	litest_add_for_device(tablet_pressure_offset_exceed_threshold, LITEST_WACOM_HID4800_PEN);
 
+	litest_add(tablet_pressure_config, LITEST_TABLET, LITEST_TOTEM);
+	litest_add(tablet_pressure_config_set_minimum, LITEST_TABLET, LITEST_TOTEM);
+	litest_add(tablet_pressure_config_set_maximum, LITEST_TABLET, LITEST_TOTEM);
+	litest_add(tablet_pressure_config_set_range, LITEST_TABLET, LITEST_TOTEM);
 
 	litest_add_for_device(tablet_distance_range, LITEST_WACOM_INTUOS);
 

@@ -189,6 +189,52 @@ specifically:
 Pressure offsets are not detected on **LIBINPUT_TABLET_TOOL_TYPE_MOUSE**
 and **LIBINPUT_TABLET_TOOL_TYPE_LENS** tools.
 
+
+.. _tablet-pressure-range:
+
+------------------------------------------------------------------------------
+Custom tablet tool pressure ranges
+------------------------------------------------------------------------------
+
+On tablets supporting pressure, libinput provides that hardware pressure as
+a logical range of ``0.0`` up to ``1.0`` for the maximum supported pressure.
+By default, the hardware range thus maps into the following logical range::
+
+
+           hw minimum                                  hw maximum
+  hw range:      |------|-----------------------------------|
+  logical range:   |----|-----------------------------------|
+                  0.0   |                                  1.0
+                       Tip
+
+Note that libinput always has some built-in thresholds to filter out erroneous
+touches with near-zero pressure but otherwise the hardware range maps as-is
+into the logical range. The :ref:`tip event <tablet-tip>` threshold is defined
+within this range.
+
+For some use-cases the full hardware range is not suitable, it may require either
+too light a pressure for the user to interact or it may require too hard a
+pressure before the logical maximum is reached. libinput provides
+the **libinput_tablet_tool_config_pressure_range_set()** function that allows
+reducing the usable range of the tablet::
+
+           hw minimum                                  hw maximum
+  hw range:      |----------|-------------------------------|
+  adjusted range:    |------|---------------------|
+  logical range:       |----|---------------------|
+                      0.0   |                    1.0
+                           Tip
+
+A reduced range as shown above will result in
+
+- all hw pressure below the new minimum to register as logical pressure ``0.0``
+- all hw pressure above the new maximum to register as logical pressure ``1.0``
+- the tip event threshold to be relative to the new minimum
+
+In other words, adjusting the pressure range of a tablet tool is equivalent to
+reducing the hardware range of said tool. Note that where a custom pressure
+range is set, detection of :ref:`tablet-pressure-offset` is disabled.
+
 .. _tablet-serial-numbers:
 
 ------------------------------------------------------------------------------

@@ -333,3 +333,12 @@ LIBINPUT_1.23 {
 	libinput_device_config_accel_apply;
 	libinput_config_accel_set_points;
 } LIBINPUT_1.21;
+
+LIBINPUT_1.26 {
+  libinput_tablet_tool_config_pressure_range_is_available;
+  libinput_tablet_tool_config_pressure_range_set;
+  libinput_tablet_tool_config_pressure_range_get_minimum;
+  libinput_tablet_tool_config_pressure_range_get_maximum;
+  libinput_tablet_tool_config_pressure_range_get_default_minimum;
+  libinput_tablet_tool_config_pressure_range_get_default_maximum;
+} LIBINPUT_1.23;
