@@ -1141,6 +1141,11 @@ tablet_new_tool(struct tablet_dispatch *tablet,
 		.refcount = 1,
 	};
 
+	/* FIXME: known bug - the pressure threshold is only set once on the
+	 * first tablet, if a tool is used across multiple tablets with
+	 * different pressure ranges this will be wrong. This case is niche
+	 * enough that we can fix it if we ever run into it.
+	 */
 	tool_set_pressure_thresholds(tablet, tool);
 	tool_set_bits(tablet, tool);
 
