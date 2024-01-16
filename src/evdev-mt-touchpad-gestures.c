@@ -324,7 +324,7 @@ tp_gesture_get_pinch_info(struct tp_dispatch *tp,
 	delta = device_delta(first->point, second->point);
 	normalized = tp_normalize_delta(tp, delta);
 	*distance = normalized_length(normalized);
-	*angle = atan2(normalized.y, normalized.x) * 180.0 / M_PI;
+	*angle = rad2deg(atan2(normalized.y, normalized.x));
 
 	*center = device_average(first->point, second->point);
 }

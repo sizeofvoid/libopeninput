@@ -382,7 +382,7 @@ adjust_tilt(const struct input_absinfo *absinfo)
 	if (absinfo->resolution != 0 &&
 	    absinfo->maximum > 0 &&
 	    absinfo->minimum < 0) {
-		value = 180.0/M_PI * absinfo->value/absinfo->resolution;
+		value = rad2deg((double)absinfo->value/absinfo->resolution);
 	} else {
 		/* Wacom supports physical [-64, 64] degrees, so map to that by
 		 * default. If other tablets have a different physical range or
@@ -419,7 +419,7 @@ convert_tilt_to_rotation(struct tablet_dispatch *tablet)
 
 	/* atan2 is CCW, we want CW -> negate x */
 	if (x || y)
-		angle = ((180.0 * atan2(-x, y)) / M_PI);
+		angle = rad2deg(atan2(-x, y));
 
 	angle = fmod(360 + angle - offset, 360);
 
