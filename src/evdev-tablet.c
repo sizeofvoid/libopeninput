@@ -1073,7 +1073,7 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 static inline int
 axis_range_percentage(const struct input_absinfo *a, double percent)
 {
-	return absinfo_range(a) * percent/100.0 + a->minimum;
+	return (a->maximum - a->minimum) * percent/100.0 + a->minimum;
 }
 
 static inline void
