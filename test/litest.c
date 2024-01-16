@@ -96,6 +96,7 @@ static struct list created_files_list; /* list of all files to remove at the end
 
 static void litest_init_udev_rules(struct list *created_files_list);
 static void litest_remove_udev_rules(struct list *created_files_list);
+static void litest_print_event(struct libinput_event *event);
 
 enum quirks_setup_mode {
 	QUIRKS_SETUP_USE_SRCDIR,
@@ -3060,6 +3061,10 @@ litest_drain_events(struct libinput *li)
 
 	libinput_dispatch(li);
 	while ((event = libinput_get_event(li))) {
+		if (verbose) {
+			fprintf(stderr, "litest: draining event: ");
+			litest_print_event(event);
+		}
 		libinput_event_destroy(event);
 		libinput_dispatch(li);
 	}
