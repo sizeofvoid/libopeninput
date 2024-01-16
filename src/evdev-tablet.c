@@ -368,7 +368,7 @@ normalize_pressure(const struct input_absinfo *absinfo,
 static inline double
 adjust_tilt(const struct input_absinfo *absinfo)
 {
-	double value = (absinfo->value - absinfo->minimum) / absinfo_range(absinfo);
+	double value = absinfo_normalize(absinfo);
 	const int WACOM_MAX_DEGREES = 64;
 
 	/* If resolution is nonzero, it's in units/radian. But require
@@ -2562,6 +2562,57 @@ tablet_reject_device(struct evdev_device *device)
 	return true;
 }
 
+static void
+tablet_fix_tilt(struct tablet_dispatch *tablet,
+		struct evdev_device *device)
+{
+	struct libevdev *evdev = device->evdev;
+
+	if (libevdev_has_event_code(evdev, EV_ABS, ABS_TILT_X) !=
+	    libevdev_has_event_code(evdev, EV_ABS, ABS_TILT_Y)) {
+		libevdev_disable_event_code(evdev, EV_ABS, ABS_TILT_X);
+		libevdev_disable_event_code(evdev, EV_ABS, ABS_TILT_Y);
+		return;
+	}
+
+	if (!libevdev_has_event_code(evdev, EV_ABS, ABS_TILT_X))
+		return;
+
+	/* Wacom has three types of devices:
+	 * - symmetrical: [-90, 90], like the ISDv4 524c
+	 * - asymmetrical: [-64, 63], like the Cintiq l3HDT
+	 * - zero-based: [0, 127], like the Cintiq 12WX
+	 *
+	 * Note how the latter two cases have an even range and thus do
+	 * not have a logical center value. But this is tilt and at
+	 * least in the asymmetrical case we assume that hardware zero
+	 * means vertical. So we cheat and adjust the range depending
+	 * on whether it's odd, then use the center value.
+	 *
+	 * Since it's always the max that's one too low let's go with that and
+	 * fix it if we run into a device where that isn't the case.
+	 */
+	for (unsigned int axis = ABS_TILT_X; axis <= ABS_TILT_Y; axis++) {
+		struct input_absinfo abs = *libevdev_get_abs_info(evdev, axis);
+
+		/* Don't touch axes reporting radians */
+		if (abs.resolution != 0)
+			continue;
+
+		if ((int)absinfo_range(&abs) % 2 == 1)
+			continue;
+
+		abs.maximum += 1;
+		libevdev_set_abs_info(evdev, axis, &abs);
+
+		evdev_log_debug(device,
+				"Adjusting %s range to [%d, %d]\n",
+				libevdev_event_code_get_name(EV_ABS, axis),
+				abs.minimum,
+				abs.maximum);
+	}
+}
+
 static int
 tablet_init(struct tablet_dispatch *tablet,
 	    struct evdev_device *device)
@@ -2592,6 +2643,7 @@ tablet_init(struct tablet_dispatch *tablet,
 		libevdev_disable_event_code(evdev, EV_KEY, BTN_TOOL_LENS);
 	}
 
+	tablet_fix_tilt(tablet, device);
 	tablet_init_calibration(tablet, device);
 	tablet_init_proximity_threshold(tablet, device);
 	rc = tablet_init_accel(tablet, device);

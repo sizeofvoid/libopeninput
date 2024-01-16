@@ -37,6 +37,12 @@
 #include "litest.h"
 #include "util-input-event.h"
 
+enum {
+	TILT_MINIMUM,
+	TILT_CENTER,
+	TILT_MAXIMUM,
+};
+
 static inline unsigned int
 pick_stylus_or_btn0(struct litest_device *dev)
 {
@@ -4487,6 +4493,80 @@ START_TEST(tilt_y)
 }
 END_TEST
 
+START_TEST(tilt_fixed_points)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+	int testcase = _i; /* ranged test */
+	int axis_value;
+	double expected;
+
+	/* On devices with a range of [-N, M], make sure we calculate the hw zero position
+	 * as zero and that the respective min/max resolve to our (hardcoded) min/max degree
+	 * values
+	 */
+	const struct input_absinfo *abs = libevdev_get_abs_info(dev->evdev, ABS_TILT_X);
+	if (abs->minimum >= 0)
+		return;
+
+	/* If the tablet reports physical resolutions we don't need to test them */
+	if (abs->resolution != 0)
+		return;
+
+	/* see tablet_fix_tilt() */
+	bool is_adjusted = (int)absinfo_range(abs) % 2 == 0;
+
+	switch (testcase) {
+	case TILT_MINIMUM:
+		axis_value = abs->minimum;
+		expected = -64.0;
+		break;
+	case TILT_CENTER:
+		axis_value = 0;
+		expected = 0.0;
+		break;
+	case TILT_MAXIMUM:
+		axis_value = abs->maximum;
+		expected = 64.0;
+		break;
+	default:
+		abort();
+	}
+
+	litest_drain_events(li);
+
+	litest_push_event_frame(dev);
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_event(dev, EV_ABS, ABS_TILT_X, axis_value);
+	litest_event(dev, EV_ABS, ABS_TILT_Y, axis_value);
+	litest_pop_event_frame(dev);
+
+	libinput_dispatch(li);
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+
+	double tx = libinput_event_tablet_tool_get_tilt_x(tev);
+	double ty = libinput_event_tablet_tool_get_tilt_y(tev);
+	ck_assert_double_eq(tx, expected);
+	if (is_adjusted) {
+		ck_assert_double_ge(ty, expected - 1);
+		ck_assert_double_lt(ty, expected);
+	} else {
+		ck_assert_double_eq(ty, expected);
+	}
+
+	libinput_event_destroy(event);
+}
+END_TEST
+
 START_TEST(relative_no_profile)
 {
 	struct litest_device *dev = litest_current_device();
@@ -6152,6 +6232,7 @@ TEST_COLLECTION(tablet)
 	struct range with_timeout = { 0, 2 };
 	struct range xyaxes = { ABS_X, ABS_Y + 1 };
 	struct range lh_transitions = {0, 16}; /* 2 bits for in, 2 bits for out */
+	struct range tilt_cases = {TILT_MINIMUM, TILT_MAXIMUM + 1};
 
 	litest_add(tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add(tool_user_data, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
@@ -6213,6 +6294,7 @@ TEST_COLLECTION(tablet)
 	litest_add(tilt_not_available, LITEST_TABLET, LITEST_TILT);
 	litest_add(tilt_x, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
 	litest_add(tilt_y, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
+	litest_add_ranged(tilt_fixed_points, LITEST_TABLET|LITEST_TILT, LITEST_ANY, &tilt_cases);
 	litest_add_for_device(left_handed, LITEST_WACOM_INTUOS);
 	litest_add_for_device(left_handed_tilt, LITEST_WACOM_INTUOS);
 	litest_add_for_device(left_handed_mouse_rotation, LITEST_WACOM_INTUOS);
