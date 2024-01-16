@@ -335,17 +335,13 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 static inline double
 normalize_slider(const struct input_absinfo *absinfo)
 {
-	double value = (absinfo->value - absinfo->minimum) / absinfo_range(absinfo);
-
-	return value * 2 - 1;
+	return absinfo_normalize(absinfo) * 2 - 1;
 }
 
 static inline double
 normalize_distance(const struct input_absinfo *absinfo)
 {
-	double value = (absinfo->value - absinfo->minimum) / absinfo_range(absinfo);
-
-	return value;
+	return absinfo_normalize(absinfo);
 }
 
 static inline double
@@ -363,11 +359,10 @@ normalize_pressure(const struct input_absinfo *absinfo,
 	 * The axis is scaled into the range [lower, max] so that the lower
 	 * threshold is 0 pressure.
 	 */
-	int base = tool->pressure.threshold.lower;
-	double range = absinfo->maximum - base;
-	double value = (absinfo->value - base) / range;
+	struct input_absinfo abs = *absinfo;
+	abs.minimum = tool->pressure.threshold.lower;
 
-	return max(0.0, value);
+	return absinfo_normalize(&abs);
 }
 
 static inline double

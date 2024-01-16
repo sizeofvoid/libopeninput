@@ -3464,8 +3464,6 @@ START_TEST(airbrush_slider)
 	struct libinput_event_tablet_tool *tev;
 	const struct input_absinfo *abs;
 	double val;
-	double scale;
-	double expected;
 	int v;
 
 	if (!libevdev_has_event_code(dev->evdev,
@@ -3488,8 +3486,8 @@ START_TEST(airbrush_slider)
 
 	litest_drain_events(li);
 
-	scale = absinfo_range(abs);
 	for (v = abs->minimum; v < abs->maximum; v += 8) {
+		double expected = absinfo_normalize_value(abs, v) * 2 - 1;
 		litest_event(dev, EV_ABS, ABS_WHEEL, v);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 		libinput_dispatch(li);
@@ -3499,7 +3497,6 @@ START_TEST(airbrush_slider)
 		ck_assert(libinput_event_tablet_tool_slider_has_changed(tev));
 		val = libinput_event_tablet_tool_get_slider_position(tev);
 
-		expected = ((v - abs->minimum)/scale) * 2 - 1;
 		ck_assert_double_eq(val, expected);
 		ck_assert_double_ge(val, -1.0);
 		ck_assert_double_le(val, 1.0);
