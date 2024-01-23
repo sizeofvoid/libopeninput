@@ -1097,12 +1097,12 @@ START_TEST(proximity_out_clear_buttons)
 	struct libinput *li = dev->libinput;
 	struct libinput_event_tablet_tool *tablet_event;
 	struct libinput_event *event;
-	uint32_t button;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
+	uint32_t stylus_buttons[] = {BTN_STYLUS, BTN_STYLUS2, BTN_STYLUS3};
 	bool have_proximity = false;
 	double x = 50, y = 50;
 
@@ -1111,18 +1111,18 @@ START_TEST(proximity_out_clear_buttons)
 	/* Test that proximity out events send button releases for any currently
 	 * pressed stylus buttons
 	 */
-	for (button = BTN_STYLUS; button <= BTN_STYLUS2; button++) {
+	ARRAY_FOR_EACH(stylus_buttons, button) {
 		bool button_released = false;
 		uint32_t event_button = 0;
 		enum libinput_button_state state;
 
-		if (!libevdev_has_event_code(dev->evdev, EV_KEY, button))
+		if (!libevdev_has_event_code(dev->evdev, EV_KEY, *button))
 			continue;
 
 		litest_tablet_proximity_in(dev, x++, y++, axes);
 		litest_drain_events(li);
 
-		litest_event(dev, EV_KEY, button, 1);
+		litest_event(dev, EV_KEY, *button, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 		litest_tablet_proximity_out(dev);
 		libinput_dispatch(li);
@@ -1145,7 +1145,7 @@ START_TEST(proximity_out_clear_buttons)
 				event_button = libinput_event_tablet_tool_get_button(tablet_event);
 				state = libinput_event_tablet_tool_get_button_state(tablet_event);
 
-				if (event_button == button &&
+				if (event_button == *button &&
 				    state == LIBINPUT_BUTTON_STATE_RELEASED)
 					button_released = true;
 			}
@@ -1155,7 +1155,7 @@ START_TEST(proximity_out_clear_buttons)
 
 		ck_assert_msg(button_released,
 			      "Button %s (%d) was not released.",
-			      libevdev_event_code_get_name(EV_KEY, button),
+			      libevdev_event_code_get_name(EV_KEY, *button),
 			      event_button);
 		litest_assert(have_proximity);
 		litest_assert_empty_queue(li);
@@ -3163,6 +3163,52 @@ START_TEST(tool_direct_switch_with_forced_proxout)
 	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(stylus_buttons)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_event *event;
+	struct libinput_event_tablet_tool *tev;
+	struct libinput_tablet_tool *tool;
+	uint32_t stylus_buttons[] = {BTN_STYLUS, BTN_STYLUS2, BTN_STYLUS3};
+
+	litest_drain_events(li);
+
+	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
+	litest_event(dev, EV_ABS, ABS_MISC, 0x200); /* 3-button stylus tool_id */
+	litest_event(dev, EV_MSC, MSC_SERIAL, 1000);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	libinput_dispatch(li);
+
+	event = libinput_get_event(li);
+	tev = litest_is_tablet_event(event,
+				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	tool = libinput_event_tablet_tool_get_tool(tev);
+	ck_assert_notnull(tool);
+	libinput_tablet_tool_ref(tool);
+
+	libinput_event_destroy(event);
+
+	ARRAY_FOR_EACH(stylus_buttons, code) {
+		litest_event(dev, EV_KEY, *code, 1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+		litest_event(dev, EV_KEY, *code, 0);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+
+		litest_assert_tablet_button_event(li,
+					  *code,
+					  LIBINPUT_BUTTON_STATE_PRESSED);
+		litest_assert_tablet_button_event(li,
+					  *code,
+					  LIBINPUT_BUTTON_STATE_RELEASED);
+	}
+
+	libinput_tablet_tool_unref(tool);
 }
 END_TEST
 
@@ -6176,6 +6222,7 @@ TEST_COLLECTION(tablet)
 	litest_add_for_device(left_handed_artpen_rotation, LITEST_WACOM_INTUOS);
 	litest_add_for_device(no_left_handed, LITEST_WACOM_CINTIQ);
 	litest_add(pad_buttons_ignored, LITEST_TABLET, LITEST_TOTEM);
+	litest_add_for_device(stylus_buttons, LITEST_WACOM_CINTIQ_PRO16_PEN);
 	litest_add(mouse_tool, LITEST_TABLET | LITEST_TOOL_MOUSE, LITEST_ANY);
 	litest_add(mouse_buttons, LITEST_TABLET | LITEST_TOOL_MOUSE, LITEST_ANY);
 	litest_add(mouse_rotation, LITEST_TABLET | LITEST_TOOL_MOUSE, LITEST_ANY);

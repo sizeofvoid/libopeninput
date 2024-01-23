@@ -773,6 +773,7 @@ tablet_update_button(struct tablet_dispatch *tablet,
 	case BTN_TASK:
 	case BTN_STYLUS:
 	case BTN_STYLUS2:
+	case BTN_STYLUS3:
 		break;
 	default:
 		evdev_log_info(tablet->device,
@@ -958,6 +959,8 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 		     code++)
 			copy_button_cap(tablet, tool, code);
 	} else {
+		if (libwacom_stylus_get_num_buttons(s) >= 3)
+			copy_button_cap(tablet, tool, BTN_STYLUS3);
 		if (libwacom_stylus_get_num_buttons(s) >= 2)
 			copy_button_cap(tablet, tool, BTN_STYLUS2);
 		if (libwacom_stylus_get_num_buttons(s) >= 1)
@@ -1057,6 +1060,7 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 	case LIBINPUT_TABLET_TOOL_TYPE_ERASER:
 		copy_button_cap(tablet, tool, BTN_STYLUS);
 		copy_button_cap(tablet, tool, BTN_STYLUS2);
+		copy_button_cap(tablet, tool, BTN_STYLUS3);
 		break;
 	case LIBINPUT_TABLET_TOOL_TYPE_MOUSE:
 	case LIBINPUT_TABLET_TOOL_TYPE_LENS:
