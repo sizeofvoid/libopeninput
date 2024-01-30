@@ -104,6 +104,7 @@ event_type_to_str(enum libinput_event_type type)
 	CASE_RETURN_STRING(LIBINPUT_EVENT_TABLET_PAD_RING);
 	CASE_RETURN_STRING(LIBINPUT_EVENT_TABLET_PAD_STRIP);
 	CASE_RETURN_STRING(LIBINPUT_EVENT_TABLET_PAD_KEY);
+	CASE_RETURN_STRING(LIBINPUT_EVENT_TABLET_PAD_DIAL);
 	CASE_RETURN_STRING(LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN);
 	CASE_RETURN_STRING(LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE);
 	CASE_RETURN_STRING(LIBINPUT_EVENT_GESTURE_SWIPE_END);
@@ -232,6 +233,10 @@ struct libinput_event_tablet_pad {
 		uint32_t code;
 		enum libinput_key_state state;
 	} key;
+	struct {
+		double v120;
+		int number;
+	} dial;
 	struct {
 		enum libinput_tablet_pad_ring_axis_source source;
 		double position;
@@ -443,6 +448,7 @@ libinput_event_get_tablet_pad_event(struct libinput_event *event)
 			   event->type,
 			   NULL,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON,
 			   LIBINPUT_EVENT_TABLET_PAD_KEY);
@@ -2024,6 +2030,7 @@ libinput_event_destroy(struct libinput_event *event)
 		   libinput_event_get_tablet_tool_event(event));
 		break;
 	case LIBINPUT_EVENT_TABLET_PAD_RING:
+	case LIBINPUT_EVENT_TABLET_PAD_DIAL:
 	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
 	case LIBINPUT_EVENT_TABLET_PAD_BUTTON:
 	case LIBINPUT_EVENT_TABLET_PAD_KEY:
@@ -2910,6 +2917,34 @@ tablet_pad_notify_button(struct libinput_device *device,
 }
 
 void
+tablet_pad_notify_dial(struct libinput_device *device,
+		       uint64_t time,
+		       unsigned int number,
+		       double value,
+		       struct libinput_tablet_pad_mode_group *group)
+{
+	struct libinput_event_tablet_pad *dial_event;
+	unsigned int mode;
+
+	dial_event = zalloc(sizeof *dial_event);
+
+	mode = libinput_tablet_pad_mode_group_get_mode(group);
+
+	*dial_event = (struct libinput_event_tablet_pad) {
+		.time = time,
+		.dial.number = number,
+		.dial.v120 = value,
+		.mode_group = libinput_tablet_pad_mode_group_ref(group),
+		.mode = mode,
+	};
+
+	post_device_event(device,
+			  time,
+			  LIBINPUT_EVENT_TABLET_PAD_DIAL,
+			  &dial_event->base);
+}
+
+void
 tablet_pad_notify_ring(struct libinput_device *device,
 		       uint64_t time,
 		       unsigned int number,
@@ -3376,6 +3411,12 @@ libinput_device_tablet_pad_get_num_buttons(struct libinput_device *device)
 }
 
 LIBINPUT_EXPORT int
+libinput_device_tablet_pad_get_num_dials(struct libinput_device *device)
+{
+	return evdev_device_tablet_pad_get_num_dials((struct evdev_device *)device);
+}
+
+LIBINPUT_EXPORT int
 libinput_device_tablet_pad_get_num_rings(struct libinput_device *device)
 {
 	return evdev_device_tablet_pad_get_num_rings((struct evdev_device *)device);
@@ -3429,6 +3470,17 @@ libinput_tablet_pad_mode_group_has_button(struct libinput_tablet_pad_mode_group 
 		return 0;
 
 	return !!(group->button_mask & bit(button));
+}
+
+LIBINPUT_EXPORT int
+libinput_tablet_pad_mode_group_has_dial(struct libinput_tablet_pad_mode_group *group,
+					unsigned int dial)
+{
+	if ((int)dial >=
+	    libinput_device_tablet_pad_get_num_dials(group->device))
+		return 0;
+
+	return !!(group->dial_mask & bit(dial));
 }
 
 LIBINPUT_EXPORT int
@@ -3590,6 +3642,28 @@ libinput_event_tablet_tool_get_base_event(struct libinput_event_tablet_tool *eve
 }
 
 LIBINPUT_EXPORT double
+libinput_event_tablet_pad_get_dial_delta_v120(struct libinput_event_tablet_pad *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0.0,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL);
+
+	return event->dial.v120;
+}
+
+LIBINPUT_EXPORT unsigned int
+libinput_event_tablet_pad_get_dial_number(struct libinput_event_tablet_pad *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL);
+
+	return event->dial.number;
+}
+
+LIBINPUT_EXPORT double
 libinput_event_tablet_pad_get_ring_position(struct libinput_event_tablet_pad *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
@@ -3706,6 +3780,7 @@ libinput_event_tablet_pad_get_mode(struct libinput_event_tablet_pad *event)
 			   event->base.type,
 			   0,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 
@@ -3719,6 +3794,7 @@ libinput_event_tablet_pad_get_mode_group(struct libinput_event_tablet_pad *event
 			   event->base.type,
 			   NULL,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 
@@ -3732,6 +3808,7 @@ libinput_event_tablet_pad_get_time(struct libinput_event_tablet_pad *event)
 			   event->base.type,
 			   0,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON,
 			   LIBINPUT_EVENT_TABLET_PAD_KEY);
@@ -3746,6 +3823,7 @@ libinput_event_tablet_pad_get_time_usec(struct libinput_event_tablet_pad *event)
 			   event->base.type,
 			   0,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON,
 			   LIBINPUT_EVENT_TABLET_PAD_KEY);
@@ -3760,6 +3838,7 @@ libinput_event_tablet_pad_get_base_event(struct libinput_event_tablet_pad *event
 			   event->base.type,
 			   NULL,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON,
 			   LIBINPUT_EVENT_TABLET_PAD_KEY);

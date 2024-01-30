@@ -2901,9 +2901,22 @@ auto_assign_pad_value(struct litest_device *dev,
 {
 	const struct input_absinfo *abs;
 
-	if (ev->value != LITEST_AUTO_ASSIGN ||
-	    ev->type != EV_ABS)
+	if (ev->value != LITEST_AUTO_ASSIGN)
 		return value;
+
+	if (ev->type == EV_REL) {
+		switch (ev->code) {
+		case REL_WHEEL:
+		case REL_HWHEEL:
+		case REL_DIAL:
+			assert (fmod(value, 120.0) == 0.0); /* Fractions not supported yet */
+			return value/120.0;
+		default:
+			return value;
+		}
+	} else if (ev->type != EV_ABS) {
+		return value;
+	}
 
 	abs = libevdev_get_abs_info(dev->evdev, ev->code);
 	litest_assert_notnull(abs);
@@ -3213,6 +3226,9 @@ litest_event_type_str(enum libinput_event_type type)
 	case LIBINPUT_EVENT_TABLET_PAD_KEY:
 		str = "TABLET PAD KEY";
 		break;
+	case LIBINPUT_EVENT_TABLET_PAD_DIAL:
+		str = "TABLET PAD DIAL";
+		break;
 	case LIBINPUT_EVENT_SWITCH_TOGGLE:
 		str = "SWITCH TOGGLE";
 		break;
@@ -3313,6 +3329,12 @@ litest_print_event(struct libinput_event *event)
 			libinput_event_tablet_pad_get_ring_number(pad),
 			libinput_event_tablet_pad_get_ring_position(pad),
 			libinput_event_tablet_pad_get_ring_source(pad));
+		break;
+	case LIBINPUT_EVENT_TABLET_PAD_DIAL:
+		pad = libinput_event_get_tablet_pad_event(event);
+		fprintf(stderr, "dial %d delta %.2f",
+			libinput_event_tablet_pad_get_dial_number(pad),
+			libinput_event_tablet_pad_get_dial_delta_v120(pad));
 		break;
 	default:
 		break;
@@ -3916,6 +3938,23 @@ litest_is_pad_button_event(struct libinput_event *event,
 			     button);
 	litest_assert_int_eq(libinput_event_tablet_pad_get_button_state(p),
 			     state);
+
+	return p;
+}
+
+struct libinput_event_tablet_pad *
+litest_is_pad_dial_event(struct libinput_event *event,
+			 unsigned int number)
+{
+	struct libinput_event_tablet_pad *p;
+	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_PAD_DIAL;
+
+	litest_assert_ptr_notnull(event);
+	litest_assert_event_type(event, type);
+	p = libinput_event_get_tablet_pad_event(event);
+
+	litest_assert_int_eq(libinput_event_tablet_pad_get_dial_number(p),
+			     number);
 
 	return p;
 }

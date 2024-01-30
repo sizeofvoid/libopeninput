@@ -98,6 +98,50 @@ pad_button_set_down(struct pad_dispatch *pad,
 }
 
 static void
+pad_process_relative(struct pad_dispatch *pad,
+		     struct evdev_device *device,
+		     struct input_event *e,
+		     uint64_t time)
+{
+	switch (e->code) {
+	case REL_DIAL:
+		pad->dials.dial1 = e->value * 120;
+		pad->changed_axes |= PAD_AXIS_DIAL1;
+		pad_set_status(pad, PAD_AXES_UPDATED);
+		break;
+	case REL_WHEEL:
+		if (!pad->dials.has_hires_dial) {
+			pad->dials.dial1 = e->value * 120;
+			pad->changed_axes |= PAD_AXIS_DIAL1;
+			pad_set_status(pad, PAD_AXES_UPDATED);
+		}
+		break;
+	case REL_HWHEEL:
+		if (!pad->dials.has_hires_dial) {
+			pad->dials.dial2 = e->value * 120;
+			pad->changed_axes |= PAD_AXIS_DIAL2;
+			pad_set_status(pad, PAD_AXES_UPDATED);
+		}
+		break;
+	case REL_WHEEL_HI_RES:
+		pad->dials.dial1 = e->value;
+		pad->changed_axes |= PAD_AXIS_DIAL1;
+		pad_set_status(pad, PAD_AXES_UPDATED);
+		break;
+	case REL_HWHEEL_HI_RES:
+		pad->dials.dial2 = e->value * 120;
+		pad->changed_axes |= PAD_AXIS_DIAL2;
+		pad_set_status(pad, PAD_AXES_UPDATED);
+		break;
+	default:
+		evdev_log_info(device,
+			       "Unhandled EV_REL event code %#x\n",
+			       e->code);
+		break;
+	}
+}
+
+static void
 pad_process_absolute(struct pad_dispatch *pad,
 		     struct evdev_device *device,
 		     struct input_event *e,
@@ -217,6 +261,22 @@ pad_handle_strip(struct pad_dispatch *pad,
 }
 
 static inline struct libinput_tablet_pad_mode_group *
+pad_dial_get_mode_group(struct pad_dispatch *pad,
+			unsigned int dial)
+{
+	struct libinput_tablet_pad_mode_group *group;
+
+	list_for_each(group, &pad->modes.mode_group_list, link) {
+		if (libinput_tablet_pad_mode_group_has_dial(group, dial))
+			return group;
+	}
+
+	assert(!"Unable to find dial mode group");
+
+	return NULL;
+}
+
+static inline struct libinput_tablet_pad_mode_group *
 pad_ring_get_mode_group(struct pad_dispatch *pad,
 			unsigned int ring)
 {
@@ -263,6 +323,26 @@ pad_check_notify_axes(struct pad_dispatch *pad,
 	if (pad->have_abs_misc_terminator &&
 	    libevdev_get_event_value(device->evdev, EV_ABS, ABS_MISC) == 0)
 		send_finger_up = true;
+
+	/* Unlike the ring axis we don't get an event when we release
+	 * so we can't set a source */
+	if (pad->changed_axes & PAD_AXIS_DIAL1) {
+		group = pad_dial_get_mode_group(pad, 0);
+		tablet_pad_notify_dial(base,
+				       time,
+				       0,
+				       pad->dials.dial1,
+				       group);
+	}
+
+	if (pad->changed_axes & PAD_AXIS_DIAL2) {
+		group = pad_dial_get_mode_group(pad, 1);
+		tablet_pad_notify_dial(base,
+				       time,
+				       1,
+				       pad->dials.dial2,
+				       group);
+	}
 
 	if (pad->changed_axes & PAD_AXIS_RING1) {
 		value = pad_handle_ring(pad, device, ABS_WHEEL);
@@ -473,6 +553,8 @@ pad_flush(struct pad_dispatch *pad,
 	memcpy(&pad->prev_button_state,
 	       &pad->button_state,
 	       sizeof(pad->button_state));
+	pad->dials.dial1 = 0;
+	pad->dials.dial2 = 0;
 }
 
 static void
@@ -484,6 +566,9 @@ pad_process(struct evdev_dispatch *dispatch,
 	struct pad_dispatch *pad = pad_dispatch(dispatch);
 
 	switch (e->type) {
+	case EV_REL:
+		pad_process_relative(pad, device, e, time);
+		break;
 	case EV_ABS:
 		pad_process_absolute(pad, device, e, time);
 		break;
@@ -686,6 +771,16 @@ pad_init(struct pad_dispatch *pad, struct evdev_device *device)
 	pad->status = PAD_NONE;
 	pad->changed_axes = PAD_AXIS_NONE;
 
+        /* We expect the kernel to either give us both axes as hires or neither.
+	 * Getting one is a kernel bug we don't need to care about */
+        pad->dials.has_hires_dial = libevdev_has_event_code(device->evdev, EV_REL, REL_WHEEL_HI_RES) ||
+				    libevdev_has_event_code(device->evdev, EV_REL, REL_HWHEEL_HI_RES);
+
+	if (libevdev_has_event_code(device->evdev, EV_REL, REL_WHEEL) &&
+	    libevdev_has_event_code(device->evdev, EV_REL, REL_DIAL)) {
+		log_bug_libinput(pad_libinput_context(pad), "Unsupported combination REL_DIAL and REL_WHEEL\n");
+	}
+
 	pad_init_buttons(pad, device);
 	pad_init_left_handed(device);
 	if (pad_init_leds(pad, device) != 0)
@@ -780,6 +875,26 @@ evdev_device_tablet_pad_get_num_buttons(struct evdev_device *device)
 		return -1;
 
 	return pad->nbuttons;
+}
+
+int
+evdev_device_tablet_pad_get_num_dials(struct evdev_device *device)
+{
+	int ndials = 0;
+
+	if (!(device->seat_caps & EVDEV_DEVICE_TABLET_PAD))
+		return -1;
+
+	if (libevdev_has_event_code(device->evdev, EV_REL, REL_WHEEL) ||
+	    libevdev_has_event_code(device->evdev, EV_REL, REL_DIAL)) {
+		ndials++;
+		if (libevdev_has_event_code(device->evdev,
+					    EV_REL,
+					    REL_HWHEEL))
+			ndials++;
+	}
+
+	return ndials;
 }
 
 int

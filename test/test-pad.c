@@ -486,6 +486,82 @@ START_TEST(pad_ring_finger_up)
 }
 END_TEST
 
+START_TEST(pad_has_dial)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	int ndials;
+	int expected_ndials = 1;
+
+	if (libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL))
+		expected_ndials = 2;
+
+	ndials = libinput_device_tablet_pad_get_num_dials(device);
+	ck_assert_int_ge(ndials, expected_ndials);
+}
+END_TEST
+
+START_TEST(pad_dial_low_res)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	unsigned int code = 0;
+
+	if (libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL))
+		code = REL_WHEEL;
+	if (libevdev_has_event_code(dev->evdev, EV_REL, REL_DIAL))
+		code = REL_DIAL;
+
+	litest_drain_events(li);
+
+	for (int i = 0; i < 10; i++) {
+		int direction = -1 + 2 * i % 2;
+		litest_event(dev, EV_REL, code, direction);
+		if (code == REL_WHEEL)
+			litest_event(dev, EV_REL, REL_WHEEL_HI_RES, direction * 120);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+
+		struct libinput_event *ev = libinput_get_event(li);
+		struct libinput_event_tablet_pad *pev = litest_is_pad_dial_event(ev, 0);
+
+		double v120 = libinput_event_tablet_pad_get_dial_delta_v120(pev);
+		ck_assert_double_ge(v120, 120.0 * direction);
+		libinput_event_destroy(ev);
+	}
+}
+END_TEST
+
+START_TEST(pad_dial_hi_res)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	const int increment = 30;
+	int accumulated = 0;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES))
+		return;
+
+	litest_drain_events(li);
+
+	for (int i = 0; i < 10; i++) {
+		litest_event(dev, EV_REL, REL_WHEEL_HI_RES, increment);
+		accumulated += increment;
+		if (accumulated % 120 == 0)
+			litest_event(dev, EV_REL, REL_WHEEL, 1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		libinput_dispatch(li);
+
+		struct libinput_event *ev = libinput_get_event(li);
+		struct libinput_event_tablet_pad *pev = litest_is_pad_dial_event(ev, 0);
+
+		double v120 = libinput_event_tablet_pad_get_dial_delta_v120(pev);
+		ck_assert_double_ge(v120, increment);
+		libinput_event_destroy(ev);
+	}
+}
+END_TEST
+
 START_TEST(pad_has_strip)
 {
 	struct litest_device *dev = litest_current_device();
@@ -994,10 +1070,12 @@ TEST_COLLECTION(tablet_pad)
 	litest_add(pad_time, LITEST_TABLET_PAD, LITEST_ANY);
 
 	litest_add(pad_num_buttons, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add(pad_num_buttons_libwacom, LITEST_TABLET_PAD, LITEST_ANY);
+	/* None of our dial devices have libwacom entries */
+	litest_add(pad_num_buttons_libwacom, LITEST_TABLET_PAD, LITEST_DIAL);
 	litest_add(pad_button_intuos, LITEST_TABLET_PAD, LITEST_ANY);
 	litest_add(pad_button_bamboo, LITEST_TABLET_PAD, LITEST_ANY);
-	litest_add(pad_button_libwacom, LITEST_TABLET_PAD, LITEST_ANY);
+	/* None of our dial devices have libwacom entries */
+	litest_add(pad_button_libwacom, LITEST_TABLET_PAD, LITEST_DIAL);
 	litest_add(pad_button_mode_groups, LITEST_TABLET_PAD, LITEST_ANY);
 
 	litest_add(pad_has_ring, LITEST_RING, LITEST_ANY);
@@ -1007,6 +1085,10 @@ TEST_COLLECTION(tablet_pad)
 	litest_add(pad_has_strip, LITEST_STRIP, LITEST_ANY);
 	litest_add(pad_strip, LITEST_STRIP, LITEST_ANY);
 	litest_add(pad_strip_finger_up, LITEST_STRIP, LITEST_ANY);
+
+	litest_add(pad_has_dial, LITEST_DIAL, LITEST_ANY);
+	litest_add(pad_dial_low_res, LITEST_DIAL, LITEST_ANY);
+	litest_add(pad_dial_hi_res, LITEST_DIAL, LITEST_ANY);
 
 	litest_add_for_device(pad_left_handed_default, LITEST_WACOM_INTUOS5_PAD);
 	litest_add_for_device(pad_no_left_handed, LITEST_WACOM_INTUOS3_PAD);

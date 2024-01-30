@@ -517,6 +517,7 @@ pad_init_leds_from_libwacom(struct pad_dispatch *pad,
 
 	pad_init_mode_rings(pad, wacom);
 	pad_init_mode_strips(pad, wacom);
+	/* Note: libwacom doesn't do dials yet */
 
 out:
 	if (wacom)
@@ -546,6 +547,7 @@ pad_init_fallback_group(struct pad_dispatch *pad)
 	group->base.button_mask = -1;
 	group->base.strip_mask = -1;
 	group->base.ring_mask = -1;
+	group->base.dial_mask = -1;
 	group->base.toggle_button_mask = 0;
 
 	list_insert(&pad->modes.mode_group_list, &group->base.link);

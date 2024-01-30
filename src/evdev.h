@@ -519,6 +519,9 @@ int
 evdev_device_tablet_pad_get_num_buttons(struct evdev_device *device);
 
 int
+evdev_device_tablet_pad_get_num_dials(struct evdev_device *device);
+
+int
 evdev_device_tablet_pad_get_num_rings(struct evdev_device *device);
 
 int

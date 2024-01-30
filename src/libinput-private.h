@@ -503,6 +503,7 @@ struct libinput_tablet_pad_mode_group {
 	uint32_t button_mask;
 	uint32_t ring_mask;
 	uint32_t strip_mask;
+	uint32_t dial_mask;
 
 	uint32_t toggle_button_mask;
 
@@ -796,6 +797,13 @@ tablet_pad_notify_button(struct libinput_device *device,
 			 int32_t button,
 			 enum libinput_button_state state,
 			 struct libinput_tablet_pad_mode_group *group);
+void
+tablet_pad_notify_dial(struct libinput_device *device,
+		       uint64_t time,
+		       unsigned int number,
+		       double value,
+		       struct libinput_tablet_pad_mode_group *group);
+
 void
 tablet_pad_notify_ring(struct libinput_device *device,
 		       uint64_t time,

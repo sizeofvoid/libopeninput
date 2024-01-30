@@ -139,6 +139,14 @@ struct litest_device_interface {
 
 	/**
 	 * Pad events, LITEST_AUTO_ASSIGN is allowed on event values
+	 * for ABS_WHEEL
+	 */
+	struct input_event *pad_dial_start_events;
+	struct input_event *pad_dial_change_events;
+	struct input_event *pad_dial_end_events;
+
+	/**
+	 * Pad events, LITEST_AUTO_ASSIGN is allowed on event values
 	 * for ABS_RX
 	 */
 	struct input_event *pad_strip_start_events;

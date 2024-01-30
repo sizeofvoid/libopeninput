@@ -335,6 +335,10 @@ LIBINPUT_1.23 {
 } LIBINPUT_1.21;
 
 LIBINPUT_1.26 {
+  libinput_device_tablet_pad_get_num_dials;
+  libinput_event_tablet_pad_get_dial_delta_v120;
+  libinput_event_tablet_pad_get_dial_number;
+  libinput_tablet_pad_mode_group_has_dial;
   libinput_tablet_tool_config_pressure_range_is_available;
   libinput_tablet_tool_config_pressure_range_set;
   libinput_tablet_tool_config_pressure_range_get_minimum;

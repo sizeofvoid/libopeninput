@@ -315,6 +315,9 @@ enum litest_device_type {
 	/* Tablets */
 	LITEST_ELAN_TABLET,
 	LITEST_HUION_TABLET,
+	LITEST_HUION_Q620M_DIAL,
+	LITEST_TABLET_DOUBLEDIAL_PAD,
+	LITEST_TABLET_REL_DIAL_PAD,
 	LITEST_QEMU_TABLET,
 	LITEST_UCLOGIC_TABLET,
 	LITEST_WACOM_BAMBOO,
@@ -380,6 +383,7 @@ enum litest_device_type {
 #define LITEST_TOTEM		bit(31)
 #define LITEST_FORCED_PROXOUT	bit(32)
 #define LITEST_PRECALIBRATED	bit(33)
+#define LITEST_DIAL		bit(34)
 
 /* this is a semi-mt device, so we keep track of the touches that the tests
  * send and modify them so that the first touch is always slot 0 and sends
@@ -811,6 +815,9 @@ struct libinput_event_tablet_pad *
 litest_is_pad_button_event(struct libinput_event *event,
 			   unsigned int button,
 			   enum libinput_button_state state);
+struct libinput_event_tablet_pad *
+litest_is_pad_dial_event(struct libinput_event *event,
+			 unsigned int number);
 struct libinput_event_tablet_pad *
 litest_is_pad_ring_event(struct libinput_event *event,
 			 unsigned int number,

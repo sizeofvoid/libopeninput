@@ -190,6 +190,10 @@ struct window {
 			double position;
 			int number;
 		} strip;
+		struct {
+			double position;
+			int number;
+		} dial;
 	} pad;
 
 	struct {
@@ -720,12 +724,12 @@ draw_pad(struct window *w, cairo_t *cr)
 	ry = w->height/2 + 100;
 
 	cairo_save(cr);
-	/* outer ring */
+	/* outer ring (for ring) */
 	cairo_set_source_rgb(cr, .7, .7, .0);
 	cairo_arc(cr, rx, ry, 50, 0, 2 * M_PI);
 	cairo_fill(cr);
 
-	/* inner ring */
+	/* inner ring (for dial) */
 	cairo_set_source_rgb(cr, 1., 1., 1.);
 	cairo_arc(cr, rx, ry, 30, 0, 2 * M_PI);
 	cairo_fill(cr);
@@ -743,7 +747,20 @@ draw_pad(struct window *w, cairo_t *cr)
 		snprintf(number, sizeof(number), "%d", w->pad.ring.number);
 		cairo_set_source_rgb(cr, .0, .0, .0);
 		draw_text(cr, number, rx, ry);
+	}
 
+	if (w->pad.dial.position != -1) {
+		const int degrees_per_click = 15.0;
+		double degrees = fmod(w->pad.dial.position/120 * degrees_per_click, 360);
+		pos = (degrees + 270) * M_PI/180.0;
+		cairo_set_source_rgb(cr, .0, .0, .0);
+		cairo_set_line_width(cr, 20);
+		cairo_arc(cr, rx, ry, 20, pos - M_PI/12 , pos + M_PI/12);
+		cairo_stroke(cr);
+
+		snprintf(number, sizeof(number), "%d", w->pad.dial.number);
+		cairo_set_source_rgb(cr, .0, .0, .0);
+		draw_text(cr, number, rx, ry);
 	}
 
 	cairo_restore(cr);
@@ -1160,6 +1177,7 @@ window_init(struct window *w)
 
 	w->pad.ring.position = -1;
 	w->pad.strip.position = -1;
+	w->pad.dial.position = -1;
 }
 
 static void
@@ -1726,7 +1744,7 @@ handle_event_tablet_pad(struct libinput_event *ev, struct window *w)
 		"Pad 0", "Pad 1", "Pad 2", "Pad 3", "Pad 4", "Pad 5",
 		"Pad 6", "Pad 7", "Pad 8", "Pad 9", "Pad >= 10"
 	};
-	double position;
+	double position, delta;
 	double number;
 
 	switch (libinput_event_get_type(ev)) {
@@ -1747,6 +1765,14 @@ handle_event_tablet_pad(struct libinput_event *ev, struct window *w)
 		number = libinput_event_tablet_pad_get_strip_number(p);
 		w->pad.strip.number = number;
 		w->pad.strip.position = position;
+		break;
+	case LIBINPUT_EVENT_TABLET_PAD_DIAL:
+		delta = libinput_event_tablet_pad_get_dial_delta_v120(p);
+		number = libinput_event_tablet_pad_get_dial_number(p);
+		if (w->pad.dial.number != number)
+			w->pad.dial.position = -delta;
+		w->pad.dial.number = number;
+		w->pad.dial.position += delta;
 		break;
 	default:
 		abort();
@@ -1825,6 +1851,7 @@ handle_event_libinput(GIOChannel *source, GIOCondition condition, gpointer data)
 		case LIBINPUT_EVENT_TABLET_PAD_BUTTON:
 		case LIBINPUT_EVENT_TABLET_PAD_RING:
 		case LIBINPUT_EVENT_TABLET_PAD_STRIP:
+		case LIBINPUT_EVENT_TABLET_PAD_DIAL:
 			handle_event_tablet_pad(ev, w);
 			break;
 		case LIBINPUT_EVENT_TABLET_PAD_KEY:

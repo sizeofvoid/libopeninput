@@ -164,7 +164,8 @@ struct libinput_event_tablet_tool;
  *
  * Tablet pad event representing a button press, or ring/strip update on
  * the tablet pad itself. Valid event types for this event are @ref
- * LIBINPUT_EVENT_TABLET_PAD_BUTTON, @ref LIBINPUT_EVENT_TABLET_PAD_RING and
+ * LIBINPUT_EVENT_TABLET_PAD_BUTTON, @ref LIBINPUT_EVENT_TABLET_PAD_DIAL,
+ * @ref LIBINPUT_EVENT_TABLET_PAD_RING and
  * @ref LIBINPUT_EVENT_TABLET_PAD_STRIP.
  *
  * @since 1.3
@@ -429,7 +430,8 @@ struct libinput_tablet_pad_mode_group;
  * the Wacom Cintiq 22HD provide two mode groups. If multiple mode groups
  * are available, a caller should use
  * libinput_tablet_pad_mode_group_has_button(),
- * libinput_tablet_pad_mode_group_has_ring() and
+ * libinput_tablet_pad_mode_group_has_ring(),
+ * libinput_tablet_pad_mode_group_has_dial() and
  * libinput_tablet_pad_mode_group_has_strip() to associate each button,
  * ring and strip with the correct mode group.
  *
@@ -538,6 +540,22 @@ libinput_tablet_pad_mode_group_get_mode(struct libinput_tablet_pad_mode_group *g
 int
 libinput_tablet_pad_mode_group_has_button(struct libinput_tablet_pad_mode_group *group,
 					  unsigned int button);
+
+/**
+ * @ingroup tablet_pad_modes
+ *
+ * Devices without mode switching capabilities return true for every dial.
+ *
+ * @param group A previously obtained mode group
+ * @param dial A dial index, starting at 0
+ * @return true if the given dial index is part of this mode group or
+ * false otherwise
+ *
+ * @since 1.26
+ */
+int
+libinput_tablet_pad_mode_group_has_dial(struct libinput_tablet_pad_mode_group *group,
+					unsigned int dial);
 
 /**
  * @ingroup tablet_pad_modes
@@ -967,6 +985,14 @@ enum libinput_event_type {
 	 * @since 1.15
 	 */
 	LIBINPUT_EVENT_TABLET_PAD_KEY,
+
+	/**
+	 * A status change on a tablet dial with the @ref
+	 * LIBINPUT_DEVICE_CAP_TABLET_PAD capability.
+	 *
+	 * @since 1.26
+	 */
+	LIBINPUT_EVENT_TABLET_PAD_DIAL,
 
 	LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN = 800,
 	LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
@@ -3317,6 +3343,44 @@ libinput_event_tablet_pad_get_key_state(struct libinput_event_tablet_pad *event)
 /**
  * @ingroup event_tablet_pad
  *
+ * Returns the delta change of the dial, in multiples or fractions of 120, with
+ * each multiple of 120 indicating one logical wheel event.
+ * See libinput_event_pointer_get_scroll_value_v120() for more details.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_PAD_DIAL.  For other events, this function
+ * returns 0.
+ *
+ * @param event The libinput tablet pad event
+ * @return The delta of the the axis
+ *
+ * @since 1.26
+ */
+double
+libinput_event_tablet_pad_get_dial_delta_v120(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet_pad
+ *
+ * Returns the number of the dial that has changed state, with 0 being the
+ * first dial. On tablets with only one dial, this function always returns
+ * 0.
+ *
+ * @note It is an application bug to call this function for events other than
+ * @ref LIBINPUT_EVENT_TABLET_PAD_DIAL.  For other events, this function
+ * returns 0.
+ *
+ * @param event The libinput tablet pad event
+ * @return The index of the dial that changed state
+ *
+ * @since 1.26
+ */
+unsigned int
+libinput_event_tablet_pad_get_dial_number(struct libinput_event_tablet_pad *event);
+
+/**
+ * @ingroup event_tablet_pad
+ *
  * Returns the mode the button, ring, or strip that triggered this event is
  * in, at the time of the event.
  *
@@ -4376,6 +4440,23 @@ libinput_device_switch_has_switch(struct libinput_device *device,
  */
 int
 libinput_device_tablet_pad_get_num_buttons(struct libinput_device *device);
+
+/**
+ * @ingroup device
+ *
+ * Return the number of dials a device with the @ref
+ * LIBINPUT_DEVICE_CAP_TABLET_PAD capability provides.
+ *
+ * @param device A current input device
+ *
+ * @return The number of dials or 0 if the device has no dials. -1 on error.
+ *
+ * @see libinput_event_tablet_pad_get_dial_number
+ *
+ * @since 1.26
+ */
+int
+libinput_device_tablet_pad_get_num_dials(struct libinput_device *device);
 
 /**
  * @ingroup device
