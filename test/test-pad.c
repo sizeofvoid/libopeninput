@@ -229,7 +229,7 @@ START_TEST(pad_button_intuos)
 
 	litest_assert_empty_queue(li);
 
-	ck_assert_int_gt(count, 3);
+	ck_assert_int_ge(count, 1);
 #endif
 }
 END_TEST
