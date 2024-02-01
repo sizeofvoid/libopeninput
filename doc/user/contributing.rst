@@ -160,12 +160,17 @@ Any patches should be sent via a Merge Request (see the `GitLab docs
 in the `libinput GitLab instance hosted by freedesktop.org
 <https://gitlab.freedesktop.org/libinput/libinput>`_.
 
+.. note:: freedesktop.org's GitLab instance has restrictions to prevent Spam
+          and you cannot fork libinput until you have successfully
+          `applied for fork permissions <https://gitlab.freedesktop.org/freedesktop/freedesktop/-/wikis/home>`_.
+
 Below are the steps required to submit a merge request. They do not
 replace `learning git <https://git-scm.com/doc>`__ but they should be
 sufficient to make some of the more confusing steps obvious.
 
 - `Register an account <https://gitlab.freedesktop.org/users/sign_in>`_ in
-  the freedesktop.org GitLab instance.
+  the freedesktop.org GitLab instance and
+  `apply for fork permissions <https://gitlab.freedesktop.org/freedesktop/freedesktop/-/wikis/home>`_.
 - `Fork libinput <https://gitlab.freedesktop.org/libinput/libinput/-/forks/new>`_
   into your username's namespace. Select public visibility.
 - Get libinput's main repository. git will call this repository ``origin``. ::
