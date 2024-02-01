@@ -46,6 +46,23 @@ resource_rules:
             of `libinput record` and `libinput debug-events --verbose` (if you haven't yet).
             The [documentation](https://wayland.freedesktop.org/libinput/doc/latest/tools.html#libinput-record-and-libinput-replay)
             has some information on what we're looking for to be able to triage bugs.
+      - name: "Expect a merge request"
+        conditions:
+          labels:
+            - "bugbot::expect-mr"
+        actions:
+          remove_labels:
+            - "bugbot::expect-mr"
+          comment: |
+            I'm closing this bug in anticipation of a merge request that fixes this issue.
+
+            If you are a new contributor, please see
+            [the freedesktop.org wiki](https://gitlab.freedesktop.org/freedesktop/freedesktop/-/wikis/home)
+            on how to get permissions to fork a project and file a merge request.
+
+            The [libinput documentation](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html)
+            also has more details on how to get started.
+          status: "close"
   merge_requests:
     rules:
       - name: "Remind contributor of commit rules"
