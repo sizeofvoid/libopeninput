@@ -211,7 +211,7 @@ MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX200Tablet:*
 ModelTabletModeNoSuspend=1
 
 [Lenovo X201 Tablet]
-MatchName=At Translated Set 2 keyboard
+MatchName=AT Translated Set 2 keyboard
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX201Tablet:*
 ModelTabletModeNoSuspend=1
 
