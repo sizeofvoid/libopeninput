@@ -338,3 +338,11 @@ MatchName=*Elan Touchpad
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadE14Gen2*
 AttrPalmPressureThreshold=300
 AttrPressureRange=10:8
+
+# White Backlit Keyboard
+[Lenovo Ideapad Gaming 3]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x048D
+MatchProduct=0xC966
+AttrKeyboardIntegration=internal
