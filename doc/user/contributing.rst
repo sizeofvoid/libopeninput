@@ -287,6 +287,17 @@ should evaluate whether they still apply and include them in the respective
 commit messages. Otherwise the tags may be lost, reviewers miss the credit they
 deserve, and the patches may cause redundant review effort.
 
+If your commit solves a GitLab issue, add a ``Closes:`` tag followed by the
+issue number at the end of your commit message. For example: ::
+
+  Closes: #974
+
+If your commit fixes an issue introduced by another commit, use a ``Fixes`` tag
+followed by the first 12 characters of the SHA-1 ID and the commit one line
+summary at the end of your commit message. For example: ::
+
+  Fixes: 123456789012 ("The commit that caused the issue")
+
 For further reading, please see
 `'on commit messages' <http://who-t.blogspot.de/2009/12/on-commit-messages.html>`_
 as a general guideline on what commit messages should contain.
