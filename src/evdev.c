@@ -2518,6 +2518,12 @@ evdev_device_get_name(struct evdev_device *device)
 }
 
 unsigned int
+evdev_device_get_id_bustype(struct evdev_device *device)
+{
+	return libevdev_get_id_bustype(device->evdev);
+}
+
+unsigned int
 evdev_device_get_id_product(struct evdev_device *device)
 {
 	return libevdev_get_id_product(device->evdev);

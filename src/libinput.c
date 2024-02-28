@@ -3305,6 +3305,12 @@ libinput_device_get_name(struct libinput_device *device)
 }
 
 LIBINPUT_EXPORT unsigned int
+libinput_device_get_id_bustype(struct libinput_device *device)
+{
+	return evdev_device_get_id_bustype((struct evdev_device *) device);
+}
+
+LIBINPUT_EXPORT unsigned int
 libinput_device_get_id_product(struct libinput_device *device)
 {
 	return evdev_device_get_id_product((struct evdev_device *) device);

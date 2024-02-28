@@ -4200,6 +4200,19 @@ libinput_device_get_name(struct libinput_device *device);
 /**
  * @ingroup device
  *
+ * Get the bus type ID for this device.
+ *
+ * @param device A previously obtained device
+ * @return The bus type ID of this device (see BUS_* in linux/input.h)
+ *
+ * @since 1.26
+ */
+unsigned int
+libinput_device_get_id_bustype(struct libinput_device *device);
+
+/**
+ * @ingroup device
+ *
  * Get the product ID for this device.
  *
  * @param device A previously obtained device
