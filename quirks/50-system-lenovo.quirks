@@ -291,6 +291,13 @@ MatchVendor=0x048D
 MatchProduct=0xC967
 AttrKeyboardIntegration=internal
 
+[Lenovo Legion Slim 7 Gen 8]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x048D
+MatchProduct=0xC987
+AttrKeyboardIntegration=internal
+
 # https://gitlab.freedesktop.org/libinput/libinput/-/issues/604
 [Lenovo Yoga Slim 9 14ITL5 Pressurepad]
 MatchBus=i2c
