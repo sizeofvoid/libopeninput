@@ -1074,10 +1074,8 @@ tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 		return;
 	}
 
-	if (!tp->gesture.enabled) {
-		if (ntouches == 2)
-			tp_gesture_handle_event(tp, GESTURE_EVENT_SCROLL, time);
-
+	if (!tp->gesture.enabled && !tp->tap.enabled && ntouches == 2) {
+		tp_gesture_handle_event(tp, GESTURE_EVENT_SCROLL, time);
 		return;
 	}
 
