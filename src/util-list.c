@@ -34,8 +34,7 @@
 void
 list_init(struct list *list)
 {
-	list->prev = list;
-	list->next = list;
+	*list = LIST_INIT(*list);
 }
 
 void

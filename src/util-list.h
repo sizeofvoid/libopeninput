@@ -62,6 +62,8 @@ struct list {
 	struct list *next;
 };
 
+#define LIST_INIT(l) (struct list){ .prev = &(l), .next = &(l) }
+
 /**
  * Initialize a list head. This function *must* be called once for each list
  * head. This function *must not* be called for a node to be added to a
