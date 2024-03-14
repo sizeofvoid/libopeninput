@@ -258,6 +258,7 @@ util_headers = [
 		'util-bits.h',
 		'util-input-event.h',
 		'util-list.h',
+		'util-files.h',
 		'util-macros.h',
 		'util-matrix.h',
 		'util-prop-parsers.h',

@@ -27,7 +27,6 @@
 #include <check.h>
 #include <dirent.h>
 #include <errno.h>
-#include <libgen.h>
 #include <fcntl.h>
 #include <fnmatch.h>
 #include <getopt.h>
@@ -57,6 +56,7 @@
 
 #include <valgrind/valgrind.h>
 
+#include "util-files.h"
 #include "litest.h"
 #include "litest-int.h"
 #include "libinput-util.h"
@@ -1559,33 +1559,9 @@ litest_setup_quirks(struct list *created_files_list,
 }
 
 static inline void
-mkdir_p(const char *dir)
-{
-	char *path, *parent;
-	int rc;
-
-	if (streq(dir, "/"))
-		return;
-
-	path = safe_strdup(dir);
-	parent = dirname(path);
-
-	mkdir_p(parent);
-	rc = mkdir(dir, 0755);
-
-	if (rc == -1 && errno != EEXIST) {
-		litest_abort_msg("Failed to create directory %s (%s)\n",
-				 dir,
-				 strerror(errno));
-	}
-
-	free(path);
-}
-
-static inline void
 litest_init_udev_rules(struct list *created_files)
 {
-	mkdir_p(UDEV_RULES_D);
+	litest_assert_neg_errno_success(mkdir_p(UDEV_RULES_D));
 
 	litest_install_model_quirks(created_files);
 	litest_init_all_device_udev_rules(created_files);
