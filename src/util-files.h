@@ -43,7 +43,9 @@ mkdir_p(const char *dir)
 	path = safe_strdup(dir);
 	parent = dirname(path);
 
-	mkdir_p(parent);
+	if ((rc = mkdir_p(parent)) < 0)
+		return rc;
+
 	rc = mkdir(dir, 0755);
 
 	free(path);
