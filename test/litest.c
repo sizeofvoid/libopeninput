@@ -792,10 +792,10 @@ litest_init_all_device_udev_rules(struct list *created_files)
 	rc = xasprintf(&path,
 		      "%s/99-litest-XXXXXX.rules",
 		      UDEV_RULES_D);
-	litest_assert_int_gt(rc, 0);
+	litest_assert_errno_success(rc);
 
 	fd = mkstemps(path, 6);
-	litest_assert_int_ne(fd, -1);
+	litest_assert_errno_success(fd);
 	f = fdopen(fd, "w");
 	litest_assert_notnull(f);
 
@@ -1687,7 +1687,7 @@ litest_create(enum litest_device_type which,
 	litest_assert_int_ne(fd, -1);
 
 	rc = libevdev_new_from_fd(fd, &d->evdev);
-	litest_assert_int_eq(rc, 0);
+	litest_assert_neg_errno_success(rc);
 
 	return d;
 
@@ -1963,7 +1963,7 @@ litest_event(struct litest_device *d, unsigned int type,
 		return;
 
 	ret = libevdev_uinput_write_event(d->uinput, type, code, value);
-	litest_assert_int_eq(ret, 0);
+	litest_assert_neg_errno_success(ret);
 }
 
 static bool
@@ -3049,6 +3049,7 @@ litest_wait_for_event_of_type(struct libinput *li, ...)
 
 		while ((type = libinput_next_event_type(li)) == LIBINPUT_EVENT_NONE) {
 			int rc = poll(&fds, 1, 2000);
+			litest_assert_errno_success(rc);
 			litest_assert_int_gt(rc, 0);
 			libinput_dispatch(li);
 		}

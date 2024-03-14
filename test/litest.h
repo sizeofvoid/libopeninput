@@ -161,6 +161,21 @@ litest_fail_comparison_ptr(const char *file,
 						   #a_, #b_); \
 	} while(0)
 
+#define litest_assert_neg_errno_success(a_) \
+	do { \
+		__typeof__(a_) _a = a_; \
+		if (_a < 0) \
+			litest_abort_msg("Unexpected negative errno: %d (%s)", _a, strerror(-_a)); \
+	} while(0);
+
+#define litest_assert_errno_success(a_) \
+	do { \
+		__typeof__(a_) _a = a_; \
+		__typeof__(a_) _e = errno; \
+		if (_a < 0) \
+			litest_abort_msg("Unexpected errno: %d (%s)", _e, strerror(_e)); \
+	} while(0);
+
 #define litest_assert_int_eq(a_, b_) \
 	litest_assert_comparison_int_(a_, ==, b_)
 
