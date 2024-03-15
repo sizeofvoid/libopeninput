@@ -260,7 +260,7 @@ START_TEST(touchpad_multitap)
 		msleep(10);
 	}
 
-	litest_timeout_tap();
+	litest_timeout_tapndrag();
 	libinput_dispatch(li);
 
 	for (ntaps = 0; ntaps <= range; ntaps++) {
@@ -679,7 +679,7 @@ START_TEST(touchpad_multitap_timeout)
 	}
 
 	libinput_dispatch(li);
-	litest_timeout_tap();
+	litest_timeout_tapndrag();
 	libinput_dispatch(li);
 
 	for (ntaps = 0; ntaps <= range; ntaps++) {
