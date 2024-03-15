@@ -1436,7 +1436,7 @@ START_TEST(clickpad_softbutton_left_2nd_fg_move)
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 1, 20, 20);
-	litest_touch_move_to(dev, 1, 20, 20, 80, 20, 15);
+	litest_touch_move_to(dev, 1, 20, 20, 80, 20, 25);
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
@@ -1518,7 +1518,7 @@ START_TEST(clickpad_softbutton_left_to_right)
 	*/
 
 	litest_touch_down(dev, 0, 30, 90);
-	litest_touch_move_to(dev, 0, 30, 90, 90, 90, 15);
+	litest_touch_move_to(dev, 0, 30, 90, 90, 90, 25);
 	litest_drain_events(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
@@ -1554,7 +1554,7 @@ START_TEST(clickpad_softbutton_right_to_left)
 	*/
 
 	litest_touch_down(dev, 0, 80, 90);
-	litest_touch_move_to(dev, 0, 80, 90, 30, 90, 15);
+	litest_touch_move_to(dev, 0, 80, 90, 30, 90, 25);
 	litest_drain_events(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
@@ -1586,7 +1586,7 @@ START_TEST(clickpad_softbutton_hover_into_buttons)
 
 	litest_hover_start(dev, 0, 50, 50);
 	libinput_dispatch(li);
-	litest_hover_move_to(dev, 0, 50, 50, 90, 90, 10);
+	litest_hover_move_to(dev, 0, 50, 50, 90, 90, 20);
 	libinput_dispatch(li);
 
 	litest_touch_move_to(dev, 0, 90, 90, 91, 91, 1);
