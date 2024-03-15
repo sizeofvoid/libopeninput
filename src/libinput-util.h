@@ -58,9 +58,9 @@
 
 #define trace(...) \
 	do { \
-	printf("%s() - \033[0;31m", __func__); \
-	printf(__VA_ARGS__); \
-	printf("\033[0m"); \
+	char buf_[1024]; \
+	snprintf(buf_, sizeof(buf_), __VA_ARGS__); \
+	printf(ANSI_BLUE "%s():%d - " ANSI_RED "%s" ANSI_NORMAL "\n", __func__, __LINE__, buf_); \
 	} while (0)
 
 #define LIBINPUT_EXPORT __attribute__ ((visibility("default")))
