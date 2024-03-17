@@ -3723,6 +3723,7 @@ START_TEST(touchpad_fingers_down_before_init)
 				break;
 			litest_touch_move(dev, i, 20 + 10 * i + x, 30);
 		}
+		libinput_dispatch(li);
 	}
 	libinput_dispatch(li);
 	litest_assert_empty_queue(li);
@@ -3733,6 +3734,7 @@ START_TEST(touchpad_fingers_down_before_init)
 		} else {
 			litest_event(dev, EV_KEY, map[finger_count], 0);
 		}
+		libinput_dispatch(li);
 	}
 
 	litest_assert_empty_queue(li);
