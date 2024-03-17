@@ -3396,7 +3396,7 @@ litest_create_uinput(const char *name,
 	struct libevdev_uinput *uinput;
 	struct libevdev *dev;
 	int type, code;
-	int rc, fd;
+	int rc;
 	const struct input_absinfo *abs;
 	const struct input_absinfo default_abs = {
 		.value = 0,
@@ -3407,7 +3407,6 @@ litest_create_uinput(const char *name,
 		.resolution = 100
 	};
 	char buf[512];
-	const char *devnode;
 
 	dev = libevdev_new();
 	litest_assert_ptr_notnull(dev);
@@ -3450,38 +3449,6 @@ litest_create_uinput(const char *name,
 						&uinput);
 	litest_assert_msg(rc == 0, "Failed to create uinput device: %s\n", strerror(-rc));
 
-	libevdev_free(dev);
-
-	devnode = libevdev_uinput_get_devnode(uinput);
-	litest_assert_notnull(devnode);
-	fd = open(devnode, O_RDONLY);
-	litest_assert_int_gt(fd, -1);
-	rc = libevdev_new_from_fd(fd, &dev);
-	litest_assert_int_eq(rc, 0);
-
-	/* uinput before kernel 4.5 + libevdev 1.5.0 does not support
-	 * setting the resolution, so we set it afterwards. This is of
-	 * course racy as hell but the way we _generally_ use this function
-	 * by the time libinput uses the device, we're finished here.
-	 *
-	 * If you have kernel 4.5 and libevdev 1.5.0 or later, this code
-	 * just keeps the room warm.
-	 */
-	abs = abs_info;
-	while (abs && abs->value != -1) {
-		if (abs->resolution != 0) {
-			if (libevdev_get_abs_resolution(dev, abs->value) ==
-			    abs->resolution)
-				break;
-
-			rc = libevdev_kernel_set_abs_info(dev,
-							  abs->value,
-							  abs);
-			litest_assert_int_eq(rc, 0);
-		}
-		abs++;
-	}
-	close(fd);
 	libevdev_free(dev);
 
 	return uinput;
