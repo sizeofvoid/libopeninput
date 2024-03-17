@@ -4370,7 +4370,7 @@ litest_timeout_buttonscroll(void)
 void
 litest_timeout_finger_switch(void)
 {
-	msleep(120);
+	msleep(140);
 }
 
 void
