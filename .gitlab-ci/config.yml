@@ -3,14 +3,14 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2023-02-13.0'
+.default_tag: &default_tag '2024-03-18.0'
 
 distributions:
   - name: fedora
     tag: *default_tag
     versions:
-      - '37'
       - '38'
+      - '39'
     use_for_custom_build_tests: true
     use_for_qemu_tests: true
     packages:
@@ -148,7 +148,7 @@ distributions:
     tag: *default_tag
     qemu_based: true
     versions:
-      - '13.1'
+      - '13.2'
     packages:
       - git
       - pkgconf
