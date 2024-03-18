@@ -110,7 +110,7 @@ def main(argv):
     device = yml["devices"][0]
 
     if not device["events"]:
-        print(f"No events found in recording")
+        print("No events found in recording")
         sys.exit(1)
 
     def events():

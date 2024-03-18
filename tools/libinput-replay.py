@@ -171,7 +171,7 @@ def print_events(devnode, indent, evs):
 def collect_events(frame):
     evs = []
     events_skipped = False
-    for (sec, usec, evtype, evcode, value) in frame:
+    for sec, usec, evtype, evcode, value in frame:
         if evtype == libevdev.EV_KEY.value and value == 2:  # key repeat
             events_skipped = True
             continue
