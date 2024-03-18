@@ -948,7 +948,7 @@ tp_guess_clickpad(const struct tp_dispatch *tp, struct evdev_device *device)
 					     "clickpad advertising right button. "
 					     "See %s/clickpad-with-right-button.html for details\n",
 					     HTTP_DOC_LINK);
-	} else if (has_left &
+	} else if (has_left &&
 		   !is_clickpad &&
 		   libevdev_get_id_vendor(device->evdev) != VENDOR_ID_APPLE) {
 			evdev_log_bug_kernel(device,
