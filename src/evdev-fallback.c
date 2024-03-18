@@ -1422,7 +1422,7 @@ fallback_interface_device_removed(struct evdev_device *device,
 	}
 }
 
-struct evdev_dispatch_interface fallback_interface = {
+static struct evdev_dispatch_interface fallback_interface = {
 	.process = fallback_interface_process,
 	.suspend = fallback_interface_suspend,
 	.remove = fallback_interface_remove,

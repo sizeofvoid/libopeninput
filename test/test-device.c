@@ -1442,7 +1442,7 @@ START_TEST(device_quirks_logitech_marble_mouse)
 }
 END_TEST
 
-char *debug_messages[64] = { NULL };
+static char *debug_messages[64] = { NULL };
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void

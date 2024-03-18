@@ -594,7 +594,7 @@ static void close_restricted_leak(int fd, void *data)
 	/* noop */
 }
 
-const struct libinput_interface leak_interface = {
+static const struct libinput_interface leak_interface = {
 	.open_restricted = open_restricted_leak,
 	.close_restricted = close_restricted_leak,
 };

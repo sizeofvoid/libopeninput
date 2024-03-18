@@ -238,7 +238,7 @@ wayland_registry_global_remove(void *data,
 
 }
 
-struct wl_registry_listener registry_listener = {
+static struct wl_registry_listener registry_listener = {
 	wayland_registry_global,
 	wayland_registry_global_remove
 };
