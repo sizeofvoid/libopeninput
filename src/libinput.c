@@ -72,6 +72,7 @@ ASSERT_INT_SIZE(enum libinput_config_drag_lock_state);
 ASSERT_INT_SIZE(enum libinput_config_send_events_mode);
 ASSERT_INT_SIZE(enum libinput_config_accel_profile);
 ASSERT_INT_SIZE(enum libinput_config_click_method);
+ASSERT_INT_SIZE(enum libinput_config_clickfinger_button_map);
 ASSERT_INT_SIZE(enum libinput_config_middle_emulation_state);
 ASSERT_INT_SIZE(enum libinput_config_scroll_method);
 ASSERT_INT_SIZE(enum libinput_config_dwt_state);
@@ -4507,6 +4508,45 @@ libinput_device_config_click_get_default_method(struct libinput_device *device)
 		return device->config.click_method->get_default_method(device);
 
 	return LIBINPUT_CONFIG_CLICK_METHOD_NONE;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_click_set_clickfinger_button_map(struct libinput_device *device,
+							enum libinput_config_clickfinger_button_map map)
+{
+	switch (map) {
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM:
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR:
+		break;
+	default:
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+	}
+
+	if ((libinput_device_config_click_get_methods(device) &
+	     LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER) != LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER)
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	return device->config.click_method->set_clickfinger_map(device, map);
+}
+
+LIBINPUT_EXPORT enum libinput_config_clickfinger_button_map
+libinput_device_config_click_get_clickfinger_button_map(struct libinput_device *device)
+{
+	if ((libinput_device_config_click_get_methods(device) &
+	     LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER) != LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER)
+		return LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM;
+
+	return device->config.click_method->get_clickfinger_map(device);
+}
+
+LIBINPUT_EXPORT enum libinput_config_clickfinger_button_map
+libinput_device_config_click_get_default_clickfinger_button_map(struct libinput_device *device)
+{
+	if ((libinput_device_config_click_get_methods(device) &
+	     LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER) != LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER)
+		return LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM;
+
+	return device->config.click_method->get_default_clickfinger_map(device);
 }
 
 LIBINPUT_EXPORT int

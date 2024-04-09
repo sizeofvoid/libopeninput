@@ -102,11 +102,12 @@ ignores such button clicks, this behavior is intentional.
 Clickfinger behavior
 ------------------------------------------------------------------------------
 
-This is the default behavior on Apple touchpads.
-Here, a left, right, middle button event is generated when one, two, or
-three fingers are held down on the touchpad when a physical click is
-generated. The location of the fingers does not matter and there are no
-software-defined button areas.
+This is the default behavior on Apple touchpads. Here, a left, right, middle
+button event is generated when one, two, or three fingers are held down on the
+touchpad when a physical click is generated, given the default mapping. The
+location of the fingers does not matter and there are no software-defined
+button areas. It is possible to swap right and middle buttons, the same way as
+with :ref:`tapping <tapping>`.
 
 .. figure:: clickfinger.svg
     :align: center

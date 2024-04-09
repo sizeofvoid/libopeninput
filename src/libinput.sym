@@ -335,6 +335,9 @@ LIBINPUT_1.23 {
 } LIBINPUT_1.21;
 
 LIBINPUT_1.26 {
+  libinput_device_config_click_set_clickfinger_button_map;
+  libinput_device_config_click_get_default_clickfinger_button_map;
+  libinput_device_config_click_get_clickfinger_button_map;
   libinput_device_get_id_bustype;
   libinput_device_tablet_pad_get_num_dials;
   libinput_event_tablet_pad_get_dial_delta_v120;

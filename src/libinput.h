@@ -4608,6 +4608,7 @@ libinput_device_group_get_user_data(struct libinput_device_group *group);
  *    - libinput_device_config_tap_set_drag_enabled()
  *    - libinput_device_config_tap_set_drag_lock_enabled()
  *    - libinput_device_config_click_set_method()
+ *    - libinput_device_config_click_set_clickfinger_button_map()
  *    - libinput_device_config_scroll_set_method()
  *    - libinput_device_config_dwt_set_enabled()
  * - Touchscreens:
@@ -4745,6 +4746,16 @@ enum libinput_config_tap_button_map {
 	LIBINPUT_CONFIG_TAP_MAP_LRM,
 	/** 1/2/3 finger tap maps to left/middle/right*/
 	LIBINPUT_CONFIG_TAP_MAP_LMR,
+};
+
+/**
+ * @ingroup config
+ */
+enum libinput_config_clickfinger_button_map {
+	/** 1/2/3 finger click maps to left/right/middle */
+	LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM,
+	/** 1/2/3 finger click maps to left/middle/right*/
+	LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR,
 };
 
 /**
@@ -5815,6 +5826,68 @@ libinput_device_config_click_get_method(struct libinput_device *device);
  */
 enum libinput_config_click_method
 libinput_device_config_click_get_default_method(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Set the finger number to button number mapping for clickfinger. The
+ * default mapping on most devices is to have a 1, 2 and 3 finger tap to map
+ * to the left, right and middle button, respectively.
+ * A device may permit changing the button mapping but disallow specific
+ * maps. In this case @ref LIBINPUT_CONFIG_STATUS_UNSUPPORTED is returned,
+ * the caller is expected to handle this case correctly.
+ *
+ * Changing the button mapping may not take effect immediately,
+ * the device may wait until it is in a neutral state before applying any
+ * changes.
+ *
+ * @param device The device to configure
+ * @param map The new finger-to-button number mapping
+ *
+ * @return A config status code. Changing the order on a device that does not
+ * support the clickfinger method always fails with @ref
+ * LIBINPUT_CONFIG_STATUS_UNSUPPORTED.
+ *
+ * @see libinput_device_config_click_get_clickfinger_button_map
+ * @see libinput_device_config_click_get_default_clickfinger_button_map
+ */
+enum libinput_config_status
+libinput_device_config_click_set_clickfinger_button_map(struct libinput_device *device,
+							enum libinput_config_clickfinger_button_map map);
+
+/**
+ * @ingroup config
+ *
+ * Get the finger number to button number mapping for clickfinger.
+ *
+ * The return value for a device that does not support tapping is always
+ * @ref LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM.
+ *
+ * @param device The device to configure
+ * @return The current finger-to-button number mapping
+ *
+ * @see libinput_device_config_click_set_clickfinger_button_map
+ * @see libinput_device_config_click_get_default_clickfinger_button_map
+ */
+enum libinput_config_clickfinger_button_map
+libinput_device_config_click_get_clickfinger_button_map(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Get the default finger number to button number mapping for clickfinger.
+ *
+ * The return value for a device that does not support clickfinger is always
+ * @ref LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM.
+ *
+ * @param device The device to configure
+ * @return The default finger-to-button number mapping
+ *
+ * @see libinput_device_config_click_set_clickfinger_button_map
+ * @see libinput_device_config_click_get_clickfinger_button_map
+ */
+enum libinput_config_clickfinger_button_map
+libinput_device_config_click_get_default_clickfinger_button_map(struct libinput_device *device);
 
 /**
  * @ingroup config

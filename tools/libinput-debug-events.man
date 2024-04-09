@@ -88,6 +88,9 @@ Enable or disable the scroll button lock
 .B \-\-set\-click\-method=[none|clickfinger|buttonareas]
 Set the desired click method
 .TP 8
+.B \-\-set\-clickfinger\-map=[lrm|lmr]
+Set button mapping for clickfinger
+.TP 8
 .B \-\-set\-scroll\-method=[none|twofinger|edge|button]
 Set the desired scroll method
 .TP 8

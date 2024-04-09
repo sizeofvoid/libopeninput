@@ -1156,6 +1156,18 @@ litest_enable_clickfinger(struct litest_device *dev)
 }
 
 static inline void
+litest_set_clickfinger_map(struct litest_device *dev,
+			   enum libinput_config_clickfinger_button_map map)
+{
+	enum libinput_config_status status, expected;
+	struct libinput_device *device = dev->libinput_device;
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_click_set_clickfinger_button_map(device, map);
+	litest_assert_int_eq(status, expected);
+}
+
+static inline void
 litest_enable_buttonareas(struct litest_device *dev)
 {
 	enum libinput_config_status status, expected;

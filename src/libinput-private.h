@@ -333,6 +333,10 @@ struct libinput_device_config_click_method {
 						  enum libinput_config_click_method method);
 	enum libinput_config_click_method (*get_method)(struct libinput_device *device);
 	enum libinput_config_click_method (*get_default_method)(struct libinput_device *device);
+	enum libinput_config_status (*set_clickfinger_map)(struct libinput_device *device,
+							   enum libinput_config_clickfinger_button_map map);
+	enum libinput_config_clickfinger_button_map (*get_clickfinger_map)(struct libinput_device *device);
+	enum libinput_config_clickfinger_button_map (*get_default_clickfinger_map)(struct libinput_device *device);
 };
 
 struct libinput_device_config_middle_emulation {

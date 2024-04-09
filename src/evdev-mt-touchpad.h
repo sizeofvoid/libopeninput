@@ -399,6 +399,9 @@ struct tp_dispatch {
 
 		enum libinput_config_click_method click_method;
 		struct libinput_device_config_click_method config_method;
+
+		enum libinput_config_clickfinger_button_map map;
+		enum libinput_config_clickfinger_button_map want_map;
 	} buttons;
 
 	struct {
@@ -624,6 +627,9 @@ tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time);
 
 void
 tp_tap_post_process_state(struct tp_dispatch *tp);
+
+void
+tp_button_post_process_state(struct tp_dispatch *tp);
 
 void
 tp_init_tap(struct tp_dispatch *tp);

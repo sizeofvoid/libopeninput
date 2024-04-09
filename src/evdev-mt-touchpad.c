@@ -1846,6 +1846,7 @@ tp_post_process_state(struct tp_dispatch *tp, uint64_t time)
 		tp_thumb_reset(tp);
 
 	tp_tap_post_process_state(tp);
+	tp_button_post_process_state(tp);
 }
 
 static void
