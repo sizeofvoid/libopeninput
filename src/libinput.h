@@ -5860,7 +5860,7 @@ libinput_device_config_click_set_clickfinger_button_map(struct libinput_device *
  *
  * Get the finger number to button number mapping for clickfinger.
  *
- * The return value for a device that does not support tapping is always
+ * The return value for a device that does not support clickfinger is always
  * @ref LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM.
  *
  * @param device The device to configure

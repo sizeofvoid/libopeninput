@@ -1383,9 +1383,9 @@ int
 tp_post_button_events(struct tp_dispatch *tp, uint64_t time)
 {
 	if (tp->buttons.is_clickpad ||
-	    tp->device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON) {
+	    tp->device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON)
 		return tp_post_clickpadbutton_buttons(tp, time);
-	}
+
 	return tp_post_physical_buttons(tp, time);
 }
 
