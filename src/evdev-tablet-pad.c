@@ -220,6 +220,12 @@ normalize_wacom_strip(const struct input_absinfo *absinfo)
 }
 
 static inline double
+normalize_strip(const struct input_absinfo *absinfo)
+{
+	return absinfo_normalize_value(absinfo, absinfo->value);
+}
+
+static inline double
 pad_handle_ring(struct pad_dispatch *pad,
 		struct evdev_device *device,
 		unsigned int code)
@@ -252,7 +258,10 @@ pad_handle_strip(struct pad_dispatch *pad,
 	if (absinfo->value == 0)
 		return 0.0;
 
-	pos = normalize_wacom_strip(absinfo);
+	if (evdev_device_get_id_vendor(device) == VENDOR_ID_WACOM)
+		pos = normalize_wacom_strip(absinfo);
+	else
+		pos = normalize_strip(absinfo);
 
 	if (device->left_handed.enabled)
 		pos = 1.0 - pos;
