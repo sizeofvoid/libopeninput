@@ -190,7 +190,7 @@ pad_process_absolute(struct pad_dispatch *pad,
 }
 
 static inline double
-normalize_ring(const struct input_absinfo *absinfo)
+normalize_wacom_ring(const struct input_absinfo *absinfo)
 {
 	/* libinput has 0 as the ring's northernmost point in the device's
 	   current logical rotation, increasing clockwise to 1. Wacom has
@@ -206,7 +206,7 @@ normalize_ring(const struct input_absinfo *absinfo)
 }
 
 static inline double
-normalize_strip(const struct input_absinfo *absinfo)
+normalize_wacom_strip(const struct input_absinfo *absinfo)
 {
 	/* strip axes don't use a proper value, they just shift the bit left
 	 * for each position. 0 isn't a real value either, it's only sent on
@@ -230,7 +230,7 @@ pad_handle_ring(struct pad_dispatch *pad,
 	absinfo = libevdev_get_abs_info(device->evdev, code);
 	assert(absinfo);
 
-	degrees = normalize_ring(absinfo) * 360;
+	degrees = normalize_wacom_ring(absinfo) * 360;
 
 	if (device->left_handed.enabled)
 		degrees = fmod(degrees + 180, 360);
@@ -252,7 +252,7 @@ pad_handle_strip(struct pad_dispatch *pad,
 	if (absinfo->value == 0)
 		return 0.0;
 
-	pos = normalize_strip(absinfo);
+	pos = normalize_wacom_strip(absinfo);
 
 	if (device->left_handed.enabled)
 		pos = 1.0 - pos;
