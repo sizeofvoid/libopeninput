@@ -250,6 +250,15 @@ MatchVendor=0x048D
 MatchProduct=0xC102
 AttrKeyboardIntegration=internal
 
+# Tested on Legion Pro 5 16IRX8
+# 048d:c103 Integrated Technology Express, Inc. ITE Device(8910)
+[Lenovo Legion 5 Keyboard (C103)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x048D
+MatchProduct=0xC103
+AttrKeyboardIntegration=internal
+
 [Lenovo Legion 5 Keyboard (C955)]
 MatchUdevType=keyboard
 MatchBus=usb
