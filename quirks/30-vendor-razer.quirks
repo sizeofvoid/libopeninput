@@ -135,6 +135,13 @@ MatchVendor=0x1532
 MatchProduct=0x024A
 AttrKeyboardIntegration=internal
 
+[RazerBladeAdvancedLate2019 Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x1532
+MatchProduct=0x024B
+AttrKeyboardIntegration=internal
+
 [RazerBladeProLate2019 Keyboard]
 MatchUdevType=keyboard
 MatchBus=usb
