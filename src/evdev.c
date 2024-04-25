@@ -338,6 +338,8 @@ evdev_device_led_update(struct evdev_device *device, enum libinput_led leds)
 		{ LIBINPUT_LED_NUM_LOCK, LED_NUML },
 		{ LIBINPUT_LED_CAPS_LOCK, LED_CAPSL },
 		{ LIBINPUT_LED_SCROLL_LOCK, LED_SCROLLL },
+		{ LIBINPUT_LED_COMPOSE, LED_COMPOSE },
+		{ LIBINPUT_LED_KANA, LED_KANA },
 	};
 	struct input_event ev[ARRAY_LENGTH(map) + 1];
 	unsigned int i;

@@ -218,7 +218,9 @@ enum libinput_key_state {
 enum libinput_led {
 	LIBINPUT_LED_NUM_LOCK = (1 << 0),
 	LIBINPUT_LED_CAPS_LOCK = (1 << 1),
-	LIBINPUT_LED_SCROLL_LOCK = (1 << 2)
+	LIBINPUT_LED_SCROLL_LOCK = (1 << 2),
+	LIBINPUT_LED_COMPOSE = (1 << 3),
+	LIBINPUT_LED_KANA = (1 << 4)
 };
 
 /**
