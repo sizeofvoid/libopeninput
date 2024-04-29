@@ -3141,7 +3141,7 @@ libinput_event_tablet_pad_get_base_event(struct libinput_event_tablet_pad *event
 /**
  * @ingroup event_tablet_pad
  *
- * Returns the current position of the ring, in degrees counterclockwise
+ * Returns the current position of the ring, in degrees clockwise
  * from the northern-most point of the ring in the tablet's current logical
  * orientation.
  *
