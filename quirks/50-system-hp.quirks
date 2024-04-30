@@ -92,3 +92,9 @@ MatchUdevType=keyboard
 MatchBus=ps2
 MatchDMIModalias=dmi:*svnHP:pnHPElitex21013G3:*
 AttrKeyboardIntegration=external
+
+[HP Haptics Touchpad CFD2]
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xCFD2
+ModelPressurePad=1
