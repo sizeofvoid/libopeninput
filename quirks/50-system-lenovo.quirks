@@ -368,3 +368,11 @@ MatchUdevType=pointingstick
 MatchName=*TPPS/2 Elan TrackPoint*
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX390Yoga*:*
 AttrTrackpointMultiplier=0.4
+
+# This should cover all keyboards that are misidentified as external.
+# Tested on Lenovo Legion 5 Pro (2023)
+[Lenovo 16ARX8 keyboard]
+MatchName=ITE Tech. Inc. ITE Device(8910) Keyboard
+MatchUdevType=keyboard
+MatchDMIModalias=dmi:*svnLENOVO:*
+AttrKeyboardIntegration=internal
