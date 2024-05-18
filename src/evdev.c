@@ -1422,7 +1422,7 @@ evdev_read_wheel_click_props(struct evdev_device *device)
 	if (evdev_read_wheel_click_count_prop(device, hwheel_count, &angles.x) ||
 	    evdev_read_wheel_click_prop(device, hwheel_angle, &angles.x)) {
 		evdev_log_debug(device,
-				"wheel: horizontal click angle: %.2f\n", angles.y);
+				"wheel: horizontal click angle: %.2f\n", angles.x);
 	} else {
 		angles.x = angles.y;
 	}
