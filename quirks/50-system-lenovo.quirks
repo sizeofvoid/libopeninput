@@ -362,3 +362,9 @@ MatchBus=usb
 MatchVendor=0x048D
 MatchProduct=0xC966
 AttrKeyboardIntegration=internal
+
+[Lenovo Thinkpad Yoga X390]
+MatchUdevType=pointingstick
+MatchName=*TPPS/2 Elan TrackPoint*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX390Yoga*:*
+AttrTrackpointMultiplier=0.4
