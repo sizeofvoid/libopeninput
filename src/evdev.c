@@ -2725,6 +2725,10 @@ evdev_device_get_size(const struct evdev_device *device,
 	x = libevdev_get_abs_info(device->evdev, ABS_X);
 	y = libevdev_get_abs_info(device->evdev, ABS_Y);
 
+	if ((x && x->minimum == 0 && x->maximum == 1) ||
+	    (y && y->minimum == 0 && y->maximum == 1))
+		return -1;
+
 	if (!x || !y || device->abs.is_fake_resolution ||
 	    !x->resolution || !y->resolution)
 		return -1;
