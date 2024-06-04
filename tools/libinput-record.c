@@ -1757,6 +1757,16 @@ print_udev_properties(struct record_device *dev)
 		entry = udev_list_entry_get_next(entry);
 	}
 
+	for (struct udev_device *parent = udev_device;
+	     parent;
+	     parent = udev_device_get_parent(parent)) {
+		const char *driver = udev_device_get_property_value(parent, "DRIVER");
+		if (driver) {
+			iprintf(dev->fp, I_UDEV_DATA, "- DRIVER=%s\n", driver);
+			break;
+		}
+	}
+
 out:
 	udev_device_unref(udev_device);
 	udev_unref(udev);
