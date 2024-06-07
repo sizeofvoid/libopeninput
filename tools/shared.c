@@ -120,6 +120,8 @@ tools_init_options(struct tools_options *options)
 	options->custom_npoints = ARRAY_LENGTH(points);
 	options->custom_type = LIBINPUT_ACCEL_TYPE_FALLBACK;
 	options->custom_step = 1.0;
+	options->pressure_range[0] = 0.0;
+	options->pressure_range[1] = 1.0;
 }
 
 int
@@ -335,6 +337,23 @@ tools_parse_option(int option,
 			fprintf(stderr, "Invalid --set-rotation-angle value\n");
 			return 1;
 		}
+		break;
+	case OPT_PRESSURE_RANGE: {
+		if (!optarg)
+			return 1;
+
+		size_t npoints = 0;
+		double *range = double_array_from_string(optarg, ":", &npoints);
+		if (npoints != 2 || range[0] < 0.0 || range[1] > 1.0 || range[0] >= range[1]) {
+			free(range);
+			fprintf(stderr, "Invalid pressure range, must be in format \"min:max\"\n");
+			return 1;
+		}
+		options->pressure_range[0] = range[0];
+		options->pressure_range[1] = range[1];
+		free(range);
+		break;
+		}
 	}
 	return 0;
 }
@@ -547,6 +566,15 @@ tools_device_apply_config(struct libinput_device *device,
 
 	if (options->angle != 0)
 		libinput_device_config_rotation_set_angle(device, options->angle % 360);
+}
+
+void
+tools_tablet_tool_apply_config(struct libinput_tablet_tool *tool,
+			       struct tools_options *options)
+{
+	libinput_tablet_tool_config_pressure_range_set(tool,
+						       options->pressure_range[0],
+						       options->pressure_range[1]);
 }
 
 static char*

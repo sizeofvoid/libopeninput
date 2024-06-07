@@ -940,9 +940,15 @@ handle_and_print_events(struct libinput *li)
 		case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
 			print_tablet_axis_event(ev);
 			break;
-		case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
+		case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY: {
+			struct libinput_event_tablet_tool *tev =
+				libinput_event_get_tablet_tool_event(ev);
+			struct libinput_tablet_tool *tool =
+				libinput_event_tablet_tool_get_tool(tev);
+			tools_tablet_tool_apply_config(tool, &options);
 			print_proximity_event(ev);
 			break;
+		}
 		case LIBINPUT_EVENT_TABLET_TOOL_TIP:
 			print_tablet_tip_event(ev);
 			break;

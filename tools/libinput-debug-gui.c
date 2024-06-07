@@ -1655,6 +1655,7 @@ static void
 handle_event_tablet(struct libinput_event *ev, struct window *w)
 {
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
+	struct libinput_tablet_tool *tool = libinput_event_tablet_tool_get_tool(t);
 	double x, y;
 	struct point point;
 	int idx;
@@ -1667,6 +1668,7 @@ handle_event_tablet(struct libinput_event *ev, struct window *w)
 
 	switch (libinput_event_get_type(ev)) {
 	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
+		tools_tablet_tool_apply_config(tool, &w->options);
 		if (libinput_event_tablet_tool_get_proximity_state(t) ==
 		    LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT) {
 			w->tool.x_in = 0;
