@@ -6581,7 +6581,7 @@ libinput_device_config_rotation_get_default_angle(struct libinput_device *device
  * @see libinput_tablet_tool_config_pressure_range_get_default_minimum
  * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
  *
- * @since 1.25
+ * @since 1.26
  */
 int
 libinput_tablet_tool_config_pressure_range_is_available(struct libinput_tablet_tool *tool);
@@ -6611,6 +6611,8 @@ libinput_tablet_tool_config_pressure_range_is_available(struct libinput_tablet_t
  * @see libinput_tablet_tool_config_pressure_range_get_maximum
  * @see libinput_tablet_tool_config_pressure_range_get_default_minimum
  * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ *
+ * @since 1.26
  */
 enum libinput_config_status
 libinput_tablet_tool_config_pressure_range_set(struct libinput_tablet_tool *tool,
@@ -6633,6 +6635,8 @@ libinput_tablet_tool_config_pressure_range_set(struct libinput_tablet_tool *tool
  * @see libinput_tablet_tool_config_pressure_range_get_maximum
  * @see libinput_tablet_tool_config_pressure_range_get_default_minimum
  * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ *
+ * @since 1.26
  */
 double
 libinput_tablet_tool_config_pressure_range_get_minimum(struct libinput_tablet_tool *tool);
@@ -6653,6 +6657,8 @@ libinput_tablet_tool_config_pressure_range_get_minimum(struct libinput_tablet_to
  * @see libinput_tablet_tool_config_pressure_range_get_minimum
  * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
  * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ *
+ * @since 1.26
  */
 double
 libinput_tablet_tool_config_pressure_range_get_maximum(struct libinput_tablet_tool *tool);
@@ -6673,6 +6679,8 @@ libinput_tablet_tool_config_pressure_range_get_maximum(struct libinput_tablet_to
  * @see libinput_tablet_tool_config_pressure_range_get_minimum
  * @see libinput_tablet_tool_config_pressure_range_get_maximum
  * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ *
+ * @since 1.26
  */
 double
 libinput_tablet_tool_config_pressure_range_get_default_minimum(struct libinput_tablet_tool *tool);
@@ -6693,6 +6701,8 @@ libinput_tablet_tool_config_pressure_range_get_default_minimum(struct libinput_t
  * @see libinput_tablet_tool_config_pressure_range_get_maximum
  * @see libinput_tablet_tool_config_pressure_range_get_maximum
  * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ *
+ * @since 1.26
  */
 double
 libinput_tablet_tool_config_pressure_range_get_default_maximum(struct libinput_tablet_tool *tool);
