@@ -561,6 +561,12 @@ main(int argc, char **argv)
 			backend = BACKEND_UDEV;
 			seat_or_device[0] = optarg;
 			break;
+		default:
+			if (tools_parse_option(c, optarg, &options) != 0) {
+				usage();
+				return EXIT_INVALID_USAGE;
+			}
+			break;
 		}
 
 	}
