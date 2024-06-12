@@ -22,6 +22,9 @@ Print help
 .SH FEATURES
 Features that can be analyzed include
 .TP 8
+.B libinput\-analyze\-buttons(1)
+analyze the button states of a recording
+.TP 8
 .B libinput\-analyze\-per-slot-delta(1)
 analyze the delta per event per slot
 .TP 8
