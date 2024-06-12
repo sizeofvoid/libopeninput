@@ -4134,6 +4134,45 @@ libinput_device_config_calibration_get_default_matrix(struct libinput_device *de
 	return device->config.calibration->get_default_matrix(device, matrix);
 }
 
+LIBINPUT_EXPORT int
+libinput_device_config_area_has_rectangle(struct libinput_device *device)
+{
+	return device->config.area ?
+		device->config.area->has_rectangle(device) : 0;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_area_set_rectangle(struct libinput_device *device,
+					  const struct libinput_config_area_rectangle *rectangle)
+{
+	if (!libinput_device_config_area_has_rectangle(device))
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	return device->config.area->set_rectangle(device, rectangle);
+}
+
+LIBINPUT_EXPORT struct libinput_config_area_rectangle
+libinput_device_config_area_get_rectangle(struct libinput_device *device)
+{
+	struct libinput_config_area_rectangle rect = { 0.0, 0.0, 1.0, 1.0 };
+
+	if (!libinput_device_config_area_has_rectangle(device))
+		return rect;
+
+	return device->config.area->get_rectangle(device);
+}
+
+LIBINPUT_EXPORT struct libinput_config_area_rectangle
+libinput_device_config_area_get_default_rectangle(struct libinput_device *device)
+{
+	struct libinput_config_area_rectangle rect = { 0.0, 0.0, 1.0, 1.0 };
+
+	if (!libinput_device_config_area_has_rectangle(device))
+		return rect;
+
+	return device->config.area->get_default_rectangle(device);
+}
+
 LIBINPUT_EXPORT uint32_t
 libinput_device_config_send_events_get_modes(struct libinput_device *device)
 {

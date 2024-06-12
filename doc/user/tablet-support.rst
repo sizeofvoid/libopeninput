@@ -467,3 +467,31 @@ devices arbitration has to be done in userspace.
 libinput uses the **libinput_device_group** to decide on touch arbitration
 and automatically discards touch events whenever a tool is in proximity.
 The exact behavior is device-dependent.
+
+.. _tablet-area:
+
+------------------------------------------------------------------------------
+Tablet area
+------------------------------------------------------------------------------
+
+External tablet devices such as e.g. the Wacom Intuos series can be configured
+to reduce the available logical input area. Typically the logical input area
+is equivalent to the physical input area but it can be reduced with the
+**libinput_device_config_area_set_rectangle()** call. Once reduced, input
+events outside the logical input area are ignored and the logical input area
+acts as if it represented the extents of the physical tablet.
+
+.. figure:: tablet-area.svg
+   :align: center
+
+   Tablet area configuration example
+
+In the image above, the area is set to the rectangle 0.25/0.25 to 0.5/0.75.
+Even though the tool is roughly at the physical position ``0.5 * width`` and
+``0.75 * height``, the return values of
+**libinput_event_tablet_tool_get_x_transformed()** and
+**libinput_event_tablet_tool_get_y_transformed()** would be close to the
+maximum provided in this call.
+
+The size of the tablet reported by **libinput_device_get_size()** always reflects
+the physical area, not the logical area.

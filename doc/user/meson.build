@@ -120,6 +120,7 @@ src_rst = files(
 	'svg/software-buttons-thumbpress.svg',
 	'svg/software-buttons-visualized.svg',
 	'svg/swipe-gestures.svg',
+	'svg/tablet-area.svg',
 	'svg/tablet-axes.svg',
 	'svg/tablet-cintiq24hd-modes.svg',
 	'svg/tablet-interfaces.svg',

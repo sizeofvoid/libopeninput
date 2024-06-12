@@ -87,6 +87,10 @@ Enable or disable the scroll button lock
 .B \-\-enable\-tap|\-\-disable\-tap
 Enable or disable tap-to-click
 .TP 8
+.B \-\-set\-area="x1/y1 x2/y2"
+Set the tablet area to the rectangle described by the two points x1/y1 and x2/y2. All
+coordinates must be in the range [0.0, 1.0].
+.TP 8
 .B \-\-set\-calibration="1.0 0.0 0.0 0.0 1.0 0.0"
 Set the first 6 elements of a 3x3 matrix to use for calibration. The third row of the
 matrix is always "0.0 0.0 0.1".

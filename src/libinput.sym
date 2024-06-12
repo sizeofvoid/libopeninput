@@ -350,3 +350,10 @@ LIBINPUT_1.26 {
 	libinput_tablet_tool_config_pressure_range_get_default_minimum;
 	libinput_tablet_tool_config_pressure_range_get_default_maximum;
 } LIBINPUT_1.23;
+
+LIBINPUT_1.27 {
+	libinput_device_config_area_has_rectangle;
+	libinput_device_config_area_set_rectangle;
+	libinput_device_config_area_get_rectangle;
+	libinput_device_config_area_get_default_rectangle;
+} LIBINPUT_1.26;

@@ -228,6 +228,14 @@ struct libinput_device_config_calibration {
 							  float matrix[6]);
 };
 
+struct libinput_device_config_area {
+	int (*has_rectangle)(struct libinput_device *device);
+	enum libinput_config_status (*set_rectangle)(struct libinput_device *device,
+						     const struct libinput_config_area_rectangle *rectangle);
+	struct libinput_config_area_rectangle (*get_rectangle)(struct libinput_device *device);
+	struct libinput_config_area_rectangle (*get_default_rectangle)(struct libinput_device *device);
+};
+
 struct libinput_device_config_send_events {
 	uint32_t (*get_modes)(struct libinput_device *device);
 	enum libinput_config_status (*set_mode)(struct libinput_device *device,
@@ -391,6 +399,7 @@ struct libinput_device_config_gesture {
 struct libinput_device_config {
 	struct libinput_device_config_tap *tap;
 	struct libinput_device_config_calibration *calibration;
+	struct libinput_device_config_area *area;
 	struct libinput_device_config_send_events *sendevents;
 	struct libinput_device_config_accel *accel;
 	struct libinput_device_config_natural_scroll *natural_scroll;

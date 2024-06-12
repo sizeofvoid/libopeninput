@@ -133,6 +133,10 @@ tools_init_options(struct tools_options *options)
 	options->pressure_range[1] = 1.0;
 	options->calibration[0] = 1.0;
 	options->calibration[4] = 1.0;
+	options->area.x1 = 0.0;
+	options->area.y1 = 0.0;
+	options->area.x2 = 1.0;
+	options->area.y2 = 1.0;
 }
 
 int
@@ -390,6 +394,22 @@ tools_parse_option(int option,
 			options->calibration[i] =  matrix[i];
 		free(matrix);
 		break;
+	}
+	case OPT_AREA: {
+		if (!optarg)
+			return 1;
+
+		double x1, x2, y1, y2;
+
+		if (sscanf(optarg, "%lf/%lf %lf/%lf", &x1, &y1, &x2, &y2) != 4) {
+			fprintf(stderr, "Invalid --set-area values\n");
+			return 1;
+		}
+		options->area.x1 = x1;
+		options->area.y1 = y1;
+		options->area.x2 = x2;
+		options->area.y2 = y2;
+		break;
 		}
 	}
 	return 0;
@@ -606,6 +626,9 @@ tools_device_apply_config(struct libinput_device *device,
 
 	if (libinput_device_config_calibration_has_matrix(device))
 		libinput_device_config_calibration_set_matrix(device, options->calibration);
+
+	if (libinput_device_config_area_has_rectangle(device))
+		libinput_device_config_area_set_rectangle(device, &options->area);
 }
 
 void

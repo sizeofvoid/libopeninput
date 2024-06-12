@@ -2401,6 +2401,10 @@ libinput_event_tablet_tool_wheel_has_changed(
  * libinput_event_tablet_tool_get_x_transformed() for transforming the axis
  * value into a different coordinate space.
  *
+ * If an area is defined for this device, the coordinate is in mm from
+ * the top left corner of the area. See
+ * libinput_device_config_area_set_rectangle() for details.
+ *
  * @note On some devices, returned value may be negative or larger than the
  * width of the device. See the libinput documentation for more details.
  *
@@ -2419,6 +2423,10 @@ libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event);
  * corner of the tablet in its current logical orientation. Use
  * libinput_event_tablet_tool_get_y_transformed() for transforming the axis
  * value into a different coordinate space.
+ *
+ * If an area is defined for this device, the coordinate is in mm from
+ * the top left corner of the area. See
+ * libinput_device_config_area_set_rectangle() for details.
  *
  * @note On some devices, returned value may be negative or larger than the
  * width of the device. See the libinput documentation for more details.
@@ -5127,6 +5135,143 @@ libinput_device_config_calibration_get_matrix(struct libinput_device *device,
 int
 libinput_device_config_calibration_get_default_matrix(struct libinput_device *device,
 						      float matrix[6]);
+
+/**
+ * @ingroup config
+ *
+ * Describes a rectangle to configure a device's area, see
+ * libinput_device_config_area_set_rectangle().
+ *
+ * This struct describes a rectangle via the upper left points (x1, y1)
+ * and the lower right point (x2, y2).
+ *
+ * All arguments are normalized to the range [0.0, 1.0] to represent the
+ * corresponding proportion of the device's width and height, respectively.
+ * A rectangle covering the whole device thus comprises of the points
+ * (0.0, 0.0) and (1.0, 1.0).
+ *
+ * The conditions x1 < x2 and y1 < y2 must be true.
+ */
+struct libinput_config_area_rectangle {
+	double x1;
+	double y1;
+	double x2;
+	double y2;
+};
+
+/**
+ * @ingroup config
+ *
+ * Check if the device can change its logical input area via a rectangle.
+ *
+ * @param device The device to check
+ * @return Non-zero if the device can be calibrated, zero otherwise.
+ *
+ * @see libinput_device_config_area_set_rectangle
+ * @see libinput_device_config_area_get_rectangle
+ * @see libinput_device_config_area_get_default_rectangle
+ */
+int
+libinput_device_config_area_has_rectangle(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Set the given rectangle as the logical input area of this device.
+ * Future interactions by a tablet tool on this devices are scaled
+ * to only consider events within this logical input area - as if the
+ * logical input area were the available physical area.
+ *
+ * The coordinates of the rectangle represent the proportion of the
+ * available maximum physical area, normalized to the range [0.0, 1.0].
+ * For example, a rectangle with the two points 0.25, 0.5, 0.75, 1.0
+ * adds a 25% dead zone to the left and right and a 50% dead zone on
+ * the top:
+ *
+ * @code
+ * +----------------------------------+
+ * |                                  |
+ * |                50%               |
+ * |                                  |
+ * |        +-----------------+       |
+ * |        |                 |       |
+ * |   25%  |                 |  25%  |
+ * |        |                 |       |
+ * +--------+-----------------+-------+
+ * @endcode
+ *
+ * The area applies in the tablet's current logical rotation, i.e. the above
+ * example is always at the bottom of the tablet.
+ *
+ * Once applied, the logical area's top-left coordinate (in the current logical
+ * rotation) becomes the new offset (0/0) and the return values of
+ * libinput_event_tablet_tool_get_x() and libinput_event_tablet_tool_get_y()
+ * are in relation to this new offset.
+ *
+ * Likewise, libinput_event_tablet_tool_get_x_transformed() and
+ * libinput_event_tablet_tool_get_y_transformed() represent the value scaled
+ * into the configured logical area.
+ *
+ * The return value of libinput_device_get_size() is not affected by the
+ * configured area.
+ *
+ * Changing the area may not take effect immediately, the device may wait until
+ * it is in a neutral state before applying any changes.
+ *
+ * @param device The device to check
+ * @param rect The intended rectangle
+ * @return A config status code. Setting the area on a device that does not
+ * support area rectangles always fails with @ref LIBINPUT_CONFIG_STATUS_UNSUPPORTED.
+ *
+ * @see libinput_device_config_area_has_rectangle
+ * @see libinput_device_config_area_get_rectangle
+ * @see libinput_device_config_area_get_default_rectangle
+ */
+enum libinput_config_status
+libinput_device_config_area_set_rectangle(struct libinput_device *device,
+					  const struct libinput_config_area_rectangle *rect);
+
+/**
+ * @ingroup config
+ *
+ * Return the current area rectangle for this device.
+ *
+ * The return value for a device that does not support area rectangles is a
+ * rectangle with the points 0/0  and 1/1.
+ *
+ * @note It is an application bug to call this function for devices where
+ * libinput_device_config_area_has_rectangle() returns 0.
+ *
+ * @param device The device to check
+ * @return The current area rectangle
+ *
+ * @see libinput_device_config_area_has_rectangle
+ * @see libinput_device_config_area_set_rectangle
+ * @see libinput_device_config_area_get_default_rectangle
+ */
+struct libinput_config_area_rectangle
+libinput_device_config_area_get_rectangle(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Return the default area rectangle for this device.
+ *
+ * The return value for a device that does not support area rectangles is a
+ * rectangle with the points 0/0  and 1/1.
+ *
+ * @note It is an application bug to call this function for devices where
+ * libinput_device_config_area_has_rectangle() returns 0.
+ *
+ * @param device The device to check
+ * @return The default area rectangle
+ *
+ * @see libinput_device_config_area_has_rectangle
+ * @see libinput_device_config_area_set_rectangle
+ * @see libinput_device_config_area_get_rectangle
+ */
+struct libinput_config_area_rectangle
+libinput_device_config_area_get_default_rectangle(struct libinput_device *device);
 
 /**
  * @ingroup config

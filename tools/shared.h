@@ -68,6 +68,7 @@ enum configuration_options {
 	OPT_ROTATION_ANGLE,
 	OPT_PRESSURE_RANGE,
 	OPT_CALIBRATION,
+	OPT_AREA,
 };
 
 #define CONFIGURATION_OPTIONS \
@@ -103,7 +104,8 @@ enum configuration_options {
 	{ "set-custom-type",           required_argument, 0, OPT_CUSTOM_TYPE },\
 	{ "set-rotation-angle",        required_argument, 0, OPT_ROTATION_ANGLE }, \
 	{ "set-pressure-range",        required_argument, 0, OPT_PRESSURE_RANGE }, \
-	{ "set-calibration",           required_argument, 0, OPT_CALIBRATION }
+	{ "set-calibration",           required_argument, 0, OPT_CALIBRATION }, \
+	{ "set-area",                  required_argument, 0, OPT_AREA }
 
 enum tools_backend {
 	BACKEND_NONE,
@@ -138,6 +140,7 @@ struct tools_options {
 	unsigned int angle;
 	double pressure_range[2];
 	float calibration[6];
+	struct libinput_config_area_rectangle area;
 };
 
 void tools_init_options(struct tools_options *options);
