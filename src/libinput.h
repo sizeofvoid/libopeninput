@@ -4615,6 +4615,10 @@ libinput_device_group_get_user_data(struct libinput_device_group *group);
  *    - libinput_device_config_dwt_set_enabled()
  * - Touchscreens:
  *    - libinput_device_config_calibration_set_matrix()
+ * - Tablets:
+ *    - libinput_device_config_calibration_set_matrix()
+ *    - libinput_tablet_tool_config_pressure_range_set()
+ *    - libinput_device_config_left_handed_set()
  * - Pointer devices (mice, trackballs, touchpads):
  *    - libinput_device_config_accel_set_speed()
  *    - libinput_device_config_accel_set_profile()
