@@ -90,3 +90,10 @@ absinfo_scale_axis(const struct input_absinfo *absinfo, double val, double to_ra
 {
 	return (val - absinfo->minimum) * to_range / absinfo_range(absinfo);
 }
+
+static inline double
+absinfo_convert_to_mm(const struct input_absinfo *absinfo, double v)
+{
+	double value = v - absinfo->minimum;
+	return value/absinfo->resolution;
+}

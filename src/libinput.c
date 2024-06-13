@@ -626,7 +626,7 @@ libinput_event_pointer_get_absolute_x(struct libinput_event_pointer *event)
 			   0,
 			   LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE);
 
-	return evdev_convert_to_mm(device->abs.absinfo_x, event->absolute.x);
+	return absinfo_convert_to_mm(device->abs.absinfo_x, event->absolute.x);
 }
 
 LIBINPUT_EXPORT double
@@ -639,7 +639,7 @@ libinput_event_pointer_get_absolute_y(struct libinput_event_pointer *event)
 			   0,
 			   LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE);
 
-	return evdev_convert_to_mm(device->abs.absinfo_y, event->absolute.y);
+	return absinfo_convert_to_mm(device->abs.absinfo_y, event->absolute.y);
 }
 
 LIBINPUT_EXPORT double
@@ -918,7 +918,7 @@ libinput_event_touch_get_x(struct libinput_event_touch *event)
 			   LIBINPUT_EVENT_TOUCH_DOWN,
 			   LIBINPUT_EVENT_TOUCH_MOTION);
 
-	return evdev_convert_to_mm(device->abs.absinfo_x, event->point.x);
+	return absinfo_convert_to_mm(device->abs.absinfo_x, event->point.x);
 }
 
 LIBINPUT_EXPORT double
@@ -962,7 +962,7 @@ libinput_event_touch_get_y(struct libinput_event_touch *event)
 			   LIBINPUT_EVENT_TOUCH_DOWN,
 			   LIBINPUT_EVENT_TOUCH_MOTION);
 
-	return evdev_convert_to_mm(device->abs.absinfo_y, event->point.y);
+	return absinfo_convert_to_mm(device->abs.absinfo_y, event->point.y);
 }
 
 LIBINPUT_EXPORT uint32_t
@@ -1313,8 +1313,8 @@ libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event)
 			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	return evdev_convert_to_mm(device->abs.absinfo_x,
-				   event->axes.point.x);
+	return absinfo_convert_to_mm(device->abs.absinfo_x,
+				     event->axes.point.x);
 }
 
 LIBINPUT_EXPORT double
@@ -1330,8 +1330,8 @@ libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event)
 			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	return evdev_convert_to_mm(device->abs.absinfo_y,
-				   event->axes.point.y);
+	return absinfo_convert_to_mm(device->abs.absinfo_y,
+				     event->axes.point.y);
 }
 
 LIBINPUT_EXPORT double

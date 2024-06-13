@@ -2727,8 +2727,8 @@ evdev_device_get_size(const struct evdev_device *device,
 	    !x->resolution || !y->resolution)
 		return -1;
 
-	*width = evdev_convert_to_mm(x, x->maximum);
-	*height = evdev_convert_to_mm(y, y->maximum);
+	*width = absinfo_convert_to_mm(x, x->maximum);
+	*height = absinfo_convert_to_mm(y, y->maximum);
 
 	return 0;
 }
