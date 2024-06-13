@@ -487,6 +487,7 @@ draw_evdev_abs(struct window *w, cairo_t *cr)
 	outline_height = 1.0 * height/width * normalized_width;
 	outline_width = normalized_width;
 
+	cairo_set_source_rgb(cr, .2, .2, .8);
 	x = 1.0 * (w->evdev.x - ax->minimum)/width * outline_width;
 	y = 1.0 * (w->evdev.y - ay->minimum)/height * outline_height;
 	x += center_x - outline_width/2;
