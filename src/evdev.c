@@ -383,18 +383,12 @@ evdev_transform_relative(struct evdev_device *device,
 	matrix_mult_vec(&rel_matrix, &point->x, &point->y);
 }
 
-static inline double
-scale_axis(const struct input_absinfo *absinfo, double val, double to_range)
-{
-	return (val - absinfo->minimum) * to_range / absinfo_range(absinfo);
-}
-
 double
 evdev_device_transform_x(struct evdev_device *device,
 			 double x,
 			 uint32_t width)
 {
-	return scale_axis(device->abs.absinfo_x, x, width);
+	return absinfo_scale_axis(device->abs.absinfo_x, x, width);
 }
 
 double
@@ -402,7 +396,7 @@ evdev_device_transform_y(struct evdev_device *device,
 			 double y,
 			 uint32_t height)
 {
-	return scale_axis(device->abs.absinfo_y, y, height);
+	return absinfo_scale_axis(device->abs.absinfo_y, y, height);
 }
 
 void

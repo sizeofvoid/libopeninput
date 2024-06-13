@@ -84,3 +84,9 @@ absinfo_normalize(const struct input_absinfo *abs)
 {
 	return absinfo_normalize_value(abs, abs->value);
 }
+
+static inline double
+absinfo_scale_axis(const struct input_absinfo *absinfo, double val, double to_range)
+{
+	return (val - absinfo->minimum) * to_range / absinfo_range(absinfo);
+}
