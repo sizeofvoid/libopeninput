@@ -1505,7 +1505,7 @@ libinput_event_tablet_tool_get_wheel_delta_discrete(
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *event,
-					uint32_t width)
+					     uint32_t width)
 {
 	struct evdev_device *device = evdev_device(event->base.device);
 
@@ -1524,7 +1524,7 @@ libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *event,
-					uint32_t height)
+					     uint32_t height)
 {
 	struct evdev_device *device = evdev_device(event->base.device);
 
