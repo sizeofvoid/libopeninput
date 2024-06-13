@@ -36,6 +36,7 @@
 
 #include "libinput.h"
 #include "libinput-private.h"
+#include "util-input-event.h"
 #include "evdev.h"
 #include "timer.h"
 #include "quirks.h"
@@ -219,6 +220,10 @@ struct libinput_event_tablet_tool {
 	struct libinput_tablet_tool *tool;
 	enum libinput_tablet_tool_proximity_state proximity_state;
 	enum libinput_tablet_tool_tip_state tip_state;
+	struct {
+		struct input_absinfo x;
+		struct input_absinfo y;
+	} abs;
 };
 
 struct libinput_event_tablet_pad {
@@ -1303,8 +1308,6 @@ libinput_event_tablet_tool_wheel_has_changed(
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event)
 {
-	struct evdev_device *device = evdev_device(event->base.device);
-
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
@@ -1313,15 +1316,13 @@ libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event)
 			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	return absinfo_convert_to_mm(device->abs.absinfo_x,
+	return absinfo_convert_to_mm(&event->abs.x,
 				     event->axes.point.x);
 }
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event)
 {
-	struct evdev_device *device = evdev_device(event->base.device);
-
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
@@ -1330,7 +1331,7 @@ libinput_event_tablet_tool_get_y(struct libinput_event_tablet_tool *event)
 			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	return absinfo_convert_to_mm(device->abs.absinfo_y,
+	return absinfo_convert_to_mm(&event->abs.y,
 				     event->axes.point.y);
 }
 
@@ -1507,8 +1508,6 @@ LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *event,
 					     uint32_t width)
 {
-	struct evdev_device *device = evdev_device(event->base.device);
-
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
@@ -1517,17 +1516,13 @@ libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *
 			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	return evdev_device_transform_x(device,
-					event->axes.point.x,
-					width);
+	return absinfo_scale_axis(&event->abs.x, event->axes.point.x, width);
 }
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *event,
 					     uint32_t height)
 {
-	struct evdev_device *device = evdev_device(event->base.device);
-
 	require_event_type(libinput_event_get_context(&event->base),
 			   event->base.type,
 			   0,
@@ -1536,9 +1531,7 @@ libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *
 			   LIBINPUT_EVENT_TABLET_TOOL_BUTTON,
 			   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	return evdev_device_transform_y(device,
-					event->axes.point.y,
-					height);
+	return absinfo_scale_axis(&event->abs.y, event->axes.point.y, height);
 }
 
 LIBINPUT_EXPORT struct libinput_tablet_tool *
@@ -2772,7 +2765,9 @@ tablet_notify_axis(struct libinput_device *device,
 		   struct libinput_tablet_tool *tool,
 		   enum libinput_tablet_tool_tip_state tip_state,
 		   unsigned char *changed_axes,
-		   const struct tablet_axes *axes)
+		   const struct tablet_axes *axes,
+		   const struct input_absinfo *x,
+		   const struct input_absinfo *y)
 {
 	struct libinput_event_tablet_tool *axis_event;
 
@@ -2784,6 +2779,8 @@ tablet_notify_axis(struct libinput_device *device,
 		.proximity_state = LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN,
 		.tip_state = tip_state,
 		.axes = *axes,
+		.abs.x = *x,
+		.abs.y = *y,
 	};
 
 	memcpy(axis_event->changed_axes,
@@ -2802,7 +2799,9 @@ tablet_notify_proximity(struct libinput_device *device,
 			struct libinput_tablet_tool *tool,
 			enum libinput_tablet_tool_proximity_state proximity_state,
 			unsigned char *changed_axes,
-			const struct tablet_axes *axes)
+			const struct tablet_axes *axes,
+			const struct input_absinfo *x,
+			const struct input_absinfo *y)
 {
 	struct libinput_event_tablet_tool *proximity_event;
 
@@ -2814,6 +2813,8 @@ tablet_notify_proximity(struct libinput_device *device,
 		.tip_state = LIBINPUT_TABLET_TOOL_TIP_UP,
 		.proximity_state = proximity_state,
 		.axes = *axes,
+		.abs.x = *x,
+		.abs.y = *y,
 	};
 	memcpy(proximity_event->changed_axes,
 	       changed_axes,
@@ -2831,7 +2832,9 @@ tablet_notify_tip(struct libinput_device *device,
 		  struct libinput_tablet_tool *tool,
 		  enum libinput_tablet_tool_tip_state tip_state,
 		  unsigned char *changed_axes,
-		  const struct tablet_axes *axes)
+		  const struct tablet_axes *axes,
+		  const struct input_absinfo *x,
+		  const struct input_absinfo *y)
 {
 	struct libinput_event_tablet_tool *tip_event;
 
@@ -2843,6 +2846,8 @@ tablet_notify_tip(struct libinput_device *device,
 		.tip_state = tip_state,
 		.proximity_state = LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN,
 		.axes = *axes,
+		.abs.x = *x,
+		.abs.y = *y,
 	};
 	memcpy(tip_event->changed_axes,
 	       changed_axes,
@@ -2861,7 +2866,9 @@ tablet_notify_button(struct libinput_device *device,
 		     enum libinput_tablet_tool_tip_state tip_state,
 		     const struct tablet_axes *axes,
 		     int32_t button,
-		     enum libinput_button_state state)
+		     enum libinput_button_state state,
+		     const struct input_absinfo *x,
+		     const struct input_absinfo *y)
 {
 	struct libinput_event_tablet_tool *button_event;
 	int32_t seat_button_count;
@@ -2881,6 +2888,8 @@ tablet_notify_button(struct libinput_device *device,
 		.proximity_state = LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN,
 		.tip_state = tip_state,
 		.axes = *axes,
+		.abs.x = *x,
+		.abs.y = *y,
 	};
 
 	post_device_event(device,
@@ -4147,6 +4156,13 @@ libinput_device_config_area_set_rectangle(struct libinput_device *device,
 {
 	if (!libinput_device_config_area_has_rectangle(device))
 		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	if (rectangle->x1 >= rectangle->x2 || rectangle->y1 >= rectangle->y2)
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	if (rectangle->x1 < 0.0 || rectangle->x2 > 1.0 ||
+	    rectangle->y1 < 0.0 || rectangle->y2 > 1.0)
+		return LIBINPUT_CONFIG_STATUS_INVALID;
 
 	return device->config.area->set_rectangle(device, rectangle);
 }

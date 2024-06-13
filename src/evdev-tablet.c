@@ -260,6 +260,40 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 	}
 }
 
+static inline int
+axis_range_percentage(const struct input_absinfo *a, double percent)
+{
+	return (a->maximum - a->minimum) * percent/100.0 + a->minimum;
+}
+
+static void
+tablet_change_area(struct evdev_device *device)
+{
+	struct tablet_dispatch *tablet = tablet_dispatch(device->dispatch);
+
+	if (memcmp(&tablet->area.rect, &tablet->area.want_rect, sizeof(tablet->area.rect)) == 0)
+		return;
+
+	if (!tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))
+		return;
+
+	tablet->area.rect = tablet->area.want_rect;
+
+	evdev_log_debug(device,
+			"tablet-area: area is %.2f/%.2f - %.2f/%.2f\n",
+			tablet->area.rect.x1,
+			tablet->area.rect.y1,
+			tablet->area.rect.x2,
+			tablet->area.rect.y2);
+
+	const struct input_absinfo *absx = device->abs.absinfo_x;
+	const struct input_absinfo *absy = device->abs.absinfo_y;
+	tablet->area.x.minimum = axis_range_percentage(absx, tablet->area.rect.x1 * 100);
+	tablet->area.x.maximum = axis_range_percentage(absx, tablet->area.rect.x2 * 100);
+	tablet->area.y.minimum = axis_range_percentage(absy, tablet->area.rect.y1 * 100);
+	tablet->area.y.maximum = axis_range_percentage(absy, tablet->area.rect.y2 * 100);
+}
+
 static void
 tablet_apply_rotation(struct evdev_device *device)
 {
@@ -442,6 +476,31 @@ normalize_wheel(struct tablet_dispatch *tablet,
 	return value * device->scroll.wheel_click_angle.x;
 }
 
+static void
+apply_tablet_area(struct tablet_dispatch *tablet,
+		  struct evdev_device *device,
+		  struct device_coords *point)
+{
+	if (tablet->area.rect.x1 == 0.0 && tablet->area.rect.x2 == 1.0 &&
+	    tablet->area.rect.y1 == 0.0 && tablet->area.rect.y2 == 1.0)
+		return;
+
+	/* The point is somewhere on the tablet in device coordinates,
+	 * but we need it relative to the x/y offset.
+	 * So clip it first, then offset it to our area min/max.
+	 *
+	 * Right now we're just clipping, we don't completely
+	 * ignore events. What we should do is ignore events outside
+	 * altogether and generate prox in/out events when we actually
+	 * enter the area.
+	 */
+	point->x = min(point->x, tablet->area.x.maximum);
+	point->y = min(point->y, tablet->area.y.maximum);
+
+	point->x = max(point->x, tablet->area.x.minimum);
+	point->y = max(point->y, tablet->area.y.minimum);
+}
+
 static inline void
 tablet_update_xy(struct tablet_dispatch *tablet,
 		 struct evdev_device *device)
@@ -473,7 +532,10 @@ tablet_update_xy(struct tablet_dispatch *tablet,
 
 		tablet->axes.point.y = value;
 
+		/* calibration and area are currently mutually exclusive so
+		 * one of those is a noop */
 		evdev_transform_absolute(device, &tablet->axes.point);
+		apply_tablet_area(tablet, device, &tablet->axes.point);
 	}
 }
 
@@ -1070,12 +1132,6 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 	}
 }
 
-static inline int
-axis_range_percentage(const struct input_absinfo *a, double percent)
-{
-	return (a->maximum - a->minimum) * percent/100.0 + a->minimum;
-}
-
 static bool
 tablet_get_quirked_pressure_thresholds(struct tablet_dispatch *tablet,
 				       int *hi,
@@ -1338,7 +1394,9 @@ tablet_notify_button_mask(struct tablet_dispatch *tablet,
 				     tip_state,
 				     &tablet->axes,
 				     i,
-				     state);
+				     state,
+				     &tablet->area.x,
+				     &tablet->area.y);
 	}
 }
 
@@ -1737,7 +1795,9 @@ tablet_send_proximity_in(struct tablet_dispatch *tablet,
 				tool,
 				LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN,
 				tablet->changed_axes,
-				axes);
+				axes,
+				&tablet->area.x,
+				&tablet->area.y);
 	tablet_unset_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
 	tablet_unset_status(tablet, TABLET_AXES_UPDATED);
 
@@ -1763,7 +1823,9 @@ tablet_send_proximity_out(struct tablet_dispatch *tablet,
 				tool,
 				LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT,
 				tablet->changed_axes,
-				axes);
+				axes,
+			        &tablet->area.x,
+			        &tablet->area.y);
 
 	tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 	tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
@@ -1788,7 +1850,9 @@ tablet_send_tip(struct tablet_dispatch *tablet,
 				  tool,
 				  LIBINPUT_TABLET_TOOL_TIP_DOWN,
 				  tablet->changed_axes,
-				  axes);
+				  axes,
+				  &tablet->area.x,
+				  &tablet->area.y);
 		tablet_unset_status(tablet, TABLET_AXES_UPDATED);
 		tablet_unset_status(tablet, TABLET_TOOL_ENTERING_CONTACT);
 		tablet_set_status(tablet, TABLET_TOOL_IN_CONTACT);
@@ -1806,7 +1870,9 @@ tablet_send_tip(struct tablet_dispatch *tablet,
 				  tool,
 				  LIBINPUT_TABLET_TOOL_TIP_UP,
 				  tablet->changed_axes,
-				  axes);
+				  axes,
+				  &tablet->area.x,
+				  &tablet->area.y);
 		tablet_unset_status(tablet, TABLET_AXES_UPDATED);
 		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
 		tablet_unset_status(tablet, TABLET_TOOL_IN_CONTACT);
@@ -1844,7 +1910,9 @@ tablet_send_axes(struct tablet_dispatch *tablet,
 			   tool,
 			   tip_state,
 			   tablet->changed_axes,
-			   axes);
+			   axes,
+			   &tablet->area.x,
+			   &tablet->area.y);
 	tablet_unset_status(tablet, TABLET_AXES_UPDATED);
 	tablet_reset_changed_axes(tablet);
 	axes->delta.x = 0;
@@ -1914,6 +1982,7 @@ tablet_send_events(struct tablet_dispatch *tablet,
 	if (tablet_send_proximity_out(tablet, tool, device, &axes, time)) {
 		tablet_change_to_left_handed(device);
 		tablet_apply_rotation(device);
+		tablet_change_area(device);
 		tablet_history_reset(tablet);
 	}
 }
@@ -2501,6 +2570,71 @@ tablet_init_calibration(struct tablet_dispatch *tablet,
 		evdev_init_calibration(device, &tablet->calibration);
 }
 
+static int
+tablet_area_has_rectangle(struct libinput_device *device)
+{
+	return 1;
+}
+
+static enum libinput_config_status
+tablet_area_set_rectangle(struct libinput_device *device,
+			  const struct libinput_config_area_rectangle *rectangle)
+{
+	struct evdev_device *evdev = evdev_device(device);
+	struct tablet_dispatch *tablet = tablet_dispatch(evdev->dispatch);
+
+	if (rectangle->x1 >= rectangle->x2 || rectangle->y1 >= rectangle->y2)
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	if (rectangle->x1 < 0.0 || rectangle->x2 > 1.0 ||
+	    rectangle->y1 < 0.0 || rectangle->y2 > 1.0)
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	tablet->area.want_rect = *rectangle;
+
+	tablet_change_area(evdev);
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static struct libinput_config_area_rectangle
+tablet_area_get_rectangle(struct libinput_device *device)
+{
+	struct evdev_device *evdev = evdev_device(device);
+	struct tablet_dispatch *tablet = tablet_dispatch(evdev->dispatch);
+
+	return tablet->area.rect;
+}
+
+static struct libinput_config_area_rectangle
+tablet_area_get_default_rectangle(struct libinput_device *device)
+{
+	struct libinput_config_area_rectangle rect = {
+		0.0, 0.0, 1.0, 1.0,
+	};
+	return rect;
+}
+
+static void
+tablet_init_area(struct tablet_dispatch *tablet,
+		 struct evdev_device *device)
+{
+	tablet->area.rect = (struct libinput_config_area_rectangle) {
+		0.0, 0.0, 1.0, 1.0,
+	};
+	tablet->area.want_rect = tablet->area.rect;
+	tablet->area.x = *device->abs.absinfo_x;
+	tablet->area.y = *device->abs.absinfo_y;
+
+	if (!libevdev_has_property(device->evdev, INPUT_PROP_DIRECT)) {
+		device->base.config.area = &tablet->area.config;
+		tablet->area.config.has_rectangle = tablet_area_has_rectangle;
+		tablet->area.config.set_rectangle = tablet_area_set_rectangle;
+		tablet->area.config.get_rectangle = tablet_area_get_rectangle;
+		tablet->area.config.get_default_rectangle = tablet_area_get_default_rectangle;
+	}
+}
+
 static void
 tablet_init_proximity_threshold(struct tablet_dispatch *tablet,
 				struct evdev_device *device)
@@ -2791,6 +2925,7 @@ tablet_init(struct tablet_dispatch *tablet,
 
 	tablet_fix_tilt(tablet, device);
 	tablet_init_calibration(tablet, device, is_display_tablet);
+	tablet_init_area(tablet, device);
 	tablet_init_proximity_threshold(tablet, device);
 	rc = tablet_init_accel(tablet, device);
 	if (rc != 0)

@@ -3891,6 +3891,203 @@ START_TEST(tablet_calibration_set_matrix)
 }
 END_TEST
 
+START_TEST(tablet_area_has_rectangle)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *d = dev->libinput_device;
+	enum libinput_config_status status;
+	int rc;
+	struct libinput_config_area_rectangle rect;
+
+	int has_area = !libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
+
+	rc = libinput_device_config_area_has_rectangle(d);
+	litest_assert_int_eq(rc, has_area);
+	rect = libinput_device_config_area_get_rectangle(d);
+	litest_assert_double_eq(rect.x1, 0.0);
+	litest_assert_double_eq(rect.y1, 0.0);
+	litest_assert_double_eq(rect.x2, 1.0);
+	litest_assert_double_eq(rect.y2, 1.0);
+
+	rect = libinput_device_config_area_get_default_rectangle(d);
+	litest_assert_double_eq(rect.x1, 0.0);
+	litest_assert_double_eq(rect.y1, 0.0);
+	litest_assert_double_eq(rect.x2, 1.0);
+	litest_assert_double_eq(rect.y2, 1.0);
+
+	status = libinput_device_config_area_set_rectangle(d, &rect);
+	if (has_area)
+		litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	else
+		litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+}
+END_TEST
+
+START_TEST(tablet_area_set_rectangle_invalid)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *d = dev->libinput_device;
+	int rc;
+	struct libinput_config_area_rectangle rect;
+
+	int has_area = !libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
+	if (!has_area)
+		return LITEST_NOT_APPLICABLE;
+
+	rect.x1 = 1.0;
+	rect.x2 = 0.9;
+	rect.y1 = 0.0;
+	rect.y2 = 1.0;
+
+	rc = libinput_device_config_area_set_rectangle(d, &rect);
+	litest_assert_enum_eq(rc, LIBINPUT_CONFIG_STATUS_INVALID);
+
+	rect.x1 = 0.9;
+	rect.x2 = 1.0;
+	rect.y1 = 1.0;
+	rect.y2 = 0.9;
+
+	rc = libinput_device_config_area_set_rectangle(d, &rect);
+	litest_assert_enum_eq(rc, LIBINPUT_CONFIG_STATUS_INVALID);
+
+	rect.x1 = 0.9;
+	rect.x2 = 0.9;
+	rect.y1 = 0.9;
+	rect.y2 = 1.0;
+
+	rc = libinput_device_config_area_set_rectangle(d, &rect);
+	litest_assert_enum_eq(rc, LIBINPUT_CONFIG_STATUS_INVALID);
+
+	rect.x1 = 0.9;
+	rect.x2 = 1.0;
+	rect.y1 = 0.9;
+	rect.y2 = 0.9;
+
+	rc = libinput_device_config_area_set_rectangle(d, &rect);
+	litest_assert_enum_eq(rc, LIBINPUT_CONFIG_STATUS_INVALID);
+
+	rect.x1 = 0.9;
+	rect.x2 = 1.5;
+	rect.y1 = 0.0;
+	rect.y2 = 1.0;
+
+	rc = libinput_device_config_area_set_rectangle(d, &rect);
+	litest_assert_enum_eq(rc, LIBINPUT_CONFIG_STATUS_INVALID);
+
+	rect.x1 = 0.0;
+	rect.x2 = 1.0;
+	rect.y1 = 0.9;
+	rect.y2 = 1.4;
+
+	rc = libinput_device_config_area_set_rectangle(d, &rect);
+	litest_assert_enum_eq(rc, LIBINPUT_CONFIG_STATUS_INVALID);
+
+}
+END_TEST
+
+static void
+get_tool_xy(struct libinput *li, double *x, double *y)
+{
+	struct libinput_event *event = libinput_get_event(li);
+	struct libinput_event_tablet_tool *tev;
+
+	litest_assert_ptr_notnull(event);
+
+	switch (libinput_event_get_type(event)) {
+	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
+		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
+		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+		break;
+	default:
+		abort();
+	}
+
+	*x = libinput_event_tablet_tool_get_x_transformed(tev, 100);
+	*y = libinput_event_tablet_tool_get_y_transformed(tev, 100);
+	libinput_event_destroy(event);
+}
+
+START_TEST(tablet_area_set_rectangle)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_device *d = dev->libinput_device;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+	double x, y;
+	double *scaled, *unscaled;
+	bool use_vertical = !!_i; /* ranged test */
+
+	if (libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT))
+		return LITEST_NOT_APPLICABLE;
+
+	struct libinput_config_area_rectangle rect;
+	if (use_vertical) {
+		rect = (struct libinput_config_area_rectangle){
+			0.25, 0.0, 0.75, 1.0,
+		};
+		scaled = &x;
+		unscaled = &y;
+	} else {
+		rect = (struct libinput_config_area_rectangle){
+			0.0, 0.25, 1.0, 0.75,
+		};
+		scaled = &y;
+		unscaled = &x;
+	}
+
+	enum libinput_config_status status = libinput_device_config_area_set_rectangle(d, &rect);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_drain_events(li);
+
+	/* move vertically through the center */
+	litest_tablet_proximity_in(dev, 5, 5, axes);
+	libinput_dispatch(li);
+	get_tool_xy(li, &x, &y);
+	litest_assert_double_eq_epsilon(*scaled, 0.0, 2);
+	litest_assert_double_eq_epsilon(*unscaled, 5.0, 2);
+
+	for (int i = 10; i <= 100; i += 5) {
+		/* Negate any smoothing */
+		litest_tablet_motion(dev, i, i, axes);
+		litest_tablet_motion(dev, i - 1, i, axes);
+		litest_tablet_motion(dev, i, i - 1, axes);
+		litest_drain_events(li);
+
+		litest_tablet_motion(dev, i, i, axes);
+		libinput_dispatch(li);
+		get_tool_xy(li, &x, &y);
+		if (i <= 25)
+			litest_assert_double_eq(*scaled, 0.0);
+		else if (i > 75)
+			litest_assert_double_eq_epsilon(*scaled, 100.0, 1);
+		else
+			litest_assert_double_eq_epsilon(*scaled, (i - 25) * 2, 1);
+		litest_assert_double_eq_epsilon(*unscaled, i, 2);
+	}
+
+	/* Push through any smoothing */
+	litest_tablet_motion(dev, 100, 100, axes);
+	litest_tablet_motion(dev, 100, 100, axes);
+	libinput_dispatch(li);
+	litest_drain_events(li);
+
+	litest_tablet_proximity_out(dev);
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+	get_tool_xy(li, &x, &y);
+	litest_assert_double_eq_epsilon(x, 100, 1);
+	litest_assert_double_eq_epsilon(y, 100, 1);
+
+}
+END_TEST
+
 static void
 assert_pressure(struct libinput *li, enum libinput_event_type type, double expected_pressure)
 {
@@ -6571,6 +6768,7 @@ TEST_COLLECTION(tablet)
 	struct range with_timeout = { 0, 2 };
 	struct range xyaxes = { ABS_X, ABS_Y + 1 };
 	struct range tilt_cases = {TILT_MINIMUM, TILT_MAXIMUM + 1};
+	struct range vert_horiz = { 0, 2 };
 
 	litest_add(tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add(tool_user_data, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
@@ -6651,6 +6849,10 @@ TEST_COLLECTION(tablet)
 	litest_add(tablet_calibration_has_matrix, LITEST_TABLET, LITEST_TOTEM|LITEST_PRECALIBRATED);
 	litest_add(tablet_calibration_set_matrix, LITEST_TABLET, LITEST_TOTEM|LITEST_PRECALIBRATED);
 	litest_add(tablet_calibration_set_matrix_delta, LITEST_TABLET, LITEST_TOTEM|LITEST_PRECALIBRATED);
+
+	litest_add(tablet_area_has_rectangle, LITEST_TABLET, LITEST_ANY);
+	litest_add(tablet_area_set_rectangle_invalid, LITEST_TABLET, LITEST_ANY);
+	litest_add_ranged(tablet_area_set_rectangle, LITEST_TABLET, LITEST_ANY, &vert_horiz);
 
 	litest_add(tablet_pressure_min_max, LITEST_TABLET, LITEST_ANY);
 	/* Tests for pressure offset with distance */

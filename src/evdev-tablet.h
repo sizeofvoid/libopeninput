@@ -93,6 +93,13 @@ struct tablet_dispatch {
 	uint32_t cursor_proximity_threshold;
 
 	struct libinput_device_config_calibration calibration;
+	struct {
+		struct libinput_device_config_area config;
+		struct libinput_config_area_rectangle rect;
+		struct libinput_config_area_rectangle want_rect;
+		struct input_absinfo x;
+		struct input_absinfo y;
+	} area;
 
 	/* The paired touch device on devices with both pen & touch */
 	struct evdev_device *touch_device;
