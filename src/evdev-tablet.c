@@ -455,7 +455,7 @@ tablet_update_xy(struct tablet_dispatch *tablet,
 
 	if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_X) ||
 	    bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_Y)) {
-		absinfo = libevdev_get_abs_info(device->evdev, ABS_X);
+		absinfo = device->abs.absinfo_x;
 
 		if (tablet->rotation.rotate)
 			value = invert_axis(absinfo);
@@ -464,7 +464,7 @@ tablet_update_xy(struct tablet_dispatch *tablet,
 
 		tablet->axes.point.x = value;
 
-		absinfo = libevdev_get_abs_info(device->evdev, ABS_Y);
+		absinfo = device->abs.absinfo_y;
 
 		if (tablet->rotation.rotate)
 			value = invert_axis(absinfo);
