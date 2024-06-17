@@ -2249,6 +2249,12 @@ tp_keyboard_timeout(uint64_t now, void *data)
 }
 
 static inline bool
+tp_key_is_shift(unsigned int keycode)
+{
+	return keycode == KEY_LEFTSHIFT || keycode == KEY_RIGHTSHIFT;
+}
+
+static inline bool
 tp_key_is_modifier(unsigned int keycode)
 {
 	switch (keycode) {
@@ -2320,10 +2326,14 @@ tp_keyboard_event(uint64_t time, struct libinput_event *event, void *data)
 		return;
 
 	/* modifier keys don't trigger disable-while-typing so things like
-	 * ctrl+zoom or ctrl+click are possible */
+	 * ctrl+zoom or ctrl+click are possible.
+	 * The exception is shift which we don't trigger DWT for on its own
+	 * but we do trigger DWT for once we type some other key.
+	 */
 	is_modifier = tp_key_is_modifier(key);
 	if (is_modifier) {
-		long_set_bit(tp->dwt.mod_mask, key);
+		if (!tp_key_is_shift(key))
+			long_set_bit(tp->dwt.mod_mask, key);
 		return;
 	}
 

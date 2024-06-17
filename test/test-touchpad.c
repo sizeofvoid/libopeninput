@@ -4259,6 +4259,50 @@ START_TEST(touchpad_dwt_modifier_no_dwt)
 }
 END_TEST
 
+START_TEST(touchpad_dwt_shift_combo_triggers_dwt)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *keyboard;
+	struct libinput *li = touchpad->libinput;
+	unsigned int modifiers[] = {
+		KEY_LEFTSHIFT,
+		KEY_RIGHTSHIFT,
+	};
+
+	if (!has_disable_while_typing(touchpad))
+		return;
+
+	keyboard = dwt_init_paired_keyboard(li, touchpad);
+	litest_disable_tap(touchpad->libinput_device);
+	litest_disable_hold_gestures(touchpad->libinput_device);
+	litest_drain_events(li);
+
+	ARRAY_FOR_EACH(modifiers, key) {
+		litest_keyboard_key(keyboard, *key, true);
+		litest_keyboard_key(keyboard, KEY_A, true);
+		litest_keyboard_key(keyboard, KEY_A, false);
+		litest_keyboard_key(keyboard, *key, false);
+		libinput_dispatch(li);
+
+		litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
+		litest_touch_down(touchpad, 0, 50, 50);
+		litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 5);
+		litest_touch_up(touchpad, 0);
+		litest_assert_empty_queue(li);
+	}
+
+	litest_timeout_dwt_long();
+	libinput_dispatch(li);
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 5);
+	litest_touch_up(touchpad, 0);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_delete_device(keyboard);
+}
+END_TEST
+
 START_TEST(touchpad_dwt_modifier_combo_no_dwt)
 {
 	struct litest_device *touchpad = litest_current_device();
@@ -4269,8 +4313,6 @@ START_TEST(touchpad_dwt_modifier_combo_no_dwt)
 		KEY_RIGHTCTRL,
 		KEY_LEFTALT,
 		KEY_RIGHTALT,
-		KEY_LEFTSHIFT,
-		KEY_RIGHTSHIFT,
 		KEY_FN,
 		KEY_CAPSLOCK,
 		KEY_TAB,
@@ -4318,8 +4360,6 @@ START_TEST(touchpad_dwt_modifier_combo_dwt_after)
 		KEY_RIGHTCTRL,
 		KEY_LEFTALT,
 		KEY_RIGHTALT,
-		KEY_LEFTSHIFT,
-		KEY_RIGHTSHIFT,
 		KEY_FN,
 		KEY_CAPSLOCK,
 		KEY_TAB,
@@ -4371,8 +4411,6 @@ START_TEST(touchpad_dwt_modifier_combo_dwt_remains)
 		KEY_RIGHTCTRL,
 		KEY_LEFTALT,
 		KEY_RIGHTALT,
-		KEY_LEFTSHIFT,
-		KEY_RIGHTSHIFT,
 		KEY_FN,
 		KEY_CAPSLOCK,
 		KEY_TAB,
@@ -7372,6 +7410,7 @@ TEST_COLLECTION(touchpad)
 	litest_add(touchpad_dwt_key_hold_timeout_existing_touch_cornercase, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_type, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_type_short_timeout, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(touchpad_dwt_shift_combo_triggers_dwt, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_modifier_no_dwt, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_modifier_combo_no_dwt, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_modifier_combo_dwt_after, LITEST_TOUCHPAD, LITEST_ANY);
