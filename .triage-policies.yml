@@ -3,6 +3,22 @@
 # one we have on the main branch at the time)
 #
 # Note that for adding labels, the label must first created in the project.
+
+# Re-used in issues and mrs
+.close_needinfo: &close_needinfo
+  name: "Close stale needinfo bugs"
+  conditions:
+    labels:
+      - "bugbot::needinfo-timeout"
+  actions:
+    remove_labels:
+      - "bugbot::needinfo-timeout"
+    comment: |
+      I'm closing this bug because some information we requested a while ago was never supplied and
+      we're not able to continue without this information.
+      Please feel free to re-open.
+    status: "close"
+
 resource_rules:
   issues:
     rules:
@@ -63,6 +79,7 @@ resource_rules:
             The [libinput documentation](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html)
             also has more details on how to get started.
           status: "close"
+      - *close_needinfo
   merge_requests:
     rules:
       - name: "Remind contributor of commit rules"
@@ -79,3 +96,4 @@ resource_rules:
             Please see [our docs for commit messages](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#commit-messages)
             and [our docs for submitting code](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#submitting-code)
             that explain how to amend and force-push to this repo.
+      - *close_needinfo
