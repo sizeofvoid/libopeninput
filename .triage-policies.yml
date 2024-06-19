@@ -19,6 +19,21 @@
       Please feel free to re-open.
     status: "close"
 
+.remind_needinfo: &remind_needinfo
+  name: "Remind users of needinfo bugs"
+  conditions:
+    labels:
+      - "bugbot::needinfo-reminder"
+  actions:
+    labels:
+      - "waiting on reporter"
+    remove_labels:
+      - "bugbot::needinfo-reminder"
+    comment: |
+      Hi. This is a friendly reminder that the maintainers are waiting on some information by
+      you (or maybe someone cc'd on this bug). If the information is not provided we may not
+      be able to proceed with this issue or merge request. Please check the recent comments, thanks.
+
 resource_rules:
   issues:
     rules:
@@ -80,6 +95,7 @@ resource_rules:
             also has more details on how to get started.
           status: "close"
       - *close_needinfo
+      - *remind_needinfo
   merge_requests:
     rules:
       - name: "Remind contributor of commit rules"
@@ -97,3 +113,4 @@ resource_rules:
             and [our docs for submitting code](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#submitting-code)
             that explain how to amend and force-push to this repo.
       - *close_needinfo
+      - *remind_needinfo
