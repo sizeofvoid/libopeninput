@@ -136,13 +136,13 @@ matrix_mult(struct matrix *dest,
 static inline void
 matrix_mult_vec(const struct matrix *m, int *x, int *y)
 {
-	int tx, ty;
+	float tx, ty;
 
 	tx = *x * m->val[0][0] + *y * m->val[0][1] + m->val[0][2];
 	ty = *x * m->val[1][0] + *y * m->val[1][1] + m->val[1][2];
 
-	*x = tx;
-	*y = ty;
+	*x = (int)tx;
+	*y = (int)ty;
 }
 
 static inline void
