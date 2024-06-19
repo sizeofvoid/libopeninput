@@ -32,6 +32,10 @@
 #include <stdbool.h>
 #include <stdarg.h>
 
+#if HAVE_LIBWACOM
+#include <libwacom/libwacom.h>
+#endif
+
 #include "libinput-util.h"
 #include "evdev-tablet.h"
 #include "litest.h"
@@ -3677,6 +3681,28 @@ START_TEST(tablet_pressure_distance_exclusive)
 }
 END_TEST
 
+static bool
+device_has_calibration(struct litest_device *dev)
+{
+	bool has_calibration = libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
+
+	if (has_calibration)
+		return true;
+#if HAVE_LIBWACOM
+	WacomDeviceDatabase *db = libwacom_database_new();
+	if (db) {
+		WacomDevice *d = libwacom_new_from_path(db, libevdev_uinput_get_devnode(dev->uinput), WFALLBACK_NONE, NULL);
+		if (d) {
+			has_calibration = !!(libwacom_get_integration_flags(d) & (WACOM_DEVICE_INTEGRATED_SYSTEM|WACOM_DEVICE_INTEGRATED_DISPLAY));
+			libwacom_destroy(d);
+		}
+		libwacom_database_destroy(db);
+	}
+#endif
+
+	return has_calibration;
+}
+
 START_TEST(tablet_calibration_has_matrix)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3686,7 +3712,7 @@ START_TEST(tablet_calibration_has_matrix)
 	float calibration[6] = {1, 0, 0, 0, 1, 0};
 	int has_calibration;
 
-	has_calibration = libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
+	has_calibration = device_has_calibration(dev);
 
 	rc = libinput_device_config_calibration_has_matrix(d);
 	ck_assert_int_eq(rc, has_calibration);
@@ -3719,11 +3745,9 @@ START_TEST(tablet_calibration_set_matrix_delta)
 		{ ABS_PRESSURE, 10 },
 		{ -1, -1 }
 	};
-	int has_calibration;
 	double x, y, dx, dy, mdx, mdy;
 
-	has_calibration = libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
-	if (!has_calibration)
+	if (!device_has_calibration(dev))
 		return;
 
 	litest_drain_events(li);
@@ -3804,11 +3828,9 @@ START_TEST(tablet_calibration_set_matrix)
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
-	int has_calibration;
 	double x, y;
 
-	has_calibration = libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
-	if (!has_calibration)
+	if (!device_has_calibration(dev))
 		return;
 
 	litest_drain_events(li);
