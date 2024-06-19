@@ -39,6 +39,7 @@
 #include <libevdev/libevdev.h>
 
 #include "builddir.h"
+#include "libinput.h"
 #include "shared.h"
 #include "util-macros.h"
 #include "util-strings.h"
@@ -122,6 +123,8 @@ tools_init_options(struct tools_options *options)
 	options->custom_step = 1.0;
 	options->pressure_range[0] = 0.0;
 	options->pressure_range[1] = 1.0;
+	options->calibration[0] = 1.0;
+	options->calibration[4] = 1.0;
 }
 
 int
@@ -354,6 +357,22 @@ tools_parse_option(int option,
 		free(range);
 		break;
 		}
+	case OPT_CALIBRATION: {
+		if (!optarg)
+			return 1;
+
+		size_t npoints = 0;
+		double *matrix = double_array_from_string(optarg, " ", &npoints);
+		if (npoints != 6) {
+			free(matrix);
+			fprintf(stderr, "Invalid calibration matrix, must be 6 space-separated values\n");
+			return 1;
+		}
+		for (size_t i = 0; i < 6; i++)
+			options->calibration[i] =  matrix[i];
+		free(matrix);
+		break;
+		}
 	}
 	return 0;
 }
@@ -566,6 +585,9 @@ tools_device_apply_config(struct libinput_device *device,
 
 	if (options->angle != 0)
 		libinput_device_config_rotation_set_angle(device, options->angle % 360);
+
+	if (libinput_device_config_calibration_has_matrix(device))
+		libinput_device_config_calibration_set_matrix(device, options->calibration);
 }
 
 void
