@@ -2585,11 +2585,11 @@ tablet_init_left_handed(struct evdev_device *device)
 				       tablet_change_to_left_handed);
 }
 
-static bool
-tablet_is_aes(struct evdev_device *device,
-	      struct tablet_dispatch *tablet)
+static void
+tablet_lookup_libwacom(struct evdev_device *device,
+		       struct tablet_dispatch *tablet,
+		       bool *is_aes)
 {
-	bool is_aes = false;
 #if HAVE_LIBWACOM
 	const char *devnode;
 	WacomDeviceDatabase *db;
@@ -2605,35 +2605,33 @@ tablet_is_aes(struct evdev_device *device,
 	 * is an AES tablet
 	 */
 	if (vid != VENDOR_ID_WACOM)
-		goto out;
+		return;
 
 	db = tablet_libinput_context(tablet)->libwacom.db;
 	if (!db)
-		goto out;
+		return;
 
 	devnode = udev_device_get_devnode(device->udev_device);
 	libwacom_device = libwacom_new_from_path(db, devnode, WFALLBACK_NONE, NULL);
 	if (!libwacom_device)
-		goto out;
+		return;
 
 	stylus_ids = libwacom_get_supported_styli(libwacom_device, &nstyli);
 	for (int i = 0; i < nstyli; i++) {
 		if (stylus_ids[i] == 0x11) {
-			is_aes = true;
+			*is_aes = true;
 			break;
 		}
 	}
 
 	libwacom_destroy(libwacom_device);
-
-out:
 #endif
-	return is_aes;
 }
 
 static void
 tablet_init_smoothing(struct evdev_device *device,
-		      struct tablet_dispatch *tablet)
+		      struct tablet_dispatch *tablet,
+		      bool is_aes)
 {
 	size_t history_size = ARRAY_LENGTH(tablet->history.samples);
 	struct quirks_context *quirks = NULL;
@@ -2647,7 +2645,7 @@ tablet_init_smoothing(struct evdev_device *device,
 	 * AttrTabletSmoothing can override this, if necessary.
 	 */
 	if (!q || !quirks_get_bool(q, QUIRK_ATTR_TABLET_SMOOTHING, &use_smoothing))
-		use_smoothing = !tablet_is_aes(device, tablet);
+		use_smoothing = !is_aes;
 
 	/* Setting the history size to 1 means we never do any actual smoothing. */
 	if (!use_smoothing)
@@ -2752,6 +2750,9 @@ tablet_init(struct tablet_dispatch *tablet,
 	if (tablet_reject_device(device))
 		return -1;
 
+	bool is_aes = false;
+	tablet_lookup_libwacom(device, tablet, &is_aes);
+
 	if (!libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_PEN)) {
 		libevdev_enable_event_code(evdev, EV_KEY, BTN_TOOL_PEN, NULL);
 		tablet->quirks.proximity_out_forced = true;
@@ -2773,7 +2774,7 @@ tablet_init(struct tablet_dispatch *tablet,
 
 	evdev_init_sendevents(device, &tablet->base);
 	tablet_init_left_handed(device);
-	tablet_init_smoothing(device, tablet);
+	tablet_init_smoothing(device, tablet, is_aes);
 
 	for (axis = LIBINPUT_TABLET_TOOL_AXIS_X;
 	     axis <= LIBINPUT_TABLET_TOOL_AXIS_MAX;
