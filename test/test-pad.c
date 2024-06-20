@@ -497,7 +497,7 @@ START_TEST(pad_has_dial)
 		expected_ndials = 2;
 
 	ndials = libinput_device_tablet_pad_get_num_dials(device);
-	ck_assert_int_ge(ndials, expected_ndials);
+	ck_assert_int_eq(ndials, expected_ndials);
 }
 END_TEST
 
@@ -526,7 +526,7 @@ START_TEST(pad_dial_low_res)
 		struct libinput_event_tablet_pad *pev = litest_is_pad_dial_event(ev, 0);
 
 		double v120 = libinput_event_tablet_pad_get_dial_delta_v120(pev);
-		ck_assert_double_ge(v120, 120.0 * direction);
+		ck_assert_double_eq(v120, 120.0 * direction);
 		libinput_event_destroy(ev);
 	}
 }
@@ -556,7 +556,7 @@ START_TEST(pad_dial_hi_res)
 		struct libinput_event_tablet_pad *pev = litest_is_pad_dial_event(ev, 0);
 
 		double v120 = libinput_event_tablet_pad_get_dial_delta_v120(pev);
-		ck_assert_double_ge(v120, increment);
+		ck_assert_double_eq(v120, increment);
 		libinput_event_destroy(ev);
 	}
 }
