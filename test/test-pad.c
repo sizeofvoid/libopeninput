@@ -526,7 +526,16 @@ START_TEST(pad_dial_low_res)
 		struct libinput_event_tablet_pad *pev = litest_is_pad_dial_event(ev, 0);
 
 		double v120 = libinput_event_tablet_pad_get_dial_delta_v120(pev);
-		ck_assert_double_eq(v120, 120.0 * direction);
+		switch (code) {
+		case REL_WHEEL: /* inverted */
+			ck_assert_double_eq(v120, -120.0 * direction);
+			break;
+		case REL_DIAL:
+			ck_assert_double_eq(v120, 120.0 * direction);
+			break;
+		default:
+			ck_abort();
+		}
 		libinput_event_destroy(ev);
 	}
 }
@@ -556,7 +565,7 @@ START_TEST(pad_dial_hi_res)
 		struct libinput_event_tablet_pad *pev = litest_is_pad_dial_event(ev, 0);
 
 		double v120 = libinput_event_tablet_pad_get_dial_delta_v120(pev);
-		ck_assert_double_eq(v120, increment);
+		ck_assert_double_eq(v120, -increment); /* REL_WHEEL is inverted */
 		libinput_event_destroy(ev);
 	}
 }
