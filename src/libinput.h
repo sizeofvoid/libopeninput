@@ -6598,11 +6598,11 @@ libinput_tablet_tool_config_pressure_range_is_available(struct libinput_tablet_t
  * pressure of the given minimum value maps into a logical pressure of 0.0 (as
  * returned by libinput_event_tablet_tool_get_pressure()) and the hardware
  * pressure of the given maximum value is mapped into the logical pressure
- * of 1.0 (as returned by . libinput_event_tablet_tool_get_pressure())
+ * of 1.0 (as returned by libinput_event_tablet_tool_get_pressure())
  *
  * The minimum value must be less than the maximum value, libinput may
- * libinput may require the values to have a specific distance to each other,
- * i.e. that (maximium - minimum > N) for an implementation-defined value of N.
+ * require the values to have a specific distance to each other,
+ * i.e. that (maximum - minimum > N) for an implementation-defined value of N.
  *
  * @param tool The libinput tool
  * @param minimum The minimum pressure value in the range [0.0, 1.0)
