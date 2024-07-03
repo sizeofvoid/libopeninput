@@ -151,6 +151,10 @@ ModelPressurePad
     Unlike in traditional touchpads, whose pressure value equals contact size,
     on pressure pads pressure is a real physical axis.
     Indicates that the device is a pressure pad.
+ModelTouchpadPhantomClicks
+    Some laptops are prone to registering touchpad clicks when the case is
+    bent. Indicates that clicks should be ignored if no fingers are on the
+    touchpad.
 AttrSizeHint=NxM, AttrResolutionHint=N
     Hints at the width x height of the device in mm, or the resolution
     of the x/y axis in units/mm. These may only be used where they apply to
