@@ -37,17 +37,45 @@
 static const char default_seat[] = "seat0";
 static const char default_seat_name[] = "default";
 
+static struct libinput_seat* wscons_seat_get(struct libinput *, const char *,
+    const char *);
+static void wscons_device_dispatch(void *);
+
 static int old_value = -1;
 
 static int
 udev_input_enable(struct libinput *libinput)
 {
+	struct libinput_seat *seat;
+	struct libinput_device *device;
+
+	seat = wscons_seat_get(libinput, default_seat, default_seat_name);
+	list_for_each(device, &seat->devices_list, link) {
+		device->fd = open_restricted(libinput, device->devname, O_RDWR);
+		device->source =
+		    libinput_add_fd(libinput, device->fd,
+			wscons_device_dispatch, device);
+		if (!device->source) {
+			return -ENOMEM;
+		}
+	}
 	return 0;
 }
 
 static void
 udev_input_disable(struct libinput *libinput)
 {
+	struct libinput_seat *seat;
+	struct libinput_device *device;
+
+	seat = wscons_seat_get(libinput, default_seat, default_seat_name);
+	list_for_each(device, &seat->devices_list, link) {
+		if (device->source) {
+			libinput_remove_source(libinput, device->source);
+			device->source = NULL;
+		}
+		close_restricted(libinput, device->fd);
+	}
 }
 
 static void
