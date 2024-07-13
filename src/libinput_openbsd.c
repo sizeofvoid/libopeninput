@@ -3255,13 +3255,13 @@ libinput_device_get_device_group(struct libinput_device *device)
 LIBINPUT_EXPORT const char *
 libinput_device_get_sysname(struct libinput_device *device)
 {
-	return "unsupported";
+	return device->devname;
 }
 
 LIBINPUT_EXPORT const char *
 libinput_device_get_name(struct libinput_device *device)
 {
-	return "unsupported";
+	return device->devname;
 }
 
 LIBINPUT_EXPORT unsigned int
