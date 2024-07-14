@@ -80,6 +80,14 @@ udev_input_disable(struct libinput *libinput)
 static void
 udev_input_destroy(struct libinput *libinput)
 {
+	struct libinput_seat *seat;
+	struct libinput_device *device;
+
+	fprintf(stderr, "%s", __func__);
+	seat = wscons_seat_get(libinput, default_seat, default_seat_name);
+	list_for_each(device, &seat->devices_list, link) {
+		close_restricted(libinput, device->fd);
+	}
 }
 
 static int
