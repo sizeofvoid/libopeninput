@@ -27,7 +27,6 @@
 #include <string.h>
 #include <time.h>
 
-
 #include "libinput.h"
 #include "wscons.h"
 #include "input-event-codes.h"
@@ -279,9 +278,21 @@ libinput_udev_assign_seat(struct libinput *libinput, const char *seat_id)
 	struct timespec ts;
 	struct libinput_event *event;
 
-	/* Add standard muxes */
-	libinput_path_add_device(libinput, "/dev/wskbd");
-	libinput_path_add_device(libinput, "/dev/wsmouse");
+	/* Add standard devices */
+	for (int i = 0; i < 10; i++) {
+		char name[32];
+		int fd;
+		snprintf(name, sizeof(name), "/dev/wskbd%d", i);
+		if ((fd = open_restricted(libinput, name, O_RDWR|O_NONBLOCK)) >= 0) {
+			close(fd);
+			libinput_path_add_device(libinput, name);
+		}
+		snprintf(name, sizeof(name), "/dev/wsmouse%d", i);
+		if ((fd = open_restricted(libinput, name, O_RDWR|O_NONBLOCK)) >= 0) {
+			close(fd);
+			libinput_path_add_device(libinput, name);
+		}
+	}
 
 	seat = wscons_seat_get(libinput, default_seat, default_seat_name);
 	list_for_each(device, &seat->devices_list, link) {
