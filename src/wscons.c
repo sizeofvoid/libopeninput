@@ -292,12 +292,12 @@ libinput_udev_assign_seat(struct libinput *libinput, const char *seat_id)
 		int fd;
 		snprintf(name, sizeof(name), "/dev/wskbd%d", i);
 		if ((fd = open_restricted(libinput, name, O_RDWR|O_NONBLOCK)) >= 0) {
-			close(fd);
+			close_restricted(libinput, fd);
 			libinput_path_add_device(libinput, name);
 		}
 		snprintf(name, sizeof(name), "/dev/wsmouse%d", i);
 		if ((fd = open_restricted(libinput, name, O_RDWR|O_NONBLOCK)) >= 0) {
-			close(fd);
+			close_restricted(libinput, fd);
 			libinput_path_add_device(libinput, name);
 		}
 	}
