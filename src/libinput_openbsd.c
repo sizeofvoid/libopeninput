@@ -3261,7 +3261,10 @@ libinput_device_get_sysname(struct libinput_device *device)
 LIBINPUT_EXPORT const char *
 libinput_device_get_name(struct libinput_device *device)
 {
-	return device->devname;
+	if (strncmp(device->devname, "/dev/", 5) == 0)
+		return device->devname + 5; /* skip /dev/ */
+	else
+		return device->devname; /* XXX */
 }
 
 LIBINPUT_EXPORT unsigned int
