@@ -499,7 +499,7 @@ struct TransMapRec wsXt = {
 static void
 printWsType(struct libinput *libinput, const char *name, const char *type)
 {
-    log_error(libinput, "%s: Keyboard type: %s\n", name, type);
+    log_info(libinput, "%s: Keyboard type: %s\n", name, type);
 }
 
 int
