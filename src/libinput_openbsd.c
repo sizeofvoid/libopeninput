@@ -3267,13 +3267,13 @@ libinput_device_get_name(struct libinput_device *device)
 LIBINPUT_EXPORT unsigned int
 libinput_device_get_id_product(struct libinput_device *device)
 {
-	return 0xdeadbeef; // TODO
+	return 0; // TODO
 }
 
 LIBINPUT_EXPORT unsigned int
 libinput_device_get_id_vendor(struct libinput_device *device)
 {
-	return 0xdeadbeef; // TODO
+	return 0; // TODO
 }
 
 LIBINPUT_EXPORT const char *
