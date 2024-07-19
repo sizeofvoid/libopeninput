@@ -172,7 +172,7 @@ what is a unit again.
 
 libinput attempts to normalize unit data to the best of its abilities, see
 :ref:`trackpoint_multiplier`. Beyond this, it is not possible to have
-consistent behavior across different touchpad devices.
+consistent behavior across different trackpoint devices.
 
 .. figure:: ptraccel-trackpoint.svg
     :align: center
