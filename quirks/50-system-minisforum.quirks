@@ -4,3 +4,8 @@
 MatchName=AT Translated Set 2 keyboard
 MatchDMIModalias=dmi:*svnMicroComputer(HK)TechLimited:pnV3:*
 ModelTabletModeNoSuspend=1
+
+[Minisforum V3 touchpad dwt]
+MatchName=USB Keyboard
+MatchDMIModalias=dmi:*svnMicroComputer(HK)TechLimited:pnV3:*
+AttrKeyboardIntegration=internal
