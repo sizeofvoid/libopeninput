@@ -129,7 +129,7 @@ pad_process_relative(struct pad_dispatch *pad,
 		pad_set_status(pad, PAD_AXES_UPDATED);
 		break;
 	case REL_HWHEEL_HI_RES:
-		pad->dials.dial2 = e->value * 120;
+		pad->dials.dial2 = e->value;
 		pad->changed_axes |= PAD_AXIS_DIAL2;
 		pad_set_status(pad, PAD_AXES_UPDATED);
 		break;
