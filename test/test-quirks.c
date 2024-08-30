@@ -581,11 +581,11 @@ START_TEST(quirks_parse_product)
 	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
-	"MatchProduct=0x0000\n"
+	"MatchProduct=0x12AB\n"
 	"ModelAppleTouchpad=1\n"
 	"\n"
 	"[Section name]\n"
-	"MatchProduct=0x0001\n"
+	"MatchProduct=0x0001;0x1234;0xABCD\n"
 	"ModelAppleTouchpad=1\n"
 	"\n"
 	"[Section name]\n"
@@ -600,6 +600,48 @@ START_TEST(quirks_parse_product)
 				    QLOG_CUSTOM_LOG_PRIORITIES);
 	ck_assert_notnull(ctx);
 	quirks_context_unref(ctx);
+	cleanup_data_dir(dd);
+}
+END_TEST
+
+START_TEST(quirks_parse_product_too_many)
+{
+	struct quirks_context *ctx;
+	const char prologue[] =
+	"[Section name]\n"
+	"MatchProduct=0x12AB\n"
+	"ModelAppleTouchpad=1\n"
+	"\n"
+	"[Section name]\n"
+	"MatchProduct=";
+	const char epilogue[] = "\n"
+	"ModelAppleTouchpad=1\n"
+	"\n"
+	"[Section name]\n"
+	"MatchProduct=0x2343\n"
+	"ModelAppleTouchpad=1\n";
+
+	char matches[4096] = {0};
+
+	for (int i = 0; i < 128; i++) {
+		int len = strlen(matches);
+		int remaining = sizeof(matches) - len;
+		snprintf(&matches[len], remaining, "0x%04X", i);
+	}
+
+	char *quirks_file = NULL;
+	xasprintf(&quirks_file, "%s%s%s", prologue, matches, epilogue);
+	struct data_dir dd = make_data_dir(quirks_file);
+
+	free(quirks_file);
+
+	/* This test will only blow up in valgrind/asan */
+	ctx = quirks_init_subsystem(dd.dirname,
+				    NULL,
+				    log_handler,
+				    NULL,
+				    QLOG_CUSTOM_LOG_PRIORITIES);
+	ck_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -1590,6 +1632,7 @@ TEST_COLLECTION(quirks)
 	litest_add_deviceless(quirks_parse_vendor);
 	litest_add_deviceless(quirks_parse_vendor_invalid);
 	litest_add_deviceless(quirks_parse_product);
+	litest_add_deviceless(quirks_parse_product_too_many);
 	litest_add_deviceless(quirks_parse_product_invalid);
 	litest_add_deviceless(quirks_parse_version);
 	litest_add_deviceless(quirks_parse_version_invalid);

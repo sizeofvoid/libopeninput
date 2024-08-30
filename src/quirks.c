@@ -141,7 +141,7 @@ struct match {
 	char *uniq;
 	enum bustype bus;
 	uint32_t vendor;
-	uint32_t product;
+	uint32_t product[64]; /* zero-terminated */
 	uint32_t version;
 
 	char *dmi;	/* dmi modalias with preceding "dmi:" */
@@ -537,6 +537,14 @@ parse_hex(const char *value, unsigned int *parsed)
 	       *parsed <= 0xFFFF;
 }
 
+static int
+strv_parse_hex(const char *str, size_t index, void *data)
+{
+	unsigned int *product = data;
+
+	return !parse_hex(str, &product[index]); /* 0 for success */
+}
+
 /**
  * Parse a MatchFooBar=banana line.
  *
@@ -592,13 +600,18 @@ parse_match(struct quirks_context *ctx,
 
 		s->match.vendor = vendor;
 	} else if (streq(key, "MatchProduct")) {
-		unsigned int product;
+		unsigned int product[ARRAY_LENGTH(s->match.product)] = {0};
+		const size_t max = ARRAY_LENGTH(s->match.product) - 1;
 
-		check_set_bit(s, M_PID);
-		if (!parse_hex(value, &product))
+		size_t nelems = 0;
+		char **strs = strv_from_string(value, ";", &nelems);
+		int rc = strv_for_each_n((const char**)strs, max, strv_parse_hex, product);
+		strv_free(strs);
+		if (rc != 0)
 			goto out;
 
-		s->match.product = product;
+		check_set_bit(s, M_PID);
+		memcpy(s->match.product, product, sizeof(product));
 	} else if (streq(key, "MatchVersion")) {
 		unsigned int version;
 
@@ -1325,7 +1338,8 @@ match_fill_bus_vid_pid(struct match *m,
 	if (sscanf(str, "%x/%x/%x/%x", &bus, &vendor, &product, &version) != 4)
 		return;
 
-	m->product = product;
+	m->product[0] = product;
+	m->product[1] = 0;
 	m->vendor = vendor;
 	m->version = version;
 	m->bits |= M_PID|M_VID|M_VERSION;
@@ -1545,8 +1559,19 @@ quirk_match_section(struct quirks_context *ctx,
 				matched_flags |= flag;
 			break;
 		case M_PID:
-			if (m->product == s->match.product)
-				matched_flags |= flag;
+			ARRAY_FOR_EACH(m->product, mi) {
+				if (*mi == 0 || matched_flags & flag)
+					break;
+
+				ARRAY_FOR_EACH(s->match.product, si) {
+					if (*si == 0)
+						break;
+					if (*mi == *si) {
+						matched_flags |= flag;
+						break;
+					}
+				}
+			}
 			break;
 		case M_VERSION:
 			if (m->version == s->match.version)
