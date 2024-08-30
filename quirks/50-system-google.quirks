@@ -127,3 +127,11 @@ MatchName=ELAN2701:00 04F3:31C6 Touchpad
 MatchDMIModalias=dmi:*svnGoogle:*pnDrobit*
 ModelChromebook=1
 AttrPressureRange=6:4
+
+[HP Dragonfly Pro Chromebook]
+MatchName=*ELAN2703*
+MatchDMIModalias=dmi:*pn*Vell*
+ModelChromebook=1
+AttrPressureRange=1:0
+AttrThumbPressureThreshold=25
+AttrPalmPressureThreshold=0
