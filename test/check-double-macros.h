@@ -90,4 +90,3 @@
 #define ck_assert_double_le(X, Y) _ck_assert_double_eq_op(X, <=, Y)
 #define ck_assert_double_gt(X, Y) _ck_assert_double_ne_op(X, >, Y)
 #define ck_assert_double_ge(X, Y) _ck_assert_double_eq_op(X, >=, Y)
-

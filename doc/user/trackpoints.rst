@@ -65,4 +65,3 @@ sufficient pressure to even get close to the maximum ranges.
 
 libinput provides a :ref:`Magic Trackpoint Multiplier
 <trackpoint_multiplier>` to normalize the trackpoint input data.
-

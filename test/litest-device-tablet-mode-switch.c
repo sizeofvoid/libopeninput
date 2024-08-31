@@ -63,4 +63,3 @@ TEST_DEVICE("tablet-mode-switch-unreliable",
 		{ NULL },
 	}
 )
-
