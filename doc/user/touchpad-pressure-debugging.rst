@@ -223,4 +223,3 @@ the need for a restart.
 
 Once the touch size ranges are deemed correct, :ref:`reporting_bugs` "report a
 bug" to get the thresholds into the repository.
-
