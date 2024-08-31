@@ -215,6 +215,20 @@ check-whitespace:
     - sed -i '/^$/N;/^\n$/D' $(git ls-files src/*.{h,c} tools/*.{h,c} udev/*.c)
     - git diff --exit-code || (echo "ERROR - Duplicated empty lines, please fix" && false)
 
+#
+# pre-commit hooks
+#
+
+pre-commit-hooks:
+  extends:
+    - .fdo.ci-fairy
+  stage: sanity check
+  script:
+    - python3 -m venv venv
+    - source venv/bin/activate
+    - pip3 install pre-commit
+    - pre-commit run --all-files || true
+    - git diff --exit-code || (echo "ERROR - Code style errors found, please fix" && false)
 
 #################################################################
 #                                                               #
