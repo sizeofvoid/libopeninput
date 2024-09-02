@@ -1180,13 +1180,25 @@ litest_enable_buttonareas(struct litest_device *dev)
 }
 
 static inline void
+litest_enable_drag_lock_sticky(struct libinput_device *device)
+{
+	enum libinput_config_status status, expected;
+
+	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
+	status = libinput_device_config_tap_set_drag_lock_enabled(device,
+								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY);
+
+	litest_assert_int_eq(status, expected);
+}
+
+static inline void
 litest_enable_drag_lock(struct libinput_device *device)
 {
 	enum libinput_config_status status, expected;
 
 	expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
-								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED);
+								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT);
 
 	litest_assert_int_eq(status, expected);
 }

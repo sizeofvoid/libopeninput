@@ -1579,6 +1579,81 @@ START_TEST(touchpad_tap_n_drag_draglock_timeout)
 }
 END_TEST
 
+START_TEST(touchpad_tap_n_drag_draglock_sticky)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	int nfingers = _i; /* ranged test */
+	unsigned int button = 0;
+
+	if (nfingers > litest_slot_count(dev))
+		return;
+
+	litest_enable_tap(dev->libinput_device);
+	litest_enable_drag_lock_sticky(dev->libinput_device);
+	litest_disable_hold_gestures(dev->libinput_device);
+
+	switch (nfingers) {
+	case 1:
+		button = BTN_LEFT;
+		break;
+	case 2:
+		button = BTN_RIGHT;
+		break;
+	case 3:
+		button = BTN_MIDDLE;
+		break;
+	default:
+		abort();
+	}
+
+	litest_drain_events(li);
+
+	switch (nfingers) {
+	case 3:
+		litest_touch_down(dev, 2, 60, 30);
+		_fallthrough_;
+	case 2:
+		litest_touch_down(dev, 1, 50, 30);
+		_fallthrough_;
+	case 1:
+		litest_touch_down(dev, 0, 40, 30);
+		break;
+	}
+	switch (nfingers) {
+	case 3:
+		litest_touch_up(dev, 2);
+		_fallthrough_;
+	case 2:
+		litest_touch_up(dev, 1);
+		_fallthrough_;
+	case 1:
+		litest_touch_up(dev, 0);
+		break;
+	}
+	litest_touch_down(dev, 0, 50, 50);
+	libinput_dispatch(li);
+	litest_timeout_tap();
+
+	litest_assert_button_event(li, button,
+				   LIBINPUT_BUTTON_STATE_PRESSED);
+
+	litest_assert_empty_queue(li);
+	litest_touch_up(dev, 0);
+	libinput_dispatch(li);
+
+	litest_timeout_tapndrag();
+	litest_assert_empty_queue(li);
+
+	litest_touch_down(dev, 0, 50, 50);
+	litest_touch_up(dev, 0);
+	litest_assert_button_event(li, button,
+				   LIBINPUT_BUTTON_STATE_RELEASED);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(touchpad_tap_n_drag_2fg)
 {
 	/* Test: tap with 1-3 fingers (multiple times), then a 1fg move
@@ -4133,14 +4208,27 @@ START_TEST(touchpad_drag_lock_default_disabled)
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	/* ENABLED is a legacy spelling for ENABLED_TIMEOUT */
+	ck_assert_int_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
+			 LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  LIBINPUT_CONFIG_DRAG_LOCK_DISABLED);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	ck_assert_int_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
+			 LIBINPUT_CONFIG_DRAG_LOCK_DISABLED);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
-								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED);
+								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	ck_assert_int_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
+			 LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT);
+
+	status = libinput_device_config_tap_set_drag_lock_enabled(device,
+								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	ck_assert_int_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
+			 LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  3);
@@ -4161,6 +4249,14 @@ START_TEST(touchpad_drag_lock_default_unavailable)
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+
+	status = libinput_device_config_tap_set_drag_lock_enabled(device,
+								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+
+	status = libinput_device_config_tap_set_drag_lock_enabled(device,
+								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
@@ -5658,6 +5754,7 @@ TEST_COLLECTION(touchpad_tap)
 	litest_add_ranged(touchpad_tap_n_drag_draglock, LITEST_TOUCHPAD, LITEST_ANY, &range_multifinger_tap);
 	litest_add_ranged(touchpad_tap_n_drag_draglock_tap, LITEST_TOUCHPAD, LITEST_ANY, &range_multifinger_doubletap);
 	litest_add_ranged(touchpad_tap_n_drag_draglock_timeout, LITEST_TOUCHPAD, LITEST_ANY, &range_multifinger_tap);
+	litest_add_ranged(touchpad_tap_n_drag_draglock_sticky, LITEST_TOUCHPAD, LITEST_ANY, &range_multifinger_tap);
 
 	/* Real buttons don't interfere with tapping, so don't run those for
 	   pads with buttons */

@@ -64,8 +64,10 @@ Enable or disable tap-to-click
 .B \-\-enable-drag|\-\-disable\-drag
 Enable or disable tap-and-drag
 .TP 8
-.B \-\-enable\-drag-lock|\-\-disable\-drag\-lock
-Enable or disable drag-lock
+.B \-\-enable\-drag\-lock|\-\-disable\-drag\-lock
+Enable (in timeout mode) or disable drag-lock
+.B \-\-enable\-drag\-lock=[sticky|timeout]
+Enable drag-lock in sticky or timeout mode
 .TP 8
 .B \-\-enable\-natural\-scrolling|\-\-disable\-natural\-scrolling
 Enable or disable natural scrolling
