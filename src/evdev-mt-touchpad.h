@@ -435,7 +435,7 @@ struct tp_dispatch {
 		enum libinput_config_tap_button_map want_map;
 
 		bool drag_enabled;
-		bool drag_lock_enabled;
+		enum libinput_config_drag_lock_state drag_lock;
 
 		unsigned int nfingers_down;	/* number of fingers down for tapping (excl. thumb/palm) */
 	} tap;

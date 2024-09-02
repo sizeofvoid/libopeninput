@@ -4929,24 +4929,33 @@ libinput_device_config_tap_get_default_drag_enabled(struct libinput_device *devi
 enum libinput_config_drag_lock_state {
 	/** Drag lock is to be disabled, or is currently disabled */
 	LIBINPUT_CONFIG_DRAG_LOCK_DISABLED,
-	/** Drag lock is to be enabled, or is currently disabled */
-	LIBINPUT_CONFIG_DRAG_LOCK_ENABLED,
+	/** Drag lock is to be enabled in timeout mode,
+	 *  or is currently enabled in timeout mode */
+	LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT,
+	/** legacy spelling for LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT */
+	LIBINPUT_CONFIG_DRAG_LOCK_ENABLED = LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT,
+	/** Drag lock is to be enabled in sticky mode,
+	 *  or is currently enabled in sticky mode */
+	LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY,
 };
 
 /**
  * @ingroup config
  *
  * Enable or disable drag-lock during tapping on this device. When enabled,
- * a finger may be lifted and put back on the touchpad within a timeout and
- * the drag process continues. When disabled, lifting the finger during a
- * tap-and-drag will immediately stop the drag. See the libinput
- * documentation for more details.
+ * a finger may be lifted and put back on the touchpad and the drag process
+ * continues. A timeout for lifting the finger is optional. When disabled,
+ * lifting the finger during a tap-and-drag will immediately stop the drag.
+ * See the libinput documentation for more details.
  *
- * Enabling drag lock on a device that has tapping disabled is permitted,
- * but has no effect until tapping is enabled.
+ * Enabling drag lock on a device that has tapping or tap-and-drag disabled is
+ * permitted, but has no effect until tapping and tap-and-drag are enabled.
  *
  * @param device The device to configure
- * @param enable @ref LIBINPUT_CONFIG_DRAG_LOCK_ENABLED to enable drag lock
+ * @param enable @ref LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY to enable drag
+ * lock in sticky mode,
+ * @ref LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT to enable drag lock in timeout
+ * mode,
  * or @ref LIBINPUT_CONFIG_DRAG_LOCK_DISABLED to disable drag lock
  *
  * @return A config status code. Disabling drag lock on a device that does not
@@ -4966,11 +4975,14 @@ libinput_device_config_tap_set_drag_lock_enabled(struct libinput_device *device,
  * device does not support tapping, this function always returns
  * @ref LIBINPUT_CONFIG_DRAG_LOCK_DISABLED.
  *
- * Drag lock may be enabled even when tapping is disabled.
+ * Drag lock may be enabled even when tapping or tap-and-drag is disabled.
  *
  * @param device The device to configure
  *
- * @retval LIBINPUT_CONFIG_DRAG_LOCK_ENABLED If drag lock is currently enabled
+ * @retval LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY If drag lock is currently
+ * enabled in sticky mode
+ * @retval LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT If drag lock is currently
+ * enabled in timeout mode
  * @retval LIBINPUT_CONFIG_DRAG_LOCK_DISABLED If drag lock is currently disabled
  *
  * @see libinput_device_config_tap_set_drag_lock_enabled
@@ -4986,13 +4998,15 @@ libinput_device_config_tap_get_drag_lock_enabled(struct libinput_device *device)
  * If the device does not support tapping, this function always returns
  * @ref LIBINPUT_CONFIG_DRAG_LOCK_DISABLED.
  *
- * Drag lock may be enabled by default even when tapping is disabled by
- * default.
+ * Drag lock may be enabled by default even when tapping or tap-and-drag is
+ * disabled by default.
  *
  * @param device The device to configure
  *
- * @retval LIBINPUT_CONFIG_DRAG_LOCK_ENABLED If drag lock is enabled by
- * default
+ * @retval LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY If drag lock is enabled in
+ * sticky mode by default
+ * @retval LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT If drag lock is enabled in
+ * timeout mode by default
  * @retval LIBINPUT_CONFIG_DRAG_LOCK_DISABLED If drag lock is disabled by
  * default
  *

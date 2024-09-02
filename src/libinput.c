@@ -4067,7 +4067,8 @@ LIBINPUT_EXPORT enum libinput_config_status
 libinput_device_config_tap_set_drag_lock_enabled(struct libinput_device *device,
 						 enum libinput_config_drag_lock_state enable)
 {
-	if (enable != LIBINPUT_CONFIG_DRAG_LOCK_ENABLED &&
+	if (enable != LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY &&
+	    enable != LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT &&
 	    enable != LIBINPUT_CONFIG_DRAG_LOCK_DISABLED)
 		return LIBINPUT_CONFIG_STATUS_INVALID;
 

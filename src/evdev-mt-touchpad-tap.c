@@ -815,7 +815,7 @@ tp_tap_dragging_handle_event(struct tp_dispatch *tp,
 		break;
 	}
 	case TAP_EVENT_RELEASE:
-		if (tp->tap.drag_lock_enabled) {
+		if (tp->tap.drag_lock != LIBINPUT_CONFIG_DRAG_LOCK_DISABLED) {
 			enum tp_tap_state dest[3] = {
 				TAP_STATE_1FGTAP_DRAGGING_WAIT,
 				TAP_STATE_2FGTAP_DRAGGING_WAIT,
@@ -823,7 +823,8 @@ tp_tap_dragging_handle_event(struct tp_dispatch *tp,
 			};
 			assert(nfingers_tapped >= 1 && nfingers_tapped <= 3);
 			tp->tap.state = dest[nfingers_tapped - 1];
-			tp_tap_set_draglock_timer(tp, time);
+			if (tp->tap.drag_lock == LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT)
+				tp_tap_set_draglock_timer(tp, time);
 		} else {
 			tp_tap_notify(tp,
 				      time,
@@ -1517,7 +1518,7 @@ tp_tap_config_set_draglock_enabled(struct libinput_device *device,
 	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
-	tp->tap.drag_lock_enabled = enabled;
+	tp->tap.drag_lock = enabled;
 
 	return LIBINPUT_CONFIG_STATUS_SUCCESS;
 }
@@ -1528,7 +1529,7 @@ tp_tap_config_get_draglock_enabled(struct libinput_device *device)
 	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
-	return tp->tap.drag_lock_enabled;
+	return tp->tap.drag_lock;
 }
 
 static inline enum libinput_config_drag_lock_state
@@ -1570,7 +1571,7 @@ tp_init_tap(struct tp_dispatch *tp)
 	tp->tap.map = LIBINPUT_CONFIG_TAP_MAP_LRM;
 	tp->tap.want_map = tp->tap.map;
 	tp->tap.drag_enabled = tp_drag_default(tp->device);
-	tp->tap.drag_lock_enabled = tp_drag_lock_default(tp->device);
+	tp->tap.drag_lock = tp_drag_lock_default(tp->device);
 
 	snprintf(timer_name,
 		 sizeof(timer_name),

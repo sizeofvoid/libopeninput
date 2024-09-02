@@ -74,7 +74,7 @@ enum configuration_options {
 	{ "disable-tap",               no_argument,       0, OPT_TAP_DISABLE }, \
 	{ "enable-drag",               no_argument,       0, OPT_DRAG_ENABLE }, \
 	{ "disable-drag",              no_argument,       0, OPT_DRAG_DISABLE }, \
-	{ "enable-drag-lock",          no_argument,       0, OPT_DRAG_LOCK_ENABLE }, \
+	{ "enable-drag-lock",          optional_argument, 0, OPT_DRAG_LOCK_ENABLE }, \
 	{ "disable-drag-lock",         no_argument,       0, OPT_DRAG_LOCK_DISABLE }, \
 	{ "enable-natural-scrolling",  no_argument,       0, OPT_NATURAL_SCROLL_ENABLE }, \
 	{ "disable-natural-scrolling", no_argument,       0, OPT_NATURAL_SCROLL_DISABLE }, \

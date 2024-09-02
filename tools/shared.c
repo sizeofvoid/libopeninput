@@ -158,10 +158,20 @@ tools_parse_option(int option,
 		options->drag = 0;
 		break;
 	case OPT_DRAG_LOCK_ENABLE:
-		options->drag_lock = 1;
+		if (optarg) {
+			if (streq(optarg, "sticky")) {
+				options->drag_lock = LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY;
+			} else if (streq(optarg, "timeout")) {
+				options->drag_lock = LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT;
+			} else {
+				return 1;
+			}
+		} else {
+			options->drag_lock = LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT;
+		}
 		break;
 	case OPT_DRAG_LOCK_DISABLE:
-		options->drag_lock = 0;
+		options->drag_lock = LIBINPUT_CONFIG_DRAG_LOCK_DISABLED;
 		break;
 	case OPT_NATURAL_SCROLL_ENABLE:
 		options->natural_scroll = 1;
