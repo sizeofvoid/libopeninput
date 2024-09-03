@@ -1120,6 +1120,69 @@ START_TEST(strsplit_test)
 }
 END_TEST
 
+struct strv_test_data {
+	const char *terminate_at;
+	unsigned char bitmask[1];
+};
+
+static int strv_test_set_bitmask(const char *str, size_t index, void *data)
+{
+	struct strv_test_data *td = data;
+
+	if (streq(str, td->terminate_at))
+		return index + 1;
+
+	set_bit(td->bitmask, index);
+
+	return 0;
+}
+
+START_TEST(strv_for_each_test)
+{
+	struct test_data {
+		const char *terminator;
+		int index;
+		unsigned int bitmask;
+	} test_data[] = {
+		{ "one", 1, 0x0 },
+		{ "two", 2, 0x1 },
+		{ "three", 3, 0x3 },
+		{ "four", 4, 0x7 },
+		{ "five", 5, 0xf },
+		{ "does-not-exist", 0, 0x1f },
+		{ NULL, 0, 0x1f },
+		{ NULL, 0 },
+	};
+	const char *array[] = { "one", "two", "three", "four", "five", NULL };
+	struct test_data *t = test_data;
+
+	while (t->terminator || t->bitmask) {
+		const int max = 3;
+		struct strv_test_data td = {
+			.terminate_at = t->terminator,
+			.bitmask = { 0 },
+		};
+
+		int rc = strv_for_each(array, strv_test_set_bitmask, &td);
+		ck_assert_int_eq(rc, t->index);
+		ck_assert_int_eq(td.bitmask[0], t->bitmask);
+
+		struct strv_test_data tdmax = {
+			.terminate_at = t->terminator,
+			.bitmask = { 0 },
+		};
+
+		rc = strv_for_each_n(array, max, strv_test_set_bitmask, &tdmax);
+		if (max < t->index)
+			ck_assert_int_eq(rc, 0);
+		else
+			ck_assert_int_eq(rc, t->index);
+		ck_assert_int_eq(tdmax.bitmask[0], t->bitmask & ((1 << max) - 1));
+
+		t++;
+	}
+}
+
 START_TEST(double_array_from_string_test)
 {
 	struct double_array_from_string_test {
@@ -1653,6 +1716,7 @@ litest_utils_suite(void)
 	tcase_add_test(tc, safe_atou_base_8_test);
 	tcase_add_test(tc, safe_atod_test);
 	tcase_add_test(tc, strsplit_test);
+	tcase_add_test(tc, strv_for_each_test);
 	tcase_add_test(tc, double_array_from_string_test);
 	tcase_add_test(tc, strargv_test);
 	tcase_add_test(tc, kvsplit_double_test);

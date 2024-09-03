@@ -24,6 +24,8 @@
 
 #include "config.h"
 
+#include <stdint.h>
+
 #include "util-strings.h"
 
 /**
@@ -197,6 +199,38 @@ strv_join(char **strv, const char *joiner)
 	}
 
 	return str;
+}
+
+/**
+ * Iterate through strv, calling func with each string and its respective index.
+ * Iteration stops successfully after max elements or at the last element,
+ * whichever occurs first.
+ *
+ * If func returns non-zero, iteration stops and strv_for_each returns
+ * that value.
+ *
+ * @return zero on success, otherwise the error returned by the callback
+ */
+int strv_for_each_n(const char **strv, size_t max, strv_foreach_callback_t func, void *data)
+{
+	for (size_t i = 0; i < max && strv && strv[i]; i++) {
+		int ret = func(strv[i], i, data);
+		if (ret)
+			return ret;
+	}
+	return 0;
+}
+
+/**
+ * Iterate through strv, calling func with each string and its respective index.
+ * If func returns non-zero, iteration stops and strv_for_each returns
+ * that value.
+ *
+ * @return zero on success, otherwise the error returned by the callback
+ */
+int strv_for_each(const char **strv, strv_foreach_callback_t func, void *data)
+{
+	return strv_for_each_n(strv, SIZE_MAX, func, data);
 }
 
 /**
