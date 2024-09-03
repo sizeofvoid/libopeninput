@@ -266,6 +266,10 @@ char **strv_from_argv(int argc, char **argv);
 char **strv_from_string(const char *in, const char *separator, size_t *num_elements);
 char *strv_join(char **strv, const char *joiner);
 
+typedef int (*strv_foreach_callback_t)(const char *str, size_t index, void *data);
+int strv_for_each(const char **strv, strv_foreach_callback_t func, void *data);
+int strv_for_each_n(const char **strv, size_t max, strv_foreach_callback_t func, void *data);
+
 static inline void
 strv_free(char **strv) {
 	char **s = strv;
