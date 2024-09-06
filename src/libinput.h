@@ -4876,8 +4876,8 @@ enum libinput_config_drag_state {
  * @param enable @ref LIBINPUT_CONFIG_DRAG_ENABLED to enable, @ref
  * LIBINPUT_CONFIG_DRAG_DISABLED to disable tap-and-drag
  *
- * @see libinput_device_config_tap_drag_get_enabled
- * @see libinput_device_config_tap_drag_get_default_enabled
+ * @see libinput_device_config_tap_get_drag_enabled
+ * @see libinput_device_config_tap_get_default_drag_enabled
  *
  * @since 1.2
  */
@@ -4895,8 +4895,8 @@ libinput_device_config_tap_set_drag_enabled(struct libinput_device *device,
  * @retval LIBINPUT_CONFIG_DRAG_DISABLED if tap-and-drag is
  * disabled
  *
- * @see libinput_device_config_tap_drag_set_enabled
- * @see libinput_device_config_tap_drag_get_default_enabled
+ * @see libinput_device_config_tap_set_drag_enabled
+ * @see libinput_device_config_tap_get_default_default_enabled
  *
  * @since 1.2
  */
@@ -4915,8 +4915,8 @@ libinput_device_config_tap_get_drag_enabled(struct libinput_device *device);
  * @retval LIBINPUT_CONFIG_DRAG_DISABLED if tap-and-drag is
  * disabled by default
  *
- * @see libinput_device_config_tap_drag_set_enabled
- * @see libinput_device_config_tap_drag_get_enabled
+ * @see libinput_device_config_tap_set_drag_enabled
+ * @see libinput_device_config_tap_get_drag_enabled
  *
  * @since 1.2
  */
