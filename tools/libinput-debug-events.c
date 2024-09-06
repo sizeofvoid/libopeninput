@@ -50,11 +50,13 @@ static struct tools_options options;
 static bool show_keycodes;
 static volatile sig_atomic_t stop = 0;
 static bool be_quiet = false;
+static bool compress_motion_events = false;
+static bool is_tty = false;
 
 #define printq(...) ({ if (!be_quiet)  printf(__VA_ARGS__); })
 
 static void
-print_event_header(struct libinput_event *ev)
+print_event_header(struct libinput_event *ev, size_t event_count)
 {
 	/* use for pointer value only, do not dereference */
 	static void *last_device = NULL;
@@ -172,6 +174,11 @@ print_event_header(struct libinput_event *ev)
 	       prefix,
 	       libinput_device_get_sysname(dev),
 	       type);
+
+	if (event_count > 1)
+		printq("%3zd ", event_count);
+	else
+		printq("    ");
 
 	last_device = dev;
 }
@@ -867,9 +874,14 @@ handle_and_print_events(struct libinput *li)
 {
 	int rc = -1;
 	struct libinput_event *ev;
+	static struct libinput_device *last_device = NULL;
+	static enum libinput_event_type last_event_type = LIBINPUT_EVENT_NONE;
+	static size_t event_repeat_count = 0;
+	static uint32_t last_log_serial = 0;
 
 	tools_dispatch(li);
 	while ((ev = libinput_get_event(li))) {
+		struct libinput_device *device = libinput_event_get_device(ev);
 		enum libinput_event_type type = libinput_event_get_type(ev);
 
 		if (type == LIBINPUT_EVENT_POINTER_AXIS) {
@@ -877,7 +889,34 @@ handle_and_print_events(struct libinput *li)
 			continue;
 		}
 
-		print_event_header(ev);
+		bool is_repeat = false;
+
+		switch (type) {
+		case LIBINPUT_EVENT_POINTER_MOTION:
+		case LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE:
+		case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL:
+		case LIBINPUT_EVENT_POINTER_SCROLL_FINGER:
+		case LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS:
+		case LIBINPUT_EVENT_TOUCH_MOTION:
+		case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
+		case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE:
+		case LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE:
+			is_repeat = last_event_type == type && last_device == device && log_serial == last_log_serial;
+			break;
+		default:
+			break;
+		}
+
+		if (is_repeat) {
+			event_repeat_count++;
+			if (compress_motion_events)
+				printq("\e[1A");
+		} else {
+			event_repeat_count = 0;
+		}
+
+		if (type != LIBINPUT_EVENT_TOUCH_FRAME || !compress_motion_events)
+			print_event_header(ev, event_repeat_count + 1);
 
 		switch (type) {
 		case LIBINPUT_EVENT_NONE:
@@ -914,8 +953,11 @@ handle_and_print_events(struct libinput *li)
 		case LIBINPUT_EVENT_TOUCH_MOTION:
 		case LIBINPUT_EVENT_TOUCH_UP:
 		case LIBINPUT_EVENT_TOUCH_CANCEL:
-		case LIBINPUT_EVENT_TOUCH_FRAME:
 			print_touch_event(ev);
+			break;
+		case LIBINPUT_EVENT_TOUCH_FRAME:
+			if (!compress_motion_events)
+				print_touch_event(ev);
 			break;
 		case LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN:
 			print_gesture_event_without_coords(ev);
@@ -979,6 +1021,11 @@ handle_and_print_events(struct libinput *li)
 			break;
 		}
 
+		last_device = device;
+		if (type != LIBINPUT_EVENT_TOUCH_FRAME)
+			last_event_type = type;
+		last_log_serial = log_serial;
+
 		libinput_event_destroy(ev);
 		rc = 0;
 	}
@@ -1040,6 +1087,8 @@ main(int argc, char **argv)
 
 	tools_init_options(&options);
 
+	is_tty = isatty(STDOUT_FILENO);
+
 	while (1) {
 		int c;
 		int option_index = 0;
@@ -1050,6 +1099,7 @@ main(int argc, char **argv)
 			OPT_VERBOSE,
 			OPT_SHOW_KEYCODES,
 			OPT_QUIET,
+			OPT_COMPRESS_MOTION_EVENTS,
 		};
 		static struct option opts[] = {
 			CONFIGURATION_OPTIONS,
@@ -1060,6 +1110,7 @@ main(int argc, char **argv)
 			{ "grab",                      no_argument,       0, OPT_GRAB },
 			{ "verbose",                   no_argument,       0, OPT_VERBOSE },
 			{ "quiet",                     no_argument,       0, OPT_QUIET },
+			{ "compress-motion-events",    no_argument,       0, OPT_COMPRESS_MOTION_EVENTS },
 			{ 0, 0, 0, 0}
 		};
 
@@ -1107,6 +1158,10 @@ main(int argc, char **argv)
 			break;
 		case OPT_VERBOSE:
 			verbose = true;
+			break;
+		case OPT_COMPRESS_MOTION_EVENTS:
+			/* We compress by using ansi escape sequences */
+			compress_motion_events = is_tty;
 			break;
 		default:
 			if (tools_parse_option(c, optarg, &options) != 0) {

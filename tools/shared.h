@@ -32,6 +32,8 @@
 
 #define EXIT_INVALID_USAGE 2
 
+extern uint32_t log_serial;
+
 enum configuration_options {
 	OPT_TAP_ENABLE = 256,
 	OPT_TAP_DISABLE,
