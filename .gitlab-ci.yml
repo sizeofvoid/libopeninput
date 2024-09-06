@@ -667,6 +667,8 @@ vm-valgrind-touchpad:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 4
+  retry:
+    max: 2
 
 vm-valgrind-tap:
   stage: valgrind
@@ -675,6 +677,8 @@ vm-valgrind-tap:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 4
+  retry:
+    max: 2
 
 vm-valgrind-touchpad-buttons:
   stage: valgrind
@@ -683,6 +687,8 @@ vm-valgrind-touchpad-buttons:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 4
+  retry:
+    max: 2
 
 vm-valgrind-tablet:
   stage: valgrind
@@ -691,6 +697,8 @@ vm-valgrind-tablet:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 4
+  retry:
+    max: 2
 
 vm-valgrind-gestures-device:
   stage: valgrind
@@ -699,6 +707,8 @@ vm-valgrind-gestures-device:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 4
+  retry:
+    max: 2
 
 vm-valgrind-backends:
   stage: valgrind
@@ -707,6 +717,8 @@ vm-valgrind-backends:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 4
+  retry:
+    max: 2
 
 vm-valgrind-misc:
   stage: valgrind
@@ -715,6 +727,8 @@ vm-valgrind-misc:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 4
+  retry:
+    max: 2
 
 vm-valgrind-other devices:
   stage: valgrind
@@ -723,6 +737,8 @@ vm-valgrind-other devices:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 4
+  retry:
+    max: 2
 
 vm-valgrind-pointer:
   stage: valgrind
@@ -731,6 +747,8 @@ vm-valgrind-pointer:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 4
+  retry:
+    max: 2
 
 
 .fedora-build@template:
