@@ -1237,6 +1237,9 @@ void
 litest_timeout_hysteresis(void);
 
 void
+litest_timeout_3fg_drag(void);
+
+void
 litest_push_event_frame(struct litest_device *dev);
 
 void
@@ -1267,6 +1270,29 @@ void
 litest_semi_mt_touch_up(struct litest_device *d,
 			struct litest_semi_mt *semi_mt,
 			unsigned int slot);
+
+static inline
+void litest_enable_3fg_drag(struct libinput_device *device,
+			    unsigned int nfingers)
+{
+	enum libinput_config_3fg_drag_state enabled;
+
+	switch (nfingers) {
+	case 3:
+		enabled = LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG;
+		break;
+	case 4:
+		enabled = LIBINPUT_CONFIG_3FG_DRAG_ENABLED_4FG;
+		break;
+	default:
+		litest_abort_msg("Invalid finger count");
+		break;
+	}
+
+	enum libinput_config_status status =
+		libinput_device_config_3fg_drag_set_enabled(device, enabled);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+}
 
 static inline void
 litest_enable_tap(struct libinput_device *device)

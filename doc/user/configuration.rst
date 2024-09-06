@@ -38,6 +38,19 @@ graphics tablets. Tapping is usually **not** available on touch screens,
 for those devices it is expected to be implemented by the toolkit.
 
 ------------------------------------------------------------------------------
+Three-finger drag
+------------------------------------------------------------------------------
+
+Three-finger drag allows emulates the mouse button down while three fingers
+are down on a touchpad without the need to press a physical button or use
+:ref:`tapndrag`. See :ref:`drag_3fg` for details on how this feature works.
+
+Three-finger drag is usually available on touchpads and the touchpad part of
+external graphics tablets. Three-finger drag is usually **not** available on
+touch screens, for those devices it is expected to be implemented by the
+toolkit.
+
+------------------------------------------------------------------------------
 Send Events Mode
 ------------------------------------------------------------------------------
 

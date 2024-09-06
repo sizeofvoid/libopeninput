@@ -166,6 +166,9 @@ enum tp_gesture_state {
 	GESTURE_STATE_PINCH,
 	GESTURE_STATE_SWIPE_START,
 	GESTURE_STATE_SWIPE,
+	GESTURE_STATE_3FG_DRAG_START,
+	GESTURE_STATE_3FG_DRAG,
+	GESTURE_STATE_3FG_DRAG_RELEASED,
 };
 
 enum tp_thumb_state {
@@ -365,6 +368,9 @@ struct tp_dispatch {
 		struct device_float_coords center;
 		struct libinput_timer hold_timer;
 		bool hold_enabled;
+
+		struct libinput_timer drag_3fg_timer;
+		uint64_t drag_3fg_release_time;
 	} gesture;
 
 	struct {
@@ -441,6 +447,12 @@ struct tp_dispatch {
 
 		unsigned int nfingers_down;	/* number of fingers down for tapping (excl. thumb/palm) */
 	} tap;
+
+	struct {
+		struct libinput_device_config_3fg_drag config;
+		size_t nfingers;
+		size_t want_nfingers;
+	} drag_3fg;
 
 	struct {
 		struct libinput_device_config_dwtp config;
@@ -774,5 +786,8 @@ tp_init_thumb(struct tp_dispatch *tp);
 
 struct tp_touch*
 tp_thumb_get_touch(struct tp_dispatch *tp);
+
+void
+tp_3fg_drag_apply_config(struct evdev_device *device);
 
 #endif

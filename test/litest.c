@@ -4915,6 +4915,12 @@ litest_timeout_hysteresis(void)
 }
 
 void
+litest_timeout_3fg_drag(void)
+{
+	msleep(800);
+}
+
+void
 litest_push_event_frame(struct litest_device *dev)
 {
 	litest_assert_int_ge(dev->skip_ev_syn, 0);

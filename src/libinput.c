@@ -4119,6 +4119,48 @@ libinput_device_config_tap_get_default_drag_lock_enabled(struct libinput_device 
 }
 
 LIBINPUT_EXPORT int
+libinput_device_config_3fg_drag_get_finger_count(struct libinput_device *device)
+{
+	return device->config.drag_3fg ? device->config.drag_3fg->count(device) : 0;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_3fg_drag_set_enabled(struct libinput_device *device,
+					    enum libinput_config_3fg_drag_state enable)
+{
+	if (libinput_device_config_3fg_drag_get_finger_count(device) < 3)
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	switch (enable) {
+	case LIBINPUT_CONFIG_3FG_DRAG_DISABLED:
+	case LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG:
+	case LIBINPUT_CONFIG_3FG_DRAG_ENABLED_4FG:
+		return device->config.drag_3fg->set_enabled(device, enable);
+		break;
+	}
+
+	return LIBINPUT_CONFIG_STATUS_INVALID;
+}
+
+LIBINPUT_EXPORT enum libinput_config_3fg_drag_state
+libinput_device_config_3fg_drag_get_enabled(struct libinput_device *device)
+{
+	if (libinput_device_config_3fg_drag_get_finger_count(device) < 3)
+		return LIBINPUT_CONFIG_3FG_DRAG_DISABLED;
+
+	return device->config.drag_3fg->get_enabled(device);
+}
+
+LIBINPUT_EXPORT enum libinput_config_3fg_drag_state
+libinput_device_config_3fg_drag_get_default_enabled(struct libinput_device *device)
+{
+	if (libinput_device_config_3fg_drag_get_finger_count(device) < 3)
+		return LIBINPUT_CONFIG_3FG_DRAG_DISABLED;
+
+	return device->config.drag_3fg->get_default(device);
+}
+
+LIBINPUT_EXPORT int
 libinput_device_config_calibration_has_matrix(struct libinput_device *device)
 {
 	return device->config.calibration ?

@@ -145,6 +145,7 @@ src_rst = files(
 	'contributing.rst',
 	'device-configuration-via-udev.rst',
 	'device-quirks.rst',
+	'drag-3fg.rst',
 	'faqs.rst',
 	'gestures.rst',
 	'incorrectly-enabled-hires.rst',

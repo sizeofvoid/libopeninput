@@ -69,6 +69,7 @@ enum configuration_options {
 	OPT_PRESSURE_RANGE,
 	OPT_CALIBRATION,
 	OPT_AREA,
+	OPT_3FG_DRAG,
 };
 
 #define CONFIGURATION_OPTIONS \
@@ -91,6 +92,7 @@ enum configuration_options {
 	{ "disable-dwtp",              no_argument,       0, OPT_DWTP_DISABLE }, \
 	{ "enable-scroll-button-lock", no_argument,       0, OPT_SCROLL_BUTTON_LOCK_ENABLE }, \
 	{ "disable-scroll-button-lock",no_argument,       0, OPT_SCROLL_BUTTON_LOCK_DISABLE }, \
+	{ "enable-3fg-drag",           required_argument, 0, OPT_3FG_DRAG }, \
 	{ "set-click-method",          required_argument, 0, OPT_CLICK_METHOD }, \
 	{ "set-clickfinger-map",       required_argument, 0, OPT_CLICKFINGER_MAP }, \
 	{ "set-scroll-method",         required_argument, 0, OPT_SCROLL_METHOD }, \
@@ -141,6 +143,7 @@ struct tools_options {
 	double pressure_range[2];
 	float calibration[6];
 	struct libinput_config_area_rectangle area;
+	enum libinput_config_3fg_drag_state drag_3fg;
 };
 
 void tools_init_options(struct tools_options *options);

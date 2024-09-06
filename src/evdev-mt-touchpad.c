@@ -1910,6 +1910,7 @@ tp_handle_state(struct tp_dispatch *tp,
 
 	tp_clickpad_middlebutton_apply_config(tp->device);
 	tp_apply_rotation(tp->device);
+	tp_3fg_drag_apply_config(tp->device);
 }
 
 LIBINPUT_UNUSED
@@ -2023,6 +2024,7 @@ tp_interface_destroy(struct evdev_dispatch *dispatch)
 	libinput_timer_destroy(&tp->tap.timer);
 	libinput_timer_destroy(&tp->gesture.finger_count_switch_timer);
 	libinput_timer_destroy(&tp->gesture.hold_timer);
+	libinput_timer_destroy(&tp->gesture.drag_3fg_timer);
 	free(tp->touches);
 	free(tp);
 }

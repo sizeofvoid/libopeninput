@@ -218,6 +218,15 @@ struct libinput_device_config_tap {
 	enum libinput_config_drag_lock_state (*get_default_draglock_enabled)(struct libinput_device *device);
 };
 
+struct libinput_device_config_3fg_drag {
+	int (*count)(struct libinput_device *device);
+	enum libinput_config_status (*set_enabled)(struct libinput_device *device,
+						   enum libinput_config_3fg_drag_state enable);
+	enum libinput_config_3fg_drag_state (*get_enabled)(struct libinput_device *device);
+	enum libinput_config_3fg_drag_state (*get_default)(struct libinput_device *device);
+
+};
+
 struct libinput_device_config_calibration {
 	int (*has_matrix)(struct libinput_device *device);
 	enum libinput_config_status (*set_matrix)(struct libinput_device *device,
@@ -411,6 +420,7 @@ struct libinput_device_config {
 	struct libinput_device_config_dwtp *dwtp;
 	struct libinput_device_config_rotation *rotation;
 	struct libinput_device_config_gesture *gesture;
+	struct libinput_device_config_3fg_drag *drag_3fg;
 };
 
 struct libinput_device_group {

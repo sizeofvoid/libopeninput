@@ -22,6 +22,7 @@ to be useful.
    scrolling.rst
    t440-support.rst
    tapping.rst
+   drag-3fg.rst
    tablet-support.rst
    switches.rst
    touchpad-pressure.rst

@@ -1782,11 +1782,491 @@ START_TEST(gestures_hold_and_motion_after_timeout)
 }
 END_TEST
 
+START_TEST(gestures_3fg_drag)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	uint32_t finger_count;
+	bool tap_enabled;
+	litest_test_param_fetch(test_env->params,
+				"fingers", 'u', &finger_count,
+				"tap-enabled", 'b', &tap_enabled);
+
+	if (litest_slot_count(dev) < 3)
+		return LITEST_NOT_APPLICABLE;
+
+	if (libinput_device_config_3fg_drag_get_finger_count(dev->libinput_device) < (int)finger_count)
+		return LITEST_NOT_APPLICABLE;
+
+	litest_enable_3fg_drag(dev->libinput_device, finger_count);
+	if (tap_enabled)
+		litest_enable_tap(dev->libinput_device);
+	else
+		litest_disable_tap(dev->libinput_device);
+
+	litest_drain_events(li);
+
+	double y = 30.0;
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_down(dev, i, 10 + i, y);
+
+	litest_dispatch(li);
+
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_GESTURE_HOLD_BEGIN, LIBINPUT_EVENT_GESTURE_HOLD_END);
+
+	if (tap_enabled) {
+		litest_checkpoint("Expecting no immediate button press as tapping is enabled");
+		litest_assert_empty_queue(li);
+	} else {
+		litest_checkpoint("Expecting immediate button press as tapping is disabled");
+		litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	}
+
+	while (y < 60.0) {
+		y += 2;
+		for (uint32_t i = 0; i < finger_count; i++)
+			litest_touch_move(dev, i, 10 + i, y);
+		litest_dispatch(li);
+	}
+
+	if (tap_enabled) {
+		litest_checkpoint("Expecting late button press as tapping is enabled");
+		litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	}
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_up(dev, i);
+
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_timeout_3fg_drag();
+	litest_dispatch(li);
+
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
+}
+END_TEST
+
+START_TEST(gestures_3fg_drag_lock_resume_3fg_motion)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	uint32_t finger_count;
+	bool tap_enabled;
+	bool wait_for_timeout;
+	litest_test_param_fetch(test_env->params,
+				"fingers", 'u', &finger_count,
+				"tap-enabled", 'b', &tap_enabled,
+				"wait", 'b', &wait_for_timeout);
+
+	if (litest_slot_count(dev) < 3)
+		return LITEST_NOT_APPLICABLE;
+
+	if (libinput_device_config_3fg_drag_get_finger_count(dev->libinput_device) < (int)finger_count)
+		return LITEST_NOT_APPLICABLE;
+
+	litest_enable_3fg_drag(dev->libinput_device, finger_count);
+	if (tap_enabled)
+		litest_enable_tap(dev->libinput_device);
+	else
+		litest_disable_tap(dev->libinput_device);
+
+	litest_drain_events(li);
+
+	litest_checkpoint("Putting three fingers down + movement)");
+	double y = 30.0;
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_down(dev, i, 10 + i, y);
+
+	litest_dispatch(li);
+
+	while (y < 60.0) {
+		y += 2;
+		for (uint32_t i = 0; i < finger_count; i++)
+			litest_touch_move(dev, i, 10 + i, y);
+		litest_dispatch(li);
+	}
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_checkpoint("Releasing all fingers");
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_up(dev, i);
+
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_checkpoint("Putting three fingers down (no movement)");
+	y = 30.0;
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_down(dev, i, 10 + i, y);
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_dispatch(li);
+
+	litest_checkpoint("Waiting past finger switch timeout");
+	litest_timeout_finger_switch();
+	litest_dispatch(li);
+
+	if (wait_for_timeout) {
+		litest_checkpoint("Waiting past tap/3fg drag timeout");
+		litest_timeout_3fg_drag();
+		litest_dispatch(li);
+		litest_assert_empty_queue(li);
+	}
+
+	litest_checkpoint("Moving three fingers");
+	while (y < 60.0) {
+		y += 2;
+		for (uint32_t i = 0; i < finger_count; i++)
+			litest_touch_move(dev, i, 10 + i, y);
+		litest_dispatch(li);
+	}
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_checkpoint("Releasing three fingers");
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_up(dev, i);
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_timeout_3fg_drag();
+	litest_dispatch(li);
+
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
+}
+END_TEST
+
+START_TEST(gestures_3fg_drag_lock_resume_3fg_release_no_motion)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	uint32_t finger_count;
+	bool tap_enabled;
+	bool wait_for_timeout;
+	litest_test_param_fetch(test_env->params,
+				"fingers", 'u', &finger_count,
+				"tap-enabled", 'b', &tap_enabled,
+				"wait", 'b', &wait_for_timeout);
+
+	/* tap-enabled for 4fg finger count doesn't make a difference */
+	bool expect_tap = finger_count <= 3 && tap_enabled && !wait_for_timeout;
+
+	if (litest_slot_count(dev) < 3)
+		return LITEST_NOT_APPLICABLE;
+
+	if (libinput_device_config_3fg_drag_get_finger_count(dev->libinput_device) < (int)finger_count)
+		return LITEST_NOT_APPLICABLE;
+
+	litest_enable_3fg_drag(dev->libinput_device, finger_count);
+
+	if (tap_enabled)
+		litest_enable_tap(dev->libinput_device);
+	else
+		litest_disable_tap(dev->libinput_device);
+
+	litest_drain_events(li);
+
+	litest_checkpoint("Putting 3 fingers down with motion for drag");
+	double y = 30.0;
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_down(dev, i, 10 + i, y);
+
+	litest_dispatch(li);
+	while (y < 60.0) {
+		y += 2;
+		for (uint32_t i = 0; i < finger_count; i++)
+			litest_touch_move(dev, i, 10 + i, y);
+		litest_dispatch(li);
+	}
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_up(dev, i);
+
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_checkpoint("Putting 3 fingers down again (no motion)");
+	y = 30.0;
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_down(dev, i, 10 + i, y);
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_checkpoint("Waiting past finger switch timeout");
+	litest_timeout_finger_switch();
+	litest_dispatch(li);
+
+	if (wait_for_timeout) {
+		litest_checkpoint("Waiting past tap/3fg drag timeout");
+		litest_timeout_3fg_drag();
+		litest_dispatch(li);
+		litest_assert_empty_queue(li);
+	}
+
+	litest_checkpoint("Releasing three fingers");
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_up(dev, i);
+	litest_dispatch(li);
+
+	if (expect_tap) {
+		/* If we're not waiting and tapping is enabled, this is
+		 * the equivalent of a 3fg tap within the drag timeout */
+		litest_checkpoint("Expecting 3fg drag release");
+		litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
+		litest_checkpoint("Expecting 3fg tap");
+		litest_assert_button_event(li, BTN_MIDDLE, LIBINPUT_BUTTON_STATE_PRESSED);
+		litest_assert_button_event(li, BTN_MIDDLE, LIBINPUT_BUTTON_STATE_RELEASED);
+	}
+
+	litest_assert_empty_queue(li);
+	litest_timeout_3fg_drag();
+	litest_dispatch(li);
+
+	if (!expect_tap)
+		litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(gestures_3fg_drag_lock_resume_1fg_motion)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	uint32_t finger_count;
+	bool tap_enabled;
+	litest_test_param_fetch(test_env->params,
+				"fingers", 'u', &finger_count,
+				"tap-enabled", 'b', &tap_enabled);
+
+	if (litest_slot_count(dev) < 3)
+		return LITEST_NOT_APPLICABLE;
+
+	if (libinput_device_config_3fg_drag_get_finger_count(dev->libinput_device) < (int)finger_count)
+		return LITEST_NOT_APPLICABLE;
+
+	litest_enable_3fg_drag(dev->libinput_device, finger_count);
+
+	if (tap_enabled)
+		litest_enable_tap(dev->libinput_device);
+	else
+		litest_disable_tap(dev->libinput_device);
+
+	litest_drain_events(li);
+
+	litest_checkpoint("Putting 3 fingers down + motion to trigger 3fg drag");
+	double y = 30.0;
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_down(dev, i, 10 + i, y);
+
+	while (y < 60.0) {
+		y += 2;
+		for (uint32_t i = 0; i < finger_count; i++)
+			litest_touch_move(dev, i, 10 + i, y);
+		litest_dispatch(li);
+	}
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_checkpoint("Releasing 3 fingers");
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_up(dev, i);
+
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_checkpoint("Putting 1 finger down and moving it");
+	/* fingers are up, now let's put one finger down and move it */
+	y = 30.0;
+	litest_touch_down(dev, 0, 10, y);
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	/* We need to wait until the gesture code accepts this is one finger only */
+	litest_timeout_finger_switch();
+	litest_dispatch(li);
+
+	while (y < 60.0) {
+		y += 2;
+		litest_touch_move(dev, 0, 10, y);
+		litest_dispatch(li);
+	}
+
+	litest_checkpoint("Expecting drag button release and motion");
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_touch_up(dev, 0);
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_timeout_3fg_drag();
+	litest_dispatch(li);
+}
+END_TEST
+
+START_TEST(gestures_3fg_drag_lock_resume_2fg_scroll)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	uint32_t finger_count;
+	bool tap_enabled;
+	litest_test_param_fetch(test_env->params,
+				"fingers", 'u', &finger_count,
+				"tap-enabled", 'b', &tap_enabled);
+
+	if (litest_slot_count(dev) < 3)
+		return LITEST_NOT_APPLICABLE;
+
+	if (libinput_device_config_3fg_drag_get_finger_count(dev->libinput_device) < (int)finger_count)
+		return LITEST_NOT_APPLICABLE;
+
+	litest_enable_3fg_drag(dev->libinput_device, finger_count);
+
+	if (tap_enabled)
+		litest_enable_tap(dev->libinput_device);
+	else
+		litest_disable_tap(dev->libinput_device);
+
+	litest_drain_events(li);
+
+	litest_checkpoint("Putting 3 fingers down + motion to trigger 3fg drag");
+	double y = 30.0;
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_down(dev, i, 10 + i, y);
+
+	while (y < 60.0) {
+		y += 2;
+		for (uint32_t i = 0; i < finger_count; i++)
+			litest_touch_move(dev, i, 10 + i, y);
+		litest_dispatch(li);
+	}
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_checkpoint("Releasing 3 fingers");
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_up(dev, i);
+
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_checkpoint("Putting 2 fingers down and moving them");
+	y = 30.0;
+	litest_touch_down(dev, 0, 10, y);
+	litest_touch_down(dev, 1, 20, y);
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_timeout_finger_switch();
+	litest_dispatch(li);
+
+	while (y < 60.0) {
+		y += 2;
+		litest_touch_move(dev, 0, 10, y);
+		litest_touch_move(dev, 1, 20, y);
+		litest_dispatch(li);
+	}
+
+	litest_checkpoint("Expecting drag button release and scroll");
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_only_axis_events(li, LIBINPUT_EVENT_POINTER_SCROLL_FINGER);
+
+	litest_touch_up(dev, 0);
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_timeout_3fg_drag();
+	litest_dispatch(li);
+}
+END_TEST
+
+START_TEST(gestures_3fg_drag_lock_resume_1fg_tap)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	int finger_count = _i; /* ranged test */
+
+	if (litest_slot_count(dev) < 3)
+		return LITEST_NOT_APPLICABLE;
+
+	if (libinput_device_config_3fg_drag_get_finger_count(dev->libinput_device) < finger_count)
+		return LITEST_NOT_APPLICABLE;
+
+	litest_enable_3fg_drag(dev->libinput_device, finger_count);
+	litest_enable_tap(dev->libinput_device);
+
+	litest_drain_events(li);
+
+	litest_checkpoint("Putting 3 fingers down for 3fg drag");
+	double y = 30.0;
+	for (int i = 0; i < finger_count; i++)
+		litest_touch_down(dev, i, 10 + i, y);
+
+	litest_dispatch(li);
+
+	while (y < 60.0) {
+		y += 2;
+		for (int i = 0; i < finger_count; i++)
+			litest_touch_move(dev, i, 10 + i, y);
+		litest_dispatch(li);
+	}
+	litest_drain_events_of_type(li,
+				    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+				    LIBINPUT_EVENT_GESTURE_HOLD_END,
+				    -1);
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_checkpoint("Releasing 3 fingers");
+	for (int i = 0; i < finger_count; i++)
+		litest_touch_up(dev, i);
+
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_checkpoint("Tapping with 1 finger");
+	/* fingers are up, now let's tap with one finger */
+	y = 30.0;
+	litest_touch_down(dev, 0, 10, y);
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+	litest_touch_up(dev, 0);
+	litest_dispatch(li);
+
+	litest_timeout_tap();
+	litest_dispatch(li);
+
+	litest_checkpoint("Expecting drag release followed by 1fg tap");
+
+	/* 3fg drag lock must be cancelled */
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
+	/* And a 1fg tap */
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_empty_queue(li);
+
+	litest_timeout_3fg_drag();
+	litest_dispatch(li);
+}
+END_TEST
+
 TEST_COLLECTION(gestures)
 {
 	struct range cardinals = { N, N + NCARDINALS };
 	struct range range_hold = { 1, 5 };
 	struct range range_multifinger_tap = {1, 4};
+	struct range range_3fg_drag = { 3, 5 };
 
 	litest_add(gestures_cap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add(gestures_nocap, LITEST_ANY, LITEST_TOUCHPAD);
@@ -1829,6 +2309,32 @@ TEST_COLLECTION(gestures)
 
 	litest_add(gestures_hold_and_motion_before_timeout, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add(gestures_hold_and_motion_after_timeout, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+
+	{
+		struct litest_parameters *params = litest_parameters_new("fingers", 'u', 2, 3, 4,
+									 "tap-enabled", 'b');
+		litest_add_parametrized(gestures_3fg_drag, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_parameters_unref(params);
+	}
+
+	{
+		struct litest_parameters *params = litest_parameters_new("fingers", 'u', 2, 3, 4,
+									 "tap-enabled", 'b',
+									 "wait", 'b');
+		litest_add_parametrized(gestures_3fg_drag_lock_resume_3fg_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_3fg_drag_lock_resume_3fg_release_no_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_parameters_unref(params);
+	}
+
+	{
+		struct litest_parameters *params = litest_parameters_new("fingers", 'u', 2, 3, 4,
+									 "tap-enabled", 'b');
+		litest_add_parametrized(gestures_3fg_drag_lock_resume_1fg_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_3fg_drag_lock_resume_2fg_scroll, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_parameters_unref(params);
+	}
+	litest_add_ranged(gestures_3fg_drag_lock_resume_1fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &range_3fg_drag);
+
 
 	/* Timing-sensitive test, valgrind is too slow */
 	if (!RUNNING_ON_VALGRIND)

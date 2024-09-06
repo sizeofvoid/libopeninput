@@ -357,3 +357,10 @@ LIBINPUT_1.27 {
 	libinput_device_config_area_get_rectangle;
 	libinput_device_config_area_get_default_rectangle;
 } LIBINPUT_1.26;
+
+LIBINPUT_1.28 {
+	libinput_device_config_3fg_drag_get_finger_count;
+	libinput_device_config_3fg_drag_set_enabled;
+	libinput_device_config_3fg_drag_get_enabled;
+	libinput_device_config_3fg_drag_get_default_enabled;
+} LIBINPUT_1.27;
