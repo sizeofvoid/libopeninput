@@ -445,6 +445,8 @@ vm-valgrind-{{suite.name}}:
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 4
+  retry:
+    max: 2
 
 {% endfor %}
 {% endfor %}{# for if distro.use_for_qemu_tests #}
