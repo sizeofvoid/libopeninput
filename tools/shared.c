@@ -45,6 +45,7 @@
 #include "util-strings.h"
 
 static uint32_t dispatch_counter = 0;
+uint32_t log_serial = 0;
 
 void
 tools_dispatch(struct libinput *libinput)
@@ -94,6 +95,8 @@ log_handler(struct libinput *li,
 
 	if (is_tty)
 		printf(ANSI_NORMAL);
+
+	log_serial++;
 }
 
 void
