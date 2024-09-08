@@ -156,6 +156,27 @@ resource_rules:
             Please see [our docs for commit messages](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#commit-messages)
             and [our docs for submitting code](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#submitting-code)
             that explain how to amend and force-push to this repo.
+      - name: "Remind contributor that info needs to be in commit messages"
+        conditions:
+          labels:
+            - "bugbot::info-in-commit-message"
+        actions:
+          remove_labels:
+            - "bugbot::info-in-commit-message"
+          comment: |
+            Hi. Thanks for the merge request. I'm here to request that you add
+            some documentation about this merge request to the
+            **commit message** (or messages). You may have already written some
+            in the merge request description and in many cases it's fine to
+            copy/paste that into the commit message(s).
+
+            The reason is simple: once merged, no-one really looks at this this
+            page here anymore. The git log on the other hand is what developers
+            will use to understand the code so the information must be quickly
+            accessible via git.
+
+            Please see [our docs for submitting code](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#submitting-code)
+            that explain how to amend and force-push to this repo.
       - *close_needinfo
       - *remind_needinfo
       - *help_needed
