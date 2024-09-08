@@ -34,6 +34,34 @@
       you (or maybe someone cc'd on this bug). If the information is not provided we may not
       be able to proceed with this issue or merge request. Please check the recent comments, thanks.
 
+.help_needed: &help_needed
+  name: "Remind users help is needed"
+  conditions:
+    labels:
+      - "bugbot::help-needed"
+  actions:
+    labels:
+      - "help needed"
+    remove_labels:
+      - "bugbot::help-needed"
+    comment: |
+      Hi. This issue or merge request needs help. This simply means that for
+      the foreseeable future, the maintainers will not have time to work on
+      this.
+
+      If this is a request for a new feature, then the feature is unlikely to
+      be implemented unless you or another contributor files a merge request.
+      If a merge request already exists maybe it needs finishing which often
+      involves adding documentation or tests.
+
+      If this is an issue affecting a specific device then it is unlikely to be
+      fixed. This may be because it requires specific hardware to reproduce or
+      it may be that the use case is niche enough that the maintainers do not
+      have time to implement it.
+
+      In short, to resolve this issue or get this merge request into libinput
+      help is needed.
+
 resource_rules:
   issues:
     rules:
@@ -111,6 +139,7 @@ resource_rules:
             remember to close this issue.
       - *close_needinfo
       - *remind_needinfo
+      - *help_needed
   merge_requests:
     rules:
       - name: "Remind contributor of commit rules"
@@ -129,3 +158,4 @@ resource_rules:
             that explain how to amend and force-push to this repo.
       - *close_needinfo
       - *remind_needinfo
+      - *help_needed
