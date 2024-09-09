@@ -872,8 +872,12 @@ handle_and_print_events(struct libinput *li)
 	while ((ev = libinput_get_event(li))) {
 		enum libinput_event_type type = libinput_event_get_type(ev);
 
-		if (type != LIBINPUT_EVENT_POINTER_AXIS)
-			print_event_header(ev);
+		if (type == LIBINPUT_EVENT_POINTER_AXIS) {
+			libinput_event_destroy(ev);
+			continue;
+		}
+
+		print_event_header(ev);
 
 		switch (type) {
 		case LIBINPUT_EVENT_NONE:
