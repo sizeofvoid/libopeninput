@@ -55,16 +55,12 @@ static bool is_tty = false;
 
 #define printq(...) ({ if (!be_quiet)  printf(__VA_ARGS__); })
 
-static void
-print_event_header(struct libinput_event *ev, size_t event_count)
+static const char *
+event_type_to_str(enum libinput_event_type evtype)
 {
-	/* use for pointer value only, do not dereference */
-	static void *last_device = NULL;
-	struct libinput_device *dev = libinput_event_get_device(ev);
-	const char *type = NULL;
-	char prefix;
+	const char *type;
 
-	switch(libinput_event_get_type(ev)) {
+	switch(evtype) {
 	case LIBINPUT_EVENT_NONE:
 		abort();
 	case LIBINPUT_EVENT_DEVICE_ADDED:
@@ -167,6 +163,19 @@ print_event_header(struct libinput_event *ev, size_t event_count)
 		type = "SWITCH_TOGGLE";
 		break;
 	}
+
+	return type;
+}
+
+static void
+print_event_header(struct libinput_event *ev, size_t event_count)
+{
+	/* use for pointer value only, do not dereference */
+	static void *last_device = NULL;
+	struct libinput_device *dev = libinput_event_get_device(ev);
+	char prefix;
+
+	const char *type = event_type_to_str(libinput_event_get_type(ev));
 
 	prefix = (last_device != dev) ? '-' : ' ';
 
