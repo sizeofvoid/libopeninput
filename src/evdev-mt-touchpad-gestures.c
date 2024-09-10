@@ -650,8 +650,8 @@ tp_gesture_handle_event_on_state_hold(struct tp_dispatch *tp,
 		tp->gesture.state = GESTURE_STATE_SWIPE;
 		break;
 	case GESTURE_EVENT_PINCH:
-		tp_gesture_init_pinch(tp);
 		tp_gesture_cancel(tp, time);
+		tp_gesture_init_pinch(tp);
 		tp->gesture.state = GESTURE_STATE_PINCH;
 		break;
 	case GESTURE_EVENT_HOLD_TIMEOUT:
