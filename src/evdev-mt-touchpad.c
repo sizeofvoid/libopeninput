@@ -1812,7 +1812,7 @@ tp_process_state(struct tp_dispatch *tp, uint64_t time)
 	    tp->buttons.is_clickpad)
 		tp_pin_fingers(tp);
 
-	tp_gesture_handle_state(tp, time);
+	tp_gesture_update_finger_state(tp, time);
 }
 
 static void
