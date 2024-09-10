@@ -1247,7 +1247,7 @@ tp_gesture_handle_state_pinch(struct tp_dispatch *tp, uint64_t time)
 }
 
 static void
-tp_gesture_post_gesture(struct tp_dispatch *tp, uint64_t time,
+tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time,
 			bool ignore_motion)
 {
 	if (tp->gesture.state == GESTURE_STATE_NONE)
@@ -1330,7 +1330,7 @@ tp_gesture_post_events(struct tp_dispatch *tp, uint64_t time,
 		tp_thumb_reset(tp);
 
 	if (tp->gesture.finger_count <= 4)
-		tp_gesture_post_gesture(tp, time, ignore_motion);
+		tp_gesture_handle_state(tp, time, ignore_motion);
 }
 
 void
@@ -1422,7 +1422,7 @@ tp_gesture_finger_count_switch_timeout(uint64_t now, void *data)
 }
 
 void
-tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time)
+tp_gesture_update_finger_state(struct tp_dispatch *tp, uint64_t time)
 {
 	unsigned int active_touches = 0;
 	struct tp_touch *t;
