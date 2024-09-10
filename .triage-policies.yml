@@ -62,7 +62,7 @@ resource_rules:
             - "bugbot::hid-recorder"
           comment: |
             Looks like we may need some extra information that isn't yet available in this issue.
-            Please **attach** (do not paste) the output of `hid-recorder` from [hid-tools](https://gitlab.freedesktop.org/libevdev/hid-tools/)
+            Please **attach** (do not paste) the output of [`hid-recorder`](https://github.com/hidutils/hid-recorder/)
             for this device (run `sudo hid-recorder` without argument and it will let you pick the device).
             This should show the data the kernel receives from the device and may provide a hint on what's going on here.
       - name: "Request libinput record output"
