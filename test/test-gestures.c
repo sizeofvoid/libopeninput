@@ -1733,7 +1733,7 @@ START_TEST(gestures_hold_and_motion_before_timeout)
 
 	litest_timeout_gesture_quick_hold();
 
-	litest_drain_events_of_type(li, LIBINPUT_EVENT_POINTER_MOTION, -1);
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_POINTER_MOTION);
 
 	litest_assert_gesture_event(li,
 				    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,

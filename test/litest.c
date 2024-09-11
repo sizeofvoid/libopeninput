@@ -3056,7 +3056,7 @@ litest_drain_events(struct libinput *li)
 
 
 void
-litest_drain_events_of_type(struct libinput *li, ...)
+_litest_drain_events_of_type(struct libinput *li, ...)
 {
 	enum libinput_event_type type;
 	enum libinput_event_type types[32] = {LIBINPUT_EVENT_NONE};
@@ -3075,7 +3075,7 @@ litest_drain_events_of_type(struct libinput *li, ...)
 
 	libinput_dispatch(li);
 	type = libinput_next_event_type(li);
-	while (type !=  LIBINPUT_EVENT_NONE) {
+	while (type != LIBINPUT_EVENT_NONE) {
 		struct libinput_event *event;
 		bool found = false;
 

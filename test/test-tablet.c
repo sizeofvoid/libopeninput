@@ -1058,7 +1058,7 @@ START_TEST(proximity_in_button_down)
 
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
-	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_TIP, -1);
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_TIP);
 	litest_assert_tablet_button_event(li,
 					  button,
 					  LIBINPUT_BUTTON_STATE_PRESSED);
@@ -1094,7 +1094,7 @@ START_TEST(proximity_out_button_up)
 	litest_assert_tablet_button_event(li,
 					  button,
 					  LIBINPUT_BUTTON_STATE_RELEASED);
-	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_TIP, -1);
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_TIP);
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_assert_empty_queue(li);
@@ -1234,7 +1234,7 @@ START_TEST(proximity_has_axes)
 		litest_assert_double_ne(y, 0);
 	}
 
-	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_TIP, -1);
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_TIP);
 
 	litest_assert_empty_queue(li);
 	libinput_event_destroy(event);
@@ -1273,7 +1273,7 @@ START_TEST(proximity_has_axes)
 	litest_timeout_tablet_proxout();
 	libinput_dispatch(li);
 
-	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_TIP, -1);
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_TIP);
 
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
@@ -2933,7 +2933,7 @@ START_TEST(tool_in_prox_before_start)
 	li = litest_create_context();
 	libinput_path_add_device(li, devnode);
 
-	litest_drain_events_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED, -1);
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 
 	litest_assert_empty_queue(li);
 
@@ -2946,7 +2946,7 @@ START_TEST(tool_in_prox_before_start)
 	serial = libinput_tablet_tool_get_serial(tool);
 	libinput_event_destroy(event);
 
-	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_TIP, -1);
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_TIP);
 
 	litest_tablet_motion(dev, 30, 40, axes);
 	libinput_dispatch(li);
