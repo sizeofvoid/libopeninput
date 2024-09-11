@@ -2991,7 +2991,7 @@ litest_wait_for_event(struct libinput *li)
 }
 
 void
-litest_wait_for_event_of_type(struct libinput *li, ...)
+_litest_wait_for_event_of_type(struct libinput *li, ...)
 {
 	va_list args;
 	enum libinput_event_type types[32] = {LIBINPUT_EVENT_NONE};

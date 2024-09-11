@@ -156,9 +156,7 @@ START_TEST(totem_proximity_in_on_init)
 	libinput_path_add_device(li, devnode);
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_DEVICE_ADDED,
-				      -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 	event = libinput_get_event(li);
 	libinput_event_destroy(event);
 
@@ -417,9 +415,7 @@ START_TEST(totem_button_down_on_init)
 	libinput_path_add_device(li, devnode);
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_DEVICE_ADDED,
-				      -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 	event = libinput_get_event(li);
 	libinput_event_destroy(event);
 

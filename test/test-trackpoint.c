@@ -160,7 +160,7 @@ START_TEST(trackpoint_scroll_source)
 	litest_drain_events(li);
 
 	litest_button_scroll(dev, BTN_MIDDLE, 0, 6);
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS, -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS);
 
 	while ((event = libinput_get_event(li))) {
 		ptrev = libinput_event_get_pointer_event(event);

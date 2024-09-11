@@ -201,9 +201,7 @@ START_TEST(touchpad_2fg_scroll_initially_diagonal)
 	ydelta = 15 * ratio;
 	litest_touch_move_two_touches(dev, 45, 30, 55, 30, 15, ydelta, 10);
 	libinput_dispatch(li);
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_POINTER_AXIS,
-				      -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS);
 	litest_drain_events(li);
 
 	/* get rid of any touch history still adding x deltas sideways */
@@ -351,9 +349,7 @@ START_TEST(touchpad_2fg_scroll_axis_lock_switch)
 	/* Move roughly straight horizontally for >100ms to set axis lock */
 	litest_touch_move_two_touches(dev, 20, 20, 25, 20, 55, 10, 15);
 	libinput_dispatch(li);
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_POINTER_AXIS,
-				      -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS);
 
 	axis = LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL;
 	ck_assert(is_single_axis_2fg_scroll(dev, axis));
@@ -368,17 +364,13 @@ START_TEST(touchpad_2fg_scroll_axis_lock_switch)
 	 */
 	litest_touch_move_two_touches(dev, 75, 30, 80, 30, 2, 20, 15);
 	libinput_dispatch(li);
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_POINTER_AXIS,
-				      -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS);
 	litest_drain_events(li);
 
 	/* Move some more, roughly vertically, and check new axis lock */
 	litest_touch_move_two_touches(dev, 77, 50, 82, 50, 1, 40, 15);
 	libinput_dispatch(li);
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_POINTER_AXIS,
-				      -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS);
 
 	axis = LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL;
 	ck_assert(is_single_axis_2fg_scroll(dev, axis));
@@ -387,9 +379,7 @@ START_TEST(touchpad_2fg_scroll_axis_lock_switch)
 	/* Move in a clear diagonal direction to ensure the lock releases */
 	litest_touch_move_two_touches(dev, 78, 90, 83, 90, -60, -60, 20);
 	libinput_dispatch(li);
-	litest_wait_for_event_of_type(li,
-				      LIBINPUT_EVENT_POINTER_AXIS,
-				      -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS);
 
 	axis = LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL;
 	ck_assert(!is_single_axis_2fg_scroll(dev, axis));
@@ -488,7 +478,7 @@ START_TEST(touchpad_2fg_scroll_source)
 	litest_drain_events(li);
 
 	test_2fg_scroll(dev, 0, 30, false);
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS, -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS);
 
 	while ((event = libinput_get_event(li))) {
 		litest_is_axis_event(event,
@@ -938,7 +928,7 @@ START_TEST(touchpad_edge_scroll_timeout)
 	litest_touch_up(dev, 0);
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS, -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS);
 
 	while ((event = libinput_get_event(li))) {
 		struct libinput_event_pointer *ptrev;
@@ -1022,7 +1012,7 @@ START_TEST(touchpad_edge_scroll_source)
 	litest_touch_move_to(dev, 0, 99, 20, 99, 80, 10);
 	litest_touch_up(dev, 0);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS, -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_POINTER_AXIS);
 
 	while ((event = libinput_get_event(li))) {
 		struct libinput_event_pointer *ptrev;
