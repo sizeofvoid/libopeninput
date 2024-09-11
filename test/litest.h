@@ -770,7 +770,10 @@ void
 litest_drain_events(struct libinput *li);
 
 void
-litest_drain_events_of_type(struct libinput *li, ...);
+_litest_drain_events_of_type(struct libinput *li, ...);
+
+#define litest_drain_events_of_type(li_, ...) \
+	_litest_drain_events_of_type(li_, __VA_ARGS__, -1)
 
 void
 litest_assert_event_type(struct libinput_event *event,

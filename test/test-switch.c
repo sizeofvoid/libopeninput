@@ -1060,8 +1060,7 @@ START_TEST(tablet_mode_enable_touchpad_on_resume)
 	litest_touch_up(touchpad, 0);
 	litest_drain_events_of_type(li,
 				    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
-				    LIBINPUT_EVENT_GESTURE_HOLD_END,
-				    -1);
+				    LIBINPUT_EVENT_GESTURE_HOLD_END);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
 	litest_switch_action(sw,
