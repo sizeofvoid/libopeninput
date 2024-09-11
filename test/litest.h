@@ -764,7 +764,10 @@ void
 litest_wait_for_event(struct libinput *li);
 
 void
-litest_wait_for_event_of_type(struct libinput *li, ...);
+_litest_wait_for_event_of_type(struct libinput *li, ...);
+
+#define litest_wait_for_event_of_type(li_, ...) \
+	_litest_wait_for_event_of_type(li_, __VA_ARGS__, -1)
 
 void
 litest_drain_events(struct libinput *li);

@@ -200,7 +200,7 @@ START_TEST(udev_added_seat_default)
 	 * logical seat. This test may fail if there is a local rule changing
 	 * that, but it'll be fine for the 99% case. */
 	dev = litest_create(LITEST_MOUSE, NULL, NULL, NULL, NULL);
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED, -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 	event = libinput_get_event(li);
 	device = libinput_event_get_device(event);
 	seat = libinput_device_get_seat(device);
@@ -244,7 +244,7 @@ START_TEST(udev_change_seat)
 	 * logical seat. This test may fail if there is a local rule changing
 	 * that, but it'll be fine for the 99% case. */
 	dev = litest_create(LITEST_MOUSE, NULL, NULL, NULL, NULL);
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED, -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 	event = libinput_get_event(li);
 	device = libinput_event_get_device(event);
 	libinput_device_ref(device);
@@ -610,7 +610,7 @@ START_TEST(udev_path_remove_device)
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED, -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 	event = libinput_get_event(li);
 	device = libinput_event_get_device(event);
 	ck_assert_notnull(device);

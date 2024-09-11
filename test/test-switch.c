@@ -209,7 +209,7 @@ START_TEST(switch_down_on_init)
 				 libevdev_uinput_get_devnode(dev->uinput));
 	libinput_dispatch(li);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_SWITCH_TOGGLE, -1);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_SWITCH_TOGGLE);
 	event = libinput_get_event(li);
 	litest_is_switch_event(event, sw, LIBINPUT_SWITCH_STATE_ON);
 	libinput_event_destroy(event);
