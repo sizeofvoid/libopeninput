@@ -40,6 +40,7 @@
 enum gesture_event {
 	GESTURE_EVENT_RESET,
 	GESTURE_EVENT_FINGER_DETECTED,
+	GESTURE_EVENT_FINGER_SWITCH_TIMEOUT,
 	GESTURE_EVENT_HOLD_TIMEOUT,
 	GESTURE_EVENT_HOLD_AND_MOTION,
 	GESTURE_EVENT_POINTER_MOTION,
@@ -79,6 +80,7 @@ gesture_event_to_str(enum gesture_event event)
 	switch(event) {
 	CASE_RETURN_STRING(GESTURE_EVENT_RESET);
 	CASE_RETURN_STRING(GESTURE_EVENT_FINGER_DETECTED);
+	CASE_RETURN_STRING(GESTURE_EVENT_FINGER_SWITCH_TIMEOUT);
 	CASE_RETURN_STRING(GESTURE_EVENT_HOLD_TIMEOUT);
 	CASE_RETURN_STRING(GESTURE_EVENT_HOLD_AND_MOTION);
 	CASE_RETURN_STRING(GESTURE_EVENT_POINTER_MOTION);
@@ -576,6 +578,7 @@ tp_gesture_handle_event_on_state_none(struct tp_dispatch *tp,
 	case GESTURE_EVENT_SCROLL:
 		tp->gesture.state = GESTURE_STATE_SCROLL;
 		break;
+	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
 	case GESTURE_EVENT_HOLD_AND_MOTION:
 	case GESTURE_EVENT_SWIPE:
 	case GESTURE_EVENT_PINCH:
@@ -593,6 +596,8 @@ tp_gesture_handle_event_on_state_unknown(struct tp_dispatch *tp,
 	case GESTURE_EVENT_RESET:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp->gesture.state = GESTURE_STATE_NONE;
+		break;
+	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
 		break;
 	case GESTURE_EVENT_HOLD_TIMEOUT:
 		tp->gesture.state = GESTURE_STATE_HOLD;
@@ -634,6 +639,9 @@ tp_gesture_handle_event_on_state_hold(struct tp_dispatch *tp,
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp->gesture.state = GESTURE_STATE_NONE;
 		break;
+	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
+		tp_gesture_cancel(tp, time);
+		break;
 	case GESTURE_EVENT_HOLD_AND_MOTION:
 		tp->gesture.state = GESTURE_STATE_HOLD_AND_MOTION;
 		break;
@@ -671,6 +679,9 @@ tp_gesture_handle_event_on_state_hold_and_motion(struct tp_dispatch *tp,
 	case GESTURE_EVENT_RESET:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp->gesture.state = GESTURE_STATE_NONE;
+		break;
+	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
+		tp_gesture_cancel(tp, time);
 		break;
 	case GESTURE_EVENT_POINTER_MOTION:
 		tp_gesture_cancel(tp, time);
@@ -714,6 +725,7 @@ tp_gesture_handle_event_on_state_pointer_motion(struct tp_dispatch *tp,
 			tp_gesture_start(tp, time);
 		}
 		break;
+	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
 	case GESTURE_EVENT_HOLD_AND_MOTION:
 	case GESTURE_EVENT_FINGER_DETECTED:
 	case GESTURE_EVENT_POINTER_MOTION:
@@ -734,6 +746,9 @@ tp_gesture_handle_event_on_state_scroll(struct tp_dispatch *tp,
 	case GESTURE_EVENT_RESET:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp->gesture.state = GESTURE_STATE_NONE;
+		break;
+	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
+		tp_gesture_cancel(tp, time);
 		break;
 	case GESTURE_EVENT_PINCH:
 		tp_gesture_init_pinch(tp);
@@ -761,6 +776,9 @@ tp_gesture_handle_event_on_state_pinch(struct tp_dispatch *tp,
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp->gesture.state = GESTURE_STATE_NONE;
 		break;
+	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
+		tp_gesture_cancel(tp, time);
+		break;
 	case GESTURE_EVENT_HOLD_AND_MOTION:
 	case GESTURE_EVENT_FINGER_DETECTED:
 	case GESTURE_EVENT_HOLD_TIMEOUT:
@@ -782,6 +800,9 @@ tp_gesture_handle_event_on_state_swipe(struct tp_dispatch *tp,
 	case GESTURE_EVENT_RESET:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp->gesture.state = GESTURE_STATE_NONE;
+		break;
+	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
+		tp_gesture_cancel(tp, time);
 		break;
 	case GESTURE_EVENT_HOLD_AND_MOTION:
 	case GESTURE_EVENT_FINGER_DETECTED:
@@ -1416,7 +1437,7 @@ tp_gesture_finger_count_switch_timeout(uint64_t now, void *data)
 	if (!tp->gesture.finger_count_pending)
 		return;
 
-	tp_gesture_cancel(tp, now); /* End current gesture */
+	tp_gesture_handle_event(tp, GESTURE_EVENT_FINGER_SWITCH_TIMEOUT, now);
 	tp->gesture.finger_count = tp->gesture.finger_count_pending;
 	tp->gesture.finger_count_pending = 0;
 }
