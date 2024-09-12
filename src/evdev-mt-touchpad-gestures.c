@@ -644,6 +644,8 @@ tp_gesture_handle_event_on_state_hold(struct tp_dispatch *tp,
 {
 	switch(event) {
 	case GESTURE_EVENT_RESET:
+		log_gesture_bug(tp, event);
+		break;
 	case GESTURE_EVENT_END:
 	case GESTURE_EVENT_CANCEL:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
@@ -687,6 +689,8 @@ tp_gesture_handle_event_on_state_hold_and_motion(struct tp_dispatch *tp,
 {
 	switch(event) {
 	case GESTURE_EVENT_RESET:
+		log_gesture_bug(tp, event);
+		break;
 	case GESTURE_EVENT_END:
 	case GESTURE_EVENT_CANCEL:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
@@ -789,6 +793,8 @@ tp_gesture_handle_event_on_state_pinch(struct tp_dispatch *tp,
 {
 	switch(event) {
 	case GESTURE_EVENT_RESET:
+		log_gesture_bug(tp, event);
+		break;
 	case GESTURE_EVENT_END:
 	case GESTURE_EVENT_CANCEL:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
@@ -816,6 +822,8 @@ tp_gesture_handle_event_on_state_swipe(struct tp_dispatch *tp,
 {
 	switch(event) {
 	case GESTURE_EVENT_RESET:
+		log_gesture_bug(tp, event);
+		break;
 	case GESTURE_EVENT_END:
 	case GESTURE_EVENT_CANCEL:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
