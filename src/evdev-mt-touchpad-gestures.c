@@ -647,10 +647,14 @@ tp_gesture_handle_event_on_state_hold(struct tp_dispatch *tp,
 		log_gesture_bug(tp, event);
 		break;
 	case GESTURE_EVENT_END:
-	case GESTURE_EVENT_CANCEL:
+	case GESTURE_EVENT_CANCEL: {
+		bool cancelled = event == GESTURE_EVENT_CANCEL;
+		gesture_notify_hold_end(&tp->device->base, time,
+					tp->gesture.finger_count, cancelled);
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp->gesture.state = GESTURE_STATE_NONE;
 		break;
+	}
 	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
 		tp_gesture_cancel(tp, time);
 		break;
@@ -692,10 +696,14 @@ tp_gesture_handle_event_on_state_hold_and_motion(struct tp_dispatch *tp,
 		log_gesture_bug(tp, event);
 		break;
 	case GESTURE_EVENT_END:
-	case GESTURE_EVENT_CANCEL:
+	case GESTURE_EVENT_CANCEL: {
+		bool cancelled = event == GESTURE_EVENT_CANCEL;
+		gesture_notify_hold_end(&tp->device->base, time,
+					tp->gesture.finger_count, cancelled);
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp->gesture.state = GESTURE_STATE_NONE;
 		break;
+	}
 	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
 		tp_gesture_cancel(tp, time);
 		break;
@@ -764,6 +772,7 @@ tp_gesture_handle_event_on_state_scroll(struct tp_dispatch *tp,
 	case GESTURE_EVENT_RESET:
 	case GESTURE_EVENT_END:
 	case GESTURE_EVENT_CANCEL:
+		tp_gesture_stop_twofinger_scroll(tp, time);
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp->gesture.state = GESTURE_STATE_NONE;
 		break;
@@ -796,10 +805,16 @@ tp_gesture_handle_event_on_state_pinch(struct tp_dispatch *tp,
 		log_gesture_bug(tp, event);
 		break;
 	case GESTURE_EVENT_END:
-	case GESTURE_EVENT_CANCEL:
+	case GESTURE_EVENT_CANCEL: {
+		bool cancelled = event == GESTURE_EVENT_CANCEL;
+		gesture_notify_pinch_end(&tp->device->base, time,
+					 tp->gesture.finger_count,
+					 tp->gesture.prev_scale,
+					 cancelled);
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp->gesture.state = GESTURE_STATE_NONE;
 		break;
+	}
 	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
 		tp_gesture_cancel(tp, time);
 		break;
@@ -825,10 +840,16 @@ tp_gesture_handle_event_on_state_swipe(struct tp_dispatch *tp,
 		log_gesture_bug(tp, event);
 		break;
 	case GESTURE_EVENT_END:
-	case GESTURE_EVENT_CANCEL:
+	case GESTURE_EVENT_CANCEL: {
+		bool cancelled = event == GESTURE_EVENT_CANCEL;
+		gesture_notify_swipe_end(&tp->device->base,
+					 time,
+					 tp->gesture.finger_count,
+					 cancelled);
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp->gesture.state = GESTURE_STATE_NONE;
 		break;
+	}
 	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
 		tp_gesture_cancel(tp, time);
 		break;
@@ -1396,42 +1417,9 @@ tp_gesture_stop_twofinger_scroll(struct tp_dispatch *tp, uint64_t time)
 static void
 tp_gesture_end(struct tp_dispatch *tp, uint64_t time, bool cancelled)
 {
-	enum tp_gesture_state state = tp->gesture.state;
-
 	if (!tp->gesture.started) {
 		tp_gesture_handle_event(tp, GESTURE_EVENT_RESET, time);
 		return;
-	}
-
-	switch (state) {
-	case GESTURE_STATE_NONE:
-	case GESTURE_STATE_UNKNOWN:
-		evdev_log_bug_libinput(tp->device,
-				       "%s in unknown gesture mode\n",
-				       __func__);
-		break;
-	case GESTURE_STATE_HOLD:
-	case GESTURE_STATE_HOLD_AND_MOTION:
-		gesture_notify_hold_end(&tp->device->base, time,
-					tp->gesture.finger_count, cancelled);
-		break;
-	case GESTURE_STATE_SCROLL:
-		tp_gesture_stop_twofinger_scroll(tp, time);
-		break;
-	case GESTURE_STATE_PINCH:
-		gesture_notify_pinch_end(&tp->device->base, time,
-					 tp->gesture.finger_count,
-					 tp->gesture.prev_scale,
-					 cancelled);
-		break;
-	case GESTURE_STATE_SWIPE:
-		gesture_notify_swipe_end(&tp->device->base,
-					 time,
-					 tp->gesture.finger_count,
-					 cancelled);
-		break;
-	case GESTURE_STATE_POINTER_MOTION:
-		break;
 	}
 
 	tp->gesture.started = false;
