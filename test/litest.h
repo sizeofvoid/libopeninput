@@ -83,6 +83,13 @@ struct test_collection {
 	}; \
 	static void (name##_setup)(void)
 
+__attribute__ ((format (printf, 3, 0)))
+void _litest_checkpoint(const char *func,
+			int line,
+			const char *format,
+			...);
+#define litest_checkpoint(...) \
+	_litest_checkpoint(__func__, __LINE__, __VA_ARGS__)
 
 /**
  * litest itself needs the user_data to store some test-suite-specific
@@ -782,8 +789,13 @@ void
 litest_assert_event_type(struct libinput_event *event,
 			 enum libinput_event_type want);
 
+#define litest_assert_empty_queue(li_) \
+	_litest_assert_empty_queue(li_, __func__, __LINE__)
+
 void
-litest_assert_empty_queue(struct libinput *li);
+_litest_assert_empty_queue(struct libinput *li,
+			   const char *func,
+			   int line);
 
 void
 litest_assert_touch_sequence(struct libinput *li);
@@ -872,10 +884,14 @@ void
 litest_assert_key_event(struct libinput *li, unsigned int key,
 			enum libinput_key_state state);
 
+#define litest_assert_button_event(li_, button_, state_) \
+	_litest_assert_button_event(li_, button_, state_, __func__, __LINE__)
+
 void
-litest_assert_button_event(struct libinput *li,
-			   unsigned int button,
-			   enum libinput_button_state state);
+_litest_assert_button_event(struct libinput *li,
+			    unsigned int button,
+			    enum libinput_button_state state,
+			    const char *func, int line);
 
 void
 litest_assert_switch_event(struct libinput *li,
@@ -894,9 +910,13 @@ litest_assert_axis_end_sequence(struct libinput *li,
 				enum libinput_pointer_axis axis,
 				enum libinput_pointer_axis_source source);
 
+#define litest_assert_only_typed_events(...) \
+	_litest_assert_only_typed_events(__VA_ARGS__, __func__, __LINE__)
 void
-litest_assert_only_typed_events(struct libinput *li,
-				enum libinput_event_type type);
+_litest_assert_only_typed_events(struct libinput *li,
+				 enum libinput_event_type type,
+				 const char *func,
+				 int line);
 
 void
 litest_assert_only_axis_events(struct libinput *li,
@@ -928,10 +948,15 @@ litest_assert_pad_key_event(struct libinput *li,
 			    unsigned int key,
 			    enum libinput_key_state state);
 
+#define litest_assert_gesture_event(...) \
+	_litest_assert_gesture_event(__VA_ARGS__, __func__, __LINE__)
+
 void
-litest_assert_gesture_event(struct libinput *li,
-			    enum libinput_event_type type,
-			    int nfingers);
+_litest_assert_gesture_event(struct libinput *li,
+			     enum libinput_event_type type,
+			     int nfingers,
+			     const char *func,
+			     int line);
 
 struct libevdev_uinput *
 litest_create_uinput_device(const char *name,

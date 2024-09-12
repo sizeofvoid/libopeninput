@@ -115,6 +115,23 @@ static void litest_setup_quirks(struct list *created_files_list,
 #define litest_vlog(...) { /* __VA_ARGS__ */ }
 #endif
 
+void
+_litest_checkpoint(const char *func,
+		   int line,
+		   const char *format,
+		   ...)
+{
+	char buf[1024];
+	va_list args;
+
+	va_start(args, format);
+	if (verbose) {
+		vsnprintf(buf, sizeof(buf), format, args);
+		printf(ANSI_BRIGHT_BLUE "%s():%d - " ANSI_BRIGHT_RED "%s" ANSI_NORMAL "\n", func, line, buf); \
+	}
+	va_end(args);
+}
+
 static void
 litest_backtrace(void)
 {
@@ -3371,10 +3388,14 @@ litest_assert_event_type(struct libinput_event *event,
 }
 
 void
-litest_assert_empty_queue(struct libinput *li)
+_litest_assert_empty_queue(struct libinput *li,
+			   const char *func,
+			   int line)
 {
 	bool empty_queue = true;
 	struct libinput_event *event;
+
+	_litest_checkpoint(func, line, "asserting empty queue");
 
 	libinput_dispatch(li);
 	while ((event = libinput_get_event(li))) {
@@ -3634,10 +3655,18 @@ litest_assert_key_event(struct libinput *li, unsigned int key,
 }
 
 void
-litest_assert_button_event(struct libinput *li, unsigned int button,
-			   enum libinput_button_state state)
+_litest_assert_button_event(struct libinput *li, unsigned int button,
+			    enum libinput_button_state state,
+			    const char *func, int line)
 {
 	struct libinput_event *event;
+
+	_litest_checkpoint(func,
+			   line,
+			   "asserting button event %s (%d) state %d",
+			   libevdev_event_code_get_name(EV_KEY, button),
+			   button,
+			   state);
 
 	litest_wait_for_event(li);
 	event = libinput_get_event(li);
@@ -3715,11 +3744,19 @@ litest_is_gesture_event(struct libinput_event *event,
 }
 
 void
-litest_assert_gesture_event(struct libinput *li,
-			    enum libinput_event_type type,
-			    int nfingers)
+_litest_assert_gesture_event(struct libinput *li,
+			     enum libinput_event_type type,
+			     int nfingers,
+			     const char *func,
+			     int line)
 {
 	struct libinput_event *event;
+
+	_litest_checkpoint(func,
+			   line,
+			   "asserting gesture event %s %dfg",
+			   litest_event_type_str(type),
+			   nfingers);
 
 	litest_wait_for_event(li);
 	event = libinput_get_event(li);
@@ -4126,12 +4163,19 @@ litest_assert_axis_end_sequence(struct libinput *li,
 }
 
 void
-litest_assert_only_typed_events(struct libinput *li,
-				enum libinput_event_type type)
+_litest_assert_only_typed_events(struct libinput *li,
+				 enum libinput_event_type type,
+				 const char *func,
+				 int line)
 {
 	struct libinput_event *event;
 
 	litest_assert(type != LIBINPUT_EVENT_NONE);
+
+	_litest_checkpoint(func,
+			   line,
+			   "asserting only typed events %s",
+			   litest_event_type_str(type));
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
