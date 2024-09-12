@@ -702,6 +702,8 @@ litest_log_handler(struct libinput *libinput,
 		color = ANSI_CYAN;
 	else if (strstr(format, "edge-scroll:"))
 		color = ANSI_BRIGHT_GREEN;
+	else if (strstr(format, "gesture:"))
+		color = ANSI_BRIGHT_YELLOW;
 
 	fprintf(stderr, "%slitest %s ", color, priority);
 	vfprintf(stderr, format, args);
