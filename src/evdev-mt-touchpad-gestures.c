@@ -159,8 +159,9 @@ tp_gesture_start(struct tp_dispatch *tp, uint64_t time)
 	case GESTURE_STATE_NONE:
 	case GESTURE_STATE_UNKNOWN:
 		evdev_log_bug_libinput(tp->device,
-				       "%s in unknown gesture mode\n",
-				       __func__);
+				       "%s in unknown gesture state %s\n",
+				       __func__,
+				       gesture_state_to_str(tp->gesture.state));
 		break;
 	case GESTURE_STATE_HOLD:
 	case GESTURE_STATE_HOLD_AND_MOTION:
