@@ -160,8 +160,11 @@ enum tp_gesture_state {
 	GESTURE_STATE_HOLD,
 	GESTURE_STATE_HOLD_AND_MOTION,
 	GESTURE_STATE_POINTER_MOTION,
+	GESTURE_STATE_SCROLL_START,
 	GESTURE_STATE_SCROLL,
+	GESTURE_STATE_PINCH_START,
 	GESTURE_STATE_PINCH,
+	GESTURE_STATE_SWIPE_START,
 	GESTURE_STATE_SWIPE,
 };
 
@@ -350,7 +353,6 @@ struct tp_dispatch {
 	struct {
 		struct libinput_device_config_gesture config;
 		bool enabled;
-		bool started;
 		unsigned int finger_count;
 		unsigned int finger_count_pending;
 		struct libinput_timer finger_count_switch_timer;
