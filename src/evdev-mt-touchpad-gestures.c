@@ -1453,38 +1453,83 @@ static void
 tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time,
 			bool ignore_motion)
 {
-	if (tp->gesture.state == GESTURE_STATE_NONE)
+	enum tp_gesture_state oldstate = tp->gesture.state;
+	enum tp_gesture_state transitions[16] = {0};
+	size_t idx = 0;
+
+	transitions[idx++] = tp->gesture.state;
+	if (tp->gesture.state == GESTURE_STATE_NONE) {
 		tp_gesture_handle_state_none(tp, time);
-
-	if (tp->gesture.state == GESTURE_STATE_UNKNOWN)
+		if (transitions[idx - 1] != tp->gesture.state)
+			transitions[idx++] = tp->gesture.state;
+	}
+	if (tp->gesture.state == GESTURE_STATE_UNKNOWN) {
 		tp_gesture_handle_state_unknown(tp, time, ignore_motion);
-
-	if (tp->gesture.state == GESTURE_STATE_HOLD)
+		if (transitions[idx - 1] != tp->gesture.state)
+			transitions[idx++] = tp->gesture.state;
+	}
+	if (tp->gesture.state == GESTURE_STATE_HOLD) {
 		tp_gesture_handle_state_hold(tp, time, ignore_motion);
-
-	if (tp->gesture.state == GESTURE_STATE_POINTER_MOTION)
+		if (transitions[idx - 1] != tp->gesture.state)
+			transitions[idx++] = tp->gesture.state;
+	}
+	if (tp->gesture.state == GESTURE_STATE_POINTER_MOTION) {
 		tp_gesture_handle_state_pointer_motion(tp, time);
-
-	if (tp->gesture.state == GESTURE_STATE_HOLD_AND_MOTION)
+		if (transitions[idx - 1] != tp->gesture.state)
+			transitions[idx++] = tp->gesture.state;
+	}
+	if (tp->gesture.state == GESTURE_STATE_HOLD_AND_MOTION) {
 		tp_gesture_handle_state_hold_and_pointer_motion(tp, time);
-
-	if (tp->gesture.state == GESTURE_STATE_SCROLL_START)
+		if (transitions[idx - 1] != tp->gesture.state)
+			transitions[idx++] = tp->gesture.state;
+	}
+	if (tp->gesture.state == GESTURE_STATE_SCROLL_START) {
 		tp_gesture_handle_state_scroll_start(tp, time);
-
-	if (tp->gesture.state == GESTURE_STATE_SCROLL)
+		if (transitions[idx - 1] != tp->gesture.state)
+			transitions[idx++] = tp->gesture.state;
+	}
+	if (tp->gesture.state == GESTURE_STATE_SCROLL) {
 		tp_gesture_handle_state_scroll(tp, time);
-
-	if (tp->gesture.state == GESTURE_STATE_SWIPE_START)
+		if (transitions[idx - 1] != tp->gesture.state)
+			transitions[idx++] = tp->gesture.state;
+	}
+	if (tp->gesture.state == GESTURE_STATE_SWIPE_START) {
 		tp_gesture_handle_state_swipe_start(tp, time);
-
-	if (tp->gesture.state == GESTURE_STATE_SWIPE)
+		if (transitions[idx - 1] != tp->gesture.state)
+			transitions[idx++] = tp->gesture.state;
+	}
+	if (tp->gesture.state == GESTURE_STATE_SWIPE) {
 		tp_gesture_handle_state_swipe(tp, time);
-
-	if (tp->gesture.state == GESTURE_STATE_PINCH_START)
+		if (transitions[idx - 1] != tp->gesture.state)
+			transitions[idx++] = tp->gesture.state;
+	}
+	if (tp->gesture.state == GESTURE_STATE_PINCH_START) {
 		tp_gesture_handle_state_pinch_start(tp, time);
-
-	if (tp->gesture.state == GESTURE_STATE_PINCH)
+		if (transitions[idx - 1] != tp->gesture.state)
+			transitions[idx++] = tp->gesture.state;
+	}
+	if (tp->gesture.state == GESTURE_STATE_PINCH) {
 		tp_gesture_handle_state_pinch(tp, time);
+	}
+
+	if (oldstate != tp->gesture.state) {
+		char buf[1024] = {0};
+		size_t remaining = sizeof(buf);
+		size_t slen = 0;
+		for (size_t i = 1; i < idx - 1; i++) {
+			if (transitions[i] != transitions[i - 1]) {
+				int n = snprintf(&buf[slen], remaining, " → %s", gesture_state_to_str(transitions[i]));
+				slen += n;
+				remaining -= n;
+			}
+		}
+		evdev_log_debug(tp->device,
+				"gesture: [%dfg] transitions %s%s → %s\n",
+				tp->gesture.finger_count,
+				gesture_state_to_str(oldstate),
+				buf,
+				gesture_state_to_str(tp->gesture.state));
+	}
 }
 
 static bool
