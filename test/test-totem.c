@@ -47,7 +47,7 @@ START_TEST(totem_type)
 	litest_drain_events(li);
 
 	litest_tablet_proximity_in(dev, 50, 50, NULL);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
@@ -71,7 +71,7 @@ START_TEST(totem_axes)
 	litest_drain_events(li);
 
 	litest_tablet_proximity_in(dev, 50, 50, NULL);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
@@ -96,7 +96,7 @@ START_TEST(totem_proximity_in_out)
 	litest_drain_events(li);
 
 	litest_tablet_proximity_in(dev, 50, 50, NULL);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
@@ -114,7 +114,7 @@ START_TEST(totem_proximity_in_out)
 
 	litest_assert_empty_queue(li);
 	litest_tablet_proximity_out(dev);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
@@ -154,7 +154,7 @@ START_TEST(totem_proximity_in_on_init)
 	devnode = libevdev_uinput_get_devnode(dev->uinput);
 	li = litest_create_context();
 	libinput_path_add_device(li, devnode);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 	event = libinput_get_event(li);
@@ -214,7 +214,7 @@ START_TEST(totem_proximity_out_on_suspend)
 
 	libinput_suspend(li);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
 				   LIBINPUT_EVENT_TABLET_TOOL_TIP);
@@ -249,7 +249,7 @@ START_TEST(totem_motion)
 		struct libinput_event_tablet_tool *t;
 
 		litest_tablet_motion(dev, x + 1, y + 1, NULL);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		event = libinput_get_event(li);
 		t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
@@ -293,7 +293,7 @@ START_TEST(totem_rotation)
 
 		litest_axis_set_value(axes, ABS_MT_ORIENTATION, 50 + i);
 		litest_tablet_motion(dev, 50, 50, axes);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		event = libinput_get_event(li);
 		t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
@@ -317,7 +317,7 @@ START_TEST(totem_rotation)
 
 		litest_axis_set_value(axes, ABS_MT_ORIENTATION, 50 - i);
 		litest_tablet_motion(dev, 50, 50, axes);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		event = libinput_get_event(li);
 		t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
@@ -346,7 +346,7 @@ START_TEST(totem_size)
 	litest_drain_events(li);
 
 	litest_tablet_proximity_in(dev, 50, 50, NULL);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
@@ -374,7 +374,7 @@ START_TEST(totem_button)
 	litest_drain_events(li);
 
 	litest_button_click(dev, BTN_0, true);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	ck_assert_int_eq(libinput_event_tablet_tool_get_button(t), BTN_0);
@@ -385,7 +385,7 @@ START_TEST(totem_button)
 	libinput_event_destroy(event);
 
 	litest_button_click(dev, BTN_0, false);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
@@ -413,7 +413,7 @@ START_TEST(totem_button_down_on_init)
 	devnode = libevdev_uinput_get_devnode(dev->uinput);
 	li = litest_create_context();
 	libinput_path_add_device(li, devnode);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 	event = libinput_get_event(li);
@@ -439,15 +439,15 @@ START_TEST(totem_button_down_on_init)
 	litest_assert_empty_queue(li);
 
 	litest_button_click(dev, BTN_0, false);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
 	/* but buttons after this should be sent */
 	litest_button_click(dev, BTN_0, true);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_tablet_button_event(li, BTN_0, LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_button_click(dev, BTN_0, false);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_tablet_button_event(li, BTN_0, LIBINPUT_BUTTON_STATE_RELEASED);
 
 	litest_destroy_context(li);
@@ -467,7 +467,7 @@ START_TEST(totem_button_up_on_delete)
 	litest_drain_events(li);
 
 	litest_delete_device(dev);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_tablet_button_event(li,
 					  BTN_0,
@@ -492,16 +492,16 @@ START_TEST(totem_arbitration_below)
 
 	/* touches below the totem, cancelled once the totem is down */
 	litest_touch_down(touch, 0, 50, 50);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_touch_down_frame(li);
 	litest_touch_move_to(touch, 0, 50, 50, 50, 70, 10);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	while (libinput_next_event_type(li)) {
 		litest_assert_touch_motion_frame(li);
 	}
 
 	litest_tablet_proximity_in(totem, 50, 70, NULL);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_tablet_proximity_event(li, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 	litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_DOWN);
@@ -530,7 +530,7 @@ START_TEST(totem_arbitration_during)
 	litest_drain_events(li);
 
 	litest_tablet_proximity_in(totem, 50, 50, NULL);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_drain_events(li);
 
@@ -556,7 +556,7 @@ START_TEST(totem_arbitration_outside_rect)
 	litest_drain_events(li);
 
 	litest_tablet_proximity_in(totem, 50, 50, NULL);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_drain_events(li);
 
@@ -564,7 +564,7 @@ START_TEST(totem_arbitration_outside_rect)
 		litest_touch_down(touch, 0, 81, 51);
 		litest_touch_move_to(touch, 0, 81, 50, 90, 80, 10);
 		litest_touch_up(touch, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		litest_assert_touch_sequence(li);
 	}
@@ -573,7 +573,7 @@ START_TEST(totem_arbitration_outside_rect)
 	litest_touch_down(touch, 0, 81, 51);
 	litest_touch_move_to(touch, 0, 81, 50, 50, 50, 10);
 	litest_touch_up(touch, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_touch_sequence(li);
 

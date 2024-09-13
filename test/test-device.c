@@ -168,7 +168,7 @@ START_TEST(device_disable)
 	litest_event(dev, EV_REL, REL_X, 10);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	event = libinput_get_event(li);
 	ck_assert_notnull(event);
 	ck_assert_int_eq(libinput_event_get_type(event),
@@ -205,7 +205,7 @@ START_TEST(device_disable_tablet)
 	litest_tablet_proximity_in(dev, 60, 60, axes);
 	for (int i = 60; i < 70; i++) {
 		litest_tablet_motion(dev, i, i, axes);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 	litest_tablet_proximity_out(dev);
 
@@ -302,7 +302,7 @@ START_TEST(device_disable_touch_during_touch)
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	/* after disabling sendevents we require a touch up */
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	event = libinput_get_event(li);
 	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_CANCEL);
 	libinput_event_destroy(event);
@@ -349,7 +349,7 @@ START_TEST(device_disable_events_pending)
 		litest_event(dev, EV_REL, REL_X, 10);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	}
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	status = libinput_device_config_send_events_set_mode(device,
 			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
@@ -446,7 +446,7 @@ START_TEST(device_reenable_syspath_changed)
 	litest_event(litest_device, EV_REL, REL_Y, 1);
 	litest_event(litest_device, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	while ((event = libinput_get_event(li))) {
 		ck_assert(libinput_event_get_device(event) != device1);
 		libinput_event_destroy(event);
@@ -577,7 +577,7 @@ START_TEST(device_disable_release_tap)
 	litest_touch_down(dev, 0, 50, 50);
 	litest_touch_up(dev, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	status = libinput_device_config_send_events_set_mode(device,
 			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
@@ -599,7 +599,7 @@ START_TEST(device_disable_release_tap)
 	status = libinput_device_config_send_events_set_mode(device,
 			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
 }
@@ -622,15 +622,15 @@ START_TEST(device_disable_release_tap_n_drag)
 	litest_touch_down(dev, 0, 50, 50);
 	litest_touch_up(dev, 0);
 	litest_touch_down(dev, 0, 50, 50);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_tap();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	status = libinput_device_config_send_events_set_mode(device,
 			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_touch_up(dev, 0);
 
 	litest_assert_button_event(li,
@@ -682,7 +682,7 @@ START_TEST(device_disable_release_softbutton)
 	status = libinput_device_config_send_events_set_mode(device,
 			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
 }
@@ -1208,7 +1208,7 @@ START_TEST(device_nonpointer_rel)
 		libevdev_uinput_write_event(uinput, EV_REL, REL_X, 1);
 		libevdev_uinput_write_event(uinput, EV_REL, REL_Y, -1);
 		libevdev_uinput_write_event(uinput, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 	litest_restore_log_handler(li);
 
@@ -1249,7 +1249,7 @@ START_TEST(device_touchpad_rel)
 		libevdev_uinput_write_event(uinput, EV_REL, REL_X, 1);
 		libevdev_uinput_write_event(uinput, EV_REL, REL_Y, -1);
 		libevdev_uinput_write_event(uinput, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 
 	litest_destroy_context(li);
@@ -1289,7 +1289,7 @@ START_TEST(device_touch_rel)
 		libevdev_uinput_write_event(uinput, EV_REL, REL_X, 1);
 		libevdev_uinput_write_event(uinput, EV_REL, REL_Y, -1);
 		libevdev_uinput_write_event(uinput, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 	litest_restore_log_handler(li);
 
@@ -1326,7 +1326,7 @@ START_TEST(device_abs_rel)
 		libevdev_uinput_write_event(uinput, EV_REL, REL_X, 1);
 		libevdev_uinput_write_event(uinput, EV_REL, REL_Y, -1);
 		libevdev_uinput_write_event(uinput, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 
 	litest_destroy_context(li);
@@ -1350,7 +1350,7 @@ START_TEST(device_quirks_no_abs_mt_y)
 
 	litest_event(dev, EV_REL, REL_HWHEEL, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* both high and low scroll end events must be sent */
 	for (i = 0; i < 2; i++) {
@@ -1711,15 +1711,15 @@ START_TEST(device_button_down_remove)
 		 * press */
 		if (libevdev_has_property(lidev->evdev, INPUT_PROP_BUTTONPAD)) {
 			litest_touch_down(dev, 0, 20, 90);
-			libinput_dispatch(li);
+			litest_dispatch(li);
 		}
 
 		litest_event(dev, EV_KEY, code, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		litest_delete_device(dev);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		while ((event = libinput_get_event(li))) {
 			if (libinput_event_get_type(event) !=

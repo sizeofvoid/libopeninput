@@ -586,6 +586,15 @@ litest_ungrab_device(struct litest_device *d);
 void
 litest_delete_device(struct litest_device *d);
 
+const char *
+litest_event_type_str(enum libinput_event_type type);
+
+int
+_litest_dispatch(struct libinput *li, const char *func, int line);
+
+#define litest_dispatch(li_) \
+	_litest_dispatch(li_, __func__, __LINE__)
+
 void
 litest_event(struct litest_device *t,
 	     unsigned int type,

@@ -283,6 +283,30 @@ struct litest_device *litest_current_device(void)
 	return current_device;
 }
 
+int
+_litest_dispatch(struct libinput *li,
+		 const char *func,
+		 int line)
+{
+	static int dispatch_counter = 0;
+
+	++dispatch_counter;
+
+	_litest_checkpoint(func, line,
+			   "┌────────────────────  dispatch %3d ────────────────────┐",
+			   dispatch_counter);
+	int rc = libinput_dispatch(li);
+	enum libinput_event_type type = libinput_next_event_type(li);
+
+
+	const char *evtype = type == LIBINPUT_EVENT_NONE ? "NONE" : litest_event_type_str(type);
+	_litest_checkpoint(func, line,
+			   "└──────────────────── /dispatch %3d ────────────────────┘ pending %s",
+			   dispatch_counter,
+			   evtype);
+	return rc;
+}
+
 static void
 grab_device(struct litest_device *device, bool mode)
 {
@@ -3115,7 +3139,7 @@ _litest_drain_events_of_type(struct libinput *li, ...)
 	}
 }
 
-static const char *
+const char *
 litest_event_type_str(enum libinput_event_type type)
 {
 	const char *str = NULL;

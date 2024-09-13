@@ -109,7 +109,7 @@ START_TEST(event_conversion_device_notify)
 	litest_restore_log_handler(li); /* use the default litest handler */
 	libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	libinput_suspend(li);
 	libinput_resume(li);
 
@@ -169,7 +169,7 @@ START_TEST(event_conversion_pointer)
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	while ((event = libinput_get_event(li))) {
 		enum libinput_event_type type;
@@ -221,7 +221,7 @@ START_TEST(event_conversion_pointer_abs)
 	litest_event(dev, EV_ABS, ABS_Y, 30);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	while ((event = libinput_get_event(li))) {
 		enum libinput_event_type type;
@@ -270,7 +270,7 @@ START_TEST(event_conversion_key)
 	litest_event(dev, EV_KEY, KEY_A, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	while ((event = libinput_get_event(li))) {
 		enum libinput_event_type type;
@@ -309,7 +309,7 @@ START_TEST(event_conversion_touch)
 	struct libinput_event *event;
 	int touch = 0;
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_event(dev, EV_KEY, BTN_TOOL_FINGER, 1);
 	litest_event(dev, EV_KEY, BTN_TOUCH, 1);
@@ -321,7 +321,7 @@ START_TEST(event_conversion_touch)
 	litest_event(dev, EV_ABS, ABS_MT_POSITION_Y, 10);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	while ((event = libinput_get_event(li))) {
 		enum libinput_event_type type;
@@ -362,11 +362,11 @@ START_TEST(event_conversion_gesture)
 	int gestures = 0;
 	int i;
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_touch_down(dev, 0, 70, 30);
 	litest_touch_down(dev, 1, 30, 70);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_gesture_hold();
 
 	for (i = 0; i < 8; i++) {
@@ -374,7 +374,7 @@ START_TEST(event_conversion_gesture)
 		litest_touch_move(dev, 0, 70 - i * 5, 30 + i * 5);
 		litest_touch_move(dev, 1, 30 + i * 5, 70 - i * 5);
 		litest_pop_event_frame(dev);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 
 	while ((event = libinput_get_event(li))) {
@@ -423,7 +423,7 @@ START_TEST(event_conversion_tablet)
 	litest_button_click(dev, BTN_STYLUS, true);
 	litest_button_click(dev, BTN_STYLUS, false);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	while ((event = libinput_get_event(li))) {
 		enum libinput_event_type type;
@@ -466,7 +466,7 @@ START_TEST(event_conversion_tablet_pad)
 	litest_pad_ring_start(dev, 10);
 	litest_pad_ring_end(dev);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	while ((event = libinput_get_event(li))) {
 		enum libinput_event_type type;
@@ -512,7 +512,7 @@ START_TEST(event_conversion_switch)
 	litest_switch_action(dev,
 			     LIBINPUT_SWITCH_LID,
 			     LIBINPUT_SWITCH_STATE_OFF);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	while ((event = libinput_get_event(li))) {
 		enum libinput_event_type type;
@@ -630,7 +630,7 @@ START_TEST(fd_no_event_leak)
 	libevdev_uinput_write_event(uinput, EV_REL, REL_X, 1);
 	libevdev_uinput_write_event(uinput, EV_SYN, SYN_REPORT, 0);
 	libinput_path_remove_device(device);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_drain_events(li);
 
 	/* Device is removed, but fd is still open. Queue an event, add a
@@ -638,10 +638,10 @@ START_TEST(fd_no_event_leak)
 	 * by libinput */
 	libevdev_uinput_write_event(uinput, EV_REL, REL_Y, 1);
 	libevdev_uinput_write_event(uinput, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	libinput_path_add_device(li, path);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	event = libinput_get_event(li);
 	ck_assert_int_eq(libinput_event_get_type(event),
 			 LIBINPUT_EVENT_DEVICE_ADDED);
@@ -685,7 +685,7 @@ START_TEST(timer_offset_bug_warning)
 
 	user_data->private = &warning_triggered;
 	libinput_log_set_handler(li, timer_offset_warning);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* triggered for touch down and touch up */
 	ck_assert_int_eq(warning_triggered, 2);
@@ -722,7 +722,7 @@ START_TEST(timer_delay_bug_warning)
 		litest_event(dev, EV_REL, REL_X, -1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 		msleep(21);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 
 	ck_assert_int_ge(warning_triggered, 1);
@@ -739,17 +739,17 @@ START_TEST(timer_flush)
 
 	touchpad = litest_add_device(li, LITEST_SYNAPTICS_TOUCHPAD);
 	litest_enable_tap(touchpad->libinput_device);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	keyboard = litest_add_device(li, LITEST_KEYBOARD);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_drain_events(li);
 
 	/* make sure tapping works */
 	litest_touch_down(touchpad, 0, 50, 50);
 	litest_touch_up(touchpad, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_tap();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li, BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
@@ -760,12 +760,12 @@ START_TEST(timer_flush)
 	/* make sure dwt-tap is ignored */
 	litest_keyboard_key(keyboard, KEY_A, true);
 	litest_keyboard_key(keyboard, KEY_A, false);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_touch_down(touchpad, 0, 50, 50);
 	litest_touch_up(touchpad, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_tap();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
 	/* Ignore 'timer offset negative' warnings */
@@ -775,7 +775,7 @@ START_TEST(timer_flush)
 	   - send a key event
 	   - expire dwt
 	   - send a tap
-	   and then call libinput_dispatch(). libinput should notice that
+	   and then call litest_dispatch(). libinput should notice that
 	   the tap event came in after the timeout and thus acknowledge the
 	   tap.
 	 */
@@ -784,9 +784,9 @@ START_TEST(timer_flush)
 	litest_timeout_dwt_long();
 	litest_touch_down(touchpad, 0, 50, 50);
 	litest_touch_up(touchpad, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_tap();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_restore_log_handler(li);
 
 	litest_assert_key_event(li, KEY_A, LIBINPUT_KEY_STATE_PRESSED);

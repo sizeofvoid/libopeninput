@@ -78,7 +78,7 @@ START_TEST(pad_time)
 
 		litest_button_click(dev, code, 1);
 		litest_button_click(dev, code, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		break;
 	}
@@ -104,7 +104,7 @@ START_TEST(pad_time)
 
 	litest_button_click(dev, code, 1);
 	litest_button_click(dev, code, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	ev = libinput_get_event(li);
 	ck_assert_int_eq(libinput_event_get_type(ev),
@@ -206,7 +206,7 @@ START_TEST(pad_button_intuos)
 
 		litest_button_click(dev, code, 1);
 		litest_button_click(dev, code, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		count++;
 
@@ -256,7 +256,7 @@ START_TEST(pad_button_bamboo)
 
 		litest_button_click(dev, code, 1);
 		litest_button_click(dev, code, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		count++;
 
@@ -310,7 +310,7 @@ START_TEST(pad_button_libwacom)
 
 		litest_button_click(dev, code, 1);
 		litest_button_click(dev, code, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		litest_assert_pad_button_event(li,
 					       i,
@@ -345,7 +345,7 @@ START_TEST(pad_button_mode_groups)
 
 		litest_button_click(dev, code, 1);
 		litest_button_click(dev, code, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		switch (code) {
 		case BTN_STYLUS:
@@ -431,7 +431,7 @@ START_TEST(pad_ring)
 	 */
 	for (val = 0; val < 100.0; val += 1) {
 		litest_pad_ring_change(dev, val);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		ev = libinput_get_event(li);
 		if (!ev)
@@ -471,7 +471,7 @@ START_TEST(pad_ring_finger_up)
 	litest_drain_events(li);
 
 	litest_pad_ring_end(dev);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	ev = libinput_get_event(li);
 	pev = litest_is_pad_ring_event(ev,
@@ -520,7 +520,7 @@ START_TEST(pad_dial_low_res)
 		if (code == REL_WHEEL)
 			litest_event(dev, EV_REL, REL_WHEEL_HI_RES, direction * 120);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		struct libinput_event *ev = libinput_get_event(li);
 		struct libinput_event_tablet_pad *pev = litest_is_pad_dial_event(ev, 0);
@@ -559,7 +559,7 @@ START_TEST(pad_dial_hi_res)
 		if (accumulated % 120 == 0)
 			litest_event(dev, EV_REL, REL_WHEEL, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		struct libinput_event *ev = libinput_get_event(li);
 		struct libinput_event_tablet_pad *pev = litest_is_pad_dial_event(ev, 0);
@@ -601,7 +601,7 @@ START_TEST(pad_strip)
 	 * value. */
 	for (val = 0; val < 100; val += 9.5) {
 		litest_pad_strip_change(dev, val);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		ev = libinput_get_event(li);
 		pev = litest_is_pad_strip_event(ev,
@@ -622,7 +622,7 @@ START_TEST(pad_strip)
 	}
 
 	litest_pad_strip_change(dev, 100);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	ev = libinput_get_event(li);
 	pev = litest_is_pad_strip_event(ev,
@@ -648,7 +648,7 @@ START_TEST(pad_strip_finger_up)
 	litest_drain_events(li);
 
 	litest_pad_strip_end(dev);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	ev = libinput_get_event(li);
 	pev = litest_is_pad_strip_event(ev,
@@ -756,7 +756,7 @@ START_TEST(pad_left_handed_ring)
 
 	for (val = 0; val < 100; val += 10) {
 		litest_pad_ring_change(dev, val);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		ev = libinput_get_event(li);
 		pev = litest_is_pad_ring_event(ev,
@@ -1044,29 +1044,29 @@ START_TEST(pad_keys)
 
 	key = KEY_BUTTONCONFIG;
 	pad_key_down(dev, key);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_pad_key_event(li, key, LIBINPUT_KEY_STATE_PRESSED);
 
 	pad_key_up(dev, key);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_pad_key_event(li, key, LIBINPUT_KEY_STATE_RELEASED);
 
 	key = KEY_ONSCREEN_KEYBOARD;
 	pad_key_down(dev, key);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_pad_key_event(li, key, LIBINPUT_KEY_STATE_PRESSED);
 
 	pad_key_up(dev, key);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_pad_key_event(li, key, LIBINPUT_KEY_STATE_RELEASED);
 
 	key = KEY_CONTROLPANEL;
 	pad_key_down(dev, key);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_pad_key_event(li, key, LIBINPUT_KEY_STATE_PRESSED);
 
 	pad_key_up(dev, key);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_pad_key_event(li, key, LIBINPUT_KEY_STATE_RELEASED);
 }
 END_TEST

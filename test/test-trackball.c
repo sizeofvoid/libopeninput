@@ -139,7 +139,7 @@ START_TEST(trackball_rotation_x)
 
 		litest_event(dev, EV_REL, REL_X, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		event = libinput_get_event(li);
 		ptrev = litest_is_motion_event(event);
@@ -189,7 +189,7 @@ START_TEST(trackball_rotation_y)
 
 		litest_event(dev, EV_REL, REL_Y, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		event = libinput_get_event(li);
 		ptrev = litest_is_motion_event(event);
@@ -241,7 +241,7 @@ START_TEST(trackball_rotation_accel)
 	litest_event(dev, EV_REL, REL_Y, 1);
 	litest_event(dev, EV_REL, REL_X, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	ptrev = litest_is_motion_event(event);
