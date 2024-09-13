@@ -607,8 +607,8 @@ tp_gesture_handle_event_on_state_unknown(struct tp_dispatch *tp,
 		break;
 	case GESTURE_EVENT_HOLD_TIMEOUT:
 		tp->gesture.state = GESTURE_STATE_HOLD;
-		gesture_notify_hold(&tp->device->base, time,
-				    tp->gesture.finger_count);
+		gesture_notify_hold_begin(&tp->device->base, time,
+					  tp->gesture.finger_count);
 		tp_gesture_start(tp, time);
 		break;
 	case GESTURE_EVENT_POINTER_MOTION_START:
@@ -748,8 +748,8 @@ tp_gesture_handle_event_on_state_pointer_motion(struct tp_dispatch *tp,
 
 		if (first_mm < HOLD_AND_MOTION_THRESHOLD) {
 			tp->gesture.state = GESTURE_STATE_HOLD_AND_MOTION;
-			gesture_notify_hold(&tp->device->base, time,
-					    tp->gesture.finger_count);
+			gesture_notify_hold_begin(&tp->device->base, time,
+					          tp->gesture.finger_count);
 			tp_gesture_start(tp, time);
 		}
 		break;
