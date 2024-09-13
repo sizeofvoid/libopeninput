@@ -752,9 +752,9 @@ gesture_notify_pinch_end(struct libinput_device *device,
 			 bool cancelled);
 
 void
-gesture_notify_hold(struct libinput_device *device,
-		    uint64_t time,
-		    int finger_count);
+gesture_notify_hold_begin(struct libinput_device *device,
+			  uint64_t time,
+			  int finger_count);
 
 void
 gesture_notify_hold_end(struct libinput_device *device,
