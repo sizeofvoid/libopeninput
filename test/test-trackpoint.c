@@ -192,9 +192,9 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_trackpoint)
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_touch_down(touchpad, 0, 5, 5);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_button_click_debounced(touchpad, li, BTN_LEFT, true);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	litest_is_button_event(event,
@@ -205,7 +205,7 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_trackpoint)
 	libinput_event_destroy(event);
 
 	litest_button_click_debounced(touchpad, li, BTN_LEFT, false);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	event = libinput_get_event(li);
 	litest_is_button_event(event,
 			       BTN_RIGHT,
@@ -237,9 +237,9 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_touchpad)
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_touch_down(touchpad, 0, 5, 5);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_button_click_debounced(touchpad, li, BTN_LEFT, true);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	litest_is_button_event(event, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
@@ -248,7 +248,7 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_touchpad)
 	libinput_event_destroy(event);
 
 	litest_button_click_debounced(touchpad, li, BTN_LEFT, false);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	event = libinput_get_event(li);
 	litest_is_button_event(event,
 			       BTN_LEFT,
@@ -283,9 +283,9 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_both)
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_touch_down(touchpad, 0, 5, 5);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_button_click_debounced(touchpad, li, BTN_LEFT, true);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	litest_is_button_event(event,
@@ -296,7 +296,7 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_both)
 	libinput_event_destroy(event);
 
 	litest_button_click_debounced(touchpad, li, BTN_LEFT, false);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	event = libinput_get_event(li);
 	litest_is_button_event(event,
 			       BTN_RIGHT,
@@ -348,7 +348,7 @@ START_TEST(trackpoint_palmdetect)
 		litest_event(trackpoint, EV_REL, REL_X, 1);
 		litest_event(trackpoint, EV_REL, REL_Y, 1);
 		litest_event(trackpoint, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 	litest_drain_events(li);
 
@@ -358,7 +358,7 @@ START_TEST(trackpoint_palmdetect)
 	litest_assert_empty_queue(li);
 
 	litest_timeout_trackpoint();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_touch_down(touchpad, 0, 30, 30);
 	litest_touch_move_to(touchpad, 0, 30, 30, 80, 80, 10);
@@ -387,7 +387,7 @@ START_TEST(trackpoint_palmdetect_dwtp_disabled)
 		litest_event(trackpoint, EV_REL, REL_X, 1);
 		litest_event(trackpoint, EV_REL, REL_Y, 1);
 		litest_event(trackpoint, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 	litest_drain_events(li);
 
@@ -419,7 +419,7 @@ START_TEST(trackpoint_palmdetect_resume_touch)
 		litest_event(trackpoint, EV_REL, REL_X, 1);
 		litest_event(trackpoint, EV_REL, REL_Y, 1);
 		litest_event(trackpoint, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 	litest_drain_events(li);
 
@@ -428,7 +428,7 @@ START_TEST(trackpoint_palmdetect_resume_touch)
 	litest_assert_empty_queue(li);
 
 	litest_timeout_trackpoint();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* touch started after last tp event, expect resume */
 	litest_touch_move_to(touchpad, 0, 80, 80, 30, 30, 10);
@@ -457,7 +457,7 @@ START_TEST(trackpoint_palmdetect_require_min_events)
 	litest_event(trackpoint, EV_REL, REL_X, 1);
 	litest_event(trackpoint, EV_REL, REL_Y, 1);
 	litest_event(trackpoint, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_drain_events(li);
 
 	litest_touch_down(touchpad, 0, 30, 30);
@@ -488,7 +488,7 @@ START_TEST(trackpoint_palmdetect_require_min_events_timeout)
 		litest_event(trackpoint, EV_REL, REL_X, 1);
 		litest_event(trackpoint, EV_REL, REL_Y, 1);
 		litest_event(trackpoint, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 		litest_drain_events(li);
 
 		litest_touch_down(touchpad, 0, 30, 30);

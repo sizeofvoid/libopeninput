@@ -92,7 +92,7 @@ START_TEST(udev_create_seat0)
 	ck_assert_int_ge(fd, 0);
 
 	/* expect at least one event */
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	event = libinput_get_event(li);
 	ck_assert_notnull(event);
 
@@ -120,7 +120,7 @@ START_TEST(udev_create_empty_seat)
 	fd = libinput_get_fd(li);
 	ck_assert_int_ge(fd, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	event = libinput_get_event(li);
 	ck_assert(event == NULL);
 
@@ -191,7 +191,7 @@ START_TEST(udev_added_seat_default)
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* Drop any events from other devices */
 	litest_drain_events(li);
@@ -235,7 +235,7 @@ START_TEST(udev_change_seat)
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* Drop any events from other devices */
 	litest_drain_events(li);
@@ -262,7 +262,7 @@ START_TEST(udev_change_seat)
 						   seat2_name);
 	ck_assert_int_eq(rc, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	ck_assert_int_eq(libinput_event_get_type(event),
@@ -313,7 +313,7 @@ START_TEST(udev_double_suspend)
 	ck_assert_int_ge(fd, 0);
 
 	/* expect at least one event */
-	ck_assert_int_ge(libinput_dispatch(li), 0);
+	ck_assert_int_ge(litest_dispatch(li), 0);
 	event = libinput_get_event(li);
 	ck_assert_notnull(event);
 
@@ -345,7 +345,7 @@ START_TEST(udev_double_resume)
 	ck_assert_int_ge(fd, 0);
 
 	/* expect at least one event */
-	ck_assert_int_ge(libinput_dispatch(li), 0);
+	ck_assert_int_ge(litest_dispatch(li), 0);
 	event = libinput_get_event(li);
 	ck_assert_notnull(event);
 
@@ -397,19 +397,19 @@ START_TEST(udev_suspend_resume)
 	ck_assert_int_ge(fd, 0);
 
 	/* Check that at least one device was discovered after creation. */
-	ck_assert_int_ge(libinput_dispatch(li), 0);
+	ck_assert_int_ge(litest_dispatch(li), 0);
 	process_events_count_devices(li, &num_devices);
 	ck_assert_int_gt(num_devices, 0);
 
 	/* Check that after a suspend, no devices are left. */
 	libinput_suspend(li);
-	ck_assert_int_ge(libinput_dispatch(li), 0);
+	ck_assert_int_ge(litest_dispatch(li), 0);
 	process_events_count_devices(li, &num_devices);
 	ck_assert_int_eq(num_devices, 0);
 
 	/* Check that after a resume, at least one device is discovered. */
 	libinput_resume(li);
-	ck_assert_int_ge(libinput_dispatch(li), 0);
+	ck_assert_int_ge(litest_dispatch(li), 0);
 	process_events_count_devices(li, &num_devices);
 	ck_assert_int_gt(num_devices, 0);
 
@@ -474,7 +474,7 @@ START_TEST(udev_device_sysname)
 	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	while ((ev = libinput_get_event(li))) {
 		if (libinput_event_get_type(ev) !=
@@ -516,7 +516,7 @@ START_TEST(udev_seat_recycle)
 	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	while ((ev = libinput_get_event(li))) {
 		switch (libinput_event_get_type(ev)) {
 		case LIBINPUT_EVENT_DEVICE_ADDED:
@@ -544,7 +544,7 @@ START_TEST(udev_seat_recycle)
 
 	libinput_resume(li);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	while ((ev = libinput_get_event(li))) {
 		switch (libinput_event_get_type(ev)) {
 		case LIBINPUT_EVENT_DEVICE_ADDED:
@@ -608,7 +608,7 @@ START_TEST(udev_path_remove_device)
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	ck_assert_notnull(li);
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 	event = libinput_get_event(li);
@@ -646,7 +646,7 @@ START_TEST(udev_ignore_device)
 	litest_restore_log_handler(li);
 
 	ck_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	ck_assert_notnull(event);
@@ -660,7 +660,7 @@ START_TEST(udev_ignore_device)
 			ck_assert_str_ne(devname, name);
 		}
 		libinput_event_destroy(event);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 		event = libinput_get_event(li);
 	}
 

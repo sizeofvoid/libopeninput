@@ -189,7 +189,7 @@ START_TEST(log_axisrange_warning)
 			     abs->maximum * 2 + i);
 		litest_event(dev, EV_ABS, axis, abs->maximum * 2);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 
 	/* Expect only one message per 5 min */

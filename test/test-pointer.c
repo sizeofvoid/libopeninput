@@ -54,7 +54,7 @@ test_relative_event(struct litest_device *dev, double dx, double dy)
 	litest_event(dev, EV_REL, REL_Y, dy);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	ptrev = litest_is_motion_event(event);
@@ -119,7 +119,7 @@ START_TEST(pointer_motion_relative)
 	litest_event(dev, EV_REL, REL_X, 1);
 	litest_event(dev, EV_REL, REL_Y, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(dev->libinput);
+	litest_dispatch(dev->libinput);
 
 	litest_drain_events(dev->libinput);
 
@@ -151,7 +151,7 @@ START_TEST(pointer_motion_relative_zero)
 		litest_event(dev, EV_REL, REL_X, 0);
 		litest_event(dev, EV_REL, REL_Y, 0);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 	litest_assert_empty_queue(li);
 
@@ -160,7 +160,7 @@ START_TEST(pointer_motion_relative_zero)
 	litest_event(dev, EV_REL, REL_X, 1);
 	litest_event(dev, EV_REL, REL_Y, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	libinput_event_destroy(libinput_get_event(li));
 	litest_assert_empty_queue(li);
@@ -169,7 +169,7 @@ START_TEST(pointer_motion_relative_zero)
 		litest_event(dev, EV_REL, REL_X, 0);
 		litest_event(dev, EV_REL, REL_Y, 0);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(dev->libinput);
+		litest_dispatch(dev->libinput);
 	}
 	litest_assert_empty_queue(li);
 
@@ -207,7 +207,7 @@ START_TEST(pointer_motion_relative_min_decel)
 	litest_event(dev, EV_REL, REL_X, dx);
 	litest_event(dev, EV_REL, REL_Y, dy);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	ptrev = litest_is_motion_event(event);
@@ -234,7 +234,7 @@ test_absolute_event(struct litest_device *dev, double x, double y)
 	enum libinput_event_type type = LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE;
 
 	litest_touch_down(dev, 0, x, y);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	litest_assert_notnull(event);
@@ -329,7 +329,7 @@ test_unaccel_event(struct litest_device *dev, int dx, int dy)
       litest_event(dev, EV_REL, REL_Y, dy);
       litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-      libinput_dispatch(li);
+      litest_dispatch(li);
 
       event = libinput_get_event(li);
       ptrev = litest_is_motion_event(event);
@@ -677,7 +677,7 @@ test_wheel_event(struct litest_device *dev, int which, int amount)
 	litest_event(dev, EV_REL, which, event_amount);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	test_high_and_low_wheel_events_value(dev, which, amount * 120);
 }
@@ -731,7 +731,7 @@ test_hi_res_wheel_event(struct litest_device *dev, int which, int v120_amount)
 		abort();
 	}
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	test_high_and_low_wheel_events_value(dev, which, v120_amount);
 }
@@ -799,17 +799,17 @@ START_TEST(pointer_scroll_wheel_hires_send_only_lores)
 
 	litest_event(dev, EV_REL, lores_code, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	test_high_and_low_wheel_events_value(dev, lores_code, direction * 120);
 
 	litest_event(dev, EV_REL, lores_code, -1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	test_high_and_low_wheel_events_value(dev, lores_code, direction * -120);
 
 	litest_event(dev, EV_REL, lores_code, 2);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	test_high_and_low_wheel_events_value(dev, lores_code, direction * 240);
 
 	litest_assert_empty_queue(li);
@@ -832,19 +832,19 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 15);
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 15);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
 	/* The accumulated scroll is 30, add 30 to trigger scroll */
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 30);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -60);
 
 	/* Once the threshold is reached, small scroll deltas are reported */
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 5);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -5);
 
 	/* When the scroll timeout is triggered, ignore small deltas again */
@@ -853,13 +853,13 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -15);
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -15);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
 	litest_event(dev, EV_REL, REL_HWHEEL_HI_RES, 15);
 	litest_event(dev, EV_REL, REL_HWHEEL_HI_RES, 15);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -879,25 +879,25 @@ START_TEST(pointer_scroll_wheel_inhibit_dir_change)
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 120);
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 30);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -150);
 
 	/* Scroll below the threshold in the oposite direction should be ignored */
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -30);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
 	/* But should be triggered if the scroll continues in the same direction */
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -120);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, 150);
 
 	/* Scroll above the threshold in the same dir should be triggered */
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 80);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -80);
 }
 END_TEST
@@ -919,7 +919,7 @@ START_TEST(pointer_scroll_wheel_lenovo_scrollpoint)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_REL, REL_WHEEL, -60);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* Hi-res scroll event first */
 	event = libinput_get_event(li);
@@ -1052,7 +1052,7 @@ START_TEST(pointer_scroll_has_axis_invalid)
 	litest_event(dev, EV_REL, REL_WHEEL, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	event = libinput_get_event(li);
 	pev = litest_is_axis_event(event,
 				   LIBINPUT_EVENT_POINTER_SCROLL_WHEEL,
@@ -1126,12 +1126,12 @@ START_TEST(pointer_seat_button_count)
 					      BTN_LEFT,
 					      true);
 
-	libinput_dispatch(libinput);
+	litest_dispatch(libinput);
 	while ((ev = libinput_get_event(libinput))) {
 		if (libinput_event_get_type(ev) !=
 		    LIBINPUT_EVENT_POINTER_BUTTON) {
 			libinput_event_destroy(ev);
-			libinput_dispatch(libinput);
+			litest_dispatch(libinput);
 			continue;
 		}
 
@@ -1148,7 +1148,7 @@ START_TEST(pointer_seat_button_count)
 		ck_assert_int_eq(expected_seat_button_count, seat_button_count);
 
 		libinput_event_destroy(ev);
-		libinput_dispatch(libinput);
+		litest_dispatch(libinput);
 	}
 
 	ck_assert_int_eq(seat_button_count, num_devices);
@@ -1159,12 +1159,12 @@ START_TEST(pointer_seat_button_count)
 					      BTN_LEFT,
 					      false);
 
-	libinput_dispatch(libinput);
+	litest_dispatch(libinput);
 	while ((ev = libinput_get_event(libinput))) {
 		if (libinput_event_get_type(ev) !=
 		    LIBINPUT_EVENT_POINTER_BUTTON) {
 			libinput_event_destroy(ev);
-			libinput_dispatch(libinput);
+			litest_dispatch(libinput);
 			continue;
 		}
 
@@ -1181,7 +1181,7 @@ START_TEST(pointer_seat_button_count)
 		ck_assert_int_eq(expected_seat_button_count, seat_button_count);
 
 		libinput_event_destroy(ev);
-		libinput_dispatch(libinput);
+		litest_dispatch(libinput);
 	}
 
 	ck_assert_int_eq(seat_button_count, 0);
@@ -1287,7 +1287,7 @@ START_TEST(pointer_left_handed_during_click)
 
 	litest_drain_events(li);
 	litest_button_click_debounced(dev, li, BTN_LEFT, 1);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* Change while button is down, expect correct release event */
 	status = libinput_device_config_left_handed_set(d, 1);
@@ -1318,7 +1318,7 @@ START_TEST(pointer_left_handed_during_click_multiple_buttons)
 
 	litest_drain_events(li);
 	litest_button_click_debounced(dev, li, BTN_LEFT, 1);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	status = libinput_device_config_left_handed_set(d, 1);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
@@ -1354,13 +1354,13 @@ START_TEST(pointer_left_handed_disable_with_button_down)
 
 	litest_drain_events(li);
 	litest_button_click_debounced(dev, li, BTN_LEFT, 1);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_button_event(li,
 				   BTN_RIGHT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
 
 	litest_delete_device(dev);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   BTN_RIGHT,
@@ -1481,7 +1481,7 @@ START_TEST(pointer_scroll_button_no_event_before_timeout)
 	litest_assert_empty_queue(li);
 
 	litest_timeout_buttonscroll();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_button_click_debounced(device, li, BTN_LEFT, false);
 
 	litest_assert_button_event(li, BTN_LEFT,
@@ -1517,20 +1517,20 @@ START_TEST(pointer_scroll_button_middle_emulation)
 
 	litest_button_click(dev, BTN_LEFT, 1);
 	litest_button_click(dev, BTN_RIGHT, 1);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_buttonscroll();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	for (i = 0; i < 10; i++) {
 		litest_event(dev, EV_REL, REL_Y, -1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	}
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_button_click(dev, BTN_LEFT, 0);
 	litest_button_click(dev, BTN_RIGHT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_scroll(li,
 			     LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS,
@@ -1564,11 +1564,11 @@ START_TEST(pointer_scroll_button_device_remove_while_down)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* delete the device  while the timer is still active */
 	litest_delete_device(dev);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_destroy_context(li);
 }
@@ -1609,7 +1609,7 @@ START_TEST(pointer_scroll_button_lock)
 	litest_assert_empty_queue(li);
 
 	litest_timeout_buttonscroll();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	for (int i = 0; i < 10; i++) {
 		litest_event(dev, EV_REL, REL_X, 1);
@@ -1617,11 +1617,11 @@ START_TEST(pointer_scroll_button_lock)
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	}
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_button_click_debounced(dev, li, BTN_LEFT, true);
 	litest_button_click_debounced(dev, li, BTN_LEFT, false);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_scroll(li,
 			     LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS,
@@ -1714,9 +1714,9 @@ START_TEST(pointer_scroll_button_lock_enable_while_down)
 	/* but on the next button press we scroll lock */
 	litest_button_click_debounced(dev, li, BTN_LEFT, true);
 	litest_button_click_debounced(dev, li, BTN_LEFT, false);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_buttonscroll();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	for (int i = 0; i < 10; i++) {
 		litest_event(dev, EV_REL, REL_X, 1);
@@ -1780,9 +1780,9 @@ START_TEST(pointer_scroll_button_lock_enable_while_down_just_lock)
 	/* but on the next button press we scroll lock */
 	litest_button_click_debounced(dev, li, BTN_LEFT, true);
 	litest_button_click_debounced(dev, li, BTN_LEFT, false);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_buttonscroll();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	for (int i = 0; i < 10; i++) {
 		litest_event(dev, EV_REL, REL_X, 1);
@@ -1824,7 +1824,7 @@ START_TEST(pointer_scroll_button_lock_otherbutton)
 	litest_button_click_debounced(dev, li, BTN_LEFT, false);
 	litest_assert_empty_queue(li);
 	litest_timeout_buttonscroll();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* other button passes on normally */
 	litest_button_click_debounced(dev, li, BTN_RIGHT, true);
@@ -1997,10 +1997,10 @@ START_TEST(pointer_scroll_button_lock_middlebutton)
 		abort();
 	}
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_middlebutton();
 	litest_timeout_buttonscroll();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* motion events are the same for all of them */
 	for (int i = 0; i < 10; i++) {
@@ -2009,7 +2009,7 @@ START_TEST(pointer_scroll_button_lock_middlebutton)
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	}
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	switch (buttonorder) {
 	case LLRR:
@@ -2021,7 +2021,7 @@ START_TEST(pointer_scroll_button_lock_middlebutton)
 		break;
 	}
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	switch (buttonorder) {
 	case LLRR:
@@ -2253,7 +2253,7 @@ START_TEST(pointer_accel_direction_change)
 	}
 	litest_event(dev, EV_REL, REL_X, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	event = libinput_get_event(li);
 	do {
@@ -2962,23 +2962,23 @@ START_TEST(middlebutton_button_scrolling)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* middle emulation discards */
 	litest_assert_empty_queue(li);
 
 	litest_timeout_middlebutton();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* scroll discards */
 	litest_assert_empty_queue(li);
 	litest_timeout_buttonscroll();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	for (i = 0; i < 10; i++) {
 		litest_event(dev, EV_REL, REL_Y, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 
 	ev = libinput_get_event(li);
@@ -2996,7 +2996,7 @@ START_TEST(middlebutton_button_scrolling)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_axis_end_sequence(li,
 					LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS,
@@ -3038,7 +3038,7 @@ START_TEST(middlebutton_button_scrolling_middle)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_KEY, BTN_RIGHT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   BTN_MIDDLE,
@@ -3048,7 +3048,7 @@ START_TEST(middlebutton_button_scrolling_middle)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_KEY, BTN_RIGHT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   BTN_MIDDLE,
@@ -3079,7 +3079,7 @@ START_TEST(middlebutton_device_remove_while_down)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_KEY, BTN_RIGHT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   BTN_MIDDLE,
@@ -3108,7 +3108,7 @@ START_TEST(middlebutton_device_remove_while_one_is_down)
 
 	litest_event(dev, EV_KEY, BTN_RIGHT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_empty_queue(li);
 }
@@ -3162,9 +3162,9 @@ START_TEST(debounce_bounce)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_KEY, button, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   button,
@@ -3177,9 +3177,9 @@ START_TEST(debounce_bounce)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_KEY, button, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   button,
@@ -3208,17 +3208,17 @@ START_TEST(debounce_bounce_high_delay)
 	 * each single event. */
 	litest_event(dev, EV_KEY, button, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	msleep(15);
 	litest_event(dev, EV_KEY, button, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	msleep(15);
 	litest_event(dev, EV_KEY, button, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   button,
@@ -3227,17 +3227,17 @@ START_TEST(debounce_bounce_high_delay)
 
 	litest_event(dev, EV_KEY, button, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	msleep(15);
 	litest_event(dev, EV_KEY, button, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	msleep(15);
 	litest_event(dev, EV_KEY, button, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   button,
@@ -3285,9 +3285,9 @@ debounce_trigger_spurious(struct litest_device *dev, struct libinput *li)
 {
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -3295,13 +3295,13 @@ debounce_trigger_spurious(struct litest_device *dev, struct libinput *li)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -3313,9 +3313,9 @@ debounce_trigger_spurious(struct litest_device *dev, struct libinput *li)
 	/* gets filtered now */
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
@@ -3341,16 +3341,16 @@ START_TEST(debounce_spurious)
 	for (int i = 0; i < 3; i++) {
 		litest_event(dev, EV_KEY, button, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 		litest_timeout_debounce();
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		/* Not all devices can disable middle button emulation, time out on
 		 * middle button here to make sure the initial button press event
 		 * was flushed.
 		 */
 		litest_timeout_middlebutton();
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		litest_assert_button_event(li,
 					   button,
@@ -3365,9 +3365,9 @@ START_TEST(debounce_spurious)
 
 		litest_event(dev, EV_KEY, button, 0);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 		litest_timeout_debounce();
-		libinput_dispatch(li);
+		litest_dispatch(li);
 		litest_assert_button_event(li,
 					   button,
 					   LIBINPUT_BUTTON_STATE_RELEASED);
@@ -3396,16 +3396,16 @@ START_TEST(debounce_spurious_multibounce)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
 
 	/* Not all devices can disable middle button emulation, time out on
 	 * middle button here to make sure the initial button press event
 	 * was flushed.
 	 */
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_middlebutton();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
@@ -3446,9 +3446,9 @@ START_TEST(debounce_spurious_trigger_high_delay)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -3459,22 +3459,22 @@ START_TEST(debounce_spurious_trigger_high_delay)
 	 * each single event. */
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	msleep(5);
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	msleep(5);
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	msleep(5);
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -3486,18 +3486,18 @@ START_TEST(debounce_spurious_trigger_high_delay)
 	/* gets filtered now */
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
 	litest_assert_empty_queue(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
@@ -3521,9 +3521,9 @@ START_TEST(debounce_spurious_dont_enable_on_otherbutton)
 	/* Don't trigger spurious debouncing on otherbutton events */
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -3536,7 +3536,7 @@ START_TEST(debounce_spurious_dont_enable_on_otherbutton)
 	litest_event(dev, EV_KEY, BTN_RIGHT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -3563,13 +3563,13 @@ START_TEST(debounce_spurious_dont_enable_on_otherbutton)
 	/* Expect release to be immediate */
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
@@ -3596,9 +3596,9 @@ START_TEST(debounce_spurious_cancel_debounce_otherbutton)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* spurious debouncing is on but the release should get flushed by
 	 * the other button */
@@ -3613,7 +3613,7 @@ START_TEST(debounce_spurious_cancel_debounce_otherbutton)
 	litest_event(dev, EV_KEY, BTN_RIGHT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -3653,9 +3653,9 @@ START_TEST(debounce_spurious_switch_to_otherbutton)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -3672,7 +3672,7 @@ START_TEST(debounce_spurious_switch_to_otherbutton)
 	litest_event(dev, EV_KEY, BTN_RIGHT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -3706,14 +3706,14 @@ START_TEST(debounce_remove_device_button_up)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* delete the device  while the timer is still active */
 	litest_delete_device(dev);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_destroy_context(li);
 }
@@ -3731,14 +3731,14 @@ START_TEST(debounce_remove_device_button_down)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	/* delete the device the timer is still active */
 	litest_delete_device(dev);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	litest_destroy_context(li);
 }
