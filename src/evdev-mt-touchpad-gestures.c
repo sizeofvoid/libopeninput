@@ -28,6 +28,11 @@
 
 #include "evdev-mt-touchpad.h"
 
+enum gesture_cancelled {
+	END_GESTURE = 0,
+	CANCEL_GESTURE = 1,
+};
+
 #define QUICK_GESTURE_HOLD_TIMEOUT ms2us(40)
 #define DEFAULT_GESTURE_HOLD_TIMEOUT ms2us(180)
 #define DEFAULT_GESTURE_SWITCH_TIMEOUT ms2us(100)
@@ -1602,7 +1607,7 @@ tp_gesture_stop_twofinger_scroll(struct tp_dispatch *tp, uint64_t time)
 }
 
 static void
-tp_gesture_end(struct tp_dispatch *tp, uint64_t time, bool cancelled)
+tp_gesture_end(struct tp_dispatch *tp, uint64_t time, enum gesture_cancelled cancelled)
 {
 	switch (tp->gesture.state) {
 	case GESTURE_STATE_NONE:
@@ -1618,7 +1623,14 @@ tp_gesture_end(struct tp_dispatch *tp, uint64_t time, bool cancelled)
 	case GESTURE_STATE_SCROLL:
 	case GESTURE_STATE_PINCH:
 	case GESTURE_STATE_SWIPE:
-		tp_gesture_handle_event(tp, cancelled ? GESTURE_EVENT_CANCEL : GESTURE_EVENT_END, time);
+		switch (cancelled) {
+		case CANCEL_GESTURE:
+			tp_gesture_handle_event(tp, GESTURE_EVENT_CANCEL, time);
+			break;
+		case END_GESTURE:
+			tp_gesture_handle_event(tp, GESTURE_EVENT_END, time);
+			break;
+		}
 		break;
 	}
 }
@@ -1626,7 +1638,7 @@ tp_gesture_end(struct tp_dispatch *tp, uint64_t time, bool cancelled)
 void
 tp_gesture_cancel(struct tp_dispatch *tp, uint64_t time)
 {
-	tp_gesture_end(tp, time, true);
+	tp_gesture_end(tp, time, CANCEL_GESTURE);
 }
 
 void
@@ -1646,7 +1658,7 @@ tp_gesture_cancel_motion_gestures(struct tp_dispatch *tp, uint64_t time)
 	case GESTURE_STATE_SCROLL:
 	case GESTURE_STATE_PINCH:
 	case GESTURE_STATE_SWIPE:
-		tp_gesture_end(tp, time, true);
+		tp_gesture_cancel(tp, time);
 		break;
 	}
 }
@@ -1654,7 +1666,7 @@ tp_gesture_cancel_motion_gestures(struct tp_dispatch *tp, uint64_t time)
 void
 tp_gesture_stop(struct tp_dispatch *tp, uint64_t time)
 {
-	tp_gesture_end(tp, time, false);
+	tp_gesture_end(tp, time, END_GESTURE);
 }
 
 static void
