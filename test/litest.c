@@ -733,9 +733,9 @@ litest_log_handler(struct libinput *libinput,
 		 * short, don't abort if during a valgrind run we get a
 		 * negative offset */
 		if ((RUNNING_ON_VALGRIND && in_debugger) ||
-		    !strstr(format, "scheduled expiry is in the past")) {
+		    strstr(format, "scheduled expiry is in the past")) {
 			/* noop */
-		} else if (!strstr(format, "event processing lagging behind")) {
+		} else if (strstr(format, "event processing lagging behind")) {
 			/* noop */
 		} else {
 			litest_abort_msg("libinput bug triggered, aborting.\n");
