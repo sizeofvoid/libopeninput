@@ -222,34 +222,88 @@ litest_fail_comparison_ptr(const char *file,
 #define litest_assert_ptr_notnull(a_) \
 	litest_assert_comparison_ptr_(a_, !=, NULL)
 
-#define litest_assert_comparison_double_(a_, op_, b_) \
+#define LITEST_DEFAULT_EPSILON  0.001
+
+#define litest_assert_double_eq_epsilon(a_, b_, epsilon_)\
 	do { \
-		const double EPSILON = 1.0/256; \
 		__typeof__(a_) _a = a_; \
 		__typeof__(b_) _b = b_; \
-		if (!((_a) op_ (_b)) && fabs((_a) - (_b)) > EPSILON)  \
+		if (!(fabs((_a) - (_b)) < epsilon_))  \
 			litest_fail_comparison_double(__FILE__, __LINE__, __func__,\
-						      #op_, _a, _b, \
+						      "==", _a, _b, \
 						      #a_, #b_); \
 	} while(0)
 
+#define litest_assert_double_ne_epsilon(a_, b_, epsilon_)\
+	do { \
+		__typeof__(a_) _a = a_; \
+		__typeof__(b_) _b = b_; \
+		if (!(fabs((_a) - (_b)) > epsilon_))  \
+			litest_fail_comparison_double(__FILE__, __LINE__, __func__,\
+						      "!=", _a, _b, \
+						      #a_, #b_); \
+	} while(0)
+
+#define litest_assert_double_gt_epsilon(a_, b_, epsilon_)\
+	do { \
+		__typeof__(a_) _a = a_; \
+		__typeof__(b_) _b = b_; \
+		if (!(_a - (epsilon_) > _b))  \
+			litest_fail_comparison_double(__FILE__, __LINE__, __func__,\
+						      ">", _a, _b, \
+						      #a_, #b_); \
+	} while(0)
+
+#define litest_assert_double_ge_epsilon(a_, b_, epsilon_)\
+	do { \
+		__typeof__(a_) _a = a_; \
+		__typeof__(b_) _b = b_; \
+		if (!(_a > _b || fabs((_a) - (_b)) < epsilon_))  \
+			litest_fail_comparison_double(__FILE__, __LINE__, __func__,\
+						      ">=", _a, _b, \
+						      #a_, #b_); \
+	} while(0)
+
+#define litest_assert_double_lt_epsilon(a_, b_, epsilon_)\
+	do { \
+		__typeof__(a_) _a = a_; \
+		__typeof__(b_) _b = b_; \
+		if (!(_a < _b - (epsilon_)))  \
+			litest_fail_comparison_double(__FILE__, __LINE__, __func__,\
+						      "<", _a, _b, \
+						      #a_, #b_); \
+	} while(0)
+
+#define litest_assert_double_le_epsilon(a_, b_, epsilon_)\
+	do { \
+		__typeof__(a_) _a = a_; \
+		__typeof__(b_) _b = b_; \
+		if (!(_a < _b || fabs((_a) - (_b)) < epsilon_))  \
+			litest_fail_comparison_double(__FILE__, __LINE__, __func__,\
+						      "<=", _a, _b, \
+						      #a_, #b_); \
+	} while(0)
+
+#define litest_assert_comparison_double_(a_, op_, b_) \
+	litest_assert_comparison_double_epsilon_(a_, op_, b_, LITEST_DEFAULT_EPSILON)
+
 #define litest_assert_double_eq(a_, b_)\
-	litest_assert_comparison_double_((a_), ==, (b_))
+	litest_assert_double_eq_epsilon((a_), (b_), LITEST_DEFAULT_EPSILON)
 
 #define litest_assert_double_ne(a_, b_)\
-	litest_assert_comparison_double_((a_), !=, (b_))
+	litest_assert_double_ne_epsilon((a_), (b_),LITEST_DEFAULT_EPSILON)
 
 #define litest_assert_double_lt(a_, b_)\
-	litest_assert_comparison_double_((a_), <, (b_))
+	litest_assert_double_lt_epsilon((a_), (b_),LITEST_DEFAULT_EPSILON)
 
 #define litest_assert_double_le(a_, b_)\
-	litest_assert_comparison_double_((a_), <=, (b_))
+	litest_assert_double_le_epsilon((a_), (b_),LITEST_DEFAULT_EPSILON)
 
 #define litest_assert_double_gt(a_, b_)\
-	litest_assert_comparison_double_((a_), >, (b_))
+	litest_assert_double_gt_epsilon((a_), (b_),LITEST_DEFAULT_EPSILON)
 
 #define litest_assert_double_ge(a_, b_)\
-	litest_assert_comparison_double_((a_), >=, (b_))
+	litest_assert_double_ge_epsilon((a_), (b_),LITEST_DEFAULT_EPSILON)
 
 enum litest_device_type {
 	LITEST_NO_DEVICE = -1,
