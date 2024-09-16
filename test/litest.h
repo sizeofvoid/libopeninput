@@ -131,6 +131,15 @@ litest_fail_comparison_ptr(const char *file,
 			   const char *func,
 			   const char *comparison);
 
+void
+litest_fail_comparison_str(const char *file,
+			   int line,
+			   const char *func,
+			   const char *comparison,
+			   const char *operator,
+			   const char *astr,
+			   const char *bstr);
+
 #define litest_assert(cond) \
 	do { \
 		if (!(cond)) \
@@ -221,6 +230,28 @@ litest_fail_comparison_ptr(const char *file,
 
 #define litest_assert_ptr_notnull(a_) \
 	litest_assert_comparison_ptr_(a_, !=, NULL)
+
+#define litest_assert_str_eq(a_, b_) \
+	do { \
+		const char *_a = a_; \
+		const char *_b = b_; \
+		if (!streq(_a, _b)) \
+			litest_fail_comparison_str(__FILE__, __LINE__, __func__,\
+						   #a_ " == " #b_, \
+						   "==", \
+						   _a, _b); \
+	} while(0)
+
+#define litest_assert_str_ne(a_, b_) \
+	do { \
+		const char *_a = a_; \
+		const char *_b = b_; \
+		if (streq(_a, _b)) \
+			litest_fail_comparison_str(__FILE__, __LINE__, __func__,\
+						   #a_ " != " #b_, \
+						   "!=", \
+						   _a, _b); \
+	} while(0)
 
 #define LITEST_DEFAULT_EPSILON  0.001
 
