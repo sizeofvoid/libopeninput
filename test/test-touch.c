@@ -248,7 +248,7 @@ START_TEST(touch_many_slots)
 	litest_dispatch(libinput);
 	do {
 		type = libinput_event_get_type(ev);
-		litest_assert_int_ne(type, LIBINPUT_EVENT_TOUCH_DOWN);
+		litest_assert_enum_ne(type, LIBINPUT_EVENT_TOUCH_DOWN);
 		if (type == LIBINPUT_EVENT_TOUCH_UP)
 			slot_count--;
 
@@ -521,12 +521,12 @@ START_TEST(touch_calibration_config)
 	/* Twice so we have every to-fro combination */
 	for (int i = 0; i < 2; i++) {
 		status = libinput_device_config_calibration_set_matrix(dev->libinput_device, identity);
-		litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+		litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 		libinput_device_config_calibration_get_matrix(dev->libinput_device, matrix);
 		litest_assert_int_eq(memcmp(matrix, identity, sizeof(matrix)), 0);
 
 		status = libinput_device_config_calibration_set_matrix(dev->libinput_device, nonidentity);
-		litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+		litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 		libinput_device_config_calibration_get_matrix(dev->libinput_device, matrix);
 		litest_assert_int_eq(memcmp(matrix, nonidentity, sizeof(matrix)), 0);
 	}
@@ -628,7 +628,7 @@ START_TEST(touch_no_left_handed)
 	litest_assert_int_eq(rc, 0);
 
 	status = libinput_device_config_left_handed_set(d, 0);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 }
 END_TEST
 

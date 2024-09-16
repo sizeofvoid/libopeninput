@@ -81,7 +81,7 @@ START_TEST(keyboard_seat_key_count)
 		litest_assert_notnull(kev);
 		litest_assert_int_eq(libinput_event_keyboard_get_key(kev),
 				     (unsigned int)KEY_A);
-		litest_assert_int_eq(libinput_event_keyboard_get_key_state(kev),
+		litest_assert_enum_eq(libinput_event_keyboard_get_key_state(kev),
 				 LIBINPUT_KEY_STATE_RELEASED);
 
 		--expected_key_button_count;
@@ -236,8 +236,8 @@ START_TEST(keyboard_key_auto_release)
 
 		litest_assert_event_type(event, LIBINPUT_EVENT_KEYBOARD_KEY);
 		kevent = libinput_event_get_keyboard_event(event);
-		litest_assert_int_eq(libinput_event_keyboard_get_key_state(kevent),
-				 LIBINPUT_KEY_STATE_RELEASED);
+		litest_assert_enum_eq(libinput_event_keyboard_get_key_state(kevent),
+				      LIBINPUT_KEY_STATE_RELEASED);
 		key = libinput_event_keyboard_get_key(kevent);
 
 		valid_code = 0;
@@ -466,22 +466,22 @@ START_TEST(keyboard_no_scroll)
 	enum libinput_config_status status;
 
 	method = libinput_device_config_scroll_get_method(device);
-	litest_assert_int_eq(method, LIBINPUT_CONFIG_SCROLL_NO_SCROLL);
+	litest_assert_enum_eq(method, LIBINPUT_CONFIG_SCROLL_NO_SCROLL);
 	method = libinput_device_config_scroll_get_default_method(device);
-	litest_assert_int_eq(method, LIBINPUT_CONFIG_SCROLL_NO_SCROLL);
+	litest_assert_enum_eq(method, LIBINPUT_CONFIG_SCROLL_NO_SCROLL);
 
 	status = libinput_device_config_scroll_set_method(device,
 				 LIBINPUT_CONFIG_SCROLL_2FG);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 	status = libinput_device_config_scroll_set_method(device,
 				 LIBINPUT_CONFIG_SCROLL_EDGE);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 	status = libinput_device_config_scroll_set_method(device,
 				 LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 	status = libinput_device_config_scroll_set_method(device,
 				 LIBINPUT_CONFIG_SCROLL_NO_SCROLL);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 }
 END_TEST
 

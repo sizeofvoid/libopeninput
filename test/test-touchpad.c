@@ -105,8 +105,8 @@ START_TEST(touchpad_2fg_no_motion)
 
 	event = libinput_get_event(li);
 	while (event) {
-		litest_assert_int_ne(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_POINTER_MOTION);
+		litest_assert_enum_ne(libinput_event_get_type(event),
+				      LIBINPUT_EVENT_POINTER_MOTION);
 		libinput_event_destroy(event);
 		event = libinput_get_event(li);
 	}
@@ -615,11 +615,11 @@ START_TEST(touchpad_scroll_natural_enable_config)
 	enum libinput_config_status status;
 
 	status = libinput_device_config_scroll_set_natural_scroll_enabled(dev->libinput_device, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	litest_assert_int_eq(libinput_device_config_scroll_get_natural_scroll_enabled(dev->libinput_device), 1);
 
 	status = libinput_device_config_scroll_set_natural_scroll_enabled(dev->libinput_device, 0);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	litest_assert_int_eq(libinput_device_config_scroll_get_natural_scroll_enabled(dev->libinput_device), 0);
 }
 END_TEST
@@ -872,14 +872,14 @@ START_TEST(touchpad_scroll_defaults)
 
 	status = libinput_device_config_scroll_set_method(device,
 					  LIBINPUT_CONFIG_SCROLL_EDGE);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	status = libinput_device_config_scroll_set_method(device,
 					  LIBINPUT_CONFIG_SCROLL_2FG);
 
 	if (should_have_2fg)
-		litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+		litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	else
-		litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+		litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 }
 END_TEST
 
@@ -1020,8 +1020,8 @@ START_TEST(touchpad_edge_scroll_source)
 					     LIBINPUT_EVENT_POINTER_SCROLL_FINGER,
 					     LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
 					     LIBINPUT_POINTER_AXIS_SOURCE_FINGER);
-		litest_assert_int_eq(litest_event_pointer_get_axis_source(ptrev),
-				 LIBINPUT_POINTER_AXIS_SOURCE_FINGER);
+		litest_assert_enum_eq(litest_event_pointer_get_axis_source(ptrev),
+				      LIBINPUT_POINTER_AXIS_SOURCE_FINGER);
 		libinput_event_destroy(event);
 	}
 }
@@ -2371,7 +2371,7 @@ START_TEST(touchpad_left_handed)
 		return;
 
 	status = libinput_device_config_left_handed_set(d, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
 	litest_button_click(dev, BTN_LEFT, 1);
@@ -2416,7 +2416,7 @@ START_TEST(touchpad_left_handed_appletouch)
 
 	litest_assert_int_eq(libinput_device_config_left_handed_is_available(d), 0);
 	status = libinput_device_config_left_handed_set(d, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 	litest_assert_int_eq(libinput_device_config_left_handed_get(d), 0);
 }
 END_TEST
@@ -2432,7 +2432,7 @@ START_TEST(touchpad_left_handed_clickpad)
 		return;
 
 	status = libinput_device_config_left_handed_set(d, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
 	litest_touch_down(dev, 0, 10, 90);
@@ -2486,7 +2486,7 @@ START_TEST(touchpad_left_handed_clickfinger)
 		return;
 
 	status = libinput_device_config_left_handed_set(d, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
 	litest_touch_down(dev, 0, 10, 90);
@@ -2533,7 +2533,7 @@ START_TEST(touchpad_left_handed_tapping)
 	litest_disable_hold_gestures(dev->libinput_device);
 
 	status = libinput_device_config_left_handed_set(d, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
 
@@ -2568,7 +2568,7 @@ START_TEST(touchpad_left_handed_tapping_2fg)
 	litest_disable_hold_gestures(dev->libinput_device);
 
 	status = libinput_device_config_left_handed_set(d, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
 
@@ -2606,7 +2606,7 @@ START_TEST(touchpad_left_handed_delayed)
 	litest_dispatch(li);
 
 	status = libinput_device_config_left_handed_set(d, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_button_click(dev, BTN_LEFT, 0);
 
@@ -2626,7 +2626,7 @@ START_TEST(touchpad_left_handed_delayed)
 	litest_dispatch(li);
 
 	status = libinput_device_config_left_handed_set(d, 0);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_button_click(dev, BTN_RIGHT, 0);
 	litest_button_click(dev, BTN_LEFT, 0);
@@ -2662,7 +2662,7 @@ START_TEST(touchpad_left_handed_clickpad_delayed)
 	litest_dispatch(li);
 
 	status = libinput_device_config_left_handed_set(d, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_button_click(dev, BTN_LEFT, 0);
 	litest_touch_up(dev, 0);
@@ -2681,7 +2681,7 @@ START_TEST(touchpad_left_handed_clickpad_delayed)
 	litest_dispatch(li);
 
 	status = libinput_device_config_left_handed_set(d, 0);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_button_click(dev, BTN_LEFT, 0);
 	litest_touch_up(dev, 0);
@@ -2717,7 +2717,7 @@ START_TEST(touchpad_left_handed_rotation)
 		return;
 
 	status = libinput_device_config_left_handed_set(d, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
 
@@ -3434,7 +3434,7 @@ START_TEST(touchpad_trackpoint_mb_click)
 	status = libinput_device_config_scroll_set_method(
 				  trackpoint->libinput_device,
 				  LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
 	litest_button_click_debounced(touchpad, li, BTN_2, true); /* middle */
@@ -4692,19 +4692,19 @@ START_TEST(touchpad_dwt_config_default_on)
 
 	litest_assert(libinput_device_config_dwt_is_available(device));
 	state = libinput_device_config_dwt_get_enabled(device);
-	litest_assert_int_eq(state, LIBINPUT_CONFIG_DWT_ENABLED);
+	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DWT_ENABLED);
 	state = libinput_device_config_dwt_get_default_enabled(device);
-	litest_assert_int_eq(state, LIBINPUT_CONFIG_DWT_ENABLED);
+	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DWT_ENABLED);
 
 	status = libinput_device_config_dwt_set_enabled(device,
 					LIBINPUT_CONFIG_DWT_ENABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	status = libinput_device_config_dwt_set_enabled(device,
 					LIBINPUT_CONFIG_DWT_DISABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	status = libinput_device_config_dwt_set_enabled(device, 3);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
 
@@ -4722,19 +4722,19 @@ START_TEST(touchpad_dwtp_config_default_on)
 
 	litest_assert(libinput_device_config_dwtp_is_available(device));
 	state = libinput_device_config_dwtp_get_enabled(device);
-	litest_assert_int_eq(state, LIBINPUT_CONFIG_DWTP_ENABLED);
+	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DWTP_ENABLED);
 	state = libinput_device_config_dwtp_get_default_enabled(device);
-	litest_assert_int_eq(state, LIBINPUT_CONFIG_DWTP_ENABLED);
+	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DWTP_ENABLED);
 
 	status = libinput_device_config_dwtp_set_enabled(device,
 					LIBINPUT_CONFIG_DWTP_ENABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	status = libinput_device_config_dwtp_set_enabled(device,
 					LIBINPUT_CONFIG_DWTP_DISABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	status = libinput_device_config_dwtp_set_enabled(device, 3);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
 
@@ -4747,19 +4747,19 @@ START_TEST(touchpad_dwt_config_default_off)
 
 	litest_assert(!libinput_device_config_dwt_is_available(device));
 	state = libinput_device_config_dwt_get_enabled(device);
-	litest_assert_int_eq(state, LIBINPUT_CONFIG_DWT_DISABLED);
+	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DWT_DISABLED);
 	state = libinput_device_config_dwt_get_default_enabled(device);
-	litest_assert_int_eq(state, LIBINPUT_CONFIG_DWT_DISABLED);
+	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DWT_DISABLED);
 
 	status = libinput_device_config_dwt_set_enabled(device,
 					LIBINPUT_CONFIG_DWT_ENABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 	status = libinput_device_config_dwt_set_enabled(device,
 					LIBINPUT_CONFIG_DWT_DISABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	status = libinput_device_config_dwt_set_enabled(device, 3);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
 
@@ -4772,19 +4772,19 @@ START_TEST(touchpad_dwtp_config_default_off)
 
 	litest_assert(!libinput_device_config_dwtp_is_available(device));
 	state = libinput_device_config_dwtp_get_enabled(device);
-	litest_assert_int_eq(state, LIBINPUT_CONFIG_DWTP_DISABLED);
+	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DWTP_DISABLED);
 	state = libinput_device_config_dwtp_get_default_enabled(device);
-	litest_assert_int_eq(state, LIBINPUT_CONFIG_DWTP_DISABLED);
+	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DWTP_DISABLED);
 
 	status = libinput_device_config_dwtp_set_enabled(device,
 					LIBINPUT_CONFIG_DWTP_ENABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 	status = libinput_device_config_dwtp_set_enabled(device,
 					LIBINPUT_CONFIG_DWTP_DISABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	status = libinput_device_config_dwtp_set_enabled(device, 3);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
 
@@ -6015,7 +6015,7 @@ START_TEST(touchpad_disabled_on_mouse)
 	status = libinput_device_config_send_events_set_mode(
 			     dev->libinput_device,
 			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_touch_down(dev, 0, 20, 30);
 	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10);
@@ -6052,7 +6052,7 @@ START_TEST(touchpad_disabled_on_mouse_suspend_mouse)
 	status = libinput_device_config_send_events_set_mode(
 			     dev->libinput_device,
 			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_touch_down(dev, 0, 20, 30);
 	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10);
@@ -6066,7 +6066,7 @@ START_TEST(touchpad_disabled_on_mouse_suspend_mouse)
 	status = libinput_device_config_send_events_set_mode(
 			     mouse->libinput_device,
 			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_touch_down(dev, 0, 20, 30);
 	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10);
@@ -6095,7 +6095,7 @@ START_TEST(touchpad_disabled_double_mouse)
 	status = libinput_device_config_send_events_set_mode(
 			     dev->libinput_device,
 			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_touch_down(dev, 0, 20, 30);
 	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10);
@@ -6141,7 +6141,7 @@ START_TEST(touchpad_disabled_double_mouse_one_suspended)
 	status = libinput_device_config_send_events_set_mode(
 			     dev->libinput_device,
 			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_touch_down(dev, 0, 20, 30);
 	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10);
@@ -6156,7 +6156,7 @@ START_TEST(touchpad_disabled_double_mouse_one_suspended)
 	status = libinput_device_config_send_events_set_mode(
 			     mouse1->libinput_device,
 			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_touch_down(dev, 0, 20, 30);
 	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10);
