@@ -420,6 +420,38 @@ START_TEST(litest_double_ge_fails)
 }
 END_TEST
 
+START_TEST(litest_string_eq_ne)
+{
+	litest_assert_str_eq("foo", "foo");
+	litest_assert_str_ne("foo", "bar");
+	litest_assert_str_ne("foo", "foobar");
+	litest_assert_str_ne("foobar", "foo");
+
+	const char *a1 = "a";
+	const char *a2 = "a";
+	const char *b = "b";
+
+	litest_assert_str_eq(NULL, NULL);
+	litest_assert_str_eq(a1, a2);
+	litest_assert_str_ne(a1, b);
+	litest_assert_str_ne(a2, b);
+	litest_assert_str_ne(a2, b);
+	litest_assert_str_ne(b, NULL);
+}
+END_TEST
+
+START_TEST(litest_string_eq_fails)
+{
+	litest_assert_str_eq("foo", "bar");
+}
+END_TEST
+
+START_TEST(litest_string_ne_fails)
+{
+	litest_assert_str_ne("foo", "foo");
+}
+END_TEST
+
 START_TEST(zalloc_overflow)
 {
 	zalloc((size_t)-1);
@@ -512,6 +544,12 @@ litest_assert_macros_suite(void)
 	tcase_add_test_raise_signal(tc, litest_double_gt_fails, SIGABRT);
 	tcase_add_test_raise_signal(tc, litest_double_le_fails, SIGABRT);
 	tcase_add_test_raise_signal(tc, litest_double_ge_fails, SIGABRT);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("string comparison ");
+	tcase_add_test(tc, litest_string_eq_ne);
+	tcase_add_test_raise_signal(tc, litest_string_eq_fails, SIGABRT);
+	tcase_add_test_raise_signal(tc, litest_string_ne_fails, SIGABRT);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("zalloc ");
