@@ -348,6 +348,78 @@ START_TEST(ck_double_ge_fails)
 }
 END_TEST
 
+START_TEST(litest_double_eq_and_ne)
+{
+	litest_assert_double_eq(0.4,0.4);
+	litest_assert_double_eq(0.4,0.4 + 1E-6);
+	litest_assert_double_ne(0.4,0.4 + 1E-3);
+
+	litest_assert_double_eq_epsilon(0.4, 0.5, 0.1);
+	litest_assert_double_eq_epsilon(0.4, 0.5, 0.2);
+	litest_assert_double_ne_epsilon(0.4, 0.6, 0.1);
+	litest_assert_double_ne_epsilon(0.4, 0.41, 0.005);
+}
+END_TEST
+
+START_TEST(litest_double_lt_gt)
+{
+	litest_assert_double_lt(12.0,13.0);
+	litest_assert_double_gt(15.4,13.0);
+	litest_assert_double_le(12.0,12.0);
+	litest_assert_double_le(12.0,20.0);
+	litest_assert_double_ge(12.0,12.0);
+	litest_assert_double_ge(20.0,12.0);
+}
+END_TEST
+
+START_TEST(litest_double_eq_fails)
+{
+	litest_assert_double_eq(0.41,0.4);
+}
+END_TEST
+
+START_TEST(litest_double_eq_epsilon_fails)
+{
+	litest_assert_double_eq_epsilon(0.4,0.5,0.05);
+}
+END_TEST
+
+START_TEST(litest_double_ne_fails)
+{
+	litest_assert_double_ne(0.4 + 1E-7,0.4);
+}
+END_TEST
+
+START_TEST(litest_double_ne_epsilon_fails)
+{
+	litest_assert_double_ne_epsilon(0.4, 0.5, 0.2);
+}
+END_TEST
+
+START_TEST(litest_double_lt_fails)
+{
+	litest_assert_double_lt(6.0, 5.0);
+}
+END_TEST
+
+START_TEST(litest_double_gt_fails)
+{
+	litest_assert_double_gt(5.0, 6.0);
+}
+END_TEST
+
+START_TEST(litest_double_le_fails)
+{
+	litest_assert_double_le(6.0, 5.0);
+}
+END_TEST
+
+START_TEST(litest_double_ge_fails)
+{
+	litest_assert_double_ge(5.0, 6.0);
+}
+END_TEST
+
 START_TEST(zalloc_overflow)
 {
 	zalloc((size_t)-1);
@@ -429,6 +501,17 @@ litest_assert_macros_suite(void)
 	tcase_add_exit_test(tc, ck_double_gt_fails, 1);
 	tcase_add_exit_test(tc, ck_double_le_fails, 1);
 	tcase_add_exit_test(tc, ck_double_ge_fails, 1);
+
+	tcase_add_test(tc, litest_double_eq_and_ne);
+	tcase_add_test(tc, litest_double_lt_gt);
+	tcase_add_test_raise_signal(tc, litest_double_eq_fails, SIGABRT);
+	tcase_add_test_raise_signal(tc, litest_double_eq_epsilon_fails, SIGABRT);
+	tcase_add_test_raise_signal(tc, litest_double_ne_fails, SIGABRT);
+	tcase_add_test_raise_signal(tc, litest_double_ne_epsilon_fails, SIGABRT);
+	tcase_add_test_raise_signal(tc, litest_double_lt_fails, SIGABRT);
+	tcase_add_test_raise_signal(tc, litest_double_gt_fails, SIGABRT);
+	tcase_add_test_raise_signal(tc, litest_double_le_fails, SIGABRT);
+	tcase_add_test_raise_signal(tc, litest_double_ge_fails, SIGABRT);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("zalloc ");
