@@ -192,6 +192,22 @@ litest_fail_comparison_str(const char *file,
 			litest_abort_msg("Unexpected errno: %d (%s)", _e, strerror(_e)); \
 	} while(0);
 
+#define litest_assert_comparison_enum_(a_, op_, b_) \
+	do { \
+		__typeof__(a_) _a = a_; \
+		__typeof__(a_) _b = b_; \
+		if (!((_a) op_ (_b))) \
+			litest_fail_comparison_int(__FILE__, __LINE__, __func__,\
+						   #op_, (int)_a, (int)_b, \
+						   #a_, #b_); \
+	} while(0)
+
+#define litest_assert_enum_eq(a_, b_) \
+	litest_assert_comparison_enum_(a_, ==, b_)
+
+#define litest_assert_enum_ne(a_, b_) \
+	litest_assert_comparison_enum_(a_, !=, b_)
+
 #define litest_assert_int_eq(a_, b_) \
 	litest_assert_comparison_int_(a_, ==, b_)
 
