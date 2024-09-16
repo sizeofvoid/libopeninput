@@ -54,7 +54,7 @@ START_TEST(totem_type)
 				   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(t);
 
-	ck_assert_int_eq(libinput_tablet_tool_get_type(tool),
+	litest_assert_int_eq(libinput_tablet_tool_get_type(tool),
 			 LIBINPUT_TABLET_TOOL_TYPE_TOTEM);
 	libinput_event_destroy(event);
 }
@@ -78,9 +78,9 @@ START_TEST(totem_axes)
 				   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(t);
 
-	ck_assert(libinput_tablet_tool_has_rotation(tool));
-	ck_assert(libinput_tablet_tool_has_size(tool));
-	ck_assert(libinput_tablet_tool_has_button(tool, BTN_0));
+	litest_assert(libinput_tablet_tool_has_rotation(tool));
+	litest_assert(libinput_tablet_tool_has_size(tool));
+	litest_assert(libinput_tablet_tool_has_button(tool, BTN_0));
 
 	libinput_event_destroy(event);
 }
@@ -101,14 +101,14 @@ START_TEST(totem_proximity_in_out)
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
 				   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(t),
 			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 	libinput_event_destroy(event);
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
 				   LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 	libinput_event_destroy(event);
 
@@ -119,14 +119,14 @@ START_TEST(totem_proximity_in_out)
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
 				   LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
 				   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(t),
 			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	libinput_event_destroy(event);
 }
@@ -163,30 +163,30 @@ START_TEST(totem_proximity_in_on_init)
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
 				   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(t),
 			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 	x = libinput_event_tablet_tool_get_x(t);
 	y = libinput_event_tablet_tool_get_y(t);
 
-	ck_assert_double_gt(x, w/2 - 1);
-	ck_assert_double_lt(x, w/2 + 1);
-	ck_assert_double_gt(y, h/2 - 1);
-	ck_assert_double_lt(y, h/2 + 1);
+	litest_assert_double_gt(x, w/2 - 1);
+	litest_assert_double_lt(x, w/2 + 1);
+	litest_assert_double_gt(y, h/2 - 1);
+	litest_assert_double_lt(y, h/2 + 1);
 
 	libinput_event_destroy(event);
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
 				   LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 	x = libinput_event_tablet_tool_get_x(t);
 	y = libinput_event_tablet_tool_get_y(t);
 
-	ck_assert_double_gt(x, w/2 - 1);
-	ck_assert_double_lt(x, w/2 + 1);
-	ck_assert_double_gt(y, h/2 - 1);
-	ck_assert_double_lt(y, h/2 + 1);
+	litest_assert_double_gt(x, w/2 - 1);
+	litest_assert_double_lt(x, w/2 + 1);
+	litest_assert_double_gt(y, h/2 - 1);
+	litest_assert_double_lt(y, h/2 + 1);
 
 	libinput_event_destroy(event);
 
@@ -218,14 +218,14 @@ START_TEST(totem_proximity_out_on_suspend)
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
 				   LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
 				   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(t),
 			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	libinput_event_destroy(event);
 
@@ -254,14 +254,14 @@ START_TEST(totem_motion)
 		event = libinput_get_event(li);
 		t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
-		ck_assert(libinput_event_tablet_tool_x_has_changed(t));
-		ck_assert(libinput_event_tablet_tool_y_has_changed(t));
+		litest_assert(libinput_event_tablet_tool_x_has_changed(t));
+		litest_assert(libinput_event_tablet_tool_y_has_changed(t));
 
 		current_x = libinput_event_tablet_tool_get_x(t);
 		current_y = libinput_event_tablet_tool_get_y(t);
 		if (i != 0) {
-			ck_assert_double_gt(current_x, old_x);
-			ck_assert_double_lt(current_y, old_y);
+			litest_assert_double_gt(current_x, old_x);
+			litest_assert_double_lt(current_y, old_y);
 		}
 		old_x = current_x;
 		old_y = current_y;
@@ -298,12 +298,12 @@ START_TEST(totem_rotation)
 		event = libinput_get_event(li);
 		t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
-		ck_assert(!libinput_event_tablet_tool_x_has_changed(t));
-		ck_assert(!libinput_event_tablet_tool_y_has_changed(t));
-		ck_assert(libinput_event_tablet_tool_rotation_has_changed(t));
+		litest_assert(!libinput_event_tablet_tool_x_has_changed(t));
+		litest_assert(!libinput_event_tablet_tool_y_has_changed(t));
+		litest_assert(libinput_event_tablet_tool_rotation_has_changed(t));
 
 		r = libinput_event_tablet_tool_get_rotation(t);
-		ck_assert_double_lt(r, old_r);
+		litest_assert_double_lt(r, old_r);
 		old_r = r;
 
 		libinput_event_destroy(event);
@@ -322,12 +322,12 @@ START_TEST(totem_rotation)
 		event = libinput_get_event(li);
 		t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
-		ck_assert(!libinput_event_tablet_tool_x_has_changed(t));
-		ck_assert(!libinput_event_tablet_tool_y_has_changed(t));
-		ck_assert(libinput_event_tablet_tool_rotation_has_changed(t));
+		litest_assert(!libinput_event_tablet_tool_x_has_changed(t));
+		litest_assert(!libinput_event_tablet_tool_y_has_changed(t));
+		litest_assert(libinput_event_tablet_tool_rotation_has_changed(t));
 
 		r = libinput_event_tablet_tool_get_rotation(t);
-		ck_assert_double_gt(r, old_r);
+		litest_assert_double_gt(r, old_r);
 		old_r = r;
 
 		libinput_event_destroy(event);
@@ -350,14 +350,14 @@ START_TEST(totem_size)
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	ck_assert(libinput_event_tablet_tool_size_major_has_changed(t));
-	ck_assert(libinput_event_tablet_tool_size_minor_has_changed(t));
+	litest_assert(libinput_event_tablet_tool_size_major_has_changed(t));
+	litest_assert(libinput_event_tablet_tool_size_minor_has_changed(t));
 	smaj = libinput_event_tablet_tool_get_size_major(t);
 	smin = libinput_event_tablet_tool_get_size_minor(t);
 	libinput_event_destroy(event);
 
-	ck_assert_double_eq(smaj, 71.8);
-	ck_assert_double_eq(smin, 71.8);
+	litest_assert_double_eq(smaj, 71.8);
+	litest_assert_double_eq(smin, 71.8);
 
 	litest_drain_events(li);
 }
@@ -377,10 +377,10 @@ START_TEST(totem_button)
 	litest_dispatch(li);
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_button(t), BTN_0);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_button_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_button(t), BTN_0);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(t),
 			 LIBINPUT_BUTTON_STATE_PRESSED);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 	libinput_event_destroy(event);
 
@@ -389,10 +389,10 @@ START_TEST(totem_button)
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_button(t), BTN_0);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_button_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_button(t), BTN_0);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(t),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 	libinput_event_destroy(event);
 }
@@ -422,7 +422,7 @@ START_TEST(totem_button_down_on_init)
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
 				   LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(t),
 			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 
 	libinput_event_destroy(event);
@@ -430,7 +430,7 @@ START_TEST(totem_button_down_on_init)
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event,
 				   LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	ck_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
+	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 
 	libinput_event_destroy(event);

@@ -38,12 +38,12 @@ START_TEST(trackball_rotation_config_defaults)
 	struct libinput_device *device = dev->libinput_device;
 	int angle;
 
-	ck_assert(libinput_device_config_rotation_is_available(device));
+	litest_assert(libinput_device_config_rotation_is_available(device));
 
 	angle = libinput_device_config_rotation_get_angle(device);
-	ck_assert_int_eq(angle, 0);
+	litest_assert_int_eq(angle, 0);
 	angle = libinput_device_config_rotation_get_default_angle(device);
-	ck_assert_int_eq(angle, 0);
+	litest_assert_int_eq(angle, 0);
 }
 END_TEST
 
@@ -54,11 +54,11 @@ START_TEST(trackball_rotation_config_invalid_range)
 	enum libinput_config_status status;
 
 	status = libinput_device_config_rotation_set_angle(device, 360);
-	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 	status = libinput_device_config_rotation_set_angle(device, 361);
-	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 	status = libinput_device_config_rotation_set_angle(device, -1);
-	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
 
@@ -69,21 +69,21 @@ START_TEST(trackball_rotation_config_no_rotation)
 	enum libinput_config_status status;
 	int angle;
 
-	ck_assert(!libinput_device_config_rotation_is_available(device));
+	litest_assert(!libinput_device_config_rotation_is_available(device));
 
 	angle = libinput_device_config_rotation_get_angle(device);
-	ck_assert_int_eq(angle, 0);
+	litest_assert_int_eq(angle, 0);
 	angle = libinput_device_config_rotation_get_default_angle(device);
-	ck_assert_int_eq(angle, 0);
+	litest_assert_int_eq(angle, 0);
 
 	/* 0 always succeeds */
 	status = libinput_device_config_rotation_set_angle(device, 0);
-	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	for (angle = 1; angle < 360; angle++) {
 		status = libinput_device_config_rotation_set_angle(device,
 								   angle);
-		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+		litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 	}
 }
 END_TEST
@@ -95,12 +95,12 @@ START_TEST(trackball_rotation_config_right_angle)
 	enum libinput_config_status status;
 	int angle;
 
-	ck_assert(libinput_device_config_rotation_is_available(device));
+	litest_assert(libinput_device_config_rotation_is_available(device));
 
 	for (angle = 0; angle < 360; angle += 90) {
 		status = libinput_device_config_rotation_set_angle(device,
 								   angle);
-		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+		litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	}
 }
 END_TEST
@@ -112,12 +112,12 @@ START_TEST(trackball_rotation_config_odd_angle)
 	enum libinput_config_status status;
 	int angle;
 
-	ck_assert(libinput_device_config_rotation_is_available(device));
+	litest_assert(libinput_device_config_rotation_is_available(device));
 
 	for (angle = 0; angle < 360; angle++) {
 		status = libinput_device_config_rotation_set_angle(device,
 								   angle);
-		ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+		litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	}
 }
 END_TEST
@@ -151,20 +151,20 @@ START_TEST(trackball_rotation_x)
 
 		switch (angle) {
 		case 0:
-			ck_assert_double_eq(dx, 1.0);
-			ck_assert_double_eq(dy, 0.0);
+			litest_assert_double_eq(dx, 1.0);
+			litest_assert_double_eq(dy, 0.0);
 			break;
 		case 90:
-			ck_assert_double_eq(dx, 0.0);
-			ck_assert_double_eq(dy, 1.0);
+			litest_assert_double_eq(dx, 0.0);
+			litest_assert_double_eq(dy, 1.0);
 			break;
 		case 180:
-			ck_assert_double_eq(dx, -1.0);
-			ck_assert_double_eq(dy, 0.0);
+			litest_assert_double_eq(dx, -1.0);
+			litest_assert_double_eq(dy, 0.0);
 			break;
 		case 270:
-			ck_assert_double_eq(dx, 0.0);
-			ck_assert_double_eq(dy, -1.0);
+			litest_assert_double_eq(dx, 0.0);
+			litest_assert_double_eq(dy, -1.0);
 			break;
 		}
 		libinput_event_destroy(event);
@@ -201,20 +201,20 @@ START_TEST(trackball_rotation_y)
 
 		switch (angle) {
 		case 0:
-			ck_assert_double_eq(dx, 0.0);
-			ck_assert_double_eq(dy, 1.0);
+			litest_assert_double_eq(dx, 0.0);
+			litest_assert_double_eq(dy, 1.0);
 			break;
 		case 90:
-			ck_assert_double_eq(dx, -1.0);
-			ck_assert_double_eq(dy, 0.0);
+			litest_assert_double_eq(dx, -1.0);
+			litest_assert_double_eq(dy, 0.0);
 			break;
 		case 180:
-			ck_assert_double_eq(dx, 0.0);
-			ck_assert_double_eq(dy, -1.0);
+			litest_assert_double_eq(dx, 0.0);
+			litest_assert_double_eq(dy, -1.0);
 			break;
 		case 270:
-			ck_assert_double_eq(dx, 1.0);
-			ck_assert_double_eq(dy, 0.0);
+			litest_assert_double_eq(dx, 1.0);
+			litest_assert_double_eq(dy, 0.0);
 			break;
 		}
 		libinput_event_destroy(event);
@@ -249,8 +249,8 @@ START_TEST(trackball_rotation_accel)
 	dx = libinput_event_pointer_get_dx(ptrev);
 	dy = libinput_event_pointer_get_dy(ptrev);
 
-	ck_assert_double_lt(dx, 0.0);
-	ck_assert_double_gt(dy, 0.0);
+	litest_assert_double_lt(dx, 0.0);
+	litest_assert_double_gt(dy, 0.0);
 	libinput_event_destroy(event);
 }
 END_TEST

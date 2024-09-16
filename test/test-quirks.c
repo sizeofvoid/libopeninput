@@ -95,7 +95,7 @@ START_TEST(quirks_invalid_dir)
 				    log_handler,
 				    NULL,
 				    QLOG_LIBINPUT_LOGGING);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 }
 END_TEST
 
@@ -109,7 +109,7 @@ START_TEST(quirks_empty_dir)
 				    log_handler,
 				    NULL,
 				    QLOG_LIBINPUT_LOGGING);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 
 	cleanup_data_dir(dd);
 }
@@ -126,7 +126,7 @@ START_TEST(quirks_section_empty)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -142,7 +142,7 @@ START_TEST(quirks_section_double)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -160,7 +160,7 @@ START_TEST(quirks_section_missing_match)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -178,7 +178,7 @@ START_TEST(quirks_section_missing_attr)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -198,7 +198,7 @@ START_TEST(quirks_section_match_after_attr)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -218,7 +218,7 @@ START_TEST(quirks_section_duplicate_match)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -240,7 +240,7 @@ START_TEST(quirks_section_duplicate_attr)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -260,7 +260,7 @@ START_TEST(quirks_parse_error_section)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -279,7 +279,7 @@ START_TEST(quirks_parse_error_trailing_whitespace)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -298,7 +298,7 @@ START_TEST(quirks_parse_error_unknown_match)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -317,7 +317,7 @@ START_TEST(quirks_parse_error_unknown_attr)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -336,7 +336,7 @@ START_TEST(quirks_parse_error_unknown_model)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -355,7 +355,7 @@ START_TEST(quirks_parse_error_unknown_prefix)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -374,7 +374,7 @@ START_TEST(quirks_parse_error_model_not_one)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -393,7 +393,7 @@ START_TEST(quirks_parse_comment_inline)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -415,7 +415,7 @@ START_TEST(quirks_parse_comment_empty)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -435,7 +435,7 @@ START_TEST(quirks_parse_string_quotes_single)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -455,7 +455,7 @@ START_TEST(quirks_parse_string_quotes_double)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -491,7 +491,7 @@ START_TEST(quirks_parse_bustype)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -511,7 +511,7 @@ START_TEST(quirks_parse_bustype_invalid)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -538,7 +538,7 @@ START_TEST(quirks_parse_vendor)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -570,7 +570,7 @@ START_TEST(quirks_parse_vendor_invalid)
 					    log_handler,
 					    NULL,
 					    QLOG_CUSTOM_LOG_PRIORITIES);
-		ck_assert(ctx == NULL);
+		litest_assert(ctx == NULL);
 		cleanup_data_dir(dd);
 	}
 }
@@ -598,7 +598,7 @@ START_TEST(quirks_parse_product)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -641,7 +641,7 @@ START_TEST(quirks_parse_product_too_many)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert(ctx == NULL);
+	litest_assert(ctx == NULL);
 	cleanup_data_dir(dd);
 }
 END_TEST
@@ -672,7 +672,7 @@ START_TEST(quirks_parse_product_invalid)
 					    log_handler,
 					    NULL,
 					    QLOG_CUSTOM_LOG_PRIORITIES);
-		ck_assert(ctx == NULL);
+		litest_assert(ctx == NULL);
 		cleanup_data_dir(dd);
 	}
 }
@@ -700,7 +700,7 @@ START_TEST(quirks_parse_version)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -732,7 +732,7 @@ START_TEST(quirks_parse_version_invalid)
 					    log_handler,
 					    NULL,
 					    QLOG_CUSTOM_LOG_PRIORITIES);
-		ck_assert(ctx == NULL);
+		litest_assert(ctx == NULL);
 		cleanup_data_dir(dd);
 	}
 }
@@ -772,7 +772,7 @@ START_TEST(quirks_parse_name)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -795,7 +795,7 @@ START_TEST(quirks_parse_name_invalid)
 					    log_handler,
 					    NULL,
 					    QLOG_CUSTOM_LOG_PRIORITIES);
-		ck_assert(ctx == NULL);
+		litest_assert(ctx == NULL);
 		cleanup_data_dir(dd);
 	}
 }
@@ -835,7 +835,7 @@ START_TEST(quirks_parse_uniq)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -858,7 +858,7 @@ START_TEST(quirks_parse_uniq_invalid)
 					    log_handler,
 					    NULL,
 					    QLOG_CUSTOM_LOG_PRIORITIES);
-		ck_assert(ctx == NULL);
+		litest_assert(ctx == NULL);
 		cleanup_data_dir(dd);
 	}
 }
@@ -902,7 +902,7 @@ START_TEST(quirks_parse_udev)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -931,7 +931,7 @@ START_TEST(quirks_parse_udev_invalid)
 					    log_handler,
 					    NULL,
 					    QLOG_CUSTOM_LOG_PRIORITIES);
-		ck_assert(ctx == NULL);
+		litest_assert(ctx == NULL);
 		cleanup_data_dir(dd);
 	}
 }
@@ -955,7 +955,7 @@ START_TEST(quirks_parse_dmi)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 	quirks_context_unref(ctx);
 	cleanup_data_dir(dd);
 }
@@ -987,7 +987,7 @@ START_TEST(quirks_parse_dmi_invalid)
 					    log_handler,
 					    NULL,
 					    QLOG_CUSTOM_LOG_PRIORITIES);
-		ck_assert(ctx == NULL);
+		litest_assert(ctx == NULL);
 		cleanup_data_dir(dd);
 	}
 }
@@ -1036,9 +1036,9 @@ test_attr_parse(struct litest_device *dev,
 	if (ctx != NULL) {
 		struct quirks *q;
 		q = quirks_fetch_for_device(ctx, ud);
-		ck_assert_notnull(q);
-		ck_assert(func(q, which, data));
-		ck_assert(quirks_has_quirk(q, which));
+		litest_assert_notnull(q);
+		litest_assert(func(q, which, data));
+		litest_assert(quirks_has_quirk(q, which));
 		quirks_unref(q);
 		quirks_context_unref(ctx);
 		result = true;
@@ -1084,12 +1084,12 @@ START_TEST(quirks_parse_dimension_attr)
 					     t->str,
 					     (qparsefunc)quirks_get_dimensions,
 					     &dim);
-			ck_assert_int_eq(rc, t->success);
+			litest_assert_int_eq(rc, t->success);
 			if (!rc)
 				continue;
 
-			ck_assert_int_eq(dim.x, t->w);
-			ck_assert_int_eq(dim.y, t->h);
+			litest_assert_int_eq(dim.x, t->w);
+			litest_assert_int_eq(dim.y, t->h);
 		}
 	}
 }
@@ -1136,12 +1136,12 @@ START_TEST(quirks_parse_range_attr)
 					     t->str,
 					     (qparsefunc)quirks_get_range,
 					     &r);
-			ck_assert_int_eq(rc, t->success);
+			litest_assert_int_eq(rc, t->success);
 			if (!rc)
 				continue;
 
-			ck_assert_int_eq(r.lower, t->lo);
-			ck_assert_int_eq(r.upper, t->hi);
+			litest_assert_int_eq(r.lower, t->lo);
+			litest_assert_int_eq(r.upper, t->hi);
 		}
 	}
 }
@@ -1183,11 +1183,11 @@ START_TEST(quirks_parse_uint_attr)
 					     t->str,
 					     (qparsefunc)quirks_get_uint32,
 					     &v);
-			ck_assert_int_eq(rc, t->success);
+			litest_assert_int_eq(rc, t->success);
 			if (!rc)
 				continue;
 
-			ck_assert_int_eq(v, t->val);
+			litest_assert_int_eq(v, t->val);
 		}
 	}
 }
@@ -1235,11 +1235,11 @@ START_TEST(quirks_parse_double_attr)
 					     t->str,
 					     (qparsefunc)quirks_get_double,
 					     &v);
-			ck_assert_int_eq(rc, t->success);
+			litest_assert_int_eq(rc, t->success);
 			if (!rc)
 				continue;
 
-			ck_assert_double_eq(v, t->val);
+			litest_assert_double_eq(v, t->val);
 		}
 	}
 }
@@ -1287,9 +1287,9 @@ START_TEST(quirks_parse_string_attr)
 					     (qparsefunc)quirks_get_string,
 					     &do_not_use);
 			if (*a == t->where)
-				ck_assert_int_eq(rc, true);
+				litest_assert_int_eq(rc, true);
 			else
-				ck_assert_int_eq(rc, false);
+				litest_assert_int_eq(rc, false);
 		}
 	}
 }
@@ -1326,11 +1326,11 @@ START_TEST(quirks_parse_bool_attr)
 					     t->str,
 					     (qparsefunc)quirks_get_bool,
 					     &v);
-			ck_assert(rc == t->success);
+			litest_assert(rc == t->success);
 			if (!rc)
 				continue;
 
-			ck_assert(v == t->val);
+			litest_assert(v == t->val);
 		}
 	}
 }
@@ -1347,25 +1347,25 @@ START_TEST(quirks_parse_integration_attr)
 			     "internal",
 			     (qparsefunc)quirks_get_string,
 			     &do_not_use);
-	ck_assert(rc);
+	litest_assert(rc);
 	rc = test_attr_parse(dev,
 			     QUIRK_ATTR_KEYBOARD_INTEGRATION,
 			     "external",
 			     (qparsefunc)quirks_get_string,
 			     &do_not_use);
-	ck_assert(rc);
+	litest_assert(rc);
 	rc = test_attr_parse(dev,
 			     QUIRK_ATTR_TRACKPOINT_INTEGRATION,
 			     "internal",
 			     (qparsefunc)quirks_get_string,
 			     &do_not_use);
-	ck_assert(rc);
+	litest_assert(rc);
 	rc = test_attr_parse(dev,
 			     QUIRK_ATTR_TRACKPOINT_INTEGRATION,
 			     "external",
 			     (qparsefunc)quirks_get_string,
 			     &do_not_use);
-	ck_assert(rc);
+	litest_assert(rc);
 }
 END_TEST
 
@@ -1387,13 +1387,13 @@ START_TEST(quirks_model_one)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 
 	q = quirks_fetch_for_device(ctx, ud);
-	ck_assert_notnull(q);
+	litest_assert_notnull(q);
 
-	ck_assert(quirks_get_bool(q, QUIRK_MODEL_APPLE_TOUCHPAD, &isset));
-	ck_assert(isset == true);
+	litest_assert(quirks_get_bool(q, QUIRK_MODEL_APPLE_TOUCHPAD, &isset));
+	litest_assert(isset == true);
 
 	quirks_unref(q);
 	quirks_context_unref(ctx);
@@ -1420,13 +1420,13 @@ START_TEST(quirks_model_zero)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 
 	q = quirks_fetch_for_device(ctx, ud);
-	ck_assert_notnull(q);
+	litest_assert_notnull(q);
 
-	ck_assert(quirks_get_bool(q, QUIRK_MODEL_APPLE_TOUCHPAD, &isset));
-	ck_assert(isset == false);
+	litest_assert(quirks_get_bool(q, QUIRK_MODEL_APPLE_TOUCHPAD, &isset));
+	litest_assert(isset == false);
 
 	quirks_unref(q);
 	quirks_context_unref(ctx);
@@ -1458,7 +1458,7 @@ START_TEST(quirks_model_override)
 			   "ModelAppleTouchpad=%d\n",
 			   set ? 0 : 1,
 			   set ? 1 : 0);
-	ck_assert_int_ne(rc, -1);
+	litest_assert_int_ne(rc, -1);
 
 	dd = make_data_dir(quirks_file);
 
@@ -1467,13 +1467,13 @@ START_TEST(quirks_model_override)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 
 	q = quirks_fetch_for_device(ctx, ud);
-	ck_assert_notnull(q);
+	litest_assert_notnull(q);
 
-	ck_assert(quirks_get_bool(q, QUIRK_MODEL_APPLE_TOUCHPAD, &isset));
-	ck_assert(isset == set);
+	litest_assert(quirks_get_bool(q, QUIRK_MODEL_APPLE_TOUCHPAD, &isset));
+	litest_assert(isset == set);
 
 	quirks_unref(q);
 	quirks_context_unref(ctx);
@@ -1494,11 +1494,11 @@ START_TEST(quirks_model_alps)
 	exists = quirks_get_bool(q, QUIRK_MODEL_ALPS_SERIAL_TOUCHPAD, &value);
 
 	if (strstr(libinput_device_get_name(device), "ALPS")) {
-		ck_assert(exists);
-		ck_assert(value);
+		litest_assert(exists);
+		litest_assert(value);
 	} else {
-		ck_assert(!exists);
-		ck_assert(!value);
+		litest_assert(!exists);
+		litest_assert(!value);
 	}
 }
 END_TEST
@@ -1513,11 +1513,11 @@ START_TEST(quirks_model_wacom)
 	exists = quirks_get_bool(q, QUIRK_MODEL_WACOM_TOUCHPAD, &value);
 
 	if (libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_WACOM) {
-		ck_assert(exists);
-		ck_assert(value);
+		litest_assert(exists);
+		litest_assert(value);
 	} else {
-		ck_assert(!exists);
-		ck_assert(!value);
+		litest_assert(!exists);
+		litest_assert(!value);
 	}
 }
 END_TEST
@@ -1532,11 +1532,11 @@ START_TEST(quirks_model_apple)
 	exists = quirks_get_bool(q, QUIRK_MODEL_APPLE_TOUCHPAD, &value);
 
 	if (libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_APPLE) {
-		ck_assert(exists);
-		ck_assert(value);
+		litest_assert(exists);
+		litest_assert(value);
 	} else {
-		ck_assert(!exists);
-		ck_assert(!value);
+		litest_assert(!exists);
+		litest_assert(!value);
 	}
 }
 END_TEST
@@ -1552,26 +1552,26 @@ START_TEST(quirks_model_synaptics_serial)
 
 	if (libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_SYNAPTICS_SERIAL &&
 	    libevdev_get_id_product(dev->evdev) == PRODUCT_ID_SYNAPTICS_SERIAL) {
-		ck_assert(exists);
-		ck_assert(value);
+		litest_assert(exists);
+		litest_assert(value);
 	} else {
-		ck_assert(!exists);
-		ck_assert(!value);
+		litest_assert(!exists);
+		litest_assert(!value);
 	}
 }
 END_TEST
 
 START_TEST(quirks_call_NULL)
 {
-	ck_assert(!quirks_fetch_for_device(NULL, NULL));
+	litest_assert(!quirks_fetch_for_device(NULL, NULL));
 
-	ck_assert(!quirks_get_uint32(NULL, 0, NULL));
-	ck_assert(!quirks_get_int32(NULL, 0, NULL));
-	ck_assert(!quirks_get_range(NULL, 0, NULL));
-	ck_assert(!quirks_get_dimensions(NULL, 0, NULL));
-	ck_assert(!quirks_get_double(NULL, 0, NULL));
-	ck_assert(!quirks_get_string(NULL, 0, NULL));
-	ck_assert(!quirks_get_bool(NULL, 0, NULL));
+	litest_assert(!quirks_get_uint32(NULL, 0, NULL));
+	litest_assert(!quirks_get_int32(NULL, 0, NULL));
+	litest_assert(!quirks_get_range(NULL, 0, NULL));
+	litest_assert(!quirks_get_dimensions(NULL, 0, NULL));
+	litest_assert(!quirks_get_double(NULL, 0, NULL));
+	litest_assert(!quirks_get_string(NULL, 0, NULL));
+	litest_assert(!quirks_get_bool(NULL, 0, NULL));
 }
 END_TEST
 
@@ -1589,7 +1589,7 @@ START_TEST(quirks_ctx_ref)
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
-	ck_assert_notnull(ctx);
+	litest_assert_notnull(ctx);
 	ctx2 = quirks_context_ref(ctx);
 	litest_assert_ptr_eq(ctx, ctx2);
 	ctx2 = quirks_context_unref(ctx);
