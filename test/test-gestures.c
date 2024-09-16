@@ -1415,9 +1415,9 @@ START_TEST(gestures_hold_config_default_disabled)
 
 	litest_assert_int_eq(libinput_device_config_gesture_hold_is_available(device),
 			 0);
-	litest_assert_int_eq(libinput_device_config_gesture_get_hold_default_enabled(device),
+	litest_assert_enum_eq(libinput_device_config_gesture_get_hold_default_enabled(device),
 			 LIBINPUT_CONFIG_HOLD_DISABLED);
-	litest_assert_int_eq(libinput_device_config_gesture_get_hold_default_enabled(device),
+	litest_assert_enum_eq(libinput_device_config_gesture_get_hold_default_enabled(device),
 			 LIBINPUT_CONFIG_HOLD_DISABLED);
 }
 END_TEST
@@ -1429,9 +1429,9 @@ START_TEST(gestures_hold_config_default_enabled)
 
 	litest_assert_int_eq(libinput_device_config_gesture_hold_is_available(device),
 			 1);
-	litest_assert_int_eq(libinput_device_config_gesture_get_hold_default_enabled(device),
+	litest_assert_enum_eq(libinput_device_config_gesture_get_hold_default_enabled(device),
 			 LIBINPUT_CONFIG_HOLD_ENABLED);
-	litest_assert_int_eq(libinput_device_config_gesture_get_hold_enabled(device),
+	litest_assert_enum_eq(libinput_device_config_gesture_get_hold_enabled(device),
 			 LIBINPUT_CONFIG_HOLD_ENABLED);
 }
 END_TEST
@@ -1441,9 +1441,9 @@ START_TEST(gestures_hold_config_set_invalid)
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 
-	litest_assert_int_eq(libinput_device_config_gesture_set_hold_enabled(device, -1),
+	litest_assert_enum_eq(libinput_device_config_gesture_set_hold_enabled(device, -1),
 			 LIBINPUT_CONFIG_STATUS_INVALID);
-	litest_assert_int_eq(libinput_device_config_gesture_set_hold_enabled(device, 2),
+	litest_assert_enum_eq(libinput_device_config_gesture_set_hold_enabled(device, 2),
 			 LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
@@ -1455,11 +1455,11 @@ START_TEST(gestures_hold_config_is_available)
 
 	litest_assert_int_eq(libinput_device_config_gesture_hold_is_available(device),
 			 1);
-	litest_assert_int_eq(libinput_device_config_gesture_get_hold_enabled(device),
+	litest_assert_enum_eq(libinput_device_config_gesture_get_hold_enabled(device),
 			 LIBINPUT_CONFIG_HOLD_ENABLED);
-	litest_assert_int_eq(libinput_device_config_gesture_set_hold_enabled(device, LIBINPUT_CONFIG_HOLD_DISABLED),
+	litest_assert_enum_eq(libinput_device_config_gesture_set_hold_enabled(device, LIBINPUT_CONFIG_HOLD_DISABLED),
 			 LIBINPUT_CONFIG_STATUS_SUCCESS);
-	litest_assert_int_eq(libinput_device_config_gesture_get_hold_enabled(device),
+	litest_assert_enum_eq(libinput_device_config_gesture_get_hold_enabled(device),
 			 LIBINPUT_CONFIG_HOLD_DISABLED);
 }
 END_TEST
@@ -1471,11 +1471,11 @@ START_TEST(gestures_hold_config_is_not_available)
 
 	litest_assert_int_eq(libinput_device_config_gesture_hold_is_available(device),
 			 0);
-	litest_assert_int_eq(libinput_device_config_gesture_get_hold_enabled(device),
+	litest_assert_enum_eq(libinput_device_config_gesture_get_hold_enabled(device),
 			 LIBINPUT_CONFIG_HOLD_DISABLED);
-	litest_assert_int_eq(libinput_device_config_gesture_set_hold_enabled(device, LIBINPUT_CONFIG_HOLD_ENABLED),
+	litest_assert_enum_eq(libinput_device_config_gesture_set_hold_enabled(device, LIBINPUT_CONFIG_HOLD_ENABLED),
 			 LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
-	litest_assert_int_eq(libinput_device_config_gesture_set_hold_enabled(device, LIBINPUT_CONFIG_HOLD_DISABLED),
+	litest_assert_enum_eq(libinput_device_config_gesture_set_hold_enabled(device, LIBINPUT_CONFIG_HOLD_DISABLED),
 			 LIBINPUT_CONFIG_STATUS_SUCCESS);
 }
 END_TEST

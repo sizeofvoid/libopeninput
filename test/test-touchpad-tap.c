@@ -3679,12 +3679,12 @@ START_TEST(touchpad_tap_is_not_available)
 	struct litest_device *dev = litest_current_device();
 
 	litest_assert_int_eq(libinput_device_config_tap_get_finger_count(dev->libinput_device), 0);
-	litest_assert_int_eq(libinput_device_config_tap_get_enabled(dev->libinput_device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_TAP_DISABLED);
-	litest_assert_int_eq(libinput_device_config_tap_set_enabled(dev->libinput_device,
+	litest_assert_enum_eq(libinput_device_config_tap_set_enabled(dev->libinput_device,
 								LIBINPUT_CONFIG_TAP_ENABLED),
 			 LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
-	litest_assert_int_eq(libinput_device_config_tap_set_enabled(dev->libinput_device,
+	litest_assert_enum_eq(libinput_device_config_tap_set_enabled(dev->libinput_device,
 								LIBINPUT_CONFIG_TAP_DISABLED),
 			 LIBINPUT_CONFIG_STATUS_SUCCESS);
 }
@@ -3696,9 +3696,9 @@ START_TEST(touchpad_tap_default_disabled)
 
 	/* this test is only run on specific devices */
 
-	litest_assert_int_eq(libinput_device_config_tap_get_enabled(dev->libinput_device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_TAP_DISABLED);
-	litest_assert_int_eq(libinput_device_config_tap_get_default_enabled(dev->libinput_device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_default_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_TAP_DISABLED);
 }
 END_TEST
@@ -3709,9 +3709,9 @@ START_TEST(touchpad_tap_default_enabled)
 
 	/* this test is only run on specific devices */
 
-	litest_assert_int_eq(libinput_device_config_tap_get_enabled(dev->libinput_device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_TAP_ENABLED);
-	litest_assert_int_eq(libinput_device_config_tap_get_default_enabled(dev->libinput_device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_default_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_TAP_ENABLED);
 }
 END_TEST
@@ -3720,9 +3720,9 @@ START_TEST(touchpad_tap_invalid)
 {
 	struct litest_device *dev = litest_current_device();
 
-	litest_assert_int_eq(libinput_device_config_tap_set_enabled(dev->libinput_device, 2),
+	litest_assert_enum_eq(libinput_device_config_tap_set_enabled(dev->libinput_device, 2),
 			 LIBINPUT_CONFIG_STATUS_INVALID);
-	litest_assert_int_eq(libinput_device_config_tap_set_enabled(dev->libinput_device, -1),
+	litest_assert_enum_eq(libinput_device_config_tap_set_enabled(dev->libinput_device, -1),
 			 LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
@@ -3733,10 +3733,10 @@ START_TEST(touchpad_tap_default_map)
 	enum libinput_config_tap_button_map map;
 
 	map = libinput_device_config_tap_get_button_map(dev->libinput_device);
-	litest_assert_int_eq(map, LIBINPUT_CONFIG_TAP_MAP_LRM);
+	litest_assert_enum_eq(map, LIBINPUT_CONFIG_TAP_MAP_LRM);
 
 	map = libinput_device_config_tap_get_default_button_map(dev->libinput_device);
-	litest_assert_int_eq(map, LIBINPUT_CONFIG_TAP_MAP_LRM);
+	litest_assert_enum_eq(map, LIBINPUT_CONFIG_TAP_MAP_LRM);
 }
 END_TEST
 
@@ -3747,16 +3747,16 @@ START_TEST(touchpad_tap_map_unsupported)
 	enum libinput_config_status status;
 
 	map = libinput_device_config_tap_get_button_map(dev->libinput_device);
-	litest_assert_int_eq(map, LIBINPUT_CONFIG_TAP_MAP_LRM);
+	litest_assert_enum_eq(map, LIBINPUT_CONFIG_TAP_MAP_LRM);
 	map = libinput_device_config_tap_get_default_button_map(dev->libinput_device);
-	litest_assert_int_eq(map, LIBINPUT_CONFIG_TAP_MAP_LRM);
+	litest_assert_enum_eq(map, LIBINPUT_CONFIG_TAP_MAP_LRM);
 
 	status = libinput_device_config_tap_set_button_map(dev->libinput_device,
 							   LIBINPUT_CONFIG_TAP_MAP_LMR);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 	status = libinput_device_config_tap_set_button_map(dev->libinput_device,
 							   LIBINPUT_CONFIG_TAP_MAP_LRM);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 }
 END_TEST
 
@@ -3769,23 +3769,23 @@ START_TEST(touchpad_tap_set_map)
 
 	map = LIBINPUT_CONFIG_TAP_MAP_LRM;
 	status = libinput_device_config_tap_set_button_map(device, map);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	map = libinput_device_config_tap_get_button_map(dev->libinput_device);
-	litest_assert_int_eq(map, LIBINPUT_CONFIG_TAP_MAP_LRM);
+	litest_assert_enum_eq(map, LIBINPUT_CONFIG_TAP_MAP_LRM);
 
 	map = LIBINPUT_CONFIG_TAP_MAP_LMR;
 	status = libinput_device_config_tap_set_button_map(device, map);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	map = libinput_device_config_tap_get_button_map(dev->libinput_device);
-	litest_assert_int_eq(map, LIBINPUT_CONFIG_TAP_MAP_LMR);
+	litest_assert_enum_eq(map, LIBINPUT_CONFIG_TAP_MAP_LMR);
 
 	map = LIBINPUT_CONFIG_TAP_MAP_LRM - 1;
 	status = libinput_device_config_tap_set_button_map(device, map);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 
 	map = LIBINPUT_CONFIG_TAP_MAP_LMR + 1;
 	status = libinput_device_config_tap_set_button_map(device, map);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
 
@@ -3798,19 +3798,19 @@ START_TEST(touchpad_tap_set_map_no_tapping)
 
 	map = LIBINPUT_CONFIG_TAP_MAP_LRM;
 	status = libinput_device_config_tap_set_button_map(device, map);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 
 	map = LIBINPUT_CONFIG_TAP_MAP_LMR;
 	status = libinput_device_config_tap_set_button_map(device, map);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 
 	map = LIBINPUT_CONFIG_TAP_MAP_LRM - 1;
 	status = libinput_device_config_tap_set_button_map(device, map);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 
 	map = LIBINPUT_CONFIG_TAP_MAP_LMR + 1;
 	status = libinput_device_config_tap_set_button_map(device, map);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
 
@@ -3821,10 +3821,10 @@ START_TEST(touchpad_tap_get_map_no_tapping)
 	enum libinput_config_tap_button_map map;
 
 	map = libinput_device_config_tap_get_button_map(device);
-	litest_assert_int_eq(map,  LIBINPUT_CONFIG_TAP_MAP_LRM);
+	litest_assert_enum_eq(map,  LIBINPUT_CONFIG_TAP_MAP_LRM);
 
 	map = libinput_device_config_tap_get_default_button_map(device);
-	litest_assert_int_eq(map,  LIBINPUT_CONFIG_TAP_MAP_LRM);
+	litest_assert_enum_eq(map,  LIBINPUT_CONFIG_TAP_MAP_LRM);
 }
 END_TEST
 
@@ -3847,7 +3847,7 @@ START_TEST(touchpad_tap_map_delayed)
 	litest_set_tap_map(dev->libinput_device,
 			   LIBINPUT_CONFIG_TAP_MAP_LMR);
 	map = libinput_device_config_tap_get_button_map(dev->libinput_device);
-	litest_assert_int_eq(map, LIBINPUT_CONFIG_TAP_MAP_LMR);
+	litest_assert_enum_eq(map, LIBINPUT_CONFIG_TAP_MAP_LMR);
 
 	litest_touch_up(dev, 0);
 	litest_touch_up(dev, 1);
@@ -3871,9 +3871,9 @@ START_TEST(touchpad_drag_default_disabled)
 
 	/* this test is only run on specific devices */
 
-	litest_assert_int_eq(libinput_device_config_tap_get_default_drag_enabled(dev->libinput_device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_default_drag_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_DRAG_DISABLED);
-	litest_assert_int_eq(libinput_device_config_tap_get_drag_enabled(dev->libinput_device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_drag_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_DRAG_DISABLED);
 }
 END_TEST
@@ -3884,9 +3884,9 @@ START_TEST(touchpad_drag_default_enabled)
 
 	/* this test is only run on specific devices */
 
-	litest_assert_int_eq(libinput_device_config_tap_get_default_drag_enabled(dev->libinput_device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_default_drag_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_DRAG_ENABLED);
-	litest_assert_int_eq(libinput_device_config_tap_get_drag_enabled(dev->libinput_device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_drag_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_DRAG_ENABLED);
 }
 END_TEST
@@ -3895,9 +3895,9 @@ START_TEST(touchpad_drag_config_invalid)
 {
 	struct litest_device *dev = litest_current_device();
 
-	litest_assert_int_eq(libinput_device_config_tap_set_drag_enabled(dev->libinput_device, 2),
+	litest_assert_enum_eq(libinput_device_config_tap_set_drag_enabled(dev->libinput_device, 2),
 			 LIBINPUT_CONFIG_STATUS_INVALID);
-	litest_assert_int_eq(libinput_device_config_tap_set_drag_enabled(dev->libinput_device, -1),
+	litest_assert_enum_eq(libinput_device_config_tap_set_drag_enabled(dev->libinput_device, -1),
 			 LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
@@ -3907,16 +3907,16 @@ START_TEST(touchpad_drag_config_unsupported)
 	struct litest_device *dev = litest_current_device();
 	enum libinput_config_status status;
 
-	litest_assert_int_eq(libinput_device_config_tap_get_default_drag_enabled(dev->libinput_device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_default_drag_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_DRAG_DISABLED);
-	litest_assert_int_eq(libinput_device_config_tap_get_drag_enabled(dev->libinput_device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_drag_enabled(dev->libinput_device),
 			 LIBINPUT_CONFIG_DRAG_DISABLED);
 	status = libinput_device_config_tap_set_drag_enabled(dev->libinput_device,
 							     LIBINPUT_CONFIG_DRAG_ENABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 	status = libinput_device_config_tap_set_drag_enabled(dev->libinput_device,
 							     LIBINPUT_CONFIG_DRAG_DISABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 }
 END_TEST
 
@@ -3931,22 +3931,22 @@ START_TEST(touchpad_drag_config_enabledisable)
 
 	litest_disable_tap_drag(dev->libinput_device);
 	state = libinput_device_config_tap_get_drag_enabled(dev->libinput_device);
-	litest_assert_int_eq(state, LIBINPUT_CONFIG_DRAG_DISABLED);
+	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DRAG_DISABLED);
 
 	litest_enable_tap_drag(dev->libinput_device);
 	state = libinput_device_config_tap_get_drag_enabled(dev->libinput_device);
-	litest_assert_int_eq(state, LIBINPUT_CONFIG_DRAG_ENABLED);
+	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DRAG_ENABLED);
 
 	/* same thing with tapping disabled */
 	litest_enable_tap(dev->libinput_device);
 
 	litest_disable_tap_drag(dev->libinput_device);
 	state = libinput_device_config_tap_get_drag_enabled(dev->libinput_device);
-	litest_assert_int_eq(state, LIBINPUT_CONFIG_DRAG_DISABLED);
+	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DRAG_DISABLED);
 
 	litest_enable_tap_drag(dev->libinput_device);
 	state = libinput_device_config_tap_get_drag_enabled(dev->libinput_device);
-	litest_assert_int_eq(state, LIBINPUT_CONFIG_DRAG_ENABLED);
+	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DRAG_ENABLED);
 }
 END_TEST
 
@@ -4199,39 +4199,39 @@ START_TEST(touchpad_drag_lock_default_disabled)
 	struct libinput_device *device = dev->libinput_device;
 	enum libinput_config_status status;
 
-	litest_assert_int_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
 			 LIBINPUT_CONFIG_DRAG_LOCK_DISABLED);
-	litest_assert_int_eq(libinput_device_config_tap_get_default_drag_lock_enabled(device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_default_drag_lock_enabled(device),
 			 LIBINPUT_CONFIG_DRAG_LOCK_DISABLED);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	/* ENABLED is a legacy spelling for ENABLED_TIMEOUT */
-	litest_assert_int_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
 			 LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  LIBINPUT_CONFIG_DRAG_LOCK_DISABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
-	litest_assert_int_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
 			 LIBINPUT_CONFIG_DRAG_LOCK_DISABLED);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
-	litest_assert_int_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
 			 LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
-	litest_assert_int_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
 			 LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  3);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
 
@@ -4241,30 +4241,30 @@ START_TEST(touchpad_drag_lock_default_unavailable)
 	struct libinput_device *device = dev->libinput_device;
 	enum libinput_config_status status;
 
-	litest_assert_int_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_drag_lock_enabled(device),
 			 LIBINPUT_CONFIG_DRAG_LOCK_DISABLED);
-	litest_assert_int_eq(libinput_device_config_tap_get_default_drag_lock_enabled(device),
+	litest_assert_enum_eq(libinput_device_config_tap_get_default_drag_lock_enabled(device),
 			 LIBINPUT_CONFIG_DRAG_LOCK_DISABLED);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  LIBINPUT_CONFIG_DRAG_LOCK_DISABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	status = libinput_device_config_tap_set_drag_lock_enabled(device,
 								  3);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 }
 END_TEST
 

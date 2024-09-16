@@ -72,7 +72,7 @@ START_TEST(log_default_priority)
 	li = libinput_path_create_context(&simple_interface, NULL);
 	pri = libinput_log_get_priority(li);
 
-	litest_assert_int_eq(pri, LIBINPUT_LOG_PRIORITY_ERROR);
+	litest_assert_enum_eq(pri, LIBINPUT_LOG_PRIORITY_ERROR);
 
 	libinput_unref(li);
 }

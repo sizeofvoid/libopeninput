@@ -215,8 +215,8 @@ START_TEST(switch_down_on_init)
 	libinput_event_destroy(event);
 
 	while ((event = libinput_get_event(li))) {
-		litest_assert_int_ne(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_SWITCH_TOGGLE);
+		litest_assert_enum_ne(libinput_event_get_type(event),
+				      LIBINPUT_EVENT_SWITCH_TOGGLE);
 		libinput_event_destroy(event);
 	}
 
@@ -255,8 +255,8 @@ START_TEST(switch_not_down_on_init)
 	litest_dispatch(li);
 
 	while ((event = libinput_get_event(li)) != NULL) {
-		litest_assert_int_ne(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_SWITCH_TOGGLE);
+		litest_assert_enum_ne(libinput_event_get_type(event),
+				      LIBINPUT_EVENT_SWITCH_TOGGLE);
 		libinput_event_destroy(event);
 	}
 
@@ -806,8 +806,8 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 	/* don't expect a switch waiting for us, this is run for an
 	 * unreliable device */
 	while (libinput_next_event_type(li) != LIBINPUT_EVENT_NONE) {
-		litest_assert_int_ne(libinput_next_event_type(li),
-				 LIBINPUT_EVENT_SWITCH_TOGGLE);
+		litest_assert_enum_ne(libinput_next_event_type(li),
+				      LIBINPUT_EVENT_SWITCH_TOGGLE);
 		libinput_event_destroy(libinput_get_event(li));
 	}
 

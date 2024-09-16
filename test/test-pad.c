@@ -674,7 +674,7 @@ START_TEST(pad_left_handed_default)
 			 0);
 
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_assert_int_eq(libinput_device_config_left_handed_get(device),
 			 1);
@@ -682,7 +682,7 @@ START_TEST(pad_left_handed_default)
 			 0);
 
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 0);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_assert_int_eq(libinput_device_config_left_handed_get(device),
 			 0);
@@ -713,7 +713,7 @@ START_TEST(pad_no_left_handed)
 
 #if HAVE_LIBWACOM
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 
 	litest_assert_int_eq(libinput_device_config_left_handed_get(device),
 			 0);
@@ -721,7 +721,7 @@ START_TEST(pad_no_left_handed)
 			 0);
 
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 0);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 
 	litest_assert_int_eq(libinput_device_config_left_handed_get(device),
 			 0);

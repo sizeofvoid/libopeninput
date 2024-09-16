@@ -82,7 +82,7 @@ START_TEST(button_down_up)
 	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev),
 			 button);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tev),
 			 LIBINPUT_BUTTON_STATE_PRESSED);
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
@@ -94,7 +94,7 @@ START_TEST(button_down_up)
 	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev),
 			 button);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tev),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
@@ -137,7 +137,7 @@ START_TEST(button_seat_count)
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev), button);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tev),
 			 LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_seat_button_count(tev), 1U);
 	libinput_event_destroy(event);
@@ -145,7 +145,7 @@ START_TEST(button_seat_count)
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev), button);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tev),
 			 LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_seat_button_count(tev), 2U);
 	libinput_event_destroy(event);
@@ -158,7 +158,7 @@ START_TEST(button_seat_count)
 
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tev),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev), button);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_seat_button_count(tev), 1U);
@@ -166,7 +166,7 @@ START_TEST(button_seat_count)
 
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tev),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev), button);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_seat_button_count(tev), 0U);
@@ -241,7 +241,7 @@ START_TEST(tip_down_up)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
@@ -254,7 +254,7 @@ START_TEST(tip_down_up)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
@@ -293,10 +293,10 @@ START_TEST(tip_down_up_eraser)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 	tool = libinput_event_tablet_tool_get_tool(tablet_event);
-	litest_assert_int_eq(libinput_tablet_tool_get_type(tool), LIBINPUT_TABLET_TOOL_TYPE_ERASER);
+	litest_assert_enum_eq(libinput_tablet_tool_get_type(tool), LIBINPUT_TABLET_TOOL_TYPE_ERASER);
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
 
@@ -308,10 +308,10 @@ START_TEST(tip_down_up_eraser)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	tool = libinput_event_tablet_tool_get_tool(tablet_event);
-	litest_assert_int_eq(libinput_tablet_tool_get_type(tool), LIBINPUT_TABLET_TOOL_TYPE_ERASER);
+	litest_assert_enum_eq(libinput_tablet_tool_get_type(tool), LIBINPUT_TABLET_TOOL_TYPE_ERASER);
 	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
@@ -342,14 +342,14 @@ START_TEST(tip_down_prox_in)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_proximity_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 	libinput_event_destroy(event);
 
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 	libinput_event_destroy(event);
 
@@ -385,7 +385,7 @@ START_TEST(tip_up_prox_out)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
@@ -394,7 +394,7 @@ START_TEST(tip_up_prox_out)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_proximity_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	libinput_event_destroy(event);
 
@@ -431,7 +431,7 @@ START_TEST(tip_up_btn_change)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
@@ -440,7 +440,7 @@ START_TEST(tip_up_btn_change)
 					      LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tablet_event),
 			 (unsigned int)BTN_STYLUS);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tablet_event),
 			 LIBINPUT_BUTTON_STATE_PRESSED);
 	libinput_event_destroy(event);
 
@@ -464,7 +464,7 @@ START_TEST(tip_up_btn_change)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
@@ -473,7 +473,7 @@ START_TEST(tip_up_btn_change)
 					      LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tablet_event),
 			 (unsigned int)BTN_STYLUS);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tablet_event),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
 	libinput_event_destroy(event);
 
@@ -508,7 +508,7 @@ START_TEST(tip_down_btn_change)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 	libinput_event_destroy(event);
 
@@ -518,7 +518,7 @@ START_TEST(tip_down_btn_change)
 					      LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tablet_event),
 			     (unsigned int)BTN_STYLUS);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tablet_event),
 			 LIBINPUT_BUTTON_STATE_PRESSED);
 	libinput_event_destroy(event);
 
@@ -542,7 +542,7 @@ START_TEST(tip_down_btn_change)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 	libinput_event_destroy(event);
 
@@ -552,7 +552,7 @@ START_TEST(tip_down_btn_change)
 					      LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tablet_event),
 			     (unsigned int)BTN_STYLUS);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tablet_event),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
 	libinput_event_destroy(event);
 
@@ -593,7 +593,7 @@ START_TEST(tip_down_motion)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 	litest_assert(libinput_event_tablet_tool_x_has_changed(tablet_event));
 	litest_assert(libinput_event_tablet_tool_y_has_changed(tablet_event));
@@ -642,7 +642,7 @@ START_TEST(tip_up_motion)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	litest_assert(libinput_event_tablet_tool_x_has_changed(tablet_event));
 	litest_assert(libinput_event_tablet_tool_y_has_changed(tablet_event));
@@ -728,7 +728,7 @@ START_TEST(tip_up_motion_one_axis)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	x = libinput_event_tablet_tool_get_x(tablet_event);
 	y = libinput_event_tablet_tool_get_y(tablet_event);
@@ -774,7 +774,7 @@ START_TEST(tip_state_proximity)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
@@ -797,7 +797,7 @@ START_TEST(tip_state_proximity)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 }
@@ -824,7 +824,7 @@ START_TEST(tip_state_axis)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_AXIS);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
@@ -839,7 +839,7 @@ START_TEST(tip_state_axis)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_AXIS);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 	libinput_event_destroy(event);
 
@@ -854,7 +854,7 @@ START_TEST(tip_state_axis)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_AXIS);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
@@ -884,7 +884,7 @@ START_TEST(tip_state_button)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
@@ -899,7 +899,7 @@ START_TEST(tip_state_button)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_DOWN);
 	libinput_event_destroy(event);
 
@@ -914,7 +914,7 @@ START_TEST(tip_state_button)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
@@ -924,7 +924,7 @@ START_TEST(tip_state_button)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
@@ -958,7 +958,7 @@ START_TEST(tip_up_on_delete)
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_TIP);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
@@ -1005,7 +1005,7 @@ START_TEST(proximity_in_out)
 			have_tool_update = true;
 			tablet_event = libinput_event_get_tablet_tool_event(event);
 			tool = libinput_event_tablet_tool_get_tool(tablet_event);
-			litest_assert_int_eq(libinput_tablet_tool_get_type(tool), type);
+			litest_assert_enum_eq(libinput_tablet_tool_get_type(tool), type);
 		}
 		libinput_event_destroy(event);
 	}
@@ -1980,7 +1980,7 @@ START_TEST(left_handed_tilt)
 	double tx, ty;
 
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
 
@@ -2057,7 +2057,7 @@ START_TEST(left_handed_mouse_rotation)
 	};
 
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
 
@@ -2108,7 +2108,7 @@ START_TEST(left_handed_artpen_rotation)
 		return;
 
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
 
@@ -2189,7 +2189,7 @@ START_TEST(motion_event_state)
 
 	libinput_event_destroy(event);
 	litest_dispatch(li);
-	litest_assert_int_eq(libinput_next_event_type(li),
+	litest_assert_enum_eq(libinput_next_event_type(li),
 			 LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
 	/* we expect all events up to the button event to go from
@@ -2214,7 +2214,7 @@ START_TEST(motion_event_state)
 		libinput_event_destroy(event);
 	}
 
-	litest_assert_int_eq(libinput_event_get_type(event),
+	litest_assert_enum_eq(libinput_event_get_type(event),
 			 LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	libinput_event_destroy(event);
 }
@@ -3011,7 +3011,7 @@ START_TEST(tool_direct_switch_skip_tool_update)
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
 				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tev),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_proximity_state(tev),
 			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev), tool);
 	libinput_event_destroy(event);
@@ -3019,7 +3019,7 @@ START_TEST(tool_direct_switch_skip_tool_update)
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
 				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tev),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_proximity_state(tev),
 			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 	litest_assert_ptr_ne(libinput_event_tablet_tool_get_tool(tev), tool);
 	libinput_tablet_tool_unref(tool);
@@ -3044,7 +3044,7 @@ START_TEST(tool_direct_switch_skip_tool_update)
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
 				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tev),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_proximity_state(tev),
 			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev),
 			 tool);
@@ -3059,7 +3059,7 @@ START_TEST(tool_direct_switch_skip_tool_update)
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
 				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_proximity_state(tev),
+	litest_assert_enum_eq(libinput_event_tablet_tool_get_proximity_state(tev),
 			 LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 	litest_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev),
 			 tool);
@@ -3242,7 +3242,7 @@ START_TEST(mouse_tool)
 				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tev);
 	litest_assert_notnull(tool);
-	litest_assert_int_eq(libinput_tablet_tool_get_type(tool),
+	litest_assert_enum_eq(libinput_tablet_tool_get_type(tool),
 			 LIBINPUT_TABLET_TOOL_TYPE_MOUSE);
 
 	libinput_event_destroy(event);
@@ -3457,7 +3457,7 @@ START_TEST(airbrush_tool)
 	tool = libinput_event_tablet_tool_get_tool(tev);
 
 	litest_assert_notnull(tool);
-	litest_assert_int_eq(libinput_tablet_tool_get_type(tool),
+	litest_assert_enum_eq(libinput_tablet_tool_get_type(tool),
 			 LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH);
 
 	litest_assert(libinput_tablet_tool_has_slider(tool));
@@ -3541,7 +3541,7 @@ START_TEST(artpen_tool)
 				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tev);
 	litest_assert_notnull(tool);
-	litest_assert_int_eq(libinput_tablet_tool_get_type(tool),
+	litest_assert_enum_eq(libinput_tablet_tool_get_type(tool),
 			 LIBINPUT_TABLET_TOOL_TYPE_PEN);
 	litest_assert(libinput_tablet_tool_has_rotation(tool));
 
@@ -3725,9 +3725,9 @@ START_TEST(tablet_calibration_has_matrix)
 	status = libinput_device_config_calibration_set_matrix(d,
 							       calibration);
 	if (has_calibration)
-		litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+		litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	else
-		litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+		litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 }
 END_TEST
 
@@ -3780,7 +3780,7 @@ START_TEST(tablet_calibration_set_matrix_delta)
 
 	status = libinput_device_config_calibration_set_matrix(d,
 							       calibration);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_tablet_proximity_in(dev, 100, 100, axes);
 	litest_dispatch(li);
@@ -3837,7 +3837,7 @@ START_TEST(tablet_calibration_set_matrix)
 
 	status = libinput_device_config_calibration_set_matrix(d,
 							       calibration);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_tablet_proximity_in(dev, 100, 100, axes);
 	litest_dispatch(li);
@@ -3864,7 +3864,7 @@ START_TEST(tablet_calibration_set_matrix)
 	calibration[4] = 0.5;
 	status = libinput_device_config_calibration_set_matrix(d,
 							       calibration);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_tablet_proximity_in(dev, 100, 100, axes);
 	litest_dispatch(li);
@@ -4201,17 +4201,17 @@ START_TEST(tablet_pressure_config)
 	litest_assert_double_eq(libinput_tablet_tool_config_pressure_range_get_default_minimum(tool), 0.0);
 	litest_assert_double_eq(libinput_tablet_tool_config_pressure_range_get_default_maximum(tool), 1.0);
 
-	litest_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 1.0),
+	litest_assert_enum_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 1.0),
 			 LIBINPUT_CONFIG_STATUS_SUCCESS);
-	litest_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.2, 0.5),
+	litest_assert_enum_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.2, 0.5),
 			 LIBINPUT_CONFIG_STATUS_SUCCESS);
-	litest_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, -0.1, 1.0),
+	litest_assert_enum_eq(libinput_tablet_tool_config_pressure_range_set(tool, -0.1, 1.0),
 			 LIBINPUT_CONFIG_STATUS_INVALID);
-	litest_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 0.0),
+	litest_assert_enum_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 0.0),
 			 LIBINPUT_CONFIG_STATUS_INVALID);
-	litest_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 1.0, 1.0),
+	litest_assert_enum_eq(libinput_tablet_tool_config_pressure_range_set(tool, 1.0, 1.0),
 			 LIBINPUT_CONFIG_STATUS_INVALID);
-	litest_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 1.1),
+	litest_assert_enum_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 1.1),
 			 LIBINPUT_CONFIG_STATUS_INVALID);
 
 	/* The last successful one */
@@ -4253,7 +4253,7 @@ START_TEST(tablet_pressure_config_set_minimum)
 	old_pressure = p;
 
 	litest_assert(libinput_tablet_tool_config_pressure_range_is_available(tool));
-	litest_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.4, 1.0),
+	litest_assert_enum_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.4, 1.0),
 			 LIBINPUT_CONFIG_STATUS_SUCCESS);
 	libinput_event_destroy(event);
 
@@ -4341,8 +4341,8 @@ START_TEST(tablet_pressure_config_set_maximum)
 	old_pressure = p;
 
 	litest_assert(libinput_tablet_tool_config_pressure_range_is_available(tool));
-	litest_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 0.6),
-			 LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 0.6),
+			      LIBINPUT_CONFIG_STATUS_SUCCESS);
 	libinput_event_destroy(event);
 
 	/* config doesn't take effect until we're out of prox */
@@ -4438,7 +4438,7 @@ START_TEST(tablet_pressure_config_set_range)
 	old_pressure = p;
 
 	litest_assert(libinput_tablet_tool_config_pressure_range_is_available(tool));
-	litest_assert_int_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.4, 0.6),
+	litest_assert_enum_eq(libinput_tablet_tool_config_pressure_range_set(tool, 0.4, 0.6),
 			 LIBINPUT_CONFIG_STATUS_SUCCESS);
 	libinput_event_destroy(event);
 
@@ -4911,26 +4911,26 @@ START_TEST(relative_no_profile)
 	litest_assert(libinput_device_config_accel_is_available(device));
 
 	profile = libinput_device_config_accel_get_default_profile(device);
-	litest_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
+	litest_assert_enum_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
 
 	profile = libinput_device_config_accel_get_profile(device);
-	litest_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
+	litest_assert_enum_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
 
 	profiles = libinput_device_config_accel_get_profiles(device);
-	litest_assert_int_eq(profiles & LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE, 0);
-	litest_assert_int_eq(profiles & LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT, 0);
+	litest_assert_enum_eq(profiles & LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE, 0);
+	litest_assert_enum_eq(profiles & LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT, 0);
 
 	status = libinput_device_config_accel_set_profile(device,
 							  LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 	profile = libinput_device_config_accel_get_profile(device);
-	litest_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
+	litest_assert_enum_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
 
 	status = libinput_device_config_accel_set_profile(device,
 							  LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 	profile = libinput_device_config_accel_get_profile(device);
-	litest_assert_int_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
+	litest_assert_enum_eq(profile, LIBINPUT_CONFIG_ACCEL_PROFILE_NONE);
 }
 END_TEST
 
@@ -5134,7 +5134,7 @@ START_TEST(relative_calibration)
 	status = libinput_device_config_calibration_set_matrix(
 							dev->libinput_device,
 							calibration);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_drain_events(li);
@@ -5539,7 +5539,7 @@ START_TEST(touch_arbitration_suspend_touch_device)
 	status = libinput_device_config_send_events_set_mode(
 			     dev->libinput_device,
 			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
 
@@ -5576,7 +5576,7 @@ START_TEST(touch_arbitration_suspend_touch_device)
 	status = libinput_device_config_send_events_set_mode(
 			     dev->libinput_device,
 			     LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
-	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_touch_down(dev, 0, 30, 30);
 	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10);
