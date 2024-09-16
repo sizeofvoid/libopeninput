@@ -42,7 +42,7 @@ START_TEST(pad_cap)
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 
-	ck_assert(libinput_device_has_capability(device,
+	litest_assert(libinput_device_has_capability(device,
 						 LIBINPUT_DEVICE_CAP_TABLET_PAD));
 
 }
@@ -53,7 +53,7 @@ START_TEST(pad_no_cap)
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 
-	ck_assert(!libinput_device_has_capability(device,
+	litest_assert(!libinput_device_has_capability(device,
 						  LIBINPUT_DEVICE_CAP_TABLET_PAD));
 }
 END_TEST
@@ -87,14 +87,14 @@ START_TEST(pad_time)
 		return;
 
 	ev = libinput_get_event(li);
-	ck_assert_notnull(ev);
+	litest_assert_notnull(ev);
 	litest_assert_event_type(ev, LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 	pev = libinput_event_get_tablet_pad_event(ev);
 	time = libinput_event_tablet_pad_get_time(pev);
 	time_usec = libinput_event_tablet_pad_get_time_usec(pev);
 
-	ck_assert(time != 0);
-	ck_assert(time == time_usec/1000);
+	litest_assert(time != 0);
+	litest_assert(time == time_usec/1000);
 
 	libinput_event_destroy(ev);
 
@@ -113,9 +113,9 @@ START_TEST(pad_time)
 	time = libinput_event_tablet_pad_get_time(pev);
 	time_usec = libinput_event_tablet_pad_get_time_usec(pev);
 
-	ck_assert(time > oldtime);
-	ck_assert(time != 0);
-	ck_assert(time == time_usec/1000);
+	litest_assert(time > oldtime);
+	litest_assert(time != 0);
+	litest_assert(time == time_usec/1000);
 
 	libinput_event_destroy(ev);
 }
@@ -131,18 +131,18 @@ START_TEST(pad_num_buttons_libwacom)
 	unsigned int nb_lw, nb;
 
 	db = libwacom_database_new();
-	ck_assert_notnull(db);
+	litest_assert_notnull(db);
 
 	wacom = libwacom_new_from_usbid(db,
 					libevdev_get_id_vendor(dev->evdev),
 					libevdev_get_id_product(dev->evdev),
 					NULL);
-	ck_assert_notnull(wacom);
+	litest_assert_notnull(wacom);
 
 	nb_lw = libwacom_get_num_buttons(wacom);
 	nb = libinput_device_tablet_pad_get_num_buttons(device);
 
-	ck_assert_int_eq(nb, nb_lw);
+	litest_assert_int_eq(nb, nb_lw);
 
 	libwacom_destroy(wacom);
 	libwacom_database_destroy(db);
@@ -167,7 +167,7 @@ START_TEST(pad_num_buttons)
 			nbuttons++;
 	}
 
-	ck_assert_int_eq(libinput_device_tablet_pad_get_num_buttons(device),
+	litest_assert_int_eq(libinput_device_tablet_pad_get_num_buttons(device),
 			 nbuttons);
 }
 END_TEST
@@ -194,7 +194,7 @@ START_TEST(pad_button_intuos)
 		/* Skip over the BTN_MOUSE and BTN_JOYSTICK range */
 		if ((code >= BTN_MOUSE && code < BTN_JOYSTICK) ||
 		    (code >= BTN_DIGI)) {
-			ck_assert(!libevdev_has_event_code(dev->evdev,
+			litest_assert(!libevdev_has_event_code(dev->evdev,
 							   EV_KEY, code));
 			continue;
 		}
@@ -227,7 +227,7 @@ START_TEST(pad_button_intuos)
 
 	litest_assert_empty_queue(li);
 
-	ck_assert_int_ge(count, 1);
+	litest_assert_int_ge(count, 1);
 #endif
 }
 END_TEST
@@ -277,7 +277,7 @@ START_TEST(pad_button_bamboo)
 
 	litest_assert_empty_queue(li);
 
-	ck_assert_int_gt(count, 3);
+	litest_assert_int_gt(count, 3);
 #endif
 }
 END_TEST
@@ -359,10 +359,10 @@ START_TEST(pad_button_mode_groups)
 
 		/* litest virtual devices don't have modes */
 		mode = libinput_event_tablet_pad_get_mode(pev);
-		ck_assert_int_eq(mode, 0);
+		litest_assert_int_eq(mode, 0);
 		group = libinput_event_tablet_pad_get_mode_group(pev);
 		index = libinput_tablet_pad_mode_group_get_index(group);
-		ck_assert_int_eq(index, 0);
+		litest_assert_int_eq(index, 0);
 
 		libinput_event_destroy(ev);
 
@@ -371,10 +371,10 @@ START_TEST(pad_button_mode_groups)
 		pev = libinput_event_get_tablet_pad_event(ev);
 
 		mode = libinput_event_tablet_pad_get_mode(pev);
-		ck_assert_int_eq(mode, 0);
+		litest_assert_int_eq(mode, 0);
 		group = libinput_event_tablet_pad_get_mode_group(pev);
 		index = libinput_tablet_pad_mode_group_get_index(group);
-		ck_assert_int_eq(index, 0);
+		litest_assert_int_eq(index, 0);
 		libinput_event_destroy(ev);
 	}
 
@@ -389,7 +389,7 @@ START_TEST(pad_has_ring)
 	int nrings;
 
 	nrings = libinput_device_tablet_pad_get_num_rings(device);
-	ck_assert_int_ge(nrings, 1);
+	litest_assert_int_ge(nrings, 1);
 }
 END_TEST
 
@@ -439,16 +439,16 @@ START_TEST(pad_ring)
 					       LIBINPUT_TABLET_PAD_RING_SOURCE_FINGER);
 
 		degrees = libinput_event_tablet_pad_get_ring_position(pev);
-		ck_assert_double_ge(degrees, 0.0);
-		ck_assert_double_lt(degrees, 360.0);
+		litest_assert_double_ge(degrees, 0.0);
+		litest_assert_double_lt(degrees, 360.0);
 
-		ck_assert_double_eq(degrees, expected);
+		litest_assert_double_eq(degrees, expected);
 
 		libinput_event_destroy(ev);
 		expected = fmod(degrees + step_size, 360);
 	}
 
-	ck_assert_int_eq(nevents, 360/step_size - 1);
+	litest_assert_int_eq(nevents, 360/step_size - 1);
 
 	litest_pad_ring_end(dev);
 }
@@ -475,7 +475,7 @@ START_TEST(pad_ring_finger_up)
 				       LIBINPUT_TABLET_PAD_RING_SOURCE_FINGER);
 
 	degrees = libinput_event_tablet_pad_get_ring_position(pev);
-	ck_assert_double_eq(degrees, -1.0);
+	litest_assert_double_eq(degrees, -1.0);
 	libinput_event_destroy(ev);
 
 	litest_assert_empty_queue(li);
@@ -493,7 +493,7 @@ START_TEST(pad_has_dial)
 		expected_ndials = 2;
 
 	ndials = libinput_device_tablet_pad_get_num_dials(device);
-	ck_assert_int_eq(ndials, expected_ndials);
+	litest_assert_int_eq(ndials, expected_ndials);
 }
 END_TEST
 
@@ -524,10 +524,10 @@ START_TEST(pad_dial_low_res)
 		double v120 = libinput_event_tablet_pad_get_dial_delta_v120(pev);
 		switch (code) {
 		case REL_WHEEL: /* inverted */
-			ck_assert_double_eq(v120, -120.0 * direction);
+			litest_assert_double_eq(v120, -120.0 * direction);
 			break;
 		case REL_DIAL:
-			ck_assert_double_eq(v120, 120.0 * direction);
+			litest_assert_double_eq(v120, 120.0 * direction);
 			break;
 		default:
 			litest_abort_msg("Invalid dial code");
@@ -561,7 +561,7 @@ START_TEST(pad_dial_hi_res)
 		struct libinput_event_tablet_pad *pev = litest_is_pad_dial_event(ev, 0);
 
 		double v120 = libinput_event_tablet_pad_get_dial_delta_v120(pev);
-		ck_assert_double_eq(v120, -increment); /* REL_WHEEL is inverted */
+		litest_assert_double_eq(v120, -increment); /* REL_WHEEL is inverted */
 		libinput_event_destroy(ev);
 	}
 }
@@ -574,7 +574,7 @@ START_TEST(pad_has_strip)
 	int nstrips;
 
 	nstrips = libinput_device_tablet_pad_get_num_strips(device);
-	ck_assert_int_ge(nstrips, 1);
+	litest_assert_int_ge(nstrips, 1);
 }
 END_TEST
 
@@ -605,12 +605,12 @@ START_TEST(pad_strip)
 						LIBINPUT_TABLET_PAD_STRIP_SOURCE_FINGER);
 
 		pos = libinput_event_tablet_pad_get_strip_position(pev);
-		ck_assert_double_ge(pos, 0.0);
-		ck_assert_double_lt(pos, 1.0);
+		litest_assert_double_ge(pos, 0.0);
+		litest_assert_double_lt(pos, 1.0);
 
 		/* rounding errors, mostly caused by small physical range */
-		ck_assert_double_ge(pos, expected - 0.02);
-		ck_assert_double_le(pos, expected + 0.02);
+		litest_assert_double_ge(pos, expected - 0.02);
+		litest_assert_double_le(pos, expected + 0.02);
 
 		libinput_event_destroy(ev);
 
@@ -625,7 +625,7 @@ START_TEST(pad_strip)
 					   0,
 					   LIBINPUT_TABLET_PAD_STRIP_SOURCE_FINGER);
 	pos = libinput_event_tablet_pad_get_strip_position(pev);
-	ck_assert_double_eq(pos, 1.0);
+	litest_assert_double_eq(pos, 1.0);
 	libinput_event_destroy(ev);
 
 	litest_pad_strip_end(dev);
@@ -652,7 +652,7 @@ START_TEST(pad_strip_finger_up)
 					LIBINPUT_TABLET_PAD_STRIP_SOURCE_FINGER);
 
 	pos = libinput_event_tablet_pad_get_strip_position(pev);
-	ck_assert_double_eq(pos, -1.0);
+	litest_assert_double_eq(pos, -1.0);
 	libinput_event_destroy(ev);
 
 	litest_assert_empty_queue(li);
@@ -666,27 +666,27 @@ START_TEST(pad_left_handed_default)
 	struct libinput_device *device = dev->libinput_device;
 	enum libinput_config_status status;
 
-	ck_assert(libinput_device_config_left_handed_is_available(device));
+	litest_assert(libinput_device_config_left_handed_is_available(device));
 
-	ck_assert_int_eq(libinput_device_config_left_handed_get_default(device),
+	litest_assert_int_eq(libinput_device_config_left_handed_get_default(device),
 			 0);
-	ck_assert_int_eq(libinput_device_config_left_handed_get(device),
+	litest_assert_int_eq(libinput_device_config_left_handed_get(device),
 			 0);
 
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
-	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
-	ck_assert_int_eq(libinput_device_config_left_handed_get(device),
+	litest_assert_int_eq(libinput_device_config_left_handed_get(device),
 			 1);
-	ck_assert_int_eq(libinput_device_config_left_handed_get_default(device),
+	litest_assert_int_eq(libinput_device_config_left_handed_get_default(device),
 			 0);
 
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 0);
-	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
-	ck_assert_int_eq(libinput_device_config_left_handed_get(device),
+	litest_assert_int_eq(libinput_device_config_left_handed_get(device),
 			 0);
-	ck_assert_int_eq(libinput_device_config_left_handed_get_default(device),
+	litest_assert_int_eq(libinput_device_config_left_handed_get_default(device),
 			 0);
 
 #endif
@@ -701,31 +701,31 @@ START_TEST(pad_no_left_handed)
 
 	/* Without libwacom we default to left-handed being available */
 #if HAVE_LIBWACOM
-	ck_assert(!libinput_device_config_left_handed_is_available(device));
+	litest_assert(!libinput_device_config_left_handed_is_available(device));
 #else
-	ck_assert(libinput_device_config_left_handed_is_available(device));
+	litest_assert(libinput_device_config_left_handed_is_available(device));
 #endif
 
-	ck_assert_int_eq(libinput_device_config_left_handed_get_default(device),
+	litest_assert_int_eq(libinput_device_config_left_handed_get_default(device),
 			 0);
-	ck_assert_int_eq(libinput_device_config_left_handed_get(device),
+	litest_assert_int_eq(libinput_device_config_left_handed_get(device),
 			 0);
 
 #if HAVE_LIBWACOM
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
-	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 
-	ck_assert_int_eq(libinput_device_config_left_handed_get(device),
+	litest_assert_int_eq(libinput_device_config_left_handed_get(device),
 			 0);
-	ck_assert_int_eq(libinput_device_config_left_handed_get_default(device),
+	litest_assert_int_eq(libinput_device_config_left_handed_get_default(device),
 			 0);
 
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 0);
-	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+	litest_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 
-	ck_assert_int_eq(libinput_device_config_left_handed_get(device),
+	litest_assert_int_eq(libinput_device_config_left_handed_get(device),
 			 0);
-	ck_assert_int_eq(libinput_device_config_left_handed_get_default(device),
+	litest_assert_int_eq(libinput_device_config_left_handed_get_default(device),
 			 0);
 #endif
 }
@@ -760,12 +760,12 @@ START_TEST(pad_left_handed_ring)
 					       LIBINPUT_TABLET_PAD_RING_SOURCE_FINGER);
 
 		degrees = libinput_event_tablet_pad_get_ring_position(pev);
-		ck_assert_double_ge(degrees, 0.0);
-		ck_assert_double_lt(degrees, 360.0);
+		litest_assert_double_ge(degrees, 0.0);
+		litest_assert_double_lt(degrees, 360.0);
 
 		/* rounding errors, mostly caused by small physical range */
-		ck_assert_double_ge(degrees, expected - 2);
-		ck_assert_double_le(degrees, expected + 2);
+		litest_assert_double_ge(degrees, expected - 2);
+		litest_assert_double_le(degrees, expected + 2);
 
 		libinput_event_destroy(ev);
 
@@ -786,19 +786,19 @@ START_TEST(pad_mode_groups)
 	int i;
 
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	ck_assert_int_eq(ngroups, 1);
+	litest_assert_int_eq(ngroups, 1);
 
 	for (i = 0; i < ngroups; i++) {
 		group = libinput_device_tablet_pad_get_mode_group(device, i);
-		ck_assert_notnull(group);
-		ck_assert_int_eq(libinput_tablet_pad_mode_group_get_index(group),
+		litest_assert_notnull(group);
+		litest_assert_int_eq(libinput_tablet_pad_mode_group_get_index(group),
 				 i);
 	}
 
 	group = libinput_device_tablet_pad_get_mode_group(device, ngroups);
-	ck_assert(group == NULL);
+	litest_assert(group == NULL);
 	group = libinput_device_tablet_pad_get_mode_group(device, ngroups + 1);
-	ck_assert(group == NULL);
+	litest_assert(group == NULL);
 }
 END_TEST
 
@@ -811,14 +811,14 @@ START_TEST(pad_mode_groups_userdata)
 	void *userdata = &rc;
 
 	group = libinput_device_tablet_pad_get_mode_group(device, 0);
-	ck_assert(libinput_tablet_pad_mode_group_get_user_data(group) ==
+	litest_assert(libinput_tablet_pad_mode_group_get_user_data(group) ==
 		  NULL);
 	libinput_tablet_pad_mode_group_set_user_data(group, userdata);
-	ck_assert(libinput_tablet_pad_mode_group_get_user_data(group) ==
+	litest_assert(libinput_tablet_pad_mode_group_get_user_data(group) ==
 		  &rc);
 
 	libinput_tablet_pad_mode_group_set_user_data(group, NULL);
-	ck_assert(libinput_tablet_pad_mode_group_get_user_data(group) ==
+	litest_assert(libinput_tablet_pad_mode_group_get_user_data(group) ==
 		  NULL);
 }
 END_TEST
@@ -831,12 +831,12 @@ START_TEST(pad_mode_groups_ref)
 
 	group = libinput_device_tablet_pad_get_mode_group(device, 0);
 	g = libinput_tablet_pad_mode_group_ref(group);
-	ck_assert_ptr_eq(g, group);
+	litest_assert_ptr_eq(g, group);
 
 	/* We don't expect this to be freed. Any leaks should be caught by
 	 * valgrind. */
 	g = libinput_tablet_pad_mode_group_unref(group);
-	ck_assert_ptr_eq(g, group);
+	litest_assert_ptr_eq(g, group);
 }
 END_TEST
 
@@ -849,15 +849,15 @@ START_TEST(pad_mode_group_mode)
 	unsigned int nmodes, mode;
 
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	ck_assert_int_ge(ngroups, 1);
+	litest_assert_int_ge(ngroups, 1);
 
 	group = libinput_device_tablet_pad_get_mode_group(device, 0);
 
 	nmodes = libinput_tablet_pad_mode_group_get_num_modes(group);
-	ck_assert_int_eq(nmodes, 1);
+	litest_assert_int_eq(nmodes, 1);
 
 	mode = libinput_tablet_pad_mode_group_get_mode(group);
-	ck_assert_int_lt(mode, nmodes);
+	litest_assert_int_lt(mode, nmodes);
 }
 END_TEST
 
@@ -870,7 +870,7 @@ START_TEST(pad_mode_group_has)
 	int i, b, r, s;
 
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	ck_assert_int_ge(ngroups, 1);
+	litest_assert_int_ge(ngroups, 1);
 
 	nbuttons = libinput_device_tablet_pad_get_num_buttons(device);
 	nrings = libinput_device_tablet_pad_get_num_rings(device);
@@ -883,11 +883,11 @@ START_TEST(pad_mode_group_has)
 									  i);
 			if (libinput_tablet_pad_mode_group_has_button(group,
 								      b)) {
-				ck_assert(!found);
+				litest_assert(!found);
 				found = true;
 			}
 		}
-		ck_assert(found);
+		litest_assert(found);
 	}
 
 	for (s = 0; s < nstrips; s++) {
@@ -897,11 +897,11 @@ START_TEST(pad_mode_group_has)
 									  i);
 			if (libinput_tablet_pad_mode_group_has_strip(group,
 								     s)) {
-				ck_assert(!found);
+				litest_assert(!found);
 				found = true;
 			}
 		}
-		ck_assert(found);
+		litest_assert(found);
 	}
 
 	for (r = 0; r < nrings; r++) {
@@ -911,11 +911,11 @@ START_TEST(pad_mode_group_has)
 									  i);
 			if (libinput_tablet_pad_mode_group_has_ring(group,
 								    r)) {
-				ck_assert(!found);
+				litest_assert(!found);
 				found = true;
 			}
 		}
-		ck_assert(found);
+		litest_assert(found);
 	}
 }
 END_TEST
@@ -930,7 +930,7 @@ START_TEST(pad_mode_group_has_invalid)
 	int rc;
 
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	ck_assert_int_ge(ngroups, 1);
+	litest_assert_int_ge(ngroups, 1);
 
 	nbuttons = libinput_device_tablet_pad_get_num_buttons(device);
 	nrings = libinput_device_tablet_pad_get_num_rings(device);
@@ -940,39 +940,39 @@ START_TEST(pad_mode_group_has_invalid)
 		group = libinput_device_tablet_pad_get_mode_group(device, i);
 		rc = libinput_tablet_pad_mode_group_has_button(group,
 							       nbuttons);
-		ck_assert_int_eq(rc, 0);
+		litest_assert_int_eq(rc, 0);
 		rc = libinput_tablet_pad_mode_group_has_button(group,
 							       nbuttons + 1);
-		ck_assert_int_eq(rc, 0);
+		litest_assert_int_eq(rc, 0);
 		rc = libinput_tablet_pad_mode_group_has_button(group,
 							       0x1000000);
-		ck_assert_int_eq(rc, 0);
+		litest_assert_int_eq(rc, 0);
 	}
 
 	for (i = 0; i < ngroups; i++) {
 		group = libinput_device_tablet_pad_get_mode_group(device, i);
 		rc = libinput_tablet_pad_mode_group_has_strip(group,
 							      nstrips);
-		ck_assert_int_eq(rc, 0);
+		litest_assert_int_eq(rc, 0);
 		rc = libinput_tablet_pad_mode_group_has_strip(group,
 							       nstrips + 1);
-		ck_assert_int_eq(rc, 0);
+		litest_assert_int_eq(rc, 0);
 		rc = libinput_tablet_pad_mode_group_has_strip(group,
 							       0x1000000);
-		ck_assert_int_eq(rc, 0);
+		litest_assert_int_eq(rc, 0);
 	}
 
 	for (i = 0; i < ngroups; i++) {
 		group = libinput_device_tablet_pad_get_mode_group(device, i);
 		rc = libinput_tablet_pad_mode_group_has_ring(group,
 							     nrings);
-		ck_assert_int_eq(rc, 0);
+		litest_assert_int_eq(rc, 0);
 		rc = libinput_tablet_pad_mode_group_has_ring(group,
 							     nrings + 1);
-		ck_assert_int_eq(rc, 0);
+		litest_assert_int_eq(rc, 0);
 		rc = libinput_tablet_pad_mode_group_has_ring(group,
 							     0x1000000);
-		ck_assert_int_eq(rc, 0);
+		litest_assert_int_eq(rc, 0);
 	}
 }
 END_TEST
@@ -986,14 +986,14 @@ START_TEST(pad_mode_group_has_no_toggle)
 	int i, b;
 
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	ck_assert_int_ge(ngroups, 1);
+	litest_assert_int_ge(ngroups, 1);
 
 	/* Button must not be toggle buttons */
 	nbuttons = libinput_device_tablet_pad_get_num_buttons(device);
 	for (i = 0; i < ngroups; i++) {
 		group = libinput_device_tablet_pad_get_mode_group(device, i);
 		for (b = 0; b < nbuttons; b++) {
-			ck_assert(!libinput_tablet_pad_mode_group_button_is_toggle(
+			litest_assert(!libinput_tablet_pad_mode_group_button_is_toggle(
 								    group,
 								    b));
 		}

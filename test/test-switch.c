@@ -51,12 +51,12 @@ START_TEST(switch_has_cap)
 	/* Need to check for this specific device here because the
 	 * unreliable tablet mode switch removes the capability too */
 	if (dev->which == LITEST_TABLET_MODE_UNRELIABLE) {
-		ck_assert(!libinput_device_has_capability(dev->libinput_device,
+		litest_assert(!libinput_device_has_capability(dev->libinput_device,
 							  LIBINPUT_DEVICE_CAP_SWITCH));
 		return;
 	}
 
-	ck_assert(libinput_device_has_capability(dev->libinput_device,
+	litest_assert(libinput_device_has_capability(dev->libinput_device,
 						 LIBINPUT_DEVICE_CAP_SWITCH));
 
 }
@@ -69,7 +69,7 @@ START_TEST(switch_has_lid_switch)
 	if (!libevdev_has_event_code(dev->evdev, EV_SW, SW_LID))
 		return;
 
-	ck_assert_int_eq(libinput_device_switch_has_switch(dev->libinput_device,
+	litest_assert_int_eq(libinput_device_switch_has_switch(dev->libinput_device,
 							   LIBINPUT_SWITCH_LID),
 			 1);
 }
@@ -99,9 +99,9 @@ START_TEST(switch_has_tablet_mode_switch)
 						       LIBINPUT_SWITCH_TABLET_MODE);
 
 	if (!tablet_mode_switch_is_reliable(dev))
-		ck_assert_int_ne(has_switch, 1);
+		litest_assert_int_ne(has_switch, 1);
 	else
-		ck_assert_int_eq(has_switch, 1);
+		litest_assert_int_eq(has_switch, 1);
 }
 END_TEST
 
@@ -215,7 +215,7 @@ START_TEST(switch_down_on_init)
 	libinput_event_destroy(event);
 
 	while ((event = libinput_get_event(li))) {
-		ck_assert_int_ne(libinput_event_get_type(event),
+		litest_assert_int_ne(libinput_event_get_type(event),
 				 LIBINPUT_EVENT_SWITCH_TOGGLE);
 		libinput_event_destroy(event);
 	}
@@ -255,7 +255,7 @@ START_TEST(switch_not_down_on_init)
 	litest_dispatch(li);
 
 	while ((event = libinput_get_event(li)) != NULL) {
-		ck_assert_int_ne(libinput_event_get_type(event),
+		litest_assert_int_ne(libinput_event_get_type(event),
 				 LIBINPUT_EVENT_SWITCH_TOGGLE);
 		libinput_event_destroy(event);
 	}
@@ -741,9 +741,9 @@ START_TEST(lid_update_hw_on_key)
 	/* Separate direct libevdev context to check if the HW event goes
 	 * through */
 	fd = open(libevdev_uinput_get_devnode(sw->uinput), O_RDONLY|O_NONBLOCK);
-	ck_assert_int_ge(fd, 0);
-	ck_assert_int_eq(libevdev_new_from_fd(fd, &evdev), 0);
-	ck_assert_int_eq(libevdev_get_event_value(evdev, EV_SW, SW_LID), 1);
+	litest_assert_int_ge(fd, 0);
+	litest_assert_int_eq(libevdev_new_from_fd(fd, &evdev), 0);
+	litest_assert_int_eq(libevdev_get_event_value(evdev, EV_SW, SW_LID), 1);
 
 	/* Typing on the keyboard should trigger a lid open event */
 	litest_event(keyboard, EV_KEY, KEY_A, 1);
@@ -753,17 +753,17 @@ START_TEST(lid_update_hw_on_key)
 	litest_drain_events(li);
 
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
-	ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
-	ck_assert_int_eq(event.type, EV_SW);
-	ck_assert_int_eq(event.code, SW_LID);
-	ck_assert_int_eq(event.value, 0);
+	litest_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
+	litest_assert_int_eq(event.type, EV_SW);
+	litest_assert_int_eq(event.code, SW_LID);
+	litest_assert_int_eq(event.value, 0);
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
-	ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
-	ck_assert_int_eq(event.type, EV_SYN);
-	ck_assert_int_eq(event.code, SYN_REPORT);
-	ck_assert_int_eq(event.value, 0);
+	litest_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
+	litest_assert_int_eq(event.type, EV_SYN);
+	litest_assert_int_eq(event.code, SYN_REPORT);
+	litest_assert_int_eq(event.value, 0);
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
-	ck_assert_int_eq(rc, -EAGAIN);
+	litest_assert_int_eq(rc, -EAGAIN);
 
 	litest_delete_device(keyboard);
 	close(fd);
@@ -790,9 +790,9 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 	/* Separate direct libevdev context to check if the HW event goes
 	 * through */
 	fd = open(libevdev_uinput_get_devnode(sw->uinput), O_RDONLY|O_NONBLOCK);
-	ck_assert_int_ge(fd, 0);
-	ck_assert_int_eq(libevdev_new_from_fd(fd, &evdev), 0);
-	ck_assert_int_eq(libevdev_get_event_value(evdev, EV_SW, SW_LID), 1);
+	litest_assert_int_ge(fd, 0);
+	litest_assert_int_eq(libevdev_new_from_fd(fd, &evdev), 0);
+	litest_assert_int_eq(libevdev_get_event_value(evdev, EV_SW, SW_LID), 1);
 
 	keyboard = litest_add_device(sw->libinput, LITEST_KEYBOARD);
 
@@ -806,7 +806,7 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 	/* don't expect a switch waiting for us, this is run for an
 	 * unreliable device */
 	while (libinput_next_event_type(li) != LIBINPUT_EVENT_NONE) {
-		ck_assert_int_ne(libinput_next_event_type(li),
+		litest_assert_int_ne(libinput_next_event_type(li),
 				 LIBINPUT_EVENT_SWITCH_TOGGLE);
 		libinput_event_destroy(libinput_get_event(li));
 	}
@@ -820,17 +820,17 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 
 	/* Make sure kernel state has updated */
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
-	ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
-	ck_assert_int_eq(event.type, EV_SW);
-	ck_assert_int_eq(event.code, SW_LID);
-	ck_assert_int_eq(event.value, 0);
+	litest_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
+	litest_assert_int_eq(event.type, EV_SW);
+	litest_assert_int_eq(event.code, SW_LID);
+	litest_assert_int_eq(event.value, 0);
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
-	ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
-	ck_assert_int_eq(event.type, EV_SYN);
-	ck_assert_int_eq(event.code, SYN_REPORT);
-	ck_assert_int_eq(event.value, 0);
+	litest_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
+	litest_assert_int_eq(event.type, EV_SYN);
+	litest_assert_int_eq(event.code, SYN_REPORT);
+	litest_assert_int_eq(event.value, 0);
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
-	ck_assert_int_eq(rc, -EAGAIN);
+	litest_assert_int_eq(rc, -EAGAIN);
 
 	litest_destroy_context(li);
 	litest_delete_device(keyboard);
@@ -869,9 +869,9 @@ START_TEST(lid_update_hw_on_key_multiple_keyboards)
 	/* Separate direct libevdev context to check if the HW event goes
 	 * through */
 	fd = open(libevdev_uinput_get_devnode(sw->uinput), O_RDONLY|O_NONBLOCK);
-	ck_assert_int_ge(fd, 0);
-	ck_assert_int_eq(libevdev_new_from_fd(fd, &evdev), 0);
-	ck_assert_int_eq(libevdev_get_event_value(evdev, EV_SW, SW_LID), 1);
+	litest_assert_int_ge(fd, 0);
+	litest_assert_int_eq(libevdev_new_from_fd(fd, &evdev), 0);
+	litest_assert_int_eq(libevdev_get_event_value(evdev, EV_SW, SW_LID), 1);
 
 	/* Typing on the second keyboard should trigger a lid open event */
 	litest_event(keyboard2, EV_KEY, KEY_A, 1);
@@ -881,17 +881,17 @@ START_TEST(lid_update_hw_on_key_multiple_keyboards)
 	litest_drain_events(li);
 
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
-	ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
-	ck_assert_int_eq(event.type, EV_SW);
-	ck_assert_int_eq(event.code, SW_LID);
-	ck_assert_int_eq(event.value, 0);
+	litest_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
+	litest_assert_int_eq(event.type, EV_SW);
+	litest_assert_int_eq(event.code, SW_LID);
+	litest_assert_int_eq(event.value, 0);
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
-	ck_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
-	ck_assert_int_eq(event.type, EV_SYN);
-	ck_assert_int_eq(event.code, SYN_REPORT);
-	ck_assert_int_eq(event.value, 0);
+	litest_assert_int_eq(rc, LIBEVDEV_READ_STATUS_SUCCESS);
+	litest_assert_int_eq(event.type, EV_SYN);
+	litest_assert_int_eq(event.code, SYN_REPORT);
+	litest_assert_int_eq(event.value, 0);
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
-	ck_assert_int_eq(rc, -EAGAIN);
+	litest_assert_int_eq(rc, -EAGAIN);
 
 	litest_delete_device(keyboard1);
 	litest_delete_device(keyboard2);
@@ -1000,7 +1000,7 @@ START_TEST(tablet_mode_disable_touchpad_on_resume)
 		libinput_event_destroy(event);
 	}
 
-	ck_assert(have_switch_toggle);
+	litest_assert(have_switch_toggle);
 
 	litest_touch_down(touchpad, 0, 50, 50);
 	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10);
@@ -1217,7 +1217,7 @@ START_TEST(tablet_mode_disable_keyboard_on_resume)
 		libinput_event_destroy(event);
 	}
 
-	ck_assert(have_switch_toggle);
+	litest_assert(have_switch_toggle);
 
 	litest_keyboard_key(keyboard, KEY_A, true);
 	litest_keyboard_key(keyboard, KEY_A, false);

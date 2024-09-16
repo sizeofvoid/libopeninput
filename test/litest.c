@@ -346,7 +346,7 @@ grab_device(struct litest_device *device, bool mode)
 	list_for_each(p, &ctx->paths, link) {
 		if (streq(p->path, devnode)) {
 			int rc = ioctl(p->fd, EVIOCGRAB, (void*)mode ? 1 : 0);
-			ck_assert_int_gt(rc, -1);
+			litest_assert_int_gt(rc, -1);
 			udev_device_unref(udev_device);
 			return;
 		}
@@ -4230,7 +4230,7 @@ litest_assert_axis_end_sequence(struct libinput *li,
 		event = libinput_get_event(li);
 		ptrev = litest_is_axis_event(event, axis_type, axis, source);
 		val = litest_event_pointer_get_value(ptrev, axis);
-		ck_assert(val == 0.0);
+		litest_assert(val == 0.0);
 
 		if (litest_is_high_res_axis_event(event)) {
 			litest_assert(!last_hi_res_event_found);
