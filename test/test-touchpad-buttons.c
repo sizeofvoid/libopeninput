@@ -1191,8 +1191,7 @@ START_TEST(clickpad_btn_left)
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	litest_dispatch(li);
-	ck_assert_int_eq(libinput_next_event_type(li), LIBINPUT_EVENT_NONE);
+	litest_assert_empty_queue(li);
 }
 END_TEST
 
@@ -1211,8 +1210,7 @@ START_TEST(clickpad_click_n_drag)
 	litest_assert_button_event(li, BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
 
-	litest_dispatch(li);
-	ck_assert_int_eq(libinput_next_event_type(li), LIBINPUT_EVENT_NONE);
+	litest_assert_empty_queue(li);
 
 	/* now put a second finger down */
 	litest_touch_down(dev, 1, 70, 70);
