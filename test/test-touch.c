@@ -728,8 +728,8 @@ START_TEST(touch_protocol_a_touch)
 			libinput_event_destroy(ev);
 			continue;
 		}
-		ck_assert_int_eq(libinput_event_get_type(ev),
-				 LIBINPUT_EVENT_TOUCH_MOTION);
+
+		litest_assert_event_type(ev, LIBINPUT_EVENT_TOUCH_MOTION);
 
 		tev = libinput_event_get_touch_event(ev);
 		x = libinput_event_touch_get_x(tev);

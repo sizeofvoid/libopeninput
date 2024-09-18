@@ -88,8 +88,7 @@ START_TEST(pad_time)
 
 	ev = libinput_get_event(li);
 	ck_assert_notnull(ev);
-	ck_assert_int_eq(libinput_event_get_type(ev),
-			 LIBINPUT_EVENT_TABLET_PAD_BUTTON);
+	litest_assert_event_type(ev, LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 	pev = libinput_event_get_tablet_pad_event(ev);
 	time = libinput_event_tablet_pad_get_time(pev);
 	time_usec = libinput_event_tablet_pad_get_time_usec(pev);
@@ -107,8 +106,7 @@ START_TEST(pad_time)
 	litest_dispatch(li);
 
 	ev = libinput_get_event(li);
-	ck_assert_int_eq(libinput_event_get_type(ev),
-			 LIBINPUT_EVENT_TABLET_PAD_BUTTON);
+	litest_assert_event_type(ev, LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 	pev = libinput_event_get_tablet_pad_event(ev);
 
 	oldtime = time;
@@ -356,8 +354,7 @@ START_TEST(pad_button_mode_groups)
 		}
 
 		ev = libinput_get_event(li);
-		ck_assert_int_eq(libinput_event_get_type(ev),
-				 LIBINPUT_EVENT_TABLET_PAD_BUTTON);
+		litest_assert_event_type(ev, LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 		pev = libinput_event_get_tablet_pad_event(ev);
 
 		/* litest virtual devices don't have modes */
@@ -370,8 +367,7 @@ START_TEST(pad_button_mode_groups)
 		libinput_event_destroy(ev);
 
 		ev = libinput_get_event(li);
-		ck_assert_int_eq(libinput_event_get_type(ev),
-				 LIBINPUT_EVENT_TABLET_PAD_BUTTON);
+		litest_assert_event_type(ev, LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 		pev = libinput_event_get_tablet_pad_event(ev);
 
 		mode = libinput_event_tablet_pad_get_mode(pev);

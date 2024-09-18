@@ -468,7 +468,7 @@ START_TEST(pointer_button_auto_release)
 			break;
 		}
 
-		ck_assert_int_eq(type, LIBINPUT_EVENT_POINTER_BUTTON);
+		litest_assert_event_type(event, LIBINPUT_EVENT_POINTER_BUTTON);
 		pevent = libinput_event_get_pointer_event(event);
 		ck_assert_int_eq(libinput_event_pointer_get_button_state(pevent),
 				 LIBINPUT_BUTTON_STATE_RELEASED);
