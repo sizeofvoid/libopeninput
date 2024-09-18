@@ -106,13 +106,13 @@ START_TEST(touchpad_click_set_clickfinger_map)
 	status = libinput_device_config_click_set_clickfinger_button_map(device, map);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	map = libinput_device_config_click_get_clickfinger_button_map(dev->libinput_device);
-	ck_assert_int_eq(map, LIBINPUT_CONFIG_TAP_MAP_LRM);
+	ck_assert_int_eq(map, LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM);
 
 	map = LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR;
 	status = libinput_device_config_click_set_clickfinger_button_map(device, map);
 	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	map = libinput_device_config_click_get_clickfinger_button_map(dev->libinput_device);
-	ck_assert_int_eq(map, LIBINPUT_CONFIG_TAP_MAP_LMR);
+	ck_assert_int_eq(map, LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR);
 
 	map = LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM - 1;
 	status = libinput_device_config_click_set_clickfinger_button_map(device, map);
