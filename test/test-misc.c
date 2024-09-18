@@ -643,8 +643,7 @@ START_TEST(fd_no_event_leak)
 	libinput_path_add_device(li, path);
 	litest_dispatch(li);
 	event = libinput_get_event(li);
-	ck_assert_int_eq(libinput_event_get_type(event),
-			 LIBINPUT_EVENT_DEVICE_ADDED);
+	litest_assert_event_type(event, LIBINPUT_EVENT_DEVICE_ADDED);
 	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);

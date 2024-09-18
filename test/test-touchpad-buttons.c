@@ -1497,8 +1497,7 @@ START_TEST(clickpad_softbutton_left_1st_fg_move)
 	while (event) {
 		struct libinput_event_pointer *p;
 
-		ck_assert_int_eq(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_POINTER_MOTION);
+		litest_assert_event_type(event, LIBINPUT_EVENT_POINTER_MOTION);
 		p = libinput_event_get_pointer_event(event);
 
 		/* we moved up/right, now down/left so the pointer accel
@@ -1564,8 +1563,7 @@ START_TEST(clickpad_softbutton_left_2nd_fg_move)
 		struct libinput_event_pointer *p;
 		double x, y;
 
-		ck_assert_int_eq(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_POINTER_MOTION);
+		litest_assert_event_type(event, LIBINPUT_EVENT_POINTER_MOTION);
 		p = libinput_event_get_pointer_event(event);
 
 		x = libinput_event_pointer_get_dx(p);
@@ -1595,8 +1593,7 @@ START_TEST(clickpad_softbutton_left_2nd_fg_move)
 		struct libinput_event_pointer *p;
 		double x, y;
 
-		ck_assert_int_eq(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_POINTER_MOTION);
+		litest_assert_event_type(event, LIBINPUT_EVENT_POINTER_MOTION);
 		p = libinput_event_get_pointer_event(event);
 
 		x = libinput_event_pointer_get_dx(p);

@@ -143,8 +143,7 @@ START_TEST(keyboard_ignore_no_pressed_release)
 	ARRAY_FOR_EACH(expected_states, state) {
 		event = libinput_get_event(libinput);
 		ck_assert_notnull(event);
-		ck_assert_int_eq(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_KEYBOARD_KEY);
+		litest_assert_event_type(event, LIBINPUT_EVENT_KEYBOARD_KEY);
 		kevent = libinput_event_get_keyboard_event(event);
 		ck_assert_int_eq(libinput_event_keyboard_get_key(kevent),
 				 KEY_A);
@@ -234,7 +233,7 @@ START_TEST(keyboard_key_auto_release)
 			break;
 		}
 
-		ck_assert_int_eq(type, LIBINPUT_EVENT_KEYBOARD_KEY);
+		litest_assert_event_type(event, LIBINPUT_EVENT_KEYBOARD_KEY);
 		kevent = libinput_event_get_keyboard_event(event);
 		ck_assert_int_eq(libinput_event_keyboard_get_key_state(kevent),
 				 LIBINPUT_KEY_STATE_RELEASED);
