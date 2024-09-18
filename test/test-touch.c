@@ -687,8 +687,7 @@ START_TEST(touch_protocol_a_init)
 	struct libinput *li = dev->libinput;
 	struct libinput_device *device = dev->libinput_device;
 
-	ck_assert_int_ne(libinput_next_event_type(li),
-			 LIBINPUT_EVENT_NONE);
+	litest_wait_for_event(li);
 
 	ck_assert(libinput_device_has_capability(device,
 						 LIBINPUT_DEVICE_CAP_TOUCH));
