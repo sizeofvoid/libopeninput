@@ -2859,8 +2859,7 @@ START_TEST(touchpad_semi_mt_hover_down)
 
 	litest_dispatch(li);
 
-	ck_assert_int_ne(libinput_next_event_type(li),
-			 LIBINPUT_EVENT_NONE);
+	litest_wait_for_event(li);
 	while ((event = libinput_get_event(li)) != NULL) {
 		ck_assert_int_eq(libinput_event_get_type(event),
 				 LIBINPUT_EVENT_POINTER_MOTION);
