@@ -419,7 +419,7 @@ strstrip(const char *input, const char *what)
 
 	last = str;
 
-	for (char *c = str; *c != '\0'; c++) {
+	for (char *c = str; c && *c != '\0'; c++) {
 		if (!strchr(what, *c))
 			last = c + 1;
 	}

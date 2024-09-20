@@ -1218,8 +1218,10 @@ START_TEST(double_array_from_string_test)
 							 &len);
 		ck_assert_int_eq(len, t->len);
 
-		for (size_t idx = 0; idx < len; idx++)
+		for (size_t idx = 0; idx < len; idx++) {
+			ck_assert_ptr_nonnull(array);
 			ck_assert_double_eq(array[idx], t->array[idx]);
+		}
 
 		free(array);
 		t++;
