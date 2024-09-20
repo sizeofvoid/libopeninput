@@ -1314,7 +1314,7 @@ match_fill_uniq(struct match *m,
 		str++;
 
 	m->uniq = safe_strdup(str);
-	slen = strlen(m->uniq);
+	slen = safe_strlen(m->uniq);
 	if (slen > 1 &&
 	    m->uniq[slen - 1] == '"')
 		m->uniq[slen - 1] = '\0';
