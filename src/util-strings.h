@@ -100,6 +100,15 @@ safe_strdup(const char *str)
 }
 
 /**
+ * NULL-safe version of strlen
+ */
+static inline size_t
+safe_strlen(const char *str)
+{
+	return str ? strlen(str) : 0;
+}
+
+/**
  * Simple wrapper for asprintf that ensures the passed in-pointer is set
  * to NULL upon error.
  * The standard asprintf() call does not guarantee the passed in pointer
