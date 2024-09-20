@@ -360,7 +360,7 @@ tools_parse_option(int option,
 
 		size_t npoints = 0;
 		double *range = double_array_from_string(optarg, ":", &npoints);
-		if (npoints != 2 || range[0] < 0.0 || range[1] > 1.0 || range[0] >= range[1]) {
+		if (npoints != 2 || !range || range[0] < 0.0 || range[1] > 1.0 || range[0] >= range[1]) {
 			free(range);
 			fprintf(stderr, "Invalid pressure range, must be in format \"min:max\"\n");
 			return 1;
@@ -376,7 +376,7 @@ tools_parse_option(int option,
 
 		size_t npoints = 0;
 		double *matrix = double_array_from_string(optarg, " ", &npoints);
-		if (npoints != 6) {
+		if (!matrix || npoints != 6) {
 			free(matrix);
 			fprintf(stderr, "Invalid calibration matrix, must be 6 space-separated values\n");
 			return 1;
