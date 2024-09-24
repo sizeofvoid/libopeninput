@@ -135,3 +135,30 @@ ModelChromebook=1
 AttrPressureRange=1:0
 AttrThumbPressureThreshold=25
 AttrPalmPressureThreshold=0
+
+[Google Chromebook Krane]
+MatchUdevType=touchpad
+MatchName=Google Inc. Hammer
+MatchBus=usb
+MatchVendor=0x18D1
+MatchDeviceTree=*krane*
+ModelChromebook=1
+AttrPressureRange=20:10
+
+[Google Chromebook Wormdingler]
+MatchUdevType=touchpad
+MatchName=Google Inc. Hammer
+MatchBus=usb
+MatchVendor=0x18D1
+MatchDeviceTree=*wormdingler*
+ModelChromebook=1
+AttrPressureRange=20:10
+
+[Google Chromebook Coachz]
+MatchUdevType=touchpad
+MatchName=Google Inc. Hammer
+MatchBus=usb
+MatchVendor=0x18D1
+MatchDeviceTree=*coachz*
+ModelChromebook=1
+AttrPressureRange=20:10
