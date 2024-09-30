@@ -162,3 +162,10 @@ MatchVendor=0x18D1
 MatchDeviceTree=*coachz*
 ModelChromebook=1
 AttrPressureRange=20:10
+
+[Google Chromebook Cret]
+MatchUdevType=touchpad
+MatchName=GDIX0000:00 27C6:0D55 Touchpad
+MatchDMIModalias=dmi:*svnGoogle:*pnCret*
+ModelChromebook=1
+AttrPressureRange=6:4
