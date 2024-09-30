@@ -669,6 +669,8 @@ vm-valgrind-touchpad:
     LITEST_JOBS: 4
   retry:
     max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
 
 vm-valgrind-tap:
   stage: valgrind
@@ -679,6 +681,8 @@ vm-valgrind-tap:
     LITEST_JOBS: 4
   retry:
     max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
 
 vm-valgrind-touchpad-buttons:
   stage: valgrind
@@ -689,6 +693,8 @@ vm-valgrind-touchpad-buttons:
     LITEST_JOBS: 4
   retry:
     max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
 
 vm-valgrind-tablet:
   stage: valgrind
@@ -699,6 +705,8 @@ vm-valgrind-tablet:
     LITEST_JOBS: 4
   retry:
     max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
 
 vm-valgrind-gestures-device:
   stage: valgrind
@@ -709,6 +717,8 @@ vm-valgrind-gestures-device:
     LITEST_JOBS: 4
   retry:
     max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
 
 vm-valgrind-backends:
   stage: valgrind
@@ -719,6 +729,8 @@ vm-valgrind-backends:
     LITEST_JOBS: 4
   retry:
     max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
 
 vm-valgrind-misc:
   stage: valgrind
@@ -729,6 +741,8 @@ vm-valgrind-misc:
     LITEST_JOBS: 4
   retry:
     max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
 
 vm-valgrind-other devices:
   stage: valgrind
@@ -739,6 +753,8 @@ vm-valgrind-other devices:
     LITEST_JOBS: 4
   retry:
     max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
 
 vm-valgrind-pointer:
   stage: valgrind
@@ -749,6 +765,8 @@ vm-valgrind-pointer:
     LITEST_JOBS: 4
   retry:
     max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
 
 
 .fedora-build@template:

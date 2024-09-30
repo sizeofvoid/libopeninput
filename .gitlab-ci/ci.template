@@ -447,6 +447,8 @@ vm-valgrind-{{suite.name}}:
     LITEST_JOBS: 4
   retry:
     max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
 
 {% endfor %}
 {% endfor %}{# for if distro.use_for_qemu_tests #}
