@@ -4,6 +4,11 @@
 MatchName=*Logitech M570*
 ModelTrackball=1
 
+# This will also work for the newer 'S' version — Logitech ERGO M575S
+[Logitech ERGO M575]
+MatchName=*Logitech*M575*
+ModelTrackball=1
+
 # Logitech Marble Mouse claims to have a middle button
 [Logitech Marble Mouse Trackball]
 MatchUdevType=mouse
