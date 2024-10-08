@@ -530,7 +530,7 @@ START_TEST(pad_dial_low_res)
 			ck_assert_double_eq(v120, 120.0 * direction);
 			break;
 		default:
-			ck_abort();
+			litest_abort_msg("Invalid dial code");
 		}
 		libinput_event_destroy(ev);
 	}

@@ -1652,7 +1652,7 @@ litest_create(enum litest_device_type which,
 	}
 
 	if (!found)
-		ck_abort_msg("Invalid device type %d\n", which);
+		litest_abort_msg("Invalid device type %d\n", which);
 
 	d = zalloc(sizeof(*d));
 	d->which = which;
@@ -3730,7 +3730,7 @@ litest_is_touch_event(struct libinput_event *event,
 		litest_assert_event_type(event, type);
 		break;
 	default:
-		ck_abort_msg("%s: invalid touch type %d\n", __func__, type);
+		litest_abort_msg("%s: invalid touch type %d\n", __func__, type);
 	}
 
 	touch = libinput_event_get_touch_event(event);

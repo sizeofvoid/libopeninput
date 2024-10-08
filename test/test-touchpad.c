@@ -6981,7 +6981,7 @@ START_TEST(touchpad_suspend_abba)
 			litest_sendevents_off(tp);
 			break;
 		default:
-			ck_abort();
+			litest_abort_msg("Unexpected suspend option");
 		}
 
 		litest_drain_events(li);
@@ -7019,7 +7019,7 @@ START_TEST(touchpad_suspend_abba)
 			litest_sendevents_on(tp);
 			break;
 		default:
-			ck_abort();
+			litest_abort_msg("Unexpected suspend option");
 		}
 
 		assert_touchpad_does_not_move(tp);
@@ -7043,7 +7043,7 @@ START_TEST(touchpad_suspend_abba)
 			litest_sendevents_on(tp);
 			break;
 		default:
-			ck_abort();
+			litest_abort_msg("Unexpected suspend option");
 		}
 
 		litest_drain_events(li);
@@ -7120,7 +7120,7 @@ START_TEST(touchpad_suspend_abab)
 			litest_sendevents_off(tp);
 			break;
 		default:
-			ck_abort();
+			litest_abort_msg("Unexpected suspend option");
 		}
 
 		litest_drain_events(li);
@@ -7148,7 +7148,7 @@ START_TEST(touchpad_suspend_abab)
 			litest_sendevents_off(tp);
 			break;
 		default:
-			ck_abort();
+			litest_abort_msg("Unexpected suspend option");
 		}
 
 		assert_touchpad_does_not_move(tp);
@@ -7172,7 +7172,7 @@ START_TEST(touchpad_suspend_abab)
 			litest_sendevents_on(tp);
 			break;
 		default:
-			ck_abort();
+			litest_abort_msg("Unexpected suspend option");
 		}
 
 		litest_drain_events(li);
@@ -7199,7 +7199,7 @@ START_TEST(touchpad_suspend_abab)
 			litest_sendevents_on(tp);
 			break;
 		default:
-			ck_abort();
+			litest_abort_msg("Unexpected suspend option");
 		}
 
 		litest_drain_events(li);

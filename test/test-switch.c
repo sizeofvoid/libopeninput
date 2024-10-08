@@ -995,7 +995,7 @@ START_TEST(tablet_mode_disable_touchpad_on_resume)
 			have_switch_toggle = true;
 			break;
 		default:
-			ck_abort();
+			litest_abort_msg("Unexpected event type");
 		}
 		libinput_event_destroy(event);
 	}
@@ -1212,7 +1212,7 @@ START_TEST(tablet_mode_disable_keyboard_on_resume)
 			have_switch_toggle = true;
 			break;
 		default:
-			ck_abort();
+			litest_abort_msg("Unexpected event type");
 		}
 		libinput_event_destroy(event);
 	}

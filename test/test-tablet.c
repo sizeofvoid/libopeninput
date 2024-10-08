@@ -107,7 +107,7 @@ START_TEST(button_seat_count)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tev;
-	struct litest_device *dev2;
+	struct litest_device *dev2 = NULL;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
@@ -123,7 +123,7 @@ START_TEST(button_seat_count)
 		dev2 = litest_add_device(li, LITEST_DELL_CANVAS_TOTEM);
 		break;
 	default:
-		ck_abort();
+		litest_abort_msg("Invalid button code");
 	}
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -2376,7 +2376,7 @@ START_TEST(tool_id)
 	struct libinput_event_tablet_tool *tablet_event;
 	struct libinput_event *event;
 	struct libinput_tablet_tool *tool;
-	uint64_t tool_id;
+	uint64_t tool_id = 0;
 
 	litest_drain_events(li);
 
@@ -2402,7 +2402,7 @@ START_TEST(tool_id)
 		tool_id = 2083;
 		break;
 	default:
-		ck_abort();
+		litest_abort_msg("Invalid button code");
 	}
 
 	ck_assert(tool_id == libinput_tablet_tool_get_tool_id(tool));
