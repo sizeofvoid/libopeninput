@@ -784,7 +784,7 @@ START_TEST(path_add_device_suspend_resume_fail)
 		 * causing a removed event for the first one */
 		if (type != LIBINPUT_EVENT_DEVICE_ADDED &&
 		    type != LIBINPUT_EVENT_DEVICE_REMOVED)
-			ck_abort();
+			litest_abort_msg("Unexpected event type");
 		libinput_event_destroy(event);
 		nevents++;
 	}
