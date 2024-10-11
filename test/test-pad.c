@@ -155,7 +155,7 @@ START_TEST(pad_num_buttons)
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 	unsigned int code;
-	unsigned int nbuttons = 0;
+	int nbuttons = 0;
 
 	for (code = BTN_0; code < KEY_OK; code++) {
 		/* BTN_STYLUS is set for compatibility reasons but not
@@ -359,10 +359,10 @@ START_TEST(pad_button_mode_groups)
 
 		/* litest virtual devices don't have modes */
 		mode = libinput_event_tablet_pad_get_mode(pev);
-		litest_assert_int_eq(mode, 0);
+		litest_assert_int_eq(mode, 0U);
 		group = libinput_event_tablet_pad_get_mode_group(pev);
 		index = libinput_tablet_pad_mode_group_get_index(group);
-		litest_assert_int_eq(index, 0);
+		litest_assert_int_eq(index, 0U);
 
 		libinput_event_destroy(ev);
 
@@ -371,10 +371,10 @@ START_TEST(pad_button_mode_groups)
 		pev = libinput_event_get_tablet_pad_event(ev);
 
 		mode = libinput_event_tablet_pad_get_mode(pev);
-		litest_assert_int_eq(mode, 0);
+		litest_assert_int_eq(mode, 0U);
 		group = libinput_event_tablet_pad_get_mode_group(pev);
 		index = libinput_tablet_pad_mode_group_get_index(group);
-		litest_assert_int_eq(index, 0);
+		litest_assert_int_eq(index, 0U);
 		libinput_event_destroy(ev);
 	}
 
@@ -783,12 +783,12 @@ START_TEST(pad_mode_groups)
 	struct libinput_device *device = dev->libinput_device;
 	struct libinput_tablet_pad_mode_group *group;
 	int ngroups;
-	int i;
+	unsigned int i;
 
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
 	litest_assert_int_eq(ngroups, 1);
 
-	for (i = 0; i < ngroups; i++) {
+	for (i = 0; i < (unsigned int)ngroups; i++) {
 		group = libinput_device_tablet_pad_get_mode_group(device, i);
 		litest_assert_notnull(group);
 		litest_assert_int_eq(libinput_tablet_pad_mode_group_get_index(group),
@@ -854,7 +854,7 @@ START_TEST(pad_mode_group_mode)
 	group = libinput_device_tablet_pad_get_mode_group(device, 0);
 
 	nmodes = libinput_tablet_pad_mode_group_get_num_modes(group);
-	litest_assert_int_eq(nmodes, 1);
+	litest_assert_int_eq(nmodes, 1U);
 
 	mode = libinput_tablet_pad_mode_group_get_mode(group);
 	litest_assert_int_lt(mode, nmodes);

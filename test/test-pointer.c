@@ -1138,7 +1138,7 @@ START_TEST(pointer_seat_button_count)
 		tev = libinput_event_get_pointer_event(ev);
 		litest_assert_notnull(tev);
 		litest_assert_int_eq(libinput_event_pointer_get_button(tev),
-				 BTN_LEFT);
+				     (unsigned int)BTN_LEFT);
 		litest_assert_int_eq(libinput_event_pointer_get_button_state(tev),
 				 LIBINPUT_BUTTON_STATE_PRESSED);
 
@@ -1171,7 +1171,7 @@ START_TEST(pointer_seat_button_count)
 		tev = libinput_event_get_pointer_event(ev);
 		litest_assert_notnull(tev);
 		litest_assert_int_eq(libinput_event_pointer_get_button(tev),
-				 BTN_LEFT);
+				     (unsigned int)BTN_LEFT);
 		litest_assert_int_eq(libinput_event_pointer_get_button_state(tev),
 				 LIBINPUT_BUTTON_STATE_RELEASED);
 
@@ -1438,11 +1438,11 @@ START_TEST(pointer_scroll_button_noscroll)
 	enum libinput_config_status status;
 
 	methods = libinput_device_config_scroll_get_method(device);
-	litest_assert_int_eq((methods & LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN), 0);
+	litest_assert_int_eq((methods & LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN), 0U);
 	button = libinput_device_config_scroll_get_button(device);
-	litest_assert_int_eq(button, 0);
+	litest_assert_int_eq(button, 0U);
 	button = libinput_device_config_scroll_get_default_button(device);
-	litest_assert_int_eq(button, 0);
+	litest_assert_int_eq(button, 0U);
 
 	status = libinput_device_config_scroll_set_method(device,
 					LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
@@ -2111,9 +2111,9 @@ START_TEST(pointer_scroll_nowheel_defaults)
 
 	if (method == LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN) {
 		button = libinput_device_config_scroll_get_button(device);
-		litest_assert_int_eq(button, BTN_MIDDLE);
+		litest_assert_int_eq(button, (unsigned int)BTN_MIDDLE);
 		button = libinput_device_config_scroll_get_default_button(device);
-		litest_assert_int_eq(button, BTN_MIDDLE);
+		litest_assert_int_eq(button, (unsigned int)BTN_MIDDLE);
 	}
 }
 END_TEST
@@ -2131,7 +2131,7 @@ START_TEST(pointer_scroll_defaults_logitech_marble)
 	litest_assert_int_eq(method, LIBINPUT_CONFIG_SCROLL_NO_SCROLL);
 
 	button = libinput_device_config_scroll_get_button(device);
-	litest_assert_int_eq(button, BTN_SIDE);
+	litest_assert_int_eq(button, (unsigned int)BTN_SIDE);
 }
 END_TEST
 

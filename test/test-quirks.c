@@ -1054,7 +1054,7 @@ test_attr_parse(struct litest_device *dev,
 struct qtest_dim {
 		const char *str;
 		bool success;
-		int w, h;
+		size_t w, h;
 };
 
 START_TEST(quirks_parse_dimension_attr)

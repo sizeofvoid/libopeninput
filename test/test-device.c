@@ -43,7 +43,7 @@ START_TEST(device_sendevents_config)
 
 	modes = libinput_device_config_send_events_get_modes(device);
 	litest_assert_int_eq(modes,
-			 LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+			 (uint32_t)LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 }
 END_TEST
 
@@ -517,7 +517,7 @@ START_TEST(device_disable_release_buttons)
 			 LIBINPUT_EVENT_POINTER_BUTTON);
 	ptrevent = libinput_event_get_pointer_event(event);
 	litest_assert_int_eq(libinput_event_pointer_get_button(ptrevent),
-			 BTN_LEFT);
+			     (unsigned int)BTN_LEFT);
 	litest_assert_int_eq(libinput_event_pointer_get_button_state(ptrevent),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
 
@@ -551,7 +551,7 @@ START_TEST(device_disable_release_keys)
 			 LIBINPUT_EVENT_KEYBOARD_KEY);
 	kbdevent = libinput_event_get_keyboard_event(event);
 	litest_assert_int_eq(libinput_event_keyboard_get_key(kbdevent),
-			 KEY_A);
+			     (unsigned int)KEY_A);
 	litest_assert_int_eq(libinput_event_keyboard_get_key_state(kbdevent),
 			 LIBINPUT_KEY_STATE_RELEASED);
 
@@ -721,7 +721,7 @@ START_TEST(device_disable_topsoftbutton)
 			 trackpoint->libinput_device);
 	ptrevent = libinput_event_get_pointer_event(event);
 	litest_assert_int_eq(libinput_event_pointer_get_button(ptrevent),
-			 BTN_RIGHT);
+			     (unsigned int)BTN_RIGHT);
 	litest_assert_int_eq(libinput_event_pointer_get_button_state(ptrevent),
 			 LIBINPUT_BUTTON_STATE_PRESSED);
 	libinput_event_destroy(event);
@@ -733,7 +733,7 @@ START_TEST(device_disable_topsoftbutton)
 			 trackpoint->libinput_device);
 	ptrevent = libinput_event_get_pointer_event(event);
 	litest_assert_int_eq(libinput_event_pointer_get_button(ptrevent),
-			 BTN_RIGHT);
+			     (unsigned int)BTN_RIGHT);
 	litest_assert_int_eq(libinput_event_pointer_get_button_state(ptrevent),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
 	libinput_event_destroy(event);
