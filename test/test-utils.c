@@ -27,6 +27,9 @@
 
 #include <valgrind/valgrind.h>
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "util-list.h"
 #include "util-strings.h"
 #include "util-time.h"
@@ -35,6 +38,7 @@
 #include "util-bits.h"
 #include "util-range.h"
 #include "util-ratelimit.h"
+#include "util-stringbuf.h"
 #include "util-matrix.h"
 #include "util-input-event.h"
 
@@ -1721,6 +1725,107 @@ START_TEST(range_test)
 }
 END_TEST
 
+START_TEST(stringbuf_test)
+{
+	struct stringbuf buf;
+	struct stringbuf *b = &buf;
+	int rc;
+
+	stringbuf_init(b);
+	ck_assert_int_eq(b->len, 0u);
+
+	rc = stringbuf_append_string(b, "foo");
+	ck_assert_int_ne(rc, -1);
+	rc = stringbuf_append_string(b, "bar");
+	ck_assert_int_ne(rc, -1);
+	rc = stringbuf_append_string(b, "baz");
+	ck_assert_int_ne(rc, -1);
+	ck_assert_str_eq(b->data, "foobarbaz");
+	ck_assert_int_eq(b->len, strlen("foobarbaz"));
+
+	rc = stringbuf_ensure_space(b, 500);
+	ck_assert_int_ne(rc, -1);
+	ck_assert_int_ge(b->sz, 500u);
+
+	rc = stringbuf_ensure_size(b, 0);
+	ck_assert_int_ne(rc, -1);
+	rc = stringbuf_ensure_size(b, 1024);
+	ck_assert_int_ne(rc, -1);
+	ck_assert_int_ge(b->sz, 1024u);
+
+	char *data = stringbuf_steal(b);
+	ck_assert_str_eq(data, "foobarbaz");
+	ck_assert_int_eq(b->sz, 0u);
+	ck_assert_int_eq(b->len, 0u);
+	ck_assert_ptr_null(b->data);
+	free(data);
+
+	const char *str = "1234567890";
+	rc = stringbuf_append_string(b, str);
+	ck_assert_int_ne(rc, -1);
+	ck_assert_str_eq(b->data, str);
+	ck_assert_int_eq(b->len, 10u);
+	stringbuf_reset(b);
+
+	/* intentional double-reset */
+	stringbuf_reset(b);
+
+	int pipefd[2];
+	rc = pipe2(pipefd, O_CLOEXEC | O_NONBLOCK);
+	ck_assert_int_ne(rc, -1);
+
+	str = "foo bar baz";
+	char *compare = NULL;
+	for (int i = 0; i < 100; i++) {
+		rc = write(pipefd[1], str, strlen(str));
+		ck_assert_int_ne(rc, -1);
+
+		rc = stringbuf_append_from_fd(b, pipefd[0], 64);
+		ck_assert_int_ne(rc, -1);
+
+		char *expected;
+		rc = xasprintf(&expected, "%s%s", compare ? compare : "", str);
+		ck_assert_int_ne(rc, -1);
+		ck_assert_str_eq(b->data, expected);
+
+		free(compare);
+		compare = expected;
+	}
+	free(compare);
+	close(pipefd[0]);
+	close(pipefd[1]);
+	stringbuf_reset(b);
+
+	rc = pipe2(pipefd, O_CLOEXEC | O_NONBLOCK);
+		ck_assert_int_ne(rc, -1);
+	ck_assert_int_ne(rc, -1);
+
+	const size_t stride = 256;
+	const size_t maxsize = 4096;
+
+	for (size_t i = 0; i < maxsize; i += stride) {
+		char buf[stride];
+		memset(buf, i/stride, sizeof(buf));
+		rc = write(pipefd[1], buf, sizeof(buf));
+		ck_assert_int_ne(rc, -1);
+	}
+
+	stringbuf_append_from_fd(b, pipefd[0], 0);
+	ck_assert_int_eq(b->len, maxsize);
+	ck_assert_int_ge(b->sz, maxsize);
+
+	for (size_t i = 0; i < maxsize; i+= stride) {
+		char buf[stride];
+		memset(buf, i/stride, sizeof(buf));
+		ck_assert_int_eq(memcmp(buf, b->data + i, sizeof(buf)), 0);
+	}
+
+	close(pipefd[0]);
+	close(pipefd[1]);
+	stringbuf_reset(b);
+}
+END_TEST
+
 static Suite *
 litest_utils_suite(void)
 {
@@ -1778,6 +1883,7 @@ litest_utils_suite(void)
 	tcase_add_test(tc, absinfo_normalize_value_test);
 
 	tcase_add_test(tc, range_test);
+	tcase_add_test(tc, stringbuf_test);
 
 	suite_add_tcase(s, tc);
 

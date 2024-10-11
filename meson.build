@@ -274,6 +274,7 @@ util_headers = [
 		'util-matrix.h',
 		'util-prop-parsers.h',
 		'util-ratelimit.h',
+		'util-stringbuf.h',
 		'util-strings.h',
 		'util-time.h',
 ]
