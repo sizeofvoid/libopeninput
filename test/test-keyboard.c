@@ -79,7 +79,8 @@ START_TEST(keyboard_seat_key_count)
 	while ((ev = libinput_get_event(libinput))) {
 		kev = libinput_event_get_keyboard_event(ev);
 		litest_assert_notnull(kev);
-		litest_assert_int_eq(libinput_event_keyboard_get_key(kev), KEY_A);
+		litest_assert_int_eq(libinput_event_keyboard_get_key(kev),
+				     (unsigned int)KEY_A);
 		litest_assert_int_eq(libinput_event_keyboard_get_key_state(kev),
 				 LIBINPUT_KEY_STATE_RELEASED);
 
@@ -146,7 +147,7 @@ START_TEST(keyboard_ignore_no_pressed_release)
 		litest_assert_event_type(event, LIBINPUT_EVENT_KEYBOARD_KEY);
 		kevent = libinput_event_get_keyboard_event(event);
 		litest_assert_int_eq(libinput_event_keyboard_get_key(kevent),
-				 KEY_A);
+				     (unsigned int)KEY_A);
 		litest_assert_int_eq(libinput_event_keyboard_get_key_state(kevent),
 				 *state);
 		libinput_event_destroy(event);

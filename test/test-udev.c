@@ -486,7 +486,7 @@ START_TEST(udev_device_sysname)
 		device = libinput_event_get_device(ev);
 		sysname = libinput_device_get_sysname(device);
 		litest_assert_notnull(sysname);
-		litest_assert_int_gt(strlen(sysname), 1);
+		litest_assert_int_gt(strlen(sysname), 1U);
 		litest_assert(strchr(sysname, '/') == NULL);
 		litest_assert(strneq(sysname, "event", 5));
 		libinput_event_destroy(ev);

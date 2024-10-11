@@ -165,7 +165,7 @@ START_TEST(touchpad_click_defaults_none)
 	/* call this test for non-clickpads and non-touchpads */
 
 	methods = libinput_device_config_click_get_methods(device);
-	litest_assert_int_eq(methods, 0);
+	litest_assert_int_eq(methods, 0U);
 
 	method = libinput_device_config_click_get_method(device);
 	litest_assert_int_eq(method, LIBINPUT_CONFIG_CLICK_METHOD_NONE);

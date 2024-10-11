@@ -139,7 +139,7 @@ START_TEST(button_seat_count)
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev), button);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
 			 LIBINPUT_BUTTON_STATE_PRESSED);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_seat_button_count(tev), 1);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_seat_button_count(tev), 1U);
 	libinput_event_destroy(event);
 
 	event = libinput_get_event(li);
@@ -147,7 +147,7 @@ START_TEST(button_seat_count)
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev), button);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
 			 LIBINPUT_BUTTON_STATE_PRESSED);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_seat_button_count(tev), 2);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_seat_button_count(tev), 2U);
 	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
@@ -161,7 +161,7 @@ START_TEST(button_seat_count)
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev), button);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_seat_button_count(tev), 1);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_seat_button_count(tev), 1U);
 	libinput_event_destroy(event);
 
 	event = libinput_get_event(li);
@@ -169,7 +169,7 @@ START_TEST(button_seat_count)
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev), button);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_seat_button_count(tev), 0);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_seat_button_count(tev), 0U);
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
 
@@ -439,7 +439,7 @@ START_TEST(tip_up_btn_change)
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tablet_event),
-			 BTN_STYLUS);
+			 (unsigned int)BTN_STYLUS);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tablet_event),
 			 LIBINPUT_BUTTON_STATE_PRESSED);
 	libinput_event_destroy(event);
@@ -472,7 +472,7 @@ START_TEST(tip_up_btn_change)
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tablet_event),
-			 BTN_STYLUS);
+			 (unsigned int)BTN_STYLUS);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tablet_event),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
 	libinput_event_destroy(event);
@@ -517,7 +517,7 @@ START_TEST(tip_down_btn_change)
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tablet_event),
-			 BTN_STYLUS);
+			     (unsigned int)BTN_STYLUS);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tablet_event),
 			 LIBINPUT_BUTTON_STATE_PRESSED);
 	libinput_event_destroy(event);
@@ -551,7 +551,7 @@ START_TEST(tip_down_btn_change)
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button(tablet_event),
-			 BTN_STYLUS);
+			     (unsigned int)BTN_STYLUS);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tablet_event),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
 	libinput_event_destroy(event);
@@ -2364,7 +2364,7 @@ START_TEST(tool_serial)
 	tablet_event = litest_is_tablet_event(event,
 				LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tablet_event);
-	litest_assert_int_eq(libinput_tablet_tool_get_serial(tool), 1000);
+	litest_assert_int_eq(libinput_tablet_tool_get_serial(tool), (uint64_t)1000);
 	libinput_event_destroy(event);
 }
 END_TEST
@@ -2389,7 +2389,7 @@ START_TEST(tool_id)
 	tool = libinput_event_tablet_tool_get_tool(tablet_event);
 
 	litest_assert_int_eq(libinput_device_get_id_vendor(dev->libinput_device),
-			 VENDOR_ID_WACOM);
+			     (unsigned int)VENDOR_ID_WACOM);
 
 	switch (libinput_device_get_id_product(dev->libinput_device)) {
 	case 0x27: /* Intuos 5 */
@@ -2437,7 +2437,7 @@ START_TEST(serial_changes_tool)
 				LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tablet_event);
 
-	litest_assert_int_eq(libinput_tablet_tool_get_serial(tool), 2000);
+	litest_assert_int_eq(libinput_tablet_tool_get_serial(tool), (uint64_t)2000);
 	libinput_event_destroy(event);
 }
 END_TEST
@@ -2470,7 +2470,7 @@ START_TEST(invalid_serials)
 			tablet_event = libinput_event_get_tablet_tool_event(event);
 			tool = libinput_event_tablet_tool_get_tool(tablet_event);
 
-			litest_assert_int_eq(libinput_tablet_tool_get_serial(tool), 1000);
+			litest_assert_int_eq(libinput_tablet_tool_get_serial(tool), (uint64_t)1000);
 		}
 
 		libinput_event_destroy(event);
@@ -2690,7 +2690,7 @@ START_TEST(tool_delayed_serial)
 				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tev);
 	serial = libinput_tablet_tool_get_serial(tool);
-	litest_assert_int_eq(serial, 0);
+	litest_assert_int_eq(serial, (uint64_t)0);
 	libinput_event_destroy(event);
 
 	for (int x = 4500; x < 8000; x += 1000) {
@@ -2714,7 +2714,7 @@ START_TEST(tool_delayed_serial)
 				     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 	tool = libinput_event_tablet_tool_get_tool(tev);
 	serial = libinput_tablet_tool_get_serial(tool);
-	litest_assert_int_eq(serial, 0);
+	litest_assert_int_eq(serial, (uint64_t)0);
 	libinput_event_destroy(event);
 
 	for (int x = 4500; x < 8000; x += 500) {
@@ -2731,7 +2731,7 @@ START_TEST(tool_delayed_serial)
 					     LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 		tool = libinput_event_tablet_tool_get_tool(tev);
 		serial = libinput_tablet_tool_get_serial(tool);
-		litest_assert_int_eq(serial, 0);
+		litest_assert_int_eq(serial, (uint64_t)0);
 		libinput_event_destroy(event);
 		event = libinput_get_event(li);
 	} while (event != NULL);
@@ -2749,7 +2749,7 @@ START_TEST(tool_delayed_serial)
 				     LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	tool = libinput_event_tablet_tool_get_tool(tev);
 	serial = libinput_tablet_tool_get_serial(tool);
-	litest_assert_int_eq(serial, 0);
+	litest_assert_int_eq(serial, (uint64_t)0);
 	libinput_event_destroy(event);
 }
 END_TEST
@@ -2924,7 +2924,7 @@ START_TEST(tool_in_prox_before_start)
 		{ -1, -1 }
 	};
 	const char *devnode;
-	unsigned int serial;
+	uint64_t serial;
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 

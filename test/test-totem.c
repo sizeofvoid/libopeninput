@@ -377,7 +377,8 @@ START_TEST(totem_button)
 	litest_dispatch(li);
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_button(t), BTN_0);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_button(t),
+			     (unsigned int)BTN_0);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(t),
 			 LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
@@ -389,7 +390,8 @@ START_TEST(totem_button)
 
 	event = libinput_get_event(li);
 	t = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
-	litest_assert_int_eq(libinput_event_tablet_tool_get_button(t), BTN_0);
+	litest_assert_int_eq(libinput_event_tablet_tool_get_button(t),
+			     (unsigned int)BTN_0);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(t),
 			 LIBINPUT_BUTTON_STATE_RELEASED);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(t),
