@@ -893,7 +893,11 @@ if get_option('tests')
 	     suite : ['all'])
 
 	test_utils_sources = [
+		# We need one test device for __start_test_session to exist
+		# Could be fixed, but for now: meh
+		'test/litest-device-mouse.c',
 		'test/test-utils.c',
+		'test/litest.c',
 	]
 	test_utils = executable('libinput-test-utils',
 				test_utils_sources,
