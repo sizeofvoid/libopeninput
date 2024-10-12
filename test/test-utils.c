@@ -42,6 +42,8 @@
 #include "util-matrix.h"
 #include "util-input-event.h"
 
+#include "litest.h"
+
 #define  TEST_VERSIONSORT
 #include "libinput-versionsort.h"
 
@@ -1826,82 +1828,55 @@ START_TEST(stringbuf_test)
 }
 END_TEST
 
-static Suite *
-litest_utils_suite(void)
+TEST_COLLECTION(utils)
 {
-	TCase *tc;
-	Suite *s;
+	litest_add_deviceless(array_for_each);
 
-	s = suite_create("litest:utils");
-	tc = tcase_create("utils");
+	litest_add_deviceless(bitfield_helpers);
+	litest_add_deviceless(matrix_helpers);
+	litest_add_deviceless(ratelimit_helpers);
+	litest_add_deviceless(dpi_parser);
+	litest_add_deviceless(wheel_click_parser);
+	litest_add_deviceless(wheel_click_count_parser);
+	litest_add_deviceless(dimension_prop_parser);
+	litest_add_deviceless(reliability_prop_parser);
+	litest_add_deviceless(calibration_prop_parser);
+	litest_add_deviceless(range_prop_parser);
+	litest_add_deviceless(boolean_prop_parser);
+	litest_add_deviceless(evcode_prop_parser);
+	litest_add_deviceless(input_prop_parser);
+	litest_add_deviceless(evdev_abs_parser);
+	litest_add_deviceless(safe_atoi_test);
+	litest_add_deviceless(safe_atoi_base_16_test);
+	litest_add_deviceless(safe_atoi_base_8_test);
+	litest_add_deviceless(safe_atou_test);
+	litest_add_deviceless(safe_atou_base_16_test);
+	litest_add_deviceless(safe_atou_base_8_test);
+	litest_add_deviceless(safe_atod_test);
+	litest_add_deviceless(strsplit_test);
+	litest_add_deviceless(strv_for_each_test);
+	litest_add_deviceless(double_array_from_string_test);
+	litest_add_deviceless(strargv_test);
+	litest_add_deviceless(kvsplit_double_test);
+	litest_add_deviceless(strjoin_test);
+	litest_add_deviceless(strstrip_test);
+	litest_add_deviceless(strendswith_test);
+	litest_add_deviceless(strstartswith_test);
+	litest_add_deviceless(strsanitize_test);
+	litest_add_deviceless(time_conversion);
+	litest_add_deviceless(human_time);
 
-	tcase_add_test(tc, array_for_each);
+	litest_add_deviceless(list_test_insert);
+	litest_add_deviceless(list_test_append);
+	litest_add_deviceless(list_test_foreach);
+	litest_add_deviceless(strverscmp_test);
+	litest_add_deviceless(streq_test);
+	litest_add_deviceless(strneq_test);
+	litest_add_deviceless(trunkname_test);
+	litest_add_deviceless(basename_test);
 
-	tcase_add_test(tc, bitfield_helpers);
-	tcase_add_test(tc, matrix_helpers);
-	tcase_add_test(tc, ratelimit_helpers);
-	tcase_add_test(tc, dpi_parser);
-	tcase_add_test(tc, wheel_click_parser);
-	tcase_add_test(tc, wheel_click_count_parser);
-	tcase_add_test(tc, dimension_prop_parser);
-	tcase_add_test(tc, reliability_prop_parser);
-	tcase_add_test(tc, calibration_prop_parser);
-	tcase_add_test(tc, range_prop_parser);
-	tcase_add_test(tc, boolean_prop_parser);
-	tcase_add_test(tc, evcode_prop_parser);
-	tcase_add_test(tc, input_prop_parser);
-	tcase_add_test(tc, evdev_abs_parser);
-	tcase_add_test(tc, safe_atoi_test);
-	tcase_add_test(tc, safe_atoi_base_16_test);
-	tcase_add_test(tc, safe_atoi_base_8_test);
-	tcase_add_test(tc, safe_atou_test);
-	tcase_add_test(tc, safe_atou_base_16_test);
-	tcase_add_test(tc, safe_atou_base_8_test);
-	tcase_add_test(tc, safe_atod_test);
-	tcase_add_test(tc, strsplit_test);
-	tcase_add_test(tc, strv_for_each_test);
-	tcase_add_test(tc, double_array_from_string_test);
-	tcase_add_test(tc, strargv_test);
-	tcase_add_test(tc, kvsplit_double_test);
-	tcase_add_test(tc, strjoin_test);
-	tcase_add_test(tc, strstrip_test);
-	tcase_add_test(tc, strendswith_test);
-	tcase_add_test(tc, strstartswith_test);
-	tcase_add_test(tc, strsanitize_test);
-	tcase_add_test(tc, time_conversion);
-	tcase_add_test(tc, human_time);
+	litest_add_deviceless(absinfo_normalize_value_test);
 
-	tcase_add_test(tc, list_test_insert);
-	tcase_add_test(tc, list_test_append);
-	tcase_add_test(tc, list_test_foreach);
-	tcase_add_test(tc, strverscmp_test);
-	tcase_add_test(tc, streq_test);
-	tcase_add_test(tc, strneq_test);
-	tcase_add_test(tc, trunkname_test);
-	tcase_add_test(tc, basename_test);
-
-	tcase_add_test(tc, absinfo_normalize_value_test);
-
-	tcase_add_test(tc, range_test);
-	tcase_add_test(tc, stringbuf_test);
-
-	suite_add_tcase(s, tc);
-
-	return s;
-}
-
-int main(int argc, char **argv)
-{
-	int nfailed;
-	Suite *s;
-	SRunner *sr;
-
-	s = litest_utils_suite();
-	sr = srunner_create(s);
-
-	srunner_run_all(sr, CK_ENV);
-	nfailed = srunner_ntests_failed(sr);
-	srunner_free(sr);
-
-	return (nfailed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	litest_add_deviceless(range_test);
+	litest_add_deviceless(stringbuf_test);
 }
