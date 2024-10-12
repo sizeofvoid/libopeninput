@@ -222,26 +222,26 @@ START_TEST(ratelimit_helpers)
 	for (j = 0; j < 3; ++j) {
 		/* a burst of 9 attempts must succeed */
 		for (i = 0; i < 9; ++i) {
-			litest_assert_int_eq(ratelimit_test(&rl),
+			litest_assert_enum_eq(ratelimit_test(&rl),
 					 RATELIMIT_PASS);
 		}
 
 		/* the 10th attempt reaches the threshold */
-		litest_assert_int_eq(ratelimit_test(&rl), RATELIMIT_THRESHOLD);
+		litest_assert_enum_eq(ratelimit_test(&rl), RATELIMIT_THRESHOLD);
 
 		/* ..then further attempts must fail.. */
-		litest_assert_int_eq(ratelimit_test(&rl), RATELIMIT_EXCEEDED);
+		litest_assert_enum_eq(ratelimit_test(&rl), RATELIMIT_EXCEEDED);
 
 		/* ..regardless of how often we try. */
 		for (i = 0; i < 100; ++i) {
-			litest_assert_int_eq(ratelimit_test(&rl),
+			litest_assert_enum_eq(ratelimit_test(&rl),
 					 RATELIMIT_EXCEEDED);
 		}
 
 		/* ..even after waiting 20ms */
 		msleep(100);
 		for (i = 0; i < 100; ++i) {
-			litest_assert_int_eq(ratelimit_test(&rl),
+			litest_assert_enum_eq(ratelimit_test(&rl),
 					 RATELIMIT_EXCEEDED);
 		}
 
@@ -389,8 +389,8 @@ START_TEST(dimension_prop_parser)
 			litest_assert_int_eq(x, tests[i].x);
 			litest_assert_int_eq(y, tests[i].y);
 		} else {
-			litest_assert_int_eq(x, 0xad);
-			litest_assert_int_eq(y, 0xad);
+			litest_assert_int_eq(x, 0xadU);
+			litest_assert_int_eq(y, 0xadU);
 		}
 	}
 
@@ -425,12 +425,12 @@ START_TEST(reliability_prop_parser)
 		if (success)
 			litest_assert_int_eq(r, tests[i].reliability);
 		else
-			litest_assert_int_eq(r, 0xaf);
+			litest_assert_int_eq(r, 0xafU);
 	}
 
 	success = parse_switch_reliability_property(NULL, &r);
 	litest_assert(success == true);
-	litest_assert_int_eq(r, RELIABILITY_RELIABLE);
+	litest_assert_enum_eq(r, RELIABILITY_RELIABLE);
 
 	success = parse_switch_reliability_property("foo", NULL);
 	litest_assert(success == false);
@@ -763,12 +763,12 @@ END_TEST
 
 START_TEST(time_conversion)
 {
-	litest_assert_int_eq(us(10), 10);
-	litest_assert_int_eq(ns2us(10000), 10);
-	litest_assert_int_eq(ms2us(10), 10000);
-	litest_assert_int_eq(s2us(1), 1000000);
+	litest_assert_int_eq(us(10), 10U);
+	litest_assert_int_eq(ns2us(10000), 10U);
+	litest_assert_int_eq(ms2us(10), 10000U);
+	litest_assert_int_eq(s2us(1), 1000000U);
 	litest_assert_int_eq(h2us(2), s2us(2 * 60 * 60));
-	litest_assert_int_eq(us2ms(10000), 10);
+	litest_assert_int_eq(us2ms(10000), 10U);
 }
 END_TEST
 
@@ -950,7 +950,7 @@ START_TEST(safe_atou_test)
 		if (success)
 			litest_assert_int_eq(v, tests[i].val);
 		else
-			litest_assert_int_eq(v, 0xad);
+			litest_assert_int_eq(v, 0xadU);
 	}
 }
 END_TEST
@@ -984,7 +984,7 @@ START_TEST(safe_atou_base_16_test)
 		if (success)
 			litest_assert_int_eq(v, tests[i].val);
 		else
-			litest_assert_int_eq(v, 0xad);
+			litest_assert_int_eq(v, 0xadU);
 	}
 }
 END_TEST
@@ -1021,7 +1021,7 @@ START_TEST(safe_atou_base_8_test)
 		if (success)
 			litest_assert_int_eq(v, tests[i].val);
 		else
-			litest_assert_int_eq(v, 0xad);
+			litest_assert_int_eq(v, 0xadU);
 	}
 }
 END_TEST
