@@ -23,7 +23,6 @@
 
 #include "config.h"
 
-#include <check.h>
 #include <stdio.h>
 
 #include "libinput-util.h"
@@ -289,7 +288,7 @@ START_TEST(keyboard_keys_bad_device)
 
 	if (libinput_device_has_capability(device,
 					   LIBINPUT_DEVICE_CAP_KEYBOARD))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	for (code = 0; code < KEY_CNT; code++) {
 		has_key = libinput_device_keyboard_has_key(device, code);
@@ -307,7 +306,7 @@ START_TEST(keyboard_time_usec)
 	uint64_t time_usec;
 
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, KEY_A))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(dev->libinput);
 
@@ -371,7 +370,7 @@ START_TEST(keyboard_frame_order)
 
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, KEY_A) ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, KEY_LEFTSHIFT))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 

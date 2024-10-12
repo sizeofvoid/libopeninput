@@ -23,7 +23,6 @@
 
 #include <config.h>
 
-#include <check.h>
 #include <libinput.h>
 #include <valgrind/valgrind.h>
 
@@ -976,7 +975,7 @@ START_TEST(gestures_swipe_3fg_btntool)
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP) ||
 	    !libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	dir_x = cardinals[cardinal][0];
 	dir_y = cardinals[cardinal][1];
@@ -1066,7 +1065,7 @@ START_TEST(gestures_swipe_3fg_btntool_pinch_like)
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP) ||
 	    !libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -1136,7 +1135,7 @@ START_TEST(gestures_swipe_4fg_btntool)
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_QUADTAP) ||
 	    !libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	dir_x = cardinals[cardinal][0];
 	dir_y = cardinals[cardinal][1];
@@ -1252,7 +1251,7 @@ START_TEST(gestures_time_usec)
 	uint64_t time_usec;
 
 	if (litest_slot_count(dev) < 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -1287,7 +1286,7 @@ START_TEST(gestures_3fg_buttonarea_scroll_btntool)
 	struct libinput *li = dev->libinput;
 
 	if (litest_slot_count(dev) > 2)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_buttonareas(dev);
 	litest_enable_2fg_scroll(dev);
@@ -1337,7 +1336,7 @@ START_TEST(gestures_swipe_3fg_unaccel)
 	const double max_factor = 5.34;
 
 	if (litest_slot_count(dev) < 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 	litest_touch_down(dev, 0, 40, 20);
@@ -1587,7 +1586,7 @@ START_TEST(gestures_hold_once_on_double_tap)
 
 	if (!libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_drain_events(li);
@@ -1634,11 +1633,11 @@ START_TEST(gestures_hold_once_tap_n_drag)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (!libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_drag_lock(dev->libinput_device);
@@ -1720,7 +1719,7 @@ START_TEST(gestures_hold_and_motion_before_timeout)
 
 	if (!libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -1756,7 +1755,7 @@ START_TEST(gestures_hold_and_motion_after_timeout)
 
 	if (!libinput_device_has_capability(dev->libinput_device,
 					    LIBINPUT_DEVICE_CAP_GESTURE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 

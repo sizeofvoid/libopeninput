@@ -24,7 +24,6 @@
 #include <config.h>
 
 #include <stdio.h>
-#include <check.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <libinput.h>
@@ -742,7 +741,7 @@ START_TEST(pointer_scroll_wheel_hires)
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) &&
 	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(dev->libinput);
 
@@ -789,7 +788,7 @@ START_TEST(pointer_scroll_wheel_hires_send_only_lores)
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, lores_code) &&
 	    !libevdev_has_event_code(dev->evdev, EV_REL, hires_code))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	/* Device claims to have HI_RES, but doesn't send events for it. Make
 	 * sure we handle this correctly.
@@ -824,7 +823,7 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) &&
 	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(dev->libinput);
 
@@ -871,7 +870,7 @@ START_TEST(pointer_scroll_wheel_inhibit_dir_change)
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) &&
 	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(dev->libinput);
 
@@ -984,7 +983,7 @@ START_TEST(pointer_scroll_natural_defaults_noscroll)
 	struct litest_device *dev = litest_current_device();
 
 	if (libinput_device_config_scroll_has_natural_scroll(dev->libinput_device))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_assert_int_eq(libinput_device_config_scroll_get_natural_scroll_enabled(dev->libinput_device), 0);
 	litest_assert_int_eq(libinput_device_config_scroll_get_default_natural_scroll_enabled(dev->libinput_device), 0);
@@ -1047,7 +1046,7 @@ START_TEST(pointer_scroll_has_axis_invalid)
 	litest_drain_events(dev->libinput);
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_event(dev, EV_REL, REL_WHEEL, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -1222,7 +1221,7 @@ START_TEST(pointer_left_handed_defaults)
 
 	if (libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_APPLE &&
 	    libevdev_get_id_product(dev->evdev) == PRODUCT_ID_APPLE_APPLETOUCH)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	rc = libinput_device_config_left_handed_is_available(d);
 	litest_assert_int_ne(rc, 0);
@@ -1312,7 +1311,7 @@ START_TEST(pointer_left_handed_during_click_multiple_buttons)
 	enum libinput_config_status status;
 
 	if (!libinput_device_pointer_has_button(d, BTN_MIDDLE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_disable_middleemu(dev);
 
@@ -1460,7 +1459,7 @@ START_TEST(pointer_scroll_button_no_event_before_timeout)
 
 	if (!libinput_device_pointer_has_button(device->libinput_device,
 						BTN_MIDDLE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_disable_middleemu(device);
 	disable_button_scrolling(device);
@@ -1505,7 +1504,7 @@ START_TEST(pointer_scroll_button_middle_emulation)
 				LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
 
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	status = libinput_device_config_scroll_set_method(device,
 				 LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
@@ -1945,7 +1944,7 @@ START_TEST(pointer_scroll_button_lock_middlebutton)
 	enum mb_buttonorder buttonorder = _i; /* ranged test */
 
 	if (!libinput_device_config_middle_emulation_is_available(dev->libinput_device))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_middleemu(dev);
 
@@ -2505,7 +2504,7 @@ START_TEST(middlebutton)
 					    device->libinput_device,
 					    LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -2543,7 +2542,7 @@ START_TEST(middlebutton_nostart_while_down)
 
 	if (!libinput_device_pointer_has_button(device->libinput_device,
 						BTN_MIDDLE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	disable_button_scrolling(device);
 
@@ -2551,7 +2550,7 @@ START_TEST(middlebutton_nostart_while_down)
 					    device->libinput_device,
 					    LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_button_click_debounced(device, li, BTN_MIDDLE, true);
 	litest_drain_events(li);
@@ -2597,7 +2596,7 @@ START_TEST(middlebutton_timeout)
 					    device->libinput_device,
 					    LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	for (button = BTN_LEFT; button <= BTN_RIGHT; button++) {
 		litest_drain_events(li);
@@ -2637,7 +2636,7 @@ START_TEST(middlebutton_doubleclick)
 				    device->libinput_device,
 				    LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -2678,13 +2677,13 @@ START_TEST(middlebutton_middleclick)
 
 	if (!libinput_device_pointer_has_button(device->libinput_device,
 					       BTN_MIDDLE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	status = libinput_device_config_middle_emulation_set_enabled(
 					    device->libinput_device,
 					    LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	/* one button down, then middle -> release buttons */
 	for (button = BTN_LEFT; button <= BTN_RIGHT; button++) {
@@ -2743,13 +2742,13 @@ START_TEST(middlebutton_middleclick_during)
 
 	if (!libinput_device_pointer_has_button(device->libinput_device,
 						BTN_MIDDLE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	status = libinput_device_config_middle_emulation_set_enabled(
 					    device->libinput_device,
 					    LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -2808,7 +2807,7 @@ START_TEST(middlebutton_default_enabled)
 
 	if (!libinput_device_pointer_has_button(dev->libinput_device,
 						BTN_MIDDLE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	available = libinput_device_config_middle_emulation_is_available(device);
 	litest_assert(available);
@@ -2873,13 +2872,13 @@ START_TEST(middlebutton_default_touchpad)
 
 	if (streq(name, "litest AlpsPS/2 ALPS GlidePoint") ||
 	    streq(name, "litest AlpsPS/2 ALPS DualPoint TouchPad"))
-	    return;
+	    return LITEST_NOT_APPLICABLE;
 
 	available = libinput_device_config_middle_emulation_is_available(device);
 	litest_assert(!available);
 
 	if (libinput_device_pointer_has_button(device, BTN_MIDDLE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	state = libinput_device_config_middle_emulation_get_enabled(
 					    device);
@@ -2947,16 +2946,16 @@ START_TEST(middlebutton_button_scrolling)
 				device,
 				LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	status = libinput_device_config_scroll_set_method(device,
 				LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	status = libinput_device_config_scroll_set_button(device, BTN_LEFT);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -3019,16 +3018,16 @@ START_TEST(middlebutton_button_scrolling_middle)
 				device,
 				LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	status = libinput_device_config_scroll_set_method(device,
 				LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	status = libinput_device_config_scroll_set_button(device, BTN_LEFT);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -3071,7 +3070,7 @@ START_TEST(middlebutton_device_remove_while_down)
 				device,
 				LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -3102,7 +3101,7 @@ START_TEST(middlebutton_device_remove_while_one_is_down)
 				device,
 				LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED);
 	if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -3150,7 +3149,7 @@ START_TEST(debounce_bounce)
 
 	if (!libinput_device_pointer_has_button(dev->libinput_device,
 						button))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_disable_middleemu(dev);
 	disable_button_scrolling(dev);
@@ -3197,7 +3196,7 @@ START_TEST(debounce_bounce_high_delay)
 
 	if (!libinput_device_pointer_has_button(dev->libinput_device,
 						button))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_disable_middleemu(dev);
 	disable_button_scrolling(dev);
@@ -3330,7 +3329,7 @@ START_TEST(debounce_spurious)
 
 	if (!libinput_device_pointer_has_button(dev->libinput_device,
 						button))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_disable_middleemu(dev);
 	disable_button_scrolling(dev);
@@ -3512,7 +3511,7 @@ START_TEST(debounce_spurious_dont_enable_on_otherbutton)
 	struct libinput *li = dev->libinput;
 
 	if (!libinput_device_config_middle_emulation_is_available(device))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_disable_middleemu(dev);
 	disable_button_scrolling(dev);
@@ -3586,7 +3585,7 @@ START_TEST(debounce_spurious_cancel_debounce_otherbutton)
 	struct libinput *li = dev->libinput;
 
 	if (!libinput_device_config_middle_emulation_is_available(device))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_disable_middleemu(dev);
 	disable_button_scrolling(dev);
@@ -3646,7 +3645,7 @@ START_TEST(debounce_spurious_switch_to_otherbutton)
 	struct libinput *li = dev->libinput;
 
 	if (!libinput_device_config_middle_emulation_is_available(device))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 	debounce_trigger_spurious(dev, li);

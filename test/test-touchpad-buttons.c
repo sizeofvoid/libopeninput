@@ -23,7 +23,6 @@
 
 #include <config.h>
 
-#include <check.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <libinput.h>
@@ -38,7 +37,7 @@ START_TEST(touchpad_button)
 	struct libinput *li = dev->libinput;
 
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_LEFT))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -160,7 +159,7 @@ START_TEST(touchpad_click_defaults_none)
 
 	if (libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_APPLE &&
 	    libevdev_get_id_product(dev->evdev) == PRODUCT_ID_APPLE_APPLETOUCH)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	/* call this test for non-clickpads and non-touchpads */
 
@@ -214,7 +213,7 @@ START_TEST(touchpad_1fg_clickfinger_no_touch)
 	if (dev->which == LITEST_SYNAPTICS_PHANTOMCLICKS) {
 		/* The XPS 15 9500 touchpad has the ModelTouchpadPhantomClicks
 		 * quirk enabled and doesn't generate events without touches. */
-		return;
+		return LITEST_NOT_APPLICABLE;
 	}
 
 	litest_enable_clickfinger(dev);
@@ -304,7 +303,7 @@ START_TEST(touchpad_3fg_clickfinger)
 	unsigned int button = 0;
 
 	if (litest_slot_count(dev) < 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_clickfinger(dev);
 	litest_set_clickfinger_map(dev, map);
@@ -353,7 +352,7 @@ START_TEST(touchpad_3fg_clickfinger_btntool)
 
 	if (litest_slot_count(dev) >= 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_clickfinger(dev);
 	litest_set_clickfinger_map(dev, map);
@@ -403,7 +402,7 @@ START_TEST(touchpad_4fg_clickfinger)
 	struct libinput *li = dev->libinput;
 
 	if (litest_slot_count(dev) < 4)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_clickfinger(dev);
 
@@ -435,7 +434,7 @@ START_TEST(touchpad_4fg_clickfinger_btntool_2slots)
 
 	if (litest_slot_count(dev) >= 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_QUADTAP))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_clickfinger(dev);
 
@@ -467,7 +466,7 @@ START_TEST(touchpad_4fg_clickfinger_btntool_3slots)
 
 	if (litest_slot_count(dev) != 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_clickfinger(dev);
 
@@ -572,7 +571,7 @@ START_TEST(touchpad_3fg_clickfinger_distance)
 	unsigned int button = 0;
 
 	if (litest_slot_count(dev) < 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_clickfinger(dev);
 	litest_set_clickfinger_map(dev, map);
@@ -619,7 +618,7 @@ START_TEST(touchpad_3fg_clickfinger_distance_btntool)
 	unsigned int button = 0;
 
 	if (litest_slot_count(dev) > 2)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_clickfinger(dev);
 	litest_set_clickfinger_map(dev, map);
@@ -1240,10 +1239,10 @@ START_TEST(clickpad_finger_pin)
 	abs = libevdev_get_abs_info(evdev, ABS_MT_POSITION_X);
 	litest_assert_notnull(abs);
 	if (abs->resolution == 0)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (libinput_device_get_size(dev->libinput_device, &w, &h) != 0)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	dist = 100.0/max(w, h);
 

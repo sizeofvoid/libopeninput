@@ -23,7 +23,6 @@
 
 #include <config.h>
 
-#include <check.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <libinput.h>
@@ -84,7 +83,7 @@ START_TEST(pad_time)
 	}
 
 	if (!has_buttons)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	ev = libinput_get_event(li);
 	litest_assert_notnull(ev);
@@ -186,7 +185,7 @@ START_TEST(pad_button_intuos)
 	/* Intuos button mapping is sequential up from BTN_0 and continues
 	 * with BTN_A */
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_0))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -244,7 +243,7 @@ START_TEST(pad_button_bamboo)
 	unsigned int count = 0;
 
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_LEFT))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -545,7 +544,7 @@ START_TEST(pad_dial_hi_res)
 	int accumulated = 0;
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -1034,7 +1033,7 @@ START_TEST(pad_keys)
 	unsigned int key;
 
 	if (!pad_has_keys(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
