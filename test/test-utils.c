@@ -1182,6 +1182,7 @@ START_TEST(strv_for_each_test)
 		t++;
 	}
 }
+END_TEST
 
 START_TEST(double_array_from_string_test)
 {
