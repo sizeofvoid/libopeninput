@@ -352,6 +352,8 @@ litest_fail_comparison_str(const char *file,
 #define litest_assert_double_ge(a_, b_)\
 	litest_assert_double_ge_epsilon((a_), (b_),LITEST_DEFAULT_EPSILON)
 
+void litest_backtrace(void);
+
 enum litest_device_type {
 	LITEST_NO_DEVICE = -1,
 	/* Touchpads and associated devices */
