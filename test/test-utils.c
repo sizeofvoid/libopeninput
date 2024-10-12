@@ -353,7 +353,7 @@ START_TEST(dimension_prop_parser)
 	struct parser_test_dimension {
 		char *tag;
 		bool success;
-		int x, y;
+		size_t x, y;
 	} tests[] = {
 		{ "10x10", true, 10, 10 },
 		{ "1x20", true, 1, 20 },
