@@ -150,7 +150,7 @@ _litest_checkpoint(const char *func,
 	va_end(args);
 }
 
-static void
+void
 litest_backtrace(void)
 {
 #ifndef LITEST_DISABLE_BACKTRACE_LOGGING
