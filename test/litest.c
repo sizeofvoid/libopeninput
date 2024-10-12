@@ -24,7 +24,6 @@
 
 #include "config.h"
 
-#include <check.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -58,6 +57,7 @@
 
 #include "util-files.h"
 #include "litest.h"
+#include "litest-runner.h"
 #include "litest-int.h"
 #include "libinput-util.h"
 #include "quirks.h"
@@ -264,6 +264,7 @@ struct test {
 	void *teardown;
 
 	struct range range;
+	int rangeval;
 	bool deviceless;
 };
 
@@ -396,22 +397,31 @@ litest_add_tcase_for_device(struct suite *suite,
 			    const struct litest_test_device *dev,
 			    const struct range *range)
 {
-	struct test *t;
+	const struct range no_range = range_init_empty();
 
 	if (run_deviceless)
 		return;
 
-	t = zalloc(sizeof(*t));
-	t->name = safe_strdup(funcname);
-	t->devname = safe_strdup(dev->shortname);
-	t->func = func;
-	t->setup = dev->setup;
-	t->teardown = dev->teardown ?
-			dev->teardown : litest_generic_device_teardown;
-	if (range)
-		t->range = *range;
+	if (!range)
+		range = &no_range;
 
-	list_insert(&suite->tests, &t->node);
+	int rangeval = range->lower;
+	do {
+		struct test *t;
+
+		t = zalloc(sizeof(*t));
+		t->name = safe_strdup(funcname);
+		t->devname = safe_strdup(dev->shortname);
+		t->func = func;
+		t->setup = dev->setup;
+		t->teardown = dev->teardown ?
+				dev->teardown : litest_generic_device_teardown;
+		if (range)
+			t->range = *range;
+		t->rangeval = rangeval;
+
+		list_append(&suite->tests, &t->node);
+	} while (++rangeval < range->upper);
 }
 
 static void
@@ -420,8 +430,8 @@ litest_add_tcase_no_device(struct suite *suite,
 			   const char *funcname,
 			   const struct range *range)
 {
-	struct test *t;
 	const char *test_name = funcname;
+	const struct range no_range = range_init_empty();
 
 	if (filter_device &&
 	    fnmatch(filter_device, test_name, 0) != 0)
@@ -430,16 +440,25 @@ litest_add_tcase_no_device(struct suite *suite,
 	if (run_deviceless)
 		return;
 
-	t = zalloc(sizeof(*t));
-	t->name = safe_strdup(test_name);
-	t->devname = safe_strdup("no device");
-	t->func = func;
-	if (range)
-		t->range = *range;
-	t->setup = NULL;
-	t->teardown = NULL;
+	if (!range)
+		range = &no_range;
 
-	list_insert(&suite->tests, &t->node);
+	int rangeval = range->lower;
+	do {
+		struct test *t;
+
+		t = zalloc(sizeof(*t));
+		t->name = safe_strdup(test_name);
+		t->devname = safe_strdup("no device");
+		t->func = func;
+		if (range)
+			t->range = *range;
+		t->rangeval = rangeval;
+		t->setup = NULL;
+		t->teardown = NULL;
+
+		list_append(&suite->tests, &t->node);
+	} while (++rangeval < range->upper);
 }
 
 static void
@@ -448,24 +467,33 @@ litest_add_tcase_deviceless(struct suite *suite,
 			    const char *funcname,
 			    const struct range *range)
 {
-	struct test *t;
 	const char *test_name = funcname;
+	const struct range no_range = range_init_empty();
 
 	if (filter_device &&
 	    fnmatch(filter_device, test_name, 0) != 0)
 		return;
 
-	t = zalloc(sizeof(*t));
-	t->deviceless = true;
-	t->name = safe_strdup(test_name);
-	t->devname = safe_strdup("deviceless");
-	t->func = func;
-	if (range)
-		t->range = *range;
-	t->setup = NULL;
-	t->teardown = NULL;
+	if (!range)
+		range = &no_range;
 
-	list_insert(&suite->tests, &t->node);
+	int rangeval = range->lower;
+	do {
+		struct test *t;
+
+		t = zalloc(sizeof(*t));
+		t->deviceless = true;
+		t->name = safe_strdup(test_name);
+		t->devname = safe_strdup("deviceless");
+		t->func = func;
+		if (range)
+			t->range = *range;
+		t->rangeval = rangeval;
+		t->setup = NULL;
+		t->teardown = NULL;
+
+		list_append(&suite->tests, &t->node);
+	} while (++rangeval < range->upper);
 }
 
 static void
@@ -861,40 +889,6 @@ static struct libinput_interface interface = {
 };
 
 static void
-litest_signal(int sig)
-{
-	struct created_file *f;
-
-	list_for_each_safe(f, &created_files_list, link) {
-		created_file_unlink(f);
-		list_remove(&f->link);
-		/* in the sighandler, we can't free */
-	}
-
-	if (fork() == 0) {
-		/* child, we can run system() */
-		litest_reload_udev_rules();
-		exit(0);
-	}
-
-	exit(1);
-}
-
-static inline void
-litest_setup_sighandler(int sig)
-{
-	struct sigaction act, oact;
-	int rc;
-
-	sigemptyset(&act.sa_mask);
-	sigaddset(&act.sa_mask, sig);
-	act.sa_flags = 0;
-	act.sa_handler = litest_signal;
-	rc = sigaction(sig, &act, &oact);
-	litest_assert_int_ne(rc, -1);
-}
-
-static void
 litest_free_test_list(struct list *tests)
 {
 	struct suite *s;
@@ -928,6 +922,7 @@ quirk_log_handler(struct libinput *unused,
 	vfprintf(stderr, format, args);
 }
 
+#if 0
 static void
 litest_export_xml(SRunner *sr, const char *xml_prefix)
 {
@@ -989,189 +984,66 @@ litest_export_xml(SRunner *sr, const char *xml_prefix)
 	close(fd);
 	free(filename);
 }
+#endif
 
 static int
-litest_run_suite(struct list *suites, int which, int max, int error_fd)
+litest_run_suite(struct list *suites, int njobs)
 {
-	int failed = 0;
-	SRunner *sr = NULL;
+	size_t ntests = 0;
+	enum litest_runner_result result = LITEST_SKIP;
 	struct suite *s;
-	struct test *t;
-	int count = -1;
-	struct name {
-		struct list node;
-		char *name;
-	};
-	struct name *n;
-	struct list testnames;
-	const char *data_path;
+	struct litest_runner *runner = litest_runner_new();
 
-	data_path = getenv("LIBINPUT_QUIRKS_DIR");
-	if (!data_path)
-		data_path = LIBINPUT_QUIRKS_DIR;
+	litest_runner_set_num_parallel(runner, jobs > 0 ? jobs : 0);
+	litest_runner_set_verbose(runner, verbose);
+	litest_runner_set_timeout(runner, 30);
 
-	quirks_context = quirks_init_subsystem(data_path,
-					       NULL,
-					       quirk_log_handler,
-					       NULL,
-					       QLOG_LIBINPUT_LOGGING);
-
-	/* Check just takes the suite/test name pointers but doesn't strdup
-	 * them - we have to keep them around */
-	list_init(&testnames);
-
-	/* For each test, create one test suite with one test case, then
-	   add it to the test runner. The only benefit suites give us in
-	   check is that we can filter them, but our test runner has a
-	   --filter-group anyway. */
 	list_for_each(s, suites, node) {
+		struct test *t;
 		list_for_each(t, &s->tests, node) {
-			Suite *suite;
-			TCase *tc;
-			char *sname, *tname;
+			struct litest_runner_test_description tdesc;
 
-			count = (count + 1) % max;
-			if (max != 1 && (count % max) != which)
-				continue;
-
-			xasprintf(&sname,
-				  "%s:%s:%s",
-				  s->name,
-				  t->name,
-				  t->devname);
-			litest_assert_ptr_notnull(sname);
-			n = zalloc(sizeof(*n));
-			n->name = sname;
-			list_insert(&testnames, &n->node);
-
-			xasprintf(&tname,
-				  "%s:%s",
-				  t->name,
-				  t->devname);
-			litest_assert_ptr_notnull(tname);
-			n = zalloc(sizeof(*n));
-			n->name = tname;
-			list_insert(&testnames, &n->node);
-
-			tc = tcase_create(tname);
-			tcase_add_checked_fixture(tc,
-						  t->setup,
-						  t->teardown);
-			if (t->range.upper != t->range.lower)
-				tcase_add_loop_test(tc,
-						    t->func,
-						    t->range.lower,
-						    t->range.upper);
-			else
-				tcase_add_test(tc, t->func);
-
-			suite = suite_create(sname);
-			suite_add_tcase(suite, tc);
-
-			if (!sr)
-				sr = srunner_create(suite);
-			else
-				srunner_add_suite(sr, suite);
+			if (range_is_valid(&t->range)) {
+				snprintf(tdesc.name, sizeof(tdesc.name),
+					  "%s:%s:%s:%d",
+					  s->name,
+					  t->name,
+					  t->devname,
+					  t->rangeval);
+			} else {
+				snprintf(tdesc.name, sizeof(tdesc.name),
+					  "%s:%s:%s",
+					  s->name,
+					  t->name,
+					  t->devname);
+			}
+			tdesc.func = t->func;
+			tdesc.setup = t->setup;
+			tdesc.teardown = t->teardown;
+			tdesc.args.range = t->range;
+			tdesc.rangeval = t->rangeval;
+			litest_runner_add_test(runner, &tdesc);
+			ntests++;
 		}
 	}
 
-	if (!sr)
-		goto out;
+	if (ntests > 0) {
+		const char *data_path = getenv("LIBINPUT_QUIRKS_DIR");
+		if (!data_path)
+			data_path = LIBINPUT_QUIRKS_DIR;
 
-	srunner_run_all(sr, CK_ENV);
-	if (xml_prefix)
-		litest_export_xml(sr, xml_prefix);
-
-
-	failed = srunner_ntests_failed(sr);
-	if (failed) {
-		TestResult **trs;
-
-		trs = srunner_failures(sr);
-		for (int i = 0; i < failed; i++) {
-			char tname[256];
-			char *c = tname;
-
-			/* tr_tcname is in the form "suite:testcase", let's
-			 * convert this to "suite(testcase)" to make
-			 * double-click selection in the terminal a bit
-			 * easier. */
-			snprintf(tname, sizeof(tname), "%s)", tr_tcname(trs[i]));
-			if ((c = index(c, ':')))
-				*c = '(';
-
-			dprintf(error_fd,
-				":: Failure: %s:%d: %s\n",
-				tr_lfile(trs[i]),
-				tr_lno(trs[i]),
-				tname);
-		}
-		free(trs);
-	}
-	srunner_free(sr);
-out:
-	list_for_each_safe(n, &testnames, node) {
-		free(n->name);
-		free(n);
+		quirks_context = quirks_init_subsystem(data_path,
+						       NULL,
+						       quirk_log_handler,
+						       NULL,
+						       QLOG_LIBINPUT_LOGGING);
+		result = litest_runner_run_tests(runner);
+		quirks_context_unref(quirks_context);
 	}
 
-	quirks_context_unref(quirks_context);
+	litest_runner_destroy(runner);
 
-	return failed;
-}
-
-static int
-litest_fork_subtests(struct list *tests, int max_forks)
-{
-	int failed = 0;
-	int status;
-	pid_t pid;
-	int f;
-	int pipes[max_forks];
-
-	for (f = 0; f < max_forks; f++) {
-		int rc;
-		int pipefd[2];
-
-		rc = pipe2(pipefd, O_NONBLOCK);
-		assert(rc != -1);
-
-		pid = fork();
-		if (pid == 0) {
-			close(pipefd[0]);
-			failed = litest_run_suite(tests,
-						  f,
-						  max_forks,
-						  pipefd[1]);
-
-			litest_free_test_list(&all_test_suites);
-			exit(failed);
-			/* child always exits here */
-		} else {
-			pipes[f] = pipefd[0];
-			close(pipefd[1]);
-		}
-	}
-
-	/* parent process only */
-	while (wait(&status) != -1 && errno != ECHILD) {
-		if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
-			failed = 1;
-	}
-
-	for (f = 0; f < max_forks; f++) {
-		char buf[1024] = {0};
-		int rc;
-
-		while ((rc = read(pipes[f], buf, sizeof(buf) - 1)) > 0) {
-			buf[rc] = '\0';
-			fprintf(stderr, "%s", buf);
-		}
-
-		close(pipes[f]);
-	}
-
-	return failed;
+	return result;
 }
 
 static inline int
@@ -1226,10 +1098,9 @@ out:
 	return lock_fd;
 }
 
-static inline int
+static inline enum litest_runner_result
 litest_run(struct list *suites)
 {
-	int failed = 0;
 	int inhibit_lock_fd;
 
 	list_init(&created_files_list);
@@ -1248,20 +1119,15 @@ litest_run(struct list *suites)
 		litest_setup_quirks(&created_files_list, mode);
 	}
 
-	litest_setup_sighandler(SIGINT);
-
 	inhibit_lock_fd = inhibit();
 
-	if (jobs == 1)
-		failed = litest_run_suite(suites, 1, 1, STDERR_FILENO);
-	else
-		failed = litest_fork_subtests(suites, jobs);
+	enum litest_runner_result result = litest_run_suite(suites, jobs);
 
 	close(inhibit_lock_fd);
 
 	litest_remove_udev_rules(&created_files_list);
 
-	return failed;
+	return result;
 }
 
 static struct input_absinfo *
@@ -4942,7 +4808,6 @@ main(int argc, char **argv)
 	const struct rlimit corelimit = { 0, 0 };
 	enum litest_mode mode;
 	int tty_mode = -1;
-	int failed_tests;
 	int rc;
 	const char *meson_testthreads;
 
@@ -4989,12 +4854,19 @@ main(int argc, char **argv)
 
 	tty_mode = disable_tty();
 
-	failed_tests = litest_run(&all_test_suites);
+	enum litest_runner_result result = litest_run(&all_test_suites);
 
 	litest_free_test_list(&all_test_suites);
 
 	restore_tty(tty_mode);
 
-	return min(failed_tests, 255);
+	switch (result) {
+		case LITEST_PASS:
+			return EXIT_SUCCESS;
+		case LITEST_SKIP:
+			return 77;
+		default:
+			return result;
+	}
 }
 #endif

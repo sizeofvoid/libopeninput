@@ -2,12 +2,16 @@
 
 #include <sys/resource.h>
 #include <sys/time.h>
-#include <check.h>
 #include <signal.h>
 
 #include <valgrind/valgrind.h>
 
 #include "litest.h"
+/* This is a bit messy but until we've completely switched over
+ * to the litest runner it's easier like this */
+#undef START_TEST
+#undef END_TEST
+#include <check.h>
 
 START_TEST(litest_assert_trigger)
 {

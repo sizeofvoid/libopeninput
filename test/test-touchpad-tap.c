@@ -23,7 +23,6 @@
 
 #include <config.h>
 
-#include <check.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <libinput.h>
@@ -69,9 +68,9 @@ START_TEST(touchpad_doubletap)
 		     button2 = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 	if (nfingers2 > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -210,7 +209,7 @@ START_TEST(touchpad_multitap)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -300,7 +299,7 @@ START_TEST(touchpad_multitap_n_drag_move)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -409,10 +408,10 @@ START_TEST(touchpad_multitap_n_drag_2fg)
 	unsigned int button = 0;
 
 	if (libevdev_has_property(dev->evdev, INPUT_PROP_SEMI_MT))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -526,7 +525,7 @@ START_TEST(touchpad_multitap_n_drag_click)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -627,7 +626,7 @@ START_TEST(touchpad_multitap_timeout)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -717,7 +716,7 @@ START_TEST(touchpad_multitap_n_drag_timeout)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -828,7 +827,7 @@ START_TEST(touchpad_multitap_n_drag_high_delay)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -924,7 +923,7 @@ START_TEST(touchpad_multitap_n_drag_tap)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -1039,7 +1038,7 @@ START_TEST(touchpad_multitap_n_drag_tap_click)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -1161,7 +1160,7 @@ START_TEST(touchpad_tap_n_drag)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_drag_lock(dev->libinput_device);
@@ -1243,7 +1242,7 @@ START_TEST(touchpad_tap_n_drag_draglock)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -1325,10 +1324,10 @@ START_TEST(touchpad_tap_n_drag_draglock_tap)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers2 > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -1431,7 +1430,7 @@ START_TEST(touchpad_tap_n_drag_draglock_tap_click)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -1516,7 +1515,7 @@ START_TEST(touchpad_tap_n_drag_draglock_timeout)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -1587,7 +1586,7 @@ START_TEST(touchpad_tap_n_drag_draglock_sticky)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock_sticky(dev->libinput_device);
@@ -1670,7 +1669,7 @@ START_TEST(touchpad_tap_n_drag_2fg)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_drag_lock(dev->libinput_device);
@@ -1748,7 +1747,7 @@ START_TEST(touchpad_tap_n_drag_2fg_scroll)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_2fg_scroll(dev);
 	litest_enable_tap(dev->libinput_device);
@@ -1828,7 +1827,7 @@ START_TEST(touchpad_tap_n_drag_draglock_2fg_scroll)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_2fg_scroll(dev);
 	litest_enable_tap(dev->libinput_device);
@@ -1914,7 +1913,7 @@ START_TEST(touchpad_tap_n_drag_3fg_btntool)
 
 	if (litest_slot_count(dev) > 2 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -2012,7 +2011,7 @@ START_TEST(touchpad_tap_n_drag_3fg)
 	unsigned int button = 0;
 
 	if (litest_slot_count(dev) < 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -2098,7 +2097,7 @@ START_TEST(touchpad_tap_n_drag_3fg_swipe)
 	unsigned int button = 0;
 
 	if (litest_slot_count(dev) < 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -2189,7 +2188,7 @@ START_TEST(touchpad_tap_n_drag_draglock_3fg_swipe)
 	unsigned int button = 0;
 
 	if (litest_slot_count(dev) < 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_drag_lock(dev->libinput_device);
@@ -2713,7 +2712,7 @@ START_TEST(touchpad_double_tap_click)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -2789,7 +2788,7 @@ START_TEST(touchpad_tap_n_drag_click)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -2872,7 +2871,7 @@ START_TEST(touchpad_3fg_tap)
 	int i;
 
 	if (litest_slot_count(dev) < 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_set_tap_map(dev->libinput_device, map);
@@ -2937,7 +2936,7 @@ START_TEST(touchpad_3fg_tap_tap_again)
 	int i;
 
 	if (litest_slot_count(dev) < 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -2991,7 +2990,7 @@ START_TEST(touchpad_3fg_tap_quickrelease)
 	struct libinput *li = dev->libinput;
 
 	if (litest_slot_count(dev) < 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -3030,14 +3029,14 @@ START_TEST(touchpad_3fg_tap_pressure_btntool)
 
 	if (litest_slot_count(dev) >= 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	/* libinput doesn't export when it uses pressure detection, so we
 	 * need to reconstruct this here. Specifically, semi-mt devices are
 	 * non-mt in libinput, so if they have ABS_PRESSURE, they'll use it.
 	 */
 	if (!libevdev_has_event_code(dev->evdev, EV_ABS, ABS_MT_PRESSURE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_edge_scroll(dev);
@@ -3091,18 +3090,18 @@ START_TEST(touchpad_3fg_tap_hover_btntool)
 
 	if (litest_slot_count(dev) >= 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	/* libinput doesn't export when it uses pressure detection, so we
 	 * need to reconstruct this here. Specifically, semi-mt devices are
 	 * non-mt in libinput, so if they have ABS_PRESSURE, they'll use it.
 	 */
 	if (libevdev_has_event_code(dev->evdev, EV_ABS, ABS_MT_PRESSURE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (libevdev_has_property(dev->evdev, INPUT_PROP_SEMI_MT) &&
 	    libevdev_has_event_code(dev->evdev, EV_ABS, ABS_PRESSURE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_enable_edge_scroll(dev);
@@ -3145,7 +3144,7 @@ START_TEST(touchpad_3fg_tap_btntool)
 
 	if (litest_slot_count(dev) >= 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_set_tap_map(dev->libinput_device, map);
@@ -3196,7 +3195,7 @@ START_TEST(touchpad_3fg_tap_btntool_inverted)
 
 	if (litest_slot_count(dev) > 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_set_tap_map(dev->libinput_device, map);
@@ -3247,7 +3246,7 @@ START_TEST(touchpad_3fg_tap_btntool_pointerjump)
 
 	if (litest_slot_count(dev) > 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_set_tap_map(dev->libinput_device, map);
@@ -3391,7 +3390,7 @@ START_TEST(touchpad_3fg_tap_after_scroll)
 	struct libinput *li = dev->libinput;
 
 	if (litest_slot_count(dev) <= 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_2fg_scroll(dev);
 	litest_enable_tap(dev->libinput_device);
@@ -3428,7 +3427,7 @@ START_TEST(touchpad_4fg_tap)
 	int i;
 
 	if (litest_slot_count(dev) <= 4)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -3460,7 +3459,7 @@ START_TEST(touchpad_4fg_tap_quickrelease)
 	struct libinput *li = dev->libinput;
 
 	if (litest_slot_count(dev) <= 4)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -3497,7 +3496,7 @@ START_TEST(touchpad_move_after_touch)
 	int nfingers = _i; /* ranged test */
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -3568,7 +3567,7 @@ START_TEST(touchpad_5fg_tap)
 	int i;
 
 	if (litest_slot_count(dev) < 5)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -3602,7 +3601,7 @@ START_TEST(touchpad_5fg_tap_quickrelease)
 	struct libinput *li = dev->libinput;
 
 	if (litest_slot_count(dev) < 5)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -3958,7 +3957,7 @@ START_TEST(touchpad_drag_disabled)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_tap_drag(dev->libinput_device);
@@ -4033,7 +4032,7 @@ START_TEST(touchpad_drag_disabled_immediate)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_tap_drag(dev->libinput_device);
@@ -4113,7 +4112,7 @@ START_TEST(touchpad_drag_disabled_multitap_no_drag)
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_tap_drag(dev->libinput_device);
@@ -4293,7 +4292,7 @@ START_TEST(touchpad_tap_palm_on_idle)
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -4320,7 +4319,7 @@ START_TEST(touchpad_tap_palm_on_touch)
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -4348,7 +4347,7 @@ START_TEST(touchpad_tap_palm_on_touch_hold_timeout)
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -4379,7 +4378,7 @@ START_TEST(touchpad_tap_palm_on_touch_hold_move)
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -4412,10 +4411,10 @@ START_TEST(touchpad_tap_palm_on_tapped)
 	unsigned int button = 0;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -4494,10 +4493,10 @@ START_TEST(touchpad_tap_palm_on_tapped_palm_down)
 	unsigned int button = 0;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -4578,13 +4577,13 @@ START_TEST(touchpad_tap_palm_on_tapped_doubletap)
 		     button2 = 0;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers2 + 1 > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -4707,10 +4706,10 @@ START_TEST(touchpad_tap_palm_on_drag)
 	unsigned int button = 0;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -4792,10 +4791,10 @@ START_TEST(touchpad_tap_palm_on_drag_2fg)
 	unsigned int button = 0;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -4883,7 +4882,7 @@ START_TEST(touchpad_tap_palm_on_touch_2)
 	    other = (which + 1) % 2;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -4924,7 +4923,7 @@ START_TEST(touchpad_tap_palm_on_touch_2_retouch)
 	    other = (which + 1) % 2;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -4968,10 +4967,10 @@ START_TEST(touchpad_tap_palm_on_touch_3)
 	int this = which % 3;
 
 	if (litest_slot_count(dev) < 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -5015,10 +5014,10 @@ START_TEST(touchpad_tap_palm_on_touch_3_retouch)
 	int this = which % 3;
 
 	if (litest_slot_count(dev) < 3)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -5067,10 +5066,10 @@ START_TEST(touchpad_tap_palm_on_touch_4)
 	int this = which % 4;
 
 	if (litest_slot_count(dev) < 4)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -5107,10 +5106,10 @@ START_TEST(touchpad_tap_palm_after_tap)
 	unsigned int button = 0;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -5188,10 +5187,10 @@ START_TEST(touchpad_tap_palm_multitap)
 	unsigned int button = 0;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -5274,10 +5273,10 @@ START_TEST(touchpad_tap_palm_multitap_timeout)
 	unsigned int button = 0;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -5359,10 +5358,10 @@ START_TEST(touchpad_tap_palm_multitap_down_again)
 	unsigned int button = 0;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers + 1 > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -5475,10 +5474,10 @@ START_TEST(touchpad_tap_palm_multitap_click)
 	unsigned int button = 0;
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	if (nfingers > litest_slot_count(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -5567,7 +5566,7 @@ START_TEST(touchpad_tap_palm_click_then_tap)
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);
@@ -5618,7 +5617,7 @@ START_TEST(touchpad_tap_palm_dwt_tap)
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	keyboard = litest_add_device(li, LITEST_KEYBOARD);
 
@@ -5659,7 +5658,7 @@ START_TEST(touchpad_tap_palm_3fg_start)
 
 	if (litest_slot_count(dev) < 3 ||
 	    !litest_has_palm_detect_size(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_enable_tap(dev->libinput_device);
 	litest_disable_hold_gestures(dev->libinput_device);

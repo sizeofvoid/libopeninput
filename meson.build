@@ -115,6 +115,14 @@ if cc.has_header_symbol('dirent.h', 'versionsort', prefix : prefix)
 	config_h.set('HAVE_VERSIONSORT', '1')
 endif
 
+if cc.get_define('SYS_pidfd_open', prefix: '#include <sys/syscall.h>') != ''
+	config_h.set('HAVE_PIDFD_OPEN', '1')
+endif
+
+if cc.has_function('sigabbrev_np', prefix: '#define _GNU_SOURCE 1\n#include <string.h>')
+	config_h.set('HAVE_SIGABBREV_NP', '1')
+endif
+
 if not cc.has_header_symbol('errno.h', 'program_invocation_short_name', prefix : prefix)
 	if cc.has_header_symbol('stdlib.h', 'getprogname')
 		config_h.set('program_invocation_short_name', 'getprogname()')
@@ -725,7 +733,7 @@ executable('libinput-test',
 # This is the test suite runner, we allow disabling that one because of
 # dependencies
 if get_option('tests')
-	dep_check = dependency('check', version : '>= 0.9.10')
+	dep_check = dependency('check', version : '>= 0.9.10', required: false)
 
 	gstack = find_program('gstack', required : false)
 	config_h.set10('HAVE_GSTACK', gstack.found())
@@ -838,13 +846,13 @@ if get_option('tests')
 		'test/litest-device-xen-virtual-pointer.c',
 		'test/litest-device-vmware-virtual-usb-mouse.c',
 		'test/litest-device-yubikey.c',
+		'test/litest-runner.c',
 		'test/litest.c',
 	]
 
 	dep_dl = cc.find_library('dl')
 	deps_litest = [
 		dep_libinput,
-		dep_check,
 		dep_udev,
 		dep_libevdev,
 		dep_dl,
@@ -861,27 +869,30 @@ if get_option('tests')
 				   meson.current_build_dir() /
 				   '90-libinput-fuzz-override-litest.rules')
 
-	def_no_main = '-DLITEST_NO_MAIN'
-	def_disable_backtrace = '-DLITEST_DISABLE_BACKTRACE_LOGGING'
-	defs_litest_selftest = [
-		def_no_main,
-		def_disable_backtrace,
-		'-Wno-unused',
-	]
-	test_litest_selftest_sources = [
-		'test/litest-selftest.c',
-		'test/litest.c',
-	]
-	test_litest_selftest = executable('test-litest-selftest',
-					  test_litest_selftest_sources,
-					  include_directories : [includes_src, includes_include],
-					  dependencies : deps_litest,
-					  c_args : defs_litest_selftest,
-					  install : false)
-	test('test-litest-selftest',
-	     test_litest_selftest,
-	     suite : ['all'],
-	     timeout : 100)
+	if dep_check.found()
+		def_no_main = '-DLITEST_NO_MAIN'
+		def_disable_backtrace = '-DLITEST_DISABLE_BACKTRACE_LOGGING'
+		defs_litest_selftest = [
+			def_no_main,
+			def_disable_backtrace,
+			'-Wno-unused',
+		]
+		test_litest_selftest_sources = [
+			'test/litest-selftest.c',
+			'test/litest-runner.c',
+			'test/litest.c',
+		]
+		test_litest_selftest = executable('test-litest-selftest',
+						  test_litest_selftest_sources,
+						  include_directories : [includes_src, includes_include],
+						  dependencies : [deps_litest, dep_check],
+						  c_args : defs_litest_selftest,
+						  install : false)
+		test('test-litest-selftest',
+		     test_litest_selftest,
+		     suite : ['all'],
+		     timeout : 100)
+	endif
 
 	def_LT_VERSION = '-DLIBINPUT_LT_VERSION="@0@:@1@:@2@"'.format(libinput_lt_c, libinput_lt_r, libinput_lt_a)
 	test_library_version = executable('test-library-version',
@@ -897,6 +908,7 @@ if get_option('tests')
 		# Could be fixed, but for now: meh
 		'test/litest-device-mouse.c',
 		'test/test-utils.c',
+		'test/litest-runner.c',
 		'test/litest.c',
 	]
 	test_utils = executable('libinput-test-utils',

@@ -24,7 +24,6 @@
 
 #include <config.h>
 
-#include <check.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <libinput.h>
@@ -277,7 +276,7 @@ START_TEST(tip_down_up_eraser)
 	};
 
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_tablet_set_tool_type(dev, BTN_TOOL_RUBBER);
 
@@ -2105,7 +2104,7 @@ START_TEST(left_handed_artpen_rotation)
 	if (!libevdev_has_event_code(dev->evdev,
 				    EV_ABS,
 				    ABS_Z))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
@@ -2990,7 +2989,7 @@ START_TEST(tool_direct_switch_skip_tool_update)
 	};
 
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -3110,7 +3109,7 @@ START_TEST(tool_direct_switch_with_forced_proxout)
 	};
 
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -3360,7 +3359,7 @@ START_TEST(mouse_wheel)
 	if (!libevdev_has_event_code(dev->evdev,
 				     EV_REL,
 				     REL_WHEEL))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -3442,7 +3441,7 @@ START_TEST(airbrush_tool)
 	if (!libevdev_has_event_code(dev->evdev,
 				    EV_KEY,
 				    BTN_TOOL_AIRBRUSH))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -3479,7 +3478,7 @@ START_TEST(airbrush_slider)
 	if (!libevdev_has_event_code(dev->evdev,
 				    EV_KEY,
 				    BTN_TOOL_AIRBRUSH))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -3527,7 +3526,7 @@ START_TEST(artpen_tool)
 	if (!libevdev_has_event_code(dev->evdev,
 				    EV_ABS,
 				    ABS_Z))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -3563,7 +3562,7 @@ START_TEST(artpen_rotation)
 	if (!libevdev_has_event_code(dev->evdev,
 				    EV_ABS,
 				    ABS_Z))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -3748,7 +3747,7 @@ START_TEST(tablet_calibration_set_matrix_delta)
 	double x, y, dx, dy, mdx, mdy;
 
 	if (!device_has_calibration(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -3831,7 +3830,7 @@ START_TEST(tablet_calibration_set_matrix)
 	double x, y;
 
 	if (!device_has_calibration(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(li);
 
@@ -4107,7 +4106,7 @@ START_TEST(tablet_pressure_min_max)
 	};
 
 	if (!libevdev_has_event_code(dev->evdev, EV_ABS, ABS_PRESSURE))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_tablet_proximity_in(dev, 5, 50, axes);
 	litest_drain_events(li);
@@ -4847,11 +4846,11 @@ START_TEST(tilt_fixed_points)
 	 */
 	const struct input_absinfo *abs = libevdev_get_abs_info(dev->evdev, ABS_TILT_X);
 	if (abs->minimum >= 0)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	/* If the tablet reports physical resolutions we don't need to test them */
 	if (abs->resolution != 0)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	/* see tablet_fix_tilt() */
 	bool is_adjusted = (int)absinfo_range(abs) % 2 == 0;
@@ -5129,7 +5128,7 @@ START_TEST(relative_calibration)
 	enum libinput_config_status status;
 
 	if (!libinput_device_config_calibration_has_matrix(dev->libinput_device))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	status = libinput_device_config_calibration_set_matrix(
 							dev->libinput_device,
@@ -5289,7 +5288,7 @@ START_TEST(touch_arbitration)
 
 	other = paired_device(dev);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	struct litest_device *finger = litest_add_device(li, other);
 	litest_drain_events(li);
@@ -5322,14 +5321,14 @@ START_TEST(touch_arbitration_outside_rect)
 
 	other = paired_device(dev);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	finger = litest_add_device(li, other);
 	litest_drain_events(li);
 
 	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
 	if (is_touchpad)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	x = 20;
 	y = 70;
@@ -5399,14 +5398,14 @@ START_TEST(touch_arbitration_remove_after)
 
 	other = paired_device(dev);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	finger = litest_add_device(li, other);
 	litest_drain_events(li);
 
 	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
 	if (is_touchpad)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_tablet_proximity_in(dev, 50, 50, axes);
 	litest_drain_events(li);
@@ -5437,7 +5436,7 @@ START_TEST(touch_arbitration_stop_touch)
 
 	other = paired_device(dev);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	finger = litest_add_device(li, other);
 
@@ -5525,7 +5524,7 @@ START_TEST(touch_arbitration_suspend_touch_device)
 
 	other = paired_device(dev);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	tablet = litest_add_device(li, other);
 
@@ -5605,7 +5604,7 @@ START_TEST(touch_arbitration_remove_touch)
 
 	other = paired_device(dev);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	finger = litest_add_device(li, other);
 	litest_touch_down(finger, 0, 30, 30);
@@ -5641,7 +5640,7 @@ START_TEST(touch_arbitration_remove_tablet)
 
 	other = paired_device(dev);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	tablet = litest_add_device(li, other);
 
@@ -5699,7 +5698,7 @@ START_TEST(touch_arbitration_keep_ignoring)
 
 	other = paired_device(tablet);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	finger = litest_add_device(li, other);
 	litest_tablet_proximity_in(tablet, 10, 10, axes);
@@ -5739,7 +5738,7 @@ START_TEST(touch_arbitration_late_touch_lift)
 
 	other = paired_device(tablet);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	finger = litest_add_device(li, other);
 	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
@@ -5782,7 +5781,7 @@ START_TEST(touch_arbitration_swap_device)
 
 	enum litest_device_type paired = paired_device(tablet);
 	if (paired == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	/* First, add a normal touchscreen */
 	struct litest_device *touchscreen = litest_add_device(li, LITEST_GENERIC_MULTITOUCH_SCREEN);
@@ -5938,7 +5937,7 @@ START_TEST(tablet_rotation_left_handed)
 
 	other = paired_device(tablet);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	finger = litest_add_device(li, other);
 	litest_drain_events(li);
@@ -5989,7 +5988,7 @@ START_TEST(tablet_rotation_left_handed_configuration)
 
 	other = paired_device(tablet);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	finger = litest_add_device(li, other);
 	litest_drain_events(li);
@@ -6044,7 +6043,7 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 
 	other = paired_device(tablet);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	finger = litest_add_device(li, other);
 	litest_drain_events(li);
@@ -6138,7 +6137,7 @@ START_TEST(tablet_rotation_left_handed_while_touch_down)
 
 	other = paired_device(tablet);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	finger = litest_add_device(li, other);
 	litest_drain_events(li);
@@ -6205,7 +6204,7 @@ START_TEST(tablet_rotation_left_handed_add_touchpad)
 
 	other = paired_device(tablet);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	tablet_from = !!(transition & bit(0));
 	touch_from  = !!(transition & bit(1));
@@ -6259,11 +6258,11 @@ START_TEST(tablet_rotation_left_handed_add_tablet)
 	bool enabled_from, enabled_to;
 
 	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	other = paired_device(finger);
 	if (other == LITEST_NO_DEVICE)
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	tablet_from = !!(transition & bit(0));
 	touch_from  = !!(transition & bit(1));

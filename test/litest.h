@@ -29,21 +29,24 @@
 
 #include <stdbool.h>
 #include <stdarg.h>
-#include <check.h>
 #include <libevdev/libevdev.h>
 #include <libevdev/libevdev-uinput.h>
 #include <libinput.h>
 #include <math.h>
 
-#ifndef ck_assert_notnull
-#define ck_assert_notnull(ptr) ck_assert_ptr_ne(ptr, NULL)
-#endif
-
-#include "check-double-macros.h"
-
 #include "libinput-private-config.h"
 #include "libinput-util.h"
 #include "quirks.h"
+
+#include "litest-runner.h"
+
+#define START_TEST(func_)  \
+   static enum litest_runner_result func_(const struct litest_runner_test_env *test_env_) { \
+	int _i __attribute__((unused)) = test_env_->rangeval;
+
+#define END_TEST \
+	return LITEST_PASS; \
+   }
 
 struct test_device {
 	const char *name;

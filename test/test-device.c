@@ -23,7 +23,6 @@
 
 #include <config.h>
 
-#include <check.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <libinput.h>
@@ -92,7 +91,7 @@ START_TEST(device_sendevents_config_touchpad_superset)
 	/* The wacom devices in the test suite are external */
 	if (libevdev_get_id_vendor(dev->evdev) == VENDOR_ID_WACOM ||
 	    litest_touchpad_is_external(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	device = dev->libinput_device;
 

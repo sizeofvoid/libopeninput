@@ -23,7 +23,6 @@
 
 #include <config.h>
 
-#include <check.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <libinput.h>
@@ -1136,7 +1135,7 @@ START_TEST(touch_palm_detect_tool_palm)
 	};
 
 	if (!touch_has_tool_palm(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_touch_down(dev, 0, 50, 50);
 	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 10);
@@ -1163,7 +1162,7 @@ START_TEST(touch_palm_detect_tool_palm_on_off)
 	};
 
 	if (!touch_has_tool_palm(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_touch_down(dev, 0, 50, 50);
 	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 10);
@@ -1194,7 +1193,7 @@ START_TEST(touch_palm_detect_tool_palm_keep_type)
 	};
 
 	if (!touch_has_tool_palm(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_touch_down(dev, 0, 50, 50);
 	litest_touch_move_to(dev, 0, 50, 50, 70, 70, 10);
@@ -1225,7 +1224,7 @@ START_TEST(touch_palm_detect_tool_palm_2fg)
 	};
 
 	if (!touch_has_tool_palm(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_touch_down(dev, 0, 50, 50);
 	litest_touch_down(dev, 1, 50, 50);
@@ -1261,7 +1260,7 @@ START_TEST(touch_palm_detect_tool_palm_on_off_2fg)
 	};
 
 	if (!touch_has_tool_palm(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_touch_down(dev, 0, 50, 50);
 	litest_touch_down(dev, 1, 50, 50);
@@ -1305,7 +1304,7 @@ START_TEST(touch_palm_detect_tool_palm_keep_type_2fg)
 	};
 
 	if (!touch_has_tool_palm(dev))
-		return;
+		return LITEST_NOT_APPLICABLE;
 
 	litest_touch_down(dev, 0, 50, 50);
 	litest_touch_down(dev, 1, 50, 50);
