@@ -4808,7 +4808,8 @@ static void
 litest_list_tests(struct list *tests)
 {
 	struct suite *s;
-	const char *last_test_name = NULL;
+	const char *last_test_name = "<invalid>";
+	const char *last_dev_name = "<invalid>";
 
 	printf("groups:\n");
 	list_for_each(s, tests, node) {
@@ -4816,15 +4817,19 @@ litest_list_tests(struct list *tests)
 		printf("  - group: \"%s\"\n", s->name);
 		printf("    tests:\n");
 		list_for_each(t, &s->tests, node) {
-			if (!last_test_name ||
-			    !streq(last_test_name, t->name)) {
+			bool same_test = streq(last_test_name, t->name);
+			bool same_dev = streq(last_dev_name, t->devname);
+
+			if (!same_test) {
 				printf("      - name: \"%s\"\n", t->name);
 				printf("        devices:\n");
 			}
 
-			last_test_name = t->name;
-
-			printf("          - name: \"%s\"\n", t->devname);
+			if (!same_test || !same_dev) {
+				last_test_name = t->name;
+				last_dev_name = t->devname;
+				printf("          - name: \"%s\"\n", t->devname);
+			}
 		}
 	}
 }
