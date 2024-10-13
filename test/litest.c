@@ -4820,17 +4820,21 @@ litest_list_tests(struct list *tests)
 	struct suite *s;
 	const char *last_test_name = NULL;
 
+	printf("groups:\n");
 	list_for_each(s, tests, node) {
 		struct test *t;
-		printf("%s:\n", s->name);
+		printf("  - group: \"%s\"\n", s->name);
+		printf("    tests:\n");
 		list_for_each(t, &s->tests, node) {
 			if (!last_test_name ||
-			    !streq(last_test_name, t->name))
-				printf("	%s:\n", t->name);
+			    !streq(last_test_name, t->name)) {
+				printf("      - name: \"%s\"\n", t->name);
+				printf("        devices:\n");
+			}
 
 			last_test_name = t->name;
 
-			printf("		%s\n", t->devname);
+			printf("          - name: \"%s\"\n", t->devname);
 		}
 	}
 }
