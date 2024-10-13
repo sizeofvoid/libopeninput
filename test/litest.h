@@ -60,7 +60,7 @@ struct test_device {
 	\
 	static const struct test_device _test_device \
 		__attribute__ ((used)) \
-		__attribute__ ((section ("test_section"))) = { \
+		__attribute__ ((section ("test_device_section"))) = { \
 		name, &_device \
 	}; \
 	static struct litest_test_device _device = { \
