@@ -1239,7 +1239,7 @@ START_TEST(quirks_parse_double_attr)
 			if (!rc)
 				continue;
 
-			ck_assert_int_eq(v, t->val);
+			ck_assert_double_eq(v, t->val);
 		}
 	}
 }
