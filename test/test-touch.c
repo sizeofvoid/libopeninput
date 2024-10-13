@@ -952,7 +952,7 @@ START_TEST(touch_fuzz_property)
 	struct litest_device *dev = litest_current_device();
 	struct udev_device *d;
 	const char *prop;
-	int fuzz;
+	int fuzz = 0;
 
 	ck_assert_int_eq(libevdev_get_abs_fuzz(dev->evdev, ABS_X), 0);
 	ck_assert_int_eq(libevdev_get_abs_fuzz(dev->evdev, ABS_Y), 0);
