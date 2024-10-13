@@ -1273,14 +1273,14 @@ out:
 }
 
 static inline int
-litest_run(int argc, char **argv)
+litest_run(struct list *tests)
 {
 	int failed = 0;
 	int inhibit_lock_fd;
 
 	list_init(&created_files_list);
 
-	if (list_empty(&all_tests)) {
+	if (list_empty(tests)) {
 		fprintf(stderr,
 			"Error: filters are too strict, no tests to run.\n");
 		return 1;
@@ -1308,13 +1308,11 @@ litest_run(int argc, char **argv)
 	inhibit_lock_fd = inhibit();
 
 	if (jobs == 1)
-		failed = litest_run_suite(&all_tests, 1, 1, STDERR_FILENO);
+		failed = litest_run_suite(tests, 1, 1, STDERR_FILENO);
 	else
-		failed = litest_fork_subtests(&all_tests, jobs);
+		failed = litest_fork_subtests(tests, jobs);
 
 	close(inhibit_lock_fd);
-
-	litest_free_test_list(&all_tests);
 
 	litest_remove_udev_rules(&created_files_list);
 
@@ -4962,7 +4960,9 @@ main(int argc, char **argv)
 
 	tty_mode = disable_tty();
 
-	failed_tests = litest_run(argc, argv);
+	failed_tests = litest_run(&all_tests);
+
+	litest_free_test_list(&all_tests);
 
 	if (tty_mode != -1) {
 		ioctl(STDIN_FILENO, KDSKBMODE, tty_mode);
