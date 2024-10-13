@@ -4835,7 +4835,7 @@ litest_list_tests(struct list *tests)
 	}
 }
 
-extern const struct test_device __start_test_section, __stop_test_section;
+extern const struct test_device __start_test_device_section, __stop_test_device_section;
 
 static void
 litest_init_test_devices(void)
@@ -4844,7 +4844,7 @@ litest_init_test_devices(void)
 
 	list_init(&devices);
 
-	for (t = &__start_test_section; t < &__stop_test_section; t++)
+	for (t = &__start_test_device_section; t < &__stop_test_device_section; t++)
 		list_append(&devices, &t->device->node);
 }
 
