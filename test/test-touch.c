@@ -865,10 +865,10 @@ START_TEST(touch_initial_state)
 		    libinput_event_get_type(ev1) == LIBINPUT_EVENT_TOUCH_FRAME)
 			break;
 
-		ck_assert_int_eq(libinput_event_touch_get_x(t1),
-				 libinput_event_touch_get_x(t2));
-		ck_assert_int_eq(libinput_event_touch_get_y(t1),
-				 libinput_event_touch_get_y(t2));
+		litest_assert_double_eq(libinput_event_touch_get_x(t1),
+					libinput_event_touch_get_x(t2));
+		litest_assert_double_eq(libinput_event_touch_get_y(t1),
+					libinput_event_touch_get_y(t2));
 
 		libinput_event_destroy(ev1);
 		libinput_event_destroy(ev2);

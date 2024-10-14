@@ -304,10 +304,10 @@ START_TEST(pointer_absolute_initial_state)
 		p1 = libinput_event_get_pointer_event(ev1);
 		p2 = libinput_event_get_pointer_event(ev2);
 
-		ck_assert_int_eq(libinput_event_pointer_get_absolute_x(p1),
-				 libinput_event_pointer_get_absolute_x(p2));
-		ck_assert_int_eq(libinput_event_pointer_get_absolute_y(p1),
-				 libinput_event_pointer_get_absolute_y(p2));
+		litest_assert_double_eq(libinput_event_pointer_get_absolute_x(p1),
+					libinput_event_pointer_get_absolute_x(p2));
+		litest_assert_double_eq(libinput_event_pointer_get_absolute_y(p1),
+					libinput_event_pointer_get_absolute_y(p2));
 
 		libinput_event_destroy(ev1);
 		libinput_event_destroy(ev2);
