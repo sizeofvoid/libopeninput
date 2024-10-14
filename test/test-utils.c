@@ -33,6 +33,7 @@
 #include "util-prop-parsers.h"
 #include "util-macros.h"
 #include "util-bits.h"
+#include "util-range.h"
 #include "util-ratelimit.h"
 #include "util-matrix.h"
 #include "util-input-event.h"
@@ -1686,6 +1687,40 @@ START_TEST(absinfo_normalize_value_test)
 }
 END_TEST
 
+START_TEST(range_test)
+{
+	struct range incl = range_init_inclusive(1, 100);
+	ck_assert_int_eq(incl.lower, 1);
+	ck_assert_int_eq(incl.upper, 101);
+
+	struct range excl = range_init_exclusive(1, 100);
+	ck_assert_int_eq(excl.lower, 1);
+	ck_assert_int_eq(excl.upper, 100);
+
+	struct range zero = range_init_exclusive(0, 0);
+	ck_assert_int_eq(zero.lower, 0);
+	ck_assert_int_eq(zero.upper, 0);
+
+	struct range empty = range_init_empty();
+	ck_assert_int_eq(empty.lower, 0);
+	ck_assert_int_eq(empty.upper, -1);
+
+	ck_assert(range_is_valid(&incl));
+	ck_assert(range_is_valid(&excl));
+	ck_assert(!range_is_valid(&zero));
+	ck_assert(!range_is_valid(&empty));
+
+	int expected = 1;
+	int r = 0;
+	range_for_each(&incl, r) {
+		ck_assert_int_eq(r, expected);
+		expected++;
+	}
+	ck_assert_int_eq(r, 101);
+
+}
+END_TEST
+
 static Suite *
 litest_utils_suite(void)
 {
@@ -1741,6 +1776,8 @@ litest_utils_suite(void)
 	tcase_add_test(tc, basename_test);
 
 	tcase_add_test(tc, absinfo_normalize_value_test);
+
+	tcase_add_test(tc, range_test);
 
 	suite_add_tcase(s, tc);
 

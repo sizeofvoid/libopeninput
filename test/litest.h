@@ -578,14 +578,6 @@ litest_axis_set_value(struct axis_replacement *axes, int code, double value)
 	litest_axis_set_value_unchecked(axes, code, value);
 }
 
-/* A loop range, resolves to:
-   for (i = lower; i < upper; i++)
- */
-struct range {
-	int lower; /* inclusive */
-	int upper; /* exclusive */
-};
-
 struct libinput *litest_create_context(void);
 void litest_destroy_context(struct libinput *li);
 void litest_disable_log_handler(struct libinput *libinput);

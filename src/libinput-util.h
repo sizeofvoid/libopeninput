@@ -39,6 +39,7 @@
 #include "util-matrix.h"
 #include "util-strings.h"
 #include "util-ratelimit.h"
+#include "util-range.h"
 #include "util-prop-parsers.h"
 #include "util-time.h"
 
