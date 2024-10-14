@@ -193,7 +193,10 @@ static struct input_absinfo absinfo[] = {
 	{ 0x2c, 0, 255, 0, 0, 0 },
 	{ 0x2d, 0, 255, 0, 0, 0 },
 	{ 0x2e, 0, 255, 0, 0, 0 },
-	{ ABS_MT_SLOT, 0, 255, 0, 0, 0 },
+	/* Note: slot count artificially reduced for kernel
+	 * commit 206f533a0a7c ("Input: uinput - reject requests with unreasonable number of slots")
+	 */
+	{ ABS_MT_SLOT, 0, 64, 0, 0, 0 },
 	{ ABS_MT_TOUCH_MAJOR, 0, 255, 0, 0, 0 },
 	{ ABS_MT_TOUCH_MINOR, 0, 255, 0, 0, 0 },
 	{ ABS_MT_WIDTH_MINOR, 0, 255, 0, 0, 0 },

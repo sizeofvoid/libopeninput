@@ -3451,6 +3451,15 @@ litest_create_uinput(const char *name,
 		.flat = 0,
 		.resolution = 100
 	};
+	/* See kernel commit 206f533a0a7c ("Input: uinput - reject requests with unreasonable number of slots") */
+	const struct input_absinfo default_abs_mt_slot = {
+		.value = 0,
+		.minimum = 0,
+		.maximum = 64,
+		.fuzz = 0,
+		.flat = 0,
+		.resolution = 100
+	};
 	char buf[512];
 
 	dev = libevdev_new();
@@ -3483,8 +3492,10 @@ litest_create_uinput(const char *name,
 		if (type == INPUT_PROP_MAX) {
 			rc = libevdev_enable_property(dev, code);
 		} else {
+			const struct input_absinfo *abs =
+				(code == ABS_MT_SLOT) ? &default_abs_mt_slot : &default_abs;
 			rc = libevdev_enable_event_code(dev, type, code,
-							type == EV_ABS ? &default_abs : NULL);
+							type == EV_ABS ? abs : NULL);
 		}
 		litest_assert_int_eq(rc, 0);
 	}
