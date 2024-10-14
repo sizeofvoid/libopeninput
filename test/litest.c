@@ -198,10 +198,12 @@ litest_fail_condition(const char *file,
 	litest_log("FAILED: %s\n", condition);
 
 	if (message) {
+		char buf[1024];
 		va_list args;
 		va_start(args, message);
-		litest_vlog(message, args);
+		vsnprintf(buf, sizeof(buf), message, args);
 		va_end(args);
+		litest_log("%s\n", buf);
 	}
 
 	litest_log("in %s() (%s:%d)\n", func, file, line);
@@ -351,7 +353,7 @@ grab_device(struct litest_device *device, bool mode)
 			return;
 		}
 	}
-	litest_abort_msg("Failed to find device %s to %sgrab\n",
+	litest_abort_msg("Failed to find device %s to %sgrab",
 			 devnode, mode ? "" : "un");
 }
 
@@ -710,7 +712,7 @@ _litest_add_ranged_for_device(const char *filename,
 
 	/* only abort if no filter was set, that's a bug */
 	if (!device_filtered)
-		litest_abort_msg("Invalid test device type\n");
+		litest_abort_msg("Invalid test device type");
 }
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
@@ -779,12 +781,12 @@ litest_log_handler(struct libinput *libinput,
 		} else if (strstr(format, "event processing lagging behind")) {
 			/* noop */
 		} else {
-			litest_abort_msg("libinput bug triggered, aborting.\n");
+			litest_abort_msg("libinput bug triggered, aborting.");
 		}
 	}
 
 	if (strstr(format, "Touch jump detected and discarded")) {
-		litest_abort_msg("libinput touch jump triggered, aborting.\n");
+		litest_abort_msg("libinput touch jump triggered, aborting.");
 	}
 }
 
@@ -1425,7 +1427,7 @@ litest_copy_file(const char *dest, const char *src, const char *header, bool is_
 		out = open(file->path, O_CREAT|O_WRONLY, 0644);
 	}
 	if (out == -1)
-		litest_abort_msg("Failed to write to file %s (%s)\n",
+		litest_abort_msg("Failed to write to file %s (%s)",
 				 file->path,
 				 strerror(errno));
 	litest_assert_int_ne(chmod(file->path, 0644), -1);
@@ -1438,7 +1440,7 @@ litest_copy_file(const char *dest, const char *src, const char *header, bool is_
 	if (is_file) {
 		in = open(src, O_RDONLY);
 		if (in == -1)
-			litest_abort_msg("Failed to open file %s (%s)\n",
+			litest_abort_msg("Failed to open file %s (%s)",
 					 src,
 					 strerror(errno));
 		/* lazy, just check for error and empty file copy */
@@ -1669,7 +1671,7 @@ litest_create(enum litest_device_type which,
 	}
 
 	if (!found)
-		litest_abort_msg("Invalid device type %d\n", which);
+		litest_abort_msg("Invalid device type %d", which);
 
 	d = zalloc(sizeof(*d));
 	d->which = which;
@@ -1783,7 +1785,7 @@ litest_bug_log_handler(struct libinput *libinput,
 	    strstr(format, "kernel bug: "))
 		return;
 
-	litest_abort_msg("Expected bug statement in log msg, aborting.\n");
+	litest_abort_msg("Expected bug statement in log msg, aborting.");
 }
 
 void
@@ -2067,7 +2069,7 @@ litest_auto_assign_value(struct litest_device *d,
 								   ev->code,
 								   &value);
 			if (error) {
-				litest_abort_msg("Failed to get default axis value for %s (%d)\n",
+				litest_abort_msg("Failed to get default axis value for %s (%d)",
 						 libevdev_event_code_get_name(EV_ABS, ev->code),
 						 ev->code);
 			}
@@ -2455,7 +2457,7 @@ auto_assign_tablet_value(struct litest_device *d,
 		    d->interface->get_axis_default) {
 			int error = d->interface->get_axis_default(d, ev->code, &value);
 			if (error) {
-				litest_abort_msg("Failed to get default axis value for %s (%d)\n",
+				litest_abort_msg("Failed to get default axis value for %s (%d)",
 						 libevdev_event_code_get_name(EV_ABS, ev->code),
 						 ev->code);
 			}
@@ -3781,7 +3783,7 @@ litest_is_touch_event(struct libinput_event *event,
 		litest_assert_event_type(event, type);
 		break;
 	default:
-		litest_abort_msg("%s: invalid touch type %d\n", __func__, type);
+		litest_abort_msg("%s: invalid touch type %d", __func__, type);
 	}
 
 	touch = libinput_event_get_touch_event(event);
