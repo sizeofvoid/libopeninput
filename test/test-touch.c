@@ -118,9 +118,11 @@ START_TEST(touch_abs_transform)
 
 		tev = libinput_event_get_touch_event(ev);
 		fx = libinput_event_touch_get_x_transformed(tev, 1920);
-		ck_assert_int_eq(fx, 1919.0);
+		litest_assert_double_eq_epsilon(fx, 1920.0, 0.1);
+		litest_assert_double_lt(fx, 1920.0);
 		fy = libinput_event_touch_get_y_transformed(tev, 720);
-		ck_assert_int_eq(fy, 719.0);
+		litest_assert_double_eq_epsilon(fy, 720.0, 0.1);
+		litest_assert_double_lt(fy, 720.0);
 
 		tested = true;
 
