@@ -76,8 +76,8 @@ START_TEST(touchpad_1fg_motion)
 		struct libinput_event_pointer *ptrev;
 
 		ptrev = litest_is_motion_event(event);
-		ck_assert_int_ge(libinput_event_pointer_get_dx(ptrev), 0);
-		ck_assert_int_eq(libinput_event_pointer_get_dy(ptrev), 0);
+		litest_assert_double_ge(libinput_event_pointer_get_dx(ptrev), 0);
+		litest_assert_double_eq(libinput_event_pointer_get_dy(ptrev), 0);
 		libinput_event_destroy(event);
 		event = libinput_get_event(li);
 	}
@@ -3663,10 +3663,10 @@ START_TEST(touchpad_initial_state)
 		ck_assert_int_eq(libinput_event_get_type(ev1),
 				 libinput_event_get_type(ev2));
 
-		ck_assert_int_eq(libinput_event_pointer_get_dx(p1),
-				 libinput_event_pointer_get_dx(p2));
-		ck_assert_int_eq(libinput_event_pointer_get_dy(p1),
-				 libinput_event_pointer_get_dy(p2));
+		litest_assert_double_eq(libinput_event_pointer_get_dx(p1),
+					libinput_event_pointer_get_dx(p2));
+		litest_assert_double_eq(libinput_event_pointer_get_dy(p1),
+					libinput_event_pointer_get_dy(p2));
 		libinput_event_destroy(ev1);
 		libinput_event_destroy(ev2);
 	}
