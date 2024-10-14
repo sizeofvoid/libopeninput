@@ -3395,6 +3395,7 @@ _litest_assert_event_type_is_one_of(struct libinput_event *event, ...)
 		if ((int)expected_type != -1)
 			fprintf(stderr, " || ");
 	}
+	va_end(args);
 
 	fprintf(stderr, "\nWrong event is: ");
 	litest_print_event(event);
