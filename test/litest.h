@@ -798,6 +798,12 @@ void
 litest_assert_event_type(struct libinput_event *event,
 			 enum libinput_event_type want);
 
+#define litest_assert_event_type_not_one_of(...) \
+    _litest_assert_event_type_not_one_of(__VA_ARGS__, -1)
+
+void
+_litest_assert_event_type_not_one_of(struct libinput_event *event, ...);
+
 #define litest_assert_empty_queue(li_) \
 	_litest_assert_empty_queue(li_, __func__, __LINE__)
 

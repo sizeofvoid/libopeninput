@@ -2699,8 +2699,7 @@ START_TEST(touchpad_no_first_fg_tap_after_move)
 	litest_dispatch(dev->libinput);
 
 	while ((event = libinput_get_event(li))) {
-		ck_assert_int_ne(libinput_event_get_type(event),
-				 LIBINPUT_EVENT_POINTER_BUTTON);
+		litest_assert_event_type_not_one_of(event, LIBINPUT_EVENT_POINTER_BUTTON);
 		libinput_event_destroy(event);
 	}
 }

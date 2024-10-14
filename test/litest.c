@@ -3410,6 +3410,40 @@ litest_assert_event_type(struct libinput_event *event,
 	litest_assert_event_type_is_one_of(event, want);
 }
 
+#define litest_assert_event_type_not_one_of(...) \
+    _litest_assert_event_type_not_one_of(__VA_ARGS__, -1)
+
+void
+_litest_assert_event_type_not_one_of(struct libinput_event *event, ...)
+{
+	va_list args;
+	enum libinput_event_type not_expected_type;
+	enum libinput_event_type actual_type = libinput_event_get_type(event);
+	bool match = false;
+
+	va_start(args, event);
+	not_expected_type = va_arg(args, int);
+	while ((int)not_expected_type != -1 && !match) {
+		match = (actual_type == not_expected_type);
+		not_expected_type = va_arg(args, int);
+	}
+	va_end(args);
+
+	if (!match)
+		return;
+
+	fprintf(stderr,
+		"FAILED EVENT TYPE: %s: have %s (%d) but didn't want that\n",
+		libinput_device_get_name(libinput_event_get_device(event)),
+		litest_event_get_type_str(event),
+		libinput_event_get_type(event));
+
+	fprintf(stderr, "\nWrong event is: ");
+	litest_print_event(event);
+	litest_backtrace();
+	abort();
+}
+
 void
 _litest_assert_empty_queue(struct libinput *li,
 			   const char *func,
