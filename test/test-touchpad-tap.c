@@ -87,7 +87,7 @@ START_TEST(touchpad_doubletap)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 	switch (nfingers2) {
 	case 1:
@@ -100,7 +100,7 @@ START_TEST(touchpad_doubletap)
 		button2 = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers2);
 	}
 
 	litest_drain_events(li);
@@ -227,7 +227,7 @@ START_TEST(touchpad_multitap)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -317,7 +317,7 @@ START_TEST(touchpad_multitap_n_drag_move)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -429,7 +429,7 @@ START_TEST(touchpad_multitap_n_drag_2fg)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -543,7 +543,7 @@ START_TEST(touchpad_multitap_n_drag_click)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -644,7 +644,7 @@ START_TEST(touchpad_multitap_timeout)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -734,7 +734,7 @@ START_TEST(touchpad_multitap_n_drag_timeout)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -845,7 +845,7 @@ START_TEST(touchpad_multitap_n_drag_high_delay)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -941,7 +941,7 @@ START_TEST(touchpad_multitap_n_drag_tap)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -1056,7 +1056,7 @@ START_TEST(touchpad_multitap_n_drag_tap_click)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -1178,7 +1178,7 @@ START_TEST(touchpad_tap_n_drag)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -1260,7 +1260,7 @@ START_TEST(touchpad_tap_n_drag_draglock)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -1345,7 +1345,7 @@ START_TEST(touchpad_tap_n_drag_draglock_tap)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -1448,7 +1448,7 @@ START_TEST(touchpad_tap_n_drag_draglock_tap_click)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -1533,7 +1533,7 @@ START_TEST(touchpad_tap_n_drag_draglock_timeout)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -1604,7 +1604,7 @@ START_TEST(touchpad_tap_n_drag_draglock_sticky)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -1687,7 +1687,7 @@ START_TEST(touchpad_tap_n_drag_2fg)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -1766,7 +1766,7 @@ START_TEST(touchpad_tap_n_drag_2fg_scroll)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -1846,7 +1846,7 @@ START_TEST(touchpad_tap_n_drag_draglock_2fg_scroll)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -1930,7 +1930,7 @@ START_TEST(touchpad_tap_n_drag_3fg_btntool)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -2028,7 +2028,7 @@ START_TEST(touchpad_tap_n_drag_3fg)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -2114,7 +2114,7 @@ START_TEST(touchpad_tap_n_drag_3fg_swipe)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -2206,7 +2206,7 @@ START_TEST(touchpad_tap_n_drag_draglock_3fg_swipe)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -2729,7 +2729,7 @@ START_TEST(touchpad_double_tap_click)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(dev->libinput);
@@ -2805,7 +2805,7 @@ START_TEST(touchpad_tap_n_drag_click)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(dev->libinput);
@@ -3521,7 +3521,7 @@ START_TEST(touchpad_move_after_touch)
 		litest_touch_down(dev, 0, 40, 30);
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	/* move finger 1 */
@@ -3975,7 +3975,7 @@ START_TEST(touchpad_drag_disabled)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -4050,7 +4050,7 @@ START_TEST(touchpad_drag_disabled_immediate)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -4130,7 +4130,7 @@ START_TEST(touchpad_drag_disabled_multitap_no_drag)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -4431,7 +4431,7 @@ START_TEST(touchpad_tap_palm_on_tapped)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -4513,7 +4513,7 @@ START_TEST(touchpad_tap_palm_on_tapped_palm_down)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -4600,7 +4600,7 @@ START_TEST(touchpad_tap_palm_on_tapped_doubletap)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 	switch (nfingers2) {
 	case 1:
@@ -4613,7 +4613,7 @@ START_TEST(touchpad_tap_palm_on_tapped_doubletap)
 		button2 = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers2);
 	}
 
 	litest_drain_events(li);
@@ -4726,7 +4726,7 @@ START_TEST(touchpad_tap_palm_on_drag)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -4811,7 +4811,7 @@ START_TEST(touchpad_tap_palm_on_drag_2fg)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -5126,7 +5126,7 @@ START_TEST(touchpad_tap_palm_after_tap)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -5207,7 +5207,7 @@ START_TEST(touchpad_tap_palm_multitap)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -5293,7 +5293,7 @@ START_TEST(touchpad_tap_palm_multitap_timeout)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -5378,7 +5378,7 @@ START_TEST(touchpad_tap_palm_multitap_down_again)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
@@ -5494,7 +5494,7 @@ START_TEST(touchpad_tap_palm_multitap_click)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_abort_msg("Unexpected number of fingers (%d)", nfingers);
 	}
 
 	litest_drain_events(li);
