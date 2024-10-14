@@ -410,28 +410,24 @@ START_TEST(touch_calibration_rotation)
 		y = libinput_event_touch_get_y_transformed(tev, height);
 
 		/* rounding errors... */
-#define almost_equal(a_, b_) \
-		{ ck_assert_int_ge((a_) + 0.5, (b_) - 1); \
-		  ck_assert_int_le((a_) + 0.5, (b_) + 1); }
 		switch(i) {
 		case 0: /* 0 deg */
-			almost_equal(x, width * 0.8);
-			almost_equal(y, height * 0.2);
+			litest_assert_double_eq_epsilon(x, width * 0.8, 1.0);
+			litest_assert_double_eq_epsilon(y, height * 0.2, 1.0);
 			break;
 		case 1: /* 90 deg cw */
-			almost_equal(x, width * 0.8);
-			almost_equal(y, height * 0.8);
+			litest_assert_double_eq_epsilon(x, width * 0.8, 1.0);
+			litest_assert_double_eq_epsilon(y, height * 0.8, 1.0);
 			break;
 		case 2: /* 180 deg cw */
-			almost_equal(x, width * 0.2);
-			almost_equal(y, height * 0.8);
+			litest_assert_double_eq_epsilon(x, width * 0.2, 1.0);
+			litest_assert_double_eq_epsilon(y, height * 0.8, 1.0);
 			break;
 		case 3: /* 270 deg cw */
-			almost_equal(x, width * 0.2);
-			almost_equal(y, height * 0.2);
+			litest_assert_double_eq_epsilon(x, width * 0.2, 1.0);
+			litest_assert_double_eq_epsilon(y, height * 0.2, 1.0);
 			break;
 		}
-#undef almost_equal
 
 		libinput_event_destroy(ev);
 		litest_drain_events(li);
