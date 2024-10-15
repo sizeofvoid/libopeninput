@@ -889,27 +889,6 @@ static struct libinput_interface interface = {
 	.close_restricted = close_restricted,
 };
 
-static void
-litest_free_test_list(struct list *tests)
-{
-	struct suite *s;
-
-	list_for_each_safe(s, tests, node) {
-		struct test *t;
-
-		list_for_each_safe(t, &s->tests, node) {
-			free(t->name);
-			free(t->devname);
-			list_remove(&t->node);
-			free(t);
-		}
-
-		list_remove(&s->node);
-		free(s->name);
-		free(s);
-	}
-}
-
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static inline void
 quirk_log_handler(struct libinput *unused,
@@ -4810,6 +4789,27 @@ restore_tty(int tty_mode)
 		if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tios))
 				fprintf(stderr, "Failed to set terminal attribute: %d - %s\n", errno, strerror(errno));
 #endif
+	}
+}
+
+static void
+litest_free_test_list(struct list *tests)
+{
+	struct suite *s;
+
+	list_for_each_safe(s, tests, node) {
+		struct test *t;
+
+		list_for_each_safe(t, &s->tests, node) {
+			free(t->name);
+			free(t->devname);
+			list_remove(&t->node);
+			free(t);
+		}
+
+		list_remove(&s->node);
+		free(s->name);
+		free(s);
 	}
 }
 
