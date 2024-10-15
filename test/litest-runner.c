@@ -80,6 +80,7 @@ struct litest_runner {
 	size_t max_forks;
 	unsigned int timeout;
 	bool verbose;
+	bool exit_on_fail;
 
 	int terminating;
 
@@ -685,6 +686,12 @@ litest_runner_set_verbose(struct litest_runner *runner,
 }
 
 void
+litest_runner_set_exit_on_fail(struct litest_runner *runner, bool do_exit)
+{
+	runner->exit_on_fail = do_exit;
+}
+
+void
 litest_runner_add_test(struct litest_runner *runner,
 		       const struct litest_runner_test_description *desc)
 {
@@ -800,6 +807,26 @@ litest_runner_run_tests(struct litest_runner *runner)
 
 		if (runner->terminating) {
 			break;
+		}
+
+		if (runner->exit_on_fail) {
+			bool do_exit = false;
+			struct litest_runner_test *complete;
+			list_for_each(complete, &runner->tests_complete, node) {
+				switch (complete->result) {
+					case LITEST_FAIL:
+					case LITEST_SYSTEM_ERROR:
+					case LITEST_TIMEOUT:
+						do_exit = true;
+						break;
+					default:
+						break;
+				}
+				if (do_exit)
+					break;
+			}
+			if (do_exit)
+				break;
 		}
 	}
 
