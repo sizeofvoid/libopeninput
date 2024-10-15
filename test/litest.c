@@ -4754,7 +4754,6 @@ disable_tty(void)
 	if (!run_deviceless &&
 	    jobs > 1 &&
 	    !in_debugger &&
-	    getenv("CK_FORK") == NULL &&
 	    isatty(STDIN_FILENO) &&
 	    ioctl(STDIN_FILENO, KDGKBMODE, &tty_mode) == 0) {
 #ifdef __linux__
@@ -4823,11 +4822,10 @@ main(int argc, char **argv)
 	const char *meson_testthreads;
 
 	in_debugger = is_debugger_attached();
-	if (in_debugger || RUNNING_ON_VALGRIND)
-		setenv("CK_FORK", "no", 0);
-
-	if ((meson_testthreads = getenv("MESON_TESTTHREADS")) == NULL ||
-	     !safe_atoi(meson_testthreads, &jobs)) {
+	if (in_debugger) {
+		jobs = 0;
+	} else if ((meson_testthreads = getenv("MESON_TESTTHREADS")) == NULL ||
+		   !safe_atoi(meson_testthreads, &jobs)) {
 		jobs = get_nprocs();
 		if (!RUNNING_ON_VALGRIND)
 			jobs *= 2;
