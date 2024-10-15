@@ -27,6 +27,7 @@
 
 #include <errno.h>
 #include <libgen.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 #include "util-strings.h"
@@ -51,4 +52,13 @@ mkdir_p(const char *dir)
 	free(path);
 
 	return (rc == -1 && errno != EEXIST) ? -errno : 0;
+}
+
+static inline void
+xclose(int *fd)
+{
+	if (*fd != -1) {
+		close(*fd);
+		*fd = -1;
+	}
 }
