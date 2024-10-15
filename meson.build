@@ -1001,6 +1001,7 @@ if get_option('tests')
 		valgrind_suppressions_file = dir_src_test / 'valgrind.suppressions'
 		add_test_setup('valgrind',
 				exe_wrapper : [ valgrind,
+						'--log-file=valgrind.%p.log',
 						'--leak-check=full',
 						'--gen-suppressions=all',
 						'--error-exitcode=3',

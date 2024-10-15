@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <valgrind/valgrind.h>
 
 #include "litest-runner.h"
 
@@ -52,6 +53,7 @@ enum litest_runner_logfds {
 	FD_STDOUT,
 	FD_STDERR,
 	FD_LOG,
+	FD_VALGRIND,
 	_FD_LAST,
 };
 
@@ -341,6 +343,35 @@ litest_runner_fork_test(struct litest_runner *runner,
 	exit(result);
 }
 
+static char *
+valgrind_logfile(pid_t pid)
+{
+	const char *prefix = getenv("LITEST_VALGRIND_LOGDIR");
+	if (!prefix)
+		prefix = ".";
+
+	char *filename = NULL;
+	int rc = xasprintf(&filename, "%s/valgrind.%d.log", prefix, pid);
+	litest_assert_neg_errno_success(rc);
+
+	return filename;
+}
+
+static void
+collect_file(const char *filename, struct stringbuf *b)
+{
+	int fd = open(filename, O_RDONLY);
+	if (fd == -1) {
+		char *msg;
+		xasprintf(&msg, "Failed to find '%s': %m", filename);
+		stringbuf_append_string(b, msg);
+		free(msg);
+	} else {
+		stringbuf_append_from_fd(b, fd, 0);
+		close(fd);
+	}
+}
+
 static bool
 litest_runner_test_collect_child(struct litest_runner_test *t)
 {
@@ -351,10 +382,14 @@ litest_runner_test_collect_child(struct litest_runner_test *t)
 	if (r <= 0)
 		return false;
 
-	t->pid = 0;
-
 	if (WIFEXITED(status)) {
 		t->result = WEXITSTATUS(status);
+		if (RUNNING_ON_VALGRIND && t->result == 3) {
+			char msg[64];
+			snprintf(msg, sizeof(msg), "valgrind exited with an error code, see logs\n");
+			stringbuf_append_string(&t->logs[FD_LOG], msg);
+			t->result = LITEST_SYSTEM_ERROR;
+		}
 		switch (t->result) {
 			case LITEST_PASS:
 			case LITEST_SKIP:
@@ -379,19 +414,24 @@ litest_runner_test_collect_child(struct litest_runner_test *t)
 				break;
 			}
 		}
-		return true;
-	}
-
-	if (WIFSIGNALED(status)) {
-		t->sig_or_errno = WTERMSIG(status);
-		t->result = (t->sig_or_errno == t->desc.args.signal) ? LITEST_PASS : LITEST_FAIL;
 	} else {
-		t->result = LITEST_FAIL;
+		if (WIFSIGNALED(status)) {
+			t->sig_or_errno = WTERMSIG(status);
+			t->result = (t->sig_or_errno == t->desc.args.signal) ? LITEST_PASS : LITEST_FAIL;
+		} else {
+			t->result = LITEST_FAIL;
+		}
 	}
 
 	uint64_t now = 0;
 	now_in_us(&now);
 	t->times.end_millis = us2ms(now);
+
+	if (RUNNING_ON_VALGRIND) {
+		char *filename = valgrind_logfile(t->pid);
+		collect_file(filename, &t->logs[FD_VALGRIND]);
+		free(filename);
+	}
 
 	t->pid = 0;
 
@@ -648,6 +688,10 @@ litest_runner_log_test_result(struct litest_runner *runner, struct litest_runner
 		fprintf(stderr, "    stderr: |\n");
 		print_lines(stderr, t->logs[FD_STDERR].data, "      ");
 	}
+	if (!stringbuf_is_empty(&t->logs[FD_VALGRIND])) {
+		fprintf(stderr, "    valgrind: |\n");
+		print_lines(stderr, t->logs[FD_VALGRIND].data, "      ");
+	}
 }
 
 struct litest_runner *
@@ -887,6 +931,18 @@ litest_runner_run_tests(struct litest_runner *runner)
 					break;
 			}
 		}
+	}
+
+	if (RUNNING_ON_VALGRIND) {
+		char *filename = valgrind_logfile(getpid());
+		struct stringbuf *b = stringbuf_new();
+
+		collect_file(filename, b);
+		fprintf(stderr, "valgrind:\n");
+		print_lines(stderr, b->data, "  ");
+		fprintf(stderr, "# Valgrind log is incomplete, see %s for full log\n", filename);
+		free(filename);
+		stringbuf_destroy(b);
 	}
 
 	enum litest_runner_result result = LITEST_PASS;
