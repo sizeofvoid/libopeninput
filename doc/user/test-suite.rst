@@ -27,8 +27,7 @@ must pass for any merge request. These tests are invoked by calling
 ``meson test -C builddir`` (or ``ninja test``). The ``libinput-test-suite`` is
 part of that test set by default.
 
-The upstream CI runs all these tests but not the ``libinput-test-suite``.
-This CI is run for every merge request.
+The upstream CI runs all these tests and is run for every merge request.
 
 .. _test-job-control:
 
