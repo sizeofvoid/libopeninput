@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #include "litest.h"
+#include "litest-runner.h"
 #include "util-list.h"
 #include "util-strings.h"
 #include "util-time.h"
@@ -1825,55 +1826,76 @@ START_TEST(stringbuf_test)
 }
 END_TEST
 
-TEST_COLLECTION(utils)
+int main(void)
 {
-	litest_add_deviceless(array_for_each);
+	struct litest_runner *runner = litest_runner_new();
 
-	litest_add_deviceless(bitfield_helpers);
-	litest_add_deviceless(matrix_helpers);
-	litest_add_deviceless(ratelimit_helpers);
-	litest_add_deviceless(dpi_parser);
-	litest_add_deviceless(wheel_click_parser);
-	litest_add_deviceless(wheel_click_count_parser);
-	litest_add_deviceless(dimension_prop_parser);
-	litest_add_deviceless(reliability_prop_parser);
-	litest_add_deviceless(calibration_prop_parser);
-	litest_add_deviceless(range_prop_parser);
-	litest_add_deviceless(boolean_prop_parser);
-	litest_add_deviceless(evcode_prop_parser);
-	litest_add_deviceless(input_prop_parser);
-	litest_add_deviceless(evdev_abs_parser);
-	litest_add_deviceless(safe_atoi_test);
-	litest_add_deviceless(safe_atoi_base_16_test);
-	litest_add_deviceless(safe_atoi_base_8_test);
-	litest_add_deviceless(safe_atou_test);
-	litest_add_deviceless(safe_atou_base_16_test);
-	litest_add_deviceless(safe_atou_base_8_test);
-	litest_add_deviceless(safe_atod_test);
-	litest_add_deviceless(strsplit_test);
-	litest_add_deviceless(strv_for_each_test);
-	litest_add_deviceless(double_array_from_string_test);
-	litest_add_deviceless(strargv_test);
-	litest_add_deviceless(kvsplit_double_test);
-	litest_add_deviceless(strjoin_test);
-	litest_add_deviceless(strstrip_test);
-	litest_add_deviceless(strendswith_test);
-	litest_add_deviceless(strstartswith_test);
-	litest_add_deviceless(strsanitize_test);
-	litest_add_deviceless(time_conversion);
-	litest_add_deviceless(human_time);
+	/* not worth forking the tests here */
+	litest_runner_set_num_parallel(runner, 0);
 
-	litest_add_deviceless(list_test_insert);
-	litest_add_deviceless(list_test_append);
-	litest_add_deviceless(list_test_foreach);
-	litest_add_deviceless(strverscmp_test);
-	litest_add_deviceless(streq_test);
-	litest_add_deviceless(strneq_test);
-	litest_add_deviceless(trunkname_test);
-	litest_add_deviceless(basename_test);
+#define ADD_TEST(func_) do { \
+	struct litest_runner_test_description tdesc =  { \
+		.func = func_, \
+	};\
+	snprintf(tdesc.name, sizeof(tdesc.name), # func_); \
+	litest_runner_add_test(runner, &tdesc); \
+} while(0)
 
-	litest_add_deviceless(absinfo_normalize_value_test);
+	ADD_TEST(array_for_each);
 
-	litest_add_deviceless(range_test);
-	litest_add_deviceless(stringbuf_test);
+	ADD_TEST(bitfield_helpers);
+	ADD_TEST(matrix_helpers);
+	ADD_TEST(ratelimit_helpers);
+	ADD_TEST(dpi_parser);
+	ADD_TEST(wheel_click_parser);
+	ADD_TEST(wheel_click_count_parser);
+	ADD_TEST(dimension_prop_parser);
+	ADD_TEST(reliability_prop_parser);
+	ADD_TEST(calibration_prop_parser);
+	ADD_TEST(range_prop_parser);
+	ADD_TEST(boolean_prop_parser);
+	ADD_TEST(evcode_prop_parser);
+	ADD_TEST(input_prop_parser);
+	ADD_TEST(evdev_abs_parser);
+	ADD_TEST(safe_atoi_test);
+	ADD_TEST(safe_atoi_base_16_test);
+	ADD_TEST(safe_atoi_base_8_test);
+	ADD_TEST(safe_atou_test);
+	ADD_TEST(safe_atou_base_16_test);
+	ADD_TEST(safe_atou_base_8_test);
+	ADD_TEST(safe_atod_test);
+	ADD_TEST(strsplit_test);
+	ADD_TEST(strv_for_each_test);
+	ADD_TEST(double_array_from_string_test);
+	ADD_TEST(strargv_test);
+	ADD_TEST(kvsplit_double_test);
+	ADD_TEST(strjoin_test);
+	ADD_TEST(strstrip_test);
+	ADD_TEST(strendswith_test);
+	ADD_TEST(strstartswith_test);
+	ADD_TEST(strsanitize_test);
+	ADD_TEST(time_conversion);
+	ADD_TEST(human_time);
+
+	ADD_TEST(list_test_insert);
+	ADD_TEST(list_test_append);
+	ADD_TEST(list_test_foreach);
+	ADD_TEST(strverscmp_test);
+	ADD_TEST(streq_test);
+	ADD_TEST(strneq_test);
+	ADD_TEST(trunkname_test);
+	ADD_TEST(basename_test);
+
+	ADD_TEST(absinfo_normalize_value_test);
+
+	ADD_TEST(range_test);
+	ADD_TEST(stringbuf_test);
+
+	enum litest_runner_result result = litest_runner_run_tests(runner);
+	litest_runner_destroy(runner);
+
+	if (result == LITEST_SKIP)
+		return 77;
+
+	return result - LITEST_PASS;
 }
