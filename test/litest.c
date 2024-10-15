@@ -82,6 +82,7 @@ static bool in_debugger = false;
 static bool verbose = false;
 static bool run_deviceless = false;
 static bool use_system_rules_quirks = false;
+static bool exit_first = false;
 static const char *filter_test = NULL;
 static const char *filter_device = NULL;
 static const char *filter_group = NULL;
@@ -997,6 +998,7 @@ litest_run_suite(struct list *suites, int njobs)
 	litest_runner_set_num_parallel(runner, jobs > 0 ? jobs : 0);
 	litest_runner_set_verbose(runner, verbose);
 	litest_runner_set_timeout(runner, 30);
+	litest_runner_set_exit_on_fail(runner, exit_first);
 
 	list_for_each(s, suites, node) {
 		struct test *t;
@@ -4518,6 +4520,7 @@ static inline enum litest_mode
 litest_parse_argv(int argc, char **argv)
 {
 	enum {
+		OPT_EXIT_FIRST,
 		OPT_FILTER_TEST,
 		OPT_FILTER_DEVICE,
 		OPT_FILTER_GROUP,
@@ -4532,6 +4535,7 @@ litest_parse_argv(int argc, char **argv)
 		{ "filter-device", 1, 0, OPT_FILTER_DEVICE },
 		{ "filter-group", 1, 0, OPT_FILTER_GROUP },
 		{ "filter-deviceless", 0, 0, OPT_FILTER_DEVICELESS },
+		{ "exitfirst", 0, 0, OPT_EXIT_FIRST },
 		{ "xml-output", 1, 0, OPT_XML_PREFIX },
 		{ "jobs", 1, 0, OPT_JOBS },
 		{ "list", 0, 0, OPT_LIST },
@@ -4568,7 +4572,7 @@ litest_parse_argv(int argc, char **argv)
 		int c;
 		int option_index = 0;
 
-		c = getopt_long(argc, argv, "j:", opts, &option_index);
+		c = getopt_long(argc, argv, "j:x", opts, &option_index);
 		if (c == -1)
 			break;
 		switch(c) {
@@ -4577,6 +4581,8 @@ litest_parse_argv(int argc, char **argv)
 			printf("Usage: %s [--verbose] [--jobs] [--filter-...]\n"
 			       "\n"
 			       "Options:\n"
+			       "    -x | --exitfirst\n"
+			       "          Exit instantly on first failed test\n"
 			       "    --filter-test=.... \n"
 			       "          Glob to filter on test names\n"
 			       "    --filter-device=.... \n"
@@ -4629,6 +4635,10 @@ litest_parse_argv(int argc, char **argv)
 			break;
 		case OPT_FILTER_DEVICELESS:
 			run_deviceless = true;
+			break;
+		case 'x':
+		case OPT_EXIT_FIRST:
+			exit_first = true;
 			break;
 		}
 	}

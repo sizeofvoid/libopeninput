@@ -77,6 +77,7 @@ struct litest_runner *litest_runner_new(void);
 void litest_runner_set_num_parallel(struct litest_runner *runner, size_t num_jobs);
 void litest_runner_set_timeout(struct litest_runner *runner, unsigned int timeout);
 void litest_runner_set_verbose(struct litest_runner *runner, bool verbose);
+void litest_runner_set_exit_on_fail(struct litest_runner *runner, bool do_exit);
 void litest_runner_add_test(struct litest_runner *runner,
 			    const struct litest_runner_test_description *t);
 enum litest_runner_result litest_runner_run_tests(struct litest_runner *runner);
