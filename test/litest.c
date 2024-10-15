@@ -91,6 +91,21 @@ struct created_file {
 	char *path;
 };
 
+static void
+created_file_destroy(struct created_file *f)
+{
+	list_remove(&f->link);
+	free(f->path);
+	free(f);
+}
+
+static void
+created_file_unlink(struct created_file *f)
+{
+	unlink(f->path);
+	rmdir(f->path);
+}
+
 static struct list created_files_list; /* list of all files to remove at the end
 					  of the test run */
 
@@ -922,9 +937,8 @@ litest_signal(int sig)
 	struct created_file *f;
 
 	list_for_each_safe(f, &created_files_list, link) {
+		created_file_unlink(f);
 		list_remove(&f->link);
-		unlink(f->path);
-		rmdir(f->path);
 		/* in the sighandler, we can't free */
 	}
 
@@ -1631,11 +1645,8 @@ litest_remove_udev_rules(struct list *created_files_list)
 	reload_udev = !list_empty(created_files_list);
 
 	list_for_each_safe(f, created_files_list, link) {
-		list_remove(&f->link);
-		unlink(f->path);
-		rmdir(f->path);
-		free(f->path);
-		free(f);
+		created_file_unlink(f);
+		created_file_destroy(f);
 	}
 
 	if (reload_udev)
