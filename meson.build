@@ -869,8 +869,8 @@ if get_option('tests')
 				   meson.current_build_dir() /
 				   '90-libinput-fuzz-override-litest.rules')
 
+	def_no_main = '-DLITEST_NO_MAIN'
 	if dep_check.found()
-		def_no_main = '-DLITEST_NO_MAIN'
 		def_disable_backtrace = '-DLITEST_DISABLE_BACKTRACE_LOGGING'
 		defs_litest_selftest = [
 			def_no_main,
@@ -904,9 +904,6 @@ if get_option('tests')
 	     suite : ['all'])
 
 	test_utils_sources = [
-		# We need one test device for __start_test_session to exist
-		# Could be fixed, but for now: meh
-		'test/litest-device-mouse.c',
 		'test/test-utils.c',
 		'test/litest-runner.c',
 		'test/litest.c',
@@ -914,6 +911,7 @@ if get_option('tests')
 	test_utils = executable('libinput-test-utils',
 				test_utils_sources,
 				include_directories : [includes_src, includes_include],
+				c_args : [def_no_main],
 				dependencies : deps_litest,
 				install_dir : libinput_tool_path,
 				install : get_option('install-tests'))
