@@ -86,6 +86,7 @@ static bool exit_first = false;
 static const char *filter_test = NULL;
 static const char *filter_device = NULL;
 static const char *filter_group = NULL;
+static int filter_rangeval = INT_MIN;
 static const char *xml_prefix = NULL;
 static struct quirks_context *quirks_context;
 
@@ -389,6 +390,12 @@ litest_reload_udev_rules(void)
 	litest_system("udevadm control --reload-rules");
 }
 
+static bool
+filter_for_rangeval(const struct range *range, int rangeval)
+{
+	return !range || filter_rangeval == INT_MIN || filter_rangeval == rangeval;
+}
+
 static void
 litest_add_tcase_for_device(struct suite *suite,
 			    const char *funcname,
@@ -406,20 +413,22 @@ litest_add_tcase_for_device(struct suite *suite,
 
 	int rangeval = range->lower;
 	do {
-		struct test *t;
+		if (filter_for_rangeval(range, rangeval)) {
+			struct test *t;
 
-		t = zalloc(sizeof(*t));
-		t->name = safe_strdup(funcname);
-		t->devname = safe_strdup(dev->shortname);
-		t->func = func;
-		t->setup = dev->setup;
-		t->teardown = dev->teardown ?
-				dev->teardown : litest_generic_device_teardown;
-		if (range)
-			t->range = *range;
-		t->rangeval = rangeval;
+			t = zalloc(sizeof(*t));
+			t->name = safe_strdup(funcname);
+			t->devname = safe_strdup(dev->shortname);
+			t->func = func;
+			t->setup = dev->setup;
+			t->teardown = dev->teardown ?
+					dev->teardown : litest_generic_device_teardown;
+			if (range)
+				t->range = *range;
+			t->rangeval = rangeval;
 
-		list_append(&suite->tests, &t->node);
+			list_append(&suite->tests, &t->node);
+		}
 	} while (++rangeval < range->upper);
 }
 
@@ -444,19 +453,21 @@ litest_add_tcase_no_device(struct suite *suite,
 
 	int rangeval = range->lower;
 	do {
-		struct test *t;
+		if (filter_for_rangeval(range, rangeval)) {
+			struct test *t;
 
-		t = zalloc(sizeof(*t));
-		t->name = safe_strdup(test_name);
-		t->devname = safe_strdup("no device");
-		t->func = func;
-		if (range)
-			t->range = *range;
-		t->rangeval = rangeval;
-		t->setup = NULL;
-		t->teardown = NULL;
+			t = zalloc(sizeof(*t));
+			t->name = safe_strdup(test_name);
+			t->devname = safe_strdup("no device");
+			t->func = func;
+			if (range)
+				t->range = *range;
+			t->rangeval = rangeval;
+			t->setup = NULL;
+			t->teardown = NULL;
 
-		list_append(&suite->tests, &t->node);
+			list_append(&suite->tests, &t->node);
+		}
 	} while (++rangeval < range->upper);
 }
 
@@ -478,20 +489,22 @@ litest_add_tcase_deviceless(struct suite *suite,
 
 	int rangeval = range->lower;
 	do {
-		struct test *t;
+		if (filter_for_rangeval(range, rangeval)) {
+			struct test *t;
 
-		t = zalloc(sizeof(*t));
-		t->deviceless = true;
-		t->name = safe_strdup(test_name);
-		t->devname = safe_strdup("deviceless");
-		t->func = func;
-		if (range)
-			t->range = *range;
-		t->rangeval = rangeval;
-		t->setup = NULL;
-		t->teardown = NULL;
+			t = zalloc(sizeof(*t));
+			t->deviceless = true;
+			t->name = safe_strdup(test_name);
+			t->devname = safe_strdup("deviceless");
+			t->func = func;
+			if (range)
+				t->range = *range;
+			t->rangeval = rangeval;
+			t->setup = NULL;
+			t->teardown = NULL;
 
-		list_append(&suite->tests, &t->node);
+			list_append(&suite->tests, &t->node);
+		}
 	} while (++rangeval < range->upper);
 }
 
@@ -4570,6 +4583,7 @@ litest_parse_argv(int argc, char **argv)
 		OPT_FILTER_TEST,
 		OPT_FILTER_DEVICE,
 		OPT_FILTER_GROUP,
+		OPT_FILTER_RANGEVAL,
 		OPT_FILTER_DEVICELESS,
 		OPT_XML_PREFIX,
 		OPT_JOBS,
@@ -4580,6 +4594,7 @@ litest_parse_argv(int argc, char **argv)
 		{ "filter-test", 1, 0, OPT_FILTER_TEST },
 		{ "filter-device", 1, 0, OPT_FILTER_DEVICE },
 		{ "filter-group", 1, 0, OPT_FILTER_GROUP },
+		{ "filter-rangeval", 1, 0, OPT_FILTER_RANGEVAL },
 		{ "filter-deviceless", 0, 0, OPT_FILTER_DEVICELESS },
 		{ "exitfirst", 0, 0, OPT_EXIT_FIRST },
 		{ "xml-output", 1, 0, OPT_XML_PREFIX },
@@ -4635,6 +4650,8 @@ litest_parse_argv(int argc, char **argv)
 			       "          Glob to filter on device names\n"
 			       "    --filter-group=.... \n"
 			       "          Glob to filter on test groups\n"
+			       "    --filter-rangeval=N \n"
+			       "          Only run tests with the given range value\n"
 			       "    --filter-deviceless=.... \n"
 			       "          Glob to filter on tests that do not create test devices\n"
 			       "    --xml-output=/path/to/file-XXXXXXX.xml\n"
@@ -4665,6 +4682,9 @@ litest_parse_argv(int argc, char **argv)
 			break;
 		case OPT_FILTER_GROUP:
 			filter_group = optarg;
+			break;
+		case OPT_FILTER_RANGEVAL:
+			filter_rangeval = atoi(optarg);
 			break;
 		case OPT_XML_PREFIX:
 			xml_prefix = optarg;
