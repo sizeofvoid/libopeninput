@@ -4993,6 +4993,23 @@ disable_tty(void)
 	return tty_mode;
 }
 
+static void
+restore_tty(int tty_mode)
+{
+	if (tty_mode != -1) {
+		ioctl(STDIN_FILENO, KDSKBMODE, tty_mode);
+#ifdef __FreeBSD__
+		/* Put the tty into "sane" mode */
+		struct termios tios;
+		if (tcgetattr(STDIN_FILENO, &tios))
+				fprintf(stderr, "Failed to get terminal attribute: %d - %s\n", errno, strerror(errno));
+		cfmakesane(&tios);
+		if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tios))
+				fprintf(stderr, "Failed to set terminal attribute: %d - %s\n", errno, strerror(errno));
+#endif
+	}
+}
+
 int
 main(int argc, char **argv)
 {
@@ -5043,18 +5060,7 @@ main(int argc, char **argv)
 
 	litest_free_test_list(&all_tests);
 
-	if (tty_mode != -1) {
-		ioctl(STDIN_FILENO, KDSKBMODE, tty_mode);
-#ifdef __FreeBSD__
-		/* Put the tty into "sane" mode */
-		struct termios tios;
-		if (tcgetattr(STDIN_FILENO, &tios))
-				fprintf(stderr, "Failed to get terminal attribute: %d - %s\n", errno, strerror(errno));
-		cfmakesane(&tios);
-		if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tios))
-				fprintf(stderr, "Failed to set terminal attribute: %d - %s\n", errno, strerror(errno));
-#endif
-	}
+	restore_tty(tty_mode);
 
 	return min(failed_tests, 255);
 }
