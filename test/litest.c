@@ -109,8 +109,6 @@ created_file_unlink(struct created_file *f)
 	rmdir(f->path);
 }
 
-static struct list created_files_list; /* list of all files to remove at the end
-					  of the test run */
 static struct suite *current_suite = NULL;
 
 static void litest_init_udev_rules(struct list *created_files_list);
@@ -1122,7 +1120,7 @@ litest_run(struct list *suites)
 	if (setrlimit(RLIMIT_CORE, &corelimit) != 0)
 		perror("WARNING: Core dumps not disabled");
 
-	list_init(&created_files_list);
+	struct list created_files_list = LIST_INIT(created_files_list);
 
 	if (run_deviceless) {
 		litest_setup_quirks(&created_files_list,
