@@ -185,7 +185,7 @@ litest_fail_condition(const char *file,
 
 	litest_log("in %s() (%s:%d)\n", func, file, line);
 	litest_backtrace();
-	abort();
+	litest_runner_abort();
 }
 
 __attribute__((noreturn))
@@ -203,7 +203,7 @@ litest_fail_comparison_int(const char *file,
 	litest_log("Resolved to: %d %s %d\n", a, operator, b);
 	litest_log("in %s() (%s:%d)\n", func, file, line);
 	litest_backtrace();
-	abort();
+	litest_runner_abort();
 }
 
 __attribute__((noreturn))
@@ -221,7 +221,7 @@ litest_fail_comparison_double(const char *file,
 	litest_log("Resolved to: %.3f %s %.3f\n", a, operator, b);
 	litest_log("in %s() (%s:%d)\n", func, file, line);
 	litest_backtrace();
-	abort();
+	litest_runner_abort();
 }
 
 __attribute__((noreturn))
@@ -234,7 +234,7 @@ litest_fail_comparison_ptr(const char *file,
 	litest_log("FAILED COMPARISON: %s\n", comparison);
 	litest_log("in %s() (%s:%d)\n", func, file, line);
 	litest_backtrace();
-	abort();
+	litest_runner_abort();
 }
 
 __attribute__((noreturn))
@@ -251,7 +251,7 @@ litest_fail_comparison_str(const char *file,
 	litest_log("Resolved to: %s %s %s\n", astr, operator, bstr);
 	litest_log("in %s() (%s:%d)\n", func, file, line);
 	litest_backtrace();
-	abort();
+	litest_runner_abort();
 }
 
 struct test {
@@ -3257,7 +3257,7 @@ _litest_assert_event_type_is_one_of(struct libinput_event *event, ...)
 	fprintf(stderr, "\nWrong event is: ");
 	litest_print_event(event);
 	litest_backtrace();
-	abort();
+	litest_runner_abort();
 }
 
 void
@@ -3298,7 +3298,7 @@ _litest_assert_event_type_not_one_of(struct libinput_event *event, ...)
 	fprintf(stderr, "\nWrong event is: ");
 	litest_print_event(event);
 	litest_backtrace();
-	abort();
+	litest_runner_abort();
 }
 
 void

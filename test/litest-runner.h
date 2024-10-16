@@ -92,3 +92,11 @@ litest_runner_set_setup_funcs(struct litest_runner *runner,
 			      void *userdata);
 
 void litest_runner_destroy(struct litest_runner *runner);
+
+/*
+ * Function to call abort(). Depending on the number of forks permitted,
+ * this function may simply abort() or it may longjmp back out to collect
+ * errors from non-forking tests.
+ */
+__attribute__((noreturn))
+void litest_runner_abort(void);

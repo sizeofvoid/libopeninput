@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <setjmp.h>
 #include <valgrind/valgrind.h>
 
 #include "litest-runner.h"
@@ -41,6 +42,9 @@
 #include "util-files.h"
 #include "util-list.h"
 #include "util-stringbuf.h"
+
+static bool use_jmpbuf; /* only used for max_forks = 0 */
+static jmp_buf jmpbuf;
 
 /* musl doesn't have this one but it's not that important */
 #ifndef HAVE_SIGABBREV_NP
@@ -587,10 +591,20 @@ litest_runner_test_update_errno(struct litest_runner_test *t, int error)
 	}
 }
 
+__attribute__((noreturn))
+void
+litest_runner_abort(void)  {
+	if (use_jmpbuf) {
+		longjmp(jmpbuf, SIGABRT);
+	} else {
+		abort();
+	}
+}
+
 static int
 litest_runner_run_test(struct litest_runner *runner, struct litest_runner_test *t)
 {
-	int r = 0;
+	int r;
 
 	t->result = LITEST_SYSTEM_ERROR;
 
@@ -599,7 +613,12 @@ litest_runner_run_test(struct litest_runner *runner, struct litest_runner_test *
 	t->times.start_millis = us2ms(now);
 
 	if (runner->max_forks == 0) {
-		t->result = litest_runner_test_run(&t->desc);
+		if (use_jmpbuf && setjmp(jmpbuf) == 0) {
+			t->result = litest_runner_test_run(&t->desc);
+		} else {
+			t->result = LITEST_FAIL;
+		}
+		r = 0; /* -Wclobbered */
 	} else {
 		r = litest_runner_fork_test(runner, t);
 		if (r >= 0)
@@ -844,6 +863,8 @@ litest_runner_run_tests(struct litest_runner *runner)
 
 	if (runner->global.setup)
 		runner->global.setup(runner->global.userdata);
+
+	use_jmpbuf = runner->max_forks == 0;
 
 	setup_sighandler(SIGINT);
 
