@@ -398,6 +398,9 @@ litest_add_tcase_for_device(struct suite *suite,
 {
 	struct test *t;
 
+	if (run_deviceless)
+		return;
+
 	t = zalloc(sizeof(*t));
 	t->name = safe_strdup(funcname);
 	t->devname = safe_strdup(dev->shortname);
@@ -422,6 +425,9 @@ litest_add_tcase_no_device(struct suite *suite,
 
 	if (filter_device &&
 	    fnmatch(filter_device, test_name, 0) != 0)
+		return;
+
+	if (run_deviceless)
 		return;
 
 	t = zalloc(sizeof(*t));
@@ -1023,14 +1029,6 @@ litest_run_suite(struct list *suites, int which, int max, int error_fd)
 			Suite *suite;
 			TCase *tc;
 			char *sname, *tname;
-
-			/* We run deviceless tests as part of the normal
-			 * test suite runner, just in case. Filtering
-			 * all the other ones out just for the case where
-			 * we can't run the full runner.
-			 */
-			if (run_deviceless && !t->deviceless)
-				continue;
 
 			count = (count + 1) % max;
 			if (max != 1 && (count % max) != which)
