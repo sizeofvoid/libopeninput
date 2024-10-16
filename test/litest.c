@@ -1113,8 +1113,14 @@ restore_tty(int tty_mode)
 static inline enum litest_runner_result
 litest_run(struct list *suites)
 {
+	const struct rlimit corelimit = { 0, 0 };
 	int inhibit_lock_fd;
 	int tty_mode = -1;
+
+	setenv("LIBINPUT_RUNNING_TEST_SUITE", "1", 1);
+
+	if (setrlimit(RLIMIT_CORE, &corelimit) != 0)
+		perror("WARNING: Core dumps not disabled");
 
 	list_init(&created_files_list);
 
@@ -4818,7 +4824,6 @@ litest_free_test_list(struct list *tests)
 int
 main(int argc, char **argv)
 {
-	const struct rlimit corelimit = { 0, 0 };
 	enum litest_mode mode;
 	int rc;
 	const char *meson_testthreads;
@@ -4856,12 +4861,6 @@ main(int argc, char **argv)
 
 	if (!run_deviceless && (rc = check_device_access()) != 0)
 		return rc;
-
-	setenv("CK_DEFAULT_TIMEOUT", "30", 0);
-	setenv("LIBINPUT_RUNNING_TEST_SUITE", "1", 1);
-
-	if (setrlimit(RLIMIT_CORE, &corelimit) != 0)
-		perror("WARNING: Core dumps not disabled");
 
 	enum litest_runner_result result = litest_run(&all_test_suites);
 
