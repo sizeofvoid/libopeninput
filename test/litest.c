@@ -1027,19 +1027,8 @@ litest_run_suite(struct list *suites, int njobs)
 		}
 	}
 
-	if (ntests > 0) {
-		const char *data_path = getenv("LIBINPUT_QUIRKS_DIR");
-		if (!data_path)
-			data_path = LIBINPUT_QUIRKS_DIR;
-
-		quirks_context = quirks_init_subsystem(data_path,
-						       NULL,
-						       quirk_log_handler,
-						       NULL,
-						       QLOG_LIBINPUT_LOGGING);
+	if (ntests > 0)
 		result = litest_runner_run_tests(runner);
-		quirks_context_unref(quirks_context);
-	}
 
 	litest_runner_destroy(runner);
 
@@ -1121,7 +1110,19 @@ litest_run(struct list *suites)
 
 	inhibit_lock_fd = inhibit();
 
+	const char *data_path = getenv("LIBINPUT_QUIRKS_DIR");
+	if (!data_path)
+		data_path = LIBINPUT_QUIRKS_DIR;
+
+	quirks_context = quirks_init_subsystem(data_path,
+					       NULL,
+					       quirk_log_handler,
+					       NULL,
+					       QLOG_LIBINPUT_LOGGING);
+
 	enum litest_runner_result result = litest_run_suite(suites, jobs);
+
+	quirks_context_unref(quirks_context);
 
 	close(inhibit_lock_fd);
 
