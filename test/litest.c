@@ -397,7 +397,7 @@ void litest_generic_device_teardown(void)
 
 static struct list devices = LIST_INIT(devices); /* struct litest_test_device */
 
-static struct list all_tests = LIST_INIT(all_tests); /* struct suite */
+static struct list all_test_suites = LIST_INIT(all_test_suites); /* struct suite */
 
 static inline void
 litest_system(const char *command)
@@ -504,7 +504,7 @@ get_suite(const char *name)
 {
 	struct suite *s;
 
-	list_for_each(s, &all_tests, node) {
+	list_for_each(s, &all_test_suites, node) {
 		if (streq(s->name, name))
 			return s;
 	}
@@ -513,7 +513,7 @@ get_suite(const char *name)
 	s->name = safe_strdup(name);
 
 	list_init(&s->tests);
-	list_insert(&all_tests, &s->node);
+	list_insert(&all_test_suites, &s->node);
 
 	return s;
 }
@@ -5032,14 +5032,14 @@ main(int argc, char **argv)
 	litest_init_test_devices(&devices);
 
 	setup_tests();
-	if (list_empty(&all_tests)) {
+	if (list_empty(&all_test_suites)) {
 		fprintf(stderr,
 			"Error: filters are too strict, no tests to run.\n");
 		return EXIT_FAILURE;
 	}
 
 	if (mode == LITEST_MODE_LIST) {
-		litest_list_tests(&all_tests);
+		litest_list_tests(&all_test_suites);
 		return EXIT_SUCCESS;
 	}
 
@@ -5054,9 +5054,9 @@ main(int argc, char **argv)
 
 	tty_mode = disable_tty();
 
-	failed_tests = litest_run(&all_tests);
+	failed_tests = litest_run(&all_test_suites);
 
-	litest_free_test_list(&all_tests);
+	litest_free_test_list(&all_test_suites);
 
 	restore_tty(tty_mode);
 
