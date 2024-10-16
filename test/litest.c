@@ -395,9 +395,9 @@ void litest_generic_device_teardown(void)
 	current_device = NULL;
 }
 
-static struct list devices;
+static struct list devices = LIST_INIT(devices); /* struct litest_test_device */
 
-static struct list all_tests;
+static struct list all_tests = LIST_INIT(all_tests); /* struct suite */
 
 static inline void
 litest_system(const char *command)
@@ -5035,10 +5035,8 @@ main(int argc, char **argv)
 	if (mode == LITEST_MODE_ERROR)
 		return EXIT_FAILURE;
 
-	list_init(&devices);
 	litest_init_test_devices(&devices);
 
-	list_init(&all_tests);
 	setup_tests();
 	if (mode == LITEST_MODE_LIST) {
 		litest_list_tests(&all_tests);
