@@ -363,7 +363,7 @@ grab_device(struct litest_device *device, bool mode)
 	list_for_each(p, &ctx->paths, link) {
 		if (streq(p->path, devnode)) {
 			int rc = ioctl(p->fd, EVIOCGRAB, (void*)mode ? 1 : 0);
-			litest_assert_int_gt(rc, -1);
+			litest_assert_errno_success(rc);
 			udev_device_unref(udev_device);
 			return;
 		}
@@ -1435,7 +1435,7 @@ litest_copy_file(const char *dest, const char *src, const char *header, bool is_
 		litest_abort_msg("Failed to write to file %s (%s)",
 				 file->path,
 				 strerror(errno));
-	litest_assert_int_ne(chmod(file->path, 0644), -1);
+	litest_assert_errno_success(chmod(file->path, 0644));
 
 	if (header) {
 		length = strlen(header);
@@ -1518,7 +1518,7 @@ litest_init_device_quirk_file(const char *data_dir,
 		 ++count,
 		 dev->shortname);
 	fd = open(path, O_CREAT|O_WRONLY, 0644);
-	litest_assert_int_ne(fd, -1);
+	litest_assert_errno_success(fd);
 	f = fdopen(fd, "w");
 	litest_assert_notnull(f);
 	litest_assert_int_ge(fputs(dev->quirk_file, f), 0);
@@ -1603,7 +1603,7 @@ litest_setup_quirks(struct list *created_files_list,
 		break;
 	case QUIRKS_SETUP_FULL:
 		litest_assert_notnull(mkdtemp(tmpdir));
-		litest_assert_int_ne(chmod(tmpdir, 0755), -1);
+		litest_assert_errno_success(chmod(tmpdir, 0755));
 		file = zalloc(sizeof *file);
 		file->path = safe_strdup(tmpdir);
 		dirname = tmpdir;
@@ -1716,7 +1716,7 @@ litest_create(enum litest_device_type which,
 	path = libevdev_uinput_get_devnode(d->uinput);
 	litest_assert_ptr_notnull(path);
 	fd = open(path, O_RDWR|O_NONBLOCK);
-	litest_assert_int_ne(fd, -1);
+	litest_assert_errno_success(fd);
 
 	rc = libevdev_new_from_fd(fd, &d->evdev);
 	litest_assert_neg_errno_success(rc);
@@ -1902,7 +1902,7 @@ udev_setup_monitor(void)
 
 	/* remove O_NONBLOCK */
 	rc = fcntl(udev_monitor_get_fd(udev_monitor), F_SETFL, 0);
-	litest_assert_int_ne(rc, -1);
+	litest_assert_errno_success(rc);
 	litest_assert_int_eq(udev_monitor_enable_receiving(udev_monitor),
 			     0);
 	udev_unref(udev);
