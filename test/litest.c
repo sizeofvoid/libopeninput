@@ -4918,14 +4918,11 @@ litest_list_tests(struct list *tests)
 extern const struct test_device __start_test_device_section, __stop_test_device_section;
 
 static void
-litest_init_test_devices(void)
+litest_init_test_devices(struct list *devices)
 {
 	const struct test_device *t;
-
-	list_init(&devices);
-
 	for (t = &__start_test_device_section; t < &__stop_test_device_section; t++)
-		list_append(&devices, &t->device->node);
+		list_append(devices, &t->device->node);
 }
 
 extern const struct test_collection __start_test_collection_section,
@@ -5021,7 +5018,9 @@ main(int argc, char **argv)
 	if (mode == LITEST_MODE_ERROR)
 		return EXIT_FAILURE;
 
-	litest_init_test_devices();
+	list_init(&devices);
+	litest_init_test_devices(&devices);
+
 	list_init(&all_tests);
 	setup_tests();
 	if (mode == LITEST_MODE_LIST) {
