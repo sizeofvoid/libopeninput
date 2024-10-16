@@ -1068,10 +1068,53 @@ out:
 	return lock_fd;
 }
 
+static int
+disable_tty(void)
+{
+	int tty_mode = -1;
+
+	if (isatty(STDIN_FILENO) && ioctl(STDIN_FILENO, KDGKBMODE, &tty_mode) == 0) {
+#ifdef __linux__
+		ioctl(STDIN_FILENO, KDSKBMODE, K_OFF);
+#elif __FreeBSD__
+		ioctl(STDIN_FILENO, KDSKBMODE, K_RAW);
+
+		/* Put the tty into raw mode */
+		struct termios tios;
+		if (tcgetattr(STDIN_FILENO, &tios))
+				fprintf(stderr, "Failed to get terminal attribute: %d - %s\n", errno, strerror(errno));
+		cfmakeraw(&tios);
+		if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tios))
+				fprintf(stderr, "Failed to set terminal attribute: %d - %s\n", errno, strerror(errno));
+#endif
+	}
+
+	return tty_mode;
+}
+
+static void
+restore_tty(int tty_mode)
+{
+	if (tty_mode != -1) {
+		ioctl(STDIN_FILENO, KDSKBMODE, tty_mode);
+#ifdef __FreeBSD__
+		/* Put the tty into "sane" mode */
+		struct termios tios;
+		if (tcgetattr(STDIN_FILENO, &tios))
+				fprintf(stderr, "Failed to get terminal attribute: %d - %s\n", errno, strerror(errno));
+		cfmakesane(&tios);
+		if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tios))
+				fprintf(stderr, "Failed to set terminal attribute: %d - %s\n", errno, strerror(errno));
+#endif
+	}
+}
+
+
 static inline enum litest_runner_result
 litest_run(struct list *suites)
 {
 	int inhibit_lock_fd;
+	int tty_mode = -1;
 
 	list_init(&created_files_list);
 
@@ -1088,6 +1131,13 @@ litest_run(struct list *suites)
 				QUIRKS_SETUP_FULL;
 		litest_setup_quirks(&created_files_list, mode);
 	}
+
+	/* If we're running 'normally' on the VT, disable the keyboard to
+	 * avoid messing up our host. But if we're inside gdb or running
+	 * without forking, leave it as-is.
+	 */
+	if (!run_deviceless && jobs > 1 && !in_debugger)
+		tty_mode = disable_tty();
 
 	inhibit_lock_fd = inhibit();
 
@@ -1106,6 +1156,8 @@ litest_run(struct list *suites)
 	quirks_context_unref(quirks_context);
 
 	close(inhibit_lock_fd);
+
+	restore_tty(tty_mode);
 
 	litest_remove_udev_rules(&created_files_list);
 
@@ -4742,55 +4794,6 @@ check_device_access(void)
 	return 0;
 }
 
-static int
-disable_tty(void)
-{
-	int tty_mode = -1;
-
-	/* If we're running 'normally' on the VT, disable the keyboard to
-	 * avoid messing up our host. But if we're inside gdb or running
-	 * without forking, leave it as-is.
-	 */
-	if (!run_deviceless &&
-	    jobs > 1 &&
-	    !in_debugger &&
-	    isatty(STDIN_FILENO) &&
-	    ioctl(STDIN_FILENO, KDGKBMODE, &tty_mode) == 0) {
-#ifdef __linux__
-		ioctl(STDIN_FILENO, KDSKBMODE, K_OFF);
-#elif __FreeBSD__
-		ioctl(STDIN_FILENO, KDSKBMODE, K_RAW);
-
-		/* Put the tty into raw mode */
-		struct termios tios;
-		if (tcgetattr(STDIN_FILENO, &tios))
-				fprintf(stderr, "Failed to get terminal attribute: %d - %s\n", errno, strerror(errno));
-		cfmakeraw(&tios);
-		if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tios))
-				fprintf(stderr, "Failed to set terminal attribute: %d - %s\n", errno, strerror(errno));
-#endif
-	}
-
-	return tty_mode;
-}
-
-static void
-restore_tty(int tty_mode)
-{
-	if (tty_mode != -1) {
-		ioctl(STDIN_FILENO, KDSKBMODE, tty_mode);
-#ifdef __FreeBSD__
-		/* Put the tty into "sane" mode */
-		struct termios tios;
-		if (tcgetattr(STDIN_FILENO, &tios))
-				fprintf(stderr, "Failed to get terminal attribute: %d - %s\n", errno, strerror(errno));
-		cfmakesane(&tios);
-		if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tios))
-				fprintf(stderr, "Failed to set terminal attribute: %d - %s\n", errno, strerror(errno));
-#endif
-	}
-}
-
 static void
 litest_free_test_list(struct list *tests)
 {
@@ -4817,7 +4820,6 @@ main(int argc, char **argv)
 {
 	const struct rlimit corelimit = { 0, 0 };
 	enum litest_mode mode;
-	int tty_mode = -1;
 	int rc;
 	const char *meson_testthreads;
 
@@ -4861,13 +4863,9 @@ main(int argc, char **argv)
 	if (setrlimit(RLIMIT_CORE, &corelimit) != 0)
 		perror("WARNING: Core dumps not disabled");
 
-	tty_mode = disable_tty();
-
 	enum litest_runner_result result = litest_run(&all_test_suites);
 
 	litest_free_test_list(&all_test_suites);
-
-	restore_tty(tty_mode);
 
 	switch (result) {
 		case LITEST_PASS:
