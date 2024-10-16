@@ -82,4 +82,13 @@ void litest_runner_add_test(struct litest_runner *runner,
 			    const struct litest_runner_test_description *t);
 enum litest_runner_result litest_runner_run_tests(struct litest_runner *runner);
 
+typedef enum litest_runner_result (*litest_runner_global_setup_func_t)(void *userdata);
+typedef void (*litest_runner_global_teardown_func_t)(void *userdata);
+
+void
+litest_runner_set_setup_funcs(struct litest_runner *runner,
+			      litest_runner_global_setup_func_t setup,
+			      litest_runner_global_teardown_func_t teardown,
+			      void *userdata);
+
 void litest_runner_destroy(struct litest_runner *runner);

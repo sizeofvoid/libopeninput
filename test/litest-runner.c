@@ -95,6 +95,12 @@ struct litest_runner {
 		time_t end;
 		uint64_t start_millis;
 	} times;
+
+	struct {
+		litest_runner_global_setup_func_t setup;
+		litest_runner_global_teardown_func_t teardown;
+		void *userdata;
+	} global;
 };
 
 
@@ -736,6 +742,17 @@ litest_runner_set_exit_on_fail(struct litest_runner *runner, bool do_exit)
 }
 
 void
+litest_runner_set_setup_funcs(struct litest_runner *runner,
+			      litest_runner_global_setup_func_t setup,
+			      litest_runner_global_teardown_func_t teardown,
+			      void *userdata)
+{
+	runner->global.setup = setup;
+	runner->global.teardown = teardown;
+	runner->global.userdata = userdata;
+}
+
+void
 litest_runner_add_test(struct litest_runner *runner,
 		       const struct litest_runner_test_description *desc)
 {
@@ -825,6 +842,9 @@ litest_runner_run_tests(struct litest_runner *runner)
 
 	global_runner = runner; /* sigh, need this for signal handling */
 
+	if (runner->global.setup)
+		runner->global.setup(runner->global.userdata);
+
 	setup_sighandler(SIGINT);
 
 	uint64_t now = 0;
@@ -878,6 +898,8 @@ litest_runner_run_tests(struct litest_runner *runner)
 		litest_runner_check_finished_tests(runner);
 	}
 
+	if (runner->global.teardown)
+		runner->global.teardown(runner->global.userdata);
 
 	size_t npass = 0, nfail = 0, nskip = 0, nna = 0;
 	size_t ncomplete = 0;
