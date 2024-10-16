@@ -964,6 +964,28 @@ litest_export_xml(SRunner *sr, const char *xml_prefix)
 }
 #endif
 
+static enum litest_runner_result
+init_quirks(void *userdata)
+{
+	const char *data_path = getenv("LIBINPUT_QUIRKS_DIR");
+	if (!data_path)
+		data_path = LIBINPUT_QUIRKS_DIR;
+
+	quirks_context = quirks_init_subsystem(data_path,
+					       NULL,
+					       quirk_log_handler,
+					       NULL,
+					       QLOG_LIBINPUT_LOGGING);
+
+	return LITEST_PASS;
+}
+
+static void
+teardown_quirks(void *userdata)
+{
+	quirks_context_unref(quirks_context);
+}
+
 static int
 litest_run_suite(struct list *suites, int njobs)
 {
@@ -976,6 +998,7 @@ litest_run_suite(struct list *suites, int njobs)
 	litest_runner_set_verbose(runner, verbose);
 	litest_runner_set_timeout(runner, 30);
 	litest_runner_set_exit_on_fail(runner, exit_first);
+	litest_runner_set_setup_funcs(runner, init_quirks, teardown_quirks, NULL);
 
 	list_for_each(s, suites, node) {
 		struct test *t;
@@ -1145,19 +1168,7 @@ litest_run(struct list *suites)
 
 	inhibit_lock_fd = inhibit();
 
-	const char *data_path = getenv("LIBINPUT_QUIRKS_DIR");
-	if (!data_path)
-		data_path = LIBINPUT_QUIRKS_DIR;
-
-	quirks_context = quirks_init_subsystem(data_path,
-					       NULL,
-					       quirk_log_handler,
-					       NULL,
-					       QLOG_LIBINPUT_LOGGING);
-
 	enum litest_runner_result result = litest_run_suite(suites, jobs);
-
-	quirks_context_unref(quirks_context);
 
 	close(inhibit_lock_fd);
 
