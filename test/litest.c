@@ -1313,12 +1313,6 @@ litest_run(struct list *tests)
 
 	list_init(&created_files_list);
 
-	if (list_empty(tests)) {
-		fprintf(stderr,
-			"Error: filters are too strict, no tests to run.\n");
-		return 1;
-	}
-
 	if (getenv("LITEST_VERBOSE"))
 		verbose = true;
 
@@ -5038,6 +5032,12 @@ main(int argc, char **argv)
 	litest_init_test_devices(&devices);
 
 	setup_tests();
+	if (list_empty(&all_tests)) {
+		fprintf(stderr,
+			"Error: filters are too strict, no tests to run.\n");
+		return EXIT_FAILURE;
+	}
+
 	if (mode == LITEST_MODE_LIST) {
 		litest_list_tests(&all_tests);
 		return EXIT_SUCCESS;
