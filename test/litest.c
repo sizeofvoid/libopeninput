@@ -1313,9 +1313,6 @@ litest_run(struct list *tests)
 
 	list_init(&created_files_list);
 
-	if (getenv("LITEST_VERBOSE"))
-		verbose = true;
-
 	if (run_deviceless) {
 		litest_setup_quirks(&created_files_list,
 				    QUIRKS_SETUP_USE_SRCDIR);
@@ -5024,6 +5021,9 @@ main(int argc, char **argv)
 		if (!RUNNING_ON_VALGRIND)
 			jobs *= 2;
 	}
+
+	if (getenv("LITEST_VERBOSE"))
+		verbose = true;
 
 	mode = litest_parse_argv(argc, argv);
 	if (mode == LITEST_MODE_ERROR)
