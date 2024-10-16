@@ -1062,7 +1062,7 @@ litest_export_xml(SRunner *sr, const char *xml_prefix)
 }
 
 static int
-litest_run_suite(struct list *tests, int which, int max, int error_fd)
+litest_run_suite(struct list *suites, int which, int max, int error_fd)
 {
 	int failed = 0;
 	SRunner *sr = NULL;
@@ -1095,7 +1095,7 @@ litest_run_suite(struct list *tests, int which, int max, int error_fd)
 	   add it to the test runner. The only benefit suites give us in
 	   check is that we can filter them, but our test runner has a
 	   --filter-group anyway. */
-	list_for_each(s, tests, node) {
+	list_for_each(s, suites, node) {
 		list_for_each(t, &s->tests, node) {
 			Suite *suite;
 			TCase *tc;
@@ -1223,7 +1223,7 @@ litest_fork_subtests(struct list *tests, int max_forks)
 						  max_forks,
 						  pipefd[1]);
 
-			litest_free_test_list(&all_tests);
+			litest_free_test_list(&all_test_suites);
 			exit(failed);
 			/* child always exits here */
 		} else {
@@ -1306,7 +1306,7 @@ out:
 }
 
 static inline int
-litest_run(struct list *tests)
+litest_run(struct list *suites)
 {
 	int failed = 0;
 	int inhibit_lock_fd;
@@ -1332,9 +1332,9 @@ litest_run(struct list *tests)
 	inhibit_lock_fd = inhibit();
 
 	if (jobs == 1)
-		failed = litest_run_suite(tests, 1, 1, STDERR_FILENO);
+		failed = litest_run_suite(suites, 1, 1, STDERR_FILENO);
 	else
-		failed = litest_fork_subtests(tests, jobs);
+		failed = litest_fork_subtests(suites, jobs);
 
 	close(inhibit_lock_fd);
 
