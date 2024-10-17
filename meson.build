@@ -953,6 +953,8 @@ if get_option('tests')
 		'touchpad',
 		'touchpad_buttons',
 		'touchpad_tap',
+		'touchpad_tap_drag',
+		'touchpad_tap_palm',
 		'trackball',
 		'trackpoint',
 		'udev',

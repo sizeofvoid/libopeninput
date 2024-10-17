@@ -175,6 +175,12 @@ test_suites:
   - name: tap
     suites:
       - touchpad_tap
+  - name: tap-drag
+    suites:
+      - touchpad_tap_drag
+  - name: tap-palm
+    suites:
+      - touchpad_tap_palm
   - name: touchpad-buttons
     suites:
       - touchpad_buttons

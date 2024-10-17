@@ -568,6 +568,32 @@ vm-tap-no-libwacom:
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
+vm-tap-drag:
+  extends:
+    - .fedora:40@test-suite-vm
+  variables:
+    SUITE_NAMES: 'touchpad_tap_drag'
+
+vm-tap-drag-no-libwacom:
+  extends:
+    - vm-tap-drag
+  stage: test-suite-no-libwacom
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
+vm-tap-palm:
+  extends:
+    - .fedora:40@test-suite-vm
+  variables:
+    SUITE_NAMES: 'touchpad_tap_palm'
+
+vm-tap-palm-no-libwacom:
+  extends:
+    - vm-tap-palm
+  stage: test-suite-no-libwacom
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
 vm-touchpad-buttons:
   extends:
     - .fedora:40@test-suite-vm
@@ -676,6 +702,30 @@ vm-valgrind-tap:
   stage: valgrind
   extends:
     - vm-tap
+  variables:
+    MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 2
+  retry:
+    max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
+
+vm-valgrind-tap-drag:
+  stage: valgrind
+  extends:
+    - vm-tap-drag
+  variables:
+    MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 2
+  retry:
+    max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
+
+vm-valgrind-tap-palm:
+  stage: valgrind
+  extends:
+    - vm-tap-palm
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 2
@@ -896,6 +946,8 @@ check-test-suites:
       cat <<EOF > ci-testsuites ;
         libinput-test-suite-touchpad
         libinput-test-suite-touchpad_tap
+        libinput-test-suite-touchpad_tap_drag
+        libinput-test-suite-touchpad_tap_palm
         libinput-test-suite-touchpad_buttons
         libinput-test-suite-tablet
         libinput-test-suite-gestures
