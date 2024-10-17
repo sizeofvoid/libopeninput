@@ -2596,8 +2596,6 @@ tablet_lookup_libwacom(struct evdev_device *device,
 	const char *devnode;
 	WacomDeviceDatabase *db;
 	WacomDevice *libwacom_device = NULL;
-	const int *stylus_ids;
-	int nstyli;
 	int vid = evdev_device_get_id_vendor(device);
 
 	db = tablet_libinput_context(tablet)->libwacom.db;
@@ -2618,14 +2616,14 @@ tablet_lookup_libwacom(struct evdev_device *device,
 	 * lenovo pens so we use that as the flag of whether the tablet
 	 * is an AES tablet
 	 */
-	if (vid != VENDOR_ID_WACOM)
-		return;
-
-	stylus_ids = libwacom_get_supported_styli(libwacom_device, &nstyli);
-	for (int i = 0; i < nstyli; i++) {
-		if (stylus_ids[i] == 0x11) {
-			*is_aes = true;
-			break;
+	if (vid == VENDOR_ID_WACOM) {
+		int nstyli;
+		const int *stylus_ids = libwacom_get_supported_styli(libwacom_device, &nstyli);
+		for (int i = 0; i < nstyli; i++) {
+			if (stylus_ids[i] == 0x11) {
+				*is_aes = true;
+				break;
+			}
 		}
 	}
 
