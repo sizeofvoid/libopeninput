@@ -62,4 +62,13 @@
 
 #define CASE_RETURN_STRING(a) case a: return #a
 
+/**
+ * Concatenate two macro args into one, e.g.:
+ *	int CONCAT(foo_, __LINE__);
+ * will produce:
+ *	int foo_123;
+ */
+#define CONCAT2(X,Y) X##Y
+#define CONCAT(X,Y) CONCAT2(X,Y)
+
 #define _fallthrough_ __attribute__((fallthrough))
