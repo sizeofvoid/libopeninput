@@ -108,6 +108,7 @@ created_file_unlink(struct created_file *f)
 
 static struct list created_files_list; /* list of all files to remove at the end
 					  of the test run */
+static struct suite *current_suite = NULL;
 
 static void litest_init_udev_rules(struct list *created_files_list);
 static void litest_remove_udev_rules(struct list *created_files_list);
@@ -499,39 +500,6 @@ litest_add_tcase_deviceless(struct suite *suite,
 	list_insert(&suite->tests, &t->node);
 }
 
-static struct suite *
-get_suite(const char *name)
-{
-	struct suite *s;
-
-	list_for_each(s, &all_test_suites, node) {
-		if (streq(s->name, name))
-			return s;
-	}
-
-	s = zalloc(sizeof(*s));
-	s->name = safe_strdup(name);
-
-	list_init(&s->tests);
-	list_insert(&all_test_suites, &s->node);
-
-	return s;
-}
-
-static void
-create_suite_name(const char *filename, char suitename[64])
-{
-	char *trunk = trunkname(filename);
-	char *p = trunk;
-
-	/* strip the test- prefix */
-	if (strstartswith(trunk, "test-"))
-		p += 5;
-
-	snprintf(suitename, 64, "%s", p);
-	free(trunk);
-}
-
 static void
 litest_add_tcase(const char *filename,
 		 const char *funcname,
@@ -540,8 +508,6 @@ litest_add_tcase(const char *filename,
 		 int64_t excluded,
 		 const struct range *range)
 {
-	char suite_name[65];
-	struct suite *suite;
 	bool added = false;
 
 	litest_assert(required >= LITEST_DEVICELESS);
@@ -551,12 +517,10 @@ litest_add_tcase(const char *filename,
 	    fnmatch(filter_test, funcname, 0) != 0)
 		return;
 
-	create_suite_name(filename, suite_name);
+	struct suite *suite = current_suite;
 
-	if (filter_group && fnmatch(filter_group, suite_name, 0) != 0)
+	if (filter_group && fnmatch(filter_group, suite->name, 0) != 0)
 		return;
-
-	suite = get_suite(suite_name);
 
 	if (required == LITEST_DEVICELESS &&
 	    excluded == LITEST_DEVICELESS) {
@@ -691,10 +655,8 @@ _litest_add_ranged_for_device(const char *filename,
 			      enum litest_device_type type,
 			      const struct range *range)
 {
-	struct suite *s;
 	struct litest_test_device *dev;
 	bool device_filtered = false;
-	char suite_name[64];
 
 	litest_assert(type < LITEST_NO_DEVICE);
 
@@ -702,12 +664,11 @@ _litest_add_ranged_for_device(const char *filename,
 	    fnmatch(filter_test, funcname, 0) != 0)
 		return;
 
-	create_suite_name(filename, suite_name);
+	struct suite *s = current_suite;
 
-	if (filter_group && fnmatch(filter_group, suite_name, 0) != 0)
+	if (filter_group && fnmatch(filter_group, s->name, 0) != 0)
 		return;
 
-	s = get_suite(suite_name);
 	list_for_each(dev, &devices, node) {
 		if (filter_device &&
 		    fnmatch(filter_device, dev->shortname, 0) != 0) {
@@ -4927,7 +4888,16 @@ setup_tests(void)
 	for (c = &__start_test_collection_section;
 	     c < &__stop_test_collection_section;
 	     c++) {
+		struct suite *s;
+		s = zalloc(sizeof(*s));
+		s->name = safe_strdup(c->name);
+
+		list_init(&s->tests);
+		list_insert(&all_test_suites, &s->node);
+
+		current_suite = s;
 		c->setup();
+		current_suite = NULL;
 	}
 }
 

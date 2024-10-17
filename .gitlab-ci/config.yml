@@ -174,10 +174,10 @@ test_suites:
       - touchpad
   - name: tap
     suites:
-      - touchpad-tap
+      - touchpad_tap
   - name: touchpad-buttons
     suites:
-      - touchpad-buttons
+      - touchpad_buttons
   - name: tablet
     suites:
       - tablet
