@@ -956,7 +956,6 @@ endif
 	     test_utils,
 	     suite : ['all'])
 
-	# When adding new files to this list, update the CI
 	tests_sources = [
 		'test/test-udev.c',
 		'test/test-path.c',
@@ -988,10 +987,31 @@ endif
 
 	src_man += 'test/libinput-test-suite.man'
 
-	foreach testfile : tests_sources
-		tfile = testfile.split('test/test-')[1]
-		group = tfile.split('.c')[0]
-		group = group.replace('-', '_')
+	# When adding new TEST_COLLECTION() macros, add to this list and the CI
+	# $ git grep TEST_COLLECTION test/test-* | sed -e "s|.*TEST_COLLECTION(\(.*\))|\t\t'\1',|" | sort
+	collections = [
+		'device',
+		'gestures',
+		'keyboard',
+		'log',
+		'misc',
+		'pad',
+		'path',
+		'pointer',
+		'quirks',
+		'switch',
+		'tablet',
+		'totem',
+		'touch',
+		'touchpad',
+		'touchpad_buttons',
+		'touchpad_tap',
+		'trackball',
+		'trackpoint',
+		'udev',
+	]
+
+	foreach group : collections
 		test('libinput-test-suite-@0@'.format(group),
 		     libinput_test_runner,
 		     suite : ['all', 'valgrind', 'root', 'hardware'],
