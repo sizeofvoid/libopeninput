@@ -74,14 +74,14 @@ struct test_collection {
 	void (*setup)(void);
 } __attribute__((aligned(16)));
 
-#define TEST_COLLECTION(name) \
-	static void (name##_setup)(void); \
-	static const struct test_collection _test_collection \
+#define TEST_COLLECTION(name_) \
+	static void (CONCAT(name_ , __LINE__))(void); \
+	static const struct test_collection CONCAT(_test_collection_, __LINE__) \
 	__attribute__ ((used)) \
 	__attribute__ ((section ("test_collection_section"))) = { \
-		#name, name##_setup \
+		#name_, CONCAT(name_, __LINE__) \
 	}; \
-	static void (name##_setup)(void)
+	static void (CONCAT(name_, __LINE__))(void)
 
 __attribute__ ((format (printf, 3, 0)))
 void _litest_checkpoint(const char *func,
