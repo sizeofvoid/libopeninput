@@ -1001,6 +1001,7 @@ endif
 		'quirks',
 		'switch',
 		'tablet',
+		'tablet_left_handed',
 		'totem',
 		'touch',
 		'touchpad',

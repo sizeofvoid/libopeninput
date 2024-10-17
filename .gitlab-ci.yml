@@ -620,6 +620,19 @@ vm-tablet-no-libwacom:
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
+vm-tablet_left_handed:
+  extends:
+    - .fedora:40@test-suite-vm
+  variables:
+    SUITE_NAMES: 'tablet_left_handed'
+
+vm-tablet_left_handed-no-libwacom:
+  extends:
+    - vm-tablet_left_handed
+  stage: test-suite-no-libwacom
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
 vm-gestures:
   extends:
     - .fedora:40@test-suite-vm
@@ -750,6 +763,18 @@ vm-valgrind-tablet:
   stage: valgrind
   extends:
     - vm-tablet
+  variables:
+    MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 2
+  retry:
+    max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
+
+vm-valgrind-tablet_left_handed:
+  stage: valgrind
+  extends:
+    - vm-tablet_left_handed
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 2
@@ -950,6 +975,7 @@ check-test-suites:
         libinput-test-suite-touchpad_tap_palm
         libinput-test-suite-touchpad_buttons
         libinput-test-suite-tablet
+        libinput-test-suite-tablet_left_handed
         libinput-test-suite-gestures
         libinput-test-suite-path
         libinput-test-suite-udev
