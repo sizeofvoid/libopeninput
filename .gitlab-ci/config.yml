@@ -187,6 +187,9 @@ test_suites:
   - name: tablet
     suites:
       - tablet
+  - name: tablet_left_handed
+    suites:
+      - tablet_left_handed
   - name: gestures
     suites:
       - gestures

@@ -948,6 +948,7 @@ if get_option('tests')
 		'quirks',
 		'switch',
 		'tablet',
+		'tablet_left_handed',
 		'totem',
 		'touch',
 		'touchpad',

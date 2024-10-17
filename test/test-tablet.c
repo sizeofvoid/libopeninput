@@ -6564,7 +6564,6 @@ TEST_COLLECTION(tablet)
 {
 	struct range with_timeout = { 0, 2 };
 	struct range xyaxes = { ABS_X, ABS_Y + 1 };
-	struct range lh_transitions = {0, 16}; /* 2 bits for in, 2 bits for out */
 	struct range tilt_cases = {TILT_MINIMUM, TILT_MAXIMUM + 1};
 
 	litest_add(tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
@@ -6628,11 +6627,6 @@ TEST_COLLECTION(tablet)
 	litest_add(tilt_x, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
 	litest_add(tilt_y, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
 	litest_add_ranged(tilt_fixed_points, LITEST_TABLET|LITEST_TILT, LITEST_ANY, &tilt_cases);
-	litest_add_for_device(left_handed, LITEST_WACOM_INTUOS);
-	litest_add_for_device(left_handed_tilt, LITEST_WACOM_INTUOS);
-	litest_add_for_device(left_handed_mouse_rotation, LITEST_WACOM_INTUOS);
-	litest_add_for_device(left_handed_artpen_rotation, LITEST_WACOM_INTUOS);
-	litest_add_for_device(no_left_handed, LITEST_WACOM_CINTIQ);
 	litest_add(pad_buttons_ignored, LITEST_TABLET, LITEST_TOTEM);
 	litest_add_for_device(stylus_buttons, LITEST_WACOM_CINTIQ_PRO16_PEN);
 	litest_add(mouse_tool, LITEST_TABLET | LITEST_TOOL_MOUSE, LITEST_ANY);
@@ -6692,16 +6686,27 @@ TEST_COLLECTION(tablet)
 	litest_add(touch_arbitration_remove_after, LITEST_TABLET | LITEST_DIRECT, LITEST_ANY);
 	litest_add(touch_arbitration_swap_device, LITEST_TABLET, LITEST_ANY);
 
+	litest_add_for_device(huion_static_btn_tool_pen, LITEST_HUION_TABLET);
+	litest_add_for_device(huion_static_btn_tool_pen_no_timeout_during_usage, LITEST_HUION_TABLET);
+	litest_add_ranged_for_device(huion_static_btn_tool_pen_disable_quirk_on_prox_out, LITEST_HUION_TABLET, &with_timeout);
+
+	litest_add_for_device(tablet_smoothing, LITEST_WACOM_HID4800_PEN);
+}
+
+TEST_COLLECTION(tablet_left_handed)
+{
+	struct range lh_transitions = {0, 16}; /* 2 bits for in, 2 bits for out */
+
+	litest_add_for_device(left_handed, LITEST_WACOM_INTUOS);
+	litest_add_for_device(left_handed_tilt, LITEST_WACOM_INTUOS);
+	litest_add_for_device(left_handed_mouse_rotation, LITEST_WACOM_INTUOS);
+	litest_add_for_device(left_handed_artpen_rotation, LITEST_WACOM_INTUOS);
+	litest_add_for_device(no_left_handed, LITEST_WACOM_CINTIQ);
+
 	litest_add_ranged(tablet_rotation_left_handed, LITEST_TABLET, LITEST_ANY, &lh_transitions);
 	litest_add_ranged(tablet_rotation_left_handed_configuration, LITEST_TABLET, LITEST_ANY, &lh_transitions);
 	litest_add_ranged(tablet_rotation_left_handed_while_in_prox, LITEST_TABLET, LITEST_ANY, &lh_transitions);
 	litest_add_ranged(tablet_rotation_left_handed_while_touch_down, LITEST_TABLET, LITEST_ANY, &lh_transitions);
 	litest_add_ranged(tablet_rotation_left_handed_add_touchpad, LITEST_TABLET, LITEST_ANY, &lh_transitions);
 	litest_add_ranged(tablet_rotation_left_handed_add_tablet, LITEST_TOUCHPAD, LITEST_ANY, &lh_transitions);
-
-	litest_add_for_device(huion_static_btn_tool_pen, LITEST_HUION_TABLET);
-	litest_add_for_device(huion_static_btn_tool_pen_no_timeout_during_usage, LITEST_HUION_TABLET);
-	litest_add_ranged_for_device(huion_static_btn_tool_pen_disable_quirk_on_prox_out, LITEST_HUION_TABLET, &with_timeout);
-
-	litest_add_for_device(tablet_smoothing, LITEST_WACOM_HID4800_PEN);
 }
