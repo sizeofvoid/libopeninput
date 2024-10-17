@@ -187,10 +187,9 @@ test_suites:
   - name: tablet
     suites:
       - tablet
-  - name: gestures-device
+  - name: gestures
     suites:
       - gestures
-      - device
   - name: backends
     suites:
       - path
@@ -200,6 +199,7 @@ test_suites:
       - log
       - misc
       - quirks
+      - device
   - name: other devices
     suites:
       - keyboard
