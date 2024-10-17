@@ -524,11 +524,11 @@ freebsd:13.2@container-clean:
   variables:
     # remove the global --no-suite=hardware
     MESON_TEST_ARGS: ''
+    LITEST_JOBS: 4
   before_script:
     - if ! [[ -z $SUITE_NAMES ]]; then SUITES=$(echo $SUITE_NAMES | sed 's/\([^ ]*\)/libinput-test-suite-\1/g'); fi
     - echo "Testing $SUITES"
     - export MESON_TEST_ARGS="$MESON_TEST_ARGS $SUITES"
-    - export LITEST_JOBS="2"
 
 
 .fedora:40@test-suite-vm:
@@ -666,7 +666,7 @@ vm-valgrind-touchpad:
     - vm-touchpad
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 4
+    LITEST_JOBS: 2
   retry:
     max: 2
   rules:
@@ -678,7 +678,7 @@ vm-valgrind-tap:
     - vm-tap
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 4
+    LITEST_JOBS: 2
   retry:
     max: 2
   rules:
@@ -690,7 +690,7 @@ vm-valgrind-touchpad-buttons:
     - vm-touchpad-buttons
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 4
+    LITEST_JOBS: 2
   retry:
     max: 2
   rules:
@@ -702,7 +702,7 @@ vm-valgrind-tablet:
     - vm-tablet
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 4
+    LITEST_JOBS: 2
   retry:
     max: 2
   rules:
@@ -714,7 +714,7 @@ vm-valgrind-gestures-device:
     - vm-gestures-device
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 4
+    LITEST_JOBS: 2
   retry:
     max: 2
   rules:
@@ -726,7 +726,7 @@ vm-valgrind-backends:
     - vm-backends
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 4
+    LITEST_JOBS: 2
   retry:
     max: 2
   rules:
@@ -738,7 +738,7 @@ vm-valgrind-misc:
     - vm-misc
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 4
+    LITEST_JOBS: 2
   retry:
     max: 2
   rules:
@@ -750,7 +750,7 @@ vm-valgrind-other devices:
     - vm-other devices
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 4
+    LITEST_JOBS: 2
   retry:
     max: 2
   rules:
@@ -762,7 +762,7 @@ vm-valgrind-pointer:
     - vm-pointer
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 4
+    LITEST_JOBS: 2
   retry:
     max: 2
   rules:

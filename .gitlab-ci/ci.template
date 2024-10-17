@@ -400,11 +400,11 @@ pre-commit-hooks:
   variables:
     # remove the global --no-suite=hardware
     MESON_TEST_ARGS: ''
+    LITEST_JOBS: 4
   before_script:
     - if ! [[ -z $SUITE_NAMES ]]; then SUITES=$(echo $SUITE_NAMES | sed 's/\([^ ]*\)/libinput-test-suite-\1/g'); fi
     - echo "Testing $SUITES"
     - export MESON_TEST_ARGS="$MESON_TEST_ARGS $SUITES"
-    - export LITEST_JOBS="2"
 
 
 {# qemu tests are only done for the latest version of any distribution #}
@@ -444,7 +444,7 @@ vm-valgrind-{{suite.name}}:
     - vm-{{suite.name}}
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 4
+    LITEST_JOBS: 2
   retry:
     max: 2
   rules:
