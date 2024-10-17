@@ -4855,7 +4855,7 @@ setup_tests(void)
 		s->name = safe_strdup(c->name);
 
 		list_init(&s->tests);
-		list_insert(&all_test_suites, &s->node);
+		list_append(&all_test_suites, &s->node);
 
 		current_suite = s;
 		c->setup();
