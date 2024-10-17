@@ -938,6 +938,7 @@ if get_option('tests')
 	foreach testfile : tests_sources
 		tfile = testfile.split('test/test-')[1]
 		group = tfile.split('.c')[0]
+		group = group.replace('-', '_')
 		test('libinput-test-suite-@0@'.format(group),
 		     libinput_test_runner,
 		     suite : ['all', 'valgrind', 'root', 'hardware'],

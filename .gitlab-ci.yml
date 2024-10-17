@@ -559,7 +559,7 @@ vm-tap:
   extends:
     - .fedora:40@test-suite-vm
   variables:
-    SUITE_NAMES: 'touchpad-tap'
+    SUITE_NAMES: 'touchpad_tap'
 
 vm-tap-no-libwacom:
   extends:
@@ -572,7 +572,7 @@ vm-touchpad-buttons:
   extends:
     - .fedora:40@test-suite-vm
   variables:
-    SUITE_NAMES: 'touchpad-buttons'
+    SUITE_NAMES: 'touchpad_buttons'
 
 vm-touchpad-buttons-no-libwacom:
   extends:
@@ -895,8 +895,8 @@ check-test-suites:
     - |
       cat <<EOF > ci-testsuites ;
         libinput-test-suite-touchpad
-        libinput-test-suite-touchpad-tap
-        libinput-test-suite-touchpad-buttons
+        libinput-test-suite-touchpad_tap
+        libinput-test-suite-touchpad_buttons
         libinput-test-suite-tablet
         libinput-test-suite-gestures
         libinput-test-suite-device
