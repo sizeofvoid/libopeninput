@@ -620,15 +620,15 @@ vm-tablet-no-libwacom:
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
-vm-gestures-device:
+vm-gestures:
   extends:
     - .fedora:40@test-suite-vm
   variables:
-    SUITE_NAMES: 'gestures device'
+    SUITE_NAMES: 'gestures'
 
-vm-gestures-device-no-libwacom:
+vm-gestures-no-libwacom:
   extends:
-    - vm-gestures-device
+    - vm-gestures
   stage: test-suite-no-libwacom
   variables:
     MESON_ARGS: '-Dlibwacom=false'
@@ -650,7 +650,7 @@ vm-misc:
   extends:
     - .fedora:40@test-suite-vm
   variables:
-    SUITE_NAMES: 'log misc quirks'
+    SUITE_NAMES: 'log misc quirks device'
 
 vm-misc-no-libwacom:
   extends:
@@ -758,10 +758,10 @@ vm-valgrind-tablet:
   rules:
     - if: $GITLAB_USER_LOGIN != "marge-bot"
 
-vm-valgrind-gestures-device:
+vm-valgrind-gestures:
   stage: valgrind
   extends:
-    - vm-gestures-device
+    - vm-gestures
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 2
@@ -951,12 +951,12 @@ check-test-suites:
         libinput-test-suite-touchpad_buttons
         libinput-test-suite-tablet
         libinput-test-suite-gestures
-        libinput-test-suite-device
         libinput-test-suite-path
         libinput-test-suite-udev
         libinput-test-suite-log
         libinput-test-suite-misc
         libinput-test-suite-quirks
+        libinput-test-suite-device
         libinput-test-suite-keyboard
         libinput-test-suite-pad
         libinput-test-suite-switch
