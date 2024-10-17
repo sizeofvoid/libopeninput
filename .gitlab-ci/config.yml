@@ -172,6 +172,12 @@ test_suites:
   - name: touchpad
     suites:
       - touchpad
+  - name: touchpad_palm
+    suites:
+      - touchpad_palm
+  - name: touchpad_dwt
+    suites:
+      - touchpad_dwt
   - name: tap
     suites:
       - touchpad_tap
