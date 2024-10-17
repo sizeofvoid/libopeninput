@@ -1006,6 +1006,8 @@ endif
 		'touch',
 		'touchpad',
 		'touchpad_buttons',
+		'touchpad_dwt',
+		'touchpad_palm',
 		'touchpad_tap',
 		'touchpad_tap_drag',
 		'touchpad_tap_palm',
