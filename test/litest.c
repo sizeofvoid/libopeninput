@@ -63,6 +63,8 @@
 #include "quirks.h"
 #include "builddir.h"
 
+#include "util-backtrace.h"
+
 #include <linux/kd.h>
 
 #define evbit(t, c) ((t) << 16U | (c & 0xffff))
@@ -151,53 +153,13 @@ _litest_checkpoint(const char *func,
 static void
 litest_backtrace(void)
 {
-#if HAVE_GSTACK
-	pid_t parent, child;
-	int pipefd[2];
-
+#ifndef LITEST_DISABLE_BACKTRACE_LOGGING
 	if (RUNNING_ON_VALGRIND) {
-		litest_log("  Using valgrind, omitting backtrace\n");
+		fprintf(stderr, "Using valgrind, omitting backtrace\n");
 		return;
 	}
 
-	if (pipe(pipefd) == -1)
-		return;
-
-	parent = getpid();
-	child = fork();
-
-	if (child == 0) {
-		char pid[8];
-
-		close(pipefd[0]);
-		dup2(pipefd[1], STDOUT_FILENO);
-
-		sprintf(pid, "%d", parent);
-
-		execlp("gstack", "gstack", pid, NULL);
-		exit(errno);
-	}
-
-	/* parent */
-	char buf[1024];
-	int status, nread;
-
-	close(pipefd[1]);
-	waitpid(child, &status, 0);
-
-	status = WEXITSTATUS(status);
-	if (status != 0) {
-		litest_log("ERROR: gstack failed, no backtrace available: %s\n",
-			   strerror(status));
-	} else {
-		litest_log("\nBacktrace:\n");
-		while ((nread = read(pipefd[0], buf, sizeof(buf) - 1)) > 0) {
-			buf[nread] = '\0';
-			litest_log("%s", buf);
-		}
-		litest_log("\n");
-	}
-	close(pipefd[0]);
+	backtrace_print(stderr);
 #endif
 }
 
