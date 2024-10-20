@@ -255,6 +255,7 @@ endif
 # Basic compilation test to make sure the headers include and define all the
 # necessary bits.
 util_headers = [
+		'util-backtrace.h',
 		'util-bits.h',
 		'util-input-event.h',
 		'util-list.h',
