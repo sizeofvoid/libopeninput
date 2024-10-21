@@ -26,6 +26,7 @@
 #include "config.h"
 
 #include <assert.h>
+#include <errno.h>
 #include <time.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -96,6 +97,20 @@ us2tv(uint64_t time)
 	tv.tv_usec = time % ms2us(1000);
 
 	return tv;
+}
+
+static inline int
+now_in_us(uint64_t *us)
+{
+	struct timespec ts = { 0, 0 };
+
+	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
+		*us = 0;
+		return -errno;
+	}
+
+	*us = s2us(ts.tv_sec) + ns2us(ts.tv_nsec);
+	return 0;
 }
 
 struct human_time {

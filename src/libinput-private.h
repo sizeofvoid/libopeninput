@@ -836,14 +836,15 @@ switch_notify_toggle(struct libinput_device *device,
 static inline uint64_t
 libinput_now(struct libinput *libinput)
 {
-	struct timespec ts = { 0, 0 };
+	uint64_t now;
+	int rc = now_in_us(&now);
 
-	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
-		log_error(libinput, "clock_gettime failed: %s\n", strerror(errno));
+	if (rc < 0) {
+		log_error(libinput, "clock_gettime failed: %s\n", strerror(-rc));
 		return 0;
 	}
 
-	return s2us(ts.tv_sec) + ns2us(ts.tv_nsec);
+	return now;
 }
 
 static inline struct device_float_coords
