@@ -983,8 +983,7 @@ if get_option('tests')
 		test('libinput-test-suite-@0@'.format(group),
 		     libinput_test_runner,
 		     suite : ['all', 'valgrind', 'root', 'hardware'],
-		     args : ['--filter-group=@0@'.format(group),
-			     '--xml-output=junit-@0@-XXXXXX.xml'.format(group)],
+		     args : ['--filter-group=@0@'.format(group)],
 		     is_parallel : false,
 		     timeout : 1200)
         endforeach
@@ -992,8 +991,7 @@ if get_option('tests')
 	test('libinput-test-deviceless',
 	     libinput_test_runner,
 	     suite : ['all', 'valgrind'],
-	     args: ['--filter-deviceless',
-	            '--xml-output=junit-deviceless-XXXXXX.xml'])
+	     args: ['--filter-deviceless'])
 
 	valgrind = find_program('valgrind', required : false)
 	if valgrind.found()
