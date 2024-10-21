@@ -58,6 +58,12 @@ ms2us(uint64_t ms)
 	return us(ms * 1000);
 }
 
+static inline uint32_t
+ms2s(uint64_t ms)
+{
+	return ms / 1000;
+}
+
 static inline uint64_t
 s2us(uint64_t s)
 {
@@ -76,6 +82,12 @@ us2ms(uint64_t us)
 	return (uint32_t)(us / 1000);
 }
 
+static inline uint32_t
+us2s(uint64_t us)
+{
+	return ms2s(us2ms(us));
+}
+
 static inline double
 us2ms_f(uint64_t us)
 {
@@ -86,6 +98,12 @@ static inline uint64_t
 tv2us(const struct timeval *tv)
 {
 	return s2us(tv->tv_sec) + tv->tv_usec;
+}
+
+static inline uint64_t
+tp2us(const struct timespec *tp)
+{
+	return s2us(tp->tv_sec) + ns2us(tp->tv_nsec);
 }
 
 static inline struct timeval
