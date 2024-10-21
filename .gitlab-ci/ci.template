@@ -118,6 +118,7 @@ variables:
     expire_in: 1 week
     paths:
       - $MESON_BUILDDIR/meson-logs
+      - $MESON_BUILDDIR/valgrind.*.log
     reports:
       junit: $MESON_BUILDDIR/*junit*.xml
 
