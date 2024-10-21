@@ -83,6 +83,7 @@ static bool verbose = false;
 static bool run_deviceless = false;
 static bool use_system_rules_quirks = false;
 static bool exit_first = false;
+static FILE * outfile = NULL;
 static const char *filter_test = NULL;
 static const char *filter_device = NULL;
 static const char *filter_group = NULL;
@@ -943,6 +944,8 @@ litest_run_suite(struct list *suites, int njobs)
 	struct litest_runner *runner = litest_runner_new();
 
 	litest_runner_set_num_parallel(runner, jobs > 0 ? jobs : 0);
+	if (outfile)
+		litest_runner_set_output_file(runner, outfile);
 	litest_runner_set_verbose(runner, verbose);
 	litest_runner_set_timeout(runner, 30);
 	litest_runner_set_exit_on_fail(runner, exit_first);
@@ -4520,6 +4523,7 @@ litest_parse_argv(int argc, char **argv)
 		OPT_FILTER_GROUP,
 		OPT_FILTER_RANGEVAL,
 		OPT_FILTER_DEVICELESS,
+		OPT_OUTPUT_FILE,
 		OPT_JOBS,
 		OPT_LIST,
 		OPT_VERBOSE,
@@ -4530,6 +4534,7 @@ litest_parse_argv(int argc, char **argv)
 		{ "filter-group", 1, 0, OPT_FILTER_GROUP },
 		{ "filter-rangeval", 1, 0, OPT_FILTER_RANGEVAL },
 		{ "filter-deviceless", 0, 0, OPT_FILTER_DEVICELESS },
+		{ "output-file", 1, 0, OPT_OUTPUT_FILE },
 		{ "exitfirst", 0, 0, OPT_EXIT_FIRST },
 		{ "jobs", 1, 0, OPT_JOBS },
 		{ "list", 0, 0, OPT_LIST },
@@ -4627,6 +4632,13 @@ litest_parse_argv(int argc, char **argv)
 			break;
 		case OPT_FILTER_DEVICELESS:
 			run_deviceless = true;
+			break;
+		case OPT_OUTPUT_FILE:
+			outfile = fopen(optarg, "w+");
+			if (!outfile) {
+				fprintf(stderr, "Failed to open %s: %m\n", optarg);
+				exit(1);
+			}
 			break;
 		case 'x':
 		case OPT_EXIT_FIRST:
