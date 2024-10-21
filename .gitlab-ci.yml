@@ -731,7 +731,7 @@ vm-valgrind-touchpad:
     - vm-touchpad
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -743,7 +743,7 @@ vm-valgrind-touchpad_palm:
     - vm-touchpad_palm
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -755,7 +755,7 @@ vm-valgrind-touchpad_dwt:
     - vm-touchpad_dwt
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -767,7 +767,7 @@ vm-valgrind-tap:
     - vm-tap
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -779,7 +779,7 @@ vm-valgrind-tap-drag:
     - vm-tap-drag
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -791,7 +791,7 @@ vm-valgrind-tap-palm:
     - vm-tap-palm
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -803,7 +803,7 @@ vm-valgrind-touchpad-buttons:
     - vm-touchpad-buttons
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -815,7 +815,7 @@ vm-valgrind-tablet:
     - vm-tablet
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -827,7 +827,7 @@ vm-valgrind-tablet_left_handed:
     - vm-tablet_left_handed
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -839,7 +839,7 @@ vm-valgrind-gestures:
     - vm-gestures
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -851,7 +851,7 @@ vm-valgrind-backends:
     - vm-backends
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -863,7 +863,7 @@ vm-valgrind-misc:
     - vm-misc
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -875,7 +875,7 @@ vm-valgrind-other devices:
     - vm-other devices
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
@@ -887,7 +887,7 @@ vm-valgrind-pointer:
     - vm-pointer
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
