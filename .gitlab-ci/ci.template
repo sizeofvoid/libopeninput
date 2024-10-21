@@ -444,7 +444,7 @@ vm-valgrind-{{suite.name}}:
     - vm-{{suite.name}}
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 2
+    LITEST_JOBS: 0
   retry:
     max: 2
   rules:
