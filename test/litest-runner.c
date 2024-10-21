@@ -87,6 +87,7 @@ struct litest_runner {
 	unsigned int timeout;
 	bool verbose;
 	bool exit_on_fail;
+	FILE *fp;
 
 	int terminating;
 
@@ -664,23 +665,24 @@ litest_runner_log_test_result(struct litest_runner *runner, struct litest_runner
 		case LITEST_SYSTEM_ERROR: color = ANSI_BRIGHT_MAGENTA; break;
 	}
 
-	fprintf(stderr, "  - name: \"%s\"\n", t->desc.name);
+	fprintf(runner->fp, "  - name: \"%s\"\n", t->desc.name);
 	int min = t->desc.args.range.lower,
 	    max = t->desc.args.range.upper;
 	if (range_is_valid(&t->desc.args.range))
-		fprintf(stderr, "    rangeval: %d  # %d..%d\n", t->desc.rangeval, min, max);
+		fprintf(runner->fp, "    rangeval: %d  # %d..%d\n", t->desc.rangeval, min, max);
 
-	fprintf(stderr,
+	fprintf(runner->fp,
 		"    duration: %ld  # (ms), total test run time: %02d:%02d\n",
 		t->times.end_millis - t->times.start_millis,
 		(ms2s(t->times.end_millis - runner->times.start_millis)) / 60,
 		(ms2s(t->times.end_millis - runner->times.start_millis)) % 60);
 
 	status = litest_runner_result_as_str(t->result);
-	fprintf(stderr, "    status: %s%s%s\n",
-		isatty(STDERR_FILENO) ? color : "",
+	bool is_tty = isatty(fileno(runner->fp));
+	fprintf(runner->fp, "    status: %s%s%s\n",
+		is_tty ? color : "",
 		&status[7], /* skip LITEST_ prefix */
-		isatty(STDERR_FILENO) ? ANSI_NORMAL : "");
+		is_tty ? ANSI_NORMAL : "");
 
 	switch (t->result) {
 		case LITEST_PASS:
@@ -694,28 +696,28 @@ litest_runner_log_test_result(struct litest_runner *runner, struct litest_runner
 	}
 
 	if (t->sig_or_errno > 0)
-		fprintf(stderr, "    signal: %d # SIG%s \n",
+		fprintf(runner->fp, "    signal: %d # SIG%s \n",
 		       t->sig_or_errno,
 		       sigabbrev_np(t->sig_or_errno));
 	else if (t->sig_or_errno < 0)
-		fprintf(stderr, "    errno: %d # %s\n",
+		fprintf(runner->fp, "    errno: %d # %s\n",
 		       -t->sig_or_errno,
 		       strerror(-t->sig_or_errno));
 	if (!stringbuf_is_empty(&t->logs[FD_LOG])) {
-		fprintf(stderr, "    log: |\n");
-		print_lines(stderr, t->logs[FD_LOG].data, "      ");
+		fprintf(runner->fp, "    log: |\n");
+		print_lines(runner->fp, t->logs[FD_LOG].data, "      ");
 	}
 	if (!stringbuf_is_empty(&t->logs[FD_STDOUT])) {
-		fprintf(stderr, "    stdout: |\n");
-		print_lines(stderr, t->logs[FD_STDOUT].data, "      ");
+		fprintf(runner->fp, "    stdout: |\n");
+		print_lines(runner->fp, t->logs[FD_STDOUT].data, "      ");
 	}
 	if (!stringbuf_is_empty(&t->logs[FD_STDERR])) {
-		fprintf(stderr, "    stderr: |\n");
-		print_lines(stderr, t->logs[FD_STDERR].data, "      ");
+		fprintf(runner->fp, "    stderr: |\n");
+		print_lines(runner->fp, t->logs[FD_STDERR].data, "      ");
 	}
 	if (!stringbuf_is_empty(&t->logs[FD_VALGRIND])) {
-		fprintf(stderr, "    valgrind: |\n");
-		print_lines(stderr, t->logs[FD_VALGRIND].data, "      ");
+		fprintf(runner->fp, "    valgrind: |\n");
+		print_lines(runner->fp, t->logs[FD_VALGRIND].data, "      ");
 	}
 }
 
@@ -729,6 +731,7 @@ litest_runner_new(void)
 	list_init(&runner->tests_running);
 	runner->timeout = LITEST_RUNNER_DEFAULT_TIMEOUT;
 	runner->max_forks = get_nprocs() * 2;
+	runner->fp = stderr;
 
 	return runner;
 }
@@ -738,6 +741,14 @@ litest_runner_set_timeout(struct litest_runner *runner,
 			  unsigned int timeout)
 {
 	runner->timeout = timeout;
+}
+
+void
+litest_runner_set_output_file(struct litest_runner *runner,
+			      FILE *fp)
+{
+	setlinebuf(fp);
+	runner->fp = fp;
 }
 
 void
@@ -875,9 +886,9 @@ litest_runner_run_tests(struct litest_runner *runner)
 	runner->times.start = time(NULL);
 	ltime = localtime(&runner->times.start);
 	strftime(timestamp, sizeof(timestamp), "%FT%H:%M", ltime);
-	fprintf(stderr, "start: %ld  # \"%s\"\n", runner->times.start, timestamp);
-	fprintf(stderr, "jobs: %zd\n", runner->max_forks);
-	fprintf(stderr, "tests:\n");
+	fprintf(runner->fp, "start: %ld  # \"%s\"\n", runner->times.start, timestamp);
+	fprintf(runner->fp, "jobs: %zd\n", runner->max_forks);
+	fprintf(runner->fp, "tests:\n");
 	list_for_each_safe(t, &runner->tests, node) {
 		int r = litest_runner_run_test(runner, t);
 		if (r >= 0) {
@@ -949,26 +960,26 @@ litest_runner_run_tests(struct litest_runner *runner)
 	runner->times.end = time(NULL);
 	ltime = localtime(&runner->times.end);
 	strftime(timestamp, sizeof(timestamp), "%FT%H:%M", ltime);
-	fprintf(stderr, "end: %ld  # \"%s\"\n", runner->times.end, timestamp);
-	fprintf(stderr,
+	fprintf(runner->fp, "end: %ld  # \"%s\"\n", runner->times.end, timestamp);
+	fprintf(runner->fp,
 		"duration: %ld  # (s) %02ld:%02ld\n",
 		runner->times.end - runner->times.start,
 		(runner->times.end - runner->times.start) / 60,
 		(runner->times.end - runner->times.start) % 60);
-	fprintf(stderr, "summary:\n");
-	fprintf(stderr, "  completed: %zd\n", ncomplete);
-	fprintf(stderr, "  pass: %zd\n", npass);
-	fprintf(stderr, "  na: %zd\n", nna);
-	fprintf(stderr, "  fail: %zd\n", nfail);
-	fprintf(stderr, "  skip: %zd\n", nskip);
+	fprintf(runner->fp, "summary:\n");
+	fprintf(runner->fp, "  completed: %zd\n", ncomplete);
+	fprintf(runner->fp, "  pass: %zd\n", npass);
+	fprintf(runner->fp, "  na: %zd\n", nna);
+	fprintf(runner->fp, "  fail: %zd\n", nfail);
+	fprintf(runner->fp, "  skip: %zd\n", nskip);
 	if (nfail > 0) {
-		fprintf(stderr, "  failed:\n");
+		fprintf(runner->fp, "  failed:\n");
 		list_for_each(t, &runner->tests_complete, node) {
 			switch (t->result) {
 				case LITEST_FAIL:
 				case LITEST_SYSTEM_ERROR:
 				case LITEST_TIMEOUT:
-					fprintf(stderr, "    - \"%s\"\n",  t->desc.name);
+					fprintf(runner->fp, "    - \"%s\"\n",  t->desc.name);
 					break;
 				default:
 					break;
@@ -981,9 +992,9 @@ litest_runner_run_tests(struct litest_runner *runner)
 		struct stringbuf *b = stringbuf_new();
 
 		collect_file(filename, b);
-		fprintf(stderr, "valgrind:\n");
-		print_lines(stderr, b->data, "  ");
-		fprintf(stderr, "# Valgrind log is incomplete, see %s for full log\n", filename);
+		fprintf(runner->fp, "valgrind:\n");
+		print_lines(runner->fp, b->data, "  ");
+		fprintf(runner->fp, "# Valgrind log is incomplete, see %s for full log\n", filename);
 		free(filename);
 		stringbuf_destroy(b);
 	}
@@ -1006,7 +1017,7 @@ litest_runner_run_tests(struct litest_runner *runner)
 		}
 	}
 	/* Status is always prefixed with LITEST_ */
-	fprintf(stderr, "  status: %s\n", &litest_runner_result_as_str(result)[7]);
+	fprintf(runner->fp, "  status: %s\n", &litest_runner_result_as_str(result)[7]);
 
 	return result;
 }
