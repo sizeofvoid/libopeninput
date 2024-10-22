@@ -50,21 +50,6 @@ struct pad_mode_led {
 	int mode_idx;
 };
 
-#if HAVE_LIBWACOM
-static inline struct pad_mode_toggle_button *
-pad_mode_toggle_button_new(struct pad_dispatch *pad,
-			   struct libinput_tablet_pad_mode_group *group,
-			   unsigned int button_index)
-{
-	struct pad_mode_toggle_button *button;
-
-	button = zalloc(sizeof *button);
-	button->button_index = button_index;
-
-	return button;
-}
-#endif /* HAVE_LIBWACOM */
-
 static inline void
 pad_mode_toggle_button_destroy(struct pad_mode_toggle_button* button)
 {
@@ -352,6 +337,19 @@ pad_get_mode_group(struct pad_dispatch *pad, unsigned int index)
 }
 
 #if HAVE_LIBWACOM
+
+static inline struct pad_mode_toggle_button *
+pad_mode_toggle_button_new(struct pad_dispatch *pad,
+			   struct libinput_tablet_pad_mode_group *group,
+			   unsigned int button_index)
+{
+	struct pad_mode_toggle_button *button;
+
+	button = zalloc(sizeof *button);
+	button->button_index = button_index;
+
+	return button;
+}
 
 static inline int
 pad_find_button_group(WacomDevice *wacom,
