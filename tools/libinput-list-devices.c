@@ -268,15 +268,53 @@ print_pad_info(struct libinput_device *device)
 	ndials = libinput_device_tablet_pad_get_num_dials(device);
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
 
-	group = libinput_device_tablet_pad_get_mode_group(device, 0);
-	nmodes = libinput_tablet_pad_mode_group_get_num_modes(group);
-
 	printf("Pad:\n");
-	printf("	Rings:   %d\n", nrings);
-	printf("	Strips:  %d\n", nstrips);
-	printf("	Dials:   %d\n", ndials);
-	printf("	Buttons: %d\n", nbuttons);
-	printf("	Mode groups: %d (%d modes)\n", ngroups, nmodes);
+	printf("    Rings:   %d\n", nrings);
+	printf("    Strips:  %d\n", nstrips);
+	printf("    Dials:   %d\n", ndials);
+	printf("    Buttons: %d\n", nbuttons);
+	printf("    Mode groups: %d\n", ngroups);
+	for (int g = 0; g < ngroups; g++) {
+		group = libinput_device_tablet_pad_get_mode_group(device, g);
+		nmodes = libinput_tablet_pad_mode_group_get_num_modes(group);
+		printf("        Group %d:\n", g);
+		printf("            Modes: %d\n", nmodes);
+		if (nbuttons > 0) {
+			printf("            Buttons:");
+			for (int b = 0; b < nbuttons; b++) {
+				if (libinput_tablet_pad_mode_group_has_button(group, b))
+				    printf("%s%s%d",
+					   b == 0 ? " " : ", ",
+					   libinput_tablet_pad_mode_group_button_is_toggle(group, b) ? "*" : "",
+					   b);
+			}
+			printf("\n");
+		}
+		if (nrings > 0) {
+			printf("            Rings:");
+			for (int r = 0; r < nrings; r++) {
+				if (libinput_tablet_pad_mode_group_has_ring(group, r))
+				    printf("%s%d", r == 0 ? " " : ", ", r);
+			}
+			printf("\n");
+		}
+		if (nstrips > 0) {
+			printf("            Strips:");
+			for (int s = 0; s < nstrips; s++) {
+				if (libinput_tablet_pad_mode_group_has_strip(group, s))
+				    printf("%s%d", s == 0 ? " " : ", ", s);
+			}
+			printf("\n");
+		}
+		if (ndials > 0) {
+			printf("            Dials:");
+			for (int d = 0; d < ndials; d++) {
+				if (libinput_tablet_pad_mode_group_has_dial(group, d))
+				    printf("%s%d", d == 0 ? " " : ", ", d);
+			}
+			printf("\n");
+		}
+	}
 
 }
 
