@@ -213,15 +213,15 @@ pad_group_new(struct pad_dispatch *pad,
 		struct pad_mode_led *led;
 
 		led = pad_led_new(libinput, syspath, group_index, nleds);
-		if (!led)
+		if (!led) {
+			rc = -errno;
 			goto error;
-
+		}
 		list_insert(&group->led_list, &led->link);
 	}
 
 	rc = pad_led_group_get_mode(group);
 	if (rc < 0) {
-		errno = -rc;
 		goto error;
 	}
 
@@ -233,7 +233,7 @@ error:
 	if (!is_litest_device(pad->device))
 		evdev_log_error(pad->device,
 				"unable to init LED group: %s\n",
-				strerror(errno));
+				strerror(-rc));
 	pad_led_group_destroy(&group->base);
 
 	return NULL;
