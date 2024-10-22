@@ -83,7 +83,9 @@ pad_led_group_get_mode(struct pad_led_group *group)
 			return led->mode_idx;
 	}
 
-	return -EINVAL;
+	/* Wacom PTH-660 doesn't light up any LEDs
+	 * until the button is pressed, so let's assume mode 0 */
+	return 0;
 }
 
 static inline void
