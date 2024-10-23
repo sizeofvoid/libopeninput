@@ -157,7 +157,7 @@ pad_led_group_destroy(struct libinput_tablet_pad_mode_group *g)
 static struct pad_led_group *
 pad_group_new_basic(struct pad_dispatch *pad,
 		    unsigned int group_index,
-		    int nleds)
+		    int num_modes)
 {
 	struct pad_led_group *group;
 
@@ -166,7 +166,7 @@ pad_group_new_basic(struct pad_dispatch *pad,
 	group->base.refcount = 1;
 	group->base.index = group_index;
 	group->base.current_mode = 0;
-	group->base.num_modes = nleds;
+	group->base.num_modes = num_modes;
 	group->base.destroy = pad_led_group_destroy;
 	list_init(&group->toggle_button_list);
 	list_init(&group->led_list);
