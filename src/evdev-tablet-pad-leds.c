@@ -342,7 +342,6 @@ pad_get_mode_group(struct pad_dispatch *pad, unsigned int index)
 
 static inline struct pad_mode_toggle_button *
 pad_mode_toggle_button_new(struct pad_dispatch *pad,
-			   struct libinput_tablet_pad_mode_group *group,
 			   unsigned int button_index)
 {
 	struct pad_mode_toggle_button *button;
@@ -422,7 +421,7 @@ pad_init_mode_buttons(struct pad_dispatch *pad,
 			struct pad_mode_toggle_button *b;
 			struct pad_led_group *g;
 
-			b = pad_mode_toggle_button_new(pad, group, i);
+			b = pad_mode_toggle_button_new(pad, i);
 			if (!b)
 				return 1;
 			g = (struct pad_led_group*)group;
