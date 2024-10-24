@@ -104,7 +104,7 @@ pad_led_new(struct libinput *libinput, const char *prefix, int group, int mode)
 {
 	struct pad_mode_led *led;
 	char path[PATH_MAX];
-	int rc, fd;
+	int rc, fd, save_errno;
 
 	led = zalloc(sizeof *led);
 	led->brightness_fd = -1;
@@ -133,7 +133,9 @@ pad_led_new(struct libinput *libinput, const char *prefix, int group, int mode)
 	return led;
 
 error:
+	save_errno = errno;
 	pad_led_destroy(libinput, led);
+	errno = save_errno;
 	return NULL;
 }
 #endif /* HAVE_LIBWACOM */
