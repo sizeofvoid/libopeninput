@@ -327,13 +327,39 @@ START_TEST(pad_button_mode_groups)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	unsigned int code;
 	struct libinput_event *ev;
 	struct libinput_event_tablet_pad *pev;
+	unsigned int expected_mode = 0;
+	int evdev_codes[KEY_OK - BTN_0] = {0};
+#if HAVE_LIBWACOM
+	WacomDeviceDatabase *db = NULL;
+	WacomDevice *wacom = NULL;
+
+	db = libwacom_database_new();
+	litest_assert_notnull(db);
+
+	wacom = libwacom_new_from_usbid(db,
+					libevdev_get_id_vendor(dev->evdev),
+					libevdev_get_id_product(dev->evdev),
+					NULL);
+	if (wacom) {
+		for (size_t i = 0; i < ARRAY_LENGTH(evdev_codes); i++) {
+			evdev_codes[i] = libwacom_get_button_evdev_code(wacom, 'A' + i);
+		}
+	}
+
+	libwacom_destroy(wacom);
+	libwacom_database_destroy(db);
+#else
+	for (size_t i = 0; i < ARRAY_LENGTH(evdev_codes); i++) {
+		evdev_codes[i] = BTN_0 + 1;
+	}
+#endif
 
 	litest_drain_events(li);
 
-	for (code = BTN_0; code < KEY_OK; code++) {
+	for (unsigned int b = 0; b < ARRAY_LENGTH(evdev_codes) && evdev_codes[b] != 0; b++) {
+		unsigned int code = evdev_codes[b];
 		unsigned int mode, index;
 		struct libinput_tablet_pad_mode_group *group;
 
@@ -356,10 +382,16 @@ START_TEST(pad_button_mode_groups)
 		litest_assert_event_type(ev, LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 		pev = libinput_event_get_tablet_pad_event(ev);
 
-		/* litest virtual devices don't have modes */
-		mode = libinput_event_tablet_pad_get_mode(pev);
-		litest_assert_int_eq(mode, 0U);
 		group = libinput_event_tablet_pad_get_mode_group(pev);
+#if HAVE_LIBWACOM
+		if (libinput_tablet_pad_mode_group_button_is_toggle(group, b)) {
+			int num_modes = libinput_tablet_pad_mode_group_get_num_modes(group);
+			expected_mode = (expected_mode + 1) % num_modes;
+		}
+#endif
+		mode = libinput_event_tablet_pad_get_mode(pev);
+		litest_assert_int_eq(mode, expected_mode);
+
 		index = libinput_tablet_pad_mode_group_get_index(group);
 		litest_assert_int_eq(index, 0U);
 
@@ -370,7 +402,7 @@ START_TEST(pad_button_mode_groups)
 		pev = libinput_event_get_tablet_pad_event(ev);
 
 		mode = libinput_event_tablet_pad_get_mode(pev);
-		litest_assert_int_eq(mode, 0U);
+		litest_assert_int_eq(mode, expected_mode);
 		group = libinput_event_tablet_pad_get_mode_group(pev);
 		index = libinput_tablet_pad_mode_group_get_index(group);
 		litest_assert_int_eq(index, 0U);
@@ -776,6 +808,33 @@ START_TEST(pad_left_handed_ring)
 }
 END_TEST
 
+static bool
+pad_has_groups(struct litest_device *dev)
+{
+	bool rc = false;
+#if HAVE_LIBWACOM
+	WacomDeviceDatabase *db = NULL;
+	WacomDevice *wacom = NULL;
+
+	db = libwacom_database_new();
+	litest_assert_notnull(db);
+
+	wacom = libwacom_new_from_usbid(db,
+					libevdev_get_id_vendor(dev->evdev),
+					libevdev_get_id_product(dev->evdev),
+					NULL);
+	if (wacom &&
+	    (libwacom_get_ring_num_modes(wacom) != 0 ||
+	    libwacom_get_ring2_num_modes(wacom) != 0 ||
+	    libwacom_get_strips_num_modes(wacom) != 0))
+		rc = true;
+
+	libwacom_destroy(wacom);
+	libwacom_database_destroy(db);
+#endif
+	return rc;
+}
+
 START_TEST(pad_mode_groups)
 {
 	struct litest_device *dev = litest_current_device();
@@ -784,11 +843,8 @@ START_TEST(pad_mode_groups)
 	int ngroups;
 	unsigned int i;
 
-	/* libinput relies on the LED sysfs files to init on pad group mode
-	   toggles. Since we don't have those in tests we expect all devices to have
-	   one mode only.  */
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	litest_assert_int_eq(ngroups, 1);
+	litest_assert_int_ge(ngroups, 1);
 
 	for (i = 0; i < (unsigned int)ngroups; i++) {
 		group = libinput_device_tablet_pad_get_mode_group(device, i);
@@ -850,11 +906,11 @@ START_TEST(pad_mode_group_mode)
 	int ngroups;
 	unsigned int nmodes, mode;
 
-	/* libinput relies on the LED sysfs files to init on pad group mode
-	   toggles. Since we don't have those in tests we expect all devices to have
-	   one mode only.  */
+	if (pad_has_groups(dev))
+		return LITEST_NOT_APPLICABLE;
+
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	litest_assert_int_eq(ngroups, 1);
+	litest_assert_int_ge(ngroups, 1);
 
 	group = libinput_device_tablet_pad_get_mode_group(device, 0);
 
@@ -874,11 +930,8 @@ START_TEST(pad_mode_group_has)
 	int ngroups, nbuttons, nrings, nstrips;
 	int i, b, r, s;
 
-	/* libinput relies on the LED sysfs files to init on pad group mode
-	   toggles. Since we don't have those in tests we expect all devices to have
-	   one mode only.  */
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	litest_assert_int_eq(ngroups, 1);
+	litest_assert_int_ge(ngroups, 1);
 
 	nbuttons = libinput_device_tablet_pad_get_num_buttons(device);
 	nrings = libinput_device_tablet_pad_get_num_rings(device);
@@ -937,11 +990,8 @@ START_TEST(pad_mode_group_has_invalid)
 	int i;
 	int rc;
 
-	/* libinput relies on the LED sysfs files to init on pad group mode
-	   toggles. Since we don't have those in tests we expect all devices to have
-	   one mode only.  */
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	litest_assert_int_eq(ngroups, 1);
+	litest_assert_int_ge(ngroups, 1);
 
 	nbuttons = libinput_device_tablet_pad_get_num_buttons(device);
 	nrings = libinput_device_tablet_pad_get_num_rings(device);
@@ -990,15 +1040,16 @@ END_TEST
 
 START_TEST(pad_mode_group_has_no_toggle)
 {
+#if HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 	struct libinput_tablet_pad_mode_group* group;
 	int ngroups, nbuttons;
 	int i, b;
 
-	/* libinput relies on the LED sysfs files to init on pad group mode
-	   toggles. Since we don't have those in tests we expect all devices to have
-	   one mode only.  */
+	if (pad_has_groups(dev))
+		return LITEST_NOT_APPLICABLE;
+
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
 	litest_assert_int_eq(ngroups, 1);
 
@@ -1012,6 +1063,7 @@ START_TEST(pad_mode_group_has_no_toggle)
 								    b));
 		}
 	}
+#endif
 }
 END_TEST
 
