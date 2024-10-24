@@ -784,6 +784,9 @@ START_TEST(pad_mode_groups)
 	int ngroups;
 	unsigned int i;
 
+	/* libinput relies on the LED sysfs files to init on pad group mode
+	   toggles. Since we don't have those in tests we expect all devices to have
+	   one mode only.  */
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
 	litest_assert_int_eq(ngroups, 1);
 
@@ -847,8 +850,11 @@ START_TEST(pad_mode_group_mode)
 	int ngroups;
 	unsigned int nmodes, mode;
 
+	/* libinput relies on the LED sysfs files to init on pad group mode
+	   toggles. Since we don't have those in tests we expect all devices to have
+	   one mode only.  */
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	litest_assert_int_ge(ngroups, 1);
+	litest_assert_int_eq(ngroups, 1);
 
 	group = libinput_device_tablet_pad_get_mode_group(device, 0);
 
@@ -868,8 +874,11 @@ START_TEST(pad_mode_group_has)
 	int ngroups, nbuttons, nrings, nstrips;
 	int i, b, r, s;
 
+	/* libinput relies on the LED sysfs files to init on pad group mode
+	   toggles. Since we don't have those in tests we expect all devices to have
+	   one mode only.  */
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	litest_assert_int_ge(ngroups, 1);
+	litest_assert_int_eq(ngroups, 1);
 
 	nbuttons = libinput_device_tablet_pad_get_num_buttons(device);
 	nrings = libinput_device_tablet_pad_get_num_rings(device);
@@ -928,8 +937,11 @@ START_TEST(pad_mode_group_has_invalid)
 	int i;
 	int rc;
 
+	/* libinput relies on the LED sysfs files to init on pad group mode
+	   toggles. Since we don't have those in tests we expect all devices to have
+	   one mode only.  */
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	litest_assert_int_ge(ngroups, 1);
+	litest_assert_int_eq(ngroups, 1);
 
 	nbuttons = libinput_device_tablet_pad_get_num_buttons(device);
 	nrings = libinput_device_tablet_pad_get_num_rings(device);
@@ -984,8 +996,11 @@ START_TEST(pad_mode_group_has_no_toggle)
 	int ngroups, nbuttons;
 	int i, b;
 
+	/* libinput relies on the LED sysfs files to init on pad group mode
+	   toggles. Since we don't have those in tests we expect all devices to have
+	   one mode only.  */
 	ngroups = libinput_device_tablet_pad_get_num_mode_groups(device);
-	litest_assert_int_ge(ngroups, 1);
+	litest_assert_int_eq(ngroups, 1);
 
 	/* Button must not be toggle buttons */
 	nbuttons = libinput_device_tablet_pad_get_num_buttons(device);
