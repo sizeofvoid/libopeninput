@@ -226,7 +226,7 @@ START_TEST(pad_button_intuos)
 
 	litest_assert_empty_queue(li);
 
-	litest_assert_int_ge(count, 1);
+	litest_assert_int_ge(count, 1U);
 #endif
 }
 END_TEST
@@ -276,7 +276,7 @@ START_TEST(pad_button_bamboo)
 
 	litest_assert_empty_queue(li);
 
-	litest_assert_int_gt(count, 3);
+	litest_assert_int_gt(count, 3U);
 #endif
 }
 END_TEST
@@ -696,7 +696,6 @@ START_TEST(pad_no_left_handed)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
-	enum libinput_config_status status;
 
 	/* Without libwacom we default to left-handed being available */
 #if HAVE_LIBWACOM
@@ -711,6 +710,7 @@ START_TEST(pad_no_left_handed)
 			 0);
 
 #if HAVE_LIBWACOM
+	enum libinput_config_status status;
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 
