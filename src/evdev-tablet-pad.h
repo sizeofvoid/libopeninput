@@ -26,6 +26,10 @@
 
 #include "evdev.h"
 
+#if !HAVE_LIBWACOM
+typedef void * WacomDevice;
+#endif
+
 #define LIBINPUT_BUTTONSET_AXIS_NONE 0
 
 enum pad_status {
@@ -106,9 +110,13 @@ pad_libinput_context(const struct pad_dispatch *pad)
 }
 
 int
-pad_init_leds(struct pad_dispatch *pad, struct evdev_device *device);
+pad_init_leds(struct pad_dispatch *pad,
+	      struct evdev_device *device,
+	      WacomDevice *wacom);
+
 void
 pad_destroy_leds(struct pad_dispatch *pad);
+
 void
 pad_button_update_mode(struct libinput_tablet_pad_mode_group *g,
 		       unsigned int button_index,

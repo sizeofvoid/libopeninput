@@ -2577,56 +2577,53 @@ tablet_init_accel(struct tablet_dispatch *tablet, struct evdev_device *device)
 }
 
 static void
-tablet_init_left_handed(struct evdev_device *device)
+tablet_init_left_handed(struct evdev_device *device,
+			WacomDevice *wacom)
 {
-	if (evdev_tablet_has_left_handed(device))
+	bool has_left_handed = true;
+
+#if HAVE_LIBWACOM
+	has_left_handed = !wacom || libwacom_is_reversible(wacom);
+#endif
+	if (has_left_handed)
 		evdev_init_left_handed(device,
 				       tablet_change_to_left_handed);
 }
 
-static void
-tablet_lookup_libwacom(struct evdev_device *device,
-		       struct tablet_dispatch *tablet,
-		       bool *is_aes,
-		       bool *is_display_tablet)
+static inline bool
+tablet_is_display_tablet(WacomDevice *wacom)
 {
 #if HAVE_LIBWACOM
-	const char *devnode;
-	WacomDeviceDatabase *db;
-	WacomDevice *libwacom_device = NULL;
+	return wacom &&
+		!!(libwacom_get_integration_flags(wacom) & (WACOM_DEVICE_INTEGRATED_SYSTEM|WACOM_DEVICE_INTEGRATED_DISPLAY));
+#else
+	return false;
+#endif
+}
+
+static inline bool
+tablet_is_aes(struct evdev_device *device, WacomDevice *wacom)
+{
+#if HAVE_LIBWACOM
 	int vid = evdev_device_get_id_vendor(device);
-
-	db = tablet_libinput_context(tablet)->libwacom.db;
-	if (!db)
-		return;
-
-	devnode = udev_device_get_devnode(device->udev_device);
-	libwacom_device = libwacom_new_from_path(db, devnode, WFALLBACK_NONE, NULL);
-	if (!libwacom_device)
-		return;
-
-	*is_display_tablet = !!(libwacom_get_integration_flags(libwacom_device)
-		& (WACOM_DEVICE_INTEGRATED_SYSTEM|WACOM_DEVICE_INTEGRATED_DISPLAY));
-
 	/* Wacom-specific check for whether smoothing is required:
 	 * libwacom keeps all the AES pens in a single group, so any device
 	 * that supports AES pens will list all AES pens. 0x11 is one of the
 	 * lenovo pens so we use that as the flag of whether the tablet
 	 * is an AES tablet
 	 */
-	if (vid == VENDOR_ID_WACOM) {
+	if (wacom && vid == VENDOR_ID_WACOM) {
 		int nstyli;
-		const int *stylus_ids = libwacom_get_supported_styli(libwacom_device, &nstyli);
+		const int *stylus_ids = libwacom_get_supported_styli(wacom, &nstyli);
 		for (int i = 0; i < nstyli; i++) {
 			if (stylus_ids[i] == 0x11) {
-				*is_aes = true;
-				break;
+				return true;
 			}
 		}
 	}
-
-	libwacom_destroy(libwacom_device);
 #endif
+
+	return false;
 }
 
 static void
@@ -2737,9 +2734,35 @@ static int
 tablet_init(struct tablet_dispatch *tablet,
 	    struct evdev_device *device)
 {
+	struct libinput *li = evdev_libinput_context(device);
 	struct libevdev *evdev = device->evdev;
 	enum libinput_tablet_tool_axis axis;
-	int rc;
+	int rc = -1;
+	WacomDevice *wacom = NULL;
+#if HAVE_LIBWACOM
+	WacomDeviceDatabase *db = libinput_libwacom_ref(li);
+	if (db) {
+		char event_path[64];
+		snprintf(event_path,
+			 sizeof(event_path),
+			 "/dev/input/%s",
+			 evdev_device_get_sysname(device));
+		wacom = libwacom_new_from_path(db, event_path, WFALLBACK_NONE, NULL);
+		if (!wacom) {
+			wacom = libwacom_new_from_usbid(db,
+							evdev_device_get_id_vendor(device),
+							evdev_device_get_id_product(device),
+							NULL);
+		}
+		if (!wacom) {
+			evdev_log_info(device,
+				       "device \"%s\" (%04x:%04x) is not known to libwacom\n",
+				       evdev_device_get_name(device),
+				       evdev_device_get_id_vendor(device),
+				       evdev_device_get_id_product(device));
+		}
+	}
+#endif
 
 	tablet->base.dispatch_type = DISPATCH_TABLET;
 	tablet->base.interface = &tablet_interface;
@@ -2749,11 +2772,10 @@ tablet_init(struct tablet_dispatch *tablet,
 	list_init(&tablet->tool_list);
 
 	if (tablet_reject_device(device))
-		return -1;
+		goto out;
 
-	bool is_aes = false;
-	bool is_display_tablet = false;
-	tablet_lookup_libwacom(device, tablet, &is_aes, &is_display_tablet);
+	bool is_aes = tablet_is_aes(device, wacom);
+	bool is_display_tablet = tablet_is_display_tablet(wacom);
 
 	if (!libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_PEN)) {
 		libevdev_enable_event_code(evdev, EV_KEY, BTN_TOOL_PEN, NULL);
@@ -2772,10 +2794,10 @@ tablet_init(struct tablet_dispatch *tablet,
 	tablet_init_proximity_threshold(tablet, device);
 	rc = tablet_init_accel(tablet, device);
 	if (rc != 0)
-		return rc;
+		goto out;
 
 	evdev_init_sendevents(device, &tablet->base);
-	tablet_init_left_handed(device);
+	tablet_init_left_handed(device, wacom);
 	tablet_init_smoothing(device, tablet, is_aes);
 
 	for (axis = LIBINPUT_TABLET_TOOL_AXIS_X;
@@ -2792,12 +2814,20 @@ tablet_init(struct tablet_dispatch *tablet,
 	tablet->quirks.need_to_force_prox_out = true;
 
 	libinput_timer_init(&tablet->quirks.prox_out_timer,
-			    tablet_libinput_context(tablet),
+			    li,
 			    "proxout",
 			    tablet_proximity_out_quirk_timer_func,
 			    tablet);
 
-	return 0;
+	rc = 0;
+out:
+#if HAVE_LIBWACOM
+	if (wacom)
+		libwacom_destroy(wacom);
+	if (db)
+		libinput_libwacom_unref(li);
+#endif
+	return rc;
 }
 
 struct evdev_dispatch *

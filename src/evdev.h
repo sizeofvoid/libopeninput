@@ -671,9 +671,6 @@ void
 evdev_init_left_handed(struct evdev_device *device,
 		       void (*change_to_left_handed)(struct evdev_device *));
 
-bool
-evdev_tablet_has_left_handed(struct evdev_device *device);
-
 static inline uint32_t
 evdev_to_left_handed(struct evdev_device *device,
 		     uint32_t button)
