@@ -929,12 +929,12 @@ copy_button_cap(const struct tablet_dispatch *tablet,
 		set_bit(tool->buttons, button);
 }
 
-#if HAVE_LIBWACOM
-static inline int
+static inline bool
 tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 			    struct libinput_tablet_tool *tool)
 {
-	int rc = 1;
+	bool rc = false;
+#if HAVE_LIBWACOM
 	WacomDeviceDatabase *db;
 	const WacomStylus *s = NULL;
 	int code;
@@ -992,11 +992,10 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 	if (axes & WACOM_AXIS_TYPE_PRESSURE)
 		copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
 
-	rc = 0;
-
+	rc = true;
+#endif
 	return rc;
 }
-#endif
 
 static void
 tool_set_bits(const struct tablet_dispatch *tablet,
@@ -1007,10 +1006,9 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 	copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_X);
 	copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_Y);
 
-#if HAVE_LIBWACOM
-	if (tool_set_bits_from_libwacom(tablet, tool) == 0)
+	if (tool_set_bits_from_libwacom(tablet, tool))
 		return;
-#endif
+
 	/* If we don't have libwacom, we simply copy any axis we have on the
 	   tablet onto the tool. Except we know that mice only have rotation
 	   anyway.
