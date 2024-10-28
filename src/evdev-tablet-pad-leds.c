@@ -268,6 +268,7 @@ pad_add_mode_group(struct pad_dispatch *pad,
 		   int button_index,
 		   uint32_t ring_mask,
 		   uint32_t strip_mask,
+		   uint32_t dial_mask,
 		   bool create_leds)
 {
 	struct libinput *li = pad_libinput_context(pad);
@@ -285,6 +286,7 @@ pad_add_mode_group(struct pad_dispatch *pad,
 		goto out;
 	group->base.ring_mask = ring_mask;
 	group->base.strip_mask = strip_mask;
+	group->base.dial_mask = dial_mask;
 	group->base.button_mask |= bit(button_index);
 
 	rc = pad_led_group_add_toggle_button(group, button_index);
@@ -362,6 +364,14 @@ pad_fetch_group_index(struct pad_dispatch *pad,
 	case WACOM_BUTTON_TOUCHSTRIP2_MODESWITCH:
 		group_index = 1;
 		break;
+#ifdef HAVE_LIBWACOM_BUTTON_DIAL_MODESWITCH
+	case WACOM_BUTTON_DIAL_MODESWITCH:
+		group_index = 0;
+		break;
+	case WACOM_BUTTON_DIAL2_MODESWITCH:
+		group_index = 1;
+		break;
+#endif
 	}
 
 	return  group_index;
@@ -418,6 +428,7 @@ pad_init_leds_from_libwacom(struct pad_dispatch *pad,
 		int nmodes = 0;
 		uint32_t ring_mask = 0;
 		uint32_t strip_mask = 0;
+		uint32_t dial_mask = 0;
 		bool have_status_led = false;
 
 		if ((flags & WACOM_BUTTON_MODESWITCH) == 0)
@@ -442,6 +453,16 @@ pad_init_leds_from_libwacom(struct pad_dispatch *pad,
 			nmodes = libwacom_get_strips_num_modes(wacom);
 			strip_mask = 0x2;
 			break;
+#ifdef HAVE_LIBWACOM_BUTTON_DIAL_MODESWITCH
+		case WACOM_BUTTON_DIAL_MODESWITCH:
+			nmodes = libwacom_get_dial_num_modes(wacom);
+			dial_mask = 0x1;
+			break;
+		case WACOM_BUTTON_DIAL2_MODESWITCH:
+			nmodes = libwacom_get_dial2_num_modes(wacom);
+			dial_mask = 0x2;
+			break;
+#endif
 		default:
 			evdev_log_error(pad->device,
 					"unable to init pad mode group: button %c has multiple modeswitch flags 0x%x\n",
@@ -453,7 +474,8 @@ pad_init_leds_from_libwacom(struct pad_dispatch *pad,
 			struct libinput_tablet_pad_mode_group *group = pad_get_mode_group(pad, group_index);
 			if (!group) {
 				rc = pad_add_mode_group(pad, device, group_index, nmodes, b,
-							ring_mask, strip_mask, have_status_led);
+							ring_mask, strip_mask, dial_mask,
+							have_status_led);
 			} else {
 				struct pad_led_group *led_group = (struct pad_led_group *)group;
 				/* Multiple toggle buttons (Wacom MobileStudio Pro 16) */
