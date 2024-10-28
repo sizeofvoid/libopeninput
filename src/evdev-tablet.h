@@ -27,6 +27,10 @@
 
 #include "evdev.h"
 
+#if !HAVE_LIBWACOM
+typedef void * WacomDevice;
+#endif
+
 #define LIBINPUT_TABLET_TOOL_AXIS_NONE 0
 #define LIBINPUT_TOOL_NONE 0
 #define LIBINPUT_TABLET_TOOL_TYPE_MAX LIBINPUT_TABLET_TOOL_TYPE_LENS

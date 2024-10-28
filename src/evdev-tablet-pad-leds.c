@@ -404,23 +404,13 @@ pad_find_button_group(struct pad_dispatch *pad,
 
 static int
 pad_init_leds_from_libwacom(struct pad_dispatch *pad,
-			    struct evdev_device *device)
+			    struct evdev_device *device,
+			    WacomDevice *wacom)
 {
-	struct libinput *li = pad_libinput_context(pad);
-	WacomDeviceDatabase *db = NULL;
-	WacomDevice *wacom = NULL;
 	int rc = -EINVAL;
 
-	db = libinput_libwacom_ref(li);
-	if (!db)
-		goto out;
-
-	wacom = libwacom_new_from_path(db,
-				       udev_device_get_devnode(device->udev_device),
-				       WFALLBACK_NONE,
-				       NULL);
 	if (!wacom)
-		goto out;
+		return -ENOENT;
 
 	for (int b = 0; b < libwacom_get_num_buttons(wacom); b++) {
 		char btn = 'A' + b;
@@ -523,11 +513,6 @@ pad_init_leds_from_libwacom(struct pad_dispatch *pad,
 
 	rc = 0;
 out:
-	if (wacom)
-		libwacom_destroy(wacom);
-	if (db)
-		libinput_libwacom_unref(li);
-
 	if (rc != 0) {
 		if (rc == -ENOENT && is_litest_device(pad->device)) {
 			evdev_log_error(pad->device,
@@ -567,7 +552,8 @@ pad_init_fallback_group(struct pad_dispatch *pad)
 
 int
 pad_init_leds(struct pad_dispatch *pad,
-	      struct evdev_device *device)
+	      struct evdev_device *device,
+	      WacomDevice *wacom)
 {
 	int rc = 1;
 
@@ -582,7 +568,7 @@ pad_init_leds(struct pad_dispatch *pad,
 
 	/* If libwacom fails, we init one fallback group anyway */
 #if HAVE_LIBWACOM
-	rc = pad_init_leds_from_libwacom(pad, device);
+	rc = pad_init_leds_from_libwacom(pad, device, wacom);
 #endif
 	if (rc != 0)
 		rc = pad_init_fallback_group(pad);
