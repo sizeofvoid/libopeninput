@@ -3146,9 +3146,9 @@ litest_print_event(struct libinput_event *event)
 	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
 		pad = libinput_event_get_tablet_pad_event(event);
 		fprintf(stderr, "strip %d position %.2f source %d",
-			libinput_event_tablet_pad_get_ring_number(pad),
-			libinput_event_tablet_pad_get_ring_position(pad),
-			libinput_event_tablet_pad_get_ring_source(pad));
+			libinput_event_tablet_pad_get_strip_number(pad),
+			libinput_event_tablet_pad_get_strip_position(pad),
+			libinput_event_tablet_pad_get_strip_source(pad));
 		break;
 	case LIBINPUT_EVENT_TABLET_PAD_DIAL:
 		pad = libinput_event_get_tablet_pad_event(event);
