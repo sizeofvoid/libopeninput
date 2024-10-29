@@ -6,16 +6,13 @@ repos:
   - id: trailing-whitespace
   - id: no-commit-to-branch
     args: ['--branch', 'main']
-- repo: https://github.com/psf/black
-  rev: 22.10.0
-  hooks:
-  - id: black
-    args: ['--check', '--diff', '--extend-exclude=subprojects', '.']
-- repo: https://github.com/charliermarsh/ruff-pre-commit
-  rev: v0.0.254
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.7.0
   hooks:
   - id: ruff
     args: ['--ignore=E741,E501', '--extend-exclude=subprojects', '.']
+  - id: ruff-format
+    args: ['--check', '--diff']
 - repo: https://gitlab.freedesktop.org/freedesktop/ci-templates.git
   rev: 7402203527f61d6473d55ad701172d1606508c52
   hooks:
