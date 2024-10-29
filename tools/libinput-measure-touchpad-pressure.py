@@ -66,10 +66,10 @@ class TableFormatter(object):
         s = "|"
         for w, arg in zip(self.colwidths, args):
             w -= 1  # width includes | separator
-            if type(arg) == str:
+            if isinstance(arg, str):
                 # We want space margins for strings
                 s += " {:{width}s} |".format(arg, width=w - 2)
-            elif type(arg) == bool:
+            elif isinstance(arg, bool):
                 s += "{:^{width}s}|".format("x" if arg else " ", width=w)
             else:
                 s += "{:^{width}d}|".format(arg, width=w)
