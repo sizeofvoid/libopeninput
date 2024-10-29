@@ -3683,10 +3683,14 @@ END_TEST
 static bool
 device_has_calibration(struct litest_device *dev)
 {
-	bool has_calibration = libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT);
 
-	if (has_calibration)
+	if (libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT))
 		return true;
+
+	bool has_calibration =
+		libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_PEN) ||
+		libevdev_has_event_code(dev->evdev, EV_KEY, BTN_STYLUS);
+
 #if HAVE_LIBWACOM
 	WacomDeviceDatabase *db = libwacom_database_new();
 	if (db) {

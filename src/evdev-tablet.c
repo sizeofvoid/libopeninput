@@ -2594,10 +2594,10 @@ static inline bool
 tablet_is_display_tablet(WacomDevice *wacom)
 {
 #if HAVE_LIBWACOM
-	return wacom &&
-		!!(libwacom_get_integration_flags(wacom) & (WACOM_DEVICE_INTEGRATED_SYSTEM|WACOM_DEVICE_INTEGRATED_DISPLAY));
+	return !wacom ||
+		(libwacom_get_integration_flags(wacom) & (WACOM_DEVICE_INTEGRATED_SYSTEM|WACOM_DEVICE_INTEGRATED_DISPLAY));
 #else
-	return false;
+	return true;
 #endif
 }
 
