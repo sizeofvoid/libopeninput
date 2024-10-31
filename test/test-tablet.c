@@ -3775,6 +3775,7 @@ START_TEST(tablet_calibration_set_matrix_delta)
 	dy = libinput_event_tablet_tool_get_y(tablet_event) - y;
 	libinput_event_destroy(event);
 	litest_tablet_proximity_out(dev);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	litest_drain_events(li);
 
 	status = libinput_device_config_calibration_set_matrix(d,
@@ -3857,6 +3858,8 @@ START_TEST(tablet_calibration_set_matrix)
 	litest_dispatch(li);
 	litest_tablet_proximity_in(dev, 50, 50, axes);
 	litest_tablet_proximity_out(dev);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	litest_drain_events(li);
 
 	calibration[0] = 1;
