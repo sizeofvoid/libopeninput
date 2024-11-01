@@ -476,6 +476,27 @@ normalize_wheel(struct tablet_dispatch *tablet,
 	return value * device->scroll.wheel_click_angle.x;
 }
 
+static bool
+is_inside_area(struct tablet_dispatch *tablet,
+	       const struct device_coords *point,
+	       double normalized_margin)
+{
+	if (tablet->area.rect.x1 == 0.0 && tablet->area.rect.x2 == 1.0 &&
+	    tablet->area.rect.y1 == 0.0 && tablet->area.rect.y2 == 1.0)
+		return true;
+
+	assert(normalized_margin > 0.0);
+	assert(normalized_margin <= 1.0);
+
+	int xmargin = (tablet->area.x.maximum - tablet->area.x.minimum) * normalized_margin;
+	int ymargin = (tablet->area.y.maximum - tablet->area.y.minimum) * normalized_margin;
+
+	return (point->x >= tablet->area.x.minimum - xmargin &&
+	        point->x <= tablet->area.x.maximum + xmargin &&
+	        point->y >= tablet->area.y.minimum - ymargin &&
+	        point->y <= tablet->area.y.maximum + ymargin);
+}
+
 static void
 apply_tablet_area(struct tablet_dispatch *tablet,
 		  struct evdev_device *device,
@@ -1818,17 +1839,20 @@ tablet_send_proximity_out(struct tablet_dispatch *tablet,
 	if (!tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY))
 		return false;
 
-	tablet_notify_proximity(&device->base,
-				time,
-				tool,
-				LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT,
-				tablet->changed_axes,
-				axes,
-			        &tablet->area.x,
-			        &tablet->area.y);
+	if (!tablet_has_status(tablet, TABLET_TOOL_OUTSIDE_AREA)) {
+		tablet_notify_proximity(&device->base,
+					time,
+					tool,
+					LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT,
+					tablet->changed_axes,
+					axes,
+					&tablet->area.x,
+					&tablet->area.y);
+	}
 
 	tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 	tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
+	tablet_unset_status(tablet, TABLET_TOOL_OUTSIDE_AREA);
 
 	tablet_reset_changed_axes(tablet);
 	axes->delta.x = 0;
@@ -2172,19 +2196,45 @@ reprocess:
 		if (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT))
 			tablet_set_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
 		apply_pressure_range_configuration(tablet, tool);
-	} else if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
-		tablet_mark_all_axes_changed(tablet, tool);
-		update_pressure_offset(tablet, device, tool);
-		detect_pressure_offset(tablet, device, tool);
-		detect_tool_contact(tablet, device, tool);
-		sanitize_tablet_axes(tablet, tool);
-	} else if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
-		update_pressure_offset(tablet, device, tool);
-		detect_tool_contact(tablet, device, tool);
-		sanitize_tablet_axes(tablet, tool);
+	} else if (!tablet_has_status(tablet, TABLET_TOOL_OUTSIDE_AREA)) {
+		if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
+			/* If we get into proximity outside the tablet area, we ignore
+			 * that whole sequence of events even if we later move into
+			 * the allowed area. This may be bad UX but it's complicated to
+			 * implement so let's wait for someone to actually complain
+			 * about it.
+			 *
+			 * We allow a margin of 3% (6mm on a 200mm tablet) to be "within"
+			 * the area - there we clip to the area but do not ignore the
+			 * sequence.
+			 */
+			const struct device_coords point = {
+				device->abs.absinfo_x->value,
+				device->abs.absinfo_y->value,
+			};
+
+			const double margin = 0.03;
+			if (is_inside_area(tablet, &point, margin)) {
+				tablet_mark_all_axes_changed(tablet, tool);
+				update_pressure_offset(tablet, device, tool);
+				detect_pressure_offset(tablet, device, tool);
+				detect_tool_contact(tablet, device, tool);
+				sanitize_tablet_axes(tablet, tool);
+			} else {
+				tablet_set_status(tablet, TABLET_TOOL_OUTSIDE_AREA);
+				tablet_unset_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY);
+			}
+		} else if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
+			update_pressure_offset(tablet, device, tool);
+			detect_tool_contact(tablet, device, tool);
+			sanitize_tablet_axes(tablet, tool);
+		}
+
 	}
 
-	tablet_send_events(tablet, tool, device, time);
+	if (!tablet_has_status(tablet, TABLET_TOOL_OUTSIDE_AREA)) {
+		tablet_send_events(tablet, tool, device, time);
+	}
 
 	if (process_tool_twice)
 		goto reprocess;

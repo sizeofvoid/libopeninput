@@ -4021,7 +4021,8 @@ START_TEST(tablet_area_set_rectangle)
 	};
 	double x, y;
 	double *scaled, *unscaled;
-	bool use_vertical = !!_i; /* ranged test */
+	bool use_vertical = abs(_i) % 2 == 0; /* ranged test */
+	int direction = _i < 0 ? -1 : 1; /* ranged test */
 
 	if (libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT))
 		return LITEST_NOT_APPLICABLE;
@@ -4046,14 +4047,15 @@ START_TEST(tablet_area_set_rectangle)
 
 	litest_drain_events(li);
 
-	/* move vertically through the center */
-	litest_tablet_proximity_in(dev, 5, 5, axes);
+	/* move from the center out */
+	litest_tablet_proximity_in(dev, 50, 50, axes);
 	libinput_dispatch(li);
 	get_tool_xy(li, &x, &y);
-	litest_assert_double_eq_epsilon(*scaled, 0.0, 2);
-	litest_assert_double_eq_epsilon(*unscaled, 5.0, 2);
+	litest_assert_double_eq_epsilon(*scaled, 50.0, 2);
+	litest_assert_double_eq_epsilon(*unscaled, 50.0, 2);
 
-	for (int i = 10; i <= 100; i += 5) {
+	int i;
+	for (i = 50; i > 0 && i <= 100; i += 5 * direction) {
 		/* Negate any smoothing */
 		litest_tablet_motion(dev, i, i, axes);
 		litest_tablet_motion(dev, i - 1, i, axes);
@@ -4072,9 +4074,10 @@ START_TEST(tablet_area_set_rectangle)
 		litest_assert_double_eq_epsilon(*unscaled, i, 2);
 	}
 
+	double final_stop = max(0.0, min(100.0, i));
 	/* Push through any smoothing */
-	litest_tablet_motion(dev, 100, 100, axes);
-	litest_tablet_motion(dev, 100, 100, axes);
+	litest_tablet_motion(dev, final_stop, final_stop, axes);
+	litest_tablet_motion(dev, final_stop, final_stop, axes);
 	libinput_dispatch(li);
 	litest_drain_events(li);
 
@@ -4082,9 +4085,202 @@ START_TEST(tablet_area_set_rectangle)
 	litest_timeout_tablet_proxout();
 	libinput_dispatch(li);
 	get_tool_xy(li, &x, &y);
-	litest_assert_double_eq_epsilon(x, 100, 1);
-	litest_assert_double_eq_epsilon(y, 100, 1);
+	litest_assert_double_eq_epsilon(x, final_stop, 1);
+	litest_assert_double_eq_epsilon(y, final_stop, 1);
 
+}
+END_TEST
+
+START_TEST(tablet_area_set_rectangle_move_outside)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_device *d = dev->libinput_device;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+	double x, y;
+
+	if (libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT))
+		return LITEST_NOT_APPLICABLE;
+
+	struct libinput_config_area_rectangle rect = {
+		0.25, 0.25, 0.75, 0.75,
+	};
+
+	enum libinput_config_status status = libinput_device_config_area_set_rectangle(d, &rect);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_drain_events(li);
+
+	/* move in/out of prox outside the area */
+	litest_tablet_proximity_in(dev, 5, 5, axes);
+	litest_tablet_proximity_out(dev);
+	libinput_dispatch(li);
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	x = 5;
+	y = 5;
+	/* Move around the area - since we stay outside the area expect no events */
+	litest_tablet_proximity_in(dev, x, y, axes);
+	libinput_dispatch(li);
+	for (; x < 90; x += 5) {
+		litest_tablet_motion(dev, x, y, axes);
+		libinput_dispatch(li);
+		litest_assert_empty_queue(li);
+	}
+	litest_axis_set_value(axes, ABS_PRESSURE, 30);
+	litest_tablet_tip_down(dev, x, y, axes);
+	for (; y < 90; y += 5) {
+		litest_tablet_motion(dev, x, y, axes);
+		libinput_dispatch(li);
+		litest_assert_empty_queue(li);
+	}
+	litest_axis_set_value(axes, ABS_PRESSURE, 0);
+	litest_tablet_tip_up(dev, x, y, axes);
+	for (; x > 5; x -= 5) {
+		litest_tablet_motion(dev, x, y, axes);
+		libinput_dispatch(li);
+		litest_assert_empty_queue(li);
+	}
+	litest_button_click(dev, BTN_STYLUS, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_button_click(dev, BTN_STYLUS, LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_axis_set_value(axes, ABS_PRESSURE, 30);
+	litest_tablet_tip_down(dev, x, y, axes);
+	for (; y > 5; y -= 5) {
+		litest_tablet_motion(dev, x, y, axes);
+		libinput_dispatch(li);
+		litest_assert_empty_queue(li);
+	}
+	litest_axis_set_value(axes, ABS_PRESSURE, 0);
+	litest_tablet_tip_up(dev, x, y, axes);
+
+	litest_tablet_proximity_out(dev);
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(tablet_area_set_rectangle_move_outside_to_inside)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_device *d = dev->libinput_device;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+	double x, y;
+
+	if (libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT))
+		return LITEST_NOT_APPLICABLE;
+
+	struct libinput_config_area_rectangle rect = {
+		0.25, 0.25, 0.75, 0.75,
+	};
+
+	enum libinput_config_status status = libinput_device_config_area_set_rectangle(d, &rect);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_drain_events(li);
+
+	x = 5;
+	y = 50;
+        /* Move into the center of the area - since we started outside the area
+         * expect no events */
+        litest_tablet_proximity_in(dev, x, y, axes);
+	libinput_dispatch(li);
+	for (; x < 50; x += 5) {
+		litest_tablet_motion(dev, x, y, axes);
+		libinput_dispatch(li);
+		litest_assert_empty_queue(li);
+	}
+	litest_button_click(dev, BTN_STYLUS, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_button_click(dev, BTN_STYLUS, LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_axis_set_value(axes, ABS_PRESSURE, 30);
+	litest_tablet_tip_down(dev, x, y, axes);
+	litest_axis_set_value(axes, ABS_PRESSURE, 0);
+	litest_tablet_tip_up(dev, x, y, axes);
+	litest_tablet_proximity_out(dev);
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	y = 5;
+	x = 50;
+        litest_tablet_proximity_in(dev, x, y, axes);
+	for (; y < 50; y += 5) {
+		litest_tablet_motion(dev, x, y, axes);
+		libinput_dispatch(li);
+		litest_assert_empty_queue(li);
+	}
+	litest_button_click(dev, BTN_STYLUS, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_button_click(dev, BTN_STYLUS, LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_axis_set_value(axes, ABS_PRESSURE, 30);
+	litest_tablet_tip_down(dev, x, y, axes);
+	litest_axis_set_value(axes, ABS_PRESSURE, 0);
+	litest_tablet_tip_up(dev, x, y, axes);
+	litest_tablet_proximity_out(dev);
+
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(tablet_area_set_rectangle_move_in_margin)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_device *d = dev->libinput_device;
+	struct libinput_event *ev;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+	double x, y;
+
+	if (libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT))
+		return LITEST_NOT_APPLICABLE;
+
+	struct libinput_config_area_rectangle rect = {
+		0.25, 0.25, 0.75, 0.75,
+	};
+
+	enum libinput_config_status status = libinput_device_config_area_set_rectangle(d, &rect);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_drain_events(li);
+
+	/* move in/out of prox outside the area but within the margin */
+	litest_tablet_proximity_in(dev, 24, 24, axes);
+	litest_tablet_proximity_out(dev);
+	libinput_dispatch(li);
+	litest_timeout_tablet_proxout();
+	libinput_dispatch(li);
+
+	ev = libinput_get_event(li);
+	tev = litest_is_proximity_event(ev, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+	x = libinput_event_tablet_tool_get_x(tev);
+	y = libinput_event_tablet_tool_get_y(tev);
+	litest_assert_double_eq(x, 0.0);
+	litest_assert_double_eq(y, 0.0);
+	libinput_event_destroy(ev);
+	ev = libinput_get_event(li);
+	tev = litest_is_proximity_event(ev, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+	x = libinput_event_tablet_tool_get_x(tev);
+	y = libinput_event_tablet_tool_get_y(tev);
+	litest_assert_double_eq(x, 0.0);
+	litest_assert_double_eq(y, 0.0);
+	libinput_event_destroy(ev);
 }
 END_TEST
 
@@ -6768,7 +6964,7 @@ TEST_COLLECTION(tablet)
 	struct range with_timeout = { 0, 2 };
 	struct range xyaxes = { ABS_X, ABS_Y + 1 };
 	struct range tilt_cases = {TILT_MINIMUM, TILT_MAXIMUM + 1};
-	struct range vert_horiz = { 0, 2 };
+	struct range vert_horiz = { -2, 2 };
 
 	litest_add(tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add(tool_user_data, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
@@ -6853,6 +7049,9 @@ TEST_COLLECTION(tablet)
 	litest_add(tablet_area_has_rectangle, LITEST_TABLET, LITEST_ANY);
 	litest_add(tablet_area_set_rectangle_invalid, LITEST_TABLET, LITEST_ANY);
 	litest_add_ranged(tablet_area_set_rectangle, LITEST_TABLET, LITEST_ANY, &vert_horiz);
+	litest_add(tablet_area_set_rectangle_move_outside, LITEST_TABLET, LITEST_ANY);
+	litest_add(tablet_area_set_rectangle_move_outside_to_inside, LITEST_TABLET, LITEST_ANY);
+	litest_add(tablet_area_set_rectangle_move_in_margin, LITEST_TABLET, LITEST_ANY);
 
 	litest_add(tablet_pressure_min_max, LITEST_TABLET, LITEST_ANY);
 	/* Tests for pressure offset with distance */
