@@ -70,7 +70,12 @@ log_handler(struct libinput *li,
 
 	if (is_tty) {
 		if (priority >= LIBINPUT_LOG_PRIORITY_ERROR) {
-			printf(ANSI_RED);
+			if (strstr(format, "client bug: ") ||
+			    strstr(format, "libinput bug: ") ||
+			    strstr(format, "kernel bug: "))
+				printf(ANSI_BRIGHT_RED);
+			else
+				printf(ANSI_RED);
 		} else if (priority >= LIBINPUT_LOG_PRIORITY_INFO) {
 			printf(ANSI_HIGHLIGHT);
 		} else if (priority == LIBINPUT_LOG_PRIORITY_DEBUG) {
