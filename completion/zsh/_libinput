@@ -55,38 +55,38 @@ __all_seats()
 			lrm\:2-fingers\ right-click\ /\ 3-fingers\ middle-click \
 			lmr\:2-fingers\ middle-click\ /\ 3-fingers\ right-click \
 		))' \
-		'--set-scroll-method=[Set the desired scroll method]:scroll-method:(none twofinger edge button)' \
-		'--set-scroll-button=[Set the button to the given button code]' \
 		'--set-profile=[Set pointer acceleration profile]:accel-profile:(adaptive flat)' \
+		'--set-scroll-button=[Set the button to the given button code]' \
+		'--set-scroll-method=[Set the desired scroll method]:scroll-method:(none twofinger edge button)' \
 		'--set-speed=[Set pointer acceleration speed (within range \[-1, 1\])]' \
 		'--set-tap-map=[Set button mapping for tapping]:tap-map:((  \
 			lrm\:2-fingers\ right-click\ /\ 3-fingers\ middle-click \
 			lmr\:2-fingers\ middle-click\ /\ 3-fingers\ right-click \
 		))' \
-		+ '(tap-to-click)' \
-		'--enable-tap[Enable tap-to-click]' \
-		'--disable-tap[Disable tap-to-click]' \
 		+ '(drag)' \
 		'--enable-drag[Enable tap-and-drag]' \
 		'--disable-drag[Disable tap-and-drag]' \
 		+ '(drag-lock)' \
 		'--enable-drag-lock[Enable drag-lock]' \
 		'--disable-drag-lock[Disable drag-lock]' \
-		+ '(natural-scrolling)' \
-		'--enable-natural-scrolling[Enable natural scrolling]' \
-		'--disable-natural-scrolling[Disable natural scrolling]' \
+		+ '(dwt)' \
+		'--enable-dwt[Enable disable-while-typing]' \
+		'--disable-dwt[Disable disable-while-typing]' \
+		+ '(dwtp)' \
+		'--enable-dwtp[Enable disable-while-trackpointing]' \
+		'--disable-dwtp[Disable disable-while-trackpointing]' \
 		+ '(left-handed)' \
 		'--enable-left-handed[Enable left handed button configuration]' \
 		'--disable-left-handed[Disable left handed button configuration]' \
 		+ '(middlebutton)' \
 		'--enable-middlebutton[Enable middle button emulation]' \
 		'--disable-middlebutton[Disable middle button emulation]' \
-		+ '(dwt)' \
-		'--enable-dwt[Enable disable-while-typing]' \
-		'--disable-dwt[Disable disable-while-typing]' \
-		+ '(dwtp)' \
-		'--enable-dwtp[Enable disable-while-trackpointing]' \
-		'--disable-dwtp[Disable disable-while-trackpointing]'
+		+ '(natural-scrolling)' \
+		'--enable-natural-scrolling[Enable natural scrolling]' \
+		'--disable-natural-scrolling[Disable natural scrolling]' \
+		+ '(tap-to-click)' \
+		'--enable-tap[Enable tap-to-click]' \
+		'--disable-tap[Disable tap-to-click]'
 }
 
 (( $+functions[_libinput_debug-gui] )) || _libinput_debug-gui()
