@@ -404,7 +404,7 @@ custom_accelerator_filter_scroll(struct motion_filter *filter,
 					 time);
 }
 
-struct motion_filter_interface custom_accelerator_interface = {
+static struct motion_filter_interface custom_accelerator_interface = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM,
 	.filter = custom_accelerator_filter_motion,
 	.filter_constant = custom_accelerator_filter_fallback,

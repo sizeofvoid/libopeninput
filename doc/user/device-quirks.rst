@@ -10,10 +10,10 @@ under specific conditions. libinput ships a set of files containing the
 so-called model quirks to provide that information. Model quirks are usually
 installed under ``/usr/share/libinput/<filename>.quirks`` and are standard
 ``.ini`` files. A file may contain multiple section headers (``[some
-identifier]``) followed by one or more ``MatchFoo=Bar`` directives, followed by
-at least one of ``ModelFoo=1`` or ``AttrFoo=bar`` directive. See the
-``quirks/README.md`` file in the libinput source repository for more details on
-their contents.
+identifier]``) followed by one or more :ref:`MatchFoo=Bar <device-quirks-matches>`
+directives, followed by at least one of ``ModelFoo=1`` or ``AttrFoo=bar`` directive.
+See the ``quirks/README.md`` file in the libinput source repository for more
+details on their contents.
 
 .. warning:: Model quirks are internal API and may change at any time. No
              backwards-compatibility is guaranteed.
@@ -151,6 +151,10 @@ ModelPressurePad
     Unlike in traditional touchpads, whose pressure value equals contact size,
     on pressure pads pressure is a real physical axis.
     Indicates that the device is a pressure pad.
+ModelTouchpadPhantomClicks
+    Some laptops are prone to registering touchpad clicks when the case is
+    bent. Indicates that clicks should be ignored if no fingers are on the
+    touchpad.
 AttrSizeHint=NxM, AttrResolutionHint=N
     Hints at the width x height of the device in mm, or the resolution
     of the x/y axis in units/mm. These may only be used where they apply to
@@ -161,11 +165,15 @@ AttrTouchSizeRange=N:M, AttrPalmSizeThreshold=O
     Specifies the touch size required to trigger a press (N) and to trigger
     a release (M). O > N > M. See :ref:`touchpad_touch_size_hwdb` for more
     details.
+    An AttrPalmSizeThreshold of zero unsets any threshold that has been
+    inherited from another quirk.
 AttrPressureRange=N:M, AttrPalmPressureThreshold=O, AttrThumbPressureThreshold=P
     Specifies the touch pressure required to trigger a press (N) and to
     trigger a release (M), when a palm touch is triggered (O) and when a
     thumb touch is triggered (P). O > P > N > M. See
     :ref:`touchpad_pressure_hwdb` for more details.
+    An AttrPalmPressureThreshold of zero unsets any threshold that has been
+    inherited from another quirk.
 AttrLidSwitchReliability=reliable|unreliable|write_open
     Indicates the reliability of the lid switch. This is a string enum.
     Very few devices need this, if in doubt do not set. See :ref:`switches_lid`
@@ -193,3 +201,34 @@ AttrPointingStickIntegration=internal|external
 AttrTabletSmoothing=1|0
     Enables (1) or disables (0) input smoothing for tablet devices. Smoothing is enabled
     by default, except on AES devices.
+
+.. _device-quirks-matches:
+
+------------------------------------------------------------------------------
+List of currently available matches
+------------------------------------------------------------------------------
+
+``Match*`` statements are how quirks are assigned to a device. Quirks with multiple
+match statements must match all of those to apply.
+
+.. warning:: Quirks are internal API and may change at any time for any reason.
+             No guarantee is given that any ``Match`` statement below works on
+             your version of libinput.
+
+MatchName, MatchUniq
+    Match on the ``NAME`` or ``UNIQ`` udev property on this device. These properties
+    are typically derived from the device's kernel name or uniq but may be overridden
+    by a udev rule. These matches use ``fnmatch()`` globs.
+MatchBus
+    A lower-case bus name. Currently supported are ``usb``, ``bluetooth``, ``ps2``,
+    ``rmi``, ``i2c``, and ``spi``.
+MatchVendor, MatchProduct, MatchVersion
+    The hexadecmial 4-digit vendor ID, product ID or driver version as exported, without
+    a ``0x`` prefix.
+MatchDMIModalias, MatchDeviceTree
+    An ``fnmatch()`` glob for the DMI modalias or the DeviceTree ``compatible`` string.
+    See ``/sys/class/dmi/id/modalias`` and ``/sys/firmware/devicetree/base/compatible``.
+MatchUdevType
+    One of ``touchpad``, ``mouse``, ``pointingstick``, ``keyboard``, ``joystick``,
+    ``tablet``, ``tablet-pad``. Matches the corresponding ``ID_INPUT_*`` udev
+    property.

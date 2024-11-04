@@ -435,14 +435,24 @@ START_TEST(keyboard_leds)
 				   LIBINPUT_LED_CAPS_LOCK);
 	libinput_device_led_update(device,
 				   LIBINPUT_LED_SCROLL_LOCK);
+	libinput_device_led_update(device,
+				   LIBINPUT_LED_COMPOSE);
+	libinput_device_led_update(device,
+				   LIBINPUT_LED_KANA);
 
 	libinput_device_led_update(device,
-				   LIBINPUT_LED_NUM_LOCK|
+				   LIBINPUT_LED_NUM_LOCK |
 				   LIBINPUT_LED_CAPS_LOCK);
 	libinput_device_led_update(device,
-				   LIBINPUT_LED_NUM_LOCK|
+				   LIBINPUT_LED_NUM_LOCK |
 				   LIBINPUT_LED_CAPS_LOCK |
 				   LIBINPUT_LED_SCROLL_LOCK);
+	libinput_device_led_update(device,
+				   LIBINPUT_LED_NUM_LOCK |
+				   LIBINPUT_LED_CAPS_LOCK |
+				   LIBINPUT_LED_SCROLL_LOCK |
+				   LIBINPUT_LED_COMPOSE |
+				   LIBINPUT_LED_KANA);
 	libinput_device_led_update(device, 0);
 	libinput_device_led_update(device, -1);
 }

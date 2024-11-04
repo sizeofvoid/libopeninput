@@ -92,16 +92,11 @@ TEST_DEVICE("magicmouse",
 	.events = events,
 	.absinfo = absinfo,
 
-	/* Force MOUSE_DPI to the empty string. As of systemd commit f013e99e160f
-	 * ID_BUS=bluetooth now triggers the hwdb entry for this device. This causes
-	 * test case failures because deltas change. Detecting old vs new systemd is
-	 * hard, and because our rules are 99-prefixed we can't set ID_BUS ourselves
-	 * on older systemd.
-	 * So let's go the easy way and unset MOUSE_DPI so we can continue to use
-	 * the current tests.
-	 */
+	/* Force MOUSE_DPI to 1000. systemd commit f013e99e160f says it's 1300
+	 * but our test were written with different assumptions and it's not worth
+	 * re-writing those, so let's assume the default */
 	.udev_properties = {
-		{ "MOUSE_DPI", "" },
+		{ "MOUSE_DPI", "1000" },
 		{ NULL },
 	},
 )

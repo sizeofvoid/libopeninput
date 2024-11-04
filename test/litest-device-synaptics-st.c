@@ -42,7 +42,7 @@ static struct input_event move[] = {
 	{ .type = -1, .code = -1 },
 };
 
-struct input_event up[] = {
+static struct input_event up[] = {
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };

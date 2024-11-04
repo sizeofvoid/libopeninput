@@ -948,7 +948,7 @@ tp_guess_clickpad(const struct tp_dispatch *tp, struct evdev_device *device)
 					     "clickpad advertising right button. "
 					     "See %s/clickpad-with-right-button.html for details\n",
 					     HTTP_DOC_LINK);
-	} else if (has_left &
+	} else if (has_left &&
 		   !is_clickpad &&
 		   libevdev_get_id_vendor(device->evdev) != VENDOR_ID_APPLE) {
 			evdev_log_bug_kernel(device,
@@ -956,6 +956,51 @@ tp_guess_clickpad(const struct tp_dispatch *tp, struct evdev_device *device)
 	}
 
 	return is_clickpad;
+}
+
+static inline void
+tp_button_update_clickfinger_map(struct tp_dispatch *tp)
+{
+	if (tp->buttons.state != BUTTON_STATE_NONE)
+		return;
+
+	if (tp->buttons.map != tp->buttons.want_map)
+		tp->buttons.map = tp->buttons.want_map;
+}
+
+void
+tp_button_post_process_state(struct tp_dispatch *tp)
+{
+	tp_button_update_clickfinger_map(tp);
+}
+
+static enum libinput_config_status
+tp_button_config_set_clickfinger_map(struct libinput_device *device,
+				     enum libinput_config_clickfinger_button_map map)
+{
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
+
+	tp->buttons.want_map = map;
+
+	tp_button_update_clickfinger_map(tp);
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static enum libinput_config_clickfinger_button_map
+tp_button_config_get_clickfinger_map(struct libinput_device *device)
+{
+	struct evdev_dispatch *dispatch = evdev_device(device)->dispatch;
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
+
+	return tp->buttons.want_map;
+}
+
+static enum libinput_config_clickfinger_button_map
+tp_button_config_get_default_clickfinger_map(struct libinput_device *device)
+{
+	return LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM;
 }
 
 void
@@ -982,7 +1027,14 @@ tp_init_buttons(struct tp_dispatch *tp,
 	tp->buttons.config_method.set_method = tp_button_config_click_set_method;
 	tp->buttons.config_method.get_method = tp_button_config_click_get_method;
 	tp->buttons.config_method.get_default_method = tp_button_config_click_get_default_method;
+	tp->buttons.config_method.set_clickfinger_map = tp_button_config_set_clickfinger_map;
+	tp->buttons.config_method.get_clickfinger_map = tp_button_config_get_clickfinger_map;
+	tp->buttons.config_method.get_default_clickfinger_map = tp_button_config_get_default_clickfinger_map;
+
 	tp->device->base.config.click_method = &tp->buttons.config_method;
+
+	tp->buttons.map = LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM;
+	tp->buttons.want_map = tp->buttons.map;
 
 	tp->buttons.click_method = tp_click_get_default_method(tp);
 	tp_switch_click_method(tp);
@@ -1118,6 +1170,10 @@ tp_clickfinger_set_button(struct tp_dispatch *tp)
 	struct tp_touch *t;
 	struct tp_touch *first = NULL,
 			*second = NULL;
+	int32_t button_map[2][3] = {
+		{ BTN_LEFT, BTN_RIGHT, BTN_MIDDLE },
+		{ BTN_LEFT, BTN_MIDDLE, BTN_RIGHT },
+	};
 
 	tp_for_each_touch(tp, t) {
 		if (t->state != TOUCH_BEGIN && t->state != TOUCH_UPDATE)
@@ -1148,11 +1204,12 @@ tp_clickfinger_set_button(struct tp_dispatch *tp)
 		nfingers = 1;
 
 out:
+	nfingers = max(1, nfingers);
+
 	switch (nfingers) {
-	case 0:
-	case 1: button = BTN_LEFT; break;
-	case 2: button = BTN_RIGHT; break;
-	case 3: button = BTN_MIDDLE; break;
+	case 1:
+	case 2:
+	case 3: button = button_map[tp->buttons.map][nfingers-1]; break;
 	default:
 		button = 0;
 		break;
@@ -1328,6 +1385,7 @@ tp_post_button_events(struct tp_dispatch *tp, uint64_t time)
 	if (tp->buttons.is_clickpad ||
 	    tp->device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON)
 		return tp_post_clickpadbutton_buttons(tp, time);
+
 	return tp_post_physical_buttons(tp, time);
 }
 

@@ -158,6 +158,9 @@ print_event_header(struct libinput_event *ev)
 	case LIBINPUT_EVENT_TABLET_PAD_KEY:
 		type = "TABLET_PAD_KEY";
 		break;
+	case LIBINPUT_EVENT_TABLET_PAD_DIAL:
+		type = "TABLET_PAD_DIAL";
+		break;
 	case LIBINPUT_EVENT_SWITCH_TOGGLE:
 		type = "SWITCH_TOGGLE";
 		break;
@@ -820,6 +823,21 @@ print_tablet_pad_key_event(struct libinput_event *ev)
 }
 
 static void
+print_tablet_pad_dial_event(struct libinput_event *ev)
+{
+	struct libinput_event_tablet_pad *p = libinput_event_get_tablet_pad_event(ev);
+	unsigned int mode;
+
+	print_event_time(libinput_event_tablet_pad_get_time(p));
+
+	mode = libinput_event_tablet_pad_get_mode(p);
+	printq("dial %d delta %.2f (mode %d)\n",
+	       libinput_event_tablet_pad_get_dial_number(p),
+	       libinput_event_tablet_pad_get_dial_delta_v120(p),
+	       mode);
+}
+
+static void
 print_switch_event(struct libinput_event *ev)
 {
 	struct libinput_event_switch *sw = libinput_event_get_switch_event(ev);
@@ -922,9 +940,15 @@ handle_and_print_events(struct libinput *li)
 		case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
 			print_tablet_axis_event(ev);
 			break;
-		case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
+		case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY: {
+			struct libinput_event_tablet_tool *tev =
+				libinput_event_get_tablet_tool_event(ev);
+			struct libinput_tablet_tool *tool =
+				libinput_event_tablet_tool_get_tool(tev);
+			tools_tablet_tool_apply_config(tool, &options);
 			print_proximity_event(ev);
 			break;
+		}
 		case LIBINPUT_EVENT_TABLET_TOOL_TIP:
 			print_tablet_tip_event(ev);
 			break;
@@ -942,6 +966,9 @@ handle_and_print_events(struct libinput *li)
 			break;
 		case LIBINPUT_EVENT_TABLET_PAD_KEY:
 			print_tablet_pad_key_event(ev);
+			break;
+		case LIBINPUT_EVENT_TABLET_PAD_DIAL:
+			print_tablet_pad_dial_event(ev);
 			break;
 		case LIBINPUT_EVENT_SWITCH_TOGGLE:
 			print_switch_event(ev);

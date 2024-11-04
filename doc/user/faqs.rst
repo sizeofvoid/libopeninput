@@ -359,3 +359,20 @@ invoke ``sed``. It will not have any effect on the original ``sed`` instance.
 The only way to modify libinput's behavior is to use the configuration options
 exposed by the respective compositor. Those affect the libinput context inside
 the compositor and thus have an effect on the input device behavior.
+
+------------------------------------------------------------------------------
+Can I configure scroll speed?
+------------------------------------------------------------------------------
+
+No, or at least, not as a libinput option.
+
+When using a mouse, libinput notifies callers about physical scroll wheel
+movement. When using another device, libinput notifies scroll in scroll units.
+
+It is up to the caller to transform those events into a number of pixels to
+scroll and, if desired, provide a way to adjust scroll speed.
+
+This transformation cannot be done in libinput because it may depend on context
+only known by the caller. For example, a caller may want to scroll faster
+depending on how many pages a document has or depending on the widget that
+receives the scroll events.

@@ -88,6 +88,9 @@ Enable or disable the scroll button lock
 .B \-\-set\-click\-method=[none|clickfinger|buttonareas]
 Set the desired click method
 .TP 8
+.B \-\-set\-clickfinger\-map=[lrm|lmr]
+Set button mapping for clickfinger
+.TP 8
 .B \-\-set\-scroll\-method=[none|twofinger|edge|button]
 Set the desired scroll method
 .TP 8
@@ -122,6 +125,9 @@ Set button mapping for tapping
 .TP 8
 .B \-\-set\-rotation\-angle=<degrees>
 Set the rotation angle in degrees (0 to 360).
+.TP 8
+.B \-\-set\-pressure\-range=<min>:<max>
+Set the tablet tool pressure range to min:max. min and max must be in range [0.0, 1.0].
 .SH NOTES
 .PP
 Events shown by this tool may not correspond to the events seen by a

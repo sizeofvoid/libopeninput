@@ -71,14 +71,13 @@ def check_udev_properties(yaml_data, uinput):
     """
     yaml_udev_section = fetch(yaml_data, "udev")
     yaml_udev_props = fetch(yaml_udev_section, "properties")
+
+    ignore = ["LIBINPUT_DEVICE_GROUP", "DRIVER"]
     yaml_props = {
-        k: v for (k, v) in [prop.split("=", maxsplit=1) for prop in yaml_udev_props]
+        k: v
+        for (k, v) in [prop.split("=", maxsplit=1) for prop in yaml_udev_props]
+        if k not in ignore
     }
-    try:
-        # We don't assign this one to virtual devices
-        del yaml_props["LIBINPUT_DEVICE_GROUP"]
-    except KeyError:
-        pass
 
     # give udev some time to catch up
     time.sleep(0.2)
@@ -171,7 +170,7 @@ def print_events(devnode, indent, evs):
 def collect_events(frame):
     evs = []
     events_skipped = False
-    for (sec, usec, evtype, evcode, value) in frame:
+    for sec, usec, evtype, evcode, value in frame:
         if evtype == libevdev.EV_KEY.value and value == 2:  # key repeat
             events_skipped = True
             continue

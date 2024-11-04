@@ -1846,6 +1846,7 @@ tp_post_process_state(struct tp_dispatch *tp, uint64_t time)
 		tp_thumb_reset(tp);
 
 	tp_tap_post_process_state(tp);
+	tp_button_post_process_state(tp);
 }
 
 static void
@@ -2248,6 +2249,12 @@ tp_keyboard_timeout(uint64_t now, void *data)
 }
 
 static inline bool
+tp_key_is_shift(unsigned int keycode)
+{
+	return keycode == KEY_LEFTSHIFT || keycode == KEY_RIGHTSHIFT;
+}
+
+static inline bool
 tp_key_is_modifier(unsigned int keycode)
 {
 	switch (keycode) {
@@ -2319,10 +2326,14 @@ tp_keyboard_event(uint64_t time, struct libinput_event *event, void *data)
 		return;
 
 	/* modifier keys don't trigger disable-while-typing so things like
-	 * ctrl+zoom or ctrl+click are possible */
+	 * ctrl+zoom or ctrl+click are possible.
+	 * The exception is shift which we don't trigger DWT for on its own
+	 * but we do trigger DWT for once we type some other key.
+	 */
 	is_modifier = tp_key_is_modifier(key);
 	if (is_modifier) {
-		long_set_bit(tp->dwt.mod_mask, key);
+		if (!tp_key_is_shift(key))
+			long_set_bit(tp->dwt.mod_mask, key);
 		return;
 	}
 
@@ -3409,11 +3420,13 @@ tp_init_palmdetect_pressure(struct tp_dispatch *tp,
 	}
 
 	tp->palm.pressure_threshold = tp_read_palm_pressure_prop(tp, device);
-	tp->palm.use_pressure = true;
+	if (tp->palm.pressure_threshold != 0) {
+		tp->palm.use_pressure = true;
 
-	evdev_log_debug(device,
-			"palm: pressure threshold is %d\n",
-			tp->palm.pressure_threshold);
+		evdev_log_debug(device,
+				"palm: pressure threshold is %d\n",
+				tp->palm.pressure_threshold);
+	}
 }
 
 static inline void
@@ -3430,11 +3443,7 @@ tp_init_palmdetect_size(struct tp_dispatch *tp,
 		return;
 
 	if (quirks_get_uint32(q, QUIRK_ATTR_PALM_SIZE_THRESHOLD, &threshold)) {
-		if (threshold == 0) {
-			evdev_log_bug_client(device,
-					     "palm: ignoring invalid threshold %d\n",
-					     threshold);
-		} else {
+		if (threshold != 0) {
 			tp->palm.use_size = true;
 			tp->palm.size_threshold = threshold;
 		}

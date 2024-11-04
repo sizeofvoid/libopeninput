@@ -50,8 +50,10 @@ include:
 
 workflow:
   rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_PIPELINE_SOURCE == 'push'
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
 
 stages:
   - sanity check     # CI/commit checks
@@ -303,7 +305,6 @@ check-whitespace:
   variables:
     MESON_BUILDDIR: build_dir
     B2C_KERNEL: {{ b2c.kernel }}
-    B2C_VERSION: {{ b2c.version }}
     B2C_IMAGE: $FDO_DISTRIBUTION_IMAGE
     B2C_COMMAND: .gitlab-ci/start-in-systemd.sh
   script:
@@ -311,7 +312,7 @@ check-whitespace:
     - .gitlab-ci/meson-build.sh --skip-test
 
     # pull b2c
-    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/mupuf/boot2container/-/raw/{{b2c.version}}/vm2c.py
+    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/gfx-ci/boot2container/-/raw/{{b2c.version}}/vm2c.py
     - chmod +x /app/boot2container
 
     # runs the test suite only
@@ -696,6 +697,9 @@ check-merge-request:
     reports:
       junit: results.xml
   allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
 
 {% for distro in distributions if distro.name == "fedora" %}
 {% set version = "{}".format(distro.versions|last()) %}

@@ -177,3 +177,17 @@ the non-dominant hand.
 Note that where a device rotation is higher than 160 but less than 200 degrees,
 the direction of wheels is also inverted. For all other angles, the wheel
 direction is left as-is.
+
+.. _config-tablet-pressure-range:
+
+------------------------------------------------------------------------------
+Tablet tool pressure range
+------------------------------------------------------------------------------
+
+The pressure range on a :ref:`Tablet tool <tablet-tools>` can be reduced
+from the full available hardware range to a subset of that range. The effect
+of this is that the tablet will not register pressure below the given
+the given threshold is met, and will reach the maximum logical pressure
+before the maximum hardware-supported pressure is reached.
+
+See :ref:`tablet-pressure-range` for more info.

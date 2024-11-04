@@ -40,6 +40,12 @@ deg2rad(int degree)
 	return M_PI * degree / 180.0;
 }
 
+static inline double
+rad2deg(double rad)
+{
+	return 180.0 / M_PI * rad;
+}
+
 static inline void
 matrix_init_identity(struct matrix *m)
 {

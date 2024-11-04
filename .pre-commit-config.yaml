@@ -10,12 +10,12 @@ repos:
   rev: 22.10.0
   hooks:
   - id: black
-    args: ['--check', '--diff', '.']
+    args: ['--check', '--diff', '--extend-exclude=subprojects', '.']
 - repo: https://github.com/charliermarsh/ruff-pre-commit
   rev: v0.0.254
   hooks:
   - id: ruff
-    args: ['--ignore=E741,E501', '.']
+    args: ['--ignore=E741,E501', '--extend-exclude=subprojects', '.']
 - repo: https://gitlab.freedesktop.org/freedesktop/ci-templates.git
   rev: 7402203527f61d6473d55ad701172d1606508c52
   hooks:

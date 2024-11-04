@@ -84,6 +84,11 @@ MatchName=*DualPoint Stick
 MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE7470*
 AttrTrackpointMultiplier=0.125
 
+[Latitude 7275]
+MatchName=*AT Translated Set 2 keyboard*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude7275:*
+ModelTabletModeNoSuspend=1
+
 [Latitude 7480 Touchpad]
 MatchName=DLL07A0*
 MatchDMIModalias=dmi:**bvnDellInc.:*:pnLatitude7480*
@@ -128,3 +133,11 @@ MatchBus=i2c
 MatchVendor=0x06CB
 MatchProduct=0xCFA0
 ModelPressurePad=1
+
+[Dell Precision 5480]
+MatchBus=i2c
+MatchVendor=0x0488
+MatchProduct=0x1063
+MatchUdevType=touchpad
+MatchDMIModalias=dmi:*svnDellInc.:pnPrecision5480*
+ModelTouchpadVisibleMarker=0

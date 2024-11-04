@@ -39,6 +39,7 @@
 #include <libevdev/libevdev.h>
 
 #include "builddir.h"
+#include "libinput.h"
 #include "shared.h"
 #include "util-macros.h"
 #include "util-strings.h"
@@ -120,6 +121,10 @@ tools_init_options(struct tools_options *options)
 	options->custom_npoints = ARRAY_LENGTH(points);
 	options->custom_type = LIBINPUT_ACCEL_TYPE_FALLBACK;
 	options->custom_step = 1.0;
+	options->pressure_range[0] = 0.0;
+	options->pressure_range[1] = 1.0;
+	options->calibration[0] = 1.0;
+	options->calibration[4] = 1.0;
 }
 
 int
@@ -201,6 +206,18 @@ tools_parse_option(int option,
 		} else if (streq(optarg, "buttonareas")) {
 			options->click_method =
 			LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS;
+		} else {
+			return 1;
+		}
+		break;
+	case OPT_CLICKFINGER_MAP:
+		if (!optarg)
+			return 1;
+
+		if (streq(optarg, "lrm")) {
+			options->clickfinger_map = LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM;
+		} else if (streq(optarg, "lmr")) {
+			options->clickfinger_map = LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR;
 		} else {
 			return 1;
 		}
@@ -322,6 +339,39 @@ tools_parse_option(int option,
 		if (!safe_atou(optarg, &options->angle)) {
 			fprintf(stderr, "Invalid --set-rotation-angle value\n");
 			return 1;
+		}
+		break;
+	case OPT_PRESSURE_RANGE: {
+		if (!optarg)
+			return 1;
+
+		size_t npoints = 0;
+		double *range = double_array_from_string(optarg, ":", &npoints);
+		if (npoints != 2 || range[0] < 0.0 || range[1] > 1.0 || range[0] >= range[1]) {
+			free(range);
+			fprintf(stderr, "Invalid pressure range, must be in format \"min:max\"\n");
+			return 1;
+		}
+		options->pressure_range[0] = range[0];
+		options->pressure_range[1] = range[1];
+		free(range);
+		break;
+		}
+	case OPT_CALIBRATION: {
+		if (!optarg)
+			return 1;
+
+		size_t npoints = 0;
+		double *matrix = double_array_from_string(optarg, " ", &npoints);
+		if (npoints != 6) {
+			free(matrix);
+			fprintf(stderr, "Invalid calibration matrix, must be 6 space-separated values\n");
+			return 1;
+		}
+		for (size_t i = 0; i < 6; i++)
+			options->calibration[i] =  matrix[i];
+		free(matrix);
+		break;
 		}
 	}
 	return 0;
@@ -499,6 +549,10 @@ tools_device_apply_config(struct libinput_device *device,
 	if (options->click_method != (enum libinput_config_click_method)-1)
 		libinput_device_config_click_set_method(device, options->click_method);
 
+	if (options->clickfinger_map != (enum libinput_config_clickfinger_button_map)-1)
+		libinput_device_config_click_set_clickfinger_button_map(device,
+									options->clickfinger_map);
+
 	if (options->scroll_method != (enum libinput_config_scroll_method)-1)
 		libinput_device_config_scroll_set_method(device,
 							 options->scroll_method);
@@ -531,6 +585,18 @@ tools_device_apply_config(struct libinput_device *device,
 
 	if (options->angle != 0)
 		libinput_device_config_rotation_set_angle(device, options->angle % 360);
+
+	if (libinput_device_config_calibration_has_matrix(device))
+		libinput_device_config_calibration_set_matrix(device, options->calibration);
+}
+
+void
+tools_tablet_tool_apply_config(struct libinput_tablet_tool *tool,
+			       struct tools_options *options)
+{
+	libinput_tablet_tool_config_pressure_range_set(tool,
+						       options->pressure_range[0],
+						       options->pressure_range[1]);
 }
 
 static char*

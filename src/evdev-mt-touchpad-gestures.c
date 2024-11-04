@@ -324,7 +324,7 @@ tp_gesture_get_pinch_info(struct tp_dispatch *tp,
 	delta = device_delta(first->point, second->point);
 	normalized = tp_normalize_delta(tp, delta);
 	*distance = normalized_length(normalized);
-	*angle = atan2(normalized.y, normalized.x) * 180.0 / M_PI;
+	*angle = rad2deg(atan2(normalized.y, normalized.x));
 
 	*center = device_average(first->point, second->point);
 }
@@ -1074,10 +1074,8 @@ tp_gesture_handle_state_none(struct tp_dispatch *tp, uint64_t time)
 		return;
 	}
 
-	if (!tp->gesture.enabled) {
-		if (ntouches == 2)
-			tp_gesture_handle_event(tp, GESTURE_EVENT_SCROLL, time);
-
+	if (!tp->gesture.enabled && !tp->tap.enabled && ntouches == 2) {
+		tp_gesture_handle_event(tp, GESTURE_EVENT_SCROLL, time);
 		return;
 	}
 

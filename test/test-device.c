@@ -748,14 +748,17 @@ START_TEST(device_ids)
 {
 	struct litest_device *dev = litest_current_device();
 	const char *name;
-	unsigned int pid, vid;
+	unsigned int bus, pid, vid;
 
 	name = libevdev_get_name(dev->evdev);
+	bus = libevdev_get_id_bustype(dev->evdev);
 	pid = libevdev_get_id_product(dev->evdev);
 	vid = libevdev_get_id_vendor(dev->evdev);
 
 	ck_assert_str_eq(name,
 			 libinput_device_get_name(dev->libinput_device));
+	ck_assert_int_eq(bus,
+			 libinput_device_get_id_bustype(dev->libinput_device));
 	ck_assert_int_eq(pid,
 			 libinput_device_get_id_product(dev->libinput_device));
 	ck_assert_int_eq(vid,
@@ -1439,7 +1442,7 @@ START_TEST(device_quirks_logitech_marble_mouse)
 }
 END_TEST
 
-char *debug_messages[64] = { NULL };
+static char *debug_messages[64] = { NULL };
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void

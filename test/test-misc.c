@@ -85,7 +85,7 @@ create_simple_test_device(const char *name, ...)
 	rc = libevdev_uinput_create_from_device(evdev,
 						LIBEVDEV_UINPUT_OPEN_MANAGED,
 						&uinput);
-	litest_assert_int_eq(rc, 0);
+	litest_assert_neg_errno_success(rc);
 	libevdev_free(evdev);
 
 	return uinput;
@@ -594,7 +594,7 @@ static void close_restricted_leak(int fd, void *data)
 	/* noop */
 }
 
-const struct libinput_interface leak_interface = {
+static const struct libinput_interface leak_interface = {
 	.open_restricted = open_restricted_leak,
 	.close_restricted = close_restricted_leak,
 };

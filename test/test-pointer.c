@@ -218,7 +218,7 @@ START_TEST(pointer_motion_relative_min_decel)
 	ck_assert((evy == 0.0) == (dy == 0));
 
 	len = hypot(evx, evy);
-	ck_assert(fabs(len) >= 0.3);
+	ck_assert_double_ge(fabs(len), 0.3);
 
 	libinput_event_destroy(event);
 }

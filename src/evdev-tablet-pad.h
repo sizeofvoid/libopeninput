@@ -41,6 +41,8 @@ enum pad_axes {
 	PAD_AXIS_RING2		= bit(1),
 	PAD_AXIS_STRIP1		= bit(2),
 	PAD_AXIS_STRIP2		= bit(3),
+	PAD_AXIS_DIAL1		= bit(4),
+	PAD_AXIS_DIAL2		= bit(5),
 };
 
 struct button_state {
@@ -72,6 +74,12 @@ struct pad_dispatch {
 	unsigned int nbuttons;
 
 	bool have_abs_misc_terminator;
+
+	struct {
+		bool has_hires_dial;
+		double dial1;
+		double dial2;
+	} dials;
 
 	struct {
 		struct libinput_device_config_send_events config;

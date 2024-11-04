@@ -333,3 +333,20 @@ LIBINPUT_1.23 {
 	libinput_device_config_accel_apply;
 	libinput_config_accel_set_points;
 } LIBINPUT_1.21;
+
+LIBINPUT_1.26 {
+  libinput_device_config_click_set_clickfinger_button_map;
+  libinput_device_config_click_get_default_clickfinger_button_map;
+  libinput_device_config_click_get_clickfinger_button_map;
+  libinput_device_get_id_bustype;
+  libinput_device_tablet_pad_get_num_dials;
+  libinput_event_tablet_pad_get_dial_delta_v120;
+  libinput_event_tablet_pad_get_dial_number;
+  libinput_tablet_pad_mode_group_has_dial;
+  libinput_tablet_tool_config_pressure_range_is_available;
+  libinput_tablet_tool_config_pressure_range_set;
+  libinput_tablet_tool_config_pressure_range_get_minimum;
+  libinput_tablet_tool_config_pressure_range_get_maximum;
+  libinput_tablet_tool_config_pressure_range_get_default_minimum;
+  libinput_tablet_tool_config_pressure_range_get_default_maximum;
+} LIBINPUT_1.23;

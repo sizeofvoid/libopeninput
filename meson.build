@@ -1,5 +1,5 @@
 project('libinput', 'c',
-	version : '1.24.0',
+	version : '1.26.2',
 	license : 'MIT/Expat',
 	default_options : [ 'c_std=gnu99', 'warning_level=2' ],
 	meson_version : '>= 0.56.0')
@@ -268,6 +268,7 @@ util_headers = [
 		'util-bits.h',
 		'util-input-event.h',
 		'util-list.h',
+		'util-files.h',
 		'util-macros.h',
 		'util-matrix.h',
 		'util-prop-parsers.h',
@@ -556,6 +557,7 @@ executable('libinput-analyze',
 	   )
 
 src_python_tools = files(
+	      'tools/libinput-analyze-buttons.py',
 	      'tools/libinput-analyze-per-slot-delta.py',
 	      'tools/libinput-analyze-recording.py',
 	      'tools/libinput-analyze-touch-down-state.py',
@@ -801,6 +803,7 @@ endif
 		'test/litest-device-generic-singletouch.c',
 		'test/litest-device-gpio-keys.c',
 		'test/litest-device-huion-pentablet.c',
+		'test/litest-device-huion-q620m-dial.c',
 		'test/litest-device-hp-wmi-hotkeys.c',
 		'test/litest-device-ignored-mouse.c',
 		'test/litest-device-keyboard.c',
@@ -836,10 +839,13 @@ endif
 		'test/litest-device-synaptics-t440.c',
 		'test/litest-device-synaptics-x1-carbon-3rd.c',
 		'test/litest-device-synaptics-phantomclicks.c',
+		'test/litest-device-tablet-doubledial.c',
 		'test/litest-device-tablet-mode-switch.c',
+		'test/litest-device-tablet-rel-dial.c',
 		'test/litest-device-thinkpad-extrabuttons.c',
 		'test/litest-device-trackpoint.c',
 		'test/litest-device-touch-screen.c',
+		'test/litest-device-touchpad-palm-threshold-zero.c',
 		'test/litest-device-touchscreen-invalid-range.c',
 		'test/litest-device-touchscreen-fuzz.c',
 		'test/litest-device-touchscreen-mt-tool.c',
@@ -1039,6 +1045,7 @@ endif
 src_man += files(
 	'tools/libinput.man',
 	'tools/libinput-analyze.man',
+	'tools/libinput-analyze-buttons.man',
 	'tools/libinput-analyze-per-slot-delta.man',
 	'tools/libinput-analyze-recording.man',
 	'tools/libinput-analyze-touch-down-state.man',

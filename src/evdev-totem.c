@@ -698,7 +698,7 @@ totem_interface_initial_proximity(struct evdev_device *device,
 	totem_set_touch_device_enabled(totem, enable_touch, now);
 }
 
-struct evdev_dispatch_interface totem_interface = {
+static struct evdev_dispatch_interface totem_interface = {
 	.process = totem_interface_process,
 	.suspend = totem_interface_suspend,
 	.remove = NULL,

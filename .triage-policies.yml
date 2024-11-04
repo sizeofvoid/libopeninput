@@ -3,6 +3,37 @@
 # one we have on the main branch at the time)
 #
 # Note that for adding labels, the label must first created in the project.
+
+# Re-used in issues and mrs
+.close_needinfo: &close_needinfo
+  name: "Close stale needinfo bugs"
+  conditions:
+    labels:
+      - "bugbot::needinfo-timeout"
+  actions:
+    remove_labels:
+      - "bugbot::needinfo-timeout"
+    comment: |
+      I'm closing this bug because some information we requested a while ago was never supplied and
+      we're not able to continue without this information.
+      Please feel free to re-open.
+    status: "close"
+
+.remind_needinfo: &remind_needinfo
+  name: "Remind users of needinfo bugs"
+  conditions:
+    labels:
+      - "bugbot::needinfo-reminder"
+  actions:
+    labels:
+      - "waiting on reporter"
+    remove_labels:
+      - "bugbot::needinfo-reminder"
+    comment: |
+      Hi. This is a friendly reminder that the maintainers are waiting on some information by
+      you (or maybe someone cc'd on this bug). If the information is not provided we may not
+      be able to proceed with this issue or merge request. Please check the recent comments, thanks.
+
 resource_rules:
   issues:
     rules:
@@ -22,6 +53,49 @@ resource_rules:
 
             Kernel bugs are usually best sent to the [`linux-input` list](https://lore.kernel.org/linux-input/).
           status: "close"
+      - name: "Request hid-recorder output"
+        conditions:
+          labels:
+            - "bugbot::hid-recorder"
+        actions:
+          remove_labels:
+            - "bugbot::hid-recorder"
+          comment: |
+            Looks like we may need some extra information that isn't yet available in this issue.
+            Please **attach** (do not paste) the output of `hid-recorder` from [hid-tools](https://gitlab.freedesktop.org/libevdev/hid-tools/)
+            for this device (run `sudo hid-recorder` without argument and it will let you pick the device).
+            This should show the data the kernel receives from the device and may provide a hint on what's going on here.
+      - name: "Request libinput record output"
+        conditions:
+          labels:
+            - "bugbot::libinput-record"
+        actions:
+          remove_labels:
+            - "bugbot::libinput-record"
+          comment: |
+            Looks like we may need some extra information. Please **attach** (do not paste) the full output
+            of `libinput record` and `libinput debug-events --verbose` (if you haven't yet).
+            The [documentation](https://wayland.freedesktop.org/libinput/doc/latest/tools.html#libinput-record-and-libinput-replay)
+            has some information on what we're looking for to be able to triage bugs.
+      - name: "Expect a merge request"
+        conditions:
+          labels:
+            - "bugbot::expect-mr"
+        actions:
+          remove_labels:
+            - "bugbot::expect-mr"
+          comment: |
+            I'm closing this bug in anticipation of a merge request that fixes this issue.
+
+            If you are a new contributor, please see
+            [the freedesktop.org wiki](https://gitlab.freedesktop.org/freedesktop/freedesktop/-/wikis/home)
+            on how to get permissions to fork a project and file a merge request.
+
+            The [libinput documentation](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html)
+            also has more details on how to get started.
+          status: "close"
+      - *close_needinfo
+      - *remind_needinfo
   merge_requests:
     rules:
       - name: "Remind contributor of commit rules"
@@ -38,3 +112,5 @@ resource_rules:
             Please see [our docs for commit messages](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#commit-messages)
             and [our docs for submitting code](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#submitting-code)
             that explain how to amend and force-push to this repo.
+      - *close_needinfo
+      - *remind_needinfo

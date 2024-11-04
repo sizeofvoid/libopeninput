@@ -2194,6 +2194,28 @@ START_TEST(touchpad_palm_detect_pressure_after_dwt)
 }
 END_TEST
 
+START_TEST(touchpad_palm_ignore_threshold_zero)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_MT_PRESSURE, 75 },
+		{ -1, 0 }
+	};
+
+	litest_disable_tap(dev->libinput_device);
+	litest_disable_hold_gestures(dev->libinput_device);
+	litest_drain_events(li);
+
+	litest_touch_down_extended(dev, 0, 50, 99, axes);
+	litest_touch_move_to(dev, 0, 50, 50, 80, 99, 10);
+	litest_touch_up(dev, 0);
+
+	libinput_dispatch(li);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+}
+END_TEST
+
 START_TEST(touchpad_palm_clickfinger_pressure)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3701,6 +3723,7 @@ START_TEST(touchpad_fingers_down_before_init)
 				break;
 			litest_touch_move(dev, i, 20 + 10 * i + x, 30);
 		}
+		libinput_dispatch(li);
 	}
 	libinput_dispatch(li);
 	litest_assert_empty_queue(li);
@@ -3711,6 +3734,7 @@ START_TEST(touchpad_fingers_down_before_init)
 		} else {
 			litest_event(dev, EV_KEY, map[finger_count], 0);
 		}
+		libinput_dispatch(li);
 	}
 
 	litest_assert_empty_queue(li);
@@ -4235,6 +4259,50 @@ START_TEST(touchpad_dwt_modifier_no_dwt)
 }
 END_TEST
 
+START_TEST(touchpad_dwt_shift_combo_triggers_dwt)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *keyboard;
+	struct libinput *li = touchpad->libinput;
+	unsigned int modifiers[] = {
+		KEY_LEFTSHIFT,
+		KEY_RIGHTSHIFT,
+	};
+
+	if (!has_disable_while_typing(touchpad))
+		return;
+
+	keyboard = dwt_init_paired_keyboard(li, touchpad);
+	litest_disable_tap(touchpad->libinput_device);
+	litest_disable_hold_gestures(touchpad->libinput_device);
+	litest_drain_events(li);
+
+	ARRAY_FOR_EACH(modifiers, key) {
+		litest_keyboard_key(keyboard, *key, true);
+		litest_keyboard_key(keyboard, KEY_A, true);
+		litest_keyboard_key(keyboard, KEY_A, false);
+		litest_keyboard_key(keyboard, *key, false);
+		libinput_dispatch(li);
+
+		litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
+		litest_touch_down(touchpad, 0, 50, 50);
+		litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 5);
+		litest_touch_up(touchpad, 0);
+		litest_assert_empty_queue(li);
+	}
+
+	litest_timeout_dwt_long();
+	libinput_dispatch(li);
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 5);
+	litest_touch_up(touchpad, 0);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	litest_delete_device(keyboard);
+}
+END_TEST
+
 START_TEST(touchpad_dwt_modifier_combo_no_dwt)
 {
 	struct litest_device *touchpad = litest_current_device();
@@ -4245,8 +4313,6 @@ START_TEST(touchpad_dwt_modifier_combo_no_dwt)
 		KEY_RIGHTCTRL,
 		KEY_LEFTALT,
 		KEY_RIGHTALT,
-		KEY_LEFTSHIFT,
-		KEY_RIGHTSHIFT,
 		KEY_FN,
 		KEY_CAPSLOCK,
 		KEY_TAB,
@@ -4294,8 +4360,6 @@ START_TEST(touchpad_dwt_modifier_combo_dwt_after)
 		KEY_RIGHTCTRL,
 		KEY_LEFTALT,
 		KEY_RIGHTALT,
-		KEY_LEFTSHIFT,
-		KEY_RIGHTSHIFT,
 		KEY_FN,
 		KEY_CAPSLOCK,
 		KEY_TAB,
@@ -4347,8 +4411,6 @@ START_TEST(touchpad_dwt_modifier_combo_dwt_remains)
 		KEY_RIGHTCTRL,
 		KEY_LEFTALT,
 		KEY_RIGHTALT,
-		KEY_LEFTSHIFT,
-		KEY_RIGHTSHIFT,
 		KEY_FN,
 		KEY_CAPSLOCK,
 		KEY_TAB,
@@ -7292,6 +7354,8 @@ TEST_COLLECTION(touchpad)
 	litest_add(touchpad_palm_detect_pressure_keep_palm, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add(touchpad_palm_detect_pressure_after_edge, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add(touchpad_palm_detect_pressure_after_dwt, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	litest_add_for_device(touchpad_palm_ignore_threshold_zero, LITEST_TOUCHPAD_PALMPRESSURE_ZERO);
+
 	litest_add(touchpad_palm_clickfinger_pressure, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_palm_clickfinger_pressure_2fg, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_palm_clickfinger_size, LITEST_CLICKPAD, LITEST_ANY);
@@ -7346,6 +7410,7 @@ TEST_COLLECTION(touchpad)
 	litest_add(touchpad_dwt_key_hold_timeout_existing_touch_cornercase, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_type, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_type_short_timeout, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(touchpad_dwt_shift_combo_triggers_dwt, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_modifier_no_dwt, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_modifier_combo_no_dwt, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_modifier_combo_dwt_after, LITEST_TOUCHPAD, LITEST_ANY);

@@ -3,14 +3,14 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2023-02-13.0'
+.default_tag: &default_tag '2024-05-13.0'
 
 distributions:
   - name: fedora
     tag: *default_tag
     versions:
-      - '37'
-      - '38'
+      - '39'
+      - '40'
     use_for_custom_build_tests: true
     use_for_qemu_tests: true
     packages:
@@ -148,7 +148,7 @@ distributions:
     tag: *default_tag
     qemu_based: true
     versions:
-      - '13.1'
+      - '13.2'
     packages:
       - git
       - pkgconf
@@ -208,5 +208,5 @@ test_suites:
       - pointer
 
 b2c:
-  version: v0.9.9
-  kernel: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v6.1/bzImage
+  version: 2ff65156ba67fa8a0c309a4fc16c5df1a88a3844
+  kernel: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v6.5/bzImage

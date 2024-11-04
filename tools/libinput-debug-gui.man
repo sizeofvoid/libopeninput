@@ -91,9 +91,10 @@ displayed on press.
 .TP 8
 .B Tablet pads
 Button events are displayed in the bottom-most button oblong, with the name
-of the button displayed on press. Ring and strip events are displayed in the
-yellow 'IO' symbol, with the position and the number of the ring/strip
-filled in when events are available.
+of the button displayed on press. Dials, ring and strip events are displayed in
+the yellow 'IO' symbol, with the position of the ring or strip or the
+delta of the dial filled in when events are available. The number of the dial,
+ring or strip is displayed when an event is available.
 .TP 8
 .B Kernel events
 Left of the center is a blue ring to debug kernel relative events (REL_X and

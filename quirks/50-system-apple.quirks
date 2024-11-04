@@ -7,7 +7,7 @@ MatchUdevType=touchpad
 ModelAppleTouchpad=1
 AttrSizeHint=104x75
 AttrTouchSizeRange=150:130
-AttrPalmSizeThreshold=800
+AttrPalmSizeThreshold=1600
 
 [Apple Touchpads Bluetooth]
 MatchVendor=0x05AC
@@ -80,6 +80,13 @@ MatchUdevType=touchpad
 MatchBus=usb
 MatchVendor=0x05AC
 MatchProduct=0x021A
+ModelAppleTouchpadOneButton=1
+
+[Apple Touchpad OneButton A1181]
+MatchUdevType=touchpad
+MatchBus=usb
+MatchVendor=0x05AC
+MatchProduct=0x022A
 ModelAppleTouchpadOneButton=1
 
 [Apple Touchpad MacbookPro5,5]

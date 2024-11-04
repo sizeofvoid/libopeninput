@@ -82,6 +82,48 @@ START_TEST(touchpad_click_defaults_clickfinger)
 }
 END_TEST
 
+START_TEST(touchpad_click_default_clickfinger_map)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	enum libinput_config_clickfinger_button_map map;
+
+	map = libinput_device_config_click_get_clickfinger_button_map(device);
+	ck_assert_int_eq(map, LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM);
+	map = libinput_device_config_click_get_default_clickfinger_button_map(device);
+	ck_assert_int_eq(map, LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM);
+}
+END_TEST
+
+START_TEST(touchpad_click_set_clickfinger_map)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+	enum libinput_config_clickfinger_button_map map;
+	enum libinput_config_status status;
+
+	map = LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM;
+	status = libinput_device_config_click_set_clickfinger_button_map(device, map);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	map = libinput_device_config_click_get_clickfinger_button_map(dev->libinput_device);
+	ck_assert_int_eq(map, LIBINPUT_CONFIG_TAP_MAP_LRM);
+
+	map = LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR;
+	status = libinput_device_config_click_set_clickfinger_button_map(device, map);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	map = libinput_device_config_click_get_clickfinger_button_map(dev->libinput_device);
+	ck_assert_int_eq(map, LIBINPUT_CONFIG_TAP_MAP_LMR);
+
+	map = LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM - 1;
+	status = libinput_device_config_click_set_clickfinger_button_map(device, map);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+
+	map = LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR + 1;
+	status = libinput_device_config_click_set_clickfinger_button_map(device, map);
+	ck_assert_int_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+}
+END_TEST
+
 START_TEST(touchpad_click_defaults_btnarea)
 {
 	struct litest_device *dev = litest_current_device();
@@ -217,8 +259,22 @@ START_TEST(touchpad_2fg_clickfinger)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
+	enum libinput_config_clickfinger_button_map map = _i; /* ranged test */
+	unsigned int button = 0;
 
 	litest_enable_clickfinger(dev);
+	litest_set_clickfinger_map(dev, map);
+
+	switch (map) {
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM:
+		button = BTN_RIGHT;
+		break;
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR:
+		button = BTN_MIDDLE;
+		break;
+	default:
+		litest_abort_msg("Invalid map range %d", map);
+	}
 
 	litest_drain_events(li);
 
@@ -233,9 +289,9 @@ START_TEST(touchpad_2fg_clickfinger)
 
 	libinput_dispatch(li);
 
-	litest_assert_button_event(li, BTN_RIGHT,
+	litest_assert_button_event(li, button,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
-	litest_assert_button_event(li, BTN_RIGHT,
+	litest_assert_button_event(li, button,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 }
 END_TEST
@@ -244,11 +300,25 @@ START_TEST(touchpad_3fg_clickfinger)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
+	enum libinput_config_clickfinger_button_map map = _i; /* ranged test */
+	unsigned int button = 0;
 
 	if (litest_slot_count(dev) < 3)
 		return;
 
 	litest_enable_clickfinger(dev);
+	litest_set_clickfinger_map(dev, map);
+
+	switch (map) {
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM:
+		button = BTN_MIDDLE;
+		break;
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR:
+		button = BTN_RIGHT;
+		break;
+	default:
+		litest_abort_msg("Invalid map range %d", map);
+	}
 
 	litest_drain_events(li);
 
@@ -266,10 +336,10 @@ START_TEST(touchpad_3fg_clickfinger)
 	libinput_dispatch(li);
 
 	litest_assert_button_event(li,
-				   BTN_MIDDLE,
+				   button,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_button_event(li,
-				   BTN_MIDDLE,
+				   button,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 }
 END_TEST
@@ -278,12 +348,26 @@ START_TEST(touchpad_3fg_clickfinger_btntool)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
+	enum libinput_config_clickfinger_button_map map = _i; /* ranged test */
+	unsigned int button = 0;
 
 	if (litest_slot_count(dev) >= 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
 		return;
 
 	litest_enable_clickfinger(dev);
+	litest_set_clickfinger_map(dev, map);
+
+	switch (map) {
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM:
+		button = BTN_MIDDLE;
+		break;
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR:
+		button = BTN_RIGHT;
+		break;
+	default:
+		litest_abort_msg("Invalid map range %d", map);
+	}
 
 	litest_drain_events(li);
 
@@ -305,10 +389,10 @@ START_TEST(touchpad_3fg_clickfinger_btntool)
 	libinput_dispatch(li);
 
 	litest_assert_button_event(li,
-				   BTN_MIDDLE,
+				   button,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_button_event(li,
-				   BTN_MIDDLE,
+				   button,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 }
 END_TEST
@@ -418,13 +502,15 @@ START_TEST(touchpad_2fg_clickfinger_distance)
 	struct libinput *li = dev->libinput;
 	double w, h;
 	bool small_touchpad = false;
-	unsigned int expected_button;
+	unsigned int expected_button = 0;
+	enum libinput_config_clickfinger_button_map map = _i; /* ranged test */
 
 	if (libinput_device_get_size(dev->libinput_device, &w, &h) == 0 &&
 	    h < 50.0)
 		small_touchpad = true;
 
 	litest_enable_clickfinger(dev);
+	litest_set_clickfinger_map(dev, map);
 
 	litest_drain_events(li);
 
@@ -458,7 +544,14 @@ START_TEST(touchpad_2fg_clickfinger_distance)
 	/* if the touchpad is small enough, we expect all fingers to count
 	 * for clickfinger */
 	if (small_touchpad)
-		expected_button = BTN_RIGHT;
+		switch (map) {
+		case LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM:
+			expected_button = BTN_RIGHT;
+			break;
+		case LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR:
+			expected_button = BTN_MIDDLE;
+			break;
+		}
 	else
 		expected_button = BTN_LEFT;
 
@@ -475,11 +568,25 @@ START_TEST(touchpad_3fg_clickfinger_distance)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
+	enum libinput_config_clickfinger_button_map map = _i; /* ranged test */
+	unsigned int button = 0;
 
 	if (litest_slot_count(dev) < 3)
 		return;
 
 	litest_enable_clickfinger(dev);
+	litest_set_clickfinger_map(dev, map);
+
+	switch (map) {
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM:
+		button = BTN_MIDDLE;
+		break;
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR:
+		button = BTN_RIGHT;
+		break;
+	default:
+		litest_abort_msg("Invalid map range %d", map);
+	}
 
 	litest_drain_events(li);
 
@@ -496,10 +603,10 @@ START_TEST(touchpad_3fg_clickfinger_distance)
 	litest_touch_up(dev, 2);
 
 	litest_assert_button_event(li,
-				   BTN_MIDDLE,
+				   button,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_button_event(li,
-				   BTN_MIDDLE,
+				   button,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 }
 END_TEST
@@ -508,11 +615,25 @@ START_TEST(touchpad_3fg_clickfinger_distance_btntool)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
+	enum libinput_config_clickfinger_button_map map = _i; /* ranged test */
+	unsigned int button = 0;
 
 	if (litest_slot_count(dev) > 2)
 		return;
 
 	litest_enable_clickfinger(dev);
+	litest_set_clickfinger_map(dev, map);
+
+	switch (map) {
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM:
+		button = BTN_MIDDLE;
+		break;
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR:
+		button = BTN_RIGHT;
+		break;
+	default:
+		litest_abort_msg("Invalid map range %d", map);
+	}
 
 	litest_drain_events(li);
 
@@ -534,10 +655,10 @@ START_TEST(touchpad_3fg_clickfinger_distance_btntool)
 	litest_touch_up(dev, 1);
 
 	litest_assert_button_event(li,
-				   BTN_MIDDLE,
+				   button,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_button_event(li,
-				   BTN_MIDDLE,
+				   button,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 }
 END_TEST
@@ -1436,7 +1557,7 @@ START_TEST(clickpad_softbutton_left_2nd_fg_move)
 	litest_assert_empty_queue(li);
 
 	litest_touch_down(dev, 1, 20, 20);
-	litest_touch_move_to(dev, 1, 20, 20, 80, 20, 15);
+	litest_touch_move_to(dev, 1, 20, 20, 80, 20, 25);
 
 	libinput_dispatch(li);
 	event = libinput_get_event(li);
@@ -1518,7 +1639,7 @@ START_TEST(clickpad_softbutton_left_to_right)
 	*/
 
 	litest_touch_down(dev, 0, 30, 90);
-	litest_touch_move_to(dev, 0, 30, 90, 90, 90, 15);
+	litest_touch_move_to(dev, 0, 30, 90, 90, 90, 25);
 	litest_drain_events(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
@@ -1554,7 +1675,7 @@ START_TEST(clickpad_softbutton_right_to_left)
 	*/
 
 	litest_touch_down(dev, 0, 80, 90);
-	litest_touch_move_to(dev, 0, 80, 90, 30, 90, 15);
+	litest_touch_move_to(dev, 0, 80, 90, 30, 90, 25);
 	litest_drain_events(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
@@ -1586,7 +1707,7 @@ START_TEST(clickpad_softbutton_hover_into_buttons)
 
 	litest_hover_start(dev, 0, 50, 50);
 	libinput_dispatch(li);
-	litest_hover_move_to(dev, 0, 50, 50, 90, 90, 10);
+	litest_hover_move_to(dev, 0, 50, 50, 90, 90, 20);
 	libinput_dispatch(li);
 
 	litest_touch_move_to(dev, 0, 90, 90, 91, 91, 1);
@@ -2127,20 +2248,22 @@ END_TEST
 TEST_COLLECTION(touchpad_buttons)
 {
 	struct range finger_count = {1, 4};
+	struct range clickfinger_map_range = { LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM,
+					       LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR + 1 };
 
 	litest_add(touchpad_button, LITEST_TOUCHPAD, LITEST_CLICKPAD);
 
 	litest_add(touchpad_1fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_1fg_clickfinger_no_touch, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add(touchpad_2fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add(touchpad_3fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add(touchpad_3fg_clickfinger_btntool, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add_ranged(touchpad_2fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY, &clickfinger_map_range);
+	litest_add_ranged(touchpad_3fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY, &clickfinger_map_range);
+	litest_add_ranged(touchpad_3fg_clickfinger_btntool, LITEST_CLICKPAD, LITEST_ANY, &clickfinger_map_range);
 	litest_add(touchpad_4fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_4fg_clickfinger_btntool_2slots, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_4fg_clickfinger_btntool_3slots, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add(touchpad_2fg_clickfinger_distance, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add(touchpad_3fg_clickfinger_distance, LITEST_CLICKPAD, LITEST_ANY);
-	litest_add(touchpad_3fg_clickfinger_distance_btntool, LITEST_CLICKPAD, LITEST_ANY);
+	litest_add_ranged(touchpad_2fg_clickfinger_distance, LITEST_CLICKPAD, LITEST_ANY, &clickfinger_map_range);
+	litest_add_ranged(touchpad_3fg_clickfinger_distance, LITEST_CLICKPAD, LITEST_ANY, &clickfinger_map_range);
+	litest_add_ranged(touchpad_3fg_clickfinger_distance_btntool, LITEST_CLICKPAD, LITEST_ANY, &clickfinger_map_range);
 	litest_add_for_device(touchpad_2fg_clickfinger_bottom, LITEST_SYNAPTICS_TOPBUTTONPAD);
 	litest_add(touchpad_clickfinger_to_area_method, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_clickfinger_to_area_method_while_down, LITEST_CLICKPAD, LITEST_ANY);
@@ -2161,6 +2284,8 @@ TEST_COLLECTION(touchpad_buttons)
 	litest_add_ranged(touchpad_clickfinger_click_drag, LITEST_CLICKPAD, LITEST_ANY, &finger_count);
 
 	litest_add(touchpad_click_defaults_clickfinger, LITEST_APPLE_CLICKPAD, LITEST_ANY);
+	litest_add(touchpad_click_default_clickfinger_map, LITEST_APPLE_CLICKPAD, LITEST_ANY);
+	litest_add(touchpad_click_set_clickfinger_map, LITEST_APPLE_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_click_defaults_btnarea, LITEST_CLICKPAD, LITEST_APPLE_CLICKPAD);
 	litest_add(touchpad_click_defaults_none, LITEST_TOUCHPAD, LITEST_CLICKPAD);
 	litest_add(touchpad_click_defaults_none, LITEST_ANY, LITEST_TOUCHPAD);

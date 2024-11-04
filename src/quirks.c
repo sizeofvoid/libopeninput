@@ -103,8 +103,9 @@ enum match_flags {
 	M_UDEV_TYPE	= bit(5),
 	M_DT		= bit(6),
 	M_VERSION	= bit(7),
+	M_UNIQ          = bit(8),
 
-	M_LAST		= M_VERSION,
+	M_LAST		= M_UNIQ,
 };
 
 enum bustype {
@@ -137,6 +138,7 @@ struct match {
 	uint32_t bits;
 
 	char *name;
+	char *uniq;
 	enum bustype bus;
 	uint32_t vendor;
 	uint32_t product;
@@ -307,6 +309,7 @@ matchflagname(enum match_flags f)
 	case M_DMI:		return "MatchDMIModalias";	break;
 	case M_UDEV_TYPE:	return "MatchUdevType";		break;
 	case M_DT:		return "MatchDeviceTree";	break;
+	case M_UNIQ:		return "MatchUniq";		break;
 	default:
 		abort();
 	}
@@ -512,6 +515,7 @@ section_destroy(struct section *s)
 
 	free(s->name);
 	free(s->match.name);
+	free(s->match.uniq);
 	free(s->match.dmi);
 	free(s->match.dt);
 
@@ -560,6 +564,9 @@ parse_match(struct quirks_context *ctx,
 	if (streq(key, "MatchName")) {
 		check_set_bit(s, M_NAME);
 		s->match.name = safe_strdup(value);
+	} else if (streq(key, "MatchUniq")) {
+		check_set_bit(s, M_UNIQ);
+		s->match.uniq = safe_strdup(value);
 	} else if (streq(key, "MatchBus")) {
 		check_set_bit(s, M_BUS);
 		if (streq(value, "usb"))
@@ -1280,6 +1287,29 @@ match_fill_name(struct match *m,
 }
 
 static inline void
+match_fill_uniq(struct match *m,
+		struct udev_device *device)
+{
+	const char *str = udev_prop(device, "UNIQ");
+	size_t slen;
+
+	if (!str)
+		return;
+
+	/* udev uniq is in quotes, strip them */
+	if (str[0] == '"')
+		str++;
+
+	m->uniq = safe_strdup(str);
+	slen = strlen(m->uniq);
+	if (slen > 1 &&
+	    m->uniq[slen - 1] == '"')
+		m->uniq[slen - 1] = '\0';
+
+	m->bits |= M_UNIQ;
+}
+
+static inline void
 match_fill_bus_vid_pid(struct match *m,
 		       struct udev_device *device)
 {
@@ -1375,6 +1405,7 @@ match_new(struct udev_device *device,
 	struct match *m = zalloc(sizeof *m);
 
 	match_fill_name(m, device);
+	match_fill_uniq(m, device);
 	match_fill_bus_vid_pid(m, device);
 	match_fill_dmi_dt(m, dmi, dt);
 	match_fill_udev_type(m, device);
@@ -1386,6 +1417,7 @@ match_free(struct match *m)
 {
 	/* dmi and dt are global */
 	free(m->name);
+	free(m->uniq);
 	free(m);
 }
 
@@ -1498,6 +1530,10 @@ quirk_match_section(struct quirks_context *ctx,
 		switch (flag) {
 		case M_NAME:
 			if (fnmatch(s->match.name, m->name, 0) == 0)
+				matched_flags |= flag;
+			break;
+		case M_UNIQ:
+			if (fnmatch(s->match.uniq, m->uniq, 0) == 0)
 				matched_flags |= flag;
 			break;
 		case M_BUS:

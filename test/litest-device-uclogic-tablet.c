@@ -35,6 +35,13 @@ static struct input_event proximity_in[] = {
 };
 
 static struct input_event proximity_out[] = {
+	/* This tablet doesn't report BTN_TOOL_PEN 0 on proximity out but I *think*
+	 * it still reports pressure values of zero? Who knows, we'd have to
+	 * get our hands on the tablet again. Meanwhile, let's force the
+	 * pressure to zero at least so other tests don't have to guess.
+	 */
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = 0 },
+	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
 

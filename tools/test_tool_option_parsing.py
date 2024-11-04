@@ -218,6 +218,7 @@ options = {
         "set-scroll-method": ["none", "twofinger", "edge", "button"],
         "set-profile": ["adaptive", "flat"],
         "set-tap-map": ["lrm", "lmr"],
+        "set-clickfinger-map": ["lrm", "lmr"],
     },
     # options with a range (and increment)
     "ranges": {

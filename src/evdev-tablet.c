@@ -335,21 +335,18 @@ tablet_update_tool(struct tablet_dispatch *tablet,
 static inline double
 normalize_slider(const struct input_absinfo *absinfo)
 {
-	double value = (absinfo->value - absinfo->minimum) / absinfo_range(absinfo);
-
-	return value * 2 - 1;
+	return absinfo_normalize(absinfo) * 2 - 1;
 }
 
 static inline double
 normalize_distance(const struct input_absinfo *absinfo)
 {
-	double value = (absinfo->value - absinfo->minimum) / absinfo_range(absinfo);
-
-	return value;
+	return absinfo_normalize(absinfo);
 }
 
 static inline double
 normalize_pressure(const struct input_absinfo *absinfo,
+		   int abs_value,
 		   struct libinput_tablet_tool *tool)
 {
 	/**
@@ -363,17 +360,17 @@ normalize_pressure(const struct input_absinfo *absinfo,
 	 * The axis is scaled into the range [lower, max] so that the lower
 	 * threshold is 0 pressure.
 	 */
-	int base = tool->pressure.threshold.lower;
-	double range = absinfo->maximum - base + 1;
-	double value = (absinfo->value - base) / range;
+	struct input_absinfo abs = *absinfo;
 
-	return max(0.0, value);
+	abs.minimum = tool->pressure.threshold.lower;
+
+	return absinfo_normalize_value(&abs, abs_value);
 }
 
 static inline double
 adjust_tilt(const struct input_absinfo *absinfo)
 {
-	double value = (absinfo->value - absinfo->minimum) / absinfo_range(absinfo);
+	double value = absinfo_normalize(absinfo);
 	const int WACOM_MAX_DEGREES = 64;
 
 	/* If resolution is nonzero, it's in units/radian. But require
@@ -382,7 +379,7 @@ adjust_tilt(const struct input_absinfo *absinfo)
 	if (absinfo->resolution != 0 &&
 	    absinfo->maximum > 0 &&
 	    absinfo->minimum < 0) {
-		value = 180.0/M_PI * absinfo->value/absinfo->resolution;
+		value = rad2deg((double)absinfo->value/absinfo->resolution);
 	} else {
 		/* Wacom supports physical [-64, 64] degrees, so map to that by
 		 * default. If other tablets have a different physical range or
@@ -419,7 +416,7 @@ convert_tilt_to_rotation(struct tablet_dispatch *tablet)
 
 	/* atan2 is CCW, we want CW -> negate x */
 	if (x || y)
-		angle = ((180.0 * atan2(-x, y)) / M_PI);
+		angle = rad2deg(atan2(-x, y));
 
 	angle = fmod(360 + angle - offset, 360);
 
@@ -527,15 +524,15 @@ tablet_update_pressure(struct tablet_dispatch *tablet,
 		       struct evdev_device *device,
 		       struct libinput_tablet_tool *tool)
 {
-	const struct input_absinfo *absinfo;
-
-	if (!libevdev_has_event_code(device->evdev, EV_ABS, ABS_PRESSURE))
+	const struct input_absinfo *abs = libevdev_get_abs_info(device->evdev,
+								ABS_PRESSURE);
+	if (!abs)
 		return;
 
-	if (bit_is_set(tablet->changed_axes,
-		       LIBINPUT_TABLET_TOOL_AXIS_PRESSURE)) {
-		absinfo = libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
-		tablet->axes.pressure = normalize_pressure(absinfo, tool);
+	if (bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE)) {
+		tablet->axes.pressure = normalize_pressure(&tool->pressure.abs_pressure,
+							   abs->value,
+							   tool);
 	}
 }
 
@@ -773,6 +770,7 @@ tablet_update_button(struct tablet_dispatch *tablet,
 	case BTN_TASK:
 	case BTN_STYLUS:
 	case BTN_STYLUS2:
+	case BTN_STYLUS3:
 		break;
 	default:
 		evdev_log_info(tablet->device,
@@ -958,6 +956,8 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 		     code++)
 			copy_button_cap(tablet, tool, code);
 	} else {
+		if (libwacom_stylus_get_num_buttons(s) >= 3)
+			copy_button_cap(tablet, tool, BTN_STYLUS3);
 		if (libwacom_stylus_get_num_buttons(s) >= 2)
 			copy_button_cap(tablet, tool, BTN_STYLUS2);
 		if (libwacom_stylus_get_num_buttons(s) >= 1)
@@ -1057,6 +1057,7 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 	case LIBINPUT_TABLET_TOOL_TYPE_ERASER:
 		copy_button_cap(tablet, tool, BTN_STYLUS);
 		copy_button_cap(tablet, tool, BTN_STYLUS2);
+		copy_button_cap(tablet, tool, BTN_STYLUS3);
 		break;
 	case LIBINPUT_TABLET_TOOL_TYPE_MOUSE:
 	case LIBINPUT_TABLET_TOOL_TYPE_LENS:
@@ -1074,29 +1075,97 @@ tool_set_bits(const struct tablet_dispatch *tablet,
 static inline int
 axis_range_percentage(const struct input_absinfo *a, double percent)
 {
-	return absinfo_range(a) * percent/100.0 + a->minimum;
+	return (a->maximum - a->minimum) * percent/100.0 + a->minimum;
+}
+
+static bool
+tablet_get_quirked_pressure_thresholds(struct tablet_dispatch *tablet,
+				       int *hi,
+				       int *lo)
+{
+	struct evdev_device *device = tablet->device;
+	struct quirks_context *quirks = evdev_libinput_context(device)->quirks;
+	struct quirks *q = quirks_fetch_for_device(quirks, device->udev_device);
+	struct quirk_range r;
+	bool status = false;
+
+        /* Note: the quirk term "range" refers to the hi/lo settings, not the
+         * full available range for the pressure axis */
+        if (q && quirks_get_range(q, QUIRK_ATTR_PRESSURE_RANGE, &r)) {
+		if (r.lower < r.upper) {
+			*hi = r.lower;
+			*lo = r.upper;
+			status = true;
+		} else {
+			evdev_log_info(device, "Invalid pressure range, using defaults\n");
+		}
+	}
+
+	quirks_unref(q);
+	return status;
+}
+
+static void
+apply_pressure_range_configuration(struct tablet_dispatch *tablet,
+				   struct libinput_tablet_tool *tool)
+{
+	struct evdev_device *device = tablet->device;
+
+	if (!libevdev_has_event_code(device->evdev, EV_ABS, ABS_PRESSURE) ||
+	    (tool->pressure.range.min == tool->pressure.wanted_range.min &&
+	     tool->pressure.range.max == tool->pressure.wanted_range.max))
+		return;
+
+	double min = tool->pressure.wanted_range.min;
+	double max = tool->pressure.wanted_range.max;
+
+	struct input_absinfo abs = *libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
+
+	int minimum = axis_range_percentage(&abs, min * 100.0);
+	int maximum = axis_range_percentage(&abs, max * 100.0);
+
+	abs.minimum = minimum;
+	abs.maximum = maximum;
+
+	/* Only use the quirk pressure range if we don't have a custom range */
+	int hi, lo;
+	if (tool->pressure.wanted_range.min != 0.0 ||
+	    tool->pressure.wanted_range.max != 1.0 ||
+	    !tablet_get_quirked_pressure_thresholds(tablet, &hi, &lo)) {
+		/* 5 and 1% of the pressure range */
+		hi = axis_range_percentage(&abs, 5);
+		lo = axis_range_percentage(&abs, 1);
+	}
+
+	tool->pressure.abs_pressure = abs;
+	tool->pressure.threshold.upper = hi;
+	tool->pressure.threshold.lower = lo;
+	tool->pressure.range.min = tool->pressure.wanted_range.min;
+	tool->pressure.range.max = tool->pressure.wanted_range.max;
+
+	/* Disable any heuristics */
+	if (tool->pressure.has_configured_range) {
+		tool->pressure.has_offset = true;
+		tool->pressure.heuristic_state = PRESSURE_HEURISTIC_STATE_DONE;
+	}
 }
 
 static inline void
-tool_set_pressure_thresholds(struct tablet_dispatch *tablet,
-			     struct libinput_tablet_tool *tool)
+tool_init_pressure_thresholds(struct tablet_dispatch *tablet,
+			      struct libinput_tablet_tool *tool)
 {
 	struct evdev_device *device = tablet->device;
 	const struct input_absinfo *pressure, *distance;
-	struct quirks_context *quirks = NULL;
-	struct quirks *q = NULL;
-	struct quirk_range r;
-	int lo = 0, hi = 1;
 
 	tool->pressure.offset = 0;
 	tool->pressure.has_offset = false;
 
 	pressure = libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
-	if (!pressure)
-		goto out;
-
-	quirks = evdev_libinput_context(device)->quirks;
-	q = quirks_fetch_for_device(quirks, device->udev_device);
+	if (!pressure) {
+		tool->pressure.threshold.upper = 1;
+		tool->pressure.threshold.lower = 0;
+		return;
+	}
 
 	distance = libevdev_get_abs_info(device->evdev, ABS_DISTANCE);
 	if (distance) {
@@ -1107,24 +1176,83 @@ tool_set_pressure_thresholds(struct tablet_dispatch *tablet,
 		tool->pressure.heuristic_state = PRESSURE_HEURISTIC_STATE_PROXIN1;
 	}
 
-	/* 5 and 1% of the pressure range */
-	hi = axis_range_percentage(pressure, 5);
-	lo = axis_range_percentage(pressure, 1);
+	apply_pressure_range_configuration(tablet, tool);
+}
 
-	if (q && quirks_get_range(q, QUIRK_ATTR_PRESSURE_RANGE, &r)) {
-		if (r.lower >= r.upper) {
-			evdev_log_info(device,
-				       "Invalid pressure range, using defaults\n");
-		} else {
-			hi = r.upper;
-			lo = r.lower;
-		}
-	}
-out:
-	tool->pressure.threshold.upper = hi;
-	tool->pressure.threshold.lower = lo;
+static int
+pressure_range_is_available(struct libinput_tablet_tool *tool)
+{
+	return bit_is_set(tool->axis_caps, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE);
+}
 
-	quirks_unref(q);
+static enum libinput_config_status
+pressure_range_set(struct libinput_tablet_tool *tool, double min, double max)
+{
+	if (min < 0.0 || min >= 1.0 || max <= 0.0 || max > 1.0 || max <= min)
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	tool->pressure.wanted_range.min = min;
+	tool->pressure.wanted_range.max = max;
+	tool->pressure.has_configured_range = true;
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static void
+pressure_range_get(struct libinput_tablet_tool *tool, double *min, double *max)
+{
+	*min = tool->pressure.wanted_range.min;
+	*max = tool->pressure.wanted_range.max;
+}
+
+static void
+pressure_range_get_default(struct libinput_tablet_tool *tool, double *min, double *max)
+{
+	*min = 0.0;
+	*max = 1.0;
+}
+
+static struct libinput_tablet_tool *
+tablet_new_tool(struct tablet_dispatch *tablet,
+		enum libinput_tablet_tool_type type,
+		uint32_t tool_id,
+		uint32_t serial)
+{
+	struct libinput_tablet_tool *tool = zalloc(sizeof *tool);
+
+	*tool = (struct libinput_tablet_tool) {
+		.type = type,
+		.serial = serial,
+		.tool_id = tool_id,
+		.refcount = 1,
+
+		.pressure.range.min = 0.0,
+		.pressure.range.max = 0.0, /* to trigger configuration */
+		.pressure.wanted_range.min = 0.0,
+		.pressure.wanted_range.max = 1.0,
+
+		.config.pressure_range.is_available = pressure_range_is_available,
+		.config.pressure_range.set = pressure_range_set,
+		.config.pressure_range.get = pressure_range_get,
+		.config.pressure_range.get_default = pressure_range_get_default,
+	};
+
+	/* Copy the pressure axis for configuring the range later */
+	struct evdev_device *device = tablet->device;
+	const struct input_absinfo *abs = libevdev_get_abs_info(device->evdev,
+								ABS_PRESSURE);
+	if (abs)
+		tool->pressure.abs_pressure = *abs;
+
+	/* FIXME: known bug - the pressure threshold is only set once on the
+	 * first tablet, if a tool is used across multiple tablets with
+	 * different pressure ranges this will be wrong. This case is niche
+	 * enough that we can fix it if we ever run into it.
+	 */
+	tool_init_pressure_thresholds(tablet, tool);
+	tool_set_bits(tablet, tool);
+
+	return tool;
 }
 
 static struct libinput_tablet_tool *
@@ -1177,18 +1305,7 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 	/* If we didn't already have the new_tool in our list of tools,
 	 * add it */
 	if (!tool) {
-		tool = zalloc(sizeof *tool);
-
-		*tool = (struct libinput_tablet_tool) {
-			.type = type,
-			.serial = serial,
-			.tool_id = tool_id,
-			.refcount = 1,
-		};
-
-		tool_set_pressure_thresholds(tablet, tool);
-		tool_set_bits(tablet, tool);
-
+		tool = tablet_new_tool(tablet, type, tool_id, serial);
 		list_insert(tool_list, &tool->link);
 	}
 
@@ -1258,6 +1375,8 @@ sanitize_pressure_distance(struct tablet_dispatch *tablet,
 	                           *pressure;
 
 	distance = libevdev_get_abs_info(tablet->device->evdev, ABS_DISTANCE);
+	/* Note: for pressure/distance sanitization we use the real pressure
+	   axis, not our configured one */
 	pressure = libevdev_get_abs_info(tablet->device->evdev, ABS_PRESSURE);
 
 	if (!pressure || !distance)
@@ -1340,7 +1459,7 @@ update_pressure_offset(struct tablet_dispatch *tablet,
 	const struct input_absinfo *pressure =
 		libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
 
-	if (!pressure ||
+	if (!pressure || tool->pressure.has_configured_range ||
 	    !bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE))
 		return;
 
@@ -1369,7 +1488,7 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 	const struct input_absinfo *pressure, *distance;
 	int offset;
 
-	if (tool->pressure.has_offset ||
+	if (tool->pressure.has_offset || tool->pressure.has_configured_range ||
 	    !bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE))
 		return;
 
@@ -1985,6 +2104,7 @@ reprocess:
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
 		if (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT))
 			tablet_set_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
+		apply_pressure_range_configuration(tablet, tool);
 	} else if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
 		tablet_mark_all_axes_changed(tablet, tool);
 		update_pressure_offset(tablet, device, tool);
@@ -2376,9 +2496,10 @@ static struct evdev_dispatch_interface tablet_interface = {
 
 static void
 tablet_init_calibration(struct tablet_dispatch *tablet,
-			struct evdev_device *device)
+			struct evdev_device *device,
+			bool is_display_tablet)
 {
-	if (libevdev_has_property(device->evdev, INPUT_PROP_DIRECT))
+	if (is_display_tablet || libevdev_has_property(device->evdev, INPUT_PROP_DIRECT))
 		evdev_init_calibration(device, &tablet->calibration);
 }
 
@@ -2465,11 +2586,12 @@ tablet_init_left_handed(struct evdev_device *device)
 				       tablet_change_to_left_handed);
 }
 
-static bool
-tablet_is_aes(struct evdev_device *device,
-	      struct tablet_dispatch *tablet)
+static void
+tablet_lookup_libwacom(struct evdev_device *device,
+		       struct tablet_dispatch *tablet,
+		       bool *is_aes,
+		       bool *is_display_tablet)
 {
-	bool is_aes = false;
 #if HAVE_LIBWACOM
 	const char *devnode;
 	WacomDeviceDatabase *db;
@@ -2478,6 +2600,18 @@ tablet_is_aes(struct evdev_device *device,
 	int nstyli;
 	int vid = evdev_device_get_id_vendor(device);
 
+	db = tablet_libinput_context(tablet)->libwacom.db;
+	if (!db)
+		return;
+
+	devnode = udev_device_get_devnode(device->udev_device);
+	libwacom_device = libwacom_new_from_path(db, devnode, WFALLBACK_NONE, NULL);
+	if (!libwacom_device)
+		return;
+
+	*is_display_tablet = !!(libwacom_get_integration_flags(libwacom_device)
+		& (WACOM_DEVICE_INTEGRATED_SYSTEM|WACOM_DEVICE_INTEGRATED_DISPLAY));
+
 	/* Wacom-specific check for whether smoothing is required:
 	 * libwacom keeps all the AES pens in a single group, so any device
 	 * that supports AES pens will list all AES pens. 0x11 is one of the
@@ -2485,35 +2619,24 @@ tablet_is_aes(struct evdev_device *device,
 	 * is an AES tablet
 	 */
 	if (vid != VENDOR_ID_WACOM)
-		goto out;
-
-	db = tablet_libinput_context(tablet)->libwacom.db;
-	if (!db)
-		goto out;
-
-	devnode = udev_device_get_devnode(device->udev_device);
-	libwacom_device = libwacom_new_from_path(db, devnode, WFALLBACK_NONE, NULL);
-	if (!libwacom_device)
-		goto out;
+		return;
 
 	stylus_ids = libwacom_get_supported_styli(libwacom_device, &nstyli);
 	for (int i = 0; i < nstyli; i++) {
 		if (stylus_ids[i] == 0x11) {
-			is_aes = true;
+			*is_aes = true;
 			break;
 		}
 	}
 
 	libwacom_destroy(libwacom_device);
-
-out:
 #endif
-	return is_aes;
 }
 
 static void
 tablet_init_smoothing(struct evdev_device *device,
-		      struct tablet_dispatch *tablet)
+		      struct tablet_dispatch *tablet,
+		      bool is_aes)
 {
 	size_t history_size = ARRAY_LENGTH(tablet->history.samples);
 	struct quirks_context *quirks = NULL;
@@ -2527,7 +2650,7 @@ tablet_init_smoothing(struct evdev_device *device,
 	 * AttrTabletSmoothing can override this, if necessary.
 	 */
 	if (!q || !quirks_get_bool(q, QUIRK_ATTR_TABLET_SMOOTHING, &use_smoothing))
-		use_smoothing = !tablet_is_aes(device, tablet);
+		use_smoothing = !is_aes;
 
 	/* Setting the history size to 1 means we never do any actual smoothing. */
 	if (!use_smoothing)
@@ -2563,6 +2686,57 @@ tablet_reject_device(struct evdev_device *device)
 	return true;
 }
 
+static void
+tablet_fix_tilt(struct tablet_dispatch *tablet,
+		struct evdev_device *device)
+{
+	struct libevdev *evdev = device->evdev;
+
+	if (libevdev_has_event_code(evdev, EV_ABS, ABS_TILT_X) !=
+	    libevdev_has_event_code(evdev, EV_ABS, ABS_TILT_Y)) {
+		libevdev_disable_event_code(evdev, EV_ABS, ABS_TILT_X);
+		libevdev_disable_event_code(evdev, EV_ABS, ABS_TILT_Y);
+		return;
+	}
+
+	if (!libevdev_has_event_code(evdev, EV_ABS, ABS_TILT_X))
+		return;
+
+	/* Wacom has three types of devices:
+	 * - symmetrical: [-90, 90], like the ISDv4 524c
+	 * - asymmetrical: [-64, 63], like the Cintiq l3HDT
+	 * - zero-based: [0, 127], like the Cintiq 12WX
+	 *
+	 * Note how the latter two cases have an even range and thus do
+	 * not have a logical center value. But this is tilt and at
+	 * least in the asymmetrical case we assume that hardware zero
+	 * means vertical. So we cheat and adjust the range depending
+	 * on whether it's odd, then use the center value.
+	 *
+	 * Since it's always the max that's one too low let's go with that and
+	 * fix it if we run into a device where that isn't the case.
+	 */
+	for (unsigned int axis = ABS_TILT_X; axis <= ABS_TILT_Y; axis++) {
+		struct input_absinfo abs = *libevdev_get_abs_info(evdev, axis);
+
+		/* Don't touch axes reporting radians */
+		if (abs.resolution != 0)
+			continue;
+
+		if ((int)absinfo_range(&abs) % 2 == 1)
+			continue;
+
+		abs.maximum += 1;
+		libevdev_set_abs_info(evdev, axis, &abs);
+
+		evdev_log_debug(device,
+				"Adjusting %s range to [%d, %d]\n",
+				libevdev_event_code_get_name(EV_ABS, axis),
+				abs.minimum,
+				abs.maximum);
+	}
+}
+
 static int
 tablet_init(struct tablet_dispatch *tablet,
 	    struct evdev_device *device)
@@ -2581,6 +2755,10 @@ tablet_init(struct tablet_dispatch *tablet,
 	if (tablet_reject_device(device))
 		return -1;
 
+	bool is_aes = false;
+	bool is_display_tablet = false;
+	tablet_lookup_libwacom(device, tablet, &is_aes, &is_display_tablet);
+
 	if (!libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_PEN)) {
 		libevdev_enable_event_code(evdev, EV_KEY, BTN_TOOL_PEN, NULL);
 		tablet->quirks.proximity_out_forced = true;
@@ -2593,7 +2771,8 @@ tablet_init(struct tablet_dispatch *tablet,
 		libevdev_disable_event_code(evdev, EV_KEY, BTN_TOOL_LENS);
 	}
 
-	tablet_init_calibration(tablet, device);
+	tablet_fix_tilt(tablet, device);
+	tablet_init_calibration(tablet, device, is_display_tablet);
 	tablet_init_proximity_threshold(tablet, device);
 	rc = tablet_init_accel(tablet, device);
 	if (rc != 0)
@@ -2601,7 +2780,7 @@ tablet_init(struct tablet_dispatch *tablet,
 
 	evdev_init_sendevents(device, &tablet->base);
 	tablet_init_left_handed(device);
-	tablet_init_smoothing(device, tablet);
+	tablet_init_smoothing(device, tablet, is_aes);
 
 	for (axis = LIBINPUT_TABLET_TOOL_AXIS_X;
 	     axis <= LIBINPUT_TABLET_TOOL_AXIS_MAX;

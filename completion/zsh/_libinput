@@ -50,6 +50,10 @@ __all_seats()
 		'--apply-to=[Apply configuration options where the device name matches the pattern]:pattern' \
 		'--disable-sendevents=[Disable send-events option for the devices matching the pattern]:pattern' \
 		'--set-click-method=[Set the desired click method]:click-method:(none clickfinger buttonareas)' \
+		'--set-clickfinger-map=[Set button mapping for clickfinger]:tap-map:((  \
+			lrm\:2-fingers\ right-click\ /\ 3-fingers\ middle-click \
+			lmr\:2-fingers\ middle-click\ /\ 3-fingers\ right-click \
+		))' \
 		'--set-scroll-method=[Set the desired scroll method]:scroll-method:(none twofinger edge button)' \
 		'--set-scroll-button=[Set the button to the given button code]' \
 		'--set-profile=[Set pointer acceleration profile]:accel-profile:(adaptive flat)' \
@@ -78,7 +82,7 @@ __all_seats()
 		'--disable-middlebutton[Disable middle button emulation]' \
 		+ '(dwt)' \
 		'--enable-dwt[Enable disable-while-typing]' \
-		'--disable-dwt[Disable disable-while-typing]'
+		'--disable-dwt[Disable disable-while-typing]' \
 		+ '(dwtp)' \
 		'--enable-dwtp[Enable disable-while-trackpointing]' \
 		'--disable-dwtp[Disable disable-while-trackpointing]'

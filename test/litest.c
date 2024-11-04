@@ -27,7 +27,6 @@
 #include <check.h>
 #include <dirent.h>
 #include <errno.h>
-#include <libgen.h>
 #include <fcntl.h>
 #include <fnmatch.h>
 #include <getopt.h>
@@ -57,6 +56,7 @@
 
 #include <valgrind/valgrind.h>
 
+#include "util-files.h"
 #include "litest.h"
 #include "litest-int.h"
 #include "libinput-util.h"
@@ -96,6 +96,7 @@ static struct list created_files_list; /* list of all files to remove at the end
 
 static void litest_init_udev_rules(struct list *created_files_list);
 static void litest_remove_udev_rules(struct list *created_files_list);
+static void litest_print_event(struct libinput_event *event);
 
 enum quirks_setup_mode {
 	QUIRKS_SETUP_USE_SRCDIR,
@@ -382,7 +383,6 @@ litest_add_tcase_no_device(struct suite *suite,
 	const char *test_name = funcname;
 
 	if (filter_device &&
-	    strstr(test_name, filter_device) == NULL &&
 	    fnmatch(filter_device, test_name, 0) != 0)
 		return;
 
@@ -408,7 +408,6 @@ litest_add_tcase_deviceless(struct suite *suite,
 	const char *test_name = funcname;
 
 	if (filter_device &&
-	    strstr(test_name, filter_device) == NULL &&
 	    fnmatch(filter_device, test_name, 0) != 0)
 		return;
 
@@ -474,7 +473,6 @@ litest_add_tcase(const char *filename,
 	litest_assert(excluded >= LITEST_DEVICELESS);
 
 	if (filter_test &&
-	    strstr(funcname, filter_test) == NULL &&
 	    fnmatch(filter_test, funcname, 0) != 0)
 		return;
 
@@ -501,7 +499,6 @@ litest_add_tcase(const char *filename,
 				continue;
 
 			if (filter_device &&
-			    strstr(dev->shortname, filter_device) == NULL &&
 			    fnmatch(filter_device, dev->shortname, 0) != 0)
 				continue;
 			if ((dev->features & required) != required ||
@@ -523,7 +520,6 @@ litest_add_tcase(const char *filename,
 				continue;
 
 			if (filter_device &&
-			    strstr(dev->shortname, filter_device) == NULL &&
 			    fnmatch(filter_device, dev->shortname, 0) != 0)
 				continue;
 
@@ -628,18 +624,17 @@ _litest_add_ranged_for_device(const char *filename,
 	litest_assert(type < LITEST_NO_DEVICE);
 
 	if (filter_test &&
-	    strstr(funcname, filter_test) == NULL &&
 	    fnmatch(filter_test, funcname, 0) != 0)
 		return;
 
 	create_suite_name(filename, suite_name);
+
 	if (filter_group && fnmatch(filter_group, suite_name, 0) != 0)
 		return;
 
 	s = get_suite(suite_name);
 	list_for_each(dev, &devices, node) {
 		if (filter_device &&
-		    strstr(dev->shortname, filter_device) == NULL &&
 		    fnmatch(filter_device, dev->shortname, 0) != 0) {
 			device_filtered = true;
 			continue;
@@ -791,10 +786,10 @@ litest_init_all_device_udev_rules(struct list *created_files)
 	rc = xasprintf(&path,
 		      "%s/99-litest-XXXXXX.rules",
 		      UDEV_RULES_D);
-	litest_assert_int_gt(rc, 0);
+	litest_assert_errno_success(rc);
 
 	fd = mkstemps(path, 6);
-	litest_assert_int_ne(fd, -1);
+	litest_assert_errno_success(fd);
 	f = fdopen(fd, "w");
 	litest_assert_notnull(f);
 
@@ -1558,33 +1553,9 @@ litest_setup_quirks(struct list *created_files_list,
 }
 
 static inline void
-mkdir_p(const char *dir)
-{
-	char *path, *parent;
-	int rc;
-
-	if (streq(dir, "/"))
-		return;
-
-	path = safe_strdup(dir);
-	parent = dirname(path);
-
-	mkdir_p(parent);
-	rc = mkdir(dir, 0755);
-
-	if (rc == -1 && errno != EEXIST) {
-		litest_abort_msg("Failed to create directory %s (%s)\n",
-				 dir,
-				 strerror(errno));
-	}
-
-	free(path);
-}
-
-static inline void
 litest_init_udev_rules(struct list *created_files)
 {
-	mkdir_p(UDEV_RULES_D);
+	litest_assert_neg_errno_success(mkdir_p(UDEV_RULES_D));
 
 	litest_install_model_quirks(created_files);
 	litest_init_all_device_udev_rules(created_files);
@@ -1686,7 +1657,7 @@ litest_create(enum litest_device_type which,
 	litest_assert_int_ne(fd, -1);
 
 	rc = libevdev_new_from_fd(fd, &d->evdev);
-	litest_assert_int_eq(rc, 0);
+	litest_assert_neg_errno_success(rc);
 
 	return d;
 
@@ -1962,7 +1933,7 @@ litest_event(struct litest_device *d, unsigned int type,
 		return;
 
 	ret = libevdev_uinput_write_event(d->uinput, type, code, value);
-	litest_assert_int_eq(ret, 0);
+	litest_assert_neg_errno_success(ret);
 }
 
 static bool
@@ -2900,9 +2871,22 @@ auto_assign_pad_value(struct litest_device *dev,
 {
 	const struct input_absinfo *abs;
 
-	if (ev->value != LITEST_AUTO_ASSIGN ||
-	    ev->type != EV_ABS)
+	if (ev->value != LITEST_AUTO_ASSIGN)
 		return value;
+
+	if (ev->type == EV_REL) {
+		switch (ev->code) {
+		case REL_WHEEL:
+		case REL_HWHEEL:
+		case REL_DIAL:
+			assert (fmod(value, 120.0) == 0.0); /* Fractions not supported yet */
+			return value/120.0;
+		default:
+			return value;
+		}
+	} else if (ev->type != EV_ABS) {
+		return value;
+	}
 
 	abs = libevdev_get_abs_info(dev->evdev, ev->code);
 	litest_assert_notnull(abs);
@@ -3035,6 +3019,7 @@ litest_wait_for_event_of_type(struct libinput *li, ...)
 
 		while ((type = libinput_next_event_type(li)) == LIBINPUT_EVENT_NONE) {
 			int rc = poll(&fds, 1, 2000);
+			litest_assert_errno_success(rc);
 			litest_assert_int_gt(rc, 0);
 			libinput_dispatch(li);
 		}
@@ -3060,6 +3045,10 @@ litest_drain_events(struct libinput *li)
 
 	libinput_dispatch(li);
 	while ((event = libinput_get_event(li))) {
+		if (verbose) {
+			fprintf(stderr, "litest: draining event: ");
+			litest_print_event(event);
+		}
 		libinput_event_destroy(event);
 		libinput_dispatch(li);
 	}
@@ -3208,6 +3197,9 @@ litest_event_type_str(enum libinput_event_type type)
 	case LIBINPUT_EVENT_TABLET_PAD_KEY:
 		str = "TABLET PAD KEY";
 		break;
+	case LIBINPUT_EVENT_TABLET_PAD_DIAL:
+		str = "TABLET PAD DIAL";
+		break;
 	case LIBINPUT_EVENT_SWITCH_TOGGLE:
 		str = "SWITCH TOGGLE";
 		break;
@@ -3309,6 +3301,12 @@ litest_print_event(struct libinput_event *event)
 			libinput_event_tablet_pad_get_ring_position(pad),
 			libinput_event_tablet_pad_get_ring_source(pad));
 		break;
+	case LIBINPUT_EVENT_TABLET_PAD_DIAL:
+		pad = libinput_event_get_tablet_pad_event(event);
+		fprintf(stderr, "dial %d delta %.2f",
+			libinput_event_tablet_pad_get_dial_number(pad),
+			libinput_event_tablet_pad_get_dial_delta_v120(pad));
+		break;
 	default:
 		break;
 	}
@@ -3398,7 +3396,7 @@ litest_create_uinput(const char *name,
 	struct libevdev_uinput *uinput;
 	struct libevdev *dev;
 	int type, code;
-	int rc, fd;
+	int rc;
 	const struct input_absinfo *abs;
 	const struct input_absinfo default_abs = {
 		.value = 0,
@@ -3409,7 +3407,6 @@ litest_create_uinput(const char *name,
 		.resolution = 100
 	};
 	char buf[512];
-	const char *devnode;
 
 	dev = libevdev_new();
 	litest_assert_ptr_notnull(dev);
@@ -3450,44 +3447,8 @@ litest_create_uinput(const char *name,
 	rc = libevdev_uinput_create_from_device(dev,
 					        LIBEVDEV_UINPUT_OPEN_MANAGED,
 						&uinput);
-	/* workaround for a bug in libevdev pre-1.3
-	   http://cgit.freedesktop.org/libevdev/commit/?id=debe9b030c8069cdf78307888ef3b65830b25122 */
-	if (rc == -EBADF)
-		rc = -EACCES;
 	litest_assert_msg(rc == 0, "Failed to create uinput device: %s\n", strerror(-rc));
 
-	libevdev_free(dev);
-
-	devnode = libevdev_uinput_get_devnode(uinput);
-	litest_assert_notnull(devnode);
-	fd = open(devnode, O_RDONLY);
-	litest_assert_int_gt(fd, -1);
-	rc = libevdev_new_from_fd(fd, &dev);
-	litest_assert_int_eq(rc, 0);
-
-	/* uinput before kernel 4.5 + libevdev 1.5.0 does not support
-	 * setting the resolution, so we set it afterwards. This is of
-	 * course racy as hell but the way we _generally_ use this function
-	 * by the time libinput uses the device, we're finished here.
-	 *
-	 * If you have kernel 4.5 and libevdev 1.5.0 or later, this code
-	 * just keeps the room warm.
-	 */
-	abs = abs_info;
-	while (abs && abs->value != -1) {
-		if (abs->resolution != 0) {
-			if (libevdev_get_abs_resolution(dev, abs->value) ==
-			    abs->resolution)
-				break;
-
-			rc = libevdev_kernel_set_abs_info(dev,
-							  abs->value,
-							  abs);
-			litest_assert_int_eq(rc, 0);
-		}
-		abs++;
-	}
-	close(fd);
 	libevdev_free(dev);
 
 	return uinput;
@@ -3911,6 +3872,23 @@ litest_is_pad_button_event(struct libinput_event *event,
 			     button);
 	litest_assert_int_eq(libinput_event_tablet_pad_get_button_state(p),
 			     state);
+
+	return p;
+}
+
+struct libinput_event_tablet_pad *
+litest_is_pad_dial_event(struct libinput_event *event,
+			 unsigned int number)
+{
+	struct libinput_event_tablet_pad *p;
+	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_PAD_DIAL;
+
+	litest_assert_ptr_notnull(event);
+	litest_assert_event_type(event, type);
+	p = libinput_event_get_tablet_pad_event(event);
+
+	litest_assert_int_eq(libinput_event_tablet_pad_get_dial_number(p),
+			     number);
 
 	return p;
 }
@@ -4349,7 +4327,7 @@ litest_timeout_buttonscroll(void)
 void
 litest_timeout_finger_switch(void)
 {
-	msleep(120);
+	msleep(140);
 }
 
 void

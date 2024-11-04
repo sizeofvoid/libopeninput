@@ -72,6 +72,7 @@ ASSERT_INT_SIZE(enum libinput_config_drag_lock_state);
 ASSERT_INT_SIZE(enum libinput_config_send_events_mode);
 ASSERT_INT_SIZE(enum libinput_config_accel_profile);
 ASSERT_INT_SIZE(enum libinput_config_click_method);
+ASSERT_INT_SIZE(enum libinput_config_clickfinger_button_map);
 ASSERT_INT_SIZE(enum libinput_config_middle_emulation_state);
 ASSERT_INT_SIZE(enum libinput_config_scroll_method);
 ASSERT_INT_SIZE(enum libinput_config_dwt_state);
@@ -104,6 +105,7 @@ event_type_to_str(enum libinput_event_type type)
 	CASE_RETURN_STRING(LIBINPUT_EVENT_TABLET_PAD_RING);
 	CASE_RETURN_STRING(LIBINPUT_EVENT_TABLET_PAD_STRIP);
 	CASE_RETURN_STRING(LIBINPUT_EVENT_TABLET_PAD_KEY);
+	CASE_RETURN_STRING(LIBINPUT_EVENT_TABLET_PAD_DIAL);
 	CASE_RETURN_STRING(LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN);
 	CASE_RETURN_STRING(LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE);
 	CASE_RETURN_STRING(LIBINPUT_EVENT_GESTURE_SWIPE_END);
@@ -232,6 +234,10 @@ struct libinput_event_tablet_pad {
 		uint32_t code;
 		enum libinput_key_state state;
 	} key;
+	struct {
+		double v120;
+		int number;
+	} dial;
 	struct {
 		enum libinput_tablet_pad_ring_axis_source source;
 		double position;
@@ -443,6 +449,7 @@ libinput_event_get_tablet_pad_event(struct libinput_event *event)
 			   event->type,
 			   NULL,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON,
 			   LIBINPUT_EVENT_TABLET_PAD_KEY);
@@ -1498,7 +1505,7 @@ libinput_event_tablet_tool_get_wheel_delta_discrete(
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *event,
-					uint32_t width)
+					     uint32_t width)
 {
 	struct evdev_device *device = evdev_device(event->base.device);
 
@@ -1517,7 +1524,7 @@ libinput_event_tablet_tool_get_x_transformed(struct libinput_event_tablet_tool *
 
 LIBINPUT_EXPORT double
 libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *event,
-					uint32_t height)
+					     uint32_t height)
 {
 	struct evdev_device *device = evdev_device(event->base.device);
 
@@ -2024,6 +2031,7 @@ libinput_event_destroy(struct libinput_event *event)
 		   libinput_event_get_tablet_tool_event(event));
 		break;
 	case LIBINPUT_EVENT_TABLET_PAD_RING:
+	case LIBINPUT_EVENT_TABLET_PAD_DIAL:
 	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
 	case LIBINPUT_EVENT_TABLET_PAD_BUTTON:
 	case LIBINPUT_EVENT_TABLET_PAD_KEY:
@@ -2910,6 +2918,34 @@ tablet_pad_notify_button(struct libinput_device *device,
 }
 
 void
+tablet_pad_notify_dial(struct libinput_device *device,
+		       uint64_t time,
+		       unsigned int number,
+		       double value,
+		       struct libinput_tablet_pad_mode_group *group)
+{
+	struct libinput_event_tablet_pad *dial_event;
+	unsigned int mode;
+
+	dial_event = zalloc(sizeof *dial_event);
+
+	mode = libinput_tablet_pad_mode_group_get_mode(group);
+
+	*dial_event = (struct libinput_event_tablet_pad) {
+		.time = time,
+		.dial.number = number,
+		.dial.v120 = value,
+		.mode_group = libinput_tablet_pad_mode_group_ref(group),
+		.mode = mode,
+	};
+
+	post_device_event(device,
+			  time,
+			  LIBINPUT_EVENT_TABLET_PAD_DIAL,
+			  &dial_event->base);
+}
+
+void
 tablet_pad_notify_ring(struct libinput_device *device,
 		       uint64_t time,
 		       unsigned int number,
@@ -3270,6 +3306,12 @@ libinput_device_get_name(struct libinput_device *device)
 }
 
 LIBINPUT_EXPORT unsigned int
+libinput_device_get_id_bustype(struct libinput_device *device)
+{
+	return evdev_device_get_id_bustype((struct evdev_device *) device);
+}
+
+LIBINPUT_EXPORT unsigned int
 libinput_device_get_id_product(struct libinput_device *device)
 {
 	return evdev_device_get_id_product((struct evdev_device *) device);
@@ -3376,6 +3418,12 @@ libinput_device_tablet_pad_get_num_buttons(struct libinput_device *device)
 }
 
 LIBINPUT_EXPORT int
+libinput_device_tablet_pad_get_num_dials(struct libinput_device *device)
+{
+	return evdev_device_tablet_pad_get_num_dials((struct evdev_device *)device);
+}
+
+LIBINPUT_EXPORT int
 libinput_device_tablet_pad_get_num_rings(struct libinput_device *device)
 {
 	return evdev_device_tablet_pad_get_num_rings((struct evdev_device *)device);
@@ -3429,6 +3477,17 @@ libinput_tablet_pad_mode_group_has_button(struct libinput_tablet_pad_mode_group 
 		return 0;
 
 	return !!(group->button_mask & bit(button));
+}
+
+LIBINPUT_EXPORT int
+libinput_tablet_pad_mode_group_has_dial(struct libinput_tablet_pad_mode_group *group,
+					unsigned int dial)
+{
+	if ((int)dial >=
+	    libinput_device_tablet_pad_get_num_dials(group->device))
+		return 0;
+
+	return !!(group->dial_mask & bit(dial));
 }
 
 LIBINPUT_EXPORT int
@@ -3590,6 +3649,28 @@ libinput_event_tablet_tool_get_base_event(struct libinput_event_tablet_tool *eve
 }
 
 LIBINPUT_EXPORT double
+libinput_event_tablet_pad_get_dial_delta_v120(struct libinput_event_tablet_pad *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0.0,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL);
+
+	return event->dial.v120;
+}
+
+LIBINPUT_EXPORT unsigned int
+libinput_event_tablet_pad_get_dial_number(struct libinput_event_tablet_pad *event)
+{
+	require_event_type(libinput_event_get_context(&event->base),
+			   event->base.type,
+			   0,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL);
+
+	return event->dial.number;
+}
+
+LIBINPUT_EXPORT double
 libinput_event_tablet_pad_get_ring_position(struct libinput_event_tablet_pad *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
@@ -3706,6 +3787,7 @@ libinput_event_tablet_pad_get_mode(struct libinput_event_tablet_pad *event)
 			   event->base.type,
 			   0,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 
@@ -3719,6 +3801,7 @@ libinput_event_tablet_pad_get_mode_group(struct libinput_event_tablet_pad *event
 			   event->base.type,
 			   NULL,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 
@@ -3732,6 +3815,7 @@ libinput_event_tablet_pad_get_time(struct libinput_event_tablet_pad *event)
 			   event->base.type,
 			   0,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON,
 			   LIBINPUT_EVENT_TABLET_PAD_KEY);
@@ -3746,6 +3830,7 @@ libinput_event_tablet_pad_get_time_usec(struct libinput_event_tablet_pad *event)
 			   event->base.type,
 			   0,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON,
 			   LIBINPUT_EVENT_TABLET_PAD_KEY);
@@ -3760,6 +3845,7 @@ libinput_event_tablet_pad_get_base_event(struct libinput_event_tablet_pad *event
 			   event->base.type,
 			   NULL,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON,
 			   LIBINPUT_EVENT_TABLET_PAD_KEY);
@@ -4424,6 +4510,45 @@ libinput_device_config_click_get_default_method(struct libinput_device *device)
 	return LIBINPUT_CONFIG_CLICK_METHOD_NONE;
 }
 
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_click_set_clickfinger_button_map(struct libinput_device *device,
+							enum libinput_config_clickfinger_button_map map)
+{
+	switch (map) {
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM:
+	case LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR:
+		break;
+	default:
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+	}
+
+	if ((libinput_device_config_click_get_methods(device) &
+	     LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER) != LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER)
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	return device->config.click_method->set_clickfinger_map(device, map);
+}
+
+LIBINPUT_EXPORT enum libinput_config_clickfinger_button_map
+libinput_device_config_click_get_clickfinger_button_map(struct libinput_device *device)
+{
+	if ((libinput_device_config_click_get_methods(device) &
+	     LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER) != LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER)
+		return LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM;
+
+	return device->config.click_method->get_clickfinger_map(device);
+}
+
+LIBINPUT_EXPORT enum libinput_config_clickfinger_button_map
+libinput_device_config_click_get_default_clickfinger_button_map(struct libinput_device *device)
+{
+	if ((libinput_device_config_click_get_methods(device) &
+	     LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER) != LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER)
+		return LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM;
+
+	return device->config.click_method->get_default_clickfinger_map(device);
+}
+
 LIBINPUT_EXPORT int
 libinput_device_config_middle_emulation_is_available(
 		struct libinput_device *device)
@@ -4726,6 +4851,75 @@ libinput_device_config_rotation_get_default_angle(struct libinput_device *device
 		return 0;
 
 	return device->config.rotation->get_default_angle(device);
+}
+
+LIBINPUT_EXPORT int
+libinput_tablet_tool_config_pressure_range_is_available(struct libinput_tablet_tool *tool)
+{
+	if (!tool->config.pressure_range.is_available)
+		return 0;
+
+	return tool->config.pressure_range.is_available(tool);
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_tablet_tool_config_pressure_range_set(struct libinput_tablet_tool *tool,
+					       double minimum,
+					       double maximum)
+{
+	if (!libinput_tablet_tool_config_pressure_range_is_available(tool))
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	if (minimum < 0.0 || minimum >= 1.0 ||
+	    maximum <= 0.0 || maximum > 1.0 ||
+	    maximum <= minimum)
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	return tool->config.pressure_range.set(tool, minimum, maximum);
+}
+
+LIBINPUT_EXPORT double
+libinput_tablet_tool_config_pressure_range_get_minimum(struct libinput_tablet_tool *tool)
+{
+	double min = 0.0, max = 1.0;
+
+	if (libinput_tablet_tool_config_pressure_range_is_available(tool))
+		tool->config.pressure_range.get(tool, &min, &max);
+
+	return min;
+}
+
+LIBINPUT_EXPORT double
+libinput_tablet_tool_config_pressure_range_get_maximum(struct libinput_tablet_tool *tool)
+{
+	double min = 0.0, max = 1.0;
+
+	if (libinput_tablet_tool_config_pressure_range_is_available(tool))
+		tool->config.pressure_range.get(tool, &min, &max);
+
+	return max;
+}
+
+LIBINPUT_EXPORT double
+libinput_tablet_tool_config_pressure_range_get_default_minimum(struct libinput_tablet_tool *tool)
+{
+	double min = 0.0, max = 1.0;
+
+	if (libinput_tablet_tool_config_pressure_range_is_available(tool))
+		tool->config.pressure_range.get_default(tool, &min, &max);
+
+	return min;
+}
+
+LIBINPUT_EXPORT double
+libinput_tablet_tool_config_pressure_range_get_default_maximum(struct libinput_tablet_tool *tool)
+{
+	double min = 0.0, max = 1.0;
+
+	if (libinput_tablet_tool_config_pressure_range_is_available(tool))
+		tool->config.pressure_range.get_default(tool, &min, &max);
+
+	return max;
 }
 
 #if HAVE_LIBWACOM

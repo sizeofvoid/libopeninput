@@ -72,6 +72,11 @@ struct normalized_range_coords {
 	double x, y;
 };
 
+/* A [0.0, 1.0] normalized range */
+struct normalized_range {
+	double min, max;
+};
+
 /* A pair of angles in degrees */
 struct wheel_angle {
 	double x, y;
@@ -328,6 +333,10 @@ struct libinput_device_config_click_method {
 						  enum libinput_config_click_method method);
 	enum libinput_config_click_method (*get_method)(struct libinput_device *device);
 	enum libinput_config_click_method (*get_default_method)(struct libinput_device *device);
+	enum libinput_config_status (*set_clickfinger_map)(struct libinput_device *device,
+							   enum libinput_config_clickfinger_button_map map);
+	enum libinput_config_clickfinger_button_map (*get_clickfinger_map)(struct libinput_device *device);
+	enum libinput_config_clickfinger_button_map (*get_default_clickfinger_map)(struct libinput_device *device);
 };
 
 struct libinput_device_config_middle_emulation {
@@ -452,6 +461,13 @@ enum pressure_heuristic_state {
 	PRESSURE_HEURISTIC_STATE_DONE,    /** Decision's been made, live with it */
 };
 
+struct libinput_tablet_tool_config_pressure_range {
+	int (*is_available)(struct libinput_tablet_tool *tool);
+	enum libinput_config_status (*set)(struct libinput_tablet_tool *tool, double min, double max);
+	void (*get)(struct libinput_tablet_tool *tool, double *min, double *max);
+	void (*get_default)(struct libinput_tablet_tool *tool, double *min, double *max);
+};
+
 struct libinput_tablet_tool {
 	struct list link;
 	uint32_t serial;
@@ -463,12 +479,22 @@ struct libinput_tablet_tool {
 	void *user_data;
 
 	struct {
+		/* The configured axis we actually work with */
+		struct input_absinfo abs_pressure;
+		struct normalized_range range;
+		struct normalized_range wanted_range;
+		bool has_configured_range;
+
 		struct threshold threshold; /* in device coordinates */
 		int offset; /* in device coordinates */
 		bool has_offset;
 
 		enum pressure_heuristic_state heuristic_state;
 	} pressure;
+
+	struct {
+		struct libinput_tablet_tool_config_pressure_range pressure_range;
+	} config;
 };
 
 struct libinput_tablet_pad_mode_group {
@@ -484,6 +510,7 @@ struct libinput_tablet_pad_mode_group {
 	uint32_t button_mask;
 	uint32_t ring_mask;
 	uint32_t strip_mask;
+	uint32_t dial_mask;
 
 	uint32_t toggle_button_mask;
 
@@ -777,6 +804,13 @@ tablet_pad_notify_button(struct libinput_device *device,
 			 int32_t button,
 			 enum libinput_button_state state,
 			 struct libinput_tablet_pad_mode_group *group);
+void
+tablet_pad_notify_dial(struct libinput_device *device,
+		       uint64_t time,
+		       unsigned int number,
+		       double value,
+		       struct libinput_tablet_pad_mode_group *group);
+
 void
 tablet_pad_notify_ring(struct libinput_device *device,
 		       uint64_t time,

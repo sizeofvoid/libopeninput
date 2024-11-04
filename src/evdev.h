@@ -474,6 +474,9 @@ const char *
 evdev_device_get_name(struct evdev_device *device);
 
 unsigned int
+evdev_device_get_id_bustype(struct evdev_device *device);
+
+unsigned int
 evdev_device_get_id_product(struct evdev_device *device);
 
 unsigned int
@@ -517,6 +520,9 @@ evdev_device_tablet_pad_has_key(struct evdev_device *device,
 
 int
 evdev_device_tablet_pad_get_num_buttons(struct evdev_device *device);
+
+int
+evdev_device_tablet_pad_get_num_dials(struct evdev_device *device);
 
 int
 evdev_device_tablet_pad_get_num_rings(struct evdev_device *device);

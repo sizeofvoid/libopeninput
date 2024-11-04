@@ -8,12 +8,13 @@ Tap-to-click behaviour
 finger touch down/up sequence maps into a button click. This is most
 commonly used on touchpads, but may be available on other devices.
 
-libinput implements tapping for one, two, and three fingers, where supported
-by the hardware, and maps those taps into a left, right, and middle button
-click, respectively. Not all devices support three fingers, libinput will
-support tapping up to whatever is supported by the hardware. libinput does
-not support four-finger taps or any tapping with more than four fingers,
-even though some hardware can distinguish between that many fingers.
+libinput implements tapping for one, two, and three fingers, where supported by
+the hardware, and maps those taps into a left, right, and middle button click,
+respectively. This mapping can be switched to left, middle and right through
+configuration. Not all devices support three fingers, libinput will support
+tapping up to whatever is supported by the hardware. libinput does not support
+four-finger taps or any tapping with more than four fingers, even though some
+hardware can distinguish between that many fingers.
 
 .. _tapping_default:
 

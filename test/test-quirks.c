@@ -65,8 +65,8 @@ make_data_dir(const char *file_content)
 		fp = fopen(filename, "w+");
 		litest_assert_notnull(fp);
 		rc = fputs(file_content, fp);
+		litest_assert_errno_success(rc);
 		fclose(fp);
-		litest_assert_int_ge(rc, 0);
 		dir.filename = filename;
 	}
 
@@ -742,6 +742,69 @@ START_TEST(quirks_parse_name_invalid)
 	const char *quirks_file[] = {
 	"[Section name]\n"
 	"MatchName=\n"
+	"ModelAppleTouchpad=1\n",
+	};
+
+	ARRAY_FOR_EACH(quirks_file, qf) {
+		struct data_dir dd = make_data_dir(*qf);
+
+		ctx = quirks_init_subsystem(dd.dirname,
+					    NULL,
+					    log_handler,
+					    NULL,
+					    QLOG_CUSTOM_LOG_PRIORITIES);
+		ck_assert(ctx == NULL);
+		cleanup_data_dir(dd);
+	}
+}
+END_TEST
+
+START_TEST(quirks_parse_uniq)
+{
+	struct quirks_context *ctx;
+	const char quirks_file[] =
+	"[Section Uniq]\n"
+	"MatchUniq=1235\n"
+	"ModelAppleTouchpad=1\n"
+	"\n"
+	"[Section Uniq]\n"
+	"MatchUniq=abc\n"
+	"ModelAppleTouchpad=1\n"
+	"\n"
+	"[Section Uniq]\n"
+	"MatchUniq=*foo\n"
+	"ModelAppleTouchpad=1\n"
+	"\n"
+	"[Section Uniq]\n"
+	"MatchUniq=foo*\n"
+	"ModelAppleTouchpad=1\n"
+	"\n"
+	"[Section Uniq]\n"
+	"MatchUniq=foo[]\n"
+	"ModelAppleTouchpad=1\n"
+	"\n"
+	"[Section Uniq]\n"
+	"MatchUniq=*foo*\n"
+	"ModelAppleTouchpad=1\n";
+	struct data_dir dd = make_data_dir(quirks_file);
+
+	ctx = quirks_init_subsystem(dd.dirname,
+				    NULL,
+				    log_handler,
+				    NULL,
+				    QLOG_CUSTOM_LOG_PRIORITIES);
+	ck_assert_notnull(ctx);
+	quirks_context_unref(ctx);
+	cleanup_data_dir(dd);
+}
+END_TEST
+
+START_TEST(quirks_parse_uniq_invalid)
+{
+	struct quirks_context *ctx;
+	const char *quirks_file[] = {
+	"[Section name]\n"
+	"MatchUniq=\n"
 	"ModelAppleTouchpad=1\n",
 	};
 
@@ -1532,6 +1595,8 @@ TEST_COLLECTION(quirks)
 	litest_add_deviceless(quirks_parse_version_invalid);
 	litest_add_deviceless(quirks_parse_name);
 	litest_add_deviceless(quirks_parse_name_invalid);
+	litest_add_deviceless(quirks_parse_uniq);
+	litest_add_deviceless(quirks_parse_uniq_invalid);
 	litest_add_deviceless(quirks_parse_udev);
 	litest_add_deviceless(quirks_parse_udev_invalid);
 	litest_add_deviceless(quirks_parse_dmi);

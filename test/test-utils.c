@@ -35,6 +35,7 @@
 #include "util-bits.h"
 #include "util-ratelimit.h"
 #include "util-matrix.h"
+#include "util-input-event.h"
 
 #define  TEST_VERSIONSORT
 #include "libinput-versionsort.h"
@@ -1582,6 +1583,43 @@ START_TEST(trunkname_test)
 }
 END_TEST
 
+START_TEST(absinfo_normalize_value_test)
+{
+	struct input_absinfo abs = {
+		.minimum = 0,
+		.maximum = 100,
+	};
+
+	ck_assert_double_eq(absinfo_normalize_value(&abs, -100), 0.0);
+	ck_assert_double_eq(absinfo_normalize_value(&abs, -1), 0.0);
+	ck_assert_double_eq(absinfo_normalize_value(&abs, 0), 0.0);
+	ck_assert_double_gt(absinfo_normalize_value(&abs, 1), 0.0);
+	ck_assert_double_lt(absinfo_normalize_value(&abs, 99), 1.0);
+	ck_assert_double_eq(absinfo_normalize_value(&abs, 100), 1.0);
+	ck_assert_double_eq(absinfo_normalize_value(&abs, 101), 1.0);
+	ck_assert_double_eq(absinfo_normalize_value(&abs, 200), 1.0);
+
+	abs.minimum = -50;
+	abs.maximum = 50;
+
+	ck_assert_double_eq(absinfo_normalize_value(&abs, -51), 0.0);
+	ck_assert_double_eq(absinfo_normalize_value(&abs, -50), 0.0);
+	ck_assert_double_eq(absinfo_normalize_value(&abs, 0), 0.5);
+	ck_assert_double_eq(absinfo_normalize_value(&abs, 50), 1.0);
+	ck_assert_double_eq(absinfo_normalize_value(&abs, 51), 1.0);
+
+
+	abs.minimum = -50;
+	abs.maximum = 0;
+
+	ck_assert_double_eq(absinfo_normalize_value(&abs, -51), 0.0);
+	ck_assert_double_eq(absinfo_normalize_value(&abs, -50), 0.0);
+	ck_assert_double_gt(absinfo_normalize_value(&abs, -49), 0.0);
+	ck_assert_double_lt(absinfo_normalize_value(&abs, -1), 1.0);
+	ck_assert_double_eq(absinfo_normalize_value(&abs, 0), 1.0);
+}
+END_TEST
+
 static Suite *
 litest_utils_suite(void)
 {
@@ -1634,6 +1672,8 @@ litest_utils_suite(void)
 	tcase_add_test(tc, strneq_test);
 	tcase_add_test(tc, trunkname_test);
 	tcase_add_test(tc, basename_test);
+
+	tcase_add_test(tc, absinfo_normalize_value_test);
 
 	suite_add_tcase(s, tc);
 

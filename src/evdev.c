@@ -338,6 +338,8 @@ evdev_device_led_update(struct evdev_device *device, enum libinput_led leds)
 		{ LIBINPUT_LED_NUM_LOCK, LED_NUML },
 		{ LIBINPUT_LED_CAPS_LOCK, LED_CAPSL },
 		{ LIBINPUT_LED_SCROLL_LOCK, LED_SCROLLL },
+		{ LIBINPUT_LED_COMPOSE, LED_COMPOSE },
+		{ LIBINPUT_LED_KANA, LED_KANA },
 	};
 	struct input_event ev[ARRAY_LENGTH(map) + 1];
 	unsigned int i;
@@ -1420,7 +1422,7 @@ evdev_read_wheel_click_props(struct evdev_device *device)
 	if (evdev_read_wheel_click_count_prop(device, hwheel_count, &angles.x) ||
 	    evdev_read_wheel_click_prop(device, hwheel_angle, &angles.x)) {
 		evdev_log_debug(device,
-				"wheel: horizontal click angle: %.2f\n", angles.y);
+				"wheel: horizontal click angle: %.2f\n", angles.x);
 	} else {
 		angles.x = angles.y;
 	}
@@ -2518,6 +2520,12 @@ evdev_device_get_name(struct evdev_device *device)
 }
 
 unsigned int
+evdev_device_get_id_bustype(struct evdev_device *device)
+{
+	return libevdev_get_id_bustype(device->evdev);
+}
+
+unsigned int
 evdev_device_get_id_product(struct evdev_device *device)
 {
 	return libevdev_get_id_product(device->evdev);
@@ -2716,6 +2724,10 @@ evdev_device_get_size(const struct evdev_device *device,
 
 	x = libevdev_get_abs_info(device->evdev, ABS_X);
 	y = libevdev_get_abs_info(device->evdev, ABS_Y);
+
+	if ((x && x->minimum == 0 && x->maximum == 1) ||
+	    (y && y->minimum == 0 && y->maximum == 1))
+		return -1;
 
 	if (!x || !y || device->abs.is_fake_resolution ||
 	    !x->resolution || !y->resolution)
@@ -3120,7 +3132,7 @@ evdev_device_destroy(struct evdev_device *device)
 bool
 evdev_tablet_has_left_handed(struct evdev_device *device)
 {
-	bool has_left_handed = false;
+	bool has_left_handed = true;
 #if HAVE_LIBWACOM
 	struct libinput *li = evdev_libinput_context(device);
 	WacomDeviceDatabase *db = NULL;
@@ -3141,8 +3153,7 @@ evdev_tablet_has_left_handed(struct evdev_device *device)
 				   error);
 
 	if (d) {
-		if (libwacom_is_reversible(d))
-			has_left_handed = true;
+		has_left_handed = !!libwacom_is_reversible(d);
 	} else if (libwacom_error_get_code(error) == WERROR_UNKNOWN_MODEL) {
 		evdev_log_info(device,
 			       "tablet '%s' unknown to libwacom\n",
