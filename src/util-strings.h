@@ -251,7 +251,11 @@ safe_atod(const char *str, double *val)
 		return false;
 
 	errno = 0;
+#ifndef __OpenBSD__
 	v = strtod_l(str, &endptr, c_locale);
+#else
+	v = strtod(str, &endptr);
+#endif
 	freelocale(c_locale);
 #else
 	/* No locale support in provided libc, assume it already uses '.' */

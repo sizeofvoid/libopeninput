@@ -67,4 +67,9 @@
 #define LIBINPUT_EXPORT __attribute__ ((visibility("default")))
 #define LIBINPUT_UNUSED __attribute__ ((unused))
 
+#ifdef __OpenBSD__
+#define bit(x_) (1UL << (x_))
+#define NBITS(b) (b * 8)
+#endif
+
 #endif /* LIBINPUT_UTIL_H */

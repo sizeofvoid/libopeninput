@@ -420,6 +420,9 @@ struct libinput_device {
 	void *user_data;
 	int refcount;
 	struct libinput_device_config config;
+	struct libinput_source *source;
+	char* devname;
+	int fd;
 };
 
 enum libinput_tablet_tool_axis {
@@ -1011,5 +1014,15 @@ libinput_libwacom_unref(struct libinput *li);
 static inline void *libinput_libwacom_ref(struct libinput *li) { return NULL; }
 static inline void libinput_libwacom_unref(struct libinput *li) {}
 #endif
+
+
+#ifdef __OpenBSD__
+void
+axis_notify_event(struct libinput_device *device,
+    uint64_t time,
+    const struct normalized_coords *delta,
+    const struct device_float_coords *raw);
+#endif
+
 
 #endif /* LIBINPUT_PRIVATE_H */
