@@ -376,3 +376,11 @@ MatchName=ITE Tech. Inc. ITE Device(8910) Keyboard
 MatchUdevType=keyboard
 MatchDMIModalias=dmi:*svnLENOVO:*
 AttrKeyboardIntegration=internal
+
+# Some ThinkBook 14 G7+ ASP models come with pressure pads that were not
+# correctly declared as such.
+[Lenovo ThinkBook 14 G7+ ASP touchpad]
+MatchName=*GXTP5100*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook14G7+ASP*:*
+MatchUdevType=touchpad
+ModelPressurePad=1
