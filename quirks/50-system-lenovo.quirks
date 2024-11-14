@@ -62,10 +62,10 @@ MatchName=Elan Touchpad
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadL380*
 AttrInputProp=+INPUT_PROP_BUTTONPAD
 
-[Lenovo X200 Trackpoint]
+[Lenovo X200/201 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20?:*
-AttrTrackpointMultiplier=1.25
+AttrTrackpointMultiplier=0.25
 
 [Lenovo X200x Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
