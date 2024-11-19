@@ -1,5 +1,5 @@
 project('libinput', 'c',
-	version : '1.26.2',
+	version : '1.27.0',
 	license : 'MIT/Expat',
 	default_options : [ 'c_std=gnu99', 'warning_level=2' ],
 	meson_version : '>= 0.56.0')
