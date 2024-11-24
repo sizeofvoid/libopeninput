@@ -546,8 +546,7 @@ tp_process_absolute(struct tp_dispatch *tp,
 		if (e->value != -1) {
 			tp->nactive_slots += 1;
 			tp_new_touch(tp, t, time);
-		} else {
-			assert(tp->nactive_slots >= 1);
+		} else if (tp->nactive_slots >= 1) {
 			tp->nactive_slots -= 1;
 			tp_end_sequence(tp, t, time);
 		}
