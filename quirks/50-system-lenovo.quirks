@@ -67,10 +67,10 @@ MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20?:*
 AttrTrackpointMultiplier=0.25
 
-[Lenovo X200x Trackpoint]
+[Lenovo X200s/201s Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20??:*
-AttrTrackpointMultiplier=1.25
+AttrTrackpointMultiplier=0.25
 
 [Lenovo X230 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
