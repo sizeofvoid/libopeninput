@@ -451,7 +451,7 @@ freebsd:13.2@container-clean:
     - .gitlab-ci/meson-build.sh --skip-test
 
     # pull b2c
-    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/gfx-ci/boot2container/-/raw/2ff65156ba67fa8a0c309a4fc16c5df1a88a3844/vm2c.py
+    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/gfx-ci/boot2container/-/raw/24beb454c62fe59143d7ceb4f5a7d25a3c029559/vm2c.py
     - chmod +x /app/boot2container
 
     # runs the test suite only
