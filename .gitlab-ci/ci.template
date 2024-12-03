@@ -36,7 +36,7 @@
 # <distribution>:<version>@activity:
 #  e.g. fedora:31@build-default
 
-.templates_sha: &template_sha dd90ac0d7a03b574eb4f18d7358083f0c97825f3
+.templates_sha: &template_sha e195d80f35b45cc73668be3767b923fd76c70ed5
 
 include:
   - project: 'freedesktop/ci-templates'

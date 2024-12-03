@@ -14,7 +14,7 @@ repos:
   - id: ruff-format
     args: ['--check', '--diff']
 - repo: https://gitlab.freedesktop.org/freedesktop/ci-templates.git
-  rev: 7402203527f61d6473d55ad701172d1606508c52
+  rev: e195d80f35b45cc73668be3767b923fd76c70ed5
   hooks:
   - id: check-commits
   - id: generate-template
