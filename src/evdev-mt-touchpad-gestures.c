@@ -1488,18 +1488,13 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time,
 		if (transitions[idx - 1] != tp->gesture.state)
 			transitions[idx++] = tp->gesture.state;
 	}
-	if (tp->gesture.state == GESTURE_STATE_SCROLL_START) {
-		tp_gesture_handle_state_scroll_start(tp, time);
-		if (transitions[idx - 1] != tp->gesture.state)
-			transitions[idx++] = tp->gesture.state;
-	}
 	if (tp->gesture.state == GESTURE_STATE_SCROLL) {
 		tp_gesture_handle_state_scroll(tp, time);
 		if (transitions[idx - 1] != tp->gesture.state)
 			transitions[idx++] = tp->gesture.state;
 	}
-	if (tp->gesture.state == GESTURE_STATE_SWIPE_START) {
-		tp_gesture_handle_state_swipe_start(tp, time);
+	if (tp->gesture.state == GESTURE_STATE_SCROLL_START) {
+		tp_gesture_handle_state_scroll_start(tp, time);
 		if (transitions[idx - 1] != tp->gesture.state)
 			transitions[idx++] = tp->gesture.state;
 	}
@@ -1508,15 +1503,21 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time,
 		if (transitions[idx - 1] != tp->gesture.state)
 			transitions[idx++] = tp->gesture.state;
 	}
-	if (tp->gesture.state == GESTURE_STATE_PINCH_START) {
-		tp_gesture_handle_state_pinch_start(tp, time);
+	if (tp->gesture.state == GESTURE_STATE_SWIPE_START) {
+		tp_gesture_handle_state_swipe_start(tp, time);
 		if (transitions[idx - 1] != tp->gesture.state)
 			transitions[idx++] = tp->gesture.state;
 	}
 	if (tp->gesture.state == GESTURE_STATE_PINCH) {
 		tp_gesture_handle_state_pinch(tp, time);
+		if (transitions[idx - 1] != tp->gesture.state)
+			transitions[idx++] = tp->gesture.state;
 	}
-
+	if (tp->gesture.state == GESTURE_STATE_PINCH_START) {
+		tp_gesture_handle_state_pinch_start(tp, time);
+		if (transitions[idx - 1] != tp->gesture.state)
+			transitions[idx++] = tp->gesture.state;
+	}
 	if (oldstate != tp->gesture.state) {
 		char buf[1024] = {0};
 		size_t remaining = sizeof(buf);
