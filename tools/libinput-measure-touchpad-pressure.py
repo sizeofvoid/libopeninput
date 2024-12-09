@@ -364,12 +364,12 @@ def colon_tuple(string):
     try:
         ts = string.split(":")
         t = tuple([int(x) for x in ts])
-        if len(t) == 2 and t[0] >= t[1]:
+        if len(t) == 2 and t[0] > t[1]:
             return t
     except:  # noqa
         pass
 
-    msg = "{} is not in format N:M (N >= M)".format(string)
+    msg = "{} is not in format N:M (N > M)".format(string)
     raise argparse.ArgumentTypeError(msg)
 
 
