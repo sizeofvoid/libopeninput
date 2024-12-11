@@ -141,6 +141,7 @@ resource_rules:
         conditions:
           labels:
             - "bugbot::close"
+        actions:
           remove_labels:
             - "bugbot::close"
           comment: |
