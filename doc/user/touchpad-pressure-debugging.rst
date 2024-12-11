@@ -102,6 +102,8 @@ Once the thresholds are decided on (e.g. 10 and 8), they can be enabled with
      MatchName=*SynPS/2 Synaptics TouchPad
      MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX230*
      AttrPressureRange=10:8
+     AttrPalmPressureThreshold=150
+     AttrThumbPressureThreshold=100
 
 The file name **must** be ``/etc/libinput/local-overrides.quirks``. The
 The first line is the section name and can be free-form. The ``Match``
