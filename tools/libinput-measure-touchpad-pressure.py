@@ -293,10 +293,15 @@ def handle_key(device, event):
         libevdev.EV_KEY.BTN_TOOL_QUINTTAP,
     ]
     if event.code in tapcodes and event.value > 0:
-        print(
-            "\r\033[2KThis tool cannot handle multiple fingers, "
-            "output will be invalid"
-        )
+        try:
+            if handle_key.warned:
+                return
+        except AttributeError:
+            handle_key.warned = True
+            print(
+                "\r\033[2KThis tool cannot handle multiple fingers, "
+                "output will be invalid"
+            )
 
 
 def handle_abs(device, event):

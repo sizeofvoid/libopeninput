@@ -100,6 +100,7 @@ class Device(libevdev.Device):
             raise InvalidDeviceError("device does not have BTN_TOUCH")
 
         self.touches = []
+        self.warned = False
 
     def _find_touch_device(self):
         context = pyudev.Context()
@@ -141,10 +142,13 @@ class Device(libevdev.Device):
             libevdev.EV_KEY.BTN_TOOL_QUINTTAP,
         ]
         if event.code in tapcodes and event.value > 0:
-            error(
-                "\rThis tool cannot handle multiple fingers, " "output will be invalid"
-            )
-            return
+            if not self.warned:
+                self.warned = True
+                error(
+                    "\rThis tool cannot handle multiple fingers, "
+                    "output will be invalid"
+                )
+                return
 
         if event.matches(libevdev.EV_KEY.BTN_TOUCH):
             self.handle_btn_touch(event)
