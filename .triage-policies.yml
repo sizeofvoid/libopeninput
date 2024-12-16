@@ -145,11 +145,17 @@ resource_rules:
           remove_labels:
             - "bugbot::close"
           comment: |
-            I'm (temporarily) closing this bug. The bug may not be fixed yet (see any comments above)
-            but unfortunately closing/re-opening is the only action all GitLab users are permitted to
-            do. So we close it, you re-open it when whatever above has been addressed and
-            then we know we need to look at it again. This may happen more than once in this issue but
-            I'll only post this once.
+            I'm temporarily closing this bug. The bug may not be fixed yet (see any comments above)
+            and we **want you to reopen it when/if it becomes actionable again**.
+
+            This process may feel unfamiliar but unfortunately closing/re-opening is the only action
+            all GitLab users are permitted to do. So we close it, you re-open it when whatever
+            above has been addressed and then we know we need to look at it again.
+            This issue may be closed more than once in a similar fashion but I only leave this
+            comment once since now you understand how it works. :smile:
+
+            For a detailed explanation on the how and why of this process please see
+            the [Closed Issues wiki page](https://gitlab.freedesktop.org/libinput/libinput/-/wikis/Closed-Issues).
           status: "close"
       - *close_needinfo
       - *remind_needinfo
