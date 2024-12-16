@@ -406,6 +406,7 @@ tp_init_thumb(struct tp_dispatch *tp)
 	tp->thumb.detect_thumbs = true;
 	tp->thumb.use_pressure = false;
 	tp->thumb.pressure_threshold = INT_MAX;
+	tp->thumb.size_threshold = INT_MAX;
 
 	/* detect thumbs by pressure in the bottom 15mm, detect thumbs by
 	 * lingering in the bottom 8mm */
