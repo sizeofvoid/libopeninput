@@ -136,8 +136,10 @@ resource_rules:
             the top of the file for instructions and follow those. Once the quirk is confirmed working
             this issue (or parts thereof) should be fixed and you can submit a pull request to the
             [systemd](https://github.com/systemd/systemd/) repository to get that quirk included.
-            Please link to the systemd issue here and if the hwdb entry indeed fixed this issue here, please
-            remember to close this issue.
+            Please link to the systemd issue here, thanks.
+
+            I'm closing this issue now, if the hwdb entry does not fix this issue here, please re-open.
+          status: "close"
       - name: "Close bug for reopening"
         conditions:
           labels:
