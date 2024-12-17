@@ -165,6 +165,10 @@ def print_events(devnode, indent, evs):
                 e.value,
             )
         )
+        if e.type == libevdev.EV_SYN:
+            print(
+                "{}: ------------------------------------------------".format(devnode)
+            )
 
 
 def collect_events(frame):
