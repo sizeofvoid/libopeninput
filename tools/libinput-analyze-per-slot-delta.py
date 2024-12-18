@@ -29,7 +29,7 @@
 #
 # Input is a libinput record yaml file
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 import argparse
@@ -73,11 +73,14 @@ class SlotFormatter:
             self.slots.append(" ".center(self.width))
         else:
             if self.resolution is not None:
-                dx, dy = slot.dx / self.resolution[0], slot.dy / self.resolution[1]
+                delta = Point(
+                    slot.delta.x / self.resolution[0],
+                    slot.delta.y / self.resolution[1],
+                )
             else:
-                dx, dy = slot.dx, slot.dy
-            if dx != 0 and dy != 0:
-                t = math.atan2(dx, dy)
+                delta = Point(slot.delta.x, slot.delta.y)
+            if delta.x != 0 and delta.y != 0:
+                t = math.atan2(delta.x, delta.y)
                 t += math.pi  # in [0, 2pi] range now
 
                 if t == 0:
@@ -87,13 +90,13 @@ class SlotFormatter:
 
                 directions = ["↖↑", "↖←", "↙←", "↙↓", "↓↘", "→↘", "→↗", "↑↗"]
                 direction = directions[int(t / 45)]
-            elif dy == 0:
-                if dx < 0:
+            elif delta.y == 0:
+                if delta.x < 0:
                     direction = "←←"
                 else:
                     direction = "→→"
             else:
-                if dy < 0:
+                if delta.y < 0:
                     direction = "↑↑"
                 else:
                     direction = "↓↓"
@@ -102,7 +105,7 @@ class SlotFormatter:
             reset = ""
             if not self.is_absolute:
                 if self.ignore_below is not None or self.threshold is not None:
-                    dist = math.hypot(dx, dy)
+                    dist = math.hypot(delta.x, delta.y)
                     if self.ignore_below is not None and dist < self.ignore_below:
                         self.slots.append(" ".center(self.width))
                         self.filtered = True
@@ -110,16 +113,16 @@ class SlotFormatter:
                     if self.threshold is not None and dist >= self.threshold:
                         color = COLOR_RED
                         reset = COLOR_RESET
-                if isinstance(dx, int) and isinstance(dy, int):
-                    string = "{} {}{:+4d}/{:+4d}{}".format(
-                        direction, color, dx, dy, reset
+                if isinstance(delta.x, int) and isinstance(delta.y, int):
+                    string = "{} {}{:+4d}/{:+4d} {}".format(
+                        direction, color, delta.x, delta.y, reset
                     )
                 else:
                     string = "{} {}{:+3.2f}/{:+03.2f}{}".format(
-                        direction, color, dx, dy, reset
+                        direction, color, delta.x, delta.y, reset
                     )
             else:
-                x, y = slot.x, slot.y
+                x, y = slot.position.x, slot.position.y
                 string = "{} {}{:4d}/{:4d}{}".format(direction, color, x, y, reset)
             self.have_data = True
             self.slots.append(string.ljust(self.width + len(color) + len(reset)))
@@ -133,13 +136,17 @@ class SlotState(Enum):
 
 
 @dataclass
+class Point:
+    x: float = 0.0
+    y: float = 0.0
+
+
+@dataclass
 class Slot:
     index: int
     state: SlotState = SlotState.NONE
-    x: float = 0
-    y: float = 0
-    dx: float = 0
-    dy: float = 0
+    position: Point = field(default_factory=Point)
+    delta: Point = field(default_factory=Point)
     used: bool = False
     dirty: bool = False
 
@@ -283,8 +290,7 @@ def main(argv):
                         s.state = SlotState.END
                     else:
                         s.state = SlotState.BEGIN
-                        s.dx = 0
-                        s.dy = 0
+                        s.delta.x, s.delta.y = 0, 0
                     s.dirty = True
 
             if args.use_st:
@@ -301,22 +307,22 @@ def main(argv):
                 # If recording started after touch down
                 if s.state == SlotState.NONE:
                     s.state = SlotState.BEGIN
-                    s.dx, s.dy = 0, 0
+                    s.delta = Point(0, 0)
 
                 if e.code in [
                     libevdev.EV_ABS.ABS_X,
                     libevdev.EV_ABS.ABS_MT_POSITION_X,
                 ]:
                     if s.state == SlotState.UPDATE:
-                        s.dx = e.value - s.x
-                    s.x = e.value
+                        s.delta.x = e.value - s.position.x
+                    s.position.x = e.value
                 elif e.code in [
                     libevdev.EV_ABS.ABS_Y,
                     libevdev.EV_ABS.ABS_MT_POSITION_Y,
                 ]:
                     if s.state == SlotState.UPDATE:
-                        s.dy = e.value - s.y
-                    s.y = e.value
+                        s.delta.y = e.value - s.position.y
+                    s.position.y = e.value
                 else:
                     assert False, f"Invalid axis {e.code}"
 
@@ -365,8 +371,7 @@ def main(argv):
                     fmt.format_slot(sl)
 
                     sl.dirty = False
-                    sl.dx = 0
-                    sl.dy = 0
+                    sl.delta.x, sl.delta.y = 0, 0
                     if sl.state == SlotState.BEGIN:
                         sl.state = SlotState.UPDATE
                     elif sl.state == SlotState.END:
