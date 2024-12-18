@@ -269,24 +269,6 @@ def main(argv):
                         s.state = SlotState.BEGIN
                     else:
                         s.state = SlotState.END
-                elif e.code == libevdev.EV_ABS.ABS_X:
-                    # If recording started after touch down
-                    if s.state == SlotState.NONE:
-                        s.state = SlotState.BEGIN
-                        s.dx, s.dy = 0, 0
-                    elif s.state == SlotState.UPDATE:
-                        s.dx = e.value - s.x
-                    s.x = e.value
-                    s.dirty = True
-                elif e.code == libevdev.EV_ABS.ABS_Y:
-                    # If recording started after touch down
-                    if s.state == SlotState.NONE:
-                        s.state = SlotState.BEGIN
-                        s.dx, s.dy = 0, 0
-                    elif s.state == SlotState.UPDATE:
-                        s.dy = e.value - s.y
-                    s.y = e.value
-                    s.dirty = True
             else:
                 if e.code == libevdev.EV_ABS.ABS_MT_SLOT:
                     slot = e.value
@@ -304,24 +286,39 @@ def main(argv):
                         s.dx = 0
                         s.dy = 0
                     s.dirty = True
-                elif e.code == libevdev.EV_ABS.ABS_MT_POSITION_X:
-                    # If recording started after touch down
-                    if s.state == SlotState.NONE:
-                        s.state = SlotState.BEGIN
-                        s.dx, s.dy = 0, 0
-                    elif s.state == SlotState.UPDATE:
+
+            if args.use_st:
+                axes = [libevdev.EV_ABS.ABS_X, libevdev.EV_ABS.ABS_Y]
+            else:
+                axes = [
+                    libevdev.EV_ABS.ABS_MT_POSITION_X,
+                    libevdev.EV_ABS.ABS_MT_POSITION_Y,
+                ]
+
+            if e.code in axes:
+                s.dirty = True
+
+                # If recording started after touch down
+                if s.state == SlotState.NONE:
+                    s.state = SlotState.BEGIN
+                    s.dx, s.dy = 0, 0
+
+                if e.code in [
+                    libevdev.EV_ABS.ABS_X,
+                    libevdev.EV_ABS.ABS_MT_POSITION_X,
+                ]:
+                    if s.state == SlotState.UPDATE:
                         s.dx = e.value - s.x
                     s.x = e.value
-                    s.dirty = True
-                elif e.code == libevdev.EV_ABS.ABS_MT_POSITION_Y:
-                    # If recording started after touch down
-                    if s.state == SlotState.NONE:
-                        s.state = SlotState.BEGIN
-                        s.dx, s.dy = 0, 0
-                    elif s.state == SlotState.UPDATE:
+                elif e.code in [
+                    libevdev.EV_ABS.ABS_Y,
+                    libevdev.EV_ABS.ABS_MT_POSITION_Y,
+                ]:
+                    if s.state == SlotState.UPDATE:
                         s.dy = e.value - s.y
                     s.y = e.value
-                    s.dirty = True
+                else:
+                    assert False, f"Invalid axis {e.code}"
 
             if e.code == libevdev.EV_SYN.SYN_REPORT:
                 if last_time is None:
