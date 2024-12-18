@@ -29,6 +29,9 @@
 #
 # Input is a libinput record yaml file
 
+from dataclasses import dataclass
+from enum import Enum
+
 import argparse
 import math
 import sys
@@ -122,24 +125,23 @@ class SlotFormatter:
             self.slots.append(string.ljust(self.width + len(color) + len(reset)))
 
 
-class SlotState:
+class SlotState(Enum):
     NONE = 0
     BEGIN = 1
     UPDATE = 2
     END = 3
 
 
+@dataclass
 class Slot:
-    state = SlotState.NONE
-    x = 0
-    y = 0
-    dx = 0
-    dy = 0
-    used = False
-    dirty = False
-
-    def __init__(self, index):
-        self.index = index
+    index: int
+    state: SlotState = SlotState.NONE
+    x: float = 0
+    y: float = 0
+    dx: float = 0
+    dy: float = 0
+    used: bool = False
+    dirty: bool = False
 
 
 def main(argv):
