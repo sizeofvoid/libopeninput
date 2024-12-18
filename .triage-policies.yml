@@ -149,7 +149,7 @@ resource_rules:
           comment: |
             Looks like this issue may be solved with a device-specific entry in systemd's hwdb.
 
-            You should have a /usr/lib/udev/hwdb/60-evdev.hwdb file which includes those quirks. Please see
+            You should have a /usr/lib/udev/hwdb.d/60-evdev.hwdb file which includes those quirks. Please see
             the top of the file for instructions and follow those. Once the quirk is confirmed working
             this issue (or parts thereof) should be fixed and you can submit a pull request to the
             [systemd](https://github.com/systemd/systemd/) repository to get that quirk included.
