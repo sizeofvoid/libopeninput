@@ -747,7 +747,7 @@ tp_gesture_handle_event_on_state_scroll_start(struct tp_dispatch *tp,
 	case GESTURE_EVENT_PINCH_START:
 		tp_gesture_init_pinch(tp);
 		tp_gesture_cancel(tp, time);
-		tp->gesture.state = GESTURE_STATE_PINCH;
+		tp->gesture.state = GESTURE_STATE_PINCH_START;
 		break;
 	case GESTURE_EVENT_HOLD_AND_MOTION_START:
 	case GESTURE_EVENT_FINGER_DETECTED:
@@ -779,7 +779,7 @@ tp_gesture_handle_event_on_state_scroll(struct tp_dispatch *tp,
 	case GESTURE_EVENT_PINCH_START:
 		tp_gesture_init_pinch(tp);
 		tp_gesture_cancel(tp, time);
-		tp->gesture.state = GESTURE_STATE_PINCH;
+		tp->gesture.state = GESTURE_STATE_PINCH_START;
 		break;
 	case GESTURE_EVENT_HOLD_AND_MOTION_START:
 	case GESTURE_EVENT_FINGER_DETECTED:
