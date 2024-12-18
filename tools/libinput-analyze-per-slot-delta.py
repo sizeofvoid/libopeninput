@@ -113,14 +113,19 @@ class SlotFormatter:
                     if self.threshold is not None and dist >= self.threshold:
                         color = COLOR_RED
                         reset = COLOR_RESET
+
                 if isinstance(delta.x, int) and isinstance(delta.y, int):
-                    string = "{} {}{:+4d}/{:+4d} {}".format(
-                        direction, color, delta.x, delta.y, reset
-                    )
+                    coords = f"{delta.x:+4d}/{delta.y:+4d}"
                 else:
-                    string = "{} {}{:+3.2f}/{:+03.2f}{}".format(
-                        direction, color, delta.x, delta.y, reset
-                    )
+                    coords = f"{delta.x:+3.2f}/{delta.y:+03.2f}"
+                components = [
+                    f"{direction}",
+                    f"{color}",
+                    coords,
+                    f"{reset}",
+                ]
+
+                string = " ".join(components)
             else:
                 x, y = slot.position.x, slot.position.y
                 string = "{} {}{:4d}/{:4d}{}".format(direction, color, x, y, reset)
