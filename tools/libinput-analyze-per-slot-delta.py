@@ -29,7 +29,7 @@
 #
 # Input is a libinput record yaml file
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum
 
 import argparse
@@ -44,18 +44,24 @@ COLOR_RED = "\x1b[6;31m"
 
 
 class SlotFormatter:
-    width = 16
-
     def __init__(
-        self, is_absolute=False, resolution=None, threshold=None, ignore_below=None
+        self,
+        is_absolute=False,
+        resolution=None,
+        threshold=None,
+        ignore_below=None,
+        show_distance=False,
     ):
         self.threshold = threshold
         self.ignore_below = ignore_below
         self.resolution = resolution
         self.is_absolute = is_absolute
+        self.show_distance = show_distance
         self.slots = []
         self.have_data = False
         self.filtered = False
+
+        self.width = 35 if show_distance else 16
 
     def __str__(self):
         return " | ".join(self.slots)
@@ -77,8 +83,19 @@ class SlotFormatter:
                     slot.delta.x / self.resolution[0],
                     slot.delta.y / self.resolution[1],
                 )
+                distx = abs(slot.position.x - slot.origin.x)
+                disty = abs(slot.position.y - slot.origin.y)
+                distance = Point(
+                    distx / self.resolution[0],
+                    disty / self.resolution[1],
+                )
             else:
                 delta = Point(slot.delta.x, slot.delta.y)
+                distance = Point(
+                    abs(slot.position.x - slot.origin.x),
+                    abs(slot.position.y - slot.origin.y),
+                )
+
             if delta.x != 0 and delta.y != 0:
                 t = math.atan2(delta.x, delta.y)
                 t += math.pi  # in [0, 2pi] range now
@@ -118,14 +135,24 @@ class SlotFormatter:
                     coords = f"{delta.x:+4d}/{delta.y:+4d}"
                 else:
                     coords = f"{delta.x:+3.2f}/{delta.y:+03.2f}"
+
+                if self.show_distance:
+                    hypot = math.hypot(distance.x, distance.y)
+                    distance = (
+                        f"dist: ({distance.x:3.1f}/{distance.y:3.1f}, {hypot:3.1f})"
+                    )
+                else:
+                    distance = ""
+
                 components = [
                     f"{direction}",
                     f"{color}",
                     coords,
+                    distance,
                     f"{reset}",
                 ]
 
-                string = " ".join(components)
+                string = " ".join(c for c in components if c)
             else:
                 x, y = slot.position.x, slot.position.y
                 string = "{} {}{:4d}/{:4d}{}".format(direction, color, x, y, reset)
@@ -152,6 +179,7 @@ class Slot:
     state: SlotState = SlotState.NONE
     position: Point = field(default_factory=Point)
     delta: Point = field(default_factory=Point)
+    origin: Point = field(default_factory=Point)
     used: bool = False
     dirty: bool = False
 
@@ -168,6 +196,11 @@ def main(argv):
     )
     parser.add_argument(
         "--use-mm", action="store_true", help="Use mm instead of device deltas"
+    )
+    parser.add_argument(
+        "--show-distance",
+        action="store_true",
+        help="Show the absolute distance relative to the first position",
     )
     parser.add_argument(
         "--use-st",
@@ -371,6 +404,7 @@ def main(argv):
                     resolution=(xres, yres) if args.use_mm else None,
                     threshold=args.threshold,
                     ignore_below=args.ignore_below,
+                    show_distance=args.show_distance,
                 )
                 for sl in [s for s in slots if s.used]:
                     fmt.format_slot(sl)
@@ -378,6 +412,7 @@ def main(argv):
                     sl.dirty = False
                     sl.delta.x, sl.delta.y = 0, 0
                     if sl.state == SlotState.BEGIN:
+                        sl.origin = replace(sl.position)
                         sl.state = SlotState.UPDATE
                     elif sl.state == SlotState.END:
                         sl.state = SlotState.NONE
