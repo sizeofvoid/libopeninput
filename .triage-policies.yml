@@ -126,6 +126,7 @@ resource_rules:
         conditions:
           labels:
             - "bugbot::evdev-hwdb"
+        actions:
           remove_labels:
             - "bugbot::evdev-hwdb"
           comment: |
