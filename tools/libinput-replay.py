@@ -277,21 +277,25 @@ def loop(args, recording):
         else:
             input("Hit enter to start replaying")
 
-        processes = []
-        for d in devices:
-            p = multiprocessing.Process(target=wrap, args=(replay, d, args.verbose))
-            processes.append(p)
+        try:
+            processes = []
+            for d in devices:
+                p = multiprocessing.Process(target=wrap, args=(replay, d, args.verbose))
+                processes.append(p)
 
-        for p in processes:
-            p.start()
+            for p in processes:
+                p.start()
 
-        for p in processes:
-            p.join()
+            for p in processes:
+                p.join()
 
-        del processes
+            del processes
 
-        if args.once:
-            break
+            if args.once:
+                break
+        except KeyboardInterrupt:
+            print("Event replay interrupted, press Ctrl+C again to exit.")
+            print("Note that the device may not be in a neutral state now.")
 
 
 def create_device_quirk(device):
