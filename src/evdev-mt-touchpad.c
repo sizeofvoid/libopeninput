@@ -1051,7 +1051,7 @@ tp_palm_detect_edge(struct tp_dispatch *tp,
 		if (tp_palm_detect_multifinger(tp, t, time)) {
 			t->palm.state = PALM_NONE;
 			evdev_log_debug(tp->device,
-				  "palm: touch %d released, multiple fingers\n",
+				  "palm: touch %d is no longer palm, multiple fingers\n",
 				  t->index);
 
 		/* If labelled a touch as palm, we unlabel as palm when
@@ -1061,7 +1061,7 @@ tp_palm_detect_edge(struct tp_dispatch *tp,
 		} else if (tp_palm_detect_move_out_of_edge(tp, t, time)) {
 			t->palm.state = PALM_NONE;
 			evdev_log_debug(tp->device,
-				  "palm: touch %d released, out of edge zone\n",
+				  "palm: touch %d is no longer palm, out of edge zone\n",
 				  t->index);
 		}
 		return false;
