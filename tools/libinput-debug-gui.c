@@ -499,7 +499,10 @@ draw_evdev_abs(struct window *w, cairo_t *cr)
 		if (!w->evdev.slots[i].active)
 			continue;
 
-		cairo_set_source_rgb(cr, .2, .2, .8);
+		cairo_set_source_rgb(cr,
+				     .2 + .2 * (i % 5),
+				     .2 + .2 * (i % 5),
+				     .8 - .2 * (i % 5));
 		x = w->evdev.slots[i].x;
 		y = w->evdev.slots[i].y;
 		x = 1.0 * (x - ax->minimum)/width * outline_width;
