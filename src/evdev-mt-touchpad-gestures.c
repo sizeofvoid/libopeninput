@@ -960,7 +960,7 @@ tp_gesture_handle_event(struct tp_dispatch *tp,
 
 	if (oldstate != tp->gesture.state) {
 		evdev_log_debug(tp->device,
-				"gesture: [%dfg] state %s → %s → %s\n",
+				"gesture: [%dfg] event %s → %s → %s\n",
 				tp->gesture.finger_count,
 				gesture_state_to_str(oldstate),
 				gesture_event_to_str(event),
@@ -1528,7 +1528,7 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time,
 			remaining -= n;
 		}
 		evdev_log_debug(tp->device,
-				"gesture: [%dfg] transitions %s%s → %s\n",
+				"gesture: [%dfg] state %s%s → %s\n",
 				tp->gesture.finger_count,
 				gesture_state_to_str(oldstate),
 				buf,
