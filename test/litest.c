@@ -145,7 +145,7 @@ _litest_checkpoint(const char *func,
 	va_start(args, format);
 	if (verbose) {
 		vsnprintf(buf, sizeof(buf), format, args);
-		printf(ANSI_BRIGHT_BLUE "%s():%d - " ANSI_BRIGHT_RED "%s" ANSI_NORMAL "\n", func, line, buf); \
+		fprintf(stderr, ANSI_BRIGHT_BLUE "%s():%d - " ANSI_BRIGHT_RED "%s" ANSI_NORMAL "\n", func, line, buf); \
 	}
 	va_end(args);
 }
