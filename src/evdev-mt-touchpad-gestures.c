@@ -1460,74 +1460,72 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time,
 {
 	enum tp_gesture_state oldstate = tp->gesture.state;
 	enum tp_gesture_state transitions[16] = {0};
-	size_t idx = 0;
+	enum tp_gesture_state *transition_state = transitions;
 
-	transitions[idx++] = tp->gesture.state;
+#define REMEMBER_TRANSITION(_ts, _state) { \
+		if (*(_ts) != (_state)) { \
+			++(_ts); \
+			assert((_ts) < transitions + ARRAY_LENGTH(transitions)); \
+			*(_ts) = _state; \
+		} \
+	}
+
+	*transition_state = tp->gesture.state;
 	if (tp->gesture.state == GESTURE_STATE_NONE) {
 		tp_gesture_handle_state_none(tp, time);
-		if (transitions[idx - 1] != tp->gesture.state)
-			transitions[idx++] = tp->gesture.state;
+		REMEMBER_TRANSITION(transition_state, tp->gesture.state);
 	}
 	if (tp->gesture.state == GESTURE_STATE_UNKNOWN) {
 		tp_gesture_handle_state_unknown(tp, time, ignore_motion);
-		if (transitions[idx - 1] != tp->gesture.state)
-			transitions[idx++] = tp->gesture.state;
+		REMEMBER_TRANSITION(transition_state, tp->gesture.state);
 	}
 	if (tp->gesture.state == GESTURE_STATE_HOLD) {
 		tp_gesture_handle_state_hold(tp, time, ignore_motion);
-		if (transitions[idx - 1] != tp->gesture.state)
-			transitions[idx++] = tp->gesture.state;
+		REMEMBER_TRANSITION(transition_state, tp->gesture.state);
 	}
 	if (tp->gesture.state == GESTURE_STATE_POINTER_MOTION) {
 		tp_gesture_handle_state_pointer_motion(tp, time);
-		if (transitions[idx - 1] != tp->gesture.state)
-			transitions[idx++] = tp->gesture.state;
+		REMEMBER_TRANSITION(transition_state, tp->gesture.state);
 	}
 	if (tp->gesture.state == GESTURE_STATE_HOLD_AND_MOTION) {
 		tp_gesture_handle_state_hold_and_pointer_motion(tp, time);
-		if (transitions[idx - 1] != tp->gesture.state)
-			transitions[idx++] = tp->gesture.state;
+		REMEMBER_TRANSITION(transition_state, tp->gesture.state);
 	}
 	if (tp->gesture.state == GESTURE_STATE_SCROLL) {
 		tp_gesture_handle_state_scroll(tp, time);
-		if (transitions[idx - 1] != tp->gesture.state)
-			transitions[idx++] = tp->gesture.state;
+		REMEMBER_TRANSITION(transition_state, tp->gesture.state);
 	}
 	if (tp->gesture.state == GESTURE_STATE_SCROLL_START) {
 		tp_gesture_handle_state_scroll_start(tp, time);
-		if (transitions[idx - 1] != tp->gesture.state)
-			transitions[idx++] = tp->gesture.state;
+		REMEMBER_TRANSITION(transition_state, tp->gesture.state);
 	}
 	if (tp->gesture.state == GESTURE_STATE_SWIPE) {
 		tp_gesture_handle_state_swipe(tp, time);
-		if (transitions[idx - 1] != tp->gesture.state)
-			transitions[idx++] = tp->gesture.state;
+		REMEMBER_TRANSITION(transition_state, tp->gesture.state);
 	}
 	if (tp->gesture.state == GESTURE_STATE_SWIPE_START) {
 		tp_gesture_handle_state_swipe_start(tp, time);
-		if (transitions[idx - 1] != tp->gesture.state)
-			transitions[idx++] = tp->gesture.state;
+		REMEMBER_TRANSITION(transition_state, tp->gesture.state);
 	}
 	if (tp->gesture.state == GESTURE_STATE_PINCH) {
 		tp_gesture_handle_state_pinch(tp, time);
-		if (transitions[idx - 1] != tp->gesture.state)
-			transitions[idx++] = tp->gesture.state;
+		REMEMBER_TRANSITION(transition_state, tp->gesture.state);
 	}
 	if (tp->gesture.state == GESTURE_STATE_PINCH_START) {
 		tp_gesture_handle_state_pinch_start(tp, time);
-		if (transitions[idx - 1] != tp->gesture.state)
-			transitions[idx++] = tp->gesture.state;
+		REMEMBER_TRANSITION(transition_state, tp->gesture.state);
 	}
+
+#undef REMEMBER_TRANSITION
+
 	if (oldstate != tp->gesture.state) {
 		char buf[1024] = {0};
 		size_t remaining = sizeof(buf);
 		size_t slen = 0;
-		for (size_t i = 1; i < idx - 1; i++) {
-			if (transitions[i] != transitions[i - 1]) {
-				int n = snprintf(&buf[slen], remaining, " → %s", gesture_state_to_str(transitions[i]));
-				slen += n;
-				remaining -= n;
-			}
+		for (enum tp_gesture_state *s = transitions + 1; s < transition_state; s++) {
+			int n = snprintf(&buf[slen], remaining, " → %s", gesture_state_to_str(*s));
+			slen += n;
+			remaining -= n;
 		}
 		evdev_log_debug(tp->device,
 				"gesture: [%dfg] transitions %s%s → %s\n",
