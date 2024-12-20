@@ -136,6 +136,8 @@ tp_tap_notify(struct tp_dispatch *tp,
 	if (nfingers < 1 || nfingers > 3)
 		return;
 
+	tp_gesture_cancel(tp, time);
+
 	button = button_map[tp->tap.map][nfingers - 1];
 
 	if (state == LIBINPUT_BUTTON_STATE_PRESSED)
