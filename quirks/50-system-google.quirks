@@ -169,3 +169,12 @@ MatchName=GDIX0000:00 27C6:0D55 Touchpad
 MatchDMIModalias=dmi:*svnGoogle:*pnCret*
 ModelChromebook=1
 AttrPressureRange=6:4
+
+[Google Chromebook Banshee]
+MatchUdevType=touchpad
+MatchName=PNP0C50:00 093A:0274 Touchpad
+MatchDMIModalias=dmi:*svnGoogle:*pnBanshee*
+ModelChromebook=1
+AttrPressureRange=0:-2
+AttrThumbPressureThreshold=45
+AttrPalmPressureThreshold=0
