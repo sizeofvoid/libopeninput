@@ -278,18 +278,16 @@ def loop(args, recording):
             input("Hit enter to start replaying")
 
         try:
-            processes = []
-            for d in devices:
-                p = multiprocessing.Process(target=wrap, args=(replay, d, args.verbose))
-                processes.append(p)
+            processes = [
+                multiprocessing.Process(target=wrap, args=(replay, d, args.verbose))
+                for d in devices
+            ]
 
             for p in processes:
                 p.start()
 
             for p in processes:
                 p.join()
-
-            del processes
 
             if args.once:
                 break
