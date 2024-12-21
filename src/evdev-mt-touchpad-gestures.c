@@ -1682,7 +1682,7 @@ tp_gesture_finger_count_switch_timeout(uint64_t now, void *data)
 }
 
 static bool
-tp_gesture_has_started(struct tp_dispatch *tp)
+tp_gesture_debounce_finger_changes(struct tp_dispatch *tp)
 {
 	switch (tp->gesture.state) {
 	case GESTURE_STATE_NONE:
@@ -1721,7 +1721,7 @@ tp_gesture_update_finger_state(struct tp_dispatch *tp, uint64_t time)
 			tp->gesture.finger_count = 0;
 			tp->gesture.finger_count_pending = 0;
 		/* Immediately switch to new mode to avoid initial latency */
-		} else if (!tp_gesture_has_started(tp)) {
+		} else if (!tp_gesture_debounce_finger_changes(tp)) {
 			tp->gesture.finger_count = active_touches;
 			tp->gesture.finger_count_pending = 0;
 			/* If in UNKNOWN or POINTER_MOTION state, go back to
