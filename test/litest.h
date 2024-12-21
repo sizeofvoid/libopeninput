@@ -167,7 +167,7 @@ litest_fail_comparison_str(const char *file,
 	do { \
 		if ((cond) == NULL) \
 			litest_fail_condition(__FILE__, __LINE__, __func__, \
-					      #cond, " expected to be not NULL\n"); \
+					      #cond " != NULL", "\n"); \
 	} while(0)
 
 #define litest_assert_comparison_int_(a_, op_, b_) \
