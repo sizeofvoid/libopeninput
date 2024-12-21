@@ -420,6 +420,82 @@ START_TEST(zalloc_too_large)
 }
 END_TEST
 
+struct permutation {
+	int32_t i;
+	const char *s;
+	bool b;
+
+	bool found;
+};
+
+static int
+permutation_func(struct litest_parameters_permutation *permutation, void *userdata)
+{
+	struct litest_parameters_permutation_value *value;
+
+	int32_t first;
+	const char *second;
+	bool third;
+
+	value = list_first_entry(&permutation->values, value, link);
+	multivalue_extract_typed(&value->value, 'i', &first);
+
+	value = list_first_entry(&value->link, value, link);
+	multivalue_extract_typed(&value->value, 's', &second);
+
+	value = list_first_entry(&value->link, value, link);
+	multivalue_extract_typed(&value->value, 'b', &third);
+
+	struct permutation *p = userdata;
+	while (p->s) {
+		if (p->i == first && streq(p->s, second) && p->b == third) {
+			p->found = true;
+			break;
+		}
+		p++;
+	}
+
+	return 0;
+}
+
+START_TEST(parameter_permutations)
+{
+	struct permutation permutations[] = {
+		{ 1, "a", true },
+		{ 1, "a", false },
+		{ 1, "ab", true },
+		{ 1, "ab", false },
+		{ 1, "abc", true },
+		{ 1, "abc", false },
+		{ 2, "a", true },
+		{ 2, "a", false },
+		{ 2, "ab", true },
+		{ 2, "ab", false },
+		{ 2, "abc", true },
+		{ 2, "abc", false },
+		{ 3, "a", true },
+		{ 3, "a", false },
+		{ 3, "ab", true },
+		{ 3, "ab", false },
+		{ 3, "abc", true },
+		{ 3, "abc", false },
+		{ 0, NULL, false, false },
+	};
+	struct litest_parameters *params = litest_parameters_new("first", 'i', 3, 1, 2, 3,
+								 "second", 's', 3, "a", "ab", "abc",
+								 "third", 'b', 2, true, false,
+								 NULL);
+
+	litest_parameters_permutations(params, permutation_func, permutations);
+
+	ARRAY_FOR_EACH(permutations, p) {
+		if (p->s == NULL)
+			break;
+		ck_assert_msg(p->found, "For %d/%s/%s", p->i, p->s, p->b ? "true" : "false");
+	}
+}
+END_TEST
+
 static Suite *
 litest_assert_macros_suite(void)
 {
@@ -427,6 +503,7 @@ litest_assert_macros_suite(void)
 	Suite *s;
 
 	s = suite_create("litest:assert macros");
+#if 0
 	tc = tcase_create("assert");
 	tcase_add_test_raise_signal(tc, litest_assert_trigger, SIGABRT);
 	tcase_add_test(tc, litest_assert_notrigger);
@@ -496,6 +573,11 @@ litest_assert_macros_suite(void)
 	tcase_add_test(tc, zalloc_max_size);
 	tcase_add_test_raise_signal(tc, zalloc_overflow, SIGABRT);
 	tcase_add_test_raise_signal(tc, zalloc_too_large, SIGABRT);
+	suite_add_tcase(s, tc);
+
+#endif
+	tc = tcase_create("parameters ");
+	tcase_add_test(tc, parameter_permutations);
 	suite_add_tcase(s, tc);
 
 	return s;

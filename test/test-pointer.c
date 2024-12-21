@@ -183,25 +183,31 @@ START_TEST(pointer_motion_relative_min_decel)
 	struct libinput_event *event;
 	double evx, evy;
 	int dx, dy;
-	int cardinal = _i; /* ranged test */
 	double len;
 
-	int deltas[8][2] = {
-		/* N, NE, E, ... */
-		{ 0, 1 },
-		{ 1, 1 },
-		{ 1, 0 },
-		{ 1, -1 },
-		{ 0, -1 },
-		{ -1, -1 },
-		{ -1, 0 },
-		{ -1, 1 },
-	};
+	const char *direction;
+	litest_test_param_fetch(test_env->params, "direction", &direction, NULL);
+
+	if (streq(direction, "N")) {
+		dx = 0; dy = 1;
+	} else if (streq(direction, "NE")) {
+		dx = 1; dy = 1;
+	} else if (streq(direction, "E")) {
+		dx = 1; dy = 0;
+	} else if (streq(direction, "SE")) {
+		dx = 1; dy = -1;
+	} else if (streq(direction, "S")) {
+		dx = 0; dy = -1;
+	} else if (streq(direction, "SW")) {
+		dx = -1; dy = -1;
+	} else if (streq(direction, "W")) {
+		dx = -1; dy = 0;
+	} else if (streq(direction, "NW")) {
+		dx = -1, dy = 1;
+	} else
+		litest_abort_msg("Invalid direction %s", direction);
 
 	litest_drain_events(dev->libinput);
-
-	dx = deltas[cardinal][0];
-	dy = deltas[cardinal][1];
 
 	litest_event(dev, EV_REL, REL_X, dx);
 	litest_event(dev, EV_REL, REL_Y, dy);
@@ -268,7 +274,11 @@ START_TEST(pointer_absolute_initial_state)
 	struct libinput *libinput1, *libinput2;
 	struct libinput_event *ev1, *ev2;
 	struct libinput_event_pointer *p1, *p2;
-	int axis = _i; /* looped test */
+
+	const char *axisname;
+	litest_test_param_fetch(test_env->params, "axis", &axisname);
+	int axis = libevdev_event_code_from_code_name(axisname);
+	litest_assert_int_ne(axis, -1);
 
 	libinput1 = dev->libinput;
 	litest_touch_down(dev, 0, 40, 60);
@@ -767,23 +777,22 @@ START_TEST(pointer_scroll_wheel_hires_send_only_lores)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	enum libinput_pointer_axis axis = _i; /* ranged test */
 	unsigned int lores_code, hires_code;
 	int direction;
 
-	switch (axis) {
-		case LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL:
-			lores_code = REL_WHEEL;
-			hires_code = REL_WHEEL_HI_RES;
-			direction = -1;
-			break;
-		case LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL:
-			lores_code = REL_HWHEEL;
-			hires_code = REL_HWHEEL_HI_RES;
-			direction = 1;
-			break;
-		default:
-			abort();
+	const char *axisname;
+	litest_test_param_fetch(test_env->params, "axis", &axisname, NULL);
+
+	if (streq(axisname, "vertical")) {
+		lores_code = REL_WHEEL;
+		hires_code = REL_WHEEL_HI_RES;
+		direction = -1;
+	} else if (streq(axisname, "horizontal")) {
+		lores_code = REL_HWHEEL;
+		hires_code = REL_HWHEEL_HI_RES;
+		direction = 1;
+	} else {
+		litest_abort_msg("Invalid test axis '%s'", axisname);
 	}
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, lores_code) &&
@@ -3745,17 +3754,19 @@ END_TEST
 
 TEST_COLLECTION(pointer)
 {
-	struct range axis_range = {ABS_X, ABS_Y + 1};
-	struct range compass = {0, 7}; /* cardinal directions */
 	struct range buttons = {BTN_LEFT, BTN_TASK + 1};
 	struct range buttonorder = {0, _MB_BUTTONORDER_COUNT};
-	struct range scroll_directions = {LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
-					  LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL + 1};
 	struct range rotation_20deg = {0, 18}; /* steps of 20 degrees */
 
 	litest_add(pointer_motion_relative, LITEST_RELATIVE, LITEST_POINTINGSTICK);
 	litest_add_for_device(pointer_motion_relative_zero, LITEST_MOUSE);
-	litest_add_ranged(pointer_motion_relative_min_decel, LITEST_RELATIVE, LITEST_POINTINGSTICK, &compass);
+	{
+		struct litest_parameters *params = litest_parameters_new("direction", 's', 8,
+									 "N", "E", "S", "W",
+									 "NE", "SE", "SW", "NW");
+		litest_add_parametrized(pointer_motion_relative_min_decel, LITEST_RELATIVE, LITEST_POINTINGSTICK, params);
+		litest_parameters_unref(params);
+	}
 	litest_add(pointer_motion_absolute, LITEST_ABSOLUTE, LITEST_ANY);
 	litest_add(pointer_motion_unaccel, LITEST_RELATIVE, LITEST_ANY);
 	litest_add(pointer_button, LITEST_BUTTON, LITEST_CLICKPAD);
@@ -3765,7 +3776,11 @@ TEST_COLLECTION(pointer)
 	litest_add(pointer_recover_from_lost_button_count, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add(pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_wheel_hires, LITEST_WHEEL, LITEST_TABLET);
-	litest_add_ranged(pointer_scroll_wheel_hires_send_only_lores, LITEST_WHEEL, LITEST_TABLET, &scroll_directions);
+	{
+		struct litest_parameters *params = litest_parameters_new("axis", 's', 2, "vertical", "horizontal");
+		litest_add_parametrized(pointer_scroll_wheel_hires_send_only_lores, LITEST_WHEEL, LITEST_TABLET, params);
+		litest_parameters_unref(params);
+	}
 	litest_add(pointer_scroll_wheel_inhibit_small_deltas, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_wheel_inhibit_dir_change, LITEST_WHEEL, LITEST_TABLET);
 	litest_add_for_device(pointer_scroll_wheel_lenovo_scrollpoint, LITEST_LENOVO_SCROLLPOINT);
@@ -3833,7 +3848,11 @@ TEST_COLLECTION(pointer)
 	litest_add(middlebutton_device_remove_while_down, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add(middlebutton_device_remove_while_one_is_down, LITEST_BUTTON, LITEST_CLICKPAD);
 
-	litest_add_ranged(pointer_absolute_initial_state, LITEST_ABSOLUTE, LITEST_ANY, &axis_range);
+	{
+		struct litest_parameters *params = litest_parameters_new("axis", 's', 2, "ABS_X", "ABS_Y");
+		litest_add_parametrized(pointer_absolute_initial_state, LITEST_ABSOLUTE, LITEST_ANY, params);
+		litest_parameters_unref(params);
+	}
 
 	litest_add(pointer_time_usec, LITEST_RELATIVE, LITEST_ANY);
 

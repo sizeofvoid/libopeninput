@@ -41,6 +41,7 @@
 
 #include "util-files.h"
 #include "util-list.h"
+#include "util-multivalue.h"
 #include "util-stringbuf.h"
 
 static bool use_jmpbuf; /* only used for max_forks = 0 */
@@ -255,6 +256,7 @@ litest_runner_test_run(const struct litest_runner_test_description *desc)
 {
 	const struct litest_runner_test_env env = {
 		.rangeval = desc->rangeval,
+		.params = desc->params,
 	};
 
 	if (desc->setup)
@@ -647,6 +649,59 @@ print_lines(FILE *fp, const char *log, const char *prefix)
 	strv_free(lines);
 }
 
+void
+_litest_test_param_fetch(const struct litest_test_parameters *params, ...)
+{
+	struct litest_test_param *p;
+
+	const char *name;
+
+	va_list args;
+	va_start(args, params);
+
+	while ((name = va_arg(args, const char *))) {
+		bool found = false;
+		void **ptr = va_arg(args, void *);
+		list_for_each(p, &params->test_params, link) {
+			if (streq(p->name, name)) {
+				found = true;
+				multivalue_extract(&p->value, ptr);
+				break;
+			}
+		}
+		if (!found)
+			litest_abort_msg("Unknown test parameter name '%s'", name);
+	}
+
+	va_end(args);
+}
+
+
+struct litest_test_parameters *
+litest_test_parameters_new(void)
+{
+	struct litest_test_parameters *params = zalloc(sizeof *params);
+	params->refcnt = 1;
+	list_init(&params->test_params);
+	return params;
+}
+
+struct litest_test_parameters *
+litest_test_parameters_unref(struct litest_test_parameters *params)
+{
+	if (params) {
+		assert(params->refcnt > 0);
+		if (--params->refcnt == 0) {
+			struct litest_test_param *p;
+			list_for_each_safe(p, &params->test_params, link) {
+				free(p);
+			}
+			free(params);
+		}
+	}
+	return NULL;
+}
+
 static void
 litest_runner_log_test_result(struct litest_runner *runner, struct litest_runner_test *t)
 {
@@ -670,6 +725,16 @@ litest_runner_log_test_result(struct litest_runner *runner, struct litest_runner
 	    max = t->desc.args.range.upper;
 	if (range_is_valid(&t->desc.args.range))
 		fprintf(runner->fp, "    rangeval: %d  # %d..%d\n", t->desc.rangeval, min, max);
+
+	if (t->desc.params) {
+		fprintf(runner->fp, "    params:\n");
+		struct litest_test_param *p;
+		list_for_each(p, &t->desc.params->test_params, link) {
+			char *val = multivalue_as_str(&p->value);
+			fprintf(runner->fp, "      %s: %s\n", p->name, val);
+			free(val);
+		}
+	}
 
 	fprintf(runner->fp,
 		"    duration: %ld  # (ms), total test run time: %02d:%02d\n",

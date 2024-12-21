@@ -41,8 +41,8 @@
 #include "litest-runner.h"
 
 #define START_TEST(func_)  \
-   static enum litest_runner_result func_(const struct litest_runner_test_env *test_env_) { \
-	int _i __attribute__((unused)) = test_env_->rangeval;
+   static enum litest_runner_result func_(const struct litest_runner_test_env *test_env) { \
+	int _i __attribute__((unused)) = test_env->rangeval;
 
 #define END_TEST \
 	return LITEST_PASS; \
@@ -589,20 +589,87 @@ void litest_disable_log_handler(struct libinput *libinput);
 void litest_restore_log_handler(struct libinput *libinput);
 void litest_set_log_handler_bug(struct libinput *libinput);
 
+struct litest_parameters;
+
+/**
+ * Create a new set of parameters for a test case.
+ *
+ * This function takes a variable set of arguments in the format
+ * [name, type, count, arg1, arg2, arg3, ..], for example:
+ *
+ *  litest_parameter_new("axis", 'u', 2, ABS_X, ABS_Y,
+ *                       "direction", 's', 4, "north", "south", "east", "west",
+ *                       NULL);
+ *
+ * Parsing stops at the first null name argument.
+ */
+struct litest_parameters *
+_litest_parameters_new(const char *name, ...);
+
+/* Helper to ensure it's always null-terminated */
+#define litest_parameters_new(name_, ...) \
+	_litest_parameters_new(name_, __VA_ARGS__, NULL)
+
+struct litest_parameters_permutation_value {
+	struct list link;
+	char name[128];
+	const struct multivalue value;
+};
+
+/**
+ * Argument for the callback function to litest_parameters_permutations().
+ * This is simple wrapper around a linked list that contains all elements
+ * of the current permutation.
+ */
+struct litest_parameters_permutation {
+	struct list values; /* struct litest_parameters_permutation_value */
+};
+
+/**
+ * Callback function invoked for each permutation of a struct litest_parameters.
+ */
+typedef int (*litest_parameters_permutation_func_t)(struct litest_parameters_permutation *permutation, void *userdata);
+
+/**
+ * Permutates the given parameters and calls func for every possible
+ * permutation. If func returns a nonzero status, permutation stops
+ * and that nonzero status is returned to the caller.
+ *
+ * Userdata is passed through as-is.
+ */
+int
+litest_parameters_permutations(struct litest_parameters *params,
+			       litest_parameters_permutation_func_t func,
+			       void *userdata);
+
+struct litest_parameters *
+litest_parameters_ref(struct litest_parameters *p);
+
+struct litest_parameters *
+litest_parameters_unref(struct litest_parameters *params);
+
 #define litest_add(func_, ...) \
 	_litest_add(__FILE__, #func_, func_, __VA_ARGS__)
 #define litest_add_ranged(func_, ...) \
 	_litest_add_ranged(__FILE__, #func_, func_, __VA_ARGS__)
+#define litest_add_parametrized(func_, ...) \
+	_litest_add_parametrized(__FILE__, #func_, func_, __VA_ARGS__)
 #define litest_add_for_device(func_, ...) \
 	_litest_add_for_device(__FILE__, #func_, func_, __VA_ARGS__)
 #define litest_add_ranged_for_device(func_, ...) \
 	_litest_add_ranged_for_device(__FILE__, #func_, func_, __VA_ARGS__)
+#define litest_add_parametrized_for_device(func_, ...) \
+	_litest_add_parametrized_for_device(__FILE__, #func_, func_, __VA_ARGS__)
 #define litest_add_no_device(func_) \
 	_litest_add_no_device(__FILE__, #func_, func_)
+#define litest_add_parametrized_no_device(func_, ...) \
+	_litest_add_parametrized_no_device(__FILE__, #func_, func_, __VA_ARGS__)
 #define litest_add_ranged_no_device(func_, ...) \
 	_litest_add_ranged_no_device(__FILE__, #func_, func_, __VA_ARGS__)
 #define litest_add_deviceless(func_) \
 	_litest_add_deviceless(__FILE__, #func_, func_)
+#define litest_add_parametrized_deviceless(func_, params) \
+	_litest_add_parametrize_deviceless(__FILE__, #func_, func_, params)
 
 void
 _litest_add(const char *name,
@@ -618,6 +685,13 @@ _litest_add_ranged(const char *name,
 		   int64_t excluded,
 		   const struct range *range);
 void
+_litest_add_parametrized(const char *name,
+			 const char *funcname,
+			 const void *func,
+			 int64_t required,
+			 int64_t excluded,
+			 struct  litest_parameters *params);
+void
 _litest_add_for_device(const char *name,
 		       const char *funcname,
 		       const void *func,
@@ -629,9 +703,20 @@ _litest_add_ranged_for_device(const char *name,
 			      enum litest_device_type type,
 			      const struct range *range);
 void
+_litest_add_parametrized_for_device(const char *name,
+				    const char *funcname,
+				    const void *func,
+				    enum litest_device_type type,
+				    struct litest_parameters *params);
+void
 _litest_add_no_device(const char *name,
 		      const char *funcname,
 		      const void *func);
+void
+_litest_add_parametrized_no_device(const char *name,
+				   const char *funcname,
+				   const void *func,
+				   struct litest_parameters *params);
 void
 _litest_add_ranged_no_device(const char *name,
 			     const char *funcname,
@@ -641,6 +726,11 @@ void
 _litest_add_deviceless(const char *name,
 		       const char *funcname,
 		       const void *func);
+void
+_litest_add_parametrized_deviceless(const char *name,
+				    const char *funcname,
+				    const void *func,
+				    struct litest_parameters *params);
 
 struct litest_device *
 litest_create_device(enum litest_device_type which);

@@ -88,6 +88,14 @@ static const char *filter_test = NULL;
 static const char *filter_device = NULL;
 static const char *filter_group = NULL;
 static int filter_rangeval = INT_MIN;
+
+struct param_filter {
+	char name[64];
+	char glob[64];
+};
+struct param_filter filter_params[8]; /* name=NULL terminated */
+
+
 static struct quirks_context *quirks_context;
 
 struct created_file {
@@ -266,6 +274,8 @@ struct test {
 	struct range range;
 	int rangeval;
 	bool deviceless;
+
+	struct litest_test_parameters *params;
 };
 
 struct suite {
@@ -273,6 +283,316 @@ struct suite {
 	struct list tests;
 	char *name;
 };
+
+struct litest_parameter_value {
+	size_t refcnt;
+	struct list link; /* litest_parameter->values */
+
+	struct multivalue value;
+};
+
+struct litest_parameter {
+	size_t refcnt;
+	struct list link; /* litest_parameters.params */
+	char name[128];
+	char type; /* One of u, i, d, c, s, b */
+
+	struct list values; /* litest_parameter_value */
+};
+
+struct litest_parameters {
+	size_t refcnt;
+	struct list params; /* struct litest_parameter */
+};
+
+static struct litest_parameter_value *
+litest_parameter_value_new(void)
+{
+	struct litest_parameter_value *pv = zalloc(sizeof *pv);
+
+	list_init(&pv->link);
+	pv->refcnt = 1;
+
+	return pv;
+}
+
+static inline void
+litest_parameter_add_string(struct litest_parameter *p, const char *s)
+{
+	assert(p->type == 's');
+
+	struct litest_parameter_value *pv = litest_parameter_value_new();
+	pv->value = multivalue_new_string(s);
+	list_append(&p->values, &pv->link);
+}
+
+static inline void
+litest_parameter_add_char(struct litest_parameter *p, char c)
+{
+	assert(p->type == 'c');
+
+	struct litest_parameter_value *pv = litest_parameter_value_new();
+	pv->value = multivalue_new_char(c);
+	list_append(&p->values, &pv->link);
+}
+
+static inline void
+litest_parameter_add_bool(struct litest_parameter *p, bool b)
+{
+	assert(p->type == 'b');
+
+	struct litest_parameter_value *pv = litest_parameter_value_new();
+	pv->value = multivalue_new_bool(b);
+	list_append(&p->values, &pv->link);
+}
+
+
+static inline void
+litest_parameter_add_u32(struct litest_parameter *p, uint32_t u)
+{
+	assert(p->type == 'u');
+
+	struct litest_parameter_value *pv = litest_parameter_value_new();
+	pv->value = multivalue_new_u32(u);
+	list_append(&p->values, &pv->link);
+}
+
+static inline void
+litest_parameter_add_i32(struct litest_parameter *p, int32_t i)
+{
+	assert(p->type == 'i');
+
+	struct litest_parameter_value *pv = litest_parameter_value_new();
+	pv->value = multivalue_new_i32(i);
+	list_append(&p->values, &pv->link);
+}
+
+
+static void
+litest_parameter_add_double(struct litest_parameter *p, double d)
+{
+	assert(p->type == 'd');
+
+	struct litest_parameter_value *pv = litest_parameter_value_new();
+	pv->value = multivalue_new_double(d);
+	list_append(&p->values, &pv->link);
+}
+
+#if 0
+static struct litest_parameter_value *
+litest_parameter_value_ref(struct litest_parameter_value *pv) {
+	assert(pv);
+	assert(pv->refcnt > 0);
+	pv->refcnt++;
+	return pv;
+}
+#endif
+
+static struct litest_parameter_value *
+litest_parameter_value_unref(struct litest_parameter_value *pv) {
+	if (pv) {
+		assert(pv->refcnt > 0);
+		if (--pv->refcnt == 0) {
+			list_remove(&pv->link);
+			free(pv);
+		}
+	}
+	return NULL;
+}
+
+static struct litest_parameter*
+litest_parameter_new(const char *name, char type)
+{
+	struct litest_parameter *p = zalloc(sizeof *p);
+
+	switch (type) {
+	case 'b':
+	case 'c':
+	case 'd':
+	case 'i':
+	case 's':
+	case 'u':
+		  break;
+	default:
+		  assert(!"Type not yet implemented");
+	}
+
+	list_init(&p->link);
+	list_init(&p->values);
+	snprintf(p->name, sizeof(p->name), "%s", name);
+	p->type = type;
+	p->refcnt = 1;
+
+	return p;
+}
+
+static struct litest_parameter *
+litest_parameter_ref(struct litest_parameter *p) {
+	assert(p);
+	assert(p->refcnt > 0);
+	p->refcnt++;
+	return p;
+}
+
+static struct litest_parameter *
+litest_parameter_unref(struct litest_parameter *p) {
+	if (p) {
+		assert(p->refcnt > 0);
+		if (--p->refcnt == 0) {
+			struct litest_parameter_value *pv;
+			list_for_each_safe(pv, &p->values, link) {
+				litest_parameter_value_unref(pv);
+			}
+			list_remove(&p->link);
+			free(p);
+		}
+	}
+	return NULL;
+}
+
+static void
+litest_parameters_add(struct litest_parameters *ps, struct litest_parameter *param)
+{
+	struct litest_parameter *p;
+	list_for_each(p, &ps->params, link) {
+		assert(!streq(p->name, param->name));
+	}
+
+	litest_parameter_ref(param);
+	list_append(&ps->params, &param->link);
+}
+
+struct litest_parameters *
+_litest_parameters_new(const char *name, ...) {
+	struct litest_parameters *ps = zalloc(sizeof *ps);
+
+	list_init(&ps->params);
+	ps->refcnt = 1;
+
+	va_list args;
+	va_start(args, name);
+
+	while (name) {
+		char type = va_arg(args, int);
+		unsigned int nargs = va_arg(args, unsigned int);
+
+		struct litest_parameter *param = litest_parameter_new(name, type);
+		for (unsigned int _ = 0; _ < nargs; _++) {
+			switch (type) {
+			case 'b': {
+				bool b = va_arg(args, int);
+				litest_parameter_add_bool(param, b);
+				break;
+			}
+			case 'c': {
+				char b = va_arg(args, int);
+				litest_parameter_add_char(param, b);
+				break;
+			}
+			case 'u': {
+				uint32_t b = va_arg(args, uint32_t);
+				litest_parameter_add_u32(param, b);
+				break;
+			}
+			case 'i': {
+				int32_t b = va_arg(args, int32_t);
+				litest_parameter_add_i32(param, b);
+				break;
+			}
+			case 'd': {
+				double b = va_arg(args, double);
+				litest_parameter_add_double(param, b);
+				break;
+			}
+			case 's': {
+				const char *s = va_arg(args, const char *);
+				litest_parameter_add_string(param, s);
+				break;
+			}
+			default:
+				abort();
+				break;
+			}
+		}
+
+		litest_parameters_add(ps, param);
+		litest_parameter_unref(param);
+		name = va_arg(args, const char *);
+	}
+
+	va_end(args);
+
+	return ps;
+}
+
+struct litest_parameters *
+litest_parameters_ref(struct litest_parameters *p) {
+	assert(p);
+	assert(p->refcnt > 0);
+	p->refcnt++;
+	return p;
+}
+
+struct litest_parameters *
+litest_parameters_unref(struct litest_parameters *params) {
+	if (params) {
+		assert(params->refcnt > 0);
+		if (--params->refcnt == 0) {
+			struct litest_parameter *p;
+			list_for_each_safe(p, &params->params, link) {
+				litest_parameter_unref(p);
+			}
+			free(params);
+		}
+	}
+	return NULL;
+}
+
+static inline int
+_permutate(struct litest_parameters_permutation *permutation,
+	   struct list *next_param,
+	   void *list_head,
+	   litest_parameters_permutation_func_t func,
+	   void *userdata)
+{
+	if (next_param->next == list_head) {
+		func(permutation, userdata);
+		return 0;
+	}
+	struct litest_parameter_value *pv;
+	struct litest_parameter *param = list_first_entry(next_param, param, link);
+	list_for_each(pv, &param->values, link) {
+		struct litest_parameters_permutation_value v  = {
+			.value = pv->value,
+		};
+
+		memcpy(v.name, param->name, min(sizeof(v.name), sizeof(param->name)));
+
+		list_append(&permutation->values, &v.link);
+		int rc = _permutate(permutation, &param->link, list_head, func, userdata);
+		if (rc)
+			return rc;
+		list_remove(&v.link);
+	}
+
+	return 0;
+}
+
+/**
+ * Calls the given function func with each permutation of
+ * the given test parameters.
+ */
+int
+litest_parameters_permutations(struct litest_parameters *params,
+			       litest_parameters_permutation_func_t func,
+			       void *userdata)
+{
+
+	struct litest_parameters_permutation permutation;
+	list_init(&permutation.values);
+
+	return _permutate(&permutation, &params->params, &params->params, func, userdata);
+}
 
 static struct litest_device *current_device;
 
@@ -432,6 +752,94 @@ litest_add_tcase_for_device(struct suite *suite,
 	} while (++rangeval < range->upper);
 }
 
+struct permutation_userdata
+{
+	struct suite *suite;
+	const char *funcname;
+	const void *func;
+	const struct litest_test_device *dev;
+	char devname[64]; /* set if dev == NULL */
+
+	const struct param_filter *param_filters; /* name=NULL terminated */
+};
+
+static int
+permutation_func(struct litest_parameters_permutation *permutation, void *userdata)
+{
+	struct permutation_userdata *data = userdata;
+
+	struct litest_test_parameters *params = litest_test_parameters_new();
+	struct litest_parameters_permutation_value *pmv;
+	bool all_filtered = true;
+	list_for_each(pmv, &permutation->values, link) {
+		const struct param_filter *f = data->param_filters;
+		bool filtered = false;
+		while (!filtered && strlen(f->name)) {
+			if (streq(pmv->name, f->name)) {
+				char *s = multivalue_as_str(&pmv->value);
+				if (fnmatch(f->glob, s, 0) != 0)
+					filtered = true;
+				free(s);
+			}
+			f++;
+		}
+		if (!filtered) {
+			struct litest_test_param *tp = zalloc(sizeof *tp);
+			snprintf(tp->name, sizeof(tp->name), "%s", pmv->name);
+			tp->value = multivalue_copy(&pmv->value);
+			list_append(&params->test_params, &tp->link);
+
+			all_filtered = false;
+		}
+	}
+
+	if (all_filtered)
+		return 0;
+
+	struct test *t;
+
+	t = zalloc(sizeof(*t));
+	t->name = safe_strdup(data->funcname);
+	t->func = data->func;
+	if (data->dev) {
+		t->devname = safe_strdup(data->dev->shortname);
+		t->setup = data->dev->setup;
+		t->teardown = data->dev->teardown ?
+				data->dev->teardown : litest_generic_device_teardown;
+	} else {
+		t->devname = safe_strdup(data->devname);
+		t->setup = NULL;
+		t->teardown = NULL;
+	}
+	t->rangeval = 0;
+	t->params = params;
+
+	list_append(&data->suite->tests, &t->node);
+
+	return 0;
+}
+
+static void
+litest_add_tcase_for_device_with_params(struct suite *suite,
+					const char *funcname,
+					const void *func,
+					const struct litest_test_device *dev,
+					struct litest_parameters *params)
+{
+	if (run_deviceless)
+		return;
+
+	struct permutation_userdata data = {
+		.suite = suite,
+		.funcname = funcname,
+		.func = func,
+		.dev = dev,
+		.param_filters = filter_params,
+	};
+
+	litest_parameters_permutations(params, permutation_func, &data);
+}
+
 static void
 litest_add_tcase_no_device(struct suite *suite,
 			   const void *func,
@@ -472,6 +880,32 @@ litest_add_tcase_no_device(struct suite *suite,
 }
 
 static void
+litest_add_tcase_no_device_with_params(struct suite *suite,
+				       const void *func,
+				       const char *funcname,
+				       struct litest_parameters *params)
+{
+	const char *test_name = funcname;
+
+	if (filter_device &&
+	    fnmatch(filter_device, test_name, 0) != 0)
+		return;
+
+	if (run_deviceless)
+		return;
+
+	struct permutation_userdata data = {
+		.suite = suite,
+		.funcname = funcname,
+		.func = func,
+		.param_filters = filter_params,
+	};
+	snprintf(data.devname, sizeof(data.devname), "no device");
+
+	litest_parameters_permutations(params, permutation_func, &data);
+}
+
+static void
 litest_add_tcase_deviceless(struct suite *suite,
 			    const void *func,
 			    const char *funcname,
@@ -509,12 +943,36 @@ litest_add_tcase_deviceless(struct suite *suite,
 }
 
 static void
+litest_add_tcase_deviceless_with_params(struct suite *suite,
+					const void *func,
+					const char *funcname,
+					struct litest_parameters *params)
+{
+	const char *test_name = funcname;
+
+	if (filter_device &&
+	    fnmatch(filter_device, test_name, 0) != 0)
+		return;
+
+	struct permutation_userdata data = {
+		.suite = suite,
+		.funcname = funcname,
+		.func = func,
+		.param_filters = filter_params,
+	};
+	snprintf(data.devname, sizeof(data.devname), "deviceless");
+
+	litest_parameters_permutations(params, permutation_func, &data);
+}
+
+static void
 litest_add_tcase(const char *filename,
 		 const char *funcname,
 		 const void *func,
 		 int64_t required,
 		 int64_t excluded,
-		 const struct range *range)
+		 const struct range *range,
+		 struct litest_parameters *params)
 {
 	bool added = false;
 
@@ -532,11 +990,17 @@ litest_add_tcase(const char *filename,
 
 	if (required == LITEST_DEVICELESS &&
 	    excluded == LITEST_DEVICELESS) {
-		litest_add_tcase_deviceless(suite, func, funcname, range);
+		if (params)
+			litest_add_tcase_deviceless_with_params(suite, func, funcname, params);
+		else
+			litest_add_tcase_deviceless(suite, func, funcname, range);
 		added = true;
 	} else if (required == LITEST_DISABLE_DEVICE &&
 	    excluded == LITEST_DISABLE_DEVICE) {
-		litest_add_tcase_no_device(suite, func, funcname, range);
+		if (params)
+			litest_add_tcase_no_device_with_params(suite, func, funcname, params);
+		else
+			litest_add_tcase_no_device(suite, func, funcname, range);
 		added = true;
 	} else if (required != LITEST_ANY || excluded != LITEST_ANY) {
 		struct litest_test_device *dev;
@@ -552,11 +1016,19 @@ litest_add_tcase(const char *filename,
 			    (dev->features & excluded) != 0)
 				continue;
 
-			litest_add_tcase_for_device(suite,
-						    funcname,
-						    func,
-						    dev,
-						    range);
+			if (params) {
+				litest_add_tcase_for_device_with_params(suite,
+									funcname,
+									func,
+									dev,
+									params);
+			} else {
+				litest_add_tcase_for_device(suite,
+							    funcname,
+							    func,
+							    dev,
+							    range);
+			}
 			added = true;
 		}
 	} else {
@@ -570,11 +1042,19 @@ litest_add_tcase(const char *filename,
 			    fnmatch(filter_device, dev->shortname, 0) != 0)
 				continue;
 
-			litest_add_tcase_for_device(suite,
-						    funcname,
-						    func,
-						    dev,
-						    range);
+			if (params) {
+				litest_add_tcase_for_device_with_params(suite,
+									funcname,
+									func,
+									dev,
+									params);
+			} else {
+				litest_add_tcase_for_device(suite,
+							    funcname,
+							    func,
+							    dev,
+							    range);
+			}
 			added = true;
 		}
 	}
@@ -592,6 +1072,18 @@ void
 _litest_add_no_device(const char *name, const char *funcname, const void *func)
 {
 	_litest_add(name, funcname, func, LITEST_DISABLE_DEVICE, LITEST_DISABLE_DEVICE);
+}
+
+void
+_litest_add_parametrized_no_device(const char *name,
+				   const char *funcname,
+				   const void *func,
+				   struct litest_parameters *params)
+{
+	_litest_add_parametrized(name, funcname, func,
+				 LITEST_DISABLE_DEVICE,
+				 LITEST_DISABLE_DEVICE,
+				 params);
 }
 
 void
@@ -622,6 +1114,18 @@ _litest_add_deviceless(const char *name,
 }
 
 void
+_litest_add_parametrized_deviceless(const char *name,
+				    const char *funcname,
+				    const void *func,
+				    struct litest_parameters *params)
+{
+	_litest_add_parametrized(name, funcname, func,
+				 LITEST_DISABLE_DEVICE,
+				 LITEST_DISABLE_DEVICE,
+				 params);
+}
+
+void
 _litest_add(const char *name,
 	    const char *funcname,
 	    const void *func,
@@ -644,7 +1148,19 @@ _litest_add_ranged(const char *name,
 		   int64_t excluded,
 		   const struct range *range)
 {
-	litest_add_tcase(name, funcname, func, required, excluded, range);
+	litest_add_tcase(name, funcname, func, required, excluded, range, NULL);
+}
+
+
+void
+_litest_add_parametrized(const char *name,
+			 const char *funcname,
+			 const void *func,
+			 int64_t required,
+			 int64_t excluded,
+			 struct litest_parameters *params)
+{
+	litest_add_tcase(name, funcname, func, required, excluded, NULL, params);
 }
 
 void
@@ -698,6 +1214,50 @@ _litest_add_ranged_for_device(const char *filename,
 	if (!device_filtered)
 		litest_abort_msg("Invalid test device type");
 }
+
+void
+_litest_add_parametrized_for_device(const char *filename,
+				    const char *funcname,
+				    const void *func,
+				    enum litest_device_type type,
+				    struct litest_parameters *params)
+{
+	struct litest_test_device *dev;
+	bool device_filtered = false;
+
+	litest_assert(type < LITEST_NO_DEVICE);
+
+	if (filter_test &&
+	    fnmatch(filter_test, funcname, 0) != 0)
+		return;
+
+	struct suite *s = current_suite;
+
+	if (filter_group && fnmatch(filter_group, s->name, 0) != 0)
+		return;
+
+	list_for_each(dev, &devices, node) {
+		if (filter_device &&
+		    fnmatch(filter_device, dev->shortname, 0) != 0) {
+			device_filtered = true;
+			continue;
+		}
+
+		if (dev->type == type) {
+			litest_add_tcase_for_device_with_params(s,
+								funcname,
+								func,
+								dev,
+								params);
+			return;
+		}
+	}
+
+	/* only abort if no filter was set, that's a bug */
+	if (!device_filtered)
+		litest_abort_msg("Invalid test device type");
+}
+
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void
@@ -954,7 +1514,7 @@ litest_run_suite(struct list *suites, int njobs)
 	list_for_each(s, suites, node) {
 		struct test *t;
 		list_for_each(t, &s->tests, node) {
-			struct litest_runner_test_description tdesc;
+			struct litest_runner_test_description tdesc = {0};
 
 			if (range_is_valid(&t->range)) {
 				snprintf(tdesc.name, sizeof(tdesc.name),
@@ -963,6 +1523,24 @@ litest_run_suite(struct list *suites, int njobs)
 					  t->name,
 					  t->devname,
 					  t->rangeval);
+			} else if (t->params) {
+				char buf[256] = {0};
+
+				struct litest_test_param *tp;
+				bool is_first = true;
+				list_for_each(tp, &t->params->test_params, link) {
+					char *val = multivalue_as_str(&tp->value);
+					snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
+						 "%s%s:%s", is_first ? "" : ",", tp->name, val);
+					free(val);
+					is_first = false;
+				}
+				snprintf(tdesc.name, sizeof(tdesc.name),
+					  "%s:%s:%s:%s",
+					  s->name,
+					  t->name,
+					  t->devname,
+					  buf);
 			} else {
 				snprintf(tdesc.name, sizeof(tdesc.name),
 					  "%s:%s:%s",
@@ -975,6 +1553,7 @@ litest_run_suite(struct list *suites, int njobs)
 			tdesc.teardown = t->teardown;
 			tdesc.args.range = t->range;
 			tdesc.rangeval = t->rangeval;
+			tdesc.params = t->params;
 			litest_runner_add_test(runner, &tdesc);
 			ntests++;
 		}
@@ -4523,6 +5102,7 @@ litest_parse_argv(int argc, char **argv)
 		OPT_FILTER_GROUP,
 		OPT_FILTER_RANGEVAL,
 		OPT_FILTER_DEVICELESS,
+		OPT_FILTER_PARAMETER,
 		OPT_OUTPUT_FILE,
 		OPT_JOBS,
 		OPT_LIST,
@@ -4534,6 +5114,7 @@ litest_parse_argv(int argc, char **argv)
 		{ "filter-group", 1, 0, OPT_FILTER_GROUP },
 		{ "filter-rangeval", 1, 0, OPT_FILTER_RANGEVAL },
 		{ "filter-deviceless", 0, 0, OPT_FILTER_DEVICELESS },
+		{ "filter-parameter", 1, 0, OPT_FILTER_PARAMETER },
 		{ "output-file", 1, 0, OPT_OUTPUT_FILE },
 		{ "exitfirst", 0, 0, OPT_EXIT_FIRST },
 		{ "jobs", 1, 0, OPT_JOBS },
@@ -4592,6 +5173,9 @@ litest_parse_argv(int argc, char **argv)
 			       "          Only run tests with the given range value\n"
 			       "    --filter-deviceless=.... \n"
 			       "          Glob to filter on tests that do not create test devices\n"
+			       "    --filter-parameter=param1:glob,param2:glob,... \n"
+			       "          Glob(s) to filter on the given parameters in their string representation.\n"
+			       "          Boolean parameters are filtered via 'true' and 'false'.\n"
 			       "    --verbose\n"
 			       "          Enable verbose output\n"
 			       "    --jobs 8\n"
@@ -4623,6 +5207,31 @@ litest_parse_argv(int argc, char **argv)
 		case OPT_FILTER_RANGEVAL:
 			filter_rangeval = atoi(optarg);
 			break;
+		case OPT_FILTER_PARAMETER: {
+			size_t nelems;
+			char **params = strv_from_string(optarg, ",", &nelems);
+			const size_t max_filters = ARRAY_LENGTH(filter_params) - 1;
+			if (nelems >=  max_filters) {
+				fprintf(stderr, "Only %zd parameter filters are supported\n", max_filters);
+				exit(1);
+			}
+			for (size_t i = 0; i < nelems; i++)  {
+				size_t n;
+				char **strv = strv_from_string(params[i], ":", &n);
+				assert(n == 2);
+
+				const char *name = strv[0];
+				const char *glob = strv[1];
+
+				struct param_filter *f = &filter_params[i];
+				snprintf(f->name, sizeof(f->name), "%s", name);
+				snprintf(f->glob, sizeof(f->glob), "%s", glob);
+
+				strv_free(strv);
+			}
+			strv_free(params);
+			break;
+		}
 		case 'j':
 		case OPT_JOBS:
 			jobs = atoi(optarg);
@@ -4776,6 +5385,7 @@ litest_free_test_list(struct list *tests)
 		struct test *t;
 
 		list_for_each_safe(t, &s->tests, node) {
+			litest_test_parameters_unref(t->params);
 			free(t->name);
 			free(t->devname);
 			list_remove(&t->node);

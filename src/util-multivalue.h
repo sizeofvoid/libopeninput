@@ -44,6 +44,12 @@ struct multivalue {
 static inline void
 multivalue_extract(const struct multivalue *v, void *ptr)
 {
+	/* ignore false positives from gcc:
+	 * ../src/util-multivalue.h:52:33: warning: array subscript ‘double[0]’ is partly outside array bounds of ‘int32_t[1]’ {aka ‘int[1]’} [-Warray-bounds=]
+	 *  52 |         case 'd': *(double*)ptr = v->value.d; break;
+	 */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 	switch (v->type) {
 	case 'b': *(bool *)ptr = v->value.b; break;
 	case 'c': *(char *)ptr = v->value.c; break;
@@ -54,6 +60,7 @@ multivalue_extract(const struct multivalue *v, void *ptr)
 	default:
 		  abort();
 	}
+#pragma GCC diagnostic pop
 }
 
 static inline void

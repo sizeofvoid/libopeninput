@@ -43,16 +43,46 @@ enum litest_runner_result {
 	LITEST_SYSTEM_ERROR = 80,	/**< unrelated error occurred */
 };
 
+/* For parametrized tests (litest_add_parametrized and friends)
+ * a list of these is passed to every test. This struct isn't used
+ * directly, use litest_test_param_fetch() instead.
+ */
+struct litest_test_param {
+	struct list link;
+	char name[128];
+	struct multivalue value;
+};
+
+struct litest_test_parameters {
+	int refcnt;
+	struct list test_params;
+};
+
+struct litest_test_parameters *
+litest_test_parameters_new(void);
+
+struct litest_test_parameters *
+litest_test_parameters_unref(struct litest_test_parameters *params);
+
+#define litest_test_param_fetch(...) \
+	_litest_test_param_fetch(__VA_ARGS__, NULL)
+
+void
+_litest_test_param_fetch(const struct litest_test_parameters *params, ...);
+
 /**
  * This struct is passed into every test.
  */
 struct litest_runner_test_env {
 	int rangeval;			/* The current value within the args.range (or 0) */
+	const struct litest_test_parameters *params;
 };
 
 struct litest_runner_test_description {
-	char name[256];			/* The name of the test */
+	char name[512];			/* The name of the test */
 	int rangeval;			/* The current value within the args.range (or 0) */
+
+	struct litest_test_parameters *params;
 
 	/* test function and corresponding setup/teardown, if any */
 	enum litest_runner_result (*func)(const struct litest_runner_test_env *);
