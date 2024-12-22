@@ -157,9 +157,11 @@ litest_fail_comparison_str(const char *file,
 					      #cond, __VA_ARGS__); \
 	} while(0)
 
-#define litest_abort_msg(...) \
+#define litest_abort_msg(...) {\
 	litest_fail_condition(__FILE__, __LINE__, __func__, \
 			      "aborting", __VA_ARGS__); \
+	abort(); \
+}
 
 #define litest_assert_notnull(cond) \
 	do { \
