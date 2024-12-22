@@ -37,6 +37,7 @@
 #include "util-macros.h"
 #include "util-list.h"
 #include "util-matrix.h"
+#include "util-multivalue.h"
 #include "util-strings.h"
 #include "util-ratelimit.h"
 #include "util-range.h"
