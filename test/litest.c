@@ -4614,6 +4614,9 @@ litest_parse_argv(int argc, char **argv)
 			if (want_jobs == JOBS_DEFAULT)
 				want_jobs = JOBS_SINGLE;
 			break;
+		case OPT_FILTER_DEVICELESS:
+			run_deviceless = true;
+			break;
 		case OPT_FILTER_GROUP:
 			filter_group = optarg;
 			break;
@@ -4629,9 +4632,6 @@ litest_parse_argv(int argc, char **argv)
 			return LITEST_MODE_LIST;
 		case OPT_VERBOSE:
 			verbose = true;
-			break;
-		case OPT_FILTER_DEVICELESS:
-			run_deviceless = true;
 			break;
 		case OPT_OUTPUT_FILE:
 			outfile = fopen(optarg, "w+");
