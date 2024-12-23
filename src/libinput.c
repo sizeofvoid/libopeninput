@@ -3183,7 +3183,19 @@ libinput_post_event(struct libinput *libinput,
 	size_t new_out;
 
 #if 0
-	log_debug(libinput, "Queuing %s\n", event_type_to_str(event->type));
+	char buf[1024] = { 0 };
+	switch (event->type) {
+	case LIBINPUT_EVENT_POINTER_BUTTON: {
+		struct libinput_event_pointer *pev = libinput_event_get_pointer_event(event);
+		snprintf(buf, sizeof(buf), "button: %u, state %s",
+			 libinput_event_pointer_get_button(pev),
+			 libinput_event_pointer_get_button_state(pev) == LIBINPUT_BUTTON_STATE_PRESSED ? "press" : "released");
+		break;
+	}
+	default:
+		break;
+	}
+	log_debug(libinput, "Queuing %s { %s }\n", event_type_to_str(event->type), buf);
 #endif
 
 	events_count++;
