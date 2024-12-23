@@ -62,7 +62,11 @@ make_data_dir(const char *file_content)
 		litest_assert_int_eq(rc, (int)(strlen(dirname) + 16));
 
 		fp = fopen(filename, "w+");
+#ifndef __clang_analyzer__
 		litest_assert_notnull(fp);
+#else
+		assert(fp);
+#endif
 		rc = fputs(file_content, fp);
 		litest_assert_errno_success(rc);
 		fclose(fp);

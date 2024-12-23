@@ -57,7 +57,7 @@ mkdir_p(const char *dir)
 static inline void
 xclose(int *fd)
 {
-	if (*fd != -1) {
+	if (*fd > -1) {
 		close(*fd);
 		*fd = -1;
 	}
