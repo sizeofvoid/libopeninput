@@ -1302,6 +1302,14 @@ tp_gesture_detect_motion_gestures(struct tp_dispatch *tp, uint64_t time)
 		return;
 	}
 
+	/* If 3fg dragging touches are within a 60x10mm box, start
+	 * dragging immediately */
+	if (tp->gesture.finger_count == tp->drag_3fg.nfingers &&
+	    distance_mm.x < 60.0 && distance_mm.y < 10.0) {
+		tp_gesture_handle_event(tp, GESTURE_EVENT_3FG_DRAG_START, time);
+		return;
+	}
+
 	/* If one touch exceeds the max_move threshold while the other has not
 	 * yet passed the min_move threshold, there is either a resting thumb,
 	 * or the user is doing "one-finger-scroll," where one touch stays in
