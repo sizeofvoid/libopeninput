@@ -999,7 +999,6 @@ tp_gesture_detect_motion_gestures(struct tp_dispatch *tp, uint64_t time)
 	struct device_coords delta;
 	struct phys_coords first_moved, second_moved, distance_mm;
 	double first_mm, second_mm; /* movement since gesture start in mm */
-	double thumb_mm, finger_mm;
 	double min_move = 1.5; /* min movement threshold in mm - count this touch */
 	double max_move = 4.0; /* max movement threshold in mm - ignore other touch */
 	bool is_hold_and_motion;
@@ -1054,17 +1053,6 @@ tp_gesture_detect_motion_gestures(struct tp_dispatch *tp, uint64_t time)
 	if (first_mm < 1 && second_mm < 1)
 		return;
 
-	/* Pick the thumb as the lowest point on the touchpad */
-	if (first->point.y > second->point.y) {
-		thumb = first;
-		thumb_mm = first_mm;
-		finger_mm = second_mm;
-	} else {
-		thumb = second;
-		thumb_mm = second_mm;
-		finger_mm = first_mm;
-	}
-
 	/* If both touches are within 7mm vertically and 40mm horizontally
 	 * past the timeout, assume scroll/swipe */
 	if ((!tp->gesture.enabled ||
@@ -1084,6 +1072,19 @@ tp_gesture_detect_motion_gestures(struct tp_dispatch *tp, uint64_t time)
 	 * place while the other moves.
 	 */
 	if (first_mm >= max_move || second_mm >= max_move) {
+		double thumb_mm, finger_mm;
+
+		/* Pick the thumb as the lowest point on the touchpad */
+		if (first->point.y > second->point.y) {
+			thumb = first;
+			thumb_mm = first_mm;
+			finger_mm = second_mm;
+		} else {
+			thumb = second;
+			thumb_mm = second_mm;
+			finger_mm = first_mm;
+		}
+
 		/* If thumb detection is enabled, and thumb is still while
 		 * finger moves, cancel gestures and mark lower as thumb.
 		 * This applies to all gestures (2, 3, 4+ fingers), but allows
