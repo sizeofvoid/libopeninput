@@ -34,6 +34,10 @@ Tapping is **enabled** by default on devices where tapping is the only
 method to trigger button clicks. This includes devices without physical
 buttons such as touch-capable graphics tablets.
 
+.. note:: Unfortunately due to the current API design, devices that require
+          tapping effectively prevent us from changing this default. For details see
+          `this comment <https://gitlab.freedesktop.org/libinput/libinput/-/issues/926#note_2056476>`_.
+
 Tapping can be enabled/disabled on a per-device basis. See
 **libinput_device_config_tap_set_enabled()** for details.
 
