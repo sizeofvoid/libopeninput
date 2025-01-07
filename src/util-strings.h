@@ -45,6 +45,11 @@
 
 #include "util-macros.h"
 
+#define yesno(b) ((b) ? "yes" : "no")
+#define truefalse(b) ((b) ? "true" : "false")
+#define YESNO(b) ((b) ? "YES" : "NO")
+#define TRUEFALSE(b) ((b) ? "TRUE" : "FALSE")
+
 static inline bool
 streq(const char *str1, const char *str2)
 {

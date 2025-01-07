@@ -159,7 +159,7 @@ multivalue_as_str(const struct multivalue *v)
 		xasprintf(&str, "%d", v->value.i);
 		break;
 	case 'b':
-		xasprintf(&str, "%s", v->value.b ? "true" : "false");
+		xasprintf(&str, "%s", truefalse(v->value.b));
 		break;
 	case 'c':
 		xasprintf(&str, "%c", v->value.c);

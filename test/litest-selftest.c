@@ -491,7 +491,7 @@ START_TEST(parameter_permutations)
 	ARRAY_FOR_EACH(permutations, p) {
 		if (p->s == NULL)
 			break;
-		ck_assert_msg(p->found, "For %d/%s/%s", p->i, p->s, p->b ? "true" : "false");
+		ck_assert_msg(p->found, "For %d/%s/%s", p->i, p->s, truefalse(p->b));
 	}
 }
 END_TEST

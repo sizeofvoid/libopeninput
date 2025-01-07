@@ -53,6 +53,7 @@
 #include "util-time.h"
 #include "util-input-event.h"
 #include "util-macros.h"
+#include "util-strings.h"
 
 static const int FILE_VERSION_NUMBER = 1;
 
@@ -1067,7 +1068,7 @@ print_tablet_pad_button_event(struct record_device *dev,
 		button,
 		state == LIBINPUT_BUTTON_STATE_PRESSED ? "pressed" : "released",
 		mode,
-		libinput_tablet_pad_mode_group_button_is_toggle(group, button) ? "true" : "false"
+		truefalse(libinput_tablet_pad_mode_group_button_is_toggle(group, button))
 	       );
 
 }
