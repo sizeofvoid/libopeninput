@@ -6206,7 +6206,7 @@ END_TEST
 static void
 verify_left_handed_tablet_motion(struct litest_device *tablet,
 				 struct libinput *li,
-				 int x, int y,
+				 double x, double y,
 				 bool left_handed)
 {
 	struct libinput_event *event;
