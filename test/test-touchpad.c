@@ -3616,8 +3616,12 @@ START_TEST(touchpad_initial_state)
 {
 	struct litest_device *dev;
 	struct libinput *libinput1, *libinput2;
-	int axis = _i; /* looped test */
 	int x = 40, y = 60;
+
+	const char *axisname;
+	litest_test_param_fetch(test_env->params, "axis", &axisname);
+	int axis = libevdev_event_code_from_code_name(axisname);
+	litest_assert_int_ne(axis, -1);
 
 	dev = litest_current_device();
 	libinput1 = dev->libinput;
@@ -6918,13 +6922,30 @@ assert_touchpad_does_not_move(struct litest_device *tp)
 	litest_assert_empty_queue(li);
 }
 
+static enum suspend
+mode_param_lookup(const char *mode)
+{
+	if (streq(mode, "external_mouse"))
+		return SUSPEND_EXT_MOUSE;
+	else if (streq(mode, "sendevents"))
+		return SUSPEND_SENDEVENTS;
+	else if (streq(mode, "lid"))
+		return SUSPEND_LID;
+	else if (streq(mode, "tabletmode"))
+		return SUSPEND_TABLETMODE;
+
+	litest_abort_msg("Invalid mode parameter: %s", mode);
+}
+
 START_TEST(touchpad_suspend_abba)
 {
 	struct litest_device *tp = litest_current_device();
 	struct litest_device *lid, *tabletmode, *extmouse;
 	struct libinput *li = tp->libinput;
-	enum suspend first = _i; /* ranged test */
-	enum suspend other;
+
+	const char *mode;
+	litest_test_param_fetch(test_env->params, "mode", &mode);
+	enum suspend first = mode_param_lookup(mode);
 
 	if (first == SUSPEND_EXT_MOUSE && litest_touchpad_is_external(tp))
 		return LITEST_NOT_APPLICABLE;
@@ -6945,7 +6966,7 @@ START_TEST(touchpad_suspend_abba)
 	 *  reason B off
 	 *  reason A off
 	 */
-	for (other = SUSPEND_EXT_MOUSE; other < SUSPEND_COUNT; other++) {
+	for (enum suspend other = SUSPEND_EXT_MOUSE; other < SUSPEND_COUNT; other++) {
 		if (other == first)
 			continue;
 
@@ -7063,8 +7084,10 @@ START_TEST(touchpad_suspend_abab)
 	struct litest_device *tp = litest_current_device();
 	struct litest_device *lid, *tabletmode, *extmouse;
 	struct libinput *li = tp->libinput;
-	enum suspend first = _i; /* ranged test */
-	enum suspend other;
+
+	const char *mode;
+	litest_test_param_fetch(test_env->params, "mode", &mode);
+	enum suspend first = mode_param_lookup(mode);
 
 	if (first == SUSPEND_EXT_MOUSE && litest_touchpad_is_external(tp))
 		return LITEST_NOT_APPLICABLE;
@@ -7084,7 +7107,7 @@ START_TEST(touchpad_suspend_abab)
 	 *  reason A off
 	 *  reason B off
 	 */
-	for (other = SUSPEND_EXT_MOUSE; other < SUSPEND_COUNT; other++) {
+	for (enum suspend other = SUSPEND_EXT_MOUSE; other < SUSPEND_COUNT; other++) {
 		if (other == first)
 			continue;
 
@@ -7266,8 +7289,6 @@ END_TEST
 
 TEST_COLLECTION(touchpad)
 {
-	struct range suspends = { SUSPEND_EXT_MOUSE, SUSPEND_COUNT };
-	struct range axis_range = {ABS_X, ABS_Y + 1};
 	struct range five_fingers = {1, 6};
 
 	litest_add(touchpad_1fg_motion, LITEST_TOUCHPAD, LITEST_ANY);
@@ -7338,7 +7359,12 @@ TEST_COLLECTION(touchpad)
 	litest_add_for_device(touchpad_trackpoint_buttons_2fg_scroll, LITEST_SYNAPTICS_TRACKPOINT_BUTTONS);
 	litest_add_for_device(touchpad_trackpoint_no_trackpoint, LITEST_SYNAPTICS_TRACKPOINT_BUTTONS);
 
-	litest_add_ranged(touchpad_initial_state, LITEST_TOUCHPAD, LITEST_ANY, &axis_range);
+	{
+		struct litest_parameters *params = litest_parameters_new("axis", 's', 2, "ABS_X", "ABS_Y");
+		litest_add_parametrized(touchpad_initial_state, LITEST_TOUCHPAD, LITEST_ANY, params);
+		litest_parameters_unref(params);
+	}
+
 	litest_add_ranged(touchpad_fingers_down_before_init, LITEST_TOUCHPAD, LITEST_ANY, &five_fingers);
 	litest_add(touchpad_state_after_syn_dropped_2fg_change, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 
@@ -7381,8 +7407,14 @@ TEST_COLLECTION(touchpad)
 	litest_add(touchpad_speed_ignore_finger_edgescroll, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add_for_device(touchpad_speed_ignore_hovering_finger, LITEST_BCM5974);
 
-	litest_add_ranged(touchpad_suspend_abba, LITEST_TOUCHPAD, LITEST_ANY, &suspends);
-	litest_add_ranged(touchpad_suspend_abab, LITEST_TOUCHPAD, LITEST_ANY, &suspends);
+	{
+		struct litest_parameters *params = litest_parameters_new("mode", 's', 4,
+									 "external_mouse", "sendevents",
+									 "lid", "tabletmode");
+		litest_add_parametrized(touchpad_suspend_abba, LITEST_TOUCHPAD, LITEST_ANY, params);
+		litest_add_parametrized(touchpad_suspend_abab, LITEST_TOUCHPAD, LITEST_ANY, params);
+		litest_parameters_unref(params);
+	}
 
 	/* Happens on the "Wacom Intuos Pro M Finger" but our test device
 	 * has the same properties */
