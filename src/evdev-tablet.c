@@ -1829,17 +1829,15 @@ tablet_send_proximity_in(struct tablet_dispatch *tablet,
 	return true;
 }
 
-static inline bool
+static inline void
 tablet_send_proximity_out(struct tablet_dispatch *tablet,
 			 struct libinput_tablet_tool *tool,
 			 struct evdev_device *device,
 			 struct tablet_axes *axes,
 			 uint64_t time)
 {
-	if (!tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY))
-		return false;
-
-	if (!tablet_has_status(tablet, TABLET_TOOL_OUTSIDE_AREA)) {
+	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY) &&
+	    !tablet_has_status(tablet, TABLET_TOOL_OUTSIDE_AREA)) {
 		tablet_notify_proximity(&device->base,
 					time,
 					tool,
@@ -1849,16 +1847,6 @@ tablet_send_proximity_out(struct tablet_dispatch *tablet,
 					&tablet->area.x,
 					&tablet->area.y);
 	}
-
-	tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
-	tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
-	tablet_unset_status(tablet, TABLET_TOOL_OUTSIDE_AREA);
-
-	tablet_reset_changed_axes(tablet);
-	axes->delta.x = 0;
-	axes->delta.y = 0;
-
-	return true;
 }
 
 static inline bool
@@ -2003,12 +1991,7 @@ tablet_send_events(struct tablet_dispatch *tablet,
 
 	tablet_send_buttons(tablet, tool, device, time);
 
-	if (tablet_send_proximity_out(tablet, tool, device, &axes, time)) {
-		tablet_change_to_left_handed(device);
-		tablet_apply_rotation(device);
-		tablet_change_area(device);
-		tablet_history_reset(tablet);
-	}
+	tablet_send_proximity_out(tablet, tool, device, &axes, time);
 }
 
 /**
@@ -2232,8 +2215,20 @@ reprocess:
 
 	}
 
-	if (!tablet_has_status(tablet, TABLET_TOOL_OUTSIDE_AREA)) {
+	if (!tablet_has_status(tablet, TABLET_TOOL_OUTSIDE_AREA))
 		tablet_send_events(tablet, tool, device, time);
+
+	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY)) {
+		tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
+		tablet_unset_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY);
+		tablet_unset_status(tablet, TABLET_TOOL_OUTSIDE_AREA);
+
+		tablet_reset_changed_axes(tablet);
+
+		tablet_change_to_left_handed(device);
+		tablet_apply_rotation(device);
+		tablet_change_area(device);
+		tablet_history_reset(tablet);
 	}
 
 	if (process_tool_twice)

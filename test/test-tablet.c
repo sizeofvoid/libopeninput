@@ -4294,6 +4294,84 @@ START_TEST(tablet_area_set_rectangle_move_in_margin)
 }
 END_TEST
 
+START_TEST(tablet_area_set_rectangle_while_outside)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct libinput_device *d = dev->libinput_device;
+	struct libinput_event *ev;
+	struct libinput_event_tablet_tool *tev;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+	double x, y;
+
+	if (libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT))
+		return LITEST_NOT_APPLICABLE;
+
+	litest_checkpoint("Set tablet area");
+	struct libinput_config_area_rectangle rect = {
+		0.25, 0.25, 0.75, 0.75,
+	};
+
+	enum libinput_config_status status = libinput_device_config_area_set_rectangle(d, &rect);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_drain_events(li);
+
+	litest_checkpoint("Proximity in + out outside tablet area");
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_tablet_proximity_out(dev);
+	litest_dispatch(li);
+	litest_timeout_tablet_proxout();
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+	litest_dispatch(li);
+
+	litest_checkpoint("Update tablet area");
+	rect = (struct libinput_config_area_rectangle) {
+		0.05, 0.05, 0.95, 0.95,
+	};
+
+	status = libinput_device_config_area_set_rectangle(d, &rect);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_checkpoint("Proximity in + out inside tablet area");
+	litest_tablet_proximity_in(dev, 11, 11, axes);
+	litest_tablet_motion(dev, 12, 12, axes);
+	litest_tablet_proximity_out(dev);
+	litest_dispatch(li);
+	litest_timeout_tablet_proxout();
+	litest_dispatch(li);
+
+	ev = libinput_get_event(li);
+	tev = litest_is_proximity_event(ev, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+	x = libinput_event_tablet_tool_get_x_transformed(tev, 100.0);
+	y = libinput_event_tablet_tool_get_y_transformed(tev, 100.0);
+	litest_assert_double_gt(x, 6); /* somewhere around 6%, precise number doesn't matter */
+	litest_assert_double_gt(y, 6);
+	libinput_event_destroy(ev);
+
+	ev = libinput_get_event(li);
+	tev = litest_is_tablet_event(ev, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	x = libinput_event_tablet_tool_get_x_transformed(tev, 100.0);
+	y = libinput_event_tablet_tool_get_y_transformed(tev, 100.0);
+	litest_assert_double_gt(x, 6);
+	litest_assert_double_gt(y, 6);
+	libinput_event_destroy(ev);
+
+	ev = libinput_get_event(li);
+	tev = litest_is_proximity_event(ev, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+	x = libinput_event_tablet_tool_get_x_transformed(tev, 100.0);
+	y = libinput_event_tablet_tool_get_y_transformed(tev, 100.0);
+	litest_assert_double_gt(x, 6);
+	litest_assert_double_gt(y, 6);
+	libinput_event_destroy(ev);
+}
+END_TEST
+
 static void
 assert_pressure(struct libinput *li, enum libinput_event_type type, double expected_pressure)
 {
@@ -7077,6 +7155,7 @@ TEST_COLLECTION(tablet)
 	litest_add(tablet_area_set_rectangle_move_outside, LITEST_TABLET, LITEST_ANY);
 	litest_add(tablet_area_set_rectangle_move_outside_to_inside, LITEST_TABLET, LITEST_ANY);
 	litest_add(tablet_area_set_rectangle_move_in_margin, LITEST_TABLET, LITEST_ANY);
+	litest_add(tablet_area_set_rectangle_while_outside, LITEST_TABLET, LITEST_ANY);
 
 	litest_add(tablet_pressure_min_max, LITEST_TABLET, LITEST_ANY);
 	/* Tests for pressure offset with distance */
