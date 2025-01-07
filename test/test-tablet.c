@@ -6474,19 +6474,22 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 					       tablet_from);
 
 
-	/* Tablet in-prox when setting to left-handed */
+	litest_checkpoint("Moving into proximity");
 	tx = 60;
 	ty = 60;
 	litest_tablet_proximity_in(tablet, tx, ty, NULL);
 	litest_dispatch(li);
 	litest_drain_events(li);
 
+	litest_checkpoint("Changing tablet to left-handed: %s", truefalse(tablet_to));
 	libinput_device_config_left_handed_set(tablet->libinput_device,
 					       tablet_to);
+	litest_checkpoint("Changing touch to left-handed: %s", truefalse(touch_to));
 	libinput_device_config_left_handed_set(finger->libinput_device,
 					       touch_to);
 
 	/* not yet neutral, so still whatever the original was */
+	litest_checkpoint("Expecting tablet motion with left-handed: %s", truefalse(enabled_from));
 	verify_left_handed_tablet_motion(tablet, li, tx, ty, enabled_from);
 	litest_drain_events(li);
 
@@ -6515,13 +6518,18 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 	 * touchpads */
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 #endif
+	litest_checkpoint("Moving out of proximity");
 	litest_tablet_proximity_out(tablet);
 	litest_dispatch(li);
 	litest_timeout_tablet_proxout();
 	litest_drain_events(li);
 
+	litest_assert_empty_queue(li);
+
 	/* now both should've switched */
+	litest_checkpoint("Expecting tablet motion with left-handed: %s", truefalse(enabled_to));
 	verify_left_handed_tablet_sequence(tablet, li, enabled_to);
+	litest_checkpoint("Expecting touch motion with left-handed: %s", truefalse(enabled_to));
 	verify_left_handed_touch_sequence(finger, li, enabled_to);
 
 out:
