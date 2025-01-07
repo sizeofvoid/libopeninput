@@ -6492,7 +6492,7 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 	y = 30;
 	litest_touch_down(finger, 0, x, y);
 
-	/* We need to intersperce the touch events with tablets so we don't
+	/* We need to intersperse the touch events with tablets so we don't
 	   trigger the tablet proximity timeout. */
 	for (int i = 0; i < 10; i++) {
 		litest_touch_move(finger, 0, x + i, y - i);
