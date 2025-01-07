@@ -666,10 +666,14 @@ START_TEST(tip_up_motion_one_axis)
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
-	unsigned int axis = _i; /* ranged test */
 	double x, y, last_x, last_y;
 	double start_x = 20,
 	       start_y = 20;
+
+	const char *axisname;
+	litest_test_param_fetch(test_env->params, "axis", &axisname);
+	int axis = libevdev_event_code_from_code_name(axisname);
+	litest_assert_int_ne(axis, -1);
 
 	switch (axis) {
 	case ABS_X:
@@ -4021,8 +4025,14 @@ START_TEST(tablet_area_set_rectangle)
 	};
 	double x, y;
 	double *scaled, *unscaled;
-	bool use_vertical = abs(_i) % 2 == 0; /* ranged test */
-	int direction = _i < 0 ? -1 : 1; /* ranged test */
+
+	const char *param_axis;
+	const char *param_direction;
+	litest_test_param_fetch(test_env->params,
+				"axis", &param_axis,
+				"direction", &param_direction);
+	bool use_vertical = streq(param_axis, "vertical");
+	int direction = streq(param_direction, "down") ? 1 : -1;
 
 	if (libevdev_has_property(dev->evdev, INPUT_PROP_DIRECT))
 		return LITEST_NOT_APPLICABLE;
@@ -5236,9 +5246,11 @@ START_TEST(tilt_fixed_points)
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
-	int testcase = _i; /* ranged test */
 	int axis_value;
 	double expected;
+
+	const char *testcase;
+	litest_test_param_fetch(test_env->params, "tilt", &testcase);
 
 	/* On devices with a range of [-N, M], make sure we calculate the hw zero position
 	 * as zero and that the respective min/max resolve to our (hardcoded) min/max degree
@@ -5255,20 +5267,16 @@ START_TEST(tilt_fixed_points)
 	/* see tablet_fix_tilt() */
 	bool is_adjusted = (int)absinfo_range(abs) % 2 == 0;
 
-	switch (testcase) {
-	case TILT_MINIMUM:
+	if (streq(testcase, "minimum")) {
 		axis_value = abs->minimum;
 		expected = -64.0;
-		break;
-	case TILT_CENTER:
+	} else if (streq(testcase, "center")) {
 		axis_value = 0;
 		expected = 0.0;
-		break;
-	case TILT_MAXIMUM:
+	} else if (streq(testcase, "maximum")) {
 		axis_value = abs->maximum;
 		expected = 64.0;
-		break;
-	default:
+	} else {
 		abort();
 	}
 
@@ -6331,7 +6339,6 @@ START_TEST(tablet_rotation_left_handed)
 	enum litest_device_type other;
 	struct litest_device *finger;
 	struct libinput *li = tablet->libinput;
-	unsigned int transition = _i; /* ranged test */
 	bool tablet_from, touch_from, tablet_to, touch_to;
 	bool enabled_from, enabled_to;
 
@@ -6345,10 +6352,11 @@ START_TEST(tablet_rotation_left_handed)
 	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
 		goto out;
 
-	tablet_from = !!(transition & bit(0));
-	touch_from  = !!(transition & bit(1));
-	tablet_to   = !!(transition & bit(2));
-	touch_to    = !!(transition & bit(3));
+	litest_test_param_fetch(test_env->params,
+				"tablet_from", &tablet_from,
+				"touch_from", &touch_from,
+				"tablet_to", &tablet_to,
+				"touch_to", &touch_to);
 
 	enabled_from = tablet_from || touch_from;
 	enabled_to   = tablet_to   || touch_to;
@@ -6381,7 +6389,6 @@ START_TEST(tablet_rotation_left_handed_configuration)
 	enum litest_device_type other;
 	struct litest_device *finger;
 	struct libinput *li = tablet->libinput;
-	unsigned int transition = _i; /* ranged test */
 	bool tablet_from, touch_from, tablet_to, touch_to;
 	bool tablet_enabled, touch_enabled;
 	struct libinput_device *tablet_dev, *touch_dev;
@@ -6396,10 +6403,11 @@ START_TEST(tablet_rotation_left_handed_configuration)
 	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
 		goto out;
 
-	tablet_from = !!(transition & bit(0));
-	touch_from  = !!(transition & bit(1));
-	tablet_to   = !!(transition & bit(2));
-	touch_to    = !!(transition & bit(3));
+	litest_test_param_fetch(test_env->params,
+				"tablet_from", &tablet_from,
+				"touch_from", &touch_from,
+				"tablet_to", &tablet_to,
+				"touch_to", &touch_to);
 
 	tablet_dev = tablet->libinput_device;
 	touch_dev = finger->libinput_device;
@@ -6435,7 +6443,6 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 	enum litest_device_type other;
 	struct litest_device *finger;
 	struct libinput *li = tablet->libinput;
-	unsigned int transition = _i; /* ranged test */
 	bool tablet_from, touch_from, tablet_to, touch_to;
 	bool enabled_from, enabled_to;
 	double x, y;
@@ -6451,10 +6458,11 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
 		goto out;
 
-	tablet_from = !!(transition & bit(0));
-	touch_from  = !!(transition & bit(1));
-	tablet_to   = !!(transition & bit(2));
-	touch_to    = !!(transition & bit(3));
+	litest_test_param_fetch(test_env->params,
+				"tablet_from", &tablet_from,
+				"touch_from", &touch_from,
+				"tablet_to", &tablet_to,
+				"touch_to", &touch_to);
 
 	enabled_from = tablet_from || touch_from;
 	enabled_to   = tablet_to   || touch_to;
@@ -6529,7 +6537,6 @@ START_TEST(tablet_rotation_left_handed_while_touch_down)
 	enum litest_device_type other;
 	struct litest_device *finger;
 	struct libinput *li = tablet->libinput;
-	unsigned int transition = _i; /* ranged test */
 	bool tablet_from, touch_from, tablet_to, touch_to;
 	bool enabled_from, enabled_to;
 
@@ -6545,10 +6552,11 @@ START_TEST(tablet_rotation_left_handed_while_touch_down)
 	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
 		goto out;
 
-	tablet_from = !!(transition & bit(0));
-	touch_from  = !!(transition & bit(1));
-	tablet_to   = !!(transition & bit(2));
-	touch_to    = !!(transition & bit(3));
+	litest_test_param_fetch(test_env->params,
+				"tablet_from", &tablet_from,
+				"touch_from", &touch_from,
+				"tablet_to", &tablet_to,
+				"touch_to", &touch_to);
 
 	enabled_from = tablet_from || touch_from;
 	enabled_to   = tablet_to   || touch_to;
@@ -6598,7 +6606,6 @@ START_TEST(tablet_rotation_left_handed_add_touchpad)
 	enum litest_device_type other;
 	struct litest_device *finger;
 	struct libinput *li = tablet->libinput;
-	unsigned int transition = _i; /* ranged test */
 	bool tablet_from, touch_from, tablet_to, touch_to;
 	bool enabled_from, enabled_to;
 
@@ -6606,10 +6613,11 @@ START_TEST(tablet_rotation_left_handed_add_touchpad)
 	if (other == LITEST_NO_DEVICE)
 		return LITEST_NOT_APPLICABLE;
 
-	tablet_from = !!(transition & bit(0));
-	touch_from  = !!(transition & bit(1));
-	tablet_to   = !!(transition & bit(2));
-	touch_to    = !!(transition & bit(3));
+	litest_test_param_fetch(test_env->params,
+				"tablet_from", &tablet_from,
+				"touch_from", &touch_from,
+				"tablet_to", &tablet_to,
+				"touch_to", &touch_to);
 
 	enabled_from = tablet_from || touch_from;
 	enabled_to   = tablet_to   || touch_to;
@@ -6798,13 +6806,14 @@ START_TEST(huion_static_btn_tool_pen_disable_quirk_on_prox_out)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	bool with_timeout = _i; /* ranged test */
+	bool with_timeout;
 	int i;
 
 	/* test is run twice, once where the real BTN_TOOL_PEN is triggered
 	 * during proximity out, one where the real BTN_TOOL_PEN is
 	 * triggered after we already triggered the quirk timeout
 	 */
+	litest_test_param_fetch(test_env->params, "btn_tool_pen_timeout", &with_timeout);
 
 	litest_drain_events(li);
 
@@ -6961,11 +6970,6 @@ END_TEST
 
 TEST_COLLECTION(tablet)
 {
-	struct range with_timeout = { 0, 2 };
-	struct range xyaxes = { ABS_X, ABS_Y + 1 };
-	struct range tilt_cases = {TILT_MINIMUM, TILT_MAXIMUM + 1};
-	struct range vert_horiz = { -2, 2 };
-
 	litest_add(tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add(tool_user_data, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add(tool_capability, LITEST_TABLET, LITEST_ANY);
@@ -7014,7 +7018,11 @@ TEST_COLLECTION(tablet)
 	litest_add(tip_down_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add(tip_up_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add(tip_down_up_eraser, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	litest_add_ranged(tip_up_motion_one_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY, &xyaxes);
+	{
+		struct litest_parameters *params = litest_parameters_new("axis", 's', 2, "ABS_X", "ABS_Y");
+		litest_add_parametrized(tip_up_motion_one_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY, params);
+		litest_parameters_unref(params);
+	}
 	litest_add(tip_state_proximity, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add(tip_state_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add(tip_state_button, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
@@ -7026,7 +7034,11 @@ TEST_COLLECTION(tablet)
 	litest_add(tilt_not_available, LITEST_TABLET, LITEST_TILT);
 	litest_add(tilt_x, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
 	litest_add(tilt_y, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
-	litest_add_ranged(tilt_fixed_points, LITEST_TABLET|LITEST_TILT, LITEST_ANY, &tilt_cases);
+	{
+		struct litest_parameters *params = litest_parameters_new("tilt", 's', 3, "minimum", "maximum", "center");
+		litest_add_parametrized(tilt_fixed_points, LITEST_TABLET|LITEST_TILT, LITEST_ANY, params);
+		litest_parameters_unref(params);
+	}
 	litest_add(pad_buttons_ignored, LITEST_TABLET, LITEST_TOTEM);
 	litest_add_for_device(stylus_buttons, LITEST_WACOM_CINTIQ_PRO16_PEN);
 	litest_add(mouse_tool, LITEST_TABLET | LITEST_TOOL_MOUSE, LITEST_ANY);
@@ -7048,7 +7060,12 @@ TEST_COLLECTION(tablet)
 
 	litest_add(tablet_area_has_rectangle, LITEST_TABLET, LITEST_ANY);
 	litest_add(tablet_area_set_rectangle_invalid, LITEST_TABLET, LITEST_ANY);
-	litest_add_ranged(tablet_area_set_rectangle, LITEST_TABLET, LITEST_ANY, &vert_horiz);
+	{
+		struct litest_parameters *params = litest_parameters_new("axis", 's', 2, "vertical", "horizontal",
+									 "direction", 's', 2, "down", "up");
+		litest_add_parametrized(tablet_area_set_rectangle, LITEST_TABLET, LITEST_ANY, params);
+		litest_parameters_unref(params);
+	}
 	litest_add(tablet_area_set_rectangle_move_outside, LITEST_TABLET, LITEST_ANY);
 	litest_add(tablet_area_set_rectangle_move_outside_to_inside, LITEST_TABLET, LITEST_ANY);
 	litest_add(tablet_area_set_rectangle_move_in_margin, LITEST_TABLET, LITEST_ANY);
@@ -7095,25 +7112,37 @@ TEST_COLLECTION(tablet)
 
 	litest_add_for_device(huion_static_btn_tool_pen, LITEST_HUION_TABLET);
 	litest_add_for_device(huion_static_btn_tool_pen_no_timeout_during_usage, LITEST_HUION_TABLET);
-	litest_add_ranged_for_device(huion_static_btn_tool_pen_disable_quirk_on_prox_out, LITEST_HUION_TABLET, &with_timeout);
+
+	{
+		struct litest_parameters *params = litest_parameters_new("btn_tool_pen_timeout", 'b', 2, true, false);
+		litest_add_parametrized_for_device(huion_static_btn_tool_pen_disable_quirk_on_prox_out, LITEST_HUION_TABLET, params);
+		litest_parameters_unref(params);
+	}
 
 	litest_add_for_device(tablet_smoothing, LITEST_WACOM_HID4800_PEN);
 }
 
 TEST_COLLECTION(tablet_left_handed)
 {
-	struct range lh_transitions = {0, 16}; /* 2 bits for in, 2 bits for out */
-
 	litest_add_for_device(left_handed, LITEST_WACOM_INTUOS);
 	litest_add_for_device(left_handed_tilt, LITEST_WACOM_INTUOS);
 	litest_add_for_device(left_handed_mouse_rotation, LITEST_WACOM_INTUOS);
 	litest_add_for_device(left_handed_artpen_rotation, LITEST_WACOM_INTUOS);
 	litest_add_for_device(no_left_handed, LITEST_WACOM_CINTIQ);
 
-	litest_add_ranged(tablet_rotation_left_handed, LITEST_TABLET, LITEST_ANY, &lh_transitions);
-	litest_add_ranged(tablet_rotation_left_handed_configuration, LITEST_TABLET, LITEST_ANY, &lh_transitions);
-	litest_add_ranged(tablet_rotation_left_handed_while_in_prox, LITEST_TABLET, LITEST_ANY, &lh_transitions);
-	litest_add_ranged(tablet_rotation_left_handed_while_touch_down, LITEST_TABLET, LITEST_ANY, &lh_transitions);
-	litest_add_ranged(tablet_rotation_left_handed_add_touchpad, LITEST_TABLET, LITEST_ANY, &lh_transitions);
-	litest_add_ranged(tablet_rotation_left_handed_add_tablet, LITEST_TOUCHPAD, LITEST_ANY, &lh_transitions);
+	{
+		struct litest_parameters *params = litest_parameters_new("tablet_from", 'b', 2, true, false,
+									 "touch_from", 'b', 2, true, false,
+									 "tablet_to", 'b', 2, true, false,
+									 "touch_to", 'b', 2, true, false);
+		litest_add_parametrized(tablet_rotation_left_handed, LITEST_TABLET, LITEST_ANY, params);
+		litest_add_parametrized(tablet_rotation_left_handed_configuration, LITEST_TABLET, LITEST_ANY, params);
+		litest_add_parametrized(tablet_rotation_left_handed_while_in_prox, LITEST_TABLET, LITEST_ANY, params);
+		litest_add_parametrized(tablet_rotation_left_handed_while_touch_down, LITEST_TABLET, LITEST_ANY, params);
+		litest_add_parametrized(tablet_rotation_left_handed_add_touchpad, LITEST_TABLET, LITEST_ANY, params);
+		litest_add_parametrized(tablet_rotation_left_handed_add_tablet, LITEST_TOUCHPAD, LITEST_ANY, params);
+		litest_parameters_unref(params);
+	}
+
+
 }
