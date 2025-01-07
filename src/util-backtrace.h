@@ -30,8 +30,25 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+#include "util-macros.h"
+#include "util-strings.h"
+
+/**
+ * Print a backtrace for this process using gstack.
+ *
+ * If use_colors is true, highlight_after may specify
+ * a substring for a line after which the remaining backtrace is
+ * colored.
+ *
+ * If use_colors is true, highlight_before may specify
+ * a substring for a line before which the backtrace is
+ * colored.
+ */
 static inline void
-backtrace_print(FILE *fp)
+backtrace_print(FILE *fp,
+		bool use_colors,
+		const char *highlight_after,
+		const char *highlight_before)
 {
 #if HAVE_GSTACK
 	pid_t parent, child;
@@ -56,8 +73,7 @@ backtrace_print(FILE *fp)
 	}
 
 	/* parent */
-	char buf[1024];
-	int status, nread;
+	int status;
 
 	close(pipefd[1]);
 	waitpid(child, &status, 0);
@@ -66,14 +82,33 @@ backtrace_print(FILE *fp)
 	if (status != 0) {
 		fprintf(fp, "ERROR: gstack failed, no backtrace available: %s\n",
 			   strerror(status));
-	} else {
-		fprintf(fp, "\nBacktrace:\n");
-		while ((nread = read(pipefd[0], buf, sizeof(buf) - 1)) > 0) {
-			buf[nread] = '\0';
-			fprintf(stderr, "%s", buf);
-		}
-		fprintf(fp, "\n");
+		goto out;
 	}
+
+	char buf[2048] = {0};
+	fprintf(fp, "\nBacktrace:\n");
+	read(pipefd[0], buf, sizeof(buf) - 1);
+	if (!use_colors || (!highlight_after && !highlight_before)) {
+		fprintf(fp, "%s\n", buf);
+	} else {
+		size_t nlines;
+		char **lines = strv_from_string(buf, "\n", &nlines);
+		char **line = lines;
+		bool highlight = highlight_after == NULL;
+		while (line && *line) {
+			if (highlight && highlight_before && strstr(*line, highlight_before))
+				highlight = false;
+			fprintf(fp, "%s%s%s\n",
+				highlight ? ANSI_BRIGHT_CYAN : "",
+				*line,
+				highlight ? ANSI_NORMAL : "");
+			if (!highlight && highlight_after && strstr(*line, highlight_after))
+				highlight = true;
+			line++;
+		}
+		strv_free(lines);
+	}
+out:
 	close(pipefd[0]);
 #endif
 }

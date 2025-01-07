@@ -174,7 +174,7 @@ litest_backtrace(void)
 		return;
 	}
 
-	backtrace_print(stderr);
+	backtrace_print(stderr, use_colors, "in litest_backtrace", "in litest_runner_test_run");
 #endif
 }
 
