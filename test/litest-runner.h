@@ -107,6 +107,7 @@ struct litest_runner *litest_runner_new(void);
 void litest_runner_set_num_parallel(struct litest_runner *runner, size_t num_jobs);
 void litest_runner_set_timeout(struct litest_runner *runner, unsigned int timeout);
 void litest_runner_set_verbose(struct litest_runner *runner, bool verbose);
+void litest_runner_set_use_colors(struct litest_runner *runner, bool use_colors);
 void litest_runner_set_exit_on_fail(struct litest_runner *runner, bool do_exit);
 void litest_runner_set_output_file(struct litest_runner *runner, FILE *fp);
 void litest_runner_add_test(struct litest_runner *runner,

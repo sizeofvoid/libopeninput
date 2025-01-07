@@ -87,6 +87,7 @@ struct litest_runner {
 	size_t max_forks;
 	unsigned int timeout;
 	bool verbose;
+	bool use_colors;
 	bool exit_on_fail;
 	FILE *fp;
 
@@ -743,11 +744,10 @@ litest_runner_log_test_result(struct litest_runner *runner, struct litest_runner
 		(ms2s(t->times.end_millis - runner->times.start_millis)) % 60);
 
 	status = litest_runner_result_as_str(t->result);
-	bool is_tty = isatty(fileno(runner->fp));
 	fprintf(runner->fp, "    status: %s%s%s\n",
-		is_tty ? color : "",
+		runner->use_colors ? color : "",
 		&status[7], /* skip LITEST_ prefix */
-		is_tty ? ANSI_NORMAL : "");
+		runner->use_colors ? ANSI_NORMAL : "");
 
 	switch (t->result) {
 		case LITEST_PASS:
@@ -828,6 +828,13 @@ litest_runner_set_verbose(struct litest_runner *runner,
 			  bool verbose)
 {
 	runner->verbose = verbose;
+}
+
+void
+litest_runner_set_use_colors(struct litest_runner *runner,
+			     bool use_colors)
+{
+	runner->use_colors = use_colors;
 }
 
 void

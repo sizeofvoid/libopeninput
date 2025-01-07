@@ -88,6 +88,7 @@ static const char *filter_test = NULL;
 static const char *filter_device = NULL;
 static const char *filter_group = NULL;
 static int filter_rangeval = INT_MIN;
+static bool use_colors = false;
 
 struct param_filter {
 	char name[64];
@@ -153,7 +154,13 @@ _litest_checkpoint(const char *func,
 	va_start(args, format);
 	if (verbose) {
 		vsnprintf(buf, sizeof(buf), format, args);
-		fprintf(stderr, ANSI_BRIGHT_BLUE "%s():%d - " ANSI_BRIGHT_RED "%s" ANSI_NORMAL "\n", func, line, buf); \
+		fprintf(stderr,
+			"%s%s():%d - %s%s%s\n",
+			use_colors ? ANSI_BRIGHT_BLUE : "",
+			func, line,
+			use_colors ? ANSI_BRIGHT_RED : "",
+			buf,
+			use_colors ? ANSI_NORMAL : "");
 	}
 	va_end(args);
 }
@@ -1267,12 +1274,8 @@ litest_log_handler(struct libinput *libinput,
 		   const char *format,
 		   va_list args)
 {
-	static int is_tty = -1;
 	const char *priority = NULL;
 	const char *color;
-
-	if (is_tty == -1)
-		is_tty = isatty(STDERR_FILENO);
 
 	switch(pri) {
 	case LIBINPUT_LOG_PRIORITY_INFO:
@@ -1291,7 +1294,7 @@ litest_log_handler(struct libinput *libinput,
 		  abort();
 	}
 
-	if (!is_tty)
+	if (!use_colors)
 		color = "";
 	else if (strstr(format, "tap:"))
 		color = ANSI_BLUE;
@@ -1312,7 +1315,7 @@ litest_log_handler(struct libinput *libinput,
 
 	fprintf(stderr, "%slitest %s ", color, priority);
 	vfprintf(stderr, format, args);
-	if (is_tty)
+	if (use_colors)
 		fprintf(stderr, ANSI_NORMAL);
 
 	if (strstr(format, "client bug: ") ||
@@ -1508,6 +1511,7 @@ litest_run_suite(struct list *suites, int njobs)
 	if (outfile)
 		litest_runner_set_output_file(runner, outfile);
 	litest_runner_set_verbose(runner, verbose);
+	litest_runner_set_use_colors(runner, use_colors);
 	litest_runner_set_timeout(runner, 30);
 	litest_runner_set_exit_on_fail(runner, exit_first);
 	litest_runner_set_setup_funcs(runner, init_quirks, teardown_quirks, NULL);
@@ -5405,6 +5409,10 @@ main(int argc, char **argv)
 	enum litest_mode mode;
 	int rc;
 	const char *meson_testthreads;
+
+	use_colors = getenv("FORCE_COLOR") || isatty(STDERR_FILENO);
+	if (getenv("NO_COLOR"))
+		use_colors = false;
 
 	in_debugger = is_debugger_attached();
 	if (in_debugger) {
