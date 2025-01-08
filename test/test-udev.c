@@ -487,7 +487,7 @@ START_TEST(udev_device_sysname)
 		litest_assert_notnull(sysname);
 		litest_assert_int_gt(strlen(sysname), 1U);
 		litest_assert(strchr(sysname, '/') == NULL);
-		litest_assert(strneq(sysname, "event", 5));
+		litest_assert(strstartswith(sysname, "event"));
 		libinput_event_destroy(ev);
 	}
 

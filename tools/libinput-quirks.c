@@ -199,7 +199,7 @@ main(int argc, char **argv)
 		goto out;
 
 	path = argv[optind];
-	if (strneq(path, "/sys/", 5)) {
+	if (strstartswith(path, "/sys/")) {
 		device = udev_device_new_from_syspath(udev, path);
 	} else {
 		struct stat st;

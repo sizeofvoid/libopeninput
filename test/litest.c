@@ -1356,7 +1356,7 @@ litest_init_device_udev_rules(struct litest_test_device *dev, FILE *f)
 	kv = dev->udev_properties;
 	while (kv->key) {
 		fprintf(f, ", \\\n\tENV{%s}=\"%s\"", kv->key, kv->value);
-		if (strneq(kv->key, "EVDEV_ABS_", 10))
+		if (strstartswith(kv->key, "EVDEV_ABS_"))
 			need_keyboard_builtin = true;
 		kv++;
 	}
@@ -1423,7 +1423,7 @@ open_restricted(const char *path, int flags, void *userdata)
 	if (fd < 0)
 		return -errno;
 
-	if (strneq(path, prefix, strlen(prefix))) {
+	if (strstartswith(path, prefix)) {
 		p = zalloc(sizeof *p);
 		p->path = safe_strdup(path);
 		p->fd = fd;
@@ -2298,7 +2298,7 @@ udev_wait_for_device_event(struct udev_monitor *udev_monitor,
 		}
 
 		udev_syspath = udev_device_get_syspath(udev_device);
-		if (udev_syspath && strstartswith(udev_syspath, syspath))
+		if (strstartswith(udev_syspath, syspath))
 			break;
 
 		udev_device_unref(udev_device);

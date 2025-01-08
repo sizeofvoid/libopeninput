@@ -531,7 +531,7 @@ section_destroy(struct section *s)
 static inline bool
 parse_hex(const char *value, unsigned int *parsed)
 {
-	return strneq(value, "0x", 2) &&
+	return strstartswith(value, "0x") &&
 	       safe_atou_base(value, parsed, 16) &&
 	       strspn(value, "0123456789xABCDEF") == strlen(value) &&
 	       *parsed <= 0xFFFF;
@@ -622,7 +622,7 @@ parse_match(struct quirks_context *ctx,
 		s->match.version = version;
 	} else if (streq(key, "MatchDMIModalias")) {
 		check_set_bit(s, M_DMI);
-		if (!strneq(value, "dmi:", 4)) {
+		if (!strstartswith(value, "dmi:")) {
 			qlog_parser(ctx,
 				    "%s: MatchDMIModalias must start with 'dmi:'\n",
 				    s->name);
@@ -680,7 +680,7 @@ parse_model(struct quirks_context *ctx,
 	bool b;
 	enum quirk q = QUIRK_MODEL_ALPS_SERIAL_TOUCHPAD;
 
-	assert(strneq(key, "Model", 5));
+	assert(strstartswith(key, "Model"));
 
 	if (!parse_boolean_property(value, &b))
 		return false;
@@ -918,11 +918,11 @@ parse_value_line(struct quirks_context *ctx, struct section *s, const char *line
 	if (value[0] == '"' || value[0] == '\'')
 		goto out;
 
-	if (strneq(key, "Match", 5))
+	if (strstartswith(key, "Match"))
 		rc = parse_match(ctx, s, key, value);
-	else if (strneq(key, "Model", 5))
+	else if (strstartswith(key, "Model"))
 		rc = parse_model(ctx, s, key, value);
-	else if (strneq(key, "Attr", 4))
+	else if (strstartswith(key, "Attr"))
 		rc = parse_attr(ctx, s, key, value);
 	else
 		qlog_error(ctx, "Unknown value prefix %s\n", line);
@@ -1050,7 +1050,7 @@ parse_file(struct quirks_context *ctx, const char *path)
 					  path, lineno, line);
 				goto out;
 			case STATE_MATCH:
-				if (!strneq(line, "Match", 5)) {
+				if (!strstartswith(line, "Match")) {
 					qlog_parser(ctx, "%s:%d: expected MatchFoo=bar, have %s\n",
 							 path, lineno, line);
 					goto out;
@@ -1058,11 +1058,11 @@ parse_file(struct quirks_context *ctx, const char *path)
 				state = STATE_MATCH_OR_VALUE;
 				break;
 			case STATE_MATCH_OR_VALUE:
-				if (!strneq(line, "Match", 5))
+				if (!strstartswith(line, "Match"))
 					state = STATE_VALUE_OR_SECTION;
 				break;
 			case STATE_VALUE_OR_SECTION:
-				if (strneq(line, "Match", 5)) {
+				if (strstartswith(line, "Match")) {
 					qlog_parser(ctx, "%s:%d: expected value or [Section], have %s\n",
 							 path, lineno, line);
 					goto out;

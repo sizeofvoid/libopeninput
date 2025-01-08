@@ -1365,9 +1365,9 @@ print_system_header(FILE *fp)
 		while (fgets(osrstr, sizeof(osrstr), osrelease)) {
 			osrstr[strlen(osrstr) - 1] = '\0'; /* linebreak */
 
-			if (!distro && strneq(osrstr, "ID=", 3))
+			if (!distro && strstartswith(osrstr, "ID="))
 				distro = strstrip(&osrstr[3], "\"'");
-			else if (!version && strneq(osrstr, "VERSION_ID=", 11))
+			else if (!version && strstartswith(osrstr, "VERSION_ID="))
 				version = strstrip(&osrstr[11], "\"'");
 
 			if (distro && version) {
@@ -1746,11 +1746,11 @@ print_udev_properties(struct record_device *dev)
 
 		key = udev_list_entry_get_name(entry);
 
-		if (strneq(key, "ID_INPUT", 8) ||
-		    strneq(key, "LIBINPUT", 8) ||
-		    strneq(key, "EVDEV_ABS", 9) ||
-		    strneq(key, "MOUSE_DPI", 9) ||
-		    strneq(key, "POINTINGSTICK_", 14)) {
+		if (strstartswith(key, "ID_INPUT") ||
+		    strstartswith(key, "LIBINPUT") ||
+		    strstartswith(key, "EVDEV_ABS") ||
+		    strstartswith(key, "MOUSE_DPI") ||
+		    strstartswith(key, "POINTINGSTICK_")) {
 			value = udev_list_entry_get_value(entry);
 			iprintf(dev->fp, I_UDEV_DATA, "- %s=%s\n", key, value);
 		}
@@ -1899,7 +1899,7 @@ print_device_description(struct record_device *dev)
 }
 
 static int is_event_node(const struct dirent *dir) {
-	return strneq(dir->d_name, "event", 5);
+	return strstartswith(dir->d_name, "event");
 }
 
 static char *
@@ -2599,7 +2599,7 @@ is_char_dev(const char *path)
 {
 	struct stat st;
 
-	if (strneq(path, "/dev", 4))
+	if (strstartswith(path, "/dev"))
 		return F_DEVICE;
 
 	if (stat(path, &st) != 0) {

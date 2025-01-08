@@ -665,7 +665,7 @@ find_device(const char *udev_tag)
 			continue;
 
 		sysname = udev_device_get_sysname(device);
-		if (!strneq("event", sysname, 5)) {
+		if (!strstartswith("event", sysname)) {
 			udev_device_unref(device);
 			continue;
 		}

@@ -305,7 +305,7 @@ parse_evcode_string(const char *s, int *type_out, int *code_out)
 {
 	int type, code;
 
-	if (strneq(s, "EV_", 3)) {
+	if (strstartswith(s, "EV_")) {
 		type = libevdev_event_type_from_name(s);
 		if (type == -1)
 			return false;

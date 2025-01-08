@@ -1695,8 +1695,8 @@ START_TEST(device_button_down_remove)
 
 		keyname = libevdev_event_code_get_name(EV_KEY, code);
 		if (!keyname ||
-		    !strneq(keyname, "BTN_", 4) ||
-		    strneq(keyname, "BTN_TOOL_", 9))
+		    !strstartswith(keyname, "BTN_") ||
+		    strstartswith(keyname, "BTN_TOOL_"))
 			continue;
 
 		if (!libevdev_has_event_code(lidev->evdev, EV_KEY, code))

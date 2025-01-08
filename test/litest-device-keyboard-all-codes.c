@@ -57,7 +57,7 @@ all_codes_create(struct litest_device *d)
 	for (idx = 0, code = 0; code < KEY_MAX; code++) {
 		const char *name = libevdev_event_code_get_name(EV_KEY, code);
 
-		if (name && strneq(name, "BTN_", 4))
+		if (strstartswith(name, "BTN_"))
 			continue;
 
 		events[idx++] = EV_KEY;

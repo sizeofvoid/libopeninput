@@ -342,7 +342,7 @@ START_TEST(keyboard_no_buttons)
 			continue;
 
 		name = libevdev_event_code_get_name(EV_KEY, code);
-		if (!name || !strneq(name, "KEY_", 4))
+		if (!strstartswith(name, "KEY_"))
 			continue;
 
 		litest_keyboard_key(dev, code, true);
