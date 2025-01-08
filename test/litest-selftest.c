@@ -483,7 +483,7 @@ START_TEST(parameter_permutations)
 	};
 	struct litest_parameters *params = litest_parameters_new("first", 'i', 3, 1, 2, 3,
 								 "second", 's', 3, "a", "ab", "abc",
-								 "third", 'b', 2, true, false,
+								 "third", 'b',
 								 NULL);
 
 	litest_parameters_permutations(params, permutation_func, permutations);

@@ -481,44 +481,44 @@ _litest_parameters_new(const char *name, ...) {
 
 	while (name) {
 		char type = va_arg(args, int);
-		unsigned int nargs = va_arg(args, unsigned int);
 
 		struct litest_parameter *param = litest_parameter_new(name, type);
-		for (unsigned int _ = 0; _ < nargs; _++) {
-			switch (type) {
-			case 'b': {
-				bool b = va_arg(args, int);
-				litest_parameter_add_bool(param, b);
-				break;
-			}
-			case 'c': {
-				char b = va_arg(args, int);
-				litest_parameter_add_char(param, b);
-				break;
-			}
-			case 'u': {
-				uint32_t b = va_arg(args, uint32_t);
-				litest_parameter_add_u32(param, b);
-				break;
-			}
-			case 'i': {
-				int32_t b = va_arg(args, int32_t);
-				litest_parameter_add_i32(param, b);
-				break;
-			}
-			case 'd': {
-				double b = va_arg(args, double);
-				litest_parameter_add_double(param, b);
-				break;
-			}
-			case 's': {
-				const char *s = va_arg(args, const char *);
-				litest_parameter_add_string(param, s);
-				break;
-			}
-			default:
-				abort();
-				break;
+		if (type == 'b') {
+			litest_parameter_add_bool(param, true);
+			litest_parameter_add_bool(param, false);
+		} else {
+			unsigned int nargs = va_arg(args, unsigned int);
+			for (unsigned int _ = 0; _ < nargs; _++) {
+				switch (type) {
+				case 'c': {
+					char b = va_arg(args, int);
+					litest_parameter_add_char(param, b);
+					break;
+				}
+				case 'u': {
+					uint32_t b = va_arg(args, uint32_t);
+					litest_parameter_add_u32(param, b);
+					break;
+				}
+				case 'i': {
+					int32_t b = va_arg(args, int32_t);
+					litest_parameter_add_i32(param, b);
+					break;
+				}
+				case 'd': {
+					double b = va_arg(args, double);
+					litest_parameter_add_double(param, b);
+					break;
+				}
+				case 's': {
+					const char *s = va_arg(args, const char *);
+					litest_parameter_add_string(param, s);
+					break;
+				}
+				default:
+					abort();
+					break;
+				}
 			}
 		}
 

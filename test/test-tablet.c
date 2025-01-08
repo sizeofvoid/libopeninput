@@ -7201,7 +7201,7 @@ TEST_COLLECTION(tablet)
 	litest_add_for_device(huion_static_btn_tool_pen_no_timeout_during_usage, LITEST_HUION_TABLET);
 
 	{
-		struct litest_parameters *params = litest_parameters_new("btn_tool_pen_timeout", 'b', 2, true, false);
+		struct litest_parameters *params = litest_parameters_new("btn_tool_pen_timeout", 'b');
 		litest_add_parametrized_for_device(huion_static_btn_tool_pen_disable_quirk_on_prox_out, LITEST_HUION_TABLET, params);
 		litest_parameters_unref(params);
 	}
@@ -7218,10 +7218,10 @@ TEST_COLLECTION(tablet_left_handed)
 	litest_add_for_device(no_left_handed, LITEST_WACOM_CINTIQ);
 
 	{
-		struct litest_parameters *params = litest_parameters_new("tablet_from", 'b', 2, true, false,
-									 "touch_from", 'b', 2, true, false,
-									 "tablet_to", 'b', 2, true, false,
-									 "touch_to", 'b', 2, true, false);
+		struct litest_parameters *params = litest_parameters_new("tablet_from", 'b',
+									 "touch_from", 'b',
+									 "tablet_to", 'b',
+									 "touch_to", 'b');
 		litest_add_parametrized(tablet_rotation_left_handed, LITEST_TABLET, LITEST_ANY, params);
 		litest_add_parametrized(tablet_rotation_left_handed_configuration, LITEST_TABLET, LITEST_ANY, params);
 		litest_add_parametrized(tablet_rotation_left_handed_while_in_prox, LITEST_TABLET, LITEST_ANY, params);
