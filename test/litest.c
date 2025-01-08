@@ -770,10 +770,9 @@ permutation_func(struct litest_parameters_permutation *permutation, void *userda
 
 	struct litest_test_parameters *params = litest_test_parameters_new();
 	struct litest_parameters_permutation_value *pmv;
-	bool all_filtered = true;
+	bool filtered = false;
 	list_for_each(pmv, &permutation->values, link) {
 		const struct param_filter *f = data->param_filters;
-		bool filtered = false;
 		while (!filtered && strlen(f->name)) {
 			if (streq(pmv->name, f->name)) {
 				char *s = multivalue_as_str(&pmv->value);
@@ -783,18 +782,20 @@ permutation_func(struct litest_parameters_permutation *permutation, void *userda
 			}
 			f++;
 		}
-		if (!filtered) {
-			struct litest_test_param *tp = zalloc(sizeof *tp);
-			snprintf(tp->name, sizeof(tp->name), "%s", pmv->name);
-			tp->value = multivalue_copy(&pmv->value);
-			list_append(&params->test_params, &tp->link);
 
-			all_filtered = false;
-		}
+		if (filtered)
+			break;
+
+		struct litest_test_param *tp = zalloc(sizeof *tp);
+		snprintf(tp->name, sizeof(tp->name), "%s", pmv->name);
+		tp->value = multivalue_copy(&pmv->value);
+		list_append(&params->test_params, &tp->link);
 	}
 
-	if (all_filtered)
+	if (filtered) {
+		litest_test_parameters_unref(params);
 		return 0;
+	}
 
 	struct test *t;
 
