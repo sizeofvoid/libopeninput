@@ -301,7 +301,7 @@ pre-commit-hooks:
 
 
 # Run meson and meson test in the container image through qemu
-.build-in-b2c@template:
+.build-in-vng@template:
   extends:
     - .policy
     - .default_artifacts
@@ -309,19 +309,25 @@ pre-commit-hooks:
     - kvm
   variables:
     MESON_BUILDDIR: build_dir
-    B2C_KERNEL: {{ b2c.kernel }}
-    B2C_IMAGE: $FDO_DISTRIBUTION_IMAGE
-    B2C_COMMAND: .gitlab-ci/start-in-systemd.sh
+    VNG_KERNEL: {{ vng.kernel }}
   script:
     # first build in the host container
     - .gitlab-ci/meson-build.sh --skip-test
 
-    # pull b2c
-    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/gfx-ci/boot2container/-/raw/{{b2c.version}}/vm2c.py
-    - chmod +x /app/boot2container
+    - mkdir -p $MESON_BUILDDIR
+    - curl -LO $VNG_KERNEL
+
+    - export -p > .vngenv
 
     # runs the test suite only
-    - /app/boot2container
+    - |
+      vng --run ./bzImage \
+          --user root \
+          --overlay-rwdir=$HOME \
+          --append HOME=$HOME \
+          --overlay-rwdir=$(pwd) \
+          --rwdir=$MESON_BUILDDIR \
+          --exec "source $PWD/.vngenv; rm $PWD/.vngenv; .gitlab-ci/meson-build.sh --skip-setup --skip-build --run-test"
 
 #
 # Fedora
@@ -386,7 +392,7 @@ pre-commit-hooks:
 # Set one or the other, not both.
 .test-suite-vm:
   extends:
-    - .build-in-b2c@template
+    - .build-in-vng@template
   stage: test-suite
   variables:
     # remove the global --no-suite=hardware

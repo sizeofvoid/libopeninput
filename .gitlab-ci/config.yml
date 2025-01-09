@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2025-05-09.2'
+.default_tag: &default_tag '2025-05-14.1'
 
 distributions:
   - name: fedora
@@ -49,6 +49,7 @@ distributions:
       - jq
       - python3-click
       - python3-rich
+      - virtme-ng
   - name: debian
     tag: *default_tag
     versions:
@@ -220,6 +221,5 @@ test_suites:
     suites:
       - pointer
 
-b2c:
-  version: 24beb454c62fe59143d7ceb4f5a7d25a3c029559
-  kernel: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v6.5/bzImage
+vng:
+  kernel: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v6.14/bzImage
