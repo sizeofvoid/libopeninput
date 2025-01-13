@@ -150,8 +150,8 @@ struct libinput_event_touch;
  *
  * Tablet tool event representing an axis update, button press, or tool
  * update. Valid event types for this event are @ref
- * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
- * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY and @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, and @ref
  * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
  * @since 1.2
@@ -164,9 +164,9 @@ struct libinput_event_tablet_tool;
  *
  * Tablet pad event representing a button press, or ring/strip update on
  * the tablet pad itself. Valid event types for this event are @ref
- * LIBINPUT_EVENT_TABLET_PAD_BUTTON, @ref LIBINPUT_EVENT_TABLET_PAD_DIAL,
- * @ref LIBINPUT_EVENT_TABLET_PAD_RING and
- * @ref LIBINPUT_EVENT_TABLET_PAD_STRIP.
+ * LIBINPUT_EVENT_TABLET_PAD_BUTTON, @ref LIBINPUT_EVENT_TABLET_PAD_RING,
+ * @ref LIBINPUT_EVENT_TABLET_PAD_STRIP, @ref LIBINPUT_EVENT_TABLET_PAD_KEY
+ * and @ref LIBINPUT_EVENT_TABLET_PAD_DIAL.
  *
  * @since 1.3
  */
