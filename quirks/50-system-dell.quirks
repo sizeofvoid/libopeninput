@@ -153,3 +153,15 @@ MatchBus=i2c
 MatchVendor=0x06CB
 MatchProduct=0xCFF9
 ModelPressurePad=1
+
+[Dell laptop 14 Goodix touchpad]
+MatchBus=i2c
+MatchVendor=0x27C6
+MatchProduct=0x0F61
+ModelPressurePad=1
+
+[Dell laptop 16 Goodix touchpad]
+MatchBus=i2c
+MatchVendor=0x27C6
+MatchProduct=0x0F62
+ModelPressurePad=1
