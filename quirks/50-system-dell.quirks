@@ -141,3 +141,15 @@ MatchProduct=0x1063
 MatchUdevType=touchpad
 MatchDMIModalias=dmi:*svnDellInc.:pnPrecision5480*
 ModelTouchpadVisibleMarker=0
+
+[Dell laptop 14 Synaptics touchpad]
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xCFF8
+ModelPressurePad=1
+
+[Dell laptop 16 Synaptics touchpad]
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xCFF9
+ModelPressurePad=1
