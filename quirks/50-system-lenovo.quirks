@@ -391,3 +391,9 @@ MatchName=*GXTP5100*
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook14G6+IMH*:*
 MatchUdevType=touchpad
 ModelPressurePad=1
+
+# Lenovo Yoga Slim 7i Carbon sends bogus ABS_MT_TOOL_TYPE MT_TOOL_PALM events
+[Lenovo Yoga Slim 7i Carbon]
+MatchName=* Touchpad
+MatchDMIModalias=dmi:*:svnLENOVO:*pvrYogaSlim7Carbon13IAP7:*
+AttrEventCode=-ABS_MT_TOOL_TYPE
