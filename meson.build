@@ -184,6 +184,10 @@ if have_libwacom
 				dependencies : dep_libwacom)
 		config_h.set('HAVE_LIBWACOM_BUTTON_DIAL_MODESWITCH', '1')
 	endif
+	if cc.has_function('libwacom_get_button_modeswitch_mode',
+			   dependencies: dep_libwacom)
+		config_h.set('HAVE_LIBWACOM_BUTTON_MODESWITCH_MODE', '1')
+	endif
 else
 	dep_libwacom = declare_dependency()
 endif

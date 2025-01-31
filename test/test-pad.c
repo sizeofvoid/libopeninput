@@ -383,12 +383,24 @@ START_TEST(pad_button_mode_groups)
 		pev = libinput_event_get_tablet_pad_event(ev);
 
 		group = libinput_event_tablet_pad_get_mode_group(pev);
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM_BUTTON_MODESWITCH_MODE
+		/* One of the few devices that has very specific mode switch buttons
+		 * so we hardcode these here in the test */
+		if (dev->which == LITEST_WACOM_MOBILESTUDIO_PRO_16_PAD) {
+			switch (code) {
+			case BTN_9: expected_mode = 0; break;
+			case BTN_A: expected_mode = 1; break;
+			case BTN_B: expected_mode = 2; break;
+			case BTN_C: expected_mode = 3; break;
+			default:
+				break;
+			}
+		} else
+#endif
 		if (libinput_tablet_pad_mode_group_button_is_toggle(group, b)) {
 			int num_modes = libinput_tablet_pad_mode_group_get_num_modes(group);
 			expected_mode = (expected_mode + 1) % num_modes;
 		}
-#endif
 		mode = libinput_event_tablet_pad_get_mode(pev);
 		litest_assert_int_eq(mode, expected_mode);
 
