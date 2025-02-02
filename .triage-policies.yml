@@ -62,6 +62,53 @@
       In short, to resolve this issue or get this merge request into libinput
       help is needed.
 
+.libinput_record: &libinput_record
+  name: "Request libinput record output"
+  conditions:
+    labels:
+      - "bugbot::libinput-record"
+  actions:
+    remove_labels:
+      - "bugbot::libinput-record"
+    comment: |
+      Looks like we may need some extra information. Please **attach** (do not paste) the full output
+      of `libinput record` and `libinput debug-events --verbose` (if you haven't yet).
+      The [documentation](https://wayland.freedesktop.org/libinput/doc/latest/tools.html#libinput-record-and-libinput-replay)
+      has some information on what we're looking for to be able to triage bugs.
+
+.hid_recorder: &hid_recorder
+  name: "Request hid-recorder output"
+  conditions:
+    labels:
+      - "bugbot::hid-recorder"
+  actions:
+    remove_labels:
+      - "bugbot::hid-recorder"
+    comment: |
+      Looks like we may need some extra information that isn't yet available in this issue.
+      Please **attach** (do not paste) the output of [`hid-recorder`](https://github.com/hidutils/hid-recorder/)
+      for this device (run `sudo hid-recorder` without argument and it will let you pick the device).
+      This should show the data the kernel receives from the device and may provide a hint on what's going on here.
+
+.udev_hid_bpf: &udev_hid_bpf
+  name: "Punt to udev-hid-bpf"
+  conditions:
+    labels:
+      - "bugbot::udev-hid-bpf"
+  actions:
+    remove_labels:
+      - "bugbot::udev-hid-bpf"
+    comment: |
+      This issue looks like it could or should be fixed with [udev-hid-bpf](https://gitlab.freedesktop.org/libevdev/udev-hid-bpf/).
+      udev-hid-bpf is a collection of BPF programs that modify the HID Report Descriptor and/or HID Reports from the device,
+      making it possible to change the properties of a device and/or the events to make them compatible with the
+      expectations the kernel and userspace has of such devices.
+
+      Please see the [udev-hid-bpf documentation](https://libevdev.pages.freedesktop.org/udev-hid-bpf/) for details
+      and/or in particular the [udev-hid-bpf tutorial](https://libevdev.pages.freedesktop.org/udev-hid-bpf/tutorial.html)
+      if you need to enable a new device.
+    status: "close"
+
 resource_rules:
   issues:
     rules:
@@ -80,47 +127,6 @@ resource_rules:
             to continue discussing the issue here.
 
             Kernel bugs are usually best sent to the [`linux-input` list](https://lore.kernel.org/linux-input/).
-          status: "close"
-      - name: "Request hid-recorder output"
-        conditions:
-          labels:
-            - "bugbot::hid-recorder"
-        actions:
-          remove_labels:
-            - "bugbot::hid-recorder"
-          comment: |
-            Looks like we may need some extra information that isn't yet available in this issue.
-            Please **attach** (do not paste) the output of [`hid-recorder`](https://github.com/hidutils/hid-recorder/)
-            for this device (run `sudo hid-recorder` without argument and it will let you pick the device).
-            This should show the data the kernel receives from the device and may provide a hint on what's going on here.
-      - name: "Request libinput record output"
-        conditions:
-          labels:
-            - "bugbot::libinput-record"
-        actions:
-          remove_labels:
-            - "bugbot::libinput-record"
-          comment: |
-            Looks like we may need some extra information. Please **attach** (do not paste) the full output
-            of `libinput record` and `libinput debug-events --verbose` (if you haven't yet).
-            The [documentation](https://wayland.freedesktop.org/libinput/doc/latest/tools.html#libinput-record-and-libinput-replay)
-            has some information on what we're looking for to be able to triage bugs.
-      - name: "Punt to udev-hid-bpf"
-        conditions:
-          labels:
-            - "bugbot::udev-hid-bpf"
-        actions:
-          remove_labels:
-            - "bugbot::udev-hid-bpf"
-          comment: |
-            This issue looks like it could or should be fixed with [udev-hid-bpf](https://gitlab.freedesktop.org/libevdev/udev-hid-bpf/).
-            udev-hid-bpf is a collection of BPF programs that modify the HID Report Descriptor and/or HID Reports from the device,
-            making it possible to change the properties of a device and/or the events to make them compatible with the
-            expectations the kernel and userspace has of such devices.
-
-            Please see the [udev-hid-bpf documentation](https://libevdev.pages.freedesktop.org/udev-hid-bpf/) for details
-            and/or in particular the [udev-hid-bpf tutorial](https://libevdev.pages.freedesktop.org/udev-hid-bpf/tutorial.html)
-            if you need to enable a new device.
           status: "close"
       - name: "Expect a merge request"
         conditions:
@@ -177,6 +183,9 @@ resource_rules:
             For a detailed explanation on the how and why of this process please see
             the [Closed Issues wiki page](https://gitlab.freedesktop.org/libinput/libinput/-/wikis/Closed-Issues).
           status: "close"
+      - *udev_hid_bpf
+      - *libinput_record
+      - *hid_recorder
       - *close_needinfo
       - *remind_needinfo
       - *help_needed
@@ -217,6 +226,9 @@ resource_rules:
 
             Please see [our docs for submitting code](https://wayland.freedesktop.org/libinput/doc/latest/contributing.html#submitting-code)
             that explain how to amend and force-push to this repo.
+      - *udev_hid_bpf
+      - *libinput_record
+      - *hid_recorder
       - *close_needinfo
       - *remind_needinfo
       - *help_needed
