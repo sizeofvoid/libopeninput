@@ -75,10 +75,19 @@ AttrPalmSizeThreshold=900
 AttrThumbSizeThreshold=800
 AttrPalmPressureThreshold=190
 
-[Apple Magic Trackpad v2 USB C or Bluetooth (2024)]
+[Apple Magic Trackpad v2 Bluetooth (2024)]
 MatchVendor=0x004C
 MatchProduct=0x0324
 AttrSizeHint=162x115
+AttrTouchSizeRange=20:10
+AttrPressureRange=3:0
+AttrPalmSizeThreshold=900
+AttrThumbSizeThreshold=700
+
+[Apple Magic Trackpad v2 USB-C (2024)]
+MatchBus=usb
+MatchVendor=0x05AC
+MatchProduct=0x0324
 AttrTouchSizeRange=20:10
 AttrPressureRange=3:0
 AttrPalmSizeThreshold=900
