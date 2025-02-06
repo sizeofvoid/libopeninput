@@ -142,28 +142,46 @@ pad_process_relative(struct pad_dispatch *pad,
 }
 
 static void
+pad_update_changed_axis(struct pad_dispatch *pad,
+			enum pad_axes axis,
+			const struct input_event *e)
+{
+	if (pad->changed_axes & axis) {
+		evdev_log_bug_kernel_ratelimit(pad->device,
+					       &pad->duplicate_abs_limit,
+					       "Multiple EV_ABS %s events in the same SYN_REPORT\n",
+					       libevdev_event_code_get_name(EV_ABS, e->code));
+
+		/* Special heuristics probably good enough:
+		 * if we get multiple EV_ABS in the same SYN_REPORT
+		 * and one of them is zero, assume they're all
+		 * zero and unchanged. That's not perfectly
+		 * correct but probably covers all cases */
+		if (e->value == 0) {
+			pad->changed_axes &= ~axis;
+			if (pad->changed_axes == 0)
+				pad_unset_status(pad, PAD_AXES_UPDATED);
+			return;
+		}
+	}
+
+	pad->changed_axes |= axis;
+	pad_set_status(pad, PAD_AXES_UPDATED);
+}
+
+static void
 pad_process_absolute(struct pad_dispatch *pad,
 		     struct evdev_device *device,
 		     struct input_event *e,
 		     uint64_t time)
 {
+	enum pad_axes axis = PAD_AXIS_NONE;
+
 	switch (e->code) {
-	case ABS_WHEEL:
-		pad->changed_axes |= PAD_AXIS_RING1;
-		pad_set_status(pad, PAD_AXES_UPDATED);
-		break;
-	case ABS_THROTTLE:
-		pad->changed_axes |= PAD_AXIS_RING2;
-		pad_set_status(pad, PAD_AXES_UPDATED);
-		break;
-	case ABS_RX:
-		pad->changed_axes |= PAD_AXIS_STRIP1;
-		pad_set_status(pad, PAD_AXES_UPDATED);
-		break;
-	case ABS_RY:
-		pad->changed_axes |= PAD_AXIS_STRIP2;
-		pad_set_status(pad, PAD_AXES_UPDATED);
-		break;
+	case ABS_WHEEL:		axis = PAD_AXIS_RING1; break;
+	case ABS_THROTTLE:	axis = PAD_AXIS_RING2; break;
+	case ABS_RX:		axis = PAD_AXIS_STRIP1; break;
+	case ABS_RY:		axis = PAD_AXIS_STRIP2; break;
 	case ABS_MISC:
 		/* The wacom driver always sends a 0 axis event on finger
 		   up, but we also get an ABS_MISC 15 on touch down and
@@ -186,6 +204,10 @@ pad_process_absolute(struct pad_dispatch *pad,
 			       "Unhandled EV_ABS event code %#x\n",
 			       e->code);
 		break;
+	}
+
+	if (axis != PAD_AXIS_NONE) {
+		pad_update_changed_axis(pad, axis, e);
 	}
 }
 
@@ -799,6 +821,9 @@ pad_init(struct pad_dispatch *pad, struct evdev_device *device)
 	pad_init_left_handed(device, wacom);
 
 	rc = pad_init_leds(pad, device, wacom);
+
+	/* at most 5 "Multiple EV_ABS events" log messages per hour */
+	ratelimit_init(&pad->duplicate_abs_limit, s2us(60 * 60), 5);
 
 #if HAVE_LIBWACOM
 	if (wacom)

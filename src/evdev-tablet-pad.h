@@ -93,6 +93,8 @@ struct pad_dispatch {
 	struct {
 		struct list mode_group_list;
 	} modes;
+
+	struct ratelimit duplicate_abs_limit;
 };
 
 static inline struct pad_dispatch*
