@@ -39,7 +39,7 @@ enum hold_gesture_behaviour {
 };
 
 static void
-test_gesture_swipe_3fg(int cardinal, enum hold_gesture_behaviour hold)
+test_gesture_swipe_3fg(enum cardinal cardinal, enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -150,7 +150,7 @@ test_gesture_swipe_3fg(int cardinal, enum hold_gesture_behaviour hold)
 }
 
 static void
-test_gesture_swipe_4fg(int cardinal, enum hold_gesture_behaviour hold)
+test_gesture_swipe_4fg(enum cardinal cardinal, enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -288,7 +288,7 @@ test_gesture_swipe_4fg(int cardinal, enum hold_gesture_behaviour hold)
 }
 
 static void
-test_gesture_pinch_2fg(int cardinal, enum hold_gesture_behaviour hold)
+test_gesture_pinch_2fg(enum cardinal cardinal, enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -411,7 +411,7 @@ test_gesture_pinch_2fg(int cardinal, enum hold_gesture_behaviour hold)
 }
 
 static void
-test_gesture_pinch_3fg(int cardinal, enum hold_gesture_behaviour hold)
+test_gesture_pinch_3fg(enum cardinal cardinal, enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -526,7 +526,7 @@ test_gesture_pinch_3fg(int cardinal, enum hold_gesture_behaviour hold)
 }
 
 static void
-test_gesture_pinch_4fg(int cardinal, enum hold_gesture_behaviour hold)
+test_gesture_pinch_4fg(enum cardinal cardinal, enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -648,7 +648,7 @@ test_gesture_pinch_4fg(int cardinal, enum hold_gesture_behaviour hold)
 }
 
 static void
-test_gesture_spread(int cardinal, enum hold_gesture_behaviour hold)
+test_gesture_spread(enum cardinal cardinal, enum hold_gesture_behaviour hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
@@ -946,7 +946,7 @@ END_TEST
 
 START_TEST(gestures_swipe_3fg)
 {
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	test_gesture_swipe_3fg(cardinal, HOLD_GESTURE_IGNORE);
 }
 END_TEST
@@ -958,7 +958,7 @@ START_TEST(gestures_swipe_3fg_btntool)
 	struct libinput_event *event;
 	struct libinput_event_gesture *gevent;
 	double dx, dy;
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	double dir_x, dir_y;
 	int cardinals[NCARDINALS][2] = {
 		{ 0, 30 },
@@ -1106,7 +1106,7 @@ END_TEST
 
 START_TEST(gestures_swipe_4fg)
 {
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	test_gesture_swipe_4fg(cardinal, HOLD_GESTURE_IGNORE);
 }
 END_TEST
@@ -1118,7 +1118,7 @@ START_TEST(gestures_swipe_4fg_btntool)
 	struct libinput_event *event;
 	struct libinput_event_gesture *gevent;
 	double dx, dy;
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	double dir_x, dir_y;
 	int cardinals[NCARDINALS][2] = {
 		{ 0, 30 },
@@ -1216,28 +1216,28 @@ END_TEST
 
 START_TEST(gestures_pinch)
 {
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	test_gesture_pinch_2fg(cardinal, HOLD_GESTURE_IGNORE);
 }
 END_TEST
 
 START_TEST(gestures_pinch_3fg)
 {
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	test_gesture_pinch_3fg(cardinal, HOLD_GESTURE_IGNORE);
 }
 END_TEST
 
 START_TEST(gestures_pinch_4fg)
 {
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	test_gesture_pinch_4fg(cardinal, HOLD_GESTURE_IGNORE);
 }
 END_TEST
 
 START_TEST(gestures_spread)
 {
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	test_gesture_spread(cardinal, HOLD_GESTURE_IGNORE);
 }
 END_TEST
@@ -1483,7 +1483,7 @@ START_TEST(gestures_hold)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	int nfingers = _i; /* ranged test */
+	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
 
 	litest_disable_tap(dev->libinput_device);
 	litest_drain_events(li);
@@ -1496,7 +1496,7 @@ START_TEST(gestures_hold_tap_enabled)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	int nfingers = _i; /* ranged test */
+	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
 
 	litest_enable_tap(dev->libinput_device);
 	litest_drain_events(li);
@@ -1509,7 +1509,7 @@ START_TEST(gestures_hold_cancel)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	int nfingers = _i; /* ranged test */
+	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
 
 	litest_disable_tap(dev->libinput_device);
 	litest_drain_events(li);
@@ -1522,7 +1522,7 @@ START_TEST(gestures_hold_cancel_tap_enabled)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	int nfingers = _i; /* ranged test */
+	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
 
 	litest_enable_tap(dev->libinput_device);
 	litest_drain_events(li);
@@ -1533,42 +1533,42 @@ END_TEST
 
 START_TEST(gestures_hold_then_swipe_3fg)
 {
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	test_gesture_swipe_3fg(cardinal, HOLD_GESTURE_REQUIRE);
 }
 END_TEST
 
 START_TEST(gestures_hold_then_swipe_4fg)
 {
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	test_gesture_swipe_4fg(cardinal, HOLD_GESTURE_REQUIRE);
 }
 END_TEST
 
 START_TEST(gestures_hold_then_pinch_2fg)
 {
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	test_gesture_pinch_2fg(cardinal, HOLD_GESTURE_REQUIRE);
 }
 END_TEST
 
 START_TEST(gestures_hold_then_pinch_3fg)
 {
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	test_gesture_pinch_3fg(cardinal, HOLD_GESTURE_REQUIRE);
 }
 END_TEST
 
 START_TEST(gestures_hold_then_pinch_4fg)
 {
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	test_gesture_pinch_4fg(cardinal, HOLD_GESTURE_REQUIRE);
 }
 END_TEST
 
 START_TEST(gestures_hold_then_spread)
 {
-	int cardinal = _i; /* ranged test */
+	enum cardinal cardinal = litest_test_param_get_i32(test_env->params, "direction");
 	test_gesture_spread(cardinal, HOLD_GESTURE_REQUIRE);
 }
 END_TEST
@@ -1629,7 +1629,7 @@ START_TEST(gestures_hold_once_tap_n_drag)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	int nfingers = _i; /* ranged test */
+	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
 	unsigned int button = 0;
 
 	if (nfingers > litest_slot_count(dev))
@@ -2195,7 +2195,7 @@ START_TEST(gestures_3fg_drag_lock_resume_1fg_tap)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	int finger_count = _i; /* ranged test */
+	int finger_count = litest_test_param_get_i32(test_env->params, "fingers");
 
 	if (litest_slot_count(dev) < 3)
 		return LITEST_NOT_APPLICABLE;
@@ -2263,23 +2263,10 @@ END_TEST
 
 TEST_COLLECTION(gestures)
 {
-	struct range cardinals = { N, N + NCARDINALS };
-	struct range range_hold = { 1, 5 };
-	struct range range_multifinger_tap = {1, 4};
-	struct range range_3fg_drag = { 3, 5 };
-
 	litest_add(gestures_cap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add(gestures_nocap, LITEST_ANY, LITEST_TOUCHPAD);
 
-	litest_add_ranged(gestures_swipe_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
-	litest_add_ranged(gestures_swipe_3fg_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 	litest_add(gestures_swipe_3fg_btntool_pinch_like, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
-	litest_add_ranged(gestures_swipe_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
-	litest_add_ranged(gestures_swipe_4fg_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
-	litest_add_ranged(gestures_pinch, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
-	litest_add_ranged(gestures_pinch_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
-	litest_add_ranged(gestures_pinch_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
-	litest_add_ranged(gestures_spread, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
 
 	litest_add(gestures_3fg_buttonarea_scroll, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
 	litest_add(gestures_3fg_buttonarea_scroll_btntool, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
@@ -2292,20 +2279,40 @@ TEST_COLLECTION(gestures)
 	litest_add(gestures_hold_config_is_available, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add(gestures_hold_config_is_not_available, LITEST_TOUCHPAD|LITEST_SEMI_MT, LITEST_ANY);
 
-	litest_add_ranged(gestures_hold, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &range_hold);
-	litest_add_ranged(gestures_hold_tap_enabled, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &range_hold);
-	litest_add_ranged(gestures_hold_cancel, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &range_hold);
-	litest_add_ranged(gestures_hold_cancel_tap_enabled, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &range_hold);
-	litest_add_ranged(gestures_hold_then_swipe_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
-	litest_add_ranged(gestures_hold_then_swipe_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
-	litest_add_ranged(gestures_hold_then_pinch_2fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
-	litest_add_ranged(gestures_hold_then_pinch_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
-	litest_add_ranged(gestures_hold_then_pinch_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
-	litest_add_ranged(gestures_hold_then_spread, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &cardinals);
+	litest_with_parameters(params, "fingers", 'i', 4, 1, 2, 3, 4) {
+		litest_add_parametrized(gestures_hold, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_hold_tap_enabled, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_hold_cancel, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_hold_cancel_tap_enabled, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+	}
+
+	litest_with_parameters(params, "direction", 'I', 8, litest_named_i32(N), litest_named_i32(NE),
+							    litest_named_i32(E), litest_named_i32(SE),
+							    litest_named_i32(S), litest_named_i32(SW),
+							    litest_named_i32(W), litest_named_i32(NW)) {
+		litest_add_parametrized(gestures_swipe_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_swipe_3fg_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_swipe_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_swipe_4fg_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_pinch, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_pinch_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_pinch_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_spread, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+
+		litest_add_parametrized(gestures_hold_then_swipe_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_hold_then_swipe_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_hold_then_pinch_2fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_hold_then_pinch_3fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_hold_then_pinch_4fg, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_hold_then_spread, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+	}
+
 	litest_add(gestures_hold_then_3fg_buttonarea_scroll, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH);
 
 	litest_add(gestures_hold_once_on_double_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
-	litest_add_ranged(gestures_hold_once_tap_n_drag, LITEST_TOUCHPAD, LITEST_ANY, &range_multifinger_tap);
+	litest_with_parameters(params, "fingers", 'i', 3, 1, 2, 3) {
+		litest_add_parametrized(gestures_hold_once_tap_n_drag, LITEST_TOUCHPAD, LITEST_ANY, params);
+	}
 
 	litest_add(gestures_hold_and_motion_before_timeout, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add(gestures_hold_and_motion_after_timeout, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
@@ -2333,7 +2340,9 @@ TEST_COLLECTION(gestures)
 		litest_add_parametrized(gestures_3fg_drag_lock_resume_2fg_scroll, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 		litest_parameters_unref(params);
 	}
-	litest_add_ranged(gestures_3fg_drag_lock_resume_1fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, &range_3fg_drag);
+	litest_with_parameters(params, "fingers", 'i', 2, 3, 4) {
+		litest_add_parametrized(gestures_3fg_drag_lock_resume_1fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+	}
 
 
 	/* Timing-sensitive test, valgrind is too slow */

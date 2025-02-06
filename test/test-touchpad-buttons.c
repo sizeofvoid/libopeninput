@@ -1069,7 +1069,7 @@ START_TEST(touchpad_clickfinger_click_drag)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	int nfingers = _i; /* ranged test */
+	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
 	unsigned int button;
 	int nslots = litest_slot_count(dev);
 
@@ -2242,8 +2242,6 @@ END_TEST
 
 TEST_COLLECTION(touchpad_buttons)
 {
-	struct range finger_count = {1, 4};
-
 	litest_add(touchpad_button, LITEST_TOUCHPAD, LITEST_CLICKPAD);
 
 	litest_add(touchpad_1fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
@@ -2279,7 +2277,9 @@ TEST_COLLECTION(touchpad_buttons)
 
 	litest_add_for_device(touchpad_1fg_clickfinger_no_touch_phantomclicks, LITEST_SYNAPTICS_PHANTOMCLICKS);
 
-	litest_add_ranged(touchpad_clickfinger_click_drag, LITEST_CLICKPAD, LITEST_ANY, &finger_count);
+	litest_with_parameters(params, "fingers", 'i', 3, 1, 2, 3) {
+		litest_add_parametrized(touchpad_clickfinger_click_drag, LITEST_CLICKPAD, LITEST_ANY, params);
+	}
 
 	litest_add(touchpad_click_defaults_clickfinger, LITEST_APPLE_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_click_default_clickfinger_map, LITEST_APPLE_CLICKPAD, LITEST_ANY);

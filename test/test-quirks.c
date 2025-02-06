@@ -1447,7 +1447,7 @@ START_TEST(quirks_model_override)
 	struct data_dir dd;
 	struct quirks *q;
 	bool isset;
-	bool set = _i; /* ranged test */
+	bool set = litest_test_param_get_bool(test_env->params, "enable_model");
 
 	/* Test model quirks override by setting, then unsetting (or the
 	   other way round) */
@@ -1605,8 +1605,6 @@ END_TEST
 
 TEST_COLLECTION(quirks)
 {
-	struct range boolean = {0, 2};
-
 	litest_add_deviceless(quirks_invalid_dir);
 	litest_add_deviceless(quirks_empty_dir);
 
@@ -1658,7 +1656,9 @@ TEST_COLLECTION(quirks)
 
 	litest_add_for_device(quirks_model_one, LITEST_MOUSE);
 	litest_add_for_device(quirks_model_zero, LITEST_MOUSE);
-	litest_add_ranged_for_device(quirks_model_override, LITEST_MOUSE, &boolean);
+	litest_with_parameters(params, "enable_model", 'b') {
+		litest_add_parametrized_for_device(quirks_model_override, LITEST_MOUSE, params);
+	}
 
 	litest_add(quirks_model_alps, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(quirks_model_wacom, LITEST_TOUCHPAD, LITEST_ANY);
