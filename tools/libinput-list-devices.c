@@ -319,6 +319,10 @@ print_pad_info(struct libinput_device *device)
 
 }
 
+#define print_aligned(topic, fmt, ...) do {\
+	printf("%-25s" fmt "\n", topic ":", __VA_ARGS__); \
+} while (0)
+
 static void
 print_device_notify(struct libinput_event *ev)
 {
@@ -342,71 +346,55 @@ print_device_notify(struct libinput_event *ev)
 	udev_device = libinput_device_get_udev_device(dev);
 	devnode = udev_device_get_devnode(udev_device);
 
-	printf("Device:           %s\n"
-	       "Kernel:           %s\n"
-	       "Group:            %d\n"
-	       "Seat:             %s, %s\n",
-	       libinput_device_get_name(dev),
-	       devnode,
-	       (int)group_id,
-	       libinput_seat_get_physical_name(seat),
-	       libinput_seat_get_logical_name(seat));
+	print_aligned("Device", "%s", libinput_device_get_name(dev));
+	print_aligned("Kernel", "%s", devnode);
+	print_aligned("Group" , "%d", (int)group_id);
+	print_aligned("Seat",
+		      "%s, %s",
+		      libinput_seat_get_physical_name(seat),
+		      libinput_seat_get_logical_name(seat));
 
 	udev_device_unref(udev_device);
 
 	if (libinput_device_get_size(dev, &w, &h) == 0)
-		printf("Size:             %.fx%.fmm\n", w, h);
-	printf("Capabilities:     ");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_KEYBOARD))
-		printf("keyboard ");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_POINTER))
-		printf("pointer ");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_TOUCH))
-		printf("touch ");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_TABLET_TOOL))
-		printf("tablet ");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_TABLET_PAD))
-		printf("tablet-pad");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_GESTURE))
-		printf("gesture");
-	if (libinput_device_has_capability(dev,
-					   LIBINPUT_DEVICE_CAP_SWITCH))
-		printf("switch");
-	printf("\n");
+		print_aligned("Size", "%.fx%.fmm", w, h);
 
-	printf("Tap-to-click:     %s\n", tap_default(dev));
-	printf("Tap-and-drag:     %s\n",  drag_default(dev));
-	printf("Tap drag lock:    %s\n", draglock_default(dev));
-	printf("Left-handed:      %s\n", left_handed_default(dev));
-	printf("Nat.scrolling:    %s\n", nat_scroll_default(dev));
-	printf("Middle emulation: %s\n", middle_emulation_default(dev));
+	print_aligned("Capabilities", "%s%s%s%s%s%s%s",
+		      libinput_device_has_capability(dev, LIBINPUT_DEVICE_CAP_KEYBOARD) ? "keyboard " : "",
+		      libinput_device_has_capability(dev, LIBINPUT_DEVICE_CAP_POINTER) ? "pointer " : "",
+		      libinput_device_has_capability(dev, LIBINPUT_DEVICE_CAP_TOUCH) ? "touch " : "",
+		      libinput_device_has_capability(dev, LIBINPUT_DEVICE_CAP_TABLET_TOOL) ? "tablet " : "",
+		      libinput_device_has_capability(dev, LIBINPUT_DEVICE_CAP_TABLET_PAD) ? "tablet-pad" : "",
+		      libinput_device_has_capability(dev, LIBINPUT_DEVICE_CAP_GESTURE) ? "gesture" : "",
+		      libinput_device_has_capability(dev, LIBINPUT_DEVICE_CAP_SWITCH) ? "switch" : "");
+
+	print_aligned("Tap-to-click", "%s", tap_default(dev));
+	print_aligned("Tap-and-drag", "%s", drag_default(dev));
+	print_aligned("Tap drag lock", "%s", draglock_default(dev));
+	print_aligned("Left-handed", "%s", left_handed_default(dev));
+	print_aligned("Nat.scrolling", "%s", nat_scroll_default(dev));
+	print_aligned("Middle emulation", "%s", middle_emulation_default(dev));
 	str = calibration_default(dev);
-	printf("Calibration:      %s\n", str);
+	print_aligned("Calibration", "%s", str);
 	free(str);
 
 	str = scroll_defaults(dev);
-	printf("Scroll methods:   %s\n", str);
+	print_aligned("Scroll methods", "%s", str);
 	free(str);
 
 	str = click_defaults(dev);
-	printf("Click methods:    %s\n", str);
+	print_aligned("Click methods", "%s", str);
 	free(str);
 
-	printf("Disable-w-typing: %s\n", dwt_default(dev));
-	printf("Disable-w-trackpointing: %s\n", dwtp_default(dev));
+	print_aligned("Disable-w-typing", "%s", dwt_default(dev));
+	print_aligned("Disable-w-trackpointing", "%s", dwtp_default(dev));
 
 	str = accel_profiles(dev);
-	printf("Accel profiles:   %s\n", str);
+	print_aligned("Accel profiles", "%s", str);
 	free(str);
 
 	str = rotation_default(dev);
-	printf("Rotation:         %s\n", str);
+	print_aligned("Rotation", "%s", str);
 	free(str);
 
 	if (libinput_device_has_capability(dev,
