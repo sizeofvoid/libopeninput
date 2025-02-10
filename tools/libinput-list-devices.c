@@ -30,6 +30,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <libudev.h>
+#include <libevdev/libevdev.h>
 
 #include <libinput.h>
 #include <libinput-version.h>
@@ -47,6 +48,20 @@ tap_default(struct libinput_device *device)
 		return "enabled";
 
 	return "disabled";
+}
+
+static const char *
+tap_button_map(struct libinput_device *device)
+{
+	if (!libinput_device_config_tap_get_finger_count(device))
+		return "n/a";
+
+	switch (libinput_device_config_tap_get_button_map(device)) {
+	case LIBINPUT_CONFIG_TAP_MAP_LRM: return "left/right/middle";
+	case LIBINPUT_CONFIG_TAP_MAP_LMR: return "left/middle/right";
+	}
+
+	return "<invalid value>";
 }
 
 static const char *
@@ -163,6 +178,33 @@ scroll_defaults(struct libinput_device *device)
 	return str;
 }
 
+static const char *
+scroll_button_default(struct libinput_device *device)
+{
+	uint32_t scroll_methods = libinput_device_config_scroll_get_methods(device);
+	if (scroll_methods & LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN) {
+		uint32_t button = libinput_device_config_scroll_get_default_button(device);
+		return libevdev_event_code_get_name(EV_KEY, button);
+	}
+
+	return "n/a";
+}
+
+static const char *
+scroll_button_lock_default(struct libinput_device *device)
+{
+	uint32_t scroll_methods = libinput_device_config_scroll_get_methods(device);
+	if (scroll_methods & LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN) {
+		switch (libinput_device_config_scroll_get_default_button_lock(device)) {
+		case LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_ENABLED: return "enabled";
+		case LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED: return "disabled";
+		}
+		return "<invalid value>";
+	}
+
+	return "n/a";
+}
+
 static char*
 click_defaults(struct libinput_device *device)
 {
@@ -184,6 +226,22 @@ click_defaults(struct libinput_device *device)
 		 (method == LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER) ? "*" : "",
 		 (click_methods & LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER) ? "clickfinger " : "");
 	return str;
+}
+
+static const char *
+clickfinger_button_map(struct libinput_device *device)
+{
+	uint32_t click_methods = libinput_device_config_click_get_methods(device);
+	if (click_methods & LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER) {
+		switch (libinput_device_config_click_get_default_clickfinger_button_map(device)) {
+		case LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR: return "left/middle/right";
+		case LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM: return "left/right/middle";
+		}
+		return "<invalid value>";
+	} else {
+
+		return "n/a";
+	}
 }
 
 static char*
@@ -255,6 +313,22 @@ rotation_default(struct libinput_device *device)
 	angle = libinput_device_config_rotation_get_angle(device);
 	xasprintf(&str, "%.1f", angle);
 	return str;
+}
+
+static char *
+area_rectangle(struct libinput_device *device)
+{
+	if (libinput_device_config_area_has_rectangle(device)) {
+		struct libinput_config_area_rectangle rect =
+			libinput_device_config_area_get_default_rectangle(device);
+
+		char *str;
+		xasprintf(&str, "(%.2f, %.2f) - (%.2f, %.2f)",
+			  rect.x1, rect.y1, rect.x2, rect.y2);
+		return str;
+	}
+
+	return safe_strdup("n/a");
 }
 
 static void
@@ -370,6 +444,7 @@ print_device_notify(struct libinput_event *ev)
 
 	print_aligned("Tap-to-click", "%s", tap_default(dev));
 	print_aligned("Tap-and-drag", "%s", drag_default(dev));
+	print_aligned("Tap button map", "%s", tap_button_map(dev));
 	print_aligned("Tap drag lock", "%s", draglock_default(dev));
 	print_aligned("Left-handed", "%s", left_handed_default(dev));
 	print_aligned("Nat.scrolling", "%s", nat_scroll_default(dev));
@@ -382,9 +457,14 @@ print_device_notify(struct libinput_event *ev)
 	print_aligned("Scroll methods", "%s", str);
 	free(str);
 
+	print_aligned("Scroll button", "%s", scroll_button_default(dev));
+	print_aligned("Scroll button lock", "%s", scroll_button_lock_default(dev));
+
 	str = click_defaults(dev);
 	print_aligned("Click methods", "%s", str);
 	free(str);
+
+	print_aligned("Clickfinger button map", "%s", clickfinger_button_map(dev));
 
 	print_aligned("Disable-w-typing", "%s", dwt_default(dev));
 	print_aligned("Disable-w-trackpointing", "%s", dwtp_default(dev));
@@ -395,6 +475,10 @@ print_device_notify(struct libinput_event *ev)
 
 	str = rotation_default(dev);
 	print_aligned("Rotation", "%s", str);
+	free(str);
+
+	str = area_rectangle(dev);
+	print_aligned("Area rectangle", "%s",  str);
 	free(str);
 
 	if (libinput_device_has_capability(dev,
