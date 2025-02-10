@@ -31,8 +31,11 @@ Print help
 Use verbose output
 .SH NOTES
 .PP
-Some specific feature may still be available on a device even when
-no configuration is exposed, a lack of a configuration option does not
+libinput\-list\-devices only lists available configuration options for
+a feature. In some cases a device may support a specific feature but
+does not expose configuration for it, e.g. when using the
+device without that particular feature does not make sense.
+A lack of a configuration option thus does not
 necessarily mean that this feature does not work.
 .PP
 A device may be recognized by libinput but not handled by the X.Org libinput
