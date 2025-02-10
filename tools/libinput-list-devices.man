@@ -4,16 +4,21 @@ libinput\-list\-devices \- list local devices as recognized by libinput and
 default values of their configuration
 .SH SYNOPSIS
 .B libinput list\-devices [\-\-help]
+.PP
+.B libinput list\-devices \fI/dev/input/event0\fB [\fI/dev/input/event1\fB...]
 .SH DESCRIPTION
 .PP
 The
 .B "libinput list\-devices"
-tool creates a libinput context on the default seat "seat0" and lists all
+tool creates a libinput context on the default seat "seat0" and lists
 devices recognized by libinput. Each device shows available configurations
 the respective default configuration setting.
 .PP
 For options that allow more settings than "enabled/disabled", all available ones
 are listed. The default setting is prefixed by an asterisk (*).
+.PP
+If one or more event node paths are given, only those devices are listed.
+By default all devices recognized by libinput are listed.
 .PP
 This tool usually needs to be run as root to have access to the
 /dev/input/eventX nodes.
@@ -21,6 +26,9 @@ This tool usually needs to be run as root to have access to the
 .TP 8
 .B \-\-help
 Print help
+.TP 8
+.B \-\-verbose
+Use verbose output
 .SH NOTES
 .PP
 Some specific feature may still be available on a device even when

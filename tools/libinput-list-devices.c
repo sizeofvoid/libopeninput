@@ -24,6 +24,7 @@
 #include "config.h"
 
 #include <errno.h>
+#include <getopt.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -431,26 +432,51 @@ main(int argc, char **argv)
 	struct libinput *li;
 	struct libinput_event *ev;
 	bool grab = false;
-	const char *seat[2] = {"seat0", NULL};
 
-	/* This is kept for backwards-compatibility with the old
-	   libinput-list-devices */
-	if (argc > 1) {
-		if (streq(argv[1], "--help")) {
+	while (1) {
+		int c;
+		int option_index = 0;
+		enum {
+			OPT_HELP = 1,
+			OPT_VERBOSE,
+		};
+		static struct option opts[] = {
+			CONFIGURATION_OPTIONS,
+			{ "help",                      no_argument,       0, 'h' },
+			{ "verbose",                   no_argument,       0, OPT_VERBOSE },
+			{ 0, 0, 0, 0}
+		};
+		c = getopt_long(argc, argv, "h", opts, &option_index);
+		if (c == -1)
+			break;
+
+		switch(c) {
+		case '?':
+			return EXIT_INVALID_USAGE;
+		case 'h':
+		case OPT_HELP:
 			usage();
-			return 0;
+			return EXIT_SUCCESS;
+		default:
+			return EXIT_INVALID_USAGE;
 		}
 
-		if (streq(argv[1], "--version")) {
-			printf("%s\n", LIBINPUT_VERSION);
-			return 0;
-		}
-
-		usage();
-		return EXIT_INVALID_USAGE;
 	}
-
-	li = tools_open_backend(BACKEND_UDEV, seat, false, &grab);
+	if (optind < argc) {
+		const char *devices[32] = {NULL};
+		size_t ndevices = 0;
+		do {
+			if (ndevices >= ARRAY_LENGTH(devices) - 1) {
+				usage();
+				return EXIT_INVALID_USAGE;
+			}
+			devices[ndevices++] = argv[optind];
+		} while (++optind < argc);
+		li = tools_open_backend(BACKEND_DEVICE, devices, false, &grab);
+	} else {
+		const char *seat[2] = {"seat0", NULL};
+		li = tools_open_backend(BACKEND_UDEV, seat, false, &grab);
+	}
 	if (!li)
 		return 1;
 
