@@ -1366,10 +1366,8 @@ TEST_COLLECTION(touch)
 	litest_add(touch_protocol_a_touch, LITEST_PROTOCOL_A, LITEST_ANY);
 	litest_add(touch_protocol_a_2fg_touch, LITEST_PROTOCOL_A, LITEST_ANY);
 
-	{
-		struct litest_parameters *params = litest_parameters_new("axis", 's', 2, "ABS_X", "ABS_Y");
+	litest_with_parameters(params, "axis", 's', 2, "ABS_X", "ABS_Y") {
 		litest_add_parametrized(touch_initial_state, LITEST_TOUCH, LITEST_PROTOCOL_A, params);
-		litest_parameters_unref(params);
 	}
 
 	litest_add(touch_time_usec, LITEST_TOUCH, LITEST_TOUCHPAD);

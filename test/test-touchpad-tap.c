@@ -5749,15 +5749,13 @@ TEST_COLLECTION(touchpad_tap)
 	litest_add(touchpad_5fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add(touchpad_5fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 
-	{
-		struct litest_parameters *params = litest_parameters_new("map", 's', 2, "LRM", "LMR");
+	litest_with_parameters(params, "map", 's', 2, "LRM", "LMR") {
 		litest_add_parametrized(touchpad_2fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT, params);
 		litest_add_parametrized(touchpad_2fg_tap_inverted, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 		litest_add_parametrized(touchpad_3fg_tap_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 		litest_add_parametrized(touchpad_3fg_tap_btntool_inverted, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 		litest_add_parametrized_for_device(touchpad_3fg_tap_btntool_pointerjump, LITEST_SYNAPTICS_TOPBUTTONPAD, params);
 		litest_add_parametrized(touchpad_3fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
-		litest_parameters_unref(params);
 	}
 
 	litest_add_ranged(touchpad_move_after_touch, LITEST_TOUCHPAD, LITEST_ANY, &range_multifinger);

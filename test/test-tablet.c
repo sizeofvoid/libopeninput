@@ -7104,10 +7104,8 @@ TEST_COLLECTION(tablet)
 	litest_add(tip_down_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add(tip_up_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add(tip_down_up_eraser, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	{
-		struct litest_parameters *params = litest_parameters_new("axis", 's', 2, "ABS_X", "ABS_Y");
+	litest_with_parameters(params, "axis", 's', 2, "ABS_X", "ABS_Y") {
 		litest_add_parametrized(tip_up_motion_one_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY, params);
-		litest_parameters_unref(params);
 	}
 	litest_add(tip_state_proximity, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add(tip_state_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
@@ -7120,10 +7118,8 @@ TEST_COLLECTION(tablet)
 	litest_add(tilt_not_available, LITEST_TABLET, LITEST_TILT);
 	litest_add(tilt_x, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
 	litest_add(tilt_y, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
-	{
-		struct litest_parameters *params = litest_parameters_new("tilt", 's', 3, "minimum", "maximum", "center");
+	litest_with_parameters(params, "tilt", 's', 3, "minimum", "maximum", "center") {
 		litest_add_parametrized(tilt_fixed_points, LITEST_TABLET|LITEST_TILT, LITEST_ANY, params);
-		litest_parameters_unref(params);
 	}
 	litest_add(pad_buttons_ignored, LITEST_TABLET, LITEST_TOTEM);
 	litest_add_for_device(stylus_buttons, LITEST_WACOM_CINTIQ_PRO16_PEN);
@@ -7146,11 +7142,10 @@ TEST_COLLECTION(tablet)
 
 	litest_add(tablet_area_has_rectangle, LITEST_TABLET, LITEST_ANY);
 	litest_add(tablet_area_set_rectangle_invalid, LITEST_TABLET, LITEST_ANY);
-	{
-		struct litest_parameters *params = litest_parameters_new("axis", 's', 2, "vertical", "horizontal",
-									 "direction", 's', 2, "down", "up");
+	litest_with_parameters(params,
+			       "axis", 's', 2, "vertical", "horizontal",
+			       "direction", 's', 2, "down", "up") {
 		litest_add_parametrized(tablet_area_set_rectangle, LITEST_TABLET, LITEST_ANY, params);
-		litest_parameters_unref(params);
 	}
 	litest_add(tablet_area_set_rectangle_move_outside, LITEST_TABLET, LITEST_ANY);
 	litest_add(tablet_area_set_rectangle_move_outside_to_inside, LITEST_TABLET, LITEST_ANY);
@@ -7200,10 +7195,8 @@ TEST_COLLECTION(tablet)
 	litest_add_for_device(huion_static_btn_tool_pen, LITEST_HUION_TABLET);
 	litest_add_for_device(huion_static_btn_tool_pen_no_timeout_during_usage, LITEST_HUION_TABLET);
 
-	{
-		struct litest_parameters *params = litest_parameters_new("btn_tool_pen_timeout", 'b');
+	litest_with_parameters(params, "btn_tool_pen_timeout", 'b') {
 		litest_add_parametrized_for_device(huion_static_btn_tool_pen_disable_quirk_on_prox_out, LITEST_HUION_TABLET, params);
-		litest_parameters_unref(params);
 	}
 
 	litest_add_for_device(tablet_smoothing, LITEST_WACOM_HID4800_PEN);
@@ -7217,18 +7210,17 @@ TEST_COLLECTION(tablet_left_handed)
 	litest_add_for_device(left_handed_artpen_rotation, LITEST_WACOM_INTUOS);
 	litest_add_for_device(no_left_handed, LITEST_WACOM_CINTIQ);
 
-	{
-		struct litest_parameters *params = litest_parameters_new("tablet_from", 'b',
-									 "touch_from", 'b',
-									 "tablet_to", 'b',
-									 "touch_to", 'b');
+	litest_with_parameters(params,
+			       "tablet_from", 'b',
+			       "touch_from", 'b',
+			       "tablet_to", 'b',
+			       "touch_to", 'b') {
 		litest_add_parametrized(tablet_rotation_left_handed, LITEST_TABLET, LITEST_ANY, params);
 		litest_add_parametrized(tablet_rotation_left_handed_configuration, LITEST_TABLET, LITEST_ANY, params);
 		litest_add_parametrized(tablet_rotation_left_handed_while_in_prox, LITEST_TABLET, LITEST_ANY, params);
 		litest_add_parametrized(tablet_rotation_left_handed_while_touch_down, LITEST_TABLET, LITEST_ANY, params);
 		litest_add_parametrized(tablet_rotation_left_handed_add_touchpad, LITEST_TABLET, LITEST_ANY, params);
 		litest_add_parametrized(tablet_rotation_left_handed_add_tablet, LITEST_TOUCHPAD, LITEST_ANY, params);
-		litest_parameters_unref(params);
 	}
 
 

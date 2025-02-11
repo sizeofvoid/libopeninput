@@ -610,6 +610,11 @@ _litest_parameters_new(const char *name, ...);
 #define litest_parameters_new(name_, ...) \
 	_litest_parameters_new(name_, __VA_ARGS__, NULL)
 
+#define litest_with_parameters(params_, ...) \
+	for (struct litest_parameters *params_ = litest_parameters_new(__VA_ARGS__); \
+	     params_; \
+	     params_ = litest_parameters_unref(params_))
+
 struct litest_parameters_permutation_value {
 	struct list link;
 	char name[128];

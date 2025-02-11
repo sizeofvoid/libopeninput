@@ -7359,10 +7359,8 @@ TEST_COLLECTION(touchpad)
 	litest_add_for_device(touchpad_trackpoint_buttons_2fg_scroll, LITEST_SYNAPTICS_TRACKPOINT_BUTTONS);
 	litest_add_for_device(touchpad_trackpoint_no_trackpoint, LITEST_SYNAPTICS_TRACKPOINT_BUTTONS);
 
-	{
-		struct litest_parameters *params = litest_parameters_new("axis", 's', 2, "ABS_X", "ABS_Y");
+	litest_with_parameters(params, "axis", 's', 2, "ABS_X", "ABS_Y") {
 		litest_add_parametrized(touchpad_initial_state, LITEST_TOUCHPAD, LITEST_ANY, params);
-		litest_parameters_unref(params);
 	}
 
 	litest_add_ranged(touchpad_fingers_down_before_init, LITEST_TOUCHPAD, LITEST_ANY, &five_fingers);
@@ -7407,13 +7405,11 @@ TEST_COLLECTION(touchpad)
 	litest_add(touchpad_speed_ignore_finger_edgescroll, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add_for_device(touchpad_speed_ignore_hovering_finger, LITEST_BCM5974);
 
-	{
-		struct litest_parameters *params = litest_parameters_new("mode", 's', 4,
-									 "external_mouse", "sendevents",
-									 "lid", "tabletmode");
+	litest_with_parameters(params, "mode", 's', 4,
+			       "external_mouse", "sendevents",
+			       "lid", "tabletmode") {
 		litest_add_parametrized(touchpad_suspend_abba, LITEST_TOUCHPAD, LITEST_ANY, params);
 		litest_add_parametrized(touchpad_suspend_abab, LITEST_TOUCHPAD, LITEST_ANY, params);
-		litest_parameters_unref(params);
 	}
 
 	/* Happens on the "Wacom Intuos Pro M Finger" but our test device

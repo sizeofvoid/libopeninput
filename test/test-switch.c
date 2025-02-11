@@ -1443,9 +1443,7 @@ TEST_COLLECTION(switch)
 	litest_add(switch_has_tablet_mode_switch, LITEST_SWITCH, LITEST_ANY);
 	litest_add(switch_not_down_on_init, LITEST_SWITCH, LITEST_ANY);
 
-	{
-		struct litest_parameters *params = litest_parameters_new("switch", 's', 2, "lid", "tablet_mode");
-
+	litest_with_parameters(params, "switch", 's', 2, "lid", "tablet_mode") {
 		litest_add_parametrized(switch_toggle, LITEST_SWITCH, LITEST_ANY, params);
 		litest_add_parametrized(switch_toggle_double, LITEST_SWITCH, LITEST_ANY, params);
 		litest_add_parametrized(switch_down_on_init, LITEST_SWITCH, LITEST_ANY, params);
@@ -1459,8 +1457,6 @@ TEST_COLLECTION(switch)
 
 		litest_add_parametrized_no_device(switch_suspend_with_keyboard, params);
 		litest_add_parametrized_no_device(switch_suspend_with_touchpad, params);
-
-		litest_parameters_unref(params);
 	}
 
 	litest_add(lid_open_on_key, LITEST_SWITCH, LITEST_ANY);

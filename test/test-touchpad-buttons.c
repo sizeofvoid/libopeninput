@@ -2277,15 +2277,13 @@ TEST_COLLECTION(touchpad_buttons)
 	litest_add(touchpad_1fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_1fg_clickfinger_no_touch, LITEST_CLICKPAD, LITEST_ANY);
 
-	{
-		struct litest_parameters *params = litest_parameters_new("map", 's', 2, "LRM", "LMR");
+	litest_with_parameters(params, "map", 's', 2, "LRM", "LMR") {
 		litest_add_parametrized(touchpad_2fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY, params);
 		litest_add_parametrized(touchpad_3fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY, params);
 		litest_add_parametrized(touchpad_3fg_clickfinger_btntool, LITEST_CLICKPAD, LITEST_ANY, params);
 		litest_add_parametrized(touchpad_2fg_clickfinger_distance, LITEST_CLICKPAD, LITEST_ANY, params);
 		litest_add_parametrized(touchpad_3fg_clickfinger_distance, LITEST_CLICKPAD, LITEST_ANY, params);
 		litest_add_parametrized(touchpad_3fg_clickfinger_distance_btntool, LITEST_CLICKPAD, LITEST_ANY, params);
-		litest_parameters_unref(params);
 	}
 
 	litest_add_for_device(touchpad_2fg_clickfinger_bottom, LITEST_SYNAPTICS_TOPBUTTONPAD);

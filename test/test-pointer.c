@@ -3760,12 +3760,9 @@ TEST_COLLECTION(pointer)
 
 	litest_add(pointer_motion_relative, LITEST_RELATIVE, LITEST_POINTINGSTICK);
 	litest_add_for_device(pointer_motion_relative_zero, LITEST_MOUSE);
-	{
-		struct litest_parameters *params = litest_parameters_new("direction", 's', 8,
-									 "N", "E", "S", "W",
-									 "NE", "SE", "SW", "NW");
+	litest_with_parameters(params,
+			       "direction", 's', 8, "N", "E", "S", "W", "NE", "SE", "SW", "NW") {
 		litest_add_parametrized(pointer_motion_relative_min_decel, LITEST_RELATIVE, LITEST_POINTINGSTICK, params);
-		litest_parameters_unref(params);
 	}
 	litest_add(pointer_motion_absolute, LITEST_ABSOLUTE, LITEST_ANY);
 	litest_add(pointer_motion_unaccel, LITEST_RELATIVE, LITEST_ANY);
@@ -3776,10 +3773,8 @@ TEST_COLLECTION(pointer)
 	litest_add(pointer_recover_from_lost_button_count, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add(pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_wheel_hires, LITEST_WHEEL, LITEST_TABLET);
-	{
-		struct litest_parameters *params = litest_parameters_new("axis", 's', 2, "vertical", "horizontal");
+	litest_with_parameters(params, "axis", 's', 2, "vertical", "horizontal") {
 		litest_add_parametrized(pointer_scroll_wheel_hires_send_only_lores, LITEST_WHEEL, LITEST_TABLET, params);
-		litest_parameters_unref(params);
 	}
 	litest_add(pointer_scroll_wheel_inhibit_small_deltas, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_wheel_inhibit_dir_change, LITEST_WHEEL, LITEST_TABLET);
@@ -3848,10 +3843,8 @@ TEST_COLLECTION(pointer)
 	litest_add(middlebutton_device_remove_while_down, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add(middlebutton_device_remove_while_one_is_down, LITEST_BUTTON, LITEST_CLICKPAD);
 
-	{
-		struct litest_parameters *params = litest_parameters_new("axis", 's', 2, "ABS_X", "ABS_Y");
+	litest_with_parameters(params, "axis", 's', 2, "ABS_X", "ABS_Y") {
 		litest_add_parametrized(pointer_absolute_initial_state, LITEST_ABSOLUTE, LITEST_ANY, params);
-		litest_parameters_unref(params);
 	}
 
 	litest_add(pointer_time_usec, LITEST_RELATIVE, LITEST_ANY);

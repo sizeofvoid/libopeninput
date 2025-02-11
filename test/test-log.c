@@ -211,11 +211,9 @@ TEST_COLLECTION(log)
 	litest_add_deviceless(log_handler_NULL);
 	litest_add_no_device(log_priority);
 
-	{
-		struct litest_parameters *params = litest_parameters_new("axis", 's', 2, "ABS_X", "ABS_Y");
+	litest_with_parameters(params, "axis", 's', 2, "ABS_X", "ABS_Y") {
 		/* mtdev clips to axis ranges */
 		litest_add_parametrized(log_axisrange_warning, LITEST_TOUCH, LITEST_PROTOCOL_A, params);
 		litest_add_parametrized(log_axisrange_warning, LITEST_TOUCHPAD, LITEST_ANY, params);
-		litest_parameters_unref(params);
 	}
 }
