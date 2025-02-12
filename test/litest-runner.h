@@ -70,6 +70,54 @@ litest_test_parameters_unref(struct litest_test_parameters *params);
 void
 _litest_test_param_fetch(const struct litest_test_parameters *params, ...);
 
+static inline const char *
+litest_test_param_get_string(const struct litest_test_parameters *params, const char *name)
+{
+	const char *p;
+	litest_test_param_fetch(params, name, 's', &p);
+	return p;
+}
+
+static inline bool
+litest_test_param_get_bool(const struct litest_test_parameters *params, const char *name)
+{
+	bool p;
+	litest_test_param_fetch(params, name, 'b', &p);
+	return p;
+}
+
+static inline int32_t
+litest_test_param_get_i32(const struct litest_test_parameters *params, const char *name)
+{
+	int32_t p;
+	litest_test_param_fetch(params, name, 'i', &p);
+	return p;
+}
+
+static inline uint32_t
+litest_test_param_get_u32(const struct litest_test_parameters *params, const char *name)
+{
+	uint32_t p;
+	litest_test_param_fetch(params, name, 'u', &p);
+	return p;
+}
+
+static inline char
+litest_test_param_get_char(const struct litest_test_parameters *params, const char *name)
+{
+	char p;
+	litest_test_param_fetch(params, name, 'c', &p);
+	return p;
+}
+
+static inline double
+litest_test_param_get_double(const struct litest_test_parameters *params, const double *name)
+{
+	double p;
+	litest_test_param_fetch(params, name, 'd', &p);
+	return p;
+}
+
 /**
  * This struct is passed into every test.
  */

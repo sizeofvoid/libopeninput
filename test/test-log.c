@@ -173,8 +173,7 @@ START_TEST(log_axisrange_warning)
 	struct libinput *li = dev->libinput;
 	const struct input_absinfo *abs;
 
-	const char *axisname;
-	litest_test_param_fetch(test_env->params, "axis", &axisname);
+	const char *axisname = litest_test_param_get_string(test_env->params, "axis");
 	int axis = libevdev_event_code_from_code_name(axisname);
 	litest_assert_int_ne(axis, -1);
 

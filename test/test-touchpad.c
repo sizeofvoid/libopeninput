@@ -3618,8 +3618,7 @@ START_TEST(touchpad_initial_state)
 	struct libinput *libinput1, *libinput2;
 	int x = 40, y = 60;
 
-	const char *axisname;
-	litest_test_param_fetch(test_env->params, "axis", &axisname);
+	const char *axisname = litest_test_param_get_string(test_env->params, "axis");
 	int axis = libevdev_event_code_from_code_name(axisname);
 	litest_assert_int_ne(axis, -1);
 
@@ -6943,8 +6942,7 @@ START_TEST(touchpad_suspend_abba)
 	struct litest_device *lid, *tabletmode, *extmouse;
 	struct libinput *li = tp->libinput;
 
-	const char *mode;
-	litest_test_param_fetch(test_env->params, "mode", &mode);
+	const char *mode = litest_test_param_get_string(test_env->params, "mode");
 	enum suspend first = mode_param_lookup(mode);
 
 	if (first == SUSPEND_EXT_MOUSE && litest_touchpad_is_external(tp))
@@ -7085,8 +7083,7 @@ START_TEST(touchpad_suspend_abab)
 	struct litest_device *lid, *tabletmode, *extmouse;
 	struct libinput *li = tp->libinput;
 
-	const char *mode;
-	litest_test_param_fetch(test_env->params, "mode", &mode);
+	const char *mode = litest_test_param_get_string(test_env->params, "mode");
 	enum suspend first = mode_param_lookup(mode);
 
 	if (first == SUSPEND_EXT_MOUSE && litest_touchpad_is_external(tp))

@@ -271,8 +271,7 @@ START_TEST(touchpad_2fg_clickfinger)
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
 
-	const char *mapstr;
-	litest_test_param_fetch(test_env->params, "map", &mapstr);
+	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
 	enum libinput_config_clickfinger_button_map map = map_param_lookup(mapstr);
 
 	litest_enable_clickfinger(dev);
@@ -315,8 +314,7 @@ START_TEST(touchpad_3fg_clickfinger)
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
 
-	const char *mapstr;
-	litest_test_param_fetch(test_env->params, "map", &mapstr);
+	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
 	enum libinput_config_clickfinger_button_map map = map_param_lookup(mapstr);
 
 	if (litest_slot_count(dev) < 3)
@@ -366,8 +364,7 @@ START_TEST(touchpad_3fg_clickfinger_btntool)
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
 
-	const char *mapstr;
-	litest_test_param_fetch(test_env->params, "map", &mapstr);
+	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
 	enum libinput_config_clickfinger_button_map map = map_param_lookup(mapstr);
 
 	if (litest_slot_count(dev) >= 3 ||
@@ -523,8 +520,7 @@ START_TEST(touchpad_2fg_clickfinger_distance)
 	bool small_touchpad = false;
 	unsigned int expected_button = 0;
 
-	const char *mapstr;
-	litest_test_param_fetch(test_env->params, "map", &mapstr);
+	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
 	enum libinput_config_clickfinger_button_map map = map_param_lookup(mapstr);
 
 	if (libinput_device_get_size(dev->libinput_device, &w, &h) == 0 &&
@@ -592,8 +588,7 @@ START_TEST(touchpad_3fg_clickfinger_distance)
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
 
-	const char *mapstr;
-	litest_test_param_fetch(test_env->params, "map", &mapstr);
+	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
 	enum libinput_config_clickfinger_button_map map = map_param_lookup(mapstr);
 
 	if (litest_slot_count(dev) < 3)
@@ -642,8 +637,7 @@ START_TEST(touchpad_3fg_clickfinger_distance_btntool)
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
 
-	const char *mapstr;
-	litest_test_param_fetch(test_env->params, "map", &mapstr);
+	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
 	enum libinput_config_clickfinger_button_map map = map_param_lookup(mapstr);
 
 	if (litest_slot_count(dev) > 2)

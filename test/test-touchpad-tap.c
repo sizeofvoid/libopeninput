@@ -2296,8 +2296,7 @@ START_TEST(touchpad_2fg_tap)
 	struct libinput_event_pointer *ptrev;
 	uint64_t ptime, rtime;
 
-	const char *mapstr;
-	litest_test_param_fetch(test_env->params, "map", &mapstr);
+	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
 	enum libinput_config_tap_button_map map = map_param_lookup(mapstr);
 
 	litest_enable_tap(dev->libinput_device);
@@ -2354,8 +2353,7 @@ START_TEST(touchpad_2fg_tap_inverted)
 	struct libinput_event_pointer *ptrev;
 	uint64_t ptime, rtime;
 
-	const char *mapstr;
-	litest_test_param_fetch(test_env->params, "map", &mapstr);
+	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
 	enum libinput_config_tap_button_map map = map_param_lookup(mapstr);
 
 	litest_enable_tap(dev->libinput_device);
@@ -2886,8 +2884,7 @@ START_TEST(touchpad_3fg_tap)
 	unsigned int button = 0;
 	int i;
 
-	const char *mapstr;
-	litest_test_param_fetch(test_env->params, "map", &mapstr);
+	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
 	enum libinput_config_tap_button_map map = map_param_lookup(mapstr);
 
 	if (litest_slot_count(dev) < 3)
@@ -3161,8 +3158,7 @@ START_TEST(touchpad_3fg_tap_btntool)
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
 
-	const char *mapstr;
-	litest_test_param_fetch(test_env->params, "map", &mapstr);
+	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
 	enum libinput_config_tap_button_map map = map_param_lookup(mapstr);
 
 	if (litest_slot_count(dev) >= 3 ||
@@ -3215,8 +3211,7 @@ START_TEST(touchpad_3fg_tap_btntool_inverted)
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
 
-	const char *mapstr;
-	litest_test_param_fetch(test_env->params, "map", &mapstr);
+	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
 	enum libinput_config_tap_button_map map = map_param_lookup(mapstr);
 
 	if (litest_slot_count(dev) > 3 ||
@@ -3269,8 +3264,7 @@ START_TEST(touchpad_3fg_tap_btntool_pointerjump)
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
 
-	const char *mapstr;
-	litest_test_param_fetch(test_env->params, "map", &mapstr);
+	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
 	enum libinput_config_tap_button_map map = map_param_lookup(mapstr);
 
 	if (litest_slot_count(dev) > 3 ||

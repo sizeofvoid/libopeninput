@@ -670,8 +670,7 @@ START_TEST(tip_up_motion_one_axis)
 	double start_x = 20,
 	       start_y = 20;
 
-	const char *axisname;
-	litest_test_param_fetch(test_env->params, "axis", &axisname);
+	const char *axisname = litest_test_param_get_string(test_env->params, "axis");
 	int axis = libevdev_event_code_from_code_name(axisname);
 	litest_assert_int_ne(axis, -1);
 
@@ -4026,11 +4025,9 @@ START_TEST(tablet_area_set_rectangle)
 	double x, y;
 	double *scaled, *unscaled;
 
-	const char *param_axis;
-	const char *param_direction;
-	litest_test_param_fetch(test_env->params,
-				"axis", &param_axis,
-				"direction", &param_direction);
+	const char *param_axis = litest_test_param_get_string(test_env->params, "axis");
+	const char *param_direction = litest_test_param_get_string(test_env->params, "direction");
+
 	bool use_vertical = streq(param_axis, "vertical");
 	int direction = streq(param_direction, "down") ? 1 : -1;
 
@@ -5327,8 +5324,7 @@ START_TEST(tilt_fixed_points)
 	int axis_value;
 	double expected;
 
-	const char *testcase;
-	litest_test_param_fetch(test_env->params, "tilt", &testcase);
+	const char *testcase = litest_test_param_get_string(test_env->params, "tilt");
 
 	/* On devices with a range of [-N, M], make sure we calculate the hw zero position
 	 * as zero and that the respective min/max resolve to our (hardcoded) min/max degree
@@ -6431,10 +6427,10 @@ START_TEST(tablet_rotation_left_handed)
 		goto out;
 
 	litest_test_param_fetch(test_env->params,
-				"tablet_from", &tablet_from,
-				"touch_from", &touch_from,
-				"tablet_to", &tablet_to,
-				"touch_to", &touch_to);
+				"tablet_from", 'b', &tablet_from,
+				"touch_from", 'b', &touch_from,
+				"tablet_to", 'b', &tablet_to,
+				"touch_to", 'b', &touch_to);
 
 	enabled_from = tablet_from || touch_from;
 	enabled_to   = tablet_to   || touch_to;
@@ -6482,10 +6478,10 @@ START_TEST(tablet_rotation_left_handed_configuration)
 		goto out;
 
 	litest_test_param_fetch(test_env->params,
-				"tablet_from", &tablet_from,
-				"touch_from", &touch_from,
-				"tablet_to", &tablet_to,
-				"touch_to", &touch_to);
+				"tablet_from", 'b', &tablet_from,
+				"touch_from", 'b', &touch_from,
+				"tablet_to", 'b', &tablet_to,
+				"touch_to", 'b', &touch_to);
 
 	tablet_dev = tablet->libinput_device;
 	touch_dev = finger->libinput_device;
@@ -6537,10 +6533,10 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 		goto out;
 
 	litest_test_param_fetch(test_env->params,
-				"tablet_from", &tablet_from,
-				"touch_from", &touch_from,
-				"tablet_to", &tablet_to,
-				"touch_to", &touch_to);
+				"tablet_from", 'b', &tablet_from,
+				"touch_from", 'b', &touch_from,
+				"tablet_to", 'b', &tablet_to,
+				"touch_to", 'b', &touch_to);
 
 	enabled_from = tablet_from || touch_from;
 	enabled_to   = tablet_to   || touch_to;
@@ -6639,10 +6635,10 @@ START_TEST(tablet_rotation_left_handed_while_touch_down)
 		goto out;
 
 	litest_test_param_fetch(test_env->params,
-				"tablet_from", &tablet_from,
-				"touch_from", &touch_from,
-				"tablet_to", &tablet_to,
-				"touch_to", &touch_to);
+				"tablet_from", 'b', &tablet_from,
+				"touch_from", 'b', &touch_from,
+				"tablet_to", 'b', &tablet_to,
+				"touch_to", 'b', &touch_to);
 
 	enabled_from = tablet_from || touch_from;
 	enabled_to   = tablet_to   || touch_to;
@@ -6700,10 +6696,10 @@ START_TEST(tablet_rotation_left_handed_add_touchpad)
 		return LITEST_NOT_APPLICABLE;
 
 	litest_test_param_fetch(test_env->params,
-				"tablet_from", &tablet_from,
-				"touch_from", &touch_from,
-				"tablet_to", &tablet_to,
-				"touch_to", &touch_to);
+				"tablet_from", 'b', &tablet_from,
+				"touch_from", 'b', &touch_from,
+				"tablet_to", 'b', &tablet_to,
+				"touch_to", 'b', &touch_to);
 
 	enabled_from = tablet_from || touch_from;
 	enabled_to   = tablet_to   || touch_to;
@@ -6892,14 +6888,13 @@ START_TEST(huion_static_btn_tool_pen_disable_quirk_on_prox_out)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	bool with_timeout;
 	int i;
 
 	/* test is run twice, once where the real BTN_TOOL_PEN is triggered
 	 * during proximity out, one where the real BTN_TOOL_PEN is
 	 * triggered after we already triggered the quirk timeout
 	 */
-	litest_test_param_fetch(test_env->params, "btn_tool_pen_timeout", &with_timeout);
+	bool with_timeout = litest_test_param_get_bool(test_env->params, "btn_tool_pen_timeout");
 
 	litest_drain_events(li);
 

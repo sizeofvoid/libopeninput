@@ -816,8 +816,7 @@ START_TEST(touch_initial_state)
 	struct libinput_event_touch *t1, *t2;
 	struct libinput_device *device1, *device2;
 
-	const char *axisname;
-	litest_test_param_fetch(test_env->params, "axis", &axisname);
+	const char *axisname = litest_test_param_get_string(test_env->params, "axis");
 	int axis = libevdev_event_code_from_code_name(axisname);
 	litest_assert_int_ne(axis, -1);
 

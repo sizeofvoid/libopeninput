@@ -121,8 +121,7 @@ START_TEST(switch_toggle)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 
-	const char *str;
-	litest_test_param_fetch(test_env->params, "switch", &str);
+	const char *str = litest_test_param_get_string(test_env->params, "switch");
 	enum libinput_switch sw = switch_param_lookup(str);
 
 	litest_drain_events(li);
@@ -159,8 +158,7 @@ START_TEST(switch_toggle_double)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 
-	const char *str;
-	litest_test_param_fetch(test_env->params, "switch", &str);
+	const char *str = litest_test_param_get_string(test_env->params, "switch");
 	enum libinput_switch sw = switch_param_lookup(str);
 
 	if (libinput_device_switch_has_switch(dev->libinput_device, sw) <= 0)
@@ -208,8 +206,7 @@ START_TEST(switch_down_on_init)
 	struct libinput *li;
 	struct libinput_event *event;
 
-	const char *str;
-	litest_test_param_fetch(test_env->params, "switch", &str);
+	const char *str = litest_test_param_get_string(test_env->params, "switch");
 	enum libinput_switch sw = switch_param_lookup(str);
 
 	if (libinput_device_switch_has_switch(dev->libinput_device, sw) <= 0)
@@ -299,8 +296,7 @@ START_TEST(switch_disable_touchpad)
 	struct litest_device *touchpad;
 	struct libinput *li = sw->libinput;
 
-	const char *str;
-	litest_test_param_fetch(test_env->params, "switch", &str);
+	const char *str = litest_test_param_get_string(test_env->params, "switch");
 	enum libinput_switch which = switch_param_lookup(str);
 
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
@@ -341,8 +337,7 @@ START_TEST(switch_disable_touchpad_during_touch)
 	struct litest_device *sw = litest_current_device();
 	struct litest_device *touchpad;
 	struct libinput *li = sw->libinput;
-	const char *str;
-	litest_test_param_fetch(test_env->params, "switch", &str);
+	const char *str = litest_test_param_get_string(test_env->params, "switch");
 	enum libinput_switch which = switch_param_lookup(str);
 
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
@@ -376,8 +371,7 @@ START_TEST(switch_disable_touchpad_edge_scroll)
 	struct litest_device *touchpad;
 	struct libinput *li = sw->libinput;
 
-	const char *str;
-	litest_test_param_fetch(test_env->params, "switch", &str);
+	const char *str = litest_test_param_get_string(test_env->params, "switch");
 	enum libinput_switch which = switch_param_lookup(str);
 
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
@@ -419,8 +413,7 @@ START_TEST(switch_disable_touchpad_edge_scroll_interrupt)
 	struct libinput *li = sw->libinput;
 	struct libinput_event *event;
 
-	const char *str;
-	litest_test_param_fetch(test_env->params, "switch", &str);
+	const char *str = litest_test_param_get_string(test_env->params, "switch");
 	enum libinput_switch which = switch_param_lookup(str);
 
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
@@ -462,8 +455,7 @@ START_TEST(switch_disable_touchpad_already_open)
 	struct litest_device *touchpad;
 	struct libinput *li = sw->libinput;
 
-	const char *str;
-	litest_test_param_fetch(test_env->params, "switch", &str);
+	const char *str = litest_test_param_get_string(test_env->params, "switch");
 	enum libinput_switch which = switch_param_lookup(str);
 
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
@@ -500,8 +492,7 @@ START_TEST(switch_dont_resume_disabled_touchpad)
 	struct litest_device *touchpad;
 	struct libinput *li = sw->libinput;
 
-	const char *str;
-	litest_test_param_fetch(test_env->params, "switch", &str);
+	const char *str = litest_test_param_get_string(test_env->params, "switch");
 	enum libinput_switch which = switch_param_lookup(str);
 
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
@@ -544,8 +535,7 @@ START_TEST(switch_dont_resume_disabled_touchpad_external_mouse)
 	struct litest_device *touchpad, *mouse;
 	struct libinput *li = sw->libinput;
 
-	const char *str;
-	litest_test_param_fetch(test_env->params, "switch", &str);
+	const char *str = litest_test_param_get_string(test_env->params, "switch");
 	enum libinput_switch which = switch_param_lookup(str);
 
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
@@ -679,8 +669,7 @@ START_TEST(switch_suspend_with_keyboard)
 	struct litest_device *keyboard;
 	struct litest_device *sw;
 
-	const char *str;
-	litest_test_param_fetch(test_env->params, "switch", &str);
+	const char *str = litest_test_param_get_string(test_env->params, "switch");
 	enum libinput_switch which = switch_param_lookup(str);
 
 	li = litest_create_context();
@@ -723,8 +712,7 @@ START_TEST(switch_suspend_with_touchpad)
 	struct libinput *li;
 	struct litest_device *touchpad, *sw;
 
-	const char *str;
-	litest_test_param_fetch(test_env->params, "switch", &str);
+	const char *str = litest_test_param_get_string(test_env->params, "switch");
 	enum libinput_switch which = switch_param_lookup(str);
 
 	li = litest_create_context();

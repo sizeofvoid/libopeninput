@@ -185,8 +185,7 @@ START_TEST(pointer_motion_relative_min_decel)
 	int dx, dy;
 	double len;
 
-	const char *direction;
-	litest_test_param_fetch(test_env->params, "direction", &direction, NULL);
+	const char *direction = litest_test_param_get_string(test_env->params, "direction");
 
 	if (streq(direction, "N")) {
 		dx = 0; dy = 1;
@@ -275,8 +274,7 @@ START_TEST(pointer_absolute_initial_state)
 	struct libinput_event *ev1, *ev2;
 	struct libinput_event_pointer *p1, *p2;
 
-	const char *axisname;
-	litest_test_param_fetch(test_env->params, "axis", &axisname);
+	const char *axisname = litest_test_param_get_string(test_env->params, "axis");
 	int axis = libevdev_event_code_from_code_name(axisname);
 	litest_assert_int_ne(axis, -1);
 
@@ -780,8 +778,7 @@ START_TEST(pointer_scroll_wheel_hires_send_only_lores)
 	unsigned int lores_code, hires_code;
 	int direction;
 
-	const char *axisname;
-	litest_test_param_fetch(test_env->params, "axis", &axisname, NULL);
+	const char *axisname = litest_test_param_get_string(test_env->params, "axis");
 
 	if (streq(axisname, "vertical")) {
 		lores_code = REL_WHEEL;
