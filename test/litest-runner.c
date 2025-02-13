@@ -666,7 +666,7 @@ _litest_test_param_fetch(const struct litest_test_parameters *params, ...)
 		void **ptr = va_arg(args, void *);
 		list_for_each(p, &params->test_params, link) {
 			if (streq(p->name, name)) {
-				if (p->value.type != type)
+				if (tolower(p->value.type) != tolower(type))
 					litest_abort_msg("Paramter type mismatch: parameter '%s' is of type %c", p->name, p->value.type);
 				found = true;
 				multivalue_extract(&p->value, ptr);

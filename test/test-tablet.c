@@ -669,10 +669,7 @@ START_TEST(tip_up_motion_one_axis)
 	double x, y, last_x, last_y;
 	double start_x = 20,
 	       start_y = 20;
-
-	const char *axisname = litest_test_param_get_string(test_env->params, "axis");
-	int axis = libevdev_event_code_from_code_name(axisname);
-	litest_assert_int_ne(axis, -1);
+	int axis = litest_test_param_get_i32(test_env->params, "axis");
 
 	switch (axis) {
 	case ABS_X:
@@ -5321,10 +5318,6 @@ START_TEST(tilt_fixed_points)
 		{ ABS_PRESSURE, 0 },
 		{ -1, -1 }
 	};
-	int axis_value;
-	double expected;
-
-	const char *testcase = litest_test_param_get_string(test_env->params, "tilt");
 
 	/* On devices with a range of [-N, M], make sure we calculate the hw zero position
 	 * as zero and that the respective min/max resolve to our (hardcoded) min/max degree
@@ -5341,17 +5334,24 @@ START_TEST(tilt_fixed_points)
 	/* see tablet_fix_tilt() */
 	bool is_adjusted = (int)absinfo_range(abs) % 2 == 0;
 
-	if (streq(testcase, "minimum")) {
+	int axis_value;
+	double expected;
+	int testcase = litest_test_param_get_i32(test_env->params, "tilt");
+	switch (testcase) {
+	case TILT_MINIMUM:
 		axis_value = abs->minimum;
 		expected = -64.0;
-	} else if (streq(testcase, "center")) {
+		break;
+	case TILT_CENTER:
 		axis_value = 0;
 		expected = 0.0;
-	} else if (streq(testcase, "maximum")) {
+		break;
+	case TILT_MAXIMUM:
 		axis_value = abs->maximum;
 		expected = 64.0;
-	} else {
-		abort();
+		break;
+	default:
+		litest_abort_msg("Invalid tilt testcase '%d'", testcase);
 	}
 
 	litest_drain_events(li);
@@ -7099,7 +7099,7 @@ TEST_COLLECTION(tablet)
 	litest_add(tip_down_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add(tip_up_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
 	litest_add(tip_down_up_eraser, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	litest_with_parameters(params, "axis", 's', 2, "ABS_X", "ABS_Y") {
+	litest_with_parameters(params, "axis", 'I', 2, litest_named_i32(ABS_X), litest_named_i32(ABS_Y)) {
 		litest_add_parametrized(tip_up_motion_one_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY, params);
 	}
 	litest_add(tip_state_proximity, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
@@ -7113,7 +7113,9 @@ TEST_COLLECTION(tablet)
 	litest_add(tilt_not_available, LITEST_TABLET, LITEST_TILT);
 	litest_add(tilt_x, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
 	litest_add(tilt_y, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
-	litest_with_parameters(params, "tilt", 's', 3, "minimum", "maximum", "center") {
+	litest_with_parameters(params, "tilt", 'I', 3, litest_named_i32(TILT_MINIMUM, "minimum"),
+						       litest_named_i32(TILT_CENTER, "center"),
+						       litest_named_i32(TILT_MAXIMUM, "maximum")) {
 		litest_add_parametrized(tilt_fixed_points, LITEST_TABLET|LITEST_TILT, LITEST_ANY, params);
 	}
 	litest_add(pad_buttons_ignored, LITEST_TABLET, LITEST_TOTEM);

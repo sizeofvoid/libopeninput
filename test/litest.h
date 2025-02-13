@@ -615,6 +615,19 @@ _litest_parameters_new(const char *name, ...);
 	     params_; \
 	     params_ = litest_parameters_unref(params_))
 
+#define _LITEST_NAMED_I32(v_, n_, ...) (struct litest_named_i32){ .value = v_, .name = n_ }
+/* Helper to default second argument to stringification of first argument.
+ * This allows for two uses of this macro:
+ * - litest_named_i32(0) expands to { 0, "0" }
+ * - litest_named_i32(0, "zero") expands to (effectively) { 0, "zero" }
+ */
+#define litest_named_i32(...) _LITEST_NAMED_I32(__VA_ARGS__, #__VA_ARGS__)
+
+struct litest_named_i32 {
+	int32_t value;
+	const char *name;
+};
+
 struct litest_parameters_permutation_value {
 	struct list link;
 	char name[128];

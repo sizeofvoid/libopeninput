@@ -34,6 +34,10 @@
 #include "libinput-util.h"
 #include "litest.h"
 
+enum cardinal {
+	N, NE, E, SE, S, SW, W, NW
+};
+
 static void
 test_relative_event(struct litest_device *dev, double dx, double dy)
 {
@@ -184,27 +188,36 @@ START_TEST(pointer_motion_relative_min_decel)
 	double evx, evy;
 	int dx, dy;
 	double len;
+	enum cardinal direction = litest_test_param_get_i32(test_env->params, "direction");
 
-	const char *direction = litest_test_param_get_string(test_env->params, "direction");
-
-	if (streq(direction, "N")) {
+	switch(direction) {
+	case N:
 		dx = 0; dy = 1;
-	} else if (streq(direction, "NE")) {
+		break;
+	case NE:
 		dx = 1; dy = 1;
-	} else if (streq(direction, "E")) {
+		break;
+	case E:
 		dx = 1; dy = 0;
-	} else if (streq(direction, "SE")) {
+		break;
+	case SE:
 		dx = 1; dy = -1;
-	} else if (streq(direction, "S")) {
+		break;
+	case S:
 		dx = 0; dy = -1;
-	} else if (streq(direction, "SW")) {
+		break;
+	case SW:
 		dx = -1; dy = -1;
-	} else if (streq(direction, "W")) {
+		break;
+	case W:
 		dx = -1; dy = 0;
-	} else if (streq(direction, "NW")) {
-		dx = -1, dy = 1;
-	} else
-		litest_abort_msg("Invalid direction %s", direction);
+		break;
+	case NW:
+		dx = -1; dy = 1;
+		break;
+	default:
+		litest_abort_msg("Invalid direction %d", direction);
+	}
 
 	litest_drain_events(dev->libinput);
 
@@ -273,10 +286,7 @@ START_TEST(pointer_absolute_initial_state)
 	struct libinput *libinput1, *libinput2;
 	struct libinput_event *ev1, *ev2;
 	struct libinput_event_pointer *p1, *p2;
-
-	const char *axisname = litest_test_param_get_string(test_env->params, "axis");
-	int axis = libevdev_event_code_from_code_name(axisname);
-	litest_assert_int_ne(axis, -1);
+	int axis = litest_test_param_get_i32(test_env->params, "axis");
 
 	libinput1 = dev->libinput;
 	litest_touch_down(dev, 0, 40, 60);
@@ -777,19 +787,21 @@ START_TEST(pointer_scroll_wheel_hires_send_only_lores)
 	struct libinput *li = dev->libinput;
 	unsigned int lores_code, hires_code;
 	int direction;
+	enum libinput_pointer_axis axis = litest_test_param_get_i32(test_env->params, "axis");
 
-	const char *axisname = litest_test_param_get_string(test_env->params, "axis");
-
-	if (streq(axisname, "vertical")) {
+	switch (axis) {
+	case LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL:
 		lores_code = REL_WHEEL;
 		hires_code = REL_WHEEL_HI_RES;
 		direction = -1;
-	} else if (streq(axisname, "horizontal")) {
+		break;
+	case LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL:
 		lores_code = REL_HWHEEL;
 		hires_code = REL_HWHEEL_HI_RES;
 		direction = 1;
-	} else {
-		litest_abort_msg("Invalid test axis '%s'", axisname);
+		break;
+	default:
+		litest_abort_msg("Invalid test axis '%d'", axis);
 	}
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, lores_code) &&
@@ -3758,7 +3770,10 @@ TEST_COLLECTION(pointer)
 	litest_add(pointer_motion_relative, LITEST_RELATIVE, LITEST_POINTINGSTICK);
 	litest_add_for_device(pointer_motion_relative_zero, LITEST_MOUSE);
 	litest_with_parameters(params,
-			       "direction", 's', 8, "N", "E", "S", "W", "NE", "SE", "SW", "NW") {
+			       "direction", 'I', 8, litest_named_i32(N), litest_named_i32(NE),
+						    litest_named_i32(E), litest_named_i32(SE),
+						    litest_named_i32(S), litest_named_i32(SW),
+						    litest_named_i32(W), litest_named_i32(NW)) {
 		litest_add_parametrized(pointer_motion_relative_min_decel, LITEST_RELATIVE, LITEST_POINTINGSTICK, params);
 	}
 	litest_add(pointer_motion_absolute, LITEST_ABSOLUTE, LITEST_ANY);
@@ -3770,7 +3785,8 @@ TEST_COLLECTION(pointer)
 	litest_add(pointer_recover_from_lost_button_count, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add(pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_wheel_hires, LITEST_WHEEL, LITEST_TABLET);
-	litest_with_parameters(params, "axis", 's', 2, "vertical", "horizontal") {
+	litest_with_parameters(params, "axis", 'I', 2, litest_named_i32(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, "vertical"),
+						       litest_named_i32(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, "horizontal")) {
 		litest_add_parametrized(pointer_scroll_wheel_hires_send_only_lores, LITEST_WHEEL, LITEST_TABLET, params);
 	}
 	litest_add(pointer_scroll_wheel_inhibit_small_deltas, LITEST_WHEEL, LITEST_TABLET);
@@ -3840,7 +3856,7 @@ TEST_COLLECTION(pointer)
 	litest_add(middlebutton_device_remove_while_down, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add(middlebutton_device_remove_while_one_is_down, LITEST_BUTTON, LITEST_CLICKPAD);
 
-	litest_with_parameters(params, "axis", 's', 2, "ABS_X", "ABS_Y") {
+	litest_with_parameters(params, "axis", 'I', 2, litest_named_i32(ABS_X), litest_named_i32(ABS_Y)) {
 		litest_add_parametrized(pointer_absolute_initial_state, LITEST_ABSOLUTE, LITEST_ANY, params);
 	}
 

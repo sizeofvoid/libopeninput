@@ -39,6 +39,7 @@ struct multivalue {
 		uint32_t u;
 		int32_t i;
 	} value;
+	char name[64];
 };
 
 static inline void
@@ -73,10 +74,7 @@ multivalue_extract_typed(const struct multivalue *v, char type, void *ptr)
 static inline struct multivalue
 multivalue_copy(const struct multivalue *v)
 {
-	struct multivalue copy = {
-		copy.type = v->type,
-		copy.value = v->value,
-	};
+	struct multivalue copy = *v;
 	return copy;
 }
 
@@ -143,10 +141,24 @@ multivalue_new_bool(bool b)
 	return v;
 }
 
+static inline struct multivalue
+multivalue_new_named_i32(int32_t value, const char *name)
+{
+	struct multivalue v = multivalue_new_i32(value);
+
+	assert(strlen(name) < sizeof(v.name));
+
+	snprintf(v.name, sizeof(v.name), "%s", name);
+	return v;
+}
+
 static inline char *
 multivalue_as_str(const struct multivalue *v)
 {
 	char *str;
+
+	if (v->name[0])
+		return safe_strdup(v->name);
 
 	switch (v->type) {
 	case 'd':

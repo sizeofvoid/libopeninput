@@ -3617,10 +3617,7 @@ START_TEST(touchpad_initial_state)
 	struct litest_device *dev;
 	struct libinput *libinput1, *libinput2;
 	int x = 40, y = 60;
-
-	const char *axisname = litest_test_param_get_string(test_env->params, "axis");
-	int axis = libevdev_event_code_from_code_name(axisname);
-	litest_assert_int_ne(axis, -1);
+	int axis = litest_test_param_get_i32(test_env->params, "axis");
 
 	dev = litest_current_device();
 	libinput1 = dev->libinput;
@@ -6921,29 +6918,12 @@ assert_touchpad_does_not_move(struct litest_device *tp)
 	litest_assert_empty_queue(li);
 }
 
-static enum suspend
-mode_param_lookup(const char *mode)
-{
-	if (streq(mode, "external_mouse"))
-		return SUSPEND_EXT_MOUSE;
-	else if (streq(mode, "sendevents"))
-		return SUSPEND_SENDEVENTS;
-	else if (streq(mode, "lid"))
-		return SUSPEND_LID;
-	else if (streq(mode, "tabletmode"))
-		return SUSPEND_TABLETMODE;
-
-	litest_abort_msg("Invalid mode parameter: %s", mode);
-}
-
 START_TEST(touchpad_suspend_abba)
 {
 	struct litest_device *tp = litest_current_device();
 	struct litest_device *lid, *tabletmode, *extmouse;
 	struct libinput *li = tp->libinput;
-
-	const char *mode = litest_test_param_get_string(test_env->params, "mode");
-	enum suspend first = mode_param_lookup(mode);
+	enum suspend first = litest_test_param_get_i32(test_env->params, "mode");
 
 	if (first == SUSPEND_EXT_MOUSE && litest_touchpad_is_external(tp))
 		return LITEST_NOT_APPLICABLE;
@@ -7082,9 +7062,7 @@ START_TEST(touchpad_suspend_abab)
 	struct litest_device *tp = litest_current_device();
 	struct litest_device *lid, *tabletmode, *extmouse;
 	struct libinput *li = tp->libinput;
-
-	const char *mode = litest_test_param_get_string(test_env->params, "mode");
-	enum suspend first = mode_param_lookup(mode);
+	enum suspend first = litest_test_param_get_i32(test_env->params, "mode");
 
 	if (first == SUSPEND_EXT_MOUSE && litest_touchpad_is_external(tp))
 		return LITEST_NOT_APPLICABLE;
@@ -7356,7 +7334,7 @@ TEST_COLLECTION(touchpad)
 	litest_add_for_device(touchpad_trackpoint_buttons_2fg_scroll, LITEST_SYNAPTICS_TRACKPOINT_BUTTONS);
 	litest_add_for_device(touchpad_trackpoint_no_trackpoint, LITEST_SYNAPTICS_TRACKPOINT_BUTTONS);
 
-	litest_with_parameters(params, "axis", 's', 2, "ABS_X", "ABS_Y") {
+	litest_with_parameters(params, "axis", 'I', 2, litest_named_i32(ABS_X), litest_named_i32(ABS_Y)) {
 		litest_add_parametrized(touchpad_initial_state, LITEST_TOUCHPAD, LITEST_ANY, params);
 	}
 
@@ -7402,9 +7380,10 @@ TEST_COLLECTION(touchpad)
 	litest_add(touchpad_speed_ignore_finger_edgescroll, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add_for_device(touchpad_speed_ignore_hovering_finger, LITEST_BCM5974);
 
-	litest_with_parameters(params, "mode", 's', 4,
-			       "external_mouse", "sendevents",
-			       "lid", "tabletmode") {
+	litest_with_parameters(params, "mode", 'I', 4, litest_named_i32(SUSPEND_EXT_MOUSE, "external_mouse"),
+						       litest_named_i32(SUSPEND_SENDEVENTS, "sendevents"),
+						       litest_named_i32(SUSPEND_LID, "lid"),
+						       litest_named_i32(SUSPEND_TABLETMODE, "tabletmode")) {
 		litest_add_parametrized(touchpad_suspend_abba, LITEST_TOUCHPAD, LITEST_ANY, params);
 		litest_add_parametrized(touchpad_suspend_abab, LITEST_TOUCHPAD, LITEST_ANY, params);
 	}

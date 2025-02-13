@@ -385,6 +385,16 @@ litest_parameter_add_double(struct litest_parameter *p, double d)
 	list_append(&p->values, &pv->link);
 }
 
+static inline void
+litest_parameter_add_named_i32(struct litest_parameter *p, const struct litest_named_i32 i)
+{
+	assert(p->type == 'I');
+
+	struct litest_parameter_value *pv = litest_parameter_value_new();
+	pv->value = multivalue_new_named_i32(i.value, i.name);
+	list_append(&p->values, &pv->link);
+}
+
 #if 0
 static struct litest_parameter_value *
 litest_parameter_value_ref(struct litest_parameter_value *pv) {
@@ -417,6 +427,7 @@ litest_parameter_new(const char *name, char type)
 	case 'c':
 	case 'd':
 	case 'i':
+	case 'I':
 	case 's':
 	case 'u':
 		  break;
@@ -513,6 +524,11 @@ _litest_parameters_new(const char *name, ...) {
 				case 's': {
 					const char *s = va_arg(args, const char *);
 					litest_parameter_add_string(param, s);
+					break;
+				}
+				case 'I': {
+					struct litest_named_i32 p = va_arg(args, struct litest_named_i32);
+					litest_parameter_add_named_i32(param, p);
 					break;
 				}
 				default:

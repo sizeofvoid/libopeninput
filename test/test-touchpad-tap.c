@@ -2276,17 +2276,6 @@ START_TEST(touchpad_tap_n_drag_draglock_3fg_swipe)
 }
 END_TEST
 
-static enum libinput_config_tap_button_map
-map_param_lookup(const char *arg)
-{
-	if (streq(arg, "LMR"))
-		return LIBINPUT_CONFIG_TAP_MAP_LMR;
-	if (streq(arg, "LRM"))
-		return LIBINPUT_CONFIG_TAP_MAP_LRM;
-
-	litest_abort_msg("Invalid map parameter: %s", arg);
-}
-
 START_TEST(touchpad_2fg_tap)
 {
 	struct litest_device *dev = litest_current_device();
@@ -2296,8 +2285,7 @@ START_TEST(touchpad_2fg_tap)
 	struct libinput_event_pointer *ptrev;
 	uint64_t ptime, rtime;
 
-	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
-	enum libinput_config_tap_button_map map = map_param_lookup(mapstr);
+	enum libinput_config_tap_button_map map = litest_test_param_get_i32(test_env->params, "map");
 
 	litest_enable_tap(dev->libinput_device);
 	litest_set_tap_map(dev->libinput_device, map);
@@ -2353,8 +2341,7 @@ START_TEST(touchpad_2fg_tap_inverted)
 	struct libinput_event_pointer *ptrev;
 	uint64_t ptime, rtime;
 
-	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
-	enum libinput_config_tap_button_map map = map_param_lookup(mapstr);
+	enum libinput_config_tap_button_map map = litest_test_param_get_i32(test_env->params, "map");
 
 	litest_enable_tap(dev->libinput_device);
 	litest_set_tap_map(dev->libinput_device, map);
@@ -2884,8 +2871,7 @@ START_TEST(touchpad_3fg_tap)
 	unsigned int button = 0;
 	int i;
 
-	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
-	enum libinput_config_tap_button_map map = map_param_lookup(mapstr);
+	enum libinput_config_tap_button_map map = litest_test_param_get_i32(test_env->params, "map");
 
 	if (litest_slot_count(dev) < 3)
 		return LITEST_NOT_APPLICABLE;
@@ -3158,8 +3144,7 @@ START_TEST(touchpad_3fg_tap_btntool)
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
 
-	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
-	enum libinput_config_tap_button_map map = map_param_lookup(mapstr);
+	enum libinput_config_tap_button_map map = litest_test_param_get_i32(test_env->params, "map");
 
 	if (litest_slot_count(dev) >= 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
@@ -3211,8 +3196,7 @@ START_TEST(touchpad_3fg_tap_btntool_inverted)
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
 
-	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
-	enum libinput_config_tap_button_map map = map_param_lookup(mapstr);
+	enum libinput_config_tap_button_map map = litest_test_param_get_i32(test_env->params, "map");
 
 	if (litest_slot_count(dev) > 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
@@ -3264,8 +3248,7 @@ START_TEST(touchpad_3fg_tap_btntool_pointerjump)
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
 
-	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
-	enum libinput_config_tap_button_map map = map_param_lookup(mapstr);
+	enum libinput_config_tap_button_map map = litest_test_param_get_i32(test_env->params, "map");
 
 	if (litest_slot_count(dev) > 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
@@ -5743,7 +5726,8 @@ TEST_COLLECTION(touchpad_tap)
 	litest_add(touchpad_5fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add(touchpad_5fg_tap_quickrelease, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 
-	litest_with_parameters(params, "map", 's', 2, "LRM", "LMR") {
+	litest_with_parameters(params, "map", 'I', 2, litest_named_i32(LIBINPUT_CONFIG_TAP_MAP_LRM, "LRM"),
+						      litest_named_i32(LIBINPUT_CONFIG_TAP_MAP_LMR, "LMR")) {
 		litest_add_parametrized(touchpad_2fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT, params);
 		litest_add_parametrized(touchpad_2fg_tap_inverted, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 		litest_add_parametrized(touchpad_3fg_tap_btntool, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);

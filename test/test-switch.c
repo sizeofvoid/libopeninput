@@ -104,25 +104,12 @@ START_TEST(switch_has_tablet_mode_switch)
 }
 END_TEST
 
-static enum libinput_switch
-switch_param_lookup(const char *sw)
-{
-	if (streq(sw, "lid"))
-		return LIBINPUT_SWITCH_LID;
-	if (streq(sw, "tablet_mode"))
-		return LIBINPUT_SWITCH_TABLET_MODE;
-
-	litest_abort_msg("Invalid switch parameter: %s", sw);
-}
-
 START_TEST(switch_toggle)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-
-	const char *str = litest_test_param_get_string(test_env->params, "switch");
-	enum libinput_switch sw = switch_param_lookup(str);
+	enum libinput_switch sw = litest_test_param_get_i32(test_env->params, "switch");
 
 	litest_drain_events(li);
 
@@ -157,9 +144,7 @@ START_TEST(switch_toggle_double)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
-
-	const char *str = litest_test_param_get_string(test_env->params, "switch");
-	enum libinput_switch sw = switch_param_lookup(str);
+	enum libinput_switch sw = litest_test_param_get_i32(test_env->params, "switch");
 
 	if (libinput_device_switch_has_switch(dev->libinput_device, sw) <= 0)
 		return LITEST_NOT_APPLICABLE;
@@ -205,9 +190,7 @@ START_TEST(switch_down_on_init)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li;
 	struct libinput_event *event;
-
-	const char *str = litest_test_param_get_string(test_env->params, "switch");
-	enum libinput_switch sw = switch_param_lookup(str);
+	enum libinput_switch sw = litest_test_param_get_i32(test_env->params, "switch");
 
 	if (libinput_device_switch_has_switch(dev->libinput_device, sw) <= 0)
 		return LITEST_NOT_APPLICABLE;
@@ -295,10 +278,7 @@ START_TEST(switch_disable_touchpad)
 	struct litest_device *sw = litest_current_device();
 	struct litest_device *touchpad;
 	struct libinput *li = sw->libinput;
-
-	const char *str = litest_test_param_get_string(test_env->params, "switch");
-	enum libinput_switch which = switch_param_lookup(str);
-
+	enum libinput_switch which = litest_test_param_get_i32(test_env->params, "switch");
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
 		return LITEST_NOT_APPLICABLE;
 
@@ -337,9 +317,7 @@ START_TEST(switch_disable_touchpad_during_touch)
 	struct litest_device *sw = litest_current_device();
 	struct litest_device *touchpad;
 	struct libinput *li = sw->libinput;
-	const char *str = litest_test_param_get_string(test_env->params, "switch");
-	enum libinput_switch which = switch_param_lookup(str);
-
+	enum libinput_switch which = litest_test_param_get_i32(test_env->params, "switch");
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
 		return LITEST_NOT_APPLICABLE;
 
@@ -370,10 +348,7 @@ START_TEST(switch_disable_touchpad_edge_scroll)
 	struct litest_device *sw = litest_current_device();
 	struct litest_device *touchpad;
 	struct libinput *li = sw->libinput;
-
-	const char *str = litest_test_param_get_string(test_env->params, "switch");
-	enum libinput_switch which = switch_param_lookup(str);
-
+	enum libinput_switch which = litest_test_param_get_i32(test_env->params, "switch");
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
 		return LITEST_NOT_APPLICABLE;
 
@@ -412,10 +387,7 @@ START_TEST(switch_disable_touchpad_edge_scroll_interrupt)
 	struct litest_device *touchpad;
 	struct libinput *li = sw->libinput;
 	struct libinput_event *event;
-
-	const char *str = litest_test_param_get_string(test_env->params, "switch");
-	enum libinput_switch which = switch_param_lookup(str);
-
+	enum libinput_switch which = litest_test_param_get_i32(test_env->params, "switch");
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
 		return LITEST_NOT_APPLICABLE;
 
@@ -454,10 +426,7 @@ START_TEST(switch_disable_touchpad_already_open)
 	struct litest_device *sw = litest_current_device();
 	struct litest_device *touchpad;
 	struct libinput *li = sw->libinput;
-
-	const char *str = litest_test_param_get_string(test_env->params, "switch");
-	enum libinput_switch which = switch_param_lookup(str);
-
+	enum libinput_switch which = litest_test_param_get_i32(test_env->params, "switch");
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
 		return LITEST_NOT_APPLICABLE;
 
@@ -491,10 +460,7 @@ START_TEST(switch_dont_resume_disabled_touchpad)
 	struct litest_device *sw = litest_current_device();
 	struct litest_device *touchpad;
 	struct libinput *li = sw->libinput;
-
-	const char *str = litest_test_param_get_string(test_env->params, "switch");
-	enum libinput_switch which = switch_param_lookup(str);
-
+	enum libinput_switch which = litest_test_param_get_i32(test_env->params, "switch");
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
 		return LITEST_NOT_APPLICABLE;
 
@@ -534,10 +500,7 @@ START_TEST(switch_dont_resume_disabled_touchpad_external_mouse)
 	struct litest_device *sw = litest_current_device();
 	struct litest_device *touchpad, *mouse;
 	struct libinput *li = sw->libinput;
-
-	const char *str = litest_test_param_get_string(test_env->params, "switch");
-	enum libinput_switch which = switch_param_lookup(str);
-
+	enum libinput_switch which = litest_test_param_get_i32(test_env->params, "switch");
 	if (libinput_device_switch_has_switch(sw->libinput_device, which) <= 0)
 		return LITEST_NOT_APPLICABLE;
 
@@ -668,10 +631,7 @@ START_TEST(switch_suspend_with_keyboard)
 	struct libinput *li;
 	struct litest_device *keyboard;
 	struct litest_device *sw;
-
-	const char *str = litest_test_param_get_string(test_env->params, "switch");
-	enum libinput_switch which = switch_param_lookup(str);
-
+	enum libinput_switch which = litest_test_param_get_i32(test_env->params, "switch");
 	li = litest_create_context();
 
 	switch(which) {
@@ -711,10 +671,7 @@ START_TEST(switch_suspend_with_touchpad)
 {
 	struct libinput *li;
 	struct litest_device *touchpad, *sw;
-
-	const char *str = litest_test_param_get_string(test_env->params, "switch");
-	enum libinput_switch which = switch_param_lookup(str);
-
+	enum libinput_switch which = litest_test_param_get_i32(test_env->params, "switch");
 	li = litest_create_context();
 
 	switch(which) {
@@ -1431,7 +1388,8 @@ TEST_COLLECTION(switch)
 	litest_add(switch_has_tablet_mode_switch, LITEST_SWITCH, LITEST_ANY);
 	litest_add(switch_not_down_on_init, LITEST_SWITCH, LITEST_ANY);
 
-	litest_with_parameters(params, "switch", 's', 2, "lid", "tablet_mode") {
+	litest_with_parameters(params, "switch", 'I', 2, litest_named_i32(LIBINPUT_SWITCH_LID, "lid"),
+							 litest_named_i32(LIBINPUT_SWITCH_TABLET_MODE, "tablet_mode")) {
 		litest_add_parametrized(switch_toggle, LITEST_SWITCH, LITEST_ANY, params);
 		litest_add_parametrized(switch_toggle_double, LITEST_SWITCH, LITEST_ANY, params);
 		litest_add_parametrized(switch_down_on_init, LITEST_SWITCH, LITEST_ANY, params);

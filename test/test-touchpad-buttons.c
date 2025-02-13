@@ -254,25 +254,12 @@ START_TEST(touchpad_1fg_clickfinger_no_touch_phantomclicks)
 }
 END_TEST
 
-static enum libinput_config_clickfinger_button_map
-map_param_lookup(const char *arg)
-{
-	if (streq(arg, "LMR"))
-		return LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR;
-	if (streq(arg, "LRM"))
-		return LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM;
-
-	litest_abort_msg("Invalid map parameter: %s", arg);
-}
-
 START_TEST(touchpad_2fg_clickfinger)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
-
-	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
-	enum libinput_config_clickfinger_button_map map = map_param_lookup(mapstr);
+	enum libinput_config_clickfinger_button_map map = litest_test_param_get_i32(test_env->params, "map");
 
 	litest_enable_clickfinger(dev);
 	litest_set_clickfinger_map(dev, map);
@@ -314,8 +301,7 @@ START_TEST(touchpad_3fg_clickfinger)
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
 
-	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
-	enum libinput_config_clickfinger_button_map map = map_param_lookup(mapstr);
+	enum libinput_config_clickfinger_button_map map = litest_test_param_get_i32(test_env->params, "map");
 
 	if (litest_slot_count(dev) < 3)
 		return LITEST_NOT_APPLICABLE;
@@ -363,9 +349,7 @@ START_TEST(touchpad_3fg_clickfinger_btntool)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
-
-	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
-	enum libinput_config_clickfinger_button_map map = map_param_lookup(mapstr);
+	enum libinput_config_clickfinger_button_map map = litest_test_param_get_i32(test_env->params, "map");
 
 	if (litest_slot_count(dev) >= 3 ||
 	    !libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_TRIPLETAP))
@@ -519,9 +503,7 @@ START_TEST(touchpad_2fg_clickfinger_distance)
 	double w, h;
 	bool small_touchpad = false;
 	unsigned int expected_button = 0;
-
-	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
-	enum libinput_config_clickfinger_button_map map = map_param_lookup(mapstr);
+	enum libinput_config_clickfinger_button_map map = litest_test_param_get_i32(test_env->params, "map");
 
 	if (libinput_device_get_size(dev->libinput_device, &w, &h) == 0 &&
 	    h < 50.0)
@@ -587,9 +569,7 @@ START_TEST(touchpad_3fg_clickfinger_distance)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
-
-	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
-	enum libinput_config_clickfinger_button_map map = map_param_lookup(mapstr);
+	enum libinput_config_clickfinger_button_map map = litest_test_param_get_i32(test_env->params, "map");
 
 	if (litest_slot_count(dev) < 3)
 		return LITEST_NOT_APPLICABLE;
@@ -636,9 +616,7 @@ START_TEST(touchpad_3fg_clickfinger_distance_btntool)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	unsigned int button = 0;
-
-	const char *mapstr = litest_test_param_get_string(test_env->params, "map");
-	enum libinput_config_clickfinger_button_map map = map_param_lookup(mapstr);
+	enum libinput_config_clickfinger_button_map map = litest_test_param_get_i32(test_env->params, "map");
 
 	if (litest_slot_count(dev) > 2)
 		return LITEST_NOT_APPLICABLE;
@@ -2271,7 +2249,8 @@ TEST_COLLECTION(touchpad_buttons)
 	litest_add(touchpad_1fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_1fg_clickfinger_no_touch, LITEST_CLICKPAD, LITEST_ANY);
 
-	litest_with_parameters(params, "map", 's', 2, "LRM", "LMR") {
+	litest_with_parameters(params, "map", 'I', 2, litest_named_i32(LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM, "LRM"),
+						      litest_named_i32(LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR, "LMR")) {
 		litest_add_parametrized(touchpad_2fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY, params);
 		litest_add_parametrized(touchpad_3fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY, params);
 		litest_add_parametrized(touchpad_3fg_clickfinger_btntool, LITEST_CLICKPAD, LITEST_ANY, params);

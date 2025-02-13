@@ -815,10 +815,7 @@ START_TEST(touch_initial_state)
 	struct libinput_event *ev2 = NULL;
 	struct libinput_event_touch *t1, *t2;
 	struct libinput_device *device1, *device2;
-
-	const char *axisname = litest_test_param_get_string(test_env->params, "axis");
-	int axis = libevdev_event_code_from_code_name(axisname);
-	litest_assert_int_ne(axis, -1);
+	int axis = litest_test_param_get_i32(test_env->params, "axis");
 
 	dev = litest_current_device();
 	device1 = dev->libinput_device;
@@ -1365,7 +1362,7 @@ TEST_COLLECTION(touch)
 	litest_add(touch_protocol_a_touch, LITEST_PROTOCOL_A, LITEST_ANY);
 	litest_add(touch_protocol_a_2fg_touch, LITEST_PROTOCOL_A, LITEST_ANY);
 
-	litest_with_parameters(params, "axis", 's', 2, "ABS_X", "ABS_Y") {
+	litest_with_parameters(params, "axis", 'I', 2, litest_named_i32(ABS_X), litest_named_i32(ABS_Y)) {
 		litest_add_parametrized(touch_initial_state, LITEST_TOUCH, LITEST_PROTOCOL_A, params);
 	}
 
