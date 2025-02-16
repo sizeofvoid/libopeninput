@@ -5701,7 +5701,7 @@ TEST_COLLECTION(touchpad_tap)
 		litest_add_parametrized(touchpad_doubletap, LITEST_TOUCHPAD, LITEST_ANY, params);
 	}
 	litest_with_parameters(params, "fingers", 'i', 3, 1, 2, 3,
-				       "taps", 'i', 2, 3, 4) {
+				       "taps", 'i', 3, 3, 4, 5) {
 		litest_add_parametrized(touchpad_multitap, LITEST_TOUCHPAD, LITEST_ANY, params);
 		litest_add_parametrized(touchpad_multitap_timeout, LITEST_TOUCHPAD, LITEST_ANY, params);
 	}
@@ -5739,7 +5739,7 @@ TEST_COLLECTION(touchpad_tap)
 		litest_add_parametrized(touchpad_3fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 	}
 
-	litest_with_parameters(params, "fingers", 'i', 3, 2, 3, 4) {
+	litest_with_parameters(params, "fingers", 'i', 4, 2, 3, 4, 5) {
 		litest_add_parametrized(touchpad_move_after_touch, LITEST_TOUCHPAD, LITEST_ANY, params);
 	}
 
@@ -5772,7 +5772,7 @@ TEST_COLLECTION(touchpad_tap_drag)
 	litest_add(touchpad_drag_lock_default_unavailable, LITEST_ANY, LITEST_TOUCHPAD);
 
 	litest_with_parameters(params, "fingers", 'i', 3, 1, 2, 3,
-				       "taps", 'i', 2, 3, 4) {
+				       "taps", 'i', 3, 3, 4, 5) {
 		litest_add_parametrized(touchpad_multitap_n_drag_tap_click, LITEST_CLICKPAD, LITEST_ANY, params);
 
 		litest_add_parametrized(touchpad_multitap_n_drag_timeout, LITEST_TOUCHPAD, LITEST_ANY, params);
