@@ -5066,6 +5066,88 @@ START_TEST(tablet_pressure_offset_none_for_small_distance)
 }
 END_TEST
 
+START_TEST(tablet_pressure_across_multiple_tablets)
+{
+	struct litest_device *cintiq12wx = litest_current_device();
+	struct libinput *li = cintiq12wx->libinput;
+
+	struct litest_device *mobilestudio = litest_add_device(li, LITEST_WACOM_CINTIQ_PRO16_PEN);
+
+	bool direction = litest_test_param_get_bool(test_env->params, "8k-to-1k");
+	struct litest_device *first = direction ? mobilestudio : cintiq12wx;
+	struct litest_device *second = direction ? cintiq12wx : mobilestudio;
+
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 20 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 },
+	};
+
+	bool have_cintiq12wx = false;
+	bool have_mobilestudio = false;
+
+	libinput_dispatch(li);
+
+	while (!have_cintiq12wx || !have_mobilestudio) {
+		litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
+		struct libinput_event *ev = libinput_get_event(li);
+		litest_assert_event_type(ev, LIBINPUT_EVENT_DEVICE_ADDED);
+		if (libinput_event_get_device(ev) == cintiq12wx->libinput_device)
+			have_cintiq12wx = true;
+		if (libinput_event_get_device(ev) == mobilestudio->libinput_device)
+			have_mobilestudio = true;
+		litest_checkpoint("Have Cintiq 12WX: %s,  MobileStudio: %s", yesno(have_cintiq12wx), yesno(have_mobilestudio));
+		libinput_event_destroy(ev);
+		libinput_dispatch(li);
+	}
+
+	litest_drain_events(li);
+
+	/* Proximity in followed by pressure up to 70%, on the first
+	 * device, then on the second one. They have different pressure
+	 * ranges but we expect the normalized range to be the same
+	 * proportionate range */
+	struct litest_device *dev = first;
+	for (int i = 0; i < 2; i++, dev = second) {
+		litest_checkpoint("Putting pen into proximity on %s", libinput_device_get_name(dev->libinput_device));
+		litest_tablet_proximity_in(dev, 50, 50, axes);
+
+		litest_axis_set_value(axes, ABS_DISTANCE, 0);
+		litest_axis_set_value(axes, ABS_PRESSURE, 10);
+		litest_tablet_motion(dev, 50, 50, axes);
+		litest_dispatch(li);
+
+		for (size_t pressure = 10; pressure <= 70; pressure += 10) {
+			litest_axis_set_value(axes, ABS_PRESSURE, pressure);
+			litest_tablet_motion(dev, 50, 50, axes);
+			litest_dispatch(li);
+		}
+		litest_tablet_proximity_out(dev);
+		litest_timeout_tablet_proxout();
+		libinput_dispatch(li);
+
+		litest_assert_tablet_proximity_event(li, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+		litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_DOWN);
+		do {
+			struct libinput_event *ev = libinput_get_event(li);
+			struct libinput_event_tablet_tool *tev = litest_is_tablet_event(ev, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+			double pressure = libinput_event_tablet_tool_get_pressure(tev);
+			/* We start at device range 10% but we always have a small threshold */
+			litest_assert_double_gt(pressure, 0.09);
+			litest_assert_double_le(pressure, 0.7);
+
+			libinput_event_destroy(ev);
+		} while (libinput_next_event_type(li) == LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+		litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_UP);
+		litest_assert_tablet_proximity_event(li, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+	}
+
+	litest_delete_device(mobilestudio);
+}
+END_TEST
+
 START_TEST(tablet_distance_range)
 {
 	struct litest_device *dev = litest_current_device();
@@ -7164,6 +7246,8 @@ TEST_COLLECTION(tablet)
 	litest_add_for_device(tablet_pressure_offset_decrease, LITEST_WACOM_HID4800_PEN);
 	litest_add_for_device(tablet_pressure_offset_increase, LITEST_WACOM_HID4800_PEN);
 	litest_add_for_device(tablet_pressure_offset_exceed_threshold, LITEST_WACOM_HID4800_PEN);
+	litest_with_parameters(params, "8k-to-1k", 'b')
+		litest_add_parametrized_for_device(tablet_pressure_across_multiple_tablets, LITEST_WACOM_CINTIQ_12WX, params);
 
 	litest_add(tablet_pressure_config, LITEST_TABLET, LITEST_TOTEM);
 	litest_add(tablet_pressure_config_set_minimum, LITEST_TABLET, LITEST_TOTEM);
@@ -7219,6 +7303,4 @@ TEST_COLLECTION(tablet_left_handed)
 		litest_add_parametrized(tablet_rotation_left_handed_add_touchpad, LITEST_TABLET, LITEST_ANY, params);
 		litest_add_parametrized(tablet_rotation_left_handed_add_tablet, LITEST_TOUCHPAD, LITEST_ANY, params);
 	}
-
-
 }

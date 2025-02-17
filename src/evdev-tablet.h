@@ -61,6 +61,8 @@ struct button_state {
 struct tablet_dispatch {
 	struct evdev_dispatch base;
 	struct evdev_device *device;
+	unsigned int tablet_id; /* incremental ID */
+
 	unsigned int status;
 	unsigned char changed_axes[NCHARS(LIBINPUT_TABLET_TOOL_AXIS_MAX + 1)];
 	struct tablet_axes axes; /* for assembling the current state */
