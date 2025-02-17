@@ -887,7 +887,7 @@ TEST_COLLECTION(misc)
 	litest_add_for_device(event_conversion_key, LITEST_KEYBOARD);
 	litest_add_for_device(event_conversion_touch, LITEST_WACOM_TOUCH);
 	litest_add_for_device(event_conversion_gesture, LITEST_BCM5974);
-	litest_add_for_device(event_conversion_tablet, LITEST_WACOM_CINTIQ);
+	litest_add_for_device(event_conversion_tablet, LITEST_WACOM_CINTIQ_12WX);
 	litest_add_for_device(event_conversion_tablet_pad, LITEST_WACOM_INTUOS5_PAD);
 	litest_add_for_device(event_conversion_switch, LITEST_LID_SWITCH);
 

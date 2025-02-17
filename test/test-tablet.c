@@ -7205,7 +7205,7 @@ TEST_COLLECTION(tablet_left_handed)
 	litest_add_for_device(left_handed_tilt, LITEST_WACOM_INTUOS);
 	litest_add_for_device(left_handed_mouse_rotation, LITEST_WACOM_INTUOS);
 	litest_add_for_device(left_handed_artpen_rotation, LITEST_WACOM_INTUOS);
-	litest_add_for_device(no_left_handed, LITEST_WACOM_CINTIQ);
+	litest_add_for_device(no_left_handed, LITEST_WACOM_CINTIQ_12WX);
 
 	litest_with_parameters(params,
 			       "tablet_from", 'b',
