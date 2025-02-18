@@ -3528,7 +3528,7 @@ START_TEST(touchpad_move_after_touch)
 	/* respective number of fingers down */
 	switch(nfingers) {
 	case 5:
-		litest_touch_down(dev, 4, 70, 30);
+		litest_touch_down(dev, 4, 80, 30);
 		_fallthrough_;
 	case 4:
 		litest_touch_down(dev, 3, 70, 30);
@@ -3548,7 +3548,7 @@ START_TEST(touchpad_move_after_touch)
 
 	/* move finger 1 */
 	litest_dispatch(li);
-	litest_touch_move_to(dev, 0, 70, 30, 70, 60, 10);
+	litest_touch_move_to(dev, 0, 40, 30, 70, 60, 10);
 	litest_dispatch(li);
 
 	/* lift finger 1, put it back */
