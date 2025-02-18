@@ -111,7 +111,7 @@ litest_test_param_get_char(const struct litest_test_parameters *params, const ch
 }
 
 static inline double
-litest_test_param_get_double(const struct litest_test_parameters *params, const double *name)
+litest_test_param_get_double(const struct litest_test_parameters *params, const char *name)
 {
 	double p;
 	litest_test_param_fetch(params, name, 'd', &p);
