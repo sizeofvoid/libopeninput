@@ -77,3 +77,54 @@
 
 #define _unused_ __attribute__((unused))
 #define _fallthrough_ __attribute__((fallthrough))
+
+/* Returns the number of macro arguments, this expands
+ * _VARIABLE_MACRO_NARGS(a, b, c) to NTH_ARG(a, b, c, 15, 14, 13, .... 4, 3, 2, 1).
+ * _VARIABLE_MACRO_NTH_ARG always returns the 16th argument which in our case is 3.
+ *
+ * If we want more than 16 values _VARIABLE_MACRO_COUNTDOWN and
+ * _VARIABLE_MACRO_NTH_ARG both need to be updated.
+ */
+#define _VARIABLE_MACRO_NARGS(...)  _VARIABLE_MACRO_NARGS1(__VA_ARGS__, _VARIABLE_MACRO_COUNTDOWN)
+#define _VARIABLE_MACRO_NARGS1(...) _VARIABLE_MACRO_NTH_ARG(__VA_ARGS__)
+
+/* Add to this if we need more than 16 args */
+#define _VARIABLE_MACRO_COUNTDOWN \
+	15, 14, 13, 12, 11, 10, 9, 8, 7,  6,  5,  4,  3,  2, 1, 0
+
+/* Return the 16th argument passed in. See _VARIABLE_MACRO_NARGS above for usage.
+ * Note this is 1-indexed.
+ */
+#define _VARIABLE_MACRO_NTH_ARG( \
+	_1,  _2,  _3,  _4,  _5,  _6,  _7, _8, \
+	_9, _10, _11, _12, _13, _14, _15,\
+	 N, ...) N
+
+/* Defines a different expansion of macros depending on the
+ * number of arguments, e.g. it turns
+ * VARIABLE_MACRO(_ARG, a, b, c) into _ARG3(a, b, c)
+ *
+ * This can be used to have custom macros that expand to different things
+ * depending on the number of arguments. This example converts a
+ * single macro argument into value + stringify, two arguments into
+ * first and second argument.
+ *
+ *     #define _ARG1(_1)     _1, #_1,
+ *     #define _ARG2(_1, _2) _1, _2,
+ *
+ *     #define MYMACRO(...) _VARIABLE_MACRO(_ARG, __VA_ARGS__)
+ *
+ *     static void foo(int value, char *name) { printf("%d: %s\n", value, name); }
+ *
+ *     int main(void) {
+ *         foo(MYMACRO(0));           // prints "0: 0"
+ *         foo(MYMACRO(0, "zero"));   // prints "0: zero"
+ *         return 0;
+ *     }
+ *
+ * The first argument to VARIABLE_MACRO defines the prefix of the
+ * expander macros (here _ARG -> _ARG0, _ARG1, ...). These need to be defined
+ * in the caller for the number of arguments accepted
+ * (up to _VARIABLE_MACRO_COUNTDOWN args).
+ */
+#define _VARIABLE_MACRO(func, ...) CONCAT(func, _VARIABLE_MACRO_NARGS(__VA_ARGS__)) (__VA_ARGS__)

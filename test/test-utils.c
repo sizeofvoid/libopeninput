@@ -2225,6 +2225,24 @@ START_TEST(attribute_cleanup)
 }
 END_TEST
 
+START_TEST(macros_expand)
+{
+#define _A1(_1) _1, #_1
+#define _A2(_1, _2) _1, _2
+#define A(...) _VARIABLE_MACRO(_A, __VA_ARGS__)
+	char buf[64];
+	snprintf(buf, sizeof(buf), "%d:%s", A(0));
+	litest_assert_str_eq(buf, "0:0");
+	snprintf(buf, sizeof(buf), "%d:%s", A(100));
+	litest_assert_str_eq(buf, "100:100");
+	snprintf(buf, sizeof(buf), "%d:%s", A(100, "hundred"));
+	litest_assert_str_eq(buf, "100:hundred");
+#undef _A1
+#undef _A2
+#undef A
+}
+END_TEST
+
 int main(void)
 {
 	struct litest_runner *runner = litest_runner_new();
@@ -2297,6 +2315,7 @@ int main(void)
 
 	ADD_TEST(newtype_test);
 	ADD_TEST(attribute_cleanup);
+	ADD_TEST(macros_expand);
 
 	enum litest_runner_result result = litest_runner_run_tests(runner);
 	litest_runner_destroy(runner);
