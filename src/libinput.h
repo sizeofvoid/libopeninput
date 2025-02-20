@@ -6919,7 +6919,7 @@ libinput_tablet_tool_config_pressure_range_get_minimum(struct libinput_tablet_to
  *
  * @see libinput_tablet_tool_config_pressure_range_is_available
  * @see libinput_tablet_tool_config_pressure_range_get_minimum
- * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ * @see libinput_tablet_tool_config_pressure_range_get_default_minimum
  * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
  *
  * @since 1.26
@@ -6962,7 +6962,7 @@ libinput_tablet_tool_config_pressure_range_get_default_minimum(struct libinput_t
  * @return The maximum pressure value for this tablet tool
  *
  * @see libinput_tablet_tool_config_pressure_range_is_available
- * @see libinput_tablet_tool_config_pressure_range_get_maximum
+ * @see libinput_tablet_tool_config_pressure_range_get_minimum
  * @see libinput_tablet_tool_config_pressure_range_get_maximum
  * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
  *
