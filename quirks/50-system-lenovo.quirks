@@ -23,12 +23,17 @@ ModelLenovoT450Touchpad=1
 [Lenovo T470 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT470:*
-AttrTrackpointMultiplier=0.4
+AttrTrackpointMultiplier=0.75
 
 [Lenovo T480 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT480:*
-AttrTrackpointMultiplier=0.4
+AttrTrackpointMultiplier=0.75
+
+[Lenovo A485 Trackpoint]
+MatchName=*TPPS/2 IBM TrackPoint
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadA485:*
+AttrTrackpointMultiplier=0.75
 
 # Touchpad is a clickpad but INPUT_PROP_BUTTONPAD is not set, see
 # https://gitlab.freedesktop.org/libinput/libinput/issues/177
