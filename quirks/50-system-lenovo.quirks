@@ -402,3 +402,11 @@ ModelPressurePad=1
 MatchName=* Touchpad
 MatchDMIModalias=dmi:*:svnLENOVO:*pvrYogaSlim7Carbon13IAP7:*
 AttrEventCode=-ABS_MT_TOOL_TYPE
+
+# The ThinkPad X9 15 Gen 1 Forcepad touchpad is not
+# detected as a pressure pad
+[Lenovo ThinkPad X9 15 Gen 1]
+MatchName=*GXTP5100*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX9-15Gen1*:*
+MatchUdevType=touchpad
+ModelPressurePad=1
