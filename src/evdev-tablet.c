@@ -31,6 +31,8 @@
 
 #if HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
+#else
+typedef void * WacomStylus;
 #endif
 
 enum notify {
@@ -1020,24 +1022,15 @@ copy_button_cap(const struct tablet_dispatch *tablet,
 
 static inline bool
 tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
-			    struct libinput_tablet_tool *tool)
+			    struct libinput_tablet_tool *tool,
+			    const WacomStylus *s)
 {
 	bool rc = false;
 #if HAVE_LIBWACOM
-	WacomDeviceDatabase *db;
-	const WacomStylus *s = NULL;
 	int code;
 	WacomStylusType type;
 	WacomAxisTypeFlags axes;
 
-	db = tablet_libinput_context(tablet)->libwacom.db;
-	if (!db)
-		return rc;
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	s = libwacom_stylus_get_for_id(db, tool->tool_id);
-#pragma GCC diagnostic pop
 	if (!s)
 		return rc;
 
@@ -1091,14 +1084,15 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 
 static void
 tool_set_bits(const struct tablet_dispatch *tablet,
-	      struct libinput_tablet_tool *tool)
+	      struct libinput_tablet_tool *tool,
+	      const WacomStylus *s)
 {
 	enum libinput_tablet_tool_type type = tool->type;
 
 	copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_X);
 	copy_axis_cap(tablet, tool, LIBINPUT_TABLET_TOOL_AXIS_Y);
 
-	if (tool_set_bits_from_libwacom(tablet, tool))
+	if (s && tool_set_bits_from_libwacom(tablet, tool, s))
 		return;
 
 	/* If we don't have libwacom, we simply copy any axis we have on the
@@ -1278,6 +1272,17 @@ tablet_new_tool(struct tablet_dispatch *tablet,
 		uint32_t serial)
 {
 	struct libinput_tablet_tool *tool = zalloc(sizeof *tool);
+	const WacomStylus *s = NULL;
+#if HAVE_LIBWACOM
+	WacomDeviceDatabase *db;
+
+	db = tablet_libinput_context(tablet)->libwacom.db;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	if (db)
+		s = libwacom_stylus_get_for_id(db, tool_id);
+#pragma GCC diagnostic pop
+#endif
 
 	*tool = (struct libinput_tablet_tool) {
 		.type = type,
@@ -1297,7 +1302,7 @@ tablet_new_tool(struct tablet_dispatch *tablet,
 	};
 
 	tool_init_pressure_thresholds(tablet, tool, &tool->pressure.threshold);
-	tool_set_bits(tablet, tool);
+	tool_set_bits(tablet, tool, s);
 
 	return tool;
 }
