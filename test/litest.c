@@ -3475,6 +3475,10 @@ _litest_wait_for_event_of_type(struct libinput *li, ...)
 		}
 
 		event = libinput_get_event(li);
+		if (verbose) {
+			fprintf(stderr, "litest: discarding event while waiting: ");
+			litest_print_event(event);
+		}
 		libinput_event_destroy(event);
 	}
 }
