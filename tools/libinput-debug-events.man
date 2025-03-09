@@ -132,6 +132,11 @@ Set the button to the given button code
 .B \-\-set\-scroll\-method=[none|twofinger|edge|button]
 Set the desired scroll method
 .TP 8
+.B \-\-set\-sendevents=[disabled|enabled|disabled-on-external-mouse]
+Set the given sendevents mode. This option overrides
+\fB\-\-disable-sendevents="pattern"\fR for any devices it matches
+via the \fB\-\-apply-to="pattern"\fR option.
+.TP 8
 .B \-\-set\-speed=<value>
 Set pointer acceleration speed. The allowed range is [-1, 1].
 This only applies to the flat or adaptive profile.

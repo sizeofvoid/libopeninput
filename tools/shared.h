@@ -70,6 +70,7 @@ enum configuration_options {
 	OPT_CALIBRATION,
 	OPT_AREA,
 	OPT_3FG_DRAG,
+	OPT_SENDEVENTS,
 };
 
 #define CONFIGURATION_OPTIONS \
@@ -100,6 +101,7 @@ enum configuration_options {
 	{ "set-profile",               required_argument, 0, OPT_PROFILE }, \
 	{ "set-tap-map",               required_argument, 0, OPT_TAP_MAP }, \
 	{ "set-speed",                 required_argument, 0, OPT_SPEED },\
+	{ "set-sendevents",            required_argument, 0, OPT_SENDEVENTS },\
 	{ "apply-to",                  required_argument, 0, OPT_APPLY_TO },\
 	{ "set-custom-points",         required_argument, 0, OPT_CUSTOM_POINTS },\
 	{ "set-custom-step",           required_argument, 0, OPT_CUSTOM_STEP },\
@@ -144,6 +146,7 @@ struct tools_options {
 	float calibration[6];
 	struct libinput_config_area_rectangle area;
 	enum libinput_config_3fg_drag_state drag_3fg;
+	enum libinput_config_send_events_mode sendevents;
 };
 
 void tools_init_options(struct tools_options *options);

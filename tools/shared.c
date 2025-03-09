@@ -137,6 +137,7 @@ tools_init_options(struct tools_options *options)
 	options->area.y1 = 0.0;
 	options->area.x2 = 1.0;
 	options->area.y2 = 1.0;
+	options->sendevents = LIBINPUT_CONFIG_SEND_EVENTS_ENABLED;
 }
 
 int
@@ -310,6 +311,18 @@ tools_parse_option(int option,
 			 sizeof(options->disable_pattern),
 			 "%s",
 			 optarg);
+		break;
+	case OPT_SENDEVENTS:
+		if (streq(optarg, "disabled"))
+			options->sendevents = LIBINPUT_CONFIG_SEND_EVENTS_DISABLED;
+		else if (streq(optarg, "enabled"))
+			options->sendevents = LIBINPUT_CONFIG_SEND_EVENTS_ENABLED;
+		else if (streq(optarg, "disabled-on-external-mouse"))
+			options->sendevents = LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
+		else {
+			fprintf(stderr, "Invalid sendevents mode: %s\n", optarg);
+			return 1;
+		}
 		break;
 	case OPT_APPLY_TO:
 		if (!optarg)
@@ -572,6 +585,8 @@ tools_device_apply_config(struct libinput_device *device,
 	if (strlen(options->match) > 0 &&
 	    fnmatch(options->match, name, 0) == FNM_NOMATCH)
 		return;
+
+	libinput_device_config_send_events_set_mode(device, options->sendevents);
 
 	if (options->tapping != -1)
 		libinput_device_config_tap_set_enabled(device, options->tapping);
