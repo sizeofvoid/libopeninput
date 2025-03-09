@@ -409,6 +409,7 @@ print_device_notify(struct libinput_event *ev)
 	intptr_t group_id;
 	const char *devnode;
 	char *str;
+	const char *bustype = "<unknown>";
 
 	group = libinput_device_get_device_group(dev);
 	group_id = (intptr_t)libinput_device_group_get_user_data(group);
@@ -422,6 +423,20 @@ print_device_notify(struct libinput_event *ev)
 
 	print_aligned("Device", "%s", libinput_device_get_name(dev));
 	print_aligned("Kernel", "%s", devnode);
+
+	switch (libinput_device_get_id_bustype(dev)) {
+	case BUS_USB: bustype = "usb"; break;
+	case BUS_BLUETOOTH: bustype = "bluetooth"; break;
+	case BUS_VIRTUAL: bustype = "virtual"; break;
+	case BUS_I2C: bustype = "i2c"; break;
+	case BUS_HOST: bustype = "host"; break;
+	case BUS_I8042: bustype = "serial"; break;
+	}
+	print_aligned("Id", "%s:%04x:%04x",
+		      bustype,
+		      libinput_device_get_id_vendor(dev),
+		      libinput_device_get_id_product(dev));
+
 	print_aligned("Group" , "%d", (int)group_id);
 	print_aligned("Seat",
 		      "%s, %s",
