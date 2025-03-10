@@ -483,13 +483,25 @@ endif
 
 subdir('completion/zsh')
 
+############ libinput-util-libinput.a ############
+
+# This one needs libinput itself
+src_libinput_util_libinput = [
+	'src/util-libinput.c'
+]
+libinput_util_libinput = static_library('libinput-util-libinput',
+					src_libinput_util_libinput,
+					dependencies : [dep_libevdev, dep_libinput_util, dep_libinput],
+					include_directories : includes_include)
+dep_libinput_util_libinput = declare_dependency(link_with : libinput_util_libinput)
+
 ############ tools ############
 if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
 
 libinput_tool_path = dir_libexec
 config_h.set_quoted('LIBINPUT_TOOL_PATH', libinput_tool_path)
 tools_shared_sources = [ 'tools/shared.c' ]
-deps_tools_shared = [ dep_libinput, dep_libevdev ]
+deps_tools_shared = [ dep_libinput, dep_libevdev, dep_libinput_util_libinput ]
 lib_tools_shared = static_library('tools_shared',
 				  tools_shared_sources,
 				  include_directories : [includes_src, includes_include],
