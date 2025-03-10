@@ -18,3 +18,9 @@ repos:
   hooks:
   - id: check-commits
   - id: generate-template
+- repo: local
+  hooks:
+  - id: run-sed-script
+    name: Check for whitespace errors
+    entry: ./.gitlab-ci/whitespace-check.py
+    language: system

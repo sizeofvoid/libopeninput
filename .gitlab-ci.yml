@@ -204,17 +204,7 @@ check-whitespace:
     - .fdo.ci-fairy
   stage: sanity check
   script:
-    # remove trailing whitespaces
-    - sed -i 's/ *$//' $(git ls-files)
-    - git diff --exit-code || (echo "ERROR - Trailing whitespaces in patchset, please fix" && false)
-    - sed -i 's/\t*$//' $(git ls-files)
-    - git diff --exit-code || (echo "ERROR - Trailing tabs in patchset, please fix" && false)
-    # search for tab after space
-    - sed -i 's/ \t//' $(git ls-files)
-    - git diff --exit-code || (echo "ERROR - Tab after space in patchset, please fix" && false)
-    # search for duplicated empty lines
-    - sed -i '/^$/N;/^\n$/D' $(git ls-files src/*.{h,c} tools/*.{h,c} udev/*.c test/*.c)
-    - git diff --exit-code || (echo "ERROR - Duplicated empty lines, please fix" && false)
+    - .gitlab-ci/whitespace-check.py $(git ls-files)
 
 #
 # pre-commit hooks
