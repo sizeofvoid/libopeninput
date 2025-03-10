@@ -399,6 +399,7 @@ src_libinput = src_libfilter + [
 	'src/path-seat.c',
 	'src/udev-seat.c',
 	'src/timer.c',
+	'src/util-libinput.c',
 ]
 endif
 

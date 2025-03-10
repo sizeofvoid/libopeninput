@@ -37,6 +37,7 @@
 #include "libinput.h"
 #include "libinput-private.h"
 #include "util-input-event.h"
+#include "util-libinput.h"
 #include "evdev.h"
 #include "timer.h"
 #include "quirks.h"
@@ -3172,6 +3173,16 @@ switch_notify_toggle(struct libinput_device *device,
 #endif
 }
 
+LIBINPUT_UNUSED
+static inline void
+libinput_print_queued_event(struct libinput_event *event)
+{
+	struct libinput *libinput = libinput_event_get_context(event);
+	char *event_str = libinput_event_to_str(event, 0, NULL);
+	log_debug(libinput, "Queuing %s\n", event_str);
+	free(event_str);
+}
+
 static void
 libinput_post_event(struct libinput *libinput,
 		    struct libinput_event *event)
@@ -3183,19 +3194,7 @@ libinput_post_event(struct libinput *libinput,
 	size_t new_out;
 
 #if 0
-	char buf[1024] = { 0 };
-	switch (event->type) {
-	case LIBINPUT_EVENT_POINTER_BUTTON: {
-		struct libinput_event_pointer *pev = libinput_event_get_pointer_event(event);
-		snprintf(buf, sizeof(buf), "button: %u, state %s",
-			 libinput_event_pointer_get_button(pev),
-			 libinput_event_pointer_get_button_state(pev) == LIBINPUT_BUTTON_STATE_PRESSED ? "press" : "released");
-		break;
-	}
-	default:
-		break;
-	}
-	log_debug(libinput, "Queuing %s { %s }\n", event_type_to_str(event->type), buf);
+	libinput_print_queued_event(event);
 #endif
 
 	events_count++;
