@@ -154,6 +154,33 @@ xvasprintf(char **strp, const char *fmt, va_list args)
 	return rc;
 }
 
+__attribute__ ((format (printf, 1, 2)))
+static inline char *
+strdup_printf(const char *fmt, ...)
+{
+	int rc = 0;
+	va_list args;
+	char *strp;
+
+	va_start(args, fmt);
+	rc = vasprintf(&strp, fmt, args);
+	va_end(args);
+	if (rc < 0)
+		abort();
+	return strp;
+}
+
+__attribute__ ((format (printf, 1, 0)))
+static inline char *
+strdup_vprintf(const char *fmt, va_list args)
+{
+	char *strp;
+	int rc = xvasprintf(&strp, fmt, args);
+	if (rc < 0)
+		abort();
+	return strp;
+}
+
 static inline bool
 safe_atoi_base(const char *str, int *val, int base)
 {
