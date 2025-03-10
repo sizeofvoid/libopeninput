@@ -31,7 +31,6 @@
 #include <stdarg.h>
 
 #include "libinput-util.h"
-#include "evdev-tablet.h"
 #include "litest.h"
 #include "util-input-event.h"
 
