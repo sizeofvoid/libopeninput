@@ -49,6 +49,7 @@
 #define truefalse(b) ((b) ? "true" : "false")
 #define YESNO(b) ((b) ? "YES" : "NO")
 #define TRUEFALSE(b) ((b) ? "TRUE" : "FALSE")
+#define onoff(b) ((b) ? "on" : "off")
 
 static inline bool
 streq(const char *str1, const char *str2)
