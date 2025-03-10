@@ -1315,7 +1315,6 @@ START_TEST(kvsplit_double_test)
 			litest_assert_double_eq(t->results[i].b, result[i].value);
 		}
 
-
 		free(result);
 		t++;
 	}
@@ -1679,7 +1678,6 @@ START_TEST(absinfo_normalize_value_test)
 	litest_assert_double_eq(absinfo_normalize_value(&abs, 0), 0.5);
 	litest_assert_double_eq(absinfo_normalize_value(&abs, 50), 1.0);
 	litest_assert_double_eq(absinfo_normalize_value(&abs, 51), 1.0);
-
 
 	abs.minimum = -50;
 	abs.maximum = 0;

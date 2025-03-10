@@ -181,7 +181,6 @@ lid_switch_is_reliable(struct litest_device *dev)
 		is_reliable = streq(prop, "reliable");
 	}
 
-
 	return is_reliable;
 }
 

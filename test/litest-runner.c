@@ -110,7 +110,6 @@ struct litest_runner {
 	} global;
 };
 
-
 /**
  * A global variable that the tests can use
  * to write log data to. Defaults to stdout
@@ -680,7 +679,6 @@ _litest_test_param_fetch(const struct litest_test_parameters *params, ...)
 	va_end(args);
 }
 
-
 struct litest_test_parameters *
 litest_test_parameters_new(void)
 {
@@ -1030,7 +1028,6 @@ litest_runner_run_tests(struct litest_runner *runner)
 				break;
 		}
 	}
-
 
 	runner->times.end = time(NULL);
 	ltime = localtime(&runner->times.end);

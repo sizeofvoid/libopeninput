@@ -220,7 +220,6 @@ START_TEST(path_create_pathmax_file)
 }
 END_TEST
 
-
 START_TEST(path_create_destroy)
 {
 	struct libinput *li;

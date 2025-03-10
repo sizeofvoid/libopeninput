@@ -46,7 +46,6 @@ simple_log_handler(struct libinput *libinput,
 	litest_assert_notnull(format);
 }
 
-
 static int open_restricted(const char *path, int flags, void *data)
 {
        int fd;

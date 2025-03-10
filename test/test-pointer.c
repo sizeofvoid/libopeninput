@@ -1686,7 +1686,6 @@ START_TEST(pointer_scroll_button_lock_config)
 	state = libinput_device_config_scroll_get_button_lock(dev->libinput_device);
 	litest_assert_enum_eq(state, LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_DISABLED);
 
-
 	status = libinput_device_config_scroll_set_button_lock(dev->libinput_device,
 							       LIBINPUT_CONFIG_SCROLL_BUTTON_LOCK_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);

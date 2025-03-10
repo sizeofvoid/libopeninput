@@ -4438,7 +4438,6 @@ START_TEST(tablet_pressure_offset_set)
 	litest_dispatch(li);
 	assert_pressure(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS, 0.015);
 
-
 	/* Make sure we can reach the upper range too */
 	litest_axis_set_value(axes, ABS_PRESSURE, 100);
 	litest_tablet_motion(dev, 70, 70, axes);
@@ -5591,7 +5590,6 @@ START_TEST(relative_delta)
 	litest_assert(dy > 0.0);
 	libinput_event_destroy(event);
 
-
 	/* flush the motion history */
 	for (int i = 0; i < 5; i ++)
 		litest_tablet_motion(dev, 5, 20 - i, axes);
@@ -6628,7 +6626,6 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 					       touch_from);
 	libinput_device_config_left_handed_set(tablet->libinput_device,
 					       tablet_from);
-
 
 	litest_checkpoint("Moving into proximity");
 	tx = 60;

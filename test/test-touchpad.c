@@ -2272,7 +2272,6 @@ START_TEST(touchpad_palm_clickfinger_pressure_2fg)
 }
 END_TEST
 
-
 static inline bool
 touchpad_has_touch_size(struct litest_device *dev)
 {
@@ -3729,7 +3728,6 @@ START_TEST(touchpad_fingers_down_before_init)
 	litest_destroy_context(li);
 }
 END_TEST
-
 
 /* This just tests that we don't completely screw up in one specific case.
  * The test likely needs to be removed if it starts failing in the future.

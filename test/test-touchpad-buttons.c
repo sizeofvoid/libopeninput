@@ -1148,7 +1148,6 @@ START_TEST(touchpad_clickfinger_click_drag)
 
 	litest_touch_up(dev, 0);
 
-
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 }
@@ -2232,7 +2231,6 @@ START_TEST(touchpad_non_clickpad_detection)
 	methods = libinput_device_config_click_get_methods(device);
 	litest_assert(methods & LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS);
 	litest_assert(methods & LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER);
-
 
 	libinput_path_remove_device(device);
 	libevdev_uinput_destroy(uinput);

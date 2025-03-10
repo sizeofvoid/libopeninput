@@ -56,7 +56,6 @@ static struct input_event move[] = {
 	{ .type = -1, .code = -1 },
 };
 
-
 static int
 get_axis_default(struct litest_device *d, unsigned int evcode, int32_t *value)
 {

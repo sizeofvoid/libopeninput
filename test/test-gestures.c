@@ -2344,7 +2344,6 @@ TEST_COLLECTION(gestures)
 		litest_add_parametrized(gestures_3fg_drag_lock_resume_1fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 	}
 
-
 	/* Timing-sensitive test, valgrind is too slow */
 	if (!RUNNING_ON_VALGRIND)
 		litest_add(gestures_swipe_3fg_unaccel, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);

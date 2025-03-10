@@ -96,7 +96,6 @@ struct param_filter {
 };
 struct param_filter filter_params[8]; /* name=NULL terminated */
 
-
 static struct quirks_context *quirks_context;
 
 struct created_file {
@@ -353,7 +352,6 @@ litest_parameter_add_bool(struct litest_parameter *p, bool b)
 	list_append(&p->values, &pv->link);
 }
 
-
 static inline void
 litest_parameter_add_u32(struct litest_parameter *p, uint32_t u)
 {
@@ -373,7 +371,6 @@ litest_parameter_add_i32(struct litest_parameter *p, int32_t i)
 	pv->value = multivalue_new_i32(i);
 	list_append(&p->values, &pv->link);
 }
-
 
 static void
 litest_parameter_add_double(struct litest_parameter *p, double d)
@@ -638,7 +635,6 @@ _litest_dispatch(struct libinput *li,
 			   dispatch_counter);
 	int rc = libinput_dispatch(li);
 	enum libinput_event_type type = libinput_next_event_type(li);
-
 
 	const char *evtype = type == LIBINPUT_EVENT_NONE ? "NONE" : litest_event_type_str(type);
 	_litest_checkpoint(func, line,
@@ -1175,7 +1171,6 @@ _litest_add_ranged(const char *name,
 	litest_add_tcase(name, funcname, func, required, excluded, range, NULL);
 }
 
-
 void
 _litest_add_parametrized(const char *name,
 			 const char *funcname,
@@ -1281,7 +1276,6 @@ _litest_add_parametrized_for_device(const char *filename,
 	if (!device_filtered)
 		litest_abort_msg("Invalid test device type");
 }
-
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void
@@ -1681,7 +1675,6 @@ restore_tty(int tty_mode)
 	}
 }
 
-
 static inline enum litest_runner_result
 litest_run(struct list *suites)
 {
@@ -1702,7 +1695,6 @@ litest_run(struct list *suites)
 	} else {
 		enum quirks_setup_mode mode;
 		litest_init_udev_rules(&created_files_list);
-
 
 		mode = use_system_rules_quirks ?
 				QUIRKS_SETUP_ONLY_DEVICE :
@@ -2137,7 +2129,6 @@ litest_destroy_context(struct libinput *li)
 	struct path *p;
 	struct litest_context *ctx;
 
-
 	ctx = libinput_get_user_data(li);
 	litest_assert_ptr_notnull(ctx);
 	libinput_unref(li);
@@ -2285,7 +2276,6 @@ udev_setup_monitor(void)
 	litest_assert_notnull(udev_monitor);
 	udev_monitor_filter_add_match_subsystem_devtype(udev_monitor, "input",
 							NULL);
-
 
 	/* remove O_NONBLOCK */
 	rc = fcntl(udev_monitor_get_fd(udev_monitor), F_SETFL, 0);
@@ -3503,7 +3493,6 @@ litest_drain_events(struct libinput *li)
 	}
 }
 
-
 void
 _litest_drain_events_of_type(struct libinput *li, ...)
 {
@@ -4276,7 +4265,6 @@ litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
 			     state);
 	libinput_event_destroy(event);
 }
-
 
 struct libinput_event_tablet_tool *
 litest_is_proximity_event(struct libinput_event *event,

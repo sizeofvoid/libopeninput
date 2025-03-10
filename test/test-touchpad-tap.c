@@ -2141,7 +2141,6 @@ START_TEST(touchpad_tap_n_drag_3fg_swipe)
 		break;
 	}
 
-
 	litest_touch_down(dev, 0, 30, 50);
 	litest_touch_down(dev, 1, 50, 50);
 	litest_touch_down(dev, 2, 80, 50);

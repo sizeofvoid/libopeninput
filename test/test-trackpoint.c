@@ -328,7 +328,6 @@ disable_dwtp(struct litest_device *dev)
 	litest_assert_enum_eq(status, expected);
 }
 
-
 START_TEST(trackpoint_palmdetect)
 {
 	struct litest_device *trackpoint = litest_current_device();

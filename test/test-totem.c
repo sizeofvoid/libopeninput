@@ -289,7 +289,6 @@ START_TEST(totem_rotation)
 	for (int i = 1; i < 30; i++) {
 		struct libinput_event_tablet_tool *t;
 
-
 		litest_axis_set_value(axes, ABS_MT_ORIENTATION, 50 + i);
 		litest_tablet_motion(dev, 50, 50, axes);
 		litest_dispatch(li);
@@ -312,7 +311,6 @@ START_TEST(totem_rotation)
 
 	for (int i = 1; i < 30; i++) {
 		struct libinput_event_tablet_tool *t;
-
 
 		litest_axis_set_value(axes, ABS_MT_ORIENTATION, 50 - i);
 		litest_tablet_motion(dev, 50, 50, axes);

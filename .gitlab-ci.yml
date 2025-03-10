@@ -213,7 +213,7 @@ check-whitespace:
     - sed -i 's/ \t//' $(git ls-files)
     - git diff --exit-code || (echo "ERROR - Tab after space in patchset, please fix" && false)
     # search for duplicated empty lines
-    - sed -i '/^$/N;/^\n$/D' $(git ls-files src/*.{h,c} tools/*.{h,c} udev/*.c)
+    - sed -i '/^$/N;/^\n$/D' $(git ls-files src/*.{h,c} tools/*.{h,c} udev/*.c test/*.c)
     - git diff --exit-code || (echo "ERROR - Duplicated empty lines, please fix" && false)
 
 #
