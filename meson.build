@@ -921,6 +921,7 @@ if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
 		dep_lm,
 		dep_libsystemd,
 		dep_libquirks,
+		dep_libinput_util_libinput,
 	]
 else
 	deps_litest = [

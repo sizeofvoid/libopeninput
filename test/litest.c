@@ -64,6 +64,7 @@
 #include "builddir.h"
 
 #include "util-backtrace.h"
+#include "util-libinput.h"
 
 #include <linux/kd.h>
 
@@ -122,7 +123,7 @@ static struct suite *current_suite = NULL;
 
 static void litest_init_udev_rules(struct list *created_files_list);
 static void litest_remove_udev_rules(struct list *created_files_list);
-static void litest_print_event(struct libinput_event *event);
+static void litest_print_event(struct libinput_event *event, const char *message);
 
 enum quirks_setup_mode {
 	QUIRKS_SETUP_USE_SRCDIR,
@@ -3476,8 +3477,7 @@ _litest_wait_for_event_of_type(struct libinput *li, ...)
 
 		event = libinput_get_event(li);
 		if (verbose) {
-			fprintf(stderr, "litest: discarding event while waiting: ");
-			litest_print_event(event);
+			litest_print_event(event, "Discarding event while waiting: ");
 		}
 		libinput_event_destroy(event);
 	}
@@ -3491,8 +3491,7 @@ litest_drain_events(struct libinput *li)
 	libinput_dispatch(li);
 	while ((event = libinput_get_event(li))) {
 		if (verbose) {
-			fprintf(stderr, "litest: draining event: ");
-			litest_print_event(event);
+			litest_print_event(event, "litest: draining event: ");
 		}
 		libinput_event_destroy(event);
 		libinput_dispatch(li);
@@ -3658,104 +3657,11 @@ litest_event_get_type_str(struct libinput_event *event)
 }
 
 static void
-litest_print_event(struct libinput_event *event)
+litest_print_event(struct libinput_event *event, const char *message)
 {
-	struct libinput_event_pointer *p;
-	struct libinput_event_tablet_tool *t;
-	struct libinput_event_tablet_pad *pad;
-	struct libinput_device *dev;
-	enum libinput_event_type type;
-	double x, y;
-
-	dev = libinput_event_get_device(event);
-	type = libinput_event_get_type(event);
-
-	fprintf(stderr,
-		"device %s (%s) type %s ",
-		libinput_device_get_sysname(dev),
-		libinput_device_get_name(dev),
-		litest_event_get_type_str(event));
-	switch (type) {
-	case LIBINPUT_EVENT_POINTER_MOTION:
-		p = libinput_event_get_pointer_event(event);
-		x = libinput_event_pointer_get_dx(p);
-		y = libinput_event_pointer_get_dy(p);
-		fprintf(stderr, "%.2f/%.2f", x, y);
-		break;
-	case LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE:
-		p = libinput_event_get_pointer_event(event);
-		x = libinput_event_pointer_get_absolute_x(p);
-		y = libinput_event_pointer_get_absolute_y(p);
-		fprintf(stderr, "%.2f/%.2f", x, y);
-		break;
-	case LIBINPUT_EVENT_POINTER_BUTTON:
-		p = libinput_event_get_pointer_event(event);
-		fprintf(stderr,
-			"button %d state %d",
-			libinput_event_pointer_get_button(p),
-			libinput_event_pointer_get_button_state(p));
-		break;
-	case LIBINPUT_EVENT_POINTER_AXIS:
-		p = libinput_event_get_pointer_event(event);
-		x = 0.0;
-		y = 0.0;
-		if (libinput_event_pointer_has_axis(p,
-				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL))
-			y = libinput_event_pointer_get_axis_value(p,
-				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
-		if (libinput_event_pointer_has_axis(p,
-				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL))
-			x = libinput_event_pointer_get_axis_value(p,
-				LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
-		fprintf(stderr, "vert %.2f horiz %.2f", y, x);
-		break;
-	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
-		t = libinput_event_get_tablet_tool_event(event);
-		fprintf(stderr, "proximity %d",
-			libinput_event_tablet_tool_get_proximity_state(t));
-		break;
-	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
-		t = libinput_event_get_tablet_tool_event(event);
-		fprintf(stderr, "tip %d",
-			libinput_event_tablet_tool_get_tip_state(t));
-		break;
-	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
-		t = libinput_event_get_tablet_tool_event(event);
-		fprintf(stderr, "button %d state %d",
-			libinput_event_tablet_tool_get_button(t),
-			libinput_event_tablet_tool_get_button_state(t));
-		break;
-	case LIBINPUT_EVENT_TABLET_PAD_BUTTON:
-		pad = libinput_event_get_tablet_pad_event(event);
-		fprintf(stderr, "button %d state %d",
-			libinput_event_tablet_pad_get_button_number(pad),
-			libinput_event_tablet_pad_get_button_state(pad));
-		break;
-	case LIBINPUT_EVENT_TABLET_PAD_RING:
-		pad = libinput_event_get_tablet_pad_event(event);
-		fprintf(stderr, "ring %d position %.2f source %d",
-			libinput_event_tablet_pad_get_ring_number(pad),
-			libinput_event_tablet_pad_get_ring_position(pad),
-			libinput_event_tablet_pad_get_ring_source(pad));
-		break;
-	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
-		pad = libinput_event_get_tablet_pad_event(event);
-		fprintf(stderr, "strip %d position %.2f source %d",
-			libinput_event_tablet_pad_get_strip_number(pad),
-			libinput_event_tablet_pad_get_strip_position(pad),
-			libinput_event_tablet_pad_get_strip_source(pad));
-		break;
-	case LIBINPUT_EVENT_TABLET_PAD_DIAL:
-		pad = libinput_event_get_tablet_pad_event(event);
-		fprintf(stderr, "dial %d delta %.2f",
-			libinput_event_tablet_pad_get_dial_number(pad),
-			libinput_event_tablet_pad_get_dial_delta_v120(pad));
-		break;
-	default:
-		break;
-	}
-
-	fprintf(stderr, "\n");
+	char *event_str = libinput_event_to_str(event, 0, NULL);
+	fprintf(stderr, "litest: %s %s\n", message, event_str);
+	free(event_str);
 }
 
 #define litest_assert_event_type_is_one_of(...) \
@@ -3799,9 +3705,9 @@ _litest_assert_event_type_is_one_of(struct libinput_event *event, ...)
 			fprintf(stderr, " || ");
 	}
 	va_end(args);
+	fprintf(stderr, "\n");
 
-	fprintf(stderr, "\nWrong event is: ");
-	litest_print_event(event);
+	litest_print_event(event, "Wrong event is:");
 	litest_backtrace();
 	litest_runner_abort();
 }
@@ -3841,8 +3747,7 @@ _litest_assert_event_type_not_one_of(struct libinput_event *event, ...)
 		litest_event_get_type_str(event),
 		libinput_event_get_type(event));
 
-	fprintf(stderr, "\nWrong event is: ");
-	litest_print_event(event);
+	litest_print_event(event,"\nWrong event is: ");
 	litest_backtrace();
 	litest_runner_abort();
 }
@@ -3860,9 +3765,7 @@ _litest_assert_empty_queue(struct libinput *li,
 	libinput_dispatch(li);
 	while ((event = libinput_get_event(li))) {
 		empty_queue = false;
-		fprintf(stderr,
-			"Unexpected event: ");
-		litest_print_event(event);
+		litest_print_event(event, "Unexpected event: ");
 		libinput_event_destroy(event);
 		libinput_dispatch(li);
 	}
