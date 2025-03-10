@@ -915,6 +915,113 @@ print_switch_event(struct libinput_event *ev)
 	return strdup_printf("%s\tswitch %s state %d", time, which, state);
 }
 
+static char *
+libinput_event_to_str(struct libinput_event *ev, size_t event_repeat_count)
+{
+	enum libinput_event_type type = libinput_event_get_type(ev);
+	char *event_header = print_event_header(ev, event_repeat_count);
+	char *event_str = NULL;
+
+	switch (type) {
+	case LIBINPUT_EVENT_NONE:
+		abort();
+	case LIBINPUT_EVENT_DEVICE_ADDED:
+		event_str = print_device_notify(ev);
+		break;
+	case LIBINPUT_EVENT_DEVICE_REMOVED:
+		event_str = print_device_notify(ev);
+		break;
+	case LIBINPUT_EVENT_KEYBOARD_KEY:
+		event_str = print_key_event(ev);
+		break;
+	case LIBINPUT_EVENT_POINTER_MOTION:
+		event_str = print_motion_event(ev);
+		break;
+	case LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE:
+		event_str = print_absmotion_event(ev);
+		break;
+	case LIBINPUT_EVENT_POINTER_BUTTON:
+		event_str = print_pointer_button_event(ev);
+		break;
+	case LIBINPUT_EVENT_POINTER_AXIS:
+		/* ignore */
+		break;
+	case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL:
+	case LIBINPUT_EVENT_POINTER_SCROLL_FINGER:
+	case LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS:
+		event_str = print_pointer_axis_event(ev);
+		break;
+	case LIBINPUT_EVENT_TOUCH_DOWN:
+	case LIBINPUT_EVENT_TOUCH_MOTION:
+	case LIBINPUT_EVENT_TOUCH_UP:
+	case LIBINPUT_EVENT_TOUCH_CANCEL:
+		event_str = print_touch_event(ev);
+		break;
+	case LIBINPUT_EVENT_TOUCH_FRAME:
+		event_str = print_touch_event(ev);
+		break;
+	case LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN:
+		event_str = print_gesture_event_without_coords(ev);
+		break;
+	case LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE:
+		event_str = print_gesture_event_with_coords(ev);
+		break;
+	case LIBINPUT_EVENT_GESTURE_SWIPE_END:
+		event_str = print_gesture_event_without_coords(ev);
+		break;
+	case LIBINPUT_EVENT_GESTURE_PINCH_BEGIN:
+		event_str = print_gesture_event_without_coords(ev);
+		break;
+	case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE:
+		event_str = print_gesture_event_with_coords(ev);
+		break;
+	case LIBINPUT_EVENT_GESTURE_PINCH_END:
+		event_str = print_gesture_event_without_coords(ev);
+		break;
+	case LIBINPUT_EVENT_GESTURE_HOLD_BEGIN:
+		event_str = print_gesture_event_without_coords(ev);
+		break;
+	case LIBINPUT_EVENT_GESTURE_HOLD_END:
+		event_str = print_gesture_event_without_coords(ev);
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
+		event_str = print_tablet_axis_event(ev);
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY:
+		event_str = print_proximity_event(ev);
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_TIP:
+		event_str = print_tablet_tip_event(ev);
+		break;
+	case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
+		event_str = print_tablet_button_event(ev);
+		break;
+	case LIBINPUT_EVENT_TABLET_PAD_BUTTON:
+		event_str = print_tablet_pad_button_event(ev);
+		break;
+	case LIBINPUT_EVENT_TABLET_PAD_RING:
+		event_str = print_tablet_pad_ring_event(ev);
+		break;
+	case LIBINPUT_EVENT_TABLET_PAD_STRIP:
+		event_str = print_tablet_pad_strip_event(ev);
+		break;
+	case LIBINPUT_EVENT_TABLET_PAD_KEY:
+		event_str = print_tablet_pad_key_event(ev);
+		break;
+	case LIBINPUT_EVENT_TABLET_PAD_DIAL:
+		event_str = print_tablet_pad_dial_event(ev);
+		break;
+	case LIBINPUT_EVENT_SWITCH_TOGGLE:
+		event_str = print_switch_event(ev);
+		break;
+	}
+
+	char *str = strdup_printf("%s %s", event_header, event_str);
+	free(event_header);
+	free(event_str);
+	return str;
+}
+
 static int
 handle_and_print_events(struct libinput *li)
 {
@@ -929,8 +1036,6 @@ handle_and_print_events(struct libinput *li)
 	while ((ev = libinput_get_event(li))) {
 		struct libinput_device *device = libinput_event_get_device(ev);
 		enum libinput_event_type type = libinput_event_get_type(ev);
-		char *event_header= NULL;
-		char *event_str = NULL;
 
 		if (type == LIBINPUT_EVENT_POINTER_AXIS) {
 			libinput_event_destroy(ev);
@@ -963,113 +1068,29 @@ handle_and_print_events(struct libinput *li)
 			event_repeat_count = 0;
 		}
 
-		if (type != LIBINPUT_EVENT_TOUCH_FRAME || !compress_motion_events)
-			event_header = print_event_header(ev, event_repeat_count + 1);
+		if (type != LIBINPUT_EVENT_TOUCH_FRAME || !compress_motion_events) {
+			char *event_str = libinput_event_to_str(ev, event_repeat_count + 1);
 
-		switch (type) {
-		case LIBINPUT_EVENT_NONE:
-			abort();
-		case LIBINPUT_EVENT_DEVICE_ADDED:
-			event_str = print_device_notify(ev);
-			tools_device_apply_config(libinput_event_get_device(ev),
-						  &options);
-			break;
-		case LIBINPUT_EVENT_DEVICE_REMOVED:
-			event_str = print_device_notify(ev);
-			break;
-		case LIBINPUT_EVENT_KEYBOARD_KEY:
-			event_str = print_key_event(ev);
-			break;
-		case LIBINPUT_EVENT_POINTER_MOTION:
-			event_str = print_motion_event(ev);
-			break;
-		case LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE:
-			event_str = print_absmotion_event(ev);
-			break;
-		case LIBINPUT_EVENT_POINTER_BUTTON:
-			event_str = print_pointer_button_event(ev);
-			break;
-		case LIBINPUT_EVENT_POINTER_AXIS:
-			/* ignore */
-			break;
-		case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL:
-		case LIBINPUT_EVENT_POINTER_SCROLL_FINGER:
-		case LIBINPUT_EVENT_POINTER_SCROLL_CONTINUOUS:
-			event_str = print_pointer_axis_event(ev);
-			break;
-		case LIBINPUT_EVENT_TOUCH_DOWN:
-		case LIBINPUT_EVENT_TOUCH_MOTION:
-		case LIBINPUT_EVENT_TOUCH_UP:
-		case LIBINPUT_EVENT_TOUCH_CANCEL:
-			event_str = print_touch_event(ev);
-			break;
-		case LIBINPUT_EVENT_TOUCH_FRAME:
-			if (!compress_motion_events)
-				event_str = print_touch_event(ev);
-			break;
-		case LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN:
-			event_str = print_gesture_event_without_coords(ev);
-			break;
-		case LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE:
-			event_str = print_gesture_event_with_coords(ev);
-			break;
-		case LIBINPUT_EVENT_GESTURE_SWIPE_END:
-			event_str = print_gesture_event_without_coords(ev);
-			break;
-		case LIBINPUT_EVENT_GESTURE_PINCH_BEGIN:
-			event_str = print_gesture_event_without_coords(ev);
-			break;
-		case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE:
-			event_str = print_gesture_event_with_coords(ev);
-			break;
-		case LIBINPUT_EVENT_GESTURE_PINCH_END:
-			event_str = print_gesture_event_without_coords(ev);
-			break;
-		case LIBINPUT_EVENT_GESTURE_HOLD_BEGIN:
-			event_str = print_gesture_event_without_coords(ev);
-			break;
-		case LIBINPUT_EVENT_GESTURE_HOLD_END:
-			event_str = print_gesture_event_without_coords(ev);
-			break;
-		case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
-			event_str = print_tablet_axis_event(ev);
-			break;
-		case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY: {
-			struct libinput_event_tablet_tool *tev =
-				libinput_event_get_tablet_tool_event(ev);
-			struct libinput_tablet_tool *tool =
-				libinput_event_tablet_tool_get_tool(tev);
-			tools_tablet_tool_apply_config(tool, &options);
-			event_str = print_proximity_event(ev);
-			break;
-		}
-		case LIBINPUT_EVENT_TABLET_TOOL_TIP:
-			event_str = print_tablet_tip_event(ev);
-			break;
-		case LIBINPUT_EVENT_TABLET_TOOL_BUTTON:
-			event_str = print_tablet_button_event(ev);
-			break;
-		case LIBINPUT_EVENT_TABLET_PAD_BUTTON:
-			event_str = print_tablet_pad_button_event(ev);
-			break;
-		case LIBINPUT_EVENT_TABLET_PAD_RING:
-			event_str = print_tablet_pad_ring_event(ev);
-			break;
-		case LIBINPUT_EVENT_TABLET_PAD_STRIP:
-			event_str = print_tablet_pad_strip_event(ev);
-			break;
-		case LIBINPUT_EVENT_TABLET_PAD_KEY:
-			event_str = print_tablet_pad_key_event(ev);
-			break;
-		case LIBINPUT_EVENT_TABLET_PAD_DIAL:
-			event_str = print_tablet_pad_dial_event(ev);
-			break;
-		case LIBINPUT_EVENT_SWITCH_TOGGLE:
-			event_str = print_switch_event(ev);
-			break;
-		}
+			switch (type) {
+			case LIBINPUT_EVENT_DEVICE_ADDED:
+				tools_device_apply_config(libinput_event_get_device(ev),
+							  &options);
+				break;
+			case LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY: {
+				struct libinput_event_tablet_tool *tev =
+					libinput_event_get_tablet_tool_event(ev);
+				struct libinput_tablet_tool *tool =
+					libinput_event_tablet_tool_get_tool(tev);
+				tools_tablet_tool_apply_config(tool, &options);
+				break;
+			}
+			default:
+				break;
+			}
 
-		printq("%s %s\n", event_header, event_str ? event_str : "");
+			printq("%s\n", event_str);
+			free(event_str);
+		}
 
 		last_device = device;
 		if (type != LIBINPUT_EVENT_TOUCH_FRAME)
@@ -1078,9 +1099,6 @@ handle_and_print_events(struct libinput *li)
 
 		libinput_event_destroy(ev);
 		rc = 0;
-
-		free(event_header);
-		free(event_str);
 	}
 
 	fflush(stdout);
