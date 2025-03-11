@@ -179,7 +179,7 @@ END_TEST
 START_TEST(button_up_on_delete)
 {
 	struct libinput *li = litest_create_context();
-	struct litest_device *dev = litest_add_device(li, LITEST_WACOM_INTUOS);
+	struct litest_device *dev = litest_add_device(li, LITEST_WACOM_INTUOS5_PEN);
 	struct libevdev *evdev = libevdev_new();
 	unsigned int code;
 
@@ -934,7 +934,7 @@ END_TEST
 START_TEST(tip_up_on_delete)
 {
 	struct libinput *li = litest_create_context();
-	struct litest_device *dev = litest_add_device(li, LITEST_WACOM_INTUOS);
+	struct litest_device *dev = litest_add_device(li, LITEST_WACOM_INTUOS5_PEN);
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tablet_event;
 	struct axis_replacement axes[] = {
@@ -1726,7 +1726,7 @@ END_TEST
 START_TEST(proximity_out_on_delete)
 {
 	struct libinput *li = litest_create_context();
-	struct litest_device *dev = litest_add_device(li, LITEST_WACOM_INTUOS);
+	struct litest_device *dev = litest_add_device(li, LITEST_WACOM_INTUOS5_PEN);
 
 	litest_tablet_proximity_in(dev, 10, 10, NULL);
 	litest_drain_events(li);
@@ -2591,7 +2591,7 @@ START_TEST(tools_with_serials)
 	int i;
 
 	for (i = 0; i < 2; i++) {
-		dev[i] = litest_add_device(li, LITEST_WACOM_INTUOS);
+		dev[i] = litest_add_device(li, LITEST_WACOM_INTUOS5_PEN);
 		litest_drain_events(li);
 
 		/* WARNING: this test fails if UI_GET_SYSNAME isn't
@@ -2633,7 +2633,7 @@ START_TEST(tools_without_serials)
 
 	for (i = 0; i < 2; i++) {
 		dev[i] = litest_add_device_with_overrides(li,
-							  LITEST_WACOM_ISDV4,
+							  LITEST_WACOM_ISDV4_E6_PEN,
 							  NULL,
 							  NULL,
 							  NULL,
@@ -2774,8 +2774,8 @@ START_TEST(tool_capabilities)
 
 	/* The axis capabilities of a tool can differ depending on the type of
 	 * tablet the tool is being used with */
-	bamboo = litest_add_device(li, LITEST_WACOM_BAMBOO);
-	intuos = litest_add_device(li, LITEST_WACOM_INTUOS);
+	bamboo = litest_add_device(li, LITEST_WACOM_BAMBOO_16FG_PEN);
+	intuos = litest_add_device(li, LITEST_WACOM_INTUOS5_PEN);
 	litest_drain_events(li);
 
 	litest_event(bamboo, EV_KEY, BTN_TOOL_PEN, 1);
@@ -5769,10 +5769,10 @@ static enum litest_device_type
 paired_device(struct litest_device *dev)
 {
 	switch(dev->which) {
-	case LITEST_WACOM_INTUOS:
-		return LITEST_WACOM_FINGER;
-	case LITEST_WACOM_FINGER:
-		return LITEST_WACOM_INTUOS;
+	case LITEST_WACOM_INTUOS5_PEN:
+		return LITEST_WACOM_INTUOS5_FINGER;
+	case LITEST_WACOM_INTUOS5_FINGER:
+		return LITEST_WACOM_INTUOS5_PEN;
 	case LITEST_WACOM_CINTIQ_13HDT_PEN:
 		return LITEST_WACOM_CINTIQ_13HDT_FINGER;
 	case LITEST_WACOM_CINTIQ_13HDT_FINGER:
@@ -7187,7 +7187,7 @@ TEST_COLLECTION(tablet)
 	litest_add_no_device(tip_up_on_delete);
 	litest_add(motion, LITEST_TABLET, LITEST_ANY);
 	litest_add(motion_event_state, LITEST_TABLET, LITEST_ANY);
-	litest_add_for_device(motion_outside_bounds, LITEST_WACOM_CINTIQ_24HD);
+	litest_add_for_device(motion_outside_bounds, LITEST_WACOM_CINTIQ_24HD_PEN);
 	litest_add(tilt_available, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
 	litest_add(tilt_not_available, LITEST_TABLET, LITEST_TILT);
 	litest_add(tilt_x, LITEST_TABLET|LITEST_TILT, LITEST_ANY);
@@ -7230,13 +7230,13 @@ TEST_COLLECTION(tablet)
 
 	litest_add(tablet_pressure_min_max, LITEST_TABLET, LITEST_ANY);
 	/* Tests for pressure offset with distance */
-	litest_add_for_device(tablet_pressure_range, LITEST_WACOM_INTUOS);
-	litest_add_for_device(tablet_pressure_offset_set, LITEST_WACOM_INTUOS);
-	litest_add_for_device(tablet_pressure_offset_decrease, LITEST_WACOM_INTUOS);
-	litest_add_for_device(tablet_pressure_offset_increase, LITEST_WACOM_INTUOS);
-	litest_add_for_device(tablet_pressure_offset_exceed_threshold, LITEST_WACOM_INTUOS);
-	litest_add_for_device(tablet_pressure_offset_none_for_zero_distance, LITEST_WACOM_INTUOS);
-	litest_add_for_device(tablet_pressure_offset_none_for_small_distance, LITEST_WACOM_INTUOS);
+	litest_add_for_device(tablet_pressure_range, LITEST_WACOM_INTUOS5_PEN);
+	litest_add_for_device(tablet_pressure_offset_set, LITEST_WACOM_INTUOS5_PEN);
+	litest_add_for_device(tablet_pressure_offset_decrease, LITEST_WACOM_INTUOS5_PEN);
+	litest_add_for_device(tablet_pressure_offset_increase, LITEST_WACOM_INTUOS5_PEN);
+	litest_add_for_device(tablet_pressure_offset_exceed_threshold, LITEST_WACOM_INTUOS5_PEN);
+	litest_add_for_device(tablet_pressure_offset_none_for_zero_distance, LITEST_WACOM_INTUOS5_PEN);
+	litest_add_for_device(tablet_pressure_offset_none_for_small_distance, LITEST_WACOM_INTUOS5_PEN);
 	/* Tests for pressure offset without distance */
 	litest_add_for_device(tablet_pressure_range, LITEST_WACOM_HID4800_PEN);
 	litest_add_for_device(tablet_pressure_offset_set, LITEST_WACOM_HID4800_PEN);
@@ -7244,14 +7244,14 @@ TEST_COLLECTION(tablet)
 	litest_add_for_device(tablet_pressure_offset_increase, LITEST_WACOM_HID4800_PEN);
 	litest_add_for_device(tablet_pressure_offset_exceed_threshold, LITEST_WACOM_HID4800_PEN);
 	litest_with_parameters(params, "8k-to-1k", 'b')
-		litest_add_parametrized_for_device(tablet_pressure_across_multiple_tablets, LITEST_WACOM_CINTIQ_12WX, params);
+		litest_add_parametrized_for_device(tablet_pressure_across_multiple_tablets, LITEST_WACOM_CINTIQ_12WX_PEN, params);
 
 	litest_add(tablet_pressure_config, LITEST_TABLET, LITEST_TOTEM);
 	litest_add(tablet_pressure_config_set_minimum, LITEST_TABLET, LITEST_TOTEM);
 	litest_add(tablet_pressure_config_set_maximum, LITEST_TABLET, LITEST_TOTEM);
 	litest_add(tablet_pressure_config_set_range, LITEST_TABLET, LITEST_TOTEM);
 
-	litest_add_for_device(tablet_distance_range, LITEST_WACOM_INTUOS);
+	litest_add_for_device(tablet_distance_range, LITEST_WACOM_INTUOS5_PEN);
 
 	litest_add(relative_no_profile, LITEST_TABLET, LITEST_ANY);
 	litest_add(relative_no_delta_prox_in, LITEST_TABLET, LITEST_ANY);
@@ -7282,11 +7282,11 @@ TEST_COLLECTION(tablet)
 
 TEST_COLLECTION(tablet_left_handed)
 {
-	litest_add_for_device(left_handed, LITEST_WACOM_INTUOS);
-	litest_add_for_device(left_handed_tilt, LITEST_WACOM_INTUOS);
-	litest_add_for_device(left_handed_mouse_rotation, LITEST_WACOM_INTUOS);
-	litest_add_for_device(left_handed_artpen_rotation, LITEST_WACOM_INTUOS);
-	litest_add_for_device(no_left_handed, LITEST_WACOM_CINTIQ_12WX);
+	litest_add_for_device(left_handed, LITEST_WACOM_INTUOS5_PEN);
+	litest_add_for_device(left_handed_tilt, LITEST_WACOM_INTUOS5_PEN);
+	litest_add_for_device(left_handed_mouse_rotation, LITEST_WACOM_INTUOS5_PEN);
+	litest_add_for_device(left_handed_artpen_rotation, LITEST_WACOM_INTUOS5_PEN);
+	litest_add_for_device(no_left_handed, LITEST_WACOM_CINTIQ_12WX_PEN);
 
 	litest_with_parameters(params,
 			       "tablet_from", 'b',

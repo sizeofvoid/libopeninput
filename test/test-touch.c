@@ -99,7 +99,7 @@ START_TEST(touch_abs_transform)
 		{ .value = -1 },
 	};
 
-	dev = litest_create_device_with_overrides(LITEST_WACOM_TOUCH,
+	dev = litest_create_device_with_overrides(LITEST_WACOM_ISDV4_E6_FINGER,
 						  "litest Highres touch device",
 						  NULL, abs, NULL);
 
@@ -163,7 +163,7 @@ START_TEST(touch_seat_slot)
 	struct litest_device *dev2;
 	struct libinput *li = dev1->libinput;
 
-	dev2 = litest_add_device(li, LITEST_WACOM_TOUCH);
+	dev2 = litest_add_device(li, LITEST_WACOM_ISDV4_E6_FINGER);
 
 	litest_drain_events(li);
 
@@ -218,7 +218,7 @@ START_TEST(touch_many_slots)
 		{ .value = -1 },
 	};
 
-	dev = litest_create_device_with_overrides(LITEST_WACOM_TOUCH,
+	dev = litest_create_device_with_overrides(LITEST_WACOM_ISDV4_E6_FINGER,
 						  "litest Multi-touch device",
 						  NULL, abs, NULL);
 	libinput = dev->libinput;

@@ -104,7 +104,7 @@ static int events[] = {
 };
 
 TEST_DEVICE("wacom-intuos5-finger",
-	.type = LITEST_WACOM_FINGER,
+	.type = LITEST_WACOM_INTUOS5_FINGER,
 	.features = LITEST_TOUCHPAD,
 	.interface = &interface,
 

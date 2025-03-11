@@ -137,8 +137,8 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("wacom-cintiq-12wx",
-	.type = LITEST_WACOM_CINTIQ_12WX,
+TEST_DEVICE("wacom-cintiq-12wx-pen",
+	.type = LITEST_WACOM_CINTIQ_12WX_PEN,
 	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_SERIAL | LITEST_TILT | LITEST_DIRECT | LITEST_HOVER,
 	.interface = &interface,
 

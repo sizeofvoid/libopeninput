@@ -7388,7 +7388,7 @@ TEST_COLLECTION(touchpad)
 
 	/* Happens on the "Wacom Intuos Pro M Finger" but our test device
 	 * has the same properties */
-	litest_add_for_device(touchpad_end_start_touch, LITEST_WACOM_FINGER);
+	litest_add_for_device(touchpad_end_start_touch, LITEST_WACOM_INTUOS5_FINGER);
 
 	litest_add(touchpad_fuzz, LITEST_TOUCHPAD, LITEST_ANY);
 }
