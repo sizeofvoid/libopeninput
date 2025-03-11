@@ -82,6 +82,7 @@ static struct input_absinfo absinfo[] = {
 
 static struct input_id input_id = {
 	.bustype = 0x3,
+	/* Note: this VID/PID is shared with multiple devices, see the libwacom database for a list */
 	.vendor = 0x256c,
 	.product = 0x6e,
 };
