@@ -141,6 +141,7 @@ static void litest_setup_quirks(struct list *created_files_list,
 #define litest_vlog(...) { /* __VA_ARGS__ */ }
 #endif
 
+LIBINPUT_ATTRIBUTE_PRINTF(4, 5)
 void
 _litest_checkpoint(const char *func,
 		   int line,
