@@ -90,10 +90,11 @@ struct test_collection {
 __attribute__ ((format (printf, 3, 0)))
 void _litest_checkpoint(const char *func,
 			int line,
+			const char *color,
 			const char *format,
 			...);
 #define litest_checkpoint(...) \
-	_litest_checkpoint(__func__, __LINE__, __VA_ARGS__)
+	_litest_checkpoint(__func__, __LINE__, ANSI_GREEN, __VA_ARGS__)
 
 /**
  * litest itself needs the user_data to store some test-suite-specific

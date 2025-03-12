@@ -145,6 +145,7 @@ LIBINPUT_ATTRIBUTE_PRINTF(4, 5)
 void
 _litest_checkpoint(const char *func,
 		   int line,
+		   const char *color,
 		   const char *format,
 		   ...)
 {
@@ -158,7 +159,7 @@ _litest_checkpoint(const char *func,
 			"%s%s():%d - %s%s%s\n",
 			use_colors ? ANSI_BRIGHT_BLUE : "",
 			func, line,
-			use_colors ? ANSI_BRIGHT_RED : "",
+			use_colors ? color : "",
 			buf,
 			use_colors ? ANSI_NORMAL : "");
 	}
@@ -631,14 +632,14 @@ _litest_dispatch(struct libinput *li,
 
 	++dispatch_counter;
 
-	_litest_checkpoint(func, line,
+	_litest_checkpoint(func, line, ANSI_MAGENTA,
 			   "┌────────────────────  dispatch %3d ────────────────────┐",
 			   dispatch_counter);
 	int rc = libinput_dispatch(li);
 	enum libinput_event_type type = libinput_next_event_type(li);
 
 	const char *evtype = type == LIBINPUT_EVENT_NONE ? "NONE" : litest_event_type_str(type);
-	_litest_checkpoint(func, line,
+	_litest_checkpoint(func, line, ANSI_MAGENTA,
 			   "└──────────────────── /dispatch %3d ────────────────────┘ pending %s",
 			   dispatch_counter,
 			   evtype);
@@ -3850,7 +3851,7 @@ _litest_assert_empty_queue(struct libinput *li,
 	bool empty_queue = true;
 	struct libinput_event *event;
 
-	_litest_checkpoint(func, line, "asserting empty queue");
+	_litest_checkpoint(func, line, ANSI_BRIGHT_CYAN, "asserting empty queue");
 
 	libinput_dispatch(li);
 	while ((event = libinput_get_event(li))) {
@@ -4129,6 +4130,7 @@ _litest_assert_button_event(struct libinput *li, unsigned int button,
 
 	_litest_checkpoint(func,
 			   line,
+			   ANSI_CYAN,
 			   "asserting button event %s (%d) state %d",
 			   libevdev_event_code_get_name(EV_KEY, button),
 			   button,
@@ -4220,6 +4222,7 @@ _litest_assert_gesture_event(struct libinput *li,
 
 	_litest_checkpoint(func,
 			   line,
+			   ANSI_CYAN,
 			   "asserting gesture event %s %dfg",
 			   litest_event_type_str(type),
 			   nfingers);
@@ -4639,6 +4642,7 @@ _litest_assert_only_typed_events(struct libinput *li,
 
 	_litest_checkpoint(func,
 			   line,
+			   ANSI_CYAN,
 			   "asserting only typed events %s",
 			   litest_event_type_str(type));
 
