@@ -109,8 +109,7 @@ static const char quirk_file[] =
 "MatchName=litest AlpsPS/2 ALPS DualPoint TouchPad\n"
 "ModelTouchpadVisibleMarker=1\n";
 
-TEST_DEVICE("alps-dualpoint",
-	.type = LITEST_ALPS_DUALPOINT,
+TEST_DEVICE(LITEST_ALPS_DUALPOINT,
 	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SEMI_MT,
 	.interface = &interface,
 

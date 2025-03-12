@@ -103,8 +103,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-TEST_DEVICE("synaptics-t440",
-	.type = LITEST_SYNAPTICS_TOPBUTTONPAD,
+TEST_DEVICE(LITEST_SYNAPTICS_TOPBUTTONPAD,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON | LITEST_TOPBUTTONPAD,
 	.interface = &interface,
 

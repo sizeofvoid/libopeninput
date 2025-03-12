@@ -112,8 +112,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-TEST_DEVICE("generic-pressurepad",
-	.type = LITEST_GENERIC_PRESSUREPAD,
+TEST_DEVICE(LITEST_GENERIC_PRESSUREPAD,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
 	.interface = &interface,
 

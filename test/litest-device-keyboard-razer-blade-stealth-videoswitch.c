@@ -207,8 +207,7 @@ static int events[] = {
 	-1 , -1,
 };
 
-TEST_DEVICE("blade-stealth-video-switch",
-	.type = LITEST_KEYBOARD_BLADE_STEALTH_VIDEOSWITCH,
+TEST_DEVICE(LITEST_KEYBOARD_BLADE_STEALTH_VIDEOSWITCH,
 	.features = LITEST_KEYS,
 	.interface = NULL,
 

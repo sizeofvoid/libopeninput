@@ -188,8 +188,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("hawaii-keyboard",
-	.type = LITEST_ACER_HAWAII_KEYBOARD,
+TEST_DEVICE(LITEST_ACER_HAWAII_KEYBOARD,
 	.features = LITEST_KEYS,
 	.interface = NULL,
 

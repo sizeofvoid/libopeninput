@@ -43,8 +43,7 @@ static const char quirk_file[] =
 "MatchName=litest Lid Switch Surface3\n"
 "AttrLidSwitchReliability=write_open\n";
 
-TEST_DEVICE("lid-switch-surface3",
-	.type = LITEST_LID_SWITCH_SURFACE3,
+TEST_DEVICE(LITEST_LID_SWITCH_SURFACE3,
 	.features = LITEST_SWITCH,
 	.interface = NULL,
 

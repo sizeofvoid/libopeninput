@@ -88,8 +88,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("synaptics-st",
-	.type = LITEST_SYNAPTICS_TOUCHPAD,
+TEST_DEVICE(LITEST_SYNAPTICS_TOUCHPAD,
 	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SINGLE_TOUCH,
 	.interface = &interface,
 

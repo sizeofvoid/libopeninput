@@ -43,8 +43,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("trackpoint",
-	.type = LITEST_TRACKPOINT,
+TEST_DEVICE(LITEST_TRACKPOINT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_POINTINGSTICK,
 	.interface = NULL,
 

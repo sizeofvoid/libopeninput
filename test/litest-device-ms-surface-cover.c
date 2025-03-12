@@ -370,8 +370,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("ms-surface-cover",
-	.type = LITEST_MS_SURFACE_COVER,
+TEST_DEVICE(LITEST_MS_SURFACE_COVER,
 	.features = LITEST_KEYS | LITEST_ABSOLUTE | LITEST_RELATIVE | LITEST_FAKE_MT | LITEST_BUTTON | LITEST_WHEEL,
 	.interface = &interface,
 

@@ -43,8 +43,7 @@ static int events[] = {
 	-1 , -1,
 };
 
-TEST_DEVICE("mouse-wheel-tilt",
-	.type = LITEST_MOUSE_WHEEL_TILT,
+TEST_DEVICE(LITEST_MOUSE_WHEEL_TILT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
 	.interface = NULL,
 

@@ -61,8 +61,7 @@ static int events[] = {
 };
 
 /* Device from https://gitlab.freedesktop.org/libinput/libinput/-/issues/600 */
-TEST_DEVICE("huion-q620m-dial-pad",
-	.type = LITEST_HUION_Q620M_DIAL,
+TEST_DEVICE(LITEST_HUION_Q620M_DIAL,
 	.features = LITEST_TABLET_PAD | LITEST_DIAL,
 	.interface = &interface,
 

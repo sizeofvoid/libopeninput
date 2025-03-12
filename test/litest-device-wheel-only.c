@@ -37,8 +37,7 @@ static int events[] = {
 	-1 , -1,
 };
 
-TEST_DEVICE("wheel-only",
-	.type = LITEST_WHEEL_ONLY,
+TEST_DEVICE(LITEST_WHEEL_ONLY,
 	.features = LITEST_WHEEL,
 	.interface = NULL,
 

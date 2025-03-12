@@ -76,8 +76,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("dell-canvas-totem-touch",
-	.type = LITEST_DELL_CANVAS_TOTEM_TOUCH,
+TEST_DEVICE(LITEST_DELL_CANVAS_TOTEM_TOUCH,
 	.features = LITEST_TOUCH,
 	.interface = &interface,
 

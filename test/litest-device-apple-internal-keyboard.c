@@ -217,8 +217,7 @@ static int events[] = {
 	-1, -1
 };
 
-TEST_DEVICE("apple-keyboard",
-	.type = LITEST_APPLE_KEYBOARD,
+TEST_DEVICE(LITEST_APPLE_KEYBOARD,
 	.features = LITEST_KEYS,
 	.interface = NULL,
 

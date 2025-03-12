@@ -312,8 +312,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-TEST_DEVICE("mouse-gladius",
-	.type = LITEST_MOUSE_GLADIUS,
+TEST_DEVICE(LITEST_MOUSE_GLADIUS,
 	.features = LITEST_RELATIVE | LITEST_WHEEL | LITEST_KEYS,
 	.interface = NULL,
 

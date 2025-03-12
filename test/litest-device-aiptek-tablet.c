@@ -146,8 +146,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("aiptek-tablet",
-	.type = LITEST_AIPTEK,
+TEST_DEVICE(LITEST_AIPTEK,
 	.features = LITEST_TABLET | LITEST_HOVER | LITEST_FORCED_PROXOUT,
 	.interface = &interface,
 

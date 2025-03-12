@@ -88,8 +88,7 @@ static const char quirk_file[] =
 "MatchName=litest appletouch\n"
 "ModelAppleTouchpadOneButton=1\n";
 
-TEST_DEVICE("appletouch",
-	.type = LITEST_APPLETOUCH,
+TEST_DEVICE(LITEST_APPLETOUCH,
 	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SINGLE_TOUCH,
 	.interface = &interface,
 

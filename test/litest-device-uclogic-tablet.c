@@ -94,8 +94,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("uclogic-tablet",
-	.type = LITEST_UCLOGIC_TABLET,
+TEST_DEVICE(LITEST_UCLOGIC_TABLET,
 	.features = LITEST_TABLET | LITEST_HOVER | LITEST_FORCED_PROXOUT,
 	.interface = &interface,
 

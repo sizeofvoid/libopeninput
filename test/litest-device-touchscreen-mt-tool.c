@@ -76,8 +76,7 @@ static int events[] = {
 	-1, -1
 };
 
-TEST_DEVICE("touchscreen-mt-tool-type",
-	.type = LITEST_TOUCHSCREEN_MT_TOOL_TYPE,
+TEST_DEVICE(LITEST_TOUCHSCREEN_MT_TOOL_TYPE,
 	.features = LITEST_TOUCH,
 	.interface = &interface,
 

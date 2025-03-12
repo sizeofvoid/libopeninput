@@ -81,8 +81,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-TEST_DEVICE("hawaii-touchpad",
-	.type = LITEST_ACER_HAWAII_TOUCHPAD,
+TEST_DEVICE(LITEST_ACER_HAWAII_TOUCHPAD,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
 	.interface = &interface,
 

@@ -184,8 +184,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-TEST_DEVICE("mouse-roccat",
-	.type = LITEST_MOUSE_ROCCAT,
+TEST_DEVICE(LITEST_MOUSE_ROCCAT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL | LITEST_KEYS,
 	.interface = NULL,
 

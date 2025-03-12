@@ -82,8 +82,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-TEST_DEVICE("magicmouse",
-	.type = LITEST_MAGICMOUSE,
+TEST_DEVICE(LITEST_MAGICMOUSE,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
 	.interface = &interface,
 

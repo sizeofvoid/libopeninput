@@ -70,8 +70,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("thinkpad-extrabuttons",
-	.type = LITEST_THINKPAD_EXTRABUTTONS,
+TEST_DEVICE(LITEST_THINKPAD_EXTRABUTTONS,
 	.features = LITEST_KEYS | LITEST_SWITCH,
 	.interface = NULL,
 

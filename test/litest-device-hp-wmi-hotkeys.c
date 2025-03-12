@@ -47,8 +47,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("wmi-hotkeys",
-	.type = LITEST_HP_WMI_HOTKEYS,
+TEST_DEVICE(LITEST_HP_WMI_HOTKEYS,
 	.features = LITEST_SWITCH,
 	.interface = NULL,
 

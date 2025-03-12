@@ -53,7 +53,7 @@ struct test_device {
 	struct litest_test_device *device;
 } __attribute__((aligned(16)));
 
-#define TEST_DEVICE(name, ...) \
+#define TEST_DEVICE(which, ...) \
 	static struct litest_test_device _device; \
 	\
 	static void _setup(void) { \
@@ -64,11 +64,12 @@ struct test_device {
 	static const struct test_device _test_device \
 		__attribute__ ((used)) \
 		__attribute__ ((section ("test_device_section"))) = { \
-		name, &_device \
+		#which, &_device \
 	}; \
 	static struct litest_test_device _device = { \
 		.setup = _setup, \
-		.shortname = name, \
+		.shortname = #which, \
+		.type = which, \
 		__VA_ARGS__ \
 	};
 

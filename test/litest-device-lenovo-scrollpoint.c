@@ -48,8 +48,7 @@ static int events[] = {
  * "standard" wheel tests. Device has a custom wheel
  * behavior that is tested directly.
  */
-TEST_DEVICE("lenovo-scrollpoint",
-	.type = LITEST_LENOVO_SCROLLPOINT,
+TEST_DEVICE(LITEST_LENOVO_SCROLLPOINT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON,
 	.interface = NULL,
 

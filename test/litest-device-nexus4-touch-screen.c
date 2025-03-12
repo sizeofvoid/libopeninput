@@ -76,8 +76,7 @@ static int events[] = {
 	-1, -1
 };
 
-TEST_DEVICE("nexus4",
-	.type = LITEST_NEXUS4_TOUCH_SCREEN,
+TEST_DEVICE(LITEST_NEXUS4_TOUCH_SCREEN,
 	.features = LITEST_TOUCH|LITEST_ELLIPSE,
 	.interface = &interface,
 

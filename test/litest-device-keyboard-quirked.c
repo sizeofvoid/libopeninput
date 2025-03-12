@@ -242,8 +242,7 @@ static const char quirk_file[] =
 #endif
 ;
 
-TEST_DEVICE("keyboard-quirked",
-	.type = LITEST_KEYBOARD_QUIRKED,
+TEST_DEVICE(LITEST_KEYBOARD_QUIRKED,
 	.features = LITEST_KEYS | LITEST_IGNORED, /* Only use this keyboard in specific tests */
 	.interface = NULL,
 

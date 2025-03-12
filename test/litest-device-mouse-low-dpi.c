@@ -45,8 +45,7 @@ static int events[] = {
 	-1 , -1,
 };
 
-TEST_DEVICE("low-dpi-mouse",
-	.type = LITEST_MOUSE_LOW_DPI,
+TEST_DEVICE(LITEST_MOUSE_LOW_DPI,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
 	.interface = NULL,
 

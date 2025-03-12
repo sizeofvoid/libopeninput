@@ -111,8 +111,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-TEST_DEVICE("synaptics-rmi4",
-	.type = LITEST_SYNAPTICS_RMI4,
+TEST_DEVICE(LITEST_SYNAPTICS_RMI4,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
 	.interface = &interface,
 

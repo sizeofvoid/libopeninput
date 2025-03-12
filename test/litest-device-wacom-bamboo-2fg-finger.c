@@ -78,8 +78,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("wacom-bamboo-2fg-finger",
-	.type = LITEST_WACOM_BAMBOO_2FG_FINGER,
+TEST_DEVICE(LITEST_WACOM_BAMBOO_2FG_FINGER,
 	.features = LITEST_TOUCHPAD,
 	.interface = &interface,
 

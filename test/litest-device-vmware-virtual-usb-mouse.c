@@ -100,8 +100,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("vmware-virtmouse",
-	.type = LITEST_VMWARE_VIRTMOUSE,
+TEST_DEVICE(LITEST_VMWARE_VIRTMOUSE,
 	.features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE | LITEST_NO_DEBOUNCE,
 	.interface = &interface,
 

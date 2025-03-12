@@ -147,8 +147,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("yubikey",
-	.type = LITEST_YUBIKEY,
+TEST_DEVICE(LITEST_YUBIKEY,
 	.features = LITEST_KEYS,
 	.interface = NULL,
 

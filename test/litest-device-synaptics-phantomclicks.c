@@ -88,8 +88,7 @@ static const char quirk_file[] =
 "ModelTouchpadVisibleMarker=0\n"
 "ModelTouchpadPhantomClicks=1\n";
 
-TEST_DEVICE("synaptics-phantomclicks",
-	.type = LITEST_SYNAPTICS_PHANTOMCLICKS,
+TEST_DEVICE(LITEST_SYNAPTICS_PHANTOMCLICKS,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
 	.interface = &interface,
 	.name = "DELL097D:00 04F3:311C Touchpad",

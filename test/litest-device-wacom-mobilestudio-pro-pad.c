@@ -96,8 +96,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("wacom-mobilestudio-pro16-pad",
-	.type = LITEST_WACOM_MOBILESTUDIO_PRO_16_PAD,
+TEST_DEVICE(LITEST_WACOM_MOBILESTUDIO_PRO_16_PAD,
 	.features = LITEST_TABLET_PAD | LITEST_RING,
 	.interface = &interface,
 

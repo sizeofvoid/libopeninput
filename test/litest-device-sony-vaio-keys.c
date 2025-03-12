@@ -86,8 +86,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("sony-vaio-keys",
-	.type = LITEST_SONY_VAIO_KEYS,
+TEST_DEVICE(LITEST_SONY_VAIO_KEYS,
 	.features = LITEST_KEYS,
 	.interface = NULL,
 

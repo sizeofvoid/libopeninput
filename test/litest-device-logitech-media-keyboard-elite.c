@@ -80,8 +80,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("logitech-media-keyboard-elite",
-	.type = LITEST_KEYBOARD_LOGITECH_MEDIA_KEYBOARD_ELITE,
+TEST_DEVICE(LITEST_KEYBOARD_LOGITECH_MEDIA_KEYBOARD_ELITE,
 	.features = LITEST_KEYS,
 	.interface = NULL,
 

@@ -110,8 +110,7 @@ static const char quirk_file[] =
 "MatchName=litest SynPS/2 Synaptics TouchPad X1C3rd\n"
 "ModelLenovoT450Touchpad=1\n";
 
-TEST_DEVICE("synaptics-carbon3rd",
-	.type = LITEST_SYNAPTICS_TRACKPOINT_BUTTONS,
+TEST_DEVICE(LITEST_SYNAPTICS_TRACKPOINT_BUTTONS,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
 	.interface = &interface,
 

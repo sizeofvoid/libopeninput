@@ -47,8 +47,7 @@ static const char quirk_file[] =
 "MatchName=litest gpio-keys\n"
 "AttrLidSwitchReliability=reliable\n";
 
-TEST_DEVICE("gpio-keys",
-	.type = LITEST_GPIO_KEYS,
+TEST_DEVICE(LITEST_GPIO_KEYS,
 	.features = LITEST_SWITCH,
 	.interface = NULL,
 

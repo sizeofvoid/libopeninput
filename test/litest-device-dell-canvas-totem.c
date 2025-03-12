@@ -107,8 +107,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("dell-canvas-totem",
-	.type = LITEST_DELL_CANVAS_TOTEM,
+TEST_DEVICE(LITEST_DELL_CANVAS_TOTEM,
 	.features = LITEST_TOTEM | LITEST_TABLET,
 	.interface = &interface,
 

@@ -103,8 +103,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-TEST_DEVICE("alps-semi-mt",
-	.type = LITEST_ALPS_SEMI_MT,
+TEST_DEVICE(LITEST_ALPS_SEMI_MT,
 	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SEMI_MT,
 	.interface = &interface,
 

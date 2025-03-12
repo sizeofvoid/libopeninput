@@ -91,8 +91,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("xen-pointer",
-	.type = LITEST_XEN_VIRTUAL_POINTER,
+TEST_DEVICE(LITEST_XEN_VIRTUAL_POINTER,
 	.features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE,
 	.interface = &interface,
 

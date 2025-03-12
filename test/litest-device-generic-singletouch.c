@@ -65,8 +65,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("generic-singletouch",
-	.type = LITEST_GENERIC_SINGLETOUCH,
+TEST_DEVICE(LITEST_GENERIC_SINGLETOUCH,
 	.features = LITEST_SINGLE_TOUCH,
 	.interface = &interface,
 

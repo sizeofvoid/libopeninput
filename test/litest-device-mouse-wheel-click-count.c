@@ -42,8 +42,7 @@ static int events[] = {
 	-1 , -1,
 };
 
-TEST_DEVICE("mouse-wheelclickcount",
-	.type = LITEST_MOUSE_WHEEL_CLICK_COUNT,
+TEST_DEVICE(LITEST_MOUSE_WHEEL_CLICK_COUNT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
 	.interface = NULL,
 

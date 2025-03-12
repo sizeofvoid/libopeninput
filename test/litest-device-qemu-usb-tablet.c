@@ -86,8 +86,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("qemu-tablet",
-	.type = LITEST_QEMU_TABLET,
+TEST_DEVICE(LITEST_QEMU_TABLET,
 	.features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE,
 	.interface = &interface,
 

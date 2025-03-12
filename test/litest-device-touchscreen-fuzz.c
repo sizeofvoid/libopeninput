@@ -73,8 +73,7 @@ static int events[] = {
 	-1, -1
 };
 
-TEST_DEVICE("touchscreen-fuzz",
-	.type = LITEST_MULTITOUCH_FUZZ_SCREEN,
+TEST_DEVICE(LITEST_MULTITOUCH_FUZZ_SCREEN,
 	.features = LITEST_TOUCH,
 	.interface = &interface,
 

@@ -110,8 +110,7 @@ static const char quirk_file[] =
 "MatchName=litest Touchpad PalmPressureThreshold 0\n"
 "AttrPalmPressureThreshold=0\n";
 
-TEST_DEVICE("touchpad-palmpressure-zero",
-	.type = LITEST_TOUCHPAD_PALMPRESSURE_ZERO,
+TEST_DEVICE(LITEST_TOUCHPAD_PALMPRESSURE_ZERO,
 	.features = LITEST_IGNORED, /* Only use for specific tests */
 	.interface = &interface,
 

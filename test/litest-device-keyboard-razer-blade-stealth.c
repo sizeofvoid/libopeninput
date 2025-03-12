@@ -330,8 +330,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 },
 };
 
-TEST_DEVICE("blade-stealth",
-	.type = LITEST_KEYBOARD_BLADE_STEALTH,
+TEST_DEVICE(LITEST_KEYBOARD_BLADE_STEALTH,
 	.features = LITEST_KEYS | LITEST_WHEEL,
 	.interface = NULL,
 

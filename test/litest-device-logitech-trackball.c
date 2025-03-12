@@ -43,8 +43,7 @@ static int events[] = {
 	-1 , -1,
 };
 
-TEST_DEVICE("logitech-trackball",
-	.type = LITEST_LOGITECH_TRACKBALL,
+TEST_DEVICE(LITEST_LOGITECH_TRACKBALL,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_TRACKBALL,
 	.interface = NULL,
 

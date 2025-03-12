@@ -98,8 +98,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-TEST_DEVICE("elantech",
-	.type = LITEST_ELANTECH_TOUCHPAD,
+TEST_DEVICE(LITEST_ELANTECH_TOUCHPAD,
 	.features = LITEST_TOUCHPAD | LITEST_BUTTON,
 	.interface = &interface,
 

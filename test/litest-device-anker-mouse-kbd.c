@@ -206,8 +206,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 },
 };
 
-TEST_DEVICE("anker-kbd",
-	.type = LITEST_ANKER_MOUSE_KBD,
+TEST_DEVICE(LITEST_ANKER_MOUSE_KBD,
 	.features = LITEST_KEYS | LITEST_WHEEL,
 	.interface = NULL,
 

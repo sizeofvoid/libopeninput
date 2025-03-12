@@ -42,8 +42,7 @@ static int events[] = {
 	-1 , -1,
 };
 
-TEST_DEVICE("ignored-mouse",
-	.type = LITEST_IGNORED_MOUSE,
+TEST_DEVICE(LITEST_IGNORED_MOUSE,
 	.features = LITEST_IGNORED | LITEST_BUTTON | LITEST_RELATIVE,
 	.interface = NULL,
 

@@ -61,8 +61,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("wacom-bamboo-2fg-pad",
-	.type = LITEST_WACOM_BAMBOO_2FG_PAD,
+TEST_DEVICE(LITEST_WACOM_BAMBOO_2FG_PAD,
 	.features = LITEST_TABLET_PAD,
 	.interface = &interface,
 

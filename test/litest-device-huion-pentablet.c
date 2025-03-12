@@ -96,8 +96,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("huion-tablet",
-	.type = LITEST_HUION_TABLET,
+TEST_DEVICE(LITEST_HUION_TABLET,
 	.features = LITEST_TABLET | LITEST_HOVER | LITEST_FORCED_PROXOUT,
 	.interface = &interface,
 

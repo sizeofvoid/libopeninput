@@ -58,8 +58,7 @@ static struct input_absinfo absinfo[] = {
 
 /* This device only exists to verify that the EVDEV_ABS override bits work
  * correctly */
-TEST_DEVICE("absinfo-override",
-	.type = LITEST_ABSINFO_OVERRIDE,
+TEST_DEVICE(LITEST_ABSINFO_OVERRIDE,
 	.features = LITEST_IGNORED,
 	.interface = NULL,
 

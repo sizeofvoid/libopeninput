@@ -80,8 +80,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("wacom-cintiq-pro16-finger",
-	.type = LITEST_WACOM_CINTIQ_PRO16_FINGER,
+TEST_DEVICE(LITEST_WACOM_CINTIQ_PRO16_FINGER,
 	.features = LITEST_TOUCH,
 	.interface = &interface,
 

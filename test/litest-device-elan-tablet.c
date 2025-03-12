@@ -134,8 +134,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("elan-tablet",
-	.type = LITEST_ELAN_TABLET,
+TEST_DEVICE(LITEST_ELAN_TABLET,
 	.features = LITEST_TABLET,
 	.interface = &interface,
 

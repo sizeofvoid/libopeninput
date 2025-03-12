@@ -102,8 +102,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-TEST_DEVICE("synaptics-hover",
-	.type = LITEST_SYNAPTICS_HOVER_SEMI_MT,
+TEST_DEVICE(LITEST_SYNAPTICS_HOVER_SEMI_MT,
 	.features = LITEST_TOUCHPAD | LITEST_SEMI_MT | LITEST_BUTTON,
 	.interface = &interface,
 

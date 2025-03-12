@@ -46,8 +46,7 @@ static int events[] = {
 	-1 , -1,
 };
 
-TEST_DEVICE("ms-nano-mouse",
-	.type = LITEST_MS_NANO_TRANSCEIVER_MOUSE,
+TEST_DEVICE(LITEST_MS_NANO_TRANSCEIVER_MOUSE,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL | LITEST_NO_DEBOUNCE,
 	.interface = NULL,
 

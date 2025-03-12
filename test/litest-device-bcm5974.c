@@ -115,8 +115,7 @@ static int events[] = {
 	-1, -1
 };
 
-TEST_DEVICE("bcm5974",
-	.type = LITEST_BCM5974,
+TEST_DEVICE(LITEST_BCM5974,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD |
 		    LITEST_BUTTON | LITEST_APPLE_CLICKPAD,
 	.interface = &interface,

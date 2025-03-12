@@ -191,8 +191,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("default-keyboard",
-	.type = LITEST_KEYBOARD,
+TEST_DEVICE(LITEST_KEYBOARD,
 	.features = LITEST_KEYS,
 	.interface = NULL,
 

@@ -225,8 +225,7 @@ static const char quirk_file[] =
 "MatchName=litest          WALTOP     Batteryless Tablet*\n"
 "AttrSizeHint=200x200\n";
 
-TEST_DEVICE("waltop-tablet",
-	.type = LITEST_WALTOP,
+TEST_DEVICE(LITEST_WALTOP,
 	.features = LITEST_TABLET | LITEST_WHEEL | LITEST_TILT | LITEST_HOVER,
 	.interface = &interface,
 

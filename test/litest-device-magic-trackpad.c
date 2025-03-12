@@ -105,8 +105,7 @@ static int events[] = {
 	-1, -1
 };
 
-TEST_DEVICE("magic-trackpad",
-	.type = LITEST_MAGIC_TRACKPAD,
+TEST_DEVICE(LITEST_MAGIC_TRACKPAD,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD |
 		    LITEST_BUTTON | LITEST_APPLE_CLICKPAD,
 	.interface = &interface,

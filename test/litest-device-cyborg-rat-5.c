@@ -49,8 +49,7 @@ static int events[] = {
 	-1 , -1,
 };
 
-TEST_DEVICE("cyborg-rat",
-	.type = LITEST_CYBORG_RAT,
+TEST_DEVICE(LITEST_CYBORG_RAT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
 	.interface = NULL,
 

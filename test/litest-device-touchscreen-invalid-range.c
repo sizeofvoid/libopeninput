@@ -73,8 +73,7 @@ static int events[] = {
 	-1, -1
 };
 
-TEST_DEVICE("touchscreen-invalid-range",
-	.type = LITEST_TOUCHSCREEN_INVALID_RANGE,
+TEST_DEVICE(LITEST_TOUCHSCREEN_INVALID_RANGE,
 	.features = LITEST_TOUCH,
 	.interface = &interface,
 

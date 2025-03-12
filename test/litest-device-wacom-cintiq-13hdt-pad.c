@@ -90,8 +90,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("wacom-cintiq-13hdt-pad",
-	.type = LITEST_WACOM_CINTIQ_13HDT_PAD,
+TEST_DEVICE(LITEST_WACOM_CINTIQ_13HDT_PAD,
 	.features = LITEST_TABLET_PAD | LITEST_RING,
 	.interface = &interface,
 

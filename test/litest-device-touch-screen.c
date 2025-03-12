@@ -82,8 +82,7 @@ static int events[] = {
 	-1, -1
 };
 
-TEST_DEVICE("generic-mt",
-	.type = LITEST_GENERIC_MULTITOUCH_SCREEN,
+TEST_DEVICE(LITEST_GENERIC_MULTITOUCH_SCREEN,
 	.features = LITEST_TOUCH|LITEST_ELLIPSE,
 	.interface = &interface,
 

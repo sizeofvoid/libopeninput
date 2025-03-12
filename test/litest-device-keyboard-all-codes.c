@@ -36,8 +36,7 @@ static struct input_id input_id = {
 	.product = 0x1,
 };
 
-TEST_DEVICE("keyboard-all-codes",
-	.type = LITEST_KEYBOARD_ALL_CODES,
+TEST_DEVICE(LITEST_KEYBOARD_ALL_CODES,
 	.features = LITEST_KEYS,
 	.interface = NULL,
 	.create = all_codes_create,

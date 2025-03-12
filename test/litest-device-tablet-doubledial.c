@@ -65,8 +65,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("tablet-doubledial-pad",
-	.type = LITEST_TABLET_DOUBLEDIAL_PAD,
+TEST_DEVICE(LITEST_TABLET_DOUBLEDIAL_PAD,
 	.features = LITEST_TABLET_PAD | LITEST_DIAL,
 	.interface = &interface,
 

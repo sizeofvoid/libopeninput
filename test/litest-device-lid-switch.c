@@ -42,8 +42,7 @@ static const char quirk_file[] =
 "MatchName=litest Lid Switch\n"
 "AttrLidSwitchReliability=reliable\n";
 
-TEST_DEVICE("lid-switch",
-	.type = LITEST_LID_SWITCH,
+TEST_DEVICE(LITEST_LID_SWITCH,
 	.features = LITEST_SWITCH,
 	.interface = NULL,
 

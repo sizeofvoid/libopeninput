@@ -47,8 +47,7 @@ static const char quirk_file[] =
 "MatchName=litest Unreliable Tablet Mode Switch device\n"
 "ModelTabletModeSwitchUnreliable=1\n";
 
-TEST_DEVICE("tablet-mode-switch-unreliable",
-	.type = LITEST_TABLET_MODE_UNRELIABLE,
+TEST_DEVICE(LITEST_TABLET_MODE_UNRELIABLE,
 	.features = LITEST_SWITCH,
 	.interface = NULL,
 

@@ -100,8 +100,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("wacom-ekr",
-	.type = LITEST_WACOM_EKR,
+TEST_DEVICE(LITEST_WACOM_EKR,
 	.features = LITEST_TABLET_PAD | LITEST_RING,
 	.interface = &interface,
 

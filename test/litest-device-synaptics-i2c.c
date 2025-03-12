@@ -84,8 +84,7 @@ static const char quirk_file[] =
 "MatchName=litest DLL0704:01 06CB:76AD Touchpad\n"
 "ModelTouchpadVisibleMarker=1\n";
 
-TEST_DEVICE("synaptics-i2c",
-	.type = LITEST_SYNAPTICS_I2C,
+TEST_DEVICE(LITEST_SYNAPTICS_I2C,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
 	.interface = &interface,
 

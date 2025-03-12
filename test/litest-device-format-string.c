@@ -44,8 +44,7 @@ static int events[] = {
 	-1 , -1,
 };
 
-TEST_DEVICE("mouse-format-string",
-	.type = LITEST_MOUSE_FORMAT_STRING,
+TEST_DEVICE(LITEST_MOUSE_FORMAT_STRING,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
 	.interface = NULL,
 

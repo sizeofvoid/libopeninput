@@ -60,8 +60,7 @@ static int events[] = {
 	-1, -1,
 };
 
-TEST_DEVICE("wacom-cintiq-pro16-pad",
-	.type = LITEST_WACOM_CINTIQ_PRO16_PAD,
+TEST_DEVICE(LITEST_WACOM_CINTIQ_PRO16_PAD,
 	.features = LITEST_TABLET_PAD,
 	.interface = &interface,
 

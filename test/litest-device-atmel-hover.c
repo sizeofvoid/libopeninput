@@ -121,8 +121,7 @@ static struct input_absinfo absinfo[] = {
 	{ .value = -1 }
 };
 
-TEST_DEVICE("atmel-hover",
-	.type = LITEST_ATMEL_HOVER,
+TEST_DEVICE(LITEST_ATMEL_HOVER,
 	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_CLICKPAD | LITEST_HOVER,
 	.interface = &interface,
 
