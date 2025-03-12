@@ -1207,6 +1207,77 @@ START_TEST(strv_for_each_test)
 }
 END_TEST
 
+__attribute__ ((format (printf, 1, 0)))
+static char **
+test_strv_appendv(char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	char **strv = NULL;
+	strv = strv_append_vprintf(strv, "%s %d", args);
+	va_end(args);
+	return strv;
+}
+
+START_TEST(strv_append_test)
+{
+	{
+		char *test_strv1[] = {"a", "b", "c", NULL};
+		char **test_strv2 = NULL;
+
+		litest_assert_int_eq(strv_len(test_strv1), 4U);
+		litest_assert_int_eq(strv_len(test_strv2), 0U);
+	}
+	{
+		char **strv = NULL;
+		char *dup = safe_strdup("test");
+		strv = strv_append_take(strv, &dup);
+		litest_assert_ptr_null(dup);
+		litest_assert_ptr_notnull(strv);
+		litest_assert_str_eq(strv[0], "test");
+		litest_assert_ptr_eq(strv[1], NULL);
+		litest_assert_int_eq(strv_len(strv), 2U);
+
+		char *dup2 = safe_strdup("test2");
+		strv = strv_append_take(strv, &dup2);
+		litest_assert_ptr_null(dup2);
+		litest_assert_str_eq(strv[1], "test2");
+		litest_assert_ptr_eq(strv[2], NULL);
+		litest_assert_int_eq(strv_len(strv), 3U);
+
+		strv = strv_append_take(strv, NULL);
+		litest_assert_int_eq(strv_len(strv), 3U);
+		strv_free(strv);
+	}
+	{
+		char **strv = NULL;
+		strv = strv_append_strdup(strv, "banana");
+		litest_assert(strv != NULL);
+		litest_assert_str_eq(strv[0], "banana");
+		litest_assert_ptr_null(strv[1]);
+		litest_assert_int_eq(strv_len(strv), 2U);
+		strv_free(strv);
+	}
+	{
+		char **strv = test_strv_appendv("%s %d", "apple", 2);
+		litest_assert_ptr_notnull(strv);
+		litest_assert_str_eq(strv[0], "apple 2");
+		litest_assert_ptr_null(strv[1]);
+		litest_assert_int_eq(strv_len(strv), 2U);
+		strv_free(strv);
+	}
+	{
+		char **strv = NULL;
+		strv = strv_append_printf(strv, "coco%s", "nut");
+		litest_assert_ptr_notnull(strv);
+		litest_assert_str_eq(strv[0], "coconut");
+		litest_assert_ptr_null(strv[1]);
+		litest_assert_int_eq(strv_len(strv), 2U);
+		strv_free(strv);
+	}
+}
+END_TEST
+
 START_TEST(double_array_from_string_test)
 {
 	struct double_array_from_string_test {
@@ -2092,6 +2163,7 @@ int main(void)
 	ADD_TEST(safe_atod_test);
 	ADD_TEST(strsplit_test);
 	ADD_TEST(strv_for_each_test);
+	ADD_TEST(strv_append_test);
 	ADD_TEST(double_array_from_string_test);
 	ADD_TEST(strargv_test);
 	ADD_TEST(kvsplit_double_test);

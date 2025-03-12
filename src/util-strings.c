@@ -62,6 +62,63 @@ next_word(const char **state, size_t *len, const char *separators)
 	return next;
 }
 
+size_t
+strv_len(char **strv)
+{
+	if (!strv)
+		return 0;
+
+	size_t size = 1;
+	while (*strv) {
+		size++;
+		strv++;
+	}
+	return size;
+}
+
+char **
+strv_append_vprintf(char **strv, const char *fmt, va_list args)
+{
+	char *dup = strdup_vprintf(fmt, args);
+	char **s = strv_append_take(strv, &dup);
+	return s;
+}
+
+char **
+strv_append_printf(char **strv, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	char **s = strv_append_vprintf(strv, fmt, args);
+	va_end(args);
+	return s;
+}
+
+char **
+strv_append_strdup(char **strv, const char *str)
+{
+	char *dup = safe_strdup(str);
+	return strv_append_take(strv, &dup);
+}
+
+char **
+strv_append_take(char **strv, char **str)
+{
+	if (str && *str) {
+		size_t len = max(strv_len(strv) + 1, 2);
+
+		char **s = realloc(strv, len * sizeof(*strv));
+		if (!s)
+			abort();
+		s[len - 1] = NULL;
+		s[len - 2] = *str;
+		*str = NULL;
+		return s;
+	} else {
+		return strv;
+	}
+}
+
 /**
  * Return a null-terminated string array with the contents of argv
  * duplicated.
