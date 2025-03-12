@@ -3193,7 +3193,7 @@ libinput_post_event(struct libinput *libinput,
 	size_t move_len;
 	size_t new_out;
 
-#if 0
+#if EVENT_DEBUGGING
 	libinput_print_queued_event(event);
 #endif
 

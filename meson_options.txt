@@ -34,3 +34,7 @@ option('zshcompletiondir',
        type: 'string',
        value: '',
        description: 'Directory for zsh completion scripts ["no" disables]')
+option('internal-event-debugging',
+	type: 'boolean',
+	value: false,
+	description: 'Enable additional internal event debug tracing. This will print key values to the logs and thus must never be enabled in a release build')

@@ -1063,7 +1063,7 @@ evdev_process_event(struct evdev_device *device, struct input_event *e)
 	struct evdev_dispatch *dispatch = device->dispatch;
 	uint64_t time = input_event_time(e);
 
-#if 0
+#if EVENT_DEBUGGING
 	evdev_print_event(device, e);
 #endif
 
