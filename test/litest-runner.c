@@ -283,7 +283,7 @@ sighandler_forked_child(int signal)
          * the backtrace anyway -  we only need to backtrace the other signals
          */
         if (signal != SIGABRT)
-		litest_backtrace();
+		litest_backtrace(NULL);
 
 	raise(signal);
 }

@@ -168,15 +168,22 @@ _litest_checkpoint(const char *func,
 }
 
 void
-litest_backtrace(void)
+litest_backtrace(const char *func)
 {
 #ifndef LITEST_DISABLE_BACKTRACE_LOGGING
 	if (RUNNING_ON_VALGRIND) {
 		fprintf(stderr, "Using valgrind, omitting backtrace\n");
 		return;
 	}
+	char buf[256];
 
-	backtrace_print(stderr, use_colors, "in litest_backtrace", "in litest_runner_test_run");
+	snprintf(buf, sizeof(buf), "in %s", func);
+
+	backtrace_print(stderr,
+			use_colors,
+			"in litest_backtrace",
+			"in litest_runner_test_run",
+			func ? buf : NULL);
 #endif
 }
 
@@ -202,7 +209,7 @@ litest_fail_condition(const char *file,
 	}
 
 	litest_log("in %s() (%s:%d)\n", func, file, line);
-	litest_backtrace();
+	litest_backtrace(func);
 	litest_runner_abort();
 }
 
@@ -220,7 +227,7 @@ litest_fail_comparison_int(const char *file,
 	litest_log("FAILED COMPARISON: %s %s %s\n", astr, operator, bstr);
 	litest_log("Resolved to: %d %s %d\n", a, operator, b);
 	litest_log("in %s() (%s:%d)\n", func, file, line);
-	litest_backtrace();
+	litest_backtrace(func);
 	litest_runner_abort();
 }
 
@@ -238,7 +245,7 @@ litest_fail_comparison_double(const char *file,
 	litest_log("FAILED COMPARISON: %s %s %s\n", astr, operator, bstr);
 	litest_log("Resolved to: %.3f %s %.3f\n", a, operator, b);
 	litest_log("in %s() (%s:%d)\n", func, file, line);
-	litest_backtrace();
+	litest_backtrace(func);
 	litest_runner_abort();
 }
 
@@ -251,7 +258,7 @@ litest_fail_comparison_ptr(const char *file,
 {
 	litest_log("FAILED COMPARISON: %s\n", comparison);
 	litest_log("in %s() (%s:%d)\n", func, file, line);
-	litest_backtrace();
+	litest_backtrace(func);
 	litest_runner_abort();
 }
 
@@ -268,7 +275,7 @@ litest_fail_comparison_str(const char *file,
 	litest_log("FAILED COMPARISON: %s %s %s\n", astr, operator, bstr);
 	litest_log("Resolved to: %s %s %s\n", astr, operator, bstr);
 	litest_log("in %s() (%s:%d)\n", func, file, line);
-	litest_backtrace();
+	litest_backtrace(func);
 	litest_runner_abort();
 }
 
@@ -3708,7 +3715,7 @@ _litest_assert_event_type_is_one_of(struct libinput_event *event, ...)
 	fprintf(stderr, "\n");
 
 	litest_print_event(event, "Wrong event is:");
-	litest_backtrace();
+	litest_backtrace(__func__);
 	litest_runner_abort();
 }
 
@@ -3748,7 +3755,7 @@ _litest_assert_event_type_not_one_of(struct libinput_event *event, ...)
 		libinput_event_get_type(event));
 
 	litest_print_event(event,"\nWrong event is: ");
-	litest_backtrace();
+	litest_backtrace(__func__);
 	litest_runner_abort();
 }
 

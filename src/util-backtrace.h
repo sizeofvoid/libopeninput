@@ -43,12 +43,16 @@
  * If use_colors is true, highlight_before may specify
  * a substring for a line before which the backtrace is
  * colored.
+ *
+ * If use_colors is true, highlight_extra may specify
+ * a substring for a line that has extra highlighting.
  */
 static inline void
 backtrace_print(FILE *fp,
 		bool use_colors,
 		const char *highlight_after,
-		const char *highlight_before)
+		const char *highlight_before,
+		const char *highlight_extra)
 {
 #if HAVE_GSTACK
 	pid_t parent, child;
@@ -98,8 +102,15 @@ backtrace_print(FILE *fp,
 		while (line && *line) {
 			if (highlight && highlight_before && strstr(*line, highlight_before))
 				highlight = false;
+
+			const char *hlcolor = highlight ? ANSI_BRIGHT_CYAN : "";
+
+			if (highlight && highlight_extra &&
+			    strstr(*line, highlight_extra))
+				hlcolor = ANSI_BRIGHT_MAGENTA;
+
 			fprintf(fp, "%s%s%s\n",
-				highlight ? ANSI_BRIGHT_CYAN : "",
+				hlcolor,
 				*line,
 				highlight ? ANSI_NORMAL : "");
 			if (!highlight && highlight_after && strstr(*line, highlight_after))
