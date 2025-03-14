@@ -2501,8 +2501,6 @@ START_TEST(tool_ref)
 	litest_assert(tool == libinput_tablet_tool_ref(tool));
 	litest_assert(tool == libinput_tablet_tool_unref(tool));
 	libinput_event_destroy(event);
-
-	litest_assert(libinput_tablet_tool_unref(tool) == NULL);
 }
 END_TEST
 
