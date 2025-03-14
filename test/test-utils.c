@@ -317,6 +317,204 @@ START_TEST(bitfield_helpers)
 }
 END_TEST
 
+START_TEST(bitmask_test)
+{
+	{
+		bitmask_t mask1 = bitmask_from_u32(0x12345678U);
+		litest_assert(bitmask_as_u32(mask1) == 0x12345678U);
+
+		bitmask_t mask2 = bitmask_from_u32(0);
+		litest_assert_int_eq(bitmask_as_u32(mask2), 0U);
+
+		bitmask_t mask3 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert_int_eq(bitmask_as_u32(mask3), 0xFFFFFFFFU);
+	}
+	{
+		bitmask_t mask1 = bitmask_new();
+		litest_assert(bitmask_is_empty(mask1));
+
+		bitmask_t mask2 = bitmask_from_u32(0x00000001U);
+		litest_assert(!bitmask_is_empty(mask2));
+
+		bitmask_t mask3 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(!bitmask_is_empty(mask3));
+	}
+	{
+		bitmask_t mask1 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits1 = bitmask_from_u32(0x00000003U);
+		litest_assert(bitmask_any(mask1, bits1));
+
+		bitmask_t mask2 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits2 = bitmask_from_u32(0x000000F0U);
+		litest_assert(!bitmask_any(mask2, bits2));
+
+		bitmask_t mask3 = bitmask_from_u32(0x00000000U);
+		bitmask_t bits3 = bitmask_from_u32(0x00000001U);
+		litest_assert(!bitmask_any(mask3, bits3));
+
+		bitmask_t mask4 = bitmask_from_u32(0xFFFFFFFFU);
+		bitmask_t bits4 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(bitmask_any(mask4, bits4));
+
+		bitmask_t mask5 = bitmask_from_u32(0x10000000U);
+		bitmask_t bits5 = bitmask_from_u32(0x10000000U);
+		litest_assert(bitmask_any(mask5, bits5));
+	}
+	{
+		bitmask_t mask1 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits1 = bitmask_from_u32(0x00000003U);
+		litest_assert(bitmask_all(mask1, bits1));
+		litest_assert(!bitmask_all(bits1, mask1));
+
+		bitmask_t mask2 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits2 = bitmask_from_u32(0x0000000FU);
+		litest_assert(bitmask_all(mask2, bits2));
+		litest_assert(bitmask_all(bits2, mask2));
+
+		bitmask_t mask3 = bitmask_from_u32(0x00000000U);
+		bitmask_t bits3 = bitmask_from_u32(0x00000000U);
+		litest_assert(!bitmask_all(mask3, bits3)); /* zero is special */
+
+		bitmask_t mask4 = bitmask_from_u32(0xFFFFFFFFU);
+		bitmask_t bits4 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(bitmask_all(mask4, bits4));
+
+		bitmask_t mask5 = bitmask_from_u32(0x10000000U);
+		bitmask_t bits5 = bitmask_from_u32(0x10000000U);
+		litest_assert(bitmask_all(mask5, bits5));
+	}
+	{
+
+		bitmask_t mask1 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits1 = bitmask_from_u32(0x000000F0U);
+		litest_assert(!bitmask_merge(&mask1, bits1));
+		litest_assert_int_eq(mask1.mask, 0x000000FFU);
+
+		bitmask_t mask2 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits2 = bitmask_from_u32(0x0000000FU);
+		litest_assert(bitmask_merge(&mask2, bits2));
+		litest_assert_int_eq(mask2.mask, 0x0000000FU);
+
+		bitmask_t mask3 = bitmask_new();
+		bitmask_t bits3 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(!bitmask_merge(&mask3, bits3));
+		litest_assert_int_eq(mask3.mask, 0xFFFFFFFFU);
+
+		bitmask_t mask4 = bitmask_from_u32(0x80000000U);
+		bitmask_t bits4 = bitmask_from_u32(0x00000001U);
+		litest_assert(!bitmask_merge(&mask4, bits4));
+		litest_assert_int_eq(mask4.mask, 0x80000001U);
+	}
+	{
+		bitmask_t mask1 = bitmask_from_u32(0x000000FFU);
+		bitmask_t bits1 = bitmask_from_u32(0x0000000FU);
+		litest_assert(bitmask_clear(&mask1, bits1));
+		litest_assert_int_eq(mask1.mask, 0x000000F0U);
+
+		bitmask_t mask2 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits2 = bitmask_from_u32(0x0000000FU);
+		litest_assert(bitmask_clear(&mask2, bits2));
+		litest_assert_int_eq(mask2.mask, 0x00000000U);
+
+		bitmask_t mask3 = bitmask_from_u32(0xFFFFFFFFU);
+		bitmask_t bits3 = bitmask_from_u32(0x00000000U);
+		litest_assert(!bitmask_clear(&mask3, bits3)); /* zero is special */
+		litest_assert_int_eq(mask3.mask, 0xFFFFFFFFU);
+
+		bitmask_t mask4 = bitmask_from_u32(0xFFFFFFFFU);
+		bitmask_t bits4 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(bitmask_clear(&mask4, bits4));
+		litest_assert_int_eq(mask4.mask, 0x0U);
+	}
+	{
+		bitmask_t mask1 = bitmask_from_u32(0x00000001U);
+		litest_assert(bitmask_bit_is_set(mask1, 0));
+		litest_assert(!bitmask_bit_is_set(mask1, 1));
+
+		bitmask_t mask2 = bitmask_from_u32(0x80000000U);
+		litest_assert(bitmask_bit_is_set(mask2, 31));
+		litest_assert(!bitmask_bit_is_set(mask2, 0));
+
+		bitmask_t mask3 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(bitmask_bit_is_set(mask3, 0));
+		litest_assert(bitmask_bit_is_set(mask3, 31));
+		litest_assert(bitmask_bit_is_set(mask3, 16));
+
+		bitmask_t mask4 = bitmask_new();
+		litest_assert(!bitmask_bit_is_set(mask4, 0));
+		litest_assert(!bitmask_bit_is_set(mask4, 1));
+	}
+	{
+		bitmask_t mask1 = bitmask_new();
+		litest_assert(!bitmask_set_bit(&mask1, 0));
+		litest_assert_int_eq(mask1.mask, 0x00000001U);
+
+		litest_assert(bitmask_set_bit(&mask1, 0));
+		litest_assert_int_eq(mask1.mask, 0x00000001U);
+
+		litest_assert(!bitmask_set_bit(&mask1, 31));
+		litest_assert_int_eq(mask1.mask, 0x80000001U);
+
+		bitmask_t mask2 = bitmask_from_u32(0x0000000FU);
+		litest_assert(!bitmask_set_bit(&mask2, 4));
+		litest_assert_int_eq(mask2.mask, 0x0000001FU);
+		litest_assert(bitmask_set_bit(&mask2, 4));
+		litest_assert_int_eq(mask2.mask, 0x0000001FU);
+	}
+	{
+		bitmask_t mask1 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(bitmask_clear_bit(&mask1, 0));
+		litest_assert_int_eq(mask1.mask, 0xFFFFFFFEU);
+
+		litest_assert(!bitmask_clear_bit(&mask1, 0));
+		litest_assert_int_eq(mask1.mask, 0xFFFFFFFEU);
+
+		litest_assert(bitmask_clear_bit(&mask1, 31));
+		litest_assert_int_eq(mask1.mask, 0x7FFFFFFEU);
+
+		bitmask_t mask2 = bitmask_from_u32(0x0000001FU);
+		litest_assert(bitmask_clear_bit(&mask2, 4));
+		litest_assert_int_eq(mask2.mask, 0x0000000FU);
+		litest_assert(!bitmask_clear_bit(&mask2, 4));
+		litest_assert_int_eq(mask2.mask, 0x0000000FU);
+	}
+	{
+		bitmask_t mask1 = bitmask_from_bit(0);
+		litest_assert_int_eq(mask1.mask, 0x00000001U);
+
+		bitmask_t mask2 = bitmask_from_bit(31);
+		litest_assert_int_eq(mask2.mask, 0x80000000U);
+
+		bitmask_t mask3 = bitmask_from_bit(16);
+		litest_assert_int_eq(mask3.mask, 0x00010000U);
+	}
+	{
+		bitmask_t mask1 = bitmask_from_u32(0x12345678U);
+		litest_assert_int_eq(mask1.mask, 0x12345678U);
+
+		bitmask_t mask2 = bitmask_from_u32(0);
+		litest_assert_int_eq(mask2.mask, 0U);
+
+		bitmask_t mask3 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert_int_eq(mask3.mask, 0xFFFFFFFFU);
+	}
+	{
+		bitmask_t mask1 = bitmask_from_bits(1, 2, 5);
+		litest_assert_int_eq(mask1.mask, bit(1) | bit(2) | bit(5));
+
+		bitmask_t mask2 = bitmask_from_bits(0);
+		litest_assert_int_eq(mask2.mask, bit(0));
+	}
+	{
+		bitmask_t mask1 = bitmask_from_masks(0x1, 0x2, 0x8);
+		litest_assert_int_eq(mask1.mask, 0x0000000BU);
+
+		bitmask_t mask2 = bitmask_from_masks(0x0);
+		litest_assert_int_eq(mask2.mask, 0x00000000U);
+	}
+}
+END_TEST
+
 START_TEST(matrix_helpers)
 {
 	struct matrix m1, m2, m3;
@@ -2719,6 +2917,7 @@ int main(void)
 	ADD_TEST(array_for_each);
 
 	ADD_TEST(bitfield_helpers);
+	ADD_TEST(bitmask_test);
 	ADD_TEST(matrix_helpers);
 	ADD_TEST(ratelimit_helpers);
 	ADD_TEST(dpi_parser);

@@ -28,8 +28,10 @@
 #include "config.h"
 
 #include <assert.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #define bit(x_) (1UL << (x_))
 #define NBITS(b) (b * 8)
@@ -98,3 +100,128 @@ long_any_bit_set(unsigned long *array, size_t size)
 			return true;
 	return false;
 }
+
+/* A wrapper around a bit mask to avoid type confusion */
+typedef struct {
+	uint32_t mask;
+} bitmask_t;
+
+static inline uint32_t
+bitmask_as_u32(bitmask_t mask)
+{
+	return mask.mask;
+}
+
+static inline bool
+bitmask_is_empty(bitmask_t mask) {
+	return mask.mask == 0;
+}
+
+static inline bool
+bitmask_any(bitmask_t mask, bitmask_t bits) {
+	return !!(mask.mask & bits.mask);
+}
+
+static inline bool
+bitmask_all(bitmask_t mask, bitmask_t bits) {
+	return bits.mask != 0 && (mask.mask & bits.mask) == bits.mask;
+}
+
+static inline bool
+bitmask_merge(bitmask_t *mask, bitmask_t bits) {
+	bool all = bitmask_all(*mask, bits);
+
+	mask->mask |= bits.mask;
+
+	return all;
+}
+
+static inline bool
+bitmask_clear(bitmask_t *mask, bitmask_t bits) {
+	bool all = bitmask_all(*mask, bits);
+
+	mask->mask &= ~bits.mask;
+
+	return all;
+}
+
+static inline bool
+bitmask_bit_is_set(bitmask_t mask, unsigned int bit) {
+	return !!(mask.mask & bit(bit));
+}
+
+static inline bool
+bitmask_set_bit(bitmask_t *mask, unsigned int bit) {
+	bool isset = bitmask_bit_is_set(*mask, bit);
+	mask->mask |= bit(bit);
+	return isset;
+}
+
+static inline bool
+bitmask_clear_bit(bitmask_t *mask, unsigned int bit) {
+	bool isset = bitmask_bit_is_set(*mask, bit);
+	mask->mask &= ~bit(bit);
+	return isset;
+}
+
+static inline bitmask_t
+bitmask_new(void) {
+	bitmask_t m = {0};
+	return m;
+}
+
+static inline bitmask_t
+bitmask_from_bit(unsigned int bit) {
+	bitmask_t m = {
+		.mask = bit(bit)
+	};
+	return m;
+}
+
+static inline bitmask_t
+bitmask_from_u32(uint32_t mask) {
+	bitmask_t m = {
+		.mask = mask
+	};
+	return m;
+}
+
+static inline bitmask_t
+_bitmask_from_masks(uint32_t mask1, ...)
+{
+	uint32_t mask = mask1;
+	va_list args;
+	va_start(args, mask1);
+
+	uint32_t v = va_arg(args, unsigned int);
+	while (v != 0) {
+		mask |= v;
+		v = va_arg(args, unsigned int);
+	}
+	va_end(args);
+
+	return bitmask_from_u32(mask);
+}
+
+#define bitmask_from_masks(...) \
+	_bitmask_from_masks(__VA_ARGS__, 0)
+
+static inline bitmask_t
+_bitmask_from_bits(unsigned int bit1, ...)
+{
+	uint32_t mask = bit(bit1);
+	va_list args;
+	va_start(args, bit1);
+
+	uint32_t v = va_arg(args, unsigned int);
+	while (v < 32) {
+		mask |= bit(v);
+		v = va_arg(args, unsigned int);
+	}
+	va_end(args);
+
+	return bitmask_from_u32(mask);
+}
+
+#define bitmask_from_bits(...) \
+	_bitmask_from_bits(__VA_ARGS__, 32)
