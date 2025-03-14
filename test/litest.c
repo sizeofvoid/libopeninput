@@ -3440,7 +3440,10 @@ litest_wait_for_event(struct libinput *li)
 }
 
 void
-_litest_wait_for_event_of_type(struct libinput *li, ...)
+_litest_wait_for_event_of_type(struct libinput *li,
+			       const char *func,
+			       int lineno,
+			       ...)
 {
 	va_list args;
 	enum libinput_event_type types[32] = {LIBINPUT_EVENT_NONE};
@@ -3448,7 +3451,7 @@ _litest_wait_for_event_of_type(struct libinput *li, ...)
 	enum libinput_event_type type;
 	struct pollfd fds;
 
-	va_start(args, li);
+	va_start(args, lineno);
 	type = va_arg(args, int);
 	while ((int)type != -1) {
 		litest_assert_int_gt(type, 0U);
@@ -3671,18 +3674,18 @@ litest_print_event(struct libinput_event *event, const char *message)
 	free(event_str);
 }
 
-#define litest_assert_event_type_is_one_of(...) \
-    _litest_assert_event_type_is_one_of(__VA_ARGS__, -1)
-
-static void
-_litest_assert_event_type_is_one_of(struct libinput_event *event, ...)
+void
+_litest_assert_event_type_is_one_of(struct libinput_event *event,
+				    const char *func,
+				    int lineno,
+				    ...)
 {
 	va_list args;
 	enum libinput_event_type expected_type;
 	enum libinput_event_type actual_type = libinput_event_get_type(event);
 	bool match = false;
 
-	va_start(args, event);
+	va_start(args, lineno);
 	expected_type = va_arg(args, int);
 	while ((int)expected_type != -1 && !match) {
 		match = (actual_type == expected_type);
@@ -3699,7 +3702,7 @@ _litest_assert_event_type_is_one_of(struct libinput_event *event, ...)
 		litest_event_get_type_str(event),
 		libinput_event_get_type(event));
 
-	va_start(args, event);
+	va_start(args, lineno);
 	expected_type = va_arg(args, int);
 	while ((int)expected_type != -1) {
 		fprintf(stderr,
@@ -3715,29 +3718,31 @@ _litest_assert_event_type_is_one_of(struct libinput_event *event, ...)
 	fprintf(stderr, "\n");
 
 	litest_print_event(event, "Wrong event is:");
-	litest_backtrace(__func__);
+	litest_backtrace(func);
 	litest_runner_abort();
 }
 
 void
-litest_assert_event_type(struct libinput_event *event,
-			 enum libinput_event_type want)
+_litest_assert_event_type(struct libinput_event *event,
+			  enum libinput_event_type want,
+			  const char *func,
+			  int lineno)
 {
-	litest_assert_event_type_is_one_of(event, want);
+	_litest_assert_event_type_is_one_of(event, func, lineno, want, -1);
 }
 
-#define litest_assert_event_type_not_one_of(...) \
-    _litest_assert_event_type_not_one_of(__VA_ARGS__, -1)
-
 void
-_litest_assert_event_type_not_one_of(struct libinput_event *event, ...)
+_litest_assert_event_type_not_one_of(struct libinput_event *event,
+				     const char *func,
+				     int lineno,
+				     ...)
 {
 	va_list args;
 	enum libinput_event_type not_expected_type;
 	enum libinput_event_type actual_type = libinput_event_get_type(event);
 	bool match = false;
 
-	va_start(args, event);
+	va_start(args, lineno);
 	not_expected_type = va_arg(args, int);
 	while ((int)not_expected_type != -1 && !match) {
 		match = (actual_type == not_expected_type);
@@ -3755,7 +3760,7 @@ _litest_assert_event_type_not_one_of(struct libinput_event *event, ...)
 		libinput_event_get_type(event));
 
 	litest_print_event(event,"\nWrong event is: ");
-	litest_backtrace(__func__);
+	litest_backtrace(func);
 	litest_runner_abort();
 }
 
@@ -4022,8 +4027,11 @@ litest_is_motion_event(struct libinput_event *event)
 }
 
 void
-litest_assert_key_event(struct libinput *li, unsigned int key,
-			enum libinput_key_state state)
+_litest_assert_key_event(struct libinput *li,
+			 unsigned int key,
+			 enum libinput_key_state state,
+			 const char *func,
+			 int lineno)
 {
 	struct libinput_event *event;
 
@@ -4164,8 +4172,10 @@ litest_is_tablet_event(struct libinput_event *event,
 }
 
 void
-litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
-				  enum libinput_button_state state)
+_litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
+				   enum libinput_button_state state,
+				   const char *func,
+				   int lineno)
 {
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tev;
@@ -4246,8 +4256,11 @@ litest_event_pointer_get_axis_source(struct libinput_event_pointer *ptrev)
 	}
 }
 
-void litest_assert_tablet_proximity_event(struct libinput *li,
-					  enum libinput_tablet_tool_proximity_state state)
+void
+_litest_assert_tablet_proximity_event(struct libinput *li,
+				      enum libinput_tablet_tool_proximity_state state,
+				      const char *func,
+				      int lineno)
 {
 	struct libinput_event *event;
 
@@ -4257,8 +4270,11 @@ void litest_assert_tablet_proximity_event(struct libinput *li,
 	libinput_event_destroy(event);
 }
 
-void litest_assert_tablet_tip_event(struct libinput *li,
-				    enum libinput_tablet_tool_tip_state state)
+void
+_litest_assert_tablet_tip_event(struct libinput *li,
+				enum libinput_tablet_tool_tip_state state,
+				const char *func,
+				int lineno)
 {
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tev;
@@ -4395,9 +4411,11 @@ litest_is_switch_event(struct libinput_event *event,
 }
 
 void
-litest_assert_switch_event(struct libinput *li,
-			   enum libinput_switch sw,
-			   enum libinput_switch_state state)
+_litest_assert_switch_event(struct libinput *li,
+			    enum libinput_switch sw,
+			    enum libinput_switch_state state,
+			    const char *func,
+			    int lineno)
 {
 	struct libinput_event *event;
 
@@ -4410,9 +4428,11 @@ litest_assert_switch_event(struct libinput *li,
 }
 
 void
-litest_assert_pad_button_event(struct libinput *li,
-			       unsigned int button,
-			       enum libinput_button_state state)
+_litest_assert_pad_button_event(struct libinput *li,
+				unsigned int button,
+				enum libinput_button_state state,
+				const char *func,
+				int lineno)
 {
 	struct libinput_event *event;
 
@@ -4424,9 +4444,11 @@ litest_assert_pad_button_event(struct libinput *li,
 }
 
 void
-litest_assert_pad_key_event(struct libinput *li,
-			    unsigned int key,
-			    enum libinput_key_state state)
+_litest_assert_pad_key_event(struct libinput *li,
+			     unsigned int key,
+			     enum libinput_key_state state,
+			     const char *func,
+			     int lineno)
 {
 	struct libinput_event *event;
 

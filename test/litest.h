@@ -990,10 +990,13 @@ void
 litest_wait_for_event(struct libinput *li);
 
 void
-_litest_wait_for_event_of_type(struct libinput *li, ...);
+_litest_wait_for_event_of_type(struct libinput *li,
+			       const char *func,
+			       int lineno,
+			       ...);
 
 #define litest_wait_for_event_of_type(li_, ...) \
-	_litest_wait_for_event_of_type(li_, __VA_ARGS__, -1)
+	_litest_wait_for_event_of_type(li_, __func__, __LINE__, __VA_ARGS__, -1)
 
 void
 litest_drain_events(struct libinput *li);
@@ -1004,15 +1007,30 @@ _litest_drain_events_of_type(struct libinput *li, ...);
 #define litest_drain_events_of_type(li_, ...) \
 	_litest_drain_events_of_type(li_, __VA_ARGS__, -1)
 
+#define litest_assert_event_type(e_, want_) \
+	_litest_assert_event_type(e_, want_, __func__, __LINE__)
 void
-litest_assert_event_type(struct libinput_event *event,
-			 enum libinput_event_type want);
+_litest_assert_event_type(struct libinput_event *event,
+			  enum libinput_event_type want,
+			  const char *func,
+			  int lineno);
 
-#define litest_assert_event_type_not_one_of(...) \
-    _litest_assert_event_type_not_one_of(__VA_ARGS__, -1)
+#define litest_assert_event_type_is_one_of(ev_, ...) \
+    _litest_assert_event_type_is_one_of(ev_, __func__, __LINE__, __VA_ARGS__, -1)
+void
+_litest_assert_event_type_is_one_of(struct libinput_event *event,
+				    const char *func,
+				    int lineno,
+				    ...);
+
+#define litest_assert_event_type_not_one_of(ev_, ...) \
+    _litest_assert_event_type_not_one_of(ev_, __func__, __LINE__, __VA_ARGS__, -1)
 
 void
-_litest_assert_event_type_not_one_of(struct libinput_event *event, ...);
+_litest_assert_event_type_not_one_of(struct libinput_event *event,
+				     const char *func,
+				     int lineno,
+				     ...);
 
 #define litest_assert_empty_queue(li_) \
 	_litest_assert_empty_queue(li_, __func__, __LINE__)
@@ -1105,9 +1123,15 @@ litest_event_pointer_get_value(struct libinput_event_pointer *ptrev,
 enum libinput_pointer_axis_source
 litest_event_pointer_get_axis_source(struct libinput_event_pointer *event);
 
+#define litest_assert_key_event(li_, key_, state_) \
+	_litest_assert_key_event(li_, key_, state_, __func__, __LINE__)
+
 void
-litest_assert_key_event(struct libinput *li, unsigned int key,
-			enum libinput_key_state state);
+_litest_assert_key_event(struct libinput *li,
+			 unsigned int key,
+			 enum libinput_key_state state,
+			 const char *func,
+			 int lineno);
 
 #define litest_assert_button_event(li_, button_, state_) \
 	_litest_assert_button_event(li_, button_, state_, __func__, __LINE__)
@@ -1118,10 +1142,15 @@ _litest_assert_button_event(struct libinput *li,
 			    enum libinput_button_state state,
 			    const char *func, int line);
 
+#define litest_assert_switch_event(li_, sw_, state_)  \
+	_litest_assert_switch_event(li_, sw_, state_, __func__, __LINE__)
+
 void
-litest_assert_switch_event(struct libinput *li,
-			   enum libinput_switch sw,
-			   enum libinput_switch_state state);
+_litest_assert_switch_event(struct libinput *li,
+			    enum libinput_switch sw,
+			    enum libinput_switch_state state,
+			    const char *func,
+			    int lineno);
 
 void
 litest_assert_scroll(struct libinput *li,
@@ -1151,27 +1180,53 @@ void
 litest_assert_no_typed_events(struct libinput *li,
 			      enum libinput_event_type type);
 
-void
-litest_assert_tablet_button_event(struct libinput *li,
-				  unsigned int button,
-				  enum libinput_button_state state);
+#define litest_assert_tablet_button_event(li_, button_, state_) \
+	_litest_assert_tablet_button_event(li_, button_, state_, __func__, __LINE__)
 
 void
-litest_assert_tablet_proximity_event(struct libinput *li,
-				     enum libinput_tablet_tool_proximity_state state);
+_litest_assert_tablet_button_event(struct libinput *li,
+				   unsigned int button,
+				   enum libinput_button_state state,
+				   const char *func,
+				   int lineno);
+
+#define litest_assert_tablet_proximity_event(li_, state_) \
+	_litest_assert_tablet_proximity_event(li_, state_, __func__, __LINE__)
 
 void
-litest_assert_tablet_tip_event(struct libinput *li,
-			       enum libinput_tablet_tool_tip_state state);
+_litest_assert_tablet_proximity_event(struct libinput *li,
+				      enum libinput_tablet_tool_proximity_state state,
+				      const char *func,
+				      int lineno);
+
+#define litest_assert_tablet_tip_event(li_, state_) \
+	_litest_assert_tablet_tip_event(li_, state_, __func__, __LINE__)
 
 void
-litest_assert_pad_button_event(struct libinput *li,
-				    unsigned int button,
-				    enum libinput_button_state state);
+_litest_assert_tablet_tip_event(struct libinput *li,
+				enum libinput_tablet_tool_tip_state state,
+				const char *func,
+				int lineno);
+
+#define litest_assert_pad_button_event(li_, button_, state_) \
+	_litest_assert_pad_button_event(li_, button_, state_, __func__, __LINE__)
+
 void
-litest_assert_pad_key_event(struct libinput *li,
-			    unsigned int key,
-			    enum libinput_key_state state);
+_litest_assert_pad_button_event(struct libinput *li,
+				unsigned int button,
+				enum libinput_button_state state,
+				const char *func,
+				int lineno);
+
+#define litest_assert_pad_key_event(li_, key_, state_) \
+	_litest_assert_pad_key_event(li_, key_, state_, __func__, __LINE__)
+
+void
+_litest_assert_pad_key_event(struct libinput *li,
+			     unsigned int key,
+			     enum libinput_key_state state,
+			     const char *func,
+			     int lineno);
 
 #define litest_assert_gesture_event(...) \
 	_litest_assert_gesture_event(__VA_ARGS__, __func__, __LINE__)
