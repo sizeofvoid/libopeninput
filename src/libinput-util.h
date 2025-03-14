@@ -62,7 +62,7 @@
 	do { \
 	char buf_[1024]; \
 	snprintf(buf_, sizeof(buf_), __VA_ARGS__); \
-	fprintf(file, ANSI_BLUE "%s():%d - " ANSI_RED "%s" ANSI_NORMAL "\n", __func__, __LINE__, buf_); \
+	fprintf(file, ANSI_BLUE "%30s():%4d - " ANSI_RED "%s" ANSI_NORMAL "\n", __func__, __LINE__, buf_); \
 	} while (0)
 
 #define trace(...) _trace(stdout, __VA_ARGS__)
