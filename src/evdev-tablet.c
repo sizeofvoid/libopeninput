@@ -1289,6 +1289,7 @@ tablet_new_tool(struct tablet_dispatch *tablet,
 		.serial = serial,
 		.tool_id = tool_id,
 		.refcount = 1,
+		.last_device = NULL,
 
 		.pressure.range.min = 0.0,
 		.pressure.range.max = 0.0, /* to trigger configuration */
@@ -1313,6 +1314,7 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 		uint32_t tool_id,
 		uint32_t serial)
 {
+	struct evdev_device *device = tablet->device;
 	struct libinput *libinput = tablet_libinput_context(tablet);
 	struct libinput_tablet_tool *tool = NULL, *t;
 	struct list *tool_list;
@@ -1360,6 +1362,11 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 		tool = tablet_new_tool(tablet, type, tool_id, serial);
 		list_insert(tool_list, &tool->link);
 	}
+
+	struct libinput_device *last = tool->last_device;
+	tool->last_device = libinput_device_ref(&device->base);
+	if (last)
+		libinput_device_unref(last);
 
 	return tool;
 }
@@ -2442,6 +2449,29 @@ tablet_suspend(struct evdev_dispatch *dispatch,
 }
 
 static void
+tablet_remove(struct evdev_dispatch *dispatch)
+{
+	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
+	struct libinput_device *device = &tablet->device->base;
+	struct libinput *libinput = tablet_libinput_context(tablet);
+	struct libinput_tablet_tool *tool;
+
+	list_for_each_safe(tool, &tablet->tool_list, link) {
+		if (tool->last_device == device) {
+			libinput_device_unref(tool->last_device);
+			tool->last_device = NULL;
+		}
+	}
+
+	list_for_each_safe(tool, &libinput->tool_list, link) {
+		if (tool->last_device == device) {
+			libinput_device_unref(tool->last_device);
+			tool->last_device = NULL;
+		}
+	}
+}
+
+static void
 tablet_destroy(struct evdev_dispatch *dispatch)
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
@@ -2625,7 +2655,7 @@ tablet_left_handed_toggled(struct evdev_dispatch *dispatch,
 static struct evdev_dispatch_interface tablet_interface = {
 	.process = tablet_process,
 	.suspend = tablet_suspend,
-	.remove = NULL,
+	.remove = tablet_remove,
 	.destroy = tablet_destroy,
 	.device_added = tablet_device_added,
 	.device_removed = tablet_device_removed,

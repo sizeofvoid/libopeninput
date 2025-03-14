@@ -571,6 +571,7 @@ struct libinput_tablet_tool {
 	unsigned char buttons[NCHARS(KEY_MAX) + 1];
 	int refcount;
 	void *user_data;
+	struct libinput_device *last_device;
 
 	struct {
                 /* We're assuming that the *configured* pressure range is per

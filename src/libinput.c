@@ -1759,6 +1759,8 @@ libinput_tablet_tool_unref(struct libinput_tablet_tool *tool)
 		return tool;
 
 	list_remove(&tool->link);
+	if (tool->last_device)
+		tool->last_device = libinput_device_unref(tool->last_device);
 	free(tool);
 	return NULL;
 }
@@ -1979,6 +1981,10 @@ libinput_unref(struct libinput *libinput)
 
 	free(libinput->events);
 
+	list_for_each_safe(tool, &libinput->tool_list, link) {
+		libinput_tablet_tool_unref(tool);
+	}
+
 	libinput_plugin_system_destroy(&libinput->plugin_system);
 
 	list_for_each_safe(seat, &libinput->seat_list, link) {
@@ -1994,10 +2000,6 @@ libinput_unref(struct libinput *libinput)
 			   &libinput->device_group_list,
 			   link) {
 		libinput_device_group_destroy(group);
-	}
-
-	list_for_each_safe(tool, &libinput->tool_list, link) {
-		libinput_tablet_tool_unref(tool);
 	}
 
 	libinput_timer_subsys_destroy(libinput);
