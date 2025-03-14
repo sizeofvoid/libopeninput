@@ -87,6 +87,9 @@ struct test_collection {
 	}; \
 	static void (CONCAT(name_, __LINE__))(void)
 
+#define litest_mark_test_start() \
+	litest_checkpoint("==================== BOILERPLATE END. TEST CONTENT STARTING NOW ====================");
+
 __attribute__ ((format (printf, 3, 0)))
 void _litest_checkpoint(const char *func,
 			int line,
