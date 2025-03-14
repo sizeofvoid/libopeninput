@@ -1404,7 +1404,7 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 				break;
 			}
 		}
-        }
+	}
 
 	return tool;
 }
