@@ -76,6 +76,8 @@ enum configuration_options {
 	OPT_AREA,
 	OPT_3FG_DRAG,
 	OPT_SENDEVENTS,
+	OPT_ERASER_BUTTON_MODE,
+	OPT_ERASER_BUTTON_BUTTON,
 };
 
 #define CONFIGURATION_OPTIONS \
@@ -114,7 +116,9 @@ enum configuration_options {
 	{ "set-rotation-angle",        required_argument, 0, OPT_ROTATION_ANGLE }, \
 	{ "set-pressure-range",        required_argument, 0, OPT_PRESSURE_RANGE }, \
 	{ "set-calibration",           required_argument, 0, OPT_CALIBRATION }, \
-	{ "set-area",                  required_argument, 0, OPT_AREA }
+	{ "set-area",                  required_argument, 0, OPT_AREA }, \
+	{ "set-eraser-button-mode",    required_argument, 0, OPT_ERASER_BUTTON_MODE }, \
+	{ "set-eraser-button-button",  required_argument, 0, OPT_ERASER_BUTTON_BUTTON }
 
 static inline void
 tools_print_usage_option_list(struct option *opts)
@@ -170,6 +174,8 @@ struct tools_options {
 	struct libinput_config_area_rectangle area;
 	enum libinput_config_3fg_drag_state drag_3fg;
 	enum libinput_config_send_events_mode sendevents;
+	enum libinput_config_eraser_button_mode eraser_button_mode;
+	unsigned int eraser_button_button;
 };
 
 void tools_init_options(struct tools_options *options);

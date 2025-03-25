@@ -364,3 +364,13 @@ LIBINPUT_1.28 {
 	libinput_device_config_3fg_drag_get_enabled;
 	libinput_device_config_3fg_drag_get_default_enabled;
 } LIBINPUT_1.27;
+
+LIBINPUT_1.29 {
+	libinput_tablet_tool_config_eraser_button_get_button;
+	libinput_tablet_tool_config_eraser_button_get_default_button;
+	libinput_tablet_tool_config_eraser_button_get_default_mode;
+	libinput_tablet_tool_config_eraser_button_get_mode;
+	libinput_tablet_tool_config_eraser_button_get_modes;
+	libinput_tablet_tool_config_eraser_button_set_button;
+	libinput_tablet_tool_config_eraser_button_set_mode;
+} LIBINPUT_1.28;

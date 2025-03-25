@@ -5056,6 +5056,83 @@ libinput_tablet_tool_config_pressure_range_get_default_maximum(struct libinput_t
 	return max;
 }
 
+LIBINPUT_EXPORT uint32_t
+libinput_tablet_tool_config_eraser_button_get_modes(struct libinput_tablet_tool *tool)
+{
+	if (!tool->config.eraser_button.get_modes)
+		return 0;
+
+	return bitmask_as_u32(tool->config.eraser_button.get_modes(tool));
+ }
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_tablet_tool_config_eraser_button_set_mode(struct libinput_tablet_tool *tool,
+						   enum libinput_config_eraser_button_mode mode)
+{
+	uint32_t modes = libinput_tablet_tool_config_eraser_button_get_modes(tool);
+	if (mode && (modes & mode) == 0)
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	switch (mode) {
+	case LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT:
+	case LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON:
+		break;
+	default:
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+	}
+
+	return tool->config.eraser_button.set_mode(tool, mode);
+}
+
+LIBINPUT_EXPORT enum libinput_config_eraser_button_mode
+libinput_tablet_tool_config_eraser_button_get_mode(struct libinput_tablet_tool *tool)
+{
+	if (!libinput_tablet_tool_config_eraser_button_get_modes(tool))
+		return LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT;
+
+	return tool->config.eraser_button.get_mode(tool);
+}
+
+LIBINPUT_EXPORT enum libinput_config_eraser_button_mode
+libinput_tablet_tool_config_eraser_button_get_default_mode(struct libinput_tablet_tool *tool)
+{
+	if (!libinput_tablet_tool_config_eraser_button_get_modes(tool))
+		return LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT;
+
+	return tool->config.eraser_button.get_mode(tool);
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_tablet_tool_config_eraser_button_set_button(struct libinput_tablet_tool *tool,
+						     unsigned int button)
+{
+	if (!libinput_tablet_tool_config_eraser_button_get_modes(tool))
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	if (!libinput_tablet_tool_has_button(tool, button))
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	return tool->config.eraser_button.set_button(tool, button);
+}
+
+LIBINPUT_EXPORT unsigned int
+libinput_tablet_tool_config_eraser_button_get_button(struct libinput_tablet_tool *tool)
+{
+	if (!libinput_tablet_tool_config_eraser_button_get_modes(tool))
+		return 0;
+
+	return tool->config.eraser_button.get_button(tool);
+}
+
+LIBINPUT_EXPORT unsigned int
+libinput_tablet_tool_config_eraser_button_get_default_button(struct libinput_tablet_tool *tool)
+{
+	if (!libinput_tablet_tool_config_eraser_button_get_modes(tool))
+		return 0;
+
+	return tool->config.eraser_button.get_button(tool);
+}
+
 #if HAVE_LIBWACOM
 WacomDeviceDatabase *
 libinput_libwacom_ref(struct libinput *li)

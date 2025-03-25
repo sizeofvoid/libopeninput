@@ -123,6 +123,8 @@ src_rst = files(
 	'svg/tablet-area.svg',
 	'svg/tablet-axes.svg',
 	'svg/tablet-cintiq24hd-modes.svg',
+	'svg/tablet-eraser-invert.svg',
+	'svg/tablet-eraser-button.svg',
 	'svg/tablet-interfaces.svg',
 	'svg/tablet-intuos-modes.svg',
 	'svg/tablet-left-handed.svg',

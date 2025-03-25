@@ -547,6 +547,17 @@ struct libinput_tablet_tool_config_pressure_range {
 	void (*get_default)(struct libinput_tablet_tool *tool, double *min, double *max);
 };
 
+struct libinput_tablet_tool_config_eraser_button {
+	bitmask_t (*get_modes)(struct libinput_tablet_tool *tool);
+	enum libinput_config_status (*set_mode)(struct libinput_tablet_tool *tool, enum libinput_config_eraser_button_mode mode);
+	enum libinput_config_eraser_button_mode (*get_mode)(struct libinput_tablet_tool *tool);
+	enum libinput_config_eraser_button_mode (*get_default_mode)(struct libinput_tablet_tool *tool);
+
+	enum libinput_config_status (*set_button)(struct libinput_tablet_tool *tool, unsigned int button);
+	unsigned int (*get_button)(struct libinput_tablet_tool *tool);
+	unsigned int (*get_default_button)(struct libinput_tablet_tool *tool);
+};
+
 struct libinput_tablet_tool_pressure_threshold {
 	unsigned int tablet_id;
 
@@ -586,6 +597,7 @@ struct libinput_tablet_tool {
 
 	struct {
 		struct libinput_tablet_tool_config_pressure_range pressure_range;
+		struct libinput_tablet_tool_config_eraser_button eraser_button;
 	} config;
 };
 

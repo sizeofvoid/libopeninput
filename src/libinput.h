@@ -6973,6 +6973,203 @@ libinput_tablet_tool_config_pressure_range_get_default_minimum(struct libinput_t
 double
 libinput_tablet_tool_config_pressure_range_get_default_maximum(struct libinput_tablet_tool *tool);
 
+/**
+ * @ingroup config
+ */
+enum libinput_config_eraser_button_mode {
+	/**
+	 * Use the default hardware behavior of the tool. libinput
+	 * does not modify the behavior of the eraser button (if any).
+	 */
+	LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT = 0,
+	/**
+	 * The eraser button on the tool sends a button event
+	 * instead. If this tool comes into proximity as an eraser,
+	 * a button event on the pen is emulated instead.
+	 *
+	 * See libinput_tablet_tool_config_eraser_button_set_mode() for details.
+	 */
+	LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON = (1 << 0),
+};
+
+/**
+ * @ingroup config
+ *
+ * Check if a tool can change the behavior of or to a firmware eraser button.
+ *
+ * A firmware eraser button is a button on the tool that, when pressed,
+ * virtually toggles the pen going out of proximity followed by the
+ * eraser tool coming in proximity. When released, the eraser goes
+ * out of proximity followed by the pen coming back into proximity.
+ *
+ * This is the default behavior for many contemporary pens who implement
+ * this in firmware. See also the [Windows Pen
+ * States](https://learn.microsoft.com/en-us/windows-hardware/design/component-guidelines/windows-pen-states).
+ *
+ * See the libinput documentation for more details.
+ *
+ * @param tool The libinput tool
+ * @return Non-zero if the device can be set to change to an eraser on button
+ * press.
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ *
+ * @since 1.29
+ */
+uint32_t
+libinput_tablet_tool_config_eraser_button_get_modes(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ *
+ * Change the eraser button behavior on a tool.
+ *
+ * If set to @ref LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON, pressing the
+ * firmware eraser button on the tool instead triggers an event
+ * of type @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
+ * This event's libinput_event_tablet_tool_get_button() returns the
+ * button set with
+ * libinput_tablet_tool_config_eraser_button_set_button()
+ * Releasing the firmware eraser button releases that button again.
+ *
+ * @param tool The libinput tool
+ * @param mode The eraser button mode to switch to
+ *
+ * @return A config status code
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ * @see libinput_tablet_tool_config_eraser_button_set_button
+ * @see libinput_tablet_tool_config_eraser_button_get_button
+ * @see libinput_tablet_tool_config_eraser_button_get_default_button
+ *
+ * @since 1.29
+ */
+enum libinput_config_status
+libinput_tablet_tool_config_eraser_button_set_mode(struct libinput_tablet_tool *tool,
+					           enum libinput_config_eraser_button_mode mode);
+
+/**
+ * @ingroup config
+ *
+ * Get the mode for the eraser button.
+ *
+ * @param tool The libinput tool
+ *
+ * @return The eraser mode
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ * @see libinput_tablet_tool_config_eraser_button_set_button
+ * @see libinput_tablet_tool_config_eraser_button_get_button
+ * @see libinput_tablet_tool_config_eraser_button_get_default_button
+ *
+ * @since 1.29
+ */
+enum libinput_config_eraser_button_mode
+libinput_tablet_tool_config_eraser_button_get_mode(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ *
+ * Get the default mode for the eraser button.
+ *
+ * @param tool The libinput tool
+ *
+ * @return The eraser button, if any, or zero otherwise
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ * @see libinput_tablet_tool_config_eraser_button_set_button
+ * @see libinput_tablet_tool_config_eraser_button_get_button
+ * @see libinput_tablet_tool_config_eraser_button_get_default_button
+ *
+ * @since 1.29
+ */
+enum libinput_config_eraser_button_mode
+libinput_tablet_tool_config_eraser_button_get_default_mode(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ *
+ * Set a button to be the eraser button for this tool.
+ * This configuration has no effect unless the caller also sets
+ * the eraser mode to @ref LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON via
+ * libinput_tablet_tool_config_eraser_button_set_mode().
+ *
+ * @param tool The libinput tool
+ * @param button The button, usually one of BTN_STYLUS, BTN_STYLUS2 or
+ * BTN_STYLUS3
+ *
+ * @return A config status code
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ * @see libinput_tablet_tool_config_eraser_button_set_button
+ * @see libinput_tablet_tool_config_eraser_button_get_button
+ * @see libinput_tablet_tool_config_eraser_button_get_default_button
+ *
+ * @since 1.29
+ */
+enum libinput_config_status
+libinput_tablet_tool_config_eraser_button_set_button(struct libinput_tablet_tool *tool,
+						     unsigned int button);
+
+/**
+ * @ingroup config
+ *
+ * Get the button configured to emulate an eraser for this tool.
+ *
+ * @param tool The libinput tool
+ *
+ * @return The eraser button, if any, or zero otherwise
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ * @see libinput_tablet_tool_config_eraser_button_set_button
+ * @see libinput_tablet_tool_config_eraser_button_get_button
+ * @see libinput_tablet_tool_config_eraser_button_get_default_button
+ *
+ * @since 1.29
+ */
+unsigned int
+libinput_tablet_tool_config_eraser_button_get_button(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ *
+ * Get the default button configured to emulate an eraser for this tool.
+ *
+ * @param tool The libinput tool
+ *
+ * @return The eraser button, if any, or zero otherwise
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ * @see libinput_tablet_tool_config_eraser_button_set_button
+ * @see libinput_tablet_tool_config_eraser_button_get_button
+ * @see libinput_tablet_tool_config_eraser_button_get_default_button
+ *
+ * @since 1.29
+ */
+unsigned int
+libinput_tablet_tool_config_eraser_button_get_default_button(struct libinput_tablet_tool *tool);
+
 #ifdef __cplusplus
 }
 #endif

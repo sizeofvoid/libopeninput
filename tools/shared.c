@@ -436,6 +436,33 @@ tools_parse_option(int option,
 			return 1;
 		}
 		break;
+	case OPT_ERASER_BUTTON_MODE:
+		if (!optarg)
+			return 1;
+		if (streq(optarg, "default"))
+			options->eraser_button_mode = LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT;
+		else if (streq(optarg, "button"))
+			options->eraser_button_mode = LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON;
+		else {
+			fprintf(stderr, "Invalid --set-eraser-button-mode\n"
+			                "Valid options: default|button\n");
+			return 1;
+		}
+		break;
+	case OPT_ERASER_BUTTON_BUTTON:
+		if (!optarg)
+			return 1;
+		if (streq(optarg, "BTN_STYLUS"))
+			options->eraser_button_button = BTN_STYLUS;
+		else if (streq(optarg, "BTN_STYLUS2"))
+			options->eraser_button_button = BTN_STYLUS2;
+		else if (streq(optarg, "BTN_STYLUS3"))
+			options->eraser_button_button = BTN_STYLUS3;
+		else {
+			fprintf(stderr, "Unsupported eraser button %s\n", optarg);
+			return 1;
+		}
+		break;
 	}
 	return 0;
 }

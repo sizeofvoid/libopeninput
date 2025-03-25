@@ -117,6 +117,14 @@ Sets the type of the custom acceleration function.
 Defaults to fallback.
 This only applies to the custom profile.
 .TP 8
+.B \-\-set\-eraser\-button\-button=[BTN_STYLUS|BTN_STYLUS2|BTN_STYLUS3]
+Sets the eraser button button to the given tablet tool button. Only
+takes effect if combined with
+.B \-\-set\-eraser\-button\-mode=on\-button\-down.
+.TP 8
+.B \-\-set\-eraser\-button\-mode=[default|on-button-down]
+Sets the eraser button mode to the given mode.
+.TP 8
 .B \-\-set\-pressure\-range=<min>:<max>
 Set the tablet tool pressure range to min:max. min and max must be in range [0.0, 1.0].
 .TP 8
