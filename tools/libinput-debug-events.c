@@ -179,8 +179,11 @@ mainloop(struct libinput *li)
 }
 
 static void
-usage(void) {
+usage(struct option *opts) {
 	printf("Usage: libinput debug-events [options] [--udev <seat>|--device /dev/input/event0 ...]\n");
+
+	if (opts)
+		tools_print_usage_option_list(opts);
 }
 
 int
@@ -232,7 +235,7 @@ main(int argc, char **argv)
 			exit(EXIT_INVALID_USAGE);
 			break;
 		case 'h':
-			usage();
+			usage(opts);
 			exit(EXIT_SUCCESS);
 			break;
 		case OPT_SHOW_KEYCODES:
@@ -244,7 +247,7 @@ main(int argc, char **argv)
 		case OPT_DEVICE:
 			if (backend == BACKEND_UDEV ||
 			    ndevices >= ARRAY_LENGTH(seat_or_devices)) {
-				usage();
+				usage(NULL);
 				return EXIT_INVALID_USAGE;
 
 			}
@@ -254,7 +257,7 @@ main(int argc, char **argv)
 		case OPT_UDEV:
 			if (backend == BACKEND_DEVICE ||
 			    ndevices >= ARRAY_LENGTH(seat_or_devices)) {
-				usage();
+				usage(NULL);
 				return EXIT_INVALID_USAGE;
 
 			}
@@ -274,7 +277,7 @@ main(int argc, char **argv)
 			break;
 		default:
 			if (tools_parse_option(c, optarg, &options) != 0) {
-				usage();
+				usage(NULL);
 				return EXIT_INVALID_USAGE;
 			}
 			break;
@@ -284,13 +287,13 @@ main(int argc, char **argv)
 
 	if (optind < argc) {
 		if (backend == BACKEND_UDEV) {
-			usage();
+			usage(NULL);
 			return EXIT_INVALID_USAGE;
 		}
 		backend = BACKEND_DEVICE;
 		do {
 			if (ndevices >= ARRAY_LENGTH(seat_or_devices)) {
-				usage();
+				usage(NULL);
 				return EXIT_INVALID_USAGE;
 			}
 			seat_or_devices[ndevices++] = argv[optind];

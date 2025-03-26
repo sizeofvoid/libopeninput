@@ -30,6 +30,8 @@
 #include <quirks.h>
 #include <libinput.h>
 
+#include "util-strings.h"
+
 #define EXIT_INVALID_USAGE 2
 
 extern uint32_t log_serial;
@@ -110,6 +112,24 @@ enum configuration_options {
 	{ "set-pressure-range",        required_argument, 0, OPT_PRESSURE_RANGE }, \
 	{ "set-calibration",           required_argument, 0, OPT_CALIBRATION }, \
 	{ "set-area",                  required_argument, 0, OPT_AREA }
+
+static inline void
+tools_print_usage_option_list(struct option *opts)
+{
+	printf("Options:\n");
+
+	struct option *o = opts;
+	while (o && o->name) {
+		if (strstartswith(o->name, "enable-") &&
+			strstartswith((o+1)->name, "disable-")) {
+			printf("   --%s/--%s\n", o->name, (o+1)->name);
+			o++;
+		} else {
+			printf("   --%s\n", o->name);
+		}
+		o++;
+	}
+}
 
 enum tools_backend {
 	BACKEND_NONE,

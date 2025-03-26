@@ -1883,8 +1883,11 @@ sockets_init(struct libinput *li)
 }
 
 static void
-usage(void) {
+usage(struct option *opts) {
 	printf("Usage: libinput debug-gui [options] [--udev <seat>|[--device] /dev/input/event0]\n");
+
+	if (opts)
+		tools_print_usage_option_list(opts);
 }
 
 static gboolean
@@ -1948,7 +1951,7 @@ main(int argc, char **argv)
 			exit(EXIT_INVALID_USAGE);
 			break;
 		case 'h':
-			usage();
+			usage(opts);
 			exit(0);
 			break;
 		case OPT_DEVICE:
@@ -1967,7 +1970,7 @@ main(int argc, char **argv)
 			break;
 		default:
 			if (tools_parse_option(c, optarg, &options) != 0) {
-				usage();
+				usage(NULL);
 				return EXIT_INVALID_USAGE;
 			}
 			break;
@@ -1977,7 +1980,7 @@ main(int argc, char **argv)
 
 	if (optind < argc) {
 		if (optind < argc - 1 || backend != BACKEND_NONE) {
-			usage();
+			usage(NULL);
 			return EXIT_INVALID_USAGE;
 		}
 		backend = BACKEND_DEVICE;
