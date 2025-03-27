@@ -6871,13 +6871,15 @@ START_TEST(huion_static_btn_tool_pen)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	int i;
+	bool send_btn_tool = litest_test_param_get_bool(test_env->params, "send-btn-tool");
 
 	litest_drain_events(li);
 
 	litest_event(dev, EV_ABS, ABS_X, 20000);
 	litest_event(dev, EV_ABS, ABS_Y, 20000);
 	litest_event(dev, EV_ABS, ABS_PRESSURE, 100);
-	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
+	if (send_btn_tool)
+		litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_drain_events(li);
 
@@ -6933,13 +6935,15 @@ START_TEST(huion_static_btn_tool_pen_no_timeout_during_usage)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	int i;
+	bool send_btn_tool = litest_test_param_get_bool(test_env->params, "send-btn-tool");
 
 	litest_drain_events(li);
 
 	litest_event(dev, EV_ABS, ABS_X, 20000);
 	litest_event(dev, EV_ABS, ABS_Y, 20000);
 	litest_event(dev, EV_ABS, ABS_PRESSURE, 100);
-	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
+	if (send_btn_tool)
+		litest_event(dev, EV_KEY, BTN_TOOL_PEN, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_drain_events(li);
 
@@ -7268,8 +7272,10 @@ TEST_COLLECTION(tablet)
 	litest_add(touch_arbitration_remove_after, LITEST_TABLET | LITEST_DIRECT, LITEST_ANY);
 	litest_add(touch_arbitration_swap_device, LITEST_TABLET, LITEST_ANY);
 
-	litest_add_for_device(huion_static_btn_tool_pen, LITEST_HUION_TABLET);
-	litest_add_for_device(huion_static_btn_tool_pen_no_timeout_during_usage, LITEST_HUION_TABLET);
+	litest_with_parameters(params, "send-btn-tool", 'b') {
+		litest_add_parametrized_for_device(huion_static_btn_tool_pen, LITEST_HUION_TABLET, params);
+		litest_add_parametrized_for_device(huion_static_btn_tool_pen_no_timeout_during_usage, LITEST_HUION_TABLET, params);
+	}
 
 	litest_with_parameters(params, "btn_tool_pen_timeout", 'b') {
 		litest_add_parametrized_for_device(huion_static_btn_tool_pen_disable_quirk_on_prox_out, LITEST_HUION_TABLET, params);
