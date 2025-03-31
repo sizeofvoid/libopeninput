@@ -162,11 +162,14 @@ litest_fail_comparison_str(const char *file,
 					      #cond, __VA_ARGS__); \
 	} while(0)
 
-#define litest_abort_msg(...) {\
-	litest_fail_condition(__FILE__, __LINE__, __func__, \
+#define _litest_abort_msg(file_, line_, func_, ...) do {\
+	litest_fail_condition(file_, line_, func_, \
 			      "aborting", __VA_ARGS__); \
 	abort(); \
-}
+} while (0)
+
+#define litest_abort_msg(...) \
+	_litest_abort_msg(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #define litest_assert_notnull(cond) \
 	do { \

@@ -208,7 +208,7 @@ litest_fail_condition(const char *file,
 		litest_log("%s\n", buf);
 	}
 
-	litest_log("in %s() (%s:%d)\n", func, file, line);
+	litest_log("in %s() (%s:%d)\n", func, file ? file : "???", line);
 	litest_backtrace(func);
 	litest_runner_abort();
 }
@@ -3487,8 +3487,9 @@ _litest_wait_for_event_of_type(struct libinput *li,
 			uint64_t now;
 			now_in_us(&now);
 			if (now > expiry) {
-				litest_abort_msg("Waited >%dms for events, but no events are pending",
-						 timeout);
+				_litest_abort_msg(NULL, lineno, func,
+						  "Waited >%dms for events, but no events are pending",
+						  timeout);
 			}
 		}
 
