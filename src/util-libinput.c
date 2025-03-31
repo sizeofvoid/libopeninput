@@ -469,10 +469,13 @@ print_tablet_tip_event(struct libinput_event *ev, const struct libinput_print_op
 	char *axes = print_tablet_axes(t);
 
 	state = libinput_event_tablet_tool_get_tip_state(t);
-	return strdup_printf("%s\t%s %s",
-			     time,
-			     axes,
-			     state == LIBINPUT_TABLET_TOOL_TIP_DOWN ? "down" : "up");
+	char *str = strdup_printf("%s\t%s %s",
+				  time,
+				  axes,
+				  state == LIBINPUT_TABLET_TOOL_TIP_DOWN ? "down" : "up");
+	free(axes);
+
+	return str;
 }
 
 static char *
