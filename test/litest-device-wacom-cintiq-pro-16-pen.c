@@ -47,6 +47,7 @@ static struct input_event proximity_out[] = {
 	{ .type = EV_ABS, .code = ABS_Y, .value = 0 },
 	{ .type = EV_ABS, .code = ABS_Z, .value = 0 },
 	{ .type = EV_ABS, .code = ABS_WHEEL, .value = 0 },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = 0 },
 	{ .type = EV_ABS, .code = ABS_DISTANCE, .value = 0 },
 	{ .type = EV_ABS, .code = ABS_TILT_X, .value = 0 },
 	{ .type = EV_ABS, .code = ABS_TILT_Y, .value = 0 },
