@@ -5131,7 +5131,7 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 
 			double pressure = libinput_event_tablet_tool_get_pressure(tev);
 			/* We start at device range 10% but we always have a small threshold */
-			litest_assert_double_gt(pressure, 0.09);
+			litest_assert_double_gt_epsilon(pressure, 0.09, 0);
 			litest_assert_double_le(pressure, 0.7);
 
 			libinput_event_destroy(ev);

@@ -1202,12 +1202,14 @@ tablet_get_quirked_pressure_thresholds(struct tablet_dispatch *tablet,
 
 static void
 apply_pressure_range_configuration(struct tablet_dispatch *tablet,
-				   struct libinput_tablet_tool *tool)
+				   struct libinput_tablet_tool *tool,
+				   bool force_update)
 {
 	struct evdev_device *device = tablet->device;
 
 	if (!libevdev_has_event_code(device->evdev, EV_ABS, ABS_PRESSURE) ||
-	    (tool->pressure.range.min == tool->pressure.wanted_range.min &&
+	    (!force_update &&
+	     tool->pressure.range.min == tool->pressure.wanted_range.min &&
 	     tool->pressure.range.max == tool->pressure.wanted_range.max))
 		return;
 
@@ -1258,13 +1260,13 @@ tool_init_pressure_thresholds(struct tablet_dispatch *tablet,
 	threshold->tablet_id = tablet->tablet_id;
 	threshold->offset = 0;
 	threshold->has_offset = false;
+	threshold->threshold.upper = 1;
+	threshold->threshold.lower = 0;
 
 	pressure = libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
-	if (!pressure) {
-		threshold->threshold.upper = 1;
-		threshold->threshold.lower = 0;
+	if (!pressure)
 		return;
-	}
+
 	threshold->abs_pressure = *pressure;
 
 	distance = libevdev_get_abs_info(device->evdev, ABS_DISTANCE);
@@ -1276,7 +1278,7 @@ tool_init_pressure_thresholds(struct tablet_dispatch *tablet,
 		threshold->heuristic_state = PRESSURE_HEURISTIC_STATE_PROXIN1;
 	}
 
-	apply_pressure_range_configuration(tablet, tool);
+	apply_pressure_range_configuration(tablet, tool, true);
 }
 
 static int
@@ -2211,7 +2213,7 @@ reprocess:
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
 		if (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT))
 			tablet_set_status(tablet, TABLET_TOOL_LEAVING_CONTACT);
-		apply_pressure_range_configuration(tablet, tool);
+		apply_pressure_range_configuration(tablet, tool, false);
 	} else if (!tablet_has_status(tablet, TABLET_TOOL_OUTSIDE_AREA)) {
 		if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY)) {
 			/* If we get into proximity outside the tablet area, we ignore
