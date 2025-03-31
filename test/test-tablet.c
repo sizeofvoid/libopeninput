@@ -5272,6 +5272,8 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 	struct litest_device *second = direction ? cintiq12wx : mobilestudio;
 
 	bool with_range = litest_test_param_get_bool(test_env->params, "with-range");
+	bool with_second_range =
+		litest_test_param_get_bool(test_env->params, "with-second-range");
 
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 20 },
@@ -5302,6 +5304,7 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 
 	litest_mark_test_start();
 
+	_unref_(libinput_tablet_tool) *tool = NULL;
 	if (with_range) {
 		litest_log_group("Prox in/out on %s to apply pressure range to tool",
 				 libinput_device_get_name(first->libinput_device)) {
@@ -5312,8 +5315,8 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 			struct libinput_event_tablet_tool *tev = litest_is_tablet_event(
 				ev,
 				LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
-			struct libinput_tablet_tool *tool =
-				libinput_event_tablet_tool_get_tool(tev);
+			tool = libinput_tablet_tool_ref(
+				libinput_event_tablet_tool_get_tool(tev));
 			libinput_tablet_tool_config_pressure_range_set(tool, 0.2, 0.7);
 			litest_tablet_proximity_out(first);
 			litest_timeout_tablet_proxout(li);
@@ -5334,6 +5337,32 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 		litest_tablet_proximity_in(dev, 50, 50, axes);
 		litest_dispatch(li);
 
+		/* FIXME: this tests a bug in the code. The pressure range is updated
+		 * on proximity out only, so if we update the range while the tool
+		 * is in prox only the tablet the tool *leaves* from gets updated.
+		 * If we move into a new tablet the pressure range there isn't updated
+		 * until we leave proximity of that tablet.
+		 *
+		 * Since pressure ranges don't change often and the vast majority of
+		 * users don't have more than one tablet anyway, this isn't worth
+		 * fixing.
+		 *
+		 * For this test, if we have a second range and we're on the second
+		 * device we add an extra prox out/in to get the pressure range applied
+		 * correctly.
+		 */
+		if (with_second_range && dev == second) {
+			litest_log_group("Updating pressure range") {
+				libinput_tablet_tool_config_pressure_range_set(tool,
+									       0.5,
+									       0.9);
+				litest_tablet_proximity_out(dev);
+				litest_timeout_tablet_proxout(li);
+				litest_drain_events(li);
+				litest_tablet_proximity_in(dev, 50, 50, axes);
+				litest_dispatch(li);
+			}
+		}
 		litest_assert_tablet_proximity_event(
 			li,
 			LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
@@ -5354,7 +5383,18 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 
 			double tool_pressure =
 				libinput_event_tablet_tool_get_pressure(tev);
-			if (with_range) {
+			if (with_second_range && dev == second) {
+				if (pressure < 50) {
+					litest_assert_double_eq(tool_pressure, 0.0);
+				} else if (pressure == 60) {
+					litest_assert_event_type(
+						ev,
+						LIBINPUT_EVENT_TABLET_TOOL_TIP);
+					litest_assert_double_ge(tool_pressure, 0.0);
+				} else {
+					litest_assert_double_lt(tool_pressure, 0.7);
+				}
+			} else if (with_range) {
 				/* with our range 30% device pressure should be around
 				 * 10% actual pressure and trigger the tip down */
 				if (pressure < 30) {
@@ -5380,6 +5420,10 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 				litest_assert_double_gt_epsilon(pressure, 0.09, 0);
 				litest_assert_double_le(tool_pressure, 0.7);
 			}
+
+			if (!tool)
+				tool = libinput_tablet_tool_ref(
+					libinput_event_tablet_tool_get_tool(tev));
 		}
 
 		litest_checkpoint("Leaving proximity on %s",
@@ -7899,7 +7943,7 @@ TEST_COLLECTION(tablet)
 	litest_add_for_device(tablet_pressure_offset_decrease, LITEST_WACOM_HID4800_PEN);
 	litest_add_for_device(tablet_pressure_offset_increase, LITEST_WACOM_HID4800_PEN);
 	litest_add_for_device(tablet_pressure_offset_exceed_threshold, LITEST_WACOM_HID4800_PEN);
-	litest_with_parameters(params, "8k-to-1k", 'b', "with-range", 'b')
+	litest_with_parameters(params, "8k-to-1k", 'b', "with-range", 'b', "with-second-range", 'b')
 		litest_add_parametrized_for_device(tablet_pressure_across_multiple_tablets, LITEST_WACOM_CINTIQ_12WX_PEN, params);
 	litest_add_no_device(tablet_pressure_after_unplug);
 
