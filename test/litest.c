@@ -3465,15 +3465,31 @@ _litest_wait_for_event_of_type(struct libinput *li,
 	fds.events = POLLIN;
 	fds.revents = 0;
 
+	const int timeout = 2000;
+	uint64_t expiry = 0;
+	int rc = now_in_us(&expiry);
+	expiry += ms2us(timeout);
+	litest_assert_errno_success(rc);
+
 	while (1) {
 		size_t i;
 		struct libinput_event *event;
+		enum libinput_event_type type;
 
 		while ((type = libinput_next_event_type(li)) == LIBINPUT_EVENT_NONE) {
-			int rc = poll(&fds, 1, 2000);
+			int rc = poll(&fds, 1, timeout);
 			litest_assert_errno_success(rc);
 			litest_assert_int_gt(rc, 0);
 			libinput_dispatch(li);
+		}
+
+		if (type == LIBINPUT_EVENT_NONE) {
+			uint64_t now;
+			now_in_us(&now);
+			if (now > expiry) {
+				litest_abort_msg("Waited >%dms for events, but no events are pending",
+						 timeout);
+			}
 		}
 
 		/* no event mask means wait for any event */
