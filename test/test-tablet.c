@@ -4051,7 +4051,7 @@ START_TEST(tablet_area_set_rectangle)
 
 	/* move from the center out */
 	litest_tablet_proximity_in(dev, 50, 50, axes);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	get_tool_xy(li, &x, &y);
 	litest_assert_double_eq_epsilon(*scaled, 50.0, 2);
 	litest_assert_double_eq_epsilon(*unscaled, 50.0, 2);
@@ -4065,7 +4065,7 @@ START_TEST(tablet_area_set_rectangle)
 		litest_drain_events(li);
 
 		litest_tablet_motion(dev, i, i, axes);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 		get_tool_xy(li, &x, &y);
 		if (i <= 25)
 			litest_assert_double_eq(*scaled, 0.0);
@@ -4080,12 +4080,12 @@ START_TEST(tablet_area_set_rectangle)
 	/* Push through any smoothing */
 	litest_tablet_motion(dev, final_stop, final_stop, axes);
 	litest_tablet_motion(dev, final_stop, final_stop, axes);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_drain_events(li);
 
 	litest_tablet_proximity_out(dev);
 	litest_timeout_tablet_proxout();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	get_tool_xy(li, &x, &y);
 	litest_assert_double_eq_epsilon(x, final_stop, 1);
 	litest_assert_double_eq_epsilon(y, final_stop, 1);
@@ -4120,33 +4120,33 @@ START_TEST(tablet_area_set_rectangle_move_outside)
 	/* move in/out of prox outside the area */
 	litest_tablet_proximity_in(dev, 5, 5, axes);
 	litest_tablet_proximity_out(dev);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_tablet_proxout();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
 	x = 5;
 	y = 5;
 	/* Move around the area - since we stay outside the area expect no events */
 	litest_tablet_proximity_in(dev, x, y, axes);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	for (; x < 90; x += 5) {
 		litest_tablet_motion(dev, x, y, axes);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 		litest_assert_empty_queue(li);
 	}
 	litest_axis_set_value(axes, ABS_PRESSURE, 30);
 	litest_tablet_tip_down(dev, x, y, axes);
 	for (; y < 90; y += 5) {
 		litest_tablet_motion(dev, x, y, axes);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 		litest_assert_empty_queue(li);
 	}
 	litest_axis_set_value(axes, ABS_PRESSURE, 0);
 	litest_tablet_tip_up(dev, x, y, axes);
 	for (; x > 5; x -= 5) {
 		litest_tablet_motion(dev, x, y, axes);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 		litest_assert_empty_queue(li);
 	}
 	litest_button_click(dev, BTN_STYLUS, LIBINPUT_BUTTON_STATE_PRESSED);
@@ -4155,7 +4155,7 @@ START_TEST(tablet_area_set_rectangle_move_outside)
 	litest_tablet_tip_down(dev, x, y, axes);
 	for (; y > 5; y -= 5) {
 		litest_tablet_motion(dev, x, y, axes);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 		litest_assert_empty_queue(li);
 	}
 	litest_axis_set_value(axes, ABS_PRESSURE, 0);
@@ -4163,7 +4163,7 @@ START_TEST(tablet_area_set_rectangle_move_outside)
 
 	litest_tablet_proximity_out(dev);
 	litest_timeout_tablet_proxout();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -4197,10 +4197,10 @@ START_TEST(tablet_area_set_rectangle_move_outside_to_inside)
         /* Move into the center of the area - since we started outside the area
          * expect no events */
         litest_tablet_proximity_in(dev, x, y, axes);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	for (; x < 50; x += 5) {
 		litest_tablet_motion(dev, x, y, axes);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 		litest_assert_empty_queue(li);
 	}
 	litest_button_click(dev, BTN_STYLUS, LIBINPUT_BUTTON_STATE_PRESSED);
@@ -4211,7 +4211,7 @@ START_TEST(tablet_area_set_rectangle_move_outside_to_inside)
 	litest_tablet_tip_up(dev, x, y, axes);
 	litest_tablet_proximity_out(dev);
 	litest_timeout_tablet_proxout();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
 	y = 5;
@@ -4219,7 +4219,7 @@ START_TEST(tablet_area_set_rectangle_move_outside_to_inside)
         litest_tablet_proximity_in(dev, x, y, axes);
 	for (; y < 50; y += 5) {
 		litest_tablet_motion(dev, x, y, axes);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 		litest_assert_empty_queue(li);
 	}
 	litest_button_click(dev, BTN_STYLUS, LIBINPUT_BUTTON_STATE_PRESSED);
@@ -4231,7 +4231,7 @@ START_TEST(tablet_area_set_rectangle_move_outside_to_inside)
 	litest_tablet_proximity_out(dev);
 
 	litest_timeout_tablet_proxout();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -4265,9 +4265,9 @@ START_TEST(tablet_area_set_rectangle_move_in_margin)
 	/* move in/out of prox outside the area but within the margin */
 	litest_tablet_proximity_in(dev, 24, 24, axes);
 	litest_tablet_proximity_out(dev);
-	libinput_dispatch(li);
+	litest_dispatch(li);
 	litest_timeout_tablet_proxout();
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	ev = libinput_get_event(li);
 	tev = litest_is_proximity_event(ev, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
@@ -5083,7 +5083,7 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 	bool have_cintiq12wx = false;
 	bool have_mobilestudio = false;
 
-	libinput_dispatch(li);
+	litest_dispatch(li);
 
 	while (!have_cintiq12wx || !have_mobilestudio) {
 		litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
@@ -5095,7 +5095,7 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 			have_mobilestudio = true;
 		litest_checkpoint("Have Cintiq 12WX: %s,  MobileStudio: %s", yesno(have_cintiq12wx), yesno(have_mobilestudio));
 		libinput_event_destroy(ev);
-		libinput_dispatch(li);
+		litest_dispatch(li);
 	}
 
 	litest_drain_events(li);
@@ -5121,7 +5121,7 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 		}
 		litest_tablet_proximity_out(dev);
 		litest_timeout_tablet_proxout();
-		libinput_dispatch(li);
+		litest_dispatch(li);
 
 		litest_assert_tablet_proximity_event(li, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 		litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_DOWN);
