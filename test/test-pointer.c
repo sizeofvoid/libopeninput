@@ -865,7 +865,7 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -5);
 
 	/* When the scroll timeout is triggered, ignore small deltas again */
-	litest_timeout_wheel_scroll();
+	litest_timeout_wheel_scroll(li);
 
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -15);
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -15);
@@ -1497,8 +1497,7 @@ START_TEST(pointer_scroll_button_no_event_before_timeout)
 	}
 	litest_assert_empty_queue(li);
 
-	litest_timeout_buttonscroll();
-	litest_dispatch(li);
+	litest_timeout_buttonscroll(li);
 	litest_button_click_debounced(device, li, BTN_LEFT, false);
 
 	litest_assert_button_event(li, BTN_LEFT,
@@ -1534,9 +1533,7 @@ START_TEST(pointer_scroll_button_middle_emulation)
 
 	litest_button_click(dev, BTN_LEFT, 1);
 	litest_button_click(dev, BTN_RIGHT, 1);
-	litest_dispatch(li);
-	litest_timeout_buttonscroll();
-	litest_dispatch(li);
+	litest_timeout_buttonscroll(li);
 
 	for (i = 0; i < 10; i++) {
 		litest_event(dev, EV_REL, REL_Y, -1);
@@ -1625,8 +1622,7 @@ START_TEST(pointer_scroll_button_lock)
 
 	litest_assert_empty_queue(li);
 
-	litest_timeout_buttonscroll();
-	litest_dispatch(li);
+	litest_timeout_buttonscroll(li);
 
 	for (int i = 0; i < 10; i++) {
 		litest_event(dev, EV_REL, REL_X, 1);
@@ -1730,9 +1726,7 @@ START_TEST(pointer_scroll_button_lock_enable_while_down)
 	/* but on the next button press we scroll lock */
 	litest_button_click_debounced(dev, li, BTN_LEFT, true);
 	litest_button_click_debounced(dev, li, BTN_LEFT, false);
-	litest_dispatch(li);
-	litest_timeout_buttonscroll();
-	litest_dispatch(li);
+	litest_timeout_buttonscroll(li);
 
 	for (int i = 0; i < 10; i++) {
 		litest_event(dev, EV_REL, REL_X, 1);
@@ -1796,9 +1790,7 @@ START_TEST(pointer_scroll_button_lock_enable_while_down_just_lock)
 	/* but on the next button press we scroll lock */
 	litest_button_click_debounced(dev, li, BTN_LEFT, true);
 	litest_button_click_debounced(dev, li, BTN_LEFT, false);
-	litest_dispatch(li);
-	litest_timeout_buttonscroll();
-	litest_dispatch(li);
+	litest_timeout_buttonscroll(li);
 
 	for (int i = 0; i < 10; i++) {
 		litest_event(dev, EV_REL, REL_X, 1);
@@ -1839,8 +1831,7 @@ START_TEST(pointer_scroll_button_lock_otherbutton)
 	litest_button_click_debounced(dev, li, BTN_LEFT, true);
 	litest_button_click_debounced(dev, li, BTN_LEFT, false);
 	litest_assert_empty_queue(li);
-	litest_timeout_buttonscroll();
-	litest_dispatch(li);
+	litest_timeout_buttonscroll(li);
 
 	/* other button passes on normally */
 	litest_button_click_debounced(dev, li, BTN_RIGHT, true);
@@ -1888,7 +1879,7 @@ START_TEST(pointer_scroll_button_lock_enable_while_otherbutton_down)
 	litest_drain_events(li);
 
 	litest_button_click_debounced(dev, li, BTN_RIGHT, true);
-	litest_timeout_middlebutton();
+	litest_timeout_middlebutton(li);
 	litest_drain_events(li);
 
 	/* Enable lock while button is down */
@@ -1917,7 +1908,7 @@ START_TEST(pointer_scroll_button_lock_enable_while_otherbutton_down)
 	/* now we should trigger it */
 	litest_button_click_debounced(dev, li, BTN_LEFT, true);
 	litest_button_click_debounced(dev, li, BTN_LEFT, false);
-	litest_timeout_buttonscroll();
+	litest_timeout_buttonscroll(li);
 	litest_assert_empty_queue(li);
 
 	for (int i = 0; i < 10; i++) {
@@ -2012,10 +2003,8 @@ START_TEST(pointer_scroll_button_lock_middlebutton)
 		abort();
 	}
 
-	litest_dispatch(li);
-	litest_timeout_middlebutton();
-	litest_timeout_buttonscroll();
-	litest_dispatch(li);
+	litest_timeout_middlebutton(li);
+	litest_timeout_buttonscroll(li);
 
 	/* motion events are the same for all of them */
 	for (int i = 0; i < 10; i++) {
@@ -2618,7 +2607,7 @@ START_TEST(middlebutton_timeout)
 		litest_drain_events(li);
 		litest_button_click_debounced(device, li, button, true);
 		litest_assert_empty_queue(li);
-		litest_timeout_middlebutton();
+		litest_timeout_middlebutton(li);
 
 		litest_assert_button_event(li,
 					   button,
@@ -2982,13 +2971,11 @@ START_TEST(middlebutton_button_scrolling)
 	/* middle emulation discards */
 	litest_assert_empty_queue(li);
 
-	litest_timeout_middlebutton();
-	litest_dispatch(li);
+	litest_timeout_middlebutton(li);
 
 	/* scroll discards */
 	litest_assert_empty_queue(li);
-	litest_timeout_buttonscroll();
-	litest_dispatch(li);
+	litest_timeout_buttonscroll(li);
 
 	for (i = 0; i < 10; i++) {
 		litest_event(dev, EV_REL, REL_Y, 1);
@@ -3177,9 +3164,7 @@ START_TEST(debounce_bounce)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_KEY, button, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_assert_button_event(li,
 				   button,
@@ -3192,9 +3177,7 @@ START_TEST(debounce_bounce)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_KEY, button, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_assert_button_event(li,
 				   button,
@@ -3231,9 +3214,7 @@ START_TEST(debounce_bounce_high_delay)
 	msleep(15);
 	litest_event(dev, EV_KEY, button, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_assert_button_event(li,
 				   button,
@@ -3250,9 +3231,7 @@ START_TEST(debounce_bounce_high_delay)
 	msleep(15);
 	litest_event(dev, EV_KEY, button, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_assert_button_event(li,
 				   button,
@@ -3277,7 +3256,7 @@ START_TEST(debounce_bounce_check_immediate)
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
-	litest_timeout_debounce();
+	litest_timeout_debounce(li);
 	litest_assert_empty_queue(li);
 
 	/* held down & past timeout, we expect releases to be immediate */
@@ -3288,7 +3267,7 @@ START_TEST(debounce_bounce_check_immediate)
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 
-	litest_timeout_debounce();
+	litest_timeout_debounce(li);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -3300,9 +3279,7 @@ debounce_trigger_spurious(struct litest_device *dev, struct libinput *li)
 {
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -3313,10 +3290,8 @@ debounce_trigger_spurious(struct litest_device *dev, struct libinput *li)
 	litest_dispatch(li);
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
 
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -3328,9 +3303,7 @@ debounce_trigger_spurious(struct litest_device *dev, struct libinput *li)
 	/* gets filtered now */
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
@@ -3356,16 +3329,13 @@ START_TEST(debounce_spurious)
 	for (int i = 0; i < 3; i++) {
 		litest_event(dev, EV_KEY, button, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		litest_dispatch(li);
-		litest_timeout_debounce();
-		litest_dispatch(li);
+		litest_timeout_debounce(li);
 
 		/* Not all devices can disable middle button emulation, time out on
 		 * middle button here to make sure the initial button press event
 		 * was flushed.
 		 */
-		litest_timeout_middlebutton();
-		litest_dispatch(li);
+		litest_timeout_middlebutton(li);
 
 		litest_assert_button_event(li,
 					   button,
@@ -3380,9 +3350,7 @@ START_TEST(debounce_spurious)
 
 		litest_event(dev, EV_KEY, button, 0);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
-		litest_dispatch(li);
-		litest_timeout_debounce();
-		litest_dispatch(li);
+		litest_timeout_debounce(li);
 		litest_assert_button_event(li,
 					   button,
 					   LIBINPUT_BUTTON_STATE_RELEASED);
@@ -3411,16 +3379,13 @@ START_TEST(debounce_spurious_multibounce)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
+	litest_timeout_debounce(li);
 
 	/* Not all devices can disable middle button emulation, time out on
 	 * middle button here to make sure the initial button press event
 	 * was flushed.
 	 */
-	litest_dispatch(li);
-	litest_timeout_middlebutton();
-	litest_dispatch(li);
+	litest_timeout_middlebutton(li);
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
@@ -3441,7 +3406,7 @@ START_TEST(debounce_spurious_multibounce)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
 	litest_assert_empty_queue(li);
-	litest_timeout_debounce();
+	litest_timeout_debounce(li);
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -3461,9 +3426,7 @@ START_TEST(debounce_spurious_trigger_high_delay)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -3488,8 +3451,7 @@ START_TEST(debounce_spurious_trigger_high_delay)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_assert_button_event(li,
 				   BTN_LEFT,
@@ -3504,15 +3466,12 @@ START_TEST(debounce_spurious_trigger_high_delay)
 	litest_dispatch(li);
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
+	litest_timeout_debounce(li);
 	litest_assert_empty_queue(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 	litest_assert_button_event(li,
 				   BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
@@ -3536,9 +3495,7 @@ START_TEST(debounce_spurious_dont_enable_on_otherbutton)
 	/* Don't trigger spurious debouncing on otherbutton events */
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -3578,9 +3535,7 @@ START_TEST(debounce_spurious_dont_enable_on_otherbutton)
 	/* Expect release to be immediate */
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -3611,9 +3566,7 @@ START_TEST(debounce_spurious_cancel_debounce_otherbutton)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	/* spurious debouncing is on but the release should get flushed by
 	 * the other button */
@@ -3668,9 +3621,7 @@ START_TEST(debounce_spurious_switch_to_otherbutton)
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_event(dev, EV_KEY, BTN_LEFT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -3725,10 +3676,8 @@ START_TEST(debounce_remove_device_button_up)
 
 	/* delete the device  while the timer is still active */
 	litest_delete_device(dev);
-	litest_dispatch(li);
 
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_destroy_context(li);
 }
@@ -3750,10 +3699,8 @@ START_TEST(debounce_remove_device_button_down)
 
 	/* delete the device the timer is still active */
 	litest_delete_device(dev);
-	litest_dispatch(li);
 
-	litest_timeout_debounce();
-	litest_dispatch(li);
+	litest_timeout_debounce(li);
 
 	litest_destroy_context(li);
 }

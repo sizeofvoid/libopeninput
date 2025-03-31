@@ -363,7 +363,7 @@ START_TEST(switch_disable_touchpad_edge_scroll)
 
 	litest_touch_down(touchpad, 0, 99, 20);
 	litest_dispatch(li);
-	litest_timeout_edgescroll();
+	litest_timeout_edgescroll(li);
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
@@ -397,7 +397,7 @@ START_TEST(switch_disable_touchpad_edge_scroll_interrupt)
 
 	litest_touch_down(touchpad, 0, 99, 20);
 	litest_dispatch(li);
-	litest_timeout_edgescroll();
+	litest_timeout_edgescroll(li);
 	litest_touch_move_to(touchpad, 0, 99, 20, 99, 30, 10);
 	litest_dispatch(li);
 	litest_assert_only_axis_events(li, LIBINPUT_EVENT_POINTER_SCROLL_FINGER);
@@ -611,7 +611,7 @@ START_TEST(lid_open_on_key_touchpad_enabled)
 	litest_event(keyboard, EV_KEY, KEY_A, 0);
 	litest_event(keyboard, EV_SYN, SYN_REPORT, 0);
 	litest_drain_events(li);
-	litest_timeout_dwt_long();
+	litest_timeout_dwt_long(li);
 
 	litest_touch_down(touchpad, 0, 50, 50);
 	litest_touch_move_to(touchpad, 0, 50, 50, 70, 70, 10);

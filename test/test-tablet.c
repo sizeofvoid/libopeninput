@@ -388,8 +388,7 @@ START_TEST(tip_up_prox_out)
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
 
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
 					      LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
@@ -788,10 +787,7 @@ START_TEST(tip_state_proximity)
 	litest_drain_events(li);
 
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	event = libinput_get_event(li);
 	tablet_event = litest_is_tablet_event(event,
@@ -1011,10 +1007,7 @@ START_TEST(proximity_in_out)
 	litest_assert(have_tool_update);
 
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	while ((event = libinput_get_event(li))) {
 		if (libinput_event_get_type(event) ==
@@ -1085,10 +1078,7 @@ START_TEST(proximity_out_button_up)
 	litest_tablet_proximity_out(dev);
 	litest_event(dev, EV_KEY, button, 0);
 	litest_pop_event_frame(dev);
-	litest_dispatch(li);
-
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	litest_assert_tablet_button_event(li,
 					  button,
@@ -1134,9 +1124,7 @@ START_TEST(proximity_out_clear_buttons)
 		litest_event(dev, EV_KEY, *button, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 		litest_tablet_proximity_out(dev);
-		litest_dispatch(li);
-		litest_timeout_tablet_proxout();
-		litest_dispatch(li);
+		litest_timeout_tablet_proxout(li);
 
 		event = libinput_get_event(li);
 		litest_assert_notnull(event);
@@ -1269,10 +1257,7 @@ START_TEST(proximity_has_axes)
 
 	/* Make sure that the axes are still present on proximity out */
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_TIP);
 
@@ -1402,9 +1387,7 @@ START_TEST(proximity_range_in_out)
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 0);
 	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_pop_event_frame(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_assert_empty_queue(li);
@@ -1443,9 +1426,7 @@ START_TEST(proximity_range_button_click)
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 0);
 	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_pop_event_frame(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -1496,9 +1477,7 @@ START_TEST(proximity_range_button_press)
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 0);
 	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_pop_event_frame(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -1549,9 +1528,7 @@ START_TEST(proximity_range_button_release)
 	litest_event(dev, EV_KEY, BTN_TOOL_MOUSE, 0);
 	litest_unfilter_event(dev, EV_KEY, BTN_TOOL_PEN);
 	litest_pop_event_frame(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 }
@@ -1570,8 +1547,7 @@ START_TEST(proximity_out_slow_event)
 	litest_tablet_motion(dev, 12, 12, axes);
 	litest_drain_events(li);
 
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	/* The forced prox out */
 	litest_assert_tablet_proximity_event(li,
@@ -1597,8 +1573,7 @@ START_TEST(proximity_out_not_during_contact)
 	litest_tablet_motion(dev, 12, 12, axes);
 	litest_drain_events(li);
 
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	/* No forced proxout yet */
 	litest_assert_empty_queue(li);
@@ -1607,8 +1582,7 @@ START_TEST(proximity_out_not_during_contact)
 	litest_tablet_motion(dev, 14, 14, axes);
 	litest_drain_events(li);
 
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	/* The forced prox out */
 	litest_assert_tablet_proximity_event(li,
@@ -1639,8 +1613,7 @@ START_TEST(proximity_out_not_during_buttonpress)
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	/* No forced proxout yet */
 	litest_assert_empty_queue(li);
@@ -1651,8 +1624,7 @@ START_TEST(proximity_out_not_during_buttonpress)
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	/* The forced prox out */
 	litest_assert_tablet_proximity_event(li,
@@ -1683,8 +1655,7 @@ START_TEST(proximity_out_disables_forced)
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_drain_events(li);
 
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	litest_assert_empty_queue(li);
 	litest_tablet_proximity_out(dev);
@@ -1710,8 +1681,7 @@ START_TEST(proximity_out_disables_forced_after_forced)
 	litest_drain_events(li);
 
 	/* timeout-based forced prox out */
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_assert_empty_queue(li);
@@ -1726,8 +1696,7 @@ START_TEST(proximity_out_disables_forced_after_forced)
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_drain_events(li);
 
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	litest_assert_empty_queue(li);
 	litest_tablet_proximity_out(dev);
@@ -1911,8 +1880,7 @@ START_TEST(left_handed)
 
 	litest_tablet_proximity_out(dev);
 	litest_drain_events(li);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 
 	/* Since we've drained the events and libinput's aware the tool is out
 	 * of proximity, it should have finally transitioned into left-handed
@@ -2322,8 +2290,7 @@ START_TEST(bad_distance_events)
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 
 	absinfo = libevdev_get_abs_info(dev->evdev, ABS_DISTANCE);
@@ -2916,8 +2883,7 @@ START_TEST(tool_type)
 		litest_assert_empty_queue(li);
 
 		litest_tablet_proximity_out(dev);
-		litest_dispatch(li);
-		litest_timeout_tablet_proxout();
+		litest_timeout_tablet_proxout(li);
 		litest_drain_events(li);
 
 		x++;
@@ -2980,10 +2946,7 @@ START_TEST(tool_in_prox_before_start)
 	litest_button_click(dev, BTN_STYLUS, false);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	event = libinput_get_event(li);
 	litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
@@ -3096,9 +3059,7 @@ START_TEST(tool_direct_switch_skip_tool_update)
 	litest_event(dev, EV_KEY, BTN_TOOL_RUBBER, 0);
 	litest_tablet_proximity_out(dev);
 	litest_pop_event_frame(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event,
@@ -3155,14 +3116,11 @@ START_TEST(tool_direct_switch_with_forced_proxout)
 	libinput_event_destroy(event);
 
 	/* pen forced prox out */
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	/* actual prox out for tablets that don't do forced prox out */
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	event = libinput_get_event(li);
 	litest_is_proximity_event(event,
@@ -3799,8 +3757,7 @@ START_TEST(tablet_calibration_set_matrix_delta)
 	dy = libinput_event_tablet_tool_get_y(tablet_event) - y;
 	libinput_event_destroy(event);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	litest_drain_events(li);
 
@@ -3881,14 +3838,10 @@ START_TEST(tablet_calibration_set_matrix)
 	litest_assert_double_lt(y, 100.0);
 
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_tablet_proximity_in(dev, 50, 50, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	litest_drain_events(li);
@@ -3915,9 +3868,7 @@ START_TEST(tablet_calibration_set_matrix)
 	litest_assert(y < 51.0);
 
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 }
 END_TEST
 
@@ -4116,9 +4067,7 @@ START_TEST(tablet_area_set_rectangle)
 	litest_drain_events(li);
 
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	get_tool_xy(li, &x, &y);
 	litest_assert_double_eq_epsilon(x, final_stop, 1);
 	litest_assert_double_eq_epsilon(y, final_stop, 1);
@@ -4153,9 +4102,7 @@ START_TEST(tablet_area_set_rectangle_move_outside)
 	/* move in/out of prox outside the area */
 	litest_tablet_proximity_in(dev, 5, 5, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_empty_queue(li);
 
 	x = 5;
@@ -4195,9 +4142,7 @@ START_TEST(tablet_area_set_rectangle_move_outside)
 	litest_tablet_tip_up(dev, x, y, axes);
 
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -4244,9 +4189,7 @@ START_TEST(tablet_area_set_rectangle_move_outside_to_inside)
 	litest_axis_set_value(axes, ABS_PRESSURE, 0);
 	litest_tablet_tip_up(dev, x, y, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_empty_queue(li);
 
 	y = 5;
@@ -4264,9 +4207,7 @@ START_TEST(tablet_area_set_rectangle_move_outside_to_inside)
 	litest_axis_set_value(axes, ABS_PRESSURE, 0);
 	litest_tablet_tip_up(dev, x, y, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_empty_queue(li);
 }
 END_TEST
@@ -4300,9 +4241,7 @@ START_TEST(tablet_area_set_rectangle_move_in_margin)
 	/* move in/out of prox outside the area but within the margin */
 	litest_tablet_proximity_in(dev, 24, 24, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	ev = libinput_get_event(li);
 	tev = litest_is_proximity_event(ev, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
@@ -4351,9 +4290,7 @@ START_TEST(tablet_area_set_rectangle_while_outside)
 	litest_checkpoint("Proximity in + out outside tablet area");
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_empty_queue(li);
 	litest_dispatch(li);
 
@@ -4369,9 +4306,7 @@ START_TEST(tablet_area_set_rectangle_while_outside)
 	litest_tablet_proximity_in(dev, 11, 11, axes);
 	litest_tablet_motion(dev, 12, 12, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	ev = libinput_get_event(li);
 	tev = litest_is_proximity_event(ev, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
@@ -4432,8 +4367,7 @@ START_TEST(tablet_pressure_offset_set)
 			assert_pressure(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY, 0.20);
 			assert_pressure(li, LIBINPUT_EVENT_TABLET_TOOL_TIP, 0.20);
 			litest_tablet_proximity_out(dev);
-			litest_dispatch(li);
-			litest_timeout_tablet_proxout();
+			litest_timeout_tablet_proxout(li);
 			litest_drain_events(li);
 		}
 	}
@@ -4506,8 +4440,7 @@ START_TEST(tablet_pressure_offset_decrease)
 	/* offset 20 on prox in */
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 
 	/* offset 15 on prox in - this one is so we trigger on the next prox
@@ -4515,16 +4448,14 @@ START_TEST(tablet_pressure_offset_decrease)
 	litest_axis_set_value(axes, ABS_PRESSURE, 15);
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 
 	/* a reduced pressure value must reduce the offset */
 	litest_axis_set_value(axes, ABS_PRESSURE, 10);
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 
 	litest_tablet_proximity_in(dev, 5, 100, axes);
@@ -4579,15 +4510,14 @@ START_TEST(tablet_pressure_offset_increase)
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_tablet_proximity_out(dev);
 	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 
 	/* offset 25 on second prox in - must not change the offset */
 	litest_axis_set_value(axes, ABS_PRESSURE, 25);
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 
 	/* offset 30 on third prox in - must not change the offset */
@@ -4794,8 +4724,7 @@ START_TEST(tablet_pressure_config_set_minimum)
 	}
 
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 
 	/* 10% hw value is below our thresholds, so logical zero */
@@ -4883,9 +4812,7 @@ START_TEST(tablet_pressure_config_set_maximum)
 	}
 
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	litest_axis_set_value(axes, ABS_PRESSURE, 10);
 	litest_tablet_proximity_in(dev, 70, 70, axes);
@@ -4981,8 +4908,7 @@ START_TEST(tablet_pressure_config_set_range)
 	}
 
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 
 	litest_tablet_proximity_in(dev, 70, 70, axes);
@@ -5042,9 +4968,7 @@ START_TEST(tablet_pressure_offset_exceed_threshold)
 		for (int i = 0; i < 2; i++) {
 			litest_tablet_proximity_in(dev, 5, 100, axes);
 			litest_tablet_proximity_out(dev);
-			litest_dispatch(li);
-			litest_timeout_tablet_proxout();
-			litest_dispatch(li);
+			litest_timeout_tablet_proxout(li);
 		}
 	}
 
@@ -5172,8 +5096,7 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 			litest_dispatch(li);
 		}
 		litest_tablet_proximity_out(dev);
-		litest_timeout_tablet_proxout();
-		litest_dispatch(li);
+		litest_timeout_tablet_proxout(li);
 
 		litest_assert_tablet_proximity_event(li, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 		litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_DOWN);
@@ -5273,9 +5196,7 @@ START_TEST(tablet_pressure_after_unplug)
 
 	litest_checkpoint("Putting out of proximity");
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_tablet_proximity_event(li, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 
 	litest_delete_device(dev);
@@ -5951,21 +5872,18 @@ assert_touch_is_arbitrated(struct litest_device *dev, struct litest_device *fing
 	litest_assert_only_typed_events(li,
 					LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_assert_only_typed_events(li,
 					LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 
-	litest_timeout_touch_arbitration();
-	litest_dispatch(li);
+	litest_timeout_touch_arbitration(li);
 
 	/* finger still down */
 	litest_touch_move_to(finger, 0, 80, 80, 30, 30, 10);
 	litest_touch_up(finger, 0);
 	litest_assert_empty_queue(li);
 
-	litest_timeout_touch_arbitration();
-	litest_dispatch(li);
+	litest_timeout_touch_arbitration(li);
 
 	/* lift finger, expect expect events */
 	litest_touch_down(finger, 0, 30, 30);
@@ -6036,9 +5954,7 @@ START_TEST(touch_arbitration_outside_rect)
 	/* disable prox-out timer quirk */
 	litest_tablet_proximity_in(dev, x, y - 1, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	litest_tablet_proximity_in(dev, x, y - 1, axes);
 	litest_drain_events(li);
@@ -6070,8 +5986,7 @@ START_TEST(touch_arbitration_outside_rect)
 	x = 20;
 	y = 10;
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_tablet_motion(dev, x, y, axes);
 	litest_tablet_proximity_in(dev, x, y - 1, axes);
 	litest_drain_events(li);
@@ -6118,9 +6033,7 @@ START_TEST(touch_arbitration_remove_after)
 	litest_touch_down(finger, 0, 70, 70);
 	litest_drain_events(li);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	/* Delete the device immediately after the tablet goes out of prox.
 	 * This merely tests that the arbitration timer gets cleaned up */
@@ -6155,8 +6068,7 @@ START_TEST(touch_arbitration_stop_touch)
 	/* disable prox-out timer quirk */
 	litest_tablet_proximity_in(dev, 30, 30, axes);
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 
 	litest_touch_down(finger, 0, 30, 30);
@@ -6187,7 +6099,7 @@ START_TEST(touch_arbitration_stop_touch)
 	litest_tablet_proximity_out(dev);
 	litest_drain_events(li);
 
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 
 	/* Finger needs to be lifted for events to happen*/
@@ -6267,8 +6179,7 @@ START_TEST(touch_arbitration_suspend_touch_device)
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
 
-	litest_timeout_touch_arbitration();
-	litest_dispatch(li);
+	litest_timeout_touch_arbitration(li);
 
 	litest_touch_down(dev, 0, 30, 30);
 	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10);
@@ -6373,8 +6284,7 @@ START_TEST(touch_arbitration_remove_tablet)
 			     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
 
-	litest_timeout_touch_arbitration();
-	litest_dispatch(li);
+	litest_timeout_touch_arbitration(li);
 
 	/* Touch is still down, don't enable */
 	litest_touch_move_to(dev, 0, 80, 80, 30, 30, 10);
@@ -6419,7 +6329,7 @@ START_TEST(touch_arbitration_keep_ignoring)
 
 	litest_tablet_proximity_out(tablet);
 	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 
 	/* a touch during pen interaction stays a palm after the pen lifts.
@@ -6475,9 +6385,7 @@ START_TEST(touch_arbitration_late_touch_lift)
 	 */
 	litest_touch_down(finger, 0, 30, 30);
 	litest_touch_up(finger, 0);
-	litest_dispatch(li);
-	litest_timeout_tap();
-	litest_dispatch(li);
+	litest_timeout_tap(li);
 
 	litest_assert_empty_queue(li);
 
@@ -6576,8 +6484,7 @@ verify_left_handed_tablet_sequence(struct litest_device *tablet,
 	litest_drain_events(li);
 	verify_left_handed_tablet_motion(tablet, li, x, y, left_handed);
 	litest_tablet_proximity_out(tablet);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 }
 
@@ -6822,8 +6729,7 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 #endif
 	litest_checkpoint("Moving out of proximity");
 	litest_tablet_proximity_out(tablet);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_drain_events(li);
 
 	litest_assert_empty_queue(li);
@@ -7044,8 +6950,7 @@ START_TEST(huion_static_btn_tool_pen)
 					LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
 	/* Wait past the timeout to expect a proximity out */
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_tablet_proximity_event(li,
 			     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_dispatch(li);
@@ -7067,8 +6972,7 @@ START_TEST(huion_static_btn_tool_pen)
 	}
 	litest_assert_only_typed_events(li,
 					LIBINPUT_EVENT_TABLET_TOOL_AXIS);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_assert_tablet_proximity_event(li,
 			     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_dispatch(li);
@@ -7108,7 +7012,7 @@ START_TEST(huion_static_btn_tool_pen_no_timeout_during_usage)
 	}
 	litest_assert_only_typed_events(li,
 					LIBINPUT_EVENT_TABLET_TOOL_AXIS);
-	litest_timeout_tablet_proxout();
+	litest_timeout_tablet_proxout(li);
 	litest_dispatch(li);
 	litest_assert_tablet_proximity_event(li,
 			     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
@@ -7148,8 +7052,7 @@ START_TEST(huion_static_btn_tool_pen_disable_quirk_on_prox_out)
 
 	/* Wait past the timeout to expect a proximity out */
 	if (with_timeout) {
-		litest_timeout_tablet_proxout();
-		litest_dispatch(li);
+		litest_timeout_tablet_proxout(li);
 		litest_assert_tablet_proximity_event(li,
 						     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	}
@@ -7180,9 +7083,7 @@ START_TEST(huion_static_btn_tool_pen_disable_quirk_on_prox_out)
 	litest_assert_only_typed_events(li,
 					LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 
 	litest_assert_empty_queue(li);
 
@@ -7243,9 +7144,7 @@ START_TEST(tablet_smoothing)
 	}
 
 	litest_tablet_proximity_out(dev);
-	litest_dispatch(li);
-	litest_timeout_tablet_proxout();
-	litest_dispatch(li);
+	litest_timeout_tablet_proxout(li);
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_dispatch(li);
 	litest_drain_events(li);

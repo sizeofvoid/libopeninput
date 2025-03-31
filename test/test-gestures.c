@@ -72,7 +72,7 @@ test_gesture_swipe_3fg(enum cardinal cardinal, enum hold_gesture_behaviour hold)
 	litest_dispatch(li);
 
 	if (hold == HOLD_GESTURE_REQUIRE)
-		litest_timeout_gesture_hold();
+		litest_timeout_gesture_hold(li);
 
 	litest_touch_move_three_touches(dev, 40, 40, 50, 40, 60, 40, dir_x,
 					dir_y, 10);
@@ -185,7 +185,7 @@ test_gesture_swipe_4fg(enum cardinal cardinal, enum hold_gesture_behaviour hold)
 	litest_dispatch(li);
 
 	if (hold == HOLD_GESTURE_REQUIRE)
-		litest_timeout_gesture_hold();
+		litest_timeout_gesture_hold(li);
 
 	for (i = 0; i < 8; i++) {
 		litest_push_event_frame(dev);
@@ -336,7 +336,7 @@ test_gesture_pinch_2fg(enum cardinal cardinal, enum hold_gesture_behaviour hold)
 	litest_dispatch(li);
 
 	if (hold == HOLD_GESTURE_REQUIRE)
-		litest_timeout_gesture_hold();
+		litest_timeout_gesture_hold(li);
 
 	for (i = 0; i < 8; i++) {
 		litest_push_event_frame(dev);
@@ -447,7 +447,7 @@ test_gesture_pinch_3fg(enum cardinal cardinal, enum hold_gesture_behaviour hold)
 	litest_dispatch(li);
 
 	if (hold == HOLD_GESTURE_REQUIRE)
-		litest_timeout_gesture_hold();
+		litest_timeout_gesture_hold(li);
 
 	for (i = 0; i < 8; i++) {
 		litest_push_event_frame(dev);
@@ -563,7 +563,7 @@ test_gesture_pinch_4fg(enum cardinal cardinal, enum hold_gesture_behaviour hold)
 	litest_dispatch(li);
 
 	if (hold == HOLD_GESTURE_REQUIRE)
-		litest_timeout_gesture_hold();
+		litest_timeout_gesture_hold(li);
 
 	for (i = 0; i < 7; i++) {
 		litest_push_event_frame(dev);
@@ -696,7 +696,7 @@ test_gesture_spread(enum cardinal cardinal, enum hold_gesture_behaviour hold)
 	litest_dispatch(li);
 
 	if (hold == HOLD_GESTURE_REQUIRE)
-		litest_timeout_gesture_hold();
+		litest_timeout_gesture_hold(li);
 
 	for (i = 0; i < 15; i++) {
 		litest_push_event_frame(dev);
@@ -788,7 +788,7 @@ test_gesture_3fg_buttonarea_scroll(enum hold_gesture_behaviour hold)
 	litest_dispatch(li);
 
 	if (hold == HOLD_GESTURE_REQUIRE)
-		litest_timeout_gesture_hold();
+		litest_timeout_gesture_hold(li);
 
 	litest_touch_move_two_touches(dev, 40, 20, 30, 20, 0, 40, 10);
 
@@ -837,8 +837,7 @@ test_gesture_hold(int nfingers)
 		break;
 	}
 
-	litest_dispatch(li);
-	litest_timeout_gesture_hold();
+	litest_timeout_gesture_hold(li);
 
 	if (libinput_device_has_capability(dev->libinput_device,
 					   LIBINPUT_DEVICE_CAP_GESTURE)) {
@@ -902,8 +901,7 @@ test_gesture_hold_cancel(int nfingers)
 		break;
 	}
 
-	litest_dispatch(li);
-	litest_timeout_gesture_hold();
+	litest_timeout_gesture_hold(li);
 
 	litest_touch_up(dev, last_finger);
 
@@ -1593,8 +1591,7 @@ START_TEST(gestures_hold_once_on_double_tap)
 
 	/* First tap, a hold gesture must be generated */
 	litest_touch_down(dev, 0, 50, 50);
-	litest_dispatch(li);
-	litest_timeout_gesture_quick_hold();
+	litest_timeout_gesture_quick_hold(li);
 	litest_touch_up(dev, 0);
 	litest_dispatch(li);
 
@@ -1613,8 +1610,7 @@ START_TEST(gestures_hold_once_on_double_tap)
 	/* Double tap, don't generate an extra hold gesture */
 	litest_touch_down(dev, 0, 50, 50);
 	litest_touch_up(dev, 0);
-	litest_dispatch(li);
-	litest_timeout_gesture_quick_hold();
+	litest_timeout_gesture_quick_hold(li);
 
 	litest_assert_button_event(li, BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
@@ -1668,8 +1664,7 @@ START_TEST(gestures_hold_once_tap_n_drag)
 		litest_touch_down(dev, 0, 40, 30);
 		break;
 	}
-	litest_dispatch(li);
-	litest_timeout_gesture_quick_hold();
+	litest_timeout_gesture_quick_hold(li);
 
 	switch (nfingers) {
 	case 3:
@@ -1728,9 +1723,8 @@ START_TEST(gestures_hold_and_motion_before_timeout)
 
 	litest_touch_move_to(dev, 0, 50, 50, 51, 51, 1);
 	litest_touch_move_to(dev, 0, 51, 51, 50, 50, 1);
-	litest_dispatch(li);
 
-	litest_timeout_gesture_quick_hold();
+	litest_timeout_gesture_quick_hold(li);
 
 	litest_drain_events_of_type(li, LIBINPUT_EVENT_POINTER_MOTION);
 
@@ -1760,8 +1754,7 @@ START_TEST(gestures_hold_and_motion_after_timeout)
 	litest_drain_events(li);
 
 	litest_touch_down(dev, 0, 50, 50);
-	litest_dispatch(li);
-	litest_timeout_gesture_quick_hold();
+	litest_timeout_gesture_quick_hold(li);
 
 	litest_assert_gesture_event(li,
 				    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
@@ -1842,8 +1835,7 @@ START_TEST(gestures_3fg_drag)
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
-	litest_timeout_3fg_drag();
-	litest_dispatch(li);
+	litest_timeout_3fg_drag(li);
 
 	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
 }
@@ -1909,13 +1901,11 @@ START_TEST(gestures_3fg_drag_lock_resume_3fg_motion)
 	litest_dispatch(li);
 
 	litest_checkpoint("Waiting past finger switch timeout");
-	litest_timeout_finger_switch();
-	litest_dispatch(li);
+	litest_timeout_finger_switch(li);
 
 	if (wait_for_timeout) {
 		litest_checkpoint("Waiting past tap/3fg drag timeout");
-		litest_timeout_3fg_drag();
-		litest_dispatch(li);
+		litest_timeout_3fg_drag(li);
 		litest_assert_empty_queue(li);
 	}
 
@@ -1934,8 +1924,7 @@ START_TEST(gestures_3fg_drag_lock_resume_3fg_motion)
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
-	litest_timeout_3fg_drag();
-	litest_dispatch(li);
+	litest_timeout_3fg_drag(li);
 
 	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
 }
@@ -2001,13 +1990,11 @@ START_TEST(gestures_3fg_drag_lock_resume_3fg_release_no_motion)
 	litest_assert_empty_queue(li);
 
 	litest_checkpoint("Waiting past finger switch timeout");
-	litest_timeout_finger_switch();
-	litest_dispatch(li);
+	litest_timeout_finger_switch(li);
 
 	if (wait_for_timeout) {
 		litest_checkpoint("Waiting past tap/3fg drag timeout");
-		litest_timeout_3fg_drag();
-		litest_dispatch(li);
+		litest_timeout_3fg_drag(li);
 		litest_assert_empty_queue(li);
 	}
 
@@ -2027,8 +2014,7 @@ START_TEST(gestures_3fg_drag_lock_resume_3fg_release_no_motion)
 	}
 
 	litest_assert_empty_queue(li);
-	litest_timeout_3fg_drag();
-	litest_dispatch(li);
+	litest_timeout_3fg_drag(li);
 
 	if (!expect_tap)
 		litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
@@ -2092,8 +2078,7 @@ START_TEST(gestures_3fg_drag_lock_resume_1fg_motion)
 	litest_assert_empty_queue(li);
 
 	/* We need to wait until the gesture code accepts this is one finger only */
-	litest_timeout_finger_switch();
-	litest_dispatch(li);
+	litest_timeout_finger_switch(li);
 
 	while (y < 60.0) {
 		y += 2;
@@ -2109,8 +2094,7 @@ START_TEST(gestures_3fg_drag_lock_resume_1fg_motion)
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
-	litest_timeout_3fg_drag();
-	litest_dispatch(li);
+	litest_timeout_3fg_drag(li);
 }
 END_TEST
 
@@ -2168,8 +2152,7 @@ START_TEST(gestures_3fg_drag_lock_resume_2fg_scroll)
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
-	litest_timeout_finger_switch();
-	litest_dispatch(li);
+	litest_timeout_finger_switch(li);
 
 	while (y < 60.0) {
 		y += 2;
@@ -2186,8 +2169,7 @@ START_TEST(gestures_3fg_drag_lock_resume_2fg_scroll)
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
-	litest_timeout_3fg_drag();
-	litest_dispatch(li);
+	litest_timeout_3fg_drag(li);
 }
 END_TEST
 
@@ -2244,8 +2226,7 @@ START_TEST(gestures_3fg_drag_lock_resume_1fg_tap)
 	litest_touch_up(dev, 0);
 	litest_dispatch(li);
 
-	litest_timeout_tap();
-	litest_dispatch(li);
+	litest_timeout_tap(li);
 
 	litest_checkpoint("Expecting drag release followed by 1fg tap");
 
@@ -2256,8 +2237,7 @@ START_TEST(gestures_3fg_drag_lock_resume_1fg_tap)
 	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
 	litest_assert_empty_queue(li);
 
-	litest_timeout_3fg_drag();
-	litest_dispatch(li);
+	litest_timeout_3fg_drag(li);
 }
 END_TEST
 

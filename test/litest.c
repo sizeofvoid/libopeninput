@@ -3180,10 +3180,7 @@ litest_button_click_debounced(struct litest_device *d,
 			      bool is_press)
 {
 	litest_button_click(d, button, is_press);
-
-	libinput_dispatch(li);
-	litest_timeout_debounce();
-	libinput_dispatch(li);
+	litest_timeout_debounce(li);
 }
 
 void
@@ -3195,9 +3192,7 @@ litest_button_scroll(struct litest_device *dev,
 
 	litest_button_click_debounced(dev, li, button, 1);
 
-	libinput_dispatch(li);
-	litest_timeout_buttonscroll();
-	libinput_dispatch(li);
+	litest_timeout_buttonscroll(li);
 
 	litest_event(dev, EV_REL, REL_X, dx);
 	litest_event(dev, EV_REL, REL_Y, dy);
@@ -3218,9 +3213,7 @@ litest_button_scroll_locked(struct litest_device *dev,
 	litest_button_click_debounced(dev, li, button, 1);
 	litest_button_click_debounced(dev, li, button, 0);
 
-	libinput_dispatch(li);
-	litest_timeout_buttonscroll();
-	libinput_dispatch(li);
+	litest_timeout_buttonscroll(li);
 
 	litest_event(dev, EV_REL, REL_X, dx);
 	litest_event(dev, EV_REL, REL_Y, dy);
@@ -4765,9 +4758,13 @@ litest_assert_touch_cancel(struct libinput *li)
 }
 
 void
-litest_timeout(int millis)
+_litest_timeout(struct libinput *li, const char *func, int lineno, int millis)
 {
-	msleep(millis);
+       if (li)
+               _litest_dispatch(li, func, lineno);
+       msleep(millis);
+       if (li)
+               _litest_dispatch(li, func, lineno);
 }
 
 void

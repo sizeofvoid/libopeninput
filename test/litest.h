@@ -1256,28 +1256,31 @@ litest_create_uinput_abs_device(const char *name,
 				...);
 
 void
-litest_timeout(int millis);
+_litest_timeout(struct libinput *li, const char *func, int lineno, int millis);
 
-#define litest_timeout_tap() litest_timeout(300)
-#define litest_timeout_tapndrag() litest_timeout(520)
-#define litest_timeout_debounce() litest_timeout(30)
-#define litest_timeout_softbuttons() litest_timeout(300)
-#define litest_timeout_buttonscroll() litest_timeout(300)
-#define litest_timeout_wheel_scroll() litest_timeout(600)
-#define litest_timeout_edgescroll() litest_timeout(300)
-#define litest_timeout_finger_switch() litest_timeout(140)
-#define litest_timeout_middlebutton() litest_timeout(70)
-#define litest_timeout_dwt_short() litest_timeout(220)
-#define litest_timeout_dwt_long() litest_timeout(520)
-#define litest_timeout_gesture() litest_timeout(120)
-#define litest_timeout_gesture_scroll() litest_timeout(180)
-#define litest_timeout_gesture_hold() litest_timeout(300)
-#define litest_timeout_gesture_quick_hold() litest_timeout(60)
-#define litest_timeout_trackpoint() litest_timeout(320)
-#define litest_timeout_tablet_proxout() litest_timeout(170)
-#define litest_timeout_touch_arbitration() litest_timeout(100)
-#define litest_timeout_hysteresis() litest_timeout(90)
-#define litest_timeout_3fg_drag() litest_timeout(800)
+#define litest_timeout(li_, millis) \
+	_litest_timeout(li_, __func__, __LINE__, millis)
+
+#define litest_timeout_tap(li_) litest_timeout(li_, 300)
+#define litest_timeout_tapndrag(li_) litest_timeout(li_, 520)
+#define litest_timeout_debounce(li_) litest_timeout(li_, 30)
+#define litest_timeout_softbuttons(li_) litest_timeout(li_, 300)
+#define litest_timeout_buttonscroll(li_) litest_timeout(li_, 300)
+#define litest_timeout_wheel_scroll(li_) litest_timeout(li_, 600)
+#define litest_timeout_edgescroll(li_) litest_timeout(li_, 300)
+#define litest_timeout_finger_switch(li_) litest_timeout(li_, 140)
+#define litest_timeout_middlebutton(li_) litest_timeout(li_, 70)
+#define litest_timeout_dwt_short(li_) litest_timeout(li_, 220)
+#define litest_timeout_dwt_long(li_) litest_timeout(li_, 520)
+#define litest_timeout_gesture(li_) litest_timeout(li_, 120)
+#define litest_timeout_gesture_scroll(li_) litest_timeout(li_, 180)
+#define litest_timeout_gesture_hold(li_) litest_timeout(li_, 300)
+#define litest_timeout_gesture_quick_hold(li_) litest_timeout(li_, 60)
+#define litest_timeout_trackpoint(li_) litest_timeout(li_, 320)
+#define litest_timeout_tablet_proxout(li_) litest_timeout(li_, 170)
+#define litest_timeout_touch_arbitration(li_) litest_timeout(li_, 100)
+#define litest_timeout_hysteresis(li_) litest_timeout(li_, 90)
+#define litest_timeout_3fg_drag(li_) litest_timeout(li_, 800)
 
 void
 litest_push_event_frame(struct litest_device *dev);

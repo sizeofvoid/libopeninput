@@ -355,8 +355,7 @@ START_TEST(trackpoint_palmdetect)
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
-	litest_timeout_trackpoint();
-	litest_dispatch(li);
+	litest_timeout_trackpoint(li);
 
 	litest_touch_down(touchpad, 0, 30, 30);
 	litest_touch_move_to(touchpad, 0, 30, 30, 80, 80, 10);
@@ -425,8 +424,7 @@ START_TEST(trackpoint_palmdetect_resume_touch)
 	litest_touch_move_to(touchpad, 0, 30, 30, 80, 80, 10);
 	litest_assert_empty_queue(li);
 
-	litest_timeout_trackpoint();
-	litest_dispatch(li);
+	litest_timeout_trackpoint(li);
 
 	/* touch started after last tp event, expect resume */
 	litest_touch_move_to(touchpad, 0, 80, 80, 30, 30, 10);
@@ -494,7 +492,7 @@ START_TEST(trackpoint_palmdetect_require_min_events_timeout)
 		litest_touch_up(touchpad, 0);
 		litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
-		litest_timeout_trackpoint();
+		litest_timeout_trackpoint(li);
 	}
 
 	litest_delete_device(touchpad);

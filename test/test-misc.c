@@ -365,8 +365,7 @@ START_TEST(event_conversion_gesture)
 
 	litest_touch_down(dev, 0, 70, 30);
 	litest_touch_down(dev, 1, 30, 70);
-	litest_dispatch(li);
-	litest_timeout_gesture_hold();
+	litest_timeout_gesture_hold(li);
 
 	for (i = 0; i < 8; i++) {
 		litest_push_event_frame(dev);
@@ -679,7 +678,7 @@ START_TEST(timer_offset_bug_warning)
 	litest_touch_down(dev, 0, 50, 50);
 	litest_touch_up(dev, 0);
 
-	litest_timeout_tap();
+	litest_timeout_tap(NULL);
 
 	user_data->private = &warning_triggered;
 	libinput_log_set_handler(li, timer_offset_warning);
@@ -745,9 +744,7 @@ START_TEST(timer_flush)
 	/* make sure tapping works */
 	litest_touch_down(touchpad, 0, 50, 50);
 	litest_touch_up(touchpad, 0);
-	litest_dispatch(li);
-	litest_timeout_tap();
-	litest_dispatch(li);
+	litest_timeout_tap(li);
 
 	litest_assert_button_event(li, BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
@@ -761,9 +758,7 @@ START_TEST(timer_flush)
 	litest_dispatch(li);
 	litest_touch_down(touchpad, 0, 50, 50);
 	litest_touch_up(touchpad, 0);
-	litest_dispatch(li);
-	litest_timeout_tap();
-	litest_dispatch(li);
+	litest_timeout_tap(li);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
 	/* Ignore 'timer offset negative' warnings */
@@ -779,12 +774,10 @@ START_TEST(timer_flush)
 	 */
 	litest_keyboard_key(keyboard, KEY_A, true);
 	litest_keyboard_key(keyboard, KEY_A, false);
-	litest_timeout_dwt_long();
+	litest_timeout_dwt_long(li);
 	litest_touch_down(touchpad, 0, 50, 50);
 	litest_touch_up(touchpad, 0);
-	litest_dispatch(li);
-	litest_timeout_tap();
-	litest_dispatch(li);
+	litest_timeout_tap(li);
 	litest_restore_log_handler(li);
 
 	litest_assert_key_event(li, KEY_A, LIBINPUT_KEY_STATE_PRESSED);
