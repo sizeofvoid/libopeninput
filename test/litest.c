@@ -3560,6 +3560,8 @@ _litest_drain_events_of_type(struct libinput *li, ...)
 			return;
 
 		event = libinput_get_event(li);
+		if (verbose)
+			litest_print_event(event, "litest: draining typed event: ");
 		libinput_event_destroy(event);
 		libinput_dispatch(li);
 	}
