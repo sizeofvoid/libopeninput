@@ -5271,6 +5271,8 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 	struct litest_device *first = direction ? mobilestudio : cintiq12wx;
 	struct litest_device *second = direction ? cintiq12wx : mobilestudio;
 
+	bool with_range = litest_test_param_get_bool(test_env->params, "with-range");
+
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 20 },
 		{ ABS_PRESSURE, 0 },
@@ -5284,7 +5286,7 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 
 	while (!have_cintiq12wx || !have_mobilestudio) {
 		litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
-		struct libinput_event *ev = libinput_get_event(li);
+		_destroy_(libinput_event) *ev = libinput_get_event(li);
 		litest_assert_event_type(ev, LIBINPUT_EVENT_DEVICE_ADDED);
 		if (libinput_event_get_device(ev) == cintiq12wx->libinput_device)
 			have_cintiq12wx = true;
@@ -5293,11 +5295,31 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 		litest_checkpoint("Have Cintiq 12WX: %s,  MobileStudio: %s",
 				  yesno(have_cintiq12wx),
 				  yesno(have_mobilestudio));
-		libinput_event_destroy(ev);
 		litest_dispatch(li);
 	}
 
 	litest_drain_events(li);
+
+	litest_mark_test_start();
+
+	if (with_range) {
+		litest_log_group("Prox in/out on %s to apply pressure range to tool",
+				 libinput_device_get_name(first->libinput_device)) {
+			litest_tablet_proximity_in(first, 50, 50, axes);
+			litest_dispatch(li);
+
+			_destroy_(libinput_event) *ev = libinput_get_event(li);
+			struct libinput_event_tablet_tool *tev = litest_is_tablet_event(
+				ev,
+				LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+			struct libinput_tablet_tool *tool =
+				libinput_event_tablet_tool_get_tool(tev);
+			libinput_tablet_tool_config_pressure_range_set(tool, 0.2, 0.7);
+			litest_tablet_proximity_out(first);
+			litest_timeout_tablet_proxout(li);
+			litest_drain_events(li);
+		}
+	}
 
 	/* Proximity in followed by pressure up to 70%, on the first
 	 * device, then on the second one. They have different pressure
@@ -5307,41 +5329,65 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 	for (int i = 0; i < 2; i++, dev = second) {
 		litest_checkpoint("Putting pen into proximity on %s",
 				  libinput_device_get_name(dev->libinput_device));
+		litest_axis_set_value(axes, ABS_DISTANCE, 10);
+		litest_axis_set_value(axes, ABS_PRESSURE, 0);
 		litest_tablet_proximity_in(dev, 50, 50, axes);
-
-		litest_axis_set_value(axes, ABS_DISTANCE, 0);
-		litest_axis_set_value(axes, ABS_PRESSURE, 10);
-		litest_tablet_motion(dev, 50, 50, axes);
 		litest_dispatch(li);
-
-		for (size_t pressure = 10; pressure <= 70; pressure += 10) {
-			litest_axis_set_value(axes, ABS_PRESSURE, pressure);
-			litest_tablet_motion(dev, 50, 50, axes);
-			litest_dispatch(li);
-		}
-		litest_tablet_proximity_out(dev);
-		litest_timeout_tablet_proxout(li);
 
 		litest_assert_tablet_proximity_event(
 			li,
 			LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
-		litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_DOWN);
-		do {
-			struct libinput_event *ev = libinput_get_event(li);
+
+		for (int pressure = 10; pressure <= 70; pressure += 10) {
+			litest_axis_set_value(axes, ABS_DISTANCE, 0);
+			litest_axis_set_value(axes, ABS_PRESSURE, pressure);
+			litest_tablet_motion(dev, 50, 50, axes);
+			litest_dispatch(li);
+
+			_destroy_(libinput_event) *ev = libinput_get_event(li);
+			litest_assert_event_type_is_one_of(
+				ev,
+				LIBINPUT_EVENT_TABLET_TOOL_AXIS,
+				LIBINPUT_EVENT_TABLET_TOOL_TIP);
 			struct libinput_event_tablet_tool *tev =
-				litest_is_tablet_event(ev,
-						       LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+				libinput_event_get_tablet_tool_event(ev);
 
-			double pressure = libinput_event_tablet_tool_get_pressure(tev);
-			/* We start at device range 10% but we always have a small
-			 * threshold */
-			litest_assert_double_gt_epsilon(pressure, 0.09, 0);
-			litest_assert_double_le(pressure, 0.7);
+			double tool_pressure =
+				libinput_event_tablet_tool_get_pressure(tev);
+			if (with_range) {
+				/* with our range 30% device pressure should be around
+				 * 10% actual pressure and trigger the tip down */
+				if (pressure < 30) {
+					litest_assert_double_eq(tool_pressure, 0.0);
+				} else if (pressure == 30) {
+					litest_assert_event_type(
+						ev,
+						LIBINPUT_EVENT_TABLET_TOOL_TIP);
+					litest_assert_double_ge(tool_pressure, 0.0);
+				} else if (pressure < 70) {
+					litest_assert_double_ge(tool_pressure, 0.1);
+					litest_assert_double_lt(tool_pressure, 1.0);
+				} else {
+					litest_assert_double_eq(tool_pressure, 1.0);
+				}
+			} else {
+				if (pressure == 10)
+					litest_assert_event_type(
+						ev,
+						LIBINPUT_EVENT_TABLET_TOOL_TIP);
+				/* We start at device range 10% but we always have a
+				 * small threshold */
+				litest_assert_double_gt_epsilon(pressure, 0.09, 0);
+				litest_assert_double_le(tool_pressure, 0.7);
+			}
+		}
 
-			libinput_event_destroy(ev);
-		} while (libinput_next_event_type(li) ==
-			 LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		litest_checkpoint("Leaving proximity on %s",
+				  libinput_device_get_name(dev->libinput_device));
+		litest_tablet_proximity_out(dev);
+		litest_timeout_tablet_proxout(li);
 
+		litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 		litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_UP);
 		litest_assert_tablet_proximity_event(
 			li,
@@ -7853,7 +7899,7 @@ TEST_COLLECTION(tablet)
 	litest_add_for_device(tablet_pressure_offset_decrease, LITEST_WACOM_HID4800_PEN);
 	litest_add_for_device(tablet_pressure_offset_increase, LITEST_WACOM_HID4800_PEN);
 	litest_add_for_device(tablet_pressure_offset_exceed_threshold, LITEST_WACOM_HID4800_PEN);
-	litest_with_parameters(params, "8k-to-1k", 'b')
+	litest_with_parameters(params, "8k-to-1k", 'b', "with-range", 'b')
 		litest_add_parametrized_for_device(tablet_pressure_across_multiple_tablets, LITEST_WACOM_CINTIQ_12WX_PEN, params);
 	litest_add_no_device(tablet_pressure_after_unplug);
 
