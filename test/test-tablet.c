@@ -5145,6 +5145,92 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 }
 END_TEST
 
+START_TEST(tablet_pressure_after_unplug)
+{
+	struct libinput *li = litest_create_context();
+	struct litest_device *dev = litest_add_device(li, LITEST_WACOM_CINTIQ_PRO16_PEN);
+
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 20 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 },
+	};
+
+	litest_drain_events(li);
+	litest_mark_test_start();
+
+	/* Unplug 10 times because that's more than however many tablets
+	 * we keep track of internally */
+	for (int iteration = 0; iteration < 10; iteration++)  {
+		litest_checkpoint("Putting pen into proximity");
+		litest_tablet_proximity_in(dev, 50, 50, axes);
+		litest_tablet_motion(dev, 51, 51, axes);
+		litest_dispatch(li);
+
+		litest_tablet_proximity_out(dev);
+
+		litest_checkpoint("Unplugging/replugging device");
+		litest_delete_device(dev);
+		litest_dispatch(li);
+		litest_drain_events(li);
+		dev = litest_add_device(li, LITEST_WACOM_CINTIQ_PRO16_PEN);
+		litest_dispatch(li);
+		litest_drain_events(li);
+	}
+
+	litest_checkpoint("Putting pen into proximity");
+
+	litest_tablet_proximity_in(dev, 49, 49, axes);
+	litest_dispatch(li);
+	litest_assert_tablet_proximity_event(li, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+
+	for (int i = 1; i < 5; i++) {
+		litest_tablet_motion(dev, 50 + i, 50 + i, axes);
+		litest_dispatch(li);
+		struct libinput_event *event = libinput_get_event(li);
+		litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		libinput_event_destroy(event);
+	}
+
+	litest_checkpoint("Putting pen tip down");
+	litest_axis_set_value(axes, ABS_DISTANCE, 0);
+	litest_axis_set_value(axes, ABS_PRESSURE, 10);
+	litest_tablet_tip_down(dev, 50, 50, axes);
+	litest_dispatch(li);
+	litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_DOWN);
+	double old_pressure = 0;
+	for (int i = 1; i < 5; i++) {
+		litest_axis_set_value(axes, ABS_PRESSURE, 10 + i);
+		litest_tablet_motion(dev, 50 + i, 50 + i, axes);
+		litest_dispatch(li);
+		struct libinput_event *event = libinput_get_event(li);
+		struct libinput_event_tablet_tool *tev = litest_is_tablet_event(event,
+										LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		double pressure = libinput_event_tablet_tool_get_pressure(tev);
+		litest_assert_double_gt(pressure, old_pressure);
+		libinput_event_destroy(event);
+	}
+
+	litest_checkpoint("Putting pen tip up");
+	litest_axis_set_value(axes, ABS_DISTANCE, 20);
+	litest_axis_set_value(axes, ABS_PRESSURE, 0);
+	litest_tablet_tip_up(dev, 50, 50, axes);
+	litest_dispatch(li);
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+	litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_UP);
+
+	litest_checkpoint("Putting out of proximity");
+	litest_tablet_proximity_out(dev);
+	litest_dispatch(li);
+	litest_timeout_tablet_proxout();
+	litest_dispatch(li);
+	litest_assert_tablet_proximity_event(li, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+
+	litest_delete_device(dev);
+	litest_destroy_context(li);
+}
+END_TEST
+
 START_TEST(tablet_distance_range)
 {
 	struct litest_device *dev = litest_current_device();
@@ -7247,6 +7333,7 @@ TEST_COLLECTION(tablet)
 	litest_add_for_device(tablet_pressure_offset_exceed_threshold, LITEST_WACOM_HID4800_PEN);
 	litest_with_parameters(params, "8k-to-1k", 'b')
 		litest_add_parametrized_for_device(tablet_pressure_across_multiple_tablets, LITEST_WACOM_CINTIQ_12WX_PEN, params);
+	litest_add_no_device(tablet_pressure_after_unplug);
 
 	litest_add(tablet_pressure_config, LITEST_TABLET, LITEST_TOTEM);
 	litest_add(tablet_pressure_config_set_minimum, LITEST_TABLET, LITEST_TOTEM);

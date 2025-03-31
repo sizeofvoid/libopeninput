@@ -2454,6 +2454,15 @@ tablet_destroy(struct evdev_dispatch *dispatch)
 	libinput_timer_cancel(&tablet->quirks.prox_out_timer);
 	libinput_timer_destroy(&tablet->quirks.prox_out_timer);
 
+	list_for_each(tool, &li->tool_list, link) {
+		ARRAY_FOR_EACH(tool->pressure.thresholds, threshold) {
+			if (threshold->tablet_id == tablet->tablet_id) {
+				threshold->tablet_id = 0;
+				break;
+			}
+		}
+	}
+
 	list_for_each_safe(tool, &tablet->tool_list, link) {
 		libinput_tablet_tool_unref(tool);
 	}
