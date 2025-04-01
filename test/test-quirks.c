@@ -45,184 +45,164 @@ struct data_dir {
 	char *filename;
 };
 
-static struct data_dir
-make_data_dir(const char *file_content)
+static struct data_dir *
+data_dir_new(const char *file_content)
 {
-	struct data_dir dir = {0};
+	struct data_dir *dir = zalloc(sizeof(*dir));
 	char dirname[PATH_MAX] = "/tmp/litest-quirk-test-XXXXXX";
-	char *filename;
-	FILE *fp;
-	int rc;
 
 	litest_assert_notnull(mkdtemp(dirname));
-	dir.dirname = safe_strdup(dirname);
+	dir->dirname = safe_strdup(dirname);
 
 	if (file_content) {
-		rc = xasprintf(&filename, "%s/testfile.quirks", dirname);
-		litest_assert_int_eq(rc, (int)(strlen(dirname) + 16));
+		char *filename = strdup_printf("%s/testfile.quirks", dirname);
 
-		fp = fopen(filename, "w+");
+		_autofclose_ FILE *fp = fopen(filename, "w+");
 #ifndef __clang_analyzer__
 		litest_assert_notnull(fp);
 #else
 		assert(fp);
 #endif
-		rc = fputs(file_content, fp);
+		int rc = fputs(file_content, fp); // NOLINT: unix.Stream
 		litest_assert_errno_success(rc);
-		fclose(fp);
-		dir.filename = filename;
+		dir->filename = filename;
 	}
 
 	return dir;
 }
 
 static void
-cleanup_data_dir(struct data_dir dd)
+data_dir_destroy(struct data_dir *dd)
 {
-	if (dd.filename) {
-		unlink(dd.filename);
-		free(dd.filename);
+	if (dd->filename) {
+		unlink(dd->filename);
+		free(dd->filename);
 	}
-	if (dd.dirname) {
-		rmdir(dd.dirname);
-		free(dd.dirname);
+	if (dd->dirname) {
+		rmdir(dd->dirname);
+		free(dd->dirname);
 	}
+	free(dd);
 }
+
+DEFINE_DESTROY_CLEANUP_FUNC(data_dir);
 
 START_TEST(quirks_invalid_dir)
 {
-	struct quirks_context *ctx;
-
-	ctx = quirks_init_subsystem("/does-not-exist",
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_LIBINPUT_LOGGING);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem("/does-not-exist",
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_LIBINPUT_LOGGING);
 	litest_assert(ctx == NULL);
 }
 END_TEST
 
 START_TEST(quirks_empty_dir)
 {
-	struct quirks_context *ctx;
-	struct data_dir dd = make_data_dir(NULL);
-
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_LIBINPUT_LOGGING);
+	_destroy_(data_dir) *dd = data_dir_new(NULL);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_LIBINPUT_LOGGING);
 	litest_assert(ctx == NULL);
-
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_section_empty)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] = "[Empty Section]";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_section_double)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] = "[Section name]";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_section_missing_match)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"AttrSizeHint=10x10\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_section_missing_attr)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
 				    NULL,
 				    log_handler,
 				    NULL,
 				    QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_section_match_after_attr)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse\n"
 	"AttrSizeHint=10x10\n"
 	"MatchName=mouse\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_section_duplicate_match)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse\n"
 	"MatchUdevType=mouse\n"
 	"AttrSizeHint=10x10\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
@@ -230,243 +210,212 @@ START_TEST(quirks_section_duplicate_attr)
 {
 	/* This shouldn't be allowed but the current parser
 	   is happy with it */
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse\n"
 	"AttrSizeHint=10x10\n"
 	"AttrSizeHint=10x10\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_error_section)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section Missing Bracket\n"
 	"MatchUdevType=mouse\n"
 	"AttrSizeHint=10x10\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_error_trailing_whitespace)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse    \n"
 	"AttrSizeHint=10x10\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_error_unknown_match)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"Matchblahblah=mouse\n"
 	"AttrSizeHint=10x10\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_error_unknown_attr)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse\n"
 	"Attrblahblah=10x10\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_error_unknown_model)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse\n"
 	"Modelblahblah=1\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_error_unknown_prefix)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse\n"
 	"Fooblahblah=10x10\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_error_model_not_one)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse\n"
 	"ModelAppleTouchpad=true\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
-	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 }
 END_TEST
 
 START_TEST(quirks_parse_comment_inline)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name] # some inline comment\n"
 	"MatchUdevType=mouse\t   # another inline comment\n"
 	"ModelAppleTouchpad=1#\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_comment_empty)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"#\n"
 	"   #\n"
 	"MatchUdevType=mouse\n"
 	"ModelAppleTouchpad=1\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_string_quotes_single)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse\n"
 	"AttrKeyboardIntegration='internal'\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_string_quotes_double)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse\n"
 	"AttrKeyboardIntegration=\"internal\"\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_bustype)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchBus=usb\n"
@@ -487,41 +436,36 @@ START_TEST(quirks_parse_bustype)
 	"[Section name]\n"
 	"MatchBus=ps2\n"
 	"ModelAppleTouchpad=1\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_bustype_invalid)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchBus=venga\n"
 	"ModelAppleTouchpad=1\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_vendor)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchVendor=0x0000\n"
@@ -534,22 +478,19 @@ START_TEST(quirks_parse_vendor)
 	"[Section name]\n"
 	"MatchVendor=0x2343\n"
 	"ModelAppleTouchpad=1\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_vendor_invalid)
 {
-	struct quirks_context *ctx;
 	const char *quirks_file[] = {
 	"[Section name]\n"
 	"MatchVendor=-1\n"
@@ -566,22 +507,20 @@ START_TEST(quirks_parse_vendor_invalid)
 	};
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
-		struct data_dir dd = make_data_dir(*qf);
+		_destroy_(data_dir) *dd = data_dir_new(*qf);
 
-		ctx = quirks_init_subsystem(dd.dirname,
-					    NULL,
-					    log_handler,
-					    NULL,
-					    QLOG_CUSTOM_LOG_PRIORITIES);
+		_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+								     NULL,
+								     log_handler,
+								     NULL,
+								     QLOG_CUSTOM_LOG_PRIORITIES);
 		litest_assert(ctx == NULL);
-		cleanup_data_dir(dd);
 	}
 }
 END_TEST
 
 START_TEST(quirks_parse_product)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchProduct=0x12AB\n"
@@ -594,22 +533,19 @@ START_TEST(quirks_parse_product)
 	"[Section name]\n"
 	"MatchProduct=0x2343\n"
 	"ModelAppleTouchpad=1\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_product_too_many)
 {
-	struct quirks_context *ctx;
 	const char prologue[] =
 	"[Section name]\n"
 	"MatchProduct=0x12AB\n"
@@ -633,24 +569,22 @@ START_TEST(quirks_parse_product_too_many)
 	}
 
 	char *quirks_file = strdup_printf("%s%s%s", prologue, matches, epilogue);
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
 	free(quirks_file);
 
 	/* This test will only blow up in valgrind/asan */
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert(ctx == NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_product_invalid)
 {
-	struct quirks_context *ctx;
 	const char *quirks_file[] = {
 	"[Section name]\n"
 	"MatchProduct=-1\n"
@@ -667,22 +601,20 @@ START_TEST(quirks_parse_product_invalid)
 	};
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
-		struct data_dir dd = make_data_dir(*qf);
+		_destroy_(data_dir) *dd = data_dir_new(*qf);
 
-		ctx = quirks_init_subsystem(dd.dirname,
-					    NULL,
-					    log_handler,
-					    NULL,
-					    QLOG_CUSTOM_LOG_PRIORITIES);
+		_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+								     NULL,
+								     log_handler,
+								     NULL,
+								     QLOG_CUSTOM_LOG_PRIORITIES);
 		litest_assert(ctx == NULL);
-		cleanup_data_dir(dd);
 	}
 }
 END_TEST
 
 START_TEST(quirks_parse_version)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchVersion=0x0000\n"
@@ -695,22 +627,19 @@ START_TEST(quirks_parse_version)
 	"[Section name]\n"
 	"MatchVersion=0x2343\n"
 	"ModelAppleTouchpad=1\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_version_invalid)
 {
-	struct quirks_context *ctx;
 	const char *quirks_file[] = {
 	"[Section name]\n"
 	"MatchVersion=-1\n"
@@ -727,22 +656,20 @@ START_TEST(quirks_parse_version_invalid)
 	};
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
-		struct data_dir dd = make_data_dir(*qf);
+		_destroy_(data_dir) *dd = data_dir_new(*qf);
 
-		ctx = quirks_init_subsystem(dd.dirname,
-					    NULL,
-					    log_handler,
-					    NULL,
-					    QLOG_CUSTOM_LOG_PRIORITIES);
+		_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+								     NULL,
+								     log_handler,
+								     NULL,
+								     QLOG_CUSTOM_LOG_PRIORITIES);
 		litest_assert(ctx == NULL);
-		cleanup_data_dir(dd);
 	}
 }
 END_TEST
 
 START_TEST(quirks_parse_name)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchName=1235\n"
@@ -767,22 +694,19 @@ START_TEST(quirks_parse_name)
 	"[Section name]\n"
 	"MatchName=*foo*\n"
 	"ModelAppleTouchpad=1\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_name_invalid)
 {
-	struct quirks_context *ctx;
 	const char *quirks_file[] = {
 	"[Section name]\n"
 	"MatchName=\n"
@@ -790,22 +714,20 @@ START_TEST(quirks_parse_name_invalid)
 	};
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
-		struct data_dir dd = make_data_dir(*qf);
+		_destroy_(data_dir) *dd = data_dir_new(*qf);
 
-		ctx = quirks_init_subsystem(dd.dirname,
-					    NULL,
-					    log_handler,
-					    NULL,
-					    QLOG_CUSTOM_LOG_PRIORITIES);
+		_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+								     NULL,
+								     log_handler,
+								     NULL,
+								     QLOG_CUSTOM_LOG_PRIORITIES);
 		litest_assert(ctx == NULL);
-		cleanup_data_dir(dd);
 	}
 }
 END_TEST
 
 START_TEST(quirks_parse_uniq)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section Uniq]\n"
 	"MatchUniq=1235\n"
@@ -830,22 +752,19 @@ START_TEST(quirks_parse_uniq)
 	"[Section Uniq]\n"
 	"MatchUniq=*foo*\n"
 	"ModelAppleTouchpad=1\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_uniq_invalid)
 {
-	struct quirks_context *ctx;
 	const char *quirks_file[] = {
 	"[Section name]\n"
 	"MatchUniq=\n"
@@ -853,22 +772,20 @@ START_TEST(quirks_parse_uniq_invalid)
 	};
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
-		struct data_dir dd = make_data_dir(*qf);
+		_destroy_(data_dir) *dd = data_dir_new(*qf);
 
-		ctx = quirks_init_subsystem(dd.dirname,
-					    NULL,
-					    log_handler,
-					    NULL,
-					    QLOG_CUSTOM_LOG_PRIORITIES);
+		_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+								     NULL,
+								     log_handler,
+								     NULL,
+								     QLOG_CUSTOM_LOG_PRIORITIES);
 		litest_assert(ctx == NULL);
-		cleanup_data_dir(dd);
 	}
 }
 END_TEST
 
 START_TEST(quirks_parse_udev)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=touchpad\n"
@@ -897,22 +814,19 @@ START_TEST(quirks_parse_udev)
 	"[Section name]\n"
 	"MatchUdevType=joystick\n"
 	"ModelAppleTouchpad=1\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_udev_invalid)
 {
-	struct quirks_context *ctx;
 	const char *quirks_file[] = {
 	"[Section name]\n"
 	"MatchUdevType=blah\n"
@@ -926,22 +840,20 @@ START_TEST(quirks_parse_udev_invalid)
 	};
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
-		struct data_dir dd = make_data_dir(*qf);
+		_destroy_(data_dir) *dd = data_dir_new(*qf);
 
-		ctx = quirks_init_subsystem(dd.dirname,
-					    NULL,
-					    log_handler,
-					    NULL,
-					    QLOG_CUSTOM_LOG_PRIORITIES);
+		_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+								     NULL,
+								     log_handler,
+								     NULL,
+								     QLOG_CUSTOM_LOG_PRIORITIES);
 		litest_assert(ctx == NULL);
-		cleanup_data_dir(dd);
 	}
 }
 END_TEST
 
 START_TEST(quirks_parse_dmi)
 {
-	struct quirks_context *ctx;
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchDMIModalias=dmi:*\n"
@@ -950,22 +862,19 @@ START_TEST(quirks_parse_dmi)
 	"[Section name]\n"
 	"MatchDMIModalias=dmi:*svn*pn*:\n"
 	"ModelAppleTouchpad=1\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
 }
 END_TEST
 
 START_TEST(quirks_parse_dmi_invalid)
 {
-	struct quirks_context *ctx;
 	const char *quirks_file[] = {
 	"[Section name]\n"
 	"MatchDMIModalias=\n"
@@ -982,15 +891,14 @@ START_TEST(quirks_parse_dmi_invalid)
 	};
 
 	ARRAY_FOR_EACH(quirks_file, qf) {
-		struct data_dir dd = make_data_dir(*qf);
+		_destroy_(data_dir) *dd = data_dir_new(*qf);
 
-		ctx = quirks_init_subsystem(dd.dirname,
-					    NULL,
-					    log_handler,
-					    NULL,
-					    QLOG_CUSTOM_LOG_PRIORITIES);
+		_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+								     NULL,
+								     log_handler,
+								     NULL,
+								     QLOG_CUSTOM_LOG_PRIORITIES);
 		litest_assert(ctx == NULL);
-		cleanup_data_dir(dd);
 	}
 }
 END_TEST
@@ -1015,9 +923,7 @@ test_attr_parse(struct litest_device *dev,
 		qparsefunc func,
 		void *data)
 {
-	struct udev_device *ud = libinput_device_get_udev_device(dev->libinput_device);
-	struct quirks_context *ctx;
-	struct data_dir dd;
+	_unref_(udev_device) *ud = libinput_device_get_udev_device(dev->libinput_device);
 	char buf[512];
 	bool result;
 
@@ -1029,27 +935,22 @@ test_attr_parse(struct litest_device *dev,
 		 quirk_get_name(which),
 		 str);
 
-	dd = make_data_dir(buf);
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_destroy_(data_dir) *dd = data_dir_new(buf);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	if (ctx != NULL) {
-		struct quirks *q;
-		q = quirks_fetch_for_device(ctx, ud);
+		_unref_(quirks) *q = quirks_fetch_for_device(ctx, ud);
 		litest_assert_notnull(q);
 		litest_assert(func(q, which, data));
 		litest_assert(quirks_has_quirk(q, which));
-		quirks_unref(q);
-		quirks_context_unref(ctx);
 		result = true;
 	} else {
 		result = false;
 	}
 
-	cleanup_data_dir(dd);
-	udev_device_unref(ud);
 	return result;
 }
 
@@ -1374,112 +1275,89 @@ END_TEST
 START_TEST(quirks_model_one)
 {
 	struct litest_device *dev = litest_current_device();
-	struct udev_device *ud = libinput_device_get_udev_device(dev->libinput_device);
-	struct quirks_context *ctx;
+	_unref_(udev_device) *ud = libinput_device_get_udev_device(dev->libinput_device);
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse\n"
 	"ModelAppleTouchpad=1\n";
-	struct data_dir dd = make_data_dir(quirks_file);
-	struct quirks *q;
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 	bool isset;
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
 
-	q = quirks_fetch_for_device(ctx, ud);
+	_unref_(quirks) *q = quirks_fetch_for_device(ctx, ud);
 	litest_assert_notnull(q);
 
 	litest_assert(quirks_get_bool(q, QUIRK_MODEL_APPLE_TOUCHPAD, &isset));
 	litest_assert(isset == true);
-
-	quirks_unref(q);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
-	udev_device_unref(ud);
 }
 END_TEST
 
 START_TEST(quirks_model_zero)
 {
 	struct litest_device *dev = litest_current_device();
-	struct udev_device *ud = libinput_device_get_udev_device(dev->libinput_device);
-	struct quirks_context *ctx;
+	_unref_(udev_device) *ud = libinput_device_get_udev_device(dev->libinput_device);
 	const char quirks_file[] =
 	"[Section name]\n"
 	"MatchUdevType=mouse\n"
 	"ModelAppleTouchpad=0\n";
-	struct data_dir dd = make_data_dir(quirks_file);
-	struct quirks *q;
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 	bool isset;
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
 
-	q = quirks_fetch_for_device(ctx, ud);
+	_unref_(quirks) *q = quirks_fetch_for_device(ctx, ud);
 	litest_assert_notnull(q);
 
 	litest_assert(quirks_get_bool(q, QUIRK_MODEL_APPLE_TOUCHPAD, &isset));
 	litest_assert(isset == false);
-
-	quirks_unref(q);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
-	udev_device_unref(ud);
 }
 END_TEST
 
 START_TEST(quirks_model_override)
 {
 	struct litest_device *dev = litest_current_device();
-	struct udev_device *ud = libinput_device_get_udev_device(dev->libinput_device);
-	struct quirks_context *ctx;
-	struct data_dir dd;
-	struct quirks *q;
+	_unref_(udev_device) *ud = libinput_device_get_udev_device(dev->libinput_device);
 	bool isset;
 	bool set = litest_test_param_get_bool(test_env->params, "enable_model");
 
 	/* Test model quirks override by setting, then unsetting (or the
 	   other way round) */
-	char *quirks_file= strdup_printf("[first]\n"
-					 "MatchUdevType=mouse\n"
-					 "ModelAppleTouchpad=%d\n"
-					 "\n"
-					 "[second]\n"
-					 "MatchUdevType=mouse\n"
-					 "ModelAppleTouchpad=%d\n",
-					 set ? 0 : 1,
-					 set ? 1 : 0);
+	_autofree_ char *quirks_file= strdup_printf("[first]\n"
+						    "MatchUdevType=mouse\n"
+						    "ModelAppleTouchpad=%d\n"
+						    "\n"
+						    "[second]\n"
+						    "MatchUdevType=mouse\n"
+						    "ModelAppleTouchpad=%d\n",
+						    set ? 0 : 1,
+						    set ? 1 : 0);
 	litest_assert_ptr_notnull(quirks_file);
 
-	dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
-				    NULL,
-				    log_handler,
-				    NULL,
-				    QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *ctx = quirks_init_subsystem(dd->dirname,
+							     NULL,
+							     log_handler,
+							     NULL,
+							     QLOG_CUSTOM_LOG_PRIORITIES);
 	litest_assert_notnull(ctx);
 
-	q = quirks_fetch_for_device(ctx, ud);
+	_unref_(quirks) *q = quirks_fetch_for_device(ctx, ud);
 	litest_assert_notnull(q);
 
 	litest_assert(quirks_get_bool(q, QUIRK_MODEL_APPLE_TOUCHPAD, &isset));
 	litest_assert(isset == set);
-
-	quirks_unref(q);
-	quirks_context_unref(ctx);
-	cleanup_data_dir(dd);
-	udev_device_unref(ud);
-	free(quirks_file);
 }
 END_TEST
 
@@ -1582,9 +1460,9 @@ START_TEST(quirks_ctx_ref)
 	"[Section name]\n"
 	"MatchUdevType=mouse\n"
 	"AttrSizeHint=10x10\n";
-	struct data_dir dd = make_data_dir(quirks_file);
+	_destroy_(data_dir) *dd = data_dir_new(quirks_file);
 
-	ctx = quirks_init_subsystem(dd.dirname,
+	ctx = quirks_init_subsystem(dd->dirname,
 				    NULL,
 				    log_handler,
 				    NULL,
@@ -1596,7 +1474,6 @@ START_TEST(quirks_ctx_ref)
 	litest_assert_ptr_eq(ctx2, NULL);
 	ctx2 = quirks_context_unref(ctx);
 	litest_assert_ptr_eq(ctx2, NULL);
-	cleanup_data_dir(dd);
 }
 END_TEST
 

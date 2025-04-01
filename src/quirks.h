@@ -204,6 +204,8 @@ quirks_fetch_for_device(struct quirks_context *ctx,
 struct quirks *
 quirks_unref(struct quirks *q);
 
+DEFINE_UNREF_CLEANUP_FUNC(quirks);
+
 /**
  * Returns true if the given quirk applies is in this quirk list.
  */
