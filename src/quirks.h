@@ -31,6 +31,7 @@
 #include <libudev.h>
 
 #include "libinput.h"
+#include "util-mem.h"
 
 /**
  * Handle to the quirks context.
@@ -178,6 +179,8 @@ quirks_init_subsystem(const char *data_path,
  */
 struct quirks_context *
 quirks_context_unref(struct quirks_context *ctx);
+
+DEFINE_UNREF_CLEANUP_FUNC(quirks_context);
 
 struct quirks_context *
 quirks_context_ref(struct quirks_context *ctx);

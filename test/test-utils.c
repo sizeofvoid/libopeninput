@@ -42,6 +42,7 @@
 #include "util-ratelimit.h"
 #include "util-stringbuf.h"
 #include "util-matrix.h"
+#include "util-mem.h"
 #include "util-input-event.h"
 #include "util-newtype.h"
 
@@ -2119,6 +2120,71 @@ START_TEST(newtype_test)
 }
 END_TEST
 
+struct sunref {};
+struct sdestroy {};
+struct sfree{};
+
+static void sunref_unref(struct sunref *s) { free(s); };
+static void sdestroy_destroy(struct sdestroy *s) { free(s); };
+static void sfree_free(struct sfree *s) { free(s); };
+
+DEFINE_UNREF_CLEANUP_FUNC(sunref);
+DEFINE_DESTROY_CLEANUP_FUNC(sdestroy);
+DEFINE_FREE_CLEANUP_FUNC(sfree);
+
+START_TEST(attribute_cleanup)
+{
+	/* These tests will likely only show up in valgrind,
+	 * the various asserts are just to shut up the compiler
+	 * about unused variables
+	 */
+	{
+		_autofree_ char *autofree = zalloc(64);
+		litest_assert(autofree);
+	}
+	{
+		_autofree_ char *stolen = zalloc(64);
+		free(steal(&stolen));
+	}
+	{
+		_autoclose_ int fd = open("/proc/self/cmdline", O_RDONLY);
+		litest_assert_int_ge(fd, 0);
+
+		_autoclose_ int badfd = -1;
+		litest_assert_int_eq(badfd, -1);
+
+		_autoclose_ int stealfd = open("/proc/self/cmdline", O_RDONLY);
+		steal_fd(&stealfd);
+		litest_assert_int_eq(stealfd, -1);
+	}
+	{
+		_autostrvfree_ char **strv = zalloc(3 * sizeof(*strv));
+		for (int i = 0; i < 2; i++) {
+			strv[i] = strdup_printf("element %d", i);
+		}
+
+		_autostrvfree_ char **badstrv = NULL;
+		litest_assert_ptr_null(badstrv);
+	}
+	{
+		_autofclose_ FILE *fp = fopen("/proc/self/cmdline", "r");
+		litest_assert_ptr_notnull(fp);
+
+		_autofclose_ FILE *badfd = NULL;
+		litest_assert_ptr_null(badfd);
+	}
+	{
+		_unref_(sunref) *s = zalloc(sizeof(*s));
+	}
+	{
+		_destroy_(sdestroy) *s = zalloc(sizeof(*s));
+	}
+	{
+		_free_(sfree) *s = zalloc(sizeof(*s));
+	}
+}
+END_TEST
+
 int main(void)
 {
 	struct litest_runner *runner = litest_runner_new();
@@ -2189,6 +2255,7 @@ int main(void)
 	ADD_TEST(multivalue_test);
 
 	ADD_TEST(newtype_test);
+	ADD_TEST(attribute_cleanup);
 
 	enum litest_runner_result result = litest_runner_run_tests(runner);
 	litest_runner_destroy(runner);

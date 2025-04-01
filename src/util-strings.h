@@ -44,6 +44,7 @@
 #endif
 
 #include "util-macros.h"
+#include "util-mem.h"
 
 #define yesno(b) ((b) ? "yes" : "no")
 #define truefalse(b) ((b) ? "true" : "false")
@@ -337,6 +338,13 @@ strv_free(char **strv) {
 
 	free (strv);
 }
+
+DEFINE_TRIVIAL_CLEANUP_FUNC(char **, strv_free);
+
+/**
+ * Use: _autostrvfree_ char **strv = ...;
+ */
+#define _autostrvfree_ _cleanup_(strv_freep)
 
 /**
  * parse a string containing a list of doubles into a double array.
