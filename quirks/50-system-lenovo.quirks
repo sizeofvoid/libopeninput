@@ -417,3 +417,10 @@ MatchName=*GXTP5100*
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook14G7+IAH*:*
 MatchUdevType=touchpad
 ModelPressurePad=1
+
+# The ThinkBook 16 G7+ ASP has the same issue as the 14" model mentioned above
+[Lenovo ThinkBook 16 G7+ ASP touchpad]
+MatchName=*GXTP5100*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook16G7+ASP*:*
+MatchUdevType=touchpad
+ModelPressurePad=1
