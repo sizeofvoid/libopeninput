@@ -324,9 +324,9 @@ main(int argc, char **argv)
 			break;
 		case OPT_CUSTOM_POINTS: {
 			size_t npoints;
-			double *points = double_array_from_string(optarg,
-								  ";",
-								  &npoints);
+			_autofree_ double *points = double_array_from_string(optarg,
+									     ";",
+									     &npoints);
 			if (!points ||
 			    npoints < LIBINPUT_ACCEL_NPOINTS_MIN ||
 			    npoints > LIBINPUT_ACCEL_NPOINTS_MAX) {
@@ -334,14 +334,12 @@ main(int argc, char **argv)
 					"Invalid --custom-points\n"
 					"Please provide at least 2 points separated by a semicolon\n"
 					" e.g. --custom-points=\"1.0;1.5\"\n");
-				free(points);
 				return 1;
 			}
 			custom_func.npoints = npoints;
 			memcpy(custom_func.points,
 			       points,
 			       sizeof(*points) * npoints);
-			free(points);
 			break;
 		}
 		case OPT_CUSTOM_STEP:

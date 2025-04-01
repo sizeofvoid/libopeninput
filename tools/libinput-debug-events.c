@@ -100,7 +100,7 @@ handle_and_print_events(struct libinput *li, const struct libinput_print_options
 		}
 
 		if (type != LIBINPUT_EVENT_TOUCH_FRAME || !compress_motion_events) {
-			char *event_str = libinput_event_to_str(ev, event_repeat_count + 1, opts);
+			_autofree_ char *event_str = libinput_event_to_str(ev, event_repeat_count + 1, opts);
 
 			switch (type) {
 			case LIBINPUT_EVENT_DEVICE_ADDED:
@@ -120,7 +120,6 @@ handle_and_print_events(struct libinput *li, const struct libinput_print_options
 			}
 
 			printq("%s\n", event_str);
-			free(event_str);
 		}
 
 		last_device = device;

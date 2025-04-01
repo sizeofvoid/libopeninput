@@ -32,6 +32,8 @@
 #include "quirks.h"
 #include "shared.h"
 #include "builddir.h"
+#include "util-mem.h"
+#include "libinput-util.h"
 
 static bool verbose = false;
 
@@ -94,13 +96,8 @@ simple_printf(void *userdata, const char *val)
 int
 main(int argc, char **argv)
 {
-	struct udev *udev = NULL;
-	struct udev_device *device = NULL;
-	const char *path;
 	const char *data_path = NULL,
 	           *override_file = NULL;
-	int rc = 1;
-	struct quirks_context *quirks;
 	bool validate = false;
 
 	while (1) {
@@ -137,31 +134,31 @@ main(int argc, char **argv)
 			break;
 		default:
 			usage();
-			return 1;
+			return EXIT_FAILURE;
 		}
 	}
 
 	if (optind >= argc) {
 		usage();
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	if (streq(argv[optind], "list")) {
 		optind++;
 		if (optind >= argc) {
 			usage();
-			return 1;
+			return EXIT_FAILURE;
 		}
 	} else if (streq(argv[optind], "validate")) {
 		optind++;
 		if (optind < argc) {
 			usage();
-			return 1;
+			return EXIT_FAILURE;
 		}
 		validate = true;
 	} else {
 		fprintf(stderr, "Unnkown action '%s'\n", argv[optind]);
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	/* Overriding the data dir means no custom override file */
@@ -174,53 +171,44 @@ main(int argc, char **argv)
 		}
 	}
 
-	quirks = quirks_init_subsystem(data_path,
-				      override_file,
-				      log_handler,
-				      NULL,
-				      QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *quirks = quirks_init_subsystem(data_path,
+								override_file,
+								log_handler,
+								NULL,
+								QLOG_CUSTOM_LOG_PRIORITIES);
 	if (!quirks) {
 		fprintf(stderr,
 			"Failed to initialize the device quirks. "
 			"Please see the above errors "
 			"and/or re-run with --verbose for more details\n");
-		return 1;
+		return EXIT_FAILURE;
 	}
 
-	if (validate) {
-		rc = 0;
-		goto out;
-	}
+	if (validate)
+		return EXIT_SUCCESS;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	if (!udev)
-		goto out;
+		return EXIT_FAILURE;
 
-	path = argv[optind];
+	_unref_(udev_device) *device = NULL;
+	const char *path = argv[optind];
 	if (strstartswith(path, "/sys/")) {
 		device = udev_device_new_from_syspath(udev, path);
 	} else {
 		struct stat st;
 		if (stat(path, &st) < 0) {
 			fprintf(stderr, "Error: %s: %m\n", path);
-			goto out;
+			return EXIT_FAILURE;
 		}
 
 		device = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
 	}
 	if (device) {
 		tools_list_device_quirks(quirks, device, simple_printf, NULL);
-		rc = 0;
+		return EXIT_SUCCESS;
 	} else {
 		usage();
-		rc = 1;
+		return EXIT_FAILURE;
 	}
-
-	udev_device_unref(device);
-out:
-	udev_unref(udev);
-
-	quirks_context_unref(quirks);
-
-	return rc;
 }

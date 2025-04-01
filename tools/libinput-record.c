@@ -49,11 +49,14 @@
 #include "shared.h"
 #include "builddir.h"
 #include "util-bits.h"
+#include "util-files.h"
 #include "util-list.h"
 #include "util-time.h"
 #include "util-input-event.h"
 #include "util-macros.h"
+#include "util-mem.h"
 #include "util-strings.h"
+#include "libinput-util.h"
 
 static const int FILE_VERSION_NUMBER = 1;
 
@@ -785,28 +788,26 @@ buffer_tablet_axes(struct libinput_event_tablet_tool *t)
 {
 	const int MAX_AXES = 10;
 	struct libinput_tablet_tool *tool;
-	char *s = NULL;
 	int idx = 0;
 	int len;
 	double x, y;
-	char **strv;
 
 	tool = libinput_event_tablet_tool_get_tool(t);
 
-	strv = zalloc(MAX_AXES * sizeof *strv);
+	_autostrvfree_ char **strv = zalloc(MAX_AXES * sizeof *strv);
 
 	x = libinput_event_tablet_tool_get_x(t);
 	y = libinput_event_tablet_tool_get_y(t);
 	len = xasprintf(&strv[idx++], "point: [%.2f, %.2f]", x, y);
 	if (len <= 0)
-		goto out;
+		return NULL;
 
 	if (libinput_tablet_tool_has_tilt(tool)) {
 		x = libinput_event_tablet_tool_get_tilt_x(t);
 		y = libinput_event_tablet_tool_get_tilt_y(t);
 		len = xasprintf(&strv[idx++], "tilt: [%.2f, %.2f]", x, y);
 		if (len <= 0)
-			goto out;
+			return NULL;
 	}
 
 	if (libinput_tablet_tool_has_distance(tool) ||
@@ -820,7 +821,7 @@ buffer_tablet_axes(struct libinput_event_tablet_tool *t)
 		else
 			len = xasprintf(&strv[idx++], "pressure: %.2f", pressure);
 		if (len <= 0)
-			goto out;
+			return NULL;
 	}
 
 	if (libinput_tablet_tool_has_rotation(tool)) {
@@ -829,7 +830,7 @@ buffer_tablet_axes(struct libinput_event_tablet_tool *t)
 		rotation = libinput_event_tablet_tool_get_rotation(t);
 		len = xasprintf(&strv[idx++], "rotation: %.2f", rotation);
 		if (len <= 0)
-			goto out;
+			return NULL;
 	}
 
 	if (libinput_tablet_tool_has_slider(tool)) {
@@ -838,8 +839,7 @@ buffer_tablet_axes(struct libinput_event_tablet_tool *t)
 		slider = libinput_event_tablet_tool_get_slider_position(t);
 		len = xasprintf(&strv[idx++], "slider: %.2f", slider);
 		if (len <= 0)
-			goto out;
-
+			return NULL;
 	}
 
 	if (libinput_tablet_tool_has_wheel(tool)) {
@@ -849,20 +849,17 @@ buffer_tablet_axes(struct libinput_event_tablet_tool *t)
 		wheel = libinput_event_tablet_tool_get_wheel_delta(t);
 		len = xasprintf(&strv[idx++], "wheel: %.2f", wheel);
 		if (len <= 0)
-			goto out;
+			return NULL;
 
 		delta = libinput_event_tablet_tool_get_wheel_delta_discrete(t);
 		len = xasprintf(&strv[idx++], "wheel-discrete: %d", delta);
 		if (len <= 0)
-			goto out;
+			return NULL;
 	}
 
 	assert(idx < MAX_AXES);
 
-	s = strv_join(strv, ", ");
-out:
-	strv_free(strv);
-	return s;
+	return strv_join(strv, ", ");
 }
 
 static void
@@ -874,7 +871,6 @@ print_tablet_tool_proximity_event(struct record_device *dev, struct libinput_eve
 		libinput_event_tablet_tool_get_tool(t);
 	uint64_t time;
 	const char *type, *tool_type;
-	char *axes;
 	char caps[10] = {0};
 	enum libinput_tablet_tool_proximity_state prox;
 	size_t idx;
@@ -916,7 +912,7 @@ print_tablet_tool_proximity_event(struct record_device *dev, struct libinput_eve
 
 	prox = libinput_event_tablet_tool_get_proximity_state(t);
 	time = time_offset(dev->ctx, libinput_event_tablet_tool_get_time_usec(t));
-	axes = buffer_tablet_axes(t);
+	_autofree_ char *axes = buffer_tablet_axes(t);
 
 	idx = 0;
 	if (libinput_tablet_tool_has_pressure(tool))
@@ -944,7 +940,6 @@ print_tablet_tool_proximity_event(struct record_device *dev, struct libinput_eve
 		libinput_tablet_tool_get_serial(tool),
 		caps,
 		axes);
-	free(axes);
 }
 
 static void
@@ -987,7 +982,6 @@ print_tablet_tool_event(struct record_device *dev, struct libinput_event *e)
 		libinput_event_get_tablet_tool_event(e);
 	uint64_t time;
 	const char *type;
-	char *axes;
 	enum libinput_tablet_tool_tip_state tip;
 	char btn_buffer[30] = {0};
 
@@ -1019,7 +1013,7 @@ print_tablet_tool_event(struct record_device *dev, struct libinput_event *e)
 
 	tip = libinput_event_tablet_tool_get_tip_state(t);
 	time = time_offset(dev->ctx, libinput_event_tablet_tool_get_time_usec(t));
-	axes = buffer_tablet_axes(t);
+	_autofree_ char *axes = buffer_tablet_axes(t);
 
 	iprintf(dev->fp,
 		I_EVENT,
@@ -1030,7 +1024,6 @@ print_tablet_tool_event(struct record_device *dev, struct libinput_event *e)
 		btn_buffer, /* may be empty string */
 		tip ? "down" : "up",
 		axes);
-	free(axes);
 }
 
 static void
@@ -1349,17 +1342,15 @@ print_system_header(FILE *fp)
 {
 	struct utsname u;
 	const char *kernel = "unknown";
-	FILE *dmi, *osrelease;
-	char dmistr[2048] = "unknown";
 
 	iprintf(fp, I_TOPLEVEL, "system:\n");
 
 	/* /etc/os-release version and distribution name */
-	osrelease = fopen("/etc/os-release", "r");
+	_autofclose_ FILE *osrelease = fopen("/etc/os-release", "r");
 	if (!osrelease)
 		osrelease = fopen("/usr/lib/os-release", "r");
 	if (osrelease) {
-		char *distro = NULL, *version = NULL;
+		_autofree_ char *distro = NULL, *version = NULL;
 		char osrstr[256] = "unknown";
 
 		while (fgets(osrstr, sizeof(osrstr), osrelease)) {
@@ -1370,18 +1361,17 @@ print_system_header(FILE *fp)
 			else if (!version && strstartswith(osrstr, "VERSION_ID="))
 				version = strstrip(&osrstr[11], "\"'");
 
-			if (distro && version) {
-				iprintf(fp,
-					I_SYSTEM,
-					"os: \"%s:%s\"\n",
-					distro,
-					version);
+			if (distro && version)
 				break;
-			}
 		}
-		free(distro);
-		free(version);
-		fclose(osrelease);
+
+		if (distro && version) { // NOLINT: unix.Stream
+			iprintf(fp,
+				I_SYSTEM,
+				"os: \"%s:%s\"\n",
+				distro,
+				version);
+		}
 	}
 
 	/* kernel version */
@@ -1390,14 +1380,15 @@ print_system_header(FILE *fp)
 	iprintf(fp, I_SYSTEM, "kernel: \"%s\"\n", kernel);
 
 	/* dmi modalias */
-	dmi = fopen("/sys/class/dmi/id/modalias", "r");
+	_autofclose_ FILE *dmi = fopen("/sys/class/dmi/id/modalias", "r");
+	_autofree_ char *dmistr = strdup("unknown");								   //
 	if (dmi) {
-		if (fgets(dmistr, sizeof(dmistr), dmi)) {
-			dmistr[strlen(dmistr) - 1] = '\0'; /* linebreak */
-		} else {
-			sprintf(dmistr, "unknown");
+		char buf[2048] = "unknown";
+		size_t n = fread(buf, sizeof(buf), 1, dmi); // NOLINT: unix.Stream
+		if (n > 0) {
+			free(dmistr);
+			dmistr = strndup(buf, n - 1);
 		}
-		fclose(dmi);
 	}
 	iprintf(fp, I_SYSTEM, "dmi: \"%s\"\n", dmistr);
 }
@@ -1720,27 +1711,24 @@ print_hid_report_descriptor(struct record_device *dev)
 static void
 print_udev_properties(struct record_device *dev)
 {
-	struct udev *udev = NULL;
-	struct udev_device *udev_device = NULL;
-	struct udev_list_entry *entry;
 	struct stat st;
 
 	if (stat(dev->devnode, &st) < 0)
 		return;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	if (!udev)
-		goto out;
+		return;
 
-	udev_device = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
+	_unref_(udev_device) *udev_device = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
 	if (!udev_device)
-		goto out;
+		return;
 
 	iprintf(dev->fp, I_DEVICE, "udev:\n");
 
 	iprintf(dev->fp, I_UDEV, "properties:\n");
 
-	entry = udev_device_get_properties_list_entry(udev_device);
+	struct udev_list_entry *entry = udev_device_get_properties_list_entry(udev_device);
 	while (entry) {
 		const char *key, *value;
 
@@ -1768,10 +1756,6 @@ print_udev_properties(struct record_device *dev)
 			break;
 		}
 	}
-
-out:
-	udev_device_unref(udev_device);
-	udev_unref(udev);
 }
 
 static void
@@ -1793,10 +1777,7 @@ list_print(void *userdata, const char *val)
 static void
 print_device_quirks(struct record_device *dev)
 {
-	struct udev *udev = NULL;
-	struct udev_device *udev_device = NULL;
 	struct stat st;
-	struct quirks_context *quirks;
 	const char *data_path = LIBINPUT_QUIRKS_DIR;
 	const char *override_file = LIBINPUT_QUIRKS_OVERRIDE_FILE;
 
@@ -1809,11 +1790,11 @@ print_device_quirks(struct record_device *dev)
 		override_file = NULL;
 	}
 
-	quirks = quirks_init_subsystem(data_path,
-				       override_file,
-				       quirks_log_handler,
-				       NULL,
-				       QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *quirks = quirks_init_subsystem(data_path,
+								override_file,
+								quirks_log_handler,
+								NULL,
+								QLOG_CUSTOM_LOG_PRIORITIES);
 	if (!quirks) {
 		fprintf(stderr,
 			"Failed to load the device quirks from %s%s%s. "
@@ -1826,20 +1807,15 @@ print_device_quirks(struct record_device *dev)
 		return;
 	}
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	if (!udev)
-		goto out;
+		return;
 
-	udev_device = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
-	if (!udev_device)
-		goto out;
-
-	iprintf(dev->fp, I_DEVICE, "quirks:\n");
-	tools_list_device_quirks(quirks, udev_device, list_print, dev->fp);
-out:
-	udev_device_unref(udev_device);
-	udev_unref(udev);
-	quirks_context_unref(quirks);
+	_unref_(udev_device) *udev_device = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
+	if (udev_device) {
+		iprintf(dev->fp, I_DEVICE, "quirks:\n");
+		tools_list_device_quirks(quirks, udev_device, list_print, dev->fp);
+	}
 }
 
 static void
@@ -1903,7 +1879,7 @@ static int is_event_node(const struct dirent *dir) {
 static char *
 select_device(void)
 {
-	struct dirent **namelist;
+	_autofree_ struct dirent **namelist;
 	int ndev, selected_device;
 	int rc;
 	char *device_path;
@@ -1920,23 +1896,19 @@ select_device(void)
 
 	fprintf(stderr, "%sAvailable devices:\n", prefix);
 	for (int i = 0; i < ndev; i++) {
-		struct libevdev *device;
+		_autofree_ struct dirent *entry = namelist[i];
 		char path[PATH_MAX];
-		int fd = -1;
 
-		snprintf(path,
-			 sizeof(path),
-			 "/dev/input/%s",
-			 namelist[i]->d_name);
-		fd = open(path, O_RDONLY);
+		snprintf(path, sizeof(path), "/dev/input/%s", entry->d_name);
+		_cleanup_(xclose) int fd = open(path, O_RDONLY);
 		if (fd < 0) {
 			if (errno == EACCES)
 				has_eaccess = true;
 			continue;
 		}
 
+		struct libevdev *device;
 		rc = libevdev_new_from_fd(fd, &device);
-		close(fd);
 		if (rc != 0)
 			continue;
 
@@ -1944,10 +1916,6 @@ select_device(void)
 		libevdev_free(device);
 		available_devices++;
 	}
-
-	for (int i = 0; i < ndev; i++)
-		free(namelist[i]);
-	free(namelist);
 
 	if (available_devices == 0) {
 		fprintf(stderr,
@@ -1972,9 +1940,9 @@ select_device(void)
 static char **
 all_devices(void)
 {
-	struct dirent **namelist;
+	_autofree_ struct dirent **namelist;
 	int ndev;
-	char **devices = NULL;
+	_autostrvfree_ char **devices = NULL;
 
 	ndev = scandir("/dev/input", &namelist, is_event_node, versionsort);
 	if (ndev <= 0)
@@ -1982,26 +1950,17 @@ all_devices(void)
 
 	devices = zalloc((ndev + 1)* sizeof *devices); /* NULL-terminated */
 	for (int i = 0; i < ndev; i++) {
+		_autofree_ struct dirent *entry = namelist[i];
 		char *device_path;
 
-		int rc = xasprintf(&device_path,
-				   "/dev/input/%s",
-				   namelist[i]->d_name);
+		int rc = xasprintf(&device_path, "/dev/input/%s", entry->d_name);
 		if (rc == -1)
-			goto error;
+			return NULL;
 
 		devices[i] = device_path;
 	}
 
-	return devices;
-
-error:
-	for (int i = 0; i < ndev; i++)
-		free(namelist[i]);
-	free(namelist);
-	if (devices)
-		strv_free(devices);
-	return NULL;
+	return steal(&devices);
 }
 
 static char *
@@ -2111,27 +2070,24 @@ add_source(struct record_context *ctx,
 	   source_dispatch_t dispatch,
 	   void *user_data)
 {
-	struct source *source;
-	struct epoll_event ep;
-
 	assert(fd != -1);
 
-	source = zalloc(sizeof *source);
+	_autofree_ struct source *source = zalloc(sizeof *source);
 	source->dispatch = dispatch;
 	source->user_data = user_data;
 	source->fd = fd;
-	list_append(&ctx->sources, &source->link);
 
+	struct epoll_event ep;
 	memset(&ep, 0, sizeof ep);
 	ep.events = EPOLLIN;
 	ep.data.ptr = source;
 
 	if (epoll_ctl(ctx->epoll_fd, EPOLL_CTL_ADD, fd, &ep) < 0) {
-		free(source);
 		return NULL;
 	}
 
-	return source;
+	list_append(&ctx->sources, &source->link);
+	return steal(&source);
 }
 
 static void
@@ -2408,24 +2364,21 @@ mainloop(struct record_context *ctx)
 static bool
 init_device(struct record_context *ctx, const char *path, bool grab)
 {
-	struct record_device *d;
-	int fd, rc;
-
-	d = zalloc(sizeof(*d));
+	_autofree_ struct record_device *d = zalloc(sizeof(*d));
 	d->ctx = ctx;
 	d->devnode = safe_strdup(path);
 
 	list_init(&d->hidraw_devices);
 
-	fd = open(d->devnode, O_RDONLY|O_NONBLOCK);
+	_cleanup_(xclose) int fd = open(d->devnode, O_RDONLY|O_NONBLOCK);
 	if (fd < 0) {
 		fprintf(stderr,
 			"Failed to open device %s (%m)\n",
 			d->devnode);
-		goto error;
+		return false;
 	}
 
-	rc = libevdev_new_from_fd(fd, &d->evdev);
+	int rc = libevdev_new_from_fd(fd, &d->evdev);
 	if (rc == 0)
 		rc = libevdev_new_from_fd(fd, &d->evdev_prev);
 	if (rc != 0) {
@@ -2433,7 +2386,7 @@ init_device(struct record_context *ctx, const char *path, bool grab)
 			"Failed to create context for %s (%s)\n",
 			d->devnode,
 			strerror(-rc));
-		goto error;
+		return false;
 	}
 
 	if (grab) {
@@ -2443,7 +2396,7 @@ init_device(struct record_context *ctx, const char *path, bool grab)
 				"Grab failed on %s: %s\n",
 				path,
 				strerror(-rc));
-			goto error;
+			return false;
 		}
 	}
 
@@ -2452,18 +2405,17 @@ init_device(struct record_context *ctx, const char *path, bool grab)
 	if (libevdev_get_num_slots(d->evdev) > 0)
 		d->touch.is_touch_device = true;
 
-	list_append(&ctx->devices, &d->link);
 	if (!ctx->first_device)
 		ctx->first_device = d;
+	list_take_append(&ctx->devices, d, link);
 	ctx->ndevices++;
 
-	return true;
-error:
-	close(fd);
-	free(d);
-	return false;
+	// Shut up clang-tidy
+	steal_fd(&fd);
 
+	return true;
 }
+
 static int
 open_restricted(const char *path, int flags, void *user_data)
 {
@@ -2709,7 +2661,7 @@ main(int argc, char **argv)
 	     grab = false;
 	int ndevices;
 	int rc = EXIT_FAILURE;
-	char **paths = NULL;
+	_autostrvfree_ char **paths = NULL;
 
 	list_init(&ctx.devices);
 	list_init(&ctx.sources);
@@ -2813,13 +2765,11 @@ main(int argc, char **argv)
 	} else if (ndevices >= 1) {
 		paths = strv_from_argv(ndevices, &argv[optind]);
 	} else {
-		char *path = select_device();
+		_autofree_ char *path = select_device();
 		if (path == NULL) {
 			goto out;
 		}
-
 		paths = strv_from_argv(1, &path);
-		free(path);
 	}
 
 	for (char **p = paths; *p; p++) {
@@ -2836,7 +2786,6 @@ main(int argc, char **argv)
 
 	rc = mainloop(&ctx);
 out:
-	strv_free(paths);
 	list_for_each_safe(d, &ctx.devices, link) {
 		struct hidraw *hidraw;
 

@@ -40,6 +40,7 @@
 
 #include "builddir.h"
 #include "libinput.h"
+#include "libinput-util.h"
 #include "shared.h"
 #include "util-macros.h"
 #include "util-strings.h"
@@ -381,15 +382,13 @@ tools_parse_option(int option,
 			return 1;
 
 		size_t npoints = 0;
-		double *range = double_array_from_string(optarg, ":", &npoints);
+		_autofree_ double *range = double_array_from_string(optarg, ":", &npoints);
 		if (npoints != 2 || !range || range[0] < 0.0 || range[1] > 1.0 || range[0] >= range[1]) {
-			free(range);
 			fprintf(stderr, "Invalid pressure range, must be in format \"min:max\"\n");
 			return 1;
 		}
 		options->pressure_range[0] = range[0];
 		options->pressure_range[1] = range[1];
-		free(range);
 		break;
 		}
 	case OPT_CALIBRATION: {
@@ -397,15 +396,13 @@ tools_parse_option(int option,
 			return 1;
 
 		size_t npoints = 0;
-		double *matrix = double_array_from_string(optarg, " ", &npoints);
+		_autofree_ double *matrix = double_array_from_string(optarg, " ", &npoints);
 		if (!matrix || npoints != 6) {
-			free(matrix);
 			fprintf(stderr, "Invalid calibration matrix, must be 6 space-separated values\n");
 			return 1;
 		}
 		for (size_t i = 0; i < 6; i++)
 			options->calibration[i] =  matrix[i];
-		free(matrix);
 		break;
 	}
 	case OPT_AREA: {
@@ -473,18 +470,16 @@ static const struct libinput_interface interface = {
 static struct libinput *
 tools_open_udev(const char *seat, bool verbose, bool *grab)
 {
-	struct libinput *li;
-	struct udev *udev = udev_new();
-
+	_unref_(udev) *udev = udev_new();
 	if (!udev) {
 		fprintf(stderr, "Failed to initialize udev\n");
 		return NULL;
 	}
 
-	li = libinput_udev_create_context(&interface, grab, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&interface, grab, udev);
 	if (!li) {
 		fprintf(stderr, "Failed to initialize context from udev\n");
-		goto out;
+		return NULL;
 	}
 
 	libinput_log_set_handler(li, log_handler);
@@ -493,24 +488,16 @@ tools_open_udev(const char *seat, bool verbose, bool *grab)
 
 	if (libinput_udev_assign_seat(li, seat)) {
 		fprintf(stderr, "Failed to set seat\n");
-		libinput_unref(li);
-		li = NULL;
-		goto out;
+		return NULL;
 	}
 
-out:
-	udev_unref(udev);
-	return li;
+	return steal(&li);
 }
 
 static struct libinput *
 tools_open_device(const char **paths, bool verbose, bool *grab)
 {
-	struct libinput_device *device;
-	struct libinput *li;
-	const char **p = paths;
-
-	li = libinput_path_create_context(&interface, grab);
+	_unref_(libinput) *li = libinput_path_create_context(&interface, grab);
 	if (!li) {
 		fprintf(stderr, "Failed to initialize path context\n");
 		return NULL;
@@ -521,26 +508,24 @@ tools_open_device(const char **paths, bool verbose, bool *grab)
 		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
 	}
 
+	const char **p = paths;
 	while (*p) {
-		device = libinput_path_add_device(li, *p);
+		struct libinput_device *device = libinput_path_add_device(li, *p);
 		if (!device) {
 			fprintf(stderr, "Failed to initialize device %s\n", *p);
-			libinput_unref(li);
-			li = NULL;
-			break;
+			return NULL;
 		}
 		p++;
 	}
 
-	return li;
+	return steal(&li);
 }
 
 static void
 tools_setenv_quirks_dir(void)
 {
-	if (builddir_lookup(NULL)) {
+	if (builddir_lookup(NULL))
 		setenv("LIBINPUT_QUIRKS_DIR", LIBINPUT_QUIRKS_SRCDIR, 0);
-	}
 }
 
 struct libinput *
@@ -638,7 +623,7 @@ tools_device_apply_config(struct libinput_device *device,
 	}
 
 	if (options->profile == LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM) {
-		struct libinput_config_accel *config =
+		_destroy_(libinput_config_accel) *config =
 			libinput_config_accel_create(LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
 		libinput_config_accel_set_points(config,
 						 options->custom_type,
@@ -646,7 +631,6 @@ tools_device_apply_config(struct libinput_device *device,
 						 options->custom_npoints,
 						 options->custom_points);
 		libinput_device_config_accel_apply(device, config);
-		libinput_config_accel_destroy(config);
 	}
 
 	if (options->angle != 0)
@@ -674,57 +658,43 @@ tools_tablet_tool_apply_config(struct libinput_tablet_tool *tool,
 static char*
 find_device(const char *udev_tag)
 {
-	struct udev *udev;
-	struct udev_enumerate *e = NULL;
-	struct udev_list_entry *entry = NULL;
-	struct udev_device *device;
-	const char *path, *sysname;
-	char *device_node = NULL;
-
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	if (!udev)
-		goto out;
+		return NULL;
 
-	e = udev_enumerate_new(udev);
+	_unref_(udev_enumerate) *e = udev_enumerate_new(udev);
 	udev_enumerate_add_match_subsystem(e, "input");
 	udev_enumerate_scan_devices(e);
 
+	struct udev_list_entry *entry = NULL;
 	udev_list_entry_foreach(entry, udev_enumerate_get_list_entry(e)) {
-		path = udev_list_entry_get_name(entry);
-		device = udev_device_new_from_syspath(udev, path);
+		const char *path = udev_list_entry_get_name(entry);
+		_unref_(udev_device) *device = udev_device_new_from_syspath(udev, path);
 		if (!device)
 			continue;
 
-		sysname = udev_device_get_sysname(device);
+		const char *sysname = udev_device_get_sysname(device);
 		if (!strstartswith("event", sysname)) {
-			udev_device_unref(device);
 			continue;
 		}
 
-		if (udev_device_get_property_value(device, udev_tag))
-			device_node = safe_strdup(udev_device_get_devnode(device));
-
-		udev_device_unref(device);
-
-		if (device_node)
-			break;
+		if (udev_device_get_property_value(device, udev_tag)) {
+			char *device_node = safe_strdup(udev_device_get_devnode(device));
+			if (device_node)
+				return device_node;
+		}
 	}
-out:
-	udev_enumerate_unref(e);
-	udev_unref(udev);
 
-	return device_node;
+	return NULL;
 }
 
 bool
 find_touchpad_device(char *path, size_t path_len)
 {
-	char *devnode = find_device("ID_INPUT_TOUCHPAD");
+	_autofree_ char *devnode = find_device("ID_INPUT_TOUCHPAD");
 
-	if (devnode) {
+	if (devnode)
 		snprintf(path, path_len, "%s", devnode);
-		free(devnode);
-	}
 
 	return devnode != NULL;
 }
@@ -732,29 +702,19 @@ find_touchpad_device(char *path, size_t path_len)
 bool
 is_touchpad_device(const char *devnode)
 {
-	struct udev *udev;
-	struct udev_device *dev = NULL;
 	struct stat st;
-	bool is_touchpad = false;
-
 	if (stat(devnode, &st) < 0)
 		return false;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	if (!udev)
-		goto out;
+		return false;
 
-	dev = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
+	_unref_(udev_device) *dev = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
 	if (!dev)
-		goto out;
+		return false;
 
-	is_touchpad = udev_device_get_property_value(dev, "ID_INPUT_TOUCHPAD");
-out:
-	if (dev)
-		udev_device_unref(dev);
-	udev_unref(udev);
-
-	return is_touchpad;
+	return udev_device_get_property_value(dev, "ID_INPUT_TOUCHPAD");
 }
 
 static inline void
@@ -763,7 +723,7 @@ setup_path(void)
 	const char *path = getenv("PATH");
 	char new_path[PATH_MAX];
 	const char *extra_path = LIBINPUT_TOOL_PATH;
-	char *builddir = NULL;
+	_autofree_ char *builddir = NULL;
 
 	builddir_lookup(&builddir);
 	snprintf(new_path,
@@ -772,7 +732,6 @@ setup_path(void)
 		 builddir ? builddir : extra_path,
 		 path ? path : "");
 	setenv("PATH", new_path, 1);
-	free(builddir);
 }
 
 int
@@ -881,10 +840,9 @@ tools_list_device_quirks(struct quirks_context *ctx,
 {
 	char buf[256];
 
-	struct quirks *quirks;
 	enum quirk q;
 
-	quirks = quirks_fetch_for_device(ctx, device);
+	_unref_(quirks) *quirks = quirks_fetch_for_device(ctx, device);
 	if (!quirks)
 		return;
 
@@ -969,6 +927,4 @@ tools_list_device_quirks(struct quirks_context *ctx,
 			}
 		}
 	} while(++q < _QUIRK_LAST_ATTR_QUIRK_);
-
-	quirks_unref(quirks);
 }
