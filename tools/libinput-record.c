@@ -2567,14 +2567,14 @@ init_hidraw(struct record_context *ctx)
 static void
 usage(void)
 {
-	printf("Usage: %s [--help] [--all] [--autorestart] [--output-file filename] [/dev/input/event0] [...]\n"
+	printf("Usage: %s [--help] [--all] [--autorestart=2] [--output-file filename] [/dev/input/event0] [...]\n"
 	       "Common use-cases:\n"
 	       "\n"
 	       " sudo %s -o recording.yml\n"
 	       "    Then select the device to record and it Ctrl+C to stop.\n"
 	       "    The recorded data is in recording.yml and can be attached to a bug report.\n"
 	       "\n"
-	       " sudo %s -o recording.yml --autorestart 2\n"
+	       " sudo %s -o recording.yml --autorestart=2\n"
 	       "    As above, but restarts after 2s of inactivity on the device.\n"
 	       "    Note, the output file is only the prefix.\n"
 	       "\n"
