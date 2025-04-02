@@ -26,6 +26,7 @@
 
 #include <stdbool.h>
 #include <limits.h>
+#include <getopt.h>
 
 #include <quirks.h>
 #include <libinput.h>
