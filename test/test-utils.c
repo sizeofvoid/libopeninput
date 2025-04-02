@@ -1871,9 +1871,8 @@ START_TEST(stringbuf_test)
 		rc = stringbuf_append_from_fd(b, pipefd[0], 64);
 		litest_assert_neg_errno_success(rc);
 
-		char *expected;
-		rc = xasprintf(&expected, "%s%s", compare ? compare : "", str);
-		litest_assert_neg_errno_success(rc);
+		char *expected = strdup_printf("%s%s", compare ? compare : "", str);
+		litest_assert_ptr_notnull(expected);
 		litest_assert_str_eq(b->data, expected);
 
 		free(compare);

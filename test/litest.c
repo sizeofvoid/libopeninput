@@ -1389,15 +1389,11 @@ litest_init_all_device_udev_rules(struct list *created_files)
 {
 	struct created_file *file = zalloc(sizeof(*file));
 	struct litest_test_device *dev;
-	char *path = NULL;
 	FILE *f;
-	int rc;
 	int fd;
 
-	rc = xasprintf(&path,
-		      "%s/99-litest-XXXXXX.rules",
-		      UDEV_RULES_D);
-	litest_assert_errno_success(rc);
+	char *path = strdup_printf("%s/99-litest-XXXXXX.rules", UDEV_RULES_D);
+	litest_assert_ptr_notnull(path);
 
 	fd = mkstemps(path, 6);
 	litest_assert_errno_success(fd);

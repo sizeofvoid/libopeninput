@@ -632,8 +632,7 @@ START_TEST(quirks_parse_product_too_many)
 		snprintf(&matches[len], remaining, "0x%04X", i);
 	}
 
-	char *quirks_file = NULL;
-	xasprintf(&quirks_file, "%s%s%s", prologue, matches, epilogue);
+	char *quirks_file = strdup_printf("%s%s%s", prologue, matches, epilogue);
 	struct data_dir dd = make_data_dir(quirks_file);
 
 	free(quirks_file);
@@ -1443,7 +1442,6 @@ START_TEST(quirks_model_override)
 	struct litest_device *dev = litest_current_device();
 	struct udev_device *ud = libinput_device_get_udev_device(dev->libinput_device);
 	struct quirks_context *ctx;
-	char *quirks_file;
 	struct data_dir dd;
 	struct quirks *q;
 	bool isset;
@@ -1451,17 +1449,16 @@ START_TEST(quirks_model_override)
 
 	/* Test model quirks override by setting, then unsetting (or the
 	   other way round) */
-	int rc = xasprintf(&quirks_file,
-			   "[first]\n"
-			   "MatchUdevType=mouse\n"
-			   "ModelAppleTouchpad=%d\n"
-			   "\n"
-			   "[second]\n"
-			   "MatchUdevType=mouse\n"
-			   "ModelAppleTouchpad=%d\n",
-			   set ? 0 : 1,
-			   set ? 1 : 0);
-	litest_assert_int_ne(rc, -1);
+	char *quirks_file= strdup_printf("[first]\n"
+					 "MatchUdevType=mouse\n"
+					 "ModelAppleTouchpad=%d\n"
+					 "\n"
+					 "[second]\n"
+					 "MatchUdevType=mouse\n"
+					 "ModelAppleTouchpad=%d\n",
+					 set ? 0 : 1,
+					 set ? 1 : 0);
+	litest_assert_ptr_notnull(quirks_file);
 
 	dd = make_data_dir(quirks_file);
 

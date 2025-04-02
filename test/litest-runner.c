@@ -363,9 +363,8 @@ valgrind_logfile(pid_t pid)
 	if (!prefix)
 		prefix = ".";
 
-	char *filename = NULL;
-	int rc = xasprintf(&filename, "%s/valgrind.%d.log", prefix, pid);
-	litest_assert_neg_errno_success(rc);
+	char *filename = strdup_printf("%s/valgrind.%d.log", prefix, pid);
+	litest_assert_ptr_notnull(filename);
 
 	return filename;
 }
@@ -375,8 +374,7 @@ collect_file(const char *filename, struct stringbuf *b)
 {
 	int fd = open(filename, O_RDONLY);
 	if (fd == -1) {
-		char *msg;
-		xasprintf(&msg, "Failed to find '%s': %m", filename);
+		char *msg = strdup_printf("Failed to find '%s': %m", filename);
 		stringbuf_append_string(b, msg);
 		free(msg);
 	} else {
