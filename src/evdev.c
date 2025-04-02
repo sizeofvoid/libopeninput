@@ -53,6 +53,7 @@
 #define DEFAULT_BUTTON_SCROLL_TIMEOUT ms2us(200)
 
 enum evdev_device_udev_tags {
+	EVDEV_UDEV_TAG_NONE		= 0,
 	EVDEV_UDEV_TAG_INPUT		= bit(0),
 	EVDEV_UDEV_TAG_KEYBOARD		= bit(1),
 	EVDEV_UDEV_TAG_MOUSE		= bit(2),
@@ -1690,7 +1691,7 @@ static enum evdev_device_udev_tags
 evdev_device_get_udev_tags(struct evdev_device *device,
 			   struct udev_device *udev_device)
 {
-	enum evdev_device_udev_tags tags = 0;
+	enum evdev_device_udev_tags tags = EVDEV_UDEV_TAG_NONE;
 	int i;
 
 	for (i = 0; i < 2 && udev_device; i++) {
@@ -2432,7 +2433,7 @@ evdev_device_create(struct libinput_seat *seat,
 					 libevdev_log_func,
 					 LIBEVDEV_LOG_ERROR,
 					 libinput);
-	device->seat_caps = 0;
+	device->seat_caps = EVDEV_DEVICE_NO_CAPABILITIES;
 	device->is_mt = 0;
 	device->mtdev = NULL;
 	device->udev_device = udev_device_ref(udev_device);
@@ -2464,7 +2465,7 @@ evdev_device_create(struct libinput_seat *seat,
 	evdev_pre_configure_model_quirks(device);
 
 	device->dispatch = evdev_configure_device(device);
-	if (device->dispatch == NULL || device->seat_caps == 0)
+	if (device->dispatch == NULL || device->seat_caps == EVDEV_DEVICE_NO_CAPABILITIES)
 		goto err;
 
 	device->source =
@@ -2485,7 +2486,7 @@ err:
 	if (fd >= 0) {
 		close_restricted(libinput, fd);
 		if (device) {
-			unhandled_device = device->seat_caps == 0;
+			unhandled_device = device->seat_caps == EVDEV_DEVICE_NO_CAPABILITIES;
 			evdev_device_destroy(device);
 		}
 	}

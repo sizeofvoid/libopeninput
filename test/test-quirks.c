@@ -1568,13 +1568,13 @@ START_TEST(quirks_call_NULL)
 {
 	litest_assert(!quirks_fetch_for_device(NULL, NULL));
 
-	litest_assert(!quirks_get_uint32(NULL, 0, NULL));
-	litest_assert(!quirks_get_int32(NULL, 0, NULL));
-	litest_assert(!quirks_get_range(NULL, 0, NULL));
-	litest_assert(!quirks_get_dimensions(NULL, 0, NULL));
-	litest_assert(!quirks_get_double(NULL, 0, NULL));
-	litest_assert(!quirks_get_string(NULL, 0, NULL));
-	litest_assert(!quirks_get_bool(NULL, 0, NULL));
+	litest_assert(!quirks_get_uint32(NULL, QUIRK_NONE, NULL));
+	litest_assert(!quirks_get_int32(NULL, QUIRK_NONE, NULL));
+	litest_assert(!quirks_get_range(NULL, QUIRK_NONE, NULL));
+	litest_assert(!quirks_get_dimensions(NULL, QUIRK_NONE, NULL));
+	litest_assert(!quirks_get_double(NULL, QUIRK_NONE, NULL));
+	litest_assert(!quirks_get_string(NULL, QUIRK_NONE, NULL));
+	litest_assert(!quirks_get_bool(NULL, QUIRK_NONE, NULL));
 }
 END_TEST
 

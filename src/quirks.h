@@ -63,6 +63,7 @@ struct quirk_tuples {
  * Quirks known to libinput
  */
 enum quirk {
+	QUIRK_NONE = 0,
 	QUIRK_MODEL_ALPS_SERIAL_TOUCHPAD = 100,
 	QUIRK_MODEL_APPLE_TOUCHPAD,
 	QUIRK_MODEL_APPLE_TOUCHPAD_ONEBUTTON,

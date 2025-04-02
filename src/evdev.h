@@ -43,7 +43,7 @@
 #define EVDEV_FAKE_RESOLUTION 1
 
 enum evdev_event_type {
-	EVDEV_NONE,
+	EVDEV_NONE			= 0,
 	EVDEV_ABSOLUTE_TOUCH_DOWN	= bit(0),
 	EVDEV_ABSOLUTE_MOTION		= bit(1),
 	EVDEV_ABSOLUTE_TOUCH_UP		= bit(2),
@@ -55,6 +55,7 @@ enum evdev_event_type {
 };
 
 enum evdev_device_seat_capability {
+	EVDEV_DEVICE_NO_CAPABILITIES	= 0,
 	EVDEV_DEVICE_POINTER		= bit(0),
 	EVDEV_DEVICE_KEYBOARD		= bit(1),
 	EVDEV_DEVICE_TOUCH		= bit(2),
@@ -65,6 +66,7 @@ enum evdev_device_seat_capability {
 };
 
 enum evdev_device_tags {
+	EVDEV_TAG_NONE			= 0,
 	EVDEV_TAG_EXTERNAL_MOUSE	= bit(0),
 	EVDEV_TAG_INTERNAL_TOUCHPAD	= bit(1),
 	EVDEV_TAG_EXTERNAL_TOUCHPAD	= bit(2),
