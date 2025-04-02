@@ -43,6 +43,7 @@
 #include "util-range.h"
 #include "util-prop-parsers.h"
 #include "util-time.h"
+#include "util-mem.h"
 
 #define VENDOR_ID_APPLE 0x5ac
 #define VENDOR_ID_CHICONY 0x4f2
@@ -75,5 +76,22 @@
 #define bit(x_) (1UL << (x_))
 #define NBITS(b) (b * 8)
 #endif
+
+/* Commonly-used cleanup  */
+#ifdef udev_list_entry_foreach
+DEFINE_UNREF_CLEANUP_FUNC(udev);
+DEFINE_UNREF_CLEANUP_FUNC(udev_device);
+DEFINE_UNREF_CLEANUP_FUNC(udev_enumerate);
+DEFINE_UNREF_CLEANUP_FUNC(udev_monitor);
+#endif
+#ifdef LIBEVDEV_ATTRIBUTE_PRINTF
+DEFINE_FREE_CLEANUP_FUNC(libevdev);
+#endif
+DEFINE_UNREF_CLEANUP_FUNC(libinput);
+DEFINE_UNREF_CLEANUP_FUNC(libinput_device);
+DEFINE_UNREF_CLEANUP_FUNC(libinput_tablet_tool);
+DEFINE_UNREF_CLEANUP_FUNC(libinput_seat);
+DEFINE_DESTROY_CLEANUP_FUNC(libinput_event);
+DEFINE_DESTROY_CLEANUP_FUNC(libinput_config_accel);
 
 #endif /* LIBINPUT_UTIL_H */
