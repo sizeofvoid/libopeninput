@@ -41,8 +41,44 @@
 #include "libinput-private-config.h"
 #include "libinput-util.h"
 #include "libinput-version.h"
+#include "util-newtype.h"
 
 struct libinput_source;
+
+/* The tablet tool pressure offset */
+DECLARE_NEWTYPE(pressure_offset, double);
+
+static inline pressure_offset_t
+pressure_offset_from_range(double min, double max, double value)
+{
+	return pressure_offset_from_double((value - min)/ (max - min));
+}
+
+static inline pressure_offset_t
+pressure_offset_from_hundred(double hundred)
+{
+	assert(hundred >= 0);
+	assert(hundred <= 100);
+	return pressure_offset_from_double(hundred/100);
+}
+
+static inline double
+pressure_offset_to_hundred(pressure_offset_t pressure_offset)
+{
+	return pressure_offset_as_double(pressure_offset) * 100;
+}
+
+static inline pressure_offset_t
+pressure_offset_from_absinfo(const struct input_absinfo *abs, int value)
+{
+	return pressure_offset_from_range(abs->minimum, abs->maximum, value);
+}
+
+static inline int
+pressure_offset_to_absinfo(pressure_offset_t pressure_offset, const struct input_absinfo *abs)
+{
+	return (abs->maximum - abs->minimum) * pressure_offset_as_double(pressure_offset) + abs->minimum;
+}
 
 /* A coordinate pair in device coordinates */
 struct device_coords {
@@ -493,7 +529,7 @@ struct libinput_tablet_tool_pressure_threshold {
 	/* The configured axis we actually work with */
 	struct input_absinfo abs_pressure;
 	struct threshold threshold; /* in device coordinates */
-	int offset; /* in device coordinates */
+	pressure_offset_t offset;
 	bool has_offset;
 
 	/* This gives us per-tablet heuristic state which is arguably
@@ -520,9 +556,7 @@ struct libinput_tablet_tool {
 		struct normalized_range wanted_range;
 		bool has_configured_range;
 
-		/* Hard-coded because I doubt we have users with more
-		 * than 4 tablets at the same time */
-		struct libinput_tablet_tool_pressure_threshold thresholds[4];
+		struct libinput_tablet_tool_pressure_threshold threshold;
 	} pressure;
 
 	struct {

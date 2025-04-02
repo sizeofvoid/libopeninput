@@ -76,21 +76,7 @@ static struct libinput_tablet_tool_pressure_threshold*
 tablet_tool_get_threshold(struct tablet_dispatch *tablet,
 			   struct libinput_tablet_tool *tool)
 {
-	ARRAY_FOR_EACH(tool->pressure.thresholds, threshold) {
-		if (threshold->tablet_id == tablet->tablet_id) {
-			return threshold;
-		}
-	}
-
-	/* If we ever get here, we failed detecting the proximity for this tablet
-	 * (or we have too many tablets). Return the first one which will
-	 * make things work incorrectly but we don't need to NULL-check
-	 * everything for an extremely unlikely situtation */
-	evdev_log_bug_libinput(tablet->device,
-			       "Failed to find tablet_id %d for pressure offsets\n",
-			       tablet->tablet_id);
-
-	return &tool->pressure.thresholds[0];
+	return &tool->pressure.threshold;
 }
 
 /* Merge the previous state with the current one so all buttons look like
@@ -1213,40 +1199,8 @@ apply_pressure_range_configuration(struct tablet_dispatch *tablet,
 	     tool->pressure.range.max == tool->pressure.wanted_range.max))
 		return;
 
-	double min = tool->pressure.wanted_range.min;
-	double max = tool->pressure.wanted_range.max;
-
-	struct input_absinfo abs = *libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
-
-	int minimum = axis_range_percentage(&abs, min * 100.0);
-	int maximum = axis_range_percentage(&abs, max * 100.0);
-
-	abs.minimum = minimum;
-	abs.maximum = maximum;
-
-	/* Only use the quirk pressure range if we don't have a custom range */
-	int hi, lo;
-	if (tool->pressure.wanted_range.min != 0.0 ||
-	    tool->pressure.wanted_range.max != 1.0 ||
-	    !tablet_get_quirked_pressure_thresholds(tablet, &hi, &lo)) {
-		/* 5 and 1% of the pressure range */
-		hi = axis_range_percentage(&abs, 5);
-		lo = axis_range_percentage(&abs, 1);
-	}
-
-	struct libinput_tablet_tool_pressure_threshold *threshold =
-		tablet_tool_get_threshold(tablet, tool);
-	threshold->abs_pressure = abs;
-	threshold->threshold.upper = hi;
-	threshold->threshold.lower = lo;
 	tool->pressure.range.min = tool->pressure.wanted_range.min;
 	tool->pressure.range.max = tool->pressure.wanted_range.max;
-
-	/* Disable any heuristics */
-	if (tool->pressure.has_configured_range) {
-		threshold->has_offset = true;
-		threshold->heuristic_state = PRESSURE_HEURISTIC_STATE_DONE;
-	}
 }
 
 static inline void
@@ -1258,7 +1212,7 @@ tool_init_pressure_thresholds(struct tablet_dispatch *tablet,
 	const struct input_absinfo *pressure, *distance;
 
 	threshold->tablet_id = tablet->tablet_id;
-	threshold->offset = 0;
+	threshold->offset = pressure_offset_from_double(0.0);
 	threshold->has_offset = false;
 	threshold->threshold.upper = 1;
 	threshold->threshold.lower = 0;
@@ -1271,10 +1225,10 @@ tool_init_pressure_thresholds(struct tablet_dispatch *tablet,
 
 	distance = libevdev_get_abs_info(device->evdev, ABS_DISTANCE);
 	if (distance) {
-		threshold->offset = pressure->minimum;
+		threshold->offset = pressure_offset_from_double(0.0);
 		threshold->heuristic_state = PRESSURE_HEURISTIC_STATE_DONE;
 	} else {
-		threshold->offset = pressure->maximum;
+		threshold->offset = pressure_offset_from_double(1.0);
 		threshold->heuristic_state = PRESSURE_HEURISTIC_STATE_PROXIN1;
 	}
 
@@ -1339,7 +1293,7 @@ tablet_new_tool(struct tablet_dispatch *tablet,
 		.config.pressure_range.get_default = pressure_range_get_default,
 	};
 
-	tool_init_pressure_thresholds(tablet, tool, &tool->pressure.thresholds[0]);
+	tool_init_pressure_thresholds(tablet, tool, &tool->pressure.threshold);
 	tool_set_bits(tablet, tool);
 
 	return tool;
@@ -1397,15 +1351,6 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 	if (!tool) {
 		tool = tablet_new_tool(tablet, type, tool_id, serial);
 		list_insert(tool_list, &tool->link);
-	} else {
-		ARRAY_FOR_EACH(tool->pressure.thresholds, t) {
-			if (t->tablet_id == tablet->tablet_id)
-				break;
-			if (t->tablet_id == 0) {
-				tool_init_pressure_thresholds(tablet, tool, t);
-				break;
-			}
-		}
 	}
 
 	return tool;
@@ -1540,18 +1485,20 @@ sanitize_tablet_axes(struct tablet_dispatch *tablet,
 }
 
 static void
-set_pressure_offset(struct libinput_tablet_tool_pressure_threshold *threshold, int offset)
+set_pressure_offset(struct libinput_tablet_tool_pressure_threshold *threshold,
+		    pressure_offset_t offset_in_percent)
 {
-	threshold->offset = offset;
+	threshold->offset = offset_in_percent;
 	threshold->has_offset = true;
 
 	/* Adjust the tresholds accordingly - we use the same gap (4% in
 	 * device coordinates) between upper and lower as before which isn't
 	 * technically correct (our range shrunk) but it's easy to calculate.
 	 */
+	int units = pressure_offset_to_absinfo(offset_in_percent, &threshold->abs_pressure);
 	int gap = threshold->threshold.upper - threshold->threshold.lower;
-	threshold->threshold.lower = offset;
-	threshold->threshold.upper = offset + gap;
+	threshold->threshold.lower = units;
+	threshold->threshold.upper = units + gap;
 }
 
 static void
@@ -1574,14 +1521,14 @@ update_pressure_offset(struct tablet_dispatch *tablet,
 	 * If we are still pending the offset decision, only update the observed
 	 * offset value, don't actually set it to have an offset.
 	 */
-	int offset = pressure->value;
+	pressure_offset_t offset = pressure_offset_from_absinfo(pressure, pressure->value);
 	struct libinput_tablet_tool_pressure_threshold *threshold =
 		tablet_tool_get_threshold(tablet, tool);
 	if (threshold->has_offset) {
-		if (offset < threshold->offset)
+		if (pressure_offset_cmp(offset, threshold->offset) < 0)
 			set_pressure_offset(threshold, offset);
 	} else if (threshold->heuristic_state != PRESSURE_HEURISTIC_STATE_DONE) {
-		threshold->offset = min(offset, threshold->offset);
+		threshold->offset = pressure_offset_min(offset, threshold->offset);
 	}
 }
 
@@ -1591,7 +1538,6 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 		       struct libinput_tablet_tool *tool)
 {
 	const struct input_absinfo *pressure, *distance;
-	int offset;
 
 	if (tool->pressure.has_configured_range ||
 	    !bit_is_set(tablet->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_PRESSURE))
@@ -1608,10 +1554,11 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 	if (!pressure)
 		return;
 
-	offset = pressure->value;
-	if (offset <= pressure->minimum)
+	int units = pressure->value;
+	if (units <= pressure->minimum)
 		return;
 
+	pressure_offset_t offset = pressure_offset_from_absinfo(pressure, units);
 	if (distance) {
 		/* If we're closer than 50% of the distance axis, skip pressure
 		 * offset detection, too likely to be wrong */
@@ -1624,8 +1571,8 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
                  * offset is updated during motion events so by the time the
                  * deciding prox-in arrives we should know the minimum offset.
                  */
-                if (offset > pressure->minimum)
-			threshold->offset = min(offset, threshold->offset);
+                if (units > pressure->minimum)
+			threshold->offset = pressure_offset_min(offset, threshold->offset);
 
 		switch (threshold->heuristic_state) {
 		case PRESSURE_HEURISTIC_STATE_PROXIN1:
@@ -1634,6 +1581,7 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 			return;
 		case PRESSURE_HEURISTIC_STATE_DECIDE:
 			threshold->heuristic_state++;
+			units = pressure_offset_to_absinfo(threshold->offset, pressure);
 			offset = threshold->offset;
 			break;
 		case PRESSURE_HEURISTIC_STATE_DONE:
@@ -1641,10 +1589,11 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 		}
 	}
 
-	if (offset <= pressure->minimum)
+	if (units <= pressure->minimum) {
 		return;
+	}
 
-	if (offset > axis_range_percentage(pressure, 50)) {
+	if (pressure_offset_gt(offset, 0.5)) {
 		evdev_log_error(device,
 			 "Ignoring pressure offset greater than 50%% detected on tool %s (serial %#x). "
 			 "See %s/tablet-support.html\n",
@@ -2183,6 +2132,48 @@ tablet_get_current_tool(struct tablet_dispatch *tablet)
 }
 
 static void
+update_pressure_range(struct tablet_dispatch *tablet,
+		      struct evdev_device *device,
+		      struct libinput_tablet_tool *tool)
+{
+	double min = tool->pressure.range.min;
+	double max = tool->pressure.range.max;
+
+	struct input_absinfo abs = *libevdev_get_abs_info(device->evdev, ABS_PRESSURE);
+
+	int minimum = axis_range_percentage(&abs, min * 100.0);
+	int maximum = axis_range_percentage(&abs, max * 100.0);
+
+	abs.minimum = minimum;
+	abs.maximum = maximum;
+
+	/* Only use the quirk pressure range if we don't have a custom range */
+	int hi, lo;
+	if (tool->pressure.range.min != 0.0 ||
+	    tool->pressure.range.max != 1.0 ||
+	    !tablet_get_quirked_pressure_thresholds(tablet, &hi, &lo)) {
+		/* 5 and 1% of the pressure range */
+		hi = axis_range_percentage(&abs, 5);
+		lo = axis_range_percentage(&abs, 1);
+	}
+
+	struct libinput_tablet_tool_pressure_threshold *threshold =
+		tablet_tool_get_threshold(tablet, tool);
+	threshold->abs_pressure = abs;
+	threshold->threshold.upper = hi;
+	threshold->threshold.lower = lo;
+
+	if (threshold->has_offset)
+		set_pressure_offset(threshold, threshold->offset);
+
+	/* Disable any heuristics */
+	if (tool->pressure.has_configured_range) {
+		threshold->has_offset = true;
+		threshold->heuristic_state = PRESSURE_HEURISTIC_STATE_DONE;
+	}
+}
+
+static void
 tablet_flush(struct tablet_dispatch *tablet,
 	     struct evdev_device *device,
 	     uint64_t time)
@@ -2234,6 +2225,7 @@ reprocess:
 			const double margin = 0.03;
 			if (is_inside_area(tablet, &point, margin)) {
 				tablet_mark_all_axes_changed(tablet, tool);
+				update_pressure_range(tablet, device, tool);
 				update_pressure_offset(tablet, device, tool);
 				detect_pressure_offset(tablet, device, tool);
 				detect_tool_contact(tablet, device, tool);
@@ -2453,15 +2445,6 @@ tablet_destroy(struct evdev_dispatch *dispatch)
 
 	libinput_timer_cancel(&tablet->quirks.prox_out_timer);
 	libinput_timer_destroy(&tablet->quirks.prox_out_timer);
-
-	list_for_each(tool, &li->tool_list, link) {
-		ARRAY_FOR_EACH(tool->pressure.thresholds, threshold) {
-			if (threshold->tablet_id == tablet->tablet_id) {
-				threshold->tablet_id = 0;
-				break;
-			}
-		}
-	}
 
 	list_for_each_safe(tool, &tablet->tool_list, link) {
 		libinput_tablet_tool_unref(tool);
