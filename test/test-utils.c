@@ -41,6 +41,7 @@
 #include "util-stringbuf.h"
 #include "util-matrix.h"
 #include "util-input-event.h"
+#include "util-newtype.h"
 
 #include "litest.h"
 
@@ -1954,6 +1955,84 @@ START_TEST(multivalue_test)
 }
 END_TEST
 
+DECLARE_NEWTYPE(newint, int);
+DECLARE_NEWTYPE(newdouble, double);
+
+START_TEST(newtype_test)
+{
+	{
+		newint_t n1 = newint_from_int(1);
+		newint_t n2 = newint_from_int(2);
+
+		litest_assert_int_eq(newint(n1), 1);
+		litest_assert_int_eq(newint_as_int(n1), 1);
+		litest_assert_int_eq(newint(n2), 2);
+		litest_assert_int_eq(newint_as_int(n2), 2);
+
+		litest_assert_int_eq(newint_cmp(n1, n2), -1);
+		litest_assert_int_eq(newint_cmp(n1, n1), 0);
+		litest_assert_int_eq(newint_cmp(n2, n1), 1);
+
+		newint_t copy = newint_copy(n1);
+		litest_assert_int_eq(newint_cmp(n1, copy), 0);
+
+		newint_t min = newint_min(n1, n2);
+		newint_t max = newint_max(n1, n2);
+		litest_assert_int_eq(newint_cmp(min, n1), 0);
+		litest_assert_int_eq(newint_cmp(max, n2), 0);
+
+		litest_assert(newint_gt(n1, 0));
+		litest_assert(newint_eq(n1, 1));
+		litest_assert(newint_ge(n1, 1));
+		litest_assert(newint_le(n1, 1));
+		litest_assert(newint_ne(n1, 2));
+		litest_assert(newint_lt(n1, 2));
+
+		litest_assert(!newint_gt(n1, 1));
+		litest_assert(!newint_eq(n1, 0));
+		litest_assert(!newint_ge(n1, 2));
+		litest_assert(!newint_le(n1, 0));
+		litest_assert(!newint_ne(n1, 1));
+		litest_assert(!newint_lt(n1, 1));
+	}
+	{
+		newdouble_t n1 = newdouble_from_double(1.2);
+		newdouble_t n2 = newdouble_from_double(2.3);
+
+		litest_assert_double_eq(newdouble(n1), 1.2);
+		litest_assert_double_eq(newdouble_as_double(n1), 1.2);
+		litest_assert_double_eq(newdouble(n2), 2.3);
+		litest_assert_double_eq(newdouble_as_double(n2), 2.3);
+
+		litest_assert_int_eq(newdouble_cmp(n1, n2), -1);
+		litest_assert_int_eq(newdouble_cmp(n1, n1), 0);
+		litest_assert_int_eq(newdouble_cmp(n2, n1), 1);
+
+		newdouble_t copy = newdouble_copy(n1);
+		litest_assert_int_eq(newdouble_cmp(n1, copy), 0);
+
+		newdouble_t min = newdouble_min(n1, n2);
+		newdouble_t max = newdouble_max(n1, n2);
+		litest_assert_int_eq(newdouble_cmp(min, n1), 0);
+		litest_assert_int_eq(newdouble_cmp(max, n2), 0);
+
+		litest_assert(newdouble_gt(n1, 0.0));
+		litest_assert(newdouble_eq(n1, 1.2));
+		litest_assert(newdouble_ge(n1, 1.2));
+		litest_assert(newdouble_le(n1, 1.2));
+		litest_assert(newdouble_ne(n1, 2.3));
+		litest_assert(newdouble_lt(n1, 2.3));
+
+		litest_assert(!newdouble_gt(n1, 1.2));
+		litest_assert(!newdouble_eq(n1, 0.0));
+		litest_assert(!newdouble_ge(n1, 2.3));
+		litest_assert(!newdouble_le(n1, 0.0));
+		litest_assert(!newdouble_ne(n1, 1.2));
+		litest_assert(!newdouble_lt(n1, 1.2));
+	}
+}
+END_TEST
+
 int main(void)
 {
 	struct litest_runner *runner = litest_runner_new();
@@ -2019,6 +2098,8 @@ int main(void)
 	ADD_TEST(range_test);
 	ADD_TEST(stringbuf_test);
 	ADD_TEST(multivalue_test);
+
+	ADD_TEST(newtype_test);
 
 	enum litest_runner_result result = litest_runner_run_tests(runner);
 	litest_runner_destroy(runner);
