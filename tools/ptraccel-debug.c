@@ -51,7 +51,7 @@ print_ptraccel_deltas(struct motion_filter *filter, double step)
 	printf("#\n");
 
 	/* Accel flattens out after 15 and becomes linear */
-	for (i = 0.0; i < 15.0; i += step) {
+	for (i = 0.0; i < 15.0; i += step) { // NOLINT: security.FloatLoopCounter
 		motion.x = i;
 		motion.y = 0;
 		time += us(12500); /* pretend 80Hz data */
@@ -162,7 +162,7 @@ print_accel_func(struct motion_filter *filter,
 	printf("# plot \"gnuplot.data\" using 1:2 title 'accel factor'\n");
 	printf("#\n");
 	printf("# data: velocity(mm/s) factor velocity(units/us) velocity(units/ms)\n");
-	for (mmps = 0.0; mmps < 1000.0; mmps += 1) {
+	for (mmps = 0.0; mmps < 1000.0; mmps += 1) { // NOLINT: security.FloatLoopCounter
 		double units_per_us = mmps_to_upus(mmps, dpi);
 		double units_per_ms = units_per_us * 1000.0;
 		double result = profile(filter, NULL, units_per_us, 0 /* time */);
