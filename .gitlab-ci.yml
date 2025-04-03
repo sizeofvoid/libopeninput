@@ -95,12 +95,12 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2024-05-13.0'
-  DEBIAN_TAG:  '2024-05-13.0'
-  UBUNTU_TAG:  '2024-05-13.0'
-  ARCH_TAG:    '2024-05-13.0'
-  ALPINE_TAG:  '2024-05-13.0'
-  FREEBSD_TAG: '2024-05-13.0'
+  FEDORA_TAG:  '2024-04-03.1'
+  DEBIAN_TAG:  '2024-04-03.1'
+  UBUNTU_TAG:  '2024-04-03.1'
+  ARCH_TAG:    '2024-04-03.1'
+  ALPINE_TAG:  '2024-04-03.1'
+  FREEBSD_TAG: '2024-04-03.1'
 
   FDO_UPSTREAM_REPO: libinput/libinput
 
@@ -293,7 +293,7 @@ alpine:latest@container-prep:
     FDO_DISTRIBUTION_PACKAGES: $ALPINE_PACKAGES
     FDO_DISTRIBUTION_TAG: $ALPINE_TAG
 
-freebsd:13.2@container-prep:
+freebsd:14.2@container-prep:
   extends:
     - .fdo.qemu-build@freebsd
     - .policy
@@ -302,7 +302,7 @@ freebsd:13.2@container-prep:
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: '13.2'
+    FDO_DISTRIBUTION_VERSION: '14.2'
     FDO_DISTRIBUTION_PACKAGES: $FREEBSD_PACKAGES
     FDO_DISTRIBUTION_TAG: $FREEBSD_TAG
 
@@ -398,14 +398,14 @@ alpine:latest@container-clean:
     FDO_DISTRIBUTION_VERSION: 'latest'
     FDO_DISTRIBUTION_TAG: $ALPINE_TAG
 
-freebsd:13.2@container-clean:
+freebsd:14.2@container-clean:
   extends:
     - .policy
     - .container-clean
   variables:
     GIT_STRATEGY: none
     CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/freebsd/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-    FDO_DISTRIBUTION_VERSION: '13.2'
+    FDO_DISTRIBUTION_VERSION: '14.2'
     FDO_DISTRIBUTION_TAG: $FREEBSD_TAG
 
 
@@ -1171,18 +1171,18 @@ alpine:latest@default-build:
     - "alpine:latest@container-prep"
 
 
-freebsd:13.2@default-build:
+freebsd:14.2@default-build:
   stage: distro
   extends:
     - .build-in-qemu@template
     - .fdo.distribution-image@freebsd
   variables:
-    FDO_DISTRIBUTION_VERSION: '13.2'
+    FDO_DISTRIBUTION_VERSION: '14.2'
     FDO_DISTRIBUTION_TAG: $FREEBSD_TAG
     MESON_ARGS: '-Dtests=false -Ddocumentation=false' # doxygen drags down too many deps
     MESON_TEST_ARGS: '' # test suite doesn't work on BSD yet
   needs:
-    - "freebsd:13.2@container-prep"
+    - "freebsd:14.2@container-prep"
 
 
 #################################################################

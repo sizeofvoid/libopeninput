@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2024-05-13.0'
+.default_tag: &default_tag '2024-04-03.1'
 
 distributions:
   - name: fedora
@@ -148,7 +148,7 @@ distributions:
     tag: *default_tag
     qemu_based: true
     versions:
-      - '13.2'
+      - '14.2'
     packages:
       - git
       - pkgconf
