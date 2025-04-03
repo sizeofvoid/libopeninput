@@ -1,0 +1,5 @@
+# optin.core.EnumCastOutOfRange: disabled because we use a lot of "wrong" enum values for testing
+#                                and internally and don't want those values leak into the public API
+Checks: >
+  -clang-analyzer-optin.core.EnumCastOutOfRange
+WarningsAsErrors: true
