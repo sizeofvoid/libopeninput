@@ -297,7 +297,7 @@ util_headers = [
 foreach h: util_headers
 	c = configuration_data()
 	c.set_quoted('FILE', h)
-	testfile = configure_file(input : 'test/test-util-includes.c',
+	testfile = configure_file(input : 'test/test-util-includes.c.in',
 			          output : 'test-util-includes-@0@.c'.format(h),
 				  configuration : c)
 	executable('test-build-@0@'.format(h),
