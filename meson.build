@@ -915,6 +915,7 @@ endif
 		'test/litest-device-yubikey.c',
 		'test/litest-runner.c',
 		'test/litest.c',
+		'test/litest-main.c',
 	]
 
 if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
@@ -946,11 +947,9 @@ endif
 				   meson.current_build_dir() /
 				   '90-libinput-fuzz-override-litest.rules')
 
-	def_no_main = '-DLITEST_NO_MAIN'
 	if dep_check.found()
 		def_disable_backtrace = '-DLITEST_DISABLE_BACKTRACE_LOGGING'
 		defs_litest_selftest = [
-			def_no_main,
 			def_disable_backtrace,
 			'-Wno-unused',
 		]
@@ -988,7 +987,6 @@ endif
 	test_utils = executable('libinput-test-utils',
 				test_utils_sources,
 				include_directories : [includes_src, includes_include],
-				c_args : [def_no_main],
 				dependencies : deps_litest,
 				install_dir : libinput_tool_path,
 				install : get_option('install-tests'))

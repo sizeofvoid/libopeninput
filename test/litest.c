@@ -78,10 +78,9 @@
 #define UDEV_DEVICE_GROUPS_FILE UDEV_RULES_D \
 	"/80-libinput-device-groups-litest-XXXXXX.rules"
 
-static int jobs;
-static bool in_debugger = false;
-static bool verbose = false;
-static bool run_deviceless = false;
+bool verbose = false;
+bool in_debugger = false;
+bool run_deviceless = false;
 static bool use_system_rules_quirks = false;
 static bool exit_first = false;
 static FILE * outfile = NULL;
@@ -89,7 +88,7 @@ static const char *filter_test = NULL;
 static const char *filter_device = NULL;
 static const char *filter_group = NULL;
 static int filter_rangeval = INT_MIN;
-static bool use_colors = false;
+bool use_colors = false;
 
 struct param_filter {
 	char name[64];
@@ -119,7 +118,7 @@ created_file_unlink(struct created_file *f)
 	rmdir(f->path);
 }
 
-static struct suite *current_suite = NULL;
+struct suite *current_suite = NULL;
 
 static void litest_init_udev_rules(struct list *created_files_list);
 static void litest_remove_udev_rules(struct list *created_files_list);
@@ -278,27 +277,6 @@ litest_fail_comparison_str(const char *file,
 	litest_backtrace(func);
 	litest_runner_abort();
 }
-
-struct test {
-	struct list node;
-	char *name;
-	char *devname;
-	const void *func;
-	void *setup;
-	void *teardown;
-
-	struct range range;
-	int rangeval;
-	bool deviceless;
-
-	struct litest_test_parameters *params;
-};
-
-struct suite {
-	struct list node;
-	struct list tests;
-	char *name;
-};
 
 struct litest_parameter_value {
 	size_t refcnt;
@@ -710,7 +688,10 @@ void litest_generic_device_teardown(void)
 
 static struct list devices = LIST_INIT(devices); /* struct litest_test_device */
 
-static struct list all_test_suites = LIST_INIT(all_test_suites); /* struct suite */
+void litest_add_test_device(struct list *device)
+{
+	list_append(&devices, device);
+}
 
 static inline void
 litest_system(const char *command)
@@ -1685,8 +1666,8 @@ restore_tty(int tty_mode)
 	}
 }
 
-static inline enum litest_runner_result
-litest_run(struct list *suites)
+enum litest_runner_result
+litest_run(struct list *suites, int njobs)
 {
 	const struct rlimit corelimit = { 0, 0 };
 	int inhibit_lock_fd;
@@ -1716,12 +1697,12 @@ litest_run(struct list *suites)
 	 * avoid messing up our host. But if we're inside gdb or running
 	 * without forking, leave it as-is.
 	 */
-	if (!run_deviceless && jobs > 1 && !in_debugger)
+	if (!run_deviceless && njobs > 1 && !in_debugger)
 		tty_mode = disable_tty();
 
 	inhibit_lock_fd = inhibit();
 
-	enum litest_runner_result result = litest_run_suite(suites, jobs);
+	enum litest_runner_result result = litest_run_suite(suites, njobs);
 
 	close(inhibit_lock_fd);
 
@@ -4944,14 +4925,8 @@ litest_semi_mt_touch_up(struct litest_device *d,
 	litest_event(d, EV_SYN, SYN_REPORT, 0);
 }
 
-enum litest_mode {
-	LITEST_MODE_ERROR,
-	LITEST_MODE_TEST,
-	LITEST_MODE_LIST,
-};
-
-static inline enum litest_mode
-litest_parse_argv(int argc, char **argv)
+enum litest_mode
+litest_parse_argv(int argc, char **argv, int *njobs_out)
 {
 	enum {
 		OPT_EXIT_FIRST,
@@ -4988,6 +4963,7 @@ litest_parse_argv(int argc, char **argv)
 	} want_jobs = JOBS_DEFAULT;
 	char *builddir;
 	char *jobs_env;
+	int jobs = 0;
 
 	/* If we are not running from the builddir, we assume we're running
 	 * against the system as installed */
@@ -5117,201 +5093,7 @@ litest_parse_argv(int argc, char **argv)
 	if (want_jobs == JOBS_SINGLE)
 		jobs = 1;
 
+	*njobs_out = jobs;
+
 	return LITEST_MODE_TEST;
 }
-
-#ifndef LITEST_NO_MAIN
-static bool
-is_debugger_attached(void)
-{
-	int status;
-	bool rc;
-	int pid = fork();
-
-	if (pid == -1)
-		return 0;
-
-	if (pid == 0) {
-		int ppid = getppid();
-		if (ptrace(PTRACE_ATTACH, ppid, NULL, 0) == 0) {
-			waitpid(ppid, NULL, 0);
-			ptrace(PTRACE_CONT, ppid, NULL, 0);
-			ptrace(PTRACE_DETACH, ppid, NULL, 0);
-			rc = false;
-		} else {
-			rc = true;
-		}
-		_exit(rc);
-	} else {
-		waitpid(pid, &status, 0);
-		rc = WEXITSTATUS(status);
-	}
-
-	return !!rc;
-}
-
-static void
-litest_list_tests(struct list *tests)
-{
-	struct suite *s;
-	const char *last_test_name = "<invalid>";
-	const char *last_dev_name = "<invalid>";
-
-	printf("groups:\n");
-	list_for_each(s, tests, node) {
-		struct test *t;
-		printf("  - group: \"%s\"\n", s->name);
-		printf("    tests:\n");
-		list_for_each(t, &s->tests, node) {
-			bool same_test = streq(last_test_name, t->name);
-			bool same_dev = streq(last_dev_name, t->devname);
-
-			if (!same_test) {
-				printf("      - name: \"%s\"\n", t->name);
-				printf("        devices:\n");
-			}
-
-			if (!same_test || !same_dev) {
-				last_test_name = t->name;
-				last_dev_name = t->devname;
-				printf("          - name: \"%s\"\n", t->devname);
-			}
-		}
-	}
-}
-
-extern const struct test_device __start_test_device_section, __stop_test_device_section;
-
-static void
-litest_init_test_devices(struct list *devices)
-{
-	const struct test_device *t;
-	for (t = &__start_test_device_section; t < &__stop_test_device_section; t++)
-		list_append(devices, &t->device->node);
-}
-
-extern const struct test_collection __start_test_collection_section,
-				    __stop_test_collection_section;
-
-static void
-setup_tests(void)
-{
-	const struct test_collection *c;
-
-	for (c = &__start_test_collection_section;
-	     c < &__stop_test_collection_section;
-	     c++) {
-		struct suite *s;
-		s = zalloc(sizeof(*s));
-		s->name = safe_strdup(c->name);
-
-		list_init(&s->tests);
-		list_append(&all_test_suites, &s->node);
-
-		current_suite = s;
-		c->setup();
-		current_suite = NULL;
-	}
-}
-
-static int
-check_device_access(void)
-{
-	if (getuid() != 0) {
-		fprintf(stderr,
-			"%s must be run as root.\n",
-			program_invocation_short_name);
-		return 77;
-	}
-
-	if (access("/dev/uinput", F_OK) == -1 &&
-	    access("/dev/input/uinput", F_OK) == -1) {
-		fprintf(stderr,
-			"uinput device is missing, skipping tests.\n");
-		return 77;
-	}
-
-	return 0;
-}
-
-static void
-litest_free_test_list(struct list *tests)
-{
-	struct suite *s;
-
-	list_for_each_safe(s, tests, node) {
-		struct test *t;
-
-		list_for_each_safe(t, &s->tests, node) {
-			litest_test_parameters_unref(t->params);
-			free(t->name);
-			free(t->devname);
-			list_remove(&t->node);
-			free(t);
-		}
-
-		list_remove(&s->node);
-		free(s->name);
-		free(s);
-	}
-}
-
-int
-main(int argc, char **argv)
-{
-	enum litest_mode mode;
-	int rc;
-	const char *meson_testthreads;
-
-	use_colors = getenv("FORCE_COLOR") || isatty(STDERR_FILENO);
-	if (getenv("NO_COLOR"))
-		use_colors = false;
-
-	in_debugger = is_debugger_attached();
-	if (in_debugger) {
-		jobs = 0;
-	} else if ((meson_testthreads = getenv("MESON_TESTTHREADS")) == NULL ||
-		   !safe_atoi(meson_testthreads, &jobs)) {
-		jobs = get_nprocs();
-		if (!RUNNING_ON_VALGRIND)
-			jobs *= 2;
-	}
-
-	if (getenv("LITEST_VERBOSE"))
-		verbose = true;
-
-	mode = litest_parse_argv(argc, argv);
-	if (mode == LITEST_MODE_ERROR)
-		return EXIT_FAILURE;
-
-	litest_init_test_devices(&devices);
-
-	setup_tests();
-	if (list_empty(&all_test_suites)) {
-		fprintf(stderr,
-			"Error: filters are too strict, no tests to run.\n");
-		return EXIT_FAILURE;
-	}
-
-	if (mode == LITEST_MODE_LIST) {
-		litest_list_tests(&all_test_suites);
-		return EXIT_SUCCESS;
-	}
-
-	if (!run_deviceless && (rc = check_device_access()) != 0)
-		return rc;
-
-	enum litest_runner_result result = litest_run(&all_test_suites);
-
-	litest_free_test_list(&all_test_suites);
-
-	switch (result) {
-		case LITEST_PASS:
-			return EXIT_SUCCESS;
-		case LITEST_SKIP:
-			return 77;
-		default:
-			return result;
-	}
-}
-#endif
