@@ -4961,16 +4961,13 @@ litest_parse_argv(int argc, char **argv, int *njobs_out)
 		JOBS_SINGLE,
 		JOBS_CUSTOM
 	} want_jobs = JOBS_DEFAULT;
-	char *builddir;
 	char *jobs_env;
 	int jobs = 0;
 
 	/* If we are not running from the builddir, we assume we're running
 	 * against the system as installed */
-	builddir = builddir_lookup();
-	if (!builddir)
+	if (!builddir_lookup(NULL))
 		use_system_rules_quirks = true;
-	free(builddir);
 
 	if (in_debugger)
 		want_jobs = JOBS_SINGLE;

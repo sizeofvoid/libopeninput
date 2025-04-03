@@ -28,21 +28,24 @@
 int
 main(int argc, char **argv)
 {
-	char *builddir;
+	char *builddir = NULL;
 	char *mode;
 
 	assert(argc == 2);
 	mode = argv[1];
 
-	builddir = builddir_lookup();
+	bool is_builddir = builddir_lookup(&builddir);
 	if (streq(mode, "--builddir-is-null")) {
+		assert(!is_builddir);
 		assert(builddir == NULL);
 	} else if (streq(mode, "--builddir-is-set")) {
 		/* In the case of release builds, the builddir is
 		   the empty string */
 		if (streq(MESON_BUILD_ROOT, "")) {
+			assert(!is_builddir);
 			assert(builddir == NULL);
 		} else {
+			assert(is_builddir);
 			assert(builddir);
 			assert(streq(MESON_BUILD_ROOT, builddir));
 		}

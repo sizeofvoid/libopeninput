@@ -166,10 +166,8 @@ main(int argc, char **argv)
 
 	/* Overriding the data dir means no custom override file */
 	if (!data_path) {
-		char *builddir = builddir_lookup();
-		if (builddir) {
+		if (builddir_lookup(NULL)) {
 			data_path = LIBINPUT_QUIRKS_SRCDIR;
-			free(builddir);
 		} else {
 			data_path = LIBINPUT_QUIRKS_DIR;
 			override_file = LIBINPUT_QUIRKS_OVERRIDE_FILE;

@@ -538,10 +538,8 @@ tools_open_device(const char **paths, bool verbose, bool *grab)
 static void
 tools_setenv_quirks_dir(void)
 {
-	char *builddir = builddir_lookup();
-	if (builddir) {
+	if (builddir_lookup(NULL)) {
 		setenv("LIBINPUT_QUIRKS_DIR", LIBINPUT_QUIRKS_SRCDIR, 0);
-		free(builddir);
 	}
 }
 
@@ -765,8 +763,9 @@ setup_path(void)
 	const char *path = getenv("PATH");
 	char new_path[PATH_MAX];
 	const char *extra_path = LIBINPUT_TOOL_PATH;
-	char *builddir = builddir_lookup();
+	char *builddir = NULL;
 
+	builddir_lookup(&builddir);
 	snprintf(new_path,
 		 sizeof(new_path),
 		 "%s:%s",

@@ -30,10 +30,10 @@
 
 /**
  * Try to figure out the directory we're executing from and if it matches
- * the builddir, return that directory. Otherwise, return NULL.
+ * the builddir true and set builddir (if not NULL) to the given builddir.
  */
-static inline char *
-builddir_lookup(void)
+static inline bool
+builddir_lookup(char **builddir)
 {
 	char execdir[PATH_MAX];
 	char *pathsep;
@@ -42,11 +42,11 @@ builddir_lookup(void)
 	/* In the case of release builds, the builddir is
 	   the empty string */
 	if (streq(MESON_BUILD_ROOT, ""))
-		return NULL;
+		return false;
 
 	nread = readlink("/proc/self/exe", execdir, sizeof(execdir) - 1);
 	if (nread <= 0 || nread == sizeof(execdir) - 1)
-		return NULL;
+		return false;
 
 	/* readlink doesn't terminate the string and readlink says
 	   anything past sz is undefined */
@@ -54,11 +54,14 @@ builddir_lookup(void)
 
 	pathsep = strrchr(execdir, '/');
 	if (!pathsep)
-		return NULL;
+		return false;
 
 	*pathsep = '\0';
 	if (!streq(execdir, MESON_BUILD_ROOT))
-		return NULL;
+		return false;
 
-	return safe_strdup(execdir);
+	if (builddir)
+		*builddir = safe_strdup(execdir);
+
+	return true;
 }

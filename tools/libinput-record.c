@@ -1799,18 +1799,15 @@ print_device_quirks(struct record_device *dev)
 	struct quirks_context *quirks;
 	const char *data_path = LIBINPUT_QUIRKS_DIR;
 	const char *override_file = LIBINPUT_QUIRKS_OVERRIDE_FILE;
-	char *builddir = NULL;
 
 	if (stat(dev->devnode, &st) < 0)
 		return;
 
-	if ((builddir = builddir_lookup())) {
+	if (builddir_lookup(NULL)) {
 		setenv("LIBINPUT_QUIRKS_DIR", LIBINPUT_QUIRKS_SRCDIR, 0);
 		data_path = LIBINPUT_QUIRKS_SRCDIR;
 		override_file = NULL;
 	}
-
-	free(builddir);
 
 	quirks = quirks_init_subsystem(data_path,
 				       override_file,
