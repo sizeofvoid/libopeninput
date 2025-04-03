@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2024-04-03.1'
+.default_tag: &default_tag '2025-04-04.0'
 
 distributions:
   - name: fedora
@@ -36,7 +36,8 @@ distributions:
       - diffutils
       - wayland-protocols-devel
       - black           # for the Python black job, optional
-      - clang-analyzer  # for the scan-build job, optional
+      - clang           # for the clang-tidy build, optional
+      - clang-tools-extra  # for clang-tidy, optional
       - jq              # for the test suite check job, optional
       - rpmdevtools     # for the rpm build job, optional
       - valgrind        # for the valgrind run, optional

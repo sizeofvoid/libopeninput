@@ -464,18 +464,16 @@ default-build-release@{{distro.name}}:{{version}}:
     MESON_ARGS: "-Dbuildtype=release"
     CFLAGS: "-Werror"
 
-scan-build@{{distro.name}}:{{version}}:
+clang-tidy@{{distro.name}}:{{version}}:
   extends:
     - .{{distro.name}}-build@template
   variables:
     NINJA_ARGS: ''
     MESON_TEST_ARGS: ''
+    CC: 'clang'
   script:
     - .gitlab-ci/meson-build.sh
-    - export SCANBUILD="$PWD/.gitlab-ci/scanbuild-wrapper.sh"
-    - ninja -C "$MESON_BUILDDIR" scan-build
-  after_script:
-    - .gitlab-ci/scanbuild-plist-to-junit.py "$MESON_BUILDDIR"/meson-logs/scanbuild/ > "$MESON_BUILDDIR"/junit-scan-build.xml
+    - ninja -C "$MESON_BUILDDIR" clang-tidy
 
 # Below jobs are build option combinations. We only
 # run them on one image, they shouldn't fail on one distro
