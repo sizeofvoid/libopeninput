@@ -1527,7 +1527,7 @@ litest_run_suite(struct list *suites, int njobs)
 	struct suite *s;
 	struct litest_runner *runner = litest_runner_new();
 
-	litest_runner_set_num_parallel(runner, jobs > 0 ? jobs : 0);
+	litest_runner_set_num_parallel(runner, njobs > 0 ? njobs : 0);
 	if (outfile)
 		litest_runner_set_output_file(runner, outfile);
 	litest_runner_set_verbose(runner, verbose);
