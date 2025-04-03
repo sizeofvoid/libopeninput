@@ -255,9 +255,6 @@ safe_atod(const char *str, double *val)
 
 	char *endptr;
 	double v;
-#ifdef HAVE_LOCALE_H
-	locale_t c_locale;
-#endif
 	size_t slen = strlen(str);
 
 	/* We don't have a use-case where we want to accept hex for a double
@@ -279,7 +276,7 @@ safe_atod(const char *str, double *val)
 
 #ifdef HAVE_LOCALE_H
 	/* Create a "C" locale to force strtod to use '.' as separator */
-	c_locale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
+	locale_t c_locale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
 	if (c_locale == (locale_t)0)
 		return false;
 
