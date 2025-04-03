@@ -192,10 +192,10 @@ strv_join(char **strv, const char *joiner)
 
 	str = zalloc(slen + 1); /* trailing \0 */
 	for (s = strv; *s; s++) {
-		strcat(str, *s);
+		strcat(str, *s); // NOLINT: security.insecureAPI.strcpy
 		--count;
 		if (count > 0)
-			strcat(str, joiner);
+			strcat(str, joiner); // NOLINT: security.insecureAPI.strcpy
 	}
 
 	return str;
