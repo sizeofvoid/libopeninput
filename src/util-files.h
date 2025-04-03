@@ -43,13 +43,13 @@ mkdir_p(const char *dir)
 
 	path = safe_strdup(dir);
 	parent = dirname(path);
+	rc = mkdir_p(parent);
+	free(path);
 
-	if ((rc = mkdir_p(parent)) < 0)
+	if (rc < 0)
 		return rc;
 
 	rc = mkdir(dir, 0755);
-
-	free(path);
 
 	return (rc == -1 && errno != EEXIST) ? -errno : 0;
 }

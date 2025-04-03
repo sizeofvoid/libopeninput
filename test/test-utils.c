@@ -25,11 +25,13 @@
 
 #include <valgrind/valgrind.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 
 #include "litest.h"
 #include "litest-runner.h"
+#include "util-files.h"
 #include "util-list.h"
 #include "util-strings.h"
 #include "util-time.h"
@@ -47,6 +49,21 @@
 
 #define  TEST_VERSIONSORT
 #include "libinput-versionsort.h"
+
+START_TEST(mkdir_p_test)
+{
+	const char *testdir = "/tmp/litest_mkdir_test";
+	litest_assert_neg_errno_success(mkdir_p("/"));
+
+	unlink(testdir);
+	litest_assert_neg_errno_success(mkdir_p(testdir));
+	/* EEXIST is not an error */
+	litest_assert_neg_errno_success(mkdir_p(testdir));
+	unlink(testdir);
+
+	litest_assert_int_eq(mkdir_p("/proc/foo"), -ENOENT);
+}
+END_TEST
 
 START_TEST(array_for_each)
 {
@@ -2047,6 +2064,8 @@ int main(void)
 	snprintf(tdesc.name, sizeof(tdesc.name), # func_); \
 	litest_runner_add_test(runner, &tdesc); \
 } while(0)
+
+	ADD_TEST(mkdir_p_test);
 
 	ADD_TEST(array_for_each);
 
