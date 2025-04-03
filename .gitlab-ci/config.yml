@@ -109,17 +109,14 @@ distributions:
       - check
       - libsystemd
       - libevdev
-      - doxygen
-      - graphviz
-      - python-sphinx
-      - python-recommonmark
-      - python-sphinx_rtd_theme
       - python-pytest-xdist
       - libwacom
       - gtk4
       - mtdev
       - diffutils
-      - wayland-protocols
+    build:
+      extra_variables:
+        - "MESON_ARGS: '-Ddocumentation=false'" # python-recommonmark is no longer in the repos
   - name: alpine
     tag: *default_tag
     versions:
