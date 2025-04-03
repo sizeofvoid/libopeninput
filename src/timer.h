@@ -24,6 +24,8 @@
 #ifndef TIMER_H
 #define TIMER_H
 
+#include "config.h"
+
 #include <stdint.h>
 
 #include "libinput-util.h"

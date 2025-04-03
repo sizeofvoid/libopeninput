@@ -24,6 +24,8 @@
 #ifndef _SHARED_H_
 #define _SHARED_H_
 
+#include "config.h"
+
 #include <stdbool.h>
 #include <limits.h>
 #include <getopt.h>
