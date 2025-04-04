@@ -503,7 +503,6 @@ litest_assert_macros_suite(void)
 	Suite *s;
 
 	s = suite_create("litest:assert macros");
-#if 0
 	tc = tcase_create("assert");
 	tcase_add_test_raise_signal(tc, litest_assert_trigger, SIGABRT);
 	tcase_add_test(tc, litest_assert_notrigger);
@@ -575,7 +574,6 @@ litest_assert_macros_suite(void)
 	tcase_add_test_raise_signal(tc, zalloc_too_large, SIGABRT);
 	suite_add_tcase(s, tc);
 
-#endif
 	tc = tcase_create("parameters ");
 	tcase_add_test(tc, parameter_permutations);
 	suite_add_tcase(s, tc);
