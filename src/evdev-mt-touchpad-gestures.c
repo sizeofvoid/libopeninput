@@ -1718,16 +1718,8 @@ tp_gesture_handle_state_3fg_drag_start(struct tp_dispatch *tp, uint64_t time)
 static void
 tp_gesture_handle_state_3fg_drag(struct tp_dispatch *tp, uint64_t time)
 {
-	if (!(tp->queued & TOUCHPAD_EVENT_MOTION))
-		return;
-
-	struct device_float_coords raw = tp_get_average_touches_delta(tp);
-	struct normalized_coords delta = tp_filter_motion(tp, &raw, time);
-
-	if (!normalized_is_zero(delta) || !device_float_is_zero(raw)) {
-		if (tp->queued & TOUCHPAD_EVENT_MOTION)
-			tp_gesture_post_pointer_motion(tp, time);
-	}
+	if (tp->queued & TOUCHPAD_EVENT_MOTION)
+		tp_gesture_post_pointer_motion(tp, time);
 }
 
 static void
