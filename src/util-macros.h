@@ -27,6 +27,10 @@
 
 #include "config.h"
 
+#ifndef HAVE_C23_AUTO
+#define auto __auto_type
+#endif
+
 #define ARRAY_LENGTH(a) (sizeof (a) / sizeof (a)[0])
 /**
  * Iterate through the array _arr, assigning the variable elem to each

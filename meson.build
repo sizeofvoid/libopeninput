@@ -134,6 +134,13 @@ if cc.has_header('xlocale.h')
 endif
 
 code = '''
+void func() { auto foo = "test"; }
+'''
+if cc.compiles(code, name: 'has C23 auto keyword')
+	config_h.set('HAVE_C23_AUTO', '1')
+endif
+
+code = '''
 #include <locale.h>
 void main(void) { newlocale(LC_NUMERIC_MASK, "C", (locale_t)0); }
 '''
