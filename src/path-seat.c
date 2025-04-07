@@ -302,24 +302,22 @@ libinput_path_create_context(const struct libinput_interface *interface,
 			     void *user_data)
 {
 	struct path_input *input;
-	struct udev *udev;
 
 	if (!interface)
 		return NULL;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	if (!udev)
 		return NULL;
 
 	input = zalloc(sizeof *input);
 	if (libinput_init(&input->base, interface,
 			  &interface_backend, user_data) != 0) {
-		udev_unref(udev);
 		free(input);
 		return NULL;
 	}
 
-	input->udev = udev;
+	input->udev = udev_ref(udev);
 	list_init(&input->path_list);
 
 	return &input->base;
@@ -361,7 +359,6 @@ libinput_path_add_device(struct libinput *libinput,
 {
 	struct path_input *input = (struct path_input *)libinput;
 	struct udev *udev = input->udev;
-	struct udev_device *udev_device;
 	struct libinput_device *device;
 
 	if (strlen(path) > PATH_MAX) {
@@ -376,14 +373,13 @@ libinput_path_add_device(struct libinput *libinput,
 		return NULL;
 	}
 
-	udev_device = udev_device_from_devnode(libinput, udev, path);
+	_unref_(udev_device) *udev_device = udev_device_from_devnode(libinput, udev, path);
 	if (!udev_device) {
 		log_bug_client(libinput, "Invalid path %s\n", path);
 		return NULL;
 	}
 
 	if (ignore_litest_test_suite_device(udev_device)) {
-		udev_device_unref(udev_device);
 		return NULL;
 	}
 
@@ -395,7 +391,6 @@ libinput_path_add_device(struct libinput *libinput,
 	libinput_init_quirks(libinput);
 
 	device = path_create_device(libinput, udev_device, NULL);
-	udev_device_unref(udev_device);
 	return device;
 }
 

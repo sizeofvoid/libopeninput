@@ -54,16 +54,14 @@ filter_duplicates(struct udev_seat *udev_seat,
 
 	list_for_each(device, &udev_seat->base.devices_list, link) {
 		const char *syspath;
-		struct udev_device *ud;
 
-		ud = libinput_device_get_udev_device(device);
+		_unref_(udev_device) *ud = libinput_device_get_udev_device(device);
 		if (!ud)
 			continue;
 
 		syspath = udev_device_get_syspath(ud);
 		if (syspath && new_syspath && streq(syspath, new_syspath))
 			ignore_device = true;
-		udev_device_unref(ud);
 
 		if (ignore_device)
 			break;
@@ -168,23 +166,19 @@ device_removed(struct udev_device *udev_device, struct udev_input *input)
 static int
 udev_input_add_devices(struct udev_input *input, struct udev *udev)
 {
-	struct udev_enumerate *e;
 	struct udev_list_entry *entry;
-	struct udev_device *device;
-	const char *path, *sysname;
 
-	e = udev_enumerate_new(udev);
+	_unref_(udev_enumerate) *e = udev_enumerate_new(udev);
 	udev_enumerate_add_match_subsystem(e, "input");
 	udev_enumerate_scan_devices(e);
 	udev_list_entry_foreach(entry, udev_enumerate_get_list_entry(e)) {
-		path = udev_list_entry_get_name(entry);
-		device = udev_device_new_from_syspath(udev, path);
+		const char *path = udev_list_entry_get_name(entry);
+		_unref_(udev_device) *device = udev_device_new_from_syspath(udev, path);
 		if (!device)
 			continue;
 
-		sysname = udev_device_get_sysname(device);
+		const char *sysname = udev_device_get_sysname(device);
 		if (!strstartswith(sysname, "event")) {
-			udev_device_unref(device);
 			continue;
 		}
 
@@ -195,20 +189,13 @@ udev_input_add_devices(struct udev_input *input, struct udev *udev)
 				  "%-7s - skip unconfigured input device '%s'\n",
 				  sysname,
 				  udev_device_get_devnode(device));
-			udev_device_unref(device);
 			continue;
 		}
 
 		if (device_added(device, input, NULL) < 0) {
-			udev_device_unref(device);
-			udev_enumerate_unref(e);
 			return -1;
 		}
-
-		udev_device_unref(device);
 	}
-	udev_enumerate_unref(e);
-
 	return 0;
 }
 
@@ -216,27 +203,21 @@ static void
 evdev_udev_handler(void *data)
 {
 	struct udev_input *input = data;
-	struct udev_device *udev_device;
 	const char *action;
 
-	udev_device = udev_monitor_receive_device(input->udev_monitor);
+	_unref_(udev_device) *udev_device = udev_monitor_receive_device(input->udev_monitor);
 	if (!udev_device)
 		return;
 
 	action = udev_device_get_action(udev_device);
-	if (!action)
-		goto out;
-
-	if (!strstartswith(udev_device_get_sysname(udev_device), "event"))
-		goto out;
+	if (!action ||
+	    !strstartswith(udev_device_get_sysname(udev_device), "event"))
+		return;
 
 	if (streq(action, "add"))
 		device_added(udev_device, input, NULL);
 	else if (streq(action, "remove"))
 		device_removed(udev_device, input);
-
-out:
-	udev_device_unref(udev_device);
 }
 
 static void
