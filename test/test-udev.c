@@ -261,6 +261,7 @@ START_TEST(udev_change_seat)
 						   seat2_name);
 	litest_assert_int_eq(rc, 0);
 
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_REMOVED);
 	litest_dispatch(li);
 
 	event = libinput_get_event(li);
@@ -270,6 +271,7 @@ START_TEST(udev_change_seat)
 	litest_assert(libinput_event_get_device(event) == device);
 	libinput_event_destroy(event);
 
+	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 	event = libinput_get_event(li);
 	litest_assert_enum_eq(libinput_event_get_type(event),
 			 LIBINPUT_EVENT_DEVICE_ADDED);
