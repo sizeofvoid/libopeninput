@@ -1000,7 +1000,7 @@ START_TEST(path_ignore_device)
 	device = libinput_path_add_device(li, path);
 	litest_assert(device == NULL);
 
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 }
 END_TEST
 

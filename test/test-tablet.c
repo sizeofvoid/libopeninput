@@ -172,7 +172,7 @@ START_TEST(button_seat_count)
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(dev2);
+	litest_device_destroy(dev2);
 }
 END_TEST
 
@@ -197,7 +197,7 @@ START_TEST(button_up_on_delete)
 	}
 
 	litest_drain_events(li);
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 	litest_dispatch(li);
 
 	for (code = BTN_LEFT; code <= BTN_TASK; code++) {
@@ -946,7 +946,7 @@ START_TEST(tip_up_on_delete)
 	litest_tablet_tip_down(dev, 10, 10, axes);
 
 	litest_drain_events(li);
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 	litest_dispatch(li);
 
 	event = libinput_get_event(li);
@@ -1711,7 +1711,7 @@ START_TEST(proximity_out_on_delete)
 	litest_tablet_proximity_in(dev, 10, 10, NULL);
 	litest_drain_events(li);
 
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 	litest_dispatch(li);
 
 	litest_assert_tablet_proximity_event(li,
@@ -2595,8 +2595,8 @@ START_TEST(tools_with_serials)
 	litest_assert_notnull(tool[1]);
 	litest_assert_ptr_eq(tool[0], tool[1]);
 
-	litest_delete_device(dev[0]);
-	litest_delete_device(dev[1]);
+	litest_device_destroy(dev[0]);
+	litest_device_destroy(dev[1]);
 }
 END_TEST
 
@@ -2638,8 +2638,8 @@ START_TEST(tools_without_serials)
 	litest_assert_notnull(tool[1]);
 	litest_assert_ptr_ne(tool[0], tool[1]);
 
-	litest_delete_device(dev[0]);
-	litest_delete_device(dev[1]);
+	litest_device_destroy(dev[0]);
+	litest_device_destroy(dev[1]);
 }
 END_TEST
 
@@ -2786,8 +2786,8 @@ START_TEST(tool_capabilities)
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(bamboo);
-	litest_delete_device(intuos);
+	litest_device_destroy(bamboo);
+	litest_device_destroy(intuos);
 }
 END_TEST
 
@@ -5098,7 +5098,7 @@ START_TEST(tablet_pressure_across_multiple_tablets)
 		litest_assert_tablet_proximity_event(li, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	}
 
-	litest_delete_device(mobilestudio);
+	litest_device_destroy(mobilestudio);
 }
 END_TEST
 
@@ -5127,7 +5127,7 @@ START_TEST(tablet_pressure_after_unplug)
 		litest_tablet_proximity_out(dev);
 
 		litest_checkpoint("Unplugging/replugging device");
-		litest_delete_device(dev);
+		litest_device_destroy(dev);
 		litest_dispatch(li);
 		litest_drain_events(li);
 		dev = litest_add_device(li, LITEST_WACOM_CINTIQ_PRO16_PEN);
@@ -5181,7 +5181,7 @@ START_TEST(tablet_pressure_after_unplug)
 	litest_timeout_tablet_proxout(li);
 	litest_assert_tablet_proximity_event(li, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 }
 END_TEST
 
@@ -5898,7 +5898,7 @@ START_TEST(touch_arbitration)
 
 	assert_touch_is_arbitrated(dev, finger);
 
-	litest_delete_device(finger);
+	litest_device_destroy(finger);
 }
 END_TEST
 
@@ -5978,7 +5978,7 @@ START_TEST(touch_arbitration_outside_rect)
 	litest_assert_touch_sequence(li);
 #endif
 
-	litest_delete_device(finger);
+	litest_device_destroy(finger);
 }
 END_TEST
 
@@ -6018,7 +6018,7 @@ START_TEST(touch_arbitration_remove_after)
 
 	/* Delete the device immediately after the tablet goes out of prox.
 	 * This merely tests that the arbitration timer gets cleaned up */
-	litest_delete_device(finger);
+	litest_device_destroy(finger);
 }
 END_TEST
 
@@ -6105,7 +6105,7 @@ START_TEST(touch_arbitration_stop_touch)
 	else
 		litest_assert_touch_sequence(li);
 
-	litest_delete_device(finger);
+	litest_device_destroy(finger);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
 }
 END_TEST
@@ -6161,7 +6161,7 @@ START_TEST(touch_arbitration_suspend_touch_device)
 	litest_assert_empty_queue(li);
 
 	/* Remove tablet device to unpair, still disabled though */
-	litest_delete_device(tablet);
+	litest_device_destroy(tablet);
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
@@ -6226,7 +6226,7 @@ START_TEST(touch_arbitration_remove_touch)
 	litest_tablet_proximity_in(dev, 10, 10, axes);
 	litest_drain_events(li);
 
-	litest_delete_device(finger);
+	litest_device_destroy(finger);
 	litest_dispatch(li);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
 	litest_assert_empty_queue(li);
@@ -6278,7 +6278,7 @@ START_TEST(touch_arbitration_remove_tablet)
 	litest_touch_move_to(dev, 0, 30, 30, 80, 80, 10);
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(tablet);
+	litest_device_destroy(tablet);
 	litest_assert_tablet_proximity_event(li,
 			     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
@@ -6345,7 +6345,7 @@ START_TEST(touch_arbitration_keep_ignoring)
 
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(finger);
+	litest_device_destroy(finger);
 }
 END_TEST
 
@@ -6400,7 +6400,7 @@ START_TEST(touch_arbitration_late_touch_lift)
 
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(finger);
+	litest_device_destroy(finger);
 }
 END_TEST
 
@@ -6438,8 +6438,8 @@ START_TEST(touch_arbitration_swap_device)
 	litest_drain_events(li);
 	assert_touch_is_arbitrated(tablet, finger);
 
-	litest_delete_device(touchscreen);
-	litest_delete_device(finger);
+	litest_device_destroy(touchscreen);
+	litest_device_destroy(finger);
 }
 END_TEST
 
@@ -6609,7 +6609,7 @@ START_TEST(tablet_rotation_left_handed)
 	verify_left_handed_touch_sequence(finger, li, enabled_to);
 
 out:
-	litest_delete_device(finger);
+	litest_device_destroy(finger);
 #endif
 }
 END_TEST
@@ -6663,7 +6663,7 @@ START_TEST(tablet_rotation_left_handed_configuration)
 	litest_assert_int_eq(touch_enabled, touch_to);
 
 out:
-	litest_delete_device(finger);
+	litest_device_destroy(finger);
 #endif
 }
 END_TEST
@@ -6763,7 +6763,7 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 	verify_left_handed_touch_sequence(finger, li, enabled_to);
 
 out:
-	litest_delete_device(finger);
+	litest_device_destroy(finger);
 #endif
 }
 END_TEST
@@ -6832,7 +6832,7 @@ START_TEST(tablet_rotation_left_handed_while_touch_down)
 	verify_left_handed_touch_sequence(finger, li, enabled_to);
 
 out:
-	litest_delete_device(finger);
+	litest_device_destroy(finger);
 #endif
 }
 END_TEST
@@ -6887,7 +6887,7 @@ START_TEST(tablet_rotation_left_handed_add_touchpad)
 	verify_left_handed_tablet_sequence(tablet, li, enabled_to);
 
 out:
-	litest_delete_device(finger);
+	litest_device_destroy(finger);
 #endif
 }
 END_TEST
@@ -6940,7 +6940,7 @@ START_TEST(tablet_rotation_left_handed_add_tablet)
 	verify_left_handed_touch_sequence(finger, li, enabled_to);
 	verify_left_handed_tablet_sequence(tablet, li, enabled_to);
 
-	litest_delete_device(tablet);
+	litest_device_destroy(tablet);
 #endif
 }
 END_TEST

@@ -784,8 +784,8 @@ START_TEST(timer_flush)
 	litest_assert_button_event(li, BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 
-	litest_delete_device(keyboard);
-	litest_delete_device(touchpad);
+	litest_device_destroy(keyboard);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 

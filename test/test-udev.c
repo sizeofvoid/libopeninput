@@ -212,7 +212,7 @@ START_TEST(udev_added_seat_default)
 	libinput_unref(li);
 	udev_unref(udev);
 
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 }
 END_TEST
 
@@ -287,7 +287,7 @@ START_TEST(udev_change_seat)
 	libinput_unref(li);
 	udev_unref(udev);
 
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 }
 END_TEST
 
@@ -663,7 +663,7 @@ START_TEST(udev_ignore_device)
 	libinput_unref(li);
 	udev_unref(udev);
 
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 }
 END_TEST
 

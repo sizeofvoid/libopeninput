@@ -469,7 +469,7 @@ START_TEST(pointer_button_auto_release)
 	litest_drain_events(libinput);
 
 	/* "Disconnect" device */
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 
 	/* Mark all released buttons until device is removed */
 	while (1) {
@@ -1200,7 +1200,7 @@ START_TEST(pointer_seat_button_count)
 	litest_assert_int_eq(seat_button_count, 0);
 
 	for (i = 0; i < num_devices; ++i)
-		litest_delete_device(devices[i]);
+		litest_device_destroy(devices[i]);
 }
 END_TEST
 
@@ -1371,7 +1371,7 @@ START_TEST(pointer_left_handed_disable_with_button_down)
 				   BTN_RIGHT,
 				   LIBINPUT_BUTTON_STATE_PRESSED);
 
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 	litest_dispatch(li);
 
 	litest_assert_button_event(li,
@@ -1573,7 +1573,7 @@ START_TEST(pointer_scroll_button_device_remove_while_down)
 	litest_dispatch(li);
 
 	/* delete the device  while the timer is still active */
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 	litest_dispatch(li);
 }
 END_TEST
@@ -3662,7 +3662,7 @@ START_TEST(debounce_remove_device_button_up)
 	litest_dispatch(li);
 
 	/* delete the device  while the timer is still active */
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 
 	litest_timeout_debounce(li);
 }
@@ -3682,7 +3682,7 @@ START_TEST(debounce_remove_device_button_down)
 	litest_dispatch(li);
 
 	/* delete the device the timer is still active */
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 
 	litest_timeout_debounce(li);
 }

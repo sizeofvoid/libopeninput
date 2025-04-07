@@ -682,7 +682,7 @@ void litest_set_current_device(struct litest_device *device)
 
 void litest_generic_device_teardown(void)
 {
-	litest_delete_device(current_device);
+	litest_device_destroy(current_device);
 	current_device = NULL;
 }
 
@@ -2284,7 +2284,7 @@ udev_wait_for_device_event(struct udev_monitor *udev_monitor,
 }
 
 void
-litest_delete_device(struct litest_device *d)
+litest_device_destroy(struct litest_device *d)
 {
 
 	_unref_(udev_monitor) *udev_monitor = NULL;

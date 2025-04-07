@@ -94,7 +94,7 @@ START_TEST(keyboard_seat_key_count)
 	litest_assert_int_eq(seat_key_count, 0);
 
 	for (i = 0; i < num_devices; ++i)
-		litest_delete_device(devices[i]);
+		litest_device_destroy(devices[i]);
 }
 END_TEST
 
@@ -150,7 +150,7 @@ START_TEST(keyboard_ignore_no_pressed_release)
 	}
 
 	litest_assert_empty_queue(libinput);
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 }
 END_TEST
 
@@ -213,7 +213,7 @@ START_TEST(keyboard_key_auto_release)
 	litest_drain_events(libinput);
 
 	/* "Disconnect" device */
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 
 	/* Mark all released keys until device is removed */
 	while (1) {

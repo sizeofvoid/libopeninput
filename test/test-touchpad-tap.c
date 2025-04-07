@@ -5578,7 +5578,7 @@ START_TEST(touchpad_tap_palm_dwt_tap)
 
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(keyboard);
+	litest_device_destroy(keyboard);
 }
 END_TEST
 

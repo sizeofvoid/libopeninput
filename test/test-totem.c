@@ -455,7 +455,7 @@ START_TEST(totem_button_up_on_delete)
 	litest_button_click(dev, BTN_0, true);
 	litest_drain_events(li);
 
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 	litest_dispatch(li);
 
 	litest_assert_tablet_button_event(li,
@@ -503,7 +503,7 @@ START_TEST(totem_arbitration_below)
 	litest_touch_up(touch, 0);
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(touch);
+	litest_device_destroy(touch);
 }
 END_TEST
 
@@ -529,7 +529,7 @@ START_TEST(totem_arbitration_during)
 		litest_assert_empty_queue(li);
 	}
 
-	litest_delete_device(touch);
+	litest_device_destroy(touch);
 }
 END_TEST
 
@@ -564,7 +564,7 @@ START_TEST(totem_arbitration_outside_rect)
 
 	litest_assert_touch_sequence(li);
 
-	litest_delete_device(touch);
+	litest_device_destroy(touch);
 }
 END_TEST
 

@@ -302,7 +302,7 @@ START_TEST(switch_disable_touchpad)
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 	litest_ungrab_device(sw);
 }
 END_TEST
@@ -334,7 +334,7 @@ START_TEST(switch_disable_touchpad_during_touch)
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -372,7 +372,7 @@ START_TEST(switch_disable_touchpad_edge_scroll)
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -412,7 +412,7 @@ START_TEST(switch_disable_touchpad_edge_scroll_interrupt)
 	litest_is_switch_event(event, which, LIBINPUT_SWITCH_STATE_ON);
 	libinput_event_destroy(event);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -446,7 +446,7 @@ START_TEST(switch_disable_touchpad_already_open)
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -486,7 +486,7 @@ START_TEST(switch_dont_resume_disabled_touchpad)
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -532,8 +532,8 @@ START_TEST(switch_dont_resume_disabled_touchpad_external_mouse)
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(touchpad);
-	litest_delete_device(mouse);
+	litest_device_destroy(touchpad);
+	litest_device_destroy(mouse);
 }
 END_TEST
 
@@ -577,7 +577,7 @@ START_TEST(lid_open_on_key)
 	}
 	litest_ungrab_device(sw);
 
-	litest_delete_device(keyboard);
+	litest_device_destroy(keyboard);
 }
 END_TEST
 
@@ -616,8 +616,8 @@ START_TEST(lid_open_on_key_touchpad_enabled)
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
-	litest_delete_device(keyboard);
-	litest_delete_device(touchpad);
+	litest_device_destroy(keyboard);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -652,10 +652,10 @@ START_TEST(switch_suspend_with_keyboard)
 	litest_drain_events(li);
 	litest_ungrab_device(sw);
 
-	litest_delete_device(keyboard);
+	litest_device_destroy(keyboard);
 	litest_drain_events(li);
 
-	litest_delete_device(sw);
+	litest_device_destroy(sw);
 	litest_dispatch(li);
 }
 END_TEST
@@ -690,9 +690,9 @@ START_TEST(switch_suspend_with_touchpad)
 	litest_drain_events(li);
 	litest_ungrab_device(sw);
 
-	litest_delete_device(sw);
+	litest_device_destroy(sw);
 	litest_drain_events(li);
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 	litest_drain_events(li);
 }
 END_TEST
@@ -745,7 +745,7 @@ START_TEST(lid_update_hw_on_key)
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
 	litest_assert_int_eq(rc, -EAGAIN);
 
-	litest_delete_device(keyboard);
+	litest_device_destroy(keyboard);
 }
 END_TEST
 
@@ -808,7 +808,7 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
 	litest_assert_int_eq(rc, -EAGAIN);
 
-	litest_delete_device(keyboard);
+	litest_device_destroy(keyboard);
 }
 END_TEST
 
@@ -865,8 +865,8 @@ START_TEST(lid_update_hw_on_key_multiple_keyboards)
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
 	litest_assert_int_eq(rc, -EAGAIN);
 
-	litest_delete_device(keyboard1);
-	litest_delete_device(keyboard2);
+	litest_device_destroy(keyboard1);
+	litest_device_destroy(keyboard2);
 }
 END_TEST
 
@@ -923,7 +923,7 @@ START_TEST(tablet_mode_disable_touchpad_on_init)
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 	litest_ungrab_device(sw);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -992,7 +992,7 @@ START_TEST(tablet_mode_disable_touchpad_on_resume)
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -1048,7 +1048,7 @@ START_TEST(tablet_mode_enable_touchpad_on_resume)
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -1101,7 +1101,7 @@ START_TEST(tablet_mode_disable_keyboard)
 	litest_assert_key_event(li, KEY_B, LIBINPUT_KEY_STATE_PRESSED);
 	litest_assert_key_event(li, KEY_B, LIBINPUT_KEY_STATE_RELEASED);
 
-	litest_delete_device(keyboard);
+	litest_device_destroy(keyboard);
 }
 END_TEST
 
@@ -1136,7 +1136,7 @@ START_TEST(tablet_mode_disable_keyboard_on_init)
 	litest_keyboard_key(keyboard, KEY_A, false);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
-	litest_delete_device(keyboard);
+	litest_device_destroy(keyboard);
 }
 END_TEST
 
@@ -1204,7 +1204,7 @@ START_TEST(tablet_mode_disable_keyboard_on_resume)
 	litest_keyboard_key(keyboard, KEY_A, false);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
-	litest_delete_device(keyboard);
+	litest_device_destroy(keyboard);
 }
 END_TEST
 
@@ -1248,7 +1248,7 @@ START_TEST(tablet_mode_enable_keyboard_on_resume)
 	litest_keyboard_key(keyboard, KEY_A, false);
 	litest_assert_empty_queue(li);
 
-	litest_delete_device(keyboard);
+	litest_device_destroy(keyboard);
 }
 END_TEST
 
@@ -1294,7 +1294,7 @@ START_TEST(tablet_mode_disable_trackpoint)
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 	litest_ungrab_device(sw);
 
-	litest_delete_device(trackpoint);
+	litest_device_destroy(trackpoint);
 }
 END_TEST
 
@@ -1335,7 +1335,7 @@ START_TEST(tablet_mode_disable_trackpoint_on_init)
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 	litest_ungrab_device(sw);
 
-	litest_delete_device(trackpoint);
+	litest_device_destroy(trackpoint);
 }
 END_TEST
 

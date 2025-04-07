@@ -213,7 +213,7 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_trackpoint)
 	litest_assert(device == trackpoint->libinput_device);
 	libinput_event_destroy(event);
 
-	litest_delete_device(trackpoint);
+	litest_device_destroy(trackpoint);
 }
 END_TEST
 
@@ -256,7 +256,7 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_touchpad)
 	litest_assert(device == trackpoint->libinput_device);
 	libinput_event_destroy(event);
 
-	litest_delete_device(trackpoint);
+	litest_device_destroy(trackpoint);
 }
 END_TEST
 
@@ -304,7 +304,7 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_both)
 	litest_assert(device == trackpoint->libinput_device);
 	libinput_event_destroy(event);
 
-	litest_delete_device(trackpoint);
+	litest_device_destroy(trackpoint);
 }
 END_TEST
 
@@ -362,7 +362,7 @@ START_TEST(trackpoint_palmdetect)
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -393,7 +393,7 @@ START_TEST(trackpoint_palmdetect_dwtp_disabled)
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -431,7 +431,7 @@ START_TEST(trackpoint_palmdetect_resume_touch)
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -461,7 +461,7 @@ START_TEST(trackpoint_palmdetect_require_min_events)
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 
@@ -495,7 +495,7 @@ START_TEST(trackpoint_palmdetect_require_min_events_timeout)
 		litest_timeout_trackpoint(li);
 	}
 
-	litest_delete_device(touchpad);
+	litest_device_destroy(touchpad);
 }
 END_TEST
 

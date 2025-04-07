@@ -130,7 +130,7 @@ START_TEST(touch_abs_transform)
 
 	litest_assert(tested);
 
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 }
 END_TEST
 
@@ -199,7 +199,7 @@ START_TEST(touch_seat_slot)
 	litest_touch_up(dev1, 1);
 	touch_assert_seat_slot(li, LIBINPUT_EVENT_TOUCH_UP, 1, 3);
 
-	litest_delete_device(dev2);
+	litest_device_destroy(dev2);
 }
 END_TEST
 
@@ -257,7 +257,7 @@ START_TEST(touch_many_slots)
 
 	litest_assert_int_eq(slot_count, 0);
 
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 }
 END_TEST
 
@@ -980,7 +980,7 @@ START_TEST(touch_release_on_unplug)
 	litest_drain_events(li);
 
 	/* Touch is still down when device is removed, expect a release */
-	litest_delete_device(dev);
+	litest_device_destroy(dev);
 	litest_dispatch(li);
 
 	ev = libinput_get_event(li);

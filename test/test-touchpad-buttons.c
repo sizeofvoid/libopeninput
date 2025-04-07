@@ -1956,7 +1956,7 @@ START_TEST(clickpad_topsoftbuttons_clickfinger_dev_disabled)
 				   BTN_MIDDLE,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
 
-	litest_delete_device(trackpoint);
+	litest_device_destroy(trackpoint);
 }
 END_TEST
 
