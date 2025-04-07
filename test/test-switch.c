@@ -25,6 +25,7 @@
 
 #include <fcntl.h>
 #include <libinput.h>
+#include <libevdev/libevdev.h>
 
 #include "libinput-util.h"
 #include "litest.h"
@@ -710,9 +711,8 @@ START_TEST(lid_update_hw_on_key)
 	struct litest_device *sw = litest_current_device();
 	struct libinput *li = sw->libinput;
 	struct litest_device *keyboard;
-	struct libevdev *evdev;
+	_free_(libevdev) *evdev = NULL;
 	struct input_event event;
-	int fd;
 	int rc;
 
 	if (!switch_has_lid(sw))
@@ -729,7 +729,7 @@ START_TEST(lid_update_hw_on_key)
 
 	/* Separate direct libevdev context to check if the HW event goes
 	 * through */
-	fd = open(libevdev_uinput_get_devnode(sw->uinput), O_RDONLY|O_NONBLOCK);
+	_autoclose_ int fd = open(libevdev_uinput_get_devnode(sw->uinput), O_RDONLY|O_NONBLOCK);
 	litest_assert_int_ge(fd, 0);
 	litest_assert_int_eq(libevdev_new_from_fd(fd, &evdev), 0);
 	litest_assert_int_eq(libevdev_get_event_value(evdev, EV_SW, SW_LID), 1);
@@ -755,8 +755,6 @@ START_TEST(lid_update_hw_on_key)
 	litest_assert_int_eq(rc, -EAGAIN);
 
 	litest_delete_device(keyboard);
-	close(fd);
-	libevdev_free(evdev);
 }
 END_TEST
 
@@ -765,9 +763,8 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 	struct litest_device *sw = litest_current_device();
 	struct libinput *li;
 	struct litest_device *keyboard;
-	struct libevdev *evdev;
+	_free_(libevdev) *evdev;
 	struct input_event event;
-	int fd;
 	int rc;
 
 	litest_grab_device(sw);
@@ -778,7 +775,7 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 
 	/* Separate direct libevdev context to check if the HW event goes
 	 * through */
-	fd = open(libevdev_uinput_get_devnode(sw->uinput), O_RDONLY|O_NONBLOCK);
+	_autoclose_ int fd = open(libevdev_uinput_get_devnode(sw->uinput), O_RDONLY|O_NONBLOCK);
 	litest_assert_int_ge(fd, 0);
 	litest_assert_int_eq(libevdev_new_from_fd(fd, &evdev), 0);
 	litest_assert_int_eq(libevdev_get_event_value(evdev, EV_SW, SW_LID), 1);
@@ -823,8 +820,6 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 
 	litest_destroy_context(li);
 	litest_delete_device(keyboard);
-	close(fd);
-	libevdev_free(evdev);
 }
 END_TEST
 
@@ -833,9 +828,8 @@ START_TEST(lid_update_hw_on_key_multiple_keyboards)
 	struct litest_device *sw = litest_current_device();
 	struct libinput *li = sw->libinput;
 	struct litest_device *keyboard1, *keyboard2;
-	struct libevdev *evdev = sw->evdev;
+	_free_(libevdev) *evdev;
 	struct input_event event;
-	int fd;
 	int rc;
 
 	if (!switch_has_lid(sw))
@@ -857,7 +851,7 @@ START_TEST(lid_update_hw_on_key_multiple_keyboards)
 
 	/* Separate direct libevdev context to check if the HW event goes
 	 * through */
-	fd = open(libevdev_uinput_get_devnode(sw->uinput), O_RDONLY|O_NONBLOCK);
+	_autoclose_ int fd = open(libevdev_uinput_get_devnode(sw->uinput), O_RDONLY|O_NONBLOCK);
 	litest_assert_int_ge(fd, 0);
 	litest_assert_int_eq(libevdev_new_from_fd(fd, &evdev), 0);
 	litest_assert_int_eq(libevdev_get_event_value(evdev, EV_SW, SW_LID), 1);
@@ -884,8 +878,6 @@ START_TEST(lid_update_hw_on_key_multiple_keyboards)
 
 	litest_delete_device(keyboard1);
 	litest_delete_device(keyboard2);
-	close(fd);
-	libevdev_free(evdev);
 }
 END_TEST
 
