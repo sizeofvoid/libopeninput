@@ -765,7 +765,7 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 	struct litest_device *sw = litest_current_device();
 	struct libinput *li;
 	struct litest_device *keyboard;
-	struct libevdev *evdev = sw->evdev;
+	struct libevdev *evdev;
 	struct input_event event;
 	int fd;
 	int rc;
