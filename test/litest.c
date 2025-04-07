@@ -2103,15 +2103,15 @@ litest_create_context(void)
 void
 litest_destroy_context(struct libinput *li)
 {
-	struct path *p;
-	_autofree_ struct litest_context *ctx;
+	if (li) {
+		_autofree_ struct litest_context *ctx = libinput_get_user_data(li);
+		litest_assert_ptr_notnull(ctx);
+		libinput_unref(li);
 
-	ctx = libinput_get_user_data(li);
-	litest_assert_ptr_notnull(ctx);
-	libinput_unref(li);
-
-	list_for_each_safe(p, &ctx->paths, link) {
-		litest_abort_msg("Device paths should be removed by now");
+		struct path *p;
+		list_for_each_safe(p, &ctx->paths, link) {
+			litest_abort_msg("Device paths should be removed by now");
+		}
 	}
 }
 

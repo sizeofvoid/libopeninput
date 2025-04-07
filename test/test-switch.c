@@ -188,7 +188,6 @@ lid_switch_is_reliable(struct litest_device *dev)
 START_TEST(switch_down_on_init)
 {
 	struct litest_device *dev = litest_current_device();
-	struct libinput *li;
 	struct libinput_event *event;
 	enum libinput_switch sw = litest_test_param_get_i32(test_env->params, "switch");
 
@@ -203,7 +202,7 @@ START_TEST(switch_down_on_init)
 	litest_ungrab_device(dev);
 
 	/* need separate context to test */
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	libinput_path_add_device(li,
 				 libevdev_uinput_get_devnode(dev->uinput));
 	litest_dispatch(li);
@@ -225,15 +224,12 @@ START_TEST(switch_down_on_init)
 	litest_is_switch_event(event, sw, LIBINPUT_SWITCH_STATE_OFF);
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
 START_TEST(switch_not_down_on_init)
 {
 	struct litest_device *dev = litest_current_device();
-	struct libinput *li;
 	struct libinput_event *event;
 	enum libinput_switch sw = LIBINPUT_SWITCH_LID;
 
@@ -248,7 +244,7 @@ START_TEST(switch_not_down_on_init)
 	litest_ungrab_device(dev);
 
 	/* need separate context to test */
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	libinput_path_add_device(li,
 				 libevdev_uinput_get_devnode(dev->uinput));
 	litest_dispatch(li);
@@ -261,7 +257,6 @@ START_TEST(switch_not_down_on_init)
 
 	litest_switch_action(dev, sw, LIBINPUT_SWITCH_STATE_OFF);
 	litest_assert_empty_queue(li);
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -628,11 +623,11 @@ END_TEST
 
 START_TEST(switch_suspend_with_keyboard)
 {
-	struct libinput *li;
 	struct litest_device *keyboard;
 	struct litest_device *sw;
 	enum libinput_switch which = litest_test_param_get_i32(test_env->params, "switch");
-	li = litest_create_context();
+
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 
 	switch(which) {
 	case LIBINPUT_SWITCH_LID:
@@ -662,17 +657,15 @@ START_TEST(switch_suspend_with_keyboard)
 
 	litest_delete_device(sw);
 	litest_dispatch(li);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
 START_TEST(switch_suspend_with_touchpad)
 {
-	struct libinput *li;
 	struct litest_device *touchpad, *sw;
 	enum libinput_switch which = litest_test_param_get_i32(test_env->params, "switch");
-	li = litest_create_context();
+
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 
 	switch(which) {
 	case LIBINPUT_SWITCH_LID:
@@ -701,8 +694,6 @@ START_TEST(switch_suspend_with_touchpad)
 	litest_drain_events(li);
 	litest_delete_device(touchpad);
 	litest_drain_events(li);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -761,7 +752,6 @@ END_TEST
 START_TEST(lid_update_hw_on_key_closed_on_init)
 {
 	struct litest_device *sw = litest_current_device();
-	struct libinput *li;
 	struct litest_device *keyboard;
 	_free_(libevdev) *evdev;
 	struct input_event event;
@@ -783,7 +773,7 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 	keyboard = litest_add_device(sw->libinput, LITEST_KEYBOARD);
 
 	/* separate context for the right state on init */
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	libinput_path_add_device(li,
 				 libevdev_uinput_get_devnode(sw->uinput));
 	libinput_path_add_device(li,
@@ -818,7 +808,6 @@ START_TEST(lid_update_hw_on_key_closed_on_init)
 	rc = libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event);
 	litest_assert_int_eq(rc, -EAGAIN);
 
-	litest_destroy_context(li);
 	litest_delete_device(keyboard);
 }
 END_TEST

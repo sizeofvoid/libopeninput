@@ -133,7 +133,6 @@ END_TEST
 START_TEST(totem_proximity_in_on_init)
 {
 	struct litest_device *dev = litest_current_device();
-	struct libinput *li;
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *t;
 	const char *devnode;
@@ -150,7 +149,7 @@ START_TEST(totem_proximity_in_on_init)
 
 	/* for simplicity, we create a new litest context */
 	devnode = libevdev_uinput_get_devnode(dev->uinput);
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	libinput_path_add_device(li, devnode);
 	litest_dispatch(li);
 
@@ -189,22 +188,19 @@ START_TEST(totem_proximity_in_on_init)
 	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
 START_TEST(totem_proximity_out_on_suspend)
 {
 	struct litest_device *dev = litest_current_device();
-	struct libinput *li;
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *t;
 	const char *devnode;
 
 	/* for simplicity, we create a new litest context */
 	devnode = libevdev_uinput_get_devnode(dev->uinput);
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	libinput_path_add_device(li, devnode);
 
 	litest_tablet_proximity_in(dev, 50, 50, NULL);
@@ -228,7 +224,6 @@ START_TEST(totem_proximity_out_on_suspend)
 	libinput_event_destroy(event);
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -399,7 +394,6 @@ END_TEST
 START_TEST(totem_button_down_on_init)
 {
 	struct litest_device *dev = litest_current_device();
-	struct libinput *li;
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *t;
 	const char *devnode;
@@ -409,7 +403,7 @@ START_TEST(totem_button_down_on_init)
 
 	/* for simplicity, we create a new litest context */
 	devnode = libevdev_uinput_get_devnode(dev->uinput);
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	libinput_path_add_device(li, devnode);
 	litest_dispatch(li);
 
@@ -447,14 +441,12 @@ START_TEST(totem_button_down_on_init)
 	litest_button_click(dev, BTN_0, false);
 	litest_dispatch(li);
 	litest_assert_tablet_button_event(li, BTN_0, LIBINPUT_BUTTON_STATE_RELEASED);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
 START_TEST(totem_button_up_on_delete)
 {
-	struct libinput *li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	struct litest_device *dev = litest_add_device(li, LITEST_DELL_CANVAS_TOTEM);
 
 	litest_tablet_proximity_in(dev, 10, 10, NULL);
@@ -473,7 +465,6 @@ START_TEST(totem_button_up_on_delete)
 	litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_UP);
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
-	litest_destroy_context(li);
 }
 END_TEST
 

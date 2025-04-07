@@ -65,25 +65,20 @@ static const struct libinput_interface simple_interface = {
 START_TEST(log_default_priority)
 {
 	enum libinput_log_priority pri;
-	struct libinput *li;
 
-	li = libinput_path_create_context(&simple_interface, NULL);
+	_unref_(libinput) *li = libinput_path_create_context(&simple_interface, NULL);
 	pri = libinput_log_get_priority(li);
 
 	litest_assert_enum_eq(pri, LIBINPUT_LOG_PRIORITY_ERROR);
-
-	libinput_unref(li);
 }
 END_TEST
 
 START_TEST(log_handler_invoked)
 {
-	struct libinput *li;
-
 	log_handler_context = NULL;
 	log_handler_called = 0;
 
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 
 	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
 	libinput_log_set_handler(li, simple_log_handler);
@@ -93,8 +88,6 @@ START_TEST(log_handler_invoked)
 
 	litest_assert_int_gt(log_handler_called, 0);
 
-	litest_destroy_context(li);
-
 	log_handler_context = NULL;
 	log_handler_called = 0;
 }
@@ -102,11 +95,9 @@ END_TEST
 
 START_TEST(log_handler_NULL)
 {
-	struct libinput *li;
-
 	log_handler_called = 0;
 
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
 	libinput_log_set_handler(li, NULL);
 
@@ -114,20 +105,16 @@ START_TEST(log_handler_NULL)
 
 	litest_assert_int_eq(log_handler_called, 0);
 
-	litest_destroy_context(li);
-
 	log_handler_called = 0;
 }
 END_TEST
 
 START_TEST(log_priority)
 {
-	struct libinput *li;
-
 	log_handler_context = NULL;
 	log_handler_called = 0;
 
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_ERROR);
 	libinput_log_set_handler(li, simple_log_handler);
 	log_handler_context = li;
@@ -141,8 +128,6 @@ START_TEST(log_priority)
 	 * currently prints *something* for each device */
 	libinput_path_add_device(li, "/dev/input/event0");
 	litest_assert_int_gt(log_handler_called, 1);
-
-	litest_destroy_context(li);
 
 	log_handler_context = NULL;
 	log_handler_called = 0;

@@ -809,7 +809,7 @@ END_TEST
 START_TEST(touch_initial_state)
 {
 	struct litest_device *dev;
-	struct libinput *libinput1, *libinput2;
+	struct libinput *libinput1;
 	struct libinput_event *ev1 = NULL;
 	struct libinput_event *ev2 = NULL;
 	struct libinput_event_touch *t1, *t2;
@@ -828,7 +828,7 @@ START_TEST(touch_initial_state)
 	/* device is now on some x/y value */
 	litest_drain_events(libinput1);
 
-	libinput2 = litest_create_context();
+	_litest_context_destroy_ struct libinput *libinput2 = litest_create_context();
 	device2 = libinput_path_add_device(libinput2,
 					   libevdev_uinput_get_devnode(
 							       dev->uinput));
@@ -872,8 +872,6 @@ START_TEST(touch_initial_state)
 
 	libinput_event_destroy(ev1);
 	libinput_event_destroy(ev2);
-
-	litest_destroy_context(libinput2);
 }
 END_TEST
 
@@ -971,10 +969,9 @@ END_TEST
 START_TEST(touch_release_on_unplug)
 {
 	struct litest_device *dev;
-	struct libinput *li;
 	struct libinput_event *ev;
 
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	dev = litest_add_device(li, LITEST_GENERIC_MULTITOUCH_SCREEN);
 	litest_drain_events(li);
 
@@ -997,8 +994,6 @@ START_TEST(touch_release_on_unplug)
 	ev = libinput_get_event(li);
 	litest_assert_event_type(ev, LIBINPUT_EVENT_DEVICE_REMOVED);
 	libinput_event_destroy(ev);
-
-	litest_destroy_context(li);
 }
 END_TEST
 

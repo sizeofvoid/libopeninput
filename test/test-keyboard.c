@@ -32,7 +32,6 @@ START_TEST(keyboard_seat_key_count)
 {
 	struct litest_device *devices[4];
 	const int num_devices = ARRAY_LENGTH(devices);
-	struct libinput *libinput;
 	struct libinput_event *ev;
 	struct libinput_event_keyboard *kev;
 	int i;
@@ -40,7 +39,7 @@ START_TEST(keyboard_seat_key_count)
 	int expected_key_button_count = 0;
 	char device_name[255];
 
-	libinput = litest_create_context();
+	_litest_context_destroy_ struct libinput *libinput = litest_create_context();
 	for (i = 0; i < num_devices; ++i) {
 		sprintf(device_name, "litest Generic keyboard (%d)", i);
 		devices[i] = litest_add_device_with_overrides(libinput,
@@ -96,15 +95,12 @@ START_TEST(keyboard_seat_key_count)
 
 	for (i = 0; i < num_devices; ++i)
 		litest_delete_device(devices[i]);
-	litest_destroy_context(libinput);
 }
 END_TEST
 
 START_TEST(keyboard_ignore_no_pressed_release)
 {
 	struct litest_device *dev;
-	struct libinput *unused_libinput;
-	struct libinput *libinput;
 	struct libinput_event *event;
 	struct libinput_event_keyboard *kevent;
 	int events[] = {
@@ -120,7 +116,7 @@ START_TEST(keyboard_ignore_no_pressed_release)
 	 * as such non-symmetric events are dropped. Work-around this by first
 	 * adding the test device to the tested context after having sent an
 	 * initial pressed event. */
-	unused_libinput = litest_create_context();
+	_litest_context_destroy_ struct libinput *unused_libinput = litest_create_context();
 	dev = litest_add_device_with_overrides(unused_libinput,
 					       LITEST_KEYBOARD,
 					       "Generic keyboard",
@@ -129,7 +125,7 @@ START_TEST(keyboard_ignore_no_pressed_release)
 	litest_keyboard_key(dev, KEY_A, true);
 	litest_drain_events(unused_libinput);
 
-	libinput = litest_create_context();
+	_litest_context_destroy_ struct libinput *libinput = litest_create_context();
 	libinput_path_add_device(libinput,
 				 libevdev_uinput_get_devnode(dev->uinput));
 	litest_drain_events(libinput);
@@ -155,14 +151,11 @@ START_TEST(keyboard_ignore_no_pressed_release)
 
 	litest_assert_empty_queue(libinput);
 	litest_delete_device(dev);
-	litest_destroy_context(libinput);
-	litest_destroy_context(unused_libinput);
 }
 END_TEST
 
 START_TEST(keyboard_key_auto_release)
 {
-	struct libinput *libinput;
 	struct litest_device *dev;
 	struct libinput_event *event;
 	enum libinput_event_type type;
@@ -194,7 +187,7 @@ START_TEST(keyboard_key_auto_release)
 	events[i++] = -1;
 	events[i++] = -1;
 
-	libinput = litest_create_context();
+	_litest_context_destroy_ struct libinput *libinput = litest_create_context();
 	dev = litest_add_device_with_overrides(libinput,
 					       LITEST_KEYBOARD,
 					       "Generic keyboard",
@@ -255,8 +248,6 @@ START_TEST(keyboard_key_auto_release)
 	for (i = 0; i < ARRAY_LENGTH(keys); ++i) {
 		litest_assert_int_eq(keys[i].released, 1);
 	}
-
-	litest_destroy_context(libinput);
 }
 END_TEST
 

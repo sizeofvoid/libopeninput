@@ -93,7 +93,6 @@ create_simple_test_device(const char *name, ...)
 START_TEST(event_conversion_device_notify)
 {
 	struct libevdev_uinput *uinput;
-	struct libinput *li;
 	struct libinput_event *event;
 	int device_added = 0, device_removed = 0;
 
@@ -104,7 +103,7 @@ START_TEST(event_conversion_device_notify)
 					   EV_KEY, BTN_MIDDLE,
 					   EV_KEY, BTN_LEFT,
 					   -1, -1);
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	litest_restore_log_handler(li); /* use the default litest handler */
 	libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 
@@ -143,7 +142,6 @@ START_TEST(event_conversion_device_notify)
 		libinput_event_destroy(event);
 	}
 
-	litest_destroy_context(li);
 	libevdev_uinput_destroy(uinput);
 
 	litest_assert_int_gt(device_added, 0);
@@ -729,10 +727,9 @@ END_TEST
 
 START_TEST(timer_flush)
 {
-	struct libinput *li;
 	struct litest_device *keyboard, *touchpad;
 
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 
 	touchpad = litest_add_device(li, LITEST_SYNAPTICS_TOUCHPAD);
 	litest_enable_tap(touchpad->libinput_device);
@@ -789,8 +786,6 @@ START_TEST(timer_flush)
 
 	litest_delete_device(keyboard);
 	litest_delete_device(touchpad);
-
-	litest_destroy_context(li);
 }
 END_TEST
 

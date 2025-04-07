@@ -283,7 +283,7 @@ END_TEST
 START_TEST(pointer_absolute_initial_state)
 {
 	struct litest_device *dev = litest_current_device();
-	struct libinput *libinput1, *libinput2;
+	struct libinput *libinput1;
 	struct libinput_event *ev1, *ev2;
 	struct libinput_event_pointer *p1, *p2;
 	int axis = litest_test_param_get_i32(test_env->params, "axis");
@@ -295,7 +295,7 @@ START_TEST(pointer_absolute_initial_state)
 	/* device is now on some x/y value */
 	litest_drain_events(libinput1);
 
-	libinput2 = litest_create_context();
+	_litest_context_destroy_ struct libinput *libinput2 = litest_create_context();
 	libinput_path_add_device(libinput2,
 				 libevdev_uinput_get_devnode(dev->uinput));
 	litest_drain_events(libinput2);
@@ -329,8 +329,6 @@ START_TEST(pointer_absolute_initial_state)
 		libinput_event_destroy(ev1);
 		libinput_event_destroy(ev2);
 	}
-
-	litest_destroy_context(libinput2);
 }
 END_TEST
 
@@ -425,7 +423,6 @@ END_TEST
 
 START_TEST(pointer_button_auto_release)
 {
-	struct libinput *libinput;
 	struct litest_device *dev;
 	struct libinput_event *event;
 	enum libinput_event_type type;
@@ -456,7 +453,7 @@ START_TEST(pointer_button_auto_release)
 	events[i++] = -1;
 	events[i++] = -1;
 
-	libinput = litest_create_context();
+	_litest_context_destroy_ struct libinput *libinput = litest_create_context();
 	dev = litest_add_device_with_overrides(libinput,
 					       LITEST_MOUSE,
 					       "Generic mouse",
@@ -507,8 +504,6 @@ START_TEST(pointer_button_auto_release)
 	for (i = 0; i < ARRAY_LENGTH(buttons); ++i) {
 		litest_assert_int_eq(buttons[i].released, 1);
 	}
-
-	litest_destroy_context(libinput);
 }
 END_TEST
 
@@ -1122,7 +1117,6 @@ START_TEST(pointer_seat_button_count)
 {
 	struct litest_device *devices[4];
 	const int num_devices = ARRAY_LENGTH(devices);
-	struct libinput *libinput;
 	struct libinput_event *ev;
 	struct libinput_event_pointer *tev;
 	int i;
@@ -1130,7 +1124,7 @@ START_TEST(pointer_seat_button_count)
 	int expected_seat_button_count = 0;
 	char device_name[255];
 
-	libinput = litest_create_context();
+	_litest_context_destroy_ struct libinput *libinput = litest_create_context();
 	for (i = 0; i < num_devices; ++i) {
 		sprintf(device_name, "litest Generic mouse (%d)", i);
 		devices[i] = litest_add_device_with_overrides(libinput,
@@ -1207,7 +1201,6 @@ START_TEST(pointer_seat_button_count)
 
 	for (i = 0; i < num_devices; ++i)
 		litest_delete_device(devices[i]);
-	litest_destroy_context(libinput);
 }
 END_TEST
 
@@ -1364,7 +1357,7 @@ END_TEST
 
 START_TEST(pointer_left_handed_disable_with_button_down)
 {
-	struct libinput *li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	struct litest_device *dev = litest_add_device(li, LITEST_MOUSE);
 
 	enum libinput_config_status status;
@@ -1389,8 +1382,6 @@ START_TEST(pointer_left_handed_disable_with_button_down)
 	litest_assert_event_type(event, LIBINPUT_EVENT_DEVICE_REMOVED);
 	litest_assert_empty_queue(li);
 	libinput_event_destroy(event);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -1566,10 +1557,9 @@ END_TEST
 
 START_TEST(pointer_scroll_button_device_remove_while_down)
 {
-	struct libinput *li;
 	struct litest_device *dev;
 
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 
 	dev = litest_add_device(li, LITEST_MOUSE);
 	libinput_device_config_scroll_set_method(dev->libinput_device,
@@ -1585,8 +1575,6 @@ START_TEST(pointer_scroll_button_device_remove_while_down)
 	/* delete the device  while the timer is still active */
 	litest_delete_device(dev);
 	litest_dispatch(li);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -3660,10 +3648,9 @@ END_TEST
 
 START_TEST(debounce_remove_device_button_up)
 {
-	struct libinput *li;
 	struct litest_device *dev;
 
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 
 	dev = litest_add_device(li, LITEST_MOUSE);
 	litest_drain_events(li);
@@ -3678,17 +3665,14 @@ START_TEST(debounce_remove_device_button_up)
 	litest_delete_device(dev);
 
 	litest_timeout_debounce(li);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
 START_TEST(debounce_remove_device_button_down)
 {
-	struct libinput *li;
 	struct litest_device *dev;
 
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 
 	dev = litest_add_device(li, LITEST_MOUSE);
 	litest_drain_events(li);
@@ -3701,8 +3685,6 @@ START_TEST(debounce_remove_device_button_down)
 	litest_delete_device(dev);
 
 	litest_timeout_debounce(li);
-
-	litest_destroy_context(li);
 }
 END_TEST
 

@@ -2188,7 +2188,6 @@ END_TEST
 
 START_TEST(touchpad_non_clickpad_detection)
 {
-	struct libinput *li;
 	struct libinput_device *device;
 	struct libevdev_uinput *uinput;
 	static struct input_absinfo absinfo[] = {
@@ -2216,7 +2215,7 @@ START_TEST(touchpad_non_clickpad_detection)
 						 EV_KEY, BTN_TOUCH,
 						 -1);
 
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
 
@@ -2226,7 +2225,6 @@ START_TEST(touchpad_non_clickpad_detection)
 
 	libinput_path_remove_device(device);
 	libevdev_uinput_destroy(uinput);
-	litest_destroy_context(li);
 }
 END_TEST
 

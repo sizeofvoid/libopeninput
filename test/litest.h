@@ -598,6 +598,10 @@ litest_axis_set_value(struct axis_replacement *axes, int code, double value)
 
 struct libinput *litest_create_context(void);
 void litest_destroy_context(struct libinput *li);
+DEFINE_TRIVIAL_CLEANUP_FUNC(struct libinput *, litest_destroy_context);
+
+#define _litest_context_destroy_ _cleanup_(litest_destroy_contextp)
+
 void litest_disable_log_handler(struct libinput *libinput);
 void litest_restore_log_handler(struct libinput *libinput);
 void litest_set_log_handler_bug(struct libinput *libinput);

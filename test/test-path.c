@@ -437,10 +437,9 @@ END_TEST
 
 START_TEST(path_add_invalid_path)
 {
-	struct libinput *li;
 	struct libinput_device *device;
 
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 
 	litest_disable_log_handler(li);
 	device = libinput_path_add_device(li, "/tmp/");
@@ -450,8 +449,6 @@ START_TEST(path_add_invalid_path)
 	litest_dispatch(li);
 
 	litest_assert_empty_queue(li);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -992,7 +989,6 @@ END_TEST
 START_TEST(path_ignore_device)
 {
 	struct litest_device *dev;
-	struct libinput *li;
 	struct libinput_device *device;
 	const char *path;
 
@@ -1000,11 +996,10 @@ START_TEST(path_ignore_device)
 	path = libevdev_uinput_get_devnode(dev->uinput);
 	litest_assert_notnull(path);
 
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	device = libinput_path_add_device(li, path);
 	litest_assert(device == NULL);
 
-	litest_destroy_context(li);
 	litest_delete_device(dev);
 }
 END_TEST

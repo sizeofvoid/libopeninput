@@ -178,7 +178,7 @@ END_TEST
 
 START_TEST(button_up_on_delete)
 {
-	struct libinput *li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	struct litest_device *dev = litest_add_device(li, LITEST_WACOM_INTUOS5_PEN);
 	struct libevdev *evdev = libevdev_new();
 	unsigned int code;
@@ -212,7 +212,6 @@ START_TEST(button_up_on_delete)
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	libevdev_free(evdev);
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -929,7 +928,7 @@ END_TEST
 
 START_TEST(tip_up_on_delete)
 {
-	struct libinput *li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	struct litest_device *dev = litest_add_device(li, LITEST_WACOM_INTUOS5_PEN);
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tablet_event;
@@ -956,8 +955,6 @@ START_TEST(tip_up_on_delete)
 	litest_assert_enum_eq(libinput_event_tablet_tool_get_tip_state(tablet_event),
 			 LIBINPUT_TABLET_TOOL_TIP_UP);
 	libinput_event_destroy(event);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -1708,7 +1705,7 @@ END_TEST
 
 START_TEST(proximity_out_on_delete)
 {
-	struct libinput *li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	struct litest_device *dev = litest_add_device(li, LITEST_WACOM_INTUOS5_PEN);
 
 	litest_tablet_proximity_in(dev, 10, 10, NULL);
@@ -1719,7 +1716,6 @@ START_TEST(proximity_out_on_delete)
 
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -2566,7 +2562,7 @@ END_TEST
 
 START_TEST(tools_with_serials)
 {
-	struct libinput *li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	struct litest_device *dev[2];
 	struct libinput_tablet_tool *tool[2] = {0};
 	struct libinput_event *event;
@@ -2601,13 +2597,12 @@ START_TEST(tools_with_serials)
 
 	litest_delete_device(dev[0]);
 	litest_delete_device(dev[1]);
-	litest_destroy_context(li);
 }
 END_TEST
 
 START_TEST(tools_without_serials)
 {
-	struct libinput *li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	struct litest_device *dev[2];
 	struct libinput_tablet_tool *tool[2] = {0};
 	struct libinput_event *event;
@@ -2645,7 +2640,6 @@ START_TEST(tools_without_serials)
 
 	litest_delete_device(dev[0]);
 	litest_delete_device(dev[1]);
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -2748,7 +2742,7 @@ END_TEST
 
 START_TEST(tool_capabilities)
 {
-	struct libinput *li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	struct litest_device *intuos;
 	struct litest_device *bamboo;
 	struct libinput_event *event;
@@ -2794,7 +2788,6 @@ START_TEST(tool_capabilities)
 
 	litest_delete_device(bamboo);
 	litest_delete_device(intuos);
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -2894,7 +2887,6 @@ END_TEST
 
 START_TEST(tool_in_prox_before_start)
 {
-	struct libinput *li;
 	struct litest_device *dev = litest_current_device();
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tev;
@@ -2913,7 +2905,7 @@ START_TEST(tool_in_prox_before_start)
 
 	/* for simplicity, we create a new litest context */
 	devnode = libevdev_uinput_get_devnode(dev->uinput);
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	libinput_path_add_device(li, devnode);
 
 	litest_drain_events_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
@@ -2951,8 +2943,6 @@ START_TEST(tool_in_prox_before_start)
 	event = libinput_get_event(li);
 	litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 	libinput_event_destroy(event);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -5114,7 +5104,7 @@ END_TEST
 
 START_TEST(tablet_pressure_after_unplug)
 {
-	struct libinput *li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	struct litest_device *dev = litest_add_device(li, LITEST_WACOM_CINTIQ_PRO16_PEN);
 
 	struct axis_replacement axes[] = {
@@ -5192,7 +5182,6 @@ START_TEST(tablet_pressure_after_unplug)
 	litest_assert_tablet_proximity_event(li, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 
 	litest_delete_device(dev);
-	litest_destroy_context(li);
 }
 END_TEST
 

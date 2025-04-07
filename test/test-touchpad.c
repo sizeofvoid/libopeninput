@@ -3561,7 +3561,7 @@ END_TEST
 START_TEST(touchpad_initial_state)
 {
 	struct litest_device *dev;
-	struct libinput *libinput1, *libinput2;
+	struct libinput *libinput1;
 	int x = 40, y = 60;
 	int axis = litest_test_param_get_i32(test_env->params, "axis");
 
@@ -3577,7 +3577,7 @@ START_TEST(touchpad_initial_state)
 	/* device is now on some x/y value */
 	litest_drain_events(libinput1);
 
-	libinput2 = litest_create_context();
+	_litest_context_destroy_ struct libinput *libinput2 = litest_create_context();
 	libinput_path_add_device(libinput2,
 				 libevdev_uinput_get_devnode(dev->uinput));
 	litest_drain_events(libinput2);
@@ -3615,15 +3615,12 @@ START_TEST(touchpad_initial_state)
 		libinput_event_destroy(ev1);
 		libinput_event_destroy(ev2);
 	}
-
-	litest_destroy_context(libinput2);
 }
 END_TEST
 
 START_TEST(touchpad_fingers_down_before_init)
 {
 	struct litest_device *dev = litest_current_device();
-	struct libinput *li;
 
 	int finger_count = litest_test_param_get_i32(test_env->params, "fingers");
 	unsigned int map[] = {0, BTN_TOOL_PEN, BTN_TOOL_DOUBLETAP,
@@ -3645,7 +3642,7 @@ START_TEST(touchpad_fingers_down_before_init)
 	litest_drain_events(dev->libinput);
 
 	/* create anew context that already has the fingers down */
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	libinput_path_add_device(li,
 				 libevdev_uinput_get_devnode(dev->uinput));
 	litest_drain_events(li);
@@ -3671,8 +3668,6 @@ START_TEST(touchpad_fingers_down_before_init)
 	}
 
 	litest_assert_empty_queue(li);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
@@ -5791,13 +5786,12 @@ END_TEST
 START_TEST(touchpad_finger_always_down)
 {
 	struct litest_device *dev = litest_current_device();
-	struct libinput *li;
 
 	/* Set BTN_TOOL_FINGER before a new context is initialized */
 	litest_event(dev, EV_KEY, BTN_TOOL_FINGER, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 
-	li = litest_create_context();
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	libinput_path_add_device(li,
 				 libevdev_uinput_get_devnode(dev->uinput));
 	litest_drain_events(li);
@@ -5806,8 +5800,6 @@ START_TEST(touchpad_finger_always_down)
 	litest_touch_move_to(dev, 0, 50, 50, 70, 50, 10);
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
-
-	litest_destroy_context(li);
 }
 END_TEST
 
