@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include "util-macros.h"
+#include "util-mem.h"
 
 struct stringbuf {
 	char *data;
@@ -73,6 +74,8 @@ stringbuf_destroy(struct stringbuf *b)
 	stringbuf_reset(b);
 	free(b);
 }
+
+DEFINE_DESTROY_CLEANUP_FUNC(stringbuf);
 
 static inline char *
 stringbuf_steal_destroy(struct stringbuf *b)
