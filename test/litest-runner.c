@@ -374,9 +374,8 @@ collect_file(const char *filename, struct stringbuf *b)
 {
 	int fd = open(filename, O_RDONLY);
 	if (fd == -1) {
-		char *msg = strdup_printf("Failed to find '%s': %m", filename);
+		_autofree_ char *msg = strdup_printf("Failed to find '%s': %m", filename);
 		stringbuf_append_string(b, msg);
-		free(msg);
 	} else {
 		stringbuf_append_from_fd(b, fd, 0);
 		close(fd);
@@ -439,9 +438,8 @@ litest_runner_test_collect_child(struct litest_runner_test *t)
 	t->times.end_millis = us2ms(now);
 
 	if (RUNNING_ON_VALGRIND) {
-		char *filename = valgrind_logfile(t->pid);
+		_autofree_ char *filename = valgrind_logfile(t->pid);
 		collect_file(filename, &t->logs[FD_VALGRIND]);
-		free(filename);
 	}
 
 	t->pid = 0;
@@ -639,12 +637,11 @@ static void
 print_lines(FILE *fp, const char *log, const char *prefix)
 {
 	size_t nlines = 0;
-	char **lines = strv_from_string (log, "\n", &nlines);
+	_autostrvfree_ char **lines = strv_from_string (log, "\n", &nlines);
 
 	for (size_t i = 0; i < nlines; i++) {
 		fprintf(fp, "%s%s\n", prefix, lines[i]);
 	}
-	strv_free(lines);
 }
 
 void
@@ -730,9 +727,8 @@ litest_runner_log_test_result(struct litest_runner *runner, struct litest_runner
 		fprintf(runner->fp, "    params:\n");
 		struct litest_test_param *p;
 		list_for_each(p, &t->desc.params->test_params, link) {
-			char *val = multivalue_as_str(&p->value);
+			_autofree_ char *val = multivalue_as_str(&p->value);
 			fprintf(runner->fp, "      %s: %s\n", p->name, val);
-			free(val);
 		}
 	}
 
@@ -1058,15 +1054,13 @@ litest_runner_run_tests(struct litest_runner *runner)
 	}
 
 	if (RUNNING_ON_VALGRIND) {
-		char *filename = valgrind_logfile(getpid());
-		struct stringbuf *b = stringbuf_new();
+		_autofree_ char *filename = valgrind_logfile(getpid());
+		_destroy_(stringbuf) *b = stringbuf_new();
 
 		collect_file(filename, b);
 		fprintf(runner->fp, "valgrind:\n");
 		print_lines(runner->fp, b->data, "  ");
 		fprintf(runner->fp, "# Valgrind log is incomplete, see %s for full log\n", filename);
-		free(filename);
-		stringbuf_destroy(b);
 	}
 
 	enum litest_runner_result result = LITEST_PASS;

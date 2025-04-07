@@ -27,6 +27,8 @@
 
 #include "litest.h"
 #include "util-range.h"
+#include "util-range.h"
+#include "util-mem.h"
 
 #define LITEST_RUNNER_DEFAULT_TIMEOUT 30
 
@@ -172,6 +174,8 @@ litest_runner_set_setup_funcs(struct litest_runner *runner,
 			      void *userdata);
 
 void litest_runner_destroy(struct litest_runner *runner);
+
+DEFINE_DESTROY_CLEANUP_FUNC(litest_runner);
 
 /*
  * Function to call abort(). Depending on the number of forks permitted,
