@@ -456,7 +456,6 @@ START_TEST(totem_button_up_on_delete)
 {
 	struct libinput *li = litest_create_context();
 	struct litest_device *dev = litest_add_device(li, LITEST_DELL_CANVAS_TOTEM);
-	struct libevdev *evdev = libevdev_new();
 
 	litest_tablet_proximity_in(dev, 10, 10, NULL);
 	litest_drain_events(li);
@@ -474,7 +473,6 @@ START_TEST(totem_button_up_on_delete)
 	litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_UP);
 	litest_assert_tablet_proximity_event(li,
 					     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
-	libevdev_free(evdev);
 	litest_destroy_context(li);
 }
 END_TEST
