@@ -1912,7 +1912,7 @@ tp_handle_state(struct tp_dispatch *tp,
 	tp_3fg_drag_apply_config(tp->device);
 }
 
-LIBINPUT_UNUSED
+_unused_
 static inline void
 tp_debug_touch_state(struct tp_dispatch *tp,
 		     struct evdev_device *device)

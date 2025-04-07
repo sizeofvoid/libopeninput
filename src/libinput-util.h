@@ -70,7 +70,6 @@
 #define etrace(...) _trace(stderr, __VA_ARGS__)
 
 #define LIBINPUT_EXPORT __attribute__ ((visibility("default")))
-#define LIBINPUT_UNUSED __attribute__ ((unused))
 
 #if defined(__OpenBSD__) || defined(__NetBSD__)
 #define bit(x_) (1UL << (x_))

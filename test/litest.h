@@ -42,7 +42,7 @@
 
 #define START_TEST(func_)  \
    static enum litest_runner_result func_(const struct litest_runner_test_env *test_env) { \
-	int _i __attribute__((unused)) = test_env->rangeval;
+	int _i _unused_ = test_env->rangeval;
 
 #define END_TEST \
 	return LITEST_PASS; \

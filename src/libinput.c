@@ -3173,7 +3173,7 @@ switch_notify_toggle(struct libinput_device *device,
 #endif
 }
 
-LIBINPUT_UNUSED
+_unused_
 static inline void
 libinput_print_queued_event(struct libinput_event *event)
 {

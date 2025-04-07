@@ -75,4 +75,5 @@
 #define CONCAT2(X,Y) X##Y
 #define CONCAT(X,Y) CONCAT2(X,Y)
 
+#define _unused_ __attribute__((unused))
 #define _fallthrough_ __attribute__((fallthrough))

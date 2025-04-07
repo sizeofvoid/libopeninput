@@ -1022,7 +1022,7 @@ evdev_read_switch_reliability_prop(struct evdev_device *device)
 	return r;
 }
 
-LIBINPUT_UNUSED
+_unused_
 static inline void
 evdev_print_event(struct evdev_device *device,
 		  const struct input_event *e)
