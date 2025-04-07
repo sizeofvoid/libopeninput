@@ -174,7 +174,7 @@ __all_seats()
 {
 	_arguments \
 		'--help[Show help message and exit]' \
-		'--format=dat[Specify the data format to be printed. The default is "summary"]'
+		'--format=dat[Specify the data format to be printed. The default is "summary"]' \
 		':device:_files -W /dev/input/ -P /dev/input/'
 }
 
