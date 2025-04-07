@@ -81,6 +81,34 @@ void list_insert(struct list *list, struct list *elm);
 void list_append(struct list *list, struct list *elm);
 
 /**
+ * Takes the given pointer ands inserts it to the list with the pointer's field.
+ * The pointer is reset to NULL. Use this to prevent automatic cleanup
+ * of the pointer type.
+ *
+ * @code
+ *	list_take_insert(&f->list_of_bars, b, link);
+ * @endcode
+ */
+#define list_take_insert(list_, ptr_, field_) do {\
+	list_insert(list_, &(ptr_)->field_); \
+	ptr_ = NULL; \
+} while(0)
+
+/**
+ * Takes the given pointer ands adds it to the list with the pointer's field.
+ * The pointer is reset to NULL. Use this to prevent automatic cleanup
+ * of the pointer type.
+ *
+ * @code
+ *	list_take_append(&f->list_of_bars, b, link);
+ * @endcode
+ */
+#define list_take_append(list_, ptr_, field_) do {\
+	list_append(list_, &(ptr_)->field_); \
+	ptr_ = NULL; \
+} while(0)
+
+/**
  * Remove an element from list.
  *
  * Removing a list element is only possible once, the caller must track
