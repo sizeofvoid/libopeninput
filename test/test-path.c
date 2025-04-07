@@ -193,10 +193,9 @@ START_TEST(path_create_pathmax_file)
 {
 	struct libinput *li;
 	struct libinput_device *device;
-	char *path;
 	struct counter counter;
 
-	path = zalloc(PATH_MAX * 2);
+	_autofree_ char *path = zalloc(PATH_MAX * 2);
 	memset(path, 'a', PATH_MAX * 2 - 1);
 
 	counter.open_func_count = 0;
@@ -216,7 +215,6 @@ START_TEST(path_create_pathmax_file)
 	libinput_unref(li);
 	litest_assert_int_eq(counter.close_func_count, 0);
 
-	free(path);
 }
 END_TEST
 
@@ -406,7 +404,6 @@ START_TEST(path_add_device)
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
 	struct libinput_device *device;
-	char *sysname1 = NULL, *sysname2 = NULL;
 
 	litest_dispatch(li);
 
@@ -415,7 +412,7 @@ START_TEST(path_add_device)
 	litest_assert_event_type(event, LIBINPUT_EVENT_DEVICE_ADDED);
 	device = libinput_event_get_device(event);
 	litest_assert_notnull(device);
-	sysname1 = safe_strdup(libinput_device_get_sysname(device));
+	_autofree_ char *sysname1 = safe_strdup(libinput_device_get_sysname(device));
 	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
@@ -431,13 +428,10 @@ START_TEST(path_add_device)
 	litest_assert_event_type(event, LIBINPUT_EVENT_DEVICE_ADDED);
 	device = libinput_event_get_device(event);
 	litest_assert_notnull(device);
-	sysname2 = safe_strdup(libinput_device_get_sysname(device));
+	_autofree_ char *sysname2 = safe_strdup(libinput_device_get_sysname(device));
 	libinput_event_destroy(event);
 
 	litest_assert_str_eq(sysname1, sysname2);
-
-	free(sysname1);
-	free(sysname2);
 }
 END_TEST
 
