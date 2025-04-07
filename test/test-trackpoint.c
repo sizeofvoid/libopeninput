@@ -175,7 +175,6 @@ END_TEST
 START_TEST(trackpoint_topsoftbuttons_left_handed_trackpoint)
 {
 	struct litest_device *touchpad = litest_current_device();
-	struct litest_device *trackpoint;
 	struct libinput *li = touchpad->libinput;
 	enum libinput_config_status status;
 	struct libinput_event *event;
@@ -183,7 +182,7 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_trackpoint)
 
 	litest_disable_hold_gestures(touchpad->libinput_device);
 
-	trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
+	_destroy_(litest_device) *trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
 	litest_drain_events(li);
 	/* touchpad right-handed, trackpoint left-handed */
 	status = libinput_device_config_left_handed_set(
@@ -212,15 +211,12 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_trackpoint)
 	device = libinput_event_get_device(event);
 	litest_assert(device == trackpoint->libinput_device);
 	libinput_event_destroy(event);
-
-	litest_device_destroy(trackpoint);
 }
 END_TEST
 
 START_TEST(trackpoint_topsoftbuttons_left_handed_touchpad)
 {
 	struct litest_device *touchpad = litest_current_device();
-	struct litest_device *trackpoint;
 	struct libinput *li = touchpad->libinput;
 	enum libinput_config_status status;
 	struct libinput_event *event;
@@ -228,7 +224,7 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_touchpad)
 
 	litest_disable_hold_gestures(touchpad->libinput_device);
 
-	trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
+	_destroy_(litest_device) *trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
 	litest_drain_events(li);
 	/* touchpad left-handed, trackpoint right-handed */
 	status = libinput_device_config_left_handed_set(
@@ -255,15 +251,12 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_touchpad)
 	device = libinput_event_get_device(event);
 	litest_assert(device == trackpoint->libinput_device);
 	libinput_event_destroy(event);
-
-	litest_device_destroy(trackpoint);
 }
 END_TEST
 
 START_TEST(trackpoint_topsoftbuttons_left_handed_both)
 {
 	struct litest_device *touchpad = litest_current_device();
-	struct litest_device *trackpoint;
 	struct libinput *li = touchpad->libinput;
 	enum libinput_config_status status;
 	struct libinput_event *event;
@@ -271,7 +264,7 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_both)
 
 	litest_disable_hold_gestures(touchpad->libinput_device);
 
-	trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
+	_destroy_(litest_device) *trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
 	litest_drain_events(li);
 	/* touchpad left-handed, trackpoint left-handed */
 	status = libinput_device_config_left_handed_set(
@@ -303,8 +296,6 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_both)
 	device = libinput_event_get_device(event);
 	litest_assert(device == trackpoint->libinput_device);
 	libinput_event_destroy(event);
-
-	litest_device_destroy(trackpoint);
 }
 END_TEST
 
@@ -331,11 +322,10 @@ disable_dwtp(struct litest_device *dev)
 START_TEST(trackpoint_palmdetect)
 {
 	struct litest_device *trackpoint = litest_current_device();
-	struct litest_device *touchpad;
 	struct libinput *li = trackpoint->libinput;
 	int i;
 
-	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	_destroy_(litest_device) *touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
 	if (has_disable_while_trackpointing(touchpad))
 		enable_dwtp(touchpad);
 
@@ -361,19 +351,16 @@ START_TEST(trackpoint_palmdetect)
 	litest_touch_move_to(touchpad, 0, 30, 30, 80, 80, 10);
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
-
-	litest_device_destroy(touchpad);
 }
 END_TEST
 
 START_TEST(trackpoint_palmdetect_dwtp_disabled)
 {
 	struct litest_device *trackpoint = litest_current_device();
-	struct litest_device *touchpad;
 	struct libinput *li = trackpoint->libinput;
 	int i;
 
-	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	_destroy_(litest_device) *touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
 	if (has_disable_while_trackpointing(touchpad))
 		disable_dwtp(touchpad);
 
@@ -392,19 +379,16 @@ START_TEST(trackpoint_palmdetect_dwtp_disabled)
 	litest_touch_move_to(touchpad, 0, 30, 30, 80, 80, 10);
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
-
-	litest_device_destroy(touchpad);
 }
 END_TEST
 
 START_TEST(trackpoint_palmdetect_resume_touch)
 {
 	struct litest_device *trackpoint = litest_current_device();
-	struct litest_device *touchpad;
 	struct libinput *li = trackpoint->libinput;
 	int i;
 
-	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	_destroy_(litest_device) *touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
 
 	if (has_disable_while_trackpointing(touchpad))
 		enable_dwtp(touchpad);
@@ -430,18 +414,15 @@ START_TEST(trackpoint_palmdetect_resume_touch)
 	litest_touch_move_to(touchpad, 0, 80, 80, 30, 30, 10);
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
-
-	litest_device_destroy(touchpad);
 }
 END_TEST
 
 START_TEST(trackpoint_palmdetect_require_min_events)
 {
 	struct litest_device *trackpoint = litest_current_device();
-	struct litest_device *touchpad;
 	struct libinput *li = trackpoint->libinput;
 
-	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	_destroy_(litest_device) *touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
 
 	if (has_disable_while_trackpointing(touchpad))
 		enable_dwtp(touchpad);
@@ -460,18 +441,15 @@ START_TEST(trackpoint_palmdetect_require_min_events)
 	litest_touch_move_to(touchpad, 0, 30, 30, 80, 80, 10);
 	litest_touch_up(touchpad, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
-
-	litest_device_destroy(touchpad);
 }
 END_TEST
 
 START_TEST(trackpoint_palmdetect_require_min_events_timeout)
 {
 	struct litest_device *trackpoint = litest_current_device();
-	struct litest_device *touchpad;
 	struct libinput *li = trackpoint->libinput;
 
-	touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
+	_destroy_(litest_device) *touchpad = litest_add_device(li, LITEST_SYNAPTICS_I2C);
 
 	if (has_disable_while_trackpointing(touchpad))
 		enable_dwtp(touchpad);
@@ -494,8 +472,6 @@ START_TEST(trackpoint_palmdetect_require_min_events_timeout)
 
 		litest_timeout_trackpoint(li);
 	}
-
-	litest_device_destroy(touchpad);
 }
 END_TEST
 

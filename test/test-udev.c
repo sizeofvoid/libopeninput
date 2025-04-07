@@ -182,7 +182,6 @@ START_TEST(udev_added_seat_default)
 	struct libinput_device *device;
 	struct libinput_seat *seat;
 	const char *seat_name;
-	struct litest_device *dev;
 
 	udev = udev_new();
 	litest_assert_notnull(udev);
@@ -198,7 +197,7 @@ START_TEST(udev_added_seat_default)
 	/* Now create our own device, it should be in the "default"
 	 * logical seat. This test may fail if there is a local rule changing
 	 * that, but it'll be fine for the 99% case. */
-	dev = litest_create(LITEST_MOUSE, NULL, NULL, NULL, NULL);
+	_destroy_(litest_device) *dev = litest_create(LITEST_MOUSE, NULL, NULL, NULL, NULL);
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 	event = libinput_get_event(li);
 	device = libinput_event_get_device(event);
@@ -211,8 +210,6 @@ START_TEST(udev_added_seat_default)
 
 	libinput_unref(li);
 	udev_unref(udev);
-
-	litest_device_destroy(dev);
 }
 END_TEST
 
@@ -226,7 +223,6 @@ START_TEST(udev_change_seat)
 	const char *seat1_name;
 	const char *seat2_name = "new seat";
 	int rc;
-	struct litest_device *dev;
 
 	udev = udev_new();
 	litest_assert_notnull(udev);
@@ -242,7 +238,7 @@ START_TEST(udev_change_seat)
 	/* Now create our own device, it should be in the "default"
 	 * logical seat. This test may fail if there is a local rule changing
 	 * that, but it'll be fine for the 99% case. */
-	dev = litest_create(LITEST_MOUSE, NULL, NULL, NULL, NULL);
+	_unused_ _destroy_(litest_device) *dev = litest_create(LITEST_MOUSE, NULL, NULL, NULL, NULL);
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 	event = libinput_get_event(li);
 	device = libinput_event_get_device(event);
@@ -286,8 +282,6 @@ START_TEST(udev_change_seat)
 
 	libinput_unref(li);
 	udev_unref(udev);
-
-	litest_device_destroy(dev);
 }
 END_TEST
 
@@ -628,10 +622,9 @@ START_TEST(udev_ignore_device)
 	struct libinput *li;
 	struct libinput_device *device;
 	struct libinput_event *event;
-	struct litest_device *dev;
 	const char *devname;
 
-	dev = litest_create(LITEST_IGNORED_MOUSE, NULL, NULL, NULL, NULL);
+	_destroy_(litest_device) *dev = litest_create(LITEST_IGNORED_MOUSE, NULL, NULL, NULL, NULL);
 	devname = libevdev_get_name(dev->evdev);
 
 	udev = udev_new();
@@ -662,8 +655,6 @@ START_TEST(udev_ignore_device)
 
 	libinput_unref(li);
 	udev_unref(udev);
-
-	litest_device_destroy(dev);
 }
 END_TEST
 

@@ -727,14 +727,12 @@ END_TEST
 
 START_TEST(timer_flush)
 {
-	struct litest_device *keyboard, *touchpad;
-
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 
-	touchpad = litest_add_device(li, LITEST_SYNAPTICS_TOUCHPAD);
+	_destroy_(litest_device) *touchpad = litest_add_device(li, LITEST_SYNAPTICS_TOUCHPAD);
 	litest_enable_tap(touchpad->libinput_device);
 	litest_dispatch(li);
-	keyboard = litest_add_device(li, LITEST_KEYBOARD);
+	_destroy_(litest_device) *keyboard = litest_add_device(li, LITEST_KEYBOARD);
 	litest_dispatch(li);
 	litest_drain_events(li);
 
@@ -783,9 +781,6 @@ START_TEST(timer_flush)
 				   LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_button_event(li, BTN_LEFT,
 				   LIBINPUT_BUTTON_STATE_RELEASED);
-
-	litest_device_destroy(keyboard);
-	litest_device_destroy(touchpad);
 }
 END_TEST
 
