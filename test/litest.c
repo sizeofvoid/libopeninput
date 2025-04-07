@@ -453,6 +453,8 @@ litest_parameter_unref(struct litest_parameter *p) {
 	return NULL;
 }
 
+DEFINE_UNREF_CLEANUP_FUNC(litest_parameter);
+
 static void
 litest_parameters_add(struct litest_parameters *ps, struct litest_parameter *param)
 {
@@ -478,7 +480,7 @@ _litest_parameters_new(const char *name, ...) {
 	while (name) {
 		char type = va_arg(args, int);
 
-		struct litest_parameter *param = litest_parameter_new(name, type);
+		_unref_(litest_parameter) *param = litest_parameter_new(name, type);
 		if (type == 'b') {
 			litest_parameter_add_bool(param, true);
 			litest_parameter_add_bool(param, false);
@@ -524,7 +526,6 @@ _litest_parameters_new(const char *name, ...) {
 		}
 
 		litest_parameters_add(ps, param);
-		litest_parameter_unref(param);
 		name = va_arg(args, const char *);
 	}
 
@@ -637,7 +638,7 @@ grab_device(struct litest_device *device, bool mode)
 {
 	struct libinput *li = libinput_device_get_context(device->libinput_device);
 	struct litest_context *ctx = libinput_get_user_data(li);
-	struct udev_device *udev_device;
+	_unref_(udev_device) *udev_device;
 	const char *devnode;
 	struct path *p;
 
@@ -655,7 +656,6 @@ grab_device(struct litest_device *device, bool mode)
 		if (streq(p->path, devnode)) {
 			int rc = ioctl(p->fd, EVIOCGRAB, (void*)mode ? 1 : 0);
 			litest_assert_errno_success(rc);
-			udev_device_unref(udev_device);
 			return;
 		}
 	}
@@ -785,10 +785,9 @@ permutation_func(struct litest_parameters_permutation *permutation, void *userda
 		const struct param_filter *f = data->param_filters;
 		while (!filtered && strlen(f->name)) {
 			if (streq(pmv->name, f->name)) {
-				char *s = multivalue_as_str(&pmv->value);
+				_autofree_ char *s = multivalue_as_str(&pmv->value);
 				if (fnmatch(f->glob, s, 0) != 0)
 					filtered = true;
-				free(s);
 			}
 			f++;
 		}
@@ -1502,7 +1501,7 @@ litest_run_suite(struct list *suites, int njobs)
 	size_t ntests = 0;
 	enum litest_runner_result result = LITEST_SKIP;
 	struct suite *s;
-	struct litest_runner *runner = litest_runner_new();
+	_destroy_(litest_runner) *runner = litest_runner_new();
 
 	litest_runner_set_num_parallel(runner, njobs > 0 ? njobs : 0);
 	if (outfile)
@@ -1531,10 +1530,9 @@ litest_run_suite(struct list *suites, int njobs)
 				struct litest_test_param *tp;
 				bool is_first = true;
 				list_for_each(tp, &t->params->test_params, link) {
-					char *val = multivalue_as_str(&tp->value);
+					_autofree_ char *val = multivalue_as_str(&tp->value);
 					snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
 						 "%s%s:%s", is_first ? "" : ",", tp->name, val);
-					free(val);
 					is_first = false;
 				}
 				snprintf(tdesc.name, sizeof(tdesc.name),
@@ -1564,8 +1562,6 @@ litest_run_suite(struct list *suites, int njobs)
 	if (ntests > 0)
 		result = litest_runner_run_tests(runner);
 
-	litest_runner_destroy(runner);
-
 	return result;
 }
 
@@ -1574,9 +1570,9 @@ inhibit(void)
 {
 	int lock_fd = -1;
 #if HAVE_LIBSYSTEMD
-	sd_bus_error error = SD_BUS_ERROR_NULL;
-	sd_bus_message *m = NULL;
-	sd_bus *bus = NULL;
+	_cleanup_(sd_bus_error_free) sd_bus_error error = SD_BUS_ERROR_NULL;
+	_unref_(sd_bus_message) *m = NULL;
+	_unref_(sd_bus) *bus = NULL;
 	int rc;
 
 	if (run_deviceless)
@@ -1613,10 +1609,7 @@ inhibit(void)
 
 	lock_fd = dup(lock_fd);
 out:
-	sd_bus_error_free(&error);
-	sd_bus_message_unref(m);
 	sd_bus_close(bus);
-	sd_bus_unref(bus);
 #endif
 	return lock_fd;
 }
@@ -1904,7 +1897,7 @@ static void
 litest_install_source_quirks(struct list *created_files_list,
 			     const char *dirname)
 {
-	struct dirent **namelist;
+	_autofree_ struct dirent **namelist;
 	int ndev;
 
 	ndev = scandir(LIBINPUT_QUIRKS_SRCDIR,
@@ -1919,15 +1912,14 @@ litest_install_source_quirks(struct list *created_files_list,
 		char dest[PATH_MAX];
 		char src[PATH_MAX];
 
-		filename = namelist[idx]->d_name;
+		_autofree_ struct dirent *entry = namelist[idx];
+		filename = entry->d_name;
 		snprintf(src, sizeof(src), "%s/%s",
 			 LIBINPUT_QUIRKS_SRCDIR, filename);
 		snprintf(dest, sizeof(dest), "%s/%s", dirname, filename);
 		file = litest_copy_file(dest, src, NULL, true);
 		list_append(created_files_list, &file->link);
-		free(namelist[idx]);
 	}
-	free(namelist);
 }
 
 /**
@@ -2024,8 +2016,9 @@ litest_create(enum litest_device_type which,
 	struct litest_test_device *dev;
 	const char *name;
 	const struct input_id *id;
-	struct input_absinfo *abs;
-	int *events, *e;
+	_autofree_ struct input_absinfo *abs;
+	_autofree_ int *events;
+	int *e;
 	const char *path;
 	int fd, rc;
 	bool found = false;
@@ -2076,9 +2069,6 @@ litest_create(enum litest_device_type which,
 		}
 	}
 
-	free(abs);
-	free(events);
-
 	path = libevdev_uinput_get_devnode(d->uinput);
 	litest_assert_ptr_notnull(path);
 	fd = open(path, O_RDWR|O_NONBLOCK);
@@ -2114,7 +2104,7 @@ void
 litest_destroy_context(struct libinput *li)
 {
 	struct path *p;
-	struct litest_context *ctx;
+	_autofree_ struct litest_context *ctx;
 
 	ctx = libinput_get_user_data(li);
 	litest_assert_ptr_notnull(ctx);
@@ -2123,7 +2113,6 @@ litest_destroy_context(struct libinput *li)
 	list_for_each_safe(p, &ctx->paths, link) {
 		litest_abort_msg("Device paths should be removed by now");
 	}
-	free(ctx);
 }
 
 void
@@ -2169,7 +2158,6 @@ litest_add_device_with_overrides(struct libinput *libinput,
 				 const struct input_absinfo *abs_override,
 				 const int *events_override)
 {
-	struct udev_device *ud;
 	struct litest_device *d;
 	const char *path;
 
@@ -2185,9 +2173,8 @@ litest_add_device_with_overrides(struct libinput *libinput,
 	d->libinput = libinput;
 	d->libinput_device = libinput_path_add_device(d->libinput, path);
 	litest_assert_ptr_notnull(d->libinput_device);
-	ud = libinput_device_get_udev_device(d->libinput_device);
+	_unref_(udev_device) *ud = libinput_device_get_udev_device(d->libinput_device);
 	d->quirks = quirks_fetch_for_device(quirks_context, ud);
-	udev_device_unref(ud);
 
 	libinput_device_ref(d->libinput_device);
 
@@ -2253,11 +2240,10 @@ litest_create_device(enum litest_device_type which)
 static struct udev_monitor *
 udev_setup_monitor(void)
 {
-	struct udev *udev;
-	struct udev_monitor *udev_monitor;
+	_unref_(udev) *udev = udev_new();
+	_unref_(udev_monitor) *udev_monitor = NULL;
 	int rc;
 
-	udev = udev_new();
 	litest_assert_notnull(udev);
 	udev_monitor = udev_monitor_new_from_netlink(udev, "udev");
 	litest_assert_notnull(udev_monitor);
@@ -2269,9 +2255,8 @@ udev_setup_monitor(void)
 	litest_assert_errno_success(rc);
 	litest_assert_int_eq(udev_monitor_enable_receiving(udev_monitor),
 			     0);
-	udev_unref(udev);
 
-	return udev_monitor;
+	return steal(&udev_monitor);
 }
 
 static struct udev_device *
@@ -2279,10 +2264,9 @@ udev_wait_for_device_event(struct udev_monitor *udev_monitor,
 			   const char *udev_event,
 			   const char *syspath)
 {
-	struct udev_device *udev_device = NULL;
-
 	/* blocking, we don't want to continue until udev is ready */
 	while (1) {
+		_unref_(udev_device) *udev_device = NULL;
 		const char *udev_syspath = NULL;
 		const char *udev_action;
 
@@ -2290,26 +2274,21 @@ udev_wait_for_device_event(struct udev_monitor *udev_monitor,
 		litest_assert_notnull(udev_device);
 		udev_action = udev_device_get_action(udev_device);
 		if (!udev_action || !streq(udev_action, udev_event)) {
-			udev_device_unref(udev_device);
 			continue;
 		}
 
 		udev_syspath = udev_device_get_syspath(udev_device);
 		if (strstartswith(udev_syspath, syspath))
-			break;
-
-		udev_device_unref(udev_device);
+			return steal(&udev_device);
 	}
-
-	return udev_device;
 }
 
 void
 litest_delete_device(struct litest_device *d)
 {
 
-	struct udev_monitor *udev_monitor;
-	struct udev_device *udev_device;
+	_unref_(udev_monitor) *udev_monitor = NULL;
+	_unref_(udev_device) *udev_device = NULL;
 	char path[PATH_MAX];
 
 	if (!d)
@@ -2339,11 +2318,9 @@ litest_delete_device(struct litest_device *d)
 	memset(d,0, sizeof(*d));
 	free(d);
 
-	udev_device = udev_wait_for_device_event(udev_monitor,
+	udev_device = udev_wait_for_device_event(udev_monitor, // NOLINT: deadcode.DeadStores
 						 "remove",
 						 path);
-	udev_device_unref(udev_device);
-	udev_monitor_unref(udev_monitor);
 }
 
 void
@@ -3469,7 +3446,6 @@ _litest_wait_for_event_of_type(struct libinput *li,
 
 	while (1) {
 		size_t i;
-		struct libinput_event *event;
 		enum libinput_event_type type;
 
 		while ((type = libinput_next_event_type(li)) == LIBINPUT_EVENT_NONE) {
@@ -3498,27 +3474,27 @@ _litest_wait_for_event_of_type(struct libinput *li,
 				return;
 		}
 
-		event = libinput_get_event(li);
+		_destroy_(libinput_event) *event = libinput_get_event(li);
 		if (verbose) {
 			litest_print_event(event, "Discarding event while waiting: ");
 		}
-		libinput_event_destroy(event);
 	}
 }
 
 void
 litest_drain_events(struct libinput *li)
 {
-	struct libinput_event *event;
+	do {
+		libinput_dispatch(li);
 
-	libinput_dispatch(li);
-	while ((event = libinput_get_event(li))) {
+		_destroy_(libinput_event) *event = libinput_get_event(li);
+		if (!event)
+			break;
+
 		if (verbose) {
 			litest_print_event(event, "litest: draining event: ");
 		}
-		libinput_event_destroy(event);
-		libinput_dispatch(li);
-	}
+	} while (true);
 }
 
 void
@@ -3542,7 +3518,6 @@ _litest_drain_events_of_type(struct libinput *li, ...)
 	libinput_dispatch(li);
 	type = libinput_next_event_type(li);
 	while (type != LIBINPUT_EVENT_NONE) {
-		struct libinput_event *event;
 		bool found = false;
 
 		type = libinput_next_event_type(li);
@@ -3556,10 +3531,9 @@ _litest_drain_events_of_type(struct libinput *li, ...)
 		if (!found)
 			return;
 
-		event = libinput_get_event(li);
+		_destroy_(libinput_event) *event = libinput_get_event(li);
 		if (verbose)
 			litest_print_event(event, "litest: draining typed event: ");
-		libinput_event_destroy(event);
 		libinput_dispatch(li);
 	}
 }
@@ -3684,9 +3658,8 @@ litest_event_get_type_str(struct libinput_event *event)
 static void
 litest_print_event(struct libinput_event *event, const char *message)
 {
-	char *event_str = libinput_event_to_str(event, 0, NULL);
+	_autofree_ char *event_str = libinput_event_to_str(event, 0, NULL);
 	fprintf(stderr, "litest: %s %s\n", message, event_str);
-	free(event_str);
 }
 
 void
@@ -3807,7 +3780,7 @@ litest_create_uinput(const char *name,
 		     const int *events)
 {
 	struct libevdev_uinput *uinput;
-	struct libevdev *dev;
+	_free_(libevdev) *dev = libevdev_new();
 	int type, code;
 	int rc;
 	const struct input_absinfo *abs;
@@ -3830,7 +3803,6 @@ litest_create_uinput(const char *name,
 	};
 	char buf[512];
 
-	dev = libevdev_new();
 	litest_assert_ptr_notnull(dev);
 
 	snprintf(buf, sizeof(buf), "litest %s", name);
@@ -3873,8 +3845,6 @@ litest_create_uinput(const char *name,
 						&uinput);
 	litest_assert_msg(rc == 0, "Failed to create uinput device: %s\n", strerror(-rc));
 
-	libevdev_free(dev);
-
 	return uinput;
 }
 
@@ -3888,10 +3858,8 @@ litest_create_uinput_device_from_description(const char *name,
 	const char *syspath;
 	char path[PATH_MAX];
 
-	struct udev_monitor *udev_monitor;
-	struct udev_device *udev_device;
-
-	udev_monitor = udev_setup_monitor();
+	_unref_(udev_monitor) *udev_monitor = udev_setup_monitor();
+	_unref_(udev_device) *udev_device = NULL;
 
 	uinput = litest_create_uinput(name, id, abs_info, events);
 
@@ -3901,9 +3869,6 @@ litest_create_uinput_device_from_description(const char *name,
 	udev_device = udev_wait_for_device_event(udev_monitor, "add", path);
 
 	litest_assert(udev_device_get_property_value(udev_device, "ID_INPUT"));
-
-	udev_device_unref(udev_device);
-	udev_monitor_unref(udev_monitor);
 
 	return uinput;
 }
@@ -4048,14 +4013,9 @@ _litest_assert_key_event(struct libinput *li,
 			 const char *func,
 			 int lineno)
 {
-	struct libinput_event *event;
-
 	litest_wait_for_event(li);
-	event = libinput_get_event(li);
-
+	_destroy_(libinput_event) *event = libinput_get_event(li);
 	litest_is_keyboard_event(event, key, state);
-
-	libinput_event_destroy(event);
 }
 
 void
@@ -4063,8 +4023,6 @@ _litest_assert_button_event(struct libinput *li, unsigned int button,
 			    enum libinput_button_state state,
 			    const char *func, int line)
 {
-	struct libinput_event *event;
-
 	_litest_checkpoint(func,
 			   line,
 			   ANSI_CYAN,
@@ -4074,11 +4032,8 @@ _litest_assert_button_event(struct libinput *li, unsigned int button,
 			   state);
 
 	litest_wait_for_event(li);
-	event = libinput_get_event(li);
-
+	_destroy_(libinput_event) *event = libinput_get_event(li);
 	litest_is_button_event(event, button, state);
-
-	libinput_event_destroy(event);
 }
 
 struct libinput_event_touch *
@@ -4155,7 +4110,6 @@ _litest_assert_gesture_event(struct libinput *li,
 			     const char *func,
 			     int line)
 {
-	struct libinput_event *event;
 
 	_litest_checkpoint(func,
 			   line,
@@ -4165,10 +4119,9 @@ _litest_assert_gesture_event(struct libinput *li,
 			   nfingers);
 
 	litest_wait_for_event(li);
-	event = libinput_get_event(li);
 
+	_destroy_(libinput_event) *event = libinput_get_event(li);
 	litest_is_gesture_event(event, type, nfingers);
-	libinput_event_destroy(event);
 }
 
 struct libinput_event_tablet_tool *
@@ -4192,7 +4145,6 @@ _litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
 				   const char *func,
 				   int lineno)
 {
-	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tev;
 	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_TOOL_BUTTON;
 
@@ -4204,8 +4156,8 @@ _litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
 			   yesno(state));
 
 	litest_wait_for_event(li);
-	event = libinput_get_event(li);
 
+	_destroy_(libinput_event) *event = libinput_get_event(li);
 	litest_assert_notnull(event);
 	litest_assert_event_type(event, type);
 	tev = libinput_event_get_tablet_tool_event(event);
@@ -4213,7 +4165,6 @@ _litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
 			     button);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_button_state(tev),
 			     state);
-	libinput_event_destroy(event);
 }
 
 struct libinput_event_tablet_tool *
@@ -4284,12 +4235,9 @@ _litest_assert_tablet_proximity_event(struct libinput *li,
 				      const char *func,
 				      int lineno)
 {
-	struct libinput_event *event;
-
 	litest_wait_for_event(li);
-	event = libinput_get_event(li);
+	_destroy_(libinput_event) *event = libinput_get_event(li);
 	litest_is_proximity_event(event, state);
-	libinput_event_destroy(event);
 }
 
 void
@@ -4298,7 +4246,6 @@ _litest_assert_tablet_tip_event(struct libinput *li,
 				const char *func,
 				int lineno)
 {
-	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tev;
 	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_TOOL_TIP;
 
@@ -4309,14 +4256,13 @@ _litest_assert_tablet_tip_event(struct libinput *li,
 			   state ? "down" : "up");
 
 	litest_wait_for_event(li);
-	event = libinput_get_event(li);
 
+	_destroy_(libinput_event) *event = libinput_get_event(li);
 	litest_assert_notnull(event);
 	litest_assert_event_type(event, type);
 	tev = libinput_event_get_tablet_tool_event(event);
 	litest_assert_int_eq(libinput_event_tablet_tool_get_tip_state(tev),
 			     state);
-	libinput_event_destroy(event);
 }
 
 struct libinput_event_tablet_pad *
@@ -4445,14 +4391,10 @@ _litest_assert_switch_event(struct libinput *li,
 			    const char *func,
 			    int lineno)
 {
-	struct libinput_event *event;
-
 	litest_wait_for_event(li);
-	event = libinput_get_event(li);
 
+	_destroy_(libinput_event) *event = libinput_get_event(li);
 	litest_is_switch_event(event, sw, state);
-
-	libinput_event_destroy(event);
 }
 
 void
@@ -4462,13 +4404,10 @@ _litest_assert_pad_button_event(struct libinput *li,
 				const char *func,
 				int lineno)
 {
-	struct libinput_event *event;
-
 	litest_wait_for_event(li);
-	event = libinput_get_event(li);
 
+	_destroy_(libinput_event) *event = libinput_get_event(li);
 	litest_is_pad_button_event(event, button, state);
-	libinput_event_destroy(event);
 }
 
 void
@@ -4478,13 +4417,10 @@ _litest_assert_pad_key_event(struct libinput *li,
 			     const char *func,
 			     int lineno)
 {
-	struct libinput_event *event;
-
 	litest_wait_for_event(li);
-	event = libinput_get_event(li);
 
+	_destroy_(libinput_event) *event = libinput_get_event(li);
 	litest_is_pad_key_event(event, key, state);
-	libinput_event_destroy(event);
 }
 
 void
@@ -4559,7 +4495,6 @@ litest_assert_axis_end_sequence(struct libinput *li,
 				enum libinput_pointer_axis axis,
 				enum libinput_pointer_axis_source source)
 {
-	struct libinput_event *event;
 	struct libinput_event_pointer *ptrev;
 	bool last_hi_res_event_found, last_low_res_event_found;
 	double val;
@@ -4574,7 +4509,7 @@ litest_assert_axis_end_sequence(struct libinput *li,
 
 	/* both high and low scroll end events must be sent */
 	for (i = 0; i < 2; i++) {
-		event = libinput_get_event(li);
+		_destroy_(libinput_event) *event = libinput_get_event(li);
 		ptrev = litest_is_axis_event(event, axis_type, axis, source);
 		val = litest_event_pointer_get_value(ptrev, axis);
 		litest_assert(val == 0.0);
@@ -4586,8 +4521,6 @@ litest_assert_axis_end_sequence(struct libinput *li,
 			litest_assert(!last_low_res_event_found);
 			last_low_res_event_found = true;
 		}
-
-		libinput_event_destroy(event);
 	}
 
 	litest_assert(last_low_res_event_found);
@@ -4734,43 +4667,31 @@ litest_assert_touch_motion_frame(struct libinput *li)
 void
 litest_assert_touch_down_frame(struct libinput *li)
 {
-	struct libinput_event *event;
+	_destroy_(libinput_event) *down = libinput_get_event(li);
+	litest_is_touch_event(down, LIBINPUT_EVENT_TOUCH_DOWN);
 
-	event = libinput_get_event(li);
-	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_DOWN);
-	libinput_event_destroy(event);
-
-	event = libinput_get_event(li);
-	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
-	libinput_event_destroy(event);
+	_destroy_(libinput_event) *frame = libinput_get_event(li);
+	litest_is_touch_event(frame, LIBINPUT_EVENT_TOUCH_FRAME);
 }
 
 void
 litest_assert_touch_up_frame(struct libinput *li)
 {
-	struct libinput_event *event;
+	_destroy_(libinput_event) *up = libinput_get_event(li);
+	litest_is_touch_event(up, LIBINPUT_EVENT_TOUCH_UP);
 
-	event = libinput_get_event(li);
-	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_UP);
-	libinput_event_destroy(event);
-
-	event = libinput_get_event(li);
-	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
-	libinput_event_destroy(event);
+	_destroy_(libinput_event) *frame = libinput_get_event(li);
+	litest_is_touch_event(frame, LIBINPUT_EVENT_TOUCH_FRAME);
 }
 
 void
 litest_assert_touch_cancel(struct libinput *li)
 {
-	struct libinput_event *event;
+	_destroy_(libinput_event) *cancel = libinput_get_event(li);
+	litest_is_touch_event(cancel, LIBINPUT_EVENT_TOUCH_CANCEL);
 
-	event = libinput_get_event(li);
-	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_CANCEL);
-	libinput_event_destroy(event);
-
-	event = libinput_get_event(li);
-	litest_is_touch_event(event, LIBINPUT_EVENT_TOUCH_FRAME);
-	libinput_event_destroy(event);
+	_destroy_(libinput_event) *frame = libinput_get_event(li);
+	litest_is_touch_event(frame, LIBINPUT_EVENT_TOUCH_FRAME);
 }
 
 void
@@ -5075,7 +4996,7 @@ litest_parse_argv(int argc, char **argv, int *njobs_out)
 			break;
 		case OPT_FILTER_PARAMETER: {
 			size_t nelems;
-			char **params = strv_from_string(optarg, ",", &nelems);
+			_autostrvfree_ char **params = strv_from_string(optarg, ",", &nelems);
 			const size_t max_filters = ARRAY_LENGTH(filter_params) - 1;
 			if (nelems >=  max_filters) {
 				fprintf(stderr, "Only %zd parameter filters are supported\n", max_filters);
@@ -5083,7 +5004,7 @@ litest_parse_argv(int argc, char **argv, int *njobs_out)
 			}
 			for (size_t i = 0; i < nelems; i++)  {
 				size_t n;
-				char **strv = strv_from_string(params[i], ":", &n);
+				_autostrvfree_ char **strv = strv_from_string(params[i], ":", &n);
 				assert(n == 2);
 
 				const char *name = strv[0];
@@ -5092,10 +5013,7 @@ litest_parse_argv(int argc, char **argv, int *njobs_out)
 				struct param_filter *f = &filter_params[i];
 				snprintf(f->name, sizeof(f->name), "%s", name);
 				snprintf(f->glob, sizeof(f->glob), "%s", glob);
-
-				strv_free(strv);
 			}
-			strv_free(params);
 			break;
 		}
 		case 'j':
