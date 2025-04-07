@@ -869,15 +869,17 @@ START_TEST(device_group_leak)
 }
 END_TEST
 
-START_TEST(abs_device_no_absx)
+START_TEST(abs_device_missing_one_abs)
 {
 	struct libevdev_uinput *uinput;
 	struct libinput_device *device;
 
+	int axis = litest_test_param_get_i32(test_env->params, "axis");
+
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_KEY, BTN_LEFT,
 					     EV_KEY, BTN_RIGHT,
-					     EV_ABS, ABS_Y,
+					     EV_ABS, axis,
 					     -1);
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	litest_disable_log_handler(li);
@@ -890,31 +892,11 @@ START_TEST(abs_device_no_absx)
 }
 END_TEST
 
-START_TEST(abs_device_no_absy)
+START_TEST(abs_mt_device_missing_one_mt_abs)
 {
 	struct libevdev_uinput *uinput;
 	struct libinput_device *device;
-
-	uinput = litest_create_uinput_device("test device", NULL,
-					     EV_KEY, BTN_LEFT,
-					     EV_KEY, BTN_RIGHT,
-					     EV_ABS, ABS_X,
-					     -1);
-	_litest_context_destroy_ struct libinput *li = litest_create_context();
-	litest_disable_log_handler(li);
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
-	litest_restore_log_handler(li);
-	litest_assert(device == NULL);
-
-	libevdev_uinput_destroy(uinput);
-}
-END_TEST
-
-START_TEST(abs_mt_device_no_absy)
-{
-	struct libevdev_uinput *uinput;
-	struct libinput_device *device;
+	int axis = litest_test_param_get_i32(test_env->params, "axis");
 
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_KEY, BTN_LEFT,
@@ -922,31 +904,7 @@ START_TEST(abs_mt_device_no_absy)
 					     EV_ABS, ABS_X,
 					     EV_ABS, ABS_Y,
 					     EV_ABS, ABS_MT_SLOT,
-					     EV_ABS, ABS_MT_POSITION_X,
-					     -1);
-	_litest_context_destroy_ struct libinput *li = litest_create_context();
-	litest_disable_log_handler(li);
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
-	litest_restore_log_handler(li);
-	litest_assert(device == NULL);
-
-	libevdev_uinput_destroy(uinput);
-}
-END_TEST
-
-START_TEST(abs_mt_device_no_absx)
-{
-	struct libevdev_uinput *uinput;
-	struct libinput_device *device;
-
-	uinput = litest_create_uinput_device("test device", NULL,
-					     EV_KEY, BTN_LEFT,
-					     EV_KEY, BTN_RIGHT,
-					     EV_ABS, ABS_X,
-					     EV_ABS, ABS_Y,
-					     EV_ABS, ABS_MT_SLOT,
-					     EV_ABS, ABS_MT_POSITION_Y,
+					     EV_ABS, axis,
 					     -1);
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	litest_disable_log_handler(li);
@@ -1026,17 +984,20 @@ START_TEST(abs_device_missing_res)
 {
 	struct input_absinfo absinfo[] = {
 		{ ABS_X, 0, 10, 0, 0, 10 },
-		{ ABS_Y, 0, 10, 0, 0, 0 },
+		{ ABS_Y, 0, 10, 0, 0, 10 },
 		{ -1, -1, -1, -1, -1, -1 }
 	};
+	int axis = litest_test_param_get_i32(test_env->params, "axis");
+
+	switch (axis) {
+	case ABS_X: absinfo[0].resolution = 0; break;
+	case ABS_Y: absinfo[1].resolution = 0; break;
+	default:
+		    litest_abort_msg("Invalid test parameter %d", axis);
+	}
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	litest_disable_log_handler(li);
-
-	assert_device_ignored(li, absinfo);
-
-	absinfo[0].resolution = 0;
-	absinfo[1].resolution = 20;
 
 	assert_device_ignored(li, absinfo);
 
@@ -1052,21 +1013,24 @@ START_TEST(abs_mt_device_missing_res)
 		{ ABS_MT_SLOT, 0, 2, 0, 0, 0 },
 		{ ABS_MT_TRACKING_ID, 0, 255, 0, 0, 0 },
 		{ ABS_MT_POSITION_X, 0, 10, 0, 0, 10 },
-		{ ABS_MT_POSITION_Y, 0, 10, 0, 0, 0 },
+		{ ABS_MT_POSITION_Y, 0, 10, 0, 0, 10 },
 		{ -1, -1, -1, -1, -1, -1 }
 	};
+
+	int axis = litest_test_param_get_i32(test_env->params, "axis");
+
+	switch (axis) {
+	case ABS_MT_POSITION_X: absinfo[4].resolution = 0; break;
+	case ABS_MT_POSITION_Y: absinfo[5].resolution = 0; break;
+	default:
+		    litest_abort_msg("Invalid test parameter %d", axis);
+	}
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	litest_disable_log_handler(li);
 	assert_device_ignored(li, absinfo);
 
-	absinfo[4].resolution = 0;
-	absinfo[5].resolution = 20;
-
-	assert_device_ignored(li, absinfo);
-
 	litest_restore_log_handler(li);
-
 }
 END_TEST
 
@@ -1738,14 +1702,20 @@ TEST_COLLECTION(device)
 	litest_add_no_device(device_group_ref);
 	litest_add_no_device(device_group_leak);
 
-	litest_add_no_device(abs_device_no_absx);
-	litest_add_no_device(abs_device_no_absy);
-	litest_add_no_device(abs_mt_device_no_absx);
-	litest_add_no_device(abs_mt_device_no_absy);
+	litest_with_parameters(params, "axis", 'I', 2,
+			       litest_named_i32(ABS_X),
+			       litest_named_i32(ABS_Y)) {
+		litest_add_parametrized_no_device(abs_device_missing_one_abs, params);
+		litest_add_parametrized_no_device(abs_device_missing_res, params);
+	}
+	litest_with_parameters(params, "axis", 'I', 2,
+			       litest_named_i32(ABS_MT_POSITION_X),
+			       litest_named_i32(ABS_MT_POSITION_Y)) {
+		litest_add_parametrized_no_device(abs_mt_device_missing_one_mt_abs, params);
+		litest_add_parametrized_no_device(abs_mt_device_missing_res, params);
+	}
 	litest_add_ranged_no_device(abs_device_no_range, &abs_range);
 	litest_add_ranged_no_device(abs_mt_device_no_range, &abs_mt_range);
-	litest_add_no_device(abs_device_missing_res);
-	litest_add_no_device(abs_mt_device_missing_res);
 	litest_add_no_device(ignore_joystick);
 
 	litest_add(device_wheel_only, LITEST_WHEEL, LITEST_RELATIVE|LITEST_ABSOLUTE|LITEST_TABLET);
