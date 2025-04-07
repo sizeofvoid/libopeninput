@@ -50,12 +50,9 @@ static const struct libinput_interface simple_interface = {
 
 START_TEST(udev_create_NULL)
 {
-	struct libinput *li;
-	struct udev *udev;
+	_unref_(udev) *udev = udev_new();
 
-	udev = udev_new();
-
-	li = libinput_udev_create_context(NULL, NULL, NULL);
+	_unref_(libinput) *li = libinput_udev_create_context(NULL, NULL, NULL);
 	litest_assert(li == NULL);
 
 	li = libinput_udev_create_context(&simple_interface, NULL, NULL);
@@ -67,23 +64,18 @@ START_TEST(udev_create_NULL)
 	li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_assert_int_eq(libinput_udev_assign_seat(li, NULL), -1);
-
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_create_seat0)
 {
-	struct libinput *li;
 	struct libinput_event *event;
-	struct udev *udev;
 	int fd;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
@@ -96,23 +88,19 @@ START_TEST(udev_create_seat0)
 	litest_assert_notnull(event);
 
 	libinput_event_destroy(event);
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_create_empty_seat)
 {
-	struct libinput *li;
 	struct libinput_event *event;
-	struct udev *udev;
 	int fd;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
 	/* expect a libinput reference, but no events */
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_assert_int_eq(libinput_udev_assign_seat(li, "seatdoesntexist"), 0);
 
@@ -124,69 +112,55 @@ START_TEST(udev_create_empty_seat)
 	litest_assert(event == NULL);
 
 	libinput_event_destroy(event);
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_create_seat_too_long)
 {
-	struct libinput *li;
-	struct udev *udev;
 	char seatname[258];
 
 	memset(seatname, 'a', sizeof(seatname) - 1);
 	seatname[sizeof(seatname) - 1] = '\0';
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_set_log_handler_bug(li);
 
 	litest_assert_int_eq(libinput_udev_assign_seat(li, seatname), -1);
 
 	litest_assert_empty_queue(li);
-
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_set_user_data)
 {
-	struct libinput *li;
-	struct udev *udev;
 	int data1, data2;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, &data1, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, &data1, udev);
 	litest_assert_notnull(li);
 	litest_assert(libinput_get_user_data(li) == &data1);
 	libinput_set_user_data(li, &data2);
 	litest_assert(libinput_get_user_data(li) == &data2);
-
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_added_seat_default)
 {
-	struct libinput *li;
 	struct libinput_event *event;
-	struct udev *udev;
 	struct libinput_device *device;
 	struct libinput_seat *seat;
 	const char *seat_name;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 	litest_dispatch(li);
@@ -197,7 +171,7 @@ START_TEST(udev_added_seat_default)
 	/* Now create our own device, it should be in the "default"
 	 * logical seat. This test may fail if there is a local rule changing
 	 * that, but it'll be fine for the 99% case. */
-	_destroy_(litest_device) *dev = litest_create(LITEST_MOUSE, NULL, NULL, NULL, NULL);
+	_unused_ _destroy_(litest_device) *dev = litest_create(LITEST_MOUSE, NULL, NULL, NULL, NULL);
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 	event = libinput_get_event(li);
 	device = libinput_event_get_device(event);
@@ -207,16 +181,11 @@ START_TEST(udev_added_seat_default)
 	seat_name = libinput_seat_get_logical_name(seat);
 	litest_assert_str_eq(seat_name, "default");
 	libinput_event_destroy(event);
-
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_change_seat)
 {
-	struct libinput *li;
-	struct udev *udev;
 	struct libinput_event *event;
 	struct libinput_device *device;
 	struct libinput_seat *seat1, *seat2;
@@ -224,10 +193,10 @@ START_TEST(udev_change_seat)
 	const char *seat2_name = "new seat";
 	int rc;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 	litest_dispatch(li);
@@ -279,23 +248,18 @@ START_TEST(udev_change_seat)
 	libinput_event_destroy(event);
 
 	libinput_seat_unref(seat1);
-
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_double_suspend)
 {
-	struct libinput *li;
 	struct libinput_event *event;
-	struct udev *udev;
 	int fd;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
@@ -312,22 +276,18 @@ START_TEST(udev_double_suspend)
 	libinput_resume(li);
 
 	libinput_event_destroy(event);
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_double_resume)
 {
-	struct libinput *li;
 	struct libinput_event *event;
-	struct udev *udev;
 	int fd;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
@@ -344,8 +304,6 @@ START_TEST(udev_double_resume)
 	libinput_resume(li);
 
 	libinput_event_destroy(event);
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
@@ -371,15 +329,13 @@ process_events_count_devices(struct libinput *li, int *device_count)
 
 START_TEST(udev_suspend_resume)
 {
-	struct libinput *li;
-	struct udev *udev;
 	int fd;
 	int num_devices = 0;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
@@ -402,65 +358,46 @@ START_TEST(udev_suspend_resume)
 	litest_assert_int_ge(litest_dispatch(li), 0);
 	process_events_count_devices(li, &num_devices);
 	litest_assert_int_gt(num_devices, 0);
-
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_resume_before_seat)
 {
-	struct libinput *li;
-	struct udev *udev;
-	int rc;
-
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 
-	rc = libinput_resume(li);
+	int rc = libinput_resume(li);
 	litest_assert_int_eq(rc, 0);
-
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_suspend_resume_before_seat)
 {
-	struct libinput *li;
-	struct udev *udev;
-	int rc;
-
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 
 	libinput_suspend(li);
-	rc = libinput_resume(li);
+	int rc = libinput_resume(li);
 	litest_assert_int_eq(rc, 0);
-
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_device_sysname)
 {
-	struct libinput *li;
 	struct libinput_event *ev;
 	struct libinput_device *device;
 	const char *sysname;
-	struct udev *udev;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
@@ -481,16 +418,11 @@ START_TEST(udev_device_sysname)
 		litest_assert(strstartswith(sysname, "event"));
 		libinput_event_destroy(ev);
 	}
-
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_seat_recycle)
 {
-	struct udev *udev;
-	struct libinput *li;
 	struct libinput_event *ev;
 	struct libinput_device *device;
 	struct libinput_seat *saved_seat = NULL;
@@ -499,10 +431,10 @@ START_TEST(udev_seat_recycle)
 	int found = 0;
 	void *user_data;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
@@ -556,22 +488,17 @@ START_TEST(udev_seat_recycle)
 	}
 
 	litest_assert(found == 1);
-
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_path_add_device)
 {
-	struct udev *udev;
-	struct libinput *li;
 	struct libinput_device *device;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 
@@ -579,23 +506,18 @@ START_TEST(udev_path_add_device)
 	device = libinput_path_add_device(li, "/dev/input/event0");
 	litest_assert(device == NULL);
 	litest_restore_log_handler(li);
-
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_path_remove_device)
 {
-	struct udev *udev;
-	struct libinput *li;
 	struct libinput_device *device;
 	struct libinput_event *event;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_assert_int_eq(libinput_udev_assign_seat(li, "seat0"), 0);
 	litest_dispatch(li);
@@ -611,15 +533,11 @@ START_TEST(udev_path_remove_device)
 	litest_restore_log_handler(li);
 
 	libinput_event_destroy(event);
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
 START_TEST(udev_ignore_device)
 {
-	struct udev *udev;
-	struct libinput *li;
 	struct libinput_device *device;
 	struct libinput_event *event;
 	const char *devname;
@@ -627,10 +545,10 @@ START_TEST(udev_ignore_device)
 	_destroy_(litest_device) *dev = litest_create(LITEST_IGNORED_MOUSE, NULL, NULL, NULL, NULL);
 	devname = libevdev_get_name(dev->evdev);
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
 
-	li = libinput_udev_create_context(&simple_interface, NULL, udev);
+	_unref_(libinput) *li = libinput_udev_create_context(&simple_interface, NULL, udev);
 	litest_assert_notnull(li);
 	litest_restore_log_handler(li);
 
@@ -652,9 +570,6 @@ START_TEST(udev_ignore_device)
 		litest_dispatch(li);
 		event = libinput_get_event(li);
 	}
-
-	libinput_unref(li);
-	udev_unref(udev);
 }
 END_TEST
 
