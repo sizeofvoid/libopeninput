@@ -1207,6 +1207,14 @@ _litest_assert_tablet_button_event(struct libinput *li,
 				   const char *func,
 				   int lineno);
 
+#define litest_assert_tablet_axis_event(li_) \
+	_litest_assert_tablet_axis_event(li_, __func__, __LINE__)
+
+void
+_litest_assert_tablet_axis_event(struct libinput *li,
+				 const char *func,
+				 int lineno);
+
 #define litest_assert_tablet_proximity_event(li_, state_) \
 	_litest_assert_tablet_proximity_event(li_, state_, __func__, __LINE__)
 

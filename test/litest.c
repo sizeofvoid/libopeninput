@@ -4230,11 +4230,32 @@ litest_event_pointer_get_axis_source(struct libinput_event_pointer *ptrev)
 }
 
 void
+_litest_assert_tablet_axis_event(struct libinput *li,
+				 const char *func,
+				 int lineno)
+{
+	_litest_checkpoint(func,
+			   lineno,
+			   ANSI_CYAN,
+			   "asserting axis event");
+
+	litest_wait_for_event(li);
+	_destroy_(libinput_event) *event = libinput_get_event(li);
+	litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+}
+
+void
 _litest_assert_tablet_proximity_event(struct libinput *li,
 				      enum libinput_tablet_tool_proximity_state state,
 				      const char *func,
 				      int lineno)
 {
+	_litest_checkpoint(func,
+			   lineno,
+			   ANSI_CYAN,
+			   "asserting proximity %s event",
+			   state ? "in" : "out");
+
 	litest_wait_for_event(li);
 	_destroy_(libinput_event) *event = libinput_get_event(li);
 	litest_is_proximity_event(event, state);
