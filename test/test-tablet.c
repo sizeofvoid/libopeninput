@@ -6156,6 +6156,12 @@ START_TEST(touch_arbitration_suspend_touch_device)
 
 	litest_drain_events(li);
 
+	/* Disable the proximity timer */
+	litest_tablet_proximity_in(tablet, 12, 12, axes);
+	litest_tablet_proximity_out(tablet);
+	litest_timeout_tablet_proxout(li);
+	litest_drain_events(li);
+
 	litest_tablet_proximity_in(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 20, 40, axes);
@@ -6219,6 +6225,12 @@ START_TEST(touch_arbitration_remove_touch)
 	if (other == LITEST_NO_DEVICE)
 		return LITEST_NOT_APPLICABLE;
 
+	/* Disable the proximity timer */
+	litest_tablet_proximity_in(dev, 12, 12, axes);
+	litest_tablet_proximity_out(dev);
+	litest_timeout_tablet_proxout(li);
+	litest_drain_events(li);
+
 	finger = litest_add_device(li, other);
 	litest_touch_down(finger, 0, 30, 30);
 	litest_touch_move_to(finger, 0, 30, 30, 80, 80, 10);
@@ -6261,6 +6273,12 @@ START_TEST(touch_arbitration_remove_tablet)
 
 	if (is_touchpad)
 		litest_disable_hold_gestures(dev->libinput_device);
+
+	/* Disable the proximity timer */
+	litest_tablet_proximity_in(tablet, 12, 12, axes);
+	litest_tablet_proximity_out(tablet);
+	litest_timeout_tablet_proxout(li);
+	litest_drain_events(li);
 
 	litest_dispatch(li);
 	litest_tablet_proximity_in(tablet, 10, 10, axes);
@@ -6312,6 +6330,12 @@ START_TEST(touch_arbitration_keep_ignoring)
 	if (other == LITEST_NO_DEVICE)
 		return LITEST_NOT_APPLICABLE;
 
+	/* Disable the proximity timer */
+	litest_tablet_proximity_in(tablet, 12, 12, axes);
+	litest_tablet_proximity_out(tablet);
+	litest_timeout_tablet_proxout(li);
+	litest_drain_events(li);
+
 	finger = litest_add_device(li, other);
 	litest_tablet_proximity_in(tablet, 10, 10, axes);
 	litest_tablet_motion(tablet, 10, 10, axes);
@@ -6354,6 +6378,12 @@ START_TEST(touch_arbitration_late_touch_lift)
 	if (other == LITEST_NO_DEVICE)
 		return LITEST_NOT_APPLICABLE;
 
+	/* Disable the proximity timer */
+	litest_tablet_proximity_in(tablet, 12, 12, axes);
+	litest_tablet_proximity_out(tablet);
+	litest_timeout_tablet_proxout(li);
+	litest_drain_events(li);
+
 	finger = litest_add_device(li, other);
 	is_touchpad = !libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT);
 	if (is_touchpad) {
@@ -6390,10 +6420,21 @@ START_TEST(touch_arbitration_swap_device)
 {
 	struct litest_device *tablet = litest_current_device();
 	struct libinput *li = tablet->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
 
 	enum litest_device_type paired = paired_device(tablet);
 	if (paired == LITEST_NO_DEVICE)
 		return LITEST_NOT_APPLICABLE;
+
+	/* Disable the proximity timer */
+	litest_tablet_proximity_in(tablet, 12, 12, axes);
+	litest_tablet_proximity_out(tablet);
+	litest_timeout_tablet_proxout(li);
+	litest_drain_events(li);
 
 	/* First, add a normal touchscreen */
 	struct litest_device *touchscreen = litest_add_device(li, LITEST_GENERIC_MULTITOUCH_SCREEN);
