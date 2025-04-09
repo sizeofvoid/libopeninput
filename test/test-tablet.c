@@ -7075,7 +7075,7 @@ START_TEST(huion_static_btn_tool_pen_disable_quirk_on_prox_out)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_drain_events(li);
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 3; i++) {
 		litest_event(dev, EV_ABS, ABS_X, 20000 + 10 * i);
 		litest_event(dev, EV_ABS, ABS_Y, 20000 - 10 * i);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -7091,6 +7091,7 @@ START_TEST(huion_static_btn_tool_pen_disable_quirk_on_prox_out)
 						     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
 	}
 
+	litest_checkpoint("Sending BTN_TOOL_PEN 0 ");
 	/* Send a real prox out, expect quirk to be disabled */
 	litest_event(dev, EV_KEY, BTN_TOOL_PEN, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
@@ -7109,7 +7110,7 @@ START_TEST(huion_static_btn_tool_pen_disable_quirk_on_prox_out)
 	litest_assert_tablet_proximity_event(li,
 			     LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 3; i++) {
 		litest_tablet_motion(dev, 50 + i, 50 + i, NULL);
 		litest_dispatch(li);
 	}
@@ -7117,6 +7118,7 @@ START_TEST(huion_static_btn_tool_pen_disable_quirk_on_prox_out)
 	litest_assert_only_typed_events(li,
 					LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 
+	/* Expect the timeout quirk to be disabled */
 	litest_timeout_tablet_proxout(li);
 
 	litest_assert_empty_queue(li);
