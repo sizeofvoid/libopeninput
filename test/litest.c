@@ -4170,6 +4170,13 @@ _litest_assert_tablet_button_event(struct libinput *li, unsigned int button,
 	struct libinput_event_tablet_tool *tev;
 	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_TOOL_BUTTON;
 
+	_litest_checkpoint(func,
+			   lineno,
+			   ANSI_CYAN,
+			   "asserting tablet button event button %d down: %s",
+			   button,
+			   yesno(state));
+
 	litest_wait_for_event(li);
 	event = libinput_get_event(li);
 
@@ -4268,6 +4275,12 @@ _litest_assert_tablet_tip_event(struct libinput *li,
 	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tev;
 	enum libinput_event_type type = LIBINPUT_EVENT_TABLET_TOOL_TIP;
+
+	_litest_checkpoint(func,
+			   lineno,
+			   ANSI_CYAN,
+			   "asserting tip %s event",
+			   state ? "down" : "up");
 
 	litest_wait_for_event(li);
 	event = libinput_get_event(li);
