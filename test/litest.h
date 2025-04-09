@@ -550,6 +550,11 @@ struct litest_device {
 	struct libinput_device *libinput_device;
 	struct litest_device_interface *interface;
 
+	struct {
+		struct input_event events[64];
+		size_t nevents;
+	} frame;
+
 	int ntouches_down;
 	int skip_ev_syn;
 	struct litest_semi_mt semi_mt; /** only used for semi-mt device */

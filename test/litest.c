@@ -2350,16 +2350,45 @@ void
 litest_event(struct litest_device *d, unsigned int type,
 	     unsigned int code, int value)
 {
-	int ret;
-
 	if (!libevdev_has_event_code(d->evdev, type, code))
 		return;
 
-	if (d->skip_ev_syn && type == EV_SYN && code == SYN_REPORT)
-		return;
+	if (type == EV_SYN && code == SYN_REPORT) {
+		if (d->skip_ev_syn)
+			return;
 
-	ret = libevdev_uinput_write_event(d->uinput, type, code, value);
-	litest_assert_neg_errno_success(ret);
+		for (size_t i = 0; i < d->frame.nevents; i++) {
+			struct input_event *e = &d->frame.events[i];
+			int ret = libevdev_uinput_write_event(d->uinput, e->type, e->code, e->value);
+			litest_assert_neg_errno_success(ret);
+		}
+
+		int ret = libevdev_uinput_write_event(d->uinput, EV_SYN, SYN_REPORT, value);
+		litest_assert_neg_errno_success(ret);
+
+		d->frame.nevents = 0;
+	} else {
+		size_t i;
+
+		if (type == EV_SYN ||
+		    (type == EV_ABS && code >= ABS_MT_SLOT)) {
+			i = d->frame.nevents;
+		} else {
+			for (i = 0; i < d->frame.nevents; i++) {
+				if (d->frame.events[i].type == type &&
+				    d->frame.events[i].code == code)
+					break;
+			}
+		}
+		litest_assert_int_lt(i, ARRAY_LENGTH(d->frame.events));
+		d->frame.events[i] = (struct input_event) {
+			.type = type,
+			.code = code,
+			.value = value,
+		};
+		if (i >= d->frame.nevents)
+			d->frame.nevents++;
+	}
 }
 
 static bool
