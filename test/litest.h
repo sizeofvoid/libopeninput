@@ -1282,6 +1282,11 @@ _litest_timeout(struct libinput *li, const char *func, int lineno, int millis);
 #define litest_timeout_hysteresis(li_) litest_timeout(li_, 90)
 #define litest_timeout_3fg_drag(li_) litest_timeout(li_, 800)
 
+#define litest_with_event_frame(dev_) \
+	for (bool _i = ({litest_push_event_frame(dev_); true; }); \
+	     _i; \
+	     ({ litest_pop_event_frame(dev_); _i = false; }))
+
 void
 litest_push_event_frame(struct litest_device *dev);
 
