@@ -2609,18 +2609,17 @@ litest_slot_start(struct litest_device *d,
 		b = max(y, d->semi_mt.touches[other].y);
 	}
 
-	litest_push_event_frame(d);
-	if (d->ntouches_down == 0)
-		slot_start(d, 0, l, t, axes, touching, filter_abs_xy);
-	else
-		slot_move(d, 0, l, t, axes, touching, filter_abs_xy);
+	litest_with_event_frame(d) {
+		if (d->ntouches_down == 0)
+			slot_start(d, 0, l, t, axes, touching, filter_abs_xy);
+		else
+			slot_move(d, 0, l, t, axes, touching, filter_abs_xy);
 
-	if (slot == 1) {
-		filter_abs_xy = true;
-		slot_start(d, 1, r, b, axes, touching, filter_abs_xy);
+		if (slot == 1) {
+			filter_abs_xy = true;
+			slot_start(d, 1, r, b, axes, touching, filter_abs_xy);
+		}
 	}
-
-	litest_pop_event_frame(d);
 
 	d->semi_mt.touches[slot].x = x;
 	d->semi_mt.touches[slot].y = y;
@@ -2692,15 +2691,14 @@ litest_slot_move(struct litest_device *d,
 		b = max(y, d->semi_mt.touches[other].y);
 	}
 
-	litest_push_event_frame(d);
-	slot_move(d, 0, l, t, axes, touching, filter_abs_xy);
+	litest_with_event_frame(d) {
+		slot_move(d, 0, l, t, axes, touching, filter_abs_xy);
 
-	if (d->ntouches_down == 2) {
-		filter_abs_xy = true;
-		slot_move(d, 1, r, b, axes, touching, filter_abs_xy);
+		if (d->ntouches_down == 2) {
+			filter_abs_xy = true;
+			slot_move(d, 1, r, b, axes, touching, filter_abs_xy);
+		}
 	}
-
-	litest_pop_event_frame(d);
 
 	d->semi_mt.touches[slot].x = x;
 	d->semi_mt.touches[slot].y = y;
@@ -2717,26 +2715,25 @@ litest_touch_up(struct litest_device *d, unsigned int slot)
 	if (d->ntouches_down > 2 || slot > 1)
 		return;
 
-	litest_push_event_frame(d);
-	touch_up(d, d->ntouches_down - 1);
+	litest_with_event_frame(d) {
+		touch_up(d, d->ntouches_down - 1);
 
-	/* if we have one finger left, send x/y coords for that finger left.
-	   this is likely to happen with a real touchpad */
-	if (d->ntouches_down == 1) {
-		bool touching = true;
-		bool filter_abs_xy = false;
+		/* if we have one finger left, send x/y coords for that finger left.
+		this is likely to happen with a real touchpad */
+		if (d->ntouches_down == 1) {
+			bool touching = true;
+			bool filter_abs_xy = false;
 
-		int other = (slot + 1) % 2;
-		slot_move(d,
-			  0,
-			  d->semi_mt.touches[other].x,
-			  d->semi_mt.touches[other].y,
-			  NULL,
-			  touching,
-			  filter_abs_xy);
+			int other = (slot + 1) % 2;
+			slot_move(d,
+				0,
+				d->semi_mt.touches[other].x,
+				d->semi_mt.touches[other].y,
+				NULL,
+				touching,
+				filter_abs_xy);
+		}
 	}
-
-	litest_pop_event_frame(d);
 }
 
 void
@@ -2988,20 +2985,20 @@ litest_touch_move_two_touches(struct litest_device *d,
 	int sleep_ms = 10;
 
 	for (int i = 1; i < steps; i++) {
-		litest_push_event_frame(d);
-		litest_touch_move(d, 0, x0 + dx / steps * i,
-					y0 + dy / steps * i);
-		litest_touch_move(d, 1, x1 + dx / steps * i,
-					y1 + dy / steps * i);
-		litest_pop_event_frame(d);
+		litest_with_event_frame(d) {
+			litest_touch_move(d, 0, x0 + dx / steps * i,
+						y0 + dy / steps * i);
+			litest_touch_move(d, 1, x1 + dx / steps * i,
+						y1 + dy / steps * i);
+		}
 		libinput_dispatch(d->libinput);
 		msleep(sleep_ms);
 		libinput_dispatch(d->libinput);
 	}
-	litest_push_event_frame(d);
-	litest_touch_move(d, 0, x0 + dx, y0 + dy);
-	litest_touch_move(d, 1, x1 + dx, y1 + dy);
-	litest_pop_event_frame(d);
+	litest_with_event_frame(d) {
+		litest_touch_move(d, 0, x0 + dx, y0 + dy);
+		litest_touch_move(d, 1, x1 + dx, y1 + dy);
+	}
 }
 
 void
@@ -3018,11 +3015,11 @@ litest_touch_move_three_touches(struct litest_device *d,
 		double step_x = dx / steps * i;
 		double step_y = dy / steps * i;
 
-		litest_push_event_frame(d);
-		litest_touch_move(d, 0, x0 + step_x, y0 + step_y);
-		litest_touch_move(d, 1, x1 + step_x, y1 + step_y);
-		litest_touch_move(d, 2, x2 + step_x, y2 + step_y);
-		litest_pop_event_frame(d);
+		litest_with_event_frame(d) {
+			litest_touch_move(d, 0, x0 + step_x, y0 + step_y);
+			litest_touch_move(d, 1, x1 + step_x, y1 + step_y);
+			litest_touch_move(d, 2, x2 + step_x, y2 + step_y);
+		}
 
 		libinput_dispatch(d->libinput);
 		msleep(sleep_ms);
@@ -3120,20 +3117,20 @@ litest_hover_move_two_touches(struct litest_device *d,
 	int sleep_ms = 10;
 
 	for (int i = 0; i < steps - 1; i++) {
-		litest_push_event_frame(d);
-		litest_hover_move(d, 0, x0 + dx / steps * i,
-					y0 + dy / steps * i);
-		litest_hover_move(d, 1, x1 + dx / steps * i,
-					y1 + dy / steps * i);
-		litest_pop_event_frame(d);
+		litest_with_event_frame(d) {
+			litest_hover_move(d, 0, x0 + dx / steps * i,
+						y0 + dy / steps * i);
+			litest_hover_move(d, 1, x1 + dx / steps * i,
+						y1 + dy / steps * i);
+		}
 		libinput_dispatch(d->libinput);
 		msleep(sleep_ms);
 		libinput_dispatch(d->libinput);
 	}
-	litest_push_event_frame(d);
-	litest_hover_move(d, 0, x0 + dx, y0 + dy);
-	litest_hover_move(d, 1, x1 + dx, y1 + dy);
-	litest_pop_event_frame(d);
+	litest_with_event_frame(d) {
+		litest_hover_move(d, 0, x0 + dx, y0 + dy);
+		litest_hover_move(d, 1, x1 + dx, y1 + dy);
+	}
 }
 
 void
