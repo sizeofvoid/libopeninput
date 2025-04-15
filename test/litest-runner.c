@@ -1049,7 +1049,7 @@ litest_runner_run_tests(struct litest_runner *runner)
 				case LITEST_FAIL:
 				case LITEST_SYSTEM_ERROR:
 				case LITEST_TIMEOUT:
-					fprintf(runner->fp, "    - \"%s\"\n",  t->desc.name);
+					litest_runner_log_test_result(runner, t);
 					break;
 				default:
 					break;
