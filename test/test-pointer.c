@@ -896,8 +896,7 @@ START_TEST(pointer_scroll_wheel_inhibit_dir_change)
 	litest_drain_events(dev->libinput);
 
 	/* Scroll one detent and a bit */
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 120);
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 30);
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 150);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -150);
