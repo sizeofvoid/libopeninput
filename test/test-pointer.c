@@ -847,6 +847,7 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 
 	/* Scroll deltas below the threshold (60) must be ignored */
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 15);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 15);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
@@ -868,12 +869,14 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 	litest_timeout_wheel_scroll(li);
 
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -15);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -15);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
 	litest_event(dev, EV_REL, REL_HWHEEL_HI_RES, 15);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_event(dev, EV_REL, REL_HWHEEL_HI_RES, 15);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
