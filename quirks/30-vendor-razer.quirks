@@ -191,6 +191,13 @@ MatchVendor=0x1532
 MatchProduct=0x0259
 AttrKeyboardIntegration=internal
 
+[RazerBladeLate2020Base Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x1532
+MatchProduct=0x0268
+AttrKeyboardIntegration=internal
+
 [RazerBlade15AdvancedEarly2021 Keyboard]
 MatchUdevType=keyboard
 MatchBus=usb
