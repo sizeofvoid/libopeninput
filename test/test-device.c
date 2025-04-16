@@ -1376,7 +1376,6 @@ START_TEST(device_quirks_no_abs_mt_y)
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 		litest_assert_empty_queue(li);
 	}
-
 }
 END_TEST
 

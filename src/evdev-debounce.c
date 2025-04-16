@@ -545,7 +545,6 @@ fallback_debounce_handle_state(struct fallback_dispatch *dispatch,
 					      time);
 			flushed = true;
 		}
-
 	}
 }
 

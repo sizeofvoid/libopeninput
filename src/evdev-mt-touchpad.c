@@ -1698,7 +1698,6 @@ tp_pre_process_state(struct tp_dispatch *tp, uint64_t time)
 		if (t->state == TOUCH_END && t->history.count > 0)
 			t->point = tp_motion_history_offset(t, 0)->point;
 	}
-
 }
 
 static void

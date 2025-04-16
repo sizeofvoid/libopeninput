@@ -206,7 +206,6 @@ evdev_pointer_post_button(struct evdev_device *device,
 				device->scroll.change_scroll_method(device);
 		}
 	}
-
 }
 
 static void

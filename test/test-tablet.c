@@ -699,7 +699,6 @@ START_TEST(tip_up_motion_one_axis)
 			start_y++;
 			break;
 		}
-
 	}
 	litest_drain_events(li);
 

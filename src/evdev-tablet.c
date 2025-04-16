@@ -2239,7 +2239,6 @@ reprocess:
 			detect_tool_contact(tablet, device, tool);
 			sanitize_tablet_axes(tablet, tool);
 		}
-
 	}
 
 	if (!tablet_has_status(tablet, TABLET_TOOL_OUTSIDE_AREA))

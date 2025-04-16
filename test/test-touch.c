@@ -529,7 +529,6 @@ START_TEST(touch_calibration_config)
 		libinput_device_config_calibration_get_matrix(dev->libinput_device, matrix);
 		litest_assert_int_eq(memcmp(matrix, nonidentity, sizeof(matrix)), 0);
 	}
-
 }
 END_TEST
 

@@ -477,7 +477,6 @@ draw_evdev_abs(struct window *w, cairo_t *cr)
 			ay = libevdev_get_abs_info(d->evdev, ABS_Y);
 			w->evdev.last_device = w->evdev.device;
 		}
-
 	}
 	if (ax == NULL || ay == NULL)
 		goto draw_outline;
@@ -1221,7 +1220,6 @@ change_ptraccel(struct window *w, double amount)
 			       libinput_device_get_name(*dev),
 			       speed);
 		}
-
 	}
 }
 
@@ -1564,7 +1562,6 @@ handle_event_button(struct libinput_event *ev, struct window *w)
 		w->buttons.other_name = libevdev_event_code_get_name(EV_KEY,
 								     button);
 	}
-
 }
 
 static void
@@ -1975,7 +1972,6 @@ main(int argc, char **argv)
 			}
 			break;
 		}
-
 	}
 
 	if (optind < argc) {

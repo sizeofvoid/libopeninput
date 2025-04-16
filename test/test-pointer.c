@@ -2056,7 +2056,6 @@ START_TEST(pointer_scroll_button_lock_middlebutton)
 	default:
 		abort();
 	}
-
 }
 END_TEST
 
@@ -2180,7 +2179,6 @@ START_TEST(pointer_accel_defaults)
 		litest_assert_double_eq(libinput_device_config_accel_get_speed(device),
 				    1.0);
 	}
-
 }
 END_TEST
 

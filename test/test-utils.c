@@ -2038,7 +2038,6 @@ START_TEST(multivalue_test)
 		litest_assert_str_eq(str, "0.123400");
 		free(str);
 	}
-
 }
 END_TEST
 

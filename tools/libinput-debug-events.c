@@ -282,7 +282,6 @@ main(int argc, char **argv)
 			}
 			break;
 		}
-
 	}
 
 	if (optind < argc) {

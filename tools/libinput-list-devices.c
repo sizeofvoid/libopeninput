@@ -390,7 +390,6 @@ print_pad_info(struct libinput_device *device)
 			printf("\n");
 		}
 	}
-
 }
 
 #define print_aligned(topic, fmt, ...) do {\
@@ -547,7 +546,6 @@ main(int argc, char **argv)
 		default:
 			return EXIT_INVALID_USAGE;
 		}
-
 	}
 	if (optind < argc) {
 		const char *devices[32] = {NULL};
