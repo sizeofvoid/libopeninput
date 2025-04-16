@@ -48,6 +48,17 @@ def test_trailing_whitespace(lines: list[str]) -> list[WhitespaceError]:
     return errors
 
 
+def test_empty_line_between_braces(lines: list[str]) -> list[WhitespaceError]:
+    errors = []
+    for idx in range(len(lines) - 3):
+        l1 = lines[idx]
+        l2 = lines[idx + 1]
+        l3 = lines[idx + 2]
+        if l1.strip() == "}" and l3.strip() == "}" and l2.strip() == "":
+            errors.append(WhitespaceError("Empty line between closing braces", idx + 1))
+    return errors
+
+
 def main():
     parser = argparse.ArgumentParser(description="Whitespace checker script")
     parser.add_argument(
@@ -78,6 +89,7 @@ def main():
         if any(file.name.endswith(suffix) for suffix in [".c", ".h"]):
             if not file.parts[0] == "include":
                 errors.extend(test_duplicate_empty_lines(lines))
+                errors.extend(test_empty_line_between_braces(lines))
 
         for e in errors:
             print(f"{red}ERROR: {e.message} in {file}:{reset}", file=sys.stderr)
