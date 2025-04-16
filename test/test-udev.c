@@ -186,12 +186,7 @@ END_TEST
 
 START_TEST(udev_change_seat)
 {
-	struct libinput_event *event;
-	struct libinput_device *device;
-	struct libinput_seat *seat1, *seat2;
-	const char *seat1_name;
 	const char *seat2_name = "new seat";
-	int rc;
 
 	_unref_(udev) *udev = udev_new();
 	litest_assert_notnull(udev);
@@ -204,50 +199,64 @@ START_TEST(udev_change_seat)
 	/* Drop any events from other devices */
 	litest_drain_events(li);
 
+	const char *devname = "udev-change-seat device";
+
 	/* Now create our own device, it should be in the "default"
 	 * logical seat. This test may fail if there is a local rule changing
 	 * that, but it'll be fine for the 99% case. */
-	_unused_ _destroy_(litest_device) *dev = litest_create(LITEST_MOUSE, NULL, NULL, NULL, NULL);
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
-	event = libinput_get_event(li);
-	device = libinput_event_get_device(event);
-	libinput_device_ref(device);
+	_unused_ _destroy_(litest_device) *dev = litest_create(LITEST_MOUSE,
+							       devname,
+							       NULL, NULL, NULL);
 
-	seat1 = libinput_device_get_seat(device);
-	libinput_seat_ref(seat1);
+	_unref_(libinput_device) *device = NULL;
+	_autofree_ char *seat1_name = NULL;
+	while (true) {
+		litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 
-	seat1_name = libinput_seat_get_logical_name(seat1);
-	libinput_event_destroy(event);
-
+		_destroy_(libinput_event) *event = libinput_get_event(li);
+		struct libinput_device *d = libinput_event_get_device(event);
+		const char *name = libinput_device_get_name(d);
+		if (strendswith(name, devname)) {
+			device = libinput_device_ref(d);
+			struct libinput_seat *seat = libinput_device_get_seat(device);
+			seat1_name = safe_strdup(libinput_seat_get_logical_name(seat));
+			break;
+		}
+	}
 	litest_drain_events(li);
 
 	/* Changing the logical seat name will remove and re-add the device */
-	rc = libinput_device_set_seat_logical_name(device,
-						   seat2_name);
+	int rc = libinput_device_set_seat_logical_name(device,
+						       seat2_name);
 	litest_assert_int_eq(rc, 0);
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_REMOVED);
-	event = libinput_get_event(li);
-	litest_assert_event_type(event, LIBINPUT_EVENT_DEVICE_REMOVED);
-	litest_assert_ptr_eq(libinput_event_get_device(event), device);
-	libinput_event_destroy(event);
+	while (true) {
+		litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_REMOVED);
+		_destroy_(libinput_event) *event = libinput_get_event(li);
+		litest_assert_event_type(event, LIBINPUT_EVENT_DEVICE_REMOVED);
+		if (libinput_event_get_device(event) == device)
+			break;
+	}
 
-	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
-	event = libinput_get_event(li);
-	litest_assert_event_type(event, LIBINPUT_EVENT_DEVICE_ADDED);
-	litest_assert_ptr_ne(libinput_event_get_device(event), device);
-	libinput_device_unref(device);
+	_unref_(libinput_seat) *seat2 = NULL;
+	while (true) {
+		litest_wait_for_event_of_type(li, LIBINPUT_EVENT_DEVICE_ADDED);
 
-	device = libinput_event_get_device(event);
-	seat2 = libinput_device_get_seat(device);
+		_destroy_(libinput_event) *event = libinput_get_event(li);
+		litest_assert_event_type(event, LIBINPUT_EVENT_DEVICE_ADDED);
+		struct libinput_device *d = libinput_event_get_device(event);
+		const char *name = libinput_device_get_name(d);
+		if (strendswith(name, devname)) {
+			seat2 = libinput_device_get_seat(d);
+			libinput_seat_ref(seat2);
+			break;
+		}
+	}
 
 	litest_assert_str_ne(libinput_seat_get_logical_name(seat2),
-			 seat1_name);
+			     seat1_name);
 	litest_assert_str_eq(libinput_seat_get_logical_name(seat2),
-			 seat2_name);
-	libinput_event_destroy(event);
-
-	libinput_seat_unref(seat1);
+			     seat2_name);
 }
 END_TEST
 
