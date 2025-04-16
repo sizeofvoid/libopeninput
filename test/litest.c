@@ -3452,7 +3452,7 @@ _litest_wait_for_event_of_type(struct libinput *li,
 			int rc = poll(&fds, 1, timeout);
 			litest_assert_errno_success(rc);
 			litest_assert_int_gt(rc, 0);
-			libinput_dispatch(li);
+			litest_dispatch(li);
 		}
 
 		if (type == LIBINPUT_EVENT_NONE) {
