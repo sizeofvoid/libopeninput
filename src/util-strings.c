@@ -290,6 +290,27 @@ int strv_for_each(const char **strv, strv_foreach_callback_t func, void *data)
 	return strv_for_each_n(strv, SIZE_MAX, func, data);
 }
 
+bool
+strv_find(char **strv, const char *needle, size_t *index_out)
+{
+	if (!strv)
+		return false;
+
+	size_t index = 0;
+	char **s = strv;
+	while (*s != NULL) {
+		if (streq(*s, needle)) {
+			if (index_out)
+				*index_out = index;
+			return true;
+		}
+		s++;
+		index++;
+	}
+
+	return false;
+}
+
 /**
  * Return a pointer to the basename within filename.
  * If the filename the empty string or a directory (i.e. the last char of

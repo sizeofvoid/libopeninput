@@ -1279,6 +1279,46 @@ START_TEST(strv_append_test)
 }
 END_TEST
 
+START_TEST(strv_find_test)
+{
+	char *strv[] = {"a", "b", "c", NULL};
+
+	bool rc;
+	size_t index;
+
+	rc = strv_find(strv, "a", &index);
+	litest_assert(rc);
+	litest_assert_int_eq(index, 0U);
+
+	rc = strv_find(strv, "b", &index);
+	litest_assert(rc);
+	litest_assert_int_eq(index, 1U);
+
+	rc = strv_find(strv, "a", NULL);
+	litest_assert(rc);
+
+	index = 0xffff;
+	rc = strv_find(strv, "d", &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+
+	rc = strv_find(strv, "d", NULL);
+	litest_assert(!rc);
+
+	rc = strv_find(NULL, "a", &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+
+	rc = strv_find(NULL, NULL, &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+
+	rc = strv_find(strv, NULL, &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+}
+END_TEST
+
 START_TEST(double_array_from_string_test)
 {
 	struct double_array_from_string_test {
@@ -2228,6 +2268,7 @@ int main(void)
 	ADD_TEST(strsplit_test);
 	ADD_TEST(strv_for_each_test);
 	ADD_TEST(strv_append_test);
+	ADD_TEST(strv_find_test);
 	ADD_TEST(double_array_from_string_test);
 	ADD_TEST(strargv_test);
 	ADD_TEST(kvsplit_double_test);

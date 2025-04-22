@@ -319,6 +319,8 @@ char **strv_append_printf(char **strv, const char *fmt, ...);
 __attribute__ ((format (printf, 2, 0)))
 char **strv_append_vprintf(char **strv, const char *fmt, va_list args);
 
+bool strv_find(char **strv, const char *needle, size_t *index_out);
+
 typedef int (*strv_foreach_callback_t)(const char *str, size_t index, void *data);
 int strv_for_each(const char **strv, strv_foreach_callback_t func, void *data);
 int strv_for_each_n(const char **strv, size_t max, strv_foreach_callback_t func, void *data);
