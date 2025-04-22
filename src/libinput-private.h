@@ -39,6 +39,7 @@
 
 #include "libinput.h"
 #include "libinput-log.h"
+#include "libinput-plugin-system.h"
 #include "libinput-private-config.h"
 #include "libinput-util.h"
 #include "libinput-version.h"
@@ -220,6 +221,8 @@ struct libinput {
 
 	bool quirks_initialized;
 	struct quirks_context *quirks;
+
+	struct libinput_plugin_system plugin_system;
 
 #if HAVE_LIBWACOM
 	struct {

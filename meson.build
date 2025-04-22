@@ -348,7 +348,7 @@ if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
 	dep_libfilter = []
 else
 libfilter = static_library('filter', src_libfilter,
-			   dependencies : [dep_udev, dep_libwacom],
+			   dependencies : [dep_udev, dep_libwacom, dep_libevdev],
 			   include_directories : includes_include)
 dep_libfilter = declare_dependency(link_with : libfilter)
 endif
@@ -398,6 +398,7 @@ src_libinput = src_libfilter + [
 else
 src_libinput = src_libfilter + [
 	'src/libinput.c',
+	'src/libinput-plugin.c',
 	'src/libinput-private-config.c',
 	'src/evdev.c',
 	'src/evdev-debounce.c',

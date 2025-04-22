@@ -1120,11 +1120,16 @@ evdev_device_dispatch_one(struct evdev_device *device,
 }
 
 static inline void
-evdev_device_dispatch_frame(struct evdev_device *device,
+evdev_device_dispatch_frame(struct libinput *libinput,
+			    struct evdev_device *device,
 			    struct evdev_frame *frame)
 {
 	size_t nevents;
 	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
+
+	libinput_plugin_system_notify_evdev_frame(&libinput->plugin_system,
+						  &device->base,
+						  frame);
 
 	for (size_t i = 0; i < nevents; i++) {
 		evdev_device_dispatch_one(device, &events[i], evdev_frame_get_time(frame));
@@ -1132,7 +1137,8 @@ evdev_device_dispatch_frame(struct evdev_device *device,
 }
 
 static int
-evdev_sync_device(struct evdev_device *device)
+evdev_sync_device(struct libinput *libinput,
+		  struct evdev_device *device)
 {
 	struct input_event ev;
 	int rc;
@@ -1149,7 +1155,7 @@ evdev_sync_device(struct evdev_device *device)
 		evdev_frame_append_input_event(frame, &ev);
 	} while (rc == LIBEVDEV_READ_STATUS_SYNC);
 
-	evdev_device_dispatch_frame(device, frame);
+	evdev_device_dispatch_frame(libinput, device, frame);
 
 	return rc == -EAGAIN ? 0 : rc;
 }
@@ -1211,10 +1217,10 @@ evdev_device_dispatch(void *data)
 				evdev_log_bug_libinput(device,
 						       "event frame overflow, discarding events.\n");
 			}
-			evdev_device_dispatch_frame(device, frame);
+			evdev_device_dispatch_frame(libinput, device, frame);
 			evdev_frame_reset(frame);
 
-			rc = evdev_sync_device(device);
+			rc = evdev_sync_device(libinput, device);
 			if (rc == 0)
 				rc = LIBEVDEV_READ_STATUS_SUCCESS;
 		} else if (rc == LIBEVDEV_READ_STATUS_SUCCESS) {
@@ -1228,7 +1234,7 @@ evdev_device_dispatch(void *data)
 						       "event frame overflow, discarding events.\n");
 			}
 			if (ev.type == EV_SYN && ev.code == SYN_REPORT) {
-				evdev_device_dispatch_frame(device, frame);
+				evdev_device_dispatch_frame(libinput, device, frame);
 				evdev_frame_reset(frame);
 			}
 		} else if (rc == -ENODEV) {
@@ -1240,7 +1246,7 @@ evdev_device_dispatch(void *data)
 	/* This should never happen, the kernel flushes only on SYN_REPORT */
 	if (evdev_frame_get_count(frame) > 1) {
 		evdev_log_bug_kernel(device, "event frame missing SYN_REPORT, forcing frame.\n");
-		evdev_device_dispatch_frame(device, frame);
+		evdev_device_dispatch_frame(libinput, device, frame);
 	}
 
 	if (rc != -EAGAIN && rc != -EINTR) {
@@ -2538,23 +2544,32 @@ evdev_device_create(struct libinput_seat *seat,
 
 	evdev_pre_configure_model_quirks(device);
 
+	libinput_plugin_system_notify_device_new(&libinput->plugin_system,
+						 &device->base,
+						 device->evdev,
+						 device->udev_device);
+
 	device->dispatch = evdev_configure_device(device);
 	if (device->dispatch == NULL || device->seat_caps == EVDEV_DEVICE_NO_CAPABILITIES)
-		goto err;
+		goto err_notify;
 
 	device->source =
 		libinput_add_fd(libinput, fd, evdev_device_dispatch, device);
 	if (!device->source)
-		goto err;
+		goto err_notify;
 
 	if (!evdev_set_device_group(device, udev_device))
-		goto err;
+		goto err_notify;
 
 	list_insert(seat->devices_list.prev, &device->base.link);
 
 	evdev_notify_added_device(device);
 
 	return device;
+
+err_notify:
+	libinput_plugin_system_notify_device_ignored(&libinput->plugin_system,
+						     &device->base);
 
 err:
 	if (fd >= 0) {

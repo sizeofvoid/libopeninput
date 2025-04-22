@@ -1879,6 +1879,8 @@ libinput_init(struct libinput *libinput,
 	list_init(&libinput->device_group_list);
 	list_init(&libinput->tool_list);
 
+	libinput_plugin_system_init(&libinput->plugin_system);
+
 	if (libinput_timer_subsys_init(libinput) != 0) {
 		free(libinput->events);
 		close(libinput->epoll_fd);
@@ -1976,6 +1978,8 @@ libinput_unref(struct libinput *libinput)
 	       libinput_event_destroy(event);
 
 	free(libinput->events);
+
+	libinput_plugin_system_destroy(&libinput->plugin_system);
 
 	list_for_each_safe(seat, &libinput->seat_list, link) {
 		list_for_each_safe(device,
@@ -2345,6 +2349,9 @@ post_device_event(struct libinput_device *device,
 void
 notify_added_device(struct libinput_device *device)
 {
+	struct libinput *libinput = device->seat->libinput;
+	libinput_plugin_system_notify_device_added(&libinput->plugin_system, device);
+
 	struct libinput_event_device_notify *added_device_event;
 
 	added_device_event = zalloc(sizeof *added_device_event);
@@ -2363,6 +2370,9 @@ notify_added_device(struct libinput_device *device)
 void
 notify_removed_device(struct libinput_device *device)
 {
+	struct libinput *libinput = device->seat->libinput;
+	libinput_plugin_system_notify_device_removed(&libinput->plugin_system, device);
+
 	struct libinput_event_device_notify *removed_device_event;
 
 	removed_device_event = zalloc(sizeof *removed_device_event);
