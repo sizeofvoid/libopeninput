@@ -75,6 +75,99 @@ START_TEST(mkdir_p_test)
 }
 END_TEST
 
+START_TEST(find_files_test)
+{
+	_autofree_ char *dirname = strdup("/tmp/litest_find_files_test.XXXXXX");
+	mkdtemp(dirname);
+
+	_autofree_ char *d1 = strdup_printf("%s/d1", dirname);
+	_autofree_ char *d2 = strdup_printf("%s/d2", dirname);
+	_autofree_ char *d3 = strdup_printf("%s/d3", dirname);
+
+	litest_assert_neg_errno_success(mkdir_p(d1));
+	litest_assert_neg_errno_success(mkdir_p(d2));
+	litest_assert_neg_errno_success(mkdir_p(d3));
+
+	struct f {
+		const char *name;
+		const char *dir1;
+		const char *dir2;
+		const char *dir3;
+		char *expected;
+	} files[] = {
+		{ "10-abc.suf", d1, d2, d3 },
+		{ "20-def.suf", d1, NULL, d3 },
+		{ "30-ghi.suf", d1, d2, NULL },
+		{ "40-jkl.suf", NULL, d2, NULL },
+		{ "50-mno.suf", NULL, d2, d3 },
+		{ "60-pgr.suf", NULL, NULL, d3 },
+		{ "70-abc.suf", NULL, NULL, d3 },
+		{ "21-xyz.fix", NULL, NULL, d3 },
+		{ "35-uvw.fix", NULL, d2, d3 },
+		{ "70-rst.fix", d1, NULL, d3 },
+		{ NULL },
+	};
+	for (struct f *f = files; f->name; f++) {
+		if (f->dir1) {
+			_autofree_ char *path = strdup_printf("%s/%s", f->dir1, f->name);
+			close(open(path, O_WRONLY | O_CREAT, 0644));
+			f->expected = steal(&path);
+		}
+		if (f->dir2) {
+			_autofree_ char *path = strdup_printf("%s/%s", f->dir2, f->name);
+			close(open(path, O_WRONLY | O_CREAT, 0644));
+			if (!f->expected)
+				f->expected = steal(&path);
+		}
+		if (f->dir3) {
+			_autofree_ char *path = strdup_printf("%s/%s", f->dir3, f->name);
+			close(open(path, O_WRONLY | O_CREAT, 0644));
+			if (!f->expected)
+				f->expected = steal(&path);
+		}
+	}
+
+	const char *dirs[] = {d1, d2, d3, NULL};
+	size_t nfiles;
+	_autostrvfree_ char **paths = list_files(dirs, "suf", &nfiles);
+	litest_assert_int_eq(nfiles, (size_t)7);
+	litest_assert_str_eq(paths[0], files[0].expected);
+	litest_assert_str_eq(paths[1], files[1].expected);
+	litest_assert_str_eq(paths[2], files[2].expected);
+	litest_assert_str_eq(paths[3], files[3].expected);
+	litest_assert_str_eq(paths[4], files[4].expected);
+	litest_assert_str_eq(paths[5], files[5].expected);
+	litest_assert_str_eq(paths[6], files[6].expected);
+	litest_assert_str_eq(paths[7], NULL);
+
+	for (struct f *f = files; f->name; f++) {
+		if (f->dir1) {
+			_autofree_ char *path = strdup_printf("%s/%s", f->dir1, f->name);
+			unlink(path);
+		}
+		if (f->dir2) {
+			_autofree_ char *path = strdup_printf("%s/%s", f->dir2, f->name);
+			unlink(path);
+		}
+		if (f->dir3) {
+			_autofree_ char *path = strdup_printf("%s/%s", f->dir3, f->name);
+			unlink(path);
+		}
+		free(f->expected);
+	}
+	rmdir(d1);
+	rmdir(d2);
+	rmdir(d3);
+	rmdir(dirname);
+
+	const char *empty[] = {NULL};
+	_autostrvfree_ char** empty_path = list_files(empty, "suf", &nfiles);
+	litest_assert_int_eq(nfiles, (size_t)0);
+	litest_assert_ptr_notnull(empty_path);
+	litest_assert_ptr_null(empty_path[0]);
+}
+END_TEST
+
 START_TEST(array_for_each)
 {
 	int ai[6];
@@ -2313,6 +2406,7 @@ int main(void)
 
 	ADD_TEST(auto_test);
 	ADD_TEST(mkdir_p_test);
+	ADD_TEST(find_files_test);
 
 	ADD_TEST(array_for_each);
 

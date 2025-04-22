@@ -62,3 +62,21 @@ xclose(int *fd)
 		*fd = -1;
 	}
 }
+
+/**
+ * In the NULL-terminated list of directories
+ * search for files with the given suffix and return
+ * a filename-ordered NULL-terminated list of those
+ * full paths.
+ *
+ * The directories are given in descending priority order.
+ * Any file with a given filename shadows the same file
+ * in another directory of lower sorting order.
+ *
+ * If nfiles is not NULL, it is set to the number of
+ * files returned (not including the NULL terminator).
+ */
+char **
+list_files(const char **directories,
+	   const char *suffix,
+	   size_t *nfiles);

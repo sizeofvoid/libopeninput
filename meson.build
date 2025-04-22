@@ -317,6 +317,7 @@ foreach h: util_headers
 endforeach
 
 src_libinput_util = [
+	'src/util-files.c',
 	'src/util-list.c',
 	'src/util-ratelimit.c',
 	'src/util-strings.c',
