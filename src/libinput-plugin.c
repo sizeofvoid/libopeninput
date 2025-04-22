@@ -31,6 +31,7 @@
 #include "evdev-frame.h"
 #include "evdev-plugin.h"
 #include "libinput-plugin-button-debounce.h"
+#include "libinput-plugin-lua.h"
 #include "libinput-plugin-mouse-wheel-lowres.h"
 #include "libinput-plugin-mouse-wheel.h"
 #include "libinput-plugin-mtdev.h"
@@ -362,6 +363,18 @@ libinput_plugin_system_load_plugins(struct libinput *libinput,
 		log_bug_client(libinput, "%s() called twice\n", __func__);
 		return 0;
 	}
+
+#if HAVE_LUA
+	_autostrvfree_ char **directories = steal(&libinput->plugin_system.directories);
+	size_t nfiles = 0;
+	_autostrvfree_ char **plugin_files =
+		list_files((const char **)directories, ".lua", &nfiles);
+	for (size_t i = 0; i < nfiles; i++) {
+		char *path = plugin_files[i];
+		log_debug(libinput, "Loading plugin from %s\n", path);
+		libinput_lua_plugin_new_from_path(libinput, path);
+	}
+#endif
 
 	libinput_plugin_system_load_internal_plugins(libinput,
 						     &libinput->plugin_system);

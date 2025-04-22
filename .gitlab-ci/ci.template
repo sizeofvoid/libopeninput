@@ -492,6 +492,7 @@ vm-valgrind-{{suite.name}}:
     - if: $GITLAB_USER_LOGIN != "marge-bot"
 
 {% endfor %}
+
 {% endfor %}{# for if distro.use_for_qemu_tests #}
 
 {% for distro in distributions if distro.use_for_custom_build_tests %}
@@ -556,6 +557,20 @@ build-no-mtdev-nodeps@{{distro.name}}:{{version}}:
     MESON_ARGS: "-Dmtdev=false"
   before_script:
     - dnf remove -y mtdev mtdev-devel
+
+build-no-lua@{{distro.name}}:{{version}}:
+  extends:
+    - .{{distro.name}}-build@template
+  variables:
+    MESON_ARGS: "-Dlua-plugins=disabled"
+
+build-no-lua-nodeps@{{distro.name}}:{{version}}:
+  extends:
+    - .{{distro.name}}-build@template
+  variables:
+    MESON_ARGS: "-Dlua-plugins=disabled"
+  before_script:
+    - dnf remove -y lua lua-devel
 
 build-docs@{{distro.name}}:{{version}}:
   extends:

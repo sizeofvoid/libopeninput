@@ -12,6 +12,7 @@
   troubleshooting
   contributing
   development
+  lua-plugins
   API documentation <@HTTP_DOC_LINK@/api/>
 
 

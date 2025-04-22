@@ -155,6 +155,7 @@ src_rst = files(
 	'middle-button-emulation.rst',
 	'normalization-of-relative-motion.rst',
 	'palm-detection.rst',
+	'lua-plugins.rst',
 	'pointer-acceleration.rst',
 	'reporting-bugs.rst',
 	'scrolling.rst',

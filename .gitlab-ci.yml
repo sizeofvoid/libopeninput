@@ -98,11 +98,11 @@ variables:
   # See the documentation here:                                                 #
   # https://wayland.freedesktop.org/libinput/doc/latest/building.html           #
   ###############################################################################
-  FEDORA_PACKAGES:  'git-core gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx_rtd_theme python3-pytest-xdist libwacom-devel cairo-devel gtk4-devel glib2-devel mtdev-devel diffutils wayland-protocols-devel black clang clang-tools-extra jq rpmdevtools valgrind systemd-udev qemu-img qemu-system-x86-core qemu-system-aarch64-core jq python3-click python3-rich virtme-ng'
-  DEBIAN_PACKAGES:  'git gcc g++ pkg-config meson check libudev-dev libevdev-dev doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev curl'
-  UBUNTU_PACKAGES:  'git gcc g++ pkg-config meson check libudev-dev libevdev-dev doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev'
-  ARCH_PACKAGES:    'git gcc pkgconfig meson check libsystemd libevdev python-pytest-xdist libwacom gtk4 mtdev diffutils'
-  ALPINE_PACKAGES:  'git gcc build-base pkgconfig meson check-dev eudev-dev libevdev-dev libwacom-dev cairo-dev gtk4.0-dev mtdev-dev bash'
+  FEDORA_PACKAGES:  'git-core gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx_rtd_theme python3-pytest-xdist libwacom-devel cairo-devel gtk4-devel glib2-devel mtdev-devel diffutils wayland-protocols-devel black clang clang-tools-extra jq rpmdevtools valgrind systemd-udev qemu-img qemu-system-x86-core qemu-system-aarch64-core jq python3-click python3-rich virtme-ng lua-devel'
+  DEBIAN_PACKAGES:  'git gcc g++ pkg-config meson check libudev-dev libevdev-dev doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev curl lua5.4-dev'
+  UBUNTU_PACKAGES:  'git gcc g++ pkg-config meson check libudev-dev libevdev-dev doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev lua5.4-dev'
+  ARCH_PACKAGES:    'git gcc pkgconfig meson check libsystemd libevdev python-pytest-xdist libwacom gtk4 mtdev diffutils lua'
+  ALPINE_PACKAGES:  'git gcc build-base pkgconfig meson check-dev eudev-dev libevdev-dev libwacom-dev cairo-dev gtk4.0-dev mtdev-dev bash lua5.4-dev'
   FREEBSD_PACKAGES: 'git pkgconf meson libepoll-shim libudev-devd libevdev libwacom gtk3 libmtdev bash wayland'
   ############################ end of package lists #############################
 
@@ -110,12 +110,12 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2025-05-19.0'
-  DEBIAN_TAG:  '2025-05-19.0'
-  UBUNTU_TAG:  '2025-05-19.0'
-  ARCH_TAG:    '2025-05-19.0'
-  ALPINE_TAG:  '2025-05-19.0'
-  FREEBSD_TAG: '2025-05-19.0'
+  FEDORA_TAG:  '2025-05-20.0'
+  DEBIAN_TAG:  '2025-05-20.0'
+  UBUNTU_TAG:  '2025-05-20.0'
+  ARCH_TAG:    '2025-05-20.0'
+  ALPINE_TAG:  '2025-05-20.0'
+  FREEBSD_TAG: '2025-05-20.0'
 
   FDO_UPSTREAM_REPO: libinput/libinput
 
@@ -796,6 +796,19 @@ vm-pointer-no-libwacom:
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
+vm-lua:
+  extends:
+    - .fedora:42@test-suite-vm
+  variables:
+    SUITE_NAMES: 'lua'
+
+vm-lua-no-libwacom:
+  extends:
+    - vm-lua
+  stage: test-suite-no-libwacom
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
 
 vm-valgrind-touchpad:
   stage: valgrind
@@ -1005,6 +1018,20 @@ vm-valgrind-pointer:
   rules:
     - if: $GITLAB_USER_LOGIN != "marge-bot"
 
+vm-valgrind-lua:
+  stage: valgrind
+  extends:
+    - vm-lua
+    - .policy-retry-on-failure
+  variables:
+    MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 0
+  retry:
+    max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
+
+
 
 .fedora-build@template:
   extends:
@@ -1066,6 +1093,20 @@ build-no-mtdev-nodeps@fedora:42:
     MESON_ARGS: "-Dmtdev=false"
   before_script:
     - dnf remove -y mtdev mtdev-devel
+
+build-no-lua@fedora:42:
+  extends:
+    - .fedora-build@template
+  variables:
+    MESON_ARGS: "-Dlua-plugins=disabled"
+
+build-no-lua-nodeps@fedora:42:
+  extends:
+    - .fedora-build@template
+  variables:
+    MESON_ARGS: "-Dlua-plugins=disabled"
+  before_script:
+    - dnf remove -y lua lua-devel
 
 build-docs@fedora:42:
   extends:
@@ -1163,6 +1204,7 @@ check-test-suites:
         libinput-test-suite-totem
         libinput-test-suite-touch
         libinput-test-suite-pointer
+        libinput-test-suite-lua
       EOF
     - sort -o ci-testsuites ci-testsuites
     - diff -u8 -w ci-testsuites meson-testsuites || (echo "Some test suites are not run in the CI" && false)
