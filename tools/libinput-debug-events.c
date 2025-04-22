@@ -319,7 +319,13 @@ main(int argc, char **argv)
 	if (verbose)
 		printf("libinput version: %s\n", LIBINPUT_VERSION);
 
-	li = tools_open_backend(backend, seat_or_devices, verbose, &grab);
+	bool with_plugins = (options.plugins == 1);
+	li = tools_open_backend(backend,
+				seat_or_devices,
+				verbose,
+				&grab,
+				with_plugins,
+				steal(&options.plugin_paths));
 	if (!li)
 		return EXIT_FAILURE;
 

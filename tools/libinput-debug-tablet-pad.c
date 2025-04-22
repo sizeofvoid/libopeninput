@@ -528,7 +528,14 @@ main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	li = tools_open_backend(backend, seat_or_device, false, &grab);
+	bool with_plugins = (options.plugins == 1);
+	li = tools_open_backend(backend,
+				seat_or_device,
+				false,
+				&grab,
+				with_plugins,
+				steal(&options.plugin_paths));
+
 	if (!li)
 		return EXIT_FAILURE;
 

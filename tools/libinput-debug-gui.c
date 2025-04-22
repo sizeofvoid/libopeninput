@@ -2007,7 +2007,13 @@ main(int argc, char **argv)
 		backend = BACKEND_UDEV;
 	}
 
-	li = tools_open_backend(backend, seat_or_device, verbose, &w.grab);
+	bool with_plugins = (options.plugins == 1);
+	li = tools_open_backend(backend,
+				seat_or_device,
+				verbose,
+				&w.grab,
+				with_plugins,
+				steal(&options.plugin_paths));
 	if (!li)
 		return EXIT_FAILURE;
 

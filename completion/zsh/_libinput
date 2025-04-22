@@ -93,6 +93,9 @@ __all_seats()
 		+ '(natural-scrolling)' \
 		'--enable-natural-scrolling[Enable natural scrolling]' \
 		'--disable-natural-scrolling[Disable natural scrolling]' \
+		+ '(plugins)' \
+		'--enable-plugins[Enable plugins]' \
+		'--disable-plugins[Disable plugins]' \
 		+ '(tap-to-click)' \
 		'--enable-tap[Enable tap-to-click]' \
 		'--disable-tap[Disable tap-to-click]'

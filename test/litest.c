@@ -2144,6 +2144,8 @@ litest_create_context(void)
 	if (verbose)
 		libinput_log_set_priority(libinput, LIBINPUT_LOG_PRIORITY_DEBUG);
 
+	libinput_plugin_system_load_plugins(libinput, LIBINPUT_PLUGIN_FLAG_NONE);
+
 	return libinput;
 }
 

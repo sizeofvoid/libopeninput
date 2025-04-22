@@ -107,6 +107,8 @@ void
 tools_init_options(struct tools_options *options)
 {
 	memset(options, 0, sizeof(*options));
+	options->plugins = -1;
+	options->plugin_paths = NULL;
 	options->tapping = -1;
 	options->tap_map = -1;
 	options->drag = -1;
@@ -146,6 +148,15 @@ int
 tools_parse_option(int option, const char *optarg, struct tools_options *options)
 {
 	switch (option) {
+	case OPT_PLUGINS_ENABLE:
+		options->plugins = 1;
+		break;
+	case OPT_PLUGINS_DISABLE:
+		options->plugins = 0;
+		break;
+	case OPT_PLUGIN_PATH:
+		options->plugin_paths = strv_from_string(optarg, ":", NULL);
+		break;
 	case OPT_TAP_ENABLE:
 		options->tapping = 1;
 		break;
@@ -494,8 +505,46 @@ static const struct libinput_interface interface = {
 	.close_restricted = close_restricted,
 };
 
+static int
+add_path(const char *str, size_t index, void *data)
+{
+	struct libinput *libinput = data;
+	libinput_plugin_system_append_default_paths(libinput);
+	return 0;
+}
+
+static void
+tools_load_plugins(struct libinput *libinput, char **plugin_paths)
+{
+	_autofree_ char *builddir = NULL;
+
+	if (plugin_paths) {
+		strv_for_each((const char **)plugin_paths, add_path, libinput);
+		strv_free(plugin_paths);
+	} else {
+		if (builddir_lookup(&builddir)) {
+			_autofree_ char *plugindir =
+				strdup_printf("%s/plugins", builddir);
+			libinput_plugin_system_append_path(libinput, plugindir);
+		}
+		libinput_plugin_system_append_default_paths(libinput);
+	}
+	switch (libinput_plugin_system_load_plugins(libinput,
+						    LIBINPUT_PLUGIN_FLAG_NONE)) {
+	case -ENOSYS:
+		fprintf(stderr, "Warning: plugins were disabled at compile time");
+		break;
+	case 0:
+		break;
+	}
+}
+
 static struct libinput *
-tools_open_udev(const char *seat, bool verbose, bool *grab)
+tools_open_udev(const char *seat,
+		bool verbose,
+		bool *grab,
+		bool with_plugins,
+		char **plugin_paths)
 {
 	_unref_(udev) *udev = udev_new();
 	if (!udev) {
@@ -513,6 +562,9 @@ tools_open_udev(const char *seat, bool verbose, bool *grab)
 	if (verbose)
 		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
 
+	if (with_plugins)
+		tools_load_plugins(li, plugin_paths);
+
 	if (libinput_udev_assign_seat(li, seat)) {
 		fprintf(stderr, "Failed to set seat\n");
 		return NULL;
@@ -522,7 +574,11 @@ tools_open_udev(const char *seat, bool verbose, bool *grab)
 }
 
 static struct libinput *
-tools_open_device(const char **paths, bool verbose, bool *grab)
+tools_open_device(const char **paths,
+		  bool verbose,
+		  bool *grab,
+		  bool with_plugins,
+		  char **plugin_paths)
 {
 	_unref_(libinput) *li = libinput_path_create_context(&interface, grab);
 	if (!li) {
@@ -534,6 +590,9 @@ tools_open_device(const char **paths, bool verbose, bool *grab)
 		libinput_log_set_handler(li, log_handler);
 		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
 	}
+
+	if (with_plugins)
+		tools_load_plugins(li, plugin_paths);
 
 	const char **p = paths;
 	while (*p) {
@@ -559,7 +618,9 @@ struct libinput *
 tools_open_backend(enum tools_backend which,
 		   const char **seat_or_device,
 		   bool verbose,
-		   bool *grab)
+		   bool *grab,
+		   bool with_plugins,
+		   char **plugin_paths)
 {
 	struct libinput *li;
 
@@ -567,10 +628,18 @@ tools_open_backend(enum tools_backend which,
 
 	switch (which) {
 	case BACKEND_UDEV:
-		li = tools_open_udev(seat_or_device[0], verbose, grab);
+		li = tools_open_udev(seat_or_device[0],
+				     verbose,
+				     grab,
+				     with_plugins,
+				     plugin_paths);
 		break;
 	case BACKEND_DEVICE:
-		li = tools_open_device(seat_or_device, verbose, grab);
+		li = tools_open_device(seat_or_device,
+				       verbose,
+				       grab,
+				       with_plugins,
+				       plugin_paths);
 		break;
 	default:
 		abort();

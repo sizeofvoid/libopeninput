@@ -606,10 +606,15 @@ main(int argc, char **argv)
 			}
 			devices[ndevices++] = argv[optind];
 		} while (++optind < argc);
-		li = tools_open_backend(BACKEND_DEVICE, devices, false, &grab);
+		li = tools_open_backend(BACKEND_DEVICE,
+					devices,
+					false,
+					&grab,
+					false,
+					NULL);
 	} else {
 		const char *seat[2] = { "seat0", NULL };
-		li = tools_open_backend(BACKEND_UDEV, seat, false, &grab);
+		li = tools_open_backend(BACKEND_UDEV, seat, false, &grab, false, NULL);
 	}
 	if (!li)
 		return 1;

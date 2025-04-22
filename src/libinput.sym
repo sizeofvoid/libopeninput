@@ -374,3 +374,9 @@ LIBINPUT_1.29 {
 	libinput_tablet_tool_config_eraser_button_set_button;
 	libinput_tablet_tool_config_eraser_button_set_mode;
 } LIBINPUT_1.28;
+
+LIBINPUT_1.30 {
+	libinput_plugin_system_append_default_paths;
+	libinput_plugin_system_append_path;
+	libinput_plugin_system_load_plugins;
+} LIBINPUT_1.29;

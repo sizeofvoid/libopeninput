@@ -327,6 +327,55 @@ libinput_plugin_notify_device_removed(struct libinput_plugin *plugin,
 		plugin->interface->device_removed(plugin, device);
 }
 
+LIBINPUT_EXPORT void
+libinput_plugin_system_append_path(struct libinput *libinput, const char *path)
+{
+	if (libinput->plugin_system.loaded) {
+		log_bug_client(libinput, "plugin system already initialized\n");
+		return;
+	}
+
+	if (strv_find(libinput->plugin_system.directories, path, NULL))
+		return;
+
+	libinput->plugin_system.directories =
+		strv_append_strdup(libinput->plugin_system.directories, path);
+}
+
+LIBINPUT_EXPORT void
+libinput_plugin_system_append_default_paths(struct libinput *libinput)
+{
+	if (libinput->plugin_system.loaded) {
+		log_bug_client(libinput, "plugin system already initialized\n");
+		return;
+	}
+
+	libinput_plugin_system_append_path(libinput, LIBINPUT_PLUGIN_ETCDIR);
+	libinput_plugin_system_append_path(libinput, LIBINPUT_PLUGIN_LIBDIR);
+}
+
+LIBINPUT_EXPORT int
+libinput_plugin_system_load_plugins(struct libinput *libinput,
+				    enum libinput_plugins_flags flags)
+{
+	if (libinput->plugin_system.loaded) {
+		log_bug_client(libinput, "%s() called twice\n", __func__);
+		return 0;
+	}
+
+	libinput_plugin_system_load_internal_plugins(libinput,
+						     &libinput->plugin_system);
+	libinput->plugin_system.loaded = true;
+
+	libinput_plugin_system_run(&libinput->plugin_system);
+
+#if !HAVE_PLUGINS
+	return -ENOSYS;
+#else
+	return 0;
+#endif
+}
+
 void
 libinput_plugin_system_run(struct libinput_plugin_system *system)
 {
@@ -403,6 +452,7 @@ libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
 	 * actually connected to anything yet */
 	libinput_evdev_dispatch_plugin(libinput);
 }
+
 void
 libinput_plugin_system_destroy(struct libinput_plugin_system *system)
 {

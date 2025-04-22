@@ -3693,6 +3693,89 @@ libinput_path_remove_device(struct libinput_device *device);
 /**
  * @ingroup base
  *
+ * Appends the given directory path to the libinput plugin lookup path.
+ * If the path is already in the lookup paths, it is ignored.
+ *
+ * A path's priority is determined by its position in the list; the first
+ * path in the list has the highest priority.
+ *
+ * Plugin lookup is performed across all paths in lexical order. If
+ * a plugin exists in multiple paths, the one in the highest priority
+ * path (i.e. front of the list) is used.
+ *
+ * Paths are not traversed recursively.
+ *
+ * Plugins that have a 0 byte size shadow any plugins with the same name
+ * but do not provide any fuctionality. This allows disabling a plugin
+ * by simply dropping an empty file in a higher-priority directory.
+ *
+ * This function must be called before i
+ * libinput_plugin_system_load_plugins().
+ *
+ * @see libinput_plugin_system_append_default_paths
+ *
+ * @since 1.29
+ */
+void
+libinput_plugin_system_append_path(struct libinput *libinput, const char *path);
+
+/**
+ * @ingroup base
+ *
+ * Add the default plugin lookup paths, typically:
+ * - /etc/libinput/plugins/
+ * - /usr/lib{64}/libinput/plugins/
+ *
+ * These paths are inserted at the current priority - to add
+ * paths with a higher priority than these, call
+ * libinput_plugin_system_append_path() prior to this function.
+ *
+ * See libinput_plugin_system_append_path() for more details.
+ *
+ * This function must be called before
+ * libinput_plugin_system_load_plugins().
+ *
+ * @see libinput_plugin_system_append_paths
+ *
+ * @since 1.29
+ */
+void
+libinput_plugin_system_append_default_paths(struct libinput *libinput);
+
+enum libinput_plugins_flags {
+	LIBINPUT_PLUGIN_FLAG_NONE = 0,
+};
+
+/**
+ * @ingroup base
+ *
+ * Load the plugins from the set of lookup paths. This function does nothing
+ * if no plugin paths have been configured, see
+ * libinput_plugin_system_append_default_paths() and
+ * libinput_plugin_system_append_path().
+ *
+ * The typical use of this function is:
+ * ```
+ * struct libinput *li = libinput_udev_create_context(...);
+ * libinput_plugin_system_append_default_paths(li);
+ * libinput_plugin_system_load(li, flags);
+ * ```
+ *
+ * This function must be called before libinput iterates through the
+ * devices, i.e. before libinput_udev_assign_seat() or libinput_path_add_device().
+ *
+ * @return 0 or a negative errno on failure
+ * @retval -ENOSYS libinput was compiled without plugin support
+ *
+ * @since 1.29
+ */
+int
+libinput_plugin_system_load_plugins(struct libinput *libinput,
+				    enum libinput_plugins_flags flags);
+
+/**
+ * @ingroup base
+ *
  * libinput keeps a single file descriptor for all events. Call into
  * libinput_dispatch() if any events become available on this fd.
  *

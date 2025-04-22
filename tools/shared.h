@@ -77,10 +77,15 @@ enum configuration_options {
 	OPT_SENDEVENTS,
 	OPT_ERASER_BUTTON_MODE,
 	OPT_ERASER_BUTTON_BUTTON,
+	OPT_PLUGINS_DISABLE,
+	OPT_PLUGINS_ENABLE,
+	OPT_PLUGIN_PATH,
 };
 
 #define CONFIGURATION_OPTIONS \
 	{ "disable-sendevents",        required_argument, 0, OPT_DISABLE_SENDEVENTS }, \
+	{ "enable-plugins",            no_argument,       0, OPT_PLUGINS_ENABLE }, \
+	{ "disable-plugins",           no_argument,       0, OPT_PLUGINS_DISABLE }, \
 	{ "enable-tap",                no_argument,       0, OPT_TAP_ENABLE }, \
 	{ "disable-tap",               no_argument,       0, OPT_TAP_DISABLE }, \
 	{ "enable-drag",               no_argument,       0, OPT_DRAG_ENABLE }, \
@@ -117,7 +122,8 @@ enum configuration_options {
 	{ "set-calibration",           required_argument, 0, OPT_CALIBRATION }, \
 	{ "set-area",                  required_argument, 0, OPT_AREA }, \
 	{ "set-eraser-button-mode",    required_argument, 0, OPT_ERASER_BUTTON_MODE }, \
-	{ "set-eraser-button-button",  required_argument, 0, OPT_ERASER_BUTTON_BUTTON }
+	{ "set-eraser-button-button",  required_argument, 0, OPT_ERASER_BUTTON_BUTTON },\
+	{ "set-plugin-path",	       required_argument, 0, OPT_PLUGIN_PATH }
 
 /* Note: New arguments should be added to shell completions */
 
@@ -143,6 +149,9 @@ enum tools_backend { BACKEND_NONE, BACKEND_DEVICE, BACKEND_UDEV };
 
 struct tools_options {
 	char match[256];
+
+	int plugins;
+	char **plugin_paths;
 
 	int tapping;
 	int drag;
@@ -183,7 +192,9 @@ struct libinput *
 tools_open_backend(enum tools_backend which,
 		   const char **seat_or_devices,
 		   bool verbose,
-		   bool *grab);
+		   bool *grab,
+		   bool with_plugins,
+		   char **plugin_paths);
 void
 tools_device_apply_config(struct libinput_device *device,
 			  struct tools_options *options);
