@@ -56,11 +56,11 @@ START_TEST(mkdir_p_test)
 	const char *testdir = "/tmp/litest_mkdir_test";
 	litest_assert_neg_errno_success(mkdir_p("/"));
 
-	unlink(testdir);
+	rmdir(testdir);
 	litest_assert_neg_errno_success(mkdir_p(testdir));
 	/* EEXIST is not an error */
 	litest_assert_neg_errno_success(mkdir_p(testdir));
-	unlink(testdir);
+	rmdir(testdir);
 
 	litest_assert_int_eq(mkdir_p("/proc/foo"), -ENOENT);
 }
