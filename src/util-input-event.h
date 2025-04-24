@@ -26,6 +26,9 @@
 #include "config.h"
 
 #include "util-time.h"
+#include "util-mem.h"
+#include <string.h>
+#include <stdbool.h>
 #include <linux/input.h>
 
 static inline struct input_event
