@@ -2385,7 +2385,7 @@ evdev_device_create(struct libinput_seat *seat,
 	int fd = -1;
 	int unhandled_device = 0;
 	const char *devnode = udev_device_get_devnode(udev_device);
-	char *sysname = str_sanitize(udev_device_get_sysname(udev_device));
+	_autofree_ char *sysname = str_sanitize(udev_device_get_sysname(udev_device));
 
 	if (!devnode) {
 		log_info(libinput, "%s: no device node associated\n", sysname);
@@ -2415,8 +2415,7 @@ evdev_device_create(struct libinput_seat *seat,
 		goto err;
 
 	device = zalloc(sizeof *device);
-	device->sysname = sysname;
-	sysname = NULL;
+	device->sysname = steal(&sysname);
 
 	libinput_device_init(&device->base, seat);
 	libinput_seat_ref(seat);
@@ -2489,8 +2488,6 @@ err:
 			evdev_device_destroy(device);
 		}
 	}
-
-	free(sysname);
 
 	return unhandled_device ? EVDEV_UNHANDLED_DEVICE :  NULL;
 }
