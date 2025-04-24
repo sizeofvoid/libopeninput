@@ -40,6 +40,7 @@
 
 #include "libinput.h"
 #include "evdev.h"
+#include "evdev-frame.h"
 #include "filter.h"
 #include "libinput-private.h"
 #include "quirks.h"
@@ -1099,19 +1100,37 @@ evdev_device_dispatch_one(struct evdev_device *device,
 	}
 }
 
+static inline void
+evdev_device_dispatch_frame(struct evdev_device *device,
+			    struct evdev_frame *frame)
+{
+	size_t nevents;
+	struct input_event *events = evdev_frame_get_events(frame, &nevents);
+
+	for (size_t i = 0; i < nevents; i++) {
+		evdev_device_dispatch_one(device, &events[i]);
+	}
+}
+
 static int
 evdev_sync_device(struct evdev_device *device)
 {
 	struct input_event ev;
 	int rc;
+	const size_t maxevents = 256;
+	_unref_(evdev_frame) *frame = evdev_frame_new(maxevents);
 
 	do {
 		rc = libevdev_next_event(device->evdev,
 					 LIBEVDEV_READ_FLAG_SYNC, &ev);
 		if (rc < 0)
 			break;
-		evdev_device_dispatch_one(device, &ev);
+
+		/* No ENOMEM check here because >maxevents really should never happen */
+		evdev_frame_append(frame, &ev, 1);
 	} while (rc == LIBEVDEV_READ_STATUS_SYNC);
+
+	evdev_device_dispatch_frame(device, frame);
 
 	return rc == -EAGAIN ? 0 : rc;
 }
@@ -1151,6 +1170,7 @@ evdev_device_dispatch(void *data)
 	struct input_event ev;
 	int rc;
 	bool once = false;
+	_unref_(evdev_frame) *frame = evdev_frame_new(64);
 
 	/* If the compositor is repainting, this function is called only once
 	 * per frame and we have to process all the events available on the
@@ -1167,7 +1187,13 @@ evdev_device_dispatch(void *data)
 			   currently pending events before we sync up
 			   to the current state */
 			ev.code = SYN_REPORT;
-			evdev_device_dispatch_one(device, &ev);
+
+			if (evdev_frame_append(frame, &ev, 1) == -ENOMEM) {
+				evdev_log_bug_libinput(device,
+						       "event frame overflow, discarding events.\n");
+			}
+			evdev_device_dispatch_frame(device, frame);
+			evdev_frame_reset(frame);
 
 			rc = evdev_sync_device(device);
 			if (rc == 0)
@@ -1177,12 +1203,26 @@ evdev_device_dispatch(void *data)
 				evdev_note_time_delay(device, &ev);
 				once = true;
 			}
-			evdev_device_dispatch_one(device, &ev);
+
+			if (evdev_frame_append(frame, &ev, 1) == -ENOMEM) {
+				evdev_log_bug_libinput(device,
+						       "event frame overflow, discarding events.\n");
+			}
+			if (ev.type == EV_SYN && ev.code == SYN_REPORT) {
+				evdev_device_dispatch_frame(device, frame);
+				evdev_frame_reset(frame);
+			}
 		} else if (rc == -ENODEV) {
 			evdev_device_remove(device);
 			return;
 		}
 	} while (rc == LIBEVDEV_READ_STATUS_SUCCESS);
+
+	/* This should never happen, the kernel flushes only on SYN_REPORT */
+	if (evdev_frame_get_count(frame) > 1) {
+		evdev_log_bug_kernel(device, "event frame missing SYN_REPORT, forcing frame.\n");
+		evdev_device_dispatch_frame(device, frame);
+	}
 
 	if (rc != -EAGAIN && rc != -EINTR) {
 		libinput_remove_source(libinput, device->source);
