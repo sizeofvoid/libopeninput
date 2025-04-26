@@ -26,9 +26,27 @@
 
 #include "config.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+
+static inline void *
+zalloc(size_t size)
+{
+	void *p;
+
+	/* We never need to alloc anything more than 1,5 MB so we can assume
+	 * if we ever get above that something's going wrong */
+	if (size > 1536 * 1024)
+		assert(!"bug: internal malloc size limit exceeded");
+
+	p = calloc(1, size);
+	if (!p)
+		abort();
+
+	return p;
+}
 
 /**
  * Use: _cleanup_(somefunction) struct foo *bar;

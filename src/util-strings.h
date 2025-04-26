@@ -70,23 +70,6 @@ strneq(const char *str1, const char *str2, int n)
 	return str1 == str2;
 }
 
-static inline void *
-zalloc(size_t size)
-{
-	void *p;
-
-	/* We never need to alloc anything more than 1,5 MB so we can assume
-	 * if we ever get above that something's going wrong */
-	if (size > 1536 * 1024)
-		assert(!"bug: internal malloc size limit exceeded");
-
-	p = calloc(1, size);
-	if (!p)
-		abort();
-
-	return p;
-}
-
 /**
  * strdup guaranteed to succeed. If the input string is NULL, the output
  * string is NULL. If the input string is a string pointer, we strdup or
