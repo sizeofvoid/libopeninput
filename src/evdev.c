@@ -2036,35 +2036,12 @@ evdev_device_is_joystick_or_gamepad(struct evdev_device *device)
 }
 
 static struct evdev_dispatch *
-evdev_configure_device(struct evdev_device *device)
+evdev_configure_device(struct evdev_device *device,
+		       enum evdev_device_udev_tags udev_tags)
 {
 	struct libevdev *evdev = device->evdev;
-	enum evdev_device_udev_tags udev_tags;
 	unsigned int tablet_tags;
 	struct evdev_dispatch *dispatch;
-
-	udev_tags = evdev_device_get_udev_tags(device, device->udev_device);
-
-	if ((udev_tags & EVDEV_UDEV_TAG_INPUT) == 0 ||
-	    (udev_tags & ~EVDEV_UDEV_TAG_INPUT) == 0) {
-		evdev_log_info(device,
-			       "not tagged as supported input device\n");
-		return NULL;
-	}
-
-	evdev_log_info(device,
-		 "is tagged by udev as:%s%s%s%s%s%s%s%s%s%s%s\n",
-		 udev_tags & EVDEV_UDEV_TAG_KEYBOARD ? " Keyboard" : "",
-		 udev_tags & EVDEV_UDEV_TAG_MOUSE ? " Mouse" : "",
-		 udev_tags & EVDEV_UDEV_TAG_TOUCHPAD ? " Touchpad" : "",
-		 udev_tags & EVDEV_UDEV_TAG_TOUCHSCREEN ? " Touchscreen" : "",
-		 udev_tags & EVDEV_UDEV_TAG_TABLET ? " Tablet" : "",
-		 udev_tags & EVDEV_UDEV_TAG_POINTINGSTICK ? " Pointingstick" : "",
-		 udev_tags & EVDEV_UDEV_TAG_JOYSTICK ? " Joystick" : "",
-		 udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER ? " Accelerometer" : "",
-		 udev_tags & EVDEV_UDEV_TAG_TABLET_PAD ? " TabletPad" : "",
-		 udev_tags & EVDEV_UDEV_TAG_TRACKBALL ? " Trackball" : "",
-		 udev_tags & EVDEV_UDEV_TAG_SWITCH ? " Switch" : "");
 
 	/* Ignore pure accelerometers, but accept devices that are
 	 * accelerometers with other axes */
@@ -2544,12 +2521,35 @@ evdev_device_create(struct libinput_seat *seat,
 
 	evdev_pre_configure_model_quirks(device);
 
+	enum evdev_device_udev_tags udev_tags = evdev_device_get_udev_tags(device,
+									   device->udev_device);
+	if ((udev_tags & EVDEV_UDEV_TAG_INPUT) == 0 ||
+	    (udev_tags & ~EVDEV_UDEV_TAG_INPUT) == 0) {
+		evdev_log_info(device,
+			       "not tagged as supported input device\n");
+		goto err;
+	}
+
+	evdev_log_info(device,
+		       "is tagged by udev as:%s%s%s%s%s%s%s%s%s%s%s\n",
+		       udev_tags & EVDEV_UDEV_TAG_KEYBOARD ? " Keyboard" : "",
+		       udev_tags & EVDEV_UDEV_TAG_MOUSE ? " Mouse" : "",
+		       udev_tags & EVDEV_UDEV_TAG_TOUCHPAD ? " Touchpad" : "",
+		       udev_tags & EVDEV_UDEV_TAG_TOUCHSCREEN ? " Touchscreen" : "",
+		       udev_tags & EVDEV_UDEV_TAG_TABLET ? " Tablet" : "",
+		       udev_tags & EVDEV_UDEV_TAG_POINTINGSTICK ? " Pointingstick" : "",
+		       udev_tags & EVDEV_UDEV_TAG_JOYSTICK ? " Joystick" : "",
+		       udev_tags & EVDEV_UDEV_TAG_ACCELEROMETER ? " Accelerometer" : "",
+		       udev_tags & EVDEV_UDEV_TAG_TABLET_PAD ? " TabletPad" : "",
+		       udev_tags & EVDEV_UDEV_TAG_TRACKBALL ? " Trackball" : "",
+		       udev_tags & EVDEV_UDEV_TAG_SWITCH ? " Switch" : "");
+
 	libinput_plugin_system_notify_device_new(&libinput->plugin_system,
 						 &device->base,
 						 device->evdev,
 						 device->udev_device);
 
-	device->dispatch = evdev_configure_device(device);
+	device->dispatch = evdev_configure_device(device, udev_tags);
 	if (device->dispatch == NULL || device->seat_caps == EVDEV_DEVICE_NO_CAPABILITIES)
 		goto err_notify;
 
