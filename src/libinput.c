@@ -4444,7 +4444,9 @@ libinput_device_config_accel_apply(struct libinput_device *device,
 LIBINPUT_EXPORT enum libinput_config_status
 libinput_config_accel_set_points(struct libinput_config_accel *config,
 				 enum libinput_config_accel_type accel_type,
-				 double step, size_t npoints, double *points)
+				 double step,
+				 size_t npoints,
+				 const double *points)
 {
 	if (config->profile != LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM)
 		return LIBINPUT_CONFIG_STATUS_INVALID;
