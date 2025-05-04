@@ -41,3 +41,9 @@ MatchVendor=0x0B05
 MatchProduct=0x1866
 MatchUdevType=keyboard
 AttrKeyboardIntegration=internal
+
+# don't disable volume buttons in tablet mode
+[Asus ROG Flow Z13 2025 volume buttons]
+MatchName=AT Translated Set 2 keyboard
+MatchDMIModalias=dmi:*svnASUSTeKCOMPUTERINC.:pnROGFlowZ13GZ302EA_GZ302EA:*
+ModelTabletModeNoSuspend=1
