@@ -250,3 +250,17 @@ libinput_timer_flush(struct libinput *libinput, uint64_t now)
 
 	libinput_timer_handler(libinput, now);
 }
+
+uint64_t
+libinput_now(struct libinput *libinput)
+{
+	uint64_t now;
+	int rc = now_in_us(&now);
+
+	if (rc < 0) {
+		log_error(libinput, "clock_gettime failed: %s\n", strerror(-rc));
+		return 0;
+	}
+
+	return now;
+}

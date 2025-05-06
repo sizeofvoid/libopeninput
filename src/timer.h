@@ -76,4 +76,7 @@ libinput_timer_subsys_destroy(struct libinput *libinput);
 void
 libinput_timer_flush(struct libinput *libinput, uint64_t now);
 
+uint64_t
+libinput_now(struct libinput *libinput);
+
 #endif

@@ -911,20 +911,6 @@ switch_notify_toggle(struct libinput_device *device,
 		     enum libinput_switch sw,
 		     enum libinput_switch_state state);
 
-static inline uint64_t
-libinput_now(struct libinput *libinput)
-{
-	uint64_t now;
-	int rc = now_in_us(&now);
-
-	if (rc < 0) {
-		log_error(libinput, "clock_gettime failed: %s\n", strerror(-rc));
-		return 0;
-	}
-
-	return now;
-}
-
 static inline struct device_float_coords
 device_delta(const struct device_coords a, const struct device_coords b)
 {
