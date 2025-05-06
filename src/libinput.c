@@ -282,13 +282,21 @@ libinput_default_log_func(struct libinput *libinput,
 	vfprintf(stderr, format, args);
 }
 
+bool
+log_is_logged(const struct libinput *libinput,
+	      enum libinput_log_priority priority)
+{
+       return libinput->log_handler &&
+               libinput->log_priority <= priority;
+}
+
 void
 log_msg_va(struct libinput *libinput,
 	   enum libinput_log_priority priority,
 	   const char *format,
 	   va_list args)
 {
-	if (is_logged(libinput, priority))
+	if (log_is_logged(libinput, priority))
 		libinput->log_handler(libinput, priority, format, args);
 }
 

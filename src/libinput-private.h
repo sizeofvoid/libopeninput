@@ -38,6 +38,7 @@
 #include "linux/input.h"
 
 #include "libinput.h"
+#include "libinput-log.h"
 #include "libinput-private-config.h"
 #include "libinput-util.h"
 #include "libinput-version.h"
@@ -596,48 +597,6 @@ struct libinput_event_listener {
 };
 
 typedef void (*libinput_source_dispatch_t)(void *data);
-
-#define log_debug(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_DEBUG, __VA_ARGS__)
-#define log_info(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_INFO, __VA_ARGS__)
-#define log_error(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, __VA_ARGS__)
-#define log_bug_kernel(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "kernel bug: " __VA_ARGS__)
-#define log_bug_libinput(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "libinput bug: " __VA_ARGS__)
-#define log_bug_client(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "client bug: " __VA_ARGS__)
-
-#define log_debug_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_DEBUG, __VA_ARGS__)
-#define log_info_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_INFO, __VA_ARGS__)
-#define log_error_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, __VA_ARGS__)
-#define log_bug_kernel_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, "kernel bug: " __VA_ARGS__)
-#define log_bug_libinput_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, "libinput bug: " __VA_ARGS__)
-#define log_bug_client_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, "client bug: " __VA_ARGS__)
-
-static inline bool
-is_logged(const struct libinput *libinput,
-	  enum libinput_log_priority priority)
-{
-       return libinput->log_handler &&
-               libinput->log_priority <= priority;
-}
-
-void
-log_msg_ratelimit(struct libinput *libinput,
-		  struct ratelimit *ratelimit,
-		  enum libinput_log_priority priority,
-		  const char *format, ...)
-	LIBINPUT_ATTRIBUTE_PRINTF(4, 5);
-
-void
-log_msg(struct libinput *libinput,
-	enum libinput_log_priority priority,
-	const char *format, ...)
-	LIBINPUT_ATTRIBUTE_PRINTF(3, 4);
-
-void
-log_msg_va(struct libinput *libinput,
-	   enum libinput_log_priority priority,
-	   const char *format,
-	   va_list args)
-	LIBINPUT_ATTRIBUTE_PRINTF(3, 0);
 
 int
 libinput_init(struct libinput *libinput,
