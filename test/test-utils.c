@@ -75,6 +75,44 @@ START_TEST(mkdir_p_test)
 }
 END_TEST
 
+START_TEST(rmdir_r_test)
+{
+	const char *testdir = "/tmp/litest_rmdir_test";
+	_autofree_ char *path = strdup_printf("%s/foo/bar/baz", testdir);
+	mkdir_p(path);
+
+	_autofree_ char *f1 = strdup_printf("%s/remain", testdir);
+	_autofree_ char *f2 = strdup_printf("%s/foo/remove", testdir);
+	_autofree_ char *f3 = strdup_printf("%s/foo/bar/to-remove", testdir);
+	_autofree_ char *f4 = strdup_printf("%s/foo/bar/baz/wipeme", testdir);
+
+	litest_assert_errno_success(close(open(f1, O_WRONLY | O_CREAT, 0644)));
+	litest_assert_errno_success(close(open(f2, O_WRONLY | O_CREAT, 0644)));
+	litest_assert_errno_success(close(open(f3, O_WRONLY | O_CREAT, 0644)));
+	litest_assert_errno_success(close(open(f4, O_WRONLY | O_CREAT, 0644)));
+
+	struct stat st;
+	litest_assert_errno_success(stat(f1, &st));
+	litest_assert_errno_success(stat(f2, &st));
+	litest_assert_errno_success(stat(f3, &st));
+	litest_assert_errno_success(stat(f4, &st));
+
+	_autofree_ char *rmpath = strdup_printf("%s/foo/", testdir);
+	int rc = rmdir_r(rmpath);
+	litest_assert_neg_errno_success(rc);
+
+	litest_assert_errno_success(stat(f1, &st));
+	litest_assert_errno_success(stat(testdir, &st));
+
+	rc = stat(f2, &st) < 0 ? -errno : 0;
+	litest_assert_int_eq(rc, -ENOENT);
+	rc = stat(f3, &st) < 0 ? -errno : 0;
+	litest_assert_int_eq(rc, -ENOENT);
+	rc = stat(f4, &st) < 0 ? -errno : 0;
+	litest_assert_int_eq(rc, -ENOENT);
+}
+END_TEST
+
 START_TEST(find_files_test)
 {
 	_autofree_ char *dirname = strdup("/tmp/litest_find_files_test.XXXXXX");
@@ -2406,6 +2444,7 @@ int main(void)
 
 	ADD_TEST(auto_test);
 	ADD_TEST(mkdir_p_test);
+	ADD_TEST(rmdir_r_test);
 	ADD_TEST(find_files_test);
 
 	ADD_TEST(array_for_each);

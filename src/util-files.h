@@ -26,6 +26,7 @@
 #include "config.h"
 
 #include <errno.h>
+#include <dirent.h>
 #include <libgen.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -52,6 +53,38 @@ mkdir_p(const char *dir)
 	rc = mkdir(dir, 0755);
 
 	return (rc == -1 && errno != EEXIST) ? -errno : 0;
+}
+
+DEFINE_TRIVIAL_CLEANUP_FUNC(DIR*, closedir);
+
+static inline int
+rmdir_r(const char *dir)
+{
+	_cleanup_(closedirp) DIR *d = opendir(dir);
+	if (!d)
+		return -errno;
+
+	struct dirent *entry;
+	int rc = 0;
+
+	while (rc >= 0 && (entry = readdir(d))) {
+		if (streq(entry->d_name, ".") || streq(entry->d_name, ".."))
+			continue;
+
+		_autofree_ char *path = strdup_printf("%s/%s", dir, entry->d_name);
+
+		struct stat st;
+		if (stat(path, &st) < 0)
+			return -errno;
+
+		if (S_ISDIR(st.st_mode))
+			rc = rmdir_r(path);
+		else
+			rc = unlink(path) < 0 ? -errno : 0;
+	}
+	rc = rmdir(dir) < 0 ? -errno : rc;
+
+	return rc;
 }
 
 static inline void
