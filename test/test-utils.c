@@ -113,6 +113,23 @@ START_TEST(rmdir_r_test)
 }
 END_TEST
 
+START_TEST(tmpdir_test)
+{
+	_autofree_ char *tmpdir_path = NULL;
+	{
+		_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
+
+		tmpdir_path = safe_strdup(tmpdir->path);
+
+		_autofree_ char *f1 = strdup_printf("%s/wipeme", tmpdir_path);
+		litest_assert_errno_success(close(open(f1, O_WRONLY | O_CREAT, 0644)));
+	}
+	struct stat st;
+	int rc = stat(tmpdir_path, &st) < 0 ? -errno : 0;
+	litest_assert_int_eq(rc, -ENOENT);
+}
+END_TEST
+
 START_TEST(find_files_test)
 {
 	_autofree_ char *dirname = strdup("/tmp/litest_find_files_test.XXXXXX");
@@ -2445,6 +2462,7 @@ int main(void)
 	ADD_TEST(auto_test);
 	ADD_TEST(mkdir_p_test);
 	ADD_TEST(rmdir_r_test);
+	ADD_TEST(tmpdir_test);
 	ADD_TEST(find_files_test);
 
 	ADD_TEST(array_for_each);

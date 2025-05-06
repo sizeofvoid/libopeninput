@@ -113,3 +113,31 @@ char **
 list_files(const char **directories,
 	   const char *suffix,
 	   size_t *nfiles);
+
+struct tmpdir {
+	char *path;
+};
+
+static inline void
+tmpdir_destroy(struct tmpdir *tmpdir)
+{
+	/* String check so we can't accidentally rm -rf */
+	if (tmpdir->path && strstr(tmpdir->path, "tmpdir-")) {
+		rmdir_r(tmpdir->path);
+		free(tmpdir->path);
+	}
+	free(tmpdir);
+}
+
+DEFINE_DESTROY_CLEANUP_FUNC(tmpdir);
+
+static inline struct tmpdir *
+tmpdir_create(const char *basedir)
+{
+	_destroy_(tmpdir) *tmpdir = zalloc(sizeof(*tmpdir));
+	tmpdir->path = strdup_printf("%s/tmpdir-XXXXXX", basedir ? basedir : "/tmp");
+	if (!mkdtemp(tmpdir->path))
+		return NULL;
+
+	return steal(&tmpdir);
+}
