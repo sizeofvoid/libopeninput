@@ -1650,7 +1650,7 @@ START_TEST(gestures_hold_once_tap_n_drag)
 		button = BTN_MIDDLE;
 		break;
 	default:
-		abort();
+		litest_assert_not_reached();
 	}
 
 	switch (nfingers) {

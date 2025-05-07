@@ -162,6 +162,9 @@ litest_fail_comparison_str(const char *file,
 					      #cond, __VA_ARGS__); \
 	} while(0)
 
+#define litest_assert_not_reached() \
+	litest_abort_msg("Triggered unreachable code\n")
+
 #define _litest_abort_msg(file_, line_, func_, ...) do {\
 	litest_fail_condition(file_, line_, func_, \
 			      "aborting", __VA_ARGS__); \

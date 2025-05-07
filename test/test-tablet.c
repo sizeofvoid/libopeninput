@@ -680,7 +680,7 @@ START_TEST(tip_up_motion_one_axis)
 		start_y = 15;
 		break;
 	default:
-		abort();
+		litest_assert_not_reached();
 	}
 
 	/* generate enough events to fill the history and move alonge the
@@ -3953,7 +3953,7 @@ get_tool_xy(struct libinput *li, double *x, double *y)
 		tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
 		break;
 	default:
-		abort();
+		litest_assert_not_reached();
 	}
 
 	*x = libinput_event_tablet_tool_get_x_transformed(tev, 100);
