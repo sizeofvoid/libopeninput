@@ -142,13 +142,10 @@ axisrange_warning_log_handler(struct libinput *libinput,
 			      const char *format,
 			      va_list args)
 {
-	const char *substr;
-
 	axisrange_log_handler_called++;
 	litest_assert_notnull(format);
 
-	substr = strstr(format, "is outside expected range");
-	litest_assert_notnull(substr);
+	litest_assert_str_in("is outside expected range", format);
 }
 
 START_TEST(log_axisrange_warning)
