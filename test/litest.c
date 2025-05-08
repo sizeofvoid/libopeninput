@@ -2116,6 +2116,22 @@ litest_destroy_context(struct libinput *li)
 }
 
 void
+litest_context_set_user_data(struct libinput *li, void *data)
+{
+	struct litest_user_data *litest_data = libinput_get_user_data(li);
+	litest_assert_ptr_notnull(litest_data);
+	litest_data->private = data;
+}
+
+void *
+litest_context_get_user_data(struct libinput *li)
+{
+	struct litest_user_data *litest_data = libinput_get_user_data(li);
+	litest_assert_ptr_notnull(litest_data);
+	return litest_data->private;
+}
+
+void
 litest_disable_log_handler(struct libinput *libinput)
 {
 	libinput_log_set_handler(libinput, NULL);

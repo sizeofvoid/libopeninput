@@ -627,6 +627,11 @@ DEFINE_TRIVIAL_CLEANUP_FUNC(struct libinput *, litest_destroy_context);
 
 #define _litest_context_destroy_ _cleanup_(litest_destroy_contextp)
 
+void
+litest_context_set_user_data(struct libinput *li, void *data);
+void *
+litest_context_get_user_data(struct libinput *li);
+
 void litest_disable_log_handler(struct libinput *libinput);
 void litest_restore_log_handler(struct libinput *libinput);
 void litest_set_log_handler_bug(struct libinput *libinput);
