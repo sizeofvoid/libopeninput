@@ -134,7 +134,9 @@ if cc.has_header('xlocale.h')
 endif
 
 code = '''
-void func() { auto foo = "test"; }
+#include <time.h>
+
+void func() { auto foo = gmtime(NULL); foo->tm_sec = 0; }
 '''
 if cc.compiles(code, name: 'has C23 auto keyword')
 	config_h.set('HAVE_C23_AUTO', '1')

@@ -51,6 +51,15 @@
 #define  TEST_VERSIONSORT
 #include "libinput-versionsort.h"
 
+START_TEST(auto_test)
+{
+	/* This one is just a compile test */
+	auto tv = us2tv(0);
+	tv.tv_sec = 0;
+	litest_assert_int_eq(tv.tv_sec, 0);
+}
+END_TEST
+
 START_TEST(mkdir_p_test)
 {
 	const char *testdir = "/tmp/litest_mkdir_test";
@@ -2258,6 +2267,7 @@ int main(void)
 	litest_runner_add_test(runner, &tdesc); \
 } while(0)
 
+	ADD_TEST(auto_test);
 	ADD_TEST(mkdir_p_test);
 
 	ADD_TEST(array_for_each);
