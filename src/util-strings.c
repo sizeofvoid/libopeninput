@@ -311,6 +311,27 @@ strv_find(char **strv, const char *needle, size_t *index_out)
 	return false;
 }
 
+bool
+strv_find_substring(char **strv, const char *needle, size_t *index_out)
+{
+	if (!strv || !needle)
+		return false;
+
+	size_t index = 0;
+	char **s = strv;
+	while (*s != NULL) {
+		if (strstr(*s, needle)) {
+			if (index_out)
+				*index_out = index;
+			return true;
+		}
+		s++;
+		index++;
+	}
+
+	return false;
+}
+
 /**
  * Return a pointer to the basename within filename.
  * If the filename the empty string or a directory (i.e. the last char of

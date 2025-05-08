@@ -1328,6 +1328,50 @@ START_TEST(strv_find_test)
 }
 END_TEST
 
+START_TEST(strv_find_substring_test)
+{
+	char *strv[] = {"a", "bc", "cccc", NULL};
+
+	bool rc;
+	size_t index;
+
+	rc = strv_find_substring(strv, "a", &index);
+	litest_assert(rc);
+	litest_assert_int_eq(index, 0U);
+
+	rc = strv_find_substring(strv, "b", &index);
+	litest_assert(rc);
+	litest_assert_int_eq(index, 1U);
+
+	rc = strv_find_substring(strv, "c", &index);
+	litest_assert(rc);
+	litest_assert_int_eq(index, 1U);
+
+	rc = strv_find_substring(strv, "a", NULL);
+	litest_assert(rc);
+
+	index = 0xffff;
+	rc = strv_find_substring(strv, "d", &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+
+	rc = strv_find_substring(strv, "d", NULL);
+	litest_assert(!rc);
+
+	rc = strv_find_substring(NULL, "a", &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+
+	rc = strv_find_substring(NULL, NULL, &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+
+	rc = strv_find_substring(strv, NULL, &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+}
+END_TEST
+
 START_TEST(double_array_from_string_test)
 {
 	struct double_array_from_string_test {
@@ -2297,6 +2341,7 @@ int main(void)
 	ADD_TEST(strv_for_each_test);
 	ADD_TEST(strv_append_test);
 	ADD_TEST(strv_find_test);
+	ADD_TEST(strv_find_substring_test);
 	ADD_TEST(double_array_from_string_test);
 	ADD_TEST(strargv_test);
 	ADD_TEST(kvsplit_double_test);
