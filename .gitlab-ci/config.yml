@@ -3,7 +3,7 @@
 #
 
 # We're happy to rebuild all containers when one changes.
-.default_tag: &default_tag '2025-05-09.1'
+.default_tag: &default_tag '2025-05-09.2'
 
 distributions:
   - name: fedora
@@ -77,7 +77,7 @@ distributions:
   - name: ubuntu
     tag: *default_tag
     versions:
-      - '24.04'
+      - '25.04'
     packages:
       - git
       - gcc

@@ -95,12 +95,12 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2025-05-09.1'
-  DEBIAN_TAG:  '2025-05-09.1'
-  UBUNTU_TAG:  '2025-05-09.1'
-  ARCH_TAG:    '2025-05-09.1'
-  ALPINE_TAG:  '2025-05-09.1'
-  FREEBSD_TAG: '2025-05-09.1'
+  FEDORA_TAG:  '2025-05-09.2'
+  DEBIAN_TAG:  '2025-05-09.2'
+  UBUNTU_TAG:  '2025-05-09.2'
+  ARCH_TAG:    '2025-05-09.2'
+  ALPINE_TAG:  '2025-05-09.2'
+  FREEBSD_TAG: '2025-05-09.2'
 
   FDO_UPSTREAM_REPO: libinput/libinput
 
@@ -260,14 +260,14 @@ debian:stable@container-prep:
     FDO_DISTRIBUTION_PACKAGES: $DEBIAN_PACKAGES
     FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
 
-ubuntu:24.04@container-prep:
+ubuntu:25.04@container-prep:
   extends:
     - .fdo.container-build@ubuntu
     - .policy
   stage: prep
   variables:
     GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: '24.04'
+    FDO_DISTRIBUTION_VERSION: '25.04'
     FDO_DISTRIBUTION_PACKAGES: $UBUNTU_PACKAGES
     FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
 
@@ -368,14 +368,14 @@ debian:stable@container-clean:
     FDO_DISTRIBUTION_VERSION: 'stable'
     FDO_DISTRIBUTION_TAG: $DEBIAN_TAG
 
-ubuntu:24.04@container-clean:
+ubuntu:25.04@container-clean:
   extends:
     - .policy
     - .container-clean
   variables:
     GIT_STRATEGY: none
     CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ubuntu/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-    FDO_DISTRIBUTION_VERSION: '24.04'
+    FDO_DISTRIBUTION_VERSION: '25.04'
     FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
 
 arch:rolling@container-clean:
@@ -1131,16 +1131,16 @@ debian:stable@default-build:
     - "debian:stable@container-prep"
 
 
-ubuntu:24.04@default-build:
+ubuntu:25.04@default-build:
   stage: distro
   extends:
     - .build@template
     - .fdo.distribution-image@ubuntu
   variables:
-    FDO_DISTRIBUTION_VERSION: '24.04'
+    FDO_DISTRIBUTION_VERSION: '25.04'
     FDO_DISTRIBUTION_TAG: $UBUNTU_TAG
   needs:
-    - "ubuntu:24.04@container-prep"
+    - "ubuntu:25.04@container-prep"
 
 
 arch:rolling@default-build:
