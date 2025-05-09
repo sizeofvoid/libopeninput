@@ -34,7 +34,7 @@
 # <distribution>:<version>@activity:
 #  e.g. fedora:31@build-default
 
-.templates_sha: &template_sha e195d80f35b45cc73668be3767b923fd76c70ed5
+.templates_sha: &template_sha c6aeb16f86e32525fa630fb99c66c4f3e62fc3cb
 
 include:
   - project: 'freedesktop/ci-templates'
@@ -95,12 +95,12 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2025-04-04.0'
-  DEBIAN_TAG:  '2025-04-04.0'
-  UBUNTU_TAG:  '2025-04-04.0'
-  ARCH_TAG:    '2025-04-04.0'
-  ALPINE_TAG:  '2025-04-04.0'
-  FREEBSD_TAG: '2025-04-04.0'
+  FEDORA_TAG:  '2025-05-09.1'
+  DEBIAN_TAG:  '2025-05-09.1'
+  UBUNTU_TAG:  '2025-05-09.1'
+  ARCH_TAG:    '2025-05-09.1'
+  ALPINE_TAG:  '2025-05-09.1'
+  FREEBSD_TAG: '2025-05-09.1'
 
   FDO_UPSTREAM_REPO: libinput/libinput
 
