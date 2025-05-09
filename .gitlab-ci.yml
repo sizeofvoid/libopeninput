@@ -95,12 +95,12 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2025-05-14.1'
-  DEBIAN_TAG:  '2025-05-14.1'
-  UBUNTU_TAG:  '2025-05-14.1'
-  ARCH_TAG:    '2025-05-14.1'
-  ALPINE_TAG:  '2025-05-14.1'
-  FREEBSD_TAG: '2025-05-14.1'
+  FEDORA_TAG:  '2025-05-19.0'
+  DEBIAN_TAG:  '2025-05-19.0'
+  UBUNTU_TAG:  '2025-05-19.0'
+  ARCH_TAG:    '2025-05-19.0'
+  ALPINE_TAG:  '2025-05-19.0'
+  FREEBSD_TAG: '2025-05-19.0'
 
   FDO_UPSTREAM_REPO: libinput/libinput
 
@@ -227,17 +227,6 @@ pre-commit-hooks:
 #                                                               #
 #################################################################
 
-fedora:40@container-prep:
-  extends:
-    - .fdo.container-build@fedora
-    - .policy
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: '40'
-    FDO_DISTRIBUTION_PACKAGES: $FEDORA_PACKAGES
-    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
-
 fedora:41@container-prep:
   extends:
     - .fdo.container-build@fedora
@@ -246,6 +235,17 @@ fedora:41@container-prep:
   variables:
     GIT_STRATEGY: none
     FDO_DISTRIBUTION_VERSION: '41'
+    FDO_DISTRIBUTION_PACKAGES: $FEDORA_PACKAGES
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+
+fedora:42@container-prep:
+  extends:
+    - .fdo.container-build@fedora
+    - .policy
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_VERSION: '42'
     FDO_DISTRIBUTION_PACKAGES: $FEDORA_PACKAGES
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
 
@@ -338,16 +338,6 @@ freebsd:14.2@container-prep:
   only:
     - schedules
 
-fedora:40@container-clean:
-  extends:
-    - .policy
-    - .container-clean
-  variables:
-    GIT_STRATEGY: none
-    CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/fedora/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-    FDO_DISTRIBUTION_VERSION: '40'
-    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
-
 fedora:41@container-clean:
   extends:
     - .policy
@@ -356,6 +346,16 @@ fedora:41@container-clean:
     GIT_STRATEGY: none
     CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/fedora/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
     FDO_DISTRIBUTION_VERSION: '41'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+
+fedora:42@container-clean:
+  extends:
+    - .policy
+    - .container-clean
+  variables:
+    GIT_STRATEGY: none
+    CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/fedora/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
+    FDO_DISTRIBUTION_VERSION: '42'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
 
 debian:stable@container-clean:
@@ -528,20 +528,20 @@ freebsd:14.2@container-clean:
     - export MESON_TEST_ARGS="$MESON_TEST_ARGS $SUITES"
 
 
-.fedora:41@test-suite-vm:
+.fedora:42@test-suite-vm:
   extends:
     - .fdo.distribution-image@fedora
     - .test-suite-vm
   variables:
-    FDO_DISTRIBUTION_VERSION: 41
+    FDO_DISTRIBUTION_VERSION: 42
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
   needs:
-    - "fedora:41@container-prep"
+    - "fedora:42@container-prep"
 
 
 vm-touchpad:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'touchpad'
 
@@ -554,7 +554,7 @@ vm-touchpad-no-libwacom:
 
 vm-touchpad_palm:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'touchpad_palm'
 
@@ -567,7 +567,7 @@ vm-touchpad_palm-no-libwacom:
 
 vm-touchpad_dwt:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'touchpad_dwt'
 
@@ -580,7 +580,7 @@ vm-touchpad_dwt-no-libwacom:
 
 vm-tap:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'touchpad_tap'
 
@@ -593,7 +593,7 @@ vm-tap-no-libwacom:
 
 vm-tap-drag:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'touchpad_tap_drag'
 
@@ -606,7 +606,7 @@ vm-tap-drag-no-libwacom:
 
 vm-tap-palm:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'touchpad_tap_palm'
 
@@ -619,7 +619,7 @@ vm-tap-palm-no-libwacom:
 
 vm-touchpad-buttons:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'touchpad_buttons'
 
@@ -632,7 +632,7 @@ vm-touchpad-buttons-no-libwacom:
 
 vm-tablet:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'tablet'
 
@@ -645,7 +645,7 @@ vm-tablet-no-libwacom:
 
 vm-tablet_left_handed:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'tablet_left_handed'
 
@@ -658,7 +658,7 @@ vm-tablet_left_handed-no-libwacom:
 
 vm-gestures:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'gestures'
 
@@ -671,7 +671,7 @@ vm-gestures-no-libwacom:
 
 vm-backends:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'path udev'
 
@@ -684,7 +684,7 @@ vm-backends-no-libwacom:
 
 vm-misc:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'log misc quirks device'
 
@@ -697,7 +697,7 @@ vm-misc-no-libwacom:
 
 vm-other devices:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'keyboard pad switch trackball trackpoint totem touch'
 
@@ -710,7 +710,7 @@ vm-other devices-no-libwacom:
 
 vm-pointer:
   extends:
-    - .fedora:41@test-suite-vm
+    - .fedora:42@test-suite-vm
   variables:
     SUITE_NAMES: 'pointer'
 
@@ -896,12 +896,12 @@ vm-valgrind-pointer:
     - .fdo.distribution-image@fedora
     - .build@template
   variables:
-    FDO_DISTRIBUTION_VERSION: '41'
+    FDO_DISTRIBUTION_VERSION: '42'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
   needs:
-    - "fedora:41@container-prep"
+    - "fedora:42@container-prep"
 
-default-build-release@fedora:41:
+default-build-release@fedora:42:
   stage: distro
   extends:
     - .fedora-build@template
@@ -909,7 +909,7 @@ default-build-release@fedora:41:
     MESON_ARGS: "-Dbuildtype=release"
     CFLAGS: "-Werror"
 
-clang-tidy@fedora:41:
+clang-tidy@fedora:42:
   extends:
     - .fedora-build@template
   variables:
@@ -924,13 +924,13 @@ clang-tidy@fedora:41:
 # run them on one image, they shouldn't fail on one distro
 # when they succeed on another.
 
-build-no-libwacom@fedora:41:
+build-no-libwacom@fedora:42:
   extends:
     - .fedora-build@template
   variables:
     MESON_ARGS: "-Dlibwacom=false"
 
-build-no-libwacom-nodeps@fedora:41:
+build-no-libwacom-nodeps@fedora:42:
   extends:
     - .fedora-build@template
   variables:
@@ -938,13 +938,13 @@ build-no-libwacom-nodeps@fedora:41:
   before_script:
     - dnf remove -y libwacom libwacom-devel
 
-build-docs@fedora:41:
+build-docs@fedora:42:
   extends:
     - .fedora-build@template
   variables:
     MESON_ARGS: "-Ddocumentation=true"
 
-build-no-docs-nodeps@fedora:41:
+build-no-docs-nodeps@fedora:42:
   extends:
     - .fedora-build@template
   variables:
@@ -952,13 +952,13 @@ build-no-docs-nodeps@fedora:41:
   before_script:
     - dnf remove -y doxygen graphviz
 
-build-no-debuggui@fedora:41:
+build-no-debuggui@fedora:42:
   extends:
     - .fedora-build@template
   variables:
     MESON_ARGS: "-Ddebug-gui=false"
 
-build-no-debuggui-nodeps@fedora:41:
+build-no-debuggui-nodeps@fedora:42:
   extends:
     - .fedora-build@template
   variables:
@@ -966,13 +966,13 @@ build-no-debuggui-nodeps@fedora:41:
   before_script:
     - dnf remove -y gtk3-devel gtk4-devel
 
-build-no-tests@fedora:41:
+build-no-tests@fedora:42:
   extends:
     - .fedora-build@template
   variables:
     MESON_ARGS: "-Dtests=false"
 
-build-no-tests-nodeps@fedora:41:
+build-no-tests-nodeps@fedora:42:
   extends:
     - .fedora-build@template
   variables:
@@ -980,7 +980,7 @@ build-no-tests-nodeps@fedora:41:
   before_script:
     - dnf remove -y check-devel
 
-valgrind@fedora:41:
+valgrind@fedora:42:
   extends:
     - .fedora-build@template
   variables:
@@ -988,7 +988,7 @@ valgrind@fedora:41:
 
 # Python checks, only run on Fedora
 
-usr-bin-env-python@fedora:41:
+usr-bin-env-python@fedora:42:
   extends:
     - .fedora-build@template
   script:
@@ -998,7 +998,7 @@ usr-bin-env-python@fedora:41:
         /bin/false
       fi
 
-python-format@fedora:41:
+python-format@fedora:42:
   extends:
     - .fedora-build@template
   script:
@@ -1101,18 +1101,6 @@ coverity:
 #                                                               #
 #################################################################
 
-fedora:40@default-build:
-  stage: distro
-  extends:
-    - .build@template
-    - .fdo.distribution-image@fedora
-  variables:
-    FDO_DISTRIBUTION_VERSION: '40'
-    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
-  needs:
-    - "fedora:40@container-prep"
-
-
 fedora:41@default-build:
   stage: distro
   extends:
@@ -1123,6 +1111,18 @@ fedora:41@default-build:
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
   needs:
     - "fedora:41@container-prep"
+
+
+fedora:42@default-build:
+  stage: distro
+  extends:
+    - .build@template
+    - .fdo.distribution-image@fedora
+  variables:
+    FDO_DISTRIBUTION_VERSION: '42'
+    FDO_DISTRIBUTION_TAG: $FEDORA_TAG
+  needs:
+    - "fedora:42@container-prep"
 
 
 debian:stable@default-build:
@@ -1222,10 +1222,10 @@ build rpm:
     - .policy
   stage: deploy
   variables:
-    FDO_DISTRIBUTION_VERSION: '41'
+    FDO_DISTRIBUTION_VERSION: '42'
     FDO_DISTRIBUTION_TAG: $FEDORA_TAG
   needs:
-    - "fedora:41@container-prep"
+    - "fedora:42@container-prep"
   script:
     - meson "$MESON_BUILDDIR"
     - VERSION=$(meson introspect "$MESON_BUILDDIR" --projectinfo | jq -r .version)
