@@ -1807,20 +1807,17 @@ tp_gesture_handle_state(struct tp_dispatch *tp, uint64_t time,
 #undef REMEMBER_TRANSITION
 
 	if (oldstate != tp->gesture.state) {
-		char buf[1024] = {0};
-		size_t remaining = sizeof(buf);
-		size_t slen = 0;
+		_autostrvfree_ char **states = NULL;
+		states = strv_append_strdup(states, gesture_state_to_str(oldstate));
 		for (enum tp_gesture_state *s = transitions + 1; s < transition_state; s++) {
-			int n = snprintf(&buf[slen], remaining, " → %s", gesture_state_to_str(*s));
-			slen += n;
-			remaining -= n;
+			states = strv_append_strdup(states, gesture_state_to_str(*s));
 		}
+		states = strv_append_strdup(states, gesture_state_to_str(tp->gesture.state));
+		_autofree_ char *str = strv_join(states, " → ");
 		evdev_log_debug(tp->device,
-				"gesture: [%dfg] state %s%s → %s\n",
+				"gesture: [%dfg] state %s\n",
 				tp->gesture.finger_count,
-				gesture_state_to_str(oldstate),
-				buf,
-				gesture_state_to_str(tp->gesture.state));
+				str);
 	}
 }
 
