@@ -81,7 +81,7 @@ variables:
   # distribution                                                                #
   #                                                                             #
   # See the documentation here:                                                 #
-  # https://wayland.freedesktop.org/libinput/doc/latest/building_libinput.html  #
+  # https://wayland.freedesktop.org/libinput/doc/latest/building.html           #
   ###############################################################################
   FEDORA_PACKAGES:  'git-core gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx_rtd_theme python3-pytest-xdist libwacom-devel cairo-devel gtk4-devel glib2-devel mtdev-devel diffutils wayland-protocols-devel black clang clang-tools-extra jq rpmdevtools valgrind systemd-udev qemu-img qemu-system-x86-core qemu-system-aarch64-core jq python3-click python3-rich virtme-ng'
   DEBIAN_PACKAGES:  'git gcc g++ pkg-config meson check libudev-dev libevdev-dev doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev curl'

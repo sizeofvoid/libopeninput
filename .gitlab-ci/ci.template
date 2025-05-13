@@ -75,7 +75,7 @@ variables:
   # distribution                                                                #
   #                                                                             #
   # See the documentation here:                                                 #
-  # https://wayland.freedesktop.org/libinput/doc/latest/building_libinput.html  #
+  # https://wayland.freedesktop.org/libinput/doc/latest/building.html           #
   ###############################################################################
 {% for distro in distributions %}
   {{"%-17s" | format(distro.name.upper() + '_PACKAGES:')}} '{{ distro.packages|join(' ')}}'
