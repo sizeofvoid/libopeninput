@@ -47,6 +47,7 @@ libinput_so_version = '@0@.@1@.@2@'.format((libinput_lt_c - libinput_lt_a),
 # Compiler setup
 cc = meson.get_compiler('c')
 cflags = [
+	'-Wno-error=deprecated-declarations',
 	'-Wno-unused-parameter',
 	'-Wmissing-prototypes',
 	'-Wstrict-prototypes',
