@@ -55,7 +55,7 @@ pick_stylus_or_btn0(struct litest_device *dev)
 	if (libevdev_has_event_code(dev->evdev, EV_KEY, BTN_0))
 		return BTN_0; /* totem */
 
-	abort();
+	litest_abort_msg("Device has neither BTN_STYLUS nor BTN_0");
 }
 
 START_TEST(button_down_up)
