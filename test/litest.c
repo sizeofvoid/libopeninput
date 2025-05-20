@@ -519,7 +519,7 @@ _litest_parameters_new(const char *name, ...) {
 					break;
 				}
 				default:
-					abort();
+					litest_abort_msg("Unhandled parameter type '%c'", type);
 					break;
 				}
 			}
