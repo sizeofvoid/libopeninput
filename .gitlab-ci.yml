@@ -56,9 +56,24 @@ include:
 
 workflow:
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+    # do not duplicate pipelines on merge pipelines
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"
       when: never
+    # merge pipeline
+    - if: &is-merge-attempt $GITLAB_USER_LOGIN == "marge-bot" && $CI_PIPELINE_SOURCE == "merge_request_event"
+      variables:
+        FDO_RUNNER_JOB_PRIORITY_TAG_X86_64: priority:high
+        FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM: priority:high-kvm
+        FDO_RUNNER_JOB_PRIORITY_TAG_AARCH64: priority:high-aarch64
+    # post-merge pipeline
+    - if: &is-post-merge $GITLAB_USER_LOGIN == "marge-bot" && $CI_PIPELINE_SOURCE == "push"
+      variables:
+        FDO_RUNNER_JOB_PRIORITY_TAG_X86_64: priority:high
+        FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM: priority:high-kvm
+        FDO_RUNNER_JOB_PRIORITY_TAG_AARCH64: priority:high-aarch64
+    # Pre-merge pipeline
+    - if: &is-pre-merge $CI_PIPELINE_SOURCE == "merge_request_event"
+    # Push to a branch on a fork
     - if: $CI_COMMIT_BRANCH
 
 stages:
@@ -113,6 +128,11 @@ variables:
   UDEV_NOT_AVAILABLE: 1
   GIT_DEPTH: 1
 
+  # Default priority for non-merge pipelines
+  FDO_RUNNER_JOB_PRIORITY_TAG_X86_64: ""  # Empty tags are ignored by gitlab
+  FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM: kvm
+  FDO_RUNNER_JOB_PRIORITY_TAG_AARCH64: aarch64
+
 .policy:
   retry:
     max: 2
@@ -134,6 +154,10 @@ variables:
     reports:
       junit: $MESON_BUILDDIR/*junit*.xml
 
+.fdo-runner-tags:
+  tags:
+    - $FDO_RUNNER_JOB_PRIORITY_TAG_X86_64
+
 
 #################################################################
 #                                                               #
@@ -142,6 +166,8 @@ variables:
 #################################################################
 
 fail-if-fork-is-not-public:
+  extends:
+    - .fdo-runner-tags
   stage: sanity check
   script:
     - |
@@ -162,6 +188,7 @@ fail-if-fork-is-not-public:
 check-ci-script:
   extends:
     - .fdo.ci-fairy
+    - .fdo-runner-tags
   stage: sanity check
   script:
     - ci-fairy generate-template --verify && exit 0 || true
@@ -178,6 +205,7 @@ check-ci-script:
 check-commit:
   extends:
     - .fdo.ci-fairy
+    - .fdo-runner-tags
   stage: sanity check
   script:
     - ci-fairy -vv check-commits --junit-xml=results.xml && exit 0 || true
@@ -202,6 +230,7 @@ check-commit:
 check-whitespace:
   extends:
     - .fdo.ci-fairy
+    - .fdo-runner-tags
   stage: sanity check
   script:
     - .gitlab-ci/whitespace-check.py $(git ls-files)
@@ -213,6 +242,7 @@ check-whitespace:
 pre-commit-hooks:
   extends:
     - .fdo.ci-fairy
+    - .fdo-runner-tags
   stage: sanity check
   script:
     - python3 -m venv venv
@@ -231,6 +261,7 @@ fedora:41@container-prep:
   extends:
     - .fdo.container-build@fedora
     - .policy
+    - .fdo-runner-tags
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -242,6 +273,7 @@ fedora:42@container-prep:
   extends:
     - .fdo.container-build@fedora
     - .policy
+    - .fdo-runner-tags
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -253,6 +285,7 @@ debian:stable@container-prep:
   extends:
     - .fdo.container-build@debian
     - .policy
+    - .fdo-runner-tags
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -264,6 +297,7 @@ ubuntu:25.04@container-prep:
   extends:
     - .fdo.container-build@ubuntu
     - .policy
+    - .fdo-runner-tags
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -275,6 +309,7 @@ arch:rolling@container-prep:
   extends:
     - .fdo.container-build@arch
     - .policy
+    - .fdo-runner-tags
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -286,6 +321,7 @@ alpine:latest@container-prep:
   extends:
     - .fdo.container-build@alpine
     - .policy
+    - .fdo-runner-tags
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -297,8 +333,9 @@ freebsd:14.2@container-prep:
   extends:
     - .fdo.qemu-build@freebsd
     - .policy
+    - .fdo-runner-tags
   tags:
-    - kvm
+    - $FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM
   stage: prep
   variables:
     GIT_STRATEGY: none
@@ -324,6 +361,7 @@ freebsd:14.2@container-prep:
   extends:
     - .policy
     - .fdo.ci-fairy
+    - .fdo-runner-tags
   stage: container_clean
   script:
     # Go to your Profile, Settings, Access Tokens
@@ -419,6 +457,7 @@ freebsd:14.2@container-clean:
   extends:
     - .policy
     - .default_artifacts
+    - .fdo-runner-tags
   stage: build
   script:
     - .gitlab-ci/meson-build.sh
@@ -430,7 +469,7 @@ freebsd:14.2@container-clean:
     - .policy
     - .default_artifacts
   tags:
-    - kvm
+    - $FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM
   variables:
     MESON_BUILDDIR: build_dir
     VNG_KERNEL: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v6.14/bzImage
@@ -470,7 +509,7 @@ freebsd:14.2@container-clean:
   extends:
     - .policy
   tags:
-    - kvm
+    - $FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM
   variables:
     MESON_BUILDDIR: build_dir
   script:
@@ -1063,6 +1102,7 @@ coverity:
   extends:
     - .fdo.distribution-image@debian
     - .policy
+    - .fdo-runner-tags
   stage: build
   variables:
     FDO_DISTRIBUTION_VERSION: 'stable'
@@ -1204,6 +1244,7 @@ check-merge-request:
   extends:
     - .fdo.ci-fairy
     - .policy
+    - .fdo-runner-tags
   stage: deploy
   script:
     - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
@@ -1220,6 +1261,7 @@ build rpm:
   extends:
     - .fdo.distribution-image@fedora
     - .policy
+    - .fdo-runner-tags
   stage: deploy
   variables:
     FDO_DISTRIBUTION_VERSION: '42'
