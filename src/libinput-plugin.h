@@ -147,6 +147,60 @@ DEFINE_UNREF_CLEANUP_FUNC(libinput_plugin);
 #endif
 
 /**
+ * Inject a new event frame from the given plugin. This
+ * frame is treated as if it was just sent by the kernel's
+ * event node and is processed immediately, interrupting
+ * any other processing from this device.
+ *
+ * This function can be called any time but unlike
+ * libinput_plugin_append_evdev_frame() and
+ * libinput_plugin_prepend_evdev_frame() it starts
+ * processing the frame at the bottom of the plugin
+ * stack.
+ *
+ * The injected event will also be sent to
+ * the current plugin, a guard needs to be in
+ * place to prevent recursion.
+ *
+ * Injecting events may cause other plugins to
+ * behave unexpectedly (see below). In almost all cases
+ * it is better to use libinput_plugin_append_evdev_frame()
+ * or libinput_plugin_prepend_evdev_frame() to only
+ * affect the plugins logically *after* this
+ * plugin.
+ *
+ * Assuming several plugins P1, P2, and P3 and
+ * an event frame E, and P2 calling this function
+ * with an injected event I:
+ * - P1: receives E, optionally modifies E
+ * - P2: receives E, injects I
+ *   - P1: receives I, optionally modifies I
+ *   - P2: receives I, optionally modifies I
+ *   - P3: receives I, optionally modifies I
+ * - P2: continues processing E, optionally modifies E
+ * - P3: receives E, optionally modifies E
+ *
+ * For P1 the injected event I is received after E,
+ * for P3 the injected event I is received before E.
+ *
+ * An example for event injection being harmful:
+ * A plugin may monitor tablet proximity state and prepent
+ * proximity-in events if the tablet does not send proximity-in
+ * events. This plugin stops monitoring events once it sees correct
+ * proximity-in events.
+ * If another plugin were to inject a proximity event (e.g. to fake a
+ * different tool coming into proximity), the plugin would stop
+ * monitoring. Future proximity events from the tablet will then
+ * have the wrong proximity.
+ * This can be avoided by appending or prepending the events instead
+ * of injecting them.
+ */
+void
+libinput_plugin_inject_evdev_frame(struct libinput_plugin *libinput,
+				   struct libinput_device *device,
+				   struct evdev_frame *frame);
+
+/**
  * Queue an event frame for the next plugin in sequence, after
  * the current event frame being processed.
  *

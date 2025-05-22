@@ -243,6 +243,15 @@ libinput_plugin_prepend_evdev_frame(struct libinput_plugin *plugin,
 }
 
 void
+libinput_plugin_inject_evdev_frame(struct libinput_plugin *plugin,
+				   struct libinput_device *device,
+				   struct evdev_frame *frame)
+{
+	if (device->inject_evdev_frame)
+		device->inject_evdev_frame(device, frame);
+}
+
+void
 libinput_plugin_run(struct libinput_plugin *plugin)
 {
 	if (plugin->interface->run)

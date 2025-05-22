@@ -1136,6 +1136,16 @@ evdev_device_dispatch_frame(struct libinput *libinput,
 	}
 }
 
+static inline void
+libinput_device_dispatch_frame(struct libinput_device *device,
+			       struct evdev_frame *frame)
+{
+	struct libinput *libinput = libinput_device_get_context(device);
+	struct evdev_device *dev = evdev_device(device);
+
+	evdev_device_dispatch_frame(libinput, dev, frame);
+}
+
 static int
 evdev_sync_device(struct libinput *libinput,
 		  struct evdev_device *device)
@@ -2562,6 +2572,8 @@ evdev_device_create(struct libinput_seat *seat,
 		goto err_notify;
 
 	list_insert(seat->devices_list.prev, &device->base.link);
+
+	device->base.inject_evdev_frame = libinput_device_dispatch_frame;
 
 	evdev_notify_added_device(device);
 

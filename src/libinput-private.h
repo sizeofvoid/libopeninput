@@ -497,6 +497,11 @@ struct libinput_device {
 	struct libinput_source *source;
 	char* devname;
 	int fd;
+
+#if !defined(__OpenBSD__) && !defined(__NetBSD__)
+	void (*inject_evdev_frame)(struct libinput_device *device,
+				   struct evdev_frame *frame);
+#endif
 };
 
 enum libinput_tablet_tool_axis {
