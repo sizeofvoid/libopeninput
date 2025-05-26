@@ -382,18 +382,18 @@ MatchUdevType=keyboard
 MatchDMIModalias=dmi:*svnLENOVO:*
 AttrKeyboardIntegration=internal
 
-# Some ThinkBook 14 G7+ ASP models come with pressure pads that were not
+# Some ThinkBook 14/16 G7+ ASP models come with pressure pads that were not
 # correctly declared as such.
-[Lenovo ThinkBook 14 G7+ ASP touchpad]
+[Lenovo ThinkBook G7+ ASP touchpad]
 MatchName=*GXTP5100*
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook14G7+ASP*:*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook*G7+ASP*:*
 MatchUdevType=touchpad
 ModelPressurePad=1
 
-# The ThinkBook 14 G6+ IMH also has a similar issue as the G7+ mentioned above.
-[Lenovo ThinkBook 14 G6+ IMH]
+# The ThinkBook 14/16 G6+ IMH also has a similar issue as the G7+ mentioned above.
+[Lenovo ThinkBook G6+ IMH]
 MatchName=*GXTP5100*
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook14G6+IMH*:*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook*G6+IMH*:*
 MatchUdevType=touchpad
 ModelPressurePad=1
 
@@ -411,16 +411,9 @@ MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX9-15Gen1*:*
 MatchUdevType=touchpad
 ModelPressurePad=1
 
-# The ThinkBook 14 G7+ IAH also has a similar issue as the ASP mentioned above.
-[Lenovo ThinkBook 14 G7+ IAH touchpad]
+# The ThinkBook 14/16 G7+ IAH also has a similar issue as the ASP mentioned above.
+[Lenovo ThinkBook G7+ IAH touchpad]
 MatchName=*GXTP5100*
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook14G7+IAH*:*
-MatchUdevType=touchpad
-ModelPressurePad=1
-
-# The ThinkBook 16 G7+ ASP has the same issue as the 14" model mentioned above
-[Lenovo ThinkBook 16 G7+ ASP touchpad]
-MatchName=*GXTP5100*
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook16G7+ASP*:*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook*G7+IAH*:*
 MatchUdevType=touchpad
 ModelPressurePad=1
