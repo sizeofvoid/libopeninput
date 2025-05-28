@@ -1862,6 +1862,57 @@ START_TEST(list_test_append)
 }
 END_TEST
 
+START_TEST(list_test_chain)
+{
+	struct list_test {
+		int val;
+		struct list node;
+	} tests[] = {
+		{ .val  = 1 },
+		{ .val  = 2 },
+		{ .val  = 3 },
+		{ .val  = 4 },
+	};
+	struct list l1, l2;
+	struct list_test *t;
+	int val;
+
+	list_init(&l1);
+	list_init(&l2);
+
+	list_chain(&l1, &l2);
+	litest_assert(list_empty(&l2));
+
+	list_append(&l2, &tests[0].node);
+	list_append(&l2, &tests[1].node);
+	list_chain(&l1, &l2);
+	litest_assert(list_empty(&l2));
+
+	val = 1;
+	list_for_each_safe(t, &l1, node) {
+		litest_assert_int_eq(t->val, val);
+		val++;
+		list_remove(&t->node);
+	}
+	litest_assert_int_eq(val, 3);
+
+	list_append(&l1, &tests[0].node);
+	list_append(&l1, &tests[1].node);
+	list_append(&l2, &tests[2].node);
+	list_append(&l2, &tests[3].node);
+
+	list_chain(&l1, &l2);
+	litest_assert(list_empty(&l2));
+
+	val = 1;
+	list_for_each(t, &l1, node) {
+		litest_assert_int_eq(t->val, val);
+		val++;
+	}
+	litest_assert_int_eq(val, 5);
+}
+END_TEST
+
 START_TEST(list_test_foreach)
 {
 	struct list_test {
@@ -1892,6 +1943,65 @@ START_TEST(list_test_foreach)
 		list_for_each_safe(t, &head, node) {
 			litest_abort_msg("We should not get here");
 		}
+}
+END_TEST
+
+START_TEST(list_test_first_last)
+{
+	struct list_test {
+		int val;
+		struct list node;
+	} tests[] = {
+		{ .val  = 1 },
+		{ .val  = 2 },
+		{ .val  = 3 },
+		{ .val  = 4 },
+	};
+	struct list head;
+
+	list_init(&head);
+
+	ARRAY_FOR_EACH(tests, t) {
+		list_append(&head, &t->node);
+	}
+
+	struct list_test *first;
+	struct list_test *last;
+
+	first = list_first_entry(&head, first, node);
+	last = list_last_entry(&head, last, node);
+	litest_assert_ptr_eq(first, &tests[0]);
+	litest_assert_ptr_eq(last, &tests[3]);
+
+	struct list_test *second;
+	struct list_test *penultimate;
+
+	second = list_first_entry(&first->node, first, node);
+	penultimate = list_last_entry(&last->node, last, node);
+	litest_assert_ptr_eq(second, &tests[1]);
+	litest_assert_ptr_eq(penultimate, &tests[2]);
+
+	/* Now remove nodes */
+
+	/* No change expected */
+	list_remove(&tests[2].node);
+	first = list_first_entry(&head, first, node);
+	last = list_last_entry(&head, last, node);
+	litest_assert_ptr_eq(first, &tests[0]);
+	litest_assert_ptr_eq(last, &tests[3]);
+
+	list_remove(&tests[3].node);
+	first = list_first_entry(&head, first, node);
+	last = list_last_entry(&head, last, node);
+	litest_assert_ptr_eq(first, &tests[0]);
+	litest_assert_ptr_eq(last, &tests[1]);
+
+	list_remove(&tests[0].node);
+	first = list_first_entry(&head, first, node);
+	last = list_last_entry(&head, last, node);
+	litest_assert_ptr_eq(first, &tests[1]);
+	litest_assert_ptr_eq(last, &tests[1]);
+
 }
 END_TEST
 
@@ -2507,6 +2617,8 @@ int main(void)
 	ADD_TEST(list_test_insert);
 	ADD_TEST(list_test_append);
 	ADD_TEST(list_test_foreach);
+	ADD_TEST(list_test_first_last);
+	ADD_TEST(list_test_chain);
 	ADD_TEST(strverscmp_test);
 	ADD_TEST(streq_test);
 	ADD_TEST(strneq_test);

@@ -81,6 +81,13 @@ void list_insert(struct list *list, struct list *elm);
 void list_append(struct list *list, struct list *elm);
 
 /**
+ * Chain other onto list, resetting other to be the empty list.
+ */
+void list_chain(struct list *list, struct list *other);
+
+size_t list_length(const struct list *list);
+
+/**
  * Takes the given pointer ands inserts it to the list with the pointer's field.
  * The pointer is reset to NULL. Use this to prevent automatic cleanup
  * of the pointer type.
@@ -186,6 +193,51 @@ bool list_empty(const struct list *list);
  */
 #define list_first_entry_by_type(head, container_type, member)		\
 	container_of((head)->next, container_type, member)
+
+/**
+ * Given a list 'head', return the last entry of type 'pos' that has a
+ * member 'link'.
+ *
+ * The 'pos' argument is solely used to determine the type be returned and
+ * not modified otherwise. It is common to use the same pointer that the
+ * return value of list_last_entry() is assigned to, for example:
+ *
+ * @code
+ *     struct foo {
+ *        struct list list_of_bars;
+ *     };
+ *
+ *     struct bar {
+ *         struct list link;
+ *     }
+ *
+ *     struct foo *f = get_a_foo();
+ *     struct bar *b = 0;  // initialize to avoid static analysis errors
+ *     b = list_last_entry(&f->list_of_bars, b, link);
+ * @endcode
+ */
+#define list_last_entry(head, pointer_of_type, member)				\
+	container_of((head)->prev, __typeof__(*pointer_of_type), member)
+
+/**
+ * Given a list 'head', return the last entry of type 'container_type' that
+ * has a member 'link'.
+ *
+ * @code
+ *     struct foo {
+ *        struct list list_of_bars;
+ *     };
+ *
+ *     struct bar {
+ *         struct list link;
+ *     }
+ *
+ *     struct foo *f = get_a_foo();
+ *     struct bar *b = list_last_entry(&f->list_of_bars, struct bar, link);
+ * @endcode
+ */
+#define list_last_entry_by_type(head, container_type, member)		\
+	container_of((head)->prev, container_type, member)
 
 /**
  * Iterate through the list.

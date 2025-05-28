@@ -30,6 +30,34 @@
 #include <stdbool.h>
 
 #include "util-list.h"
+#include "libinput-util.h"
+
+#if 0
+static void
+list_debug(struct list *list)
+{
+	struct list *head = list;
+
+	assert((head->next != NULL && head->prev != NULL) ||
+	       !"list->next|prev is NULL, possibly missing list_init()");
+
+	trace("list %p:", head);
+	trace("  head->next %p", head->next);
+	trace("  head->prev %p", head->prev);
+	struct list *elm = head->next;
+	int index = 0;
+	while (elm != head) {
+		trace("..%-3d: %p->next %p",
+		      index, elm, elm->next);
+		trace("..%-3d: %p->prev %p",
+		      index, elm, elm->prev);
+		elm = elm->next;
+		index++;
+		if (index > 20)
+			break;
+	}
+}
+#endif
 
 void
 list_init(struct list *list)
@@ -63,6 +91,45 @@ list_append(struct list *list, struct list *elm)
 	elm->prev = list->prev;
 	list->prev = elm;
 	elm->prev->next = elm;
+}
+
+void
+list_chain(struct list *list, struct list *other)
+{
+	assert((list->next != NULL && list->prev != NULL) ||
+	       !"list->next|prev is NULL, possibly missing list_init()");
+	assert((other->next != NULL && other->prev != NULL) ||
+	       !"other->next|prev is NULL, possibly missing list_init()");
+
+	if (list_empty(other))
+		return;
+
+	struct list *last = list->prev;
+	struct list *first = other->next;
+
+	first->prev = last;
+	last->next = first;
+
+	list->prev->next = other->next;
+	other->next->prev = list->prev;
+	other->prev->next = list;
+	list->prev = other->prev;
+	list_init(other);
+}
+
+size_t
+list_length(const struct list *list)
+{
+	assert((list->next != NULL && list->prev != NULL) ||
+	       !"list->next|prev is NULL, possibly missing list_init()");
+
+	size_t count = 0;
+	const struct list *elm;
+
+	for (elm = list->next; elm != list; elm = elm->next)
+		count++;
+
+	return count;
 }
 
 void
