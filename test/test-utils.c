@@ -220,6 +220,11 @@ START_TEST(find_files_test)
 	litest_assert_int_eq(nfiles, (size_t)0);
 	litest_assert_ptr_notnull(empty_path);
 	litest_assert_ptr_null(empty_path[0]);
+
+	_autostrvfree_ char** also_empty_path = list_files(NULL, "suf", &nfiles);
+	litest_assert_int_eq(nfiles, (size_t)0);
+	litest_assert_ptr_notnull(also_empty_path);
+	litest_assert_ptr_null(also_empty_path[0]);
 }
 END_TEST
 

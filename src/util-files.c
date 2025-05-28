@@ -87,6 +87,12 @@ list_files(const char **directories,
 {
 	struct list files = LIST_INIT(files);
 
+	if (!directories) {
+		if (nfiles_out)
+			*nfiles_out = 0;
+		return zalloc(1 * sizeof(char*));
+	}
+
 	const char **d = directories;
 	while (*d) {
 		struct list new_files = LIST_INIT(new_files);
