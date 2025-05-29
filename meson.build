@@ -489,7 +489,8 @@ pkgconfig.generate(
 	name : 'Libinput',
 	description : 'Input device library',
 	version : meson.project_version(),
-	libraries : lib_libinput
+	libraries : lib_libinput,
+	requires_private : dep_udev,
 )
 
 git_version_h = vcs_tag(command : ['git', 'describe'],
