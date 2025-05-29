@@ -1046,6 +1046,14 @@ evdev_print_event(struct evdev_device *device,
 			  time - last_time);
 
 		last_time = time;
+	} else if (libevdev_event_is_code(e, EV_MSC, MSC_SERIAL)) {
+		evdev_log_debug(device,
+			"%u.%03u %-16s %-16s %#010x\n",
+			time / 1000,
+			time % 1000,
+			libevdev_event_type_get_name(e->type),
+			libevdev_event_code_get_name(e->type, e->code),
+			e->value);
 	} else {
 		evdev_log_debug(device,
 			  "%u.%03u %-16s %-20s %4d\n",
