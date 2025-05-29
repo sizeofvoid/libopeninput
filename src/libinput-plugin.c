@@ -415,7 +415,8 @@ libinput_plugin_process_frame(struct libinput_plugin *plugin,
 _unused_
 static inline void
 print_frame(struct libinput *libinput,
-	    struct evdev_frame *frame)
+	    struct evdev_frame *frame,
+	    const char *prefix)
 {
 	static uint32_t offset = 0;
 	static uint32_t last_time = 0;
@@ -437,7 +438,8 @@ print_frame(struct libinput *libinput,
 		switch (evdev_usage_enum(e->usage)) {
 		case EVDEV_SYN_REPORT:
 			log_debug(libinput,
-				  "%u.%03u ----------------- EV_SYN ----------------- +%ums\n",
+				  "%s%u.%03u ----------------- EV_SYN ----------------- +%ums\n",
+				  prefix,
 				  time / 1000,
 				  time % 1000,
 				  time - last_time);
@@ -446,7 +448,8 @@ print_frame(struct libinput *libinput,
 			break;
 		case EVDEV_MSC_SERIAL:
 			log_debug(libinput,
-				  "%u.%03u %-16s %-16s %#010x\n",
+				  "%s%u.%03u %-16s %-16s %#010x\n",
+				  prefix,
 				  time / 1000,
 				  time % 1000,
 				  evdev_event_get_type_name(e),
@@ -455,7 +458,8 @@ print_frame(struct libinput *libinput,
 			break;
 		default:
 			log_debug(libinput,
-				  "%u.%03u %-16s %-20s %4d\n",
+				  "%s%u.%03u %-16s %-20s %4d\n",
+				  prefix,
 				  time / 1000,
 				  time % 1000,
 				  evdev_event_get_type_name(e),
@@ -505,11 +509,10 @@ libinput_plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 				evdev_frame_set_time(event->frame, frame_time);
 
 #ifdef EVENT_DEBUGGING
-			log_debug(libinput_device_get_context(device),
-				  "Plugin %s processing frame for device %s\n",
-				  plugin->name,
-				  libinput_device_get_name(event->device));
-			print_frame(libinput_device_get_context(device), event->frame);
+			_autofree_ char *prefix = strdup_printf("plugin %-25s - %s:",
+								plugin->name,
+								libinput_device_get_name(event->device));
+			print_frame(libinput_device_get_context(device), event->frame, prefix);
 #endif
 
 			libinput_plugin_process_frame(plugin,
