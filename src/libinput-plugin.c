@@ -44,6 +44,11 @@ struct libinput_plugin {
 	bool registered;
 
 	const struct libinput_plugin_interface *interface;
+
+	struct {
+		struct list *after;
+		struct list *before;
+	} event_queue;
 };
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 4)
@@ -144,6 +149,79 @@ struct libinput *
 libinput_plugin_get_context(struct libinput_plugin *plugin)
 {
 	return plugin->libinput;
+}
+
+struct plugin_queued_event {
+	struct list link;
+	struct evdev_frame *frame; /* owns a ref */
+	struct libinput_device *device; /* owns a ref */
+};
+
+static void
+plugin_queued_event_destroy(struct plugin_queued_event *event)
+{
+	evdev_frame_unref(event->frame);
+	libinput_device_unref(event->device);
+	list_remove(&event->link);
+	free(event);
+}
+
+static inline struct plugin_queued_event *
+plugin_queued_event_new(struct evdev_frame *frame, struct libinput_device *device)
+{
+	struct plugin_queued_event *event = zalloc(sizeof(*event));
+	if (!event)
+		return NULL;
+
+	event->frame = evdev_frame_ref(frame);
+	event->device = libinput_device_ref(device);
+
+	return event;
+}
+
+static void
+libinput_plugin_queue_evdev_frame(struct list *queue,
+				  const char *func,
+				  struct libinput_plugin *plugin,
+				  struct libinput_device *device,
+				  struct evdev_frame *frame)
+{
+	if (queue == NULL) {
+		plugin_log_bug(plugin,
+			       "%s() called outside evdev_frame processing\n",
+			       func);
+		libinput_plugin_unregister(plugin);
+		return;
+	}
+
+	_unref_(evdev_frame) *clone = evdev_frame_clone(frame);
+	struct plugin_queued_event *event =
+		plugin_queued_event_new(clone, device);
+	list_take_append(queue, event, link);
+}
+
+void
+libinput_plugin_append_evdev_frame(struct libinput_plugin *plugin,
+				   struct libinput_device *device,
+				   struct evdev_frame *frame)
+{
+	libinput_plugin_queue_evdev_frame(plugin->event_queue.after,
+					   __func__,
+					   plugin,
+					   device,
+					   frame);
+}
+
+void
+libinput_plugin_prepend_evdev_frame(struct libinput_plugin *plugin,
+				    struct libinput_device *device,
+				    struct evdev_frame *frame)
+{
+	libinput_plugin_queue_evdev_frame(plugin->event_queue.before,
+					   __func__,
+					   plugin,
+					   device,
+					   frame);
 }
 
 void
@@ -306,14 +384,154 @@ libinput_plugin_system_notify_device_ignored(struct libinput_plugin_system *syst
 	libinput_plugin_system_drop_unregistered_plugins(system);
 }
 
+static void
+libinput_plugin_process_frame(struct libinput_plugin *plugin,
+			      struct libinput_device *device,
+			      struct evdev_frame *frame,
+			      struct list *queued_events)
+{
+	struct list before_events = LIST_INIT(before_events);
+	struct list after_events = LIST_INIT(after_events);
+
+	plugin->event_queue.before = &before_events;
+	plugin->event_queue.after = &after_events;
+
+	if (plugin->interface->evdev_frame)
+		plugin->interface->evdev_frame(plugin, device, frame);
+
+	plugin->event_queue.before = NULL;
+	plugin->event_queue.after = NULL;
+
+	list_chain(queued_events, &before_events);
+
+	if (!evdev_frame_is_empty(frame)) {
+		struct plugin_queued_event *event = plugin_queued_event_new(frame, device);
+		list_take_append(queued_events, event, link);
+	}
+
+	list_chain(queued_events, &after_events);
+}
+
+_unused_
+static inline void
+print_frame(struct libinput *libinput,
+	    struct evdev_frame *frame)
+{
+	static uint32_t offset = 0;
+	static uint32_t last_time = 0;
+	uint32_t time = evdev_frame_get_time(frame) / 1000;
+
+	if (offset == 0) {
+		offset = time;
+		last_time = time - offset;
+	}
+
+	time -= offset;
+
+	size_t nevents;
+	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
+
+	for (size_t i = 0; i < nevents; i++) {
+		struct evdev_event *e = &events[i];
+
+		switch (evdev_usage_enum(e->usage)) {
+		case EVDEV_SYN_REPORT:
+			log_debug(libinput,
+				  "%u.%03u ----------------- EV_SYN ----------------- +%ums\n",
+				  time / 1000,
+				  time % 1000,
+				  time - last_time);
+
+			last_time = time;
+			break;
+		case EVDEV_MSC_SERIAL:
+			log_debug(libinput,
+				  "%u.%03u %-16s %-16s %#010x\n",
+				  time / 1000,
+				  time % 1000,
+				  evdev_event_get_type_name(e),
+				  evdev_event_get_code_name(e),
+				  e->value);
+			break;
+		default:
+			log_debug(libinput,
+				  "%u.%03u %-16s %-20s %4d\n",
+				  time / 1000,
+				  time % 1000,
+				  evdev_event_get_type_name(e),
+				  evdev_event_get_code_name(e),
+				  e->value);
+			break;
+		}
+	}
+}
+
 void
 libinput_plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 					  struct libinput_device *device,
 					  struct evdev_frame *frame)
 {
+	/* This is messy because a single event frame may cause
+	 * *each* plugin to generate multiple event frames for potentially
+	 * different devices and replaying is basically breadth-first traversal.
+	 *
+	 * So we have our event (passed in as 'frame') and we create a queue.
+	 * Each plugin then creates a new event list from each frame in the
+	 * queue.
+	 */
+	struct plugin_queued_event *our_event = plugin_queued_event_new(frame, device);
+
+	struct list queued_events = LIST_INIT(queued_events);
+	list_take_insert(&queued_events, our_event, link);
+
+	uint64_t frame_time = evdev_frame_get_time(frame);
+
 	struct libinput_plugin *plugin;
 	list_for_each_safe(plugin, &system->plugins, link) {
-		libinput_plugin_notify_evdev_frame(plugin, device, frame);
+		/* The list of queued events for the *next* plugin */
+		struct list next_events = LIST_INIT(next_events);
+
+		/* Iterate through the current list of queued events, pass
+		 * each through to the plugin and remove it from the current
+		 * list. The plugin may generate a new event list (possibly
+		 * containing our frame but not our queued_event directly)
+		 * and that list becomes the event list for the next plugin.
+		 */
+		struct plugin_queued_event *event;
+		list_for_each_safe(event, &queued_events, link) {
+			struct list next = LIST_INIT(next);
+
+			if (evdev_frame_get_time(event->frame) == 0)
+				evdev_frame_set_time(event->frame, frame_time);
+
+#ifdef EVENT_DEBUGGING
+			log_debug(libinput_device_get_context(device),
+				  "Plugin %s processing frame for device %s\n",
+				  plugin->name,
+				  libinput_device_get_name(event->device));
+			print_frame(libinput_device_get_context(device), event->frame);
+#endif
+
+			libinput_plugin_process_frame(plugin,
+						      event->device,
+						      event->frame,
+						      &next);
+
+			list_chain(&next_events, &next);
+			plugin_queued_event_destroy(event);
+		}
+		assert(list_empty(&queued_events));
+		list_chain(&queued_events, &next_events);
+		if (list_empty(&queued_events)) {
+			/* No more events to process, stop here */
+			break;
+		}
+	}
+
+	/* Our own evdev plugin is last and discards the event for us */
+	if (!list_empty(&queued_events)) {
+		log_bug_libinput(libinput_device_get_context(device),
+				 "Events left over to replay after last plugin\n");
 	}
 	libinput_plugin_system_drop_unregistered_plugins(system);
 }

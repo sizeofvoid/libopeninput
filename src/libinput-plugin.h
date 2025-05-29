@@ -144,3 +144,51 @@ libinput_plugin_unref(struct libinput_plugin *plugin);
 #ifdef DEFINE_UNREF_CLEANUP_FUNC
 DEFINE_UNREF_CLEANUP_FUNC(libinput_plugin);
 #endif
+
+/**
+ * Queue an event frame for the next plugin in sequence, after
+ * the current event frame being processed.
+ *
+ * This function can only be called from within the evdev_frame()
+ * callback and may be used to queue new frames. If called multiple
+ * times with frames F1, F2, ... while processing the current frame C,
+ * frame sequence to be passed to the next plugin is
+ * C, F1, F2, ...
+ *
+ * Assuming several plugins P1, P2, P3, and P4 and an event frame E,
+ * and P2 and P3 calling this function with an queued event frame Q1 and Q2,
+ * respectively.
+ *
+ * - P1: receives E, optionally modifies E
+ * - P2: receives E, appends Q1, optionally modifies E
+ * - P3: receives E, appends Q2, optionally modifies E
+ * - P3: receives Q1, optionally modifies Q1
+ * - P4: receives E, optionally modifies E
+ * - P4: receives Q2, optionally modifies Q2
+ * - P4: receives Q1, optionally modifies Q1
+ *
+ * Once plugin processing is complete, the event sequence passed
+ * back to libinput is thus [E, Q2, Q1].
+ *
+ * To discard the original event frame, the plugin needs to
+ * call evdev_frame_reset() on the frame passed to it.
+ *
+ * It is a plugin bug to call this function from outside the
+ * evdev_frame() callback.
+ */
+void
+libinput_plugin_append_evdev_frame(struct libinput_plugin *libinput,
+				   struct libinput_device *device,
+				   struct evdev_frame *frame);
+
+/**
+ * Identical to libinput_plugin_append_evdev_frame(), but prepends
+ * the event frame to the current event frame being processed.
+ * If called multiple times with frames F1, F2, ... while processing
+ * the current frame C, frame sequence to be passed to the next
+ * plugin is F1, F2, ..., C
+ */
+void
+libinput_plugin_prepend_evdev_frame(struct libinput_plugin *libinput,
+				    struct libinput_device *device,
+				    struct evdev_frame *frame);
