@@ -40,11 +40,6 @@ enum notify {
 	DO_NOTIFY,
 };
 
-/* The tablet sends events every ~2ms , 50ms should be plenty enough to
-   detect out-of-range.
-   This value is higher during test suite runs */
-static int FORCED_PROXOUT_TIMEOUT = 50 * 1000; /* µs */
-
 #define tablet_set_status(tablet_,s_) (tablet_)->status |= (s_)
 #define tablet_unset_status(tablet_,s_) (tablet_)->status &= ~(s_)
 #define tablet_has_status(tablet_,s_) (!!((tablet_)->status & (s_)))
@@ -1993,34 +1988,6 @@ tablet_send_events(struct tablet_dispatch *tablet,
 	tablet_send_proximity_out(tablet, tool, device, &axes, time);
 }
 
-/**
- * Handling for the proximity out workaround. Some tablets only send
- * BTN_TOOL_PEN on the very first event, then leave it set even when the pen
- * leaves the detectable range. To libinput this looks like we always have
- * the pen in proximity.
- *
- * To avoid this, we set a timer on BTN_TOOL_PEN in. We expect the tablet to
- * continuously send events, and while it's doing so we keep updating the
- * timer. Once we go Xms without an event we assume proximity out and inject
- * a BTN_TOOL_PEN event into the sequence through the timer func.
- *
- * We need to remember that we did that, on the first event after the
- * timeout we need to emulate a BTN_TOOL_PEN event again to force proximity
- * in.
- *
- * Other tools never send the BTN_TOOL_PEN event. For those tools, we
- * piggyback along with the proximity out quirks by injecting
- * the event during the first event frame.
- */
-static inline void
-tablet_proximity_out_quirk_set_timer(struct tablet_dispatch *tablet,
-				     uint64_t time)
-{
-	if (tablet->quirks.need_to_force_prox_out)
-		libinput_timer_set(&tablet->quirks.prox_out_timer,
-				   time + FORCED_PROXOUT_TIMEOUT);
-}
-
 static void
 tablet_update_tool_state(struct tablet_dispatch *tablet,
 			 struct evdev_device *device,
@@ -2030,41 +1997,6 @@ tablet_update_tool_state(struct tablet_dispatch *tablet,
 	uint32_t changed;
 	int state;
 
-	/* we were already out of proximity but now got a tool update but
-	 * our tool state is zero - i.e. we got a valid prox out from the
-	 * device.
-	 */
-	if (tablet->quirks.proximity_out_forced &&
-	    tablet_has_status(tablet, TABLET_TOOL_UPDATED) &&
-	    !tablet->tool_state) {
-		tablet->quirks.need_to_force_prox_out = false;
-		tablet->quirks.proximity_out_forced = false;
-	}
-	/* We need to emulate a BTN_TOOL_PEN if we get an axis event (i.e.
-	 * stylus is def. in proximity) and:
-	 * - we forced a proximity out before, or
-	 * - on the very first event after init, because if we didn't get a
-	 *   BTN_TOOL_PEN and the state for the tool was 0, this device will
-	 *   never send the event.
-	 * We don't do this for pure button events because we discard those.
-	 *
-	 * But: on some devices the proximity out is delayed by the kernel,
-	 * so we get it after our forced prox-out has triggered. In that
-	 * case we need to just ignore the change.
-	 */
-	if (tablet_has_status(tablet, TABLET_AXES_UPDATED)) {
-		if (tablet->quirks.proximity_out_forced) {
-			if (!tablet_has_status(tablet, TABLET_TOOL_UPDATED)  &&
-			    !tablet->tool_state)
-				tablet->tool_state = bit(LIBINPUT_TABLET_TOOL_TYPE_PEN);
-			tablet->quirks.proximity_out_forced = false;
-		} else if (tablet->tool_state == 0 &&
-			    tablet->current_tool.type == LIBINPUT_TOOL_NONE) {
-			tablet->tool_state = bit(LIBINPUT_TABLET_TOOL_TYPE_PEN);
-			tablet->quirks.proximity_out_forced = false;
-		}
-	}
-
 	if (tablet->tool_state == tablet->prev_tool_state)
 		return;
 
@@ -2073,24 +2005,6 @@ tablet_update_tool_state(struct tablet_dispatch *tablet,
 	state = !!(tablet->tool_state & bit(type));
 
 	tablet_update_tool(tablet, device, type, state);
-
-	/* The proximity timeout is only needed for BTN_TOOL_PEN, devices
-	 * that require it don't do erasers */
-	if (type == LIBINPUT_TABLET_TOOL_TYPE_PEN) {
-		if (state) {
-			tablet_proximity_out_quirk_set_timer(tablet, time);
-		} else {
-			/* If we get a BTN_TOOL_PEN 0 when *not* injecting
-			 * events it means the tablet will give us the right
-			 * events after all and we can disable our
-			 * timer-based proximity out.
-			 */
-			if (!tablet->quirks.proximity_out_in_progress)
-				tablet->quirks.need_to_force_prox_out = false;
-
-			libinput_timer_cancel(&tablet->quirks.prox_out_timer);
-		}
-	}
 
 	tablet->prev_tool_state = tablet->tool_state;
 }
@@ -2308,47 +2222,6 @@ tablet_reset_state(struct tablet_dispatch *tablet)
 }
 
 static void
-tablet_proximity_out_quirk_timer_func(uint64_t now, void *data)
-{
-	struct tablet_dispatch *tablet = data;
-	struct evdev_event events[2] = {
-		{
-			.usage = evdev_usage_from(EVDEV_BTN_TOOL_PEN),
-			.value = 0
-		},
-		{
-			.usage = evdev_usage_from(EVDEV_SYN_REPORT),
-			.value = 0,
-		}
-	};
-
-	if (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ||
-	    tablet_has_status(tablet, TABLET_BUTTONS_DOWN)) {
-		tablet_proximity_out_quirk_set_timer(tablet, now);
-		return;
-	}
-
-	if (tablet->quirks.last_event_time > now - FORCED_PROXOUT_TIMEOUT) {
-		tablet_proximity_out_quirk_set_timer(tablet,
-						     tablet->quirks.last_event_time);
-		return;
-	}
-
-	evdev_log_debug(tablet->device, "tablet: forcing proximity after timeout\n");
-
-	tablet->quirks.proximity_out_in_progress = true;
-	ARRAY_FOR_EACH(events, e) {
-		tablet->base.interface->process(&tablet->base,
-						 tablet->device,
-						 e,
-						 now);
-	}
-	tablet->quirks.proximity_out_in_progress = false;
-
-	tablet->quirks.proximity_out_forced = true;
-}
-
-static void
 tablet_process(struct evdev_dispatch *dispatch,
 	       struct evdev_device *device,
 	       struct evdev_event *e,
@@ -2374,7 +2247,6 @@ tablet_process(struct evdev_dispatch *dispatch,
 		tablet_flush(tablet, device, time);
 		tablet_toggle_touch_device(tablet, device, time);
 		tablet_reset_state(tablet);
-		tablet->quirks.last_event_time = time;
 		break;
 	default:
 		evdev_log_error(device,
@@ -2433,9 +2305,6 @@ tablet_destroy(struct evdev_dispatch *dispatch)
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 	struct libinput_tablet_tool *tool;
 	struct libinput *li = tablet_libinput_context(tablet);
-
-	libinput_timer_cancel(&tablet->quirks.prox_out_timer);
-	libinput_timer_destroy(&tablet->quirks.prox_out_timer);
 
 	list_for_each_safe(tool, &tablet->tool_list, link) {
 		libinput_tablet_tool_unref(tool);
@@ -2545,7 +2414,6 @@ tablet_check_initial_proximity(struct evdev_device *device,
 			       struct evdev_dispatch *dispatch)
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
-	struct libinput *li = tablet_libinput_context(tablet);
 	int code, state;
 	enum libinput_tablet_tool_type tool;
 
@@ -2569,8 +2437,6 @@ tablet_check_initial_proximity(struct evdev_device *device,
 		return;
 
 	tablet_update_tool(tablet, device, tool, state);
-	if (tablet->quirks.need_to_force_prox_out)
-		tablet_proximity_out_quirk_set_timer(tablet, libinput_now(li));
 
 	tablet->current_tool.id =
 		libevdev_get_event_value(device->evdev,
@@ -2983,7 +2849,6 @@ tablet_init(struct tablet_dispatch *tablet,
 
 	if (!libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_PEN)) {
 		libevdev_enable_event_code(evdev, EV_KEY, BTN_TOOL_PEN, NULL);
-		tablet->quirks.proximity_out_forced = true;
 	}
 
 	/* Our rotation code only works with Wacoms, let's wait until
@@ -3014,16 +2879,6 @@ tablet_init(struct tablet_dispatch *tablet,
 
 	tablet_set_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY);
 
-	/* We always enable the proximity out quirk, but disable it once a
-	   device gives us the right event sequence */
-	tablet->quirks.need_to_force_prox_out = true;
-
-	libinput_timer_init(&tablet->quirks.prox_out_timer,
-			    li,
-			    "proxout",
-			    tablet_proximity_out_quirk_timer_func,
-			    tablet);
-
 	rc = 0;
 out:
 #if HAVE_LIBWACOM
@@ -3042,10 +2897,6 @@ evdev_tablet_create(struct evdev_device *device)
 	struct libinput *li = evdev_libinput_context(device);
 
 	libinput_libwacom_ref(li);
-
-	/* Stop false positives caused by the forced proximity code */
-	if (getenv("LIBINPUT_RUNNING_TEST_SUITE"))
-		FORCED_PROXOUT_TIMEOUT = 150 * 1000; /* µs */
 
 	tablet = zalloc(sizeof *tablet);
 

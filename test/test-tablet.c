@@ -1567,6 +1567,7 @@ START_TEST(proximity_out_not_during_contact)
 	};
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_tablet_tip_down(dev, 10, 10, axes);
 	litest_tablet_motion(dev, 12, 12, axes);
 	litest_drain_events(li);
 
@@ -1577,6 +1578,7 @@ START_TEST(proximity_out_not_during_contact)
 
 	litest_axis_set_value(axes, ABS_PRESSURE, 0);
 	litest_tablet_motion(dev, 14, 14, axes);
+	litest_tablet_tip_up(dev, 14, 14, axes);
 	litest_drain_events(li);
 
 	litest_timeout_tablet_proxout(li);

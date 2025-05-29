@@ -116,16 +116,6 @@ struct tablet_dispatch {
 		bool rotate;
 		bool want_rotate;
 	} rotation;
-
-	struct {
-		bool need_to_force_prox_out;
-		struct libinput_timer prox_out_timer;
-		bool proximity_out_forced;
-		uint64_t last_event_time;
-
-		/* true while injecting BTN_TOOL_PEN events */
-		bool proximity_out_in_progress;
-	} quirks;
 };
 
 static inline struct tablet_dispatch*
