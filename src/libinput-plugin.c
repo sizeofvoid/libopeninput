@@ -36,6 +36,7 @@
 
 #include "libinput-util.h"
 #include "libinput-private.h"
+#include "libinput-plugin-tablet-double-tool.h"
 
 #include "evdev-plugin.h"
 
@@ -359,6 +360,10 @@ void
 libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
 					     struct libinput_plugin_system *system)
 {
+	/* FIXME: this should really be one of the first in the sequence
+	 * so plugins don't have to take care of this? */
+	libinput_tablet_plugin_double_tool(libinput);
+
 	/* Our own event dispatch is implemented as mini-plugin,
 	 * guarantee this one to always be last (and after any
 	 * other plugins have run so none of the devices are

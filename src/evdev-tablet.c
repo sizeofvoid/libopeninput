@@ -2021,7 +2021,7 @@ tablet_proximity_out_quirk_set_timer(struct tablet_dispatch *tablet,
 				   time + FORCED_PROXOUT_TIMEOUT);
 }
 
-static bool
+static void
 tablet_update_tool_state(struct tablet_dispatch *tablet,
 			 struct evdev_device *device,
 			 uint64_t time)
@@ -2029,7 +2029,6 @@ tablet_update_tool_state(struct tablet_dispatch *tablet,
 	enum libinput_tablet_tool_type type;
 	uint32_t changed;
 	int state;
-	uint32_t doubled_up_new_tool_bit = 0;
 
 	/* we were already out of proximity but now got a tool update but
 	 * our tool state is zero - i.e. we got a valid prox out from the
@@ -2067,39 +2066,7 @@ tablet_update_tool_state(struct tablet_dispatch *tablet,
 	}
 
 	if (tablet->tool_state == tablet->prev_tool_state)
-		return false;
-
-	/* Kernel tools are supposed to be mutually exclusive, but we may have
-	 * two bits set due to firmware/kernel bugs.
-	 * Two cases that have been seen in the wild:
-	 * - BTN_TOOL_PEN on proximity in, followed by
-	 *   BTN_TOOL_RUBBER later, see #259
-	 *   -> We force a prox-out of the pen, trigger prox-in for eraser
-	 * - BTN_TOOL_RUBBER on proximity in, but BTN_TOOL_PEN when
-	 *   the tip is down, see #702.
-	 *   -> We ignore BTN_TOOL_PEN
-	 * In both cases the eraser is what we want, so we bias
-	 * towards that.
-	 */
-	if (tablet->tool_state & (tablet->tool_state - 1)) {
-		doubled_up_new_tool_bit = tablet->tool_state ^ tablet->prev_tool_state;
-
-		/* The new tool is the pen. Ignore it */
-		if (doubled_up_new_tool_bit == bit(LIBINPUT_TABLET_TOOL_TYPE_PEN)) {
-			tablet->tool_state &= ~bit(LIBINPUT_TABLET_TOOL_TYPE_PEN);
-			return false;
-		}
-
-		/* The new tool is some tool other than pen (usually eraser).
-		 * We set the current tool state to zero, thus setting
-		 * everything up for a prox out on the tool. Once that is set
-		 * up, we change the tool state to be the new one we just got.
-		 * When we re-process this function we now get the new tool
-		 * as prox in. Importantly, we basically rely on nothing else
-		 * happening in the meantime.
-		 */
-		tablet->tool_state = 0;
-	}
+		return;
 
 	changed = tablet->tool_state ^ tablet->prev_tool_state;
 	type = ffs(changed) - 1;
@@ -2126,12 +2093,6 @@ tablet_update_tool_state(struct tablet_dispatch *tablet,
 	}
 
 	tablet->prev_tool_state = tablet->tool_state;
-
-	if (doubled_up_new_tool_bit) {
-		tablet->tool_state = doubled_up_new_tool_bit;
-		return true; /* need to re-process */
-	}
-	return false;
 }
 
 static struct libinput_tablet_tool *
@@ -2194,10 +2155,8 @@ tablet_flush(struct tablet_dispatch *tablet,
 	     uint64_t time)
 {
 	struct libinput_tablet_tool *tool;
-	bool process_tool_twice;
 
-reprocess:
-	process_tool_twice = tablet_update_tool_state(tablet, device, time);
+	tablet_update_tool_state(tablet, device, time);
 
 	tool = tablet_get_current_tool(tablet);
 	if (!tool)
@@ -2271,9 +2230,6 @@ reprocess:
 		tablet_change_area(device);
 		tablet_history_reset(tablet);
 	}
-
-	if (process_tool_twice)
-		goto reprocess;
 }
 
 static inline void

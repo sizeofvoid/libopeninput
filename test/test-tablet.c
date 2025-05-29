@@ -2974,10 +2974,12 @@ START_TEST(tool_direct_switch_skip_tool_update)
 	libinput_tablet_tool_ref(pen);
 	libinput_event_destroy(event);
 
+	litest_checkpoint("Switching directly to eraser");
 	litest_event(dev, EV_KEY, BTN_TOOL_RUBBER, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 
+	litest_checkpoint("Expecting pen prox out followed by eraser prox in ");
 	event = libinput_get_event(li);
 	tev = litest_is_proximity_event(event,
 					LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
@@ -3002,6 +3004,7 @@ START_TEST(tool_direct_switch_skip_tool_update)
 			     eraser);
 	libinput_event_destroy(event);
 
+	litest_checkpoint("Switching directly to pen, expecting eraser prox out");
 	litest_event(dev, EV_KEY, BTN_TOOL_RUBBER, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
@@ -3014,6 +3017,7 @@ START_TEST(tool_direct_switch_skip_tool_update)
 	libinput_event_destroy(event);
 
 	litest_with_event_frame(dev) {
+		litest_checkpoint("Prox in for eraser (pen still in prox)");
 		litest_event(dev, EV_KEY, BTN_TOOL_RUBBER, 1);
 		litest_tablet_motion(dev, 30, 40, axes);
 	}

@@ -399,6 +399,7 @@ else
 src_libinput = src_libfilter + [
 	'src/libinput.c',
 	'src/libinput-plugin.c',
+	'src/libinput-plugin-tablet-double-tool.c',
 	'src/libinput-private-config.c',
 	'src/evdev.c',
 	'src/evdev-debounce.c',
