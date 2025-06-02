@@ -1349,6 +1349,7 @@ _litest_timeout(struct libinput *li, const char *func, int lineno, int millis);
 #define litest_timeout_touch_arbitration(li_) litest_timeout(li_, 100)
 #define litest_timeout_hysteresis(li_) litest_timeout(li_, 90)
 #define litest_timeout_3fg_drag(li_) litest_timeout(li_, 800)
+#define litest_timeout_eraser_button(li_) litest_timeout(li_, 50)
 
 struct litest_logcapture {
 	char **errors;

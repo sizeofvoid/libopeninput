@@ -139,6 +139,9 @@ tools_init_options(struct tools_options *options)
 	options->area.x2 = 1.0;
 	options->area.y2 = 1.0;
 	options->sendevents = LIBINPUT_CONFIG_SEND_EVENTS_ENABLED;
+	options->eraser_button_mode = LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT;
+	options->eraser_button_button = BTN_STYLUS;
+	options->eraser_button_button = 0;
 }
 
 int
@@ -680,6 +683,9 @@ tools_tablet_tool_apply_config(struct libinput_tablet_tool *tool,
 	libinput_tablet_tool_config_pressure_range_set(tool,
 						       options->pressure_range[0],
 						       options->pressure_range[1]);
+	if (options->eraser_button_button)
+		libinput_tablet_tool_config_eraser_button_set_button(tool, options->eraser_button_button);
+	libinput_tablet_tool_config_eraser_button_set_mode(tool, options->eraser_button_mode);
 }
 
 static char*

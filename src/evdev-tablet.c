@@ -1264,6 +1264,161 @@ pressure_range_get_default(struct libinput_tablet_tool *tool, double *min, doubl
 	*max = 1.0;
 }
 
+static void
+tablet_tool_apply_eraser_button(struct tablet_dispatch *tablet,
+				struct libinput_tablet_tool *tool)
+{
+	if (bitmask_is_empty(tool->eraser_button.available_modes))
+		return;
+
+	if (tool->eraser_button.mode == tool->eraser_button.want_mode &&
+	    tool->eraser_button.button == tool->eraser_button.want_button)
+		return;
+
+	if (!tablet_has_status(tablet, TABLET_TOOL_OUT_OF_PROXIMITY))
+		return;
+
+	tool->eraser_button.mode = tool->eraser_button.want_mode;
+	tool->eraser_button.button = tool->eraser_button.want_button;
+
+	struct libinput *libinput = tablet_libinput_context(tablet);
+	libinput_plugin_system_notify_tablet_tool_configured(&libinput->plugin_system,
+							     tool);
+}
+
+static bitmask_t
+eraser_button_get_modes(struct libinput_tablet_tool *tool)
+{
+	return tool->eraser_button.available_modes;
+}
+
+static void
+eraser_button_toggle(struct libinput_tablet_tool *tool)
+{
+	struct libinput_device *libinput_device = tool->last_device;
+	struct evdev_device *device = evdev_device(libinput_device);
+	struct tablet_dispatch *tablet = tablet_dispatch(device->dispatch);
+
+	tablet_tool_apply_eraser_button(tablet, tool);
+}
+
+static enum libinput_config_status
+eraser_button_set_mode(struct libinput_tablet_tool *tool,
+		       enum libinput_config_eraser_button_mode mode)
+{
+	if (mode != LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT &&
+	    !bitmask_all(tool->eraser_button.available_modes, bitmask_from_u32(mode)))
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	tool->eraser_button.want_mode = mode;
+
+	eraser_button_toggle(tool);
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static enum libinput_config_eraser_button_mode
+eraser_button_get_mode(struct libinput_tablet_tool *tool)
+{
+	return tool->eraser_button.mode;
+}
+
+static enum libinput_config_eraser_button_mode
+eraser_button_get_default_mode(struct libinput_tablet_tool *tool)
+{
+	return LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT;
+}
+
+static enum libinput_config_status
+eraser_button_set_button(struct libinput_tablet_tool *tool, unsigned int button)
+{
+	if (!libinput_tablet_tool_has_button(tool, button))
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	switch (button) {
+	case BTN_STYLUS:
+	case BTN_STYLUS2:
+	case BTN_STYLUS3:
+		break;
+	default:
+		log_bug_libinput(libinput_device_get_context(tool->last_device),
+					"Unsupported eraser button 0x%x",
+					button);
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+	}
+
+	tool->eraser_button.want_button = button;
+
+	eraser_button_toggle(tool);
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static unsigned int
+eraser_button_get_button(struct libinput_tablet_tool *tool)
+{
+	return tool->eraser_button.button;
+}
+
+static unsigned int
+eraser_button_get_default_button(struct libinput_tablet_tool *tool)
+{
+	/* Which button we want is complicated. Other than Wacom no-one supports
+	 * tool ids so we cannot know if an individual tool supports any of the
+	 * BTN_STYLUS. e.g. any Huion tablet that supports the Huion PW600
+	 * will have BTN_STYLUS3 - regardless if that tool is actually present.
+	 * So we default to BTN_STYLUS3 because there's no placeholder BTN_STYLUS4.
+	 * in the kernel.
+	 */
+	if (!libinput_tablet_tool_has_button(tool, BTN_STYLUS))
+		return BTN_STYLUS;
+	if (!libinput_tablet_tool_has_button(tool, BTN_STYLUS2))
+		return BTN_STYLUS2;
+
+	return BTN_STYLUS3;
+}
+
+static void
+tool_init_eraser_button(struct tablet_dispatch *tablet,
+			struct libinput_tablet_tool *tool,
+			const WacomStylus *s)
+{
+	/* We provide an eraser button config if:
+	 * - the tool is a pen
+	 * - we don't know about the stylus (that's a good indication the
+	 *   stylus doesn't have tool ids which means it'll follow the windows
+	 *   pen protocol)
+	 * - the tool does *not* have an eraser on the back end
+	 *
+	 * Because those are the only tools where the eraser button may
+	 * get changed to a real button (by udev-hid-bpf).
+	 */
+	if (libinput_tablet_tool_get_type(tool) != LIBINPUT_TABLET_TOOL_TYPE_PEN)
+		return;
+
+#if HAVE_LIBWACOM
+	/* libwacom's API is a bit terrible here:
+	 * - has_eraser is true on styli that have a separate eraser, all
+	 *   those are INVERT so we can exclude them
+	 * - get_eraser_type() returns something on actual eraser tools
+	 *   but we don't have any separate erasers with buttons so
+	 *   we only need to exclude INVERT
+	 */
+	if (s &&
+	    libwacom_stylus_has_eraser(s) &&
+	    libwacom_stylus_get_eraser_type(s) == WACOM_ERASER_INVERT) {
+		return;
+	}
+#endif
+	/* All other pens need eraser button handling because most of the time
+	 * we don't know if they have one (Huion, XP-Pen, ...) */
+	bitmask_t available_modes = bitmask_from_masks(LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON);
+
+	tool->eraser_button.available_modes = available_modes;
+	tool->eraser_button.want_button = eraser_button_get_default_button(tool);
+	tool->eraser_button.button = tool->eraser_button.want_button;
+}
+
 static struct libinput_tablet_tool *
 tablet_new_tool(struct tablet_dispatch *tablet,
 		enum libinput_tablet_tool_type type,
@@ -1295,14 +1450,29 @@ tablet_new_tool(struct tablet_dispatch *tablet,
 		.pressure.wanted_range.min = 0.0,
 		.pressure.wanted_range.max = 1.0,
 
+		.eraser_button.available_modes = bitmask_new(),
+		.eraser_button.mode = LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT,
+		.eraser_button.want_mode = LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT,
+		.eraser_button.button = BTN_STYLUS2,
+		.eraser_button.want_button = BTN_STYLUS2,
+
 		.config.pressure_range.is_available = pressure_range_is_available,
 		.config.pressure_range.set = pressure_range_set,
 		.config.pressure_range.get = pressure_range_get,
 		.config.pressure_range.get_default = pressure_range_get_default,
+
+		.config.eraser_button.get_modes = eraser_button_get_modes,
+		.config.eraser_button.set_mode = eraser_button_set_mode,
+		.config.eraser_button.get_mode = eraser_button_get_mode,
+		.config.eraser_button.get_default_mode = eraser_button_get_default_mode,
+		.config.eraser_button.set_button = eraser_button_set_button,
+		.config.eraser_button.get_button = eraser_button_get_button,
+		.config.eraser_button.get_default_button = eraser_button_get_default_button,
 	};
 
 	tool_init_pressure_thresholds(tablet, tool, &tool->pressure.threshold);
 	tool_set_bits(tablet, tool, s);
+	tool_init_eraser_button(tablet, tool, s);
 
 	return tool;
 }
@@ -1366,6 +1536,8 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 	tool->last_device = libinput_device_ref(&device->base);
 	if (last)
 		libinput_device_unref(last);
+
+	tool->last_tablet_id = tablet->tablet_id;
 
 	return tool;
 }
@@ -2147,6 +2319,7 @@ tablet_flush(struct tablet_dispatch *tablet,
 		tablet_apply_rotation(device);
 		tablet_change_area(device);
 		tablet_history_reset(tablet);
+		tablet_tool_apply_eraser_button(tablet, tool);
 	}
 }
 

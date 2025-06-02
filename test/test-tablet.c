@@ -7202,6 +7202,282 @@ START_TEST(tablet_smoothing)
 }
 END_TEST
 
+START_TEST(tablet_eraser_button_disabled)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 }
+	};
+	struct axis_replacement tip_down_axes[] = {
+		{ ABS_DISTANCE, 0 },
+		{ ABS_PRESSURE, 30 },
+		{ -1, -1 }
+	};
+	struct libinput_event *ev;
+	struct libinput_event_tablet_tool *tev;
+	struct libinput_tablet_tool *tool, *pen;
+	bool with_tip_down = litest_test_param_get_bool(test_env->params, "with-tip-down");
+	bool configure_while_out_of_prox = litest_test_param_get_bool(test_env->params, "configure-while-out-of-prox");
+	bool down_when_in_prox = litest_test_param_get_bool(test_env->params, "down-when-in-prox");
+	bool down_when_out_of_prox = litest_test_param_get_bool(test_env->params, "down-when-out-of-prox");
+	bool with_motion_events = litest_test_param_get_bool(test_env->params, "with-motion-events");
+
+	/* Device forces BTN_TOOL_PEN on tip */
+	if (with_tip_down && dev->which == LITEST_WACOM_ISDV4_524C_PEN)
+		return LITEST_NOT_APPLICABLE;
+
+	litest_log_group("Prox in/out to disable proximity timer") {
+		litest_tablet_proximity_in(dev, 25, 25, axes);
+		litest_tablet_proximity_out(dev);
+		litest_timeout_tablet_proxout(li);
+
+		litest_checkpoint("Eraser prox in/out to force-disable config on broken tablets");
+		litest_tablet_set_tool_type(dev, BTN_TOOL_RUBBER);
+		litest_tablet_proximity_in(dev, 25, 25, axes);
+		litest_tablet_proximity_out(dev);
+		litest_timeout_tablet_proxout(li);
+	}
+
+	litest_drain_events(li);
+
+	litest_log_group("Proximity in for pen") {
+		litest_tablet_set_tool_type(dev, BTN_TOOL_PEN);
+		litest_tablet_proximity_in(dev, 20, 20, axes);
+		litest_dispatch(li);
+		_destroy_(libinput_event) *ev = libinput_get_event(li);
+		tev = litest_is_proximity_event(ev, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+		tool = libinput_event_tablet_tool_get_tool(tev);
+		litest_assert_enum_eq(libinput_tablet_tool_get_type(tool), LIBINPUT_TABLET_TOOL_TYPE_PEN);
+		pen = libinput_tablet_tool_ref(tool);
+	}
+
+	if (!libinput_tablet_tool_config_eraser_button_get_modes(tool)) {
+		libinput_tablet_tool_unref(tool);
+		return LITEST_NOT_APPLICABLE;
+	}
+
+	unsigned int expected_button = BTN_STYLUS3;
+	if (!libinput_tablet_tool_has_button(pen, BTN_STYLUS))
+		expected_button = BTN_STYLUS;
+	else if (!libinput_tablet_tool_has_button(pen, BTN_STYLUS2))
+		expected_button = BTN_STYLUS2;
+	else if (!libinput_tablet_tool_has_button(pen, BTN_STYLUS3))
+		expected_button = BTN_STYLUS3;
+	litest_checkpoint("expected button from now on: %s (%d)",
+			  libevdev_event_code_get_name(EV_KEY, expected_button),
+			  expected_button);
+
+	if (!configure_while_out_of_prox) {
+		litest_log_group("Configuring eraser button while in of proximity") {
+			auto status = libinput_tablet_tool_config_eraser_button_set_mode(tool,
+											LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON);
+			if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
+				return LITEST_NOT_APPLICABLE;
+			litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+		}
+	}
+
+	litest_log_group("Prox out to apply changed settings") {
+		litest_tablet_proximity_out(dev);
+		litest_timeout_tablet_proxout(li);
+		litest_drain_events(li);
+	}
+
+	if (configure_while_out_of_prox) {
+		litest_log_group("Configuring eraser button while out of proximity") {
+			auto status = libinput_tablet_tool_config_eraser_button_set_mode(tool,
+											LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON);
+			if (status == LIBINPUT_CONFIG_STATUS_UNSUPPORTED)
+				return LITEST_NOT_APPLICABLE;
+			litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+		}
+	}
+
+	litest_mark_test_start();
+
+	if (down_when_in_prox) {
+		litest_log_group("Prox in with eraser, expecting eraser button event") {
+			litest_tablet_set_tool_type(dev, BTN_TOOL_RUBBER);
+			litest_tablet_proximity_in(dev, 10, 10, axes);
+			litest_wait_for_event(li);
+			ev = libinput_get_event(li);
+			tev = litest_is_proximity_event(ev, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+			litest_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev), pen);
+			libinput_event_destroy(ev);
+			litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+			ev = libinput_get_event(li);
+			tev = litest_is_tablet_event(ev, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
+			litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tev), LIBINPUT_BUTTON_STATE_PRESSED);
+			litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev), expected_button);
+			litest_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev), pen);
+			libinput_event_destroy(ev);
+		}
+	} else {
+		litest_tablet_proximity_in(dev, 10, 10, axes);
+	}
+
+	litest_drain_events(li);
+
+	if (with_motion_events) {
+		for (int i = 0; i < 3; i++) {
+			litest_tablet_motion(dev, 11 + i, 11 + i, axes);
+			litest_dispatch(li);
+		}
+		ev = libinput_get_event(li);
+		do {
+			tev = litest_is_tablet_event(ev, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+			litest_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev), pen);
+			libinput_event_destroy(ev);
+			ev = libinput_get_event(li);
+		} while (ev);
+	}
+
+	if (with_tip_down) {
+		litest_tablet_tip_down(dev, 11, 11, tip_down_axes);
+		litest_dispatch(li);
+		litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_DOWN);
+
+		if (with_motion_events) {
+			for (int i = 0; i < 3; i++) {
+				litest_tablet_motion(dev, 11 + i, 11 + i, tip_down_axes);
+				litest_dispatch(li);
+			}
+			ev = libinput_get_event(li);
+			do {
+				tev = litest_is_tablet_event(ev, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+				litest_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev), pen);
+				libinput_event_destroy(ev);
+				ev = libinput_get_event(li);
+			} while (ev);
+		}
+	}
+
+	/* Make sure the button still works as-is */
+	if (libinput_tablet_tool_has_button(pen, BTN_STYLUS)) {
+		litest_log_group("Testing BTN_STYLUS") {
+			litest_event(dev, EV_KEY, BTN_STYLUS, 1);
+			litest_event(dev, EV_SYN, SYN_REPORT, 0);
+			litest_dispatch(li);
+			litest_event(dev, EV_KEY, BTN_STYLUS, 0);
+			litest_event(dev, EV_SYN, SYN_REPORT, 0);
+			litest_dispatch(li);
+			litest_assert_tablet_button_event(li, BTN_STYLUS, LIBINPUT_BUTTON_STATE_PRESSED);
+			litest_assert_tablet_button_event(li, BTN_STYLUS, LIBINPUT_BUTTON_STATE_RELEASED);
+		}
+	}
+
+	litest_dispatch(li);
+
+	if (!down_when_in_prox) {
+		litest_log_group("Prox out for the pen ...") {
+			litest_with_event_frame(dev) {
+				litest_tablet_set_tool_type(dev, BTN_TOOL_PEN);
+				if (with_tip_down)
+					litest_tablet_tip_up(dev, 11, 11, axes);
+				litest_tablet_proximity_out(dev);
+			}
+			litest_dispatch(li);
+		}
+
+		litest_log_group("...and prox in for the eraser") {
+			litest_with_event_frame(dev) {
+				litest_tablet_set_tool_type(dev, BTN_TOOL_RUBBER);
+				if (with_tip_down) {
+					litest_tablet_tip_down(dev, 12, 12, tip_down_axes);
+					litest_tablet_proximity_in(dev, 12, 12, tip_down_axes);
+				} else {
+					litest_tablet_proximity_in(dev, 12, 12, axes);
+				}
+			}
+			litest_dispatch(li);
+		}
+
+		litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+		litest_log_group("Expect button event") {
+			ev = libinput_get_event(li);
+			tev = litest_is_tablet_event(ev, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
+			litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tev), LIBINPUT_BUTTON_STATE_PRESSED);
+			litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev), expected_button);
+			litest_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev), pen);
+			libinput_event_destroy(ev);
+		}
+	}
+
+	if (!down_when_out_of_prox) {
+		litest_log_group("Prox out for the eraser...") {
+			litest_with_event_frame(dev) {
+				if (with_tip_down)
+					litest_tablet_tip_up(dev, 11, 11, axes);
+				litest_tablet_proximity_out(dev);
+			}
+			litest_dispatch(li);
+		}
+
+		litest_log_group("...and prox in for the pen") {
+			litest_with_event_frame(dev) {
+				litest_tablet_set_tool_type(dev, BTN_TOOL_PEN);
+				if (with_tip_down) {
+					litest_tablet_tip_down(dev, 12, 12, tip_down_axes);
+					litest_tablet_proximity_in(dev, 12, 12, tip_down_axes);
+				} else {
+					litest_tablet_proximity_in(dev, 12, 12, axes);
+				}
+			}
+			litest_dispatch(li);
+		}
+
+		litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+		litest_log_group("Expect button event") {
+			ev = libinput_get_event(li);
+			tev = litest_is_tablet_event(ev, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
+			litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev), expected_button);
+			litest_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev), pen);
+			libinput_event_destroy(ev);
+		}
+	}
+
+	litest_log_group("Real prox out for the %s", down_when_out_of_prox ? "eraser" : "pen") {
+		litest_with_event_frame(dev) {
+			if (with_tip_down)
+				litest_tablet_tip_up(dev, 12, 12, axes);
+			litest_tablet_proximity_out(dev);
+		}
+		litest_dispatch(li);
+		litest_timeout_tablet_proxout(li);
+	}
+
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+	if (down_when_out_of_prox) {
+		litest_log_group("Expect button release") {
+			ev = libinput_get_event(li);
+			tev = litest_is_tablet_event(ev, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
+			litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev), expected_button);
+			litest_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev), pen);
+			libinput_event_destroy(ev);
+		}
+	}
+
+	if (with_tip_down)
+		litest_assert_tablet_tip_event(li, LIBINPUT_TABLET_TOOL_TIP_UP);
+
+	litest_log_group("Expect final prox out for the pen") {
+		ev = libinput_get_event(li);
+		tev = litest_is_proximity_event(ev, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+		tool = libinput_event_tablet_tool_get_tool(tev);
+		litest_assert_ptr_eq(pen, tool);
+		libinput_event_destroy(ev);
+	}
+
+	libinput_tablet_tool_unref(pen);
+}
+END_TEST
+
 TEST_COLLECTION(tablet)
 {
 	litest_add(tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
@@ -7355,6 +7631,15 @@ TEST_COLLECTION(tablet)
 	}
 
 	litest_add_for_device(tablet_smoothing, LITEST_WACOM_HID4800_PEN);
+
+	litest_with_parameters(params,
+			       "with-tip-down", 'b',
+			       "configure-while-out-of-prox", 'b',
+			       "down-when-in-prox", 'b',
+			       "down-when-out-of-prox", 'b',
+			       "with-motion-events", 'b') {
+		litest_add_parametrized(tablet_eraser_button_disabled, LITEST_TABLET, LITEST_TOTEM|LITEST_FORCED_PROXOUT, params);
+	}
 }
 
 TEST_COLLECTION(tablet_left_handed)

@@ -596,9 +596,19 @@ struct libinput_tablet_tool {
 	} pressure;
 
 	struct {
+		bitmask_t available_modes;
+		enum libinput_config_eraser_button_mode mode;
+		enum libinput_config_eraser_button_mode want_mode;
+		unsigned int button;
+		unsigned int want_button;
+	} eraser_button;
+
+	struct {
 		struct libinput_tablet_tool_config_pressure_range pressure_range;
 		struct libinput_tablet_tool_config_eraser_button eraser_button;
 	} config;
+
+	unsigned int last_tablet_id; /* tablet_dispatch->tablet_id */
 };
 
 struct libinput_tablet_pad_mode_group {
