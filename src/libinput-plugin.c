@@ -31,6 +31,8 @@
 #include "libinput-plugin.h"
 #include "libinput-plugin-private.h"
 #include "libinput-plugin-system.h"
+
+#include "timer.h"
 #include "libinput-util.h"
 #include "libinput-private.h"
 
@@ -45,10 +47,21 @@ struct libinput_plugin {
 
 	const struct libinput_plugin_interface *interface;
 
+	struct list timers;
+
 	struct {
 		struct list *after;
 		struct list *before;
 	} event_queue;
+};
+
+struct libinput_plugin_timer {
+	int refcount;
+	struct list link;
+	struct libinput_plugin *plugin;
+	struct libinput_timer timer;
+	void (*func)(struct libinput_plugin *plugin, uint64_t now, void *user_data);
+	void *user_data;
 };
 
 LIBINPUT_ATTRIBUTE_PRINTF(3, 4)
@@ -85,6 +98,7 @@ libinput_plugin_new(struct libinput *libinput,
 	plugin->interface = interface;
 	plugin->user_data = user_data;
 	plugin->name = strdup(name);
+	list_init(&plugin->timers);
 
 	libinput_plugin_system_register_plugin(&libinput->plugin_system, plugin);
 
@@ -117,6 +131,12 @@ libinput_plugin_unref(struct libinput_plugin *plugin)
 {
 	assert(plugin->refcount > 0);
 	if (--plugin->refcount == 0) {
+		struct libinput_plugin_timer *timer;
+		list_for_each_safe(timer, &plugin->timers, link) {
+			libinput_plugin_timer_cancel(timer);
+			libinput_plugin_timer_unref(timer);
+		}
+
 		list_remove(&plugin->link);
 		if (plugin->interface->destroy)
 			plugin->interface->destroy(plugin);
@@ -170,8 +190,6 @@ static inline struct plugin_queued_event *
 plugin_queued_event_new(struct evdev_frame *frame, struct libinput_device *device)
 {
 	struct plugin_queued_event *event = zalloc(sizeof(*event));
-	if (!event)
-		return NULL;
 
 	event->frame = evdev_frame_ref(frame);
 	event->device = libinput_device_ref(device);
@@ -470,10 +488,11 @@ print_frame(struct libinput *libinput,
 	}
 }
 
-void
-libinput_plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
-					  struct libinput_device *device,
-					  struct evdev_frame *frame)
+static void
+plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
+				 struct libinput_device *device,
+				 struct evdev_frame *frame,
+				 struct libinput_plugin *sender_plugin)
 {
 	/* This is messy because a single event frame may cause
 	 * *each* plugin to generate multiple event frames for potentially
@@ -490,8 +509,19 @@ libinput_plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 
 	uint64_t frame_time = evdev_frame_get_time(frame);
 
+	bool delay = !!sender_plugin;
+
 	struct libinput_plugin *plugin;
 	list_for_each_safe(plugin, &system->plugins, link) {
+		/* We start processing *after* the sender plugin. sender_plugin
+		 * is only set if we're queuing (not injecting) events from
+		 * a plugin timer func
+		 */
+		if (delay) {
+			delay = plugin != sender_plugin;
+			continue;
+		}
+
 		/* The list of queued events for the *next* plugin */
 		struct list next_events = LIST_INIT(next_events);
 
@@ -537,4 +567,119 @@ libinput_plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 				 "Events left over to replay after last plugin\n");
 	}
 	libinput_plugin_system_drop_unregistered_plugins(system);
+}
+
+void
+libinput_plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
+					  struct libinput_device *device,
+					  struct evdev_frame *frame)
+{
+	plugin_system_notify_evdev_frame(system, device, frame, NULL);
+}
+
+static void
+plugin_timer_func(uint64_t now, void *data)
+{
+	struct libinput_plugin_timer *timer = data;
+	struct libinput_plugin *plugin = timer->plugin;
+	struct libinput *libinput = plugin->libinput;
+
+	if (!timer->func)
+		return;
+
+	struct list before_events = LIST_INIT(before_events);
+	struct list after_events = LIST_INIT(after_events);
+
+	plugin->event_queue.before = &before_events;
+	plugin->event_queue.after = &after_events;
+	timer->func(plugin, now, timer->user_data);
+	plugin->event_queue.before = NULL;
+	plugin->event_queue.after = NULL;
+
+	list_chain(&before_events, &after_events);
+
+	struct plugin_queued_event *event;
+	list_for_each_safe(event, &before_events, link) {
+		plugin_system_notify_evdev_frame(&libinput->plugin_system,
+						 event->device,
+						 event->frame,
+						 plugin);
+		plugin_queued_event_destroy(event);
+	}
+}
+
+struct libinput_plugin_timer *
+libinput_plugin_timer_new(struct libinput_plugin *plugin,
+			  const char *name,
+			  void (*func)(struct libinput_plugin *plugin, uint64_t now, void *data),
+			  void *data)
+{
+	struct libinput_plugin_timer *timer = zalloc(sizeof(*timer));
+
+	_autofree_ char *timer_name = strdup_printf("%s-%s",
+						    plugin->name,
+						    name);
+
+	timer->plugin = plugin;
+	timer->refcount = 2; /* one for the caller, one for our list */
+	timer->func = func;
+	timer->user_data = data;
+
+	libinput_timer_init(&timer->timer,
+			    plugin->libinput,
+			    timer_name,
+			    plugin_timer_func,
+			    timer);
+
+	list_append(&plugin->timers, &timer->link);
+
+	return timer;
+}
+
+void
+libinput_plugin_timer_set_user_data(struct libinput_plugin_timer *timer,
+				    void *user_data)
+{
+	timer->user_data = user_data;
+}
+
+void *
+libinput_plugin_timer_get_user_data(struct libinput_plugin_timer *timer)
+{
+	return timer->user_data;
+}
+
+struct libinput_plugin_timer *
+libinput_plugin_timer_ref(struct libinput_plugin_timer *timer)
+{
+	assert(timer->refcount > 0);
+	++timer->refcount;
+	return timer;
+}
+
+struct libinput_plugin_timer *
+libinput_plugin_timer_unref(struct libinput_plugin_timer *timer)
+{
+	assert(timer->refcount > 0);
+	if (--timer->refcount == 0) {
+		libinput_timer_cancel(&timer->timer);
+		libinput_timer_destroy(&timer->timer);
+		list_remove(&timer->link);
+		free(timer);
+	}
+	return NULL;
+}
+
+/* Set timer expire time, in absolute us CLOCK_MONOTONIC */
+void
+libinput_plugin_timer_set(struct libinput_plugin_timer *timer,
+			  uint64_t expire)
+{
+	libinput_timer_set(&timer->timer, expire);
+}
+
+void
+libinput_plugin_timer_cancel(struct libinput_plugin_timer *timer)
+{
+	libinput_timer_cancel(&timer->timer);
 }
