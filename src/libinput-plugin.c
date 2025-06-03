@@ -433,6 +433,18 @@ libinput_plugin_system_notify_device_ignored(struct libinput_plugin_system *syst
 	libinput_plugin_system_drop_unregistered_plugins(system);
 }
 
+void
+libinput_plugin_system_notify_tablet_tool_configured(struct libinput_plugin_system *system,
+						     struct libinput_tablet_tool *tool)
+{
+	struct libinput_plugin *plugin;
+	list_for_each_safe(plugin, &system->plugins, link) {
+		if (plugin->interface->tool_configured)
+			plugin->interface->tool_configured(plugin, tool);
+	}
+	libinput_plugin_system_drop_unregistered_plugins(system);
+}
+
 static void
 libinput_plugin_process_frame(struct libinput_plugin *plugin,
 			      struct libinput_device *device,

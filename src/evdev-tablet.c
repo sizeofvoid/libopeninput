@@ -1193,6 +1193,10 @@ apply_pressure_range_configuration(struct tablet_dispatch *tablet,
 
 	tool->pressure.range.min = tool->pressure.wanted_range.min;
 	tool->pressure.range.max = tool->pressure.wanted_range.max;
+
+	struct libinput *libinput = tablet_libinput_context(tablet);
+	libinput_plugin_system_notify_tablet_tool_configured(&libinput->plugin_system,
+							     tool);
 }
 
 static inline void

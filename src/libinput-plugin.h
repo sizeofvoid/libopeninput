@@ -35,6 +35,7 @@
 struct evdev_frame;
 struct libinput;
 struct libinput_device;
+struct libinput_tablet_tool;
 struct libinput_plugin;
 enum libinput_log_priority;
 
@@ -98,6 +99,13 @@ struct libinput_plugin_interface {
 	void (*evdev_frame)(struct libinput_plugin *plugin,
 			    struct libinput_device *device,
 			    struct evdev_frame *frame);
+
+	/**
+	 * Notification that a configuration option on a tool
+	 * was modified.
+	 */
+	void (*tool_configured)(struct libinput_plugin *plugin,
+				struct libinput_tablet_tool *tool);
 };
 
 /**
