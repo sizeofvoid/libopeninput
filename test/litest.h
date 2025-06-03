@@ -99,6 +99,14 @@ void _litest_checkpoint(const char *func,
 #define litest_checkpoint(...) \
 	_litest_checkpoint(__func__, __LINE__, ANSI_GREEN, __VA_ARGS__)
 
+#define litest_log_group(...) \
+	for (bool i_ = ({ \
+			litest_checkpoint("🭋🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂 %s:%3d 🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🬂🭀", __func__, __LINE__); \
+			litest_checkpoint(" " __VA_ARGS__); true; }); \
+		i_; \
+		i_ = ({litest_checkpoint("🭦🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭 %s:%3d 🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🬭🭛", __func__, __LINE__);  \
+			  false; }))
+
 /**
  * litest itself needs the user_data to store some test-suite-specific
  * information. Tests must not override this pointer, any data they need
