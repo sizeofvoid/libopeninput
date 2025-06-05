@@ -129,11 +129,13 @@ parse_udev_flag(struct evdev_device *device,
 
 int
 evdev_update_key_down_count(struct evdev_device *device,
-			    int code,
+			    evdev_usage_t usage,
 			    int pressed)
 {
 	int key_count = 0;
-	assert(code >= 0 && code < KEY_CNT);
+	assert(evdev_usage_ge(usage, EVDEV_KEY_RESERVED) && evdev_usage_le(usage, EVDEV_KEY_MAX));
+
+	unsigned int code = evdev_usage_code(usage);
 
 	if (pressed) {
 		key_count = ++device->key_count[code];
@@ -142,8 +144,9 @@ evdev_update_key_down_count(struct evdev_device *device,
 			key_count = --device->key_count[code];
 		} else {
 			evdev_log_bug_libinput(device,
-					       "releasing key %s with count %d\n",
+					       "releasing key %s (%#x) with count %d\n",
 					       libevdev_event_code_get_name(EV_KEY, code),
+					       evdev_usage_as_uint32_t(usage),
 					       device->key_count[code]);
 		}
 	}
@@ -171,7 +174,7 @@ evdev_device_switch_get_state(struct evdev_device *device,
 void
 evdev_pointer_notify_physical_button(struct evdev_device *device,
 				     uint64_t time,
-				     int button,
+				     evdev_usage_t button,
 				     enum libinput_button_state state)
 {
 	if (evdev_middlebutton_filter_button(device,
@@ -182,23 +185,25 @@ evdev_pointer_notify_physical_button(struct evdev_device *device,
 
 	evdev_pointer_notify_button(device,
 				    time,
-				    (unsigned int)button,
+				    button,
 				    state);
 }
 
 static void
 evdev_pointer_post_button(struct evdev_device *device,
 			  uint64_t time,
-			  unsigned int button,
+			  evdev_usage_t button,
 			  enum libinput_button_state state)
 {
 	int down_count;
 
-	down_count = evdev_update_key_down_count(device, button, state);
+	down_count = evdev_update_key_down_count(device,
+						 button,
+						 state);
 
 	if ((state == LIBINPUT_BUTTON_STATE_PRESSED && down_count == 1) ||
 	    (state == LIBINPUT_BUTTON_STATE_RELEASED && down_count == 0)) {
-		pointer_notify_button(&device->base, time, button, state);
+		pointer_notify_button(&device->base, time, evdev_usage_code(button), state);
 
 		if (state == LIBINPUT_BUTTON_STATE_RELEASED) {
 			if (device->left_handed.change_to_enabled)
@@ -251,7 +256,7 @@ evdev_button_scroll_button(struct evdev_device *device,
 	}
 
 	if (is_press) {
-		if (device->scroll.button < BTN_MOUSE + 5) {
+		if (evdev_usage_lt(device->scroll.button, EVDEV_BTN_LEFT + 5)) {
 			/* For mouse buttons 1-5 (0x110 to 0x114) we apply a timeout before scrolling
 			 * since the button could also be used for regular clicking. */
 			enum timer_flags flags = TIMER_FLAG_NONE;
@@ -266,8 +271,8 @@ evdev_button_scroll_button(struct evdev_device *device,
 			 * for a negative timer to be set.
 			 */
 			if (device->middlebutton.enabled &&
-				(device->scroll.button == BTN_LEFT ||
-				device->scroll.button == BTN_RIGHT)) {
+				(evdev_usage_eq(device->scroll.button, EVDEV_BTN_LEFT) ||
+				evdev_usage_eq(device->scroll.button, EVDEV_BTN_RIGHT))) {
 				flags = TIMER_FLAG_ALLOW_NEGATIVE;
 			}
 
@@ -318,11 +323,11 @@ evdev_button_scroll_button(struct evdev_device *device,
 void
 evdev_pointer_notify_button(struct evdev_device *device,
 			    uint64_t time,
-			    unsigned int button,
+			    evdev_usage_t button,
 			    enum libinput_button_state state)
 {
 	if (device->scroll.method == LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN &&
-	    button == device->scroll.button) {
+	    evdev_usage_cmp(button, device->scroll.button) == 0) {
 		evdev_button_scroll_button(device, time, state);
 		return;
 	}
@@ -790,7 +795,7 @@ evdev_scroll_set_button(struct libinput_device *device,
 {
 	struct evdev_device *evdev = evdev_device(device);
 
-	evdev->scroll.want_button = button;
+	evdev->scroll.want_button = evdev_usage_from_code(EV_KEY, button);
 	evdev->scroll.change_scroll_method(evdev);
 
 	return LIBINPUT_CONFIG_STATUS_SUCCESS;
@@ -803,7 +808,7 @@ evdev_scroll_get_button(struct libinput_device *device)
 
 	/* return the wanted configuration, even if it hasn't taken
 	 * effect yet! */
-	return evdev->scroll.want_button;
+	return evdev_usage_code(evdev->scroll.want_button);
 }
 
 static uint32_t
@@ -902,7 +907,7 @@ evdev_init_button_scroll(struct evdev_device *device,
 	device->base.config.scroll_method = &device->scroll.config;
 	device->scroll.method = evdev_scroll_get_default_method((struct libinput_device *)device);
 	device->scroll.want_method = device->scroll.method;
-	device->scroll.button = evdev_scroll_get_default_button((struct libinput_device *)device);
+	device->scroll.button = evdev_usage_from_code(EV_KEY, evdev_scroll_get_default_button((struct libinput_device *)device));
 	device->scroll.want_button = device->scroll.button;
 	device->scroll.change_scroll_method = change_scroll_method;
 }
@@ -2149,7 +2154,7 @@ evdev_configure_device(struct evdev_device *device)
 		/* want button scrolling config option */
 		if (libevdev_has_event_code(evdev, EV_REL, REL_X) ||
 		    libevdev_has_event_code(evdev, EV_REL, REL_Y))
-			device->scroll.want_button = 1;
+			device->scroll.want_button = evdev_usage_from_code(EV_KEY, 1);
 	}
 
 	if (udev_tags & EVDEV_UDEV_TAG_KEYBOARD) {

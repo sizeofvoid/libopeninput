@@ -126,9 +126,9 @@ tp_tap_notify(struct tp_dispatch *tp,
 	      enum libinput_button_state state)
 {
 	int32_t button;
-	int32_t button_map[2][3] = {
-		{ BTN_LEFT, BTN_RIGHT, BTN_MIDDLE },
-		{ BTN_LEFT, BTN_MIDDLE, BTN_RIGHT },
+	uint32_t button_map[2][3] = {
+		{ EVDEV_BTN_LEFT, EVDEV_BTN_RIGHT, EVDEV_BTN_MIDDLE },
+		{ EVDEV_BTN_LEFT, EVDEV_BTN_MIDDLE, EVDEV_BTN_RIGHT },
 	};
 
 	assert(tp->tap.map < ARRAY_LENGTH(button_map));
@@ -147,7 +147,7 @@ tp_tap_notify(struct tp_dispatch *tp,
 
 	evdev_pointer_notify_button(tp->device,
 				    time,
-				    button,
+				    evdev_usage_from_uint32_t(button),
 				    state);
 }
 

@@ -290,29 +290,29 @@ tp_fake_finger_is_touching(struct tp_dispatch *tp)
 
 static inline void
 tp_fake_finger_set(struct tp_dispatch *tp,
-		   unsigned int code,
+		   evdev_usage_t usage,
 		   bool is_press)
 {
 	unsigned int shift;
 
-	switch (code) {
-	case BTN_TOUCH:
+	switch (evdev_usage_enum(usage)) {
+	case EVDEV_BTN_TOUCH:
 		if (!is_press)
 			tp->fake_touches &= ~FAKE_FINGER_OVERFLOW;
 		shift = 0;
 		break;
-	case BTN_TOOL_FINGER:
+	case EVDEV_BTN_TOOL_FINGER:
 		shift = 1;
 		break;
-	case BTN_TOOL_DOUBLETAP:
-	case BTN_TOOL_TRIPLETAP:
-	case BTN_TOOL_QUADTAP:
-		shift = code - BTN_TOOL_DOUBLETAP + 2;
+	case EVDEV_BTN_TOOL_DOUBLETAP:
+	case EVDEV_BTN_TOOL_TRIPLETAP:
+	case EVDEV_BTN_TOOL_QUADTAP:
+		shift = evdev_usage_enum(usage) - EVDEV_BTN_TOOL_DOUBLETAP + 2;
 		break;
 	/* when QUINTTAP is released we're either switching to 6 fingers
 	   (flag stays in place until BTN_TOUCH is released) or
 	   one of DOUBLE/TRIPLE/QUADTAP (will clear the flag on press) */
-	case BTN_TOOL_QUINTTAP:
+	case EVDEV_BTN_TOOL_QUINTTAP:
 		if (is_press)
 			tp->fake_touches |= FAKE_FINGER_OVERFLOW;
 		return;
@@ -493,20 +493,20 @@ tp_get_delta(struct tp_touch *t)
 }
 
 static inline int32_t
-rotated(struct tp_dispatch *tp, unsigned int code, int value)
+rotated(struct tp_dispatch *tp, evdev_usage_t usage, int value)
 {
 	const struct input_absinfo *absinfo;
 
 	if (!tp->left_handed.rotate)
 		return value;
 
-	switch (code) {
-	case ABS_X:
-	case ABS_MT_POSITION_X:
+	switch (evdev_usage_enum(usage)) {
+	case EVDEV_ABS_X:
+	case EVDEV_ABS_MT_POSITION_X:
 		absinfo = tp->device->abs.absinfo_x;
 		break;
-	case ABS_Y:
-	case ABS_MT_POSITION_Y:
+	case EVDEV_ABS_Y:
+	case EVDEV_ABS_MT_POSITION_Y:
 		absinfo = tp->device->abs.absinfo_y;
 		break;
 	default:
@@ -517,32 +517,32 @@ rotated(struct tp_dispatch *tp, unsigned int code, int value)
 
 static void
 tp_process_absolute(struct tp_dispatch *tp,
-		    const struct input_event *e,
+		    const struct evdev_event *e,
 		    uint64_t time)
 {
 	struct tp_touch *t = tp_current_touch(tp);
 
-	switch(e->code) {
-	case ABS_MT_POSITION_X:
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_ABS_MT_POSITION_X:
 		evdev_device_check_abs_axis_range(tp->device,
-						  e->code,
+						  e->usage,
 						  e->value);
-		t->point.x = rotated(tp, e->code, e->value);
+		t->point.x = rotated(tp, e->usage, e->value);
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
 		break;
-	case ABS_MT_POSITION_Y:
+	case EVDEV_ABS_MT_POSITION_Y:
 		evdev_device_check_abs_axis_range(tp->device,
-						  e->code,
+						  e->usage,
 						  e->value);
-		t->point.y = rotated(tp, e->code, e->value);
+		t->point.y = rotated(tp, e->usage, e->value);
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
 		break;
-	case ABS_MT_SLOT:
+	case EVDEV_ABS_MT_SLOT:
 		tp->slot = e->value;
 		break;
-	case ABS_MT_TRACKING_ID:
+	case EVDEV_ABS_MT_TRACKING_ID:
 		if (e->value != -1) {
 			tp->nactive_slots += 1;
 			tp_new_touch(tp, t, time);
@@ -551,57 +551,61 @@ tp_process_absolute(struct tp_dispatch *tp,
 			tp_end_sequence(tp, t, time);
 		}
 		break;
-	case ABS_MT_PRESSURE:
+	case EVDEV_ABS_MT_PRESSURE:
 		t->pressure = e->value;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
 		break;
-	case ABS_MT_TOOL_TYPE:
+	case EVDEV_ABS_MT_TOOL_TYPE:
 		t->is_tool_palm = e->value == MT_TOOL_PALM;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
 		break;
-	case ABS_MT_TOUCH_MAJOR:
+	case EVDEV_ABS_MT_TOUCH_MAJOR:
 		t->major = e->value;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
 		break;
-	case ABS_MT_TOUCH_MINOR:
+	case EVDEV_ABS_MT_TOUCH_MINOR:
 		t->minor = e->value;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
+		break;
+	default:
 		break;
 	}
 }
 
 static void
 tp_process_absolute_st(struct tp_dispatch *tp,
-		       const struct input_event *e,
+		       const struct evdev_event *e,
 		       uint64_t time)
 {
 	struct tp_touch *t = tp_current_touch(tp);
 
-	switch(e->code) {
-	case ABS_X:
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_ABS_X:
 		evdev_device_check_abs_axis_range(tp->device,
-						  e->code,
+						  e->usage,
 						  e->value);
-		t->point.x = rotated(tp, e->code, e->value);
+		t->point.x = rotated(tp, e->usage, e->value);
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
 		break;
-	case ABS_Y:
+	case EVDEV_ABS_Y:
 		evdev_device_check_abs_axis_range(tp->device,
-						  e->code,
+						  e->usage,
 						  e->value);
-		t->point.y = rotated(tp, e->code, e->value);
+		t->point.y = rotated(tp, e->usage, e->value);
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_MOTION;
 		break;
-	case ABS_PRESSURE:
+	case EVDEV_ABS_PRESSURE:
 		t->pressure = e->value;
 		t->dirty = true;
 		tp->queued |= TOUCHPAD_EVENT_OTHERAXIS;
+		break;
+	default:
 		break;
 	}
 }
@@ -709,7 +713,7 @@ tp_process_fake_touches(struct tp_dispatch *tp,
 
 static void
 tp_process_trackpoint_button(struct tp_dispatch *tp,
-			     const struct input_event *e,
+			     const struct evdev_event *e,
 			     uint64_t time)
 {
 	struct evdev_dispatch *dispatch;
@@ -727,18 +731,18 @@ tp_process_trackpoint_button(struct tp_dispatch *tp,
 
 	dispatch = tp->buttons.trackpoint->dispatch;
 
-	event = *e;
-	syn_report.input_event_sec = e->input_event_sec;
-	syn_report.input_event_usec = e->input_event_usec;
+	event = evdev_event_to_input_event(e, time);
+	syn_report.input_event_sec = event.input_event_sec;
+	syn_report.input_event_usec = event.input_event_usec;
 
-	switch (event.code) {
-	case BTN_0:
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_BTN_0:
 		event.code = BTN_LEFT;
 		break;
-	case BTN_1:
+	case EVDEV_BTN_1:
 		event.code = BTN_RIGHT;
 		break;
-	case BTN_2:
+	case EVDEV_BTN_2:
 		event.code = BTN_MIDDLE;
 		break;
 	default:
@@ -755,41 +759,43 @@ tp_process_trackpoint_button(struct tp_dispatch *tp,
 
 static void
 tp_process_key(struct tp_dispatch *tp,
-	       const struct input_event *e,
+	       const struct evdev_event *e,
 	       uint64_t time)
 {
 	/* ignore kernel key repeat */
 	if (e->value == 2)
 		return;
 
-	switch (e->code) {
-		case BTN_LEFT:
-		case BTN_MIDDLE:
-		case BTN_RIGHT:
-			tp_process_button(tp, e, time);
-			break;
-		case BTN_TOUCH:
-		case BTN_TOOL_FINGER:
-		case BTN_TOOL_DOUBLETAP:
-		case BTN_TOOL_TRIPLETAP:
-		case BTN_TOOL_QUADTAP:
-		case BTN_TOOL_QUINTTAP:
-			tp_fake_finger_set(tp, e->code, !!e->value);
-			break;
-		case BTN_0:
-		case BTN_1:
-		case BTN_2:
-			tp_process_trackpoint_button(tp, e, time);
-			break;
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_BTN_LEFT:
+	case EVDEV_BTN_MIDDLE:
+	case EVDEV_BTN_RIGHT:
+		tp_process_button(tp, e, time);
+		break;
+	case EVDEV_BTN_TOUCH:
+	case EVDEV_BTN_TOOL_FINGER:
+	case EVDEV_BTN_TOOL_DOUBLETAP:
+	case EVDEV_BTN_TOOL_TRIPLETAP:
+	case EVDEV_BTN_TOOL_QUADTAP:
+	case EVDEV_BTN_TOOL_QUINTTAP:
+		tp_fake_finger_set(tp, e->usage, !!e->value);
+		break;
+	case EVDEV_BTN_0:
+	case EVDEV_BTN_1:
+	case EVDEV_BTN_2:
+		tp_process_trackpoint_button(tp, e, time);
+		break;
+	default:
+		break;
 	}
 }
 
 static void
 tp_process_msc(struct tp_dispatch *tp,
-	       const struct input_event *e,
+	       const struct evdev_event *e,
 	       uint64_t time)
 {
-	if (e->code != MSC_TIMESTAMP)
+	if (evdev_usage_eq(e->usage, EVDEV_MSC_TIMESTAMP))
 		return;
 
 	tp->quirks.msc_timestamp.now = e->value;
@@ -1939,23 +1945,25 @@ tp_debug_touch_state(struct tp_dispatch *tp,
 static void
 tp_interface_process(struct evdev_dispatch *dispatch,
 		     struct evdev_device *device,
-		     struct input_event *e,
+		     struct input_event *input_event,
 		     uint64_t time)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
+	struct evdev_event e = evdev_event_from_input_event(input_event, NULL);
 
-	switch (e->type) {
+	uint16_t type = evdev_event_type(&e);
+	switch (type) {
 	case EV_ABS:
 		if (tp->has_mt)
-			tp_process_absolute(tp, e, time);
+			tp_process_absolute(tp, &e, time);
 		else
-			tp_process_absolute_st(tp, e, time);
+			tp_process_absolute_st(tp, &e, time);
 		break;
 	case EV_KEY:
-		tp_process_key(tp, e, time);
+		tp_process_key(tp, &e, time);
 		break;
 	case EV_MSC:
-		tp_process_msc(tp, e, time);
+		tp_process_msc(tp, &e, time);
 		break;
 	case EV_SYN:
 		tp_handle_state(tp, time);
@@ -2643,8 +2651,8 @@ tp_interface_device_removed(struct evdev_device *device,
 
 	if (removed_device == tp->buttons.trackpoint) {
 		/* Clear any pending releases for the trackpoint */
-		if (tp->buttons.active && tp->buttons.active_is_topbutton) {
-			tp->buttons.active = 0;
+		if (evdev_usage_ne(tp->buttons.active, 0) && tp->buttons.active_is_topbutton) {
+			tp->buttons.active = evdev_usage_from_uint32_t(0);
 			tp->buttons.active_is_topbutton = false;
 		}
 		if (tp->palm.monitor_trackpoint)
@@ -2964,7 +2972,7 @@ tp_init_slots(struct tp_dispatch *tp,
 	 * performed.
 	 */
 	if (libevdev_get_event_value(device->evdev, EV_KEY, BTN_TOOL_FINGER))
-		tp_fake_finger_set(tp, BTN_TOOL_FINGER, 1);
+		tp_fake_finger_set(tp, evdev_usage_from(EVDEV_BTN_TOOL_FINGER), true);
 
 	return true;
 }

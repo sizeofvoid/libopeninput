@@ -173,12 +173,12 @@ debounce_notify_button(struct fallback_dispatch *fallback,
 		       enum libinput_button_state state)
 {
 	struct evdev_device *device = fallback->device;
-	unsigned int code = fallback->debounce.button_code;
+	evdev_usage_t usage = fallback->debounce.button_usage;
 	uint64_t time = fallback->debounce.button_time;
 
-	code = evdev_to_left_handed(device, code);
+	usage = evdev_to_left_handed(device, usage);
 
-	fallback_notify_physical_button(fallback, device, time, code, state);
+	fallback_notify_physical_button(fallback, device, time, usage, state);
 }
 
 static void
@@ -484,16 +484,17 @@ void
 fallback_debounce_handle_state(struct fallback_dispatch *dispatch,
 			       uint64_t time)
 {
-	unsigned int changed[16] = {0}; /* event codes of changed buttons */
+	evdev_usage_t changed[16] = {0}; /* usage of changed buttons */
 	size_t nchanged = 0;
 	bool flushed = false;
 
-	for (unsigned int code = 0; code <= KEY_MAX; code++) {
-		if (get_key_type(code) != KEY_TYPE_BUTTON)
+	for (uint32_t u = EVDEV_KEY_RESERVED; u <= EVDEV_KEY_MAX; u++) {
+		evdev_usage_t usage = evdev_usage_from_uint32_t(u);
+		if (get_key_type(usage) != KEY_TYPE_BUTTON)
 			continue;
 
-		if (hw_key_has_changed(dispatch, code))
-			changed[nchanged++] = code;
+		if (hw_key_has_changed(dispatch, usage))
+			changed[nchanged++] = usage;
 
 		/* If you manage to press more than 16 buttons in the same
 		 * frame, we just quietly ignore the rest of them */
@@ -504,7 +505,7 @@ fallback_debounce_handle_state(struct fallback_dispatch *dispatch,
 	/* If we have more than one button this frame or a different button,
 	 * flush the state machine with otherbutton */
 	if (nchanged > 1 ||
-	    changed[0] != dispatch->debounce.button_code) {
+	    evdev_usage_cmp(changed[0], dispatch->debounce.button_usage) != 0) {
 		debounce_handle_event(dispatch,
 				      DEBOUNCE_EVENT_OTHERBUTTON,
 				      time);
@@ -530,7 +531,7 @@ fallback_debounce_handle_state(struct fallback_dispatch *dispatch,
 			flushed = false;
 		}
 
-		dispatch->debounce.button_code = changed[i];
+		dispatch->debounce.button_usage = changed[i];
 		debounce_handle_event(dispatch,
 				      is_down ?
 					      DEBOUNCE_EVENT_PRESS :

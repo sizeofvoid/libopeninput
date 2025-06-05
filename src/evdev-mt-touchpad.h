@@ -384,7 +384,7 @@ struct tp_dispatch {
 			double x_scale_coeff;
 			double y_scale_coeff;
 		} motion_dist;			/* for pinned touches */
-		unsigned int active;		/* currently active button, for release event */
+		evdev_usage_t active;		/* currently active button, for release event */
 		bool active_is_topbutton;	/* is active a top button? */
 
 		/* Only used for clickpads. The software button areas are
@@ -664,7 +664,7 @@ tp_remove_buttons(struct tp_dispatch *tp);
 
 void
 tp_process_button(struct tp_dispatch *tp,
-		  const struct input_event *e,
+		  const struct evdev_event *e,
 		  uint64_t time);
 
 void

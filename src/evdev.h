@@ -37,6 +37,7 @@
 #include "timer.h"
 #include "filter.h"
 #include "quirks.h"
+#include "evdev-frame.h"
 #include "util-input-event.h"
 
 /* The fake resolution value for abs devices without resolution */
@@ -212,13 +213,13 @@ struct evdev_device {
 		struct libinput_device_config_scroll_method config;
 		/* Currently enabled method, button */
 		enum libinput_config_scroll_method method;
-		uint32_t button;
+		evdev_usage_t button;
 		uint64_t button_down_time;
 
 		/* set during device init, used at runtime to delay changes
 		 * until all buttons are up */
 		enum libinput_config_scroll_method want_method;
-		uint32_t want_button;
+		evdev_usage_t want_button;
 		/* Checks if buttons are down and commits the setting */
 		void (*change_scroll_method)(struct evdev_device *device);
 		enum evdev_button_scroll_state button_scroll_state;
@@ -569,12 +570,12 @@ evdev_notify_resumed_device(struct evdev_device *device);
 void
 evdev_pointer_notify_button(struct evdev_device *device,
 			    uint64_t time,
-			    unsigned int button,
+			    evdev_usage_t button,
 			    enum libinput_button_state state);
 void
 evdev_pointer_notify_physical_button(struct evdev_device *device,
 				     uint64_t time,
-				     int button,
+				     evdev_usage_t button,
 				     enum libinput_button_state state);
 
 void
@@ -590,7 +591,7 @@ evdev_set_button_scroll_lock_enabled(struct evdev_device *device,
 
 int
 evdev_update_key_down_count(struct evdev_device *device,
-			    int code,
+			    evdev_usage_t code,
 			    int pressed);
 
 void
@@ -636,7 +637,7 @@ evdev_device_destroy(struct evdev_device *device);
 bool
 evdev_middlebutton_filter_button(struct evdev_device *device,
 				 uint64_t time,
-				 int button,
+				 evdev_usage_t button,
 				 enum libinput_button_state state);
 
 void
@@ -668,15 +669,15 @@ void
 evdev_init_left_handed(struct evdev_device *device,
 		       void (*change_to_left_handed)(struct evdev_device *));
 
-static inline uint32_t
+static inline evdev_usage_t
 evdev_to_left_handed(struct evdev_device *device,
-		     uint32_t button)
+		     evdev_usage_t button)
 {
 	if (device->left_handed.enabled) {
-		if (button == BTN_LEFT)
-			return BTN_RIGHT;
-		else if (button == BTN_RIGHT)
-			return BTN_LEFT;
+		if (evdev_usage_eq(button, EVDEV_BTN_LEFT))
+			return evdev_usage_from(EVDEV_BTN_RIGHT);
+		else if (evdev_usage_eq(button, EVDEV_BTN_RIGHT))
+			return evdev_usage_from(EVDEV_BTN_LEFT);
 	}
 	return button;
 }
@@ -1002,19 +1003,19 @@ evdev_device_init_abs_range_warnings(struct evdev_device *device)
 
 static inline void
 evdev_device_check_abs_axis_range(struct evdev_device *device,
-				  unsigned int code,
+				  evdev_usage_t usage,
 				  int value)
 {
 	int min, max;
 
-	switch(code) {
-	case ABS_X:
-	case ABS_MT_POSITION_X:
+	switch (evdev_usage_enum(usage)) {
+	case EVDEV_ABS_X:
+	case EVDEV_ABS_MT_POSITION_X:
 		min = device->abs.warning_range.min.x;
 		max = device->abs.warning_range.max.x;
 		break;
-	case ABS_Y:
-	case ABS_MT_POSITION_Y:
+	case EVDEV_ABS_Y:
+	case EVDEV_ABS_MT_POSITION_Y:
 		min = device->abs.warning_range.min.y;
 		max = device->abs.warning_range.max.y;
 		break;
@@ -1027,7 +1028,7 @@ evdev_device_check_abs_axis_range(struct evdev_device *device,
 				   &device->abs.warning_range.range_warn_limit,
 				   "Axis %#x value %d is outside expected range [%d, %d]\n"
 				   "See %s/absolute-coordinate-ranges.html for details\n",
-				   code, value, min, max,
+				   evdev_usage_enum(usage), value, min, max,
 				   HTTP_DOC_LINK);
 	}
 }

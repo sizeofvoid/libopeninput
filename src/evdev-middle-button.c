@@ -129,7 +129,7 @@ middlebutton_set_state(struct evdev_device *device,
 static void
 middlebutton_post_event(struct evdev_device *device,
 			uint64_t now,
-			int button,
+			evdev_usage_t button,
 			enum libinput_button_state state)
 {
 	evdev_pointer_notify_button(device,
@@ -175,13 +175,13 @@ evdev_middlebutton_ldown_handle_event(struct evdev_device *device,
 		break;
 	case MIDDLEBUTTON_EVENT_R_DOWN:
 		middlebutton_post_event(device, time,
-					BTN_MIDDLE,
+					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_set_state(device, MIDDLEBUTTON_MIDDLE, time);
 		break;
 	case MIDDLEBUTTON_EVENT_OTHER:
 		middlebutton_post_event(device, time,
-					BTN_LEFT,
+					evdev_usage_from(EVDEV_BTN_LEFT),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_set_state(device,
 				       MIDDLEBUTTON_PASSTHROUGH,
@@ -193,17 +193,17 @@ evdev_middlebutton_ldown_handle_event(struct evdev_device *device,
 	case MIDDLEBUTTON_EVENT_L_UP:
 		middlebutton_post_event(device,
 					device->middlebutton.first_event_time,
-					BTN_LEFT,
+					evdev_usage_from(EVDEV_BTN_LEFT),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_post_event(device, time,
-					BTN_LEFT,
+					evdev_usage_from(EVDEV_BTN_LEFT),
 					LIBINPUT_BUTTON_STATE_RELEASED);
 		middlebutton_set_state(device, MIDDLEBUTTON_IDLE, time);
 		break;
 	case MIDDLEBUTTON_EVENT_TIMEOUT:
 		middlebutton_post_event(device,
 					device->middlebutton.first_event_time,
-					BTN_LEFT,
+					evdev_usage_from(EVDEV_BTN_LEFT),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_set_state(device,
 				       MIDDLEBUTTON_PASSTHROUGH,
@@ -225,7 +225,7 @@ evdev_middlebutton_rdown_handle_event(struct evdev_device *device,
 	switch (event) {
 	case MIDDLEBUTTON_EVENT_L_DOWN:
 		middlebutton_post_event(device, time,
-					BTN_MIDDLE,
+					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_set_state(device, MIDDLEBUTTON_MIDDLE, time);
 		break;
@@ -235,7 +235,7 @@ evdev_middlebutton_rdown_handle_event(struct evdev_device *device,
 	case MIDDLEBUTTON_EVENT_OTHER:
 		middlebutton_post_event(device,
 					device->middlebutton.first_event_time,
-					BTN_RIGHT,
+					evdev_usage_from(EVDEV_BTN_RIGHT),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_set_state(device,
 				       MIDDLEBUTTON_PASSTHROUGH,
@@ -244,10 +244,10 @@ evdev_middlebutton_rdown_handle_event(struct evdev_device *device,
 	case MIDDLEBUTTON_EVENT_R_UP:
 		middlebutton_post_event(device,
 					device->middlebutton.first_event_time,
-					BTN_RIGHT,
+					evdev_usage_from(EVDEV_BTN_RIGHT),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_post_event(device, time,
-					BTN_RIGHT,
+					evdev_usage_from(EVDEV_BTN_RIGHT),
 					LIBINPUT_BUTTON_STATE_RELEASED);
 		middlebutton_set_state(device, MIDDLEBUTTON_IDLE, time);
 		break;
@@ -257,7 +257,7 @@ evdev_middlebutton_rdown_handle_event(struct evdev_device *device,
 	case MIDDLEBUTTON_EVENT_TIMEOUT:
 		middlebutton_post_event(device,
 					device->middlebutton.first_event_time,
-					BTN_RIGHT,
+					evdev_usage_from(EVDEV_BTN_RIGHT),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_set_state(device,
 				       MIDDLEBUTTON_PASSTHROUGH,
@@ -283,13 +283,13 @@ evdev_middlebutton_middle_handle_event(struct evdev_device *device,
 		break;
 	case MIDDLEBUTTON_EVENT_OTHER:
 		middlebutton_post_event(device, time,
-					BTN_MIDDLE,
+					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_RELEASED);
 		middlebutton_set_state(device, MIDDLEBUTTON_IGNORE_LR, time);
 		return 0;
 	case MIDDLEBUTTON_EVENT_R_UP:
 		middlebutton_post_event(device, time,
-					BTN_MIDDLE,
+					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_RELEASED);
 		middlebutton_set_state(device,
 				       MIDDLEBUTTON_LEFT_UP_PENDING,
@@ -297,7 +297,7 @@ evdev_middlebutton_middle_handle_event(struct evdev_device *device,
 		break;
 	case MIDDLEBUTTON_EVENT_L_UP:
 		middlebutton_post_event(device, time,
-					BTN_MIDDLE,
+					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_RELEASED);
 		middlebutton_set_state(device,
 				       MIDDLEBUTTON_RIGHT_UP_PENDING,
@@ -325,7 +325,7 @@ evdev_middlebutton_lup_pending_handle_event(struct evdev_device *device,
 		break;
 	case MIDDLEBUTTON_EVENT_R_DOWN:
 		middlebutton_post_event(device, time,
-					BTN_MIDDLE,
+					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_set_state(device, MIDDLEBUTTON_MIDDLE, time);
 		break;
@@ -357,7 +357,7 @@ evdev_middlebutton_rup_pending_handle_event(struct evdev_device *device,
 	switch (event) {
 	case MIDDLEBUTTON_EVENT_L_DOWN:
 		middlebutton_post_event(device, time,
-					BTN_MIDDLE,
+					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_set_state(device, MIDDLEBUTTON_MIDDLE, time);
 		break;
@@ -577,26 +577,26 @@ evdev_middlebutton_apply_config(struct evdev_device *device)
 bool
 evdev_middlebutton_filter_button(struct evdev_device *device,
 				 uint64_t time,
-				 int button,
+				 evdev_usage_t button,
 				 enum libinput_button_state state)
 {
 	enum evdev_middlebutton_event event;
 	bool is_press = state == LIBINPUT_BUTTON_STATE_PRESSED;
 	int rc;
-	unsigned int btnbit = (button - BTN_LEFT);
+	unsigned int btnbit = (evdev_usage_enum(button) - EVDEV_BTN_LEFT);
 	uint32_t old_mask = 0;
 
 	if (!device->middlebutton.enabled)
 		return false;
 
-	switch (button) {
-	case BTN_LEFT:
+	switch (evdev_usage_enum(button)) {
+	case EVDEV_BTN_LEFT:
 		if (is_press)
 			event = MIDDLEBUTTON_EVENT_L_DOWN;
 		else
 			event = MIDDLEBUTTON_EVENT_L_UP;
 		break;
-	case BTN_RIGHT:
+	case EVDEV_BTN_RIGHT:
 		if (is_press)
 			event = MIDDLEBUTTON_EVENT_R_DOWN;
 		else
@@ -605,18 +605,17 @@ evdev_middlebutton_filter_button(struct evdev_device *device,
 
 	/* BTN_MIDDLE counts as "other" and resets middle button
 	 * emulation */
-	case BTN_MIDDLE:
+	case EVDEV_BTN_MIDDLE:
 	default:
 		event = MIDDLEBUTTON_EVENT_OTHER;
 		break;
 	}
 
-	if (button < BTN_LEFT ||
+	if (evdev_usage_lt(button, EVDEV_BTN_LEFT) ||
 	    btnbit >= sizeof(device->middlebutton.button_mask) * 8) {
 		evdev_log_bug_libinput(device,
 				       "Button mask too small for %s\n",
-				       libevdev_event_code_get_name(EV_KEY,
-								    button));
+				       evdev_usage_code_name(button));
 		return true;
 	}
 

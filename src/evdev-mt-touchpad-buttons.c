@@ -589,16 +589,16 @@ tp_button_handle_timeout(uint64_t now, void *data)
 
 void
 tp_process_button(struct tp_dispatch *tp,
-		  const struct input_event *e,
+		  const struct evdev_event *e,
 		  uint64_t time)
 {
-	uint32_t mask = bit(e->code - BTN_LEFT);
+	uint32_t mask = bit(evdev_usage_enum(e->usage) - EVDEV_BTN_LEFT);
 
 	/* Ignore other buttons on clickpads */
-	if (tp->buttons.is_clickpad && e->code != BTN_LEFT) {
+	if (tp->buttons.is_clickpad && evdev_usage_ne(e->usage, EVDEV_BTN_LEFT)) {
 		evdev_log_bug_kernel(tp->device,
 				     "received %s button event on a clickpad\n",
-				     libevdev_event_code_get_name(EV_KEY, e->code));
+				     evdev_event_get_code_name(e));
 		return;
 	}
 
@@ -1079,20 +1079,21 @@ tp_post_physical_buttons(struct tp_dispatch *tp, uint64_t time)
 
 	current = tp->buttons.state;
 	old = tp->buttons.old_state;
-	button = BTN_LEFT;
+	button = EVDEV_BTN_LEFT;
 
 	while (current || old) {
 		enum libinput_button_state state;
 
 		if ((current & 0x1) ^ (old & 0x1)) {
-			uint32_t b;
+			evdev_usage_t b;
 
 			if (!!(current & 0x1))
 				state = LIBINPUT_BUTTON_STATE_PRESSED;
 			else
 				state = LIBINPUT_BUTTON_STATE_RELEASED;
 
-			b = evdev_to_left_handed(tp->device, button);
+			b = evdev_to_left_handed(tp->device,
+						 evdev_usage_from_uint32_t(button));
 			evdev_pointer_notify_physical_button(tp->device,
 							     time,
 							     b,
@@ -1162,7 +1163,7 @@ out:
 	return within_distance;
 }
 
-static uint32_t
+static evdev_usage_t
 tp_clickfinger_set_button(struct tp_dispatch *tp)
 {
 	uint32_t button;
@@ -1170,9 +1171,9 @@ tp_clickfinger_set_button(struct tp_dispatch *tp)
 	struct tp_touch *t;
 	struct tp_touch *first = NULL,
 			*second = NULL;
-	int32_t button_map[2][3] = {
-		{ BTN_LEFT, BTN_RIGHT, BTN_MIDDLE },
-		{ BTN_LEFT, BTN_MIDDLE, BTN_RIGHT },
+	uint32_t button_map[2][3] = {
+		{ EVDEV_BTN_LEFT, EVDEV_BTN_RIGHT, EVDEV_BTN_MIDDLE },
+		{ EVDEV_BTN_LEFT, EVDEV_BTN_MIDDLE, EVDEV_BTN_RIGHT },
 	};
 
 	tp_for_each_touch(tp, t) {
@@ -1209,19 +1210,21 @@ out:
 	switch (nfingers) {
 	case 1:
 	case 2:
-	case 3: button = button_map[tp->buttons.map][nfingers-1]; break;
+	case 3:
+		button = button_map[tp->buttons.map][nfingers-1];
+		break;
 	default:
 		button = 0;
 		break;
 	}
 
-	return button;
+	return evdev_usage_from_uint32_t(button);
 }
 
 static int
 tp_notify_clickpadbutton(struct tp_dispatch *tp,
 			 uint64_t time,
-			 uint32_t button,
+			 evdev_usage_t button,
 			 uint32_t is_topbutton,
 			 enum libinput_button_state state)
 {
@@ -1233,7 +1236,7 @@ tp_notify_clickpadbutton(struct tp_dispatch *tp,
 			int value;
 
 			value = (state == LIBINPUT_BUTTON_STATE_PRESSED) ? 1 : 0;
-			event = input_event_init(time, EV_KEY, button, value);
+			event = input_event_init(time, EV_KEY, evdev_usage_code(button), value);
 			syn_report = input_event_init(time, EV_SYN, SYN_REPORT, 0);
 			dispatch->interface->process(dispatch,
 						     tp->buttons.trackpoint,
@@ -1263,7 +1266,7 @@ tp_notify_clickpadbutton(struct tp_dispatch *tp,
 		button = tp_clickfinger_set_button(tp);
 		tp->buttons.active = button;
 
-		if (!button)
+		if (evdev_usage_eq(button, 0))
 			return 0;
 	}
 
@@ -1274,7 +1277,8 @@ tp_notify_clickpadbutton(struct tp_dispatch *tp,
 static int
 tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 {
-	uint32_t current, old, button, is_top;
+	uint32_t current, old, is_top;
+	evdev_usage_t button = evdev_usage_from_uint32_t(0);
 	enum libinput_button_state state;
 	enum { AREA = 0x01, LEFT = 0x02, MIDDLE = 0x04, RIGHT = 0x08 };
 	bool want_left_handed = true;
@@ -1339,15 +1343,15 @@ tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 
 		if ((tp->device->middlebutton.enabled || is_top) &&
 		    (area & LEFT) && (area & RIGHT)) {
-			button = BTN_MIDDLE;
+			button = evdev_usage_from(EVDEV_BTN_MIDDLE);
 		} else if (area & MIDDLE) {
-			button = BTN_MIDDLE;
+			button = evdev_usage_from(EVDEV_BTN_MIDDLE);
 		} else if (area & RIGHT) {
-			button = BTN_RIGHT;
+			button = evdev_usage_from(EVDEV_BTN_RIGHT);
 		} else if (area & LEFT) {
-			button = BTN_LEFT;
+			button = evdev_usage_from(EVDEV_BTN_LEFT);
 		} else { /* main or no area (for clickfinger) is always BTN_LEFT */
-			button = BTN_LEFT;
+			button = evdev_usage_from(EVDEV_BTN_LEFT);
 			want_left_handed = false;
 		}
 
@@ -1363,14 +1367,14 @@ tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 	} else {
 		button = tp->buttons.active;
 		is_top = tp->buttons.active_is_topbutton;
-		tp->buttons.active = 0;
+		tp->buttons.active = evdev_usage_from_uint32_t(0);
 		tp->buttons.active_is_topbutton = 0;
 		state = LIBINPUT_BUTTON_STATE_RELEASED;
 	}
 
 	tp->buttons.click_pending = false;
 
-	if (button)
+	if (evdev_usage_ne(button, 0))
 		return tp_notify_clickpadbutton(tp,
 						time,
 						button,
