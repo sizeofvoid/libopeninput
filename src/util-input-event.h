@@ -27,9 +27,11 @@
 
 #include "util-time.h"
 #include "util-mem.h"
+#include "util-newtype.h"
 #include <string.h>
 #include <stdbool.h>
 #include <linux/input.h>
+#include <libevdev/libevdev.h>
 
 static inline struct input_event
 input_event_init(uint64_t time,

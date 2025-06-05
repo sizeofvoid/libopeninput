@@ -313,6 +313,7 @@ foreach h: util_headers
 	executable('test-build-@0@'.format(h),
 		   testfile,
 		   include_directories : [includes_src, includes_include],
+		   dependencies: [dep_libevdev],
 		   install : false)
 endforeach
 

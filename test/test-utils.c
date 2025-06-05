@@ -2562,6 +2562,7 @@ END_TEST
 
 START_TEST(evdev_frames)
 {
+#define U(u_) evdev_usage_from_uint32_t(u_)
 	{
 		evdev_frame_unref(NULL); /* unref on NULL is permitted */
 	}
@@ -2574,21 +2575,21 @@ START_TEST(evdev_frames)
 	}
 	{
 		_unref_(evdev_frame) *frame = evdev_frame_new(3);
-		struct input_event toobig[] = {
-			{ .type = EV_ABS, .code = ABS_X, .value = 1, },
-			{ .type = EV_ABS, .code = ABS_Y, .value = 2, },
-			{ .type = EV_ABS, .code = ABS_Z, .value = 3, },
-			{ .type = EV_SYN, .code = SYN_REPORT, .value = 0, },
+		struct evdev_event toobig[] = {
+			{ .usage = U(EVDEV_ABS_X), .value = 1, },
+			{ .usage = U(EVDEV_ABS_Y), .value = 2, },
+			{ .usage = U(EVDEV_ABS_Z), .value = 3, },
+			{ .usage = U(EVDEV_SYN_REPORT), .value = 0, },
 		};
 
 		int rc = evdev_frame_set(frame, toobig, ARRAY_LENGTH(toobig));
 		litest_assert_int_eq(rc, -ENOMEM);
 	}
 	{
-		struct input_event events[] = {
-			{ .type = EV_ABS, .code = ABS_X, .value = 1, },
-			{ .type = EV_ABS, .code = ABS_Y, .value = 2, },
-			{ .type = EV_SYN, .code = SYN_REPORT, .value = 0, },
+		struct evdev_event events[] = {
+			{ .usage = U(EVDEV_ABS_X), .value = 1, },
+			{ .usage = U(EVDEV_ABS_Y), .value = 2, },
+			{ .usage = U(EVDEV_SYN_REPORT), .value = 0, },
 		};
 
 		_unref_(evdev_frame) *frame = evdev_frame_new(3);
@@ -2607,10 +2608,10 @@ START_TEST(evdev_frames)
 		litest_assert_int_eq(rc, -ENOMEM);
 	}
 	{
-		struct input_event events[] = {
-			{ .type = EV_ABS, .code = ABS_X, .value = 1, },
-			{ .type = EV_ABS, .code = ABS_Y, .value = 2, },
-			{ .type = EV_SYN, .code = SYN_REPORT, .value = 0, },
+		struct evdev_event events[] = {
+			{ .usage = U(EVDEV_ABS_X), .value = 1, },
+			{ .usage = U(EVDEV_ABS_Y), .value = 2, },
+			{ .usage = U(EVDEV_SYN_REPORT), .value = 0, },
 		};
 
 		_unref_(evdev_frame) *frame = evdev_frame_new(3);
@@ -2625,13 +2626,13 @@ START_TEST(evdev_frames)
 		litest_assert_int_eq(evdev_frame_get_count(frame), 3U); /* SYN_REPORT already there */
 	}
 	{
-		struct input_event interrupted[] = {
-			{ .type = EV_ABS, .code = ABS_X, .value = 1, },
-			{ .type = EV_ABS, .code = ABS_Y, .value = 2, },
-			{ .type = EV_SYN, .code = SYN_REPORT, .value = 0, },
-			{ .type = EV_ABS, .code = ABS_RX, .value = 1, },
-			{ .type = EV_ABS, .code = ABS_RY, .value = 2, },
-			{ .type = EV_SYN, .code = SYN_REPORT, .value = 0, },
+		struct evdev_event interrupted[] = {
+			{ .usage = U(EVDEV_ABS_X), .value = 1, },
+			{ .usage = U(EVDEV_ABS_Y), .value = 2, },
+			{ .usage = U(EVDEV_SYN_REPORT), .value = 0, },
+			{ .usage = U(EVDEV_ABS_RX), .value = 1, },
+			{ .usage = U(EVDEV_ABS_RY), .value = 2, },
+			{ .usage = U(EVDEV_SYN_REPORT), .value = 0, },
 		};
 
 		_unref_(evdev_frame) *frame = evdev_frame_new(5);
@@ -2649,57 +2650,6 @@ START_TEST(evdev_frames)
 
 		/* We never appended a timestamp */
 		litest_assert_int_eq(evdev_frame_get_time(frame), 0U);
-	}
-	{
-		struct input_event e = {
-			.type = EV_ABS,
-			.code = ABS_X,
-			.value = 1,
-			.input_event_sec = 1234,
-			.input_event_usec = 567,
-
-		};
-
-		_unref_(evdev_frame) *frame = evdev_frame_new(3);
-		litest_assert_int_eq(evdev_frame_get_time(frame), 0U);
-
-		evdev_frame_append(frame, &e, 1);
-		litest_assert_int_eq(evdev_frame_get_time(frame), 1234000567U);
-		evdev_frame_append(frame, &e, 1);
-		litest_assert_int_eq(evdev_frame_get_time(frame), 1234000567U);
-
-		struct input_event syn = {
-			.type = EV_SYN,
-			.code = SYN_REPORT,
-			.value = 0,
-			.input_event_sec = 111,
-			.input_event_usec = 333,
-
-		};
-
-		litest_assert_neg_errno_success(evdev_frame_append(frame, &syn, 1));
-		litest_assert_int_eq(evdev_frame_get_time(frame), 111000333U);
-
-		/* SYN_REPORT overwrites lower timestamp */
-		syn.input_event_usec = 111;
-		litest_assert_neg_errno_success(evdev_frame_append(frame, &syn, 1));
-		litest_assert_int_eq(evdev_frame_get_time(frame), 111000111U);
-	}
-	{
-		/* Expect highest timestamp */
-		_unref_(evdev_frame) *frame = evdev_frame_new(4);
-		struct input_event mixed_times[] = {
-			{ .type = EV_ABS, .code = ABS_X, .value = 1, .input_event_sec = 12, .input_event_usec = 700, },
-			{ .type = EV_ABS, .code = ABS_Y, .value = 2, .input_event_sec = 56, .input_event_usec = 800, },
-			{ .type = EV_ABS, .code = ABS_Z, .value = 3, .input_event_sec = 34, .input_event_usec = 900, },
-			{ .type = EV_SYN, .code = SYN_REPORT, .value = 0, .input_event_sec = 0, .input_event_usec = 1, },
-		};
-		evdev_frame_set(frame, mixed_times, 3);
-		litest_assert_int_eq(evdev_frame_get_time(frame), 56000800U);
-
-		/* but SYN_REPORT overwrites any other timestamp */
-		evdev_frame_set(frame, mixed_times, 4);
-		litest_assert_int_eq(evdev_frame_get_time(frame), 1U);
 	}
 }
 END_TEST
