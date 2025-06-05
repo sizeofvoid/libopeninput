@@ -83,16 +83,17 @@ pad_any_button_down(const struct pad_dispatch *pad)
 
 static inline void
 pad_button_set_down(struct pad_dispatch *pad,
-		    uint32_t button,
+		    evdev_usage_t button,
 		    bool is_down)
 {
 	struct button_state *state = &pad->button_state;
+	unsigned int code = evdev_usage_code(button);
 
 	if (is_down) {
-		set_bit(state->bits, button);
+		set_bit(state->bits, code);
 		pad_set_status(pad, PAD_BUTTONS_PRESSED);
 	} else {
-		clear_bit(state->bits, button);
+		clear_bit(state->bits, code);
 		pad_set_status(pad, PAD_BUTTONS_RELEASED);
 	}
 }
@@ -100,35 +101,35 @@ pad_button_set_down(struct pad_dispatch *pad,
 static void
 pad_process_relative(struct pad_dispatch *pad,
 		     struct evdev_device *device,
-		     struct input_event *e,
+		     struct evdev_event *e,
 		     uint64_t time)
 {
-	switch (e->code) {
-	case REL_DIAL:
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_REL_DIAL:
 		pad->dials.dial1 = e->value * 120;
 		pad->changed_axes |= PAD_AXIS_DIAL1;
 		pad_set_status(pad, PAD_AXES_UPDATED);
 		break;
-	case REL_WHEEL:
+	case EVDEV_REL_WHEEL:
 		if (!pad->dials.has_hires_dial) {
 			pad->dials.dial1 = -1 * e->value * 120;
 			pad->changed_axes |= PAD_AXIS_DIAL1;
 			pad_set_status(pad, PAD_AXES_UPDATED);
 		}
 		break;
-	case REL_HWHEEL:
+	case EVDEV_REL_HWHEEL:
 		if (!pad->dials.has_hires_dial) {
 			pad->dials.dial2 = e->value * 120;
 			pad->changed_axes |= PAD_AXIS_DIAL2;
 			pad_set_status(pad, PAD_AXES_UPDATED);
 		}
 		break;
-	case REL_WHEEL_HI_RES:
+	case EVDEV_REL_WHEEL_HI_RES:
 		pad->dials.dial1 = -1 * e->value;
 		pad->changed_axes |= PAD_AXIS_DIAL1;
 		pad_set_status(pad, PAD_AXES_UPDATED);
 		break;
-	case REL_HWHEEL_HI_RES:
+	case EVDEV_REL_HWHEEL_HI_RES:
 		pad->dials.dial2 = e->value;
 		pad->changed_axes |= PAD_AXIS_DIAL2;
 		pad_set_status(pad, PAD_AXES_UPDATED);
@@ -136,7 +137,7 @@ pad_process_relative(struct pad_dispatch *pad,
 	default:
 		evdev_log_info(device,
 			       "Unhandled EV_REL event code %#x\n",
-			       e->code);
+			       evdev_usage_as_uint32_t(e->usage));
 		break;
 	}
 }
@@ -144,13 +145,13 @@ pad_process_relative(struct pad_dispatch *pad,
 static void
 pad_update_changed_axis(struct pad_dispatch *pad,
 			enum pad_axes axis,
-			const struct input_event *e)
+			const struct evdev_event *e)
 {
 	if (pad->changed_axes & axis) {
 		evdev_log_bug_kernel_ratelimit(pad->device,
 					       &pad->duplicate_abs_limit,
 					       "Multiple EV_ABS %s events in the same SYN_REPORT\n",
-					       libevdev_event_code_get_name(EV_ABS, e->code));
+					       evdev_event_get_code_name(e));
 
 		/* Special heuristics probably good enough:
 		 * if we get multiple EV_ABS in the same SYN_REPORT
@@ -172,17 +173,17 @@ pad_update_changed_axis(struct pad_dispatch *pad,
 static void
 pad_process_absolute(struct pad_dispatch *pad,
 		     struct evdev_device *device,
-		     struct input_event *e,
+		     struct evdev_event *e,
 		     uint64_t time)
 {
 	enum pad_axes axis = PAD_AXIS_NONE;
 
-	switch (e->code) {
-	case ABS_WHEEL:		axis = PAD_AXIS_RING1; break;
-	case ABS_THROTTLE:	axis = PAD_AXIS_RING2; break;
-	case ABS_RX:		axis = PAD_AXIS_STRIP1; break;
-	case ABS_RY:		axis = PAD_AXIS_STRIP2; break;
-	case ABS_MISC:
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_ABS_WHEEL:	 axis = PAD_AXIS_RING1; break;
+	case EVDEV_ABS_THROTTLE: axis = PAD_AXIS_RING2; break;
+	case EVDEV_ABS_RX:	 axis = PAD_AXIS_STRIP1; break;
+	case EVDEV_ABS_RY:	 axis = PAD_AXIS_STRIP2; break;
+	case EVDEV_ABS_MISC:
 		/* The wacom driver always sends a 0 axis event on finger
 		   up, but we also get an ABS_MISC 15 on touch down and
 		   ABS_MISC 0 on touch up, on top of the actual event. This
@@ -202,7 +203,7 @@ pad_process_absolute(struct pad_dispatch *pad,
 	default:
 		evdev_log_info(device,
 			       "Unhandled EV_ABS event code %#x\n",
-			       e->code);
+			       evdev_usage_as_uint32_t(e->usage));
 		break;
 	}
 
@@ -438,17 +439,16 @@ pad_check_notify_axes(struct pad_dispatch *pad,
 static void
 pad_process_key(struct pad_dispatch *pad,
 		struct evdev_device *device,
-		struct input_event *e,
+		struct evdev_event *e,
 		uint64_t time)
 {
-	uint32_t button = e->code;
 	uint32_t is_press = e->value != 0;
 
 	/* ignore kernel key repeat */
 	if (e->value == 2)
 		return;
 
-	pad_button_set_down(pad, button, is_press);
+	pad_button_set_down(pad, e->usage, is_press);
 }
 
 static inline struct libinput_tablet_pad_mode_group *
@@ -591,20 +591,23 @@ pad_flush(struct pad_dispatch *pad,
 static void
 pad_process(struct evdev_dispatch *dispatch,
 	    struct evdev_device *device,
-	    struct input_event *e,
+	    struct input_event *input_event,
 	    uint64_t time)
 {
 	struct pad_dispatch *pad = pad_dispatch(dispatch);
 
-	switch (e->type) {
+	struct evdev_event e = evdev_event_from_input_event(input_event, NULL);
+
+	uint16_t type = evdev_event_type(&e);
+	switch (type) {
 	case EV_REL:
-		pad_process_relative(pad, device, e, time);
+		pad_process_relative(pad, device, &e, time);
 		break;
 	case EV_ABS:
-		pad_process_absolute(pad, device, e, time);
+		pad_process_absolute(pad, device, &e, time);
 		break;
 	case EV_KEY:
-		pad_process_key(pad, device, e, time);
+		pad_process_key(pad, device, &e, time);
 		break;
 	case EV_SYN:
 		pad_flush(pad, device, time);
@@ -616,8 +619,8 @@ pad_process(struct evdev_dispatch *dispatch,
 	default:
 		evdev_log_error(device,
 				"Unexpected event type %s (%#x)\n",
-				libevdev_event_type_get_name(e->type),
-				e->type);
+				libevdev_event_type_get_name(type),
+				evdev_usage_as_uint32_t(e.usage));
 		break;
 	}
 }
@@ -631,8 +634,9 @@ pad_suspend(struct evdev_dispatch *dispatch,
 	unsigned int code;
 
 	for (code = KEY_ESC; code < KEY_CNT; code++) {
+		evdev_usage_t usage = evdev_usage_from_code(EV_KEY, code);
 		if (pad_button_is_down(pad, code))
-			pad_button_set_down(pad, code, false);
+			pad_button_set_down(pad, usage, false);
 	}
 
 	pad_flush(pad, device, libinput_now(libinput));
