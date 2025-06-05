@@ -183,7 +183,7 @@ tablet_device_has_axis(struct tablet_dispatch *tablet,
 static inline bool
 tablet_filter_axis_fuzz(const struct tablet_dispatch *tablet,
 			const struct evdev_device *device,
-			const struct input_event *e,
+			const struct evdev_event *e,
 			enum libinput_tablet_tool_axis axis)
 {
 	int delta, fuzz;
@@ -193,14 +193,14 @@ tablet_filter_axis_fuzz(const struct tablet_dispatch *tablet,
 	current = e->value;
 	delta = previous - current;
 
-	fuzz = libevdev_get_abs_fuzz(device->evdev, e->code);
+	fuzz = libevdev_get_abs_fuzz(device->evdev, evdev_usage_code(e->usage));
 
 	/* ABS_DISTANCE doesn't have have fuzz set and causes continuous
 	 * updates for the cursor/lens tools. Add a minimum fuzz of 2, same
 	 * as the xf86-input-wacom driver
 	 */
-	switch (e->code) {
-	case ABS_DISTANCE:
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_ABS_DISTANCE:
 		fuzz = max(2, fuzz);
 		break;
 	default:
@@ -213,25 +213,25 @@ tablet_filter_axis_fuzz(const struct tablet_dispatch *tablet,
 static void
 tablet_process_absolute(struct tablet_dispatch *tablet,
 			struct evdev_device *device,
-			struct input_event *e,
+			struct evdev_event *e,
 			uint64_t time)
 {
 	enum libinput_tablet_tool_axis axis;
 
-	switch (e->code) {
-	case ABS_X:
-	case ABS_Y:
-	case ABS_Z:
-	case ABS_PRESSURE:
-	case ABS_TILT_X:
-	case ABS_TILT_Y:
-	case ABS_DISTANCE:
-	case ABS_WHEEL:
-		axis = evcode_to_axis(e->code);
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_ABS_X:
+	case EVDEV_ABS_Y:
+	case EVDEV_ABS_Z:
+	case EVDEV_ABS_PRESSURE:
+	case EVDEV_ABS_TILT_X:
+	case EVDEV_ABS_TILT_Y:
+	case EVDEV_ABS_DISTANCE:
+	case EVDEV_ABS_WHEEL:
+		axis = evdev_usage_to_axis(e->usage);
 		if (axis == LIBINPUT_TABLET_TOOL_AXIS_NONE) {
 			evdev_log_bug_libinput(device,
 					       "Invalid ABS event code %#x\n",
-					       e->code);
+					       evdev_usage_as_uint32_t(e->usage));
 			break;
 		}
 
@@ -245,24 +245,24 @@ tablet_process_absolute(struct tablet_dispatch *tablet,
 		break;
 	/* tool_id is the identifier for the tool we can use in libwacom
 	 * to identify it (if we have one anyway) */
-	case ABS_MISC:
+	case EVDEV_ABS_MISC:
 		tablet->current_tool.id = e->value;
 		break;
 	/* Intuos 3 strip data. Should only happen on the Pad device, not on
 	   the Pen device. */
-	case ABS_RX:
-	case ABS_RY:
+	case EVDEV_ABS_RX:
+	case EVDEV_ABS_RY:
 	/* Only on the 4D mouse (Intuos2), obsolete */
-	case ABS_RZ:
+	case EVDEV_ABS_RZ:
 	/* Only on the 4D mouse (Intuos2), obsolete.
 	   The 24HD sends ABS_THROTTLE on the Pad device for the second
 	   wheel but we shouldn't get here on kernel >= 3.17.
 	   */
-	case ABS_THROTTLE:
+	case EVDEV_ABS_THROTTLE:
 	default:
 		evdev_log_info(device,
 			       "Unhandled ABS event code %#x\n",
-			       e->code);
+			       evdev_usage_as_uint32_t(e->usage));
 		break;
 	}
 }
@@ -845,52 +845,52 @@ out:
 
 static void
 tablet_update_button(struct tablet_dispatch *tablet,
-		     uint32_t evcode,
+		     evdev_usage_t usage,
 		     uint32_t enable)
 {
-	switch (evcode) {
-	case BTN_LEFT:
-	case BTN_RIGHT:
-	case BTN_MIDDLE:
-	case BTN_SIDE:
-	case BTN_EXTRA:
-	case BTN_FORWARD:
-	case BTN_BACK:
-	case BTN_TASK:
-	case BTN_STYLUS:
-	case BTN_STYLUS2:
-	case BTN_STYLUS3:
+	switch (evdev_usage_enum(usage)) {
+	case EVDEV_BTN_LEFT:
+	case EVDEV_BTN_RIGHT:
+	case EVDEV_BTN_MIDDLE:
+	case EVDEV_BTN_SIDE:
+	case EVDEV_BTN_EXTRA:
+	case EVDEV_BTN_FORWARD:
+	case EVDEV_BTN_BACK:
+	case EVDEV_BTN_TASK:
+	case EVDEV_BTN_STYLUS:
+	case EVDEV_BTN_STYLUS2:
+	case EVDEV_BTN_STYLUS3:
 		break;
 	default:
 		evdev_log_info(tablet->device,
 			       "Unhandled button %s (%#x)\n",
-			       libevdev_event_code_get_name(EV_KEY, evcode),
-			       evcode);
+			       evdev_usage_code_name(usage),
+			       evdev_usage_as_uint32_t(usage));
 		return;
 	}
 
 	if (enable) {
-		set_bit(tablet->button_state.bits, evcode);
+		set_bit(tablet->button_state.bits, evdev_usage_code(usage));
 		tablet_set_status(tablet, TABLET_BUTTONS_PRESSED);
 	} else {
-		clear_bit(tablet->button_state.bits, evcode);
+		clear_bit(tablet->button_state.bits, evdev_usage_code(usage));
 		tablet_set_status(tablet, TABLET_BUTTONS_RELEASED);
 	}
 }
 
 static inline enum libinput_tablet_tool_type
-tablet_evcode_to_tool(int code)
+tablet_evdev_usage_to_tool(evdev_usage_t usage)
 {
 	enum libinput_tablet_tool_type type;
 
-	switch (code) {
-	case BTN_TOOL_PEN:	type = LIBINPUT_TABLET_TOOL_TYPE_PEN;		break;
-	case BTN_TOOL_RUBBER:	type = LIBINPUT_TABLET_TOOL_TYPE_ERASER;	break;
-	case BTN_TOOL_BRUSH:	type = LIBINPUT_TABLET_TOOL_TYPE_BRUSH;		break;
-	case BTN_TOOL_PENCIL:	type = LIBINPUT_TABLET_TOOL_TYPE_PENCIL;	break;
-	case BTN_TOOL_AIRBRUSH:	type = LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH;	break;
-	case BTN_TOOL_MOUSE:	type = LIBINPUT_TABLET_TOOL_TYPE_MOUSE;		break;
-	case BTN_TOOL_LENS:	type = LIBINPUT_TABLET_TOOL_TYPE_LENS;		break;
+	switch (evdev_usage_enum(usage)) {
+	case EVDEV_BTN_TOOL_PEN:	type = LIBINPUT_TABLET_TOOL_TYPE_PEN;		break;
+	case EVDEV_BTN_TOOL_RUBBER:	type = LIBINPUT_TABLET_TOOL_TYPE_ERASER;	break;
+	case EVDEV_BTN_TOOL_BRUSH:	type = LIBINPUT_TABLET_TOOL_TYPE_BRUSH;		break;
+	case EVDEV_BTN_TOOL_PENCIL:	type = LIBINPUT_TABLET_TOOL_TYPE_PENCIL;	break;
+	case EVDEV_BTN_TOOL_AIRBRUSH:	type = LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH;	break;
+	case EVDEV_BTN_TOOL_MOUSE:	type = LIBINPUT_TABLET_TOOL_TYPE_MOUSE;		break;
+	case EVDEV_BTN_TOOL_LENS:	type = LIBINPUT_TABLET_TOOL_TYPE_LENS;		break;
 	default:
 		abort();
 	}
@@ -901,7 +901,7 @@ tablet_evcode_to_tool(int code)
 static void
 tablet_process_key(struct tablet_dispatch *tablet,
 		   struct evdev_device *device,
-		   struct input_event *e,
+		   struct evdev_event *e,
 		   uint64_t time)
 {
 	enum libinput_tablet_tool_type type;
@@ -910,26 +910,26 @@ tablet_process_key(struct tablet_dispatch *tablet,
 	if (e->value == 2)
 		return;
 
-	switch (e->code) {
-	case BTN_TOOL_FINGER:
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_BTN_TOOL_FINGER:
 		evdev_log_bug_libinput(device,
 			       "Invalid tool 'finger' on tablet interface\n");
 		break;
-	case BTN_TOOL_PEN:
-	case BTN_TOOL_RUBBER:
-	case BTN_TOOL_BRUSH:
-	case BTN_TOOL_PENCIL:
-	case BTN_TOOL_AIRBRUSH:
-	case BTN_TOOL_MOUSE:
-	case BTN_TOOL_LENS:
-		type = tablet_evcode_to_tool(e->code);
+	case EVDEV_BTN_TOOL_PEN:
+	case EVDEV_BTN_TOOL_RUBBER:
+	case EVDEV_BTN_TOOL_BRUSH:
+	case EVDEV_BTN_TOOL_PENCIL:
+	case EVDEV_BTN_TOOL_AIRBRUSH:
+	case EVDEV_BTN_TOOL_MOUSE:
+	case EVDEV_BTN_TOOL_LENS:
+		type = tablet_evdev_usage_to_tool(e->usage);
 		tablet_set_status(tablet, TABLET_TOOL_UPDATED);
 		if (e->value)
 			tablet->tool_state |= bit(type);
 		else
 			tablet->tool_state &= ~bit(type);
 		break;
-	case BTN_TOUCH:
+	case EVDEV_BTN_TOUCH:
 		if (!bit_is_set(tablet->axis_caps,
 				LIBINPUT_TABLET_TOOL_AXIS_PRESSURE)) {
 			if (e->value)
@@ -941,7 +941,7 @@ tablet_process_key(struct tablet_dispatch *tablet,
 		}
 		break;
 	default:
-		tablet_update_button(tablet, e->code, e->value);
+		tablet_update_button(tablet, e->usage, e->value);
 		break;
 	}
 }
@@ -949,18 +949,18 @@ tablet_process_key(struct tablet_dispatch *tablet,
 static void
 tablet_process_relative(struct tablet_dispatch *tablet,
 			struct evdev_device *device,
-			struct input_event *e,
+			struct evdev_event *e,
 			uint64_t time)
 {
 	enum libinput_tablet_tool_axis axis;
 
-	switch (e->code) {
-	case REL_WHEEL:
-		axis = rel_evcode_to_axis(e->code);
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_REL_WHEEL:
+		axis = evdev_usage_to_axis(e->usage);
 		if (axis == LIBINPUT_TABLET_TOOL_AXIS_NONE) {
 			evdev_log_bug_libinput(device,
 					       "Invalid ABS event code %#x\n",
-					       e->code);
+					       evdev_usage_as_uint32_t(e->usage));
 			break;
 		}
 		set_bit(tablet->changed_axes, axis);
@@ -970,8 +970,8 @@ tablet_process_relative(struct tablet_dispatch *tablet,
 	default:
 		evdev_log_info(device,
 			       "Unhandled relative axis %s (%#x)\n",
-			       libevdev_event_code_get_name(EV_REL, e->code),
-			       e->code);
+			       evdev_event_get_code_name(e),
+			       evdev_usage_as_uint32_t(e->usage));
 		return;
 	}
 }
@@ -979,22 +979,22 @@ tablet_process_relative(struct tablet_dispatch *tablet,
 static void
 tablet_process_misc(struct tablet_dispatch *tablet,
 		    struct evdev_device *device,
-		    struct input_event *e,
+		    struct evdev_event *e,
 		    uint64_t time)
 {
-	switch (e->code) {
-	case MSC_SERIAL:
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_MSC_SERIAL:
 		if (e->value != -1)
 			tablet->current_tool.serial = e->value;
 
 		break;
-	case MSC_SCAN:
+	case EVDEV_MSC_SCAN:
 		break;
 	default:
 		evdev_log_info(device,
 			       "Unhandled MSC event code %s (%#x)\n",
-			       libevdev_event_code_get_name(EV_MSC, e->code),
-			       e->code);
+			       evdev_event_get_code_name(e),
+			       evdev_usage_as_uint32_t(e->usage));
 		break;
 	}
 }
@@ -2386,23 +2386,25 @@ tablet_proximity_out_quirk_timer_func(uint64_t now, void *data)
 static void
 tablet_process(struct evdev_dispatch *dispatch,
 	       struct evdev_device *device,
-	       struct input_event *e,
+	       struct input_event *input_event,
 	       uint64_t time)
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 
-	switch (e->type) {
+	struct evdev_event e = evdev_event_from_input_event(input_event, NULL);
+	uint16_t type = evdev_event_type(&e);
+	switch (type) {
 	case EV_ABS:
-		tablet_process_absolute(tablet, device, e, time);
+		tablet_process_absolute(tablet, device, &e, time);
 		break;
 	case EV_REL:
-		tablet_process_relative(tablet, device, e, time);
+		tablet_process_relative(tablet, device, &e, time);
 		break;
 	case EV_KEY:
-		tablet_process_key(tablet, device, e, time);
+		tablet_process_key(tablet, device, &e, time);
 		break;
 	case EV_MSC:
-		tablet_process_misc(tablet, device, e, time);
+		tablet_process_misc(tablet, device, &e, time);
 		break;
 	case EV_SYN:
 		tablet_flush(tablet, device, time);
@@ -2413,8 +2415,8 @@ tablet_process(struct evdev_dispatch *dispatch,
 	default:
 		evdev_log_error(device,
 				"Unexpected event type %s (%#x)\n",
-				libevdev_event_type_get_name(e->type),
-				e->type);
+				evdev_event_get_type_name(&e),
+				evdev_event_type(&e));
 		break;
 	}
 }

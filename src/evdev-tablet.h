@@ -137,50 +137,36 @@ tablet_dispatch(struct evdev_dispatch *dispatch)
 }
 
 static inline enum libinput_tablet_tool_axis
-evcode_to_axis(const uint32_t evcode)
+evdev_usage_to_axis(evdev_usage_t usage)
 {
 	enum libinput_tablet_tool_axis axis;
 
-	switch (evcode) {
-	case ABS_X:
+	switch (evdev_usage_enum(usage)) {
+	case EVDEV_ABS_X:
 		axis = LIBINPUT_TABLET_TOOL_AXIS_X;
 		break;
-	case ABS_Y:
+	case EVDEV_ABS_Y:
 		axis = LIBINPUT_TABLET_TOOL_AXIS_Y;
 		break;
-	case ABS_Z:
+	case EVDEV_ABS_Z:
 		axis = LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z;
 		break;
-	case ABS_DISTANCE:
+	case EVDEV_ABS_DISTANCE:
 		axis = LIBINPUT_TABLET_TOOL_AXIS_DISTANCE;
 		break;
-	case ABS_PRESSURE:
+	case EVDEV_ABS_PRESSURE:
 		axis = LIBINPUT_TABLET_TOOL_AXIS_PRESSURE;
 		break;
-	case ABS_TILT_X:
+	case EVDEV_ABS_TILT_X:
 		axis = LIBINPUT_TABLET_TOOL_AXIS_TILT_X;
 		break;
-	case ABS_TILT_Y:
+	case EVDEV_ABS_TILT_Y:
 		axis = LIBINPUT_TABLET_TOOL_AXIS_TILT_Y;
 		break;
-	case ABS_WHEEL:
+	case EVDEV_ABS_WHEEL:
 		axis = LIBINPUT_TABLET_TOOL_AXIS_SLIDER;
 		break;
-	default:
-		axis = LIBINPUT_TABLET_TOOL_AXIS_NONE;
-		break;
-	}
-
-	return axis;
-}
-
-static inline enum libinput_tablet_tool_axis
-rel_evcode_to_axis(const uint32_t evcode)
-{
-	enum libinput_tablet_tool_axis axis;
-
-	switch (evcode) {
-	case REL_WHEEL:
+	case EVDEV_REL_WHEEL:
 		axis = LIBINPUT_TABLET_TOOL_AXIS_REL_WHEEL;
 		break;
 	default:
