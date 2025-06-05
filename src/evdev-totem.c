@@ -527,22 +527,20 @@ totem_handle_state(struct totem_dispatch *totem,
 static void
 totem_interface_process(struct evdev_dispatch *dispatch,
 			struct evdev_device *device,
-			struct input_event *input_event,
+			struct evdev_event *e,
 			uint64_t time)
 {
 	struct totem_dispatch *totem = totem_dispatch(dispatch);
 	enum totem_slot_state global_state;
 	bool enable_touch;
 
-	struct evdev_event e = evdev_event_from_input_event(input_event, NULL);
-
-	uint16_t type = evdev_event_type(&e);
+	uint16_t type = evdev_event_type(e);
 	switch(type) {
 	case EV_ABS:
-		totem_process_abs(totem, device, &e, time);
+		totem_process_abs(totem, device, e, time);
 		break;
 	case EV_KEY:
-		totem_process_key(totem, device, &e, time);
+		totem_process_key(totem, device, e, time);
 		break;
 	case EV_MSC:
 		/* timestamp, ignore */
@@ -557,8 +555,8 @@ totem_interface_process(struct evdev_dispatch *dispatch,
 	default:
 		evdev_log_error(device,
 				"Unexpected event %s (%#x)\n",
-				evdev_event_get_code_name(&e),
-				evdev_usage_as_uint32_t(e.usage));
+				evdev_event_get_code_name(e),
+				evdev_usage_as_uint32_t(e->usage));
 		break;
 	}
 }

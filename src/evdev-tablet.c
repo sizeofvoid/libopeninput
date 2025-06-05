@@ -2343,18 +2343,15 @@ static void
 tablet_proximity_out_quirk_timer_func(uint64_t now, void *data)
 {
 	struct tablet_dispatch *tablet = data;
-	struct timeval tv = us2tv(now);
-	struct input_event events[2] = {
-		{ .input_event_sec = tv.tv_sec,
-		  .input_event_usec = tv.tv_usec,
-		  .type = EV_KEY,
-		  .code = BTN_TOOL_PEN,
-		  .value = 0 },
-		{ .input_event_sec = tv.tv_sec,
-		  .input_event_usec = tv.tv_usec,
-		  .type = EV_SYN,
-		  .code = SYN_REPORT,
-		  .value = 0 },
+	struct evdev_event events[2] = {
+		{
+			.usage = evdev_usage_from(EVDEV_BTN_TOOL_PEN),
+			.value = 0
+		},
+		{
+			.usage = evdev_usage_from(EVDEV_SYN_REPORT),
+			.value = 0,
+		}
 	};
 
 	if (tablet_has_status(tablet, TABLET_TOOL_IN_CONTACT) ||
@@ -2386,25 +2383,24 @@ tablet_proximity_out_quirk_timer_func(uint64_t now, void *data)
 static void
 tablet_process(struct evdev_dispatch *dispatch,
 	       struct evdev_device *device,
-	       struct input_event *input_event,
+	       struct evdev_event *e,
 	       uint64_t time)
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 
-	struct evdev_event e = evdev_event_from_input_event(input_event, NULL);
-	uint16_t type = evdev_event_type(&e);
+	uint16_t type = evdev_event_type(e);
 	switch (type) {
 	case EV_ABS:
-		tablet_process_absolute(tablet, device, &e, time);
+		tablet_process_absolute(tablet, device, e, time);
 		break;
 	case EV_REL:
-		tablet_process_relative(tablet, device, &e, time);
+		tablet_process_relative(tablet, device, e, time);
 		break;
 	case EV_KEY:
-		tablet_process_key(tablet, device, &e, time);
+		tablet_process_key(tablet, device, e, time);
 		break;
 	case EV_MSC:
-		tablet_process_misc(tablet, device, &e, time);
+		tablet_process_misc(tablet, device, e, time);
 		break;
 	case EV_SYN:
 		tablet_flush(tablet, device, time);
@@ -2415,8 +2411,8 @@ tablet_process(struct evdev_dispatch *dispatch,
 	default:
 		evdev_log_error(device,
 				"Unexpected event type %s (%#x)\n",
-				evdev_event_get_type_name(&e),
-				evdev_event_type(&e));
+				evdev_event_get_type_name(e),
+				evdev_event_type(e));
 		break;
 	}
 }

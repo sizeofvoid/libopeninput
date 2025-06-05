@@ -292,7 +292,7 @@ struct evdev_dispatch_interface {
 	/* Process an evdev input event. */
 	void (*process)(struct evdev_dispatch *dispatch,
 			struct evdev_device *device,
-			struct input_event *event,
+			struct evdev_event *event,
 			uint64_t time);
 
 	/* Device is being suspended */

@@ -1232,12 +1232,15 @@ tp_notify_clickpadbutton(struct tp_dispatch *tp,
 	if (tp->buttons.trackpoint) {
 		if (is_topbutton) {
 			struct evdev_dispatch *dispatch = tp->buttons.trackpoint->dispatch;
-			struct input_event event, syn_report;
-			int value;
-
-			value = (state == LIBINPUT_BUTTON_STATE_PRESSED) ? 1 : 0;
-			event = input_event_init(time, EV_KEY, evdev_usage_code(button), value);
-			syn_report = input_event_init(time, EV_SYN, SYN_REPORT, 0);
+			int value = (state == LIBINPUT_BUTTON_STATE_PRESSED) ? 1 : 0;
+			struct evdev_event event = {
+				.usage = button,
+				.value = value,
+			};
+			struct evdev_event syn_report = {
+				.usage = evdev_usage_from(EVDEV_SYN_REPORT),
+				.value = 0,
+			};
 			dispatch->interface->process(dispatch,
 						     tp->buttons.trackpoint,
 						     &event,

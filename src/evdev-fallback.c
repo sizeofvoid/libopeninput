@@ -978,13 +978,11 @@ fallback_handle_state(struct fallback_dispatch *dispatch,
 static void
 fallback_interface_process(struct evdev_dispatch *evdev_dispatch,
 			   struct evdev_device *device,
-			   struct input_event *input_event,
+			   struct evdev_event *event,
 			   uint64_t time)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 	static bool warned = false;
-
-	struct evdev_event event = evdev_event_from_input_event(input_event, NULL);
 
 	if (dispatch->arbitration.in_arbitration) {
 		if (!warned) {
@@ -996,19 +994,19 @@ fallback_interface_process(struct evdev_dispatch *evdev_dispatch,
 
 	warned = false;
 
-	uint16_t type = evdev_event_type(&event);
+	uint16_t type = evdev_event_type(event);
 	switch (type) {
 	case EV_REL:
-		fallback_process_relative(dispatch, device, &event, time);
+		fallback_process_relative(dispatch, device, event, time);
 		break;
 	case EV_ABS:
-		fallback_process_absolute(dispatch, device, &event, time);
+		fallback_process_absolute(dispatch, device, event, time);
 		break;
 	case EV_KEY:
-		fallback_process_key(dispatch, device, &event, time);
+		fallback_process_key(dispatch, device, event, time);
 		break;
 	case EV_SW:
-		fallback_process_switch(dispatch, device, &event, time);
+		fallback_process_switch(dispatch, device, event, time);
 		break;
 	case EV_SYN:
 		fallback_handle_state(dispatch, device, time);

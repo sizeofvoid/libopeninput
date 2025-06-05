@@ -717,37 +717,35 @@ tp_process_trackpoint_button(struct tp_dispatch *tp,
 			     uint64_t time)
 {
 	struct evdev_dispatch *dispatch;
-	struct input_event event;
-	struct input_event syn_report = {
-		 .input_event_sec = 0,
-		 .input_event_usec = 0,
-		 .type = EV_SYN,
-		 .code = SYN_REPORT,
-		 .value = 0
-	};
+	evdev_usage_t button;
 
 	if (!tp->buttons.trackpoint)
 		return;
 
 	dispatch = tp->buttons.trackpoint->dispatch;
 
-	event = evdev_event_to_input_event(e, time);
-	syn_report.input_event_sec = event.input_event_sec;
-	syn_report.input_event_usec = event.input_event_usec;
-
 	switch (evdev_usage_enum(e->usage)) {
 	case EVDEV_BTN_0:
-		event.code = BTN_LEFT;
+		button = evdev_usage_from(EVDEV_BTN_LEFT);
 		break;
 	case EVDEV_BTN_1:
-		event.code = BTN_RIGHT;
+		button = evdev_usage_from(EVDEV_BTN_RIGHT);
 		break;
 	case EVDEV_BTN_2:
-		event.code = BTN_MIDDLE;
+		button = evdev_usage_from(EVDEV_BTN_MIDDLE);
 		break;
 	default:
 		return;
 	}
+
+	struct evdev_event event = {
+		.usage = button,
+		.value = e->value
+	};
+	struct evdev_event syn_report = {
+		.usage = evdev_usage_from(EVDEV_SYN_REPORT),
+		.value = 0
+	};
 
 	dispatch->interface->process(dispatch,
 				     tp->buttons.trackpoint,
@@ -1945,25 +1943,24 @@ tp_debug_touch_state(struct tp_dispatch *tp,
 static void
 tp_interface_process(struct evdev_dispatch *dispatch,
 		     struct evdev_device *device,
-		     struct input_event *input_event,
+		     struct evdev_event *e,
 		     uint64_t time)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
-	struct evdev_event e = evdev_event_from_input_event(input_event, NULL);
 
-	uint16_t type = evdev_event_type(&e);
+	uint16_t type = evdev_event_type(e);
 	switch (type) {
 	case EV_ABS:
 		if (tp->has_mt)
-			tp_process_absolute(tp, &e, time);
+			tp_process_absolute(tp, e, time);
 		else
-			tp_process_absolute_st(tp, &e, time);
+			tp_process_absolute_st(tp, e, time);
 		break;
 	case EV_KEY:
-		tp_process_key(tp, &e, time);
+		tp_process_key(tp, e, time);
 		break;
 	case EV_MSC:
-		tp_process_msc(tp, &e, time);
+		tp_process_msc(tp, e, time);
 		break;
 	case EV_SYN:
 		tp_handle_state(tp, time);

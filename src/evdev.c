@@ -1090,8 +1090,7 @@ evdev_process_event(struct evdev_device *device,
 
 	libinput_timer_flush(evdev_libinput_context(device), time);
 
-	struct input_event ev = evdev_event_to_input_event(e, time);
-	dispatch->interface->process(dispatch, device, &ev, time);
+	dispatch->interface->process(dispatch, device, e, time);
 }
 
 static inline void
