@@ -179,21 +179,21 @@ totem_set_touch_device_enabled(struct totem_dispatch *totem,
 static void
 totem_process_key(struct totem_dispatch *totem,
 		  struct evdev_device *device,
-		  struct input_event *e,
+		  struct evdev_event *e,
 		  uint64_t time)
 {
 	/* ignore kernel key repeat */
 	if (e->value == 2)
 		return;
 
-	switch(e->code) {
-	case BTN_0:
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_BTN_0:
 		totem->button_state_now = !!e->value;
 		break;
 	default:
 		evdev_log_info(device,
 			       "Unhandled KEY event code %#x\n",
-			       e->code);
+			       evdev_usage_as_uint32_t(e->usage));
 		break;
 	}
 }
@@ -201,13 +201,13 @@ totem_process_key(struct totem_dispatch *totem,
 static void
 totem_process_abs(struct totem_dispatch *totem,
 		  struct evdev_device *device,
-		  struct input_event *e,
+		  struct evdev_event *e,
 		  uint64_t time)
 {
 	struct totem_slot *slot = &totem->slots[totem->slot];
 
-	switch(e->code) {
-	case ABS_MT_SLOT:
+	switch (evdev_usage_enum(e->usage)) {
+	case EVDEV_ABS_MT_SLOT:
 		if ((size_t)e->value >= totem->nslots) {
 			evdev_log_bug_libinput(device,
 					       "exceeded slot count (%d of max %zd)\n",
@@ -217,7 +217,7 @@ totem_process_abs(struct totem_dispatch *totem,
 		}
 		totem->slot = e->value;
 		return;
-	case ABS_MT_TRACKING_ID:
+	case EVDEV_ABS_MT_TRACKING_ID:
 		/* If the totem is already down on init, we currently
 		   ignore it */
 		if (e->value >= 0)
@@ -225,35 +225,35 @@ totem_process_abs(struct totem_dispatch *totem,
 		else if (slot->state != SLOT_STATE_NONE)
 			slot->state = SLOT_STATE_END;
 		break;
-	case ABS_MT_POSITION_X:
+	case EVDEV_ABS_MT_POSITION_X:
 		set_bit(slot->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_X);
 		break;
-	case ABS_MT_POSITION_Y:
+	case EVDEV_ABS_MT_POSITION_Y:
 		set_bit(slot->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_Y);
 		break;
-	case ABS_MT_TOUCH_MAJOR:
+	case EVDEV_ABS_MT_TOUCH_MAJOR:
 		set_bit(slot->changed_axes,
 			LIBINPUT_TABLET_TOOL_AXIS_SIZE_MAJOR);
 		break;
-	case ABS_MT_TOUCH_MINOR:
+	case EVDEV_ABS_MT_TOUCH_MINOR:
 		set_bit(slot->changed_axes,
 			LIBINPUT_TABLET_TOOL_AXIS_SIZE_MINOR);
 		break;
-	case ABS_MT_ORIENTATION:
+	case EVDEV_ABS_MT_ORIENTATION:
 		set_bit(slot->changed_axes,
 			LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
 		break;
-	case ABS_MT_TOOL_TYPE:
+	case EVDEV_ABS_MT_TOOL_TYPE:
 		if (e->value != MT_TOOL_DIAL) {
 			evdev_log_info(device,
 				       "Unexpected tool type %#x, changing to dial\n",
-				       e->code);
+				       evdev_usage_as_uint32_t(e->usage));
 		}
 		break;
 	default:
 		evdev_log_info(device,
 			       "Unhandled ABS event code %#x\n",
-			       e->code);
+			       evdev_usage_as_uint32_t(e->usage));
 		break;
 	}
 }
@@ -527,19 +527,22 @@ totem_handle_state(struct totem_dispatch *totem,
 static void
 totem_interface_process(struct evdev_dispatch *dispatch,
 			struct evdev_device *device,
-			struct input_event *e,
+			struct input_event *input_event,
 			uint64_t time)
 {
 	struct totem_dispatch *totem = totem_dispatch(dispatch);
 	enum totem_slot_state global_state;
 	bool enable_touch;
 
-	switch(e->type) {
+	struct evdev_event e = evdev_event_from_input_event(input_event, NULL);
+
+	uint16_t type = evdev_event_type(&e);
+	switch(type) {
 	case EV_ABS:
-		totem_process_abs(totem, device, e, time);
+		totem_process_abs(totem, device, &e, time);
 		break;
 	case EV_KEY:
-		totem_process_key(totem, device, e, time);
+		totem_process_key(totem, device, &e, time);
 		break;
 	case EV_MSC:
 		/* timestamp, ignore */
@@ -553,9 +556,9 @@ totem_interface_process(struct evdev_dispatch *dispatch,
 		break;
 	default:
 		evdev_log_error(device,
-				"Unexpected event type %s (%#x)\n",
-				libevdev_event_type_get_name(e->type),
-				e->type);
+				"Unexpected event %s (%#x)\n",
+				evdev_event_get_code_name(&e),
+				evdev_usage_as_uint32_t(e.usage));
 		break;
 	}
 }
