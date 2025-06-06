@@ -808,9 +808,9 @@ static inline bool
 fallback_any_button_down(struct fallback_dispatch *dispatch,
 		      struct evdev_device *device)
 {
-	uint32_t button;
-	for (button = EVDEV_BTN_LEFT; button < EVDEV_BTN_JOYSTICK; button++) {
-		evdev_usage_t usage = evdev_usage_from_uint32_t(button);
+	for (evdev_usage_t usage = evdev_usage_from(EVDEV_BTN_LEFT);
+	     evdev_usage_lt(usage, EVDEV_BTN_JOYSTICK);
+	     usage = evdev_usage_next(usage)) {
 		if (libevdev_has_event_code(device->evdev,
 					    EV_KEY,
 					    evdev_usage_code(usage)) &&
@@ -959,8 +959,9 @@ fallback_handle_state(struct fallback_dispatch *dispatch,
 	/* Buttons and keys */
 	if (dispatch->pending_event & EVDEV_KEY) {
 		bool want_debounce = false;
-		for (uint32_t u = EVDEV_KEY_RESERVED; u <= EVDEV_KEY_MAX; u++) {
-			evdev_usage_t usage = evdev_usage_from_uint32_t(u);
+		for (evdev_usage_t usage = evdev_usage_from(EVDEV_KEY_RESERVED);
+		     evdev_usage_le(usage, EVDEV_KEY_MAX);
+		     usage = evdev_usage_next(usage)) {
 			if (!hw_key_has_changed(dispatch, usage))
 				continue;
 
@@ -1057,8 +1058,9 @@ release_pressed_keys(struct fallback_dispatch *dispatch,
 		     struct evdev_device *device,
 		     uint64_t time)
 {
-	for (uint32_t u = EVDEV_KEY_RESERVED; u <= EVDEV_KEY_MAX; u++) {
-		evdev_usage_t usage = evdev_usage_from_uint32_t(u);
+	for (evdev_usage_t usage = evdev_usage_from(EVDEV_KEY_RESERVED);
+	     evdev_usage_le(usage, EVDEV_KEY_MAX);
+	     usage = evdev_usage_next(usage)) {
 		int count = get_key_down_count(device, usage);
 
 		if (count == 0)
@@ -1067,7 +1069,7 @@ release_pressed_keys(struct fallback_dispatch *dispatch,
 		if (count > 1) {
 			evdev_log_bug_libinput(device,
 					       "key %d is down %d times.\n",
-					       u,
+					       evdev_usage_code(usage),
 					       count);
 		}
 

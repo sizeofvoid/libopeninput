@@ -629,11 +629,11 @@ pad_suspend(struct evdev_dispatch *dispatch,
 {
 	struct pad_dispatch *pad = pad_dispatch(dispatch);
 	struct libinput *libinput = pad_libinput_context(pad);
-	unsigned int code;
 
-	for (code = KEY_ESC; code < KEY_CNT; code++) {
-		evdev_usage_t usage = evdev_usage_from_code(EV_KEY, code);
-		if (pad_button_is_down(pad, code))
+	for (evdev_usage_t usage = evdev_usage_from(EVDEV_KEY_ESC);
+	     evdev_usage_le(usage, EVDEV_KEY_MAX);
+	     usage = evdev_usage_next(usage)) {
+		if (pad_button_is_down(pad, evdev_usage_code(usage)))
 			pad_button_set_down(pad, usage, false);
 	}
 

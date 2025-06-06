@@ -488,8 +488,9 @@ fallback_debounce_handle_state(struct fallback_dispatch *dispatch,
 	size_t nchanged = 0;
 	bool flushed = false;
 
-	for (uint32_t u = EVDEV_KEY_RESERVED; u <= EVDEV_KEY_MAX; u++) {
-		evdev_usage_t usage = evdev_usage_from_uint32_t(u);
+	for (evdev_usage_t usage = evdev_usage_from(EVDEV_KEY_RESERVED);
+	     evdev_usage_le(usage, EVDEV_KEY_MAX);
+	     usage = evdev_usage_next(usage)) {
 		if (get_key_type(usage) != KEY_TYPE_BUTTON)
 			continue;
 

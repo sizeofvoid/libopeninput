@@ -191,6 +191,12 @@ evdev_usage_type_name(evdev_usage_t usage)
 	return libevdev_event_type_get_name(evdev_usage_type(usage));
 }
 
+static inline evdev_usage_t
+evdev_usage_next(evdev_usage_t usage)
+{
+	return evdev_usage_from_code(evdev_usage_type(usage), evdev_usage_code(usage) + 1);
+}
+
 struct evdev_event {
 	/* this may be a value outside the known usages above but it's just an int */
 	evdev_usage_t usage;
