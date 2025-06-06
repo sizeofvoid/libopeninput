@@ -1054,4 +1054,26 @@ evdev_device_is_virtual(struct evdev_device *device)
 	return device->tags & EVDEV_TAG_VIRTUAL;
 }
 
+static inline keycode_t
+keycode_from_usage(evdev_usage_t usage)
+{
+	uint32_t type = evdev_usage_type(usage);
+
+	assert(type == EV_KEY);
+
+	uint32_t code = evdev_usage_code(usage);
+	return keycode_from_uint32_t(code);
+}
+
+static inline button_code_t
+button_code_from_usage(evdev_usage_t usage)
+{
+	uint32_t type = evdev_usage_type(usage);
+
+	assert(type == EV_KEY);
+
+	uint32_t code = evdev_usage_code(usage);
+	return button_code_from_uint32_t(code);
+}
+
 #endif /* EVDEV_H */

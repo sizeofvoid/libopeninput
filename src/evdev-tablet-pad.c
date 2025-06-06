@@ -505,7 +505,7 @@ pad_notify_button_mask(struct pad_dispatch *pad,
 				pad_button_update_mode(group, button, state);
 				tablet_pad_notify_button(base,
 							 time,
-							 button,
+							 pad_button_from_uint32_t(button),
 							 state,
 							 group);
 			} else if (map_is_key(map)) {

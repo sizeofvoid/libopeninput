@@ -2253,10 +2253,12 @@ libinput_device_remove_event_listener(struct libinput_event_listener *listener)
 
 static uint32_t
 update_seat_key_count(struct libinput_seat *seat,
-		      int32_t key,
+		      keycode_t keycode,
 		      enum libinput_key_state state)
 {
-	assert(key >= 0 && key <= KEY_MAX);
+	uint32_t key = keycode_as_uint32_t(keycode);
+
+	assert(key <= KEY_MAX);
 
 	switch (state) {
 	case LIBINPUT_KEY_STATE_PRESSED:
@@ -2274,10 +2276,11 @@ update_seat_key_count(struct libinput_seat *seat,
 
 static uint32_t
 update_seat_button_count(struct libinput_seat *seat,
-			 int32_t button,
+			 button_code_t button_code,
 			 enum libinput_button_state state)
 {
-	assert(button >= 0 && button <= KEY_MAX);
+	uint32_t button = button_code_as_uint32_t(button_code);
+	assert(button <= KEY_MAX);
 
 	switch (state) {
 	case LIBINPUT_BUTTON_STATE_PRESSED:
@@ -2419,7 +2422,7 @@ device_has_cap(struct libinput_device *device,
 void
 keyboard_notify_key(struct libinput_device *device,
 		    uint64_t time,
-		    uint32_t key,
+		    keycode_t keycode,
 		    enum libinput_key_state state)
 {
 	struct libinput_event_keyboard *key_event;
@@ -2430,11 +2433,11 @@ keyboard_notify_key(struct libinput_device *device,
 
 	key_event = zalloc(sizeof *key_event);
 
-	seat_key_count = update_seat_key_count(device->seat, key, state);
+	seat_key_count = update_seat_key_count(device->seat, keycode, state);
 
 	*key_event = (struct libinput_event_keyboard) {
 		.time = time,
-		.key = key,
+		.key = keycode_as_uint32_t(keycode),
 		.state = state,
 		.seat_key_count = seat_key_count,
 	};
@@ -2493,7 +2496,7 @@ pointer_notify_motion_absolute(struct libinput_device *device,
 void
 pointer_notify_button(struct libinput_device *device,
 		      uint64_t time,
-		      int32_t button,
+		      button_code_t button,
 		      enum libinput_button_state state)
 {
 	struct libinput_event_pointer *button_event;
@@ -2510,7 +2513,7 @@ pointer_notify_button(struct libinput_device *device,
 
 	*button_event = (struct libinput_event_pointer) {
 		.time = time,
-		.button = button,
+		.button = button_code_as_uint32_t(button),
 		.state = state,
 		.seat_button_count = seat_button_count,
 	};
@@ -2874,7 +2877,7 @@ tablet_notify_button(struct libinput_device *device,
 		     struct libinput_tablet_tool *tool,
 		     enum libinput_tablet_tool_tip_state tip_state,
 		     const struct tablet_axes *axes,
-		     int32_t button,
+		     button_code_t button,
 		     enum libinput_button_state state,
 		     const struct input_absinfo *x,
 		     const struct input_absinfo *y)
@@ -2891,7 +2894,7 @@ tablet_notify_button(struct libinput_device *device,
 	*button_event = (struct libinput_event_tablet_tool) {
 		.time = time,
 		.tool = libinput_tablet_tool_ref(tool),
-		.button = button,
+		.button = button_code_as_uint32_t(button),
 		.state = state,
 		.seat_button_count = seat_button_count,
 		.proximity_state = LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN,
@@ -2910,7 +2913,7 @@ tablet_notify_button(struct libinput_device *device,
 void
 tablet_pad_notify_button(struct libinput_device *device,
 			 uint64_t time,
-			 int32_t button,
+			 pad_button_t button,
 			 enum libinput_button_state state,
 			 struct libinput_tablet_pad_mode_group *group)
 {
@@ -2923,7 +2926,7 @@ tablet_pad_notify_button(struct libinput_device *device,
 
 	*button_event = (struct libinput_event_tablet_pad) {
 		.time = time,
-		.button.number = button,
+		.button.number = pad_button_as_uint32_t(button),
 		.button.state = state,
 		.mode_group = libinput_tablet_pad_mode_group_ref(group),
 		.mode = mode,

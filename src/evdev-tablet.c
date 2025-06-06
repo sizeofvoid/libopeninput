@@ -1386,7 +1386,7 @@ tablet_notify_button_mask(struct tablet_dispatch *tablet,
 				     tool,
 				     tip_state,
 				     &tablet->axes,
-				     i,
+				     button_code_from_uint32_t(i),
 				     state,
 				     &tablet->area.x,
 				     &tablet->area.y);

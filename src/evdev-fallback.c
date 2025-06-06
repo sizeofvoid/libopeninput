@@ -43,8 +43,12 @@ fallback_keyboard_notify_key(struct fallback_dispatch *dispatch,
 	down_count = evdev_update_key_down_count(device, usage, state);
 
 	if ((state == LIBINPUT_KEY_STATE_PRESSED && down_count == 1) ||
-	    (state == LIBINPUT_KEY_STATE_RELEASED && down_count == 0))
-		keyboard_notify_key(&device->base, time, evdev_usage_code(usage), state);
+	    (state == LIBINPUT_KEY_STATE_RELEASED && down_count == 0)) {
+		keyboard_notify_key(&device->base,
+				    time,
+				    keycode_from_usage(usage),
+				    state);
+	}
 }
 
 static void

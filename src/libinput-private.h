@@ -49,6 +49,21 @@ struct libinput_source;
 /* The tablet tool pressure offset */
 DECLARE_NEWTYPE(pressure_offset, double);
 
+/**
+ * A numeric button such as used by the tablet pad
+ */
+DECLARE_NEWTYPE(pad_button, uint32_t);
+
+/**
+ * An evdev button code
+ */
+DECLARE_NEWTYPE(button_code, uint32_t);
+
+/**
+ * An evdev key code
+ */
+DECLARE_NEWTYPE(keycode, uint32_t);
+
 static inline pressure_offset_t
 pressure_offset_from_range(double min, double max, double value)
 {
@@ -674,7 +689,7 @@ notify_removed_device(struct libinput_device *device);
 void
 keyboard_notify_key(struct libinput_device *device,
 		    uint64_t time,
-		    uint32_t key,
+		    keycode_t key,
 		    enum libinput_key_state state);
 
 void
@@ -691,7 +706,7 @@ pointer_notify_motion_absolute(struct libinput_device *device,
 void
 pointer_notify_button(struct libinput_device *device,
 		      uint64_t time,
-		      int32_t button,
+		      button_code_t button,
 		      enum libinput_button_state state);
 
 void
@@ -827,7 +842,7 @@ tablet_notify_button(struct libinput_device *device,
 		     struct libinput_tablet_tool *tool,
 		     enum libinput_tablet_tool_tip_state tip_state,
 		     const struct tablet_axes *axes,
-		     int32_t button,
+		     button_code_t button,
 		     enum libinput_button_state state,
 		     const struct input_absinfo *x,
 		     const struct input_absinfo *y);
@@ -835,9 +850,10 @@ tablet_notify_button(struct libinput_device *device,
 void
 tablet_pad_notify_button(struct libinput_device *device,
 			 uint64_t time,
-			 int32_t button,
+			 pad_button_t button,
 			 enum libinput_button_state state,
 			 struct libinput_tablet_pad_mode_group *group);
+
 void
 tablet_pad_notify_dial(struct libinput_device *device,
 		       uint64_t time,

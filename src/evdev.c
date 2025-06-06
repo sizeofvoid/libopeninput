@@ -203,7 +203,10 @@ evdev_pointer_post_button(struct evdev_device *device,
 
 	if ((state == LIBINPUT_BUTTON_STATE_PRESSED && down_count == 1) ||
 	    (state == LIBINPUT_BUTTON_STATE_RELEASED && down_count == 0)) {
-		pointer_notify_button(&device->base, time, evdev_usage_code(button), state);
+		pointer_notify_button(&device->base,
+				      time,
+				      button_code_from_usage(button),
+				      state);
 
 		if (state == LIBINPUT_BUTTON_STATE_RELEASED) {
 			if (device->left_handed.change_to_enabled)
