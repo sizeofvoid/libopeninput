@@ -403,6 +403,7 @@ src_libinput = src_libfilter + [
 	'src/evdev.c',
 	'src/evdev-debounce.c',
 	'src/evdev-fallback.c',
+	'src/evdev-plugin.c',
 	'src/evdev-totem.c',
 	'src/evdev-middle-button.c',
 	'src/evdev-mt-touchpad.c',

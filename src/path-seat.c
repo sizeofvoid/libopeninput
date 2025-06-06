@@ -383,6 +383,9 @@ libinput_path_add_device(struct libinput *libinput,
 		return NULL;
 	}
 
+	libinput_plugin_system_load_internal_plugins(libinput,
+						     &libinput->plugin_system);
+
 	/* We cannot do this during path_create_context because the log
 	 * handler isn't set up there but we really want to log to the right
 	 * place if the quirks run into parser errors. So we have to do it

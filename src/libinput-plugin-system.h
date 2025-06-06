@@ -48,6 +48,10 @@ void
 libinput_plugin_system_init(struct libinput_plugin_system *system);
 
 void
+libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
+					     struct libinput_plugin_system *system);
+
+void
 libinput_plugin_system_destroy(struct libinput_plugin_system *system);
 
 void

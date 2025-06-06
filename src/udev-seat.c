@@ -421,6 +421,9 @@ libinput_udev_assign_seat(struct libinput *libinput,
 	if (input->seat_id != NULL)
 		return -1;
 
+	libinput_plugin_system_load_internal_plugins(libinput,
+						     &libinput->plugin_system);
+
 	/* We cannot do this during udev_create_context because the log
 	 * handler isn't set up there but we really want to log to the right
 	 * place if the quirks run into parser errors. So we have to do it

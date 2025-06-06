@@ -33,8 +33,11 @@
 #include "libinput-plugin-system.h"
 
 #include "timer.h"
+
 #include "libinput-util.h"
 #include "libinput-private.h"
+
+#include "evdev-plugin.h"
 
 struct libinput_plugin {
 	struct libinput *libinput;
@@ -352,6 +355,16 @@ libinput_plugin_system_init(struct libinput_plugin_system *system)
 	list_init(&system->removed_plugins);
 }
 
+void
+libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
+					     struct libinput_plugin_system *system)
+{
+	/* Our own event dispatch is implemented as mini-plugin,
+	 * guarantee this one to always be last (and after any
+	 * other plugins have run so none of the devices are
+	 * actually connected to anything yet */
+	libinput_evdev_dispatch_plugin(libinput);
+}
 void
 libinput_plugin_system_destroy(struct libinput_plugin_system *system)
 {

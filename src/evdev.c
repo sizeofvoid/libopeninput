@@ -43,6 +43,7 @@
 #include "evdev-frame.h"
 #include "filter.h"
 #include "libinput-private.h"
+#include "libinput-plugin.h"
 #include "quirks.h"
 #include "util-input-event.h"
 #include "util-udev.h"
@@ -1032,108 +1033,14 @@ evdev_read_switch_reliability_prop(struct evdev_device *device)
 	return r;
 }
 
-_unused_
-static inline void
-evdev_print_event(struct evdev_device *device,
-		  const struct evdev_event *e,
-		  uint64_t time_in_us)
-{
-	static uint32_t offset = 0;
-	static uint32_t last_time = 0;
-	uint32_t time = us2ms(time_in_us);
-
-	if (offset == 0) {
-		offset = time;
-		last_time = time - offset;
-	}
-
-	time -= offset;
-
-	switch (evdev_usage_enum(e->usage)) {
-	case EVDEV_SYN_REPORT:
-		evdev_log_debug(device,
-			  "%u.%03u ----------------- EV_SYN ----------------- +%ums\n",
-			  time / 1000,
-			  time % 1000,
-			  time - last_time);
-
-		last_time = time;
-		break;
-	case EVDEV_MSC_SERIAL:
-		evdev_log_debug(device,
-			"%u.%03u %-16s %-16s %#010x\n",
-			time / 1000,
-			time % 1000,
-			evdev_event_get_type_name(e),
-			evdev_event_get_code_name(e),
-			e->value);
-		break;
-	default:
-		evdev_log_debug(device,
-			  "%u.%03u %-16s %-20s %4d\n",
-			  time / 1000,
-			  time % 1000,
-			  evdev_event_get_type_name(e),
-			  evdev_event_get_code_name(e),
-			  e->value);
-		break;
-	}
-}
-
-static inline void
-evdev_process_event(struct evdev_device *device,
-		    struct evdev_event *e,
-		    uint64_t time)
-{
-	struct evdev_dispatch *dispatch = device->dispatch;
-
-#if EVENT_DEBUGGING
-	evdev_print_event(device, e, time);
-#endif
-
-	libinput_timer_flush(evdev_libinput_context(device), time);
-
-	dispatch->interface->process(dispatch, device, e, time);
-}
-
-static inline void
-evdev_device_dispatch_one(struct evdev_device *device,
-			  struct evdev_event *ev,
-			  uint64_t time)
-{
-	if (!device->mtdev) {
-		evdev_process_event(device, ev, time);
-	} else {
-		struct input_event e = evdev_event_to_input_event(ev, time);
-		mtdev_put_event(device->mtdev, &e);
-		if (evdev_usage_eq(ev->usage, EVDEV_SYN_REPORT)) {
-			while (!mtdev_empty(device->mtdev)) {
-				struct input_event e;
-				mtdev_get_event(device->mtdev, &e);
-
-				uint64_t time;
-				struct evdev_event ev = evdev_event_from_input_event(&e, &time);
-				evdev_process_event(device, &ev, time);
-			}
-		}
-	}
-}
-
 static inline void
 evdev_device_dispatch_frame(struct libinput *libinput,
 			    struct evdev_device *device,
 			    struct evdev_frame *frame)
 {
-	size_t nevents;
-	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
-
 	libinput_plugin_system_notify_evdev_frame(&libinput->plugin_system,
 						  &device->base,
 						  frame);
-
-	for (size_t i = 0; i < nevents; i++) {
-		evdev_device_dispatch_one(device, &events[i], evdev_frame_get_time(frame));
-	}
 }
 
 static inline void
