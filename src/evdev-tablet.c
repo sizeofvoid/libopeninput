@@ -1034,7 +1034,10 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 	if (!db)
 		return rc;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	s = libwacom_stylus_get_for_id(db, tool->tool_id);
+#pragma GCC diagnostic pop
 	if (!s)
 		return rc;
 
@@ -2819,7 +2822,10 @@ tablet_is_aes(struct evdev_device *device, WacomDevice *wacom)
 	 */
 	if (wacom && vid == VENDOR_ID_WACOM) {
 		int nstyli;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 		const int *stylus_ids = libwacom_get_supported_styli(wacom, &nstyli);
+#pragma GCC diagnostic pop
 		for (int i = 0; i < nstyli; i++) {
 			if (stylus_ids[i] == 0x11) {
 				return true;
