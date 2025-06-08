@@ -56,6 +56,7 @@
 #include "util-macros.h"
 #include "util-mem.h"
 #include "util-strings.h"
+#include "util-udev.h"
 #include "libinput-util.h"
 
 static const int FILE_VERSION_NUMBER = 1;
@@ -1756,6 +1757,9 @@ print_udev_properties(struct record_device *dev)
 			break;
 		}
 	}
+
+	iprintf(dev->fp, I_UDEV, "virtual: %s\n",
+	        udev_device_is_virtual(udev_device) ? "true" : "false");
 }
 
 static void

@@ -296,13 +296,7 @@ def loop(args, recording):
             print("Note that the device may not be in a neutral state now.")
 
 
-def create_device_quirk(device):
-    try:
-        quirks = fetch(device, "quirks")
-        if not quirks:
-            return None
-    except YamlException:
-        return None
+def create_device_quirk(device, quirks):
     # Where the device has a quirk, we match on name, vendor and product.
     # That's the best match we can assemble here from the info we have.
     evdev = fetch(device, "evdev")
@@ -323,10 +317,14 @@ def setup_quirks(recording):
     overrides = None
     quirks = []
     for d in devices:
-        if "quirks" in d:
-            quirk = create_device_quirk(d)
-            if quirk:
-                quirks.append(quirk)
+        qs = d.get("quirks", [])
+        if not any(q.startswith("AttrIsVirtual=") for q in qs):
+            try:
+                is_virtual = d["udev"]["virtual"]
+            except Exception:
+                is_virtual = False
+            qs.append(f"AttrIsVirtual={int(is_virtual)}")
+        quirks.append(create_device_quirk(d, qs))
     if not quirks:
         return None
 
