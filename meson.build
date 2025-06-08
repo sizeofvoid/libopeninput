@@ -867,6 +867,7 @@ endif
 		'test/litest-device-mouse-wheel-tilt.c',
 		'test/litest-device-mouse-roccat.c',
 		'test/litest-device-mouse-low-dpi.c',
+		'test/litest-device-mouse-virtual.c',
 		'test/litest-device-mouse-wheel-click-angle.c',
 		'test/litest-device-mouse-wheel-click-count.c',
 		'test/litest-device-ms-nano-transceiver-mouse.c',

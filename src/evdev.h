@@ -77,6 +77,7 @@ enum evdev_device_tags {
 	EVDEV_TAG_EXTERNAL_KEYBOARD	= bit(7),
 	EVDEV_TAG_TABLET_MODE_SWITCH	= bit(8),
 	EVDEV_TAG_TABLET_TOUCHPAD	= bit(9),
+	EVDEV_TAG_VIRTUAL               = bit(10),
 };
 
 enum evdev_middlebutton_state {
@@ -1044,6 +1045,12 @@ evdev_paired_keyboard_destroy(struct evdev_paired_keyboard *kbd)
 	libinput_device_remove_event_listener(&kbd->listener);
 	list_remove(&kbd->link);
 	free(kbd);
+}
+
+static inline bool
+evdev_device_is_virtual(struct evdev_device *device)
+{
+	return device->tags & EVDEV_TAG_VIRTUAL;
 }
 
 #endif /* EVDEV_H */

@@ -92,7 +92,10 @@ wheel_handle_event_on_state_none(struct fallback_dispatch *dispatch,
 {
 	switch (event) {
 	case WHEEL_EVENT_SCROLL:
-		dispatch->wheel.state = WHEEL_STATE_ACCUMULATING_SCROLL;
+		dispatch->wheel.state =
+			dispatch->wheel.ignore_small_hi_res_movements ?
+				WHEEL_STATE_ACCUMULATING_SCROLL :
+				WHEEL_STATE_SCROLLING;
 		break;
 	case WHEEL_EVENT_SCROLL_DIR_CHANGED:
 		break;
@@ -132,14 +135,17 @@ wheel_handle_event_on_state_scrolling(struct fallback_dispatch *dispatch,
 {
 	switch (event) {
 	case WHEEL_EVENT_SCROLL:
-		wheel_cancel_scroll_timer(dispatch);
-		wheel_set_scroll_timer(dispatch, time);
+		if (dispatch->wheel.ignore_small_hi_res_movements) {
+			wheel_cancel_scroll_timer(dispatch);
+			wheel_set_scroll_timer(dispatch, time);
+		}
 		break;
 	case WHEEL_EVENT_SCROLL_TIMEOUT:
 		dispatch->wheel.state = WHEEL_STATE_NONE;
 		break;
 	case WHEEL_EVENT_SCROLL_DIR_CHANGED:
-		wheel_cancel_scroll_timer(dispatch);
+		if (dispatch->wheel.ignore_small_hi_res_movements)
+			wheel_cancel_scroll_timer(dispatch);
 		dispatch->wheel.state = WHEEL_STATE_NONE;
 		break;
 	case WHEEL_EVENT_SCROLL_ACCUMULATED:
@@ -447,13 +453,18 @@ fallback_init_wheel(struct fallback_dispatch *dispatch,
 				      REL_HWHEEL_HI_RES)))
 		dispatch->wheel.emulate_hi_res_wheel = true;
 
-	snprintf(timer_name,
-		 sizeof(timer_name),
-		 "%s wheel scroll",
-		 evdev_device_get_sysname(device));
-	libinput_timer_init(&dispatch->wheel.scroll_timer,
-			    evdev_libinput_context(device),
-			    timer_name,
-			    wheel_init_scroll_timer,
-			    device);
+	dispatch->wheel.ignore_small_hi_res_movements =
+		!evdev_device_is_virtual(dispatch->device);
+
+	if (dispatch->wheel.ignore_small_hi_res_movements) {
+		snprintf(timer_name,
+			 sizeof(timer_name),
+			 "%s wheel scroll",
+			 evdev_device_get_sysname(device));
+		libinput_timer_init(&dispatch->wheel.scroll_timer,
+				    evdev_libinput_context(device),
+				    timer_name,
+				    wheel_init_scroll_timer,
+				    device);
+	}
 }

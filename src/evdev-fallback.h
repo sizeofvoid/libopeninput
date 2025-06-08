@@ -118,6 +118,7 @@ struct fallback_dispatch {
 		bool hi_res_event_received;
 		struct libinput_timer scroll_timer;
 		enum wheel_direction dir;
+		bool ignore_small_hi_res_movements;
 	} wheel;
 
 	struct {

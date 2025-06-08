@@ -916,6 +916,21 @@ START_TEST(pointer_scroll_wheel_inhibit_dir_change)
 }
 END_TEST
 
+START_TEST(pointer_scroll_wheel_no_inhibit_small_deltas_when_virtual)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_drain_events(li);
+
+	/* Scroll deltas below the threshold (60) must *not* be ignored */
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 15);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_dispatch(li);
+	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -15);
+}
+END_TEST
+
 START_TEST(pointer_scroll_wheel_lenovo_scrollpoint)
 {
 	struct litest_device *dev = litest_current_device();
@@ -3714,6 +3729,7 @@ TEST_COLLECTION(pointer)
 	}
 	litest_add(pointer_scroll_wheel_inhibit_small_deltas, LITEST_WHEEL, LITEST_TABLET);
 	litest_add(pointer_scroll_wheel_inhibit_dir_change, LITEST_WHEEL, LITEST_TABLET);
+	litest_add_for_device(pointer_scroll_wheel_no_inhibit_small_deltas_when_virtual, LITEST_MOUSE_VIRTUAL);
 	litest_add_for_device(pointer_scroll_wheel_lenovo_scrollpoint, LITEST_LENOVO_SCROLLPOINT);
 	litest_add(pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
 	litest_add(pointer_scroll_button_noscroll, LITEST_ABSOLUTE|LITEST_BUTTON, LITEST_RELATIVE);
