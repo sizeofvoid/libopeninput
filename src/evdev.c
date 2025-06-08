@@ -44,6 +44,7 @@
 #include "libinput-private.h"
 #include "quirks.h"
 #include "util-input-event.h"
+#include "util-udev.h"
 
 #if HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
@@ -2256,6 +2257,7 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 	struct quirks *q;
 	const struct quirk_tuples *t;
 	char *prop;
+	bool is_virtual;
 
 	/* Touchpad claims to have 4 slots but only ever sends 2
 	 * https://bugs.freedesktop.org/show_bug.cgi?id=98100 */
@@ -2333,6 +2335,13 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 					p);
 		}
 	}
+
+	if (!quirks_get_bool(q, QUIRK_ATTR_IS_VIRTUAL, &is_virtual)) {
+		is_virtual = !getenv("LIBINPUT_RUNNING_TEST_SUITE") &&
+			udev_device_is_virtual(device->udev_device);
+	}
+	if (is_virtual)
+		device->tags |= EVDEV_TAG_VIRTUAL;
 
 	quirks_unref(q);
 }

@@ -292,6 +292,7 @@ quirk_get_name(enum quirk q)
 	case QUIRK_ATTR_MSC_TIMESTAMP:			return "AttrMscTimestamp";
 	case QUIRK_ATTR_EVENT_CODE:			return "AttrEventCode";
 	case QUIRK_ATTR_INPUT_PROP:			return "AttrInputProp";
+	case QUIRK_ATTR_IS_VIRTUAL:			return "AttrIsVirtual";
 	default:
 		abort();
 	}
@@ -878,6 +879,13 @@ parse_attr(struct quirks_context *ctx,
 		p->value.tuples.ntuples = nprops;
 		p->type = PT_TUPLES;
 
+		rc = true;
+	} else if (streq(key, quirk_get_name(QUIRK_ATTR_IS_VIRTUAL))) {
+		p->id = QUIRK_ATTR_IS_VIRTUAL;
+		if (!parse_boolean_property(value, &b))
+			goto out;
+		p->type = PT_BOOL;
+		p->value.b = b;
 		rc = true;
 	} else {
 		qlog_error(ctx, "Unknown key %s in %s\n", key, s->name);
