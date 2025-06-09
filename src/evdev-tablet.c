@@ -2838,7 +2838,8 @@ tablet_is_aes(struct evdev_device *device, WacomDevice *wacom)
 static void
 tablet_init_smoothing(struct evdev_device *device,
 		      struct tablet_dispatch *tablet,
-		      bool is_aes)
+		      bool is_aes,
+		      bool is_virtual)
 {
 	size_t history_size = ARRAY_LENGTH(tablet->history.samples);
 	struct quirks_context *quirks = NULL;
@@ -2848,11 +2849,11 @@ tablet_init_smoothing(struct evdev_device *device,
 	quirks = evdev_libinput_context(device)->quirks;
 	q = quirks_fetch_for_device(quirks, device->udev_device);
 
-	/* By default, always enable smoothing except on AES devices.
+	/* By default, always enable smoothing except on AES or uinput devices.
 	 * AttrTabletSmoothing can override this, if necessary.
 	 */
 	if (!q || !quirks_get_bool(q, QUIRK_ATTR_TABLET_SMOOTHING, &use_smoothing))
-		use_smoothing = !is_aes;
+		use_smoothing = !is_aes && !is_virtual;
 
 	/* Setting the history size to 1 means we never do any actual smoothing. */
 	if (!use_smoothing)
@@ -2986,6 +2987,7 @@ tablet_init(struct tablet_dispatch *tablet,
 		goto out;
 
 	bool is_aes = tablet_is_aes(device, wacom);
+	bool is_virtual = evdev_device_is_virtual(device);
 	bool is_display_tablet = tablet_is_display_tablet(wacom);
 
 	if (!libevdev_has_event_code(evdev, EV_KEY, BTN_TOOL_PEN)) {
@@ -3010,7 +3012,7 @@ tablet_init(struct tablet_dispatch *tablet,
 
 	evdev_init_sendevents(device, &tablet->base);
 	tablet_init_left_handed(device, wacom);
-	tablet_init_smoothing(device, tablet, is_aes);
+	tablet_init_smoothing(device, tablet, is_aes, is_virtual);
 
 	for (axis = LIBINPUT_TABLET_TOOL_AXIS_X;
 	     axis <= LIBINPUT_TABLET_TOOL_AXIS_MAX;
