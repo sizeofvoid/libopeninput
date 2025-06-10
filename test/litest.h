@@ -1340,6 +1340,38 @@ _litest_timeout(struct libinput *li, const char *func, int lineno, int millis);
 #define litest_timeout_hysteresis(li_) litest_timeout(li_, 90)
 #define litest_timeout_3fg_drag(li_) litest_timeout(li_, 800)
 
+struct litest_logcapture {
+	char **errors;
+	char **infos;
+	char **debugs;
+};
+
+void
+litest_logcapture_destroy(struct litest_logcapture *c);
+
+DEFINE_DESTROY_CLEANUP_FUNC(litest_logcapture);
+
+struct litest_logcapture *
+litest_logcapture_setup(struct libinput *li);
+
+struct litest_logcapture *
+litest_logcapture_remove(struct libinput *li,
+			 struct litest_logcapture *capture);
+
+#define litest_with_logcapture(li_, capture_) \
+	for (struct litest_logcapture *capture_ = litest_logcapture_setup(li_); \
+	     capture_ != NULL; \
+	     capture_ = litest_logcapture_remove(li_, capture_))
+
+void
+_litest_assert_logcapture_no_errors(struct litest_logcapture *c,
+				    const char *file,
+				    const char *func,
+				    int lineno);
+
+#define litest_assert_logcapture_no_errors(c_) \
+	_litest_assert_logcapture_no_errors(c_, __FILE__, __func__, __LINE__)
+
 #define litest_with_event_frame(dev_) \
 	for (bool _i = ({litest_push_event_frame(dev_); true; }); \
 	     _i; \

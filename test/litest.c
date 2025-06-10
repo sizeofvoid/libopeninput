@@ -1267,6 +1267,18 @@ _litest_add_parametrized_for_device(const char *filename,
 		litest_abort_msg("Invalid test device type");
 }
 
+static int
+is_actual_error(const char *error, size_t index, void *data)
+{
+	/* We don't want to abort on these errors */
+	if (((RUNNING_ON_VALGRIND || in_debugger) && strstr(error, "scheduled expiry is in the past")) ||
+	    strstr(error, "event processing lagging behind")) {
+		return 0;
+	}
+
+	return 1;
+}
+
 LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
 static void
 litest_log_handler(struct libinput *libinput,
@@ -4739,6 +4751,93 @@ _litest_timeout(struct libinput *li, const char *func, int lineno, int millis)
        msleep(millis);
        if (li)
                _litest_dispatch(li, func, lineno);
+}
+
+void
+_litest_assert_logcapture_no_errors(struct litest_logcapture *capture,
+				    const char *file,
+				    const char *func,
+				    int line)
+{
+	litest_assert_ptr_notnull(capture);
+
+	if (capture->errors && strv_for_each((const char **)capture->errors, is_actual_error, NULL)) {
+		_autofree_ char *errors = strv_join(capture->errors, "\n");
+		_litest_abort_msg(file, line, func,
+				  "Unexpected errors in log capture:\n%s\n",
+				  errors);
+	}
+}
+
+void
+litest_logcapture_destroy(struct litest_logcapture *c)
+{
+	strv_free(c->errors);
+	strv_free(c->infos);
+	strv_free(c->debugs);
+	free(c);
+}
+
+LIBINPUT_ATTRIBUTE_PRINTF(3, 0)
+static void
+litest_log_handler_msgcapture(struct libinput *libinput,
+			      enum libinput_log_priority pri,
+			      const char *format,
+			      va_list args)
+{
+	struct litest_user_data *user_data = libinput_get_user_data(libinput);
+	struct litest_logcapture *capture = user_data->private;
+	const char *priority = NULL;
+	const char *color = use_colors ? ANSI_RGB(255, 255, 70) ANSI_RGB_BG(40, 40, 40) : "";
+
+	switch (pri) {
+	case LIBINPUT_LOG_PRIORITY_ERROR:
+		priority =  "error ";
+		break;
+	case LIBINPUT_LOG_PRIORITY_INFO:
+		priority =  "info ";
+		break;
+	case LIBINPUT_LOG_PRIORITY_DEBUG:
+		priority =  "debug ";
+		break;
+	}
+
+	_autofree_ char *message = strdup_vprintf(format, args);
+
+	fprintf(stderr, "%slitest captured: %-6s%s %s",
+		color,
+		priority,
+		use_colors ? ANSI_NORMAL : "",
+		message);
+
+	switch (pri) {
+	case LIBINPUT_LOG_PRIORITY_ERROR:
+		capture->errors = strv_append_take(capture->errors, &message);
+		break;
+	case LIBINPUT_LOG_PRIORITY_INFO:
+		capture->infos = strv_append_take(capture->infos, &message);
+		break;
+	case LIBINPUT_LOG_PRIORITY_DEBUG:
+		capture->debugs = strv_append_take(capture->debugs, &message);
+		break;
+	}
+}
+
+struct litest_logcapture *
+litest_logcapture_setup(struct libinput *li)
+{
+	struct litest_logcapture *c = zalloc(sizeof(*c));
+	litest_context_set_user_data(li, c);
+	libinput_log_set_handler(li, litest_log_handler_msgcapture);
+	return c;
+}
+
+struct litest_logcapture *
+litest_logcapture_remove(struct libinput *li, struct litest_logcapture *capture)
+{
+	litest_restore_log_handler(li);
+	litest_logcapture_destroy(capture);
+	return NULL;
 }
 
 void
