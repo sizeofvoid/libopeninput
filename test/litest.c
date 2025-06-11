@@ -2129,7 +2129,7 @@ litest_create(enum litest_device_type which,
 }
 
 struct libinput *
-litest_create_context(void)
+litest_create_context_with_plugindir(const char *plugindir)
 {
 	struct libinput *libinput;
 	struct litest_context *ctx;
@@ -2144,9 +2144,20 @@ litest_create_context(void)
 	if (verbose)
 		libinput_log_set_priority(libinput, LIBINPUT_LOG_PRIORITY_DEBUG);
 
-	libinput_plugin_system_load_plugins(libinput, LIBINPUT_PLUGIN_FLAG_NONE);
+	if (plugindir)
+		libinput_plugin_system_append_path(libinput, plugindir);
 
 	return libinput;
+}
+
+struct libinput *
+litest_create_context(void)
+{
+	struct libinput *li = litest_create_context_with_plugindir(NULL);
+
+	libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+
+	return li;
 }
 
 void

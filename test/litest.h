@@ -656,6 +656,12 @@ litest_axis_set_value(struct axis_replacement *axes, int code, double value)
 
 struct libinput *
 litest_create_context(void);
+
+/* Adds the given plugin dir to the context but does *not* initialize
+ * the plugins */
+struct libinput *
+litest_create_context_with_plugindir(const char *plugindir);
+
 void
 litest_destroy_context(struct libinput *li);
 DEFINE_TRIVIAL_CLEANUP_FUNC(struct libinput *, litest_destroy_context);
