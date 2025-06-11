@@ -64,6 +64,9 @@
 #define ANSI_RIGHT		"\x1B[%dC"
 #define ANSI_LEFT		"\x1B[%dD"
 
+#define ANSI_RGB(r, g, b)       "\x1B[38;2;" #r  ";" #g ";" #b "m"
+#define ANSI_RGB_BG(r, g, b)    "\x1B[48;2;" #r  ";" #g ";" #b "m"
+
 #define CASE_RETURN_STRING(a) case a: return #a
 
 /**
