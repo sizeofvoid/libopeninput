@@ -3586,8 +3586,13 @@ START_TEST(touchpad_initial_state)
 		x = 30;
 	else
 		y = 30;
+
 	litest_touch_down(dev, 0, x, y);
+	litest_dispatch(libinput1);
+	litest_dispatch(libinput2);
 	litest_touch_move_to(dev, 0, x, y, 70, 70, 10);
+	litest_dispatch(libinput1);
+	litest_dispatch(libinput2);
 	litest_touch_up(dev, 0);
 	litest_dispatch(libinput1);
 	litest_dispatch(libinput2);
@@ -3652,6 +3657,7 @@ START_TEST(touchpad_fingers_down_before_init)
 			if (litest_slot_count(dev) < finger_count)
 				break;
 			litest_touch_move(dev, i, 20 + 10 * i + x, 30);
+			litest_dispatch(li);
 		}
 		litest_dispatch(li);
 	}
@@ -5797,6 +5803,7 @@ START_TEST(touchpad_finger_always_down)
 	litest_drain_events(li);
 
 	litest_touch_down(dev, 0, 50, 50);
+	litest_dispatch(li);
 	litest_touch_move_to(dev, 0, 50, 50, 70, 50, 10);
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
