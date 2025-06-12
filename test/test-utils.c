@@ -1209,6 +1209,47 @@ START_TEST(safe_atou_base_8_test)
 }
 END_TEST
 
+struct atou64_test {
+	char *str;
+	bool success;
+	unsigned long val;
+};
+
+START_TEST(safe_atou64_test)
+{
+	struct atou64_test tests[] = {
+		{ "10", true, 10 },
+		{ "20", true, 20 },
+		{ "-1", false, 0 },
+		{ "9999999999", true, 9999999999 },
+		{ "2147483647", true, 2147483647 },
+		{ "-2147483648", false, 0},
+		{ "0x0", false, 0 },
+		{ "-10x10", false, 0 },
+		{ "1x-99", false, 0 },
+		{ "", false, 0 },
+		{ "abd", false, 0 },
+		{ "xabd", false, 0 },
+		{ "0xaf", false, 0 },
+		{ "0x0x", false, 0 },
+		{ "x10", false, 0 },
+		{ NULL, false, 0 }
+	};
+	uint64_t v;
+	bool success;
+
+	for (int i = 0; tests[i].str != NULL; i++) {
+		v = 0xad;
+		success = safe_atou64(tests[i].str, &v);
+		litest_assert(success == tests[i].success);
+		if (success)
+			litest_assert_int_eq(v, tests[i].val);
+		else
+			litest_assert_int_eq(v, 0xadU);
+	}
+}
+END_TEST
+
 START_TEST(safe_atod_test)
 {
 	struct atod_test {
@@ -2697,6 +2738,7 @@ int main(void)
 	ADD_TEST(safe_atou_test);
 	ADD_TEST(safe_atou_base_16_test);
 	ADD_TEST(safe_atou_base_8_test);
+	ADD_TEST(safe_atou64_test);
 	ADD_TEST(safe_atod_test);
 	ADD_TEST(strsplit_test);
 	ADD_TEST(strv_for_each_test);

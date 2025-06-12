@@ -33,6 +33,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -230,6 +231,39 @@ safe_atou(const char *str, unsigned int *val)
 {
 	assert(str != NULL);
 	return safe_atou_base(str, val, 10);
+}
+
+static inline bool
+safe_atou64_base(const char *str, uint64_t *val, int base)
+{
+	assert(str != NULL);
+
+	char *endptr;
+	unsigned long long v;
+
+	assert(base == 10 || base == 16 || base == 8);
+
+	errno = 0;
+	v = strtoull(str, &endptr, base);
+	if (errno > 0)
+		return false;
+	if (str == endptr)
+		return false;
+	if (*str != '\0' && *endptr != '\0')
+		return false;
+
+	if ((long long)v < 0)
+		return false;
+
+	*val = v;
+	return true;
+}
+
+static inline bool
+safe_atou64(const char *str, uint64_t *val)
+{
+	assert(str != NULL);
+	return safe_atou64_base(str, val, 10);
 }
 
 static inline bool
