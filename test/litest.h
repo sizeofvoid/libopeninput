@@ -398,6 +398,16 @@ litest_fail_comparison_str(const char *file,
 #define litest_assert_double_ge(a_, b_)\
 	litest_assert_double_ge_epsilon((a_), (b_),LITEST_DEFAULT_EPSILON)
 
+void
+_litest_assert_strv_substring(char **strv,
+			      char *substring,
+			      const char *file,
+			      const char *func,
+			      int line);
+
+#define litest_assert_strv_substring(strv_, substring_) \
+	_litest_assert_strv_substring(strv_, substring_, __FILE__, __func__, __LINE__)
+
 void litest_backtrace(const char *func);
 
 enum litest_device_type {

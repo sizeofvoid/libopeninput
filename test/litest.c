@@ -4840,6 +4840,32 @@ litest_logcapture_remove(struct libinput *li, struct litest_logcapture *capture)
 	return NULL;
 }
 
+#define litest_with_logcapture(li_, capture_) \
+	for (struct litest_logcapture *capture_ = litest_logcapture_setup(li_); \
+	     capture_ != NULL; \
+	     capture_ = litest_logcapture_remove(li_, capture_))
+
+void
+_litest_assert_strv_substring(char **strv,
+			      char *substring,
+			      const char *file,
+			      const char *func,
+			      int line)
+{
+	if (!strv) {
+		_litest_abort_msg(file, line, func,
+					"Expected substring '%s' but strv is NULL", substring);
+	}
+
+	bool found = strv_find_substring(strv, substring, NULL);
+	if (!found) {
+		_autofree_ char *strv_str = strv_join(strv, "', '");
+		_litest_abort_msg(file, line, func,
+				  "Expected substring '%s' not found in strv: ['%s']",
+				  substring, strv_str);
+	}
+}
+
 void
 litest_push_event_frame(struct litest_device *dev)
 {
