@@ -23,7 +23,7 @@ libinput is a library that provides a full input stack for display servers
 and other applications that need to handle input devices provided by the
 kernel.
 
-libinput provides device detection, event handling and abstraction so
+libinput provides device detection, event handling and abstraction to
 minimize the amount of custom input code the user of libinput need to
 provide the common set of functionality that users expect. Input event
 processing includes scaling touch coordinates, generating
@@ -36,7 +36,7 @@ driver than an application library. See :ref:`what_is_libinput` for more details
 Users and Developers
 --------------------
 
-Please use the side-bar to nagivate through the various documentation items.
+Please use the side-bar to navigate through the various documentation items.
 
 -----------------
 API documentation
