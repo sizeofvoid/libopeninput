@@ -2011,6 +2011,16 @@ libinput_unref(struct libinput *libinput)
 	return NULL;
 }
 
+struct quirks *
+libinput_device_get_quirks(struct libinput_device *device)
+{
+	struct libinput *libinput = libinput_device_get_context(device);
+	_unref_(udev_device) *udev_device = libinput_device_get_udev_device(device);
+	if (udev_device)
+		return quirks_fetch_for_device(libinput->quirks, udev_device);
+	return NULL;
+}
+
 static void
 libinput_event_tablet_tool_destroy(struct libinput_event_tablet_tool *event)
 {

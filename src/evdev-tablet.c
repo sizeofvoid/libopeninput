@@ -1157,13 +1157,12 @@ tablet_get_quirked_pressure_thresholds(struct tablet_dispatch *tablet,
 				       int *lo)
 {
 	struct evdev_device *device = tablet->device;
-	struct quirks_context *quirks = evdev_libinput_context(device)->quirks;
-	struct quirks *q = quirks_fetch_for_device(quirks, device->udev_device);
 	struct quirk_range r;
 	bool status = false;
 
         /* Note: the quirk term "range" refers to the hi/lo settings, not the
          * full available range for the pressure axis */
+	_unref_(quirks) *q = libinput_device_get_quirks(&device->base);
         if (q && quirks_get_range(q, QUIRK_ATTR_PRESSURE_RANGE, &r)) {
 		if (r.lower < r.upper) {
 			*hi = r.lower;
@@ -1174,7 +1173,6 @@ tablet_get_quirked_pressure_thresholds(struct tablet_dispatch *tablet,
 		}
 	}
 
-	quirks_unref(q);
 	return status;
 }
 
@@ -2873,16 +2871,12 @@ tablet_init_smoothing(struct evdev_device *device,
 		      bool is_virtual)
 {
 	size_t history_size = ARRAY_LENGTH(tablet->history.samples);
-	struct quirks_context *quirks = NULL;
-	struct quirks *q = NULL;
 	bool use_smoothing = true;
-
-	quirks = evdev_libinput_context(device)->quirks;
-	q = quirks_fetch_for_device(quirks, device->udev_device);
 
 	/* By default, always enable smoothing except on AES or uinput devices.
 	 * AttrTabletSmoothing can override this, if necessary.
 	 */
+	_unref_(quirks) *q = libinput_device_get_quirks(&device->base);
 	if (!q || !quirks_get_bool(q, QUIRK_ATTR_TABLET_SMOOTHING, &use_smoothing))
 		use_smoothing = !is_aes && !is_virtual;
 
@@ -2890,7 +2884,6 @@ tablet_init_smoothing(struct evdev_device *device,
 	if (!use_smoothing)
 		history_size = 1;
 
-	quirks_unref(q);
 	tablet->history.size = history_size;
 }
 

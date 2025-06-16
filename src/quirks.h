@@ -43,6 +43,9 @@ struct quirks_context;
  */
 struct quirks;
 
+struct quirks *
+libinput_device_get_quirks(struct libinput_device *device);
+
 struct quirk_dimensions {
 	size_t x, y;
 };

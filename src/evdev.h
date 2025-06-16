@@ -393,16 +393,13 @@ static inline bool
 evdev_device_has_model_quirk(struct evdev_device *device,
 			     enum quirk model_quirk)
 {
-	struct quirks_context *quirks;
-	struct quirks *q;
-	bool result = false;
-
 	assert(quirk_get_name(model_quirk) != NULL);
 
-	quirks = evdev_libinput_context(device)->quirks;
-	q = quirks_fetch_for_device(quirks, device->udev_device);
-	quirks_get_bool(q, model_quirk, &result);
-	quirks_unref(q);
+	_unref_(quirks) *q = libinput_device_get_quirks(&device->base);
+	bool result = false;
+
+	if (q)
+		quirks_get_bool(q, model_quirk, &result);
 
 	return result;
 }

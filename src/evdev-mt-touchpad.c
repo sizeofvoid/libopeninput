@@ -3284,14 +3284,11 @@ tp_dwtp_config_get_default(struct libinput_device *device)
 static inline bool
 tp_is_tpkb_combo_below(struct evdev_device *device)
 {
-	struct quirks_context *quirks;
-	struct quirks *q;
 	char *prop;
 	enum tpkbcombo_layout layout = TPKBCOMBO_LAYOUT_UNKNOWN;
 	int rc = false;
 
-	quirks = evdev_libinput_context(device)->quirks;
-	q = quirks_fetch_for_device(quirks, device->udev_device);
+	_unref_(quirks) *q = libinput_device_get_quirks(&device->base);
 	if (!q)
 		return false;
 
@@ -3299,8 +3296,6 @@ tp_is_tpkb_combo_below(struct evdev_device *device)
 		rc = parse_tpkbcombo_layout_poperty(prop, &layout) &&
 			layout == TPKBCOMBO_LAYOUT_BELOW;
 	}
-
-	quirks_unref(q);
 
 	return rc;
 }
@@ -3389,16 +3384,12 @@ tp_read_palm_pressure_prop(struct tp_dispatch *tp,
 {
 	const int default_palm_threshold = 130;
 	uint32_t threshold = default_palm_threshold;
-	struct quirks_context *quirks;
-	struct quirks *q;
 
-	quirks = evdev_libinput_context(device)->quirks;
-	q = quirks_fetch_for_device(quirks, device->udev_device);
+	_unref_(quirks) *q = libinput_device_get_quirks(&tp->device->base);
 	if (!q)
 		return threshold;
 
 	quirks_get_uint32(q, QUIRK_ATTR_PALM_PRESSURE_THRESHOLD, &threshold);
-	quirks_unref(q);
 
 	return threshold;
 }
@@ -3426,12 +3417,9 @@ static inline void
 tp_init_palmdetect_size(struct tp_dispatch *tp,
 			struct evdev_device *device)
 {
-	struct quirks_context *quirks;
-	struct quirks *q;
 	uint32_t threshold;
 
-	quirks = evdev_libinput_context(device)->quirks;
-	q = quirks_fetch_for_device(quirks, device->udev_device);
+	_unref_(quirks) *q = libinput_device_get_quirks(&device->base);
 	if (!q)
 		return;
 
@@ -3441,7 +3429,6 @@ tp_init_palmdetect_size(struct tp_dispatch *tp,
 			tp->palm.size_threshold = threshold;
 		}
 	}
-	quirks_unref(q);
 }
 
 static inline void
@@ -3606,8 +3593,6 @@ tp_init_pressure(struct tp_dispatch *tp,
 {
 	const struct input_absinfo *abs;
 	unsigned int code;
-	struct quirks_context *quirks;
-	struct quirks *q;
 	struct quirk_range r;
 	int hi, lo;
 
@@ -3620,8 +3605,7 @@ tp_init_pressure(struct tp_dispatch *tp,
 	abs = libevdev_get_abs_info(device->evdev, code);
 	assert(abs);
 
-	quirks = evdev_libinput_context(device)->quirks;
-	q = quirks_fetch_for_device(quirks, device->udev_device);
+	_unref_(quirks) *q = libinput_device_get_quirks(&device->base);
 	if (q && quirks_get_range(q, QUIRK_ATTR_PRESSURE_RANGE, &r)) {
 		hi = r.upper;
 		lo = r.lower;
@@ -3629,7 +3613,7 @@ tp_init_pressure(struct tp_dispatch *tp,
 		if (hi == 0 && lo == 0) {
 			evdev_log_info(device,
 			       "pressure-based touch detection disabled\n");
-			goto out;
+			return;
 		}
 	} else {
 		double range = absinfo_range(abs);
@@ -3644,7 +3628,7 @@ tp_init_pressure(struct tp_dispatch *tp,
 		evdev_log_bug_libinput(device,
 			       "discarding out-of-bounds pressure range %d:%d\n",
 			       hi, lo);
-		goto out;
+		return;
 	}
 
 	tp->pressure.use_pressure = true;
@@ -3655,19 +3639,14 @@ tp_init_pressure(struct tp_dispatch *tp,
 			"using pressure-based touch detection (%d:%d)\n",
 			lo,
 			hi);
-out:
-	quirks_unref(q);
 }
 
 static bool
 tp_init_touch_size(struct tp_dispatch *tp,
 		   struct evdev_device *device)
 {
-	struct quirks_context *quirks;
-	struct quirks *q;
 	struct quirk_range r;
 	int lo, hi;
-	int rc = false;
 
 	if (!libevdev_has_event_code(device->evdev,
 				     EV_ABS,
@@ -3675,25 +3654,24 @@ tp_init_touch_size(struct tp_dispatch *tp,
 		return false;
 	}
 
-	quirks = evdev_libinput_context(device)->quirks;
-	q = quirks_fetch_for_device(quirks, device->udev_device);
+	_unref_(quirks) *q = libinput_device_get_quirks(&device->base);
 	if (q && quirks_get_range(q, QUIRK_ATTR_TOUCH_SIZE_RANGE, &r)) {
 		hi = r.upper;
 		lo = r.lower;
 	} else {
-		goto out;
+		return false;
 	}
 
 	if (libevdev_get_num_slots(device->evdev) < 5) {
 		evdev_log_bug_libinput(device,
 			       "Expected 5+ slots for touch size detection\n");
-		goto out;
+		return false;
 	}
 
 	if (hi == 0 && lo == 0) {
 		evdev_log_info(device,
 			       "touch size based touch detection disabled\n");
-		goto out;
+		return false;
 	}
 
 	/* Thresholds apply for both major or minor */
@@ -3704,11 +3682,7 @@ tp_init_touch_size(struct tp_dispatch *tp,
 	evdev_log_debug(device,
 			"using size-based touch detection (%d:%d)\n",
 			hi, lo);
-
-	rc = true;
-out:
-	quirks_unref(q);
-	return rc;
+	return true;
 }
 
 static void

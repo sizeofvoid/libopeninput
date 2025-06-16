@@ -388,8 +388,6 @@ tp_init_thumb(struct tp_dispatch *tp)
 	struct device_coords edges;
 	struct phys_coords mm = { 0.0, 0.0 };
 	uint32_t threshold;
-	struct quirks_context *quirks;
-	struct quirks *q;
 
 	tp->thumb.detect_thumbs = false;
 
@@ -418,9 +416,7 @@ tp_init_thumb(struct tp_dispatch *tp)
 	edges = evdev_device_mm_to_units(device, &mm);
 	tp->thumb.lower_thumb_line = edges.y;
 
-	quirks = evdev_libinput_context(device)->quirks;
-	q = quirks_fetch_for_device(quirks, device->udev_device);
-
+	_unref_(quirks) *q = libinput_device_get_quirks(&device->base);
 	if (libevdev_has_event_code(device->evdev, EV_ABS, ABS_MT_PRESSURE)) {
 		if (quirks_get_uint32(q,
 				      QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD,
@@ -440,8 +436,6 @@ tp_init_thumb(struct tp_dispatch *tp)
 	}
 
 	tp_thumb_reset(tp);
-
-	quirks_unref(q);
 
 	evdev_log_debug(device,
 			"thumb: enabled thumb detection (area%s%s)\n",
