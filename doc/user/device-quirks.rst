@@ -223,8 +223,8 @@ MatchBus
     A lower-case bus name. Currently supported are ``usb``, ``bluetooth``, ``ps2``,
     ``rmi``, ``i2c``, and ``spi``.
 MatchVendor, MatchProduct, MatchVersion
-    The hexadecmial 4-digit vendor ID, product ID or driver version as exported, without
-    a ``0x`` prefix.
+    The hexadecimal 4-digit vendor ID, product ID or driver version as
+    exported, uppercase with a ``0x`` prefix, e.g. ``0x12AB```.
 MatchDMIModalias, MatchDeviceTree
     An ``fnmatch()`` glob for the DMI modalias or the DeviceTree ``compatible`` string.
     See ``/sys/class/dmi/id/modalias`` and ``/sys/firmware/devicetree/base/compatible``.
