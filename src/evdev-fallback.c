@@ -945,7 +945,6 @@ fallback_handle_state(struct fallback_dispatch *dispatch,
 
 	/* Buttons and keys */
 	if (dispatch->pending_event & EVDEV_KEY) {
-		bool want_debounce = false;
 		for (evdev_usage_t usage = evdev_usage_from(EVDEV_KEY_RESERVED);
 		     evdev_usage_le(usage, EVDEV_KEY_MAX);
 		     usage = evdev_usage_next(usage)) {
@@ -953,13 +952,19 @@ fallback_handle_state(struct fallback_dispatch *dispatch,
 				continue;
 
 			if (evdev_usage_is_button(usage)) {
-				want_debounce = true;
-				break;
+				enum libinput_button_state state =
+					hw_is_key_down(dispatch, usage) ?
+						LIBINPUT_BUTTON_STATE_PRESSED :
+						LIBINPUT_BUTTON_STATE_RELEASED;
+				evdev_usage_t button = evdev_to_left_handed(device, usage);
+				fallback_notify_physical_button(dispatch,
+								device,
+								time,
+								button,
+								state);
+
 			}
 		}
-
-		if (want_debounce)
-			fallback_debounce_handle_state(dispatch, time);
 
 		hw_key_update_last_state(dispatch);
 	}
@@ -1714,7 +1719,6 @@ fallback_dispatch_create(struct libinput_device *libinput_device)
 	}
 
 	fallback_init_wheel(dispatch, device);
-	fallback_init_debounce(dispatch);
 	fallback_init_arbitration(dispatch, device);
 
 	return &dispatch->base;
