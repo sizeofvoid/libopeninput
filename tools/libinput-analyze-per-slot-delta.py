@@ -41,6 +41,8 @@ import libevdev
 
 COLOR_RESET = "\x1b[0m"
 COLOR_RED = "\x1b[6;31m"
+COLOR_BLUE = "\x1b[6;34m"
+COLOR_GREEN = "\x1b[6;32m"
 
 
 class SlotFormatter:
@@ -51,12 +53,14 @@ class SlotFormatter:
         threshold=None,
         ignore_below=None,
         show_distance=False,
+        pressure_thresholds=(0, 0),
     ):
         self.threshold = threshold
         self.ignore_below = ignore_below
         self.resolution = resolution
         self.is_absolute = is_absolute
         self.show_distance = show_distance
+        self.pressure_thresholds = pressure_thresholds
         self.slots = []
         self.have_data = False
         self.filtered = False
@@ -118,9 +122,22 @@ class SlotFormatter:
                 else:
                     direction = "↓↓"
 
-            color = ""
-            reset = ""
+            color = COLOR_RESET
+            reset = COLOR_RESET
             if not self.is_absolute:
+                if (
+                    self.pressure_thresholds[1] > 0
+                    and slot.pressure > self.pressure_thresholds[1]
+                ):
+                    color = COLOR_GREEN
+                    reset = COLOR_RESET
+                elif (
+                    self.pressure_thresholds[0] > 0
+                    and slot.pressure > self.pressure_thresholds[0]
+                ):
+                    color = COLOR_BLUE
+                    reset = COLOR_RESET
+
                 if self.ignore_below is not None or self.threshold is not None:
                     dist = math.hypot(delta.x, delta.y)
                     if self.ignore_below is not None and dist < self.ignore_below:
@@ -180,6 +197,7 @@ class Slot:
     position: Point = field(default_factory=Point)
     delta: Point = field(default_factory=Point)
     origin: Point = field(default_factory=Point)
+    pressure: int = 0
     used: bool = False
     dirty: bool = False
 
@@ -187,6 +205,8 @@ class Slot:
 def main(argv):
     global COLOR_RESET
     global COLOR_RED
+    global COLOR_BLUE
+    global COLOR_GREEN
 
     slots = []
     xres, yres = 1, 1
@@ -227,11 +247,25 @@ def main(argv):
         default=None,
         help="Ignore any delta below this threshold",
     )
+    parser.add_argument(
+        "--pressure-min",
+        type=int,
+        default=None,
+        help="Highlight touches above this pressure minimum",
+    )
+    parser.add_argument(
+        "--pressure-max",
+        type=int,
+        default=None,
+        help="Highlight touches below this pressure maximum",
+    )
     args = parser.parse_args()
 
     if not sys.stdout.isatty():
         COLOR_RESET = ""
         COLOR_RED = ""
+        COLOR_GREEN = ""
+        COLOR_BLUE = ""
 
     yml = yaml.safe_load(open(args.path[0]))
     device = yml["devices"][0]
@@ -314,6 +348,8 @@ def main(argv):
                         s.state = SlotState.BEGIN
                     else:
                         s.state = SlotState.END
+                elif e.code == libevdev.EV_ABS.ABS_PRESSURE:
+                    s.pressure = e.value
             else:
                 if e.code == libevdev.EV_ABS.ABS_MT_SLOT:
                     slot = e.value
@@ -330,6 +366,8 @@ def main(argv):
                         s.state = SlotState.BEGIN
                         s.delta.x, s.delta.y = 0, 0
                     s.dirty = True
+                elif e.code == libevdev.EV_ABS.ABS_MT_PRESSURE:
+                    s.pressure = e.value
 
             if args.use_st:
                 axes = [libevdev.EV_ABS.ABS_X, libevdev.EV_ABS.ABS_Y]
@@ -405,6 +443,7 @@ def main(argv):
                     threshold=args.threshold,
                     ignore_below=args.ignore_below,
                     show_distance=args.show_distance,
+                    pressure_thresholds=(args.pressure_min, args.pressure_max),
                 )
                 for sl in [s for s in slots if s.used]:
                     fmt.format_slot(sl)
