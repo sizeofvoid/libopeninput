@@ -472,8 +472,6 @@ fallback_process_key(struct fallback_dispatch *dispatch,
 		     struct evdev_device *device,
 		     struct evdev_event *e, uint64_t time)
 {
-	enum key_type type;
-
 	/* ignore kernel key repeat */
 	if (e->value == 2)
 		return;
@@ -487,40 +485,29 @@ fallback_process_key(struct fallback_dispatch *dispatch,
 		return;
 	}
 
-	type = get_key_type(e->usage);
+	bool is_button = evdev_usage_is_button(e->usage);
+	bool is_key = evdev_usage_is_key(e->usage);
 
 	/* Ignore key release events from the kernel for keys that libinput
 	 * never got a pressed event for or key presses for keys that we
 	 * think are still down */
-	switch (type) {
-	case KEY_TYPE_NONE:
-		break;
-	case KEY_TYPE_KEY:
-	case KEY_TYPE_BUTTON:
+	if (is_button || is_key) {
 		if ((e->value && hw_is_key_down(dispatch, e->usage)) ||
 		    (e->value == 0 && !hw_is_key_down(dispatch, e->usage)))
 			return;
 
 		dispatch->pending_event |= EVDEV_KEY;
-		break;
 	}
 
 	hw_set_key_down(dispatch, e->usage, e->value);
 
-	switch (type) {
-	case KEY_TYPE_NONE:
-		break;
-	case KEY_TYPE_KEY:
-		fallback_keyboard_notify_key(
-			     dispatch,
-			     device,
-			     time,
-			     e->usage,
-			     e->value ? LIBINPUT_KEY_STATE_PRESSED :
-					LIBINPUT_KEY_STATE_RELEASED);
-		break;
-	case KEY_TYPE_BUTTON:
-		break;
+	if (is_key) {
+		fallback_keyboard_notify_key(dispatch,
+					     device,
+					     time,
+					     e->usage,
+					     e->value ? LIBINPUT_KEY_STATE_PRESSED :
+					     LIBINPUT_KEY_STATE_RELEASED);
 	}
 }
 
@@ -965,7 +952,7 @@ fallback_handle_state(struct fallback_dispatch *dispatch,
 			if (!hw_key_has_changed(dispatch, usage))
 				continue;
 
-			if (get_key_type(usage) == KEY_TYPE_BUTTON) {
+			if (evdev_usage_is_button(usage)) {
 				want_debounce = true;
 				break;
 			}
@@ -1073,18 +1060,13 @@ release_pressed_keys(struct fallback_dispatch *dispatch,
 					       count);
 		}
 
-		switch (get_key_type(usage)) {
-		case KEY_TYPE_NONE:
-			break;
-		case KEY_TYPE_KEY:
-			fallback_keyboard_notify_key(
-				dispatch,
-				device,
-				time,
-				usage,
-				LIBINPUT_KEY_STATE_RELEASED);
-			break;
-		case KEY_TYPE_BUTTON:
+		if (evdev_usage_is_key(usage)) {
+			fallback_keyboard_notify_key(dispatch,
+						     device,
+						     time,
+						     usage,
+						     LIBINPUT_KEY_STATE_RELEASED);
+		} else if (evdev_usage_is_button(usage)) {
 			/* Note: the left-handed configuration is nonzero for
 			 * the mapped button (not the physical button), in
 			 * get_key_down_count(). We must not map this to left-handed
@@ -1095,7 +1077,6 @@ release_pressed_keys(struct fallback_dispatch *dispatch,
 				time,
 				usage,
 				LIBINPUT_BUTTON_STATE_RELEASED);
-			break;
 		}
 
 		count = get_key_down_count(device, usage);

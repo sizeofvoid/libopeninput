@@ -491,7 +491,7 @@ fallback_debounce_handle_state(struct fallback_dispatch *dispatch,
 	for (evdev_usage_t usage = evdev_usage_from(EVDEV_KEY_RESERVED);
 	     evdev_usage_le(usage, EVDEV_KEY_MAX);
 	     usage = evdev_usage_next(usage)) {
-		if (get_key_type(usage) != KEY_TYPE_BUTTON)
+		if (!evdev_usage_is_button(usage))
 			continue;
 
 		if (hw_key_has_changed(dispatch, usage))

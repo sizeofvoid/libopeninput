@@ -88,6 +88,8 @@ enum evdev_usage {
 	EVDEV_BTN_TOOL_QUADTAP = _evbit(EV_KEY, BTN_TOOL_QUADTAP),
 	EVDEV_BTN_TOOL_FINGER = _evbit(EV_KEY, BTN_TOOL_FINGER),
 	EVDEV_BTN_MISC = _evbit(EV_KEY, BTN_MISC),
+	EVDEV_BTN_DIGI = _evbit(EV_KEY, BTN_DIGI),
+	EVDEV_BTN_WHEEL = _evbit(EV_KEY, BTN_WHEEL),
 	EVDEV_BTN_GEAR_UP = _evbit(EV_KEY, BTN_GEAR_UP),
 	EVDEV_BTN_DPAD_UP = _evbit(EV_KEY, BTN_DPAD_UP),
 	EVDEV_BTN_DPAD_RIGHT = _evbit(EV_KEY, BTN_DPAD_RIGHT),
@@ -195,6 +197,59 @@ static inline evdev_usage_t
 evdev_usage_next(evdev_usage_t usage)
 {
 	return evdev_usage_from_code(evdev_usage_type(usage), evdev_usage_code(usage) + 1);
+}
+
+/**
+ * Returns true if the usage is a real button, i.e. BTN_FOO
+ * excluding the various BTN_TOOL and BTN_TOUCH usages.
+ */
+static inline bool
+evdev_usage_is_button(evdev_usage_t usage)
+{
+	switch (evdev_usage_as_uint32_t(usage)) {
+	case EVDEV_BTN_TOOL_PEN:
+	case EVDEV_BTN_TOOL_RUBBER:
+	case EVDEV_BTN_TOOL_BRUSH:
+	case EVDEV_BTN_TOOL_PENCIL:
+	case EVDEV_BTN_TOOL_AIRBRUSH:
+	case EVDEV_BTN_TOOL_MOUSE:
+	case EVDEV_BTN_TOOL_LENS:
+	case EVDEV_BTN_TOOL_QUINTTAP:
+	case EVDEV_BTN_TOOL_DOUBLETAP:
+	case EVDEV_BTN_TOOL_TRIPLETAP:
+	case EVDEV_BTN_TOOL_QUADTAP:
+	case EVDEV_BTN_TOOL_FINGER:
+	case EVDEV_BTN_TOUCH:
+		return false;
+	case BTN_STYLUS:
+	case BTN_STYLUS2:
+	case BTN_STYLUS3:
+		return true;
+	case EVDEV_BTN_MISC ... EVDEV_BTN_DIGI - 1:
+	case EVDEV_BTN_WHEEL ... EVDEV_BTN_GEAR_UP:
+	case EVDEV_BTN_DPAD_UP ... EVDEV_BTN_DPAD_RIGHT:
+	case EVDEV_BTN_TRIGGER_HAPPY ... EVDEV_BTN_TRIGGER_HAPPY40:
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Returns true if the usage is a real key, i.e. KEY_FOO
+ * excluding the various BTN_ ranges
+ */
+static inline bool
+evdev_usage_is_key(evdev_usage_t usage)
+{
+	switch (evdev_usage_as_uint32_t(usage)) {
+	case EVDEV_KEY_ESC ... EVDEV_KEY_MICMUTE:
+	case EVDEV_KEY_OK ... EVDEV_KEY_LIGHTS_TOGGLE:
+	case EVDEV_KEY_ALS_TOGGLE ... EVDEV_BTN_TRIGGER_HAPPY - 1:
+		return true;
+	}
+
+	return false;
 }
 
 struct evdev_event {

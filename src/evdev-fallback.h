@@ -184,51 +184,6 @@ fallback_dispatch(struct evdev_dispatch *dispatch)
 	return container_of(dispatch, struct fallback_dispatch, base);
 }
 
-enum key_type {
-	KEY_TYPE_NONE,
-	KEY_TYPE_KEY,
-	KEY_TYPE_BUTTON,
-};
-
-static inline enum key_type
-get_key_type(evdev_usage_t evdev_usage)
-{
-	switch (evdev_usage_enum(evdev_usage)) {
-	case EVDEV_BTN_TOOL_PEN:
-	case EVDEV_BTN_TOOL_RUBBER:
-	case EVDEV_BTN_TOOL_BRUSH:
-	case EVDEV_BTN_TOOL_PENCIL:
-	case EVDEV_BTN_TOOL_AIRBRUSH:
-	case EVDEV_BTN_TOOL_MOUSE:
-	case EVDEV_BTN_TOOL_LENS:
-	case EVDEV_BTN_TOOL_QUINTTAP:
-	case EVDEV_BTN_TOOL_DOUBLETAP:
-	case EVDEV_BTN_TOOL_TRIPLETAP:
-	case EVDEV_BTN_TOOL_QUADTAP:
-	case EVDEV_BTN_TOOL_FINGER:
-	case EVDEV_BTN_TOUCH:
-		return KEY_TYPE_NONE;
-	default:
-		break;
-	}
-
-	enum evdev_usage usage = evdev_usage_enum(evdev_usage);
-	if (usage >= EVDEV_KEY_ESC && usage <= EVDEV_KEY_MICMUTE)
-		return KEY_TYPE_KEY;
-	if (usage >= EVDEV_BTN_MISC && usage <= EVDEV_BTN_GEAR_UP)
-		return KEY_TYPE_BUTTON;
-	if (usage >= EVDEV_KEY_OK && usage <= EVDEV_KEY_LIGHTS_TOGGLE)
-		return KEY_TYPE_KEY;
-	if (usage >= EVDEV_BTN_DPAD_UP && usage <= EVDEV_BTN_DPAD_RIGHT)
-		return KEY_TYPE_BUTTON;
-	if (usage >= EVDEV_KEY_ALS_TOGGLE && usage < EVDEV_BTN_TRIGGER_HAPPY)
-		return KEY_TYPE_KEY;
-	if (usage >= EVDEV_BTN_TRIGGER_HAPPY && usage <= EVDEV_BTN_TRIGGER_HAPPY40)
-		return KEY_TYPE_BUTTON;
-
-	return KEY_TYPE_NONE;
-}
-
 static inline void
 hw_set_key_down(struct fallback_dispatch *dispatch, evdev_usage_t usage, int pressed)
 {
