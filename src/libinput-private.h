@@ -499,6 +499,8 @@ struct libinput_device {
 	int fd;
 
 #if !defined(__OpenBSD__) && !defined(__NetBSD__)
+	bitmask_t plugin_frame_callbacks;
+
 	void (*inject_evdev_frame)(struct libinput_device *device,
 				   struct evdev_frame *frame);
 #endif

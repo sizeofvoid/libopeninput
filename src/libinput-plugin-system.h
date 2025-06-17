@@ -44,6 +44,8 @@ struct libinput_plugin_system {
 
 	struct list plugins;
 	struct list removed_plugins;
+
+	size_t next_plugin_index; /* sequential index of all plugins */
 };
 
 void

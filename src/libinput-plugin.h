@@ -154,6 +154,11 @@ libinput_plugin_unref(struct libinput_plugin *plugin);
 DEFINE_UNREF_CLEANUP_FUNC(libinput_plugin);
 #endif
 
+void
+libinput_plugin_enable_device_event_frame(struct libinput_plugin *plugin,
+					  struct libinput_device *device,
+					  bool enable);
+
 /**
  * Inject a new event frame from the given plugin. This
  * frame is treated as if it was just sent by the kernel's

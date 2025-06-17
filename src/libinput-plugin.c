@@ -45,6 +45,7 @@
 
 struct libinput_plugin {
 	struct libinput *libinput;
+	size_t index; /* sequential index of all plugins */
 	char *name;
 	int refcount;
 	struct list link;
@@ -98,7 +99,7 @@ libinput_plugin_new(struct libinput *libinput,
 		    void *user_data)
 {
 	struct libinput_plugin *plugin = zalloc(sizeof(*plugin));
-
+	plugin->index = libinput->plugin_system.next_plugin_index++;
 	plugin->registered = true;
 	plugin->libinput = libinput;
 	plugin->refcount = 1;
@@ -106,6 +107,10 @@ libinput_plugin_new(struct libinput *libinput,
 	plugin->user_data = user_data;
 	plugin->name = strdup(name);
 	list_init(&plugin->timers);
+
+	if (plugin->index >= 32) {
+		log_bug_libinput(libinput, "Too many plugins, maximum is 32\n");
+	}
 
 	libinput_plugin_system_register_plugin(&libinput->plugin_system, plugin);
 
@@ -176,6 +181,18 @@ struct libinput *
 libinput_plugin_get_context(struct libinput_plugin *plugin)
 {
 	return plugin->libinput;
+}
+
+void
+libinput_plugin_enable_device_event_frame(struct libinput_plugin *plugin,
+					  struct libinput_device *device,
+					  bool enable)
+{
+	if (enable) {
+		bitmask_set_bit(&device->plugin_frame_callbacks, plugin->index);
+	} else {
+		bitmask_clear_bit(&device->plugin_frame_callbacks, plugin->index);
+	}
 }
 
 struct plugin_queued_event {
@@ -589,6 +606,12 @@ plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 			if (evdev_frame_get_time(event->frame) == 0)
 				evdev_frame_set_time(event->frame, frame_time);
 
+			if (!bitmask_bit_is_set(device->plugin_frame_callbacks,
+					       plugin->index)) {
+				list_remove(&event->link);
+				list_append(&next_events, &event->link);
+				continue;
+			}
 #ifdef EVENT_DEBUGGING
 			_autofree_ char *prefix = strdup_printf("plugin %-25s - %s:",
 								plugin->name,

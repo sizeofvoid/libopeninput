@@ -251,6 +251,8 @@ proximity_timer_plugin_device_added(struct libinput_plugin *libinput_plugin,
 	if (!libinput_device_has_capability(device, LIBINPUT_DEVICE_CAP_TABLET_TOOL))
 		return;
 
+	libinput_plugin_enable_device_event_frame(libinput_plugin, device, true);
+
 	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
 	struct plugin_device *pd = zalloc(sizeof(*pd));
 	pd->device = libinput_device_ref(device);
