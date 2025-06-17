@@ -607,6 +607,13 @@ plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 		assert(list_empty(&queued_events));
 		list_chain(&queued_events, &next_events);
 		if (list_empty(&queued_events)) {
+#ifdef EVENT_DEBUGGING
+			if (list_last_entry_by_type(&system->plugins, struct libinput_plugin, link) != plugin) {
+				log_debug(libinput_device_get_context(device),
+					  "%s: --- empty frame queue - end of events ---\n",
+					  plugin->name);
+			}
+#endif
 			/* No more events to process, stop here */
 			break;
 		}
