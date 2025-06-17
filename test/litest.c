@@ -1275,7 +1275,8 @@ litest_log_handler(struct libinput *libinput,
 		   va_list args)
 {
 	const char *priority = NULL;
-	const char *color;
+	const char *color = "";
+	const char *color_reset = ANSI_NORMAL;
 
 	switch(pri) {
 	case LIBINPUT_LOG_PRIORITY_INFO:
@@ -1294,32 +1295,31 @@ litest_log_handler(struct libinput *libinput,
 		  abort();
 	}
 
+	_autofree_ char *msg = strdup_vprintf(format, args);
+
 	if (!use_colors)
-		color = "";
-	else if (strstr(format, "tap:"))
+		color_reset = "";
+	else if (strstr(msg, "tap:"))
 		color = ANSI_BLUE;
-	else if (strstr(format, "thumb state:"))
+	else if (strstr(msg, "thumb state:"))
 		color = ANSI_YELLOW;
-	else if (strstr(format, "button state:"))
+	else if (strstr(msg, "button state:"))
 		color = ANSI_MAGENTA;
-	else if (strstr(format, "touch-size:") ||
-		 strstr(format, "pressure:"))
+	else if (strstr(msg, "touch-size:") ||
+		 strstr(msg, "pressure:"))
 		color = ANSI_GREEN;
-	else if (strstr(format, "palm:") ||
-		 strstr(format, "thumb:"))
+	else if (strstr(msg, "palm:") ||
+		 strstr(msg, "thumb:"))
 		color = ANSI_CYAN;
-	else if (strstr(format, "edge-scroll:"))
+	else if (strstr(msg, "edge-scroll:"))
 		color = ANSI_BRIGHT_GREEN;
-	else if (strstr(format, "gesture:"))
+	else if (strstr(msg, "gesture:"))
 		color = ANSI_BRIGHT_YELLOW;
 
-	fprintf(stderr, "%slitest %s ", color, priority);
-	vfprintf(stderr, format, args);
-	if (use_colors)
-		fprintf(stderr, ANSI_NORMAL);
+	fprintf(stderr, "%slitest %s %s%s", color, priority, msg, color_reset);
 
-	if (strstr(format, "client bug: ") ||
-	    strstr(format, "libinput bug: ")) {
+	if (strstr(msg, "client bug: ") ||
+	    strstr(msg, "libinput bug: ")) {
 		/* valgrind is too slow and some of our offsets are too
 		 * short, don't abort if during a valgrind run we get a
 		 * negative offset */
@@ -1333,7 +1333,7 @@ litest_log_handler(struct libinput *libinput,
 		}
 	}
 
-	if (strstr(format, "Touch jump detected and discarded")) {
+	if (strstr(msg, "Touch jump detected and discarded")) {
 		litest_abort_msg("libinput touch jump triggered, aborting.");
 	}
 }
