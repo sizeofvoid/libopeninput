@@ -177,7 +177,7 @@ wheel_handle_event(struct fallback_dispatch *dispatch,
 
 	if (oldstate != dispatch->wheel.state) {
 		evdev_log_debug(dispatch->device,
-				"wheel state %s → %s → %s\n",
+				"wheel: %s → %s → %s\n",
 				wheel_state_to_str(oldstate),
 				wheel_event_to_str(event),
 				wheel_state_to_str(dispatch->wheel.state));
