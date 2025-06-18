@@ -709,12 +709,12 @@ litest_runner_log_test_result(struct litest_runner *runner, struct litest_runner
 	litest_assert_int_le(t->result, (enum litest_runner_result)LITEST_SYSTEM_ERROR);
 
 	switch (t->result) {
-		case LITEST_PASS: color = ANSI_BRIGHT_GREEN; break;
-		case LITEST_FAIL: color = ANSI_BRIGHT_RED; break;
-		case LITEST_SKIP: color = ANSI_BRIGHT_YELLOW; break;
+		case LITEST_PASS: color = ANSI_BOLD_GREEN; break;
+		case LITEST_FAIL: color = ANSI_BOLD_RED; break;
+		case LITEST_SKIP: color = ANSI_BOLD_YELLOW; break;
 		case LITEST_NOT_APPLICABLE: color = ANSI_BLUE; break;
-		case LITEST_TIMEOUT: color = ANSI_BRIGHT_CYAN; break;
-		case LITEST_SYSTEM_ERROR: color = ANSI_BRIGHT_MAGENTA; break;
+		case LITEST_TIMEOUT: color = ANSI_BOLD_CYAN; break;
+		case LITEST_SYSTEM_ERROR: color = ANSI_BOLD_MAGENTA; break;
 	}
 
 	fprintf(runner->fp, "  - name: \"%s\"\n", t->desc.name);

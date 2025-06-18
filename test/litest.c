@@ -1293,7 +1293,7 @@ litest_log_handler(struct libinput *libinput,
 	switch(pri) {
 	case LIBINPUT_LOG_PRIORITY_INFO:
 		priority =  "info ";
-		color = ANSI_HIGHLIGHT;
+		color = ANSI_BOLD;
 		break;
 	case LIBINPUT_LOG_PRIORITY_ERROR:
 		priority = "error";

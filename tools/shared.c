@@ -78,7 +78,7 @@ log_handler(struct libinput *li,
 			else
 				printf(ANSI_RED);
 		} else if (priority >= LIBINPUT_LOG_PRIORITY_INFO) {
-			printf(ANSI_HIGHLIGHT);
+			printf(ANSI_BOLD);
 		} else if (priority == LIBINPUT_LOG_PRIORITY_DEBUG) {
 			if (dispatch_counter != last_dispatch_no)
 				color_toggle = !color_toggle;
