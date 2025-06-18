@@ -210,8 +210,8 @@ print_device_options(struct libinput_device *dev)
 	}
 
 	if (libinput_device_config_dwtp_is_available(dev)) {
-		dwt = strdup_printf(" dwtp-%s",
-				    onoff(libinput_device_config_dwtp_get_enabled(dev) == LIBINPUT_CONFIG_DWTP_ENABLED));
+		dwtp = strdup_printf(" dwtp-%s",
+				     onoff(libinput_device_config_dwtp_get_enabled(dev) == LIBINPUT_CONFIG_DWTP_ENABLED));
 	}
 
 	if (libinput_device_has_capability(dev,
