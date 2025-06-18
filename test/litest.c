@@ -1327,11 +1327,14 @@ litest_log_handler(struct libinput *libinput,
 		color = ANSI_BRIGHT_GREEN;
 	else if (strstr(format, "gesture:"))
 		color = ANSI_BRIGHT_YELLOW;
+	else if (strstr(msg, "Plugin:"))
+		color = ANSI_BRIGHT_CYAN;
 
 	fprintf(stderr, "%slitest %s %s%s", color, priority, msg, color_reset);
 
 	if (strstr(msg, "client bug: ") ||
-	    strstr(msg, "libinput bug: ")) {
+	    strstr(msg, "libinput bug: ") ||
+	    strstr(msg, "plugin bug: ")) {
 		/* valgrind is too slow and some of our offsets are too
 		 * short, don't abort if during a valgrind run we get a
 		 * negative offset */
@@ -2169,7 +2172,13 @@ litest_bug_log_handler(struct libinput *libinput,
 	    strstr(format, "kernel bug: "))
 		return;
 
-	litest_abort_msg("Expected bug statement in log msg, aborting.");
+	/* messages from plugins don't have the string in the format, it's one of the
+	 * args... */
+	_autofree_ char *msg = strdup_vprintf(format, args);
+	if (strstr(msg, "plugin bug:"))
+		return;
+
+	litest_abort_msg("Expected bug statement in log msg ('%s'), aborting.", msg);
 }
 
 void
