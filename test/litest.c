@@ -1311,21 +1311,21 @@ litest_log_handler(struct libinput *libinput,
 
 	if (!use_colors)
 		color_reset = "";
-	else if (strstr(msg, "tap:"))
+	else if (strstr(format, "tap:"))
 		color = ANSI_BLUE;
-	else if (strstr(msg, "thumb state:"))
+	else if (strstr(format, "thumb state:"))
 		color = ANSI_YELLOW;
-	else if (strstr(msg, "button state:"))
+	else if (strstr(format, "button state:"))
 		color = ANSI_MAGENTA;
-	else if (strstr(msg, "touch-size:") ||
-		 strstr(msg, "pressure:"))
+	else if (strstr(format, "touch-size:") ||
+		 strstr(format, "pressure:"))
 		color = ANSI_GREEN;
-	else if (strstr(msg, "palm:") ||
-		 strstr(msg, "thumb:"))
+	else if (strstr(format, "palm:") ||
+		 strstr(format, "thumb:"))
 		color = ANSI_CYAN;
-	else if (strstr(msg, "edge-scroll:"))
+	else if (strstr(format, "edge-scroll:"))
 		color = ANSI_BRIGHT_GREEN;
-	else if (strstr(msg, "gesture:"))
+	else if (strstr(format, "gesture:"))
 		color = ANSI_BRIGHT_YELLOW;
 
 	fprintf(stderr, "%slitest %s %s%s", color, priority, msg, color_reset);
