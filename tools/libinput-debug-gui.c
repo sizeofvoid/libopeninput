@@ -311,12 +311,22 @@ x_lock_pointer(struct window *w)
 	Window x_win;
 	int result;
 
+	/* gdk_display_get_default() is deprecated but probably won't be removed
+	 * before GTK X11 is removed completely so this whole section will
+	 * be gone anyway. Meanwhile, disable the warning
+	 */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	x_display = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
+#pragma GCC diagnostic pop
 
 #if HAVE_GTK4
 	GtkNative *window = gtk_widget_get_native(w->win);
 	GdkSurface *surface = gtk_native_get_surface(window);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	x_win = GDK_SURFACE_XID(surface);
+#pragma GCC diagnostic pop
 #else
 	GdkWindow *window = gtk_widget_get_window(w->win);
 	x_win = GDK_WINDOW_XID(window);
@@ -336,7 +346,10 @@ x_unlock_pointer(struct window *w)
 {
 	Display *x_display;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	x_display = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
+#pragma GCC diagnostic pop
 
 	XUngrabPointer(x_display, CurrentTime);
 }
