@@ -355,6 +355,7 @@ libinput_plugin_system_drop_unregistered_plugins(struct libinput_plugin_system *
 void
 libinput_plugin_system_init(struct libinput_plugin_system *system)
 {
+	system->loaded = false;
 	list_init(&system->plugins);
 	list_init(&system->removed_plugins);
 }
@@ -363,6 +364,11 @@ void
 libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
 					     struct libinput_plugin_system *system)
 {
+	if (system->loaded)
+		return;
+
+	system->loaded = true;
+
 	/* FIXME: this should really be one of the first in the sequence
 	 * so plugins don't have to take care of this? */
 	libinput_tablet_plugin_forced_tool(libinput);

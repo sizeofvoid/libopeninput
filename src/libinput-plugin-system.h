@@ -40,6 +40,8 @@ struct libinput_plugin;
 struct libinput_plugin_system {
 	char **directories; /* NULL once loaded == true */
 
+	bool loaded;
+
 	struct list plugins;
 	struct list removed_plugins;
 };
