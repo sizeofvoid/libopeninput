@@ -1330,7 +1330,7 @@ eraser_button_get_default_mode(struct libinput_tablet_tool *tool)
 }
 
 static enum libinput_config_status
-eraser_button_set_button(struct libinput_tablet_tool *tool, unsigned int button)
+eraser_button_set_button(struct libinput_tablet_tool *tool, uint32_t button)
 {
 	if (!libinput_tablet_tool_has_button(tool, button))
 		return LIBINPUT_CONFIG_STATUS_INVALID;

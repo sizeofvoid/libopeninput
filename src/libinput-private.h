@@ -553,7 +553,7 @@ struct libinput_tablet_tool_config_eraser_button {
 	enum libinput_config_eraser_button_mode (*get_mode)(struct libinput_tablet_tool *tool);
 	enum libinput_config_eraser_button_mode (*get_default_mode)(struct libinput_tablet_tool *tool);
 
-	enum libinput_config_status (*set_button)(struct libinput_tablet_tool *tool, unsigned int button);
+	enum libinput_config_status (*set_button)(struct libinput_tablet_tool *tool, uint32_t button);
 	unsigned int (*get_button)(struct libinput_tablet_tool *tool);
 	unsigned int (*get_default_button)(struct libinput_tablet_tool *tool);
 };

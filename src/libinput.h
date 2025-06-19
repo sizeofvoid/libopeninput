@@ -7124,7 +7124,7 @@ libinput_tablet_tool_config_eraser_button_get_default_mode(struct libinput_table
  */
 enum libinput_config_status
 libinput_tablet_tool_config_eraser_button_set_button(struct libinput_tablet_tool *tool,
-						     unsigned int button);
+						     uint32_t button);
 
 /**
  * @ingroup config
