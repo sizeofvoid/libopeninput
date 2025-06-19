@@ -5109,8 +5109,16 @@ libinput_tablet_tool_config_eraser_button_set_button(struct libinput_tablet_tool
 	if (!libinput_tablet_tool_config_eraser_button_get_modes(tool))
 		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
 
-	if (!libinput_tablet_tool_has_button(tool, button))
-		return LIBINPUT_CONFIG_STATUS_INVALID;
+	switch (button) {
+		case BTN_STYLUS:
+		case BTN_STYLUS2:
+		case BTN_STYLUS3:
+			break;
+		default:
+			if (!libinput_tablet_tool_has_button(tool, button))
+				return LIBINPUT_CONFIG_STATUS_INVALID;
+			break;
+	}
 
 	return tool->config.eraser_button.set_button(tool, button);
 }
