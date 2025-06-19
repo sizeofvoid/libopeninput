@@ -56,6 +56,8 @@ __all_seats()
 			lrm\:2-fingers\ right-click\ /\ 3-fingers\ middle-click \
 			lmr\:2-fingers\ middle-click\ /\ 3-fingers\ right-click \
 		))' \
+		'--set-eraser-button-button=[Set button mapping for the eraser button]:eraser-button:(BTN_STYLUS BTN_STYLUS2 BTN_STYLUS3)' \
+		'--set-eraser-button-mode=[Set the eraser button mode]:eraser-mode:(default button)' \
 		'--set-pressure-range=[Set the tablet tool pressure range (within range \[0.0, 1.0\])]' \
 		'--set-profile=[Set pointer acceleration profile]:accel-profile:(adaptive flat custom)' \
 		'--set-rotation-angle=[Set the rotation angle in degrees]' \

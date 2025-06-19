@@ -120,6 +120,8 @@ enum configuration_options {
 	{ "set-eraser-button-mode",    required_argument, 0, OPT_ERASER_BUTTON_MODE }, \
 	{ "set-eraser-button-button",  required_argument, 0, OPT_ERASER_BUTTON_BUTTON }
 
+/* Note: New arguments should be added to shell completions */
+
 static inline void
 tools_print_usage_option_list(struct option *opts)
 {
