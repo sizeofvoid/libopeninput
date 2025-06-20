@@ -115,7 +115,6 @@ struct fallback_dispatch {
 		enum wheel_state state;
 		struct device_coords lo_res;
 		struct device_coords hi_res;
-		bool emulate_hi_res_wheel;
 		bool hi_res_event_received;
 		struct libinput_timer scroll_timer;
 		enum wheel_direction dir;

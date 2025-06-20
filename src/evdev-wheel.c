@@ -353,16 +353,12 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 	case EVDEV_REL_WHEEL:
 		fallback_rotate_wheel(dispatch, e);
 		dispatch->wheel.lo_res.y += e->value;
-		if (dispatch->wheel.emulate_hi_res_wheel)
-			dispatch->wheel.hi_res.y += e->value * 120;
 		dispatch->pending_event |= EVDEV_WHEEL;
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case EVDEV_REL_HWHEEL:
 		fallback_rotate_wheel(dispatch, e);
 		dispatch->wheel.lo_res.x += e->value;
-		if (dispatch->wheel.emulate_hi_res_wheel)
-			dispatch->wheel.hi_res.x += e->value * 120;
 		dispatch->pending_event |= EVDEV_WHEEL;
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
@@ -395,14 +391,12 @@ fallback_wheel_handle_state(struct fallback_dispatch *dispatch,
 	if (!libinput_device_has_capability(&device->base, LIBINPUT_DEVICE_CAP_POINTER))
 		return;
 
-	if (!dispatch->wheel.emulate_hi_res_wheel &&
-	    !dispatch->wheel.hi_res_event_received &&
+	if (!dispatch->wheel.hi_res_event_received &&
 	    (dispatch->wheel.lo_res.x != 0 || dispatch->wheel.lo_res.y != 0)) {
 		evdev_log_bug_kernel(device,
 				     "device supports high-resolution scroll but only low-resolution events have been received.\n"
 				     "See %s/incorrectly-enabled-hires.html for details\n",
 				     HTTP_DOC_LINK);
-		dispatch->wheel.emulate_hi_res_wheel = true;
 		dispatch->wheel.hi_res.x = dispatch->wheel.lo_res.x * 120;
 		dispatch->wheel.hi_res.y = dispatch->wheel.lo_res.y * 120;
 	}
@@ -438,23 +432,6 @@ fallback_init_wheel(struct fallback_dispatch *dispatch,
 
 	dispatch->wheel.state = WHEEL_STATE_NONE;
 	dispatch->wheel.dir = WHEEL_DIR_UNKNOW;
-
-	/* On kernel < 5.0 we need to emulate high-resolution
-	   wheel scroll events */
-	if ((libevdev_has_event_code(device->evdev,
-				     EV_REL,
-				     REL_WHEEL) &&
-	     !libevdev_has_event_code(device->evdev,
-				      EV_REL,
-				      REL_WHEEL_HI_RES)) ||
-	    (libevdev_has_event_code(device->evdev,
-				     EV_REL,
-				     REL_HWHEEL) &&
-	     !libevdev_has_event_code(device->evdev,
-				      EV_REL,
-				      REL_HWHEEL_HI_RES)))
-		dispatch->wheel.emulate_hi_res_wheel = true;
-
 	dispatch->wheel.ignore_small_hi_res_movements =
 		!evdev_device_is_virtual(dispatch->device);
 
