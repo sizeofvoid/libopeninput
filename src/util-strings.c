@@ -172,7 +172,6 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 {
 	assert(in != NULL);
 	assert(separators != NULL);
-	assert(num_elements != NULL);
 
 	const char *s = in;
 	size_t l, nelems = 0;
@@ -180,7 +179,8 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 		nelems++;
 
 	if (nelems == 0) {
-		*num_elements = 0;
+		if (num_elements)
+			*num_elements = 0;
 		return NULL;
 	}
 
@@ -194,14 +194,16 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 		char *copy = strndup(word, l);
 		if (!copy) {
 			strv_free(strv);
-			*num_elements = 0;
+			if (num_elements)
+				*num_elements = 0;
 			return NULL;
 		}
 
 		strv[idx++] = copy;
 	}
 
-	*num_elements = nelems;
+	if (num_elements)
+		*num_elements = nelems;
 
 	return strv;
 }
