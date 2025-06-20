@@ -333,7 +333,6 @@ wheel_handle_direction_change(struct fallback_dispatch *dispatch,
 
 static void
 fallback_rotate_wheel(struct fallback_dispatch *dispatch,
-		      struct evdev_device *device,
 		      struct evdev_event *e)
 {
 	/* Special case: if we're upside down (-ish),
@@ -353,7 +352,7 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 {
 	switch (evdev_usage_enum(e->usage)) {
 	case EVDEV_REL_WHEEL:
-		fallback_rotate_wheel(dispatch, device, e);
+		fallback_rotate_wheel(dispatch, e);
 		dispatch->wheel.lo_res.y += e->value;
 		if (dispatch->wheel.emulate_hi_res_wheel)
 			dispatch->wheel.hi_res.y += e->value * 120;
@@ -361,7 +360,7 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case EVDEV_REL_HWHEEL:
-		fallback_rotate_wheel(dispatch, device, e);
+		fallback_rotate_wheel(dispatch, e);
 		dispatch->wheel.lo_res.x += e->value;
 		if (dispatch->wheel.emulate_hi_res_wheel)
 			dispatch->wheel.hi_res.x += e->value * 120;
@@ -369,7 +368,7 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case EVDEV_REL_WHEEL_HI_RES:
-		fallback_rotate_wheel(dispatch, device, e);
+		fallback_rotate_wheel(dispatch, e);
 		dispatch->wheel.hi_res.y += e->value;
 		dispatch->wheel.hi_res_event_received = true;
 		dispatch->pending_event |= EVDEV_WHEEL;
@@ -377,7 +376,7 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case EVDEV_REL_HWHEEL_HI_RES:
-		fallback_rotate_wheel(dispatch, device, e);
+		fallback_rotate_wheel(dispatch, e);
 		dispatch->wheel.hi_res.x += e->value;
 		dispatch->wheel.hi_res_event_received = true;
 		dispatch->pending_event |= EVDEV_WHEEL;
