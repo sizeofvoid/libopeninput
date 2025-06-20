@@ -347,7 +347,6 @@ fallback_rotate_wheel(struct fallback_dispatch *dispatch,
 
 void
 fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
-				struct evdev_device *device,
 				struct evdev_event *e, uint64_t time)
 {
 	switch (evdev_usage_enum(e->usage)) {

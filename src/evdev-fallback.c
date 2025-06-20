@@ -788,7 +788,7 @@ fallback_process_relative(struct fallback_dispatch *dispatch,
 		break;
 	}
 
-	fallback_wheel_process_relative(dispatch, device, e, time);
+	fallback_wheel_process_relative(dispatch, e, time);
 }
 
 static inline void
