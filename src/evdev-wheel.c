@@ -421,7 +421,7 @@ fallback_wheel_handle_state(struct fallback_dispatch *dispatch,
 }
 
 static void
-wheel_init_scroll_timer(uint64_t now, void *data)
+wheel_on_scroll_timer_timeout(uint64_t now, void *data)
 {
 	struct evdev_device *device = data;
 	struct fallback_dispatch *dispatch =
@@ -466,7 +466,7 @@ fallback_init_wheel(struct fallback_dispatch *dispatch,
 		libinput_timer_init(&dispatch->wheel.scroll_timer,
 				    evdev_libinput_context(device),
 				    timer_name,
-				    wheel_init_scroll_timer,
+				    wheel_on_scroll_timer_timeout,
 				    device);
 	}
 }
