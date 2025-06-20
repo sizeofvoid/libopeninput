@@ -392,7 +392,7 @@ fallback_wheel_handle_state(struct fallback_dispatch *dispatch,
 			    struct evdev_device *device,
 			    uint64_t time)
 {
-	if (!(device->seat_caps & EVDEV_DEVICE_POINTER))
+	if (!libinput_device_has_capability(&device->base, LIBINPUT_DEVICE_CAP_POINTER))
 		return;
 
 	if (!dispatch->wheel.emulate_hi_res_wheel &&
