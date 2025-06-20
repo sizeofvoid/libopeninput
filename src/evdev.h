@@ -49,10 +49,9 @@ enum evdev_event_type {
 	EVDEV_ABSOLUTE_MOTION		= bit(1),
 	EVDEV_ABSOLUTE_TOUCH_UP		= bit(2),
 	EVDEV_ABSOLUTE_MT		= bit(3),
-	EVDEV_WHEEL			= bit(4),
-	EVDEV_KEY			= bit(5),
-	EVDEV_RELATIVE_MOTION		= bit(6),
-	EVDEV_BUTTON			= bit(7),
+	EVDEV_KEY			= bit(4),
+	EVDEV_RELATIVE_MOTION		= bit(5),
+	EVDEV_BUTTON			= bit(6),
 };
 
 enum evdev_device_seat_capability {

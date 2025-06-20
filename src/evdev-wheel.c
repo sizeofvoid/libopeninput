@@ -353,20 +353,17 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 	case EVDEV_REL_WHEEL:
 		fallback_rotate_wheel(dispatch, e);
 		dispatch->wheel.lo_res.y += e->value;
-		dispatch->pending_event |= EVDEV_WHEEL;
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case EVDEV_REL_HWHEEL:
 		fallback_rotate_wheel(dispatch, e);
 		dispatch->wheel.lo_res.x += e->value;
-		dispatch->pending_event |= EVDEV_WHEEL;
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
 	case EVDEV_REL_WHEEL_HI_RES:
 		fallback_rotate_wheel(dispatch, e);
 		dispatch->wheel.hi_res.y += e->value;
 		dispatch->wheel.hi_res_event_received = true;
-		dispatch->pending_event |= EVDEV_WHEEL;
 		wheel_handle_direction_change(dispatch, e, time);
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
@@ -374,7 +371,6 @@ fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
 		fallback_rotate_wheel(dispatch, e);
 		dispatch->wheel.hi_res.x += e->value;
 		dispatch->wheel.hi_res_event_received = true;
-		dispatch->pending_event |= EVDEV_WHEEL;
 		wheel_handle_direction_change(dispatch, e, time);
 		wheel_handle_event(dispatch, WHEEL_EVENT_SCROLL, time);
 		break;
