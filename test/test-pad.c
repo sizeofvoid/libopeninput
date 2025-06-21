@@ -1145,6 +1145,40 @@ START_TEST(pad_keys)
 }
 END_TEST
 
+START_TEST(pad_send_events_disabled)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	enum libinput_config_status status;
+
+	litest_drain_events(li);
+
+	status = libinput_device_config_send_events_set_mode(
+			     dev->libinput_device,
+			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_pad_strip_start(dev, 10);
+	litest_assert_empty_queue(li);
+	litest_pad_strip_change(dev, 100);
+	litest_assert_empty_queue(li);
+	litest_pad_strip_end(dev);
+	litest_assert_empty_queue(li);
+
+	litest_pad_ring_start(dev, 10);
+	litest_assert_empty_queue(li);
+	litest_pad_ring_change(dev, 100);
+	litest_assert_empty_queue(li);
+	litest_pad_ring_end(dev);
+	litest_assert_empty_queue(li);
+
+	pad_key_down(dev, KEY_BUTTONCONFIG);
+	litest_assert_empty_queue(li);
+	pad_key_up(dev, KEY_BUTTONCONFIG);
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 TEST_COLLECTION(pad)
 {
 	litest_add(pad_cap, LITEST_TABLET_PAD, LITEST_ANY);
@@ -1187,4 +1221,6 @@ TEST_COLLECTION(pad)
 	litest_add(pad_mode_group_has_no_toggle, LITEST_TABLET_PAD, LITEST_ANY);
 
 	litest_add(pad_keys, LITEST_TABLET_PAD, LITEST_ANY);
+
+	litest_add(pad_send_events_disabled, LITEST_TABLET_PAD, LITEST_ANY);
 }

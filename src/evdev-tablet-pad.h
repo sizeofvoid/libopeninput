@@ -86,11 +86,6 @@ struct pad_dispatch {
 	} dials;
 
 	struct {
-		struct libinput_device_config_send_events config;
-		enum libinput_config_send_events_mode current_mode;
-	} sendevents;
-
-	struct {
 		struct list mode_group_list;
 	} modes;
 

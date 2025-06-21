@@ -836,52 +836,6 @@ pad_init(struct pad_dispatch *pad, struct evdev_device *device)
 	return rc;
 }
 
-static uint32_t
-pad_sendevents_get_modes(struct libinput_device *device)
-{
-	return LIBINPUT_CONFIG_SEND_EVENTS_DISABLED;
-}
-
-static enum libinput_config_status
-pad_sendevents_set_mode(struct libinput_device *device,
-			enum libinput_config_send_events_mode mode)
-{
-	struct evdev_device *evdev = evdev_device(device);
-	struct pad_dispatch *pad = (struct pad_dispatch*)evdev->dispatch;
-
-	if (mode == pad->sendevents.current_mode)
-		return LIBINPUT_CONFIG_STATUS_SUCCESS;
-
-	switch(mode) {
-	case LIBINPUT_CONFIG_SEND_EVENTS_ENABLED:
-		break;
-	case LIBINPUT_CONFIG_SEND_EVENTS_DISABLED:
-		pad_suspend(evdev->dispatch, evdev);
-		break;
-	default:
-		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
-	}
-
-	pad->sendevents.current_mode = mode;
-
-	return LIBINPUT_CONFIG_STATUS_SUCCESS;
-}
-
-static enum libinput_config_send_events_mode
-pad_sendevents_get_mode(struct libinput_device *device)
-{
-	struct evdev_device *evdev = evdev_device(device);
-	struct pad_dispatch *dispatch = (struct pad_dispatch*)evdev->dispatch;
-
-	return dispatch->sendevents.current_mode;
-}
-
-static enum libinput_config_send_events_mode
-pad_sendevents_get_default_mode(struct libinput_device *device)
-{
-	return LIBINPUT_CONFIG_SEND_EVENTS_ENABLED;
-}
-
 struct evdev_dispatch *
 evdev_tablet_pad_create(struct evdev_device *device)
 {
@@ -894,12 +848,7 @@ evdev_tablet_pad_create(struct evdev_device *device)
 		return NULL;
 	}
 
-	device->base.config.sendevents = &pad->sendevents.config;
-	pad->sendevents.current_mode = LIBINPUT_CONFIG_SEND_EVENTS_ENABLED;
-	pad->sendevents.config.get_modes = pad_sendevents_get_modes;
-	pad->sendevents.config.set_mode = pad_sendevents_set_mode;
-	pad->sendevents.config.get_mode = pad_sendevents_get_mode;
-	pad->sendevents.config.get_default_mode = pad_sendevents_get_default_mode;
+	evdev_init_sendevents(device, &pad->base);
 
 	return &pad->base;
 }
