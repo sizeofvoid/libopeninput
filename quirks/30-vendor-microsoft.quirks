@@ -38,3 +38,9 @@ MatchBus=usb
 MatchVendor=0x045E
 MatchProduct=0x0800
 ModelBouncingKeys=1
+
+[Microsoft Surface Pro 10 with Flex Keyboard Touchpad]
+MatchVendor=0x045E
+MatchProduct=0x0C8D
+MatchUdevType=touchpad
+AttrEventCode=-BTN_RIGHT
