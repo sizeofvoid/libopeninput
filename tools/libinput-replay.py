@@ -317,7 +317,7 @@ def setup_quirks(recording):
     overrides = None
     quirks = []
     for d in devices:
-        qs = d.get("quirks", [])
+        qs = d.get("quirks") or []
         if not any(q.startswith("AttrIsVirtual=") for q in qs):
             try:
                 is_virtual = d["udev"]["virtual"]
