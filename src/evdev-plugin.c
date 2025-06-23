@@ -94,7 +94,7 @@ evdev_process_event(struct evdev_device *device,
 }
 
 static inline void
-evdev_device_dispatch_one(struct libinput_plugin *plugin,
+evdev_device_dispatch_frame(struct libinput_plugin *plugin,
 			  struct libinput_device *libinput_device,
 			  struct evdev_frame *frame)
 {
@@ -143,7 +143,7 @@ static const struct libinput_plugin_interface interface = {
 	.device_ignored = NULL,
 	.device_added = evdev_plugin_device_added,
 	.device_removed = NULL,
-	.evdev_frame = evdev_device_dispatch_one,
+	.evdev_frame = evdev_device_dispatch_frame,
 };
 
 void
