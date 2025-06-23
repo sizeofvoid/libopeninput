@@ -250,13 +250,13 @@ def main(argv):
     parser.add_argument(
         "--pressure-min",
         type=int,
-        default=None,
+        default=0,
         help="Highlight touches above this pressure minimum",
     )
     parser.add_argument(
         "--pressure-max",
         type=int,
-        default=None,
+        default=0,
         help="Highlight touches below this pressure maximum",
     )
     args = parser.parse_args()
