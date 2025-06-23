@@ -208,6 +208,100 @@ fallback_flush_relative_motion(struct fallback_dispatch *dispatch,
 }
 
 static void
+fallback_flush_wheels(struct fallback_dispatch *dispatch,
+		      struct evdev_device *device,
+		      uint64_t time)
+{
+	struct normalized_coords wheel_degrees = { 0.0, 0.0 };
+	struct discrete_coords discrete = { 0.0, 0.0 };
+	struct wheel_v120 v120 = { 0.0, 0.0 };
+
+	if (!libinput_device_has_capability(&device->base, LIBINPUT_DEVICE_CAP_POINTER))
+		return;
+
+	/* This mouse has a trackstick instead of a mouse wheel and sends
+	 * trackstick data via REL_WHEEL. Normalize it like normal x/y coordinates.
+	 */
+	if (device->model_flags & EVDEV_MODEL_LENOVO_SCROLLPOINT) {
+		const struct device_float_coords raw = {
+			.x = dispatch->wheel.lo_res.x,
+			.y = dispatch->wheel.lo_res.y * -1,
+		};
+		const struct normalized_coords normalized =
+				filter_dispatch_scroll(device->pointer.filter,
+						       &raw,
+						       device,
+						       time);
+		evdev_post_scroll(device,
+				  time,
+				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
+				  &normalized);
+		dispatch->wheel.hi_res.x = 0;
+		dispatch->wheel.hi_res.y = 0;
+		dispatch->wheel.lo_res.x = 0;
+		dispatch->wheel.lo_res.y = 0;
+
+		return;
+	}
+
+	if (dispatch->wheel.hi_res.y != 0) {
+		int value = dispatch->wheel.hi_res.y;
+
+		v120.y = -1 * value;
+		wheel_degrees.y = -1 * value/120.0 * device->scroll.wheel_click_angle.y;
+		evdev_notify_axis_wheel(
+			device,
+			time,
+			bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
+			&wheel_degrees,
+			&v120);
+		dispatch->wheel.hi_res.y = 0;
+	}
+
+	if (dispatch->wheel.lo_res.y != 0) {
+		int value = dispatch->wheel.lo_res.y;
+
+		wheel_degrees.y = -1 * value * device->scroll.wheel_click_angle.y;
+		discrete.y = -1 * value;
+		evdev_notify_axis_legacy_wheel(
+			device,
+			time,
+			bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
+			&wheel_degrees,
+			&discrete);
+		dispatch->wheel.lo_res.y = 0;
+	}
+
+	if (dispatch->wheel.hi_res.x != 0) {
+		int value = dispatch->wheel.hi_res.x;
+
+		v120.x = value;
+		wheel_degrees.x = value/120.0 * device->scroll.wheel_click_angle.x;
+		evdev_notify_axis_wheel(
+			device,
+			time,
+			bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
+			&wheel_degrees,
+			&v120);
+		dispatch->wheel.hi_res.x = 0;
+	}
+
+	if (dispatch->wheel.lo_res.x != 0) {
+		int value = dispatch->wheel.lo_res.x;
+
+		wheel_degrees.x = value * device->scroll.wheel_click_angle.x;
+		discrete.x = value;
+		evdev_notify_axis_legacy_wheel(
+			device,
+			time,
+			bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
+			&wheel_degrees,
+			&discrete);
+		dispatch->wheel.lo_res.x = 0;
+	}
+}
+
+static void
 fallback_flush_absolute_motion(struct fallback_dispatch *dispatch,
 			       struct evdev_device *device,
 			       uint64_t time)
@@ -754,6 +848,20 @@ fallback_reject_relative(struct evdev_device *device,
 	return false;
 }
 
+static void
+fallback_rotate_wheel(struct fallback_dispatch *dispatch,
+		      struct evdev_event *e)
+{
+	/* Special case: if we're upside down (-ish),
+	 * swap the direction of the wheels so that user-down
+	 * means scroll down. This isn't done for any other angle
+	 * since it's not clear what the heuristics should be.*/
+	if (dispatch->rotation.angle >= 160.0 &&
+	    dispatch->rotation.angle <= 220.0) {
+		e->value *= -1;
+	}
+}
+
 static inline void
 fallback_process_relative(struct fallback_dispatch *dispatch,
 			  struct evdev_device *device,
@@ -771,11 +879,25 @@ fallback_process_relative(struct fallback_dispatch *dispatch,
 		dispatch->rel.y += e->value;
 		dispatch->pending_event |= EVDEV_RELATIVE_MOTION;
 		break;
+	case EVDEV_REL_WHEEL:
+		fallback_rotate_wheel(dispatch, e);
+		dispatch->wheel.lo_res.y += e->value;
+		break;
+	case EVDEV_REL_HWHEEL:
+		fallback_rotate_wheel(dispatch, e);
+		dispatch->wheel.lo_res.x += e->value;
+		break;
+	case EVDEV_REL_WHEEL_HI_RES:
+		fallback_rotate_wheel(dispatch, e);
+		dispatch->wheel.hi_res.y += e->value;
+		break;
+	case EVDEV_REL_HWHEEL_HI_RES:
+		fallback_rotate_wheel(dispatch, e);
+		dispatch->wheel.hi_res.x += e->value;
+		break;
 	default:
 		break;
 	}
-
-	fallback_wheel_process_relative(dispatch, e, time);
 }
 
 static inline void
@@ -941,7 +1063,7 @@ fallback_handle_state(struct fallback_dispatch *dispatch,
 	if (need_touch_frame)
 		touch_notify_frame(&device->base, time);
 
-	fallback_wheel_handle_state(dispatch, device, time);
+	fallback_flush_wheels(dispatch, device, time);
 
 	/* Buttons and keys */
 	if (dispatch->pending_event & EVDEV_KEY) {
@@ -1125,7 +1247,6 @@ fallback_interface_remove(struct evdev_dispatch *evdev_dispatch)
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 	struct evdev_paired_keyboard *kbd;
 
-	libinput_timer_cancel(&dispatch->wheel.scroll_timer);
 	libinput_timer_cancel(&dispatch->debounce.timer);
 	libinput_timer_cancel(&dispatch->debounce.timer_short);
 	libinput_timer_cancel(&dispatch->arbitration.arbitration_timer);
@@ -1245,7 +1366,6 @@ fallback_interface_destroy(struct evdev_dispatch *evdev_dispatch)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 
-	libinput_timer_destroy(&dispatch->wheel.scroll_timer);
 	libinput_timer_destroy(&dispatch->arbitration.arbitration_timer);
 	libinput_timer_destroy(&dispatch->debounce.timer);
 	libinput_timer_destroy(&dispatch->debounce.timer_short);
@@ -1718,7 +1838,6 @@ fallback_dispatch_create(struct libinput_device *libinput_device)
 					want_config);
 	}
 
-	fallback_init_wheel(dispatch, device);
 	fallback_init_arbitration(dispatch, device);
 
 	return &dispatch->base;

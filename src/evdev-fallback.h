@@ -60,20 +60,6 @@ enum palm_state {
 	PALM_WAS_PALM, /* this touch sequence was a palm but isn't now */
 };
 
-enum wheel_state {
-	WHEEL_STATE_NONE,
-	WHEEL_STATE_ACCUMULATING_SCROLL,
-	WHEEL_STATE_SCROLLING,
-};
-
-enum wheel_direction {
-	WHEEL_DIR_UNKNOW,
-	WHEEL_DIR_VPOS,
-	WHEEL_DIR_VNEG,
-	WHEEL_DIR_HPOS,
-	WHEEL_DIR_HNEG,
-};
-
 struct mt_slot {
 	bool dirty;
 	enum mt_slot_state state;
@@ -112,13 +98,8 @@ struct fallback_dispatch {
 	struct device_coords rel;
 
 	struct {
-		enum wheel_state state;
 		struct device_coords lo_res;
 		struct device_coords hi_res;
-		bool hi_res_event_received;
-		struct libinput_timer scroll_timer;
-		enum wheel_direction dir;
-		bool ignore_small_hi_res_movements;
 	} wheel;
 
 	struct {
@@ -238,18 +219,5 @@ fallback_notify_physical_button(struct fallback_dispatch *dispatch,
 				uint64_t time,
 				evdev_usage_t button,
 				enum libinput_button_state state);
-
-void
-fallback_init_wheel(struct fallback_dispatch *dispatch,
-		    struct evdev_device *device);
-
-void
-fallback_wheel_process_relative(struct fallback_dispatch *dispatch,
-				struct evdev_event *e, uint64_t time);
-
-void
-fallback_wheel_handle_state(struct fallback_dispatch *dispatch,
-			    struct evdev_device *device,
-			    uint64_t time);
 
 #endif

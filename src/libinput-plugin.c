@@ -37,6 +37,7 @@
 #include "libinput-util.h"
 #include "libinput-private.h"
 #include "libinput-plugin-button-debounce.h"
+#include "libinput-plugin-mouse-wheel.h"
 #include "libinput-plugin-tablet-double-tool.h"
 #include "libinput-plugin-tablet-eraser-button.h"
 #include "libinput-plugin-tablet-forced-tool.h"
@@ -394,6 +395,7 @@ libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
 	libinput_tablet_plugin_proximity_timer(libinput);
 	libinput_tablet_plugin_eraser_button(libinput);
 	libinput_debounce_plugin(libinput);
+	libinput_mouse_plugin_wheel(libinput);
 
 	/* Our own event dispatch is implemented as mini-plugin,
 	 * guarantee this one to always be last (and after any
