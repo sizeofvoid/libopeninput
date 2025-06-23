@@ -23,8 +23,6 @@
 
 #include "config.h"
 
-#include <mtdev-plumbing.h>
-
 #include "util-macros.h"
 #include "util-mem.h"
 
@@ -109,39 +107,7 @@ evdev_device_dispatch_frame(struct libinput_plugin *plugin,
 {
 	struct evdev_device *device = evdev_device(libinput_device);
 	uint64_t time = evdev_frame_get_time(frame);
-
-	if (!device->mtdev) {
-		evdev_process_frame(device, frame, time);
-	} else {
-		size_t nevents;
-		struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
-		for (size_t i = 0; i < nevents; i++) {
-			struct evdev_event *ev = &events[i];
-			struct input_event e = evdev_event_to_input_event(ev, time);
-			mtdev_put_event(device->mtdev, &e);
-		}
-
-		if (!mtdev_empty(device->mtdev)) {
-			_unref_(evdev_frame) *mtdev_frame = evdev_frame_new(256);
-			do {
-				struct input_event e;
-
-				mtdev_get_event(device->mtdev, &e);
-				evdev_frame_append_input_event(mtdev_frame, &e);
-				if (e.type == EV_SYN && e.code == SYN_REPORT) {
-					evdev_frame_set_time(mtdev_frame,
-							     input_event_time(&e));
-					evdev_process_frame(
-						device,
-						mtdev_frame,
-						evdev_frame_get_time(mtdev_frame));
-					/* mtdev can theoretically produce multiple
-					 * frames */
-					mtdev_frame = evdev_frame_unref(mtdev_frame);
-				}
-			} while (!mtdev_empty(device->mtdev));
-		}
-	}
+	evdev_process_frame(device, frame, time);
 
 	/* Discard event to make the plugin system aware we're done */
 	evdev_frame_reset(frame);

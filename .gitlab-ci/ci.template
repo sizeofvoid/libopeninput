@@ -532,6 +532,20 @@ build-no-libwacom-nodeps@{{distro.name}}:{{version}}:
   before_script:
     - dnf remove -y libwacom libwacom-devel
 
+build-no-mtdev@{{distro.name}}:{{version}}:
+  extends:
+    - .{{distro.name}}-build@template
+  variables:
+    MESON_ARGS: "-Dmtdev=false"
+
+build-no-mtdev-nodeps@{{distro.name}}:{{version}}:
+  extends:
+    - .{{distro.name}}-build@template
+  variables:
+    MESON_ARGS: "-Dmtdev=false"
+  before_script:
+    - dnf remove -y mtdev mtdev-devel
+
 build-docs@{{distro.name}}:{{version}}:
   extends:
     - .{{distro.name}}-build@template

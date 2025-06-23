@@ -10,6 +10,10 @@ option('libwacom',
        type: 'boolean',
        value: true,
        description: 'Use libwacom for tablet identification (default=true)')
+option('mtdev',
+       type: 'boolean',
+       value: true,
+       description: 'Use mtdev for multitouch protocol A devices (default=true)')
 option('debug-gui',
        type: 'boolean',
        value: true,

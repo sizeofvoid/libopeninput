@@ -977,6 +977,20 @@ build-no-libwacom-nodeps@fedora:42:
   before_script:
     - dnf remove -y libwacom libwacom-devel
 
+build-no-mtdev@fedora:42:
+  extends:
+    - .fedora-build@template
+  variables:
+    MESON_ARGS: "-Dmtdev=false"
+
+build-no-mtdev-nodeps@fedora:42:
+  extends:
+    - .fedora-build@template
+  variables:
+    MESON_ARGS: "-Dmtdev=false"
+  before_script:
+    - dnf remove -y mtdev mtdev-devel
+
 build-docs@fedora:42:
   extends:
     - .fedora-build@template

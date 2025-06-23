@@ -1094,12 +1094,13 @@ START_TEST(touch_count_mt)
 }
 END_TEST
 
-START_TEST(touch_count_unknown)
+START_TEST(touch_count_mtdev)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 
-	litest_assert_int_eq(libinput_device_touch_get_touch_count(device), 0);
+	/* We hardcode this to 10 */
+	litest_assert_int_eq(libinput_device_touch_get_touch_count(device), 10);
 }
 END_TEST
 
@@ -1352,9 +1353,11 @@ TEST_COLLECTION(touch)
 	litest_add(fake_mt_exists, LITEST_FAKE_MT, LITEST_ANY);
 	litest_add(fake_mt_no_touch_events, LITEST_FAKE_MT, LITEST_ANY);
 
+#if HAVE_MTDEV
 	litest_add(touch_protocol_a_init, LITEST_PROTOCOL_A, LITEST_ANY);
 	litest_add(touch_protocol_a_touch, LITEST_PROTOCOL_A, LITEST_ANY);
 	litest_add(touch_protocol_a_2fg_touch, LITEST_PROTOCOL_A, LITEST_ANY);
+#endif
 
 	litest_with_parameters(params, "axis", 'I', 2, litest_named_i32(ABS_X), litest_named_i32(ABS_Y)) {
 		litest_add_parametrized(touch_initial_state, LITEST_TOUCH, LITEST_PROTOCOL_A, params);
@@ -1372,8 +1375,10 @@ TEST_COLLECTION(touch)
 
 	litest_add(touch_count_st, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
 	litest_add(touch_count_mt, LITEST_TOUCH, LITEST_SINGLE_TOUCH|LITEST_PROTOCOL_A);
-	litest_add(touch_count_unknown, LITEST_PROTOCOL_A, LITEST_ANY);
+#if HAVE_MTDEV
+	litest_add(touch_count_mtdev, LITEST_PROTOCOL_A, LITEST_ANY);
 	litest_add(touch_count_invalid, LITEST_ANY, LITEST_TOUCH|LITEST_SINGLE_TOUCH|LITEST_PROTOCOL_A);
+#endif
 
 	litest_add(touch_palm_detect_tool_palm, LITEST_TOUCH, LITEST_ANY);
 	litest_add(touch_palm_detect_tool_palm_on_off, LITEST_TOUCH, LITEST_ANY);

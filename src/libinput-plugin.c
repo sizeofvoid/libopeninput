@@ -31,8 +31,8 @@
 #include "evdev-plugin.h"
 #include "libinput-plugin-button-debounce.h"
 #include "libinput-plugin-mouse-wheel.h"
+#include "libinput-plugin-mtdev.h"
 #include "libinput-plugin-private.h"
-#include "libinput-plugin-system.h"
 #include "libinput-plugin-tablet-double-tool.h"
 #include "libinput-plugin-tablet-eraser-button.h"
 #include "libinput-plugin-tablet-forced-tool.h"
@@ -382,6 +382,9 @@ libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
 
 	/* FIXME: this should really be one of the first in the sequence
 	 * so plugins don't have to take care of this? */
+#if HAVE_MTDEV
+	libinput_mtdev_plugin(libinput);
+#endif
 	libinput_tablet_plugin_forced_tool(libinput);
 	libinput_tablet_plugin_double_tool(libinput);
 	libinput_tablet_plugin_proximity_timer(libinput);

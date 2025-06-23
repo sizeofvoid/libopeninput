@@ -26,8 +26,6 @@
 
 #include "config.h"
 
-#include <mtdev-plumbing.h>
-
 #include "util-input-event.h"
 
 #include "evdev-fallback.h"
@@ -1641,28 +1639,15 @@ fallback_dispatch_init_slots(struct fallback_dispatch *dispatch,
 	/* We only handle the slotted Protocol B in libinput.
 	   Devices with ABS_MT_POSITION_* but not ABS_MT_SLOT
 	   require mtdev for conversion. */
-	if (evdev_need_mtdev(device)) {
-		device->mtdev = mtdev_new_open(device->fd);
-		if (!device->mtdev)
-			return -1;
+	if (!libevdev_has_event_code(evdev, EV_ABS, ABS_MT_SLOT))
+		return 0;
 
-		/* pick 10 slots as default for type A
-		   devices. */
-		num_slots = 10;
-		active_slot = device->mtdev->caps.slot.value;
-	} else {
-		num_slots = libevdev_get_num_slots(device->evdev);
-		active_slot = libevdev_get_current_slot(evdev);
-	}
-
+	num_slots = libevdev_get_num_slots(device->evdev);
+	active_slot = libevdev_get_current_slot(evdev);
 	slots = zalloc(num_slots * sizeof(struct mt_slot));
 
 	for (slot = 0; slot < num_slots; ++slot) {
 		slots[slot].seat_slot = -1;
-
-		if (evdev_need_mtdev(device))
-			continue;
-
 		slots[slot].point.x =
 			libevdev_get_slot_value(evdev, slot, ABS_MT_POSITION_X);
 		slots[slot].point.y =

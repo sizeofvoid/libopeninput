@@ -30,7 +30,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
-#include <mtdev-plumbing.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -932,16 +931,6 @@ evdev_init_natural_scroll(struct evdev_device *device)
 		evdev_scroll_config_natural_get_default;
 	device->scroll.natural_scrolling_enabled = false;
 	device->base.config.natural_scroll = &device->scroll.config_natural;
-}
-
-int
-evdev_need_mtdev(struct evdev_device *device)
-{
-	struct libevdev *evdev = device->evdev;
-
-	return (libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_X) &&
-		libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_Y) &&
-		!libevdev_has_event_code(evdev, EV_ABS, ABS_MT_SLOT));
 }
 
 /* Fake MT devices have the ABS_MT_SLOT bit set because of
@@ -2271,7 +2260,7 @@ evdev_device_create(struct libinput_seat *seat, struct udev_device *udev_device)
 
 	/* Use non-blocking mode so that we can loop on read on
 	 * evdev_device_data() until all events on the fd are
-	 * read.  mtdev_get() also expects this. */
+	 * read. */
 	fd = open_restricted(libinput, devnode, O_RDWR | O_NONBLOCK | O_CLOEXEC);
 	if (fd < 0) {
 		log_info(libinput,
@@ -2304,7 +2293,6 @@ evdev_device_create(struct libinput_seat *seat, struct udev_device *udev_device)
 					 libinput);
 	device->seat_caps = EVDEV_DEVICE_NO_CAPABILITIES;
 	device->is_mt = 0;
-	device->mtdev = NULL;
 	device->udev_device = udev_device_ref(udev_device);
 	device->dispatch = NULL;
 	device->fd = fd;
@@ -2659,13 +2647,9 @@ evdev_device_get_touch_count(struct evdev_device *device)
 
 	ntouches = libevdev_get_num_slots(device->evdev);
 	if (ntouches == -1) {
-		/* mtdev devices have multitouch but we don't know
-		 * how many. Otherwise, any touch device with num_slots of
+		/* any touch device with num_slots of
 		 * -1 is a single-touch device */
-		if (device->mtdev)
-			ntouches = 0;
-		else
-			ntouches = 1;
+		ntouches = 1;
 	}
 
 	return ntouches;
@@ -2875,11 +2859,6 @@ evdev_device_suspend(struct evdev_device *device)
 		device->source = NULL;
 	}
 
-	if (device->mtdev) {
-		mtdev_close_delete(device->mtdev);
-		device->mtdev = NULL;
-	}
-
 	if (device->fd != -1) {
 		close_restricted(libinput, device->fd);
 		device->fd = -1;
@@ -2919,12 +2898,6 @@ evdev_device_resume(struct evdev_device *device)
 
 	device->fd = fd;
 
-	if (evdev_need_mtdev(device)) {
-		device->mtdev = mtdev_new_open(device->fd);
-		if (!device->mtdev)
-			return -ENODEV;
-	}
-
 	libevdev_change_fd(device->evdev, fd);
 	libevdev_set_clock_id(device->evdev, CLOCK_MONOTONIC);
 
@@ -2938,10 +2911,8 @@ evdev_device_resume(struct evdev_device *device)
 	} while (status == LIBEVDEV_READ_STATUS_SYNC);
 
 	device->source = libinput_add_fd(libinput, fd, evdev_device_dispatch, device);
-	if (!device->source) {
-		mtdev_close_delete(device->mtdev);
+	if (!device->source)
 		return -ENOMEM;
-	}
 
 	evdev_notify_resumed_device(device);
 

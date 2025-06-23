@@ -192,7 +192,6 @@ struct evdev_device {
 	struct ratelimit nonpointer_rel_limit; /* ratelimit for REL_* events from
 						  non-pointer devices */
 	uint32_t model_flags;
-	struct mtdev *mtdev;
 
 	struct {
 		const struct input_absinfo *absinfo_x, *absinfo_y;
@@ -453,9 +452,6 @@ evdev_totem_create(struct evdev_device *device);
 
 bool
 evdev_is_fake_mt_device(struct evdev_device *device);
-
-int
-evdev_need_mtdev(struct evdev_device *device);
 
 void
 evdev_device_led_update(struct evdev_device *device, enum libinput_led leds);

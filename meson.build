@@ -167,10 +167,7 @@ if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
 	dep_libevdev = []
 else
 	dep_udev = dependency('libudev')
-	dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
 	dep_libevdev = dependency('libevdev')
-	config_h.set10('HAVE_LIBEVDEV_DISABLE_PROPERTY',
-			dep_libevdev.version().version_compare('>= 1.9.902'))
 endif
 
 dep_lm = cc.find_library('m', required : false)
@@ -179,6 +176,16 @@ dep_rt = cc.find_library('rt', required : false)
 # Include directories
 includes_include = include_directories('include')
 includes_src = include_directories('src')
+
+############ mtdev configuration ############
+
+have_mtdev = get_option('mtdev')
+config_h.set10('HAVE_MTDEV', have_mtdev)
+if have_mtdev
+	dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
+else
+	dep_mtdev = declare_dependency()
+endif
 
 ############ libwacom configuration ############
 
@@ -425,6 +432,11 @@ src_libinput = src_libfilter + [
 	'src/timer.c',
 	'src/util-libinput.c',
 ]
+<<<<<<< HEAD
+=======
+if have_mtdev
+	src_libinput += ['src/libinput-plugin-mtdev.c']
+>>>>>>> 27f4b0ae (Move mtdev into a plugin)
 endif
 
 deps_libinput = [
@@ -880,7 +892,6 @@ endif
 		'test/litest-device-mouse-wheel-click-count.c',
 		'test/litest-device-ms-nano-transceiver-mouse.c',
 		'test/litest-device-ms-surface-cover.c',
-		'test/litest-device-protocol-a-touch-screen.c',
 		'test/litest-device-qemu-usb-tablet.c',
 		'test/litest-device-sony-vaio-keys.c',
 		'test/litest-device-synaptics-x220.c',
@@ -938,7 +949,16 @@ endif
 		'test/litest-main.c',
 	]
 
+<<<<<<< HEAD
 if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
+=======
+	if have_mtdev
+		litest_sources += [
+			'test/litest-device-protocol-a-touch-screen.c',
+		]
+	endif
+
+>>>>>>> 27f4b0ae (Move mtdev into a plugin)
 	dep_dl = cc.find_library('dl')
 	deps_litest = [
 		dep_libinput,
