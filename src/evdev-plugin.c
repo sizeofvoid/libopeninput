@@ -25,14 +25,15 @@
 
 #include <mtdev-plumbing.h>
 
+#include "util-macros.h"
 #include "util-mem.h"
 
 #include "evdev-plugin.h"
 #include "evdev.h"
 
 _unused_ static inline void
-evdev_print_event(struct evdev_device *device,
-		  const struct evdev_event *e,
+evdev_print_frame(struct evdev_device *device,
+		  struct evdev_frame *frame,
 		  uint64_t time_in_us)
 {
 	static uint32_t offset = 0;
@@ -46,50 +47,59 @@ evdev_print_event(struct evdev_device *device,
 
 	time -= offset;
 
-	switch (evdev_usage_enum(e->usage)) {
-	case EVDEV_SYN_REPORT:
-		evdev_log_debug(
-			device,
-			"%u.%03u ----------------- EV_SYN ----------------- +%ums\n",
-			time / 1000,
-			time % 1000,
-			time - last_time);
+	size_t nevents;
+	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
 
-		last_time = time;
-		break;
-	case EVDEV_MSC_SERIAL:
-		evdev_log_debug(device,
-				"%u.%03u %-16s %-16s %#010x\n",
+	for (size_t i = 0; i < nevents; i++) {
+		struct evdev_event *e = &events[i];
+
+		switch (evdev_usage_enum(e->usage)) {
+		case EVDEV_SYN_REPORT:
+			evdev_log_debug(
+				device,
+				"%u.%03u ----------------- EV_SYN ----------------- +%ums\n",
 				time / 1000,
 				time % 1000,
-				evdev_event_get_type_name(e),
-				evdev_event_get_code_name(e),
-				e->value);
-		break;
-	default:
-		evdev_log_debug(device,
-				"%u.%03u %-16s %-20s %4d\n",
-				time / 1000,
-				time % 1000,
-				evdev_event_get_type_name(e),
-				evdev_event_get_code_name(e),
-				e->value);
-		break;
+				time - last_time);
+
+			last_time = time;
+			break;
+		case EVDEV_MSC_SERIAL:
+			evdev_log_debug(device,
+					"%u.%03u %-16s %-16s %#010x\n",
+					time / 1000,
+					time % 1000,
+					evdev_event_get_type_name(e),
+					evdev_event_get_code_name(e),
+					e->value);
+			break;
+		default:
+			evdev_log_debug(device,
+					"%u.%03u %-16s %-20s %4d\n",
+					time / 1000,
+					time % 1000,
+					evdev_event_get_type_name(e),
+					evdev_event_get_code_name(e),
+					e->value);
+			break;
+		}
 	}
 }
 
 static inline void
-evdev_process_event(struct evdev_device *device, struct evdev_event *e, uint64_t time)
+evdev_process_frame(struct evdev_device *device,
+		    struct evdev_frame *frame,
+		    uint64_t time)
 {
 	struct evdev_dispatch *dispatch = device->dispatch;
 
 #if EVENT_DEBUGGING
-	evdev_print_event(device, e, time);
+	evdev_print_frame(device, frame, time);
 #endif
 
 	libinput_timer_flush(evdev_libinput_context(device), time);
 
-	dispatch->interface->process(dispatch, device, e, time);
+	dispatch->interface->process(dispatch, device, frame, time);
 }
 
 static inline void
@@ -100,27 +110,36 @@ evdev_device_dispatch_frame(struct libinput_plugin *plugin,
 	struct evdev_device *device = evdev_device(libinput_device);
 	uint64_t time = evdev_frame_get_time(frame);
 
-	size_t nevents;
-	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
-	for (size_t i = 0; i < nevents; i++) {
-		struct evdev_event *ev = &events[i];
-		if (!device->mtdev) {
-			evdev_process_event(device, ev, time);
-		} else {
+	if (!device->mtdev) {
+		evdev_process_frame(device, frame, time);
+	} else {
+		size_t nevents;
+		struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
+		for (size_t i = 0; i < nevents; i++) {
+			struct evdev_event *ev = &events[i];
 			struct input_event e = evdev_event_to_input_event(ev, time);
 			mtdev_put_event(device->mtdev, &e);
-			if (evdev_usage_eq(ev->usage, EVDEV_SYN_REPORT)) {
-				while (!mtdev_empty(device->mtdev)) {
-					struct input_event e;
+		}
 
-					mtdev_get_event(device->mtdev, &e);
+		if (!mtdev_empty(device->mtdev)) {
+			_unref_(evdev_frame) *mtdev_frame = evdev_frame_new(256);
+			do {
+				struct input_event e;
 
-					uint64_t time;
-					struct evdev_event ev =
-						evdev_event_from_input_event(&e, &time);
-					evdev_process_event(device, &ev, time);
+				mtdev_get_event(device->mtdev, &e);
+				evdev_frame_append_input_event(mtdev_frame, &e);
+				if (e.type == EV_SYN && e.code == SYN_REPORT) {
+					evdev_frame_set_time(mtdev_frame,
+							     input_event_time(&e));
+					evdev_process_frame(
+						device,
+						mtdev_frame,
+						evdev_frame_get_time(mtdev_frame));
+					/* mtdev can theoretically produce multiple
+					 * frames */
+					mtdev_frame = evdev_frame_unref(mtdev_frame);
 				}
-			}
+			} while (!mtdev_empty(device->mtdev));
 		}
 	}
 

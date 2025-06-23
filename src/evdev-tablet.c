@@ -2349,10 +2349,10 @@ tablet_reset_state(struct tablet_dispatch *tablet)
 }
 
 static void
-tablet_process(struct evdev_dispatch *dispatch,
-	       struct evdev_device *device,
-	       struct evdev_event *e,
-	       uint64_t time)
+tablet_process_event(struct evdev_dispatch *dispatch,
+		     struct evdev_device *device,
+		     struct evdev_event *e,
+		     uint64_t time)
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 
@@ -2381,6 +2381,20 @@ tablet_process(struct evdev_dispatch *dispatch,
 				evdev_event_get_type_name(e),
 				evdev_event_type(e));
 		break;
+	}
+}
+
+static void
+tablet_process(struct evdev_dispatch *dispatch,
+	       struct evdev_device *device,
+	       struct evdev_frame *frame,
+	       uint64_t time)
+{
+	size_t nevents;
+	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
+
+	for (size_t i = 0; i < nevents; i++) {
+		tablet_process_event(dispatch, device, &events[i], time);
 	}
 }
 

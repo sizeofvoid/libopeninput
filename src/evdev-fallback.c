@@ -1072,10 +1072,10 @@ fallback_handle_state(struct fallback_dispatch *dispatch,
 }
 
 static void
-fallback_interface_process(struct evdev_dispatch *evdev_dispatch,
-			   struct evdev_device *device,
-			   struct evdev_event *event,
-			   uint64_t time)
+fallback_interface_process_event(struct evdev_dispatch *evdev_dispatch,
+				 struct evdev_device *device,
+				 struct evdev_event *event,
+				 uint64_t time)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
 	static bool warned = false;
@@ -1108,6 +1108,20 @@ fallback_interface_process(struct evdev_dispatch *evdev_dispatch,
 	case EV_SYN:
 		fallback_handle_state(dispatch, device, time);
 		break;
+	}
+}
+
+static void
+fallback_interface_process(struct evdev_dispatch *dispatch,
+			   struct evdev_device *device,
+			   struct evdev_frame *frame,
+			   uint64_t time)
+{
+	size_t nevents;
+	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
+
+	for (size_t i = 0; i < nevents; i++) {
+		fallback_interface_process_event(dispatch, device, &events[i], time);
 	}
 }
 

@@ -511,10 +511,10 @@ totem_handle_state(struct totem_dispatch *totem, uint64_t time)
 }
 
 static void
-totem_interface_process(struct evdev_dispatch *dispatch,
-			struct evdev_device *device,
-			struct evdev_event *e,
-			uint64_t time)
+totem_process_event(struct evdev_dispatch *dispatch,
+		    struct evdev_device *device,
+		    struct evdev_event *e,
+		    uint64_t time)
 {
 	struct totem_dispatch *totem = totem_dispatch(dispatch);
 	enum totem_slot_state global_state;
@@ -542,6 +542,20 @@ totem_interface_process(struct evdev_dispatch *dispatch,
 				evdev_event_get_code_name(e),
 				evdev_usage_as_uint32_t(e->usage));
 		break;
+	}
+}
+
+static void
+totem_interface_process(struct evdev_dispatch *dispatch,
+			struct evdev_device *device,
+			struct evdev_frame *frame,
+			uint64_t time)
+{
+	size_t nevents;
+	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
+
+	for (size_t i = 0; i < nevents; i++) {
+		totem_process_event(dispatch, device, &events[i], time);
 	}
 }
 

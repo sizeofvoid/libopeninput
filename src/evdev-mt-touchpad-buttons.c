@@ -1188,24 +1188,15 @@ tp_notify_clickpadbutton(struct tp_dispatch *tp,
 	/* If we've a trackpoint, send top buttons through the trackpoint */
 	if (tp->buttons.trackpoint) {
 		if (is_topbutton) {
+			_unref_(evdev_frame) *frame = evdev_frame_new(2);
 			struct evdev_dispatch *dispatch =
 				tp->buttons.trackpoint->dispatch;
 			int value = (state == LIBINPUT_BUTTON_STATE_PRESSED) ? 1 : 0;
-			struct evdev_event event = {
-				.usage = button,
-				.value = value,
-			};
-			struct evdev_event syn_report = {
-				.usage = evdev_usage_from(EVDEV_SYN_REPORT),
-				.value = 0,
-			};
+			evdev_frame_set_time(frame, time);
+			evdev_frame_append_one(frame, button, value);
 			dispatch->interface->process(dispatch,
 						     tp->buttons.trackpoint,
-						     &event,
-						     time);
-			dispatch->interface->process(dispatch,
-						     tp->buttons.trackpoint,
-						     &syn_report,
+						     frame,
 						     time);
 			return 1;
 		}

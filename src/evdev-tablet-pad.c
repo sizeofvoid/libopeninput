@@ -573,10 +573,10 @@ pad_flush(struct pad_dispatch *pad, struct evdev_device *device, uint64_t time)
 }
 
 static void
-pad_process(struct evdev_dispatch *dispatch,
-	    struct evdev_device *device,
-	    struct evdev_event *e,
-	    uint64_t time)
+pad_process_event(struct evdev_dispatch *dispatch,
+		  struct evdev_device *device,
+		  struct evdev_event *e,
+		  uint64_t time)
 {
 	struct pad_dispatch *pad = pad_dispatch(dispatch);
 
@@ -604,6 +604,20 @@ pad_process(struct evdev_dispatch *dispatch,
 				libevdev_event_type_get_name(type),
 				evdev_usage_as_uint32_t(e->usage));
 		break;
+	}
+}
+
+static void
+pad_process(struct evdev_dispatch *dispatch,
+	    struct evdev_device *device,
+	    struct evdev_frame *frame,
+	    uint64_t time)
+{
+	size_t nevents;
+	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
+
+	for (size_t i = 0; i < nevents; i++) {
+		pad_process_event(dispatch, device, &events[i], time);
 	}
 }
 

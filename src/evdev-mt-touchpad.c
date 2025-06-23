@@ -696,15 +696,11 @@ tp_process_trackpoint_button(struct tp_dispatch *tp,
 		return;
 	}
 
-	struct evdev_event event = { .usage = button, .value = e->value };
-	struct evdev_event syn_report = { .usage = evdev_usage_from(EVDEV_SYN_REPORT),
-					  .value = 0 };
+	_unref_(evdev_frame) *frame = evdev_frame_new(2);
+	evdev_frame_append_one(frame, button, e->value);
+	evdev_frame_set_time(frame, time);
 
-	dispatch->interface->process(dispatch, tp->buttons.trackpoint, &event, time);
-	dispatch->interface->process(dispatch,
-				     tp->buttons.trackpoint,
-				     &syn_report,
-				     time);
+	dispatch->interface->process(dispatch, tp->buttons.trackpoint, frame, time);
 }
 
 static void
@@ -1854,10 +1850,10 @@ tp_debug_touch_state(struct tp_dispatch *tp, struct evdev_device *device)
 }
 
 static void
-tp_interface_process(struct evdev_dispatch *dispatch,
-		     struct evdev_device *device,
-		     struct evdev_event *e,
-		     uint64_t time)
+tp_interface_process_event(struct evdev_dispatch *dispatch,
+			   struct evdev_device *device,
+			   struct evdev_event *e,
+			   uint64_t time)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
@@ -1881,6 +1877,20 @@ tp_interface_process(struct evdev_dispatch *dispatch,
 		tp_debug_touch_state(tp, device);
 #endif
 		break;
+	}
+}
+
+static void
+tp_interface_process(struct evdev_dispatch *dispatch,
+		     struct evdev_device *device,
+		     struct evdev_frame *frame,
+		     uint64_t time)
+{
+	size_t nevents;
+	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
+
+	for (size_t i = 0; i < nevents; i++) {
+		tp_interface_process_event(dispatch, device, &events[i], time);
 	}
 }
 
