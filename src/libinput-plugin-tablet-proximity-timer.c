@@ -115,13 +115,9 @@ tablet_proximity_out_quirk_timer_func(struct libinput_plugin *plugin,
 	plugin_log_debug(device->parent->plugin,
 			 "%s: forcing proximity out after timeout\n",
 			 libinput_device_get_name(device->device));
-	const struct evdev_event prox_out_event = {
-		.usage = evdev_usage_from(EVDEV_BTN_TOOL_PEN),
-		.value = 0,
-	};
 
 	_unref_(evdev_frame) *prox_out_frame = evdev_frame_new(2);
-	evdev_frame_append(prox_out_frame, &prox_out_event, 1);
+	evdev_frame_append_one(prox_out_frame, evdev_usage_from(EVDEV_BTN_TOOL_PEN), 0);
 	evdev_frame_set_time(prox_out_frame, now);
 
 	libinput_plugin_prepend_evdev_frame(device->parent->plugin,
@@ -215,16 +211,10 @@ proximity_timer_plugin_device_handle_frame(struct libinput_plugin *libinput_plug
 			return;
 		}
 	} else if (device->proximity_out_forced) {
-		struct evdev_event pen_in_event = {
-			.usage = evdev_usage_from(EVDEV_BTN_TOOL_PEN),
-			.value = 1,
-		};
 		plugin_log_debug(libinput_plugin,
 				 "%s: forcing proximity in\n",
 				 libinput_device_get_name(device->device));
-		evdev_frame_append(frame,
-				   &pen_in_event,
-				   1); /* libinput's event frame will have space */
+		evdev_frame_append_one(frame, evdev_usage_from(EVDEV_BTN_TOOL_PEN), 1);
 		device->proximity_out_forced = false;
 		proximity_timer_plugin_set_timer(device, time);
 	}

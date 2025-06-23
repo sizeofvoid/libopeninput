@@ -122,18 +122,14 @@ double_tool_plugin_filter_frame(struct libinput_plugin *plugin,
 	}
 
 	if (filter & (PEN_IN_PROX | PEN_OUT_OF_PROX)) {
-		struct evdev_event event = {
-			.usage = evdev_usage_from(EVDEV_BTN_TOOL_PEN),
-			.value = (filter & PEN_IN_PROX) ? 1 : 0,
-		};
-		evdev_frame_append(frame_out, &event, 1);
+		evdev_frame_append_one(frame_out,
+				       evdev_usage_from(EVDEV_BTN_TOOL_PEN),
+				       (filter & PEN_IN_PROX) ? 1 : 0);
 	}
 	if (filter & (ERASER_IN_PROX | ERASER_OUT_OF_PROX)) {
-		struct evdev_event event = {
-			.usage = evdev_usage_from(EVDEV_BTN_TOOL_RUBBER),
-			.value = (filter & ERASER_IN_PROX) ? 1 : 0,
-		};
-		evdev_frame_append(frame_out, &event, 1);
+		evdev_frame_append_one(frame_out,
+				       evdev_usage_from(EVDEV_BTN_TOOL_RUBBER),
+				       (filter & ERASER_IN_PROX) ? 1 : 0);
 	}
 
 	return frame_out;

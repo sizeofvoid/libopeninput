@@ -3005,6 +3005,52 @@ START_TEST(evdev_frames)
 		/* We never appended a timestamp */
 		litest_assert_int_eq(evdev_frame_get_time(frame), 0U);
 	}
+	{
+		struct evdev_event events[] = {
+			{
+				.usage = U(EVDEV_ABS_X),
+				.value = 1,
+			},
+			{
+				.usage = U(EVDEV_ABS_Y),
+				.value = 2,
+			},
+			{
+				.usage = U(EVDEV_SYN_REPORT),
+				.value = 0,
+			},
+		};
+
+		_unref_(evdev_frame) *frame = evdev_frame_new(3);
+		int rc = evdev_frame_append_one(frame, U(EVDEV_ABS_X), 1);
+		litest_assert_neg_errno_success(rc);
+		rc = evdev_frame_append_one(frame, U(EVDEV_ABS_Y), 2);
+		litest_assert_neg_errno_success(rc);
+		rc = evdev_frame_append_one(frame, U(EV_SYN), 0);
+		litest_assert_neg_errno_success(rc);
+
+		litest_assert_int_eq(evdev_frame_get_count(frame),
+				     ARRAY_LENGTH(events));
+		litest_assert_int_eq(frame->max_size, ARRAY_LENGTH(events));
+
+		size_t nevents;
+		rc = memcmp(evdev_frame_get_events(frame, &nevents),
+			    events,
+			    sizeof(events));
+		litest_assert_int_eq(rc, 0);
+		litest_assert_int_eq(nevents, ARRAY_LENGTH(events));
+
+		/* Already full, can't append */
+		rc = evdev_frame_append_one(frame, U(EVDEV_ABS_Z), 1);
+		litest_assert_int_eq(rc, -ENOMEM);
+
+		/* Appending SYN_REPORT is a noop */
+		rc = evdev_frame_append_one(frame, U(EVDEV_SYN_REPORT), 0);
+		litest_assert_neg_errno_success(rc);
+		litest_assert_int_eq(evdev_frame_get_count(frame),
+				     ARRAY_LENGTH(events));
+		litest_assert_int_eq(frame->max_size, ARRAY_LENGTH(events));
+	}
 }
 END_TEST
 

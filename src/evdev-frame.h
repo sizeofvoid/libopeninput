@@ -477,6 +477,21 @@ evdev_frame_append(struct evdev_frame *frame,
 }
 
 static inline int
+evdev_frame_append_one(struct evdev_frame *frame, evdev_usage_t usage, int32_t value)
+{
+	if (evdev_usage_eq(usage, EVDEV_SYN_REPORT))
+		return 0;
+
+	if (frame->count >= frame->max_size)
+		return -ENOMEM;
+
+	struct evdev_event *e = &frame->events[frame->count - 1];
+	*e = (struct evdev_event){ .usage = usage, .value = value };
+	frame->count++;
+	return 0;
+}
+
+static inline int
 evdev_frame_append_input_event(struct evdev_frame *frame,
 			       const struct input_event *event)
 {
