@@ -24,3 +24,8 @@ repos:
     name: Check for whitespace errors
     entry: ./.gitlab-ci/whitespace-check.py
     language: system
+- repo: https://github.com/pre-commit/mirrors-clang-format
+  rev: v20.1.6
+  hooks:
+  - id: clang-format
+    types_or: [c]
