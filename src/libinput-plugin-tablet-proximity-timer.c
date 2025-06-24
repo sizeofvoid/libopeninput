@@ -258,7 +258,7 @@ proximity_timer_plugin_device_added(struct libinput_plugin *libinput_plugin,
 	pd->device = libinput_device_ref(device);
 	pd->parent = plugin;
 	pd->prox_out_timer = libinput_plugin_timer_new(libinput_plugin,
-						       "proximity-timer",
+						       libinput_device_get_sysname(device),
 						       tablet_proximity_out_quirk_timer_func,
 						       pd);
 
