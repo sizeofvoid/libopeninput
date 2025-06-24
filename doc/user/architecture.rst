@@ -13,6 +13,10 @@ for almost all API calls. General device handling is in ``evdev.c`` with the
 device-type-specific implementations in ``evdev-<type>.c``. It is not
 necessary to understand all of libinput to contribute a patch.
 
+As of libinput 1.29 libinput has an internal plugin pipeline that modifies
+the event stream before libinput proper sees it, see
+:ref:`architecture-plugins`.
+
 :ref:`architecture-contexts` is the only user-visible implementation detail,
 everything else is purely internal implementation and may change when
 required.
@@ -150,9 +154,7 @@ pointers to handle events. Four such dispatch methods are currently
 implemented: touchpad, tablet, tablet pad, and the fallback dispatch which
 handles mice, keyboards and touchscreens.
 
-
 .. graphviz::
-
 
     digraph context
     {
@@ -177,12 +179,14 @@ handles mice, keyboards and touchscreens.
     }
 
 
+Event dispatch is done per "evdev frame", a collection of events up until including
+the ``SYN_REPORT``. One such ``struct evdev_frame`` represents all state **updates**
+to the previous frame.
+
 While ``evdev.c`` pulls the event out of libevdev, the actual handling of the
 events is performed within the dispatch method.
 
-
 .. graphviz::
-
 
     digraph context
     {
@@ -194,22 +198,107 @@ events is performed within the dispatch method.
 
       evdev [label="evdev_device_dispatch()"]
 
+      plugins [label="plugin pipline"]
+
       fallback [label="fallback_interface_process()"];
       touchpad [label="tp_interface_process()"]
       tablet [label="tablet_process()"]
       pad [label="pad_process()"]
 
-      evdev -> fallback;
-      evdev -> touchpad;
-      evdev -> tablet;
-      evdev -> pad;
+      evdev -> plugins;
+      plugins -> fallback;
+      plugins -> touchpad;
+      plugins -> tablet;
+      plugins -> pad;
     }
 
 
-The dispatch methods then look at the ``struct input_event`` and proceed to
-update the state. Note: the serialized nature of the kernel evdev protocol
-requires that the device updates the state with each event but to delay
-processing until the ``SYN_REPORT`` event is received.
+The dispatch methods then look at the ``struct evdev_frame`` and proceed to
+update the state.
+
+.. _architecture-plugins:
+
+------------------------------------------------------------------------------
+The Plugin Pipeline
+------------------------------------------------------------------------------
+
+As of libinput 1.29 libinput has an **internal** plugin pipeline. These plugins
+logically sit between libevdev and the :ref:`architecture-dispatch` and modify
+the device and/or event stream. The primary motivation of such plugins is that
+modifying the event stream is often simpler than analyzing the state later.
+
+Plugins are loaded on libinput context startup and are executed in-order. The last
+plugin is the hardcoded `evdev-plugin.c` which takes the modified event stream and
+passes the events to the dispatch.
+
+.. graphviz::
+
+    digraph context
+    {
+      compound=true;
+      rankdir="LR";
+      node [
+        shape="box";
+      ]
+
+      evdev [label="evdev_device_dispatch()"]
+
+      p1 [label="P1"]
+      p2 [label="P2"]
+      p3 [label="P3"]
+      ep [label="evdev-plugin"]
+
+      fallback [label="fallback_interface_process()"];
+      touchpad [label="tp_interface_process()"]
+      tablet [label="tablet_process()"]
+      pad [label="pad_process()"]
+
+      evdev -> p1;
+      p1 -> p2;
+      p2 -> p3;
+      p3 -> ep;
+      ep -> fallback;
+      ep -> touchpad;
+      ep -> tablet;
+      ep -> pad;
+    }
+
+Each plugin may not only modify the current event frame (this includes adding/removing events
+from the frame), it may also append or prepend additional event frames. For
+example the tablet proximity-timer plugin adds proximity in/out events to the
+event stream.
+
+.. graphviz::
+
+    digraph context
+    {
+      compound=true;
+      rankdir="LR";
+      node [
+        shape="box";
+      ]
+      n0 [label= "", shape=none,height=.0,width=.0]
+      n1 [label= "", shape=none,height=.0,width=.0]
+
+      p1 [label="P1"]
+      p2 [label="P2"]
+      p3 [label="P3"]
+      ep [label="evdev-plugin"]
+
+      n0 -> p1 [label="F1"];
+      p1 -> p2 [label="F1"];
+      p2 -> p3 [label="F1,F2"];
+      p3 -> ep [label="F3,F1,F2"];
+      ep -> n1 [label="F3,F1,F2"];
+    }
+
+In the diagram above, the plugin ``P2`` *appends* a new frame (``F2``), the plugin ``P3``
+*prepends* a new frame (``F3``). The original event frame ``F1`` thus becomes the event frame
+sequence ``F3``, ``F1``, ``F2`` by the time it reaches the :ref:`architecture-dispatch`.
+
+Note that each plugin only sees one event frame at a time, so ``P3`` would see ``F1`` first,
+decides to prepend ``F3`` and passes ``F1`` through. It then sees ``F2`` but does nothing with
+it (optionally modified in-place).
 
 .. _architecture-configuration:
 
