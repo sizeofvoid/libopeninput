@@ -231,7 +231,6 @@ get_key_down_count(struct evdev_device *device, evdev_usage_t usage)
 	return device->key_count[code];
 }
 
-void fallback_init_debounce(struct fallback_dispatch *dispatch);
 void fallback_debounce_handle_state(struct fallback_dispatch *dispatch,
 				    uint64_t time);
 void
