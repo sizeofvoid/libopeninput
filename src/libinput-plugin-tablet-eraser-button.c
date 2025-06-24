@@ -528,7 +528,7 @@ eraser_button_timer_func(struct libinput_plugin *plugin, uint64_t now, void *d)
 
 static void
 eraser_button_plugin_device_added(struct libinput_plugin *libinput_plugin,
-				struct libinput_device *device)
+				  struct libinput_device *device)
 {
 	if (!libinput_device_has_capability(device, LIBINPUT_DEVICE_CAP_TABLET_TOOL))
 		return;
@@ -550,7 +550,7 @@ eraser_button_plugin_device_added(struct libinput_plugin *libinput_plugin,
 
 static void
 eraser_button_plugin_device_removed(struct libinput_plugin *libinput_plugin,
-				  struct libinput_device *device)
+				    struct libinput_device *device)
 {
 	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
 	struct plugin_device *dev;
