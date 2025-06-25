@@ -30,6 +30,7 @@
 #include "util-strings.h"
 
 #include "evdev-frame.h"
+#include "libinput-feature.h"
 #include "libinput-log.h"
 #include "libinput-plugin-button-debounce.h"
 #include "libinput-plugin.h"
@@ -138,6 +139,8 @@ struct plugin_device {
 	enum debounce_state state;
 	bool spurious_enabled;
 
+	bool want_feature_disabled;
+
 	struct libinput_plugin_timer *timer;
 	struct libinput_plugin_timer *timer_short;
 };
@@ -189,6 +192,20 @@ log_debounce_bug(struct plugin_device *device, enum debounce_event event)
 				"invalid debounce event %s in state %s\n",
 				debounce_event_to_str(event),
 				debounce_state_to_str(device->state));
+}
+
+static inline void
+debounce_maybe_disable(struct plugin_device *device)
+{
+	if (device->state != DEBOUNCE_STATE_IS_UP)
+		return;
+
+	if (device->want_feature_disabled) {
+		plugin_log_debug(device->parent->plugin,
+				 "%s: disabled button debouncing on request\n",
+				 libinput_device_get_name(device->device));
+		device->state = DEBOUNCE_STATE_DISABLED;
+	}
 }
 
 static inline void
@@ -371,6 +388,7 @@ debounce_is_up_delaying_handle_event(struct plugin_device *device,
 	case DEBOUNCE_EVENT_TIMEOUT:
 	case DEBOUNCE_EVENT_OTHERBUTTON:
 		debounce_set_state(device, DEBOUNCE_STATE_IS_UP);
+		debounce_maybe_disable(device);
 		debounce_notify_button(device, frame, LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
 	}
@@ -398,6 +416,7 @@ debounce_is_up_delaying_spurious_handle_event(struct plugin_device *device,
 		break;
 	case DEBOUNCE_EVENT_OTHERBUTTON:
 		debounce_set_state(device, DEBOUNCE_STATE_IS_UP);
+		debounce_maybe_disable(device);
 		debounce_notify_button(device, frame, LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
 	}
@@ -423,12 +442,14 @@ debounce_is_up_detecting_spurious_handle_event(struct plugin_device *device,
 		break;
 	case DEBOUNCE_EVENT_TIMEOUT:
 		debounce_set_state(device, DEBOUNCE_STATE_IS_UP);
+		debounce_maybe_disable(device);
 		break;
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
 		debounce_set_state(device, DEBOUNCE_STATE_IS_UP_WAITING);
 		break;
 	case DEBOUNCE_EVENT_OTHERBUTTON:
 		debounce_set_state(device, DEBOUNCE_STATE_IS_UP);
+		debounce_maybe_disable(device);
 		break;
 	}
 }
@@ -483,6 +504,7 @@ debounce_is_up_waiting_handle_event(struct plugin_device *device,
 	case DEBOUNCE_EVENT_TIMEOUT:
 	case DEBOUNCE_EVENT_OTHERBUTTON:
 		debounce_set_state(device, DEBOUNCE_STATE_IS_UP);
+		debounce_maybe_disable(device);
 		break;
 	}
 }
@@ -660,6 +682,7 @@ debounce_plugin_handle_frame(struct plugin_device *device,
 					   !is_down ? DEBOUNCE_STATE_IS_DOWN
 						    : DEBOUNCE_STATE_IS_UP);
 			flushed = false;
+			debounce_maybe_disable(device);
 		}
 
 		device->button_usage = e->usage;
@@ -787,6 +810,24 @@ debounce_plugin_device_removed(struct libinput_plugin *libinput_plugin,
 	}
 }
 
+static void
+debounce_plugin_feature_disabled(struct libinput_plugin *libinput_plugin,
+				 struct libinput_device *device,
+				 enum libinput_feature feature)
+{
+	if (feature != LIBINPUT_FEATURE_BUTTON_DEBOUNCING)
+		return;
+
+	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
+	struct plugin_device *pd;
+	list_for_each(pd, &plugin->devices, link) {
+		if (pd->device == device) {
+			pd->want_feature_disabled = true;
+			return;
+		}
+	}
+}
+
 static const struct libinput_plugin_interface interface = {
 	.run = NULL,
 	.destroy = plugin_destroy,
@@ -795,6 +836,7 @@ static const struct libinput_plugin_interface interface = {
 	.device_added = debounce_plugin_device_added,
 	.device_removed = debounce_plugin_device_removed,
 	.evdev_frame = debounce_plugin_evdev_frame,
+	.feature_disabled = debounce_plugin_feature_disabled,
 };
 
 void
