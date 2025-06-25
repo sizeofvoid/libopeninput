@@ -36,6 +36,7 @@
 
 #include "evdev-frame.h"
 #include "filter.h"
+#include "libinput-feature.h"
 #include "libinput-private.h"
 #include "linux/input.h"
 #include "quirks.h"
@@ -352,6 +353,9 @@ struct evdev_dispatch_interface {
 	void (*left_handed_toggle)(struct evdev_dispatch *dispatch,
 				   struct evdev_device *device,
 				   bool left_handed_enabled);
+
+	void (*disable_feature)(struct evdev_dispatch *dispatch,
+				enum libinput_feature feature);
 };
 
 enum evdev_dispatch_type {
@@ -387,6 +391,14 @@ static inline struct libinput *
 evdev_libinput_context(const struct evdev_device *device)
 {
 	return device->base.seat->libinput;
+}
+
+static inline void
+evdev_device_disable_feature(struct evdev_device *device, enum libinput_feature feature)
+{
+	if (device->dispatch && device->dispatch->interface &&
+	    device->dispatch->interface->disable_feature)
+		device->dispatch->interface->disable_feature(device->dispatch, feature);
 }
 
 static inline bool

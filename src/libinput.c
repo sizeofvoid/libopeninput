@@ -38,6 +38,7 @@
 #include "util-libinput.h"
 
 #include "evdev.h"
+#include "libinput-feature.h"
 #include "libinput-private.h"
 #include "libinput.h"
 #include "quirks.h"
@@ -2164,6 +2165,13 @@ libinput_device_unref(struct libinput_device *device)
 	}
 
 	return device;
+}
+
+void
+libinput_device_disable_feature(struct libinput_device *device,
+				enum libinput_feature feature)
+{
+	evdev_device_disable_feature((struct evdev_device *)device, feature);
 }
 
 LIBINPUT_EXPORT int

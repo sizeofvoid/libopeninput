@@ -39,6 +39,7 @@ struct libinput_device;
 struct libinput_tablet_tool;
 struct libinput_plugin;
 enum libinput_log_priority;
+enum libinput_feature;
 
 #define plugin_log_debug(p_, ...) plugin_log_msg((p_), LIBINPUT_LOG_PRIORITY_DEBUG, __VA_ARGS__)
 #define plugin_log_info(p_, ...) plugin_log_msg((p_), LIBINPUT_LOG_PRIORITY_INFO, __VA_ARGS__)
@@ -107,6 +108,14 @@ struct libinput_plugin_interface {
 	 */
 	void (*tool_configured)(struct libinput_plugin *plugin,
 				struct libinput_tablet_tool *tool);
+
+	/**
+	 * Notification that the given feature was disabled on
+	 * the given device.
+	 */
+	void (*feature_disabled)(struct libinput_plugin *plugin,
+				 struct libinput_device *device,
+				 enum libinput_feature feature);
 };
 
 /**
@@ -158,6 +167,11 @@ void
 libinput_plugin_enable_device_event_frame(struct libinput_plugin *plugin,
 					  struct libinput_device *device,
 					  bool enable);
+
+void
+libinput_plugin_disable_device_feature(struct libinput_plugin *plugin,
+				       struct libinput_device *device,
+				       enum libinput_feature feature);
 
 /**
  * Mask this plugin's evdev_frame function to be called only

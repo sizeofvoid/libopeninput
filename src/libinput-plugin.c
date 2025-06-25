@@ -30,12 +30,14 @@
 
 #include "evdev-frame.h"
 #include "evdev-plugin.h"
+#include "libinput-feature.h"
 #include "libinput-plugin-button-debounce.h"
 #include "libinput-plugin-lua.h"
 #include "libinput-plugin-mouse-wheel-lowres.h"
 #include "libinput-plugin-mouse-wheel.h"
 #include "libinput-plugin-mtdev.h"
 #include "libinput-plugin-private.h"
+#include "libinput-plugin-system.h"
 #include "libinput-plugin-tablet-double-tool.h"
 #include "libinput-plugin-tablet-eraser-button.h"
 #include "libinput-plugin-tablet-forced-tool.h"
@@ -206,6 +208,22 @@ libinput_plugin_enable_evdev_usage(struct libinput_plugin *plugin,
 		plugin->mask = evdev_mask_new();
 
 	evdev_mask_set_usage(plugin->mask, evdev_usage_from(usage));
+}
+
+void
+libinput_plugin_disable_device_feature(struct libinput_plugin *plugin,
+				       struct libinput_device *device,
+				       enum libinput_feature feature)
+{
+	struct libinput *libinput = plugin->libinput;
+
+	/* During device-added, only some plugins are loaded so this notifies
+	 * some of the plugins. All plugins are notified once device-added is
+	 * complete.  */
+	libinput_plugin_system_notify_device_feature_disabled(&libinput->plugin_system,
+							      device,
+							      feature);
+	bitmask_set_bit(&device->disabled_features, feature);
 }
 
 struct plugin_queued_event {
@@ -501,6 +519,21 @@ libinput_plugin_system_notify_device_added(struct libinput_plugin_system *system
 		libinput_plugin_notify_device_added(plugin, device);
 	}
 	libinput_plugin_system_drop_unregistered_plugins(system);
+
+	/* Now that we added all our devices in all our plugins, notify
+	 * all plugins about disabled features. Some plugins may get
+	 * this notification twice but they should be able to handle that
+	 * case.
+	 */
+	enum libinput_feature feature = _LIBINPUT_N_FEATURES;
+
+	while (--feature > 0) {
+		if (bitmask_bit_is_set(device->disabled_features, feature)) {
+			libinput_plugin_system_notify_device_feature_disabled(system,
+									      device,
+									      feature);
+		}
+	}
 }
 
 void
@@ -534,6 +567,22 @@ libinput_plugin_system_notify_tablet_tool_configured(
 	list_for_each_safe(plugin, &system->plugins, link) {
 		if (plugin->interface->tool_configured)
 			plugin->interface->tool_configured(plugin, tool);
+	}
+	libinput_plugin_system_drop_unregistered_plugins(system);
+}
+
+void
+libinput_plugin_system_notify_device_feature_disabled(
+	struct libinput_plugin_system *system,
+	struct libinput_device *device,
+	enum libinput_feature feature)
+{
+	libinput_device_disable_feature(device, feature);
+
+	struct libinput_plugin *plugin;
+	list_for_each_safe(plugin, &system->plugins, link) {
+		if (plugin->interface->feature_disabled)
+			plugin->interface->feature_disabled(plugin, device, feature);
 	}
 	libinput_plugin_system_drop_unregistered_plugins(system);
 }

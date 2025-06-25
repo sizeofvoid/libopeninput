@@ -35,6 +35,7 @@
 #include <libwacom/libwacom.h>
 #endif
 
+#include "util-bits.h"
 #include "util-newtype.h"
 
 #include "libinput-log.h"
@@ -532,6 +533,11 @@ struct libinput_device {
 
 #if !defined(__OpenBSD__) && !defined(__NetBSD__)
 	bitmask_t plugin_frame_callbacks;
+	/**
+	 * Lua plugins see the device before our internal
+	 * plugins do any calls need to be cached.
+	 */
+	bitmask_t disabled_features;
 
 	void (*inject_evdev_frame)(struct libinput_device *device,
 				   struct evdev_frame *frame);
@@ -728,6 +734,10 @@ libinput_device_init(struct libinput_device *device, struct libinput_seat *seat)
 
 bool
 libinput_device_has_model_quirk(struct libinput_device *device, enum quirk model_quirk);
+
+void
+libinput_device_disable_feature(struct libinput_device *device,
+				enum libinput_feature feature);
 
 struct libinput_device_group *
 libinput_device_group_create(struct libinput *libinput, const char *identifier);

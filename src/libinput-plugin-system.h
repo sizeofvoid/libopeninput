@@ -34,6 +34,7 @@
 #include "evdev-frame.h"
 #include "libinput.h"
 
+enum libinput_feature;
 struct libinput;
 struct libinput_plugin;
 
@@ -95,3 +96,9 @@ void
 libinput_plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 					  struct libinput_device *device,
 					  struct evdev_frame *frame);
+
+void
+libinput_plugin_system_notify_device_feature_disabled(
+	struct libinput_plugin_system *system,
+	struct libinput_device *device,
+	enum libinput_feature feature);
