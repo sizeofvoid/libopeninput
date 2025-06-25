@@ -44,7 +44,6 @@ test_relative_event(struct litest_device *dev, double dx, double dy)
 	struct libinput *li = dev->libinput;
 	struct libinput_event_pointer *ptrev;
 	struct libinput_event *event;
-	struct udev_device *ud;
 	double ev_dx, ev_dy;
 	double expected_dir;
 	double expected_length;
@@ -67,7 +66,7 @@ test_relative_event(struct litest_device *dev, double dx, double dy)
 	 * movement. Work aorund this here by checking for the MOUSE_DPI
 	 * property.
 	 */
-	ud = libinput_device_get_udev_device(dev->libinput_device);
+	_unref_(udev_device) *ud = libinput_device_get_udev_device(dev->libinput_device);
 	litest_assert_ptr_notnull(ud);
 	prop = udev_device_get_property_value(ud, "MOUSE_DPI");
 	if (prop) {
@@ -77,7 +76,6 @@ test_relative_event(struct litest_device *dev, double dx, double dy)
 		dx *= 1000.0/dpi;
 		dy *= 1000.0/dpi;
 	}
-	udev_device_unref(ud);
 
 	expected_length = sqrt(4 * dx*dx + 4 * dy*dy);
 	expected_dir = atan2(dx, dy);
@@ -559,34 +557,29 @@ END_TEST
 static inline double
 wheel_click_count(struct litest_device *dev, int which)
 {
-	struct udev_device *d;
 	const char *prop = NULL;
 	int count;
 	double angle = 0.0;
 
-	d = libinput_device_get_udev_device(dev->libinput_device);
+	_unref_(udev_device) *d = libinput_device_get_udev_device(dev->libinput_device);
 	litest_assert_ptr_notnull(d);
 
 	if (which == REL_HWHEEL)
 		prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_COUNT_HORIZONTAL");
 	if (!prop)
 		prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_COUNT");
-	if (!prop)
-		goto out;
+	if (prop) {
+		count = parse_mouse_wheel_click_count_property(prop);
+		litest_assert_int_ne(count, 0);
+		angle = 360.0/count;
+	}
 
-	count = parse_mouse_wheel_click_count_property(prop);
-	litest_assert_int_ne(count, 0);
-	angle = 360.0/count;
-
-out:
-	udev_device_unref(d);
 	return angle;
 }
 
 static inline double
 wheel_click_angle(struct litest_device *dev, int which)
 {
-	struct udev_device *d;
 	const char *prop = NULL;
 	const int default_angle = 15;
 	double angle;
@@ -596,22 +589,19 @@ wheel_click_angle(struct litest_device *dev, int which)
 		return angle;
 
 	angle = default_angle;
-	d = libinput_device_get_udev_device(dev->libinput_device);
+	_unref_(udev_device) *d = libinput_device_get_udev_device(dev->libinput_device);
 	litest_assert_ptr_notnull(d);
 
 	if (which == REL_HWHEEL)
 		prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_ANGLE_HORIZONTAL");
 	if (!prop)
 		prop = udev_device_get_property_value(d, "MOUSE_WHEEL_CLICK_ANGLE");
-	if (!prop)
-		goto out;
+	if (prop) {
+		angle = parse_mouse_wheel_click_angle_property(prop);
+		if (angle == 0.0)
+			angle = default_angle;
+	}
 
-	angle = parse_mouse_wheel_click_angle_property(prop);
-	if (angle == 0.0)
-		angle = default_angle;
-
-out:
-	udev_device_unref(d);
 	return angle;
 }
 
