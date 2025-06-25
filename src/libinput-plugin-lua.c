@@ -33,6 +33,7 @@
 #include "util-strings.h"
 
 #include "evdev-frame.h"
+#include "libinput-feature.h"
 #include "libinput-log.h"
 #include "libinput-plugin-lua.h"
 #include "libinput-plugin.h"
@@ -95,6 +96,10 @@ typedef struct {
 
 	int device_removed_refid;
 	int frame_refid;
+
+	/* Caches any disable_feature calls during device_new */
+	bool was_added;
+	bitmask_t disabled_features;
 } EvdevDevice;
 
 struct libinput_lua_plugin {
@@ -1012,6 +1017,44 @@ evdevdevice_append_frame(lua_State *L)
 }
 
 static int
+evdevdevice_disable_feature(lua_State *L)
+{
+	EvdevDevice *device = luaL_checkudata(L, 1, EVDEV_DEVICE_METATABLE);
+	luaL_argcheck(L, device != NULL, 1, EVDEV_DEVICE_METATABLE " expected");
+
+	const char *feature = luaL_checkstring(L, 2);
+
+	/* No refid means we got removed, so quietly
+	 * drop any call */
+	if (device->refid == LUA_NOREF)
+		return 0;
+
+	const struct {
+		const char *name;
+		enum libinput_feature feature;
+	} map[] = {
+		{ "button-debouncing", LIBINPUT_FEATURE_BUTTON_DEBOUNCING },
+		{ "wheel-debouncing", LIBINPUT_FEATURE_WHEEL_DEBOUNCING },
+		{ "touchpad-jump-detection", LIBINPUT_FEATURE_TOUCHPAD_JUMP_DETECTION },
+		{ "touchpad-palm-detection", LIBINPUT_FEATURE_TOUCHPAD_PALM_DETECTION },
+		{ "touchpad-hysteresis", LIBINPUT_FEATURE_TOUCHPAD_HYSTERESIS },
+	};
+
+	ARRAY_FOR_EACH(map, m) {
+		if (streq(feature, m->name)) {
+			struct libinput_lua_plugin *plugin =
+				lua_get_libinput_lua_plugin(L);
+			libinput_plugin_disable_device_feature(plugin->parent,
+							       device->device,
+							       m->feature);
+			return 0;
+		}
+	}
+
+	return luaL_error(L, "Unknown feature: %s", feature);
+}
+
+static int
 evdevdevice_gc(lua_State *L)
 {
 	EvdevDevice *device = luaL_checkudata(L, 1, EVDEV_DEVICE_METATABLE);
@@ -1041,6 +1084,7 @@ static const struct luaL_Reg evdevdevice_vtable[] = {
 	{ "inject_frame", evdevdevice_inject_frame },
 	{ "prepend_frame", evdevdevice_prepend_frame },
 	{ "append_frame", evdevdevice_append_frame },
+	{ "disable_feature", evdevdevice_disable_feature },
 	{ "__gc", evdevdevice_gc },
 	{ NULL, NULL }
 };

@@ -631,3 +631,22 @@ a device's capabilities before the device is processed by libinput.
    function is identical to ``prepend_frame()``.
 
    See ``prepend_frame()`` for more details.
+
+.. function:: EvdevDevice:disable_feature(feature_name)
+
+   Disable the given libinput-internal feature for this device. This should be used
+   by plugins that replace that feature with a custom implementation for this device.
+
+   libinput may have multiple internal implementations for any given feature, disabling
+   it via this API disables any and all of those implementations, causing the feature to
+   no longer work at all. It is up to the plugin implementation to re-implement that
+   feature to match the user's expectation.
+
+   Version 1 of the plugin API supports the following features:
+
+   - ``button-debouncing``: see :ref:`button_debouncing`
+   - ``touchpad-hysteresis``: see :ref:`touchpad_jitter`
+   - ``touchpad-jump-detection``: see :ref:`touchpad_jumping_cursor`
+   - ``touchpad-palm-detection``: see :ref:`palm_detection`
+   - ``wheel-debouncing``: some high-resolution mouse wheel movements inside libinput
+     are delayed and/or modified

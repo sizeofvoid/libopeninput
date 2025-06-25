@@ -1026,6 +1026,119 @@ START_TEST(lua_inject_frame)
 }
 END_TEST
 
+enum when {
+	DEVICE_NEW,
+	FIRST_FRAME,
+};
+
+START_TEST(lua_disable_button_debounce)
+{
+	enum when when = litest_test_param_get_i32(test_env->params, "when");
+	_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
+	_autofree_ char *lua = strdup_printf(
+		"libinput:register({1})\n"
+		"function frame_handler(device, _, _)\n"
+		"  device:disable_feature(\"button-debouncing\")\n"
+		"end\n"
+		"function new_device(device)\n"
+		"  %s device:disable_feature(\"button-debouncing\")\n"
+		"  %s device:connect(\"evdev-frame\", frame_handler)\n"
+		"end\n"
+		"libinput:connect(\"new-evdev-device\", new_device)\n",
+		when == DEVICE_NEW ? "" : "--",
+		when == FIRST_FRAME ? "" : "--");
+	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
+	etrace("%s", lua);
+	_litest_context_destroy_ struct libinput *li =
+		litest_create_context_with_plugindir(tmpdir->path);
+
+	if (libinput_log_get_priority(li) > LIBINPUT_LOG_PRIORITY_DEBUG)
+		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
+
+	litest_with_logcapture(li, capture) {
+		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		litest_drain_events(li);
+
+		_destroy_(litest_device) *dev = litest_add_device(li, LITEST_MOUSE);
+		litest_drain_events(li);
+
+		litest_disable_middleemu(dev);
+
+		litest_event(dev, EV_KEY, BTN_LEFT, 1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_event(dev, EV_KEY, BTN_LEFT, 0);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_event(dev, EV_KEY, BTN_LEFT, 1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_event(dev, EV_KEY, BTN_LEFT, 0);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_timeout_debounce(li);
+
+		litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+		litest_assert_button_event(li,
+					   BTN_LEFT,
+					   LIBINPUT_BUTTON_STATE_RELEASED);
+		litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+		litest_assert_button_event(li,
+					   BTN_LEFT,
+					   LIBINPUT_BUTTON_STATE_RELEASED);
+		litest_assert_empty_queue(li);
+
+		litest_assert_strv_substring(capture->debugs,
+					     "disabled button debouncing on request");
+	}
+}
+END_TEST
+
+START_TEST(lua_disable_touchpad_jump_detection)
+{
+	enum when when = litest_test_param_get_i32(test_env->params, "when");
+	_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
+	_autofree_ char *lua = strdup_printf(
+		"libinput:register({1})\n"
+		"function frame_handler(dev, f, ts)\n"
+		"  dev:disable_feature(\"touchpad-jump-detection\")\n"
+		"end\n"
+		"function new_device(device)\n"
+		"  %sdevice:disable_feature(\"touchpad-jump-detection\")\n"
+		"  %sdevice:connect(\"evdev-frame\", frame_handler)\n"
+		"end\n"
+		"libinput:connect(\"new-evdev-device\", new_device)\n",
+		when == DEVICE_NEW ? "" : "-- ",
+		when == FIRST_FRAME ? "" : "-- ");
+
+	etrace("plugin data:\n%s", lua);
+
+	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
+	_litest_context_destroy_ struct libinput *li =
+		litest_create_context_with_plugindir(tmpdir->path);
+
+	if (libinput_log_get_priority(li) > LIBINPUT_LOG_PRIORITY_DEBUG)
+		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
+
+	litest_with_logcapture(li, capture) {
+		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		litest_drain_events(li);
+
+		_destroy_(litest_device) *dev =
+			litest_add_device(li, LITEST_SYNAPTICS_RMI4);
+		litest_drain_events(li);
+
+		litest_touch_down(dev, 0, 40, 50);
+		litest_touch_move(dev, 0, 80, 80);
+		litest_touch_move(dev, 0, 90, 90);
+		litest_touch_up(dev, 0);
+
+		litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+		litest_assert_empty_queue(li);
+
+		litest_assert(!strv_find_substring(capture->infos,
+						   "Touch jump detected and discarded",
+						   NULL));
+	}
+}
+END_TEST
+
 TEST_COLLECTION(lua)
 {
 	/* clang-format off */
@@ -1093,6 +1206,13 @@ TEST_COLLECTION(lua)
 
 	litest_with_parameters(params, "in_timer", 'b') {
 		litest_add_parametrized_no_device(lua_inject_frame, params);
+	}
+
+	litest_with_parameters(params, "when", 'I', 2,
+					litest_named_i32(DEVICE_NEW),
+					litest_named_i32(FIRST_FRAME)) {
+		litest_add_parametrized_no_device(lua_disable_button_debounce, params);
+		litest_add_parametrized_no_device(lua_disable_touchpad_jump_detection, params);
 	}
 	/* clang-format on */
 }

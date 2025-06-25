@@ -5,6 +5,7 @@ plugins = [
 	'10-pointer-go-faster.lua',
 	'10-pointer-go-slower.lua',
 	'10-delay-motion.lua',
+	'10-disable-feature.lua',
 ]
 
 fs = import('fs')
