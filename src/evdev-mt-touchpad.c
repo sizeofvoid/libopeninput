@@ -35,6 +35,7 @@
 #include "util-input-event.h"
 
 #include "evdev-mt-touchpad.h"
+#include "libinput-feature.h"
 #include "quirks.h"
 
 #define DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT ms2us(300)
@@ -2754,6 +2755,21 @@ tp_interface_left_handed_toggled(struct evdev_dispatch *dispatch,
 	tp_change_rotation(device, DONT_NOTIFY);
 }
 
+static void
+tp_interface_disable_feature(struct evdev_dispatch *dispatch,
+			     enum libinput_feature feature)
+{
+	struct tp_dispatch *tp = tp_dispatch(dispatch);
+
+	switch (feature) {
+	case LIBINPUT_FEATURE_TOUCHPAD_JUMP_DETECTION:
+		tp->jump.detection_disabled = true;
+		break;
+	default:
+		return;
+	}
+}
+
 static struct evdev_dispatch_interface tp_interface = {
 	.process = tp_interface_process,
 	.suspend = tp_interface_suspend,
@@ -2768,6 +2784,7 @@ static struct evdev_dispatch_interface tp_interface = {
 	.touch_arbitration_update_rect = NULL,
 	.get_switch_state = NULL,
 	.left_handed_toggle = tp_interface_left_handed_toggled,
+	.disable_feature = tp_interface_disable_feature,
 };
 
 static void
