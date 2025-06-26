@@ -2167,7 +2167,8 @@ litest_bug_log_handler(struct libinput *libinput,
 		       const char *format,
 		       va_list args)
 {
-	if (strstr(format, "client bug: ") ||
+	if (pri != LIBINPUT_LOG_PRIORITY_ERROR ||
+	    strstr(format, "client bug: ") ||
 	    strstr(format, "libinput bug: ") ||
 	    strstr(format, "kernel bug: "))
 		return;
