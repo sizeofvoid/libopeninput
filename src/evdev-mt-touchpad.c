@@ -2818,9 +2818,9 @@ tp_interface_toggle_touch(struct evdev_dispatch *dispatch,
 
 /* Called when the tablet toggles to left-handed */
 static void
-touchpad_left_handed_toggled(struct evdev_dispatch *dispatch,
-			     struct evdev_device *device,
-			     bool left_handed_enabled)
+tp_interface_left_handed_toggled(struct evdev_dispatch *dispatch,
+				 struct evdev_device *device,
+				 bool left_handed_enabled)
 {
 	struct tp_dispatch *tp = tp_dispatch(dispatch);
 
@@ -2853,7 +2853,7 @@ static struct evdev_dispatch_interface tp_interface = {
 	.touch_arbitration_toggle = tp_interface_toggle_touch,
 	.touch_arbitration_update_rect = NULL,
 	.get_switch_state = NULL,
-	.left_handed_toggle = touchpad_left_handed_toggled,
+	.left_handed_toggle = tp_interface_left_handed_toggled,
 };
 
 static void
