@@ -2765,6 +2765,9 @@ tp_interface_disable_feature(struct evdev_dispatch *dispatch,
 	case LIBINPUT_FEATURE_TOUCHPAD_JUMP_DETECTION:
 		tp->jump.detection_disabled = true;
 		break;
+	case LIBINPUT_FEATURE_TOUCHPAD_HYSTERESIS:
+		tp->hysteresis.enabled = false;
+		break;
 	default:
 		return;
 	}
