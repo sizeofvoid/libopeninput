@@ -463,10 +463,13 @@ wheel_plugin_destroy(struct libinput_plugin *libinput_plugin)
 }
 
 static void
-wheel_plugin_device_added(struct libinput_plugin *libinput_plugin,
-			  struct libinput_device *device)
+wheel_plugin_device_new(struct libinput_plugin *libinput_plugin,
+			struct libinput_device *device,
+			struct libevdev *libevdev,
+			struct udev_device *udev_device)
 {
-	if (!libinput_device_has_capability(device, LIBINPUT_DEVICE_CAP_POINTER))
+	if (!libevdev_has_event_code(libevdev, EV_REL, REL_WHEEL_HI_RES) &&
+	    !libevdev_has_event_code(libevdev, EV_REL, REL_HWHEEL_HI_RES))
 		return;
 
 	libinput_plugin_enable_device_event_frame(libinput_plugin, device, true);
@@ -475,6 +478,27 @@ wheel_plugin_device_added(struct libinput_plugin *libinput_plugin,
 	struct plugin_device *pd =
 		wheel_plugin_device_create(libinput_plugin, plugin, device);
 	list_take_append(&plugin->devices, pd, link);
+}
+
+static void
+wheel_plugin_device_added(struct libinput_plugin *libinput_plugin,
+			  struct libinput_device *device)
+{
+	if (libinput_device_has_capability(device, LIBINPUT_DEVICE_CAP_POINTER))
+		return;
+
+	/* For any non-pointer device: check if we happened to have added
+	 * it during device_new and if so, remove it. We only want to enable
+	 * this on devices that have a wheel *and* are a pointer device */
+	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
+	struct plugin_device *pd;
+
+	list_for_each_safe(pd, &plugin->devices, link) {
+		if (pd->device == device) {
+			wheel_plugin_device_destroy(pd);
+			return;
+		}
+	}
 }
 
 static void
@@ -533,8 +557,8 @@ wheel_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
 static const struct libinput_plugin_interface interface = {
 	.run = NULL,
 	.destroy = wheel_plugin_destroy,
-	.device_new = NULL,
-	.device_ignored = NULL,
+	.device_new = wheel_plugin_device_new,
+	.device_ignored = wheel_plugin_device_removed,
 	.device_added = wheel_plugin_device_added,
 	.device_removed = wheel_plugin_device_removed,
 	.evdev_frame = wheel_plugin_evdev_frame,
