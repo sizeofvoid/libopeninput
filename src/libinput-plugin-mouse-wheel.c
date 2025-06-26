@@ -31,6 +31,7 @@
 
 #include "evdev-fallback.h"
 #include "evdev.h"
+#include "libinput-feature.h"
 #include "libinput-log.h"
 #include "libinput-plugin-mouse-wheel.h"
 #include "libinput-plugin.h"
@@ -83,6 +84,8 @@ struct plugin_device {
 	int min_movement;
 
 	struct ratelimit hires_warning_limit;
+
+	bool want_feature_disabled;
 };
 
 struct plugin_data {
@@ -138,6 +141,23 @@ wheel_cancel_scroll_timer(struct plugin_device *pd)
 		return;
 
 	libinput_plugin_timer_cancel(pd->scroll_timer);
+}
+
+static inline void
+wheel_maybe_disable(struct plugin_device *device)
+{
+	if (device->state != WHEEL_STATE_NONE)
+		return;
+
+	if (device->want_feature_disabled && device->ignore_small_hi_res_movements) {
+		plugin_log_debug(device->parent->plugin,
+				 "%s: disabled wheel debouncing on request\n",
+				 libinput_device_get_name(device->device));
+		device->ignore_small_hi_res_movements = false;
+		libinput_plugin_timer_cancel(device->scroll_timer);
+		device->scroll_timer =
+			libinput_plugin_timer_unref(device->scroll_timer);
+	}
 }
 
 static void
@@ -422,6 +442,8 @@ wheel_handle_state(struct plugin_device *pd, struct evdev_frame *frame, uint64_t
 		wheel_handle_state_scrolling(pd, frame, time);
 		break;
 	}
+
+	wheel_maybe_disable(pd);
 }
 
 static void
@@ -591,6 +613,24 @@ wheel_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
 	}
 }
 
+static void
+wheel_plugin_feature_disabled(struct libinput_plugin *libinput_plugin,
+			      struct libinput_device *device,
+			      enum libinput_feature feature)
+{
+	if (feature != LIBINPUT_FEATURE_WHEEL_DEBOUNCING)
+		return;
+
+	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
+	struct plugin_device *pd;
+	list_for_each(pd, &plugin->devices, link) {
+		if (pd->device == device) {
+			pd->want_feature_disabled = true;
+			return;
+		}
+	}
+}
+
 static const struct libinput_plugin_interface interface = {
 	.run = NULL,
 	.destroy = wheel_plugin_destroy,
@@ -599,6 +639,7 @@ static const struct libinput_plugin_interface interface = {
 	.device_added = wheel_plugin_device_added,
 	.device_removed = wheel_plugin_device_removed,
 	.evdev_frame = wheel_plugin_evdev_frame,
+	.feature_disabled = wheel_plugin_feature_disabled,
 };
 
 void
