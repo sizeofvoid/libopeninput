@@ -2768,6 +2768,14 @@ tp_interface_disable_feature(struct evdev_dispatch *dispatch,
 	case LIBINPUT_FEATURE_TOUCHPAD_HYSTERESIS:
 		tp->hysteresis.enabled = false;
 		break;
+	case LIBINPUT_FEATURE_TOUCHPAD_PALM_DETECTION:
+		tp->palm.use_mt_tool = false;
+		tp->palm.use_pressure = false;
+		tp->palm.use_size = false;
+		tp->palm.right_edge = INT_MAX;
+		tp->palm.left_edge = INT_MIN;
+		tp->palm.upper_edge = INT_MIN;
+		break;
 	default:
 		return;
 	}
