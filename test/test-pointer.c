@@ -839,25 +839,28 @@ START_TEST(pointer_scroll_wheel_hires_send_only_lores)
 	 * sure we handle this correctly.
 	 */
 	litest_drain_events(dev->libinput);
-	litest_set_log_handler_bug(li);
+	litest_with_logcapture(li, capture) {
+		litest_event(dev, EV_REL, lores_code, 1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_dispatch(li);
+		test_high_and_low_wheel_events_value(dev, lores_code, direction * 120);
 
-	litest_event(dev, EV_REL, lores_code, 1);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, lores_code, direction * 120);
+		litest_event(dev, EV_REL, lores_code, -1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_dispatch(li);
+		test_high_and_low_wheel_events_value(dev, lores_code, direction * -120);
 
-	litest_event(dev, EV_REL, lores_code, -1);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, lores_code, direction * -120);
+		litest_event(dev, EV_REL, lores_code, 2);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_dispatch(li);
+		test_high_and_low_wheel_events_value(dev, lores_code, direction * 240);
 
-	litest_event(dev, EV_REL, lores_code, 2);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, lores_code, direction * 240);
+		litest_assert_empty_queue(li);
 
-	litest_assert_empty_queue(li);
-	litest_restore_log_handler(li);
+		litest_assert_strv_substring(
+			capture->bugs,
+			"only low-resolution events have been received.");
+	}
 }
 END_TEST
 
