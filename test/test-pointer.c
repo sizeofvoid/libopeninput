@@ -849,7 +849,7 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) &&
+	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) ||
 	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
 		return LITEST_NOT_APPLICABLE;
 
@@ -899,8 +899,7 @@ START_TEST(pointer_scroll_wheel_inhibit_dir_change)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) &&
-	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
+	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES))
 		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(dev->libinput);
