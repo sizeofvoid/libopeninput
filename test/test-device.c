@@ -1286,6 +1286,7 @@ START_TEST(device_quirks_no_abs_mt_y)
 	litest_drain_events(li);
 
 	litest_event(dev, EV_REL, REL_HWHEEL, 1);
+	litest_event(dev, EV_REL, REL_HWHEEL_HI_RES, 120);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 

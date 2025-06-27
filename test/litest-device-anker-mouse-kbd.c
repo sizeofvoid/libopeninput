@@ -39,6 +39,7 @@ static struct input_id input_id = {
 /* clang-format off */
 static int events[] = {
 	EV_REL, REL_HWHEEL,
+	EV_REL, REL_HWHEEL_HI_RES,
 	EV_KEY, KEY_ESC,
 	EV_KEY, KEY_KPMINUS,
 	EV_KEY, KEY_KPPLUS,
