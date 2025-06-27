@@ -4890,6 +4890,31 @@ _litest_assert_strv_substring(char **strv,
 }
 
 void
+_litest_assert_strv_no_substring(char **strv,
+				 char *substring,
+				 const char *file,
+				 const char *func,
+				 int line)
+{
+	if (!strv)
+		return;
+
+	size_t index;
+	bool found = strv_find_substring(strv, substring, &index);
+	if (found) {
+		_autofree_ char *strv_str = strv_join(strv, "', '");
+		_litest_abort_msg(
+			file,
+			line,
+			func,
+			"Unexpected substring '%s' present at index %zd in strv: ['%s']",
+			substring,
+			index,
+			strv_str);
+	}
+}
+
+void
 litest_push_event_frame(struct litest_device *dev)
 {
 	litest_assert_int_ge(dev->skip_ev_syn, 0);
