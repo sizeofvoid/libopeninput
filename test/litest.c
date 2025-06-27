@@ -5086,6 +5086,7 @@ litest_parse_argv(int argc, char **argv, int *njobs_out)
 	};
 	enum {
 		JOBS_DEFAULT,
+		JOBS_NONE,
 		JOBS_SINGLE,
 		JOBS_CUSTOM
 	} want_jobs = JOBS_DEFAULT;
@@ -5098,7 +5099,7 @@ litest_parse_argv(int argc, char **argv, int *njobs_out)
 		use_system_rules_quirks = true;
 
 	if (in_debugger)
-		want_jobs = JOBS_SINGLE;
+		want_jobs = JOBS_NONE;
 
 	if ((jobs_env = getenv("LITEST_JOBS"))) {
 		if (!safe_atoi(jobs_env, &jobs)) {
@@ -5212,8 +5213,16 @@ litest_parse_argv(int argc, char **argv, int *njobs_out)
 		}
 	}
 
-	if (want_jobs == JOBS_SINGLE)
+	switch (want_jobs) {
+	case JOBS_SINGLE:
 		jobs = 1;
+		break;
+	case JOBS_NONE:
+		jobs = 0;
+		break;
+	default:
+		break;
+	}
 
 	*njobs_out = jobs;
 
