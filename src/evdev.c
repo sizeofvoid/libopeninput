@@ -2233,17 +2233,10 @@ evdev_pre_configure_model_quirks(struct evdev_device *device)
 			unsigned int p = t->tuples[idx].first;
 			bool enable = t->tuples[idx].second;
 
-			if (enable) {
+			if (enable)
 				libevdev_enable_property(device->evdev, p);
-			}
-			else {
-#if HAVE_LIBEVDEV_DISABLE_PROPERTY
+			else
 				libevdev_disable_property(device->evdev, p);
-#else
-				evdev_log_error(device,
-						"quirks: a quirk for this device requires newer libevdev than installed\n");
-#endif
-			}
 			evdev_log_debug(device,
 					"quirks: %s %s (%#x)\n",
 					enable ? "enabling" : "disabling",

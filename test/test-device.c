@@ -1400,15 +1400,13 @@ START_TEST(device_quirks)
 	struct libinput_device *device;
 	char **message;
 	bool disable_key_f1 = false,
-	     enable_btn_left = false;
-#if HAVE_LIBEVDEV_DISABLE_PROPERTY
-	bool disable_pointingstick = false,
+	     enable_btn_left = false,
+	     disable_pointingstick = false,
 	     enable_buttonpad = false,
 	     enable_direct = false,
 	     disable_direct = false,
 	     enable_semi_mt = false,
 	     disable_semi_mt = false;
-#endif
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
@@ -1437,7 +1435,6 @@ START_TEST(device_quirks)
 			disable_key_f1 = true;
 		if (strstr(*message, "enabling EV_KEY BTN_LEFT"))
 			enable_btn_left = true;
-#if HAVE_LIBEVDEV_DISABLE_PROPERTY
 		if (strstr(*message, "enabling INPUT_PROP_BUTTONPAD"))
 			enable_buttonpad = true;
 		if (strstr(*message, "disabling INPUT_PROP_POINTING_STICK"))
@@ -1458,21 +1455,18 @@ START_TEST(device_quirks)
 			litest_assert(!enable_semi_mt);
 			disable_semi_mt = true;
 		}
-#endif
 		free(*message);
 		message++;
 	}
 
 	litest_assert(disable_key_f1);
 	litest_assert(enable_btn_left);
-#if HAVE_LIBEVDEV_DISABLE_PROPERTY
 	litest_assert(enable_buttonpad);
 	litest_assert(disable_pointingstick);
 	litest_assert(enable_direct);
 	litest_assert(disable_direct);
 	litest_assert(enable_semi_mt);
 	litest_assert(disable_semi_mt);
-#endif
 
 	litest_disable_log_handler(li);
 

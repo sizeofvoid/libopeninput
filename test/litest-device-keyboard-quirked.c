@@ -214,7 +214,6 @@ static const char quirk_file[] =
 "[litest Quirked keyboard disable F1-F3]\n"
 "MatchName=litest Quirked Keyboard\n"
 "AttrEventCode=-KEY_F1;-EV_KEY:0x3c;-KEY_F3\n"
-#if HAVE_LIBEVDEV_DISABLE_PROPERTY
 "\n"
 "[litest Quirked keyboard enable buttonpad]\n"
 "MatchName=litest Quirked Keyboard\n"
@@ -239,7 +238,6 @@ static const char quirk_file[] =
 "[litest Quirked keyboard enable semi-mt]\n"
 "MatchName=litest Quirked Keyboard\n"
 "AttrInputProp=+INPUT_PROP_SEMI_MT\n"
-#endif
 ;
 
 TEST_DEVICE(LITEST_KEYBOARD_QUIRKED,
