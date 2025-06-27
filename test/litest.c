@@ -4785,6 +4785,7 @@ litest_logcapture_destroy(struct litest_logcapture *c)
 	strv_free(c->errors);
 	strv_free(c->infos);
 	strv_free(c->debugs);
+	strv_free(c->bugs);
 	free(c);
 }
 
@@ -4821,6 +4822,11 @@ litest_log_handler_msgcapture(struct libinput *libinput,
 		priority,
 		use_colors ? ANSI_NORMAL : "",
 		message);
+
+	if (strstr(message, "kernel bug: ") || strstr(message, "client bug: ") ||
+	    strstr(message, "libinput bug: ") || strstr(message, "plugin bug: ")) {
+		capture->bugs = strv_append_strdup(capture->bugs, message);
+	}
 
 	switch (pri) {
 	case LIBINPUT_LOG_PRIORITY_ERROR:

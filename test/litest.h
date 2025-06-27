@@ -1361,6 +1361,7 @@ struct litest_logcapture {
 	char **errors;
 	char **infos;
 	char **debugs;
+	char **bugs;
 };
 
 void
