@@ -63,7 +63,7 @@ streq(const char *str1, const char *str2)
 }
 
 static inline bool
-strneq(const char *str1, const char *str2, int n)
+strneq(const char *str1, const char *str2, size_t n)
 {
 	/* one NULL, one not NULL is always false */
 	if (str1 && str2)
