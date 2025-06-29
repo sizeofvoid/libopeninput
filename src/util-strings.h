@@ -551,7 +551,8 @@ str_sanitize(const char *str)
 	if (!strchr(str, '%'))
 		return strdup(str);
 
-	size_t slen = min(strlen(str), 512);
+	size_t slen = strlen(str);
+	slen = min(slen, 512);
 	char *sanitized = zalloc(2 * slen + 1);
 	const char *src = str;
 	char *dst = sanitized;
