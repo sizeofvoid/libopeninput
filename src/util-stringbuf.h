@@ -150,11 +150,11 @@ stringbuf_append_from_fd(struct stringbuf *b, int fd, size_t maxlen)
 static inline int
 stringbuf_append_string(struct stringbuf *b, const char *msg)
 {
-	int r = stringbuf_ensure_space(b, strlen(msg) + 1);
+	size_t slen = strlen(msg);
+
+	int r = stringbuf_ensure_space(b, slen + 1);
 	if (r < 0)
 		return r;
-
-	size_t slen = strlen(msg);
 
 	if (!b->data) /* cannot happen, but let's make scan-build happy */
 		abort();
