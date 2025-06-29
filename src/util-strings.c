@@ -105,7 +105,8 @@ char **
 strv_append_take(char **strv, char **str)
 {
 	if (str && *str) {
-		size_t len = max(strv_len(strv) + 1, 2);
+		size_t len = strv_len(strv) + 1;
+		len = max(len, 2);
 
 		char **s = realloc(strv, len * sizeof(*strv));
 		if (!s)
