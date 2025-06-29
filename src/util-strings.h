@@ -529,7 +529,7 @@ strstartswith(const char *str, const char *prefix)
 
 	size_t prefixlen = strlen(prefix);
 
-	return prefixlen > 0 ? strneq(str, prefix, strlen(prefix)) : false;
+	return prefixlen > 0 ? strneq(str, prefix, prefixlen) : false;
 }
 
 const char *
