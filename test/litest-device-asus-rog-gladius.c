@@ -312,7 +312,7 @@ static int events[] = {
 /* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_VOLUME, 0, 668, 0, 0, 0 },
-	{ .value = -1 }
+	{ .value = -1 },
 };
 /* clang-format on */
 

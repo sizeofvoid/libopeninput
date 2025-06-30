@@ -272,7 +272,7 @@ START_TEST(totem_rotation)
 	double r, old_r;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_ORIENTATION, 50 }, /* mid-point is 0 */
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 50, 50, axes);

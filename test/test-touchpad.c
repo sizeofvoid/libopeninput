@@ -302,7 +302,7 @@ START_TEST(touchpad_2fg_scroll_axis_lock)
 		{ 7,  40},
 		{ 7, -40},
 		{-7,  40},
-		{-7, -40}
+		{-7, -40},
 	};
 	/* 10 degrees off from horiz/vert should count as straight */
 
@@ -1855,7 +1855,7 @@ START_TEST(touchpad_palm_detect_pressure)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -1879,7 +1879,7 @@ START_TEST(touchpad_palm_detect_pressure_late_tap)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -1911,7 +1911,7 @@ START_TEST(touchpad_palm_detect_pressure_tap_hold)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -1943,7 +1943,7 @@ START_TEST(touchpad_palm_detect_pressure_tap_hold_2ndfg)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -1987,7 +1987,7 @@ START_TEST(touchpad_palm_detect_move_and_tap)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -2026,7 +2026,7 @@ START_TEST(touchpad_palm_detect_pressure_late)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -2053,7 +2053,7 @@ START_TEST(touchpad_palm_detect_pressure_keep_palm)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -2078,7 +2078,7 @@ START_TEST(touchpad_palm_detect_pressure_after_edge)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev) ||
@@ -2107,7 +2107,7 @@ START_TEST(touchpad_palm_detect_pressure_after_dwt)
 	struct libinput *li = touchpad->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(touchpad))
@@ -2146,7 +2146,7 @@ START_TEST(touchpad_palm_ignore_threshold_zero)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	litest_disable_tap(dev->libinput_device);
@@ -2168,7 +2168,7 @@ START_TEST(touchpad_palm_clickfinger_pressure)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -2199,7 +2199,7 @@ START_TEST(touchpad_palm_clickfinger_pressure_2fg)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -2251,7 +2251,7 @@ START_TEST(touchpad_palm_clickfinger_size)
 		{ ABS_MT_TOUCH_MAJOR, 0 },
 		{ ABS_MT_TOUCH_MINOR, 0 },
 		{ ABS_MT_ORIENTATION, 0 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_touch_size(dev))
@@ -2284,7 +2284,7 @@ START_TEST(touchpad_palm_clickfinger_size_2fg)
 		{ ABS_MT_TOUCH_MAJOR, 0 },
 		{ ABS_MT_TOUCH_MINOR, 0 },
 		{ ABS_MT_ORIENTATION, 0 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_touch_size(dev))
@@ -6127,7 +6127,7 @@ START_TEST(touchpad_pressure)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 1 },
 		{ ABS_PRESSURE, 1 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	double pressure; /* in percent */
 	double threshold = 12.0;
@@ -6161,7 +6161,7 @@ START_TEST(touchpad_pressure_2fg)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 5 },
 		{ ABS_PRESSURE, 5 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_pressure(dev))
@@ -6192,7 +6192,7 @@ START_TEST(touchpad_pressure_2fg_st)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 5 },
 		{ ABS_PRESSURE, 5 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_pressure(dev))
@@ -6226,7 +6226,7 @@ START_TEST(touchpad_pressure_tap)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 5 },
 		{ ABS_PRESSURE, 5 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_pressure(dev))
@@ -6250,7 +6250,7 @@ START_TEST(touchpad_pressure_tap_2fg)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 5 },
 		{ ABS_PRESSURE, 5 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_pressure(dev))
@@ -6278,7 +6278,7 @@ START_TEST(touchpad_pressure_tap_2fg_1fg_light)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 5 },
 		{ ABS_PRESSURE, 5 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_pressure(dev))
@@ -6319,7 +6319,7 @@ START_TEST(touchpad_pressure_btntool)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 5 },
 		{ ABS_PRESSURE, 5 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	/* we only have tripletap, can't test 4 slots because nothing will
@@ -6383,7 +6383,7 @@ START_TEST(touchpad_pressure_semi_mt_2fg_goes_light)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_PRESSURE, 2 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	litest_enable_2fg_scroll(dev);
@@ -6427,7 +6427,7 @@ START_TEST(touchpad_touch_size)
 		{ ABS_MT_TOUCH_MAJOR, 0 },
 		{ ABS_MT_TOUCH_MINOR, 0 },
 		{ ABS_MT_ORIENTATION, 0 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_touch_size(dev))
@@ -6460,7 +6460,7 @@ START_TEST(touchpad_touch_size_2fg)
 		{ ABS_MT_TOUCH_MAJOR, 0 },
 		{ ABS_MT_TOUCH_MINOR, 0 },
 		{ ABS_MT_ORIENTATION, 0 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_touch_size(dev))
@@ -6500,7 +6500,7 @@ START_TEST(touchpad_palm_detect_touch_size)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_TOUCH_MAJOR, 0 },
 		{ ABS_MT_TOUCH_MINOR, 0 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_touch_size(dev) ||
@@ -6532,7 +6532,7 @@ START_TEST(touchpad_palm_detect_touch_size_late)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_TOUCH_MAJOR, 0 },
 		{ ABS_MT_TOUCH_MINOR, 0 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_touch_size(dev) ||
@@ -6573,7 +6573,7 @@ START_TEST(touchpad_palm_detect_touch_size_keep_palm)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_TOUCH_MAJOR, 0 },
 		{ ABS_MT_TOUCH_MINOR, 0 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_touch_size(dev) ||
@@ -6610,7 +6610,7 @@ START_TEST(touchpad_palm_detect_touch_size_after_edge)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_TOUCH_MAJOR, 0 },
 		{ ABS_MT_TOUCH_MINOR, 0 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_touch_size(dev) ||
@@ -6643,7 +6643,7 @@ START_TEST(touchpad_palm_detect_touch_size_after_dwt)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_TOUCH_MAJOR, 0 },
 		{ ABS_MT_TOUCH_MINOR, 0 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_touch_size(touchpad) ||
@@ -6774,7 +6774,7 @@ START_TEST(touchpad_speed_ignore_hovering_finger)
 	struct axis_replacement axes[] = {
 		{ ABS_MT_TOUCH_MAJOR, 1 },
 		{ ABS_MT_TOUCH_MINOR, 1 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!has_thumb_detect(dev))

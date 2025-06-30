@@ -4240,7 +4240,7 @@ START_TEST(touchpad_tap_palm_on_idle)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -4267,7 +4267,7 @@ START_TEST(touchpad_tap_palm_on_touch)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -4295,7 +4295,7 @@ START_TEST(touchpad_tap_palm_on_touch_hold_timeout)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -4324,7 +4324,7 @@ START_TEST(touchpad_tap_palm_on_touch_hold_move)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -4355,7 +4355,7 @@ START_TEST(touchpad_tap_palm_on_tapped)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
 	unsigned int button = 0;
@@ -4435,7 +4435,7 @@ START_TEST(touchpad_tap_palm_on_tapped_palm_down)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
 	unsigned int button = 0;
@@ -4515,7 +4515,7 @@ START_TEST(touchpad_tap_palm_on_tapped_doubletap)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers_1st"),
 	    nfingers2 = litest_test_param_get_i32(test_env->params, "fingers_2nd");
@@ -4644,7 +4644,7 @@ START_TEST(touchpad_tap_palm_on_drag)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
 	unsigned int button = 0;
@@ -4725,7 +4725,7 @@ START_TEST(touchpad_tap_palm_on_drag_2fg)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int which = litest_test_param_get_i32(test_env->params, "which"),
 	    this = which % 2,
@@ -4816,7 +4816,7 @@ START_TEST(touchpad_tap_palm_on_touch_2)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int which = litest_test_param_get_i32(test_env->params, "which"),
 	    this = which % 2,
@@ -4857,7 +4857,7 @@ START_TEST(touchpad_tap_palm_on_touch_2_retouch)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int which = litest_test_param_get_i32(test_env->params, "which"),
 	    this = which % 2,
@@ -4902,7 +4902,7 @@ START_TEST(touchpad_tap_palm_on_touch_3)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int which = litest_test_param_get_i32(test_env->params, "which"),
 	    this = which % 3;
@@ -4949,7 +4949,7 @@ START_TEST(touchpad_tap_palm_on_touch_3_retouch)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int which = litest_test_param_get_i32(test_env->params, "which"),
 	    this = which % 3;
@@ -5000,7 +5000,7 @@ START_TEST(touchpad_tap_palm_on_touch_4)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int which = litest_test_param_get_i32(test_env->params, "which"),
 	    this = which % 4;
@@ -5040,7 +5040,7 @@ START_TEST(touchpad_tap_palm_after_tap)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
 	unsigned int button = 0;
@@ -5118,7 +5118,7 @@ START_TEST(touchpad_tap_palm_multitap)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers"),
 	    range = litest_test_param_get_i32(test_env->params, "taps"),
@@ -5202,7 +5202,7 @@ START_TEST(touchpad_tap_palm_multitap_timeout)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers"),
 	    range = litest_test_param_get_i32(test_env->params, "taps"),
@@ -5285,7 +5285,7 @@ START_TEST(touchpad_tap_palm_multitap_down_again)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers"),
 	    range = litest_test_param_get_i32(test_env->params, "taps"),
@@ -5400,7 +5400,7 @@ START_TEST(touchpad_tap_palm_multitap_click)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers"),
 	    range = litest_test_param_get_i32(test_env->params, "taps"),
@@ -5496,7 +5496,7 @@ START_TEST(touchpad_tap_palm_click_then_tap)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))
@@ -5545,7 +5545,7 @@ START_TEST(touchpad_tap_palm_dwt_tap)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_PRESSURE, 75 },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touchpad_has_palm_pressure(dev))

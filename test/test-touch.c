@@ -1125,7 +1125,7 @@ START_TEST(touch_palm_detect_tool_palm)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_TOOL_TYPE, MT_TOOL_PALM },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touch_has_tool_palm(dev))
@@ -1152,7 +1152,7 @@ START_TEST(touch_palm_detect_tool_palm_on_off)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_TOOL_TYPE, MT_TOOL_PALM },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touch_has_tool_palm(dev))
@@ -1183,7 +1183,7 @@ START_TEST(touch_palm_detect_tool_palm_keep_type)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_TOOL_TYPE, MT_TOOL_PALM },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touch_has_tool_palm(dev))
@@ -1214,7 +1214,7 @@ START_TEST(touch_palm_detect_tool_palm_2fg)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_TOOL_TYPE, MT_TOOL_PALM },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touch_has_tool_palm(dev))
@@ -1250,7 +1250,7 @@ START_TEST(touch_palm_detect_tool_palm_on_off_2fg)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_TOOL_TYPE, MT_TOOL_PALM },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touch_has_tool_palm(dev))
@@ -1294,7 +1294,7 @@ START_TEST(touch_palm_detect_tool_palm_keep_type_2fg)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_MT_TOOL_TYPE, MT_TOOL_PALM },
-		{ -1, 0 }
+		{ -1, 0 },
 	};
 
 	if (!touch_has_tool_palm(dev))

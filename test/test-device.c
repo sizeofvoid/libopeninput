@@ -187,7 +187,7 @@ START_TEST(device_disable_tablet)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	device = dev->libinput_device;
@@ -950,7 +950,7 @@ START_TEST(abs_device_no_range)
 		{ ABS_X, 0, 10, 0, 0, 0 },
 		{ ABS_Y, 0, 10, 0, 0, 0 },
 		{ code, 0, 0, 0, 0, 0 },
-		{ -1, -1, -1, -1, -1, -1 }
+		{ -1, -1, -1, -1, -1, -1 },
 	};
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
@@ -974,7 +974,7 @@ START_TEST(abs_mt_device_no_range)
 		{ ABS_MT_POSITION_X, 0, 10, 0, 0, 0 },
 		{ ABS_MT_POSITION_Y, 0, 10, 0, 0, 0 },
 		{ code, 0, 0, 0, 0, 0 },
-		{ -1, -1, -1, -1, -1, -1 }
+		{ -1, -1, -1, -1, -1, -1 },
 	};
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
@@ -993,7 +993,7 @@ START_TEST(abs_device_missing_res)
 	struct input_absinfo absinfo[] = {
 		{ ABS_X, 0, 10, 0, 0, 10 },
 		{ ABS_Y, 0, 10, 0, 0, 10 },
-		{ -1, -1, -1, -1, -1, -1 }
+		{ -1, -1, -1, -1, -1, -1 },
 	};
 	int axis = litest_test_param_get_i32(test_env->params, "axis");
 
@@ -1022,7 +1022,7 @@ START_TEST(abs_mt_device_missing_res)
 		{ ABS_MT_TRACKING_ID, 0, 255, 0, 0, 0 },
 		{ ABS_MT_POSITION_X, 0, 10, 0, 0, 10 },
 		{ ABS_MT_POSITION_Y, 0, 10, 0, 0, 10 },
-		{ -1, -1, -1, -1, -1, -1 }
+		{ -1, -1, -1, -1, -1, -1 },
 	};
 
 	int axis = litest_test_param_get_i32(test_env->params, "axis");
@@ -1053,7 +1053,7 @@ START_TEST(ignore_joystick)
 		{ ABS_RY, 0, 10, 0, 0, 10 },
 		{ ABS_THROTTLE, 0, 2, 0, 0, 0 },
 		{ ABS_RUDDER, 0, 255, 0, 0, 0 },
-		{ -1, -1, -1, -1, -1, -1 }
+		{ -1, -1, -1, -1, -1, -1 },
 	};
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
@@ -1094,7 +1094,7 @@ START_TEST(device_accelerometer)
 		{ ABS_X, 0, 10, 0, 0, 10 },
 		{ ABS_Y, 0, 10, 0, 0, 10 },
 		{ ABS_Z, 0, 10, 0, 0, 10 },
-		{ -1, -1, -1, -1, -1, -1 }
+		{ -1, -1, -1, -1, -1, -1 },
 	};
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
@@ -1171,7 +1171,7 @@ START_TEST(device_touchpad_rel)
 		{ ABS_MT_TRACKING_ID, 0, 255, 0, 0, 0 },
 		{ ABS_MT_POSITION_X, 0, 10, 0, 0, 10 },
 		{ ABS_MT_POSITION_Y, 0, 10, 0, 0, 10 },
-		{ -1, -1, -1, -1, -1, -1 }
+		{ -1, -1, -1, -1, -1, -1 },
 	};
 	int i;
 
@@ -1211,7 +1211,7 @@ START_TEST(device_touch_rel)
 		{ ABS_MT_TRACKING_ID, 0, 255, 0, 0, 0 },
 		{ ABS_MT_POSITION_X, 0, 10, 0, 0, 10 },
 		{ ABS_MT_POSITION_Y, 0, 10, 0, 0, 10 },
-		{ -1, -1, -1, -1, -1, -1 }
+		{ -1, -1, -1, -1, -1, -1 },
 	};
 	int i;
 
@@ -1248,7 +1248,7 @@ START_TEST(device_abs_rel)
 	const struct input_absinfo abs[] = {
 		{ ABS_X, 0, 10, 0, 0, 10 },
 		{ ABS_Y, 0, 10, 0, 0, 10 },
-		{ -1, -1, -1, -1, -1, -1 }
+		{ -1, -1, -1, -1, -1, -1 },
 	};
 	int i;
 

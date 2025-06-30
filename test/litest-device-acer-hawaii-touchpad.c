@@ -81,7 +81,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_POSITION_X, 0, 1151, 0, 0, 12 },
 	{ ABS_MT_POSITION_Y, 0, 738, 0, 0, 14 },
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
-	{ .value = -1 }
+	{ .value = -1 },
 };
 /* clang-format on */
 

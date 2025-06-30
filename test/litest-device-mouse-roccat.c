@@ -184,7 +184,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MISC + 1, 0, 0, 0, 0, 0 },
 	{ ABS_MISC + 2, 0, 0, 0, 0, 0 },
 	{ ABS_MISC + 3, 0, 0, 0, 0, 0 },
-	{ .value = -1 }
+	{ .value = -1 },
 };
 /* clang-format on */
 

@@ -85,6 +85,6 @@ TEST_DEVICE(LITEST_CALIBRATED_TOUCHSCREEN,
 	.udev_properties = {
 	{ "LIBINPUT_CALIBRATION_MATRIX", "1.2 3.4 5.6 7.8 9.10 11.12" },
 	{ "WL_OUTPUT", "myOutput" },
-	{ NULL }
+	{ NULL },
 	},
 )

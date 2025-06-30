@@ -67,7 +67,7 @@ START_TEST(button_down_up)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	unsigned int button = pick_stylus_or_btn0(dev);
 
@@ -110,7 +110,7 @@ START_TEST(button_seat_count)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	unsigned int button = pick_stylus_or_btn0(dev);
 
@@ -224,7 +224,7 @@ START_TEST(tip_down_up)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -271,7 +271,7 @@ START_TEST(tip_down_up_eraser)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
@@ -326,7 +326,7 @@ START_TEST(tip_down_prox_in)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 0 },
 		{ ABS_PRESSURE, 30 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_drain_events(li);
@@ -365,7 +365,7 @@ START_TEST(tip_up_prox_out)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 0 },
 		{ ABS_PRESSURE, 30 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -410,7 +410,7 @@ START_TEST(tip_up_btn_change)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 0 },
 		{ ABS_PRESSURE, 30 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -488,7 +488,7 @@ START_TEST(tip_down_btn_change)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -567,7 +567,7 @@ START_TEST(tip_down_motion)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double x, y, last_x, last_y;
 
@@ -614,7 +614,7 @@ START_TEST(tip_up_motion)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 0 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double x, y, last_x, last_y;
 
@@ -663,7 +663,7 @@ START_TEST(tip_up_motion_one_axis)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 0 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double x, y, last_x, last_y;
 	double start_x = 20,
@@ -760,7 +760,7 @@ START_TEST(tip_state_proximity)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_drain_events(li);
@@ -806,7 +806,7 @@ START_TEST(tip_state_axis)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -865,7 +865,7 @@ START_TEST(tip_state_button)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	unsigned int button = pick_stylus_or_btn0(dev);
 
@@ -935,7 +935,7 @@ START_TEST(tip_up_on_delete)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -971,7 +971,7 @@ START_TEST(proximity_in_out)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_drain_events(li);
@@ -1033,7 +1033,7 @@ START_TEST(proximity_in_button_down)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	unsigned int button = pick_stylus_or_btn0(dev);
 
@@ -1062,7 +1062,7 @@ START_TEST(proximity_out_button_up)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	unsigned int button = pick_stylus_or_btn0(dev);
 
@@ -1096,7 +1096,7 @@ START_TEST(proximity_out_clear_buttons)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	uint32_t stylus_buttons[] = {BTN_STYLUS, BTN_STYLUS2, BTN_STYLUS3};
 	bool have_proximity = false;
@@ -1306,7 +1306,7 @@ START_TEST(proximity_range_enter)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 90 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_drain_events(li);
@@ -1348,7 +1348,7 @@ START_TEST(proximity_range_in_out)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 20 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_drain_events(li);
@@ -1397,7 +1397,7 @@ START_TEST(proximity_range_button_click)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 90 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_drain_events(li);
@@ -1434,7 +1434,7 @@ START_TEST(proximity_range_button_press)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 20 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_with_event_frame(dev) {
@@ -1485,7 +1485,7 @@ START_TEST(proximity_range_button_release)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 90 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_with_event_frame(dev) {
@@ -1537,7 +1537,7 @@ START_TEST(proximity_out_slow_event)
 	struct libinput *li = dev->libinput;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 90 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -1563,7 +1563,7 @@ START_TEST(proximity_out_not_during_contact)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 0 },
 		{ ABS_PRESSURE, 10 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -1599,7 +1599,7 @@ START_TEST(proximity_out_not_during_buttonpress)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -1641,7 +1641,7 @@ START_TEST(proximity_out_disables_forced)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	/* A correct proximity out sequence from the device should disable
@@ -1671,7 +1671,7 @@ START_TEST(proximity_out_disables_forced_after_forced)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	/* A correct proximity out sequence from the device should disable
@@ -1733,7 +1733,7 @@ START_TEST(motion)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	bool x_changed, y_changed;
 	double reported_x, reported_y;
@@ -1816,7 +1816,7 @@ START_TEST(left_handed)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_drain_events(li);
@@ -1956,7 +1956,7 @@ START_TEST(left_handed_tilt)
 		{ ABS_PRESSURE, 0 },
 		{ ABS_TILT_X, 90 },
 		{ ABS_TILT_Y, 10 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double tx, ty;
 
@@ -2034,7 +2034,7 @@ START_TEST(left_handed_mouse_rotation)
 		{ ABS_PRESSURE, 0 },
 		{ ABS_TILT_X, 0 },
 		{ ABS_TILT_Y, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
@@ -2142,7 +2142,7 @@ START_TEST(motion_event_state)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	unsigned int button = pick_stylus_or_btn0(dev);
 
@@ -2213,7 +2213,7 @@ START_TEST(motion_outside_bounds)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 50, 50, axes);
@@ -2526,7 +2526,7 @@ START_TEST(pad_buttons_ignored)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	int button;
 
@@ -2812,7 +2812,7 @@ START_TEST(tool_type)
 		{ ABS_PRESSURE, 0 },
 		{ ABS_TILT_X, 0 },
 		{ ABS_TILT_Y, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	struct tool_type_match {
 		int code;
@@ -2825,7 +2825,7 @@ START_TEST(tool_type)
 		{ BTN_TOOL_AIRBRUSH, LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH },
 		{ BTN_TOOL_MOUSE, LIBINPUT_TABLET_TOOL_TYPE_MOUSE },
 		{ BTN_TOOL_LENS, LIBINPUT_TABLET_TOOL_TYPE_LENS },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	struct tool_type_match *tt;
 	double x = 50, y = 50;
@@ -2898,7 +2898,7 @@ START_TEST(tool_in_prox_before_start)
 		{ ABS_PRESSURE, 0 },
 		{ ABS_TILT_X, 0 },
 		{ ABS_TILT_Y, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	const char *devnode;
 	uint64_t serial;
@@ -2958,7 +2958,7 @@ START_TEST(tool_direct_switch_skip_tool_update)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
@@ -3071,7 +3071,7 @@ START_TEST(tool_direct_switch_with_forced_proxout)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
@@ -3270,7 +3270,7 @@ START_TEST(mouse_rotation)
 		{ ABS_PRESSURE, 0 },
 		{ ABS_TILT_X, 0 },
 		{ ABS_TILT_Y, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_drain_events(li);
@@ -3566,7 +3566,7 @@ START_TEST(tablet_time_usec)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	uint64_t time_usec;
 
@@ -3701,7 +3701,7 @@ START_TEST(tablet_calibration_set_matrix_delta)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 0 },
 		{ ABS_PRESSURE, 10 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double x, y, dx, dy, mdx, mdy;
 
@@ -3786,7 +3786,7 @@ START_TEST(tablet_calibration_set_matrix)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double x, y;
 
@@ -3975,7 +3975,7 @@ START_TEST(tablet_area_set_rectangle)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double x, y;
 	double *scaled, *unscaled;
@@ -4060,7 +4060,7 @@ START_TEST(tablet_area_set_rectangle_move_outside)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double x, y;
 
@@ -4132,7 +4132,7 @@ START_TEST(tablet_area_set_rectangle_move_outside_to_inside)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double x, y;
 
@@ -4199,7 +4199,7 @@ START_TEST(tablet_area_set_rectangle_move_in_margin)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double x, y;
 
@@ -4247,7 +4247,7 @@ START_TEST(tablet_area_set_rectangle_while_outside)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double x, y;
 
@@ -5225,7 +5225,7 @@ START_TEST(tilt_available)
 		{ ABS_PRESSURE, 0 },
 		{ ABS_TILT_X, 80 },
 		{ ABS_TILT_Y, 20 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_drain_events(li);
@@ -5255,7 +5255,7 @@ START_TEST(tilt_not_available)
 		{ ABS_PRESSURE, 0 },
 		{ ABS_TILT_X, 80 },
 		{ ABS_TILT_Y, 20 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_drain_events(li);
@@ -5284,7 +5284,7 @@ START_TEST(tilt_x)
 		{ ABS_PRESSURE, 0 },
 		{ ABS_TILT_X, 10 },
 		{ ABS_TILT_Y, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double tx, ty;
 	int tilt;
@@ -5358,7 +5358,7 @@ START_TEST(tilt_y)
 		{ ABS_PRESSURE, 0 },
 		{ ABS_TILT_X, 0 },
 		{ ABS_TILT_Y, 10 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double tx, ty;
 	int tilt;
@@ -5430,7 +5430,7 @@ START_TEST(tilt_fixed_points)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	/* On devices with a range of [-N, M], make sure we calculate the hw zero position
@@ -5538,7 +5538,7 @@ START_TEST(relative_no_delta_prox_in)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double dx, dy;
 
@@ -5567,7 +5567,7 @@ START_TEST(relative_delta)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double dx, dy;
 
@@ -5650,7 +5650,7 @@ START_TEST(relative_no_delta_on_tip)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double dx, dy;
 
@@ -5716,7 +5716,7 @@ START_TEST(relative_calibration)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double dx, dy;
 	float calibration[] = { -1, 0, 1, 0, -1, 1 };
@@ -5825,7 +5825,7 @@ assert_touch_is_arbitrated(struct litest_device *dev, struct litest_device *fing
 		{ ABS_TILT_Y, 80 },
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 10, 10, axes);
@@ -5908,7 +5908,7 @@ START_TEST(touch_arbitration_outside_rect)
 		{ ABS_TILT_Y, 80 },
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	double x, y;
 	bool is_touchpad;
@@ -5988,7 +5988,7 @@ START_TEST(touch_arbitration_remove_after)
 		{ ABS_TILT_Y, 80 },
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	bool is_touchpad;
 
@@ -6026,7 +6026,7 @@ START_TEST(touch_arbitration_stop_touch)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	bool is_touchpad;
 
@@ -6115,7 +6115,7 @@ START_TEST(touch_arbitration_suspend_touch_device)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	bool is_touchpad;
 
@@ -6201,7 +6201,7 @@ START_TEST(touch_arbitration_remove_touch)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	other = paired_device(dev);
@@ -6242,7 +6242,7 @@ START_TEST(touch_arbitration_remove_tablet)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	bool is_touchpad;
 
@@ -6306,7 +6306,7 @@ START_TEST(touch_arbitration_keep_ignoring)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	other = paired_device(tablet);
@@ -6353,7 +6353,7 @@ START_TEST(touch_arbitration_late_touch_lift)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	bool is_touchpad;
 
@@ -6406,7 +6406,7 @@ START_TEST(touch_arbitration_swap_device)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	enum litest_device_type paired = paired_device(tablet);
@@ -7118,7 +7118,7 @@ START_TEST(tablet_smoothing)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_drain_events(li);
@@ -7194,12 +7194,12 @@ START_TEST(tablet_eraser_button_disabled)
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
 		{ ABS_PRESSURE, 0 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	struct axis_replacement tip_down_axes[] = {
 		{ ABS_DISTANCE, 0 },
 		{ ABS_PRESSURE, 30 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 	struct libinput_event *ev;
 	struct libinput_event_tablet_tool *tev;

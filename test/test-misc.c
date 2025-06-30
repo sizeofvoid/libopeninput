@@ -413,7 +413,7 @@ START_TEST(event_conversion_tablet)
 	int events = 0;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 10 },
-		{ -1, -1 }
+		{ -1, -1 },
 	};
 
 	litest_tablet_proximity_in(dev, 50, 50, axes);

@@ -139,6 +139,6 @@ TEST_DEVICE(LITEST_WACOM_CALIBRATED_TABLET_PEN,
 	.absinfo = absinfo,
 	.udev_properties = {
 	{ "LIBINPUT_CALIBRATION_MATRIX", "-1 0 1 0 -1 1" },
-	{ NULL }
+	{ NULL },
 	},
 )

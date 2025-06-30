@@ -665,7 +665,7 @@ START_TEST(dpi_parser)
 		{ "", 0 },
 		{ "   ", 0 },
 		{ "* ", 0 },
-		{ NULL, 0 }
+		{ NULL, 0 },
 	};
 	/* clang-format on */
 	int i, dpi;
@@ -696,7 +696,7 @@ START_TEST(wheel_click_parser)
 		{ "10-", 0 },
 		{ "sadfasfd", 0 },
 		{ "361", 0 },
-		{ NULL, 0 }
+		{ NULL, 0 },
 	};
 	/* clang-format on */
 
@@ -765,7 +765,7 @@ START_TEST(dimension_prop_parser)
 		{ "0xaf", false, 0, 0 },
 		{ "0x0x", false, 0, 0 },
 		{ "x10", false, 0, 0 },
-		{ NULL, false, 0, 0 }
+		{ NULL, false, 0, 0 },
 	};
 	/* clang-format on */
 	int i;
@@ -804,7 +804,7 @@ START_TEST(reliability_prop_parser)
 		{ "", false, 0 },
 		{ "0", false, 0 },
 		{ "1", false, 0 },
-		{ NULL, false, 0, }
+		{ NULL, false, 0, },
 	};
 	/* clang-format on */
 	enum switch_reliability r;
@@ -849,7 +849,7 @@ START_TEST(calibration_prop_parser)
 		{ "6.00012 3.244 4.238 5.2421 6.0134 8.860", true,
 			{ 6.00012, 3.244, 4.238, 5.2421, 6.0134, 8.860 }},
 		{ "0xff 2 3 4 5 6", false, DEFAULT_VALUES },
-		{ NULL, false, DEFAULT_VALUES }
+		{ NULL, false, DEFAULT_VALUES },
 	};
 	/* clang-format on */
 	bool success;
@@ -900,7 +900,7 @@ START_TEST(range_prop_parser)
 		{ "", false, 0, 0 },
 		{ "abcd", false, 0, 0 },
 		{ "10:30:10", false, 0, 0 },
-		{ NULL, false, 0, 0 }
+		{ NULL, false, 0, 0 },
 	};
 	/* clang-format on */
 	int i;
@@ -938,7 +938,7 @@ START_TEST(boolean_prop_parser)
 		{ "-1", false, false },
 		{ "2", false, false },
 		{ "abcd", false, false },
-		{ NULL, false, false }
+		{ NULL, false, false },
 	};
 	/* clang-format on */
 	int i;
@@ -1235,7 +1235,7 @@ START_TEST(safe_atoi_test)
 		{ "0xaf", false, 0 },
 		{ "0x0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
 	/* clang-format on */
 	int v;
@@ -1270,7 +1270,7 @@ START_TEST(safe_atoi_base_16_test)
 		{ "0xak", false, 0 },
 		{ "0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
 	/* clang-format on */
 
@@ -1309,7 +1309,7 @@ START_TEST(safe_atoi_base_8_test)
 		{ "0xak", false, 0 },
 		{ "0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
 	/* clang-format on */
 
@@ -1352,7 +1352,7 @@ START_TEST(safe_atou_test)
 		{ "0xaf", false, 0 },
 		{ "0x0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
 	/* clang-format on */
 	unsigned int v;
@@ -1387,7 +1387,7 @@ START_TEST(safe_atou_base_16_test)
 		{ "0xak", false, 0 },
 		{ "0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
 	/* clang-format on */
 
@@ -1426,7 +1426,7 @@ START_TEST(safe_atou_base_8_test)
 		{ "0xak", false, 0 },
 		{ "0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
 	/* clang-format on */
 
@@ -1470,7 +1470,7 @@ START_TEST(safe_atou64_test)
 		{ "0xaf", false, 0 },
 		{ "0x0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
 	/* clang-format on */
 	uint64_t v;
@@ -1519,7 +1519,7 @@ START_TEST(safe_atod_test)
 		{ "abd", false, 0 },
 		{ "xabd", false, 0 },
 		{ "0x0x", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
 	/* clang-format on */
 	double v;
@@ -1563,7 +1563,7 @@ START_TEST(strsplit_test)
 		{ " ", " ", { NULL }, 0 },
 		{ "     ", " ", { NULL }, 0 },
 		{ "oneoneone", "one", { NULL} , 0 },
-		{ NULL, NULL, { NULL }, 0}
+		{ NULL, NULL, { NULL }, 0},
 	};
 	/* clang-format on */
 	struct strsplit_test *t = tests;
@@ -1836,7 +1836,7 @@ START_TEST(double_array_from_string_test)
 		{ "    ", " ", { 0 }, 0 },
 		{ "", " ", { 0 }, 0 },
 		{ "oneoneone", "one", { 0 }, 0 },
-		{ NULL, NULL, { 0 }, 0 }
+		{ NULL, NULL, { 0 }, 0 },
 	};
 	/* clang-format on */
 	struct double_array_from_string_test *t = tests;
@@ -1923,7 +1923,7 @@ START_TEST(kvsplit_double_test)
 		{ "a:b", "x", ":", -1, {}},
 		{ "", " ", "x", -1, {}},
 		{ "1.2.3.4.5", ".", "", -1, {}},
-		{ NULL }
+		{ NULL },
 	};
 	/* clang-format on */
 	struct kvsplit_dbl_test *t = tests;
@@ -1968,7 +1968,7 @@ START_TEST(strjoin_test)
 		{ { "a", "b", "c", NULL }, "", "abc" },
 		{ { "", "b", "c", NULL }, "x", "xbxc" },
 		{ { "", "", "", NULL }, "", "" },
-		{ { NULL }, NULL, NULL }
+		{ { NULL }, NULL, NULL },
 	};
 	/* clang-format on */
 	struct strjoin_test *t = tests;
@@ -2014,7 +2014,7 @@ START_TEST(strstrip_test)
 		{ " foo\n",		"foo",		" \n" },
 		{ "",			"",		"abc" },
 		{ "",			"",		"" },
-		{ NULL , NULL, NULL }
+		{ NULL , NULL, NULL },
 	};
 	/* clang-format on */
 	struct strstrip_test *t = tests;

@@ -83,7 +83,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 1215, 0, 0, 0 },
 	{ ABS_Y, 0, 588, 0, 0, 0 },
 	{ ABS_PRESSURE, 0, 300, 0, 0, 0 },
-	{ .value = -1 }
+	{ .value = -1 },
 };
 /* clang-format on */
 

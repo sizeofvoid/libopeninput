@@ -49,7 +49,7 @@ handle_absfuzz(struct udev_device *device)
 	unsigned int axes[] = {ABS_X,
 			       ABS_Y,
 			       ABS_MT_POSITION_X,
-			       ABS_MT_POSITION_Y};
+			       ABS_MT_POSITION_Y,};
 
 	devnode = udev_device_get_devnode(device);
 	if (!devnode)
@@ -90,7 +90,7 @@ handle_evdev_abs(struct udev_device *device)
 	unsigned int axes[] = {ABS_X,
 			       ABS_Y,
 			       ABS_MT_POSITION_X,
-			       ABS_MT_POSITION_Y};
+			       ABS_MT_POSITION_Y,};
 
 	ARRAY_FOR_EACH(axes, code) {
 		const char *prop;
