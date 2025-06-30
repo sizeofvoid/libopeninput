@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x000,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, KEY_HELP,
 	EV_KEY, KEY_SETUP,
@@ -46,6 +47,7 @@ static int events[] = {
 	EV_SW, SW_DOCK,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_HP_WMI_HOTKEYS,
 	.features = LITEST_SWITCH,

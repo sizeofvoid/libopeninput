@@ -48,6 +48,7 @@ static struct litest_device_interface interface = {
 	.touch_move_events = move,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 1500, 0, 0, 0 },
 	{ ABS_Y, 0, 2500, 0, 0, 0 },
@@ -57,6 +58,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x11,
@@ -64,11 +66,13 @@ static struct input_id input_id = {
 	.product = 0x33,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOUCH,
 	INPUT_PROP_MAX, INPUT_PROP_DIRECT,
 	-1, -1
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_CALIBRATED_TOUCHSCREEN,
 	.features = LITEST_TOUCH|LITEST_PRECALIBRATED,

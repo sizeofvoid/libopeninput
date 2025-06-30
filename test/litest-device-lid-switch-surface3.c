@@ -33,10 +33,12 @@ static struct input_id input_id = {
 	.product = 0x5,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_SW, SW_LID,
 	-1, -1,
 };
+/* clang-format on */
 
 static const char quirk_file[] =
 "[litest Surface Lid]\n"

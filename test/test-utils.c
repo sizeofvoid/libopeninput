@@ -144,6 +144,7 @@ START_TEST(find_files_test)
 	litest_assert_neg_errno_success(mkdir_p(d2));
 	litest_assert_neg_errno_success(mkdir_p(d3));
 
+	/* clang-format off */
 	struct f {
 		const char *name;
 		const char *dir1;
@@ -163,6 +164,7 @@ START_TEST(find_files_test)
 		{ "70-rst.fix", d1, NULL, d3 },
 		{ NULL },
 	};
+	/* clang-format on */
 	for (struct f *f = files; f->name; f++) {
 		if (f->dir1) {
 			_autofree_ char *path = strdup_printf("%s/%s", f->dir1, f->name);
@@ -639,6 +641,7 @@ struct parser_test {
 
 START_TEST(dpi_parser)
 {
+	/* clang-format off */
 	struct parser_test tests[] = {
 		{ "450 *1800 3200", 1800 },
 		{ "*450 1800 3200", 450 },
@@ -664,6 +667,7 @@ START_TEST(dpi_parser)
 		{ "* ", 0 },
 		{ NULL, 0 }
 	};
+	/* clang-format on */
 	int i, dpi;
 
 	for (i = 0; tests[i].tag != NULL; i++) {
@@ -678,6 +682,7 @@ END_TEST
 
 START_TEST(wheel_click_parser)
 {
+	/* clang-format off */
 	struct parser_test tests[] = {
 		{ "1", 1 },
 		{ "10", 10 },
@@ -693,6 +698,7 @@ START_TEST(wheel_click_parser)
 		{ "361", 0 },
 		{ NULL, 0 }
 	};
+	/* clang-format on */
 
 	int i, angle;
 
@@ -705,6 +711,7 @@ END_TEST
 
 START_TEST(wheel_click_count_parser)
 {
+	/* clang-format off */
 	struct parser_test tests[] = {
 		{ "1", 1 },
 		{ "10", 10 },
@@ -720,6 +727,7 @@ START_TEST(wheel_click_count_parser)
 		{ "361", 0 },
 		{ NULL, 0 }
 	};
+	/* clang-format on */
 
 	int i, angle;
 
@@ -735,6 +743,7 @@ END_TEST
 
 START_TEST(dimension_prop_parser)
 {
+	/* clang-format off */
 	struct parser_test_dimension {
 		char *tag;
 		bool success;
@@ -758,6 +767,7 @@ START_TEST(dimension_prop_parser)
 		{ "x10", false, 0, 0 },
 		{ NULL, false, 0, 0 }
 	};
+	/* clang-format on */
 	int i;
 	size_t x, y;
 	bool success;
@@ -782,6 +792,7 @@ END_TEST
 
 START_TEST(reliability_prop_parser)
 {
+	/* clang-format off */
 	struct parser_test_reliability {
 		char *tag;
 		bool success;
@@ -795,6 +806,7 @@ START_TEST(reliability_prop_parser)
 		{ "1", false, 0 },
 		{ NULL, false, 0, }
 	};
+	/* clang-format on */
 	enum switch_reliability r;
 	bool success;
 	int i;
@@ -822,6 +834,7 @@ START_TEST(calibration_prop_parser)
 {
 #define DEFAULT_VALUES { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 }
 	const float untouched[6] = DEFAULT_VALUES;
+	/* clang-format off */
 	struct parser_test_calibration {
 		char *prop;
 		bool success;
@@ -838,6 +851,7 @@ START_TEST(calibration_prop_parser)
 		{ "0xff 2 3 4 5 6", false, DEFAULT_VALUES },
 		{ NULL, false, DEFAULT_VALUES }
 	};
+	/* clang-format on */
 	bool success;
 	float calibration[6];
 	int rc;
@@ -871,6 +885,7 @@ END_TEST
 
 START_TEST(range_prop_parser)
 {
+	/* clang-format off */
 	struct parser_test_range {
 		char *tag;
 		bool success;
@@ -887,6 +902,7 @@ START_TEST(range_prop_parser)
 		{ "10:30:10", false, 0, 0 },
 		{ NULL, false, 0, 0 }
 	};
+	/* clang-format on */
 	int i;
 	int hi, lo;
 	bool success;
@@ -911,6 +927,7 @@ END_TEST
 
 START_TEST(boolean_prop_parser)
 {
+	/* clang-format off */
 	struct parser_test_range {
 		char *tag;
 		bool success;
@@ -923,6 +940,7 @@ START_TEST(boolean_prop_parser)
 		{ "abcd", false, false },
 		{ NULL, false, false }
 	};
+	/* clang-format on */
 	int i;
 	bool success, b;
 
@@ -943,6 +961,7 @@ END_TEST
 
 START_TEST(evcode_prop_parser)
 {
+	/* clang-format off */
 	struct parser_test_tuple {
 		const char *prop;
 		bool success;
@@ -993,6 +1012,7 @@ START_TEST(evcode_prop_parser)
 		{ .prop = "none", .success = false },
 		{ .prop = NULL },
 	};
+	/* clang-format on */
 	struct parser_test_tuple *t;
 
 	for (int i = 0; tests[i].prop; i++) {
@@ -1021,6 +1041,7 @@ END_TEST
 
 START_TEST(input_prop_parser)
 {
+	/* clang-format off */
 	struct parser_test_val {
 		const char *prop;
 		bool success;
@@ -1044,6 +1065,7 @@ START_TEST(input_prop_parser)
 		{ .prop = "none", .success = false },
 		{ .prop = NULL },
 	};
+	/* clang-format on */
 	struct parser_test_val *t;
 
 	for (int i = 0; tests[i].prop; i++) {
@@ -1068,6 +1090,7 @@ END_TEST
 
 START_TEST(evdev_abs_parser)
 {
+	/* clang-format off */
 	struct test {
 		uint32_t which;
 		const char *prop;
@@ -1120,6 +1143,7 @@ START_TEST(evdev_abs_parser)
 		{ .which = 0, .prop = ":asb::::" },
 		{ .which = 0, .prop = "foo" },
 	};
+	/* clang-format on */
 
 	ARRAY_FOR_EACH(tests, t) {
 		struct input_absinfo abs;
@@ -1155,6 +1179,7 @@ END_TEST
 
 START_TEST(human_time)
 {
+	/* clang-format off */
 	struct ht_tests {
 		uint64_t interval;
 		unsigned int value;
@@ -1174,6 +1199,7 @@ START_TEST(human_time)
 		{ 1000 * 24 * 60 * s2us(60), 1000, "d" },
 		{ 0, 0, NULL },
 	};
+	/* clang-format on */
 	for (int i = 0; tests[i].unit != NULL; i++) {
 		struct human_time ht;
 
@@ -1192,6 +1218,7 @@ struct atoi_test {
 
 START_TEST(safe_atoi_test)
 {
+	/* clang-format off */
 	struct atoi_test tests[] = {
 		{ "10", true, 10 },
 		{ "20", true, 20 },
@@ -1210,6 +1237,7 @@ START_TEST(safe_atoi_test)
 		{ "x10", false, 0 },
 		{ NULL, false, 0 }
 	};
+	/* clang-format on */
 	int v;
 	bool success;
 
@@ -1227,6 +1255,7 @@ END_TEST
 
 START_TEST(safe_atoi_base_16_test)
 {
+	/* clang-format off */
 	struct atoi_test tests[] = {
 		{ "10", true, 0x10 },
 		{ "20", true, 0x20 },
@@ -1243,6 +1272,7 @@ START_TEST(safe_atoi_base_16_test)
 		{ "x10", false, 0 },
 		{ NULL, false, 0 }
 	};
+	/* clang-format on */
 
 	int v;
 	bool success;
@@ -1261,6 +1291,7 @@ END_TEST
 
 START_TEST(safe_atoi_base_8_test)
 {
+	/* clang-format off */
 	struct atoi_test tests[] = {
 		{ "7", true, 07 },
 		{ "10", true, 010 },
@@ -1280,6 +1311,7 @@ START_TEST(safe_atoi_base_8_test)
 		{ "x10", false, 0 },
 		{ NULL, false, 0 }
 	};
+	/* clang-format on */
 
 	int v;
 	bool success;
@@ -1304,6 +1336,7 @@ struct atou_test {
 
 START_TEST(safe_atou_test)
 {
+	/* clang-format off */
 	struct atou_test tests[] = {
 		{ "10", true, 10 },
 		{ "20", true, 20 },
@@ -1321,6 +1354,7 @@ START_TEST(safe_atou_test)
 		{ "x10", false, 0 },
 		{ NULL, false, 0 }
 	};
+	/* clang-format on */
 	unsigned int v;
 	bool success;
 
@@ -1338,6 +1372,7 @@ END_TEST
 
 START_TEST(safe_atou_base_16_test)
 {
+	/* clang-format off */
 	struct atou_test tests[] = {
 		{ "10", true, 0x10 },
 		{ "20", true, 0x20 },
@@ -1354,6 +1389,7 @@ START_TEST(safe_atou_base_16_test)
 		{ "x10", false, 0 },
 		{ NULL, false, 0 }
 	};
+	/* clang-format on */
 
 	unsigned int v;
 	bool success;
@@ -1372,6 +1408,7 @@ END_TEST
 
 START_TEST(safe_atou_base_8_test)
 {
+	/* clang-format off */
 	struct atou_test tests[] = {
 		{ "7", true, 07 },
 		{ "10", true, 010 },
@@ -1391,6 +1428,7 @@ START_TEST(safe_atou_base_8_test)
 		{ "x10", false, 0 },
 		{ NULL, false, 0 }
 	};
+	/* clang-format on */
 
 	unsigned int v;
 	bool success;
@@ -1415,6 +1453,7 @@ struct atou64_test {
 
 START_TEST(safe_atou64_test)
 {
+	/* clang-format off */
 	struct atou64_test tests[] = {
 		{ "10", true, 10 },
 		{ "20", true, 20 },
@@ -1433,6 +1472,7 @@ START_TEST(safe_atou64_test)
 		{ "x10", false, 0 },
 		{ NULL, false, 0 }
 	};
+	/* clang-format on */
 	uint64_t v;
 	bool success;
 
@@ -1450,6 +1490,7 @@ END_TEST
 
 START_TEST(safe_atod_test)
 {
+	/* clang-format off */
 	struct atod_test {
 		char *str;
 		bool success;
@@ -1480,6 +1521,7 @@ START_TEST(safe_atod_test)
 		{ "0x0x", false, 0 },
 		{ NULL, false, 0 }
 	};
+	/* clang-format on */
 	double v;
 	bool success;
 
@@ -1497,6 +1539,7 @@ END_TEST
 
 START_TEST(strsplit_test)
 {
+	/* clang-format off */
 	struct strsplit_test {
 		const char *string;
 		const char *delim;
@@ -1522,6 +1565,7 @@ START_TEST(strsplit_test)
 		{ "oneoneone", "one", { NULL} , 0 },
 		{ NULL, NULL, { NULL }, 0}
 	};
+	/* clang-format on */
 	struct strsplit_test *t = tests;
 
 	while (t->string) {
@@ -1565,6 +1609,7 @@ static int strv_test_set_bitmask(const char *str, size_t index, void *data)
 
 START_TEST(strv_for_each_test)
 {
+	/* clang-format off */
 	struct test_data {
 		const char *terminator;
 		int index;
@@ -1579,6 +1624,7 @@ START_TEST(strv_for_each_test)
 		{ NULL, 0, 0x1f },
 		{ NULL, 0 },
 	};
+	/* clang-format on */
 	const char *array[] = { "one", "two", "three", "four", "five", NULL };
 	struct test_data *t = test_data;
 
@@ -1767,6 +1813,7 @@ END_TEST
 
 START_TEST(double_array_from_string_test)
 {
+	/* clang-format off */
 	struct double_array_from_string_test {
 		const char *string;
 		const char *delim;
@@ -1791,6 +1838,7 @@ START_TEST(double_array_from_string_test)
 		{ "oneoneone", "one", { 0 }, 0 },
 		{ NULL, NULL, { 0 }, 0 }
 	};
+	/* clang-format on */
 	struct double_array_from_string_test *t = tests;
 
 	while (t->string) {
@@ -1813,6 +1861,7 @@ END_TEST
 
 START_TEST(strargv_test)
 {
+	/* clang-format off */
 	struct argv_test {
 		int argc;
 		char *argv[10];
@@ -1827,6 +1876,7 @@ START_TEST(strargv_test)
 		{ 1, {NULL, NULL}, 0 },
 		{ 3, {"hello", NULL, "World"}, 0 },
 	};
+	/* clang-format on */
 
 	ARRAY_FOR_EACH(tests, t) {
 		char **strv = strv_from_argv(t->argc, t->argv);
@@ -1850,6 +1900,7 @@ END_TEST
 
 START_TEST(kvsplit_double_test)
 {
+	/* clang-format off */
 	struct kvsplit_dbl_test {
 		const char *string;
 		const char *psep;
@@ -1874,6 +1925,7 @@ START_TEST(kvsplit_double_test)
 		{ "1.2.3.4.5", ".", "", -1, {}},
 		{ NULL }
 	};
+	/* clang-format on */
 	struct kvsplit_dbl_test *t = tests;
 
 	while (t->string) {
@@ -1899,6 +1951,7 @@ END_TEST
 
 START_TEST(strjoin_test)
 {
+	/* clang-format off */
 	struct strjoin_test {
 		char *strv[10];
 		const char *joiner;
@@ -1917,6 +1970,7 @@ START_TEST(strjoin_test)
 		{ { "", "", "", NULL }, "", "" },
 		{ { NULL }, NULL, NULL }
 	};
+	/* clang-format on */
 	struct strjoin_test *t = tests;
 	struct strjoin_test nulltest = { {NULL}, "x", NULL };
 
@@ -1937,6 +1991,7 @@ END_TEST
 
 START_TEST(strstrip_test)
 {
+	/* clang-format off */
 	struct strstrip_test {
 		const char *string;
 		const char *expected;
@@ -1961,6 +2016,7 @@ START_TEST(strstrip_test)
 		{ "",			"",		"" },
 		{ NULL , NULL, NULL }
 	};
+	/* clang-format on */
 	struct strstrip_test *t = tests;
 
 	while (t->string) {
@@ -1975,6 +2031,7 @@ END_TEST
 
 START_TEST(strendswith_test)
 {
+	/* clang-format off */
 	struct strendswith_test {
 		const char *string;
 		const char *suffix;
@@ -1989,6 +2046,7 @@ START_TEST(strendswith_test)
 		{ "", "foo", false },
 		{ NULL, NULL, false },
 	};
+	/* clang-format on */
 
 	for (struct strendswith_test *t = tests; t->string; t++) {
 		litest_assert_int_eq(strendswith(t->string, t->suffix),
@@ -1999,6 +2057,7 @@ END_TEST
 
 START_TEST(strstartswith_test)
 {
+	/* clang-format off */
 	struct strstartswith_test {
 		const char *string;
 		const char *suffix;
@@ -2013,6 +2072,7 @@ START_TEST(strstartswith_test)
 		{ "foo", "", false },
 		{ NULL, NULL, false },
 	};
+	/* clang-format on */
 
 	for (struct strstartswith_test *t = tests; t->string; t++) {
 		litest_assert_int_eq(strstartswith(t->string, t->suffix),
@@ -2023,6 +2083,7 @@ END_TEST
 
 START_TEST(strsanitize_test)
 {
+	/* clang-format off */
 	struct strsanitize_test {
 		const char *string;
 		const char *expected;
@@ -2037,6 +2098,7 @@ START_TEST(strsanitize_test)
 		{ "%s%s", "%%s%%s" },
 		{ NULL, NULL },
 	};
+	/* clang-format on */
 
 	for (struct strsanitize_test *t = tests; t->string; t++) {
 		char *sanitized = str_sanitize(t->string);

@@ -106,12 +106,14 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 18176, 0, 0, 62 },
 	{ ABS_Y, 0, 10240, 0, 0, 62 },
 	{ ABS_PRESSURE, 0, 4096, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x18,
@@ -125,6 +127,7 @@ static struct input_id input_id = {
  * The one in the issue isn't the exact same model, but only the pid and x/y
  * axis max differs differs.
  */
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOOL_PEN,
 	EV_KEY, BTN_TOOL_RUBBER,
@@ -133,6 +136,7 @@ static int events[] = {
 	EV_MSC, MSC_SCAN,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_ELAN_TABLET,
 	.features = LITEST_TABLET,

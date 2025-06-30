@@ -180,6 +180,7 @@ static struct litest_device_interface interface = {
 	.touch_up = protocolA_up,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 32767, 0, 0, 0 },
 	{ ABS_Y, 0, 32767, 0, 0, 0 },
@@ -188,6 +189,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_PRESSURE, 0, 1, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x18,
@@ -195,11 +197,13 @@ static struct input_id input_id = {
 	.product = 0x20,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOUCH,
 	INPUT_PROP_MAX, INPUT_PROP_DIRECT,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_PROTOCOL_A_SCREEN,
 	.features = LITEST_PROTOCOL_A|LITEST_TOUCH,

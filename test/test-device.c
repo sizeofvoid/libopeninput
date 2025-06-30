@@ -847,12 +847,14 @@ START_TEST(device_group_leak)
 	struct libevdev_uinput *uinput;
 	struct libinput_device_group *group;
 
+	/* clang-format off */
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_KEY, BTN_LEFT,
 					     EV_KEY, BTN_RIGHT,
 					     EV_REL, REL_X,
 					     EV_REL, REL_Y,
 					     -1);
+	/* clang-format on */
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	device = libinput_path_add_device(li,
@@ -876,11 +878,13 @@ START_TEST(abs_device_missing_one_abs)
 
 	int axis = litest_test_param_get_i32(test_env->params, "axis");
 
+	/* clang-format off */
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_KEY, BTN_LEFT,
 					     EV_KEY, BTN_RIGHT,
 					     EV_ABS, axis,
 					     -1);
+	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	litest_disable_log_handler(li);
 	device = libinput_path_add_device(li,
@@ -898,6 +902,7 @@ START_TEST(abs_mt_device_missing_one_mt_abs)
 	struct libinput_device *device;
 	int axis = litest_test_param_get_i32(test_env->params, "axis");
 
+	/* clang-format off */
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_KEY, BTN_LEFT,
 					     EV_KEY, BTN_RIGHT,
@@ -906,6 +911,7 @@ START_TEST(abs_mt_device_missing_one_mt_abs)
 					     EV_ABS, ABS_MT_SLOT,
 					     EV_ABS, axis,
 					     -1);
+	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	litest_disable_log_handler(li);
 	device = libinput_path_add_device(li,
@@ -923,11 +929,13 @@ assert_device_ignored(struct libinput *li, struct input_absinfo *absinfo)
 	struct libevdev_uinput *uinput;
 	struct libinput_device *device;
 
+	/* clang-format off */
 	uinput = litest_create_uinput_abs_device("test device", NULL,
 						 absinfo,
 						 EV_KEY, BTN_LEFT,
 						 EV_KEY, BTN_RIGHT,
 						 -1);
+	/* clang-format on */
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
 	litest_assert_ptr_null(device);
@@ -1052,11 +1060,13 @@ START_TEST(ignore_joystick)
 	litest_disable_log_handler(li);
 	litest_drain_events(li);
 
+	/* clang-format off */
 	uinput = litest_create_uinput_abs_device("joystick test device", NULL,
 						 absinfo,
 						 EV_KEY, BTN_TRIGGER,
 						 EV_KEY, BTN_A,
 						 -1);
+	/* clang-format on */
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
 	litest_assert_ptr_null(device);
@@ -1123,6 +1133,7 @@ START_TEST(device_nonpointer_rel)
 	struct libinput_device *device;
 	int i;
 
+	/* clang-format off */
 	uinput = litest_create_uinput_device("test device",
 					     NULL,
 					     EV_KEY, KEY_A,
@@ -1130,6 +1141,7 @@ START_TEST(device_nonpointer_rel)
 					     EV_REL, REL_X,
 					     EV_REL, REL_Y,
 					     -1);
+	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
@@ -1163,6 +1175,7 @@ START_TEST(device_touchpad_rel)
 	};
 	int i;
 
+	/* clang-format off */
 	uinput = litest_create_uinput_abs_device("test device",
 						 NULL, abs,
 						 EV_KEY, BTN_TOOL_FINGER,
@@ -1170,6 +1183,7 @@ START_TEST(device_touchpad_rel)
 						 EV_REL, REL_X,
 						 EV_REL, REL_Y,
 						 -1);
+	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
@@ -1201,12 +1215,14 @@ START_TEST(device_touch_rel)
 	};
 	int i;
 
+	/* clang-format off */
 	uinput = litest_create_uinput_abs_device("test device",
 						 NULL, abs,
 						 EV_KEY, BTN_TOUCH,
 						 EV_REL, REL_X,
 						 EV_REL, REL_Y,
 						 -1);
+	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
@@ -1236,6 +1252,7 @@ START_TEST(device_abs_rel)
 	};
 	int i;
 
+	/* clang-format off */
 	uinput = litest_create_uinput_abs_device("test device",
 						 NULL, abs,
 						 EV_KEY, BTN_TOUCH,
@@ -1243,6 +1260,7 @@ START_TEST(device_abs_rel)
 						 EV_REL, REL_X,
 						 EV_REL, REL_Y,
 						 -1);
+	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));
@@ -1518,9 +1536,11 @@ START_TEST(device_capability_nocaps_ignored)
 	/* SW_PEN_INSERTED isn't handled in libinput so the device is
 	 * processed but ends up without seat capabilities and is ignored.
 	 */
+	/* clang-format off */
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_SW, SW_PEN_INSERTED,
 					     -1);
+	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	device = libinput_path_add_device(li,
 					  libevdev_uinput_get_devnode(uinput));

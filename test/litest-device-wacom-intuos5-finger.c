@@ -74,6 +74,7 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 4096, 0, 0, 18 },
 	{ ABS_Y, 0, 4096, 0, 0, 29 },
@@ -85,6 +86,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -92,6 +94,7 @@ static struct input_id input_id = {
 	.product = 0x27,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOOL_FINGER,
 	EV_KEY, BTN_TOOL_QUINTTAP,
@@ -102,6 +105,7 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_POINTER,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_WACOM_INTUOS5_FINGER,
 	.features = LITEST_TOUCHPAD,

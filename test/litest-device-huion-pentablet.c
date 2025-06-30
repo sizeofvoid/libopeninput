@@ -73,12 +73,14 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 40000, 0, 0, 157 },
 	{ ABS_Y, 0, 25000, 0, 0, 157 },
 	{ ABS_PRESSURE, 0, 2047, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -87,6 +89,7 @@ static struct input_id input_id = {
 	.product = 0x6e,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOOL_PEN,
 	EV_KEY, BTN_TOUCH,
@@ -95,6 +98,7 @@ static int events[] = {
 	EV_MSC, MSC_SCAN,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_HUION_TABLET,
 	.features = LITEST_TABLET | LITEST_HOVER | LITEST_FORCED_PROXOUT,

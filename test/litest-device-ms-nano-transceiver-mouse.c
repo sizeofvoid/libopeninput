@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x0800,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -45,6 +46,7 @@ static int events[] = {
 	EV_REL, REL_HWHEEL,
 	-1 , -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_MS_NANO_TRANSCEIVER_MOUSE,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL | LITEST_NO_DEBOUNCE,

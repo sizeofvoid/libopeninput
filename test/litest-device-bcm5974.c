@@ -80,6 +80,7 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, -4824, 4824, 0, 0, 0 },
 	{ ABS_Y, -172, 4290, 0, 0, 0 },
@@ -96,6 +97,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -103,6 +105,7 @@ static struct input_id input_id = {
 	.product = 0x249,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_TOOL_FINGER,
@@ -114,6 +117,7 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_BUTTONPAD,
 	-1, -1
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_BCM5974,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD |

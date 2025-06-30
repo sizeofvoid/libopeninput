@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x5054,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, KEY_MUTE,
 	EV_KEY, KEY_VOLUMEUP,
@@ -69,6 +70,7 @@ static int events[] = {
 
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_THINKPAD_EXTRABUTTONS,
 	.features = LITEST_KEYS | LITEST_SWITCH,

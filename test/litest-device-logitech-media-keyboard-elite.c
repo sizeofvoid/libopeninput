@@ -40,6 +40,7 @@ static struct input_id input_id = {
 	.product = 0x30f,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, KEY_MUTE,
 	EV_KEY, KEY_VOLUMEDOWN,
@@ -79,6 +80,7 @@ static int events[] = {
 	EV_MSC, MSC_SCAN,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_KEYBOARD_LOGITECH_MEDIA_KEYBOARD_ELITE,
 	.features = LITEST_KEYS,

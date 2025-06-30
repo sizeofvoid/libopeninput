@@ -66,11 +66,13 @@ static struct litest_device_interface interface = {
 	.touch_up = touch_up,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 32767, 0, 0, 0 },
 	{ ABS_Y, 0, 32767, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x03,
@@ -78,6 +80,7 @@ static struct input_id input_id = {
 	.product = 0x03,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -99,6 +102,7 @@ static int events[] = {
 	EV_REL, REL_HWHEEL,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_VMWARE_VIRTMOUSE,
 	.features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE | LITEST_NO_DEBOUNCE,

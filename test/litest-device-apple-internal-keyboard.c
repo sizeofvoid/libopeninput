@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x273,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, KEY_ESC,
 	EV_KEY, KEY_1,
@@ -216,6 +217,7 @@ static int events[] = {
 	EV_LED, LED_KANA,
 	-1, -1
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_APPLE_KEYBOARD,
 	.features = LITEST_KEYS,

@@ -53,6 +53,7 @@ static struct litest_device_interface interface = {
 	.touch_move_events = move,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 2937, 0, 0, 10 },
 	{ ABS_Y, 0, 1652, 0, 0, 10 },
@@ -67,6 +68,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MISC, 0, 0, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -75,11 +77,13 @@ static struct input_id input_id = {
 	.version = 0x110,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOUCH,
 	INPUT_PROP_MAX, INPUT_PROP_DIRECT,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_WACOM_CINTIQ_13HDT_FINGER,
 	.features = LITEST_TOUCH,

@@ -43,7 +43,7 @@ main(int argc, char **argv)
 		int c;
 		static struct option opts[] = {
 			{ "help",	no_argument,	0, 'h' },
-			{ 0, 0, 0, 0}
+			{ 0, 0, 0, 0},
 		};
 
 		c = getopt_long(argc, argv, "+h", opts, &option_index);

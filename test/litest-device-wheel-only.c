@@ -32,10 +32,12 @@ static struct input_id input_id = {
 	.product = 0x2,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_REL, REL_WHEEL,
 	-1 , -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_WHEEL_ONLY,
 	.features = LITEST_WHEEL,

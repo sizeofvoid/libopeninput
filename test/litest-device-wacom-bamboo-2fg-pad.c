@@ -39,11 +39,13 @@ static struct litest_device_interface interface = {
 	.touch_move_events = move,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 1, 0, 0, 0 },
 	{ ABS_Y, 0, 1, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -52,6 +54,7 @@ static struct input_id input_id = {
 	.version = 0x100,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -60,6 +63,7 @@ static int events[] = {
 	EV_KEY, BTN_STYLUS,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_WACOM_BAMBOO_2FG_PAD,
 	.features = LITEST_TABLET_PAD,

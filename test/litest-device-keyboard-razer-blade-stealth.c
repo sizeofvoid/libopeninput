@@ -36,6 +36,7 @@ static struct input_id input_id = {
 	.product = 0x220,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_REL, REL_HWHEEL,
 	EV_KEY, BTN_0,
@@ -297,7 +298,9 @@ static int events[] = {
 	EV_MSC, MSC_SCAN,
 	-1 , -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_VOLUME, 0, 572, 0, 0, 0 },
 	{ ABS_MISC, 0, 255, 0, 0, 0 },
@@ -329,6 +332,7 @@ static struct input_absinfo absinfo[] = {
 	{ 0x3f, 0, 255, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_KEYBOARD_BLADE_STEALTH,
 	.features = LITEST_KEYS | LITEST_WHEEL,

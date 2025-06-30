@@ -62,6 +62,7 @@ static struct litest_device_interface interface = {
 	.pad_ring_end_events = ring_end,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 1, 0, 0, 0 },
 	{ ABS_Y, 0, 1, 0, 0, 0 },
@@ -69,6 +70,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MISC, 0, 0, 0, 0, 10 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -76,6 +78,7 @@ static struct input_id input_id = {
 	.product = 0x27,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_0,
 	EV_KEY, BTN_1,
@@ -89,6 +92,7 @@ static int events[] = {
 	EV_KEY, BTN_STYLUS,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_WACOM_INTUOS5_PAD,
 	.features = LITEST_TABLET_PAD | LITEST_RING,

@@ -30,11 +30,13 @@ static struct input_id input_id = {
 	.product = 0x2,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_REL, REL_WHEEL,
 	EV_REL, REL_WHEEL_HI_RES,
 	-1, -1,
 };
+/* clang-format on */
 
 static const char quirk_file[] =
 "[litest Virtual Mouse is virtual]\n"

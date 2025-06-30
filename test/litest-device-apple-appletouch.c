@@ -67,6 +67,7 @@ static struct input_id input_id = {
 	.product = 0x21a,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_TOOL_FINGER,
@@ -75,13 +76,16 @@ static int events[] = {
 	EV_KEY, BTN_TOOL_TRIPLETAP,
 	-1, -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 1215, 0, 0, 0 },
 	{ ABS_Y, 0, 588, 0, 0, 0 },
 	{ ABS_PRESSURE, 0, 300, 0, 0, 0 },
 	{ .value = -1 }
 };
+/* clang-format on */
 
 static const char quirk_file[] =
 "[litest Apple Touchpad]\n"

@@ -78,6 +78,7 @@ static struct input_id input_id = {
 	.product = 0x7,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -89,7 +90,9 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_SEMI_MT,
 	-1, -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 1472, 5472, 0, 0, 60 },
 	{ ABS_Y, 1408, 4498, 0, 0, 85 },
@@ -101,6 +104,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ .value = -1 }
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_SYNAPTICS_HOVER_SEMI_MT,
 	.features = LITEST_TOUCHPAD | LITEST_SEMI_MT | LITEST_BUTTON,

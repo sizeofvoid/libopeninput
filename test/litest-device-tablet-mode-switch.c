@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x456,
 };
 
+/* clang-format off */
 static int events[] = {
 	/* buttons are needed - the unreliable quirk removes SW_TABLET_MODE
 	 * so we'd end up with a device with no seat caps and that won't get
@@ -41,6 +42,7 @@ static int events[] = {
 	EV_SW, SW_TABLET_MODE,
 	-1, -1,
 };
+/* clang-format on */
 
 static const char quirk_file[] =
 "[litest unreliable tablet mode switch]\n"

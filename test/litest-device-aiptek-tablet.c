@@ -76,6 +76,7 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 5999, 0, 0, 26 },
 	{ ABS_Y, 0, 4499, 0, 0, 15 },
@@ -85,6 +86,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_TILT_Y, -128, 127, 0, 0, 0 }, /* mute axis */
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -92,6 +94,7 @@ static struct input_id input_id = {
 	.product = 0x10,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, KEY_ESC,
 	EV_KEY, KEY_F1,
@@ -145,6 +148,7 @@ static int events[] = {
 	EV_MSC, MSC_SERIAL,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_AIPTEK,
 	.features = LITEST_TABLET | LITEST_HOVER | LITEST_FORCED_PROXOUT,

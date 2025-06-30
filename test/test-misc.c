@@ -96,6 +96,7 @@ START_TEST(event_conversion_device_notify)
 	struct libinput_event *event;
 	int device_added = 0, device_removed = 0;
 
+	/* clang-format off */
 	uinput = create_simple_test_device("litest test device",
 					   EV_REL, REL_X,
 					   EV_REL, REL_Y,
@@ -103,6 +104,7 @@ START_TEST(event_conversion_device_notify)
 					   EV_KEY, BTN_MIDDLE,
 					   EV_KEY, BTN_LEFT,
 					   -1, -1);
+	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	litest_restore_log_handler(li); /* use the default litest handler */
 	libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
@@ -604,6 +606,7 @@ START_TEST(fd_no_event_leak)
 	const char *path;
 	struct libinput_event *event;
 
+	/* clang-format off */
 	uinput = create_simple_test_device("litest test device",
 					   EV_REL, REL_X,
 					   EV_REL, REL_Y,
@@ -611,6 +614,7 @@ START_TEST(fd_no_event_leak)
 					   EV_KEY, BTN_MIDDLE,
 					   EV_KEY, BTN_LEFT,
 					   -1, -1);
+	/* clang-format on */
 	path = libevdev_uinput_get_devnode(uinput);
 
 	fd = open(path, O_RDWR | O_NONBLOCK | O_CLOEXEC);

@@ -481,10 +481,12 @@ START_TEST(parameter_permutations)
 		{ 3, "abc", false },
 		{ 0, NULL, false, false },
 	};
+	/* clang-format off */
 	struct litest_parameters *params = litest_parameters_new("first", 'i', 3, 1, 2, 3,
 								 "second", 's', 3, "a", "ab", "abc",
 								 "third", 'b',
 								 NULL);
+	/* clang-format on */
 
 	litest_parameters_permutations(params, permutation_func, permutations);
 

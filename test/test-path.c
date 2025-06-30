@@ -228,12 +228,14 @@ START_TEST(path_create_destroy)
 	counter.open_func_count = 0;
 	counter.close_func_count = 0;
 
+	/* clang-format off */
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_KEY, BTN_LEFT,
 					     EV_KEY, BTN_RIGHT,
 					     EV_REL, REL_X,
 					     EV_REL, REL_Y,
 					     -1);
+	/* clang-format on */
 
 	li = libinput_path_create_context(&counting_interface, &counter);
 	litest_assert_notnull(li);
@@ -546,12 +548,14 @@ START_TEST(path_suspend)
 	int rc;
 	void *userdata = &rc;
 
+	/* clang-format off */
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_KEY, BTN_LEFT,
 					     EV_KEY, BTN_RIGHT,
 					     EV_REL, REL_X,
 					     EV_REL, REL_Y,
 					     -1);
+	/* clang-format on */
 
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
@@ -576,12 +580,14 @@ START_TEST(path_double_suspend)
 	int rc;
 	void *userdata = &rc;
 
+	/* clang-format off */
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_KEY, BTN_LEFT,
 					     EV_KEY, BTN_RIGHT,
 					     EV_REL, REL_X,
 					     EV_REL, REL_Y,
 					     -1);
+	/* clang-format on */
 
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
@@ -607,12 +613,14 @@ START_TEST(path_double_resume)
 	int rc;
 	void *userdata = &rc;
 
+	/* clang-format off */
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_KEY, BTN_LEFT,
 					     EV_KEY, BTN_RIGHT,
 					     EV_REL, REL_X,
 					     EV_REL, REL_Y,
 					     -1);
+	/* clang-format on */
 
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
@@ -640,6 +648,7 @@ START_TEST(path_add_device_suspend_resume)
 	int nevents;
 	void *userdata = &rc;
 
+	/* clang-format off */
 	uinput1 = litest_create_uinput_device("test device", NULL,
 					      EV_KEY, BTN_LEFT,
 					      EV_KEY, BTN_RIGHT,
@@ -652,6 +661,7 @@ START_TEST(path_add_device_suspend_resume)
 					      EV_REL, REL_X,
 					      EV_REL, REL_Y,
 					      -1);
+	/* clang-format on */
 
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
@@ -712,6 +722,7 @@ START_TEST(path_add_device_suspend_resume_fail)
 	int nevents;
 	void *userdata = &rc;
 
+	/* clang-format off */
 	uinput1 = litest_create_uinput_device("test device", NULL,
 					      EV_KEY, BTN_LEFT,
 					      EV_KEY, BTN_RIGHT,
@@ -724,6 +735,7 @@ START_TEST(path_add_device_suspend_resume_fail)
 					      EV_REL, REL_X,
 					      EV_REL, REL_Y,
 					      -1);
+	/* clang-format on */
 
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
@@ -795,6 +807,7 @@ START_TEST(path_add_device_suspend_resume_remove_device)
 	int nevents;
 	void *userdata = &rc;
 
+	/* clang-format off */
 	uinput1 = litest_create_uinput_device("test device", NULL,
 					      EV_KEY, BTN_LEFT,
 					      EV_KEY, BTN_RIGHT,
@@ -807,6 +820,7 @@ START_TEST(path_add_device_suspend_resume_remove_device)
 					      EV_REL, REL_X,
 					      EV_REL, REL_Y,
 					      -1);
+	/* clang-format on */
 
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
@@ -872,12 +886,14 @@ START_TEST(path_device_gone)
 	struct libevdev_uinput *uinput;
 	struct libinput_event *event;
 
+	/* clang-format off */
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_KEY, BTN_LEFT,
 					     EV_KEY, BTN_RIGHT,
 					     EV_REL, REL_X,
 					     EV_REL, REL_Y,
 					     -1);
+	/* clang-format on */
 
 	li = libinput_path_create_context(&simple_interface, NULL);
 	litest_assert_notnull(li);
@@ -915,12 +931,14 @@ START_TEST(path_seat_recycle)
 	int found = 0;
 	void *user_data;
 
+	/* clang-format off */
 	uinput = litest_create_uinput_device("test device", NULL,
 					     EV_KEY, BTN_LEFT,
 					     EV_KEY, BTN_RIGHT,
 					     EV_REL, REL_X,
 					     EV_REL, REL_Y,
 					     -1);
+	/* clang-format on */
 
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);

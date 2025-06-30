@@ -86,6 +86,7 @@ static struct input_id input_id = {
 	.product = 0xce37,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_TOOL_FINGER,
@@ -98,7 +99,9 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_BUTTONPAD,
 	-1, -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 1224, 0, 0, 12 },
 	{ ABS_Y, 0, 756, 0, 0, 12 },
@@ -111,6 +114,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_TOOL_TYPE, 0, 2, 0, 0, 0 },
 	{ .value = -1 }
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_SYNAPTICS_PRESSUREPAD,
 	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,

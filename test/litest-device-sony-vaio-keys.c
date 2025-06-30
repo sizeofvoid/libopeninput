@@ -40,6 +40,7 @@ static struct input_id input_id = {
 	.product = 0x00,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, KEY_UP,
 	EV_KEY, KEY_DOWN,
@@ -85,6 +86,7 @@ static int events[] = {
 	EV_MSC, MSC_SCAN,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_SONY_VAIO_KEYS,
 	.features = LITEST_KEYS,

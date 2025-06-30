@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x10,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, KEY_ESC,
 	EV_KEY, KEY_1,
@@ -146,6 +147,7 @@ static int events[] = {
 	EV_LED, LED_KANA,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_YUBIKEY,
 	.features = LITEST_KEYS,

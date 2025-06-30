@@ -35,6 +35,7 @@ static struct input_id input_id = {
 	.product = 0x181a,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_REL, REL_X,
 	EV_REL, REL_Y,
@@ -306,11 +307,14 @@ static int events[] = {
 	EV_LED, LED_KANA,
 	-1 , -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_VOLUME, 0, 668, 0, 0, 0 },
 	{ .value = -1 }
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_MOUSE_GLADIUS,
 	.features = LITEST_RELATIVE | LITEST_WHEEL | LITEST_KEYS,

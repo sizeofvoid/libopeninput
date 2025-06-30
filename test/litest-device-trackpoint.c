@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0xa,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -42,6 +43,7 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_POINTING_STICK,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_TRACKPOINT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_POINTINGSTICK,

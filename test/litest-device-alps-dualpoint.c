@@ -79,6 +79,7 @@ static struct input_id input_id = {
 	.version = 0x310,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -92,7 +93,9 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_SEMI_MT,
 	-1, -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 2000, 0, 0, 25 },
 	{ ABS_Y, 0, 1400, 0, 0, 32 },
@@ -103,6 +106,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ .value = -1 }
 };
+/* clang-format on */
 
 static const char quirk_file[] =
 "[litest ALPS Touchpad]\n"

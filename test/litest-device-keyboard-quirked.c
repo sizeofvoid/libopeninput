@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x1,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_REL, REL_X,
 	EV_REL, REL_Y,
@@ -197,6 +198,7 @@ static int events[] = {
 
 	-1, -1,
 };
+/* clang-format on */
 
 static const char quirk_file[] =
 "[litest Quirked Keyboard enable buttons]\n"

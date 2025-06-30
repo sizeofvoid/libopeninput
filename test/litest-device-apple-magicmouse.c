@@ -60,6 +60,7 @@ static struct input_id input_id = {
 	.product = 0x30d,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -70,7 +71,9 @@ static int events[] = {
 	EV_REL, REL_HWHEEL,
 	-1 , -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_MT_SLOT, 0, 15, 0, 0, 0 },
 	{ ABS_MT_TOUCH_MAJOR, 0, 1020, 0, 0, 0 },
@@ -81,6 +84,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ .value = -1 }
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_MAGICMOUSE,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,

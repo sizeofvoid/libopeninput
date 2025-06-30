@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0xcd5,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -48,6 +49,7 @@ static int events[] = {
 	EV_REL, REL_WHEEL,
 	-1 , -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_CYBORG_RAT,
 	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,

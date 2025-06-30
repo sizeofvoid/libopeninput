@@ -212,6 +212,7 @@ main(int argc, char **argv)
 			OPT_QUIET,
 			OPT_COMPRESS_MOTION_EVENTS,
 		};
+		/* clang-format off */
 		static struct option opts[] = {
 			CONFIGURATION_OPTIONS,
 			{ "help",                      no_argument,       0, 'h' },
@@ -222,8 +223,9 @@ main(int argc, char **argv)
 			{ "verbose",                   no_argument,       0, OPT_VERBOSE },
 			{ "quiet",                     no_argument,       0, OPT_QUIET },
 			{ "compress-motion-events",    no_argument,       0, OPT_COMPRESS_MOTION_EVENTS },
-			{ 0, 0, 0, 0}
+			{ 0, 0, 0, 0},
 		};
+		/* clang-format on */
 
 		c = getopt_long(argc, argv, "h", opts, &option_index);
 		if (c == -1)

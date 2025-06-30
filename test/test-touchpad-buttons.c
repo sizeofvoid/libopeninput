@@ -2207,6 +2207,7 @@ START_TEST(touchpad_non_clickpad_detection)
 	/* Create a touchpad with only a left button but missing
 	 * INPUT_PROP_BUTTONPAD. We should treat this as clickpad.
 	 */
+	/* clang-format off */
 	uinput = litest_create_uinput_abs_device("litest NonClickpad",
 						 NULL,
 						 absinfo,
@@ -2214,6 +2215,7 @@ START_TEST(touchpad_non_clickpad_detection)
 						 EV_KEY, BTN_TOOL_FINGER,
 						 EV_KEY, BTN_TOUCH,
 						 -1);
+	/* clang-format on */
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	device = libinput_path_add_device(li,

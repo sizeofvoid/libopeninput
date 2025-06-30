@@ -52,6 +52,7 @@ static struct litest_device_interface interface = {
 	.touch_move_events = move,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 1022, 0, 0, 12 },
 	{ ABS_Y, 0, 487, 0, 0, 12 },
@@ -85,6 +86,7 @@ static struct input_absinfo absinfo[] = {
 	{ 62, -127, 127, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -92,6 +94,7 @@ static struct input_id input_id = {
 	.product = 0x7dc,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_REL, REL_X,
 	EV_REL, REL_Y,
@@ -369,6 +372,7 @@ static int events[] = {
 	EV_LED, LED_SCROLLL,
 	-1, -1,
 };
+/* clang-format on */
 
 TEST_DEVICE(LITEST_MS_SURFACE_COVER,
 	.features = LITEST_KEYS | LITEST_ABSOLUTE | LITEST_RELATIVE | LITEST_FAKE_MT | LITEST_BUTTON | LITEST_WHEEL,

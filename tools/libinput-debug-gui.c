@@ -1942,6 +1942,7 @@ main(int argc, char **argv)
 			OPT_GRAB,
 			OPT_VERBOSE,
 		};
+		/* clang-format off */
 		static struct option opts[] = {
 			CONFIGURATION_OPTIONS,
 			{ "help",                      no_argument,       0, 'h' },
@@ -1949,8 +1950,9 @@ main(int argc, char **argv)
 			{ "udev",                      required_argument, 0, OPT_UDEV },
 			{ "grab",                      no_argument,       0, OPT_GRAB },
 			{ "verbose",                   no_argument,       0, OPT_VERBOSE },
-			{ 0, 0, 0, 0}
+			{ 0, 0, 0, 0},
 		};
+		/* clang-format on */
 
 		c = getopt_long(argc, argv, "h", opts, &option_index);
 		if (c == -1)

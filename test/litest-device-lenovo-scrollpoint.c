@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x3109,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -43,6 +44,7 @@ static int events[] = {
 	EV_REL, REL_HWHEEL,
 	-1 , -1,
 };
+/* clang-format on */
 
 /* Note: device is not tagged with LITEST_WHEEL to avoid running the
  * "standard" wheel tests. Device has a custom wheel
