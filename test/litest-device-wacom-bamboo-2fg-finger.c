@@ -90,5 +90,6 @@ TEST_DEVICE(LITEST_WACOM_BAMBOO_2FG_FINGER,
 		{ "LIBINPUT_DEVICE_GROUP", "wacom-bamboo-2fg-group" },
 		{ "ID_INPUT_TABLET", "1" },
 		{ "ID_INPUT_TOUCHPAD", "1" },
+		{ NULL },
 	}
 )
