@@ -1084,7 +1084,15 @@ evdev_device_dispatch(void *data)
 					"event frame overflow, discarding events.\n");
 			}
 			if (ev.type == EV_SYN && ev.code == SYN_REPORT) {
-				evdev_device_dispatch_frame(libinput, device, frame);
+				/* A SYN_REPORT 1 event is a kernel-inserted
+				 * auto-repeat. Nothing in libinput cares about kernel
+				 * repeats and the inserted frame causes issues with
+				 * timestamp deltas (see e.g. #1145)
+				 */
+				if (ev.value != 1)
+					evdev_device_dispatch_frame(libinput,
+								    device,
+								    frame);
 				evdev_frame_reset(frame);
 			}
 		} else if (rc == -ENODEV) {
