@@ -71,22 +71,22 @@ struct libinput_plugin_interface {
 			     struct libinput_device *device,
 			     struct libevdev *evdev,
 			     struct udev_device *udev_device);
-        /**
-         * Notification that a device (previously announced with device_new)
-         * was ignored by libinput and was **never** added as struct
-         * libinput_device.
-         *
-         * If a device was added (device_added) then this callback will
-         * not be called for that device.
-         */
-        void (*device_ignored)(struct libinput_plugin *plugin,
+	/**
+	 * Notification that a device (previously announced with device_new)
+	 * was ignored by libinput and was **never** added as struct
+	 * libinput_device.
+	 *
+	 * If a device was added (device_added) then this callback will
+	 * not be called for that device.
+	 */
+	void (*device_ignored)(struct libinput_plugin *plugin,
 			       struct libinput_device *device);
-        /**
-         * Notification that a device was added to libinput. Called
-         * after the device_new callback if the device matches libinput's
-         * expectations.
-         */
-        void (*device_added)(struct libinput_plugin *plugin,
+	/**
+	 * Notification that a device was added to libinput. Called
+	 * after the device_new callback if the device matches libinput's
+	 * expectations.
+	 */
+	void (*device_added)(struct libinput_plugin *plugin,
 			     struct libinput_device *device);
 	/**
 	 * Notification that a previously added device was removed.
