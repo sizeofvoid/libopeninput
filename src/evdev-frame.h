@@ -26,12 +26,12 @@
 
 #include "config.h"
 
-#include "util-mem.h"
-#include "util-input-event.h"
-#include "util-newtype.h"
-
-#include <stdbool.h>
 #include <linux/input.h>
+#include <stdbool.h>
+
+#include "util-input-event.h"
+#include "util-mem.h"
+#include "util-newtype.h"
 
 #define _evbit(t_, c_) ((t_) << 16 | (c_))
 
@@ -48,7 +48,7 @@ enum evdev_usage {
 	EVDEV_SYN_REPORT = _evbit(EV_SYN, SYN_REPORT),
 
 	EVDEV_KEY_RESERVED = _evbit(EV_KEY, KEY_RESERVED),
-	EVDEV_KEY_ESC= _evbit(EV_KEY, KEY_ESC),
+	EVDEV_KEY_ESC = _evbit(EV_KEY, KEY_ESC),
 	EVDEV_KEY_MICMUTE = _evbit(EV_KEY, KEY_MICMUTE),
 	EVDEV_KEY_OK = _evbit(EV_KEY, KEY_OK),
 	EVDEV_KEY_LIGHTS_TOGGLE = _evbit(EV_KEY, KEY_LIGHTS_TOGGLE),
@@ -196,7 +196,8 @@ evdev_usage_type_name(evdev_usage_t usage)
 static inline evdev_usage_t
 evdev_usage_next(evdev_usage_t usage)
 {
-	return evdev_usage_from_code(evdev_usage_type(usage), evdev_usage_code(usage) + 1);
+	return evdev_usage_from_code(evdev_usage_type(usage),
+				     evdev_usage_code(usage) + 1);
 }
 
 /**
@@ -286,7 +287,7 @@ static inline struct input_event
 evdev_event_to_input_event(const struct evdev_event *e, uint64_t time)
 {
 	struct timeval tv = us2tv(time);
-	return (struct input_event) {
+	return (struct input_event){
 		.type = evdev_event_type(e),
 		.code = evdev_event_code(e),
 		.value = e->value,
@@ -300,7 +301,7 @@ evdev_event_from_input_event(const struct input_event *e, uint64_t *time)
 {
 	if (time)
 		*time = input_event_time(e);
-	return (struct evdev_event) {
+	return (struct evdev_event){
 		.usage = evdev_usage_from_code(e->type, e->code),
 		.value = e->value,
 	};
@@ -399,7 +400,8 @@ evdev_frame_reset(struct evdev_frame *frame)
 static inline struct evdev_frame *
 evdev_frame_new(size_t max_size)
 {
-	struct evdev_frame *frame = zalloc(max_size * sizeof(sizeof(*frame->events)) + sizeof(*frame));
+	struct evdev_frame *frame =
+		zalloc(max_size * sizeof(sizeof(*frame->events)) + sizeof(*frame));
 
 	frame->refcount = 1;
 	frame->max_size = max_size;
@@ -412,7 +414,8 @@ static inline struct evdev_frame *
 evdev_frame_new_on_stack(size_t max_size)
 {
 	assert(max_size <= 64);
-	struct evdev_frame *frame = alloca(max_size * sizeof(*frame->events) + sizeof(*frame));
+	struct evdev_frame *frame =
+		alloca(max_size * sizeof(*frame->events) + sizeof(*frame));
 
 	frame->refcount = 1;
 	frame->max_size = max_size;
@@ -464,7 +467,9 @@ evdev_frame_append(struct evdev_frame *frame,
 		if (frame->count + nevents > frame->max_size)
 			return -ENOMEM;
 
-		memcpy(frame->events + frame->count - 1, events, nevents * sizeof(*events));
+		memcpy(frame->events + frame->count - 1,
+		       events,
+		       nevents * sizeof(*events));
 		frame->count += nevents;
 	}
 

@@ -22,24 +22,25 @@
  */
 
 #include "config.h"
-#include "evdev-tablet-pad.h"
-#include "util-input-event.h"
 
 #include <assert.h>
 #include <stdbool.h>
 #include <string.h>
 
+#include "util-input-event.h"
+
+#include "evdev-tablet-pad.h"
+
 #if HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
 #endif
 
-#define pad_set_status(pad_,s_) (pad_)->status |= (s_)
-#define pad_unset_status(pad_,s_) (pad_)->status &= ~(s_)
-#define pad_has_status(pad_,s_) (!!((pad_)->status & (s_)))
+#define pad_set_status(pad_, s_) (pad_)->status |= (s_)
+#define pad_unset_status(pad_, s_) (pad_)->status &= ~(s_)
+#define pad_has_status(pad_, s_) (!!((pad_)->status & (s_)))
 
 static void
-pad_get_buttons_pressed(struct pad_dispatch *pad,
-			struct button_state *buttons)
+pad_get_buttons_pressed(struct pad_dispatch *pad, struct button_state *buttons)
 {
 	struct button_state *state = &pad->button_state;
 	struct button_state *prev_state = &pad->prev_button_state;
@@ -50,8 +51,7 @@ pad_get_buttons_pressed(struct pad_dispatch *pad,
 }
 
 static void
-pad_get_buttons_released(struct pad_dispatch *pad,
-			 struct button_state *buttons)
+pad_get_buttons_released(struct pad_dispatch *pad, struct button_state *buttons)
 {
 	struct button_state *state = &pad->button_state;
 	struct button_state *prev_state = &pad->prev_button_state;
@@ -62,8 +62,7 @@ pad_get_buttons_released(struct pad_dispatch *pad,
 }
 
 static inline bool
-pad_button_is_down(const struct pad_dispatch *pad,
-		   uint32_t button)
+pad_button_is_down(const struct pad_dispatch *pad, uint32_t button)
 {
 	return bit_is_set(pad->button_state.bits, button);
 }
@@ -82,9 +81,7 @@ pad_any_button_down(const struct pad_dispatch *pad)
 }
 
 static inline void
-pad_button_set_down(struct pad_dispatch *pad,
-		    evdev_usage_t button,
-		    bool is_down)
+pad_button_set_down(struct pad_dispatch *pad, evdev_usage_t button, bool is_down)
 {
 	struct button_state *state = &pad->button_state;
 	unsigned int code = evdev_usage_code(button);
@@ -148,10 +145,11 @@ pad_update_changed_axis(struct pad_dispatch *pad,
 			const struct evdev_event *e)
 {
 	if (pad->changed_axes & axis) {
-		evdev_log_bug_kernel_ratelimit(pad->device,
-					       &pad->duplicate_abs_limit,
-					       "Multiple EV_ABS %s events in the same SYN_REPORT\n",
-					       evdev_event_get_code_name(e));
+		evdev_log_bug_kernel_ratelimit(
+			pad->device,
+			&pad->duplicate_abs_limit,
+			"Multiple EV_ABS %s events in the same SYN_REPORT\n",
+			evdev_event_get_code_name(e));
 
 		/* Special heuristics probably good enough:
 		 * if we get multiple EV_ABS in the same SYN_REPORT
@@ -179,10 +177,18 @@ pad_process_absolute(struct pad_dispatch *pad,
 	enum pad_axes axis = PAD_AXIS_NONE;
 
 	switch (evdev_usage_enum(e->usage)) {
-	case EVDEV_ABS_WHEEL:	 axis = PAD_AXIS_RING1; break;
-	case EVDEV_ABS_THROTTLE: axis = PAD_AXIS_RING2; break;
-	case EVDEV_ABS_RX:	 axis = PAD_AXIS_STRIP1; break;
-	case EVDEV_ABS_RY:	 axis = PAD_AXIS_STRIP2; break;
+	case EVDEV_ABS_WHEEL:
+		axis = PAD_AXIS_RING1;
+		break;
+	case EVDEV_ABS_THROTTLE:
+		axis = PAD_AXIS_RING2;
+		break;
+	case EVDEV_ABS_RX:
+		axis = PAD_AXIS_STRIP1;
+		break;
+	case EVDEV_ABS_RY:
+		axis = PAD_AXIS_STRIP2;
+		break;
 	case EVDEV_ABS_MISC:
 		/* The wacom driver always sends a 0 axis event on finger
 		   up, but we also get an ABS_MISC 15 on touch down and
@@ -234,8 +240,7 @@ normalize_wacom_strip(const struct input_absinfo *absinfo)
 	/* strip axes don't use a proper value, they just shift the bit left
 	 * for each position. 0 isn't a real value either, it's only sent on
 	 * finger release */
-	double min = 0,
-	       max = log2(absinfo->maximum);
+	double min = 0, max = log2(absinfo->maximum);
 	double range = max - min;
 	double value = (log2(absinfo->value) - min) / range;
 
@@ -293,8 +298,7 @@ pad_handle_strip(struct pad_dispatch *pad,
 }
 
 static inline struct libinput_tablet_pad_mode_group *
-pad_dial_get_mode_group(struct pad_dispatch *pad,
-			unsigned int dial)
+pad_dial_get_mode_group(struct pad_dispatch *pad, unsigned int dial)
 {
 	struct libinput_tablet_pad_mode_group *group;
 
@@ -309,8 +313,7 @@ pad_dial_get_mode_group(struct pad_dispatch *pad,
 }
 
 static inline struct libinput_tablet_pad_mode_group *
-pad_ring_get_mode_group(struct pad_dispatch *pad,
-			unsigned int ring)
+pad_ring_get_mode_group(struct pad_dispatch *pad, unsigned int ring)
 {
 	struct libinput_tablet_pad_mode_group *group;
 
@@ -325,8 +328,7 @@ pad_ring_get_mode_group(struct pad_dispatch *pad,
 }
 
 static inline struct libinput_tablet_pad_mode_group *
-pad_strip_get_mode_group(struct pad_dispatch *pad,
-			unsigned int strip)
+pad_strip_get_mode_group(struct pad_dispatch *pad, unsigned int strip)
 {
 	struct libinput_tablet_pad_mode_group *group;
 
@@ -360,20 +362,12 @@ pad_check_notify_axes(struct pad_dispatch *pad,
 	 * so we can't set a source */
 	if (pad->changed_axes & PAD_AXIS_DIAL1) {
 		group = pad_dial_get_mode_group(pad, 0);
-		tablet_pad_notify_dial(base,
-				       time,
-				       0,
-				       pad->dials.dial1,
-				       group);
+		tablet_pad_notify_dial(base, time, 0, pad->dials.dial1, group);
 	}
 
 	if (pad->changed_axes & PAD_AXIS_DIAL2) {
 		group = pad_dial_get_mode_group(pad, 1);
-		tablet_pad_notify_dial(base,
-				       time,
-				       1,
-				       pad->dials.dial2,
-				       group);
+		tablet_pad_notify_dial(base, time, 1, pad->dials.dial2, group);
 	}
 
 	if (pad->changed_axes & PAD_AXIS_RING1) {
@@ -452,8 +446,7 @@ pad_process_key(struct pad_dispatch *pad,
 }
 
 static inline struct libinput_tablet_pad_mode_group *
-pad_button_get_mode_group(struct pad_dispatch *pad,
-			  unsigned int button)
+pad_button_get_mode_group(struct pad_dispatch *pad, unsigned int button)
 {
 	struct libinput_tablet_pad_mode_group *group;
 
@@ -503,11 +496,12 @@ pad_notify_button_mask(struct pad_dispatch *pad,
 
 				group = pad_button_get_mode_group(pad, button);
 				pad_button_update_mode(group, button, state);
-				tablet_pad_notify_button(base,
-							 time,
-							 pad_button_from_uint32_t(button),
-							 state,
-							 group);
+				tablet_pad_notify_button(
+					base,
+					time,
+					pad_button_from_uint32_t(button),
+					state,
+					group);
 			} else if (map_is_key(map)) {
 				uint32_t key = map_value(map);
 
@@ -541,7 +535,7 @@ pad_notify_buttons(struct pad_dispatch *pad,
 static void
 pad_change_to_left_handed(struct evdev_device *device)
 {
-	struct pad_dispatch *pad = (struct pad_dispatch*)device->dispatch;
+	struct pad_dispatch *pad = (struct pad_dispatch *)device->dispatch;
 
 	if (device->left_handed.enabled == device->left_handed.want_enabled)
 		return;
@@ -553,9 +547,7 @@ pad_change_to_left_handed(struct evdev_device *device)
 }
 
 static void
-pad_flush(struct pad_dispatch *pad,
-	  struct evdev_device *device,
-	  uint64_t time)
+pad_flush(struct pad_dispatch *pad, struct evdev_device *device, uint64_t time)
 {
 	if (pad_has_status(pad, PAD_AXES_UPDATED)) {
 		pad_check_notify_axes(pad, device, time);
@@ -563,27 +555,19 @@ pad_flush(struct pad_dispatch *pad,
 	}
 
 	if (pad_has_status(pad, PAD_BUTTONS_RELEASED)) {
-		pad_notify_buttons(pad,
-				   device,
-				   time,
-				   LIBINPUT_BUTTON_STATE_RELEASED);
+		pad_notify_buttons(pad, device, time, LIBINPUT_BUTTON_STATE_RELEASED);
 		pad_unset_status(pad, PAD_BUTTONS_RELEASED);
 
 		pad_change_to_left_handed(device);
 	}
 
 	if (pad_has_status(pad, PAD_BUTTONS_PRESSED)) {
-		pad_notify_buttons(pad,
-				   device,
-				   time,
-				   LIBINPUT_BUTTON_STATE_PRESSED);
+		pad_notify_buttons(pad, device, time, LIBINPUT_BUTTON_STATE_PRESSED);
 		pad_unset_status(pad, PAD_BUTTONS_PRESSED);
 	}
 
 	/* Update state */
-	memcpy(&pad->prev_button_state,
-	       &pad->button_state,
-	       sizeof(pad->button_state));
+	memcpy(&pad->prev_button_state, &pad->button_state, sizeof(pad->button_state));
 	pad->dials.dial1 = 0;
 	pad->dials.dial2 = 0;
 }
@@ -624,8 +608,7 @@ pad_process(struct evdev_dispatch *dispatch,
 }
 
 static void
-pad_suspend(struct evdev_dispatch *dispatch,
-	    struct evdev_device *device)
+pad_suspend(struct evdev_dispatch *dispatch, struct evdev_device *device)
 {
 	struct pad_dispatch *pad = pad_dispatch(dispatch);
 	struct libinput *libinput = pad_libinput_context(pad);
@@ -693,8 +676,7 @@ pad_init_buttons_from_libwacom(struct pad_dispatch *pad,
 }
 
 static void
-pad_init_buttons_from_kernel(struct pad_dispatch *pad,
-			       struct evdev_device *device)
+pad_init_buttons_from_kernel(struct pad_dispatch *pad, struct evdev_device *device)
 {
 	unsigned int code;
 	int map = 0;
@@ -759,8 +741,7 @@ pad_init_buttons(struct pad_dispatch *pad,
 }
 
 static void
-pad_init_left_handed(struct evdev_device *device,
-		     WacomDevice *wacom)
+pad_init_left_handed(struct evdev_device *device, WacomDevice *wacom)
 {
 	bool has_left_handed = true;
 
@@ -768,8 +749,7 @@ pad_init_left_handed(struct evdev_device *device,
 	has_left_handed = !wacom || libwacom_is_reversible(wacom);
 #endif
 	if (has_left_handed)
-		evdev_init_left_handed(device,
-				       pad_change_to_left_handed);
+		evdev_init_left_handed(device, pad_change_to_left_handed);
 }
 
 static int
@@ -788,17 +768,19 @@ pad_init(struct pad_dispatch *pad, struct evdev_device *device)
 			 evdev_device_get_sysname(device));
 		wacom = libwacom_new_from_path(db, event_path, WFALLBACK_NONE, NULL);
 		if (!wacom) {
-			wacom = libwacom_new_from_usbid(db,
-							evdev_device_get_id_vendor(device),
-							evdev_device_get_id_product(device),
-							NULL);
+			wacom = libwacom_new_from_usbid(
+				db,
+				evdev_device_get_id_vendor(device),
+				evdev_device_get_id_product(device),
+				NULL);
 		}
 		if (!wacom) {
-			evdev_log_info(device,
-				       "device \"%s\" (%04x:%04x) is not known to libwacom\n",
-				       evdev_device_get_name(device),
-				       evdev_device_get_id_vendor(device),
-				       evdev_device_get_id_product(device));
+			evdev_log_info(
+				device,
+				"device \"%s\" (%04x:%04x) is not known to libwacom\n",
+				evdev_device_get_name(device),
+				evdev_device_get_id_vendor(device),
+				evdev_device_get_id_product(device));
 		}
 	}
 #endif
@@ -809,14 +791,16 @@ pad_init(struct pad_dispatch *pad, struct evdev_device *device)
 	pad->status = PAD_NONE;
 	pad->changed_axes = PAD_AXIS_NONE;
 
-        /* We expect the kernel to either give us both axes as hires or neither.
+	/* We expect the kernel to either give us both axes as hires or neither.
 	 * Getting one is a kernel bug we don't need to care about */
-        pad->dials.has_hires_dial = libevdev_has_event_code(device->evdev, EV_REL, REL_WHEEL_HI_RES) ||
-				    libevdev_has_event_code(device->evdev, EV_REL, REL_HWHEEL_HI_RES);
+	pad->dials.has_hires_dial =
+		libevdev_has_event_code(device->evdev, EV_REL, REL_WHEEL_HI_RES) ||
+		libevdev_has_event_code(device->evdev, EV_REL, REL_HWHEEL_HI_RES);
 
 	if (libevdev_has_event_code(device->evdev, EV_REL, REL_WHEEL) &&
 	    libevdev_has_event_code(device->evdev, EV_REL, REL_DIAL)) {
-		log_bug_libinput(li, "Unsupported combination REL_DIAL and REL_WHEEL\n");
+		log_bug_libinput(li,
+				 "Unsupported combination REL_DIAL and REL_WHEEL\n");
 	}
 
 	pad_init_buttons(pad, device, wacom);
@@ -865,7 +849,7 @@ evdev_device_tablet_pad_has_key(struct evdev_device *device, uint32_t code)
 int
 evdev_device_tablet_pad_get_num_buttons(struct evdev_device *device)
 {
-	struct pad_dispatch *pad = (struct pad_dispatch*)device->dispatch;
+	struct pad_dispatch *pad = (struct pad_dispatch *)device->dispatch;
 
 	if (!(device->seat_caps & EVDEV_DEVICE_TABLET_PAD))
 		return -1;
@@ -884,9 +868,7 @@ evdev_device_tablet_pad_get_num_dials(struct evdev_device *device)
 	if (libevdev_has_event_code(device->evdev, EV_REL, REL_WHEEL) ||
 	    libevdev_has_event_code(device->evdev, EV_REL, REL_DIAL)) {
 		ndials++;
-		if (libevdev_has_event_code(device->evdev,
-					    EV_REL,
-					    REL_HWHEEL))
+		if (libevdev_has_event_code(device->evdev, EV_REL, REL_HWHEEL))
 			ndials++;
 	}
 
@@ -903,9 +885,7 @@ evdev_device_tablet_pad_get_num_rings(struct evdev_device *device)
 
 	if (libevdev_has_event_code(device->evdev, EV_ABS, ABS_WHEEL)) {
 		nrings++;
-		if (libevdev_has_event_code(device->evdev,
-					    EV_ABS,
-					    ABS_THROTTLE))
+		if (libevdev_has_event_code(device->evdev, EV_ABS, ABS_THROTTLE))
 			nrings++;
 	}
 
@@ -922,9 +902,7 @@ evdev_device_tablet_pad_get_num_strips(struct evdev_device *device)
 
 	if (libevdev_has_event_code(device->evdev, EV_ABS, ABS_RX)) {
 		nstrips++;
-		if (libevdev_has_event_code(device->evdev,
-					    EV_ABS,
-					    ABS_RY))
+		if (libevdev_has_event_code(device->evdev, EV_ABS, ABS_RY))
 			nstrips++;
 	}
 

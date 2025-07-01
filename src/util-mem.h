@@ -27,8 +27,8 @@
 #include "config.h"
 
 #include <assert.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 static inline void *
@@ -74,20 +74,34 @@ zalloc(size_t size)
  */
 #define _free_(_type) __attribute__((cleanup(_type##_freep))) struct _type
 
-static inline void _free_ptr_(void *p) { free(*(void**)p); }
+static inline void
+_free_ptr_(void *p)
+{
+	free(*(void **)p);
+}
 /**
  * Use: _autofree_ char *data;
  */
 #define _autofree_ _cleanup_(_free_ptr_)
 
-static inline void _close_fd_(int *fd) { if (*fd != -1) close(*fd); }
+static inline void
+_close_fd_(int *fd)
+{
+	if (*fd != -1)
+		close(*fd);
+}
 
 /**
  * Use: _autoclose_ int fd = open(...);
  */
 #define _autoclose_ _cleanup_(_close_fd_)
 
-static inline void _close_file_(FILE **fp) { if (*fp) fclose(*fp); }
+static inline void
+_close_file_(FILE **fp)
+{
+	if (*fp)
+		fclose(*fp);
+}
 
 /**
  * Use: _autofclose_ FILE *fp = fopen(...);
@@ -145,9 +159,10 @@ static inline void _close_file_(FILE **fp) { if (*fp) fclose(*fp); }
 	}							\
 	struct __useless_struct_to_allow_trailing_semicolon__
 
-static inline void*
-_steal(void *ptr) {
-	void **original = (void**)ptr;
+static inline void *
+_steal(void *ptr)
+{
+	void **original = (void **)ptr;
 	void *swapped = *original;
 	*original = NULL;
 	return swapped;
@@ -165,7 +180,8 @@ _steal(void *ptr) {
   (typeof(*ptr_))_steal(ptr_)
 
 static inline int
-steal_fd(int *fd) {
+steal_fd(int *fd)
+{
 	int copy = *fd;
 	*fd = -1;
 	return copy;

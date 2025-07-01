@@ -22,6 +22,7 @@
  */
 
 #include "config.h"
+
 #include <limits.h>
 
 #ifndef LITEST_INT_H
@@ -40,17 +41,17 @@ struct litest_test_device {
 	enum litest_device_type type;
 	int64_t features;
 	const char *shortname;
-	void (*setup)(void); /* test fixture, used by check */
+	void (*setup)(void);    /* test fixture, used by check */
 	void (*teardown)(void); /* test fixture, used by check */
 	/**
-	* If create is non-NULL it will be called to initialize the device.
-	* For such devices, no overrides are possible. If create is NULL,
-	* the information in name, id, events, absinfo is used to
-	* create the device instead.
-	*
-	* @return true if the device needs to be created by litest, false if
-	*	the device creates itself
-	*/
+	 * If create is non-NULL it will be called to initialize the device.
+	 * For such devices, no overrides are possible. If create is NULL,
+	 * the information in name, id, events, absinfo is used to
+	 * create the device instead.
+	 *
+	 * @return true if the device needs to be created by litest, false if
+	 *	the device creates itself
+	 */
 	bool (*create)(struct litest_device *d);
 
 	/**
@@ -62,13 +63,13 @@ struct litest_test_device {
 	 */
 	const struct input_id *id;
 	/**
-	* List of event type/code tuples, terminated with -1, e.g.
-	* EV_REL, REL_X, EV_KEY, BTN_LEFT, -1
-	* Special tuple is INPUT_PROP_MAX, <actual property> to set.
-	*
-	* Any EV_ABS codes in this list will be initialized with a default
-	* axis range.
-	*/
+	 * List of event type/code tuples, terminated with -1, e.g.
+	 * EV_REL, REL_X, EV_KEY, BTN_LEFT, -1
+	 * Special tuple is INPUT_PROP_MAX, <actual property> to set.
+	 *
+	 * Any EV_ABS codes in this list will be initialized with a default
+	 * axis range.
+	 */
 	int *events;
 	/**
 	 * List of abs codes to enable, with absinfo.value determining the
@@ -84,15 +85,23 @@ struct litest_test_device {
 };
 
 struct litest_device_interface {
-	bool (*touch_down)(struct litest_device *d, unsigned int slot, double x, double y);
-	bool (*touch_move)(struct litest_device *d, unsigned int slot, double x, double y);
+	bool (*touch_down)(struct litest_device *d,
+			   unsigned int slot,
+			   double x,
+			   double y);
+	bool (*touch_move)(struct litest_device *d,
+			   unsigned int slot,
+			   double x,
+			   double y);
 	bool (*touch_up)(struct litest_device *d, unsigned int slot);
 
 	/**
 	 * Default value for the given EV_ABS axis.
 	 * @return 0 on success, nonzero otherwise
 	 */
-	int (*get_axis_default)(struct litest_device *d, unsigned int code, int32_t *value);
+	int (*get_axis_default)(struct litest_device *d,
+				unsigned int code,
+				int32_t *value);
 
 	/**
 	 * Set of of events to execute on touch down, terminated by a .type
@@ -116,17 +125,21 @@ struct litest_device_interface {
 
 	bool (*tablet_proximity_in)(struct litest_device *d,
 				    unsigned int tool_type,
-				    double *x, double *y,
+				    double *x,
+				    double *y,
 				    struct axis_replacement *axes);
 	bool (*tablet_proximity_out)(struct litest_device *d, unsigned int tool_type);
 	bool (*tablet_tip_down)(struct litest_device *d,
-				double *x, double *y,
+				double *x,
+				double *y,
 				struct axis_replacement *axes);
 	bool (*tablet_tip_up)(struct litest_device *d,
-			      double *x, double *y,
+			      double *x,
+			      double *y,
 			      struct axis_replacement *axes);
 	bool (*tablet_motion)(struct litest_device *d,
-			      double *x, double *y,
+			      double *x,
+			      double *y,
 			      struct axis_replacement *axes);
 
 	/**
@@ -191,18 +204,24 @@ struct suite {
 	char *name;
 };
 
-enum litest_runner_result litest_run(struct list *suites, int jobs);
+enum litest_runner_result
+litest_run(struct list *suites, int jobs);
 
 enum litest_mode {
 	LITEST_MODE_ERROR,
 	LITEST_MODE_TEST,
 	LITEST_MODE_LIST,
 };
-enum litest_mode litest_parse_argv(int argc, char **argv, int *njobs_out);
-void litest_add_test_device(struct list *device);
+enum litest_mode
+litest_parse_argv(int argc, char **argv, int *njobs_out);
+void
+litest_add_test_device(struct list *device);
 
-void litest_set_current_device(struct litest_device *device);
-int litest_scale(const struct litest_device *d, unsigned int axis, double val);
-void litest_generic_device_teardown(void);
+void
+litest_set_current_device(struct litest_device *device);
+int
+litest_scale(const struct litest_device *d, unsigned int axis, double val);
+void
+litest_generic_device_teardown(void);
 
 #endif

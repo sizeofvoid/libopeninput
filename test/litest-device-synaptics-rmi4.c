@@ -23,13 +23,13 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_ORIENTATION, .value = 0 },
@@ -44,9 +44,9 @@ static struct input_event down[] = {
 
 static struct input_event move[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_ORIENTATION, .value = 0 },
 	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MAJOR, .value = 2 },
 	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MINOR, .value = 2 },
@@ -116,11 +116,10 @@ static struct input_absinfo absinfo[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_SYNAPTICS_RMI4,
-	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
-	.interface = &interface,
+	    .features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
+	    .interface = &interface,
 
-	.name = "Synaptics TM3053-004",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "Synaptics TM3053-004",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

@@ -24,11 +24,11 @@
 #include "config.h"
 
 #include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
+#include <libevdev/libevdev.h>
 #include <libudev.h>
 #include <linux/input.h>
-#include <libevdev/libevdev.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include "util-macros.h"
 
@@ -39,10 +39,12 @@ reset_absfuzz_to_zero(struct udev_device *device)
 	struct libevdev *evdev = NULL;
 	int fd = -1;
 	int rc;
-	unsigned int axes[] = {ABS_X,
-			       ABS_Y,
-			       ABS_MT_POSITION_X,
-			       ABS_MT_POSITION_Y,};
+	unsigned int axes[] = {
+		ABS_X,
+		ABS_Y,
+		ABS_MT_POSITION_X,
+		ABS_MT_POSITION_Y,
+	};
 
 	devnode = udev_device_get_devnode(device);
 	if (!devnode)
@@ -77,7 +79,8 @@ out:
 	libevdev_free(evdev);
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
 	int rc = 1;
 	struct udev *udev = NULL;

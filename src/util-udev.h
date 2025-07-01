@@ -27,6 +27,7 @@
 #include "config.h"
 
 #include <libudev.h>
+
 #include "util-strings.h"
 
 static inline bool

@@ -128,7 +128,7 @@ strv_append_take(char **strv, char **str)
  *
  * @return A null-terminated string array or NULL on errors
  */
-char**
+char **
 strv_from_argv(int argc, char **argv)
 {
 	char **strv = NULL;
@@ -271,7 +271,8 @@ strv_join(char **strv, const char *joiner)
  *
  * @return zero on success, otherwise the error returned by the callback
  */
-int strv_for_each_n(const char **strv, size_t max, strv_foreach_callback_t func, void *data)
+int
+strv_for_each_n(const char **strv, size_t max, strv_foreach_callback_t func, void *data)
 {
 	for (size_t i = 0; i < max && strv && strv[i]; i++) {
 		int ret = func(strv[i], i, data);
@@ -288,7 +289,8 @@ int strv_for_each_n(const char **strv, size_t max, strv_foreach_callback_t func,
  *
  * @return zero on success, otherwise the error returned by the callback
  */
-int strv_for_each(const char **strv, strv_foreach_callback_t func, void *data)
+int
+strv_for_each(const char **strv, strv_foreach_callback_t func, void *data)
 {
 	return strv_for_each_n(strv, SIZE_MAX, func, data);
 }
@@ -386,5 +388,5 @@ trunkname(const char *filename)
 	if (suffix == NULL)
 		return safe_strdup(base);
 	else
-		return strndup(base, suffix-base);
+		return strndup(base, suffix - base);
 }

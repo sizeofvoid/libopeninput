@@ -26,10 +26,11 @@
 #include "config.h"
 
 #include <assert.h>
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "util-list.h"
+
 #include "libinput-util.h"
 
 #if 0

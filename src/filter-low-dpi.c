@@ -26,13 +26,13 @@
 #include "config.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
+#include "filter-private.h"
 #include "filter.h"
 #include "libinput-util.h"
-#include "filter-private.h"
 
 /*
  * Default parameters for pointer acceleration profiles.
@@ -48,14 +48,14 @@ struct pointer_accelerator_low_dpi {
 
 	accel_profile_func_t profile;
 
-	double velocity;	/* units/us */
-	double last_velocity;	/* units/us */
+	double velocity;      /* units/us */
+	double last_velocity; /* units/us */
 
 	struct pointer_trackers trackers;
 
-	double threshold;	/* units/us */
-	double accel;		/* unitless factor */
-	double incline;		/* incline of the function */
+	double threshold; /* units/us */
+	double accel;     /* unitless factor */
+	double incline;   /* incline of the function */
 
 	int dpi;
 };
@@ -79,10 +79,10 @@ pointer_accel_profile_linear_low_dpi(struct motion_filter *filter,
 	struct pointer_accelerator_low_dpi *accel_filter =
 		(struct pointer_accelerator_low_dpi *)filter;
 
-	double max_accel = accel_filter->accel; /* unitless factor */
+	double max_accel = accel_filter->accel;     /* unitless factor */
 	double threshold = accel_filter->threshold; /* units/us */
 	const double incline = accel_filter->incline;
-	double dpi_factor = accel_filter->dpi/(double)DEFAULT_MOUSE_DPI;
+	double dpi_factor = accel_filter->dpi / (double)DEFAULT_MOUSE_DPI;
 	double factor; /* unitless */
 
 	/* dpi_factor is always < 1.0, increase max_accel, reduce
@@ -128,16 +128,15 @@ calculate_acceleration_factor(struct pointer_accelerator_low_dpi *accel,
 static struct normalized_coords
 accelerator_filter_low_dpi(struct motion_filter *filter,
 			   const struct device_float_coords *unaccelerated,
-			   void *data, uint64_t time)
+			   void *data,
+			   uint64_t time)
 {
 	struct pointer_accelerator_low_dpi *accel =
-		(struct pointer_accelerator_low_dpi *) filter;
+		(struct pointer_accelerator_low_dpi *)filter;
 
 	/* Accelerate for device units and return device units */
-	double accel_factor = calculate_acceleration_factor(accel,
-							    unaccelerated,
-							    data,
-							    time);
+	double accel_factor =
+		calculate_acceleration_factor(accel, unaccelerated, data, time);
 	const struct normalized_coords normalized = {
 		.x = accel_factor * unaccelerated->x,
 		.y = accel_factor * unaccelerated->y,
@@ -148,7 +147,8 @@ accelerator_filter_low_dpi(struct motion_filter *filter,
 static struct normalized_coords
 accelerator_filter_noop(struct motion_filter *filter,
 			const struct device_float_coords *unaccelerated,
-			void *data, uint64_t time)
+			void *data,
+			uint64_t time)
 {
 	const struct normalized_coords normalized = {
 		.x = unaccelerated->x,
@@ -158,12 +158,10 @@ accelerator_filter_noop(struct motion_filter *filter,
 }
 
 static void
-accelerator_restart(struct motion_filter *filter,
-		    void *data,
-		    uint64_t time)
+accelerator_restart(struct motion_filter *filter, void *data, uint64_t time)
 {
 	struct pointer_accelerator_low_dpi *accel =
-		(struct pointer_accelerator_low_dpi *) filter;
+		(struct pointer_accelerator_low_dpi *)filter;
 
 	trackers_reset(&accel->trackers, time);
 }
@@ -172,15 +170,14 @@ static void
 accelerator_destroy(struct motion_filter *filter)
 {
 	struct pointer_accelerator_low_dpi *accel =
-		(struct pointer_accelerator_low_dpi *) filter;
+		(struct pointer_accelerator_low_dpi *)filter;
 
 	trackers_free(&accel->trackers);
 	free(accel);
 }
 
 static bool
-accelerator_set_speed(struct motion_filter *filter,
-		      double speed_adjustment)
+accelerator_set_speed(struct motion_filter *filter, double speed_adjustment)
 {
 	struct pointer_accelerator_low_dpi *accel_filter =
 		(struct pointer_accelerator_low_dpi *)filter;
@@ -191,8 +188,7 @@ accelerator_set_speed(struct motion_filter *filter,
 	   don't read more into them other than "they mostly worked ok" */
 
 	/* delay when accel kicks in */
-	accel_filter->threshold = DEFAULT_THRESHOLD -
-					v_ms2us(0.25) * speed_adjustment;
+	accel_filter->threshold = DEFAULT_THRESHOLD - v_ms2us(0.25) * speed_adjustment;
 	if (accel_filter->threshold < MINIMUM_THRESHOLD)
 		accel_filter->threshold = MINIMUM_THRESHOLD;
 

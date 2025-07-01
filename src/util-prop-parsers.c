@@ -109,7 +109,7 @@ parse_mouse_wheel_click_count_property(const char *prop)
 	if (!safe_atoi(prop, &count) || abs(count) > 360)
 		return 0;
 
-        return count;
+	return count;
 }
 
 /**
@@ -133,7 +133,7 @@ parse_mouse_wheel_click_angle_property(const char *prop)
 	if (!safe_atoi(prop, &angle) || abs(angle) > 360)
 		return 0;
 
-        return angle;
+	return angle;
 }
 
 /**
@@ -234,8 +234,7 @@ parse_switch_reliability_property(const char *prop,
  * @return true on success, false otherwise
  */
 bool
-parse_tpkbcombo_layout_poperty(const char *prop,
-			       enum tpkbcombo_layout *layout)
+parse_tpkbcombo_layout_poperty(const char *prop, enum tpkbcombo_layout *layout)
 {
 	if (!prop)
 		return false;
@@ -316,11 +315,8 @@ parse_evcode_string(const char *s, int *type_out, int *code_out)
 			const char *str;
 			int type;
 		} map[] = {
-			{ "KEY_", EV_KEY },
-			{ "BTN_", EV_KEY },
-			{ "ABS_", EV_ABS },
-			{ "REL_", EV_REL },
-			{ "SW_", EV_SW },
+			{ "KEY_", EV_KEY }, { "BTN_", EV_KEY }, { "ABS_", EV_ABS },
+			{ "REL_", EV_REL }, { "SW_", EV_SW },
 		};
 		bool found = false;
 
@@ -384,8 +380,12 @@ parse_evcode_property(const char *prop, struct input_event *events, size_t *neve
 		bool enable;
 
 		switch (*s) {
-		case '+': enable = true; break;
-		case '-': enable = false; break;
+		case '+':
+			enable = true;
+			break;
+		case '-':
+			enable = false;
+			break;
 		default:
 			goto out;
 		}
@@ -399,13 +399,13 @@ parse_evcode_property(const char *prop, struct input_event *events, size_t *neve
 				goto out;
 		} else {
 			int consumed;
-			char stype[13] = {0}; /* EV_FF_STATUS + '\0' */
+			char stype[13] = { 0 }; /* EV_FF_STATUS + '\0' */
 
 			if (sscanf(s, "%12[A-Z_]:%x%n", stype, &code, &consumed) != 2 ||
 			    strlen(s) != (size_t)consumed ||
 			    (type = libevdev_event_type_from_name(stype)) == -1 ||
 			    code < 0 || code > libevdev_event_type_get_max(type))
-			    goto out;
+				goto out;
 		}
 
 		evs[idx].type = type;
@@ -435,7 +435,9 @@ out:
  * On success, props contains nprops elements.
  */
 bool
-parse_input_prop_property(const char *prop, struct input_prop *props_out, size_t *nprops)
+parse_input_prop_property(const char *prop,
+			  struct input_prop *props_out,
+			  size_t *nprops)
 {
 	bool rc = false;
 	struct input_prop props[INPUT_PROP_CNT]; /* doubling up on quirks is a bug */
@@ -452,8 +454,12 @@ parse_input_prop_property(const char *prop, struct input_prop *props_out, size_t
 		bool enable;
 
 		switch (*s) {
-		case '+': enable = true; break;
-		case '-': enable = false; break;
+		case '+':
+			enable = true;
+			break;
+		case '-':
+			enable = false;
+			break;
 		default:
 			goto out;
 		}

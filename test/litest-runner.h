@@ -25,10 +25,10 @@
 
 #include "config.h"
 
-#include "litest.h"
-#include "util-range.h"
-#include "util-range.h"
 #include "util-mem.h"
+#include "util-range.h"
+
+#include "litest.h"
 
 #define LITEST_RUNNER_DEFAULT_TIMEOUT 30
 
@@ -36,13 +36,13 @@
  * Result returned from tests or suites.
  */
 enum litest_runner_result {
-	LITEST_PASS = 75,		/**< test successful */
-	LITEST_FAIL = 76,		/**< test failed. Should not be returned directly,
-					     Use the litest_ macros instead */
-	LITEST_SKIP = 77,		/**< test was skipped */
-	LITEST_NOT_APPLICABLE = 78,	/**< test does not apply */
-	LITEST_TIMEOUT = 79,		/**< test aborted after timeout */
-	LITEST_SYSTEM_ERROR = 80,	/**< unrelated error occurred */
+	LITEST_PASS = 75,           /**< test successful */
+	LITEST_FAIL = 76,           /**< test failed. Should not be returned directly,
+					 Use the litest_ macros instead */
+	LITEST_SKIP = 77,           /**< test was skipped */
+	LITEST_NOT_APPLICABLE = 78, /**< test does not apply */
+	LITEST_TIMEOUT = 79,        /**< test aborted after timeout */
+	LITEST_SYSTEM_ERROR = 80,   /**< unrelated error occurred */
 };
 
 /* For parametrized tests (litest_add_parametrized and friends)
@@ -73,7 +73,8 @@ void
 _litest_test_param_fetch(const struct litest_test_parameters *params, ...);
 
 static inline const char *
-litest_test_param_get_string(const struct litest_test_parameters *params, const char *name)
+litest_test_param_get_string(const struct litest_test_parameters *params,
+			     const char *name)
 {
 	const char *p;
 	litest_test_param_fetch(params, name, 's', &p);
@@ -81,7 +82,8 @@ litest_test_param_get_string(const struct litest_test_parameters *params, const 
 }
 
 static inline bool
-litest_test_param_get_bool(const struct litest_test_parameters *params, const char *name)
+litest_test_param_get_bool(const struct litest_test_parameters *params,
+			   const char *name)
 {
 	bool p;
 	litest_test_param_fetch(params, name, 'b', &p);
@@ -105,7 +107,8 @@ litest_test_param_get_u32(const struct litest_test_parameters *params, const cha
 }
 
 static inline char
-litest_test_param_get_char(const struct litest_test_parameters *params, const char *name)
+litest_test_param_get_char(const struct litest_test_parameters *params,
+			   const char *name)
 {
 	char p;
 	litest_test_param_fetch(params, name, 'c', &p);
@@ -113,7 +116,8 @@ litest_test_param_get_char(const struct litest_test_parameters *params, const ch
 }
 
 static inline double
-litest_test_param_get_double(const struct litest_test_parameters *params, const char *name)
+litest_test_param_get_double(const struct litest_test_parameters *params,
+			     const char *name)
 {
 	double p;
 	litest_test_param_fetch(params, name, 'd', &p);
@@ -124,13 +128,13 @@ litest_test_param_get_double(const struct litest_test_parameters *params, const 
  * This struct is passed into every test.
  */
 struct litest_runner_test_env {
-	int rangeval;			/* The current value within the args.range (or 0) */
+	int rangeval; /* The current value within the args.range (or 0) */
 	const struct litest_test_parameters *params;
 };
 
 struct litest_runner_test_description {
-	char name[512];			/* The name of the test */
-	int rangeval;			/* The current value within the args.range (or 0) */
+	char name[512]; /* The name of the test */
+	int rangeval;   /* The current value within the args.range (or 0) */
 
 	struct litest_test_parameters *params;
 
@@ -140,29 +144,38 @@ struct litest_runner_test_description {
 	void (*teardown)(const struct litest_runner_test_description *);
 
 	struct {
-		struct range range;	/* The range this test applies to */
-		int signal;		/* expected signal for fail tests */
+		struct range range; /* The range this test applies to */
+		int signal;         /* expected signal for fail tests */
 	} args;
 };
 
 struct litest_runner;
 
-struct litest_runner *litest_runner_new(void);
+struct litest_runner *
+litest_runner_new(void);
 
 /**
  * Default is nprocs * 2.
  * Setting this to 0 means *no* forking. Setting this to 1 means only one test
  * is run at a time but in a child process.
  */
-void litest_runner_set_num_parallel(struct litest_runner *runner, size_t num_jobs);
-void litest_runner_set_timeout(struct litest_runner *runner, unsigned int timeout);
-void litest_runner_set_verbose(struct litest_runner *runner, bool verbose);
-void litest_runner_set_use_colors(struct litest_runner *runner, bool use_colors);
-void litest_runner_set_exit_on_fail(struct litest_runner *runner, bool do_exit);
-void litest_runner_set_output_file(struct litest_runner *runner, FILE *fp);
-void litest_runner_add_test(struct litest_runner *runner,
-			    const struct litest_runner_test_description *t);
-enum litest_runner_result litest_runner_run_tests(struct litest_runner *runner);
+void
+litest_runner_set_num_parallel(struct litest_runner *runner, size_t num_jobs);
+void
+litest_runner_set_timeout(struct litest_runner *runner, unsigned int timeout);
+void
+litest_runner_set_verbose(struct litest_runner *runner, bool verbose);
+void
+litest_runner_set_use_colors(struct litest_runner *runner, bool use_colors);
+void
+litest_runner_set_exit_on_fail(struct litest_runner *runner, bool do_exit);
+void
+litest_runner_set_output_file(struct litest_runner *runner, FILE *fp);
+void
+litest_runner_add_test(struct litest_runner *runner,
+		       const struct litest_runner_test_description *t);
+enum litest_runner_result
+litest_runner_run_tests(struct litest_runner *runner);
 
 typedef enum litest_runner_result (*litest_runner_global_setup_func_t)(void *userdata);
 typedef void (*litest_runner_global_teardown_func_t)(void *userdata);
@@ -173,7 +186,8 @@ litest_runner_set_setup_funcs(struct litest_runner *runner,
 			      litest_runner_global_teardown_func_t teardown,
 			      void *userdata);
 
-void litest_runner_destroy(struct litest_runner *runner);
+void
+litest_runner_destroy(struct litest_runner *runner);
 
 DEFINE_DESTROY_CLEANUP_FUNC(litest_runner);
 
@@ -182,5 +196,5 @@ DEFINE_DESTROY_CLEANUP_FUNC(litest_runner);
  * this function may simply abort() or it may longjmp back out to collect
  * errors from non-forking tests.
  */
-__attribute__((noreturn))
-void litest_runner_abort(void);
+__attribute__((noreturn)) void
+litest_runner_abort(void);

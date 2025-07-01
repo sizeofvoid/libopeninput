@@ -30,11 +30,10 @@
 #include "util-strings.h"
 
 #include "evdev-frame.h"
-
 #include "libinput-log.h"
-#include "libinput-util.h"
-#include "libinput-plugin.h"
 #include "libinput-plugin-tablet-eraser-button.h"
+#include "libinput-plugin.h"
+#include "libinput-util.h"
 
 static int ERASER_BUTTON_DELAY = 30 * 1000; /* µs */
 
@@ -61,7 +60,7 @@ enum eraser_button_event {
 static const char *
 eraser_button_state_str(enum eraser_button_state state)
 {
-	switch(state) {
+	switch (state) {
 	CASE_RETURN_STRING(ERASER_BUTTON_NEUTRAL);
 	CASE_RETURN_STRING(ERASER_BUTTON_PEN_PENDING_ERASER);
 	CASE_RETURN_STRING(ERASER_BUTTON_BUTTON_HELD_DOWN);
@@ -73,7 +72,7 @@ eraser_button_state_str(enum eraser_button_state state)
 static const char *
 eraser_button_event_str(enum eraser_button_event event)
 {
-	switch(event) {
+	switch (event) {
 	CASE_RETURN_STRING(ERASER_EVENT_PEN_ENTERING_PROX);
 	CASE_RETURN_STRING(ERASER_EVENT_PEN_LEAVING_PROX);
 	CASE_RETURN_STRING(ERASER_EVENT_ERASER_ENTERING_PROX);
@@ -98,7 +97,6 @@ struct plugin_device {
 	evdev_usage_t button;
 	struct libinput_plugin_timer *timer;
 	enum eraser_button_state state;
-
 };
 
 struct plugin_data {
@@ -140,8 +138,7 @@ plugin_destroy(struct libinput_plugin *libinput_plugin)
 }
 
 static void
-eraser_button_set_state(struct plugin_device *device,
-			       enum eraser_button_state to)
+eraser_button_set_state(struct plugin_device *device, enum eraser_button_state to)
 {
 	enum eraser_button_state *state = &device->state;
 
@@ -161,8 +158,7 @@ eraser_button_cancel_timer(struct plugin_device *device)
 }
 
 static void
-eraser_button_state_bug(struct plugin_device *device,
-			enum eraser_button_event event)
+eraser_button_state_bug(struct plugin_device *device, enum eraser_button_event event)
 {
 	plugin_log_bug(device->parent->plugin,
 		       "Invalid eraser button event %s in state %s\n",
@@ -171,15 +167,15 @@ eraser_button_state_bug(struct plugin_device *device,
 }
 
 enum tool_filter {
-	SKIP_PEN           = bit(1),
-	SKIP_ERASER        = bit(2),
-	PEN_IN_PROX        = bit(3),
-	PEN_OUT_OF_PROX    = bit(4),
-	ERASER_IN_PROX     = bit(5),
+	SKIP_PEN = bit(1),
+	SKIP_ERASER = bit(2),
+	PEN_IN_PROX = bit(3),
+	PEN_OUT_OF_PROX = bit(4),
+	ERASER_IN_PROX = bit(5),
 	ERASER_OUT_OF_PROX = bit(6),
-	BUTTON_DOWN        = bit(7),
-	BUTTON_UP          = bit(8),
-	SKIP_BTN_TOUCH     = bit(9),
+	BUTTON_DOWN = bit(7),
+	BUTTON_UP = bit(8),
+	SKIP_BTN_TOUCH = bit(9),
 };
 
 static void
@@ -212,22 +208,22 @@ eraser_button_insert_frame(struct plugin_device *device,
 		}
 	}
 
-	if (filter & (PEN_IN_PROX|PEN_OUT_OF_PROX)) {
+	if (filter & (PEN_IN_PROX | PEN_OUT_OF_PROX)) {
 		struct evdev_event event = {
 			.usage = evdev_usage_from(EVDEV_BTN_TOOL_PEN),
 			.value = (filter & PEN_IN_PROX) ? 1 : 0,
 		};
 		evdev_frame_append(frame_out, &event, 1);
 	}
-	if (filter & (ERASER_IN_PROX|ERASER_OUT_OF_PROX)) {
+	if (filter & (ERASER_IN_PROX | ERASER_OUT_OF_PROX)) {
 		struct evdev_event event = {
 			.usage = evdev_usage_from(EVDEV_BTN_TOOL_RUBBER),
 			.value = (filter & ERASER_IN_PROX) ? 1 : 0,
 		};
 		evdev_frame_append(frame_out, &event, 1);
 	}
-	if (filter & (BUTTON_UP|BUTTON_DOWN)) {
-		assert (button != NULL);
+	if (filter & (BUTTON_UP | BUTTON_DOWN)) {
+		assert(button != NULL);
 		struct evdev_event event = {
 			.usage = *button,
 			.value = (filter & BUTTON_DOWN) ? 1 : 0,
@@ -243,9 +239,9 @@ eraser_button_insert_frame(struct plugin_device *device,
 
 static enum frame_filter_state
 eraser_button_neutral_handle_event(struct plugin_device *device,
-				  struct evdev_frame *frame,
-				  enum eraser_button_event event,
-				  uint64_t time)
+				   struct evdev_frame *frame,
+				   enum eraser_button_event event,
+				   uint64_t time)
 {
 	switch (event) {
 	case ERASER_EVENT_PEN_ENTERING_PROX:
@@ -258,7 +254,7 @@ eraser_button_neutral_handle_event(struct plugin_device *device,
 		/* Change eraser prox in into pen prox in + button down */
 		eraser_button_insert_frame(device,
 					   frame,
-					   PEN_IN_PROX|SKIP_ERASER|BUTTON_DOWN,
+					   PEN_IN_PROX | SKIP_ERASER | BUTTON_DOWN,
 					   &device->button);
 		eraser_button_set_state(device, ERASER_BUTTON_BUTTON_HELD_DOWN);
 		return DISCARD;
@@ -291,7 +287,7 @@ eraser_button_pending_eraser_handle_event(struct plugin_device *device,
 		eraser_button_cancel_timer(device);
 		eraser_button_insert_frame(device,
 					   frame,
-					   SKIP_ERASER|SKIP_PEN|BUTTON_DOWN,
+					   SKIP_ERASER | SKIP_PEN | BUTTON_DOWN,
 					   &device->button);
 		eraser_button_set_state(device, ERASER_BUTTON_BUTTON_HELD_DOWN);
 		return DISCARD;
@@ -299,12 +295,12 @@ eraser_button_pending_eraser_handle_event(struct plugin_device *device,
 		eraser_button_state_bug(device, event);
 		break;
 	case ERASER_EVENT_TIMEOUT:
-                /* Pen went out of prox and we delayed expecting an eraser to
-                 * come in prox. That didn't happen -> pen prox out */
-                eraser_button_set_state(device, ERASER_BUTTON_NEUTRAL);
-                eraser_button_insert_frame(device,
+		/* Pen went out of prox and we delayed expecting an eraser to
+		 * come in prox. That didn't happen -> pen prox out */
+		eraser_button_set_state(device, ERASER_BUTTON_NEUTRAL);
+		eraser_button_insert_frame(device,
 					   frame,
-					   SKIP_ERASER|PEN_OUT_OF_PROX,
+					   SKIP_ERASER | PEN_OUT_OF_PROX,
 					   NULL);
 		break;
 	}
@@ -330,11 +326,12 @@ eraser_button_button_held_handle_event(struct plugin_device *device,
 	case ERASER_EVENT_ERASER_LEAVING_PROX:
 		eraser_button_insert_frame(device,
 					   device->last_frame,
-					   SKIP_ERASER|SKIP_PEN|BUTTON_UP,
+					   SKIP_ERASER | SKIP_PEN | BUTTON_UP,
 					   &device->button);
 		eraser_button_set_state(device, ERASER_BUTTON_BUTTON_RELEASED);
 		eraser_button_set_timer(device, time);
-		return DISCARD; /* Discard the actual frame, it has garbage data anyway */
+		return DISCARD; /* Discard the actual frame, it has garbage data anyway
+				 */
 	case ERASER_EVENT_TIMEOUT:
 		/* Expected to be cancelled in previous state */
 		eraser_button_state_bug(device, event);
@@ -353,10 +350,7 @@ eraser_button_button_released_handle_event(struct plugin_device *device,
 	switch (event) {
 	case ERASER_EVENT_PEN_ENTERING_PROX:
 		eraser_button_cancel_timer(device);
-		eraser_button_insert_frame(device,
-					   frame,
-					   SKIP_PEN|SKIP_ERASER,
-					   NULL);
+		eraser_button_insert_frame(device, frame, SKIP_PEN | SKIP_ERASER, NULL);
 		eraser_button_set_state(device, ERASER_BUTTON_NEUTRAL);
 		return DISCARD;
 	case ERASER_EVENT_PEN_LEAVING_PROX:
@@ -379,10 +373,7 @@ eraser_button_button_released_handle_event(struct plugin_device *device,
 					   frame,
 					   SKIP_PEN | SKIP_ERASER | BUTTON_UP,
 					   &device->button);
-		eraser_button_insert_frame(device,
-					   frame,
-					   PEN_OUT_OF_PROX,
-					   NULL);
+		eraser_button_insert_frame(device, frame, PEN_OUT_OF_PROX, NULL);
 		eraser_button_set_state(device, ERASER_BUTTON_NEUTRAL);
 		break;
 	}
@@ -404,22 +395,31 @@ eraser_button_handle_state(struct plugin_device *device,
 		ret = eraser_button_neutral_handle_event(device, frame, event, time);
 		break;
 	case ERASER_BUTTON_PEN_PENDING_ERASER:
-		ret = eraser_button_pending_eraser_handle_event(device, frame, event, time);
+		ret = eraser_button_pending_eraser_handle_event(device,
+								frame,
+								event,
+								time);
 		break;
 	case ERASER_BUTTON_BUTTON_HELD_DOWN:
-		ret = eraser_button_button_held_handle_event(device, frame, event, time);
+		ret = eraser_button_button_held_handle_event(device,
+							     frame,
+							     event,
+							     time);
 		break;
 	case ERASER_BUTTON_BUTTON_RELEASED:
-		ret = eraser_button_button_released_handle_event(device, frame, event, time);
+		ret = eraser_button_button_released_handle_event(device,
+								 frame,
+								 event,
+								 time);
 		break;
 	}
 
 	if (state != device->state) {
 		plugin_log_debug(device->parent->plugin,
-				"eraser button: state %s -> %s -> %s\n",
-				eraser_button_state_str(state),
-				eraser_button_event_str(event),
-				eraser_button_state_str(device->state));
+				 "eraser button: state %s -> %s -> %s\n",
+				 eraser_button_state_str(state),
+				 eraser_button_event_str(event),
+				 eraser_button_state_str(device->state));
 	}
 	return ret;
 }
@@ -463,8 +463,12 @@ eraser_button_handle_frame(struct plugin_device *device,
 	bool eraser_in_prox = device->eraser_in_prox;
 	bool pen_in_prox = device->pen_in_prox;
 
-	enum eraser_button_event eraser_event = eraser_in_prox ? ERASER_EVENT_ERASER_ENTERING_PROX : ERASER_EVENT_ERASER_LEAVING_PROX;
-	enum eraser_button_event pen_event = pen_in_prox ? ERASER_EVENT_PEN_ENTERING_PROX : ERASER_EVENT_PEN_LEAVING_PROX;
+	enum eraser_button_event eraser_event =
+		eraser_in_prox ? ERASER_EVENT_ERASER_ENTERING_PROX
+			       : ERASER_EVENT_ERASER_LEAVING_PROX;
+	enum eraser_button_event pen_event = pen_in_prox
+						     ? ERASER_EVENT_PEN_ENTERING_PROX
+						     : ERASER_EVENT_PEN_LEAVING_PROX;
 
 	enum frame_filter_state ret = PROCESS;
 
@@ -475,10 +479,16 @@ eraser_button_handle_frame(struct plugin_device *device,
 	if (eraser_toggled && pen_toggled) {
 		if (pen_in_prox) {
 			eraser_button_handle_state(device, frame, eraser_event, time);
-			ret = eraser_button_handle_state(device, frame, pen_event, time);
+			ret = eraser_button_handle_state(device,
+							 frame,
+							 pen_event,
+							 time);
 		} else {
 			eraser_button_handle_state(device, frame, pen_event, time);
-			ret = eraser_button_handle_state(device, frame, eraser_event, time);
+			ret = eraser_button_handle_state(device,
+							 frame,
+							 eraser_event,
+							 time);
 		}
 	} else if (eraser_toggled) {
 		ret = eraser_button_handle_state(device, frame, eraser_event, time);
@@ -496,8 +506,8 @@ eraser_button_handle_frame(struct plugin_device *device,
 
 static void
 eraser_button_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
-			       struct libinput_device *device,
-			       struct evdev_frame *frame)
+				 struct libinput_device *device,
+				 struct evdev_frame *frame)
 {
 	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
 	struct plugin_device *pd;
@@ -517,13 +527,16 @@ eraser_button_timer_func(struct libinput_plugin *plugin, uint64_t now, void *d)
 	struct plugin_device *device = d;
 
 	if (!device->last_frame) {
-		plugin_log_bug(device->parent->plugin,
-			       "Eraser button timer fired without a frame in state %s\n",
-			       eraser_button_state_str(device->state)
-			       );
+		plugin_log_bug(
+			device->parent->plugin,
+			"Eraser button timer fired without a frame in state %s\n",
+			eraser_button_state_str(device->state));
 		return;
 	}
-	eraser_button_handle_state(device, device->last_frame, ERASER_EVENT_TIMEOUT, now);
+	eraser_button_handle_state(device,
+				   device->last_frame,
+				   ERASER_EVENT_TIMEOUT,
+				   now);
 }
 
 static void
@@ -564,14 +577,15 @@ eraser_button_plugin_device_removed(struct libinput_plugin *libinput_plugin,
 
 static void
 eraser_button_plugin_tool_configured(struct libinput_plugin *libinput_plugin,
-				      struct libinput_tablet_tool *tool)
+				     struct libinput_tablet_tool *tool)
 {
 	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
 	struct plugin_device *pd;
 	list_for_each(pd, &plugin->devices, link) {
 		/* FIXME: sigh, we need a separate list of tools? */
 		pd->mode = libinput_tablet_tool_config_eraser_button_get_mode(tool);
-		uint32_t button = libinput_tablet_tool_config_eraser_button_get_button(tool);
+		uint32_t button =
+			libinput_tablet_tool_config_eraser_button_get_button(tool);
 
 		pd->button = evdev_usage_from_code(EV_KEY, button);
 	}
@@ -597,10 +611,8 @@ libinput_tablet_plugin_eraser_button(struct libinput *libinput)
 	_destroy_(plugin_data) *plugin = zalloc(sizeof(*plugin));
 	list_init(&plugin->devices);
 
-	_unref_(libinput_plugin) *p = libinput_plugin_new(libinput,
-							  "tablet-eraser-button",
-							  &interface,
-							  NULL);
+	_unref_(libinput_plugin) *p =
+		libinput_plugin_new(libinput, "tablet-eraser-button", &interface, NULL);
 	plugin->plugin = p;
 	libinput_plugin_set_user_data(p, steal(&plugin));
 }

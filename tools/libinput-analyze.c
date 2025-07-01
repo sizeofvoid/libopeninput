@@ -41,16 +41,14 @@ main(int argc, char **argv)
 
 	while (1) {
 		int c;
-		static struct option opts[] = {
-			{ "help",	no_argument,	0, 'h' },
-			{ 0, 0, 0, 0}
-		};
+		static struct option opts[] = { { "help", no_argument, 0, 'h' },
+						{ 0, 0, 0, 0 } };
 
 		c = getopt_long(argc, argv, "+h", opts, &option_index);
 		if (c == -1)
 			break;
 
-		switch(c) {
+		switch (c) {
 		case 'h':
 			usage();
 			return EXIT_SUCCESS;

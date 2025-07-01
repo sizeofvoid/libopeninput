@@ -26,13 +26,13 @@
 #include "config.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
+#include "filter-private.h"
 #include "filter.h"
 #include "libinput-util.h"
-#include "filter-private.h"
 
 struct trackpoint_flat_accelerator {
 	struct motion_filter base;
@@ -44,10 +44,11 @@ struct trackpoint_flat_accelerator {
 static struct normalized_coords
 trackpoint_flat_filter(struct motion_filter *filter,
 		       const struct device_float_coords *unaccelerated,
-		       void *data, uint64_t time)
+		       void *data,
+		       uint64_t time)
 {
 	struct trackpoint_flat_accelerator *accel_filter =
-		(struct trackpoint_flat_accelerator *) filter;
+		(struct trackpoint_flat_accelerator *)filter;
 	struct normalized_coords accelerated;
 
 	double factor = accel_filter->speed_factor;
@@ -61,7 +62,8 @@ trackpoint_flat_filter(struct motion_filter *filter,
 static struct normalized_coords
 trackpoint_flat_filter_noop(struct motion_filter *filter,
 			    const struct device_float_coords *unaccelerated,
-			    void *data, uint64_t time)
+			    void *data,
+			    uint64_t time)
 {
 	/* We map the unaccelerated flat filter to have the same behavior as
 	 * the "accelerated" flat filter.
@@ -97,16 +99,14 @@ static inline double
 speed_factor(double s)
 {
 	s += 1; /* map to [0, 2] */
-	return 435837.2 + (0.04762636 - 435837.2)/(1 + pow(s/240.4549,
-							   2.377168));
+	return 435837.2 + (0.04762636 - 435837.2) / (1 + pow(s / 240.4549, 2.377168));
 }
 
 static bool
-trackpoint_flat_set_speed(struct motion_filter *filter,
-			  double speed_adjustment)
+trackpoint_flat_set_speed(struct motion_filter *filter, double speed_adjustment)
 {
 	struct trackpoint_flat_accelerator *accel_filter =
-		(struct trackpoint_flat_accelerator *) filter;
+		(struct trackpoint_flat_accelerator *)filter;
 
 	assert(speed_adjustment >= -1.0 && speed_adjustment <= 1.0);
 
@@ -120,7 +120,7 @@ static void
 trackpoint_flat_destroy(struct motion_filter *filter)
 {
 	struct trackpoint_flat_accelerator *accel_filter =
-		(struct trackpoint_flat_accelerator *) filter;
+		(struct trackpoint_flat_accelerator *)filter;
 
 	free(accel_filter);
 }

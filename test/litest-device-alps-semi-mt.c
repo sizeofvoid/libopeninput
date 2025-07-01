@@ -26,12 +26,11 @@
 #include <assert.h>
 
 #include "libinput-util.h"
-
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
@@ -44,7 +43,7 @@ static struct input_event down[] = {
 
 static struct input_event move[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
@@ -108,11 +107,10 @@ static struct input_absinfo absinfo[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_ALPS_SEMI_MT,
-	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SEMI_MT,
-	.interface = &interface,
+	    .features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SEMI_MT,
+	    .interface = &interface,
 
-	.name = "AlpsPS/2 ALPS GlidePoint",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "AlpsPS/2 ALPS GlidePoint",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

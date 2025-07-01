@@ -27,26 +27,26 @@
 #include "evdev.h"
 
 #if !HAVE_LIBWACOM
-typedef void * WacomDevice;
+typedef void *WacomDevice;
 #endif
 
 #define LIBINPUT_BUTTONSET_AXIS_NONE 0
 
 enum pad_status {
-	PAD_NONE		= 0,
-	PAD_AXES_UPDATED	= bit(0),
-	PAD_BUTTONS_PRESSED	= bit(1),
-	PAD_BUTTONS_RELEASED	= bit(2),
+	PAD_NONE = 0,
+	PAD_AXES_UPDATED = bit(0),
+	PAD_BUTTONS_PRESSED = bit(1),
+	PAD_BUTTONS_RELEASED = bit(2),
 };
 
 enum pad_axes {
-	PAD_AXIS_NONE		= 0,
-	PAD_AXIS_RING1		= bit(0),
-	PAD_AXIS_RING2		= bit(1),
-	PAD_AXIS_STRIP1		= bit(2),
-	PAD_AXIS_STRIP2		= bit(3),
-	PAD_AXIS_DIAL1		= bit(4),
-	PAD_AXIS_DIAL2		= bit(5),
+	PAD_AXIS_NONE = 0,
+	PAD_AXIS_RING1 = bit(0),
+	PAD_AXIS_RING2 = bit(1),
+	PAD_AXIS_STRIP1 = bit(2),
+	PAD_AXIS_STRIP2 = bit(3),
+	PAD_AXIS_DIAL1 = bit(4),
+	PAD_AXIS_DIAL2 = bit(5),
 };
 
 struct button_state {
@@ -92,7 +92,7 @@ struct pad_dispatch {
 	struct ratelimit duplicate_abs_limit;
 };
 
-static inline struct pad_dispatch*
+static inline struct pad_dispatch *
 pad_dispatch(struct evdev_dispatch *dispatch)
 {
 	evdev_verify_dispatch_type(dispatch, DISPATCH_TABLET_PAD);

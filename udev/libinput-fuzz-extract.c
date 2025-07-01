@@ -24,15 +24,15 @@
 #include "config.h"
 
 #include <fcntl.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <unistd.h>
+#include <libevdev/libevdev.h>
 #include <libudev.h>
 #include <linux/input.h>
-#include <libevdev/libevdev.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <unistd.h>
 
-#include "util-prop-parsers.h"
 #include "util-macros.h"
+#include "util-prop-parsers.h"
 
 /**
  * For a non-zero fuzz on the x/y axes, print that fuzz as property and
@@ -46,10 +46,12 @@ handle_absfuzz(struct udev_device *device)
 	struct libevdev *evdev = NULL;
 	int fd = -1;
 	int rc;
-	unsigned int axes[] = {ABS_X,
-			       ABS_Y,
-			       ABS_MT_POSITION_X,
-			       ABS_MT_POSITION_Y,};
+	unsigned int axes[] = {
+		ABS_X,
+		ABS_Y,
+		ABS_MT_POSITION_X,
+		ABS_MT_POSITION_Y,
+	};
 
 	devnode = udev_device_get_devnode(device);
 	if (!devnode)
@@ -87,10 +89,12 @@ out:
 static void
 handle_evdev_abs(struct udev_device *device)
 {
-	unsigned int axes[] = {ABS_X,
-			       ABS_Y,
-			       ABS_MT_POSITION_X,
-			       ABS_MT_POSITION_Y,};
+	unsigned int axes[] = {
+		ABS_X,
+		ABS_Y,
+		ABS_MT_POSITION_X,
+		ABS_MT_POSITION_Y,
+	};
 
 	ARRAY_FOR_EACH(axes, code) {
 		const char *prop;
@@ -109,7 +113,8 @@ handle_evdev_abs(struct udev_device *device)
 	}
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
 	int rc = 1;
 	struct udev *udev = NULL;

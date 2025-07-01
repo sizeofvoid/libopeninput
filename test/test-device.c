@@ -29,8 +29,8 @@
 #include <libudev.h>
 #include <unistd.h>
 
-#include "litest.h"
 #include "libinput-util.h"
+#include "litest.h"
 
 START_TEST(device_sendevents_config)
 {
@@ -41,8 +41,7 @@ START_TEST(device_sendevents_config)
 	device = dev->libinput_device;
 
 	modes = libinput_device_config_send_events_get_modes(device);
-	litest_assert_int_eq(modes,
-			 (uint32_t)LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	litest_assert_int_eq(modes, (uint32_t)LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 }
 END_TEST
 
@@ -54,8 +53,9 @@ START_TEST(device_sendevents_config_invalid)
 
 	device = dev->libinput_device;
 
-	status = libinput_device_config_send_events_set_mode(device,
-			     LIBINPUT_CONFIG_SEND_EVENTS_DISABLED | bit(4));
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED | bit(4));
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
 }
 END_TEST
@@ -71,8 +71,7 @@ START_TEST(device_sendevents_config_touchpad)
 	/* The wacom devices in the test suite are external */
 	if (libevdev_get_id_vendor(dev->evdev) != VENDOR_ID_WACOM &&
 	    !litest_touchpad_is_external(dev))
-		expected |=
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
+		expected |= LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
 
 	device = dev->libinput_device;
 
@@ -98,8 +97,7 @@ START_TEST(device_sendevents_config_touchpad_superset)
 	modes = LIBINPUT_CONFIG_SEND_EVENTS_DISABLED |
 		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE;
 
-	status = libinput_device_config_send_events_set_mode(device,
-							     modes);
+	status = libinput_device_config_send_events_set_mode(device, modes);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	/* DISABLED supersedes the rest, expect the rest to be dropped */
@@ -117,12 +115,10 @@ START_TEST(device_sendevents_config_default)
 	device = dev->libinput_device;
 
 	mode = libinput_device_config_send_events_get_mode(device);
-	litest_assert_enum_eq(mode,
-			 LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	litest_assert_enum_eq(mode, LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 
 	mode = libinput_device_config_send_events_get_default_mode(device);
-	litest_assert_enum_eq(mode,
-			 LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	litest_assert_enum_eq(mode, LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 }
 END_TEST
 
@@ -139,8 +135,9 @@ START_TEST(device_disable)
 
 	litest_drain_events(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	/* no event from disabling */
@@ -158,8 +155,9 @@ START_TEST(device_disable)
 	litest_drain_events(li);
 
 	/* no event from resuming */
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	litest_assert_empty_queue(li);
 
@@ -171,7 +169,7 @@ START_TEST(device_disable)
 	event = libinput_get_event(li);
 	litest_assert_notnull(event);
 	litest_assert_enum_eq(libinput_event_get_type(event),
-			 LIBINPUT_EVENT_POINTER_MOTION);
+			      LIBINPUT_EVENT_POINTER_MOTION);
 	libinput_event_destroy(event);
 
 	litest_device_destroy(tmp);
@@ -194,8 +192,9 @@ START_TEST(device_disable_tablet)
 
 	litest_drain_events(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	/* no event from disabling */
@@ -211,8 +210,9 @@ START_TEST(device_disable_tablet)
 	litest_assert_empty_queue(li);
 
 	/* no event from resuming */
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	litest_assert_empty_queue(li);
 }
@@ -229,8 +229,9 @@ START_TEST(device_disable_touchpad)
 
 	litest_drain_events(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	/* no event from disabling */
@@ -243,8 +244,9 @@ START_TEST(device_disable_touchpad)
 	litest_assert_empty_queue(li);
 
 	/* no event from resuming */
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	litest_assert_empty_queue(li);
 }
@@ -261,8 +263,9 @@ START_TEST(device_disable_touch)
 
 	litest_drain_events(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	/* no event from disabling */
@@ -275,8 +278,9 @@ START_TEST(device_disable_touch)
 	litest_assert_empty_queue(li);
 
 	/* no event from resuming */
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	litest_assert_empty_queue(li);
 }
@@ -296,8 +300,9 @@ START_TEST(device_disable_touch_during_touch)
 	litest_touch_move_to(dev, 0, 50, 50, 90, 90, 10);
 	litest_drain_events(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	/* after disabling sendevents we require a touch up */
@@ -322,8 +327,9 @@ START_TEST(device_disable_touch_during_touch)
 	litest_assert_empty_queue(li);
 
 	/* no event from resuming */
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	litest_assert_empty_queue(li);
 }
@@ -350,17 +356,18 @@ START_TEST(device_disable_events_pending)
 	}
 	litest_dispatch(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	/* expect above events */
 	litest_wait_for_event(li);
 	while ((event = libinput_get_event(li)) != NULL) {
-	       litest_assert_enum_eq(libinput_event_get_type(event),
-				LIBINPUT_EVENT_POINTER_MOTION);
-	       libinput_event_destroy(event);
-       }
+		litest_assert_enum_eq(libinput_event_get_type(event),
+				      LIBINPUT_EVENT_POINTER_MOTION);
+		libinput_event_destroy(event);
+	}
 }
 END_TEST
 
@@ -375,12 +382,14 @@ START_TEST(device_double_disable)
 
 	litest_drain_events(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_assert_empty_queue(li);
@@ -398,12 +407,14 @@ START_TEST(device_double_enable)
 
 	litest_drain_events(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_assert_empty_queue(li);
@@ -422,8 +433,9 @@ START_TEST(device_reenable_syspath_changed)
 	device1 = litest_device->libinput_device;
 
 	libinput_device_ref(device1);
-	status = libinput_device_config_send_events_set_mode(device1,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device1,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
@@ -433,8 +445,9 @@ START_TEST(device_reenable_syspath_changed)
 
 	litest_device = litest_add_device(li, LITEST_MOUSE);
 
-	status = libinput_device_config_send_events_set_mode(device1,
-			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device1,
+		LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	/* can't really check for much here, other than that if we pump
@@ -466,8 +479,9 @@ START_TEST(device_reenable_device_removed)
 	device = litest_device->libinput_device;
 
 	libinput_device_ref(device);
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_drain_events(li);
@@ -475,8 +489,9 @@ START_TEST(device_reenable_device_removed)
 	litest_device_destroy(litest_device);
 	litest_drain_events(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	/* can't really check for much here, this really just exercises the
@@ -501,20 +516,21 @@ START_TEST(device_disable_release_buttons)
 	litest_button_click_debounced(dev, li, BTN_LEFT, true);
 	litest_drain_events(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_wait_for_event(li);
 	event = libinput_get_event(li);
 
 	litest_assert_enum_eq(libinput_event_get_type(event),
-			 LIBINPUT_EVENT_POINTER_BUTTON);
+			      LIBINPUT_EVENT_POINTER_BUTTON);
 	ptrevent = libinput_event_get_pointer_event(event);
 	litest_assert_int_eq(libinput_event_pointer_get_button(ptrevent),
 			     (unsigned int)BTN_LEFT);
 	litest_assert_enum_eq(libinput_event_pointer_get_button_state(ptrevent),
-			 LIBINPUT_BUTTON_STATE_RELEASED);
+			      LIBINPUT_BUTTON_STATE_RELEASED);
 
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
@@ -535,20 +551,21 @@ START_TEST(device_disable_release_keys)
 	litest_keyboard_key(dev, KEY_A, true);
 	litest_drain_events(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_wait_for_event(li);
 	event = libinput_get_event(li);
 
 	litest_assert_enum_eq(libinput_event_get_type(event),
-			 LIBINPUT_EVENT_KEYBOARD_KEY);
+			      LIBINPUT_EVENT_KEYBOARD_KEY);
 	kbdevent = libinput_event_get_keyboard_event(event);
 	litest_assert_int_eq(libinput_event_keyboard_get_key(kbdevent),
 			     (unsigned int)KEY_A);
 	litest_assert_enum_eq(libinput_event_keyboard_get_key_state(kbdevent),
-			 LIBINPUT_KEY_STATE_RELEASED);
+			      LIBINPUT_KEY_STATE_RELEASED);
 
 	libinput_event_destroy(event);
 	litest_assert_empty_queue(li);
@@ -564,8 +581,7 @@ START_TEST(device_disable_release_tap)
 
 	device = dev->libinput_device;
 
-	libinput_device_config_tap_set_enabled(device,
-					       LIBINPUT_CONFIG_TAP_ENABLED);
+	libinput_device_config_tap_set_enabled(device, LIBINPUT_CONFIG_TAP_ENABLED);
 
 	litest_drain_events(li);
 
@@ -574,29 +590,26 @@ START_TEST(device_disable_release_tap)
 
 	litest_dispatch(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	/* tap happened before suspending, so we still expect the event */
 
 	litest_timeout_tap(li);
 
-	litest_assert_button_event(li,
-				   BTN_LEFT,
-				   LIBINPUT_BUTTON_STATE_PRESSED);
-	litest_assert_button_event(li,
-				   BTN_LEFT,
-				   LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
 
 	litest_assert_empty_queue(li);
 
 	/* resume, make sure we don't get anything */
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
-
 }
 END_TEST
 
@@ -609,8 +622,7 @@ START_TEST(device_disable_release_tap_n_drag)
 
 	device = dev->libinput_device;
 
-	libinput_device_config_tap_set_enabled(device,
-					       LIBINPUT_CONFIG_TAP_ENABLED);
+	libinput_device_config_tap_set_enabled(device, LIBINPUT_CONFIG_TAP_ENABLED);
 
 	litest_drain_events(li);
 
@@ -619,19 +631,16 @@ START_TEST(device_disable_release_tap_n_drag)
 	litest_touch_down(dev, 0, 50, 50);
 	litest_timeout_tap(li);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_dispatch(li);
 	litest_touch_up(dev, 0);
 
-	litest_assert_button_event(li,
-				   BTN_LEFT,
-				   LIBINPUT_BUTTON_STATE_PRESSED);
-	litest_assert_button_event(li,
-				   BTN_LEFT,
-				   LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
 
 	litest_assert_empty_queue(li);
 }
@@ -652,17 +661,14 @@ START_TEST(device_disable_release_softbutton)
 	litest_button_click_debounced(dev, li, BTN_LEFT, true);
 
 	/* make sure softbutton works */
-	litest_assert_button_event(li,
-				   BTN_RIGHT,
-				   LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_button_event(li, BTN_RIGHT, LIBINPUT_BUTTON_STATE_PRESSED);
 	/* disable */
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
-	litest_assert_button_event(li,
-				   BTN_RIGHT,
-				   LIBINPUT_BUTTON_STATE_RELEASED);
+	litest_assert_button_event(li, BTN_RIGHT, LIBINPUT_BUTTON_STATE_RELEASED);
 
 	litest_assert_empty_queue(li);
 
@@ -672,12 +678,12 @@ START_TEST(device_disable_release_softbutton)
 	litest_assert_empty_queue(li);
 
 	/* resume, make sure we don't get anything */
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
-
 }
 END_TEST
 
@@ -696,8 +702,9 @@ START_TEST(device_disable_topsoftbutton)
 
 	trackpoint = litest_add_device(li, LITEST_TRACKPOINT);
 
-	status = libinput_device_config_send_events_set_mode(device,
-			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
+	status = libinput_device_config_send_events_set_mode(
+		device,
+		LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	litest_drain_events(li);
 
@@ -709,26 +716,26 @@ START_TEST(device_disable_topsoftbutton)
 	litest_wait_for_event(li);
 	event = libinput_get_event(li);
 	litest_assert_enum_eq(libinput_event_get_type(event),
-			 LIBINPUT_EVENT_POINTER_BUTTON);
+			      LIBINPUT_EVENT_POINTER_BUTTON);
 	litest_assert_ptr_eq(libinput_event_get_device(event),
-			 trackpoint->libinput_device);
+			     trackpoint->libinput_device);
 	ptrevent = libinput_event_get_pointer_event(event);
 	litest_assert_int_eq(libinput_event_pointer_get_button(ptrevent),
 			     (unsigned int)BTN_RIGHT);
 	litest_assert_enum_eq(libinput_event_pointer_get_button_state(ptrevent),
-			 LIBINPUT_BUTTON_STATE_PRESSED);
+			      LIBINPUT_BUTTON_STATE_PRESSED);
 	libinput_event_destroy(event);
 
 	event = libinput_get_event(li);
 	litest_assert_enum_eq(libinput_event_get_type(event),
-			 LIBINPUT_EVENT_POINTER_BUTTON);
+			      LIBINPUT_EVENT_POINTER_BUTTON);
 	litest_assert_ptr_eq(libinput_event_get_device(event),
-			 trackpoint->libinput_device);
+			     trackpoint->libinput_device);
 	ptrevent = libinput_event_get_pointer_event(event);
 	litest_assert_int_eq(libinput_event_pointer_get_button(ptrevent),
 			     (unsigned int)BTN_RIGHT);
 	litest_assert_enum_eq(libinput_event_pointer_get_button_state(ptrevent),
-			 LIBINPUT_BUTTON_STATE_RELEASED);
+			      LIBINPUT_BUTTON_STATE_RELEASED);
 	libinput_event_destroy(event);
 
 	litest_assert_empty_queue(li);
@@ -748,14 +755,10 @@ START_TEST(device_ids)
 	pid = libevdev_get_id_product(dev->evdev);
 	vid = libevdev_get_id_vendor(dev->evdev);
 
-	litest_assert_str_eq(name,
-			 libinput_device_get_name(dev->libinput_device));
-	litest_assert_int_eq(bus,
-			 libinput_device_get_id_bustype(dev->libinput_device));
-	litest_assert_int_eq(pid,
-			 libinput_device_get_id_product(dev->libinput_device));
-	litest_assert_int_eq(vid,
-			 libinput_device_get_id_vendor(dev->libinput_device));
+	litest_assert_str_eq(name, libinput_device_get_name(dev->libinput_device));
+	litest_assert_int_eq(bus, libinput_device_get_id_bustype(dev->libinput_device));
+	litest_assert_int_eq(pid, libinput_device_get_id_product(dev->libinput_device));
+	litest_assert_int_eq(vid, libinput_device_get_id_vendor(dev->libinput_device));
 }
 END_TEST
 
@@ -775,7 +778,8 @@ START_TEST(device_context)
 	struct litest_device *dev = litest_current_device();
 	struct libinput_seat *seat;
 
-	litest_assert(dev->libinput == libinput_device_get_context(dev->libinput_device));
+	litest_assert(dev->libinput ==
+		      libinput_device_get_context(dev->libinput_device));
 	seat = libinput_device_get_seat(dev->libinput_device);
 	litest_assert(dev->libinput == libinput_seat_get_context(seat));
 }
@@ -808,8 +812,7 @@ START_TEST(device_group_get)
 	libinput_device_group_ref(group);
 
 	libinput_device_group_set_user_data(group, &userdata);
-	litest_assert_ptr_eq(&userdata,
-			 libinput_device_group_get_user_data(group));
+	litest_assert_ptr_eq(&userdata, libinput_device_group_get_user_data(group));
 
 	libinput_device_group_unref(group);
 }
@@ -818,8 +821,7 @@ END_TEST
 START_TEST(device_group_ref)
 {
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
-	struct litest_device *dev = litest_add_device(li,
-						      LITEST_MOUSE);
+	struct litest_device *dev = litest_add_device(li, LITEST_MOUSE);
 	struct libinput_device *device = dev->libinput_device;
 	struct libinput_device_group *group;
 
@@ -857,8 +859,7 @@ START_TEST(device_group_leak)
 	/* clang-format on */
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 
 	group = libinput_device_get_device_group(device);
 	libinput_device_group_ref(group);
@@ -887,8 +888,7 @@ START_TEST(abs_device_missing_one_abs)
 	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	litest_disable_log_handler(li);
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_restore_log_handler(li);
 	litest_assert(device == NULL);
 
@@ -914,8 +914,7 @@ START_TEST(abs_mt_device_missing_one_mt_abs)
 	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	litest_disable_log_handler(li);
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_restore_log_handler(li);
 	litest_assert(device == NULL);
 
@@ -936,8 +935,7 @@ assert_device_ignored(struct libinput *li, struct input_absinfo *absinfo)
 						 EV_KEY, BTN_RIGHT,
 						 -1);
 	/* clang-format on */
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_ptr_null(device);
 	libevdev_uinput_destroy(uinput);
 }
@@ -998,10 +996,14 @@ START_TEST(abs_device_missing_res)
 	int axis = litest_test_param_get_i32(test_env->params, "axis");
 
 	switch (axis) {
-	case ABS_X: absinfo[0].resolution = 0; break;
-	case ABS_Y: absinfo[1].resolution = 0; break;
+	case ABS_X:
+		absinfo[0].resolution = 0;
+		break;
+	case ABS_Y:
+		absinfo[1].resolution = 0;
+		break;
 	default:
-		    litest_abort_msg("Invalid test parameter %d", axis);
+		litest_abort_msg("Invalid test parameter %d", axis);
 	}
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
@@ -1028,10 +1030,14 @@ START_TEST(abs_mt_device_missing_res)
 	int axis = litest_test_param_get_i32(test_env->params, "axis");
 
 	switch (axis) {
-	case ABS_MT_POSITION_X: absinfo[4].resolution = 0; break;
-	case ABS_MT_POSITION_Y: absinfo[5].resolution = 0; break;
+	case ABS_MT_POSITION_X:
+		absinfo[4].resolution = 0;
+		break;
+	case ABS_MT_POSITION_Y:
+		absinfo[5].resolution = 0;
+		break;
 	default:
-		    litest_abort_msg("Invalid test parameter %d", axis);
+		litest_abort_msg("Invalid test parameter %d", axis);
 	}
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
@@ -1047,12 +1053,9 @@ START_TEST(ignore_joystick)
 	struct libevdev_uinput *uinput;
 	struct libinput_device *device;
 	struct input_absinfo absinfo[] = {
-		{ ABS_X, 0, 10, 0, 0, 10 },
-		{ ABS_Y, 0, 10, 0, 0, 10 },
-		{ ABS_RX, 0, 10, 0, 0, 10 },
-		{ ABS_RY, 0, 10, 0, 0, 10 },
-		{ ABS_THROTTLE, 0, 2, 0, 0, 0 },
-		{ ABS_RUDDER, 0, 255, 0, 0, 0 },
+		{ ABS_X, 0, 10, 0, 0, 10 },      { ABS_Y, 0, 10, 0, 0, 10 },
+		{ ABS_RX, 0, 10, 0, 0, 10 },     { ABS_RY, 0, 10, 0, 0, 10 },
+		{ ABS_THROTTLE, 0, 2, 0, 0, 0 }, { ABS_RUDDER, 0, 255, 0, 0, 0 },
 		{ -1, -1, -1, -1, -1, -1 },
 	};
 
@@ -1067,8 +1070,7 @@ START_TEST(ignore_joystick)
 						 EV_KEY, BTN_A,
 						 -1);
 	/* clang-format on */
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_ptr_null(device);
 	libevdev_uinput_destroy(uinput);
 	litest_restore_log_handler(li);
@@ -1080,8 +1082,8 @@ START_TEST(device_wheel_only)
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 
-	litest_assert(libinput_device_has_capability(device,
-						 LIBINPUT_DEVICE_CAP_POINTER));
+	litest_assert(
+		libinput_device_has_capability(device, LIBINPUT_DEVICE_CAP_POINTER));
 }
 END_TEST
 
@@ -1100,11 +1102,8 @@ START_TEST(device_accelerometer)
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
 	litest_disable_log_handler(li);
 
-	uinput = litest_create_uinput_abs_device("test device", NULL,
-						 absinfo,
-						 -1);
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	uinput = litest_create_uinput_abs_device("test device", NULL, absinfo, -1);
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_ptr_null(device);
 	libevdev_uinput_destroy(uinput);
 	litest_restore_log_handler(li);
@@ -1119,8 +1118,7 @@ START_TEST(device_udev_tag_wacom_tablet)
 	const char *prop;
 
 	d = libinput_device_get_udev_device(device);
-	prop = udev_device_get_property_value(d,
-					      "ID_INPUT_TABLET");
+	prop = udev_device_get_property_value(d, "ID_INPUT_TABLET");
 
 	litest_assert_notnull(prop);
 	udev_device_unref(d);
@@ -1143,8 +1141,7 @@ START_TEST(device_nonpointer_rel)
 					     -1);
 	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_notnull(device);
 
 	litest_disable_log_handler(li);
@@ -1185,8 +1182,7 @@ START_TEST(device_touchpad_rel)
 						 -1);
 	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_notnull(device);
 
 	for (i = 0; i < 100; i++) {
@@ -1224,8 +1220,7 @@ START_TEST(device_touch_rel)
 						 -1);
 	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_notnull(device);
 
 	litest_disable_log_handler(li);
@@ -1262,8 +1257,7 @@ START_TEST(device_abs_rel)
 						 -1);
 	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_notnull(device);
 
 	for (i = 0; i < 100; i++) {
@@ -1379,8 +1373,8 @@ START_TEST(device_quirks_logitech_marble_mouse)
 
 	litest_drain_events(li);
 
-	litest_assert(!libinput_device_pointer_has_button(dev->libinput_device,
-						      BTN_MIDDLE));
+	litest_assert(
+		!libinput_device_pointer_has_button(dev->libinput_device, BTN_MIDDLE));
 }
 END_TEST
 
@@ -1417,13 +1411,9 @@ START_TEST(device_quirks)
 	struct litest_device *dev;
 	struct libinput_device *device;
 	char **message;
-	bool disable_key_f1 = false,
-	     enable_btn_left = false,
-	     disable_pointingstick = false,
-	     enable_buttonpad = false,
-	     enable_direct = false,
-	     disable_direct = false,
-	     enable_semi_mt = false,
+	bool disable_key_f1 = false, enable_btn_left = false,
+	     disable_pointingstick = false, enable_buttonpad = false,
+	     enable_direct = false, disable_direct = false, enable_semi_mt = false,
 	     disable_semi_mt = false;
 
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
@@ -1432,18 +1422,13 @@ START_TEST(device_quirks)
 	dev = litest_add_device(li, LITEST_KEYBOARD_QUIRKED);
 	device = dev->libinput_device;
 
-	litest_assert(libinput_device_pointer_has_button(device,
-						     BTN_LEFT));
-	litest_assert(libinput_device_pointer_has_button(dev->libinput_device,
-						     BTN_RIGHT));
-	litest_assert(!libinput_device_pointer_has_button(device,
-						      BTN_MIDDLE));
-	litest_assert(!libinput_device_keyboard_has_key(dev->libinput_device,
-						    KEY_F1));
-	litest_assert(!libinput_device_keyboard_has_key(dev->libinput_device,
-						    KEY_F2));
-	litest_assert(!libinput_device_keyboard_has_key(dev->libinput_device,
-						    KEY_F3));
+	litest_assert(libinput_device_pointer_has_button(device, BTN_LEFT));
+	litest_assert(
+		libinput_device_pointer_has_button(dev->libinput_device, BTN_RIGHT));
+	litest_assert(!libinput_device_pointer_has_button(device, BTN_MIDDLE));
+	litest_assert(!libinput_device_keyboard_has_key(dev->libinput_device, KEY_F1));
+	litest_assert(!libinput_device_keyboard_has_key(dev->libinput_device, KEY_F2));
+	litest_assert(!libinput_device_keyboard_has_key(dev->libinput_device, KEY_F3));
 
 	/* Scrape the debug messages for confirmation that our quirks are
 	 * triggered, the above checks cannot work non-key codes */
@@ -1497,12 +1482,9 @@ START_TEST(device_capability_at_least_one)
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 	enum libinput_device_capability caps[] = {
-		LIBINPUT_DEVICE_CAP_KEYBOARD,
-		LIBINPUT_DEVICE_CAP_POINTER,
-		LIBINPUT_DEVICE_CAP_TOUCH,
-		LIBINPUT_DEVICE_CAP_TABLET_TOOL,
-		LIBINPUT_DEVICE_CAP_TABLET_PAD,
-		LIBINPUT_DEVICE_CAP_GESTURE,
+		LIBINPUT_DEVICE_CAP_KEYBOARD,   LIBINPUT_DEVICE_CAP_POINTER,
+		LIBINPUT_DEVICE_CAP_TOUCH,      LIBINPUT_DEVICE_CAP_TABLET_TOOL,
+		LIBINPUT_DEVICE_CAP_TABLET_PAD, LIBINPUT_DEVICE_CAP_GESTURE,
 		LIBINPUT_DEVICE_CAP_SWITCH,
 	};
 	int ncaps = 0;
@@ -1512,7 +1494,6 @@ START_TEST(device_capability_at_least_one)
 			ncaps++;
 	}
 	litest_assert_int_gt(ncaps, 0);
-
 }
 END_TEST
 
@@ -1524,7 +1505,6 @@ START_TEST(device_capability_check_invalid)
 	litest_assert(!libinput_device_has_capability(device, -1));
 	litest_assert(!libinput_device_has_capability(device, 7));
 	litest_assert(!libinput_device_has_capability(device, 0xffff));
-
 }
 END_TEST
 
@@ -1542,8 +1522,7 @@ START_TEST(device_capability_nocaps_ignored)
 					     -1);
 	/* clang-format on */
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_ptr_null(device);
 
 	libevdev_uinput_destroy(uinput);
@@ -1622,14 +1601,12 @@ START_TEST(device_button_down_remove)
 	for (int code = 0; code < KEY_MAX; code++) {
 		struct libinput_event *event;
 		struct libinput_event_pointer *p;
-		bool have_down = false,
-		     have_up = false;
+		bool have_down = false, have_up = false;
 		const char *keyname;
 		int button_down = 0, button_up = 0;
 
 		keyname = libevdev_event_code_get_name(EV_KEY, code);
-		if (!keyname ||
-		    !strstartswith(keyname, "BTN_") ||
+		if (!keyname || !strstartswith(keyname, "BTN_") ||
 		    strstartswith(keyname, "BTN_TOOL_"))
 			continue;
 

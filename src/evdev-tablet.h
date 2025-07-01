@@ -28,7 +28,7 @@
 #include "evdev.h"
 
 #if !HAVE_LIBWACOM
-typedef void * WacomDevice;
+typedef void *WacomDevice;
 #endif
 
 #define LIBINPUT_TABLET_TOOL_AXIS_NONE 0
@@ -38,20 +38,20 @@ typedef void * WacomDevice;
 #define TABLET_HISTORY_LENGTH 4
 
 enum tablet_status {
-	TABLET_NONE			= 0,
-	TABLET_AXES_UPDATED		= bit(0),
-	TABLET_BUTTONS_PRESSED		= bit(1),
-	TABLET_BUTTONS_DOWN		= bit(2),
-	TABLET_BUTTONS_RELEASED		= bit(3),
-	TABLET_TOOL_UPDATED		= bit(4),
-	TABLET_TOOL_IN_CONTACT		= bit(5),
-	TABLET_TOOL_LEAVING_PROXIMITY	= bit(6),
-	TABLET_TOOL_OUT_OF_PROXIMITY	= bit(7),
-	TABLET_TOOL_ENTERING_PROXIMITY	= bit(8),
-	TABLET_TOOL_ENTERING_CONTACT	= bit(9),
-	TABLET_TOOL_LEAVING_CONTACT	= bit(10),
-	TABLET_TOOL_OUT_OF_RANGE	= bit(11),
-	TABLET_TOOL_OUTSIDE_AREA        = bit(12),
+	TABLET_NONE = 0,
+	TABLET_AXES_UPDATED = bit(0),
+	TABLET_BUTTONS_PRESSED = bit(1),
+	TABLET_BUTTONS_DOWN = bit(2),
+	TABLET_BUTTONS_RELEASED = bit(3),
+	TABLET_TOOL_UPDATED = bit(4),
+	TABLET_TOOL_IN_CONTACT = bit(5),
+	TABLET_TOOL_LEAVING_PROXIMITY = bit(6),
+	TABLET_TOOL_OUT_OF_PROXIMITY = bit(7),
+	TABLET_TOOL_ENTERING_PROXIMITY = bit(8),
+	TABLET_TOOL_ENTERING_CONTACT = bit(9),
+	TABLET_TOOL_LEAVING_CONTACT = bit(10),
+	TABLET_TOOL_OUT_OF_RANGE = bit(11),
+	TABLET_TOOL_OUTSIDE_AREA = bit(12),
 };
 
 struct button_state {
@@ -118,7 +118,7 @@ struct tablet_dispatch {
 	} rotation;
 };
 
-static inline struct tablet_dispatch*
+static inline struct tablet_dispatch *
 tablet_dispatch(struct evdev_dispatch *dispatch)
 {
 	evdev_verify_dispatch_type(dispatch, DISPATCH_TABLET);
@@ -216,13 +216,27 @@ tablet_tool_to_evcode(enum libinput_tablet_tool_type type)
 	int code;
 
 	switch (type) {
-	case LIBINPUT_TABLET_TOOL_TYPE_PEN:	  code = BTN_TOOL_PEN;		break;
-	case LIBINPUT_TABLET_TOOL_TYPE_ERASER:	  code = BTN_TOOL_RUBBER;	break;
-	case LIBINPUT_TABLET_TOOL_TYPE_BRUSH:	  code = BTN_TOOL_BRUSH;	break;
-	case LIBINPUT_TABLET_TOOL_TYPE_PENCIL:	  code = BTN_TOOL_PENCIL;	break;
-	case LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH:  code = BTN_TOOL_AIRBRUSH;	break;
-	case LIBINPUT_TABLET_TOOL_TYPE_MOUSE:	  code = BTN_TOOL_MOUSE;	break;
-	case LIBINPUT_TABLET_TOOL_TYPE_LENS:	  code = BTN_TOOL_LENS;		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_PEN:
+		code = BTN_TOOL_PEN;
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_ERASER:
+		code = BTN_TOOL_RUBBER;
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_BRUSH:
+		code = BTN_TOOL_BRUSH;
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_PENCIL:
+		code = BTN_TOOL_PENCIL;
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH:
+		code = BTN_TOOL_AIRBRUSH;
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_MOUSE:
+		code = BTN_TOOL_MOUSE;
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_LENS:
+		code = BTN_TOOL_LENS;
+		break;
 	default:
 		abort();
 	}
@@ -236,13 +250,27 @@ tablet_tool_type_to_string(enum libinput_tablet_tool_type type)
 	const char *str;
 
 	switch (type) {
-	case LIBINPUT_TABLET_TOOL_TYPE_PEN:	  str = "pen";		break;
-	case LIBINPUT_TABLET_TOOL_TYPE_ERASER:	  str = "eraser";	break;
-	case LIBINPUT_TABLET_TOOL_TYPE_BRUSH:	  str = "brush";	break;
-	case LIBINPUT_TABLET_TOOL_TYPE_PENCIL:	  str = "pencil";	break;
-	case LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH:  str = "airbrush";	break;
-	case LIBINPUT_TABLET_TOOL_TYPE_MOUSE:	  str = "mouse";	break;
-	case LIBINPUT_TABLET_TOOL_TYPE_LENS:	  str = "lens";		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_PEN:
+		str = "pen";
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_ERASER:
+		str = "eraser";
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_BRUSH:
+		str = "brush";
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_PENCIL:
+		str = "pencil";
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH:
+		str = "airbrush";
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_MOUSE:
+		str = "mouse";
+		break;
+	case LIBINPUT_TABLET_TOOL_TYPE_LENS:
+		str = "lens";
+		break;
 	default:
 		abort();
 	}

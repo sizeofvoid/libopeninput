@@ -27,10 +27,10 @@
 
 #include <assert.h>
 #include <errno.h>
-#include <time.h>
-#include <stdint.h>
-#include <unistd.h>
 #include <linux/input.h>
+#include <stdint.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "util-macros.h"
 
@@ -148,17 +148,13 @@ to_human_time(uint64_t us)
 		unsigned int change_from_previous;
 		uint64_t limit;
 	} conversion[] = {
-		{"us", 1, 5000},
-		{"ms", 1000, 5000},
-		{"s", 1000, 120},
-		{"min", 60, 120},
-		{"h", 60, 48},
-		{"d", 24, ~0},
+		{ "us", 1, 5000 },  { "ms", 1000, 5000 }, { "s", 1000, 120 },
+		{ "min", 60, 120 }, { "h", 60, 48 },      { "d", 24, ~0 },
 	};
 	uint64_t value = us;
 
 	ARRAY_FOR_EACH(conversion, c) {
-		value = value/c->change_from_previous;
+		value = value / c->change_from_previous;
 		if (value < c->limit) {
 			t.unit = c->unit;
 			t.value = value;

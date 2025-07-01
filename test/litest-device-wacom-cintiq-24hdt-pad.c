@@ -25,11 +25,11 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static void
 litest_wacom_cintiq_pad_teardown(void)
@@ -50,20 +50,20 @@ static struct input_event ring_start[] = {
 	{ .type = EV_ABS, .code = ABS_MISC, .value = 15 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
-} ;
+};
 
 static struct input_event ring_change[] = {
 	{ .type = EV_ABS, .code = ABS_WHEEL, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
-} ;
+};
 
 static struct input_event ring_end[] = {
 	{ .type = EV_ABS, .code = ABS_WHEEL, .value = 0 },
 	{ .type = EV_ABS, .code = ABS_MISC, .value = 0 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
-} ;
+};
 
 static struct litest_device_interface interface = {
 	.touch_down_events = down,
@@ -120,17 +120,16 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_WACOM_CINTIQ_24HDT_PAD,
-	.features = LITEST_TABLET_PAD | LITEST_RING,
-	.teardown = litest_wacom_cintiq_pad_teardown,
-	.interface = &interface,
+	    .features = LITEST_TABLET_PAD | LITEST_RING,
+	    .teardown = litest_wacom_cintiq_pad_teardown,
+	    .interface = &interface,
 
-	.name = "Wacom Cintiq 24 HD touch Pad",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.udev_properties = {
-		{ "ID_INPUT_TABLET_PAD", "1" },
-		{ "LIBINPUT_DEVICE_GROUP", "wacom-24hdt-group" },
-		{ NULL },
-	},
-)
+	    .name = "Wacom Cintiq 24 HD touch Pad",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .udev_properties = {
+		    { "ID_INPUT_TABLET_PAD", "1" },
+		    { "LIBINPUT_DEVICE_GROUP", "wacom-24hdt-group" },
+		    { NULL },
+	    }, )

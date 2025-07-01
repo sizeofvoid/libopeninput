@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -40,15 +40,14 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_WHEEL_ONLY,
-	.features = LITEST_WHEEL,
-	.interface = NULL,
+	    .features = LITEST_WHEEL,
+	    .interface = NULL,
 
-	.name = "wheel only device",
-	.id = &input_id,
-	.absinfo = NULL,
-	.events = events,
-	.udev_properties = {
-		{ "ID_INPUT_KEY", "1" },
-		{ NULL },
-	},
-)
+	    .name = "wheel only device",
+	    .id = &input_id,
+	    .absinfo = NULL,
+	    .events = events,
+	    .udev_properties = {
+		    { "ID_INPUT_KEY", "1" },
+		    { NULL },
+	    }, )

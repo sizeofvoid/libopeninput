@@ -30,13 +30,12 @@
 #include "util-strings.h"
 
 #include "evdev-frame.h"
-#include "timer.h"
-#include "quirks.h"
-
 #include "libinput-log.h"
-#include "libinput-util.h"
-#include "libinput-plugin.h"
 #include "libinput-plugin-button-debounce.h"
+#include "libinput-plugin.h"
+#include "libinput-util.h"
+#include "quirks.h"
+#include "timer.h"
 
 /* Debounce cases to handle
      P ... button press
@@ -55,9 +54,9 @@
    5) P--R-P-| R	P normal, R filtered, P filtered, R normal
    6) R--P-R-| P	R normal, P filtered, R filtered, P normal
    7) P--R--|
-          ---P-|	P normal, R filtered, P filtered
+	  ---P-|	P normal, R filtered, P filtered
    8) R--P--|
-          ---R-|	R normal, P filtered, R filtered
+	  ---R-|	R normal, P filtered, R filtered
 
    1, 2 are the normal click cases without debouncing taking effect
    3, 4 are fast clicks where the second event is delivered with a delay
@@ -100,7 +99,7 @@ enum debounce_state {
 static inline const char *
 debounce_state_to_str(enum debounce_state state)
 {
-	switch(state) {
+	switch (state) {
 	CASE_RETURN_STRING(DEBOUNCE_STATE_IS_UP);
 	CASE_RETURN_STRING(DEBOUNCE_STATE_IS_DOWN);
 	CASE_RETURN_STRING(DEBOUNCE_STATE_IS_DOWN_WAITING);
@@ -116,10 +115,10 @@ debounce_state_to_str(enum debounce_state state)
 	return NULL;
 }
 
-static inline const char*
+static inline const char *
 debounce_event_to_str(enum debounce_event event)
 {
-	switch(event) {
+	switch (event) {
 	CASE_RETURN_STRING(DEBOUNCE_EVENT_PRESS);
 	CASE_RETURN_STRING(DEBOUNCE_EVENT_RELEASE);
 	CASE_RETURN_STRING(DEBOUNCE_EVENT_TIMEOUT);
@@ -194,8 +193,7 @@ log_debounce_bug(struct plugin_device *device, enum debounce_event event)
 }
 
 static inline void
-debounce_set_state(struct plugin_device *device,
-		   enum debounce_state new_state)
+debounce_set_state(struct plugin_device *device, enum debounce_state new_state)
 {
 	assert(new_state >= DEBOUNCE_STATE_IS_UP &&
 	       new_state <= DEBOUNCE_STATE_IS_DOWN_DELAYING);
@@ -204,18 +202,15 @@ debounce_set_state(struct plugin_device *device,
 }
 
 static inline void
-debounce_set_timer(struct plugin_device *device,
-		   uint64_t time)
+debounce_set_timer(struct plugin_device *device, uint64_t time)
 {
 	const int DEBOUNCE_TIMEOUT_BOUNCE = ms2us(25);
 
-	libinput_plugin_timer_set(device->timer,
-				  time + DEBOUNCE_TIMEOUT_BOUNCE);
+	libinput_plugin_timer_set(device->timer, time + DEBOUNCE_TIMEOUT_BOUNCE);
 }
 
 static inline void
-debounce_set_timer_short(struct plugin_device *device,
-			 uint64_t time)
+debounce_set_timer_short(struct plugin_device *device, uint64_t time)
 {
 	const int DEBOUNCE_TIMEOUT_SPURIOUS = ms2us(12);
 
@@ -270,8 +265,8 @@ debounce_notify_button(struct plugin_device *device,
 	evdev_frame_set_time(frame, device->button_time);
 
 	libinput_plugin_prepend_evdev_frame(device->parent->plugin,
-					   device->device,
-					   frame);
+					    device->device,
+					    frame);
 }
 
 static void
@@ -285,9 +280,7 @@ debounce_is_up_handle_event(struct plugin_device *device,
 		device->button_time = time;
 		debounce_set_timer(device, time);
 		debounce_set_state(device, DEBOUNCE_STATE_IS_DOWN_WAITING);
-		debounce_notify_button(device,
-				       frame,
-				       LIBINPUT_BUTTON_STATE_PRESSED);
+		debounce_notify_button(device, frame, LIBINPUT_BUTTON_STATE_PRESSED);
 		break;
 	case DEBOUNCE_EVENT_RELEASE:
 	case DEBOUNCE_EVENT_TIMEOUT:
@@ -316,9 +309,11 @@ debounce_is_down_handle_event(struct plugin_device *device,
 		debounce_set_timer(device, time);
 		debounce_set_timer_short(device, time);
 		if (device->spurious_enabled) {
-			debounce_set_state(device, DEBOUNCE_STATE_IS_UP_DELAYING_SPURIOUS);
+			debounce_set_state(device,
+					   DEBOUNCE_STATE_IS_UP_DELAYING_SPURIOUS);
 		} else {
-			debounce_set_state(device, DEBOUNCE_STATE_IS_UP_DETECTING_SPURIOUS);
+			debounce_set_state(device,
+					   DEBOUNCE_STATE_IS_UP_DETECTING_SPURIOUS);
 			debounce_notify_button(device,
 					       frame,
 					       LIBINPUT_BUTTON_STATE_RELEASED);
@@ -380,9 +375,7 @@ debounce_is_up_delaying_handle_event(struct plugin_device *device,
 	case DEBOUNCE_EVENT_TIMEOUT:
 	case DEBOUNCE_EVENT_OTHERBUTTON:
 		debounce_set_state(device, DEBOUNCE_STATE_IS_UP);
-		debounce_notify_button(device,
-				       frame,
-				       LIBINPUT_BUTTON_STATE_RELEASED);
+		debounce_notify_button(device, frame, LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
 	}
 }
@@ -405,15 +398,11 @@ debounce_is_up_delaying_spurious_handle_event(struct plugin_device *device,
 		break;
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
 		debounce_set_state(device, DEBOUNCE_STATE_IS_UP_WAITING);
-		debounce_notify_button(device,
-				       frame,
-				       LIBINPUT_BUTTON_STATE_RELEASED);
+		debounce_notify_button(device, frame, LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
 	case DEBOUNCE_EVENT_OTHERBUTTON:
 		debounce_set_state(device, DEBOUNCE_STATE_IS_UP);
-		debounce_notify_button(device,
-				       frame,
-				       LIBINPUT_BUTTON_STATE_RELEASED);
+		debounce_notify_button(device, frame, LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
 	}
 }
@@ -467,16 +456,12 @@ debounce_is_down_detecting_spurious_handle_event(struct plugin_device *device,
 		debounce_cancel_timer(device);
 		debounce_set_state(device, DEBOUNCE_STATE_IS_DOWN);
 		debounce_enable_spurious(device);
-		debounce_notify_button(device,
-				       frame,
-				       LIBINPUT_BUTTON_STATE_PRESSED);
+		debounce_notify_button(device, frame, LIBINPUT_BUTTON_STATE_PRESSED);
 		break;
 	case DEBOUNCE_EVENT_TIMEOUT:
 	case DEBOUNCE_EVENT_OTHERBUTTON:
 		debounce_set_state(device, DEBOUNCE_STATE_IS_DOWN);
-		debounce_notify_button(device,
-				       frame,
-				       LIBINPUT_BUTTON_STATE_PRESSED);
+		debounce_notify_button(device, frame, LIBINPUT_BUTTON_STATE_PRESSED);
 		break;
 	}
 }
@@ -526,9 +511,7 @@ debounce_is_down_delaying_handle_event(struct plugin_device *device,
 	case DEBOUNCE_EVENT_TIMEOUT:
 	case DEBOUNCE_EVENT_OTHERBUTTON:
 		debounce_set_state(device, DEBOUNCE_STATE_IS_DOWN);
-		debounce_notify_button(device,
-				       frame,
-				       LIBINPUT_BUTTON_STATE_PRESSED);
+		debounce_notify_button(device, frame, LIBINPUT_BUTTON_STATE_PRESSED);
 		break;
 	}
 }
@@ -542,15 +525,11 @@ debounce_disabled_handle_event(struct plugin_device *device,
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
 		device->button_time = time;
-		debounce_notify_button(device,
-				       frame,
-				       LIBINPUT_BUTTON_STATE_PRESSED);
+		debounce_notify_button(device, frame, LIBINPUT_BUTTON_STATE_PRESSED);
 		break;
 	case DEBOUNCE_EVENT_RELEASE:
 		device->button_time = time;
-		debounce_notify_button(device,
-				       frame,
-				       LIBINPUT_BUTTON_STATE_RELEASED);
+		debounce_notify_button(device, frame, LIBINPUT_BUTTON_STATE_RELEASED);
 		break;
 	case DEBOUNCE_EVENT_TIMEOUT_SHORT:
 	case DEBOUNCE_EVENT_TIMEOUT:
@@ -574,7 +553,7 @@ debounce_handle_event(struct plugin_device *device,
 		debounce_cancel_timer_short(device);
 	}
 
-	switch(current) {
+	switch (current) {
 	case DEBOUNCE_STATE_IS_UP:
 		debounce_is_up_handle_event(device, event, frame, time);
 		break;
@@ -588,13 +567,22 @@ debounce_handle_event(struct plugin_device *device,
 		debounce_is_up_delaying_handle_event(device, event, frame, time);
 		break;
 	case DEBOUNCE_STATE_IS_UP_DELAYING_SPURIOUS:
-		debounce_is_up_delaying_spurious_handle_event(device, event, frame, time);
+		debounce_is_up_delaying_spurious_handle_event(device,
+							      event,
+							      frame,
+							      time);
 		break;
 	case DEBOUNCE_STATE_IS_UP_DETECTING_SPURIOUS:
-		debounce_is_up_detecting_spurious_handle_event(device, event, frame, time);
+		debounce_is_up_detecting_spurious_handle_event(device,
+							       event,
+							       frame,
+							       time);
 		break;
 	case DEBOUNCE_STATE_IS_DOWN_DETECTING_SPURIOUS:
-		debounce_is_down_detecting_spurious_handle_event(device, event, frame, time);
+		debounce_is_down_detecting_spurious_handle_event(device,
+								 event,
+								 frame,
+								 time);
 		break;
 	case DEBOUNCE_STATE_IS_UP_WAITING:
 		debounce_is_up_waiting_handle_event(device, event, frame, time);
@@ -625,14 +613,14 @@ debounce_plugin_handle_frame(struct plugin_device *device,
 	size_t nevents;
 	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
 
-        /* Strip out all button events from this frame (if any). Then
-         * append the button events to that stripped frame according
-         * to our state machine.
-         *
-         * We allow for a max of 16 buttons to be appended, if you press more
-         * than 16 buttons within the same frame good luck to you.
-         */
-        _unref_(evdev_frame) *filtered_frame = evdev_frame_new(nevents + 16);
+	/* Strip out all button events from this frame (if any). Then
+	 * append the button events to that stripped frame according
+	 * to our state machine.
+	 *
+	 * We allow for a max of 16 buttons to be appended, if you press more
+	 * than 16 buttons within the same frame good luck to you.
+	 */
+	_unref_(evdev_frame) *filtered_frame = evdev_frame_new(nevents + 16);
 	for (size_t i = 0; i < nevents; i++) {
 		struct evdev_event *e = &events[i];
 		if (!evdev_usage_is_button(e->usage)) {
@@ -646,7 +634,7 @@ debounce_plugin_handle_frame(struct plugin_device *device,
 		 * flush the state machine with otherbutton */
 		if (!flushed &&
 		    (nchanged > 1 ||
-		    evdev_usage_cmp(e->usage, device->button_usage) != 0)) {
+		     evdev_usage_cmp(e->usage, device->button_usage) != 0)) {
 			debounce_handle_event(device,
 					      DEBOUNCE_EVENT_OTHERBUTTON,
 					      NULL,
@@ -671,20 +659,17 @@ debounce_plugin_handle_frame(struct plugin_device *device,
 		if (!evdev_usage_is_button(e->usage))
 			continue;
 
-		if (flushed &&
-		    device->state != DEBOUNCE_STATE_DISABLED) {
+		if (flushed && device->state != DEBOUNCE_STATE_DISABLED) {
 			debounce_set_state(device,
-					   !is_down ?
-						   DEBOUNCE_STATE_IS_DOWN :
-						   DEBOUNCE_STATE_IS_UP);
+					   !is_down ? DEBOUNCE_STATE_IS_DOWN
+						    : DEBOUNCE_STATE_IS_UP);
 			flushed = false;
 		}
 
 		device->button_usage = e->usage;
 		debounce_handle_event(device,
-				      is_down ?
-					      DEBOUNCE_EVENT_PRESS :
-					      DEBOUNCE_EVENT_RELEASE,
+				      is_down ? DEBOUNCE_EVENT_PRESS
+					      : DEBOUNCE_EVENT_RELEASE,
 				      filtered_frame,
 				      time);
 
@@ -706,8 +691,8 @@ debounce_plugin_handle_frame(struct plugin_device *device,
 
 static void
 debounce_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
-				 struct libinput_device *device,
-				 struct evdev_frame *frame)
+			    struct libinput_device *device,
+			    struct evdev_frame *frame)
 {
 	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
 	struct plugin_device *pd;
@@ -755,9 +740,7 @@ debounce_plugin_device_added(struct libinput_plugin *libinput_plugin,
 
 	_unref_(quirks) *q = libinput_device_get_quirks(device);
 	bool result = false;
-	if (q &&
-	    quirks_get_bool(q, QUIRK_MODEL_BOUNCING_KEYS, &result) &&
-	    result) {
+	if (q && quirks_get_bool(q, QUIRK_MODEL_BOUNCING_KEYS, &result) && result) {
 		return;
 	}
 
@@ -769,10 +752,10 @@ debounce_plugin_device_added(struct libinput_plugin *libinput_plugin,
 	pd->parent = plugin;
 	pd->state = DEBOUNCE_STATE_IS_UP;
 
-	_autofree_ char *timer1_name = strdup_printf("debounce-%s",
-						     libinput_device_get_sysname(device));
-	_autofree_ char *timer2_name = strdup_printf("debounce-short-%s",
-						     libinput_device_get_sysname(device));
+	_autofree_ char *timer1_name =
+		strdup_printf("debounce-%s", libinput_device_get_sysname(device));
+	_autofree_ char *timer2_name =
+		strdup_printf("debounce-short-%s", libinput_device_get_sysname(device));
 	pd->timer = libinput_plugin_timer_new(libinput_plugin,
 					      timer1_name,
 					      debounce_timeout,
@@ -787,7 +770,7 @@ debounce_plugin_device_added(struct libinput_plugin *libinput_plugin,
 
 static void
 debounce_plugin_device_removed(struct libinput_plugin *libinput_plugin,
-				  struct libinput_device *device)
+			       struct libinput_device *device)
 {
 	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
 	struct plugin_device *dev;
@@ -815,9 +798,7 @@ libinput_debounce_plugin(struct libinput *libinput)
 	struct plugin_data *plugin = zalloc(sizeof(*plugin));
 	list_init(&plugin->devices);
 
-	_unref_(libinput_plugin) *p = libinput_plugin_new(libinput,
-							  "button-debounce",
-							  &interface,
-							  plugin);
+	_unref_(libinput_plugin) *p =
+		libinput_plugin_new(libinput, "button-debounce", &interface, plugin);
 	plugin->plugin = p;
 }

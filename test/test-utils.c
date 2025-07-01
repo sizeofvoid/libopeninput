@@ -23,33 +23,31 @@
 
 #include <config.h>
 
-#include <valgrind/valgrind.h>
-
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <valgrind/valgrind.h>
 
-#include "litest.h"
-#include "litest-runner.h"
-#include "evdev-frame.h"
-#include "util-files.h"
-#include "util-list.h"
-#include "util-strings.h"
-#include "util-time.h"
-#include "util-prop-parsers.h"
-#include "util-macros.h"
 #include "util-bits.h"
+#include "util-files.h"
+#include "util-input-event.h"
+#include "util-list.h"
+#include "util-macros.h"
+#include "util-matrix.h"
+#include "util-mem.h"
+#include "util-newtype.h"
+#include "util-prop-parsers.h"
 #include "util-range.h"
 #include "util-ratelimit.h"
 #include "util-stringbuf.h"
-#include "util-matrix.h"
-#include "util-mem.h"
-#include "util-input-event.h"
-#include "util-newtype.h"
+#include "util-strings.h"
+#include "util-time.h"
 
+#include "evdev-frame.h"
+#include "litest-runner.h"
 #include "litest.h"
 
-#define  TEST_VERSIONSORT
+#define TEST_VERSIONSORT
 #include "libinput-versionsort.h"
 
 START_TEST(auto_test)
@@ -167,25 +165,28 @@ START_TEST(find_files_test)
 	/* clang-format on */
 	for (struct f *f = files; f->name; f++) {
 		if (f->dir1) {
-			_autofree_ char *path = strdup_printf("%s/%s", f->dir1, f->name);
+			_autofree_ char *path =
+				strdup_printf("%s/%s", f->dir1, f->name);
 			close(open(path, O_WRONLY | O_CREAT, 0644));
 			f->expected = steal(&path);
 		}
 		if (f->dir2) {
-			_autofree_ char *path = strdup_printf("%s/%s", f->dir2, f->name);
+			_autofree_ char *path =
+				strdup_printf("%s/%s", f->dir2, f->name);
 			close(open(path, O_WRONLY | O_CREAT, 0644));
 			if (!f->expected)
 				f->expected = steal(&path);
 		}
 		if (f->dir3) {
-			_autofree_ char *path = strdup_printf("%s/%s", f->dir3, f->name);
+			_autofree_ char *path =
+				strdup_printf("%s/%s", f->dir3, f->name);
 			close(open(path, O_WRONLY | O_CREAT, 0644));
 			if (!f->expected)
 				f->expected = steal(&path);
 		}
 	}
 
-	const char *dirs[] = {d1, d2, d3, NULL};
+	const char *dirs[] = { d1, d2, d3, NULL };
 	size_t nfiles;
 	_autostrvfree_ char **paths = list_files(dirs, "suf", &nfiles);
 	litest_assert_int_eq(nfiles, (size_t)7);
@@ -200,15 +201,18 @@ START_TEST(find_files_test)
 
 	for (struct f *f = files; f->name; f++) {
 		if (f->dir1) {
-			_autofree_ char *path = strdup_printf("%s/%s", f->dir1, f->name);
+			_autofree_ char *path =
+				strdup_printf("%s/%s", f->dir1, f->name);
 			unlink(path);
 		}
 		if (f->dir2) {
-			_autofree_ char *path = strdup_printf("%s/%s", f->dir2, f->name);
+			_autofree_ char *path =
+				strdup_printf("%s/%s", f->dir2, f->name);
 			unlink(path);
 		}
 		if (f->dir3) {
-			_autofree_ char *path = strdup_printf("%s/%s", f->dir3, f->name);
+			_autofree_ char *path =
+				strdup_printf("%s/%s", f->dir3, f->name);
 			unlink(path);
 		}
 		free(f->expected);
@@ -218,13 +222,13 @@ START_TEST(find_files_test)
 	rmdir(d3);
 	rmdir(dirname);
 
-	const char *empty[] = {NULL};
-	_autostrvfree_ char** empty_path = list_files(empty, "suf", &nfiles);
+	const char *empty[] = { NULL };
+	_autostrvfree_ char **empty_path = list_files(empty, "suf", &nfiles);
 	litest_assert_int_eq(nfiles, (size_t)0);
 	litest_assert_ptr_notnull(empty_path);
 	litest_assert_ptr_null(empty_path[0]);
 
-	_autostrvfree_ char** also_empty_path = list_files(NULL, "suf", &nfiles);
+	_autostrvfree_ char **also_empty_path = list_files(NULL, "suf", &nfiles);
 	litest_assert_int_eq(nfiles, (size_t)0);
 	litest_assert_ptr_notnull(also_empty_path);
 	litest_assert_ptr_null(also_empty_path[0]);
@@ -248,7 +252,7 @@ START_TEST(array_for_each)
 	for (size_t i = 0; i < 32; i++) {
 		as[i].a = 10 + i;
 		as[i].b = 20 + i;
-		as[i].ptr = (int*)0xab + i;
+		as[i].ptr = (int *)0xab + i;
 	}
 
 	int iexpected = 20;
@@ -268,7 +272,7 @@ START_TEST(array_for_each)
 	struct as sexpected = {
 		.a = 10,
 		.b = 20,
-		.ptr = (int*)0xab,
+		.ptr = (int *)0xab,
 	};
 	ARRAY_FOR_EACH(as, entry) {
 		litest_assert_int_eq(entry->a, sexpected.a);
@@ -288,7 +292,7 @@ START_TEST(bitfield_helpers)
 	 * test: 0, 1, 7, 8, 31, 32, and 33
 	 */
 	unsigned char read_bitfield[] = { 0x83, 0x1, 0x0, 0x80, 0x3 };
-	unsigned char write_bitfield[ARRAY_LENGTH(read_bitfield)] = {0};
+	unsigned char write_bitfield[ARRAY_LENGTH(read_bitfield)] = { 0 };
 	size_t i;
 
 	/* Now check that the bitfield we wrote to came out to be the same as
@@ -312,10 +316,9 @@ START_TEST(bitfield_helpers)
 		}
 	}
 
-	litest_assert_int_eq(memcmp(read_bitfield,
-				write_bitfield,
-				sizeof(read_bitfield)),
-			 0);
+	litest_assert_int_eq(
+		memcmp(read_bitfield, write_bitfield, sizeof(read_bitfield)),
+		0);
 }
 END_TEST
 
@@ -528,8 +531,7 @@ START_TEST(matrix_helpers)
 
 	for (row = 0; row < 3; row++) {
 		for (col = 0; col < 3; col++) {
-			litest_assert_int_eq(m1.val[row][col],
-					 (row == col) ? 1 : 0);
+			litest_assert_int_eq(m1.val[row][col], (row == col) ? 1 : 0);
 		}
 	}
 	litest_assert(matrix_is_identity(&m1));
@@ -605,8 +607,7 @@ START_TEST(ratelimit_helpers)
 	for (j = 0; j < 3; ++j) {
 		/* a burst of 9 attempts must succeed */
 		for (i = 0; i < 9; ++i) {
-			litest_assert_enum_eq(ratelimit_test(&rl),
-					 RATELIMIT_PASS);
+			litest_assert_enum_eq(ratelimit_test(&rl), RATELIMIT_PASS);
 		}
 
 		/* the 10th attempt reaches the threshold */
@@ -617,15 +618,13 @@ START_TEST(ratelimit_helpers)
 
 		/* ..regardless of how often we try. */
 		for (i = 0; i < 100; ++i) {
-			litest_assert_enum_eq(ratelimit_test(&rl),
-					 RATELIMIT_EXCEEDED);
+			litest_assert_enum_eq(ratelimit_test(&rl), RATELIMIT_EXCEEDED);
 		}
 
 		/* ..even after waiting 20ms */
 		msleep(100);
 		for (i = 0; i < 100; ++i) {
-			litest_assert_enum_eq(ratelimit_test(&rl),
-					 RATELIMIT_EXCEEDED);
+			litest_assert_enum_eq(ratelimit_test(&rl), RATELIMIT_EXCEEDED);
 		}
 
 		/* but after 1000ms the counter is reset */
@@ -860,17 +859,12 @@ START_TEST(calibration_prop_parser)
 	for (i = 0; tests[i].prop != NULL; i++) {
 		memcpy(calibration, untouched, sizeof(calibration));
 
-		success = parse_calibration_property(tests[i].prop,
-						     calibration);
+		success = parse_calibration_property(tests[i].prop, calibration);
 		litest_assert_int_eq(success, tests[i].success);
 		if (success)
-			rc = memcmp(tests[i].values,
-				    calibration,
-				    sizeof(calibration));
+			rc = memcmp(tests[i].values, calibration, sizeof(calibration));
 		else
-			rc = memcmp(untouched,
-				    calibration,
-				    sizeof(calibration));
+			rc = memcmp(untouched, calibration, sizeof(calibration));
 		litest_assert_int_eq(rc, 0);
 	}
 
@@ -1579,7 +1573,7 @@ START_TEST(strsplit_test)
 
 		/* When there are no elements validate return value is Null,
 		   otherwise validate result array is Null terminated. */
-		if(t->nresults == 0)
+		if (t->nresults == 0)
 			litest_assert_ptr_eq(strv, NULL);
 		else
 			litest_assert_ptr_eq(strv[t->nresults], NULL);
@@ -1595,7 +1589,8 @@ struct strv_test_data {
 	unsigned char bitmask[1];
 };
 
-static int strv_test_set_bitmask(const char *str, size_t index, void *data)
+static int
+strv_test_set_bitmask(const char *str, size_t index, void *data)
 {
 	struct strv_test_data *td = data;
 
@@ -1656,8 +1651,7 @@ START_TEST(strv_for_each_test)
 }
 END_TEST
 
-__attribute__ ((format (printf, 1, 0)))
-static char **
+__attribute__((format(printf, 1, 0))) static char **
 test_strv_appendv(char *format, ...)
 {
 	va_list args;
@@ -1671,7 +1665,7 @@ test_strv_appendv(char *format, ...)
 START_TEST(strv_append_test)
 {
 	{
-		char *test_strv1[] = {"a", "b", "c", NULL};
+		char *test_strv1[] = { "a", "b", "c", NULL };
 		char **test_strv2 = NULL;
 
 		litest_assert_int_eq(strv_len(test_strv1), 4U);
@@ -1729,7 +1723,7 @@ END_TEST
 
 START_TEST(strv_find_test)
 {
-	char *strv[] = {"a", "b", "c", NULL};
+	char *strv[] = { "a", "b", "c", NULL };
 
 	bool rc;
 	size_t index;
@@ -1769,7 +1763,7 @@ END_TEST
 
 START_TEST(strv_find_substring_test)
 {
-	char *strv[] = {"a", "bc", "cccc", NULL};
+	char *strv[] = { "a", "bc", "cccc", NULL };
 
 	bool rc;
 	size_t index;
@@ -1843,9 +1837,7 @@ START_TEST(double_array_from_string_test)
 
 	while (t->string) {
 		size_t len;
-		double *array = double_array_from_string(t->string,
-							 t->delim,
-							 &len);
+		double *array = double_array_from_string(t->string, t->delim, &len);
 		litest_assert_int_eq(len, t->len);
 
 		for (size_t idx = 0; idx < len; idx++) {
@@ -1932,10 +1924,7 @@ START_TEST(kvsplit_double_test)
 		struct key_value_double *result = NULL;
 		ssize_t npairs;
 
-		npairs = kv_double_from_string(t->string,
-					       t->psep,
-					       t->kvsep,
-					       &result);
+		npairs = kv_double_from_string(t->string, t->psep, t->kvsep, &result);
 		litest_assert_int_eq(npairs, t->nresults);
 
 		for (ssize_t i = 0; i < npairs; i++) {
@@ -1972,7 +1961,7 @@ START_TEST(strjoin_test)
 	};
 	/* clang-format on */
 	struct strjoin_test *t = tests;
-	struct strjoin_test nulltest = { {NULL}, "x", NULL };
+	struct strjoin_test nulltest = { { NULL }, "x", NULL };
 
 	while (t->strv[0]) {
 		char *str;
@@ -2049,8 +2038,7 @@ START_TEST(strendswith_test)
 	/* clang-format on */
 
 	for (struct strendswith_test *t = tests; t->string; t++) {
-		litest_assert_int_eq(strendswith(t->string, t->suffix),
-				 t->expected);
+		litest_assert_int_eq(strendswith(t->string, t->suffix), t->expected);
 	}
 }
 END_TEST
@@ -2075,8 +2063,7 @@ START_TEST(strstartswith_test)
 	/* clang-format on */
 
 	for (struct strstartswith_test *t = tests; t->string; t++) {
-		litest_assert_int_eq(strstartswith(t->string, t->suffix),
-				 t->expected);
+		litest_assert_int_eq(strstartswith(t->string, t->suffix), t->expected);
 	}
 }
 END_TEST
@@ -2114,10 +2101,10 @@ START_TEST(list_test_insert)
 		int val;
 		struct list node;
 	} tests[] = {
-		{ .val  = 1 },
-		{ .val  = 2 },
-		{ .val  = 3 },
-		{ .val  = 4 },
+		{ .val = 1 },
+		{ .val = 2 },
+		{ .val = 3 },
+		{ .val = 4 },
 	};
 	struct list_test *t;
 	struct list head;
@@ -2145,10 +2132,10 @@ START_TEST(list_test_append)
 		int val;
 		struct list node;
 	} tests[] = {
-		{ .val  = 1 },
-		{ .val  = 2 },
-		{ .val  = 3 },
-		{ .val  = 4 },
+		{ .val = 1 },
+		{ .val = 2 },
+		{ .val = 3 },
+		{ .val = 4 },
 	};
 	struct list_test *t;
 	struct list head;
@@ -2175,10 +2162,10 @@ START_TEST(list_test_chain)
 		int val;
 		struct list node;
 	} tests[] = {
-		{ .val  = 1 },
-		{ .val  = 2 },
-		{ .val  = 3 },
-		{ .val  = 4 },
+		{ .val = 1 },
+		{ .val = 2 },
+		{ .val = 3 },
+		{ .val = 4 },
 	};
 	struct list l1, l2;
 	struct list_test *t;
@@ -2226,10 +2213,10 @@ START_TEST(list_test_foreach)
 		int val;
 		struct list node;
 	} tests[] = {
-		{ .val  = 1 },
-		{ .val  = 2 },
-		{ .val  = 3 },
-		{ .val  = 4 },
+		{ .val = 1 },
+		{ .val = 2 },
+		{ .val = 3 },
+		{ .val = 4 },
 	};
 	struct list_test *t;
 	struct list head;
@@ -2259,10 +2246,10 @@ START_TEST(list_test_first_last)
 		int val;
 		struct list node;
 	} tests[] = {
-		{ .val  = 1 },
-		{ .val  = 2 },
-		{ .val  = 3 },
-		{ .val  = 4 },
+		{ .val = 1 },
+		{ .val = 2 },
+		{ .val = 3 },
+		{ .val = 4 },
 	};
 	struct list head;
 
@@ -2308,7 +2295,6 @@ START_TEST(list_test_first_last)
 	last = list_last_entry(&head, last, node);
 	litest_assert_ptr_eq(first, &tests[1]);
 	litest_assert_ptr_eq(last, &tests[1]);
-
 }
 END_TEST
 
@@ -2468,7 +2454,6 @@ START_TEST(range_test)
 		expected++;
 	}
 	litest_assert_int_eq(r, 101);
-
 }
 END_TEST
 
@@ -2550,7 +2535,7 @@ START_TEST(stringbuf_test)
 
 	for (size_t i = 0; i < maxsize; i += stride) {
 		char buf[stride];
-		memset(buf, i/stride, sizeof(buf));
+		memset(buf, i / stride, sizeof(buf));
 		rc = write(pipefd[1], buf, sizeof(buf));
 		litest_assert_neg_errno_success(rc);
 	}
@@ -2559,9 +2544,9 @@ START_TEST(stringbuf_test)
 	litest_assert_int_eq(b->len, maxsize);
 	litest_assert_int_ge(b->sz, maxsize);
 
-	for (size_t i = 0; i < maxsize; i+= stride) {
+	for (size_t i = 0; i < maxsize; i += stride) {
 		char buf[stride];
-		memset(buf, i/stride, sizeof(buf));
+		memset(buf, i / stride, sizeof(buf));
 		litest_assert_int_eq(memcmp(buf, b->data + i, sizeof(buf)), 0);
 	}
 
@@ -2581,10 +2566,10 @@ START_TEST(multivalue_test)
 		const char *s;
 		multivalue_extract_typed(&v, 's', &s);
 		litest_assert_str_eq(s, "test");
-		litest_assert_ptr_eq(s, (const char*)v.value.s);
+		litest_assert_ptr_eq(s, (const char *)v.value.s);
 		multivalue_extract(&v, &s);
 		litest_assert_str_eq(s, "test");
-		litest_assert_ptr_eq(s, (const char*)v.value.s);
+		litest_assert_ptr_eq(s, (const char *)v.value.s);
 
 		struct multivalue copy = multivalue_copy(&v);
 		litest_assert_int_eq(copy.type, v.type);
@@ -2780,11 +2765,23 @@ END_TEST
 
 struct sunref {};
 struct sdestroy {};
-struct sfree{};
+struct sfree {};
 
-static void sunref_unref(struct sunref *s) { free(s); };
-static void sdestroy_destroy(struct sdestroy *s) { free(s); };
-static void sfree_free(struct sfree *s) { free(s); };
+static void
+sunref_unref(struct sunref *s)
+{
+	free(s);
+}
+static void
+sdestroy_destroy(struct sdestroy *s)
+{
+	free(s);
+}
+static void
+sfree_free(struct sfree *s)
+{
+	free(s);
+}
 
 DEFINE_UNREF_CLEANUP_FUNC(sunref);
 DEFINE_DESTROY_CLEANUP_FUNC(sdestroy);
@@ -2877,10 +2874,22 @@ START_TEST(evdev_frames)
 	{
 		_unref_(evdev_frame) *frame = evdev_frame_new(3);
 		struct evdev_event toobig[] = {
-			{ .usage = U(EVDEV_ABS_X), .value = 1, },
-			{ .usage = U(EVDEV_ABS_Y), .value = 2, },
-			{ .usage = U(EVDEV_ABS_Z), .value = 3, },
-			{ .usage = U(EVDEV_SYN_REPORT), .value = 0, },
+			{
+				.usage = U(EVDEV_ABS_X),
+				.value = 1,
+			},
+			{
+				.usage = U(EVDEV_ABS_Y),
+				.value = 2,
+			},
+			{
+				.usage = U(EVDEV_ABS_Z),
+				.value = 3,
+			},
+			{
+				.usage = U(EVDEV_SYN_REPORT),
+				.value = 0,
+			},
 		};
 
 		int rc = evdev_frame_set(frame, toobig, ARRAY_LENGTH(toobig));
@@ -2888,19 +2897,31 @@ START_TEST(evdev_frames)
 	}
 	{
 		struct evdev_event events[] = {
-			{ .usage = U(EVDEV_ABS_X), .value = 1, },
-			{ .usage = U(EVDEV_ABS_Y), .value = 2, },
-			{ .usage = U(EVDEV_SYN_REPORT), .value = 0, },
+			{
+				.usage = U(EVDEV_ABS_X),
+				.value = 1,
+			},
+			{
+				.usage = U(EVDEV_ABS_Y),
+				.value = 2,
+			},
+			{
+				.usage = U(EVDEV_SYN_REPORT),
+				.value = 0,
+			},
 		};
 
 		_unref_(evdev_frame) *frame = evdev_frame_new(3);
 		int rc = evdev_frame_set(frame, events, ARRAY_LENGTH(events));
 		litest_assert_neg_errno_success(rc);
-		litest_assert_int_eq(evdev_frame_get_count(frame), ARRAY_LENGTH(events));
+		litest_assert_int_eq(evdev_frame_get_count(frame),
+				     ARRAY_LENGTH(events));
 		litest_assert_int_eq(frame->max_size, ARRAY_LENGTH(events));
 
 		size_t nevents;
-		rc = memcmp(evdev_frame_get_events(frame, &nevents), events, sizeof(events));
+		rc = memcmp(evdev_frame_get_events(frame, &nevents),
+			    events,
+			    sizeof(events));
 		litest_assert_int_eq(rc, 0);
 		litest_assert_int_eq(nevents, ARRAY_LENGTH(events));
 
@@ -2910,30 +2931,60 @@ START_TEST(evdev_frames)
 	}
 	{
 		struct evdev_event events[] = {
-			{ .usage = U(EVDEV_ABS_X), .value = 1, },
-			{ .usage = U(EVDEV_ABS_Y), .value = 2, },
-			{ .usage = U(EVDEV_SYN_REPORT), .value = 0, },
+			{
+				.usage = U(EVDEV_ABS_X),
+				.value = 1,
+			},
+			{
+				.usage = U(EVDEV_ABS_Y),
+				.value = 2,
+			},
+			{
+				.usage = U(EVDEV_SYN_REPORT),
+				.value = 0,
+			},
 		};
 
 		_unref_(evdev_frame) *frame = evdev_frame_new(3);
 		int rc = evdev_frame_set(frame, events, 1);
 		litest_assert_neg_errno_success(rc);
-		litest_assert_int_eq(evdev_frame_get_count(frame), 2U); /* we appended SYN_REPORT */
+		litest_assert_int_eq(evdev_frame_get_count(frame),
+				     2U); /* we appended SYN_REPORT */
 		rc = evdev_frame_append(frame, events + 1, 1);
 		litest_assert_neg_errno_success(rc);
-		litest_assert_int_eq(evdev_frame_get_count(frame), 3U); /* we appended SYN_REPORT */
+		litest_assert_int_eq(evdev_frame_get_count(frame),
+				     3U); /* we appended SYN_REPORT */
 		rc = evdev_frame_append(frame, events + 2, 1);
 		litest_assert_neg_errno_success(rc);
-		litest_assert_int_eq(evdev_frame_get_count(frame), 3U); /* SYN_REPORT already there */
+		litest_assert_int_eq(evdev_frame_get_count(frame),
+				     3U); /* SYN_REPORT already there */
 	}
 	{
 		struct evdev_event interrupted[] = {
-			{ .usage = U(EVDEV_ABS_X), .value = 1, },
-			{ .usage = U(EVDEV_ABS_Y), .value = 2, },
-			{ .usage = U(EVDEV_SYN_REPORT), .value = 0, },
-			{ .usage = U(EVDEV_ABS_RX), .value = 1, },
-			{ .usage = U(EVDEV_ABS_RY), .value = 2, },
-			{ .usage = U(EVDEV_SYN_REPORT), .value = 0, },
+			{
+				.usage = U(EVDEV_ABS_X),
+				.value = 1,
+			},
+			{
+				.usage = U(EVDEV_ABS_Y),
+				.value = 2,
+			},
+			{
+				.usage = U(EVDEV_SYN_REPORT),
+				.value = 0,
+			},
+			{
+				.usage = U(EVDEV_ABS_RX),
+				.value = 1,
+			},
+			{
+				.usage = U(EVDEV_ABS_RY),
+				.value = 2,
+			},
+			{
+				.usage = U(EVDEV_SYN_REPORT),
+				.value = 0,
+			},
 		};
 
 		_unref_(evdev_frame) *frame = evdev_frame_new(5);
@@ -2945,7 +2996,9 @@ START_TEST(evdev_frames)
 		litest_assert_neg_errno_success(rc);
 		litest_assert_int_eq(evdev_frame_get_count(frame), 1U);
 
-		rc = evdev_frame_set(frame, &interrupted[1], ARRAY_LENGTH(interrupted) - 1);
+		rc = evdev_frame_set(frame,
+				     &interrupted[1],
+				     ARRAY_LENGTH(interrupted) - 1);
 		litest_assert_neg_errno_success(rc);
 		litest_assert_int_eq(evdev_frame_get_count(frame), 2U);
 
@@ -2955,7 +3008,8 @@ START_TEST(evdev_frames)
 }
 END_TEST
 
-int main(void)
+int
+main(void)
 {
 	struct litest_runner *runner = litest_runner_new();
 

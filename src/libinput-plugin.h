@@ -25,10 +25,10 @@
 
 #include "config.h"
 
+#include <libevdev/libevdev.h>
+#include <libudev.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <libudev.h>
-#include <libevdev/libevdev.h>
 
 /* Forward declarations instead of #includes to make
  * this header self-contained (bindgen, etc.) */
@@ -68,9 +68,9 @@ struct libinput_plugin_interface {
 	 * been added by libinput as struct libinput_device.
 	 */
 	void (*device_new)(struct libinput_plugin *plugin,
-			     struct libinput_device *device,
-			     struct libevdev *evdev,
-			     struct udev_device *udev_device);
+			   struct libinput_device *device,
+			   struct libevdev *evdev,
+			   struct udev_device *udev_device);
 	/**
 	 * Notification that a device (previously announced with device_new)
 	 * was ignored by libinput and was **never** added as struct
@@ -139,8 +139,7 @@ void
 libinput_plugin_unregister(struct libinput_plugin *plugin);
 
 void
-libinput_plugin_set_user_data(struct libinput_plugin *plugin,
-			      void *user_data);
+libinput_plugin_set_user_data(struct libinput_plugin *plugin, void *user_data);
 void *
 libinput_plugin_get_user_data(struct libinput_plugin *plugin);
 
@@ -301,7 +300,9 @@ libinput_plugin_prepend_evdev_frame(struct libinput_plugin *libinput,
 struct libinput_plugin_timer *
 libinput_plugin_timer_new(struct libinput_plugin *plugin,
 			  const char *name,
-			  void (*func)(struct libinput_plugin *plugin, uint64_t now, void *user_data),
+			  void (*func)(struct libinput_plugin *plugin,
+				       uint64_t now,
+				       void *user_data),
 			  void *user_data);
 
 struct libinput_plugin_timer *
@@ -316,8 +317,7 @@ DEFINE_UNREF_CLEANUP_FUNC(libinput_plugin_timer);
 
 /* Set timer expire time, in absolute us CLOCK_MONOTONIC */
 void
-libinput_plugin_timer_set(struct libinput_plugin_timer *timer,
-			  uint64_t expire);
+libinput_plugin_timer_set(struct libinput_plugin_timer *timer, uint64_t expire);
 
 void
 libinput_plugin_timer_set_user_data(struct libinput_plugin_timer *timer,

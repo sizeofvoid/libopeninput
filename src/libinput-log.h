@@ -29,6 +29,7 @@
 #include <stdbool.h>
 
 #include "util-ratelimit.h"
+
 #include "libinput.h"
 
 #define log_debug(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_DEBUG, __VA_ARGS__)
@@ -46,25 +47,23 @@
 #define log_bug_client_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, "client bug: " __VA_ARGS__)
 
 bool
-log_is_logged(const struct libinput *libinput,
-	      enum libinput_log_priority priority);
+log_is_logged(const struct libinput *libinput, enum libinput_log_priority priority);
 
 void
 log_msg_ratelimit(struct libinput *libinput,
 		  struct ratelimit *ratelimit,
 		  enum libinput_log_priority priority,
-		  const char *format, ...)
-	LIBINPUT_ATTRIBUTE_PRINTF(4, 5);
+		  const char *format,
+		  ...) LIBINPUT_ATTRIBUTE_PRINTF(4, 5);
 
 void
 log_msg(struct libinput *libinput,
 	enum libinput_log_priority priority,
-	const char *format, ...)
-	LIBINPUT_ATTRIBUTE_PRINTF(3, 4);
+	const char *format,
+	...) LIBINPUT_ATTRIBUTE_PRINTF(3, 4);
 
 void
 log_msg_va(struct libinput *libinput,
 	   enum libinput_log_priority priority,
 	   const char *format,
-	   va_list args)
-	LIBINPUT_ATTRIBUTE_PRINTF(3, 0);
+	   va_list args) LIBINPUT_ATTRIBUTE_PRINTF(3, 0);

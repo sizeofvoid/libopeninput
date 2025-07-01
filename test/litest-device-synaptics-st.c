@@ -23,14 +23,14 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN  },
-	{ .type = EV_ABS, .code = ABS_TOOL_WIDTH, .value = 7  },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_TOOL_WIDTH, .value = 7 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
@@ -93,11 +93,10 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_SYNAPTICS_TOUCHPAD,
-	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SINGLE_TOUCH,
-	.interface = &interface,
+	    .features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SINGLE_TOUCH,
+	    .interface = &interface,
 
-	.name = "SynPS/2 Synaptics TouchPad",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "SynPS/2 Synaptics TouchPad",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

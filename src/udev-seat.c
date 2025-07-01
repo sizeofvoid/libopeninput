@@ -24,8 +24,8 @@
 
 #include "config.h"
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "evdev.h"
@@ -42,8 +42,7 @@ static struct udev_seat *
 udev_seat_get_named(struct udev_input *input, const char *seat_name);
 
 static inline bool
-filter_duplicates(struct udev_seat *udev_seat,
-		  struct udev_device *udev_device)
+filter_duplicates(struct udev_seat *udev_seat, struct udev_device *udev_device)
 {
 	struct libinput_device *device;
 	const char *new_syspath = udev_device_get_syspath(udev_device);
@@ -152,8 +151,7 @@ device_removed(struct udev_device *udev_device, struct udev_input *input)
 
 	syspath = udev_device_get_syspath(udev_device);
 	list_for_each(seat, &input->base.seat_list, base.link) {
-		list_for_each_safe(device,
-				   &seat->base.devices_list, base.link) {
+		list_for_each_safe(device, &seat->base.devices_list, base.link) {
 			if (streq(syspath,
 				  udev_device_get_syspath(device->udev_device))) {
 				evdev_device_remove(device);
@@ -205,13 +203,13 @@ evdev_udev_handler(void *data)
 	struct udev_input *input = data;
 	const char *action;
 
-	_unref_(udev_device) *udev_device = udev_monitor_receive_device(input->udev_monitor);
+	_unref_(udev_device) *udev_device =
+		udev_monitor_receive_device(input->udev_monitor);
 	if (!udev_device)
 		return;
 
 	action = udev_device_get_action(udev_device);
-	if (!action ||
-	    !strstartswith(udev_device_get_sysname(udev_device), "event"))
+	if (!action || !strstartswith(udev_device_get_sysname(udev_device), "event"))
 		return;
 
 	if (streq(action, "add"))
@@ -228,8 +226,7 @@ udev_input_remove_devices(struct udev_input *input)
 
 	list_for_each_safe(seat, &input->base.seat_list, base.link) {
 		libinput_seat_ref(&seat->base);
-		list_for_each_safe(device,
-				   &seat->base.devices_list, base.link) {
+		list_for_each_safe(device, &seat->base.devices_list, base.link) {
 			evdev_device_remove(device);
 		}
 		libinput_seat_unref(&seat->base);
@@ -239,7 +236,7 @@ udev_input_remove_devices(struct udev_input *input)
 static void
 udev_input_disable(struct libinput *libinput)
 {
-	struct udev_input *input = (struct udev_input*)libinput;
+	struct udev_input *input = (struct udev_input *)libinput;
 
 	if (!input->udev_monitor)
 		return;
@@ -255,7 +252,7 @@ udev_input_disable(struct libinput *libinput)
 static int
 udev_input_enable(struct libinput *libinput)
 {
-	struct udev_input *input = (struct udev_input*)libinput;
+	struct udev_input *input = (struct udev_input *)libinput;
 	struct udev *udev = input->udev;
 	int fd;
 
@@ -264,13 +261,13 @@ udev_input_enable(struct libinput *libinput)
 
 	input->udev_monitor = udev_monitor_new_from_netlink(udev, "udev");
 	if (!input->udev_monitor) {
-		log_info(libinput,
-			 "udev: failed to create the udev monitor\n");
+		log_info(libinput, "udev: failed to create the udev monitor\n");
 		return -1;
 	}
 
-	if (udev_monitor_filter_add_match_subsystem_devtype(
-				input->udev_monitor, "input", NULL)) {
+	if (udev_monitor_filter_add_match_subsystem_devtype(input->udev_monitor,
+							    "input",
+							    NULL)) {
 		log_info(libinput, "udev: failed to set up filter\n");
 		return -1;
 	}
@@ -283,10 +280,8 @@ udev_input_enable(struct libinput *libinput)
 	}
 
 	fd = udev_monitor_get_fd(input->udev_monitor);
-	input->udev_monitor_source = libinput_add_fd(&input->base,
-						     fd,
-						     evdev_udev_handler,
-						     input);
+	input->udev_monitor_source =
+		libinput_add_fd(&input->base, fd, evdev_udev_handler, input);
 	if (!input->udev_monitor_source) {
 		udev_monitor_unref(input->udev_monitor);
 		input->udev_monitor = NULL;
@@ -304,7 +299,7 @@ udev_input_enable(struct libinput *libinput)
 static void
 udev_input_destroy(struct libinput *input)
 {
-	struct udev_input *udev_input = (struct udev_input*)input;
+	struct udev_input *udev_input = (struct udev_input *)input;
 
 	if (input == NULL)
 		return;
@@ -316,7 +311,7 @@ udev_input_destroy(struct libinput *input)
 static void
 udev_seat_destroy(struct libinput_seat *seat)
 {
-	struct udev_seat *useat = (struct udev_seat*)seat;
+	struct udev_seat *useat = (struct udev_seat *)seat;
 	free(useat);
 }
 
@@ -329,8 +324,10 @@ udev_seat_create(struct udev_input *input,
 
 	seat = zalloc(sizeof *seat);
 
-	libinput_seat_init(&seat->base, &input->base,
-			   device_seat, seat_name,
+	libinput_seat_init(&seat->base,
+			   &input->base,
+			   device_seat,
+			   seat_name,
 			   udev_seat_destroy);
 
 	return seat;
@@ -350,8 +347,7 @@ udev_seat_get_named(struct udev_input *input, const char *seat_name)
 }
 
 static int
-udev_device_change_seat(struct libinput_device *device,
-			const char *seat_name)
+udev_device_change_seat(struct libinput_device *device, const char *seat_name)
 {
 	struct libinput *libinput = device->seat->libinput;
 	struct udev_input *input = (struct udev_input *)libinput;
@@ -386,8 +382,8 @@ libinput_udev_create_context(const struct libinput_interface *interface,
 
 	input = zalloc(sizeof *input);
 
-	if (libinput_init(&input->base, interface,
-			  &interface_backend, user_data) != 0) {
+	if (libinput_init(&input->base, interface, &interface_backend, user_data) !=
+	    0) {
 		libinput_unref(&input->base);
 		free(input);
 		return NULL;
@@ -399,10 +395,9 @@ libinput_udev_create_context(const struct libinput_interface *interface,
 }
 
 LIBINPUT_EXPORT int
-libinput_udev_assign_seat(struct libinput *libinput,
-			  const char *seat_id)
+libinput_udev_assign_seat(struct libinput *libinput, const char *seat_id)
 {
-	struct udev_input *input = (struct udev_input*)libinput;
+	struct udev_input *input = (struct udev_input *)libinput;
 
 	if (!seat_id)
 		return -1;

@@ -25,11 +25,11 @@
 
 #include "config.h"
 
-#include <errno.h>
 #include <dirent.h>
+#include <errno.h>
 #include <libgen.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "util-strings.h"
 
@@ -55,7 +55,7 @@ mkdir_p(const char *dir)
 	return (rc == -1 && errno != EEXIST) ? -errno : 0;
 }
 
-DEFINE_TRIVIAL_CLEANUP_FUNC(DIR*, closedir);
+DEFINE_TRIVIAL_CLEANUP_FUNC(DIR *, closedir);
 
 static inline int
 rmdir_r(const char *dir)
@@ -110,9 +110,7 @@ xclose(int *fd)
  * files returned (not including the NULL terminator).
  */
 char **
-list_files(const char **directories,
-	   const char *suffix,
-	   size_t *nfiles);
+list_files(const char **directories, const char *suffix, size_t *nfiles);
 
 struct tmpdir {
 	char *path;

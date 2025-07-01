@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
 	{ .type = -1, .code = -1 },
@@ -50,7 +50,8 @@ static struct input_absinfo absinfo[] = {
 
 static struct input_id input_id = {
 	.bustype = 0x3,
-	/* Note: this VID/PID is shared with multiple devices, see the libwacom database for a list */
+	/* Note: this VID/PID is shared with multiple devices, see the libwacom database
+	   for a list */
 	.vendor = 0x256c,
 	.product = 0x006d,
 };
@@ -68,15 +69,14 @@ static int events[] = {
 
 /* Device from https://gitlab.freedesktop.org/libinput/libinput/-/issues/600 */
 TEST_DEVICE(LITEST_HUION_Q620M_DIAL,
-	.features = LITEST_TABLET_PAD | LITEST_DIAL,
-	.interface = &interface,
+	    .features = LITEST_TABLET_PAD | LITEST_DIAL,
+	    .interface = &interface,
 
-	.name = "HUION Huion Tablet_Q620M Dial",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.udev_properties = {
-		{ "ID_INPUT_TABLET_PAD", "1" },
-		{ NULL },
-	},
-)
+	    .name = "HUION Huion Tablet_Q620M Dial",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .udev_properties = {
+		    { "ID_INPUT_TABLET_PAD", "1" },
+		    { NULL },
+	    }, )

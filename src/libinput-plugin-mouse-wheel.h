@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "libinput.h"
 #include "libinput-plugin.h"
+#include "libinput.h"
 
 void
 libinput_mouse_plugin_wheel(struct libinput *libinput);

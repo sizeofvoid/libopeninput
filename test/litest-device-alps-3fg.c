@@ -26,9 +26,8 @@
 #include <assert.h>
 
 #include "libinput-util.h"
-
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 struct alps {
 	unsigned int first, second;
@@ -59,7 +58,7 @@ touch_down(struct litest_device *d, unsigned int slot, double x, double y)
 	 * litest takes care of BTN_TOOL_* for us. */
 	if (alps->active_touches > 2) {
 		/* Need to send SYN_REPORT to flush litest's BTN_TOOL_* updates */
-		litest_event(d, EV_SYN, SYN_REPORT,  0);
+		litest_event(d, EV_SYN, SYN_REPORT, 0);
 		return true;
 	}
 
@@ -71,9 +70,7 @@ touch_move(struct litest_device *d, unsigned int slot, double x, double y)
 {
 	struct alps *alps = d->private;
 
-	if (alps->active_touches > 2 &&
-	    slot != alps->first &&
-	    slot != alps->second)
+	if (alps->active_touches > 2 && slot != alps->first && slot != alps->second)
 		return true;
 
 	return false;
@@ -88,10 +85,8 @@ touch_up(struct litest_device *d, unsigned int slot)
 	alps->active_touches--;
 
 	/* Need to send SYN_REPORT to flush litest's BTN_TOOL_* updates */
-	if (alps->active_touches > 2 &&
-	    slot != alps->first &&
-	    slot != alps->second) {
-		litest_event(d, EV_SYN, SYN_REPORT,  0);
+	if (alps->active_touches > 2 && slot != alps->first && slot != alps->second) {
+		litest_event(d, EV_SYN, SYN_REPORT, 0);
 		return true;
 	}
 
@@ -104,7 +99,7 @@ touch_up(struct litest_device *d, unsigned int slot)
 }
 
 static struct input_event down[] = {
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
@@ -116,7 +111,7 @@ static struct input_event down[] = {
 
 static struct input_event move[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
@@ -171,12 +166,11 @@ static struct input_absinfo absinfo[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_ALPS_3FG,
-	.features = LITEST_TOUCHPAD | LITEST_BUTTON,
-	.interface = &interface,
+	    .features = LITEST_TOUCHPAD | LITEST_BUTTON,
+	    .interface = &interface,
 
-	.name = "AlpsPS/2 ALPS GlidePoint",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.create = alps_create,
-)
+	    .name = "AlpsPS/2 ALPS GlidePoint",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .create = alps_create, )

@@ -26,13 +26,13 @@
 #include "config.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
+#include "filter-private.h"
 #include "filter.h"
 #include "libinput-util.h"
-#include "filter-private.h"
 
 struct pointer_accelerator_flat {
 	struct motion_filter base;
@@ -44,7 +44,8 @@ struct pointer_accelerator_flat {
 static struct normalized_coords
 accelerator_filter_flat(struct motion_filter *filter,
 			const struct device_float_coords *unaccelerated,
-			void *data, uint64_t time)
+			void *data,
+			uint64_t time)
 {
 	struct pointer_accelerator_flat *accel_filter =
 		(struct pointer_accelerator_flat *)filter;
@@ -63,7 +64,8 @@ accelerator_filter_flat(struct motion_filter *filter,
 static struct normalized_coords
 accelerator_filter_noop_flat(struct motion_filter *filter,
 			     const struct device_float_coords *unaccelerated,
-			     void *data, uint64_t time)
+			     void *data,
+			     uint64_t time)
 {
 	/* We map the unaccelerated flat filter to have the same behavior as
 	 * the "accelerated" flat filter.
@@ -80,8 +82,7 @@ accelerator_filter_noop_flat(struct motion_filter *filter,
 }
 
 static bool
-accelerator_set_speed_flat(struct motion_filter *filter,
-			   double speed_adjustment)
+accelerator_set_speed_flat(struct motion_filter *filter, double speed_adjustment)
 {
 	struct pointer_accelerator_flat *accel_filter =
 		(struct pointer_accelerator_flat *)filter;
@@ -103,7 +104,7 @@ static void
 accelerator_destroy_flat(struct motion_filter *filter)
 {
 	struct pointer_accelerator_flat *accel =
-		(struct pointer_accelerator_flat *) filter;
+		(struct pointer_accelerator_flat *)filter;
 
 	free(accel);
 }

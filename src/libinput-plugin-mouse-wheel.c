@@ -29,13 +29,12 @@
 
 #include <libevdev/libevdev.h>
 
-#include "evdev.h"
 #include "evdev-fallback.h"
-
+#include "evdev.h"
 #include "libinput-log.h"
-#include "libinput-util.h"
-#include "libinput-plugin.h"
 #include "libinput-plugin-mouse-wheel.h"
+#include "libinput-plugin.h"
+#include "libinput-util.h"
 
 #define ACC_V120_THRESHOLD 60
 #define WHEEL_SCROLL_TIMEOUT ms2us(500)
@@ -83,7 +82,7 @@ struct plugin_data {
 static inline const char *
 wheel_state_to_str(enum wheel_state state)
 {
-	switch(state) {
+	switch (state) {
 	CASE_RETURN_STRING(WHEEL_STATE_NONE);
 	CASE_RETURN_STRING(WHEEL_STATE_ACCUMULATING_SCROLL);
 	CASE_RETURN_STRING(WHEEL_STATE_SCROLLING);
@@ -91,10 +90,10 @@ wheel_state_to_str(enum wheel_state state)
 	return NULL;
 }
 
-static inline const char*
+static inline const char *
 wheel_event_to_str(enum wheel_event event)
 {
-	switch(event) {
+	switch (event) {
 	CASE_RETURN_STRING(WHEEL_EVENT_SCROLL_ACCUMULATED);
 	CASE_RETURN_STRING(WHEEL_EVENT_SCROLL);
 	CASE_RETURN_STRING(WHEEL_EVENT_SCROLL_TIMEOUT);
@@ -118,8 +117,7 @@ wheel_set_scroll_timer(struct plugin_device *pd, uint64_t time)
 	if (!pd->scroll_timer)
 		return;
 
-	libinput_plugin_timer_set(pd->scroll_timer,
-				  time + WHEEL_SCROLL_TIMEOUT);
+	libinput_plugin_timer_set(pd->scroll_timer, time + WHEEL_SCROLL_TIMEOUT);
 }
 
 static inline void
@@ -138,10 +136,9 @@ wheel_handle_event_on_state_none(struct plugin_device *pd,
 {
 	switch (event) {
 	case WHEEL_EVENT_SCROLL:
-		pd->state =
-			pd->ignore_small_hi_res_movements ?
-				WHEEL_STATE_ACCUMULATING_SCROLL :
-				WHEEL_STATE_SCROLLING;
+		pd->state = pd->ignore_small_hi_res_movements
+				    ? WHEEL_STATE_ACCUMULATING_SCROLL
+				    : WHEEL_STATE_SCROLLING;
 		break;
 	case WHEEL_EVENT_SCROLL_DIR_CHANGED:
 		break;
@@ -198,9 +195,7 @@ wheel_handle_event_on_state_scrolling(struct plugin_device *pd,
 }
 
 static void
-wheel_handle_event(struct plugin_device *pd,
-		   enum wheel_event event,
-		   uint64_t time)
+wheel_handle_event(struct plugin_device *pd, enum wheel_event event, uint64_t time)
 {
 	enum wheel_state oldstate = pd->state;
 
@@ -209,9 +204,7 @@ wheel_handle_event(struct plugin_device *pd,
 		wheel_handle_event_on_state_none(pd, event, time);
 		break;
 	case WHEEL_STATE_ACCUMULATING_SCROLL:
-		wheel_handle_event_on_state_accumulating_scroll(pd,
-								event,
-								time);
+		wheel_handle_event_on_state_accumulating_scroll(pd, event, time);
 		break;
 	case WHEEL_STATE_SCROLLING:
 		wheel_handle_event_on_state_scrolling(pd, event, time);
@@ -302,7 +295,6 @@ wheel_handle_state_none(struct plugin_device *pd,
 			struct evdev_frame *frame,
 			uint64_t time)
 {
-
 }
 
 static void
@@ -353,9 +345,7 @@ wheel_handle_direction_change(struct plugin_device *pd,
 }
 
 static void
-wheel_process_relative(struct plugin_device *pd,
-		       struct evdev_event *e,
-		       uint64_t time)
+wheel_process_relative(struct plugin_device *pd, struct evdev_event *e, uint64_t time)
 {
 	switch (evdev_usage_enum(e->usage)) {
 	case EVDEV_REL_WHEEL:
@@ -384,18 +374,16 @@ wheel_process_relative(struct plugin_device *pd,
 }
 
 static void
-wheel_handle_state(struct plugin_device *pd,
-		   struct evdev_frame *frame,
-		   uint64_t time)
+wheel_handle_state(struct plugin_device *pd, struct evdev_frame *frame, uint64_t time)
 {
 	struct evdev_device *evdev = evdev_device(pd->device);
 
-	if (!pd->hi_res_event_received &&
-	    (pd->lo_res.x != 0 || pd->lo_res.y != 0)) {
-		evdev_log_bug_kernel(evdev,
-				     "device supports high-resolution scroll but only low-resolution events have been received.\n"
-				     "See %s/incorrectly-enabled-hires.html for details\n",
-				     HTTP_DOC_LINK);
+	if (!pd->hi_res_event_received && (pd->lo_res.x != 0 || pd->lo_res.y != 0)) {
+		evdev_log_bug_kernel(
+			evdev,
+			"device supports high-resolution scroll but only low-resolution events have been received.\n"
+			"See %s/incorrectly-enabled-hires.html for details\n",
+			HTTP_DOC_LINK);
 		pd->hi_res.x = pd->lo_res.x * 120;
 		pd->hi_res.y = pd->lo_res.y * 120;
 	}
@@ -414,9 +402,7 @@ wheel_handle_state(struct plugin_device *pd,
 }
 
 static void
-wheel_on_scroll_timer_timeout(struct libinput_plugin *plugin,
-			      uint64_t now,
-			      void *data)
+wheel_on_scroll_timer_timeout(struct libinput_plugin *plugin, uint64_t now, void *data)
 {
 	struct plugin_device *pd = data;
 
@@ -438,10 +424,11 @@ wheel_plugin_device_create(struct libinput_plugin *libinput_plugin,
 	pd->ignore_small_hi_res_movements = !evdev_device_is_virtual(evdev);
 
 	if (pd->ignore_small_hi_res_movements) {
-		pd->scroll_timer = libinput_plugin_timer_new(libinput_plugin,
-							     libinput_device_get_sysname(device),
-							     wheel_on_scroll_timer_timeout,
-							     pd);
+		pd->scroll_timer =
+			libinput_plugin_timer_new(libinput_plugin,
+						  libinput_device_get_sysname(device),
+						  wheel_on_scroll_timer_timeout,
+						  pd);
 	}
 
 	return pd;
@@ -485,8 +472,8 @@ wheel_plugin_device_added(struct libinput_plugin *libinput_plugin,
 	libinput_plugin_enable_device_event_frame(libinput_plugin, device, true);
 
 	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
-	struct plugin_device *pd = wheel_plugin_device_create(libinput_plugin,
-							      plugin, device);
+	struct plugin_device *pd =
+		wheel_plugin_device_create(libinput_plugin, plugin, device);
 	list_take_append(&plugin->devices, pd, link);
 }
 
@@ -506,9 +493,7 @@ wheel_plugin_device_removed(struct libinput_plugin *libinput_plugin,
 }
 
 static void
-wheel_handle_frame(struct plugin_device *pd,
-		   struct evdev_frame *frame,
-		   uint64_t time)
+wheel_handle_frame(struct plugin_device *pd, struct evdev_frame *frame, uint64_t time)
 {
 	size_t nevents;
 	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
@@ -561,9 +546,7 @@ libinput_mouse_plugin_wheel(struct libinput *libinput)
 	struct plugin_data *plugin = zalloc(sizeof(*plugin));
 	list_init(&plugin->devices);
 
-	_unref_(libinput_plugin) *p = libinput_plugin_new(libinput,
-							  "mouse-wheel",
-							  &interface,
-							  plugin);
+	_unref_(libinput_plugin) *p =
+		libinput_plugin_new(libinput, "mouse-wheel", &interface, plugin);
 	plugin->plugin = p;
 }

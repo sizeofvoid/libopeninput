@@ -30,8 +30,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "litest.h"
 #include "libinput-util.h"
+#include "litest.h"
 
 struct counter {
 	int open_func_count;
@@ -214,7 +214,6 @@ START_TEST(path_create_pathmax_file)
 	litest_restore_log_handler(li);
 	libinput_unref(li);
 	litest_assert_int_eq(counter.close_func_count, 0);
-
 }
 END_TEST
 
@@ -244,8 +243,7 @@ START_TEST(path_create_destroy)
 
 	litest_assert(libinput_get_user_data(li) == &counter);
 
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_notnull(device);
 
 	litest_assert_int_eq(counter.open_func_count, 1);
@@ -265,8 +263,7 @@ START_TEST(path_force_destroy)
 	li = libinput_path_create_context(&simple_interface, NULL);
 	litest_assert_notnull(li);
 	libinput_ref(li);
-	device = libinput_path_add_device(li,
-				  libevdev_uinput_get_devnode(dev->uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(dev->uinput));
 	litest_assert_notnull(device);
 
 	while (libinput_unref(li) != NULL)
@@ -343,8 +340,7 @@ START_TEST(path_seat_change)
 
 	litest_drain_events(li);
 
-	rc = libinput_device_set_seat_logical_name(device,
-						   seat2_name);
+	rc = libinput_device_set_seat_logical_name(device, seat2_name);
 	litest_assert_int_eq(rc, 0);
 
 	litest_dispatch(li);
@@ -366,10 +362,8 @@ START_TEST(path_seat_change)
 	device = libinput_event_get_device(event);
 	seat2 = libinput_device_get_seat(device);
 
-	litest_assert_str_ne(libinput_seat_get_logical_name(seat2),
-			 seat1_name);
-	litest_assert_str_eq(libinput_seat_get_logical_name(seat2),
-			 seat2_name);
+	litest_assert_str_ne(libinput_seat_get_logical_name(seat2), seat1_name);
+	litest_assert_str_eq(libinput_seat_get_logical_name(seat2), seat2_name);
 	libinput_event_destroy(event);
 
 	libinput_seat_unref(seat1);
@@ -419,8 +413,7 @@ START_TEST(path_add_device)
 
 	litest_assert_empty_queue(li);
 
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(dev->uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(dev->uinput));
 	litest_assert_notnull(device);
 
 	litest_dispatch(li);
@@ -487,8 +480,7 @@ START_TEST(path_remove_device)
 	struct libinput_device *device;
 	int remove_event = 0;
 
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(dev->uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(dev->uinput));
 	litest_assert_notnull(device);
 	litest_drain_events(li);
 
@@ -517,8 +509,7 @@ START_TEST(path_double_remove_device)
 	struct libinput_device *device;
 	int remove_event = 0;
 
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(dev->uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(dev->uinput));
 	litest_assert_notnull(device);
 	litest_drain_events(li);
 
@@ -560,8 +551,7 @@ START_TEST(path_suspend)
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
 
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_notnull(device);
 
 	libinput_suspend(li);
@@ -592,8 +582,7 @@ START_TEST(path_double_suspend)
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
 
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_notnull(device);
 
 	libinput_suspend(li);
@@ -625,8 +614,7 @@ START_TEST(path_double_resume)
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
 
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_notnull(device);
 
 	libinput_suspend(li);
@@ -666,8 +654,7 @@ START_TEST(path_add_device_suspend_resume)
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
 
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput1));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput1));
 	litest_assert_notnull(device);
 	libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput2));
 
@@ -740,11 +727,9 @@ START_TEST(path_add_device_suspend_resume_fail)
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
 
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput1));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput1));
 	litest_assert_notnull(device);
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput2));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput2));
 	litest_assert_notnull(device);
 
 	litest_dispatch(li);
@@ -825,11 +810,9 @@ START_TEST(path_add_device_suspend_resume_remove_device)
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
 
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput1));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput1));
 	litest_assert_notnull(device);
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput2));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput2));
 
 	libinput_device_ref(device);
 	litest_dispatch(li);
@@ -898,8 +881,7 @@ START_TEST(path_device_gone)
 	li = libinput_path_create_context(&simple_interface, NULL);
 	litest_assert_notnull(li);
 
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_notnull(device);
 
 	litest_drain_events(li);
@@ -943,8 +925,7 @@ START_TEST(path_seat_recycle)
 	li = libinput_path_create_context(&simple_interface, userdata);
 	litest_assert_notnull(li);
 
-	device = libinput_path_add_device(li,
-					  libevdev_uinput_get_devnode(uinput));
+	device = libinput_path_add_device(li, libevdev_uinput_get_devnode(uinput));
 	litest_assert_notnull(device);
 
 	litest_dispatch(li);

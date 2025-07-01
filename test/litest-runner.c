@@ -25,24 +25,24 @@
 
 #include <errno.h>
 #include <sys/epoll.h>
-#include <sys/timerfd.h>
 #include <sys/sysinfo.h>
+#include <sys/timerfd.h>
 #include <sys/wait.h>
 #ifdef HAVE_PIDFD_OPEN
 #include <sys/syscall.h>
 #endif
 #include <fcntl.h>
-#include <stdlib.h>
-#include <signal.h>
 #include <setjmp.h>
+#include <signal.h>
+#include <stdlib.h>
 #include <valgrind/valgrind.h>
-
-#include "litest-runner.h"
 
 #include "util-files.h"
 #include "util-list.h"
 #include "util-multivalue.h"
 #include "util-stringbuf.h"
+
+#include "litest-runner.h"
 
 static bool use_jmpbuf; /* only used for max_forks = 0 */
 static jmp_buf jmpbuf;
@@ -70,7 +70,7 @@ struct litest_runner_test {
 	int sig_or_errno;
 
 	struct stringbuf logs[_FD_LAST];
-	pid_t pid; /* the test's PID, if any */
+	pid_t pid;              /* the test's PID, if any */
 	int read_fds[_FD_LAST]; /* logging fds while the test is running */
 
 	int epollfd;
@@ -93,8 +93,8 @@ struct litest_runner {
 
 	int terminating;
 
-	struct list tests; /* struct litest_runner_test */
-	struct list tests_running; /* struct litest_runner_test */
+	struct list tests;          /* struct litest_runner_test */
+	struct list tests_running;  /* struct litest_runner_test */
 	struct list tests_complete; /* struct litest_runner_test */
 
 	struct {
@@ -180,12 +180,12 @@ static const char *
 litest_runner_result_as_str(enum litest_runner_result result)
 {
 	switch (result) {
-		CASE_RETURN_STRING(LITEST_PASS);
-		CASE_RETURN_STRING(LITEST_NOT_APPLICABLE);
-		CASE_RETURN_STRING(LITEST_FAIL);
-		CASE_RETURN_STRING(LITEST_SYSTEM_ERROR);
-		CASE_RETURN_STRING(LITEST_TIMEOUT);
-		CASE_RETURN_STRING(LITEST_SKIP);
+	CASE_RETURN_STRING(LITEST_PASS);
+	CASE_RETURN_STRING(LITEST_NOT_APPLICABLE);
+	CASE_RETURN_STRING(LITEST_FAIL);
+	CASE_RETURN_STRING(LITEST_SYSTEM_ERROR);
+	CASE_RETURN_STRING(LITEST_TIMEOUT);
+	CASE_RETURN_STRING(LITEST_SKIP);
 	}
 
 	litest_abort_msg("Unknown result %d", result);
@@ -279,18 +279,17 @@ sighandler_forked_child(int signal)
 	act.sa_handler = SIG_DFL;
 	sigaction(signal, &act, NULL);
 
-        /* abort() was probably called by litest_assert... which inserts
-         * the backtrace anyway -  we only need to backtrace the other signals
-         */
-        if (signal != SIGABRT)
+	/* abort() was probably called by litest_assert... which inserts
+	 * the backtrace anyway -  we only need to backtrace the other signals
+	 */
+	if (signal != SIGABRT)
 		litest_backtrace(NULL);
 
 	raise(signal);
 }
 
 static int
-litest_runner_fork_test(struct litest_runner *runner,
-			struct litest_runner_test *t)
+litest_runner_fork_test(struct litest_runner *runner, struct litest_runner_test *t)
 {
 	pid_t pid;
 	struct sigaction act;
@@ -374,7 +373,8 @@ collect_file(const char *filename, struct stringbuf *b)
 {
 	int fd = open(filename, O_RDONLY);
 	if (fd == -1) {
-		_autofree_ char *msg = strdup_printf("Failed to find '%s': %m", filename);
+		_autofree_ char *msg =
+			strdup_printf("Failed to find '%s': %m", filename);
 		stringbuf_append_string(b, msg);
 	} else {
 		stringbuf_append_from_fd(b, fd, 0);
@@ -396,38 +396,45 @@ litest_runner_test_collect_child(struct litest_runner_test *t)
 		t->result = WEXITSTATUS(status);
 		if (RUNNING_ON_VALGRIND && t->result == 3) {
 			char msg[64];
-			snprintf(msg, sizeof(msg), "valgrind exited with an error code, see logs\n");
+			snprintf(msg,
+				 sizeof(msg),
+				 "valgrind exited with an error code, see logs\n");
 			stringbuf_append_string(&t->logs[FD_LOG], msg);
 			t->result = LITEST_SYSTEM_ERROR;
 		}
 		switch (t->result) {
-			case LITEST_PASS:
-			case LITEST_SKIP:
-			case LITEST_NOT_APPLICABLE:
-			case LITEST_FAIL:
-			case LITEST_TIMEOUT:
-			case LITEST_SYSTEM_ERROR:
-				break;
-			#pragma GCC diagnostic push
-			#pragma GCC diagnostic ignored "-Wswitch"
-			case 0:
-				/* if a test execve's itself allow for the normal
-				 * exit codes to map to the results */
-				t->result = LITEST_PASS;
-				break;
-			#pragma GCC diagnostic pop
-			default: {
-				char msg[64];
-				snprintf(msg, sizeof(msg), "Invalid test exit status %d", t->result);
-				stringbuf_append_string(&t->logs[FD_LOG], msg);
-				t->result = LITEST_FAIL;
-				break;
-			}
+		case LITEST_PASS:
+		case LITEST_SKIP:
+		case LITEST_NOT_APPLICABLE:
+		case LITEST_FAIL:
+		case LITEST_TIMEOUT:
+		case LITEST_SYSTEM_ERROR:
+			break;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch"
+		case 0:
+			/* if a test execve's itself allow for the normal
+			 * exit codes to map to the results */
+			t->result = LITEST_PASS;
+			break;
+#pragma GCC diagnostic pop
+		default: {
+			char msg[64];
+			snprintf(msg,
+				 sizeof(msg),
+				 "Invalid test exit status %d",
+				 t->result);
+			stringbuf_append_string(&t->logs[FD_LOG], msg);
+			t->result = LITEST_FAIL;
+			break;
+		}
 		}
 	} else {
 		if (WIFSIGNALED(status)) {
 			t->sig_or_errno = WTERMSIG(status);
-			t->result = (t->sig_or_errno == t->desc.args.signal) ? LITEST_PASS : LITEST_FAIL;
+			t->result = (t->sig_or_errno == t->desc.args.signal)
+					    ? LITEST_PASS
+					    : LITEST_FAIL;
 		} else {
 			t->result = LITEST_FAIL;
 		}
@@ -468,11 +475,13 @@ litest_runner_test_setup_monitoring(struct litest_runner *runner,
 			r = -errno;
 			goto error;
 		}
-		r = timerfd_settime(pidfd, 0,
-				    &((struct itimerspec ){
-				      .it_interval.tv_nsec = 200 * 1000 * 1000,
-				      .it_value.tv_nsec = 200 * 1000 * 1000,
-				      }), NULL);
+		r = timerfd_settime(pidfd,
+				    0,
+				    &((struct itimerspec){
+					    .it_interval.tv_nsec = 200 * 1000 * 1000,
+					    .it_value.tv_nsec = 200 * 1000 * 1000,
+				    }),
+				    NULL);
 		if (r < 0) {
 			r = -errno;
 			goto error;
@@ -491,15 +500,21 @@ litest_runner_test_setup_monitoring(struct litest_runner *runner,
 		r = -errno;
 		goto error;
 	}
-	timerfd_settime(timerfd, 0, &((struct itimerspec ){ .it_value.tv_sec = runner->timeout}), NULL);
+	timerfd_settime(timerfd,
+			0,
+			&((struct itimerspec){ .it_value.tv_sec = runner->timeout }),
+			NULL);
 
 	epollfd = epoll_create(1);
 	if (epollfd < 0)
 		goto error;
 	ev[nevents++] = (struct epoll_event){ .events = EPOLLIN, .data.fd = pidfd };
-	ev[nevents++] = (struct epoll_event){ .events = EPOLLIN, .data.fd = t->read_fds[FD_STDOUT] };
-	ev[nevents++] = (struct epoll_event){ .events = EPOLLIN, .data.fd = t->read_fds[FD_STDERR] };
-	ev[nevents++] = (struct epoll_event){ .events = EPOLLIN, .data.fd = t->read_fds[FD_LOG] };
+	ev[nevents++] = (struct epoll_event){ .events = EPOLLIN,
+					      .data.fd = t->read_fds[FD_STDOUT] };
+	ev[nevents++] = (struct epoll_event){ .events = EPOLLIN,
+					      .data.fd = t->read_fds[FD_STDERR] };
+	ev[nevents++] = (struct epoll_event){ .events = EPOLLIN,
+					      .data.fd = t->read_fds[FD_LOG] };
 	ev[nevents++] = (struct epoll_event){ .events = EPOLLIN, .data.fd = timerfd };
 
 	for (size_t i = 0; i < nevents; i++) {
@@ -546,7 +561,9 @@ litest_runner_test_check_status(struct litest_runner_test *t)
 
 		if (e.data.fd == t->pidfd) {
 			uint64_t buf;
-			int ignore = read(t->pidfd, &buf, sizeof(buf)); /* for timerfd fallback */
+			int ignore = read(t->pidfd,
+					  &buf,
+					  sizeof(buf)); /* for timerfd fallback */
 			(void)ignore;
 			if (litest_runner_test_collect_child(t)) {
 				break;
@@ -561,7 +578,9 @@ litest_runner_test_check_status(struct litest_runner_test *t)
 		} else {
 			for (int i = 0; i < _FD_LAST; i++) {
 				if (e.data.fd == t->read_fds[i]) {
-					stringbuf_append_from_fd(&t->logs[i], e.data.fd, 1024);
+					stringbuf_append_from_fd(&t->logs[i],
+								 e.data.fd,
+								 1024);
 				}
 			}
 		}
@@ -590,9 +609,9 @@ litest_runner_test_update_errno(struct litest_runner_test *t, int error)
 	}
 }
 
-__attribute__((noreturn))
-void
-litest_runner_abort(void)  {
+__attribute__((noreturn)) void
+litest_runner_abort(void)
+{
 	if (use_jmpbuf) {
 		longjmp(jmpbuf, SIGABRT);
 	} else {
@@ -637,7 +656,7 @@ static void
 print_lines(FILE *fp, const char *log, const char *prefix)
 {
 	size_t nlines = 0;
-	_autostrvfree_ char **lines = strv_from_string (log, "\n", &nlines);
+	_autostrvfree_ char **lines = strv_from_string(log, "\n", &nlines);
 
 	for (size_t i = 0; i < nlines; i++) {
 		fprintf(fp, "%s%s\n", prefix, lines[i]);
@@ -661,7 +680,10 @@ _litest_test_param_fetch(const struct litest_test_parameters *params, ...)
 		list_for_each(p, &params->test_params, link) {
 			if (streq(p->name, name)) {
 				if (tolower(p->value.type) != tolower(type))
-					litest_abort_msg("Paramter type mismatch: parameter '%s' is of type %c", p->name, p->value.type);
+					litest_abort_msg(
+						"Paramter type mismatch: parameter '%s' is of type %c",
+						p->name,
+						p->value.type);
 				found = true;
 				multivalue_extract(&p->value, ptr);
 				break;
@@ -700,7 +722,8 @@ litest_test_parameters_unref(struct litest_test_parameters *params)
 }
 
 static void
-litest_runner_log_test_result(struct litest_runner *runner, struct litest_runner_test *t)
+litest_runner_log_test_result(struct litest_runner *runner,
+			      struct litest_runner_test *t)
 {
 	const char *color = NULL;
 	const char *status = NULL;
@@ -709,19 +732,34 @@ litest_runner_log_test_result(struct litest_runner *runner, struct litest_runner
 	litest_assert_int_le(t->result, (enum litest_runner_result)LITEST_SYSTEM_ERROR);
 
 	switch (t->result) {
-		case LITEST_PASS: color = ANSI_BOLD_GREEN; break;
-		case LITEST_FAIL: color = ANSI_BOLD_RED; break;
-		case LITEST_SKIP: color = ANSI_BOLD_YELLOW; break;
-		case LITEST_NOT_APPLICABLE: color = ANSI_BLUE; break;
-		case LITEST_TIMEOUT: color = ANSI_BOLD_CYAN; break;
-		case LITEST_SYSTEM_ERROR: color = ANSI_BOLD_MAGENTA; break;
+	case LITEST_PASS:
+		color = ANSI_BOLD_GREEN;
+		break;
+	case LITEST_FAIL:
+		color = ANSI_BOLD_RED;
+		break;
+	case LITEST_SKIP:
+		color = ANSI_BOLD_YELLOW;
+		break;
+	case LITEST_NOT_APPLICABLE:
+		color = ANSI_BLUE;
+		break;
+	case LITEST_TIMEOUT:
+		color = ANSI_BOLD_CYAN;
+		break;
+	case LITEST_SYSTEM_ERROR:
+		color = ANSI_BOLD_MAGENTA;
+		break;
 	}
 
 	fprintf(runner->fp, "  - name: \"%s\"\n", t->desc.name);
-	int min = t->desc.args.range.lower,
-	    max = t->desc.args.range.upper;
+	int min = t->desc.args.range.lower, max = t->desc.args.range.upper;
 	if (range_is_valid(&t->desc.args.range))
-		fprintf(runner->fp, "    rangeval: %d  # %d..%d\n", t->desc.rangeval, min, max);
+		fprintf(runner->fp,
+			"    rangeval: %d  # %d..%d\n",
+			t->desc.rangeval,
+			min,
+			max);
 
 	if (t->desc.params) {
 		fprintf(runner->fp, "    params:\n");
@@ -739,30 +777,33 @@ litest_runner_log_test_result(struct litest_runner *runner, struct litest_runner
 		(ms2s(t->times.end_millis - runner->times.start_millis)) % 60);
 
 	status = litest_runner_result_as_str(t->result);
-	fprintf(runner->fp, "    status: %s%s%s\n",
+	fprintf(runner->fp,
+		"    status: %s%s%s\n",
 		runner->use_colors ? color : "",
 		&status[7], /* skip LITEST_ prefix */
 		runner->use_colors ? ANSI_NORMAL : "");
 
 	switch (t->result) {
-		case LITEST_PASS:
-		case LITEST_SKIP:
-		case LITEST_NOT_APPLICABLE:
-			if (!runner->verbose)
-				return;
-			break;
-		default:
-			break;
+	case LITEST_PASS:
+	case LITEST_SKIP:
+	case LITEST_NOT_APPLICABLE:
+		if (!runner->verbose)
+			return;
+		break;
+	default:
+		break;
 	}
 
 	if (t->sig_or_errno > 0)
-		fprintf(runner->fp, "    signal: %d # SIG%s \n",
-		       t->sig_or_errno,
-		       sigabbrev_np(t->sig_or_errno));
+		fprintf(runner->fp,
+			"    signal: %d # SIG%s \n",
+			t->sig_or_errno,
+			sigabbrev_np(t->sig_or_errno));
 	else if (t->sig_or_errno < 0)
-		fprintf(runner->fp, "    errno: %d # %s\n",
-		       -t->sig_or_errno,
-		       strerror(-t->sig_or_errno));
+		fprintf(runner->fp,
+			"    errno: %d # %s\n",
+			-t->sig_or_errno,
+			strerror(-t->sig_or_errno));
 	if (!stringbuf_is_empty(&t->logs[FD_LOG])) {
 		fprintf(runner->fp, "    log: |\n");
 		print_lines(runner->fp, t->logs[FD_LOG].data, "      ");
@@ -797,37 +838,32 @@ litest_runner_new(void)
 }
 
 void
-litest_runner_set_timeout(struct litest_runner *runner,
-			  unsigned int timeout)
+litest_runner_set_timeout(struct litest_runner *runner, unsigned int timeout)
 {
 	runner->timeout = timeout;
 }
 
 void
-litest_runner_set_output_file(struct litest_runner *runner,
-			      FILE *fp)
+litest_runner_set_output_file(struct litest_runner *runner, FILE *fp)
 {
 	setlinebuf(fp);
 	runner->fp = fp;
 }
 
 void
-litest_runner_set_num_parallel(struct litest_runner *runner,
-			       size_t num_jobs)
+litest_runner_set_num_parallel(struct litest_runner *runner, size_t num_jobs)
 {
 	runner->max_forks = num_jobs;
 }
 
 void
-litest_runner_set_verbose(struct litest_runner *runner,
-			  bool verbose)
+litest_runner_set_verbose(struct litest_runner *runner, bool verbose)
 {
 	runner->verbose = verbose;
 }
 
 void
-litest_runner_set_use_colors(struct litest_runner *runner,
-			     bool use_colors)
+litest_runner_set_use_colors(struct litest_runner *runner, bool use_colors)
 {
 	runner->use_colors = use_colors;
 }
@@ -977,13 +1013,13 @@ litest_runner_run_tests(struct litest_runner *runner)
 			struct litest_runner_test *complete;
 			list_for_each(complete, &runner->tests_complete, node) {
 				switch (complete->result) {
-					case LITEST_FAIL:
-					case LITEST_SYSTEM_ERROR:
-					case LITEST_TIMEOUT:
-						do_exit = true;
-						break;
-					default:
-						break;
+				case LITEST_FAIL:
+				case LITEST_SYSTEM_ERROR:
+				case LITEST_TIMEOUT:
+					do_exit = true;
+					break;
+				default:
+					break;
 				}
 				if (do_exit)
 					break;
@@ -1006,20 +1042,20 @@ litest_runner_run_tests(struct litest_runner *runner)
 	list_for_each(t, &runner->tests_complete, node) {
 		ncomplete++;
 		switch (t->result) {
-			case LITEST_PASS:
-				npass++;
-				break;
-			case LITEST_NOT_APPLICABLE:
-				nna++;
-				break;
-			case LITEST_FAIL:
-			case LITEST_SYSTEM_ERROR:
-			case LITEST_TIMEOUT:
-				nfail++;
-				break;
-			case LITEST_SKIP:
-				nskip++;
-				break;
+		case LITEST_PASS:
+			npass++;
+			break;
+		case LITEST_NOT_APPLICABLE:
+			nna++;
+			break;
+		case LITEST_FAIL:
+		case LITEST_SYSTEM_ERROR:
+		case LITEST_TIMEOUT:
+			nfail++;
+			break;
+		case LITEST_SKIP:
+			nskip++;
+			break;
 		}
 	}
 
@@ -1042,13 +1078,13 @@ litest_runner_run_tests(struct litest_runner *runner)
 		fprintf(runner->fp, "  failed:\n");
 		list_for_each(t, &runner->tests_complete, node) {
 			switch (t->result) {
-				case LITEST_FAIL:
-				case LITEST_SYSTEM_ERROR:
-				case LITEST_TIMEOUT:
-					litest_runner_log_test_result(runner, t);
-					break;
-				default:
-					break;
+			case LITEST_FAIL:
+			case LITEST_SYSTEM_ERROR:
+			case LITEST_TIMEOUT:
+				litest_runner_log_test_result(runner, t);
+				break;
+			default:
+				break;
 			}
 		}
 	}
@@ -1060,7 +1096,9 @@ litest_runner_run_tests(struct litest_runner *runner)
 		collect_file(filename, b);
 		fprintf(runner->fp, "valgrind:\n");
 		print_lines(runner->fp, b->data, "  ");
-		fprintf(runner->fp, "# Valgrind log is incomplete, see %s for full log\n", filename);
+		fprintf(runner->fp,
+			"# Valgrind log is incomplete, see %s for full log\n",
+			filename);
 	}
 
 	enum litest_runner_result result = LITEST_PASS;
@@ -1071,12 +1109,12 @@ litest_runner_run_tests(struct litest_runner *runner)
 	} else {
 		list_for_each(t, &runner->tests_complete, node) {
 			switch (t->result) {
-				case LITEST_PASS:
-				case LITEST_NOT_APPLICABLE:
-					break;
-				default:
-					result = LITEST_FAIL;
-					break;
+			case LITEST_PASS:
+			case LITEST_NOT_APPLICABLE:
+				break;
+			default:
+				result = LITEST_FAIL;
+				break;
 			}
 		}
 	}

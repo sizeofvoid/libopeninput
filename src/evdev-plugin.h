@@ -25,8 +25,8 @@
 
 #include "config.h"
 
-#include "libinput.h"
 #include "libinput-plugin.h"
+#include "libinput.h"
 
 void
 libinput_evdev_dispatch_plugin(struct libinput *libinput);

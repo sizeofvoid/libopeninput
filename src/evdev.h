@@ -28,56 +28,57 @@
 
 #include "config.h"
 
-#include <stdbool.h>
-#include <stdarg.h>
-#include "linux/input.h"
 #include <libevdev/libevdev.h>
+#include <stdarg.h>
+#include <stdbool.h>
 
-#include "libinput-private.h"
-#include "timer.h"
-#include "filter.h"
-#include "quirks.h"
-#include "evdev-frame.h"
 #include "util-input-event.h"
+
+#include "evdev-frame.h"
+#include "filter.h"
+#include "libinput-private.h"
+#include "linux/input.h"
+#include "quirks.h"
+#include "timer.h"
 
 /* The fake resolution value for abs devices without resolution */
 #define EVDEV_FAKE_RESOLUTION 1
 
 enum evdev_event_type {
-	EVDEV_NONE			= 0,
-	EVDEV_ABSOLUTE_TOUCH_DOWN	= bit(0),
-	EVDEV_ABSOLUTE_MOTION		= bit(1),
-	EVDEV_ABSOLUTE_TOUCH_UP		= bit(2),
-	EVDEV_ABSOLUTE_MT		= bit(3),
-	EVDEV_KEY			= bit(4),
-	EVDEV_RELATIVE_MOTION		= bit(5),
-	EVDEV_BUTTON			= bit(6),
+	EVDEV_NONE = 0,
+	EVDEV_ABSOLUTE_TOUCH_DOWN = bit(0),
+	EVDEV_ABSOLUTE_MOTION = bit(1),
+	EVDEV_ABSOLUTE_TOUCH_UP = bit(2),
+	EVDEV_ABSOLUTE_MT = bit(3),
+	EVDEV_KEY = bit(4),
+	EVDEV_RELATIVE_MOTION = bit(5),
+	EVDEV_BUTTON = bit(6),
 };
 
 enum evdev_device_seat_capability {
-	EVDEV_DEVICE_NO_CAPABILITIES	= 0,
-	EVDEV_DEVICE_POINTER		= bit(0),
-	EVDEV_DEVICE_KEYBOARD		= bit(1),
-	EVDEV_DEVICE_TOUCH		= bit(2),
-	EVDEV_DEVICE_TABLET		= bit(3),
-	EVDEV_DEVICE_TABLET_PAD		= bit(4),
-	EVDEV_DEVICE_GESTURE		= bit(5),
-	EVDEV_DEVICE_SWITCH		= bit(6),
+	EVDEV_DEVICE_NO_CAPABILITIES = 0,
+	EVDEV_DEVICE_POINTER = bit(0),
+	EVDEV_DEVICE_KEYBOARD = bit(1),
+	EVDEV_DEVICE_TOUCH = bit(2),
+	EVDEV_DEVICE_TABLET = bit(3),
+	EVDEV_DEVICE_TABLET_PAD = bit(4),
+	EVDEV_DEVICE_GESTURE = bit(5),
+	EVDEV_DEVICE_SWITCH = bit(6),
 };
 
 enum evdev_device_tags {
-	EVDEV_TAG_NONE			= 0,
-	EVDEV_TAG_EXTERNAL_MOUSE	= bit(0),
-	EVDEV_TAG_INTERNAL_TOUCHPAD	= bit(1),
-	EVDEV_TAG_EXTERNAL_TOUCHPAD	= bit(2),
-	EVDEV_TAG_TRACKPOINT		= bit(3),
-	EVDEV_TAG_KEYBOARD		= bit(4),
-	EVDEV_TAG_LID_SWITCH		= bit(5),
-	EVDEV_TAG_INTERNAL_KEYBOARD	= bit(6),
-	EVDEV_TAG_EXTERNAL_KEYBOARD	= bit(7),
-	EVDEV_TAG_TABLET_MODE_SWITCH	= bit(8),
-	EVDEV_TAG_TABLET_TOUCHPAD	= bit(9),
-	EVDEV_TAG_VIRTUAL               = bit(10),
+	EVDEV_TAG_NONE = 0,
+	EVDEV_TAG_EXTERNAL_MOUSE = bit(0),
+	EVDEV_TAG_INTERNAL_TOUCHPAD = bit(1),
+	EVDEV_TAG_EXTERNAL_TOUCHPAD = bit(2),
+	EVDEV_TAG_TRACKPOINT = bit(3),
+	EVDEV_TAG_KEYBOARD = bit(4),
+	EVDEV_TAG_LID_SWITCH = bit(5),
+	EVDEV_TAG_INTERNAL_KEYBOARD = bit(6),
+	EVDEV_TAG_EXTERNAL_KEYBOARD = bit(7),
+	EVDEV_TAG_TABLET_MODE_SWITCH = bit(8),
+	EVDEV_TAG_TABLET_TOUCHPAD = bit(9),
+	EVDEV_TAG_VIRTUAL = bit(10),
 };
 
 enum evdev_middlebutton_state {
@@ -110,24 +111,24 @@ enum evdev_middlebutton_event {
  */
 enum evdev_device_model {
 	EVDEV_MODEL_DEFAULT = 0,
-	EVDEV_MODEL_WACOM_TOUCHPAD		= bit(1),
-	EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD	= bit(2),
-	EVDEV_MODEL_ALPS_SERIAL_TOUCHPAD	= bit(3),
-	EVDEV_MODEL_LENOVO_T450_TOUCHPAD	= bit(4),
-	EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON	= bit(5),
-	EVDEV_MODEL_LENOVO_SCROLLPOINT		= bit(6),
+	EVDEV_MODEL_WACOM_TOUCHPAD = bit(1),
+	EVDEV_MODEL_SYNAPTICS_SERIAL_TOUCHPAD = bit(2),
+	EVDEV_MODEL_ALPS_SERIAL_TOUCHPAD = bit(3),
+	EVDEV_MODEL_LENOVO_T450_TOUCHPAD = bit(4),
+	EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON = bit(5),
+	EVDEV_MODEL_LENOVO_SCROLLPOINT = bit(6),
 
 	/* udev tags, not true quirks */
-	EVDEV_MODEL_TEST_DEVICE			= bit(20),
-	EVDEV_MODEL_TRACKBALL			= bit(21),
-	EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81	= bit(22),
+	EVDEV_MODEL_TEST_DEVICE = bit(20),
+	EVDEV_MODEL_TRACKBALL = bit(21),
+	EVDEV_MODEL_LENOVO_X220_TOUCHPAD_FW81 = bit(22),
 };
 
 enum evdev_button_scroll_state {
 	BUTTONSCROLL_IDLE,
-	BUTTONSCROLL_BUTTON_DOWN,	/* button is down */
-	BUTTONSCROLL_READY,		/* ready for scroll events */
-	BUTTONSCROLL_SCROLLING,		/* have sent scroll events */
+	BUTTONSCROLL_BUTTON_DOWN, /* button is down */
+	BUTTONSCROLL_READY,       /* ready for scroll events */
+	BUTTONSCROLL_SCROLLING,   /* have sent scroll events */
 };
 
 enum evdev_button_scroll_lock_state {
@@ -181,12 +182,15 @@ struct evdev_device {
 	enum evdev_device_tags tags;
 	bool is_mt;
 	bool is_suspended;
-	int dpi; /* HW resolution */
+	int dpi;                      /* HW resolution */
 	double trackpoint_multiplier; /* trackpoint constant multiplier */
-	bool use_velocity_averaging; /* whether averaging should be applied on velocity calculation */
+	bool use_velocity_averaging;  /* whether averaging should be applied on velocity
+					 calculation */
 	struct ratelimit syn_drop_limit; /* ratelimit for SYN_DROPPED logging */
-	struct ratelimit delay_warning_limit; /* ratelimit for delayd processing logging */
-	struct ratelimit nonpointer_rel_limit; /* ratelimit for REL_* events from non-pointer devices */
+	struct ratelimit
+		delay_warning_limit; /* ratelimit for delayd processing logging */
+	struct ratelimit nonpointer_rel_limit; /* ratelimit for REL_* events from
+						  non-pointer devices */
 	uint32_t model_flags;
 	struct mtdev *mtdev;
 
@@ -196,8 +200,9 @@ struct evdev_device {
 
 		int apply_calibration;
 		struct matrix calibration;
-		struct matrix default_calibration; /* from LIBINPUT_CALIBRATION_MATRIX */
-		struct matrix usermatrix; /* as supplied by the caller */
+		struct matrix
+			default_calibration; /* from LIBINPUT_CALIBRATION_MATRIX */
+		struct matrix usermatrix;    /* as supplied by the caller */
 
 		struct device_coords dimensions;
 
@@ -295,8 +300,7 @@ struct evdev_dispatch_interface {
 			uint64_t time);
 
 	/* Device is being suspended */
-	void (*suspend)(struct evdev_dispatch *dispatch,
-			struct evdev_device *device);
+	void (*suspend)(struct evdev_dispatch *dispatch, struct evdev_device *device);
 
 	/* Device is being removed (may be NULL) */
 	void (*remove)(struct evdev_dispatch *dispatch);
@@ -343,9 +347,8 @@ struct evdev_dispatch_interface {
 					      uint64_t now);
 
 	/* Return the state of the given switch */
-	enum libinput_switch_state
-		(*get_switch_state)(struct evdev_dispatch *dispatch,
-				    enum libinput_switch which);
+	enum libinput_switch_state (*get_switch_state)(struct evdev_dispatch *dispatch,
+						       enum libinput_switch which);
 
 	void (*left_handed_toggle)(struct evdev_dispatch *dispatch,
 				   struct evdev_device *device,
@@ -379,8 +382,7 @@ evdev_verify_dispatch_type(struct evdev_dispatch *dispatch,
 }
 
 struct evdev_device *
-evdev_device_create(struct libinput_seat *seat,
-		    struct udev_device *device);
+evdev_device_create(struct libinput_seat *seat, struct udev_device *device);
 
 static inline struct libinput *
 evdev_libinput_context(const struct evdev_device *device)
@@ -389,8 +391,7 @@ evdev_libinput_context(const struct evdev_device *device)
 }
 
 static inline bool
-evdev_device_has_model_quirk(struct evdev_device *device,
-			     enum quirk model_quirk)
+evdev_device_has_model_quirk(struct evdev_device *device, enum quirk model_quirk)
 {
 	assert(quirk_get_name(model_quirk) != NULL);
 
@@ -404,16 +405,14 @@ evdev_device_has_model_quirk(struct evdev_device *device,
 }
 
 void
-evdev_transform_absolute(struct evdev_device *device,
-			 struct device_coords *point);
+evdev_transform_absolute(struct evdev_device *device, struct device_coords *point);
 
 void
-evdev_transform_relative(struct evdev_device *device,
-			 struct device_coords *point);
+evdev_transform_relative(struct evdev_device *device, struct device_coords *point);
 
 void
 evdev_init_calibration(struct evdev_device *device,
-		        struct libinput_device_config_calibration *calibration);
+		       struct libinput_device_config_calibration *calibration);
 
 void
 evdev_read_calibration_prop(struct evdev_device *device);
@@ -425,8 +424,7 @@ enum switch_reliability
 evdev_read_switch_reliability_prop(struct evdev_device *device);
 
 void
-evdev_init_sendevents(struct evdev_device *device,
-		      struct evdev_dispatch *dispatch);
+evdev_init_sendevents(struct evdev_device *device, struct evdev_dispatch *dispatch);
 
 void
 evdev_device_init_pointer_acceleration(struct evdev_device *device,
@@ -490,17 +488,14 @@ void
 evdev_device_set_default_calibration(struct evdev_device *device,
 				     const float calibration[6]);
 void
-evdev_device_calibrate(struct evdev_device *device,
-		       const float calibration[6]);
+evdev_device_calibrate(struct evdev_device *device, const float calibration[6]);
 
 bool
 evdev_device_has_capability(struct evdev_device *device,
 			    enum libinput_device_capability capability);
 
 int
-evdev_device_get_size(const struct evdev_device *device,
-		      double *w,
-		      double *h);
+evdev_device_get_size(const struct evdev_device *device, double *w, double *h);
 
 int
 evdev_device_has_button(struct evdev_device *device, uint32_t code);
@@ -512,12 +507,10 @@ int
 evdev_device_get_touch_count(struct evdev_device *device);
 
 int
-evdev_device_has_switch(struct evdev_device *device,
-			enum libinput_switch sw);
+evdev_device_has_switch(struct evdev_device *device, enum libinput_switch sw);
 
 int
-evdev_device_tablet_pad_has_key(struct evdev_device *device,
-				uint32_t code);
+evdev_device_tablet_pad_has_key(struct evdev_device *device, uint32_t code);
 
 int
 evdev_device_tablet_pad_get_num_buttons(struct evdev_device *device);
@@ -535,22 +528,16 @@ int
 evdev_device_tablet_pad_get_num_mode_groups(struct evdev_device *device);
 
 struct libinput_tablet_pad_mode_group *
-evdev_device_tablet_pad_get_mode_group(struct evdev_device *device,
-				       unsigned int index);
+evdev_device_tablet_pad_get_mode_group(struct evdev_device *device, unsigned int index);
 
 enum libinput_switch_state
-evdev_device_switch_get_state(struct evdev_device *device,
-			      enum libinput_switch sw);
+evdev_device_switch_get_state(struct evdev_device *device, enum libinput_switch sw);
 
 double
-evdev_device_transform_x(struct evdev_device *device,
-			 double x,
-			 uint32_t width);
+evdev_device_transform_x(struct evdev_device *device, double x, uint32_t width);
 
 double
-evdev_device_transform_y(struct evdev_device *device,
-			 double y,
-			 uint32_t height);
+evdev_device_transform_y(struct evdev_device *device, double y, uint32_t height);
 void
 evdev_device_suspend(struct evdev_device *device);
 
@@ -582,8 +569,7 @@ evdev_init_button_scroll(struct evdev_device *device,
 			 void (*change_scroll_method)(struct evdev_device *));
 
 void
-evdev_set_button_scroll_lock_enabled(struct evdev_device *device,
-				     bool enabled);
+evdev_set_button_scroll_lock_enabled(struct evdev_device *device, bool enabled);
 
 int
 evdev_update_key_down_count(struct evdev_device *device,
@@ -604,9 +590,9 @@ evdev_notify_axis_wheel(struct evdev_device *device,
 			const struct wheel_v120 *v120_in);
 void
 evdev_notify_axis_finger(struct evdev_device *device,
-			uint64_t time,
-			uint32_t axes,
-			const struct normalized_coords *delta_in);
+			 uint64_t time,
+			 uint32_t axes,
+			 const struct normalized_coords *delta_in);
 void
 evdev_notify_axis_continous(struct evdev_device *device,
 			    uint64_t time,
@@ -637,9 +623,7 @@ evdev_middlebutton_filter_button(struct evdev_device *device,
 				 enum libinput_button_state state);
 
 void
-evdev_init_middlebutton(struct evdev_device *device,
-			bool enabled,
-			bool want_config);
+evdev_init_middlebutton(struct evdev_device *device, bool enabled, bool want_config);
 
 enum libinput_config_middle_emulation_state
 evdev_middlebutton_get(struct libinput_device *device);
@@ -666,8 +650,7 @@ evdev_init_left_handed(struct evdev_device *device,
 		       void (*change_to_left_handed)(struct evdev_device *));
 
 static inline evdev_usage_t
-evdev_to_left_handed(struct evdev_device *device,
-		     evdev_usage_t button)
+evdev_to_left_handed(struct evdev_device *device, evdev_usage_t button)
 {
 	if (device->left_handed.enabled) {
 		if (evdev_usage_eq(button, EVDEV_BTN_LEFT))
@@ -731,8 +714,8 @@ evdev_hysteresis(const struct device_coords *in,
 	 * the ratio of finger_distance to margin_distance:
 	 *   dx²/a² + dy²/b² = normalized_finger_distance²
 	 */
-	normalized_finger_distance = sqrt((double)dx2 / (a * a) +
-					  (double)dy2 / (b * b));
+	normalized_finger_distance =
+		sqrt((double)dx2 / (a * a) + (double)dy2 / (b * b));
 
 	/* Which means anything less than 1 is within the elliptical margin */
 	if (normalized_finger_distance < 1.0)
@@ -749,9 +732,8 @@ evdev_hysteresis(const struct device_coords *in,
 	if (dx) {
 		double gradient = (double)dy / dx;
 		lag_x = margin_distance / sqrt(gradient * gradient + 1);
-		lag_y = sqrt((margin_distance + lag_x) *
-			     (margin_distance - lag_x));
-	} else {  /* Infinite gradient */
+		lag_y = sqrt((margin_distance + lag_x) * (margin_distance - lag_x));
+	} else { /* Infinite gradient */
 		lag_x = 0.0;
 		lag_y = margin_distance;
 	}
@@ -784,8 +766,9 @@ evdev_log_msg(struct evdev_device *device,
 		 sizeof(buf),
 		 "%-7s - %s%s%s",
 		 evdev_device_get_sysname(device),
-		 (priority > LIBINPUT_LOG_PRIORITY_DEBUG) ?  device->log_prefix_name : "",
-		 (priority > LIBINPUT_LOG_PRIORITY_DEBUG) ?  ": " : "",
+		 (priority > LIBINPUT_LOG_PRIORITY_DEBUG) ? device->log_prefix_name
+							  : "",
+		 (priority > LIBINPUT_LOG_PRIORITY_DEBUG) ? ": " : "",
 		 format);
 
 	va_start(args, format);
@@ -794,7 +777,6 @@ evdev_log_msg(struct evdev_device *device,
 	log_msg_va(evdev_libinput_context(device), priority, buf, args);
 #pragma GCC diagnostic pop
 	va_end(args);
-
 }
 
 LIBINPUT_ATTRIBUTE_PRINTF(4, 5)
@@ -822,8 +804,9 @@ evdev_log_msg_ratelimit(struct evdev_device *device,
 		 sizeof(buf),
 		 "%-7s - %s%s%s",
 		 evdev_device_get_sysname(device),
-		 (priority > LIBINPUT_LOG_PRIORITY_DEBUG) ?  device->log_prefix_name : "",
-		 (priority > LIBINPUT_LOG_PRIORITY_DEBUG) ?  ": " : "",
+		 (priority > LIBINPUT_LOG_PRIORITY_DEBUG) ? device->log_prefix_name
+							  : "",
+		 (priority > LIBINPUT_LOG_PRIORITY_DEBUG) ? ": " : "",
 		 format);
 
 	va_start(args, format);
@@ -842,7 +825,6 @@ evdev_log_msg_ratelimit(struct evdev_device *device,
 			      ratelimit->burst,
 			      ht.value,
 			      ht.unit);
-
 	}
 }
 
@@ -870,14 +852,13 @@ evdev_log_msg_ratelimit(struct evdev_device *device,
  * Convert the pair of delta coordinates in device space to mm.
  */
 static inline struct phys_coords
-evdev_device_unit_delta_to_mm(const struct evdev_device* device,
+evdev_device_unit_delta_to_mm(const struct evdev_device *device,
 			      const struct device_coords *units)
 {
-	struct phys_coords mm = { 0,  0 };
+	struct phys_coords mm = { 0, 0 };
 	const struct input_absinfo *absx, *absy;
 
-	if (device->abs.absinfo_x == NULL ||
-	    device->abs.absinfo_y == NULL) {
+	if (device->abs.absinfo_x == NULL || device->abs.absinfo_y == NULL) {
 		log_bug_libinput(evdev_libinput_context(device),
 				 "%s: is not an abs device\n",
 				 device->devname);
@@ -887,8 +868,8 @@ evdev_device_unit_delta_to_mm(const struct evdev_device* device,
 	absx = device->abs.absinfo_x;
 	absy = device->abs.absinfo_y;
 
-	mm.x = 1.0 * units->x/absx->resolution;
-	mm.y = 1.0 * units->y/absy->resolution;
+	mm.x = 1.0 * units->x / absx->resolution;
+	mm.y = 1.0 * units->y / absy->resolution;
 
 	return mm;
 }
@@ -898,14 +879,13 @@ evdev_device_unit_delta_to_mm(const struct evdev_device* device,
  * axis min into account, i.e. a unit of min is equivalent to 0 mm.
  */
 static inline struct phys_coords
-evdev_device_units_to_mm(const struct evdev_device* device,
+evdev_device_units_to_mm(const struct evdev_device *device,
 			 const struct device_coords *units)
 {
-	struct phys_coords mm = { 0,  0 };
+	struct phys_coords mm = { 0, 0 };
 	const struct input_absinfo *absx, *absy;
 
-	if (device->abs.absinfo_x == NULL ||
-	    device->abs.absinfo_y == NULL) {
+	if (device->abs.absinfo_x == NULL || device->abs.absinfo_y == NULL) {
 		log_bug_libinput(evdev_libinput_context(device),
 				 "%s: is not an abs device\n",
 				 device->devname);
@@ -915,8 +895,8 @@ evdev_device_units_to_mm(const struct evdev_device* device,
 	absx = device->abs.absinfo_x;
 	absy = device->abs.absinfo_y;
 
-	mm.x = (units->x - absx->minimum)/absx->resolution;
-	mm.y = (units->y - absy->minimum)/absy->resolution;
+	mm.x = (units->x - absx->minimum) / absx->resolution;
+	mm.y = (units->y - absy->minimum) / absy->resolution;
 
 	return mm;
 }
@@ -929,11 +909,10 @@ static inline struct device_coords
 evdev_device_mm_to_units(const struct evdev_device *device,
 			 const struct phys_coords *mm)
 {
-	struct device_coords units = { 0,  0 };
+	struct device_coords units = { 0, 0 };
 	const struct input_absinfo *absx, *absy;
 
-	if (device->abs.absinfo_x == NULL ||
-	    device->abs.absinfo_y == NULL) {
+	if (device->abs.absinfo_x == NULL || device->abs.absinfo_y == NULL) {
 		log_bug_libinput(evdev_libinput_context(device),
 				 "%s: is not an abs device\n",
 				 device->devname);
@@ -950,14 +929,12 @@ evdev_device_mm_to_units(const struct evdev_device *device,
 }
 
 static inline struct device_coord_rect
-evdev_phys_rect_to_units(const struct evdev_device *device,
-			 const struct phys_rect *mm)
+evdev_phys_rect_to_units(const struct evdev_device *device, const struct phys_rect *mm)
 {
-	struct device_coord_rect units = {0};
+	struct device_coord_rect units = { 0 };
 	const struct input_absinfo *absx, *absy;
 
-	if (device->abs.absinfo_x == NULL ||
-	    device->abs.absinfo_y == NULL) {
+	if (device->abs.absinfo_x == NULL || device->abs.absinfo_y == NULL) {
 		log_bug_libinput(evdev_libinput_context(device),
 				 "%s: is not an abs device\n",
 				 device->devname);
@@ -992,9 +969,7 @@ evdev_device_init_abs_range_warnings(struct evdev_device *device)
 	device->abs.warning_range.max.y = y->maximum + 0.05 * height;
 
 	/* One warning every 5 min is enough */
-	ratelimit_init(&device->abs.warning_range.range_warn_limit,
-		       s2us(3000),
-		       1);
+	ratelimit_init(&device->abs.warning_range.range_warn_limit, s2us(3000), 1);
 }
 
 static inline void
@@ -1020,12 +995,16 @@ evdev_device_check_abs_axis_range(struct evdev_device *device,
 	}
 
 	if (value < min || value > max) {
-		log_info_ratelimit(evdev_libinput_context(device),
-				   &device->abs.warning_range.range_warn_limit,
-				   "Axis %#x value %d is outside expected range [%d, %d]\n"
-				   "See %s/absolute-coordinate-ranges.html for details\n",
-				   evdev_usage_enum(usage), value, min, max,
-				   HTTP_DOC_LINK);
+		log_info_ratelimit(
+			evdev_libinput_context(device),
+			&device->abs.warning_range.range_warn_limit,
+			"Axis %#x value %d is outside expected range [%d, %d]\n"
+			"See %s/absolute-coordinate-ranges.html for details\n",
+			evdev_usage_enum(usage),
+			value,
+			min,
+			max,
+			HTTP_DOC_LINK);
 	}
 }
 

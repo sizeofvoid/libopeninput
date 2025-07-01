@@ -26,13 +26,13 @@
 #include "config.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
+#include "filter-private.h"
 #include "filter.h"
 #include "libinput-util.h"
-#include "filter-private.h"
 
 /*
  * Default parameters for pointer acceleration profiles.
@@ -48,14 +48,14 @@ struct pointer_accelerator {
 
 	accel_profile_func_t profile;
 
-	double velocity;	/* units/us */
-	double last_velocity;	/* units/us */
+	double velocity;      /* units/us */
+	double last_velocity; /* units/us */
 
 	struct pointer_trackers trackers;
 
-	double threshold;	/* 1000dpi units/us */
-	double accel;		/* unitless factor */
-	double incline;		/* incline of the function */
+	double threshold; /* 1000dpi units/us */
+	double accel;     /* unitless factor */
+	double incline;   /* incline of the function */
 
 	int dpi;
 };
@@ -88,12 +88,13 @@ calculate_acceleration_factor(struct pointer_accelerator *accel,
 	trackers_feed(&accel->trackers, &unaccel, time);
 	velocity = trackers_velocity(&accel->trackers, time);
 	/* This will call into our pointer_accel_profile_linear() profile func */
-	accel_factor = calculate_acceleration_simpsons(&accel->base,
-						       accel->profile,
-						       data,
-						       velocity, /* normalized coords */
-						       accel->last_velocity, /* normalized coords */
-						       time);
+	accel_factor = calculate_acceleration_simpsons(
+		&accel->base,
+		accel->profile,
+		data,
+		velocity,             /* normalized coords */
+		accel->last_velocity, /* normalized coords */
+		time);
 	accel->last_velocity = velocity;
 
 	return accel_factor;
@@ -102,18 +103,16 @@ calculate_acceleration_factor(struct pointer_accelerator *accel,
 static struct normalized_coords
 accelerator_filter_linear(struct motion_filter *filter,
 			  const struct device_float_coords *unaccelerated,
-			  void *data, uint64_t time)
+			  void *data,
+			  uint64_t time)
 {
-	struct pointer_accelerator *accel =
-		(struct pointer_accelerator *) filter;
+	struct pointer_accelerator *accel = (struct pointer_accelerator *)filter;
 
 	/* Accelerate for normalized units and return normalized units */
-	const struct normalized_coords normalized = normalize_for_dpi(unaccelerated,
-								      accel->dpi);
-	double accel_factor = calculate_acceleration_factor(accel,
-							    &normalized,
-							    data,
-							    time);
+	const struct normalized_coords normalized =
+		normalize_for_dpi(unaccelerated, accel->dpi);
+	double accel_factor =
+		calculate_acceleration_factor(accel, &normalized, data, time);
 	struct normalized_coords accelerated = {
 		.x = normalized.x * accel_factor,
 		.y = normalized.y * accel_factor,
@@ -136,21 +135,18 @@ accelerator_filter_linear(struct motion_filter *filter,
 static struct normalized_coords
 accelerator_filter_noop(struct motion_filter *filter,
 			const struct device_float_coords *unaccelerated,
-			void *data, uint64_t time)
+			void *data,
+			uint64_t time)
 {
-	struct pointer_accelerator *accel =
-		(struct pointer_accelerator *) filter;
+	struct pointer_accelerator *accel = (struct pointer_accelerator *)filter;
 
 	return normalize_for_dpi(unaccelerated, accel->dpi);
 }
 
 static void
-accelerator_restart(struct motion_filter *filter,
-		    void *data,
-		    uint64_t time)
+accelerator_restart(struct motion_filter *filter, void *data, uint64_t time)
 {
-	struct pointer_accelerator *accel =
-		(struct pointer_accelerator *) filter;
+	struct pointer_accelerator *accel = (struct pointer_accelerator *)filter;
 
 	trackers_reset(&accel->trackers, time);
 }
@@ -158,19 +154,16 @@ accelerator_restart(struct motion_filter *filter,
 static void
 accelerator_destroy(struct motion_filter *filter)
 {
-	struct pointer_accelerator *accel =
-		(struct pointer_accelerator *) filter;
+	struct pointer_accelerator *accel = (struct pointer_accelerator *)filter;
 
 	trackers_free(&accel->trackers);
 	free(accel);
 }
 
 static bool
-accelerator_set_speed(struct motion_filter *filter,
-		      double speed_adjustment)
+accelerator_set_speed(struct motion_filter *filter, double speed_adjustment)
 {
-	struct pointer_accelerator *accel_filter =
-		(struct pointer_accelerator *)filter;
+	struct pointer_accelerator *accel_filter = (struct pointer_accelerator *)filter;
 
 	assert(speed_adjustment >= -1.0 && speed_adjustment <= 1.0);
 
@@ -178,8 +171,7 @@ accelerator_set_speed(struct motion_filter *filter,
 	   don't read more into them other than "they mostly worked ok" */
 
 	/* delay when accel kicks in */
-	accel_filter->threshold = DEFAULT_THRESHOLD -
-					v_ms2us(0.25) * speed_adjustment;
+	accel_filter->threshold = DEFAULT_THRESHOLD - v_ms2us(0.25) * speed_adjustment;
 	if (accel_filter->threshold < MINIMUM_THRESHOLD)
 		accel_filter->threshold = MINIMUM_THRESHOLD;
 
@@ -199,9 +191,8 @@ pointer_accel_profile_linear(struct motion_filter *filter,
 			     double speed_in, /* in normalized units */
 			     uint64_t time)
 {
-	struct pointer_accelerator *accel_filter =
-		(struct pointer_accelerator *)filter;
-	const double max_accel = accel_filter->accel; /* unitless factor */
+	struct pointer_accelerator *accel_filter = (struct pointer_accelerator *)filter;
+	const double max_accel = accel_filter->accel;     /* unitless factor */
 	const double threshold = accel_filter->threshold; /* 1000dpi units/us */
 	const double incline = accel_filter->incline;
 	double factor; /* unitless */
@@ -223,7 +214,7 @@ pointer_accel_profile_linear(struct motion_filter *filter,
 	   The two inclines are linear functions in the form
 		   y = ax + b
 		   where y is speed_out
-		         x is speed_in
+			 x is speed_in
 			 a is the incline of acceleration
 			 b is minimum acceleration factor
 
@@ -242,21 +233,21 @@ pointer_accel_profile_linear(struct motion_filter *filter,
 	*/
 	if (v_us2ms(speed_in) < 0.07) {
 		factor = 10 * v_us2ms(speed_in) + 0.3;
-	/* up to the threshold, we keep factor 1, i.e. 1:1 movement */
+		/* up to the threshold, we keep factor 1, i.e. 1:1 movement */
 	} else if (speed_in < threshold) {
 		factor = 1;
 
 	} else {
-	/* Acceleration function above the threshold:
-		y = ax' + b
-		where T is threshold
-		      x is speed_in
-		      x' is speed
-	        and
-			y(T) == 1
-		hence 1 = ax' + 1
-			=> x' := (x - T)
-	 */
+		/* Acceleration function above the threshold:
+			y = ax' + b
+			where T is threshold
+			      x is speed_in
+			      x' is speed
+			and
+				y(T) == 1
+			hence 1 = ax' + 1
+				=> x' := (x - T)
+		 */
 		factor = incline * v_us2ms(speed_in - threshold) + 1;
 	}
 

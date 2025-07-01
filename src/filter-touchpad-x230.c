@@ -26,12 +26,12 @@
 #include "config.h"
 
 #include <assert.h>
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
+#include "filter-private.h"
 #include "filter.h"
 #include "libinput-util.h"
-#include "filter-private.h"
 
 /* Trackpoint acceleration for the Lenovo x230. DO NOT TOUCH.
  * This code is only invoked on the X230 and is quite flimsy,
@@ -62,14 +62,14 @@ struct pointer_accelerator_x230 {
 
 	accel_profile_func_t profile;
 
-	double velocity;	/* units/us */
-	double last_velocity;	/* units/us */
+	double velocity;      /* units/us */
+	double last_velocity; /* units/us */
 
 	struct pointer_trackers trackers;
 
-	double threshold;	/* units/us */
-	double accel;		/* unitless factor */
-	double incline;		/* incline of the function */
+	double threshold; /* units/us */
+	double accel;     /* unitless factor */
+	double incline;   /* incline of the function */
 
 	int dpi;
 };
@@ -86,7 +86,9 @@ struct pointer_accelerator_x230 {
  */
 static double
 acceleration_profile(struct pointer_accelerator_x230 *accel,
-		     void *data, double velocity, uint64_t time)
+		     void *data,
+		     double velocity,
+		     uint64_t time)
 {
 	return accel->profile(&accel->base, data, velocity, time);
 }
@@ -116,10 +118,9 @@ calculate_acceleration(struct pointer_accelerator_x230 *accel,
 	 * the previous motion and the most recent. */
 	factor = acceleration_profile(accel, data, velocity, time);
 	factor += acceleration_profile(accel, data, last_velocity, time);
-	factor += 4.0 *
-		acceleration_profile(accel, data,
-				     (last_velocity + velocity) / 2,
-				     time);
+	factor +=
+		4.0 *
+		acceleration_profile(accel, data, (last_velocity + velocity) / 2, time);
 
 	factor = factor / 6.0;
 
@@ -129,10 +130,11 @@ calculate_acceleration(struct pointer_accelerator_x230 *accel,
 static struct normalized_coords
 accelerator_filter_x230(struct motion_filter *filter,
 			const struct device_float_coords *raw,
-			void *data, uint64_t time)
+			void *data,
+			uint64_t time)
 {
 	struct pointer_accelerator_x230 *accel =
-		(struct pointer_accelerator_x230 *) filter;
+		(struct pointer_accelerator_x230 *)filter;
 	double accel_factor; /* unitless factor */
 	struct normalized_coords accelerated;
 	struct device_float_coords delta_normalized;
@@ -168,13 +170,13 @@ accelerator_filter_x230(struct motion_filter *filter,
 static struct normalized_coords
 accelerator_filter_constant_x230(struct motion_filter *filter,
 				 const struct device_float_coords *unaccelerated,
-				 void *data, uint64_t time)
+				 void *data,
+				 uint64_t time)
 {
 	struct pointer_accelerator_x230 *accel =
-		(struct pointer_accelerator_x230 *) filter;
+		(struct pointer_accelerator_x230 *)filter;
 	struct normalized_coords normalized;
-	const double factor =
-		X230_MAGIC_SLOWDOWN/X230_TP_MAGIC_LOW_RES_FACTOR;
+	const double factor = X230_MAGIC_SLOWDOWN / X230_TP_MAGIC_LOW_RES_FACTOR;
 
 	normalized = normalize_for_dpi(unaccelerated, accel->dpi);
 	normalized.x = factor * normalized.x;
@@ -184,12 +186,10 @@ accelerator_filter_constant_x230(struct motion_filter *filter,
 }
 
 static void
-accelerator_restart_x230(struct motion_filter *filter,
-			 void *data,
-			 uint64_t time)
+accelerator_restart_x230(struct motion_filter *filter, void *data, uint64_t time)
 {
 	struct pointer_accelerator_x230 *accel =
-		(struct pointer_accelerator_x230 *) filter;
+		(struct pointer_accelerator_x230 *)filter;
 	unsigned int offset;
 	struct pointer_tracker *tracker;
 
@@ -210,15 +210,14 @@ static void
 accelerator_destroy_x230(struct motion_filter *filter)
 {
 	struct pointer_accelerator_x230 *accel =
-		(struct pointer_accelerator_x230 *) filter;
+		(struct pointer_accelerator_x230 *)filter;
 
 	free(accel->trackers.trackers);
 	free(accel);
 }
 
 static bool
-accelerator_set_speed_x230(struct motion_filter *filter,
-			   double speed_adjustment)
+accelerator_set_speed_x230(struct motion_filter *filter, double speed_adjustment)
 {
 	struct pointer_accelerator_x230 *accel_filter =
 		(struct pointer_accelerator_x230 *)filter;
@@ -229,8 +228,7 @@ accelerator_set_speed_x230(struct motion_filter *filter,
 	   don't read more into them other than "they mostly worked ok" */
 
 	/* delay when accel kicks in */
-	accel_filter->threshold = DEFAULT_THRESHOLD -
-					v_ms2us(0.25) * speed_adjustment;
+	accel_filter->threshold = DEFAULT_THRESHOLD - v_ms2us(0.25) * speed_adjustment;
 	if (accel_filter->threshold < MINIMUM_THRESHOLD)
 		accel_filter->threshold = MINIMUM_THRESHOLD;
 
@@ -246,9 +244,9 @@ accelerator_set_speed_x230(struct motion_filter *filter,
 
 double
 touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
-				      void *data,
-				      double speed_in, /* 1000dpi-units/µs */
-				      uint64_t time)
+				   void *data,
+				   double speed_in, /* 1000dpi-units/µs */
+				   uint64_t time)
 {
 	/* Those touchpads presents an actual lower resolution that what is
 	 * advertised. We see some jumps from the cursor due to the big steps
@@ -262,9 +260,9 @@ touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
 
 	double f1, f2; /* unitless */
 	const double max_accel = accel_filter->accel *
-				  X230_TP_MAGIC_LOW_RES_FACTOR; /* unitless factor */
-	const double threshold = accel_filter->threshold /
-				  X230_TP_MAGIC_LOW_RES_FACTOR; /* units/us */
+				 X230_TP_MAGIC_LOW_RES_FACTOR; /* unitless factor */
+	const double threshold =
+		accel_filter->threshold / X230_TP_MAGIC_LOW_RES_FACTOR; /* units/us */
 	const double incline = accel_filter->incline * X230_TP_MAGIC_LOW_RES_FACTOR;
 
 	/* Note: the magic values in this function are obtained by
@@ -311,7 +309,7 @@ create_pointer_accelerator_filter_lenovo_x230(int dpi, bool use_velocity_averagi
 
 	filter->threshold = X230_THRESHOLD;
 	filter->accel = X230_ACCELERATION; /* unitless factor */
-	filter->incline = X230_INCLINE; /* incline of the acceleration function */
+	filter->incline = X230_INCLINE;    /* incline of the acceleration function */
 	filter->dpi = dpi;
 
 	return &filter->base;

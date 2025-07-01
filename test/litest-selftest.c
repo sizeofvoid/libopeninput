@@ -1,9 +1,8 @@
 #include <config.h>
 
+#include <signal.h>
 #include <sys/resource.h>
 #include <sys/time.h>
-#include <signal.h>
-
 #include <valgrind/valgrind.h>
 
 #include "litest.h"
@@ -299,9 +298,9 @@ END_TEST
 
 START_TEST(litest_double_eq_and_ne)
 {
-	litest_assert_double_eq(0.4,0.4);
-	litest_assert_double_eq(0.4,0.4 + 1E-6);
-	litest_assert_double_ne(0.4,0.4 + 1E-3);
+	litest_assert_double_eq(0.4, 0.4);
+	litest_assert_double_eq(0.4, 0.4 + 1E-6);
+	litest_assert_double_ne(0.4, 0.4 + 1E-3);
 
 	litest_assert_double_eq_epsilon(0.4, 0.5, 0.1);
 	litest_assert_double_eq_epsilon(0.4, 0.5, 0.2);
@@ -312,30 +311,30 @@ END_TEST
 
 START_TEST(litest_double_lt_gt)
 {
-	litest_assert_double_lt(12.0,13.0);
-	litest_assert_double_gt(15.4,13.0);
-	litest_assert_double_le(12.0,12.0);
-	litest_assert_double_le(12.0,20.0);
-	litest_assert_double_ge(12.0,12.0);
-	litest_assert_double_ge(20.0,12.0);
+	litest_assert_double_lt(12.0, 13.0);
+	litest_assert_double_gt(15.4, 13.0);
+	litest_assert_double_le(12.0, 12.0);
+	litest_assert_double_le(12.0, 20.0);
+	litest_assert_double_ge(12.0, 12.0);
+	litest_assert_double_ge(20.0, 12.0);
 }
 END_TEST
 
 START_TEST(litest_double_eq_fails)
 {
-	litest_assert_double_eq(0.41,0.4);
+	litest_assert_double_eq(0.41, 0.4);
 }
 END_TEST
 
 START_TEST(litest_double_eq_epsilon_fails)
 {
-	litest_assert_double_eq_epsilon(0.4,0.5,0.05);
+	litest_assert_double_eq_epsilon(0.4, 0.5, 0.05);
 }
 END_TEST
 
 START_TEST(litest_double_ne_fails)
 {
-	litest_assert_double_ne(0.4 + 1E-7,0.4);
+	litest_assert_double_ne(0.4 + 1E-7, 0.4);
 }
 END_TEST
 
@@ -461,24 +460,12 @@ permutation_func(struct litest_parameters_permutation *permutation, void *userda
 START_TEST(parameter_permutations)
 {
 	struct permutation permutations[] = {
-		{ 1, "a", true },
-		{ 1, "a", false },
-		{ 1, "ab", true },
-		{ 1, "ab", false },
-		{ 1, "abc", true },
-		{ 1, "abc", false },
-		{ 2, "a", true },
-		{ 2, "a", false },
-		{ 2, "ab", true },
-		{ 2, "ab", false },
-		{ 2, "abc", true },
-		{ 2, "abc", false },
-		{ 3, "a", true },
-		{ 3, "a", false },
-		{ 3, "ab", true },
-		{ 3, "ab", false },
-		{ 3, "abc", true },
-		{ 3, "abc", false },
+		{ 1, "a", true },          { 1, "a", false },  { 1, "ab", true },
+		{ 1, "ab", false },        { 1, "abc", true }, { 1, "abc", false },
+		{ 2, "a", true },          { 2, "a", false },  { 2, "ab", true },
+		{ 2, "ab", false },        { 2, "abc", true }, { 2, "abc", false },
+		{ 3, "a", true },          { 3, "a", false },  { 3, "ab", true },
+		{ 3, "ab", false },        { 3, "abc", true }, { 3, "abc", false },
 		{ 0, NULL, false, false },
 	};
 	/* clang-format off */
@@ -584,24 +571,24 @@ litest_assert_macros_suite(void)
 }
 
 int
-main (int argc, char **argv)
+main(int argc, char **argv)
 {
 	const struct rlimit corelimit = { 0, 0 };
 	int nfailed;
 	Suite *s;
 	SRunner *sr;
 
-        /* when running under valgrind we're using nofork mode, so a signal
-         * raised by a test will fail in valgrind. There's nothing to
-         * memcheck here anyway, so just skip the valgrind test */
-        if (RUNNING_ON_VALGRIND)
-            return 77;
+	/* when running under valgrind we're using nofork mode, so a signal
+	 * raised by a test will fail in valgrind. There's nothing to
+	 * memcheck here anyway, so just skip the valgrind test */
+	if (RUNNING_ON_VALGRIND)
+		return 77;
 
 	if (setrlimit(RLIMIT_CORE, &corelimit) != 0)
 		perror("WARNING: Core dumps not disabled");
 
 	s = litest_assert_macros_suite();
-        sr = srunner_create(s);
+	sr = srunner_create(s);
 
 	srunner_run_all(sr, CK_ENV);
 	nfailed = srunner_ntests_failed(sr);

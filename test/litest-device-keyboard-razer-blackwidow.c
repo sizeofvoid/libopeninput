@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 /* Recording from https://bugs.freedesktop.org/show_bug.cgi?id=89783
  * This is the second of 4 devices exported by this keyboard, the first is
@@ -337,11 +337,10 @@ static struct input_absinfo absinfo[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_KEYBOARD_BLACKWIDOW,
-	.features = LITEST_KEYS | LITEST_WHEEL,
-	.interface = NULL,
+	    .features = LITEST_KEYS | LITEST_WHEEL,
+	    .interface = NULL,
 
-	.name = "Razer Razer BlackWidow 2013",
-	.id = &input_id,
-	.absinfo = absinfo,
-	.events = events,
-)
+	    .name = "Razer Razer BlackWidow 2013",
+	    .id = &input_id,
+	    .absinfo = absinfo,
+	    .events = events, )

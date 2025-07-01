@@ -26,8 +26,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <libinput.h>
-#include <unistd.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 #include "litest.h"
 
@@ -46,20 +46,22 @@ simple_log_handler(struct libinput *libinput,
 	litest_assert_notnull(format);
 }
 
-static int open_restricted(const char *path, int flags, void *data)
+static int
+open_restricted(const char *path, int flags, void *data)
 {
-       int fd;
-       fd = open(path, flags);
-       return fd < 0 ? -errno : fd;
+	int fd;
+	fd = open(path, flags);
+	return fd < 0 ? -errno : fd;
 }
-static void close_restricted(int fd, void *data)
+static void
+close_restricted(int fd, void *data)
 {
-       close(fd);
+	close(fd);
 }
 
 static const struct libinput_interface simple_interface = {
-       .open_restricted = open_restricted,
-       .close_restricted = close_restricted,
+	.open_restricted = open_restricted,
+	.close_restricted = close_restricted,
 };
 
 START_TEST(log_default_priority)
@@ -164,7 +166,8 @@ START_TEST(log_axisrange_warning)
 	abs = libevdev_get_abs_info(dev->evdev, axis);
 
 	for (int i = 0; i < 100; i++) {
-		litest_event(dev, EV_ABS,
+		litest_event(dev,
+			     EV_ABS,
 			     ABS_MT_POSITION_X + axis,
 			     abs->maximum * 2 + i);
 		litest_event(dev, EV_ABS, axis, abs->maximum * 2);

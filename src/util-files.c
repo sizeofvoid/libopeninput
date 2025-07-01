@@ -23,11 +23,12 @@
 
 #include "config.h"
 
-#include "libinput-versionsort.h"
-#include "util-macros.h"
 #include "util-files.h"
-#include "util-strings.h"
 #include "util-list.h"
+#include "util-macros.h"
+#include "util-strings.h"
+
+#include "libinput-versionsort.h"
 
 struct file {
 	struct list link;
@@ -81,16 +82,14 @@ filenamesort(const void *a, const void *b)
 }
 
 char **
-list_files(const char **directories,
-	   const char *suffix,
-	   size_t *nfiles_out)
+list_files(const char **directories, const char *suffix, size_t *nfiles_out)
 {
 	struct list files = LIST_INIT(files);
 
 	if (!directories) {
 		if (nfiles_out)
 			*nfiles_out = 0;
-		return zalloc(1 * sizeof(char*));
+		return zalloc(1 * sizeof(char *));
 	}
 
 	const char **d = directories;

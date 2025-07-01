@@ -23,17 +23,18 @@
 
 #include "config.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <getopt.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 
+#include "util-mem.h"
+
+#include "builddir.h"
+#include "libinput-util.h"
 #include "quirks.h"
 #include "shared.h"
-#include "builddir.h"
-#include "util-mem.h"
-#include "libinput-util.h"
 
 static bool verbose = false;
 
@@ -46,7 +47,7 @@ log_handler(struct libinput *this_is_null,
 {
 	FILE *out = stdout;
 	enum quirks_log_priorities p = (enum quirks_log_priorities)priority;
-	char buf[256] = {0};
+	char buf[256] = { 0 };
 	const char *prefix = NULL;
 
 	switch (p) {
@@ -96,8 +97,7 @@ simple_printf(void *userdata, const char *val)
 int
 main(int argc, char **argv)
 {
-	const char *data_path = NULL,
-	           *override_file = NULL;
+	const char *data_path = NULL, *override_file = NULL;
 	bool validate = false;
 
 	while (1) {
@@ -108,17 +108,17 @@ main(int argc, char **argv)
 			OPT_DATADIR,
 		};
 		static struct option opts[] = {
-			{ "help",     no_argument,       0, 'h' },
-			{ "verbose",  no_argument,       0, OPT_VERBOSE },
+			{ "help", no_argument, 0, 'h' },
+			{ "verbose", no_argument, 0, OPT_VERBOSE },
 			{ "data-dir", required_argument, 0, OPT_DATADIR },
-			{ 0, 0, 0, 0}
+			{ 0, 0, 0, 0 }
 		};
 
 		c = getopt_long(argc, argv, "h", opts, &option_index);
 		if (c == -1)
 			break;
 
-		switch(c) {
+		switch (c) {
 		case '?':
 			exit(1);
 			break;
@@ -171,11 +171,12 @@ main(int argc, char **argv)
 		}
 	}
 
-	_unref_(quirks_context) *quirks = quirks_init_subsystem(data_path,
-								override_file,
-								log_handler,
-								NULL,
-								QLOG_CUSTOM_LOG_PRIORITIES);
+	_unref_(quirks_context) *quirks =
+		quirks_init_subsystem(data_path,
+				      override_file,
+				      log_handler,
+				      NULL,
+				      QLOG_CUSTOM_LOG_PRIORITIES);
 	if (!quirks) {
 		fprintf(stderr,
 			"Failed to initialize the device quirks. "

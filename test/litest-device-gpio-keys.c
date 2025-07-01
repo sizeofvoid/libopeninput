@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x19,
@@ -45,22 +45,21 @@ static int events[] = {
 /* clang-format on */
 
 static const char quirk_file[] =
-"[litest gpio quirk]\n"
-"MatchName=litest gpio-keys\n"
-"AttrLidSwitchReliability=reliable\n";
+	"[litest gpio quirk]\n"
+	"MatchName=litest gpio-keys\n"
+	"AttrLidSwitchReliability=reliable\n";
 
 TEST_DEVICE(LITEST_GPIO_KEYS,
-	.features = LITEST_SWITCH,
-	.interface = NULL,
+	    .features = LITEST_SWITCH,
+	    .interface = NULL,
 
-	.name = "gpio-keys",
-	.id = &input_id,
-	.events = events,
-	.absinfo = NULL,
+	    .name = "gpio-keys",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = NULL,
 
-	.quirk_file = quirk_file,
-	.udev_properties = {
-		{ "ID_INPUT_SWITCH", "1" },
-		{ NULL },
-	}
-)
+	    .quirk_file = quirk_file,
+	    .udev_properties = {
+		    { "ID_INPUT_SWITCH", "1" },
+		    { NULL },
+	    })

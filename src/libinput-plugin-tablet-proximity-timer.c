@@ -30,12 +30,11 @@
 #include "util-strings.h"
 
 #include "evdev-frame.h"
-
-#include "timer.h"
 #include "libinput-log.h"
-#include "libinput-util.h"
-#include "libinput-plugin.h"
 #include "libinput-plugin-tablet-proximity-timer.h"
+#include "libinput-plugin.h"
+#include "libinput-util.h"
+#include "timer.h"
 
 /* The tablet sends events every ~2ms , 50ms should be plenty enough to
    detect out-of-range.
@@ -179,7 +178,8 @@ proximity_timer_plugin_device_handle_frame(struct libinput_plugin *libinput_plug
 						evdev_event_code(event) - BTN_STYLUS3);
 			else
 				bitmask_clear_bit(&device->button_state,
-							evdev_event_code(event) - BTN_STYLUS3);
+						  evdev_event_code(event) -
+							  BTN_STYLUS3);
 			break;
 		case EVDEV_BTN_TOOL_PEN:
 			pen_toggled = true;
@@ -203,14 +203,14 @@ proximity_timer_plugin_device_handle_frame(struct libinput_plugin *libinput_plug
 		if (device->pen_state) {
 			proximity_timer_plugin_set_timer(device, time);
 		} else {
-                        /* If we get a BTN_TOOL_PEN 0 it means the tablet will
-                         * give us the right events after all and we can disable
-                         * our timer-based proximity out.
-                         */
-                        libinput_plugin_timer_cancel(device->prox_out_timer);
+			/* If we get a BTN_TOOL_PEN 0 it means the tablet will
+			 * give us the right events after all and we can disable
+			 * our timer-based proximity out.
+			 */
+			libinput_plugin_timer_cancel(device->prox_out_timer);
 			plugin_log_debug(libinput_plugin,
-						"%s: proximity out timer unloaded\n",
-						libinput_device_get_name(device->device));
+					 "%s: proximity out timer unloaded\n",
+					 libinput_device_get_name(device->device));
 			plugin_device_destroy(device);
 			return;
 		}
@@ -222,7 +222,9 @@ proximity_timer_plugin_device_handle_frame(struct libinput_plugin *libinput_plug
 		plugin_log_debug(libinput_plugin,
 				 "%s: forcing proximity in\n",
 				 libinput_device_get_name(device->device));
-		evdev_frame_append(frame, &pen_in_event, 1); /* libinput's event frame will have space */
+		evdev_frame_append(frame,
+				   &pen_in_event,
+				   1); /* libinput's event frame will have space */
 		device->proximity_out_forced = false;
 		proximity_timer_plugin_set_timer(device, time);
 	}
@@ -238,7 +240,9 @@ proximity_timer_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
 
 	list_for_each(pd, &plugin->devices, link) {
 		if (pd->device == device) {
-			proximity_timer_plugin_device_handle_frame(libinput_plugin, pd, frame);
+			proximity_timer_plugin_device_handle_frame(libinput_plugin,
+								   pd,
+								   frame);
 			break;
 		}
 	}
@@ -257,17 +261,18 @@ proximity_timer_plugin_device_added(struct libinput_plugin *libinput_plugin,
 	struct plugin_device *pd = zalloc(sizeof(*pd));
 	pd->device = libinput_device_ref(device);
 	pd->parent = plugin;
-	pd->prox_out_timer = libinput_plugin_timer_new(libinput_plugin,
-						       libinput_device_get_sysname(device),
-						       tablet_proximity_out_quirk_timer_func,
-						       pd);
+	pd->prox_out_timer =
+		libinput_plugin_timer_new(libinput_plugin,
+					  libinput_device_get_sysname(device),
+					  tablet_proximity_out_quirk_timer_func,
+					  pd);
 
 	list_take_append(&plugin->devices, pd, link);
 }
 
 static void
 proximity_timer_plugin_device_removed(struct libinput_plugin *libinput_plugin,
-				  struct libinput_device *device)
+				      struct libinput_device *device)
 {
 	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
 	struct plugin_device *dev;

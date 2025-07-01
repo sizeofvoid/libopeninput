@@ -26,10 +26,11 @@
 #include <limits.h>
 #include <math.h>
 #include <string.h>
-#include "linux/input.h"
 
 #include "util-input-event.h"
+
 #include "evdev-mt-touchpad.h"
+#include "linux/input.h"
 
 #define DEFAULT_BUTTON_ENTER_TIMEOUT ms2us(100)
 #define DEFAULT_BUTTON_LEAVE_TIMEOUT ms2us(300)
@@ -43,10 +44,10 @@
  * The state machine only affects the soft button area code.
  */
 
-static inline const char*
+static inline const char *
 button_state_to_str(enum button_state state)
 {
-	switch(state) {
+	switch (state) {
 	CASE_RETURN_STRING(BUTTON_STATE_NONE);
 	CASE_RETURN_STRING(BUTTON_STATE_AREA);
 	CASE_RETURN_STRING(BUTTON_STATE_BOTTOM);
@@ -58,10 +59,10 @@ button_state_to_str(enum button_state state)
 	return NULL;
 }
 
-static inline const char*
+static inline const char *
 button_event_to_str(enum button_event event)
 {
-	switch(event) {
+	switch (event) {
 	CASE_RETURN_STRING(BUTTON_EVENT_IN_BOTTOM_R);
 	CASE_RETURN_STRING(BUTTON_EVENT_IN_BOTTOM_M);
 	CASE_RETURN_STRING(BUTTON_EVENT_IN_BOTTOM_L);
@@ -78,23 +79,20 @@ button_event_to_str(enum button_event event)
 }
 
 static inline bool
-is_inside_bottom_button_area(const struct tp_dispatch *tp,
-			     const struct tp_touch *t)
+is_inside_bottom_button_area(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
 	return t->point.y >= tp->buttons.bottom_area.top_edge;
 }
 
 static inline bool
-is_inside_bottom_right_area(const struct tp_dispatch *tp,
-			    const struct tp_touch *t)
+is_inside_bottom_right_area(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
 	return is_inside_bottom_button_area(tp, t) &&
 	       t->point.x > tp->buttons.bottom_area.rightbutton_left_edge;
 }
 
 static inline bool
-is_inside_bottom_middle_area(const struct tp_dispatch *tp,
-			   const struct tp_touch *t)
+is_inside_bottom_middle_area(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
 	return is_inside_bottom_button_area(tp, t) &&
 	       !is_inside_bottom_right_area(tp, t) &&
@@ -102,23 +100,20 @@ is_inside_bottom_middle_area(const struct tp_dispatch *tp,
 }
 
 static inline bool
-is_inside_top_button_area(const struct tp_dispatch *tp,
-			  const struct tp_touch *t)
+is_inside_top_button_area(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
 	return t->point.y <= tp->buttons.top_area.bottom_edge;
 }
 
 static inline bool
-is_inside_top_right_area(const struct tp_dispatch *tp,
-			 const struct tp_touch *t)
+is_inside_top_right_area(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
 	return is_inside_top_button_area(tp, t) &&
 	       t->point.x > tp->buttons.top_area.rightbutton_left_edge;
 }
 
 static inline bool
-is_inside_top_middle_area(const struct tp_dispatch *tp,
-			  const struct tp_touch *t)
+is_inside_top_middle_area(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
 	return is_inside_top_button_area(tp, t) &&
 	       t->point.x >= tp->buttons.top_area.leftbutton_right_edge &&
@@ -126,21 +121,15 @@ is_inside_top_middle_area(const struct tp_dispatch *tp,
 }
 
 static void
-tp_button_set_enter_timer(struct tp_dispatch *tp,
-			  struct tp_touch *t,
-			  uint64_t time)
+tp_button_set_enter_timer(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 {
-	libinput_timer_set(&t->button.timer,
-			   time + DEFAULT_BUTTON_ENTER_TIMEOUT);
+	libinput_timer_set(&t->button.timer, time + DEFAULT_BUTTON_ENTER_TIMEOUT);
 }
 
 static void
-tp_button_set_leave_timer(struct tp_dispatch *tp,
-			  struct tp_touch *t,
-			  uint64_t time)
+tp_button_set_leave_timer(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
 {
-	libinput_timer_set(&t->button.timer,
-			   time + DEFAULT_BUTTON_LEAVE_TIMEOUT);
+	libinput_timer_set(&t->button.timer, time + DEFAULT_BUTTON_LEAVE_TIMEOUT);
 }
 
 /*
@@ -252,8 +241,7 @@ tp_button_release_other_bottom_touches(struct tp_dispatch *tp,
 	tp_for_each_touch(tp, t) {
 		uint64_t tdelta;
 
-		if (t->button.state != BUTTON_STATE_BOTTOM ||
-		    t->button.has_moved)
+		if (t->button.state != BUTTON_STATE_BOTTOM || t->button.has_moved)
 			continue;
 
 		if (other_start_time > t->button.initial_time)
@@ -279,11 +267,7 @@ tp_button_bottom_handle_event(struct tp_dispatch *tp,
 	case BUTTON_EVENT_IN_BOTTOM_M:
 	case BUTTON_EVENT_IN_BOTTOM_L:
 		if (event != t->button.current)
-			tp_button_set_state(tp,
-					    t,
-					    BUTTON_STATE_BOTTOM,
-					    event,
-					    time);
+			tp_button_set_state(tp, t, BUTTON_STATE_BOTTOM, event, time);
 		break;
 	case BUTTON_EVENT_IN_TOP_R:
 	case BUTTON_EVENT_IN_TOP_M:
@@ -296,8 +280,7 @@ tp_button_bottom_handle_event(struct tp_dispatch *tp,
 		 * simultaneously with this finger, release those fingers
 		 * because they're part of a gesture.
 		 */
-		tp_button_release_other_bottom_touches(tp,
-						       t->button.initial_time);
+		tp_button_release_other_bottom_touches(tp, t->button.initial_time);
 		break;
 	case BUTTON_EVENT_UP:
 		tp_button_set_state(tp, t, BUTTON_STATE_NONE, event, time);
@@ -325,11 +308,7 @@ tp_button_top_handle_event(struct tp_dispatch *tp,
 	case BUTTON_EVENT_IN_TOP_M:
 	case BUTTON_EVENT_IN_TOP_L:
 		if (event != t->button.current)
-			tp_button_set_state(tp,
-					    t,
-					    BUTTON_STATE_TOP_NEW,
-					    event,
-					    time);
+			tp_button_set_state(tp, t, BUTTON_STATE_TOP_NEW, event, time);
 		break;
 	case BUTTON_EVENT_IN_AREA:
 		tp_button_set_state(tp, t, BUTTON_STATE_TOP_TO_IGNORE, event, time);
@@ -350,7 +329,7 @@ tp_button_top_new_handle_event(struct tp_dispatch *tp,
 			       enum button_event event,
 			       uint64_t time)
 {
-	switch(event) {
+	switch (event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
 	case BUTTON_EVENT_IN_BOTTOM_M:
 	case BUTTON_EVENT_IN_BOTTOM_L:
@@ -360,11 +339,7 @@ tp_button_top_new_handle_event(struct tp_dispatch *tp,
 	case BUTTON_EVENT_IN_TOP_M:
 	case BUTTON_EVENT_IN_TOP_L:
 		if (event != t->button.current)
-			tp_button_set_state(tp,
-					    t,
-					    BUTTON_STATE_TOP_NEW,
-					    event,
-					    time);
+			tp_button_set_state(tp, t, BUTTON_STATE_TOP_NEW, event, time);
 		break;
 	case BUTTON_EVENT_IN_AREA:
 		tp_button_set_state(tp, t, BUTTON_STATE_AREA, event, time);
@@ -389,22 +364,14 @@ tp_button_top_to_ignore_handle_event(struct tp_dispatch *tp,
 				     enum button_event event,
 				     uint64_t time)
 {
-	switch(event) {
+	switch (event) {
 	case BUTTON_EVENT_IN_TOP_R:
 	case BUTTON_EVENT_IN_TOP_M:
 	case BUTTON_EVENT_IN_TOP_L:
 		if (event == t->button.current)
-			tp_button_set_state(tp,
-					    t,
-					    BUTTON_STATE_TOP,
-					    event,
-					    time);
+			tp_button_set_state(tp, t, BUTTON_STATE_TOP, event, time);
 		else
-			tp_button_set_state(tp,
-					    t,
-					    BUTTON_STATE_TOP_NEW,
-					    event,
-					    time);
+			tp_button_set_state(tp, t, BUTTON_STATE_TOP_NEW, event, time);
 		break;
 	case BUTTON_EVENT_IN_BOTTOM_R:
 	case BUTTON_EVENT_IN_BOTTOM_M:
@@ -459,7 +426,7 @@ tp_button_handle_event(struct tp_dispatch *tp,
 {
 	enum button_state current = t->button.state;
 
-	switch(t->button.state) {
+	switch (t->button.state) {
 	case BUTTON_STATE_NONE:
 		tp_button_none_handle_event(tp, t, event, time);
 		break;
@@ -484,12 +451,13 @@ tp_button_handle_event(struct tp_dispatch *tp,
 	}
 
 	if (current != t->button.state)
-		evdev_log_debug(tp->device,
-				"button state: touch %d from %-20s event %-24s to %-20s\n",
-				t->index,
-				button_state_to_str(current),
-				button_event_to_str(event),
-				button_state_to_str(t->button.state));
+		evdev_log_debug(
+			tp->device,
+			"button state: touch %d from %-20s event %-24s to %-20s\n",
+			t->index,
+			button_state_to_str(current),
+			button_event_to_str(event),
+			button_state_to_str(t->button.state));
 }
 
 static inline void
@@ -523,8 +491,7 @@ tp_button_check_for_movement(struct tp_dispatch *tp, struct tp_touch *t)
 	if (vector_length > 5.0 /* mm */) {
 		t->button.has_moved = true;
 
-		tp_button_release_other_bottom_touches(tp,
-						       t->button.initial_time);
+		tp_button_release_other_bottom_touches(tp, t->button.initial_time);
 	}
 }
 
@@ -588,9 +555,7 @@ tp_button_handle_timeout(uint64_t now, void *data)
 }
 
 void
-tp_process_button(struct tp_dispatch *tp,
-		  const struct evdev_event *e,
-		  uint64_t time)
+tp_process_button(struct tp_dispatch *tp, const struct evdev_event *e, uint64_t time)
 {
 	uint32_t mask = bit(evdev_usage_enum(e->usage) - EVDEV_BTN_LEFT);
 
@@ -612,8 +577,7 @@ tp_process_button(struct tp_dispatch *tp,
 }
 
 void
-tp_release_all_buttons(struct tp_dispatch *tp,
-		       uint64_t time)
+tp_release_all_buttons(struct tp_dispatch *tp, uint64_t time)
 {
 	if (tp->buttons.state) {
 		tp->buttons.state = 0;
@@ -622,8 +586,7 @@ tp_release_all_buttons(struct tp_dispatch *tp,
 }
 
 static void
-tp_init_softbuttons(struct tp_dispatch *tp,
-		    struct evdev_device *device)
+tp_init_softbuttons(struct tp_dispatch *tp, struct evdev_device *device)
 {
 	double width, height;
 	struct device_coords edges;
@@ -658,13 +621,12 @@ tp_init_softbuttons(struct tp_dispatch *tp,
 	 * On touchpads with visible markings we reduce the size of the
 	 * middle button since users have a visual guide.
 	 */
-	if (evdev_device_has_model_quirk(device,
-					 QUIRK_MODEL_TOUCHPAD_VISIBLE_MARKER)) {
-		mm.x = width/2 - 5; /* 10mm wide */
+	if (evdev_device_has_model_quirk(device, QUIRK_MODEL_TOUCHPAD_VISIBLE_MARKER)) {
+		mm.x = width / 2 - 5; /* 10mm wide */
 		edges = evdev_device_mm_to_units(device, &mm);
 		mb_le = edges.x;
 
-		mm.x = width/2 + 5; /* 10mm wide */
+		mm.x = width / 2 + 5; /* 10mm wide */
 		edges = evdev_device_mm_to_units(device, &mm);
 		mb_re = edges.x;
 	} else {
@@ -717,7 +679,7 @@ static inline uint32_t
 tp_button_config_click_get_methods(struct libinput_device *device)
 {
 	struct evdev_device *evdev = evdev_device(device);
-	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+	struct tp_dispatch *tp = (struct tp_dispatch *)evdev->dispatch;
 	uint32_t methods = LIBINPUT_CONFIG_CLICK_METHOD_NONE;
 
 	if (tp->buttons.is_clickpad) {
@@ -762,7 +724,7 @@ tp_button_config_click_set_method(struct libinput_device *device,
 				  enum libinput_config_click_method method)
 {
 	struct evdev_device *evdev = evdev_device(device);
-	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+	struct tp_dispatch *tp = (struct tp_dispatch *)evdev->dispatch;
 
 	tp->buttons.click_method = method;
 	tp_switch_click_method(tp);
@@ -774,7 +736,7 @@ static enum libinput_config_click_method
 tp_button_config_click_get_method(struct libinput_device *device)
 {
 	struct evdev_device *evdev = evdev_device(device);
-	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+	struct tp_dispatch *tp = (struct tp_dispatch *)evdev->dispatch;
 
 	return tp->buttons.click_method;
 }
@@ -805,7 +767,7 @@ static enum libinput_config_click_method
 tp_button_config_click_get_default_method(struct libinput_device *device)
 {
 	struct evdev_device *evdev = evdev_device(device);
-	struct tp_dispatch *tp = (struct tp_dispatch*)evdev->dispatch;
+	struct tp_dispatch *tp = (struct tp_dispatch *)evdev->dispatch;
 
 	return tp_click_get_default_method(tp);
 }
@@ -813,19 +775,16 @@ tp_button_config_click_get_default_method(struct libinput_device *device)
 void
 tp_clickpad_middlebutton_apply_config(struct evdev_device *device)
 {
-	struct tp_dispatch *tp = (struct tp_dispatch*)device->dispatch;
+	struct tp_dispatch *tp = (struct tp_dispatch *)device->dispatch;
 
-	if (!tp->buttons.is_clickpad ||
-	    tp->buttons.state != 0)
+	if (!tp->buttons.is_clickpad || tp->buttons.state != 0)
 		return;
 
-	if (device->middlebutton.want_enabled ==
-	    device->middlebutton.enabled)
+	if (device->middlebutton.want_enabled == device->middlebutton.enabled)
 		return;
 
 	device->middlebutton.enabled = device->middlebutton.want_enabled;
-	if (tp->buttons.click_method ==
-	    LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS)
+	if (tp->buttons.click_method == LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS)
 		tp_init_softbuttons(tp, device);
 }
 
@@ -837,7 +796,7 @@ tp_clickpad_middlebutton_is_available(struct libinput_device *device)
 
 static enum libinput_config_status
 tp_clickpad_middlebutton_set(struct libinput_device *device,
-		     enum libinput_config_middle_emulation_state enable)
+			     enum libinput_config_middle_emulation_state enable)
 {
 	struct evdev_device *evdev = evdev_device(device);
 
@@ -885,11 +844,9 @@ tp_init_clickpad_middlebutton_emulation(struct tp_dispatch *tp,
 }
 
 static inline void
-tp_init_middlebutton_emulation(struct tp_dispatch *tp,
-			       struct evdev_device *device)
+tp_init_middlebutton_emulation(struct tp_dispatch *tp, struct evdev_device *device)
 {
-	bool enable_by_default,
-	     want_config_option;
+	bool enable_by_default, want_config_option;
 
 	/* On clickpads we provide the config option but disable by default.
 	   When enabled, the middle software button disappears */
@@ -913,9 +870,7 @@ tp_init_middlebutton_emulation(struct tp_dispatch *tp,
 	} else
 		return;
 
-	evdev_init_middlebutton(tp->device,
-				enable_by_default,
-				want_config_option);
+	evdev_init_middlebutton(tp->device, enable_by_default, want_config_option);
 }
 
 static bool
@@ -937,22 +892,22 @@ tp_guess_clickpad(const struct tp_dispatch *tp, struct evdev_device *device)
 	 */
 	if (!is_clickpad && has_left && !has_right &&
 	    (tp->device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON) == 0) {
-		evdev_log_bug_kernel(device,
-				     "missing right button, assuming it is a clickpad.\n");
+		evdev_log_bug_kernel(
+			device,
+			"missing right button, assuming it is a clickpad.\n");
 		is_clickpad = true;
 	}
 
 	if (has_middle || has_right) {
 		if (is_clickpad)
-			evdev_log_bug_kernel(device,
-					     "clickpad advertising right button. "
-					     "See %s/clickpad-with-right-button.html for details\n",
-					     HTTP_DOC_LINK);
-	} else if (has_left &&
-		   !is_clickpad &&
+			evdev_log_bug_kernel(
+				device,
+				"clickpad advertising right button. "
+				"See %s/clickpad-with-right-button.html for details\n",
+				HTTP_DOC_LINK);
+	} else if (has_left && !is_clickpad &&
 		   libevdev_get_id_vendor(device->evdev) != VENDOR_ID_APPLE) {
-			evdev_log_bug_kernel(device,
-					     "non clickpad without right button?\n");
+		evdev_log_bug_kernel(device, "non clickpad without right button?\n");
 	}
 
 	return is_clickpad;
@@ -1004,8 +959,7 @@ tp_button_config_get_default_clickfinger_map(struct libinput_device *device)
 }
 
 void
-tp_init_buttons(struct tp_dispatch *tp,
-		struct evdev_device *device)
+tp_init_buttons(struct tp_dispatch *tp, struct evdev_device *device)
 {
 	struct tp_touch *t;
 	const struct input_absinfo *absinfo_x, *absinfo_y;
@@ -1013,23 +967,27 @@ tp_init_buttons(struct tp_dispatch *tp,
 
 	tp->buttons.is_clickpad = tp_guess_clickpad(tp, device);
 
-	tp->buttons.has_topbuttons = libevdev_has_property(device->evdev,
-						        INPUT_PROP_TOPBUTTONPAD);
+	tp->buttons.has_topbuttons =
+		libevdev_has_property(device->evdev, INPUT_PROP_TOPBUTTONPAD);
 
 	absinfo_x = device->abs.absinfo_x;
 	absinfo_y = device->abs.absinfo_y;
 
 	/* pinned-finger motion threshold, see tp_unpin_finger. */
-	tp->buttons.motion_dist.x_scale_coeff = 1.0/absinfo_x->resolution;
-	tp->buttons.motion_dist.y_scale_coeff = 1.0/absinfo_y->resolution;
+	tp->buttons.motion_dist.x_scale_coeff = 1.0 / absinfo_x->resolution;
+	tp->buttons.motion_dist.y_scale_coeff = 1.0 / absinfo_y->resolution;
 
 	tp->buttons.config_method.get_methods = tp_button_config_click_get_methods;
 	tp->buttons.config_method.set_method = tp_button_config_click_set_method;
 	tp->buttons.config_method.get_method = tp_button_config_click_get_method;
-	tp->buttons.config_method.get_default_method = tp_button_config_click_get_default_method;
-	tp->buttons.config_method.set_clickfinger_map = tp_button_config_set_clickfinger_map;
-	tp->buttons.config_method.get_clickfinger_map = tp_button_config_get_clickfinger_map;
-	tp->buttons.config_method.get_default_clickfinger_map = tp_button_config_get_default_clickfinger_map;
+	tp->buttons.config_method.get_default_method =
+		tp_button_config_click_get_default_method;
+	tp->buttons.config_method.set_clickfinger_map =
+		tp_button_config_set_clickfinger_map;
+	tp->buttons.config_method.get_clickfinger_map =
+		tp_button_config_get_clickfinger_map;
+	tp->buttons.config_method.get_default_clickfinger_map =
+		tp_button_config_get_default_clickfinger_map;
 
 	tp->device->base.config.click_method = &tp->buttons.config_method;
 
@@ -1057,7 +1015,8 @@ tp_init_buttons(struct tp_dispatch *tp,
 		libinput_timer_init(&t->button.timer,
 				    tp_libinput_context(tp),
 				    timer_name,
-				    tp_button_handle_timeout, t);
+				    tp_button_handle_timeout,
+				    t);
 	}
 }
 
@@ -1151,12 +1110,11 @@ tp_clickfinger_within_distance(struct tp_dispatch *tp,
 	 *   and the other one isn't
 	 */
 
-	if (tp->device->abs.dimensions.y/yres < 50)
+	if (tp->device->abs.dimensions.y / yres < 50)
 		goto out;
 
 	bottom_threshold = tp->device->abs.absinfo_y->maximum - 20 * yres;
-	if ((t1->point.y > bottom_threshold) !=
-		    (t2->point.y > bottom_threshold))
+	if ((t1->point.y > bottom_threshold) != (t2->point.y > bottom_threshold))
 		within_distance = 0;
 
 out:
@@ -1169,8 +1127,7 @@ tp_clickfinger_set_button(struct tp_dispatch *tp)
 	uint32_t button;
 	unsigned int nfingers = 0;
 	struct tp_touch *t;
-	struct tp_touch *first = NULL,
-			*second = NULL;
+	struct tp_touch *first = NULL, *second = NULL;
 	uint32_t button_map[2][3] = {
 		{ EVDEV_BTN_LEFT, EVDEV_BTN_RIGHT, EVDEV_BTN_MIDDLE },
 		{ EVDEV_BTN_LEFT, EVDEV_BTN_MIDDLE, EVDEV_BTN_RIGHT },
@@ -1211,7 +1168,7 @@ out:
 	case 1:
 	case 2:
 	case 3:
-		button = button_map[tp->buttons.map][nfingers-1];
+		button = button_map[tp->buttons.map][nfingers - 1];
 		break;
 	default:
 		button = 0;
@@ -1231,7 +1188,8 @@ tp_notify_clickpadbutton(struct tp_dispatch *tp,
 	/* If we've a trackpoint, send top buttons through the trackpoint */
 	if (tp->buttons.trackpoint) {
 		if (is_topbutton) {
-			struct evdev_dispatch *dispatch = tp->buttons.trackpoint->dispatch;
+			struct evdev_dispatch *dispatch =
+				tp->buttons.trackpoint->dispatch;
 			int value = (state == LIBINPUT_BUTTON_STATE_PRESSED) ? 1 : 0;
 			struct evdev_event event = {
 				.usage = button,
@@ -1337,15 +1295,15 @@ tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 			}
 		}
 
-		if (area == 0 &&
-		    tp->buttons.click_method != LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER) {
+		if (area == 0 && tp->buttons.click_method !=
+					 LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER) {
 			/* No touches, wait for a touch before processing */
 			tp->buttons.click_pending = true;
 			return 0;
 		}
 
-		if ((tp->device->middlebutton.enabled || is_top) &&
-		    (area & LEFT) && (area & RIGHT)) {
+		if ((tp->device->middlebutton.enabled || is_top) && (area & LEFT) &&
+		    (area & RIGHT)) {
 			button = evdev_usage_from(EVDEV_BTN_MIDDLE);
 		} else if (area & MIDDLE) {
 			button = evdev_usage_from(EVDEV_BTN_MIDDLE);
@@ -1378,11 +1336,7 @@ tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 	tp->buttons.click_pending = false;
 
 	if (evdev_usage_ne(button, 0))
-		return tp_notify_clickpadbutton(tp,
-						time,
-						button,
-						is_top,
-						state);
+		return tp_notify_clickpadbutton(tp, time, button, is_top, state);
 	return 0;
 }
 
@@ -1397,8 +1351,7 @@ tp_post_button_events(struct tp_dispatch *tp, uint64_t time)
 }
 
 bool
-tp_button_touch_active(const struct tp_dispatch *tp,
-		       const struct tp_touch *t)
+tp_button_touch_active(const struct tp_dispatch *tp, const struct tp_touch *t)
 {
 	return t->button.state == BUTTON_STATE_AREA || t->button.has_moved;
 }
@@ -1407,6 +1360,5 @@ bool
 tp_button_is_inside_softbutton_area(const struct tp_dispatch *tp,
 				    const struct tp_touch *t)
 {
-	return is_inside_top_button_area(tp, t) ||
-	       is_inside_bottom_button_area(tp, t);
+	return is_inside_top_button_area(tp, t) || is_inside_bottom_button_area(tp, t);
 }

@@ -21,8 +21,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x11,
@@ -39,18 +39,17 @@ static int events[] = {
 /* clang-format on */
 
 static const char quirk_file[] =
-"[litest Virtual Mouse is virtual]\n"
-"MatchName=litest Virtual Mouse\n"
-"AttrIsVirtual=1\n"
-;
+	"[litest Virtual Mouse is virtual]\n"
+	"MatchName=litest Virtual Mouse\n"
+	"AttrIsVirtual=1\n";
 
 TEST_DEVICE(LITEST_MOUSE_VIRTUAL,
-	.features = LITEST_WHEEL | LITEST_IGNORED, /* Only needed for mouse wheel tests */
-	.interface = NULL,
+	    .features = LITEST_WHEEL |
+			LITEST_IGNORED, /* Only needed for mouse wheel tests */
+	    .interface = NULL,
 
-	.name = "Virtual Mouse",
-	.id = &input_id,
-	.events = events,
-	.absinfo = NULL,
-	.quirk_file = quirk_file,
-)
+	    .name = "Virtual Mouse",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = NULL,
+	    .quirk_file = quirk_file, )

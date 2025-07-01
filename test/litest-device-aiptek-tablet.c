@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event proximity_in[] = {
 	/* Note: this device does not send BTN_TOOL_PEN */
@@ -151,11 +151,10 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_AIPTEK,
-	.features = LITEST_TABLET | LITEST_HOVER | LITEST_FORCED_PROXOUT,
-	.interface = &interface,
+	    .features = LITEST_TABLET | LITEST_HOVER | LITEST_FORCED_PROXOUT,
+	    .interface = &interface,
 
-	.name = "Aiptek",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "Aiptek",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

@@ -32,17 +32,20 @@ struct range {
 };
 
 static inline struct range
-range_init_empty(void) {
+range_init_empty(void)
+{
 	return (struct range){ .lower = 0, .upper = -1 };
 }
 
 static inline struct range
-range_init_inclusive(int lower, int upper) {
-	return (struct range) { .lower = lower, .upper = upper + 1};
+range_init_inclusive(int lower, int upper)
+{
+	return (struct range){ .lower = lower, .upper = upper + 1 };
 }
 
 static inline struct range
-range_init_exclusive(int lower, int upper) {
+range_init_exclusive(int lower, int upper)
+{
 	return (struct range){ .lower = lower, .upper = upper };
 }
 

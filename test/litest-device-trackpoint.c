@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x11,
@@ -46,12 +46,10 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_TRACKPOINT,
-	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_POINTINGSTICK,
-	.interface = NULL,
+	    .features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_POINTINGSTICK,
+	    .interface = NULL,
 
-	.name = "TPPS/2 IBM TrackPoint",
-	.id = &input_id,
-	.absinfo = NULL,
-	.events = events,
-
-)
+	    .name = "TPPS/2 IBM TrackPoint",
+	    .id = &input_id,
+	    .absinfo = NULL,
+	    .events = events, )

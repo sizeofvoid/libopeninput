@@ -23,11 +23,11 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
@@ -110,17 +110,16 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_MAGIC_TRACKPAD,
-	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD |
-		    LITEST_BUTTON | LITEST_APPLE_CLICKPAD,
-	.interface = &interface,
+	    .features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON |
+			LITEST_APPLE_CLICKPAD,
+	    .interface = &interface,
 
-	.name = "Apple Wireless Trackpad",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
+	    .name = "Apple Wireless Trackpad",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
 
-	.udev_properties = {
-		{ "ID_INPUT_TOUCHPAD_INTEGRATION", "external" },
-		{ NULL },
-	},
-)
+	    .udev_properties = {
+		    { "ID_INPUT_TOUCHPAD_INTEGRATION", "external" },
+		    { NULL },
+	    }, )

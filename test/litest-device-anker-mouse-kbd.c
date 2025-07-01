@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 /* Recording from https://bugs.freedesktop.org/show_bug.cgi?id=93474
  * This is the keyboard device for this mouse.
@@ -211,11 +211,10 @@ static struct input_absinfo absinfo[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_ANKER_MOUSE_KBD,
-	.features = LITEST_KEYS | LITEST_WHEEL,
-	.interface = NULL,
+	    .features = LITEST_KEYS | LITEST_WHEEL,
+	    .interface = NULL,
 
-	.name = "USB Laser Game Mouse",
-	.id = &input_id,
-	.absinfo = absinfo,
-	.events = events,
-)
+	    .name = "USB Laser Game Mouse",
+	    .id = &input_id,
+	    .absinfo = absinfo,
+	    .events = events, )

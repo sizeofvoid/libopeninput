@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 /* Recording from https://bugs.freedesktop.org/show_bug.cgi?id=102039
  * This is the 'normal keyboard' of 2 devices exported by this keyboard.
@@ -335,11 +335,10 @@ static struct input_absinfo absinfo[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_KEYBOARD_BLADE_STEALTH,
-	.features = LITEST_KEYS | LITEST_WHEEL,
-	.interface = NULL,
+	    .features = LITEST_KEYS | LITEST_WHEEL,
+	    .interface = NULL,
 
-	.name = "Razer Razer Blade Stealth",
-	.id = &input_id,
-	.absinfo = absinfo,
-	.events = events,
-)
+	    .name = "Razer Razer Blade Stealth",
+	    .id = &input_id,
+	    .absinfo = absinfo,
+	    .events = events, )

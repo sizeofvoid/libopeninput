@@ -28,12 +28,12 @@
 
 #include "util-mem.h"
 #include "util-strings.h"
-#include "evdev-frame.h"
 
+#include "evdev-frame.h"
 #include "libinput-log.h"
-#include "libinput-util.h"
-#include "libinput-plugin.h"
 #include "libinput-plugin-tablet-forced-tool.h"
+#include "libinput-plugin.h"
+#include "libinput-util.h"
 
 /*
  * Handling for tools that never set BTN_TOOL_PEN.
@@ -114,7 +114,8 @@ forced_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 						evdev_event_code(event) - BTN_TOOL_PEN);
 			} else {
 				bitmask_clear_bit(&device->tool_state,
-						  evdev_event_code(event)- BTN_TOOL_PEN);
+						  evdev_event_code(event) -
+							  BTN_TOOL_PEN);
 			}
 			return; /* Nothing to do */
 		case EVDEV_ABS_X:
@@ -126,12 +127,12 @@ forced_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 		case EVDEV_ABS_TILT_Y:
 		case EVDEV_ABS_WHEEL: /* slider */
 			/* no early return here, the BTN_TOOL updates
-				* may come after the ABS_ events */
+			 * may come after the ABS_ events */
 			axis_change = true;
 			break;
 		case EVDEV_REL_WHEEL:
 			/* no early return here, the BTN_TOOL updates
-				* may come after the REL_ events */
+			 * may come after the REL_ events */
 			axis_change = true;
 			break;
 		default:
@@ -142,13 +143,8 @@ forced_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 	if (!axis_change)
 		return;
 
-	const bitmask_t all_tools = bitmask_from_bits(PEN,
-						      RUBBER,
-						      BRUSH,
-						      PENCIL,
-						      AIRBRUSH,
-						      MOUSE,
-						      LENS);
+	const bitmask_t all_tools =
+		bitmask_from_bits(PEN, RUBBER, BRUSH, PENCIL, AIRBRUSH, MOUSE, LENS);
 	if (bitmask_any(device->tool_state, all_tools))
 		return;
 
@@ -160,7 +156,9 @@ forced_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 		.usage = evdev_usage_from(EVDEV_BTN_TOOL_PEN),
 		.value = 1,
 	};
-	evdev_frame_append(frame, &prox, 1); /* libinput's event frame will have space */
+	evdev_frame_append(frame,
+			   &prox,
+			   1); /* libinput's event frame will have space */
 }
 
 static void
@@ -173,7 +171,9 @@ forced_tool_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
 
 	list_for_each(pd, &plugin->devices, link) {
 		if (pd->device == device) {
-			forced_tool_plugin_device_handle_frame(libinput_plugin, pd, frame);
+			forced_tool_plugin_device_handle_frame(libinput_plugin,
+							       pd,
+							       frame);
 			break;
 		}
 	}

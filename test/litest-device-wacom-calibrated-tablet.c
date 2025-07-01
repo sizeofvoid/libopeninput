@@ -23,13 +23,11 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static bool
-inverter(struct litest_device *dev,
-		 double *x, double *y,
-		 struct axis_replacement *axes)
+inverter(struct litest_device *dev, double *x, double *y, struct axis_replacement *axes)
 {
 	/* Input data is in percent (0-100), so let's swap x and y around.
 	 * With our matrix this should be undone by libinput later
@@ -44,7 +42,8 @@ inverter(struct litest_device *dev,
 static bool
 proximity_in_handler(struct litest_device *dev,
 		     unsigned int tool_type,
-		     double *x, double *y,
+		     double *x,
+		     double *y,
 		     struct axis_replacement *axes)
 {
 	/* let the generic code handle the event */
@@ -130,15 +129,14 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_WACOM_CALIBRATED_TABLET_PEN,
-	.features = LITEST_TABLET|LITEST_PRECALIBRATED,
-	.interface = &interface,
+	    .features = LITEST_TABLET | LITEST_PRECALIBRATED,
+	    .interface = &interface,
 
-	.name = "Wacom MultiTouch Sensor Pen",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.udev_properties = {
-	{ "LIBINPUT_CALIBRATION_MATRIX", "-1 0 1 0 -1 1" },
-	{ NULL },
-	},
-)
+	    .name = "Wacom MultiTouch Sensor Pen",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .udev_properties = {
+		    { "LIBINPUT_CALIBRATION_MATRIX", "-1 0 1 0 -1 1" },
+		    { NULL },
+	    }, )

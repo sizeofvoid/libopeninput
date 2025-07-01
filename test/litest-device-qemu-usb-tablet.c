@@ -23,9 +23,10 @@
 
 #include "config.h"
 
-#include "litest.h"
-#include "litest-int.h"
 #include <assert.h>
+
+#include "litest-int.h"
+#include "litest.h"
 
 static bool
 touch_down(struct litest_device *d, unsigned int slot, double x, double y)
@@ -91,11 +92,10 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_QEMU_TABLET,
-	.features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE,
-	.interface = &interface,
+	    .features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE,
+	    .interface = &interface,
 
-	.name = "QEMU 0.12.1 QEMU USB Tablet",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "QEMU 0.12.1 QEMU USB Tablet",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

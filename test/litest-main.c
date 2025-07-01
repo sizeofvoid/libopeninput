@@ -29,23 +29,24 @@
 #include <fcntl.h>
 #include <fnmatch.h>
 #include <getopt.h>
+#include <libudev.h>
 #include <poll.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
-#include <time.h>
-#include <unistd.h>
-#include "linux/input.h"
 #include <sys/ptrace.h>
 #include <sys/resource.h>
-#include <sys/timerfd.h>
-#include <sys/wait.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <sys/sysinfo.h>
-#include <libudev.h>
+#include <sys/timerfd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <time.h>
+#include <unistd.h>
+
+#include "linux/input.h"
 #if HAVE_LIBSYSTEMD
 #include <systemd/sd-bus.h>
 #endif
@@ -55,16 +56,16 @@
 
 #include <valgrind/valgrind.h>
 
-#include "util-files.h"
-#include "litest.h"
-#include "litest-runner.h"
-#include "litest-int.h"
-#include "libinput-util.h"
-#include "quirks.h"
-#include "builddir.h"
-
 #include "util-backtrace.h"
+#include "util-files.h"
 #include "util-libinput.h"
+
+#include "builddir.h"
+#include "libinput-util.h"
+#include "litest-int.h"
+#include "litest-runner.h"
+#include "litest.h"
+#include "quirks.h"
 
 static struct list all_test_suites = LIST_INIT(all_test_suites); /* struct suite */
 
@@ -145,15 +146,14 @@ litest_init_test_devices(void)
 }
 
 extern const struct test_collection __start_test_collection_section,
-				    __stop_test_collection_section;
+	__stop_test_collection_section;
 
 static void
 setup_tests(void)
 {
 	const struct test_collection *c;
 
-	for (c = &__start_test_collection_section;
-	     c < &__stop_test_collection_section;
+	for (c = &__start_test_collection_section; c < &__stop_test_collection_section;
 	     c++) {
 		struct suite *s;
 		s = zalloc(sizeof(*s));
@@ -180,8 +180,7 @@ check_device_access(void)
 
 	if (access("/dev/uinput", F_OK) == -1 &&
 	    access("/dev/input/uinput", F_OK) == -1) {
-		fprintf(stderr,
-			"uinput device is missing, skipping tests.\n");
+		fprintf(stderr, "uinput device is missing, skipping tests.\n");
 		return 77;
 	}
 
@@ -242,8 +241,7 @@ main(int argc, char **argv)
 
 	setup_tests();
 	if (list_empty(&all_test_suites)) {
-		fprintf(stderr,
-			"Error: filters are too strict, no tests to run.\n");
+		fprintf(stderr, "Error: filters are too strict, no tests to run.\n");
 		return EXIT_FAILURE;
 	}
 
@@ -260,11 +258,11 @@ main(int argc, char **argv)
 	litest_free_test_list(&all_test_suites);
 
 	switch (result) {
-		case LITEST_PASS:
-			return EXIT_SUCCESS;
-		case LITEST_SKIP:
-			return 77;
-		default:
-			return result;
+	case LITEST_PASS:
+		return EXIT_SUCCESS;
+	case LITEST_SKIP:
+		return 77;
+	default:
+		return result;
 	}
 }

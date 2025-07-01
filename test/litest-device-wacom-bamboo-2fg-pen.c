@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event proximity_in[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
@@ -107,15 +107,14 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_WACOM_BAMBOO_2FG_PEN,
-	.features = LITEST_TABLET | LITEST_DISTANCE | LITEST_HOVER,
-	.interface = &interface,
+	    .features = LITEST_TABLET | LITEST_DISTANCE | LITEST_HOVER,
+	    .interface = &interface,
 
-	.name = "Wacom Bamboo 2FG 4x5 Pen",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.udev_properties = {
-		{ "LIBINPUT_DEVICE_GROUP", "wacom-bamboo-2fg-group" },
-		{ NULL },
-	},
-)
+	    .name = "Wacom Bamboo 2FG 4x5 Pen",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .udev_properties = {
+		    { "LIBINPUT_DEVICE_GROUP", "wacom-bamboo-2fg-group" },
+		    { NULL },
+	    }, )

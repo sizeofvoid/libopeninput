@@ -30,11 +30,10 @@
 #include "util-strings.h"
 
 #include "evdev-frame.h"
-
 #include "libinput-log.h"
-#include "libinput-util.h"
-#include "libinput-plugin.h"
 #include "libinput-plugin-tablet-double-tool.h"
+#include "libinput-plugin.h"
+#include "libinput-util.h"
 
 enum {
 	TOOL_PEN_DOWN,
@@ -45,11 +44,11 @@ enum {
 };
 
 enum tool_filter {
-	SKIP_PEN           = bit(1),
-	SKIP_ERASER        = bit(2),
-	PEN_IN_PROX        = bit(3),
-	PEN_OUT_OF_PROX    = bit(4),
-	ERASER_IN_PROX     = bit(5),
+	SKIP_PEN = bit(1),
+	SKIP_ERASER = bit(2),
+	PEN_IN_PROX = bit(3),
+	PEN_OUT_OF_PROX = bit(4),
+	ERASER_IN_PROX = bit(5),
 	ERASER_OUT_OF_PROX = bit(6),
 };
 
@@ -122,14 +121,14 @@ double_tool_plugin_filter_frame(struct libinput_plugin *plugin,
 		}
 	}
 
-	if (filter & (PEN_IN_PROX|PEN_OUT_OF_PROX)) {
+	if (filter & (PEN_IN_PROX | PEN_OUT_OF_PROX)) {
 		struct evdev_event event = {
 			.usage = evdev_usage_from(EVDEV_BTN_TOOL_PEN),
 			.value = (filter & PEN_IN_PROX) ? 1 : 0,
 		};
 		evdev_frame_append(frame_out, &event, 1);
 	}
-	if (filter & (ERASER_IN_PROX|ERASER_OUT_OF_PROX)) {
+	if (filter & (ERASER_IN_PROX | ERASER_OUT_OF_PROX)) {
 		struct evdev_event event = {
 			.usage = evdev_usage_from(EVDEV_BTN_TOOL_RUBBER),
 			.value = (filter & ERASER_IN_PROX) ? 1 : 0,
@@ -187,10 +186,14 @@ double_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 
 #if EVENT_DEBUGGING
 	plugin_log_debug(libinput_plugin,
-			  "device %s: tool state: pen:%s eraser:%s\n",
-			  libinput_device_get_name(device->device),
-			  pen_toggled ? (pen_is_down ? "↓" : "↑") : pen_is_down ? "|" : ".",
-			  eraser_toggled ? (eraser_is_down ? "↓" : "↑") : eraser_is_down ? "|" : ".");
+			 "device %s: tool state: pen:%s eraser:%s\n",
+			 libinput_device_get_name(device->device),
+			 pen_toggled   ? (pen_is_down ? "↓" : "↑")
+			 : pen_is_down ? "|"
+				       : ".",
+			 eraser_toggled   ? (eraser_is_down ? "↓" : "↑")
+			 : eraser_is_down ? "|"
+					  : ".");
 #endif
 
 	if (!bitmask_bit_is_set(device->tools_seen, TOOL_DOUBLE_TOOL)) {
@@ -214,9 +217,10 @@ double_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 		 * a doubled-up tool, assume the device is sane and
 		 * unregister this device */
 		if (bitmask_all(device->tools_seen, tool_mask)) {
-			plugin_log_debug(libinput_plugin,
-					 "device %s: device is fine, unregistering device\n",
-					 libinput_device_get_name(device->device));
+			plugin_log_debug(
+				libinput_plugin,
+				"device %s: device is fine, unregistering device\n",
+				libinput_device_get_name(device->device));
 			plugin_device_destroy(device);
 			return;
 		}
@@ -227,9 +231,10 @@ double_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 		if (eraser_is_down && pen_is_down) {
 			if (!pen_toggled) {
 				_unref_(evdev_frame) *pen_out_of_prox =
-					double_tool_plugin_filter_frame(libinput_plugin,
-									frame,
-									SKIP_ERASER|PEN_OUT_OF_PROX);
+					double_tool_plugin_filter_frame(
+						libinput_plugin,
+						frame,
+						SKIP_ERASER | PEN_OUT_OF_PROX);
 				libinput_plugin_prepend_evdev_frame(libinput_plugin,
 								    device->device,
 								    pen_out_of_prox);
@@ -238,7 +243,8 @@ double_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 			_unref_(evdev_frame) *eraser_in_prox =
 				double_tool_plugin_filter_frame(libinput_plugin,
 								frame,
-								SKIP_PEN|ERASER_IN_PROX);
+								SKIP_PEN |
+									ERASER_IN_PROX);
 
 			libinput_plugin_prepend_evdev_frame(libinput_plugin,
 							    device->device,
@@ -253,21 +259,23 @@ double_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 			return;
 		} else if (!eraser_is_down) {
 			_unref_(evdev_frame) *eraser_out_of_prox =
-				double_tool_plugin_filter_frame(libinput_plugin,
-								frame,
-								SKIP_PEN|ERASER_OUT_OF_PROX);
+				double_tool_plugin_filter_frame(
+					libinput_plugin,
+					frame,
+					SKIP_PEN | ERASER_OUT_OF_PROX);
 
 			libinput_plugin_prepend_evdev_frame(libinput_plugin,
 							    device->device,
 							    eraser_out_of_prox);
 
-			/* Only revert back to the pen if the pen was actually toggled in this frame,
-			 * otherwise it's just still set from before */
+			/* Only revert back to the pen if the pen was actually toggled
+			 * in this frame, otherwise it's just still set from before */
 			if (pen_toggled && pen_is_down) {
 				_unref_(evdev_frame) *pen_in_prox =
-					double_tool_plugin_filter_frame(libinput_plugin,
-									frame,
-									SKIP_ERASER|PEN_IN_PROX);
+					double_tool_plugin_filter_frame(
+						libinput_plugin,
+						frame,
+						SKIP_ERASER | PEN_IN_PROX);
 				libinput_plugin_prepend_evdev_frame(libinput_plugin,
 								    device->device,
 								    pen_in_prox);
@@ -289,7 +297,9 @@ double_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 
 	if (device->ignore_pen) {
 		_unref_(evdev_frame) *frame_out =
-			double_tool_plugin_filter_frame(libinput_plugin, frame, SKIP_PEN);
+			double_tool_plugin_filter_frame(libinput_plugin,
+							frame,
+							SKIP_PEN);
 		size_t out_nevents;
 		evdev_frame_set(frame,
 				evdev_frame_get_events(frame_out, &out_nevents),
@@ -297,7 +307,9 @@ double_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 		bitmask_set_bit(&device->tools_seen, TOOL_DOUBLE_TOOL);
 	} else if (pen_is_down) {
 		_unref_(evdev_frame) *frame_out =
-			double_tool_plugin_filter_frame(libinput_plugin, frame, PEN_IN_PROX);
+			double_tool_plugin_filter_frame(libinput_plugin,
+							frame,
+							PEN_IN_PROX);
 		size_t out_nevents;
 		evdev_frame_set(frame,
 				evdev_frame_get_events(frame_out, &out_nevents),
@@ -315,7 +327,9 @@ double_tool_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
 
 	list_for_each(pd, &plugin->devices, link) {
 		if (pd->device == device) {
-			double_tool_plugin_device_handle_frame(libinput_plugin, pd, frame);
+			double_tool_plugin_device_handle_frame(libinput_plugin,
+							       pd,
+							       frame);
 			break;
 		}
 	}

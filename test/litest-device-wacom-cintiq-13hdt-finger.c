@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
@@ -86,15 +86,14 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_WACOM_CINTIQ_13HDT_FINGER,
-	.features = LITEST_TOUCH,
-	.interface = &interface,
+	    .features = LITEST_TOUCH,
+	    .interface = &interface,
 
-	.name = "Wacom Cintiq 13 HD touch Finger",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.udev_properties = {
-		{ "LIBINPUT_DEVICE_GROUP", "wacom-13hdt-group" },
-		{ NULL },
-	},
-)
+	    .name = "Wacom Cintiq 13 HD touch Finger",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .udev_properties = {
+		    { "LIBINPUT_DEVICE_GROUP", "wacom-13hdt-group" },
+		    { NULL },
+	    }, )

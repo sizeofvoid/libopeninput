@@ -29,8 +29,9 @@
 #ifndef EVDEV_FALLBACK_H
 #define EVDEV_FALLBACK_H
 
-#include "evdev.h"
 #include "util-input-event.h"
+
+#include "evdev.h"
 
 enum debounce_state {
 	DEBOUNCE_STATE_IS_UP = 100,
@@ -156,7 +157,7 @@ struct fallback_dispatch {
 	} arbitration;
 };
 
-static inline struct fallback_dispatch*
+static inline struct fallback_dispatch *
 fallback_dispatch(struct evdev_dispatch *dispatch)
 {
 	evdev_verify_dispatch_type(dispatch, DISPATCH_FALLBACK);
@@ -180,14 +181,14 @@ hw_key_has_changed(struct fallback_dispatch *dispatch, evdev_usage_t usage)
 
 	unsigned int code = evdev_usage_code(usage);
 	return long_bit_is_set(dispatch->hw_key_mask, code) !=
-		long_bit_is_set(dispatch->last_hw_key_mask, code);
+	       long_bit_is_set(dispatch->last_hw_key_mask, code);
 }
 
 static inline void
 hw_key_update_last_state(struct fallback_dispatch *dispatch)
 {
 	static_assert(sizeof(dispatch->hw_key_mask) ==
-		      sizeof(dispatch->last_hw_key_mask),
+			      sizeof(dispatch->last_hw_key_mask),
 		      "Mismatching key mask size");
 
 	memcpy(dispatch->last_hw_key_mask,
@@ -211,8 +212,8 @@ get_key_down_count(struct evdev_device *device, evdev_usage_t usage)
 	return device->key_count[code];
 }
 
-void fallback_debounce_handle_state(struct fallback_dispatch *dispatch,
-				    uint64_t time);
+void
+fallback_debounce_handle_state(struct fallback_dispatch *dispatch, uint64_t time);
 void
 fallback_notify_physical_button(struct fallback_dispatch *dispatch,
 				struct evdev_device *device,

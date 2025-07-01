@@ -31,23 +31,23 @@
 struct motion_filter_interface {
 	enum libinput_config_accel_profile type;
 	struct normalized_coords (*filter)(
-			   struct motion_filter *filter,
-			   const struct device_float_coords *unaccelerated,
-			   void *data, uint64_t time);
+		struct motion_filter *filter,
+		const struct device_float_coords *unaccelerated,
+		void *data,
+		uint64_t time);
 	struct normalized_coords (*filter_constant)(
-			   struct motion_filter *filter,
-			   const struct device_float_coords *unaccelerated,
-			   void *data, uint64_t time);
+		struct motion_filter *filter,
+		const struct device_float_coords *unaccelerated,
+		void *data,
+		uint64_t time);
 	struct normalized_coords (*filter_scroll)(
-			   struct motion_filter *filter,
-			   const struct device_float_coords *unaccelerated,
-			   void *data, uint64_t time);
-	void (*restart)(struct motion_filter *filter,
-			void *data,
-			uint64_t time);
+		struct motion_filter *filter,
+		const struct device_float_coords *unaccelerated,
+		void *data,
+		uint64_t time);
+	void (*restart)(struct motion_filter *filter, void *data, uint64_t time);
 	void (*destroy)(struct motion_filter *filter);
-	bool (*set_speed)(struct motion_filter *filter,
-			  double speed_adjustment);
+	bool (*set_speed)(struct motion_filter *filter, double speed_adjustment);
 	bool (*set_accel_config)(struct motion_filter *filter,
 				 struct libinput_config_accel *accel_config);
 };
@@ -59,7 +59,7 @@ struct motion_filter {
 
 struct pointer_tracker {
 	struct device_float_coords delta; /* delta to most recent event */
-	uint64_t time;  /* us */
+	uint64_t time;                    /* us */
 	uint32_t dir;
 };
 
@@ -93,12 +93,13 @@ struct pointer_trackers {
 	struct pointer_delta_smoothener *smoothener;
 };
 
-void trackers_init(struct pointer_trackers *trackers, int ntrackers);
-void trackers_free(struct pointer_trackers *trackers);
+void
+trackers_init(struct pointer_trackers *trackers, int ntrackers);
+void
+trackers_free(struct pointer_trackers *trackers);
 
 void
-trackers_reset(struct pointer_trackers *trackers,
-	       uint64_t time);
+trackers_reset(struct pointer_trackers *trackers, uint64_t time);
 void
 trackers_feed(struct pointer_trackers *trackers,
 	      const struct device_float_coords *delta,
@@ -135,7 +136,7 @@ v_us2s(double units_per_us)
 static inline double
 v_ms2us(double units_per_ms)
 {
-	return units_per_ms/1000.0;
+	return units_per_ms / 1000.0;
 }
 
 static inline struct normalized_coords
@@ -143,8 +144,8 @@ normalize_for_dpi(const struct device_float_coords *coords, int dpi)
 {
 	struct normalized_coords norm;
 
-	norm.x = coords->x * DEFAULT_MOUSE_DPI/dpi;
-	norm.y = coords->y * DEFAULT_MOUSE_DPI/dpi;
+	norm.x = coords->x * DEFAULT_MOUSE_DPI / dpi;
+	norm.y = coords->y * DEFAULT_MOUSE_DPI / dpi;
 
 	return norm;
 }

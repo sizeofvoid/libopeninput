@@ -25,13 +25,13 @@
 
 #include "config.h"
 
+#include <libudev.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <libudev.h>
+#include "util-mem.h"
 
 #include "libinput.h"
-#include "util-mem.h"
 
 /**
  * Handle to the quirks context.
@@ -123,7 +123,7 @@ enum quirk {
  * Returns a printable name for the quirk. This name is for developer
  * tools, not user consumption. Do not display this in a GUI.
  */
-const char*
+const char *
 quirk_get_name(enum quirk q);
 
 /**
@@ -196,8 +196,7 @@ quirks_context_ref(struct quirks_context *ctx);
  * @return A new quirks struct, use quirks_unref() to release
  */
 struct quirks *
-quirks_fetch_for_device(struct quirks_context *ctx,
-			struct udev_device *device);
+quirks_fetch_for_device(struct quirks_context *ctx, struct udev_device *device);
 
 /**
  * Reduce the refcount by one. When the refcount reaches zero, the
@@ -225,9 +224,7 @@ quirks_has_quirk(struct quirks *q, enum quirk which);
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_uint32(struct quirks *q,
-		  enum quirk which,
-		  uint32_t *val);
+quirks_get_uint32(struct quirks *q, enum quirk which, uint32_t *val);
 
 /**
  * Get the value of the given quirk, as signed integer.
@@ -238,9 +235,7 @@ quirks_get_uint32(struct quirks *q,
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_int32(struct quirks *q,
-		 enum quirk which,
-		 int32_t *val);
+quirks_get_int32(struct quirks *q, enum quirk which, int32_t *val);
 
 /**
  * Get the value of the given quirk, as double.
@@ -251,9 +246,7 @@ quirks_get_int32(struct quirks *q,
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_double(struct quirks *q,
-		  enum quirk which,
-		  double *val);
+quirks_get_double(struct quirks *q, enum quirk which, double *val);
 
 /**
  * Get the value of the given quirk, as string.
@@ -267,9 +260,7 @@ quirks_get_double(struct quirks *q,
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_string(struct quirks *q,
-		  enum quirk which,
-		  char **val);
+quirks_get_string(struct quirks *q, enum quirk which, char **val);
 
 /**
  * Get the value of the given quirk, as bool.
@@ -280,9 +271,7 @@ quirks_get_string(struct quirks *q,
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_bool(struct quirks *q,
-		enum quirk which,
-		bool *val);
+quirks_get_bool(struct quirks *q, enum quirk which, bool *val);
 
 /**
  * Get the value of the given quirk, as dimension.
@@ -293,9 +282,7 @@ quirks_get_bool(struct quirks *q,
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_dimensions(struct quirks *q,
-		      enum quirk which,
-		      struct quirk_dimensions *val);
+quirks_get_dimensions(struct quirks *q, enum quirk which, struct quirk_dimensions *val);
 
 /**
  * Get the value of the given quirk, as range.
@@ -306,9 +293,7 @@ quirks_get_dimensions(struct quirks *q,
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_range(struct quirks *q,
-		 enum quirk which,
-		 struct quirk_range *val);
+quirks_get_range(struct quirks *q, enum quirk which, struct quirk_range *val);
 
 /**
  * Get the tuples of the given quirk.

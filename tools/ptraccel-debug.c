@@ -25,9 +25,9 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <getopt.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <getopt.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -86,7 +86,7 @@ print_ptraccel_movement(struct motion_filter *filter,
 		if (step > 1.0)
 			nevents = max_dx;
 		else
-			nevents = 1.0 * max_dx/step + 0.5;
+			nevents = 1.0 * max_dx / step + 0.5;
 
 		/* Print more events than needed so we see the curve
 		 * flattening out */
@@ -110,9 +110,7 @@ print_ptraccel_movement(struct motion_filter *filter,
 }
 
 static void
-print_ptraccel_sequence(struct motion_filter *filter,
-			int nevents,
-			double *deltas)
+print_ptraccel_sequence(struct motion_filter *filter, int nevents, double *deltas)
 {
 	struct device_float_coords motion;
 	struct normalized_coords accel;
@@ -145,13 +143,11 @@ print_ptraccel_sequence(struct motion_filter *filter,
 static inline double
 mmps_to_upus(double mmps, int dpi)
 {
-	return mmps * (dpi/25.4) / 1e6;
+	return mmps * (dpi / 25.4) / 1e6;
 }
 
 static void
-print_accel_func(struct motion_filter *filter,
-		 accel_profile_func_t profile,
-		 int dpi)
+print_accel_func(struct motion_filter *filter, accel_profile_func_t profile, int dpi)
 {
 	double mmps;
 
@@ -162,18 +158,24 @@ print_accel_func(struct motion_filter *filter,
 	printf("# plot \"gnuplot.data\" using 1:2 title 'accel factor'\n");
 	printf("#\n");
 	printf("# data: velocity(mm/s) factor velocity(units/us) velocity(units/ms)\n");
-	for (mmps = 0.0; mmps < 1000.0; mmps += 1) { // NOLINT: security.FloatLoopCounter
+	for (mmps = 0.0; mmps < 1000.0;
+	     mmps += 1) { // NOLINT: security.FloatLoopCounter
 		double units_per_us = mmps_to_upus(mmps, dpi);
 		double units_per_ms = units_per_us * 1000.0;
 		double result = profile(filter, NULL, units_per_us, 0 /* time */);
-		printf("%.8f\t%.4f\t%.8f\t%.8f\n", mmps, result, units_per_us, units_per_ms);
+		printf("%.8f\t%.4f\t%.8f\t%.8f\n",
+		       mmps,
+		       result,
+		       units_per_us,
+		       units_per_ms);
 	}
 }
 
 static void
 usage(void)
 {
-	printf("Usage: %s [options] [dx1] [dx2] [...] > gnuplot.data\n", program_invocation_short_name);
+	printf("Usage: %s [options] [dx1] [dx2] [...] > gnuplot.data\n",
+	       program_invocation_short_name);
 	printf("\n"
 	       "Options:\n"
 	       "--mode=<accel|motion|delta|sequence> \n"
@@ -219,8 +221,7 @@ int
 main(int argc, char **argv)
 {
 	struct motion_filter *filter;
-	double step = 0.1,
-	       max_dx = 10;
+	double step = 0.1, max_dx = 10;
 	int nevents = 0;
 	enum mode mode = ACCEL;
 	double custom_deltas[1024];
@@ -233,7 +234,7 @@ main(int argc, char **argv)
 	struct libinput_config_accel_custom_func custom_func = {
 		.step = 1.0,
 		.npoints = 2,
-		.points = {0.0, 1.0},
+		.points = { 0.0, 1.0 },
 	};
 	struct libinput_config_accel *accel_config =
 		libinput_config_accel_create(LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM);
@@ -255,21 +256,20 @@ main(int argc, char **argv)
 		int c;
 		int option_index = 0;
 		static struct option long_options[] = {
-			{"help", 0, 0, OPT_HELP },
-			{"mode", 1, 0, OPT_MODE },
-			{"nevents", 1, 0, OPT_NEVENTS },
-			{"maxdx", 1, 0, OPT_MAXDX },
-			{"step", 1, 0, OPT_STEP },
-			{"speed", 1, 0, OPT_SPEED },
-			{"dpi", 1, 0, OPT_DPI },
-			{"filter", 1, 0, OPT_FILTER },
-			{"custom-points", 1, 0, OPT_CUSTOM_POINTS },
-			{"custom-step", 1, 0, OPT_CUSTOM_STEP },
-			{0, 0, 0, 0}
+			{ "help", 0, 0, OPT_HELP },
+			{ "mode", 1, 0, OPT_MODE },
+			{ "nevents", 1, 0, OPT_NEVENTS },
+			{ "maxdx", 1, 0, OPT_MAXDX },
+			{ "step", 1, 0, OPT_STEP },
+			{ "speed", 1, 0, OPT_SPEED },
+			{ "dpi", 1, 0, OPT_DPI },
+			{ "filter", 1, 0, OPT_FILTER },
+			{ "custom-points", 1, 0, OPT_CUSTOM_POINTS },
+			{ "custom-step", 1, 0, OPT_CUSTOM_STEP },
+			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "",
-				long_options, &option_index);
+		c = getopt_long(argc, argv, "", long_options, &option_index);
 		if (c == -1)
 			break;
 
@@ -324,11 +324,9 @@ main(int argc, char **argv)
 			break;
 		case OPT_CUSTOM_POINTS: {
 			size_t npoints;
-			_autofree_ double *points = double_array_from_string(optarg,
-									     ";",
-									     &npoints);
-			if (!points ||
-			    npoints < LIBINPUT_ACCEL_NPOINTS_MIN ||
+			_autofree_ double *points =
+				double_array_from_string(optarg, ";", &npoints);
+			if (!points || npoints < LIBINPUT_ACCEL_NPOINTS_MIN ||
 			    npoints > LIBINPUT_ACCEL_NPOINTS_MAX) {
 				fprintf(stderr,
 					"Invalid --custom-points\n"
@@ -337,9 +335,7 @@ main(int argc, char **argv)
 				return 1;
 			}
 			custom_func.npoints = npoints;
-			memcpy(custom_func.points,
-			       points,
-			       sizeof(*points) * npoints);
+			memcpy(custom_func.points, points, sizeof(*points) * npoints);
 			break;
 		}
 		case OPT_CUSTOM_STEP:
@@ -353,16 +349,17 @@ main(int argc, char **argv)
 	}
 
 	if (streq(filter_type, "linear")) {
-		filter = create_pointer_accelerator_filter_linear(dpi,
-								  use_averaging);
+		filter = create_pointer_accelerator_filter_linear(dpi, use_averaging);
 		profile = pointer_accel_profile_linear;
 	} else if (streq(filter_type, "low-dpi")) {
-		filter = create_pointer_accelerator_filter_linear_low_dpi(dpi,
-									  use_averaging);
+		filter =
+			create_pointer_accelerator_filter_linear_low_dpi(dpi,
+									 use_averaging);
 		profile = pointer_accel_profile_linear_low_dpi;
 	} else if (streq(filter_type, "touchpad")) {
 		filter = create_pointer_accelerator_filter_touchpad(dpi,
-								    0, 0,
+								    0,
+								    0,
 								    use_averaging);
 		profile = touchpad_accel_profile_linear;
 	} else if (streq(filter_type, "x230")) {
@@ -396,7 +393,7 @@ main(int argc, char **argv)
 		nevents = 0;
 		memset(custom_deltas, 0, sizeof(custom_deltas));
 
-		while(fgets(buf, sizeof(buf), stdin) && nevents < 1024) {
+		while (fgets(buf, sizeof(buf), stdin) && nevents < 1024) {
 			custom_deltas[nevents++] = strtod(buf, NULL);
 		}
 	} else if (optind < argc) {

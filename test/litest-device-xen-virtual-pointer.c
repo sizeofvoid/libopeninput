@@ -23,9 +23,10 @@
 
 #include "config.h"
 
-#include "litest.h"
-#include "litest-int.h"
 #include <assert.h>
+
+#include "litest-int.h"
+#include "litest.h"
 
 static bool
 touch_down(struct litest_device *d, unsigned int slot, double x, double y)
@@ -96,11 +97,10 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_XEN_VIRTUAL_POINTER,
-	.features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE,
-	.interface = &interface,
+	    .features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE,
+	    .interface = &interface,
 
-	.name = "Xen Virtual Pointer",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "Xen Virtual Pointer",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

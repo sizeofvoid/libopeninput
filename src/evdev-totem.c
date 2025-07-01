@@ -22,6 +22,7 @@
  */
 
 #include "config.h"
+
 #include "evdev.h"
 
 enum totem_slot_state {
@@ -59,7 +60,7 @@ struct totem_dispatch {
 	enum evdev_arbitration_state arbitration_state;
 };
 
-static inline struct totem_dispatch*
+static inline struct totem_dispatch *
 totem_dispatch(struct evdev_dispatch *totem)
 {
 	evdev_verify_dispatch_type(totem, DISPATCH_TOTEM);
@@ -81,7 +82,7 @@ totem_new_tool(struct totem_dispatch *totem)
 
 	tool = zalloc(sizeof *tool);
 
-	*tool = (struct libinput_tablet_tool) {
+	*tool = (struct libinput_tablet_tool){
 		.type = LIBINPUT_TABLET_TOOL_TYPE_TOTEM,
 		.serial = 0,
 		.tool_id = 0,
@@ -146,30 +147,32 @@ totem_set_touch_device_enabled(struct totem_dispatch *totem,
 	dispatch = touch_device->dispatch;
 
 	if (enable_touch_device) {
-	    if (dispatch->interface->touch_arbitration_toggle)
-		dispatch->interface->touch_arbitration_toggle(dispatch,
-							      touch_device,
-							      state,
-							      rect,
-							      time);
+		if (dispatch->interface->touch_arbitration_toggle)
+			dispatch->interface->touch_arbitration_toggle(dispatch,
+								      touch_device,
+								      state,
+								      rect,
+								      time);
 	} else {
 		switch (totem->arbitration_state) {
 		case ARBITRATION_IGNORE_ALL:
 			abort();
 		case ARBITRATION_NOT_ACTIVE:
 			if (dispatch->interface->touch_arbitration_toggle)
-				dispatch->interface->touch_arbitration_toggle(dispatch,
-									      touch_device,
-									      state,
-									      rect,
-									      time);
+				dispatch->interface->touch_arbitration_toggle(
+					dispatch,
+					touch_device,
+					state,
+					rect,
+					time);
 			break;
 		case ARBITRATION_IGNORE_RECT:
 			if (dispatch->interface->touch_arbitration_update_rect)
-				dispatch->interface->touch_arbitration_update_rect(dispatch,
-										   touch_device,
-										   rect,
-										   time);
+				dispatch->interface->touch_arbitration_update_rect(
+					dispatch,
+					touch_device,
+					rect,
+					time);
 			break;
 		}
 	}
@@ -232,16 +235,13 @@ totem_process_abs(struct totem_dispatch *totem,
 		set_bit(slot->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_Y);
 		break;
 	case EVDEV_ABS_MT_TOUCH_MAJOR:
-		set_bit(slot->changed_axes,
-			LIBINPUT_TABLET_TOOL_AXIS_SIZE_MAJOR);
+		set_bit(slot->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_SIZE_MAJOR);
 		break;
 	case EVDEV_ABS_MT_TOUCH_MINOR:
-		set_bit(slot->changed_axes,
-			LIBINPUT_TABLET_TOOL_AXIS_SIZE_MINOR);
+		set_bit(slot->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_SIZE_MINOR);
 		break;
 	case EVDEV_ABS_MT_ORIENTATION:
-		set_bit(slot->changed_axes,
-			LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
+		set_bit(slot->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z);
 		break;
 	case EVDEV_ABS_MT_TOOL_TYPE:
 		if (e->value != MT_TOOL_DIAL) {
@@ -266,8 +266,8 @@ totem_slot_fetch_axes(struct totem_dispatch *totem,
 		      uint64_t time)
 {
 	struct evdev_device *device = totem->device;
-	const char tmp[sizeof(slot->changed_axes)] = {0};
-	struct tablet_axes axes = {0};
+	const char tmp[sizeof(slot->changed_axes)] = { 0 };
+	struct tablet_axes axes = { 0 };
 	struct device_float_coords delta;
 	bool rc = false;
 
@@ -286,8 +286,7 @@ totem_slot_fetch_axes(struct totem_dispatch *totem,
 							     ABS_MT_POSITION_Y);
 	}
 
-	if (bit_is_set(slot->changed_axes,
-		       LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z)) {
+	if (bit_is_set(slot->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_ROTATION_Z)) {
 		int angle = libevdev_get_slot_value(device->evdev,
 						    slot->index,
 						    ABS_MT_ORIENTATION);
@@ -295,10 +294,8 @@ totem_slot_fetch_axes(struct totem_dispatch *totem,
 		slot->axes.rotation = (360 - angle) % 360;
 	}
 
-	if (bit_is_set(slot->changed_axes,
-		       LIBINPUT_TABLET_TOOL_AXIS_SIZE_MAJOR) ||
-	    bit_is_set(slot->changed_axes,
-		       LIBINPUT_TABLET_TOOL_AXIS_SIZE_MINOR)) {
+	if (bit_is_set(slot->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_SIZE_MAJOR) ||
+	    bit_is_set(slot->changed_axes, LIBINPUT_TABLET_TOOL_AXIS_SIZE_MINOR)) {
 		int major, minor;
 		unsigned int rmajor, rminor;
 
@@ -310,8 +307,8 @@ totem_slot_fetch_axes(struct totem_dispatch *totem,
 						ABS_MT_TOUCH_MINOR);
 		rmajor = libevdev_get_abs_resolution(device->evdev, ABS_MT_TOUCH_MAJOR);
 		rminor = libevdev_get_abs_resolution(device->evdev, ABS_MT_TOUCH_MINOR);
-		slot->axes.size.major = (double)major/rmajor;
-		slot->axes.size.minor = (double)minor/rminor;
+		slot->axes.size.major = (double)major / rmajor;
+		slot->axes.size.minor = (double)minor / rminor;
 	}
 
 	axes.point = slot->axes.point;
@@ -326,42 +323,34 @@ totem_slot_fetch_axes(struct totem_dispatch *totem,
 out:
 	*axes_out = axes;
 	return rc;
-
 }
 
 static void
 totem_slot_mark_all_axes_changed(struct totem_dispatch *totem,
-			    struct totem_slot *slot,
-			    struct libinput_tablet_tool *tool)
+				 struct totem_slot *slot,
+				 struct libinput_tablet_tool *tool)
 {
-	static_assert(sizeof(slot->changed_axes) ==
-			      sizeof(tool->axis_caps),
+	static_assert(sizeof(slot->changed_axes) == sizeof(tool->axis_caps),
 		      "Mismatching array sizes");
 
-	memcpy(slot->changed_axes,
-	       tool->axis_caps,
-	       sizeof(slot->changed_axes));
+	memcpy(slot->changed_axes, tool->axis_caps, sizeof(slot->changed_axes));
 }
 
 static inline void
-totem_slot_reset_changed_axes(struct totem_dispatch *totem,
-			      struct totem_slot *slot)
+totem_slot_reset_changed_axes(struct totem_dispatch *totem, struct totem_slot *slot)
 {
 	memset(slot->changed_axes, 0, sizeof(slot->changed_axes));
 }
 
 static inline void
-slot_axes_initialize(struct totem_dispatch *totem,
-		     struct totem_slot *slot)
+slot_axes_initialize(struct totem_dispatch *totem, struct totem_slot *slot)
 {
 	struct evdev_device *device = totem->device;
 
-	slot->axes.point.x = libevdev_get_slot_value(device->evdev,
-						     slot->index,
-						     ABS_MT_POSITION_X);
-	slot->axes.point.y = libevdev_get_slot_value(device->evdev,
-						     slot->index,
-						     ABS_MT_POSITION_Y);
+	slot->axes.point.x =
+		libevdev_get_slot_value(device->evdev, slot->index, ABS_MT_POSITION_X);
+	slot->axes.point.y =
+		libevdev_get_slot_value(device->evdev, slot->index, ABS_MT_POSITION_Y);
 	slot->last_point.x = slot->axes.point.x;
 	slot->last_point.y = slot->axes.point.y;
 }
@@ -466,7 +455,7 @@ totem_handle_slot_state(struct totem_dispatch *totem,
 		totem->button_state_previous = totem->button_state_now;
 	}
 
-	switch(slot->state) {
+	switch (slot->state) {
 	case SLOT_STATE_BEGIN:
 	case SLOT_STATE_UPDATE:
 		break;
@@ -487,8 +476,8 @@ totem_handle_slot_state(struct totem_dispatch *totem,
 					LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT,
 					slot->changed_axes,
 					&axes,
-				        device->abs.absinfo_x,
-				        device->abs.absinfo_y);
+					device->abs.absinfo_x,
+					device->abs.absinfo_y);
 
 		slot->state = SLOT_STATE_NONE;
 		break;
@@ -504,17 +493,14 @@ totem_handle_slot_state(struct totem_dispatch *totem,
 }
 
 static enum totem_slot_state
-totem_handle_state(struct totem_dispatch *totem,
-		   uint64_t time)
+totem_handle_state(struct totem_dispatch *totem, uint64_t time)
 {
 	enum totem_slot_state global_state = SLOT_STATE_NONE;
 
 	for (size_t i = 0; i < totem->nslots; i++) {
 		enum totem_slot_state s;
 
-		s = totem_handle_slot_state(totem,
-					    &totem->slots[i],
-					    time);
+		s = totem_handle_slot_state(totem, &totem->slots[i], time);
 
 		/* If one slot is active, the totem is active */
 		if (s != SLOT_STATE_NONE)
@@ -535,7 +521,7 @@ totem_interface_process(struct evdev_dispatch *dispatch,
 	bool enable_touch;
 
 	uint16_t type = evdev_event_type(e);
-	switch(type) {
+	switch (type) {
 	case EV_ABS:
 		totem_process_abs(totem, device, e, time);
 		break;
@@ -548,9 +534,7 @@ totem_interface_process(struct evdev_dispatch *dispatch,
 	case EV_SYN:
 		global_state = totem_handle_state(totem, time);
 		enable_touch = (global_state == SLOT_STATE_NONE);
-		totem_set_touch_device_enabled(totem,
-					       enable_touch,
-					       time);
+		totem_set_touch_device_enabled(totem, enable_touch, time);
 		break;
 	default:
 		evdev_log_error(device,
@@ -562,8 +546,7 @@ totem_interface_process(struct evdev_dispatch *dispatch,
 }
 
 static void
-totem_interface_suspend(struct evdev_dispatch *dispatch,
-			struct evdev_device *device)
+totem_interface_suspend(struct evdev_dispatch *dispatch, struct evdev_device *device)
 {
 	struct totem_dispatch *totem = totem_dispatch(dispatch);
 	uint64_t now = libinput_now(evdev_libinput_context(device));
@@ -616,8 +599,8 @@ totem_interface_suspend(struct evdev_dispatch *dispatch,
 					LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT,
 					slot->changed_axes,
 					&axes,
-				        device->abs.absinfo_x,
-				        device->abs.absinfo_y);
+					device->abs.absinfo_x,
+					device->abs.absinfo_y);
 	}
 	totem_set_touch_device_enabled(totem, true, now);
 }
@@ -639,10 +622,10 @@ totem_interface_device_added(struct evdev_device *device,
 	struct libinput_device_group *g1, *g2;
 
 	if ((evdev_device_get_id_vendor(added_device) !=
-	    evdev_device_get_id_vendor(device)) ||
+	     evdev_device_get_id_vendor(device)) ||
 	    (evdev_device_get_id_product(added_device) !=
 	     evdev_device_get_id_product(device)))
-	    return;
+		return;
 
 	/* virtual devices don't have device groups, so check for that
 	   libinput replay */
@@ -652,14 +635,17 @@ totem_interface_device_added(struct evdev_device *device,
 		return;
 
 	if (totem->touch_device != NULL) {
-		evdev_log_bug_libinput(device,
-				       "already has a paired touch device, ignoring (%s)\n",
-				       added_device->devname);
+		evdev_log_bug_libinput(
+			device,
+			"already has a paired touch device, ignoring (%s)\n",
+			added_device->devname);
 		return;
 	}
 
 	totem->touch_device = added_device;
-	evdev_log_info(device, "%s: is the totem touch device\n", added_device->devname);
+	evdev_log_info(device,
+		       "%s: is the totem touch device\n",
+		       added_device->devname);
 }
 
 static void
@@ -671,7 +657,8 @@ totem_interface_device_removed(struct evdev_device *device,
 	if (totem->touch_device != removed_device)
 		return;
 
-	totem_set_touch_device_enabled(totem, true,
+	totem_set_touch_device_enabled(totem,
+				       true,
 				       libinput_now(evdev_libinput_context(device)));
 	totem->touch_device = NULL;
 }
@@ -689,9 +676,8 @@ totem_interface_initial_proximity(struct evdev_device *device,
 		struct tablet_axes axes;
 		int tracking_id;
 
-		tracking_id = libevdev_get_slot_value(device->evdev,
-						      i,
-						      ABS_MT_TRACKING_ID);
+		tracking_id =
+			libevdev_get_slot_value(device->evdev, i, ABS_MT_TRACKING_ID);
 		if (tracking_id == -1)
 			continue;
 
@@ -705,8 +691,8 @@ totem_interface_initial_proximity(struct evdev_device *device,
 					LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN,
 					slot->changed_axes,
 					&axes,
-				        device->abs.absinfo_x,
-				        device->abs.absinfo_y);
+					device->abs.absinfo_x,
+					device->abs.absinfo_y);
 		totem_slot_reset_changed_axes(totem, slot);
 		tablet_notify_tip(&device->base,
 				  now,
@@ -731,7 +717,7 @@ static struct evdev_dispatch_interface totem_interface = {
 	.device_added = totem_interface_device_added,
 	.device_removed = totem_interface_device_removed,
 	.device_suspended = totem_interface_device_removed, /* treat as remove */
-	.device_resumed = totem_interface_device_added, /* treat as add */
+	.device_resumed = totem_interface_device_added,     /* treat as add */
 	.post_added = totem_interface_initial_proximity,
 	.touch_arbitration_toggle = NULL,
 	.touch_arbitration_update_rect = NULL,
@@ -746,10 +732,11 @@ totem_reject_device(struct evdev_device *device)
 	double w, h;
 
 	has_xy = libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_X) &&
-	         libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_Y);
+		 libevdev_has_event_code(evdev, EV_ABS, ABS_MT_POSITION_Y);
 	has_slot = libevdev_has_event_code(evdev, EV_ABS, ABS_MT_SLOT);
-	has_tool_dial = libevdev_has_event_code(evdev, EV_ABS, ABS_MT_TOOL_TYPE) &&
-			libevdev_get_abs_maximum(evdev, ABS_MT_TOOL_TYPE) >= MT_TOOL_DIAL;
+	has_tool_dial =
+		libevdev_has_event_code(evdev, EV_ABS, ABS_MT_TOOL_TYPE) &&
+		libevdev_get_abs_maximum(evdev, ABS_MT_TOOL_TYPE) >= MT_TOOL_DIAL;
 	has_size = evdev_device_get_size(device, &w, &h) == 0;
 	has_touch_size =
 		libevdev_get_abs_resolution(device->evdev, ABS_MT_TOUCH_MAJOR) > 0 ||
@@ -777,7 +764,7 @@ totem_accel_config_get_profiles(struct libinput_device *libinput_device)
 
 static enum libinput_config_status
 totem_accel_config_set_profile(struct libinput_device *libinput_device,
-			    enum libinput_config_accel_profile profile)
+			       enum libinput_config_accel_profile profile)
 {
 	return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
 }
@@ -804,8 +791,7 @@ totem_init_accel(struct totem_dispatch *totem, struct evdev_device *device)
 	y = device->abs.absinfo_y;
 
 	/* same filter as the tablet */
-	filter = create_pointer_accelerator_filter_tablet(x->resolution,
-							  y->resolution);
+	filter = create_pointer_accelerator_filter_tablet(x->resolution, y->resolution);
 	if (!filter)
 		return -1;
 
@@ -816,7 +802,8 @@ totem_init_accel(struct totem_dispatch *totem, struct evdev_device *device)
 	device->pointer.config.get_profiles = totem_accel_config_get_profiles;
 	device->pointer.config.set_profile = totem_accel_config_set_profile;
 	device->pointer.config.get_profile = totem_accel_config_get_profile;
-	device->pointer.config.get_default_profile = totem_accel_config_get_default_profile;
+	device->pointer.config.get_default_profile =
+		totem_accel_config_get_default_profile;
 
 	return 0;
 }

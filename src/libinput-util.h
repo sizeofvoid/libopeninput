@@ -31,19 +31,19 @@
 #warning "libinput relies on assert(). #defining NDEBUG is not recommended"
 #endif
 
-#include "libinput.h"
-
 #include "util-bits.h"
-#include "util-macros.h"
 #include "util-list.h"
+#include "util-macros.h"
 #include "util-matrix.h"
-#include "util-multivalue.h"
-#include "util-strings.h"
-#include "util-ratelimit.h"
-#include "util-range.h"
-#include "util-prop-parsers.h"
-#include "util-time.h"
 #include "util-mem.h"
+#include "util-multivalue.h"
+#include "util-prop-parsers.h"
+#include "util-range.h"
+#include "util-ratelimit.h"
+#include "util-strings.h"
+#include "util-time.h"
+
+#include "libinput.h"
 
 #define VENDOR_ID_APPLE 0x5ac
 #define VENDOR_ID_CHICONY 0x4f2

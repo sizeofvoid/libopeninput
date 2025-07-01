@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event proximity_in_events[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
@@ -52,7 +52,8 @@ static struct input_event motion_events[] = {
 static bool
 proximity_in(struct litest_device *d,
 	     unsigned int tool_type,
-	     double *x, double *y,
+	     double *x,
+	     double *y,
 	     struct axis_replacement *axes)
 {
 	/* nothing special needed for the pen tool, so let litest handle
@@ -139,11 +140,10 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_ELAN_TABLET,
-	.features = LITEST_TABLET,
-	.interface = &interface,
+	    .features = LITEST_TABLET,
+	    .interface = &interface,
 
-	.name = "ELAN2514:00 04F3:23B9",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "ELAN2514:00 04F3:23B9",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

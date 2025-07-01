@@ -27,8 +27,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include "util-macros.h"
 #include "util-strings.h"
@@ -84,12 +84,13 @@ backtrace_print(FILE *fp,
 
 	status = WEXITSTATUS(status);
 	if (status != 0) {
-		fprintf(fp, "ERROR: gstack failed, no backtrace available: %s\n",
-			   strerror(status));
+		fprintf(fp,
+			"ERROR: gstack failed, no backtrace available: %s\n",
+			strerror(status));
 		goto out;
 	}
 
-	char buf[2048] = {0};
+	char buf[2048] = { 0 };
 	fprintf(fp, "\nBacktrace:\n");
 	read(pipefd[0], buf, sizeof(buf) - 1);
 	if (!use_colors || (!highlight_after && !highlight_before)) {
@@ -100,7 +101,8 @@ backtrace_print(FILE *fp,
 		char **line = lines;
 		bool highlight = highlight_after == NULL;
 		while (line && *line) {
-			if (highlight && highlight_before && strstr(*line, highlight_before))
+			if (highlight && highlight_before &&
+			    strstr(*line, highlight_before))
 				highlight = false;
 
 			const char *hlcolor = highlight ? ANSI_BRIGHT_CYAN : "";
@@ -109,11 +111,13 @@ backtrace_print(FILE *fp,
 			    strstr(*line, highlight_extra))
 				hlcolor = ANSI_BRIGHT_MAGENTA;
 
-			fprintf(fp, "%s%s%s\n",
+			fprintf(fp,
+				"%s%s%s\n",
 				hlcolor,
 				*line,
 				highlight ? ANSI_NORMAL : "");
-			if (!highlight && highlight_after && strstr(*line, highlight_after))
+			if (!highlight && highlight_after &&
+			    strstr(*line, highlight_after))
 				highlight = true;
 			line++;
 		}

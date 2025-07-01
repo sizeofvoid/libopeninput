@@ -24,24 +24,24 @@
 #include "config.h"
 
 #include <errno.h>
-#include <inttypes.h>
 #include <getopt.h>
+#include <inttypes.h>
+#include <libevdev/libevdev.h>
+#include <libinput.h>
 #include <poll.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include "linux/input.h"
 
-#include <libinput.h>
-#include <libevdev/libevdev.h>
+#include "util-libinput.h"
+#include "util-macros.h"
+#include "util-strings.h"
 
 #include "libinput-version.h"
-#include "util-strings.h"
-#include "util-macros.h"
-#include "util-libinput.h"
+#include "linux/input.h"
 #include "shared.h"
 
 static struct tools_options options;
@@ -85,7 +85,8 @@ handle_and_print_events(struct libinput *li, const struct libinput_print_options
 		case LIBINPUT_EVENT_TABLET_TOOL_AXIS:
 		case LIBINPUT_EVENT_GESTURE_PINCH_UPDATE:
 		case LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE:
-			is_repeat = last_event_type == type && last_device == device && log_serial == last_log_serial;
+			is_repeat = last_event_type == type && last_device == device &&
+				    log_serial == last_log_serial;
 			break;
 		default:
 			break;
@@ -100,7 +101,8 @@ handle_and_print_events(struct libinput *li, const struct libinput_print_options
 		}
 
 		if (type != LIBINPUT_EVENT_TOUCH_FRAME || !compress_motion_events) {
-			_autofree_ char *event_str = libinput_event_to_str(ev, event_repeat_count + 1, opts);
+			_autofree_ char *event_str =
+				libinput_event_to_str(ev, event_repeat_count + 1, opts);
 
 			switch (type) {
 			case LIBINPUT_EVENT_DEVICE_ADDED:
@@ -160,8 +162,9 @@ mainloop(struct libinput *li)
 
 	/* Handle already-pending device added events */
 	if (handle_and_print_events(li, &opts))
-		fprintf(stderr, "Expected device added events on startup but got none. "
-				"Maybe you don't have the right permissions?\n");
+		fprintf(stderr,
+			"Expected device added events on startup but got none. "
+			"Maybe you don't have the right permissions?\n");
 
 	/* time offset starts with our first received event */
 	if (poll(&fds, 1, -1) > -1) {
@@ -178,7 +181,8 @@ mainloop(struct libinput *li)
 }
 
 static void
-usage(struct option *opts) {
+usage(struct option *opts)
+{
 	printf("Usage: libinput debug-events [options] [--udev <seat>|--device /dev/input/event0 ...]\n");
 
 	if (opts)
@@ -190,7 +194,7 @@ main(int argc, char **argv)
 {
 	struct libinput *li;
 	enum tools_backend backend = BACKEND_NONE;
-	const char *seat_or_devices[60] = {NULL};
+	const char *seat_or_devices[60] = { NULL };
 	size_t ndevices = 0;
 	bool grab = false;
 	bool verbose = false;
@@ -231,7 +235,7 @@ main(int argc, char **argv)
 		if (c == -1)
 			break;
 
-		switch(c) {
+		switch (c) {
 		case '?':
 			exit(EXIT_INVALID_USAGE);
 			break;
@@ -250,7 +254,6 @@ main(int argc, char **argv)
 			    ndevices >= ARRAY_LENGTH(seat_or_devices)) {
 				usage(NULL);
 				return EXIT_INVALID_USAGE;
-
 			}
 			backend = BACKEND_DEVICE;
 			seat_or_devices[ndevices++] = optarg;
@@ -260,7 +263,6 @@ main(int argc, char **argv)
 			    ndevices >= ARRAY_LENGTH(seat_or_devices)) {
 				usage(NULL);
 				return EXIT_INVALID_USAGE;
-
 			}
 			backend = BACKEND_UDEV;
 			seat_or_devices[0] = optarg;
@@ -297,7 +299,7 @@ main(int argc, char **argv)
 				return EXIT_INVALID_USAGE;
 			}
 			seat_or_devices[ndevices++] = argv[optind];
-		} while(++optind < argc);
+		} while (++optind < argc);
 	} else if (backend == BACKEND_NONE) {
 		backend = BACKEND_UDEV;
 		seat_or_devices[0] = "seat0";
@@ -308,8 +310,9 @@ main(int argc, char **argv)
 	act.sa_flags = SA_SIGINFO;
 
 	if (sigaction(SIGINT, &act, NULL) == -1) {
-		fprintf(stderr, "Failed to set up signal handling (%s)\n",
-				strerror(errno));
+		fprintf(stderr,
+			"Failed to set up signal handling (%s)\n",
+			strerror(errno));
 		return EXIT_FAILURE;
 	}
 

@@ -42,7 +42,7 @@
  * as-is.
  */
 
-static inline const char*
+static inline const char *
 middlebutton_state_to_str(enum evdev_middlebutton_state state)
 {
 	switch (state) {
@@ -61,7 +61,7 @@ middlebutton_state_to_str(enum evdev_middlebutton_state state)
 	return NULL;
 }
 
-static inline const char*
+static inline const char *
 middlebutton_event_to_str(enum evdev_middlebutton_event event)
 {
 	switch (event) {
@@ -90,8 +90,7 @@ middlebutton_state_error(struct evdev_device *device,
 static void
 middlebutton_timer_set(struct evdev_device *device, uint64_t now)
 {
-	libinput_timer_set(&device->middlebutton.timer,
-			   now + MIDDLEBUTTON_TIMEOUT);
+	libinput_timer_set(&device->middlebutton.timer, now + MIDDLEBUTTON_TIMEOUT);
 }
 
 static void
@@ -132,10 +131,7 @@ middlebutton_post_event(struct evdev_device *device,
 			evdev_usage_t button,
 			enum libinput_button_state state)
 {
-	evdev_pointer_notify_button(device,
-				    now,
-				    button,
-				    state);
+	evdev_pointer_notify_button(device, now, button, state);
 }
 
 static int
@@ -174,18 +170,18 @@ evdev_middlebutton_ldown_handle_event(struct evdev_device *device,
 		middlebutton_state_error(device, event);
 		break;
 	case MIDDLEBUTTON_EVENT_R_DOWN:
-		middlebutton_post_event(device, time,
+		middlebutton_post_event(device,
+					time,
 					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_set_state(device, MIDDLEBUTTON_MIDDLE, time);
 		break;
 	case MIDDLEBUTTON_EVENT_OTHER:
-		middlebutton_post_event(device, time,
+		middlebutton_post_event(device,
+					time,
 					evdev_usage_from(EVDEV_BTN_LEFT),
 					LIBINPUT_BUTTON_STATE_PRESSED);
-		middlebutton_set_state(device,
-				       MIDDLEBUTTON_PASSTHROUGH,
-				       time);
+		middlebutton_set_state(device, MIDDLEBUTTON_PASSTHROUGH, time);
 		return 0;
 	case MIDDLEBUTTON_EVENT_R_UP:
 		middlebutton_state_error(device, event);
@@ -195,7 +191,8 @@ evdev_middlebutton_ldown_handle_event(struct evdev_device *device,
 					device->middlebutton.first_event_time,
 					evdev_usage_from(EVDEV_BTN_LEFT),
 					LIBINPUT_BUTTON_STATE_PRESSED);
-		middlebutton_post_event(device, time,
+		middlebutton_post_event(device,
+					time,
 					evdev_usage_from(EVDEV_BTN_LEFT),
 					LIBINPUT_BUTTON_STATE_RELEASED);
 		middlebutton_set_state(device, MIDDLEBUTTON_IDLE, time);
@@ -205,9 +202,7 @@ evdev_middlebutton_ldown_handle_event(struct evdev_device *device,
 					device->middlebutton.first_event_time,
 					evdev_usage_from(EVDEV_BTN_LEFT),
 					LIBINPUT_BUTTON_STATE_PRESSED);
-		middlebutton_set_state(device,
-				       MIDDLEBUTTON_PASSTHROUGH,
-				       time);
+		middlebutton_set_state(device, MIDDLEBUTTON_PASSTHROUGH, time);
 		break;
 	case MIDDLEBUTTON_EVENT_ALL_UP:
 		middlebutton_state_error(device, event);
@@ -224,7 +219,8 @@ evdev_middlebutton_rdown_handle_event(struct evdev_device *device,
 {
 	switch (event) {
 	case MIDDLEBUTTON_EVENT_L_DOWN:
-		middlebutton_post_event(device, time,
+		middlebutton_post_event(device,
+					time,
 					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_set_state(device, MIDDLEBUTTON_MIDDLE, time);
@@ -237,16 +233,15 @@ evdev_middlebutton_rdown_handle_event(struct evdev_device *device,
 					device->middlebutton.first_event_time,
 					evdev_usage_from(EVDEV_BTN_RIGHT),
 					LIBINPUT_BUTTON_STATE_PRESSED);
-		middlebutton_set_state(device,
-				       MIDDLEBUTTON_PASSTHROUGH,
-				       time);
+		middlebutton_set_state(device, MIDDLEBUTTON_PASSTHROUGH, time);
 		return 0;
 	case MIDDLEBUTTON_EVENT_R_UP:
 		middlebutton_post_event(device,
 					device->middlebutton.first_event_time,
 					evdev_usage_from(EVDEV_BTN_RIGHT),
 					LIBINPUT_BUTTON_STATE_PRESSED);
-		middlebutton_post_event(device, time,
+		middlebutton_post_event(device,
+					time,
 					evdev_usage_from(EVDEV_BTN_RIGHT),
 					LIBINPUT_BUTTON_STATE_RELEASED);
 		middlebutton_set_state(device, MIDDLEBUTTON_IDLE, time);
@@ -259,9 +254,7 @@ evdev_middlebutton_rdown_handle_event(struct evdev_device *device,
 					device->middlebutton.first_event_time,
 					evdev_usage_from(EVDEV_BTN_RIGHT),
 					LIBINPUT_BUTTON_STATE_PRESSED);
-		middlebutton_set_state(device,
-				       MIDDLEBUTTON_PASSTHROUGH,
-				       time);
+		middlebutton_set_state(device, MIDDLEBUTTON_PASSTHROUGH, time);
 		break;
 	case MIDDLEBUTTON_EVENT_ALL_UP:
 		middlebutton_state_error(device, event);
@@ -282,26 +275,25 @@ evdev_middlebutton_middle_handle_event(struct evdev_device *device,
 		middlebutton_state_error(device, event);
 		break;
 	case MIDDLEBUTTON_EVENT_OTHER:
-		middlebutton_post_event(device, time,
+		middlebutton_post_event(device,
+					time,
 					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_RELEASED);
 		middlebutton_set_state(device, MIDDLEBUTTON_IGNORE_LR, time);
 		return 0;
 	case MIDDLEBUTTON_EVENT_R_UP:
-		middlebutton_post_event(device, time,
+		middlebutton_post_event(device,
+					time,
 					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_RELEASED);
-		middlebutton_set_state(device,
-				       MIDDLEBUTTON_LEFT_UP_PENDING,
-				       time);
+		middlebutton_set_state(device, MIDDLEBUTTON_LEFT_UP_PENDING, time);
 		break;
 	case MIDDLEBUTTON_EVENT_L_UP:
-		middlebutton_post_event(device, time,
+		middlebutton_post_event(device,
+					time,
 					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_RELEASED);
-		middlebutton_set_state(device,
-				       MIDDLEBUTTON_RIGHT_UP_PENDING,
-				       time);
+		middlebutton_set_state(device, MIDDLEBUTTON_RIGHT_UP_PENDING, time);
 		break;
 	case MIDDLEBUTTON_EVENT_TIMEOUT:
 		middlebutton_state_error(device, event);
@@ -324,7 +316,8 @@ evdev_middlebutton_lup_pending_handle_event(struct evdev_device *device,
 		middlebutton_state_error(device, event);
 		break;
 	case MIDDLEBUTTON_EVENT_R_DOWN:
-		middlebutton_post_event(device, time,
+		middlebutton_post_event(device,
+					time,
 					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_set_state(device, MIDDLEBUTTON_MIDDLE, time);
@@ -356,7 +349,8 @@ evdev_middlebutton_rup_pending_handle_event(struct evdev_device *device,
 {
 	switch (event) {
 	case MIDDLEBUTTON_EVENT_L_DOWN:
-		middlebutton_post_event(device, time,
+		middlebutton_post_event(device,
+					time,
 					evdev_usage_from(EVDEV_BTN_MIDDLE),
 					LIBINPUT_BUTTON_STATE_PRESSED);
 		middlebutton_set_state(device, MIDDLEBUTTON_MIDDLE, time);
@@ -451,9 +445,7 @@ evdev_middlebutton_ignore_l_handle_event(struct evdev_device *device,
 	case MIDDLEBUTTON_EVENT_R_UP:
 		return 0;
 	case MIDDLEBUTTON_EVENT_L_UP:
-		middlebutton_set_state(device,
-				       MIDDLEBUTTON_PASSTHROUGH,
-				       time);
+		middlebutton_set_state(device, MIDDLEBUTTON_PASSTHROUGH, time);
 		break;
 	case MIDDLEBUTTON_EVENT_TIMEOUT:
 	case MIDDLEBUTTON_EVENT_ALL_UP:
@@ -477,9 +469,7 @@ evdev_middlebutton_ignore_r_handle_event(struct evdev_device *device,
 	case MIDDLEBUTTON_EVENT_OTHER:
 		return 0;
 	case MIDDLEBUTTON_EVENT_R_UP:
-		middlebutton_set_state(device,
-				       MIDDLEBUTTON_PASSTHROUGH,
-				       time);
+		middlebutton_set_state(device, MIDDLEBUTTON_PASSTHROUGH, time);
 		break;
 	case MIDDLEBUTTON_EVENT_L_UP:
 		return 0;
@@ -515,34 +505,22 @@ evdev_middlebutton_handle_event(struct evdev_device *device,
 		rc = evdev_middlebutton_middle_handle_event(device, time, event);
 		break;
 	case MIDDLEBUTTON_LEFT_UP_PENDING:
-		rc = evdev_middlebutton_lup_pending_handle_event(device,
-								 time,
-								 event);
+		rc = evdev_middlebutton_lup_pending_handle_event(device, time, event);
 		break;
 	case MIDDLEBUTTON_RIGHT_UP_PENDING:
-		rc = evdev_middlebutton_rup_pending_handle_event(device,
-								 time,
-								 event);
+		rc = evdev_middlebutton_rup_pending_handle_event(device, time, event);
 		break;
 	case MIDDLEBUTTON_PASSTHROUGH:
-		rc = evdev_middlebutton_passthrough_handle_event(device,
-								 time,
-								 event);
+		rc = evdev_middlebutton_passthrough_handle_event(device, time, event);
 		break;
 	case MIDDLEBUTTON_IGNORE_LR:
-		rc = evdev_middlebutton_ignore_lr_handle_event(device,
-							       time,
-							       event);
+		rc = evdev_middlebutton_ignore_lr_handle_event(device, time, event);
 		break;
 	case MIDDLEBUTTON_IGNORE_L:
-		rc = evdev_middlebutton_ignore_l_handle_event(device,
-							      time,
-							      event);
+		rc = evdev_middlebutton_ignore_l_handle_event(device, time, event);
 		break;
 	case MIDDLEBUTTON_IGNORE_R:
-		rc = evdev_middlebutton_ignore_r_handle_event(device,
-							      time,
-							      event);
+		rc = evdev_middlebutton_ignore_r_handle_event(device, time, event);
 		break;
 	default:
 		evdev_log_bug_libinput(device,
@@ -564,8 +542,7 @@ evdev_middlebutton_handle_event(struct evdev_device *device,
 static inline void
 evdev_middlebutton_apply_config(struct evdev_device *device)
 {
-	if (device->middlebutton.want_enabled ==
-	    device->middlebutton.enabled)
+	if (device->middlebutton.want_enabled == device->middlebutton.enabled)
 		return;
 
 	if (device->middlebutton.button_mask != 0)
@@ -679,9 +656,9 @@ evdev_middlebutton_get(struct libinput_device *device)
 {
 	struct evdev_device *evdev = evdev_device(device);
 
-	return evdev->middlebutton.want_enabled ?
-			LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED :
-			LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
+	return evdev->middlebutton.want_enabled
+		       ? LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED
+		       : LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
 }
 
 enum libinput_config_middle_emulation_state
@@ -689,15 +666,13 @@ evdev_middlebutton_get_default(struct libinput_device *device)
 {
 	struct evdev_device *evdev = evdev_device(device);
 
-	return evdev->middlebutton.enabled_default ?
-			LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED :
-			LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
+	return evdev->middlebutton.enabled_default
+		       ? LIBINPUT_CONFIG_MIDDLE_EMULATION_ENABLED
+		       : LIBINPUT_CONFIG_MIDDLE_EMULATION_DISABLED;
 }
 
 void
-evdev_init_middlebutton(struct evdev_device *device,
-			bool enable,
-			bool want_config)
+evdev_init_middlebutton(struct evdev_device *device, bool enable, bool want_config)
 {
 	char timer_name[64];
 

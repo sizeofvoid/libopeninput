@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
 	{ .type = -1, .code = -1 },
@@ -39,20 +39,20 @@ static struct input_event strip_start[] = {
 	{ .type = EV_ABS, .code = ABS_MISC, .value = 15 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
-} ;
+};
 
 static struct input_event strip_change[] = {
 	{ .type = EV_ABS, .code = ABS_RX, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
-} ;
+};
 
 static struct input_event strip_end[] = {
 	{ .type = EV_ABS, .code = ABS_RX, .value = 0 },
 	{ .type = EV_ABS, .code = ABS_MISC, .value = 0 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
-} ;
+};
 
 static struct litest_device_interface interface = {
 	.touch_down_events = down,
@@ -90,15 +90,14 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_WACOM_INTUOS3_PAD,
-	.features = LITEST_TABLET_PAD | LITEST_STRIP,
-	.interface = &interface,
+	    .features = LITEST_TABLET_PAD | LITEST_STRIP,
+	    .interface = &interface,
 
-	.name = "Wacom Intuos3 4x6 Pad",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.udev_properties = {
-		{ "ID_INPUT_TABLET_PAD", "1" },
-		{ NULL },
-	},
-)
+	    .name = "Wacom Intuos3 4x6 Pad",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .udev_properties = {
+		    { "ID_INPUT_TABLET_PAD", "1" },
+		    { NULL },
+	    }, )

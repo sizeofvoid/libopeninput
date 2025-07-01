@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 struct priv {
 	unsigned int tool;
@@ -75,10 +75,12 @@ get_axis_default(struct litest_device *d, unsigned int evcode, int32_t *value)
 	return 1;
 }
 
-static bool prox_in(struct litest_device *d,
-		  unsigned int tool_type,
-		  double *x, double *y,
-		  struct axis_replacement *axes)
+static bool
+prox_in(struct litest_device *d,
+	unsigned int tool_type,
+	double *x,
+	double *y,
+	struct axis_replacement *axes)
 {
 	struct priv *priv = d->private;
 	priv->tool = tool_type;
@@ -86,7 +88,8 @@ static bool prox_in(struct litest_device *d,
 	return false;
 }
 
-static bool prox_out(struct litest_device *d, unsigned int tool_type)
+static bool
+prox_out(struct litest_device *d, unsigned int tool_type)
 {
 	struct priv *priv = d->private;
 	priv->tool = 0;
@@ -95,18 +98,14 @@ static bool prox_out(struct litest_device *d, unsigned int tool_type)
 }
 
 static bool
-tip_down(struct litest_device *d,
-	 double *x, double *y,
-	 struct axis_replacement *axes)
+tip_down(struct litest_device *d, double *x, double *y, struct axis_replacement *axes)
 {
 	litest_event(d, EV_KEY, BTN_TOOL_PEN, 1);
 	return false; /* use the default behavior otherwise */
 }
 
 static bool
-tip_up(struct litest_device *d,
-	 double* x, double *y,
-	 struct axis_replacement *axes)
+tip_up(struct litest_device *d, double *x, double *y, struct axis_replacement *axes)
 {
 	struct priv *priv = d->private;
 	if (priv->tool != BTN_TOOL_PEN)
@@ -158,12 +157,11 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_WACOM_ISDV4_524C_PEN,
-	.features = LITEST_TABLET|LITEST_HOVER,
-	.interface = &interface,
+	    .features = LITEST_TABLET | LITEST_HOVER,
+	    .interface = &interface,
 
-	.name = "Wacom Co.,Ltd. Pen and multitouch sensor Stylus",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.create = create,
-)
+	    .name = "Wacom Co.,Ltd. Pen and multitouch sensor Stylus",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .create = create, )

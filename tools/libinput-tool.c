@@ -24,9 +24,8 @@
 #include "config.h"
 
 #include <getopt.h>
-#include <stdio.h>
-
 #include <libinput-version.h>
+#include <stdio.h>
 
 #include "shared.h"
 
@@ -78,16 +77,16 @@ main(int argc, char **argv)
 	while (1) {
 		int c;
 		static struct option opts[] = {
-			{ "help",	no_argument,	0, GOPT_HELP },
-			{ "version",	no_argument,	0, GOPT_VERSION },
-			{ 0, 0, 0, 0}
+			{ "help", no_argument, 0, GOPT_HELP },
+			{ "version", no_argument, 0, GOPT_VERSION },
+			{ 0, 0, 0, 0 }
 		};
 
 		c = getopt_long(argc, argv, "+h", opts, &option_index);
 		if (c == -1)
 			break;
 
-		switch(c) {
+		switch (c) {
 		case 'h':
 		case GOPT_HELP:
 			usage();

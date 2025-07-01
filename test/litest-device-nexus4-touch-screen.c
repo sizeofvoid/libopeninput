@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
@@ -81,11 +81,10 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_NEXUS4_TOUCH_SCREEN,
-	.features = LITEST_TOUCH|LITEST_ELLIPSE,
-	.interface = &interface,
+	    .features = LITEST_TOUCH | LITEST_ELLIPSE,
+	    .interface = &interface,
 
-	.name = "Nexus 4 touch screen",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "Nexus 4 touch screen",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

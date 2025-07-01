@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event proximity_in[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
@@ -83,7 +83,8 @@ static struct input_absinfo absinfo[] = {
 
 static struct input_id input_id = {
 	.bustype = 0x3,
-	/* Note: this VID/PID is shared with multiple devices, see the libwacom database for a list */
+	/* Note: this VID/PID is shared with multiple devices, see the libwacom database
+	   for a list */
 	.vendor = 0x256c,
 	.product = 0x6e,
 };
@@ -99,11 +100,10 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_UCLOGIC_TABLET,
-	.features = LITEST_TABLET | LITEST_HOVER | LITEST_FORCED_PROXOUT,
-	.interface = &interface,
+	    .features = LITEST_TABLET | LITEST_HOVER | LITEST_FORCED_PROXOUT,
+	    .interface = &interface,
 
-	.name = "uclogic PenTablet Pen",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "uclogic PenTablet Pen",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

@@ -69,23 +69,28 @@ struct list {
  * head. This function *must not* be called for a node to be added to a
  * list.
  */
-void list_init(struct list *list);
+void
+list_init(struct list *list);
 
 /**
  * Insert an element at the front of the list
  */
-void list_insert(struct list *list, struct list *elm);
+void
+list_insert(struct list *list, struct list *elm);
 /**
  * Append an element to the  back of the list
  */
-void list_append(struct list *list, struct list *elm);
+void
+list_append(struct list *list, struct list *elm);
 
 /**
  * Chain other onto list, resetting other to be the empty list.
  */
-void list_chain(struct list *list, struct list *other);
+void
+list_chain(struct list *list, struct list *other);
 
-size_t list_length(const struct list *list);
+size_t
+list_length(const struct list *list);
 
 /**
  * Takes the given pointer ands inserts it to the list with the pointer's field.
@@ -122,11 +127,13 @@ size_t list_length(const struct list *list);
  * whether the list node has already been removed.
  *
  */
-void list_remove(struct list *elm);
+void
+list_remove(struct list *elm);
 /**
  * Returns true if the given list head is an empty list.
  */
-bool list_empty(const struct list *list);
+bool
+list_empty(const struct list *list);
 
 /**
  * Return the 'type' parent container struct of 'ptr' of which

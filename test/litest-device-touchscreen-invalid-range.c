@@ -24,8 +24,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
@@ -78,11 +78,10 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_TOUCHSCREEN_INVALID_RANGE,
-	.features = LITEST_TOUCH,
-	.interface = &interface,
+	    .features = LITEST_TOUCH,
+	    .interface = &interface,
 
-	.name = "touchscreen-invalid-range",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "touchscreen-invalid-range",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

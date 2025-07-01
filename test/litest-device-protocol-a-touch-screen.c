@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 #define PROTOCOL_A_MAX_SLOTS 10
 
@@ -164,7 +164,6 @@ protocolA_up(struct litest_device *d, unsigned int slot)
 		litest_event(d, EV_ABS, ABS_MT_POSITION_X, s->x);
 		litest_event(d, EV_ABS, ABS_MT_POSITION_Y, s->y);
 		litest_event(d, EV_SYN, SYN_MT_REPORT, 0);
-
 	}
 
 	if (first)
@@ -206,13 +205,12 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_PROTOCOL_A_SCREEN,
-	.features = LITEST_PROTOCOL_A|LITEST_TOUCH,
-	.create = protocolA_create,
+	    .features = LITEST_PROTOCOL_A | LITEST_TOUCH,
+	    .create = protocolA_create,
 
-	.interface = &interface,
+	    .interface = &interface,
 
-	.name = "Protocol A touch screen",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "Protocol A touch screen",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

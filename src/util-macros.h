@@ -106,8 +106,8 @@
  * will produce:
  *	int foo_123;
  */
-#define CONCAT2(X,Y) X##Y
-#define CONCAT(X,Y) CONCAT2(X,Y)
+#define CONCAT2(X, Y) X##Y
+#define CONCAT(X, Y) CONCAT2(X,Y)
 
 #define _unused_ __attribute__((unused))
 #define _fallthrough_ __attribute__((fallthrough))
@@ -129,10 +129,23 @@
 /* Return the 16th argument passed in. See _VARIABLE_MACRO_NARGS above for usage.
  * Note this is 1-indexed.
  */
-#define _VARIABLE_MACRO_NTH_ARG( \
-	_1,  _2,  _3,  _4,  _5,  _6,  _7, _8, \
-	_9, _10, _11, _12, _13, _14, _15,\
-	 N, ...) N
+#define _VARIABLE_MACRO_NTH_ARG(_1,                                                    \
+				_2,                                                    \
+				_3,                                                    \
+				_4,                                                    \
+				_5,                                                    \
+				_6,                                                    \
+				_7,                                                    \
+				_8,                                                    \
+				_9,                                                    \
+				_10,                                                   \
+				_11,                                                   \
+				_12,                                                   \
+				_13,                                                   \
+				_14,                                                   \
+				_15,                                                   \
+				N,                                                     \
+				...) N
 
 /* Defines a different expansion of macros depending on the
  * number of arguments, e.g. it turns

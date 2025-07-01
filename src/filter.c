@@ -26,21 +26,22 @@
 #include "config.h"
 
 #include <assert.h>
+#include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
 
+#include "filter-private.h"
 #include "filter.h"
 #include "libinput-util.h"
-#include "filter-private.h"
 
 #define MOTION_TIMEOUT		ms2us(1000)
 
 struct normalized_coords
 filter_dispatch(struct motion_filter *filter,
 		const struct device_float_coords *unaccelerated,
-		void *data, uint64_t time)
+		void *data,
+		uint64_t time)
 {
 	return filter->interface->filter(filter, unaccelerated, data, time);
 }
@@ -48,7 +49,8 @@ filter_dispatch(struct motion_filter *filter,
 struct normalized_coords
 filter_dispatch_constant(struct motion_filter *filter,
 			 const struct device_float_coords *unaccelerated,
-			 void *data, uint64_t time)
+			 void *data,
+			 uint64_t time)
 {
 	return filter->interface->filter_constant(filter, unaccelerated, data, time);
 }
@@ -56,14 +58,14 @@ filter_dispatch_constant(struct motion_filter *filter,
 struct normalized_coords
 filter_dispatch_scroll(struct motion_filter *filter,
 		       const struct device_float_coords *unaccelerated,
-		       void *data, uint64_t time)
+		       void *data,
+		       uint64_t time)
 {
 	return filter->interface->filter_scroll(filter, unaccelerated, data, time);
 }
 
 void
-filter_restart(struct motion_filter *filter,
-	       void *data, uint64_t time)
+filter_restart(struct motion_filter *filter, void *data, uint64_t time)
 {
 	if (filter->interface->restart)
 		filter->interface->restart(filter, data, time);
@@ -79,8 +81,7 @@ filter_destroy(struct motion_filter *filter)
 }
 
 bool
-filter_set_speed(struct motion_filter *filter,
-		 double speed_adjustment)
+filter_set_speed(struct motion_filter *filter, double speed_adjustment)
 {
 	return filter->interface->set_speed(filter, speed_adjustment);
 }
@@ -112,8 +113,7 @@ filter_set_accel_config(struct motion_filter *filter,
 void
 trackers_init(struct pointer_trackers *trackers, int ntrackers)
 {
-	trackers->trackers = zalloc(ntrackers *
-				    sizeof(*trackers->trackers));
+	trackers->trackers = zalloc(ntrackers * sizeof(*trackers->trackers));
 	trackers->ntrackers = ntrackers;
 	trackers->cur_tracker = 0;
 	trackers->smoothener = NULL;
@@ -127,8 +127,7 @@ trackers_free(struct pointer_trackers *trackers)
 }
 
 void
-trackers_reset(struct pointer_trackers *trackers,
-	       uint64_t time)
+trackers_reset(struct pointer_trackers *trackers, uint64_t time)
 {
 	unsigned int offset;
 	struct pointer_tracker *tracker;
@@ -173,9 +172,8 @@ trackers_feed(struct pointer_trackers *trackers,
 struct pointer_tracker *
 trackers_by_offset(struct pointer_trackers *trackers, unsigned int offset)
 {
-	unsigned int index =
-		(trackers->cur_tracker + trackers->ntrackers - offset)
-		% trackers->ntrackers;
+	unsigned int index = (trackers->cur_tracker + trackers->ntrackers - offset) %
+			     trackers->ntrackers;
 	return &trackers->trackers[index];
 }
 
@@ -232,7 +230,8 @@ trackers_velocity(struct pointer_trackers *trackers, uint64_t time)
 	/* Find least recent vector within a timelimit, maximum velocity diff
 	 * and direction threshold. */
 	for (unsigned int offset = 1; offset < trackers->ntrackers; offset++) {
-		const struct pointer_tracker *tracker = trackers_by_offset(trackers, offset);
+		const struct pointer_tracker *tracker =
+			trackers_by_offset(trackers, offset);
 
 		/* Bug: time running backwards */
 		if (tracker->time > time)
@@ -242,8 +241,8 @@ trackers_velocity(struct pointer_trackers *trackers, uint64_t time)
 		if (time - tracker->time > MOTION_TIMEOUT) {
 			if (offset == 1)
 				result = trackers_velocity_after_timeout(
-							  tracker,
-							  trackers->smoothener);
+					tracker,
+					trackers->smoothener);
 			break;
 		}
 
@@ -306,9 +305,7 @@ calculate_acceleration_simpsons(struct motion_filter *filter,
 	 * the previous motion and the most recent. */
 	factor = profile(filter, data, velocity, time);
 	factor += profile(filter, data, last_velocity, time);
-	factor += 4.0 * profile(filter, data,
-				(last_velocity + velocity) / 2,
-				time);
+	factor += 4.0 * profile(filter, data, (last_velocity + velocity) / 2, time);
 
 	factor = factor / 6.0;
 

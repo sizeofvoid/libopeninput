@@ -25,19 +25,17 @@
 
 #include "config.h"
 
-#include "util-time.h"
+#include <libevdev/libevdev.h>
+#include <linux/input.h>
+#include <stdbool.h>
+#include <string.h>
+
 #include "util-mem.h"
 #include "util-newtype.h"
-#include <string.h>
-#include <stdbool.h>
-#include <linux/input.h>
-#include <libevdev/libevdev.h>
+#include "util-time.h"
 
 static inline struct input_event
-input_event_init(uint64_t time,
-		 unsigned int type,
-		 unsigned int code,
-		 int value)
+input_event_init(uint64_t time, unsigned int type, unsigned int code, int value)
 {
 	struct input_event ev;
 	struct timeval tval = us2tv(time);
@@ -63,8 +61,7 @@ input_event_time(const struct input_event *e)
 }
 
 static inline void
-input_event_set_time(struct input_event *e,
-		     uint64_t time)
+input_event_set_time(struct input_event *e, uint64_t time)
 {
 	struct timeval tval = us2tv(time);
 
@@ -81,7 +78,9 @@ absinfo_range(const struct input_absinfo *abs)
 static inline double
 absinfo_normalize_value(const struct input_absinfo *abs, int value)
 {
-	return min(1.0, max(0.0, (double)(value - abs->minimum)/(abs->maximum - abs->minimum)));
+	return min(1.0,
+		   max(0.0,
+		       (double)(value - abs->minimum) / (abs->maximum - abs->minimum)));
 }
 
 static inline double
@@ -100,5 +99,5 @@ static inline double
 absinfo_convert_to_mm(const struct input_absinfo *absinfo, double v)
 {
 	double value = v - absinfo->minimum;
-	return value/absinfo->resolution;
+	return value / absinfo->resolution;
 }

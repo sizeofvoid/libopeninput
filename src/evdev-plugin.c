@@ -23,14 +23,14 @@
 
 #include "config.h"
 
-#include "util-mem.h"
 #include <mtdev-plumbing.h>
 
-#include "evdev.h"
-#include "evdev-plugin.h"
+#include "util-mem.h"
 
-_unused_
-static inline void
+#include "evdev-plugin.h"
+#include "evdev.h"
+
+_unused_ static inline void
 evdev_print_event(struct evdev_device *device,
 		  const struct evdev_event *e,
 		  uint64_t time_in_us)
@@ -48,39 +48,38 @@ evdev_print_event(struct evdev_device *device,
 
 	switch (evdev_usage_enum(e->usage)) {
 	case EVDEV_SYN_REPORT:
-		evdev_log_debug(device,
-			  "%u.%03u ----------------- EV_SYN ----------------- +%ums\n",
-			  time / 1000,
-			  time % 1000,
-			  time - last_time);
+		evdev_log_debug(
+			device,
+			"%u.%03u ----------------- EV_SYN ----------------- +%ums\n",
+			time / 1000,
+			time % 1000,
+			time - last_time);
 
 		last_time = time;
 		break;
 	case EVDEV_MSC_SERIAL:
 		evdev_log_debug(device,
-			"%u.%03u %-16s %-16s %#010x\n",
-			time / 1000,
-			time % 1000,
-			evdev_event_get_type_name(e),
-			evdev_event_get_code_name(e),
-			e->value);
+				"%u.%03u %-16s %-16s %#010x\n",
+				time / 1000,
+				time % 1000,
+				evdev_event_get_type_name(e),
+				evdev_event_get_code_name(e),
+				e->value);
 		break;
 	default:
 		evdev_log_debug(device,
-			  "%u.%03u %-16s %-20s %4d\n",
-			  time / 1000,
-			  time % 1000,
-			  evdev_event_get_type_name(e),
-			  evdev_event_get_code_name(e),
-			  e->value);
+				"%u.%03u %-16s %-20s %4d\n",
+				time / 1000,
+				time % 1000,
+				evdev_event_get_type_name(e),
+				evdev_event_get_code_name(e),
+				e->value);
 		break;
 	}
 }
 
 static inline void
-evdev_process_event(struct evdev_device *device,
-		    struct evdev_event *e,
-		    uint64_t time)
+evdev_process_event(struct evdev_device *device, struct evdev_event *e, uint64_t time)
 {
 	struct evdev_dispatch *dispatch = device->dispatch;
 
@@ -95,8 +94,8 @@ evdev_process_event(struct evdev_device *device,
 
 static inline void
 evdev_device_dispatch_frame(struct libinput_plugin *plugin,
-			  struct libinput_device *libinput_device,
-			  struct evdev_frame *frame)
+			    struct libinput_device *libinput_device,
+			    struct evdev_frame *frame)
 {
 	struct evdev_device *device = evdev_device(libinput_device);
 	uint64_t time = evdev_frame_get_time(frame);
@@ -117,7 +116,8 @@ evdev_device_dispatch_frame(struct libinput_plugin *plugin,
 					mtdev_get_event(device->mtdev, &e);
 
 					uint64_t time;
-					struct evdev_event ev = evdev_event_from_input_event(&e, &time);
+					struct evdev_event ev =
+						evdev_event_from_input_event(&e, &time);
 					evdev_process_event(device, &ev, time);
 				}
 			}
@@ -149,8 +149,6 @@ static const struct libinput_plugin_interface interface = {
 void
 libinput_evdev_dispatch_plugin(struct libinput *libinput)
 {
-	_unref_(libinput_plugin) *p = libinput_plugin_new(libinput,
-							  "evdev",
-							  &interface,
-							  NULL);
+	_unref_(libinput_plugin) *p =
+		libinput_plugin_new(libinput, "evdev", &interface, NULL);
 }

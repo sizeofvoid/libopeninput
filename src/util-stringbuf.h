@@ -57,7 +57,6 @@ stringbuf_reset(struct stringbuf *b)
 	b->data = NULL;
 	b->sz = 0;
 	b->len = 0;
-
 }
 
 static inline struct stringbuf *

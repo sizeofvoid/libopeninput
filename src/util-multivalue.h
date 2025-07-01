@@ -26,8 +26,8 @@
 
 #include "config.h"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "util-strings.h"
 
@@ -48,20 +48,33 @@ static inline void
 multivalue_extract(const struct multivalue *v, void *ptr)
 {
 	/* ignore false positives from gcc:
-	 * ../src/util-multivalue.h:52:33: warning: array subscript ‘double[0]’ is partly outside array bounds of ‘int32_t[1]’ {aka ‘int[1]’} [-Warray-bounds=]
+	 * ../src/util-multivalue.h:52:33: warning: array subscript ‘double[0]’ is
+	 * partly outside array bounds of ‘int32_t[1]’ {aka ‘int[1]’} [-Warray-bounds=]
 	 *  52 |         case 'd': *(double*)ptr = v->value.d; break;
 	 */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
 	switch (v->type) {
-	case 'b': *(bool *)ptr = v->value.b; break;
-	case 'c': *(char *)ptr = v->value.c; break;
-	case 'u': *(uint32_t *)ptr = v->value.u; break;
-	case 'i': *(int32_t *)ptr = v->value.i; break;
-	case 'd': *(double *)ptr = v->value.d; break;
-	case 's': *(const char **)ptr = v->value.s; break;
+	case 'b':
+		*(bool *)ptr = v->value.b;
+		break;
+	case 'c':
+		*(char *)ptr = v->value.c;
+		break;
+	case 'u':
+		*(uint32_t *)ptr = v->value.u;
+		break;
+	case 'i':
+		*(int32_t *)ptr = v->value.i;
+		break;
+	case 'd':
+		*(double *)ptr = v->value.d;
+		break;
+	case 's':
+		*(const char **)ptr = v->value.s;
+		break;
 	default:
-		  abort();
+		abort();
 	}
 #pragma GCC diagnostic pop
 }
@@ -83,9 +96,7 @@ multivalue_copy(const struct multivalue *v)
 static inline struct multivalue
 multivalue_new_string(const char *str)
 {
-	struct multivalue v = {
-		.type = 's'
-	};
+	struct multivalue v = { .type = 's' };
 
 	assert(strlen(str) < sizeof(v.value.s));
 

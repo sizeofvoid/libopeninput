@@ -55,7 +55,7 @@ set_bit(unsigned char *array, int bit)
 	array[bit / 8] |= (1 << (bit % 8));
 }
 
-	static inline void
+static inline void
 clear_bit(unsigned char *array, int bit)
 {
 	array[bit / 8] &= ~(1 << (bit % 8));
@@ -113,22 +113,26 @@ bitmask_as_u32(bitmask_t mask)
 }
 
 static inline bool
-bitmask_is_empty(bitmask_t mask) {
+bitmask_is_empty(bitmask_t mask)
+{
 	return mask.mask == 0;
 }
 
 static inline bool
-bitmask_any(bitmask_t mask, bitmask_t bits) {
+bitmask_any(bitmask_t mask, bitmask_t bits)
+{
 	return !!(mask.mask & bits.mask);
 }
 
 static inline bool
-bitmask_all(bitmask_t mask, bitmask_t bits) {
+bitmask_all(bitmask_t mask, bitmask_t bits)
+{
 	return bits.mask != 0 && (mask.mask & bits.mask) == bits.mask;
 }
 
 static inline bool
-bitmask_merge(bitmask_t *mask, bitmask_t bits) {
+bitmask_merge(bitmask_t *mask, bitmask_t bits)
+{
 	bool all = bitmask_all(*mask, bits);
 
 	mask->mask |= bits.mask;
@@ -137,7 +141,8 @@ bitmask_merge(bitmask_t *mask, bitmask_t bits) {
 }
 
 static inline bool
-bitmask_clear(bitmask_t *mask, bitmask_t bits) {
+bitmask_clear(bitmask_t *mask, bitmask_t bits)
+{
 	bool all = bitmask_all(*mask, bits);
 
 	mask->mask &= ~bits.mask;
@@ -146,43 +151,45 @@ bitmask_clear(bitmask_t *mask, bitmask_t bits) {
 }
 
 static inline bool
-bitmask_bit_is_set(bitmask_t mask, unsigned int bit) {
+bitmask_bit_is_set(bitmask_t mask, unsigned int bit)
+{
 	return !!(mask.mask & bit(bit));
 }
 
 static inline bool
-bitmask_set_bit(bitmask_t *mask, unsigned int bit) {
+bitmask_set_bit(bitmask_t *mask, unsigned int bit)
+{
 	bool isset = bitmask_bit_is_set(*mask, bit);
 	mask->mask |= bit(bit);
 	return isset;
 }
 
 static inline bool
-bitmask_clear_bit(bitmask_t *mask, unsigned int bit) {
+bitmask_clear_bit(bitmask_t *mask, unsigned int bit)
+{
 	bool isset = bitmask_bit_is_set(*mask, bit);
 	mask->mask &= ~bit(bit);
 	return isset;
 }
 
 static inline bitmask_t
-bitmask_new(void) {
-	bitmask_t m = {0};
+bitmask_new(void)
+{
+	bitmask_t m = { 0 };
 	return m;
 }
 
 static inline bitmask_t
-bitmask_from_bit(unsigned int bit) {
-	bitmask_t m = {
-		.mask = bit(bit)
-	};
+bitmask_from_bit(unsigned int bit)
+{
+	bitmask_t m = { .mask = bit(bit) };
 	return m;
 }
 
 static inline bitmask_t
-bitmask_from_u32(uint32_t mask) {
-	bitmask_t m = {
-		.mask = mask
-	};
+bitmask_from_u32(uint32_t mask)
+{
+	bitmask_t m = { .mask = mask };
 	return m;
 }
 

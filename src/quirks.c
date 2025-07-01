@@ -30,18 +30,17 @@
 
 #undef NDEBUG /* You don't get to disable asserts here */
 #include <assert.h>
-#include <stdlib.h>
-#include <libudev.h>
 #include <dirent.h>
 #include <fnmatch.h>
 #include <libgen.h>
+#include <libudev.h>
+#include <stdlib.h>
 #ifdef __FreeBSD__
 #include <kenv.h>
 #endif
 
-#include "libinput-versionsort.h"
 #include "libinput-util.h"
-
+#include "libinput-versionsort.h"
 #include "quirks.h"
 
 /* Custom logging so we can have detailed output for the tool but minimal
@@ -95,17 +94,17 @@ struct property {
 };
 
 enum match_flags {
-	M_NAME		= bit(0),
-	M_BUS		= bit(1),
-	M_VID		= bit(2),
-	M_PID		= bit(3),
-	M_DMI		= bit(4),
-	M_UDEV_TYPE	= bit(5),
-	M_DT		= bit(6),
-	M_VERSION	= bit(7),
-	M_UNIQ          = bit(8),
+	M_NAME = bit(0),
+	M_BUS = bit(1),
+	M_VID = bit(2),
+	M_PID = bit(3),
+	M_DMI = bit(4),
+	M_UDEV_TYPE = bit(5),
+	M_DT = bit(6),
+	M_VERSION = bit(7),
+	M_UNIQ = bit(8),
 
-	M_LAST		= M_UNIQ,
+	M_LAST = M_UNIQ,
 };
 
 enum bustype {
@@ -119,13 +118,13 @@ enum bustype {
 };
 
 enum udev_type {
-	UDEV_MOUSE		= bit(1),
-	UDEV_POINTINGSTICK	= bit(2),
-	UDEV_TOUCHPAD		= bit(3),
-	UDEV_TABLET		= bit(4),
-	UDEV_TABLET_PAD		= bit(5),
-	UDEV_JOYSTICK		= bit(6),
-	UDEV_KEYBOARD		= bit(7),
+	UDEV_MOUSE = bit(1),
+	UDEV_POINTINGSTICK = bit(2),
+	UDEV_TOUCHPAD = bit(3),
+	UDEV_TABLET = bit(4),
+	UDEV_TABLET_PAD = bit(5),
+	UDEV_JOYSTICK = bit(6),
+	UDEV_KEYBOARD = bit(7),
 };
 
 /**
@@ -144,12 +143,12 @@ struct match {
 	uint32_t product[64]; /* zero-terminated */
 	uint32_t version;
 
-	char *dmi;	/* dmi modalias with preceding "dmi:" */
+	char *dmi; /* dmi modalias with preceding "dmi:" */
 
 	/* We can have more than one type set, so this is a bitfield */
 	uint32_t udev_type;
 
-	char *dt;	/* device tree compatible (first) string */
+	char *dt; /* device tree compatible (first) string */
 };
 
 /**
@@ -158,10 +157,10 @@ struct match {
 struct section {
 	struct list link;
 
-	bool has_match;		/* to check for empty sections */
-	bool has_property;	/* to check for empty sections */
+	bool has_match;    /* to check for empty sections */
+	bool has_property; /* to check for empty sections */
 
-	char *name;		/* the [Section Name] */
+	char *name; /* the [Section Name] */
 	struct match match;
 	struct list properties;
 };
@@ -241,58 +240,101 @@ quirk_log_msg(struct quirks_context *ctx,
 	va_start(args, format);
 	quirk_log_msg_va(ctx, priority, format, args);
 	va_end(args);
-
 }
 
 const char *
 quirk_get_name(enum quirk q)
 {
-	switch(q) {
-	case QUIRK_MODEL_ALPS_SERIAL_TOUCHPAD:		return "ModelALPSSerialTouchpad";
-	case QUIRK_MODEL_APPLE_TOUCHPAD:		return "ModelAppleTouchpad";
-	case QUIRK_MODEL_APPLE_TOUCHPAD_ONEBUTTON:	return "ModelAppleTouchpadOneButton";
-	case QUIRK_MODEL_BOUNCING_KEYS:			return "ModelBouncingKeys";
-	case QUIRK_MODEL_CHROMEBOOK:			return "ModelChromebook";
-	case QUIRK_MODEL_CLEVO_W740SU:			return "ModelClevoW740SU";
-	case QUIRK_MODEL_DELL_CANVAS_TOTEM:		return "ModelDellCanvasTotem";
-	case QUIRK_MODEL_HP_PAVILION_DM4_TOUCHPAD:	return "ModelHPPavilionDM4Touchpad";
-	case QUIRK_MODEL_HP_ZBOOK_STUDIO_G3:		return "ModelHPZBookStudioG3";
-	case QUIRK_MODEL_INVERT_HORIZONTAL_SCROLLING:	return "ModelInvertHorizontalScrolling";
-	case QUIRK_MODEL_LENOVO_SCROLLPOINT:		return "ModelLenovoScrollPoint";
-	case QUIRK_MODEL_LENOVO_T450_TOUCHPAD:		return "ModelLenovoT450Touchpad";
-	case QUIRK_MODEL_LENOVO_X1GEN6_TOUCHPAD:	return "ModelLenovoX1Gen6Touchpad";
-	case QUIRK_MODEL_LENOVO_X230:			return "ModelLenovoX230";
-	case QUIRK_MODEL_SYNAPTICS_SERIAL_TOUCHPAD:	return "ModelSynapticsSerialTouchpad";
-	case QUIRK_MODEL_SYSTEM76_BONOBO:		return "ModelSystem76Bonobo";
-	case QUIRK_MODEL_SYSTEM76_GALAGO:		return "ModelSystem76Galago";
-	case QUIRK_MODEL_SYSTEM76_KUDU:			return "ModelSystem76Kudu";
-	case QUIRK_MODEL_TABLET_MODE_NO_SUSPEND:	return "ModelTabletModeNoSuspend";
-	case QUIRK_MODEL_TABLET_MODE_SWITCH_UNRELIABLE:	return "ModelTabletModeSwitchUnreliable";
-	case QUIRK_MODEL_TOUCHPAD_VISIBLE_MARKER:	return "ModelTouchpadVisibleMarker";
-	case QUIRK_MODEL_TOUCHPAD_PHANTOM_CLICKS:	return "ModelTouchpadPhantomClicks";
-	case QUIRK_MODEL_TRACKBALL:			return "ModelTrackball";
-	case QUIRK_MODEL_WACOM_TOUCHPAD:		return "ModelWacomTouchpad";
-	case QUIRK_MODEL_PRESSURE_PAD:			return "ModelPressurePad";
+	switch (q) {
+	case QUIRK_MODEL_ALPS_SERIAL_TOUCHPAD:
+		return "ModelALPSSerialTouchpad";
+	case QUIRK_MODEL_APPLE_TOUCHPAD:
+		return "ModelAppleTouchpad";
+	case QUIRK_MODEL_APPLE_TOUCHPAD_ONEBUTTON:
+		return "ModelAppleTouchpadOneButton";
+	case QUIRK_MODEL_BOUNCING_KEYS:
+		return "ModelBouncingKeys";
+	case QUIRK_MODEL_CHROMEBOOK:
+		return "ModelChromebook";
+	case QUIRK_MODEL_CLEVO_W740SU:
+		return "ModelClevoW740SU";
+	case QUIRK_MODEL_DELL_CANVAS_TOTEM:
+		return "ModelDellCanvasTotem";
+	case QUIRK_MODEL_HP_PAVILION_DM4_TOUCHPAD:
+		return "ModelHPPavilionDM4Touchpad";
+	case QUIRK_MODEL_HP_ZBOOK_STUDIO_G3:
+		return "ModelHPZBookStudioG3";
+	case QUIRK_MODEL_INVERT_HORIZONTAL_SCROLLING:
+		return "ModelInvertHorizontalScrolling";
+	case QUIRK_MODEL_LENOVO_SCROLLPOINT:
+		return "ModelLenovoScrollPoint";
+	case QUIRK_MODEL_LENOVO_T450_TOUCHPAD:
+		return "ModelLenovoT450Touchpad";
+	case QUIRK_MODEL_LENOVO_X1GEN6_TOUCHPAD:
+		return "ModelLenovoX1Gen6Touchpad";
+	case QUIRK_MODEL_LENOVO_X230:
+		return "ModelLenovoX230";
+	case QUIRK_MODEL_SYNAPTICS_SERIAL_TOUCHPAD:
+		return "ModelSynapticsSerialTouchpad";
+	case QUIRK_MODEL_SYSTEM76_BONOBO:
+		return "ModelSystem76Bonobo";
+	case QUIRK_MODEL_SYSTEM76_GALAGO:
+		return "ModelSystem76Galago";
+	case QUIRK_MODEL_SYSTEM76_KUDU:
+		return "ModelSystem76Kudu";
+	case QUIRK_MODEL_TABLET_MODE_NO_SUSPEND:
+		return "ModelTabletModeNoSuspend";
+	case QUIRK_MODEL_TABLET_MODE_SWITCH_UNRELIABLE:
+		return "ModelTabletModeSwitchUnreliable";
+	case QUIRK_MODEL_TOUCHPAD_VISIBLE_MARKER:
+		return "ModelTouchpadVisibleMarker";
+	case QUIRK_MODEL_TOUCHPAD_PHANTOM_CLICKS:
+		return "ModelTouchpadPhantomClicks";
+	case QUIRK_MODEL_TRACKBALL:
+		return "ModelTrackball";
+	case QUIRK_MODEL_WACOM_TOUCHPAD:
+		return "ModelWacomTouchpad";
+	case QUIRK_MODEL_PRESSURE_PAD:
+		return "ModelPressurePad";
 
-	case QUIRK_ATTR_SIZE_HINT:			return "AttrSizeHint";
-	case QUIRK_ATTR_TOUCH_SIZE_RANGE:		return "AttrTouchSizeRange";
-	case QUIRK_ATTR_PALM_SIZE_THRESHOLD:		return "AttrPalmSizeThreshold";
-	case QUIRK_ATTR_LID_SWITCH_RELIABILITY:		return "AttrLidSwitchReliability";
-	case QUIRK_ATTR_KEYBOARD_INTEGRATION:		return "AttrKeyboardIntegration";
-	case QUIRK_ATTR_TRACKPOINT_INTEGRATION:		return "AttrPointingStickIntegration";
-	case QUIRK_ATTR_TPKBCOMBO_LAYOUT:		return "AttrTPKComboLayout";
-	case QUIRK_ATTR_PRESSURE_RANGE:			return "AttrPressureRange";
-	case QUIRK_ATTR_PALM_PRESSURE_THRESHOLD:	return "AttrPalmPressureThreshold";
-	case QUIRK_ATTR_RESOLUTION_HINT:		return "AttrResolutionHint";
-	case QUIRK_ATTR_TRACKPOINT_MULTIPLIER:		return "AttrTrackpointMultiplier";
-	case QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD:	return "AttrThumbPressureThreshold";
-	case QUIRK_ATTR_USE_VELOCITY_AVERAGING:		return "AttrUseVelocityAveraging";
-	case QUIRK_ATTR_TABLET_SMOOTHING:               return "AttrTabletSmoothing";
-	case QUIRK_ATTR_THUMB_SIZE_THRESHOLD:		return "AttrThumbSizeThreshold";
-	case QUIRK_ATTR_MSC_TIMESTAMP:			return "AttrMscTimestamp";
-	case QUIRK_ATTR_EVENT_CODE:			return "AttrEventCode";
-	case QUIRK_ATTR_INPUT_PROP:			return "AttrInputProp";
-	case QUIRK_ATTR_IS_VIRTUAL:			return "AttrIsVirtual";
+	case QUIRK_ATTR_SIZE_HINT:
+		return "AttrSizeHint";
+	case QUIRK_ATTR_TOUCH_SIZE_RANGE:
+		return "AttrTouchSizeRange";
+	case QUIRK_ATTR_PALM_SIZE_THRESHOLD:
+		return "AttrPalmSizeThreshold";
+	case QUIRK_ATTR_LID_SWITCH_RELIABILITY:
+		return "AttrLidSwitchReliability";
+	case QUIRK_ATTR_KEYBOARD_INTEGRATION:
+		return "AttrKeyboardIntegration";
+	case QUIRK_ATTR_TRACKPOINT_INTEGRATION:
+		return "AttrPointingStickIntegration";
+	case QUIRK_ATTR_TPKBCOMBO_LAYOUT:
+		return "AttrTPKComboLayout";
+	case QUIRK_ATTR_PRESSURE_RANGE:
+		return "AttrPressureRange";
+	case QUIRK_ATTR_PALM_PRESSURE_THRESHOLD:
+		return "AttrPalmPressureThreshold";
+	case QUIRK_ATTR_RESOLUTION_HINT:
+		return "AttrResolutionHint";
+	case QUIRK_ATTR_TRACKPOINT_MULTIPLIER:
+		return "AttrTrackpointMultiplier";
+	case QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD:
+		return "AttrThumbPressureThreshold";
+	case QUIRK_ATTR_USE_VELOCITY_AVERAGING:
+		return "AttrUseVelocityAveraging";
+	case QUIRK_ATTR_TABLET_SMOOTHING:
+		return "AttrTabletSmoothing";
+	case QUIRK_ATTR_THUMB_SIZE_THRESHOLD:
+		return "AttrThumbSizeThreshold";
+	case QUIRK_ATTR_MSC_TIMESTAMP:
+		return "AttrMscTimestamp";
+	case QUIRK_ATTR_EVENT_CODE:
+		return "AttrEventCode";
+	case QUIRK_ATTR_INPUT_PROP:
+		return "AttrInputProp";
+	case QUIRK_ATTR_IS_VIRTUAL:
+		return "AttrIsVirtual";
 	default:
 		abort();
 	}
@@ -301,16 +343,34 @@ quirk_get_name(enum quirk q)
 static inline const char *
 matchflagname(enum match_flags f)
 {
-	switch(f) {
-	case M_NAME:		return "MatchName";		break;
-	case M_BUS:		return "MatchBus";		break;
-	case M_VID:		return "MatchVendor";		break;
-	case M_PID:		return "MatchProduct";		break;
-	case M_VERSION:		return "MatchVersion";		break;
-	case M_DMI:		return "MatchDMIModalias";	break;
-	case M_UDEV_TYPE:	return "MatchUdevType";		break;
-	case M_DT:		return "MatchDeviceTree";	break;
-	case M_UNIQ:		return "MatchUniq";		break;
+	switch (f) {
+	case M_NAME:
+		return "MatchName";
+		break;
+	case M_BUS:
+		return "MatchBus";
+		break;
+	case M_VID:
+		return "MatchVendor";
+		break;
+	case M_PID:
+		return "MatchProduct";
+		break;
+	case M_VERSION:
+		return "MatchVersion";
+		break;
+	case M_DMI:
+		return "MatchDMIModalias";
+		break;
+	case M_UDEV_TYPE:
+		return "MatchUdevType";
+		break;
+	case M_DT:
+		return "MatchDeviceTree";
+		break;
+	case M_UNIQ:
+		return "MatchUniq";
+		break;
 	default:
 		abort();
 	}
@@ -382,8 +442,7 @@ init_dmi_linux(void)
 
 	udev_device = udev_device_new_from_syspath(udev, syspath);
 	if (udev_device)
-		modalias = udev_device_get_property_value(udev_device,
-							  "MODALIAS");
+		modalias = udev_device_get_property_value(udev_device, "MODALIAS");
 
 	/* Not sure whether this could ever really fail, if so we should
 	 * open the sysfs file directly. But then udev wouldn't have failed,
@@ -441,11 +500,21 @@ init_dmi_freebsd(void)
 	else if (strcmp(chassis_type, "Detachable") == 0)
 		chassis_type_num = 0x20;
 
-	xasprintf(&modalias,
+	xasprintf(
+		&modalias,
 		"dmi:bvn%s:bvr%s:bd%s:svn%s:pn%s:pvr%s:rvn%s:rn%s:rvr%s:cvn%s:ct%d:cvr%s:",
-		bios_vendor, bios_version, bios_date, sys_vendor, product_name,
-		product_version, board_vendor, board_name, board_version, chassis_vendor,
-		chassis_type_num, chassis_version);
+		bios_vendor,
+		bios_version,
+		bios_date,
+		sys_vendor,
+		product_name,
+		product_version,
+		board_vendor,
+		board_name,
+		board_version,
+		chassis_vendor,
+		chassis_type_num,
+		chassis_version);
 
 	return modalias;
 }
@@ -532,10 +601,8 @@ section_destroy(struct section *s)
 static inline bool
 parse_hex(const char *value, unsigned int *parsed)
 {
-	return strstartswith(value, "0x") &&
-	       safe_atou_base(value, parsed, 16) &&
-	       strspn(value, "0123456789xABCDEF") == strlen(value) &&
-	       *parsed <= 0xFFFF;
+	return strstartswith(value, "0x") && safe_atou_base(value, parsed, 16) &&
+	       strspn(value, "0123456789xABCDEF") == strlen(value) && *parsed <= 0xFFFF;
 }
 
 static int
@@ -601,12 +668,15 @@ parse_match(struct quirks_context *ctx,
 
 		s->match.vendor = vendor;
 	} else if (streq(key, "MatchProduct")) {
-		unsigned int product[ARRAY_LENGTH(s->match.product)] = {0};
+		unsigned int product[ARRAY_LENGTH(s->match.product)] = { 0 };
 		const size_t max = ARRAY_LENGTH(s->match.product) - 1;
 
 		size_t nelems = 0;
 		char **strs = strv_from_string(value, ";", &nelems);
-		int rc = strv_for_each_n((const char**)strs, max, strv_parse_hex, product);
+		int rc = strv_for_each_n((const char **)strs,
+					 max,
+					 strv_parse_hex,
+					 product);
 		strv_free(strs);
 		if (rc != 0)
 			goto out;
@@ -689,8 +759,7 @@ parse_model(struct quirks_context *ctx,
 	do {
 		if (streq(key, quirk_get_name(q))) {
 			struct property *p = property_new();
-			p->id = q,
-			p->type = PT_BOOL;
+			p->id = q, p->type = PT_BOOL;
 			p->value.b = b;
 			list_append(&s->properties, &p->link);
 			s->has_property = true;
@@ -751,8 +820,7 @@ parse_attr(struct quirks_context *ctx,
 		rc = true;
 	} else if (streq(key, quirk_get_name(QUIRK_ATTR_LID_SWITCH_RELIABILITY))) {
 		p->id = QUIRK_ATTR_LID_SWITCH_RELIABILITY;
-		if (!streq(value, "reliable") &&
-		    !streq(value, "write_open") &&
+		if (!streq(value, "reliable") && !streq(value, "write_open") &&
 		    !streq(value, "unreliable"))
 			goto out;
 		p->type = PT_STRING;
@@ -848,8 +916,7 @@ parse_attr(struct quirks_context *ctx,
 
 		p->id = QUIRK_ATTR_EVENT_CODE;
 
-		if (!parse_evcode_property(value, events, &nevents) ||
-		    nevents == 0)
+		if (!parse_evcode_property(value, events, &nevents) || nevents == 0)
 			goto out;
 
 		for (size_t i = 0; i < nevents; i++) {
@@ -867,8 +934,7 @@ parse_attr(struct quirks_context *ctx,
 
 		p->id = QUIRK_ATTR_INPUT_PROP;
 
-		if (!parse_input_prop_property(value, props, &nprops) ||
-		    nprops == 0)
+		if (!parse_input_prop_property(value, props, &nprops) || nprops == 0)
 			goto out;
 
 		for (size_t i = 0; i < nprops; i++) {
@@ -1005,7 +1071,9 @@ parse_file(struct quirks_context *ctx, const char *path)
 		case '\t':
 			qlog_parser(ctx,
 				    "%s:%d: Trailing whitespace '%s'\n",
-				    path, lineno, line);
+				    path,
+				    lineno,
+				    line);
 			goto out;
 		}
 
@@ -1017,27 +1085,38 @@ parse_file(struct quirks_context *ctx, const char *path)
 		/* white space not allowed */
 		case ' ':
 		case '\t':
-			qlog_parser(ctx, "%s:%d: Preceding whitespace '%s'\n",
-					 path, lineno, line);
+			qlog_parser(ctx,
+				    "%s:%d: Preceding whitespace '%s'\n",
+				    path,
+				    lineno,
+				    line);
 			goto out;
 		/* section title */
 		case '[':
 			if (line[strlen(line) - 1] != ']') {
-				qlog_parser(ctx, "%s:%d: Closing ] missing '%s'\n",
-					    path, lineno, line);
+				qlog_parser(ctx,
+					    "%s:%d: Closing ] missing '%s'\n",
+					    path,
+					    lineno,
+					    line);
 				goto out;
 			}
 
-			if (state != STATE_SECTION &&
-			    state != STATE_VALUE_OR_SECTION) {
-				qlog_parser(ctx, "%s:%d: expected section before %s\n",
-					  path, lineno, line);
+			if (state != STATE_SECTION && state != STATE_VALUE_OR_SECTION) {
+				qlog_parser(ctx,
+					    "%s:%d: expected section before %s\n",
+					    path,
+					    lineno,
+					    line);
 				goto out;
 			}
 			if (section &&
 			    (!section->has_match || !section->has_property)) {
-				qlog_parser(ctx, "%s:%d: previous section %s was empty\n",
-					  path, lineno, section->name);
+				qlog_parser(ctx,
+					    "%s:%d: previous section %s was empty\n",
+					    path,
+					    lineno,
+					    section->name);
 				goto out; /* Previous section was empty */
 			}
 
@@ -1048,19 +1127,29 @@ parse_file(struct quirks_context *ctx, const char *path)
 		default:
 			/* entries must start with A-Z */
 			if (line[0] < 'A' || line[0] > 'Z') {
-				qlog_parser(ctx, "%s:%d: Unexpected line %s\n",
-						 path, lineno, line);
+				qlog_parser(ctx,
+					    "%s:%d: Unexpected line %s\n",
+					    path,
+					    lineno,
+					    line);
 				goto out;
 			}
 			switch (state) {
 			case STATE_SECTION:
-				qlog_parser(ctx, "%s:%d: expected [Section], got %s\n",
-					  path, lineno, line);
+				qlog_parser(ctx,
+					    "%s:%d: expected [Section], got %s\n",
+					    path,
+					    lineno,
+					    line);
 				goto out;
 			case STATE_MATCH:
 				if (!strstartswith(line, "Match")) {
-					qlog_parser(ctx, "%s:%d: expected MatchFoo=bar, have %s\n",
-							 path, lineno, line);
+					qlog_parser(
+						ctx,
+						"%s:%d: expected MatchFoo=bar, have %s\n",
+						path,
+						lineno,
+						line);
 					goto out;
 				}
 				state = STATE_MATCH_OR_VALUE;
@@ -1071,8 +1160,12 @@ parse_file(struct quirks_context *ctx, const char *path)
 				break;
 			case STATE_VALUE_OR_SECTION:
 				if (strstartswith(line, "Match")) {
-					qlog_parser(ctx, "%s:%d: expected value or [Section], have %s\n",
-							 path, lineno, line);
+					qlog_parser(
+						ctx,
+						"%s:%d: expected value or [Section], have %s\n",
+						path,
+						lineno,
+						line);
 					goto out;
 				}
 				break;
@@ -1081,8 +1174,11 @@ parse_file(struct quirks_context *ctx, const char *path)
 			}
 
 			if (!parse_value_line(ctx, section, line)) {
-				qlog_parser(ctx, "%s:%d: failed to parse %s\n",
-						 path, lineno, line);
+				qlog_parser(ctx,
+					    "%s:%d: failed to parse %s\n",
+					    path,
+					    lineno,
+					    line);
 				goto out;
 			}
 			break;
@@ -1094,9 +1190,12 @@ parse_file(struct quirks_context *ctx, const char *path)
 		goto out;
 	}
 
-	if ((!section->has_match || !section->has_property)) {
-		qlog_parser(ctx, "%s:%d: previous section %s was empty\n",
-				 path, lineno, section->name);
+	if (!section->has_match || !section->has_property) {
+		qlog_parser(ctx,
+			    "%s:%d: previous section %s was empty\n",
+			    path,
+			    lineno,
+			    section->name);
 		goto out; /* Previous section was empty */
 	}
 
@@ -1109,7 +1208,8 @@ out:
 }
 
 static int
-is_data_file(const struct dirent *dir) {
+is_data_file(const struct dirent *dir)
+{
 	return strendswith(dir->d_name, ".quirks");
 }
 
@@ -1122,20 +1222,14 @@ parse_files(struct quirks_context *ctx, const char *data_path)
 
 	ndev = scandir(data_path, &namelist, is_data_file, versionsort);
 	if (ndev <= 0) {
-		qlog_error(ctx,
-			   "%s: failed to find data files\n",
-			   data_path);
+		qlog_error(ctx, "%s: failed to find data files\n", data_path);
 		return false;
 	}
 
 	for (idx = 0; idx < ndev; idx++) {
 		char path[PATH_MAX];
 
-		snprintf(path,
-			 sizeof(path),
-			 "%s/%s",
-			 data_path,
-			 namelist[idx]->d_name);
+		snprintf(path, sizeof(path), "%s/%s", data_path, namelist[idx]->d_name);
 
 		if (!parse_file(ctx, path))
 			break;
@@ -1281,8 +1375,7 @@ udev_prop(struct udev_device *device, const char *prop)
 }
 
 static inline void
-match_fill_name(struct match *m,
-		struct udev_device *device)
+match_fill_name(struct match *m, struct udev_device *device)
 {
 	const char *str = udev_prop(device, "NAME");
 	size_t slen;
@@ -1296,16 +1389,14 @@ match_fill_name(struct match *m,
 
 	m->name = safe_strdup(str);
 	slen = strlen(m->name);
-	if (slen > 1 &&
-	    m->name[slen - 1] == '"')
+	if (slen > 1 && m->name[slen - 1] == '"')
 		m->name[slen - 1] = '\0';
 
 	m->bits |= M_NAME;
 }
 
 static inline void
-match_fill_uniq(struct match *m,
-		struct udev_device *device)
+match_fill_uniq(struct match *m, struct udev_device *device)
 {
 	const char *str = udev_prop(device, "UNIQ");
 	size_t slen;
@@ -1319,16 +1410,14 @@ match_fill_uniq(struct match *m,
 
 	m->uniq = safe_strdup(str);
 	slen = safe_strlen(m->uniq);
-	if (slen > 1 &&
-	    m->uniq[slen - 1] == '"')
+	if (slen > 1 && m->uniq[slen - 1] == '"')
 		m->uniq[slen - 1] = '\0';
 
 	m->bits |= M_UNIQ;
 }
 
 static inline void
-match_fill_bus_vid_pid(struct match *m,
-		       struct udev_device *device)
+match_fill_bus_vid_pid(struct match *m, struct udev_device *device)
 {
 	const char *str;
 	unsigned int product, vendor, bus, version;
@@ -1346,7 +1435,7 @@ match_fill_bus_vid_pid(struct match *m,
 	m->product[1] = 0;
 	m->vendor = vendor;
 	m->version = version;
-	m->bits |= M_PID|M_VID|M_VERSION;
+	m->bits |= M_PID | M_VID | M_VERSION;
 	switch (bus) {
 	case BUS_USB:
 		m->bus = BT_USB;
@@ -1378,8 +1467,7 @@ match_fill_bus_vid_pid(struct match *m,
 }
 
 static inline void
-match_fill_udev_type(struct match *m,
-		     struct udev_device *device)
+match_fill_udev_type(struct match *m, struct udev_device *device)
 {
 	struct ut_map {
 		const char *prop;
@@ -1417,8 +1505,7 @@ match_fill_dmi_dt(struct match *m, char *dmi, char *dt)
 }
 
 static struct match *
-match_new(struct udev_device *device,
-	  char *dmi, char *dt)
+match_new(struct udev_device *device, char *dmi, char *dt)
 {
 	struct match *m = zalloc(sizeof *m);
 
@@ -1456,7 +1543,8 @@ quirk_merge_event_codes(struct quirks_context *ctx,
 		for (size_t j = 0; j < property->value.tuples.ntuples; j++) {
 			if (offset + j >= max)
 				break;
-			p->value.tuples.tuples[offset + j] = property->value.tuples.tuples[j];
+			p->value.tuples.tuples[offset + j] =
+				property->value.tuples.tuples[j];
 			p->value.tuples.ntuples++;
 		}
 		return;
@@ -1494,8 +1582,10 @@ quirk_apply_section(struct quirks_context *ctx,
 
 	q->properties = tmp;
 	list_for_each(p, &s->properties, link) {
-		qlog_debug(ctx, "property added: %s from %s\n",
-			   quirk_get_name(p->id), s->name);
+		qlog_debug(ctx,
+			   "property added: %s from %s\n",
+			   quirk_get_name(p->id),
+			   s->name);
 
 		/* All quirks but AttrEventCode and AttrInputProp
 		 * simply overwrite each other, so we can just append the
@@ -1512,8 +1602,7 @@ quirk_apply_section(struct quirks_context *ctx,
 		 * have one struct property in the list (not owned by a section)
 		 * and we simply merge any extra sections onto that.
 		 */
-		if (p->id == QUIRK_ATTR_EVENT_CODE ||
-		    p->id == QUIRK_ATTR_INPUT_PROP)
+		if (p->id == QUIRK_ATTR_EVENT_CODE || p->id == QUIRK_ATTR_INPUT_PROP)
 			quirk_merge_event_codes(ctx, q, p);
 		else
 			q->properties[q->nproperties++] = property_ref(p);
@@ -1540,7 +1629,8 @@ quirk_match_section(struct quirks_context *ctx,
 		if ((m->bits & flag) == 0) {
 			qlog_debug(ctx,
 				   "%s wants %s but we don't have that\n",
-				   s->name, matchflagname(flag));
+				   s->name,
+				   matchflagname(flag));
 			continue;
 		}
 
@@ -1614,8 +1704,7 @@ quirk_match_section(struct quirks_context *ctx,
 }
 
 struct quirks *
-quirks_fetch_for_device(struct quirks_context *ctx,
-			struct udev_device *udev_device)
+quirks_fetch_for_device(struct quirks_context *ctx, struct udev_device *udev_device)
 {
 	struct section *s;
 	struct match *m;
@@ -1623,8 +1712,7 @@ quirks_fetch_for_device(struct quirks_context *ctx,
 	if (!ctx)
 		return NULL;
 
-	qlog_debug(ctx, "%s: fetching quirks\n",
-		   udev_device_get_devnode(udev_device));
+	qlog_debug(ctx, "%s: fetching quirks\n", udev_device_get_devnode(udev_device));
 
 	_unref_(quirks) *q = quirks_new();
 
@@ -1755,9 +1843,7 @@ quirks_get_bool(struct quirks *q, enum quirk which, bool *val)
 }
 
 bool
-quirks_get_dimensions(struct quirks *q,
-		      enum quirk which,
-		      struct quirk_dimensions *val)
+quirks_get_dimensions(struct quirks *q, enum quirk which, struct quirk_dimensions *val)
 {
 	struct property *p;
 
@@ -1775,9 +1861,7 @@ quirks_get_dimensions(struct quirks *q,
 }
 
 bool
-quirks_get_range(struct quirks *q,
-		 enum quirk which,
-		 struct quirk_range *val)
+quirks_get_range(struct quirks *q, enum quirk which, struct quirk_range *val)
 {
 	struct property *p;
 

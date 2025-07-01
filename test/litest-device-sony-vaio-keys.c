@@ -26,9 +26,8 @@
 #include <assert.h>
 
 #include "libinput-util.h"
-
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 /* Description taken from
  * https://gitlab.freedesktop.org/libinput/libinput/-/issues/515
@@ -89,11 +88,10 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_SONY_VAIO_KEYS,
-	.features = LITEST_KEYS,
-	.interface = NULL,
+	    .features = LITEST_KEYS,
+	    .interface = NULL,
 
-	.name = "Sony Vaio Keys",
-	.id = &input_id,
-	.events = events,
-	.absinfo = NULL,
-)
+	    .name = "Sony Vaio Keys",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = NULL, )

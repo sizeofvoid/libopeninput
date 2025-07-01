@@ -26,20 +26,21 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <inttypes.h>
 #include <getopt.h>
+#include <inttypes.h>
+#include <libevdev/libevdev.h>
+#include <libinput.h>
 #include <poll.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
-#include <signal.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include <libinput.h>
-#include <libevdev/libevdev.h>
+
+#include "util-input-event.h"
+#include "util-macros.h"
 
 #include "shared.h"
-#include "util-macros.h"
-#include "util-input-event.h"
 
 static volatile sig_atomic_t stop = 0;
 static struct tools_options options;
@@ -77,7 +78,8 @@ LIBINPUT_ATTRIBUTE_PRINTF(1, 2)
 static void
 print_line(const char *format, ...)
 {
-	char empty[] = "                                                                                ";
+	char empty[] =
+		"                                                                                ";
 	const int width = 80;
 	int n;
 	va_list args;
@@ -93,7 +95,7 @@ print_line(const char *format, ...)
 static void
 print_buttons(struct context *ctx, unsigned int *buttons, size_t sz)
 {
-	char buf[256] = {0};
+	char buf[256] = { 0 };
 	size_t len = 0;
 
 	for (size_t i = 0; i < sz; i++) {
@@ -132,8 +134,10 @@ print_bar(const char *header, double value, double normalized)
 	       oob ? ANSI_RED : "",
 	       header,
 	       value,
-	       left_pad, empty,
-	       right_pad, empty,
+	       left_pad,
+	       empty,
+	       right_pad,
+	       empty,
 	       oob ? ANSI_NORMAL : "");
 }
 
@@ -150,7 +154,7 @@ normalize(struct libevdev *evdev, int code, int value)
 	if (!abs)
 		return 0.0;
 
-	return 1.0 * (value - abs->minimum)/absinfo_range(abs);
+	return 1.0 * (value - abs->minimum) / absinfo_range(abs);
 }
 
 static int
@@ -214,25 +218,31 @@ print_state(struct context *ctx)
 	print_line("tip: %s", ctx->tip_is_down ? "down" : "up");
 	print_bar("x:", ctx->x, ctx->x_norm);
 	print_bar("y:", ctx->y, ctx->y_norm);
-	print_bar("tilt x:", ctx->tx, (ctx->tx + 90)/180);
-	print_bar("tilt y:", ctx->ty, (ctx->ty + 90)/180);
+	print_bar("tilt x:", ctx->tx, (ctx->tx + 90) / 180);
+	print_bar("tilt y:", ctx->ty, (ctx->ty + 90) / 180);
 	print_bar("dist:", ctx->dist, ctx->dist);
 	print_bar("pressure:", ctx->pressure, ctx->pressure);
-	print_bar("rotation:", ctx->rotation, ctx->rotation/360.0);
-	print_bar("slider:", ctx->slider, (ctx->slider + 1.0)/2.0);
-	print_buttons(ctx,
-		      ctx->buttons_down,
-		      ARRAY_LENGTH(ctx->buttons_down));
+	print_bar("rotation:", ctx->rotation, ctx->rotation / 360.0);
+	print_bar("slider:", ctx->slider, (ctx->slider + 1.0) / 2.0);
+	print_buttons(ctx, ctx->buttons_down, ARRAY_LENGTH(ctx->buttons_down));
 	lines_printed += 11;
 
 	printf("evdev:\n");
 	print_bar("ABS_X:", ctx->abs.x, normalize(ctx->evdev, ABS_X, ctx->abs.x));
 	print_bar("ABS_Y:", ctx->abs.y, normalize(ctx->evdev, ABS_Y, ctx->abs.y));
 	print_bar("ABS_Z:", ctx->abs.z, normalize(ctx->evdev, ABS_Z, ctx->abs.z));
-	print_bar("ABS_TILT_X:", ctx->abs.tilt_x, normalize(ctx->evdev, ABS_TILT_X, ctx->abs.tilt_x));
-	print_bar("ABS_TILT_Y:", ctx->abs.tilt_y, normalize(ctx->evdev, ABS_TILT_Y, ctx->abs.tilt_y));
-	print_bar("ABS_DISTANCE:", ctx->abs.distance, normalize(ctx->evdev, ABS_DISTANCE, ctx->abs.distance));
-	print_bar("ABS_PRESSURE:", ctx->abs.pressure, normalize(ctx->evdev, ABS_PRESSURE, ctx->abs.pressure));
+	print_bar("ABS_TILT_X:",
+		  ctx->abs.tilt_x,
+		  normalize(ctx->evdev, ABS_TILT_X, ctx->abs.tilt_x));
+	print_bar("ABS_TILT_Y:",
+		  ctx->abs.tilt_y,
+		  normalize(ctx->evdev, ABS_TILT_Y, ctx->abs.tilt_y));
+	print_bar("ABS_DISTANCE:",
+		  ctx->abs.distance,
+		  normalize(ctx->evdev, ABS_DISTANCE, ctx->abs.distance));
+	print_bar("ABS_PRESSURE:",
+		  ctx->abs.pressure,
+		  normalize(ctx->evdev, ABS_PRESSURE, ctx->abs.pressure));
 	print_buttons(ctx,
 		      ctx->evdev_buttons_down,
 		      ARRAY_LENGTH(ctx->evdev_buttons_down));
@@ -262,7 +272,7 @@ handle_device_added(struct context *ctx, struct libinput_event *ev)
 
 	devnode = udev_device_get_devnode(udev_device);
 	if (devnode) {
-		int fd = open(devnode, O_RDONLY|O_NONBLOCK);
+		int fd = open(devnode, O_RDONLY | O_NONBLOCK);
 		assert(fd != -1);
 		assert(libevdev_new_from_fd(fd, &ctx->evdev) == 0);
 	}
@@ -308,14 +318,15 @@ handle_tablet_button_event(struct context *ctx, struct libinput_event *ev)
 {
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
 	unsigned int button = libinput_event_tablet_tool_get_button(t);
-	enum libinput_button_state state = libinput_event_tablet_tool_get_button_state(t);
+	enum libinput_button_state state =
+		libinput_event_tablet_tool_get_button_state(t);
 
 	ARRAY_FOR_EACH(ctx->buttons_down, btn) {
 		if (state == LIBINPUT_BUTTON_STATE_PRESSED) {
-		    if (*btn == 0) {
+			if (*btn == 0) {
 				*btn = button;
 				break;
-		    }
+			}
 		} else {
 			if (*btn == button) {
 				*btn = 0;
@@ -344,7 +355,8 @@ handle_tablet_proximity_event(struct context *ctx, struct libinput_event *ev)
 		ctx->tool = NULL;
 	}
 
-	if (libinput_event_tablet_tool_get_proximity_state(t) == LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN)
+	if (libinput_event_tablet_tool_get_proximity_state(t) ==
+	    LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN)
 		ctx->tool = libinput_tablet_tool_ref(tool);
 }
 
@@ -353,7 +365,8 @@ handle_tablet_tip_event(struct context *ctx, struct libinput_event *ev)
 {
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(ev);
 
-	ctx->tip_is_down = libinput_event_tablet_tool_get_tip_state(t) == LIBINPUT_TABLET_TOOL_TIP_DOWN;
+	ctx->tip_is_down = libinput_event_tablet_tool_get_tip_state(t) ==
+			   LIBINPUT_TABLET_TOOL_TIP_DOWN;
 }
 
 static void
@@ -412,10 +425,9 @@ handle_libevdev_events(struct context *ctx)
 	if (!evdev)
 		return;
 
-	while (libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event)
-	       == LIBEVDEV_READ_STATUS_SUCCESS)
-	{
-		switch(evbit(event.type, event.code)) {
+	while (libevdev_next_event(evdev, LIBEVDEV_READ_FLAG_NORMAL, &event) ==
+	       LIBEVDEV_READ_STATUS_SUCCESS) {
+		switch (evbit(event.type, event.code)) {
 		case evbit(EV_KEY, BTN_TOOL_PEN):
 		case evbit(EV_KEY, BTN_TOOL_RUBBER):
 		case evbit(EV_KEY, BTN_TOOL_BRUSH):
@@ -423,7 +435,8 @@ handle_libevdev_events(struct context *ctx)
 		case evbit(EV_KEY, BTN_TOOL_AIRBRUSH):
 		case evbit(EV_KEY, BTN_TOOL_MOUSE):
 		case evbit(EV_KEY, BTN_TOOL_LENS):
-			ctx->evdev_buttons_down[event.code - BTN_TOOL_PEN] = event.value ?  event.code : 0;
+			ctx->evdev_buttons_down[event.code - BTN_TOOL_PEN] =
+				event.value ? event.code : 0;
 			break;
 		/* above tools should be mutually exclusive but let's leave
 		 * enough space */
@@ -494,7 +507,8 @@ mainloop(struct context *ctx)
 }
 
 static void
-usage(void) {
+usage(void)
+{
 	printf("Usage: libinput debug-tablet [options] [--udev <seat>|--device /dev/input/event0]\n");
 }
 
@@ -518,7 +532,7 @@ main(int argc, char **argv)
 	struct context ctx;
 	struct libinput *li;
 	enum tools_backend backend = BACKEND_NONE;
-	const char *seat_or_device[2] = {"seat0", NULL};
+	const char *seat_or_device[2] = { "seat0", NULL };
 	struct sigaction act;
 	bool grab = false;
 
@@ -535,17 +549,17 @@ main(int argc, char **argv)
 		};
 		static struct option opts[] = {
 			CONFIGURATION_OPTIONS,
-			{ "help",                      no_argument,       0, 'h' },
-			{ "device",                    required_argument, 0, OPT_DEVICE },
-			{ "udev",                      required_argument, 0, OPT_UDEV },
-			{ 0, 0, 0, 0}
+			{ "help", no_argument, 0, 'h' },
+			{ "device", required_argument, 0, OPT_DEVICE },
+			{ "udev", required_argument, 0, OPT_UDEV },
+			{ 0, 0, 0, 0 }
 		};
 
 		c = getopt_long(argc, argv, "h", opts, &option_index);
 		if (c == -1)
 			break;
 
-		switch(c) {
+		switch (c) {
 		case '?':
 			exit(EXIT_INVALID_USAGE);
 			break;
@@ -586,8 +600,9 @@ main(int argc, char **argv)
 	act.sa_flags = SA_SIGINFO;
 
 	if (sigaction(SIGINT, &act, NULL) == -1) {
-		fprintf(stderr, "Failed to set up signal handling (%s)\n",
-				strerror(errno));
+		fprintf(stderr,
+			"Failed to set up signal handling (%s)\n",
+			strerror(errno));
 		return EXIT_FAILURE;
 	}
 

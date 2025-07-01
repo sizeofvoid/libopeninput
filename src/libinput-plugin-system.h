@@ -25,13 +25,13 @@
 
 #include "config.h"
 
-#include <stdbool.h>
-#include <libudev.h>
 #include <libevdev/libevdev.h>
+#include <libudev.h>
+#include <stdbool.h>
 
-#include "evdev-frame.h"
 #include "util-list.h"
 
+#include "evdev-frame.h"
 #include "libinput.h"
 
 struct libinput;
@@ -63,7 +63,7 @@ libinput_plugin_system_run(struct libinput_plugin_system *system);
 
 void
 libinput_plugin_system_register_plugin(struct libinput_plugin_system *system,
-					 struct libinput_plugin *plugin);
+				       struct libinput_plugin *plugin);
 void
 libinput_plugin_system_unregister_plugin(struct libinput_plugin_system *system,
 					 struct libinput_plugin *plugin);
@@ -87,8 +87,9 @@ libinput_plugin_system_notify_device_ignored(struct libinput_plugin_system *syst
 					     struct libinput_device *device);
 
 void
-libinput_plugin_system_notify_tablet_tool_configured(struct libinput_plugin_system *system,
-						     struct libinput_tablet_tool *tool);
+libinput_plugin_system_notify_tablet_tool_configured(
+	struct libinput_plugin_system *system,
+	struct libinput_tablet_tool *tool);
 
 void
 libinput_plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,

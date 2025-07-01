@@ -22,8 +22,9 @@
  */
 
 #include "config.h"
-#include "libinput-util.h"
+
 #include "builddir.h"
+#include "libinput-util.h"
 
 int
 main(int argc, char **argv)

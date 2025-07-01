@@ -26,12 +26,11 @@
 
 #include "config.h"
 
-#include <stdbool.h>
-#include <limits.h>
 #include <getopt.h>
-
-#include <quirks.h>
 #include <libinput.h>
+#include <limits.h>
+#include <quirks.h>
+#include <stdbool.h>
 
 #include "util-strings.h"
 
@@ -130,8 +129,8 @@ tools_print_usage_option_list(struct option *opts)
 	struct option *o = opts;
 	while (o && o->name) {
 		if (strstartswith(o->name, "enable-") &&
-			strstartswith((o+1)->name, "disable-")) {
-			printf("   --%s/--%s\n", o->name, (o+1)->name);
+		    strstartswith((o + 1)->name, "disable-")) {
+			printf("   --%s/--%s\n", o->name, (o + 1)->name);
 			o++;
 		} else {
 			printf("   --%s\n", o->name);
@@ -140,11 +139,7 @@ tools_print_usage_option_list(struct option *opts)
 	}
 }
 
-enum tools_backend {
-	BACKEND_NONE,
-	BACKEND_DEVICE,
-	BACKEND_UDEV
-};
+enum tools_backend { BACKEND_NONE, BACKEND_DEVICE, BACKEND_UDEV };
 
 struct tools_options {
 	char match[256];
@@ -180,22 +175,28 @@ struct tools_options {
 	unsigned int eraser_button_button;
 };
 
-void tools_init_options(struct tools_options *options);
-int tools_parse_option(int option,
-		       const char *optarg,
-		       struct tools_options *options);
-struct libinput* tools_open_backend(enum tools_backend which,
-				    const char **seat_or_devices,
-				    bool verbose,
-				    bool *grab);
-void tools_device_apply_config(struct libinput_device *device,
+void
+tools_init_options(struct tools_options *options);
+int
+tools_parse_option(int option, const char *optarg, struct tools_options *options);
+struct libinput *
+tools_open_backend(enum tools_backend which,
+		   const char **seat_or_devices,
+		   bool verbose,
+		   bool *grab);
+void
+tools_device_apply_config(struct libinput_device *device,
+			  struct tools_options *options);
+void
+tools_tablet_tool_apply_config(struct libinput_tablet_tool *tool,
 			       struct tools_options *options);
-void tools_tablet_tool_apply_config(struct libinput_tablet_tool *tool,
-				    struct tools_options *options);
-int tools_exec_command(const char *prefix, int argc, char **argv);
+int
+tools_exec_command(const char *prefix, int argc, char **argv);
 
-bool find_touchpad_device(char *path, size_t path_len);
-bool is_touchpad_device(const char *devnode);
+bool
+find_touchpad_device(char *path, size_t path_len);
+bool
+is_touchpad_device(const char *devnode);
 
 void
 tools_list_device_quirks(struct quirks_context *ctx,

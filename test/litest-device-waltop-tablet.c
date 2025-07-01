@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event proximity_in[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
@@ -225,17 +225,16 @@ static int events[] = {
 /* clang-format on */
 
 static const char quirk_file[] =
-"[litest Waltop Tablet]\n"
-"MatchName=litest          WALTOP     Batteryless Tablet*\n"
-"AttrSizeHint=200x200\n";
+	"[litest Waltop Tablet]\n"
+	"MatchName=litest          WALTOP     Batteryless Tablet*\n"
+	"AttrSizeHint=200x200\n";
 
 TEST_DEVICE(LITEST_WALTOP,
-	.features = LITEST_TABLET | LITEST_WHEEL | LITEST_TILT | LITEST_HOVER,
-	.interface = &interface,
+	    .features = LITEST_TABLET | LITEST_WHEEL | LITEST_TILT | LITEST_HOVER,
+	    .interface = &interface,
 
-	.name = "         WALTOP     Batteryless Tablet ", /* sic */
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.quirk_file = quirk_file,
-)
+	    .name = "         WALTOP     Batteryless Tablet ", /* sic */
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .quirk_file = quirk_file, )

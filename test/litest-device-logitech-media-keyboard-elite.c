@@ -26,9 +26,8 @@
 #include <assert.h>
 
 #include "libinput-util.h"
-
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 /* Description taken from
  * https://gitlab.freedesktop.org/libinput/libinput/-/issues/514
@@ -83,11 +82,10 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_KEYBOARD_LOGITECH_MEDIA_KEYBOARD_ELITE,
-	.features = LITEST_KEYS,
-	.interface = NULL,
+	    .features = LITEST_KEYS,
+	    .interface = NULL,
 
-	.name = "Logitech Logitech USB Keyboard Consumer Control",
-	.id = &input_id,
-	.events = events,
-	.absinfo = NULL,
-)
+	    .name = "Logitech Logitech USB Keyboard Consumer Control",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = NULL, )

@@ -23,9 +23,10 @@
 
 #include "config.h"
 
-#include "litest.h"
-#include "litest-int.h"
 #include <assert.h>
+
+#include "litest-int.h"
+#include "litest.h"
 
 static bool
 touch_down(struct litest_device *d, unsigned int slot, double x, double y)
@@ -105,11 +106,11 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_VMWARE_VIRTMOUSE,
-	.features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE | LITEST_NO_DEBOUNCE,
-	.interface = &interface,
+	    .features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE |
+			LITEST_NO_DEBOUNCE,
+	    .interface = &interface,
 
-	.name = "VMware VMware Virtual USB Mouse",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "VMware VMware Virtual USB Mouse",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

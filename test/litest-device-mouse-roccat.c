@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -189,11 +189,10 @@ static struct input_absinfo absinfo[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_MOUSE_ROCCAT,
-	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL | LITEST_KEYS,
-	.interface = NULL,
+	    .features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL | LITEST_KEYS,
+	    .interface = NULL,
 
-	.name = "ROCCAT ROCCAT Kone XTD",
-	.id = &input_id,
-	.absinfo = absinfo,
-	.events = events,
-)
+	    .name = "ROCCAT ROCCAT Kone XTD",
+	    .id = &input_id,
+	    .absinfo = absinfo,
+	    .events = events, )

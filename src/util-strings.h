@@ -31,12 +31,12 @@
 #include <errno.h>
 #include <limits.h>
 #include <math.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -76,7 +76,7 @@ strneq(const char *str1, const char *str2, size_t n)
  * string is NULL. If the input string is a string pointer, we strdup or
  * abort on failure.
  */
-static inline char*
+static inline char *
 safe_strdup(const char *str)
 {
 	char *s;
@@ -112,8 +112,7 @@ safe_strlen(const char *str)
  * upon success or -1 upon failure. In the case of failure the pointer is set
  * to NULL.
  */
-__attribute__ ((format (printf, 2, 3)))
-static inline int
+__attribute__((format(printf, 2, 3))) static inline int
 xasprintf(char **strp, const char *fmt, ...)
 {
 	int rc = 0;
@@ -128,8 +127,7 @@ xasprintf(char **strp, const char *fmt, ...)
 	return rc;
 }
 
-__attribute__ ((format (printf, 2, 0)))
-static inline int
+__attribute__((format(printf, 2, 0))) static inline int
 xvasprintf(char **strp, const char *fmt, va_list args)
 {
 	int rc = 0;
@@ -140,8 +138,7 @@ xvasprintf(char **strp, const char *fmt, va_list args)
 	return rc;
 }
 
-__attribute__ ((format (printf, 1, 2)))
-static inline char *
+__attribute__((format(printf, 1, 2))) static inline char *
 strdup_printf(const char *fmt, ...)
 {
 	int rc = 0;
@@ -156,8 +153,7 @@ strdup_printf(const char *fmt, ...)
 	return strp;
 }
 
-__attribute__ ((format (printf, 1, 0)))
-static inline char *
+__attribute__((format(printf, 1, 0))) static inline char *
 strdup_vprintf(const char *fmt, va_list args)
 {
 	char *strp;
@@ -281,8 +277,8 @@ safe_atod(const char *str, double *val)
 		char c = str[i];
 
 		if (isdigit(c))
-		       continue;
-		switch(c) {
+			continue;
+		switch (c) {
 		case '+':
 		case '-':
 		case '.':
@@ -324,27 +320,41 @@ safe_atod(const char *str, double *val)
 }
 
 /* Returns the length of the strv, including the terminating NULL */
-size_t strv_len(char **strv);
-char **strv_from_argv(int argc, char **argv);
-char **strv_from_string(const char *in, const char *separator, size_t *num_elements);
-char *strv_join(char **strv, const char *joiner);
-char **strv_append_strdup(char **strv, const char *s);
+size_t
+strv_len(char **strv);
+char **
+strv_from_argv(int argc, char **argv);
+char **
+strv_from_string(const char *in, const char *separator, size_t *num_elements);
+char *
+strv_join(char **strv, const char *joiner);
+char **
+strv_append_strdup(char **strv, const char *s);
 /* Takes ownership of the string and appends it to strv, s is set to NULL */
-char **strv_append_take(char **strv, char **s);
-__attribute__ ((format (printf, 2, 3)))
-char **strv_append_printf(char **strv, const char *fmt, ...);
-__attribute__ ((format (printf, 2, 0)))
-char **strv_append_vprintf(char **strv, const char *fmt, va_list args);
+char **
+strv_append_take(char **strv, char **s);
+__attribute__((format(printf, 2, 3))) char **
+strv_append_printf(char **strv, const char *fmt, ...);
+__attribute__((format(printf, 2, 0))) char **
+strv_append_vprintf(char **strv, const char *fmt, va_list args);
 
-bool strv_find(char **strv, const char *needle, size_t *index_out);
-bool strv_find_substring(char **strv, const char *needle, size_t *index_out);
+bool
+strv_find(char **strv, const char *needle, size_t *index_out);
+bool
+strv_find_substring(char **strv, const char *needle, size_t *index_out);
 
 typedef int (*strv_foreach_callback_t)(const char *str, size_t index, void *data);
-int strv_for_each(const char **strv, strv_foreach_callback_t func, void *data);
-int strv_for_each_n(const char **strv, size_t max, strv_foreach_callback_t func, void *data);
+int
+strv_for_each(const char **strv, strv_foreach_callback_t func, void *data);
+int
+strv_for_each_n(const char **strv,
+		size_t max,
+		strv_foreach_callback_t func,
+		void *data);
 
 static inline void
-strv_free(char **strv) {
+strv_free(char **strv)
+{
 	char **s = strv;
 
 	if (!strv)
@@ -352,11 +362,11 @@ strv_free(char **strv) {
 
 	while (*s != NULL) {
 		free(*s);
-		*s = (char*)0x1; /* detect use-after-free */
+		*s = (char *)0x1; /* detect use-after-free */
 		s++;
 	}
 
-	free (strv);
+	free(strv);
 }
 
 DEFINE_TRIVIAL_CLEANUP_FUNC(char **, strv_free);
@@ -376,9 +386,7 @@ DEFINE_TRIVIAL_CLEANUP_FUNC(char **, strv_free);
  * @return true when parsed successfully otherwise false
  */
 static inline double *
-double_array_from_string(const char *in,
-			 const char *separator,
-			 size_t *length)
+double_array_from_string(const char *in, const char *separator, size_t *length)
 {
 	assert(in != NULL);
 	assert(separator != NULL);
@@ -411,7 +419,7 @@ out:
 	return result;
 }
 
-struct key_value_str{
+struct key_value_str {
 	char *key;
 	char *value;
 };
@@ -430,8 +438,8 @@ kv_double_from_string(const char *string,
 {
 	struct key_value_double *result = NULL;
 
-	if (!pair_separator || pair_separator[0] == '\0' ||
-	    !kv_separator || kv_separator[0] == '\0')
+	if (!pair_separator || pair_separator[0] == '\0' || !kv_separator ||
+	    kv_separator[0] == '\0')
 		return -1;
 
 	size_t npairs;
@@ -447,8 +455,7 @@ kv_double_from_string(const char *string,
 		char **kv = strv_from_string(pair, kv_separator, &nelem);
 		double k, v;
 
-		if (!kv || nelem != 2 ||
-		    !safe_atod(kv[0], &k) ||
+		if (!kv || nelem != 2 || !safe_atod(kv[0], &k) ||
 		    !safe_atod(kv[1], &v)) {
 			strv_free(kv);
 			goto error;

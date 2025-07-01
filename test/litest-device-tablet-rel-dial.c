@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
 	{ .type = -1, .code = -1 },
@@ -67,15 +67,14 @@ static int events[] = {
 /* clang-format on */
 
 TEST_DEVICE(LITEST_TABLET_REL_DIAL_PAD,
-	.features = LITEST_TABLET_PAD | LITEST_DIAL,
-	.interface = &interface,
+	    .features = LITEST_TABLET_PAD | LITEST_DIAL,
+	    .interface = &interface,
 
-	.name = "Generic Rel DialPad",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.udev_properties = {
-		{ "ID_INPUT_TABLET_PAD", "1" },
-		{ NULL },
-	},
-)
+	    .name = "Generic Rel DialPad",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .udev_properties = {
+		    { "ID_INPUT_TABLET_PAD", "1" },
+		    { NULL },
+	    }, )
