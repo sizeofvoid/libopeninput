@@ -477,6 +477,7 @@ END_TEST
 
 TEST_COLLECTION(trackpoint)
 {
+	/* clang-format off */
 	litest_add(trackpoint_middlebutton, LITEST_POINTINGSTICK, LITEST_ANY);
 	litest_add(trackpoint_middlebutton_noscroll, LITEST_POINTINGSTICK, LITEST_ANY);
 	litest_add(trackpoint_scroll, LITEST_POINTINGSTICK, LITEST_ANY);
@@ -490,4 +491,5 @@ TEST_COLLECTION(trackpoint)
 	litest_add(trackpoint_palmdetect_resume_touch, LITEST_POINTINGSTICK, LITEST_ANY);
 	litest_add(trackpoint_palmdetect_require_min_events, LITEST_POINTINGSTICK, LITEST_ANY);
 	litest_add(trackpoint_palmdetect_require_min_events_timeout, LITEST_POINTINGSTICK, LITEST_ANY);
+	/* clang-format on */
 }

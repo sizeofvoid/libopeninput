@@ -1491,6 +1491,7 @@ END_TEST
 
 TEST_COLLECTION(quirks)
 {
+	/* clang-format off */
 	litest_add_deviceless(quirks_invalid_dir);
 	litest_add_deviceless(quirks_empty_dir);
 
@@ -1553,4 +1554,5 @@ TEST_COLLECTION(quirks)
 
 	litest_add_deviceless(quirks_call_NULL);
 	litest_add_deviceless(quirks_ctx_ref);
+	/* clang-format on */
 }

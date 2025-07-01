@@ -868,6 +868,7 @@ END_TEST
 
 TEST_COLLECTION(misc)
 {
+	/* clang-format off */
 	litest_add_no_device(event_conversion_device_notify);
 	litest_add_for_device(event_conversion_pointer, LITEST_MOUSE);
 	litest_add_for_device(event_conversion_pointer_abs, LITEST_XEN_VIRTUAL_POINTER);
@@ -888,4 +889,5 @@ TEST_COLLECTION(misc)
 	litest_add_no_device(fd_no_event_leak);
 
 	litest_add_for_device(udev_absinfo_override, LITEST_ABSINFO_OVERRIDE);
+	/* clang-format on */
 }

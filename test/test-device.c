@@ -1680,6 +1680,7 @@ END_TEST
 
 TEST_COLLECTION(device)
 {
+	/* clang-format off */
 	struct range abs_range = range_init_exclusive(0, ABS_MISC);
 	struct range abs_mt_range = range_init_exclusive(ABS_MT_SLOT + 1, ABS_CNT);
 
@@ -1764,4 +1765,5 @@ TEST_COLLECTION(device)
 	litest_add(device_seat_phys_name, LITEST_ANY, LITEST_ANY);
 
 	litest_add(device_button_down_remove, LITEST_BUTTON, LITEST_ANY);
+	/* clang-format off */
 }

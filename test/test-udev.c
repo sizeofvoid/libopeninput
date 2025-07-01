@@ -584,6 +584,7 @@ END_TEST
 
 TEST_COLLECTION(udev)
 {
+	/* clang-format off */
 	litest_add_no_device(udev_create_NULL);
 	litest_add_no_device(udev_create_seat0);
 	litest_add_no_device(udev_create_empty_seat);
@@ -605,4 +606,5 @@ TEST_COLLECTION(udev)
 	litest_add_for_device(udev_path_remove_device, LITEST_SYNAPTICS_CLICKPAD_X220);
 
 	litest_add_no_device(udev_ignore_device);
+	/* clang-format on */
 }

@@ -2232,6 +2232,7 @@ END_TEST
 
 TEST_COLLECTION(touchpad_buttons)
 {
+	/* clang-format off */
 	litest_add(touchpad_button, LITEST_TOUCHPAD, LITEST_CLICKPAD);
 
 	litest_add(touchpad_1fg_clickfinger, LITEST_CLICKPAD, LITEST_ANY);
@@ -2310,4 +2311,5 @@ TEST_COLLECTION(touchpad_buttons)
 	litest_add(clickpad_middleemulation_click_disable_while_down, LITEST_CLICKPAD, LITEST_ANY);
 
 	litest_add_no_device(touchpad_non_clickpad_detection);
+	/* clang-format on */
 }

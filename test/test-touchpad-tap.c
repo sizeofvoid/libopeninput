@@ -5619,6 +5619,7 @@ END_TEST
 
 TEST_COLLECTION(touchpad_tap)
 {
+	/* clang-format off */
 	litest_add(touchpad_1fg_tap, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_with_parameters(params, "fingers_1st", 'i', 3, 1, 2, 3,
 				       "fingers_2nd", 'i', 3, 1, 2, 3) {
@@ -5688,10 +5689,12 @@ TEST_COLLECTION(touchpad_tap)
 
 	litest_add(clickpad_1fg_tap_click, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(clickpad_2fg_tap_click, LITEST_CLICKPAD, LITEST_SINGLE_TOUCH|LITEST_APPLE_CLICKPAD);
+	/* clang-format on */
 }
 
 TEST_COLLECTION(touchpad_tap_drag)
 {
+	/* clang-format off */
 	litest_add(touchpad_drag_lock_default_disabled, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_drag_lock_default_unavailable, LITEST_ANY, LITEST_TOUCHPAD);
 
@@ -5743,10 +5746,12 @@ TEST_COLLECTION(touchpad_tap_drag)
 	litest_add(touchpad_drag_config_invalid, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_drag_config_unsupported, LITEST_ANY, LITEST_TOUCHPAD);
 	litest_add(touchpad_drag_config_enabledisable, LITEST_TOUCHPAD, LITEST_ANY);
+	/* clang-format on */
 }
 
 TEST_COLLECTION(touchpad_tap_palm)
 {
+	/* clang-format off */
 	litest_add(touchpad_tap_palm_on_idle, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_tap_palm_on_touch, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_tap_palm_on_touch_hold_timeout, LITEST_TOUCHPAD, LITEST_ANY);
@@ -5796,4 +5801,5 @@ TEST_COLLECTION(touchpad_tap_palm)
 	litest_add(touchpad_tap_palm_click_then_tap, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_tap_palm_dwt_tap, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_tap_palm_3fg_start, LITEST_TOUCHPAD, LITEST_ANY);
+	/* clang-format on */
 }

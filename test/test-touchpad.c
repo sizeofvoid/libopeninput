@@ -7181,6 +7181,7 @@ END_TEST
 
 TEST_COLLECTION(touchpad)
 {
+	/* clang-format off */
 	litest_add(touchpad_1fg_motion, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_2fg_no_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 
@@ -7310,10 +7311,12 @@ TEST_COLLECTION(touchpad)
 	litest_add_for_device(touchpad_end_start_touch, LITEST_WACOM_INTUOS5_FINGER);
 
 	litest_add(touchpad_fuzz, LITEST_TOUCHPAD, LITEST_ANY);
+	/* clang-format on */
 }
 
 TEST_COLLECTION(touchpad_dwt)
 {
+	/* clang-format off */
 	litest_add(touchpad_dwt, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add_for_device(touchpad_dwt_ext_and_int_keyboard, LITEST_SYNAPTICS_I2C);
 	litest_add(touchpad_dwt_enable_touch, LITEST_TOUCHPAD, LITEST_ANY);
@@ -7357,10 +7360,12 @@ TEST_COLLECTION(touchpad_dwt)
 		litest_add_parametrized_for_device(touchpad_dwt_multiple_keyboards_remove, LITEST_SYNAPTICS_I2C, params);
 	}
 	litest_add_for_device(touchpad_dwt_remove_before_keyboard, LITEST_KEYBOARD);
+	/* clang-format on */
 }
 
 TEST_COLLECTION(touchpad_palm)
 {
+	/* clang-format off */
 	litest_add(touchpad_palm_detect_at_edge, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_palm_detect_at_top, LITEST_TOUCHPAD, LITEST_TOPBUTTONPAD);
 	litest_add(touchpad_palm_detect_at_bottom_corners, LITEST_TOUCHPAD, LITEST_CLICKPAD);
@@ -7404,5 +7409,5 @@ TEST_COLLECTION(touchpad_palm)
 	litest_add(touchpad_palm_clickfinger_pressure_2fg, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_palm_clickfinger_size, LITEST_CLICKPAD, LITEST_ANY);
 	litest_add(touchpad_palm_clickfinger_size_2fg, LITEST_CLICKPAD, LITEST_ANY);
-
+	/* clang-format on */
 }

@@ -1330,6 +1330,7 @@ END_TEST
 
 TEST_COLLECTION(touch)
 {
+	/* clang-format off */
 	litest_add(touch_frame_events, LITEST_TOUCH, LITEST_ANY);
 	litest_add(touch_downup_no_motion, LITEST_TOUCH, LITEST_ANY);
 	litest_add(touch_downup_no_motion, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
@@ -1381,4 +1382,5 @@ TEST_COLLECTION(touch)
 	litest_add(touch_palm_detect_tool_palm_2fg, LITEST_TOUCH, LITEST_SINGLE_TOUCH);
 	litest_add(touch_palm_detect_tool_palm_on_off_2fg, LITEST_TOUCH, LITEST_SINGLE_TOUCH);
 	litest_add(touch_palm_detect_tool_palm_keep_type_2fg, LITEST_TOUCH, LITEST_ANY);
+	/* clang-format on */
 }

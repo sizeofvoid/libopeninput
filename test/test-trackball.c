@@ -256,6 +256,7 @@ END_TEST
 
 TEST_COLLECTION(trackball)
 {
+	/* clang-format off */
 	litest_add(trackball_rotation_config_defaults, LITEST_TRACKBALL, LITEST_ANY);
 	litest_add(trackball_rotation_config_invalid_range, LITEST_TRACKBALL, LITEST_ANY);
 	litest_add(trackball_rotation_config_no_rotation, LITEST_POINTINGSTICK, LITEST_ANY);
@@ -264,4 +265,5 @@ TEST_COLLECTION(trackball)
 	litest_add(trackball_rotation_x, LITEST_TRACKBALL, LITEST_ANY);
 	litest_add(trackball_rotation_y, LITEST_TRACKBALL, LITEST_ANY);
 	litest_add(trackball_rotation_accel, LITEST_TRACKBALL, LITEST_ANY);
+	/* clang-format on */
 }

@@ -570,6 +570,7 @@ END_TEST
 
 TEST_COLLECTION(totem)
 {
+	/* clang-format off */
 	litest_add(totem_type, LITEST_TOTEM, LITEST_ANY);
 	litest_add(totem_axes, LITEST_TOTEM, LITEST_ANY);
 	litest_add(totem_proximity_in_out, LITEST_TOTEM, LITEST_ANY);
@@ -586,4 +587,5 @@ TEST_COLLECTION(totem)
 	litest_add(totem_arbitration_below, LITEST_TOTEM, LITEST_ANY);
 	litest_add(totem_arbitration_during, LITEST_TOTEM, LITEST_ANY);
 	litest_add(totem_arbitration_outside_rect, LITEST_TOTEM, LITEST_ANY);
+	/* clang-format on */
 }

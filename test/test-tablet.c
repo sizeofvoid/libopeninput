@@ -7465,6 +7465,7 @@ END_TEST
 
 TEST_COLLECTION(tablet)
 {
+	/* clang-format off */
 	litest_add(tool_ref, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add(tool_user_data, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add(tool_capability, LITEST_TABLET, LITEST_ANY);
@@ -7625,10 +7626,12 @@ TEST_COLLECTION(tablet)
 			       "with-motion-events", 'b') {
 		litest_add_parametrized(tablet_eraser_button_disabled, LITEST_TABLET, LITEST_TOTEM|LITEST_FORCED_PROXOUT, params);
 	}
+	/* clang-format on */
 }
 
 TEST_COLLECTION(tablet_left_handed)
 {
+	/* clang-format off */
 	litest_add_for_device(left_handed, LITEST_WACOM_INTUOS5_PEN);
 	litest_add_for_device(left_handed_tilt, LITEST_WACOM_INTUOS5_PEN);
 	litest_add_for_device(left_handed_mouse_rotation, LITEST_WACOM_INTUOS5_PEN);
@@ -7647,4 +7650,5 @@ TEST_COLLECTION(tablet_left_handed)
 		litest_add_parametrized(tablet_rotation_left_handed_add_touchpad, LITEST_TABLET, LITEST_ANY, params);
 		litest_add_parametrized(tablet_rotation_left_handed_add_tablet, LITEST_TOUCHPAD, LITEST_ANY, params);
 	}
+	/* clang-format on */
 }

@@ -1363,6 +1363,7 @@ END_TEST
 
 TEST_COLLECTION(switch)
 {
+	/* clang-format off */
 	litest_add(switch_has_cap, LITEST_SWITCH, LITEST_ANY);
 	litest_add(switch_has_lid_switch, LITEST_SWITCH, LITEST_ANY);
 	litest_add(switch_has_tablet_mode_switch, LITEST_SWITCH, LITEST_ANY);
@@ -1403,4 +1404,5 @@ TEST_COLLECTION(switch)
 	litest_add(tablet_mode_disable_trackpoint_on_init, LITEST_SWITCH, LITEST_ANY);
 
 	litest_add(dock_toggle, LITEST_SWITCH, LITEST_ANY);
+	/* clang-format on */
 }

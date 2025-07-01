@@ -477,6 +477,7 @@ END_TEST
 
 TEST_COLLECTION(keyboard)
 {
+	/* clang-format off */
 	litest_add_no_device(keyboard_seat_key_count);
 	litest_add_no_device(keyboard_ignore_no_pressed_release);
 	litest_add_no_device(keyboard_key_auto_release);
@@ -490,4 +491,5 @@ TEST_COLLECTION(keyboard)
 	litest_add(keyboard_leds, LITEST_ANY, LITEST_ANY);
 
 	litest_add(keyboard_no_scroll, LITEST_KEYS, LITEST_WHEEL);
+	/* clang-format on */
 }

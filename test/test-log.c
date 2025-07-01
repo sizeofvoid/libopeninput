@@ -183,6 +183,7 @@ END_TEST
 
 TEST_COLLECTION(log)
 {
+	/* clang-format off */
 	litest_add_deviceless(log_default_priority);
 	litest_add_deviceless(log_handler_invoked);
 	litest_add_deviceless(log_handler_NULL);
@@ -193,4 +194,5 @@ TEST_COLLECTION(log)
 		litest_add_parametrized(log_axisrange_warning, LITEST_TOUCH, LITEST_PROTOCOL_A, params);
 		litest_add_parametrized(log_axisrange_warning, LITEST_TOUCHPAD, LITEST_ANY, params);
 	}
+	/* clang-format on */
 }

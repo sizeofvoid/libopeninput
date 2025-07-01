@@ -1024,6 +1024,7 @@ END_TEST
 
 TEST_COLLECTION(path)
 {
+	/* clang-format off */
 	litest_add_no_device(path_create_NULL);
 	litest_add_no_device(path_create_invalid);
 	litest_add_no_device(path_create_invalid_file);
@@ -1051,4 +1052,5 @@ TEST_COLLECTION(path)
 	litest_add_for_device(path_udev_assign_seat, LITEST_SYNAPTICS_CLICKPAD_X220);
 
 	litest_add_no_device(path_ignore_device);
+	/* clang-format on */
 }

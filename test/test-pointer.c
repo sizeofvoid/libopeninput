@@ -3695,6 +3695,7 @@ END_TEST
 
 TEST_COLLECTION(pointer)
 {
+	/* clang-format off */
 	litest_add(pointer_motion_relative, LITEST_RELATIVE, LITEST_POINTINGSTICK);
 	litest_add_for_device(pointer_motion_relative_zero, LITEST_MOUSE);
 	litest_with_parameters(params,
@@ -3824,4 +3825,5 @@ TEST_COLLECTION(pointer)
 	litest_add(debounce_spurious_switch_to_otherbutton, LITEST_BUTTON, LITEST_TOUCHPAD|LITEST_NO_DEBOUNCE);
 	litest_add_no_device(debounce_remove_device_button_down);
 	litest_add_no_device(debounce_remove_device_button_up);
+	/* clang-format off */
 }

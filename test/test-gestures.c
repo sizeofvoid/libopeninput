@@ -2226,6 +2226,7 @@ END_TEST
 
 TEST_COLLECTION(gestures)
 {
+	/* clang-format off */
 	litest_add(gestures_cap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add(gestures_nocap, LITEST_ANY, LITEST_TOUCHPAD);
 
@@ -2308,4 +2309,5 @@ TEST_COLLECTION(gestures)
 	/* Timing-sensitive test, valgrind is too slow */
 	if (!RUNNING_ON_VALGRIND)
 		litest_add(gestures_swipe_3fg_unaccel, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
+	/* clang-format on */
 }

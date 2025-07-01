@@ -1181,6 +1181,7 @@ END_TEST
 
 TEST_COLLECTION(pad)
 {
+	/* clang-format off */
 	litest_add(pad_cap, LITEST_TABLET_PAD, LITEST_ANY);
 	litest_add(pad_no_cap, LITEST_ANY, LITEST_TABLET_PAD);
 
@@ -1223,4 +1224,5 @@ TEST_COLLECTION(pad)
 	litest_add(pad_keys, LITEST_TABLET_PAD, LITEST_ANY);
 
 	litest_add(pad_send_events_disabled, LITEST_TABLET_PAD, LITEST_ANY);
+	/* clang-format on */
 }
