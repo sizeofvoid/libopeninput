@@ -53,6 +53,7 @@
 #include <termios.h>
 #endif
 
+#include <libevdev/libevdev.h>
 #include <valgrind/valgrind.h>
 
 #include "util-files.h"
@@ -65,6 +66,7 @@
 
 #include "util-backtrace.h"
 #include "util-libinput.h"
+#include "util-mem.h"
 
 #include <linux/kd.h>
 
