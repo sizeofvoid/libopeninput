@@ -6566,8 +6566,6 @@ START_TEST(tablet_rotation_left_handed)
 	enum litest_device_type other;
 	struct litest_device *finger;
 	struct libinput *li = tablet->libinput;
-	bool tablet_from, touch_from, tablet_to, touch_to;
-	bool enabled_from, enabled_to;
 
 	other = paired_device(tablet);
 	if (other == LITEST_NO_DEVICE)
@@ -6579,14 +6577,13 @@ START_TEST(tablet_rotation_left_handed)
 	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
 		goto out;
 
-	litest_test_param_fetch(test_env->params,
-				"tablet_from", 'b', &tablet_from,
-				"touch_from", 'b', &touch_from,
-				"tablet_to", 'b', &tablet_to,
-				"touch_to", 'b', &touch_to);
+	bool tablet_from = litest_test_param_get_bool(test_env->params, "tablet_from");
+	bool touch_from = litest_test_param_get_bool(test_env->params, "touch_from");
+	bool tablet_to = litest_test_param_get_bool(test_env->params, "tablet_to");
+	bool touch_to = litest_test_param_get_bool(test_env->params, "touch_to");
 
-	enabled_from = tablet_from || touch_from;
-	enabled_to   = tablet_to   || touch_to;
+	bool enabled_from = tablet_from || touch_from;
+	bool enabled_to = tablet_to || touch_to;
 
 	litest_disable_hold_gestures(finger->libinput_device);
 	libinput_device_config_left_handed_set(tablet->libinput_device,
@@ -6616,7 +6613,6 @@ START_TEST(tablet_rotation_left_handed_configuration)
 	enum litest_device_type other;
 	struct litest_device *finger;
 	struct libinput *li = tablet->libinput;
-	bool tablet_from, touch_from, tablet_to, touch_to;
 	bool tablet_enabled, touch_enabled;
 	struct libinput_device *tablet_dev, *touch_dev;
 
@@ -6630,11 +6626,10 @@ START_TEST(tablet_rotation_left_handed_configuration)
 	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
 		goto out;
 
-	litest_test_param_fetch(test_env->params,
-				"tablet_from", 'b', &tablet_from,
-				"touch_from", 'b', &touch_from,
-				"tablet_to", 'b', &tablet_to,
-				"touch_to", 'b', &touch_to);
+	bool tablet_from = litest_test_param_get_bool(test_env->params, "tablet_from");
+	bool touch_from = litest_test_param_get_bool(test_env->params, "touch_from");
+	bool tablet_to = litest_test_param_get_bool(test_env->params, "tablet_to");
+	bool touch_to = litest_test_param_get_bool(test_env->params, "touch_to");
 
 	tablet_dev = tablet->libinput_device;
 	touch_dev = finger->libinput_device;
@@ -6670,8 +6665,6 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 	enum litest_device_type other;
 	struct litest_device *finger;
 	struct libinput *li = tablet->libinput;
-	bool tablet_from, touch_from, tablet_to, touch_to;
-	bool enabled_from, enabled_to;
 	double x, y;
 	double tx, ty;
 
@@ -6685,14 +6678,13 @@ START_TEST(tablet_rotation_left_handed_while_in_prox)
 	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
 		goto out;
 
-	litest_test_param_fetch(test_env->params,
-				"tablet_from", 'b', &tablet_from,
-				"touch_from", 'b', &touch_from,
-				"tablet_to", 'b', &tablet_to,
-				"touch_to", 'b', &touch_to);
+	bool tablet_from = litest_test_param_get_bool(test_env->params, "tablet_from");
+	bool touch_from = litest_test_param_get_bool(test_env->params, "touch_from");
+	bool tablet_to = litest_test_param_get_bool(test_env->params, "tablet_to");
+	bool touch_to = litest_test_param_get_bool(test_env->params, "touch_to");
 
-	enabled_from = tablet_from || touch_from;
-	enabled_to   = tablet_to   || touch_to;
+	bool enabled_from = tablet_from || touch_from;
+	bool enabled_to = tablet_to || touch_to;
 
 	litest_disable_hold_gestures(finger->libinput_device);
 	libinput_device_config_left_handed_set(finger->libinput_device,
@@ -6770,9 +6762,6 @@ START_TEST(tablet_rotation_left_handed_while_touch_down)
 	enum litest_device_type other;
 	struct litest_device *finger;
 	struct libinput *li = tablet->libinput;
-	bool tablet_from, touch_from, tablet_to, touch_to;
-	bool enabled_from, enabled_to;
-
 	double x, y;
 
 	other = paired_device(tablet);
@@ -6785,14 +6774,13 @@ START_TEST(tablet_rotation_left_handed_while_touch_down)
 	if (libevdev_has_property(finger->evdev, INPUT_PROP_DIRECT))
 		goto out;
 
-	litest_test_param_fetch(test_env->params,
-				"tablet_from", 'b', &tablet_from,
-				"touch_from", 'b', &touch_from,
-				"tablet_to", 'b', &tablet_to,
-				"touch_to", 'b', &touch_to);
+	bool tablet_from = litest_test_param_get_bool(test_env->params, "tablet_from");
+	bool touch_from = litest_test_param_get_bool(test_env->params, "touch_from");
+	bool tablet_to = litest_test_param_get_bool(test_env->params, "tablet_to");
+	bool touch_to = litest_test_param_get_bool(test_env->params, "touch_to");
 
-	enabled_from = tablet_from || touch_from;
-	enabled_to   = tablet_to   || touch_to;
+	bool enabled_from = tablet_from || touch_from;
+	bool enabled_to = tablet_to || touch_to;
 
 	litest_disable_hold_gestures(finger->libinput_device);
 	libinput_device_config_left_handed_set(finger->libinput_device,
@@ -6839,21 +6827,18 @@ START_TEST(tablet_rotation_left_handed_add_touchpad)
 	enum litest_device_type other;
 	struct litest_device *finger;
 	struct libinput *li = tablet->libinput;
-	bool tablet_from, touch_from, tablet_to, touch_to;
-	bool enabled_from, enabled_to;
 
 	other = paired_device(tablet);
 	if (other == LITEST_NO_DEVICE)
 		return LITEST_NOT_APPLICABLE;
 
-	litest_test_param_fetch(test_env->params,
-				"tablet_from", 'b', &tablet_from,
-				"touch_from", 'b', &touch_from,
-				"tablet_to", 'b', &tablet_to,
-				"touch_to", 'b', &touch_to);
+	bool tablet_from = litest_test_param_get_bool(test_env->params, "tablet_from");
+	bool touch_from = litest_test_param_get_bool(test_env->params, "touch_from");
+	bool tablet_to = litest_test_param_get_bool(test_env->params, "tablet_to");
+	bool touch_to = litest_test_param_get_bool(test_env->params, "touch_to");
 
-	enabled_from = tablet_from || touch_from;
-	enabled_to   = tablet_to   || touch_to;
+	bool enabled_from = tablet_from || touch_from;
+	bool enabled_to = tablet_to || touch_to;
 
 	/* change left-handed before touchpad appears */
 
