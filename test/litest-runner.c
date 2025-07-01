@@ -408,11 +408,11 @@ litest_runner_test_collect_child(struct litest_runner_test *t)
 			case LITEST_TIMEOUT:
 			case LITEST_SYSTEM_ERROR:
 				break;
-			/* if a test execve's itself allow for the normal
-			 * exit codes to map to the results */
 			#pragma GCC diagnostic push
 			#pragma GCC diagnostic ignored "-Wswitch"
 			case 0:
+				/* if a test execve's itself allow for the normal
+				 * exit codes to map to the results */
 				t->result = LITEST_PASS;
 				break;
 			#pragma GCC diagnostic pop
