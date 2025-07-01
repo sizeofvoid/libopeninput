@@ -1780,11 +1780,8 @@ START_TEST(gestures_3fg_drag)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	uint32_t finger_count;
-	bool tap_enabled;
-	litest_test_param_fetch(test_env->params,
-				"fingers", 'u', &finger_count,
-				"tap-enabled", 'b', &tap_enabled);
+	uint32_t finger_count = litest_test_param_get_u32(test_env->params, "fingers");
+	bool tap_enabled = litest_test_param_get_bool(test_env->params, "tap-enabled");
 
 	if (litest_slot_count(dev) < 3)
 		return LITEST_NOT_APPLICABLE;
@@ -1846,13 +1843,9 @@ START_TEST(gestures_3fg_drag_lock_resume_3fg_motion)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	uint32_t finger_count;
-	bool tap_enabled;
-	bool wait_for_timeout;
-	litest_test_param_fetch(test_env->params,
-				"fingers", 'u', &finger_count,
-				"tap-enabled", 'b', &tap_enabled,
-				"wait", 'b', &wait_for_timeout);
+	uint32_t finger_count = litest_test_param_get_u32(test_env->params, "fingers");
+	bool tap_enabled = litest_test_param_get_bool(test_env->params, "tap-enabled");
+	bool wait_for_timeout = litest_test_param_get_bool(test_env->params, "wait");
 
 	if (litest_slot_count(dev) < 3)
 		return LITEST_NOT_APPLICABLE;
@@ -1935,13 +1928,9 @@ START_TEST(gestures_3fg_drag_lock_resume_3fg_release_no_motion)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	uint32_t finger_count;
-	bool tap_enabled;
-	bool wait_for_timeout;
-	litest_test_param_fetch(test_env->params,
-				"fingers", 'u', &finger_count,
-				"tap-enabled", 'b', &tap_enabled,
-				"wait", 'b', &wait_for_timeout);
+	uint32_t finger_count = litest_test_param_get_u32(test_env->params, "fingers");
+	bool tap_enabled = litest_test_param_get_bool(test_env->params, "tap-enabled");
+	bool wait_for_timeout = litest_test_param_get_bool(test_env->params, "wait");
 
 	/* tap-enabled for 4fg finger count doesn't make a difference */
 	bool expect_tap = finger_count <= 3 && tap_enabled && !wait_for_timeout;
@@ -2028,11 +2017,8 @@ START_TEST(gestures_3fg_drag_lock_resume_1fg_motion)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	uint32_t finger_count;
-	bool tap_enabled;
-	litest_test_param_fetch(test_env->params,
-				"fingers", 'u', &finger_count,
-				"tap-enabled", 'b', &tap_enabled);
+	uint32_t finger_count = litest_test_param_get_u32(test_env->params, "fingers");
+	bool tap_enabled = litest_test_param_get_bool(test_env->params, "tap-enabled");
 
 	if (litest_slot_count(dev) < 3)
 		return LITEST_NOT_APPLICABLE;
@@ -2103,11 +2089,8 @@ START_TEST(gestures_3fg_drag_lock_resume_2fg_scroll)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 
-	uint32_t finger_count;
-	bool tap_enabled;
-	litest_test_param_fetch(test_env->params,
-				"fingers", 'u', &finger_count,
-				"tap-enabled", 'b', &tap_enabled);
+	uint32_t finger_count = litest_test_param_get_u32(test_env->params, "fingers");
+	bool tap_enabled = litest_test_param_get_bool(test_env->params, "tap-enabled");
 
 	if (litest_slot_count(dev) < 3)
 		return LITEST_NOT_APPLICABLE;
@@ -2297,29 +2280,27 @@ TEST_COLLECTION(gestures)
 	litest_add(gestures_hold_and_motion_before_timeout, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 	litest_add(gestures_hold_and_motion_after_timeout, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH);
 
-	{
-		struct litest_parameters *params = litest_parameters_new("fingers", 'u', 2, 3, 4,
-									 "tap-enabled", 'b');
+	litest_with_parameters(params,
+			       "fingers", 'u', 2, 3, 4,
+			       "tap-enabled", 'b') {
 		litest_add_parametrized(gestures_3fg_drag, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
-		litest_parameters_unref(params);
 	}
 
-	{
-		struct litest_parameters *params = litest_parameters_new("fingers", 'u', 2, 3, 4,
-									 "tap-enabled", 'b',
-									 "wait", 'b');
+	litest_with_parameters(params,
+			       "fingers", 'u', 2, 3, 4,
+			       "tap-enabled", 'b',
+			       "wait", 'b') {
 		litest_add_parametrized(gestures_3fg_drag_lock_resume_3fg_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 		litest_add_parametrized(gestures_3fg_drag_lock_resume_3fg_release_no_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
-		litest_parameters_unref(params);
 	}
 
-	{
-		struct litest_parameters *params = litest_parameters_new("fingers", 'u', 2, 3, 4,
-									 "tap-enabled", 'b');
+	litest_with_parameters(params,
+			       "fingers", 'u', 2, 3, 4,
+			       "tap-enabled", 'b') {
 		litest_add_parametrized(gestures_3fg_drag_lock_resume_1fg_motion, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 		litest_add_parametrized(gestures_3fg_drag_lock_resume_2fg_scroll, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
-		litest_parameters_unref(params);
 	}
+
 	litest_with_parameters(params, "fingers", 'i', 2, 3, 4) {
 		litest_add_parametrized(gestures_3fg_drag_lock_resume_1fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 	}
