@@ -3403,6 +3403,8 @@ static void
 litest_pad_events(struct litest_device *d, struct input_event *evs, double value)
 {
 	while (evs && (int16_t)evs->type != -1 && (int16_t)evs->code != -1) {
+		if (evs->type == EV_SYN && evs->code == SYN_REPORT)
+			value = 0;
 		value = auto_assign_pad_value(d, evs, value);
 		litest_event(d, evs->type, evs->code, value);
 		evs++;
