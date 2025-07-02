@@ -250,42 +250,30 @@ static void
 wheel_queue_scroll_events(struct plugin_device *pd, struct evdev_frame *frame)
 {
 	if (pd->hi_res.y != 0) {
-		struct evdev_event e = {
-			.usage = evdev_usage_from(EVDEV_REL_WHEEL_HI_RES),
-			.value = pd->hi_res.y,
-		};
-
-		evdev_frame_append(frame, &e, 1);
+		evdev_frame_append_one(frame,
+				       evdev_usage_from(EVDEV_REL_WHEEL_HI_RES),
+				       pd->hi_res.y);
 		pd->hi_res.y = 0;
 	}
 
 	if (pd->lo_res.y != 0) {
-		struct evdev_event e = {
-			.usage = evdev_usage_from(EVDEV_REL_WHEEL),
-			.value = pd->lo_res.y,
-		};
-
-		evdev_frame_append(frame, &e, 1);
+		evdev_frame_append_one(frame,
+				       evdev_usage_from(EVDEV_REL_WHEEL),
+				       pd->lo_res.y);
 		pd->lo_res.y = 0;
 	}
 
 	if (pd->hi_res.x != 0) {
-		struct evdev_event e = {
-			.usage = evdev_usage_from(EVDEV_REL_HWHEEL_HI_RES),
-			.value = pd->hi_res.x,
-		};
-
-		evdev_frame_append(frame, &e, 1);
+		evdev_frame_append_one(frame,
+				       evdev_usage_from(EVDEV_REL_HWHEEL_HI_RES),
+				       pd->hi_res.x);
 		pd->hi_res.x = 0;
 	}
 
 	if (pd->lo_res.x != 0) {
-		struct evdev_event e = {
-			.usage = evdev_usage_from(EVDEV_REL_HWHEEL),
-			.value = pd->lo_res.x,
-		};
-
-		evdev_frame_append(frame, &e, 1);
+		evdev_frame_append_one(frame,
+				       evdev_usage_from(EVDEV_REL_HWHEEL),
+				       pd->lo_res.x);
 		pd->lo_res.x = 0;
 	}
 }

@@ -250,18 +250,15 @@ debounce_notify_button(struct plugin_device *device,
 		       struct evdev_frame *frame,
 		       enum libinput_button_state state)
 {
-	const struct evdev_event button = {
-		.usage = device->button_usage,
-		.value = state == LIBINPUT_BUTTON_STATE_PRESSED ? 1 : 0,
-	};
-
 	_unref_(evdev_frame) *button_frame = NULL;
 	if (frame == NULL) {
 		button_frame = evdev_frame_new(2);
 		frame = button_frame;
 	}
 
-	evdev_frame_append(frame, &button, 1);
+	evdev_frame_append_one(frame,
+			       device->button_usage,
+			       state == LIBINPUT_BUTTON_STATE_PRESSED ? 1 : 0);
 	evdev_frame_set_time(frame, device->button_time);
 
 	libinput_plugin_prepend_evdev_frame(device->parent->plugin,

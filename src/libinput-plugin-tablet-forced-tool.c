@@ -152,13 +152,9 @@ forced_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 	 * stylus is def. in proximity). We don't do this for pure
 	 * button events because we discard those.
 	 */
-	const struct evdev_event prox = {
-		.usage = evdev_usage_from(EVDEV_BTN_TOOL_PEN),
-		.value = 1,
-	};
-	evdev_frame_append(frame,
-			   &prox,
-			   1); /* libinput's event frame will have space */
+	evdev_frame_append_one(frame,
+			       evdev_usage_from(EVDEV_BTN_TOOL_PEN),
+			       1); /* libinput's event frame will have space */
 }
 
 static void
