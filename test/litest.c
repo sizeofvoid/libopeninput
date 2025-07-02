@@ -2341,6 +2341,9 @@ udev_wait_for_device_event(struct udev_monitor *udev_monitor,
 
 		udev_device = udev_monitor_receive_device(udev_monitor);
 		if (!udev_device) {
+			if (errno == EAGAIN)
+				continue;
+
 			litest_abort_msg(
 				"Failed to receive udev device from monitor: %s (%d)",
 				strerror(errno),
