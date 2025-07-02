@@ -3399,30 +3399,26 @@ auto_assign_pad_value(struct litest_device *dev, struct input_event *ev, double 
 	}
 }
 
+static void
+litest_pad_events(struct litest_device *d, struct input_event *evs, double value)
+{
+	while (evs && (int16_t)evs->type != -1 && (int16_t)evs->code != -1) {
+		value = auto_assign_pad_value(d, evs, value);
+		litest_event(d, evs->type, evs->code, value);
+		evs++;
+	}
+}
+
 void
 litest_pad_ring_start(struct litest_device *d, double value)
 {
-	struct input_event *ev;
-
-	ev = d->interface->pad_ring_start_events;
-	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
-		value = auto_assign_pad_value(d, ev, value);
-		litest_event(d, ev->type, ev->code, value);
-		ev++;
-	}
+	litest_pad_events(d, d->interface->pad_ring_start_events, value);
 }
 
 void
 litest_pad_ring_change(struct litest_device *d, double value)
 {
-	struct input_event *ev;
-
-	ev = d->interface->pad_ring_change_events;
-	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
-		value = auto_assign_pad_value(d, ev, value);
-		litest_event(d, ev->type, ev->code, value);
-		ev++;
-	}
+	litest_pad_events(d, d->interface->pad_ring_change_events, value);
 }
 
 void
@@ -3440,27 +3436,13 @@ litest_pad_ring_end(struct litest_device *d)
 void
 litest_pad_strip_start(struct litest_device *d, double value)
 {
-	struct input_event *ev;
-
-	ev = d->interface->pad_strip_start_events;
-	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
-		value = auto_assign_pad_value(d, ev, value);
-		litest_event(d, ev->type, ev->code, value);
-		ev++;
-	}
+	litest_pad_events(d, d->interface->pad_strip_start_events, value);
 }
 
 void
 litest_pad_strip_change(struct litest_device *d, double value)
 {
-	struct input_event *ev;
-
-	ev = d->interface->pad_strip_change_events;
-	while (ev && (int16_t)ev->type != -1 && (int16_t)ev->code != -1) {
-		value = auto_assign_pad_value(d, ev, value);
-		litest_event(d, ev->type, ev->code, value);
-		ev++;
-	}
+	litest_pad_events(d, d->interface->pad_strip_change_events, value);
 }
 
 void
