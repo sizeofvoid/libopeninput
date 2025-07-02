@@ -143,6 +143,16 @@ variables:
   interruptible: true
   dependencies: []
 
+.policy-retry-on-failure:
+  retry:
+    max: 1
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+  # cancel run when a newer version is pushed to the branch
+  interruptible: true
+  dependencies: []
+
 .default_artifacts:
   artifacts:
     name: "meson-logs-$CI_JOB_NAME"
@@ -765,6 +775,7 @@ vm-valgrind-touchpad:
   stage: valgrind
   extends:
     - vm-touchpad
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -777,6 +788,7 @@ vm-valgrind-touchpad_palm:
   stage: valgrind
   extends:
     - vm-touchpad_palm
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -789,6 +801,7 @@ vm-valgrind-touchpad_dwt:
   stage: valgrind
   extends:
     - vm-touchpad_dwt
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -801,6 +814,7 @@ vm-valgrind-tap:
   stage: valgrind
   extends:
     - vm-tap
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -813,6 +827,7 @@ vm-valgrind-tap-drag:
   stage: valgrind
   extends:
     - vm-tap-drag
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -825,6 +840,7 @@ vm-valgrind-tap-palm:
   stage: valgrind
   extends:
     - vm-tap-palm
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -837,6 +853,7 @@ vm-valgrind-touchpad-buttons:
   stage: valgrind
   extends:
     - vm-touchpad-buttons
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -849,6 +866,7 @@ vm-valgrind-tablet:
   stage: valgrind
   extends:
     - vm-tablet
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -861,6 +879,7 @@ vm-valgrind-tablet_left_handed:
   stage: valgrind
   extends:
     - vm-tablet_left_handed
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -873,6 +892,7 @@ vm-valgrind-gestures:
   stage: valgrind
   extends:
     - vm-gestures
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -885,6 +905,7 @@ vm-valgrind-backends:
   stage: valgrind
   extends:
     - vm-backends
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -897,6 +918,7 @@ vm-valgrind-misc:
   stage: valgrind
   extends:
     - vm-misc
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -909,6 +931,7 @@ vm-valgrind-other devices:
   stage: valgrind
   extends:
     - vm-other devices
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
@@ -921,6 +944,7 @@ vm-valgrind-pointer:
   stage: valgrind
   extends:
     - vm-pointer
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
     LITEST_JOBS: 0
