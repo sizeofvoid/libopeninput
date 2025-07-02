@@ -2340,7 +2340,12 @@ udev_wait_for_device_event(struct udev_monitor *udev_monitor,
 		const char *udev_action;
 
 		udev_device = udev_monitor_receive_device(udev_monitor);
-		litest_assert_notnull(udev_device);
+		if (!udev_device) {
+			litest_abort_msg(
+				"Failed to receive udev device from monitor: %s (%d)",
+				strerror(errno),
+				errno);
+		}
 		udev_action = udev_device_get_action(udev_device);
 		if (!udev_action || !streq(udev_action, udev_event)) {
 			continue;
