@@ -765,28 +765,23 @@ test_hi_res_wheel_event(struct litest_device *dev, int which, int v120_amount)
 START_TEST(pointer_scroll_wheel_hires)
 {
 	struct litest_device *dev = litest_current_device();
+	unsigned int axis = litest_test_param_get_i32(test_env->params, "axis");
 
-	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) &&
-	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
+	if (!libevdev_has_event_code(dev->evdev, EV_REL, axis))
 		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(dev->libinput);
 
-	for (int axis = REL_WHEEL_HI_RES; axis <= REL_HWHEEL_HI_RES; axis++) {
-		if (!libevdev_has_event_code(dev->evdev, EV_REL, axis))
-			continue;
+	test_hi_res_wheel_event(dev, axis, -120);
+	test_hi_res_wheel_event(dev, axis, 120);
 
-		test_hi_res_wheel_event(dev, axis, -120);
-		test_hi_res_wheel_event(dev, axis, 120);
+	test_hi_res_wheel_event(dev, axis, -5 * 120);
+	test_hi_res_wheel_event(dev, axis, 6 * 120);
 
-		test_hi_res_wheel_event(dev, axis, -5 * 120);
-		test_hi_res_wheel_event(dev, axis, 6 * 120);
-
-		test_hi_res_wheel_event(dev, axis, 30);
-		test_hi_res_wheel_event(dev, axis, -60);
-		test_hi_res_wheel_event(dev, axis, -40);
-		test_hi_res_wheel_event(dev, axis, 180);
-	}
+	test_hi_res_wheel_event(dev, axis, 30);
+	test_hi_res_wheel_event(dev, axis, -60);
+	test_hi_res_wheel_event(dev, axis, -40);
+	test_hi_res_wheel_event(dev, axis, 180);
 }
 END_TEST
 
@@ -3643,7 +3638,10 @@ TEST_COLLECTION(pointer)
 	litest_add_for_device(pointer_button_has_no_button, LITEST_KEYBOARD);
 	litest_add(pointer_recover_from_lost_button_count, LITEST_BUTTON, LITEST_CLICKPAD);
 	litest_add(pointer_scroll_wheel, LITEST_WHEEL, LITEST_TABLET);
-	litest_add(pointer_scroll_wheel_hires, LITEST_WHEEL, LITEST_TABLET);
+	litest_with_parameters(params, "axis", 'I', 2, litest_named_i32(REL_WHEEL_HI_RES, "vertical"),
+						       litest_named_i32(REL_HWHEEL_HI_RES, "horizontal")) {
+		litest_add_parametrized(pointer_scroll_wheel_hires, LITEST_WHEEL, LITEST_TABLET, params);
+	}
 	litest_with_parameters(params, "axis", 'I', 2, litest_named_i32(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, "vertical"),
 						       litest_named_i32(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, "horizontal")) {
 		litest_add_parametrized(pointer_scroll_wheel_hires_send_only_lores, LITEST_WHEEL, LITEST_TABLET, params);
