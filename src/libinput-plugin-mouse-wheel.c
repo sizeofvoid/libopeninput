@@ -72,6 +72,8 @@ struct plugin_device {
 	struct libinput_plugin_timer *scroll_timer;
 	enum wheel_direction dir;
 	bool ignore_small_hi_res_movements;
+
+	struct ratelimit hires_warning_limit;
 };
 
 struct plugin_data {
@@ -366,8 +368,9 @@ wheel_handle_state(struct plugin_device *pd, struct evdev_frame *frame, uint64_t
 	struct evdev_device *evdev = evdev_device(pd->device);
 
 	if (!pd->hi_res_event_received && (pd->lo_res.x != 0 || pd->lo_res.y != 0)) {
-		evdev_log_bug_kernel(
+		evdev_log_bug_kernel_ratelimit(
 			evdev,
+			&pd->hires_warning_limit,
 			"device supports high-resolution scroll but only low-resolution events have been received.\n"
 			"See %s/incorrectly-enabled-hires.html for details\n",
 			HTTP_DOC_LINK);
@@ -409,6 +412,7 @@ wheel_plugin_device_create(struct libinput_plugin *libinput_plugin,
 	pd->state = WHEEL_STATE_NONE;
 	pd->dir = WHEEL_DIR_UNKNOW;
 	pd->ignore_small_hi_res_movements = !evdev_device_is_virtual(evdev);
+	ratelimit_init(&pd->hires_warning_limit, s2us(24 * 60 * 60), 1);
 
 	if (pd->ignore_small_hi_res_movements) {
 		pd->scroll_timer =
