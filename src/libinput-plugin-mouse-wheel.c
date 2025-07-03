@@ -178,7 +178,6 @@ wheel_handle_event_on_state_scrolling(struct plugin_device *pd,
 {
 	switch (event) {
 	case WHEEL_EVENT_SCROLL:
-		wheel_cancel_scroll_timer(pd);
 		wheel_set_scroll_timer(pd, time);
 		break;
 	case WHEEL_EVENT_SCROLL_TIMEOUT:
