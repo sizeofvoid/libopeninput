@@ -843,6 +843,7 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
+	uint32_t delta = litest_test_param_get_u32(test_env->params, "hires-delta");
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) ||
 	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
@@ -850,42 +851,86 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 
 	litest_drain_events(dev->libinput);
 
-	/* Scroll deltas below the threshold (60) must be ignored */
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 15);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 15);
+	/* A single delta (below the hardcoded threshold 60) is ignored */
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, delta);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
-	/* The accumulated scroll is 30, add 30 to trigger scroll */
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 30);
+	/* Once we get two events in the same direction trigger scroll */
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, delta);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -60);
 
-	/* Once the threshold is reached, small scroll deltas are reported */
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 5);
+	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -2 * delta);
+
+	/* Once the threshold is reached, every scroll deltas are reported */
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, delta);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -5);
+	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -delta);
 
 	/* When the scroll timeout is triggered, ignore small deltas again */
 	litest_timeout_wheel_scroll(li);
 
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -15);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -15);
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -delta);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
-	litest_event(dev, EV_REL, REL_HWHEEL_HI_RES, 15);
-	litest_event(dev, EV_SYN, SYN_REPORT, 0);
-	litest_event(dev, EV_REL, REL_HWHEEL_HI_RES, 15);
+	litest_event(dev, EV_REL, REL_HWHEEL_HI_RES, delta);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
+}
+END_TEST
+
+START_TEST(pointer_scroll_wheel_inhibit_small_deltas_reduce_delta)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) ||
+	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
+		return LITEST_NOT_APPLICABLE;
+
+	litest_drain_events(dev->libinput);
+
+	/* A single delta (below the hardcoded threshold 60) is ignored */
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 50);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	/* A second smaller delta changes the internal threshold */
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 5);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_dispatch(li);
+
+	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -55);
+
+	litest_timeout_wheel_scroll(li);
+
+	/* Internal threshold is now 5 so two deltas of 5 trigger */
+	litest_log_group("Internal threshold is now 5 so two deltas of 5 trigger") {
+		litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 5);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_dispatch(li);
+		litest_assert_empty_queue(li);
+		litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 5);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_dispatch(li);
+		test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -10);
+	}
+
+	litest_timeout_wheel_scroll(li);
+
+	litest_log_group("Internal threshold is now 5 so one delta of 10 trigger") {
+		litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 10);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_dispatch(li);
+		test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -10);
+	}
 }
 END_TEST
 
@@ -893,6 +938,7 @@ START_TEST(pointer_scroll_wheel_inhibit_dir_change)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
+	uint32_t delta = litest_test_param_get_u32(test_env->params, "hires-delta");
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES))
 		return LITEST_NOT_APPLICABLE;
@@ -900,28 +946,28 @@ START_TEST(pointer_scroll_wheel_inhibit_dir_change)
 	litest_drain_events(dev->libinput);
 
 	/* Scroll one detent and a bit */
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 150);
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 120 + delta);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -150);
+	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -120 - delta);
 
 	/* Scroll below the threshold in the oposite direction should be ignored */
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -30);
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -delta);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
 	/* But should be triggered if the scroll continues in the same direction */
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -120);
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, -2 * delta);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, 150);
+	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, 3 * delta);
 
 	/* Scroll above the threshold in the same dir should be triggered */
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 80);
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 2 * delta);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
-	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -80);
+	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -2 * delta);
 }
 END_TEST
 
@@ -3646,8 +3692,11 @@ TEST_COLLECTION(pointer)
 						       litest_named_i32(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, "horizontal")) {
 		litest_add_parametrized(pointer_scroll_wheel_hires_send_only_lores, LITEST_WHEEL, LITEST_TABLET, params);
 	}
-	litest_add(pointer_scroll_wheel_inhibit_small_deltas, LITEST_WHEEL, LITEST_TABLET);
-	litest_add(pointer_scroll_wheel_inhibit_dir_change, LITEST_WHEEL, LITEST_TABLET);
+	litest_with_parameters(params, "hires-delta", 'u', 3, 5, 15, 20) {
+		litest_add_parametrized(pointer_scroll_wheel_inhibit_small_deltas, LITEST_WHEEL, LITEST_TABLET, params);
+		litest_add_parametrized(pointer_scroll_wheel_inhibit_dir_change, LITEST_WHEEL, LITEST_TABLET, params);
+	}
+	litest_add(pointer_scroll_wheel_inhibit_small_deltas_reduce_delta, LITEST_WHEEL, LITEST_TABLET);
 	litest_add_for_device(pointer_scroll_wheel_no_inhibit_small_deltas_when_virtual, LITEST_MOUSE_VIRTUAL);
 	litest_add_for_device(pointer_scroll_wheel_lenovo_scrollpoint, LITEST_LENOVO_SCROLLPOINT);
 	litest_add(pointer_scroll_button, LITEST_RELATIVE|LITEST_BUTTON, LITEST_ANY);
