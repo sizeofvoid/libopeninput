@@ -896,8 +896,8 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas_reduce_delta)
 
 	litest_drain_events(dev->libinput);
 
-	/* A single delta (below the hardcoded threshold 60) is ignored */
-	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 50);
+	/* A single delta (below the hardcoded threshold 30) is ignored */
+	litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 29);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
@@ -907,7 +907,7 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas_reduce_delta)
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 
-	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -55);
+	test_high_and_low_wheel_events_value(dev, REL_WHEEL_HI_RES, -34);
 
 	litest_timeout_wheel_scroll(li);
 

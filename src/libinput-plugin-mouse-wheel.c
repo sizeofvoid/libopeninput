@@ -36,6 +36,7 @@
 #include "libinput-plugin.h"
 #include "libinput-util.h"
 
+#define ACC_V120_TRIGGER_THRESHOLD 30  /* 1/4 of a wheel detent */
 #define ACC_V120_THRESHOLD 59
 #define WHEEL_SCROLL_TIMEOUT ms2us(500)
 
@@ -60,6 +61,12 @@ enum wheel_event {
 	WHEEL_EVENT_SCROLL_DIR_CHANGED,
 };
 
+enum ignore_strategy {
+	MAYBE,       /* use heuristics but don't yet accumulate */
+	ACCUMULATE,  /* accumulate scroll wheel events */
+	PASSTHROUGH, /* do not accumulate, pass through */
+};
+
 struct plugin_device {
 	struct list link;
 	struct plugin_data *parent;
@@ -71,7 +78,7 @@ struct plugin_device {
 	bool hi_res_event_received;
 	struct libinput_plugin_timer *scroll_timer;
 	enum wheel_direction dir;
-	bool ignore_small_hi_res_movements;
+	enum ignore_strategy ignore_small_hi_res_movements;
 	int min_movement;
 
 	struct ratelimit hires_warning_limit;
@@ -139,7 +146,7 @@ wheel_handle_event_on_state_none(struct plugin_device *pd,
 {
 	switch (event) {
 	case WHEEL_EVENT_SCROLL:
-		pd->state = pd->ignore_small_hi_res_movements
+		pd->state = pd->ignore_small_hi_res_movements == ACCUMULATE
 				    ? WHEEL_STATE_ACCUMULATING_SCROLL
 				    : WHEEL_STATE_SCROLLING;
 		break;
@@ -334,6 +341,19 @@ wheel_handle_direction_change(struct plugin_device *pd,
 	}
 }
 
+static inline void
+wheel_update_strategy(struct plugin_device *pd, int32_t value)
+{
+	pd->min_movement = min(pd->min_movement, abs(value));
+
+	/* Only if a wheel sends movements less than the trigger threshold
+	 * activate the accumulation and debouncing of scroll directions, etc.
+	 */
+	if (pd->ignore_small_hi_res_movements == MAYBE &&
+	    pd->min_movement < ACC_V120_TRIGGER_THRESHOLD)
+		pd->ignore_small_hi_res_movements = ACCUMULATE;
+}
+
 static void
 wheel_process_relative(struct plugin_device *pd, struct evdev_event *e, uint64_t time)
 {
@@ -349,14 +369,14 @@ wheel_process_relative(struct plugin_device *pd, struct evdev_event *e, uint64_t
 	case EVDEV_REL_WHEEL_HI_RES:
 		pd->hi_res.y += e->value;
 		pd->hi_res_event_received = true;
-		pd->min_movement = min(pd->min_movement, abs(e->value));
+		wheel_update_strategy(pd, e->value);
 		wheel_handle_direction_change(pd, e, time);
 		wheel_handle_event(pd, WHEEL_EVENT_SCROLL, time);
 		break;
 	case EVDEV_REL_HWHEEL_HI_RES:
 		pd->hi_res.x += e->value;
 		pd->hi_res_event_received = true;
-		pd->min_movement = min(pd->min_movement, abs(e->value));
+		wheel_update_strategy(pd, e->value);
 		wheel_handle_direction_change(pd, e, time);
 		wheel_handle_event(pd, WHEEL_EVENT_SCROLL, time);
 		break;
@@ -414,11 +434,12 @@ wheel_plugin_device_create(struct libinput_plugin *libinput_plugin,
 	pd->device = libinput_device_ref(device);
 	pd->state = WHEEL_STATE_NONE;
 	pd->dir = WHEEL_DIR_UNKNOW;
-	pd->ignore_small_hi_res_movements = !evdev_device_is_virtual(evdev);
+	pd->ignore_small_hi_res_movements =
+		evdev_device_is_virtual(evdev) ? PASSTHROUGH : MAYBE;
 	pd->min_movement = ACC_V120_THRESHOLD;
 	ratelimit_init(&pd->hires_warning_limit, s2us(24 * 60 * 60), 1);
 
-	if (pd->ignore_small_hi_res_movements) {
+	if (pd->ignore_small_hi_res_movements != PASSTHROUGH) {
 		pd->scroll_timer =
 			libinput_plugin_timer_new(libinput_plugin,
 						  libinput_device_get_sysname(device),
