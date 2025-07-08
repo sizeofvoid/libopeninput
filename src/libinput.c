@@ -2230,6 +2230,20 @@ libinput_device_remove_event_listener(struct libinput_event_listener *listener)
 	list_remove(&listener->link);
 }
 
+bool
+libinput_device_has_model_quirk(struct libinput_device *device, enum quirk model_quirk)
+{
+	assert(quirk_get_name(model_quirk) != NULL);
+
+	_unref_(quirks) *q = libinput_device_get_quirks(device);
+	bool result = false;
+
+	if (q)
+		quirks_get_bool(q, model_quirk, &result);
+
+	return result;
+}
+
 static uint32_t
 update_seat_key_count(struct libinput_seat *seat,
 		      keycode_t keycode,

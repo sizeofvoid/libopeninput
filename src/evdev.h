@@ -392,15 +392,7 @@ evdev_libinput_context(const struct evdev_device *device)
 static inline bool
 evdev_device_has_model_quirk(struct evdev_device *device, enum quirk model_quirk)
 {
-	assert(quirk_get_name(model_quirk) != NULL);
-
-	_unref_(quirks) *q = libinput_device_get_quirks(&device->base);
-	bool result = false;
-
-	if (q)
-		quirks_get_bool(q, model_quirk, &result);
-
-	return result;
+	return libinput_device_has_model_quirk(&device->base, model_quirk);
 }
 
 void

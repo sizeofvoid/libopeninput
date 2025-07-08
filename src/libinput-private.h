@@ -44,6 +44,7 @@
 #include "libinput-version.h"
 #include "libinput.h"
 #include "linux/input.h"
+#include "quirks.h"
 
 struct libinput_source;
 
@@ -724,6 +725,9 @@ libinput_seat_init(struct libinput_seat *seat,
 
 void
 libinput_device_init(struct libinput_device *device, struct libinput_seat *seat);
+
+bool
+libinput_device_has_model_quirk(struct libinput_device *device, enum quirk model_quirk);
 
 struct libinput_device_group *
 libinput_device_group_create(struct libinput *libinput, const char *identifier);
