@@ -145,8 +145,7 @@ class Device(libevdev.Device):
             if not self.warned:
                 self.warned = True
                 error(
-                    "\rThis tool cannot handle multiple fingers, "
-                    "output will be invalid"
+                    "\rThis tool cannot handle multiple fingers, output will be invalid"
                 )
                 return
 
