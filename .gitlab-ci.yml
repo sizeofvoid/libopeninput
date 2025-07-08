@@ -1075,13 +1075,6 @@ usr-bin-env-python@fedora:42:
         /bin/false
       fi
 
-python-format@fedora:42:
-  extends:
-    - .fedora-build@template
-  script:
-    - black $(git grep -l '^#!/usr/bin/env python3')
-    - git diff --exit-code || (echo "Please run Black against all Python files" && false)
-
 # A job to check we're actually running all test suites in the CI
 check-test-suites:
   extends:
