@@ -3611,6 +3611,7 @@ START_TEST(tablet_calibration_set_matrix_delta)
 	litest_drain_events(li);
 
 	litest_tablet_proximity_in(dev, 100, 100, axes);
+	litest_tablet_tip_down(dev, 100, 100, axes);
 	litest_dispatch(li);
 	event = libinput_get_event(li);
 	tablet_event =
@@ -3632,6 +3633,7 @@ START_TEST(tablet_calibration_set_matrix_delta)
 	dx = libinput_event_tablet_tool_get_x(tablet_event) - x;
 	dy = libinput_event_tablet_tool_get_y(tablet_event) - y;
 	libinput_event_destroy(event);
+	litest_tablet_tip_up(dev, 80, 80, axes);
 	litest_tablet_proximity_out(dev);
 	litest_timeout_tablet_proxout(li);
 	litest_wait_for_event_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
@@ -3641,6 +3643,7 @@ START_TEST(tablet_calibration_set_matrix_delta)
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 
 	litest_tablet_proximity_in(dev, 100, 100, axes);
+	litest_tablet_tip_down(dev, 100, 100, axes);
 	litest_dispatch(li);
 	event = libinput_get_event(li);
 	tablet_event =
