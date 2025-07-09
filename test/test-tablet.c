@@ -4535,13 +4535,13 @@ START_TEST(tablet_pressure_config)
 {
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
-	struct libinput_event *event;
 	struct libinput_event_tablet_tool *tev;
 	struct axis_replacement axes[] = {
 		{ ABS_DISTANCE, 0 },
 		{ ABS_PRESSURE, 10 },
 		{ -1, -1 },
 	};
+	bool has_pressure = libevdev_has_event_code(dev->evdev, EV_ABS, ABS_PRESSURE);
 
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_drain_events(li);
@@ -4550,11 +4550,13 @@ START_TEST(tablet_pressure_config)
 	litest_tablet_motion(dev, 70, 70, axes);
 	litest_dispatch(li);
 
-	event = libinput_get_event(li);
+	_destroy_(libinput_event) *event = libinput_get_event(li);
 	tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
 	struct libinput_tablet_tool *tool = libinput_event_tablet_tool_get_tool(tev);
 
-	litest_assert(libinput_tablet_tool_config_pressure_range_is_available(tool));
+	litest_assert_int_eq(
+		has_pressure,
+		libinput_tablet_tool_config_pressure_range_is_available(tool));
 	litest_assert_double_eq(
 		libinput_tablet_tool_config_pressure_range_get_minimum(tool),
 		0.0);
@@ -4567,6 +4569,13 @@ START_TEST(tablet_pressure_config)
 	litest_assert_double_eq(
 		libinput_tablet_tool_config_pressure_range_get_default_maximum(tool),
 		1.0);
+
+	if (!has_pressure) {
+		litest_assert_enum_eq(
+			libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 1.0),
+			LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
+		return LITEST_PASS;
+	}
 
 	litest_assert_enum_eq(
 		libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 1.0),
@@ -4600,8 +4609,6 @@ START_TEST(tablet_pressure_config)
 	litest_assert_double_eq(
 		libinput_tablet_tool_config_pressure_range_get_default_maximum(tool),
 		1.0);
-
-	libinput_event_destroy(event);
 }
 END_TEST
 
@@ -4618,6 +4625,9 @@ START_TEST(tablet_pressure_config_set_minimum)
 		{ -1, -1 },
 	};
 	double p, old_pressure;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_ABS, ABS_PRESSURE))
+		return LITEST_NOT_APPLICABLE;
 
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_drain_events(li);
@@ -4707,6 +4717,9 @@ START_TEST(tablet_pressure_config_set_maximum)
 		{ -1, -1 },
 	};
 	double p, old_pressure;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_ABS, ABS_PRESSURE))
+		return LITEST_NOT_APPLICABLE;
 
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_drain_events(li);
@@ -4805,6 +4818,9 @@ START_TEST(tablet_pressure_config_set_range)
 		{ -1, -1 },
 	};
 	double p, old_pressure;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_ABS, ABS_PRESSURE))
+		return LITEST_NOT_APPLICABLE;
 
 	litest_tablet_proximity_in(dev, 5, 100, axes);
 	litest_drain_events(li);
@@ -7119,6 +7135,9 @@ START_TEST(tablet_eraser_button_disabled)
 		litest_test_param_get_bool(test_env->params, "down-when-out-of-prox");
 	bool with_motion_events =
 		litest_test_param_get_bool(test_env->params, "with-motion-events");
+
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
+		return LITEST_NOT_APPLICABLE;
 
 	/* Device forces BTN_TOOL_PEN on tip */
 	if (with_tip_down && dev->which == LITEST_WACOM_ISDV4_524C_PEN)
