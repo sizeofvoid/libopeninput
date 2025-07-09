@@ -2162,6 +2162,9 @@ update_pressure_range(struct tablet_dispatch *tablet,
 		      struct evdev_device *device,
 		      struct libinput_tablet_tool *tool)
 {
+	if (!libevdev_has_event_code(device->evdev, EV_ABS, ABS_PRESSURE))
+		return;
+
 	double min = tool->pressure.range.min;
 	double max = tool->pressure.range.max;
 
