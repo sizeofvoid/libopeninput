@@ -983,6 +983,10 @@ START_TEST(tablet_mode_disable_touchpad_on_resume)
 	litest_touch_down(touchpad, 0, 50, 50);
 	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10);
 	litest_touch_up(touchpad, 0);
+	litest_dispatch(li);
+	litest_drain_events_of_type(li,
+				    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+				    LIBINPUT_EVENT_GESTURE_HOLD_END);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
 	litest_device_destroy(touchpad);
