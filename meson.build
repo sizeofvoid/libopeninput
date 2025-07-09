@@ -892,6 +892,7 @@ endif
 		'test/litest-device-mouse-wheel-click-count.c',
 		'test/litest-device-ms-nano-transceiver-mouse.c',
 		'test/litest-device-ms-surface-cover.c',
+		'test/litest-device-ploopy-pavonis-stylus.c',
 		'test/litest-device-qemu-usb-tablet.c',
 		'test/litest-device-sony-vaio-keys.c',
 		'test/litest-device-synaptics-x220.c',
