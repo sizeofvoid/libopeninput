@@ -37,7 +37,7 @@
 #include "libinput-util.h"
 
 #define ACC_V120_TRIGGER_THRESHOLD 30  /* 1/4 of a wheel detent */
-#define ACC_V120_THRESHOLD 59
+#define ACC_V120_THRESHOLD 47 /* Good for both high-ish multipliers (8/120) and the rest of the mice (30/120, 40/120, etc) */
 #define WHEEL_SCROLL_TIMEOUT ms2us(500)
 
 enum wheel_state {
