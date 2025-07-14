@@ -743,6 +743,15 @@ debounce_plugin_device_added(struct libinput_plugin *libinput_plugin,
 
 	libinput_plugin_enable_device_event_frame(libinput_plugin, device, true);
 
+	/* We don't care about BTN_TRIGGER_HAPPY_* */
+	for (unsigned int code = BTN_0; code <= KEY_OK; code++) {
+		evdev_usage_t usage = evdev_usage_from_code(EV_KEY, code);
+		if (evdev_usage_is_button(usage)) {
+			libinput_plugin_enable_evdev_usage(libinput_plugin,
+							   evdev_usage_enum(usage));
+		}
+	}
+
 	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
 	struct plugin_device *pd = zalloc(sizeof(*pd));
 	pd->device = libinput_device_ref(device);

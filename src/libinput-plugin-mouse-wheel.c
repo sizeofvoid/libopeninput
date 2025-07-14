@@ -506,6 +506,11 @@ wheel_plugin_device_new(struct libinput_plugin *libinput_plugin,
 
 	libinput_plugin_enable_device_event_frame(libinput_plugin, device, true);
 
+	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_REL_WHEEL);
+	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_REL_WHEEL_HI_RES);
+	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_REL_HWHEEL);
+	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_REL_HWHEEL_HI_RES);
+
 	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
 	struct plugin_device *pd =
 		wheel_plugin_device_create(libinput_plugin, plugin, device);

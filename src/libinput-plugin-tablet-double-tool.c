@@ -339,6 +339,8 @@ double_tool_plugin_device_added(struct libinput_plugin *libinput_plugin,
 		return;
 
 	libinput_plugin_enable_device_event_frame(libinput_plugin, device, true);
+	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_BTN_TOOL_PEN);
+	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_BTN_TOOL_RUBBER);
 
 	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
 	struct plugin_device *pd = zalloc(sizeof(*pd));

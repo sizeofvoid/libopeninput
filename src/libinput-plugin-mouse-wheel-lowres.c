@@ -54,6 +54,13 @@ wheel_plugin_device_new(struct libinput_plugin *libinput_plugin,
 		libevdev_enable_event_code(libevdev, EV_REL, REL_HWHEEL_HI_RES, NULL);
 
 	libinput_plugin_enable_device_event_frame(libinput_plugin, device, true);
+	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_REL_WHEEL);
+	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_REL_HWHEEL);
+
+	/* A device may have those disabled via a quirk but we just re-enabled it
+	 * above. Make sure we get those events too to filter them out */
+	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_REL_WHEEL_HI_RES);
+	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_REL_HWHEEL_HI_RES);
 }
 
 static void
