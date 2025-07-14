@@ -30,6 +30,7 @@
 
 #include "evdev-plugin.h"
 #include "libinput-plugin-button-debounce.h"
+#include "libinput-plugin-mouse-wheel-lowres.h"
 #include "libinput-plugin-mouse-wheel.h"
 #include "libinput-plugin-mtdev.h"
 #include "libinput-plugin-private.h"
@@ -390,6 +391,7 @@ libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
 	libinput_tablet_plugin_proximity_timer(libinput);
 	libinput_tablet_plugin_eraser_button(libinput);
 	libinput_debounce_plugin(libinput);
+	libinput_mouse_plugin_wheel_lowres(libinput);
 	libinput_mouse_plugin_wheel(libinput);
 
 	/* Our own event dispatch is implemented as mini-plugin,

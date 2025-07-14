@@ -408,6 +408,7 @@ src_libinput = src_libfilter + [
 	'src/libinput-plugin.c',
 	'src/libinput-plugin-button-debounce.c',
 	'src/libinput-plugin-mouse-wheel.c',
+	'src/libinput-plugin-mouse-wheel-lowres.c',
 	'src/libinput-plugin-tablet-double-tool.c',
 	'src/libinput-plugin-tablet-eraser-button.c',
 	'src/libinput-plugin-tablet-forced-tool.c',
