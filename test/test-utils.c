@@ -3150,6 +3150,51 @@ START_TEST(infmask_test)
 }
 END_TEST
 
+START_TEST(evdev_mask_test)
+{
+	_destroy_(evdev_mask) *mask = evdev_mask_new();
+
+	evdev_mask_reset(mask);
+
+	litest_assert(bitmask_is_empty(mask->ev));
+	litest_assert(bitmask_is_empty(mask->rel));
+	litest_assert(bitmask_is_empty(mask->sw));
+	litest_assert(infmask_is_empty(&mask->key));
+	litest_assert(infmask_is_empty(&mask->btn));
+	litest_assert(infmask_is_empty(&mask->abs));
+
+	evdev_mask_set_enum(mask, EVDEV_BTN_TOOL_PEN);
+	evdev_mask_set_enum(mask, EVDEV_BTN_TOOL_AIRBRUSH);
+
+	litest_assert(bitmask_bit_is_set(mask->ev, EV_KEY));
+
+	/* Verify these are in btn, not key */
+	litest_assert(!infmask_is_empty(&mask->btn));
+	litest_assert(infmask_is_empty(&mask->key));
+
+	litest_assert(evdev_mask_is_set(mask, evdev_usage_from(EVDEV_BTN_TOOL_PEN)));
+	litest_assert(
+		!evdev_mask_is_set(mask, evdev_usage_from(EVDEV_BTN_TOOL_RUBBER)));
+	litest_assert(
+		evdev_mask_is_set(mask, evdev_usage_from(EVDEV_BTN_TOOL_AIRBRUSH)));
+
+	/* Test regular key (should go into key field) */
+	evdev_mask_set_enum(mask, EVDEV_KEY_ESC);
+	litest_assert(!infmask_is_empty(&mask->key));
+	litest_assert(evdev_mask_is_set(mask, evdev_usage_from(EVDEV_KEY_ESC)));
+
+	evdev_mask_set_enum(mask, EVDEV_REL_X);
+	litest_assert(bitmask_bit_is_set(mask->ev, EV_REL));
+	litest_assert(bitmask_bit_is_set(mask->rel, REL_X));
+	litest_assert(evdev_mask_is_set(mask, evdev_usage_from(EVDEV_REL_X)));
+
+	evdev_mask_set_enum(mask, EVDEV_ABS_X);
+	litest_assert(bitmask_bit_is_set(mask->ev, EV_ABS));
+	litest_assert(!infmask_is_empty(&mask->abs));
+	litest_assert(evdev_mask_is_set(mask, evdev_usage_from(EVDEV_ABS_X)));
+}
+END_TEST
+
 int
 main(void)
 {
@@ -3237,6 +3282,8 @@ main(void)
 	ADD_TEST(evdev_frames);
 
 	ADD_TEST(infmask_test);
+
+	ADD_TEST(evdev_mask_test);
 
 	enum litest_runner_result result = litest_runner_run_tests(runner);
 	litest_runner_destroy(runner);

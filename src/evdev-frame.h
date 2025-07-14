@@ -29,6 +29,7 @@
 #include <linux/input.h>
 #include <stdbool.h>
 
+#include "util-bits.h"
 #include "util-input-event.h"
 #include "util-mem.h"
 #include "util-newtype.h"
@@ -651,4 +652,122 @@ evdev_frame_clone(struct evdev_frame *frame)
 	evdev_frame_set_time(clone, evdev_frame_get_time(frame));
 
 	return clone;
+}
+
+struct evdev_mask {
+	bitmask_t ev;
+	bitmask_t rel;
+	bitmask_t sw;
+	infmask_t key; /* < BTN_MISC */
+	infmask_t btn; /* >= BTN_MISC */
+	infmask_t abs;
+};
+
+static_assert(sizeof(bitmask_t) * 8 >= EV_MAX, "bitmask size too small");
+static_assert(sizeof(bitmask_t) * 8 >= EV_REL, "bitmask size too small");
+static_assert(sizeof(bitmask_t) * 8 >= EV_SW, "bitmask size too small");
+
+static inline void
+evdev_mask_reset(struct evdev_mask *mask)
+{
+	mask->ev = bitmask_new();
+	mask->rel = bitmask_new();
+	mask->sw = bitmask_new();
+	infmask_reset(&mask->key);
+	infmask_reset(&mask->btn);
+	infmask_reset(&mask->abs);
+}
+
+static inline struct evdev_mask *
+evdev_mask_new(void)
+{
+	struct evdev_mask *mask = zalloc(sizeof(*mask));
+	evdev_mask_reset(mask);
+	return mask;
+}
+
+static inline void
+evdev_mask_destroy(struct evdev_mask *mask)
+{
+	if (mask) {
+		evdev_mask_reset(mask);
+		free(mask);
+	}
+}
+
+DEFINE_DESTROY_CLEANUP_FUNC(evdev_mask);
+
+static inline void
+evdev_mask_set_usage(struct evdev_mask *mask, evdev_usage_t usage)
+{
+	unsigned int type = evdev_usage_type(usage);
+	unsigned int code = evdev_usage_code(usage);
+
+	if (type >= EV_MAX)
+		return;
+
+	bitmask_set_bit(&mask->ev, type);
+
+	switch (type) {
+	case EV_ABS:
+		if (code <= ABS_MAX)
+			infmask_set_bit(&mask->abs, code);
+		break;
+	case EV_KEY:
+		if (code < BTN_MISC)
+			infmask_set_bit(&mask->key, code);
+		else if (code <= KEY_MAX)
+			infmask_set_bit(&mask->btn, code - BTN_MISC);
+		break;
+	case EV_REL:
+		if (code <= REL_MAX)
+			bitmask_set_bit(&mask->rel, code);
+		break;
+	case EV_SW:
+		if (code <= SW_MAX)
+			bitmask_set_bit(&mask->sw, code);
+		break;
+	}
+}
+
+static inline void
+evdev_mask_set_enum(struct evdev_mask *mask, enum evdev_usage usage)
+{
+	evdev_mask_set_usage(mask, evdev_usage_from(usage));
+}
+
+static inline bool
+evdev_mask_is_set(const struct evdev_mask *mask, evdev_usage_t usage)
+{
+	unsigned int type = evdev_usage_type(usage);
+	unsigned int code = evdev_usage_code(usage);
+
+	if (type >= EV_MAX)
+		return false;
+
+	if (!bitmask_bit_is_set(mask->ev, type))
+		return false;
+
+	bool isset = false;
+	switch (type) {
+	case EV_ABS:
+		isset = infmask_bit_is_set(&mask->abs, code);
+		break;
+	case EV_KEY:
+		if (code < BTN_MISC)
+			isset = infmask_bit_is_set(&mask->key, code);
+		else
+			isset = infmask_bit_is_set(&mask->btn, code - BTN_MISC);
+		break;
+	case EV_REL:
+		isset = bitmask_bit_is_set(mask->rel, code);
+		break;
+	case EV_SW:
+		isset = bitmask_bit_is_set(mask->sw, code);
+		break;
+	default:
+		break;
+	}
+
+	return isset;
 }
