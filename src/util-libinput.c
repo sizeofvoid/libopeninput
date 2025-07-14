@@ -525,6 +525,62 @@ print_tablet_button_event(struct libinput_event *ev,
 }
 
 static char *
+print_legacy_pointer_axis_event(struct libinput_event *ev,
+				const struct libinput_print_options *opts)
+{
+	struct libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
+	double v = 0, h = 0;
+	int v_discrete = 0, h_discrete = 0;
+	const char *have_vert = "", *have_horiz = "";
+	const char *source = NULL;
+	enum libinput_pointer_axis axis;
+	char time[16];
+
+	switch (libinput_event_pointer_get_axis_source(p)) {
+	case LIBINPUT_POINTER_AXIS_SOURCE_WHEEL:
+		source = "wheel";
+		break;
+	case LIBINPUT_POINTER_AXIS_SOURCE_FINGER:
+		source = "finger";
+		break;
+	case LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS:
+		source = "continuous";
+		break;
+	case LIBINPUT_POINTER_AXIS_SOURCE_WHEEL_TILT:
+		/* No device uses wheel tilt */
+		abort();
+		break;
+	default:
+		abort();
+		break;
+	}
+
+	axis = LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL;
+	if (libinput_event_pointer_has_axis(p, axis)) {
+		v = libinput_event_pointer_get_axis_value(p, axis);
+		v_discrete = libinput_event_pointer_get_axis_value_discrete(p, axis);
+		have_vert = "*";
+	}
+	axis = LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL;
+	if (libinput_event_pointer_has_axis(p, axis)) {
+		h = libinput_event_pointer_get_axis_value(p, axis);
+		h_discrete = libinput_event_pointer_get_axis_value_discrete(p, axis);
+		have_horiz = "*";
+	}
+
+	print_event_time(time, opts->start_time, libinput_event_pointer_get_time(p));
+	return strdup_printf("%s\tvert %.2f/%d%s horiz %.2f/%d%s (%s)",
+			     time,
+			     v,
+			     v_discrete,
+			     have_vert,
+			     h,
+			     h_discrete,
+			     have_horiz,
+			     source);
+}
+
+static char *
 print_pointer_axis_event(struct libinput_event *ev,
 			 const struct libinput_print_options *opts)
 {
@@ -972,7 +1028,7 @@ libinput_event_to_str(struct libinput_event *ev,
 		event_str = print_pointer_button_event(ev, &opts);
 		break;
 	case LIBINPUT_EVENT_POINTER_AXIS:
-		/* ignore */
+		event_str = print_legacy_pointer_axis_event(ev, &opts);
 		break;
 	case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL:
 	case LIBINPUT_EVENT_POINTER_SCROLL_FINGER:
