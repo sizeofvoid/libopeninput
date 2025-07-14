@@ -106,6 +106,12 @@ typedef struct {
 	uint32_t mask;
 } bitmask_t;
 
+static inline size_t
+bitmask_size(void)
+{
+	return 32;
+}
+
 static inline uint32_t
 bitmask_as_u32(bitmask_t mask)
 {
