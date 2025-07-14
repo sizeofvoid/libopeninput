@@ -62,6 +62,8 @@ struct libinput_plugin {
 		struct list *after;
 		struct list *before;
 	} event_queue;
+
+	struct evdev_mask *mask;
 };
 
 struct libinput_plugin_timer {
@@ -153,6 +155,7 @@ libinput_plugin_unref(struct libinput_plugin *plugin)
 		if (plugin->interface->destroy)
 			plugin->interface->destroy(plugin);
 		free(plugin->name);
+		evdev_mask_destroy(plugin->mask);
 		free(plugin);
 	}
 	return NULL;
@@ -192,6 +195,16 @@ libinput_plugin_enable_device_event_frame(struct libinput_plugin *plugin,
 	} else {
 		bitmask_clear_bit(&device->plugin_frame_callbacks, plugin->index);
 	}
+}
+
+void
+libinput_plugin_enable_evdev_usage(struct libinput_plugin *plugin,
+				   enum evdev_usage usage)
+{
+	if (!plugin->mask)
+		plugin->mask = evdev_mask_new();
+
+	evdev_mask_set_usage(plugin->mask, evdev_usage_from(usage));
 }
 
 struct plugin_queued_event {
@@ -555,6 +568,27 @@ print_frame(struct libinput *libinput, struct evdev_frame *frame, const char *pr
 	}
 }
 
+static bool
+plugin_has_mask(struct libinput_plugin *plugin, struct evdev_frame *frame)
+{
+	/* A plugin without a mask wants all events */
+	if (plugin->mask == NULL)
+		return true;
+
+	size_t nevents;
+	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
+
+	/* nevents - 1 because we don't check the SYN_REPORT */
+	for (size_t i = 0; i < nevents - 1; i++) {
+		struct evdev_event *e = &events[i];
+
+		if (evdev_mask_is_set(plugin->mask, e->usage))
+			return true;
+	}
+
+	return false;
+}
+
 static void
 plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 				 struct libinput_device *device,
@@ -606,11 +640,13 @@ plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 				evdev_frame_set_time(event->frame, frame_time);
 
 			if (!bitmask_bit_is_set(device->plugin_frame_callbacks,
-						plugin->index)) {
+						plugin->index) ||
+			    !plugin_has_mask(plugin, event->frame)) {
 				list_remove(&event->link);
 				list_append(&next_events, &event->link);
 				continue;
 			}
+
 #ifdef EVENT_DEBUGGING
 			_autofree_ char *prefix = strdup_printf(
 				"%7s: plugin %-15s - ",

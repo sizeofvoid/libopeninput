@@ -33,6 +33,7 @@
 /* Forward declarations instead of #includes to make
  * this header self-contained (bindgen, etc.) */
 struct evdev_frame;
+enum evdev_usage;
 struct libinput;
 struct libinput_device;
 struct libinput_tablet_tool;
@@ -157,6 +158,23 @@ void
 libinput_plugin_enable_device_event_frame(struct libinput_plugin *plugin,
 					  struct libinput_device *device,
 					  bool enable);
+
+/**
+ * Mask this plugin's evdev_frame function to be called only
+ * if the frame **contains** the given evdev usage. Plugins
+ * that e.g. only care about button events should use this function
+ * to avoid being called for every motion event.
+ *
+ * By default the mask includes all events. Calling this function
+ * changes the behavior to *only* include frames with the usages.
+ *
+ * Note that the frame passed to evdev_frame function contains all
+ * events of that frame (i.e. including events that are not specified
+ * by this mask).
+ */
+void
+libinput_plugin_enable_evdev_usage(struct libinput_plugin *plugin,
+				   enum evdev_usage usage);
 
 /**
  * Inject a new event frame from the given plugin. This
