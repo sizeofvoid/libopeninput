@@ -666,6 +666,8 @@ test_high_and_low_wheel_events_value(struct litest_device *dev,
 	event = libinput_get_event(li);
 	litest_assert_notnull(event);
 
+	bool have_lores = false, have_hires = false;
+
 	while (event) {
 		ptrev = litest_is_axis_event(event,
 					     LIBINPUT_EVENT_POINTER_SCROLL_WHEEL,
@@ -673,11 +675,13 @@ test_high_and_low_wheel_events_value(struct litest_device *dev,
 					     source);
 
 		if (litest_is_high_res_axis_event(event)) {
+			have_hires = true;
 			litest_assert_double_eq(
 				libinput_event_pointer_get_scroll_value_v120(ptrev,
 									     axis),
 				v120);
 		} else {
+			have_lores = true;
 			litest_assert_double_eq(
 				libinput_event_pointer_get_axis_value(ptrev, axis),
 				expected);
@@ -689,6 +693,9 @@ test_high_and_low_wheel_events_value(struct litest_device *dev,
 		libinput_event_destroy(event);
 		event = libinput_get_event(li);
 	}
+
+	if (have_lores)
+		litest_assert_msg(have_hires, "Missing high-res wheels events");
 }
 
 static void
