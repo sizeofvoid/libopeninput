@@ -381,8 +381,6 @@ libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
 
 	system->loaded = true;
 
-	/* FIXME: this should really be one of the first in the sequence
-	 * so plugins don't have to take care of this? */
 #if HAVE_MTDEV
 	libinput_mtdev_plugin(libinput);
 #endif
