@@ -672,7 +672,12 @@ test_high_and_low_wheel_events_value(struct litest_device *dev,
 					     axis,
 					     source);
 
-		if (!litest_is_high_res_axis_event(event)) {
+		if (litest_is_high_res_axis_event(event)) {
+			litest_assert_double_eq(
+				libinput_event_pointer_get_scroll_value_v120(ptrev,
+									     axis),
+				v120);
+		} else {
 			litest_assert_double_eq(
 				libinput_event_pointer_get_axis_value(ptrev, axis),
 				expected);
@@ -680,11 +685,6 @@ test_high_and_low_wheel_events_value(struct litest_device *dev,
 				libinput_event_pointer_get_axis_value_discrete(ptrev,
 									       axis),
 				discrete);
-		} else {
-			litest_assert_double_eq(
-				libinput_event_pointer_get_scroll_value_v120(ptrev,
-									     axis),
-				v120);
 		}
 		libinput_event_destroy(event);
 		event = libinput_get_event(li);
