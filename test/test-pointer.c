@@ -704,6 +704,15 @@ test_wheel_event(struct litest_device *dev, int which, int amount)
 	struct libinput *li = dev->libinput;
 	int event_amount = amount;
 
+	switch (which) {
+	case REL_WHEEL:
+	case REL_HWHEEL:
+		break;
+	default:
+		litest_assert_msg("Invalid axis for %s", __func__);
+		break;
+	}
+
 	/* mouse scroll wheels are 'upside down' */
 	if (which == REL_WHEEL)
 		event_amount *= -1;
