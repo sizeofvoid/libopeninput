@@ -314,15 +314,6 @@ libinput_plugin_notify_device_removed(struct libinput_plugin *plugin,
 }
 
 void
-libinput_plugin_notify_evdev_frame(struct libinput_plugin *plugin,
-				   struct libinput_device *device,
-				   struct evdev_frame *frame)
-{
-	if (plugin->interface->evdev_frame)
-		plugin->interface->evdev_frame(plugin, device, frame);
-}
-
-void
 libinput_plugin_system_run(struct libinput_plugin_system *system)
 {
 	struct libinput_plugin *plugin;

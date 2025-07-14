@@ -47,8 +47,3 @@ libinput_plugin_notify_device_ignored(struct libinput_plugin *plugin,
 void
 libinput_plugin_notify_device_removed(struct libinput_plugin *plugin,
 				      struct libinput_device *device);
-
-void
-libinput_plugin_notify_evdev_frame(struct libinput_plugin *plugin,
-				   struct libinput_device *device,
-				   struct evdev_frame *frame);
