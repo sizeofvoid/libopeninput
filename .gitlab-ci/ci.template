@@ -246,7 +246,7 @@ pre-commit-hooks:
     - python3 -m venv venv
     - source venv/bin/activate
     - pip3 install pre-commit
-    - pre-commit run --all-files || true
+    - pre-commit run --all-files
     - git diff --exit-code || (echo "ERROR - Code style errors found, please fix" && false)
 
 #################################################################
