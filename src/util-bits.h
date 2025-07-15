@@ -28,10 +28,14 @@
 #include "config.h"
 
 #include <assert.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
+
+#include "util-macros.h"
 
 #define bit(x_) (1UL << (x_))
 #define NBITS(b) (b * 8)
@@ -238,3 +242,201 @@ _bitmask_from_bits(unsigned int bit1, ...)
 
 #define bitmask_from_bits(...) \
 	_bitmask_from_bits(__VA_ARGS__, 32)
+
+/* An infinite bitmask that grows as needed.
+ *
+ * Note that unlike the bitmask_t this struct contains
+ * pointers and some care must be taken when using assign-by-value.
+ */
+typedef struct {
+	bitmask_t *mask;
+	size_t nmasks;
+} infmask_t;
+
+static inline size_t
+_infmask_size_for_bit(unsigned int bit)
+{
+	return (bit / bitmask_size()) + 1;
+}
+
+static inline void
+_infmask_ensure_size(infmask_t *mask, unsigned int bit)
+{
+	size_t required = _infmask_size_for_bit(bit);
+	if (required > mask->nmasks) {
+		mask->mask = realloc(mask->mask, required * sizeof(bitmask_t));
+		/* Zero out the new memory */
+		for (size_t i = mask->nmasks; i < required; i++)
+			mask->mask[i] = bitmask_new();
+		mask->nmasks = required;
+	}
+}
+
+static inline infmask_t
+infmask_new(void)
+{
+	infmask_t m = { .mask = NULL, .nmasks = 0 };
+	return m;
+}
+
+static inline void
+infmask_reset(infmask_t *mask)
+{
+	free(mask->mask);
+	mask->mask = NULL;
+	mask->nmasks = 0;
+}
+
+static inline void
+infmask_destroy(infmask_t *mask)
+{
+	infmask_reset(mask);
+	free(mask);
+}
+
+static inline bool
+infmask_is_empty(const infmask_t *mask)
+{
+	if (!mask->mask)
+		return true;
+
+	for (size_t i = 0; i < mask->nmasks; i++)
+		if (!bitmask_is_empty(mask->mask[i]))
+			return false;
+	return true;
+}
+
+static inline bool
+infmask_any(const infmask_t *mask, const infmask_t *bits)
+{
+	if (!mask->mask || !bits->mask)
+		return false;
+
+	size_t min_size = min(mask->nmasks, bits->nmasks);
+	for (size_t i = 0; i < min_size; i++)
+		if (bitmask_any(mask->mask[i], bits->mask[i]))
+			return true;
+	return false;
+}
+
+static inline bool
+infmask_all(const infmask_t *mask, const infmask_t *bits)
+{
+	if (!bits->mask)
+		return true;
+	if (!mask->mask)
+		return false;
+
+	size_t min_size = min(mask->nmasks, bits->nmasks);
+	for (size_t i = 0; i < min_size; i++)
+		if (!bitmask_all(mask->mask[i], bits->mask[i]))
+			return false;
+
+	/* Check if bits has any bits set beyond min_size */
+	for (size_t i = min_size; i < bits->nmasks; i++)
+		if (!bitmask_is_empty(bits->mask[i]))
+			return false;
+
+	return true;
+}
+
+static inline bool
+infmask_merge(infmask_t *mask, const infmask_t *bits)
+{
+	if (!bits->mask)
+		return true;
+
+	_infmask_ensure_size(mask, bits->nmasks * bitmask_size() - 1);
+
+	bool all = true;
+
+	for (size_t i = 0; i < bits->nmasks; i++) {
+		all = all && bitmask_all(mask->mask[i], bits->mask[i]);
+		bitmask_merge(&mask->mask[i], bits->mask[i]);
+	}
+	return all;
+}
+
+static inline bool
+infmask_clear(infmask_t *mask, const infmask_t *bits)
+{
+	if (!mask->mask || !bits->mask)
+		return false;
+
+	bool all = infmask_all(mask, bits);
+
+	size_t min_size = min(mask->nmasks, bits->nmasks);
+	for (size_t i = 0; i < min_size; i++)
+		bitmask_clear(&mask->mask[i], bits->mask[i]);
+
+	return all;
+}
+
+static inline bool
+infmask_bit_is_set(const infmask_t *mask, unsigned int bit)
+{
+	if (!mask->mask || bit / bitmask_size() >= mask->nmasks)
+		return false;
+
+	return bitmask_bit_is_set(mask->mask[bit / bitmask_size()],
+				  bit % bitmask_size());
+}
+
+static inline bool
+infmask_set_bit(infmask_t *mask, unsigned int bit)
+{
+	_infmask_ensure_size(mask, bit);
+
+	bool isset = infmask_bit_is_set(mask, bit);
+	bitmask_set_bit(&mask->mask[bit / bitmask_size()], bit % bitmask_size());
+	return isset;
+}
+
+static inline bool
+infmask_clear_bit(infmask_t *mask, unsigned int bit)
+{
+	if (!mask->mask || bit / bitmask_size() >= mask->nmasks)
+		return false;
+
+	bool isset = infmask_bit_is_set(mask, bit);
+	bitmask_clear_bit(&mask->mask[bit / bitmask_size()], bit % bitmask_size());
+	return isset;
+}
+
+static inline infmask_t
+infmask_from_bit(unsigned int bit)
+{
+	infmask_t m = infmask_new();
+	infmask_set_bit(&m, bit);
+	return m;
+}
+
+static inline infmask_t
+_infmask_from_bits(unsigned int bit1, ...)
+{
+	infmask_t m = infmask_new();
+	infmask_set_bit(&m, bit1);
+
+	va_list args;
+	va_start(args, bit1);
+
+	unsigned int v = va_arg(args, unsigned int);
+	while (v < UINT_MAX) {
+		infmask_set_bit(&m, v);
+		v = va_arg(args, unsigned int);
+	}
+	va_end(args);
+
+	return m;
+}
+
+#define infmask_from_bits(...) \
+	_infmask_from_bits(__VA_ARGS__, UINT_MAX)
+
+static inline infmask_t
+infmask_from_u32(uint32_t mask)
+{
+	infmask_t m = infmask_new();
+	infmask_set_bit(&m, mask);
+	return m;
+}

@@ -3054,6 +3054,102 @@ START_TEST(evdev_frames)
 }
 END_TEST
 
+START_TEST(infmask_test)
+{
+	/* Test empty mask */
+	infmask_t empty = infmask_new();
+	litest_assert(infmask_is_empty(&empty));
+	litest_assert(!infmask_bit_is_set(&empty, 0));
+	litest_assert(!infmask_bit_is_set(&empty, 100));
+	infmask_reset(&empty);
+
+	/* Test single bit operations */
+	infmask_t single = infmask_new();
+	litest_assert(!infmask_set_bit(&single, 5));
+	litest_assert(infmask_bit_is_set(&single, 5));
+	litest_assert(!infmask_bit_is_set(&single, 4));
+	litest_assert(!infmask_bit_is_set(&single, 6));
+	litest_assert(!infmask_is_empty(&single));
+	litest_assert(infmask_clear_bit(&single, 5));
+	litest_assert(!infmask_bit_is_set(&single, 5));
+	litest_assert(infmask_is_empty(&single));
+	infmask_reset(&single);
+
+	/* Test from_bit constructor */
+	infmask_t from_bit = infmask_from_bit(7);
+	litest_assert(infmask_bit_is_set(&from_bit, 7));
+	litest_assert(!infmask_bit_is_set(&from_bit, 6));
+	litest_assert(!infmask_bit_is_set(&from_bit, 8));
+	infmask_reset(&from_bit);
+
+	/* Test from_bits constructor */
+	infmask_t from_bits = infmask_from_bits(1, 3, 5);
+	litest_assert(infmask_bit_is_set(&from_bits, 1));
+	litest_assert(!infmask_bit_is_set(&from_bits, 2));
+	litest_assert(infmask_bit_is_set(&from_bits, 3));
+	litest_assert(!infmask_bit_is_set(&from_bits, 4));
+	litest_assert(infmask_bit_is_set(&from_bits, 5));
+	infmask_reset(&from_bits);
+
+	/* Test high bit operations */
+	infmask_t high = infmask_new();
+	litest_assert(!infmask_set_bit(&high, 100));
+	litest_assert(infmask_bit_is_set(&high, 100));
+	litest_assert(!infmask_bit_is_set(&high, 99));
+	litest_assert(!infmask_bit_is_set(&high, 101));
+	litest_assert(infmask_clear_bit(&high, 100));
+	litest_assert(!infmask_bit_is_set(&high, 100));
+	infmask_reset(&high);
+
+	/* Test any/all operations */
+	infmask_t mask1 = infmask_from_bits(1, 2, 3);
+	infmask_t mask2 = infmask_from_bits(2, 3, 4);
+	infmask_t mask3 = infmask_from_bits(2, 3);
+
+	litest_assert(infmask_any(&mask1, &mask2));
+	litest_assert(!infmask_all(&mask1, &mask2));
+	litest_assert(infmask_all(&mask1, &mask3));
+	litest_assert(infmask_any(&mask1, &mask3));
+
+	infmask_reset(&mask1);
+	infmask_reset(&mask2);
+	infmask_reset(&mask3);
+
+	/* Test merge operation */
+	infmask_t merge1 = infmask_from_bits(1, 2);
+	infmask_t merge2 = infmask_from_bits(2, 3);
+	litest_assert(!infmask_merge(&merge1, &merge2));
+	litest_assert(infmask_bit_is_set(&merge1, 1));
+	litest_assert(infmask_bit_is_set(&merge1, 2));
+	litest_assert(infmask_bit_is_set(&merge1, 3));
+	infmask_reset(&merge1);
+	infmask_reset(&merge2);
+
+	/* Test clear operation */
+	infmask_t clear1 = infmask_from_bits(1, 2, 3);
+	infmask_t clear2 = infmask_from_bits(2, 3);
+	litest_assert(infmask_clear(&clear1, &clear2));
+	litest_assert(infmask_bit_is_set(&clear1, 1));
+	litest_assert(!infmask_bit_is_set(&clear1, 2));
+	litest_assert(!infmask_bit_is_set(&clear1, 3));
+	infmask_reset(&clear1);
+	infmask_reset(&clear2);
+
+	/* Test growing behavior */
+	infmask_t grow = infmask_new();
+	litest_assert(!infmask_set_bit(&grow, 5));
+	litest_assert(grow.nmasks == 1);
+	litest_assert(!infmask_set_bit(&grow, 35));
+	litest_assert(grow.nmasks == 2);
+	litest_assert(!infmask_set_bit(&grow, 65));
+	litest_assert(grow.nmasks == 3);
+	litest_assert(infmask_bit_is_set(&grow, 5));
+	litest_assert(infmask_bit_is_set(&grow, 35));
+	litest_assert(infmask_bit_is_set(&grow, 65));
+	infmask_reset(&grow);
+}
+END_TEST
+
 int
 main(void)
 {
@@ -3139,6 +3235,8 @@ main(void)
 	ADD_TEST(macros_expand);
 
 	ADD_TEST(evdev_frames);
+
+	ADD_TEST(infmask_test);
 
 	enum litest_runner_result result = litest_runner_run_tests(runner);
 	litest_runner_destroy(runner);
