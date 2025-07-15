@@ -1043,6 +1043,7 @@ evdev_device_dispatch(void *data)
 	struct input_event ev;
 	int rc;
 	bool once = false;
+	bool had_sysrq = false;
 	_unref_(evdev_frame) *frame = evdev_frame_new(64);
 
 	/* If the compositor is repainting, this function is called only once
@@ -1083,17 +1084,27 @@ evdev_device_dispatch(void *data)
 					device,
 					"event frame overflow, discarding events.\n");
 			}
+			/* Alt+Printscreen is always a repeat frame, see
+			 * drivers/tty/sysrq.c:sysrq_reinject_alt_sysrq() in the
+			 * kernel
+			 */
+			if (ev.type == EV_KEY && ev.code == KEY_SYSRQ)
+				had_sysrq = true;
+
 			if (ev.type == EV_SYN && ev.code == SYN_REPORT) {
 				/* A SYN_REPORT 1 event is a kernel-inserted
 				 * auto-repeat. Nothing in libinput cares about kernel
 				 * repeats and the inserted frame causes issues with
 				 * timestamp deltas (see e.g. #1145)
+				 *
+				 * (well, except Alt+Printscreen (KEY_SYSRQ))
 				 */
-				if (ev.value != 1)
+				if (ev.value != 1 || had_sysrq)
 					evdev_device_dispatch_frame(libinput,
 								    device,
 								    frame);
 				evdev_frame_reset(frame);
+				had_sysrq = false;
 			}
 		} else if (rc == -ENODEV) {
 			evdev_device_remove(device);

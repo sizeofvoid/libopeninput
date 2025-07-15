@@ -468,6 +468,61 @@ START_TEST(keyboard_no_scroll)
 }
 END_TEST
 
+START_TEST(keyboard_alt_printscreen)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_drain_events(li);
+
+	/* repeat frame, ignored */
+	litest_event(dev, EV_KEY, KEY_A, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 1);
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	/* not a repeat frame */
+	litest_event(dev, EV_KEY, KEY_LEFTALT, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_dispatch(li);
+	litest_assert_key_event(li, KEY_LEFTALT, LIBINPUT_KEY_STATE_PRESSED);
+
+	/* normal repeat frame, ignored */
+	litest_event(dev, EV_KEY, KEY_LEFTALT, 2);
+	litest_event(dev, EV_SYN, SYN_REPORT, 1);
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	/* not repeat frame */
+	litest_event(dev, EV_KEY, KEY_LEFTALT, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_dispatch(li);
+	litest_assert_key_event(li, KEY_LEFTALT, LIBINPUT_KEY_STATE_RELEASED);
+
+	/* special alt+printscreen repeat frame, *not* ignored */
+	litest_event(dev, EV_KEY, KEY_LEFTALT, 1);
+	litest_event(dev, EV_KEY, KEY_SYSRQ, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 1);
+	litest_dispatch(li);
+
+	/* special alt+printscreen repeat frame, *not* ignored */
+	litest_event(dev, EV_KEY, KEY_LEFTALT, 0);
+	litest_event(dev, EV_KEY, KEY_SYSRQ, 0);
+	litest_event(dev, EV_SYN, SYN_REPORT, 1);
+	litest_dispatch(li);
+
+	/* Note: the kernel doesn't release the key combo until both keys are released
+	 * and the order is reshuffled so we have alt down, sysrq down, sysrq up, alt up
+	 */
+	litest_assert_key_event(li, KEY_LEFTALT, LIBINPUT_KEY_STATE_PRESSED);
+	litest_assert_key_event(li, KEY_SYSRQ, LIBINPUT_KEY_STATE_PRESSED);
+	litest_assert_key_event(li, KEY_SYSRQ, LIBINPUT_KEY_STATE_RELEASED);
+	litest_assert_key_event(li, KEY_LEFTALT, LIBINPUT_KEY_STATE_RELEASED);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 TEST_COLLECTION(keyboard)
 {
 	/* clang-format off */
@@ -484,5 +539,7 @@ TEST_COLLECTION(keyboard)
 	litest_add(keyboard_leds, LITEST_ANY, LITEST_ANY);
 
 	litest_add(keyboard_no_scroll, LITEST_KEYS, LITEST_WHEEL);
+
+	litest_add_for_device(keyboard_alt_printscreen, LITEST_KEYBOARD);
 	/* clang-format on */
 }
