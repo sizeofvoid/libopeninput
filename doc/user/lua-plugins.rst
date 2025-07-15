@@ -9,7 +9,7 @@ of devices. For example, a plugin may add or remove axes and/or buttons on a
 device and/or modify the event stream seen by this device before it is passed
 to libinput.
 
-Plugins are implemented in `Lua <https://www.lua.org/>`_ (version 5.4 or later)
+Plugins are implemented in `Lua <https://www.lua.org/>`_ (version 5.1)
 and are typically loaded from ``/usr/lib{64}/libinput/plugins`` and
 ``/etc/libinput/plugins``. Plugins are loaded in alphabetical order and where
 multiple plugins share the same file name, the one in the highest precedence
@@ -20,7 +20,7 @@ Plugins are run sequentially in ascending sort-order (i.e. ``00-foo.lua`` runs
 before ``10-bar.lua``) and each plugin sees the state left by any previous
 plugins.
 
-See the `Lua Reference manual <https://www.lua.org/manual/5.4/manual.html>`_ for
+See the `Lua Reference manual <https://www.lua.org/manual/5.1/manual.html>`_ for
 details on the Lua language.
 
 .. note:: Plugins are **not** loaded by default, it is up to the compositor

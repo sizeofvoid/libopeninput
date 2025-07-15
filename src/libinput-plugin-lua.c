@@ -284,7 +284,18 @@ libinput_lua_pcall(struct libinput_lua_plugin *plugin, int narg, int nres)
 {
 	lua_State *L = plugin->L;
 
-	int rc = lua_pcall(L, narg, nres, 0);
+	lua_pushvalue(L, -(narg + 1)); /* Copy the function */
+	lua_pushvalue(L, plugin->sandbox_table_idx);
+	/* Now set the sandbox environment for the function we're about to call */
+	int rc = lua_setfenv(L, -2) == 1 ? LUA_OK : LUA_ERRRUN;
+	if (rc == LUA_OK) {
+		/* Replace original function with sandboxed one */
+		lua_replace(L, -(narg + 2));
+		/* Now call the function */
+		rc = lua_pcall(L, narg, nres, 0);
+	} else {
+		lua_pushstring(L, "Failed to set up sandbox");
+	}
 	if (rc != LUA_OK) {
 		auto libinput_plugin = plugin->parent;
 		const char *errormsg = lua_tostring(L, -1);
@@ -1114,20 +1125,6 @@ libinput_lua_plugin_run(struct libinput_plugin *libinput_plugin)
 {
 	struct libinput_lua_plugin *plugin =
 		libinput_plugin_get_user_data(libinput_plugin);
-	struct lua_State *L = plugin->L;
-
-	/* Main entry point into the plugin, so we need to push our sandbox
-	 * as _ENV. This only needs to be done here because all other entry
-	 * points into the Lua script are callbacks that are set up during
-	 * this run (and thus share the _ENV)
-	 */
-	lua_pushvalue(L, plugin->sandbox_table_idx);
-	const char *upval = lua_setupvalue(L, -2, 1);
-	if (!upval || !streq(upval, "_ENV")) {
-		plugin_log_bug_libinput(libinput_plugin, "Failed to set up sandbox\n");
-		libinput_plugin_unregister(libinput_plugin);
-		return;
-	}
 
 	if (libinput_lua_pcall(plugin, 0, 0) && !plugin->register_called) {
 		plugin_log_bug(libinput_plugin,
@@ -1214,7 +1211,7 @@ libinput_lua_plugin_init_lua(struct libinput *libinput,
 	if (!L)
 		return NULL;
 
-	/* This will be our _ENV later, see libinput_lua_pcall */
+	/* This will be our our global env later, see libinput_lua_pcall() */
 	lua_newtable(L);
 	int sandbox_table_idx = lua_gettop(L);
 	plugin->sandbox_table_idx = sandbox_table_idx;
@@ -1227,32 +1224,36 @@ libinput_lua_plugin_init_lua(struct libinput *libinput,
 	 * all have their own individual sandbox.
 	 */
 
-	luaL_requiref(L, LUA_GNAME, luaopen_base, 0);
+	luaopen_base(L);
 	static const char *allowed_funcs[] = {
-		"assert", "error", "ipairs",   "next",     "pcall", "pairs",  "pairs",
-		"print",  "warn",  "tonumber", "tostring", "type",  "xpcall",
+		"assert", "error",    "ipairs",   "next", "pcall",  "pairs",
+		"print",  "tonumber", "tostring", "type", "unpack", "xpcall",
 	};
 	ARRAY_FOR_EACH(allowed_funcs, func) {
-		lua_getfield(L, -1, *func);
+		lua_getglobal(L, *func);
 		lua_setfield(L, sandbox_table_idx, *func);
 	}
 
 	/* Math is fine as a whole */
-	luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 0);
+	luaopen_math(L);
+	lua_getglobal(L, "math");
 	lua_setfield(L, sandbox_table_idx, "math");
 
 	/* Table is fine as a whole */
-	luaL_requiref(L, LUA_TABLIBNAME, luaopen_table, 0);
+	luaopen_table(L);
+	lua_getglobal(L, "table");
 	lua_setfield(L, sandbox_table_idx, "table");
 
-	/* Table is fine as a whole */
-	luaL_requiref(L, LUA_STRLIBNAME, luaopen_table, 0);
+	/* String is fine as a whole */
+	luaopen_string(L);
+	lua_getglobal(L, "string");
 	lua_setfield(L, sandbox_table_idx, "string");
 
 	/* Override metatable to prevent access to unregistered globals */
-	lua_pushvalue(L, sandbox_table_idx);
 	lua_newtable(L);
-	lua_setfield(L, -2, "__index");
+	lua_pushstring(L, "__index");
+	lua_pushnil(L);
+	lua_settable(L, -3);
 	lua_setmetatable(L, sandbox_table_idx);
 
 	/* Our objects */
@@ -1260,7 +1261,8 @@ libinput_lua_plugin_init_lua(struct libinput *libinput,
 	evdevdevice_init(L);
 
 	/* Our globals */
-	luaL_newlib(L, log_funcs);
+	lua_newtable(L);
+	luaL_register(L, "log", log_funcs);
 	lua_setfield(L, sandbox_table_idx, "log");
 	libinput_lua_init_evdev_global(L, sandbox_table_idx);
 

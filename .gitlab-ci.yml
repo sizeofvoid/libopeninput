@@ -98,11 +98,11 @@ variables:
   # See the documentation here:                                                 #
   # https://wayland.freedesktop.org/libinput/doc/latest/building.html           #
   ###############################################################################
-  FEDORA_PACKAGES:  'git-core gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx_rtd_theme python3-pytest-xdist libwacom-devel cairo-devel gtk4-devel glib2-devel mtdev-devel diffutils wayland-protocols-devel black clang clang-tools-extra jq rpmdevtools valgrind systemd-udev qemu-img qemu-system-x86-core qemu-system-aarch64-core jq python3-click python3-rich virtme-ng lua-devel'
-  DEBIAN_PACKAGES:  'git gcc g++ pkg-config meson check libudev-dev libevdev-dev doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev curl lua5.4-dev'
-  UBUNTU_PACKAGES:  'git gcc g++ pkg-config meson check libudev-dev libevdev-dev doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev lua5.4-dev'
-  ARCH_PACKAGES:    'git gcc pkgconfig meson check libsystemd libevdev python-pytest-xdist libwacom gtk4 mtdev diffutils lua'
-  ALPINE_PACKAGES:  'git gcc build-base pkgconfig meson check-dev eudev-dev libevdev-dev libwacom-dev cairo-dev gtk4.0-dev mtdev-dev bash lua5.4-dev'
+  FEDORA_PACKAGES:  'git-core gcc gcc-c++ pkgconf-pkg-config meson check-devel libudev-devel libevdev-devel doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx_rtd_theme python3-pytest-xdist libwacom-devel cairo-devel gtk4-devel glib2-devel mtdev-devel diffutils wayland-protocols-devel black clang clang-tools-extra jq rpmdevtools valgrind systemd-udev qemu-img qemu-system-x86-core qemu-system-aarch64-core jq python3-click python3-rich virtme-ng luajit-devel'
+  DEBIAN_PACKAGES:  'git gcc g++ pkg-config meson check libudev-dev libevdev-dev doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev curl libluajit-5.1-dev'
+  UBUNTU_PACKAGES:  'git gcc g++ pkg-config meson check libudev-dev libevdev-dev doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev libluajit-5.1-dev'
+  ARCH_PACKAGES:    'git gcc pkgconfig meson check libsystemd libevdev python-pytest-xdist libwacom gtk4 mtdev diffutils luajit'
+  ALPINE_PACKAGES:  'git gcc build-base pkgconfig meson check-dev eudev-dev libevdev-dev libwacom-dev cairo-dev gtk4.0-dev mtdev-dev bash luajit-dev'
   FREEBSD_PACKAGES: 'git pkgconf meson libepoll-shim libudev-devd libevdev libwacom gtk3 libmtdev bash wayland'
   ############################ end of package lists #############################
 
@@ -110,12 +110,12 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2025-05-20.0'
-  DEBIAN_TAG:  '2025-05-20.0'
-  UBUNTU_TAG:  '2025-05-20.0'
-  ARCH_TAG:    '2025-05-20.0'
-  ALPINE_TAG:  '2025-05-20.0'
-  FREEBSD_TAG: '2025-05-20.0'
+  FEDORA_TAG:  '2025-08-01.0'
+  DEBIAN_TAG:  '2025-08-01.0'
+  UBUNTU_TAG:  '2025-08-01.0'
+  ARCH_TAG:    '2025-08-01.0'
+  ALPINE_TAG:  '2025-08-01.0'
+  FREEBSD_TAG: '2025-08-01.0'
 
   FDO_UPSTREAM_REPO: libinput/libinput
 

@@ -46,3 +46,7 @@ option('lua-plugins',
 	type: 'feature',
 	value: 'auto',
 	description: 'Enable support for Lua plugins')
+option('lua-interpreter',
+	type: 'string',
+	value: 'luajit',
+	description: 'The Lua interpreter to use (pkgconfig name)')
