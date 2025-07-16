@@ -154,20 +154,23 @@ def create(device):
 def print_events(devnode, indent, evs):
     devnode = os.path.basename(devnode)
     for e in evs:
-        print(
-            "{}: {}{:06d}.{:06d} {} / {:<20s} {:4d}".format(
-                devnode,
-                " " * (indent * 8),
-                e.sec,
-                e.usec,
-                e.type.name,
-                e.code.name,
-                e.value,
+        if e.type != libevdev.EV_SYN:
+            print(
+                "{}: {}{:-6d}.{:06d} {} / {:<20s} {:6d}".format(
+                    devnode,
+                    " " * (indent * 8),
+                    e.sec,
+                    e.usec,
+                    e.type.name,
+                    e.code.name,
+                    e.value,
+                )
             )
-        )
         if e.type == libevdev.EV_SYN:
             print(
-                "{}: ------------------------------------------------".format(devnode)
+                "{}: {}----------------- SYN_REPORT ({}) -----------------".format(
+                    devnode, " " * (indent * 8), e.value
+                )
             )
 
 
