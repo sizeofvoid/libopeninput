@@ -886,6 +886,7 @@ endif
 		'test/litest-device-magic-trackpad.c',
 		'test/litest-device-mouse.c',
 		'test/litest-device-mouse-wheel-tilt.c',
+		'test/litest-device-mouse-ps2.c',
 		'test/litest-device-mouse-roccat.c',
 		'test/litest-device-mouse-low-dpi.c',
 		'test/litest-device-mouse-virtual.c',

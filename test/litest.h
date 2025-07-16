@@ -450,6 +450,7 @@ enum litest_device_type {
 
 	/* Pointing devices and keyboards */
 	LITEST_MOUSE,
+	LITEST_MOUSE_PS2,
 	LITEST_KEYBOARD,
 	LITEST_TRACKPOINT,
 	LITEST_ABSINFO_OVERRIDE,
