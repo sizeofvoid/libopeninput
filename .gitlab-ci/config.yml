@@ -195,6 +195,13 @@ test_suites:
   - name: tablet_left_handed
     suites:
       - tablet_left_handed
+  - name: tablet_proximity_tip
+    suites:
+      - tablet_proximity
+      - tablet_tip
+  - name: tablet_eraser
+    suites:
+      - tablet_eraser
   - name: gestures
     suites:
       - gestures

@@ -7473,41 +7473,10 @@ TEST_COLLECTION(tablet)
 	litest_add_no_device(tools_with_serials);
 	litest_add_no_device(tools_without_serials);
 	litest_add_for_device(tool_delayed_serial, LITEST_WACOM_HID4800_PEN);
-	litest_add(proximity_out_clear_buttons, LITEST_TABLET, LITEST_FORCED_PROXOUT);
-	litest_add(proximity_in_out, LITEST_TABLET, LITEST_ANY);
-	litest_add(proximity_in_button_down, LITEST_TABLET, LITEST_ANY);
-	litest_add(proximity_out_button_up, LITEST_TABLET, LITEST_ANY);
-	litest_add(proximity_has_axes, LITEST_TABLET, LITEST_ANY);
-	litest_add(bad_distance_events, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
-	litest_add(proximity_range_enter, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
-	litest_add(proximity_range_in_out, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
-	litest_add(proximity_range_button_click, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
-	litest_add(proximity_range_button_press, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
-	litest_add(proximity_range_button_release, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
-	litest_add(proximity_out_slow_event, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
-	litest_add(proximity_out_not_during_contact, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
-	litest_add(proximity_out_not_during_buttonpress, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
-	litest_add(proximity_out_disables_forced, LITEST_TABLET, LITEST_FORCED_PROXOUT|LITEST_TOTEM);
-	litest_add(proximity_out_disables_forced_after_forced, LITEST_TABLET, LITEST_FORCED_PROXOUT|LITEST_TOTEM);
 	litest_add_no_device(proximity_out_on_delete);
 	litest_add(button_down_up, LITEST_TABLET, LITEST_ANY);
 	litest_add(button_seat_count, LITEST_TABLET, LITEST_ANY);
 	litest_add_no_device(button_up_on_delete);
-	litest_add(tip_down_up, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	litest_add(tip_down_prox_in, LITEST_TABLET, LITEST_ANY);
-	litest_add(tip_up_prox_out, LITEST_TABLET, LITEST_ANY);
-	litest_add(tip_down_btn_change, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	litest_add(tip_up_btn_change, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	litest_add(tip_down_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	litest_add(tip_up_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	litest_add(tip_down_up_eraser, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	litest_with_parameters(params, "axis", 'I', 2, litest_named_i32(ABS_X), litest_named_i32(ABS_Y)) {
-		litest_add_parametrized(tip_up_motion_one_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY, params);
-	}
-	litest_add(tip_state_proximity, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	litest_add(tip_state_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	litest_add(tip_state_button, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
-	litest_add_no_device(tip_up_on_delete);
 	litest_add(motion, LITEST_TABLET, LITEST_ANY);
 	litest_add(motion_event_state, LITEST_TABLET, LITEST_ANY);
 	litest_add_for_device(motion_outside_bounds, LITEST_WACOM_CINTIQ_24HD_PEN);
@@ -7526,6 +7495,7 @@ TEST_COLLECTION(tablet)
 	litest_add(mouse_buttons, LITEST_TABLET | LITEST_TOOL_MOUSE, LITEST_ANY);
 	litest_add(mouse_rotation, LITEST_TABLET | LITEST_TOOL_MOUSE, LITEST_ANY);
 	litest_add(mouse_wheel, LITEST_TABLET | LITEST_TOOL_MOUSE, LITEST_WHEEL);
+
 	litest_add(airbrush_tool, LITEST_TABLET, LITEST_ANY);
 	litest_add(airbrush_slider, LITEST_TABLET, LITEST_ANY);
 	litest_add(artpen_tool, LITEST_TABLET, LITEST_ANY);
@@ -7604,15 +7574,6 @@ TEST_COLLECTION(tablet)
 	}
 
 	litest_add_for_device(tablet_smoothing, LITEST_WACOM_HID4800_PEN);
-
-	litest_with_parameters(params,
-			       "with-tip-down", 'b',
-			       "configure-while-out-of-prox", 'b',
-			       "down-when-in-prox", 'b',
-			       "down-when-out-of-prox", 'b',
-			       "with-motion-events", 'b') {
-		litest_add_parametrized(tablet_eraser_button_disabled, LITEST_TABLET, LITEST_TOTEM|LITEST_FORCED_PROXOUT, params);
-	}
 	/* clang-format on */
 }
 
@@ -7637,5 +7598,62 @@ TEST_COLLECTION(tablet_left_handed)
 		litest_add_parametrized(tablet_rotation_left_handed_add_touchpad, LITEST_TABLET, LITEST_ANY, params);
 		litest_add_parametrized(tablet_rotation_left_handed_add_tablet, LITEST_TOUCHPAD, LITEST_ANY, params);
 	}
+	/* clang-format on */
+}
+
+TEST_COLLECTION(tablet_eraser)
+{
+	/* clang-format off */
+	litest_with_parameters(params,
+			       "with-tip-down", 'b',
+			       "configure-while-out-of-prox", 'b',
+			       "down-when-in-prox", 'b',
+			       "down-when-out-of-prox", 'b',
+			       "with-motion-events", 'b') {
+		litest_add_parametrized(tablet_eraser_button_disabled, LITEST_TABLET, LITEST_TOTEM|LITEST_FORCED_PROXOUT, params);
+	}
+	/* clang-format on */
+}
+
+TEST_COLLECTION(tablet_proximity)
+{
+	/* clang-format off */
+	litest_add(proximity_out_clear_buttons, LITEST_TABLET, LITEST_FORCED_PROXOUT);
+	litest_add(proximity_in_out, LITEST_TABLET, LITEST_ANY);
+	litest_add(proximity_in_button_down, LITEST_TABLET, LITEST_ANY);
+	litest_add(proximity_out_button_up, LITEST_TABLET, LITEST_ANY);
+	litest_add(proximity_has_axes, LITEST_TABLET, LITEST_ANY);
+	litest_add(bad_distance_events, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
+	litest_add(proximity_range_enter, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
+	litest_add(proximity_range_in_out, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
+	litest_add(proximity_range_button_click, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
+	litest_add(proximity_range_button_press, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
+	litest_add(proximity_range_button_release, LITEST_TABLET | LITEST_DISTANCE | LITEST_TOOL_MOUSE, LITEST_ANY);
+	litest_add(proximity_out_slow_event, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
+	litest_add(proximity_out_not_during_contact, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
+	litest_add(proximity_out_not_during_buttonpress, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
+	litest_add(proximity_out_disables_forced, LITEST_TABLET, LITEST_FORCED_PROXOUT|LITEST_TOTEM);
+	litest_add(proximity_out_disables_forced_after_forced, LITEST_TABLET, LITEST_FORCED_PROXOUT|LITEST_TOTEM);
+	/* clang-format on */
+}
+
+TEST_COLLECTION(tablet_tip)
+{
+	/* clang-format off */
+	litest_add(tip_down_up, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add(tip_down_prox_in, LITEST_TABLET, LITEST_ANY);
+	litest_add(tip_up_prox_out, LITEST_TABLET, LITEST_ANY);
+	litest_add(tip_down_btn_change, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add(tip_up_btn_change, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add(tip_down_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add(tip_up_motion, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add(tip_down_up_eraser, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_with_parameters(params, "axis", 'I', 2, litest_named_i32(ABS_X), litest_named_i32(ABS_Y)) {
+		litest_add_parametrized(tip_up_motion_one_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY, params);
+	}
+	litest_add(tip_state_proximity, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add(tip_state_axis, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add(tip_state_button, LITEST_TABLET|LITEST_HOVER, LITEST_ANY);
+	litest_add_no_device(tip_up_on_delete);
 	/* clang-format on */
 }

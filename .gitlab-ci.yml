@@ -705,6 +705,32 @@ vm-tablet_left_handed-no-libwacom:
   variables:
     MESON_ARGS: '-Dlibwacom=false'
 
+vm-tablet_proximity_tip:
+  extends:
+    - .fedora:42@test-suite-vm
+  variables:
+    SUITE_NAMES: 'tablet_proximity tablet_tip'
+
+vm-tablet_proximity_tip-no-libwacom:
+  extends:
+    - vm-tablet_proximity_tip
+  stage: test-suite-no-libwacom
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
+vm-tablet_eraser:
+  extends:
+    - .fedora:42@test-suite-vm
+  variables:
+    SUITE_NAMES: 'tablet_eraser'
+
+vm-tablet_eraser-no-libwacom:
+  extends:
+    - vm-tablet_eraser
+  stage: test-suite-no-libwacom
+  variables:
+    MESON_ARGS: '-Dlibwacom=false'
+
 vm-gestures:
   extends:
     - .fedora:42@test-suite-vm
@@ -879,6 +905,32 @@ vm-valgrind-tablet_left_handed:
   stage: valgrind
   extends:
     - vm-tablet_left_handed
+    - .policy-retry-on-failure
+  variables:
+    MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 0
+  retry:
+    max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
+
+vm-valgrind-tablet_proximity_tip:
+  stage: valgrind
+  extends:
+    - vm-tablet_proximity_tip
+    - .policy-retry-on-failure
+  variables:
+    MESON_TEST_ARGS: '--setup=valgrind'
+    LITEST_JOBS: 0
+  retry:
+    max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
+
+vm-valgrind-tablet_eraser:
+  stage: valgrind
+  extends:
+    - vm-tablet_eraser
     - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
@@ -1093,6 +1145,9 @@ check-test-suites:
         libinput-test-suite-touchpad_buttons
         libinput-test-suite-tablet
         libinput-test-suite-tablet_left_handed
+        libinput-test-suite-tablet_proximity
+        libinput-test-suite-tablet_tip
+        libinput-test-suite-tablet_eraser
         libinput-test-suite-gestures
         libinput-test-suite-path
         libinput-test-suite-udev
