@@ -523,6 +523,52 @@ START_TEST(keyboard_alt_printscreen)
 }
 END_TEST
 
+START_TEST(keyboard_keycode_obfuscation)
+{
+#ifdef EVENT_DEBUGGING
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	litest_drain_events(li);
+
+	litest_with_logcapture(li, capture)
+	{
+		litest_event(dev, EV_KEY, KEY_Q, 1);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_event(dev, EV_KEY, KEY_Q, 0);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		litest_dispatch(li);
+		litest_drain_events(li);
+
+		/* clang-format off */
+		/* We get two possible debug messages:
+		 *  Queuing  event14  KEYBOARD_KEY                 +0.000s KEY_Q (16) released
+		 *  event14: plugin evdev           - 0.000 EV_KEY           KEY_Q                   0
+		 *
+		 * The latter must not exist, it must be obfuscated to KEY_A
+		 */
+		/* clang-format on */
+		char **strv = capture->debugs;
+		size_t index;
+		litest_assert(strv_find_substring(strv, "KEY_Q", &index));
+		do {
+			litest_assert_str_not_in("EV_KEY", strv[index]);
+			strv += index + 1;
+		} while (strv_find_substring(strv, "KEY_Q", &index));
+
+		strv = capture->debugs;
+		litest_assert(strv_find_substring(strv, "KEY_A", &index));
+		do {
+			litest_assert_str_in("EV_KEY", strv[index]);
+			strv += index + 1;
+		} while (strv_find_substring(strv, "KEY_A", &index));
+	}
+#else
+	return LITEST_SKIP;
+#endif
+}
+END_TEST
+
 TEST_COLLECTION(keyboard)
 {
 	/* clang-format off */
@@ -541,5 +587,6 @@ TEST_COLLECTION(keyboard)
 	litest_add(keyboard_no_scroll, LITEST_KEYS, LITEST_WHEEL);
 
 	litest_add_for_device(keyboard_alt_printscreen, LITEST_KEYBOARD);
+	litest_add_for_device(keyboard_keycode_obfuscation, LITEST_KEYBOARD);
 	/* clang-format on */
 }

@@ -28,6 +28,7 @@
 #include "util-files.h"
 #include "util-list.h"
 
+#include "evdev-frame.h"
 #include "evdev-plugin.h"
 #include "libinput-plugin-button-debounce.h"
 #include "libinput-plugin-mouse-wheel-lowres.h"
@@ -508,9 +509,17 @@ print_frame(struct libinput *libinput, struct evdev_frame *frame, const char *pr
 	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
 
 	for (size_t i = 0; i < nevents; i++) {
-		struct evdev_event *e = &events[i];
+		struct evdev_event e = events[i];
+		enum evdev_usage usage = evdev_usage_enum(e.usage);
 
-		switch (evdev_usage_enum(e->usage)) {
+		if ((usage > EVDEV_KEY_ESC && usage < EVDEV_KEY_CAPSLOCK) ||
+		    (usage >= EVDEV_KEY_KP7 && usage <= EVDEV_KEY_KPDOT)) {
+			e.usage = evdev_usage_from(EVDEV_KEY_A);
+		} else if (usage == EVDEV_MSC_SCAN) {
+			e.value = 30; /* KEY_A scancode */
+		}
+
+		switch (evdev_usage_enum(e.usage)) {
 		case EVDEV_SYN_REPORT:
 			log_debug(
 				libinput,
@@ -528,9 +537,9 @@ print_frame(struct libinput *libinput, struct evdev_frame *frame, const char *pr
 				  prefix,
 				  time / 1000,
 				  time % 1000,
-				  evdev_event_get_type_name(e),
-				  evdev_event_get_code_name(e),
-				  e->value);
+				  evdev_event_get_type_name(&e),
+				  evdev_event_get_code_name(&e),
+				  e.value);
 			break;
 		default:
 			log_debug(libinput,
@@ -538,9 +547,9 @@ print_frame(struct libinput *libinput, struct evdev_frame *frame, const char *pr
 				  prefix,
 				  time / 1000,
 				  time % 1000,
-				  evdev_event_get_type_name(e),
-				  evdev_event_get_code_name(e),
-				  e->value);
+				  evdev_event_get_type_name(&e),
+				  evdev_event_get_code_name(&e),
+				  e.value);
 			break;
 		}
 	}
