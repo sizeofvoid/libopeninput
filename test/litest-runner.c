@@ -1110,6 +1110,7 @@ litest_runner_run_tests(struct litest_runner *runner)
 		list_for_each(t, &runner->tests_complete, node) {
 			switch (t->result) {
 			case LITEST_PASS:
+			case LITEST_SKIP:
 			case LITEST_NOT_APPLICABLE:
 				break;
 			default:
