@@ -31,7 +31,7 @@
 
 #include "evdev-tablet.h"
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
 #else
 typedef void *WacomStylus;
@@ -1004,7 +1004,7 @@ tool_set_bits_from_libwacom(const struct tablet_dispatch *tablet,
 			    const WacomStylus *s)
 {
 	bool rc = false;
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	int code;
 	WacomStylusType type;
 	WacomAxisTypeFlags axes;
@@ -1369,7 +1369,7 @@ tool_init_eraser_button(struct tablet_dispatch *tablet,
 	if (libinput_tablet_tool_get_type(tool) != LIBINPUT_TABLET_TOOL_TYPE_PEN)
 		return;
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	/* libwacom's API is a bit terrible here:
 	 * - has_eraser is true on styli that have a separate eraser, all
 	 *   those are INVERT so we can exclude them
@@ -1400,7 +1400,7 @@ tablet_new_tool(struct tablet_dispatch *tablet,
 {
 	struct libinput_tablet_tool *tool = zalloc(sizeof *tool);
 	const WacomStylus *s = NULL;
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	WacomDeviceDatabase *db;
 
 	db = tablet_libinput_context(tablet)->libwacom.db;
@@ -2788,7 +2788,7 @@ tablet_init_left_handed(struct evdev_device *device, WacomDevice *wacom)
 {
 	bool has_left_handed = true;
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	has_left_handed = !wacom || libwacom_is_reversible(wacom);
 #endif
 	if (has_left_handed)
@@ -2798,7 +2798,7 @@ tablet_init_left_handed(struct evdev_device *device, WacomDevice *wacom)
 static inline bool
 tablet_is_display_tablet(WacomDevice *wacom)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	return !wacom ||
 	       (libwacom_get_integration_flags(wacom) &
 		(WACOM_DEVICE_INTEGRATED_SYSTEM | WACOM_DEVICE_INTEGRATED_DISPLAY));
@@ -2810,7 +2810,7 @@ tablet_is_display_tablet(WacomDevice *wacom)
 static inline bool
 tablet_is_aes(struct evdev_device *device, WacomDevice *wacom)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	int vid = evdev_device_get_id_vendor(device);
 	/* Wacom-specific check for whether smoothing is required:
 	 * libwacom keeps all the AES pens in a single group, so any device
@@ -2943,7 +2943,7 @@ tablet_init(struct tablet_dispatch *tablet, struct evdev_device *device)
 	enum libinput_tablet_tool_axis axis;
 	int rc = -1;
 	WacomDevice *wacom = NULL;
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	WacomDeviceDatabase *db = libinput_libwacom_ref(li);
 	if (db) {
 		char event_path[64];
@@ -3018,7 +3018,7 @@ tablet_init(struct tablet_dispatch *tablet, struct evdev_device *device)
 
 	rc = 0;
 out:
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	if (wacom)
 		libwacom_destroy(wacom);
 	if (db)

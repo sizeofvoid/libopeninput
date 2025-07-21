@@ -156,8 +156,9 @@ if not cc.has_header_symbol('sys/ptrace.h', 'PTRACE_ATTACH', prefix : prefix)
 	config_h.set('PTRACE_CONT', 'PT_CONTINUE')
 	config_h.set('PTRACE_DETACH', 'PT_DETACH')
 endif
-
-config_h.set10('HAVE_INSTALLED_TESTS', get_option('install-tests'))
+if get_option('install-tests')
+	config_h.set('HAVE_INSTALLED_TESTS', 1)
+endif
 
 # Dependencies
 pkgconfig = import('pkgconfig')
@@ -180,8 +181,8 @@ includes_src = include_directories('src')
 ############ mtdev configuration ############
 
 have_mtdev = get_option('mtdev')
-config_h.set10('HAVE_MTDEV', have_mtdev)
 if have_mtdev
+	config_h.set('HAVE_MTDEV', 1)
 	dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
 else
 	dep_mtdev = declare_dependency()
@@ -194,8 +195,9 @@ have_libwacom = false
 else
 have_libwacom = get_option('libwacom')
 endif
-config_h.set10('HAVE_LIBWACOM', have_libwacom)
+
 if have_libwacom
+	config_h.set('HAVE_LIBWACOM', 1)
 	dep_libwacom = dependency('libwacom', version : '>= 0.27')
 	if cc.has_header_symbol('libwacom/libwacom.h', 'WACOM_BUTTON_DIAL_MODESWITCH',
 				dependencies : dep_libwacom)
@@ -654,13 +656,16 @@ executable('libinput-record',
 	   install : true,
 	   )
 
-config_h.set10('HAVE_DEBUG_GUI', get_option('debug-gui'))
 if get_option('debug-gui')
+	config_h.set('HAVE_DEBUG_GUI', 1)
 	dep_gtk = dependency('gtk4', version : '>= 4.0', required : false)
-	config_h.set10('HAVE_GTK4', dep_gtk.found())
-	if not dep_gtk.found()
+	if dep_gtk.found()
+		config_h.set('HAVE_GTK4', 1)
+	else
 		dep_gtk = dependency('gtk+-3.0', version : '>= 3.20')
-		config_h.set10('HAVE_GTK3', dep_gtk.found())
+		if dep_gtk.found()
+			config_h.set('HAVE_GTK3', 1)
+		endif
 	endif
 
 	if meson.version().version_compare('>= 0.58')
@@ -678,8 +683,9 @@ if get_option('debug-gui')
 	dep_wayland_client = dependency('wayland-client', required : false)
 	dep_wayland_protocols = dependency('wayland-protocols', required : false)
 
-	config_h.set10('HAVE_GTK_X11', have_gtk_x11 and dep_x11.found())
-	config_h.set10('HAVE_GTK_WAYLAND', false)
+	if have_gtk_x11 and dep_x11.found()
+		config_h.set('HAVE_GTK_X11', 1)
+	endif
 
 	debug_gui_sources = [ 'tools/libinput-debug-gui.c' ]
 
@@ -707,7 +713,7 @@ if get_option('debug-gui')
 		)
 
 		debug_gui_sources += [ wayland_headers, wayland_sources ]
-		config_h.set10('HAVE_GTK_WAYLAND', true)
+		config_h.set('HAVE_GTK_WAYLAND', 1)
 	endif
 
 	deps_debug_gui = [
@@ -835,13 +841,21 @@ if get_option('tests')
 	dep_check = dependency('check', version : '>= 0.9.10', required: false)
 
 	gstack = find_program('gstack', required : false)
-	config_h.set10('HAVE_GSTACK', gstack.found())
+	if gstack.found()
+		config_h.set('HAVE_GSTACK', 1)
+	endif
 
 	# for inhibit support during test run
 if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
 	dep_libsystemd = dependency('libsystemd', version : '>= 221', required : false)
+<<<<<<< HEAD
 	config_h.set10('HAVE_LIBSYSTEMD', dep_libsystemd.found())
 endif
+=======
+	if dep_libsystemd.found()
+		config_h.set('HAVE_LIBSYSTEMD', 1)
+	endif
+>>>>>>> cfec8058 (meson.build: change from config.set10() and #if to config.set() and #ifdef)
 
 	litest_sources = [
 		'src/libinput-private-config.c',

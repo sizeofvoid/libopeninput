@@ -29,7 +29,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
 #endif
 
@@ -121,7 +121,7 @@ END_TEST
 
 START_TEST(pad_num_buttons_libwacom)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 	WacomDeviceDatabase *db = NULL;
@@ -172,7 +172,7 @@ END_TEST
 
 START_TEST(pad_button_intuos)
 {
-#if !HAVE_LIBWACOM
+#ifndef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	unsigned int code;
@@ -231,7 +231,7 @@ END_TEST
 
 START_TEST(pad_button_bamboo)
 {
-#if !HAVE_LIBWACOM
+#ifndef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	unsigned int code;
@@ -281,7 +281,7 @@ END_TEST
 
 START_TEST(pad_button_libwacom)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	WacomDeviceDatabase *db = NULL;
@@ -325,7 +325,7 @@ START_TEST(pad_button_mode_groups)
 	struct libinput_event_tablet_pad *pev;
 	unsigned int expected_mode = 0;
 	int evdev_codes[KEY_OK - BTN_0] = { 0 };
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	WacomDeviceDatabase *db = NULL;
 	WacomDevice *wacom = NULL;
 
@@ -703,7 +703,7 @@ END_TEST
 
 START_TEST(pad_left_handed_default)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 	enum libinput_config_status status;
@@ -735,7 +735,7 @@ START_TEST(pad_no_left_handed)
 	struct libinput_device *device = dev->libinput_device;
 
 	/* Without libwacom we default to left-handed being available */
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	litest_assert(!libinput_device_config_left_handed_is_available(device));
 #else
 	litest_assert(libinput_device_config_left_handed_is_available(device));
@@ -744,7 +744,7 @@ START_TEST(pad_no_left_handed)
 	litest_assert_int_eq(libinput_device_config_left_handed_get_default(device), 0);
 	litest_assert_int_eq(libinput_device_config_left_handed_get(device), 0);
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	enum libinput_config_status status;
 	status = libinput_device_config_left_handed_set(dev->libinput_device, 1);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_UNSUPPORTED);
@@ -763,7 +763,7 @@ END_TEST
 
 START_TEST(pad_left_handed_ring)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *ev;
@@ -811,7 +811,7 @@ static bool
 pad_has_groups(struct litest_device *dev)
 {
 	bool rc = false;
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	WacomDeviceDatabase *db = NULL;
 	WacomDevice *wacom = NULL;
 
@@ -1020,7 +1020,7 @@ END_TEST
 
 START_TEST(pad_mode_group_has_no_toggle)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *device = dev->libinput_device;
 	struct libinput_tablet_pad_mode_group *group;

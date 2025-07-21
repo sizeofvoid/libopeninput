@@ -28,7 +28,7 @@
 
 #include "evdev-tablet-pad.h"
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
 #endif
 
@@ -114,7 +114,7 @@ pad_led_destroy(struct libinput *libinput, struct pad_mode_led *led)
 	free(led);
 }
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 static inline struct pad_mode_led *
 pad_led_new(struct libinput *libinput, const char *prefix, int group, int mode)
 {
@@ -198,7 +198,7 @@ pad_get_mode_group(struct pad_dispatch *pad, unsigned int index)
 	return NULL;
 }
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 static inline bool
 is_litest_device(struct evdev_device *device)
 {
@@ -618,7 +618,7 @@ pad_init_leds(struct pad_dispatch *pad, struct evdev_device *device, WacomDevice
 	}
 
 	/* If libwacom fails, we init one fallback group anyway */
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	rc = pad_init_leds_from_libwacom(pad, device, wacom);
 #endif
 	if (rc != 0)

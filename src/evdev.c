@@ -48,7 +48,7 @@
 #include "linux/input.h"
 #include "quirks.h"
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
 #endif
 

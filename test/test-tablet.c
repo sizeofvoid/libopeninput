@@ -31,7 +31,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
 #endif
 
@@ -1763,7 +1763,7 @@ END_TEST
 
 START_TEST(left_handed)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
@@ -1892,7 +1892,7 @@ START_TEST(no_left_handed)
 	struct litest_device *dev = litest_current_device();
 
 	/* Without libwacom we default to left-handed being available */
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	litest_assert(
 		!libinput_device_config_left_handed_is_available(dev->libinput_device));
 #else
@@ -1904,7 +1904,7 @@ END_TEST
 
 START_TEST(left_handed_tilt)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
@@ -1977,7 +1977,7 @@ rotate_event(struct litest_device *dev, int angle_degrees)
 
 START_TEST(left_handed_mouse_rotation)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	enum libinput_config_status status;
@@ -2023,7 +2023,7 @@ END_TEST
 
 START_TEST(left_handed_artpen_rotation)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	struct libinput_event *event;
@@ -3542,7 +3542,7 @@ device_has_calibration(struct litest_device *dev)
 		libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_PEN) ||
 		libevdev_has_event_code(dev->evdev, EV_KEY, BTN_STYLUS);
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	WacomDeviceDatabase *db = libwacom_database_new();
 	if (db) {
 		WacomDevice *d =
@@ -6379,7 +6379,7 @@ START_TEST(touch_arbitration_swap_device)
 }
 END_TEST
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 static void
 verify_left_handed_tablet_motion(struct litest_device *tablet,
 				 struct libinput *li,
@@ -6502,7 +6502,7 @@ verify_left_handed_touch_sequence(struct litest_device *finger,
 
 START_TEST(tablet_rotation_left_handed)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *tablet = litest_current_device();
 	enum litest_device_type other;
 	struct litest_device *finger;
@@ -6545,7 +6545,7 @@ END_TEST
 
 START_TEST(tablet_rotation_left_handed_configuration)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *tablet = litest_current_device();
 	enum litest_device_type other;
 	struct litest_device *finger;
@@ -6597,7 +6597,7 @@ END_TEST
 
 START_TEST(tablet_rotation_left_handed_while_in_prox)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *tablet = litest_current_device();
 	enum litest_device_type other;
 	struct litest_device *finger;
@@ -6691,7 +6691,7 @@ END_TEST
 
 START_TEST(tablet_rotation_left_handed_while_touch_down)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *tablet = litest_current_device();
 	enum litest_device_type other;
 	struct litest_device *finger;
@@ -6752,7 +6752,7 @@ END_TEST
 
 START_TEST(tablet_rotation_left_handed_add_touchpad)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *tablet = litest_current_device();
 	enum litest_device_type other;
 	struct litest_device *finger;
@@ -6800,7 +6800,7 @@ END_TEST
 
 START_TEST(tablet_rotation_left_handed_add_tablet)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *finger = litest_current_device();
 	enum litest_device_type other;
 	struct litest_device *tablet;
@@ -7028,7 +7028,7 @@ END_TEST
 
 START_TEST(tablet_smoothing)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	double x, y;

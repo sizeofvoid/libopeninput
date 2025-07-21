@@ -26,7 +26,7 @@
 
 #include "evdev.h"
 
-#if !HAVE_LIBWACOM
+#ifndef HAVE_LIBWACOM
 typedef void *WacomDevice;
 #endif
 

@@ -5146,7 +5146,7 @@ libinput_tablet_tool_config_eraser_button_get_default_button(
 	return tool->config.eraser_button.get_button(tool);
 }
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 WacomDeviceDatabase *
 libinput_libwacom_ref(struct libinput *li)
 {

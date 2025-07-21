@@ -28,7 +28,7 @@
 #include <math.h>
 #include <stdbool.h>
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
 #endif
 
@@ -3742,7 +3742,7 @@ static bool
 tp_requires_rotation(struct tp_dispatch *tp, struct evdev_device *device)
 {
 	bool rotate = false;
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct libinput *li = tp_libinput_context(tp);
 	WacomDeviceDatabase *db = NULL;
 	WacomDevice **devices = NULL, **d;

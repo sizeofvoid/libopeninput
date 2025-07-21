@@ -373,7 +373,7 @@ libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
 
 	system->loaded = true;
 
-#if HAVE_MTDEV
+#ifdef HAVE_MTDEV
 	libinput_mtdev_plugin(libinput);
 #endif
 	libinput_tablet_plugin_forced_tool(libinput);

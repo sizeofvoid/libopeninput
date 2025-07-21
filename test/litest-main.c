@@ -47,7 +47,7 @@
 #include <unistd.h>
 
 #include "linux/input.h"
-#if HAVE_LIBSYSTEMD
+#ifdef HAVE_LIBSYSTEMD
 #include <systemd/sd-bus.h>
 #endif
 #ifdef __FreeBSD__

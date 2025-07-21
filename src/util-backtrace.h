@@ -54,7 +54,7 @@ backtrace_print(FILE *fp,
 		const char *highlight_before,
 		const char *highlight_extra)
 {
-#if HAVE_GSTACK
+#ifdef HAVE_GSTACK
 	pid_t parent, child;
 	int pipefd[2];
 

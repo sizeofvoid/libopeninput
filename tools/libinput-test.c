@@ -31,7 +31,7 @@
 static inline void
 usage(void)
 {
-#if HAVE_INSTALLED_TESTS
+#ifdef HAVE_INSTALLED_TESTS
 	printf("Usage: libinput test [--help] <feature>\n");
 #else
 	fprintf(stderr, "libinput test was disabled in the build configuration\n");

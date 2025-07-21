@@ -2573,7 +2573,7 @@ START_TEST(touchpad_left_handed_clickpad_delayed)
 }
 END_TEST
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 static inline bool
 touchpad_has_rotation(struct libevdev *evdev)
 {
@@ -2583,7 +2583,7 @@ touchpad_has_rotation(struct libevdev *evdev)
 
 START_TEST(touchpad_left_handed_rotation)
 {
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct litest_device *dev = litest_current_device();
 	struct libinput_device *d = dev->libinput_device;
 	struct libinput *li = dev->libinput;

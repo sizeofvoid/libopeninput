@@ -47,7 +47,7 @@
 #include <unistd.h>
 
 #include "linux/input.h"
-#if HAVE_LIBSYSTEMD
+#ifdef HAVE_LIBSYSTEMD
 #include <systemd/sd-bus.h>
 #endif
 #ifdef __FreeBSD__
@@ -1615,7 +1615,7 @@ static inline int
 inhibit(void)
 {
 	int lock_fd = -1;
-#if HAVE_LIBSYSTEMD
+#ifdef HAVE_LIBSYSTEMD
 	_cleanup_(sd_bus_error_free) sd_bus_error error = SD_BUS_ERROR_NULL;
 	_unref_(sd_bus_message) *m = NULL;
 	_unref_(sd_bus) *bus = NULL;

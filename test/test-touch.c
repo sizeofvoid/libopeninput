@@ -1353,7 +1353,7 @@ TEST_COLLECTION(touch)
 	litest_add(fake_mt_exists, LITEST_FAKE_MT, LITEST_ANY);
 	litest_add(fake_mt_no_touch_events, LITEST_FAKE_MT, LITEST_ANY);
 
-#if HAVE_MTDEV
+#ifdef HAVE_MTDEV
 	litest_add(touch_protocol_a_init, LITEST_PROTOCOL_A, LITEST_ANY);
 	litest_add(touch_protocol_a_touch, LITEST_PROTOCOL_A, LITEST_ANY);
 	litest_add(touch_protocol_a_2fg_touch, LITEST_PROTOCOL_A, LITEST_ANY);
@@ -1375,7 +1375,7 @@ TEST_COLLECTION(touch)
 
 	litest_add(touch_count_st, LITEST_SINGLE_TOUCH, LITEST_TOUCHPAD);
 	litest_add(touch_count_mt, LITEST_TOUCH, LITEST_SINGLE_TOUCH|LITEST_PROTOCOL_A);
-#if HAVE_MTDEV
+#ifdef HAVE_MTDEV
 	litest_add(touch_count_mtdev, LITEST_PROTOCOL_A, LITEST_ANY);
 	litest_add(touch_count_invalid, LITEST_ANY, LITEST_TOUCH|LITEST_SINGLE_TOUCH|LITEST_PROTOCOL_A);
 #endif

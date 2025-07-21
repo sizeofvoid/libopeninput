@@ -46,21 +46,21 @@
 
 #include "shared.h"
 
-#if HAVE_GTK_WAYLAND
+#ifdef HAVE_GTK_WAYLAND
 #include <wayland-client.h>
 
 #include "pointer-constraints-unstable-v1-client-protocol.h"
-#if HAVE_GTK4
+#ifdef HAVE_GTK4
 #include <gdk/wayland/gdkwayland.h>
 #else
 #include <gdk/gdkwayland.h>
 #endif
 #endif
 
-#if HAVE_GTK_X11
+#ifdef HAVE_GTK_X11
 #include <X11/X.h>
 #include <X11/Xlib.h>
-#if HAVE_GTK4
+#ifdef HAVE_GTK4
 #include <gdk/x11/gdkx.h>
 #else
 #include <gdk/gdkx.h>
@@ -119,7 +119,7 @@ struct window {
 	struct {
 		bool locked;
 
-#if HAVE_GTK_WAYLAND
+#ifdef HAVE_GTK_WAYLAND
 		struct zwp_pointer_constraints_v1 *wayland_pointer_constraints;
 		struct zwp_locked_pointer_v1 *wayland_locked_pointer;
 #endif
@@ -210,7 +210,7 @@ struct window {
 	struct libinput_device *devices[50];
 };
 
-#if HAVE_GTK_WAYLAND
+#ifdef HAVE_GTK_WAYLAND
 static void
 wayland_registry_global(void *data,
 			struct wl_registry *registry,
@@ -268,7 +268,7 @@ wayland_lock_pointer(struct window *w)
 	if (!w->lock_pointer.wayland_pointer_constraints)
 		return false;
 
-#if HAVE_GTK4
+#ifdef HAVE_GTK4
 	GtkNative *window = gtk_widget_get_native(w->win);
 	GdkSurface *gdk_surface = gtk_native_get_surface(window);
 	surface = gdk_wayland_surface_get_wl_surface(gdk_surface);
@@ -302,7 +302,7 @@ backend_is_wayland(void)
 }
 #endif /* HAVE_GTK_WAYLAND */
 
-#if HAVE_GTK_X11
+#ifdef HAVE_GTK_X11
 static bool
 x_lock_pointer(struct window *w)
 {
@@ -319,7 +319,7 @@ x_lock_pointer(struct window *w)
 	x_display = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
 #pragma GCC diagnostic pop
 
-#if HAVE_GTK4
+#ifdef HAVE_GTK4
 	GtkNative *window = gtk_widget_get_native(w->win);
 	GdkSurface *surface = gtk_native_get_surface(window);
 #pragma GCC diagnostic push
@@ -369,12 +369,12 @@ window_lock_pointer(struct window *w)
 	if (w->lock_pointer.locked)
 		return true;
 
-#if HAVE_GTK_WAYLAND
+#ifdef HAVE_GTK_WAYLAND
 	if (backend_is_wayland())
 		w->lock_pointer.locked = wayland_lock_pointer(w);
 #endif
 
-#if HAVE_GTK_X11
+#ifdef HAVE_GTK_X11
 	if (backend_is_x11())
 		w->lock_pointer.locked = x_lock_pointer(w);
 #endif
@@ -390,12 +390,12 @@ window_unlock_pointer(struct window *w)
 
 	w->lock_pointer.locked = false;
 
-#if HAVE_GTK_WAYLAND
+#ifdef HAVE_GTK_WAYLAND
 	if (backend_is_wayland())
 		wayland_unlock_pointer(w);
 #endif
 
-#if HAVE_GTK_X11
+#ifdef HAVE_GTK_X11
 	if (backend_is_x11())
 		x_unlock_pointer(w);
 #endif
@@ -1047,7 +1047,7 @@ draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 	return TRUE;
 }
 
-#if HAVE_GTK4
+#ifdef HAVE_GTK4
 static void
 draw_gtk4(GtkDrawingArea *widget, cairo_t *cr, int width, int height, gpointer data)
 {
@@ -1058,7 +1058,7 @@ draw_gtk4(GtkDrawingArea *widget, cairo_t *cr, int width, int height, gpointer d
 static void
 window_place_ui_elements(GtkWidget *widget, struct window *w)
 {
-#if HAVE_GTK4
+#ifdef HAVE_GTK4
 	w->width = gtk_widget_get_width(w->area);
 	w->height = gtk_widget_get_height(w->area);
 #else
@@ -1089,7 +1089,7 @@ window_place_ui_elements(GtkWidget *widget, struct window *w)
 	w->pinch.y = w->height / 2;
 }
 
-#if HAVE_GTK4
+#ifdef HAVE_GTK4
 static void
 map_event_cb(GtkDrawingArea *widget, int width, int height, gpointer data)
 {
@@ -1131,7 +1131,7 @@ window_quit(struct window *w)
 	g_main_loop_quit(w->event_loop);
 }
 
-#if HAVE_GTK4
+#ifdef HAVE_GTK4
 static gboolean
 window_delete_event_cb(GtkWindow *window, gpointer data)
 {
@@ -1156,14 +1156,14 @@ window_init(struct window *w)
 {
 	list_init(&w->evdev_devices);
 
-#if HAVE_GTK4
+#ifdef HAVE_GTK4
 	w->win = gtk_window_new();
 #else
 	w->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 #endif
 
 	if (getenv("LIBINPUT_RUNNING_TEST_SUITE")) {
-#if HAVE_GTK4
+#ifdef HAVE_GTK4
 		gtk_window_minimize(GTK_WINDOW(w->win));
 #else
 		gtk_window_iconify(GTK_WINDOW(w->win));
@@ -1178,7 +1178,7 @@ window_init(struct window *w)
 
 	w->area = gtk_drawing_area_new();
 
-#if HAVE_GTK4
+#ifdef HAVE_GTK4
 	g_signal_connect(G_OBJECT(w->area), "resize", G_CALLBACK(map_event_cb), w);
 	g_signal_connect(G_OBJECT(w->win),
 			 "close-request",
@@ -1929,7 +1929,7 @@ main(int argc, char **argv)
 	bool verbose = false;
 	bool gtk_init = false;
 
-#if HAVE_GTK4
+#ifdef HAVE_GTK4
 	gtk_init = gtk_init_check();
 #else
 	gtk_init = gtk_init_check(&argc, &argv);

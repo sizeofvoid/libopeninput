@@ -31,7 +31,7 @@
 
 #include "evdev-tablet-pad.h"
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
 #endif
 
@@ -667,7 +667,7 @@ pad_init_buttons_from_libwacom(struct pad_dispatch *pad,
 			       WacomDevice *tablet)
 {
 	bool rc = false;
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 
 	if (tablet) {
 		int num_buttons = libwacom_get_num_buttons(tablet);
@@ -759,7 +759,7 @@ pad_init_left_handed(struct evdev_device *device, WacomDevice *wacom)
 {
 	bool has_left_handed = true;
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	has_left_handed = !wacom || libwacom_is_reversible(wacom);
 #endif
 	if (has_left_handed)
@@ -772,7 +772,7 @@ pad_init(struct pad_dispatch *pad, struct evdev_device *device)
 	int rc = 1;
 	struct libinput *li = evdev_libinput_context(device);
 	WacomDevice *wacom = NULL;
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	WacomDeviceDatabase *db = libinput_libwacom_ref(li);
 	if (db) {
 		char event_path[64];
@@ -825,7 +825,7 @@ pad_init(struct pad_dispatch *pad, struct evdev_device *device)
 	/* at most 5 "Multiple EV_ABS events" log messages per hour */
 	ratelimit_init(&pad->duplicate_abs_limit, s2us(60 * 60), 5);
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	if (wacom)
 		libwacom_destroy(wacom);
 	if (db)

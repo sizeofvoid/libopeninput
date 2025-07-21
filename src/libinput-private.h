@@ -31,7 +31,7 @@
 #include <math.h>
 #include <stdarg.h>
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
 #endif
 
@@ -228,7 +228,7 @@ struct libinput {
 
 	struct libinput_plugin_system plugin_system;
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 	struct {
 		WacomDeviceDatabase *db;
 		size_t refcount;
@@ -1112,7 +1112,7 @@ point_in_rect(const struct device_coords *point, const struct device_coord_rect 
 		point->y >= rect->y && point->y < rect->y + rect->h);
 }
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 WacomDeviceDatabase *
 libinput_libwacom_ref(struct libinput *li);
 void
