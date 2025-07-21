@@ -304,11 +304,11 @@ litest_fail_comparison_str(const char *file,
 						   _needle, _haystack); \
 	} while(0)
 
-#define litest_needlessert_str_not_in(needle_, haystack_) \
+#define litest_assert_str_not_in(needle_, haystack_) \
 	do { \
 		const char *_needle = needle_; \
 		const char *_haystack = haystack_; \
-		if (!strstr(_haystack, _needle)) \
+		if (strstr(_haystack, _needle)) \
 			litest_fail_comparison_str(__FILE__, __LINE__, __func__,\
 						   "'" #needle_ "' not in: '" #haystack_ "'", \
 						   "not in", \
