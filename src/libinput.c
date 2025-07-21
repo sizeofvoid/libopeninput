@@ -3210,8 +3210,11 @@ switch_notify_toggle(struct libinput_device *device,
 _unused_ static inline void
 libinput_print_queued_event(struct libinput_event *event)
 {
+	struct libinput_print_options opts = {
+		.show_keycodes = false,
+	};
 	struct libinput *libinput = libinput_event_get_context(event);
-	char *event_str = libinput_event_to_str(event, 0, NULL);
+	char *event_str = libinput_event_to_str(event, 0, &opts);
 	log_debug(libinput, "Queuing %s\n", event_str);
 	free(event_str);
 }
