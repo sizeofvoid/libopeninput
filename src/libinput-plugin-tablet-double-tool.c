@@ -180,7 +180,7 @@ double_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 	bool eraser_toggled = eraser_toggle != NULL;
 	bool pen_toggled = pen_toggle != NULL;
 
-#if EVENT_DEBUGGING
+#ifdef EVENT_DEBUGGING
 	plugin_log_debug(libinput_plugin,
 			 "device %s: tool state: pen:%s eraser:%s\n",
 			 libinput_device_get_name(device->device),

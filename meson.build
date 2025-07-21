@@ -391,7 +391,9 @@ endif
 endif
 
 ############ libinput.so ############
-config_h.set10('EVENT_DEBUGGING', get_option('internal-event-debugging'))
+if get_option('internal-event-debugging')
+	config_h.set('EVENT_DEBUGGING', 1)
+endif
 
 install_headers('src/libinput.h')
 if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'

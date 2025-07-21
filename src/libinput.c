@@ -3225,7 +3225,7 @@ libinput_post_event(struct libinput *libinput, struct libinput_event *event)
 	size_t move_len;
 	size_t new_out;
 
-#if EVENT_DEBUGGING
+#ifdef EVENT_DEBUGGING
 	libinput_print_queued_event(event);
 #endif
 
