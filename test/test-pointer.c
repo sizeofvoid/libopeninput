@@ -794,6 +794,9 @@ START_TEST(pointer_scroll_wheel_hires)
 	test_hi_res_wheel_event(dev, axis, -5 * 120);
 	test_hi_res_wheel_event(dev, axis, 6 * 120);
 
+	if (dev->which == LITEST_MOUSE_WHEEL_HIRES_DISABLED)
+		return LITEST_NOT_APPLICABLE;
+
 	test_hi_res_wheel_event(dev, axis, 30);
 	test_hi_res_wheel_event(dev, axis, -60);
 	test_hi_res_wheel_event(dev, axis, -40);
@@ -855,6 +858,64 @@ START_TEST(pointer_scroll_wheel_hires_send_only_lores)
 }
 END_TEST
 
+START_TEST(pointer_scroll_wheel_hires_disabled)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	int direction;
+	unsigned int lores_code, hires_code;
+	enum libinput_pointer_axis axis =
+		litest_test_param_get_i32(test_env->params, "axis");
+
+	switch (axis) {
+	case LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL:
+		lores_code = REL_WHEEL;
+		hires_code = REL_WHEEL_HI_RES;
+		direction = -1;
+		break;
+	case LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL:
+		lores_code = REL_HWHEEL;
+		hires_code = REL_HWHEEL_HI_RES;
+		direction = 1;
+		break;
+	default:
+		litest_abort_msg("Invalid test axis '%d'", axis);
+	}
+
+	litest_drain_events(li);
+
+	litest_log_group("High-res events on this device should be ignored") {
+		for (size_t i = 0; i < 4; i++) {
+			litest_event(dev, EV_REL, hires_code, 60);
+			litest_event(dev, EV_SYN, SYN_REPORT, 0);
+		}
+		litest_assert_empty_queue(li);
+	}
+
+	litest_log_group("Only low-res events should be handled") {
+		for (size_t i = 0; i < 4; i++) {
+			litest_event(dev, EV_REL, hires_code, 60);
+			litest_event(dev, EV_REL, lores_code, 1);
+			litest_event(dev, EV_SYN, SYN_REPORT, 0);
+			litest_dispatch(li);
+
+			litest_drain_events_of_type(li, LIBINPUT_EVENT_POINTER_AXIS);
+			_destroy_(libinput_event) *ev = libinput_get_event(li);
+			struct libinput_event_pointer *pev = litest_is_axis_event(
+				ev,
+				LIBINPUT_EVENT_POINTER_SCROLL_WHEEL,
+				axis,
+				0);
+			int v120 =
+				libinput_event_pointer_get_scroll_value_v120(pev, axis);
+			litest_assert_int_eq(v120, direction * 120);
+		}
+		litest_drain_events_of_type(li, LIBINPUT_EVENT_POINTER_AXIS);
+		litest_assert_empty_queue(li);
+	}
+}
+END_TEST
+
 START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 {
 	struct litest_device *dev = litest_current_device();
@@ -863,6 +924,9 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas)
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) ||
 	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
+		return LITEST_NOT_APPLICABLE;
+
+	if (dev->which == LITEST_MOUSE_WHEEL_HIRES_DISABLED)
 		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(dev->libinput);
@@ -908,6 +972,9 @@ START_TEST(pointer_scroll_wheel_inhibit_small_deltas_reduce_delta)
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES) ||
 	    !libevdev_has_event_code(dev->evdev, EV_REL, REL_HWHEEL_HI_RES))
+		return LITEST_NOT_APPLICABLE;
+
+	if (dev->which == LITEST_MOUSE_WHEEL_HIRES_DISABLED)
 		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(dev->libinput);
@@ -957,6 +1024,9 @@ START_TEST(pointer_scroll_wheel_inhibit_dir_change)
 	uint32_t delta = litest_test_param_get_u32(test_env->params, "hires-delta");
 
 	if (!libevdev_has_event_code(dev->evdev, EV_REL, REL_WHEEL_HI_RES))
+		return LITEST_NOT_APPLICABLE;
+
+	if (dev->which == LITEST_MOUSE_WHEEL_HIRES_DISABLED)
 		return LITEST_NOT_APPLICABLE;
 
 	litest_drain_events(dev->libinput);
@@ -3707,6 +3777,7 @@ TEST_COLLECTION(pointer)
 	litest_with_parameters(params, "axis", 'I', 2, litest_named_i32(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL, "vertical"),
 						       litest_named_i32(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL, "horizontal")) {
 		litest_add_parametrized(pointer_scroll_wheel_hires_send_only_lores, LITEST_WHEEL, LITEST_TABLET, params);
+		litest_add_parametrized_for_device(pointer_scroll_wheel_hires_disabled, LITEST_MOUSE_WHEEL_HIRES_DISABLED, params);
 	}
 	litest_with_parameters(params, "hires-delta", 'u', 3, 5, 15, 20) {
 		litest_add_parametrized(pointer_scroll_wheel_inhibit_small_deltas, LITEST_WHEEL, LITEST_TABLET, params);

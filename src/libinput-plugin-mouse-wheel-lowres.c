@@ -64,24 +64,43 @@ wheel_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
 	size_t nevents;
 	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
 
+	_unref_(evdev_frame) *filtered_frame = evdev_frame_new(nevents + 2);
 	for (size_t i = 0; i < nevents; i++) {
 		struct evdev_event *e = &events[i];
+
 		switch (evdev_usage_enum(e->usage)) {
+		case EVDEV_REL_WHEEL_HI_RES:
+		case EVDEV_REL_HWHEEL_HI_RES:
+			/* In the uncommon case that our device sends high-res events
+			 * filter those out. This can happen on devices that have the
+			 * highres scroll axes disabled via quirks. The device still
+			 * sends events so when we re-enable the axis in
+			 * wheel_plugin_device_new we get the device events again,
+			 * effectively duplicating the high resolution scroll events.
+			 */
+			break;
 		case EVDEV_REL_WHEEL:
-			evdev_frame_append_one(frame,
+			evdev_frame_append(filtered_frame, e, 1);
+			evdev_frame_append_one(filtered_frame,
 					       evdev_usage_from(EVDEV_REL_WHEEL_HI_RES),
 					       e->value * 120);
 			break;
 		case EVDEV_REL_HWHEEL:
+			evdev_frame_append(filtered_frame, e, 1);
 			evdev_frame_append_one(
-				frame,
+				filtered_frame,
 				evdev_usage_from(EVDEV_REL_HWHEEL_HI_RES),
 				e->value * 120);
 			break;
 		default:
+			evdev_frame_append(filtered_frame, e, 1);
 			break;
 		}
 	}
+
+	evdev_frame_set(frame,
+			evdev_frame_get_events(filtered_frame, NULL),
+			evdev_frame_get_count(filtered_frame));
 }
 
 static const struct libinput_plugin_interface interface = {
