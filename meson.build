@@ -573,6 +573,13 @@ executable('libinput-debug-tablet',
 	   install_dir : libinput_tool_path,
 	   install : true)
 
+libinput_debug_tablet_pad_sources = [ 'tools/libinput-debug-tablet-pad.c' ]
+executable('libinput-debug-tablet-pad',
+	   libinput_debug_tablet_pad_sources,
+	   dependencies : deps_tools,
+	   include_directories : [includes_src, includes_include],
+	   install_dir : libinput_tool_path,
+	   install : true)
 
 libinput_quirks_sources = [ 'tools/libinput-quirks.c' ]
 libinput_quirks = executable('libinput-quirks',
@@ -1177,6 +1184,7 @@ src_man += files(
 	'tools/libinput-analyze-touch-down-state.man',
 	'tools/libinput-debug-events.man',
 	'tools/libinput-debug-tablet.man',
+	'tools/libinput-debug-tablet-pad.man',
 	'tools/libinput-list-devices.man',
 	'tools/libinput-list-kernel-devices.man',
 	'tools/libinput-measure.man',
