@@ -226,8 +226,6 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 char *
 strv_join(char **strv, const char *joiner)
 {
-	assert(strv != NULL);
-
 	char **s;
 	char *str;
 	size_t slen = 0;
