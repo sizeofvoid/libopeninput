@@ -98,6 +98,9 @@
 #define ANSI_RGB(r, g, b)       "\x1B[38;2;" #r  ";" #g ";" #b "m"
 #define ANSI_RGB_BG(r, g, b)    "\x1B[48;2;" #r  ";" #g ";" #b "m"
 
+#define ANSI_CLEAR_LINE         "\x1B[2K"
+#define ANSI_CLEAR_EOL          "\x1B[0K"
+
 #define CASE_RETURN_STRING(a) case a: return #a
 
 /**

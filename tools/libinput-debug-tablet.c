@@ -78,18 +78,14 @@ LIBINPUT_ATTRIBUTE_PRINTF(1, 2)
 static void
 print_line(const char *format, ...)
 {
-	char empty[] =
-		"                                                                                ";
-	const int width = 80;
-	int n;
+	char buf[256];
+
 	va_list args;
-
-	printf("\r");
-
 	va_start(args, format);
-	n = vprintf(format, args);
+	vsnprintf(buf, sizeof(buf), format, args);
 	va_end(args);
-	printf("%.*s\n", width - n, empty);
+
+	printf(ANSI_CLEAR_LINE "%s\n", buf);
 }
 
 static void
