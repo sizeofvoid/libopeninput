@@ -43,6 +43,7 @@
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
+#define clamp(v, lo, hi) min((hi), max((lo), (v)))
 
 #define ANSI_BOLD		"\x1B[0;1m"
 #define ANSI_RED		"\x1B[0;31m"
