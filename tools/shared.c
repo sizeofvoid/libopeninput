@@ -958,6 +958,7 @@ tools_list_device_quirks(struct quirks_context *ctx,
 				break;
 			case QUIRK_ATTR_USE_VELOCITY_AVERAGING:
 			case QUIRK_ATTR_TABLET_SMOOTHING:
+			case QUIRK_ATTR_IS_VIRTUAL:
 				quirks_get_bool(quirks, q, &b);
 				snprintf(buf, sizeof(buf), "%s=%d", name, b);
 				callback(userdata, buf);
