@@ -475,45 +475,45 @@ START_TEST(keyboard_alt_printscreen)
 
 	litest_drain_events(li);
 
-	/* repeat frame, ignored */
-	litest_event(dev, EV_KEY, KEY_A, 1);
-	litest_event(dev, EV_SYN, SYN_REPORT, 1);
-	litest_dispatch(li);
-	litest_assert_empty_queue(li);
-
-	/* not a repeat frame */
+	/* normal key press, not ignored */
 	litest_event(dev, EV_KEY, KEY_LEFTALT, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 	litest_assert_key_event(li, KEY_LEFTALT, LIBINPUT_KEY_STATE_PRESSED);
 
-	/* normal repeat frame, ignored */
+	/* normal key repeat, ignored */
 	litest_event(dev, EV_KEY, KEY_LEFTALT, 2);
 	litest_event(dev, EV_SYN, SYN_REPORT, 1);
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
-	/* not repeat frame */
+	/* not a repeat, not ignored */
 	litest_event(dev, EV_KEY, KEY_LEFTALT, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 0);
 	litest_dispatch(li);
 	litest_assert_key_event(li, KEY_LEFTALT, LIBINPUT_KEY_STATE_RELEASED);
+	litest_assert_empty_queue(li);
 
-	/* special alt+printscreen repeat frame, *not* ignored */
+	/* special alt+printscreen frame, *not* ignored */
 	litest_event(dev, EV_KEY, KEY_LEFTALT, 1);
 	litest_event(dev, EV_KEY, KEY_SYSRQ, 1);
 	litest_event(dev, EV_SYN, SYN_REPORT, 1);
 	litest_dispatch(li);
 
-	/* special alt+printscreen repeat frame, *not* ignored */
+	/* special alt+printscreen frame, *not* ignored */
 	litest_event(dev, EV_KEY, KEY_LEFTALT, 0);
 	litest_event(dev, EV_KEY, KEY_SYSRQ, 0);
 	litest_event(dev, EV_SYN, SYN_REPORT, 1);
 	litest_dispatch(li);
 
-	/* Note: the kernel doesn't release the key combo until both keys are released
-	 * and the order is reshuffled so we have alt down, sysrq down, sysrq up, alt up
+	/* Note: The kernel first releases KEY_LEFTALT when pressing KEY_SYSRQ,
+	 * then later generates press/release for KEY_LEFTALT + KEY_SYSRQ
+	 * once *both* keys are released. The order is reshuffled so we have
+	 * alt down, sysrq down, sysrq up, alt up.
 	 */
+	litest_assert_key_event(li, KEY_LEFTALT, LIBINPUT_KEY_STATE_PRESSED);
+	litest_assert_key_event(li, KEY_LEFTALT, LIBINPUT_KEY_STATE_RELEASED);
+
 	litest_assert_key_event(li, KEY_LEFTALT, LIBINPUT_KEY_STATE_PRESSED);
 	litest_assert_key_event(li, KEY_SYSRQ, LIBINPUT_KEY_STATE_PRESSED);
 	litest_assert_key_event(li, KEY_SYSRQ, LIBINPUT_KEY_STATE_RELEASED);
@@ -569,6 +569,52 @@ START_TEST(keyboard_keycode_obfuscation)
 }
 END_TEST
 
+START_TEST(keyboard_nkey_rollover)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	int nkeys = litest_test_param_get_i32(test_env->params, "nkeys");
+
+	litest_drain_events(li);
+
+	/* The kernel allocates a 7 + 1 buffer for devices without EV_ABS and
+	 * EV_REL, see
+	 * drivers/input/input.c:input_estimate_events_per_packet()
+	 *
+	 * If the device exceeds that buffer the current set is flushed out
+	 * as SYN_REPORT 1 followed by (if any) the remaining events immediately
+	 * after.
+	 *
+	 * Either way, we expect n keys to arrive, regardless what the kernel
+	 * does.
+	 */
+	for (int i = 0; i < nkeys; i++) {
+		litest_event_unchecked(dev, EV_KEY, KEY_A + i, 1);
+		litest_event_unchecked(dev, EV_MSC, MSC_SCAN, 0x1000 + i);
+	}
+	litest_event_unchecked(dev, EV_SYN, SYN_REPORT, 0);
+
+	for (int i = 0; i < nkeys; i++) {
+		litest_event_unchecked(dev, EV_KEY, KEY_A + i, 0);
+		litest_event_unchecked(dev, EV_MSC, MSC_SCAN, 0x1000 + i);
+	}
+	litest_event_unchecked(dev, EV_SYN, SYN_REPORT, 0);
+
+	litest_dispatch(li);
+
+	for (int i = 0; i < nkeys; i++) {
+		litest_checkpoint("here for %d", i);
+		litest_assert_key_event(li, KEY_A + i, LIBINPUT_KEY_STATE_PRESSED);
+	}
+	for (int i = 0; i < nkeys; i++) {
+		litest_assert_key_event(li, KEY_A + i, LIBINPUT_KEY_STATE_RELEASED);
+	}
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 TEST_COLLECTION(keyboard)
 {
 	/* clang-format off */
@@ -588,5 +634,10 @@ TEST_COLLECTION(keyboard)
 
 	litest_add_for_device(keyboard_alt_printscreen, LITEST_KEYBOARD);
 	litest_add_for_device(keyboard_keycode_obfuscation, LITEST_KEYBOARD);
+
+	/* Adding for one device only to be able to hardcode buffer sizes */
+	litest_with_parameters(params, "nkeys", 'i', 4, 3, 4, 5, 6)
+		litest_add_parametrized_for_device(keyboard_nkey_rollover, LITEST_KEYBOARD, params);
+
 	/* clang-format on */
 }

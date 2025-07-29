@@ -2403,6 +2403,16 @@ litest_device_destroy(struct litest_device *d)
 }
 
 void
+litest_event_unchecked(struct litest_device *d,
+		       unsigned int type,
+		       unsigned int code,
+		       int value)
+{
+	int ret = libevdev_uinput_write_event(d->uinput, type, code, value);
+	litest_assert_neg_errno_success(ret);
+}
+
+void
 litest_event(struct litest_device *d, unsigned int type, unsigned int code, int value)
 {
 	if (!libevdev_has_event_code(d->evdev, type, code))

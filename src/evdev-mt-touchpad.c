@@ -1889,6 +1889,22 @@ tp_interface_process(struct evdev_dispatch *dispatch,
 	size_t nevents;
 	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
 
+	struct evdev_event *ev_syn = &events[nevents - 1];
+	if (evdev_usage_enum(ev_syn->usage) == EVDEV_SYN_REPORT) {
+		/* A SYN_REPORT 1 event is a kernel-inserted SYN_REPORT.
+		 * This happens most commonly on key repeat but in the
+		 * touchpad code this causes issues with
+		 * timestamp deltas (see e.g. #1145).
+		 *
+		 * Let's drop this frame, hoping it wasn't important.
+		 */
+		if (ev_syn->value == 1) {
+			return;
+		}
+	} else {
+		evdev_log_bug_libinput(device, "Terminating event is not a SYN_REPORT");
+	}
+
 	for (size_t i = 0; i < nevents; i++) {
 		tp_interface_process_event(dispatch, device, &events[i], time);
 	}

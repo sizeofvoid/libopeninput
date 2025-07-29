@@ -879,6 +879,13 @@ _litest_dispatch(struct libinput *li, const char *func, int line);
 
 void
 litest_event(struct litest_device *t, unsigned int type, unsigned int code, int value);
+
+void
+litest_event_unchecked(struct litest_device *d,
+		       unsigned int type,
+		       unsigned int code,
+		       int value);
+
 int
 litest_auto_assign_value(struct litest_device *d,
 			 const struct input_event *ev,

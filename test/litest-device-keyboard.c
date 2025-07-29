@@ -189,6 +189,8 @@ static int events[] = {
 	EV_LED, LED_NUML,
 	EV_LED, LED_CAPSL,
 	EV_LED, LED_SCROLLL,
+
+	EV_MSC, MSC_SCAN,
 	-1, -1,
 };
 /* clang-format on */

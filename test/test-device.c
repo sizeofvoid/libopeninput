@@ -1656,36 +1656,6 @@ START_TEST(device_button_down_remove)
 }
 END_TEST
 
-START_TEST(device_ignore_repeat_frames)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-
-	unsigned int code = BTN_LEFT;
-	if (!libevdev_has_event_code(dev->evdev, EV_KEY, code))
-		code = BTN_0;
-	if (!libevdev_has_event_code(dev->evdev, EV_KEY, code))
-		code = KEY_A;
-	if (!libevdev_has_event_code(dev->evdev, EV_KEY, code))
-		return LITEST_NOT_APPLICABLE;
-
-	litest_drain_events(li);
-
-	/* Send a button/key press event with a repeat frame
-	 * (SYN_REPORT value 1). Notably, the actual event in this frame is
-	 * *not* a repeat (value 2), the whole event frame is a repeat frame
-	 * though. */
-	litest_event(dev, EV_KEY, code, 1);
-	litest_event(dev, EV_SYN, SYN_REPORT, 1);
-	litest_dispatch(li);
-	litest_event(dev, EV_KEY, code, 0);
-	litest_event(dev, EV_SYN, SYN_REPORT, 1);
-	litest_dispatch(li);
-
-	litest_assert_empty_queue(li);
-}
-END_TEST
-
 TEST_COLLECTION(device)
 {
 	/* clang-format off */
@@ -1774,10 +1744,5 @@ TEST_COLLECTION(device)
 
 	litest_add(device_button_down_remove, LITEST_BUTTON, LITEST_ANY);
 
-	/* Run for various combinations of devices to hopefully cover most backends */
-	litest_add(device_ignore_repeat_frames, LITEST_BUTTON, LITEST_ANY);
-	litest_add(device_ignore_repeat_frames, LITEST_KEYS, LITEST_ANY);
-	litest_add(device_ignore_repeat_frames, LITEST_TABLET, LITEST_ANY);
-	litest_add(device_ignore_repeat_frames, LITEST_TABLET_PAD, LITEST_ANY);
 	/* clang-format off */
 }
