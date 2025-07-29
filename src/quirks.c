@@ -432,17 +432,14 @@ property_cleanup(struct property *p)
 static inline char *
 init_dmi_linux(void)
 {
-	struct udev *udev;
-	struct udev_device *udev_device;
 	const char *modalias = NULL;
-	char *copy = NULL;
 	const char *syspath = "/sys/devices/virtual/dmi/id";
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	if (!udev)
 		return NULL;
 
-	udev_device = udev_device_new_from_syspath(udev, syspath);
+	_unref_(udev_device) *udev_device = udev_device_new_from_syspath(udev, syspath);
 	if (udev_device)
 		modalias = udev_device_get_property_value(udev_device, "MODALIAS");
 
@@ -452,12 +449,7 @@ init_dmi_linux(void)
 	if (!modalias)
 		modalias = "dmi:*";
 
-	copy = safe_strdup(modalias);
-
-	udev_device_unref(udev_device);
-	udev_unref(udev);
-
-	return copy;
+	return safe_strdup(modalias);
 }
 #endif
 
@@ -1528,6 +1520,8 @@ match_free(struct match *m)
 	free(m);
 }
 
+DEFINE_FREE_CLEANUP_FUNC(match);
+
 static void
 quirk_merge_event_codes(struct quirks_context *ctx,
 			struct quirks *q,
@@ -1708,23 +1702,18 @@ quirk_match_section(struct quirks_context *ctx,
 struct quirks *
 quirks_fetch_for_device(struct quirks_context *ctx, struct udev_device *udev_device)
 {
-	struct section *s;
-	struct match *m;
-
 	if (!ctx)
 		return NULL;
 
 	qlog_debug(ctx, "%s: fetching quirks\n", udev_device_get_devnode(udev_device));
 
 	_unref_(quirks) *q = quirks_new();
+	_free_(match) *m = match_new(udev_device, ctx->dmi, ctx->dt);
 
-	m = match_new(udev_device, ctx->dmi, ctx->dt);
-
+	struct section *s;
 	list_for_each(s, &ctx->sections, link) {
 		quirk_match_section(ctx, q, s, m, udev_device);
 	}
-
-	match_free(m);
 
 	if (q->nproperties == 0) {
 		return NULL;
