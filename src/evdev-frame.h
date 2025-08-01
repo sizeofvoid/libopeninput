@@ -509,7 +509,7 @@ static inline struct evdev_frame *
 evdev_frame_new(size_t max_size)
 {
 	struct evdev_frame *frame =
-		zalloc(max_size * sizeof(sizeof(*frame->events)) + sizeof(*frame));
+		zalloc(max_size * sizeof(*frame->events) + sizeof(*frame));
 
 	frame->refcount = 1;
 	frame->max_size = max_size;
