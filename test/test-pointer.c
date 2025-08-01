@@ -828,7 +828,10 @@ START_TEST(pointer_scroll_wheel_hires_send_only_lores)
 		litest_abort_msg("Invalid test axis '%d'", axis);
 	}
 
-	if (!libevdev_has_event_code(dev->evdev, EV_REL, lores_code) &&
+	if (dev->which == LITEST_MOUSE_WHEEL_HIRES_DISABLED)
+		return LITEST_NOT_APPLICABLE;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_REL, lores_code) ||
 	    !libevdev_has_event_code(dev->evdev, EV_REL, hires_code))
 		return LITEST_NOT_APPLICABLE;
 
