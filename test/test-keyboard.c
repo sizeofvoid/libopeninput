@@ -544,18 +544,14 @@ START_TEST(keyboard_keycode_obfuscation)
 		 *  Queuing  event14  KEYBOARD_KEY                 +0.000s KEY_Q (16) released
 		 *  event14: plugin evdev           - 0.000 EV_KEY           KEY_Q                   0
 		 *
-		 * The latter must not exist, it must be obfuscated to KEY_A
+		 * Both KEY_Q must be obfuscated to KEY_A
 		 */
 		/* clang-format on */
 		char **strv = capture->debugs;
-		size_t index;
-		litest_assert(strv_find_substring(strv, "KEY_Q", &index));
-		do {
-			litest_assert_str_not_in("EV_KEY", strv[index]);
-			strv += index + 1;
-		} while (strv_find_substring(strv, "KEY_Q", &index));
+		litest_assert_strv_no_substring(strv, "KEY_Q");
 
 		strv = capture->debugs;
+		size_t index;
 		litest_assert(strv_find_substring(strv, "KEY_A", &index));
 		do {
 			litest_assert_str_in("EV_KEY", strv[index]);
