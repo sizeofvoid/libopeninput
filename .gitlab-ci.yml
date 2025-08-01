@@ -1381,4 +1381,5 @@ wayland-web:
     refs:
       - main
     variables:
+      - $GITLAB_USER_LOGIN != "marge-bot"
       - $CI_PROJECT_PATH == "libinput/libinput"
