@@ -1445,7 +1445,7 @@ END_TEST
 struct atou64_test {
 	char *str;
 	bool success;
-	unsigned long val;
+	uint64_t val;
 };
 
 START_TEST(safe_atou64_test)
