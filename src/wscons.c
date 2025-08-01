@@ -28,6 +28,7 @@
 #include <time.h>
 
 #include "libinput.h"
+#include "filter.h"
 #include "wscons.h"
 #include "input-event-codes.h"
 #include "libinput-util.h"
@@ -39,6 +40,10 @@ static const char default_seat_name[] = "default";
 static struct libinput_seat* wscons_seat_get(struct libinput *, const char *,
     const char *);
 static void wscons_device_dispatch(void *);
+
+static void
+wscons_device_init_pointer_acceleration(struct wscons_device *device,
+              struct motion_filter *filter);
 
 static int old_value = -1;
 
@@ -111,6 +116,7 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 	enum libinput_key_state kstate;
 	struct normalized_coords accel;
 	struct device_float_coords raw;
+	struct wscons_device *dev = wscons_device(device);
 	uint64_t time;
 	int button, key;
 
@@ -161,9 +167,19 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 		memset(&accel, 0, sizeof(accel));
 
 		if (wsevent->type == WSCONS_EVENT_MOUSE_DELTA_X)
-			accel.x = wsevent->value;
+			raw.x = wsevent->value;
 		else
-			accel.y = -wsevent->value;
+			raw.y = -wsevent->value;
+
+		if (dev->pointer.filter) {
+			accel = filter_dispatch(dev->pointer.filter,
+			                        &raw,
+			                	device,
+			                	time);
+		} else {
+			accel.x = raw.x;
+			accel.y = raw.y;
+		}
 
 		pointer_notify_motion(device, time, &accel, &raw);
 		break;
@@ -331,6 +347,165 @@ libinput_path_create_context(const struct libinput_interface *interface,
 	return libinput;
 }
 
+static double
+wscons_accel_config_get_speed(struct libinput_device *device)
+{
+	struct wscons_device *dev = wscons_device(device);
+
+	return filter_get_speed(dev->pointer.filter);
+}
+
+static enum libinput_config_status
+wscons_accel_config_set_speed(struct libinput_device *device, double speed)
+{
+	struct wscons_device *dev = wscons_device(device);
+
+	if (!filter_set_speed(dev->pointer.filter, speed))
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static double
+wscons_accel_config_get_default_speed(struct libinput_device *device)
+{
+	return 0.0;
+}
+
+static int
+wscons_accel_config_available(struct libinput_device *device)
+{
+	/* this function is only called if we set up ptraccel, so we can
+	   reply with a resounding "Yes" */
+	return 1;
+}
+
+static enum libinput_config_accel_profile
+wscons_accel_config_get_profile(struct libinput_device *libinput_device)
+{
+	struct wscons_device *device = wscons_device(libinput_device);
+
+	return filter_get_type(device->pointer.filter);
+}
+
+static inline bool
+wscons_init_accel(struct wscons_device *device,
+		 enum libinput_config_accel_profile which)
+{
+	struct motion_filter *filter = NULL;
+
+	if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM) {
+		filter = create_custom_accelerator_filter();
+	} else {
+		if (which == LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT)
+			filter = create_pointer_accelerator_filter_flat(DEFAULT_MOUSE_DPI);
+		else
+			filter = create_pointer_accelerator_filter_linear_low_dpi(DEFAULT_MOUSE_DPI,
+										  true);
+	}
+
+	if (!filter)
+		filter = create_pointer_accelerator_filter_linear(DEFAULT_MOUSE_DPI,
+								  true);
+
+	if (!filter)
+		return false;
+
+	wscons_device_init_pointer_acceleration(device, filter);
+
+	return true;
+}
+
+static enum libinput_config_status
+wscons_accel_config_set_profile(struct libinput_device *libinput_device,
+			       enum libinput_config_accel_profile profile)
+{
+	struct wscons_device *device = wscons_device(libinput_device);
+	struct motion_filter *filter;
+	double speed;
+
+	filter = device->pointer.filter;
+	if (filter_get_type(filter) == profile)
+		return LIBINPUT_CONFIG_STATUS_SUCCESS;
+
+	speed = filter_get_speed(filter);
+	device->pointer.filter = NULL;
+
+	if (wscons_init_accel(device, profile)) {
+		wscons_accel_config_set_speed(libinput_device, speed);
+		filter_destroy(filter);
+	} else {
+		device->pointer.filter = filter;
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+	}
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static uint32_t
+wscons_accel_config_get_profiles(struct libinput_device *libinput_device)
+{
+	struct wscons_device *device = wscons_device(libinput_device);
+
+	if (!device->pointer.filter)
+		return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
+
+	return LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE |
+	       LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT |
+	       LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM;
+}
+
+static enum libinput_config_accel_profile
+wscons_accel_config_get_default_profile(struct libinput_device *libinput_device)
+{
+	struct wscons_device *device = wscons_device(libinput_device);
+
+	if (!device->pointer.filter)
+		return LIBINPUT_CONFIG_ACCEL_PROFILE_NONE;
+
+	/* No device has a flat profile as default */
+	return LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE;
+}
+
+static enum libinput_config_status
+wscons_set_accel_config(struct libinput_device *libinput_device,
+		       struct libinput_config_accel *accel_config)
+{
+	assert(wscons_accel_config_get_profile(libinput_device) == accel_config->profile);
+
+	struct wscons_device *dev = wscons_device(libinput_device);
+
+	if (!filter_set_accel_config(dev->pointer.filter, accel_config))
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static void
+wscons_device_init_pointer_acceleration(struct wscons_device *device,
+				       struct motion_filter *filter)
+{
+	device->pointer.filter = filter;
+
+	if (device->base.config.accel == NULL) {
+		double default_speed;
+
+		device->pointer.config.available = wscons_accel_config_available;
+		device->pointer.config.set_speed = wscons_accel_config_set_speed;
+		device->pointer.config.get_speed = wscons_accel_config_get_speed;
+		device->pointer.config.get_default_speed = wscons_accel_config_get_default_speed;
+		device->pointer.config.get_profiles = wscons_accel_config_get_profiles;
+		device->pointer.config.set_profile = wscons_accel_config_set_profile;
+		device->pointer.config.get_profile = wscons_accel_config_get_profile;
+		device->pointer.config.get_default_profile = wscons_accel_config_get_default_profile;
+		device->pointer.config.set_accel_config = wscons_set_accel_config;
+		device->base.config.accel = &device->pointer.config;
+
+		default_speed = wscons_accel_config_get_default_speed(&device->base);
+		wscons_accel_config_set_speed(&device->base, default_speed);
+	}
+}
+
 static int
 wscons_device_init(struct wscons_device *wscons_device)
 {
@@ -339,6 +514,7 @@ wscons_device_init(struct wscons_device *wscons_device)
 	if (strncmp(device->devname, "/dev/wsmouse", 12) == 0) {
 		/* XXX handle tablets and touchpanel */
 		wscons_device->capability = LIBINPUT_DEVICE_CAP_POINTER;
+		wscons_init_accel(wscons_device, LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE);
 	} else if (strncmp(device->devname, "/dev/wskbd", 10) == 0)  {
 		wscons_device->capability = LIBINPUT_DEVICE_CAP_KEYBOARD;
 		if (wscons_keyboard_init(wscons_device) == -1)
