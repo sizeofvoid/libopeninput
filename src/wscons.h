@@ -18,6 +18,10 @@ struct wscons_device {
 	struct libinput_device base;
 	enum libinput_device_capability capability;
 	struct TransMapRec *scanCodeMap;
+	struct {
+		struct libinput_device_config_accel config;
+		struct motion_filter *filter;
+	} pointer;
 };
 
 
