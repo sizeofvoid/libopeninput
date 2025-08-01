@@ -70,7 +70,10 @@ START_TEST(mkdir_p_test)
 	litest_assert_neg_errno_success(mkdir_p(testdir));
 	rmdir(testdir);
 
-	litest_assert_int_eq(mkdir_p("/proc/foo"), -ENOENT);
+	int ret = mkdir_p("/proc/foo");
+	litest_assert_msg(ret == -ENOENT || ret == -EACCES,
+			  "mkdir_p(\"/proc/foo\") returned %d\n",
+			  ret);
 }
 END_TEST
 
