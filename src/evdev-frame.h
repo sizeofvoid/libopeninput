@@ -518,21 +518,6 @@ evdev_frame_new(size_t max_size)
 	return frame;
 }
 
-static inline struct evdev_frame *
-evdev_frame_new_on_stack(size_t max_size)
-{
-	assert(max_size <= 64);
-	struct evdev_frame *frame =
-		alloca(max_size * sizeof(*frame->events) + sizeof(*frame));
-
-	frame->refcount = 1;
-	frame->max_size = max_size;
-	frame->count = 1; /* SYN_REPORT is always there */
-	memset(frame->events, 0, max_size * sizeof(*frame->events));
-
-	return frame;
-}
-
 /**
  * Append events to the event frame. nevents must be larger than 0
  * and specifies the number of elements in events. If any events in
