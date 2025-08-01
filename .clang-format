@@ -74,6 +74,7 @@ ForEachMacros:
   - tp_for_each_touch
   - range_for_each
   - litest_log_group
+  - litest_with_logcapture
   - litest_with_parameters
   - litest_with_event_frame
   - udev_list_entry_foreach

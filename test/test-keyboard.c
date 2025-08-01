@@ -531,8 +531,7 @@ START_TEST(keyboard_keycode_obfuscation)
 
 	litest_drain_events(li);
 
-	litest_with_logcapture(li, capture)
-	{
+	litest_with_logcapture(li, capture) {
 		litest_event(dev, EV_KEY, KEY_Q, 1);
 		litest_event(dev, EV_SYN, SYN_REPORT, 0);
 		litest_event(dev, EV_KEY, KEY_Q, 0);
