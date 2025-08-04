@@ -307,7 +307,10 @@ pad_dial_get_mode_group(struct pad_dispatch *pad, unsigned int dial)
 			return group;
 	}
 
-	assert(!"Unable to find dial mode group");
+	evdev_log_bug_libinput_ratelimit(pad->device,
+					 &pad->modes.group_not_found,
+					 "Unable to find mode group for dial %d",
+					 dial);
 
 	return NULL;
 }
@@ -322,7 +325,10 @@ pad_ring_get_mode_group(struct pad_dispatch *pad, unsigned int ring)
 			return group;
 	}
 
-	assert(!"Unable to find ring mode group");
+	evdev_log_bug_libinput_ratelimit(pad->device,
+					 &pad->modes.group_not_found,
+					 "Unable to find mode group for ring %d",
+					 ring);
 
 	return NULL;
 }
@@ -337,7 +343,10 @@ pad_strip_get_mode_group(struct pad_dispatch *pad, unsigned int strip)
 			return group;
 	}
 
-	assert(!"Unable to find strip mode group");
+	evdev_log_bug_libinput_ratelimit(pad->device,
+					 &pad->modes.group_not_found,
+					 "Unable to find mode group for strip %d",
+					 strip);
 
 	return NULL;
 }
@@ -362,12 +371,14 @@ pad_check_notify_axes(struct pad_dispatch *pad,
 	 * so we can't set a source */
 	if (pad->changed_axes & PAD_AXIS_DIAL1) {
 		group = pad_dial_get_mode_group(pad, 0);
-		tablet_pad_notify_dial(base, time, 0, pad->dials.dial1, group);
+		if (group)
+			tablet_pad_notify_dial(base, time, 0, pad->dials.dial1, group);
 	}
 
 	if (pad->changed_axes & PAD_AXIS_DIAL2) {
 		group = pad_dial_get_mode_group(pad, 1);
-		tablet_pad_notify_dial(base, time, 1, pad->dials.dial2, group);
+		if (group)
+			tablet_pad_notify_dial(base, time, 1, pad->dials.dial2, group);
 	}
 
 	if (pad->changed_axes & PAD_AXIS_RING1) {
@@ -376,12 +387,13 @@ pad_check_notify_axes(struct pad_dispatch *pad,
 			value = -1.0;
 
 		group = pad_ring_get_mode_group(pad, 0);
-		tablet_pad_notify_ring(base,
-				       time,
-				       0,
-				       value,
-				       LIBINPUT_TABLET_PAD_RING_SOURCE_FINGER,
-				       group);
+		if (group)
+			tablet_pad_notify_ring(base,
+					       time,
+					       0,
+					       value,
+					       LIBINPUT_TABLET_PAD_RING_SOURCE_FINGER,
+					       group);
 	}
 
 	if (pad->changed_axes & PAD_AXIS_RING2) {
@@ -390,12 +402,13 @@ pad_check_notify_axes(struct pad_dispatch *pad,
 			value = -1.0;
 
 		group = pad_ring_get_mode_group(pad, 1);
-		tablet_pad_notify_ring(base,
-				       time,
-				       1,
-				       value,
-				       LIBINPUT_TABLET_PAD_RING_SOURCE_FINGER,
-				       group);
+		if (group)
+			tablet_pad_notify_ring(base,
+					       time,
+					       1,
+					       value,
+					       LIBINPUT_TABLET_PAD_RING_SOURCE_FINGER,
+					       group);
 	}
 
 	if (pad->changed_axes & PAD_AXIS_STRIP1) {
@@ -404,12 +417,13 @@ pad_check_notify_axes(struct pad_dispatch *pad,
 			value = -1.0;
 
 		group = pad_strip_get_mode_group(pad, 0);
-		tablet_pad_notify_strip(base,
-					time,
-					0,
-					value,
-					LIBINPUT_TABLET_PAD_STRIP_SOURCE_FINGER,
-					group);
+		if (group)
+			tablet_pad_notify_strip(base,
+						time,
+						0,
+						value,
+						LIBINPUT_TABLET_PAD_STRIP_SOURCE_FINGER,
+						group);
 	}
 
 	if (pad->changed_axes & PAD_AXIS_STRIP2) {
@@ -418,12 +432,13 @@ pad_check_notify_axes(struct pad_dispatch *pad,
 			value = -1.0;
 
 		group = pad_strip_get_mode_group(pad, 1);
-		tablet_pad_notify_strip(base,
-					time,
-					1,
-					value,
-					LIBINPUT_TABLET_PAD_STRIP_SOURCE_FINGER,
-					group);
+		if (group)
+			tablet_pad_notify_strip(base,
+						time,
+						1,
+						value,
+						LIBINPUT_TABLET_PAD_STRIP_SOURCE_FINGER,
+						group);
 	}
 
 	pad->changed_axes = PAD_AXIS_NONE;
@@ -804,6 +819,7 @@ pad_init(struct pad_dispatch *pad, struct evdev_device *device)
 	pad->device = device;
 	pad->status = PAD_NONE;
 	pad->changed_axes = PAD_AXIS_NONE;
+	ratelimit_init(&pad->modes.group_not_found, h2us(1), 3);
 
 	/* We expect the kernel to either give us both axes as hires or neither.
 	 * Getting one is a kernel bug we don't need to care about */

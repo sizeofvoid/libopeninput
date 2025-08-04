@@ -87,6 +87,7 @@ struct pad_dispatch {
 
 	struct {
 		struct list mode_group_list;
+		struct ratelimit group_not_found;
 	} modes;
 
 	struct ratelimit duplicate_abs_limit;
