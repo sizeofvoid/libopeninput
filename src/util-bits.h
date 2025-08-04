@@ -161,7 +161,7 @@ _nonnull_(1) static inline bool bitmask_clear(bitmask_t *mask, bitmask_t bits)
 static inline bool
 bitmask_bit_is_set(bitmask_t mask, unsigned int bit)
 {
-	return !!(mask.mask & bit(bit));
+	return !!(mask.mask & bit(bit)); // NOLINT: core.UndefinedBinaryOperatorResult
 }
 
 _nonnull_(1) static inline bool bitmask_set_bit(bitmask_t *mask, unsigned int bit)
@@ -371,8 +371,10 @@ _nonnull_(1) static inline bool infmask_bit_is_set(const infmask_t *mask,
 	if (!mask->mask || bit / bitmask_size() >= mask->nmasks)
 		return false;
 
-	return bitmask_bit_is_set(mask->mask[bit / bitmask_size()],
-				  bit % bitmask_size());
+	return bitmask_bit_is_set(
+		mask->mask[bit / bitmask_size()], // NOLINT:
+						  // core.UndefinedBinaryOperatorResult
+		bit % bitmask_size());
 }
 
 _nonnull_(1) static inline bool infmask_set_bit(infmask_t *mask, unsigned int bit)
