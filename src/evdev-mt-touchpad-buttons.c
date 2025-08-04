@@ -1230,7 +1230,7 @@ static int
 tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 {
 	uint32_t current, old, is_top;
-	evdev_usage_t button = evdev_usage_from_uint32_t(0);
+	evdev_usage_t button;
 	enum libinput_button_state state;
 	enum { AREA = 0x01, LEFT = 0x02, MIDDLE = 0x04, RIGHT = 0x08 };
 	bool want_left_handed = true;
