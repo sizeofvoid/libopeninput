@@ -175,7 +175,6 @@ plugin_data_destroy(void *d)
 	free(data);
 }
 
-DEFINE_DESTROY_CLEANUP_FUNC(plugin_data);
 static void
 plugin_destroy(struct libinput_plugin *libinput_plugin)
 {

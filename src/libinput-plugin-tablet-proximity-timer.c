@@ -86,8 +86,6 @@ plugin_data_destroy(void *d)
 	free(data);
 }
 
-DEFINE_DESTROY_CLEANUP_FUNC(plugin_data);
-
 static inline void
 proximity_timer_plugin_set_timer(struct plugin_device *device, uint64_t time)
 {
