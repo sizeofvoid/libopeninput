@@ -1311,7 +1311,7 @@ litest_log_handler(struct libinput *libinput,
 		   va_list args)
 {
 	const char *priority = NULL;
-	const char *color = "";
+	const char *color = ""; // NOLINT: deadcode.DeadStores
 	const char *color_reset = ANSI_NORMAL;
 
 	switch (pri) {
@@ -2409,10 +2409,8 @@ litest_device_destroy(struct litest_device *d)
 	memset(d, 0, sizeof(*d));
 	free(d);
 
-	udev_device =
-		udev_wait_for_device_event(udev_monitor, // NOLINT: deadcode.DeadStores
-					   "remove",
-					   path);
+	udev_device = // NOLINT: deadcode.DeadStores
+		udev_wait_for_device_event(udev_monitor, "remove", path);
 }
 
 void
