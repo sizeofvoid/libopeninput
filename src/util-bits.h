@@ -140,8 +140,7 @@ bitmask_all(bitmask_t mask, bitmask_t bits)
 	return bits.mask != 0 && (mask.mask & bits.mask) == bits.mask;
 }
 
-static inline bool
-bitmask_merge(bitmask_t *mask, bitmask_t bits)
+_nonnull_(1) static inline bool bitmask_merge(bitmask_t *mask, bitmask_t bits)
 {
 	bool all = bitmask_all(*mask, bits);
 
@@ -150,8 +149,7 @@ bitmask_merge(bitmask_t *mask, bitmask_t bits)
 	return all;
 }
 
-static inline bool
-bitmask_clear(bitmask_t *mask, bitmask_t bits)
+_nonnull_(1) static inline bool bitmask_clear(bitmask_t *mask, bitmask_t bits)
 {
 	bool all = bitmask_all(*mask, bits);
 
@@ -166,16 +164,14 @@ bitmask_bit_is_set(bitmask_t mask, unsigned int bit)
 	return !!(mask.mask & bit(bit));
 }
 
-static inline bool
-bitmask_set_bit(bitmask_t *mask, unsigned int bit)
+_nonnull_(1) static inline bool bitmask_set_bit(bitmask_t *mask, unsigned int bit)
 {
 	bool isset = bitmask_bit_is_set(*mask, bit);
 	mask->mask |= bit(bit);
 	return isset;
 }
 
-static inline bool
-bitmask_clear_bit(bitmask_t *mask, unsigned int bit)
+_nonnull_(1) static inline bool bitmask_clear_bit(bitmask_t *mask, unsigned int bit)
 {
 	bool isset = bitmask_bit_is_set(*mask, bit);
 	mask->mask &= ~bit(bit);
@@ -259,8 +255,7 @@ _infmask_size_for_bit(unsigned int bit)
 	return (bit / bitmask_size()) + 1;
 }
 
-static inline void
-_infmask_ensure_size(infmask_t *mask, unsigned int bit)
+_nonnull_(1) static inline void _infmask_ensure_size(infmask_t *mask, unsigned int bit)
 {
 	size_t required = _infmask_size_for_bit(bit);
 	if (required > mask->nmasks) {
@@ -279,23 +274,20 @@ infmask_new(void)
 	return m;
 }
 
-static inline void
-infmask_reset(infmask_t *mask)
+_nonnull_(1) static inline void infmask_reset(infmask_t *mask)
 {
 	free(mask->mask);
 	mask->mask = NULL;
 	mask->nmasks = 0;
 }
 
-static inline void
-infmask_destroy(infmask_t *mask)
+_nonnull_(1) static inline void infmask_destroy(infmask_t *mask)
 {
 	infmask_reset(mask);
 	free(mask);
 }
 
-static inline bool
-infmask_is_empty(const infmask_t *mask)
+_nonnull_(1) static inline bool infmask_is_empty(const infmask_t *mask)
 {
 	if (!mask->mask)
 		return true;
@@ -306,8 +298,8 @@ infmask_is_empty(const infmask_t *mask)
 	return true;
 }
 
-static inline bool
-infmask_any(const infmask_t *mask, const infmask_t *bits)
+_nonnull_(1) static inline bool infmask_any(const infmask_t *mask,
+					    const infmask_t *bits)
 {
 	if (!mask->mask || !bits->mask)
 		return false;
@@ -319,8 +311,8 @@ infmask_any(const infmask_t *mask, const infmask_t *bits)
 	return false;
 }
 
-static inline bool
-infmask_all(const infmask_t *mask, const infmask_t *bits)
+_nonnull_(1) static inline bool infmask_all(const infmask_t *mask,
+					    const infmask_t *bits)
 {
 	if (!bits->mask)
 		return true;
@@ -340,8 +332,7 @@ infmask_all(const infmask_t *mask, const infmask_t *bits)
 	return true;
 }
 
-static inline bool
-infmask_merge(infmask_t *mask, const infmask_t *bits)
+_nonnull_(1) static inline bool infmask_merge(infmask_t *mask, const infmask_t *bits)
 {
 	if (!bits->mask)
 		return true;
@@ -357,8 +348,7 @@ infmask_merge(infmask_t *mask, const infmask_t *bits)
 	return all;
 }
 
-static inline bool
-infmask_clear(infmask_t *mask, const infmask_t *bits)
+_nonnull_(1) static inline bool infmask_clear(infmask_t *mask, const infmask_t *bits)
 {
 	if (!mask->mask || !bits->mask)
 		return false;
@@ -372,8 +362,8 @@ infmask_clear(infmask_t *mask, const infmask_t *bits)
 	return all;
 }
 
-static inline bool
-infmask_bit_is_set(const infmask_t *mask, unsigned int bit)
+_nonnull_(1) static inline bool infmask_bit_is_set(const infmask_t *mask,
+						   unsigned int bit)
 {
 	if (!mask->mask || bit / bitmask_size() >= mask->nmasks)
 		return false;
@@ -382,8 +372,7 @@ infmask_bit_is_set(const infmask_t *mask, unsigned int bit)
 				  bit % bitmask_size());
 }
 
-static inline bool
-infmask_set_bit(infmask_t *mask, unsigned int bit)
+_nonnull_(1) static inline bool infmask_set_bit(infmask_t *mask, unsigned int bit)
 {
 	_infmask_ensure_size(mask, bit);
 
@@ -392,8 +381,7 @@ infmask_set_bit(infmask_t *mask, unsigned int bit)
 	return isset;
 }
 
-static inline bool
-infmask_clear_bit(infmask_t *mask, unsigned int bit)
+_nonnull_(1) static inline bool infmask_clear_bit(infmask_t *mask, unsigned int bit)
 {
 	if (!mask->mask || bit / bitmask_size() >= mask->nmasks)
 		return false;

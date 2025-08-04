@@ -115,6 +115,7 @@
 
 #define _unused_ __attribute__((unused))
 #define _fallthrough_ __attribute__((fallthrough))
+#define _nonnull_(...) __attribute__((nonnull(__VA_ARGS__)))
 
 /* Returns the number of macro arguments, this expands
  * _VARIABLE_MACRO_NARGS(a, b, c) to NTH_ARG(a, b, c, 15, 14, 13, .... 4, 3, 2, 1).
