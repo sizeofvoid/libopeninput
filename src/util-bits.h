@@ -265,6 +265,9 @@ _nonnull_(1) static inline void _infmask_ensure_size(infmask_t *mask, unsigned i
 			mask->mask[i] = bitmask_new();
 		mask->nmasks = required;
 	}
+	/* for clang-tidy, poor thing gets confused otherwise */
+	assert(mask->mask);
+	assert(mask->nmasks >= 1);
 }
 
 static inline infmask_t
