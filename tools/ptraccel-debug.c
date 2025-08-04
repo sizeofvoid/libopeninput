@@ -158,8 +158,8 @@ print_accel_func(struct motion_filter *filter, accel_profile_func_t profile, int
 	printf("# plot \"gnuplot.data\" using 1:2 title 'accel factor'\n");
 	printf("#\n");
 	printf("# data: velocity(mm/s) factor velocity(units/us) velocity(units/ms)\n");
-	for (mmps = 0.0; mmps < 1000.0;
-	     mmps += 1) { // NOLINT: security.FloatLoopCounter
+	for (mmps = 0.0; mmps < 1000.0; // NOLINT: security.FloatLoopCounter
+	     mmps += 1) {
 		double units_per_us = mmps_to_upus(mmps, dpi);
 		double units_per_ms = units_per_us * 1000.0;
 		double result = profile(filter, NULL, units_per_us, 0 /* time */);
