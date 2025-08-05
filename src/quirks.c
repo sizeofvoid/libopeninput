@@ -1208,7 +1208,9 @@ is_data_file(const struct dirent *dir)
 }
 
 static inline bool
-parse_files(struct quirks_context *ctx, const char *data_path)
+parse_files(struct quirks_context *ctx,
+	    const char *data_path,
+	    bool allow_empty_directory)
 {
 	struct dirent **namelist;
 	int ndev = -1;
@@ -1216,6 +1218,9 @@ parse_files(struct quirks_context *ctx, const char *data_path)
 
 	ndev = scandir(data_path, &namelist, is_data_file, versionsort);
 	if (ndev <= 0) {
+		if (allow_empty_directory)
+			return true;
+
 		qlog_error(ctx, "%s: failed to find data files\n", data_path);
 		return false;
 	}
@@ -1261,10 +1266,19 @@ quirks_init_subsystem(const char *data_path,
 	if (!ctx->dmi && !ctx->dt)
 		return NULL;
 
-	if (!parse_files(ctx, data_path))
+	if (!parse_files(ctx, data_path, false))
 		return NULL;
 
 	if (override_file && !parse_file(ctx, override_file))
+		return NULL;
+
+	_autofree_ char *xdg_runtime_dir = safe_strdup(getenv("XDG_RUNTIME_DIR"));
+	if (!xdg_runtime_dir)
+		xdg_runtime_dir = strdup_printf("/run/user/%d", geteuid());
+
+	_autofree_ char *xdg_runtime_quirks_dir =
+		strdup_printf("%s/libinput/", xdg_runtime_dir);
+	if (!parse_files(ctx, xdg_runtime_quirks_dir, true))
 		return NULL;
 
 	return steal(&ctx);
