@@ -19,6 +19,7 @@ AttrKeyboardIntegration=internal
 MatchName=*Microsoft Surface *Cover*
 MatchDMIModalias=dmi:*svnMicrosoftCorporation:*
 AttrKeyboardIntegration=internal
+AttrEventCode=-BTN_0;
 
 [Microsoft Surface Laptop Studio Touchpad]
 MatchVendor=0x045E
