@@ -813,15 +813,12 @@ build rpm:
 wayland-web:
   stage: deploy
   trigger: wayland/wayland.freedesktop.org
-  except:
-    refs:
-      - schedules
   variables:
     MESON_ARGS: '-Ddocumentation=true -Ddebug-gui=false -Dlibwacom=false -Dtests=false'
     MESON_BUILDDIR: 'builddir'
-  only:
-    refs:
-      - main
-    variables:
-      - $GITLAB_USER_LOGIN != "marge-bot"
-      - $CI_PROJECT_PATH == "libinput/libinput"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: '$CI_COMMIT_BRANCH == "main" && $GITLAB_USER_LOGIN != "marge-bot" && $CI_PROJECT_PATH == $FDO_UPSTREAM_REPO'
+      when: on_success
+    - when: never
