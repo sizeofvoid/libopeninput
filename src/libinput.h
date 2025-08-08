@@ -3714,7 +3714,7 @@ libinput_path_remove_device(struct libinput_device *device);
  *
  * @see libinput_plugin_system_append_default_paths
  *
- * @since 1.29
+ * @since 1.30
  */
 void
 libinput_plugin_system_append_path(struct libinput *libinput, const char *path);
@@ -3737,7 +3737,7 @@ libinput_plugin_system_append_path(struct libinput *libinput, const char *path);
  *
  * @see libinput_plugin_system_append_paths
  *
- * @since 1.29
+ * @since 1.30
  */
 void
 libinput_plugin_system_append_default_paths(struct libinput *libinput);
@@ -3767,7 +3767,7 @@ enum libinput_plugins_flags {
  * @return 0 or a negative errno on failure
  * @retval -ENOSYS libinput was compiled without plugin support
  *
- * @since 1.29
+ * @since 1.30
  */
 int
 libinput_plugin_system_load_plugins(struct libinput *libinput,
