@@ -6,15 +6,21 @@ Configuration options
 
 Below is a list of configurable options exposed to the users.
 
+.. contents::
+   :depth: 1
+   :local:
+
+
 .. hint:: Not all configuration options are available on all devices. Use
 	  :ref:`libinput list-devices <libinput-list-devices>` to show the
 	  configuration options for local devices.
 
 libinput's configuration interface is available to the caller only, not
-directly to the user. Thus is is the responsibility of the caller to expose
+directly to the user. Thus it is the responsibility of the caller to expose
 the various options and how these options are exposed. For example, the
-xf86-input-libinput driver exposes the options through X Input device
-properties and xorg.conf.d options. See the `libinput(4)
+`xf86-input-libinput driver <https://gitlab.freedesktop.org/xorg/driver/xf86-input-libinput/>`_
+exposes the options through X Input device properties and `xorg.conf.d
+<https://linux.die.net/man/5/xorg.conf.d>`_ options.  See the `libinput(4)
 <https://www.mankier.com/4/libinput>`_ man page for more details.
 
 
