@@ -4,4 +4,4 @@
 Checks: >
   -clang-analyzer-unix.Malloc,
   -clang-analyzer-optin.core.EnumCastOutOfRange
-WarningsAsErrors: true
+WarningsAsErrors: '*'
