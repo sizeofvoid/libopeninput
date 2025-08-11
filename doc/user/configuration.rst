@@ -205,6 +205,18 @@ before the maximum hardware-supported pressure is reached.
 
 See :ref:`tablet-pressure-range` for more info.
 
+.. _config-tablet-eraser-buttons:
+
+------------------------------------------------------------------------------
+Tablet tool eraser buttons
+------------------------------------------------------------------------------
+
+On many contemporary :ref:`Tablet tools <tablet-tools>` one button is hardcoded
+in firmware to emulate an eraser. This button can be remapped to provide
+a normal stylus button instead.
+
+See :ref:`tablet-eraser-button` for more info.
+
 ------------------------------------------------------------------------------
 Area configuration
 ------------------------------------------------------------------------------
