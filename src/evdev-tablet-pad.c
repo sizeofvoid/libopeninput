@@ -303,6 +303,7 @@ pad_dial_get_mode_group(struct pad_dispatch *pad, unsigned int dial)
 	struct libinput_tablet_pad_mode_group *group;
 
 	list_for_each(group, &pad->modes.mode_group_list, link) {
+		assert(group != NULL); /* for clang-tidy */
 		if (libinput_tablet_pad_mode_group_has_dial(group, dial))
 			return group;
 	}
@@ -321,6 +322,7 @@ pad_ring_get_mode_group(struct pad_dispatch *pad, unsigned int ring)
 	struct libinput_tablet_pad_mode_group *group;
 
 	list_for_each(group, &pad->modes.mode_group_list, link) {
+		assert(group != NULL); /* for clang-tidy */
 		if (libinput_tablet_pad_mode_group_has_ring(group, ring))
 			return group;
 	}
@@ -339,6 +341,7 @@ pad_strip_get_mode_group(struct pad_dispatch *pad, unsigned int strip)
 	struct libinput_tablet_pad_mode_group *group;
 
 	list_for_each(group, &pad->modes.mode_group_list, link) {
+		assert(group != NULL); /* for clang-tidy */
 		if (libinput_tablet_pad_mode_group_has_strip(group, strip))
 			return group;
 	}
