@@ -63,7 +63,7 @@ enum wheel_event {
 };
 
 enum ignore_strategy {
-	MAYBE,             /* use heuristics but don't yet accumulate */
+	MAYBE = 1,         /* use heuristics but don't yet accumulate */
 	PASSTHROUGH,       /* do not accumulate, pass through */
 	ACCUMULATE,        /* accumulate scroll wheel events */
 	ALWAYS_ACCUMULATE, /* always accumulate wheel events */
@@ -149,11 +149,12 @@ wheel_maybe_disable(struct plugin_device *device)
 	if (device->state != WHEEL_STATE_NONE)
 		return;
 
-	if (device->want_feature_disabled && device->ignore_small_hi_res_movements) {
+	if (device->want_feature_disabled &&
+	    device->ignore_small_hi_res_movements != PASSTHROUGH) {
 		plugin_log_debug(device->parent->plugin,
 				 "%s: disabled wheel debouncing on request\n",
 				 libinput_device_get_name(device->device));
-		device->ignore_small_hi_res_movements = false;
+		device->ignore_small_hi_res_movements = PASSTHROUGH;
 		libinput_plugin_timer_cancel(device->scroll_timer);
 		device->scroll_timer =
 			libinput_plugin_timer_unref(device->scroll_timer);
