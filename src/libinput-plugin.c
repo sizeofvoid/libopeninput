@@ -761,7 +761,7 @@ plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 
 #ifdef EVENT_DEBUGGING
 			_autofree_ char *prefix = strdup_printf(
-				"%7s: plugin %-15s - ",
+				"%7s: plugin %-22s - ",
 				libinput_device_get_sysname(event->device),
 				plugin->name);
 			print_frame(libinput_device_get_context(device),
