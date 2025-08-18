@@ -64,7 +64,6 @@ enum wheel_event {
 
 enum ignore_strategy {
 	MAYBE = 1,         /* use heuristics but don't yet accumulate */
-	PASSTHROUGH,       /* do not accumulate, pass through */
 	ACCUMULATE,        /* accumulate scroll wheel events */
 	ALWAYS_ACCUMULATE, /* always accumulate wheel events */
 };
@@ -174,7 +173,6 @@ wheel_handle_event_on_state_none(struct plugin_device *pd,
 		case ALWAYS_ACCUMULATE:
 			pd->state = WHEEL_STATE_ACCUMULATING_SCROLL;
 			break;
-		case PASSTHROUGH:
 		case MAYBE:
 			pd->state = WHEEL_STATE_SCROLLING;
 			break;
@@ -462,8 +460,10 @@ wheel_plugin_device_create(struct libinput_plugin *libinput_plugin,
 			   struct libinput_device *device)
 {
 	struct evdev_device *evdev = evdev_device(device);
-	struct plugin_device *pd = zalloc(sizeof(*pd));
+	if (evdev_device_is_virtual(evdev))
+		return NULL;
 
+	struct plugin_device *pd = zalloc(sizeof(*pd));
 	pd->parent = plugin;
 	pd->device = libinput_device_ref(device);
 	pd->state = WHEEL_STATE_NONE;
@@ -471,22 +471,16 @@ wheel_plugin_device_create(struct libinput_plugin *libinput_plugin,
 	pd->min_movement = ACC_V120_THRESHOLD;
 	ratelimit_init(&pd->hires_warning_limit, s2us(24 * 60 * 60), 1);
 
-	if (evdev_device_is_virtual(evdev))
-		pd->ignore_small_hi_res_movements = PASSTHROUGH;
-	else if (libinput_device_has_model_quirk(device,
-						 QUIRK_MODEL_LOGITECH_MX_MASTER_3))
+	if (libinput_device_has_model_quirk(device, QUIRK_MODEL_LOGITECH_MX_MASTER_3))
 		pd->ignore_small_hi_res_movements = ALWAYS_ACCUMULATE;
 	else
 		pd->ignore_small_hi_res_movements = MAYBE;
 
-	if (pd->ignore_small_hi_res_movements != PASSTHROUGH) {
-		pd->scroll_timer =
-			libinput_plugin_timer_new(libinput_plugin,
-						  libinput_device_get_sysname(device),
-						  wheel_on_scroll_timer_timeout,
-						  pd);
-	}
-
+	pd->scroll_timer =
+		libinput_plugin_timer_new(libinput_plugin,
+					  libinput_device_get_sysname(device),
+					  wheel_on_scroll_timer_timeout,
+					  pd);
 	return pd;
 }
 
@@ -528,17 +522,20 @@ wheel_plugin_device_new(struct libinput_plugin *libinput_plugin,
 	    !libevdev_has_event_code(libevdev, EV_REL, REL_HWHEEL_HI_RES))
 		return;
 
+	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
+	struct plugin_device *pd =
+		wheel_plugin_device_create(libinput_plugin, plugin, device);
+	if (!pd)
+		return;
+
+	list_take_append(&plugin->devices, pd, link);
+
 	libinput_plugin_enable_device_event_frame(libinput_plugin, device, true);
 
 	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_REL_WHEEL);
 	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_REL_WHEEL_HI_RES);
 	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_REL_HWHEEL);
 	libinput_plugin_enable_evdev_usage(libinput_plugin, EVDEV_REL_HWHEEL_HI_RES);
-
-	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
-	struct plugin_device *pd =
-		wheel_plugin_device_create(libinput_plugin, plugin, device);
-	list_take_append(&plugin->devices, pd, link);
 }
 
 static void
