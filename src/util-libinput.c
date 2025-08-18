@@ -404,7 +404,7 @@ print_tablet_axes(struct libinput_event_tablet_tool *t)
 	_autofree_ char *size = NULL;
 
 #define changed_sym(ev, ax) \
-	(libinput_event_tablet_tool_##ax##_has_changed(ev) ? "*" : "")
+	(libinput_event_tablet_tool_##ax##_has_changed(ev) ? "*" : " ")
 
 	if (libinput_tablet_tool_has_tilt(tool)) {
 		x = libinput_event_tablet_tool_get_tilt_x(t);
