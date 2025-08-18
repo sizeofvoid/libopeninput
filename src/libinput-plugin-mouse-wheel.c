@@ -149,12 +149,13 @@ wheel_maybe_disable(struct plugin_device *device)
 	if (device->state != WHEEL_STATE_NONE)
 		return;
 
-	if (device->want_feature_disabled &&
-	    device->ignore_small_hi_res_movements != PASSTHROUGH) {
+	if (device->want_feature_disabled) {
 		plugin_log_debug(device->parent->plugin,
 				 "%s: disabled wheel debouncing on request\n",
 				 libinput_device_get_name(device->device));
-		device->ignore_small_hi_res_movements = PASSTHROUGH;
+		libinput_plugin_enable_device_event_frame(device->parent->plugin,
+							  device->device,
+							  false);
 		libinput_plugin_timer_cancel(device->scroll_timer);
 		device->scroll_timer =
 			libinput_plugin_timer_unref(device->scroll_timer);

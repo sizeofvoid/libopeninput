@@ -205,6 +205,9 @@ debounce_maybe_disable(struct plugin_device *device)
 				 "%s: disabled button debouncing on request\n",
 				 libinput_device_get_name(device->device));
 		device->state = DEBOUNCE_STATE_DISABLED;
+		libinput_plugin_enable_device_event_frame(device->parent->plugin,
+							  device->device,
+							  false);
 	}
 }
 

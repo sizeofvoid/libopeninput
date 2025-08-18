@@ -186,6 +186,9 @@ proximity_timer_plugin_device_handle_frame(struct libinput_plugin *libinput_plug
 		case EVDEV_BTN_TOOL_FINGER:
 		case EVDEV_BTN_TOOL_MOUSE:
 		case EVDEV_BTN_TOOL_LENS:
+			libinput_plugin_enable_device_event_frame(libinput_plugin,
+								  device->device,
+								  false);
 			plugin_device_destroy(device);
 			return;
 		default:
