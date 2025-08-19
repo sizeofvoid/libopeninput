@@ -283,6 +283,11 @@ debounce_notify_button(struct plugin_device *device,
 	libinput_plugin_prepend_evdev_frame(device->parent->plugin,
 					    device->device,
 					    frame);
+
+	/* If we used the original frame, reset it to avoid re-sending any
+	 * non-button events that may be present in this frame */
+	if (button_frame == NULL)
+		evdev_frame_reset(frame);
 }
 
 static void
