@@ -208,6 +208,9 @@ proximity_timer_plugin_device_handle_frame(struct libinput_plugin *libinput_plug
 			plugin_log_debug(libinput_plugin,
 					 "%s: proximity out timer unloaded\n",
 					 libinput_device_get_name(device->device));
+			libinput_plugin_enable_device_event_frame(libinput_plugin,
+								  device->device,
+								  false);
 			plugin_device_destroy(device);
 			return;
 		}
