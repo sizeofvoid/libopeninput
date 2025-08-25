@@ -2,8 +2,8 @@
 
 [VMWare Virtual PS/2 Mouse]
 MatchName=*VirtualPS/2 VMware VMMouse*
-ModelBouncingKeys=1
+AttrIsVirtual=1
 
 [VMware VMware Virtual USB Mouse]
 MatchName=*VMware VMware Virtual USB Mouse*
-ModelBouncingKeys=1
+AttrIsVirtual=1
