@@ -1667,6 +1667,91 @@ START_TEST(proximity_out_disables_forced_after_forced)
 }
 END_TEST
 
+START_TEST(proximity_forced_in_with_eraser_swap)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 },
+	};
+
+	/* Test doesn't work with a double-tool device */
+	if (dev->which == LITEST_ELAN_TABLET)
+		return LITEST_NOT_APPLICABLE;
+
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
+		return LITEST_NOT_APPLICABLE;
+
+	/* https://gitlab.freedesktop.org/libinput/libinput/-/issues/1171:
+	 * Device sends correct proximity for pen and eraser so both prox timer
+	 * and double-tool are unregistered. Then it sends a single ABS_X event
+	 * before an eraser proximity in - ensure that our forced proximity
+	 * out is immediately removed.
+	 */
+
+	/* A correct proximity out sequence from the device should disable
+	   the forced proximity out, even when we had a forced prox-out */
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(li);
+	litest_timeout_tablet_proxout(li);
+
+	/* correct eraser prox out disables forced tool plugin */
+	litest_tablet_set_tool_type(dev, BTN_TOOL_RUBBER);
+	litest_tablet_proximity_in(dev, 12, 12, axes);
+	litest_tablet_proximity_out(dev);
+	litest_drain_events(li);
+	litest_timeout_tablet_proxout(li);
+
+	litest_dispatch(li);
+
+	litest_log_group("Expecting ABS_X to trigger a proximity event") {
+		/* All our tablets have this within their range so hardcoding 100 should
+		 * be fine here. If this breaks, scale it to absinfo */
+		auto abs = libevdev_get_abs_info(dev->evdev, ABS_X);
+		int x = absinfo_range(abs) / 3 + abs->minimum;
+		litest_event(dev, EV_ABS, ABS_X, x);
+		litest_event(dev, EV_SYN, SYN_REPORT, 0);
+
+		litest_dispatch(li);
+
+		_destroy_(libinput_event) *pen_in = libinput_get_event(li);
+		auto tev = litest_is_proximity_event(
+			pen_in,
+			LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+		auto tool = libinput_event_tablet_tool_get_tool(tev);
+		litest_assert_enum_eq(libinput_tablet_tool_get_type(tool),
+				      LIBINPUT_TABLET_TOOL_TYPE_PEN);
+	}
+
+	litest_log_group(
+		"Expecting eraser prox in to trigger prox out for pen and prox in for eraser") {
+		litest_tablet_proximity_in(dev, 15, 15, axes);
+		litest_dispatch(li);
+
+		_destroy_(libinput_event) *pen_out = libinput_get_event(li);
+		auto tev = litest_is_proximity_event(
+			pen_out,
+			LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT);
+		auto tool = libinput_event_tablet_tool_get_tool(tev);
+		litest_assert_enum_eq(libinput_tablet_tool_get_type(tool),
+				      LIBINPUT_TABLET_TOOL_TYPE_PEN);
+
+		_destroy_(libinput_event) *eraser_in = libinput_get_event(li);
+		tev = litest_is_proximity_event(
+			eraser_in,
+			LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+		tool = libinput_event_tablet_tool_get_tool(tev);
+		litest_assert_enum_eq(libinput_tablet_tool_get_type(tool),
+				      LIBINPUT_TABLET_TOOL_TYPE_ERASER);
+	}
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(proximity_out_on_delete)
 {
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
@@ -7634,6 +7719,7 @@ TEST_COLLECTION(tablet_proximity)
 	litest_add(proximity_out_not_during_buttonpress, LITEST_TABLET | LITEST_DISTANCE, LITEST_ANY);
 	litest_add(proximity_out_disables_forced, LITEST_TABLET, LITEST_FORCED_PROXOUT|LITEST_TOTEM);
 	litest_add(proximity_out_disables_forced_after_forced, LITEST_TABLET, LITEST_FORCED_PROXOUT|LITEST_TOTEM);
+	litest_add(proximity_forced_in_with_eraser_swap, LITEST_TABLET, LITEST_FORCED_PROXOUT|LITEST_TOTEM);
 	/* clang-format on */
 }
 

@@ -53,6 +53,7 @@ struct plugin_device {
 	struct list link;
 	struct libinput_device *device;
 	bitmask_t tool_state;
+	bool pen_forced_into_proximity;
 };
 
 struct plugin_data {
@@ -90,6 +91,18 @@ plugin_destroy(struct libinput_plugin *libinput_plugin)
 }
 
 static void
+forced_tool_plugin_force_pen_out(struct libinput_plugin *libinput_plugin,
+				 struct libinput_device *device,
+				 struct evdev_frame *frame)
+{
+	_unref_(evdev_frame) *prox_out_frame = evdev_frame_new(2);
+	evdev_frame_append_one(prox_out_frame, evdev_usage_from(EVDEV_BTN_TOOL_PEN), 0);
+	evdev_frame_set_time(prox_out_frame, evdev_frame_get_time(frame));
+
+	libinput_plugin_prepend_evdev_frame(libinput_plugin, device, prox_out_frame);
+}
+
+static void
 forced_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 				       struct plugin_device *device,
 				       struct evdev_frame *frame)
@@ -103,21 +116,34 @@ forced_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 		struct evdev_event *event = &events[i];
 		switch (evdev_usage_enum(event->usage)) {
 		case EVDEV_BTN_TOOL_PEN:
+			if (event->value == 1) {
+				bitmask_set_bit(&device->tool_state, BTN_TOOL_PEN);
+			} else {
+				bitmask_clear_bit(&device->tool_state, BTN_TOOL_PEN);
+				device->pen_forced_into_proximity = false;
+			}
+			return; /* Nothing to do */
 		case EVDEV_BTN_TOOL_RUBBER:
 		case EVDEV_BTN_TOOL_BRUSH:
 		case EVDEV_BTN_TOOL_PENCIL:
 		case EVDEV_BTN_TOOL_AIRBRUSH:
 		case EVDEV_BTN_TOOL_MOUSE:
-		case EVDEV_BTN_TOOL_LENS:
+		case EVDEV_BTN_TOOL_LENS: {
+			int code = evdev_event_code(event) - BTN_TOOL_PEN;
 			if (event->value == 1) {
-				bitmask_set_bit(&device->tool_state,
-						evdev_event_code(event) - BTN_TOOL_PEN);
+				bitmask_set_bit(&device->tool_state, code);
+				if (device->pen_forced_into_proximity) {
+					forced_tool_plugin_force_pen_out(
+						libinput_plugin,
+						device->device,
+						frame);
+					device->pen_forced_into_proximity = false;
+				}
 			} else {
-				bitmask_clear_bit(&device->tool_state,
-						  evdev_event_code(event) -
-							  BTN_TOOL_PEN);
+				bitmask_clear_bit(&device->tool_state, code);
 			}
-			return; /* Nothing to do */
+			return; /* Keep the frame as-is */
+		}
 		case EVDEV_ABS_X:
 		case EVDEV_ABS_Y:
 		case EVDEV_ABS_Z: /* rotation */
@@ -155,6 +181,7 @@ forced_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 	evdev_frame_append_one(frame,
 			       evdev_usage_from(EVDEV_BTN_TOOL_PEN),
 			       1); /* libinput's event frame will have space */
+	device->pen_forced_into_proximity = true;
 }
 
 static void
