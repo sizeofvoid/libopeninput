@@ -735,6 +735,9 @@ libinput_device_init(struct libinput_device *device, struct libinput_seat *seat)
 bool
 libinput_device_has_model_quirk(struct libinput_device *device, enum quirk model_quirk);
 
+bool
+libinput_device_is_virtual(struct libinput_device *device);
+
 void
 libinput_device_disable_feature(struct libinput_device *device,
 				enum libinput_feature feature);

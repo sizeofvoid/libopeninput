@@ -2252,6 +2252,12 @@ libinput_device_has_model_quirk(struct libinput_device *device, enum quirk model
 	return result;
 }
 
+bool
+libinput_device_is_virtual(struct libinput_device *device)
+{
+	return evdev_device_is_virtual((struct evdev_device *)device);
+}
+
 static uint32_t
 update_seat_key_count(struct libinput_seat *seat,
 		      keycode_t keycode,

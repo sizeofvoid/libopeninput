@@ -34,6 +34,7 @@
 #include "libinput-log.h"
 #include "libinput-plugin-button-debounce.h"
 #include "libinput-plugin.h"
+#include "libinput-private.h"
 #include "libinput-util.h"
 #include "quirks.h"
 #include "timer.h"
@@ -753,6 +754,9 @@ debounce_plugin_device_added(struct libinput_plugin *libinput_plugin,
 			     struct libinput_device *device)
 {
 	if (!libinput_device_has_capability(device, LIBINPUT_DEVICE_CAP_POINTER))
+		return;
+
+	if (libinput_device_is_virtual(device))
 		return;
 
 	_unref_(udev_device) *udev_device = libinput_device_get_udev_device(device);
