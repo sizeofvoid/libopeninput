@@ -35,6 +35,7 @@
 #include "libinput-log.h"
 #include "libinput-plugin-mouse-wheel.h"
 #include "libinput-plugin.h"
+#include "libinput-private.h"
 #include "libinput-util.h"
 
 #define ACC_V120_TRIGGER_THRESHOLD 30  /* 1/4 of a wheel detent */
@@ -459,8 +460,7 @@ wheel_plugin_device_create(struct libinput_plugin *libinput_plugin,
 			   struct plugin_data *plugin,
 			   struct libinput_device *device)
 {
-	struct evdev_device *evdev = evdev_device(device);
-	if (evdev_device_is_virtual(evdev))
+	if (libinput_device_is_virtual(device))
 		return NULL;
 
 	struct plugin_device *pd = zalloc(sizeof(*pd));
