@@ -360,6 +360,12 @@ MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadE14Gen2*
 AttrPalmPressureThreshold=300
 AttrPressureRange=10:8
 
+[Lenovo ThinkPad E16 Gen 3]
+MatchUdevType=pointingstick
+MatchName=*TPPS/2 Elan TrackPoint*
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadE16Gen3*
+AttrTrackpointMultiplier=0.5
+
 # White Backlit Keyboard
 [Lenovo Ideapad Gaming 3]
 MatchUdevType=keyboard
