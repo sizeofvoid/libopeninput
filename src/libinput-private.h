@@ -1015,7 +1015,7 @@ static inline void libinput_libwacom_unref(struct libinput *li) {}
 #endif
 
 
-#ifdef __OpenBSD__
+#if defined(__OpenBSD__) || defined(__NetBSD__)
 void
 axis_notify_event(struct libinput_device *device,
     uint64_t time,

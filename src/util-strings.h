@@ -242,7 +242,7 @@ safe_atod(const char *str, double *val)
 		return false;
 
 	errno = 0;
-#ifndef __OpenBSD__
+#if !defined(__OpenBSD__) && !defined(__NetBSD__)
 	v = strtod_l(str, &endptr, c_locale);
 #else
 	v = strtod(str, &endptr);
