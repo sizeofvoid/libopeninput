@@ -1,9 +1,5 @@
 #ifdef __linux__
 #include "linux/input.h"
-#elif __OpenBSD__
-#include "freebsd/input.h"
-#elif __NetBSD__
-#include "freebsd/input.h"
-#elif __FreeBSD__
+#elif defined(__OpenBSD__) || defined(__NetBSD__) || defined(__FreeBSD__)
 #include "freebsd/input.h"
 #endif
