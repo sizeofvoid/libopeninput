@@ -426,7 +426,7 @@ lib_libinput = shared_library('input',
 		link_depends : mapfile,
 		install : true
 		)
-if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
+if host_machine.system() == 'openbsd'
 install_headers('include/linux/freebsd/input-event-codes.h', subdir: 'linux/freebsd')
 install_headers('include/linux/freebsd/input.h', subdir: 'linux/freebsd')
 
