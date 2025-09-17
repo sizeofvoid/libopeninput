@@ -206,10 +206,6 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 		      struct evdev_device *device,
 		      uint64_t time)
 {
-	struct normalized_coords wheel_degrees = { 0.0, 0.0 };
-	struct discrete_coords discrete = { 0.0, 0.0 };
-	struct wheel_v120 v120 = { 0.0, 0.0 };
-
 	if (!libinput_device_has_capability(&device->base, LIBINPUT_DEVICE_CAP_POINTER))
 		return;
 
@@ -238,59 +234,85 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 		return;
 	}
 
-	if (dispatch->wheel.hi_res.y != 0) {
-		int value = dispatch->wheel.hi_res.y;
-
-		v120.y = -1 * value;
-		wheel_degrees.y =
-			-1 * value / 120.0 * device->scroll.wheel_click_angle.y;
-		evdev_notify_axis_wheel(device,
-					time,
-					bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
-					&wheel_degrees,
-					&v120);
+	/* High-resolution wheel events */
+	if (dispatch->wheel.hi_res.x != 0 || dispatch->wheel.hi_res.y != 0) {
+		const struct device_float_coords v120_unaccelerated = {
+			.x = dispatch->wheel.hi_res.x,
+			.y = -1 * dispatch->wheel.hi_res.y,
+		};
+		const struct normalized_coords v120_accelerated =
+			device->pointer.filter
+				? filter_dispatch_scroll(device->pointer.filter,
+							 &v120_unaccelerated,
+							 device,
+							 time)
+				: (const struct normalized_coords){
+					  .x = v120_unaccelerated.x,
+					  .y = v120_unaccelerated.y
+				  };
+		/* Truncate the fractional part when converting floating-point to
+		   integer. This is acceptable because the v120 unit maps one logical
+		   click to 120 units; values are effectively measured in 1/120 of a
+		   click, so truncation does not lose meaningful resolution. */
+		const struct wheel_v120 v120 = {
+			.x = v120_accelerated.x,
+			.y = v120_accelerated.y,
+		};
+		const struct normalized_coords wheel_degrees = {
+			.x = v120.x / 120.0 * device->scroll.wheel_click_angle.x,
+			.y = v120.y / 120.0 * device->scroll.wheel_click_angle.y,
+		};
+		if (v120.x != 0) {
+			evdev_notify_axis_wheel(
+				device,
+				time,
+				bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
+				&wheel_degrees,
+				&v120);
+		}
+		if (v120.y != 0) {
+			evdev_notify_axis_wheel(
+				device,
+				time,
+				bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
+				&wheel_degrees,
+				&v120);
+		}
+		dispatch->wheel.hi_res.x = 0;
 		dispatch->wheel.hi_res.y = 0;
 	}
 
-	if (dispatch->wheel.lo_res.y != 0) {
-		int value = dispatch->wheel.lo_res.y;
-
-		wheel_degrees.y = -1 * value * device->scroll.wheel_click_angle.y;
-		discrete.y = -1 * value;
-		evdev_notify_axis_legacy_wheel(
-			device,
-			time,
-			bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
-			&wheel_degrees,
-			&discrete);
-		dispatch->wheel.lo_res.y = 0;
-	}
-
-	if (dispatch->wheel.hi_res.x != 0) {
-		int value = dispatch->wheel.hi_res.x;
-
-		v120.x = value;
-		wheel_degrees.x = value / 120.0 * device->scroll.wheel_click_angle.x;
-		evdev_notify_axis_wheel(device,
-					time,
-					bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
-					&wheel_degrees,
-					&v120);
-		dispatch->wheel.hi_res.x = 0;
-	}
-
-	if (dispatch->wheel.lo_res.x != 0) {
-		int value = dispatch->wheel.lo_res.x;
-
-		wheel_degrees.x = value * device->scroll.wheel_click_angle.x;
-		discrete.x = value;
-		evdev_notify_axis_legacy_wheel(
-			device,
-			time,
-			bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
-			&wheel_degrees,
-			&discrete);
+	/* Low-resolution wheel events */
+	if (dispatch->wheel.lo_res.x != 0 || dispatch->wheel.lo_res.y != 0) {
+		/* Do not accelerate low-resolution wheel events: they use different
+		   units than high-resolution events and should not be accelerated with
+		   the same function. */
+		const struct discrete_coords discrete = {
+			.x = dispatch->wheel.lo_res.x,
+			.y = -1 * dispatch->wheel.lo_res.y,
+		};
+		const struct normalized_coords wheel_degrees = {
+			.x = discrete.x * device->scroll.wheel_click_angle.x,
+			.y = discrete.y * device->scroll.wheel_click_angle.y,
+		};
+		if (discrete.x != 0) {
+			evdev_notify_axis_legacy_wheel(
+				device,
+				time,
+				bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
+				&wheel_degrees,
+				&discrete);
+		}
+		if (discrete.y != 0) {
+			evdev_notify_axis_legacy_wheel(
+				device,
+				time,
+				bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
+				&wheel_degrees,
+				&discrete);
+		}
 		dispatch->wheel.lo_res.x = 0;
+		dispatch->wheel.lo_res.y = 0;
 	}
 }
 
