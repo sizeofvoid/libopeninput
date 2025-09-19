@@ -209,15 +209,17 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 		axis_notify_event(device, time, &accel, &raw);
 		break;
 
-#ifndef __NetBSD__
+#ifdef WSCONS_EVENT_SYNC
 	case WSCONS_EVENT_SYNC:
 		break;
 #endif
 
 	case WSCONS_EVENT_MOUSE_ABSOLUTE_Z:
 	case WSCONS_EVENT_MOUSE_ABSOLUTE_W:
-#ifndef __NetBSD__
+#ifdef WSCONS_EVENT_TOUCH_WIDTH
 	case WSCONS_EVENT_TOUCH_WIDTH:
+#endif
+#ifdef WSCONS_EVENT_TOUCH_RESET
 	case WSCONS_EVENT_TOUCH_RESET:
 #endif
 		/* ignore those */
