@@ -24,6 +24,7 @@
 #include "config.h"
 
 #include <errno.h>
+#include <inttypes.h>
 #include <sys/epoll.h>
 #include <sys/sysinfo.h>
 #include <sys/timerfd.h>
@@ -771,7 +772,8 @@ litest_runner_log_test_result(struct litest_runner *runner,
 	}
 
 	fprintf(runner->fp,
-		"    duration: %ld  # (ms), total test run time: %02d:%02d\n",
+		"    duration: %" PRIu64 "  # (ms), total test run time: %02" PRIu32
+		":%02" PRIu32 "\n",
 		t->times.end_millis - t->times.start_millis,
 		(ms2s(t->times.end_millis - runner->times.start_millis)) / 60,
 		(ms2s(t->times.end_millis - runner->times.start_millis)) % 60);
@@ -989,7 +991,10 @@ litest_runner_run_tests(struct litest_runner *runner)
 	runner->times.start = time(NULL);
 	ltime = localtime(&runner->times.start);
 	strftime(timestamp, sizeof(timestamp), "%FT%H:%M", ltime);
-	fprintf(runner->fp, "start: %ld  # \"%s\"\n", runner->times.start, timestamp);
+	fprintf(runner->fp,
+		"start: %lld  # \"%s\"\n",
+		(long long)runner->times.start,
+		timestamp);
 	fprintf(runner->fp, "jobs: %zd\n", runner->max_forks);
 	fprintf(runner->fp, "tests:\n");
 	list_for_each_safe(t, &runner->tests, node) {
@@ -1062,12 +1067,15 @@ litest_runner_run_tests(struct litest_runner *runner)
 	runner->times.end = time(NULL);
 	ltime = localtime(&runner->times.end);
 	strftime(timestamp, sizeof(timestamp), "%FT%H:%M", ltime);
-	fprintf(runner->fp, "end: %ld  # \"%s\"\n", runner->times.end, timestamp);
 	fprintf(runner->fp,
-		"duration: %ld  # (s) %02ld:%02ld\n",
-		runner->times.end - runner->times.start,
-		(runner->times.end - runner->times.start) / 60,
-		(runner->times.end - runner->times.start) % 60);
+		"end: %lld  # \"%s\"\n",
+		(long long)runner->times.end,
+		timestamp);
+	fprintf(runner->fp,
+		"duration: %lld  # (s) %02lld:%02lld\n",
+		(long long)(runner->times.end - runner->times.start),
+		(long long)((runner->times.end - runner->times.start) / 60),
+		(long long)((runner->times.end - runner->times.start) % 60));
 	fprintf(runner->fp, "summary:\n");
 	fprintf(runner->fp, "  completed: %zd\n", ncomplete);
 	fprintf(runner->fp, "  pass: %zd\n", npass);

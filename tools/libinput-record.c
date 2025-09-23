@@ -1231,7 +1231,6 @@ handle_hidraw(struct hidraw *hidraw)
 	unsigned char report[4096];
 	const char *sep = "";
 	struct timespec ts;
-	struct timeval tv;
 	uint64_t time;
 
 	int rc = read(hidraw->fd, report, sizeof(report));
@@ -1251,10 +1250,12 @@ handle_hidraw(struct hidraw *hidraw)
 	else
 		time = time_offset(d->ctx, time);
 
-	tv = us2tv(time);
-
 	iprintf(d->fp, I_EVENTTYPE, "- hid:\n");
-	iprintf(d->fp, I_EVENT, "time: [%3lu, %6lu]\n", tv.tv_sec, tv.tv_usec);
+	iprintf(d->fp,
+		I_EVENT,
+		"time: [%3" PRIu64 ", %6" PRIu64 "]\n",
+		time / s2us(1),
+		time % s2us(1));
 	iprintf(d->fp, I_EVENT, "%s: [", hidraw->name);
 
 	for (int byte = 0; byte < rc; byte++) {
