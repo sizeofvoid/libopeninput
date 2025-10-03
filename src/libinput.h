@@ -145,6 +145,20 @@ struct libinput_event_pointer;
 struct libinput_event_touch;
 
 /**
+ * @ingroup event_gesture
+ * @struct libinput_event_gesture
+ *
+ * A gesture event representing a swipe, pinch or hold gesture. Valid event
+ * types for this event are @ref LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN, @ref
+ * LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE, @ref LIBINPUT_EVENT_GESTURE_SWIPE_END,
+ * @ref LIBINPUT_EVENT_GESTURE_PINCH_BEGIN, @ref
+ * LIBINPUT_EVENT_GESTURE_PINCH_UPDATE, @ref LIBINPUT_EVENT_GESTURE_PINCH_END,
+ * @ref LIBINPUT_EVENT_GESTURE_HOLD_BEGIN and @ref
+ * LIBINPUT_EVENT_GESTURE_HOLD_END.
+ */
+struct libinput_event_gesture;
+
+/**
  * @ingroup event_tablet
  * @struct libinput_event_tablet_tool
  *
