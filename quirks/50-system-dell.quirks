@@ -171,6 +171,12 @@ MatchVendor=0x27C6
 MatchProduct=0x0F62
 ModelPressurePad=1
 
+[Dell 14 Premium DA14250 touchpad]
+MatchBus=i2c
+MatchVendor=0x0488
+MatchProduct=0x108C
+ModelPressurePad=1
+
 [Dell 16 Premium DA16250 touchpad]
 MatchBus=i2c
 MatchVendor=0x0488
