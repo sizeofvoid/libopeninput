@@ -221,7 +221,9 @@ lua_push_evdev_frame(lua_State *L, struct evdev_frame *frame)
 }
 
 static void
-lua_pop_evdev_frame(struct libinput_lua_plugin *plugin, struct evdev_frame *frame_out)
+lua_pop_evdev_frame(struct libinput_lua_plugin *plugin,
+		    struct libevdev *libevdev,
+		    struct evdev_frame *frame_out)
 {
 	lua_State *L = plugin->L;
 
@@ -252,7 +254,7 @@ lua_pop_evdev_frame(struct libinput_lua_plugin *plugin, struct evdev_frame *fram
 		}
 
 		lua_getfield(L, -1, "usage");
-		uint32_t usage = luaL_checkinteger(L, -1);
+		uint32_t usage_value = luaL_checkinteger(L, -1);
 		lua_pop(L, 1);
 
 		lua_getfield(L, -1, "value");
@@ -261,13 +263,18 @@ lua_pop_evdev_frame(struct libinput_lua_plugin *plugin, struct evdev_frame *fram
 
 		lua_pop(L, 1); /* pop { usage = ..., value = ...} */
 
-		struct evdev_event *e = &events[nevents++];
-		e->usage = evdev_usage_from_uint32_t(usage);
-		e->value = value;
+		evdev_usage_t usage = evdev_usage_from_uint32_t(usage_value);
+		unsigned int type = evdev_usage_type(usage);
+		unsigned int code = evdev_usage_code(usage);
+		if (libevdev_has_event_code(libevdev, type, code)) {
+			struct evdev_event *e = &events[nevents++];
+			e->usage = usage;
+			e->value = value;
 
-		if (evdev_usage_eq(e->usage, EVDEV_SYN_REPORT)) {
-			lua_pop(L, 1); /* force-pop the nil */
-			break;
+			if (evdev_usage_eq(e->usage, EVDEV_SYN_REPORT)) {
+				lua_pop(L, 1); /* force-pop the nil */
+				break;
+			}
 		}
 	}
 
@@ -417,7 +424,7 @@ libinput_lua_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
 
 		if (!libinput_lua_pcall(plugin, 3, 1))
 			return;
-		lua_pop_evdev_frame(plugin, frame);
+		lua_pop_evdev_frame(plugin, evdev->evdev, frame);
 	}
 }
 
@@ -932,10 +939,10 @@ evdevdevice_disconnect(lua_State *L)
 }
 
 static struct evdev_frame *
-evdevdevice_frame(lua_State *L, struct libinput_lua_plugin *plugin)
+evdevdevice_frame(lua_State *L, struct libinput_lua_plugin *plugin, EvdevDevice *device)
 {
 	auto frame = evdev_frame_new(64);
-	lua_pop_evdev_frame(plugin, frame);
+	lua_pop_evdev_frame(plugin, device->evdev, frame);
 
 	struct libinput *libinput = lua_get_libinput(L);
 	uint64_t now = libinput_now(libinput);
@@ -961,7 +968,7 @@ evdevdevice_inject_frame(lua_State *L)
 	if (!plugin->in_timer_func) {
 		return luaL_error(L, "Injecting events only possible in a timer func");
 	}
-	_unref_(evdev_frame) *frame = evdevdevice_frame(L, plugin);
+	_unref_(evdev_frame) *frame = evdevdevice_frame(L, plugin, device);
 
 	/* Lua is unhappy if we inject an event which calls into our lua state
 	 * immediately so we need to queue this for later when we're out of the timer
@@ -988,7 +995,7 @@ evdevdevice_prepend_frame(lua_State *L)
 		return 0;
 
 	struct libinput_lua_plugin *plugin = lua_get_libinput_lua_plugin(L);
-	_unref_(evdev_frame) *frame = evdevdevice_frame(L, plugin);
+	_unref_(evdev_frame) *frame = evdevdevice_frame(L, plugin, device);
 	/* FIXME: need to really ensure that the device can never be dangling */
 	libinput_plugin_prepend_evdev_frame(plugin->parent, device->device, frame);
 
@@ -1009,7 +1016,7 @@ evdevdevice_append_frame(lua_State *L)
 		return 0;
 
 	struct libinput_lua_plugin *plugin = lua_get_libinput_lua_plugin(L);
-	_unref_(evdev_frame) *frame = evdevdevice_frame(L, plugin);
+	_unref_(evdev_frame) *frame = evdevdevice_frame(L, plugin, device);
 
 	/* FIXME: need to really ensure that the device can never be dangling */
 	libinput_plugin_append_evdev_frame(plugin->parent, device->device, frame);

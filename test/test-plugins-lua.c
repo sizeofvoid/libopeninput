@@ -868,6 +868,50 @@ START_TEST(lua_append_prepend_frame)
 }
 END_TEST
 
+START_TEST(lua_ignore_unsupported_codes)
+{
+	_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
+	_autofree_ char *lua = strdup_printf(
+		"libinput:register({1})\n"
+		"function frame_handler(device, frame, timestamp)\n"
+		"    local events = {}\n"
+		"    for _, v in ipairs(frame) do\n"
+		"       table.insert(events, { usage = v.usage, value = v.value })\n"
+		"    end\n"
+		"    table.insert(events, { usage = evdev.ABS_X, value = 1000 })\n"
+		"    table.insert(events, { usage = evdev.ABS_Y, value = 100 })\n"
+		"    table.insert(events, { usage = evdev.BTN_BACK, value = 1 })\n"
+		"    table.insert(events, { usage = evdev.BTN_LEFT, value = 1 })\n" /* this
+										       one actually exists */
+		"    return events\n"
+		"end\n"
+		"libinput:connect(\"new-evdev-device\", function(device)\n"
+		"    device:connect(\"evdev-frame\", frame_handler)\n"
+		"end)\n");
+	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
+	_litest_context_destroy_ struct libinput *li =
+		litest_create_context_with_plugindir(tmpdir->path);
+	libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+	litest_drain_events(li);
+
+	_destroy_(litest_device) *device = litest_add_device(li, LITEST_MOUSE);
+	litest_drain_events(li);
+
+	litest_event(device, EV_REL, REL_X, 1);
+	litest_event(device, EV_REL, REL_Y, 2);
+	litest_event(device, EV_SYN, SYN_REPORT, 0);
+	litest_dispatch(li);
+	litest_timeout_debounce(li);
+	litest_dispatch(li);
+
+	_destroy_(libinput_event) *ev = libinput_get_event(li);
+	litest_is_motion_event(ev);
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+
+	litest_assert_empty_queue(li);
+}
+END_TEST
+
 START_TEST(lua_inject_frame)
 {
 	bool in_timer = litest_test_param_get_bool(test_env->params, "in_timer");
@@ -1191,6 +1235,7 @@ TEST_COLLECTION(lua)
 	litest_add_no_device(lua_device_info);
 	litest_add_no_device(lua_set_absinfo);
 	litest_add_no_device(lua_enable_disable_evdev_usage);
+	litest_add_no_device(lua_ignore_unsupported_codes);
 
 	litest_with_parameters(params,
 			       "which", 'I', 3,
