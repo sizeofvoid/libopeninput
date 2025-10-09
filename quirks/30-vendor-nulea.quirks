@@ -1,0 +1,12 @@
+# Nulea M501 does not name itself as a "Trackball"
+[Nulea Wireless Trackball]
+MatchBus=usb
+MatchVendor=0x25A7
+MatchProduct=0xFA61
+ModelTrackball=1
+
+[Nulea Bluetooth Trackball]
+MatchBus=bluetooth
+MatchVendor=0x000E
+MatchProduct=0x3412
+ModelTrackball=1
