@@ -183,6 +183,16 @@ resource_rules:
             For a detailed explanation on the how and why of this process please see
             the [Closed Issues wiki page](https://gitlab.freedesktop.org/libinput/libinput/-/wikis/Closed-Issues).
           status: "close"
+      - name: "Re-close bug for reopening"
+        conditions:
+          labels:
+            - "bugbot::re-close"
+        actions:
+          remove_labels:
+            - "bugbot::re-close"
+          comment: |
+            I'm temporarily closing this bug again. This is not a final close, see my comments above for the open/close process.
+          status: "close"
       - *udev_hid_bpf
       - *libinput_record
       - *hid_recorder
