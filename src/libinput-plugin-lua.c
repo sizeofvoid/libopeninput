@@ -226,15 +226,14 @@ lua_pop_evdev_frame(struct libinput_lua_plugin *plugin, struct evdev_frame *fram
 	lua_State *L = plugin->L;
 
 	if (lua_isnil(L, -1)) {
-		lua_pop(L, 1);
-		return;
+		goto out;
 	}
 
 	if (!lua_istable(L, -1)) {
 		plugin_log_bug(plugin->parent,
 			       "expected table like `{ events = { ... } }`, got %s",
 			       lua_typename(L, lua_type(L, -1)));
-		return;
+		goto out;
 	}
 
 	struct evdev_event events[64] = { 0 };
@@ -249,8 +248,7 @@ lua_pop_evdev_frame(struct libinput_lua_plugin *plugin, struct evdev_frame *fram
 				plugin->parent,
 				"expected table like `{ type = ..., code = ...}`, got %s",
 				lua_typename(L, lua_type(L, -1)));
-			lua_pop(L, 1);
-			return;
+			goto out;
 		}
 
 		lua_getfield(L, -1, "usage");
@@ -282,6 +280,9 @@ lua_pop_evdev_frame(struct libinput_lua_plugin *plugin, struct evdev_frame *fram
 	if (evdev_frame_set(frame_out, events, nevents) == -ENOMEM) {
 		plugin_log_bug(plugin->parent, "too many events in frame");
 	}
+
+out:
+	lua_pop(L, 1);
 }
 
 static bool
