@@ -187,3 +187,9 @@ MatchBus=i2c
 MatchVendor=0x0488
 MatchProduct=0x108D
 ModelPressurePad=1
+
+[Dell laptop 14_1 Synaptics touchpad]
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xD01D
+ModelPressurePad=1
