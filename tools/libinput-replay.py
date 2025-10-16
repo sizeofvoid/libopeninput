@@ -369,6 +369,8 @@ def check_file(recording):
 
 
 def main():
+    multiprocessing.set_start_method("fork")
+
     parser = argparse.ArgumentParser(description="Replay a device recording")
     parser.add_argument(
         "recording",
