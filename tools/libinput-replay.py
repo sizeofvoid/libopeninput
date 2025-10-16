@@ -410,7 +410,13 @@ def main():
     finally:
         if quirks_file:
             quirks_file.unlink()
-            quirks_file.parent.unlink()
+            try:
+                quirks_file.parent.rmdir()
+            except OSError as e:
+                import errno
+
+                if e.errno != errno.ENOTEMPTY:
+                    raise e
 
 
 if __name__ == "__main__":
