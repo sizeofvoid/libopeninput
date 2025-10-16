@@ -94,6 +94,11 @@ MatchName=*AT Translated Set 2 keyboard*
 MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude7285:*
 ModelTabletModeNoSuspend=1
 
+[Dell Pro Rugged Tablet]
+MatchName=*AT Translated Set 2 keyboard*
+MatchDMIModalias=dmi:*:svnDellInc.:pnDellProRugged*TabletRA*:*
+ModelTabletModeNoSuspend=1
+
 [Latitude 7480 Touchpad]
 MatchName=DLL07A0*
 MatchDMIModalias=dmi:**bvnDellInc.:*:pnLatitude7480*
