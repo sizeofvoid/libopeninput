@@ -1364,27 +1364,6 @@ freebsd:14.2@default-build:
 #                                                               #
 #################################################################
 
-#
-# Verify that the merge request has the allow-collaboration checkbox ticked
-#
-
-check-merge-request:
-  extends:
-    - .fdo.ci-fairy
-    - .policy
-    - .fdo-runner-tags
-  stage: deploy
-  script:
-    - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
-  artifacts:
-    when: on_failure
-    reports:
-      junit: results.xml
-  allow_failure: true
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-
-
 build rpm:
   extends:
     - .fdo.distribution-image@fedora

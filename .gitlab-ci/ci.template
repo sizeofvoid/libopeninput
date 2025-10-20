@@ -761,27 +761,6 @@ coverity:
 #                                                               #
 #################################################################
 
-#
-# Verify that the merge request has the allow-collaboration checkbox ticked
-#
-
-check-merge-request:
-  extends:
-    - .fdo.ci-fairy
-    - .policy
-    - .fdo-runner-tags
-  stage: deploy
-  script:
-    - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
-  artifacts:
-    when: on_failure
-    reports:
-      junit: results.xml
-  allow_failure: true
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-
-
 {% for distro in distributions if distro.name == "fedora" %}
 {% set version = "{}".format(distro.versions|last()) %}
 build rpm:
