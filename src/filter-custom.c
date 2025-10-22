@@ -34,6 +34,7 @@
 
 struct custom_accel_function {
 	uint64_t last_time;
+	uint64_t last_delta_time;
 	double step;
 	size_t npoints;
 	double points[];
@@ -58,6 +59,7 @@ create_custom_accel_function(double step, const double *points, size_t npoints)
 	struct custom_accel_function *cf =
 		zalloc(sizeof(*cf) + npoints * sizeof(*points));
 	cf->last_time = 0;
+	cf->last_delta_time = FIRST_MOTION_TIME_INTERVAL;
 	cf->step = step;
 	cf->npoints = npoints;
 	memcpy(cf->points, points, sizeof(*points) * npoints);
@@ -110,13 +112,25 @@ custom_accel_function_calculate_speed(struct custom_accel_function *cf,
 
 	/* calculate speed based on time passed since last event */
 	double distance = hypot(unaccelerated->x, unaccelerated->y);
+	/* delta_time can be zero when:
+	 * - the fallback acceleration function is used for multiple movement types
+	 *   (for example, pointer motion and wheel scrolling simultaneously)
+	 * - two different methods produce the same movement at the same time
+	 *   (for example, button-scrolling and wheel-scrolling)
+	 *
+	 * Reusing the last delta_time is a graceful fallback even if there are
+	 * duplicate events or event-ordering bugs.
+	 */
+	uint64_t delta_time =
+		(time > cf->last_time) ? time - cf->last_time : cf->last_delta_time;
 	/* handle first event in a motion */
-	if (time - cf->last_time > MOTION_TIMEOUT)
-		cf->last_time = time - FIRST_MOTION_TIME_INTERVAL;
+	if (delta_time > MOTION_TIMEOUT)
+		delta_time = FIRST_MOTION_TIME_INTERVAL;
 
-	double dt = us2ms_f(time - cf->last_time);
-	double speed = distance / dt; /* speed is in device-units per ms */
+	/* speed is in device-units per ms */
+	double speed = distance / us2ms_f(delta_time);
 	cf->last_time = time;
+	cf->last_delta_time = delta_time;
 
 	return speed;
 }
