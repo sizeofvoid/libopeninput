@@ -63,7 +63,8 @@ START_TEST(lua_load_failure)
 		litest_create_context_with_plugindir(tmpdir->path);
 
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		size_t index = 0;
@@ -119,7 +120,8 @@ START_TEST(lua_load_success_but_no_register)
 		litest_create_context_with_plugindir(tmpdir->path);
 
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		switch (content) {
 		case VERSION_NOT_A_TABLE:
 			litest_assert_strv_substring(capture->errors,
@@ -146,7 +148,8 @@ START_TEST(lua_register_noop)
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 		litest_assert_logcapture_no_errors(capture);
 	}
@@ -169,7 +172,8 @@ START_TEST(lua_unregister_is_last)
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		_destroy_(litest_device) *device = litest_add_device(li, LITEST_MOUSE);
 		litest_drain_events(li);
 		litest_assert_logcapture_no_errors(capture);
@@ -206,7 +210,8 @@ START_TEST(lua_test_log_global)
 	libinput_log_set_priority(li, priority);
 
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		switch (priority) {
@@ -251,7 +256,8 @@ START_TEST(lua_test_evdev_global)
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		litest_assert_logcapture_no_errors(capture);
@@ -267,7 +273,8 @@ START_TEST(lua_test_libinput_now)
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		uint64_t test_now;
@@ -324,7 +331,8 @@ START_TEST(lua_test_libinput_timer)
 		litest_create_context_with_plugindir(tmpdir->path);
 
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		litest_assert_logcapture_no_errors(capture);
@@ -404,7 +412,8 @@ START_TEST(lua_bad_connect)
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		switch (error) {
@@ -436,7 +445,8 @@ START_TEST(lua_register_multiversions)
 		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_INFO);
 
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		litest_assert_logcapture_no_errors(capture);
@@ -469,7 +479,8 @@ START_TEST(lua_allowed_functions)
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		litest_assert_logcapture_no_errors(capture);
@@ -500,7 +511,8 @@ START_TEST(lua_disallowed_functions)
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		litest_assert_logcapture_no_errors(capture);
@@ -528,7 +540,8 @@ START_TEST(lua_frame_handler)
 		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_INFO);
 
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		_destroy_(litest_device) *device = litest_add_device(li, LITEST_MOUSE);
@@ -593,7 +606,8 @@ START_TEST(lua_device_info)
 		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_INFO);
 
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		_destroy_(litest_device) *device = litest_add_device(li, LITEST_MOUSE);
@@ -630,7 +644,8 @@ START_TEST(lua_set_absinfo)
 		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_INFO);
 
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		_destroy_(litest_device) *device =
@@ -715,7 +730,8 @@ START_TEST(lua_enable_disable_evdev_usage)
 		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_INFO);
 
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		_destroy_(litest_device) *device = litest_add_device(li, LITEST_MOUSE);
@@ -764,7 +780,8 @@ START_TEST(lua_udev_properties)
 		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_INFO);
 
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		enum litest_device_type which =
@@ -834,7 +851,7 @@ START_TEST(lua_append_prepend_frame)
 	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
-	libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+	libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 	litest_drain_events(li);
 
 	_destroy_(litest_device) *device = litest_add_device(li, LITEST_MOUSE);
@@ -891,7 +908,7 @@ START_TEST(lua_ignore_unsupported_codes)
 	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
-	libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+	libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 	litest_drain_events(li);
 
 	_destroy_(litest_device) *device = litest_add_device(li, LITEST_MOUSE);
@@ -966,7 +983,7 @@ START_TEST(lua_inject_frame)
 	_autofree_ char *p2 = litest_write_plugin(tmpdir->path, lua2);
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
-	libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+	libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 	litest_drain_events(li);
 
 	_destroy_(litest_device) *device = litest_add_device(li, LITEST_CYBORG_RAT);
@@ -1100,7 +1117,8 @@ START_TEST(lua_disable_button_debounce)
 		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
 
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		_destroy_(litest_device) *dev = litest_add_device(li, LITEST_MOUSE);
@@ -1161,7 +1179,8 @@ START_TEST(lua_disable_touchpad_jump_detection)
 		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
 
 	litest_with_logcapture(li, capture) {
-		libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
 		_destroy_(litest_device) *dev =

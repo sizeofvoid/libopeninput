@@ -3756,8 +3756,8 @@ libinput_plugin_system_append_path(struct libinput *libinput, const char *path);
 void
 libinput_plugin_system_append_default_paths(struct libinput *libinput);
 
-enum libinput_plugins_flags {
-	LIBINPUT_PLUGIN_FLAG_NONE = 0,
+enum libinput_plugin_system_flags {
+	LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE = 0,
 };
 
 /**
@@ -3785,7 +3785,7 @@ enum libinput_plugins_flags {
  */
 int
 libinput_plugin_system_load_plugins(struct libinput *libinput,
-				    enum libinput_plugins_flags flags);
+				    enum libinput_plugin_system_flags flags);
 
 /**
  * @ingroup base

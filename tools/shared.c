@@ -530,7 +530,7 @@ tools_load_plugins(struct libinput *libinput, char **plugin_paths)
 		libinput_plugin_system_append_default_paths(libinput);
 	}
 	switch (libinput_plugin_system_load_plugins(libinput,
-						    LIBINPUT_PLUGIN_FLAG_NONE)) {
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE)) {
 	case -ENOSYS:
 		fprintf(stderr, "Warning: plugins were disabled at compile time");
 		break;

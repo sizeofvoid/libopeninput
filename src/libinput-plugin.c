@@ -375,7 +375,7 @@ libinput_plugin_system_append_default_paths(struct libinput *libinput)
 
 LIBINPUT_EXPORT int
 libinput_plugin_system_load_plugins(struct libinput *libinput,
-				    enum libinput_plugins_flags flags)
+				    enum libinput_plugin_system_flags flags)
 {
 	if (libinput->plugin_system.loaded) {
 		log_bug_client(libinput, "%s() called twice\n", __func__);

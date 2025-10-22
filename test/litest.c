@@ -2155,7 +2155,7 @@ litest_create_context(void)
 {
 	struct libinput *li = litest_create_context_with_plugindir(NULL);
 
-	libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_FLAG_NONE);
+	libinput_plugin_system_load_plugins(li, LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 
 	return li;
 }
