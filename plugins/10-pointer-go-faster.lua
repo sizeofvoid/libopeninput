@@ -6,10 +6,10 @@
 --
 -- UNCOMMENT THIS LINE TO ACTIVATE THE PLUGIN
 -- libinput:register({1})
-libinput:connect("new-evdev-device", function(_, device)
+libinput:connect("new-evdev-device", function(device)
     local usages = device:usages()
     if usages[evdev.REL_X] then
-        device:connect("evdev-frame", function(_, frame, timestamp)
+        device:connect("evdev-frame", function(device, frame, timestamp)
             for _, v in ipairs(frame) do
                 if v.usage == evdev.REL_X or v.usage == evdev.REL_Y then
                     -- Multiply the relative motion by 3

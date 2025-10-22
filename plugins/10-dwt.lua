@@ -13,15 +13,15 @@
 
 tp_enabled = true
 
-libinput:connect("timer-expired", function(_, now)
+libinput:connect("timer-expired", function(now)
     log.debug("touchpad enabled")
     tp_enabled = true
 end)
 
-libinput:connect("new-evdev-device", function (_, device)
+libinput:connect("new-evdev-device", function (device)
     local props = device:udev_properties()
     if props.ID_INPUT_KEYBOARD then
-        device:connect("evdev-frame", function (_, _, _)
+        device:connect("evdev-frame", function (device, frame, timestamp)
             libinput:timer_set_relative(2000000)
             if tp_enabled then
                 log.debug("touchpad disabled")
@@ -30,7 +30,7 @@ libinput:connect("new-evdev-device", function (_, device)
         end)
     elseif props.ID_INPUT_TOUCHPAD then
         log.debug("Touchpad detected: " .. device:name())
-        device:connect("evdev-frame", function (_, frame, _)
+        device:connect("evdev-frame", function (device, frame, timestamp)
             if not tp_enabled then
                 -- Returning an empty table discards the event.
                 return {}

@@ -39,7 +39,7 @@ libinput:connect("new-evdev-device", function(device)
     local usages = device:usages()
     if usages[evdev.REL_X] then
         remainders[device] = { x = 0.0, y = 0.0 }
-        device:connect("evdev-frame", function(_, frame, timestamp)
+        device:connect("evdev-frame", function(device, frame, timestamp)
             for _, v in ipairs(frame) do
                 if v.usage == evdev.REL_X then
                     v.value, _ = decelerate(device, v.value, 0.0)

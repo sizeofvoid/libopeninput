@@ -17,10 +17,10 @@
 --
 -- UNCOMMENT THIS LINE TO ACTIVATE THE PLUGIN
 -- libinput:register({1})
-libinput:connect("new-evdev-device", function (_, device)
+libinput:connect("new-evdev-device", function (device)
     local info = device:info()
     if info.vid == 0x046D and info.pid == 0xC548 then
-        device:connect("evdev-frame", function (_, frame, timestamp)
+        device:connect("evdev-frame", function (device, frame, timestamp)
             for _, event in ipairs(frame) do
                 if event.usage == evdev.REL_HWHEEL or event.usage == evdev.REL_HWHEEL_HI_RES then
                     event.value = -event.value
