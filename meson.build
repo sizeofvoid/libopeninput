@@ -528,9 +528,7 @@ dep_libinput = declare_dependency(
 		link_with : lib_libinput,
 		dependencies : deps_libinput)
 
-if meson.version().version_compare('>= 0.54.0')
-	meson.override_dependency('libinput', dep_libinput)
-endif
+meson.override_dependency('libinput', dep_libinput)
 
 pkgconfig.generate(
 	filebase : 'libinput',
@@ -716,11 +714,7 @@ if get_option('debug-gui')
 		endif
 	endif
 
-	if meson.version().version_compare('>= 0.58')
-		gtk_targets = dep_gtk.get_variable('targets')
-	else
-		gtk_targets = dep_gtk.get_pkgconfig_variable('targets')
-	endif
+	gtk_targets = dep_gtk.get_variable('targets')
 
 	have_gtk_wayland = gtk_targets.contains('wayland')
 	have_gtk_x11 = gtk_targets.contains('x11')
@@ -739,11 +733,7 @@ if get_option('debug-gui')
 
 	if have_gtk_wayland and dep_wayland_client.found() and dep_wayland_protocols.found()
 		wayland_scanner = find_program('wayland-scanner')
-		if meson.version().version_compare('>= 0.58')
-			wlproto_dir = dep_wayland_protocols.get_variable('pkgdatadir')
-		else
-			wlproto_dir = dep_wayland_protocols.get_pkgconfig_variable('pkgdatadir')
-		endif
+		wlproto_dir = dep_wayland_protocols.get_variable('pkgdatadir')
 
 		proto_name = 'pointer-constraints-unstable-v1'
 		input = files(wlproto_dir / 'unstable' / 'pointer-constraints' / '@0@.xml'.format(proto_name))
@@ -897,16 +887,9 @@ if get_option('tests')
 	endif
 
 	# for inhibit support during test run
-if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
-	dep_libsystemd = dependency('libsystemd', version : '>= 221', required : false)
-<<<<<<< HEAD
-	config_h.set10('HAVE_LIBSYSTEMD', dep_libsystemd.found())
-endif
-=======
-	if dep_libsystemd.found()
-		config_h.set('HAVE_LIBSYSTEMD', 1)
+	if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
+		dep_libsystemd = dependency('libsystemd', version : '>= 221', required : false)
 	endif
->>>>>>> cfec8058 (meson.build: change from config.set10() and #if to config.set() and #ifdef)
 
 	litest_sources = [
 		'src/libinput-private-config.c',
@@ -1020,16 +1003,13 @@ endif
 		'test/litest-main.c',
 	]
 
-<<<<<<< HEAD
 if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
-=======
 	if have_mtdev
 		litest_sources += [
 			'test/litest-device-protocol-a-touch-screen.c',
 		]
 	endif
 
->>>>>>> 27f4b0ae (Move mtdev into a plugin)
 	dep_dl = cc.find_library('dl')
 	deps_litest = [
 		dep_libinput,
