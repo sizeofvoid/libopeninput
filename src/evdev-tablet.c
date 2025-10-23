@@ -1221,7 +1221,7 @@ pressure_range_set(struct libinput_tablet_tool *tool, double min, double max)
 
 	tool->pressure.wanted_range.min = min;
 	tool->pressure.wanted_range.max = max;
-	tool->pressure.has_configured_range = true;
+	tool->pressure.has_configured_range = min != 0.0 || max != 1.0;
 
 	return LIBINPUT_CONFIG_STATUS_SUCCESS;
 }

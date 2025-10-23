@@ -5050,6 +5050,113 @@ START_TEST(tablet_pressure_config_resets_offset)
 }
 END_TEST
 
+START_TEST(tablet_pressure_config_01_does_not_reset_offset)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_PRESSURE, 20 }, /* high pressure offset */
+		{ -1, -1 },
+	};
+
+	/* test is only run for specific devices because some of our test devices
+	 * write ABS_PRESSURE 0 events on prox out and that changes the test outcomes.
+	 */
+	if (!libevdev_has_event_code(dev->evdev, EV_ABS, ABS_PRESSURE))
+		return LITEST_NOT_APPLICABLE;
+
+	if (libevdev_has_event_code(dev->evdev, EV_ABS, ABS_DISTANCE))
+		return LITEST_NOT_APPLICABLE;
+
+	litest_drain_events(li); /* Drain potential tip event */
+
+	litest_tablet_proximity_in(dev, 68, 68, axes);
+	litest_dispatch(li);
+	{
+		_destroy_(libinput_event) *event = libinput_get_event(li);
+		auto tev = litest_is_tablet_event(event,
+						  LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+		auto tool = libinput_event_tablet_tool_get_tool(tev);
+
+		litest_assert(
+			libinput_tablet_tool_config_pressure_range_is_available(tool));
+		litest_assert_enum_eq(
+			libinput_tablet_tool_config_pressure_range_set(tool, 0.0, 1.0),
+			LIBINPUT_CONFIG_STATUS_SUCCESS);
+	}
+
+	/* Drain potential tip event. */
+	litest_drain_events(li);
+
+	/* No motion events here, that might change the offset! */
+
+	litest_tablet_proximity_out(dev);
+	litest_timeout_tablet_proxout(li);
+	litest_drain_events(li);
+
+	litest_checkpoint("second prox in");
+	/* Config should be applied on prox in */
+	litest_axis_set_value(axes, ABS_PRESSURE, 31);
+	litest_tablet_proximity_in(dev, 72, 72, axes);
+	litest_drain_events(li);
+	litest_tablet_proximity_out(dev);
+	litest_timeout_tablet_proxout(li);
+	litest_drain_events(li);
+
+	/* Two prox in/out cycles to finalize heuristics */
+	litest_with_logcapture(li, capture) {
+		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_INFO);
+		litest_axis_set_value(axes, ABS_PRESSURE, 32);
+		litest_tablet_proximity_in(dev, 75, 75, axes);
+		litest_drain_events(li);
+		litest_tablet_proximity_out(dev);
+		litest_timeout_tablet_proxout(li);
+		litest_drain_events(li);
+
+		/* Full message is "Pressure offset detected of n% detected on tool pen"
+		 */
+		litest_assert_strv_substring(capture->infos, "detected on tool pen");
+	}
+
+	litest_log_group("Expecting pressure with offset factored in") {
+		litest_axis_set_value(axes, ABS_PRESSURE, 25);
+		litest_tablet_proximity_in(dev, 50, 50, axes);
+		litest_dispatch(li);
+
+		_destroy_(libinput_event) *event = libinput_get_event(li);
+		auto tev = litest_is_tablet_event(event,
+						  LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+		double p = libinput_event_tablet_tool_get_pressure(tev);
+		/* Pressure 25%, base offset of 20% so we should get 5% plus the 1% we
+		 * use anyway */
+		litest_assert_double_ge(p, 0.05);
+		litest_assert_double_le(p, 0.07);
+
+		litest_tablet_proximity_out(dev);
+		litest_timeout_tablet_proxout(li);
+		litest_drain_events(li);
+	}
+
+	litest_log_group("Expecting low pressure to reduce offset") {
+		/* Because we didn't configure the range, we expect lower pressure to
+		 * reduce the offset */
+		litest_axis_set_value(axes, ABS_PRESSURE, 5);
+		litest_tablet_proximity_in(dev, 50, 50, axes);
+		litest_dispatch(li);
+
+		_destroy_(libinput_event) *event = libinput_get_event(li);
+		auto tev = litest_is_tablet_event(event,
+						  LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+		double p = libinput_event_tablet_tool_get_pressure(tev);
+		litest_assert_double_eq(p, 0.00);
+
+		litest_tablet_proximity_out(dev);
+		litest_timeout_tablet_proxout(li);
+		litest_drain_events(li);
+	}
+}
+END_TEST
+
 static void
 pressure_threshold_warning(struct libinput *libinput,
 			   enum libinput_log_priority priority,
@@ -7710,6 +7817,7 @@ TEST_COLLECTION(tablet)
 	litest_add(tablet_pressure_config_set_maximum, LITEST_TABLET, LITEST_TOTEM);
 	litest_add(tablet_pressure_config_set_range, LITEST_TABLET, LITEST_TOTEM);
 	litest_add(tablet_pressure_config_resets_offset, LITEST_TABLET, LITEST_TOTEM);
+	litest_add_for_device(tablet_pressure_config_01_does_not_reset_offset, LITEST_WACOM_HID4800_PEN);
 
 	litest_add_for_device(tablet_distance_range, LITEST_WACOM_INTUOS5_PEN);
 
