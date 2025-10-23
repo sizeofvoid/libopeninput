@@ -155,6 +155,10 @@ ModelTouchpadPhantomClicks
     Some laptops are prone to registering touchpad clicks when the case is
     bent. Indicates that clicks should be ignored if no fingers are on the
     touchpad.
+ModelScrollOnMiddleClick
+    Some mice can generate unwanted high-resolution scroll events when the wheel
+    is pressed. Increases the scroll threshold required to start scrolling to
+    avoid accidentally scrolling when middle clicking.
 AttrSizeHint=NxM, AttrResolutionHint=N
     Hints at the width x height of the device in mm, or the resolution
     of the x/y axis in units/mm. These may only be used where they apply to
