@@ -199,3 +199,15 @@ MatchBus=i2c
 MatchVendor=0x06CB
 MatchProduct=0xD01A
 ModelPressurePad=1
+
+[Dell laptop 14 Sensel touchpad]
+MatchBus=i2c
+MatchVendor=0x2C2F
+MatchProduct=0x0034
+ModelPressurePad=1
+
+[Dell laptop 16 Sensel touchpad]
+MatchBus=i2c
+MatchVendor=0x2C2F
+MatchProduct=0x0033
+ModelPressurePad=1
