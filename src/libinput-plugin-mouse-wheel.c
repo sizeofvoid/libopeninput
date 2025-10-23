@@ -471,7 +471,7 @@ wheel_plugin_device_create(struct libinput_plugin *libinput_plugin,
 	pd->min_movement = ACC_V120_THRESHOLD;
 	ratelimit_init(&pd->hires_warning_limit, s2us(24 * 60 * 60), 1);
 
-	if (libinput_device_has_model_quirk(device, QUIRK_MODEL_LOGITECH_MX_MASTER_3))
+	if (libinput_device_has_model_quirk(device, QUIRK_MODEL_SCROLL_ON_MIDDLE_CLICK))
 		pd->ignore_small_hi_res_movements = ALWAYS_ACCUMULATE;
 	else
 		pd->ignore_small_hi_res_movements = MAYBE;

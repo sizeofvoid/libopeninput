@@ -274,6 +274,8 @@ quirk_get_name(enum quirk q)
 		return "ModelLenovoX1Gen6Touchpad";
 	case QUIRK_MODEL_LENOVO_X230:
 		return "ModelLenovoX230";
+	case QUIRK_MODEL_SCROLL_ON_MIDDLE_CLICK:
+		return "ModelScrollOnMiddleClick";
 	case QUIRK_MODEL_SYNAPTICS_SERIAL_TOUCHPAD:
 		return "ModelSynapticsSerialTouchpad";
 	case QUIRK_MODEL_SYSTEM76_BONOBO:
@@ -296,8 +298,6 @@ quirk_get_name(enum quirk q)
 		return "ModelWacomTouchpad";
 	case QUIRK_MODEL_PRESSURE_PAD:
 		return "ModelPressurePad";
-	case QUIRK_MODEL_LOGITECH_MX_MASTER_3:
-		return "ModelLogitechMXMaster3";
 
 	case QUIRK_ATTR_SIZE_HINT:
 		return "AttrSizeHint";
