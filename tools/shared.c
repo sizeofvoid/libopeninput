@@ -749,9 +749,11 @@ void
 tools_tablet_tool_apply_config(struct libinput_tablet_tool *tool,
 			       struct tools_options *options)
 {
-	libinput_tablet_tool_config_pressure_range_set(tool,
-						       options->pressure_range[0],
-						       options->pressure_range[1]);
+	if (options->pressure_range[0] != 0.0 || options->pressure_range[1] != 1.0)
+		libinput_tablet_tool_config_pressure_range_set(
+			tool,
+			options->pressure_range[0],
+			options->pressure_range[1]);
 	if (options->eraser_button_button)
 		libinput_tablet_tool_config_eraser_button_set_button(
 			tool,
