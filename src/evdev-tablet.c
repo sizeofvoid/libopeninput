@@ -1762,8 +1762,9 @@ detect_pressure_offset(struct tablet_dispatch *tablet,
 	}
 
 	evdev_log_info(device,
-		       "Pressure offset detected on tool %s (serial %#x).  "
+		       "Pressure offset of %d%% detected on tool %s (serial %#x).  "
 		       "See %s/tablet-support.html\n",
+		       (int)(pressure_offset_as_double(offset) * 100),
 		       tablet_tool_type_to_string(tool->type),
 		       tool->serial,
 		       HTTP_DOC_LINK);
