@@ -2192,13 +2192,13 @@ update_pressure_range(struct tablet_dispatch *tablet,
 	threshold->threshold.upper = hi;
 	threshold->threshold.lower = lo;
 
-	if (threshold->has_offset)
-		set_pressure_offset(threshold, threshold->offset);
-
 	/* Disable any heuristics */
 	if (tool->pressure.has_configured_range) {
 		threshold->has_offset = true;
 		threshold->heuristic_state = PRESSURE_HEURISTIC_STATE_DONE;
+		threshold->offset = pressure_offset_from_double(0.0);
+	} else if (threshold->has_offset) {
+		set_pressure_offset(threshold, threshold->offset);
 	}
 }
 

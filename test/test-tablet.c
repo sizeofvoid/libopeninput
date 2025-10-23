@@ -4970,6 +4970,86 @@ START_TEST(tablet_pressure_config_set_range)
 }
 END_TEST
 
+START_TEST(tablet_pressure_config_resets_offset)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 70 },
+		{ ABS_PRESSURE, 70 }, /* high pressure offset */
+		{ -1, -1 },
+	};
+
+	if (!libevdev_has_event_code(dev->evdev, EV_ABS, ABS_PRESSURE))
+		return LITEST_NOT_APPLICABLE;
+
+	litest_tablet_proximity_in(dev, 5, 100, axes);
+	litest_drain_events(li);
+	litest_dispatch(li);
+
+	litest_tablet_motion(dev, 70, 70, axes);
+	litest_dispatch(li);
+
+	{
+		_destroy_(libinput_event) *event = libinput_get_event(li);
+		auto tev =
+			litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+		auto tool = libinput_event_tablet_tool_get_tool(tev);
+
+		litest_assert(
+			libinput_tablet_tool_config_pressure_range_is_available(tool));
+		litest_assert_enum_eq(
+			libinput_tablet_tool_config_pressure_range_set(tool,
+								       0.01,
+								       0.99),
+			LIBINPUT_CONFIG_STATUS_SUCCESS);
+	}
+
+	litest_tablet_proximity_out(dev);
+	litest_timeout_tablet_proxout(li);
+	litest_drain_events(li);
+
+	/* Config should be applied on prox in */
+	litest_axis_set_value(axes, ABS_PRESSURE, 71);
+	litest_tablet_proximity_in(dev, 72, 72, axes);
+	litest_drain_events(li);
+	litest_tablet_proximity_out(dev);
+	litest_timeout_tablet_proxout(li);
+	litest_drain_events(li);
+
+	/* Two prox in/out cycles to get past the heuristics on devices without
+	 * ABS_DISTANCE
+	 */
+	litest_axis_set_value(axes, ABS_PRESSURE, 72);
+	litest_tablet_proximity_in(dev, 75, 75, axes);
+	litest_drain_events(li);
+	litest_tablet_proximity_out(dev);
+	litest_timeout_tablet_proxout(li);
+	litest_drain_events(li);
+
+	for (double pressure = 10.0, i = 71; pressure <= 25; pressure += 5, i += 0.2) {
+		litest_log_group("Prox in/out with pressure %.f", pressure) {
+			litest_axis_set_value(axes, ABS_PRESSURE, pressure);
+			litest_tablet_proximity_in(dev, i, i, axes);
+			litest_dispatch(li);
+
+			_destroy_(libinput_event) *event = libinput_get_event(li);
+			auto tev = litest_is_tablet_event(
+				event,
+				LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+			double p = libinput_event_tablet_tool_get_pressure(tev);
+			/* checking if >5% is good enough here, it'd be zero if the
+			 * 70% threshold were locked in */
+			litest_assert_double_gt(p, 0.05);
+
+			litest_tablet_proximity_out(dev);
+			litest_timeout_tablet_proxout(li);
+			litest_drain_events(li);
+		}
+	}
+}
+END_TEST
+
 static void
 pressure_threshold_warning(struct libinput *libinput,
 			   enum libinput_log_priority priority,
@@ -7629,6 +7709,7 @@ TEST_COLLECTION(tablet)
 	litest_add(tablet_pressure_config_set_minimum, LITEST_TABLET, LITEST_TOTEM);
 	litest_add(tablet_pressure_config_set_maximum, LITEST_TABLET, LITEST_TOTEM);
 	litest_add(tablet_pressure_config_set_range, LITEST_TABLET, LITEST_TOTEM);
+	litest_add(tablet_pressure_config_resets_offset, LITEST_TABLET, LITEST_TOTEM);
 
 	litest_add_for_device(tablet_distance_range, LITEST_WACOM_INTUOS5_PEN);
 
