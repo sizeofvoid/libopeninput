@@ -3772,7 +3772,7 @@ enum libinput_plugin_system_flags {
  * ```
  * struct libinput *li = libinput_udev_create_context(...);
  * libinput_plugin_system_append_default_paths(li);
- * libinput_plugin_system_load(li, flags);
+ * libinput_plugin_system_load_plugins(li, flags);
  * ```
  *
  * This function must be called before libinput iterates through the
