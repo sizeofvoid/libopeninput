@@ -62,14 +62,20 @@ log_handler(struct libinput *li,
 	    const char *format,
 	    va_list args)
 {
-	static int is_tty = -1;
+	static int use_color = -1;
 	static uint32_t last_dispatch_no = 0;
 	static bool color_toggle = false;
 
-	if (is_tty == -1)
-		is_tty = isatty(STDOUT_FILENO);
+	if (use_color == -1) {
+		if (getenv("NO_COLOR"))
+			use_color = 0;
+		else if (getenv("FORCE_COLOR"))
+			use_color = 1;
+		else
+			use_color = isatty(STDOUT_FILENO);
+	}
 
-	if (is_tty) {
+	if (use_color) {
 		if (priority >= LIBINPUT_LOG_PRIORITY_ERROR) {
 			if (strstr(format, "client bug: ") ||
 			    strstr(format, "libinput bug: ") ||
@@ -97,7 +103,7 @@ log_handler(struct libinput *li,
 	}
 	vprintf(format, args);
 
-	if (is_tty)
+	if (use_color)
 		printf(ANSI_NORMAL);
 
 	log_serial++;
