@@ -98,6 +98,10 @@ plugin_log_msg(struct libinput_plugin *plugin,
 	log_msg(plugin->libinput, priority, "%s%s", prefix, message);
 }
 
+static void
+libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
+					     struct libinput_plugin_system *system);
+
 struct libinput_plugin *
 libinput_plugin_new(struct libinput *libinput,
 		    const char *name,
@@ -346,6 +350,17 @@ libinput_plugin_notify_device_removed(struct libinput_plugin *plugin,
 		plugin->interface->device_removed(plugin, device);
 }
 
+static void
+plugin_system_append_path(struct libinput_plugin_system *plugin_system,
+			  const char *path)
+{
+	if (strv_find(plugin_system->directories, path, NULL))
+		return;
+
+	plugin_system->directories =
+		strv_append_strdup(plugin_system->directories, path);
+}
+
 LIBINPUT_EXPORT void
 libinput_plugin_system_append_path(struct libinput *libinput, const char *path)
 {
@@ -354,11 +369,9 @@ libinput_plugin_system_append_path(struct libinput *libinput, const char *path)
 		return;
 	}
 
-	if (strv_find(libinput->plugin_system.directories, path, NULL))
-		return;
+	libinput->plugin_system.autoload = false;
 
-	libinput->plugin_system.directories =
-		strv_append_strdup(libinput->plugin_system.directories, path);
+	plugin_system_append_path(&libinput->plugin_system, path);
 }
 
 LIBINPUT_EXPORT void
@@ -369,8 +382,26 @@ libinput_plugin_system_append_default_paths(struct libinput *libinput)
 		return;
 	}
 
-	libinput_plugin_system_append_path(libinput, LIBINPUT_PLUGIN_ETCDIR);
-	libinput_plugin_system_append_path(libinput, LIBINPUT_PLUGIN_LIBDIR);
+	libinput->plugin_system.autoload = false;
+
+	plugin_system_append_path(&libinput->plugin_system, LIBINPUT_PLUGIN_ETCDIR);
+	plugin_system_append_path(&libinput->plugin_system, LIBINPUT_PLUGIN_LIBDIR);
+}
+
+void
+libinput_plugin_system_autoload(struct libinput *libinput)
+{
+	if (libinput->plugin_system.loaded)
+		return;
+
+	if (libinput->plugin_system.autoload) {
+		libinput_plugin_system_append_default_paths(libinput);
+		libinput_plugin_system_load_plugins(libinput,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
+	} else {
+		libinput_plugin_system_load_internal_plugins(libinput,
+							     &libinput->plugin_system);
+	}
 }
 
 LIBINPUT_EXPORT int
@@ -453,11 +484,16 @@ void
 libinput_plugin_system_init(struct libinput_plugin_system *system)
 {
 	system->loaded = false;
+#ifdef AUTOLOAD_PLUGINS
+	system->autoload = true;
+#else
+	system->autoload = false;
+#endif
 	list_init(&system->plugins);
 	list_init(&system->removed_plugins);
 }
 
-void
+static void
 libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
 					     struct libinput_plugin_system *system)
 {

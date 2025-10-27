@@ -42,6 +42,7 @@ struct libinput_plugin_system {
 	char **directories; /* NULL once loaded == true */
 
 	bool loaded;
+	bool autoload;
 
 	struct list plugins;
 	struct list removed_plugins;
@@ -53,8 +54,7 @@ void
 libinput_plugin_system_init(struct libinput_plugin_system *system);
 
 void
-libinput_plugin_system_load_internal_plugins(struct libinput *libinput,
-					     struct libinput_plugin_system *system);
+libinput_plugin_system_autoload(struct libinput *libinput);
 
 void
 libinput_plugin_system_destroy(struct libinput_plugin_system *system);

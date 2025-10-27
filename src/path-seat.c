@@ -383,8 +383,7 @@ libinput_path_add_device(struct libinput *libinput, const char *path)
 		return NULL;
 	}
 
-	libinput_plugin_system_load_internal_plugins(libinput,
-						     &libinput->plugin_system);
+	libinput_plugin_system_autoload(libinput);
 
 	/* We cannot do this during path_create_context because the log
 	 * handler isn't set up there but we really want to log to the right

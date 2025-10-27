@@ -186,8 +186,14 @@ if have_plugins
 	config_h.set('HAVE_PLUGINS', 1)
 endif
 
+autoload_plugins = get_option('autoload-plugins')
+if autoload_plugins
+	config_h.set('AUTOLOAD_PLUGINS', 1)
+endif
+
 summary({
 	'Plugins enabled' : have_plugins,
+	'Autoload plugins' : autoload_plugins,
 	'Lua Plugin support' : have_lua,
 	},
 	section : 'Plugins',

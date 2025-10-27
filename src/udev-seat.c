@@ -416,8 +416,7 @@ libinput_udev_assign_seat(struct libinput *libinput, const char *seat_id)
 	if (input->seat_id != NULL)
 		return -1;
 
-	libinput_plugin_system_load_internal_plugins(libinput,
-						     &libinput->plugin_system);
+	libinput_plugin_system_autoload(libinput);
 
 	/* We cannot do this during udev_create_context because the log
 	 * handler isn't set up there but we really want to log to the right
