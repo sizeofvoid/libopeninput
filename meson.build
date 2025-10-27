@@ -177,10 +177,14 @@ dep_rt = cc.find_library('rt', required : false)
 dep_lua = dependency(get_option('lua-interpreter'),
 		     required : get_option('lua-plugins'))
 have_lua = dep_lua.found()
-config_h.set10('HAVE_LUA', have_lua)
+if have_lua
+	config_h.set('HAVE_LUA', 1)
+endif
 
 have_plugins =  dep_lua.found()
-config_h.set10('HAVE_PLUGINS', have_plugins)
+if have_plugins
+	config_h.set('HAVE_PLUGINS', 1)
+endif
 
 summary({
 	'Plugins enabled' : have_plugins,

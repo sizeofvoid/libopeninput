@@ -382,7 +382,7 @@ libinput_plugin_system_load_plugins(struct libinput *libinput,
 		return 0;
 	}
 
-#if HAVE_LUA
+#ifdef HAVE_LUA
 	_autostrvfree_ char **directories = steal(&libinput->plugin_system.directories);
 	size_t nfiles = 0;
 	_autostrvfree_ char **plugin_files =
@@ -400,10 +400,10 @@ libinput_plugin_system_load_plugins(struct libinput *libinput,
 
 	libinput_plugin_system_run(&libinput->plugin_system);
 
-#if !HAVE_PLUGINS
-	return -ENOSYS;
-#else
+#ifdef HAVE_PLUGINS
 	return 0;
+#else
+	return -ENOSYS;
 #endif
 }
 
