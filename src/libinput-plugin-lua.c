@@ -116,7 +116,6 @@ struct libinput_lua_plugin {
 
 	struct libinput_plugin_timer *timer;
 	bool in_timer_func;
-	struct list timer_injected_events;
 };
 
 static struct libinput_lua_plugin *
@@ -566,12 +565,6 @@ libinputplugin_gc(lua_State *L)
 	return 0;
 }
 
-struct timer_injected_event {
-	struct list link;
-	struct evdev_frame *frame;
-	int device_refid;
-};
-
 static void
 plugin_timer_func(struct libinput_plugin *libinput_plugin, uint64_t now, void *data)
 {
@@ -581,28 +574,7 @@ plugin_timer_func(struct libinput_plugin *libinput_plugin, uint64_t now, void *d
 	lua_rawgeti(L, LUA_REGISTRYINDEX, plugin->timer_expired_refid);
 	lua_pushinteger(L, now);
 
-	/* To allow for injecting events */
-	plugin->in_timer_func = true;
 	libinput_lua_pcall(plugin, 1, 0);
-	plugin->in_timer_func = false;
-
-	struct timer_injected_event *injected_event;
-	list_for_each_safe(injected_event, &plugin->timer_injected_events, link) {
-		EvdevDevice *device;
-		list_for_each(device, &plugin->evdev_devices, link) {
-			if (device->refid == injected_event->device_refid) {
-				libinput_plugin_inject_evdev_frame(
-					plugin->parent,
-					device->device,
-					injected_event->frame);
-				break;
-			}
-		}
-
-		list_remove(&injected_event->link);
-		evdev_frame_unref(injected_event->frame);
-		free(injected_event);
-	}
 }
 
 static int
@@ -952,36 +924,6 @@ evdevdevice_frame(lua_State *L, struct libinput_lua_plugin *plugin, EvdevDevice 
 }
 
 static int
-evdevdevice_inject_frame(lua_State *L)
-{
-	EvdevDevice *device = luaL_checkudata(L, 1, EVDEV_DEVICE_METATABLE);
-	luaL_argcheck(L, device != NULL, 1, EVDEV_DEVICE_METATABLE " expected");
-
-	luaL_checktype(L, 2, LUA_TTABLE);
-
-	/* No refid means we got removed, so quietly
-	 * drop any disconnect call */
-	if (device->refid == LUA_NOREF)
-		return 0;
-
-	struct libinput_lua_plugin *plugin = lua_get_libinput_lua_plugin(L);
-	if (!plugin->in_timer_func) {
-		return luaL_error(L, "Injecting events only possible in a timer func");
-	}
-	_unref_(evdev_frame) *frame = evdevdevice_frame(L, plugin, device);
-
-	/* Lua is unhappy if we inject an event which calls into our lua state
-	 * immediately so we need to queue this for later when we're out of the timer
-	 * func */
-	struct timer_injected_event *event = zalloc(sizeof(*event));
-	event->device_refid = device->refid;
-	event->frame = steal(&frame);
-	list_insert(&plugin->timer_injected_events, &event->link);
-
-	return 0;
-}
-
-static int
 evdevdevice_prepend_frame(lua_State *L)
 {
 	EvdevDevice *device = luaL_checkudata(L, 1, EVDEV_DEVICE_METATABLE);
@@ -1089,7 +1031,6 @@ static const struct luaL_Reg evdevdevice_vtable[] = {
 	{ "set_absinfo", evdevdevice_set_absinfo },
 	{ "connect", evdevdevice_connect },
 	{ "disconnect", evdevdevice_disconnect },
-	{ "inject_frame", evdevdevice_inject_frame },
 	{ "prepend_frame", evdevdevice_prepend_frame },
 	{ "append_frame", evdevdevice_append_frame },
 	{ "disable_feature", evdevdevice_disable_feature },
@@ -1355,7 +1296,6 @@ libinput_lua_plugin_new_from_path(struct libinput *libinput, const char *path)
 	plugin->device_new_refid = LUA_NOREF;
 	plugin->timer_expired_refid = LUA_NOREF;
 	list_init(&plugin->evdev_devices);
-	list_init(&plugin->timer_injected_events);
 
 	_cleanup_(lua_closep) lua_State *L =
 		libinput_lua_plugin_init_lua(libinput, plugin);

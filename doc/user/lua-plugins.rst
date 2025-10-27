@@ -604,24 +604,6 @@ methods will be noops.
    Disconnect the existing callback (if any) for the given event name. See
    ``EvdevDevice:connect()`` for a list of supported names.
 
-.. function:: EvdevDevice:inject_frame(frame)
-
-   .. warning:: This function is only available from inside a timer callback.
-
-   Inject an :ref:`evdev frame <plugins_api_evdev_frame>` into the event stream
-   for this device. This emulates that same event frame being sent by the kernel
-   immediately with the current time.
-
-   Assuming three plugins P1, P2 and P3, if P2 injects a frame the frame is
-   seen by P1, P2 and P3.
-
-   This is rarely the right API to use. Injecting frames at the lowest level
-   may make other plugins behave unexpectedly. Use ``prepend_frame`` or
-   ``append_frame`` instead.
-
-   .. warning:: The injected frame will be seen by all plugins, including the
-                injecting frame. Ensure a guard is in place to prevent recursion.
-
 .. function:: EvdevDevice:prepend_frame(frame)
 
    Prepend an :ref:`evdev frame <plugins_api_evdev_frame>` for this device
