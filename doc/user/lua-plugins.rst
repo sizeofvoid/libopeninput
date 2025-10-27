@@ -10,15 +10,24 @@ device and/or modify the event stream seen by this device before it is passed
 to libinput.
 
 Plugins are implemented in `Lua <https://www.lua.org/>`_ (version 5.1)
-and are typically loaded from ``/usr/lib{64}/libinput/plugins`` and
-``/etc/libinput/plugins``. Plugins are loaded in alphabetical order and where
+and are typically loaded from the following paths:
+
+- ``/etc/libinput/plugins/*.lua``, and
+- ``/usr/lib{64}/libinput/plugins/*.lua``
+
+Plugins are loaded in alphabetical order and where
 multiple plugins share the same file name, the one in the highest precedence
 directory is used. Plugins in ``/etc`` take precedence over
 plugins in ``/usr``.
 
+.. note:: Plugins lookup paths and their order are decided by the compositor.
+          Some compositors may support more/fewer/other lookup paths than the
+          above defaults.
+
 Plugins are run sequentially in ascending sort-order (i.e. ``00-foo.lua`` runs
 before ``10-bar.lua``) and each plugin sees the state left by any previous
-plugins.
+plugins. For example if ``00-foo.lua`` changes all left button events to right
+button events, ``10-bar.lua`` only ever sees right button events.
 
 See the `Lua Reference manual <https://www.lua.org/manual/5.1/manual.html>`_ for
 details on the Lua language.
@@ -45,8 +54,8 @@ The Lua API available to plugins is limited to the following calls::
 
 It is not possible to e.g. use the ``io`` module from a script.
 
-To use methods on instantiated objects, the method call syntax must be used.
-For example:
+To use methods on instantiated objects, the ``object:method`` method call
+syntax must be used. For example:
 
 .. code-block:: lua
 
@@ -88,14 +97,19 @@ Lua Plugin API
 --------------------------------------------------------------------------------
 
 Lua plugins sit effectively below libinput and the API is not a
-representation of the libinput API. The API revolves around two types:
-``libinput`` and ``EvdevDevice``. The former is used to register a
-plugin from a script, the latter represents one device that is present
-in the system (but may not have yet been added by libinput).
+representation of the libinput API. Plugins modify the evdev event stream
+received from the kernel.
+
+.. graphviz:: plugin-stack.gv
+
+The API revolves around two types: ``libinput`` and ``EvdevDevice``. The
+``libinput`` type is used to register a plugin from a script, the
+``EvdevDevice`` represents one device that is present in the system (but may
+not have yet been added by libinput).
 
 Typically a script does the following steps:
 
-- register with libinput via ``libinput:register(version)``
+- register with libinput via ``libinput:register({versions})``
 - connect to the ``"new-evdev-device"`` event
 - receive an ``EvdevDevice`` object in the ``"new-evdev-device"`` callback
 
@@ -142,14 +156,17 @@ evdev types and codes. They are used by libinput internally and are a 32-bit
 combination of ``type << 16 | code``. Each usage carries the type and code and
 is thus simpler to pass around and less prone to type confusion.
 
-For the case where the :ref:`evdev global <plugins_api_evdev_global>` does not
-provide a named constant the value can be crafted manually:
+The :ref:`evdev global <plugins_api_evdev_global>` attempts to provide all
+available usages but for the niche cases where it does not provide a named constant
+the value can be crafted manually:
 
 .. code-block:: lua
 
-   type = 0x3  -- EV_REL
-   code = 0x1  -- REL_Y
-   usage = (type << 16) | code
+   evdev_type = 0x3  -- EV_REL
+   evdev_code = 0x1  -- REL_Y
+   evdev_usage = (evdev_type << 16) | evdev_code
+
+   assert(usage == evdev.REL_Y)
 
 .. _plugins_api_evdev_global:
 
@@ -173,8 +190,8 @@ effectively in the form:
 
 
 This global is provided for convenience to improve readability in the code.
-Note that the name uses the event code name only but the value is an
-:ref:`Evdev Usage <plugins_api_evdev_usage>` (type and code).
+Note that the name uses the event code name only (e.g. ``evdev.ABS_Y``) but the
+value is an :ref:`Evdev Usage <plugins_api_evdev_usage>` (type and code).
 
 See the ``linux/input-event-codes.h`` header file provided by your kernel
 for a list of all evdev types and codes.
@@ -204,10 +221,10 @@ In our API a frame is exposed as a nested table with the following structure:
          { usage = evdev.BTN_LEFT, value = 1 },
     }
     frame2 = {
-         { sage = evdev.ABS_Y, value = 457 },
+         { usage = evdev.ABS_Y, value = 457 },
     }
     frame3 = {
-         { sage = evdev.ABS_X, value = 124 },
+         { usage = evdev.ABS_X, value = 124 },
          { usage = evdev.BTN_LEFT, value = 0 },
     }
 
@@ -259,7 +276,7 @@ location as other libinput log messages and are not discarded.
 The ``libinput`` global object
 ................................................................................
 
-The core of our plugin's API is the ``libinput`` global object. A script must
+The core of our plugin API is the ``libinput`` global object. A script must
 immediately ``register()`` to be active, otherwise it is unloaded immediately.
 
 All libinput-specific APIs can be accessed through the ``libinput`` object.
@@ -279,7 +296,8 @@ All libinput-specific APIs can be accessed through the ``libinput`` object.
 
    This function must be the first function called.
    If the plugin calls any other functions before ``register()``, those functions
-   return ``nil``, 0, an empty table, etc.
+   return the default zero value for the return type (``nil``, ``0``, an empty
+   table, etc.).
 
    If the plugin does not call ``register()`` it will be removed immediately.
    Once registered, any connected callbacks will be invoked whenever libinput
@@ -290,8 +308,8 @@ All libinput-specific APIs can be accessed through the ``libinput`` object.
 .. function:: libinput:unregister()
 
    Unregister this plugin. This removes the plugin from libinput and releases
-   any resources. This call must be the last call in your plugin, it is
-   effectively equivalent to Lua's
+   any resources associated with this plugin. This call must be the last call
+   in your plugin, it is effectively equivalent to Lua's
    `os.exit() <https://www.lua.org/manual/5.4/manual.html#pdf-os.exit>`_.
 
 .. function:: libinput:now()
@@ -305,7 +323,7 @@ All libinput-specific APIs can be accessed through the ``libinput`` object.
 .. function:: libinput:version()
 
    Returns the agreed-on version of the plugin, see ``libinput:register()``.
-   If called before ``libinput:register()`` this function returns 0.
+   If called before ``libinput:register()`` this function returns ``0``.
 
 .. function:: libinput:connect(name, function)
 
@@ -327,7 +345,7 @@ All libinput-specific APIs can be accessed through the ``libinput`` object.
 
      .. code-block:: lua
 
-      libinput:connect("timer-expired", function (plugin, now) ... end)
+      libinput:connect("timer-expired", function (now) ... end)
 
      The ``now`` argument is the current time in microseconds in
      ``CLOCK_MONOTONIC`` (see ``libinput.now()``).
@@ -382,6 +400,12 @@ The ``EvdevDevice`` type represents a device available in the system
 but not (yet) added by libinput. This device may be used to modify
 a device's capabilities before the device is processed by libinput.
 
+A plugin should always ``connect()`` to the ``"device-removed"`` callback
+to be notified when a device is removed. If the plugin keeps a reference
+to this device but the device is discarded by libinput, the device's query
+methods will return zero values (e.g. ``nil``, ``0``, an empty table) and
+methods will be noops.
+
 .. function:: EvdevDevice:info()
 
    A table containing static information about the device, e.g.
@@ -403,13 +427,16 @@ a device's capabilities before the device is processed by libinput.
    - ``vid``: The 16-bit vendor ID of the device
    - ``pid``: The 16-bit product ID of the device
 
+   If the device has since been discarded by libinput, this function returns an
+   empty table.
+
 .. function:: EvdevDevice:name()
 
    The device name as set by the kernel
 
 .. function:: EvdevDevice:usages()
 
-   Returns a nested table of all usages that are currently enabled for this
+   Returns a table of all usages that are currently enabled for this
    device. Any type that exists on the device has a table assigned and in this
    table any code that exists on the device is a boolean true.
    For example:
@@ -480,7 +507,11 @@ a device's capabilities before the device is processed by libinput.
    Enable the given :ref:`evdev usage <plugins_api_evdev_usage>` for this device.
    Use :ref:`plugins_api_evdev_global` for better readability,
    e.g. ``device:enable_evdev_usage(evdev.REL_X)``.
-   This function must not be used for ``ABS_*`` events, use ``set_absinfo()`` instead.
+   This function must not be used for ``ABS_*`` events, use ``set_absinfo()``
+   instead.
+
+   Once a usage is enabled, events for that usage may be added to a device's
+   frame.
 
    If the device has since been discarded by libinput, this function does nothing.
 
@@ -490,17 +521,20 @@ a device's capabilities before the device is processed by libinput.
    Use :ref:`plugins_api_evdev_global` for better readability,
    e.g. ``device:disable_evdev_usage(evdev.REL_X)``.
 
+   Once a usage is disabled, events for that usage are discarded from any
+   device frame.
+
    If the device has since been discarded by libinput, this function does nothing.
 
 .. function:: EvdevDevice:set_absinfo(usage, absinfo)
 
    Set the absolute axis information for the given :ref:`evdev usage <plugins_api_evdev_usage>`
-   if it does not yet exist on the device. The ``absinfo`` argument is a table
+   and enable it if it does not yet exist on the device. The ``absinfo`` argument is a table
    containing zero or more of the following keys: ``min``, ``max``, ``fuzz``,
    ``flat``, ``resolution``. Any missing key defaults the corresponding
-   value from the device if the device already has this event code or zero otherwise.
-   In other words the following code is enough to change the resolution but leave
-   everything else as-is:
+   value from the device if the device already has this event usage or zero otherwise.
+   For example, the following code changes the resolution but leaves everything
+   else as-is:
 
    .. code-block:: lua
 
@@ -591,12 +625,11 @@ a device's capabilities before the device is processed by libinput.
 .. function:: EvdevDevice:prepend_frame(frame)
 
    Prepend an :ref:`evdev frame <plugins_api_evdev_frame>` for this device
-   **before** the current frame (if any). This function can only be called from
-   within a device's ``frame()`` handler or from within the plugin's timer
-   callback function.
+   **before** the current frame (if any). The **next** plugin will see the
+   prepended frame first followed by the current frame.
 
-   Assuming three plugins P1, P2 and P3, if P2 injects a frame the frame is
-   seen only by P3.
+   This function can only be called from within a device's ``frame()`` handler
+   or from within the plugin's timer callback function.
 
    For example, to change a single event into a drag, prepend a button
    down and append a button up before each event:
@@ -610,11 +643,10 @@ a device's capabilities before the device is processed by libinput.
           device:append_frame({
               { usage = evdev.BTN_LEFT, value = 0}
           })
-          return nil  -- return the frame unmodified
+          return nil  -- return the current frame unmodified
 
-          -- this results in the event sequence
+          -- The next plugin sees the event sequence:
           --    button down, frame, button up
-          -- to be passed to the next plugin
       end
 
    If called from within the plugin's timer there is no current frame and this
@@ -644,9 +676,9 @@ a device's capabilities before the device is processed by libinput.
 
    Version 1 of the plugin API supports the following features:
 
-   - ``button-debouncing``: see :ref:`button_debouncing`
-   - ``touchpad-hysteresis``: see :ref:`touchpad_jitter`
-   - ``touchpad-jump-detection``: see :ref:`touchpad_jumping_cursor`
-   - ``touchpad-palm-detection``: see :ref:`palm_detection`
-   - ``wheel-debouncing``: some high-resolution mouse wheel movements inside libinput
+   - ``"button-debouncing"``: see :ref:`button_debouncing`
+   - ``"touchpad-hysteresis"``: see :ref:`touchpad_jitter`
+   - ``"touchpad-jump-detection"``: see :ref:`touchpad_jumping_cursor`
+   - ``"touchpad-palm-detection"``: see :ref:`palm_detection`
+   - ``"wheel-debouncing"``: some high-resolution mouse wheel movements inside libinput
      are delayed and/or modified

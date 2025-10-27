@@ -100,6 +100,7 @@ src_rst = files(
 	'dot/libinput-stack-gnome.gv',
 	'dot/evemu.gv',
 	'dot/libinput-record.gv',
+	'dot/plugin-stack.gv',
 	# svgs
 	'svg/button-debouncing-wave-diagram.svg',
 	'svg/button-scrolling.svg',
