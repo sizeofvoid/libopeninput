@@ -3708,7 +3708,7 @@ libinput_path_remove_device(struct libinput_device *device);
  * @ingroup base
  *
  * Appends the given directory path to the libinput plugin lookup path.
- * If the path is already in the lookup paths, it is ignored.
+ * If the path is already in the lookup paths, this function does nothing.
  *
  * A path's priority is determined by its position in the list; the first
  * path in the list has the highest priority.
@@ -3723,8 +3723,7 @@ libinput_path_remove_device(struct libinput_device *device);
  * but do not provide any fuctionality. This allows disabling a plugin
  * by simply dropping an empty file in a higher-priority directory.
  *
- * This function must be called before i
- * libinput_plugin_system_load_plugins().
+ * This function must be called before libinput_plugin_system_load_plugins().
  *
  * @see libinput_plugin_system_append_default_paths
  *
@@ -3740,16 +3739,23 @@ libinput_plugin_system_append_path(struct libinput *libinput, const char *path);
  * - /etc/libinput/plugins/
  * - /usr/lib{64}/libinput/plugins/
  *
+ * @warning More paths may be added to the default lookup paths in future releases.
+ * A caller relying on a specific set of default paths should add those individually
+ * using libinput_plugin_system_append_path().
+ *
  * These paths are inserted at the current priority - to add
  * paths with a higher priority than these, call
  * libinput_plugin_system_append_path() prior to this function.
  *
  * See libinput_plugin_system_append_path() for more details.
  *
+ * The exact value of these paths depend on the libdir and sysconfigdir
+ * variables, defined at compile time.
+ *
  * This function must be called before
  * libinput_plugin_system_load_plugins().
  *
- * @see libinput_plugin_system_append_paths
+ * @see libinput_plugin_system_append_path
  *
  * @since 1.30
  */
@@ -3774,9 +3780,12 @@ enum libinput_plugin_system_flags {
  * libinput_plugin_system_append_default_paths(li);
  * libinput_plugin_system_load_plugins(li, flags);
  * ```
+ * @warning The default lookup paths may change over time. See
+ * libinput_plugin_system_append_default_paths().
  *
  * This function must be called before libinput iterates through the
- * devices, i.e. before libinput_udev_assign_seat() or libinput_path_add_device().
+ * devices, i.e. before libinput_udev_assign_seat() or the first
+ * call to libinput_path_add_device().
  *
  * @return 0 or a negative errno on failure
  * @retval -ENOSYS libinput was compiled without plugin support
