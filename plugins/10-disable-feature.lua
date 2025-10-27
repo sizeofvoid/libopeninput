@@ -10,7 +10,7 @@
 libinput:connect("new-evdev-device", function(device)
     local udev_info = device:udev_properties()
     if udev_info["ID_INPUT_TOUCHPAD"] then
-        log.info("Disabling palm detection on " .. device:name())
+        libinput:log_info("Disabling palm detection on " .. device:name())
         device:disable_feature("touchpad-palm-detection")
     end
 end)

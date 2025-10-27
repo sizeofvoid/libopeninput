@@ -244,32 +244,6 @@ See :ref:`plugins_api_evdev_global` for a list of known usages.
              events can be added to a single frame. This limit should never be
              hit by valid plugins.
 
-.. _plugins_api_logglobal:
-
-................................................................................
-The ``log`` global
-................................................................................
-
-The ``log`` global is used to log messages from the plugin through libinput.
-Whether a message is displayed in the log depends on libinput's log priority,
-set by the caller.
-
-.. function:: log.debug(message)
-
-   Log a debug message.
-
-.. function:: log.info(message)
-
-   Log an info message.
-
-.. function:: log.error(message)
-
-   Log an error message.
-
-A compositor may disable stdout and stderr. Log messages should be preferred
-over Lua's ``print()`` function to ensure the messages end up in the same
-location as other libinput log messages and are not discarded.
-
 .. _plugins_api_libinputglobal:
 
 ................................................................................
@@ -311,6 +285,25 @@ All libinput-specific APIs can be accessed through the ``libinput`` object.
    any resources associated with this plugin. This call must be the last call
    in your plugin, it is effectively equivalent to Lua's
    `os.exit() <https://www.lua.org/manual/5.4/manual.html#pdf-os.exit>`_.
+
+.. function:: libinput::log_debug(message)
+
+   Log a message at the libinput debug log priority. See
+   ``libinput::log_error()`` for details.
+
+.. function:: libinput::log_info(message)
+
+   Log a message at the libinput info log priority. See
+   ``libinput::log_error()`` for details.
+
+.. function:: libinput::log_error(message)
+
+   Log a message at the libinput error log priority. Whether a message is
+   displayed in the log depends on libinput's log priority, set by the caller.
+
+   A compositor may disable stdout and stderr. Log messages should be preferred
+   over Lua's ``print()`` function to ensure the messages end up in the same
+   location as other libinput log messages and are not discarded.
 
 .. function:: libinput:now()
 

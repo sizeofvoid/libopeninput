@@ -70,7 +70,7 @@ function device_new(device)
     -- If this is empty we know libinput will ignore this device anyway
     local udev_info = device:udev_properties()
     for k, v in pairs(udev_info) do
-        log.debug(k .. "=" .. v)
+        libinput:log_debug(k .. "=" .. v)
     end
 end
 

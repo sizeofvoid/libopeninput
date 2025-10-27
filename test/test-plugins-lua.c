@@ -163,8 +163,8 @@ START_TEST(lua_unregister_is_last)
 	_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
 	_autofree_ char *lua = strdup_printf(
 		"libinput:register({1})\n"
-		"libinput:connect(\"new-evdev-device\", function(device)\n  %s\n  log.error(\"abort abort\")\nend)\n"
-		"%slog.error(\"must not happen\")",
+		"libinput:connect(\"new-evdev-device\", function(device)\n  %s\n  libinput:log_error(\"abort abort\")\nend)\n"
+		"%slibinput:log_error(\"must not happen\")",
 		streq(when, "connect") ? "libinput:unregister()" : "",
 		streq(when, "run") ? "libinput:unregister()\n" : "--");
 	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
@@ -181,7 +181,7 @@ START_TEST(lua_unregister_is_last)
 }
 END_TEST
 
-START_TEST(lua_test_log_global)
+START_TEST(lua_test_logging)
 {
 	_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
 
@@ -191,13 +191,13 @@ START_TEST(lua_test_log_global)
 	const char *lua = NULL;
 	switch (priority) {
 	case LIBINPUT_LOG_PRIORITY_DEBUG:
-		lua = "log.debug(\"deb-ug\");";
+		lua = "libinput:log_debug(\"deb-ug\");";
 		break;
 	case LIBINPUT_LOG_PRIORITY_INFO:
-		lua = "log.info(\"inf-o\");";
+		lua = "libinput:log_info(\"inf-o\");";
 		break;
 	case LIBINPUT_LOG_PRIORITY_ERROR:
-		lua = "log.error(\"err-or\");";
+		lua = "libinput:log_error(\"err-or\");";
 		break;
 	default:
 		litest_assert_not_reached();
@@ -268,7 +268,7 @@ END_TEST
 START_TEST(lua_test_libinput_now)
 {
 	_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
-	const char *lua = "log.error(\">>>\" .. libinput:now())";
+	const char *lua = "libinput:log_error(\">>>\" .. libinput:now())";
 	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
@@ -318,7 +318,7 @@ START_TEST(lua_test_libinput_timer)
 		"libinput:register({1})\n"
 		"libinput:connect(\"timer-expired\",\n"
 		"          function(t)\n"
-		"               log.error(\">>>\" .. t)\n"
+		"               libinput:log_error(\">>>\" .. t)\n"
 		"               %s\n"
 		"          end)\n"
 		"libinput:timer_set_%s(%s)\n",
@@ -394,10 +394,10 @@ START_TEST(lua_bad_connect)
 		func = "a";
 		break;
 	case TOO_FEW_ARGS:
-		func = "function(p) log.debug(\"few\"); end";
+		func = "function(p) libinput:log_debug(\"few\"); end";
 		break;
 	case TOO_MANY_ARGS:
-		func = "function(p, a, b) log.debug(\"many\"); end";
+		func = "function(p, a, b) libinput:log_debug(\"many\"); end";
 		break;
 	}
 
@@ -437,7 +437,7 @@ START_TEST(lua_register_multiversions)
 
 	_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
 	const char *lua =
-		"v = libinput:register({1, 3, 4, 10, 15})\nlog.info(\"VERSION:\" .. v)\n";
+		"v = libinput:register({1, 3, 4, 10, 15})\nlibinput:log_info(\"VERSION:\" .. v)\n";
 	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
@@ -526,9 +526,9 @@ START_TEST(lua_frame_handler)
 	const char *lua =
 		"libinput:register({1})\n"
 		"function frame_handler(_, frame, timestamp)\n"
-		"  log.info(\"T:\" .. timestamp)\n"
+		"  libinput:log_info(\"T:\" .. timestamp)\n"
 		"  for _, e in ipairs(frame) do\n"
-		"	log.info(\"E:\" .. e.usage .. \":\" .. e.value)\n"
+		"	libinput:log_info(\"E:\" .. e.usage .. \":\" .. e.value)\n"
 		"  end\n"
 		"end\n"
 		"libinput:connect(\"new-evdev-device\", function(device) device:connect(\"evdev-frame\", frame_handler) end)\n";
@@ -593,9 +593,9 @@ START_TEST(lua_device_info)
 		"libinput:register({1})\n"
 		"function info_printer(device)\n"
 		"  local info = device:info()\n"
-		"  log.info(\"BUS:\" .. info.bustype)\n"
-		"  log.info(\"VID:\" .. info.vid)\n"
-		"  log.info(\"PID:\" .. info.pid)\n"
+		"  libinput:log_info(\"BUS:\" .. info.bustype)\n"
+		"  libinput:log_info(\"VID:\" .. info.vid)\n"
+		"  libinput:log_info(\"PID:\" .. info.pid)\n"
 		"end\n"
 		"libinput:connect(\"new-evdev-device\", info_printer)\n";
 
@@ -628,7 +628,7 @@ START_TEST(lua_set_absinfo)
 		"function absinfo_setter(device)\n"
 		"  local absinfos = device:absinfos()\n"
 		"  for u, a in pairs(absinfos) do\n"
-		"	log.info(\"A:\" .. u .. \":\" .. a.minimum .. \":\" .. a.maximum .. \":\" .. a.resolution .. \":\" .. a.fuzz .. \":\" .. a.flat)\n"
+		"	libinput:log_info(\"A:\" .. u .. \":\" .. a.minimum .. \":\" .. a.maximum .. \":\" .. a.resolution .. \":\" .. a.fuzz .. \":\" .. a.flat)\n"
 		"  end\n"
 		"  device:set_absinfo(evdev.ABS_X, { minimum = 0, maximum = 1000, resolution = 100 })\n"
 		"  device:set_absinfo(evdev.ABS_Y, { minimum = 0, maximum = 200, resolution = 10 })\n"
@@ -711,13 +711,13 @@ START_TEST(lua_enable_disable_evdev_usage)
 	const char *lua2 =
 		"libinput:register({1})\n"
 		"function frame_handler(_, frame, timestamp)\n"
-		"  log.info(\"frame\")\n"
+		"  libinput:log_info(\"frame\")\n"
 		"  for _, e in ipairs(frame) do\n"
-		"	log.info(\"E:\" .. e.usage .. \":\" .. e.value)\n"
+		"	libinput:log_info(\"E:\" .. e.usage .. \":\" .. e.value)\n"
 		"  end\n"
 		"end\n"
 		"function f(device)\n"
-		"  log.info(\"F: \" .. device:name())\n"
+		"  libinput:log_info(\"F: \" .. device:name())\n"
 		"  device:connect(\"evdev-frame\", frame_handler)\n"
 		"end\n"
 		"libinput:connect(\"new-evdev-device\", f)\n";
@@ -768,7 +768,7 @@ START_TEST(lua_udev_properties)
 		"function prop_printer(device)\n"
 		"  local properties = device:udev_properties()\n"
 		"  for k, v in pairs(properties) do\n"
-		"	log.info(k .. \"=\" .. v)\n"
+		"	libinput:log_info(k .. \"=\" .. v)\n"
 		"  end\n"
 		"end\n"
 		"libinput:connect(\"new-evdev-device\", prop_printer)\n";
@@ -1076,7 +1076,7 @@ TEST_COLLECTION(lua)
 					litest_named_i32(LIBINPUT_LOG_PRIORITY_DEBUG),
 					litest_named_i32(LIBINPUT_LOG_PRIORITY_INFO),
 					litest_named_i32(LIBINPUT_LOG_PRIORITY_ERROR)) {
-		litest_add_parametrized_no_device(lua_test_log_global, params);
+		litest_add_parametrized_no_device(lua_test_logging, params);
 	}
 
 	litest_with_parameters(params,

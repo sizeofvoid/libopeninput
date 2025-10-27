@@ -625,6 +625,39 @@ libinputplugin_timer_cancel(lua_State *L)
 	return 0;
 }
 
+static int
+libinputplugin_log(lua_State *L, enum libinput_log_priority pri)
+{
+	LibinputPlugin *p = luaL_checkudata(L, 1, PLUGIN_METATABLE);
+	luaL_argcheck(L, p != NULL, 1, PLUGIN_METATABLE " expected");
+
+	const char *message = luaL_checkstring(L, 2);
+
+	auto plugin = lua_get_libinput_lua_plugin(L);
+
+	plugin_log_msg(plugin->parent, pri, "%s\n", message);
+
+	return 0;
+}
+
+static int
+libinputplugin_log_debug(lua_State *L)
+{
+	return libinputplugin_log(L, LIBINPUT_LOG_PRIORITY_DEBUG);
+}
+
+static int
+libinputplugin_log_info(lua_State *L)
+{
+	return libinputplugin_log(L, LIBINPUT_LOG_PRIORITY_INFO);
+}
+
+static int
+libinputplugin_log_error(lua_State *L)
+{
+	return libinputplugin_log(L, LIBINPUT_LOG_PRIORITY_ERROR);
+}
+
 static const struct luaL_Reg libinputplugin_vtable[] = {
 	{ "now", libinputplugin_now },
 	{ "version", libinputplugin_version },
@@ -634,6 +667,9 @@ static const struct luaL_Reg libinputplugin_vtable[] = {
 	{ "timer_cancel", libinputplugin_timer_cancel },
 	{ "timer_set_absolute", libinputplugin_timer_set_absolute },
 	{ "timer_set_relative", libinputplugin_timer_set_relative },
+	{ "log_debug", libinputplugin_log_debug },
+	{ "log_info", libinputplugin_log_info },
+	{ "log_error", libinputplugin_log_error },
 	{ "__gc", libinputplugin_gc },
 	{ NULL, NULL }
 };
@@ -1048,42 +1084,6 @@ evdevdevice_init(lua_State *L)
 	luaL_setfuncs(L, evdevdevice_vtable, 0);
 }
 
-static int
-logfunc(lua_State *L, enum libinput_log_priority pri)
-{
-	auto plugin = lua_get_libinput_lua_plugin(L);
-
-	const char *message = luaL_checkstring(L, 1);
-
-	plugin_log_msg(plugin->parent, pri, "%s\n", message);
-
-	return 0;
-}
-
-static int
-log_lua_error(lua_State *L)
-{
-	return logfunc(L, LIBINPUT_LOG_PRIORITY_ERROR);
-}
-
-static int
-log_lua_info(lua_State *L)
-{
-	return logfunc(L, LIBINPUT_LOG_PRIORITY_INFO);
-}
-
-static int
-log_lua_debug(lua_State *L)
-{
-	return logfunc(L, LIBINPUT_LOG_PRIORITY_DEBUG);
-}
-
-/* Exposes log.debug, log.info, log.error() */
-static const struct luaL_Reg log_funcs[] = { { "debug", log_lua_debug },
-					     { "info", log_lua_info },
-					     { "error", log_lua_error },
-					     { NULL, NULL } };
-
 static void
 libinput_lua_plugin_destroy(struct libinput_lua_plugin *plugin)
 {
@@ -1255,8 +1255,6 @@ libinput_lua_plugin_init_lua(struct libinput *libinput,
 
 	/* Our globals */
 	lua_newtable(L);
-	luaL_register(L, "log", log_funcs);
-	lua_setfield(L, sandbox_table_idx, "log");
 	libinput_lua_init_evdev_global(L, sandbox_table_idx);
 
 	/* The libinput global object */

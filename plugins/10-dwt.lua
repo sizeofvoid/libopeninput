@@ -14,7 +14,7 @@
 tp_enabled = true
 
 libinput:connect("timer-expired", function(now)
-    log.debug("touchpad enabled")
+    libinput:log_debug("touchpad enabled")
     tp_enabled = true
 end)
 
@@ -24,12 +24,12 @@ libinput:connect("new-evdev-device", function (device)
         device:connect("evdev-frame", function (device, frame, timestamp)
             libinput:timer_set_relative(2000000)
             if tp_enabled then
-                log.debug("touchpad disabled")
+                libinput:log_debug("touchpad disabled")
                 tp_enabled = false
             end
         end)
     elseif props.ID_INPUT_TOUCHPAD then
-        log.debug("Touchpad detected: " .. device:name())
+        libinput:log_debug("Touchpad detected: " .. device:name())
         device:connect("evdev-frame", function (device, frame, timestamp)
             if not tp_enabled then
                 -- Returning an empty table discards the event.
