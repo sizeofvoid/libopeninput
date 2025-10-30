@@ -6,6 +6,7 @@ plugins = [
 	'10-pointer-go-slower.lua',
 	'10-delay-motion.lua',
 	'10-disable-feature.lua',
+	'10-copilot-key-override.lua',
 ]
 
 fs = import('fs')
