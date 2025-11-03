@@ -814,7 +814,6 @@ evdevdevice_enable_evdev_usage(lua_State *L)
 	uint16_t code = evdev_usage_code(usage);
 	if (type > EV_MAX) {
 		plugin_log_bug(plugin->parent,
-			       ,
 			       "Ignoring invalid evdev usage %#x\n",
 			       evdev_usage_as_uint32_t(usage));
 		return 0;
