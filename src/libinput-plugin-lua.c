@@ -1219,7 +1219,7 @@ libinput_lua_plugin_init_lua(struct libinput *libinput,
 	luaopen_base(L);
 	static const char *allowed_funcs[] = {
 		"assert", "error",    "ipairs",   "next", "pcall",  "pairs",
-		"print",  "tonumber", "tostring", "type", "unpack", "xpcall",
+		"print",  "tonumber", "tostring", "type", "xpcall",
 	};
 	ARRAY_FOR_EACH(allowed_funcs, func) {
 		lua_getglobal(L, *func);
