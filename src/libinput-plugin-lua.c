@@ -692,6 +692,9 @@ evdevdevice_info(lua_State *L)
 
 	lua_newtable(L); /* { bustype: ..., vid: ..., pid: ..., name: ... } */
 
+	if (device->evdev == NULL)
+		return 1;
+
 	lua_pushinteger(L, device->bustype);
 	lua_setfield(L, -2, "bustype");
 	lua_pushinteger(L, device->vid);
