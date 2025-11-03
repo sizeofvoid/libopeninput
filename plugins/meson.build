@@ -7,6 +7,7 @@ plugins = [
 	'10-delay-motion.lua',
 	'10-disable-feature.lua',
 	'10-copilot-key-override.lua',
+	'10-wheel-to-button.lua',
 ]
 
 fs = import('fs')
