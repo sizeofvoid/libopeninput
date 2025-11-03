@@ -727,7 +727,7 @@ evdevdevice_usages(lua_State *L)
 	if (device->evdev == NULL)
 		return 1;
 
-	for (unsigned int t = 0; t < EV_MAX; t++) {
+	for (unsigned int t = 0; t <= EV_MAX; t++) {
 		if (!libevdev_has_event_type(device->evdev, t))
 			continue;
 
@@ -756,7 +756,7 @@ evdevdevice_absinfos(lua_State *L)
 	if (device->evdev == NULL)
 		return 1;
 
-	for (unsigned int code = 0; code < ABS_MAX; code++) {
+	for (unsigned int code = 0; code <= ABS_MAX; code++) {
 		const struct input_absinfo *abs =
 			libevdev_get_abs_info(device->evdev, code);
 		if (!abs)
@@ -1133,7 +1133,7 @@ static void
 libinput_lua_init_evdev_global(lua_State *L, int sandbox_table_idx)
 {
 	lua_newtable(L);
-	for (unsigned int t = 0; t < EV_MAX; t++) {
+	for (unsigned int t = 0; t <= EV_MAX; t++) {
 		const char *typename = libevdev_event_type_get_name(t);
 		if (!typename)
 			continue;
