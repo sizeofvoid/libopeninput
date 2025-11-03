@@ -208,7 +208,7 @@ Evdev frames
 ................................................................................
 
 Evdev frames represent a single frame of evdev events for a device. A frame
-is a group of events that occured at the same time. The frame usually only
+is a group of events that occurred at the same time. The frame usually only
 contains state that has changed compared to the previous frame.
 
 In our API a frame is exposed as a nested table with the following structure:
@@ -265,8 +265,8 @@ All libinput-specific APIs can be accessed through the ``libinput`` object.
 
        -- this plugin can support versions 1, 4 and 5
        version = libinput:register({1, 4, 5})
-       if version == 1:
-           ....
+       if version == 1 then
+           ...
 
    This function must be the first function called.
    If the plugin calls any other functions before ``register()``, those functions
@@ -286,17 +286,17 @@ All libinput-specific APIs can be accessed through the ``libinput`` object.
    in your plugin, it is effectively equivalent to Lua's
    `os.exit() <https://www.lua.org/manual/5.4/manual.html#pdf-os.exit>`_.
 
-.. function:: libinput::log_debug(message)
+.. function:: libinput:log_debug(message)
 
    Log a message at the libinput debug log priority. See
-   ``libinput::log_error()`` for details.
+   ``libinput:log_error()`` for details.
 
-.. function:: libinput::log_info(message)
+.. function:: libinput:log_info(message)
 
    Log a message at the libinput info log priority. See
-   ``libinput::log_error()`` for details.
+   ``libinput:log_error()`` for details.
 
-.. function:: libinput::log_error(message)
+.. function:: libinput:log_error(message)
 
    Log a message at the libinput error log priority. Whether a message is
    displayed in the log depends on libinput's log priority, set by the caller.
@@ -341,7 +341,7 @@ All libinput-specific APIs can be accessed through the ``libinput`` object.
       libinput:connect("timer-expired", function (now) ... end)
 
      The ``now`` argument is the current time in microseconds in
-     ``CLOCK_MONOTONIC`` (see ``libinput.now()``).
+     ``CLOCK_MONOTONIC`` (see ``libinput:now()``).
 
 .. function:: libinput:timer_cancel()
 
@@ -352,7 +352,7 @@ All libinput-specific APIs can be accessed through the ``libinput`` object.
 
    Set a timer for this plugin, with the given time in microseconds.
    The timeout specifies an absolute time in microseconds (see
-   ``libinput.now()``) The timer will expire once and then call the
+   ``libinput:now()``) The timer will expire once and then call the
    ``"timer-expired"`` event handler (if any).
 
    See ``libinput:timer_set_relative()`` for a relative timer.
@@ -362,7 +362,7 @@ All libinput-specific APIs can be accessed through the ``libinput`` object.
    .. code-block:: lua
 
       libinput:timer_set_relative(1000000) -- 1 second from now
-      libinput:timer_set_absolute(libinput.now() + 1000000) -- 1 second from now
+      libinput:timer_set_absolute(libinput:now() + 1000000) -- 1 second from now
 
    Calling this function will cancel any existing (relative or absolute) timer.
 
@@ -372,14 +372,14 @@ All libinput-specific APIs can be accessed through the ``libinput`` object.
    the current time. The timer will expire once and then call the
    ``"timer-expired"`` event handler (if any).
 
-   See ``libinput:timer_set_absolute()`` for a relative timer.
+   See ``libinput:timer_set_absolute()`` for an absolute timer.
 
    The following two lines of code are equivalent:
 
    .. code-block:: lua
 
       libinput:timer_set_relative(1000000) -- 1 second from now
-      libinput:timer_set_absolute(libinput.now() + 1000000) -- 1 second from now
+      libinput:timer_set_absolute(libinput:now() + 1000000) -- 1 second from now
 
    Calling this function will cancel any existing (relative or absolute) timer.
 
@@ -442,11 +442,12 @@ methods will be noops.
          evdev.BTN_LEFT = true,
       }
 
-   All other usage ``nil``, so that the following code is possible:
+   All other usages are ``nil``, so that the following code is possible:
 
    .. code-block:: lua
 
-      if code[evdev.REL_X] then
+      local usages = device:usages()
+      if usages[evdev.REL_X] then
          -- do something
       end
 
@@ -523,7 +524,7 @@ methods will be noops.
 
    Set the absolute axis information for the given :ref:`evdev usage <plugins_api_evdev_usage>`
    and enable it if it does not yet exist on the device. The ``absinfo`` argument is a table
-   containing zero or more of the following keys: ``min``, ``max``, ``fuzz``,
+   containing zero or more of the following keys: ``minimum``, ``maximum``, ``fuzz``,
    ``flat``, ``resolution``. Any missing key defaults the corresponding
    value from the device if the device already has this event usage or zero otherwise.
    For example, the following code changes the resolution but leaves everything
@@ -560,24 +561,25 @@ methods will be noops.
 
    - ``"evdev-frame"``: A new :ref:`evdev frame <plugins_api_evdev_frame>` has
      started for this device. If the callback returns a value other than
-     ``nil`` or an empty table, that value is the frame with any modified
-     events.
+     ``nil``, that value is the frame with any modified events.
+     An empty frame (``{}``) causes libinput to drop the current event frame.
 
      .. code-block:: lua
 
         device:connect("evdev-frame", function (device, frame, timestamp)
             -- change any event into a movement left by 1 pixel
             move_left = {
-                  { usage = evdev.EV_REL, code = evdev.REL_X, value = -1, },
+                  { usage = evdev.REL_X, value = -1, },
             }
             return move_left
         end
 
      The timestamp of an event frame is in microseconds in ``CLOCK_MONOTONIC``, see
-     ``libinput.now()`` for details.
+     ``libinput:now()`` for details.
 
      For performance reasons plugins that do not modify the event frame should
-     return ``nil`` (or nothing) instead of the event frame given as argument.
+     return ``nil`` (or nothing) instead of the event frame that was passed
+     as argument.
 
    - ``"device-removed"``: This device was removed by libinput. This may happen
      without the device ever becoming a libinput device as seen by libinput's
@@ -587,7 +589,7 @@ methods will be noops.
 
      .. code-block:: lua
 
-      device:connect("new-evdev-device", function (device) ... end)
+      device:connect("device-removed", function (device) ... end)
 
      Functions to query the device's capabilities (e.g. ``usages()``) will
      return an empty table.
@@ -603,8 +605,8 @@ methods will be noops.
    **before** the current frame (if any). The **next** plugin will see the
    prepended frame first followed by the current frame.
 
-   This function can only be called from within a device's ``frame()`` handler
-   or from within the plugin's timer callback function.
+   This function can only be called from within a device's ``"evdev-frame"``
+   handler or from within the plugin's timer callback function.
 
    For example, to change a single event into a drag, prepend a button
    down and append a button up before each event:
@@ -631,7 +633,7 @@ methods will be noops.
 
    Appends an :ref:`evdev frame <plugins_api_evdev_frame>` for this device
    **after** the current frame (if any). This function can only be called from
-   within a device's ``frame()`` handler or from within the plugin's timer
+   within a device's ``"evdev-frame"`` handler or from within the plugin's timer
    callback function.
 
    If called from within the plugin's timer there is no current frame and this
