@@ -49,5 +49,8 @@ libinput:connect("new-evdev-device", function(device)
             end
             return frame
         end)
+        device:connect("device-removed", function(dev)
+            remainders[dev] = nil
+        end)
     end
 end)

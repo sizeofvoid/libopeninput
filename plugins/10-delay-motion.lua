@@ -34,7 +34,7 @@ end
 function frame(device, frame, timestamp)
     for _, v in ipairs(frame) do
         if v.usage == evdev.REL_X or v.usage == evdev.REL_Y then
-            next_time = timestamp + DELAY
+            local next_time = timestamp + DELAY
             table.insert(devices[device], {
                 time = next_time,
                 frame = frame
@@ -54,6 +54,9 @@ function device_new(device)
     if usages[evdev.REL_X] then
         devices[device] = {}
         device:connect("evdev-frame", frame)
+        device:connect("device-removed", function(dev)
+            devices[dev] = nil
+        end)
     end
 end
 

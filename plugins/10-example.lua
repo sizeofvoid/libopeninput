@@ -31,7 +31,7 @@ function frame(device, frame, time_in_microseconds)
         -- If we get a right button event, change it to left, and
         -- vice versa. Because this happens before libinput (or the next
         -- plugin in the precedence order) sees the
-        -- frame it doesn't know that the swap happend.
+        -- frame it doesn't know that the swap happened.
         if v.usage == evdev.BTN_RIGHT then
             v.usage = evdev.BTN_LEFT
         elseif v.usage == evdev.BTN_LEFT then
