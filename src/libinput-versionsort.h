@@ -39,7 +39,8 @@ libinput_strverscmp(const char *l0, const char *r0)
 
 	/* Find maximal matching prefix and track its maximal digit
 	 * suffix and whether those digits are all zeros. */
-	for (dp = i = 0; l[i] == r[i]; i++) {
+	for (dp = i = 0; l[i] == r[i]; /* NOLINT(clang-analyzer-security.ArrayBound) */
+	     i++) {
 		int c = l[i];
 		if (!c)
 			return 0;

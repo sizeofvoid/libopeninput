@@ -1568,7 +1568,9 @@ quirk_merge_event_codes(struct quirks_context *ctx,
 	newprop->type = property->type;
 	newprop->value.tuples = property->value.tuples;
 	/* Caller responsible for pre-allocating space */
-	q->properties[q->nproperties++] = property_ref(newprop);
+	q->properties[q->nproperties++] = /* NOLINT(clang-analyzer-security.ArrayBound)
+					   */
+		property_ref(newprop);
 	list_append(&q->floating_properties, &newprop->link);
 }
 

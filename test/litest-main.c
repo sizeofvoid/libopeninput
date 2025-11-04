@@ -141,8 +141,13 @@ static void
 litest_init_test_devices(void)
 {
 	const struct test_device *t;
-	for (t = &__start_test_device_section; t < &__stop_test_device_section; t++)
-		litest_add_test_device(&t->device->node);
+	const struct test_device *start = &__start_test_device_section;
+	const struct test_device *stop = &__stop_test_device_section;
+
+	for (t = start; t < stop; t++)
+		litest_add_test_device(
+			&t->device->node); /* NOLINT(clang-analyzer-security.ArrayBound)
+					    */
 }
 
 extern const struct test_collection __start_test_collection_section,
@@ -151,13 +156,18 @@ extern const struct test_collection __start_test_collection_section,
 static void
 setup_tests(void)
 {
+	/* Iterate through linker-provided section boundaries.
+	 * These symbols mark the start and end of the test_collection_section. */
+	const struct test_collection *start = &__start_test_collection_section;
+	const struct test_collection *stop = &__stop_test_collection_section;
 	const struct test_collection *c;
 
-	for (c = &__start_test_collection_section; c < &__stop_test_collection_section;
-	     c++) {
+	for (c = start; c < stop;
+	     c++) { /* NOLINT(clang-analyzer-security.ArrayBound) */
 		struct suite *s;
 		s = zalloc(sizeof(*s));
-		s->name = safe_strdup(c->name);
+		s->name = safe_strdup(
+			c->name); /* NOLINT(clang-analyzer-security.ArrayBound) */
 
 		list_init(&s->tests);
 		list_append(&all_test_suites, &s->node);

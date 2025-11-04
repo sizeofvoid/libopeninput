@@ -200,6 +200,7 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 			return NULL;
 		}
 
+		assert(idx < strv_len);
 		strv[idx++] = copy;
 	}
 

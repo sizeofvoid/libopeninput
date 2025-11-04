@@ -360,7 +360,7 @@ strv_free(char **strv)
 	if (!strv)
 		return;
 
-	while (*s != NULL) {
+	while (*s != NULL) { /* NOLINT(clang-analyzer-security.ArrayBound) */
 		free(*s);
 		*s = (char *)0x1; /* detect use-after-free */
 		s++;

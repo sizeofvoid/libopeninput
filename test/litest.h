@@ -631,7 +631,7 @@ struct axis_replacement {
 static inline void
 litest_axis_set_value_unchecked(struct axis_replacement *axes, int code, double value)
 {
-	while (axes->evcode != -1) {
+	while (axes->evcode != -1) { /* NOLINT(clang-analyzer-security.ArrayBound) */
 		if (axes->evcode == code) {
 			axes->value = value;
 			return;
