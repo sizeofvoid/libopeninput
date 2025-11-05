@@ -547,6 +547,9 @@ pkgconfig.generate(
 	version : meson.project_version(),
 	libraries : lib_libinput,
 	requires_private : dep_udev,
+	variables : [
+		'plugindir=${libdir}/libinput/plugins'
+	]
 )
 
 git_version_h = vcs_tag(command : ['git', 'describe'],
