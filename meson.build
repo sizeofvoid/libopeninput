@@ -684,17 +684,17 @@ executable('libinput-analyze',
 	   )
 
 src_python_tools = files(
-	      'tools/libinput-analyze-buttons.py',
-	      'tools/libinput-analyze-per-slot-delta.py',
-	      'tools/libinput-analyze-recording.py',
-	      'tools/libinput-analyze-touch-down-state.py',
-	      'tools/libinput-list-kernel-devices.py',
-	      'tools/libinput-measure-fuzz.py',
-	      'tools/libinput-measure-touchpad-size.py',
-	      'tools/libinput-measure-touchpad-tap.py',
-	      'tools/libinput-measure-touchpad-pressure.py',
-	      'tools/libinput-measure-touch-size.py',
-	      'tools/libinput-replay.py'
+	'tools/libinput-analyze-buttons.py',
+	'tools/libinput-analyze-per-slot-delta.py',
+	'tools/libinput-analyze-recording.py',
+	'tools/libinput-analyze-touch-down-state.py',
+	'tools/libinput-list-kernel-devices.py',
+	'tools/libinput-measure-fuzz.py',
+	'tools/libinput-measure-touchpad-size.py',
+	'tools/libinput-measure-touchpad-tap.py',
+	'tools/libinput-measure-touchpad-pressure.py',
+	'tools/libinput-measure-touch-size.py',
+	'tools/libinput-replay.py'
 )
 
 foreach t : src_python_tools
