@@ -3622,7 +3622,8 @@ tp_init_pressurepad(struct tp_dispatch *tp, struct evdev_device *device)
 	 *
 	 * See also #562
 	 */
-	if (libevdev_get_abs_resolution(device->evdev, ABS_MT_PRESSURE) != 0 ||
+	if (libevdev_has_property(device->evdev, INPUT_PROP_PRESSUREPAD) ||
+	    libevdev_get_abs_resolution(device->evdev, ABS_MT_PRESSURE) != 0 ||
 	    evdev_device_has_model_quirk(device, QUIRK_MODEL_PRESSURE_PAD)) {
 		libevdev_disable_event_code(device->evdev, EV_ABS, ABS_MT_PRESSURE);
 		libevdev_disable_event_code(device->evdev, EV_ABS, ABS_PRESSURE);
