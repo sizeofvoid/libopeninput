@@ -145,16 +145,26 @@ accelerator_filter_low_dpi(struct motion_filter *filter,
 }
 
 static struct normalized_coords
-accelerator_filter_noop(struct motion_filter *filter,
-			const struct device_float_coords *unaccelerated,
-			void *data,
-			uint64_t time)
+accelerator_filter_constant(struct motion_filter *filter,
+			    const struct device_float_coords *unaccelerated,
+			    void *data,
+			    uint64_t time)
 {
 	const struct normalized_coords normalized = {
 		.x = unaccelerated->x,
 		.y = unaccelerated->y,
 	};
 	return normalized;
+}
+
+static struct normalized_coords
+accelerator_filter_scroll(struct motion_filter *filter,
+			  const struct device_float_coords *unaccelerated,
+			  void *data,
+			  uint64_t time,
+			  enum filter_scroll_type type)
+{
+	return accelerator_filter_constant(filter, unaccelerated, data, time);
 }
 
 static void
@@ -205,8 +215,8 @@ accelerator_set_speed(struct motion_filter *filter, double speed_adjustment)
 static const struct motion_filter_interface accelerator_interface_low_dpi = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_low_dpi,
-	.filter_constant = accelerator_filter_noop,
-	.filter_scroll = accelerator_filter_noop,
+	.filter_constant = accelerator_filter_constant,
+	.filter_scroll = accelerator_filter_scroll,
 	.restart = accelerator_restart,
 	.destroy = accelerator_destroy,
 	.set_speed = accelerator_set_speed,

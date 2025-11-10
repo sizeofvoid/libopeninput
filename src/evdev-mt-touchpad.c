@@ -107,7 +107,11 @@ tp_filter_scroll(struct tp_dispatch *tp,
 	/* Convert to device units with x/y in the same resolution */
 	raw = tp_scale_to_xaxis(tp, *unaccelerated);
 
-	return filter_dispatch_scroll(tp->device->pointer.filter, &raw, tp, time);
+	return filter_dispatch_scroll(tp->device->pointer.filter,
+				      &raw,
+				      tp,
+				      time,
+				      FILTER_SCROLL_TYPE_FINGER);
 }
 
 static inline void

@@ -133,14 +133,35 @@ accelerator_filter_linear(struct motion_filter *filter,
  * motion
  */
 static struct normalized_coords
-accelerator_filter_noop(struct motion_filter *filter,
-			const struct device_float_coords *unaccelerated,
-			void *data,
-			uint64_t time)
+accelerator_filter_constant(struct motion_filter *filter,
+			    const struct device_float_coords *unaccelerated,
+			    void *data,
+			    uint64_t time)
 {
 	struct pointer_accelerator *accel = (struct pointer_accelerator *)filter;
 
 	return normalize_for_dpi(unaccelerated, accel->dpi);
+}
+
+static struct normalized_coords
+accelerator_filter_scroll(struct motion_filter *filter,
+			  const struct device_float_coords *unaccelerated,
+			  void *data,
+			  uint64_t time,
+			  enum filter_scroll_type type)
+{
+	/* Scroll wheels were not historically accelerated and have different
+	 * units than button scrolling. Maintain the status quo and do not
+	 * accelerate wheel events.
+	 */
+	if (type == FILTER_SCROLL_TYPE_WHEEL) {
+		return (struct normalized_coords){
+			.x = unaccelerated->x,
+			.y = unaccelerated->y,
+		};
+	}
+
+	return accelerator_filter_constant(filter, unaccelerated, data, time);
 }
 
 static void
@@ -260,8 +281,8 @@ pointer_accel_profile_linear(struct motion_filter *filter,
 static const struct motion_filter_interface accelerator_interface = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_linear,
-	.filter_constant = accelerator_filter_noop,
-	.filter_scroll = accelerator_filter_noop,
+	.filter_constant = accelerator_filter_constant,
+	.filter_scroll = accelerator_filter_scroll,
 	.restart = accelerator_restart,
 	.destroy = accelerator_destroy,
 	.set_speed = accelerator_set_speed,

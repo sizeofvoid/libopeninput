@@ -400,7 +400,8 @@ static struct normalized_coords
 custom_accelerator_filter_scroll(struct motion_filter *filter,
 				 const struct device_float_coords *unaccelerated,
 				 void *data,
-				 uint64_t time)
+				 uint64_t time,
+				 enum filter_scroll_type type)
 {
 	return custom_accelerator_filter(LIBINPUT_ACCEL_TYPE_SCROLL,
 					 filter,

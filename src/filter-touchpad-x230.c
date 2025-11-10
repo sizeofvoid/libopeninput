@@ -185,6 +185,27 @@ accelerator_filter_constant_x230(struct motion_filter *filter,
 	return normalized;
 }
 
+static struct normalized_coords
+accelerator_filter_scroll_x230(struct motion_filter *filter,
+			       const struct device_float_coords *unaccelerated,
+			       void *data,
+			       uint64_t time,
+			       enum filter_scroll_type type)
+{
+	/* Scroll wheels were not historically accelerated and have different
+	 * units than button scrolling. Maintain the status quo and do not
+	 * accelerate wheel events.
+	 */
+	if (type == FILTER_SCROLL_TYPE_WHEEL) {
+		return (struct normalized_coords){
+			.x = unaccelerated->x,
+			.y = unaccelerated->y,
+		};
+	}
+
+	return accelerator_filter_constant_x230(filter, unaccelerated, data, time);
+}
+
 static void
 accelerator_restart_x230(struct motion_filter *filter, void *data, uint64_t time)
 {
@@ -285,7 +306,7 @@ static const struct motion_filter_interface accelerator_interface_x230 = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_x230,
 	.filter_constant = accelerator_filter_constant_x230,
-	.filter_scroll = accelerator_filter_constant_x230,
+	.filter_scroll = accelerator_filter_scroll_x230,
 	.restart = accelerator_restart_x230,
 	.destroy = accelerator_destroy_x230,
 	.set_speed = accelerator_set_speed_x230,

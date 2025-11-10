@@ -59,9 +59,14 @@ struct normalized_coords
 filter_dispatch_scroll(struct motion_filter *filter,
 		       const struct device_float_coords *unaccelerated,
 		       void *data,
-		       uint64_t time)
+		       uint64_t time,
+		       enum filter_scroll_type type)
 {
-	return filter->interface->filter_scroll(filter, unaccelerated, data, time);
+	return filter->interface->filter_scroll(filter,
+						unaccelerated,
+						data,
+						time,
+						type);
 }
 
 void

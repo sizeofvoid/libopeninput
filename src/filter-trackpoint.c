@@ -97,10 +97,10 @@ trackpoint_accelerator_filter(struct motion_filter *filter,
 }
 
 static struct normalized_coords
-trackpoint_accelerator_filter_noop(struct motion_filter *filter,
-				   const struct device_float_coords *unaccelerated,
-				   void *data,
-				   uint64_t time)
+trackpoint_accelerator_filter_constant(struct motion_filter *filter,
+				       const struct device_float_coords *unaccelerated,
+				       void *data,
+				       uint64_t time)
 {
 	struct trackpoint_accelerator *accel_filter =
 		(struct trackpoint_accelerator *)filter;
@@ -110,6 +110,30 @@ trackpoint_accelerator_filter_noop(struct motion_filter *filter,
 	coords.y = unaccelerated->y * accel_filter->multiplier;
 
 	return coords;
+}
+
+static struct normalized_coords
+trackpoint_accelerator_filter_scroll(struct motion_filter *filter,
+				     const struct device_float_coords *unaccelerated,
+				     void *data,
+				     uint64_t time,
+				     enum filter_scroll_type type)
+{
+	/* Scroll wheels were not historically accelerated and have different
+	 * units than button scrolling. Maintain the status quo and do not
+	 * accelerate wheel events.
+	 */
+	if (type == FILTER_SCROLL_TYPE_WHEEL) {
+		return (struct normalized_coords){
+			.x = unaccelerated->x,
+			.y = unaccelerated->y,
+		};
+	}
+
+	return trackpoint_accelerator_filter_constant(filter,
+						      unaccelerated,
+						      data,
+						      time);
 }
 
 /* Maps the [-1, 1] speed setting into a constant acceleration
@@ -170,8 +194,8 @@ trackpoint_accelerator_destroy(struct motion_filter *filter)
 static const struct motion_filter_interface accelerator_interface_trackpoint = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = trackpoint_accelerator_filter,
-	.filter_constant = trackpoint_accelerator_filter_noop,
-	.filter_scroll = trackpoint_accelerator_filter_noop,
+	.filter_constant = trackpoint_accelerator_filter_constant,
+	.filter_scroll = trackpoint_accelerator_filter_scroll,
 	.restart = trackpoint_accelerator_restart,
 	.destroy = trackpoint_accelerator_destroy,
 	.set_speed = trackpoint_accelerator_set_speed,

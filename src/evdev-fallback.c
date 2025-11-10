@@ -117,7 +117,8 @@ post_button_scroll(struct evdev_device *device,
 			filter_dispatch_scroll(device->pointer.filter,
 					       &raw,
 					       device,
-					       time);
+					       time,
+					       FILTER_SCROLL_TYPE_CONTINUOUS);
 		evdev_post_scroll(device,
 				  time,
 				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
@@ -221,7 +222,8 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 			filter_dispatch_scroll(device->pointer.filter,
 					       &raw,
 					       device,
-					       time);
+					       time,
+					       FILTER_SCROLL_TYPE_WHEEL);
 		evdev_post_scroll(device,
 				  time,
 				  LIBINPUT_POINTER_AXIS_SOURCE_CONTINUOUS,
@@ -245,7 +247,8 @@ fallback_flush_wheels(struct fallback_dispatch *dispatch,
 				? filter_dispatch_scroll(device->pointer.filter,
 							 &v120_unaccelerated,
 							 device,
-							 time)
+							 time,
+							 FILTER_SCROLL_TYPE_WHEEL)
 				: (const struct normalized_coords){
 					  .x = v120_unaccelerated.x,
 					  .y = v120_unaccelerated.y

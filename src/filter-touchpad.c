@@ -162,6 +162,27 @@ touchpad_constant_filter(struct motion_filter *filter,
 	return normalized;
 }
 
+static struct normalized_coords
+touchpad_scroll_filter(struct motion_filter *filter,
+		       const struct device_float_coords *unaccelerated,
+		       void *data,
+		       uint64_t time,
+		       enum filter_scroll_type type)
+{
+	/* Scroll wheels were not historically accelerated and have different
+	 * units than button scrolling. Maintain the status quo and do not
+	 * accelerate wheel events.
+	 */
+	if (type == FILTER_SCROLL_TYPE_WHEEL) {
+		return (struct normalized_coords){
+			.x = unaccelerated->x,
+			.y = unaccelerated->y,
+		};
+	}
+
+	return touchpad_constant_filter(filter, unaccelerated, data, time);
+}
+
 static void
 touchpad_accelerator_restart(struct motion_filter *filter, void *data, uint64_t time)
 {
@@ -272,7 +293,7 @@ static const struct motion_filter_interface accelerator_interface_touchpad = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = accelerator_filter_touchpad,
 	.filter_constant = touchpad_constant_filter,
-	.filter_scroll = touchpad_constant_filter,
+	.filter_scroll = touchpad_scroll_filter,
 	.restart = touchpad_accelerator_restart,
 	.destroy = touchpad_accelerator_destroy,
 	.set_speed = touchpad_accelerator_set_speed,

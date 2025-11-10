@@ -34,6 +34,12 @@
 
 struct motion_filter;
 
+enum filter_scroll_type {
+	FILTER_SCROLL_TYPE_CONTINUOUS,
+	FILTER_SCROLL_TYPE_WHEEL,
+	FILTER_SCROLL_TYPE_FINGER,
+};
+
 /**
  * Accelerate the given coordinates.
  * Takes a set of unaccelerated deltas and accelerates them based on the
@@ -98,6 +104,7 @@ filter_dispatch_constant(struct motion_filter *filter,
  * originally provided resolution.
  * @param data Custom data
  * @param time The time of the delta
+ * @param type The type of scroll event
  *
  * @see filter_dispatch
  */
@@ -105,7 +112,8 @@ struct normalized_coords
 filter_dispatch_scroll(struct motion_filter *filter,
 		       const struct device_float_coords *unaccelerated,
 		       void *data,
-		       uint64_t time);
+		       uint64_t time,
+		       enum filter_scroll_type type);
 
 void
 filter_restart(struct motion_filter *filter, void *data, uint64_t time);
