@@ -268,7 +268,7 @@ executable('libinput-fuzz-to-zero',
 	   install_dir : dir_udev_callouts)
 
 udev_rules_config = configuration_data()
-udev_rules_config.set('UDEV_TEST_PATH', '')
+udev_rules_config.set('UDEV_TEST_PATH', dir_udev_callouts + '/')
 configure_file(input : 'udev/80-libinput-device-groups.rules.in',
 	       output : '80-libinput-device-groups.rules',
 	       install_dir : dir_udev_rules,
