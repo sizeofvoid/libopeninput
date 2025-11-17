@@ -50,7 +50,7 @@ The Lua API available to plugins is limited to the following calls::
 
     assert  error   ipairs  next     pairs  tonumber
     pcall   select  print   tostring type   xpcall
-    table   string  math
+    table   string  math    _VERSION
 
 It is not possible to e.g. use the ``io`` module from a script.
 
