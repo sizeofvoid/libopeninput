@@ -174,7 +174,8 @@ endif
 dep_lm = cc.find_library('m', required : false)
 dep_rt = cc.find_library('rt', required : false)
 
-dep_lua = dependency(get_option('lua-interpreter'),
+dep_lua = dependency('lua-5.4', 'lua5.4', 'lua',
+		     version : '>= 5.4',
 		     required : get_option('lua-plugins'))
 have_lua = dep_lua.found()
 if have_lua
@@ -198,11 +199,6 @@ summary({
 	},
 	section : 'Plugins',
 	bool_yn : true)
-
-if have_lua
-	summary({'Lua Interpreter' : get_option('lua-interpreter')},
-		section : 'Plugins')
-endif
 
 # Include directories
 includes_include = include_directories('include')

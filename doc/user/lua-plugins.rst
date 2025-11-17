@@ -9,7 +9,7 @@ of devices. For example, a plugin may add or remove axes and/or buttons on a
 device and/or modify the event stream seen by this device before it is passed
 to libinput.
 
-Plugins are implemented in `Lua <https://www.lua.org/>`_ (version 5.1)
+Plugins are implemented in `Lua <https://www.lua.org/>`_ (version 5.4)
 and are typically loaded from the following paths:
 
 - ``/etc/libinput/plugins/*.lua``, and
@@ -29,7 +29,7 @@ before ``10-bar.lua``) and each plugin sees the state left by any previous
 plugins. For example if ``00-foo.lua`` changes all left button events to right
 button events, ``10-bar.lua`` only ever sees right button events.
 
-See the `Lua Reference manual <https://www.lua.org/manual/5.1/manual.html>`_ for
+See the `Lua Reference manual <https://www.lua.org/manual/5.4/manual.html>`_ for
 details on the Lua language.
 
 .. note:: Plugins are **not** loaded by default, it is up to the compositor
