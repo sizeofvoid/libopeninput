@@ -113,8 +113,8 @@ When you file a bug, please attach the following information:
 - the output from udevadm info, see :ref:`udev_info`.
 - the vendor model number of your laptop (e.g. "Lenovo Thinkpad T440s")
 - and the content of ``/sys/class/dmi/id/modalias``.
-- run the ``touchpad-edge-detector`` tool (provided by libevdev) and verify
-  that the ranges and sizes it prints match the touchpad (up to 5mm
+- run ``libinput measure touchpad-size`` tool (see :ref:`absolute_coordinate_ranges_fix`)
+  and verify that the ranges and sizes it prints match the touchpad (up to 5mm
   difference is ok)
 
 If you are reporting a bug related to button event generation:
