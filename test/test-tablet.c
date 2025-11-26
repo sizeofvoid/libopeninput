@@ -7722,6 +7722,51 @@ START_TEST(tablet_eraser_button_disabled)
 }
 END_TEST
 
+START_TEST(tablet_eraser_button_config_after_device_removal)
+{
+	_litest_context_destroy_ struct libinput *li = litest_create_context();
+	struct litest_device *tablet = litest_add_device(li, LITEST_ELAN_TABLET);
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 },
+	};
+
+	litest_drain_events(li);
+
+	litest_tablet_set_tool_type(tablet, BTN_TOOL_RUBBER);
+	litest_tablet_proximity_in(tablet, 10, 10, axes);
+
+	litest_dispatch(li);
+	auto event = libinput_get_event(li);
+	auto tev = litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	auto tool = libinput_event_tablet_tool_get_tool(tev);
+	libinput_tablet_tool_ref(tool);
+	libinput_event_destroy(event);
+
+	litest_device_destroy(tablet);
+	litest_drain_events(li);
+
+	/* Tool isn't associated with a device but config should take effect anyway */
+	auto status = libinput_tablet_tool_config_eraser_button_set_mode(
+		tool,
+		LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	status =
+		libinput_tablet_tool_config_eraser_button_set_button(tool, BTN_STYLUS2);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_assert_enum_eq(libinput_tablet_tool_config_eraser_button_get_mode(tool),
+			      LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON);
+	litest_assert_int_eq(libinput_tablet_tool_config_eraser_button_get_button(tool),
+			     (unsigned)BTN_STYLUS2);
+
+	litest_drain_events(li);
+
+	libinput_tablet_tool_unref(tool);
+}
+END_TEST
+
 TEST_COLLECTION(tablet)
 {
 	/* clang-format off */
@@ -7886,6 +7931,8 @@ TEST_COLLECTION(tablet_eraser)
 			       "with-motion-events", 'b') {
 		litest_add_parametrized(tablet_eraser_button_disabled, LITEST_TABLET, LITEST_TOTEM|LITEST_FORCED_PROXOUT, params);
 	}
+
+	litest_add_no_device(tablet_eraser_button_config_after_device_removal);
 	/* clang-format on */
 }
 

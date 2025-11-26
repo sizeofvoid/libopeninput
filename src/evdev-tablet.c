@@ -1272,10 +1272,13 @@ static void
 eraser_button_toggle(struct libinput_tablet_tool *tool)
 {
 	struct libinput_device *libinput_device = tool->last_device;
-	struct evdev_device *device = evdev_device(libinput_device);
-	struct tablet_dispatch *tablet = tablet_dispatch(device->dispatch);
 
-	tablet_tool_apply_eraser_button(tablet, tool);
+	if (libinput_device) {
+		struct evdev_device *device = evdev_device(libinput_device);
+		struct tablet_dispatch *tablet = tablet_dispatch(device->dispatch);
+
+		tablet_tool_apply_eraser_button(tablet, tool);
+	}
 }
 
 static enum libinput_config_status
