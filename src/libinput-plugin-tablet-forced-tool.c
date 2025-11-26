@@ -54,6 +54,7 @@ struct plugin_device {
 	struct libinput_device *device;
 	bitmask_t tool_state;
 	bool pen_forced_into_proximity;
+	size_t pen_prox_out_events;
 };
 
 struct plugin_data {
@@ -121,6 +122,23 @@ forced_tool_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 			} else {
 				bitmask_clear_bit(&device->tool_state, BTN_TOOL_PEN);
 				device->pen_forced_into_proximity = false;
+
+				/* If we get three valid pen proximity out events, let's
+				 * assume this device works fine and disable our plugin
+				 */
+				if (++device->pen_prox_out_events > 2) {
+					plugin_log_debug(
+						libinput_plugin,
+						"%s: forced tool handling unloaded\n",
+						libinput_device_get_name(
+							device->device));
+					libinput_plugin_enable_device_event_frame(
+						libinput_plugin,
+						device->device,
+						false);
+					plugin_device_destroy(device);
+					return;
+				}
 			}
 			return; /* Nothing to do */
 		case EVDEV_BTN_TOOL_RUBBER:
