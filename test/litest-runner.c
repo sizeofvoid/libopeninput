@@ -123,7 +123,8 @@ static void
 close_pipes(int fds[_FD_LAST])
 {
 	for (int i = 0; i < _FD_LAST; i++) {
-		fsync(fds[i]);
+		if (fds[i] != -1)
+			fsync(fds[i]);
 		xclose(&fds[i]);
 	}
 }
