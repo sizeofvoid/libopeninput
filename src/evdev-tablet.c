@@ -2451,6 +2451,8 @@ tablet_destroy(struct evdev_dispatch *dispatch)
 	struct libinput *li = tablet_libinput_context(tablet);
 
 	list_for_each_safe(tool, &tablet->tool_list, link) {
+		list_remove(&tool->link);
+		list_init(&tool->link); /* unref may list_remove() too */
 		libinput_tablet_tool_unref(tool);
 	}
 
