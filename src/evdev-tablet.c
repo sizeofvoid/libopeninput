@@ -1296,7 +1296,7 @@ eraser_button_set_mode(struct libinput_tablet_tool *tool,
 static enum libinput_config_eraser_button_mode
 eraser_button_get_mode(struct libinput_tablet_tool *tool)
 {
-	return tool->eraser_button.mode;
+	return tool->eraser_button.want_mode;
 }
 
 static enum libinput_config_eraser_button_mode
@@ -1330,7 +1330,7 @@ eraser_button_set_button(struct libinput_tablet_tool *tool, uint32_t button)
 static unsigned int
 eraser_button_get_button(struct libinput_tablet_tool *tool)
 {
-	return tool->eraser_button.button;
+	return tool->eraser_button.want_button;
 }
 
 static unsigned int
