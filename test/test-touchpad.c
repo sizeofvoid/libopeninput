@@ -3651,7 +3651,7 @@ START_TEST(touchpad_state_after_syn_dropped_2fg_change)
 }
 END_TEST
 
-START_TEST(touchpad_dwt)
+START_TEST(touchpad_dwt_single_key)
 {
 	struct litest_device *touchpad = litest_current_device();
 	struct litest_device *keyboard;
@@ -3674,7 +3674,7 @@ START_TEST(touchpad_dwt)
 
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
 
-	litest_timeout_dwt_short(li);
+	litest_timeout_dwt_long(li);
 
 	/* after timeout  - motion events*/
 	litest_touch_down(touchpad, 0, 50, 50);
@@ -7160,7 +7160,8 @@ TEST_COLLECTION(touchpad)
 TEST_COLLECTION(touchpad_dwt)
 {
 	/* clang-format off */
-	litest_add(touchpad_dwt, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(touchpad_dwt_single_key, LITEST_TOUCHPAD, LITEST_ANY);
+
 	litest_add_for_device(touchpad_dwt_ext_and_int_keyboard, LITEST_SYNAPTICS_I2C);
 	litest_add(touchpad_dwt_enable_touch, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_touch_hold, LITEST_TOUCHPAD, LITEST_ANY);
