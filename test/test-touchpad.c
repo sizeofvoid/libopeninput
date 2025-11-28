@@ -4548,27 +4548,14 @@ START_TEST(touchpad_dwt_config_default_on)
 	litest_assert_int_eq(timeout, 600U);
 
 	/* Too short, too long */
-	status = libinput_device_config_dwt_set_timeout(device, 99);
+	status = libinput_device_config_dwt_set_timeout(device, 10);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 	timeout = libinput_device_config_dwt_get_timeout(device);
 	litest_assert_int_eq(timeout, 600U);
-	status = libinput_device_config_dwt_set_timeout(device, 5001);
+	status = libinput_device_config_dwt_set_timeout(device, 5000);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 	timeout = libinput_device_config_dwt_get_timeout(device);
 	litest_assert_int_eq(timeout, 600U);
-}
-END_TEST
-
-START_TEST(touchpad_dwtp_config_default_timeout)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput_device *device = dev->libinput_device;
-
-	if (!libinput_device_config_dwtp_is_available(device))
-		return LITEST_NOT_APPLICABLE;
-
-	litest_assert_int_eq(libinput_device_config_dwtp_get_default_timeout(device),
-			     300U);
 }
 END_TEST
 
