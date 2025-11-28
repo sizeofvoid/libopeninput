@@ -6700,7 +6700,7 @@ libinput_device_config_dwt_set_enabled(struct libinput_device *device,
 /**
  * @ingroup config
  *
- * Check if the disable-while typing feature is currently enabled on this
+ * Check if the disable-while-typing feature is currently enabled on this
  * device. If the device does not support disable-while-typing, this
  * function returns @ref LIBINPUT_CONFIG_DWT_DISABLED.
  *
@@ -6718,7 +6718,7 @@ libinput_device_config_dwt_get_enabled(struct libinput_device *device);
 /**
  * @ingroup config
  *
- * Check if the disable-while typing feature is enabled on this device by
+ * Check if the disable-while-typing feature is enabled on this device by
  * default. If the device does not support disable-while-typing, this
  * function returns @ref LIBINPUT_CONFIG_DWT_DISABLED.
  *
@@ -6796,7 +6796,7 @@ libinput_device_config_dwtp_set_enabled(struct libinput_device *device,
 /**
  * @ingroup config
  *
- * Check if the disable-while trackpointing feature is currently enabled on
+ * Check if the disable-while-trackpointing feature is currently enabled on
  * this device. If the device does not support disable-while-trackpointing,
  * this function returns @ref LIBINPUT_CONFIG_DWTP_DISABLED.
  *
@@ -6816,7 +6816,7 @@ libinput_device_config_dwtp_get_enabled(struct libinput_device *device);
 /**
  * @ingroup config
  *
- * Check if the disable-while trackpointing feature is enabled on this device
+ * Check if the disable-while-trackpointing feature is enabled on this device
  * by default. If the device does not support disable-while-trackpointing, this
  * function returns @ref LIBINPUT_CONFIG_DWTP_DISABLED.
  *
