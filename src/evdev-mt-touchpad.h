@@ -457,6 +457,7 @@ struct tp_dispatch {
 	struct {
 		struct libinput_device_config_dwtp config;
 		bool dwtp_enabled;
+		uint64_t timeout;
 
 		int32_t right_edge; /* in device coordinates */
 		int32_t left_edge;  /* in device coordinates */

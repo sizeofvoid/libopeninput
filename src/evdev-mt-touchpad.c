@@ -2145,8 +2145,7 @@ tp_trackpoint_event(uint64_t time, struct libinput_event *event, void *data)
 		tp->palm.trackpoint_active = true;
 	}
 
-	libinput_timer_set(&tp->palm.trackpoint_timer,
-			   time + DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT);
+	libinput_timer_set(&tp->palm.trackpoint_timer, time + tp->palm.timeout);
 }
 
 static void
@@ -3244,6 +3243,29 @@ tp_dwtp_config_get_default(struct libinput_device *device)
 					   : LIBINPUT_CONFIG_DWTP_DISABLED;
 }
 
+static enum libinput_config_status
+tp_dwtp_config_set_timeout(struct libinput_device *device, uint64_t timeout)
+{
+	struct evdev_device *evdev = evdev_device(device);
+	struct tp_dispatch *tp = (struct tp_dispatch *)evdev->dispatch;
+
+	if (timeout <= ms2us(100) || timeout >= ms2us(5000))
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	tp->palm.timeout = timeout;
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static uint64_t
+tp_dwtp_config_get_timeout(struct libinput_device *device)
+{
+	struct evdev_device *evdev = evdev_device(device);
+	struct tp_dispatch *tp = (struct tp_dispatch *)evdev->dispatch;
+
+	return tp->palm.timeout;
+}
+
 static inline bool
 tp_is_tpkb_combo_below(struct evdev_device *device)
 {
@@ -3299,6 +3321,9 @@ tp_init_dwtp(struct tp_dispatch *tp, struct evdev_device *device)
 	tp->palm.config.set_enabled = tp_dwtp_config_set;
 	tp->palm.config.get_enabled = tp_dwtp_config_get;
 	tp->palm.config.get_default_enabled = tp_dwtp_config_get_default;
+	tp->palm.config.set_timeout = tp_dwtp_config_set_timeout;
+	tp->palm.config.get_timeout = tp_dwtp_config_get_timeout;
+	tp->palm.timeout = DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT;
 	device->base.config.dwtp = &tp->palm.config;
 }
 

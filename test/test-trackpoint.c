@@ -283,12 +283,25 @@ START_TEST(trackpoint_topsoftbuttons_left_handed_both)
 END_TEST
 
 static inline void
-enable_dwtp(struct litest_device *dev)
+enable_dwtp_with_timeout(struct litest_device *dev, uint32_t timeout)
 {
 	enum libinput_config_status status, expected = LIBINPUT_CONFIG_STATUS_SUCCESS;
 	status = libinput_device_config_dwtp_set_enabled(dev->libinput_device,
 							 LIBINPUT_CONFIG_DWTP_ENABLED);
 	litest_assert_enum_eq(status, expected);
+
+	if (timeout) {
+		auto status =
+			libinput_device_config_dwtp_set_timeout(dev->libinput_device,
+								timeout);
+		litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	}
+}
+
+static inline void
+enable_dwtp(struct litest_device *dev)
+{
+	enable_dwtp_with_timeout(dev, 0);
 }
 
 static inline void
@@ -305,11 +318,12 @@ START_TEST(trackpoint_palmdetect)
 	struct litest_device *trackpoint = litest_current_device();
 	struct libinput *li = trackpoint->libinput;
 	int i;
+	uint32_t timeout = litest_test_param_get_u32(test_env->params, "timeout");
 
 	_destroy_(litest_device) *touchpad =
 		litest_add_device(li, LITEST_SYNAPTICS_I2C);
 	if (has_disable_while_trackpointing(touchpad))
-		enable_dwtp(touchpad);
+		enable_dwtp_with_timeout(touchpad, timeout);
 
 	litest_disable_hold_gestures(touchpad->libinput_device);
 	litest_drain_events(li);
@@ -327,7 +341,11 @@ START_TEST(trackpoint_palmdetect)
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
-	litest_timeout_trackpoint(li);
+	if (timeout) {
+		litest_timeout(li, timeout);
+	} else {
+		litest_timeout_trackpoint(li);
+	}
 
 	litest_touch_down(touchpad, 0, 30, 30);
 	litest_touch_move_to(touchpad, 0, 30, 30, 80, 80, 10);
@@ -472,7 +490,9 @@ TEST_COLLECTION(trackpoint)
 	litest_add(trackpoint_topsoftbuttons_left_handed_touchpad, LITEST_TOPBUTTONPAD, LITEST_ANY);
 	litest_add(trackpoint_topsoftbuttons_left_handed_both, LITEST_TOPBUTTONPAD, LITEST_ANY);
 
-	litest_add(trackpoint_palmdetect, LITEST_POINTINGSTICK, LITEST_ANY);
+	litest_with_parameters(params, "timeout", 'u', 4, 0, 120, 300, 900) {
+		litest_add_parametrized(trackpoint_palmdetect, LITEST_POINTINGSTICK, LITEST_ANY, params);
+	}
 	litest_add(trackpoint_palmdetect_dwtp_disabled, LITEST_POINTINGSTICK, LITEST_ANY);
 	litest_add(trackpoint_palmdetect_resume_touch, LITEST_POINTINGSTICK, LITEST_ANY);
 	litest_add(trackpoint_palmdetect_require_min_events, LITEST_POINTINGSTICK, LITEST_ANY);

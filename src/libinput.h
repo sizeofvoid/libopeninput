@@ -6807,6 +6807,8 @@ enum libinput_config_dwtp_state {
  * @see libinput_device_config_dwtp_set_enabled
  * @see libinput_device_config_dwtp_get_enabled
  * @see libinput_device_config_dwtp_get_default_enabled
+ * @see libinput_device_config_dwtp_get_timeout
+ * @see libinput_device_config_dwtp_set_timeout
  *
  * @since 1.21
  */
@@ -6833,6 +6835,8 @@ libinput_device_config_dwtp_is_available(struct libinput_device *device);
  * @see libinput_device_config_dwtp_is_available
  * @see libinput_device_config_dwtp_get_enabled
  * @see libinput_device_config_dwtp_get_default_enabled
+ * @see libinput_device_config_dwtp_get_timeout
+ * @see libinput_device_config_dwtp_set_timeout
  *
  * @since 1.21
  */
@@ -6854,6 +6858,8 @@ libinput_device_config_dwtp_set_enabled(struct libinput_device *device,
  * @see libinput_device_config_dwtp_is_available
  * @see libinput_device_config_dwtp_set_enabled
  * @see libinput_device_config_dwtp_get_default_enabled
+ * @see libinput_device_config_dwtp_get_timeout
+ * @see libinput_device_config_dwtp_set_timeout
  *
  * @since 1.21
  */
@@ -6874,11 +6880,50 @@ libinput_device_config_dwtp_get_enabled(struct libinput_device *device);
  * @see libinput_device_config_dwtp_is_available
  * @see libinput_device_config_dwtp_set_enabled
  * @see libinput_device_config_dwtp_get_enabled
+ * @see libinput_device_config_dwtp_get_timeout
+ * @see libinput_device_config_dwtp_set_timeout
  *
  * @since 1.21
  */
 enum libinput_config_dwtp_state
 libinput_device_config_dwtp_get_default_enabled(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Set the disable-while-trackpointing timeout. This timeout denotes the time
+ * in milliseconds between the last trackpoint event and the touchpad re-enabling.
+ *
+ * The timeout only takes effect if disable-while-trackpointing is enabled.
+ *
+ * @note The timeout is not the only condition for disable-while-trackpointing, expiry
+ * of the timeout does not guarantee that the touchpad is re-enabled.
+ *
+ * @see libinput_device_config_dwtp_is_available
+ * @see libinput_device_config_dwtp_set_enabled
+ * @see libinput_device_config_dwtp_get_enabled
+ * @see libinput_device_config_dwtp_get_timeout
+ *
+ * @since 1.31
+ */
+enum libinput_config_status
+libinput_device_config_dwtp_set_timeout(struct libinput_device *device,
+					uint32_t millis);
+
+/**
+ * @ingroup config
+ *
+ * Get the current disable-while-trackpointing timeout.
+ *
+ * @see libinput_device_config_dwtp_is_available
+ * @see libinput_device_config_dwtp_set_enabled
+ * @see libinput_device_config_dwtp_get_enabled
+ * @see libinput_device_config_dwtp_set_timeout
+ *
+ * @since 1.31
+ */
+uint32_t
+libinput_device_config_dwtp_get_timeout(struct libinput_device *device);
 
 /**
  * @ingroup config

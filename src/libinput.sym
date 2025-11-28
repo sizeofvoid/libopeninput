@@ -384,4 +384,6 @@ LIBINPUT_1.30 {
 LIBINPUT_1.31 {
 	libinput_device_config_dwt_get_timeout;
 	libinput_device_config_dwt_set_timeout;
+	libinput_device_config_dwtp_get_timeout;
+	libinput_device_config_dwtp_set_timeout;
 } LIBINPUT_1.30;
