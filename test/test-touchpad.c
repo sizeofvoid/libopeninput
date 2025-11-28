@@ -3975,6 +3975,7 @@ START_TEST(touchpad_dwt_type)
 	struct litest_device *keyboard;
 	struct libinput *li = touchpad->libinput;
 	int i;
+	uint32_t timeout = litest_test_param_get_u32(test_env->params, "timeout");
 
 	if (!has_disable_while_typing(touchpad))
 		return LITEST_NOT_APPLICABLE;
@@ -3983,6 +3984,13 @@ START_TEST(touchpad_dwt_type)
 	litest_disable_tap(touchpad->libinput_device);
 	litest_disable_hold_gestures(touchpad->libinput_device);
 	litest_drain_events(li);
+
+	if (timeout) {
+		auto status = libinput_device_config_dwt_set_timeout(
+			touchpad->libinput_device,
+			timeout);
+		litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	}
 
 	for (i = 0; i < 5; i++) {
 		litest_keyboard_key(keyboard, KEY_A, true);
@@ -3997,7 +4005,12 @@ START_TEST(touchpad_dwt_type)
 	litest_touch_up(touchpad, 0);
 	litest_assert_empty_queue(li);
 
-	litest_timeout_dwt_long(li);
+	if (timeout) {
+		litest_timeout(li, timeout);
+	} else {
+		litest_timeout_dwt_long(li);
+	}
+
 	litest_touch_down(touchpad, 0, 50, 50);
 	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 5);
 	litest_touch_up(touchpad, 0);
@@ -4499,6 +4512,9 @@ START_TEST(touchpad_dwt_config_default_on)
 	state = libinput_device_config_dwt_get_default_enabled(device);
 	litest_assert_enum_eq(state, LIBINPUT_CONFIG_DWT_ENABLED);
 
+	uint32_t timeout = libinput_device_config_dwt_get_timeout(device);
+	litest_assert_int_eq(timeout, 500U);
+
 	status = libinput_device_config_dwt_set_enabled(device,
 							LIBINPUT_CONFIG_DWT_ENABLED);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
@@ -4508,6 +4524,22 @@ START_TEST(touchpad_dwt_config_default_on)
 
 	status = libinput_device_config_dwt_set_enabled(device, 3);
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+
+	/* Configurable even if disabled */
+	status = libinput_device_config_dwt_set_timeout(device, 600);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	timeout = libinput_device_config_dwt_get_timeout(device);
+	litest_assert_int_eq(timeout, 600U);
+
+	/* Too short, too long */
+	status = libinput_device_config_dwt_set_timeout(device, 10);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	timeout = libinput_device_config_dwt_get_timeout(device);
+	litest_assert_int_eq(timeout, 600U);
+	status = libinput_device_config_dwt_set_timeout(device, 5000);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+	timeout = libinput_device_config_dwt_get_timeout(device);
+	litest_assert_int_eq(timeout, 600U);
 }
 END_TEST
 
@@ -7169,7 +7201,9 @@ TEST_COLLECTION(touchpad_dwt)
 	litest_add(touchpad_dwt_key_hold_timeout, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_key_hold_timeout_existing_touch, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_key_hold_timeout_existing_touch_cornercase, LITEST_TOUCHPAD, LITEST_ANY);
-	litest_add(touchpad_dwt_type, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_with_parameters(params, "timeout", 'u', 4, 0, 120, 300, 900) {
+		litest_add_parametrized(touchpad_dwt_type, LITEST_TOUCHPAD, LITEST_ANY, params);
+	}
 	litest_add(touchpad_dwt_type_short_timeout, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_shift_combo_triggers_dwt, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_modifier_no_dwt, LITEST_TOUCHPAD, LITEST_ANY);

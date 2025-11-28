@@ -380,3 +380,8 @@ LIBINPUT_1.30 {
 	libinput_plugin_system_append_path;
 	libinput_plugin_system_load_plugins;
 } LIBINPUT_1.29;
+
+LIBINPUT_1.31 {
+	libinput_device_config_dwt_get_timeout;
+	libinput_device_config_dwt_set_timeout;
+} LIBINPUT_1.30;

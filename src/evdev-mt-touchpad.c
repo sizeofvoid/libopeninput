@@ -2156,8 +2156,7 @@ tp_keyboard_timeout(uint64_t now, void *data)
 
 	if (tp->dwt.dwt_enabled &&
 	    long_any_bit_set(tp->dwt.key_mask, ARRAY_LENGTH(tp->dwt.key_mask))) {
-		libinput_timer_set(&tp->dwt.keyboard_timer,
-				   now + DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_2);
+		libinput_timer_set(&tp->dwt.keyboard_timer, now + tp->dwt.timeout);
 		tp->dwt.keyboard_last_press_time = now;
 		evdev_log_debug(tp->device, "palm: keyboard timeout refresh\n");
 		return;
@@ -2272,7 +2271,7 @@ tp_keyboard_event(uint64_t time, struct libinput_event *event, void *data)
 		tp->dwt.keyboard_active = true;
 		timeout = DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_1;
 	} else {
-		timeout = DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_2;
+		timeout = tp->dwt.timeout;
 	}
 
 	tp->dwt.keyboard_last_press_time = time;
@@ -3170,6 +3169,29 @@ tp_dwt_config_get_default(struct libinput_device *device)
 					  : LIBINPUT_CONFIG_DWT_DISABLED;
 }
 
+static enum libinput_config_status
+tp_dwt_config_set_timeout(struct libinput_device *device, uint64_t timeout)
+{
+	struct evdev_device *evdev = evdev_device(device);
+	struct tp_dispatch *tp = (struct tp_dispatch *)evdev->dispatch;
+
+	if (timeout <= ms2us(100) || timeout >= ms2us(5000))
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	tp->dwt.timeout = timeout;
+
+	return LIBINPUT_CONFIG_STATUS_SUCCESS;
+}
+
+static uint64_t
+tp_dwt_config_get_timeout(struct libinput_device *device)
+{
+	struct evdev_device *evdev = evdev_device(device);
+	struct tp_dispatch *tp = (struct tp_dispatch *)evdev->dispatch;
+
+	return tp->dwt.timeout;
+}
+
 static int
 tp_dwtp_config_is_available(struct libinput_device *device)
 {
@@ -3258,7 +3280,10 @@ tp_init_dwt(struct tp_dispatch *tp, struct evdev_device *device)
 	tp->dwt.config.set_enabled = tp_dwt_config_set;
 	tp->dwt.config.get_enabled = tp_dwt_config_get;
 	tp->dwt.config.get_default_enabled = tp_dwt_config_get_default;
+	tp->dwt.config.set_timeout = tp_dwt_config_set_timeout;
+	tp->dwt.config.get_timeout = tp_dwt_config_get_timeout;
 	tp->dwt.dwt_enabled = tp_dwt_default_enabled(tp);
+	tp->dwt.timeout = DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_2;
 	device->base.config.dwt = &tp->dwt.config;
 }
 

@@ -470,6 +470,9 @@ struct libinput_device_config_dwt {
 	enum libinput_config_dwt_state (*get_enabled)(struct libinput_device *device);
 	enum libinput_config_dwt_state (*get_default_enabled)(
 		struct libinput_device *device);
+	enum libinput_config_status (*set_timeout)(struct libinput_device *device,
+						   uint64_t timeout);
+	uint64_t (*get_timeout)(struct libinput_device *device);
 };
 
 struct libinput_device_config_dwtp {

@@ -4916,6 +4916,27 @@ libinput_device_config_dwt_get_default_enabled(struct libinput_device *device)
 	return device->config.dwt->get_default_enabled(device);
 }
 
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_dwt_set_timeout(struct libinput_device *device, uint32_t millis)
+{
+	if (millis == 0)
+		return LIBINPUT_CONFIG_STATUS_INVALID;
+
+	if (!libinput_device_config_dwt_is_available(device))
+		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+
+	return device->config.dwt->set_timeout(device, ms2us(millis));
+}
+
+LIBINPUT_EXPORT uint32_t
+libinput_device_config_dwt_get_timeout(struct libinput_device *device)
+{
+	if (!libinput_device_config_dwt_is_available(device))
+		return 0;
+
+	return us2ms(device->config.dwt->get_timeout(device));
+}
+
 LIBINPUT_EXPORT int
 libinput_device_config_dwtp_is_available(struct libinput_device *device)
 {

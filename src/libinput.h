@@ -6668,6 +6668,8 @@ enum libinput_config_dwt_state {
  * @see libinput_device_config_dwt_set_enabled
  * @see libinput_device_config_dwt_get_enabled
  * @see libinput_device_config_dwt_get_default_enabled
+ * @see libinput_device_config_dwt_get_timeout
+ * @see libinput_device_config_dwt_set_timeout
  */
 int
 libinput_device_config_dwt_is_available(struct libinput_device *device);
@@ -6692,6 +6694,8 @@ libinput_device_config_dwt_is_available(struct libinput_device *device);
  * @see libinput_device_config_dwt_is_available
  * @see libinput_device_config_dwt_get_enabled
  * @see libinput_device_config_dwt_get_default_enabled
+ * @see libinput_device_config_dwt_get_timeout
+ * @see libinput_device_config_dwt_set_timeout
  */
 enum libinput_config_status
 libinput_device_config_dwt_set_enabled(struct libinput_device *device,
@@ -6711,6 +6715,8 @@ libinput_device_config_dwt_set_enabled(struct libinput_device *device,
  * @see libinput_device_config_dwt_is_available
  * @see libinput_device_config_dwt_set_enabled
  * @see libinput_device_config_dwt_get_default_enabled
+ * @see libinput_device_config_dwt_get_timeout
+ * @see libinput_device_config_dwt_set_timeout
  */
 enum libinput_config_dwt_state
 libinput_device_config_dwt_get_enabled(struct libinput_device *device);
@@ -6729,9 +6735,50 @@ libinput_device_config_dwt_get_enabled(struct libinput_device *device);
  * @see libinput_device_config_dwt_is_available
  * @see libinput_device_config_dwt_set_enabled
  * @see libinput_device_config_dwt_get_enabled
+ * @see libinput_device_config_dwt_get_timeout
+ * @see libinput_device_config_dwt_set_timeout
  */
 enum libinput_config_dwt_state
 libinput_device_config_dwt_get_default_enabled(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Set the disable-while-typing timeout. This timeout denotes the time
+ * in milliseconds between the last key event and the touchpad re-enabling.
+ *
+ * The timeout only takes effect if disable-while-typing is enabled. libinput
+ * implements implementation-defined minimum/maximum timeout values, setting
+ * a timeout outside of those returns @ref LIBINPUT_CONFIG_STATUS_INVALID.
+ * Normal use-cases should never hit these limits.
+ *
+ * @note The timeout is not the only condition for disable-while-typing, expiry of
+ *       the timeout does not guarantee that the touchpad is re-enabled.
+ *
+ * @see libinput_device_config_dwt_is_available
+ * @see libinput_device_config_dwt_set_enabled
+ * @see libinput_device_config_dwt_get_enabled
+ * @see libinput_device_config_dwt_get_timeout
+ *
+ * @since 1.31
+ */
+enum libinput_config_status
+libinput_device_config_dwt_set_timeout(struct libinput_device *device, uint32_t millis);
+
+/**
+ * @ingroup config
+ *
+ * Get the current disable-while-typing timeout.
+ *
+ * @see libinput_device_config_dwt_is_available
+ * @see libinput_device_config_dwt_set_enabled
+ * @see libinput_device_config_dwt_get_enabled
+ * @see libinput_device_config_dwt_set_timeout
+ *
+ * @since 1.31
+ */
+uint32_t
+libinput_device_config_dwt_get_timeout(struct libinput_device *device);
 
 /**
  * @ingroup config

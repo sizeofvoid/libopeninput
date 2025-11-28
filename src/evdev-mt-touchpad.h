@@ -486,6 +486,7 @@ struct tp_dispatch {
 	struct {
 		struct libinput_device_config_dwt config;
 		bool dwt_enabled;
+		uint64_t timeout;
 
 		/* We have to allow for more than one device node to be the
 		 * internal dwt keyboard (Razer Blade). But they're the same
