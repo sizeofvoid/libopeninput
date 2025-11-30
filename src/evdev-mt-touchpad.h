@@ -373,8 +373,6 @@ struct tp_dispatch {
 
 		struct libinput_timer drag_3fg_timer;
 		usec_t drag_3fg_release_time;
-
-		struct libinput_timer drag_3fg_or_swipe_timer;
 	} gesture;
 
 	struct {
@@ -493,7 +491,7 @@ struct tp_dispatch {
 	struct {
 		struct libinput_device_config_dwt config;
 		bool dwt_enabled;
-		uint64_t timeout;
+		usec_t timeout;
 
 		/* We have to allow for more than one device node to be the
 		 * internal dwt keyboard (Razer Blade). But they're the same

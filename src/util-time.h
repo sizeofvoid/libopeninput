@@ -41,19 +41,19 @@ DECLARE_NEWTYPE(usec, uint64_t);
 static inline usec_t
 usec_from_millis(uint32_t millis)
 {
-	return usec_from_uint64_t(millis * 1000ULL);
+	return usec_from_uint64_t(millis * 1000);
 }
 
 static inline usec_t
 usec_from_seconds(uint32_t secs)
 {
-	return usec_from_uint64_t(secs * 1000000ULL);
+	return usec_from_millis(secs * 1000);
 }
 
 static inline usec_t
 usec_from_hours(uint32_t hours)
 {
-	return usec_from_uint64_t((uint64_t)hours * 3600 * 1000000ULL);
+	return usec_from_seconds(hours * 3600);
 }
 
 static inline uint32_t
@@ -83,7 +83,7 @@ usec_to_hours(usec_t us)
 static inline usec_t
 usec_add_millis(usec_t us, uint32_t millis)
 {
-	return usec_from_uint64_t(usec_as_uint64_t(us) + millis * 1000ULL);
+	return usec_from_uint64_t(usec_as_uint64_t(us) + millis * 1000);
 }
 
 static inline usec_t
@@ -101,13 +101,13 @@ us2ms_f(usec_t us)
 static inline usec_t
 usec_from_timeval(const struct timeval *tv)
 {
-	return usec_from_uint64_t(tv->tv_sec * 1000000ULL + tv->tv_usec);
+	return usec_from_uint64_t(tv->tv_sec * 1000000 + tv->tv_usec);
 }
 
 static inline usec_t
 usec_from_timespec(const struct timespec *tp)
 {
-	return usec_from_uint64_t(tp->tv_sec * 1000000ULL + tp->tv_nsec / 1000);
+	return usec_from_uint64_t(tp->tv_sec * 1000000 + tp->tv_nsec / 1000);
 }
 
 static inline usec_t

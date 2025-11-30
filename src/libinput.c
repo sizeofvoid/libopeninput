@@ -4952,7 +4952,8 @@ libinput_device_config_dwt_set_timeout(struct libinput_device *device, uint32_t 
 	if (!libinput_device_config_dwt_is_available(device))
 		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
 
-	return device->config.dwt->set_timeout(device, ms2us(millis));
+	usec_t timeout = usec_from_millis(millis);
+	return device->config.dwt->set_timeout(device, timeout);
 }
 
 LIBINPUT_EXPORT uint32_t
@@ -4961,7 +4962,7 @@ libinput_device_config_dwt_get_timeout(struct libinput_device *device)
 	if (!libinput_device_config_dwt_is_available(device))
 		return 0;
 
-	return us2ms(device->config.dwt->get_timeout(device));
+	return usec_to_millis(device->config.dwt->get_timeout(device));
 }
 
 LIBINPUT_EXPORT int
@@ -5015,7 +5016,8 @@ libinput_device_config_dwtp_set_timeout(struct libinput_device *device, uint32_t
 	if (!libinput_device_config_dwtp_is_available(device))
 		return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
 
-	return device->config.dwtp->set_timeout(device, ms2us(millis));
+	usec_t timeout = usec_from_millis(millis);
+	return device->config.dwtp->set_timeout(device, timeout);
 }
 
 LIBINPUT_EXPORT uint32_t
@@ -5024,7 +5026,7 @@ libinput_device_config_dwtp_get_timeout(struct libinput_device *device)
 	if (!libinput_device_config_dwtp_is_available(device))
 		return 0;
 
-	return us2ms(device->config.dwtp->get_timeout(device));
+	return usec_to_millis(device->config.dwtp->get_timeout(device));
 }
 
 LIBINPUT_EXPORT int

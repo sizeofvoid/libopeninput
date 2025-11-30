@@ -2152,7 +2152,8 @@ tp_trackpoint_event(usec_t time, struct libinput_event *event, void *data)
 		tp->palm.trackpoint_active = true;
 	}
 
-	libinput_timer_set(&tp->palm.trackpoint_timer, time + tp->palm.timeout);
+	libinput_timer_set(&tp->palm.trackpoint_timer,
+			   usec_add(time, tp->palm.timeout));
 }
 
 static void
@@ -2162,7 +2163,8 @@ tp_keyboard_timeout(usec_t now, void *data)
 
 	if (tp->dwt.dwt_enabled &&
 	    long_any_bit_set(tp->dwt.key_mask, ARRAY_LENGTH(tp->dwt.key_mask))) {
-		libinput_timer_set(&tp->dwt.keyboard_timer, now + tp->dwt.timeout);
+		libinput_timer_set(&tp->dwt.keyboard_timer,
+				   usec_add(now, tp->dwt.timeout));
 		tp->dwt.keyboard_last_press_time = now;
 		evdev_log_debug(tp->device, "palm: keyboard timeout refresh\n");
 		return;
@@ -3209,12 +3211,13 @@ tp_dwt_config_get_default(struct libinput_device *device)
 }
 
 static enum libinput_config_status
-tp_dwt_config_set_timeout(struct libinput_device *device, uint64_t timeout)
+tp_dwt_config_set_timeout(struct libinput_device *device, usec_t timeout)
 {
 	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch *)evdev->dispatch;
 
-	if (timeout < ms2us(100) || timeout > ms2us(5000))
+	if (usec_cmp(timeout, usec_from_millis(100)) < 0 ||
+	    usec_cmp(timeout, usec_from_millis(5000)) > 0)
 		return LIBINPUT_CONFIG_STATUS_INVALID;
 
 	tp->dwt.timeout = timeout;
@@ -3222,7 +3225,7 @@ tp_dwt_config_set_timeout(struct libinput_device *device, uint64_t timeout)
 	return LIBINPUT_CONFIG_STATUS_SUCCESS;
 }
 
-static uint64_t
+static usec_t
 tp_dwt_config_get_timeout(struct libinput_device *device)
 {
 	struct evdev_device *evdev = evdev_device(device);
@@ -3284,12 +3287,13 @@ tp_dwtp_config_get_default(struct libinput_device *device)
 }
 
 static enum libinput_config_status
-tp_dwtp_config_set_timeout(struct libinput_device *device, uint64_t timeout)
+tp_dwtp_config_set_timeout(struct libinput_device *device, usec_t timeout)
 {
 	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch *)evdev->dispatch;
 
-	if (timeout < ms2us(100) || timeout > ms2us(5000))
+	if (usec_cmp(timeout, usec_from_millis(100)) < 0 ||
+	    usec_cmp(timeout, usec_from_millis(5000)) > 0)
 		return LIBINPUT_CONFIG_STATUS_INVALID;
 
 	tp->palm.timeout = timeout;
@@ -3297,7 +3301,7 @@ tp_dwtp_config_set_timeout(struct libinput_device *device, uint64_t timeout)
 	return LIBINPUT_CONFIG_STATUS_SUCCESS;
 }
 
-static uint64_t
+static usec_t
 tp_dwtp_config_get_timeout(struct libinput_device *device)
 {
 	struct evdev_device *evdev = evdev_device(device);
