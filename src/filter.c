@@ -35,13 +35,13 @@
 #include "filter.h"
 #include "libinput-util.h"
 
-#define MOTION_TIMEOUT		ms2us(1000)
+#define MOTION_TIMEOUT		usec_from_millis(1000)
 
 struct normalized_coords
 filter_dispatch(struct motion_filter *filter,
 		const struct device_float_coords *unaccelerated,
 		void *data,
-		uint64_t time)
+		usec_t time)
 {
 	return filter->interface->filter(filter, unaccelerated, data, time);
 }
@@ -50,7 +50,7 @@ struct normalized_coords
 filter_dispatch_constant(struct motion_filter *filter,
 			 const struct device_float_coords *unaccelerated,
 			 void *data,
-			 uint64_t time)
+			 usec_t time)
 {
 	return filter->interface->filter_constant(filter, unaccelerated, data, time);
 }
@@ -59,7 +59,7 @@ struct normalized_coords
 filter_dispatch_scroll(struct motion_filter *filter,
 		       const struct device_float_coords *unaccelerated,
 		       void *data,
-		       uint64_t time,
+		       usec_t time,
 		       enum filter_scroll_type type)
 {
 	return filter->interface->filter_scroll(filter,
@@ -70,7 +70,7 @@ filter_dispatch_scroll(struct motion_filter *filter,
 }
 
 void
-filter_restart(struct motion_filter *filter, void *data, uint64_t time)
+filter_restart(struct motion_filter *filter, void *data, usec_t time)
 {
 	if (filter->interface->restart)
 		filter->interface->restart(filter, data, time);
@@ -132,14 +132,14 @@ trackers_free(struct pointer_trackers *trackers)
 }
 
 void
-trackers_reset(struct pointer_trackers *trackers, uint64_t time)
+trackers_reset(struct pointer_trackers *trackers, usec_t time)
 {
 	unsigned int offset;
 	struct pointer_tracker *tracker;
 
 	for (offset = 1; offset < trackers->ntrackers; offset++) {
 		tracker = trackers_by_offset(trackers, offset);
-		tracker->time = 0;
+		tracker->time = usec_from_uint64_t(0);
 		tracker->dir = 0;
 		tracker->delta.x = 0;
 		tracker->delta.y = 0;
@@ -153,7 +153,7 @@ trackers_reset(struct pointer_trackers *trackers, uint64_t time)
 void
 trackers_feed(struct pointer_trackers *trackers,
 	      const struct device_float_coords *delta,
-	      uint64_t time)
+	      usec_t time)
 {
 	unsigned int i, current;
 	struct pointer_tracker *ts = trackers->trackers;
@@ -184,16 +184,17 @@ trackers_by_offset(struct pointer_trackers *trackers, unsigned int offset)
 
 static double
 calculate_trackers_velocity(const struct pointer_tracker *tracker,
-			    uint64_t time,
+			    usec_t time,
 			    struct pointer_delta_smoothener *smoothener)
 {
-	uint64_t tdelta = time - tracker->time + 1;
+	usec_t tdelta = usec_delta(time, tracker->time);
+	tdelta = usec_add(tdelta, usec_from_uint64_t(1));
 
-	if (smoothener && tdelta < smoothener->threshold)
+	if (smoothener && usec_cmp(tdelta, smoothener->threshold) < 0)
 		tdelta = smoothener->value;
 
 	return hypot(tracker->delta.x, tracker->delta.y) /
-	       (double)tdelta; /* units/us */
+	       (double)usec_as_uint64_t(tdelta); /* units/us */
 }
 
 static double
@@ -212,7 +213,7 @@ trackers_velocity_after_timeout(const struct pointer_tracker *tracker,
 	 * movement in normal use-cases (pause, move, pause, move)
 	 */
 	return calculate_trackers_velocity(tracker,
-					   tracker->time + MOTION_TIMEOUT,
+					   usec_add(tracker->time, MOTION_TIMEOUT),
 					   smoothener);
 }
 
@@ -224,9 +225,9 @@ trackers_velocity_after_timeout(const struct pointer_tracker *tracker,
  * change between events.
  */
 double
-trackers_velocity(struct pointer_trackers *trackers, uint64_t time)
+trackers_velocity(struct pointer_trackers *trackers, usec_t time)
 {
-	const double MAX_VELOCITY_DIFF = v_ms2us(1); /* units/us */
+	const double MAX_VELOCITY_DIFF = v_usec_from_millis(1); /* units/us */
 	double result = 0.0;
 	double initial_velocity = 0.0;
 
@@ -239,11 +240,12 @@ trackers_velocity(struct pointer_trackers *trackers, uint64_t time)
 			trackers_by_offset(trackers, offset);
 
 		/* Bug: time running backwards */
-		if (tracker->time > time)
+		if (usec_cmp(tracker->time, time) > 0)
 			break;
 
 		/* Stop if too far away in time */
-		if (time - tracker->time > MOTION_TIMEOUT) {
+		usec_t tdelta = usec_delta(time, tracker->time);
+		if (usec_cmp(tdelta, MOTION_TIMEOUT) > 0) {
 			if (offset == 1)
 				result = trackers_velocity_after_timeout(
 					tracker,
@@ -302,7 +304,7 @@ calculate_acceleration_simpsons(struct motion_filter *filter,
 				void *data,
 				double velocity,
 				double last_velocity,
-				uint64_t time)
+				usec_t time)
 {
 	double factor;
 

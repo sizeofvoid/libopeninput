@@ -36,7 +36,7 @@ void
 libinput_timer_init(struct libinput_timer *timer,
 		    struct libinput *libinput,
 		    const char *timer_name,
-		    void (*timer_func)(uint64_t now, void *timer_func_data),
+		    void (*timer_func)(usec_t now, void *timer_func_data),
 		    void *timer_func_data)
 {
 	timer->libinput = libinput;
@@ -44,7 +44,7 @@ libinput_timer_init(struct libinput_timer *timer,
 	timer->timer_func = timer_func;
 	timer->timer_func_data = timer_func_data;
 	/* at most 5 "expiry in the past" log messages per hour */
-	ratelimit_init(&libinput->timer.expiry_in_past_limit, s2us(60 * 60), 5);
+	ratelimit_init(&libinput->timer.expiry_in_past_limit, usec_from_hours(1), 5);
 }
 
 void
@@ -66,16 +66,15 @@ libinput_timer_arm_timer_fd(struct libinput *libinput)
 	int r;
 	struct libinput_timer *timer;
 	struct itimerspec its = { { 0, 0 }, { 0, 0 } };
-	uint64_t earliest_expire = UINT64_MAX;
+	usec_t earliest_expire = usec_from_uint64_t(UINT64_MAX);
 
 	list_for_each(timer, &libinput->timer.list, link) {
-		if (timer->expire < earliest_expire)
+		if (usec_cmp(timer->expire, earliest_expire) < 0)
 			earliest_expire = timer->expire;
 	}
 
-	if (earliest_expire != UINT64_MAX) {
-		its.it_value.tv_sec = earliest_expire / ms2us(1000);
-		its.it_value.tv_nsec = (earliest_expire % ms2us(1000)) * 1000;
+	if (usec_ne(earliest_expire, UINT64_MAX)) {
+		its.it_value = usec_to_timespec(earliest_expire);
 	}
 
 	r = timerfd_settime(libinput->timer.fd, TFD_TIMER_ABSTIME, &its, NULL);
@@ -88,33 +87,38 @@ libinput_timer_arm_timer_fd(struct libinput *libinput)
 }
 
 void
-libinput_timer_set_flags(struct libinput_timer *timer, uint64_t expire, uint32_t flags)
+libinput_timer_set_flags(struct libinput_timer *timer, usec_t expire, uint32_t flags)
 {
 #ifndef NDEBUG
 	/* We only warn if we're more than 20ms behind */
-	const uint64_t timer_warning_limit = ms2us(20);
-	uint64_t now = libinput_now(timer->libinput);
-	if (expire < now) {
+	const usec_t timer_warning_limit = usec_from_millis(20);
+	usec_t now = libinput_now(timer->libinput);
+	if (usec_cmp(expire, now) < 0) {
+		usec_t tdelta = usec_delta(now, expire);
 		if ((flags & TIMER_FLAG_ALLOW_NEGATIVE) == 0 &&
-		    now - expire > timer_warning_limit)
+		    usec_cmp(tdelta, timer_warning_limit) > 0)
 			log_bug_client_ratelimit(
 				timer->libinput,
 				&timer->libinput->timer.expiry_in_past_limit,
 				"timer %s: scheduled expiry is in the past (-%dms), your system is too slow\n",
 				timer->timer_name,
-				us2ms(now - expire));
-	} else if ((expire - now) > ms2us(5000)) {
-		log_bug_libinput(timer->libinput,
-				 "timer %s: offset more than 5s, now %d expire %d\n",
-				 timer->timer_name,
-				 us2ms(now),
-				 us2ms(expire));
+				usec_to_millis(tdelta));
+	} else {
+		usec_t tdelta = usec_delta(expire, now);
+		if (usec_cmp(tdelta, usec_from_millis(5000)) > 0) {
+			log_bug_libinput(
+				timer->libinput,
+				"timer %s: offset more than 5s, now %d expire %d\n",
+				timer->timer_name,
+				usec_to_millis(now),
+				usec_to_millis(expire));
+		}
 	}
 #endif
 
-	assert(expire);
+	assert(usec_ne(expire, 0));
 
-	if (!timer->expire)
+	if (usec_is_zero(timer->expire))
 		list_insert(&timer->libinput->timer.list, &timer->link);
 
 	timer->expire = expire;
@@ -122,7 +126,7 @@ libinput_timer_set_flags(struct libinput_timer *timer, uint64_t expire, uint32_t
 }
 
 void
-libinput_timer_set(struct libinput_timer *timer, uint64_t expire)
+libinput_timer_set(struct libinput_timer *timer, usec_t expire)
 {
 	libinput_timer_set_flags(timer, expire, TIMER_FLAG_NONE);
 }
@@ -130,25 +134,25 @@ libinput_timer_set(struct libinput_timer *timer, uint64_t expire)
 void
 libinput_timer_cancel(struct libinput_timer *timer)
 {
-	if (!timer->expire)
+	if (usec_is_zero(timer->expire))
 		return;
 
-	timer->expire = 0;
+	timer->expire = usec_from_uint64_t(0);
 	list_remove(&timer->link);
 	libinput_timer_arm_timer_fd(timer->libinput);
 }
 
 static void
-libinput_timer_handler(struct libinput *libinput, uint64_t now)
+libinput_timer_handler(struct libinput *libinput, usec_t now)
 {
 	struct libinput_timer *timer;
 
 restart:
 	list_for_each_safe(timer, &libinput->timer.list, link) {
-		if (timer->expire == 0)
+		if (usec_is_zero(timer->expire))
 			continue;
 
-		if (timer->expire <= now) {
+		if (usec_cmp(timer->expire, now) <= 0) {
 			/* Clear the timer before calling timer_func,
 			   as timer_func may re-arm it */
 			libinput_timer_cancel(timer);
@@ -171,7 +175,7 @@ static void
 libinput_timer_dispatch(void *data)
 {
 	struct libinput *libinput = data;
-	uint64_t now;
+	usec_t now;
 	uint64_t discard;
 	int r;
 
@@ -183,7 +187,7 @@ libinput_timer_dispatch(void *data)
 				 strerror(errno));
 
 	now = libinput_now(libinput);
-	if (now == 0)
+	if (usec_is_zero(now))
 		return;
 
 	libinput_timer_handler(libinput, now);
@@ -243,23 +247,24 @@ libinput_timer_subsys_destroy(struct libinput *libinput)
  * before this time. If so, trigger the timer func.
  */
 void
-libinput_timer_flush(struct libinput *libinput, uint64_t now)
+libinput_timer_flush(struct libinput *libinput, usec_t now)
 {
-	if (libinput->timer.next_expiry == 0 || libinput->timer.next_expiry > now)
+	if (usec_is_zero(libinput->timer.next_expiry) ||
+	    usec_cmp(libinput->timer.next_expiry, now) > 0)
 		return;
 
 	libinput_timer_handler(libinput, now);
 }
 
-uint64_t
+usec_t
 libinput_now(struct libinput *libinput)
 {
-	uint64_t now;
+	usec_t now;
 	int rc = now_in_us(&now);
 
 	if (rc < 0) {
 		log_error(libinput, "clock_gettime failed: %s\n", strerror(-rc));
-		return 0;
+		return usec_from_uint64_t(0);
 	}
 
 	return now;

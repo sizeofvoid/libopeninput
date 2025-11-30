@@ -32,8 +32,8 @@
 #include "evdev-mt-touchpad.h"
 #include "linux/input.h"
 
-#define DEFAULT_BUTTON_ENTER_TIMEOUT ms2us(100)
-#define DEFAULT_BUTTON_LEAVE_TIMEOUT ms2us(300)
+#define DEFAULT_BUTTON_ENTER_TIMEOUT usec_from_millis(100)
+#define DEFAULT_BUTTON_LEAVE_TIMEOUT usec_from_millis(300)
 
 /*****************************************
  * BEFORE YOU EDIT THIS FILE, look at the state diagram in
@@ -121,15 +121,17 @@ is_inside_top_middle_area(const struct tp_dispatch *tp, const struct tp_touch *t
 }
 
 static void
-tp_button_set_enter_timer(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+tp_button_set_enter_timer(struct tp_dispatch *tp, struct tp_touch *t, usec_t time)
 {
-	libinput_timer_set(&t->button.timer, time + DEFAULT_BUTTON_ENTER_TIMEOUT);
+	libinput_timer_set(&t->button.timer,
+			   usec_add(time, DEFAULT_BUTTON_ENTER_TIMEOUT));
 }
 
 static void
-tp_button_set_leave_timer(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+tp_button_set_leave_timer(struct tp_dispatch *tp, struct tp_touch *t, usec_t time)
 {
-	libinput_timer_set(&t->button.timer, time + DEFAULT_BUTTON_LEAVE_TIMEOUT);
+	libinput_timer_set(&t->button.timer,
+			   usec_add(time, DEFAULT_BUTTON_LEAVE_TIMEOUT));
 }
 
 /*
@@ -141,7 +143,7 @@ tp_button_set_state(struct tp_dispatch *tp,
 		    struct tp_touch *t,
 		    enum button_state new_state,
 		    enum button_event event,
-		    uint64_t time)
+		    usec_t time)
 {
 	libinput_timer_cancel(&t->button.timer);
 
@@ -176,7 +178,7 @@ static void
 tp_button_none_handle_event(struct tp_dispatch *tp,
 			    struct tp_touch *t,
 			    enum button_event event,
-			    uint64_t time)
+			    usec_t time)
 {
 	switch (event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
@@ -206,7 +208,7 @@ static void
 tp_button_area_handle_event(struct tp_dispatch *tp,
 			    struct tp_touch *t,
 			    enum button_event event,
-			    uint64_t time)
+			    usec_t time)
 {
 	switch (event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
@@ -233,23 +235,22 @@ tp_button_area_handle_event(struct tp_dispatch *tp,
  * that triggered this call).
  */
 static inline void
-tp_button_release_other_bottom_touches(struct tp_dispatch *tp,
-				       uint64_t other_start_time)
+tp_button_release_other_bottom_touches(struct tp_dispatch *tp, usec_t other_start_time)
 {
 	struct tp_touch *t;
 
 	tp_for_each_touch(tp, t) {
-		uint64_t tdelta;
+		usec_t tdelta;
 
 		if (t->button.state != BUTTON_STATE_BOTTOM || t->button.has_moved)
 			continue;
 
-		if (other_start_time > t->button.initial_time)
-			tdelta = other_start_time - t->button.initial_time;
+		if (usec_cmp(other_start_time, t->button.initial_time) > 0)
+			tdelta = usec_delta(other_start_time, t->button.initial_time);
 		else
-			tdelta = t->button.initial_time - other_start_time;
+			tdelta = usec_delta(t->button.initial_time, other_start_time);
 
-		if (tdelta > ms2us(80))
+		if (usec_cmp(tdelta, usec_from_millis(80)) > 0)
 			continue;
 
 		t->button.has_moved = true;
@@ -260,7 +261,7 @@ static void
 tp_button_bottom_handle_event(struct tp_dispatch *tp,
 			      struct tp_touch *t,
 			      enum button_event event,
-			      uint64_t time)
+			      usec_t time)
 {
 	switch (event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
@@ -296,7 +297,7 @@ static void
 tp_button_top_handle_event(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum button_event event,
-			   uint64_t time)
+			   usec_t time)
 {
 	switch (event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
@@ -327,7 +328,7 @@ static void
 tp_button_top_new_handle_event(struct tp_dispatch *tp,
 			       struct tp_touch *t,
 			       enum button_event event,
-			       uint64_t time)
+			       usec_t time)
 {
 	switch (event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
@@ -362,7 +363,7 @@ static void
 tp_button_top_to_ignore_handle_event(struct tp_dispatch *tp,
 				     struct tp_touch *t,
 				     enum button_event event,
-				     uint64_t time)
+				     usec_t time)
 {
 	switch (event) {
 	case BUTTON_EVENT_IN_TOP_R:
@@ -394,7 +395,7 @@ static void
 tp_button_ignore_handle_event(struct tp_dispatch *tp,
 			      struct tp_touch *t,
 			      enum button_event event,
-			      uint64_t time)
+			      usec_t time)
 {
 	switch (event) {
 	case BUTTON_EVENT_IN_BOTTOM_R:
@@ -422,7 +423,7 @@ static void
 tp_button_handle_event(struct tp_dispatch *tp,
 		       struct tp_touch *t,
 		       enum button_event event,
-		       uint64_t time)
+		       usec_t time)
 {
 	enum button_state current = t->button.state;
 
@@ -496,7 +497,7 @@ tp_button_check_for_movement(struct tp_dispatch *tp, struct tp_touch *t)
 }
 
 void
-tp_button_handle_state(struct tp_dispatch *tp, uint64_t time)
+tp_button_handle_state(struct tp_dispatch *tp, usec_t time)
 {
 	struct tp_touch *t;
 
@@ -547,7 +548,7 @@ tp_button_handle_state(struct tp_dispatch *tp, uint64_t time)
 }
 
 static void
-tp_button_handle_timeout(uint64_t now, void *data)
+tp_button_handle_timeout(usec_t now, void *data)
 {
 	struct tp_touch *t = data;
 
@@ -555,7 +556,7 @@ tp_button_handle_timeout(uint64_t now, void *data)
 }
 
 void
-tp_process_button(struct tp_dispatch *tp, const struct evdev_event *e, uint64_t time)
+tp_process_button(struct tp_dispatch *tp, const struct evdev_event *e, usec_t time)
 {
 	uint32_t mask = bit(evdev_usage_enum(e->usage) - EVDEV_BTN_LEFT);
 
@@ -577,7 +578,7 @@ tp_process_button(struct tp_dispatch *tp, const struct evdev_event *e, uint64_t 
 }
 
 void
-tp_release_all_buttons(struct tp_dispatch *tp, uint64_t time)
+tp_release_all_buttons(struct tp_dispatch *tp, usec_t time)
 {
 	if (tp->buttons.state) {
 		tp->buttons.state = 0;
@@ -1032,7 +1033,7 @@ tp_remove_buttons(struct tp_dispatch *tp)
 }
 
 static int
-tp_post_physical_buttons(struct tp_dispatch *tp, uint64_t time)
+tp_post_physical_buttons(struct tp_dispatch *tp, usec_t time)
 {
 	uint32_t current, old, button;
 
@@ -1180,7 +1181,7 @@ out:
 
 static int
 tp_notify_clickpadbutton(struct tp_dispatch *tp,
-			 uint64_t time,
+			 usec_t time,
 			 evdev_usage_t button,
 			 uint32_t is_topbutton,
 			 enum libinput_button_state state)
@@ -1227,7 +1228,7 @@ tp_notify_clickpadbutton(struct tp_dispatch *tp,
 }
 
 static int
-tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
+tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, usec_t time)
 {
 	uint32_t current, old, is_top;
 	evdev_usage_t button;
@@ -1332,7 +1333,7 @@ tp_post_clickpadbutton_buttons(struct tp_dispatch *tp, uint64_t time)
 }
 
 int
-tp_post_button_events(struct tp_dispatch *tp, uint64_t time)
+tp_post_button_events(struct tp_dispatch *tp, usec_t time)
 {
 	if (tp->buttons.is_clickpad ||
 	    tp->device->model_flags & EVDEV_MODEL_APPLE_TOUCHPAD_ONEBUTTON)

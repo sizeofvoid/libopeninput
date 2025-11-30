@@ -30,6 +30,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "util-time.h"
+
 /* Forward declarations instead of #includes to make
  * this header self-contained (bindgen, etc.) */
 struct evdev_frame;
@@ -333,7 +335,7 @@ struct libinput_plugin_timer *
 libinput_plugin_timer_new(struct libinput_plugin *plugin,
 			  const char *name,
 			  void (*func)(struct libinput_plugin *plugin,
-				       uint64_t now,
+				       usec_t now,
 				       void *user_data),
 			  void *user_data);
 
@@ -349,7 +351,7 @@ DEFINE_UNREF_CLEANUP_FUNC(libinput_plugin_timer);
 
 /* Set timer expire time, in absolute us CLOCK_MONOTONIC */
 void
-libinput_plugin_timer_set(struct libinput_plugin_timer *timer, uint64_t expire);
+libinput_plugin_timer_set(struct libinput_plugin_timer *timer, usec_t expire);
 
 void
 libinput_plugin_timer_set_user_data(struct libinput_plugin_timer *timer,

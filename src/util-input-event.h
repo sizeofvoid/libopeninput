@@ -35,10 +35,10 @@
 #include "util-time.h"
 
 static inline struct input_event
-input_event_init(uint64_t time, unsigned int type, unsigned int code, int value)
+input_event_init(usec_t time, unsigned int type, unsigned int code, int value)
 {
 	struct input_event ev;
-	struct timeval tval = us2tv(time);
+	struct timeval tval = usec_to_timeval(time);
 
 	ev.input_event_sec = tval.tv_sec;
 	ev.input_event_usec = tval.tv_usec;
@@ -49,7 +49,7 @@ input_event_init(uint64_t time, unsigned int type, unsigned int code, int value)
 	return ev;
 }
 
-static inline uint64_t
+static inline usec_t
 input_event_time(const struct input_event *e)
 {
 	struct timeval tval;
@@ -57,13 +57,13 @@ input_event_time(const struct input_event *e)
 	tval.tv_sec = e->input_event_sec;
 	tval.tv_usec = e->input_event_usec;
 
-	return tv2us(&tval);
+	return usec_from_timeval(&tval);
 }
 
 static inline void
-input_event_set_time(struct input_event *e, uint64_t time)
+input_event_set_time(struct input_event *e, usec_t time)
 {
-	struct timeval tval = us2tv(time);
+	struct timeval tval = usec_to_timeval(time);
 
 	e->input_event_sec = tval.tv_sec;
 	e->input_event_usec = tval.tv_usec;

@@ -39,14 +39,14 @@
 /* The tablet sends events every ~2ms , 50ms should be plenty enough to
    detect out-of-range.
    This value is higher during test suite runs */
-static int FORCED_PROXOUT_TIMEOUT = 50 * 1000; /* µs */
+static usec_t FORCED_PROXOUT_TIMEOUT = { 50 * 1000 };
 
 struct plugin_device {
 	struct list link;
 
 	struct libinput_plugin_timer *prox_out_timer;
 	bool proximity_out_forced;
-	uint64_t last_event_time;
+	usec_t last_event_time;
 
 	bool pen_state;
 	bitmask_t button_state;
@@ -87,15 +87,15 @@ plugin_data_destroy(void *d)
 }
 
 static inline void
-proximity_timer_plugin_set_timer(struct plugin_device *device, uint64_t time)
+proximity_timer_plugin_set_timer(struct plugin_device *device, usec_t time)
 {
 	libinput_plugin_timer_set(device->prox_out_timer,
-				  time + FORCED_PROXOUT_TIMEOUT);
+				  usec_add(time, FORCED_PROXOUT_TIMEOUT));
 }
 
 static void
 tablet_proximity_out_quirk_timer_func(struct libinput_plugin *plugin,
-				      uint64_t now,
+				      usec_t now,
 				      void *data)
 {
 	struct plugin_device *device = data;
@@ -105,7 +105,8 @@ tablet_proximity_out_quirk_timer_func(struct libinput_plugin *plugin,
 		return;
 	}
 
-	if (device->last_event_time > now - FORCED_PROXOUT_TIMEOUT) {
+	usec_t proxout_time = usec_sub(now, FORCED_PROXOUT_TIMEOUT);
+	if (usec_cmp(device->last_event_time, proxout_time) > 0) {
 		proximity_timer_plugin_set_timer(device, device->last_event_time);
 		return;
 	}
@@ -144,11 +145,10 @@ proximity_timer_plugin_device_handle_frame(struct libinput_plugin *libinput_plug
 					   struct plugin_device *device,
 					   struct evdev_frame *frame)
 {
-	uint64_t time = evdev_frame_get_time(frame);
+	usec_t time = evdev_frame_get_time(frame);
 	/* First event after adding a device - by definition the pen
-	 *
 	 * is in proximity if we get this one */
-	if (device->last_event_time == 0)
+	if (usec_is_zero(device->last_event_time))
 		proximity_timer_plugin_set_timer(device, time);
 
 	device->last_event_time = time;
@@ -303,7 +303,7 @@ libinput_tablet_plugin_proximity_timer(struct libinput *libinput)
 
 	/* Stop false positives caused by the forced proximity code */
 	if (getenv("LIBINPUT_RUNNING_TEST_SUITE"))
-		FORCED_PROXOUT_TIMEOUT = 150 * 1000; /* µs */
+		FORCED_PROXOUT_TIMEOUT = usec_from_millis(150);
 
 	_unref_(libinput_plugin) *p = libinput_plugin_new(libinput,
 							  "tablet-proximity-timer",

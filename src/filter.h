@@ -66,7 +66,7 @@ struct normalized_coords
 filter_dispatch(struct motion_filter *filter,
 		const struct device_float_coords *unaccelerated,
 		void *data,
-		uint64_t time);
+		usec_t time);
 
 /**
  * Apply constant motion filters, but no acceleration.
@@ -88,7 +88,7 @@ struct normalized_coords
 filter_dispatch_constant(struct motion_filter *filter,
 			 const struct device_float_coords *unaccelerated,
 			 void *data,
-			 uint64_t time);
+			 usec_t time);
 
 /**
  * Apply a scroll filter.
@@ -112,11 +112,11 @@ struct normalized_coords
 filter_dispatch_scroll(struct motion_filter *filter,
 		       const struct device_float_coords *unaccelerated,
 		       void *data,
-		       uint64_t time,
+		       usec_t time,
 		       enum filter_scroll_type type);
 
 void
-filter_restart(struct motion_filter *filter, void *data, uint64_t time);
+filter_restart(struct motion_filter *filter, void *data, usec_t time);
 
 void
 filter_destroy(struct motion_filter *filter);
@@ -132,7 +132,7 @@ filter_get_type(struct motion_filter *filter);
 typedef double (*accel_profile_func_t)(struct motion_filter *filter,
 				       void *data,
 				       double velocity,
-				       uint64_t time);
+				       usec_t time);
 
 bool
 filter_set_accel_config(struct motion_filter *filter,
@@ -150,8 +150,8 @@ create_pointer_accelerator_filter_linear_low_dpi(int dpi, bool use_velocity_aver
 
 struct motion_filter *
 create_pointer_accelerator_filter_touchpad(int dpi,
-					   uint64_t event_delta_smooth_threshold,
-					   uint64_t event_delta_smooth_value,
+					   usec_t event_delta_smooth_threshold,
+					   usec_t event_delta_smooth_value,
 					   bool use_velocity_averaging);
 
 struct motion_filter *
@@ -181,40 +181,40 @@ double
 pointer_accel_profile_linear_low_dpi(struct motion_filter *filter,
 				     void *data,
 				     double speed_in,
-				     uint64_t time);
+				     usec_t time);
 double
 pointer_accel_profile_linear(struct motion_filter *filter,
 			     void *data,
 			     double speed_in,
-			     uint64_t time);
+			     usec_t time);
 double
 touchpad_accel_profile_linear(struct motion_filter *filter,
 			      void *data,
 			      double speed_in,
-			      uint64_t time);
+			      usec_t time);
 double
 touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
 				   void *data,
 				   double speed_in,
-				   uint64_t time);
+				   usec_t time);
 double
 trackpoint_accel_profile(struct motion_filter *filter,
 			 void *data,
 			 double velocity,
-			 uint64_t time);
+			 usec_t time);
 double
 custom_accel_profile_fallback(struct motion_filter *filter,
 			      void *data,
 			      double speed_in,
-			      uint64_t time);
+			      usec_t time);
 double
 custom_accel_profile_motion(struct motion_filter *filter,
 			    void *data,
 			    double speed_in,
-			    uint64_t time);
+			    usec_t time);
 double
 custom_accel_profile_scroll(struct motion_filter *filter,
 			    void *data,
 			    double speed_in,
-			    uint64_t time);
+			    usec_t time);
 #endif /* FILTER_H */

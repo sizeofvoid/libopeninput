@@ -29,10 +29,10 @@
 
 #include "evdev-mt-touchpad.h"
 
-#define DEFAULT_TAP_TIMEOUT_PERIOD ms2us(180)
-#define DEFAULT_DRAG_TIMEOUT_PERIOD_BASE ms2us(160)
-#define DEFAULT_DRAG_TIMEOUT_PERIOD_PERFINGER ms2us(20)
-#define DEFAULT_DRAGLOCK_TIMEOUT_PERIOD ms2us(300)
+#define DEFAULT_TAP_TIMEOUT_PERIOD usec_from_millis(180)
+#define DEFAULT_DRAG_TIMEOUT_PERIOD_BASE usec_from_millis(160)
+#define DEFAULT_DRAG_TIMEOUT_PERIOD_PERFINGER usec_from_millis(20)
+#define DEFAULT_DRAGLOCK_TIMEOUT_PERIOD usec_from_millis(300)
 #define DEFAULT_TAP_MOVE_THRESHOLD 1.3 /* mm */
 
 enum tap_event {
@@ -120,7 +120,7 @@ log_tap_bug(struct tp_dispatch *tp, struct tp_touch *t, enum tap_event event)
 
 static void
 tp_tap_notify(struct tp_dispatch *tp,
-	      uint64_t time,
+	      usec_t time,
 	      int nfingers,
 	      enum libinput_button_state state)
 {
@@ -151,24 +151,25 @@ tp_tap_notify(struct tp_dispatch *tp,
 }
 
 static void
-tp_tap_set_timer(struct tp_dispatch *tp, uint64_t time)
+tp_tap_set_timer(struct tp_dispatch *tp, usec_t time)
 {
-	libinput_timer_set(&tp->tap.timer, time + DEFAULT_TAP_TIMEOUT_PERIOD);
+	libinput_timer_set(&tp->tap.timer, usec_add(time, DEFAULT_TAP_TIMEOUT_PERIOD));
 }
 
 static void
-tp_tap_set_drag_timer(struct tp_dispatch *tp, uint64_t time, int nfingers_tapped)
+tp_tap_set_drag_timer(struct tp_dispatch *tp, usec_t time, int nfingers_tapped)
 {
-	libinput_timer_set(
-		&tp->tap.timer,
-		time + DEFAULT_DRAG_TIMEOUT_PERIOD_BASE +
-			(nfingers_tapped * DEFAULT_DRAG_TIMEOUT_PERIOD_PERFINGER));
+	usec_t per_finger_timeout =
+		usec_mul(DEFAULT_DRAG_TIMEOUT_PERIOD_PERFINGER, nfingers_tapped);
+	usec_t timeout = usec_add(DEFAULT_DRAG_TIMEOUT_PERIOD_BASE, per_finger_timeout);
+	libinput_timer_set(&tp->tap.timer, usec_add(time, timeout));
 }
 
 static void
-tp_tap_set_draglock_timer(struct tp_dispatch *tp, uint64_t time)
+tp_tap_set_draglock_timer(struct tp_dispatch *tp, usec_t time)
 {
-	libinput_timer_set(&tp->tap.timer, time + DEFAULT_DRAGLOCK_TIMEOUT_PERIOD);
+	libinput_timer_set(&tp->tap.timer,
+			   usec_add(time, DEFAULT_DRAGLOCK_TIMEOUT_PERIOD));
 }
 
 static void
@@ -189,7 +190,7 @@ static void
 tp_tap_idle_handle_event(struct tp_dispatch *tp,
 			 struct tp_touch *t,
 			 enum tap_event event,
-			 uint64_t time)
+			 usec_t time)
 {
 	switch (event) {
 	case TAP_EVENT_TOUCH:
@@ -222,7 +223,7 @@ static void
 tp_tap_touch_handle_event(struct tp_dispatch *tp,
 			  struct tp_touch *t,
 			  enum tap_event event,
-			  uint64_t time)
+			  usec_t time)
 {
 
 	switch (event) {
@@ -276,7 +277,7 @@ static void
 tp_tap_hold_handle_event(struct tp_dispatch *tp,
 			 struct tp_touch *t,
 			 enum tap_event event,
-			 uint64_t time)
+			 usec_t time)
 {
 
 	switch (event) {
@@ -314,7 +315,7 @@ static void
 tp_tap_tapped_handle_event(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum tap_event event,
-			   uint64_t time,
+			   usec_t time,
 			   int nfingers_tapped)
 {
 	switch (event) {
@@ -363,7 +364,7 @@ static void
 tp_tap_touch2_handle_event(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum tap_event event,
-			   uint64_t time)
+			   usec_t time)
 {
 
 	switch (event) {
@@ -401,7 +402,7 @@ static void
 tp_tap_touch2_hold_handle_event(struct tp_dispatch *tp,
 				struct tp_touch *t,
 				enum tap_event event,
-				uint64_t time)
+				usec_t time)
 {
 
 	switch (event) {
@@ -436,7 +437,7 @@ static void
 tp_tap_touch2_release_handle_event(struct tp_dispatch *tp,
 				   struct tp_touch *t,
 				   enum tap_event event,
-				   uint64_t time)
+				   usec_t time)
 {
 
 	switch (event) {
@@ -505,7 +506,7 @@ static void
 tp_tap_touch3_handle_event(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum tap_event event,
-			   uint64_t time)
+			   usec_t time)
 {
 
 	switch (event) {
@@ -543,7 +544,7 @@ static void
 tp_tap_touch3_hold_handle_event(struct tp_dispatch *tp,
 				struct tp_touch *t,
 				enum tap_event event,
-				uint64_t time)
+				usec_t time)
 {
 
 	switch (event) {
@@ -576,7 +577,7 @@ static void
 tp_tap_touch3_release_handle_event(struct tp_dispatch *tp,
 				   struct tp_touch *t,
 				   enum tap_event event,
-				   uint64_t time)
+				   usec_t time)
 {
 
 	switch (event) {
@@ -644,7 +645,7 @@ static void
 tp_tap_touch3_release2_handle_event(struct tp_dispatch *tp,
 				    struct tp_touch *t,
 				    enum tap_event event,
-				    uint64_t time)
+				    usec_t time)
 {
 
 	switch (event) {
@@ -742,7 +743,7 @@ static void
 tp_tap_dragging_or_doubletap_handle_event(struct tp_dispatch *tp,
 					  struct tp_touch *t,
 					  enum tap_event event,
-					  uint64_t time,
+					  usec_t time,
 					  int nfingers_tapped)
 {
 	switch (event) {
@@ -808,7 +809,7 @@ static void
 tp_tap_dragging_handle_event(struct tp_dispatch *tp,
 			     struct tp_touch *t,
 			     enum tap_event event,
-			     uint64_t time,
+			     usec_t time,
 			     int nfingers_tapped)
 {
 
@@ -872,7 +873,7 @@ static void
 tp_tap_dragging_wait_handle_event(struct tp_dispatch *tp,
 				  struct tp_touch *t,
 				  enum tap_event event,
-				  uint64_t time,
+				  usec_t time,
 				  int nfingers_tapped)
 {
 
@@ -919,7 +920,7 @@ static void
 tp_tap_dragging_tap_handle_event(struct tp_dispatch *tp,
 				 struct tp_touch *t,
 				 enum tap_event event,
-				 uint64_t time,
+				 usec_t time,
 				 int nfingers_tapped)
 {
 
@@ -979,7 +980,7 @@ static void
 tp_tap_dragging2_handle_event(struct tp_dispatch *tp,
 			      struct tp_touch *t,
 			      enum tap_event event,
-			      uint64_t time,
+			      usec_t time,
 			      int nfingers_tapped)
 {
 
@@ -1033,7 +1034,7 @@ static void
 tp_tap_dead_handle_event(struct tp_dispatch *tp,
 			 struct tp_touch *t,
 			 enum tap_event event,
-			 uint64_t time)
+			 usec_t time)
 {
 
 	switch (event) {
@@ -1060,7 +1061,7 @@ static void
 tp_tap_handle_event(struct tp_dispatch *tp,
 		    struct tp_touch *t,
 		    enum tap_event event,
-		    uint64_t time)
+		    usec_t time)
 {
 	enum tp_tap_state current;
 
@@ -1206,7 +1207,7 @@ tp_tap_enabled(struct tp_dispatch *tp)
 }
 
 int
-tp_tap_handle_state(struct tp_dispatch *tp, uint64_t time)
+tp_tap_handle_state(struct tp_dispatch *tp, usec_t time)
 {
 	struct tp_touch *t;
 	int filter_motion = 0;
@@ -1341,7 +1342,7 @@ tp_tap_post_process_state(struct tp_dispatch *tp)
 }
 
 static void
-tp_tap_handle_timeout(uint64_t time, void *data)
+tp_tap_handle_timeout(usec_t time, void *data)
 {
 	struct tp_dispatch *tp = data;
 	struct tp_touch *t;
@@ -1357,10 +1358,7 @@ tp_tap_handle_timeout(uint64_t time, void *data)
 }
 
 static void
-tp_tap_enabled_update(struct tp_dispatch *tp,
-		      bool suspended,
-		      bool enabled,
-		      uint64_t time)
+tp_tap_enabled_update(struct tp_dispatch *tp, bool suspended, bool enabled, usec_t time)
 {
 	bool was_enabled = tp_tap_enabled(tp);
 
@@ -1599,7 +1597,7 @@ tp_remove_tap(struct tp_dispatch *tp)
 }
 
 void
-tp_release_all_taps(struct tp_dispatch *tp, uint64_t now)
+tp_release_all_taps(struct tp_dispatch *tp, usec_t now)
 {
 	struct tp_touch *t;
 	int i;
@@ -1626,13 +1624,13 @@ tp_release_all_taps(struct tp_dispatch *tp, uint64_t now)
 }
 
 void
-tp_tap_suspend(struct tp_dispatch *tp, uint64_t time)
+tp_tap_suspend(struct tp_dispatch *tp, usec_t time)
 {
 	tp_tap_enabled_update(tp, true, tp->tap.enabled, time);
 }
 
 void
-tp_tap_resume(struct tp_dispatch *tp, uint64_t time)
+tp_tap_resume(struct tp_dispatch *tp, usec_t time)
 {
 	tp_tap_enabled_update(tp, false, tp->tap.enabled, time);
 }

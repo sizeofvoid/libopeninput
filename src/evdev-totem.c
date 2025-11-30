@@ -110,7 +110,7 @@ totem_new_tool(struct totem_dispatch *totem)
 static inline void
 totem_set_touch_device_enabled(struct totem_dispatch *totem,
 			       bool enable_touch_device,
-			       uint64_t time)
+			       usec_t time)
 {
 	struct evdev_device *touch_device = totem->touch_device;
 	struct evdev_dispatch *dispatch;
@@ -183,7 +183,7 @@ static void
 totem_process_key(struct totem_dispatch *totem,
 		  struct evdev_device *device,
 		  struct evdev_event *e,
-		  uint64_t time)
+		  usec_t time)
 {
 	/* ignore kernel key repeat */
 	if (e->value == 2)
@@ -205,7 +205,7 @@ static void
 totem_process_abs(struct totem_dispatch *totem,
 		  struct evdev_device *device,
 		  struct evdev_event *e,
-		  uint64_t time)
+		  usec_t time)
 {
 	struct totem_slot *slot = &totem->slots[totem->slot];
 
@@ -263,7 +263,7 @@ totem_slot_fetch_axes(struct totem_dispatch *totem,
 		      struct totem_slot *slot,
 		      struct libinput_tablet_tool *tool,
 		      struct tablet_axes *axes_out,
-		      uint64_t time)
+		      usec_t time)
 {
 	struct evdev_device *device = totem->device;
 	const char tmp[sizeof(slot->changed_axes)] = { 0 };
@@ -358,7 +358,7 @@ slot_axes_initialize(struct totem_dispatch *totem, struct totem_slot *slot)
 static enum totem_slot_state
 totem_handle_slot_state(struct totem_dispatch *totem,
 			struct totem_slot *slot,
-			uint64_t time)
+			usec_t time)
 {
 	struct evdev_device *device = totem->device;
 	struct tablet_axes axes;
@@ -493,7 +493,7 @@ totem_handle_slot_state(struct totem_dispatch *totem,
 }
 
 static enum totem_slot_state
-totem_handle_state(struct totem_dispatch *totem, uint64_t time)
+totem_handle_state(struct totem_dispatch *totem, usec_t time)
 {
 	enum totem_slot_state global_state = SLOT_STATE_NONE;
 
@@ -514,7 +514,7 @@ static void
 totem_process_event(struct evdev_dispatch *dispatch,
 		    struct evdev_device *device,
 		    struct evdev_event *e,
-		    uint64_t time)
+		    usec_t time)
 {
 	struct totem_dispatch *totem = totem_dispatch(dispatch);
 	enum totem_slot_state global_state;
@@ -549,7 +549,7 @@ static void
 totem_interface_process(struct evdev_dispatch *dispatch,
 			struct evdev_device *device,
 			struct evdev_frame *frame,
-			uint64_t time)
+			usec_t time)
 {
 	size_t nevents;
 	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
@@ -563,7 +563,7 @@ static void
 totem_interface_suspend(struct evdev_dispatch *dispatch, struct evdev_device *device)
 {
 	struct totem_dispatch *totem = totem_dispatch(dispatch);
-	uint64_t now = libinput_now(evdev_libinput_context(device));
+	usec_t now = libinput_now(evdev_libinput_context(device));
 
 	for (size_t i = 0; i < totem->nslots; i++) {
 		struct totem_slot *slot = &totem->slots[i];
@@ -682,7 +682,7 @@ totem_interface_initial_proximity(struct evdev_device *device,
 				  struct evdev_dispatch *dispatch)
 {
 	struct totem_dispatch *totem = totem_dispatch(dispatch);
-	uint64_t now = libinput_now(evdev_libinput_context(device));
+	usec_t now = libinput_now(evdev_libinput_context(device));
 	bool enable_touch = true;
 
 	for (size_t i = 0; i < totem->nslots; i++) {

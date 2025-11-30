@@ -202,7 +202,7 @@ struct libinput {
 		struct list list;
 		struct libinput_source *source;
 		int fd;
-		uint64_t next_expiry;
+		usec_t next_expiry;
 
 		struct ratelimit expiry_in_past_limit;
 	} timer;
@@ -225,8 +225,8 @@ struct libinput {
 
 	struct list device_group_list;
 
-	uint64_t last_event_time;
-	uint64_t dispatch_time;
+	usec_t last_event_time;
+	usec_t dispatch_time;
 
 	bool quirks_initialized;
 	struct quirks_context *quirks;
@@ -471,8 +471,8 @@ struct libinput_device_config_dwt {
 	enum libinput_config_dwt_state (*get_default_enabled)(
 		struct libinput_device *device);
 	enum libinput_config_status (*set_timeout)(struct libinput_device *device,
-						   uint64_t timeout);
-	uint64_t (*get_timeout)(struct libinput_device *device);
+						   usec_t timeout);
+	usec_t (*get_timeout)(struct libinput_device *device);
 };
 
 struct libinput_device_config_dwtp {
@@ -484,8 +484,8 @@ struct libinput_device_config_dwtp {
 	enum libinput_config_dwtp_state (*get_default_enabled)(
 		struct libinput_device *device);
 	enum libinput_config_status (*set_timeout)(struct libinput_device *device,
-						   uint64_t timeout);
-	uint64_t (*get_timeout)(struct libinput_device *device);
+						   usec_t timeout);
+	usec_t (*get_timeout)(struct libinput_device *device);
 };
 
 struct libinput_device_config_rotation {
@@ -700,7 +700,7 @@ struct libinput_event {
 
 struct libinput_event_listener {
 	struct list link;
-	void (*notify_func)(uint64_t time,
+	void (*notify_func)(usec_t time,
 			    struct libinput_event *ev,
 			    void *notify_func_data);
 	void *notify_func_data;
@@ -771,7 +771,7 @@ libinput_device_init_event_listener(struct libinput_event_listener *listener);
 void
 libinput_device_add_event_listener(struct libinput_device *device,
 				   struct libinput_event_listener *listener,
-				   void (*notify_func)(uint64_t time,
+				   void (*notify_func)(usec_t time,
 						       struct libinput_event *event,
 						       void *notify_func_data),
 				   void *notify_func_data);
@@ -787,84 +787,84 @@ notify_removed_device(struct libinput_device *device);
 
 void
 keyboard_notify_key(struct libinput_device *device,
-		    uint64_t time,
+		    usec_t time,
 		    keycode_t key,
 		    enum libinput_key_state state);
 
 void
 pointer_notify_motion(struct libinput_device *device,
-		      uint64_t time,
+		      usec_t time,
 		      const struct normalized_coords *delta,
 		      const struct device_float_coords *raw);
 
 void
 pointer_notify_motion_absolute(struct libinput_device *device,
-			       uint64_t time,
+			       usec_t time,
 			       const struct device_coords *point);
 
 void
 pointer_notify_button(struct libinput_device *device,
-		      uint64_t time,
+		      usec_t time,
 		      button_code_t button,
 		      enum libinput_button_state state);
 
 void
 pointer_notify_axis_finger(struct libinput_device *device,
-			   uint64_t time,
+			   usec_t time,
 			   uint32_t axes,
 			   const struct normalized_coords *delta);
 void
 pointer_notify_axis_continuous(struct libinput_device *device,
-			       uint64_t time,
+			       usec_t time,
 			       uint32_t axes,
 			       const struct normalized_coords *delta);
 
 void
 pointer_notify_axis_legacy_wheel(struct libinput_device *device,
-				 uint64_t time,
+				 usec_t time,
 				 uint32_t axes,
 				 const struct normalized_coords *delta,
 				 const struct discrete_coords *discrete);
 
 void
 pointer_notify_axis_wheel(struct libinput_device *device,
-			  uint64_t time,
+			  usec_t time,
 			  uint32_t axes,
 			  const struct normalized_coords *delta,
 			  const struct wheel_v120 *v120);
 
 void
 touch_notify_touch_down(struct libinput_device *device,
-			uint64_t time,
+			usec_t time,
 			int32_t slot,
 			int32_t seat_slot,
 			const struct device_coords *point);
 
 void
 touch_notify_touch_motion(struct libinput_device *device,
-			  uint64_t time,
+			  usec_t time,
 			  int32_t slot,
 			  int32_t seat_slot,
 			  const struct device_coords *point);
 
 void
 touch_notify_touch_up(struct libinput_device *device,
-		      uint64_t time,
+		      usec_t time,
 		      int32_t slot,
 		      int32_t seat_slot);
 
 void
 touch_notify_touch_cancel(struct libinput_device *device,
-			  uint64_t time,
+			  usec_t time,
 			  int32_t slot,
 			  int32_t seat_slot);
 
 void
-touch_notify_frame(struct libinput_device *device, uint64_t time);
+touch_notify_frame(struct libinput_device *device, usec_t time);
 
 void
 gesture_notify_swipe(struct libinput_device *device,
-		     uint64_t time,
+		     usec_t time,
 		     enum libinput_event_type type,
 		     int finger_count,
 		     const struct normalized_coords *delta,
@@ -872,13 +872,13 @@ gesture_notify_swipe(struct libinput_device *device,
 
 void
 gesture_notify_swipe_end(struct libinput_device *device,
-			 uint64_t time,
+			 usec_t time,
 			 int finger_count,
 			 bool cancelled);
 
 void
 gesture_notify_pinch(struct libinput_device *device,
-		     uint64_t time,
+		     usec_t time,
 		     enum libinput_event_type type,
 		     int finger_count,
 		     const struct normalized_coords *delta,
@@ -888,25 +888,25 @@ gesture_notify_pinch(struct libinput_device *device,
 
 void
 gesture_notify_pinch_end(struct libinput_device *device,
-			 uint64_t time,
+			 usec_t time,
 			 int finger_count,
 			 double scale,
 			 bool cancelled);
 
 void
 gesture_notify_hold_begin(struct libinput_device *device,
-			  uint64_t time,
+			  usec_t time,
 			  int finger_count);
 
 void
 gesture_notify_hold_end(struct libinput_device *device,
-			uint64_t time,
+			usec_t time,
 			int finger_count,
 			bool cancelled);
 
 void
 tablet_notify_axis(struct libinput_device *device,
-		   uint64_t time,
+		   usec_t time,
 		   struct libinput_tablet_tool *tool,
 		   enum libinput_tablet_tool_tip_state tip_state,
 		   unsigned char *changed_axes,
@@ -916,7 +916,7 @@ tablet_notify_axis(struct libinput_device *device,
 
 void
 tablet_notify_proximity(struct libinput_device *device,
-			uint64_t time,
+			usec_t time,
 			struct libinput_tablet_tool *tool,
 			enum libinput_tablet_tool_proximity_state state,
 			unsigned char *changed_axes,
@@ -926,7 +926,7 @@ tablet_notify_proximity(struct libinput_device *device,
 
 void
 tablet_notify_tip(struct libinput_device *device,
-		  uint64_t time,
+		  usec_t time,
 		  struct libinput_tablet_tool *tool,
 		  enum libinput_tablet_tool_tip_state tip_state,
 		  unsigned char *changed_axes,
@@ -936,7 +936,7 @@ tablet_notify_tip(struct libinput_device *device,
 
 void
 tablet_notify_button(struct libinput_device *device,
-		     uint64_t time,
+		     usec_t time,
 		     struct libinput_tablet_tool *tool,
 		     enum libinput_tablet_tool_tip_state tip_state,
 		     const struct tablet_axes *axes,
@@ -947,40 +947,40 @@ tablet_notify_button(struct libinput_device *device,
 
 void
 tablet_pad_notify_button(struct libinput_device *device,
-			 uint64_t time,
+			 usec_t time,
 			 pad_button_t button,
 			 enum libinput_button_state state,
 			 struct libinput_tablet_pad_mode_group *group);
 
 void
 tablet_pad_notify_dial(struct libinput_device *device,
-		       uint64_t time,
+		       usec_t time,
 		       unsigned int number,
 		       double value,
 		       struct libinput_tablet_pad_mode_group *group);
 
 void
 tablet_pad_notify_ring(struct libinput_device *device,
-		       uint64_t time,
+		       usec_t time,
 		       unsigned int number,
 		       double value,
 		       enum libinput_tablet_pad_ring_axis_source source,
 		       struct libinput_tablet_pad_mode_group *group);
 void
 tablet_pad_notify_strip(struct libinput_device *device,
-			uint64_t time,
+			usec_t time,
 			unsigned int number,
 			double value,
 			enum libinput_tablet_pad_strip_axis_source source,
 			struct libinput_tablet_pad_mode_group *group);
 void
 tablet_pad_notify_key(struct libinput_device *device,
-		      uint64_t time,
+		      usec_t time,
 		      int32_t key,
 		      enum libinput_key_state state);
 void
 switch_notify_toggle(struct libinput_device *device,
-		     uint64_t time,
+		     usec_t time,
 		     enum libinput_switch sw,
 		     enum libinput_switch_state state);
 

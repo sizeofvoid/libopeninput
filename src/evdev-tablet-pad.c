@@ -99,7 +99,7 @@ static void
 pad_process_relative(struct pad_dispatch *pad,
 		     struct evdev_device *device,
 		     struct evdev_event *e,
-		     uint64_t time)
+		     usec_t time)
 {
 	switch (evdev_usage_enum(e->usage)) {
 	case EVDEV_REL_DIAL:
@@ -172,7 +172,7 @@ static void
 pad_process_absolute(struct pad_dispatch *pad,
 		     struct evdev_device *device,
 		     struct evdev_event *e,
-		     uint64_t time)
+		     usec_t time)
 {
 	enum pad_axes axis = PAD_AXIS_NONE;
 
@@ -357,7 +357,7 @@ pad_strip_get_mode_group(struct pad_dispatch *pad, unsigned int strip)
 static void
 pad_check_notify_axes(struct pad_dispatch *pad,
 		      struct evdev_device *device,
-		      uint64_t time)
+		      usec_t time)
 {
 	struct libinput_device *base = &device->base;
 	struct libinput_tablet_pad_mode_group *group;
@@ -452,7 +452,7 @@ static void
 pad_process_key(struct pad_dispatch *pad,
 		struct evdev_device *device,
 		struct evdev_event *e,
-		uint64_t time)
+		usec_t time)
 {
 	uint32_t is_press = e->value != 0;
 
@@ -481,7 +481,7 @@ pad_button_get_mode_group(struct pad_dispatch *pad, unsigned int button)
 static void
 pad_notify_button_mask(struct pad_dispatch *pad,
 		       struct evdev_device *device,
-		       uint64_t time,
+		       usec_t time,
 		       const struct button_state *buttons,
 		       enum libinput_button_state state)
 {
@@ -537,7 +537,7 @@ pad_notify_button_mask(struct pad_dispatch *pad,
 static void
 pad_notify_buttons(struct pad_dispatch *pad,
 		   struct evdev_device *device,
-		   uint64_t time,
+		   usec_t time,
 		   enum libinput_button_state state)
 {
 	struct button_state buttons;
@@ -565,7 +565,7 @@ pad_change_to_left_handed(struct evdev_device *device)
 }
 
 static void
-pad_flush(struct pad_dispatch *pad, struct evdev_device *device, uint64_t time)
+pad_flush(struct pad_dispatch *pad, struct evdev_device *device, usec_t time)
 {
 	if (pad_has_status(pad, PAD_AXES_UPDATED)) {
 		pad_check_notify_axes(pad, device, time);
@@ -594,7 +594,7 @@ static void
 pad_process_event(struct evdev_dispatch *dispatch,
 		  struct evdev_device *device,
 		  struct evdev_event *e,
-		  uint64_t time)
+		  usec_t time)
 {
 	struct pad_dispatch *pad = pad_dispatch(dispatch);
 
@@ -629,7 +629,7 @@ static void
 pad_process(struct evdev_dispatch *dispatch,
 	    struct evdev_device *device,
 	    struct evdev_frame *frame,
-	    uint64_t time)
+	    usec_t time)
 {
 	size_t nevents;
 	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
@@ -822,7 +822,7 @@ pad_init(struct pad_dispatch *pad, struct evdev_device *device)
 	pad->device = device;
 	pad->status = PAD_NONE;
 	pad->changed_axes = PAD_AXIS_NONE;
-	ratelimit_init(&pad->modes.group_not_found, h2us(1), 3);
+	ratelimit_init(&pad->modes.group_not_found, usec_from_hours(1), 3);
 
 	/* We expect the kernel to either give us both axes as hires or neither.
 	 * Getting one is a kernel bug we don't need to care about */
@@ -842,7 +842,7 @@ pad_init(struct pad_dispatch *pad, struct evdev_device *device)
 	rc = pad_init_leds(pad, device, wacom);
 
 	/* at most 5 "Multiple EV_ABS events" log messages per hour */
-	ratelimit_init(&pad->duplicate_abs_limit, s2us(60 * 60), 5);
+	ratelimit_init(&pad->duplicate_abs_limit, usec_from_seconds(60 * 60), 5);
 
 #ifdef HAVE_LIBWACOM
 	if (wacom)

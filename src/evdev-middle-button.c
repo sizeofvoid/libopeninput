@@ -27,7 +27,7 @@
 
 #include "evdev.h"
 
-#define MIDDLEBUTTON_TIMEOUT ms2us(50)
+#define MIDDLEBUTTON_TIMEOUT usec_from_millis(50)
 
 /*****************************************
  * BEFORE YOU EDIT THIS FILE, look at the state diagram in
@@ -88,9 +88,10 @@ middlebutton_state_error(struct evdev_device *device,
 }
 
 static void
-middlebutton_timer_set(struct evdev_device *device, uint64_t now)
+middlebutton_timer_set(struct evdev_device *device, usec_t now)
 {
-	libinput_timer_set(&device->middlebutton.timer, now + MIDDLEBUTTON_TIMEOUT);
+	libinput_timer_set(&device->middlebutton.timer,
+			   usec_add(now, MIDDLEBUTTON_TIMEOUT));
 }
 
 static void
@@ -102,7 +103,7 @@ middlebutton_timer_cancel(struct evdev_device *device)
 static inline void
 middlebutton_set_state(struct evdev_device *device,
 		       enum evdev_middlebutton_state state,
-		       uint64_t now)
+		       usec_t now)
 {
 	switch (state) {
 	case MIDDLEBUTTON_LEFT_DOWN:
@@ -127,7 +128,7 @@ middlebutton_set_state(struct evdev_device *device,
 
 static void
 middlebutton_post_event(struct evdev_device *device,
-			uint64_t now,
+			usec_t now,
 			evdev_usage_t button,
 			enum libinput_button_state state)
 {
@@ -136,7 +137,7 @@ middlebutton_post_event(struct evdev_device *device,
 
 static int
 evdev_middlebutton_idle_handle_event(struct evdev_device *device,
-				     uint64_t time,
+				     usec_t time,
 				     enum evdev_middlebutton_event event)
 {
 	switch (event) {
@@ -162,7 +163,7 @@ evdev_middlebutton_idle_handle_event(struct evdev_device *device,
 
 static int
 evdev_middlebutton_ldown_handle_event(struct evdev_device *device,
-				      uint64_t time,
+				      usec_t time,
 				      enum evdev_middlebutton_event event)
 {
 	switch (event) {
@@ -214,7 +215,7 @@ evdev_middlebutton_ldown_handle_event(struct evdev_device *device,
 
 static int
 evdev_middlebutton_rdown_handle_event(struct evdev_device *device,
-				      uint64_t time,
+				      usec_t time,
 				      enum evdev_middlebutton_event event)
 {
 	switch (event) {
@@ -266,7 +267,7 @@ evdev_middlebutton_rdown_handle_event(struct evdev_device *device,
 
 static int
 evdev_middlebutton_middle_handle_event(struct evdev_device *device,
-				       uint64_t time,
+				       usec_t time,
 				       enum evdev_middlebutton_event event)
 {
 	switch (event) {
@@ -308,7 +309,7 @@ evdev_middlebutton_middle_handle_event(struct evdev_device *device,
 
 static int
 evdev_middlebutton_lup_pending_handle_event(struct evdev_device *device,
-					    uint64_t time,
+					    usec_t time,
 					    enum evdev_middlebutton_event event)
 {
 	switch (event) {
@@ -344,7 +345,7 @@ evdev_middlebutton_lup_pending_handle_event(struct evdev_device *device,
 
 static int
 evdev_middlebutton_rup_pending_handle_event(struct evdev_device *device,
-					    uint64_t time,
+					    usec_t time,
 					    enum evdev_middlebutton_event event)
 {
 	switch (event) {
@@ -380,7 +381,7 @@ evdev_middlebutton_rup_pending_handle_event(struct evdev_device *device,
 
 static int
 evdev_middlebutton_passthrough_handle_event(struct evdev_device *device,
-					    uint64_t time,
+					    usec_t time,
 					    enum evdev_middlebutton_event event)
 {
 	switch (event) {
@@ -403,7 +404,7 @@ evdev_middlebutton_passthrough_handle_event(struct evdev_device *device,
 
 static int
 evdev_middlebutton_ignore_lr_handle_event(struct evdev_device *device,
-					  uint64_t time,
+					  usec_t time,
 					  enum evdev_middlebutton_event event)
 {
 	switch (event) {
@@ -432,7 +433,7 @@ evdev_middlebutton_ignore_lr_handle_event(struct evdev_device *device,
 
 static int
 evdev_middlebutton_ignore_l_handle_event(struct evdev_device *device,
-					 uint64_t time,
+					 usec_t time,
 					 enum evdev_middlebutton_event event)
 {
 	switch (event) {
@@ -457,7 +458,7 @@ evdev_middlebutton_ignore_l_handle_event(struct evdev_device *device,
 }
 static int
 evdev_middlebutton_ignore_r_handle_event(struct evdev_device *device,
-					 uint64_t time,
+					 usec_t time,
 					 enum evdev_middlebutton_event event)
 {
 	switch (event) {
@@ -483,7 +484,7 @@ evdev_middlebutton_ignore_r_handle_event(struct evdev_device *device,
 
 static int
 evdev_middlebutton_handle_event(struct evdev_device *device,
-				uint64_t time,
+				usec_t time,
 				enum evdev_middlebutton_event event)
 {
 	int rc = 0;
@@ -553,7 +554,7 @@ evdev_middlebutton_apply_config(struct evdev_device *device)
 
 bool
 evdev_middlebutton_filter_button(struct evdev_device *device,
-				 uint64_t time,
+				 usec_t time,
 				 evdev_usage_t button,
 				 enum libinput_button_state state)
 {
@@ -616,7 +617,7 @@ evdev_middlebutton_filter_button(struct evdev_device *device,
 }
 
 static void
-evdev_middlebutton_handle_timeout(uint64_t now, void *data)
+evdev_middlebutton_handle_timeout(usec_t now, void *data)
 {
 	struct evdev_device *device = evdev_device(data);
 

@@ -79,8 +79,8 @@ struct litest_runner_test {
 	int timerfd;
 
 	struct {
-		uint64_t start_millis;
-		uint64_t end_millis;
+		usec_t start_usec;
+		usec_t end_usec;
 	} times;
 };
 
@@ -101,7 +101,7 @@ struct litest_runner {
 	struct {
 		time_t start;
 		time_t end;
-		uint64_t start_millis;
+		usec_t start_usec;
 	} times;
 
 	struct {
@@ -442,9 +442,9 @@ litest_runner_test_collect_child(struct litest_runner_test *t)
 		}
 	}
 
-	uint64_t now = 0;
+	usec_t now = usec_from_uint64_t(0);
 	now_in_us(&now);
-	t->times.end_millis = us2ms(now);
+	t->times.end_usec = now;
 
 	if (RUNNING_ON_VALGRIND) {
 		_autofree_ char *filename = valgrind_logfile(t->pid);
@@ -628,9 +628,9 @@ litest_runner_run_test(struct litest_runner *runner, struct litest_runner_test *
 
 	t->result = LITEST_SYSTEM_ERROR;
 
-	uint64_t now = 0;
+	usec_t now = usec_from_uint64_t(0);
 	now_in_us(&now);
-	t->times.start_millis = us2ms(now);
+	t->times.start_usec = now;
 
 	if (runner->max_forks == 0) {
 		if (use_jmpbuf && setjmp(jmpbuf) == 0) {
@@ -772,12 +772,14 @@ litest_runner_log_test_result(struct litest_runner *runner,
 		}
 	}
 
+	usec_t delta = usec_delta(t->times.end_usec, t->times.start_usec);
+	usec_t total_delta = usec_delta(t->times.end_usec, runner->times.start_usec);
 	fprintf(runner->fp,
-		"    duration: %" PRIu64 "  # (ms), total test run time: %02" PRIu32
+		"    duration: %d  # (ms), total test run time: %02" PRIu32
 		":%02" PRIu32 "\n",
-		t->times.end_millis - t->times.start_millis,
-		(ms2s(t->times.end_millis - runner->times.start_millis)) / 60,
-		(ms2s(t->times.end_millis - runner->times.start_millis)) % 60);
+		usec_to_millis(delta),
+		usec_to_minutes(total_delta),
+		usec_to_seconds(total_delta) % 60);
 
 	status = litest_runner_result_as_str(t->result);
 	fprintf(runner->fp,
@@ -921,9 +923,9 @@ litest_runner_check_finished_tests(struct litest_runner *runner)
 		if (r == -EAGAIN)
 			continue;
 
-		uint64_t now = 0;
+		usec_t now = usec_from_uint64_t(0);
 		now_in_us(&now);
-		running->times.end_millis = us2ms(now);
+		running->times.end_usec = now;
 
 		if (r < 0)
 			litest_runner_test_update_errno(running, -r);
@@ -985,10 +987,10 @@ litest_runner_run_tests(struct litest_runner *runner)
 
 	setup_sighandler(SIGINT);
 
-	uint64_t now = 0;
+	usec_t now = usec_from_uint64_t(0);
 	now_in_us(&now);
 
-	runner->times.start_millis = us2ms(now);
+	runner->times.start_usec = now;
 	runner->times.start = time(NULL);
 	ltime = localtime(&runner->times.start);
 	strftime(timestamp, sizeof(timestamp), "%FT%H:%M", ltime);

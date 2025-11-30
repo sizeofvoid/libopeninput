@@ -87,9 +87,9 @@ tp_touch_get_edge(const struct tp_dispatch *tp, const struct tp_touch *t)
 }
 
 static inline void
-tp_edge_scroll_set_timer(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+tp_edge_scroll_set_timer(struct tp_dispatch *tp, struct tp_touch *t, usec_t time)
 {
-	const int DEFAULT_SCROLL_LOCK_TIMEOUT = ms2us(300);
+	const usec_t DEFAULT_SCROLL_LOCK_TIMEOUT = usec_from_millis(300);
 	/* if we use software buttons, we disable timeout-based
 	 * edge scrolling. A finger resting on the button areas is
 	 * likely there to trigger a button event.
@@ -97,14 +97,15 @@ tp_edge_scroll_set_timer(struct tp_dispatch *tp, struct tp_touch *t, uint64_t ti
 	if (tp->buttons.click_method == LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS)
 		return;
 
-	libinput_timer_set(&t->scroll.timer, time + DEFAULT_SCROLL_LOCK_TIMEOUT);
+	libinput_timer_set(&t->scroll.timer,
+			   usec_add(time, DEFAULT_SCROLL_LOCK_TIMEOUT));
 }
 
 static void
 tp_edge_scroll_set_state(struct tp_dispatch *tp,
 			 struct tp_touch *t,
 			 enum tp_edge_scroll_touch_state state,
-			 uint64_t time)
+			 usec_t time)
 {
 	libinput_timer_cancel(&t->scroll.timer);
 
@@ -131,7 +132,7 @@ static void
 tp_edge_scroll_handle_none(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum scroll_event event,
-			   uint64_t time)
+			   usec_t time)
 {
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
@@ -164,7 +165,7 @@ static void
 tp_edge_scroll_handle_edge_new(struct tp_dispatch *tp,
 			       struct tp_touch *t,
 			       enum scroll_event event,
-			       uint64_t time)
+			       usec_t time)
 {
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
@@ -196,7 +197,7 @@ static void
 tp_edge_scroll_handle_edge(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum scroll_event event,
-			   uint64_t time)
+			   usec_t time)
 {
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
@@ -230,7 +231,7 @@ static void
 tp_edge_scroll_handle_area(struct tp_dispatch *tp,
 			   struct tp_touch *t,
 			   enum scroll_event event,
-			   uint64_t time)
+			   usec_t time)
 {
 	switch (event) {
 	case SCROLL_EVENT_TOUCH:
@@ -252,7 +253,7 @@ static void
 tp_edge_scroll_handle_event(struct tp_dispatch *tp,
 			    struct tp_touch *t,
 			    enum scroll_event event,
-			    uint64_t time)
+			    usec_t time)
 {
 	enum tp_edge_scroll_touch_state current = t->scroll.edge_state;
 
@@ -281,7 +282,7 @@ tp_edge_scroll_handle_event(struct tp_dispatch *tp,
 }
 
 static void
-tp_edge_scroll_handle_timeout(uint64_t now, void *data)
+tp_edge_scroll_handle_timeout(usec_t now, void *data)
 {
 	struct tp_touch *t = data;
 
@@ -349,7 +350,7 @@ tp_remove_edge_scroll(struct tp_dispatch *tp)
 }
 
 void
-tp_edge_scroll_handle_state(struct tp_dispatch *tp, uint64_t time)
+tp_edge_scroll_handle_state(struct tp_dispatch *tp, usec_t time)
 {
 	struct tp_touch *t;
 
@@ -393,7 +394,7 @@ tp_edge_scroll_handle_state(struct tp_dispatch *tp, uint64_t time)
 }
 
 int
-tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
+tp_edge_scroll_post_events(struct tp_dispatch *tp, usec_t time)
 {
 	struct evdev_device *device = tp->device;
 	struct tp_touch *t;
@@ -478,7 +479,7 @@ tp_edge_scroll_post_events(struct tp_dispatch *tp, uint64_t time)
 }
 
 void
-tp_edge_scroll_stop_events(struct tp_dispatch *tp, uint64_t time)
+tp_edge_scroll_stop_events(struct tp_dispatch *tp, usec_t time)
 {
 	struct evdev_device *device = tp->device;
 	struct tp_touch *t;

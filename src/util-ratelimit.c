@@ -31,10 +31,10 @@
 #include "util-time.h"
 
 void
-ratelimit_init(struct ratelimit *r, uint64_t ival_us, unsigned int burst)
+ratelimit_init(struct ratelimit *r, usec_t ival_us, unsigned int burst)
 {
 	r->interval = ival_us;
-	r->begin = 0;
+	r->begin = usec_from_millis(0);
 	r->burst = burst;
 	r->num = 0;
 }
@@ -56,15 +56,15 @@ enum ratelimit_state
 ratelimit_test(struct ratelimit *r)
 {
 	struct timespec ts;
-	uint64_t utime;
 
-	if (r->interval <= 0 || r->burst <= 0)
+	if (usec_is_zero(r->interval) || r->burst <= 0)
 		return RATELIMIT_PASS;
 
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-	utime = s2us(ts.tv_sec) + ns2us(ts.tv_nsec);
+	usec_t utime = usec_from_timespec(&ts);
 
-	if (r->begin <= 0 || r->begin + r->interval < utime) {
+	if (usec_is_zero(r->begin) ||
+	    usec_cmp(usec_add(r->begin, r->interval), utime) < 0) {
 		/* reset counter */
 		r->begin = utime;
 		r->num = 1;

@@ -30,9 +30,7 @@
 #include "evdev.h"
 
 static inline void
-evdev_process_frame(struct evdev_device *device,
-		    struct evdev_frame *frame,
-		    uint64_t time)
+evdev_process_frame(struct evdev_device *device, struct evdev_frame *frame, usec_t time)
 {
 	struct evdev_dispatch *dispatch = device->dispatch;
 
@@ -47,7 +45,7 @@ evdev_device_dispatch_frame(struct libinput_plugin *plugin,
 			    struct evdev_frame *frame)
 {
 	struct evdev_device *device = evdev_device(libinput_device);
-	uint64_t time = evdev_frame_get_time(frame);
+	usec_t time = evdev_frame_get_time(frame);
 	evdev_process_frame(device, frame, time);
 
 	/* Discard event to make the plugin system aware we're done */

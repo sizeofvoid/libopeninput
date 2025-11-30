@@ -219,7 +219,7 @@ struct evdev_device {
 		/* Currently enabled method, button */
 		enum libinput_config_scroll_method method;
 		evdev_usage_t button;
-		uint64_t button_down_time;
+		usec_t button_down_time;
 
 		/* set during device init, used at runtime to delay changes
 		 * until all buttons are up */
@@ -279,7 +279,7 @@ struct evdev_device {
 		enum evdev_middlebutton_state state;
 		struct libinput_timer timer;
 		uint32_t button_mask;
-		uint64_t first_event_time;
+		usec_t first_event_time;
 	} middlebutton;
 };
 
@@ -298,7 +298,7 @@ struct evdev_dispatch_interface {
 	void (*process)(struct evdev_dispatch *dispatch,
 			struct evdev_device *device,
 			struct evdev_frame *frame,
-			uint64_t time);
+			usec_t time);
 
 	/* Device is being suspended */
 	void (*suspend)(struct evdev_dispatch *dispatch, struct evdev_device *device);
@@ -337,7 +337,7 @@ struct evdev_dispatch_interface {
 					 struct evdev_device *device,
 					 enum evdev_arbitration_state which,
 					 const struct phys_rect *rect, /* may be NULL */
-					 uint64_t now);
+					 usec_t now);
 
 	/* Called when touch arbitration is on, updates the area where touch
 	 * arbitration should apply.
@@ -345,7 +345,7 @@ struct evdev_dispatch_interface {
 	void (*touch_arbitration_update_rect)(struct evdev_dispatch *dispatch,
 					      struct evdev_device *device,
 					      const struct phys_rect *rect,
-					      uint64_t now);
+					      usec_t now);
 
 	/* Return the state of the given switch */
 	enum libinput_switch_state (*get_switch_state)(struct evdev_dispatch *dispatch,
@@ -553,12 +553,12 @@ evdev_notify_resumed_device(struct evdev_device *device);
 
 void
 evdev_pointer_notify_button(struct evdev_device *device,
-			    uint64_t time,
+			    usec_t time,
 			    evdev_usage_t button,
 			    enum libinput_button_state state);
 void
 evdev_pointer_notify_physical_button(struct evdev_device *device,
-				     uint64_t time,
+				     usec_t time,
 				     evdev_usage_t button,
 				     enum libinput_button_state state);
 
@@ -579,36 +579,36 @@ evdev_update_key_down_count(struct evdev_device *device,
 
 void
 evdev_notify_axis_legacy_wheel(struct evdev_device *device,
-			       uint64_t time,
+			       usec_t time,
 			       uint32_t axes,
 			       const struct normalized_coords *delta_in,
 			       const struct discrete_coords *discrete_in);
 void
 evdev_notify_axis_wheel(struct evdev_device *device,
-			uint64_t time,
+			usec_t time,
 			uint32_t axes,
 			const struct normalized_coords *delta_in,
 			const struct wheel_v120 *v120_in);
 void
 evdev_notify_axis_finger(struct evdev_device *device,
-			 uint64_t time,
+			 usec_t time,
 			 uint32_t axes,
 			 const struct normalized_coords *delta_in);
 void
 evdev_notify_axis_continous(struct evdev_device *device,
-			    uint64_t time,
+			    usec_t time,
 			    uint32_t axes,
 			    const struct normalized_coords *delta_in);
 
 void
 evdev_post_scroll(struct evdev_device *device,
-		  uint64_t time,
+		  usec_t time,
 		  enum libinput_pointer_axis_source source,
 		  const struct normalized_coords *delta);
 
 void
 evdev_stop_scroll(struct evdev_device *device,
-		  uint64_t time,
+		  usec_t time,
 		  enum libinput_pointer_axis_source source);
 
 void
@@ -619,7 +619,7 @@ evdev_device_destroy(struct evdev_device *device);
 
 bool
 evdev_middlebutton_filter_button(struct evdev_device *device,
-				 uint64_t time,
+				 usec_t time,
 				 evdev_usage_t button,
 				 enum libinput_button_state state);
 
@@ -970,7 +970,9 @@ evdev_device_init_abs_range_warnings(struct evdev_device *device)
 	device->abs.warning_range.max.y = y->maximum + 0.05 * height;
 
 	/* One warning every 5 min is enough */
-	ratelimit_init(&device->abs.warning_range.range_warn_limit, s2us(3000), 1);
+	ratelimit_init(&device->abs.warning_range.range_warn_limit,
+		       usec_from_seconds(3000),
+		       1);
 }
 
 static inline void

@@ -136,7 +136,7 @@ struct plugin_device {
 	struct plugin_data *parent;
 
 	evdev_usage_t button_usage;
-	uint64_t button_time;
+	usec_t button_time;
 	enum debounce_state state;
 	bool spurious_enabled;
 
@@ -222,20 +222,21 @@ debounce_set_state(struct plugin_device *device, enum debounce_state new_state)
 }
 
 static inline void
-debounce_set_timer(struct plugin_device *device, uint64_t time)
+debounce_set_timer(struct plugin_device *device, usec_t time)
 {
-	const int DEBOUNCE_TIMEOUT_BOUNCE = ms2us(25);
+	const usec_t DEBOUNCE_TIMEOUT_BOUNCE = usec_from_millis(25);
 
-	libinput_plugin_timer_set(device->timer, time + DEBOUNCE_TIMEOUT_BOUNCE);
+	libinput_plugin_timer_set(device->timer,
+				  usec_add(time, DEBOUNCE_TIMEOUT_BOUNCE));
 }
 
 static inline void
-debounce_set_timer_short(struct plugin_device *device, uint64_t time)
+debounce_set_timer_short(struct plugin_device *device, usec_t time)
 {
-	const int DEBOUNCE_TIMEOUT_SPURIOUS = ms2us(12);
+	const usec_t DEBOUNCE_TIMEOUT_SPURIOUS = usec_from_millis(12);
 
 	libinput_plugin_timer_set(device->timer_short,
-				  time + DEBOUNCE_TIMEOUT_SPURIOUS);
+				  usec_add(time, DEBOUNCE_TIMEOUT_SPURIOUS));
 }
 
 static inline void
@@ -295,7 +296,7 @@ static void
 debounce_is_up_handle_event(struct plugin_device *device,
 			    enum debounce_event event,
 			    struct evdev_frame *frame,
-			    uint64_t time)
+			    usec_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
@@ -318,7 +319,7 @@ static void
 debounce_is_down_handle_event(struct plugin_device *device,
 			      enum debounce_event event,
 			      struct evdev_frame *frame,
-			      uint64_t time)
+			      usec_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
@@ -354,7 +355,7 @@ static void
 debounce_is_down_waiting_handle_event(struct plugin_device *device,
 				      enum debounce_event event,
 				      struct evdev_frame *frame,
-				      uint64_t time)
+				      usec_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
@@ -383,7 +384,7 @@ static void
 debounce_is_up_delaying_handle_event(struct plugin_device *device,
 				     enum debounce_event event,
 				     struct evdev_frame *frame,
-				     uint64_t time)
+				     usec_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
@@ -407,7 +408,7 @@ static void
 debounce_is_up_delaying_spurious_handle_event(struct plugin_device *device,
 					      enum debounce_event event,
 					      struct evdev_frame *frame,
-					      uint64_t time)
+					      usec_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
@@ -435,7 +436,7 @@ static void
 debounce_is_up_detecting_spurious_handle_event(struct plugin_device *device,
 					       enum debounce_event event,
 					       struct evdev_frame *frame,
-					       uint64_t time)
+					       usec_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
@@ -467,7 +468,7 @@ static void
 debounce_is_down_detecting_spurious_handle_event(struct plugin_device *device,
 						 enum debounce_event event,
 						 struct evdev_frame *frame,
-						 uint64_t time)
+						 usec_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
@@ -496,7 +497,7 @@ static void
 debounce_is_up_waiting_handle_event(struct plugin_device *device,
 				    enum debounce_event event,
 				    struct evdev_frame *frame,
-				    uint64_t time)
+				    usec_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
@@ -522,7 +523,7 @@ static void
 debounce_is_down_delaying_handle_event(struct plugin_device *device,
 				       enum debounce_event event,
 				       struct evdev_frame *frame,
-				       uint64_t time)
+				       usec_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
@@ -547,7 +548,7 @@ static void
 debounce_disabled_handle_event(struct plugin_device *device,
 			       enum debounce_event event,
 			       struct evdev_frame *frame,
-			       uint64_t time)
+			       usec_t time)
 {
 	switch (event) {
 	case DEBOUNCE_EVENT_PRESS:
@@ -571,7 +572,7 @@ static void
 debounce_handle_event(struct plugin_device *device,
 		      enum debounce_event event,
 		      struct evdev_frame *frame,
-		      uint64_t time)
+		      usec_t time)
 {
 	enum debounce_state current = device->state;
 
@@ -632,7 +633,7 @@ debounce_handle_event(struct plugin_device *device,
 static void
 debounce_plugin_handle_frame(struct plugin_device *device,
 			     struct evdev_frame *frame,
-			     uint64_t time)
+			     usec_t time)
 {
 	size_t nchanged = 0;
 	bool flushed = false;
@@ -734,7 +735,7 @@ debounce_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
 }
 
 static void
-debounce_timeout(struct libinput_plugin *plugin, uint64_t now, void *data)
+debounce_timeout(struct libinput_plugin *plugin, usec_t now, void *data)
 {
 	struct plugin_device *device = data;
 
@@ -742,7 +743,7 @@ debounce_timeout(struct libinput_plugin *plugin, uint64_t now, void *data)
 }
 
 static void
-debounce_timeout_short(struct libinput_plugin *plugin, uint64_t now, void *data)
+debounce_timeout_short(struct libinput_plugin *plugin, usec_t now, void *data)
 {
 	struct plugin_device *device = data;
 

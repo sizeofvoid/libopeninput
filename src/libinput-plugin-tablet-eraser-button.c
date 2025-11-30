@@ -35,7 +35,7 @@
 #include "libinput-plugin.h"
 #include "libinput-util.h"
 
-static int ERASER_BUTTON_DELAY = 30 * 1000; /* µs */
+static usec_t ERASER_BUTTON_DELAY = { 30 * 1000 }; /* µs */
 
 enum frame_filter_state {
 	DISCARD,
@@ -146,9 +146,9 @@ eraser_button_set_state(struct plugin_device *device, enum eraser_button_state t
 }
 
 static void
-eraser_button_set_timer(struct plugin_device *device, uint64_t time)
+eraser_button_set_timer(struct plugin_device *device, usec_t time)
 {
-	libinput_plugin_timer_set(device->timer, time + ERASER_BUTTON_DELAY);
+	libinput_plugin_timer_set(device->timer, usec_add(time, ERASER_BUTTON_DELAY));
 }
 
 static void
@@ -235,7 +235,7 @@ static enum frame_filter_state
 eraser_button_neutral_handle_event(struct plugin_device *device,
 				   struct evdev_frame *frame,
 				   enum eraser_button_event event,
-				   uint64_t time)
+				   usec_t time)
 {
 	switch (event) {
 	case ERASER_EVENT_PEN_ENTERING_PROX:
@@ -266,7 +266,7 @@ static enum frame_filter_state
 eraser_button_pending_eraser_handle_event(struct plugin_device *device,
 					  struct evdev_frame *frame,
 					  enum eraser_button_event event,
-					  uint64_t time)
+					  usec_t time)
 {
 	switch (event) {
 	case ERASER_EVENT_PEN_ENTERING_PROX:
@@ -306,7 +306,7 @@ static enum frame_filter_state
 eraser_button_button_held_handle_event(struct plugin_device *device,
 				       struct evdev_frame *frame,
 				       enum eraser_button_event event,
-				       uint64_t time)
+				       usec_t time)
 {
 	switch (event) {
 	case ERASER_EVENT_PEN_ENTERING_PROX:
@@ -339,7 +339,7 @@ static enum frame_filter_state
 eraser_button_button_released_handle_event(struct plugin_device *device,
 					   struct evdev_frame *frame,
 					   enum eraser_button_event event,
-					   uint64_t time)
+					   usec_t time)
 {
 	switch (event) {
 	case ERASER_EVENT_PEN_ENTERING_PROX:
@@ -379,7 +379,7 @@ static enum frame_filter_state
 eraser_button_handle_state(struct plugin_device *device,
 			   struct evdev_frame *frame,
 			   enum eraser_button_event event,
-			   uint64_t time)
+			   usec_t time)
 {
 	enum eraser_button_state state = device->state;
 	enum frame_filter_state ret = PROCESS;
@@ -426,7 +426,7 @@ eraser_button_handle_state(struct plugin_device *device,
 static void
 eraser_button_handle_frame(struct plugin_device *device,
 			   struct evdev_frame *frame,
-			   uint64_t time)
+			   usec_t time)
 {
 	if (device->mode == LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT)
 		return;
@@ -505,7 +505,7 @@ eraser_button_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
 {
 	struct plugin_data *plugin = libinput_plugin_get_user_data(libinput_plugin);
 	struct plugin_device *pd;
-	uint64_t time = evdev_frame_get_time(frame);
+	usec_t time = evdev_frame_get_time(frame);
 
 	list_for_each(pd, &plugin->devices, link) {
 		if (pd->device == device) {
@@ -516,7 +516,7 @@ eraser_button_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
 }
 
 static void
-eraser_button_timer_func(struct libinput_plugin *plugin, uint64_t now, void *d)
+eraser_button_timer_func(struct libinput_plugin *plugin, usec_t now, void *d)
 {
 	struct plugin_device *device = d;
 
@@ -607,7 +607,7 @@ void
 libinput_tablet_plugin_eraser_button(struct libinput *libinput)
 {
 	if (getenv("LIBINPUT_RUNNING_TEST_SUITE"))
-		ERASER_BUTTON_DELAY = ms2us(150);
+		ERASER_BUTTON_DELAY = usec_from_millis(150);
 
 	_destroy_(plugin_data) *plugin = zalloc(sizeof(*plugin));
 	list_init(&plugin->devices);

@@ -74,7 +74,7 @@ struct libinput_plugin_timer {
 	struct list link;
 	struct libinput_plugin *plugin;
 	struct libinput_timer timer;
-	void (*func)(struct libinput_plugin *plugin, uint64_t now, void *user_data);
+	void (*func)(struct libinput_plugin *plugin, usec_t now, void *user_data);
 	void *user_data;
 };
 
@@ -657,7 +657,7 @@ print_frame(struct libinput *libinput, struct evdev_frame *frame, const char *pr
 {
 	static uint32_t offset = 0;
 	static uint32_t last_time = 0;
-	uint32_t time = evdev_frame_get_time(frame) / 1000;
+	uint32_t time = usec_to_millis(evdev_frame_get_time(frame));
 
 	if (offset == 0) {
 		offset = time;
@@ -756,7 +756,7 @@ plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 	struct list queued_events = LIST_INIT(queued_events);
 	list_take_insert(&queued_events, our_event, link);
 
-	uint64_t frame_time = evdev_frame_get_time(frame);
+	usec_t frame_time = evdev_frame_get_time(frame);
 
 	bool delay = !!sender_plugin;
 
@@ -784,7 +784,7 @@ plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 		list_for_each_safe(event, &queued_events, link) {
 			struct list next = LIST_INIT(next);
 
-			if (evdev_frame_get_time(event->frame) == 0)
+			if (usec_is_zero(evdev_frame_get_time(event->frame)))
 				evdev_frame_set_time(event->frame, frame_time);
 
 			if (!bitmask_bit_is_set(device->plugin_frame_callbacks,
@@ -848,7 +848,7 @@ libinput_plugin_system_notify_evdev_frame(struct libinput_plugin_system *system,
 }
 
 static void
-plugin_timer_func(uint64_t now, void *data)
+plugin_timer_func(usec_t now, void *data)
 {
 	struct libinput_plugin_timer *timer = data;
 	struct libinput_plugin *plugin = timer->plugin;
@@ -882,7 +882,7 @@ struct libinput_plugin_timer *
 libinput_plugin_timer_new(struct libinput_plugin *plugin,
 			  const char *name,
 			  void (*func)(struct libinput_plugin *plugin,
-				       uint64_t now,
+				       usec_t now,
 				       void *data),
 			  void *data)
 {
@@ -942,7 +942,7 @@ libinput_plugin_timer_unref(struct libinput_plugin_timer *timer)
 
 /* Set timer expire time, in absolute us CLOCK_MONOTONIC */
 void
-libinput_plugin_timer_set(struct libinput_plugin_timer *timer, uint64_t expire)
+libinput_plugin_timer_set(struct libinput_plugin_timer *timer, usec_t expire)
 {
 	libinput_timer_set(&timer->timer, expire);
 }

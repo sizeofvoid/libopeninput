@@ -220,11 +220,11 @@ get_key_down_count(struct evdev_device *device, evdev_usage_t usage)
 }
 
 void
-fallback_debounce_handle_state(struct fallback_dispatch *dispatch, uint64_t time);
+fallback_debounce_handle_state(struct fallback_dispatch *dispatch, usec_t time);
 void
 fallback_notify_physical_button(struct fallback_dispatch *dispatch,
 				struct evdev_device *device,
-				uint64_t time,
+				usec_t time,
 				evdev_usage_t button,
 				enum libinput_button_state state);
 

@@ -28,11 +28,153 @@
 #include <assert.h>
 #include <errno.h>
 #include <linux/input.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "util-macros.h"
+#include "util-newtype.h"
+
+DECLARE_NEWTYPE(usec, uint64_t);
+
+static inline usec_t
+usec_from_millis(uint32_t millis)
+{
+	return usec_from_uint64_t(millis * 1000);
+}
+
+static inline usec_t
+usec_from_seconds(uint32_t secs)
+{
+	return usec_from_millis(secs * 1000);
+}
+
+static inline usec_t
+usec_from_hours(uint32_t hours)
+{
+	return usec_from_seconds(hours * 3600);
+}
+
+static inline uint32_t
+usec_to_millis(usec_t us)
+{
+	return usec_as_uint64_t(us) / 1000;
+}
+
+static inline uint32_t
+usec_to_seconds(usec_t us)
+{
+	return usec_as_uint64_t(us) / 1000000;
+}
+
+static inline uint32_t
+usec_to_minutes(usec_t us)
+{
+	return usec_to_seconds(us) / 60;
+}
+
+static inline uint32_t
+usec_to_hours(usec_t us)
+{
+	return usec_to_minutes(us) / 60;
+}
+
+static inline usec_t
+usec_add_millis(usec_t us, uint32_t millis)
+{
+	return usec_from_uint64_t(usec_as_uint64_t(us) + millis * 1000);
+}
+
+static inline usec_t
+usec_delta(usec_t later, usec_t earlier)
+{
+	return usec_from_uint64_t(later.v - earlier.v);
+}
+
+static inline double
+us2ms_f(usec_t us)
+{
+	return (double)usec_as_uint64_t(us) / 1000.0;
+}
+
+static inline usec_t
+usec_from_timeval(const struct timeval *tv)
+{
+	return usec_from_uint64_t(tv->tv_sec * 1000000 + tv->tv_usec);
+}
+
+static inline usec_t
+usec_from_timespec(const struct timespec *tp)
+{
+	return usec_from_uint64_t(tp->tv_sec * 1000000 + tp->tv_nsec / 1000);
+}
+
+static inline usec_t
+usec_from_now(void)
+{
+	struct timespec ts = { 0, 0 };
+
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+
+	return usec_from_timespec(&ts);
+}
+
+static inline struct timeval
+usec_to_timeval(usec_t time)
+{
+	struct timeval tv;
+	uint64_t time_us = usec_as_uint64_t(time);
+	uint64_t one_sec_us = usec_as_uint64_t(usec_from_millis(1000));
+
+	tv.tv_sec = time_us / one_sec_us;
+	tv.tv_usec = time_us % one_sec_us;
+
+	return tv;
+}
+
+static inline struct timespec
+usec_to_timespec(usec_t time)
+{
+	struct timespec ts;
+	uint64_t time_us = usec_as_uint64_t(time);
+	uint64_t one_sec_us = usec_as_uint64_t(usec_from_millis(1000));
+
+	ts.tv_sec = time_us / one_sec_us;
+	ts.tv_nsec = (time_us % one_sec_us) * 1000;
+
+	return ts;
+}
+
+static inline usec_t
+usec_add(usec_t a, usec_t b)
+{
+	return usec_from_uint64_t(usec_as_uint64_t(a) + usec_as_uint64_t(b));
+}
+
+static inline usec_t
+usec_sub(usec_t a, usec_t b)
+{
+	return usec_from_uint64_t(usec_as_uint64_t(a) - usec_as_uint64_t(b));
+}
+
+static inline usec_t
+usec_div(usec_t a, uint64_t b)
+{
+	return usec_from_uint64_t(usec_as_uint64_t(a) / b);
+}
+
+static inline usec_t
+usec_mul(usec_t a, double b)
+{
+	return usec_from_uint64_t(usec_as_uint64_t(a) * b);
+}
+
+static inline bool
+usec_is_zero(usec_t a)
+{
+	return usec_as_uint64_t(a) == 0;
+}
 
 static inline void
 msleep(unsigned int ms)
@@ -40,94 +182,18 @@ msleep(unsigned int ms)
 	usleep(ms * 1000);
 }
 
-static inline uint64_t
-us(uint64_t us)
-{
-	return us;
-}
-
-static inline uint64_t
-ns2us(uint64_t ns)
-{
-	return us(ns / 1000);
-}
-
-static inline uint64_t
-ms2us(uint64_t ms)
-{
-	return us(ms * 1000);
-}
-
-static inline uint32_t
-ms2s(uint64_t ms)
-{
-	return ms / 1000;
-}
-
-static inline uint64_t
-s2us(uint64_t s)
-{
-	return ms2us(s * 1000);
-}
-
-static inline uint64_t
-h2us(uint64_t h)
-{
-	return s2us(h * 3600);
-}
-
-static inline uint32_t
-us2ms(uint64_t us)
-{
-	return (uint32_t)(us / 1000);
-}
-
-static inline uint32_t
-us2s(uint64_t us)
-{
-	return ms2s(us2ms(us));
-}
-
-static inline double
-us2ms_f(uint64_t us)
-{
-	return (double)us / 1000.0;
-}
-
-static inline uint64_t
-tv2us(const struct timeval *tv)
-{
-	return s2us(tv->tv_sec) + tv->tv_usec;
-}
-
-static inline uint64_t
-tp2us(const struct timespec *tp)
-{
-	return s2us(tp->tv_sec) + ns2us(tp->tv_nsec);
-}
-
-static inline struct timeval
-us2tv(uint64_t time)
-{
-	struct timeval tv;
-
-	tv.tv_sec = time / ms2us(1000);
-	tv.tv_usec = time % ms2us(1000);
-
-	return tv;
-}
-
 static inline int
-now_in_us(uint64_t *us)
+now_in_us(usec_t *us)
 {
 	struct timespec ts = { 0, 0 };
 
 	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
-		*us = 0;
+		*us = usec_from_uint64_t(0);
 		return -errno;
 	}
 
-	*us = s2us(ts.tv_sec) + ns2us(ts.tv_nsec);
+	*us = usec_from_timespec(&ts);
+
 	return 0;
 }
 
@@ -140,7 +206,7 @@ struct human_time {
  * Converts a time delta in µs to a human-readable time like "2h" or "4d"
  */
 static inline struct human_time
-to_human_time(uint64_t us)
+to_human_time(usec_t us)
 {
 	struct human_time t;
 	struct c {
@@ -151,7 +217,7 @@ to_human_time(uint64_t us)
 		{ "us", 1, 5000 },  { "ms", 1000, 5000 }, { "s", 1000, 120 },
 		{ "min", 60, 120 }, { "h", 60, 48 },      { "d", 24, ~0 },
 	};
-	uint64_t value = us;
+	uint64_t value = usec_as_uint64_t(us);
 
 	ARRAY_FOR_EACH(conversion, c) {
 		value = value / c->change_from_previous;

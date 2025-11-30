@@ -36,8 +36,8 @@ struct libinput_timer {
 	struct libinput *libinput;
 	char *timer_name;
 	struct list link;
-	uint64_t expire; /* in absolute us CLOCK_MONOTONIC */
-	void (*timer_func)(uint64_t now, void *timer_func_data);
+	usec_t expire; /* in absolute us CLOCK_MONOTONIC */
+	void (*timer_func)(usec_t now, void *timer_func_data);
 	void *timer_func_data;
 };
 
@@ -45,7 +45,7 @@ void
 libinput_timer_init(struct libinput_timer *timer,
 		    struct libinput *libinput,
 		    const char *timer_name,
-		    void (*timer_func)(uint64_t now, void *timer_func_data),
+		    void (*timer_func)(usec_t now, void *timer_func_data),
 		    void *timer_func_data);
 
 void
@@ -53,7 +53,7 @@ libinput_timer_destroy(struct libinput_timer *timer);
 
 /* Set timer expire time, in absolute us CLOCK_MONOTONIC */
 void
-libinput_timer_set(struct libinput_timer *timer, uint64_t expire);
+libinput_timer_set(struct libinput_timer *timer, usec_t expire);
 
 enum timer_flags {
 	TIMER_FLAG_NONE = 0,
@@ -61,7 +61,7 @@ enum timer_flags {
 };
 
 void
-libinput_timer_set_flags(struct libinput_timer *timer, uint64_t expire, uint32_t flags);
+libinput_timer_set_flags(struct libinput_timer *timer, usec_t expire, uint32_t flags);
 
 void
 libinput_timer_cancel(struct libinput_timer *timer);
@@ -73,9 +73,9 @@ void
 libinput_timer_subsys_destroy(struct libinput *libinput);
 
 void
-libinput_timer_flush(struct libinput *libinput, uint64_t now);
+libinput_timer_flush(struct libinput *libinput, usec_t now);
 
-uint64_t
+usec_t
 libinput_now(struct libinput *libinput);
 
 #endif

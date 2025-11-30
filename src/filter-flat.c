@@ -45,7 +45,7 @@ static struct normalized_coords
 accelerator_filter_flat(struct motion_filter *filter,
 			const struct device_float_coords *unaccelerated,
 			void *data,
-			uint64_t time)
+			usec_t time)
 {
 	struct pointer_accelerator_flat *accel_filter =
 		(struct pointer_accelerator_flat *)filter;
@@ -65,7 +65,7 @@ static struct normalized_coords
 accelerator_filter_constant_flat(struct motion_filter *filter,
 				 const struct device_float_coords *unaccelerated,
 				 void *data,
-				 uint64_t time)
+				 usec_t time)
 {
 	/* We map the unaccelerated flat filter to have the same behavior as
 	 * the "accelerated" flat filter.
@@ -85,7 +85,7 @@ static struct normalized_coords
 accelerator_filter_scroll_flat(struct motion_filter *filter,
 			       const struct device_float_coords *unaccelerated,
 			       void *data,
-			       uint64_t time,
+			       usec_t time,
 			       enum filter_scroll_type type)
 {
 	/* Scroll wheels were not historically accelerated and have different

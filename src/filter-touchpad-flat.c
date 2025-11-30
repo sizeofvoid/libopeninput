@@ -47,7 +47,7 @@ static struct normalized_coords
 accelerator_filter_touchpad_flat(struct motion_filter *filter,
 				 const struct device_float_coords *unaccelerated,
 				 void *data,
-				 uint64_t time)
+				 usec_t time)
 {
 	struct touchpad_accelerator_flat *accel =
 		(struct touchpad_accelerator_flat *)filter;
@@ -69,7 +69,7 @@ accelerator_filter_constant_touchpad_flat(
 	struct motion_filter *filter,
 	const struct device_float_coords *unaccelerated,
 	void *data,
-	uint64_t time)
+	usec_t time)
 {
 	/* We map the unaccelerated flat filter to have the same behavior as
 	 * the "accelerated" flat filter.
@@ -89,7 +89,7 @@ static struct normalized_coords
 accelerator_filter_scroll_touchpad_flat(struct motion_filter *filter,
 					const struct device_float_coords *unaccelerated,
 					void *data,
-					uint64_t time,
+					usec_t time,
 					enum filter_scroll_type type)
 {
 	/* Scroll wheels were not historically accelerated and have different

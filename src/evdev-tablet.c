@@ -197,7 +197,7 @@ static void
 tablet_process_absolute(struct tablet_dispatch *tablet,
 			struct evdev_device *device,
 			struct evdev_event *e,
-			uint64_t time)
+			usec_t time)
 {
 	enum libinput_tablet_tool_axis axis;
 
@@ -557,7 +557,7 @@ tablet_tool_process_delta(struct tablet_dispatch *tablet,
 			  struct libinput_tablet_tool *tool,
 			  const struct evdev_device *device,
 			  struct tablet_axes *axes,
-			  uint64_t time)
+			  usec_t time)
 {
 	const struct normalized_coords zero = { 0.0, 0.0 };
 	struct device_coords delta = { 0, 0 };
@@ -759,7 +759,7 @@ tablet_check_notify_axes(struct tablet_dispatch *tablet,
 			 struct evdev_device *device,
 			 struct libinput_tablet_tool *tool,
 			 struct tablet_axes *axes_out,
-			 uint64_t time)
+			 usec_t time)
 {
 	struct tablet_axes axes = { 0 };
 	const char tmp[sizeof(tablet->changed_axes)] = { 0 };
@@ -884,7 +884,7 @@ static void
 tablet_process_key(struct tablet_dispatch *tablet,
 		   struct evdev_device *device,
 		   struct evdev_event *e,
-		   uint64_t time)
+		   usec_t time)
 {
 	enum libinput_tablet_tool_type type;
 
@@ -930,7 +930,7 @@ static void
 tablet_process_relative(struct tablet_dispatch *tablet,
 			struct evdev_device *device,
 			struct evdev_event *e,
-			uint64_t time)
+			usec_t time)
 {
 	enum libinput_tablet_tool_axis axis;
 
@@ -960,7 +960,7 @@ static void
 tablet_process_misc(struct tablet_dispatch *tablet,
 		    struct evdev_device *device,
 		    struct evdev_event *e,
-		    uint64_t time)
+		    usec_t time)
 {
 	switch (evdev_usage_enum(e->usage)) {
 	case EVDEV_MSC_SERIAL:
@@ -1522,7 +1522,7 @@ tablet_get_tool(struct tablet_dispatch *tablet,
 static void
 tablet_notify_button_mask(struct tablet_dispatch *tablet,
 			  struct evdev_device *device,
-			  uint64_t time,
+			  usec_t time,
 			  struct libinput_tablet_tool *tool,
 			  const struct button_state *buttons,
 			  enum libinput_button_state state)
@@ -1556,7 +1556,7 @@ tablet_notify_button_mask(struct tablet_dispatch *tablet,
 static void
 tablet_notify_buttons(struct tablet_dispatch *tablet,
 		      struct evdev_device *device,
-		      uint64_t time,
+		      usec_t time,
 		      struct libinput_tablet_tool *tool,
 		      enum libinput_button_state state)
 {
@@ -1917,7 +1917,7 @@ tablet_calculate_arbitration_rect(struct tablet_dispatch *tablet)
 static inline void
 tablet_update_touch_device_rect(struct tablet_dispatch *tablet,
 				const struct tablet_axes *axes,
-				uint64_t time)
+				usec_t time)
 {
 	struct evdev_dispatch *dispatch;
 	struct phys_rect rect = { 0 };
@@ -1941,7 +1941,7 @@ tablet_send_proximity_in(struct tablet_dispatch *tablet,
 			 struct libinput_tablet_tool *tool,
 			 struct evdev_device *device,
 			 struct tablet_axes *axes,
-			 uint64_t time)
+			 usec_t time)
 {
 	if (!tablet_has_status(tablet, TABLET_TOOL_ENTERING_PROXIMITY))
 		return false;
@@ -1969,7 +1969,7 @@ tablet_send_proximity_out(struct tablet_dispatch *tablet,
 			  struct libinput_tablet_tool *tool,
 			  struct evdev_device *device,
 			  struct tablet_axes *axes,
-			  uint64_t time)
+			  usec_t time)
 {
 	if (tablet_has_status(tablet, TABLET_TOOL_LEAVING_PROXIMITY) &&
 	    !tablet_has_status(tablet, TABLET_TOOL_OUTSIDE_AREA)) {
@@ -1989,7 +1989,7 @@ tablet_send_tip(struct tablet_dispatch *tablet,
 		struct libinput_tablet_tool *tool,
 		struct evdev_device *device,
 		struct tablet_axes *axes,
-		uint64_t time)
+		usec_t time)
 {
 	if (tablet_has_status(tablet, TABLET_TOOL_ENTERING_CONTACT)) {
 		tablet_notify_tip(&device->base,
@@ -2039,7 +2039,7 @@ tablet_send_axes(struct tablet_dispatch *tablet,
 		 struct libinput_tablet_tool *tool,
 		 struct evdev_device *device,
 		 struct tablet_axes *axes,
-		 uint64_t time)
+		 usec_t time)
 {
 	enum libinput_tablet_tool_tip_state tip_state;
 
@@ -2069,7 +2069,7 @@ static inline void
 tablet_send_buttons(struct tablet_dispatch *tablet,
 		    struct libinput_tablet_tool *tool,
 		    struct evdev_device *device,
-		    uint64_t time)
+		    usec_t time)
 {
 	if (tablet_has_status(tablet, TABLET_BUTTONS_RELEASED)) {
 		tablet_notify_buttons(tablet,
@@ -2094,7 +2094,7 @@ static void
 tablet_send_events(struct tablet_dispatch *tablet,
 		   struct libinput_tablet_tool *tool,
 		   struct evdev_device *device,
-		   uint64_t time)
+		   usec_t time)
 {
 	struct tablet_axes axes = { 0 };
 
@@ -2131,7 +2131,7 @@ tablet_send_events(struct tablet_dispatch *tablet,
 static void
 tablet_update_tool_state(struct tablet_dispatch *tablet,
 			 struct evdev_device *device,
-			 uint64_t time)
+			 usec_t time)
 {
 	enum libinput_tablet_tool_type type;
 	uint32_t changed;
@@ -2206,7 +2206,7 @@ update_pressure_range(struct tablet_dispatch *tablet,
 }
 
 static void
-tablet_flush(struct tablet_dispatch *tablet, struct evdev_device *device, uint64_t time)
+tablet_flush(struct tablet_dispatch *tablet, struct evdev_device *device, usec_t time)
 {
 	struct libinput_tablet_tool *tool;
 
@@ -2290,7 +2290,7 @@ static inline void
 tablet_set_touch_device_enabled(struct tablet_dispatch *tablet,
 				enum evdev_arbitration_state which,
 				const struct phys_rect *rect,
-				uint64_t time)
+				usec_t time)
 {
 	struct evdev_device *touch_device = tablet->touch_device;
 	struct evdev_dispatch *dispatch;
@@ -2312,7 +2312,7 @@ tablet_set_touch_device_enabled(struct tablet_dispatch *tablet,
 static inline void
 tablet_toggle_touch_device(struct tablet_dispatch *tablet,
 			   struct evdev_device *tablet_device,
-			   uint64_t time)
+			   usec_t time)
 {
 	enum evdev_arbitration_state which;
 	struct phys_rect r = { 0 };
@@ -2359,7 +2359,7 @@ static void
 tablet_process_event(struct evdev_dispatch *dispatch,
 		     struct evdev_device *device,
 		     struct evdev_event *e,
-		     uint64_t time)
+		     usec_t time)
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 
@@ -2395,7 +2395,7 @@ static void
 tablet_process(struct evdev_dispatch *dispatch,
 	       struct evdev_device *device,
 	       struct evdev_frame *frame,
-	       uint64_t time)
+	       usec_t time)
 {
 	size_t nevents;
 	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
@@ -2410,7 +2410,7 @@ tablet_suspend(struct evdev_dispatch *dispatch, struct evdev_device *device)
 {
 	struct tablet_dispatch *tablet = tablet_dispatch(dispatch);
 	struct libinput *li = tablet_libinput_context(tablet);
-	uint64_t now = libinput_now(li);
+	usec_t now = libinput_now(li);
 
 	tablet_set_touch_device_enabled(tablet, ARBITRATION_NOT_ACTIVE, NULL, now);
 

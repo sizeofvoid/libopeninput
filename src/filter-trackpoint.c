@@ -48,7 +48,7 @@ double
 trackpoint_accel_profile(struct motion_filter *filter,
 			 void *data,
 			 double velocity,
-			 uint64_t time)
+			 usec_t time)
 {
 	struct trackpoint_accelerator *accel_filter =
 		(struct trackpoint_accelerator *)filter;
@@ -74,7 +74,7 @@ static struct normalized_coords
 trackpoint_accelerator_filter(struct motion_filter *filter,
 			      const struct device_float_coords *unaccelerated,
 			      void *data,
-			      uint64_t time)
+			      usec_t time)
 {
 	struct trackpoint_accelerator *accel_filter =
 		(struct trackpoint_accelerator *)filter;
@@ -100,7 +100,7 @@ static struct normalized_coords
 trackpoint_accelerator_filter_constant(struct motion_filter *filter,
 				       const struct device_float_coords *unaccelerated,
 				       void *data,
-				       uint64_t time)
+				       usec_t time)
 {
 	struct trackpoint_accelerator *accel_filter =
 		(struct trackpoint_accelerator *)filter;
@@ -116,7 +116,7 @@ static struct normalized_coords
 trackpoint_accelerator_filter_scroll(struct motion_filter *filter,
 				     const struct device_float_coords *unaccelerated,
 				     void *data,
-				     uint64_t time,
+				     usec_t time,
 				     enum filter_scroll_type type)
 {
 	/* Scroll wheels were not historically accelerated and have different
@@ -174,7 +174,7 @@ trackpoint_accelerator_set_speed(struct motion_filter *filter, double speed_adju
 }
 
 static void
-trackpoint_accelerator_restart(struct motion_filter *filter, void *data, uint64_t time)
+trackpoint_accelerator_restart(struct motion_filter *filter, void *data, usec_t time)
 {
 	struct trackpoint_accelerator *accel = (struct trackpoint_accelerator *)filter;
 
@@ -231,7 +231,8 @@ create_pointer_accelerator_filter_trackpoint(double multiplier,
 
 	filter->base.interface = &accelerator_interface_trackpoint;
 	filter->trackers.smoothener =
-		pointer_delta_smoothener_create(ms2us(10), ms2us(10));
+		pointer_delta_smoothener_create(usec_from_millis(10),
+						usec_from_millis(10));
 
 	return &filter->base;
 }

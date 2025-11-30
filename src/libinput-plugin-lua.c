@@ -408,7 +408,8 @@ libinput_lua_plugin_evdev_frame(struct libinput_plugin *libinput_plugin,
 		lua_rawgeti(plugin->L, LUA_REGISTRYINDEX, evdev->frame_refid);
 		lua_rawgeti(plugin->L, LUA_REGISTRYINDEX, evdev->refid);
 		lua_push_evdev_frame(plugin->L, frame);
-		lua_pushinteger(plugin->L, evdev_frame_get_time(frame));
+		lua_pushinteger(plugin->L,
+				usec_as_uint64_t(evdev_frame_get_time(frame)));
 
 		if (!libinput_lua_pcall(plugin, 3, 1))
 			return;
@@ -464,9 +465,9 @@ libinputplugin_now(lua_State *L)
 	luaL_argcheck(L, p != NULL, 1, PLUGIN_METATABLE " expected");
 
 	struct libinput *libinput = lua_get_libinput(L);
-	uint64_t now = libinput_now(libinput);
+	usec_t now = libinput_now(libinput);
 
-	lua_pushinteger(L, now);
+	lua_pushinteger(L, usec_as_uint64_t(now));
 
 	return 1;
 }
@@ -555,19 +556,19 @@ libinputplugin_gc(lua_State *L)
 }
 
 static void
-plugin_timer_func(struct libinput_plugin *libinput_plugin, uint64_t now, void *data)
+plugin_timer_func(struct libinput_plugin *libinput_plugin, usec_t now, void *data)
 {
 	struct libinput_lua_plugin *plugin = data;
 	struct lua_State *L = plugin->L;
 
 	lua_rawgeti(L, LUA_REGISTRYINDEX, plugin->timer_expired_refid);
-	lua_pushinteger(L, now);
+	lua_pushinteger(L, usec_as_uint64_t(now));
 
 	libinput_lua_pcall(plugin, 1, 0);
 }
 
 static int
-libinputplugin_timer_set(lua_State *L, uint64_t offset)
+libinputplugin_timer_set(lua_State *L, usec_t offset)
 {
 	LibinputPlugin *p = luaL_checkudata(L, 1, PLUGIN_METATABLE);
 	luaL_argcheck(L, p != NULL, 1, PLUGIN_METATABLE " expected");
@@ -583,7 +584,8 @@ libinputplugin_timer_set(lua_State *L, uint64_t offset)
 			plugin);
 	}
 
-	libinput_plugin_timer_set(plugin->timer, offset + timeout);
+	libinput_plugin_timer_set(plugin->timer,
+				  usec_add(offset, usec_from_uint64_t(timeout)));
 
 	return 0;
 }
@@ -591,7 +593,7 @@ libinputplugin_timer_set(lua_State *L, uint64_t offset)
 static int
 libinputplugin_timer_set_absolute(lua_State *L)
 {
-	return libinputplugin_timer_set(L, 0);
+	return libinputplugin_timer_set(L, usec_from_uint64_t(0));
 }
 
 static int
@@ -944,7 +946,7 @@ evdevdevice_frame(lua_State *L, struct libinput_lua_plugin *plugin, EvdevDevice 
 	lua_pop_evdev_frame(plugin, device->evdev, frame);
 
 	struct libinput *libinput = lua_get_libinput(L);
-	uint64_t now = libinput_now(libinput);
+	usec_t now = libinput_now(libinput);
 	evdev_frame_set_time(frame, now);
 
 	return frame;

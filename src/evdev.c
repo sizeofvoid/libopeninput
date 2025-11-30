@@ -53,7 +53,7 @@
 #endif
 
 #define DEFAULT_WHEEL_CLICK_ANGLE 15
-#define DEFAULT_BUTTON_SCROLL_TIMEOUT ms2us(200)
+#define DEFAULT_BUTTON_SCROLL_TIMEOUT usec_from_millis(200)
 
 enum evdev_device_udev_tags {
 	EVDEV_UDEV_TAG_NONE = 0,
@@ -167,7 +167,7 @@ evdev_device_switch_get_state(struct evdev_device *device, enum libinput_switch 
 
 void
 evdev_pointer_notify_physical_button(struct evdev_device *device,
-				     uint64_t time,
+				     usec_t time,
 				     evdev_usage_t button,
 				     enum libinput_button_state state)
 {
@@ -179,7 +179,7 @@ evdev_pointer_notify_physical_button(struct evdev_device *device,
 
 static void
 evdev_pointer_post_button(struct evdev_device *device,
-			  uint64_t time,
+			  usec_t time,
 			  evdev_usage_t button,
 			  enum libinput_button_state state)
 {
@@ -205,7 +205,7 @@ evdev_pointer_post_button(struct evdev_device *device,
 }
 
 static void
-evdev_button_scroll_timeout(uint64_t time, void *data)
+evdev_button_scroll_timeout(usec_t time, void *data)
 {
 	struct evdev_device *device = data;
 
@@ -213,7 +213,7 @@ evdev_button_scroll_timeout(uint64_t time, void *data)
 }
 
 static void
-evdev_button_scroll_button(struct evdev_device *device, uint64_t time, int is_press)
+evdev_button_scroll_button(struct evdev_device *device, usec_t time, int is_press)
 {
 	/* Where the button lock is enabled, we wrap the buttons into
 	   their own little state machine and filter out the events.
@@ -265,9 +265,10 @@ evdev_button_scroll_button(struct evdev_device *device, uint64_t time, int is_pr
 				flags = TIMER_FLAG_ALLOW_NEGATIVE;
 			}
 
-			libinput_timer_set_flags(&device->scroll.timer,
-						 time + DEFAULT_BUTTON_SCROLL_TIMEOUT,
-						 flags);
+			libinput_timer_set_flags(
+				&device->scroll.timer,
+				usec_add(time, DEFAULT_BUTTON_SCROLL_TIMEOUT),
+				flags);
 		} else {
 			/* For extra mouse buttons numbered 6 or more (0x115+) we assume
 			 * it is dedicated exclusively to scrolling, so we don't apply
@@ -314,7 +315,7 @@ evdev_button_scroll_button(struct evdev_device *device, uint64_t time, int is_pr
 
 void
 evdev_pointer_notify_button(struct evdev_device *device,
-			    uint64_t time,
+			    usec_t time,
 			    evdev_usage_t button,
 			    enum libinput_button_state state)
 {
@@ -394,7 +395,7 @@ evdev_device_transform_y(struct evdev_device *device, double y, uint32_t height)
 
 void
 evdev_notify_axis_legacy_wheel(struct evdev_device *device,
-			       uint64_t time,
+			       usec_t time,
 			       uint32_t axes,
 			       const struct normalized_coords *delta_in,
 			       const struct discrete_coords *discrete_in)
@@ -419,7 +420,7 @@ evdev_notify_axis_legacy_wheel(struct evdev_device *device,
 
 void
 evdev_notify_axis_wheel(struct evdev_device *device,
-			uint64_t time,
+			usec_t time,
 			uint32_t axes,
 			const struct normalized_coords *delta_in,
 			const struct wheel_v120 *v120_in)
@@ -444,7 +445,7 @@ evdev_notify_axis_wheel(struct evdev_device *device,
 
 void
 evdev_notify_axis_finger(struct evdev_device *device,
-			 uint64_t time,
+			 usec_t time,
 			 uint32_t axes,
 			 const struct normalized_coords *delta_in)
 {
@@ -460,7 +461,7 @@ evdev_notify_axis_finger(struct evdev_device *device,
 
 void
 evdev_notify_axis_continous(struct evdev_device *device,
-			    uint64_t time,
+			    usec_t time,
 			    uint32_t axes,
 			    const struct normalized_coords *delta_in)
 {
@@ -1014,7 +1015,7 @@ evdev_note_time_delay(struct evdev_device *device, const struct input_event *ev)
 {
 	struct libinput *libinput = evdev_libinput_context(device);
 	uint32_t tdelta;
-	uint64_t eventtime = input_event_time(ev);
+	usec_t eventtime = input_event_time(ev);
 
 	/* if we have a current libinput_dispatch() snapshot, compare our
 	 * event time with the one from the snapshot. If we have more than
@@ -1022,10 +1023,11 @@ evdev_note_time_delay(struct evdev_device *device, const struct input_event *ev)
 	 * where there is no steady event flow and thus SYN_DROPPED may not
 	 * get hit by the kernel despite us being too slow.
 	 */
-	if (libinput->dispatch_time == 0 || eventtime > libinput->dispatch_time)
+	if (usec_is_zero(libinput->dispatch_time) ||
+	    usec_cmp(eventtime, libinput->dispatch_time) > 0)
 		return;
 
-	tdelta = us2ms(libinput->dispatch_time - eventtime);
+	tdelta = usec_to_millis(usec_delta(libinput->dispatch_time, eventtime));
 	if (tdelta > 20) {
 		evdev_log_bug_client_ratelimit(
 			device,
@@ -2313,11 +2315,11 @@ evdev_device_create(struct libinput_seat *seat, struct udev_device *udev_device)
 	device->dpi = DEFAULT_MOUSE_DPI;
 
 	/* at most 5 SYN_DROPPED log-messages per 30s */
-	ratelimit_init(&device->syn_drop_limit, s2us(30), 5);
+	ratelimit_init(&device->syn_drop_limit, usec_from_seconds(30), 5);
 	/* at most 5 "delayed processing" log messages per hour */
-	ratelimit_init(&device->delay_warning_limit, s2us(60 * 60), 5);
+	ratelimit_init(&device->delay_warning_limit, usec_from_hours(1), 5);
 	/* at most 5 log-messages per 5s */
-	ratelimit_init(&device->nonpointer_rel_limit, s2us(5), 5);
+	ratelimit_init(&device->nonpointer_rel_limit, usec_from_seconds(5), 5);
 
 	matrix_init_identity(&device->abs.calibration);
 	matrix_init_identity(&device->abs.usermatrix);
@@ -2705,7 +2707,7 @@ evdev_start_scrolling(struct evdev_device *device, enum libinput_pointer_axis ax
 
 void
 evdev_post_scroll(struct evdev_device *device,
-		  uint64_t time,
+		  usec_t time,
 		  enum libinput_pointer_axis_source source,
 		  const struct normalized_coords *delta)
 {
@@ -2779,7 +2781,7 @@ evdev_post_scroll(struct evdev_device *device,
 
 void
 evdev_stop_scroll(struct evdev_device *device,
-		  uint64_t time,
+		  usec_t time,
 		  enum libinput_pointer_axis_source source)
 {
 	const struct normalized_coords zero = { 0.0, 0.0 };

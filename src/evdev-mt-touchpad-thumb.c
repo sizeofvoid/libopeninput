@@ -29,7 +29,7 @@
 /* distance between fingers to assume it is not a scroll */
 #define SCROLL_MM_X 35
 #define SCROLL_MM_Y 25
-#define THUMB_TIMEOUT ms2us(100)
+#define THUMB_TIMEOUT usec_from_millis(100)
 
 static inline const char *
 thumb_state_to_str(enum tp_thumb_state state)
@@ -193,7 +193,7 @@ tp_thumb_revive(struct tp_dispatch *tp, struct tp_touch *t)
 }
 
 void
-tp_thumb_update_touch(struct tp_dispatch *tp, struct tp_touch *t, uint64_t time)
+tp_thumb_update_touch(struct tp_dispatch *tp, struct tp_touch *t, usec_t time)
 {
 	if (!tp->thumb.detect_thumbs)
 		return;
@@ -274,7 +274,7 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp)
 		speed_exceeded_count =
 			max(speed_exceeded_count, t->speed.exceeded_count);
 
-		if (!oldest || t->initial_time < oldest->initial_time) {
+		if (!oldest || usec_cmp(t->initial_time, oldest->initial_time) < 0) {
 			oldest = t;
 		}
 
@@ -337,10 +337,13 @@ tp_thumb_update_multifinger(struct tp_dispatch *tp)
 	 * the behavior of the other touches.)
 	 */
 
-	if (newest && (newest->initial_time - oldest->initial_time) < THUMB_TIMEOUT &&
-	    first->point.y < tp->thumb.lower_thumb_line) {
-		tp_thumb_lift(tp);
-		return;
+	if (newest) {
+		usec_t delta = usec_delta(newest->initial_time, oldest->initial_time);
+		if (usec_cmp(delta, THUMB_TIMEOUT) < 0 &&
+		    first->point.y < tp->thumb.lower_thumb_line) {
+			tp_thumb_lift(tp);
+			return;
+		}
 	}
 
 	/* If we're past the THUMB_TIMEOUT, and the touches are relatively far

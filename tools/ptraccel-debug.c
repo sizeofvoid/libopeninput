@@ -40,7 +40,7 @@ print_ptraccel_deltas(struct motion_filter *filter, double step)
 {
 	struct device_float_coords motion;
 	struct normalized_coords accel;
-	uint64_t time = 0;
+	usec_t time = usec_from_uint64_t(0);
 	double i;
 
 	printf("# gnuplot:\n");
@@ -54,7 +54,8 @@ print_ptraccel_deltas(struct motion_filter *filter, double step)
 	for (i = 0.0; i < 15.0; i += step) { // NOLINT: security.FloatLoopCounter
 		motion.x = i;
 		motion.y = 0;
-		time += us(12500); /* pretend 80Hz data */
+		time = usec_add(time,
+				usec_from_uint64_t(12500)); /* pretend 80Hz data */
 
 		accel = filter_dispatch(filter, &motion, NULL, time);
 
@@ -70,7 +71,7 @@ print_ptraccel_movement(struct motion_filter *filter,
 {
 	struct device_float_coords motion;
 	struct normalized_coords accel;
-	uint64_t time = 0;
+	usec_t time = usec_from_uint64_t(0);
 	double dx;
 	int i;
 
@@ -98,7 +99,8 @@ print_ptraccel_movement(struct motion_filter *filter,
 	for (i = 0; i < nevents; i++) {
 		motion.x = dx;
 		motion.y = 0;
-		time += us(12500); /* pretend 80Hz data */
+		time = usec_add(time,
+				usec_from_uint64_t(12500)); /* pretend 80Hz data */
 
 		accel = filter_dispatch(filter, &motion, NULL, time);
 
@@ -114,7 +116,7 @@ print_ptraccel_sequence(struct motion_filter *filter, int nevents, double *delta
 {
 	struct device_float_coords motion;
 	struct normalized_coords accel;
-	uint64_t time = 0;
+	usec_t time = usec_from_uint64_t(0);
 	double *dx;
 	int i;
 
@@ -131,7 +133,8 @@ print_ptraccel_sequence(struct motion_filter *filter, int nevents, double *delta
 	for (i = 0; i < nevents; i++, dx++) {
 		motion.x = *dx;
 		motion.y = 0;
-		time += us(12500); /* pretend 80Hz data */
+		time = usec_add(time,
+				usec_from_uint64_t(12500)); /* pretend 80Hz data */
 
 		accel = filter_dispatch(filter, &motion, NULL, time);
 
@@ -162,7 +165,8 @@ print_accel_func(struct motion_filter *filter, accel_profile_func_t profile, int
 	     mmps += 1) {
 		double units_per_us = mmps_to_upus(mmps, dpi);
 		double units_per_ms = units_per_us * 1000.0;
-		double result = profile(filter, NULL, units_per_us, 0 /* time */);
+		double result =
+			profile(filter, NULL, units_per_us, usec_from_uint64_t(0));
 		printf("%.8f\t%.4f\t%.8f\t%.8f\n",
 		       mmps,
 		       result,
@@ -357,10 +361,11 @@ main(int argc, char **argv)
 									 use_averaging);
 		profile = pointer_accel_profile_linear_low_dpi;
 	} else if (streq(filter_type, "touchpad")) {
-		filter = create_pointer_accelerator_filter_touchpad(dpi,
-								    0,
-								    0,
-								    use_averaging);
+		filter = create_pointer_accelerator_filter_touchpad(
+			dpi,
+			usec_from_uint64_t(0),
+			usec_from_uint64_t(0),
+			use_averaging);
 		profile = touchpad_accel_profile_linear;
 	} else if (streq(filter_type, "x230")) {
 		filter = create_pointer_accelerator_filter_lenovo_x230(dpi,

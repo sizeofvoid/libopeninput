@@ -53,7 +53,7 @@
 START_TEST(auto_test)
 {
 	/* This one is just a compile test */
-	auto tv = us2tv(0);
+	auto tv = usec_to_timeval(usec_from_uint64_t(0));
 	tv.tv_sec = 0;
 	litest_assert_int_eq(tv.tv_sec, 0);
 }
@@ -605,7 +605,7 @@ START_TEST(ratelimit_helpers)
 	unsigned int i, j;
 
 	/* 10 attempts every 1000ms */
-	ratelimit_init(&rl, ms2us(1000), 10);
+	ratelimit_init(&rl, usec_from_millis(1000), 10);
 
 	for (j = 0; j < 3; ++j) {
 		/* a burst of 9 attempts must succeed */
@@ -1165,12 +1165,125 @@ END_TEST
 
 START_TEST(time_conversion)
 {
-	litest_assert_int_eq(us(10), 10U);
-	litest_assert_int_eq(ns2us(10000), 10U);
-	litest_assert_int_eq(ms2us(10), 10000U);
-	litest_assert_int_eq(s2us(1), 1000000U);
-	litest_assert_int_eq(h2us(2), s2us(2 * 60 * 60));
-	litest_assert_int_eq(us2ms(10000), 10U);
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_uint64_t(0)), 0U);
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_uint64_t(12345)), 12345U);
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_uint64_t(999999)), 999999U);
+
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_millis(0)), 0U);
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_millis(1)), 1000U);
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_millis(10)), 10000U);
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_millis(1000)), 1000000U);
+
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_seconds(0)), 0U);
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_seconds(1)), 1000000U);
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_seconds(10)), 10000000U);
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_seconds(60)), 60000000U);
+
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_hours(0)), 0ULL);
+	litest_assert_int_eq(usec_as_uint64_t(usec_from_hours(1)), 3600000000ULL);
+
+	{
+		struct timeval tv = { .tv_sec = 0, .tv_usec = 0 };
+		litest_assert_int_eq(usec_as_uint64_t(usec_from_timeval(&tv)), 0U);
+
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
+		litest_assert_int_eq(usec_as_uint64_t(usec_from_timeval(&tv)),
+				     1000000U);
+
+		tv.tv_sec = 1;
+		tv.tv_usec = 234567;
+		litest_assert_int_eq(usec_as_uint64_t(usec_from_timeval(&tv)),
+				     1234567U);
+
+		tv.tv_sec = 0;
+		tv.tv_usec = 999999;
+		litest_assert_int_eq(usec_as_uint64_t(usec_from_timeval(&tv)), 999999U);
+	}
+
+	{
+		struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
+		litest_assert_int_eq(usec_as_uint64_t(usec_from_timespec(&ts)), 0U);
+
+		ts.tv_sec = 1;
+		ts.tv_nsec = 0;
+		litest_assert_int_eq(usec_as_uint64_t(usec_from_timespec(&ts)),
+				     1000000U);
+
+		ts.tv_sec = 1;
+		ts.tv_nsec = 234567000;
+		litest_assert_int_eq(usec_as_uint64_t(usec_from_timespec(&ts)),
+				     1234567U);
+
+		ts.tv_sec = 0;
+		ts.tv_nsec = 999999000;
+		litest_assert_int_eq(usec_as_uint64_t(usec_from_timespec(&ts)),
+				     999999U);
+	}
+
+	litest_assert_int_eq(usec_to_millis(usec_from_uint64_t(0)), 0U);
+	litest_assert_int_eq(usec_to_millis(usec_from_uint64_t(1000)), 1U);
+	litest_assert_int_eq(usec_to_millis(usec_from_uint64_t(10000)), 10U);
+	litest_assert_int_eq(usec_to_millis(usec_from_uint64_t(123456)), 123U);
+	litest_assert_int_eq(usec_to_millis(usec_from_uint64_t(999)), 0U);
+
+	litest_assert_int_eq(usec_to_seconds(usec_from_uint64_t(0)), 0U);
+	litest_assert_int_eq(usec_to_seconds(usec_from_uint64_t(1000000)), 1U);
+	litest_assert_int_eq(usec_to_seconds(usec_from_uint64_t(5000000)), 5U);
+	litest_assert_int_eq(usec_to_seconds(usec_from_uint64_t(60000000)), 60U);
+	litest_assert_int_eq(usec_to_seconds(usec_from_uint64_t(999999)), 0U);
+
+	litest_assert_int_eq(usec_to_minutes(usec_from_uint64_t(0)), 0U);
+	litest_assert_int_eq(usec_to_minutes(usec_from_uint64_t(60000000)), 1U);
+	litest_assert_int_eq(usec_to_minutes(usec_from_uint64_t(120000000)), 2U);
+	litest_assert_int_eq(usec_to_minutes(usec_from_uint64_t(3600000000)), 60U);
+	litest_assert_int_eq(usec_to_minutes(usec_from_uint64_t(59999999)), 0U);
+
+	litest_assert_int_eq(usec_to_hours(usec_from_uint64_t(0)), 0U);
+	litest_assert_int_eq(usec_to_hours(usec_from_uint64_t(3600000000)), 1U);
+	litest_assert_int_eq(usec_to_hours(usec_from_uint64_t(7200000000)), 2U);
+	litest_assert_int_eq(usec_to_hours(usec_from_uint64_t(86400000000)), 24U);
+	litest_assert_int_eq(usec_to_hours(usec_from_uint64_t(3599999999)), 0U);
+
+	{
+		struct timeval tv;
+
+		tv = usec_to_timeval(usec_from_uint64_t(0));
+		litest_assert_int_eq(tv.tv_sec, 0);
+		litest_assert_int_eq(tv.tv_usec, 0);
+
+		tv = usec_to_timeval(usec_from_uint64_t(1000000));
+		litest_assert_int_eq(tv.tv_sec, 1);
+		litest_assert_int_eq(tv.tv_usec, 0);
+
+		tv = usec_to_timeval(usec_from_uint64_t(1234567));
+		litest_assert_int_eq(tv.tv_sec, 1);
+		litest_assert_int_eq(tv.tv_usec, 234567);
+
+		tv = usec_to_timeval(usec_from_uint64_t(999999));
+		litest_assert_int_eq(tv.tv_sec, 0);
+		litest_assert_int_eq(tv.tv_usec, 999999);
+	}
+
+	{
+		struct timespec ts;
+
+		ts = usec_to_timespec(usec_from_uint64_t(0));
+		litest_assert_int_eq(ts.tv_sec, 0);
+		litest_assert_int_eq(ts.tv_nsec, 0);
+
+		ts = usec_to_timespec(usec_from_uint64_t(1000000));
+		litest_assert_int_eq(ts.tv_sec, 1);
+		litest_assert_int_eq(ts.tv_nsec, 0);
+
+		ts = usec_to_timespec(usec_from_uint64_t(1234567));
+		litest_assert_int_eq(ts.tv_sec, 1);
+		litest_assert_int_eq(ts.tv_nsec, 234567000);
+
+		ts = usec_to_timespec(usec_from_uint64_t(999999));
+		litest_assert_int_eq(ts.tv_sec, 0);
+		litest_assert_int_eq(ts.tv_nsec, 999999000);
+	}
 }
 END_TEST
 
@@ -1178,23 +1291,23 @@ START_TEST(human_time)
 {
 	/* clang-format off */
 	struct ht_tests {
-		uint64_t interval;
+		usec_t interval;
 		unsigned int value;
 		const char *unit;
 	} tests[] = {
-		{ 0, 0, "us" },
-		{ 123, 123, "us" },
-		{ ms2us(5), 5, "ms" },
-		{ ms2us(100), 100, "ms" },
-		{ s2us(5), 5, "s" },
-		{ s2us(100), 100, "s" },
-		{ s2us(120), 2, "min" },
-		{ 5 * s2us(60), 5, "min" },
-		{ 120 * s2us(60), 2, "h" },
-		{ 5 * 60 * s2us(60), 5, "h" },
-		{ 48 * 60 * s2us(60), 2, "d" },
-		{ 1000 * 24 * 60 * s2us(60), 1000, "d" },
-		{ 0, 0, NULL },
+		{ usec_from_uint64_t(0), 0, "us" },
+		{ usec_from_uint64_t(123), 123, "us" },
+		{ usec_from_millis(5), 5, "ms" },
+		{ usec_from_millis(100), 100, "ms" },
+		{ usec_from_seconds(5), 5, "s" },
+		{ usec_from_seconds(100), 100, "s" },
+		{ usec_from_seconds(120), 2, "min" },
+		{ usec_mul(usec_from_seconds(60), 5), 5, "min" },
+		{ usec_mul(usec_from_seconds(60), 120), 2, "h" },
+		{ usec_mul(usec_from_seconds(60), 5 * 60), 5, "h" },
+		{ usec_mul(usec_from_seconds(60), 48 * 60), 2, "d" },
+		{ usec_mul(usec_from_seconds(60), 1000 * 24 * 60), 1000, "d" },
+		{ usec_from_uint64_t(0), 0, NULL },
 	};
 	/* clang-format on */
 	for (int i = 0; tests[i].unit != NULL; i++) {
@@ -3006,7 +3119,8 @@ START_TEST(evdev_frames)
 		litest_assert_int_eq(evdev_frame_get_count(frame), 2U);
 
 		/* We never appended a timestamp */
-		litest_assert_int_eq(evdev_frame_get_time(frame), 0U);
+		litest_assert(usec_cmp(evdev_frame_get_time(frame),
+				       usec_from_uint64_t(0)) == 0);
 	}
 	{
 		struct evdev_event events[] = {

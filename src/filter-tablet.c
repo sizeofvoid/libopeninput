@@ -96,7 +96,7 @@ static struct normalized_coords
 tablet_accelerator_filter_flat(struct motion_filter *filter,
 			       const struct device_float_coords *units,
 			       void *data,
-			       uint64_t time)
+			       usec_t time)
 {
 	struct tablet_accelerator_flat *accel_filter =
 		(struct tablet_accelerator_flat *)filter;

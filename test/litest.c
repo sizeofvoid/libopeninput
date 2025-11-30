@@ -3513,9 +3513,9 @@ _litest_wait_for_event_of_type(struct libinput *li, const char *func, int lineno
 	fds.revents = 0;
 
 	const int timeout = 2000;
-	uint64_t expiry = 0;
+	usec_t expiry = usec_from_uint64_t(0);
 	int rc = now_in_us(&expiry);
-	expiry += ms2us(timeout);
+	expiry = usec_add_millis(expiry, timeout);
 	litest_assert_errno_success(rc);
 
 	while (1) {
@@ -3530,9 +3530,9 @@ _litest_wait_for_event_of_type(struct libinput *li, const char *func, int lineno
 		}
 
 		if (type == LIBINPUT_EVENT_NONE) {
-			uint64_t now;
+			usec_t now;
 			now_in_us(&now);
-			if (now > expiry) {
+			if (usec_cmp(now, expiry) > 0) {
 				_litest_abort_msg(
 					NULL,
 					lineno,

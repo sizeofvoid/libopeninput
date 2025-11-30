@@ -38,8 +38,8 @@
  * Default parameters for pointer acceleration profiles.
  */
 
-#define DEFAULT_THRESHOLD v_ms2us(0.4)		/* in units/us */
-#define MINIMUM_THRESHOLD v_ms2us(0.2)		/* in units/us */
+#define DEFAULT_THRESHOLD v_usec_from_millis(0.4)		/* in units/us */
+#define MINIMUM_THRESHOLD v_usec_from_millis(0.2)		/* in units/us */
 #define DEFAULT_ACCELERATION 2.0		/* unitless factor */
 #define DEFAULT_INCLINE 1.1			/* unitless factor */
 
@@ -74,7 +74,7 @@ double
 pointer_accel_profile_linear_low_dpi(struct motion_filter *filter,
 				     void *data,
 				     double speed_in, /* in device units (units/us) */
-				     uint64_t time)
+				     usec_t time)
 {
 	struct pointer_accelerator_low_dpi *accel_filter =
 		(struct pointer_accelerator_low_dpi *)filter;
@@ -107,7 +107,7 @@ static inline double
 calculate_acceleration_factor(struct pointer_accelerator_low_dpi *accel,
 			      const struct device_float_coords *unaccelerated,
 			      void *data,
-			      uint64_t time)
+			      usec_t time)
 {
 	double velocity; /* units/us in device-native dpi*/
 	double accel_factor;
@@ -129,7 +129,7 @@ static struct normalized_coords
 accelerator_filter_low_dpi(struct motion_filter *filter,
 			   const struct device_float_coords *unaccelerated,
 			   void *data,
-			   uint64_t time)
+			   usec_t time)
 {
 	struct pointer_accelerator_low_dpi *accel =
 		(struct pointer_accelerator_low_dpi *)filter;
@@ -148,7 +148,7 @@ static struct normalized_coords
 accelerator_filter_constant(struct motion_filter *filter,
 			    const struct device_float_coords *unaccelerated,
 			    void *data,
-			    uint64_t time)
+			    usec_t time)
 {
 	const struct normalized_coords normalized = {
 		.x = unaccelerated->x,
@@ -161,14 +161,14 @@ static struct normalized_coords
 accelerator_filter_scroll(struct motion_filter *filter,
 			  const struct device_float_coords *unaccelerated,
 			  void *data,
-			  uint64_t time,
+			  usec_t time,
 			  enum filter_scroll_type type)
 {
 	return accelerator_filter_constant(filter, unaccelerated, data, time);
 }
 
 static void
-accelerator_restart(struct motion_filter *filter, void *data, uint64_t time)
+accelerator_restart(struct motion_filter *filter, void *data, usec_t time)
 {
 	struct pointer_accelerator_low_dpi *accel =
 		(struct pointer_accelerator_low_dpi *)filter;
@@ -198,7 +198,8 @@ accelerator_set_speed(struct motion_filter *filter, double speed_adjustment)
 	   don't read more into them other than "they mostly worked ok" */
 
 	/* delay when accel kicks in */
-	accel_filter->threshold = DEFAULT_THRESHOLD - v_ms2us(0.25) * speed_adjustment;
+	accel_filter->threshold =
+		DEFAULT_THRESHOLD - v_usec_from_millis(0.25) * speed_adjustment;
 	if (accel_filter->threshold < MINIMUM_THRESHOLD)
 		accel_filter->threshold = MINIMUM_THRESHOLD;
 

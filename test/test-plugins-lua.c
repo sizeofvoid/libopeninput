@@ -277,7 +277,7 @@ START_TEST(lua_test_libinput_now)
 						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
 		litest_drain_events(li);
 
-		uint64_t test_now;
+		usec_t test_now;
 		int rc = now_in_us(&test_now);
 		litest_assert_neg_errno_success(rc);
 
@@ -290,10 +290,12 @@ START_TEST(lua_test_libinput_now)
 
 		uint64_t plugin_now = strtoull(tokens[1], NULL, 10);
 
-		litest_assert_int_le(plugin_now, test_now);
+		litest_assert_int_le(plugin_now, usec_as_uint64_t(test_now));
 		/* Even a slow test runner hopefully doesn't take >300ms to get to the
 		 * log print */
-		litest_assert_int_gt(plugin_now, test_now - ms2us(300));
+		litest_assert_int_gt(
+			plugin_now,
+			usec_as_uint64_t(usec_sub(test_now, usec_from_millis(300))));
 	}
 }
 END_TEST
@@ -308,12 +310,12 @@ START_TEST(lua_test_libinput_timer)
 	_autofree_ char *timeout =
 		strdup_printf("%s%" PRIu64,
 			      streq(mode, "absolute") ? "libinput:now() + " : "",
-			      ms2us(100));
+			      usec_as_uint64_t(usec_from_millis(100)));
 	_autofree_ char *reschedule_timeout =
 		strdup_printf("libinput:timer_set_%s(%s%" PRIu64 ")\n",
 			      mode,
 			      streq(mode, "absolute") ? "t + " : "",
-			      ms2us(100));
+			      usec_as_uint64_t(usec_from_millis(100)));
 	_autofree_ char *lua = strdup_printf(
 		"libinput:register({1})\n"
 		"libinput:connect(\"timer-expired\",\n"
@@ -343,7 +345,7 @@ START_TEST(lua_test_libinput_timer)
 			msleep(100);
 			libinput_dispatch(li);
 
-			uint64_t test_now;
+			usec_t test_now;
 			int rc = now_in_us(&test_now);
 			litest_assert_neg_errno_success(rc);
 
@@ -358,10 +360,13 @@ START_TEST(lua_test_libinput_timer)
 			litest_assert_int_eq(nelem, 2U);
 
 			uint64_t plugin_now = strtoull(tokens[1], NULL, 10);
-			litest_assert_int_le(plugin_now, test_now);
+			litest_assert_int_le(plugin_now, usec_as_uint64_t(test_now));
 			/* Even a slow test runner hopefully doesn't take >300ms between
 			 * dispatch and now_in_us */
-			litest_assert_int_gt(plugin_now, test_now - ms2us(300));
+			litest_assert_int_gt(
+				plugin_now,
+				usec_as_uint64_t(
+					usec_sub(test_now, usec_from_millis(300))));
 		}
 
 		if (!reschedule) {
@@ -547,7 +552,7 @@ START_TEST(lua_frame_handler)
 		_destroy_(litest_device) *device = litest_add_device(li, LITEST_MOUSE);
 		litest_drain_events(li);
 
-		uint64_t before, after;
+		usec_t before, after;
 		now_in_us(&before);
 		msleep(1);
 		litest_button_click_debounced(device, li, BTN_LEFT, 1);
@@ -580,8 +585,8 @@ START_TEST(lua_frame_handler)
 		char *strtime = split[nelems - 1];
 		uint64_t timestamp = 0;
 		litest_assert(safe_atou64(strtime, &timestamp));
-		litest_assert_int_gt(timestamp, before);
-		litest_assert_int_lt(timestamp, after);
+		litest_assert_int_gt(timestamp, usec_as_uint64_t(before));
+		litest_assert_int_lt(timestamp, usec_as_uint64_t(after));
 	}
 }
 END_TEST

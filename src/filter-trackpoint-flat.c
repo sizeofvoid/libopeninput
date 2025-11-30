@@ -45,7 +45,7 @@ static struct normalized_coords
 trackpoint_flat_filter(struct motion_filter *filter,
 		       const struct device_float_coords *unaccelerated,
 		       void *data,
-		       uint64_t time)
+		       usec_t time)
 {
 	struct trackpoint_flat_accelerator *accel_filter =
 		(struct trackpoint_flat_accelerator *)filter;
@@ -63,7 +63,7 @@ static struct normalized_coords
 trackpoint_flat_filter_constant(struct motion_filter *filter,
 				const struct device_float_coords *unaccelerated,
 				void *data,
-				uint64_t time)
+				usec_t time)
 {
 	/* We map the unaccelerated flat filter to have the same behavior as
 	 * the "accelerated" flat filter.
@@ -83,7 +83,7 @@ static struct normalized_coords
 trackpoint_flat_filter_scroll(struct motion_filter *filter,
 			      const struct device_float_coords *unaccelerated,
 			      void *data,
-			      uint64_t time,
+			      usec_t time,
 			      enum filter_scroll_type type)
 {
 	/* Scroll wheels were not historically accelerated and have different

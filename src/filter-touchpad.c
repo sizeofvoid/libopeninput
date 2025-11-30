@@ -72,7 +72,7 @@ static inline double
 calculate_acceleration_factor(struct touchpad_accelerator *accel,
 			      const struct device_float_coords *unaccelerated,
 			      void *data,
-			      uint64_t time)
+			      usec_t time)
 {
 	double velocity; /* units/us in device-native dpi*/
 	double accel_factor;
@@ -94,7 +94,7 @@ static struct normalized_coords
 accelerator_filter_touchpad(struct motion_filter *filter,
 			    const struct device_float_coords *unaccelerated,
 			    void *data,
-			    uint64_t time)
+			    usec_t time)
 {
 	struct touchpad_accelerator *accel = (struct touchpad_accelerator *)filter;
 
@@ -141,7 +141,7 @@ static struct normalized_coords
 touchpad_constant_filter(struct motion_filter *filter,
 			 const struct device_float_coords *unaccelerated,
 			 void *data,
-			 uint64_t time)
+			 usec_t time)
 {
 	struct touchpad_accelerator *accel = (struct touchpad_accelerator *)filter;
 	struct normalized_coords normalized;
@@ -166,7 +166,7 @@ static struct normalized_coords
 touchpad_scroll_filter(struct motion_filter *filter,
 		       const struct device_float_coords *unaccelerated,
 		       void *data,
-		       uint64_t time,
+		       usec_t time,
 		       enum filter_scroll_type type)
 {
 	/* Scroll wheels were not historically accelerated and have different
@@ -184,7 +184,7 @@ touchpad_scroll_filter(struct motion_filter *filter,
 }
 
 static void
-touchpad_accelerator_restart(struct motion_filter *filter, void *data, uint64_t time)
+touchpad_accelerator_restart(struct motion_filter *filter, void *data, usec_t time)
 {
 	struct touchpad_accelerator *accel = (struct touchpad_accelerator *)filter;
 
@@ -204,7 +204,7 @@ double
 touchpad_accel_profile_linear(struct motion_filter *filter,
 			      void *data,
 			      double speed_in, /* in device units/µs */
-			      uint64_t time)
+			      usec_t time)
 {
 	struct touchpad_accelerator *accel_filter =
 		(struct touchpad_accelerator *)filter;
@@ -301,8 +301,8 @@ static const struct motion_filter_interface accelerator_interface_touchpad = {
 
 struct motion_filter *
 create_pointer_accelerator_filter_touchpad(int dpi,
-					   uint64_t event_delta_smooth_threshold,
-					   uint64_t event_delta_smooth_value,
+					   usec_t event_delta_smooth_threshold,
+					   usec_t event_delta_smooth_value,
 					   bool use_velocity_averaging)
 {
 	struct touchpad_accelerator *filter;

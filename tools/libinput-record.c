@@ -111,7 +111,7 @@ struct record_context {
 	int timeout;
 	bool show_keycodes;
 
-	uint64_t offset;
+	usec_t offset;
 
 	/* The first device to be added */
 	struct record_device *first_device;
@@ -222,10 +222,11 @@ iprintf(FILE *fp, enum indent indent, const char *format, ...)
 	assert(rc != -1 && (unsigned int)rc > indent);
 }
 
-static uint64_t
-time_offset(struct record_context *ctx, uint64_t time)
+static usec_t
+time_offset(struct record_context *ctx, usec_t time)
 {
-	return ctx->offset ? time - ctx->offset : 0;
+	return !usec_is_zero(ctx->offset) ? usec_sub(time, ctx->offset)
+					  : usec_from_uint64_t(0);
 }
 
 static void
@@ -234,7 +235,7 @@ print_evdev_event(struct record_device *dev, struct input_event *ev)
 	const char *tname, *cname;
 	bool was_modified = false;
 	char desc[1024];
-	uint64_t time = input_event_time(ev) - dev->ctx->offset;
+	usec_t time = usec_sub(input_event_time(ev), dev->ctx->offset);
 
 	input_event_set_time(ev, time);
 
@@ -252,19 +253,17 @@ print_evdev_event(struct record_device *dev, struct input_event *ev)
 			 cname,
 			 ev->value);
 	} else if (ev->type == EV_SYN) {
-		static unsigned long last_ms = 0;
-		unsigned long time, dt;
+		static usec_t last_time = { 0 };
 
-		time = us2ms(input_event_time(ev));
-		dt = time - last_ms;
-		last_ms = time;
+		usec_t time = input_event_time(ev);
+		usec_t dt = usec_delta(time, last_time);
 
 		snprintf(desc,
 			 sizeof(desc),
-			 "------------ %s (%d) ---------- %+ldms",
+			 "------------ %s (%d) ---------- %+dms",
 			 cname,
 			 ev->value,
-			 dt);
+			 usec_to_millis(dt));
 	} else if (ev->type == EV_ABS) {
 		int oldval = 0;
 		enum { DELTA, SLOT_DELTA, NO_DELTA } want = DELTA;
@@ -378,9 +377,8 @@ handle_evdev_frame(struct record_device *d)
 	iprintf(d->fp, I_EVENTTYPE, "- evdev:\n");
 	do {
 
-		if (d->ctx->offset == 0) {
-			uint64_t time = input_event_time(&e);
-			d->ctx->offset = time;
+		if (usec_is_zero(d->ctx->offset)) {
+			d->ctx->offset = input_event_time(&e);
 		}
 
 		print_evdev_event(d, &e);
@@ -445,7 +443,7 @@ print_key_event(struct record_device *dev, struct libinput_event *e)
 	struct libinput_event_keyboard *k = libinput_event_get_keyboard_event(e);
 	enum libinput_key_state state;
 	uint32_t key;
-	uint64_t time;
+	usec_t time;
 	const char *type;
 
 	switch (libinput_event_get_type(e)) {
@@ -456,7 +454,9 @@ print_key_event(struct record_device *dev, struct libinput_event *e)
 		abort();
 	}
 
-	time = time_offset(dev->ctx, libinput_event_keyboard_get_time_usec(k));
+	time = time_offset(
+		dev->ctx,
+		usec_from_uint64_t(libinput_event_keyboard_get_time_usec(k)));
 	state = libinput_event_keyboard_get_key_state(k);
 
 	key = libinput_event_keyboard_get_key(k);
@@ -465,9 +465,9 @@ print_key_event(struct record_device *dev, struct libinput_event *e)
 
 	iprintf(dev->fp,
 		I_EVENT,
-		"- {time: %ld.%06ld, type: %s, key: %d, state: %s}\n",
-		(long)(time / (int)1e6),
-		(long)(time % (int)1e6),
+		"- {time: %d.%06ld, type: %s, key: %d, state: %s}\n",
+		usec_to_seconds(time),
+		(long)(usec_as_uint64_t(time) % (int)1e6),
 		type,
 		key,
 		state == LIBINPUT_KEY_STATE_PRESSED ? "pressed" : "released");
@@ -481,7 +481,7 @@ print_motion_event(struct record_device *dev, struct libinput_event *e)
 	       y = libinput_event_pointer_get_dy(p);
 	double uax = libinput_event_pointer_get_dx_unaccelerated(p),
 	       uay = libinput_event_pointer_get_dy_unaccelerated(p);
-	uint64_t time;
+	usec_t time;
 	const char *type;
 
 	switch (libinput_event_get_type(e)) {
@@ -492,12 +492,13 @@ print_motion_event(struct record_device *dev, struct libinput_event *e)
 		abort();
 	}
 
-	time = time_offset(dev->ctx, libinput_event_pointer_get_time_usec(p));
+	time = time_offset(dev->ctx,
+			   usec_from_uint64_t(libinput_event_pointer_get_time_usec(p)));
 	iprintf(dev->fp,
 		I_EVENT,
-		"- {time: %ld.%06ld, type: %s, delta: [%6.2f, %6.2f], unaccel: [%6.2f, %6.2f]}\n",
-		(long)(time / (int)1e6),
-		(long)(time % (int)1e6),
+		"- {time: %d.%06ld, type: %s, delta: [%6.2f, %6.2f], unaccel: [%6.2f, %6.2f]}\n",
+		usec_to_seconds(time),
+		(long)(usec_as_uint64_t(time) % (int)1e6),
 		type,
 		x,
 		y,
@@ -513,7 +514,7 @@ print_absmotion_event(struct record_device *dev, struct libinput_event *e)
 	       y = libinput_event_pointer_get_absolute_y(p);
 	double tx = libinput_event_pointer_get_absolute_x_transformed(p, 100),
 	       ty = libinput_event_pointer_get_absolute_y_transformed(p, 100);
-	uint64_t time;
+	usec_t time;
 	const char *type;
 
 	switch (libinput_event_get_type(e)) {
@@ -524,13 +525,14 @@ print_absmotion_event(struct record_device *dev, struct libinput_event *e)
 		abort();
 	}
 
-	time = time_offset(dev->ctx, libinput_event_pointer_get_time_usec(p));
+	time = time_offset(dev->ctx,
+			   usec_from_uint64_t(libinput_event_pointer_get_time_usec(p)));
 
 	iprintf(dev->fp,
 		I_EVENT,
-		"- {time: %ld.%06ld, type: %s, point: [%6.2f, %6.2f], transformed: [%6.2f, %6.2f]}\n",
-		(long)(time / (int)1e6),
-		(long)(time % (int)1e6),
+		"- {time: %d.%06ld, type: %s, point: [%6.2f, %6.2f], transformed: [%6.2f, %6.2f]}\n",
+		usec_to_seconds(time),
+		(long)(usec_as_uint64_t(time) % (int)1e6),
 		type,
 		x,
 		y,
@@ -544,7 +546,7 @@ print_pointer_button_event(struct record_device *dev, struct libinput_event *e)
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(e);
 	enum libinput_button_state state;
 	int button;
-	uint64_t time;
+	usec_t time;
 	const char *type;
 
 	switch (libinput_event_get_type(e)) {
@@ -555,15 +557,16 @@ print_pointer_button_event(struct record_device *dev, struct libinput_event *e)
 		abort();
 	}
 
-	time = time_offset(dev->ctx, libinput_event_pointer_get_time_usec(p));
+	time = time_offset(dev->ctx,
+			   usec_from_uint64_t(libinput_event_pointer_get_time_usec(p)));
 	button = libinput_event_pointer_get_button(p);
 	state = libinput_event_pointer_get_button_state(p);
 
 	iprintf(dev->fp,
 		I_EVENT,
-		"- {time: %ld.%06ld, type: %s, button: %d, state: %s, seat_count: %u}\n",
-		(long)(time / (int)1e6),
-		(long)(time % (int)1e6),
+		"- {time: %d.%06ld, type: %s, button: %d, state: %s, seat_count: %u}\n",
+		usec_to_seconds(time),
+		(long)(usec_as_uint64_t(time) % (int)1e6),
 		type,
 		button,
 		state == LIBINPUT_BUTTON_STATE_PRESSED ? "pressed" : "released",
@@ -574,7 +577,7 @@ static void
 print_pointer_axis_event(struct record_device *dev, struct libinput_event *e)
 {
 	struct libinput_event_pointer *p = libinput_event_get_pointer_event(e);
-	uint64_t time;
+	usec_t time;
 	const char *type, *source;
 	double h = 0, v = 0;
 	int hd = 0, vd = 0;
@@ -587,7 +590,8 @@ print_pointer_axis_event(struct record_device *dev, struct libinput_event *e)
 		abort();
 	}
 
-	time = time_offset(dev->ctx, libinput_event_pointer_get_time_usec(p));
+	time = time_offset(dev->ctx,
+			   usec_from_uint64_t(libinput_event_pointer_get_time_usec(p)));
 	if (libinput_event_pointer_has_axis(p,
 					    LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
 		h = libinput_event_pointer_get_axis_value(
@@ -625,9 +629,9 @@ print_pointer_axis_event(struct record_device *dev, struct libinput_event *e)
 
 	iprintf(dev->fp,
 		I_EVENT,
-		"- {time: %ld.%06ld, type: %s, axes: [%2.2f, %2.2f], discrete: [%d, %d], source: %s}\n",
-		(long)(time / (int)1e6),
-		(long)(time % (int)1e6),
+		"- {time: %d.%06ld, type: %s, axes: [%2.2f, %2.2f], discrete: [%d, %d], source: %s}\n",
+		usec_to_seconds(time),
+		(long)(usec_as_uint64_t(time) % (int)1e6),
 		type,
 		h,
 		v,
@@ -644,7 +648,7 @@ print_touch_event(struct record_device *dev, struct libinput_event *e)
 	const char *type;
 	double x, y;
 	double tx, ty;
-	uint64_t time;
+	usec_t time;
 	int32_t slot, seat_slot;
 
 	switch (etype) {
@@ -667,7 +671,8 @@ print_touch_event(struct record_device *dev, struct libinput_event *e)
 		abort();
 	}
 
-	time = time_offset(dev->ctx, libinput_event_touch_get_time_usec(t));
+	time = time_offset(dev->ctx,
+			   usec_from_uint64_t(libinput_event_touch_get_time_usec(t)));
 
 	if (etype != LIBINPUT_EVENT_TOUCH_FRAME) {
 		slot = libinput_event_touch_get_slot(t);
@@ -679,8 +684,8 @@ print_touch_event(struct record_device *dev, struct libinput_event *e)
 		iprintf(dev->fp,
 			I_EVENT,
 			"- {time: %ld.%06ld, type: %s}\n",
-			(long)(time / (int)1e6),
-			(long)(time % (int)1e6),
+			(long)(usec_as_uint64_t(time) / (int)1e6),
+			(long)(usec_as_uint64_t(time) % (int)1e6),
 			type);
 		break;
 	case LIBINPUT_EVENT_TOUCH_DOWN:
@@ -691,10 +696,10 @@ print_touch_event(struct record_device *dev, struct libinput_event *e)
 		ty = libinput_event_touch_get_y_transformed(t, 100);
 		iprintf(dev->fp,
 			I_EVENT,
-			"- {time: %ld.%06ld, type: %s, slot: %d, seat_slot: %d, "
+			"- {time: %d.%06ld, type: %s, slot: %d, seat_slot: %d, "
 			"point: [%6.2f, %6.2f], transformed: [%6.2f, %6.2f]}\n",
-			(long)(time / (int)1e6),
-			(long)(time % (int)1e6),
+			usec_to_seconds(time),
+			(long)(usec_as_uint64_t(time) % (int)1e6),
 			type,
 			slot,
 			seat_slot,
@@ -707,9 +712,9 @@ print_touch_event(struct record_device *dev, struct libinput_event *e)
 	case LIBINPUT_EVENT_TOUCH_CANCEL:
 		iprintf(dev->fp,
 			I_EVENT,
-			"- {time: %ld.%06ld, type: %s, slot: %d, seat_slot: %d}\n",
-			(long)(time / (int)1e6),
-			(long)(time % (int)1e6),
+			"- {time: %d.%06ld, type: %s, slot: %d, seat_slot: %d}\n",
+			usec_to_seconds(time),
+			(long)(usec_as_uint64_t(time) % (int)1e6),
 			type,
 			slot,
 			seat_slot);
@@ -725,7 +730,7 @@ print_gesture_event(struct record_device *dev, struct libinput_event *e)
 	enum libinput_event_type etype = libinput_event_get_type(e);
 	struct libinput_event_gesture *g = libinput_event_get_gesture_event(e);
 	const char *type;
-	uint64_t time;
+	usec_t time;
 
 	switch (etype) {
 	case LIBINPUT_EVENT_GESTURE_PINCH_BEGIN:
@@ -750,7 +755,8 @@ print_gesture_event(struct record_device *dev, struct libinput_event *e)
 		abort();
 	}
 
-	time = time_offset(dev->ctx, libinput_event_gesture_get_time_usec(g));
+	time = time_offset(dev->ctx,
+			   usec_from_uint64_t(libinput_event_gesture_get_time_usec(g)));
 
 	switch (etype) {
 	case LIBINPUT_EVENT_GESTURE_PINCH_BEGIN:
@@ -761,8 +767,8 @@ print_gesture_event(struct record_device *dev, struct libinput_event *e)
 			"- {time: %ld.%06ld, type: %s, nfingers: %d, "
 			"delta: [%6.2f, %6.2f], unaccel: [%6.2f, %6.2f], "
 			"angle_delta: %6.2f, scale: %6.2f}\n",
-			(long)(time / (int)1e6),
-			(long)(time % (int)1e6),
+			(long)(usec_as_uint64_t(time) / (int)1e6),
+			(long)(usec_as_uint64_t(time) % (int)1e6),
 			type,
 			libinput_event_gesture_get_finger_count(g),
 			libinput_event_gesture_get_dx(g),
@@ -777,10 +783,10 @@ print_gesture_event(struct record_device *dev, struct libinput_event *e)
 	case LIBINPUT_EVENT_GESTURE_SWIPE_END:
 		iprintf(dev->fp,
 			I_EVENT,
-			"- {time: %ld.%06ld, type: %s, nfingers: %d, "
+			"- {time: %d.%06ld, type: %s, nfingers: %d, "
 			"delta: [%6.2f, %6.2f], unaccel: [%6.2f, %6.2f]}\n",
-			(long)(time / (int)1e6),
-			(long)(time % (int)1e6),
+			usec_to_seconds(time),
+			(long)(usec_as_uint64_t(time) % (int)1e6),
 			type,
 			libinput_event_gesture_get_finger_count(g),
 			libinput_event_gesture_get_dx(g),
@@ -877,7 +883,7 @@ print_tablet_tool_proximity_event(struct record_device *dev, struct libinput_eve
 {
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(e);
 	struct libinput_tablet_tool *tool = libinput_event_tablet_tool_get_tool(t);
-	uint64_t time;
+	usec_t time;
 	const char *type, *tool_type;
 	char caps[10] = { 0 };
 	enum libinput_tablet_tool_proximity_state prox;
@@ -919,7 +925,9 @@ print_tablet_tool_proximity_event(struct record_device *dev, struct libinput_eve
 	}
 
 	prox = libinput_event_tablet_tool_get_proximity_state(t);
-	time = time_offset(dev->ctx, libinput_event_tablet_tool_get_time_usec(t));
+	time = time_offset(
+		dev->ctx,
+		usec_from_uint64_t(libinput_event_tablet_tool_get_time_usec(t)));
 	_autofree_ char *axes = buffer_tablet_axes(t);
 
 	idx = 0;
@@ -939,10 +947,10 @@ print_tablet_tool_proximity_event(struct record_device *dev, struct libinput_eve
 
 	iprintf(dev->fp,
 		I_EVENT,
-		"- {time: %ld.%06ld, type: %s, proximity: %s, tool-type: %s, serial: %" PRIu64
+		"- {time: %d.%06ld, type: %s, proximity: %s, tool-type: %s, serial: %" PRIu64
 		", axes: %s, %s}\n",
-		(long)(time / (int)1e6),
-		(long)(time % (int)1e6),
+		usec_to_seconds(time),
+		(long)(usec_as_uint64_t(time) % (int)1e6),
 		type,
 		prox ? "in" : "out",
 		tool_type,
@@ -955,7 +963,7 @@ static void
 print_tablet_tool_button_event(struct record_device *dev, struct libinput_event *e)
 {
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(e);
-	uint64_t time;
+	usec_t time;
 	const char *type;
 	uint32_t button;
 	enum libinput_button_state state;
@@ -970,13 +978,15 @@ print_tablet_tool_button_event(struct record_device *dev, struct libinput_event 
 
 	button = libinput_event_tablet_tool_get_button(t);
 	state = libinput_event_tablet_tool_get_button_state(t);
-	time = time_offset(dev->ctx, libinput_event_tablet_tool_get_time_usec(t));
+	time = time_offset(
+		dev->ctx,
+		usec_from_uint64_t(libinput_event_tablet_tool_get_time_usec(t)));
 
 	iprintf(dev->fp,
 		I_EVENT,
-		"- {time: %ld.%06ld, type: %s, button: %d, state: %s}\n",
-		(long)(time / (int)1e6),
-		(long)(time % (int)1e6),
+		"- {time: %d.%06ld, type: %s, button: %d, state: %s}\n",
+		usec_to_seconds(time),
+		(long)(usec_as_uint64_t(time) % (int)1e6),
 		type,
 		button,
 		state ? "pressed" : "released");
@@ -986,7 +996,7 @@ static void
 print_tablet_tool_event(struct record_device *dev, struct libinput_event *e)
 {
 	struct libinput_event_tablet_tool *t = libinput_event_get_tablet_tool_event(e);
-	uint64_t time;
+	usec_t time;
 	const char *type;
 	enum libinput_tablet_tool_tip_state tip;
 	char btn_buffer[30] = { 0 };
@@ -1019,14 +1029,16 @@ print_tablet_tool_event(struct record_device *dev, struct libinput_event *e)
 	}
 
 	tip = libinput_event_tablet_tool_get_tip_state(t);
-	time = time_offset(dev->ctx, libinput_event_tablet_tool_get_time_usec(t));
+	time = time_offset(
+		dev->ctx,
+		usec_from_uint64_t(libinput_event_tablet_tool_get_time_usec(t)));
 	_autofree_ char *axes = buffer_tablet_axes(t);
 
 	iprintf(dev->fp,
 		I_EVENT,
-		"- {time: %ld.%06ld, type: %s%s, tip: %s, %s}\n",
-		(long)(time / (int)1e6),
-		(long)(time % (int)1e6),
+		"- {time: %d.%06ld, type: %s%s, tip: %s, %s}\n",
+		usec_to_seconds(time),
+		(long)(usec_as_uint64_t(time) % (int)1e6),
 		type,
 		btn_buffer, /* may be empty string */
 		tip ? "down" : "up",
@@ -1041,7 +1053,7 @@ print_tablet_pad_button_event(struct record_device *dev, struct libinput_event *
 	enum libinput_button_state state;
 	unsigned int button, mode;
 	const char *type;
-	uint64_t time;
+	usec_t time;
 
 	switch (libinput_event_get_type(e)) {
 	case LIBINPUT_EVENT_TABLET_PAD_BUTTON:
@@ -1051,7 +1063,9 @@ print_tablet_pad_button_event(struct record_device *dev, struct libinput_event *
 		abort();
 	}
 
-	time = time_offset(dev->ctx, libinput_event_tablet_pad_get_time_usec(p));
+	time = time_offset(
+		dev->ctx,
+		usec_from_uint64_t(libinput_event_tablet_pad_get_time_usec(p)));
 	button = libinput_event_tablet_pad_get_button_number(p),
 	state = libinput_event_tablet_pad_get_button_state(p);
 	mode = libinput_event_tablet_pad_get_mode(p);
@@ -1059,9 +1073,9 @@ print_tablet_pad_button_event(struct record_device *dev, struct libinput_event *
 
 	iprintf(dev->fp,
 		I_EVENT,
-		"- {time: %ld.%06ld, type: %s, button: %d, state: %s, mode: %d, is-toggle: %s}\n",
-		(long)(time / (int)1e6),
-		(long)(time % (int)1e6),
+		"- {time: %d.%06ld, type: %s, button: %d, state: %s, mode: %d, is-toggle: %s}\n",
+		usec_to_seconds(time),
+		(long)(usec_as_uint64_t(time) % (int)1e6),
 		type,
 		button,
 		state == LIBINPUT_BUTTON_STATE_PRESSED ? "pressed" : "released",
@@ -1077,7 +1091,7 @@ print_tablet_pad_ringstrip_event(struct record_device *dev, struct libinput_even
 	const char *source = NULL;
 	unsigned int mode, number;
 	const char *type;
-	uint64_t time;
+	usec_t time;
 	double pos;
 
 	switch (libinput_event_get_type(e)) {
@@ -1113,14 +1127,16 @@ print_tablet_pad_ringstrip_event(struct record_device *dev, struct libinput_even
 		abort();
 	}
 
-	time = time_offset(dev->ctx, libinput_event_tablet_pad_get_time_usec(p));
+	time = time_offset(
+		dev->ctx,
+		usec_from_uint64_t(libinput_event_tablet_pad_get_time_usec(p)));
 	mode = libinput_event_tablet_pad_get_mode(p);
 
 	iprintf(dev->fp,
 		I_EVENT,
-		"- {time: %ld.%06ld, type: %s, number: %d, position: %.2f, source: %s, mode: %d}\n",
-		(long)(time / (int)1e6),
-		(long)(time % (int)1e6),
+		"- {time: %d.%06ld, type: %s, number: %d, position: %.2f, source: %s, mode: %d}\n",
+		usec_to_seconds(time),
+		(long)(usec_as_uint64_t(time) % (int)1e6),
 		type,
 		number,
 		pos,
@@ -1135,7 +1151,7 @@ print_switch_event(struct record_device *dev, struct libinput_event *e)
 	enum libinput_switch_state state;
 	uint32_t sw;
 	const char *type;
-	uint64_t time;
+	usec_t time;
 
 	switch (libinput_event_get_type(e)) {
 	case LIBINPUT_EVENT_SWITCH_TOGGLE:
@@ -1145,15 +1161,16 @@ print_switch_event(struct record_device *dev, struct libinput_event *e)
 		abort();
 	}
 
-	time = time_offset(dev->ctx, libinput_event_switch_get_time_usec(s));
+	time = time_offset(dev->ctx,
+			   usec_from_uint64_t(libinput_event_switch_get_time_usec(s)));
 	sw = libinput_event_switch_get_switch(s);
 	state = libinput_event_switch_get_switch_state(s);
 
 	iprintf(dev->fp,
 		I_EVENT,
-		"- {time: %ld.%06ld, type: %s, switch: %d, state: %s}\n",
-		(long)(time / (int)1e6),
-		(long)(time % (int)1e6),
+		"- {time: %d.%06ld, type: %s, switch: %d, state: %s}\n",
+		usec_to_seconds(time),
+		(long)(usec_as_uint64_t(time) % (int)1e6),
 		type,
 		sw,
 		state == LIBINPUT_SWITCH_STATE_ON ? "on" : "off");
@@ -1231,7 +1248,7 @@ handle_hidraw(struct hidraw *hidraw)
 	unsigned char report[4096];
 	const char *sep = "";
 	struct timespec ts;
-	uint64_t time;
+	usec_t time;
 
 	int rc = read(hidraw->fd, report, sizeof(report));
 	if (rc <= 0)
@@ -1239,23 +1256,28 @@ handle_hidraw(struct hidraw *hidraw)
 
 	/* hidraw doesn't give us a timestamps, we have to make them up */
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-	time = s2us(ts.tv_sec) + ns2us(ts.tv_nsec);
+	time = usec_from_timespec(&ts);
 
 	/* The first evdev event is guaranteed to have an event time earlier
 	   than now, so we don't set the offset here, we rely on the evdev
 	   events to do so. This potentially leaves us with multiple hidraw
 	   events at timestap 0 but it's too niche to worry about.  */
-	if (d->ctx->offset == 0)
-		time = 0;
+	if (usec_is_zero(d->ctx->offset))
+		time = usec_from_uint64_t(0);
 	else
 		time = time_offset(d->ctx, time);
 
-	iprintf(d->fp, I_EVENTTYPE, "- hid:\n");
-	iprintf(d->fp,
-		I_EVENT,
-		"time: [%3" PRIu64 ", %6" PRIu64 "]\n",
-		time / s2us(1),
-		time % s2us(1));
+	{
+		iprintf(d->fp, I_EVENTTYPE, "- hid:\n");
+		uint64_t time_sec = usec_to_seconds(time);
+		uint64_t time_usec =
+			usec_as_uint64_t(time) % usec_as_uint64_t(usec_from_seconds(1));
+		iprintf(d->fp,
+			I_EVENT,
+			"time: [%3" PRIu64 ", %6" PRIu64 "]\n",
+			time_sec,
+			time_usec);
+	}
 	iprintf(d->fp, I_EVENT, "%s: [", hidraw->name);
 
 	for (int byte = 0; byte < rc; byte++) {
@@ -2233,7 +2255,7 @@ mainloop(struct record_context *ctx)
 		struct timespec ts;
 
 		clock_gettime(CLOCK_MONOTONIC, &ts);
-		ctx->offset = s2us(ts.tv_sec) + ns2us(ts.tv_nsec);
+		ctx->offset = usec_from_timespec(&ts);
 	}
 
 	do {

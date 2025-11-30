@@ -45,13 +45,13 @@
  * Default parameters for pointer acceleration profiles.
  */
 
-#define DEFAULT_THRESHOLD v_ms2us(0.4)		/* in units/us */
-#define MINIMUM_THRESHOLD v_ms2us(0.2)		/* in units/us */
+#define DEFAULT_THRESHOLD v_usec_from_millis(0.4)		/* in units/us */
+#define MINIMUM_THRESHOLD v_usec_from_millis(0.2)		/* in units/us */
 #define DEFAULT_ACCELERATION 2.0		/* unitless factor */
 #define DEFAULT_INCLINE 1.1			/* unitless factor */
 
 /* for the Lenovo x230 custom accel. do not touch */
-#define X230_THRESHOLD v_ms2us(0.4)		/* in units/us */
+#define X230_THRESHOLD v_usec_from_millis(0.4)		/* in units/us */
 #define X230_ACCELERATION 2.0			/* unitless factor */
 #define X230_INCLINE 1.1			/* unitless factor */
 #define X230_MAGIC_SLOWDOWN 0.4			/* unitless */
@@ -88,7 +88,7 @@ static double
 acceleration_profile(struct pointer_accelerator_x230 *accel,
 		     void *data,
 		     double velocity,
-		     uint64_t time)
+		     usec_t time)
 {
 	return accel->profile(&accel->base, data, velocity, time);
 }
@@ -110,7 +110,7 @@ calculate_acceleration(struct pointer_accelerator_x230 *accel,
 		       void *data,
 		       double velocity,
 		       double last_velocity,
-		       uint64_t time)
+		       usec_t time)
 {
 	double factor;
 
@@ -131,7 +131,7 @@ static struct normalized_coords
 accelerator_filter_x230(struct motion_filter *filter,
 			const struct device_float_coords *raw,
 			void *data,
-			uint64_t time)
+			usec_t time)
 {
 	struct pointer_accelerator_x230 *accel =
 		(struct pointer_accelerator_x230 *)filter;
@@ -171,7 +171,7 @@ static struct normalized_coords
 accelerator_filter_constant_x230(struct motion_filter *filter,
 				 const struct device_float_coords *unaccelerated,
 				 void *data,
-				 uint64_t time)
+				 usec_t time)
 {
 	struct pointer_accelerator_x230 *accel =
 		(struct pointer_accelerator_x230 *)filter;
@@ -189,7 +189,7 @@ static struct normalized_coords
 accelerator_filter_scroll_x230(struct motion_filter *filter,
 			       const struct device_float_coords *unaccelerated,
 			       void *data,
-			       uint64_t time,
+			       usec_t time,
 			       enum filter_scroll_type type)
 {
 	/* Scroll wheels were not historically accelerated and have different
@@ -207,7 +207,7 @@ accelerator_filter_scroll_x230(struct motion_filter *filter,
 }
 
 static void
-accelerator_restart_x230(struct motion_filter *filter, void *data, uint64_t time)
+accelerator_restart_x230(struct motion_filter *filter, void *data, usec_t time)
 {
 	struct pointer_accelerator_x230 *accel =
 		(struct pointer_accelerator_x230 *)filter;
@@ -216,7 +216,7 @@ accelerator_restart_x230(struct motion_filter *filter, void *data, uint64_t time
 
 	for (offset = 1; offset < accel->trackers.ntrackers; offset++) {
 		tracker = trackers_by_offset(&accel->trackers, offset);
-		tracker->time = 0;
+		tracker->time = usec_from_uint64_t(0);
 		tracker->dir = 0;
 		tracker->delta.x = 0;
 		tracker->delta.y = 0;
@@ -249,7 +249,8 @@ accelerator_set_speed_x230(struct motion_filter *filter, double speed_adjustment
 	   don't read more into them other than "they mostly worked ok" */
 
 	/* delay when accel kicks in */
-	accel_filter->threshold = DEFAULT_THRESHOLD - v_ms2us(0.25) * speed_adjustment;
+	accel_filter->threshold =
+		DEFAULT_THRESHOLD - v_usec_from_millis(0.25) * speed_adjustment;
 	if (accel_filter->threshold < MINIMUM_THRESHOLD)
 		accel_filter->threshold = MINIMUM_THRESHOLD;
 
@@ -267,7 +268,7 @@ double
 touchpad_lenovo_x230_accel_profile(struct motion_filter *filter,
 				   void *data,
 				   double speed_in, /* 1000dpi-units/µs */
-				   uint64_t time)
+				   usec_t time)
 {
 	/* Those touchpads presents an actual lower resolution that what is
 	 * advertised. We see some jumps from the cursor due to the big steps

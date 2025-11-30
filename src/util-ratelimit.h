@@ -28,6 +28,8 @@
 
 #include <stdint.h>
 
+#include "util-time.h"
+
 enum ratelimit_state {
 	RATELIMIT_EXCEEDED,
 	RATELIMIT_THRESHOLD,
@@ -35,13 +37,13 @@ enum ratelimit_state {
 };
 
 struct ratelimit {
-	uint64_t interval;
-	uint64_t begin;
+	usec_t interval;
+	usec_t begin;
 	unsigned int burst;
 	unsigned int num;
 };
 
 void
-ratelimit_init(struct ratelimit *r, uint64_t ival_us, unsigned int burst);
+ratelimit_init(struct ratelimit *r, usec_t ival_us, unsigned int burst);
 enum ratelimit_state
 ratelimit_test(struct ratelimit *r);

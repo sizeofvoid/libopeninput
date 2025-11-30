@@ -89,7 +89,7 @@ mtdev_plugin_device_handle_frame(struct libinput_plugin *libinput_plugin,
 				 struct plugin_device *device,
 				 struct evdev_frame *frame)
 {
-	uint64_t time = evdev_frame_get_time(frame);
+	usec_t time = evdev_frame_get_time(frame);
 	size_t nevents;
 	struct evdev_event *events = evdev_frame_get_events(frame, &nevents);
 	for (size_t i = 0; i < nevents; i++) {
