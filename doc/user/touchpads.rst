@@ -17,7 +17,7 @@ other properties.
 Number of buttons
 ------------------------------------------------------------------------------
 
-.. _touchapds_buttons_phys:
+.. _touchpads_buttons_phys:
 
 ..............................................................................
 Physically separate buttons
@@ -79,7 +79,7 @@ device can **track**, i.e. provide reliable positional information for.
 In the kernel each finger is tracked in a so-called "slot", the number of
 slots thus equals the number of simultaneous touches a device can track.
 
-.. _touchapds_touch_st:
+.. _touchpads_touch_st:
 
 ..............................................................................
 Single-touch touchpads
