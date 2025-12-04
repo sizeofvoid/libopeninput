@@ -57,7 +57,7 @@ property.
 .. _touchpads_buttons_forcepads:
 
 ..............................................................................
-Forcepads
+Forcepads/Pressurepads
 ..............................................................................
 
 Forcepads are Clickpads without a physical button underneath the hardware.
@@ -65,6 +65,7 @@ They provide pressure and may have a vibration element that is
 software-controlled. This element can simulate the feel of a physical
 click or be co-opted for other tasks.
 
+Forcepads are also called pressurepads or haptic touchpads.
 
 .. _touchpads_touch:
 
