@@ -136,13 +136,13 @@ ModelTabletModeNoSuspend=1
 MatchBus=i2c
 MatchVendor=0x27C6
 MatchProduct=0x0F60
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 [Dell Mayabay Touchpad]
 MatchBus=i2c
 MatchVendor=0x06CB
 MatchProduct=0xCFA0
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 [Dell Precision 5480]
 MatchBus=i2c
@@ -156,58 +156,58 @@ ModelTouchpadVisibleMarker=0
 MatchBus=i2c
 MatchVendor=0x06CB
 MatchProduct=0xCFF8
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 [Dell laptop 16 Synaptics touchpad]
 MatchBus=i2c
 MatchVendor=0x06CB
 MatchProduct=0xCFF9
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 [Dell laptop 14 Goodix touchpad]
 MatchBus=i2c
 MatchVendor=0x27C6
 MatchProduct=0x0F61
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 [Dell laptop 16 Goodix touchpad]
 MatchBus=i2c
 MatchVendor=0x27C6
 MatchProduct=0x0F62
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 [Dell 14 Premium DA14250 touchpad]
 MatchBus=i2c
 MatchVendor=0x0488
 MatchProduct=0x108C
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 [Dell 16 Premium DA16250 touchpad]
 MatchBus=i2c
 MatchVendor=0x0488
 MatchProduct=0x108D
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 [Dell laptop 14_1 Synaptics touchpad]
 MatchBus=i2c
 MatchVendor=0x06CB
 MatchProduct=0xD01D
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 [Dell laptop 16_1 Synaptics touchpad]
 MatchBus=i2c
 MatchVendor=0x06CB
 MatchProduct=0xD01A
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 [Dell laptop 14 Sensel touchpad]
 MatchBus=i2c
 MatchVendor=0x2C2F
 MatchProduct=0x0034
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 [Dell laptop 16 Sensel touchpad]
 MatchBus=i2c
 MatchVendor=0x2C2F
 MatchProduct=0x0033
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD

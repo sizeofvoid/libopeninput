@@ -296,8 +296,6 @@ quirk_get_name(enum quirk q)
 		return "ModelTrackball";
 	case QUIRK_MODEL_WACOM_TOUCHPAD:
 		return "ModelWacomTouchpad";
-	case QUIRK_MODEL_PRESSURE_PAD:
-		return "ModelPressurePad";
 
 	case QUIRK_ATTR_SIZE_HINT:
 		return "AttrSizeHint";

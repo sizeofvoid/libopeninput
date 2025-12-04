@@ -148,6 +148,9 @@ ModelBouncingKeys
 ModelSynapticsSerialTouchpad
     Reserved for touchpads made by Synaptics on the serial bus
 ModelPressurePad
+    .. warning:: This quirk is no longer in use. Use
+                 ``AttrInputProp=+INPUT_PROP_PRESSUREPAD`` instead.
+
     Unlike in traditional touchpads, whose pressure value equals contact size,
     on pressure pads pressure is a real physical axis.
     Indicates that the device is a pressure pad.
@@ -199,6 +202,9 @@ AttrInputProp=+INPUT_PROP_BUTTONPAD;-INPUT_PROP_POINTER;
     Enables or disables the evdev input property on the device. The prefix
     for each entry is either '+' (enable) or '-' (disable). Entries may be
     a named input property or the hexadecimal value of that property.
+
+    The most common use of this is ``AttrInputProp=+INPUT_PROP_PRESSUREPAD``
+    which marks a touchpad as a :ref:`forcepad or pressurepad <touchpads_buttons_forcepads>`.
 AttrPointingStickIntegration=internal|external
     Indicates the integration of the pointing stick. This is a string enum.
     Only needed for external pointing sticks. These are rare.

@@ -471,8 +471,14 @@ parse_input_prop_property(const char *prop,
 				goto out;
 		} else {
 			int val = libevdev_property_from_name(s);
-			if (val == -1)
-				goto out;
+			if (val == -1) {
+				/* Remove once we require libevdev 1.13.6 */
+				if (streq(s, "INPUT_PROP_PRESSUREPAD")) {
+					val = INPUT_PROP_PRESSUREPAD;
+				} else {
+					goto out;
+				}
+			}
 			prop = (unsigned int)val;
 		}
 		props[idx].prop = prop;

@@ -97,7 +97,7 @@ AttrKeyboardIntegration=external
 MatchBus=i2c
 MatchVendor=0x06CB
 MatchProduct=0xCFD2
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 # The HP OmniBook Ultra Flip Laptop 14-fh0xxx's custom Intel ISH firmware
 # filters out events from its builtin keyboard and touchpad when the hinge is
