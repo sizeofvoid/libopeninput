@@ -101,3 +101,77 @@ ModelTabletModeNoSuspend=1
 MatchName=AlpsPS/2 ALPS GlidePoint
 MatchDMIModalias=dmi:*:svnHP:pnHPZBookStudioG3:*
 ModelHPZBookStudioG3=1
+
+[HP Chromebook 14]
+MatchName=*Cypress APA Trackpad *cyapa*
+MatchDMIModalias=dmi:*svnHewlett-Packard*:pnFalco*
+AttrPressureRange=12:8
+
+[HP Spectre x360 Convertible 15-bl1xx]
+MatchUdevType=touchpad
+MatchName=*SynPS/2 Synaptics TouchPad
+MatchDMIModalias=dmi:*svnHP:pnHPSpectrex360Convertible15-bl1XX:*
+AttrPressureRange=55:40
+AttrThumbPressureThreshold=90
+AttrPalmPressureThreshold=100
+
+[HP Spectre x360 Convertible 15-ch0xx]
+MatchUdevType=touchpad
+MatchName=*SynPS/2 Synaptics TouchPad
+MatchDMIModalias=dmi:*svnHP:pnHPSpectrex360Convertible15-ch0xx:*
+AttrThumbPressureThreshold=90
+AttrPalmPressureThreshold=100
+
+# The HP stream x360's embedded-controller filters out events form its builtin
+# keyboard when in tablet-mode itself; and it has a volume up/down on the side.
+# Do not suspend the keyboard when in tablet-mode so that the volume up/down
+# button keeps working when in tablet-mode.
+[HP Spectre x360 Convertible 15-ch0xx Tablet Mode Switch]
+MatchName=AT Translated Set 2 keyboard
+MatchDMIModalias=dmi:*svnHP:pnHPSpectrex360Convertible15-ch0xx:*
+ModelTabletModeNoSuspend=1
+
+[HP Elite x2 1013 G3 Tablet Mode Switch]
+MatchName=*Intel Virtual Button*
+MatchDMIModalias=dmi:*svnHP:pnHPElitex21013G3:*
+ModelTabletModeSwitchUnreliable=1
+
+[HP Elite x2 1013 G3 Touchpad]
+MatchUdevType=touchpad
+MatchBus=usb
+MatchVendor=0x044E
+MatchProduct=0x1221
+AttrTPKComboLayout=below
+
+[HP Elite x2 1013 G3 Keyboard]
+MatchUdevType=keyboard
+MatchBus=ps2
+MatchDMIModalias=dmi:*svnHP:pnHPElitex21013G3:*
+AttrKeyboardIntegration=external
+
+[HP Haptics Touchpad CFD2]
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xCFD2
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
+
+# The HP OmniBook Ultra Flip Laptop 14-fh0xxx's custom Intel ISH firmware
+# filters out events from its builtin keyboard and touchpad when the hinge is
+# opened little more than 180 degrees but toggles tablet-mode when it's opened
+# little less than 180 degrees.
+# Do not suspend the keyboard and touchpad to let use the device in flat
+# position and also give consistency with some keyboard keys controlled by the
+# Video Bus device (brightness down/up), the HP WMI hotkeys device (mic mute and
+# hp hubs launcher key) and the backlight getting on and off by the firmware at
+# the same time it enables disables the input.
+# This one is for the keyboard and...
+[HP OmniBook Ultra Flip Laptop 14-fh0xxx Keyboard]
+MatchName=AT Translated Set 2 keyboard
+MatchDMIModalias=dmi:*svnHP:pnHPOmniBookUltraFlipLaptop14-fh0xxx:*
+ModelTabletModeNoSuspend=1
+
+# ...this one is for the touchpad.
+[HP OmniBook Ultra Flip Laptop 14-fh0xxx Touchpad]
+MatchName=SYNA3580:00 06CB:CFD2 Touchpad
+MatchDMIModalias=dmi:*svnHP:pnHPOmniBookUltraFlipLaptop14-fh0xxx:*
+ModelTabletModeNoSuspend=1
