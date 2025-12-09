@@ -95,6 +95,7 @@ src_rst = files(
 	# dot drawings
 	'dot/seats-sketch.gv',
 	'dot/seats-sketch-libinput.gv',
+	'dot/libinput-contexts.gv',
 	'dot/libinput-stack-wayland.gv',
 	'dot/libinput-stack-xorg.gv',
 	'dot/libinput-stack-gnome.gv',
