@@ -3174,7 +3174,7 @@ tp_dwt_config_set_timeout(struct libinput_device *device, uint64_t timeout)
 	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch *)evdev->dispatch;
 
-	if (timeout <= ms2us(100) || timeout >= ms2us(5000))
+	if (timeout < ms2us(100) || timeout > ms2us(5000))
 		return LIBINPUT_CONFIG_STATUS_INVALID;
 
 	tp->dwt.timeout = timeout;
@@ -3249,7 +3249,7 @@ tp_dwtp_config_set_timeout(struct libinput_device *device, uint64_t timeout)
 	struct evdev_device *evdev = evdev_device(device);
 	struct tp_dispatch *tp = (struct tp_dispatch *)evdev->dispatch;
 
-	if (timeout <= ms2us(100) || timeout >= ms2us(5000))
+	if (timeout < ms2us(100) || timeout > ms2us(5000))
 		return LIBINPUT_CONFIG_STATUS_INVALID;
 
 	tp->palm.timeout = timeout;
