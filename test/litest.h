@@ -499,6 +499,7 @@ enum litest_device_type {
 	/* Switches */
 	LITEST_LID_SWITCH,
 	LITEST_LID_SWITCH_SURFACE3,
+	LITEST_KEYPAD_SLIDE_SWITCH,
 	LITEST_TABLET_MODE_UNRELIABLE,
 
 	/* Special devices */

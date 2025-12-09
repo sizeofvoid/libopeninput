@@ -82,14 +82,17 @@ fallback_interface_get_switch_state(struct evdev_dispatch *evdev_dispatch,
 
 	switch (sw) {
 	case LIBINPUT_SWITCH_TABLET_MODE:
+		return dispatch->tablet_mode.sw.state ? LIBINPUT_SWITCH_STATE_ON
+						      : LIBINPUT_SWITCH_STATE_OFF;
+		break;
+	case LIBINPUT_SWITCH_KEYPAD_SLIDE:
+		return dispatch->keypad_slide.sw.state ? LIBINPUT_SWITCH_STATE_ON
+						       : LIBINPUT_SWITCH_STATE_OFF;
 		break;
 	default:
 		/* Internal function only, so we can abort here */
 		abort();
 	}
-
-	return dispatch->tablet_mode.sw.state ? LIBINPUT_SWITCH_STATE_ON
-					      : LIBINPUT_SWITCH_STATE_OFF;
 }
 
 static inline bool
@@ -833,6 +836,20 @@ fallback_process_switch(struct fallback_dispatch *dispatch,
 				     LIBINPUT_SWITCH_TABLET_MODE,
 				     state);
 		break;
+	case EVDEV_SW_KEYPAD_SLIDE:
+		if (dispatch->keypad_slide.sw.state == e->value)
+			return;
+
+		dispatch->keypad_slide.sw.state = e->value;
+		if (e->value)
+			state = LIBINPUT_SWITCH_STATE_ON;
+		else
+			state = LIBINPUT_SWITCH_STATE_OFF;
+		switch_notify_toggle(&device->base,
+				     time,
+				     LIBINPUT_SWITCH_KEYPAD_SLIDE,
+				     state);
+		break;
 	default:
 		break;
 	}
@@ -1303,6 +1320,13 @@ fallback_interface_sync_initial_state(struct evdev_device *device,
 				     LIBINPUT_SWITCH_TABLET_MODE,
 				     LIBINPUT_SWITCH_STATE_ON);
 	}
+
+	if (dispatch->keypad_slide.sw.state) {
+		switch_notify_toggle(&device->base,
+				     time,
+				     LIBINPUT_SWITCH_KEYPAD_SLIDE,
+				     LIBINPUT_SWITCH_STATE_ON);
+	}
 }
 
 static void
@@ -1731,6 +1755,11 @@ fallback_dispatch_init_switch(struct fallback_dispatch *dispatch,
 	if (device->tags & EVDEV_TAG_TABLET_MODE_SWITCH) {
 		val = libevdev_get_event_value(device->evdev, EV_SW, SW_TABLET_MODE);
 		dispatch->tablet_mode.sw.state = val;
+	}
+
+	if (device->tags & EVDEV_TAG_KEYPAD_SLIDE_SWITCH) {
+		val = libevdev_get_event_value(device->evdev, EV_SW, SW_KEYPAD_SLIDE);
+		dispatch->keypad_slide.sw.state = val;
 	}
 
 	libinput_device_init_event_listener(&dispatch->tablet_mode.other.listener);

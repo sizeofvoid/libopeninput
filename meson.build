@@ -954,6 +954,7 @@ if get_option('tests')
 		'test/litest-device-keyboard-razer-blackwidow.c',
 		'test/litest-device-keyboard-razer-blade-stealth.c',
 		'test/litest-device-keyboard-razer-blade-stealth-videoswitch.c',
+		'test/litest-device-keypad-slide-switch.c',
 		'test/litest-device-lenovo-scrollpoint.c',
 		'test/litest-device-lid-switch.c',
 		'test/litest-device-lid-switch-surface3.c',

@@ -116,6 +116,13 @@ struct fallback_dispatch {
 		} other;
 	} tablet_mode;
 
+	struct {
+		/* Switch */
+		struct {
+			int state;
+		} sw;
+	} keypad_slide;
+
 	/* Bitmask of pressed keys used to ignore initial release events from
 	 * the kernel. */
 	unsigned long hw_key_mask[NLONGS(KEY_CNT)];

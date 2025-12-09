@@ -1999,6 +1999,11 @@ evdev_configure_device(struct evdev_device *device,
 			}
 		}
 
+		if (libevdev_has_event_code(evdev, EV_SW, SW_KEYPAD_SLIDE)) {
+			device->seat_caps |= EVDEV_DEVICE_SWITCH;
+			device->tags |= EVDEV_TAG_KEYPAD_SLIDE_SWITCH;
+		}
+
 		if (device->seat_caps & EVDEV_DEVICE_SWITCH)
 			evdev_log_info(device, "device is a switch device\n");
 	}
@@ -2669,6 +2674,9 @@ evdev_device_has_switch(struct evdev_device *device, enum libinput_switch sw)
 		break;
 	case LIBINPUT_SWITCH_TABLET_MODE:
 		code = SW_TABLET_MODE;
+		break;
+	case LIBINPUT_SWITCH_KEYPAD_SLIDE:
+		code = SW_KEYPAD_SLIDE;
 		break;
 	default:
 		return -1;

@@ -3323,6 +3323,9 @@ litest_switch_action(struct litest_device *dev,
 	case LIBINPUT_SWITCH_TABLET_MODE:
 		code = SW_TABLET_MODE;
 		break;
+	case LIBINPUT_SWITCH_KEYPAD_SLIDE:
+		code = SW_KEYPAD_SLIDE;
+		break;
 	default:
 		litest_abort_msg("Invalid switch %d", sw);
 		break;

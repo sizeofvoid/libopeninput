@@ -736,6 +736,20 @@ enum libinput_switch {
 	 * in tablet mode.
 	 */
 	LIBINPUT_SWITCH_TABLET_MODE,
+
+	/**
+	 * This switch indicates if the device keypad is exposed or not.
+	 *
+	 * If the switch is in state @ref LIBINPUT_SWITCH_STATE_OFF, the
+	 * keypad is hidden. If the state is @ref LIBINPUT_SWITCH_STATE_ON,
+	 * the keypad is exposed.
+	 *
+	 * All devices will remain accessible regardless of the state of this
+	 * switch.
+	 *
+	 * @since 1.31
+	 */
+	LIBINPUT_SWITCH_KEYPAD_SLIDE,
 };
 
 /**

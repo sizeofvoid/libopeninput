@@ -105,6 +105,20 @@ START_TEST(switch_has_tablet_mode_switch)
 }
 END_TEST
 
+START_TEST(switch_has_keypad_slide_switch)
+{
+	struct litest_device *dev = litest_current_device();
+
+	if (!libevdev_has_event_code(dev->evdev, EV_SW, SW_KEYPAD_SLIDE))
+		return LITEST_NOT_APPLICABLE;
+
+	litest_assert_int_eq(
+		libinput_device_switch_has_switch(dev->libinput_device,
+						  LIBINPUT_SWITCH_KEYPAD_SLIDE),
+		1);
+}
+END_TEST
+
 START_TEST(switch_toggle)
 {
 	struct litest_device *dev = litest_current_device();
@@ -637,6 +651,9 @@ START_TEST(switch_suspend_with_keyboard)
 		break;
 	case LIBINPUT_SWITCH_TABLET_MODE:
 		sw = litest_add_device(li, LITEST_THINKPAD_EXTRABUTTONS);
+		break;
+	case LIBINPUT_SWITCH_KEYPAD_SLIDE:
+		sw = litest_add_device(li, LITEST_KEYPAD_SLIDE_SWITCH);
 		break;
 	default:
 		abort();
@@ -1352,13 +1369,20 @@ TEST_COLLECTION(switch)
 	litest_add(switch_has_cap, LITEST_SWITCH, LITEST_ANY);
 	litest_add(switch_has_lid_switch, LITEST_SWITCH, LITEST_ANY);
 	litest_add(switch_has_tablet_mode_switch, LITEST_SWITCH, LITEST_ANY);
+	litest_add(switch_has_keypad_slide_switch, LITEST_SWITCH, LITEST_ANY);
 	litest_add(switch_not_down_on_init, LITEST_SWITCH, LITEST_ANY);
 
-	litest_with_parameters(params, "switch", 'I', 2, litest_named_i32(LIBINPUT_SWITCH_LID, "lid"),
-							 litest_named_i32(LIBINPUT_SWITCH_TABLET_MODE, "tablet_mode")) {
+	litest_with_parameters(params, "switch", 'I', 3, litest_named_i32(LIBINPUT_SWITCH_LID, "lid"),
+							 litest_named_i32(LIBINPUT_SWITCH_TABLET_MODE, "tablet_mode"),
+							 litest_named_i32(LIBINPUT_SWITCH_KEYPAD_SLIDE, "keypad_slide")) {
 		litest_add_parametrized(switch_toggle, LITEST_SWITCH, LITEST_ANY, params);
 		litest_add_parametrized(switch_toggle_double, LITEST_SWITCH, LITEST_ANY, params);
 		litest_add_parametrized(switch_down_on_init, LITEST_SWITCH, LITEST_ANY, params);
+		litest_add_parametrized(switch_not_down_on_init, LITEST_SWITCH, LITEST_ANY, params);
+	}
+
+	litest_with_parameters(params, "switch", 'I', 2, litest_named_i32(LIBINPUT_SWITCH_LID, "lid"),
+							 litest_named_i32(LIBINPUT_SWITCH_TABLET_MODE, "tablet_mode")) {
 		litest_add_parametrized(switch_disable_touchpad, LITEST_SWITCH, LITEST_ANY, params);
 		litest_add_parametrized(switch_disable_touchpad_during_touch, LITEST_SWITCH, LITEST_ANY, params);
 		litest_add_parametrized(switch_disable_touchpad_edge_scroll, LITEST_SWITCH, LITEST_ANY, params);

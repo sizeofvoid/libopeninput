@@ -976,6 +976,9 @@ print_switch_event(struct libinput_event *ev, const struct libinput_print_option
 	case LIBINPUT_SWITCH_TABLET_MODE:
 		which = "tablet-mode";
 		break;
+	case LIBINPUT_SWITCH_KEYPAD_SLIDE:
+		which = "keypad-slide";
+		break;
 	default:
 		abort();
 	}
