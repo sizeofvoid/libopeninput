@@ -25,6 +25,8 @@
 
 #include "config.h"
 
+#include <stdbool.h>
+
 #include "util-macros.h"
 
 /**
@@ -102,10 +104,10 @@
 	static inline int name_##_cmp(name_##_t a, name_##_t b) { \
 		return a.v < b.v ? -1 : (a.v > b.v ? 1 : 0); \
 	}; \
-	static inline int name_##_eq(name_##_t a, type_ b) { return a.v == b; }\
-	static inline int name_##_ne(name_##_t a, type_ b) { return a.v != b; }\
-	static inline int name_##_le(name_##_t a, type_ b) { return a.v <= b; }\
-	static inline int name_##_lt(name_##_t a, type_ b) { return a.v < b; }\
-	static inline int name_##_ge(name_##_t a, type_ b) { return a.v >= b; }\
-	static inline int name_##_gt(name_##_t a, type_ b) { return a.v > b; }\
+	static inline bool name_##_eq(name_##_t a, type_ b) { return a.v == b; }\
+	static inline bool name_##_ne(name_##_t a, type_ b) { return a.v != b; }\
+	static inline bool name_##_le(name_##_t a, type_ b) { return a.v <= b; }\
+	static inline bool name_##_lt(name_##_t a, type_ b) { return a.v < b; }\
+	static inline bool name_##_ge(name_##_t a, type_ b) { return a.v >= b; }\
+	static inline bool name_##_gt(name_##_t a, type_ b) { return a.v > b; }\
 	struct __useless_struct_to_allow_trailing_semicolon__
