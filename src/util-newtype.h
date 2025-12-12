@@ -42,9 +42,9 @@
  * - int foo(foo f);
  * - foo_t foo_from_int(int);
  * - foo_t foo_copy(foo_t f);
- * - foo_t foo_min(foo_t a, foo b);
- * - foo_t foo_max(foo_t a, foo b);
- * - foo_t foo_cmp(foo_t a, foo b);
+ * - foo_t foo_min(foo_t a, foo_t b);
+ * - foo_t foo_max(foo_t a, foo_t b);
+ * - int foo_cmp(foo_t a, foo_t b);
  * - bool foo_eq(foo_t a, int b);
  * - bool foo_ne(foo_t a, int b);
  * - bool foo_le(foo_t a, int b);
