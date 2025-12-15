@@ -13,7 +13,7 @@ MatchBus=i2c
 MatchVendor=0x06CB
 MatchProduct=0xCFD2
 MatchUdevType=touchpad
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
 # SYNA3602:00 0911:5288 touchpad, clickpad pretending it has a right button.
 # Integrated into several systems, including
