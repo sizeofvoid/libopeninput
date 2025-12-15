@@ -48,14 +48,18 @@ AttrTPKComboLayout=below
 # the same time it enables disables the input.
 # This one is for the keyboard and...
 [HP OmniBook Ultra Flip Laptop 14-fh0xxx Keyboard]
-MatchName=AT Translated Set 2 keyboard
-MatchDMIModalias=dmi:*svnHP:pnHPOmniBookUltraFlipLaptop14-fh0xxx:*
+MatchBus=ps2
+MatchUdevType=keyboard
+MatchDMIModalias=dmi:*:svnHP:pnHPOmniBookUltraFlipLaptop14-fh0xxx:*
 ModelTabletModeNoSuspend=1
 
 # ...this one is for the touchpad.
 [HP OmniBook Ultra Flip Laptop 14-fh0xxx Touchpad]
-MatchName=SYNA3580:00 06CB:CFD2 Touchpad
-MatchDMIModalias=dmi:*svnHP:pnHPOmniBookUltraFlipLaptop14-fh0xxx:*
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xCFD2
+MatchUdevType=touchpad
+MatchDMIModalias=dmi:*:svnHP:pnHPOmniBookUltraFlipLaptop14-fh0xxx:*
 ModelTabletModeNoSuspend=1
 
 [HP Pavilion dmi4]
