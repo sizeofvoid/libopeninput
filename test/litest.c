@@ -2003,7 +2003,10 @@ litest_setup_quirks(struct list *created_files_list, enum quirks_setup_mode mode
 
 	switch (mode) {
 	case QUIRKS_SETUP_USE_SRCDIR:
-		dirname = LIBINPUT_QUIRKS_SRCDIR;
+		if (builddir_lookup(NULL))
+			dirname = LIBINPUT_QUIRKS_SRCDIR;
+		else
+			dirname = LIBINPUT_QUIRKS_DIR;
 		break;
 	case QUIRKS_SETUP_ONLY_DEVICE:
 		dirname = LIBINPUT_QUIRKS_DIR;
