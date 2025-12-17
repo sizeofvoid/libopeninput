@@ -310,7 +310,7 @@ pad_dial_get_mode_group(struct pad_dispatch *pad, unsigned int dial)
 
 	evdev_log_bug_libinput_ratelimit(pad->device,
 					 &pad->modes.group_not_found,
-					 "Unable to find mode group for dial %d",
+					 "Unable to find mode group for dial %d\n",
 					 dial);
 
 	return NULL;
@@ -329,7 +329,7 @@ pad_ring_get_mode_group(struct pad_dispatch *pad, unsigned int ring)
 
 	evdev_log_bug_libinput_ratelimit(pad->device,
 					 &pad->modes.group_not_found,
-					 "Unable to find mode group for ring %d",
+					 "Unable to find mode group for ring %d\n",
 					 ring);
 
 	return NULL;
@@ -348,7 +348,7 @@ pad_strip_get_mode_group(struct pad_dispatch *pad, unsigned int strip)
 
 	evdev_log_bug_libinput_ratelimit(pad->device,
 					 &pad->modes.group_not_found,
-					 "Unable to find mode group for strip %d",
+					 "Unable to find mode group for strip %d\n",
 					 strip);
 
 	return NULL;
