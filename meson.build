@@ -867,6 +867,13 @@ summary({
 	section : 'Tests',
 	bool_yn : true)
 
+summary({
+	'Tests enabled' : get_option('tests'),
+	'Install tests' : get_option('install-tests'),
+	},
+	section : 'Tests',
+	bool_yn : true)
+
 test('symbols-leak-test',
      find_program('test/symbols-leak-test'),
      args : [ dir_src / 'libinput.sym', dir_src],
