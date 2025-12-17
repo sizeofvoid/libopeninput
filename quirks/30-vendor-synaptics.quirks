@@ -14,14 +14,3 @@ MatchVendor=0x06CB
 MatchProduct=0xCFD2
 MatchUdevType=touchpad
 AttrInputProp=+INPUT_PROP_PRESSUREPAD
-
-# SYNA3602:00 0911:5288 touchpad, clickpad pretending it has a right button.
-# Integrated into several systems, including
-# Purism Librem 14v1
-# Prestigio Smartbook 141 C2
-# StarLite Mk II
-# Iota IOTA2320
-[Synaptics 0911:5288 Touchpad]
-MatchUdevType=touchpad
-MatchName=* 0911:5288 Touchpad
-AttrEventCode=-BTN_RIGHT
