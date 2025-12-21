@@ -56,8 +56,6 @@ ModelTabletModeNoSuspend=1
 # ...this one is for the touchpad.
 [HP OmniBook Ultra Flip Laptop 14-fh0xxx Touchpad]
 MatchBus=i2c
-MatchVendor=0x06CB
-MatchProduct=0xCFD2
 MatchUdevType=touchpad
 MatchDMIModalias=dmi:*:svnHP:pnHPOmniBookUltraFlipLaptop14-fh0xxx:*
 ModelTabletModeNoSuspend=1
