@@ -7,6 +7,17 @@ MatchVendor=0x0002
 MatchProduct=0x0007
 ModelSynapticsSerialTouchpad=1
 
+# "SYNA2B31:00 06CB:CE37 Touchpad": pressure touchpad used in Lenovo laptops.
+# also known as
+# MSFT0001:00 06CB:CE37
+# MSFT0001:01 06CB:CE37
+# PNP0C50:01 06CB:CE37
+[Synaptics 06CB:CE37 Touchpad]
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xCE37
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
+
 # "SYNA3580:00 06CB:CFD2 Touchpad": pressure touchpad mostly used in HP laptops.
 [Synaptics 06CB:CFD2 Touchpad]
 MatchBus=i2c
