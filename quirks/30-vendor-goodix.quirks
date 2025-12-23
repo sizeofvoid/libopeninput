@@ -7,4 +7,4 @@ MatchBus=i2c
 MatchVendor=0x27C6
 MatchProduct=0x01E8
 MatchUdevType=touchpad
-ModelPressurePad=1
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
