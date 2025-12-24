@@ -128,20 +128,6 @@ MatchName=*TPPS/2 Elan TrackPoint*
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX1Carbon6th*
 AttrTrackpointMultiplier=0.4
 
-[Lenovo ThinkPad Compact USB Keyboard with TrackPoint (keyboard)]
-MatchUdevType=keyboard
-MatchBus=usb
-MatchVendor=0x17EF
-MatchProduct=0x6047
-AttrKeyboardIntegration=external
-
-[Lenovo ThinkPad Compact USB Keyboard with TrackPoint (trackpoint)]
-MatchUdevType=pointingstick
-MatchBus=usb
-MatchVendor=0x17EF
-MatchProduct=0x6047
-AttrPointingStickIntegration=external
-
 # Lenovo Thinkpad Yoga (not the consumer versions) disables the keyboard
 # mechanically. We must not disable the keyboard because some keys are
 # still accessible on the screen and volume rocker.
@@ -240,3 +226,230 @@ MatchBus=ps2
 MatchUdevType=keyboard
 MatchDMIModalias=dmi:*:svnLENOVO:*:pvr*Miix*:*:ct11:*
 ModelTabletModeNoSuspend=1
+
+# Input devices
+
+[Lenovo ThinkPad Compact USB Keyboard with TrackPoint (keyboard)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x6047
+AttrKeyboardIntegration=external
+
+[Lenovo ThinkPad Compact USB Keyboard with TrackPoint (trackpoint)]
+MatchUdevType=pointingstick
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x6047
+AttrPointingStickIntegration=external
+
+# The following ones correspond to detachable keyboard+touchpad combos used in
+# Lenovo detachable devices. Names can vary within the same ids and some are
+# repeated over different devices. They're mostly connected over USB bus through
+# pogo pins and we need to set the keyboard as internal to achieve DWT.
+# We could also do it matching the touchpad and setting AttrTPKComboLayout=below
+# but this combos are tied to the structure of the device they are designed for.
+# At least some of them affect lid switch state when closed while attached.
+
+# Found in:
+#   Lenovo MIIX 320-10ICR (80XF)
+# Known names:
+#   "HAILUCK CO.,LTD Lenovo HID Device" in 80XF
+#   "HTX USB HID Device HTX HID Device Keyboard" in 80XF
+#   "SIPODEV Lenovo HID Device" in 80XF
+[Lenovo Detachable Keyboard (048D:8911)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x048D
+MatchProduct=0x8911
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo MIIX 510-12ISK (80U1)
+#   Lenovo MIIX 510-12IKB (80XE)
+# Known names:
+#   "SIPODEV Lenovo HID Device" in 80U1 and 80XE
+[Lenovo Detachable Keyboard (04F2:1622)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x04F2
+MatchProduct=0x1622
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo MIIX 3-1030 (80HV)
+# Known names:
+#   "Lenovo Lenovo Miix 3 1030 USB Keyboard" in 80HV
+[Lenovo Detachable Keyboard (17EF:606E)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x606E
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo MIIX 700-121SK (80QL)
+# Known names:
+#   "Lenovo ideapad MIIX 700 USB keyboard" in 80QL
+[Lenovo Detachable Keyboard (17EF:60A2)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x60A2
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo MIIX 720-12IKB (80VV)
+# Known names:
+#   "Chicony Lenovo MIIX 720" in 80VV
+[Lenovo Detachable Keyboard (17EF:60A6)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x60A6
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo MIIX 720-12IKB (80VV)
+# Known names:
+#   "Chicony Lenovo MIIX 720" in 80VV
+[Lenovo Detachable Keyboard (17EF:60A7)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x60A7
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo MIIX 510-12IKB (80XE)
+#   Lenovo MIIX 520-12IKB (20M3), (20M4) and (81CG)
+# Known names:
+#   "SIPODEV Lenovo HID Device" in 80XE, 20M3, 20M4 and 81CG
+[Lenovo Detachable Keyboard (17EF:60BB)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x60BB
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo IdeaPad D330-10IGM (81H3) and (81MD)
+#   Lenovo IdeaPad D330-10IGL (82H0)
+# Known names:
+#   "SIPODEV Lenovo HID Device" in 81H3, 81MD and 82H0
+[Lenovo Detachable Keyboard (17EF:60C3)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x60C3
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo IdeaPad D330-10IGM (81H3) and (81MD)
+# Known names:
+#   "HAILUCK CO.,LTD Lenovo HID Device" in 81H3 and 81MD
+[Lenovo Detachable Keyboard (17EF:60C6)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x60C6
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo IdeaPad D330-10IGL (82H0)
+# Known names:
+#   "HAILUCK CO.,LTD Lenovo HID Device" in 82H0
+[Lenovo Detachable Keyboard (17EF:60C8)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x60C8
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo IdeaPad Duet3 10IGL5 (82AT)
+#   Lenovo IdeaPad Duet3 10IGL5-LTE (82HK)
+# Known names:
+#   "HAILUCK CO.,LTD Duet 3 USB Composite Device" in 82AT and 82HK
+[Lenovo Detachable Keyboard (17EF:60FA) USB]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x60FA
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo IdeaPad Duet3 10IGL5 (82AT)
+# Known names:
+#   "Duet 3 BT Keyboard" in 82AT
+#   "Lenovo Duet 3 BT Folio Keyboard" in 82AT
+[Lenovo Detachable Keyboard (17EF:60FA) BT]
+MatchUdevType=keyboard
+MatchBus=bluetooth
+MatchVendor=0x17EF
+MatchProduct=0x60FA
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo IdeaPad Duet3 10IGL5 (82AT)
+# Known names:
+#   "SIPODEV Duet 3 USB Composite Device" in 82AT
+[Lenovo Detachable Keyboard (17EF:60FB)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x60FB
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo IdeaPad Duet 5 12IAU7 (82TQ)
+# Known names:
+#   "DOKING Duet 5 USB Composite Device" in 82TQ
+[Lenovo Detachable Keyboard (17EF:6139)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x6139
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo IdeaPad Duet 5 12IAU7 (82TQ)
+#   Lenovo XiaoXinDuet IAU7 (82TQ)
+# Known names:
+#   "DOKING Duet 5 USB Composite Device" in 82TQ
+[Lenovo Detachable Keyboard (17EF:613A)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x613A
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo IdeaPad Duet3 11IAN8 (82XK)
+# Known names:
+#   "SINO WEALTH USB Composite Device Keyboard" in 82XK
+[Lenovo Detachable Keyboard (17EF:6169)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x17EF
+MatchProduct=0x6169
+AttrKeyboardIntegration=internal
+
+# Found in:
+#   Lenovo MIIX 300-10IBY (80NR)
+#   Lenovo MIIX 310-10ICR (80SG)
+#   Lenovo MIIX 510-12ISK (80U1)
+#   Lenovo MIIX 510-12IKB (80XE)
+# As non detachable in:
+#   DEXP NAVIS M100
+#   Insyde B14
+# Known names:
+#   "SINO WEALTH USB Composite Device" in 80NR
+#   "SIPODEV USB Composite Device" in 80SG
+#   "SIPODEV Lenovo HID Device" in 80U1, 80XE, NAVIS M100 and B14
+[Lenovo Detachable Keyboard (258A:1015)]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x258A
+MatchProduct=0x1015
+AttrKeyboardIntegration=internal
