@@ -28,11 +28,6 @@ MatchUdevType=touchpad
 AttrPressureRange=25:10
 AttrPalmPressureThreshold=500
 
-[Microsoft Surface Laptop Studio Built-In Peripherals]
-MatchName=*Microsoft Surface*
-MatchDMIModalias=dmi:*svnMicrosoftCorporation:*pnSurfaceLaptopStudio
-ModelTabletModeNoSuspend=1
-
 [Microsoft Nano Transceiver v2.0]
 MatchUdevType=mouse
 MatchBus=usb

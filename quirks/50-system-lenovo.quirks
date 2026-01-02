@@ -170,76 +170,23 @@ MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX1Carbon6th:*
 AttrEventCode=-ABS_MT_TOOL_TYPE
 ModelLenovoX1Gen6Touchpad=1
 
-[Lenovo X41 Tablet]
-MatchName=AT Translated Set 2 keyboard
-MatchDMIModalias=dmi:*svnIBM:*pvrThinkPadX41Tablet:*
+# IBM ThinkPad X41 Tablet identify itself as DMI Chassis Type: 0Ah 10 Notebook
+# but it's really a convertible one and have buttons wired as ps2 keyboard,
+# don't disable them when tablet-mode switch is in effect.
+[IBM ThinkPad X41 Tablet Buttons]
+MatchUdevType=keyboard
+MatchBus=ps2
+MatchDMIModalias=dmi:*svnIBM:*:pvrThinkPadX41Tablet:*
 ModelTabletModeNoSuspend=1
 
-[Lenovo X60 Tablet]
-MatchName=AT Translated Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX60Tablet:*
-ModelTabletModeNoSuspend=1
-
-[Lenovo X61 Tablet]
-MatchName=AT Translated Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX61Tablet:*
-ModelTabletModeNoSuspend=1
-
-# Lenovo X220 Tablet special bezel buttons are associated to the
-# keyboard and would therefore mistakenly be deactivated as well.
-# See https://gitlab.freedesktop.org/libinput/libinput/issues/154
-[Lenovo X220 Tablet]
-MatchName=AT Translated Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX220Tablet:*
-ModelTabletModeNoSuspend=1
-
-# Special bezel button deactivation with
-# keyboard also applies to X230 Tablet
-[Lenovo X230 Tablet]
-MatchName=AT Translated Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX230Tablet:*
-ModelTabletModeNoSuspend=1
-
-# Special bezel button deactivation with
-# keyboard also applies to X200 Tablet
-[Lenovo X200 Tablet]
-MatchName=AT Translated Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX200Tablet:*
-ModelTabletModeNoSuspend=1
-
-[Lenovo X201 Tablet]
-MatchName=AT Translated Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX201Tablet:*
-ModelTabletModeNoSuspend=1
-
-# Lenovo MIIX 720 comes with a detachable keyboard. We must not disable
-# the keyboard because some keys are still accessible on the screen and
-# volume rocker. See
-# https://gitlab.freedesktop.org/libinput/libinput/issues/115
-[Lenovo MIIX 720]
-MatchName=AT Raw Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrLenovoMIIX720-12IKB:*
-ModelTabletModeNoSuspend=1
-
-# Lenovo ThinkPad X1 Tablet (1st Gen) also comes with a detachable keyboard.
-# We must not disable the keyboard because some keys are still accessible on
-# volume rocker.
-[Lenovo ThinkPad X1 Tablet (1st Gen)]
-MatchName=AT Raw Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX1Tablet:*
-ModelTabletModeNoSuspend=1
-
-# Duet 7i tablet switch activated by folding keyboard cover, or removing it.
-# We must not disable volume rocker 'keyboard'.
-[Lenovo Duet 7i]
-MatchName=AT Raw Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrYogaDuet713IML05:*
-ModelTabletModeNoSuspend=1
-
-# Lenovo IdeaPad Duet 3 also comes with a detachable keyboard.
-[Lenovo IdeaPad Duet 3]
-MatchName=AT Raw Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrIdeaPadDuet3*:*
+# Lenovo ThinkPad X60 X61 X200 X201 X220 X230 Tablets identify themselves as
+# DMI Chassis Type: 0Ah 10 Notebook but they are really convertibles ones and
+# have buttons wired as ps2 keyboard, don't disable them when tablet-mode switch
+# is in effect.
+[Lenovo ThinkPad X Tablet Series Buttons]
+MatchUdevType=keyboard
+MatchBus=ps2
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX*Tablet:*
 ModelTabletModeNoSuspend=1
 
 # Modifies pressure range to avoid random jumps.
@@ -274,3 +221,22 @@ AttrTrackpointMultiplier=0.4
 MatchName=* Touchpad
 MatchDMIModalias=dmi:*:svnLENOVO:*pvrYogaSlim7Carbon13IAP7:*
 AttrEventCode=-ABS_MT_TOOL_TYPE
+
+# Lenovo detachable devices prior to SMBIOS 3.0.0 specficiation (2015-02-12)
+# when Tablet, Convertible and Detachable Chassis Types didn't exist use Hand
+# Held. e.g. First Miix devices till Lenovo MIIX 300-10IBY (80NR) and initial
+# firmware versions of Lenovo MIIX 310-10ICR (80SG).
+# Match chassis and *MIIX* Product Version.
+# DMI Chassis Type 0Bh (11 decimal) is Hand Held as per SMBIOS specification.
+[Lenovo 1st Convertible Device Buttons]
+MatchBus=ps2
+MatchUdevType=keyboard
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvr*MIIX*:*:ct11:*
+ModelTabletModeNoSuspend=1
+
+# Match also *Miix* Product Version.
+[Lenovo 1st Convertible Device Buttons 2]
+MatchBus=ps2
+MatchUdevType=keyboard
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvr*Miix*:*:ct11:*
+ModelTabletModeNoSuspend=1

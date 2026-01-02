@@ -84,21 +84,6 @@ MatchName=*DualPoint Stick
 MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE7470*
 AttrTrackpointMultiplier=0.125
 
-[Latitude 7275]
-MatchName=*AT Translated Set 2 keyboard*
-MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude7275:*
-ModelTabletModeNoSuspend=1
-
-[Latitude 7285]
-MatchName=*AT Translated Set 2 keyboard*
-MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude7285:*
-ModelTabletModeNoSuspend=1
-
-[Dell Pro Rugged Tablet]
-MatchName=*AT Translated Set 2 keyboard*
-MatchDMIModalias=dmi:*:svnDellInc.:pnDellProRugged*TabletRA*:*
-ModelTabletModeNoSuspend=1
-
 [Latitude 7480 Touchpad]
 MatchName=DLL07A0*
 MatchDMIModalias=dmi:**bvnDellInc.:*:pnLatitude7480*
@@ -125,9 +110,14 @@ MatchVendor=0x2575
 MatchProduct=0x0204
 ModelDellCanvasTotem=1
 
-[Dell 2-in-1 Models]
-MatchName=AT Translated Set 2 keyboard
-MatchDMIModalias=dmi:*:svnDellInc.:pn*2-in-1:*
+# Dell 2-in-1s have DMI Chassis Type Convertible, match it as by name can be
+# 2-in-1, 2n1 or even some models miss it in name. Also Dell respect this, even
+# if they made a mistake they tend to fix it in firmware updates.
+# DMI Chassis Type 1Fh (31 decimal) is Convertible as per SMBIOS specification.
+[Dell 2-in-1 Model Buttons]
+MatchBus=ps2
+MatchUdevType=keyboard
+MatchDMIModalias=dmi:*:svnDellInc.:*:ct31:*
 ModelTabletModeNoSuspend=1
 
 # This is a true pressurepad so disable pressure for contact size

@@ -9,3 +9,23 @@ AttrKeyboardIntegration=internal
 MatchUdevType=keyboard
 MatchBus=bluetooth
 AttrKeyboardIntegration=external
+
+# Detachable devices usually have the tablet part buttons wired as ps2 keyboard,
+# don't disable them when tablet-mode switch is in effect.
+# DMI Chassis Type 20h (32 decimal) is Detachable as per SMBIOS specification.
+[Detachable Device Buttons]
+MatchBus=ps2
+MatchUdevType=keyboard
+MatchDMIModalias=dmi:*:ct32:*
+ModelTabletModeNoSuspend=1
+
+# Tablet devices usually have the tablet part buttons wired as ps2 keyboard,
+# despite being tablets some of them, e.g. Microsoft Surface Laptop Studio,
+# expose tablet-mode switch, so don't disable the ps2 keyboard.
+# Tablets that don't expose tablet-mode switch won't have any diference.
+# DMI Chassis Type 1Eh (30 decimal) is Tablet as per SMBIOS specification.
+[Tablet Device Buttons]
+MatchBus=ps2
+MatchUdevType=keyboard
+MatchDMIModalias=dmi:*:ct30:*
+ModelTabletModeNoSuspend=1
