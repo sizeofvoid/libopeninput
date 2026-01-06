@@ -51,35 +51,38 @@ class TableFormatter(object):
         return sum(self.colwidths) + 1
 
     def headers(self, args):
-        s = "|"
-        align = self.ALIGNMENT - 1  # account for |
+        s = "│"
+        align = self.ALIGNMENT - 1  # account for │
 
         for arg in args:
             # +2 because we want space left/right of text
             w = ((len(arg) + 2 + align) // align) * align
             self.colwidths.append(w + 1)
-            s += " {:^{width}s} |".format(arg, width=w - 2)
+            s += " {:^{width}s} │".format(arg, width=w - 2)
 
         return s
 
     def values(self, args):
-        s = "|"
+        s = "│"
         for w, arg in zip(self.colwidths, args):
-            w -= 1  # width includes | separator
+            w -= 1  # width includes │ separator
             if isinstance(arg, str):
                 # We want space margins for strings
-                s += " {:{width}s} |".format(arg, width=w - 2)
+                s += " {:{width}s} │".format(arg, width=w - 2)
             elif isinstance(arg, bool):
-                s += "{:^{width}s}|".format("x" if arg else " ", width=w)
+                s += "{:^{width}s}│".format("x" if arg else " ", width=w)
             else:
-                s += "{:^{width}d}|".format(arg, width=w)
+                s += "{:^{width}d}│".format(arg, width=w)
 
         if len(args) < len(self.colwidths):
-            s += "|".rjust(self.width - len(s), " ")
+            s += "│".rjust(self.width - len(s), " ")
         return s
 
+    def header(self):
+        return "┌" + "─" * (self.width - 2) + "┐"
+
     def separator(self):
-        return "+" + "-" * (self.width - 2) + "+"
+        return "├" + "─" * (self.width - 2) + "┤"
 
 
 fmt = TableFormatter()
@@ -354,7 +357,8 @@ def loop(device):
     headers = fmt.headers(
         ["Touch", "down", "up", "palm", "thumb", "min", "max", "p", "avg", "median"]
     )
-    print(fmt.separator())
+
+    print(fmt.header())
     print(fmt.values(["Thresh", device.down, device.up, device.palm, device.thumb]))
     print(fmt.separator())
     print(headers)
