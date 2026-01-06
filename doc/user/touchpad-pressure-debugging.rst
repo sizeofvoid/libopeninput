@@ -53,31 +53,38 @@ Example output of the tool is below: ::
     with --touch-thresholds=down:up using observed pressure values.
     See --help for more options.
 
+    Interactive keys:
+        q/a - decrease/increase down threshold
+        w/s - decrease/increase up threshold
+        e/d - decrease/increase palm threshold
+        r/f - decrease/increase thumb threshold
+
     Press Ctrl+C to exit
 
-    +-------------------------------------------------------------------------------+
-    | Thresh |   70   |  60  |  130   |  100   |                                    |
-    +-------------------------------------------------------------------------------+
-    | Touch  |  down  |  up  |  palm  | thumb  | min  | max  | p  | avg  |  median  |
-    +-------------------------------------------------------------------------------+
-    |  178   |   x    |  x   |        |        |  75  |  75  | 0  |  75  |    75    |
-    |  179   |   x    |  x   |        |        |  35  |  88  | 0  |  77  |    81    |
-    |  180   |   x    |  x   |        |   x    |  65  | 113  | 0  |  98  |    98    |
-    |  181   |   x    |  x   |        |   x    |  50  | 101  | 0  |  86  |    90    |
-    |  182   |   x    |  x   |        |        |  40  |  80  | 0  |  66  |    70    |
-    |  183   |   x    |      |        |        |  43  |  78  | 78 |                 |
+    ┌───────────────────────────────────────────────────────────────────────────────┐
+    │ Touch  │  down  │  up  │  palm  │ thumb  │ min  │ max  │ p  │ avg  │  median  │
+    ├───────────────────────────────────────────────────────────────────────────────┤
+    │  178   │   x    │  x   │        │        │  75  │  75  │ 0  │  75  │    75    │
+    │  179   │   x    │  x   │        │        │  35  │  88  │ 0  │  77  │    81    │
+    │  180   │   x    │  x   │        │   x    │  65  │ 113  │ 0  │  98  │    98    │
+    │  181   │   x    │  x   │        │   x    │  50  │ 101  │ 0  │  86  │    90    │
+    │  182   │   x    │  x   │        │        │  40  │  80  │ 0  │  66  │    70    │
+    │  183   │   x    │      │        │        │  43  │  78  │ 78 │                 │
+    │ Thresh │   70   │  60  │  130   │  100   │
     ...
 
 
 The example output shows five completed touch sequences and one ongoing one.
 For each, the respective minimum and maximum pressure values are printed as
 well as some statistics. The ``down`` column show that each sequence was
-considered logically down at some point, two of the sequences were considered
-thumbs. This is an interactive tool and its output may change frequently. Refer
-to the **libinput-measure-touchpad-pressure(1)** man page for more details.
+considered logically down at some point (see the threholds in the last line),
+two of the sequences were considered thumbs. This is an interactive tool and
+its output may change frequently. Refer to the
+**libinput-measure-touchpad-pressure(1)** man page for more details.
 
 By default, this tool uses the :ref:`device-quirks` for the pressure range. To
-narrow down on the best values for your device, specify the 'logically down'
+narrow down on the best values for your device, adjust the thresholds using
+the keys q/a, w/s, e/d and r/f or specify the 'logically down'
 and 'logically up' pressure thresholds with the  ``--touch-thresholds``
 argument: ::
 

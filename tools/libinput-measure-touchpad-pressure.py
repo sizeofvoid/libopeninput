@@ -27,6 +27,11 @@
 import sys
 import subprocess
 import argparse
+import fcntl
+import os
+import select
+import termios
+import tty
 
 try:
     import libevdev
@@ -220,6 +225,9 @@ class Device(libevdev.Device):
             self.path = path
 
         fd = open(self.path, "rb")
+        flags = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+
         super().__init__(fd)
 
         print("Using {}: {}\n".format(self.name, self.path))
@@ -303,7 +311,7 @@ def handle_key(device, event):
             handle_key.warned = True
             print(
                 "\r\033[2KThis tool cannot handle multiple fingers, "
-                "output will be invalid"
+                "output will be invalid",
             )
 
 
@@ -325,7 +333,7 @@ def handle_abs(device, event):
         try:
             s = device.current_sequence()
             s.append(Touch(pressure=event.value))
-            print("\r\033[2K{}".format(s), end="")
+            print("\r\033[2K{}".format(s))
         except IndexError:
             # If the finger was down at startup
             pass
@@ -351,6 +359,12 @@ def loop(device):
     print("with --touch-thresholds=down:up using observed pressure values.")
     print("See --help for more options.")
     print()
+    print("Interactive keys:")
+    print("  q/a - decrease/increase down threshold")
+    print("  w/s - decrease/increase up threshold")
+    print("  e/d - decrease/increase palm threshold")
+    print("  r/f - decrease/increase thumb threshold")
+    print()
     print("Press Ctrl+C to exit")
     print()
 
@@ -358,15 +372,52 @@ def loop(device):
         ["Touch", "down", "up", "palm", "thumb", "min", "max", "p", "avg", "median"]
     )
 
+    def print_thresholds():
+        threshold_line = fmt.values(
+            ["Thresh", device.down, device.up, device.palm, device.thumb]
+        )
+        print(f"\r{threshold_line}\r", end="", flush=True)
+
     print(fmt.header())
-    print(fmt.values(["Thresh", device.down, device.up, device.palm, device.thumb]))
-    print(fmt.separator())
     print(headers)
     print(fmt.separator())
+    print_thresholds()
 
-    while True:
-        for event in device.events():
-            handle_event(device, event)
+    tty_settings = termios.tcgetattr(sys.stdin)
+    try:
+        tty.setcbreak(sys.stdin.fileno())
+        while True:
+            if select.select([sys.stdin], [], [], 0)[0]:
+                key = sys.stdin.read(1)
+                if key in "qawsedrf":
+                    if key == "q":
+                        device.down += 1
+                    elif key == "a":
+                        device.down = max(0, device.down - 1)
+                        device.up = min(device.up, device.down)
+                    elif key == "w":
+                        device.up += 1
+                        device.down = max(device.up, device.down)
+                    elif key == "s":
+                        device.up = max(0, device.up - 1)
+                        device.down = max(device.up, device.down)
+                    elif key == "e":
+                        device.palm += 1
+                    elif key == "d":
+                        device.palm = max(0, device.palm - 1)
+                    elif key == "r":
+                        device.thumb += 1
+                    elif key == "f":
+                        device.thumb = max(0, device.thumb - 1)
+                    print_thresholds()
+
+            for event in device.events():
+                handle_event(device, event)
+                print_thresholds()
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, tty_settings)
+        print_thresholds()
+        print()
 
 
 def colon_tuple(string):
