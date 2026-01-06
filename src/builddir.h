@@ -36,6 +36,7 @@
 static inline bool
 builddir_lookup(char **builddir)
 {
+#ifdef IS_DEBUG_BUILD
 	char execdir[PATH_MAX];
 	char *pathsep;
 	ssize_t nread;
@@ -65,4 +66,7 @@ builddir_lookup(char **builddir)
 		*builddir = safe_strdup(execdir);
 
 	return true;
+#else
+	return false;
+#endif
 }

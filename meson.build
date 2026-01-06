@@ -80,10 +80,11 @@ endif
 config_h.set_quoted('HTTP_DOC_LINK', doc_url)
 
 config_h.set('_GNU_SOURCE', '1')
-if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimized'
+
+is_debug_build = get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimized'
+if is_debug_build
+	config_h.set('IS_DEBUG_BUILD', '1')
 	config_h.set_quoted('MESON_BUILD_ROOT', meson.current_build_dir())
-else
-	config_h.set_quoted('MESON_BUILD_ROOT', '')
 endif
 
 prefix = '''#define _GNU_SOURCE 1
@@ -816,7 +817,7 @@ executable('ptraccel-debug',
 
 # Don't run the test during a release build because we rely on the magic
 # subtool lookup
-if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimized'
+if is_debug_build
 	config_tool_option_test = configuration_data()
 	config_tool_option_test.set('DISABLE_WARNING', 'yes')
 	config_tool_option_test.set('MESON_ENABLED_DEBUG_GUI', get_option('debug-gui'))
