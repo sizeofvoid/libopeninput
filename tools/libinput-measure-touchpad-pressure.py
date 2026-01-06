@@ -372,9 +372,13 @@ def loop(device):
         ["Touch", "down", "up", "palm", "thumb", "min", "max", "p", "avg", "median"]
     )
 
+    def print_thresholds():
+        threshold_line = fmt.values(
+            ["Thresh", device.down, device.up, device.palm, device.thumb]
+        )
+        print(f"\r{threshold_line}\r", end="", flush=True)
+
     print(fmt.header())
-    print(fmt.values(["Thresh", device.down, device.up, device.palm, device.thumb]))
-    print(fmt.separator())
     print(headers)
     print(fmt.separator())
     print_thresholds()
