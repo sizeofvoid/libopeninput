@@ -204,7 +204,12 @@ print_state(struct context *ctx)
 			abort();
 		}
 
-		printf("\rTool: %s serial %#" PRIx64 ", id %#" PRIx64 "\n",
+		const char *tool_name = libinput_tablet_tool_get_name(ctx->tool);
+		if (!tool_name)
+			tool_name = "<unnamed>";
+
+		printf("\rTool: '%s' %s serial %#" PRIx64 ", id %#" PRIx64 "\n",
+		       tool_name,
 		       tool_str,
 		       libinput_tablet_tool_get_serial(ctx->tool),
 		       libinput_tablet_tool_get_tool_id(ctx->tool));

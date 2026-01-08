@@ -2422,6 +2422,77 @@ START_TEST(tool_id)
 }
 END_TEST
 
+START_TEST(tool_name)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	int tool_id = litest_test_param_get_i32(test_env->params, "tool_id");
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ ABS_MISC, tool_id },
+		{ -1, -1 },
+	};
+
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_dispatch(li);
+
+	_destroy_(libinput_event) *event = libinput_get_event(li);
+	auto tablet_event =
+		litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	auto tool = libinput_event_tablet_tool_get_tool(tablet_event);
+
+	const char *name = libinput_tablet_tool_get_name(tool);
+
+#ifdef HAVE_LIBWACOM
+	switch (tool_id) {
+	case 0x823:
+		litest_assert_str_eq(name, "Grip Pen");
+		break;
+	case 0x4802:
+		litest_assert_str_eq(name, "Classic Pen");
+		break;
+	case 0x100902:
+		litest_assert_str_eq(name, "Airbrush Pen");
+		break;
+	default:
+		litest_assert_not_reached();
+	}
+#else
+	litest_assert_ptr_null(name);
+#endif
+}
+END_TEST
+
+START_TEST(tool_no_name)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 },
+	};
+
+	litest_drain_events(li);
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_dispatch(li);
+
+	_destroy_(libinput_event) *event = libinput_get_event(li);
+	auto tablet_event =
+		litest_is_tablet_event(event, LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY);
+	auto tool = libinput_event_tablet_tool_get_tool(tablet_event);
+
+	const char *name = libinput_tablet_tool_get_name(tool);
+	litest_assert_ptr_null(name);
+}
+END_TEST
+
 START_TEST(serial_changes_tool)
 {
 	struct litest_device *dev = litest_current_device();
@@ -7875,6 +7946,13 @@ TEST_COLLECTION(tablet)
 	litest_add(tool_unique, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add(tool_serial, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add(tool_id, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
+	litest_with_parameters(params, "tool_id", 'I', 3,
+			       litest_named_i32(0x823, "GripPen"),
+			       litest_named_i32(0x4802, "ClassicPen"),
+			       litest_named_i32(0x100902, "AirbrushPen")) {
+		litest_add_parametrized_for_device(tool_name, LITEST_WACOM_CINTIQ_PRO16_PEN, params);
+	}
+	litest_add_for_device(tool_no_name, LITEST_HUION_TABLET);
 	litest_add(serial_changes_tool, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add(invalid_serials, LITEST_TABLET | LITEST_TOOL_SERIAL, LITEST_ANY);
 	litest_add_no_device(tools_with_serials);

@@ -663,6 +663,10 @@ print_proximity_event(struct libinput_event *ev,
 	_autofree_ char *axes = NULL;
 	_autofree_ char *proxin = NULL;
 
+	const char *tool_name = libinput_tablet_tool_get_name(tool);
+	if (!tool_name)
+		tool_name = "<unnamed>";
+
 	switch (libinput_tablet_tool_get_type(tool)) {
 	case LIBINPUT_TABLET_TOOL_TYPE_PEN:
 		tool_str = "pen";
@@ -729,10 +733,11 @@ print_proximity_event(struct libinput_event *ev,
 			libinput_tablet_tool_has_button(tool, BTN_0) ? "0" : "");
 	}
 
-	return strdup_printf("%s\t%s\t%-8s (%#" PRIx64 ", id %#" PRIx64 ") %s%s",
+	return strdup_printf("%s\t%s\t%-8s ('%s', %#" PRIx64 ", id %#" PRIx64 ") %s%s",
 			     time,
 			     axes ? axes : "",
 			     tool_str,
+			     tool_name,
 			     libinput_tablet_tool_get_serial(tool),
 			     libinput_tablet_tool_get_tool_id(tool),
 			     state_str,

@@ -2886,6 +2886,7 @@ libinput_event_tablet_tool_get_time_usec(struct libinput_event_tablet_tool *even
  * @return The tool type for this tool object
  *
  * @see libinput_tablet_tool_get_tool_id
+ * @see libinput_tablet_tool_get_name
  *
  * @since 1.2
  */
@@ -2908,11 +2909,38 @@ libinput_tablet_tool_get_type(struct libinput_tablet_tool *tool);
  * @return The tool ID for this tool object or 0 if none is provided
  *
  * @see libinput_tablet_tool_get_type
+ * @see libinput_tablet_tool_get_name
  *
  * @since 1.2
  */
 uint64_t
 libinput_tablet_tool_get_tool_id(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup event_tablet
+ *
+ * Return the tool name for a tool object, if any.
+ *
+ * The tool name is a human-readable string that identifies the specific tool,
+ * for example "Pro Pen 2" or "Airbrush" and may be presented to the user.
+ *
+ * The lifetime of the returned string is tied to the lifetime of the
+ * libinput_tablet_tool. The string may be NULL.
+ *
+ * @note This function requires libwacom support. If libwacom is not available
+ * at compile time or the tool is not known to libwacom, this function returns
+ * NULL.
+ *
+ * @param tool The libinput tool
+ * @return The tool name for this tool object or NULL if no name is available
+ *
+ * @see libinput_tablet_tool_get_tool_id
+ * @see libinput_tablet_tool_get_type
+ *
+ * @since 1.31
+ */
+const char *
+libinput_tablet_tool_get_name(struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup event_tablet

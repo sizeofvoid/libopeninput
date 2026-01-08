@@ -1643,6 +1643,31 @@ libinput_tablet_tool_get_tool_id(struct libinput_tablet_tool *tool)
 	return tool->tool_id;
 }
 
+LIBINPUT_EXPORT const char *
+libinput_tablet_tool_get_name(struct libinput_tablet_tool *tool)
+{
+#ifdef HAVE_LIBWACOM
+	if (!tool->last_device)
+		return NULL;
+
+	auto libinput = libinput_device_get_context(tool->last_device);
+	auto wacom_db = libinput->libwacom.db;
+	if (!wacom_db)
+		return NULL;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	const WacomStylus *stylus = libwacom_stylus_get_for_id(wacom_db, tool->tool_id);
+#pragma GCC diagnostic pop
+	if (!stylus)
+		return NULL;
+
+	return libwacom_stylus_get_name(stylus);
+#else
+	return NULL;
+#endif
+}
+
 LIBINPUT_EXPORT int
 libinput_tablet_tool_is_unique(struct libinput_tablet_tool *tool)
 {
