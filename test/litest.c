@@ -3001,7 +3001,7 @@ litest_tablet_proximity_out(struct litest_device *d)
 			litest_tool_event(d, ev->value);
 			break;
 		default:
-			value = auto_assign_tablet_value(d, ev, -1, -1, NULL);
+			value = auto_assign_tablet_value(d, ev, 0, 0, NULL);
 			if (!tablet_ignore_event(ev, value))
 				litest_event(d, ev->type, ev->code, value);
 			break;
