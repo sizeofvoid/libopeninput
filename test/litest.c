@@ -2489,6 +2489,7 @@ axis_replacement_value(struct litest_device *d,
 	while (axis->evcode != -1) {
 		if (axis->evcode == evcode) {
 			switch (evcode) {
+			case ABS_MISC:
 			case ABS_MT_SLOT:
 			case ABS_MT_TRACKING_ID:
 			case ABS_MT_TOOL_TYPE:
