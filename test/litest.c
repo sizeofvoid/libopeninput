@@ -2885,7 +2885,7 @@ auto_assign_tablet_value(struct litest_device *d,
 	static int tracking_id;
 	int value = ev->value;
 
-	if (value != LITEST_AUTO_ASSIGN || ev->type != EV_ABS)
+	if (ev->type != EV_ABS)
 		return value;
 
 	switch (ev->code) {
@@ -2902,7 +2902,7 @@ auto_assign_tablet_value(struct litest_device *d,
 		break;
 	default:
 		if (!axis_replacement_value(d, axes, ev->code, &value) &&
-		    d->interface->get_axis_default) {
+		    value == LITEST_AUTO_ASSIGN && d->interface->get_axis_default) {
 			int error = d->interface->get_axis_default(d, ev->code, &value);
 			if (error) {
 				litest_abort_msg(
@@ -3000,6 +3000,12 @@ litest_tablet_proximity_out(struct litest_device *d)
 		case evbit(EV_KEY, LITEST_BTN_TOOL_AUTO):
 			litest_tool_event(d, ev->value);
 			break;
+		case evbit(EV_ABS, ABS_MT_TRACKING_ID):
+			if (ev->value == -1) {
+				litest_event(d, ev->type, ev->code, ev->value);
+				break;
+			}
+			_fallthrough_;
 		default:
 			value = auto_assign_tablet_value(d, ev, 0, 0, NULL);
 			if (!tablet_ignore_event(ev, value))
