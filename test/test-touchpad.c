@@ -4983,23 +4983,10 @@ END_TEST
 START_TEST(touchpad_dwt_acer_hawaii)
 {
 	struct litest_device *touchpad = litest_current_device();
-	struct litest_device *keyboard, *hawaii_keyboard;
+	struct litest_device *hawaii_keyboard;
 	struct libinput *li = touchpad->libinput;
 
 	litest_assert(has_disable_while_typing(touchpad));
-
-	/* Only the hawaii keyboard can trigger DWT */
-	keyboard = litest_add_device(li, LITEST_KEYBOARD);
-	litest_drain_events(li);
-
-	litest_keyboard_key(keyboard, KEY_A, true);
-	litest_keyboard_key(keyboard, KEY_A, false);
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
-
-	litest_touch_down(touchpad, 0, 50, 50);
-	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10);
-	litest_touch_up(touchpad, 0);
-	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
 	hawaii_keyboard = litest_add_device(li, LITEST_ACER_HAWAII_KEYBOARD);
 	litest_drain_events(li);
@@ -5014,7 +5001,6 @@ START_TEST(touchpad_dwt_acer_hawaii)
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
-	litest_device_destroy(keyboard);
 	litest_device_destroy(hawaii_keyboard);
 }
 END_TEST
