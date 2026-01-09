@@ -107,11 +107,11 @@ variables:
   # changing these will force rebuilding the associated image
   # Note: these tags have no meaning and are not tied to a particular
   # libinput version
-  FEDORA_TAG:  '2025-11-17.0'
-  DEBIAN_TAG:  '2025-11-17.0'
-  UBUNTU_TAG:  '2025-11-17.0'
-  ARCH_TAG:    '2025-11-17.0'
-  ALPINE_TAG:  '2025-11-17.0'
+  FEDORA_TAG:  '2026-01-09.0'
+  DEBIAN_TAG:  '2026-01-09.0'
+  UBUNTU_TAG:  '2026-01-09.0'
+  ARCH_TAG:    '2026-01-09.0'
+  ALPINE_TAG:  '2026-01-09.0'
 
   FDO_UPSTREAM_REPO: libinput/libinput
 
