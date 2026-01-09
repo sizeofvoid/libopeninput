@@ -12,13 +12,12 @@ ModelTabletModeNoSuspend=1
 
 # Acer Switch Alpha 12 (SA5-271) and (SA5-271P)
 # Acer Switch 3 (SW312-31)
-# We define the touchpad as below till the tests allow to set keyboard internal.
-[Acer Detachable Touchpad (04F2:1558)]
-MatchUdevType=touchpad
+[Acer Detachable Keyboard (04F2:1558)]
+MatchUdevType=keyboard
 MatchBus=usb
 MatchVendor=0x04F2
 MatchProduct=0x1558
-AttrTPKComboLayout=below
+AttrKeyboardIntegration=internal
 
 # Acer Switch 7 (SW713-51GNP)
 [Acer Detachable Keyboard (06CB:819E)]
