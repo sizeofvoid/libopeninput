@@ -136,14 +136,13 @@ AttrTrackpointMultiplier=0.4
 # Initially #103749 and extended by #106799 comment 7
 [Lenovo Thinkpad Yoga]
 MatchName=AT Translated Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPad*Yoga*:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPad*Yoga*:*
 ModelTabletModeNoSuspend=1
 
-[IBM ScrollPoint Mouse 3100]
-MatchUdevType=mouse
-MatchVendor=0x04B3
-MatchProduct=0x3100
-ModelLenovoScrollPoint=1
+[Lenovo X1 Yoga Trackpoint 1st gen]
+MatchName=*TPPS/2 IBM TrackPoint
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX1Yoga1st:*
+AttrTrackpointMultiplier=1.25
 
 [Lenovo Yoga C930 Tablet]
 MatchBus=i2c
@@ -151,11 +150,13 @@ MatchVendor=0x056A
 MatchProduct=0x5196
 AttrTabletSmoothing=1
 
-[IBM ScrollPoint Mouse 3108]
-MatchUdevType=mouse
-MatchVendor=0x04B3
-MatchProduct=0x3108
-ModelLenovoScrollPoint=1
+# Lenovo Carbon X1 6th gen (RMI4 only, PS/2 is broken on this device,
+# sends bogus ABS_MT_TOOL_TYPE events for MT_TOOL_PALM
+[Lenovo Carbon X1 6th gen]
+MatchName=Synaptics TM3288-011
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX1Carbon6th:*
+AttrEventCode=-ABS_MT_TOOL_TYPE
+ModelLenovoX1Gen6Touchpad=1
 
 # IBM ThinkPad X41 Tablet identify itself as DMI Chassis Type: 0Ah 10 Notebook
 # but it's really a convertible one and have buttons wired as ps2 keyboard,
@@ -163,7 +164,7 @@ ModelLenovoScrollPoint=1
 [IBM ThinkPad X41 Tablet Buttons]
 MatchUdevType=keyboard
 MatchBus=ps2
-MatchDMIModalias=dmi:*svnIBM:*:pvrThinkPadX41Tablet:*
+MatchDMIModalias=dmi:*:svnIBM:*:pvrThinkPadX41Tablet:*
 ModelTabletModeNoSuspend=1
 
 # Lenovo ThinkPad X60 X61 X200 X201 X220 X230 Tablets identify themselves as
@@ -173,7 +174,7 @@ ModelTabletModeNoSuspend=1
 [Lenovo ThinkPad X Tablet Series Buttons]
 MatchUdevType=keyboard
 MatchBus=ps2
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX*Tablet:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX*Tablet:*
 ModelTabletModeNoSuspend=1
 
 # Modifies pressure range to avoid random jumps.
@@ -181,32 +182,32 @@ ModelTabletModeNoSuspend=1
 [Lenovo Yoga 2 Pro touchpad]
 MatchUdevType=touchpad
 MatchName=*SynPS/2 Synaptics TouchPad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrLenovoYoga2Pro*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrLenovoYoga2Pro:*
 AttrPressureRange=50:45
 
-[Lenovo ThinkPad E14 v2]
+[Lenovo ThinkPad E14 Gen 2]
 MatchUdevType=touchpad
 MatchName=*Elan Touchpad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadE14Gen2*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadE14Gen2:*
 AttrPalmPressureThreshold=300
 AttrPressureRange=10:8
 
 [Lenovo ThinkPad E16 Gen 3]
 MatchUdevType=pointingstick
-MatchVendor=0x04B3
-MatchProduct=0x301E
-AttrTrackpointMultiplier=1.50
+MatchName=*TPPS/2 Elan TrackPoint*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadE16Gen3:*
+AttrTrackpointMultiplier=0.5
 
 [Lenovo Thinkpad Yoga X390]
 MatchUdevType=pointingstick
 MatchName=*TPPS/2 Elan TrackPoint*
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX390Yoga*:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX390Yoga*:*
 AttrTrackpointMultiplier=0.4
 
 # Lenovo Yoga Slim 7i Carbon sends bogus ABS_MT_TOOL_TYPE MT_TOOL_PALM events
 [Lenovo Yoga Slim 7i Carbon]
 MatchName=* Touchpad
-MatchDMIModalias=dmi:*:svnLENOVO:*pvrYogaSlim7Carbon13IAP7:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrYogaSlim7Carbon13IAP7:*
 AttrEventCode=-ABS_MT_TOOL_TYPE
 
 # Lenovo detachable devices prior to SMBIOS 3.0.0 specficiation (2015-02-12)
