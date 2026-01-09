@@ -2,5 +2,5 @@
 
 [LG gram 14 2023 Touchpad]
 MatchName=* Touchpad
-MatchDMIModalias=dmi:*svnLGElectronics:pn14Z90R-G.AA79G:*
+MatchDMIModalias=dmi:*:svnLGElectronics:pn14Z90R-G.AA79G:*
 ModelTouchpadPhantomClicks=1

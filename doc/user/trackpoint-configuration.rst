@@ -131,7 +131,7 @@ variation of the following is sufficient:
      [Trackpoint Override]
      MatchUdevType=pointingstick
      MatchName=*TPPS/2 IBM TrackPoint*
-     MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT440p*
+     MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadT440p:*
      AttrTrackpointMultiplier=1.0
 
 

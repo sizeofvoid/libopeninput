@@ -2,6 +2,6 @@
 [Synaptics ALPS0001:00 0911:5288 Touchpad]
 MatchUdevType=touchpad
 MatchName=ALPS0001:00 0911:5288 Touchpad
-MatchDMIModalias=dmi:*svnICL:*:rvnICL:rnSi16:*
+MatchDMIModalias=dmi:*:svnICL:*:rnSi16:*
 AttrInputProp=-INPUT_PROP_BUTTONPAD
 AttrEventCode=+BTN_RIGHT

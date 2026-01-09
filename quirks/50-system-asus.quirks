@@ -2,12 +2,12 @@
 
 [Asus X555LAB]
 MatchName=*ETPS/2 Elantech Touchpad*
-MatchDMIModalias=dmi:*svnASUSTeKCOMPUTERINC.:pnX555LAB:*
+MatchDMIModalias=dmi:*:svnASUSTeKCOMPUTERINC.:pnX555LAB:*
 ModelTouchpadVisibleMarker=1
 
 [Asus UX21E]
 MatchName=*ETPS/2 Elantech Touchpad*
-MatchDMIModalias=dmi:*svnASUSTeKComputerInc.:pnUX21E:*
+MatchDMIModalias=dmi:*:svnASUSTeKComputerInc.:pnUX21E:*
 AttrPressureRange=24:10
 
 # Asus UX302LA touchpad doesn't update the pressure values once two
@@ -15,14 +15,14 @@ AttrPressureRange=24:10
 # at all. https://gitlab.freedesktop.org/libinput/libinput/issues/145
 [Asus UX302LA]
 MatchName=*ETPS/2 Elantech Touchpad*
-MatchDMIModalias=dmi:*svnASUSTeKCOMPUTERINC.:pnUX302LA:*
+MatchDMIModalias=dmi:*:svnASUSTeKCOMPUTERINC.:pnUX302LA:*
 AttrEventCode=-ABS_MT_PRESSURE;-ABS_PRESSURE;
 
 # Asus VivoBook Flip 14 TP412UA tablet switch seems misbehaving, always
 # indicating tablet position
 [Asus TP412UA Tablet Mode Switch]
 MatchName=*Intel Virtual Button*
-MatchDMIModalias=dmi:*svnASUSTeKCOMPUTERINC.:pnVivoBookFlip14_ASUSFlipTP412UA:*
+MatchDMIModalias=dmi:*:svnASUSTeKCOMPUTERINC.:pnVivoBookFlip14_ASUSFlipTP412UA:*
 ModelTabletModeSwitchUnreliable=1
 
 # keyboard has a different vid/pid to the touchpad

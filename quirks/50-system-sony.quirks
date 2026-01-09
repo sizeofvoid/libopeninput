@@ -3,5 +3,5 @@
 [Sony Vaio VPCEG Series Touchpad Pressure Override]
 MatchUdevType=touchpad
 MatchName=*SynPS/2 Synaptics TouchPad
-MatchDMIModalias=dmi:*svnSonyCorporation:pnVPCEG*
+MatchDMIModalias=dmi:*:svnSonyCorporation:pnVPCEG*:*
 AttrPressureRange=45:40

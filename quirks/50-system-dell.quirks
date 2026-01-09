@@ -2,103 +2,104 @@
 
 [Dell Touchpads]
 MatchName=* Touchpad
-MatchDMIModalias=dmi:*svnDellInc.:*
+MatchDMIModalias=dmi:*:svnDellInc.:*
 ModelTouchpadVisibleMarker=1
 
 [Dell i2c Touchpads]
 MatchBus=i2c
 MatchUdevType=touchpad
-MatchDMIModalias=dmi:*svnDellInc.:*
+MatchDMIModalias=dmi:*:svnDellInc.:*
 AttrMscTimestamp=watch
 
 [Dell Inspiron 15R N5110 Touchpad]
 MatchUdevType=touchpad
 MatchName=*AlpsPS/2 ALPS GlidePoint
 MatchVersion=0x0300
-MatchDMIModalias=dmi:*svnDellInc.:*pnInspironN5110*
+MatchDMIModalias=dmi:*:svnDellInc.:pnInspironN5110:*
 AttrPressureRange=100:95
 
 [Dell Latitude E5510 Touchpad]
 MatchUdevType=touchpad
 MatchName=*AlpsPS/2 ALPS GlidePoint
-MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE5510:*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitudeE5510:*
 AttrPressureRange=100:90
 
 [Dell Latitude E6220 Touchpad]
 MatchName=*AlpsPS/2 ALPS GlidePoint
-MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE6220:*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitudeE6220:*
 AttrPressureRange=100:90
 
 [Dell XPS L322X Touchpad]
 MatchName=*CyPS/2 Cypress Trackpad
-MatchDMIModalias=dmi:*svnDell*:*XPSL322X*
+# pn can be "XPS L322X" and "Dell System XPS L322X", match both :pn*XPSL322X:.
+MatchDMIModalias=dmi:*:svnDellInc.:pn*XPSL322X:*
 AttrPressureRange=30:20
 AttrPalmPressureThreshold=254
 
 [Dell XPS13 9333 Touchpad]
 MatchName=*Synaptics s3203
-MatchDMIModalias=dmi:*svnDellInc.:*pnXPS139333*
+MatchDMIModalias=dmi:*:svnDellInc.:pnXPS139333:*
 AttrPressureRange=15:10
 AttrPalmPressureThreshold=150
 
 [Dell XPS 15 9500 Touchpad]
 MatchName=* Touchpad
-MatchDMIModalias=dmi:*svnDellInc.:pnXPS159500:*
+MatchDMIModalias=dmi:*:svnDellInc.:pnXPS159500:*
 ModelTouchpadVisibleMarker=0
 ModelTouchpadPhantomClicks=1
 
 [Dell Latitude D620 Trackpoint]
 MatchName=*DualPoint Stick
-MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeD620*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitudeD620:*
 AttrTrackpointMultiplier=0.5
 
 [Latitude E5480 Trackpoint]
 MatchName=*DualPoint Stick
 MatchUdevType=pointingstick
-MatchDMIModalias=dmi:**bvnDellInc.:*:pnLatitude5480*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude5480:*
 AttrTrackpointMultiplier=0.5
 
 [Latitude 5580 Trackpoint]
 MatchName=*DualPoint Stick
 MatchUdevType=pointingstick
-MatchDMIModalias=dmi:**bvnDellInc.:*:pnLatitude5580*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude5580:*
 AttrTrackpointMultiplier=0.5
 
 [Latitude E5570 Trackpoint]
 MatchName=*DualPoint Stick
-MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE5570*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitudeE5570:*
 AttrTrackpointMultiplier=0.1
 
 [Latitude E6320 Trackpoint]
 MatchName=*DualPoint Stick
-MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE6320*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitudeE6320:*
 AttrTrackpointMultiplier=2.0
 
 [Latitude E6400 Trackpoint]
 MatchName=*DualPoint Stick
-MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE6400*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitudeE6400:*
 AttrTrackpointMultiplier=1.5
 
 [Latitude E7470 Trackpoint]
 MatchName=*DualPoint Stick
-MatchDMIModalias=dmi:*svnDellInc.:pnLatitudeE7470*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitudeE7470:*
 AttrTrackpointMultiplier=0.125
 
 [Latitude 7480 Touchpad]
 MatchName=DLL07A0*
-MatchDMIModalias=dmi:**bvnDellInc.:*:pnLatitude7480*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude7480:*
 AttrPressureRange=35:34
 
 [Latitude 7490 Trackpoint]
 MatchName=*Mouse
 MatchUdevType=pointingstick
-MatchDMIModalias=dmi:**bvnDellInc.:*:pnLatitude7490*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude7490:*
 AttrTrackpointMultiplier=0.3
 
 [Precision 7x50 Touchpad]
 MatchBus=i2c
 MatchUdevType=touchpad
-MatchDMIModalias=dmi:*svnDellInc.:pnPrecision7?50*
+MatchDMIModalias=dmi:*:svnDellInc.:pnPrecision7?50:*
 AttrInputProp=-INPUT_PROP_BUTTONPAD
 
 # The touch device has the same vid/pid as the totem, the MatchName
@@ -139,7 +140,7 @@ MatchBus=i2c
 MatchVendor=0x0488
 MatchProduct=0x1063
 MatchUdevType=touchpad
-MatchDMIModalias=dmi:*svnDellInc.:pnPrecision5480*
+MatchDMIModalias=dmi:*:svnDellInc.:pnPrecision5480:*
 ModelTouchpadVisibleMarker=0
 
 [Dell laptop 14 Synaptics touchpad]

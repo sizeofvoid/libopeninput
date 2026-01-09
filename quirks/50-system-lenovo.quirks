@@ -2,130 +2,132 @@
 
 [Lenovo Thinkpad Touchpad]
 MatchName=*Synaptics*
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPad*:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPad*:*
 AttrThumbPressureThreshold=100
 
 [Lenovo x230 Touchpad]
 MatchName=*SynPS/2 Synaptics TouchPad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX230*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX230*:*
 ModelLenovoX230=1
 
 [Lenovo T440p Touchpad PS/2]
 MatchName=SynPS/2 Synaptics TouchPad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT440p*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadT440p:*
 ModelLenovoT450Touchpad=1
 
 [Lenovo T440p Touchpad RMI4]
 MatchName=Synaptics tm2964-001
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT440p*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadT440p:*
 ModelLenovoT450Touchpad=1
 
 [Lenovo T470 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT470:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadT470:*
 AttrTrackpointMultiplier=0.75
 
 [Lenovo T480 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT480:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadT480:*
 AttrTrackpointMultiplier=0.75
 
 [Lenovo A485 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadA485:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadA485:*
 AttrTrackpointMultiplier=0.75
 
 # Touchpad is a clickpad but INPUT_PROP_BUTTONPAD is not set, see
 # https://gitlab.freedesktop.org/libinput/libinput/issues/177
 [Lenovo T480s Touchpad]
 MatchName=Elan Touchpad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT480s*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadT480s:*
 AttrInputProp=+INPUT_PROP_BUTTONPAD
 
 # Touchpad is a clickpad but INPUT_PROP_BUTTONPAD is not set, see
 # https://gitlab.freedesktop.org/libinput/libinput/issues/177
 [Lenovo T490s Touchpad]
 MatchName=Elan Touchpad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT490s*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadT490s:*
 AttrInputProp=+INPUT_PROP_BUTTONPAD
 
 [Lenovo T490s Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT490s:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadT490s:*
 AttrTrackpointMultiplier=0.4
 
 [Lenovo P14s Gen 1 AMD Trackpoint]
 MatchUdevType=pointingstick
 MatchName=*TPPS/2 Elan TrackPoint*
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadP14sGen1*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadP14sGen1:*
 AttrTrackpointMultiplier=0.4
 
 # Touchpad is a clickpad but INPUT_PROP_BUTTONPAD is not set, see
 # https://gitlab.freedesktop.org/libinput/libinput/issues/234
-[Lenovo L380 Touchpad]
+# NOTE: This was intended for L380 Yoga but was applied before also for normal
+# L380. Is needed also for non covertible model?
+[Lenovo L380 Yoga Touchpad]
 MatchName=Elan Touchpad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadL380*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadL380Yoga:*
 AttrInputProp=+INPUT_PROP_BUTTONPAD
 
 [Lenovo X200/201 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20?:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX20?:*
 AttrTrackpointMultiplier=0.25
 
 [Lenovo X200s/201s Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20??:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX20??:*
 AttrTrackpointMultiplier=0.25
 
 [Lenovo X230 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX230:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX230:*
 AttrTrackpointMultiplier=0.25
 
 [Lenovo X280 Trackpoint]
 MatchName=*TPPS/2 Elan TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX280:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX280:*
 AttrTrackpointMultiplier=0.5
 
 [Lenovo X280 Touchpad]
 MatchName=Synaptics TM3381-002
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX280*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX280:*
 AttrPalmSizeThreshold=6
 
 [Lenovo P50 Touchpad]
 MatchName=SynPS/2 Synaptics TouchPad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadP50*:
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadP50*:*
 ModelLenovoT450Touchpad=1
 AttrPalmPressureThreshold=150
 
 [Lenovo *50 Touchpad]
 MatchName=SynPS/2 Synaptics TouchPad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPad??50*:
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPad??50*:*
 ModelLenovoT450Touchpad=1
 AttrPalmPressureThreshold=150
 
 [Lenovo *60 Touchpad]
 MatchName=SynPS/2 Synaptics TouchPad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPad??60*:
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPad??60*:*
 ModelLenovoT450Touchpad=1
 AttrPalmPressureThreshold=150
 
 [Lenovo X1 Carbon 3rd Touchpad]
 MatchName=SynPS/2 Synaptics TouchPad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX1Carbon3rd:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX1Carbon3rd:*
 ModelLenovoT450Touchpad=1
 AttrPalmPressureThreshold=150
 
 [Lenovo X1 Carbon 4th Trackpoint]
 MatchUdevType=pointingstick
 MatchName=*TPPS/2 IBM TrackPoint*
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX1Carbon4th*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX1Carbon4th:*
 AttrTrackpointMultiplier=0.5
 
 [Lenovo X1 Carbon 6th Trackpoint]
 MatchUdevType=pointingstick
 MatchName=*TPPS/2 Elan TrackPoint*
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX1Carbon6th*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX1Carbon6th:*
 AttrTrackpointMultiplier=0.4
 
 # Lenovo Thinkpad Yoga (not the consumer versions) disables the keyboard
@@ -134,12 +136,12 @@ AttrTrackpointMultiplier=0.4
 # Initially #103749 and extended by #106799 comment 7
 [Lenovo Thinkpad Yoga]
 MatchName=AT Translated Set 2 keyboard
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPad*Yoga*:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPad*Yoga*:*
 ModelTabletModeNoSuspend=1
 
 [Lenovo X1 Yoga Trackpoint 1st gen]
 MatchName=*TPPS/2 IBM TrackPoint
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX1Yoga1st:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX1Yoga1st:*
 AttrTrackpointMultiplier=1.25
 
 [Lenovo Yoga C930 Tablet]
@@ -152,7 +154,7 @@ AttrTabletSmoothing=1
 # sends bogus ABS_MT_TOOL_TYPE events for MT_TOOL_PALM
 [Lenovo Carbon X1 6th gen]
 MatchName=Synaptics TM3288-011
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX1Carbon6th:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX1Carbon6th:*
 AttrEventCode=-ABS_MT_TOOL_TYPE
 ModelLenovoX1Gen6Touchpad=1
 
@@ -162,7 +164,7 @@ ModelLenovoX1Gen6Touchpad=1
 [IBM ThinkPad X41 Tablet Buttons]
 MatchUdevType=keyboard
 MatchBus=ps2
-MatchDMIModalias=dmi:*svnIBM:*:pvrThinkPadX41Tablet:*
+MatchDMIModalias=dmi:*:svnIBM:*:pvrThinkPadX41Tablet:*
 ModelTabletModeNoSuspend=1
 
 # Lenovo ThinkPad X60 X61 X200 X201 X220 X230 Tablets identify themselves as
@@ -172,7 +174,7 @@ ModelTabletModeNoSuspend=1
 [Lenovo ThinkPad X Tablet Series Buttons]
 MatchUdevType=keyboard
 MatchBus=ps2
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX*Tablet:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX*Tablet:*
 ModelTabletModeNoSuspend=1
 
 # Modifies pressure range to avoid random jumps.
@@ -180,32 +182,32 @@ ModelTabletModeNoSuspend=1
 [Lenovo Yoga 2 Pro touchpad]
 MatchUdevType=touchpad
 MatchName=*SynPS/2 Synaptics TouchPad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrLenovoYoga2Pro*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrLenovoYoga2Pro:*
 AttrPressureRange=50:45
 
-[Lenovo ThinkPad E14 v2]
+[Lenovo ThinkPad E14 Gen 2]
 MatchUdevType=touchpad
 MatchName=*Elan Touchpad
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadE14Gen2*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadE14Gen2:*
 AttrPalmPressureThreshold=300
 AttrPressureRange=10:8
 
 [Lenovo ThinkPad E16 Gen 3]
 MatchUdevType=pointingstick
 MatchName=*TPPS/2 Elan TrackPoint*
-MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadE16Gen3*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadE16Gen3:*
 AttrTrackpointMultiplier=0.5
 
 [Lenovo Thinkpad Yoga X390]
 MatchUdevType=pointingstick
 MatchName=*TPPS/2 Elan TrackPoint*
-MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX390Yoga*:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX390Yoga*:*
 AttrTrackpointMultiplier=0.4
 
 # Lenovo Yoga Slim 7i Carbon sends bogus ABS_MT_TOOL_TYPE MT_TOOL_PALM events
 [Lenovo Yoga Slim 7i Carbon]
 MatchName=* Touchpad
-MatchDMIModalias=dmi:*:svnLENOVO:*pvrYogaSlim7Carbon13IAP7:*
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrYogaSlim7Carbon13IAP7:*
 AttrEventCode=-ABS_MT_TOOL_TYPE
 
 # Lenovo detachable devices prior to SMBIOS 3.0.0 specficiation (2015-02-12)

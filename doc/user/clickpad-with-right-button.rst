@@ -29,7 +29,7 @@ MyVendor OEM::
     [MyVendor MyModel Touchpad]
     MatchName=Foo Bar Touchpad
     MatchUdevtype=touchpad
-    MatchDMIModAlias=dmi:*svnMyVendor:pnMyModel:*
+    MatchDMIModAlias=dmi:*:svnMyVendor:pnMyModel:*
     AttrEventCode=-BTN_RIGHT
 
 The name of the device can be obtained using :ref:`libinput record <libinput-record>`,

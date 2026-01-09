@@ -2,7 +2,7 @@
 
 [Microsoft Surface 3 Lid Switch]
 MatchName=*Lid Switch*
-MatchDMIModalias=dmi:*svnMicrosoftCorporation:pnSurface3:*
+MatchDMIModalias=dmi:*:svnMicrosoftCorporation:pnSurface3:*
 AttrLidSwitchReliability=write_open
 
 # Matches both Surface Laptop keyboards as well as type covers.
@@ -12,12 +12,12 @@ AttrLidSwitchReliability=write_open
 # - Surface Book 2: Microsoft Surface Keyboard
 [Microsoft Surface Keyboard]
 MatchName=*Microsoft Surface *Keyboard*
-MatchDMIModalias=dmi:*svnMicrosoftCorporation:*
+MatchDMIModalias=dmi:*:svnMicrosoftCorporation:*
 AttrKeyboardIntegration=internal
 
 [Microsoft Surface Cover]
 MatchName=*Microsoft Surface *Cover*
-MatchDMIModalias=dmi:*svnMicrosoftCorporation:*
+MatchDMIModalias=dmi:*:svnMicrosoftCorporation:*
 AttrKeyboardIntegration=internal
 AttrEventCode=-BTN_0;
 

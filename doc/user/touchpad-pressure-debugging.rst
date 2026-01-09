@@ -107,7 +107,7 @@ Once the thresholds are decided on (e.g. 10 and 8), they can be enabled with
      [Touchpad pressure override]
      MatchUdevType=touchpad
      MatchName=*SynPS/2 Synaptics TouchPad
-     MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX230*
+     MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX230:*
      AttrPressureRange=10:8
      AttrPalmPressureThreshold=150
      AttrThumbPressureThreshold=100
@@ -206,7 +206,7 @@ Once the thresholds are decided on (e.g. 10 and 8), they can be enabled with
      [Touchpad touch size override]
      MatchUdevType=touchpad
      MatchName=*SynPS/2 Synaptics TouchPad
-     MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadX230*
+     MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX230:*
      AttrTouchSizeRange=10:8
 
 The first line is the match line and should be adjusted for the device name

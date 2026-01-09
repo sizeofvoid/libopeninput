@@ -1,4 +1,5 @@
+# Can't find no Satellite with all uppercase in DMI.
 [Toshiba Satellite L855-14E Touchpad]
 MatchName=*SynPS/2 Synaptics TouchPad
-MatchDMIModalias=dmi:*svnTOSHIBA:pnSATELLITEL855*
+MatchDMIModalias=dmi:*:svnTOSHIBA:pnSATELLITEL855:*
 AttrPressureRange=45:44

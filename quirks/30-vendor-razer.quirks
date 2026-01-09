@@ -2,7 +2,7 @@
 
 [Razer Blade Lid Switch]
 MatchName=*Lid Switch*
-MatchDMIModalias=dmi:*svnRazer:pnBlade*
+MatchDMIModalias=dmi:*:svnRazer:pnBlade*:*
 AttrLidSwitchReliability=write_open
 
 # Manually added entries must go above this line.

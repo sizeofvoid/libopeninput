@@ -3,5 +3,5 @@
 [Framework Laptop 16 Keyboard Module]
 MatchName=Framework Laptop 16 Keyboard Module*
 MatchUdevType=keyboard
-MatchDMIModalias=dmi:*svnFramework:pnLaptop16*
+MatchDMIModalias=dmi:*:svnFramework:pnLaptop16*:*
 AttrKeyboardIntegration=internal

@@ -3,5 +3,5 @@
 [GPD MicroPC 2 Touchpad]
 MatchName=ALPS0001:00 36B6:C001 Touchpad
 MatchUdevType=touchpad
-MatchDMIModalias=dmi:*svnGPD:pnG1688-08:*
+MatchDMIModalias=dmi:*:svnGPD:pnG1688-08:*
 AttrInputProp=-INPUT_PROP_BUTTONPAD
