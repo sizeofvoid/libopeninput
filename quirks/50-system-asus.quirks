@@ -29,17 +29,19 @@ ModelTabletModeSwitchUnreliable=1
 # so libinput won't pair the two together and dwt isn't active.
 # see: https://gitlab.freedesktop.org/libinput/libinput/-/issues/615
 [Asus ROG Zephyrus G15 2021 keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
 MatchVendor=0x0B05
 MatchProduct=0x19B6
-MatchUdevType=keyboard
 AttrKeyboardIntegration=internal
 
 # keyboard has a different vid/pid to the touchpad
 # so libinput won't pair the two together and dwt isn't active.
 [Asus ROG Strix G15 2021 keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
 MatchVendor=0x0B05
 MatchProduct=0x1866
-MatchUdevType=keyboard
 AttrKeyboardIntegration=internal
 
 # enable "disable touchpad while typing" to work with z13 keyboard
