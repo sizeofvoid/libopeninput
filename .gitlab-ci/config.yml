@@ -148,29 +148,6 @@ distributions:
         # for any tcase_add_exit_test/tcase_add_test_raise_signal
         # but someone more invested in musl will have to figure that out.
         - "MESON_TEST_ARGS: '' # litest-selftest fails on musl"
-  - name: freebsd
-    tag: *default_tag
-    qemu_based: true
-    versions:
-      - '14.2'
-    packages:
-      - git
-      - pkgconf
-      - meson
-      - libepoll-shim
-      - libudev-devd
-      - libevdev
-      - libwacom
-      - gtk3
-      - libmtdev
-      - bash
-      - wayland
-    build:
-      extra_variables:
-        - "MESON_ARGS: '-Dtests=false -Ddocumentation=false' # doxygen drags down too many deps"
-        # We don't run the tests on FreeBSD, someone would have to fix the
-        # test suite to work on BSD first.
-        - "MESON_TEST_ARGS: '' # test suite doesn't work on BSD yet"
 
 test_suites:
   - name: touchpad

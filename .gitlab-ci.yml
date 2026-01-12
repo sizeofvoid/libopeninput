@@ -49,8 +49,6 @@ include:
       - '/templates/debian.yml'
       # Fedora container builder template
       - '/templates/fedora.yml'
-      # Freebsd container builder template
-      - '/templates/freebsd.yml'
       # Ubuntu container builder template
       - '/templates/ubuntu.yml'
 
@@ -103,7 +101,6 @@ variables:
   UBUNTU_PACKAGES:  'git gcc g++ pkg-config meson check libudev-dev libevdev-dev doxygen graphviz python3-sphinx python3-recommonmark python3-sphinx-rtd-theme python3-pytest-xdist libwacom-dev libcairo2-dev libgtk-3-dev libglib2.0-dev libmtdev-dev lua5.4-dev'
   ARCH_PACKAGES:    'git gcc pkgconfig meson check libsystemd libevdev python-pytest-xdist libwacom gtk4 mtdev diffutils lua'
   ALPINE_PACKAGES:  'git gcc build-base pkgconfig meson check-dev eudev-dev libevdev-dev libwacom-dev cairo-dev gtk4.0-dev mtdev-dev bash lua5.4-dev'
-  FREEBSD_PACKAGES: 'git pkgconf meson libepoll-shim libudev-devd libevdev libwacom gtk3 libmtdev bash wayland'
   ############################ end of package lists #############################
 
   # these tags should be updated each time the list of packages is updated
@@ -115,7 +112,6 @@ variables:
   UBUNTU_TAG:  '2025-11-17.0'
   ARCH_TAG:    '2025-11-17.0'
   ALPINE_TAG:  '2025-11-17.0'
-  FREEBSD_TAG: '2025-11-17.0'
 
   FDO_UPSTREAM_REPO: libinput/libinput
 
@@ -339,20 +335,6 @@ alpine:latest@container-prep:
     FDO_DISTRIBUTION_PACKAGES: $ALPINE_PACKAGES
     FDO_DISTRIBUTION_TAG: $ALPINE_TAG
 
-freebsd:14.2@container-prep:
-  extends:
-    - .fdo.qemu-build@freebsd
-    - .policy
-    - .fdo-runner-tags
-  tags:
-    - $FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM
-  stage: prep
-  variables:
-    GIT_STRATEGY: none
-    FDO_DISTRIBUTION_VERSION: '14.2'
-    FDO_DISTRIBUTION_PACKAGES: $FREEBSD_PACKAGES
-    FDO_DISTRIBUTION_TAG: $FREEBSD_TAG
-
 
 
 #################################################################
@@ -445,16 +427,6 @@ alpine:latest@container-clean:
     CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/alpine/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
     FDO_DISTRIBUTION_VERSION: 'latest'
     FDO_DISTRIBUTION_TAG: $ALPINE_TAG
-
-freebsd:14.2@container-clean:
-  extends:
-    - .policy
-    - .container-clean
-  variables:
-    GIT_STRATEGY: none
-    CURRENT_CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/freebsd/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
-    FDO_DISTRIBUTION_VERSION: '14.2'
-    FDO_DISTRIBUTION_TAG: $FREEBSD_TAG
 
 
 #################################################################
@@ -1343,19 +1315,6 @@ alpine:latest@default-build:
   needs:
     - "alpine:latest@container-prep"
 
-
-freebsd:14.2@default-build:
-  stage: distro
-  extends:
-    - .build-in-qemu@template
-    - .fdo.distribution-image@freebsd
-  variables:
-    FDO_DISTRIBUTION_VERSION: '14.2'
-    FDO_DISTRIBUTION_TAG: $FREEBSD_TAG
-    MESON_ARGS: '-Dtests=false -Ddocumentation=false' # doxygen drags down too many deps
-    MESON_TEST_ARGS: '' # test suite doesn't work on BSD yet
-  needs:
-    - "freebsd:14.2@container-prep"
 
 
 #################################################################
