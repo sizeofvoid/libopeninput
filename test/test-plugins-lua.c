@@ -1048,6 +1048,61 @@ START_TEST(lua_disable_touchpad_jump_detection)
 }
 END_TEST
 
+START_TEST(lua_disable_wheel_debouncing)
+{
+	enum when when = litest_test_param_get_i32(test_env->params, "when");
+	_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
+	_autofree_ char *lua = strdup_printf(
+		"libinput:register({1})\n"
+		"function frame_handler(device, _, _)\n"
+		"  device:disable_feature(\"wheel-debouncing\")\n"
+		"end\n"
+		"function new_device(device)\n"
+		"  %s device:disable_feature(\"wheel-debouncing\")\n"
+		"  %s device:connect(\"evdev-frame\", frame_handler)\n"
+		"end\n"
+		"libinput:connect(\"new-evdev-device\", new_device)\n",
+		when == DEVICE_NEW ? "" : "--",
+		when == FIRST_FRAME ? "" : "--");
+	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
+	_litest_context_destroy_ struct libinput *li =
+		litest_create_context_with_plugindir(tmpdir->path);
+
+	if (libinput_log_get_priority(li) > LIBINPUT_LOG_PRIORITY_DEBUG)
+		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_DEBUG);
+
+	litest_with_logcapture(li, capture) {
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
+
+		_destroy_(litest_device) *dev = litest_add_device(li, LITEST_MOUSE);
+		litest_drain_events(li);
+
+		for (size_t i = 0; i < 4; i++) {
+			/* Send a small wheel events - when debouncing is disabled, they
+			 * should all be delivered immediately without delay */
+			litest_event(dev, EV_REL, REL_WHEEL_HI_RES, 10);
+			litest_event(dev, EV_SYN, SYN_REPORT, 0);
+			litest_dispatch(li);
+
+			_destroy_(libinput_event) *ev = libinput_get_event(li);
+			auto ptrev = litest_is_axis_event(
+				ev,
+				LIBINPUT_EVENT_POINTER_SCROLL_WHEEL,
+				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL,
+				0);
+			double v120 = libinput_event_pointer_get_scroll_value_v120(
+				ptrev,
+				LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+			litest_assert_double_eq(v120, -10);
+		}
+		litest_assert_empty_queue(li);
+		litest_assert_strv_substring(capture->debugs,
+					     "disabled wheel debouncing on request");
+	}
+}
+END_TEST
+
 TEST_COLLECTION(lua)
 {
 	/* clang-format off */
@@ -1119,6 +1174,7 @@ TEST_COLLECTION(lua)
 					litest_named_i32(FIRST_FRAME)) {
 		litest_add_parametrized_no_device(lua_disable_button_debounce, params);
 		litest_add_parametrized_no_device(lua_disable_touchpad_jump_detection, params);
+		litest_add_parametrized_no_device(lua_disable_wheel_debouncing, params);
 	}
 	/* clang-format on */
 }

@@ -147,9 +147,6 @@ wheel_cancel_scroll_timer(struct plugin_device *pd)
 static inline void
 wheel_maybe_disable(struct plugin_device *device)
 {
-	if (device->state != WHEEL_STATE_NONE)
-		return;
-
 	if (device->want_feature_disabled) {
 		plugin_log_debug(device->parent->plugin,
 				 "%s: disabled wheel debouncing on request\n",
@@ -157,9 +154,11 @@ wheel_maybe_disable(struct plugin_device *device)
 		libinput_plugin_enable_device_event_frame(device->parent->plugin,
 							  device->device,
 							  false);
-		libinput_plugin_timer_cancel(device->scroll_timer);
-		device->scroll_timer =
-			libinput_plugin_timer_unref(device->scroll_timer);
+		if (device->scroll_timer) {
+			libinput_plugin_timer_cancel(device->scroll_timer);
+			device->scroll_timer =
+				libinput_plugin_timer_unref(device->scroll_timer);
+		}
 	}
 }
 
@@ -626,6 +625,7 @@ wheel_plugin_feature_disabled(struct libinput_plugin *libinput_plugin,
 	list_for_each(pd, &plugin->devices, link) {
 		if (pd->device == device) {
 			pd->want_feature_disabled = true;
+			wheel_maybe_disable(pd);
 			return;
 		}
 	}
