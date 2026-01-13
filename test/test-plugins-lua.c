@@ -956,7 +956,6 @@ START_TEST(lua_disable_button_debounce)
 		when == DEVICE_NEW ? "" : "--",
 		when == FIRST_FRAME ? "" : "--");
 	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
-	etrace("%s", lua);
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
 
