@@ -55,10 +55,12 @@ AttrPalmPressureThreshold=400
 MatchVendor=0x046D
 MatchProduct=0x4041
 ModelInvertHorizontalScrolling=1
+
 [Logitech MX Master (4060)]
 MatchVendor=0x046D
 MatchProduct=0x4060
 ModelInvertHorizontalScrolling=1
+
 [Logitech MX Master (4071)]
 MatchVendor=0x046D
 MatchProduct=0x4071
@@ -69,10 +71,12 @@ ModelInvertHorizontalScrolling=1
 MatchVendor=0x046D
 MatchProduct=0xB012
 ModelInvertHorizontalScrolling=1
+
 [Logitech MX Master (Bluetooth B017)]
 MatchVendor=0x046D
 MatchProduct=0xB017
 ModelInvertHorizontalScrolling=1
+
 [Logitech MX Master (Bluetooth B01E)]
 MatchVendor=0x046D
 MatchProduct=0xB01E
