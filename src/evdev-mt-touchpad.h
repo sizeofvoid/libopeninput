@@ -373,6 +373,8 @@ struct tp_dispatch {
 
 		struct libinput_timer drag_3fg_timer;
 		usec_t drag_3fg_release_time;
+
+		struct libinput_timer drag_3fg_or_swipe_timer;
 	} gesture;
 
 	struct {

@@ -38,6 +38,7 @@ enum gesture_cancelled {
 #define DEFAULT_GESTURE_SWITCH_TIMEOUT usec_from_millis(100)
 #define DEFAULT_GESTURE_SWIPE_TIMEOUT usec_from_millis(150)
 #define DEFAULT_GESTURE_PINCH_TIMEOUT usec_from_millis(300)
+#define DRAG_3FG_OR_SWIPE_TIMEOUT usec_from_millis(80)
 
 #define HOLD_AND_MOTION_THRESHOLD 0.5 /* mm */
 #define PINCH_DISAMBIGUATION_MOVE_THRESHOLD 1.5 /* mm */
@@ -584,28 +585,8 @@ tp_gesture_handle_event_on_state_none(struct tp_dispatch *tp,
 static void
 tp_gesture_set_3fg_drag_3fg_or_swipe_timer(struct tp_dispatch *tp, usec_t time)
 {
-	usec_t expire = usec_add(tp->gesture.initial_time, DRAG_3FG_OR_SWIPE_TIMEOUT);
-
-	/* This is a hack to avoid the state machine getting even more complicated.
-	 * For a slow drag/fast swipe we want the time from the *initial* touch point,
-	 * not the time from when we realised the fingers are moving. IOW
-	 * putting 3fg down, resting for 80ms and then moving fast must trigger
-	 * a drag, not a swipe.
-	 *
-	 * In theory we should set the timer in the NONE/UNKNOWN states but that would
-	 * require a whole parallel set of states like
-	 * NONE_BUT_TIMEOUT_FOR_FAST_STATE_EXPIRED. Let's not do that, instead we set a
-	 * negative timer and let the normal state proceed. Either we moved by the
-	 * threshold already (in which case we shouldn't ever get here anyway) or
-	 * we didn't in which case the neg timer will do the right thing too when it
-	 * fires.
-	 */
-	if (usec_cmp(expire, time) < 0)
-		libinput_timer_set_flags(&tp->gesture.drag_3fg_or_swipe_timer,
-					 expire,
-					 TIMER_FLAG_ALLOW_NEGATIVE);
-	else
-		libinput_timer_set(&tp->gesture.drag_3fg_or_swipe_timer, expire);
+	libinput_timer_set(&tp->gesture.drag_3fg_or_swipe_timer,
+			   usec_add(time, DRAG_3FG_OR_SWIPE_TIMEOUT));
 }
 
 static void
@@ -650,7 +631,7 @@ tp_gesture_handle_event_on_state_unknown(struct tp_dispatch *tp,
 		break;
 	case GESTURE_EVENT_3FG_DRAG_OR_SWIPE_START:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
-		tp->gesture.state = GESTURE_STATE_3FG_DRAG_START;
+		tp->gesture.state = GESTURE_STATE_3FG_DRAG_OR_SWIPE_START;
 		break;
 	case GESTURE_EVENT_HOLD_AND_MOTION_START:
 	case GESTURE_EVENT_FINGER_DETECTED:
@@ -708,7 +689,7 @@ tp_gesture_handle_event_on_state_hold(struct tp_dispatch *tp,
 	case GESTURE_EVENT_3FG_DRAG_OR_SWIPE_START:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp_gesture_cancel(tp, time);
-		tp->gesture.state = GESTURE_STATE_3FG_DRAG_START;
+		tp->gesture.state = GESTURE_STATE_3FG_DRAG_OR_SWIPE_START;
 		break;
 	case GESTURE_EVENT_HOLD_TIMEOUT:
 	case GESTURE_EVENT_TAP_TIMEOUT:
@@ -1018,6 +999,93 @@ tp_gesture_handle_event_on_state_swipe(struct tp_dispatch *tp,
 }
 
 static void
+tp_gesture_handle_event_on_state_3fg_drag_or_swipe_start(struct tp_dispatch *tp,
+							 enum gesture_event event,
+							 usec_t time)
+{
+	switch (event) {
+	case GESTURE_EVENT_RESET:
+	case GESTURE_EVENT_END:
+	case GESTURE_EVENT_CANCEL:
+		libinput_timer_cancel(&tp->gesture.hold_timer);
+		tp->gesture.state = GESTURE_STATE_NONE;
+		break;
+	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
+		break;
+	case GESTURE_EVENT_HOLD_AND_MOTION_START:
+	case GESTURE_EVENT_FINGER_DETECTED:
+	case GESTURE_EVENT_TAP_TIMEOUT:
+	case GESTURE_EVENT_HOLD_TIMEOUT:
+	case GESTURE_EVENT_POINTER_MOTION_START:
+	case GESTURE_EVENT_SCROLL_START:
+	case GESTURE_EVENT_SWIPE_START:
+	case GESTURE_EVENT_PINCH_START:
+	case GESTURE_EVENT_3FG_DRAG_OR_SWIPE_START:
+	case GESTURE_EVENT_3FG_DRAG_OR_SWIPE_TIMEOUT:
+	case GESTURE_EVENT_3FG_DRAG_RELEASE_TIMEOUT:
+		log_gesture_bug(tp, event);
+		break;
+	}
+}
+
+static void
+tp_gesture_handle_event_on_state_3fg_drag_or_swipe(struct tp_dispatch *tp,
+						   enum gesture_event event,
+						   usec_t time)
+{
+	struct tp_touch *first = tp->gesture.touches[0],
+			*second = tp->gesture.touches[1];
+	struct phys_coords first_moved, second_moved;
+	double first_mm, second_mm;
+
+	switch (event) {
+	case GESTURE_EVENT_RESET:
+		libinput_timer_cancel(&tp->gesture.hold_timer);
+		tp->gesture.state = GESTURE_STATE_NONE;
+		break;
+	case GESTURE_EVENT_END:
+	case GESTURE_EVENT_CANCEL: {
+		bool cancelled = event == GESTURE_EVENT_CANCEL;
+		gesture_notify_swipe_end(&tp->device->base,
+					 time,
+					 tp->gesture.finger_count,
+					 cancelled);
+		tp->gesture.state = GESTURE_STATE_NONE;
+		break;
+	}
+	case GESTURE_EVENT_FINGER_SWITCH_TIMEOUT:
+		break;
+	case GESTURE_EVENT_HOLD_AND_MOTION_START:
+	case GESTURE_EVENT_FINGER_DETECTED:
+	case GESTURE_EVENT_TAP_TIMEOUT:
+	case GESTURE_EVENT_HOLD_TIMEOUT:
+	case GESTURE_EVENT_POINTER_MOTION_START:
+	case GESTURE_EVENT_SCROLL_START:
+	case GESTURE_EVENT_SWIPE_START:
+	case GESTURE_EVENT_PINCH_START:
+	case GESTURE_EVENT_3FG_DRAG_OR_SWIPE_START:
+	case GESTURE_EVENT_3FG_DRAG_RELEASE_TIMEOUT:
+		log_gesture_bug(tp, event);
+		break;
+	case GESTURE_EVENT_3FG_DRAG_OR_SWIPE_TIMEOUT:
+		libinput_timer_cancel(&tp->gesture.drag_3fg_or_swipe_timer);
+
+		first_moved = tp_gesture_mm_moved(tp, first);
+		second_moved = tp_gesture_mm_moved(tp, second);
+		first_mm = hypot(first_moved.x, first_moved.y);
+		second_mm = hypot(second_moved.x, second_moved.y);
+		if ((first_mm + second_mm) / 2.0 >= DRAG_3FG_OR_SWIPE_MOVE_THRESHOLD) {
+			tp->gesture.state = GESTURE_STATE_SWIPE;
+		} else {
+			/* Cancel the swipe */
+			tp_gesture_cancel(tp, time);
+			tp->gesture.state = GESTURE_STATE_3FG_DRAG_START;
+		}
+		break;
+	}
+}
+
+static void
 tp_gesture_handle_event_on_state_3fg_drag_start(struct tp_dispatch *tp,
 						enum gesture_event event,
 						usec_t time)
@@ -1263,6 +1331,14 @@ tp_gesture_3fg_drag_timeout(usec_t now, void *data)
 	struct tp_dispatch *tp = data;
 
 	tp_gesture_handle_event(tp, GESTURE_EVENT_3FG_DRAG_RELEASE_TIMEOUT, now);
+}
+
+static void
+tp_gesture_3fg_drag_or_swipe_timeout(usec_t now, void *data)
+{
+	struct tp_dispatch *tp = data;
+
+	tp_gesture_handle_event(tp, GESTURE_EVENT_3FG_DRAG_OR_SWIPE_TIMEOUT, now);
 }
 
 static void
@@ -1787,6 +1863,40 @@ tp_gesture_handle_state_3fg_drag_released(struct tp_dispatch *tp,
 					  bool ignore_motion)
 {
 	tp_gesture_detect_motion_gestures(tp, time);
+}
+
+static void
+tp_gesture_handle_state_3fg_drag_or_swipe(struct tp_dispatch *tp, usec_t time)
+{
+	struct device_float_coords raw;
+	struct normalized_coords delta, unaccel;
+
+	raw = tp_get_average_touches_delta(tp);
+	delta = tp_filter_motion(tp, &raw, time);
+
+	if (!normalized_is_zero(delta) || !device_float_is_zero(raw)) {
+		unaccel = tp_filter_motion_unaccelerated(tp, &raw, time);
+		gesture_notify_swipe(&tp->device->base,
+				     time,
+				     LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
+				     tp->gesture.finger_count,
+				     &delta,
+				     &unaccel);
+	}
+}
+
+static void
+tp_gesture_handle_state_3fg_drag_or_swipe_start(struct tp_dispatch *tp, usec_t time)
+{
+	const struct normalized_coords zero = { 0.0, 0.0 };
+	gesture_notify_swipe(&tp->device->base,
+			     time,
+			     LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
+			     tp->gesture.finger_count,
+			     &zero,
+			     &zero);
+	tp->gesture.state = GESTURE_STATE_3FG_DRAG_OR_SWIPE;
+	tp_gesture_set_3fg_drag_3fg_or_swipe_timer(tp, time);
 }
 
 static void
