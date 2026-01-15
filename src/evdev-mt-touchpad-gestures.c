@@ -320,16 +320,6 @@ tp_gesture_init_pinch(struct tp_dispatch *tp)
 	tp->gesture.prev_scale = 1.0;
 }
 
-static inline void
-tp_gesture_init_3fg_drag(struct tp_dispatch *tp, usec_t time)
-{
-}
-
-static inline void
-tp_gesture_stop_3fg_drag(struct tp_dispatch *tp, usec_t time)
-{
-}
-
 static void
 tp_gesture_set_scroll_buildup(struct tp_dispatch *tp)
 {
@@ -660,7 +650,7 @@ tp_gesture_handle_event_on_state_unknown(struct tp_dispatch *tp,
 		break;
 	case GESTURE_EVENT_3FG_DRAG_OR_SWIPE_START:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
-		tp->gesture.state = GESTURE_STATE_3FG_DRAG_OR_SWIPE_START;
+		tp->gesture.state = GESTURE_STATE_3FG_DRAG_START;
 		break;
 	case GESTURE_EVENT_HOLD_AND_MOTION_START:
 	case GESTURE_EVENT_FINGER_DETECTED:
@@ -718,7 +708,7 @@ tp_gesture_handle_event_on_state_hold(struct tp_dispatch *tp,
 	case GESTURE_EVENT_3FG_DRAG_OR_SWIPE_START:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
 		tp_gesture_cancel(tp, time);
-		tp->gesture.state = GESTURE_STATE_3FG_DRAG_OR_SWIPE_START;
+		tp->gesture.state = GESTURE_STATE_3FG_DRAG_START;
 		break;
 	case GESTURE_EVENT_HOLD_TIMEOUT:
 	case GESTURE_EVENT_TAP_TIMEOUT:
