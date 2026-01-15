@@ -166,6 +166,8 @@ enum tp_gesture_state {
 	GESTURE_STATE_PINCH,
 	GESTURE_STATE_SWIPE_START,
 	GESTURE_STATE_SWIPE,
+	GESTURE_STATE_3FG_DRAG_OR_SWIPE_START,
+	GESTURE_STATE_3FG_DRAG_OR_SWIPE,
 	GESTURE_STATE_3FG_DRAG_START,
 	GESTURE_STATE_3FG_DRAG,
 	GESTURE_STATE_3FG_DRAG_RELEASED,
@@ -371,6 +373,8 @@ struct tp_dispatch {
 
 		struct libinput_timer drag_3fg_timer;
 		usec_t drag_3fg_release_time;
+
+		struct libinput_timer drag_3fg_or_swipe_timer;
 	} gesture;
 
 	struct {

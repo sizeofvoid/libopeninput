@@ -1975,6 +1975,7 @@ tp_interface_destroy(struct evdev_dispatch *dispatch)
 	libinput_timer_destroy(&tp->gesture.finger_count_switch_timer);
 	libinput_timer_destroy(&tp->gesture.hold_timer);
 	libinput_timer_destroy(&tp->gesture.drag_3fg_timer);
+	libinput_timer_destroy(&tp->gesture.drag_3fg_or_swipe_timer);
 	free(tp->touches);
 	free(tp);
 }

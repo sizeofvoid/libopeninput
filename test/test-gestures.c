@@ -1587,6 +1587,18 @@ START_TEST(gestures_hold_and_motion_after_timeout)
 }
 END_TEST
 
+static void
+drain_cancelled_swipe_gesture(struct libinput *li)
+{
+	litest_drain_events_of_type(li,
+				    LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
+				    LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE);
+
+	_destroy_(libinput_event) *end = libinput_get_event(li);
+	auto gev = litest_is_gesture_event(end, LIBINPUT_EVENT_GESTURE_SWIPE_END, -1);
+	litest_assert(libinput_event_gesture_get_cancelled(gev));
+}
+
 START_TEST(gestures_3fg_drag)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1626,21 +1638,25 @@ START_TEST(gestures_3fg_drag)
 		litest_assert_empty_queue(li);
 	} else {
 		litest_checkpoint(
-			"Expecting immediate button press as tapping is disabled");
-		litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+			"Expecting immediate swipe begin tapping is disabled");
+		litest_assert_gesture_event(li,
+					    LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
+					    finger_count);
 	}
 
 	while (y < 60.0) {
 		y += 2;
-		for (uint32_t i = 0; i < finger_count; i++)
+		for (uint32_t i = 0; i < finger_count; i++) {
 			litest_touch_move(dev, i, 10 + i, y);
+			if (i ==
+			    0) /* Wait after the first movement to escape the swipe */
+				litest_timeout_3fg_drag_or_swipe(li);
+		}
 		litest_dispatch(li);
 	}
 
-	if (tap_enabled) {
-		litest_checkpoint("Expecting late button press as tapping is enabled");
-		litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
-	}
+	drain_cancelled_swipe_gesture(li);
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
 	for (uint32_t i = 0; i < finger_count; i++)
@@ -1688,10 +1704,15 @@ START_TEST(gestures_3fg_drag_lock_resume_3fg_motion)
 
 	while (y < 60.0) {
 		y += 2;
-		for (uint32_t i = 0; i < finger_count; i++)
+		for (uint32_t i = 0; i < finger_count; i++) {
 			litest_touch_move(dev, i, 10 + i, y);
+			if (i ==
+			    0) /* Wait after the first movement to escape the swipe */
+				litest_timeout_3fg_drag_or_swipe(li);
+		}
 		litest_dispatch(li);
 	}
+	drain_cancelled_swipe_gesture(li);
 	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
@@ -1777,10 +1798,15 @@ START_TEST(gestures_3fg_drag_lock_resume_3fg_release_no_motion)
 	litest_dispatch(li);
 	while (y < 60.0) {
 		y += 2;
-		for (uint32_t i = 0; i < finger_count; i++)
+		for (uint32_t i = 0; i < finger_count; i++) {
 			litest_touch_move(dev, i, 10 + i, y);
+			if (i ==
+			    0) /* Wait after the first movement to escape the swipe */
+				litest_timeout_3fg_drag_or_swipe(li);
+		}
 		litest_dispatch(li);
 	}
+	drain_cancelled_swipe_gesture(li);
 	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
@@ -1870,10 +1896,15 @@ START_TEST(gestures_3fg_drag_lock_resume_1fg_motion)
 
 	while (y < 60.0) {
 		y += 2;
-		for (uint32_t i = 0; i < finger_count; i++)
+		for (uint32_t i = 0; i < finger_count; i++) {
 			litest_touch_move(dev, i, 10 + i, y);
+			if (i ==
+			    0) /* Wait after the first movement to escape the swipe */
+				litest_timeout_3fg_drag_or_swipe(li);
+		}
 		litest_dispatch(li);
 	}
+	drain_cancelled_swipe_gesture(li);
 	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
@@ -1943,10 +1974,15 @@ START_TEST(gestures_3fg_drag_lock_resume_2fg_scroll)
 
 	while (y < 60.0) {
 		y += 2;
-		for (uint32_t i = 0; i < finger_count; i++)
+		for (uint32_t i = 0; i < finger_count; i++) {
 			litest_touch_move(dev, i, 10 + i, y);
+			if (i ==
+			    0) /* Wait after the first movement to escape the swipe */
+				litest_timeout_3fg_drag_or_swipe(li);
+		}
 		litest_dispatch(li);
 	}
+	drain_cancelled_swipe_gesture(li);
 	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
@@ -2012,14 +2048,19 @@ START_TEST(gestures_3fg_drag_lock_resume_1fg_tap)
 
 	while (y < 60.0) {
 		y += 2;
-		for (int i = 0; i < finger_count; i++)
+		for (int i = 0; i < finger_count; i++) {
 			litest_touch_move(dev, i, 10 + i, y);
+			if (i ==
+			    0) /* Wait after the first movement to escape the swipe */
+				litest_timeout_3fg_drag_or_swipe(li);
+		}
 		litest_dispatch(li);
 	}
 	litest_drain_events_of_type(li,
 				    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
 				    LIBINPUT_EVENT_GESTURE_HOLD_END,
 				    -1);
+	drain_cancelled_swipe_gesture(li);
 	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
@@ -2051,6 +2092,72 @@ START_TEST(gestures_3fg_drag_lock_resume_1fg_tap)
 	litest_assert_empty_queue(li);
 
 	litest_timeout_3fg_drag(li);
+}
+END_TEST
+
+START_TEST(gestures_3fg_drag_fast_swipe)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	uint32_t finger_count = litest_test_param_get_u32(test_env->params, "fingers");
+	bool tap_enabled = litest_test_param_get_bool(test_env->params, "tap-enabled");
+
+	if (litest_slot_count(dev) < 3)
+		return LITEST_NOT_APPLICABLE;
+	if (libinput_device_config_3fg_drag_get_finger_count(dev->libinput_device) <
+	    (int)finger_count)
+		return LITEST_NOT_APPLICABLE;
+
+	litest_enable_3fg_drag(dev->libinput_device, finger_count);
+	if (tap_enabled)
+		litest_enable_tap(dev->libinput_device);
+	else
+		litest_disable_tap(dev->libinput_device);
+
+	litest_drain_events(li);
+
+	double y = 30.0;
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_down(dev, i, 10 + i, y);
+
+	while (y < 60.0) {
+		y += 2;
+		for (uint32_t i = 0; i < finger_count; i++) {
+			litest_touch_move(dev, i, 10 + i, y);
+		}
+		litest_dispatch(li);
+	}
+
+	litest_drain_events_of_type(li,
+				    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+				    LIBINPUT_EVENT_GESTURE_HOLD_END);
+
+	auto begin = libinput_get_event(li);
+	litest_is_gesture_event(begin,
+				LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN,
+				finger_count);
+	libinput_event_destroy(begin);
+
+	struct libinput_event *update;
+	while ((update = libinput_get_event(li))) {
+		litest_is_gesture_event(update,
+					LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE,
+					finger_count);
+		libinput_event_destroy(update);
+	}
+
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_up(dev, i);
+
+	litest_dispatch(li);
+
+	auto end = libinput_get_event(li);
+	auto gev = litest_is_gesture_event(end,
+					   LIBINPUT_EVENT_GESTURE_SWIPE_END,
+					   finger_count);
+	litest_assert(!libinput_event_gesture_get_cancelled(gev));
+	libinput_event_destroy(end);
 }
 END_TEST
 
@@ -2134,6 +2241,12 @@ TEST_COLLECTION(gestures)
 
 	litest_with_parameters(params, "fingers", 'i', 2, 3, 4) {
 		litest_add_parametrized(gestures_3fg_drag_lock_resume_1fg_tap, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+	}
+
+	litest_with_parameters(params,
+			       "fingers", 'u', 2, 3, 4,
+			       "tap-enabled", 'b') {
+		litest_add_parametrized(gestures_3fg_drag_fast_swipe, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 	}
 
 	/* Timing-sensitive test, valgrind is too slow */
