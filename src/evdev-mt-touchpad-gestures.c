@@ -315,16 +315,6 @@ tp_gesture_init_pinch(struct tp_dispatch *tp)
 	tp->gesture.prev_scale = 1.0;
 }
 
-static inline void
-tp_gesture_init_3fg_drag(struct tp_dispatch *tp, usec_t time)
-{
-}
-
-static inline void
-tp_gesture_stop_3fg_drag(struct tp_dispatch *tp, usec_t time)
-{
-}
-
 static void
 tp_gesture_set_scroll_buildup(struct tp_dispatch *tp)
 {
@@ -627,7 +617,6 @@ tp_gesture_handle_event_on_state_unknown(struct tp_dispatch *tp,
 		break;
 	case GESTURE_EVENT_3FG_DRAG_START:
 		libinput_timer_cancel(&tp->gesture.hold_timer);
-		tp_gesture_init_3fg_drag(tp, time);
 		tp->gesture.state = GESTURE_STATE_3FG_DRAG_START;
 		break;
 	case GESTURE_EVENT_HOLD_AND_MOTION_START:
@@ -684,7 +673,6 @@ tp_gesture_handle_event_on_state_hold(struct tp_dispatch *tp,
 		break;
 	case GESTURE_EVENT_3FG_DRAG_START:
 		tp_gesture_cancel(tp, time);
-		tp_gesture_init_3fg_drag(tp, time);
 		tp->gesture.state = GESTURE_STATE_3FG_DRAG_START;
 		break;
 	case GESTURE_EVENT_HOLD_TIMEOUT:
@@ -1081,7 +1069,6 @@ tp_gesture_handle_event_on_state_3fg_drag_released(struct tp_dispatch *tp,
 	case GESTURE_EVENT_END:
 	case GESTURE_EVENT_CANCEL:
 	case GESTURE_EVENT_3FG_DRAG_RELEASE_TIMEOUT:
-		tp_gesture_stop_3fg_drag(tp, time);
 		libinput_timer_cancel(&tp->gesture.drag_3fg_timer);
 		libinput_timer_cancel(&tp->gesture.finger_count_switch_timer);
 		evdev_pointer_notify_button(tp->device,
@@ -1100,7 +1087,6 @@ tp_gesture_handle_event_on_state_3fg_drag_released(struct tp_dispatch *tp,
 	case GESTURE_EVENT_FINGER_DETECTED:
 		break;
 	case GESTURE_EVENT_POINTER_MOTION_START:
-		tp_gesture_stop_3fg_drag(tp, time);
 		libinput_timer_cancel(&tp->gesture.drag_3fg_timer);
 		evdev_pointer_notify_button(tp->device,
 					    tp->gesture.drag_3fg_release_time,
