@@ -8,6 +8,7 @@ plugins = [
 	'10-disable-feature.lua',
 	'10-copilot-key-override.lua',
 	'10-wheel-to-button.lua',
+	'10-tablet-mouse-control.lua',
 ]
 
 fs = import('fs')
