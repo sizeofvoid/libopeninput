@@ -1348,7 +1348,7 @@ litest_log_handler(struct libinput *libinput,
 	else if (strstr(format, "edge-scroll:"))
 		color = ANSI_BRIGHT_GREEN;
 	else if (strstr(format, "gesture:"))
-		color = ANSI_BRIGHT_YELLOW;
+		color = ANSI_YELLOW;
 	else if (strstr(msg, "Plugin:"))
 		color = ANSI_BRIGHT_CYAN;
 
