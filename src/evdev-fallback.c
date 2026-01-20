@@ -768,7 +768,7 @@ fallback_lid_keyboard_event(usec_t time, struct libinput_event *event, void *dat
 
 static void
 fallback_lid_toggle_keyboard_listener(struct fallback_dispatch *dispatch,
-				      struct evdev_paired_keyboard *kbd,
+				      struct evdev_paired_device *kbd,
 				      bool is_closed)
 {
 	assert(kbd->device);
@@ -789,7 +789,7 @@ static void
 fallback_lid_toggle_keyboard_listeners(struct fallback_dispatch *dispatch,
 				       bool is_closed)
 {
-	struct evdev_paired_keyboard *kbd;
+	struct evdev_paired_device *kbd;
 
 	list_for_each(kbd, &dispatch->lid.paired_keyboard_list, link) {
 		if (!kbd->device)
@@ -1274,7 +1274,7 @@ static void
 fallback_interface_remove(struct evdev_dispatch *evdev_dispatch)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(evdev_dispatch);
-	struct evdev_paired_keyboard *kbd;
+	struct evdev_paired_device *kbd;
 
 	libinput_timer_cancel(&dispatch->debounce.timer);
 	libinput_timer_cancel(&dispatch->debounce.timer_short);
@@ -1283,7 +1283,7 @@ fallback_interface_remove(struct evdev_dispatch *evdev_dispatch)
 	libinput_device_remove_event_listener(&dispatch->tablet_mode.other.listener);
 
 	list_for_each_safe(kbd, &dispatch->lid.paired_keyboard_list, link) {
-		evdev_paired_keyboard_destroy(kbd);
+		evdev_paired_device_destroy(kbd);
 	}
 }
 
@@ -1412,7 +1412,7 @@ fallback_lid_pair_keyboard(struct evdev_device *lid_switch,
 			   struct evdev_device *keyboard)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(lid_switch->dispatch);
-	struct evdev_paired_keyboard *kbd;
+	struct evdev_paired_device *kbd;
 	size_t count = 0;
 
 	if ((keyboard->tags & EVDEV_TAG_KEYBOARD) == 0 ||
@@ -1549,7 +1549,7 @@ fallback_interface_device_removed(struct evdev_device *device,
 				  struct evdev_device *removed_device)
 {
 	struct fallback_dispatch *dispatch = fallback_dispatch(device->dispatch);
-	struct evdev_paired_keyboard *kbd;
+	struct evdev_paired_device *kbd;
 
 	list_for_each_safe(kbd, &dispatch->lid.paired_keyboard_list, link) {
 		if (!kbd->device)
@@ -1558,7 +1558,7 @@ fallback_interface_device_removed(struct evdev_device *device,
 		if (kbd->device != removed_device)
 			continue;
 
-		evdev_paired_keyboard_destroy(kbd);
+		evdev_paired_device_destroy(kbd);
 	}
 
 	if (removed_device == dispatch->tablet_mode.other.sw_device) {
