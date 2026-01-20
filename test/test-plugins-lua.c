@@ -1015,8 +1015,6 @@ START_TEST(lua_disable_touchpad_jump_detection)
 		when == DEVICE_NEW ? "" : "-- ",
 		when == FIRST_FRAME ? "" : "-- ");
 
-	etrace("plugin data:\n%s", lua);
-
 	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
 	_litest_context_destroy_ struct libinput *li =
 		litest_create_context_with_plugindir(tmpdir->path);
