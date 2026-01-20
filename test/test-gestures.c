@@ -1333,21 +1333,12 @@ START_TEST(gestures_hold)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
+	bool tap_enabled = litest_test_param_get_bool(test_env->params, "tap");
 
-	litest_disable_tap(dev->libinput_device);
-	litest_drain_events(li);
-
-	test_gesture_hold(nfingers);
-}
-END_TEST
-
-START_TEST(gestures_hold_tap_enabled)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
-
-	litest_enable_tap(dev->libinput_device);
+	if (tap_enabled)
+		litest_enable_tap(dev->libinput_device);
+	else
+		litest_disable_tap(dev->libinput_device);
 	litest_drain_events(li);
 
 	test_gesture_hold(nfingers);
@@ -1359,21 +1350,12 @@ START_TEST(gestures_hold_cancel)
 	struct litest_device *dev = litest_current_device();
 	struct libinput *li = dev->libinput;
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
+	bool tap_enabled = litest_test_param_get_bool(test_env->params, "tap");
 
-	litest_disable_tap(dev->libinput_device);
-	litest_drain_events(li);
-
-	test_gesture_hold_cancel(nfingers);
-}
-END_TEST
-
-START_TEST(gestures_hold_cancel_tap_enabled)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
-
-	litest_enable_tap(dev->libinput_device);
+	if (tap_enabled)
+		litest_enable_tap(dev->libinput_device);
+	else
+		litest_disable_tap(dev->libinput_device);
 	litest_drain_events(li);
 
 	test_gesture_hold_cancel(nfingers);
@@ -2100,11 +2082,11 @@ TEST_COLLECTION(gestures)
 	litest_add(gestures_hold_config_is_available, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH|LITEST_SEMI_MT);
 	litest_add(gestures_hold_config_is_not_available, LITEST_TOUCHPAD|LITEST_SEMI_MT, LITEST_ANY);
 
-	litest_with_parameters(params, "fingers", 'i', 4, 1, 2, 3, 4) {
+	litest_with_parameters(params,
+			       "fingers", 'i', 4, 1, 2, 3, 4,
+			       "tap", 'b') {
 		litest_add_parametrized(gestures_hold, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
-		litest_add_parametrized(gestures_hold_tap_enabled, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 		litest_add_parametrized(gestures_hold_cancel, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
-		litest_add_parametrized(gestures_hold_cancel_tap_enabled, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 	}
 
 	litest_with_parameters(params, "direction", 'I', 8, litest_named_i32(N), litest_named_i32(NE),
