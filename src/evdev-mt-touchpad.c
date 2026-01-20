@@ -1920,7 +1920,7 @@ tp_interface_process(struct evdev_dispatch *dispatch,
 static void
 tp_remove_sendevents(struct tp_dispatch *tp)
 {
-	struct evdev_paired_device *kbd, *mouse;
+	struct evdev_paired_device *kbd;
 
 	libinput_timer_cancel(&tp->palm.trackpoint_timer);
 	libinput_timer_cancel(&tp->dwt.keyboard_timer);
@@ -2598,7 +2598,7 @@ tp_interface_device_removed(struct evdev_device *device,
 			    struct evdev_device *removed_device)
 {
 	struct tp_dispatch *tp = (struct tp_dispatch *)device->dispatch;
-	struct evdev_paired_device *kbd, *mouse;
+	struct evdev_paired_device *kbd;
 
 	if (removed_device == tp->buttons.trackpoint) {
 		/* Clear any pending releases for the trackpoint */
