@@ -4824,8 +4824,9 @@ START_TEST(touchpad_tap_palm_on_touch_4)
 	litest_disable_hold_gestures(dev->libinput_device);
 	litest_drain_events(li);
 
-	/* 3fg tap with one finger detected as palm, that finger is lifted,
-	   other two fingers lifted cause 2fg tap */
+	/* 4fg tap with one finger detected as palm, that finger is lifted,
+	   other two fingers lifted cause nothing because we terminate
+	   tapping as soon as 4 fingers are down */
 	litest_touch_down(dev, this, 50, 50);
 	litest_touch_down(dev, (this + 1) % 4, 60, 50);
 	litest_touch_down(dev, (this + 2) % 4, 70, 50);
