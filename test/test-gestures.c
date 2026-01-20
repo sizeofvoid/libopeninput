@@ -675,122 +675,6 @@ test_gesture_3fg_buttonarea_scroll(enum hold_gesture_behaviour hold)
 			     4);
 }
 
-static void
-test_gesture_hold(int nfingers)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-
-	if (litest_slot_count(dev) < nfingers)
-		return;
-
-	litest_drain_events(li);
-
-	switch (nfingers) {
-	case 4:
-		litest_touch_down(dev, 3, 70, 30);
-		_fallthrough_;
-	case 3:
-		litest_touch_down(dev, 2, 60, 30);
-		_fallthrough_;
-	case 2:
-		litest_touch_down(dev, 1, 50, 30);
-		_fallthrough_;
-	case 1:
-		litest_touch_down(dev, 0, 40, 30);
-		break;
-	}
-
-	litest_timeout_gesture_hold(li);
-
-	if (libinput_device_has_capability(dev->libinput_device,
-					   LIBINPUT_DEVICE_CAP_GESTURE)) {
-		litest_assert_gesture_event(li,
-					    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
-					    nfingers);
-	} else {
-		litest_assert_empty_queue(li);
-	}
-
-	switch (nfingers) {
-	case 4:
-		litest_touch_up(dev, 3);
-		_fallthrough_;
-	case 3:
-		litest_touch_up(dev, 2);
-		_fallthrough_;
-	case 2:
-		litest_touch_up(dev, 1);
-		_fallthrough_;
-	case 1:
-		litest_touch_up(dev, 0);
-		break;
-	}
-
-	litest_dispatch(li);
-	if (libinput_device_has_capability(dev->libinput_device,
-					   LIBINPUT_DEVICE_CAP_GESTURE)) {
-		_destroy_(libinput_event) *ev = libinput_get_event(li);
-		auto gev = litest_is_gesture_event(ev,
-						   LIBINPUT_EVENT_GESTURE_HOLD_END,
-						   nfingers);
-		litest_assert(!libinput_event_gesture_get_cancelled(gev));
-	}
-
-	litest_assert_empty_queue(li);
-}
-
-static void
-test_gesture_hold_cancel(int nfingers)
-{
-	struct litest_device *dev = litest_current_device();
-	struct libinput *li = dev->libinput;
-	int last_finger = (nfingers - 1);
-
-	if (litest_slot_count(dev) < nfingers)
-		return;
-
-	litest_drain_events(li);
-
-	switch (nfingers) {
-	case 4:
-		litest_touch_down(dev, 3, 70, 30);
-		_fallthrough_;
-	case 3:
-		litest_touch_down(dev, 2, 60, 30);
-		_fallthrough_;
-	case 2:
-		litest_touch_down(dev, 1, 50, 30);
-		_fallthrough_;
-	case 1:
-		litest_touch_down(dev, 0, 40, 30);
-		break;
-	}
-
-	litest_timeout_gesture_hold(li);
-
-	litest_touch_up(dev, last_finger);
-	litest_dispatch(li);
-	litest_timeout_gesture_hold(li);
-
-	if (libinput_device_has_capability(dev->libinput_device,
-					   LIBINPUT_DEVICE_CAP_GESTURE)) {
-		litest_assert_gesture_event(li,
-					    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
-					    nfingers);
-		_destroy_(libinput_event) *ev = libinput_get_event(li);
-		auto gev = litest_is_gesture_event(ev,
-						   LIBINPUT_EVENT_GESTURE_HOLD_END,
-						   nfingers);
-		if (nfingers > 1)
-			litest_assert(libinput_event_gesture_get_cancelled(gev));
-		else /* can't cancel a 1fg gesture */
-			litest_assert(!libinput_event_gesture_get_cancelled(gev));
-	}
-
-	litest_assert_empty_queue(li);
-}
-
 START_TEST(gestures_cap)
 {
 	struct litest_device *dev = litest_current_device();
@@ -1344,13 +1228,68 @@ START_TEST(gestures_hold)
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
 	bool tap_enabled = litest_test_param_get_bool(test_env->params, "tap");
 
+	if (litest_slot_count(dev) < nfingers)
+		return LITEST_NOT_APPLICABLE;
+
 	if (tap_enabled)
 		litest_enable_tap(dev->libinput_device);
 	else
 		litest_disable_tap(dev->libinput_device);
+
 	litest_drain_events(li);
 
-	test_gesture_hold(nfingers);
+	switch (nfingers) {
+	case 4:
+		litest_touch_down(dev, 3, 70, 30);
+		_fallthrough_;
+	case 3:
+		litest_touch_down(dev, 2, 60, 30);
+		_fallthrough_;
+	case 2:
+		litest_touch_down(dev, 1, 50, 30);
+		_fallthrough_;
+	case 1:
+		litest_touch_down(dev, 0, 40, 30);
+		break;
+	}
+
+	litest_timeout_gesture_hold(li);
+
+	if (libinput_device_has_capability(dev->libinput_device,
+					   LIBINPUT_DEVICE_CAP_GESTURE)) {
+		litest_assert_gesture_event(li,
+					    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+					    nfingers);
+	} else {
+		litest_assert_empty_queue(li);
+	}
+
+	switch (nfingers) {
+	case 4:
+		litest_touch_up(dev, 3);
+		_fallthrough_;
+	case 3:
+		litest_touch_up(dev, 2);
+		_fallthrough_;
+	case 2:
+		litest_touch_up(dev, 1);
+		_fallthrough_;
+	case 1:
+		litest_touch_up(dev, 0);
+		break;
+	}
+
+	litest_dispatch(li);
+	if (libinput_device_has_capability(dev->libinput_device,
+					   LIBINPUT_DEVICE_CAP_GESTURE)) {
+		_destroy_(libinput_event) *ev = libinput_get_event(li);
+		auto gev = litest_is_gesture_event(ev,
+						   LIBINPUT_EVENT_GESTURE_HOLD_END,
+						   nfingers);
+		litest_assert(!libinput_event_gesture_get_cancelled(gev));
+	}
+
+	litest_assert_empty_queue(li);
 }
 END_TEST
 
@@ -1361,13 +1300,56 @@ START_TEST(gestures_hold_cancel)
 	int nfingers = litest_test_param_get_i32(test_env->params, "fingers");
 	bool tap_enabled = litest_test_param_get_bool(test_env->params, "tap");
 
+	if (litest_slot_count(dev) < nfingers)
+		return LITEST_NOT_APPLICABLE;
+
 	if (tap_enabled)
 		litest_enable_tap(dev->libinput_device);
 	else
 		litest_disable_tap(dev->libinput_device);
 	litest_drain_events(li);
 
-	test_gesture_hold_cancel(nfingers);
+	int last_finger = (nfingers - 1);
+
+	litest_drain_events(li);
+
+	switch (nfingers) {
+	case 4:
+		litest_touch_down(dev, 3, 70, 30);
+		_fallthrough_;
+	case 3:
+		litest_touch_down(dev, 2, 60, 30);
+		_fallthrough_;
+	case 2:
+		litest_touch_down(dev, 1, 50, 30);
+		_fallthrough_;
+	case 1:
+		litest_touch_down(dev, 0, 40, 30);
+		break;
+	}
+
+	litest_timeout_gesture_hold(li);
+
+	litest_touch_up(dev, last_finger);
+	litest_dispatch(li);
+	litest_timeout_gesture_hold(li);
+
+	if (libinput_device_has_capability(dev->libinput_device,
+					   LIBINPUT_DEVICE_CAP_GESTURE)) {
+		litest_assert_gesture_event(li,
+					    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
+					    nfingers);
+		_destroy_(libinput_event) *ev = libinput_get_event(li);
+		auto gev = litest_is_gesture_event(ev,
+						   LIBINPUT_EVENT_GESTURE_HOLD_END,
+						   nfingers);
+		if (nfingers > 1)
+			litest_assert(libinput_event_gesture_get_cancelled(gev));
+		else /* can't cancel a 1fg gesture */
+			litest_assert(!libinput_event_gesture_get_cancelled(gev));
+	}
+
+	litest_assert_empty_queue(li);
 }
 END_TEST
 
