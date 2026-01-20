@@ -730,9 +730,11 @@ test_gesture_hold(int nfingers)
 	litest_dispatch(li);
 	if (libinput_device_has_capability(dev->libinput_device,
 					   LIBINPUT_DEVICE_CAP_GESTURE)) {
-		litest_assert_gesture_event(li,
-					    LIBINPUT_EVENT_GESTURE_HOLD_END,
-					    nfingers);
+		_destroy_(libinput_event) *ev = libinput_get_event(li);
+		auto gev = litest_is_gesture_event(ev,
+						   LIBINPUT_EVENT_GESTURE_HOLD_END,
+						   nfingers);
+		litest_assert(!libinput_event_gesture_get_cancelled(gev));
 	}
 
 	litest_assert_empty_queue(li);
@@ -768,15 +770,22 @@ test_gesture_hold_cancel(int nfingers)
 	litest_timeout_gesture_hold(li);
 
 	litest_touch_up(dev, last_finger);
+	litest_dispatch(li);
+	litest_timeout_gesture_hold(li);
 
 	if (libinput_device_has_capability(dev->libinput_device,
 					   LIBINPUT_DEVICE_CAP_GESTURE)) {
 		litest_assert_gesture_event(li,
 					    LIBINPUT_EVENT_GESTURE_HOLD_BEGIN,
 					    nfingers);
-		litest_assert_gesture_event(li,
-					    LIBINPUT_EVENT_GESTURE_HOLD_END,
-					    nfingers);
+		_destroy_(libinput_event) *ev = libinput_get_event(li);
+		auto gev = litest_is_gesture_event(ev,
+						   LIBINPUT_EVENT_GESTURE_HOLD_END,
+						   nfingers);
+		if (nfingers > 1)
+			litest_assert(libinput_event_gesture_get_cancelled(gev));
+		else /* can't cancel a 1fg gesture */
+			litest_assert(!libinput_event_gesture_get_cancelled(gev));
 	}
 
 	litest_assert_empty_queue(li);
