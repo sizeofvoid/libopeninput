@@ -1769,7 +1769,7 @@ START_TEST(gestures_3fg_drag_lock_resume_3fg_release_no_motion)
 
 	litest_drain_events(li);
 
-	litest_checkpoint("Putting 3 fingers down with motion for drag");
+	litest_checkpoint("Putting %d fingers down with motion for drag", finger_count);
 	double y = 30.0;
 	for (uint32_t i = 0; i < finger_count; i++)
 		litest_touch_down(dev, i, 10 + i, y);
@@ -1790,7 +1790,7 @@ START_TEST(gestures_3fg_drag_lock_resume_3fg_release_no_motion)
 	litest_dispatch(li);
 	litest_assert_empty_queue(li);
 
-	litest_checkpoint("Putting 3 fingers down again (no motion)");
+	litest_checkpoint("Putting %d fingers down again (no motion)", finger_count);
 	y = 30.0;
 	for (uint32_t i = 0; i < finger_count; i++)
 		litest_touch_down(dev, i, 10 + i, y);
@@ -1806,7 +1806,7 @@ START_TEST(gestures_3fg_drag_lock_resume_3fg_release_no_motion)
 		litest_assert_empty_queue(li);
 	}
 
-	litest_checkpoint("Releasing three fingers");
+	litest_checkpoint("Releasing %d fingers", finger_count);
 	for (uint32_t i = 0; i < finger_count; i++)
 		litest_touch_up(dev, i);
 	litest_dispatch(li);
