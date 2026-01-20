@@ -45,6 +45,8 @@
 #define FAKE_FINGER_OVERFLOW bit(7)
 #define THUMB_IGNORE_SPEED_THRESHOLD 20 /* mm/s */
 
+#define MOUSE_HAS_SENT_EVENTS bit(1)
+
 enum notify {
 	DONT_NOTIFY,
 	DO_NOTIFY,
@@ -1918,7 +1920,7 @@ tp_interface_process(struct evdev_dispatch *dispatch,
 static void
 tp_remove_sendevents(struct tp_dispatch *tp)
 {
-	struct evdev_paired_device *kbd;
+	struct evdev_paired_device *kbd, *mouse;
 
 	libinput_timer_cancel(&tp->palm.trackpoint_timer);
 	libinput_timer_cancel(&tp->dwt.keyboard_timer);
@@ -1928,6 +1930,10 @@ tp_remove_sendevents(struct tp_dispatch *tp)
 
 	list_for_each(kbd, &tp->dwt.paired_keyboard_list, link) {
 		libinput_device_remove_event_listener(&kbd->listener);
+	}
+
+	list_for_each_safe(mouse, &tp->sendevents.external_mice_list, link) {
+		evdev_paired_device_destroy(mouse);
 	}
 
 	if (tp->lid_switch.lid_switch)
@@ -2531,23 +2537,59 @@ tp_pair_tablet(struct evdev_device *touchpad, struct evdev_device *tablet)
 }
 
 static void
+tp_external_mouse_event(usec_t time, struct libinput_event *event, void *data)
+{
+	struct tp_dispatch *tp = data;
+
+	if (event->type < LIBINPUT_EVENT_POINTER_MOTION ||
+	    event->type >= LIBINPUT_EVENT_TOUCH_DOWN)
+		return;
+
+	struct libinput_device *libinput_device = libinput_event_get_device(event);
+	struct evdev_device *device = (struct evdev_device *)libinput_device;
+	struct evdev_paired_device *paired;
+	list_for_each(paired, &tp->sendevents.external_mice_list, link) {
+		if (paired->device == device) {
+			paired->flags |= MOUSE_HAS_SENT_EVENTS;
+			/* In theory we should be waiting for a neutral state here but
+			 * that's hopefully niche enough. tp_suspend() clears our state
+			 * anyway.
+			 */
+			if (tp->sendevents.current_mode ==
+			    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE)
+				tp_suspend(tp, tp->device, SUSPEND_EXTERNAL_MOUSE);
+			break;
+		}
+	}
+}
+
+static void
+tp_pair_external_mouse(struct evdev_device *touchpad, struct evdev_device *mouse)
+{
+	struct tp_dispatch *tp = (struct tp_dispatch *)touchpad->dispatch;
+
+	if (!(mouse->tags & EVDEV_TAG_EXTERNAL_MOUSE))
+		return;
+
+	struct evdev_paired_device *paired = zalloc(sizeof(*paired));
+	paired->device = mouse;
+	libinput_device_add_event_listener(&mouse->base,
+					   &paired->listener,
+					   tp_external_mouse_event,
+					   tp);
+	list_insert(&tp->sendevents.external_mice_list, &paired->link);
+}
+
+static void
 tp_interface_device_added(struct evdev_device *device,
 			  struct evdev_device *added_device)
 {
-	struct tp_dispatch *tp = (struct tp_dispatch *)device->dispatch;
-
 	tp_pair_trackpoint(device, added_device);
 	tp_dwt_pair_keyboard(device, added_device);
 	tp_pair_lid_switch(device, added_device);
 	tp_pair_tablet_mode_switch(device, added_device);
 	tp_pair_tablet(device, added_device);
-
-	if (tp->sendevents.current_mode !=
-	    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE)
-		return;
-
-	if (added_device->tags & EVDEV_TAG_EXTERNAL_MOUSE)
-		tp_suspend(tp, device, SUSPEND_EXTERNAL_MOUSE);
+	tp_pair_external_mouse(device, added_device);
 }
 
 static void
@@ -2555,7 +2597,7 @@ tp_interface_device_removed(struct evdev_device *device,
 			    struct evdev_device *removed_device)
 {
 	struct tp_dispatch *tp = (struct tp_dispatch *)device->dispatch;
-	struct evdev_paired_device *kbd;
+	struct evdev_paired_device *kbd, *mouse;
 
 	if (removed_device == tp->buttons.trackpoint) {
 		/* Clear any pending releases for the trackpoint */
@@ -2589,21 +2631,18 @@ tp_interface_device_removed(struct evdev_device *device,
 		tp_resume(tp, device, SUSPEND_TABLET_MODE);
 	}
 
-	if (tp->sendevents.current_mode ==
-	    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE) {
-		struct libinput_device *dev;
-		bool found = false;
-
-		list_for_each(dev, &device->base.seat->devices_list, link) {
-			struct evdev_device *d = evdev_device(dev);
-			if (d != removed_device &&
-			    (d->tags & EVDEV_TAG_EXTERNAL_MOUSE)) {
-				found = true;
-				break;
-			}
+	bool have_external_mouse_sending_events = false;
+	list_for_each_safe(mouse, &tp->sendevents.external_mice_list, link) {
+		if (mouse->device == removed_device) {
+			evdev_paired_device_destroy(mouse);
+		} else if (mouse->flags & MOUSE_HAS_SENT_EVENTS) {
+			have_external_mouse_sending_events = true;
 		}
-		if (!found)
-			tp_resume(tp, device, SUSPEND_EXTERNAL_MOUSE);
+	}
+	if (tp->sendevents.current_mode ==
+		    LIBINPUT_CONFIG_SEND_EVENTS_DISABLED_ON_EXTERNAL_MOUSE &&
+	    !have_external_mouse_sending_events) {
+		tp_resume(tp, device, SUSPEND_EXTERNAL_MOUSE);
 	}
 
 	if (removed_device == tp->left_handed.tablet_device) {
@@ -3467,6 +3506,8 @@ static void
 tp_init_sendevents(struct tp_dispatch *tp, struct evdev_device *device)
 {
 	char timer_name[64];
+
+	list_init(&tp->sendevents.external_mice_list);
 
 	snprintf(timer_name,
 		 sizeof(timer_name),

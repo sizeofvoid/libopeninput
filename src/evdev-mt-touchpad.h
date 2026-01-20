@@ -482,6 +482,8 @@ struct tp_dispatch {
 	struct {
 		struct libinput_device_config_send_events config;
 		enum libinput_config_send_events_mode current_mode;
+
+		struct list external_mice_list;
 	} sendevents;
 
 	struct {

@@ -1015,6 +1015,7 @@ struct evdev_paired_device {
 	struct list link;
 	struct evdev_device *device;
 	struct libinput_event_listener listener;
+	uint32_t flags; /* generic flags used by the caller */
 };
 
 static inline void

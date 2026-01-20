@@ -5817,6 +5817,7 @@ START_TEST(touchpad_disabled_on_mouse)
 	bool suspend = litest_test_param_get_bool(test_env->params, "suspend");
 
 	litest_drain_events(li);
+	litest_disable_hold_gestures(dev->libinput_device);
 
 	status = libinput_device_config_send_events_set_mode(
 		dev->libinput_device,
@@ -5830,6 +5831,18 @@ START_TEST(touchpad_disabled_on_mouse)
 
 	mouse = litest_add_device(li, LITEST_MOUSE);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_ADDED);
+
+	/* Mouse hasn't sent events yet */
+	litest_touch_down(dev, 0, 20, 30);
+	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10);
+	litest_touch_up(dev, 0);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	/* Now send the events */
+	litest_event(mouse, EV_REL, REL_X, -1);
+	litest_event(mouse, EV_REL, REL_Y, 1);
+	litest_event(mouse, EV_SYN, SYN_REPORT, 0);
+	litest_drain_events(li);
 
 	litest_touch_down(dev, 0, 20, 30);
 	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10);
@@ -5862,12 +5875,15 @@ END_TEST
 START_TEST(touchpad_disabled_double_mouse)
 {
 	struct litest_device *dev = litest_current_device();
-	struct litest_device *mouse1, *mouse2;
+	struct litest_device *nonsending_mouse, *sending_mouse;
 	struct libinput *li = dev->libinput;
 	enum libinput_config_status status;
-	bool suspend = litest_test_param_get_bool(test_env->params, "suspend");
+	bool suspend_nonsending =
+		litest_test_param_get_bool(test_env->params, "suspend-nonsending");
+	int32_t remove = litest_test_param_get_i32(test_env->params, "remove");
 
 	litest_drain_events(li);
+	litest_disable_hold_gestures(dev->libinput_device);
 
 	status = libinput_device_config_send_events_set_mode(
 		dev->libinput_device,
@@ -5879,19 +5895,26 @@ START_TEST(touchpad_disabled_double_mouse)
 	litest_touch_up(dev, 0);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
-	mouse1 = litest_add_device(li, LITEST_MOUSE);
-	mouse2 = litest_add_device(li, LITEST_MOUSE_LOW_DPI);
+	nonsending_mouse = litest_add_device(li, LITEST_MOUSE);
+	sending_mouse = litest_add_device(li, LITEST_MOUSE_LOW_DPI);
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_ADDED);
 
+	/* Mouse hasn't sent events yet */
 	litest_touch_down(dev, 0, 20, 30);
 	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10);
 	litest_touch_up(dev, 0);
-	litest_assert_empty_queue(li);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
 
-	if (suspend) {
+	/* Now send the events */
+	litest_event(sending_mouse, EV_REL, REL_X, -1);
+	litest_event(sending_mouse, EV_REL, REL_Y, 1);
+	litest_event(sending_mouse, EV_SYN, SYN_REPORT, 0);
+	litest_drain_events(li);
+
+	if (suspend_nonsending) {
 		/* Disable one external mouse -> don't expect touchpad events */
 		status = libinput_device_config_send_events_set_mode(
-			mouse1->libinput_device,
+			nonsending_mouse->libinput_device,
 			LIBINPUT_CONFIG_SEND_EVENTS_DISABLED);
 		litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
 	}
@@ -5901,15 +5924,34 @@ START_TEST(touchpad_disabled_double_mouse)
 	litest_touch_up(dev, 0);
 	litest_assert_empty_queue(li);
 
-	litest_device_destroy(mouse1);
+	switch (remove) {
+	case 1:
+		litest_device_destroy(steal(&nonsending_mouse));
+		break;
+	case 2:
+		litest_device_destroy(steal(&sending_mouse));
+		break;
+	}
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
 
 	litest_touch_down(dev, 0, 20, 30);
 	litest_touch_move_to(dev, 0, 20, 30, 90, 30, 10);
 	litest_touch_up(dev, 0);
-	litest_assert_empty_queue(li);
 
-	litest_device_destroy(mouse2);
+	/* Removing the only mouse that sent events should resume our touchpad */
+	switch (remove) {
+	case 1:
+		litest_assert_empty_queue(li);
+		break;
+	case 2:
+		litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+		break;
+	}
+
+	if (sending_mouse)
+		litest_device_destroy(steal(&sending_mouse));
+	if (nonsending_mouse)
+		litest_device_destroy(steal(&nonsending_mouse));
 	litest_assert_only_typed_events(li, LIBINPUT_EVENT_DEVICE_REMOVED);
 
 	litest_touch_down(dev, 0, 20, 30);
@@ -7072,6 +7114,12 @@ TEST_COLLECTION(touchpad)
 
 	litest_with_parameters(params, "suspend", 'b') {
 		litest_add_parametrized_for_device(touchpad_disabled_on_mouse, LITEST_SYNAPTICS_CLICKPAD_X220, params);
+	}
+
+	litest_with_parameters(params,
+			       "suspend-nonsending", 'b',
+			       "remove", 'I', 2, litest_named_i32(2, "sending-mouse"),
+			                         litest_named_i32(1, "nonsending-mouse")) {
 		litest_add_parametrized_for_device(touchpad_disabled_double_mouse, LITEST_SYNAPTICS_CLICKPAD_X220, params);
 	}
 
