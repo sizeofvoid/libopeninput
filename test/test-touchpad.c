@@ -48,6 +48,9 @@ dwt_init_paired_keyboard(struct libinput *li, struct litest_device *touchpad)
 	if (libevdev_get_id_vendor(touchpad->evdev) == VENDOR_ID_CHICONY)
 		which = LITEST_ACER_HAWAII_KEYBOARD;
 
+	if (libevdev_get_id_vendor(touchpad->evdev) == VENDOR_ID_GENERIC)
+		which = LITEST_GENERIC_USBCOMBO_KEYBOARD;
+
 	return litest_add_device(li, which);
 }
 
@@ -5005,6 +5008,45 @@ START_TEST(touchpad_dwt_acer_hawaii)
 }
 END_TEST
 
+START_TEST(touchpad_dwt_generic_usbcombo)
+{
+	struct litest_device *touchpad = litest_current_device();
+	struct litest_device *keyboard, *generic_keyboard;
+	struct libinput *li = touchpad->libinput;
+
+	litest_assert(has_disable_while_typing(touchpad));
+
+	/* Only the generic keyboard can trigger DWT */
+	keyboard = litest_add_device(li, LITEST_KEYBOARD);
+	litest_drain_events(li);
+
+	litest_keyboard_key(keyboard, KEY_A, true);
+	litest_keyboard_key(keyboard, KEY_A, false);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10);
+	litest_touch_up(touchpad, 0);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	generic_keyboard = litest_add_device(li, LITEST_GENERIC_USBCOMBO_KEYBOARD);
+	litest_drain_events(li);
+
+	litest_keyboard_key(generic_keyboard, KEY_A, true);
+	litest_keyboard_key(generic_keyboard, KEY_A, false);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_KEYBOARD_KEY);
+
+	litest_touch_down(touchpad, 0, 50, 50);
+	litest_touch_move_to(touchpad, 0, 50, 50, 70, 50, 10);
+	litest_touch_up(touchpad, 0);
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_device_destroy(keyboard);
+	litest_device_destroy(generic_keyboard);
+}
+END_TEST
+
 START_TEST(touchpad_dwt_multiple_keyboards)
 {
 	struct litest_device *touchpad = litest_current_device();
@@ -7198,6 +7240,7 @@ TEST_COLLECTION(touchpad_dwt)
 	litest_add(touchpad_dwtp_config_default_off, LITEST_ANY, LITEST_TOUCHPAD);
 	litest_add_for_device(touchpad_dwt_apple, LITEST_BCM5974);
 	litest_add_for_device(touchpad_dwt_acer_hawaii, LITEST_ACER_HAWAII_TOUCHPAD);
+	litest_add_for_device(touchpad_dwt_generic_usbcombo, LITEST_GENERIC_USBCOMBO_TOUCHPAD);
 	litest_add_for_device(touchpad_dwt_multiple_keyboards, LITEST_SYNAPTICS_I2C);
 	litest_add_for_device(touchpad_dwt_multiple_keyboards_bothkeys, LITEST_SYNAPTICS_I2C);
 	litest_add_for_device(touchpad_dwt_multiple_keyboards_bothkeys_modifier, LITEST_SYNAPTICS_I2C);

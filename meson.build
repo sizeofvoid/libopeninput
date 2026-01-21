@@ -951,6 +951,8 @@ if get_option('tests')
 		'test/litest-device-format-string.c',
 		'test/litest-device-generic-pressurepad.c',
 		'test/litest-device-generic-singletouch.c',
+		'test/litest-device-generic-usb-keyboard.c',
+		'test/litest-device-generic-usb-touchpad.c',
 		'test/litest-device-gpio-keys.c',
 		'test/litest-device-huion-pentablet.c',
 		'test/litest-device-huion-q620m-dial.c',
