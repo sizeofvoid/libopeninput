@@ -116,6 +116,8 @@ struct libinput_lua_plugin {
 
 	struct libinput_plugin_timer *timer;
 	bool in_timer_func;
+
+	usec_t lua_pcall_timeout_end;
 };
 
 static struct libinput_lua_plugin *
@@ -291,12 +293,34 @@ out:
 	lua_pop(L, 1);
 }
 
+static void
+lua_timeout_hook(lua_State *L, lua_Debug *debug)
+{
+	struct libinput_lua_plugin *plugin = lua_get_libinput_lua_plugin(L);
+	struct libinput *libinput = lua_get_libinput(L);
+	usec_t now = libinput_now(libinput);
+
+	if (usec_cmp(now, plugin->lua_pcall_timeout_end) > 0) {
+		luaL_error(L, "Plugin execution timeout (exceeded 1 second)");
+	}
+}
+
 static bool
 libinput_lua_pcall(struct libinput_lua_plugin *plugin, int narg, int nres)
 {
 	lua_State *L = plugin->L;
+	struct libinput *libinput = lua_get_libinput(L);
+
+	plugin->lua_pcall_timeout_end = usec_add_millis(libinput_now(libinput), 1000);
+
+	/* Hook is called every 10M instructions (10-1000ms, depending operations) */
+	lua_sethook(L, lua_timeout_hook, LUA_MASKCOUNT, 10000000);
 
 	int rc = lua_pcall(L, narg, nres, 0);
+
+	/* Clear the hook */
+	lua_sethook(L, NULL, 0, 0);
+	plugin->lua_pcall_timeout_end = usec_from_millis(0);
 	if (rc != LUA_OK) {
 		auto libinput_plugin = plugin->parent;
 		const char *errormsg = lua_tostring(L, -1);

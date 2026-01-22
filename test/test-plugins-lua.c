@@ -25,6 +25,7 @@
 
 #include <fcntl.h>
 #include <inttypes.h>
+#include <valgrind/valgrind.h>
 
 #include "util-files.h"
 #include "util-strings.h"
@@ -1101,6 +1102,76 @@ START_TEST(lua_disable_wheel_debouncing)
 }
 END_TEST
 
+START_TEST(lua_remove_plugin_on_timeout)
+{
+	enum when when = litest_test_param_get_i32(test_env->params, "when");
+	_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
+	_autofree_ char *lua = strdup_printf(
+		"libinput:register({1})\n"
+		"function infinite_loop(device)\n"
+		"  local i = 0\n"
+		"  while true do\n"
+		"    i = i + 1\n"
+		"  end\n"
+		"end\n"
+		"function new_device(device)\n"
+		"   device:connect(\"evdev-frame\", infinite_loop)\n"
+		"end\n"
+		"%s libinput:connect(\"new-evdev-device\", infinite_loop)\n"
+		"%s libinput:connect(\"new-evdev-device\", new_device)\n",
+		when == DEVICE_NEW ? "" : "--",
+		when == FIRST_FRAME ? "" : "--");
+
+	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
+	_litest_context_destroy_ struct libinput *li =
+		litest_create_context_with_plugindir(tmpdir->path);
+	_destroy_(litest_device) *dev = NULL;
+
+	litest_with_logcapture(li, capture) {
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
+		litest_drain_events(li);
+
+		usec_t before = usec_from_now();
+
+		dev = litest_add_device(li, LITEST_MOUSE);
+		litest_drain_events(li);
+
+		if (when == FIRST_FRAME) {
+			litest_event(dev, EV_KEY, BTN_LEFT, 1);
+			litest_event(dev, EV_SYN, SYN_REPORT, 0);
+			litest_dispatch(li);
+			litest_event(dev, EV_KEY, BTN_LEFT, 0);
+			litest_event(dev, EV_SYN, SYN_REPORT, 0);
+			litest_dispatch(li);
+		}
+
+		usec_t after = usec_from_now();
+		usec_t elapsed = usec_delta(after, before);
+
+		/* verify the timeout kicked in around ~1 second (but less than 2s) */
+		litest_assert_int_ge(usec_to_millis(elapsed), 1000U);
+		if (!RUNNING_ON_VALGRIND)
+			litest_assert_int_lt(usec_to_millis(elapsed), 2000U);
+
+		size_t index = 0;
+		litest_assert(strv_find_substring(capture->errors,
+						  "Plugin execution timeout",
+						  &index));
+		litest_assert_str_in("exceeded 1 second", capture->errors[index]);
+
+		litest_assert(strv_find_substring(capture->errors,
+						  "unloading after error",
+						  NULL));
+	}
+	/* device events should go through now */
+	litest_event(dev, EV_KEY, BTN_LEFT, 1);
+	litest_event(dev, EV_SYN, SYN_REPORT, 0);
+	litest_dispatch(li);
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+}
+END_TEST
+
 TEST_COLLECTION(lua)
 {
 	/* clang-format off */
@@ -1173,6 +1244,8 @@ TEST_COLLECTION(lua)
 		litest_add_parametrized_no_device(lua_disable_button_debounce, params);
 		litest_add_parametrized_no_device(lua_disable_touchpad_jump_detection, params);
 		litest_add_parametrized_no_device(lua_disable_wheel_debouncing, params);
+
+		litest_add_parametrized_no_device(lua_remove_plugin_on_timeout, params);
 	}
 	/* clang-format on */
 }
