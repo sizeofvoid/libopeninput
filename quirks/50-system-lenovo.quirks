@@ -245,6 +245,52 @@ MatchVendor=0x17EF
 MatchProduct=0x6047
 AttrPointingStickIntegration=external
 
+# IBM/Lenovo Scrollpoint mouse. Instead of a scroll wheel these mice
+# feature trackpoint-like sticks which generate a huge amount of scroll
+# events that need to be handled differently than scroll wheel events
+
+[IBM ScrollPoint Mouse 3100]
+MatchUdevType=mouse
+MatchVendor=0x04B3
+MatchProduct=0x3100
+ModelLenovoScrollPoint=1
+
+[IBM ScrollPoint Mouse 3103]
+MatchUdevType=mouse
+MatchVendor=0x04B3
+MatchProduct=0x3103
+ModelLenovoScrollPoint=1
+
+[IBM ScrollPoint Mouse 3105]
+MatchUdevType=mouse
+MatchVendor=0x04B3
+MatchProduct=0x3105
+ModelLenovoScrollPoint=1
+
+[IBM ScrollPoint Mouse 3108]
+MatchUdevType=mouse
+MatchVendor=0x04B3
+MatchProduct=0x3108
+ModelLenovoScrollPoint=1
+
+[IBM ScrollPoint Mouse 3109]
+MatchUdevType=mouse
+MatchVendor=0x04B3
+MatchProduct=0x3109
+ModelLenovoScrollPoint=1
+
+[Lenovo ScrollPoint Mouse 6049]
+MatchUdevType=mouse
+MatchVendor=0x17EF
+MatchProduct=0x6049
+ModelLenovoScrollPoint=1
+
+[IBM USB Travel Keyboard with Ultra Nav Mouse]
+MatchUdevType=pointingstick
+MatchVendor=0x04B3
+MatchProduct=0x301E
+AttrTrackpointMultiplier=1.50
+
 # The following ones correspond to detachable keyboard+touchpad combos used in
 # Lenovo detachable devices. Names can vary within the same ids and some are
 # repeated over different devices. They're mostly connected over USB bus through
