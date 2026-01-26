@@ -4,5 +4,6 @@
 # re-use the same vendor ID 256C.
 [Huion/Gaomon Tablets]
 MatchUdevType=tablet
+MatchBus=usb
 MatchVendor=0x256C
 AttrResolutionHint=205x328
