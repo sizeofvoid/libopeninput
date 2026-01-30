@@ -237,7 +237,7 @@ wscons_device_dispatch(void *data)
 	ssize_t len;
 	int count, i;
 
-	len = read(device->fd, wsevents, sizeof(struct wscons_event));
+	len = read(device->fd, wsevents, sizeof(wsevents));
 	if (len <= 0 || (len % sizeof(struct wscons_event)) != 0)
 		return;
 
