@@ -576,8 +576,18 @@ libinput_path_add_device(struct libinput *libinput,
 	return device;
 
 err:
-	if (device != NULL)
-		close_restricted(libinput, device->fd);
+	if (device != NULL) {
+		if (device->source)
+			libinput_remove_source(libinput, device->source);
+		if (device->devname) {
+			free(device->devname);
+			device->devname = NULL;
+		}
+		if (device->fd >= 0)
+			close_restricted(libinput, device->fd);
+	} else if (fd >= 0) {
+		close_restricted(libinput, fd);
+	}
 	free(wscons_device);
 	return NULL;
 }
