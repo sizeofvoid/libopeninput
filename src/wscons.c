@@ -45,8 +45,6 @@ static void
 wscons_device_init_pointer_acceleration(struct wscons_device *device,
               struct motion_filter *filter);
 
-static int old_value = -1;
-
 static int
 udev_input_enable(struct libinput *libinput)
 {
@@ -128,13 +126,13 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 		key = wsevent->value;
 		if (wsevent->type == WSCONS_EVENT_KEY_UP) {
 			kstate = LIBINPUT_KEY_STATE_RELEASED;
-			old_value = -1;
+			dev->old_value = -1;
 		} else {
 			kstate = LIBINPUT_KEY_STATE_PRESSED;
 			/* ignore auto-repeat */
-			if (key == old_value)
+			if (key == dev->old_value)
 				return;
-			old_value = key;
+			dev->old_value = key;
 		}
 		keyboard_notify_key(device, time,
 		    wskey_transcode(wscons_device(device)->scanCodeMap, key), kstate);
@@ -516,6 +514,8 @@ static int
 wscons_device_init(struct wscons_device *wscons_device)
 {
 	struct libinput_device *device = &wscons_device->base;
+
+	wscons_device->old_value = -1;
 
 	if (strncmp(device->devname, "/dev/wsmouse", 12) == 0) {
 		/* XXX handle tablets and touchpanel */
