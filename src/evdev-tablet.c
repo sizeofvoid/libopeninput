@@ -1142,8 +1142,8 @@ tablet_get_quirked_pressure_thresholds(struct tablet_dispatch *tablet, int *hi, 
 	_unref_(quirks) *q = libinput_device_get_quirks(&device->base);
 	if (q && quirks_get_range(q, QUIRK_ATTR_PRESSURE_RANGE, &r)) {
 		if (r.lower < r.upper) {
-			*hi = r.lower;
-			*lo = r.upper;
+			*lo = r.lower;
+			*hi = r.upper;
 			status = true;
 		} else {
 			evdev_log_info(device,
