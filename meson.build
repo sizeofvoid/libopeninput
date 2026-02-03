@@ -248,6 +248,10 @@ if have_libwacom
 			   dependencies: dep_libwacom)
 		config_h.set('HAVE_LIBWACOM_BUTTON_MODESWITCH_MODE', '1')
 	endif
+	if cc.has_function('libwacom_stylus_is_generic',
+			   dependencies: dep_libwacom)
+		config_h.set('HAVE_LIBWACOM_STYLUS_IS_GENERIC', '1')
+	endif
 else
 	dep_libwacom = declare_dependency()
 endif
