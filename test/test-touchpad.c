@@ -4496,6 +4496,19 @@ START_TEST(touchpad_dwt_edge_scroll_interrupt)
 }
 END_TEST
 
+START_TEST(touchpad_dwt_config_default_timeout)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	if (!libinput_device_config_dwt_is_available(device))
+		return LITEST_NOT_APPLICABLE;
+
+	litest_assert_int_eq(libinput_device_config_dwt_get_default_timeout(device),
+			     500U);
+}
+END_TEST
+
 START_TEST(touchpad_dwt_config_default_on)
 {
 	struct litest_device *dev = litest_current_device();
@@ -4543,6 +4556,19 @@ START_TEST(touchpad_dwt_config_default_on)
 	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
 	timeout = libinput_device_config_dwt_get_timeout(device);
 	litest_assert_int_eq(timeout, 600U);
+}
+END_TEST
+
+START_TEST(touchpad_dwtp_config_default_timeout)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	if (!libinput_device_config_dwtp_is_available(device))
+		return LITEST_NOT_APPLICABLE;
+
+	litest_assert_int_eq(libinput_device_config_dwtp_get_default_timeout(device),
+			     300U);
 }
 END_TEST
 
@@ -7225,6 +7251,7 @@ TEST_COLLECTION(touchpad_dwt)
 	litest_add(touchpad_dwt_click, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_edge_scroll, LITEST_TOUCHPAD, LITEST_CLICKPAD);
 	litest_add(touchpad_dwt_edge_scroll_interrupt, LITEST_TOUCHPAD, LITEST_CLICKPAD);
+	litest_add(touchpad_dwt_config_default_timeout, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_config_default_on, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_config_default_off, LITEST_ANY, LITEST_TOUCHPAD);
 	litest_add(touchpad_dwt_disabled, LITEST_TOUCHPAD, LITEST_ANY);
@@ -7236,6 +7263,7 @@ TEST_COLLECTION(touchpad_dwt)
 	litest_add(touchpad_dwt_enable_before_touch, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_enable_during_tap, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwt_remove_kbd_while_active, LITEST_TOUCHPAD, LITEST_ANY);
+	litest_add(touchpad_dwtp_config_default_timeout, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwtp_config_default_on, LITEST_TOUCHPAD, LITEST_ANY);
 	litest_add(touchpad_dwtp_config_default_off, LITEST_ANY, LITEST_TOUCHPAD);
 	litest_add_for_device(touchpad_dwt_apple, LITEST_BCM5974);

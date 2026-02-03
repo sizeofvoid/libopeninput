@@ -4961,6 +4961,15 @@ libinput_device_config_dwt_get_timeout(struct libinput_device *device)
 	return usec_to_millis(device->config.dwt->get_timeout(device));
 }
 
+LIBINPUT_EXPORT uint32_t
+libinput_device_config_dwt_get_default_timeout(struct libinput_device *device)
+{
+	if (!libinput_device_config_dwt_is_available(device))
+		return 0;
+
+	return usec_to_millis(device->config.dwt->get_default_timeout(device));
+}
+
 LIBINPUT_EXPORT int
 libinput_device_config_dwtp_is_available(struct libinput_device *device)
 {
@@ -5023,6 +5032,15 @@ libinput_device_config_dwtp_get_timeout(struct libinput_device *device)
 		return 0;
 
 	return usec_to_millis(device->config.dwtp->get_timeout(device));
+}
+
+LIBINPUT_EXPORT uint32_t
+libinput_device_config_dwtp_get_default_timeout(struct libinput_device *device)
+{
+	if (!libinput_device_config_dwtp_is_available(device))
+		return 0;
+
+	return usec_to_millis(device->config.dwtp->get_default_timeout(device));
 }
 
 LIBINPUT_EXPORT int

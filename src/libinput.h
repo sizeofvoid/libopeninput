@@ -6825,6 +6825,25 @@ libinput_device_config_dwt_get_timeout(struct libinput_device *device);
 /**
  * @ingroup config
  *
+ * Get the default disable-while-typing timeout.
+ *
+ * @param device The device to configure
+ * @return The default timeout in milliseconds for this device.
+ *
+ * @see libinput_device_config_dwt_is_available
+ * @see libinput_device_config_dwt_set_enabled
+ * @see libinput_device_config_dwt_get_enabled
+ * @see libinput_device_config_dwt_set_timeout
+ * @see libinput_device_config_dwt_get_timeout
+ *
+ * @since 1.31
+ */
+uint32_t
+libinput_device_config_dwt_get_default_timeout(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
  * Possible states for the disable-while-trackpointing feature.
  *
  * @since 1.21
@@ -6966,6 +6985,25 @@ libinput_device_config_dwtp_set_timeout(struct libinput_device *device,
  */
 uint32_t
 libinput_device_config_dwtp_get_timeout(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Get the default disable-while-trackpointing timeout.
+ *
+ * @param device The device to configure
+ * @return The default timeout in milliseconds for this device.
+ *
+ * @see libinput_device_config_dwtp_is_available
+ * @see libinput_device_config_dwtp_set_enabled
+ * @see libinput_device_config_dwtp_get_enabled
+ * @see libinput_device_config_dwtp_set_timeout
+ * @see libinput_device_config_dwtp_get_timeout
+ *
+ * @since 1.31
+ */
+uint32_t
+libinput_device_config_dwtp_get_default_timeout(struct libinput_device *device);
 
 /**
  * @ingroup config

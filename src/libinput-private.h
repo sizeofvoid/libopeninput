@@ -473,6 +473,7 @@ struct libinput_device_config_dwt {
 	enum libinput_config_status (*set_timeout)(struct libinput_device *device,
 						   usec_t timeout);
 	usec_t (*get_timeout)(struct libinput_device *device);
+	usec_t (*get_default_timeout)(struct libinput_device *device);
 };
 
 struct libinput_device_config_dwtp {
@@ -486,6 +487,7 @@ struct libinput_device_config_dwtp {
 	enum libinput_config_status (*set_timeout)(struct libinput_device *device,
 						   usec_t timeout);
 	usec_t (*get_timeout)(struct libinput_device *device);
+	usec_t (*get_default_timeout)(struct libinput_device *device);
 };
 
 struct libinput_device_config_rotation {
