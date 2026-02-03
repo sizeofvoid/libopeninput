@@ -4559,6 +4559,19 @@ START_TEST(touchpad_dwt_config_default_on)
 }
 END_TEST
 
+START_TEST(touchpad_dwtp_config_default_timeout)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput_device *device = dev->libinput_device;
+
+	if (!libinput_device_config_dwtp_is_available(device))
+		return LITEST_NOT_APPLICABLE;
+
+	litest_assert_int_eq(libinput_device_config_dwtp_get_default_timeout(device),
+			     300U);
+}
+END_TEST
+
 START_TEST(touchpad_dwtp_config_default_on)
 {
 	struct litest_device *dev = litest_current_device();

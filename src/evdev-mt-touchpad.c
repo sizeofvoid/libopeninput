@@ -3234,6 +3234,12 @@ tp_dwt_config_get_timeout(struct libinput_device *device)
 	return tp->dwt.timeout;
 }
 
+static usec_t
+tp_dwt_config_get_default_timeout(struct libinput_device *device)
+{
+	return DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_2;
+}
+
 static int
 tp_dwtp_config_is_available(struct libinput_device *device)
 {
@@ -3310,6 +3316,12 @@ tp_dwtp_config_get_timeout(struct libinput_device *device)
 	return tp->palm.timeout;
 }
 
+static usec_t
+tp_dwtp_config_get_default_timeout(struct libinput_device *device)
+{
+	return DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT;
+}
+
 static inline bool
 tp_is_tpkb_combo_below(struct evdev_device *device)
 {
@@ -3348,8 +3360,9 @@ tp_init_dwt(struct tp_dispatch *tp, struct evdev_device *device)
 	tp->dwt.config.get_default_enabled = tp_dwt_config_get_default;
 	tp->dwt.config.set_timeout = tp_dwt_config_set_timeout;
 	tp->dwt.config.get_timeout = tp_dwt_config_get_timeout;
+	tp->dwt.config.get_default_timeout = tp_dwt_config_get_default_timeout;
 	tp->dwt.dwt_enabled = tp_dwt_default_enabled(tp);
-	tp->dwt.timeout = DEFAULT_KEYBOARD_ACTIVITY_TIMEOUT_2;
+	tp->dwt.timeout = tp_dwt_config_get_default_timeout(&device->base);
 	device->base.config.dwt = &tp->dwt.config;
 }
 
@@ -3367,7 +3380,8 @@ tp_init_dwtp(struct tp_dispatch *tp, struct evdev_device *device)
 	tp->palm.config.get_default_enabled = tp_dwtp_config_get_default;
 	tp->palm.config.set_timeout = tp_dwtp_config_set_timeout;
 	tp->palm.config.get_timeout = tp_dwtp_config_get_timeout;
-	tp->palm.timeout = DEFAULT_TRACKPOINT_ACTIVITY_TIMEOUT;
+	tp->palm.config.get_default_timeout = tp_dwtp_config_get_default_timeout;
+	tp->palm.timeout = tp_dwtp_config_get_default_timeout(&device->base);
 	device->base.config.dwtp = &tp->palm.config;
 }
 
