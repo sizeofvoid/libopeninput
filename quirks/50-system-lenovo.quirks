@@ -130,13 +130,18 @@ MatchName=*TPPS/2 Elan TrackPoint*
 MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX1Carbon6th:*
 AttrTrackpointMultiplier=0.4
 
-# Lenovo Thinkpad Yoga (not the consumer versions) disables the keyboard
-# mechanically. We must not disable the keyboard because some keys are
-# still accessible on the screen and volume rocker.
-# Initially #103749 and extended by #106799 comment 7
-[Lenovo Thinkpad Yoga]
-MatchName=AT Translated Set 2 keyboard
-MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPad*Yoga*:*
+# Don't disable keys accessible in tablet mode, #106799 comment 7
+[Lenovo Thinkpad S1 Yoga and S1 Yoga 12]
+MatchBus=ps2
+MatchUdevType=keyboard
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadS1Yoga*:*
+ModelTabletModeNoSuspend=1
+
+# Don't disable keys accessible in tablet mode, #103749
+[Lenovo Thinkpad X1 Yoga 1st]
+MatchBus=ps2
+MatchUdevType=keyboard
+MatchDMIModalias=dmi:*:svnLENOVO:*:pvrThinkPadX1Yoga1st:*
 ModelTabletModeNoSuspend=1
 
 [Lenovo X1 Yoga Trackpoint 1st gen]
