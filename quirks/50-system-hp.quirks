@@ -24,27 +24,23 @@ MatchName=*Intel Virtual Button*
 MatchDMIModalias=dmi:*:svnHP:pnHPElitex21013G3:*
 ModelTabletModeSwitchUnreliable=1
 
-# The HP OmniBook Ultra Flip Laptop 14-fh0xxx's custom Intel ISH firmware
-# filters out events from its builtin keyboard and touchpad when the hinge is
-# opened little more than 180 degrees but toggles tablet-mode when it's opened
-# little less than 180 degrees.
-# Do not suspend the keyboard and touchpad to let use the device in flat
-# position and also give consistency with some keyboard keys controlled by the
-# Video Bus device (brightness down/up), the HP WMI hotkeys device (mic mute and
-# hp hubs launcher key) and the backlight getting on and off by the firmware at
-# the same time it enables disables the input.
-# This one is for the keyboard and...
-[HP OmniBook Ultra Flip Laptop 14-fh0xxx Keyboard]
+# The HP OmniBook Ultra Flip 14 toggles tablet mode at a little less than 180
+# degrees and hardware switches off inputs at a little more than 180 degrees.
+# We don't suspend ourselves to allow using them in flat position. It is
+# possible that HP fixes this in the future (i.e. so tablet mode toggles
+# after 180 degrees) so check before removing these rules.
+# This rule is for the keyboard and...
+[HP OmniBook Ultra Flip Laptop 14-fh0xxx and 14t-fh000 Keyboard]
 MatchBus=ps2
 MatchUdevType=keyboard
-MatchDMIModalias=dmi:*:svnHP:pnHPOmniBookUltraFlipLaptop14-fh0xxx:*
+MatchDMIModalias=dmi:*:svnHP:*:rn8CDE:*
 ModelTabletModeNoSuspend=1
 
-# ...this one is for the touchpad.
-[HP OmniBook Ultra Flip Laptop 14-fh0xxx Touchpad]
+# ...this rule is for the touchpad.
+[HP OmniBook Ultra Flip Laptop 14-fh0xxx and 14t-fh000 Touchpad]
 MatchBus=i2c
 MatchUdevType=touchpad
-MatchDMIModalias=dmi:*:svnHP:pnHPOmniBookUltraFlipLaptop14-fh0xxx:*
+MatchDMIModalias=dmi:*:svnHP:*:rn8CDE:*
 ModelTabletModeNoSuspend=1
 
 [HP Pavilion dm4]
