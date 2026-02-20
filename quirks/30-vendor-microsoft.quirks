@@ -11,15 +11,10 @@ AttrLidSwitchReliability=write_open
 # - Surface Laptop 3: Microsoft Surface 045E:09AE Keyboard
 # - Surface Book 2: Microsoft Surface Keyboard
 [Microsoft Surface Keyboard]
-MatchName=*Microsoft Surface *Keyboard*
+MatchName=Microsoft Surface *Keyboard
 MatchDMIModalias=dmi:*:svnMicrosoftCorporation:*
-AttrKeyboardIntegration=internal
-
-[Microsoft Surface Cover]
-MatchName=*Microsoft Surface *Cover*
-MatchDMIModalias=dmi:*:svnMicrosoftCorporation:*
-AttrKeyboardIntegration=internal
 AttrEventCode=-BTN_0;
+AttrKeyboardIntegration=internal
 
 [Microsoft Surface Laptop Studio Touchpad]
 MatchVendor=0x045E
