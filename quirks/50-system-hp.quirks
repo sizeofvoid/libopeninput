@@ -42,6 +42,9 @@ MatchBus=i2c
 MatchUdevType=touchpad
 MatchDMIModalias=dmi:*:svnHP:*:rn8CDE:*
 ModelTabletModeNoSuspend=1
+AttrPressureRange=15:5
+AttrThumbPressureThreshold=80
+AttrPalmPressureThreshold=125
 
 [HP Pavilion dm4]
 MatchName=*SynPS/2 Synaptics TouchPad
