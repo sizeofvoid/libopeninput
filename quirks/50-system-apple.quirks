@@ -88,6 +88,7 @@ AttrThumbSizeThreshold=700
 MatchBus=usb
 MatchVendor=0x05AC
 MatchProduct=0x0324
+AttrSizeHint=162x115
 AttrTouchSizeRange=20:10
 AttrPressureRange=3:0
 AttrPalmSizeThreshold=900
