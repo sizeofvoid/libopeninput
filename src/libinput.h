@@ -7371,14 +7371,9 @@ libinput_tablet_tool_config_eraser_button_get_default_mode(
  * the eraser mode to @ref LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON via
  * libinput_tablet_tool_config_eraser_button_set_mode().
  *
- * The buttons BTN_STYLUS, BTN_STYLUS2 and BTN_STYLUS2 are always
- * allowed, even if libinput_tablet_tool_has_button() returns zero
- * for the button. Otherwise, the button must be one that
- * libinput_tablet_tool_has_button() returns a nonzero value for.
- *
  * @param tool The libinput tool
- * @param button The button, usually one of BTN_STYLUS, BTN_STYLUS2 or
- * BTN_STYLUS3
+ * @param button The button code. Must be a valid button (e.g. BTN_STYLUS)
+ * excluding fake buttons (e.g. BTN_TOOL_*) and keys (KEY_*)
  *
  * @return A config status code
  *

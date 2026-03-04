@@ -1311,18 +1311,6 @@ eraser_button_get_default_mode(struct libinput_tablet_tool *tool)
 static enum libinput_config_status
 eraser_button_set_button(struct libinput_tablet_tool *tool, uint32_t button)
 {
-	switch (button) {
-	case BTN_STYLUS:
-	case BTN_STYLUS2:
-	case BTN_STYLUS3:
-		break;
-	default:
-		log_bug_libinput(libinput_device_get_context(tool->last_device),
-				 "Unsupported eraser button 0x%x",
-				 button);
-		return LIBINPUT_CONFIG_STATUS_INVALID;
-	}
-
 	tool->eraser_button.want_button = button;
 
 	eraser_button_toggle(tool);
