@@ -7883,6 +7883,189 @@ START_TEST(tablet_eraser_button_disabled)
 }
 END_TEST
 
+START_TEST(tablet_eraser_button_different_buttons)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 },
+	};
+	_unref_(libinput_tablet_tool) *pen = NULL;
+
+	uint32_t eraser_button_mapping =
+		litest_test_param_get_i32(test_env->params, "eraser-button-mapping");
+
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
+		return LITEST_NOT_APPLICABLE;
+
+	litest_log_group("Prox in/out to disable proximity timer") {
+		litest_tablet_proximity_in(dev, 25, 25, axes);
+		litest_tablet_proximity_out(dev);
+		litest_timeout_tablet_proxout(li);
+
+		litest_checkpoint(
+			"Eraser prox in/out to force-disable config on broken tablets");
+		litest_tablet_set_tool_type(dev, BTN_TOOL_RUBBER);
+		litest_tablet_proximity_in(dev, 25, 25, axes);
+		litest_tablet_proximity_out(dev);
+		litest_timeout_tablet_proxout(li);
+	}
+
+	litest_drain_events(li);
+
+	litest_log_group("Proximity in for pen") {
+		litest_tablet_set_tool_type(dev, BTN_TOOL_PEN);
+		litest_tablet_proximity_in(dev, 20, 20, axes);
+		litest_dispatch(li);
+		_destroy_(libinput_event) *ev = libinput_get_event(li);
+		auto tev = litest_is_proximity_event(
+			ev,
+			LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+		pen = libinput_event_tablet_tool_get_tool(tev);
+		litest_assert_enum_eq(libinput_tablet_tool_get_type(pen),
+				      LIBINPUT_TABLET_TOOL_TYPE_PEN);
+		pen = libinput_tablet_tool_ref(pen);
+	}
+
+	if (!libinput_tablet_tool_config_eraser_button_get_modes(pen))
+		return LITEST_NOT_APPLICABLE;
+
+	auto status = libinput_tablet_tool_config_eraser_button_set_mode(
+		pen,
+		LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+	status = libinput_tablet_tool_config_eraser_button_set_button(
+		pen,
+		eraser_button_mapping);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_SUCCESS);
+
+	litest_log_group("Prox out to apply changed settings") {
+		litest_tablet_proximity_out(dev);
+		litest_timeout_tablet_proxout(li);
+		litest_drain_events(li);
+	}
+
+	litest_mark_test_start();
+
+	litest_tablet_proximity_in(dev, 10, 10, axes);
+	litest_drain_events(li);
+
+	/* Make sure the button still works as-is */
+	if (libinput_tablet_tool_has_button(pen, eraser_button_mapping)) {
+		litest_log_group("Testing button on pen") {
+			litest_event(dev, EV_KEY, eraser_button_mapping, 1);
+			litest_event(dev, EV_SYN, SYN_REPORT, 0);
+			litest_dispatch(li);
+			litest_event(dev, EV_KEY, eraser_button_mapping, 0);
+			litest_event(dev, EV_SYN, SYN_REPORT, 0);
+			litest_dispatch(li);
+			litest_assert_tablet_button_event(
+				li,
+				eraser_button_mapping,
+				LIBINPUT_BUTTON_STATE_PRESSED);
+			litest_assert_tablet_button_event(
+				li,
+				eraser_button_mapping,
+				LIBINPUT_BUTTON_STATE_RELEASED);
+		}
+	}
+
+	litest_dispatch(li);
+
+	litest_log_group("Prox out for the pen ...") {
+		litest_with_event_frame(dev) {
+			litest_tablet_set_tool_type(dev, BTN_TOOL_PEN);
+			litest_tablet_proximity_out(dev);
+		}
+		litest_dispatch(li);
+	}
+
+	litest_log_group("...and prox in for the eraser") {
+		litest_with_event_frame(dev) {
+			litest_tablet_set_tool_type(dev, BTN_TOOL_RUBBER);
+			litest_tablet_proximity_in(dev, 12, 12, axes);
+		}
+		litest_dispatch(li);
+	}
+
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+	litest_log_group("Expect button event") {
+		_destroy_(libinput_event) *ev = libinput_get_event(li);
+		auto tev =
+			litest_is_tablet_event(ev, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
+		litest_assert_enum_eq(libinput_event_tablet_tool_get_button_state(tev),
+				      LIBINPUT_BUTTON_STATE_PRESSED);
+		litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev),
+				     eraser_button_mapping);
+		litest_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev), pen);
+	}
+
+	litest_log_group("Prox out for the eraser...") {
+		litest_with_event_frame(dev) {
+			litest_tablet_proximity_out(dev);
+		}
+		litest_dispatch(li);
+	}
+
+	litest_log_group("...and prox in for the pen") {
+		litest_with_event_frame(dev) {
+			litest_tablet_set_tool_type(dev, BTN_TOOL_PEN);
+			litest_tablet_proximity_in(dev, 12, 12, axes);
+		}
+		litest_dispatch(li);
+	}
+
+	litest_drain_events_of_type(li, LIBINPUT_EVENT_TABLET_TOOL_AXIS);
+
+	litest_log_group("Expect button event") {
+		_destroy_(libinput_event) *ev = libinput_get_event(li);
+		auto tev =
+			litest_is_tablet_event(ev, LIBINPUT_EVENT_TABLET_TOOL_BUTTON);
+		litest_assert_int_eq(libinput_event_tablet_tool_get_button(tev),
+				     eraser_button_mapping);
+		litest_assert_ptr_eq(libinput_event_tablet_tool_get_tool(tev), pen);
+	}
+}
+END_TEST
+
+START_TEST(tablet_eraser_button_invalid_buttons)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+	struct axis_replacement axes[] = {
+		{ ABS_DISTANCE, 10 },
+		{ ABS_PRESSURE, 0 },
+		{ -1, -1 },
+	};
+
+	uint32_t eraser_button_mapping =
+		litest_test_param_get_i32(test_env->params, "eraser-button-mapping");
+
+	if (!libevdev_has_event_code(dev->evdev, EV_KEY, BTN_TOOL_RUBBER))
+		return LITEST_NOT_APPLICABLE;
+
+	litest_drain_events(li);
+	litest_tablet_proximity_in(dev, 20, 20, axes);
+	litest_dispatch(li);
+
+	_destroy_(libinput_event) *ev = libinput_get_event(li);
+	auto tev =
+		litest_is_proximity_event(ev, LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN);
+	auto tool = libinput_event_tablet_tool_get_tool(tev);
+
+	if (!libinput_tablet_tool_config_eraser_button_get_modes(tool))
+		return LITEST_NOT_APPLICABLE;
+
+	auto status = libinput_tablet_tool_config_eraser_button_set_button(
+		tool,
+		eraser_button_mapping);
+	litest_assert_enum_eq(status, LIBINPUT_CONFIG_STATUS_INVALID);
+}
+END_TEST
+
 START_TEST(tablet_eraser_button_config_after_device_removal)
 {
 	_litest_context_destroy_ struct libinput *li = litest_create_context();
@@ -8099,7 +8282,21 @@ TEST_COLLECTION(tablet_eraser)
 			       "with-motion-events", 'b') {
 		litest_add_parametrized(tablet_eraser_button_disabled, LITEST_TABLET, LITEST_TOTEM|LITEST_FORCED_PROXOUT, params);
 	}
-
+	litest_with_parameters(params,
+			       "eraser-button-mapping", 'I', 4,
+					litest_named_i32(BTN_STYLUS),
+					litest_named_i32(BTN_STYLUS3),
+					litest_named_i32(BTN_LEFT),
+					litest_named_i32(BTN_BACK)){
+		litest_add_parametrized(tablet_eraser_button_different_buttons, LITEST_TABLET, LITEST_TOTEM|LITEST_FORCED_PROXOUT, params);
+	}
+	litest_with_parameters(params,
+			       "eraser-button-mapping", 'I', 3,
+					litest_named_i32(BTN_TOUCH),
+					litest_named_i32(BTN_TOOL_FINGER),
+					litest_named_i32(KEY_A)) {
+		litest_add_parametrized(tablet_eraser_button_invalid_buttons, LITEST_TABLET, LITEST_TOTEM|LITEST_FORCED_PROXOUT, params);
+	}
 	litest_add_no_device(tablet_eraser_button_config_after_device_removal);
 	/* clang-format on */
 }
