@@ -332,9 +332,9 @@ evdev_usage_is_button(evdev_usage_t usage)
 	case EVDEV_BTN_TOOL_FINGER:
 	case EVDEV_BTN_TOUCH:
 		return false;
-	case BTN_STYLUS:
-	case BTN_STYLUS2:
-	case BTN_STYLUS3:
+	case EVDEV_BTN_STYLUS:
+	case EVDEV_BTN_STYLUS2:
+	case EVDEV_BTN_STYLUS3:
 		return true;
 	case EVDEV_BTN_MISC ... EVDEV_BTN_DIGI - 1:
 	case EVDEV_BTN_WHEEL ... EVDEV_BTN_GEAR_UP:
