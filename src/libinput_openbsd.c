@@ -2409,15 +2409,23 @@ axis_notify_event(struct libinput_device *device,
     const struct device_float_coords *raw)
 {
 	struct libinput_event_pointer *axis_event;
+	struct wheel_v120 v120 = { 0.0, 0.0 };
 	uint32_t axes;
 
 	axis_event = zalloc(sizeof *axis_event);
 	if (!axis_event)
 		return;
-	if (delta->x)
+	if (delta->x) {
 		axes = bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
-	else
+		v120.x = delta->x * 3.75;
+	} else {
 		axes = bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+		/* Multiply with 3.75 to translate delta->y, which is 32
+		 * for one mouse wheel detent to 120 as required by the
+		 * v120 wheel API
+		 */
+		v120.y = delta->y * 3.75;
+	}
 
 	*axis_event = (struct libinput_event_pointer) {
 		.time = time,
@@ -2425,6 +2433,9 @@ axis_notify_event(struct libinput_device *device,
 		.delta_raw = *raw,
 		.source = LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
 		.axes = axes,
+		.discrete.x = 0,
+		.discrete.y = 0,
+		.v120 = v120
 	};
 
 	post_device_event(device, time, LIBINPUT_EVENT_POINTER_SCROLL_WHEEL,
