@@ -417,9 +417,13 @@ install_subdir('quirks',
 	       install_dir : dir_data,
 	       strip_directory : true)
 
-src_libquirks = [
-	'src/quirks.c',
-]
+if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
+	src_libquirks = [
+		'src/quirks.c',
+	]
+else
+	src_libquirks = []
+endif
 
 deps_libquirks = [dep_udev, dep_libwacom, dep_libinput_util]
 libquirks = static_library('quirks', src_libquirks,
@@ -1027,10 +1031,29 @@ if get_option('tests')
 		'test/litest-main.c',
 	]
 
-if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
-	if have_mtdev
-		litest_sources += [
-			'test/litest-device-protocol-a-touch-screen.c',
+	if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
+		if have_mtdev
+			litest_sources += [
+				'test/litest-device-protocol-a-touch-screen.c',
+			]
+		endif
+
+		dep_dl = cc.find_library('dl')
+		deps_litest = [
+			dep_libinput,
+			dep_udev,
+			dep_libevdev,
+			dep_dl,
+			dep_lm,
+			dep_libsystemd,
+			dep_libquirks,
+			dep_libinput_util_libinput,
+		]
+	else
+		deps_litest = [
+			dep_libinput,
+			dep_check,
+			dep_lm,
 		]
 	endif
 
