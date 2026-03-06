@@ -8,5 +8,6 @@
 *.trs
 *.gcda
 *.gcno
+*.cache
 tags
 *.gnuplot
