@@ -37,6 +37,7 @@
 
 #include "input.h"
 #include "libinput.h"
+#include "libinput-log.h"
 #include "libinput-private.h"
 #include "timer.h"
 #include "quirks.h"
@@ -281,7 +282,7 @@ log_msg_va(struct libinput *libinput,
 	   const char *format,
 	   va_list args)
 {
-	if (is_logged(libinput, priority))
+	if (log_is_logged(libinput, priority))
 		libinput->log_handler(libinput, priority, format, args);
 }
 
