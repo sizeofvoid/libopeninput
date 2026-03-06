@@ -39,7 +39,11 @@
 #include "util-newtype.h"
 
 #include "libinput-log.h"
+#if !defined(__OpenBSD__) && !defined(__NetBSD__)
 #include "libinput-plugin-system.h"
+#else
+#include "libinput-feature.h"
+#endif
 #include "libinput-private-config.h"
 #include "libinput-util.h"
 #include "libinput-version.h"
@@ -227,7 +231,10 @@ struct libinput {
 	bool quirks_initialized;
 	struct quirks_context *quirks;
 
+
+#if !defined(__OpenBSD__) && !defined(__NetBSD__)
 	struct libinput_plugin_system plugin_system;
+#endif
 
 #ifdef HAVE_LIBWACOM
 	struct {
@@ -531,6 +538,7 @@ struct libinput_device {
 	char* devname;
 	int fd;
 
+#if !defined(__OpenBSD__) && !defined(__NetBSD__)
 	bitmask_t plugin_frame_callbacks;
 	/**
 	 * Lua plugins see the device before our internal
@@ -540,6 +548,7 @@ struct libinput_device {
 
 	void (*inject_evdev_frame)(struct libinput_device *device,
 				   struct evdev_frame *frame);
+#endif
 };
 
 enum libinput_tablet_tool_axis {

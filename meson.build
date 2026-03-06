@@ -191,7 +191,12 @@ if have_plugins
 	config_h.set('HAVE_PLUGINS', 1)
 endif
 
-autoload_plugins = get_option('autoload-plugins')
+if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
+	autoload_plugins = false
+else
+	autoload_plugins = get_option('autoload-plugins')
+endif
+
 if autoload_plugins
 	config_h.set('AUTOLOAD_PLUGINS', 1)
 endif
@@ -369,7 +374,6 @@ src_libinput_util = [
 	'src/util-list.c',
 	'src/util-ratelimit.c',
 	'src/util-strings.c',
-	'src/util-prop-parsers.c',
 ]
 libinput_util = static_library('libinput-util',
 			       src_libinput_util,
