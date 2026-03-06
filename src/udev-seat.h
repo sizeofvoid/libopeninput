@@ -27,6 +27,7 @@
 #include "config.h"
 
 #include <libudev.h>
+
 #include "libinput-private.h"
 
 struct udev_seat {

@@ -26,21 +26,21 @@
 #include "config.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
+#include "filter-private.h"
 #include "filter.h"
 #include "libinput-util.h"
-#include "filter-private.h"
 
 struct tablet_accelerator_flat {
 	struct motion_filter base;
 
 	double factor;
 	int xres, yres;
-	double xres_scale, /* 1000dpi : tablet res */
-	       yres_scale; /* 1000dpi : tablet res */
+	double xres_scale,  /* 1000dpi : tablet res */
+		yres_scale; /* 1000dpi : tablet res */
 };
 
 static inline struct normalized_coords
@@ -81,25 +81,26 @@ tablet_accelerator_filter_flat_pen(struct tablet_accelerator_flat *filter,
 	 * is almost identical to the tablet mapped to screen in absolute
 	 * mode. Tested on a Intuos5, other tablets may vary.
 	 */
-       const double DPI_CONVERSION = 96.0/25.4 * 2.5; /* unitless factor */
-       struct normalized_coords mm;
+	const double DPI_CONVERSION = 96.0 / 25.4 * 2.5; /* unitless factor */
+	struct normalized_coords mm;
 
-       mm.x = 1.0 * units->x/filter->xres;
-       mm.y = 1.0 * units->y/filter->yres;
-       accelerated.x = mm.x * filter->factor * DPI_CONVERSION;
-       accelerated.y = mm.y * filter->factor * DPI_CONVERSION;
+	mm.x = 1.0 * units->x / filter->xres;
+	mm.y = 1.0 * units->y / filter->yres;
+	accelerated.x = mm.x * filter->factor * DPI_CONVERSION;
+	accelerated.y = mm.y * filter->factor * DPI_CONVERSION;
 
-       return accelerated;
+	return accelerated;
 }
 
 static struct normalized_coords
 tablet_accelerator_filter_flat(struct motion_filter *filter,
 			       const struct device_float_coords *units,
-			       void *data, uint64_t time)
+			       void *data,
+			       uint64_t time)
 {
 	struct tablet_accelerator_flat *accel_filter =
 		(struct tablet_accelerator_flat *)filter;
-	struct libinput_tablet_tool *tool = (struct libinput_tablet_tool*)data;
+	struct libinput_tablet_tool *tool = (struct libinput_tablet_tool *)data;
 	enum libinput_tablet_tool_type type;
 	struct normalized_coords accel;
 
@@ -108,12 +109,10 @@ tablet_accelerator_filter_flat(struct motion_filter *filter,
 	switch (type) {
 	case LIBINPUT_TABLET_TOOL_TYPE_MOUSE:
 	case LIBINPUT_TABLET_TOOL_TYPE_LENS:
-		accel = tablet_accelerator_filter_flat_mouse(accel_filter,
-							     units);
+		accel = tablet_accelerator_filter_flat_mouse(accel_filter, units);
 		break;
 	default:
-		accel = tablet_accelerator_filter_flat_pen(accel_filter,
-							   units);
+		accel = tablet_accelerator_filter_flat_pen(accel_filter, units);
 		break;
 	}
 
@@ -121,8 +120,7 @@ tablet_accelerator_filter_flat(struct motion_filter *filter,
 }
 
 static bool
-tablet_accelerator_set_speed(struct motion_filter *filter,
-			     double speed_adjustment)
+tablet_accelerator_set_speed(struct motion_filter *filter, double speed_adjustment)
 {
 	struct tablet_accelerator_flat *accel_filter =
 		(struct tablet_accelerator_flat *)filter;
@@ -162,8 +160,8 @@ create_tablet_filter_flat(int xres, int yres)
 	filter->factor = 1.0;
 	filter->xres = xres;
 	filter->yres = yres;
-	filter->xres_scale = DEFAULT_MOUSE_DPI/(25.4 * xres);
-	filter->yres_scale = DEFAULT_MOUSE_DPI/(25.4 * yres);
+	filter->xres_scale = DEFAULT_MOUSE_DPI / (25.4 * xres);
+	filter->yres_scale = DEFAULT_MOUSE_DPI / (25.4 * yres);
 
 	return filter;
 }

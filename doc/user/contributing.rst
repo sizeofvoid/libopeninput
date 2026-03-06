@@ -181,7 +181,7 @@ sufficient to make some of the more confusing steps obvious.
   with your username). git will call this repository ``gitlab``. ::
 
     cd /path/to/libinput.git
-    git remote add gitlab git@gitlab.freedesktop.org:USERNAME/libinput.git
+    git remote add gitlab git@ssh.gitlab.freedesktop.org:USERNAME/libinput.git
     git fetch gitlab
 
 - Create a new branch and commit your changes to that branch. ::

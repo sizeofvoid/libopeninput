@@ -31,16 +31,19 @@
 #warning "libinput relies on assert(). #defining NDEBUG is not recommended"
 #endif
 
-#include "libinput.h"
-
 #include "util-bits.h"
-#include "util-macros.h"
 #include "util-list.h"
+#include "util-macros.h"
 #include "util-matrix.h"
-#include "util-strings.h"
-#include "util-ratelimit.h"
+#include "util-mem.h"
+#include "util-multivalue.h"
 #include "util-prop-parsers.h"
+#include "util-range.h"
+#include "util-ratelimit.h"
+#include "util-strings.h"
 #include "util-time.h"
+
+#include "libinput.h"
 
 #define VENDOR_ID_APPLE 0x5ac
 #define VENDOR_ID_CHICONY 0x4f2
@@ -56,15 +59,34 @@
 #define DEFAULT_MOUSE_DPI 1000
 #define DEFAULT_TRACKPOINT_SENSITIVITY 128
 
-#define trace(...) \
+#define _trace(file, ...) \
 	do { \
 	char buf_[1024]; \
 	snprintf(buf_, sizeof(buf_), __VA_ARGS__); \
-	printf(ANSI_BLUE "%s():%d - " ANSI_RED "%s" ANSI_NORMAL "\n", __func__, __LINE__, buf_); \
+	fprintf(file, ANSI_BLUE "%30s():%4d - " ANSI_RED "%s" ANSI_NORMAL "\n", __func__, __LINE__, buf_); \
 	} while (0)
 
+#define trace(...) _trace(stdout, __VA_ARGS__)
+#define etrace(...) _trace(stderr, __VA_ARGS__)
+
 #define LIBINPUT_EXPORT __attribute__ ((visibility("default")))
-#define LIBINPUT_UNUSED __attribute__ ((unused))
+
+/* Commonly-used cleanup  */
+#ifdef udev_list_entry_foreach
+DEFINE_UNREF_CLEANUP_FUNC(udev);
+DEFINE_UNREF_CLEANUP_FUNC(udev_device);
+DEFINE_UNREF_CLEANUP_FUNC(udev_enumerate);
+DEFINE_UNREF_CLEANUP_FUNC(udev_monitor);
+#endif
+#ifdef LIBEVDEV_ATTRIBUTE_PRINTF
+DEFINE_FREE_CLEANUP_FUNC(libevdev);
+#endif
+DEFINE_UNREF_CLEANUP_FUNC(libinput);
+DEFINE_UNREF_CLEANUP_FUNC(libinput_device);
+DEFINE_UNREF_CLEANUP_FUNC(libinput_tablet_tool);
+DEFINE_UNREF_CLEANUP_FUNC(libinput_seat);
+DEFINE_DESTROY_CLEANUP_FUNC(libinput_event);
+DEFINE_DESTROY_CLEANUP_FUNC(libinput_config_accel);
 
 #if defined(__OpenBSD__) || defined(__NetBSD__)
 #define bit(x_) (1UL << (x_))

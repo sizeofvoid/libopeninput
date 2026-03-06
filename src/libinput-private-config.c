@@ -30,8 +30,7 @@
 int
 libinput_device_config_gesture_hold_is_available(struct libinput_device *device)
 {
-	if (!libinput_device_has_capability(device,
-					    LIBINPUT_DEVICE_CAP_GESTURE))
+	if (!libinput_device_has_capability(device, LIBINPUT_DEVICE_CAP_GESTURE))
 		return 0;
 
 	if (!device->config.gesture->get_hold_default(device))
@@ -49,8 +48,8 @@ libinput_device_config_gesture_set_hold_enabled(struct libinput_device *device,
 		return LIBINPUT_CONFIG_STATUS_INVALID;
 
 	if (!libinput_device_config_gesture_hold_is_available(device)) {
-		return enable ? LIBINPUT_CONFIG_STATUS_UNSUPPORTED :
-				LIBINPUT_CONFIG_STATUS_SUCCESS;
+		return enable ? LIBINPUT_CONFIG_STATUS_UNSUPPORTED
+			      : LIBINPUT_CONFIG_STATUS_SUCCESS;
 	}
 
 	return device->config.gesture->set_hold_enabled(device, enable);

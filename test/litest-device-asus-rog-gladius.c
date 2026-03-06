@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 /* Note: this is the second event node of this mouse only, the first event
  * node is just a normal mouse */
@@ -35,6 +35,7 @@ static struct input_id input_id = {
 	.product = 0x181a,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_REL, REL_X,
 	EV_REL, REL_Y,
@@ -306,19 +307,20 @@ static int events[] = {
 	EV_LED, LED_KANA,
 	-1 , -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_VOLUME, 0, 668, 0, 0, 0 },
-	{ .value = -1 }
+	{ .value = -1 },
 };
+/* clang-format on */
 
-TEST_DEVICE("mouse-gladius",
-	.type = LITEST_MOUSE_GLADIUS,
-	.features = LITEST_RELATIVE | LITEST_WHEEL | LITEST_KEYS,
-	.interface = NULL,
+TEST_DEVICE(LITEST_MOUSE_GLADIUS,
+	    .features = LITEST_RELATIVE | LITEST_WHEEL | LITEST_KEYS,
+	    .interface = NULL,
 
-	.name = "ASUS ROG GLADIUS",
-	.id = &input_id,
-	.absinfo = absinfo,
-	.events = events,
-)
+	    .name = "ASUS ROG GLADIUS",
+	    .id = &input_id,
+	    .absinfo = absinfo,
+	    .events = events, )

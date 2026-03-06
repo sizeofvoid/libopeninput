@@ -24,6 +24,8 @@
 
 #include "config.h"
 
+#include <stdint.h>
+
 #include "util-strings.h"
 
 /**
@@ -60,6 +62,64 @@ next_word(const char **state, size_t *len, const char *separators)
 	return next;
 }
 
+size_t
+strv_len(char **strv)
+{
+	if (!strv)
+		return 0;
+
+	size_t size = 1;
+	while (*strv) {
+		size++;
+		strv++;
+	}
+	return size;
+}
+
+char **
+strv_append_vprintf(char **strv, const char *fmt, va_list args)
+{
+	char *dup = strdup_vprintf(fmt, args);
+	char **s = strv_append_take(strv, &dup);
+	return s;
+}
+
+char **
+strv_append_printf(char **strv, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	char **s = strv_append_vprintf(strv, fmt, args);
+	va_end(args);
+	return s;
+}
+
+char **
+strv_append_strdup(char **strv, const char *str)
+{
+	char *dup = safe_strdup(str);
+	return strv_append_take(strv, &dup);
+}
+
+char **
+strv_append_take(char **strv, char **str)
+{
+	if (str && *str) {
+		size_t len = strv_len(strv) + 1;
+		len = max(len, 2);
+
+		char **s = realloc(strv, len * sizeof(*strv));
+		if (!s)
+			abort();
+		s[len - 1] = NULL;
+		s[len - 2] = *str;
+		*str = NULL;
+		return s;
+	} else {
+		return strv;
+	}
+}
+
 /**
  * Return a null-terminated string array with the contents of argv
  * duplicated.
@@ -68,7 +128,7 @@ next_word(const char **state, size_t *len, const char *separators)
  *
  * @return A null-terminated string array or NULL on errors
  */
-char**
+char **
 strv_from_argv(int argc, char **argv)
 {
 	char **strv = NULL;
@@ -113,7 +173,6 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 {
 	assert(in != NULL);
 	assert(separators != NULL);
-	assert(num_elements != NULL);
 
 	const char *s = in;
 	size_t l, nelems = 0;
@@ -121,7 +180,8 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 		nelems++;
 
 	if (nelems == 0) {
-		*num_elements = 0;
+		if (num_elements)
+			*num_elements = 0;
 		return NULL;
 	}
 
@@ -135,14 +195,17 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 		char *copy = strndup(word, l);
 		if (!copy) {
 			strv_free(strv);
-			*num_elements = 0;
+			if (num_elements)
+				*num_elements = 0;
 			return NULL;
 		}
 
+		assert(idx < strv_len);
 		strv[idx++] = copy;
 	}
 
-	*num_elements = nelems;
+	if (num_elements)
+		*num_elements = nelems;
 
 	return strv;
 }
@@ -164,8 +227,6 @@ strv_from_string(const char *in, const char *separators, size_t *num_elements)
 char *
 strv_join(char **strv, const char *joiner)
 {
-	assert(strv != NULL);
-
 	char **s;
 	char *str;
 	size_t slen = 0;
@@ -190,13 +251,89 @@ strv_join(char **strv, const char *joiner)
 
 	str = zalloc(slen + 1); /* trailing \0 */
 	for (s = strv; *s; s++) {
-		strcat(str, *s);
+		strcat(str, *s); // NOLINT: security.insecureAPI.strcpy
 		--count;
 		if (count > 0)
-			strcat(str, joiner);
+			strcat(str, joiner); // NOLINT: security.insecureAPI.strcpy
 	}
 
 	return str;
+}
+
+/**
+ * Iterate through strv, calling func with each string and its respective index.
+ * Iteration stops successfully after max elements or at the last element,
+ * whichever occurs first.
+ *
+ * If func returns non-zero, iteration stops and strv_for_each returns
+ * that value.
+ *
+ * @return zero on success, otherwise the error returned by the callback
+ */
+int
+strv_for_each_n(const char **strv, size_t max, strv_foreach_callback_t func, void *data)
+{
+	for (size_t i = 0; i < max && strv && strv[i]; i++) {
+		int ret = func(strv[i], i, data);
+		if (ret)
+			return ret;
+	}
+	return 0;
+}
+
+/**
+ * Iterate through strv, calling func with each string and its respective index.
+ * If func returns non-zero, iteration stops and strv_for_each returns
+ * that value.
+ *
+ * @return zero on success, otherwise the error returned by the callback
+ */
+int
+strv_for_each(const char **strv, strv_foreach_callback_t func, void *data)
+{
+	return strv_for_each_n(strv, SIZE_MAX, func, data);
+}
+
+bool
+strv_find(char **strv, const char *needle, size_t *index_out)
+{
+	if (!strv)
+		return false;
+
+	size_t index = 0;
+	char **s = strv;
+	while (*s != NULL) {
+		if (streq(*s, needle)) {
+			if (index_out)
+				*index_out = index;
+			return true;
+		}
+		s++;
+		index++;
+	}
+
+	return false;
+}
+
+bool
+strv_find_substring(char **strv, const char *needle, size_t *index_out)
+{
+	if (!strv || !needle)
+		return false;
+
+	size_t index = 0;
+	char **s = strv;
+	while (*s != NULL) {
+		if (strstr(*s, needle)) {
+			if (index_out)
+				*index_out = index;
+			return true;
+		}
+		s++;
+		index++;
+	}
+
+	return false;
 }
 
 /**
@@ -250,5 +387,5 @@ trunkname(const char *filename)
 	if (suffix == NULL)
 		return safe_strdup(base);
 	else
-		return strndup(base, suffix-base);
+		return strndup(base, suffix - base);
 }

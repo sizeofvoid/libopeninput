@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x2e22,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_REL, REL_X,
 	EV_REL, REL_Y,
@@ -174,23 +175,24 @@ static int events[] = {
 	EV_KEY, KEY_BRIGHTNESS_MAX,
 	-1 , -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_VOLUME, 0, 572, 0, 0, 0 },
 	{ ABS_MISC, 0, 0, 0, 0, 0 },
 	{ ABS_MISC + 1, 0, 0, 0, 0, 0 },
 	{ ABS_MISC + 2, 0, 0, 0, 0, 0 },
 	{ ABS_MISC + 3, 0, 0, 0, 0, 0 },
-	{ .value = -1 }
+	{ .value = -1 },
 };
+/* clang-format on */
 
-TEST_DEVICE("mouse-roccat",
-	.type = LITEST_MOUSE_ROCCAT,
-	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL | LITEST_KEYS,
-	.interface = NULL,
+TEST_DEVICE(LITEST_MOUSE_ROCCAT,
+	    .features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL | LITEST_KEYS,
+	    .interface = NULL,
 
-	.name = "ROCCAT ROCCAT Kone XTD",
-	.id = &input_id,
-	.absinfo = absinfo,
-	.events = events,
-)
+	    .name = "ROCCAT ROCCAT Kone XTD",
+	    .id = &input_id,
+	    .absinfo = absinfo,
+	    .events = events, )

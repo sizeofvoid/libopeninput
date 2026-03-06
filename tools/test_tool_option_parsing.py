@@ -219,6 +219,7 @@ options = {
         "set-profile": ["adaptive", "flat"],
         "set-tap-map": ["lrm", "lmr"],
         "set-clickfinger-map": ["lrm", "lmr"],
+        "enable-drag-lock": ["sticky", "timeout"],
     },
     # options with a range (and increment)
     "ranges": {

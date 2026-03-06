@@ -16,9 +16,9 @@ pressure\-related bug report.
 .PP
 For a full description on how libinput's pressure-to-click behavior works, see
 the online documentation here:
-.I https://wayland.freedesktop.org/libinput/doc/latest/touchpad_pressure.html
+.I https://wayland.freedesktop.org/libinput/doc/latest/touchpad-pressure.html
 and
-.I https://wayland.freedesktop.org/libinput/doc/latest/palm_detection.html
+.I https://wayland.freedesktop.org/libinput/doc/latest/palm-detection.html
 .PP
 This is a debugging tool only, its output may change at any time. Do not
 rely on the output.

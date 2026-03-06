@@ -26,13 +26,13 @@
 #include "config.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
+#include "filter-private.h"
 #include "filter.h"
 #include "libinput-util.h"
-#include "filter-private.h"
 
 #define TP_MAGIC_SLOWDOWN_FLAT 0.2968
 
@@ -46,7 +46,8 @@ struct touchpad_accelerator_flat {
 static struct normalized_coords
 accelerator_filter_touchpad_flat(struct motion_filter *filter,
 				 const struct device_float_coords *unaccelerated,
-				 void *data, uint64_t time)
+				 void *data,
+				 uint64_t time)
 {
 	struct touchpad_accelerator_flat *accel =
 		(struct touchpad_accelerator_flat *)filter;
@@ -64,9 +65,11 @@ accelerator_filter_touchpad_flat(struct motion_filter *filter,
 }
 
 static struct normalized_coords
-accelerator_filter_noop_touchpad_flat(struct motion_filter *filter,
-				      const struct device_float_coords *unaccelerated,
-				      void *data, uint64_t time)
+accelerator_filter_constant_touchpad_flat(
+	struct motion_filter *filter,
+	const struct device_float_coords *unaccelerated,
+	void *data,
+	uint64_t time)
 {
 	/* We map the unaccelerated flat filter to have the same behavior as
 	 * the "accelerated" flat filter.
@@ -80,6 +83,30 @@ accelerator_filter_noop_touchpad_flat(struct motion_filter *filter,
 	 * pointer motion.
 	 */
 	return accelerator_filter_touchpad_flat(filter, unaccelerated, data, time);
+}
+
+static struct normalized_coords
+accelerator_filter_scroll_touchpad_flat(struct motion_filter *filter,
+					const struct device_float_coords *unaccelerated,
+					void *data,
+					uint64_t time,
+					enum filter_scroll_type type)
+{
+	/* Scroll wheels were not historically accelerated and have different
+	 * units than button scrolling. Maintain the status quo and do not
+	 * accelerate wheel events.
+	 */
+	if (type == FILTER_SCROLL_TYPE_WHEEL) {
+		return (struct normalized_coords){
+			.x = unaccelerated->x,
+			.y = unaccelerated->y,
+		};
+	}
+
+	return accelerator_filter_constant_touchpad_flat(filter,
+							 unaccelerated,
+							 data,
+							 time);
 }
 
 static bool
@@ -101,7 +128,7 @@ static void
 accelerator_destroy_touchpad_flat(struct motion_filter *filter)
 {
 	struct touchpad_accelerator_flat *accel =
-		(struct touchpad_accelerator_flat *) filter;
+		(struct touchpad_accelerator_flat *)filter;
 
 	free(accel);
 }
@@ -109,8 +136,8 @@ accelerator_destroy_touchpad_flat(struct motion_filter *filter)
 static const struct motion_filter_interface accelerator_interface_touchpad_flat = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT,
 	.filter = accelerator_filter_touchpad_flat,
-	.filter_constant = accelerator_filter_noop_touchpad_flat,
-	.filter_scroll = accelerator_filter_noop_touchpad_flat,
+	.filter_constant = accelerator_filter_constant_touchpad_flat,
+	.filter_scroll = accelerator_filter_scroll_touchpad_flat,
 	.restart = NULL,
 	.destroy = accelerator_destroy_touchpad_flat,
 	.set_speed = accelerator_set_speed_touchpad_flat,

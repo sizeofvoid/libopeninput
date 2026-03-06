@@ -467,3 +467,78 @@ devices arbitration has to be done in userspace.
 libinput uses the **libinput_device_group** to decide on touch arbitration
 and automatically discards touch events whenever a tool is in proximity.
 The exact behavior is device-dependent.
+
+.. _tablet-area:
+
+------------------------------------------------------------------------------
+Tablet area
+------------------------------------------------------------------------------
+
+External tablet devices such as e.g. the Wacom Intuos series can be configured
+to reduce the available logical input area. Typically the logical input area
+is equivalent to the physical input area but it can be reduced with the
+**libinput_device_config_area_set_rectangle()** call. Once reduced, input
+events outside the logical input area are ignored and the logical input area
+acts as if it represented the extents of the physical tablet.
+
+.. figure:: tablet-area.svg
+   :align: center
+
+   Tablet area configuration example
+
+In the image above, the area is set to the rectangle 0.25/0.25 to 0.5/0.75.
+Even though the tool is roughly at the physical position ``0.5 * width`` and
+``0.75 * height``, the return values of
+**libinput_event_tablet_tool_get_x_transformed()** and
+**libinput_event_tablet_tool_get_y_transformed()** would be close to the
+maximum provided in this call.
+
+The size of the tablet reported by **libinput_device_get_size()** always reflects
+the physical area, not the logical area.
+
+.. _tablet-eraser-button:
+
+------------------------------------------------------------------------------
+Tablet eraser buttons
+------------------------------------------------------------------------------
+
+Tablet tools come in a variety of forms but the most common one is a
+pen-like tool. Some of these pen-like tools have a virtual eraser at the
+tip of the tool - inverting the tool brings the eraser into proximity.
+
+.. figure:: tablet-eraser-invert.svg
+    :align: center
+
+    An pen-like tool used as pen and as eraser by inverting it
+
+Having an eraser as a separate tool is beneficial in many applications as the
+eraser tool can be assigned different functionality (colors, paint tools, etc.)
+that is easily available.
+
+However, a large proportion of tablet pens have an "eraser button". By
+pressing the button the pen switches to be an eraser tool.
+On the data level this is not done via a button event, instead the firmware
+will pretend the pen tool going out of proximity and the eraser coming
+into proximity immediately after - as if the tool was physically inverted.
+
+.. figure:: tablet-eraser-button.svg
+    :align: center
+
+    An pen-like tool used as pen and as eraser by pressing the eraser button
+
+Microsoft mandates this behavior (see
+`Windows Pen States <https://learn.microsoft.com/en-us/windows-hardware/design/component-guidelines/windows-pen-states>`_
+for details) and thus the overwhelming majority of devices will have
+an eraser button that virtually inverts the pen.
+
+Enforcing an eraser button means that users have one button less on the
+stylus that they would have otherwise. For some users the eraser button
+is in an inconvenient location, others don't want an eraser button at all.
+
+libinput provides an eraser button configuration that allows disabling the
+eraser button and turning it into a normal button event. If the eraser button
+is disabled, pressing that button will generate a normal tablet tool button
+event.
+
+This configuration is only available on pens with an eraser button, not on
+with an invert-type eraser.

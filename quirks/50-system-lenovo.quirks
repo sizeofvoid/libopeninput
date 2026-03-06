@@ -23,12 +23,17 @@ ModelLenovoT450Touchpad=1
 [Lenovo T470 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT470:*
-AttrTrackpointMultiplier=0.4
+AttrTrackpointMultiplier=0.75
 
 [Lenovo T480 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadT480:*
-AttrTrackpointMultiplier=0.4
+AttrTrackpointMultiplier=0.75
+
+[Lenovo A485 Trackpoint]
+MatchName=*TPPS/2 IBM TrackPoint
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadA485:*
+AttrTrackpointMultiplier=0.75
 
 # Touchpad is a clickpad but INPUT_PROP_BUTTONPAD is not set, see
 # https://gitlab.freedesktop.org/libinput/libinput/issues/177
@@ -62,15 +67,15 @@ MatchName=Elan Touchpad
 MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadL380*
 AttrInputProp=+INPUT_PROP_BUTTONPAD
 
-[Lenovo X200 Trackpoint]
+[Lenovo X200/201 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20?:*
-AttrTrackpointMultiplier=1.25
+AttrTrackpointMultiplier=0.25
 
-[Lenovo X200x Trackpoint]
+[Lenovo X200s/201s Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
 MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX20??:*
-AttrTrackpointMultiplier=1.25
+AttrTrackpointMultiplier=0.25
 
 [Lenovo X230 Trackpoint]
 MatchName=*TPPS/2 IBM TrackPoint
@@ -355,6 +360,12 @@ MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadE14Gen2*
 AttrPalmPressureThreshold=300
 AttrPressureRange=10:8
 
+[Lenovo ThinkPad E16 Gen 3]
+MatchUdevType=pointingstick
+MatchName=*TPPS/2 Elan TrackPoint*
+MatchDMIModalias=dmi:*svnLENOVO:*:pvrThinkPadE16Gen3*
+AttrTrackpointMultiplier=0.5
+
 # White Backlit Keyboard
 [Lenovo Ideapad Gaming 3]
 MatchUdevType=keyboard
@@ -376,3 +387,48 @@ MatchName=ITE Tech. Inc. ITE Device(8910) Keyboard
 MatchUdevType=keyboard
 MatchDMIModalias=dmi:*svnLENOVO:*
 AttrKeyboardIntegration=internal
+
+# Some ThinkBook 14/16 G7+ ASP models come with pressure pads that were not
+# correctly declared as such.
+[Lenovo ThinkBook G7+ ASP touchpad]
+MatchName=*GXTP5100*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook*G7+ASP*:*
+MatchUdevType=touchpad
+ModelPressurePad=1
+
+# The ThinkBook 14/16 G6+ IMH also has a similar issue as the G7+ mentioned above.
+[Lenovo ThinkBook G6+ IMH]
+MatchName=*GXTP5100*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook*G6+IMH*:*
+MatchUdevType=touchpad
+ModelPressurePad=1
+
+# Lenovo Yoga Slim 7i Carbon sends bogus ABS_MT_TOOL_TYPE MT_TOOL_PALM events
+[Lenovo Yoga Slim 7i Carbon]
+MatchName=* Touchpad
+MatchDMIModalias=dmi:*:svnLENOVO:*pvrYogaSlim7Carbon13IAP7:*
+AttrEventCode=-ABS_MT_TOOL_TYPE
+
+# The ThinkPad X9 15 Gen 1 Forcepad touchpad is not
+# detected as a pressure pad
+[Lenovo ThinkPad X9 15 Gen 1]
+MatchName=*GXTP5100*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkPadX9-15Gen1*:*
+MatchUdevType=touchpad
+ModelPressurePad=1
+
+# The ThinkBook 14/16 G7+ IAH also has a similar issue as the ASP mentioned above.
+[Lenovo ThinkBook G7+ IAH touchpad]
+MatchName=*GXTP5100*
+MatchDMIModalias=dmi:*svnLENOVO:*pvrThinkBook*G7+IAH*:*
+MatchUdevType=touchpad
+ModelPressurePad=1
+
+# "GXTP5420 Touchpad": pressure touchpad mostly used in Lenovo laptops.
+# GXTP5420:00 27C6:0F95 Touchpad
+[Goodix Haptic Touchpad (27C6:0F95)]
+MatchBus=i2c
+MatchVendor=0x27C6
+MatchProduct=0x0F95
+MatchUdevType=touchpad
+ModelPressurePad=1

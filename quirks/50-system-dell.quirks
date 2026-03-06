@@ -89,6 +89,16 @@ MatchName=*AT Translated Set 2 keyboard*
 MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude7275:*
 ModelTabletModeNoSuspend=1
 
+[Latitude 7285]
+MatchName=*AT Translated Set 2 keyboard*
+MatchDMIModalias=dmi:*:svnDellInc.:pnLatitude7285:*
+ModelTabletModeNoSuspend=1
+
+[Dell Pro Rugged Tablet]
+MatchName=*AT Translated Set 2 keyboard*
+MatchDMIModalias=dmi:*:svnDellInc.:pnDellProRugged*TabletRA*:*
+ModelTabletModeNoSuspend=1
+
 [Latitude 7480 Touchpad]
 MatchName=DLL07A0*
 MatchDMIModalias=dmi:**bvnDellInc.:*:pnLatitude7480*
@@ -141,3 +151,63 @@ MatchProduct=0x1063
 MatchUdevType=touchpad
 MatchDMIModalias=dmi:*svnDellInc.:pnPrecision5480*
 ModelTouchpadVisibleMarker=0
+
+[Dell laptop 14 Synaptics touchpad]
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xCFF8
+ModelPressurePad=1
+
+[Dell laptop 16 Synaptics touchpad]
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xCFF9
+ModelPressurePad=1
+
+[Dell laptop 14 Goodix touchpad]
+MatchBus=i2c
+MatchVendor=0x27C6
+MatchProduct=0x0F61
+ModelPressurePad=1
+
+[Dell laptop 16 Goodix touchpad]
+MatchBus=i2c
+MatchVendor=0x27C6
+MatchProduct=0x0F62
+ModelPressurePad=1
+
+[Dell 14 Premium DA14250 touchpad]
+MatchBus=i2c
+MatchVendor=0x0488
+MatchProduct=0x108C
+ModelPressurePad=1
+
+[Dell 16 Premium DA16250 touchpad]
+MatchBus=i2c
+MatchVendor=0x0488
+MatchProduct=0x108D
+ModelPressurePad=1
+
+[Dell laptop 14_1 Synaptics touchpad]
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xD01D
+ModelPressurePad=1
+
+[Dell laptop 16_1 Synaptics touchpad]
+MatchBus=i2c
+MatchVendor=0x06CB
+MatchProduct=0xD01A
+ModelPressurePad=1
+
+[Dell laptop 14 Sensel touchpad]
+MatchBus=i2c
+MatchVendor=0x2C2F
+MatchProduct=0x0034
+ModelPressurePad=1
+
+[Dell laptop 16 Sensel touchpad]
+MatchBus=i2c
+MatchVendor=0x2C2F
+MatchProduct=0x0033
+ModelPressurePad=1

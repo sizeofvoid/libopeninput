@@ -23,13 +23,13 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_ORIENTATION, .value = 0 },
@@ -44,9 +44,9 @@ static struct input_event down[] = {
 
 static struct input_event move[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_ORIENTATION, .value = 0 },
 	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MAJOR, .value = 2 },
 	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MINOR, .value = 2 },
@@ -82,6 +82,7 @@ static struct input_id input_id = {
 	.product = 0x0,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_TOOL_FINGER,
@@ -94,7 +95,9 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_BUTTONPAD,
 	-1, -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 1940, 0, 0, 20 },
 	{ ABS_Y, 0, 1062, 0, 0, 20 },
@@ -108,16 +111,15 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_TOOL_TYPE, 0, 2, 0, 0, 0 },
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ ABS_MT_PRESSURE, 0, 255, 0, 0, 0 },
-	{ .value = -1 }
+	{ .value = -1 },
 };
+/* clang-format on */
 
-TEST_DEVICE("synaptics-rmi4",
-	.type = LITEST_SYNAPTICS_RMI4,
-	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
-	.interface = &interface,
+TEST_DEVICE(LITEST_SYNAPTICS_RMI4,
+	    .features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
+	    .interface = &interface,
 
-	.name = "Synaptics TM3053-004",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "Synaptics TM3053-004",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

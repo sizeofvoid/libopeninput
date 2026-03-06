@@ -98,3 +98,24 @@ MatchBus=i2c
 MatchVendor=0x06CB
 MatchProduct=0xCFD2
 ModelPressurePad=1
+
+# The HP OmniBook Ultra Flip Laptop 14-fh0xxx's custom Intel ISH firmware
+# filters out events from its builtin keyboard and touchpad when the hinge is
+# opened little more than 180 degrees but toggles tablet-mode when it's opened
+# little less than 180 degrees.
+# Do not suspend the keyboard and touchpad to let use the device in flat
+# position and also give consistency with some keyboard keys controlled by the
+# Video Bus device (brightness down/up), the HP WMI hotkeys device (mic mute and
+# hp hubs launcher key) and the backlight getting on and off by the firmware at
+# the same time it enables disables the input.
+# This one is for the keyboard and...
+[HP OmniBook Ultra Flip Laptop 14-fh0xxx Keyboard]
+MatchName=AT Translated Set 2 keyboard
+MatchDMIModalias=dmi:*svnHP:pnHPOmniBookUltraFlipLaptop14-fh0xxx:*
+ModelTabletModeNoSuspend=1
+
+# ...this one is for the touchpad.
+[HP OmniBook Ultra Flip Laptop 14-fh0xxx Touchpad]
+MatchName=SYNA3580:00 06CB:CFD2 Touchpad
+MatchDMIModalias=dmi:*svnHP:pnHPOmniBookUltraFlipLaptop14-fh0xxx:*
+ModelTabletModeNoSuspend=1

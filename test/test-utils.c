@@ -23,24 +23,220 @@
 
 #include <config.h>
 
-#include <check.h>
-
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <valgrind/valgrind.h>
 
+#include "util-bits.h"
+#include "util-files.h"
+#include "util-input-event.h"
 #include "util-list.h"
+#include "util-macros.h"
+#include "util-matrix.h"
+#include "util-mem.h"
+#include "util-newtype.h"
+#include "util-prop-parsers.h"
+#include "util-range.h"
+#include "util-ratelimit.h"
+#include "util-stringbuf.h"
 #include "util-strings.h"
 #include "util-time.h"
-#include "util-prop-parsers.h"
-#include "util-macros.h"
-#include "util-bits.h"
-#include "util-ratelimit.h"
-#include "util-matrix.h"
-#include "util-input-event.h"
 
-#define  TEST_VERSIONSORT
+#include "evdev-frame.h"
+#include "litest-runner.h"
+#include "litest.h"
+
+#define TEST_VERSIONSORT
 #include "libinput-versionsort.h"
 
-#include "check-double-macros.h"
+START_TEST(auto_test)
+{
+	/* This one is just a compile test */
+	auto tv = us2tv(0);
+	tv.tv_sec = 0;
+	litest_assert_int_eq(tv.tv_sec, 0);
+}
+END_TEST
+
+START_TEST(mkdir_p_test)
+{
+	const char *testdir = "/tmp/litest_mkdir_test";
+	litest_assert_neg_errno_success(mkdir_p("/"));
+
+	rmdir(testdir);
+	litest_assert_neg_errno_success(mkdir_p(testdir));
+	/* EEXIST is not an error */
+	litest_assert_neg_errno_success(mkdir_p(testdir));
+	rmdir(testdir);
+
+	int ret = mkdir_p("/proc/foo");
+	litest_assert_msg(ret == -ENOENT || ret == -EACCES,
+			  "mkdir_p(\"/proc/foo\") returned %d\n",
+			  ret);
+}
+END_TEST
+
+START_TEST(rmdir_r_test)
+{
+	const char *testdir = "/tmp/litest_rmdir_test";
+	_autofree_ char *path = strdup_printf("%s/foo/bar/baz", testdir);
+	mkdir_p(path);
+
+	_autofree_ char *f1 = strdup_printf("%s/remain", testdir);
+	_autofree_ char *f2 = strdup_printf("%s/foo/remove", testdir);
+	_autofree_ char *f3 = strdup_printf("%s/foo/bar/to-remove", testdir);
+	_autofree_ char *f4 = strdup_printf("%s/foo/bar/baz/wipeme", testdir);
+
+	litest_assert_errno_success(close(open(f1, O_WRONLY | O_CREAT, 0644)));
+	litest_assert_errno_success(close(open(f2, O_WRONLY | O_CREAT, 0644)));
+	litest_assert_errno_success(close(open(f3, O_WRONLY | O_CREAT, 0644)));
+	litest_assert_errno_success(close(open(f4, O_WRONLY | O_CREAT, 0644)));
+
+	struct stat st;
+	litest_assert_errno_success(stat(f1, &st));
+	litest_assert_errno_success(stat(f2, &st));
+	litest_assert_errno_success(stat(f3, &st));
+	litest_assert_errno_success(stat(f4, &st));
+
+	_autofree_ char *rmpath = strdup_printf("%s/foo/", testdir);
+	int rc = rmdir_r(rmpath);
+	litest_assert_neg_errno_success(rc);
+
+	litest_assert_errno_success(stat(f1, &st));
+	litest_assert_errno_success(stat(testdir, &st));
+
+	rc = stat(f2, &st) < 0 ? -errno : 0;
+	litest_assert_int_eq(rc, -ENOENT);
+	rc = stat(f3, &st) < 0 ? -errno : 0;
+	litest_assert_int_eq(rc, -ENOENT);
+	rc = stat(f4, &st) < 0 ? -errno : 0;
+	litest_assert_int_eq(rc, -ENOENT);
+}
+END_TEST
+
+START_TEST(tmpdir_test)
+{
+	_autofree_ char *tmpdir_path = NULL;
+	{
+		_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
+
+		tmpdir_path = safe_strdup(tmpdir->path);
+
+		_autofree_ char *f1 = strdup_printf("%s/wipeme", tmpdir_path);
+		litest_assert_errno_success(close(open(f1, O_WRONLY | O_CREAT, 0644)));
+	}
+	struct stat st;
+	int rc = stat(tmpdir_path, &st) < 0 ? -errno : 0;
+	litest_assert_int_eq(rc, -ENOENT);
+}
+END_TEST
+
+START_TEST(find_files_test)
+{
+	_autofree_ char *dirname = strdup("/tmp/litest_find_files_test.XXXXXX");
+	mkdtemp(dirname);
+
+	_autofree_ char *d1 = strdup_printf("%s/d1", dirname);
+	_autofree_ char *d2 = strdup_printf("%s/d2", dirname);
+	_autofree_ char *d3 = strdup_printf("%s/d3", dirname);
+
+	litest_assert_neg_errno_success(mkdir_p(d1));
+	litest_assert_neg_errno_success(mkdir_p(d2));
+	litest_assert_neg_errno_success(mkdir_p(d3));
+
+	/* clang-format off */
+	struct f {
+		const char *name;
+		const char *dir1;
+		const char *dir2;
+		const char *dir3;
+		char *expected;
+	} files[] = {
+		{ "10-abc.suf", d1, d2, d3 },
+		{ "20-def.suf", d1, NULL, d3 },
+		{ "30-ghi.suf", d1, d2, NULL },
+		{ "40-jkl.suf", NULL, d2, NULL },
+		{ "50-mno.suf", NULL, d2, d3 },
+		{ "60-pgr.suf", NULL, NULL, d3 },
+		{ "70-abc.suf", NULL, NULL, d3 },
+		{ "21-xyz.fix", NULL, NULL, d3 },
+		{ "35-uvw.fix", NULL, d2, d3 },
+		{ "70-rst.fix", d1, NULL, d3 },
+		{ NULL },
+	};
+	/* clang-format on */
+	for (struct f *f = files; f->name; f++) {
+		if (f->dir1) {
+			_autofree_ char *path =
+				strdup_printf("%s/%s", f->dir1, f->name);
+			close(open(path, O_WRONLY | O_CREAT, 0644));
+			f->expected = steal(&path);
+		}
+		if (f->dir2) {
+			_autofree_ char *path =
+				strdup_printf("%s/%s", f->dir2, f->name);
+			close(open(path, O_WRONLY | O_CREAT, 0644));
+			if (!f->expected)
+				f->expected = steal(&path);
+		}
+		if (f->dir3) {
+			_autofree_ char *path =
+				strdup_printf("%s/%s", f->dir3, f->name);
+			close(open(path, O_WRONLY | O_CREAT, 0644));
+			if (!f->expected)
+				f->expected = steal(&path);
+		}
+	}
+
+	const char *dirs[] = { d1, d2, d3, NULL };
+	size_t nfiles;
+	_autostrvfree_ char **paths = list_files(dirs, "suf", &nfiles);
+	litest_assert_int_eq(nfiles, (size_t)7);
+	litest_assert_str_eq(paths[0], files[0].expected);
+	litest_assert_str_eq(paths[1], files[1].expected);
+	litest_assert_str_eq(paths[2], files[2].expected);
+	litest_assert_str_eq(paths[3], files[3].expected);
+	litest_assert_str_eq(paths[4], files[4].expected);
+	litest_assert_str_eq(paths[5], files[5].expected);
+	litest_assert_str_eq(paths[6], files[6].expected);
+	litest_assert_str_eq(paths[7], NULL);
+
+	for (struct f *f = files; f->name; f++) {
+		if (f->dir1) {
+			_autofree_ char *path =
+				strdup_printf("%s/%s", f->dir1, f->name);
+			unlink(path);
+		}
+		if (f->dir2) {
+			_autofree_ char *path =
+				strdup_printf("%s/%s", f->dir2, f->name);
+			unlink(path);
+		}
+		if (f->dir3) {
+			_autofree_ char *path =
+				strdup_printf("%s/%s", f->dir3, f->name);
+			unlink(path);
+		}
+		free(f->expected);
+	}
+	rmdir(d1);
+	rmdir(d2);
+	rmdir(d3);
+	rmdir(dirname);
+
+	const char *empty[] = { NULL };
+	_autostrvfree_ char **empty_path = list_files(empty, "suf", &nfiles);
+	litest_assert_int_eq(nfiles, (size_t)0);
+	litest_assert_ptr_notnull(empty_path);
+	litest_assert_ptr_null(empty_path[0]);
+
+	_autostrvfree_ char **also_empty_path = list_files(NULL, "suf", &nfiles);
+	litest_assert_int_eq(nfiles, (size_t)0);
+	litest_assert_ptr_notnull(also_empty_path);
+	litest_assert_ptr_null(also_empty_path[0]);
+}
+END_TEST
 
 START_TEST(array_for_each)
 {
@@ -59,37 +255,37 @@ START_TEST(array_for_each)
 	for (size_t i = 0; i < 32; i++) {
 		as[i].a = 10 + i;
 		as[i].b = 20 + i;
-		as[i].ptr = (int*)0xab + i;
+		as[i].ptr = (int *)0xab + i;
 	}
 
 	int iexpected = 20;
 	ARRAY_FOR_EACH(ai, entry) {
-		ck_assert_int_eq(*entry, iexpected);
+		litest_assert_int_eq(*entry, iexpected);
 		++iexpected;
 	}
-	ck_assert_int_eq(iexpected, 26);
+	litest_assert_int_eq(iexpected, 26);
 
 	int cexpected = 100;
 	ARRAY_FOR_EACH(ac, entry) {
-		ck_assert_int_eq(*entry, cexpected);
+		litest_assert_int_eq(*entry, cexpected);
 		++cexpected;
 	}
-	ck_assert_int_eq(cexpected, 110);
+	litest_assert_int_eq(cexpected, 110);
 
 	struct as sexpected = {
 		.a = 10,
 		.b = 20,
-		.ptr = (int*)0xab,
+		.ptr = (int *)0xab,
 	};
 	ARRAY_FOR_EACH(as, entry) {
-		ck_assert_int_eq(entry->a, sexpected.a);
-		ck_assert_int_eq(entry->b, sexpected.b);
-		ck_assert_ptr_eq(entry->ptr, sexpected.ptr);
+		litest_assert_int_eq(entry->a, sexpected.a);
+		litest_assert_int_eq(entry->b, sexpected.b);
+		litest_assert_ptr_eq(entry->ptr, sexpected.ptr);
 		++sexpected.a;
 		++sexpected.b;
 		++sexpected.ptr;
 	}
-	ck_assert_int_eq(sexpected.a, 42);
+	litest_assert_int_eq(sexpected.a, 42);
 }
 END_TEST
 
@@ -99,7 +295,7 @@ START_TEST(bitfield_helpers)
 	 * test: 0, 1, 7, 8, 31, 32, and 33
 	 */
 	unsigned char read_bitfield[] = { 0x83, 0x1, 0x0, 0x80, 0x3 };
-	unsigned char write_bitfield[ARRAY_LENGTH(read_bitfield)] = {0};
+	unsigned char write_bitfield[ARRAY_LENGTH(read_bitfield)] = { 0 };
 	size_t i;
 
 	/* Now check that the bitfield we wrote to came out to be the same as
@@ -113,20 +309,217 @@ START_TEST(bitfield_helpers)
 		case 31:
 		case 32:
 		case 33:
-			ck_assert(bit_is_set(read_bitfield, i));
+			litest_assert(bit_is_set(read_bitfield, i));
 			set_bit(write_bitfield, i);
 			break;
 		default:
-			ck_assert(!bit_is_set(read_bitfield, i));
+			litest_assert(!bit_is_set(read_bitfield, i));
 			clear_bit(write_bitfield, i);
 			break;
 		}
 	}
 
-	ck_assert_int_eq(memcmp(read_bitfield,
-				write_bitfield,
-				sizeof(read_bitfield)),
-			 0);
+	litest_assert_int_eq(
+		memcmp(read_bitfield, write_bitfield, sizeof(read_bitfield)),
+		0);
+}
+END_TEST
+
+START_TEST(bitmask_test)
+{
+	{
+		bitmask_t mask1 = bitmask_from_u32(0x12345678U);
+		litest_assert(bitmask_as_u32(mask1) == 0x12345678U);
+
+		bitmask_t mask2 = bitmask_from_u32(0);
+		litest_assert_int_eq(bitmask_as_u32(mask2), 0U);
+
+		bitmask_t mask3 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert_int_eq(bitmask_as_u32(mask3), 0xFFFFFFFFU);
+	}
+	{
+		bitmask_t mask1 = bitmask_new();
+		litest_assert(bitmask_is_empty(mask1));
+
+		bitmask_t mask2 = bitmask_from_u32(0x00000001U);
+		litest_assert(!bitmask_is_empty(mask2));
+
+		bitmask_t mask3 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(!bitmask_is_empty(mask3));
+	}
+	{
+		bitmask_t mask1 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits1 = bitmask_from_u32(0x00000003U);
+		litest_assert(bitmask_any(mask1, bits1));
+
+		bitmask_t mask2 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits2 = bitmask_from_u32(0x000000F0U);
+		litest_assert(!bitmask_any(mask2, bits2));
+
+		bitmask_t mask3 = bitmask_from_u32(0x00000000U);
+		bitmask_t bits3 = bitmask_from_u32(0x00000001U);
+		litest_assert(!bitmask_any(mask3, bits3));
+
+		bitmask_t mask4 = bitmask_from_u32(0xFFFFFFFFU);
+		bitmask_t bits4 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(bitmask_any(mask4, bits4));
+
+		bitmask_t mask5 = bitmask_from_u32(0x10000000U);
+		bitmask_t bits5 = bitmask_from_u32(0x10000000U);
+		litest_assert(bitmask_any(mask5, bits5));
+	}
+	{
+		bitmask_t mask1 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits1 = bitmask_from_u32(0x00000003U);
+		litest_assert(bitmask_all(mask1, bits1));
+		litest_assert(!bitmask_all(bits1, mask1));
+
+		bitmask_t mask2 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits2 = bitmask_from_u32(0x0000000FU);
+		litest_assert(bitmask_all(mask2, bits2));
+		litest_assert(bitmask_all(bits2, mask2));
+
+		bitmask_t mask3 = bitmask_from_u32(0x00000000U);
+		bitmask_t bits3 = bitmask_from_u32(0x00000000U);
+		litest_assert(!bitmask_all(mask3, bits3)); /* zero is special */
+
+		bitmask_t mask4 = bitmask_from_u32(0xFFFFFFFFU);
+		bitmask_t bits4 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(bitmask_all(mask4, bits4));
+
+		bitmask_t mask5 = bitmask_from_u32(0x10000000U);
+		bitmask_t bits5 = bitmask_from_u32(0x10000000U);
+		litest_assert(bitmask_all(mask5, bits5));
+	}
+	{
+
+		bitmask_t mask1 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits1 = bitmask_from_u32(0x000000F0U);
+		litest_assert(!bitmask_merge(&mask1, bits1));
+		litest_assert_int_eq(mask1.mask, 0x000000FFU);
+
+		bitmask_t mask2 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits2 = bitmask_from_u32(0x0000000FU);
+		litest_assert(bitmask_merge(&mask2, bits2));
+		litest_assert_int_eq(mask2.mask, 0x0000000FU);
+
+		bitmask_t mask3 = bitmask_new();
+		bitmask_t bits3 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(!bitmask_merge(&mask3, bits3));
+		litest_assert_int_eq(mask3.mask, 0xFFFFFFFFU);
+
+		bitmask_t mask4 = bitmask_from_u32(0x80000000U);
+		bitmask_t bits4 = bitmask_from_u32(0x00000001U);
+		litest_assert(!bitmask_merge(&mask4, bits4));
+		litest_assert_int_eq(mask4.mask, 0x80000001U);
+	}
+	{
+		bitmask_t mask1 = bitmask_from_u32(0x000000FFU);
+		bitmask_t bits1 = bitmask_from_u32(0x0000000FU);
+		litest_assert(bitmask_clear(&mask1, bits1));
+		litest_assert_int_eq(mask1.mask, 0x000000F0U);
+
+		bitmask_t mask2 = bitmask_from_u32(0x0000000FU);
+		bitmask_t bits2 = bitmask_from_u32(0x0000000FU);
+		litest_assert(bitmask_clear(&mask2, bits2));
+		litest_assert_int_eq(mask2.mask, 0x00000000U);
+
+		bitmask_t mask3 = bitmask_from_u32(0xFFFFFFFFU);
+		bitmask_t bits3 = bitmask_from_u32(0x00000000U);
+		litest_assert(!bitmask_clear(&mask3, bits3)); /* zero is special */
+		litest_assert_int_eq(mask3.mask, 0xFFFFFFFFU);
+
+		bitmask_t mask4 = bitmask_from_u32(0xFFFFFFFFU);
+		bitmask_t bits4 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(bitmask_clear(&mask4, bits4));
+		litest_assert_int_eq(mask4.mask, 0x0U);
+	}
+	{
+		bitmask_t mask1 = bitmask_from_u32(0x00000001U);
+		litest_assert(bitmask_bit_is_set(mask1, 0));
+		litest_assert(!bitmask_bit_is_set(mask1, 1));
+
+		bitmask_t mask2 = bitmask_from_u32(0x80000000U);
+		litest_assert(bitmask_bit_is_set(mask2, 31));
+		litest_assert(!bitmask_bit_is_set(mask2, 0));
+
+		bitmask_t mask3 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(bitmask_bit_is_set(mask3, 0));
+		litest_assert(bitmask_bit_is_set(mask3, 31));
+		litest_assert(bitmask_bit_is_set(mask3, 16));
+
+		bitmask_t mask4 = bitmask_new();
+		litest_assert(!bitmask_bit_is_set(mask4, 0));
+		litest_assert(!bitmask_bit_is_set(mask4, 1));
+	}
+	{
+		bitmask_t mask1 = bitmask_new();
+		litest_assert(!bitmask_set_bit(&mask1, 0));
+		litest_assert_int_eq(mask1.mask, 0x00000001U);
+
+		litest_assert(bitmask_set_bit(&mask1, 0));
+		litest_assert_int_eq(mask1.mask, 0x00000001U);
+
+		litest_assert(!bitmask_set_bit(&mask1, 31));
+		litest_assert_int_eq(mask1.mask, 0x80000001U);
+
+		bitmask_t mask2 = bitmask_from_u32(0x0000000FU);
+		litest_assert(!bitmask_set_bit(&mask2, 4));
+		litest_assert_int_eq(mask2.mask, 0x0000001FU);
+		litest_assert(bitmask_set_bit(&mask2, 4));
+		litest_assert_int_eq(mask2.mask, 0x0000001FU);
+	}
+	{
+		bitmask_t mask1 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert(bitmask_clear_bit(&mask1, 0));
+		litest_assert_int_eq(mask1.mask, 0xFFFFFFFEU);
+
+		litest_assert(!bitmask_clear_bit(&mask1, 0));
+		litest_assert_int_eq(mask1.mask, 0xFFFFFFFEU);
+
+		litest_assert(bitmask_clear_bit(&mask1, 31));
+		litest_assert_int_eq(mask1.mask, 0x7FFFFFFEU);
+
+		bitmask_t mask2 = bitmask_from_u32(0x0000001FU);
+		litest_assert(bitmask_clear_bit(&mask2, 4));
+		litest_assert_int_eq(mask2.mask, 0x0000000FU);
+		litest_assert(!bitmask_clear_bit(&mask2, 4));
+		litest_assert_int_eq(mask2.mask, 0x0000000FU);
+	}
+	{
+		bitmask_t mask1 = bitmask_from_bit(0);
+		litest_assert_int_eq(mask1.mask, 0x00000001U);
+
+		bitmask_t mask2 = bitmask_from_bit(31);
+		litest_assert_int_eq(mask2.mask, 0x80000000U);
+
+		bitmask_t mask3 = bitmask_from_bit(16);
+		litest_assert_int_eq(mask3.mask, 0x00010000U);
+	}
+	{
+		bitmask_t mask1 = bitmask_from_u32(0x12345678U);
+		litest_assert_int_eq(mask1.mask, 0x12345678U);
+
+		bitmask_t mask2 = bitmask_from_u32(0);
+		litest_assert_int_eq(mask2.mask, 0U);
+
+		bitmask_t mask3 = bitmask_from_u32(0xFFFFFFFFU);
+		litest_assert_int_eq(mask3.mask, 0xFFFFFFFFU);
+	}
+	{
+		bitmask_t mask1 = bitmask_from_bits(1, 2, 5);
+		litest_assert_int_eq(mask1.mask, bit(1) | bit(2) | bit(5));
+
+		bitmask_t mask2 = bitmask_from_bits(0);
+		litest_assert_int_eq(mask2.mask, bit(0));
+	}
+	{
+		bitmask_t mask1 = bitmask_from_masks(0x1, 0x2, 0x8);
+		litest_assert_int_eq(mask1.mask, 0x0000000BU);
+
+		bitmask_t mask2 = bitmask_from_masks(0x0);
+		litest_assert_int_eq(mask2.mask, 0x00000000U);
+	}
 }
 END_TEST
 
@@ -141,69 +534,68 @@ START_TEST(matrix_helpers)
 
 	for (row = 0; row < 3; row++) {
 		for (col = 0; col < 3; col++) {
-			ck_assert_int_eq(m1.val[row][col],
-					 (row == col) ? 1 : 0);
+			litest_assert_int_eq(m1.val[row][col], (row == col) ? 1 : 0);
 		}
 	}
-	ck_assert(matrix_is_identity(&m1));
+	litest_assert(matrix_is_identity(&m1));
 
 	matrix_from_farray6(&m2, f);
-	ck_assert_int_eq(m2.val[0][0], 1);
-	ck_assert_int_eq(m2.val[0][1], 2);
-	ck_assert_int_eq(m2.val[0][2], 3);
-	ck_assert_int_eq(m2.val[1][0], 4);
-	ck_assert_int_eq(m2.val[1][1], 5);
-	ck_assert_int_eq(m2.val[1][2], 6);
-	ck_assert_int_eq(m2.val[2][0], 0);
-	ck_assert_int_eq(m2.val[2][1], 0);
-	ck_assert_int_eq(m2.val[2][2], 1);
+	litest_assert_int_eq(m2.val[0][0], 1);
+	litest_assert_int_eq(m2.val[0][1], 2);
+	litest_assert_int_eq(m2.val[0][2], 3);
+	litest_assert_int_eq(m2.val[1][0], 4);
+	litest_assert_int_eq(m2.val[1][1], 5);
+	litest_assert_int_eq(m2.val[1][2], 6);
+	litest_assert_int_eq(m2.val[2][0], 0);
+	litest_assert_int_eq(m2.val[2][1], 0);
+	litest_assert_int_eq(m2.val[2][2], 1);
 
 	x = 100;
 	y = 5;
 	matrix_mult_vec(&m1, &x, &y);
-	ck_assert_int_eq(x, 100);
-	ck_assert_int_eq(y, 5);
+	litest_assert_int_eq(x, 100);
+	litest_assert_int_eq(y, 5);
 
 	matrix_mult(&m3, &m1, &m1);
-	ck_assert(matrix_is_identity(&m3));
+	litest_assert(matrix_is_identity(&m3));
 
 	matrix_init_scale(&m2, 2, 4);
-	ck_assert_int_eq(m2.val[0][0], 2);
-	ck_assert_int_eq(m2.val[0][1], 0);
-	ck_assert_int_eq(m2.val[0][2], 0);
-	ck_assert_int_eq(m2.val[1][0], 0);
-	ck_assert_int_eq(m2.val[1][1], 4);
-	ck_assert_int_eq(m2.val[1][2], 0);
-	ck_assert_int_eq(m2.val[2][0], 0);
-	ck_assert_int_eq(m2.val[2][1], 0);
-	ck_assert_int_eq(m2.val[2][2], 1);
+	litest_assert_int_eq(m2.val[0][0], 2);
+	litest_assert_int_eq(m2.val[0][1], 0);
+	litest_assert_int_eq(m2.val[0][2], 0);
+	litest_assert_int_eq(m2.val[1][0], 0);
+	litest_assert_int_eq(m2.val[1][1], 4);
+	litest_assert_int_eq(m2.val[1][2], 0);
+	litest_assert_int_eq(m2.val[2][0], 0);
+	litest_assert_int_eq(m2.val[2][1], 0);
+	litest_assert_int_eq(m2.val[2][2], 1);
 
 	matrix_mult_vec(&m2, &x, &y);
-	ck_assert_int_eq(x, 200);
-	ck_assert_int_eq(y, 20);
+	litest_assert_int_eq(x, 200);
+	litest_assert_int_eq(y, 20);
 
 	matrix_init_translate(&m2, 10, 100);
-	ck_assert_int_eq(m2.val[0][0], 1);
-	ck_assert_int_eq(m2.val[0][1], 0);
-	ck_assert_int_eq(m2.val[0][2], 10);
-	ck_assert_int_eq(m2.val[1][0], 0);
-	ck_assert_int_eq(m2.val[1][1], 1);
-	ck_assert_int_eq(m2.val[1][2], 100);
-	ck_assert_int_eq(m2.val[2][0], 0);
-	ck_assert_int_eq(m2.val[2][1], 0);
-	ck_assert_int_eq(m2.val[2][2], 1);
+	litest_assert_int_eq(m2.val[0][0], 1);
+	litest_assert_int_eq(m2.val[0][1], 0);
+	litest_assert_int_eq(m2.val[0][2], 10);
+	litest_assert_int_eq(m2.val[1][0], 0);
+	litest_assert_int_eq(m2.val[1][1], 1);
+	litest_assert_int_eq(m2.val[1][2], 100);
+	litest_assert_int_eq(m2.val[2][0], 0);
+	litest_assert_int_eq(m2.val[2][1], 0);
+	litest_assert_int_eq(m2.val[2][2], 1);
 
 	matrix_mult_vec(&m2, &x, &y);
-	ck_assert_int_eq(x, 210);
-	ck_assert_int_eq(y, 120);
+	litest_assert_int_eq(x, 210);
+	litest_assert_int_eq(y, 120);
 
 	matrix_to_farray6(&m2, f);
-	ck_assert_int_eq(f[0], 1);
-	ck_assert_int_eq(f[1], 0);
-	ck_assert_int_eq(f[2], 10);
-	ck_assert_int_eq(f[3], 0);
-	ck_assert_int_eq(f[4], 1);
-	ck_assert_int_eq(f[5], 100);
+	litest_assert_int_eq(f[0], 1);
+	litest_assert_int_eq(f[1], 0);
+	litest_assert_int_eq(f[2], 10);
+	litest_assert_int_eq(f[3], 0);
+	litest_assert_int_eq(f[4], 1);
+	litest_assert_int_eq(f[5], 100);
 }
 END_TEST
 
@@ -218,27 +610,24 @@ START_TEST(ratelimit_helpers)
 	for (j = 0; j < 3; ++j) {
 		/* a burst of 9 attempts must succeed */
 		for (i = 0; i < 9; ++i) {
-			ck_assert_int_eq(ratelimit_test(&rl),
-					 RATELIMIT_PASS);
+			litest_assert_enum_eq(ratelimit_test(&rl), RATELIMIT_PASS);
 		}
 
 		/* the 10th attempt reaches the threshold */
-		ck_assert_int_eq(ratelimit_test(&rl), RATELIMIT_THRESHOLD);
+		litest_assert_enum_eq(ratelimit_test(&rl), RATELIMIT_THRESHOLD);
 
 		/* ..then further attempts must fail.. */
-		ck_assert_int_eq(ratelimit_test(&rl), RATELIMIT_EXCEEDED);
+		litest_assert_enum_eq(ratelimit_test(&rl), RATELIMIT_EXCEEDED);
 
 		/* ..regardless of how often we try. */
 		for (i = 0; i < 100; ++i) {
-			ck_assert_int_eq(ratelimit_test(&rl),
-					 RATELIMIT_EXCEEDED);
+			litest_assert_enum_eq(ratelimit_test(&rl), RATELIMIT_EXCEEDED);
 		}
 
 		/* ..even after waiting 20ms */
 		msleep(100);
 		for (i = 0; i < 100; ++i) {
-			ck_assert_int_eq(ratelimit_test(&rl),
-					 RATELIMIT_EXCEEDED);
+			litest_assert_enum_eq(ratelimit_test(&rl), RATELIMIT_EXCEEDED);
 		}
 
 		/* but after 1000ms the counter is reset */
@@ -254,6 +643,7 @@ struct parser_test {
 
 START_TEST(dpi_parser)
 {
+	/* clang-format off */
 	struct parser_test tests[] = {
 		{ "450 *1800 3200", 1800 },
 		{ "*450 1800 3200", 450 },
@@ -277,22 +667,24 @@ START_TEST(dpi_parser)
 		{ "", 0 },
 		{ "   ", 0 },
 		{ "* ", 0 },
-		{ NULL, 0 }
+		{ NULL, 0 },
 	};
+	/* clang-format on */
 	int i, dpi;
 
 	for (i = 0; tests[i].tag != NULL; i++) {
 		dpi = parse_mouse_dpi_property(tests[i].tag);
-		ck_assert_int_eq(dpi, tests[i].expected_value);
+		litest_assert_int_eq(dpi, tests[i].expected_value);
 	}
 
 	dpi = parse_mouse_dpi_property(NULL);
-	ck_assert_int_eq(dpi, 0);
+	litest_assert_int_eq(dpi, 0);
 }
 END_TEST
 
 START_TEST(wheel_click_parser)
 {
+	/* clang-format off */
 	struct parser_test tests[] = {
 		{ "1", 1 },
 		{ "10", 10 },
@@ -306,20 +698,22 @@ START_TEST(wheel_click_parser)
 		{ "10-", 0 },
 		{ "sadfasfd", 0 },
 		{ "361", 0 },
-		{ NULL, 0 }
+		{ NULL, 0 },
 	};
+	/* clang-format on */
 
 	int i, angle;
 
 	for (i = 0; tests[i].tag != NULL; i++) {
 		angle = parse_mouse_wheel_click_angle_property(tests[i].tag);
-		ck_assert_int_eq(angle, tests[i].expected_value);
+		litest_assert_int_eq(angle, tests[i].expected_value);
 	}
 }
 END_TEST
 
 START_TEST(wheel_click_count_parser)
 {
+	/* clang-format off */
 	struct parser_test tests[] = {
 		{ "1", 1 },
 		{ "10", 10 },
@@ -335,25 +729,27 @@ START_TEST(wheel_click_count_parser)
 		{ "361", 0 },
 		{ NULL, 0 }
 	};
+	/* clang-format on */
 
 	int i, angle;
 
 	for (i = 0; tests[i].tag != NULL; i++) {
 		angle = parse_mouse_wheel_click_count_property(tests[i].tag);
-		ck_assert_int_eq(angle, tests[i].expected_value);
+		litest_assert_int_eq(angle, tests[i].expected_value);
 	}
 
 	angle = parse_mouse_wheel_click_count_property(NULL);
-	ck_assert_int_eq(angle, 0);
+	litest_assert_int_eq(angle, 0);
 }
 END_TEST
 
 START_TEST(dimension_prop_parser)
 {
+	/* clang-format off */
 	struct parser_test_dimension {
 		char *tag;
 		bool success;
-		int x, y;
+		size_t x, y;
 	} tests[] = {
 		{ "10x10", true, 10, 10 },
 		{ "1x20", true, 1, 20 },
@@ -371,8 +767,9 @@ START_TEST(dimension_prop_parser)
 		{ "0xaf", false, 0, 0 },
 		{ "0x0x", false, 0, 0 },
 		{ "x10", false, 0, 0 },
-		{ NULL, false, 0, 0 }
+		{ NULL, false, 0, 0 },
 	};
+	/* clang-format on */
 	int i;
 	size_t x, y;
 	bool success;
@@ -380,23 +777,24 @@ START_TEST(dimension_prop_parser)
 	for (i = 0; tests[i].tag != NULL; i++) {
 		x = y = 0xad;
 		success = parse_dimension_property(tests[i].tag, &x, &y);
-		ck_assert(success == tests[i].success);
+		litest_assert(success == tests[i].success);
 		if (success) {
-			ck_assert_int_eq(x, tests[i].x);
-			ck_assert_int_eq(y, tests[i].y);
+			litest_assert_int_eq(x, tests[i].x);
+			litest_assert_int_eq(y, tests[i].y);
 		} else {
-			ck_assert_int_eq(x, 0xad);
-			ck_assert_int_eq(y, 0xad);
+			litest_assert_int_eq(x, 0xadU);
+			litest_assert_int_eq(y, 0xadU);
 		}
 	}
 
 	success = parse_dimension_property(NULL, &x, &y);
-	ck_assert(success == false);
+	litest_assert(success == false);
 }
 END_TEST
 
 START_TEST(reliability_prop_parser)
 {
+	/* clang-format off */
 	struct parser_test_reliability {
 		char *tag;
 		bool success;
@@ -408,8 +806,9 @@ START_TEST(reliability_prop_parser)
 		{ "", false, 0 },
 		{ "0", false, 0 },
 		{ "1", false, 0 },
-		{ NULL, false, 0, }
+		{ NULL, false, 0, },
 	};
+	/* clang-format on */
 	enum switch_reliability r;
 	bool success;
 	int i;
@@ -417,19 +816,19 @@ START_TEST(reliability_prop_parser)
 	for (i = 0; tests[i].tag != NULL; i++) {
 		r = 0xaf;
 		success = parse_switch_reliability_property(tests[i].tag, &r);
-		ck_assert(success == tests[i].success);
+		litest_assert(success == tests[i].success);
 		if (success)
-			ck_assert_int_eq(r, tests[i].reliability);
+			litest_assert_int_eq(r, tests[i].reliability);
 		else
-			ck_assert_int_eq(r, 0xaf);
+			litest_assert_int_eq(r, 0xafU);
 	}
 
 	success = parse_switch_reliability_property(NULL, &r);
-	ck_assert(success == true);
-	ck_assert_int_eq(r, RELIABILITY_RELIABLE);
+	litest_assert(success == true);
+	litest_assert_enum_eq(r, RELIABILITY_RELIABLE);
 
 	success = parse_switch_reliability_property("foo", NULL);
-	ck_assert(success == false);
+	litest_assert(success == false);
 }
 END_TEST
 
@@ -437,6 +836,7 @@ START_TEST(calibration_prop_parser)
 {
 #define DEFAULT_VALUES { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 }
 	const float untouched[6] = DEFAULT_VALUES;
+	/* clang-format off */
 	struct parser_test_calibration {
 		char *prop;
 		bool success;
@@ -451,8 +851,9 @@ START_TEST(calibration_prop_parser)
 		{ "6.00012 3.244 4.238 5.2421 6.0134 8.860", true,
 			{ 6.00012, 3.244, 4.238, 5.2421, 6.0134, 8.860 }},
 		{ "0xff 2 3 4 5 6", false, DEFAULT_VALUES },
-		{ NULL, false, DEFAULT_VALUES }
+		{ NULL, false, DEFAULT_VALUES },
 	};
+	/* clang-format on */
 	bool success;
 	float calibration[6];
 	int rc;
@@ -461,31 +862,27 @@ START_TEST(calibration_prop_parser)
 	for (i = 0; tests[i].prop != NULL; i++) {
 		memcpy(calibration, untouched, sizeof(calibration));
 
-		success = parse_calibration_property(tests[i].prop,
-						     calibration);
-		ck_assert_int_eq(success, tests[i].success);
+		success = parse_calibration_property(tests[i].prop, calibration);
+		litest_assert_int_eq(success, tests[i].success);
 		if (success)
-			rc = memcmp(tests[i].values,
-				    calibration,
-				    sizeof(calibration));
+			rc = memcmp(tests[i].values, calibration, sizeof(calibration));
 		else
-			rc = memcmp(untouched,
-				    calibration,
-				    sizeof(calibration));
-		ck_assert_int_eq(rc, 0);
+			rc = memcmp(untouched, calibration, sizeof(calibration));
+		litest_assert_int_eq(rc, 0);
 	}
 
 	memcpy(calibration, untouched, sizeof(calibration));
 
 	success = parse_calibration_property(NULL, calibration);
-	ck_assert(success == false);
+	litest_assert(success == false);
 	rc = memcmp(untouched, calibration, sizeof(calibration));
-	ck_assert_int_eq(rc, 0);
+	litest_assert_int_eq(rc, 0);
 }
 END_TEST
 
 START_TEST(range_prop_parser)
 {
+	/* clang-format off */
 	struct parser_test_range {
 		char *tag;
 		bool success;
@@ -500,8 +897,9 @@ START_TEST(range_prop_parser)
 		{ "", false, 0, 0 },
 		{ "abcd", false, 0, 0 },
 		{ "10:30:10", false, 0, 0 },
-		{ NULL, false, 0, 0 }
+		{ NULL, false, 0, 0 },
 	};
+	/* clang-format on */
 	int i;
 	int hi, lo;
 	bool success;
@@ -509,23 +907,24 @@ START_TEST(range_prop_parser)
 	for (i = 0; tests[i].tag != NULL; i++) {
 		hi = lo = 0xad;
 		success = parse_range_property(tests[i].tag, &hi, &lo);
-		ck_assert(success == tests[i].success);
+		litest_assert(success == tests[i].success);
 		if (success) {
-			ck_assert_int_eq(hi, tests[i].hi);
-			ck_assert_int_eq(lo, tests[i].lo);
+			litest_assert_int_eq(hi, tests[i].hi);
+			litest_assert_int_eq(lo, tests[i].lo);
 		} else {
-			ck_assert_int_eq(hi, 0xad);
-			ck_assert_int_eq(lo, 0xad);
+			litest_assert_int_eq(hi, 0xad);
+			litest_assert_int_eq(lo, 0xad);
 		}
 	}
 
 	success = parse_range_property(NULL, NULL, NULL);
-	ck_assert(success == false);
+	litest_assert(success == false);
 }
 END_TEST
 
 START_TEST(boolean_prop_parser)
 {
+	/* clang-format off */
 	struct parser_test_range {
 		char *tag;
 		bool success;
@@ -536,28 +935,30 @@ START_TEST(boolean_prop_parser)
 		{ "-1", false, false },
 		{ "2", false, false },
 		{ "abcd", false, false },
-		{ NULL, false, false }
+		{ NULL, false, false },
 	};
+	/* clang-format on */
 	int i;
 	bool success, b;
 
 	for (i = 0; tests[i].tag != NULL; i++) {
 		b = false;
 		success = parse_boolean_property(tests[i].tag, &b);
-		ck_assert(success == tests[i].success);
+		litest_assert(success == tests[i].success);
 		if (success)
-			ck_assert_int_eq(b, tests[i].b);
+			litest_assert_int_eq(b, tests[i].b);
 		else
-			ck_assert_int_eq(b, false);
+			litest_assert_int_eq(b, false);
 	}
 
 	success = parse_boolean_property(NULL, NULL);
-	ck_assert(success == false);
+	litest_assert(success == false);
 }
 END_TEST
 
 START_TEST(evcode_prop_parser)
 {
+	/* clang-format off */
 	struct parser_test_tuple {
 		const char *prop;
 		bool success;
@@ -608,6 +1009,7 @@ START_TEST(evcode_prop_parser)
 		{ .prop = "none", .success = false },
 		{ .prop = NULL },
 	};
+	/* clang-format on */
 	struct parser_test_tuple *t;
 
 	for (int i = 0; tests[i].prop; i++) {
@@ -617,18 +1019,18 @@ START_TEST(evcode_prop_parser)
 
 		t = &tests[i];
 		success = parse_evcode_property(t->prop, events, &nevents);
-		ck_assert(success == t->success);
+		litest_assert(success == t->success);
 		if (!success)
 			continue;
 
-		ck_assert_int_eq(nevents, t->nevents);
+		litest_assert_int_eq(nevents, t->nevents);
 		for (size_t j = 0; j < nevents; j++) {
 			unsigned int type = events[j].type;
 			unsigned int code = events[j].code;
 			int value = events[j].value;
-			ck_assert_int_eq(t->events[j].type, type);
-			ck_assert_int_eq(t->events[j].code, code);
-			ck_assert_int_eq(t->events[j].value, value);
+			litest_assert_int_eq(t->events[j].type, type);
+			litest_assert_int_eq(t->events[j].code, code);
+			litest_assert_int_eq(t->events[j].value, value);
 		}
 	}
 }
@@ -636,6 +1038,7 @@ END_TEST
 
 START_TEST(input_prop_parser)
 {
+	/* clang-format off */
 	struct parser_test_val {
 		const char *prop;
 		bool success;
@@ -659,6 +1062,7 @@ START_TEST(input_prop_parser)
 		{ .prop = "none", .success = false },
 		{ .prop = NULL },
 	};
+	/* clang-format on */
 	struct parser_test_val *t;
 
 	for (int i = 0; tests[i].prop; i++) {
@@ -668,14 +1072,14 @@ START_TEST(input_prop_parser)
 
 		t = &tests[i];
 		success = parse_input_prop_property(t->prop, props, &nprops);
-		ck_assert(success == t->success);
+		litest_assert(success == t->success);
 		if (!success)
 			continue;
 
-		ck_assert_int_eq(nprops, t->nvals);
+		litest_assert_int_eq(nprops, t->nvals);
 		for (size_t j = 0; j < t->nvals; j++) {
-			ck_assert_int_eq(t->values[j].prop, props[j].prop);
-			ck_assert_int_eq(t->values[j].enabled, props[j].enabled);
+			litest_assert_int_eq(t->values[j].prop, props[j].prop);
+			litest_assert_int_eq(t->values[j].enabled, props[j].enabled);
 		}
 	}
 }
@@ -683,6 +1087,7 @@ END_TEST
 
 START_TEST(evdev_abs_parser)
 {
+	/* clang-format off */
 	struct test {
 		uint32_t which;
 		const char *prop;
@@ -735,41 +1140,43 @@ START_TEST(evdev_abs_parser)
 		{ .which = 0, .prop = ":asb::::" },
 		{ .which = 0, .prop = "foo" },
 	};
+	/* clang-format on */
 
 	ARRAY_FOR_EACH(tests, t) {
 		struct input_absinfo abs;
 		uint32_t mask;
 
 		mask = parse_evdev_abs_prop(t->prop, &abs);
-		ck_assert_int_eq(mask, t->which);
+		litest_assert_int_eq(mask, t->which);
 
 		if (t->which & ABS_MASK_MIN)
-			ck_assert_int_eq(abs.minimum, t->min);
+			litest_assert_int_eq(abs.minimum, t->min);
 		if (t->which & ABS_MASK_MAX)
-			ck_assert_int_eq(abs.maximum, t->max);
+			litest_assert_int_eq(abs.maximum, t->max);
 		if (t->which & ABS_MASK_RES)
-			ck_assert_int_eq(abs.resolution, t->res);
+			litest_assert_int_eq(abs.resolution, t->res);
 		if (t->which & ABS_MASK_FUZZ)
-			ck_assert_int_eq(abs.fuzz, t->fuzz);
+			litest_assert_int_eq(abs.fuzz, t->fuzz);
 		if (t->which & ABS_MASK_FLAT)
-			ck_assert_int_eq(abs.flat, t->flat);
+			litest_assert_int_eq(abs.flat, t->flat);
 	}
 }
 END_TEST
 
 START_TEST(time_conversion)
 {
-	ck_assert_int_eq(us(10), 10);
-	ck_assert_int_eq(ns2us(10000), 10);
-	ck_assert_int_eq(ms2us(10), 10000);
-	ck_assert_int_eq(s2us(1), 1000000);
-	ck_assert_int_eq(h2us(2), s2us(2 * 60 * 60));
-	ck_assert_int_eq(us2ms(10000), 10);
+	litest_assert_int_eq(us(10), 10U);
+	litest_assert_int_eq(ns2us(10000), 10U);
+	litest_assert_int_eq(ms2us(10), 10000U);
+	litest_assert_int_eq(s2us(1), 1000000U);
+	litest_assert_int_eq(h2us(2), s2us(2 * 60 * 60));
+	litest_assert_int_eq(us2ms(10000), 10U);
 }
 END_TEST
 
 START_TEST(human_time)
 {
+	/* clang-format off */
 	struct ht_tests {
 		uint64_t interval;
 		unsigned int value;
@@ -789,12 +1196,13 @@ START_TEST(human_time)
 		{ 1000 * 24 * 60 * s2us(60), 1000, "d" },
 		{ 0, 0, NULL },
 	};
+	/* clang-format on */
 	for (int i = 0; tests[i].unit != NULL; i++) {
 		struct human_time ht;
 
 		ht = to_human_time(tests[i].interval);
-		ck_assert_int_eq(ht.value, tests[i].value);
-		ck_assert_str_eq(ht.unit, tests[i].unit);
+		litest_assert_int_eq(ht.value, tests[i].value);
+		litest_assert_str_eq(ht.unit, tests[i].unit);
 	}
 }
 END_TEST
@@ -807,6 +1215,7 @@ struct atoi_test {
 
 START_TEST(safe_atoi_test)
 {
+	/* clang-format off */
 	struct atoi_test tests[] = {
 		{ "10", true, 10 },
 		{ "20", true, 20 },
@@ -823,25 +1232,27 @@ START_TEST(safe_atoi_test)
 		{ "0xaf", false, 0 },
 		{ "0x0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
+	/* clang-format on */
 	int v;
 	bool success;
 
 	for (int i = 0; tests[i].str != NULL; i++) {
 		v = 0xad;
 		success = safe_atoi(tests[i].str, &v);
-		ck_assert(success == tests[i].success);
+		litest_assert(success == tests[i].success);
 		if (success)
-			ck_assert_int_eq(v, tests[i].val);
+			litest_assert_int_eq(v, tests[i].val);
 		else
-			ck_assert_int_eq(v, 0xad);
+			litest_assert_int_eq(v, 0xad);
 	}
 }
 END_TEST
 
 START_TEST(safe_atoi_base_16_test)
 {
+	/* clang-format off */
 	struct atoi_test tests[] = {
 		{ "10", true, 0x10 },
 		{ "20", true, 0x20 },
@@ -856,8 +1267,9 @@ START_TEST(safe_atoi_base_16_test)
 		{ "0xak", false, 0 },
 		{ "0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
+	/* clang-format on */
 
 	int v;
 	bool success;
@@ -865,17 +1277,18 @@ START_TEST(safe_atoi_base_16_test)
 	for (int i = 0; tests[i].str != NULL; i++) {
 		v = 0xad;
 		success = safe_atoi_base(tests[i].str, &v, 16);
-		ck_assert(success == tests[i].success);
+		litest_assert(success == tests[i].success);
 		if (success)
-			ck_assert_int_eq(v, tests[i].val);
+			litest_assert_int_eq(v, tests[i].val);
 		else
-			ck_assert_int_eq(v, 0xad);
+			litest_assert_int_eq(v, 0xad);
 	}
 }
 END_TEST
 
 START_TEST(safe_atoi_base_8_test)
 {
+	/* clang-format off */
 	struct atoi_test tests[] = {
 		{ "7", true, 07 },
 		{ "10", true, 010 },
@@ -893,8 +1306,9 @@ START_TEST(safe_atoi_base_8_test)
 		{ "0xak", false, 0 },
 		{ "0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
+	/* clang-format on */
 
 	int v;
 	bool success;
@@ -902,11 +1316,11 @@ START_TEST(safe_atoi_base_8_test)
 	for (int i = 0; tests[i].str != NULL; i++) {
 		v = 0xad;
 		success = safe_atoi_base(tests[i].str, &v, 8);
-		ck_assert(success == tests[i].success);
+		litest_assert(success == tests[i].success);
 		if (success)
-			ck_assert_int_eq(v, tests[i].val);
+			litest_assert_int_eq(v, tests[i].val);
 		else
-			ck_assert_int_eq(v, 0xad);
+			litest_assert_int_eq(v, 0xad);
 	}
 }
 END_TEST
@@ -919,6 +1333,7 @@ struct atou_test {
 
 START_TEST(safe_atou_test)
 {
+	/* clang-format off */
 	struct atou_test tests[] = {
 		{ "10", true, 10 },
 		{ "20", true, 20 },
@@ -934,25 +1349,27 @@ START_TEST(safe_atou_test)
 		{ "0xaf", false, 0 },
 		{ "0x0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
+	/* clang-format on */
 	unsigned int v;
 	bool success;
 
 	for (int i = 0; tests[i].str != NULL; i++) {
 		v = 0xad;
 		success = safe_atou(tests[i].str, &v);
-		ck_assert(success == tests[i].success);
+		litest_assert(success == tests[i].success);
 		if (success)
-			ck_assert_int_eq(v, tests[i].val);
+			litest_assert_int_eq(v, tests[i].val);
 		else
-			ck_assert_int_eq(v, 0xad);
+			litest_assert_int_eq(v, 0xadU);
 	}
 }
 END_TEST
 
 START_TEST(safe_atou_base_16_test)
 {
+	/* clang-format off */
 	struct atou_test tests[] = {
 		{ "10", true, 0x10 },
 		{ "20", true, 0x20 },
@@ -967,8 +1384,9 @@ START_TEST(safe_atou_base_16_test)
 		{ "0xak", false, 0 },
 		{ "0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
+	/* clang-format on */
 
 	unsigned int v;
 	bool success;
@@ -976,17 +1394,18 @@ START_TEST(safe_atou_base_16_test)
 	for (int i = 0; tests[i].str != NULL; i++) {
 		v = 0xad;
 		success = safe_atou_base(tests[i].str, &v, 16);
-		ck_assert(success == tests[i].success);
+		litest_assert(success == tests[i].success);
 		if (success)
-			ck_assert_int_eq(v, tests[i].val);
+			litest_assert_int_eq(v, tests[i].val);
 		else
-			ck_assert_int_eq(v, 0xad);
+			litest_assert_int_eq(v, 0xadU);
 	}
 }
 END_TEST
 
 START_TEST(safe_atou_base_8_test)
 {
+	/* clang-format off */
 	struct atou_test tests[] = {
 		{ "7", true, 07 },
 		{ "10", true, 010 },
@@ -1004,8 +1423,9 @@ START_TEST(safe_atou_base_8_test)
 		{ "0xak", false, 0 },
 		{ "0x", false, 0 },
 		{ "x10", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
+	/* clang-format on */
 
 	unsigned int v;
 	bool success;
@@ -1013,17 +1433,61 @@ START_TEST(safe_atou_base_8_test)
 	for (int i = 0; tests[i].str != NULL; i++) {
 		v = 0xad;
 		success = safe_atou_base(tests[i].str, &v, 8);
-		ck_assert(success == tests[i].success);
+		litest_assert(success == tests[i].success);
 		if (success)
-			ck_assert_int_eq(v, tests[i].val);
+			litest_assert_int_eq(v, tests[i].val);
 		else
-			ck_assert_int_eq(v, 0xad);
+			litest_assert_int_eq(v, 0xadU);
+	}
+}
+END_TEST
+
+struct atou64_test {
+	char *str;
+	bool success;
+	uint64_t val;
+};
+
+START_TEST(safe_atou64_test)
+{
+	/* clang-format off */
+	struct atou64_test tests[] = {
+		{ "10", true, 10 },
+		{ "20", true, 20 },
+		{ "-1", false, 0 },
+		{ "9999999999", true, 9999999999 },
+		{ "2147483647", true, 2147483647 },
+		{ "-2147483648", false, 0},
+		{ "0x0", false, 0 },
+		{ "-10x10", false, 0 },
+		{ "1x-99", false, 0 },
+		{ "", false, 0 },
+		{ "abd", false, 0 },
+		{ "xabd", false, 0 },
+		{ "0xaf", false, 0 },
+		{ "0x0x", false, 0 },
+		{ "x10", false, 0 },
+		{ NULL, false, 0 },
+	};
+	/* clang-format on */
+	uint64_t v;
+	bool success;
+
+	for (int i = 0; tests[i].str != NULL; i++) {
+		v = 0xad;
+		success = safe_atou64(tests[i].str, &v);
+		litest_assert(success == tests[i].success);
+		if (success)
+			litest_assert_int_eq(v, tests[i].val);
+		else
+			litest_assert_int_eq(v, 0xadU);
 	}
 }
 END_TEST
 
 START_TEST(safe_atod_test)
 {
+	/* clang-format off */
 	struct atod_test {
 		char *str;
 		bool success;
@@ -1052,25 +1516,27 @@ START_TEST(safe_atod_test)
 		{ "abd", false, 0 },
 		{ "xabd", false, 0 },
 		{ "0x0x", false, 0 },
-		{ NULL, false, 0 }
+		{ NULL, false, 0 },
 	};
+	/* clang-format on */
 	double v;
 	bool success;
 
 	for (int i = 0; tests[i].str != NULL; i++) {
 		v = 0xad;
 		success = safe_atod(tests[i].str, &v);
-		ck_assert(success == tests[i].success);
+		litest_assert(success == tests[i].success);
 		if (success)
-			ck_assert_int_eq(v, tests[i].val);
+			litest_assert_double_eq(v, tests[i].val);
 		else
-			ck_assert_int_eq(v, 0xad);
+			litest_assert_int_eq(v, 0xad);
 	}
 }
 END_TEST
 
 START_TEST(strsplit_test)
 {
+	/* clang-format off */
 	struct strsplit_test {
 		const char *string;
 		const char *delim;
@@ -1094,8 +1560,9 @@ START_TEST(strsplit_test)
 		{ " ", " ", { NULL }, 0 },
 		{ "     ", " ", { NULL }, 0 },
 		{ "oneoneone", "one", { NULL} , 0 },
-		{ NULL, NULL, { NULL }, 0}
+		{ NULL, NULL, { NULL }, 0},
 	};
+	/* clang-format on */
 	struct strsplit_test *t = tests;
 
 	while (t->string) {
@@ -1103,16 +1570,16 @@ START_TEST(strsplit_test)
 		char **strv = strv_from_string(t->string, t->delim, &nelem);
 
 		for (size_t idx = 0; idx < t->nresults; idx++)
-			ck_assert_str_eq(t->results[idx], strv[idx]);
+			litest_assert_str_eq(t->results[idx], strv[idx]);
 
-		ck_assert_uint_eq(nelem, t->nresults);
+		litest_assert_int_eq(nelem, t->nresults);
 
 		/* When there are no elements validate return value is Null,
 		   otherwise validate result array is Null terminated. */
-		if(t->nresults == 0)
-			ck_assert_ptr_eq(strv, NULL);
+		if (t->nresults == 0)
+			litest_assert_ptr_eq(strv, NULL);
 		else
-			ck_assert_ptr_eq(strv[t->nresults], NULL);
+			litest_assert_ptr_eq(strv[t->nresults], NULL);
 
 		strv_free(strv);
 		t++;
@@ -1120,8 +1587,230 @@ START_TEST(strsplit_test)
 }
 END_TEST
 
+struct strv_test_data {
+	const char *terminate_at;
+	unsigned char bitmask[1];
+};
+
+static int
+strv_test_set_bitmask(const char *str, size_t index, void *data)
+{
+	struct strv_test_data *td = data;
+
+	if (streq(str, td->terminate_at))
+		return index + 1;
+
+	set_bit(td->bitmask, index);
+
+	return 0;
+}
+
+START_TEST(strv_for_each_test)
+{
+	/* clang-format off */
+	struct test_data {
+		const char *terminator;
+		int index;
+		unsigned int bitmask;
+	} test_data[] = {
+		{ "one", 1, 0x0 },
+		{ "two", 2, 0x1 },
+		{ "three", 3, 0x3 },
+		{ "four", 4, 0x7 },
+		{ "five", 5, 0xf },
+		{ "does-not-exist", 0, 0x1f },
+		{ NULL, 0, 0x1f },
+		{ NULL, 0 },
+	};
+	/* clang-format on */
+	const char *array[] = { "one", "two", "three", "four", "five", NULL };
+	struct test_data *t = test_data;
+
+	while (t->terminator || t->bitmask) {
+		const int max = 3;
+		struct strv_test_data td = {
+			.terminate_at = t->terminator,
+			.bitmask = { 0 },
+		};
+
+		int rc = strv_for_each(array, strv_test_set_bitmask, &td);
+		litest_assert_int_eq(rc, t->index);
+		litest_assert_int_eq(td.bitmask[0], t->bitmask);
+
+		struct strv_test_data tdmax = {
+			.terminate_at = t->terminator,
+			.bitmask = { 0 },
+		};
+
+		rc = strv_for_each_n(array, max, strv_test_set_bitmask, &tdmax);
+		if (max < t->index)
+			litest_assert_int_eq(rc, 0);
+		else
+			litest_assert_int_eq(rc, t->index);
+		litest_assert_int_eq(tdmax.bitmask[0], t->bitmask & ((1 << max) - 1));
+
+		t++;
+	}
+}
+END_TEST
+
+__attribute__((format(printf, 1, 0))) static char **
+test_strv_appendv(char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	char **strv = NULL;
+	strv = strv_append_vprintf(strv, "%s %d", args);
+	va_end(args);
+	return strv;
+}
+
+START_TEST(strv_append_test)
+{
+	{
+		char *test_strv1[] = { "a", "b", "c", NULL };
+		char **test_strv2 = NULL;
+
+		litest_assert_int_eq(strv_len(test_strv1), 4U);
+		litest_assert_int_eq(strv_len(test_strv2), 0U);
+	}
+	{
+		char **strv = NULL;
+		char *dup = safe_strdup("test");
+		strv = strv_append_take(strv, &dup);
+		litest_assert_ptr_null(dup);
+		litest_assert_ptr_notnull(strv);
+		litest_assert_str_eq(strv[0], "test");
+		litest_assert_ptr_eq(strv[1], NULL);
+		litest_assert_int_eq(strv_len(strv), 2U);
+
+		char *dup2 = safe_strdup("test2");
+		strv = strv_append_take(strv, &dup2);
+		litest_assert_ptr_null(dup2);
+		litest_assert_str_eq(strv[1], "test2");
+		litest_assert_ptr_eq(strv[2], NULL);
+		litest_assert_int_eq(strv_len(strv), 3U);
+
+		strv = strv_append_take(strv, NULL);
+		litest_assert_int_eq(strv_len(strv), 3U);
+		strv_free(strv);
+	}
+	{
+		char **strv = NULL;
+		strv = strv_append_strdup(strv, "banana");
+		litest_assert(strv != NULL);
+		litest_assert_str_eq(strv[0], "banana");
+		litest_assert_ptr_null(strv[1]);
+		litest_assert_int_eq(strv_len(strv), 2U);
+		strv_free(strv);
+	}
+	{
+		char **strv = test_strv_appendv("%s %d", "apple", 2);
+		litest_assert_ptr_notnull(strv);
+		litest_assert_str_eq(strv[0], "apple 2");
+		litest_assert_ptr_null(strv[1]);
+		litest_assert_int_eq(strv_len(strv), 2U);
+		strv_free(strv);
+	}
+	{
+		char **strv = NULL;
+		strv = strv_append_printf(strv, "coco%s", "nut");
+		litest_assert_ptr_notnull(strv);
+		litest_assert_str_eq(strv[0], "coconut");
+		litest_assert_ptr_null(strv[1]);
+		litest_assert_int_eq(strv_len(strv), 2U);
+		strv_free(strv);
+	}
+}
+END_TEST
+
+START_TEST(strv_find_test)
+{
+	char *strv[] = { "a", "b", "c", NULL };
+
+	bool rc;
+	size_t index;
+
+	rc = strv_find(strv, "a", &index);
+	litest_assert(rc);
+	litest_assert_int_eq(index, 0U);
+
+	rc = strv_find(strv, "b", &index);
+	litest_assert(rc);
+	litest_assert_int_eq(index, 1U);
+
+	rc = strv_find(strv, "a", NULL);
+	litest_assert(rc);
+
+	index = 0xffff;
+	rc = strv_find(strv, "d", &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+
+	rc = strv_find(strv, "d", NULL);
+	litest_assert(!rc);
+
+	rc = strv_find(NULL, "a", &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+
+	rc = strv_find(NULL, NULL, &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+
+	rc = strv_find(strv, NULL, &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+}
+END_TEST
+
+START_TEST(strv_find_substring_test)
+{
+	char *strv[] = { "a", "bc", "cccc", NULL };
+
+	bool rc;
+	size_t index;
+
+	rc = strv_find_substring(strv, "a", &index);
+	litest_assert(rc);
+	litest_assert_int_eq(index, 0U);
+
+	rc = strv_find_substring(strv, "b", &index);
+	litest_assert(rc);
+	litest_assert_int_eq(index, 1U);
+
+	rc = strv_find_substring(strv, "c", &index);
+	litest_assert(rc);
+	litest_assert_int_eq(index, 1U);
+
+	rc = strv_find_substring(strv, "a", NULL);
+	litest_assert(rc);
+
+	index = 0xffff;
+	rc = strv_find_substring(strv, "d", &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+
+	rc = strv_find_substring(strv, "d", NULL);
+	litest_assert(!rc);
+
+	rc = strv_find_substring(NULL, "a", &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+
+	rc = strv_find_substring(NULL, NULL, &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+
+	rc = strv_find_substring(strv, NULL, &index);
+	litest_assert(!rc);
+	litest_assert_int_eq(index, 0xffffU);
+}
+END_TEST
+
 START_TEST(double_array_from_string_test)
 {
+	/* clang-format off */
 	struct double_array_from_string_test {
 		const char *string;
 		const char *delim;
@@ -1144,19 +1833,20 @@ START_TEST(double_array_from_string_test)
 		{ "    ", " ", { 0 }, 0 },
 		{ "", " ", { 0 }, 0 },
 		{ "oneoneone", "one", { 0 }, 0 },
-		{ NULL, NULL, { 0 }, 0 }
+		{ NULL, NULL, { 0 }, 0 },
 	};
+	/* clang-format on */
 	struct double_array_from_string_test *t = tests;
 
 	while (t->string) {
 		size_t len;
-		double *array = double_array_from_string(t->string,
-							 t->delim,
-							 &len);
-		ck_assert_int_eq(len, t->len);
+		double *array = double_array_from_string(t->string, t->delim, &len);
+		litest_assert_int_eq(len, t->len);
 
-		for (size_t idx = 0; idx < len; idx++)
-			ck_assert_double_eq(array[idx], t->array[idx]);
+		for (size_t idx = 0; idx < len; idx++) {
+			litest_assert_ptr_notnull(array);
+			litest_assert_double_eq(array[idx], t->array[idx]);
+		}
 
 		free(array);
 		t++;
@@ -1166,6 +1856,7 @@ END_TEST
 
 START_TEST(strargv_test)
 {
+	/* clang-format off */
 	struct argv_test {
 		int argc;
 		char *argv[10];
@@ -1180,21 +1871,22 @@ START_TEST(strargv_test)
 		{ 1, {NULL, NULL}, 0 },
 		{ 3, {"hello", NULL, "World"}, 0 },
 	};
+	/* clang-format on */
 
 	ARRAY_FOR_EACH(tests, t) {
 		char **strv = strv_from_argv(t->argc, t->argv);
 
 		if (t->expected == 0) {
-			ck_assert(strv == NULL);
+			litest_assert(strv == NULL);
 		} else {
 			int count = 0;
 			char **s = strv;
 			while (*s) {
-				ck_assert_str_eq(*s, t->argv[count]);
+				litest_assert_str_eq(*s, t->argv[count]);
 				count++;
 				s++;
 			}
-			ck_assert_int_eq(t->expected, count);
+			litest_assert_int_eq(t->expected, count);
 			strv_free(strv);
 		}
 	}
@@ -1203,6 +1895,7 @@ END_TEST
 
 START_TEST(kvsplit_double_test)
 {
+	/* clang-format off */
 	struct kvsplit_dbl_test {
 		const char *string;
 		const char *psep;
@@ -1225,25 +1918,22 @@ START_TEST(kvsplit_double_test)
 		{ "a:b", "x", ":", -1, {}},
 		{ "", " ", "x", -1, {}},
 		{ "1.2.3.4.5", ".", "", -1, {}},
-		{ NULL }
+		{ NULL },
 	};
+	/* clang-format on */
 	struct kvsplit_dbl_test *t = tests;
 
 	while (t->string) {
 		struct key_value_double *result = NULL;
 		ssize_t npairs;
 
-		npairs = kv_double_from_string(t->string,
-					       t->psep,
-					       t->kvsep,
-					       &result);
-		ck_assert_int_eq(npairs, t->nresults);
+		npairs = kv_double_from_string(t->string, t->psep, t->kvsep, &result);
+		litest_assert_int_eq(npairs, t->nresults);
 
 		for (ssize_t i = 0; i < npairs; i++) {
-			ck_assert_double_eq(t->results[i].a, result[i].key);
-			ck_assert_double_eq(t->results[i].b, result[i].value);
+			litest_assert_double_eq(t->results[i].a, result[i].key);
+			litest_assert_double_eq(t->results[i].b, result[i].value);
 		}
-
 
 		free(result);
 		t++;
@@ -1253,6 +1943,7 @@ END_TEST
 
 START_TEST(strjoin_test)
 {
+	/* clang-format off */
 	struct strjoin_test {
 		char *strv[10];
 		const char *joiner;
@@ -1269,28 +1960,30 @@ START_TEST(strjoin_test)
 		{ { "a", "b", "c", NULL }, "", "abc" },
 		{ { "", "b", "c", NULL }, "x", "xbxc" },
 		{ { "", "", "", NULL }, "", "" },
-		{ { NULL }, NULL, NULL }
+		{ { NULL }, NULL, NULL },
 	};
+	/* clang-format on */
 	struct strjoin_test *t = tests;
-	struct strjoin_test nulltest = { {NULL}, "x", NULL };
+	struct strjoin_test nulltest = { { NULL }, "x", NULL };
 
 	while (t->strv[0]) {
 		char *str;
 		str = strv_join(t->strv, t->joiner);
 		if (t->result == NULL)
-			ck_assert(str == NULL);
+			litest_assert(str == NULL);
 		else
-			ck_assert_str_eq(str, t->result);
+			litest_assert_str_eq(str, t->result);
 		free(str);
 		t++;
 	}
 
-	ck_assert(strv_join(nulltest.strv, "x") == NULL);
+	litest_assert(strv_join(nulltest.strv, "x") == NULL);
 }
 END_TEST
 
 START_TEST(strstrip_test)
 {
+	/* clang-format off */
 	struct strstrip_test {
 		const char *string;
 		const char *expected;
@@ -1313,14 +2006,15 @@ START_TEST(strstrip_test)
 		{ " foo\n",		"foo",		" \n" },
 		{ "",			"",		"abc" },
 		{ "",			"",		"" },
-		{ NULL , NULL, NULL }
+		{ NULL , NULL, NULL },
 	};
+	/* clang-format on */
 	struct strstrip_test *t = tests;
 
 	while (t->string) {
 		char *str;
 		str = strstrip(t->string, t->what);
-		ck_assert_str_eq(str, t->expected);
+		litest_assert_str_eq(str, t->expected);
 		free(str);
 		t++;
 	}
@@ -1329,6 +2023,7 @@ END_TEST
 
 START_TEST(strendswith_test)
 {
+	/* clang-format off */
 	struct strendswith_test {
 		const char *string;
 		const char *suffix;
@@ -1343,16 +2038,17 @@ START_TEST(strendswith_test)
 		{ "", "foo", false },
 		{ NULL, NULL, false },
 	};
+	/* clang-format on */
 
 	for (struct strendswith_test *t = tests; t->string; t++) {
-		ck_assert_int_eq(strendswith(t->string, t->suffix),
-				 t->expected);
+		litest_assert_int_eq(strendswith(t->string, t->suffix), t->expected);
 	}
 }
 END_TEST
 
 START_TEST(strstartswith_test)
 {
+	/* clang-format off */
 	struct strstartswith_test {
 		const char *string;
 		const char *suffix;
@@ -1367,16 +2063,17 @@ START_TEST(strstartswith_test)
 		{ "foo", "", false },
 		{ NULL, NULL, false },
 	};
+	/* clang-format on */
 
 	for (struct strstartswith_test *t = tests; t->string; t++) {
-		ck_assert_int_eq(strstartswith(t->string, t->suffix),
-				 t->expected);
+		litest_assert_int_eq(strstartswith(t->string, t->suffix), t->expected);
 	}
 }
 END_TEST
 
 START_TEST(strsanitize_test)
 {
+	/* clang-format off */
 	struct strsanitize_test {
 		const char *string;
 		const char *expected;
@@ -1391,10 +2088,11 @@ START_TEST(strsanitize_test)
 		{ "%s%s", "%%s%%s" },
 		{ NULL, NULL },
 	};
+	/* clang-format on */
 
 	for (struct strsanitize_test *t = tests; t->string; t++) {
 		char *sanitized = str_sanitize(t->string);
-		ck_assert_str_eq(sanitized, t->expected);
+		litest_assert_str_eq(sanitized, t->expected);
 		free(sanitized);
 	}
 }
@@ -1406,10 +2104,10 @@ START_TEST(list_test_insert)
 		int val;
 		struct list node;
 	} tests[] = {
-		{ .val  = 1 },
-		{ .val  = 2 },
-		{ .val  = 3 },
-		{ .val  = 4 },
+		{ .val = 1 },
+		{ .val = 2 },
+		{ .val = 3 },
+		{ .val = 4 },
 	};
 	struct list_test *t;
 	struct list head;
@@ -1423,11 +2121,11 @@ START_TEST(list_test_insert)
 
 	val = 4;
 	list_for_each(t, &head, node) {
-		ck_assert_int_eq(t->val, val);
+		litest_assert_int_eq(t->val, val);
 		val--;
 	}
 
-	ck_assert_int_eq(val, 0);
+	litest_assert_int_eq(val, 0);
 }
 END_TEST
 
@@ -1437,10 +2135,10 @@ START_TEST(list_test_append)
 		int val;
 		struct list node;
 	} tests[] = {
-		{ .val  = 1 },
-		{ .val  = 2 },
-		{ .val  = 3 },
-		{ .val  = 4 },
+		{ .val = 1 },
+		{ .val = 2 },
+		{ .val = 3 },
+		{ .val = 4 },
 	};
 	struct list_test *t;
 	struct list head;
@@ -1454,10 +2152,61 @@ START_TEST(list_test_append)
 
 	val = 1;
 	list_for_each(t, &head, node) {
-		ck_assert_int_eq(t->val, val);
+		litest_assert_int_eq(t->val, val);
 		val++;
 	}
-	ck_assert_int_eq(val, 5);
+	litest_assert_int_eq(val, 5);
+}
+END_TEST
+
+START_TEST(list_test_chain)
+{
+	struct list_test {
+		int val;
+		struct list node;
+	} tests[] = {
+		{ .val = 1 },
+		{ .val = 2 },
+		{ .val = 3 },
+		{ .val = 4 },
+	};
+	struct list l1, l2;
+	struct list_test *t;
+	int val;
+
+	list_init(&l1);
+	list_init(&l2);
+
+	list_chain(&l1, &l2);
+	litest_assert(list_empty(&l2));
+
+	list_append(&l2, &tests[0].node);
+	list_append(&l2, &tests[1].node);
+	list_chain(&l1, &l2);
+	litest_assert(list_empty(&l2));
+
+	val = 1;
+	list_for_each_safe(t, &l1, node) {
+		litest_assert_int_eq(t->val, val);
+		val++;
+		list_remove(&t->node);
+	}
+	litest_assert_int_eq(val, 3);
+
+	list_append(&l1, &tests[0].node);
+	list_append(&l1, &tests[1].node);
+	list_append(&l2, &tests[2].node);
+	list_append(&l2, &tests[3].node);
+
+	list_chain(&l1, &l2);
+	litest_assert(list_empty(&l2));
+
+	val = 1;
+	list_for_each(t, &l1, node) {
+		litest_assert_int_eq(t->val, val);
+		val++;
+	}
+	litest_assert_int_eq(val, 5);
 }
 END_TEST
 
@@ -1467,10 +2216,10 @@ START_TEST(list_test_foreach)
 		int val;
 		struct list node;
 	} tests[] = {
-		{ .val  = 1 },
-		{ .val  = 2 },
-		{ .val  = 3 },
-		{ .val  = 4 },
+		{ .val = 1 },
+		{ .val = 2 },
+		{ .val = 3 },
+		{ .val = 4 },
 	};
 	struct list_test *t;
 	struct list head;
@@ -1484,48 +2233,106 @@ START_TEST(list_test_foreach)
 	/* Make sure both loop macros are a single line statement */
 	if (false)
 		list_for_each(t, &head, node) {
-			ck_abort_msg("We should not get here");
+			litest_abort_msg("We should not get here");
 		}
 
 	if (false)
 		list_for_each_safe(t, &head, node) {
-			ck_abort_msg("We should not get here");
+			litest_abort_msg("We should not get here");
 		}
+}
+END_TEST
+
+START_TEST(list_test_first_last)
+{
+	struct list_test {
+		int val;
+		struct list node;
+	} tests[] = {
+		{ .val = 1 },
+		{ .val = 2 },
+		{ .val = 3 },
+		{ .val = 4 },
+	};
+	struct list head;
+
+	list_init(&head);
+
+	ARRAY_FOR_EACH(tests, t) {
+		list_append(&head, &t->node);
+	}
+
+	struct list_test *first;
+	struct list_test *last;
+
+	first = list_first_entry(&head, first, node);
+	last = list_last_entry(&head, last, node);
+	litest_assert_ptr_eq(first, &tests[0]);
+	litest_assert_ptr_eq(last, &tests[3]);
+
+	struct list_test *second;
+	struct list_test *penultimate;
+
+	second = list_first_entry(&first->node, first, node);
+	penultimate = list_last_entry(&last->node, last, node);
+	litest_assert_ptr_eq(second, &tests[1]);
+	litest_assert_ptr_eq(penultimate, &tests[2]);
+
+	/* Now remove nodes */
+
+	/* No change expected */
+	list_remove(&tests[2].node);
+	first = list_first_entry(&head, first, node);
+	last = list_last_entry(&head, last, node);
+	litest_assert_ptr_eq(first, &tests[0]);
+	litest_assert_ptr_eq(last, &tests[3]);
+
+	list_remove(&tests[3].node);
+	first = list_first_entry(&head, first, node);
+	last = list_last_entry(&head, last, node);
+	litest_assert_ptr_eq(first, &tests[0]);
+	litest_assert_ptr_eq(last, &tests[1]);
+
+	list_remove(&tests[0].node);
+	first = list_first_entry(&head, first, node);
+	last = list_last_entry(&head, last, node);
+	litest_assert_ptr_eq(first, &tests[1]);
+	litest_assert_ptr_eq(last, &tests[1]);
 }
 END_TEST
 
 START_TEST(strverscmp_test)
 {
-	ck_assert_int_eq(libinput_strverscmp("", ""), 0);
-	ck_assert_int_gt(libinput_strverscmp("0.0.1", ""), 0);
-	ck_assert_int_lt(libinput_strverscmp("", "0.0.1"), 0);
-	ck_assert_int_eq(libinput_strverscmp("0.0.1", "0.0.1"), 0);
-	ck_assert_int_eq(libinput_strverscmp("0.0.1", "0.0.2"), -1);
-	ck_assert_int_eq(libinput_strverscmp("0.0.2", "0.0.1"), 1);
-	ck_assert_int_eq(libinput_strverscmp("0.0.1", "0.1.0"), -1);
-	ck_assert_int_eq(libinput_strverscmp("0.1.0", "0.0.1"), 1);
+	litest_assert_int_eq(libinput_strverscmp("", ""), 0);
+	litest_assert_int_gt(libinput_strverscmp("0.0.1", ""), 0);
+	litest_assert_int_lt(libinput_strverscmp("", "0.0.1"), 0);
+	litest_assert_int_eq(libinput_strverscmp("0.0.1", "0.0.1"), 0);
+	litest_assert_int_eq(libinput_strverscmp("0.0.1", "0.0.2"), -1);
+	litest_assert_int_eq(libinput_strverscmp("0.0.2", "0.0.1"), 1);
+	litest_assert_int_eq(libinput_strverscmp("0.0.1", "0.1.0"), -1);
+	litest_assert_int_eq(libinput_strverscmp("0.1.0", "0.0.1"), 1);
 }
 END_TEST
 
 START_TEST(streq_test)
 {
-	ck_assert(streq("", "") == true);
-	ck_assert(streq(NULL, NULL) == true);
-	ck_assert(streq("0.0.1", "") == false);
-	ck_assert(streq("foo", NULL) == false);
-	ck_assert(streq(NULL, "foo") == false);
-	ck_assert(streq("0.0.1", "0.0.1") == true);
+	litest_assert(streq("", "") == true);
+	litest_assert(streq(NULL, NULL) == true);
+	litest_assert(streq("0.0.1", "") == false);
+	litest_assert(streq("foo", NULL) == false);
+	litest_assert(streq(NULL, "foo") == false);
+	litest_assert(streq("0.0.1", "0.0.1") == true);
 }
 END_TEST
 
 START_TEST(strneq_test)
 {
-	ck_assert(strneq("", "", 1) == true);
-	ck_assert(strneq(NULL, NULL, 1) == true);
-	ck_assert(strneq("0.0.1", "", 6) == false);
-	ck_assert(strneq("foo", NULL, 5) == false);
-	ck_assert(strneq(NULL, "foo", 5) == false);
-	ck_assert(strneq("0.0.1", "0.0.1", 6) == true);
+	litest_assert(strneq("", "", 1) == true);
+	litest_assert(strneq(NULL, NULL, 1) == true);
+	litest_assert(strneq("0.0.1", "", 6) == false);
+	litest_assert(strneq("foo", NULL, 5) == false);
+	litest_assert(strneq(NULL, "foo", 5) == false);
+	litest_assert(strneq("0.0.1", "0.0.1", 6) == true);
 }
 END_TEST
 
@@ -1551,12 +2358,13 @@ START_TEST(basename_test)
 	ARRAY_FOR_EACH(tests, t) {
 		const char *result = safe_basename(t->path);
 		if (t->expected == NULL)
-			ck_assert(result == NULL);
+			litest_assert(result == NULL);
 		else
-			ck_assert_str_eq(result, t->expected);
+			litest_assert_str_eq(result, t->expected);
 	}
 }
 END_TEST
+
 START_TEST(trunkname_test)
 {
 	struct test {
@@ -1577,7 +2385,7 @@ START_TEST(trunkname_test)
 
 	ARRAY_FOR_EACH(tests, t) {
 		char *result = trunkname(t->path);
-		ck_assert_str_eq(result, t->expected);
+		litest_assert_str_eq(result, t->expected);
 		free(result);
 	}
 }
@@ -1590,108 +2398,901 @@ START_TEST(absinfo_normalize_value_test)
 		.maximum = 100,
 	};
 
-	ck_assert_double_eq(absinfo_normalize_value(&abs, -100), 0.0);
-	ck_assert_double_eq(absinfo_normalize_value(&abs, -1), 0.0);
-	ck_assert_double_eq(absinfo_normalize_value(&abs, 0), 0.0);
-	ck_assert_double_gt(absinfo_normalize_value(&abs, 1), 0.0);
-	ck_assert_double_lt(absinfo_normalize_value(&abs, 99), 1.0);
-	ck_assert_double_eq(absinfo_normalize_value(&abs, 100), 1.0);
-	ck_assert_double_eq(absinfo_normalize_value(&abs, 101), 1.0);
-	ck_assert_double_eq(absinfo_normalize_value(&abs, 200), 1.0);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, -100), 0.0);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, -1), 0.0);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, 0), 0.0);
+	litest_assert_double_gt(absinfo_normalize_value(&abs, 1), 0.0);
+	litest_assert_double_lt(absinfo_normalize_value(&abs, 99), 1.0);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, 100), 1.0);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, 101), 1.0);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, 200), 1.0);
 
 	abs.minimum = -50;
 	abs.maximum = 50;
 
-	ck_assert_double_eq(absinfo_normalize_value(&abs, -51), 0.0);
-	ck_assert_double_eq(absinfo_normalize_value(&abs, -50), 0.0);
-	ck_assert_double_eq(absinfo_normalize_value(&abs, 0), 0.5);
-	ck_assert_double_eq(absinfo_normalize_value(&abs, 50), 1.0);
-	ck_assert_double_eq(absinfo_normalize_value(&abs, 51), 1.0);
-
+	litest_assert_double_eq(absinfo_normalize_value(&abs, -51), 0.0);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, -50), 0.0);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, 0), 0.5);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, 50), 1.0);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, 51), 1.0);
 
 	abs.minimum = -50;
 	abs.maximum = 0;
 
-	ck_assert_double_eq(absinfo_normalize_value(&abs, -51), 0.0);
-	ck_assert_double_eq(absinfo_normalize_value(&abs, -50), 0.0);
-	ck_assert_double_gt(absinfo_normalize_value(&abs, -49), 0.0);
-	ck_assert_double_lt(absinfo_normalize_value(&abs, -1), 1.0);
-	ck_assert_double_eq(absinfo_normalize_value(&abs, 0), 1.0);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, -51), 0.0);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, -50), 0.0);
+	litest_assert_double_gt(absinfo_normalize_value(&abs, -49), 0.0);
+	litest_assert_double_lt(absinfo_normalize_value(&abs, -1), 1.0);
+	litest_assert_double_eq(absinfo_normalize_value(&abs, 0), 1.0);
 }
 END_TEST
 
-static Suite *
-litest_utils_suite(void)
+START_TEST(range_test)
 {
-	TCase *tc;
-	Suite *s;
+	struct range incl = range_init_inclusive(1, 100);
+	litest_assert_int_eq(incl.lower, 1);
+	litest_assert_int_eq(incl.upper, 101);
 
-	s = suite_create("litest:utils");
-	tc = tcase_create("utils");
+	struct range excl = range_init_exclusive(1, 100);
+	litest_assert_int_eq(excl.lower, 1);
+	litest_assert_int_eq(excl.upper, 100);
 
-	tcase_add_test(tc, array_for_each);
+	struct range zero = range_init_exclusive(0, 0);
+	litest_assert_int_eq(zero.lower, 0);
+	litest_assert_int_eq(zero.upper, 0);
 
-	tcase_add_test(tc, bitfield_helpers);
-	tcase_add_test(tc, matrix_helpers);
-	tcase_add_test(tc, ratelimit_helpers);
-	tcase_add_test(tc, dpi_parser);
-	tcase_add_test(tc, wheel_click_parser);
-	tcase_add_test(tc, wheel_click_count_parser);
-	tcase_add_test(tc, dimension_prop_parser);
-	tcase_add_test(tc, reliability_prop_parser);
-	tcase_add_test(tc, calibration_prop_parser);
-	tcase_add_test(tc, range_prop_parser);
-	tcase_add_test(tc, boolean_prop_parser);
-	tcase_add_test(tc, evcode_prop_parser);
-	tcase_add_test(tc, input_prop_parser);
-	tcase_add_test(tc, evdev_abs_parser);
-	tcase_add_test(tc, safe_atoi_test);
-	tcase_add_test(tc, safe_atoi_base_16_test);
-	tcase_add_test(tc, safe_atoi_base_8_test);
-	tcase_add_test(tc, safe_atou_test);
-	tcase_add_test(tc, safe_atou_base_16_test);
-	tcase_add_test(tc, safe_atou_base_8_test);
-	tcase_add_test(tc, safe_atod_test);
-	tcase_add_test(tc, strsplit_test);
-	tcase_add_test(tc, double_array_from_string_test);
-	tcase_add_test(tc, strargv_test);
-	tcase_add_test(tc, kvsplit_double_test);
-	tcase_add_test(tc, strjoin_test);
-	tcase_add_test(tc, strstrip_test);
-	tcase_add_test(tc, strendswith_test);
-	tcase_add_test(tc, strstartswith_test);
-	tcase_add_test(tc, strsanitize_test);
-	tcase_add_test(tc, time_conversion);
-	tcase_add_test(tc, human_time);
+	struct range empty = range_init_empty();
+	litest_assert_int_eq(empty.lower, 0);
+	litest_assert_int_eq(empty.upper, -1);
 
-	tcase_add_test(tc, list_test_insert);
-	tcase_add_test(tc, list_test_append);
-	tcase_add_test(tc, list_test_foreach);
-	tcase_add_test(tc, strverscmp_test);
-	tcase_add_test(tc, streq_test);
-	tcase_add_test(tc, strneq_test);
-	tcase_add_test(tc, trunkname_test);
-	tcase_add_test(tc, basename_test);
+	litest_assert(range_is_valid(&incl));
+	litest_assert(range_is_valid(&excl));
+	litest_assert(!range_is_valid(&zero));
+	litest_assert(!range_is_valid(&empty));
 
-	tcase_add_test(tc, absinfo_normalize_value_test);
+	int expected = 1;
+	int r = 0;
+	range_for_each(&incl, r) {
+		litest_assert_int_eq(r, expected);
+		expected++;
+	}
+	litest_assert_int_eq(r, 101);
+}
+END_TEST
 
-	suite_add_tcase(s, tc);
+START_TEST(stringbuf_test)
+{
+	struct stringbuf buf;
+	struct stringbuf *b = &buf;
+	int rc;
 
-	return s;
+	stringbuf_init(b);
+	litest_assert_int_eq(b->len, 0u);
+
+	rc = stringbuf_append_string(b, "foo");
+	litest_assert_neg_errno_success(rc);
+	rc = stringbuf_append_string(b, "bar");
+	litest_assert_neg_errno_success(rc);
+	rc = stringbuf_append_string(b, "baz");
+	litest_assert_neg_errno_success(rc);
+	litest_assert_str_eq(b->data, "foobarbaz");
+	litest_assert_int_eq(b->len, strlen("foobarbaz"));
+
+	rc = stringbuf_ensure_space(b, 500);
+	litest_assert_neg_errno_success(rc);
+	litest_assert_int_ge(b->sz, 500u);
+
+	rc = stringbuf_ensure_size(b, 0);
+	litest_assert_neg_errno_success(rc);
+	rc = stringbuf_ensure_size(b, 1024);
+	litest_assert_neg_errno_success(rc);
+	litest_assert_int_ge(b->sz, 1024u);
+
+	char *data = stringbuf_steal(b);
+	litest_assert_str_eq(data, "foobarbaz");
+	litest_assert_int_eq(b->sz, 0u);
+	litest_assert_int_eq(b->len, 0u);
+	litest_assert_ptr_null(b->data);
+	free(data);
+
+	const char *str = "1234567890";
+	rc = stringbuf_append_string(b, str);
+	litest_assert_neg_errno_success(rc);
+	litest_assert_str_eq(b->data, str);
+	litest_assert_int_eq(b->len, 10u);
+	stringbuf_reset(b);
+
+	/* intentional double-reset */
+	stringbuf_reset(b);
+
+	int pipefd[2];
+	rc = pipe2(pipefd, O_CLOEXEC | O_NONBLOCK);
+	litest_assert_neg_errno_success(rc);
+
+	str = "foo bar baz";
+	char *compare = NULL;
+	for (int i = 0; i < 100; i++) {
+		rc = write(pipefd[1], str, strlen(str));
+		litest_assert_neg_errno_success(rc);
+
+		rc = stringbuf_append_from_fd(b, pipefd[0], 64);
+		litest_assert_neg_errno_success(rc);
+
+		char *expected = strdup_printf("%s%s", compare ? compare : "", str);
+		litest_assert_ptr_notnull(expected);
+		litest_assert_str_eq(b->data, expected);
+
+		free(compare);
+		compare = expected;
+	}
+	free(compare);
+	close(pipefd[0]);
+	close(pipefd[1]);
+	stringbuf_reset(b);
+
+	rc = pipe2(pipefd, O_CLOEXEC | O_NONBLOCK);
+	litest_assert_neg_errno_success(rc);
+
+	const size_t stride = 256;
+	const size_t maxsize = 4096;
+
+	for (size_t i = 0; i < maxsize; i += stride) {
+		char buf[stride];
+		memset(buf, i / stride, sizeof(buf));
+		rc = write(pipefd[1], buf, sizeof(buf));
+		litest_assert_neg_errno_success(rc);
+	}
+
+	stringbuf_append_from_fd(b, pipefd[0], 0);
+	litest_assert_int_eq(b->len, maxsize);
+	litest_assert_int_ge(b->sz, maxsize);
+
+	for (size_t i = 0; i < maxsize; i += stride) {
+		char buf[stride];
+		memset(buf, i / stride, sizeof(buf));
+		litest_assert_int_eq(memcmp(buf, b->data + i, sizeof(buf)), 0);
+	}
+
+	close(pipefd[0]);
+	close(pipefd[1]);
+	stringbuf_reset(b);
+}
+END_TEST
+
+START_TEST(multivalue_test)
+{
+	{
+		struct multivalue v = multivalue_new_string("test");
+		litest_assert_int_eq(v.type, 's');
+		litest_assert_str_eq(v.value.s, "test");
+
+		const char *s;
+		multivalue_extract_typed(&v, 's', &s);
+		litest_assert_str_eq(s, "test");
+		litest_assert_ptr_eq(s, (const char *)v.value.s);
+		multivalue_extract(&v, &s);
+		litest_assert_str_eq(s, "test");
+		litest_assert_ptr_eq(s, (const char *)v.value.s);
+
+		struct multivalue copy = multivalue_copy(&v);
+		litest_assert_int_eq(copy.type, v.type);
+		litest_assert_str_eq(copy.value.s, v.value.s);
+		char *p1 = copy.value.s;
+		char *p2 = v.value.s;
+		litest_assert_ptr_ne(p1, p2);
+
+		char *str = multivalue_as_str(&v);
+		litest_assert_str_eq(str, "test");
+		free(str);
+	}
+
+	{
+		struct multivalue v = multivalue_new_char('x');
+		litest_assert_int_eq(v.type, 'c');
+		litest_assert_int_eq(v.value.c, 'x');
+
+		char c;
+		multivalue_extract_typed(&v, 'c', &c);
+		litest_assert_int_eq(c, 'x');
+		multivalue_extract(&v, &c);
+		litest_assert_int_eq(c, 'x');
+
+		struct multivalue copy = multivalue_copy(&v);
+		litest_assert_int_eq(copy.type, v.type);
+		litest_assert_int_eq(copy.value.c, v.value.c);
+
+		char *str = multivalue_as_str(&v);
+		litest_assert_str_eq(str, "x");
+		free(str);
+	}
+
+	{
+		struct multivalue v = multivalue_new_u32(0x1234);
+		litest_assert_int_eq(v.type, 'u');
+		litest_assert_int_eq(v.value.u, 0x1234u);
+
+		uint32_t c;
+		multivalue_extract_typed(&v, 'u', &c);
+		litest_assert_int_eq(c, 0x1234u);
+		multivalue_extract(&v, &c);
+		litest_assert_int_eq(c, 0x1234u);
+
+		struct multivalue copy = multivalue_copy(&v);
+		litest_assert_int_eq(copy.type, v.type);
+		litest_assert_int_eq(copy.value.u, v.value.u);
+
+		char *str = multivalue_as_str(&v);
+		litest_assert_str_eq(str, "4660");
+		free(str);
+	}
+
+	{
+		struct multivalue v = multivalue_new_i32(-123);
+		litest_assert_int_eq(v.type, 'i');
+		litest_assert_int_eq(v.value.i, -123);
+
+		int32_t c;
+		multivalue_extract_typed(&v, 'i', &c);
+		litest_assert_int_eq(c, -123);
+		multivalue_extract(&v, &c);
+		litest_assert_int_eq(c, -123);
+
+		struct multivalue copy = multivalue_copy(&v);
+		litest_assert_int_eq(copy.type, v.type);
+		litest_assert_int_eq(copy.value.i, v.value.i);
+
+		char *str = multivalue_as_str(&v);
+		litest_assert_str_eq(str, "-123");
+		free(str);
+	}
+
+	{
+		struct multivalue v = multivalue_new_bool(true);
+		litest_assert_int_eq(v.type, 'b');
+		litest_assert_int_eq(v.value.b, true);
+
+		bool c;
+		multivalue_extract_typed(&v, 'b', &c);
+		litest_assert_int_eq(c, true);
+		multivalue_extract(&v, &c);
+		litest_assert_int_eq(c, true);
+
+		struct multivalue copy = multivalue_copy(&v);
+		litest_assert_int_eq(copy.type, v.type);
+		litest_assert_int_eq(copy.value.b, v.value.b);
+
+		char *str = multivalue_as_str(&v);
+		litest_assert_str_eq(str, "true");
+		free(str);
+	}
+
+	{
+		struct multivalue v = multivalue_new_double(0.1234);
+		litest_assert_int_eq(v.type, 'd');
+		litest_assert_double_eq(v.value.d, 0.1234);
+
+		double c;
+		multivalue_extract_typed(&v, 'd', &c);
+		litest_assert_double_eq(c, 0.1234);
+		multivalue_extract(&v, &c);
+		litest_assert_double_eq(c, 0.1234);
+
+		struct multivalue copy = multivalue_copy(&v);
+		litest_assert_int_eq(copy.type, v.type);
+		litest_assert_double_eq(copy.value.d, v.value.d);
+
+		char *str = multivalue_as_str(&v);
+		litest_assert_str_eq(str, "0.123400");
+		free(str);
+	}
+}
+END_TEST
+
+DECLARE_NEWTYPE(newint, int);
+DECLARE_NEWTYPE(newdouble, double);
+
+START_TEST(newtype_test)
+{
+	{
+		newint_t n1 = newint_from_int(1);
+		newint_t n2 = newint_from_int(2);
+
+		litest_assert_int_eq(newint(n1), 1);
+		litest_assert_int_eq(newint_as_int(n1), 1);
+		litest_assert_int_eq(newint(n2), 2);
+		litest_assert_int_eq(newint_as_int(n2), 2);
+
+		litest_assert_int_eq(newint_cmp(n1, n2), -1);
+		litest_assert_int_eq(newint_cmp(n1, n1), 0);
+		litest_assert_int_eq(newint_cmp(n2, n1), 1);
+
+		newint_t copy = newint_copy(n1);
+		litest_assert_int_eq(newint_cmp(n1, copy), 0);
+
+		newint_t min = newint_min(n1, n2);
+		newint_t max = newint_max(n1, n2);
+		litest_assert_int_eq(newint_cmp(min, n1), 0);
+		litest_assert_int_eq(newint_cmp(max, n2), 0);
+
+		litest_assert(newint_gt(n1, 0));
+		litest_assert(newint_eq(n1, 1));
+		litest_assert(newint_ge(n1, 1));
+		litest_assert(newint_le(n1, 1));
+		litest_assert(newint_ne(n1, 2));
+		litest_assert(newint_lt(n1, 2));
+
+		litest_assert(!newint_gt(n1, 1));
+		litest_assert(!newint_eq(n1, 0));
+		litest_assert(!newint_ge(n1, 2));
+		litest_assert(!newint_le(n1, 0));
+		litest_assert(!newint_ne(n1, 1));
+		litest_assert(!newint_lt(n1, 1));
+	}
+	{
+		newdouble_t n1 = newdouble_from_double(1.2);
+		newdouble_t n2 = newdouble_from_double(2.3);
+
+		litest_assert_double_eq(newdouble(n1), 1.2);
+		litest_assert_double_eq(newdouble_as_double(n1), 1.2);
+		litest_assert_double_eq(newdouble(n2), 2.3);
+		litest_assert_double_eq(newdouble_as_double(n2), 2.3);
+
+		litest_assert_int_eq(newdouble_cmp(n1, n2), -1);
+		litest_assert_int_eq(newdouble_cmp(n1, n1), 0);
+		litest_assert_int_eq(newdouble_cmp(n2, n1), 1);
+
+		newdouble_t copy = newdouble_copy(n1);
+		litest_assert_int_eq(newdouble_cmp(n1, copy), 0);
+
+		newdouble_t min = newdouble_min(n1, n2);
+		newdouble_t max = newdouble_max(n1, n2);
+		litest_assert_int_eq(newdouble_cmp(min, n1), 0);
+		litest_assert_int_eq(newdouble_cmp(max, n2), 0);
+
+		litest_assert(newdouble_gt(n1, 0.0));
+		litest_assert(newdouble_eq(n1, 1.2));
+		litest_assert(newdouble_ge(n1, 1.2));
+		litest_assert(newdouble_le(n1, 1.2));
+		litest_assert(newdouble_ne(n1, 2.3));
+		litest_assert(newdouble_lt(n1, 2.3));
+
+		litest_assert(!newdouble_gt(n1, 1.2));
+		litest_assert(!newdouble_eq(n1, 0.0));
+		litest_assert(!newdouble_ge(n1, 2.3));
+		litest_assert(!newdouble_le(n1, 0.0));
+		litest_assert(!newdouble_ne(n1, 1.2));
+		litest_assert(!newdouble_lt(n1, 1.2));
+	}
+}
+END_TEST
+
+struct sunref {};
+struct sdestroy {};
+struct sfree {};
+
+static void
+sunref_unref(struct sunref *s)
+{
+	free(s);
+}
+static void
+sdestroy_destroy(struct sdestroy *s)
+{
+	free(s);
+}
+static void
+sfree_free(struct sfree *s)
+{
+	free(s);
 }
 
-int main(int argc, char **argv)
+DEFINE_UNREF_CLEANUP_FUNC(sunref);
+DEFINE_DESTROY_CLEANUP_FUNC(sdestroy);
+DEFINE_FREE_CLEANUP_FUNC(sfree);
+
+START_TEST(attribute_cleanup)
 {
-	int nfailed;
-	Suite *s;
-	SRunner *sr;
+	/* These tests will likely only show up in valgrind,
+	 * the various asserts are just to shut up the compiler
+	 * about unused variables
+	 */
+	{
+		_autofree_ char *autofree = zalloc(64);
+		litest_assert(autofree);
+	}
+	{
+		_autofree_ char *stolen = zalloc(64);
+		free(steal(&stolen));
+	}
+	{
+		_autoclose_ int fd = open("/proc/self/cmdline", O_RDONLY);
+		litest_assert_int_ge(fd, 0);
 
-	s = litest_utils_suite();
-	sr = srunner_create(s);
+		_autoclose_ int badfd = -1;
+		litest_assert_int_eq(badfd, -1);
 
-	srunner_run_all(sr, CK_ENV);
-	nfailed = srunner_ntests_failed(sr);
-	srunner_free(sr);
+		_autoclose_ int stealfd = open("/proc/self/cmdline", O_RDONLY);
+		steal_fd(&stealfd);
+		litest_assert_int_eq(stealfd, -1);
+	}
+	{
+		_autostrvfree_ char **strv = zalloc(3 * sizeof(*strv));
+		for (int i = 0; i < 2; i++) {
+			strv[i] = strdup_printf("element %d", i);
+		}
 
-	return (nfailed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+		_autostrvfree_ char **badstrv = NULL;
+		litest_assert_ptr_null(badstrv);
+	}
+	{
+		_autofclose_ FILE *fp = fopen("/proc/self/cmdline", "r");
+		litest_assert_ptr_notnull(fp);
+
+		_autofclose_ FILE *badfd = NULL;
+		litest_assert_ptr_null(badfd);
+	}
+	{
+		_unref_(sunref) *s = zalloc(sizeof(*s));
+	}
+	{
+		_destroy_(sdestroy) *s = zalloc(sizeof(*s));
+	}
+	{
+		_free_(sfree) *s = zalloc(sizeof(*s));
+	}
+}
+END_TEST
+
+START_TEST(macros_expand)
+{
+#define _A1(_1) _1, #_1
+#define _A2(_1, _2) _1, _2
+#define A(...) _VARIABLE_MACRO(_A, __VA_ARGS__)
+	char buf[64];
+	snprintf(buf, sizeof(buf), "%d:%s", A(0));
+	litest_assert_str_eq(buf, "0:0");
+	snprintf(buf, sizeof(buf), "%d:%s", A(100));
+	litest_assert_str_eq(buf, "100:100");
+	snprintf(buf, sizeof(buf), "%d:%s", A(100, "hundred"));
+	litest_assert_str_eq(buf, "100:hundred");
+#undef _A1
+#undef _A2
+#undef A
+}
+END_TEST
+
+START_TEST(evdev_frames)
+{
+#define U(u_) evdev_usage_from_uint32_t(u_)
+	{
+		evdev_frame_unref(NULL); /* unref on NULL is permitted */
+	}
+	{
+		_unref_(evdev_frame) *frame = evdev_frame_new(3);
+		litest_assert_int_eq(evdev_frame_get_count(frame), 1U); /* SYN_REPORT */
+
+		litest_assert_ptr_eq(evdev_frame_ref(frame), frame);
+		litest_assert_ptr_eq(evdev_frame_unref(frame), NULL);
+	}
+	{
+		_unref_(evdev_frame) *frame = evdev_frame_new(3);
+		struct evdev_event toobig[] = {
+			{
+				.usage = U(EVDEV_ABS_X),
+				.value = 1,
+			},
+			{
+				.usage = U(EVDEV_ABS_Y),
+				.value = 2,
+			},
+			{
+				.usage = U(EVDEV_ABS_Z),
+				.value = 3,
+			},
+			{
+				.usage = U(EVDEV_SYN_REPORT),
+				.value = 0,
+			},
+		};
+
+		int rc = evdev_frame_set(frame, toobig, ARRAY_LENGTH(toobig));
+		litest_assert_int_eq(rc, -ENOMEM);
+	}
+	{
+		struct evdev_event events[] = {
+			{
+				.usage = U(EVDEV_ABS_X),
+				.value = 1,
+			},
+			{
+				.usage = U(EVDEV_ABS_Y),
+				.value = 2,
+			},
+			{
+				.usage = U(EVDEV_SYN_REPORT),
+				.value = 0,
+			},
+		};
+
+		_unref_(evdev_frame) *frame = evdev_frame_new(3);
+		int rc = evdev_frame_set(frame, events, ARRAY_LENGTH(events));
+		litest_assert_neg_errno_success(rc);
+		litest_assert_int_eq(evdev_frame_get_count(frame),
+				     ARRAY_LENGTH(events));
+		litest_assert_int_eq(frame->max_size, ARRAY_LENGTH(events));
+
+		size_t nevents;
+		rc = memcmp(evdev_frame_get_events(frame, &nevents),
+			    events,
+			    sizeof(events));
+		litest_assert_int_eq(rc, 0);
+		litest_assert_int_eq(nevents, ARRAY_LENGTH(events));
+
+		/* Already full, can't append */
+		rc = evdev_frame_append(frame, events, 1);
+		litest_assert_int_eq(rc, -ENOMEM);
+	}
+	{
+		struct evdev_event events[] = {
+			{
+				.usage = U(EVDEV_ABS_X),
+				.value = 1,
+			},
+			{
+				.usage = U(EVDEV_ABS_Y),
+				.value = 2,
+			},
+			{
+				.usage = U(EVDEV_SYN_REPORT),
+				.value = 0,
+			},
+		};
+
+		_unref_(evdev_frame) *frame = evdev_frame_new(3);
+		int rc = evdev_frame_set(frame, events, 1);
+		litest_assert_neg_errno_success(rc);
+		litest_assert_int_eq(evdev_frame_get_count(frame),
+				     2U); /* we appended SYN_REPORT */
+		rc = evdev_frame_append(frame, events + 1, 1);
+		litest_assert_neg_errno_success(rc);
+		litest_assert_int_eq(evdev_frame_get_count(frame),
+				     3U); /* we appended SYN_REPORT */
+		rc = evdev_frame_append(frame, events + 2, 1);
+		litest_assert_neg_errno_success(rc);
+		litest_assert_int_eq(evdev_frame_get_count(frame),
+				     3U); /* SYN_REPORT already there */
+	}
+	{
+		struct evdev_event interrupted[] = {
+			{
+				.usage = U(EVDEV_ABS_X),
+				.value = 1,
+			},
+			{
+				.usage = U(EVDEV_ABS_Y),
+				.value = 2,
+			},
+			{
+				.usage = U(EVDEV_SYN_REPORT),
+				.value = 0,
+			},
+			{
+				.usage = U(EVDEV_ABS_RX),
+				.value = 1,
+			},
+			{
+				.usage = U(EVDEV_ABS_RY),
+				.value = 2,
+			},
+			{
+				.usage = U(EVDEV_SYN_REPORT),
+				.value = 0,
+			},
+		};
+
+		_unref_(evdev_frame) *frame = evdev_frame_new(5);
+		int rc = evdev_frame_set(frame, interrupted, ARRAY_LENGTH(interrupted));
+		litest_assert_neg_errno_success(rc);
+		litest_assert_int_eq(evdev_frame_get_count(frame), 3U);
+
+		rc = evdev_frame_set(frame, &interrupted[2], 1);
+		litest_assert_neg_errno_success(rc);
+		litest_assert_int_eq(evdev_frame_get_count(frame), 1U);
+
+		rc = evdev_frame_set(frame,
+				     &interrupted[1],
+				     ARRAY_LENGTH(interrupted) - 1);
+		litest_assert_neg_errno_success(rc);
+		litest_assert_int_eq(evdev_frame_get_count(frame), 2U);
+
+		/* We never appended a timestamp */
+		litest_assert_int_eq(evdev_frame_get_time(frame), 0U);
+	}
+	{
+		struct evdev_event events[] = {
+			{
+				.usage = U(EVDEV_ABS_X),
+				.value = 1,
+			},
+			{
+				.usage = U(EVDEV_ABS_Y),
+				.value = 2,
+			},
+			{
+				.usage = U(EVDEV_SYN_REPORT),
+				.value = 0,
+			},
+		};
+
+		_unref_(evdev_frame) *frame = evdev_frame_new(3);
+		int rc = evdev_frame_append_one(frame, U(EVDEV_ABS_X), 1);
+		litest_assert_neg_errno_success(rc);
+		rc = evdev_frame_append_one(frame, U(EVDEV_ABS_Y), 2);
+		litest_assert_neg_errno_success(rc);
+		rc = evdev_frame_append_one(frame, U(EV_SYN), 0);
+		litest_assert_neg_errno_success(rc);
+
+		litest_assert_int_eq(evdev_frame_get_count(frame),
+				     ARRAY_LENGTH(events));
+		litest_assert_int_eq(frame->max_size, ARRAY_LENGTH(events));
+
+		size_t nevents;
+		rc = memcmp(evdev_frame_get_events(frame, &nevents),
+			    events,
+			    sizeof(events));
+		litest_assert_int_eq(rc, 0);
+		litest_assert_int_eq(nevents, ARRAY_LENGTH(events));
+
+		/* Already full, can't append */
+		rc = evdev_frame_append_one(frame, U(EVDEV_ABS_Z), 1);
+		litest_assert_int_eq(rc, -ENOMEM);
+
+		/* Appending SYN_REPORT is a noop */
+		rc = evdev_frame_append_one(frame, U(EVDEV_SYN_REPORT), 0);
+		litest_assert_neg_errno_success(rc);
+		litest_assert_int_eq(evdev_frame_get_count(frame),
+				     ARRAY_LENGTH(events));
+		litest_assert_int_eq(frame->max_size, ARRAY_LENGTH(events));
+	}
+}
+END_TEST
+
+START_TEST(infmask_test)
+{
+	/* Test empty mask */
+	infmask_t empty = infmask_new();
+	litest_assert(infmask_is_empty(&empty));
+	litest_assert(!infmask_bit_is_set(&empty, 0));
+	litest_assert(!infmask_bit_is_set(&empty, 100));
+	infmask_reset(&empty);
+
+	/* Test single bit operations */
+	infmask_t single = infmask_new();
+	litest_assert(!infmask_set_bit(&single, 5));
+	litest_assert(infmask_bit_is_set(&single, 5));
+	litest_assert(!infmask_bit_is_set(&single, 4));
+	litest_assert(!infmask_bit_is_set(&single, 6));
+	litest_assert(!infmask_is_empty(&single));
+	litest_assert(infmask_clear_bit(&single, 5));
+	litest_assert(!infmask_bit_is_set(&single, 5));
+	litest_assert(infmask_is_empty(&single));
+	infmask_reset(&single);
+
+	/* Test from_bit constructor */
+	infmask_t from_bit = infmask_from_bit(7);
+	litest_assert(infmask_bit_is_set(&from_bit, 7));
+	litest_assert(!infmask_bit_is_set(&from_bit, 6));
+	litest_assert(!infmask_bit_is_set(&from_bit, 8));
+	infmask_reset(&from_bit);
+
+	/* Test from_bits constructor */
+	infmask_t from_bits = infmask_from_bits(1, 3, 5);
+	litest_assert(infmask_bit_is_set(&from_bits, 1));
+	litest_assert(!infmask_bit_is_set(&from_bits, 2));
+	litest_assert(infmask_bit_is_set(&from_bits, 3));
+	litest_assert(!infmask_bit_is_set(&from_bits, 4));
+	litest_assert(infmask_bit_is_set(&from_bits, 5));
+	infmask_reset(&from_bits);
+
+	/* Test high bit operations */
+	infmask_t high = infmask_new();
+	litest_assert(!infmask_set_bit(&high, 100));
+	litest_assert(infmask_bit_is_set(&high, 100));
+	litest_assert(!infmask_bit_is_set(&high, 99));
+	litest_assert(!infmask_bit_is_set(&high, 101));
+	litest_assert(infmask_clear_bit(&high, 100));
+	litest_assert(!infmask_bit_is_set(&high, 100));
+	infmask_reset(&high);
+
+	/* Test any/all operations */
+	infmask_t mask1 = infmask_from_bits(1, 2, 3);
+	infmask_t mask2 = infmask_from_bits(2, 3, 4);
+	infmask_t mask3 = infmask_from_bits(2, 3);
+
+	litest_assert(infmask_any(&mask1, &mask2));
+	litest_assert(!infmask_all(&mask1, &mask2));
+	litest_assert(infmask_all(&mask1, &mask3));
+	litest_assert(infmask_any(&mask1, &mask3));
+
+	infmask_reset(&mask1);
+	infmask_reset(&mask2);
+	infmask_reset(&mask3);
+
+	/* Test merge operation */
+	infmask_t merge1 = infmask_from_bits(1, 2);
+	infmask_t merge2 = infmask_from_bits(2, 3);
+	litest_assert(!infmask_merge(&merge1, &merge2));
+	litest_assert(infmask_bit_is_set(&merge1, 1));
+	litest_assert(infmask_bit_is_set(&merge1, 2));
+	litest_assert(infmask_bit_is_set(&merge1, 3));
+	infmask_reset(&merge1);
+	infmask_reset(&merge2);
+
+	/* Test clear operation */
+	infmask_t clear1 = infmask_from_bits(1, 2, 3);
+	infmask_t clear2 = infmask_from_bits(2, 3);
+	litest_assert(infmask_clear(&clear1, &clear2));
+	litest_assert(infmask_bit_is_set(&clear1, 1));
+	litest_assert(!infmask_bit_is_set(&clear1, 2));
+	litest_assert(!infmask_bit_is_set(&clear1, 3));
+	infmask_reset(&clear1);
+	infmask_reset(&clear2);
+
+	/* Test growing behavior */
+	infmask_t grow = infmask_new();
+	litest_assert(!infmask_set_bit(&grow, 5));
+	litest_assert(grow.nmasks == 1);
+	litest_assert(!infmask_set_bit(&grow, 35));
+	litest_assert(grow.nmasks == 2);
+	litest_assert(!infmask_set_bit(&grow, 65));
+	litest_assert(grow.nmasks == 3);
+	litest_assert(infmask_bit_is_set(&grow, 5));
+	litest_assert(infmask_bit_is_set(&grow, 35));
+	litest_assert(infmask_bit_is_set(&grow, 65));
+	infmask_reset(&grow);
+}
+END_TEST
+
+START_TEST(evdev_mask_test)
+{
+	_destroy_(evdev_mask) *mask = evdev_mask_new();
+
+	evdev_mask_reset(mask);
+
+	litest_assert(bitmask_is_empty(mask->ev));
+	litest_assert(bitmask_is_empty(mask->rel));
+	litest_assert(bitmask_is_empty(mask->sw));
+	litest_assert(infmask_is_empty(&mask->key));
+	litest_assert(infmask_is_empty(&mask->btn));
+	litest_assert(infmask_is_empty(&mask->abs));
+
+	evdev_mask_set_enum(mask, EVDEV_BTN_TOOL_PEN);
+	evdev_mask_set_enum(mask, EVDEV_BTN_TOOL_AIRBRUSH);
+
+	litest_assert(bitmask_bit_is_set(mask->ev, EV_KEY));
+
+	/* Verify these are in btn, not key */
+	litest_assert(!infmask_is_empty(&mask->btn));
+	litest_assert(infmask_is_empty(&mask->key));
+
+	litest_assert(evdev_mask_is_set(mask, evdev_usage_from(EVDEV_BTN_TOOL_PEN)));
+	litest_assert(
+		!evdev_mask_is_set(mask, evdev_usage_from(EVDEV_BTN_TOOL_RUBBER)));
+	litest_assert(
+		evdev_mask_is_set(mask, evdev_usage_from(EVDEV_BTN_TOOL_AIRBRUSH)));
+
+	/* Test regular key (should go into key field) */
+	evdev_mask_set_enum(mask, EVDEV_KEY_ESC);
+	litest_assert(!infmask_is_empty(&mask->key));
+	litest_assert(evdev_mask_is_set(mask, evdev_usage_from(EVDEV_KEY_ESC)));
+
+	evdev_mask_set_enum(mask, EVDEV_REL_X);
+	litest_assert(bitmask_bit_is_set(mask->ev, EV_REL));
+	litest_assert(bitmask_bit_is_set(mask->rel, REL_X));
+	litest_assert(evdev_mask_is_set(mask, evdev_usage_from(EVDEV_REL_X)));
+
+	evdev_mask_set_enum(mask, EVDEV_ABS_X);
+	litest_assert(bitmask_bit_is_set(mask->ev, EV_ABS));
+	litest_assert(!infmask_is_empty(&mask->abs));
+	litest_assert(evdev_mask_is_set(mask, evdev_usage_from(EVDEV_ABS_X)));
+}
+END_TEST
+
+int
+main(void)
+{
+	struct litest_runner *runner = litest_runner_new();
+
+	/* not worth forking the tests here */
+	litest_runner_set_num_parallel(runner, 0);
+
+#define ADD_TEST(func_) do { \
+	struct litest_runner_test_description tdesc =  { \
+		.func = func_, \
+	};\
+	snprintf(tdesc.name, sizeof(tdesc.name), # func_); \
+	litest_runner_add_test(runner, &tdesc); \
+} while(0)
+
+	ADD_TEST(auto_test);
+	ADD_TEST(mkdir_p_test);
+	ADD_TEST(rmdir_r_test);
+	ADD_TEST(tmpdir_test);
+	ADD_TEST(find_files_test);
+
+	ADD_TEST(array_for_each);
+
+	ADD_TEST(bitfield_helpers);
+	ADD_TEST(bitmask_test);
+	ADD_TEST(matrix_helpers);
+	ADD_TEST(ratelimit_helpers);
+	ADD_TEST(dpi_parser);
+	ADD_TEST(wheel_click_parser);
+	ADD_TEST(wheel_click_count_parser);
+	ADD_TEST(dimension_prop_parser);
+	ADD_TEST(reliability_prop_parser);
+	ADD_TEST(calibration_prop_parser);
+	ADD_TEST(range_prop_parser);
+	ADD_TEST(boolean_prop_parser);
+	ADD_TEST(evcode_prop_parser);
+	ADD_TEST(input_prop_parser);
+	ADD_TEST(evdev_abs_parser);
+	ADD_TEST(safe_atoi_test);
+	ADD_TEST(safe_atoi_base_16_test);
+	ADD_TEST(safe_atoi_base_8_test);
+	ADD_TEST(safe_atou_test);
+	ADD_TEST(safe_atou_base_16_test);
+	ADD_TEST(safe_atou_base_8_test);
+	ADD_TEST(safe_atou64_test);
+	ADD_TEST(safe_atod_test);
+	ADD_TEST(strsplit_test);
+	ADD_TEST(strv_for_each_test);
+	ADD_TEST(strv_append_test);
+	ADD_TEST(strv_find_test);
+	ADD_TEST(strv_find_substring_test);
+	ADD_TEST(double_array_from_string_test);
+	ADD_TEST(strargv_test);
+	ADD_TEST(kvsplit_double_test);
+	ADD_TEST(strjoin_test);
+	ADD_TEST(strstrip_test);
+	ADD_TEST(strendswith_test);
+	ADD_TEST(strstartswith_test);
+	ADD_TEST(strsanitize_test);
+	ADD_TEST(time_conversion);
+	ADD_TEST(human_time);
+
+	ADD_TEST(list_test_insert);
+	ADD_TEST(list_test_append);
+	ADD_TEST(list_test_foreach);
+	ADD_TEST(list_test_first_last);
+	ADD_TEST(list_test_chain);
+	ADD_TEST(strverscmp_test);
+	ADD_TEST(streq_test);
+	ADD_TEST(strneq_test);
+	ADD_TEST(trunkname_test);
+	ADD_TEST(basename_test);
+
+	ADD_TEST(absinfo_normalize_value_test);
+
+	ADD_TEST(range_test);
+	ADD_TEST(stringbuf_test);
+	ADD_TEST(multivalue_test);
+
+	ADD_TEST(newtype_test);
+	ADD_TEST(attribute_cleanup);
+	ADD_TEST(macros_expand);
+
+	ADD_TEST(evdev_frames);
+
+	ADD_TEST(infmask_test);
+
+	ADD_TEST(evdev_mask_test);
+
+	enum litest_runner_result result = litest_runner_run_tests(runner);
+	litest_runner_destroy(runner);
+
+	if (result == LITEST_SKIP)
+		return 77;
+
+	return result - LITEST_PASS;
 }

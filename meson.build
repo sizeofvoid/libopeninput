@@ -1,8 +1,8 @@
 project('libinput', 'c',
-	version : '1.26.2',
+	version : '1.30.2',
 	license : 'MIT/Expat',
 	default_options : [ 'c_std=gnu99', 'warning_level=2' ],
-	meson_version : '>= 0.56.0')
+	meson_version : '>= 0.64.0')
 
 libinput_version = meson.project_version().split('.')
 
@@ -47,6 +47,7 @@ libinput_so_version = '@0@.@1@.@2@'.format((libinput_lt_c - libinput_lt_a),
 # Compiler setup
 cc = meson.get_compiler('c')
 cflags = [
+	'-Wno-error=deprecated-declarations',
 	'-Wno-unused-parameter',
 	'-Wmissing-prototypes',
 	'-Wstrict-prototypes',
@@ -115,6 +116,14 @@ if cc.has_header_symbol('dirent.h', 'versionsort', prefix : prefix)
 	config_h.set('HAVE_VERSIONSORT', '1')
 endif
 
+if cc.get_define('SYS_pidfd_open', prefix: '#include <sys/syscall.h>') != ''
+	config_h.set('HAVE_PIDFD_OPEN', '1')
+endif
+
+if cc.has_function('sigabbrev_np', prefix: '#define _GNU_SOURCE 1\n#include <string.h>')
+	config_h.set('HAVE_SIGABBREV_NP', '1')
+endif
+
 if not cc.has_header_symbol('errno.h', 'program_invocation_short_name', prefix : prefix)
 	if cc.has_header_symbol('stdlib.h', 'getprogname')
 		config_h.set('program_invocation_short_name', 'getprogname()')
@@ -123,6 +132,15 @@ endif
 
 if cc.has_header('xlocale.h')
 	config_h.set('HAVE_XLOCALE_H', '1')
+endif
+
+code = '''
+#include <time.h>
+
+void func() { auto foo = gmtime(NULL); foo->tm_sec = 0; }
+'''
+if cc.compiles(code, name: 'has C23 auto keyword')
+	config_h.set('HAVE_C23_AUTO', '1')
 endif
 
 code = '''
@@ -138,40 +156,81 @@ if not cc.has_header_symbol('sys/ptrace.h', 'PTRACE_ATTACH', prefix : prefix)
 	config_h.set('PTRACE_CONT', 'PT_CONTINUE')
 	config_h.set('PTRACE_DETACH', 'PT_DETACH')
 endif
-
-config_h.set10('HAVE_INSTALLED_TESTS', get_option('install-tests'))
+if get_option('install-tests')
+	config_h.set('HAVE_INSTALLED_TESTS', 1)
+endif
 
 # Dependencies
 pkgconfig = import('pkgconfig')
+dep_udev = dependency('libudev')
 if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
-	dep_udev = dependency('libudev')
-	dep_mtdev = []
 	dep_libevdev = []
 else
-	dep_udev = dependency('libudev')
-	dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
-	dep_libevdev = dependency('libevdev')
-	config_h.set10('HAVE_LIBEVDEV_DISABLE_PROPERTY',
-			dep_libevdev.version().version_compare('>= 1.9.902'))
+	dep_libevdev = dependency('libevdev', version: '>= 1.10.0')
 endif
 
 dep_lm = cc.find_library('m', required : false)
 dep_rt = cc.find_library('rt', required : false)
 
+dep_lua = dependency('lua-5.4', 'lua5.4', 'lua',
+		     version : '>= 5.4',
+		     required : get_option('lua-plugins'))
+have_lua = dep_lua.found()
+if have_lua
+	config_h.set('HAVE_LUA', 1)
+endif
+
+have_plugins =  dep_lua.found()
+if have_plugins
+	config_h.set('HAVE_PLUGINS', 1)
+endif
+
+autoload_plugins = get_option('autoload-plugins')
+if autoload_plugins
+	config_h.set('AUTOLOAD_PLUGINS', 1)
+endif
+
+summary({
+	'Plugins enabled' : have_plugins,
+	'Autoload plugins' : autoload_plugins,
+	'Lua Plugin support' : have_lua,
+	},
+	section : 'Plugins',
+	bool_yn : true)
+
 # Include directories
 includes_include = include_directories('include')
 includes_src = include_directories('src')
 
+############ mtdev configuration ############
+
+have_mtdev = get_option('mtdev')
+if have_mtdev
+	config_h.set('HAVE_MTDEV', 1)
+	dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
+else
+	dep_mtdev = declare_dependency()
+endif
+
 ############ libwacom configuration ############
 
 if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
-have_libwacom = false
+	have_libwacom = false
 else
-have_libwacom = get_option('libwacom')
+	have_libwacom = get_option('libwacom')
 endif
-config_h.set10('HAVE_LIBWACOM', have_libwacom)
+
 if have_libwacom
+	config_h.set('HAVE_LIBWACOM', 1)
 	dep_libwacom = dependency('libwacom', version : '>= 0.27')
+	if cc.has_header_symbol('libwacom/libwacom.h', 'WACOM_BUTTON_DIAL_MODESWITCH',
+				dependencies : dep_libwacom)
+		config_h.set('HAVE_LIBWACOM_BUTTON_DIAL_MODESWITCH', '1')
+	endif
+	if cc.has_function('libwacom_get_button_modeswitch_mode',
+			   dependencies: dep_libwacom)
+		config_h.set('HAVE_LIBWACOM_BUTTON_MODESWITCH_MODE', '1')
+	endif
 else
 	dep_libwacom = declare_dependency()
 endif
@@ -183,6 +242,7 @@ executable('libinput-device-group',
 	   dependencies : [dep_udev, dep_libwacom],
 	   include_directories : [includes_src, includes_include],
 	   install : true,
+	   install_tag : 'runtime',
 	   install_dir : dir_udev_callouts)
 executable('libinput-fuzz-extract',
 	   'udev/libinput-fuzz-extract.c',
@@ -191,16 +251,18 @@ executable('libinput-fuzz-extract',
 	   dependencies : [dep_udev, dep_libevdev, dep_lm],
 	   include_directories : [includes_src, includes_include],
 	   install : true,
+	   install_tag : 'runtime',
 	   install_dir : dir_udev_callouts)
 executable('libinput-fuzz-to-zero',
 	   'udev/libinput-fuzz-to-zero.c',
 	   dependencies : [dep_udev, dep_libevdev],
 	   include_directories : [includes_src, includes_include],
 	   install : true,
+	   install_tag : 'runtime',
 	   install_dir : dir_udev_callouts)
 
 udev_rules_config = configuration_data()
-udev_rules_config.set('UDEV_TEST_PATH', '')
+udev_rules_config.set('UDEV_TEST_PATH', dir_udev_callouts + '/')
 configure_file(input : 'udev/80-libinput-device-groups.rules.in',
 	       output : '80-libinput-device-groups.rules',
 	       install_dir : dir_udev_rules,
@@ -265,6 +327,7 @@ endif
 # Basic compilation test to make sure the headers include and define all the
 # necessary bits.
 util_headers = [
+		'util-backtrace.h',
 		'util-bits.h',
 		'util-input-event.h',
 		'util-list.h',
@@ -273,22 +336,25 @@ util_headers = [
 		'util-matrix.h',
 		'util-prop-parsers.h',
 		'util-ratelimit.h',
+		'util-stringbuf.h',
 		'util-strings.h',
 		'util-time.h',
 ]
 foreach h: util_headers
 	c = configuration_data()
 	c.set_quoted('FILE', h)
-	testfile = configure_file(input : 'test/test-util-includes.c',
+	testfile = configure_file(input : 'test/test-util-includes.c.in',
 			          output : 'test-util-includes-@0@.c'.format(h),
 				  configuration : c)
 	executable('test-build-@0@'.format(h),
 		   testfile,
 		   include_directories : [includes_src, includes_include],
+		   dependencies: [dep_libevdev],
 		   install : false)
 endforeach
 
 src_libinput_util = [
+	'src/util-files.c',
 	'src/util-list.c',
 	'src/util-ratelimit.c',
 	'src/util-strings.c',
@@ -318,7 +384,7 @@ if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
 	dep_libfilter = []
 else
 libfilter = static_library('filter', src_libfilter,
-			   dependencies : [dep_udev, dep_libwacom],
+			   dependencies : [dep_udev, dep_libwacom, dep_libevdev],
 			   include_directories : includes_include)
 dep_libfilter = declare_dependency(link_with : libfilter)
 endif
@@ -346,14 +412,17 @@ dep_libquirks = declare_dependency(link_with : libquirks)
 
 # Create /etc/libinput
 if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
-if meson.version().version_compare('>= 0.60')
 	install_emptydir(dir_etc / 'libinput')
-else
-	install_subdir('libinput', install_dir : dir_etc)
-endif
 endif
 
 ############ libinput.so ############
+if get_option('internal-event-debugging')
+	config_h.set('EVENT_DEBUGGING', 1)
+endif
+
+config_h.set_quoted('LIBINPUT_PLUGIN_LIBDIR', dir_lib / 'libinput' / 'plugins')
+config_h.set_quoted('LIBINPUT_PLUGIN_ETCDIR', dir_etc / 'libinput' / 'plugins')
+
 install_headers('src/libinput.h')
 if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
 src_libinput = src_libfilter + [
@@ -366,10 +435,18 @@ src_libinput = src_libfilter + [
 else
 src_libinput = src_libfilter + [
 	'src/libinput.c',
+	'src/libinput-plugin.c',
+	'src/libinput-plugin-button-debounce.c',
+	'src/libinput-plugin-mouse-wheel.c',
+	'src/libinput-plugin-mouse-wheel-lowres.c',
+	'src/libinput-plugin-tablet-double-tool.c',
+	'src/libinput-plugin-tablet-eraser-button.c',
+	'src/libinput-plugin-tablet-forced-tool.c',
+	'src/libinput-plugin-tablet-proximity-timer.c',
 	'src/libinput-private-config.c',
 	'src/evdev.c',
-	'src/evdev-debounce.c',
 	'src/evdev-fallback.c',
+	'src/evdev-plugin.c',
 	'src/evdev-totem.c',
 	'src/evdev-middle-button.c',
 	'src/evdev-mt-touchpad.c',
@@ -381,11 +458,21 @@ src_libinput = src_libfilter + [
 	'src/evdev-tablet.c',
 	'src/evdev-tablet-pad.c',
 	'src/evdev-tablet-pad-leds.c',
-	'src/evdev-wheel.c',
 	'src/path-seat.c',
 	'src/udev-seat.c',
 	'src/timer.c',
+	'src/util-libinput.c',
 ]
+endif
+
+if have_mtdev
+	src_libinput += ['src/libinput-plugin-mtdev.c']
+endif
+
+if dep_lua.found()
+	src_libinput += [
+		'src/libinput-plugin-lua.c',
+	]
 endif
 
 deps_libinput = [
@@ -397,7 +484,8 @@ deps_libinput = [
 	dep_rt,
 	dep_libwacom,
 	dep_libinput_util,
-	dep_libquirks
+	dep_libquirks,
+	dep_lua,
 ]
 
 libinput_version_h_config = configuration_data()
@@ -441,22 +529,26 @@ dep_libinput = declare_dependency(
 		link_with : lib_libinput,
 		dependencies : deps_libinput)
 
-if meson.version().version_compare('>= 0.54.0')
-	meson.override_dependency('libinput', dep_libinput)
-endif
+meson.override_dependency('libinput', dep_libinput)
 
 pkgconfig.generate(
 	filebase : 'libinput',
 	name : 'Libinput',
 	description : 'Input device library',
 	version : meson.project_version(),
-	libraries : lib_libinput
+	libraries : lib_libinput,
+	requires_private : dep_udev,
+	variables : [
+		'plugindir=${libdir}/libinput/plugins'
+	]
 )
 
 git_version_h = vcs_tag(command : ['git', 'describe'],
 			fallback : 'unknown',
 			input : 'src/libinput-git-version.h.in',
 			output :'libinput-git-version.h')
+
+subdir('plugins')
 
 ############ documentation ############
 
@@ -469,13 +561,25 @@ endif
 
 subdir('completion/zsh')
 
+############ libinput-util-libinput.a ############
+
+# This one needs libinput itself
+src_libinput_util_libinput = [
+	'src/util-libinput.c'
+]
+libinput_util_libinput = static_library('libinput-util-libinput',
+					src_libinput_util_libinput,
+					dependencies : [dep_libevdev, dep_libinput_util, dep_libinput],
+					include_directories : includes_include)
+dep_libinput_util_libinput = declare_dependency(link_with : libinput_util_libinput)
+
 ############ tools ############
 if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
 
 libinput_tool_path = dir_libexec
 config_h.set_quoted('LIBINPUT_TOOL_PATH', libinput_tool_path)
 tools_shared_sources = [ 'tools/shared.c' ]
-deps_tools_shared = [ dep_libinput, dep_libevdev ]
+deps_tools_shared = [ dep_libinput, dep_libevdev, dep_libinput_util_libinput ]
 lib_tools_shared = static_library('tools_shared',
 				  tools_shared_sources,
 				  include_directories : [includes_src, includes_include],
@@ -493,6 +597,7 @@ executable('libinput-debug-events',
 	   dependencies : deps_tools,
 	   include_directories : [includes_src, includes_include],
 	   install_dir : libinput_tool_path,
+	   install_tag : 'bin',
 	   install : true
 	   )
 
@@ -502,8 +607,17 @@ executable('libinput-debug-tablet',
 	   dependencies : deps_tools,
 	   include_directories : [includes_src, includes_include],
 	   install_dir : libinput_tool_path,
+	   install_tag : 'bin',
 	   install : true)
 
+libinput_debug_tablet_pad_sources = [ 'tools/libinput-debug-tablet-pad.c' ]
+executable('libinput-debug-tablet-pad',
+	   libinput_debug_tablet_pad_sources,
+	   dependencies : deps_tools,
+	   include_directories : [includes_src, includes_include],
+	   install_dir : libinput_tool_path,
+	   install_tag : 'bin',
+	   install : true)
 
 libinput_quirks_sources = [ 'tools/libinput-quirks.c' ]
 libinput_quirks = executable('libinput-quirks',
@@ -511,6 +625,7 @@ libinput_quirks = executable('libinput-quirks',
 			     dependencies : [dep_libquirks, dep_tools_shared, dep_libinput],
 			     include_directories : [includes_src, includes_include],
 			     install_dir : libinput_tool_path,
+			     install_tag : 'bin',
 			     install : true
 			    )
 test('validate-quirks',
@@ -532,6 +647,7 @@ libinput_list_devices = executable('libinput-list-devices',
 				   dependencies : deps_tools,
 				   include_directories : [includes_src, includes_include],
 				   install_dir : libinput_tool_path,
+				   install_tag : 'bin',
 				   install : true,
 				  )
 test('list-devices',
@@ -544,6 +660,7 @@ executable('libinput-measure',
 	   dependencies : deps_tools,
 	   include_directories : [includes_src, includes_include],
 	   install_dir : libinput_tool_path,
+	   install_tag : 'bin',
 	   install : true,
 	   )
 
@@ -553,21 +670,22 @@ executable('libinput-analyze',
 	   dependencies : deps_tools,
 	   include_directories : [includes_src, includes_include],
 	   install_dir : libinput_tool_path,
+	   install_tag : 'bin',
 	   install : true,
 	   )
 
 src_python_tools = files(
-	      'tools/libinput-analyze-buttons.py',
-	      'tools/libinput-analyze-per-slot-delta.py',
-	      'tools/libinput-analyze-recording.py',
-	      'tools/libinput-analyze-touch-down-state.py',
-	      'tools/libinput-list-kernel-devices.py',
-	      'tools/libinput-measure-fuzz.py',
-	      'tools/libinput-measure-touchpad-size.py',
-	      'tools/libinput-measure-touchpad-tap.py',
-	      'tools/libinput-measure-touchpad-pressure.py',
-	      'tools/libinput-measure-touch-size.py',
-	      'tools/libinput-replay.py'
+	'tools/libinput-analyze-buttons.py',
+	'tools/libinput-analyze-per-slot-delta.py',
+	'tools/libinput-analyze-recording.py',
+	'tools/libinput-analyze-touch-down-state.py',
+	'tools/libinput-list-kernel-devices.py',
+	'tools/libinput-measure-fuzz.py',
+	'tools/libinput-measure-touchpad-size.py',
+	'tools/libinput-measure-touchpad-tap.py',
+	'tools/libinput-measure-touchpad-pressure.py',
+	'tools/libinput-measure-touch-size.py',
+	'tools/libinput-replay.py'
 )
 
 foreach t : src_python_tools
@@ -584,23 +702,23 @@ executable('libinput-record',
 	   dependencies : deps_tools + [dep_udev],
 	   include_directories : [includes_src, includes_include],
 	   install_dir : libinput_tool_path,
+	   install_tag : 'bin',
 	   install : true,
 	   )
 
-config_h.set10('HAVE_DEBUG_GUI', get_option('debug-gui'))
 if get_option('debug-gui')
+	config_h.set('HAVE_DEBUG_GUI', 1)
 	dep_gtk = dependency('gtk4', version : '>= 4.0', required : false)
-	config_h.set10('HAVE_GTK4', dep_gtk.found())
-	if not dep_gtk.found()
+	if dep_gtk.found()
+		config_h.set('HAVE_GTK4', 1)
+	else
 		dep_gtk = dependency('gtk+-3.0', version : '>= 3.20')
-		config_h.set10('HAVE_GTK3', dep_gtk.found())
+		if dep_gtk.found()
+			config_h.set('HAVE_GTK3', 1)
+		endif
 	endif
 
-	if meson.version().version_compare('>= 0.58')
-		gtk_targets = dep_gtk.get_variable('targets')
-	else
-		gtk_targets = dep_gtk.get_pkgconfig_variable('targets')
-	endif
+	gtk_targets = dep_gtk.get_variable('targets')
 
 	have_gtk_wayland = gtk_targets.contains('wayland')
 	have_gtk_x11 = gtk_targets.contains('x11')
@@ -611,18 +729,15 @@ if get_option('debug-gui')
 	dep_wayland_client = dependency('wayland-client', required : false)
 	dep_wayland_protocols = dependency('wayland-protocols', required : false)
 
-	config_h.set10('HAVE_GTK_X11', have_gtk_x11 and dep_x11.found())
-	config_h.set10('HAVE_GTK_WAYLAND', false)
+	if have_gtk_x11 and dep_x11.found()
+		config_h.set('HAVE_GTK_X11', 1)
+	endif
 
 	debug_gui_sources = [ 'tools/libinput-debug-gui.c' ]
 
 	if have_gtk_wayland and dep_wayland_client.found() and dep_wayland_protocols.found()
 		wayland_scanner = find_program('wayland-scanner')
-		if meson.version().version_compare('>= 0.58')
-			wlproto_dir = dep_wayland_protocols.get_variable('pkgdatadir')
-		else
-			wlproto_dir = dep_wayland_protocols.get_pkgconfig_variable('pkgdatadir')
-		endif
+		wlproto_dir = dep_wayland_protocols.get_variable('pkgdatadir')
 
 		proto_name = 'pointer-constraints-unstable-v1'
 		input = files(wlproto_dir / 'unstable' / 'pointer-constraints' / '@0@.xml'.format(proto_name))
@@ -640,7 +755,7 @@ if get_option('debug-gui')
 		)
 
 		debug_gui_sources += [ wayland_headers, wayland_sources ]
-		config_h.set10('HAVE_GTK_WAYLAND', true)
+		config_h.set('HAVE_GTK_WAYLAND', 1)
 	endif
 
 	deps_debug_gui = [
@@ -656,6 +771,7 @@ if get_option('debug-gui')
 		   dependencies : deps_debug_gui,
 		   include_directories : [includes_src, includes_include],
 		   install_dir : libinput_tool_path,
+		   install_tag : 'bin',
 		   install : true
 		   )
 	src_man += files('tools/libinput-debug-gui.man')
@@ -667,6 +783,7 @@ libinput_tool = executable('libinput',
 			   libinput_sources,
 			   dependencies : deps_tools,
 			   include_directories : [includes_src, includes_include],
+			   install_tag : 'bin',
 			   install : true
 			  )
 
@@ -759,22 +876,28 @@ executable('libinput-test',
 	   dependencies : deps_tools,
 	   include_directories : [includes_src, includes_include],
 	   install_dir : libinput_tool_path,
+	   install_tag : 'tests',
 	   install : true,
 	   )
 
 # This is the test suite runner, we allow disabling that one because of
 # dependencies
 if get_option('tests')
-	dep_check = dependency('check', version : '>= 0.9.10')
+	dep_check = dependency('check', version : '>= 0.9.10', required: false)
 
 	gstack = find_program('gstack', required : false)
-	config_h.set10('HAVE_GSTACK', gstack.found())
+	if gstack.found()
+		config_h.set('HAVE_GSTACK', 1)
+	endif
 
 	# for inhibit support during test run
-if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
-	dep_libsystemd = dependency('libsystemd', version : '>= 221', required : false)
-	config_h.set10('HAVE_LIBSYSTEMD', dep_libsystemd.found())
-endif
+	if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
+		dep_libsystemd = dependency('libsystemd', version : '>= 221', required : false)
+	endif
+
+	if dep_libsystemd.found()
+		config_h.set('HAVE_LIBSYSTEMD', 1)
+	endif
 
 	litest_sources = [
 		'src/libinput-private-config.c',
@@ -821,13 +944,16 @@ endif
 		'test/litest-device-magic-trackpad.c',
 		'test/litest-device-mouse.c',
 		'test/litest-device-mouse-wheel-tilt.c',
+		'test/litest-device-mouse-wheel-hires-disabled.c',
+		'test/litest-device-mouse-ps2.c',
 		'test/litest-device-mouse-roccat.c',
 		'test/litest-device-mouse-low-dpi.c',
+		'test/litest-device-mouse-virtual.c',
 		'test/litest-device-mouse-wheel-click-angle.c',
 		'test/litest-device-mouse-wheel-click-count.c',
 		'test/litest-device-ms-nano-transceiver-mouse.c',
 		'test/litest-device-ms-surface-cover.c',
-		'test/litest-device-protocol-a-touch-screen.c',
+		'test/litest-device-ploopy-pavonis-stylus.c',
 		'test/litest-device-qemu-usb-tablet.c',
 		'test/litest-device-sony-vaio-keys.c',
 		'test/litest-device-synaptics-x220.c',
@@ -880,29 +1006,37 @@ endif
 		'test/litest-device-xen-virtual-pointer.c',
 		'test/litest-device-vmware-virtual-usb-mouse.c',
 		'test/litest-device-yubikey.c',
+		'test/litest-runner.c',
 		'test/litest.c',
+		'test/litest-main.c',
 	]
 
-if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
-	dep_dl = cc.find_library('dl')
-	deps_litest = [
-		dep_libinput,
-		dep_check,
-		dep_udev,
-		dep_libevdev,
-		dep_dl,
-		dep_lm,
-		dep_libsystemd,
-		dep_libquirks,
-	]
-else
-	deps_litest = [
-		dep_libinput,
-		dep_check,
-		dep_lm,
-		dep_libquirks,
-	]
-endif
+	if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
+		if have_mtdev
+			litest_sources += [
+				'test/litest-device-protocol-a-touch-screen.c',
+			]
+		endif
+
+		dep_dl = cc.find_library('dl')
+		deps_litest = [
+			dep_libinput,
+			dep_udev,
+			dep_libevdev,
+			dep_dl,
+			dep_lm,
+			dep_libsystemd,
+			dep_libquirks,
+			dep_libinput_util_libinput,
+		]
+	else
+		deps_litest = [
+			dep_libinput,
+			dep_check,
+			dep_lm,
+			dep_libquirks,
+		]
+	endif
 
 	litest_config_h = configuration_data()
 	litest_config_h.set_quoted('LIBINPUT_DEVICE_GROUPS_RULES_FILE',
@@ -912,27 +1046,28 @@ endif
 				   meson.current_build_dir() /
 				   '90-libinput-fuzz-override-litest.rules')
 
-	def_no_main = '-DLITEST_NO_MAIN'
-	def_disable_backtrace = '-DLITEST_DISABLE_BACKTRACE_LOGGING'
-	defs_litest_selftest = [
-		def_no_main,
-		def_disable_backtrace,
-		'-Wno-unused',
-	]
-	test_litest_selftest_sources = [
-		'test/litest-selftest.c',
-		'test/litest.c',
-	]
-	test_litest_selftest = executable('test-litest-selftest',
-					  test_litest_selftest_sources,
-					  include_directories : [includes_src, includes_include],
-					  dependencies : deps_litest,
-					  c_args : defs_litest_selftest,
-					  install : false)
-	test('test-litest-selftest',
-	     test_litest_selftest,
-	     suite : ['all'],
-	     timeout : 100)
+	if dep_check.found()
+		def_disable_backtrace = '-DLITEST_DISABLE_BACKTRACE_LOGGING'
+		defs_litest_selftest = [
+			def_disable_backtrace,
+			'-Wno-unused',
+		]
+		test_litest_selftest_sources = [
+			'test/litest-selftest.c',
+			'test/litest-runner.c',
+			'test/litest.c',
+		]
+		test_litest_selftest = executable('test-litest-selftest',
+						  test_litest_selftest_sources,
+						  include_directories : [includes_src, includes_include],
+						  dependencies : [deps_litest, dep_check],
+						  c_args : defs_litest_selftest,
+						  install : false)
+		test('test-litest-selftest',
+		     test_litest_selftest,
+		     suite : ['all'],
+		     timeout : 100)
+	endif
 
 	def_LT_VERSION = '-DLIBINPUT_LT_VERSION="@0@:@1@:@2@"'.format(libinput_lt_c, libinput_lt_r, libinput_lt_a)
 	test_library_version = executable('test-library-version',
@@ -945,6 +1080,8 @@ endif
 
 	test_utils_sources = [
 		'test/test-utils.c',
+		'test/litest-runner.c',
+		'test/litest.c',
 	]
 	test_utils = executable('libinput-test-utils',
 				test_utils_sources,
@@ -956,7 +1093,6 @@ endif
 	     test_utils,
 	     suite : ['all'])
 
-	# When adding new files to this list, update the CI
 	tests_sources = [
 		'test/test-udev.c',
 		'test/test-path.c',
@@ -978,6 +1114,10 @@ endif
 		'test/test-switch.c',
 		'test/test-quirks.c',
 	]
+	if have_plugins and have_lua
+		tests_sources += ['test/test-plugins-lua.c']
+	endif
+
 	libinput_test_runner_sources = litest_sources + tests_sources
 	libinput_test_runner = executable('libinput-test-suite',
 					  libinput_test_runner_sources,
@@ -988,23 +1128,54 @@ endif
 
 	src_man += 'test/libinput-test-suite.man'
 
-	foreach testfile : tests_sources
-		tfile = testfile.split('test/test-')[1]
-		group = tfile.split('.c')[0]
+	# When adding new TEST_COLLECTION() macros, add to this list and the CI
+	# $ git grep TEST_COLLECTION test/test-* | sed -e "s|.*TEST_COLLECTION(\(.*\))|\t\t'\1',|" | sort
+	collections = [
+		'device',
+		'gestures',
+		'keyboard',
+		'log',
+		'misc',
+		'pad',
+		'path',
+		'pointer',
+		'quirks',
+		'switch',
+		'tablet',
+		'tablet_eraser',
+		'tablet_left_handed',
+		'tablet_proximity',
+		'tablet_tip',
+		'totem',
+		'touch',
+		'touchpad',
+		'touchpad_buttons',
+		'touchpad_dwt',
+		'touchpad_palm',
+		'touchpad_tap',
+		'touchpad_tap_drag',
+		'touchpad_tap_palm',
+		'trackball',
+		'trackpoint',
+		'udev',
+	]
+	if have_plugins and have_lua
+		collections += ['lua']
+	endif
+
+	foreach group : collections
 		test('libinput-test-suite-@0@'.format(group),
 		     libinput_test_runner,
 		     suite : ['all', 'valgrind', 'root', 'hardware'],
-		     args : ['--filter-group=@0@'.format(group),
-			     '--xml-output=junit-@0@-XXXXXX.xml'.format(group)],
+		     args : ['--filter-group=@0@'.format(group)],
 		     is_parallel : false,
-		     timeout : 1200)
+		     timeout : 1100)
         endforeach
 
 	test('libinput-test-deviceless',
 	     libinput_test_runner,
 	     suite : ['all', 'valgrind'],
-	     args: ['--filter-deviceless',
-	            '--xml-output=junit-deviceless-XXXXXX.xml'])
+	     args: ['--filter-deviceless'])
 
 	valgrind = find_program('valgrind', required : false)
 	if valgrind.found()
@@ -1012,12 +1183,13 @@ endif
 		valgrind_suppressions_file = dir_src_test / 'valgrind.suppressions'
 		add_test_setup('valgrind',
 				exe_wrapper : [ valgrind,
+						'--log-file=valgrind.%p.log',
 						'--leak-check=full',
 						'--gen-suppressions=all',
 						'--error-exitcode=3',
 						'--suppressions=' + valgrind_suppressions_file ],
 				env :  valgrind_env,
-				timeout_multiplier : 100)
+				timeout_multiplier : 3)
 	else
 		message('valgrind not found, disabling valgrind test suite')
 	endif
@@ -1051,6 +1223,7 @@ src_man += files(
 	'tools/libinput-analyze-touch-down-state.man',
 	'tools/libinput-debug-events.man',
 	'tools/libinput-debug-tablet.man',
+	'tools/libinput-debug-tablet-pad.man',
 	'tools/libinput-list-devices.man',
 	'tools/libinput-list-kernel-devices.man',
 	'tools/libinput-measure.man',

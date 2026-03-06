@@ -206,6 +206,8 @@ class Device(libevdev.Device):
         self.sequences = []
         self.touch = Touch(0, 0)
 
+        self.warned = False
+
     def find_touch_device(self):
         context = pyudev.Context()
         for device in context.list_devices(subsystem="input"):
@@ -259,10 +261,13 @@ class Device(libevdev.Device):
             libevdev.EV_KEY.BTN_TOOL_QUINTTAP,
         ]
         if event.code in tapcodes and event.value > 0:
-            print(
-                "\rThis tool cannot handle multiple fingers, " "output will be invalid",
-                file=sys.stderr,
-            )
+            if not self.warned:
+                self.warned = True
+                print(
+                    "\rThis tool cannot handle multiple fingers, "
+                    "output will be invalid",
+                    file=sys.stderr,
+                )
 
     def handle_abs(self, event):
         if event.matches(libevdev.EV_ABS.ABS_MT_TRACKING_ID):

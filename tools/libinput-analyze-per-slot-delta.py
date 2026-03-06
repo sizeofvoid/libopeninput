@@ -29,6 +29,9 @@
 #
 # Input is a libinput record yaml file
 
+from dataclasses import dataclass, field, replace
+from enum import Enum
+
 import argparse
 import math
 import sys
@@ -38,21 +41,31 @@ import libevdev
 
 COLOR_RESET = "\x1b[0m"
 COLOR_RED = "\x1b[6;31m"
+COLOR_BLUE = "\x1b[6;34m"
+COLOR_GREEN = "\x1b[6;32m"
 
 
 class SlotFormatter:
-    width = 16
-
     def __init__(
-        self, is_absolute=False, resolution=None, threshold=None, ignore_below=None
+        self,
+        is_absolute=False,
+        resolution=None,
+        threshold=None,
+        ignore_below=None,
+        show_distance=False,
+        pressure_thresholds=(0, 0),
     ):
         self.threshold = threshold
         self.ignore_below = ignore_below
         self.resolution = resolution
         self.is_absolute = is_absolute
+        self.show_distance = show_distance
+        self.pressure_thresholds = pressure_thresholds
         self.slots = []
         self.have_data = False
         self.filtered = False
+
+        self.width = 35 if show_distance else 16
 
     def __str__(self):
         return " | ".join(self.slots)
@@ -70,11 +83,25 @@ class SlotFormatter:
             self.slots.append(" ".center(self.width))
         else:
             if self.resolution is not None:
-                dx, dy = slot.dx / self.resolution[0], slot.dy / self.resolution[1]
+                delta = Point(
+                    slot.delta.x / self.resolution[0],
+                    slot.delta.y / self.resolution[1],
+                )
+                distx = abs(slot.position.x - slot.origin.x)
+                disty = abs(slot.position.y - slot.origin.y)
+                distance = Point(
+                    distx / self.resolution[0],
+                    disty / self.resolution[1],
+                )
             else:
-                dx, dy = slot.dx, slot.dy
-            if dx != 0 and dy != 0:
-                t = math.atan2(dx, dy)
+                delta = Point(slot.delta.x, slot.delta.y)
+                distance = Point(
+                    abs(slot.position.x - slot.origin.x),
+                    abs(slot.position.y - slot.origin.y),
+                )
+
+            if delta.x != 0 and delta.y != 0:
+                t = math.atan2(delta.x, delta.y)
                 t += math.pi  # in [0, 2pi] range now
 
                 if t == 0:
@@ -84,22 +111,35 @@ class SlotFormatter:
 
                 directions = ["↖↑", "↖←", "↙←", "↙↓", "↓↘", "→↘", "→↗", "↑↗"]
                 direction = directions[int(t / 45)]
-            elif dy == 0:
-                if dx < 0:
+            elif delta.y == 0:
+                if delta.x < 0:
                     direction = "←←"
                 else:
                     direction = "→→"
             else:
-                if dy < 0:
+                if delta.y < 0:
                     direction = "↑↑"
                 else:
                     direction = "↓↓"
 
-            color = ""
-            reset = ""
+            color = COLOR_RESET
+            reset = COLOR_RESET
             if not self.is_absolute:
+                if (
+                    self.pressure_thresholds[1] > 0
+                    and slot.pressure > self.pressure_thresholds[1]
+                ):
+                    color = COLOR_GREEN
+                    reset = COLOR_RESET
+                elif (
+                    self.pressure_thresholds[0] > 0
+                    and slot.pressure > self.pressure_thresholds[0]
+                ):
+                    color = COLOR_BLUE
+                    reset = COLOR_RESET
+
                 if self.ignore_below is not None or self.threshold is not None:
-                    dist = math.hypot(dx, dy)
+                    dist = math.hypot(delta.x, delta.y)
                     if self.ignore_below is not None and dist < self.ignore_below:
                         self.slots.append(" ".center(self.width))
                         self.filtered = True
@@ -107,44 +147,66 @@ class SlotFormatter:
                     if self.threshold is not None and dist >= self.threshold:
                         color = COLOR_RED
                         reset = COLOR_RESET
-                if isinstance(dx, int) and isinstance(dy, int):
-                    string = "{} {}{:+4d}/{:+4d}{}".format(
-                        direction, color, dx, dy, reset
+
+                if isinstance(delta.x, int) and isinstance(delta.y, int):
+                    coords = f"{delta.x:+4d}/{delta.y:+4d}"
+                else:
+                    coords = f"{delta.x:+3.2f}/{delta.y:+03.2f}"
+
+                if self.show_distance:
+                    hypot = math.hypot(distance.x, distance.y)
+                    distance = (
+                        f"dist: ({distance.x:3.1f}/{distance.y:3.1f}, {hypot:3.1f})"
                     )
                 else:
-                    string = "{} {}{:+3.2f}/{:+03.2f}{}".format(
-                        direction, color, dx, dy, reset
-                    )
+                    distance = ""
+
+                components = [
+                    f"{direction}",
+                    f"{color}",
+                    coords,
+                    distance,
+                    f"{reset}",
+                ]
+
+                string = " ".join(c for c in components if c)
             else:
-                x, y = slot.x, slot.y
+                x, y = slot.position.x, slot.position.y
                 string = "{} {}{:4d}/{:4d}{}".format(direction, color, x, y, reset)
             self.have_data = True
             self.slots.append(string.ljust(self.width + len(color) + len(reset)))
 
 
-class SlotState:
+class SlotState(Enum):
     NONE = 0
     BEGIN = 1
     UPDATE = 2
     END = 3
 
 
-class Slot:
-    state = SlotState.NONE
-    x = 0
-    y = 0
-    dx = 0
-    dy = 0
-    used = False
-    dirty = False
+@dataclass
+class Point:
+    x: float = 0.0
+    y: float = 0.0
 
-    def __init__(self, index):
-        self.index = index
+
+@dataclass
+class Slot:
+    index: int
+    state: SlotState = SlotState.NONE
+    position: Point = field(default_factory=Point)
+    delta: Point = field(default_factory=Point)
+    origin: Point = field(default_factory=Point)
+    pressure: int = 0
+    used: bool = False
+    dirty: bool = False
 
 
 def main(argv):
     global COLOR_RESET
     global COLOR_RED
+    global COLOR_BLUE
+    global COLOR_GREEN
 
     slots = []
     xres, yres = 1, 1
@@ -154,6 +216,11 @@ def main(argv):
     )
     parser.add_argument(
         "--use-mm", action="store_true", help="Use mm instead of device deltas"
+    )
+    parser.add_argument(
+        "--show-distance",
+        action="store_true",
+        help="Show the absolute distance relative to the first position",
     )
     parser.add_argument(
         "--use-st",
@@ -180,11 +247,25 @@ def main(argv):
         default=None,
         help="Ignore any delta below this threshold",
     )
+    parser.add_argument(
+        "--pressure-min",
+        type=int,
+        default=0,
+        help="Highlight touches above this pressure minimum",
+    )
+    parser.add_argument(
+        "--pressure-max",
+        type=int,
+        default=0,
+        help="Highlight touches below this pressure maximum",
+    )
     args = parser.parse_args()
 
     if not sys.stdout.isatty():
         COLOR_RESET = ""
         COLOR_RED = ""
+        COLOR_GREEN = ""
+        COLOR_BLUE = ""
 
     yml = yaml.safe_load(open(args.path[0]))
     device = yml["devices"][0]
@@ -267,24 +348,8 @@ def main(argv):
                         s.state = SlotState.BEGIN
                     else:
                         s.state = SlotState.END
-                elif e.code == libevdev.EV_ABS.ABS_X:
-                    # If recording started after touch down
-                    if s.state == SlotState.NONE:
-                        s.state = SlotState.BEGIN
-                        s.dx, s.dy = 0, 0
-                    elif s.state == SlotState.UPDATE:
-                        s.dx = e.value - s.x
-                    s.x = e.value
-                    s.dirty = True
-                elif e.code == libevdev.EV_ABS.ABS_Y:
-                    # If recording started after touch down
-                    if s.state == SlotState.NONE:
-                        s.state = SlotState.BEGIN
-                        s.dx, s.dy = 0, 0
-                    elif s.state == SlotState.UPDATE:
-                        s.dy = e.value - s.y
-                    s.y = e.value
-                    s.dirty = True
+                elif e.code == libevdev.EV_ABS.ABS_PRESSURE:
+                    s.pressure = e.value
             else:
                 if e.code == libevdev.EV_ABS.ABS_MT_SLOT:
                     slot = e.value
@@ -299,27 +364,43 @@ def main(argv):
                         s.state = SlotState.END
                     else:
                         s.state = SlotState.BEGIN
-                        s.dx = 0
-                        s.dy = 0
+                        s.delta.x, s.delta.y = 0, 0
                     s.dirty = True
-                elif e.code == libevdev.EV_ABS.ABS_MT_POSITION_X:
-                    # If recording started after touch down
-                    if s.state == SlotState.NONE:
-                        s.state = SlotState.BEGIN
-                        s.dx, s.dy = 0, 0
-                    elif s.state == SlotState.UPDATE:
-                        s.dx = e.value - s.x
-                    s.x = e.value
-                    s.dirty = True
-                elif e.code == libevdev.EV_ABS.ABS_MT_POSITION_Y:
-                    # If recording started after touch down
-                    if s.state == SlotState.NONE:
-                        s.state = SlotState.BEGIN
-                        s.dx, s.dy = 0, 0
-                    elif s.state == SlotState.UPDATE:
-                        s.dy = e.value - s.y
-                    s.y = e.value
-                    s.dirty = True
+                elif e.code == libevdev.EV_ABS.ABS_MT_PRESSURE:
+                    s.pressure = e.value
+
+            if args.use_st:
+                axes = [libevdev.EV_ABS.ABS_X, libevdev.EV_ABS.ABS_Y]
+            else:
+                axes = [
+                    libevdev.EV_ABS.ABS_MT_POSITION_X,
+                    libevdev.EV_ABS.ABS_MT_POSITION_Y,
+                ]
+
+            if e.code in axes:
+                s.dirty = True
+
+                # If recording started after touch down
+                if s.state == SlotState.NONE:
+                    s.state = SlotState.BEGIN
+                    s.delta = Point(0, 0)
+
+                if e.code in [
+                    libevdev.EV_ABS.ABS_X,
+                    libevdev.EV_ABS.ABS_MT_POSITION_X,
+                ]:
+                    if s.state == SlotState.UPDATE:
+                        s.delta.x = e.value - s.position.x
+                    s.position.x = e.value
+                elif e.code in [
+                    libevdev.EV_ABS.ABS_Y,
+                    libevdev.EV_ABS.ABS_MT_POSITION_Y,
+                ]:
+                    if s.state == SlotState.UPDATE:
+                        s.delta.y = e.value - s.position.y
+                    s.position.y = e.value
+                else:
+                    assert False, f"Invalid axis {e.code}"
 
             if e.code == libevdev.EV_SYN.SYN_REPORT:
                 if last_time is None:
@@ -361,14 +442,16 @@ def main(argv):
                     resolution=(xres, yres) if args.use_mm else None,
                     threshold=args.threshold,
                     ignore_below=args.ignore_below,
+                    show_distance=args.show_distance,
+                    pressure_thresholds=(args.pressure_min, args.pressure_max),
                 )
                 for sl in [s for s in slots if s.used]:
                     fmt.format_slot(sl)
 
                     sl.dirty = False
-                    sl.dx = 0
-                    sl.dy = 0
+                    sl.delta.x, sl.delta.y = 0, 0
                     if sl.state == SlotState.BEGIN:
+                        sl.origin = replace(sl.position)
                         sl.state = SlotState.UPDATE
                     elif sl.state == SlotState.END:
                         sl.state = SlotState.NONE

@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x19,
@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x000,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, KEY_HELP,
 	EV_KEY, KEY_SETUP,
@@ -46,19 +47,18 @@ static int events[] = {
 	EV_SW, SW_DOCK,
 	-1, -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("wmi-hotkeys",
-	.type = LITEST_HP_WMI_HOTKEYS,
-	.features = LITEST_SWITCH,
-	.interface = NULL,
+TEST_DEVICE(LITEST_HP_WMI_HOTKEYS,
+	    .features = LITEST_SWITCH,
+	    .interface = NULL,
 
-	.name = "HP WMI hotkeys",
-	.id = &input_id,
-	.events = events,
-	.absinfo = NULL,
+	    .name = "HP WMI hotkeys",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = NULL,
 
-	.udev_properties = {
-		{ "ID_INPUT_SWITCH", "1" },
-		{ NULL },
-	}
-)
+	    .udev_properties = {
+		    { "ID_INPUT_SWITCH", "1" },
+		    { NULL },
+	    })

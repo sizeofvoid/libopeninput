@@ -23,11 +23,11 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
@@ -35,7 +35,7 @@ static struct input_event down[] = {
 };
 
 static struct input_event move[] = {
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
@@ -67,6 +67,7 @@ static struct input_id input_id = {
 	.product = 0x21a,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_TOOL_FINGER,
@@ -75,27 +76,28 @@ static int events[] = {
 	EV_KEY, BTN_TOOL_TRIPLETAP,
 	-1, -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 1215, 0, 0, 0 },
 	{ ABS_Y, 0, 588, 0, 0, 0 },
 	{ ABS_PRESSURE, 0, 300, 0, 0, 0 },
-	{ .value = -1 }
+	{ .value = -1 },
 };
+/* clang-format on */
 
 static const char quirk_file[] =
-"[litest Apple Touchpad]\n"
-"MatchName=litest appletouch\n"
-"ModelAppleTouchpadOneButton=1\n";
+	"[litest Apple Touchpad]\n"
+	"MatchName=litest appletouch\n"
+	"ModelAppleTouchpadOneButton=1\n";
 
-TEST_DEVICE("appletouch",
-	.type = LITEST_APPLETOUCH,
-	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SINGLE_TOUCH,
-	.interface = &interface,
+TEST_DEVICE(LITEST_APPLETOUCH,
+	    .features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SINGLE_TOUCH,
+	    .interface = &interface,
 
-	.name = "appletouch",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.quirk_file = quirk_file,
-)
+	    .name = "appletouch",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .quirk_file = quirk_file, )

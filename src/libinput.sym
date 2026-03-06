@@ -335,18 +335,48 @@ LIBINPUT_1.23 {
 } LIBINPUT_1.21;
 
 LIBINPUT_1.26 {
-  libinput_device_config_click_set_clickfinger_button_map;
-  libinput_device_config_click_get_default_clickfinger_button_map;
-  libinput_device_config_click_get_clickfinger_button_map;
-  libinput_device_get_id_bustype;
-  libinput_device_tablet_pad_get_num_dials;
-  libinput_event_tablet_pad_get_dial_delta_v120;
-  libinput_event_tablet_pad_get_dial_number;
-  libinput_tablet_pad_mode_group_has_dial;
-  libinput_tablet_tool_config_pressure_range_is_available;
-  libinput_tablet_tool_config_pressure_range_set;
-  libinput_tablet_tool_config_pressure_range_get_minimum;
-  libinput_tablet_tool_config_pressure_range_get_maximum;
-  libinput_tablet_tool_config_pressure_range_get_default_minimum;
-  libinput_tablet_tool_config_pressure_range_get_default_maximum;
+	libinput_device_config_click_set_clickfinger_button_map;
+	libinput_device_config_click_get_default_clickfinger_button_map;
+	libinput_device_config_click_get_clickfinger_button_map;
+	libinput_device_get_id_bustype;
+	libinput_device_tablet_pad_get_num_dials;
+	libinput_event_tablet_pad_get_dial_delta_v120;
+	libinput_event_tablet_pad_get_dial_number;
+	libinput_tablet_pad_mode_group_has_dial;
+	libinput_tablet_tool_config_pressure_range_is_available;
+	libinput_tablet_tool_config_pressure_range_set;
+	libinput_tablet_tool_config_pressure_range_get_minimum;
+	libinput_tablet_tool_config_pressure_range_get_maximum;
+	libinput_tablet_tool_config_pressure_range_get_default_minimum;
+	libinput_tablet_tool_config_pressure_range_get_default_maximum;
 } LIBINPUT_1.23;
+
+LIBINPUT_1.27 {
+	libinput_device_config_area_has_rectangle;
+	libinput_device_config_area_set_rectangle;
+	libinput_device_config_area_get_rectangle;
+	libinput_device_config_area_get_default_rectangle;
+} LIBINPUT_1.26;
+
+LIBINPUT_1.28 {
+	libinput_device_config_3fg_drag_get_finger_count;
+	libinput_device_config_3fg_drag_set_enabled;
+	libinput_device_config_3fg_drag_get_enabled;
+	libinput_device_config_3fg_drag_get_default_enabled;
+} LIBINPUT_1.27;
+
+LIBINPUT_1.29 {
+	libinput_tablet_tool_config_eraser_button_get_button;
+	libinput_tablet_tool_config_eraser_button_get_default_button;
+	libinput_tablet_tool_config_eraser_button_get_default_mode;
+	libinput_tablet_tool_config_eraser_button_get_mode;
+	libinput_tablet_tool_config_eraser_button_get_modes;
+	libinput_tablet_tool_config_eraser_button_set_button;
+	libinput_tablet_tool_config_eraser_button_set_mode;
+} LIBINPUT_1.28;
+
+LIBINPUT_1.30 {
+	libinput_plugin_system_append_default_paths;
+	libinput_plugin_system_append_path;
+	libinput_plugin_system_load_plugins;
+} LIBINPUT_1.29;

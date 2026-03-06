@@ -1,7 +1,9 @@
 #include <assert.h>
 #include <stdio.h>
 
-int main(void) {
+int
+main(void)
+{
 	const char *version = LIBINPUT_LT_VERSION;
 	int C, R, A;
 	int rc;

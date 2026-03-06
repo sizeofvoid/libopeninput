@@ -3,3 +3,11 @@ MatchUdevType=touchpad
 MatchName=ETPS/2 Elantech Touchpad
 MatchDMIModalias=dmi:*svnGIGABYTE:pnAERO15-XA*
 AttrPalmSizeThreshold=800
+
+[Gigabyte Aorus15BKF keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x0414
+MatchProduct=0x7A44
+MatchDMIModalias=dmi:*:svnGIGABYTE:pnAORUS15BKF:*
+AttrKeyboardIntegration=internal

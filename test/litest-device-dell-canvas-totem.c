@@ -23,20 +23,24 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 /* We don't expect anything but slot 0 to be used, ever */
 #define TOTEM_SLOT 0
 
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = TOTEM_SLOT },
-	{ .type = EV_ABS, .code = ABS_MT_TOOL_TYPE, .value = MT_TOOL_DIAL }, /* fixed value in device */
+	{ .type = EV_ABS,
+	  .code = ABS_MT_TOOL_TYPE,
+	  .value = MT_TOOL_DIAL }, /* fixed value in device */
 	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_ORIENTATION, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MAJOR, .value = 718 }, /* fixed value in device */
+	{ .type = EV_ABS,
+	  .code = ABS_MT_TOUCH_MAJOR,
+	  .value = 718 }, /* fixed value in device */
 	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MINOR, .value = 718 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
@@ -47,7 +51,9 @@ static struct input_event move[] = {
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_ORIENTATION, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MAJOR, .value = 718 }, /* fixed value in device */
+	{ .type = EV_ABS,
+	  .code = ABS_MT_TOUCH_MAJOR,
+	  .value = 718 }, /* fixed value in device */
 	{ .type = EV_ABS, .code = ABS_MT_TOUCH_MINOR, .value = 718 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
@@ -79,6 +85,7 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_MT_SLOT, 0, 4, 0, 0, 0 },
 	{ ABS_MT_TOUCH_MAJOR, 0, 32767, 0, 0, 10 },
@@ -92,6 +99,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -100,24 +108,24 @@ static struct input_id input_id = {
 	.version = 0x111,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_0,
 	EV_MSC, MSC_TIMESTAMP,
 	INPUT_PROP_MAX, INPUT_PROP_DIRECT,
 	-1, -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("dell-canvas-totem",
-	.type = LITEST_DELL_CANVAS_TOTEM,
-	.features = LITEST_TOTEM | LITEST_TABLET,
-	.interface = &interface,
+TEST_DEVICE(LITEST_DELL_CANVAS_TOTEM,
+	    .features = LITEST_TOTEM | LITEST_TABLET,
+	    .interface = &interface,
 
-	.name = "Advanced Silicon S.A. CoolTouch® System System Multi Axis",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.udev_properties = {
-	 { "LIBINPUT_DEVICE_GROUP", "dell-canvas-totem-group" },
-	 { NULL },
-	},
-)
+	    .name = "Advanced Silicon S.A. CoolTouch® System System Multi Axis",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .udev_properties = {
+		    { "LIBINPUT_DEVICE_GROUP", "dell-canvas-totem-group" },
+		    { NULL },
+	    }, )

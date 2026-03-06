@@ -27,3 +27,9 @@ MatchVendor=0x0B33
 MatchProduct=0x0703
 MatchUdevType=mouse
 ModelBouncingKeys=1
+
+[Contour Design RollerMouse USB Receiver]
+MatchVendor=0x0B33
+MatchProduct=0x2000
+MatchUdevType=mouse
+ModelBouncingKeys=1

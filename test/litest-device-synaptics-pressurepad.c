@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 /*
  * Device from https://gitlab.freedesktop.org/libinput/libinput/-/issues/562
@@ -34,7 +34,7 @@
  */
 
 static struct input_event down[] = {
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
@@ -47,7 +47,7 @@ static struct input_event down[] = {
 
 static struct input_event move[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
@@ -55,7 +55,6 @@ static struct input_event move[] = {
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
-
 
 static int
 get_axis_default(struct litest_device *d, unsigned int evcode, int32_t *value)
@@ -87,6 +86,7 @@ static struct input_id input_id = {
 	.product = 0xce37,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_TOOL_FINGER,
@@ -99,7 +99,9 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_BUTTONPAD,
 	-1, -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 1224, 0, 0, 12 },
 	{ ABS_Y, 0, 756, 0, 0, 12 },
@@ -110,16 +112,15 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ ABS_MT_PRESSURE, 0, 255, 0, 0, 0 }, /* note: resolution zero */
 	{ ABS_MT_TOOL_TYPE, 0, 2, 0, 0, 0 },
-	{ .value = -1 }
+	{ .value = -1 },
 };
+/* clang-format on */
 
-TEST_DEVICE("synaptics-pressurepad",
-	.type = LITEST_SYNAPTICS_PRESSUREPAD,
-	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
-	.interface = &interface,
+TEST_DEVICE(LITEST_SYNAPTICS_PRESSUREPAD,
+	    .features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON,
+	    .interface = &interface,
 
-	.name = "SYNA2B31:00 06CB:CE37 Touchpad",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "SYNA2B31:00 06CB:CE37 Touchpad",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

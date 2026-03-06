@@ -191,6 +191,13 @@ MatchVendor=0x1532
 MatchProduct=0x0259
 AttrKeyboardIntegration=internal
 
+[RazerBladeLate2020Base Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x1532
+MatchProduct=0x0268
+AttrKeyboardIntegration=internal
+
 [RazerBlade15AdvancedEarly2021 Keyboard]
 MatchUdevType=keyboard
 MatchBus=usb
@@ -287,4 +294,39 @@ MatchUdevType=keyboard
 MatchBus=usb
 MatchVendor=0x1532
 MatchProduct=0x02A0
+AttrKeyboardIntegration=internal
+
+[RazerBlade142024 Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x1532
+MatchProduct=0x02B6
+AttrKeyboardIntegration=internal
+
+[RazerBlade182024 Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x1532
+MatchProduct=0x02B8
+AttrKeyboardIntegration=internal
+
+[RazerBlade142025 Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x1532
+MatchProduct=0x02C5
+AttrKeyboardIntegration=internal
+
+[RazerBlade162025 Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x1532
+MatchProduct=0x02C6
+AttrKeyboardIntegration=internal
+
+[RazerBlade182025 Keyboard]
+MatchUdevType=keyboard
+MatchBus=usb
+MatchVendor=0x1532
+MatchProduct=0x02C7
 AttrKeyboardIntegration=internal

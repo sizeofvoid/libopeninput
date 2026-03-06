@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x19,
@@ -32,29 +32,29 @@ static struct input_id input_id = {
 	.product = 0x5,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_SW, SW_LID,
 	-1, -1,
 };
+/* clang-format on */
 
 static const char quirk_file[] =
-"[litest Lid Switch]\n"
-"MatchName=litest Lid Switch\n"
-"AttrLidSwitchReliability=reliable\n";
+	"[litest Lid Switch]\n"
+	"MatchName=litest Lid Switch\n"
+	"AttrLidSwitchReliability=reliable\n";
 
-TEST_DEVICE("lid-switch",
-	.type = LITEST_LID_SWITCH,
-	.features = LITEST_SWITCH,
-	.interface = NULL,
+TEST_DEVICE(LITEST_LID_SWITCH,
+	    .features = LITEST_SWITCH,
+	    .interface = NULL,
 
-	.name = "Lid Switch",
-	.id = &input_id,
-	.events = events,
-	.absinfo = NULL,
+	    .name = "Lid Switch",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = NULL,
 
-	.quirk_file = quirk_file,
-	.udev_properties = {
-		{ "ID_INPUT_SWITCH", "1" },
-		{ NULL },
-	},
-)
+	    .quirk_file = quirk_file,
+	    .udev_properties = {
+		    { "ID_INPUT_SWITCH", "1" },
+		    { NULL },
+	    }, )

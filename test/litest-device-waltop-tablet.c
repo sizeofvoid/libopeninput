@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event proximity_in[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
@@ -80,6 +80,7 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 32000, 0, 0, 0 },
 	{ ABS_Y, 0, 32000, 0, 0, 0 },
@@ -88,6 +89,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_TILT_Y, -127, 127, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -95,6 +97,7 @@ static struct input_id input_id = {
 	.product = 0x509,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, KEY_ESC,
 	EV_KEY, KEY_1,
@@ -219,20 +222,19 @@ static int events[] = {
 	EV_MSC, MSC_SERIAL,
 	-1, -1,
 };
+/* clang-format on */
 
 static const char quirk_file[] =
-"[litest Waltop Tablet]\n"
-"MatchName=litest          WALTOP     Batteryless Tablet*\n"
-"AttrSizeHint=200x200\n";
+	"[litest Waltop Tablet]\n"
+	"MatchName=litest          WALTOP     Batteryless Tablet*\n"
+	"AttrSizeHint=200x200\n";
 
-TEST_DEVICE("waltop-tablet",
-	.type = LITEST_WALTOP,
-	.features = LITEST_TABLET | LITEST_WHEEL | LITEST_TILT | LITEST_HOVER,
-	.interface = &interface,
+TEST_DEVICE(LITEST_WALTOP,
+	    .features = LITEST_TABLET | LITEST_WHEEL | LITEST_TILT | LITEST_HOVER,
+	    .interface = &interface,
 
-	.name = "         WALTOP     Batteryless Tablet ", /* sic */
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.quirk_file = quirk_file,
-)
+	    .name = "         WALTOP     Batteryless Tablet ", /* sic */
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .quirk_file = quirk_file, )

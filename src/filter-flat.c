@@ -26,13 +26,13 @@
 #include "config.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
+#include "filter-private.h"
 #include "filter.h"
 #include "libinput-util.h"
-#include "filter-private.h"
 
 struct pointer_accelerator_flat {
 	struct motion_filter base;
@@ -44,7 +44,8 @@ struct pointer_accelerator_flat {
 static struct normalized_coords
 accelerator_filter_flat(struct motion_filter *filter,
 			const struct device_float_coords *unaccelerated,
-			void *data, uint64_t time)
+			void *data,
+			uint64_t time)
 {
 	struct pointer_accelerator_flat *accel_filter =
 		(struct pointer_accelerator_flat *)filter;
@@ -61,9 +62,10 @@ accelerator_filter_flat(struct motion_filter *filter,
 }
 
 static struct normalized_coords
-accelerator_filter_noop_flat(struct motion_filter *filter,
-			     const struct device_float_coords *unaccelerated,
-			     void *data, uint64_t time)
+accelerator_filter_constant_flat(struct motion_filter *filter,
+				 const struct device_float_coords *unaccelerated,
+				 void *data,
+				 uint64_t time)
 {
 	/* We map the unaccelerated flat filter to have the same behavior as
 	 * the "accelerated" flat filter.
@@ -79,9 +81,29 @@ accelerator_filter_noop_flat(struct motion_filter *filter,
 	return accelerator_filter_flat(filter, unaccelerated, data, time);
 }
 
+static struct normalized_coords
+accelerator_filter_scroll_flat(struct motion_filter *filter,
+			       const struct device_float_coords *unaccelerated,
+			       void *data,
+			       uint64_t time,
+			       enum filter_scroll_type type)
+{
+	/* Scroll wheels were not historically accelerated and have different
+	 * units than button scrolling. Maintain the status quo and do not
+	 * accelerate wheel events.
+	 */
+	if (type == FILTER_SCROLL_TYPE_WHEEL) {
+		return (struct normalized_coords){
+			.x = unaccelerated->x,
+			.y = unaccelerated->y,
+		};
+	}
+
+	return accelerator_filter_constant_flat(filter, unaccelerated, data, time);
+}
+
 static bool
-accelerator_set_speed_flat(struct motion_filter *filter,
-			   double speed_adjustment)
+accelerator_set_speed_flat(struct motion_filter *filter, double speed_adjustment)
 {
 	struct pointer_accelerator_flat *accel_filter =
 		(struct pointer_accelerator_flat *)filter;
@@ -103,7 +125,7 @@ static void
 accelerator_destroy_flat(struct motion_filter *filter)
 {
 	struct pointer_accelerator_flat *accel =
-		(struct pointer_accelerator_flat *) filter;
+		(struct pointer_accelerator_flat *)filter;
 
 	free(accel);
 }
@@ -111,8 +133,8 @@ accelerator_destroy_flat(struct motion_filter *filter)
 static const struct motion_filter_interface accelerator_interface_flat = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_FLAT,
 	.filter = accelerator_filter_flat,
-	.filter_constant = accelerator_filter_noop_flat,
-	.filter_scroll = accelerator_filter_noop_flat,
+	.filter_constant = accelerator_filter_constant_flat,
+	.filter_scroll = accelerator_filter_scroll_flat,
 	.restart = NULL,
 	.destroy = accelerator_destroy_flat,
 	.set_speed = accelerator_set_speed_flat,
