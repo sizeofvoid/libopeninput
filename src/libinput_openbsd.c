@@ -2432,7 +2432,7 @@ axis_notify_event(struct libinput_device *device,
 		v120.x = delta->x * 3.75;
 	} else {
 		axes = bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
-		v120.x = delta->y * 3.75;
+		v120.y = delta->y * 3.75;
 	}
 
 	*axis_event = (struct libinput_event_pointer) {
