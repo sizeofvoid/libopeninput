@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <string.h>
 #include <time.h>
 
@@ -116,7 +117,9 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 	struct device_float_coords raw;
 	struct wscons_device *dev = wscons_device(device);
 	uint64_t time;
-	int button, key;
+	uint32_t button;
+	int key;
+	keycode_t keycode;
 
 	time = s2us(wsevent->time.tv_sec) + ns2us(wsevent->time.tv_nsec);
 
@@ -134,8 +137,10 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 				return;
 			dev->old_value = key;
 		}
-		keyboard_notify_key(device, time,
-		    wskey_transcode(wscons_device(device)->scanCodeMap, key), kstate);
+		keycode = keycode_from_uint32_t(
+		                wskey_transcode(
+		                        wscons_device(device)->scanCodeMap, key));
+		keyboard_notify_key(device, time, keycode, kstate);
 		break;
 
 	case WSCONS_EVENT_MOUSE_UP:
@@ -156,7 +161,7 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 			bstate = LIBINPUT_BUTTON_STATE_RELEASED;
 		else
 			bstate = LIBINPUT_BUTTON_STATE_PRESSED;
-		pointer_notify_button(device, time, button, bstate);
+		pointer_notify_button(device, time, button_code_from_uint32_t(button), bstate);
 		break;
 
 	case WSCONS_EVENT_MOUSE_DELTA_X:
