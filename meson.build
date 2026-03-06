@@ -415,9 +415,13 @@ install_subdir('quirks',
 	       install_dir : dir_data,
 	       strip_directory : true)
 
-src_libquirks = [
-	'src/quirks.c',
-]
+if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
+	src_libquirks = [
+		'src/quirks.c',
+	]
+else
+	src_libquirks = []
+endif
 
 deps_libquirks = [dep_udev, dep_libwacom, dep_libinput_util]
 libquirks = static_library('quirks', src_libquirks,
@@ -1049,7 +1053,6 @@ if get_option('tests')
 			dep_libinput,
 			dep_check,
 			dep_lm,
-			dep_libquirks,
 		]
 	endif
 
