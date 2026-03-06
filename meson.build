@@ -174,15 +174,21 @@ endif
 dep_lm = cc.find_library('m', required : false)
 dep_rt = cc.find_library('rt', required : false)
 
-dep_lua = dependency('lua-5.4', 'lua5.4', 'lua',
-		     version : '>= 5.4',
-		     required : get_option('lua-plugins'))
-have_lua = dep_lua.found()
+if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
+	dep_lua = []
+	have_lua = false
+else
+	dep_lua = dependency('lua-5.4', 'lua5.4', 'lua',
+			     version : '>= 5.4',
+			     required : get_option('lua-plugins'))
+	have_lua = dep_lua.found()
+endif
+
 if have_lua
 	config_h.set('HAVE_LUA', 1)
 endif
 
-have_plugins =  dep_lua.found()
+have_plugins = have_lua
 if have_plugins
 	config_h.set('HAVE_PLUGINS', 1)
 endif
@@ -206,7 +212,12 @@ includes_src = include_directories('src')
 
 ############ mtdev configuration ############
 
-have_mtdev = get_option('mtdev')
+if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
+	have_mtdev = false
+else
+	have_mtdev = get_option('mtdev')
+endif
+
 if have_mtdev
 	config_h.set('HAVE_MTDEV', 1)
 	dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
@@ -474,7 +485,7 @@ if have_mtdev
 	src_libinput += ['src/libinput-plugin-mtdev.c']
 endif
 
-if dep_lua.found()
+if have_lua
 	src_libinput += [
 		'src/libinput-plugin-lua.c',
 	]
