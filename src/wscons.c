@@ -196,6 +196,13 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 		axis_notify_event(device, time, &accel, &raw);
 		break;
 
+	case WSCONS_EVENT_MOUSE_DELTA_W:
+		memset(&raw, 0, sizeof(raw));
+		accel.x = wsevent->value * 32;
+		accel.y = 0;
+		axis_notify_event(device, time, &accel, &raw);
+		break;
+
 	case WSCONS_EVENT_MOUSE_ABSOLUTE_X:
 	case WSCONS_EVENT_MOUSE_ABSOLUTE_Y:
 		//return LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE;
