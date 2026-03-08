@@ -162,13 +162,11 @@ endif
 
 # Dependencies
 pkgconfig = import('pkgconfig')
+dep_udev = dependency('libudev')
 if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
-	dep_udev = dependency('libudev')
-	dep_mtdev = []
 	dep_libevdev = []
 else
-	dep_udev = dependency('libudev')
-	dep_libevdev = dependency('libevdev')
+	dep_libevdev = dependency('libevdev', version: '>= 1.10.0')
 endif
 
 dep_lm = cc.find_library('m', required : false)
@@ -233,9 +231,9 @@ endif
 ############ libwacom configuration ############
 
 if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
-have_libwacom = false
+	have_libwacom = false
 else
-have_libwacom = get_option('libwacom')
+	have_libwacom = get_option('libwacom')
 endif
 
 if have_libwacom
@@ -433,11 +431,7 @@ dep_libquirks = declare_dependency(link_with : libquirks)
 
 # Create /etc/libinput
 if host_machine.system() != 'openbsd' and host_machine.system() != 'netbsd'
-if meson.version().version_compare('>= 0.60')
 	install_emptydir(dir_etc / 'libinput')
-else
-	install_subdir('libinput', install_dir : dir_etc)
-endif
 endif
 
 ############ libinput.so ############
@@ -488,6 +482,7 @@ src_libinput = src_libfilter + [
 	'src/timer.c',
 	'src/util-libinput.c',
 ]
+endif
 
 if have_mtdev
 	src_libinput += ['src/libinput-plugin-mtdev.c']
@@ -919,6 +914,10 @@ if get_option('tests')
 		dep_libsystemd = dependency('libsystemd', version : '>= 221', required : false)
 	endif
 
+	if dep_libsystemd.found()
+		config_h.set('HAVE_LIBSYSTEMD', 1)
+	endif
+
 	litest_sources = [
 		'src/libinput-private-config.c',
 		'test/litest-device-absinfo-override.c',
@@ -1056,26 +1055,6 @@ if get_option('tests')
 			dep_lm,
 		]
 	endif
-
-	dep_dl = cc.find_library('dl')
-	deps_litest = [
-		dep_libinput,
-		dep_udev,
-		dep_libevdev,
-		dep_dl,
-		dep_lm,
-		dep_libsystemd,
-		dep_libquirks,
-		dep_libinput_util_libinput,
-	]
-else
-	deps_litest = [
-		dep_libinput,
-		dep_check,
-		dep_lm,
-		dep_libquirks,
-	]
-endif
 
 	litest_config_h = configuration_data()
 	litest_config_h.set_quoted('LIBINPUT_DEVICE_GROUPS_RULES_FILE',

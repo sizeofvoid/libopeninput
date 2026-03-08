@@ -71,11 +71,6 @@
 
 #define LIBINPUT_EXPORT __attribute__ ((visibility("default")))
 
-#if defined(__OpenBSD__) || defined(__NetBSD__)
-#define bit(x_) (1UL << (x_))
-#define NBITS(b) (b * 8)
-#endif
-
 /* Commonly-used cleanup  */
 #ifdef udev_list_entry_foreach
 DEFINE_UNREF_CLEANUP_FUNC(udev);
@@ -92,5 +87,10 @@ DEFINE_UNREF_CLEANUP_FUNC(libinput_tablet_tool);
 DEFINE_UNREF_CLEANUP_FUNC(libinput_seat);
 DEFINE_DESTROY_CLEANUP_FUNC(libinput_event);
 DEFINE_DESTROY_CLEANUP_FUNC(libinput_config_accel);
+
+#if defined(__OpenBSD__) || defined(__NetBSD__)
+#define bit(x_) (1UL << (x_))
+#define NBITS(b) (b * 8)
+#endif
 
 #endif /* LIBINPUT_UTIL_H */
