@@ -23,14 +23,14 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN  },
-	{ .type = EV_ABS, .code = ABS_TOOL_WIDTH, .value = 7  },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
+	{ .type = EV_ABS, .code = ABS_TOOL_WIDTH, .value = 7 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
@@ -66,6 +66,7 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 1472, 5472, 0, 0, 75 },
 	{ ABS_Y, 1408, 4448, 0, 0, 129 },
@@ -73,6 +74,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_TOOL_WIDTH, 0, 15, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x11,
@@ -80,6 +82,7 @@ static struct input_id input_id = {
 	.product = 0x7,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -87,14 +90,13 @@ static int events[] = {
 	EV_KEY, BTN_TOUCH,
 	-1, -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("synaptics-st",
-	.type = LITEST_SYNAPTICS_TOUCHPAD,
-	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SINGLE_TOUCH,
-	.interface = &interface,
+TEST_DEVICE(LITEST_SYNAPTICS_TOUCHPAD,
+	    .features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SINGLE_TOUCH,
+	    .interface = &interface,
 
-	.name = "SynPS/2 Synaptics TouchPad",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "SynPS/2 Synaptics TouchPad",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

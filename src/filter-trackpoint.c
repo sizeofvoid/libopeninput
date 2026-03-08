@@ -26,14 +26,14 @@
 #include "config.h"
 
 #include <assert.h>
+#include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
 
+#include "filter-private.h"
 #include "filter.h"
 #include "libinput-util.h"
-#include "filter-private.h"
 
 struct trackpoint_accelerator {
 	struct motion_filter base;
@@ -64,7 +64,7 @@ trackpoint_accel_profile(struct motion_filter *filter,
 	 * 0.4  3
 	 * 0.6  4
 	 */
-	factor = 10.06254 + (0.3 - 10.06254)/(1 + pow(velocity/0.9205459, 1.15363));
+	factor = 10.06254 + (0.3 - 10.06254) / (1 + pow(velocity / 0.9205459, 1.15363));
 
 	factor *= accel_filter->speed_factor;
 	return factor;
@@ -73,7 +73,8 @@ trackpoint_accel_profile(struct motion_filter *filter,
 static struct normalized_coords
 trackpoint_accelerator_filter(struct motion_filter *filter,
 			      const struct device_float_coords *unaccelerated,
-			      void *data, uint64_t time)
+			      void *data,
+			      uint64_t time)
 {
 	struct trackpoint_accelerator *accel_filter =
 		(struct trackpoint_accelerator *)filter;
@@ -96,9 +97,10 @@ trackpoint_accelerator_filter(struct motion_filter *filter,
 }
 
 static struct normalized_coords
-trackpoint_accelerator_filter_noop(struct motion_filter *filter,
-				   const struct device_float_coords *unaccelerated,
-				   void *data, uint64_t time)
+trackpoint_accelerator_filter_constant(struct motion_filter *filter,
+				       const struct device_float_coords *unaccelerated,
+				       void *data,
+				       uint64_t time)
 {
 	struct trackpoint_accelerator *accel_filter =
 		(struct trackpoint_accelerator *)filter;
@@ -108,6 +110,30 @@ trackpoint_accelerator_filter_noop(struct motion_filter *filter,
 	coords.y = unaccelerated->y * accel_filter->multiplier;
 
 	return coords;
+}
+
+static struct normalized_coords
+trackpoint_accelerator_filter_scroll(struct motion_filter *filter,
+				     const struct device_float_coords *unaccelerated,
+				     void *data,
+				     uint64_t time,
+				     enum filter_scroll_type type)
+{
+	/* Scroll wheels were not historically accelerated and have different
+	 * units than button scrolling. Maintain the status quo and do not
+	 * accelerate wheel events.
+	 */
+	if (type == FILTER_SCROLL_TYPE_WHEEL) {
+		return (struct normalized_coords){
+			.x = unaccelerated->x,
+			.y = unaccelerated->y,
+		};
+	}
+
+	return trackpoint_accelerator_filter_constant(filter,
+						      unaccelerated,
+						      data,
+						      time);
 }
 
 /* Maps the [-1, 1] speed setting into a constant acceleration
@@ -130,16 +156,14 @@ static inline double
 speed_factor(double s)
 {
 	s += 1; /* map to [0, 2] */
-	return 435837.2 + (0.04762636 - 435837.2)/(1 + pow(s/240.4549,
-							   2.377168));
+	return 435837.2 + (0.04762636 - 435837.2) / (1 + pow(s / 240.4549, 2.377168));
 }
 
 static bool
-trackpoint_accelerator_set_speed(struct motion_filter *filter,
-				 double speed_adjustment)
+trackpoint_accelerator_set_speed(struct motion_filter *filter, double speed_adjustment)
 {
 	struct trackpoint_accelerator *accel_filter =
-		(struct trackpoint_accelerator*)filter;
+		(struct trackpoint_accelerator *)filter;
 
 	assert(speed_adjustment >= -1.0 && speed_adjustment <= 1.0);
 
@@ -150,12 +174,9 @@ trackpoint_accelerator_set_speed(struct motion_filter *filter,
 }
 
 static void
-trackpoint_accelerator_restart(struct motion_filter *filter,
-			       void *data,
-			       uint64_t time)
+trackpoint_accelerator_restart(struct motion_filter *filter, void *data, uint64_t time)
 {
-	struct trackpoint_accelerator *accel =
-		(struct trackpoint_accelerator *) filter;
+	struct trackpoint_accelerator *accel = (struct trackpoint_accelerator *)filter;
 
 	trackers_reset(&accel->trackers, time);
 }
@@ -173,15 +194,16 @@ trackpoint_accelerator_destroy(struct motion_filter *filter)
 static const struct motion_filter_interface accelerator_interface_trackpoint = {
 	.type = LIBINPUT_CONFIG_ACCEL_PROFILE_ADAPTIVE,
 	.filter = trackpoint_accelerator_filter,
-	.filter_constant = trackpoint_accelerator_filter_noop,
-	.filter_scroll = trackpoint_accelerator_filter_noop,
+	.filter_constant = trackpoint_accelerator_filter_constant,
+	.filter_scroll = trackpoint_accelerator_filter_scroll,
 	.restart = trackpoint_accelerator_restart,
 	.destroy = trackpoint_accelerator_destroy,
 	.set_speed = trackpoint_accelerator_set_speed,
 };
 
 struct motion_filter *
-create_pointer_accelerator_filter_trackpoint(double multiplier, bool use_velocity_averaging)
+create_pointer_accelerator_filter_trackpoint(double multiplier,
+					     bool use_velocity_averaging)
 {
 	struct trackpoint_accelerator *filter;
 
@@ -208,7 +230,8 @@ create_pointer_accelerator_filter_trackpoint(double multiplier, bool use_velocit
 	trackers_init(&filter->trackers, use_velocity_averaging ? 16 : 2);
 
 	filter->base.interface = &accelerator_interface_trackpoint;
-	filter->trackers.smoothener = pointer_delta_smoothener_create(ms2us(10), ms2us(10));
+	filter->trackers.smoothener =
+		pointer_delta_smoothener_create(ms2us(10), ms2us(10));
 
 	return &filter->base;
 }

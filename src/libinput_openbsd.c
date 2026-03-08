@@ -26,6 +26,7 @@
 
 #include <errno.h>
 #include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -34,7 +35,9 @@
 #include <unistd.h>
 #include <assert.h>
 
+#include "input.h"
 #include "libinput.h"
+#include "libinput-log.h"
 #include "libinput-private.h"
 #include "timer.h"
 #include "quirks.h"
@@ -273,13 +276,19 @@ libinput_default_log_func(struct libinput *libinput,
 	vfprintf(stderr, format, args);
 }
 
+bool
+log_is_logged(const struct libinput *libinput, enum libinput_log_priority priority)
+{
+	return libinput->log_handler && libinput->log_priority <= priority;
+}
+
 void
 log_msg_va(struct libinput *libinput,
 	   enum libinput_log_priority priority,
 	   const char *format,
 	   va_list args)
 {
-	if (is_logged(libinput, priority))
+	if (log_is_logged(libinput, priority))
 		libinput->log_handler(libinput, priority, format, args);
 }
 
@@ -2211,9 +2220,11 @@ libinput_device_remove_event_listener(struct libinput_event_listener *listener)
 
 static uint32_t
 update_seat_key_count(struct libinput_seat *seat,
-		      int32_t key,
+		      keycode_t keycode,
 		      enum libinput_key_state state)
 {
+	uint32_t key = keycode_as_uint32_t(keycode);
+
 	assert(key >= 0 && key <= KEY_MAX);
 
 	switch (state) {
@@ -2232,9 +2243,10 @@ update_seat_key_count(struct libinput_seat *seat,
 
 static uint32_t
 update_seat_button_count(struct libinput_seat *seat,
-			 int32_t button,
+			 button_code_t button_code,
 			 enum libinput_button_state state)
 {
+	uint32_t button = button_code_as_uint32_t(button_code);
 	assert(button >= 0 && button <= KEY_MAX);
 
 	switch (state) {
@@ -2377,7 +2389,7 @@ device_has_cap(struct libinput_device *device,
 void
 keyboard_notify_key(struct libinput_device *device,
 		    uint64_t time,
-		    uint32_t key,
+		    keycode_t keycode,
 		    enum libinput_key_state state)
 {
 	struct libinput_event_keyboard *key_event;
@@ -2388,11 +2400,11 @@ keyboard_notify_key(struct libinput_device *device,
 
 	key_event = zalloc(sizeof *key_event);
 
-	seat_key_count = update_seat_key_count(device->seat, key, state);
+	seat_key_count = update_seat_key_count(device->seat, keycode, state);
 
 	*key_event = (struct libinput_event_keyboard) {
 		.time = time,
-		.key = key,
+		.key = keycode_as_uint32_t(keycode),
 		.state = state,
 		.seat_key_count = seat_key_count,
 	};
@@ -2409,15 +2421,19 @@ axis_notify_event(struct libinput_device *device,
     const struct device_float_coords *raw)
 {
 	struct libinput_event_pointer *axis_event;
+	struct wheel_v120 v120 = { 0.0, 0.0 };
 	uint32_t axes;
 
 	axis_event = zalloc(sizeof *axis_event);
 	if (!axis_event)
 		return;
-	if (delta->x)
+	if (delta->x) {
 		axes = bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
-	else
+		v120.x = delta->x * 3.75;
+	} else {
 		axes = bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+		v120.y = delta->y * 3.75;
+	}
 
 	*axis_event = (struct libinput_event_pointer) {
 		.time = time,
@@ -2425,6 +2441,9 @@ axis_notify_event(struct libinput_device *device,
 		.delta_raw = *raw,
 		.source = LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
 		.axes = axes,
+		.discrete.x = 0,
+		.discrete.y = 0,
+		.v120 = v120
 	};
 
 	post_device_event(device, time, LIBINPUT_EVENT_POINTER_SCROLL_WHEEL,
@@ -2480,7 +2499,7 @@ pointer_notify_motion_absolute(struct libinput_device *device,
 void
 pointer_notify_button(struct libinput_device *device,
 		      uint64_t time,
-		      int32_t button,
+		      button_code_t button,
 		      enum libinput_button_state state)
 {
 	struct libinput_event_pointer *button_event;
@@ -2497,7 +2516,7 @@ pointer_notify_button(struct libinput_device *device,
 
 	*button_event = (struct libinput_event_pointer) {
 		.time = time,
-		.button = button,
+		.button = button_code_as_uint32_t(button),
 		.state = state,
 		.seat_button_count = seat_button_count,
 	};
@@ -2761,7 +2780,9 @@ tablet_notify_axis(struct libinput_device *device,
 		   struct libinput_tablet_tool *tool,
 		   enum libinput_tablet_tool_tip_state tip_state,
 		   unsigned char *changed_axes,
-		   const struct tablet_axes *axes)
+		   const struct tablet_axes *axes,
+		   const struct input_absinfo *x,
+		   const struct input_absinfo *y)
 {
 	struct libinput_event_tablet_tool *axis_event;
 
@@ -2791,7 +2812,9 @@ tablet_notify_proximity(struct libinput_device *device,
 			struct libinput_tablet_tool *tool,
 			enum libinput_tablet_tool_proximity_state proximity_state,
 			unsigned char *changed_axes,
-			const struct tablet_axes *axes)
+			const struct tablet_axes *axes,
+			const struct input_absinfo *x,
+			const struct input_absinfo *y)
 {
 	struct libinput_event_tablet_tool *proximity_event;
 
@@ -2820,7 +2843,9 @@ tablet_notify_tip(struct libinput_device *device,
 		  struct libinput_tablet_tool *tool,
 		  enum libinput_tablet_tool_tip_state tip_state,
 		  unsigned char *changed_axes,
-		  const struct tablet_axes *axes)
+		  const struct tablet_axes *axes,
+		  const struct input_absinfo *x,
+		  const struct input_absinfo *y)
 {
 	struct libinput_event_tablet_tool *tip_event;
 
@@ -2849,8 +2874,10 @@ tablet_notify_button(struct libinput_device *device,
 		     struct libinput_tablet_tool *tool,
 		     enum libinput_tablet_tool_tip_state tip_state,
 		     const struct tablet_axes *axes,
-		     int32_t button,
-		     enum libinput_button_state state)
+		     button_code_t button_code,
+		     enum libinput_button_state state,
+		     const struct input_absinfo *x,
+		     const struct input_absinfo *y)
 {
 	struct libinput_event_tablet_tool *button_event;
 	int32_t seat_button_count;
@@ -2858,13 +2885,13 @@ tablet_notify_button(struct libinput_device *device,
 	button_event = zalloc(sizeof *button_event);
 
 	seat_button_count = update_seat_button_count(device->seat,
-						     button,
+						     button_code,
 						     state);
 
 	*button_event = (struct libinput_event_tablet_tool) {
 		.time = time,
 		.tool = libinput_tablet_tool_ref(tool),
-		.button = button,
+		.button = button_code_as_uint32_t(button_code),
 		.state = state,
 		.seat_button_count = seat_button_count,
 		.proximity_state = LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN,
@@ -2881,7 +2908,7 @@ tablet_notify_button(struct libinput_device *device,
 void
 tablet_pad_notify_button(struct libinput_device *device,
 			 uint64_t time,
-			 int32_t button,
+			 pad_button_t pad_button,
 			 enum libinput_button_state state,
 			 struct libinput_tablet_pad_mode_group *group)
 {
@@ -2894,7 +2921,7 @@ tablet_pad_notify_button(struct libinput_device *device,
 
 	*button_event = (struct libinput_event_tablet_pad) {
 		.time = time,
-		.button.number = button,
+		.button.number = pad_button_as_uint32_t(pad_button),
 		.button.state = state,
 		.mode_group = libinput_tablet_pad_mode_group_ref(group),
 		.mode = mode,
@@ -3072,7 +3099,7 @@ gesture_notify_pinch_end(struct libinput_device *device,
 }
 
 void
-gesture_notify_hold(struct libinput_device *device,
+gesture_notify_hold_begin(struct libinput_device *device,
 		    uint64_t time,
 		    int finger_count)
 {
@@ -4255,7 +4282,7 @@ libinput_device_config_accel_apply(struct libinput_device *device,
 LIBINPUT_EXPORT enum libinput_config_status
 libinput_config_accel_set_points(struct libinput_config_accel *config,
 				 enum libinput_config_accel_type accel_type,
-				 double step, size_t npoints, double *points)
+				 double step, size_t npoints, const double *points)
 {
 	if (config->profile != LIBINPUT_CONFIG_ACCEL_PROFILE_CUSTOM)
 		return LIBINPUT_CONFIG_STATUS_INVALID;
@@ -4772,40 +4799,3 @@ libinput_device_config_rotation_get_default_angle(struct libinput_device *device
 
 	return device->config.rotation->get_default_angle(device);
 }
-
-#if HAVE_LIBWACOM
-WacomDeviceDatabase *
-libinput_libwacom_ref(struct libinput *li)
-{
-	WacomDeviceDatabase *db = NULL;
-	if (!li->libwacom.db) {
-		db = libwacom_database_new();
-		if (!db) {
-			log_error(li,
-				  "Failed to initialize libwacom context\n");
-			return NULL;
-		}
-
-		li->libwacom.db = db;
-		li->libwacom.refcount = 0;
-	}
-
-	li->libwacom.refcount++;
-	db = li->libwacom.db;
-	return db;
-}
-
-void
-libinput_libwacom_unref(struct libinput *li)
-{
-	if (!li->libwacom.db)
-		return;
-
-	assert(li->libwacom.refcount >= 1);
-
-	if (--li->libwacom.refcount == 0) {
-		libwacom_database_destroy(li->libwacom.db);
-		li->libwacom.db = NULL;
-	}
-}
-#endif

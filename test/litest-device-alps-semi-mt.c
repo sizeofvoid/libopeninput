@@ -26,12 +26,11 @@
 #include <assert.h>
 
 #include "libinput-util.h"
-
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
@@ -44,7 +43,7 @@ static struct input_event down[] = {
 
 static struct input_event move[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_POSITION_X, .value = LITEST_AUTO_ASSIGN },
@@ -78,6 +77,7 @@ static struct input_id input_id = {
 	.product = 0x8,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -91,7 +91,9 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_SEMI_MT,
 	-1, -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 2000, 0, 0, 0 },
 	{ ABS_Y, 0, 1400, 0, 0, 0 },
@@ -100,16 +102,15 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_POSITION_X, 0, 2000, 0, 0, 0 },
 	{ ABS_MT_POSITION_Y, 0, 1400, 0, 0, 0 },
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
-	{ .value = -1 }
+	{ .value = -1 },
 };
+/* clang-format on */
 
-TEST_DEVICE("alps-semi-mt",
-	.type = LITEST_ALPS_SEMI_MT,
-	.features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SEMI_MT,
-	.interface = &interface,
+TEST_DEVICE(LITEST_ALPS_SEMI_MT,
+	    .features = LITEST_TOUCHPAD | LITEST_BUTTON | LITEST_SEMI_MT,
+	    .interface = &interface,
 
-	.name = "AlpsPS/2 ALPS GlidePoint",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "AlpsPS/2 ALPS GlidePoint",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

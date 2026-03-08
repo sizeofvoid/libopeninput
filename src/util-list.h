@@ -69,16 +69,56 @@ struct list {
  * head. This function *must not* be called for a node to be added to a
  * list.
  */
-void list_init(struct list *list);
+void
+list_init(struct list *list);
 
 /**
  * Insert an element at the front of the list
  */
-void list_insert(struct list *list, struct list *elm);
+void
+list_insert(struct list *list, struct list *elm);
 /**
  * Append an element to the  back of the list
  */
-void list_append(struct list *list, struct list *elm);
+void
+list_append(struct list *list, struct list *elm);
+
+/**
+ * Chain other onto list, resetting other to be the empty list.
+ */
+void
+list_chain(struct list *list, struct list *other);
+
+size_t
+list_length(const struct list *list);
+
+/**
+ * Takes the given pointer ands inserts it to the list with the pointer's field.
+ * The pointer is reset to NULL. Use this to prevent automatic cleanup
+ * of the pointer type.
+ *
+ * @code
+ *	list_take_insert(&f->list_of_bars, b, link);
+ * @endcode
+ */
+#define list_take_insert(list_, ptr_, field_) do {\
+	list_insert(list_, &(ptr_)->field_); \
+	ptr_ = NULL; \
+} while(0)
+
+/**
+ * Takes the given pointer ands adds it to the list with the pointer's field.
+ * The pointer is reset to NULL. Use this to prevent automatic cleanup
+ * of the pointer type.
+ *
+ * @code
+ *	list_take_append(&f->list_of_bars, b, link);
+ * @endcode
+ */
+#define list_take_append(list_, ptr_, field_) do {\
+	list_append(list_, &(ptr_)->field_); \
+	ptr_ = NULL; \
+} while(0)
 
 /**
  * Remove an element from list.
@@ -87,11 +127,13 @@ void list_append(struct list *list, struct list *elm);
  * whether the list node has already been removed.
  *
  */
-void list_remove(struct list *elm);
+void
+list_remove(struct list *elm);
 /**
  * Returns true if the given list head is an empty list.
  */
-bool list_empty(const struct list *list);
+bool
+list_empty(const struct list *list);
 
 /**
  * Return the 'type' parent container struct of 'ptr' of which
@@ -158,6 +200,51 @@ bool list_empty(const struct list *list);
  */
 #define list_first_entry_by_type(head, container_type, member)		\
 	container_of((head)->next, container_type, member)
+
+/**
+ * Given a list 'head', return the last entry of type 'pos' that has a
+ * member 'link'.
+ *
+ * The 'pos' argument is solely used to determine the type be returned and
+ * not modified otherwise. It is common to use the same pointer that the
+ * return value of list_last_entry() is assigned to, for example:
+ *
+ * @code
+ *     struct foo {
+ *        struct list list_of_bars;
+ *     };
+ *
+ *     struct bar {
+ *         struct list link;
+ *     }
+ *
+ *     struct foo *f = get_a_foo();
+ *     struct bar *b = 0;  // initialize to avoid static analysis errors
+ *     b = list_last_entry(&f->list_of_bars, b, link);
+ * @endcode
+ */
+#define list_last_entry(head, pointer_of_type, member)				\
+	container_of((head)->prev, __typeof__(*pointer_of_type), member)
+
+/**
+ * Given a list 'head', return the last entry of type 'container_type' that
+ * has a member 'link'.
+ *
+ * @code
+ *     struct foo {
+ *        struct list list_of_bars;
+ *     };
+ *
+ *     struct bar {
+ *         struct list link;
+ *     }
+ *
+ *     struct foo *f = get_a_foo();
+ *     struct bar *b = list_last_entry(&f->list_of_bars, struct bar, link);
+ * @endcode
+ */
+#define list_last_entry_by_type(head, container_type, member)		\
+	container_of((head)->prev, container_type, member)
 
 /**
  * Iterate through the list.

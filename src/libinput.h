@@ -29,10 +29,10 @@
 extern "C" {
 #endif
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdarg.h>
 #include <libudev.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 #define LIBINPUT_ATTRIBUTE_PRINTF(_format, _args) \
 	__attribute__ ((format (printf, _format, _args)))
@@ -145,13 +145,27 @@ struct libinput_event_pointer;
 struct libinput_event_touch;
 
 /**
+ * @ingroup event_gesture
+ * @struct libinput_event_gesture
+ *
+ * A gesture event representing a swipe, pinch or hold gesture. Valid event
+ * types for this event are @ref LIBINPUT_EVENT_GESTURE_SWIPE_BEGIN, @ref
+ * LIBINPUT_EVENT_GESTURE_SWIPE_UPDATE, @ref LIBINPUT_EVENT_GESTURE_SWIPE_END,
+ * @ref LIBINPUT_EVENT_GESTURE_PINCH_BEGIN, @ref
+ * LIBINPUT_EVENT_GESTURE_PINCH_UPDATE, @ref LIBINPUT_EVENT_GESTURE_PINCH_END,
+ * @ref LIBINPUT_EVENT_GESTURE_HOLD_BEGIN and @ref
+ * LIBINPUT_EVENT_GESTURE_HOLD_END.
+ */
+struct libinput_event_gesture;
+
+/**
  * @ingroup event_tablet
  * @struct libinput_event_tablet_tool
  *
  * Tablet tool event representing an axis update, button press, or tool
  * update. Valid event types for this event are @ref
- * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref
- * LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY and @ref
+ * LIBINPUT_EVENT_TABLET_TOOL_AXIS, @ref LIBINPUT_EVENT_TABLET_TOOL_PROXIMITY,
+ * @ref LIBINPUT_EVENT_TABLET_TOOL_TIP, and @ref
  * LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
  *
  * @since 1.2
@@ -164,9 +178,9 @@ struct libinput_event_tablet_tool;
  *
  * Tablet pad event representing a button press, or ring/strip update on
  * the tablet pad itself. Valid event types for this event are @ref
- * LIBINPUT_EVENT_TABLET_PAD_BUTTON, @ref LIBINPUT_EVENT_TABLET_PAD_DIAL,
- * @ref LIBINPUT_EVENT_TABLET_PAD_RING and
- * @ref LIBINPUT_EVENT_TABLET_PAD_STRIP.
+ * LIBINPUT_EVENT_TABLET_PAD_BUTTON, @ref LIBINPUT_EVENT_TABLET_PAD_RING,
+ * @ref LIBINPUT_EVENT_TABLET_PAD_STRIP, @ref LIBINPUT_EVENT_TABLET_PAD_KEY
+ * and @ref LIBINPUT_EVENT_TABLET_PAD_DIAL.
  *
  * @since 1.3
  */
@@ -346,17 +360,17 @@ enum libinput_tablet_pad_strip_axis_source {
  * @since 1.2
  */
 enum libinput_tablet_tool_type {
-	LIBINPUT_TABLET_TOOL_TYPE_PEN = 1,	/**< A generic pen */
-	LIBINPUT_TABLET_TOOL_TYPE_ERASER,	/**< Eraser */
-	LIBINPUT_TABLET_TOOL_TYPE_BRUSH,	/**< A paintbrush-like tool */
-	LIBINPUT_TABLET_TOOL_TYPE_PENCIL,	/**< Physical drawing tool, e.g.
-					             Wacom Inking Pen */
-	LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH,	/**< An airbrush-like tool */
-	LIBINPUT_TABLET_TOOL_TYPE_MOUSE,	/**< A mouse bound to the tablet */
-	LIBINPUT_TABLET_TOOL_TYPE_LENS,		/**< A mouse tool with a lens */
-	LIBINPUT_TABLET_TOOL_TYPE_TOTEM,	/**< A rotary device with
-						     positional and rotation
-						     data */
+	LIBINPUT_TABLET_TOOL_TYPE_PEN = 1,  /**< A generic pen */
+	LIBINPUT_TABLET_TOOL_TYPE_ERASER,   /**< Eraser */
+	LIBINPUT_TABLET_TOOL_TYPE_BRUSH,    /**< A paintbrush-like tool */
+	LIBINPUT_TABLET_TOOL_TYPE_PENCIL,   /**< Physical drawing tool, e.g.
+						 Wacom Inking Pen */
+	LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH, /**< An airbrush-like tool */
+	LIBINPUT_TABLET_TOOL_TYPE_MOUSE,    /**< A mouse bound to the tablet */
+	LIBINPUT_TABLET_TOOL_TYPE_LENS,     /**< A mouse tool with a lens */
+	LIBINPUT_TABLET_TOOL_TYPE_TOTEM,    /**< A rotary device with
+						 positional and rotation
+						 data */
 };
 
 /**
@@ -466,7 +480,7 @@ libinput_device_tablet_pad_get_num_mode_groups(struct libinput_device *device);
  *
  * @since 1.4
  */
-struct libinput_tablet_pad_mode_group*
+struct libinput_tablet_pad_mode_group *
 libinput_device_tablet_pad_get_mode_group(struct libinput_device *device,
 					  unsigned int index);
 
@@ -503,7 +517,8 @@ libinput_tablet_pad_mode_group_get_index(struct libinput_tablet_pad_mode_group *
  * @since 1.4
  */
 unsigned int
-libinput_tablet_pad_mode_group_get_num_modes(struct libinput_tablet_pad_mode_group *group);
+libinput_tablet_pad_mode_group_get_num_modes(
+	struct libinput_tablet_pad_mode_group *group);
 
 /**
  * @ingroup tablet_pad_modes
@@ -573,7 +588,7 @@ libinput_tablet_pad_mode_group_has_dial(struct libinput_tablet_pad_mode_group *g
  */
 int
 libinput_tablet_pad_mode_group_has_ring(struct libinput_tablet_pad_mode_group *group,
-					  unsigned int ring);
+					unsigned int ring);
 
 /**
  * @ingroup tablet_pad_modes
@@ -589,7 +604,7 @@ libinput_tablet_pad_mode_group_has_ring(struct libinput_tablet_pad_mode_group *g
  */
 int
 libinput_tablet_pad_mode_group_has_strip(struct libinput_tablet_pad_mode_group *group,
-					  unsigned int strip);
+					 unsigned int strip);
 
 /**
  * @ingroup tablet_pad_modes
@@ -610,8 +625,9 @@ libinput_tablet_pad_mode_group_has_strip(struct libinput_tablet_pad_mode_group *
  * @since 1.4
  */
 int
-libinput_tablet_pad_mode_group_button_is_toggle(struct libinput_tablet_pad_mode_group *group,
-						unsigned int button);
+libinput_tablet_pad_mode_group_button_is_toggle(
+	struct libinput_tablet_pad_mode_group *group,
+	unsigned int button);
 
 /**
  * @ingroup tablet_pad_modes
@@ -625,8 +641,7 @@ libinput_tablet_pad_mode_group_button_is_toggle(struct libinput_tablet_pad_mode_
  * @since 1.4
  */
 struct libinput_tablet_pad_mode_group *
-libinput_tablet_pad_mode_group_ref(
-			struct libinput_tablet_pad_mode_group *group);
+libinput_tablet_pad_mode_group_ref(struct libinput_tablet_pad_mode_group *group);
 
 /**
  * @ingroup tablet_pad_modes
@@ -640,8 +655,7 @@ libinput_tablet_pad_mode_group_ref(
  * @since 1.4
  */
 struct libinput_tablet_pad_mode_group *
-libinput_tablet_pad_mode_group_unref(
-			struct libinput_tablet_pad_mode_group *group);
+libinput_tablet_pad_mode_group_unref(struct libinput_tablet_pad_mode_group *group);
 
 /**
  * @ingroup tablet_pad_modes
@@ -658,8 +672,8 @@ libinput_tablet_pad_mode_group_unref(
  */
 void
 libinput_tablet_pad_mode_group_set_user_data(
-			struct libinput_tablet_pad_mode_group *group,
-			void *user_data);
+	struct libinput_tablet_pad_mode_group *group,
+	void *user_data);
 
 /**
  * @ingroup tablet_pad_modes
@@ -674,7 +688,7 @@ libinput_tablet_pad_mode_group_set_user_data(
  */
 void *
 libinput_tablet_pad_mode_group_get_user_data(
-			struct libinput_tablet_pad_mode_group *group);
+	struct libinput_tablet_pad_mode_group *group);
 
 /**
  * @ingroup device
@@ -881,8 +895,8 @@ enum libinput_event_type {
 	 * with @ref LIBINPUT_EVENT_TABLET_TOOL_AXIS events.
 	 *
 	 * Some tools may always be in proximity. For these tools, events of
-	 * type @ref LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN are sent only once after @ref
-	 * LIBINPUT_EVENT_DEVICE_ADDED, and events of type @ref
+	 * type @ref LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_IN are sent only once after
+	 * @ref LIBINPUT_EVENT_DEVICE_ADDED, and events of type @ref
 	 * LIBINPUT_TABLET_TOOL_PROXIMITY_STATE_OUT are sent only once before @ref
 	 * LIBINPUT_EVENT_DEVICE_REMOVED.
 	 *
@@ -1260,8 +1274,7 @@ libinput_event_keyboard_get_base_event(struct libinput_event_keyboard *event);
  * @return The seat wide pressed key count for the key of this event
  */
 uint32_t
-libinput_event_keyboard_get_seat_key_count(
-	struct libinput_event_keyboard *event);
+libinput_event_keyboard_get_seat_key_count(struct libinput_event_keyboard *event);
 
 /**
  * @defgroup event_pointer Pointer events
@@ -1356,8 +1369,7 @@ libinput_event_pointer_get_dy(struct libinput_event_pointer *event);
  * @return The unaccelerated relative x movement since the last event
  */
 double
-libinput_event_pointer_get_dx_unaccelerated(
-	struct libinput_event_pointer *event);
+libinput_event_pointer_get_dx_unaccelerated(struct libinput_event_pointer *event);
 
 /**
  * @ingroup event_pointer
@@ -1381,8 +1393,7 @@ libinput_event_pointer_get_dx_unaccelerated(
  * @return The unaccelerated relative y movement since the last event
  */
 double
-libinput_event_pointer_get_dy_unaccelerated(
-	struct libinput_event_pointer *event);
+libinput_event_pointer_get_dy_unaccelerated(struct libinput_event_pointer *event);
 
 /**
  * @ingroup event_pointer
@@ -1438,9 +1449,8 @@ libinput_event_pointer_get_absolute_y(struct libinput_event_pointer *event);
  * @return The current absolute x coordinate transformed to a screen coordinate
  */
 double
-libinput_event_pointer_get_absolute_x_transformed(
-	struct libinput_event_pointer *event,
-	uint32_t width);
+libinput_event_pointer_get_absolute_x_transformed(struct libinput_event_pointer *event,
+						  uint32_t width);
 
 /**
  * @ingroup event_pointer
@@ -1460,9 +1470,8 @@ libinput_event_pointer_get_absolute_x_transformed(
  * @return The current absolute y coordinate transformed to a screen coordinate
  */
 double
-libinput_event_pointer_get_absolute_y_transformed(
-	struct libinput_event_pointer *event,
-	uint32_t height);
+libinput_event_pointer_get_absolute_y_transformed(struct libinput_event_pointer *event,
+						  uint32_t height);
 
 /**
  * @ingroup event_pointer
@@ -1508,8 +1517,7 @@ libinput_event_pointer_get_button_state(struct libinput_event_pointer *event);
  * @return The seat wide pressed button count for the key of this event
  */
 uint32_t
-libinput_event_pointer_get_seat_button_count(
-	struct libinput_event_pointer *event);
+libinput_event_pointer_get_seat_button_count(struct libinput_event_pointer *event);
 
 /**
  * @ingroup event_pointer
@@ -2039,8 +2047,7 @@ libinput_event_gesture_get_dy(struct libinput_event_gesture *event);
  * @return the unaccelerated relative x movement since the last event
  */
 double
-libinput_event_gesture_get_dx_unaccelerated(
-	struct libinput_event_gesture *event);
+libinput_event_gesture_get_dx_unaccelerated(struct libinput_event_gesture *event);
 
 /**
  * @ingroup event_gesture
@@ -2061,8 +2068,7 @@ libinput_event_gesture_get_dx_unaccelerated(
  * @return the unaccelerated relative y movement since the last event
  */
 double
-libinput_event_gesture_get_dy_unaccelerated(
-	struct libinput_event_gesture *event);
+libinput_event_gesture_get_dy_unaccelerated(struct libinput_event_gesture *event);
 
 /**
  * @ingroup event_gesture
@@ -2164,8 +2170,7 @@ libinput_event_tablet_tool_get_base_event(struct libinput_event_tablet_tool *eve
  * @since 1.2
  */
 int
-libinput_event_tablet_tool_x_has_changed(
-				struct libinput_event_tablet_tool *event);
+libinput_event_tablet_tool_x_has_changed(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2187,8 +2192,7 @@ libinput_event_tablet_tool_x_has_changed(
  * @since 1.2
  */
 int
-libinput_event_tablet_tool_y_has_changed(
-				struct libinput_event_tablet_tool *event);
+libinput_event_tablet_tool_y_has_changed(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2211,7 +2215,7 @@ libinput_event_tablet_tool_y_has_changed(
  */
 int
 libinput_event_tablet_tool_pressure_has_changed(
-				struct libinput_event_tablet_tool *event);
+	struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2236,7 +2240,7 @@ libinput_event_tablet_tool_pressure_has_changed(
  */
 int
 libinput_event_tablet_tool_distance_has_changed(
-				struct libinput_event_tablet_tool *event);
+	struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2258,8 +2262,7 @@ libinput_event_tablet_tool_distance_has_changed(
  * @since 1.2
  */
 int
-libinput_event_tablet_tool_tilt_x_has_changed(
-				struct libinput_event_tablet_tool *event);
+libinput_event_tablet_tool_tilt_x_has_changed(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2281,8 +2284,7 @@ libinput_event_tablet_tool_tilt_x_has_changed(
  * @since 1.2
  */
 int
-libinput_event_tablet_tool_tilt_y_has_changed(
-				struct libinput_event_tablet_tool *event);
+libinput_event_tablet_tool_tilt_y_has_changed(struct libinput_event_tablet_tool *event);
 /**
  * @ingroup event_tablet
  *
@@ -2304,7 +2306,7 @@ libinput_event_tablet_tool_tilt_y_has_changed(
  */
 int
 libinput_event_tablet_tool_rotation_has_changed(
-				struct libinput_event_tablet_tool *event);
+	struct libinput_event_tablet_tool *event);
 /**
  * @ingroup event_tablet
  *
@@ -2325,8 +2327,7 @@ libinput_event_tablet_tool_rotation_has_changed(
  * @since 1.2
  */
 int
-libinput_event_tablet_tool_slider_has_changed(
-				struct libinput_event_tablet_tool *event);
+libinput_event_tablet_tool_slider_has_changed(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2347,7 +2348,7 @@ libinput_event_tablet_tool_slider_has_changed(
  */
 int
 libinput_event_tablet_tool_size_major_has_changed(
-				struct libinput_event_tablet_tool *event);
+	struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2368,7 +2369,7 @@ libinput_event_tablet_tool_size_major_has_changed(
  */
 int
 libinput_event_tablet_tool_size_minor_has_changed(
-				struct libinput_event_tablet_tool *event);
+	struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2390,8 +2391,7 @@ libinput_event_tablet_tool_size_minor_has_changed(
  * @since 1.2
  */
 int
-libinput_event_tablet_tool_wheel_has_changed(
-				struct libinput_event_tablet_tool *event);
+libinput_event_tablet_tool_wheel_has_changed(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2400,6 +2400,10 @@ libinput_event_tablet_tool_wheel_has_changed(
  * corner of the tablet in its current logical orientation. Use
  * libinput_event_tablet_tool_get_x_transformed() for transforming the axis
  * value into a different coordinate space.
+ *
+ * If an area is defined for this device, the coordinate is in mm from
+ * the top left corner of the area. See
+ * libinput_device_config_area_set_rectangle() for details.
  *
  * @note On some devices, returned value may be negative or larger than the
  * width of the device. See the libinput documentation for more details.
@@ -2419,6 +2423,10 @@ libinput_event_tablet_tool_get_x(struct libinput_event_tablet_tool *event);
  * corner of the tablet in its current logical orientation. Use
  * libinput_event_tablet_tool_get_y_transformed() for transforming the axis
  * value into a different coordinate space.
+ *
+ * If an area is defined for this device, the coordinate is in mm from
+ * the top left corner of the area. See
+ * libinput_device_config_area_set_rectangle() for details.
  *
  * @note On some devices, returned value may be negative or larger than the
  * width of the device. See the libinput documentation for more details.
@@ -2579,7 +2587,8 @@ libinput_event_tablet_tool_get_rotation(struct libinput_event_tablet_tool *event
  * @since 1.2
  */
 double
-libinput_event_tablet_tool_get_slider_position(struct libinput_event_tablet_tool *event);
+libinput_event_tablet_tool_get_slider_position(
+	struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2628,8 +2637,7 @@ libinput_event_tablet_tool_get_size_minor(struct libinput_event_tablet_tool *eve
  * @see libinput_event_tablet_tool_get_wheel_delta_discrete
  */
 double
-libinput_event_tablet_tool_get_wheel_delta(
-				   struct libinput_event_tablet_tool *event);
+libinput_event_tablet_tool_get_wheel_delta(struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2645,7 +2653,7 @@ libinput_event_tablet_tool_get_wheel_delta(
  */
 int
 libinput_event_tablet_tool_get_wheel_delta_discrete(
-				    struct libinput_event_tablet_tool *event);
+	struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2705,7 +2713,7 @@ libinput_event_tablet_tool_get_y_transformed(struct libinput_event_tablet_tool *
  *
  * If the caller holds at least one reference, this struct is used
  * whenever the tools enters proximity again.
-  *
+ *
  * @note Physical tool tracking requires hardware support. If unavailable,
  * libinput creates one tool per type per tablet. See
  * libinput_tablet_tool_get_serial() for more details.
@@ -2745,7 +2753,8 @@ libinput_event_tablet_tool_get_tool(struct libinput_event_tablet_tool *event);
  * @since 1.2
  */
 enum libinput_tablet_tool_proximity_state
-libinput_event_tablet_tool_get_proximity_state(struct libinput_event_tablet_tool *event);
+libinput_event_tablet_tool_get_proximity_state(
+	struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -2812,7 +2821,8 @@ libinput_event_tablet_tool_get_button_state(struct libinput_event_tablet_tool *e
  * @since 1.2
  */
 uint32_t
-libinput_event_tablet_tool_get_seat_button_count(struct libinput_event_tablet_tool *event);
+libinput_event_tablet_tool_get_seat_button_count(
+	struct libinput_event_tablet_tool *event);
 
 /**
  * @ingroup event_tablet
@@ -3029,8 +3039,7 @@ libinput_tablet_tool_has_wheel(struct libinput_tablet_tool *tool);
  * @since 1.2
  */
 int
-libinput_tablet_tool_has_button(struct libinput_tablet_tool *tool,
-				uint32_t code);
+libinput_tablet_tool_has_button(struct libinput_tablet_tool *tool, uint32_t code);
 
 /**
  * @ingroup event_tablet
@@ -3116,8 +3125,7 @@ libinput_tablet_tool_get_user_data(struct libinput_tablet_tool *tool);
  * @since 1.2
  */
 void
-libinput_tablet_tool_set_user_data(struct libinput_tablet_tool *tool,
-				   void *user_data);
+libinput_tablet_tool_set_user_data(struct libinput_tablet_tool *tool, void *user_data);
 
 /**
  * @defgroup event_tablet_pad Tablet pad events
@@ -3627,8 +3635,7 @@ libinput_udev_create_context(const struct libinput_interface *interface,
  * @return 0 on success or -1 on failure.
  */
 int
-libinput_udev_assign_seat(struct libinput *libinput,
-			  const char *seat_id);
+libinput_udev_assign_seat(struct libinput *libinput, const char *seat_id);
 
 /**
  * @ingroup base
@@ -3674,8 +3681,7 @@ libinput_path_create_context(const struct libinput_interface *interface,
  * context initialized with libinput_udev_create_context().
  */
 struct libinput_device *
-libinput_path_add_device(struct libinput *libinput,
-			 const char *path);
+libinput_path_add_device(struct libinput *libinput, const char *path);
 
 /**
  * @ingroup base
@@ -3697,6 +3703,98 @@ libinput_path_add_device(struct libinput *libinput,
  */
 void
 libinput_path_remove_device(struct libinput_device *device);
+
+/**
+ * @ingroup base
+ *
+ * Appends the given directory path to the libinput plugin lookup path.
+ * If the path is already in the lookup paths, this function does nothing.
+ *
+ * A path's priority is determined by its position in the list; the first
+ * path in the list has the highest priority.
+ *
+ * Plugin lookup is performed across all paths in lexical order. If
+ * a plugin exists in multiple paths, the one in the highest priority
+ * path (i.e. front of the list) is used.
+ *
+ * Paths are not traversed recursively.
+ *
+ * Plugins that have a 0 byte size shadow any plugins with the same name
+ * but do not provide any fuctionality. This allows disabling a plugin
+ * by simply dropping an empty file in a higher-priority directory.
+ *
+ * This function must be called before libinput_plugin_system_load_plugins().
+ *
+ * @see libinput_plugin_system_append_default_paths
+ *
+ * @since 1.30
+ */
+void
+libinput_plugin_system_append_path(struct libinput *libinput, const char *path);
+
+/**
+ * @ingroup base
+ *
+ * Add the default plugin lookup paths, typically:
+ * - /etc/libinput/plugins/
+ * - /usr/lib{64}/libinput/plugins/
+ *
+ * @warning More paths may be added to the default lookup paths in future releases.
+ * A caller relying on a specific set of default paths should add those individually
+ * using libinput_plugin_system_append_path().
+ *
+ * These paths are inserted at the current priority - to add
+ * paths with a higher priority than these, call
+ * libinput_plugin_system_append_path() prior to this function.
+ *
+ * See libinput_plugin_system_append_path() for more details.
+ *
+ * The exact value of these paths depend on the libdir and sysconfigdir
+ * variables, defined at compile time.
+ *
+ * This function must be called before
+ * libinput_plugin_system_load_plugins().
+ *
+ * @see libinput_plugin_system_append_path
+ *
+ * @since 1.30
+ */
+void
+libinput_plugin_system_append_default_paths(struct libinput *libinput);
+
+enum libinput_plugin_system_flags {
+	LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE = 0,
+};
+
+/**
+ * @ingroup base
+ *
+ * Load the plugins from the set of lookup paths. This function does nothing
+ * if no plugin paths have been configured, see
+ * libinput_plugin_system_append_default_paths() and
+ * libinput_plugin_system_append_path().
+ *
+ * The typical use of this function is:
+ * ```
+ * struct libinput *li = libinput_udev_create_context(...);
+ * libinput_plugin_system_append_default_paths(li);
+ * libinput_plugin_system_load_plugins(li, flags);
+ * ```
+ * @warning The default lookup paths may change over time. See
+ * libinput_plugin_system_append_default_paths().
+ *
+ * This function must be called before libinput iterates through the
+ * devices, i.e. before libinput_udev_assign_seat() or the first
+ * call to libinput_path_add_device().
+ *
+ * @return 0 or a negative errno on failure
+ * @retval -ENOSYS libinput was compiled without plugin support
+ *
+ * @since 1.30
+ */
+int
+libinput_plugin_system_load_plugins(struct libinput *libinput,
+				    enum libinput_plugin_system_flags flags);
 
 /**
  * @ingroup base
@@ -3769,8 +3867,7 @@ libinput_next_event_type(struct libinput *libinput);
  * interfaces.
  */
 void
-libinput_set_user_data(struct libinput *libinput,
-		       void *user_data);
+libinput_set_user_data(struct libinput *libinput, void *user_data);
 
 /**
  * @ingroup base
@@ -3909,8 +4006,8 @@ libinput_log_get_priority(const struct libinput *libinput);
  */
 typedef void (*libinput_log_handler)(struct libinput *libinput,
 				     enum libinput_log_priority priority,
-				     const char *format, va_list args)
-	   LIBINPUT_ATTRIBUTE_PRINTF(3, 0);
+				     const char *format,
+				     va_list args) LIBINPUT_ATTRIBUTE_PRINTF(3, 0);
 
 /**
  * @ingroup base
@@ -3928,8 +4025,7 @@ typedef void (*libinput_log_handler)(struct libinput *libinput,
  * @see libinput_log_get_priority
  */
 void
-libinput_log_set_handler(struct libinput *libinput,
-			 libinput_log_handler log_handler);
+libinput_log_set_handler(struct libinput *libinput, libinput_log_handler log_handler);
 
 /**
  * @defgroup seat Initialization and manipulation of seats
@@ -4305,8 +4401,7 @@ libinput_device_get_seat(struct libinput_device *device);
  * @return 0 on success, non-zero on error
  */
 int
-libinput_device_set_seat_logical_name(struct libinput_device *device,
-				      const char *name);
+libinput_device_set_seat_logical_name(struct libinput_device *device, const char *name);
 
 /**
  * @ingroup device
@@ -4341,8 +4436,7 @@ libinput_device_get_udev_device(struct libinput_device *device);
  * @param leds A mask of the LEDs to set, or unset.
  */
 void
-libinput_device_led_update(struct libinput_device *device,
-			   enum libinput_led leds);
+libinput_device_led_update(struct libinput_device *device, enum libinput_led leds);
 
 /**
  * @ingroup device
@@ -4370,9 +4464,7 @@ libinput_device_has_capability(struct libinput_device *device,
  * @return 0 on success, or nonzero otherwise
  */
 int
-libinput_device_get_size(struct libinput_device *device,
-			 double *width,
-			 double *height);
+libinput_device_get_size(struct libinput_device *device, double *width, double *height);
 
 /**
  * @ingroup device
@@ -4402,8 +4494,7 @@ libinput_device_pointer_has_button(struct libinput_device *device, uint32_t code
  * on error.
  */
 int
-libinput_device_keyboard_has_key(struct libinput_device *device,
-				 uint32_t code);
+libinput_device_keyboard_has_key(struct libinput_device *device, uint32_t code);
 
 /**
  * @ingroup device
@@ -4522,8 +4613,7 @@ libinput_device_tablet_pad_get_num_strips(struct libinput_device *device);
  * @since 1.15
  */
 int
-libinput_device_tablet_pad_has_key(struct libinput_device *device,
-				   uint32_t code);
+libinput_device_tablet_pad_has_key(struct libinput_device *device, uint32_t code);
 
 /**
  * @ingroup device
@@ -4636,10 +4726,10 @@ libinput_device_group_get_user_data(struct libinput_device_group *group);
  * Status codes returned when applying configuration settings.
  */
 enum libinput_config_status {
-	LIBINPUT_CONFIG_STATUS_SUCCESS = 0,	/**< Config applied successfully */
-	LIBINPUT_CONFIG_STATUS_UNSUPPORTED,	/**< Configuration not available on
-						     this device */
-	LIBINPUT_CONFIG_STATUS_INVALID,		/**< Invalid parameter range */
+	LIBINPUT_CONFIG_STATUS_SUCCESS = 0, /**< Config applied successfully */
+	LIBINPUT_CONFIG_STATUS_UNSUPPORTED, /**< Configuration not available on
+						 this device */
+	LIBINPUT_CONFIG_STATUS_INVALID,     /**< Invalid parameter range */
 };
 
 /**
@@ -4660,8 +4750,8 @@ libinput_config_status_to_str(enum libinput_config_status status);
 enum libinput_config_tap_state {
 	LIBINPUT_CONFIG_TAP_DISABLED, /**< Tapping is to be disabled, or is
 					currently disabled */
-	LIBINPUT_CONFIG_TAP_ENABLED, /**< Tapping is to be enabled, or is
-				       currently enabled */
+	LIBINPUT_CONFIG_TAP_ENABLED,  /**< Tapping is to be enabled, or is
+					currently enabled */
 };
 
 /**
@@ -4796,7 +4886,7 @@ enum libinput_config_clickfinger_button_map {
  */
 enum libinput_config_status
 libinput_device_config_tap_set_button_map(struct libinput_device *device,
-					    enum libinput_config_tap_button_map map);
+					  enum libinput_config_tap_button_map map);
 
 /**
  * @ingroup config
@@ -4876,8 +4966,8 @@ enum libinput_config_drag_state {
  * @param enable @ref LIBINPUT_CONFIG_DRAG_ENABLED to enable, @ref
  * LIBINPUT_CONFIG_DRAG_DISABLED to disable tap-and-drag
  *
- * @see libinput_device_config_tap_drag_get_enabled
- * @see libinput_device_config_tap_drag_get_default_enabled
+ * @see libinput_device_config_tap_get_drag_enabled
+ * @see libinput_device_config_tap_get_default_drag_enabled
  *
  * @since 1.2
  */
@@ -4895,8 +4985,8 @@ libinput_device_config_tap_set_drag_enabled(struct libinput_device *device,
  * @retval LIBINPUT_CONFIG_DRAG_DISABLED if tap-and-drag is
  * disabled
  *
- * @see libinput_device_config_tap_drag_set_enabled
- * @see libinput_device_config_tap_drag_get_default_enabled
+ * @see libinput_device_config_tap_set_drag_enabled
+ * @see libinput_device_config_tap_get_default_default_enabled
  *
  * @since 1.2
  */
@@ -4915,8 +5005,8 @@ libinput_device_config_tap_get_drag_enabled(struct libinput_device *device);
  * @retval LIBINPUT_CONFIG_DRAG_DISABLED if tap-and-drag is
  * disabled by default
  *
- * @see libinput_device_config_tap_drag_set_enabled
- * @see libinput_device_config_tap_drag_get_enabled
+ * @see libinput_device_config_tap_set_drag_enabled
+ * @see libinput_device_config_tap_get_drag_enabled
  *
  * @since 1.2
  */
@@ -4929,24 +5019,33 @@ libinput_device_config_tap_get_default_drag_enabled(struct libinput_device *devi
 enum libinput_config_drag_lock_state {
 	/** Drag lock is to be disabled, or is currently disabled */
 	LIBINPUT_CONFIG_DRAG_LOCK_DISABLED,
-	/** Drag lock is to be enabled, or is currently disabled */
-	LIBINPUT_CONFIG_DRAG_LOCK_ENABLED,
+	/** Drag lock is to be enabled in timeout mode,
+	 *  or is currently enabled in timeout mode */
+	LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT,
+	/** legacy spelling for LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT */
+	LIBINPUT_CONFIG_DRAG_LOCK_ENABLED = LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT,
+	/** Drag lock is to be enabled in sticky mode,
+	 *  or is currently enabled in sticky mode */
+	LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY,
 };
 
 /**
  * @ingroup config
  *
  * Enable or disable drag-lock during tapping on this device. When enabled,
- * a finger may be lifted and put back on the touchpad within a timeout and
- * the drag process continues. When disabled, lifting the finger during a
- * tap-and-drag will immediately stop the drag. See the libinput
- * documentation for more details.
+ * a finger may be lifted and put back on the touchpad and the drag process
+ * continues. A timeout for lifting the finger is optional. When disabled,
+ * lifting the finger during a tap-and-drag will immediately stop the drag.
+ * See the libinput documentation for more details.
  *
- * Enabling drag lock on a device that has tapping disabled is permitted,
- * but has no effect until tapping is enabled.
+ * Enabling drag lock on a device that has tapping or tap-and-drag disabled is
+ * permitted, but has no effect until tapping and tap-and-drag are enabled.
  *
  * @param device The device to configure
- * @param enable @ref LIBINPUT_CONFIG_DRAG_LOCK_ENABLED to enable drag lock
+ * @param enable @ref LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY to enable drag
+ * lock in sticky mode,
+ * @ref LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT to enable drag lock in timeout
+ * mode,
  * or @ref LIBINPUT_CONFIG_DRAG_LOCK_DISABLED to disable drag lock
  *
  * @return A config status code. Disabling drag lock on a device that does not
@@ -4956,8 +5055,9 @@ enum libinput_config_drag_lock_state {
  * @see libinput_device_config_tap_get_default_drag_lock_enabled
  */
 enum libinput_config_status
-libinput_device_config_tap_set_drag_lock_enabled(struct libinput_device *device,
-						 enum libinput_config_drag_lock_state enable);
+libinput_device_config_tap_set_drag_lock_enabled(
+	struct libinput_device *device,
+	enum libinput_config_drag_lock_state enable);
 
 /**
  * @ingroup config
@@ -4966,11 +5066,14 @@ libinput_device_config_tap_set_drag_lock_enabled(struct libinput_device *device,
  * device does not support tapping, this function always returns
  * @ref LIBINPUT_CONFIG_DRAG_LOCK_DISABLED.
  *
- * Drag lock may be enabled even when tapping is disabled.
+ * Drag lock may be enabled even when tapping or tap-and-drag is disabled.
  *
  * @param device The device to configure
  *
- * @retval LIBINPUT_CONFIG_DRAG_LOCK_ENABLED If drag lock is currently enabled
+ * @retval LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY If drag lock is currently
+ * enabled in sticky mode
+ * @retval LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT If drag lock is currently
+ * enabled in timeout mode
  * @retval LIBINPUT_CONFIG_DRAG_LOCK_DISABLED If drag lock is currently disabled
  *
  * @see libinput_device_config_tap_set_drag_lock_enabled
@@ -4986,13 +5089,15 @@ libinput_device_config_tap_get_drag_lock_enabled(struct libinput_device *device)
  * If the device does not support tapping, this function always returns
  * @ref LIBINPUT_CONFIG_DRAG_LOCK_DISABLED.
  *
- * Drag lock may be enabled by default even when tapping is disabled by
- * default.
+ * Drag lock may be enabled by default even when tapping or tap-and-drag is
+ * disabled by default.
  *
  * @param device The device to configure
  *
- * @retval LIBINPUT_CONFIG_DRAG_LOCK_ENABLED If drag lock is enabled by
- * default
+ * @retval LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_STICKY If drag lock is enabled in
+ * sticky mode by default
+ * @retval LIBINPUT_CONFIG_DRAG_LOCK_ENABLED_TIMEOUT If drag lock is enabled in
+ * timeout mode by default
  * @retval LIBINPUT_CONFIG_DRAG_LOCK_DISABLED If drag lock is disabled by
  * default
  *
@@ -5000,7 +5105,109 @@ libinput_device_config_tap_get_drag_lock_enabled(struct libinput_device *device)
  * @see libinput_device_config_tap_get_drag_lock_enabled
  */
 enum libinput_config_drag_lock_state
-libinput_device_config_tap_get_default_drag_lock_enabled(struct libinput_device *device);
+libinput_device_config_tap_get_default_drag_lock_enabled(
+	struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * A config status to distinguish or set 3-finger dragging on a device.
+ *
+ * @since 1.27
+ */
+enum libinput_config_3fg_drag_state {
+	/**
+	 * Drag is to be disabled, or is
+	 * currently disabled.
+	 */
+	LIBINPUT_CONFIG_3FG_DRAG_DISABLED,
+	/**
+	 * Drag is to be enabled for 3 fingers, or is
+	 * currently enabled
+	 */
+	LIBINPUT_CONFIG_3FG_DRAG_ENABLED_3FG,
+	/**
+	 * Drag is to be enabled for 4 fingers, or is
+	 * currently enabled
+	 */
+	LIBINPUT_CONFIG_3FG_DRAG_ENABLED_4FG,
+};
+
+/**
+ * @ingroup config
+ *
+ * Returns the maximum number of fingers available for 3-finger dragging.
+ *
+ * @param device The device to check
+ *
+ * @see libinput_device_config_3fg_drag_set_enabled
+ * @see libinput_device_config_3fg_drag_get_enabled
+ * @see libinput_device_config_3fg_drag_get_default_enabled
+ *
+ * @since 1.27
+ */
+int
+libinput_device_config_3fg_drag_get_finger_count(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Enable or disable 3-finger drag on this device. When enabled, three fingers
+ * down will result in a button down event, subsequent finger motion triggers
+ * a drag. The button is released shortly after all fingers are logically up.
+ * See the libinput documentation for more details.
+ *
+ * @param device The device to configure
+ * @param enable @ref LIBINPUT_CONFIG_DRAG_ENABLED to enable, @ref
+ * LIBINPUT_CONFIG_DRAG_DISABLED to disable 3-finger drag
+ *
+ * @see libinput_device_config_3fg_drag_is_available
+ * @see libinput_device_config_3fg_drag_get_enabled
+ * @see libinput_device_config_3fg_drag_get_default_enabled
+ *
+ * @since 1.27
+ */
+enum libinput_config_status
+libinput_device_config_3fg_drag_set_enabled(struct libinput_device *device,
+					    enum libinput_config_3fg_drag_state enable);
+
+/**
+ * @ingroup config
+ *
+ * Return whether 3-finger drag is enabled or disabled on this device.
+ *
+ * @param device The device to check
+ * @retval LIBINPUT_CONFIG_DRAG_ENABLED if 3-finger drag is enabled
+ * @retval LIBINPUT_CONFIG_DRAG_DISABLED if 3-finger drag is
+ * disabled
+ *
+ * @see libinput_device_config_3fg_drag_is_available
+ * @see libinput_device_config_3fg_drag_set_enabled
+ * @see libinput_device_config_3fg_drag_get_default_enabled
+ *
+ * @since 1.27
+ */
+enum libinput_config_3fg_drag_state
+libinput_device_config_3fg_drag_get_enabled(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Return whether 3-finger drag is enabled or disabled by default on this device.
+ *
+ * @param device The device to check
+ * @retval LIBINPUT_CONFIG_DRAG_ENABLED if 3-finger drag is enabled
+ * @retval LIBINPUT_CONFIG_DRAG_DISABLED if 3-finger drag is
+ * disabled
+ *
+ * @see libinput_device_config_3fg_drag_is_available
+ * @see libinput_device_config_3fg_drag_set_enabled
+ * @see libinput_device_config_3fg_drag_get_enabled
+ *
+ * @since 1.27
+ */
+enum libinput_config_3fg_drag_state
+libinput_device_config_3fg_drag_get_default_enabled(struct libinput_device *device);
 
 /**
  * @ingroup config
@@ -5113,6 +5320,144 @@ libinput_device_config_calibration_get_matrix(struct libinput_device *device,
 int
 libinput_device_config_calibration_get_default_matrix(struct libinput_device *device,
 						      float matrix[6]);
+
+/**
+ * @ingroup config
+ *
+ * Describes a rectangle to configure a device's area, see
+ * libinput_device_config_area_set_rectangle().
+ *
+ * This struct describes a rectangle via the upper left points (x1, y1)
+ * and the lower right point (x2, y2).
+ *
+ * All arguments are normalized to the range [0.0, 1.0] to represent the
+ * corresponding proportion of the device's width and height, respectively.
+ * A rectangle covering the whole device thus comprises of the points
+ * (0.0, 0.0) and (1.0, 1.0).
+ *
+ * The conditions x1 < x2 and y1 < y2 must be true.
+ */
+struct libinput_config_area_rectangle {
+	double x1;
+	double y1;
+	double x2;
+	double y2;
+};
+
+/**
+ * @ingroup config
+ *
+ * Check if the device can change its logical input area via a rectangle.
+ *
+ * @param device The device to check
+ * @return Non-zero if the device can be calibrated, zero otherwise.
+ *
+ * @see libinput_device_config_area_set_rectangle
+ * @see libinput_device_config_area_get_rectangle
+ * @see libinput_device_config_area_get_default_rectangle
+ */
+int
+libinput_device_config_area_has_rectangle(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Set the given rectangle as the logical input area of this device.
+ * Future interactions by a tablet tool on this devices are scaled
+ * to only consider events within this logical input area - as if the
+ * logical input area were the available physical area.
+ *
+ * The coordinates of the rectangle represent the proportion of the
+ * available maximum physical area, normalized to the range [0.0, 1.0].
+ * For example, a rectangle with the two points 0.25, 0.5, 0.75, 1.0
+ * adds a 25% dead zone to the left and right and a 50% dead zone on
+ * the top:
+ *
+ * @code
+ * +----------------------------------+
+ * |                                  |
+ * |                50%               |
+ * |                                  |
+ * |        +-----------------+       |
+ * |        |                 |       |
+ * |   25%  |                 |  25%  |
+ * |        |                 |       |
+ * +--------+-----------------+-------+
+ * @endcode
+ *
+ * The area applies in the tablet's current logical rotation, i.e. the above
+ * example is always at the bottom of the tablet.
+ *
+ * Once applied, the logical area's top-left coordinate (in the current logical
+ * rotation) becomes the new offset (0/0) and the return values of
+ * libinput_event_tablet_tool_get_x() and libinput_event_tablet_tool_get_y()
+ * are in relation to this new offset.
+ *
+ * Likewise, libinput_event_tablet_tool_get_x_transformed() and
+ * libinput_event_tablet_tool_get_y_transformed() represent the value scaled
+ * into the configured logical area.
+ *
+ * The return value of libinput_device_get_size() is not affected by the
+ * configured area.
+ *
+ * Changing the area may not take effect immediately, the device may wait until
+ * it is in a neutral state before applying any changes.
+ *
+ * @param device The device to check
+ * @param rect The intended rectangle
+ * @return A config status code. Setting the area on a device that does not
+ * support area rectangles always fails with @ref LIBINPUT_CONFIG_STATUS_UNSUPPORTED.
+ *
+ * @see libinput_device_config_area_has_rectangle
+ * @see libinput_device_config_area_get_rectangle
+ * @see libinput_device_config_area_get_default_rectangle
+ */
+enum libinput_config_status
+libinput_device_config_area_set_rectangle(
+	struct libinput_device *device,
+	const struct libinput_config_area_rectangle *rect);
+
+/**
+ * @ingroup config
+ *
+ * Return the current area rectangle for this device.
+ *
+ * The return value for a device that does not support area rectangles is a
+ * rectangle with the points 0/0  and 1/1.
+ *
+ * @note It is an application bug to call this function for devices where
+ * libinput_device_config_area_has_rectangle() returns 0.
+ *
+ * @param device The device to check
+ * @return The current area rectangle
+ *
+ * @see libinput_device_config_area_has_rectangle
+ * @see libinput_device_config_area_set_rectangle
+ * @see libinput_device_config_area_get_default_rectangle
+ */
+struct libinput_config_area_rectangle
+libinput_device_config_area_get_rectangle(struct libinput_device *device);
+
+/**
+ * @ingroup config
+ *
+ * Return the default area rectangle for this device.
+ *
+ * The return value for a device that does not support area rectangles is a
+ * rectangle with the points 0/0  and 1/1.
+ *
+ * @note It is an application bug to call this function for devices where
+ * libinput_device_config_area_has_rectangle() returns 0.
+ *
+ * @param device The device to check
+ * @return The default area rectangle
+ *
+ * @see libinput_device_config_area_has_rectangle
+ * @see libinput_device_config_area_set_rectangle
+ * @see libinput_device_config_area_get_rectangle
+ */
+struct libinput_config_area_rectangle
+libinput_device_config_area_get_default_rectangle(struct libinput_device *device);
 
 /**
  * @ingroup config
@@ -5273,8 +5618,7 @@ libinput_device_config_accel_is_available(struct libinput_device *device);
  * @see libinput_device_config_accel_get_default_speed
  */
 enum libinput_config_status
-libinput_device_config_accel_set_speed(struct libinput_device *device,
-				       double speed);
+libinput_device_config_accel_set_speed(struct libinput_device *device, double speed);
 
 /**
  * @ingroup config
@@ -5515,7 +5859,9 @@ enum libinput_config_accel_type {
 enum libinput_config_status
 libinput_config_accel_set_points(struct libinput_config_accel *accel_config,
 				 enum libinput_config_accel_type accel_type,
-				 double step, size_t npoints, double *points);
+				 double step,
+				 size_t npoints,
+				 const double *points);
 
 /**
  * @ingroup config
@@ -5640,7 +5986,8 @@ libinput_device_config_scroll_set_natural_scroll_enabled(struct libinput_device 
  * @see libinput_device_config_scroll_get_default_natural_scroll_enabled
  */
 int
-libinput_device_config_scroll_get_natural_scroll_enabled(struct libinput_device *device);
+libinput_device_config_scroll_get_natural_scroll_enabled(
+	struct libinput_device *device);
 
 /**
  * @ingroup config
@@ -5656,7 +6003,8 @@ libinput_device_config_scroll_get_natural_scroll_enabled(struct libinput_device 
  * @see libinput_device_config_scroll_get_natural_scroll_enabled
  */
 int
-libinput_device_config_scroll_get_default_natural_scroll_enabled(struct libinput_device *device);
+libinput_device_config_scroll_get_default_natural_scroll_enabled(
+	struct libinput_device *device);
 
 /**
  * @ingroup config
@@ -5698,8 +6046,7 @@ libinput_device_config_left_handed_is_available(struct libinput_device *device);
  * @see libinput_device_config_left_handed_get_default
  */
 enum libinput_config_status
-libinput_device_config_left_handed_set(struct libinput_device *device,
-				       int left_handed);
+libinput_device_config_left_handed_set(struct libinput_device *device, int left_handed);
 
 /**
  * @ingroup config
@@ -5858,8 +6205,9 @@ libinput_device_config_click_get_default_method(struct libinput_device *device);
  * @see libinput_device_config_click_get_default_clickfinger_button_map
  */
 enum libinput_config_status
-libinput_device_config_click_set_clickfinger_button_map(struct libinput_device *device,
-							enum libinput_config_clickfinger_button_map map);
+libinput_device_config_click_set_clickfinger_button_map(
+	struct libinput_device *device,
+	enum libinput_config_clickfinger_button_map map);
 
 /**
  * @ingroup config
@@ -5893,7 +6241,8 @@ libinput_device_config_click_get_clickfinger_button_map(struct libinput_device *
  * @see libinput_device_config_click_get_clickfinger_button_map
  */
 enum libinput_config_clickfinger_button_map
-libinput_device_config_click_get_default_clickfinger_button_map(struct libinput_device *device);
+libinput_device_config_click_get_default_clickfinger_button_map(
+	struct libinput_device *device);
 
 /**
  * @ingroup config
@@ -5932,8 +6281,7 @@ enum libinput_config_middle_emulation_state {
  * @see libinput_device_config_middle_emulation_get_default_enabled
  */
 int
-libinput_device_config_middle_emulation_is_available(
-		struct libinput_device *device);
+libinput_device_config_middle_emulation_is_available(struct libinput_device *device);
 
 /**
  * @ingroup config
@@ -5959,8 +6307,8 @@ libinput_device_config_middle_emulation_is_available(
  */
 enum libinput_config_status
 libinput_device_config_middle_emulation_set_enabled(
-		struct libinput_device *device,
-		enum libinput_config_middle_emulation_state enable);
+	struct libinput_device *device,
+	enum libinput_config_middle_emulation_state enable);
 
 /**
  * @ingroup config
@@ -5986,8 +6334,7 @@ libinput_device_config_middle_emulation_set_enabled(
  * @see libinput_device_config_middle_emulation_get_default_enabled
  */
 enum libinput_config_middle_emulation_state
-libinput_device_config_middle_emulation_get_enabled(
-		struct libinput_device *device);
+libinput_device_config_middle_emulation_get_enabled(struct libinput_device *device);
 
 /**
  * @ingroup config
@@ -6015,7 +6362,7 @@ libinput_device_config_middle_emulation_get_enabled(
  */
 enum libinput_config_middle_emulation_state
 libinput_device_config_middle_emulation_get_default_enabled(
-		struct libinput_device *device);
+	struct libinput_device *device);
 
 /**
  * @ingroup config
@@ -6248,8 +6595,9 @@ enum libinput_config_scroll_button_lock_state {
  * @see libinput_device_config_scroll_get_default_button
  */
 enum libinput_config_status
-libinput_device_config_scroll_set_button_lock(struct libinput_device *device,
-					      enum libinput_config_scroll_button_lock_state state);
+libinput_device_config_scroll_set_button_lock(
+	struct libinput_device *device,
+	enum libinput_config_scroll_button_lock_state state);
 
 /**
  * @ingroup config
@@ -6352,7 +6700,7 @@ libinput_device_config_dwt_set_enabled(struct libinput_device *device,
 /**
  * @ingroup config
  *
- * Check if the disable-while typing feature is currently enabled on this
+ * Check if the disable-while-typing feature is currently enabled on this
  * device. If the device does not support disable-while-typing, this
  * function returns @ref LIBINPUT_CONFIG_DWT_DISABLED.
  *
@@ -6370,7 +6718,7 @@ libinput_device_config_dwt_get_enabled(struct libinput_device *device);
 /**
  * @ingroup config
  *
- * Check if the disable-while typing feature is enabled on this device by
+ * Check if the disable-while-typing feature is enabled on this device by
  * default. If the device does not support disable-while-typing, this
  * function returns @ref LIBINPUT_CONFIG_DWT_DISABLED.
  *
@@ -6443,12 +6791,12 @@ libinput_device_config_dwtp_is_available(struct libinput_device *device);
  */
 enum libinput_config_status
 libinput_device_config_dwtp_set_enabled(struct libinput_device *device,
-				       enum libinput_config_dwtp_state enable);
+					enum libinput_config_dwtp_state enable);
 
 /**
  * @ingroup config
  *
- * Check if the disable-while trackpointing feature is currently enabled on
+ * Check if the disable-while-trackpointing feature is currently enabled on
  * this device. If the device does not support disable-while-trackpointing,
  * this function returns @ref LIBINPUT_CONFIG_DWTP_DISABLED.
  *
@@ -6468,7 +6816,7 @@ libinput_device_config_dwtp_get_enabled(struct libinput_device *device);
 /**
  * @ingroup config
  *
- * Check if the disable-while trackpointing feature is enabled on this device
+ * Check if the disable-while-trackpointing feature is enabled on this device
  * by default. If the device does not support disable-while-trackpointing, this
  * function returns @ref LIBINPUT_CONFIG_DWTP_DISABLED.
  *
@@ -6588,7 +6936,8 @@ libinput_device_config_rotation_get_default_angle(struct libinput_device *device
  * @since 1.26
  */
 int
-libinput_tablet_tool_config_pressure_range_is_available(struct libinput_tablet_tool *tool);
+libinput_tablet_tool_config_pressure_range_is_available(
+	struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup config
@@ -6643,7 +6992,8 @@ libinput_tablet_tool_config_pressure_range_set(struct libinput_tablet_tool *tool
  * @since 1.26
  */
 double
-libinput_tablet_tool_config_pressure_range_get_minimum(struct libinput_tablet_tool *tool);
+libinput_tablet_tool_config_pressure_range_get_minimum(
+	struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup config
@@ -6659,13 +7009,14 @@ libinput_tablet_tool_config_pressure_range_get_minimum(struct libinput_tablet_to
  *
  * @see libinput_tablet_tool_config_pressure_range_is_available
  * @see libinput_tablet_tool_config_pressure_range_get_minimum
- * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
+ * @see libinput_tablet_tool_config_pressure_range_get_default_minimum
  * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
  *
  * @since 1.26
  */
 double
-libinput_tablet_tool_config_pressure_range_get_maximum(struct libinput_tablet_tool *tool);
+libinput_tablet_tool_config_pressure_range_get_maximum(
+	struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup config
@@ -6687,7 +7038,8 @@ libinput_tablet_tool_config_pressure_range_get_maximum(struct libinput_tablet_to
  * @since 1.26
  */
 double
-libinput_tablet_tool_config_pressure_range_get_default_minimum(struct libinput_tablet_tool *tool);
+libinput_tablet_tool_config_pressure_range_get_default_minimum(
+	struct libinput_tablet_tool *tool);
 
 /**
  * @ingroup config
@@ -6702,14 +7054,220 @@ libinput_tablet_tool_config_pressure_range_get_default_minimum(struct libinput_t
  * @return The maximum pressure value for this tablet tool
  *
  * @see libinput_tablet_tool_config_pressure_range_is_available
- * @see libinput_tablet_tool_config_pressure_range_get_maximum
+ * @see libinput_tablet_tool_config_pressure_range_get_minimum
  * @see libinput_tablet_tool_config_pressure_range_get_maximum
  * @see libinput_tablet_tool_config_pressure_range_get_default_maximum
  *
  * @since 1.26
  */
 double
-libinput_tablet_tool_config_pressure_range_get_default_maximum(struct libinput_tablet_tool *tool);
+libinput_tablet_tool_config_pressure_range_get_default_maximum(
+	struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ */
+enum libinput_config_eraser_button_mode {
+	/**
+	 * Use the default hardware behavior of the tool. libinput
+	 * does not modify the behavior of the eraser button (if any).
+	 */
+	LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT = 0,
+	/**
+	 * The eraser button on the tool sends a button event
+	 * instead. If this tool comes into proximity as an eraser,
+	 * a button event on the pen is emulated instead.
+	 *
+	 * See libinput_tablet_tool_config_eraser_button_set_mode() for details.
+	 */
+	LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON = (1 << 0),
+};
+
+/**
+ * @ingroup config
+ *
+ * Check if a tool can change the behavior of or to a firmware eraser button.
+ *
+ * A firmware eraser button is a button on the tool that, when pressed,
+ * virtually toggles the pen going out of proximity followed by the
+ * eraser tool coming in proximity. When released, the eraser goes
+ * out of proximity followed by the pen coming back into proximity.
+ *
+ * This is the default behavior for many contemporary pens who implement
+ * this in firmware. See also the [Windows Pen
+ * States](https://learn.microsoft.com/en-us/windows-hardware/design/component-guidelines/windows-pen-states).
+ *
+ * See the libinput documentation for more details.
+ *
+ * @param tool The libinput tool
+ * @return Non-zero if the device can be set to change to an eraser on button
+ * press.
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ *
+ * @since 1.29
+ */
+uint32_t
+libinput_tablet_tool_config_eraser_button_get_modes(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ *
+ * Change the eraser button behavior on a tool.
+ *
+ * If set to @ref LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON, pressing the
+ * firmware eraser button on the tool instead triggers an event
+ * of type @ref LIBINPUT_EVENT_TABLET_TOOL_BUTTON.
+ * This event's libinput_event_tablet_tool_get_button() returns the
+ * button set with
+ * libinput_tablet_tool_config_eraser_button_set_button()
+ * Releasing the firmware eraser button releases that button again.
+ *
+ * @param tool The libinput tool
+ * @param mode The eraser button mode to switch to
+ *
+ * @return A config status code
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ * @see libinput_tablet_tool_config_eraser_button_set_button
+ * @see libinput_tablet_tool_config_eraser_button_get_button
+ * @see libinput_tablet_tool_config_eraser_button_get_default_button
+ *
+ * @since 1.29
+ */
+enum libinput_config_status
+libinput_tablet_tool_config_eraser_button_set_mode(
+	struct libinput_tablet_tool *tool,
+	enum libinput_config_eraser_button_mode mode);
+
+/**
+ * @ingroup config
+ *
+ * Get the mode for the eraser button.
+ *
+ * @param tool The libinput tool
+ *
+ * @return The eraser mode
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ * @see libinput_tablet_tool_config_eraser_button_set_button
+ * @see libinput_tablet_tool_config_eraser_button_get_button
+ * @see libinput_tablet_tool_config_eraser_button_get_default_button
+ *
+ * @since 1.29
+ */
+enum libinput_config_eraser_button_mode
+libinput_tablet_tool_config_eraser_button_get_mode(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ *
+ * Get the default mode for the eraser button.
+ *
+ * @param tool The libinput tool
+ *
+ * @return The eraser button, if any, or zero otherwise
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ * @see libinput_tablet_tool_config_eraser_button_set_button
+ * @see libinput_tablet_tool_config_eraser_button_get_button
+ * @see libinput_tablet_tool_config_eraser_button_get_default_button
+ *
+ * @since 1.29
+ */
+enum libinput_config_eraser_button_mode
+libinput_tablet_tool_config_eraser_button_get_default_mode(
+	struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ *
+ * Set a button to be the eraser button for this tool.
+ * This configuration has no effect unless the caller also sets
+ * the eraser mode to @ref LIBINPUT_CONFIG_ERASER_BUTTON_BUTTON via
+ * libinput_tablet_tool_config_eraser_button_set_mode().
+ *
+ * The buttons BTN_STYLUS, BTN_STYLUS2 and BTN_STYLUS2 are always
+ * allowed, even if libinput_tablet_tool_has_button() returns zero
+ * for the button. Otherwise, the button must be one that
+ * libinput_tablet_tool_has_button() returns a nonzero value for.
+ *
+ * @param tool The libinput tool
+ * @param button The button, usually one of BTN_STYLUS, BTN_STYLUS2 or
+ * BTN_STYLUS3
+ *
+ * @return A config status code
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ * @see libinput_tablet_tool_config_eraser_button_set_button
+ * @see libinput_tablet_tool_config_eraser_button_get_button
+ * @see libinput_tablet_tool_config_eraser_button_get_default_button
+ *
+ * @since 1.29
+ */
+enum libinput_config_status
+libinput_tablet_tool_config_eraser_button_set_button(struct libinput_tablet_tool *tool,
+						     uint32_t button);
+
+/**
+ * @ingroup config
+ *
+ * Get the button configured to emulate an eraser for this tool.
+ *
+ * @param tool The libinput tool
+ *
+ * @return The eraser button, if any, or zero otherwise
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ * @see libinput_tablet_tool_config_eraser_button_set_button
+ * @see libinput_tablet_tool_config_eraser_button_get_button
+ * @see libinput_tablet_tool_config_eraser_button_get_default_button
+ *
+ * @since 1.29
+ */
+unsigned int
+libinput_tablet_tool_config_eraser_button_get_button(struct libinput_tablet_tool *tool);
+
+/**
+ * @ingroup config
+ *
+ * Get the default button configured to emulate an eraser for this tool.
+ *
+ * @param tool The libinput tool
+ *
+ * @return The eraser button, if any, or zero otherwise
+ *
+ * @see libinput_tablet_tool_config_eraser_button_get_modes
+ * @see libinput_tablet_tool_config_eraser_button_set_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_mode
+ * @see libinput_tablet_tool_config_eraser_button_get_default_mode
+ * @see libinput_tablet_tool_config_eraser_button_set_button
+ * @see libinput_tablet_tool_config_eraser_button_get_button
+ * @see libinput_tablet_tool_config_eraser_button_get_default_button
+ *
+ * @since 1.29
+ */
+unsigned int
+libinput_tablet_tool_config_eraser_button_get_default_button(
+	struct libinput_tablet_tool *tool);
 
 #ifdef __cplusplus
 }

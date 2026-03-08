@@ -31,11 +31,12 @@
 #include <errno.h>
 #include <limits.h>
 #include <math.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -44,6 +45,13 @@
 #endif
 
 #include "util-macros.h"
+#include "util-mem.h"
+
+#define yesno(b) ((b) ? "yes" : "no")
+#define truefalse(b) ((b) ? "true" : "false")
+#define YESNO(b) ((b) ? "YES" : "NO")
+#define TRUEFALSE(b) ((b) ? "TRUE" : "FALSE")
+#define onoff(b) ((b) ? "on" : "off")
 
 static inline bool
 streq(const char *str1, const char *str2)
@@ -55,7 +63,7 @@ streq(const char *str1, const char *str2)
 }
 
 static inline bool
-strneq(const char *str1, const char *str2, int n)
+strneq(const char *str1, const char *str2, size_t n)
 {
 	/* one NULL, one not NULL is always false */
 	if (str1 && str2)
@@ -63,29 +71,12 @@ strneq(const char *str1, const char *str2, int n)
 	return str1 == str2;
 }
 
-static inline void *
-zalloc(size_t size)
-{
-	void *p;
-
-	/* We never need to alloc anything more than 1,5 MB so we can assume
-	 * if we ever get above that something's going wrong */
-	if (size > 1536 * 1024)
-		assert(!"bug: internal malloc size limit exceeded");
-
-	p = calloc(1, size);
-	if (!p)
-		abort();
-
-	return p;
-}
-
 /**
  * strdup guaranteed to succeed. If the input string is NULL, the output
  * string is NULL. If the input string is a string pointer, we strdup or
  * abort on failure.
  */
-static inline char*
+static inline char *
 safe_strdup(const char *str)
 {
 	char *s;
@@ -97,6 +88,15 @@ safe_strdup(const char *str)
 	if (!s)
 		abort();
 	return s;
+}
+
+/**
+ * NULL-safe version of strlen
+ */
+static inline size_t
+safe_strlen(const char *str)
+{
+	return str ? strlen(str) : 0;
 }
 
 /**
@@ -112,8 +112,7 @@ safe_strdup(const char *str)
  * upon success or -1 upon failure. In the case of failure the pointer is set
  * to NULL.
  */
-__attribute__ ((format (printf, 2, 3)))
-static inline int
+__attribute__((format(printf, 2, 3))) static inline int
 xasprintf(char **strp, const char *fmt, ...)
 {
 	int rc = 0;
@@ -128,8 +127,7 @@ xasprintf(char **strp, const char *fmt, ...)
 	return rc;
 }
 
-__attribute__ ((format (printf, 2, 0)))
-static inline int
+__attribute__((format(printf, 2, 0))) static inline int
 xvasprintf(char **strp, const char *fmt, va_list args)
 {
 	int rc = 0;
@@ -138,6 +136,31 @@ xvasprintf(char **strp, const char *fmt, va_list args)
 		*strp = NULL;
 
 	return rc;
+}
+
+__attribute__((format(printf, 1, 2))) static inline char *
+strdup_printf(const char *fmt, ...)
+{
+	int rc = 0;
+	va_list args;
+	char *strp;
+
+	va_start(args, fmt);
+	rc = vasprintf(&strp, fmt, args);
+	va_end(args);
+	if (rc < 0)
+		abort();
+	return strp;
+}
+
+__attribute__((format(printf, 1, 0))) static inline char *
+strdup_vprintf(const char *fmt, va_list args)
+{
+	char *strp;
+	int rc = xvasprintf(&strp, fmt, args);
+	if (rc < 0)
+		abort();
+	return strp;
 }
 
 static inline bool
@@ -207,15 +230,45 @@ safe_atou(const char *str, unsigned int *val)
 }
 
 static inline bool
+safe_atou64_base(const char *str, uint64_t *val, int base)
+{
+	assert(str != NULL);
+
+	char *endptr;
+	unsigned long long v;
+
+	assert(base == 10 || base == 16 || base == 8);
+
+	errno = 0;
+	v = strtoull(str, &endptr, base);
+	if (errno > 0)
+		return false;
+	if (str == endptr)
+		return false;
+	if (*str != '\0' && *endptr != '\0')
+		return false;
+
+	if ((long long)v < 0)
+		return false;
+
+	*val = v;
+	return true;
+}
+
+static inline bool
+safe_atou64(const char *str, uint64_t *val)
+{
+	assert(str != NULL);
+	return safe_atou64_base(str, val, 10);
+}
+
+static inline bool
 safe_atod(const char *str, double *val)
 {
 	assert(str != NULL);
 
 	char *endptr;
 	double v;
-#ifdef HAVE_LOCALE_H
-	locale_t c_locale;
-#endif
 	size_t slen = strlen(str);
 
 	/* We don't have a use-case where we want to accept hex for a double
@@ -224,8 +277,8 @@ safe_atod(const char *str, double *val)
 		char c = str[i];
 
 		if (isdigit(c))
-		       continue;
-		switch(c) {
+			continue;
+		switch (c) {
 		case '+':
 		case '-':
 		case '.':
@@ -237,7 +290,7 @@ safe_atod(const char *str, double *val)
 
 #ifdef HAVE_LOCALE_H
 	/* Create a "C" locale to force strtod to use '.' as separator */
-	c_locale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
+	locale_t c_locale = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
 	if (c_locale == (locale_t)0)
 		return false;
 
@@ -266,25 +319,62 @@ safe_atod(const char *str, double *val)
 	return true;
 }
 
-char **strv_from_argv(int argc, char **argv);
-char **strv_from_string(const char *in, const char *separator, size_t *num_elements);
-char *strv_join(char **strv, const char *joiner);
+/* Returns the length of the strv, including the terminating NULL */
+size_t
+strv_len(char **strv);
+char **
+strv_from_argv(int argc, char **argv);
+char **
+strv_from_string(const char *in, const char *separator, size_t *num_elements);
+char *
+strv_join(char **strv, const char *joiner);
+char **
+strv_append_strdup(char **strv, const char *s);
+/* Takes ownership of the string and appends it to strv, s is set to NULL */
+char **
+strv_append_take(char **strv, char **s);
+__attribute__((format(printf, 2, 3))) char **
+strv_append_printf(char **strv, const char *fmt, ...);
+__attribute__((format(printf, 2, 0))) char **
+strv_append_vprintf(char **strv, const char *fmt, va_list args);
+
+bool
+strv_find(char **strv, const char *needle, size_t *index_out);
+bool
+strv_find_substring(char **strv, const char *needle, size_t *index_out);
+
+typedef int (*strv_foreach_callback_t)(const char *str, size_t index, void *data);
+int
+strv_for_each(const char **strv, strv_foreach_callback_t func, void *data);
+int
+strv_for_each_n(const char **strv,
+		size_t max,
+		strv_foreach_callback_t func,
+		void *data);
 
 static inline void
-strv_free(char **strv) {
+strv_free(char **strv)
+{
 	char **s = strv;
 
 	if (!strv)
 		return;
 
-	while (*s != NULL) {
+	while (*s != NULL) { /* NOLINT(clang-analyzer-security.ArrayBound) */
 		free(*s);
-		*s = (char*)0x1; /* detect use-after-free */
+		*s = (char *)0x1; /* detect use-after-free */
 		s++;
 	}
 
-	free (strv);
+	free(strv);
 }
+
+DEFINE_TRIVIAL_CLEANUP_FUNC(char **, strv_free);
+
+/**
+ * Use: _autostrvfree_ char **strv = ...;
+ */
+#define _autostrvfree_ _cleanup_(strv_freep)
 
 /**
  * parse a string containing a list of doubles into a double array.
@@ -296,9 +386,7 @@ strv_free(char **strv) {
  * @return true when parsed successfully otherwise false
  */
 static inline double *
-double_array_from_string(const char *in,
-			 const char *separator,
-			 size_t *length)
+double_array_from_string(const char *in, const char *separator, size_t *length)
 {
 	assert(in != NULL);
 	assert(separator != NULL);
@@ -331,7 +419,7 @@ out:
 	return result;
 }
 
-struct key_value_str{
+struct key_value_str {
 	char *key;
 	char *value;
 };
@@ -350,8 +438,8 @@ kv_double_from_string(const char *string,
 {
 	struct key_value_double *result = NULL;
 
-	if (!pair_separator || pair_separator[0] == '\0' ||
-	    !kv_separator || kv_separator[0] == '\0')
+	if (!pair_separator || pair_separator[0] == '\0' || !kv_separator ||
+	    kv_separator[0] == '\0')
 		return -1;
 
 	size_t npairs;
@@ -367,8 +455,7 @@ kv_double_from_string(const char *string,
 		char **kv = strv_from_string(pair, kv_separator, &nelem);
 		double k, v;
 
-		if (!kv || nelem != 2 ||
-		    !safe_atod(kv[0], &k) ||
+		if (!kv || nelem != 2 || !safe_atod(kv[0], &k) ||
 		    !safe_atod(kv[1], &v)) {
 			strv_free(kv);
 			goto error;
@@ -410,7 +497,7 @@ strstrip(const char *input, const char *what)
 
 	last = str;
 
-	for (char *c = str; *c != '\0'; c++) {
+	for (char *c = str; c && *c != '\0'; c++) {
 		if (!strchr(what, *c))
 			last = c + 1;
 	}
@@ -449,7 +536,7 @@ strstartswith(const char *str, const char *prefix)
 
 	size_t prefixlen = strlen(prefix);
 
-	return prefixlen > 0 ? strneq(str, prefix, strlen(prefix)) : false;
+	return prefixlen > 0 ? strneq(str, prefix, prefixlen) : false;
 }
 
 const char *
@@ -471,7 +558,8 @@ str_sanitize(const char *str)
 	if (!strchr(str, '%'))
 		return strdup(str);
 
-	size_t slen = min(strlen(str), 512);
+	size_t slen = strlen(str);
+	slen = min(slen, 512);
 	char *sanitized = zalloc(2 * slen + 1);
 	const char *src = str;
 	char *dst = sanitized;

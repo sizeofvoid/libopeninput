@@ -348,10 +348,14 @@ compositor. This indicates a misunderstanding of how libinput works:
 libinput is a library that converts kernel events into libinput events, much
 like ``sed`` reads data in, modifies it, and provides it to stdout.
 
-If ``sed`` is used by a shell-script, that script has full control over how
-``sed`` processes data. In this analogy, ``sed`` is libinput and the
-shell script is the compositor. It is not possible to write a program
-to modify the behavior of the ``sed`` instance used inside that shell script
+.. graphviz:: libinput-contexts.gv
+
+A libinput context is private to the process and cannot be modified from the
+outside. To use the ``sed`` analogy again: if ``sed`` is used by a
+shell-script, that script has full control over how ``sed`` processes data. In
+this analogy, ``sed`` is libinput and the shell script is the compositor. It is
+not possible to write a program to modify the behavior of the ``sed`` instance
+used inside that shell script.
 
 Writing a program that uses libinput is akin to writing a new script that
 invoke ``sed``. It will not have any effect on the original ``sed`` instance.
@@ -359,6 +363,14 @@ invoke ``sed``. It will not have any effect on the original ``sed`` instance.
 The only way to modify libinput's behavior is to use the configuration options
 exposed by the respective compositor. Those affect the libinput context inside
 the compositor and thus have an effect on the input device behavior.
+
+.. _faq_debug_events_not_showing_configuration:
+
+------------------------------------------------------------------------------
+Why doesn't libinput debug-events show my configuration
+------------------------------------------------------------------------------
+
+See :ref:`faq_separate_contexts`.
 
 ------------------------------------------------------------------------------
 Can I configure scroll speed?

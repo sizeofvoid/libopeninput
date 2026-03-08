@@ -26,9 +26,9 @@
 
 #include "config.h"
 
-#include <string.h>
-#include <stdbool.h>
 #include <math.h>
+#include <stdbool.h>
+#include <string.h>
 
 struct matrix {
 	float val[3][3]; /* [row][col] */
@@ -101,21 +101,13 @@ matrix_init_rotate(struct matrix *m, int degrees)
 static inline bool
 matrix_is_identity(const struct matrix *m)
 {
-	return (m->val[0][0] == 1 &&
-		m->val[0][1] == 0 &&
-		m->val[0][2] == 0 &&
-		m->val[1][0] == 0 &&
-		m->val[1][1] == 1 &&
-		m->val[1][2] == 0 &&
-		m->val[2][0] == 0 &&
-		m->val[2][1] == 0 &&
-		m->val[2][2] == 1);
+	return (m->val[0][0] == 1 && m->val[0][1] == 0 && m->val[0][2] == 0 &&
+		m->val[1][0] == 0 && m->val[1][1] == 1 && m->val[1][2] == 0 &&
+		m->val[2][0] == 0 && m->val[2][1] == 0 && m->val[2][2] == 1);
 }
 
 static inline void
-matrix_mult(struct matrix *dest,
-	    const struct matrix *m1,
-	    const struct matrix *m2)
+matrix_mult(struct matrix *dest, const struct matrix *m1, const struct matrix *m2)
 {
 	struct matrix m; /* allow for dest == m1 or dest == m2 */
 	int row, col, i;
@@ -136,13 +128,13 @@ matrix_mult(struct matrix *dest,
 static inline void
 matrix_mult_vec(const struct matrix *m, int *x, int *y)
 {
-	int tx, ty;
+	float tx, ty;
 
 	tx = *x * m->val[0][0] + *y * m->val[0][1] + m->val[0][2];
 	ty = *x * m->val[1][0] + *y * m->val[1][1] + m->val[1][2];
 
-	*x = tx;
-	*y = ty;
+	*x = (int)tx;
+	*y = (int)ty;
 }
 
 static inline void

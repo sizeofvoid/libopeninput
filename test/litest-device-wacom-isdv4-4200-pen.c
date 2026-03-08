@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event proximity_in[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
@@ -37,6 +37,7 @@ static struct input_event proximity_in[] = {
 
 static struct input_event proximity_out[] = {
 	{ .type = EV_KEY, .code = LITEST_BTN_TOOL_AUTO, .value = 0 },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = 0 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
@@ -71,6 +72,7 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 59674, 0, 0, 100 },
 	{ ABS_Y, 0, 33566, 0, 0, 100 },
@@ -80,6 +82,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_PRESSURE, 0, 4096, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -87,6 +90,7 @@ static struct input_id input_id = {
 	.product = 0x4200,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOOL_PEN,
 	EV_KEY, BTN_TOOL_RUBBER,
@@ -97,14 +101,13 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_DIRECT,
 	-1, -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("wacom-isdv4-4200-tablet",
-	.type = LITEST_WACOM_ISDV4_4200_PEN,
-	.features = LITEST_TABLET|LITEST_HOVER,
-	.interface = &interface,
+TEST_DEVICE(LITEST_WACOM_ISDV4_4200_PEN,
+	    .features = LITEST_TABLET | LITEST_HOVER,
+	    .interface = &interface,
 
-	.name = "Wacom ISD-V4 Pen",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "Wacom ISD-V4 Pen",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

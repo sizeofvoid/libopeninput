@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x3109,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -43,18 +44,17 @@ static int events[] = {
 	EV_REL, REL_HWHEEL,
 	-1 , -1,
 };
+/* clang-format on */
 
 /* Note: device is not tagged with LITEST_WHEEL to avoid running the
  * "standard" wheel tests. Device has a custom wheel
  * behavior that is tested directly.
  */
-TEST_DEVICE("lenovo-scrollpoint",
-	.type = LITEST_LENOVO_SCROLLPOINT,
-	.features = LITEST_RELATIVE | LITEST_BUTTON,
-	.interface = NULL,
+TEST_DEVICE(LITEST_LENOVO_SCROLLPOINT,
+	    .features = LITEST_RELATIVE | LITEST_BUTTON,
+	    .interface = NULL,
 
-	.name = "HID 04b3:3109",
-	.id = &input_id,
-	.absinfo = NULL,
-	.events = events,
-)
+	    .name = "HID 04b3:3109",
+	    .id = &input_id,
+	    .absinfo = NULL,
+	    .events = events, )

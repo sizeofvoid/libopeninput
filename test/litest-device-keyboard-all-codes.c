@@ -23,12 +23,13 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 #define NAME "All event codes keyboard"
 
-static bool all_codes_create(struct litest_device *d);
+static bool
+all_codes_create(struct litest_device *d);
 
 static struct input_id input_id = {
 	.bustype = 0x11,
@@ -36,17 +37,15 @@ static struct input_id input_id = {
 	.product = 0x1,
 };
 
-TEST_DEVICE("keyboard-all-codes",
-	.type = LITEST_KEYBOARD_ALL_CODES,
-	.features = LITEST_KEYS,
-	.interface = NULL,
-	.create = all_codes_create,
+TEST_DEVICE(LITEST_KEYBOARD_ALL_CODES,
+	    .features = LITEST_KEYS,
+	    .interface = NULL,
+	    .create = all_codes_create,
 
-	.name = NAME,
-	.id = &input_id,
-	.events = NULL,
-	.absinfo = NULL,
-)
+	    .name = NAME,
+	    .id = &input_id,
+	    .events = NULL,
+	    .absinfo = NULL, )
 
 static bool
 all_codes_create(struct litest_device *d)
@@ -57,7 +56,7 @@ all_codes_create(struct litest_device *d)
 	for (idx = 0, code = 0; code < KEY_MAX; code++) {
 		const char *name = libevdev_event_code_get_name(EV_KEY, code);
 
-		if (name && strneq(name, "BTN_", 4))
+		if (strstartswith(name, "BTN_"))
 			continue;
 
 		events[idx++] = EV_KEY;

@@ -73,8 +73,7 @@ ratelimit_test(struct ratelimit *r)
 
 	if (r->num < r->burst) {
 		/* continue burst */
-		return (++r->num == r->burst) ? RATELIMIT_THRESHOLD
-					      : RATELIMIT_PASS;
+		return (++r->num == r->burst) ? RATELIMIT_THRESHOLD : RATELIMIT_PASS;
 	}
 
 	return RATELIMIT_EXCEEDED;

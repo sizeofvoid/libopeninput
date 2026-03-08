@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event proximity_in_events[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
@@ -52,7 +52,8 @@ static struct input_event motion_events[] = {
 static bool
 proximity_in(struct litest_device *d,
 	     unsigned int tool_type,
-	     double *x, double *y,
+	     double *x,
+	     double *y,
 	     struct axis_replacement *axes)
 {
 	/* nothing special needed for the pen tool, so let litest handle
@@ -106,12 +107,14 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 18176, 0, 0, 62 },
 	{ ABS_Y, 0, 10240, 0, 0, 62 },
 	{ ABS_PRESSURE, 0, 4096, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x18,
@@ -125,6 +128,7 @@ static struct input_id input_id = {
  * The one in the issue isn't the exact same model, but only the pid and x/y
  * axis max differs differs.
  */
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOOL_PEN,
 	EV_KEY, BTN_TOOL_RUBBER,
@@ -133,14 +137,13 @@ static int events[] = {
 	EV_MSC, MSC_SCAN,
 	-1, -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("elan-tablet",
-	.type = LITEST_ELAN_TABLET,
-	.features = LITEST_TABLET,
-	.interface = &interface,
+TEST_DEVICE(LITEST_ELAN_TABLET,
+	    .features = LITEST_TABLET,
+	    .interface = &interface,
 
-	.name = "ELAN2514:00 04F3:23B9",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "ELAN2514:00 04F3:23B9",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

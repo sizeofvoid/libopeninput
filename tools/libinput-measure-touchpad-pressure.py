@@ -66,10 +66,10 @@ class TableFormatter(object):
         s = "|"
         for w, arg in zip(self.colwidths, args):
             w -= 1  # width includes | separator
-            if type(arg) == str:
+            if isinstance(arg, str):
                 # We want space margins for strings
                 s += " {:{width}s} |".format(arg, width=w - 2)
-            elif type(arg) == bool:
+            elif isinstance(arg, bool):
                 s += "{:^{width}s}|".format("x" if arg else " ", width=w)
             else:
                 s += "{:^{width}d}|".format(arg, width=w)
@@ -293,10 +293,15 @@ def handle_key(device, event):
         libevdev.EV_KEY.BTN_TOOL_QUINTTAP,
     ]
     if event.code in tapcodes and event.value > 0:
-        print(
-            "\r\033[2KThis tool cannot handle multiple fingers, "
-            "output will be invalid"
-        )
+        try:
+            if handle_key.warned:
+                return
+        except AttributeError:
+            handle_key.warned = True
+            print(
+                "\r\033[2KThis tool cannot handle multiple fingers, "
+                "output will be invalid"
+            )
 
 
 def handle_abs(device, event):
@@ -364,12 +369,12 @@ def colon_tuple(string):
     try:
         ts = string.split(":")
         t = tuple([int(x) for x in ts])
-        if len(t) == 2 and t[0] >= t[1]:
+        if len(t) == 2 and t[0] > t[1]:
             return t
     except:  # noqa
         pass
 
-    msg = "{} is not in format N:M (N >= M)".format(string)
+    msg = "{} is not in format N:M (N > M)".format(string)
     raise argparse.ArgumentTypeError(msg)
 
 

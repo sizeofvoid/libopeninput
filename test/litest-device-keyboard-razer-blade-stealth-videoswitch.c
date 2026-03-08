@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 /* Recording from https://bugs.freedesktop.org/show_bug.cgi?id=102039
  * This is the 'video switch' of 2 devices exported by this keyboard.
@@ -36,6 +36,7 @@ static struct input_id input_id = {
 	.product = 0x220,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, KEY_ESC,
 	EV_KEY, KEY_1,
@@ -206,13 +207,12 @@ static int events[] = {
 	EV_MSC, MSC_SCAN,
 	-1 , -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("blade-stealth-video-switch",
-	.type = LITEST_KEYBOARD_BLADE_STEALTH_VIDEOSWITCH,
-	.features = LITEST_KEYS,
-	.interface = NULL,
+TEST_DEVICE(LITEST_KEYBOARD_BLADE_STEALTH_VIDEOSWITCH,
+	    .features = LITEST_KEYS,
+	    .interface = NULL,
 
-	.name = "Razer Razer Blade Stealth",
-	.id = &input_id,
-	.events = events,
-)
+	    .name = "Razer Razer Blade Stealth",
+	    .id = &input_id,
+	    .events = events, )

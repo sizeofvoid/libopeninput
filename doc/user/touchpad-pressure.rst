@@ -56,4 +56,3 @@ these axes are supposed to be mapped, few devices forward reliable
 information. libinput uses these values together with a device-specific
 :ref:`device-quirks` entry. In other words, touch size detection does not work
 unless a device quirk is present for the device.
-

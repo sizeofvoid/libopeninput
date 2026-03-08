@@ -23,15 +23,18 @@
 
 #include "config.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <getopt.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 
+#include "util-mem.h"
+
+#include "builddir.h"
+#include "libinput-util.h"
 #include "quirks.h"
 #include "shared.h"
-#include "builddir.h"
 
 static bool verbose = false;
 
@@ -44,7 +47,7 @@ log_handler(struct libinput *this_is_null,
 {
 	FILE *out = stdout;
 	enum quirks_log_priorities p = (enum quirks_log_priorities)priority;
-	char buf[256] = {0};
+	char buf[256] = { 0 };
 	const char *prefix = NULL;
 
 	switch (p) {
@@ -94,13 +97,7 @@ simple_printf(void *userdata, const char *val)
 int
 main(int argc, char **argv)
 {
-	struct udev *udev = NULL;
-	struct udev_device *device = NULL;
-	const char *path;
-	const char *data_path = NULL,
-	           *override_file = NULL;
-	int rc = 1;
-	struct quirks_context *quirks;
+	const char *data_path = NULL, *override_file = NULL;
 	bool validate = false;
 
 	while (1) {
@@ -111,17 +108,17 @@ main(int argc, char **argv)
 			OPT_DATADIR,
 		};
 		static struct option opts[] = {
-			{ "help",     no_argument,       0, 'h' },
-			{ "verbose",  no_argument,       0, OPT_VERBOSE },
+			{ "help", no_argument, 0, 'h' },
+			{ "verbose", no_argument, 0, OPT_VERBOSE },
 			{ "data-dir", required_argument, 0, OPT_DATADIR },
-			{ 0, 0, 0, 0}
+			{ 0, 0, 0, 0 }
 		};
 
 		c = getopt_long(argc, argv, "h", opts, &option_index);
 		if (c == -1)
 			break;
 
-		switch(c) {
+		switch (c) {
 		case '?':
 			exit(1);
 			break;
@@ -137,46 +134,45 @@ main(int argc, char **argv)
 			break;
 		default:
 			usage();
-			return 1;
+			return EXIT_FAILURE;
 		}
 	}
 
 	if (optind >= argc) {
 		usage();
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	if (streq(argv[optind], "list")) {
 		optind++;
 		if (optind >= argc) {
 			usage();
-			return 1;
+			return EXIT_FAILURE;
 		}
 	} else if (streq(argv[optind], "validate")) {
 		optind++;
 		if (optind < argc) {
 			usage();
-			return 1;
+			return EXIT_FAILURE;
 		}
 		validate = true;
 	} else {
 		fprintf(stderr, "Unnkown action '%s'\n", argv[optind]);
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	/* Overriding the data dir means no custom override file */
 	if (!data_path) {
-		char *builddir = builddir_lookup();
-		if (builddir) {
+		if (builddir_lookup(NULL)) {
 			data_path = LIBINPUT_QUIRKS_SRCDIR;
-			free(builddir);
 		} else {
 			data_path = LIBINPUT_QUIRKS_DIR;
 			override_file = LIBINPUT_QUIRKS_OVERRIDE_FILE;
 		}
 	}
 
-	quirks = quirks_init_subsystem(data_path,
+	_unref_(quirks_context) *quirks =
+		quirks_init_subsystem(data_path,
 				      override_file,
 				      log_handler,
 				      NULL,
@@ -186,43 +182,34 @@ main(int argc, char **argv)
 			"Failed to initialize the device quirks. "
 			"Please see the above errors "
 			"and/or re-run with --verbose for more details\n");
-		return 1;
+		return EXIT_FAILURE;
 	}
 
-	if (validate) {
-		rc = 0;
-		goto out;
-	}
+	if (validate)
+		return EXIT_SUCCESS;
 
-	udev = udev_new();
+	_unref_(udev) *udev = udev_new();
 	if (!udev)
-		goto out;
+		return EXIT_FAILURE;
 
-	path = argv[optind];
-	if (strneq(path, "/sys/", 5)) {
+	_unref_(udev_device) *device = NULL;
+	const char *path = argv[optind];
+	if (strstartswith(path, "/sys/")) {
 		device = udev_device_new_from_syspath(udev, path);
 	} else {
 		struct stat st;
 		if (stat(path, &st) < 0) {
 			fprintf(stderr, "Error: %s: %m\n", path);
-			goto out;
+			return EXIT_FAILURE;
 		}
 
 		device = udev_device_new_from_devnum(udev, 'c', st.st_rdev);
 	}
 	if (device) {
 		tools_list_device_quirks(quirks, device, simple_printf, NULL);
-		rc = 0;
+		return EXIT_SUCCESS;
 	} else {
 		usage();
-		rc = 1;
+		return EXIT_FAILURE;
 	}
-
-	udev_device_unref(device);
-out:
-	udev_unref(udev);
-
-	quirks_context_unref(quirks);
-
-	return rc;
 }

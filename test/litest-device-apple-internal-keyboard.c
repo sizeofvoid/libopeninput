@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x273,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, KEY_ESC,
 	EV_KEY, KEY_1,
@@ -216,14 +217,13 @@ static int events[] = {
 	EV_LED, LED_KANA,
 	-1, -1
 };
+/* clang-format on */
 
-TEST_DEVICE("apple-keyboard",
-	.type = LITEST_APPLE_KEYBOARD,
-	.features = LITEST_KEYS,
-	.interface = NULL,
+TEST_DEVICE(LITEST_APPLE_KEYBOARD,
+	    .features = LITEST_KEYS,
+	    .interface = NULL,
 
-	.name = "Apple Inc. Apple Internal Keyboard / Trackpad",
-	.id = &input_id,
-	.events = events,
-	.absinfo = NULL,
-)
+	    .name = "Apple Inc. Apple Internal Keyboard / Trackpad",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = NULL, )

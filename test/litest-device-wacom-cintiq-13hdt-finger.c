@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
@@ -53,6 +53,7 @@ static struct litest_device_interface interface = {
 	.touch_move_events = move,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 2937, 0, 0, 10 },
 	{ ABS_Y, 0, 1652, 0, 0, 10 },
@@ -67,6 +68,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MISC, 0, 0, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -75,23 +77,23 @@ static struct input_id input_id = {
 	.version = 0x110,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOUCH,
 	INPUT_PROP_MAX, INPUT_PROP_DIRECT,
 	-1, -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("wacom-cintiq-13hdt-finger",
-	.type = LITEST_WACOM_CINTIQ_13HDT_FINGER,
-	.features = LITEST_TOUCH,
-	.interface = &interface,
+TEST_DEVICE(LITEST_WACOM_CINTIQ_13HDT_FINGER,
+	    .features = LITEST_TOUCH,
+	    .interface = &interface,
 
-	.name = "Wacom Cintiq 13 HD touch Finger",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.udev_properties = {
-		{ "LIBINPUT_DEVICE_GROUP", "wacom-13hdt-group" },
-		{ NULL },
-	},
-)
+	    .name = "Wacom Cintiq 13 HD touch Finger",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .udev_properties = {
+		    { "LIBINPUT_DEVICE_GROUP", "wacom-13hdt-group" },
+		    { NULL },
+	    }, )

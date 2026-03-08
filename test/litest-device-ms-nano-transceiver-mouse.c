@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x0800,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -45,14 +46,14 @@ static int events[] = {
 	EV_REL, REL_HWHEEL,
 	-1 , -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("ms-nano-mouse",
-	.type = LITEST_MS_NANO_TRANSCEIVER_MOUSE,
-	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL | LITEST_NO_DEBOUNCE,
-	.interface = NULL,
+TEST_DEVICE(LITEST_MS_NANO_TRANSCEIVER_MOUSE,
+	    .features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL |
+			LITEST_NO_DEBOUNCE,
+	    .interface = NULL,
 
-	.name = "Microsoft Microsoft® Nano Transceiver v2.0",
-	.id = &input_id,
-	.absinfo = NULL,
-	.events = events,
-)
+	    .name = "Microsoft Microsoft® Nano Transceiver v2.0",
+	    .id = &input_id,
+	    .absinfo = NULL,
+	    .events = events, )

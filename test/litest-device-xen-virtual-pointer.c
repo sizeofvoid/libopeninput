@@ -23,9 +23,10 @@
 
 #include "config.h"
 
-#include "litest.h"
-#include "litest-int.h"
 #include <assert.h>
+
+#include "litest-int.h"
+#include "litest.h"
 
 static bool
 touch_down(struct litest_device *d, unsigned int slot, double x, double y)
@@ -66,11 +67,13 @@ static struct litest_device_interface interface = {
 	.touch_up = touch_up,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 800, 0, 0, 0 },
 	{ ABS_Y, 0, 800, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x01,
@@ -78,6 +81,7 @@ static struct input_id input_id = {
 	.product = 0xfffe,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -90,14 +94,13 @@ static int events[] = {
 	EV_REL, REL_WHEEL,
 	-1, -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("xen-pointer",
-	.type = LITEST_XEN_VIRTUAL_POINTER,
-	.features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE,
-	.interface = &interface,
+TEST_DEVICE(LITEST_XEN_VIRTUAL_POINTER,
+	    .features = LITEST_WHEEL | LITEST_BUTTON | LITEST_ABSOLUTE,
+	    .interface = &interface,
 
-	.name = "Xen Virtual Pointer",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "Xen Virtual Pointer",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

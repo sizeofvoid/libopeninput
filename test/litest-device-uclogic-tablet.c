@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event proximity_in[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
@@ -72,19 +72,24 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 32767, 0, 0, 235 },
 	{ ABS_Y, 0, 32767, 0, 0, 323 },
 	{ ABS_PRESSURE, 0, 1023, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
+	/* Note: this VID/PID is shared with multiple devices, see the libwacom database
+	   for a list */
 	.vendor = 0x256c,
 	.product = 0x6e,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOUCH,
 	EV_KEY, BTN_STYLUS,
@@ -92,14 +97,13 @@ static int events[] = {
 	EV_MSC, MSC_SCAN,
 	-1, -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("uclogic-tablet",
-	.type = LITEST_UCLOGIC_TABLET,
-	.features = LITEST_TABLET | LITEST_HOVER | LITEST_FORCED_PROXOUT,
-	.interface = &interface,
+TEST_DEVICE(LITEST_UCLOGIC_TABLET,
+	    .features = LITEST_TABLET | LITEST_HOVER | LITEST_FORCED_PROXOUT,
+	    .interface = &interface,
 
-	.name = "uclogic PenTablet Pen",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "uclogic PenTablet Pen",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

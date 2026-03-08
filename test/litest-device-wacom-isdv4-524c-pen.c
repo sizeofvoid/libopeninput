@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 struct priv {
 	unsigned int tool;
@@ -48,6 +48,7 @@ static struct input_event proximity_in[] = {
 
 static struct input_event proximity_out[] = {
 	{ .type = EV_KEY, .code = LITEST_BTN_TOOL_AUTO, .value = 0 },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = 0 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
 };
@@ -74,10 +75,12 @@ get_axis_default(struct litest_device *d, unsigned int evcode, int32_t *value)
 	return 1;
 }
 
-static bool prox_in(struct litest_device *d,
-		  unsigned int tool_type,
-		  double *x, double *y,
-		  struct axis_replacement *axes)
+static bool
+prox_in(struct litest_device *d,
+	unsigned int tool_type,
+	double *x,
+	double *y,
+	struct axis_replacement *axes)
 {
 	struct priv *priv = d->private;
 	priv->tool = tool_type;
@@ -85,7 +88,8 @@ static bool prox_in(struct litest_device *d,
 	return false;
 }
 
-static bool prox_out(struct litest_device *d, unsigned int tool_type)
+static bool
+prox_out(struct litest_device *d, unsigned int tool_type)
 {
 	struct priv *priv = d->private;
 	priv->tool = 0;
@@ -94,18 +98,14 @@ static bool prox_out(struct litest_device *d, unsigned int tool_type)
 }
 
 static bool
-tip_down(struct litest_device *d,
-	 double *x, double *y,
-	 struct axis_replacement *axes)
+tip_down(struct litest_device *d, double *x, double *y, struct axis_replacement *axes)
 {
 	litest_event(d, EV_KEY, BTN_TOOL_PEN, 1);
 	return false; /* use the default behavior otherwise */
 }
 
 static bool
-tip_up(struct litest_device *d,
-	 double* x, double *y,
-	 struct axis_replacement *axes)
+tip_up(struct litest_device *d, double *x, double *y, struct axis_replacement *axes)
 {
 	struct priv *priv = d->private;
 	if (priv->tool != BTN_TOOL_PEN)
@@ -126,6 +126,7 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 30931, 0, 0, 100 },
 	{ ABS_Y, 0, 17399, 0, 0, 100 },
@@ -135,6 +136,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_PRESSURE, 0, 4095, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -142,6 +144,7 @@ static struct input_id input_id = {
 	.product = 0x524c,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOOL_PEN,
 	EV_KEY, BTN_TOOL_RUBBER,
@@ -151,15 +154,14 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_DIRECT,
 	-1, -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("wacom-isdv4-524c-tablet",
-	.type = LITEST_WACOM_ISDV4_524C_PEN,
-	.features = LITEST_TABLET|LITEST_HOVER,
-	.interface = &interface,
+TEST_DEVICE(LITEST_WACOM_ISDV4_524C_PEN,
+	    .features = LITEST_TABLET | LITEST_HOVER,
+	    .interface = &interface,
 
-	.name = "Wacom Co.,Ltd. Pen and multitouch sensor Stylus",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.create = create,
-)
+	    .name = "Wacom Co.,Ltd. Pen and multitouch sensor Stylus",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .create = create, )

@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x11,
@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x1,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_REL, REL_X,
 	EV_REL, REL_Y,
@@ -197,59 +198,56 @@ static int events[] = {
 
 	-1, -1,
 };
+/* clang-format on */
 
 static const char quirk_file[] =
-"[litest Quirked Keyboard enable buttons]\n"
-"MatchName=litest Quirked Keyboard\n"
-"AttrEventCode=+BTN_RIGHT;+BTN_MIDDLE;+EV_KEY:0x110\n" /* BTN_LEFT */
-"\n"
-"[litest Quirked Keyboard disable buttons]\n"
-"MatchName=litest Quirked Keyboard\n"
-"AttrEventCode=-BTN_MIDDLE;-BTN_RIGHT\n"
-"\n"
-"[litest Quirked Keyboard re-enable buttons]\n"
-"MatchName=litest Quirked Keyboard\n"
-"AttrEventCode=+BTN_RIGHT\n"
-"\n"
-"[litest Quirked keyboard disable F1-F3]\n"
-"MatchName=litest Quirked Keyboard\n"
-"AttrEventCode=-KEY_F1;-EV_KEY:0x3c;-KEY_F3\n"
-#if HAVE_LIBEVDEV_DISABLE_PROPERTY
-"\n"
-"[litest Quirked keyboard enable buttonpad]\n"
-"MatchName=litest Quirked Keyboard\n"
-"AttrInputProp=+INPUT_PROP_BUTTONPAD\n"
-"\n"
-"[litest Quirked keyboard disable pointingstick]\n"
-"MatchName=litest Quirked Keyboard\n"
-"AttrInputProp=-INPUT_PROP_POINTING_STICK\n"
-"\n"
-"[litest Quirked keyboard enable direct]\n"
-"MatchName=litest Quirked Keyboard\n"
-"AttrInputProp=+INPUT_PROP_DIRECT\n"
-"\n"
-"[litest Quirked keyboard disable direct]\n"
-"MatchName=litest Quirked Keyboard\n"
-"AttrInputProp=-INPUT_PROP_DIRECT\n"
-"\n"
-"[litest Quirked keyboard disable semi-mt]\n"
-"MatchName=litest Quirked Keyboard\n"
-"AttrInputProp=-INPUT_PROP_SEMI_MT\n"
-"\n"
-"[litest Quirked keyboard enable semi-mt]\n"
-"MatchName=litest Quirked Keyboard\n"
-"AttrInputProp=+INPUT_PROP_SEMI_MT\n"
-#endif
-;
+	"[litest Quirked Keyboard enable buttons]\n"
+	"MatchName=litest Quirked Keyboard\n"
+	"AttrEventCode=+BTN_RIGHT;+BTN_MIDDLE;+EV_KEY:0x110\n" /* BTN_LEFT */
+	"\n"
+	"[litest Quirked Keyboard disable buttons]\n"
+	"MatchName=litest Quirked Keyboard\n"
+	"AttrEventCode=-BTN_MIDDLE;-BTN_RIGHT\n"
+	"\n"
+	"[litest Quirked Keyboard re-enable buttons]\n"
+	"MatchName=litest Quirked Keyboard\n"
+	"AttrEventCode=+BTN_RIGHT\n"
+	"\n"
+	"[litest Quirked keyboard disable F1-F3]\n"
+	"MatchName=litest Quirked Keyboard\n"
+	"AttrEventCode=-KEY_F1;-EV_KEY:0x3c;-KEY_F3\n"
+	"\n"
+	"[litest Quirked keyboard enable buttonpad]\n"
+	"MatchName=litest Quirked Keyboard\n"
+	"AttrInputProp=+INPUT_PROP_BUTTONPAD\n"
+	"\n"
+	"[litest Quirked keyboard disable pointingstick]\n"
+	"MatchName=litest Quirked Keyboard\n"
+	"AttrInputProp=-INPUT_PROP_POINTING_STICK\n"
+	"\n"
+	"[litest Quirked keyboard enable direct]\n"
+	"MatchName=litest Quirked Keyboard\n"
+	"AttrInputProp=+INPUT_PROP_DIRECT\n"
+	"\n"
+	"[litest Quirked keyboard disable direct]\n"
+	"MatchName=litest Quirked Keyboard\n"
+	"AttrInputProp=-INPUT_PROP_DIRECT\n"
+	"\n"
+	"[litest Quirked keyboard disable semi-mt]\n"
+	"MatchName=litest Quirked Keyboard\n"
+	"AttrInputProp=-INPUT_PROP_SEMI_MT\n"
+	"\n"
+	"[litest Quirked keyboard enable semi-mt]\n"
+	"MatchName=litest Quirked Keyboard\n"
+	"AttrInputProp=+INPUT_PROP_SEMI_MT\n";
 
-TEST_DEVICE("keyboard-quirked",
-	.type = LITEST_KEYBOARD_QUIRKED,
-	.features = LITEST_KEYS | LITEST_IGNORED, /* Only use this keyboard in specific tests */
-	.interface = NULL,
+TEST_DEVICE(LITEST_KEYBOARD_QUIRKED,
+	    .features = LITEST_KEYS |
+			LITEST_IGNORED, /* Only use this keyboard in specific tests */
+	    .interface = NULL,
 
-	.name = "Quirked Keyboard",
-	.id = &input_id,
-	.events = events,
-	.absinfo = NULL,
-	.quirk_file = quirk_file,
-)
+	    .name = "Quirked Keyboard",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = NULL,
+	    .quirk_file = quirk_file, )

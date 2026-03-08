@@ -25,10 +25,11 @@
 
 #include "config.h"
 
+#include <libudev.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <libudev.h>
+#include "util-mem.h"
 
 #include "libinput.h"
 
@@ -41,6 +42,9 @@ struct quirks_context;
  * Contains all quirks set for a single device.
  */
 struct quirks;
+
+struct quirks *
+libinput_device_get_quirks(struct libinput_device *device);
 
 struct quirk_dimensions {
 	size_t x, y;
@@ -63,6 +67,8 @@ struct quirk_tuples {
  * Quirks known to libinput
  */
 enum quirk {
+	QUIRK_NONE = 0,
+
 	QUIRK_MODEL_ALPS_SERIAL_TOUCHPAD = 100,
 	QUIRK_MODEL_APPLE_TOUCHPAD,
 	QUIRK_MODEL_APPLE_TOUCHPAD_ONEBUTTON,
@@ -77,38 +83,40 @@ enum quirk {
 	QUIRK_MODEL_LENOVO_T450_TOUCHPAD,
 	QUIRK_MODEL_LENOVO_X1GEN6_TOUCHPAD,
 	QUIRK_MODEL_LENOVO_X230,
+	QUIRK_MODEL_PRESSURE_PAD,
+	QUIRK_MODEL_SCROLL_ON_MIDDLE_CLICK,
 	QUIRK_MODEL_SYNAPTICS_SERIAL_TOUCHPAD,
 	QUIRK_MODEL_SYSTEM76_BONOBO,
 	QUIRK_MODEL_SYSTEM76_GALAGO,
 	QUIRK_MODEL_SYSTEM76_KUDU,
 	QUIRK_MODEL_TABLET_MODE_NO_SUSPEND,
 	QUIRK_MODEL_TABLET_MODE_SWITCH_UNRELIABLE,
+	QUIRK_MODEL_TOUCHPAD_PHANTOM_CLICKS,
 	QUIRK_MODEL_TOUCHPAD_VISIBLE_MARKER,
 	QUIRK_MODEL_TRACKBALL,
 	QUIRK_MODEL_WACOM_TOUCHPAD,
-	QUIRK_MODEL_PRESSURE_PAD,
-	QUIRK_MODEL_TOUCHPAD_PHANTOM_CLICKS,
 
 	_QUIRK_LAST_MODEL_QUIRK_, /* Guard: do not modify */
 
 	QUIRK_ATTR_SIZE_HINT = 300,
-	QUIRK_ATTR_TOUCH_SIZE_RANGE,
-	QUIRK_ATTR_PALM_SIZE_THRESHOLD,
-	QUIRK_ATTR_LID_SWITCH_RELIABILITY,
-	QUIRK_ATTR_KEYBOARD_INTEGRATION,
-	QUIRK_ATTR_TRACKPOINT_INTEGRATION,
-	QUIRK_ATTR_TPKBCOMBO_LAYOUT,
-	QUIRK_ATTR_PRESSURE_RANGE,
-	QUIRK_ATTR_PALM_PRESSURE_THRESHOLD,
-	QUIRK_ATTR_RESOLUTION_HINT,
-	QUIRK_ATTR_TRACKPOINT_MULTIPLIER,
-	QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD,
-	QUIRK_ATTR_USE_VELOCITY_AVERAGING,
-	QUIRK_ATTR_TABLET_SMOOTHING,
-	QUIRK_ATTR_THUMB_SIZE_THRESHOLD,
-	QUIRK_ATTR_MSC_TIMESTAMP,
 	QUIRK_ATTR_EVENT_CODE,
 	QUIRK_ATTR_INPUT_PROP,
+	QUIRK_ATTR_IS_VIRTUAL,
+	QUIRK_ATTR_KEYBOARD_INTEGRATION,
+	QUIRK_ATTR_LID_SWITCH_RELIABILITY,
+	QUIRK_ATTR_MSC_TIMESTAMP,
+	QUIRK_ATTR_PALM_PRESSURE_THRESHOLD,
+	QUIRK_ATTR_PALM_SIZE_THRESHOLD,
+	QUIRK_ATTR_PRESSURE_RANGE,
+	QUIRK_ATTR_RESOLUTION_HINT,
+	QUIRK_ATTR_TABLET_SMOOTHING,
+	QUIRK_ATTR_THUMB_PRESSURE_THRESHOLD,
+	QUIRK_ATTR_THUMB_SIZE_THRESHOLD,
+	QUIRK_ATTR_TOUCH_SIZE_RANGE,
+	QUIRK_ATTR_TPKBCOMBO_LAYOUT,
+	QUIRK_ATTR_TRACKPOINT_INTEGRATION,
+	QUIRK_ATTR_TRACKPOINT_MULTIPLIER,
+	QUIRK_ATTR_USE_VELOCITY_AVERAGING,
 
 	_QUIRK_LAST_ATTR_QUIRK_, /* Guard: do not modify */
 };
@@ -117,7 +125,7 @@ enum quirk {
  * Returns a printable name for the quirk. This name is for developer
  * tools, not user consumption. Do not display this in a GUI.
  */
-const char*
+const char *
 quirk_get_name(enum quirk q);
 
 /**
@@ -178,6 +186,8 @@ quirks_init_subsystem(const char *data_path,
 struct quirks_context *
 quirks_context_unref(struct quirks_context *ctx);
 
+DEFINE_UNREF_CLEANUP_FUNC(quirks_context);
+
 struct quirks_context *
 quirks_context_ref(struct quirks_context *ctx);
 
@@ -188,8 +198,7 @@ quirks_context_ref(struct quirks_context *ctx);
  * @return A new quirks struct, use quirks_unref() to release
  */
 struct quirks *
-quirks_fetch_for_device(struct quirks_context *ctx,
-			struct udev_device *device);
+quirks_fetch_for_device(struct quirks_context *ctx, struct udev_device *device);
 
 /**
  * Reduce the refcount by one. When the refcount reaches zero, the
@@ -199,6 +208,8 @@ quirks_fetch_for_device(struct quirks_context *ctx,
  */
 struct quirks *
 quirks_unref(struct quirks *q);
+
+DEFINE_UNREF_CLEANUP_FUNC(quirks);
 
 /**
  * Returns true if the given quirk applies is in this quirk list.
@@ -215,9 +226,7 @@ quirks_has_quirk(struct quirks *q, enum quirk which);
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_uint32(struct quirks *q,
-		  enum quirk which,
-		  uint32_t *val);
+quirks_get_uint32(struct quirks *q, enum quirk which, uint32_t *val);
 
 /**
  * Get the value of the given quirk, as signed integer.
@@ -228,9 +237,7 @@ quirks_get_uint32(struct quirks *q,
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_int32(struct quirks *q,
-		 enum quirk which,
-		 int32_t *val);
+quirks_get_int32(struct quirks *q, enum quirk which, int32_t *val);
 
 /**
  * Get the value of the given quirk, as double.
@@ -241,9 +248,7 @@ quirks_get_int32(struct quirks *q,
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_double(struct quirks *q,
-		  enum quirk which,
-		  double *val);
+quirks_get_double(struct quirks *q, enum quirk which, double *val);
 
 /**
  * Get the value of the given quirk, as string.
@@ -257,9 +262,7 @@ quirks_get_double(struct quirks *q,
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_string(struct quirks *q,
-		  enum quirk which,
-		  char **val);
+quirks_get_string(struct quirks *q, enum quirk which, char **val);
 
 /**
  * Get the value of the given quirk, as bool.
@@ -270,9 +273,7 @@ quirks_get_string(struct quirks *q,
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_bool(struct quirks *q,
-		enum quirk which,
-		bool *val);
+quirks_get_bool(struct quirks *q, enum quirk which, bool *val);
 
 /**
  * Get the value of the given quirk, as dimension.
@@ -283,9 +284,7 @@ quirks_get_bool(struct quirks *q,
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_dimensions(struct quirks *q,
-		      enum quirk which,
-		      struct quirk_dimensions *val);
+quirks_get_dimensions(struct quirks *q, enum quirk which, struct quirk_dimensions *val);
 
 /**
  * Get the value of the given quirk, as range.
@@ -296,9 +295,7 @@ quirks_get_dimensions(struct quirks *q,
  * @return true if the quirk value is valid, false otherwise.
  */
 bool
-quirks_get_range(struct quirks *q,
-		 enum quirk which,
-		 struct quirk_range *val);
+quirks_get_range(struct quirks *q, enum quirk which, struct quirk_range *val);
 
 /**
  * Get the tuples of the given quirk.

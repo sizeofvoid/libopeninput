@@ -41,5 +41,7 @@ struct ratelimit {
 	unsigned int num;
 };
 
-void ratelimit_init(struct ratelimit *r, uint64_t ival_us, unsigned int burst);
-enum ratelimit_state ratelimit_test(struct ratelimit *r);
+void
+ratelimit_init(struct ratelimit *r, uint64_t ival_us, unsigned int burst);
+enum ratelimit_state
+ratelimit_test(struct ratelimit *r);

@@ -24,13 +24,19 @@
 #ifndef _SHARED_H_
 #define _SHARED_H_
 
-#include <stdbool.h>
-#include <limits.h>
+#include "config.h"
 
-#include <quirks.h>
+#include <getopt.h>
 #include <libinput.h>
+#include <limits.h>
+#include <quirks.h>
+#include <stdbool.h>
+
+#include "util-strings.h"
 
 #define EXIT_INVALID_USAGE 2
+
+extern uint32_t log_serial;
 
 enum configuration_options {
 	OPT_TAP_ENABLE = 256,
@@ -66,15 +72,25 @@ enum configuration_options {
 	OPT_ROTATION_ANGLE,
 	OPT_PRESSURE_RANGE,
 	OPT_CALIBRATION,
+	OPT_AREA,
+	OPT_3FG_DRAG,
+	OPT_SENDEVENTS,
+	OPT_ERASER_BUTTON_MODE,
+	OPT_ERASER_BUTTON_BUTTON,
+	OPT_PLUGINS_DISABLE,
+	OPT_PLUGINS_ENABLE,
+	OPT_PLUGIN_PATH,
 };
 
 #define CONFIGURATION_OPTIONS \
 	{ "disable-sendevents",        required_argument, 0, OPT_DISABLE_SENDEVENTS }, \
+	{ "enable-plugins",            no_argument,       0, OPT_PLUGINS_ENABLE }, \
+	{ "disable-plugins",           no_argument,       0, OPT_PLUGINS_DISABLE }, \
 	{ "enable-tap",                no_argument,       0, OPT_TAP_ENABLE }, \
 	{ "disable-tap",               no_argument,       0, OPT_TAP_DISABLE }, \
 	{ "enable-drag",               no_argument,       0, OPT_DRAG_ENABLE }, \
 	{ "disable-drag",              no_argument,       0, OPT_DRAG_DISABLE }, \
-	{ "enable-drag-lock",          no_argument,       0, OPT_DRAG_LOCK_ENABLE }, \
+	{ "enable-drag-lock",          optional_argument, 0, OPT_DRAG_LOCK_ENABLE }, \
 	{ "disable-drag-lock",         no_argument,       0, OPT_DRAG_LOCK_DISABLE }, \
 	{ "enable-natural-scrolling",  no_argument,       0, OPT_NATURAL_SCROLL_ENABLE }, \
 	{ "disable-natural-scrolling", no_argument,       0, OPT_NATURAL_SCROLL_DISABLE }, \
@@ -88,6 +104,7 @@ enum configuration_options {
 	{ "disable-dwtp",              no_argument,       0, OPT_DWTP_DISABLE }, \
 	{ "enable-scroll-button-lock", no_argument,       0, OPT_SCROLL_BUTTON_LOCK_ENABLE }, \
 	{ "disable-scroll-button-lock",no_argument,       0, OPT_SCROLL_BUTTON_LOCK_DISABLE }, \
+	{ "enable-3fg-drag",           required_argument, 0, OPT_3FG_DRAG }, \
 	{ "set-click-method",          required_argument, 0, OPT_CLICK_METHOD }, \
 	{ "set-clickfinger-map",       required_argument, 0, OPT_CLICKFINGER_MAP }, \
 	{ "set-scroll-method",         required_argument, 0, OPT_SCROLL_METHOD }, \
@@ -95,22 +112,46 @@ enum configuration_options {
 	{ "set-profile",               required_argument, 0, OPT_PROFILE }, \
 	{ "set-tap-map",               required_argument, 0, OPT_TAP_MAP }, \
 	{ "set-speed",                 required_argument, 0, OPT_SPEED },\
+	{ "set-sendevents",            required_argument, 0, OPT_SENDEVENTS },\
 	{ "apply-to",                  required_argument, 0, OPT_APPLY_TO },\
 	{ "set-custom-points",         required_argument, 0, OPT_CUSTOM_POINTS },\
 	{ "set-custom-step",           required_argument, 0, OPT_CUSTOM_STEP },\
 	{ "set-custom-type",           required_argument, 0, OPT_CUSTOM_TYPE },\
 	{ "set-rotation-angle",        required_argument, 0, OPT_ROTATION_ANGLE }, \
 	{ "set-pressure-range",        required_argument, 0, OPT_PRESSURE_RANGE }, \
-	{ "set-calibration",           required_argument, 0, OPT_CALIBRATION }
+	{ "set-calibration",           required_argument, 0, OPT_CALIBRATION }, \
+	{ "set-area",                  required_argument, 0, OPT_AREA }, \
+	{ "set-eraser-button-mode",    required_argument, 0, OPT_ERASER_BUTTON_MODE }, \
+	{ "set-eraser-button-button",  required_argument, 0, OPT_ERASER_BUTTON_BUTTON },\
+	{ "set-plugin-path",	       required_argument, 0, OPT_PLUGIN_PATH }
 
-enum tools_backend {
-	BACKEND_NONE,
-	BACKEND_DEVICE,
-	BACKEND_UDEV
-};
+/* Note: New arguments should be added to shell completions */
+
+static inline void
+tools_print_usage_option_list(struct option *opts)
+{
+	printf("Options:\n");
+
+	struct option *o = opts;
+	while (o && o->name) {
+		if (strstartswith(o->name, "enable-") &&
+		    strstartswith((o + 1)->name, "disable-")) {
+			printf("   --%s/--%s\n", o->name, (o + 1)->name);
+			o++;
+		} else {
+			printf("   --%s\n", o->name);
+		}
+		o++;
+	}
+}
+
+enum tools_backend { BACKEND_NONE, BACKEND_DEVICE, BACKEND_UDEV };
 
 struct tools_options {
 	char match[256];
+
+	int plugins;
+	char **plugin_paths;
 
 	int tapping;
 	int drag;
@@ -136,24 +177,37 @@ struct tools_options {
 	unsigned int angle;
 	double pressure_range[2];
 	float calibration[6];
+	struct libinput_config_area_rectangle area;
+	enum libinput_config_3fg_drag_state drag_3fg;
+	enum libinput_config_send_events_mode sendevents;
+	enum libinput_config_eraser_button_mode eraser_button_mode;
+	unsigned int eraser_button_button;
 };
 
-void tools_init_options(struct tools_options *options);
-int tools_parse_option(int option,
-		       const char *optarg,
-		       struct tools_options *options);
-struct libinput* tools_open_backend(enum tools_backend which,
-				    const char **seat_or_devices,
-				    bool verbose,
-				    bool *grab);
-void tools_device_apply_config(struct libinput_device *device,
+void
+tools_init_options(struct tools_options *options);
+int
+tools_parse_option(int option, const char *optarg, struct tools_options *options);
+struct libinput *
+tools_open_backend(enum tools_backend which,
+		   const char **seat_or_devices,
+		   bool verbose,
+		   bool *grab,
+		   bool with_plugins,
+		   char **plugin_paths);
+void
+tools_device_apply_config(struct libinput_device *device,
+			  struct tools_options *options);
+void
+tools_tablet_tool_apply_config(struct libinput_tablet_tool *tool,
 			       struct tools_options *options);
-void tools_tablet_tool_apply_config(struct libinput_tablet_tool *tool,
-				    struct tools_options *options);
-int tools_exec_command(const char *prefix, int argc, char **argv);
+int
+tools_exec_command(const char *prefix, int argc, char **argv);
 
-bool find_touchpad_device(char *path, size_t path_len);
-bool is_touchpad_device(const char *devnode);
+bool
+find_touchpad_device(char *path, size_t path_len);
+bool
+is_touchpad_device(const char *devnode);
 
 void
 tools_list_device_quirks(struct quirks_context *ctx,

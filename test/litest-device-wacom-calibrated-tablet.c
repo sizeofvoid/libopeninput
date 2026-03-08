@@ -23,13 +23,11 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static bool
-inverter(struct litest_device *dev,
-		 double *x, double *y,
-		 struct axis_replacement *axes)
+inverter(struct litest_device *dev, double *x, double *y, struct axis_replacement *axes)
 {
 	/* Input data is in percent (0-100), so let's swap x and y around.
 	 * With our matrix this should be undone by libinput later
@@ -44,7 +42,8 @@ inverter(struct litest_device *dev,
 static bool
 proximity_in_handler(struct litest_device *dev,
 		     unsigned int tool_type,
-		     double *x, double *y,
+		     double *x,
+		     double *y,
 		     struct axis_replacement *axes)
 {
 	/* let the generic code handle the event */
@@ -63,6 +62,7 @@ static struct input_event proximity_in[] = {
 static struct input_event proximity_out[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = 0 },
 	{ .type = EV_ABS, .code = ABS_Y, .value = 0 },
+	{ .type = EV_ABS, .code = ABS_PRESSURE, .value = 0 },
 	{ .type = EV_KEY, .code = LITEST_BTN_TOOL_AUTO, .value = 0 },
 	{ .type = EV_SYN, .code = SYN_REPORT, .value = 0 },
 	{ .type = -1, .code = -1 },
@@ -100,12 +100,14 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 29476, 4, 0, 100 },
 	{ ABS_Y, 0, 16624, 4, 0, 100 },
 	{ ABS_PRESSURE, 0, 1023, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -114,6 +116,7 @@ static struct input_id input_id = {
 	.version = 0x111,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOOL_PEN,
 	EV_KEY, BTN_TOOL_RUBBER,
@@ -123,18 +126,17 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_DIRECT,
 	-1, -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("wacom-calibrated-tablet",
-	.type = LITEST_WACOM_CALIBRATED_TABLET,
-	.features = LITEST_TABLET|LITEST_PRECALIBRATED,
-	.interface = &interface,
+TEST_DEVICE(LITEST_WACOM_CALIBRATED_TABLET_PEN,
+	    .features = LITEST_TABLET | LITEST_PRECALIBRATED,
+	    .interface = &interface,
 
-	.name = "Wacom MultiTouch Sensor Pen",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.udev_properties = {
-	{ "LIBINPUT_CALIBRATION_MATRIX", "-1 0 1 0 -1 1" },
-	{ NULL }
-	},
-)
+	    .name = "Wacom MultiTouch Sensor Pen",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .udev_properties = {
+		    { "LIBINPUT_CALIBRATION_MATRIX", "-1 0 1 0 -1 1" },
+		    { NULL },
+	    }, )

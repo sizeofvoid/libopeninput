@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 /* Recording from https://bugs.freedesktop.org/show_bug.cgi?id=102039
  * This is the 'normal keyboard' of 2 devices exported by this keyboard.
@@ -36,6 +36,7 @@ static struct input_id input_id = {
 	.product = 0x220,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_REL, REL_HWHEEL,
 	EV_KEY, BTN_0,
@@ -297,7 +298,9 @@ static int events[] = {
 	EV_MSC, MSC_SCAN,
 	-1 , -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_VOLUME, 0, 572, 0, 0, 0 },
 	{ ABS_MISC, 0, 255, 0, 0, 0 },
@@ -307,7 +310,10 @@ static struct input_absinfo absinfo[] = {
 	{ 0x2c, 0, 255, 0, 0, 0 },
 	{ 0x2d, 0, 255, 0, 0, 0 },
 	{ 0x2e, 0, 255, 0, 0, 0 },
-	{ 0x2f, 0, 255, 0, 0, 0 },
+	/* Note: slot count artificially reduced for kernel
+	 * commit 206f533a0a7c ("Input: uinput - reject requests with unreasonable number of slots")
+	 */
+	{ 0x2f, 0, 64, 0, 0, 0 },
 	{ 0x30, 0, 255, 0, 0, 0 },
 	{ 0x31, 0, 255, 0, 0, 0 },
 	{ 0x32, 0, 255, 0, 0, 0 },
@@ -326,14 +332,13 @@ static struct input_absinfo absinfo[] = {
 	{ 0x3f, 0, 255, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
-TEST_DEVICE("blade-stealth",
-	.type = LITEST_KEYBOARD_BLADE_STEALTH,
-	.features = LITEST_KEYS | LITEST_WHEEL,
-	.interface = NULL,
+TEST_DEVICE(LITEST_KEYBOARD_BLADE_STEALTH,
+	    .features = LITEST_KEYS | LITEST_WHEEL,
+	    .interface = NULL,
 
-	.name = "Razer Razer Blade Stealth",
-	.id = &input_id,
-	.absinfo = absinfo,
-	.events = events,
-)
+	    .name = "Razer Razer Blade Stealth",
+	    .id = &input_id,
+	    .absinfo = absinfo,
+	    .events = events, )

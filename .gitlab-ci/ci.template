@@ -36,7 +36,7 @@
 # <distribution>:<version>@activity:
 #  e.g. fedora:31@build-default
 
-.templates_sha: &template_sha dd90ac0d7a03b574eb4f18d7358083f0c97825f3
+.templates_sha: &template_sha c6aeb16f86e32525fa630fb99c66c4f3e62fc3cb
 
 include:
   - project: 'freedesktop/ci-templates'
@@ -50,9 +50,24 @@ include:
 
 workflow:
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+    # do not duplicate pipelines on merge pipelines
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"
       when: never
+    # merge pipeline
+    - if: &is-merge-attempt $GITLAB_USER_LOGIN == "marge-bot" && $CI_PIPELINE_SOURCE == "merge_request_event"
+      variables:
+        FDO_RUNNER_JOB_PRIORITY_TAG_X86_64: priority:high
+        FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM: priority:high-kvm
+        FDO_RUNNER_JOB_PRIORITY_TAG_AARCH64: priority:high-aarch64
+    # post-merge pipeline
+    - if: &is-post-merge $GITLAB_USER_LOGIN == "marge-bot" && $CI_PIPELINE_SOURCE == "push"
+      variables:
+        FDO_RUNNER_JOB_PRIORITY_TAG_X86_64: priority:high
+        FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM: priority:high-kvm
+        FDO_RUNNER_JOB_PRIORITY_TAG_AARCH64: priority:high-aarch64
+    # Pre-merge pipeline
+    - if: &is-pre-merge $CI_PIPELINE_SOURCE == "merge_request_event"
+    # Push to a branch on a fork
     - if: $CI_COMMIT_BRANCH
 
 stages:
@@ -75,7 +90,7 @@ variables:
   # distribution                                                                #
   #                                                                             #
   # See the documentation here:                                                 #
-  # https://wayland.freedesktop.org/libinput/doc/latest/building_libinput.html  #
+  # https://wayland.freedesktop.org/libinput/doc/latest/building.html           #
   ###############################################################################
 {% for distro in distributions %}
   {{"%-17s" | format(distro.name.upper() + '_PACKAGES:')}} '{{ distro.packages|join(' ')}}'
@@ -101,9 +116,24 @@ variables:
   UDEV_NOT_AVAILABLE: 1
   GIT_DEPTH: 1
 
+  # Default priority for non-merge pipelines
+  FDO_RUNNER_JOB_PRIORITY_TAG_X86_64: ""  # Empty tags are ignored by gitlab
+  FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM: kvm
+  FDO_RUNNER_JOB_PRIORITY_TAG_AARCH64: aarch64
+
 .policy:
   retry:
     max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+  # cancel run when a newer version is pushed to the branch
+  interruptible: true
+  dependencies: []
+
+.policy-retry-on-failure:
+  retry:
+    max: 1
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
@@ -118,8 +148,13 @@ variables:
     expire_in: 1 week
     paths:
       - $MESON_BUILDDIR/meson-logs
+      - $MESON_BUILDDIR/valgrind.*.log
     reports:
       junit: $MESON_BUILDDIR/*junit*.xml
+
+.fdo-runner-tags:
+  tags:
+    - $FDO_RUNNER_JOB_PRIORITY_TAG_X86_64
 
 
 #################################################################
@@ -129,6 +164,8 @@ variables:
 #################################################################
 
 fail-if-fork-is-not-public:
+  extends:
+    - .fdo-runner-tags
   stage: sanity check
   script:
     - |
@@ -149,6 +186,7 @@ fail-if-fork-is-not-public:
 check-ci-script:
   extends:
     - .fdo.ci-fairy
+    - .fdo-runner-tags
   stage: sanity check
   script:
     - ci-fairy generate-template --verify && exit 0 || true
@@ -165,6 +203,7 @@ check-ci-script:
 check-commit:
   extends:
     - .fdo.ci-fairy
+    - .fdo-runner-tags
   stage: sanity check
   script:
     - ci-fairy -vv check-commits --junit-xml=results.xml && exit 0 || true
@@ -189,20 +228,26 @@ check-commit:
 check-whitespace:
   extends:
     - .fdo.ci-fairy
+    - .fdo-runner-tags
   stage: sanity check
   script:
-    # remove trailing whitespaces
-    - sed -i 's/ *$//' $(git ls-files)
-    - git diff --exit-code || (echo "ERROR - Trailing whitespaces in patchset, please fix" && false)
-    - sed -i 's/\t*$//' $(git ls-files)
-    - git diff --exit-code || (echo "ERROR - Trailing tabs in patchset, please fix" && false)
-    # search for tab after space
-    - sed -i 's/ \t//' $(git ls-files)
-    - git diff --exit-code || (echo "ERROR - Tab after space in patchset, please fix" && false)
-    # search for duplicated empty lines
-    - sed -i '/^$/N;/^\n$/D' $(git ls-files src/*.{h,c} tools/*.{h,c} udev/*.c)
-    - git diff --exit-code || (echo "ERROR - Duplicated empty lines, please fix" && false)
+    - .gitlab-ci/whitespace-check.py $(git ls-files)
 
+#
+# pre-commit hooks
+#
+
+pre-commit-hooks:
+  extends:
+    - .fdo.ci-fairy
+    - .fdo-runner-tags
+  stage: sanity check
+  script:
+    - python3 -m venv venv
+    - source venv/bin/activate
+    - pip3 install pre-commit
+    - pre-commit run --all-files
+    - git diff --exit-code || (echo "ERROR - Code style errors found, please fix" && false)
 
 #################################################################
 #                                                               #
@@ -220,9 +265,10 @@ check-whitespace:
     - .fdo.container-build@{{distro.name}}
 {% endif %}
     - .policy
+    - .fdo-runner-tags
 {% if distro.qemu_based %}
   tags:
-    - kvm
+    - $FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM
 {% endif %}
   stage: prep
   variables:
@@ -251,6 +297,7 @@ check-whitespace:
   extends:
     - .policy
     - .fdo.ci-fairy
+    - .fdo-runner-tags
   stage: container_clean
   script:
     # Go to your Profile, Settings, Access Tokens
@@ -290,33 +337,40 @@ check-whitespace:
   extends:
     - .policy
     - .default_artifacts
+    - .fdo-runner-tags
   stage: build
   script:
     - .gitlab-ci/meson-build.sh
 
 
 # Run meson and meson test in the container image through qemu
-.build-in-b2c@template:
+.build-in-vng@template:
   extends:
     - .policy
     - .default_artifacts
   tags:
-    - kvm
+    - $FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM
   variables:
     MESON_BUILDDIR: build_dir
-    B2C_KERNEL: {{ b2c.kernel }}
-    B2C_IMAGE: $FDO_DISTRIBUTION_IMAGE
-    B2C_COMMAND: .gitlab-ci/start-in-systemd.sh
+    VNG_KERNEL: {{ vng.kernel }}
   script:
     # first build in the host container
     - .gitlab-ci/meson-build.sh --skip-test
 
-    # pull b2c
-    - curl -L -o /app/boot2container https://gitlab.freedesktop.org/gfx-ci/boot2container/-/raw/{{b2c.version}}/vm2c.py
-    - chmod +x /app/boot2container
+    - mkdir -p $MESON_BUILDDIR
+    - curl -LO $VNG_KERNEL
+
+    - export -p > .vngenv
 
     # runs the test suite only
-    - /app/boot2container
+    - |
+      vng --run ./bzImage \
+          --user root \
+          --overlay-rwdir=$HOME \
+          --append HOME=$HOME \
+          --overlay-rwdir=$(pwd) \
+          --rwdir=$MESON_BUILDDIR \
+          --exec "source $PWD/.vngenv; rm $PWD/.vngenv; .gitlab-ci/meson-build.sh --skip-setup --skip-build --run-test"
 
 #
 # Fedora
@@ -335,7 +389,7 @@ check-whitespace:
   extends:
     - .policy
   tags:
-    - kvm
+    - $FDO_RUNNER_JOB_PRIORITY_TAG_X86_64_KVM
   variables:
     MESON_BUILDDIR: build_dir
   script:
@@ -381,16 +435,16 @@ check-whitespace:
 # Set one or the other, not both.
 .test-suite-vm:
   extends:
-    - .build-in-b2c@template
+    - .build-in-vng@template
   stage: test-suite
   variables:
     # remove the global --no-suite=hardware
     MESON_TEST_ARGS: ''
+    LITEST_JOBS: 4
   before_script:
     - if ! [[ -z $SUITE_NAMES ]]; then SUITES=$(echo $SUITE_NAMES | sed 's/\([^ ]*\)/libinput-test-suite-\1/g'); fi
     - echo "Testing $SUITES"
     - export MESON_TEST_ARGS="$MESON_TEST_ARGS $SUITES"
-    - export LITEST_JOBS="2"
 
 
 {# qemu tests are only done for the latest version of any distribution #}
@@ -428,11 +482,17 @@ vm-valgrind-{{suite.name}}:
   stage: valgrind
   extends:
     - vm-{{suite.name}}
+    - .policy-retry-on-failure
   variables:
     MESON_TEST_ARGS: '--setup=valgrind'
-    LITEST_JOBS: 4
+    LITEST_JOBS: 0
+  retry:
+    max: 2
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
 
 {% endfor %}
+
 {% endfor %}{# for if distro.use_for_qemu_tests #}
 
 {% for distro in distributions if distro.use_for_custom_build_tests %}
@@ -455,18 +515,16 @@ default-build-release@{{distro.name}}:{{version}}:
     MESON_ARGS: "-Dbuildtype=release"
     CFLAGS: "-Werror"
 
-scan-build@{{distro.name}}:{{version}}:
+clang-tidy@{{distro.name}}:{{version}}:
   extends:
     - .{{distro.name}}-build@template
   variables:
     NINJA_ARGS: ''
     MESON_TEST_ARGS: ''
+    CC: 'clang'
   script:
     - .gitlab-ci/meson-build.sh
-    - export SCANBUILD="$PWD/.gitlab-ci/scanbuild-wrapper.sh"
-    - ninja -C "$MESON_BUILDDIR" scan-build
-  after_script:
-    - .gitlab-ci/scanbuild-plist-to-junit.py "$MESON_BUILDDIR"/meson-logs/scanbuild/ > "$MESON_BUILDDIR"/junit-scan-build.xml
+    - ninja -C "$MESON_BUILDDIR" clang-tidy
 
 # Below jobs are build option combinations. We only
 # run them on one image, they shouldn't fail on one distro
@@ -485,6 +543,34 @@ build-no-libwacom-nodeps@{{distro.name}}:{{version}}:
     MESON_ARGS: "-Dlibwacom=false"
   before_script:
     - dnf remove -y libwacom libwacom-devel
+
+build-no-mtdev@{{distro.name}}:{{version}}:
+  extends:
+    - .{{distro.name}}-build@template
+  variables:
+    MESON_ARGS: "-Dmtdev=false"
+
+build-no-mtdev-nodeps@{{distro.name}}:{{version}}:
+  extends:
+    - .{{distro.name}}-build@template
+  variables:
+    MESON_ARGS: "-Dmtdev=false"
+  before_script:
+    - dnf remove -y mtdev mtdev-devel
+
+build-no-lua@{{distro.name}}:{{version}}:
+  extends:
+    - .{{distro.name}}-build@template
+  variables:
+    MESON_ARGS: "-Dlua-plugins=disabled"
+
+build-no-lua-nodeps@{{distro.name}}:{{version}}:
+  extends:
+    - .{{distro.name}}-build@template
+  variables:
+    MESON_ARGS: "-Dlua-plugins=disabled"
+  before_script:
+    - dnf remove -y lua lua-devel
 
 build-docs@{{distro.name}}:{{version}}:
   extends:
@@ -546,13 +632,6 @@ usr-bin-env-python@{{distro.name}}:{{version}}:
         /bin/false
       fi
 
-python-format@{{distro.name}}:{{version}}:
-  extends:
-    - .{{distro.name}}-build@template
-  script:
-    - black $(git grep -l '^#!/usr/bin/env python3')
-    - git diff --exit-code || (echo "Please run Black against all Python files" && false)
-
 # A job to check we're actually running all test suites in the CI
 check-test-suites:
   extends:
@@ -593,6 +672,7 @@ coverity:
   extends:
     - .fdo.distribution-image@debian
     - .policy
+    - .fdo-runner-tags
   stage: build
   variables:
     FDO_DISTRIBUTION_VERSION: 'stable'
@@ -681,32 +761,13 @@ coverity:
 #                                                               #
 #################################################################
 
-#
-# Verify that the merge request has the allow-collaboration checkbox ticked
-#
-
-check-merge-request:
-  extends:
-    - .fdo.ci-fairy
-    - .policy
-  stage: deploy
-  script:
-    - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
-  artifacts:
-    when: on_failure
-    reports:
-      junit: results.xml
-  allow_failure: true
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-
-
 {% for distro in distributions if distro.name == "fedora" %}
 {% set version = "{}".format(distro.versions|last()) %}
 build rpm:
   extends:
     - .fdo.distribution-image@fedora
     - .policy
+    - .fdo-runner-tags
   stage: deploy
   variables:
     FDO_DISTRIBUTION_VERSION: '{{version}}'
@@ -731,14 +792,12 @@ build rpm:
 wayland-web:
   stage: deploy
   trigger: wayland/wayland.freedesktop.org
-  except:
-    refs:
-      - schedules
   variables:
     MESON_ARGS: '-Ddocumentation=true -Ddebug-gui=false -Dlibwacom=false -Dtests=false'
     MESON_BUILDDIR: 'builddir'
-  only:
-    refs:
-      - main
-    variables:
-      - $CI_PROJECT_PATH == "libinput/libinput"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: '$CI_COMMIT_BRANCH == "main" && $GITLAB_USER_LOGIN != "marge-bot" && $CI_PROJECT_PATH == $FDO_UPSTREAM_REPO'
+      when: on_success
+    - when: never

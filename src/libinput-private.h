@@ -31,18 +31,80 @@
 #include <math.h>
 #include <stdarg.h>
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
 #endif
 
-#include "linux/input.h"
+#include "util-bits.h"
+#include "util-newtype.h"
 
-#include "libinput.h"
+#include "libinput-log.h"
+#if !defined(__OpenBSD__) && !defined(__NetBSD__)
+#include "libinput-plugin-system.h"
+#else
+#include "libinput-feature.h"
+#endif
 #include "libinput-private-config.h"
 #include "libinput-util.h"
 #include "libinput-version.h"
+#include "libinput.h"
+#include "linux/input.h"
+#include "quirks.h"
 
 struct libinput_source;
+
+/* The tablet tool pressure offset */
+DECLARE_NEWTYPE(pressure_offset, double);
+
+/**
+ * A numeric button such as used by the tablet pad
+ */
+DECLARE_NEWTYPE(pad_button, uint32_t);
+
+/**
+ * An evdev button code
+ */
+DECLARE_NEWTYPE(button_code, uint32_t);
+
+/**
+ * An evdev key code
+ */
+DECLARE_NEWTYPE(keycode, uint32_t);
+
+static inline pressure_offset_t
+pressure_offset_from_range(double min, double max, double value)
+{
+	return pressure_offset_from_double((value - min) / (max - min));
+}
+
+static inline pressure_offset_t
+pressure_offset_from_hundred(double hundred)
+{
+	assert(hundred >= 0);
+	assert(hundred <= 100);
+	return pressure_offset_from_double(hundred / 100);
+}
+
+static inline double
+pressure_offset_to_hundred(pressure_offset_t pressure_offset)
+{
+	return pressure_offset_as_double(pressure_offset) * 100;
+}
+
+static inline pressure_offset_t
+pressure_offset_from_absinfo(const struct input_absinfo *abs, int value)
+{
+	return pressure_offset_from_range(abs->minimum, abs->maximum, value);
+}
+
+static inline int
+pressure_offset_to_absinfo(pressure_offset_t pressure_offset,
+			   const struct input_absinfo *abs)
+{
+	return (abs->maximum - abs->minimum) *
+		       pressure_offset_as_double(pressure_offset) +
+	       abs->minimum;
+}
 
 /* A coordinate pair in device coordinates */
 struct device_coords {
@@ -169,7 +231,12 @@ struct libinput {
 	bool quirks_initialized;
 	struct quirks_context *quirks;
 
-#if HAVE_LIBWACOM
+
+#if !defined(__OpenBSD__) && !defined(__NetBSD__)
+	struct libinput_plugin_system plugin_system;
+#endif
+
+#ifdef HAVE_LIBWACOM
 	struct {
 		WacomDeviceDatabase *db;
 		size_t refcount;
@@ -177,7 +244,7 @@ struct libinput {
 #endif
 };
 
-typedef void (*libinput_seat_destroy_func) (struct libinput_seat *seat);
+typedef void (*libinput_seat_destroy_func)(struct libinput_seat *seat);
 
 struct libinput_seat {
 	struct libinput *libinput;
@@ -197,43 +264,74 @@ struct libinput_seat {
 
 struct libinput_device_config_tap {
 	int (*count)(struct libinput_device *device);
-	enum libinput_config_status (*set_enabled)(struct libinput_device *device,
-						   enum libinput_config_tap_state enable);
+	enum libinput_config_status (*set_enabled)(
+		struct libinput_device *device,
+		enum libinput_config_tap_state enable);
 	enum libinput_config_tap_state (*get_enabled)(struct libinput_device *device);
 	enum libinput_config_tap_state (*get_default)(struct libinput_device *device);
 
 	enum libinput_config_status (*set_map)(struct libinput_device *device,
-						   enum libinput_config_tap_button_map map);
+					       enum libinput_config_tap_button_map map);
 	enum libinput_config_tap_button_map (*get_map)(struct libinput_device *device);
-	enum libinput_config_tap_button_map (*get_default_map)(struct libinput_device *device);
+	enum libinput_config_tap_button_map (*get_default_map)(
+		struct libinput_device *device);
 
-	enum libinput_config_status (*set_drag_enabled)(struct libinput_device *device,
-							enum libinput_config_drag_state);
-	enum libinput_config_drag_state (*get_drag_enabled)(struct libinput_device *device);
-	enum libinput_config_drag_state (*get_default_drag_enabled)(struct libinput_device *device);
+	enum libinput_config_status (*set_drag_enabled)(
+		struct libinput_device *device,
+		enum libinput_config_drag_state);
+	enum libinput_config_drag_state (*get_drag_enabled)(
+		struct libinput_device *device);
+	enum libinput_config_drag_state (*get_default_drag_enabled)(
+		struct libinput_device *device);
 
-	enum libinput_config_status (*set_draglock_enabled)(struct libinput_device *device,
-							    enum libinput_config_drag_lock_state);
-	enum libinput_config_drag_lock_state (*get_draglock_enabled)(struct libinput_device *device);
-	enum libinput_config_drag_lock_state (*get_default_draglock_enabled)(struct libinput_device *device);
+	enum libinput_config_status (*set_draglock_enabled)(
+		struct libinput_device *device,
+		enum libinput_config_drag_lock_state);
+	enum libinput_config_drag_lock_state (*get_draglock_enabled)(
+		struct libinput_device *device);
+	enum libinput_config_drag_lock_state (*get_default_draglock_enabled)(
+		struct libinput_device *device);
+};
+
+struct libinput_device_config_3fg_drag {
+	int (*count)(struct libinput_device *device);
+	enum libinput_config_status (*set_enabled)(
+		struct libinput_device *device,
+		enum libinput_config_3fg_drag_state enable);
+	enum libinput_config_3fg_drag_state (*get_enabled)(
+		struct libinput_device *device);
+	enum libinput_config_3fg_drag_state (*get_default)(
+		struct libinput_device *device);
 };
 
 struct libinput_device_config_calibration {
 	int (*has_matrix)(struct libinput_device *device);
 	enum libinput_config_status (*set_matrix)(struct libinput_device *device,
 						  const float matrix[6]);
-	int (*get_matrix)(struct libinput_device *device,
-			  float matrix[6]);
-	int (*get_default_matrix)(struct libinput_device *device,
-							  float matrix[6]);
+	int (*get_matrix)(struct libinput_device *device, float matrix[6]);
+	int (*get_default_matrix)(struct libinput_device *device, float matrix[6]);
+};
+
+struct libinput_device_config_area {
+	int (*has_rectangle)(struct libinput_device *device);
+	enum libinput_config_status (*set_rectangle)(
+		struct libinput_device *device,
+		const struct libinput_config_area_rectangle *rectangle);
+	struct libinput_config_area_rectangle (*get_rectangle)(
+		struct libinput_device *device);
+	struct libinput_config_area_rectangle (*get_default_rectangle)(
+		struct libinput_device *device);
 };
 
 struct libinput_device_config_send_events {
 	uint32_t (*get_modes)(struct libinput_device *device);
-	enum libinput_config_status (*set_mode)(struct libinput_device *device,
-						   enum libinput_config_send_events_mode mode);
-	enum libinput_config_send_events_mode (*get_mode)(struct libinput_device *device);
-	enum libinput_config_send_events_mode (*get_default_mode)(struct libinput_device *device);
+	enum libinput_config_status (*set_mode)(
+		struct libinput_device *device,
+		enum libinput_config_send_events_mode mode);
+	enum libinput_config_send_events_mode (*get_mode)(
+		struct libinput_device *device);
+	enum libinput_config_send_events_mode (*get_default_mode)(
+		struct libinput_device *device);
 };
 
 /**
@@ -273,7 +371,7 @@ struct libinput_config_accel_custom_func {
 struct libinput_config_accel {
 	enum libinput_config_accel_profile profile;
 
-	struct  {
+	struct {
 		struct libinput_config_accel_custom_func *fallback;
 		struct libinput_config_accel_custom_func *motion;
 		struct libinput_config_accel_custom_func *scroll;
@@ -290,10 +388,13 @@ struct libinput_device_config_accel {
 	uint32_t (*get_profiles)(struct libinput_device *device);
 	enum libinput_config_status (*set_profile)(struct libinput_device *device,
 						   enum libinput_config_accel_profile);
-	enum libinput_config_accel_profile (*get_profile)(struct libinput_device *device);
-	enum libinput_config_accel_profile (*get_default_profile)(struct libinput_device *device);
-	enum libinput_config_status (*set_accel_config)(struct libinput_device *device,
-						        struct libinput_config_accel *accel_config);
+	enum libinput_config_accel_profile (*get_profile)(
+		struct libinput_device *device);
+	enum libinput_config_accel_profile (*get_default_profile)(
+		struct libinput_device *device);
+	enum libinput_config_status (*set_accel_config)(
+		struct libinput_device *device,
+		struct libinput_config_accel *accel_config);
 };
 
 struct libinput_device_config_natural_scroll {
@@ -306,91 +407,103 @@ struct libinput_device_config_natural_scroll {
 
 struct libinput_device_config_left_handed {
 	int (*has)(struct libinput_device *device);
-	enum libinput_config_status (*set)(struct libinput_device *device, int left_handed);
+	enum libinput_config_status (*set)(struct libinput_device *device,
+					   int left_handed);
 	int (*get)(struct libinput_device *device);
 	int (*get_default)(struct libinput_device *device);
 };
 
 struct libinput_device_config_scroll_method {
 	uint32_t (*get_methods)(struct libinput_device *device);
-	enum libinput_config_status (*set_method)(struct libinput_device *device,
-						  enum libinput_config_scroll_method method);
-	enum libinput_config_scroll_method (*get_method)(struct libinput_device *device);
-	enum libinput_config_scroll_method (*get_default_method)(struct libinput_device *device);
+	enum libinput_config_status (*set_method)(
+		struct libinput_device *device,
+		enum libinput_config_scroll_method method);
+	enum libinput_config_scroll_method (*get_method)(
+		struct libinput_device *device);
+	enum libinput_config_scroll_method (*get_default_method)(
+		struct libinput_device *device);
 	enum libinput_config_status (*set_button)(struct libinput_device *device,
 						  uint32_t button);
 	uint32_t (*get_button)(struct libinput_device *device);
 	uint32_t (*get_default_button)(struct libinput_device *device);
-	enum libinput_config_status (*set_button_lock)(struct libinput_device *device,
-						       enum libinput_config_scroll_button_lock_state);
-	enum libinput_config_scroll_button_lock_state (*get_button_lock)(struct libinput_device *device);
-	enum libinput_config_scroll_button_lock_state (*get_default_button_lock)(struct libinput_device *device);
+	enum libinput_config_status (*set_button_lock)(
+		struct libinput_device *device,
+		enum libinput_config_scroll_button_lock_state);
+	enum libinput_config_scroll_button_lock_state (*get_button_lock)(
+		struct libinput_device *device);
+	enum libinput_config_scroll_button_lock_state (*get_default_button_lock)(
+		struct libinput_device *device);
 };
 
 struct libinput_device_config_click_method {
 	uint32_t (*get_methods)(struct libinput_device *device);
-	enum libinput_config_status (*set_method)(struct libinput_device *device,
-						  enum libinput_config_click_method method);
+	enum libinput_config_status (*set_method)(
+		struct libinput_device *device,
+		enum libinput_config_click_method method);
 	enum libinput_config_click_method (*get_method)(struct libinput_device *device);
-	enum libinput_config_click_method (*get_default_method)(struct libinput_device *device);
-	enum libinput_config_status (*set_clickfinger_map)(struct libinput_device *device,
-							   enum libinput_config_clickfinger_button_map map);
-	enum libinput_config_clickfinger_button_map (*get_clickfinger_map)(struct libinput_device *device);
-	enum libinput_config_clickfinger_button_map (*get_default_clickfinger_map)(struct libinput_device *device);
+	enum libinput_config_click_method (*get_default_method)(
+		struct libinput_device *device);
+	enum libinput_config_status (*set_clickfinger_map)(
+		struct libinput_device *device,
+		enum libinput_config_clickfinger_button_map map);
+	enum libinput_config_clickfinger_button_map (*get_clickfinger_map)(
+		struct libinput_device *device);
+	enum libinput_config_clickfinger_button_map (*get_default_clickfinger_map)(
+		struct libinput_device *device);
 };
 
 struct libinput_device_config_middle_emulation {
 	int (*available)(struct libinput_device *device);
-	enum libinput_config_status (*set)(
-			 struct libinput_device *device,
-			 enum libinput_config_middle_emulation_state);
+	enum libinput_config_status (*set)(struct libinput_device *device,
+					   enum libinput_config_middle_emulation_state);
 	enum libinput_config_middle_emulation_state (*get)(
-			 struct libinput_device *device);
+		struct libinput_device *device);
 	enum libinput_config_middle_emulation_state (*get_default)(
-			 struct libinput_device *device);
+		struct libinput_device *device);
 };
 
 struct libinput_device_config_dwt {
 	int (*is_available)(struct libinput_device *device);
 	enum libinput_config_status (*set_enabled)(
-			 struct libinput_device *device,
-			 enum libinput_config_dwt_state enable);
-	enum libinput_config_dwt_state (*get_enabled)(
-			 struct libinput_device *device);
+		struct libinput_device *device,
+		enum libinput_config_dwt_state enable);
+	enum libinput_config_dwt_state (*get_enabled)(struct libinput_device *device);
 	enum libinput_config_dwt_state (*get_default_enabled)(
-			 struct libinput_device *device);
+		struct libinput_device *device);
 };
 
 struct libinput_device_config_dwtp {
 	int (*is_available)(struct libinput_device *device);
 	enum libinput_config_status (*set_enabled)(
-			 struct libinput_device *device,
-			 enum libinput_config_dwtp_state enable);
-	enum libinput_config_dwtp_state (*get_enabled)(
-			 struct libinput_device *device);
+		struct libinput_device *device,
+		enum libinput_config_dwtp_state enable);
+	enum libinput_config_dwtp_state (*get_enabled)(struct libinput_device *device);
 	enum libinput_config_dwtp_state (*get_default_enabled)(
-			 struct libinput_device *device);
+		struct libinput_device *device);
 };
 
 struct libinput_device_config_rotation {
 	int (*is_available)(struct libinput_device *device);
-	enum libinput_config_status (*set_angle)(
-			 struct libinput_device *device,
-			 unsigned int degrees_cw);
+	enum libinput_config_status (*set_angle)(struct libinput_device *device,
+						 unsigned int degrees_cw);
 	unsigned int (*get_angle)(struct libinput_device *device);
 	unsigned int (*get_default_angle)(struct libinput_device *device);
 };
 
 struct libinput_device_config_gesture {
-	enum libinput_config_status (*set_hold_enabled)(struct libinput_device *device,
-			 enum libinput_config_hold_state enabled);
-	enum libinput_config_hold_state (*get_hold_enabled)(struct libinput_device *device);
-	enum libinput_config_hold_state (*get_hold_default)(struct libinput_device *device);
+	enum libinput_config_status (*set_hold_enabled)(
+		struct libinput_device *device,
+		enum libinput_config_hold_state enabled);
+	enum libinput_config_hold_state (*get_hold_enabled)(
+		struct libinput_device *device);
+	enum libinput_config_hold_state (*get_hold_default)(
+		struct libinput_device *device);
 };
 
 struct libinput_device_config {
 	struct libinput_device_config_tap *tap;
 	struct libinput_device_config_calibration *calibration;
+	struct libinput_device_config_area *area;
 	struct libinput_device_config_send_events *sendevents;
 	struct libinput_device_config_accel *accel;
 	struct libinput_device_config_natural_scroll *natural_scroll;
@@ -402,6 +515,7 @@ struct libinput_device_config {
 	struct libinput_device_config_dwtp *dwtp;
 	struct libinput_device_config_rotation *rotation;
 	struct libinput_device_config_gesture *gesture;
+	struct libinput_device_config_3fg_drag *drag_3fg;
 };
 
 struct libinput_device_group {
@@ -423,6 +537,18 @@ struct libinput_device {
 	struct libinput_source *source;
 	char* devname;
 	int fd;
+
+#if !defined(__OpenBSD__) && !defined(__NetBSD__)
+	bitmask_t plugin_frame_callbacks;
+	/**
+	 * Lua plugins see the device before our internal
+	 * plugins do any calls need to be cached.
+	 */
+	bitmask_t disabled_features;
+
+	void (*inject_evdev_frame)(struct libinput_device *device,
+				   struct evdev_frame *frame);
+#endif
 };
 
 enum libinput_tablet_tool_axis {
@@ -463,9 +589,44 @@ enum pressure_heuristic_state {
 
 struct libinput_tablet_tool_config_pressure_range {
 	int (*is_available)(struct libinput_tablet_tool *tool);
-	enum libinput_config_status (*set)(struct libinput_tablet_tool *tool, double min, double max);
+	enum libinput_config_status (*set)(struct libinput_tablet_tool *tool,
+					   double min,
+					   double max);
 	void (*get)(struct libinput_tablet_tool *tool, double *min, double *max);
-	void (*get_default)(struct libinput_tablet_tool *tool, double *min, double *max);
+	void (*get_default)(struct libinput_tablet_tool *tool,
+			    double *min,
+			    double *max);
+};
+
+struct libinput_tablet_tool_config_eraser_button {
+	bitmask_t (*get_modes)(struct libinput_tablet_tool *tool);
+	enum libinput_config_status (*set_mode)(
+		struct libinput_tablet_tool *tool,
+		enum libinput_config_eraser_button_mode mode);
+	enum libinput_config_eraser_button_mode (*get_mode)(
+		struct libinput_tablet_tool *tool);
+	enum libinput_config_eraser_button_mode (*get_default_mode)(
+		struct libinput_tablet_tool *tool);
+
+	enum libinput_config_status (*set_button)(struct libinput_tablet_tool *tool,
+						  uint32_t button);
+	unsigned int (*get_button)(struct libinput_tablet_tool *tool);
+	unsigned int (*get_default_button)(struct libinput_tablet_tool *tool);
+};
+
+struct libinput_tablet_tool_pressure_threshold {
+	unsigned int tablet_id;
+
+	/* The configured axis we actually work with */
+	struct input_absinfo abs_pressure;
+	struct threshold threshold; /* in device coordinates */
+	pressure_offset_t offset;
+	bool has_offset;
+
+	/* This gives us per-tablet heuristic state which is arguably
+	 * wrong but >99% of users have one tablet and it's easier to
+	 * implement it this way */
+	enum pressure_heuristic_state heuristic_state;
 };
 
 struct libinput_tablet_tool {
@@ -477,24 +638,33 @@ struct libinput_tablet_tool {
 	unsigned char buttons[NCHARS(KEY_MAX) + 1];
 	int refcount;
 	void *user_data;
+	struct libinput_device *last_device;
 
 	struct {
-		/* The configured axis we actually work with */
-		struct input_absinfo abs_pressure;
+		/* We're assuming that the *configured* pressure range is per
+		 * tool, not per tablet. The *adjusted* thresholds are then
+		 * per-tablet. */
 		struct normalized_range range;
 		struct normalized_range wanted_range;
 		bool has_configured_range;
 
-		struct threshold threshold; /* in device coordinates */
-		int offset; /* in device coordinates */
-		bool has_offset;
-
-		enum pressure_heuristic_state heuristic_state;
+		struct libinput_tablet_tool_pressure_threshold threshold;
 	} pressure;
 
 	struct {
+		bitmask_t available_modes;
+		enum libinput_config_eraser_button_mode mode;
+		enum libinput_config_eraser_button_mode want_mode;
+		unsigned int button;
+		unsigned int want_button;
+	} eraser_button;
+
+	struct {
 		struct libinput_tablet_tool_config_pressure_range pressure_range;
+		struct libinput_tablet_tool_config_eraser_button eraser_button;
 	} config;
+
+	unsigned int last_tablet_id; /* tablet_dispatch->tablet_id */
 };
 
 struct libinput_tablet_pad_mode_group {
@@ -524,53 +694,13 @@ struct libinput_event {
 
 struct libinput_event_listener {
 	struct list link;
-	void (*notify_func)(uint64_t time, struct libinput_event *ev, void *notify_func_data);
+	void (*notify_func)(uint64_t time,
+			    struct libinput_event *ev,
+			    void *notify_func_data);
 	void *notify_func_data;
 };
 
 typedef void (*libinput_source_dispatch_t)(void *data);
-
-#define log_debug(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_DEBUG, __VA_ARGS__)
-#define log_info(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_INFO, __VA_ARGS__)
-#define log_error(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, __VA_ARGS__)
-#define log_bug_kernel(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "kernel bug: " __VA_ARGS__)
-#define log_bug_libinput(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "libinput bug: " __VA_ARGS__)
-#define log_bug_client(li_, ...) log_msg((li_), LIBINPUT_LOG_PRIORITY_ERROR, "client bug: " __VA_ARGS__)
-
-#define log_debug_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_DEBUG, __VA_ARGS__)
-#define log_info_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_INFO, __VA_ARGS__)
-#define log_error_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, __VA_ARGS__)
-#define log_bug_kernel_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, "kernel bug: " __VA_ARGS__)
-#define log_bug_libinput_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, "libinput bug: " __VA_ARGS__)
-#define log_bug_client_ratelimit(li_, r_, ...) log_msg_ratelimit((li_), (r_), LIBINPUT_LOG_PRIORITY_ERROR, "client bug: " __VA_ARGS__)
-
-static inline bool
-is_logged(const struct libinput *libinput,
-	  enum libinput_log_priority priority)
-{
-       return libinput->log_handler &&
-               libinput->log_priority <= priority;
-}
-
-void
-log_msg_ratelimit(struct libinput *libinput,
-		  struct ratelimit *ratelimit,
-		  enum libinput_log_priority priority,
-		  const char *format, ...)
-	LIBINPUT_ATTRIBUTE_PRINTF(4, 5);
-
-void
-log_msg(struct libinput *libinput,
-	enum libinput_log_priority priority,
-	const char *format, ...)
-	LIBINPUT_ATTRIBUTE_PRINTF(3, 4);
-
-void
-log_msg_va(struct libinput *libinput,
-	   enum libinput_log_priority priority,
-	   const char *format,
-	   va_list args)
-	LIBINPUT_ATTRIBUTE_PRINTF(3, 0);
 
 int
 libinput_init(struct libinput *libinput,
@@ -588,12 +718,10 @@ libinput_add_fd(struct libinput *libinput,
 		void *data);
 
 void
-libinput_remove_source(struct libinput *libinput,
-		       struct libinput_source *source);
+libinput_remove_source(struct libinput *libinput, struct libinput_source *source);
 
 int
-open_restricted(struct libinput *libinput,
-		const char *path, int flags);
+open_restricted(struct libinput *libinput, const char *path, int flags);
 
 void
 close_restricted(struct libinput *libinput, int fd);
@@ -609,16 +737,23 @@ libinput_seat_init(struct libinput_seat *seat,
 		   libinput_seat_destroy_func destroy);
 
 void
-libinput_device_init(struct libinput_device *device,
-		     struct libinput_seat *seat);
+libinput_device_init(struct libinput_device *device, struct libinput_seat *seat);
+
+bool
+libinput_device_has_model_quirk(struct libinput_device *device, enum quirk model_quirk);
+
+bool
+libinput_device_is_virtual(struct libinput_device *device);
+
+void
+libinput_device_disable_feature(struct libinput_device *device,
+				enum libinput_feature feature);
 
 struct libinput_device_group *
-libinput_device_group_create(struct libinput *libinput,
-			     const char *identifier);
+libinput_device_group_create(struct libinput *libinput, const char *identifier);
 
 struct libinput_device_group *
-libinput_device_group_find_group(struct libinput *libinput,
-				 const char *identifier);
+libinput_device_group_find_group(struct libinput *libinput, const char *identifier);
 
 void
 libinput_device_set_device_group(struct libinput_device *device,
@@ -630,10 +765,9 @@ libinput_device_init_event_listener(struct libinput_event_listener *listener);
 void
 libinput_device_add_event_listener(struct libinput_device *device,
 				   struct libinput_event_listener *listener,
-				   void (*notify_func)(
-						uint64_t time,
-						struct libinput_event *event,
-						void *notify_func_data),
+				   void (*notify_func)(uint64_t time,
+						       struct libinput_event *event,
+						       void *notify_func_data),
 				   void *notify_func_data);
 
 void
@@ -648,7 +782,7 @@ notify_removed_device(struct libinput_device *device);
 void
 keyboard_notify_key(struct libinput_device *device,
 		    uint64_t time,
-		    uint32_t key,
+		    keycode_t key,
 		    enum libinput_key_state state);
 
 void
@@ -665,7 +799,7 @@ pointer_notify_motion_absolute(struct libinput_device *device,
 void
 pointer_notify_button(struct libinput_device *device,
 		      uint64_t time,
-		      int32_t button,
+		      button_code_t button,
 		      enum libinput_button_state state);
 
 void
@@ -720,8 +854,7 @@ touch_notify_touch_cancel(struct libinput_device *device,
 			  int32_t seat_slot);
 
 void
-touch_notify_frame(struct libinput_device *device,
-		   uint64_t time);
+touch_notify_frame(struct libinput_device *device, uint64_t time);
 
 void
 gesture_notify_swipe(struct libinput_device *device,
@@ -755,9 +888,9 @@ gesture_notify_pinch_end(struct libinput_device *device,
 			 bool cancelled);
 
 void
-gesture_notify_hold(struct libinput_device *device,
-		    uint64_t time,
-		    int finger_count);
+gesture_notify_hold_begin(struct libinput_device *device,
+			  uint64_t time,
+			  int finger_count);
 
 void
 gesture_notify_hold_end(struct libinput_device *device,
@@ -771,7 +904,9 @@ tablet_notify_axis(struct libinput_device *device,
 		   struct libinput_tablet_tool *tool,
 		   enum libinput_tablet_tool_tip_state tip_state,
 		   unsigned char *changed_axes,
-		   const struct tablet_axes *axes);
+		   const struct tablet_axes *axes,
+		   const struct input_absinfo *x,
+		   const struct input_absinfo *y);
 
 void
 tablet_notify_proximity(struct libinput_device *device,
@@ -779,7 +914,9 @@ tablet_notify_proximity(struct libinput_device *device,
 			struct libinput_tablet_tool *tool,
 			enum libinput_tablet_tool_proximity_state state,
 			unsigned char *changed_axes,
-			const struct tablet_axes *axes);
+			const struct tablet_axes *axes,
+			const struct input_absinfo *x,
+			const struct input_absinfo *y);
 
 void
 tablet_notify_tip(struct libinput_device *device,
@@ -787,7 +924,9 @@ tablet_notify_tip(struct libinput_device *device,
 		  struct libinput_tablet_tool *tool,
 		  enum libinput_tablet_tool_tip_state tip_state,
 		  unsigned char *changed_axes,
-		  const struct tablet_axes *axes);
+		  const struct tablet_axes *axes,
+		  const struct input_absinfo *x,
+		  const struct input_absinfo *y);
 
 void
 tablet_notify_button(struct libinput_device *device,
@@ -795,15 +934,18 @@ tablet_notify_button(struct libinput_device *device,
 		     struct libinput_tablet_tool *tool,
 		     enum libinput_tablet_tool_tip_state tip_state,
 		     const struct tablet_axes *axes,
-		     int32_t button,
-		     enum libinput_button_state state);
+		     button_code_t button,
+		     enum libinput_button_state state,
+		     const struct input_absinfo *x,
+		     const struct input_absinfo *y);
 
 void
 tablet_pad_notify_button(struct libinput_device *device,
 			 uint64_t time,
-			 int32_t button,
+			 pad_button_t button,
 			 enum libinput_button_state state,
 			 struct libinput_tablet_pad_mode_group *group);
+
 void
 tablet_pad_notify_dial(struct libinput_device *device,
 		       uint64_t time,
@@ -836,19 +978,6 @@ switch_notify_toggle(struct libinput_device *device,
 		     enum libinput_switch sw,
 		     enum libinput_switch_state state);
 
-static inline uint64_t
-libinput_now(struct libinput *libinput)
-{
-	struct timespec ts = { 0, 0 };
-
-	if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
-		log_error(libinput, "clock_gettime failed: %s\n", strerror(errno));
-		return 0;
-	}
-
-	return s2us(ts.tv_sec) + ns2us(ts.tv_nsec);
-}
-
 static inline struct device_float_coords
 device_delta(const struct device_coords a, const struct device_coords b)
 {
@@ -872,7 +1001,8 @@ device_average(const struct device_coords a, const struct device_coords b)
 }
 
 static inline struct device_float_coords
-device_float_delta(const struct device_float_coords a, const struct device_float_coords b)
+device_float_delta(const struct device_float_coords a,
+		   const struct device_float_coords b)
 {
 	struct device_float_coords delta;
 
@@ -883,7 +1013,8 @@ device_float_delta(const struct device_float_coords a, const struct device_float
 }
 
 static inline struct device_float_coords
-device_float_average(const struct device_float_coords a, const struct device_float_coords b)
+device_float_average(const struct device_float_coords a,
+		     const struct device_float_coords b)
 {
 	struct device_float_coords average;
 
@@ -918,13 +1049,13 @@ length_in_mm(const struct phys_coords mm)
 }
 
 enum directions {
-	N  = bit(0),
+	N = bit(0),
 	NE = bit(1),
-	E  = bit(2),
+	E = bit(2),
 	SE = bit(3),
-	S  = bit(4),
+	S = bit(4),
 	SW = bit(5),
-	W  = bit(6),
+	W = bit(6),
 	NW = bit(7),
 	UNDEFINED_DIRECTION = 0xff
 };
@@ -961,8 +1092,8 @@ xy_get_direction(double x, double y)
 		 * d_8 = 8 * d_f
 		 */
 		r = atan2(y, x);
-		r = fmod(r + 2.5*M_PI, 2*M_PI);
-		r *= 4*M_1_PI;
+		r = fmod(r + 2.5 * M_PI, 2 * M_PI);
+		r *= 4 * M_1_PI;
 
 		/* Mark one or two close enough octants */
 		d1 = (int)(r + 0.9) % 8;
@@ -995,23 +1126,27 @@ device_float_get_direction(const struct device_float_coords coords)
  * left edge but excluding the right edge.
  */
 static inline bool
-point_in_rect(const struct device_coords *point,
-	      const struct device_coord_rect *rect)
+point_in_rect(const struct device_coords *point, const struct device_coord_rect *rect)
 {
-	return (point->x >= rect->x &&
-		point->x < rect->x + rect->w &&
-		point->y >= rect->y &&
-		point->y < rect->y + rect->h);
+	return (point->x >= rect->x && point->x < rect->x + rect->w &&
+		point->y >= rect->y && point->y < rect->y + rect->h);
 }
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 WacomDeviceDatabase *
 libinput_libwacom_ref(struct libinput *li);
 void
 libinput_libwacom_unref(struct libinput *li);
 #else
-static inline void *libinput_libwacom_ref(struct libinput *li) { return NULL; }
-static inline void libinput_libwacom_unref(struct libinput *li) {}
+static inline void *
+libinput_libwacom_ref(struct libinput *li)
+{
+	return NULL;
+}
+static inline void
+libinput_libwacom_unref(struct libinput *li)
+{
+}
 #endif
 
 

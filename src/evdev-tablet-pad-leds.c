@@ -23,14 +23,30 @@
 
 #include "config.h"
 
-#include <limits.h>
 #include <fcntl.h>
+#include <limits.h>
 
 #include "evdev-tablet-pad.h"
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 #include <libwacom/libwacom.h>
 #endif
+
+/* We only have 4 modes on current devices but
+ * anything other than MODE_NEXT is used as
+ * numeric value anyway so it doesn't matter if a value is
+ * missing here
+ *
+ * Once libwacom 2.15 is commonplace we can use the
+ * libwacom enum directly.
+ */
+enum pad_toggle_button_target_mode {
+	MODE_NEXT = -1,
+	MODE_0,
+	MODE_1,
+	MODE_2,
+	MODE_3,
+};
 
 struct pad_led_group {
 	struct libinput_tablet_pad_mode_group base;
@@ -41,6 +57,7 @@ struct pad_led_group {
 struct pad_mode_toggle_button {
 	struct list link;
 	unsigned int button_index;
+	enum pad_toggle_button_target_mode target_mode;
 };
 
 struct pad_mode_led {
@@ -50,23 +67,8 @@ struct pad_mode_led {
 	int mode_idx;
 };
 
-#if HAVE_LIBWACOM
-static inline struct pad_mode_toggle_button *
-pad_mode_toggle_button_new(struct pad_dispatch *pad,
-			   struct libinput_tablet_pad_mode_group *group,
-			   unsigned int button_index)
-{
-	struct pad_mode_toggle_button *button;
-
-	button = zalloc(sizeof *button);
-	button->button_index = button_index;
-
-	return button;
-}
-#endif /* HAVE_LIBWACOM */
-
 static inline void
-pad_mode_toggle_button_destroy(struct pad_mode_toggle_button* button)
+pad_mode_toggle_button_destroy(struct pad_mode_toggle_button *button)
 {
 	list_remove(&button->link);
 	free(button);
@@ -75,7 +77,7 @@ pad_mode_toggle_button_destroy(struct pad_mode_toggle_button* button)
 static inline int
 pad_led_group_get_mode(struct pad_led_group *group)
 {
-	char buf[4] = {0};
+	char buf[4] = { 0 };
 	int rc;
 	unsigned int brightness;
 	struct pad_mode_led *led;
@@ -98,12 +100,13 @@ pad_led_group_get_mode(struct pad_led_group *group)
 			return led->mode_idx;
 	}
 
-	return -EINVAL;
+	/* Wacom PTH-660 doesn't light up any LEDs
+	 * until the button is pressed, so let's assume mode 0 */
+	return 0;
 }
 
 static inline void
-pad_led_destroy(struct libinput *libinput,
-		struct pad_mode_led *led)
+pad_led_destroy(struct libinput *libinput, struct pad_mode_led *led)
 {
 	list_remove(&led->link);
 	if (led->brightness_fd != -1)
@@ -111,13 +114,13 @@ pad_led_destroy(struct libinput *libinput,
 	free(led);
 }
 
-#if HAVE_LIBWACOM
+#ifdef HAVE_LIBWACOM
 static inline struct pad_mode_led *
 pad_led_new(struct libinput *libinput, const char *prefix, int group, int mode)
 {
 	struct pad_mode_led *led;
 	char path[PATH_MAX];
-	int rc, fd;
+	int rc, fd, save_errno;
 
 	led = zalloc(sizeof *led);
 	led->brightness_fd = -1;
@@ -126,12 +129,7 @@ pad_led_new(struct libinput *libinput, const char *prefix, int group, int mode)
 
 	/* /sys/devices/..../input1235/input1235::wacom-0.1/brightness,
 	 * where 0 and 1 are group and mode index. */
-	rc = snprintf(path,
-		      sizeof(path),
-		      "%s%d.%d/brightness",
-		      prefix,
-		      group,
-		      mode);
+	rc = snprintf(path, sizeof(path), "%s%d.%d/brightness", prefix, group, mode);
 	if (rc == -1)
 		goto error;
 
@@ -146,7 +144,9 @@ pad_led_new(struct libinput *libinput, const char *prefix, int group, int mode)
 	return led;
 
 error:
+	save_errno = errno;
 	pad_led_destroy(libinput, led);
+	errno = save_errno;
 	return NULL;
 }
 #endif /* HAVE_LIBWACOM */
@@ -168,9 +168,7 @@ pad_led_group_destroy(struct libinput_tablet_pad_mode_group *g)
 }
 
 static struct pad_led_group *
-pad_group_new_basic(struct pad_dispatch *pad,
-		    unsigned int group_index,
-		    int nleds)
+pad_group_new(struct pad_dispatch *pad, unsigned int group_index, int num_modes)
 {
 	struct pad_led_group *group;
 
@@ -179,7 +177,7 @@ pad_group_new_basic(struct pad_dispatch *pad,
 	group->base.refcount = 1;
 	group->base.index = group_index;
 	group->base.current_mode = 0;
-	group->base.num_modes = nleds;
+	group->base.num_modes = num_modes;
 	group->base.destroy = pad_led_group_destroy;
 	list_init(&group->toggle_button_list);
 	list_init(&group->led_list);
@@ -187,7 +185,20 @@ pad_group_new_basic(struct pad_dispatch *pad,
 	return group;
 }
 
-#if HAVE_LIBWACOM
+static inline struct libinput_tablet_pad_mode_group *
+pad_get_mode_group(struct pad_dispatch *pad, unsigned int index)
+{
+	struct libinput_tablet_pad_mode_group *group;
+
+	list_for_each(group, &pad->modes.mode_group_list, link) {
+		if (group->index == index)
+			return group;
+	}
+
+	return NULL;
+}
+
+#ifdef HAVE_LIBWACOM
 static inline bool
 is_litest_device(struct evdev_device *device)
 {
@@ -195,48 +206,35 @@ is_litest_device(struct evdev_device *device)
 						"LIBINPUT_TEST_DEVICE");
 }
 
-static inline struct pad_led_group *
-pad_group_new(struct pad_dispatch *pad,
-	      unsigned int group_index,
-	      int nleds,
-	      const char *syspath)
+static inline struct pad_mode_toggle_button *
+pad_mode_toggle_button_new(unsigned int button_index)
 {
-	struct libinput *libinput = pad->device->base.seat->libinput;
-	struct pad_led_group *group;
-	int rc;
+	struct pad_mode_toggle_button *button;
 
-	group = pad_group_new_basic(pad, group_index, nleds);
-	if (!group)
-		return NULL;
+	button = zalloc(sizeof *button);
+	button->button_index = button_index;
+	button->target_mode = MODE_NEXT;
 
-	while (nleds--) {
-		struct pad_mode_led *led;
+	return button;
+}
 
-		led = pad_led_new(libinput, syspath, group_index, nleds);
-		if (!led)
-			goto error;
+static int
+pad_led_group_add_toggle_button(struct pad_led_group *group,
+				int button_index,
+				enum pad_toggle_button_target_mode mode)
+{
+	struct pad_mode_toggle_button *button;
 
-		list_insert(&group->led_list, &led->link);
-	}
+	button = pad_mode_toggle_button_new(button_index);
+	if (!button)
+		return -ENOMEM;
 
-	rc = pad_led_group_get_mode(group);
-	if (rc < 0) {
-		errno = -rc;
-		goto error;
-	}
+	button->target_mode = mode;
+	list_append(&group->toggle_button_list, &button->link);
+	group->base.toggle_button_mask |= bit(button_index);
+	group->base.button_mask |= bit(button_index);
 
-	group->base.current_mode = rc;
-
-	return group;
-
-error:
-	if (!is_litest_device(pad->device))
-		evdev_log_error(pad->device,
-				"unable to init LED group: %s\n",
-				strerror(errno));
-	pad_led_group_destroy(&group->base);
-
-	return NULL;
+	return 0;
 }
 
 static inline bool
@@ -252,8 +250,9 @@ pad_led_get_sysfs_base_path(struct evdev_device *device,
 
 	/* For testing purposes only allow for a base path set through a
 	 * udev rule. We still expect the normal directory hierarchy inside */
-	test_path = udev_device_get_property_value(udev_device,
-						   "LIBINPUT_TEST_TABLET_PAD_SYSFS_PATH");
+	test_path =
+		udev_device_get_property_value(udev_device,
+					       "LIBINPUT_TEST_TABLET_PAD_SYSFS_PATH");
 	if (test_path) {
 		rc = snprintf(path_out, path_out_sz, "%s", test_path);
 		return rc != -1;
@@ -275,86 +274,126 @@ pad_led_get_sysfs_base_path(struct evdev_device *device,
 }
 
 static int
-pad_init_led_groups(struct pad_dispatch *pad,
-		    struct evdev_device *device,
-		    WacomDevice *wacom)
+pad_add_mode_group(struct pad_dispatch *pad,
+		   struct evdev_device *device,
+		   unsigned int group_index,
+		   int nmodes,
+		   int button_index,
+		   enum pad_toggle_button_target_mode mode,
+		   uint32_t ring_mask,
+		   uint32_t strip_mask,
+		   uint32_t dial_mask,
+		   bool create_leds)
 {
-	const WacomStatusLEDs *leds;
-	int nleds, nmodes;
-	int i;
-	struct pad_led_group *group;
+	struct libinput *li = pad_libinput_context(pad);
+	struct pad_led_group *group = NULL;
+	int rc = -ENOMEM;
 	char syspath[PATH_MAX];
-
-	leds = libwacom_get_status_leds(wacom, &nleds);
-	if (nleds == 0)
-		return 1;
 
 	/* syspath is /sys/class/leds/input1234/input12345::wacom-" and
 	   only needs the group + mode appended */
 	if (!pad_led_get_sysfs_base_path(device, syspath, sizeof(syspath)))
-		return 1;
+		return -ENOMEM;
 
-	for (i = 0; i < nleds; i++) {
-		switch(leds[i]) {
-		case WACOM_STATUS_LED_UNAVAILABLE:
-			evdev_log_bug_libinput(device,
-					       "Invalid led type %d\n",
-					       leds[i]);
-			return 1;
-		case WACOM_STATUS_LED_RING:
-			nmodes = libwacom_get_ring_num_modes(wacom);
-			group = pad_group_new(pad, i, nmodes, syspath);
-			if (!group)
-				return 1;
-			list_insert(&pad->modes.mode_group_list, &group->base.link);
-			break;
-		case WACOM_STATUS_LED_RING2:
-			nmodes = libwacom_get_ring2_num_modes(wacom);
-			group = pad_group_new(pad, i, nmodes, syspath);
-			if (!group)
-				return 1;
-			list_insert(&pad->modes.mode_group_list, &group->base.link);
-			break;
-		case WACOM_STATUS_LED_TOUCHSTRIP:
-			nmodes = libwacom_get_strips_num_modes(wacom);
-			group = pad_group_new(pad, i, nmodes, syspath);
-			if (!group)
-				return 1;
-			list_insert(&pad->modes.mode_group_list, &group->base.link);
-			break;
-		case WACOM_STATUS_LED_TOUCHSTRIP2:
-			/* there is no get_strips2_... */
-			nmodes = libwacom_get_strips_num_modes(wacom);
-			group = pad_group_new(pad, i, nmodes, syspath);
-			if (!group)
-				return 1;
-			list_insert(&pad->modes.mode_group_list, &group->base.link);
-			break;
+	group = pad_group_new(pad, group_index, nmodes);
+	if (!group)
+		goto out;
+	group->base.ring_mask = ring_mask;
+	group->base.strip_mask = strip_mask;
+	group->base.dial_mask = dial_mask;
+	group->base.button_mask |= bit(button_index);
+
+	rc = pad_led_group_add_toggle_button(group, button_index, mode);
+	if (rc < 0)
+		goto out;
+
+	for (int mode = 0; create_leds && mode < nmodes; mode++) {
+		struct pad_mode_led *led;
+
+		led = pad_led_new(li, syspath, group_index, mode);
+		if (!led) {
+			rc = -errno;
+			goto out;
+		}
+		list_append(&group->led_list, &led->link);
+	}
+
+	if (create_leds) {
+		rc = pad_led_group_get_mode(group);
+		if (rc < 0) {
+			goto out;
 		}
 	}
 
-	return 0;
+	list_insert(&pad->modes.mode_group_list, &group->base.link);
+	rc = 0;
+out:
+	if (rc)
+		pad_led_group_destroy(&group->base);
+
+	return rc;
 }
 
-#endif
-
-static inline struct libinput_tablet_pad_mode_group *
-pad_get_mode_group(struct pad_dispatch *pad, unsigned int index)
+static int
+pad_fetch_group_index(struct pad_dispatch *pad, WacomDevice *wacom, int button_index)
 {
-	struct libinput_tablet_pad_mode_group *group;
+	char btn = 'A' + button_index;
+	WacomButtonFlags flags = libwacom_get_button_flag(wacom, btn);
+	int led_group = libwacom_get_button_led_group(wacom, btn);
 
-	list_for_each(group, &pad->modes.mode_group_list, link) {
-		if (group->index == index)
-			return group;
+	if ((flags & WACOM_BUTTON_MODESWITCH) == 0) {
+		evdev_log_bug_libinput(
+			pad->device,
+			"Cannot fetch group index for non-mode toggle button %c\n",
+			btn);
+		return -1;
 	}
 
-	return NULL;
+	if (led_group >= 0)
+		return led_group;
+
+	/* Note on group_index: libwacom gives us the led_group
+	 * but this is really just the index of the entry in
+	 * the StatusLEDs line. This is effectively always
+	 * 0 for the first ring or strip and 1 for the second
+	 * ring or strip. The few devices that matter
+	 * have either a pair of rings or strips, not mixed.
+	 *
+	 * Which means for devices where we don't have StatusLEDs
+	 * we can hardcode this behavior, if we ever get a ring+strip
+	 * devcice we need to update libwacom for that anyway.
+	 */
+
+	int group_index = -1;
+	switch (flags & WACOM_BUTTON_MODESWITCH) {
+	case WACOM_BUTTON_RING_MODESWITCH:
+		group_index = 0;
+		break;
+	case WACOM_BUTTON_RING2_MODESWITCH:
+		group_index = 1;
+		break;
+	case WACOM_BUTTON_TOUCHSTRIP_MODESWITCH:
+		group_index = 0;
+		break;
+	case WACOM_BUTTON_TOUCHSTRIP2_MODESWITCH:
+		group_index = 1;
+		break;
+#ifdef HAVE_LIBWACOM_BUTTON_DIAL_MODESWITCH
+	case WACOM_BUTTON_DIAL_MODESWITCH:
+		group_index = 0;
+		break;
+	case WACOM_BUTTON_DIAL2_MODESWITCH:
+		group_index = 1;
+		break;
+#endif
+	}
+
+	return group_index;
 }
 
-#if HAVE_LIBWACOM
-
 static inline int
-pad_find_button_group(WacomDevice *wacom,
+pad_find_button_group(struct pad_dispatch *pad,
+		      WacomDevice *wacom,
 		      int button_index,
 		      WacomButtonFlags button_flags)
 {
@@ -370,166 +409,175 @@ pad_find_button_group(WacomDevice *wacom,
 			continue;
 
 		if ((flags & WACOM_BUTTON_DIRECTION) ==
-			(button_flags & WACOM_BUTTON_DIRECTION))
-			return libwacom_get_button_led_group(wacom, 'A' + i);
+		    (button_flags & WACOM_BUTTON_DIRECTION))
+			return pad_fetch_group_index(pad, wacom, i);
 	}
 
 	return -1;
 }
 
-static int
-pad_init_mode_buttons(struct pad_dispatch *pad,
-		      WacomDevice *wacom)
+static enum pad_toggle_button_target_mode
+pad_button_target_mode(WacomDevice *wacom, char button)
 {
-	struct libinput_tablet_pad_mode_group *group;
-	unsigned int group_idx;
-	int i;
-	WacomButtonFlags flags;
-
-	/* libwacom numbers buttons as 'A', 'B', etc. We number them with 0,
-	 * 1, ...
-	 */
-	for (i = 0; i < libwacom_get_num_buttons(wacom); i++) {
-		group_idx = libwacom_get_button_led_group(wacom, 'A' + i);
-		flags = libwacom_get_button_flag(wacom, 'A' + i);
-
-		/* If this button is not a mode toggle button, find the mode
-		 * toggle button with the same position flags and take that
-		 * button's group idx */
-		if ((int)group_idx == -1) {
-			group_idx = pad_find_button_group(wacom, i, flags);
-		}
-
-		if ((int)group_idx == -1) {
-			evdev_log_bug_libinput(pad->device,
-					       "unhandled position for button %i\n",
-					       i);
-			return 1;
-		}
-
-		group = pad_get_mode_group(pad, group_idx);
-		if (!group) {
-			evdev_log_bug_libinput(pad->device,
-					       "Failed to find group %d for button %i\n",
-					       group_idx,
-					 i);
-			return 1;
-		}
-
-		group->button_mask |= bit(i);
-
-		if (flags & WACOM_BUTTON_MODESWITCH) {
-			struct pad_mode_toggle_button *b;
-			struct pad_led_group *g;
-
-			b = pad_mode_toggle_button_new(pad, group, i);
-			if (!b)
-				return 1;
-			g = (struct pad_led_group*)group;
-			list_insert(&g->toggle_button_list, &b->link);
-			group->toggle_button_mask |= bit(i);
-		}
+#ifdef HAVE_LIBWACOM_BUTTON_MODESWITCH_MODE
+	switch (libwacom_get_button_modeswitch_mode(wacom, button)) {
+	case WACOM_MODE_SWITCH_NEXT:
+		return MODE_NEXT;
+	case WACOM_MODE_SWITCH_0:
+		return MODE_0;
+	case WACOM_MODE_SWITCH_1:
+		return MODE_1;
+	case WACOM_MODE_SWITCH_2:
+		return MODE_2;
+	case WACOM_MODE_SWITCH_3:
+		return MODE_3;
 	}
-
-	return 0;
-}
-
-static void
-pad_init_mode_rings(struct pad_dispatch *pad, WacomDevice *wacom)
-{
-	struct libinput_tablet_pad_mode_group *group;
-	const WacomStatusLEDs *leds;
-	int i, nleds;
-
-	leds = libwacom_get_status_leds(wacom, &nleds);
-	if (nleds == 0)
-		return;
-
-	for (i = 0; i < nleds; i++) {
-		switch(leds[i]) {
-		case WACOM_STATUS_LED_RING:
-			group = pad_get_mode_group(pad, i);
-			group->ring_mask |= 0x1;
-			break;
-		case WACOM_STATUS_LED_RING2:
-			group = pad_get_mode_group(pad, i);
-			group->ring_mask |= 0x2;
-			break;
-		default:
-			break;
-		}
-	}
-}
-
-static void
-pad_init_mode_strips(struct pad_dispatch *pad, WacomDevice *wacom)
-{
-	struct libinput_tablet_pad_mode_group *group;
-	const WacomStatusLEDs *leds;
-	int i, nleds;
-
-	leds = libwacom_get_status_leds(wacom, &nleds);
-	if (nleds == 0)
-		return;
-
-	for (i = 0; i < nleds; i++) {
-		switch(leds[i]) {
-		case WACOM_STATUS_LED_TOUCHSTRIP:
-			group = pad_get_mode_group(pad, i);
-			group->strip_mask |= 0x1;
-			break;
-		case WACOM_STATUS_LED_TOUCHSTRIP2:
-			group = pad_get_mode_group(pad, i);
-			group->strip_mask |= 0x2;
-			break;
-		default:
-			break;
-		}
-	}
+#endif
+	return MODE_NEXT;
 }
 
 static int
 pad_init_leds_from_libwacom(struct pad_dispatch *pad,
-			    struct evdev_device *device)
+			    struct evdev_device *device,
+			    WacomDevice *wacom)
 {
-	struct libinput *li = pad_libinput_context(pad);
-	WacomDeviceDatabase *db = NULL;
-	WacomDevice *wacom = NULL;
-	int rc = 1;
+	int rc = -EINVAL;
 
-	db = libinput_libwacom_ref(li);
-	if (!db)
-		goto out;
-
-	wacom = libwacom_new_from_path(db,
-				       udev_device_get_devnode(device->udev_device),
-				       WFALLBACK_NONE,
-				       NULL);
 	if (!wacom)
+		return -ENOENT;
+
+	for (int b = 0; b < libwacom_get_num_buttons(wacom); b++) {
+		char btn = 'A' + b;
+		WacomButtonFlags flags = libwacom_get_button_flag(wacom, btn);
+		int nmodes = 0;
+		uint32_t ring_mask = 0;
+		uint32_t strip_mask = 0;
+		uint32_t dial_mask = 0;
+		bool have_status_led = false;
+
+		if ((flags & WACOM_BUTTON_MODESWITCH) == 0)
+			continue;
+
+		enum pad_toggle_button_target_mode target_mode =
+			pad_button_target_mode(wacom, btn);
+
+		int group_index = pad_fetch_group_index(pad, wacom, b);
+		switch (flags & WACOM_BUTTON_MODESWITCH) {
+		case WACOM_BUTTON_RING_MODESWITCH:
+			nmodes = libwacom_get_ring_num_modes(wacom);
+			ring_mask = 0x1;
+			break;
+		case WACOM_BUTTON_RING2_MODESWITCH:
+			nmodes = libwacom_get_ring2_num_modes(wacom);
+			ring_mask = 0x2;
+			break;
+		case WACOM_BUTTON_TOUCHSTRIP_MODESWITCH:
+			nmodes = libwacom_get_strips_num_modes(wacom);
+			strip_mask = 0x1;
+			break;
+		case WACOM_BUTTON_TOUCHSTRIP2_MODESWITCH:
+			/* there is no get_strips2_... */
+			nmodes = libwacom_get_strips_num_modes(wacom);
+			strip_mask = 0x2;
+			break;
+#ifdef HAVE_LIBWACOM_BUTTON_DIAL_MODESWITCH
+		case WACOM_BUTTON_DIAL_MODESWITCH:
+			nmodes = libwacom_get_dial_num_modes(wacom);
+			dial_mask = 0x1;
+			break;
+		case WACOM_BUTTON_DIAL2_MODESWITCH:
+			nmodes = libwacom_get_dial2_num_modes(wacom);
+			dial_mask = 0x2;
+			break;
+#endif
+		default:
+			evdev_log_error(
+				pad->device,
+				"unable to init pad mode group: button %c has multiple modeswitch flags 0x%x\n",
+				btn,
+				flags);
+			goto out;
+		}
+		have_status_led = libwacom_get_button_led_group(wacom, btn) >= 0;
+		if (nmodes > 1) {
+			struct libinput_tablet_pad_mode_group *group =
+				pad_get_mode_group(pad, group_index);
+			if (!group) {
+				rc = pad_add_mode_group(pad,
+							device,
+							group_index,
+							nmodes,
+							b,
+							target_mode,
+							ring_mask,
+							strip_mask,
+							dial_mask,
+							have_status_led);
+			} else {
+				struct pad_led_group *led_group =
+					(struct pad_led_group *)group;
+				/* Multiple toggle buttons (Wacom MobileStudio Pro 16)
+				 */
+				rc = pad_led_group_add_toggle_button(led_group,
+								     b,
+								     target_mode);
+				if (rc < 0)
+					goto out;
+			}
+		}
+	}
+
+	if (list_empty(&pad->modes.mode_group_list)) {
+		rc = 1;
 		goto out;
+	}
 
-	rc = pad_init_led_groups(pad, device, wacom);
-	if (rc != 0)
-		goto out;
+	/* Now loop again to match the other buttons with the existing
+	 * mode groups */
+	for (int b = 0; b < libwacom_get_num_buttons(wacom); b++) {
+		char btn = 'A' + b;
+		WacomButtonFlags flags = libwacom_get_button_flag(wacom, btn);
 
-	if ((rc = pad_init_mode_buttons(pad, wacom)) != 0)
-		goto out;
+		if (flags & WACOM_BUTTON_MODESWITCH)
+			continue;
 
-	pad_init_mode_rings(pad, wacom);
-	pad_init_mode_strips(pad, wacom);
-	/* Note: libwacom doesn't do dials yet */
+		int group_index = pad_find_button_group(pad, wacom, b, flags);
+		if (group_index == -1) {
+			evdev_log_bug_libinput(pad->device,
+					       "unhandled position for button %i\n",
+					       b);
+			rc = -EINVAL;
+			goto out;
+		}
 
+		struct libinput_tablet_pad_mode_group *group =
+			pad_get_mode_group(pad, group_index);
+		if (!group) {
+			evdev_log_bug_libinput(
+				pad->device,
+				"Failed to find group %d for button %i\n",
+				group_index,
+				b);
+			rc = -EINVAL;
+			goto out;
+		}
+		group->button_mask |= bit(b);
+	}
+
+	rc = 0;
 out:
-	if (wacom)
-		libwacom_destroy(wacom);
-	if (db)
-		libinput_libwacom_unref(li);
-
-	if (rc != 0)
+	if (rc != 0) {
+		if (rc == -ENOENT && is_litest_device(pad->device)) {
+			evdev_log_error(pad->device,
+					"unable to init pad mode group: %s\n",
+					strerror(-rc));
+		}
 		pad_destroy_leds(pad);
+	}
 
 	return rc;
 }
+
 #endif /* HAVE_LIBWACOM */
 
 static int
@@ -537,7 +585,7 @@ pad_init_fallback_group(struct pad_dispatch *pad)
 {
 	struct pad_led_group *group;
 
-	group = pad_group_new_basic(pad, 0, 1);
+	group = pad_group_new(pad, 0, 1);
 	if (!group)
 		return 1;
 
@@ -556,8 +604,7 @@ pad_init_fallback_group(struct pad_dispatch *pad)
 }
 
 int
-pad_init_leds(struct pad_dispatch *pad,
-	      struct evdev_device *device)
+pad_init_leds(struct pad_dispatch *pad, struct evdev_device *device, WacomDevice *wacom)
 {
 	int rc = 1;
 
@@ -571,8 +618,8 @@ pad_init_leds(struct pad_dispatch *pad,
 	}
 
 	/* If libwacom fails, we init one fallback group anyway */
-#if HAVE_LIBWACOM
-	rc = pad_init_leds_from_libwacom(pad, device);
+#ifdef HAVE_LIBWACOM
+	rc = pad_init_leds_from_libwacom(pad, device, wacom);
 #endif
 	if (rc != 0)
 		rc = pad_init_fallback_group(pad);
@@ -594,8 +641,8 @@ pad_button_update_mode(struct libinput_tablet_pad_mode_group *g,
 		       unsigned int button_index,
 		       enum libinput_button_state state)
 {
-	struct pad_led_group *group = (struct pad_led_group*)g;
-	int rc;
+	struct pad_led_group *group = (struct pad_led_group *)g;
+	int rc = -ENODEV;
 
 	if (state != LIBINPUT_BUTTON_STATE_PRESSED)
 		return;
@@ -603,7 +650,22 @@ pad_button_update_mode(struct libinput_tablet_pad_mode_group *g,
 	if (!libinput_tablet_pad_mode_group_button_is_toggle(g, button_index))
 		return;
 
-	rc = pad_led_group_get_mode(group);
+	if (list_empty(&group->led_list)) {
+		struct pad_mode_toggle_button *button;
+		list_for_each(button, &group->toggle_button_list, link) {
+			if (button->button_index == button_index) {
+				if (button->target_mode == MODE_NEXT) {
+					unsigned int nmodes = group->base.num_modes;
+					rc = (group->base.current_mode + 1) % nmodes;
+				} else {
+					rc = button->target_mode;
+				}
+				break;
+			}
+		}
+	} else {
+		rc = pad_led_group_get_mode(group);
+	}
 	if (rc >= 0)
 		group->base.current_mode = rc;
 }
@@ -611,7 +673,7 @@ pad_button_update_mode(struct libinput_tablet_pad_mode_group *g,
 int
 evdev_device_tablet_pad_get_num_mode_groups(struct evdev_device *device)
 {
-	struct pad_dispatch *pad = (struct pad_dispatch*)device->dispatch;
+	struct pad_dispatch *pad = (struct pad_dispatch *)device->dispatch;
 	struct libinput_tablet_pad_mode_group *group;
 	int num_groups = 0;
 
@@ -625,16 +687,14 @@ evdev_device_tablet_pad_get_num_mode_groups(struct evdev_device *device)
 }
 
 struct libinput_tablet_pad_mode_group *
-evdev_device_tablet_pad_get_mode_group(struct evdev_device *device,
-				       unsigned int index)
+evdev_device_tablet_pad_get_mode_group(struct evdev_device *device, unsigned int index)
 {
-	struct pad_dispatch *pad = (struct pad_dispatch*)device->dispatch;
+	struct pad_dispatch *pad = (struct pad_dispatch *)device->dispatch;
 
 	if (!(device->seat_caps & EVDEV_DEVICE_TABLET_PAD))
 		return NULL;
 
-	if (index >=
-	    (unsigned int)evdev_device_tablet_pad_get_num_mode_groups(device))
+	if (index >= (unsigned int)evdev_device_tablet_pad_get_num_mode_groups(device))
 		return NULL;
 
 	return pad_get_mode_group(pad, index);

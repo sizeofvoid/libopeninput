@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
@@ -74,6 +74,7 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 4096, 0, 0, 18 },
 	{ ABS_Y, 0, 4096, 0, 0, 29 },
@@ -85,6 +86,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x3,
@@ -92,6 +94,7 @@ static struct input_id input_id = {
 	.product = 0x27,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOOL_FINGER,
 	EV_KEY, BTN_TOOL_QUINTTAP,
@@ -102,20 +105,19 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_POINTER,
 	-1, -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("wacom-intuos5-finger",
-	.type = LITEST_WACOM_FINGER,
-	.features = LITEST_TOUCHPAD,
-	.interface = &interface,
+TEST_DEVICE(LITEST_WACOM_INTUOS5_FINGER,
+	    .features = LITEST_TOUCHPAD,
+	    .interface = &interface,
 
-	.name = "Wacom Intuos5 touch M Finger",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-	.udev_properties = {
-		{ "ID_INPUT_TABLET", "1" },
-		{ "ID_INPUT_TOUCHPAD", "1" },
-		{ "LIBINPUT_DEVICE_GROUP", "wacom-i5-group" },
-		{ NULL },
-	},
-)
+	    .name = "Wacom Intuos5 touch M Finger",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
+	    .udev_properties = {
+		    { "ID_INPUT_TABLET", "1" },
+		    { "ID_INPUT_TOUCHPAD", "1" },
+		    { "LIBINPUT_DEVICE_GROUP", "wacom-i5-group" },
+		    { NULL },
+	    }, )

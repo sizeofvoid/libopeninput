@@ -23,11 +23,11 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
-	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN  },
+	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_Y, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
 	{ .type = EV_ABS, .code = ABS_MT_TRACKING_ID, .value = LITEST_AUTO_ASSIGN },
@@ -74,6 +74,7 @@ static struct litest_device_interface interface = {
 	.get_axis_default = get_axis_default,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, -2909, 3167, 4, 0, 46 },
 	{ ABS_Y, -2456, 2565, 4, 0, 45 },
@@ -86,6 +87,7 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x5,
@@ -93,6 +95,7 @@ static struct input_id input_id = {
 	.product = 0x30e,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_TOOL_FINGER,
@@ -104,20 +107,19 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_BUTTONPAD,
 	-1, -1
 };
+/* clang-format on */
 
-TEST_DEVICE("magic-trackpad",
-	.type = LITEST_MAGIC_TRACKPAD,
-	.features = LITEST_TOUCHPAD | LITEST_CLICKPAD |
-		    LITEST_BUTTON | LITEST_APPLE_CLICKPAD,
-	.interface = &interface,
+TEST_DEVICE(LITEST_MAGIC_TRACKPAD,
+	    .features = LITEST_TOUCHPAD | LITEST_CLICKPAD | LITEST_BUTTON |
+			LITEST_APPLE_CLICKPAD,
+	    .interface = &interface,
 
-	.name = "Apple Wireless Trackpad",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
+	    .name = "Apple Wireless Trackpad",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
 
-	.udev_properties = {
-		{ "ID_INPUT_TOUCHPAD_INTEGRATION", "external" },
-		{ NULL },
-	},
-)
+	    .udev_properties = {
+		    { "ID_INPUT_TOUCHPAD_INTEGRATION", "external" },
+		    { NULL },
+	    }, )

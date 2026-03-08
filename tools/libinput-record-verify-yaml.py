@@ -591,7 +591,6 @@ class TestYaml(unittest.TestCase):
         for e in self.libinput_events(
             ["TABLET_TOOL_PROXIMITY", "TABLET_TOOL_AXIS", "TABLET_TOOL_TIP"]
         ):
-
             point = e["point"]
             self.assertTrue(isinstance(point, list))
             self.assertEqual(len(point), 2)

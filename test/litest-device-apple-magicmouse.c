@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_MT_SLOT, .value = LITEST_AUTO_ASSIGN },
@@ -60,6 +60,7 @@ static struct input_id input_id = {
 	.product = 0x30d,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -70,7 +71,9 @@ static int events[] = {
 	EV_REL, REL_HWHEEL,
 	-1 , -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_MT_SLOT, 0, 15, 0, 0, 0 },
 	{ ABS_MT_TOUCH_MAJOR, 0, 1020, 0, 0, 0 },
@@ -79,24 +82,23 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_POSITION_X, -1100, 1258, 4, 0, 26 },
 	{ ABS_MT_POSITION_Y, -1589, 2047, 4, 0, 26 },
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
-	{ .value = -1 }
+	{ .value = -1 },
 };
+/* clang-format on */
 
-TEST_DEVICE("magicmouse",
-	.type = LITEST_MAGICMOUSE,
-	.features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
-	.interface = &interface,
+TEST_DEVICE(LITEST_MAGICMOUSE,
+	    .features = LITEST_RELATIVE | LITEST_BUTTON | LITEST_WHEEL,
+	    .interface = &interface,
 
-	.name = "Apple Magic Mouse",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
+	    .name = "Apple Magic Mouse",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo,
 
-	/* Force MOUSE_DPI to 1000. systemd commit f013e99e160f says it's 1300
-	 * but our test were written with different assumptions and it's not worth
-	 * re-writing those, so let's assume the default */
-	.udev_properties = {
-		{ "MOUSE_DPI", "1000" },
-		{ NULL },
-	},
-)
+	    /* Force MOUSE_DPI to 1000. systemd commit f013e99e160f says it's 1300
+	     * but our test were written with different assumptions and it's not worth
+	     * re-writing those, so let's assume the default */
+	    .udev_properties = {
+		    { "MOUSE_DPI", "1000" },
+		    { NULL },
+	    }, )

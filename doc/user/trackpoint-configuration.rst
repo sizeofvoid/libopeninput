@@ -152,4 +152,3 @@ has been removed. See :ref:`trackpoint_multiplier` for versions 1.12.x and later
 
 If using libinput version 1.11.x or earlier, please see
 `the 1.11.0 documentation <https://wayland.freedesktop.org/libinput/doc/1.11.0/trackpoints.html#trackpoint_range_measure>`_
-

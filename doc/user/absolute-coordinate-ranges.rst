@@ -40,11 +40,6 @@ To fix the touchpad you need to:
 
 Detailed explanations are below.
 
-.. note:: ``libinput measure touchpad-size`` was introduced in libinput
-	  1.16. For earlier versions, use `libevdev <http://freedesktop.org/wiki/Software/libevdev/>`_'s
-	  ``touchpad-edge-detector`` tool.
-
-
 The ``libinput measure touchpad-size`` tool is an interactive tool. It must
 be called with the physical dimensions of the touchpad in mm. In the example
 below, we use 100mm wide and 55mm high. The tool will find the touchpad device

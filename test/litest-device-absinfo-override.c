@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_id input_id = {
 	.bustype = 0x11,
@@ -32,6 +32,7 @@ static struct input_id input_id = {
 	.product = 0x4567,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_LEFT,
 	EV_KEY, BTN_RIGHT,
@@ -44,7 +45,9 @@ static int events[] = {
 	INPUT_PROP_MAX, INPUT_PROP_POINTER,
 	-1 , -1,
 };
+/* clang-format on */
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 0, 2000, 0, 0, 0 },
 	{ ABS_Y, 0, 1400, 0, 0, 0 },
@@ -53,25 +56,24 @@ static struct input_absinfo absinfo[] = {
 	{ ABS_MT_POSITION_X, 0, 2000, 0, 0, 0 },
 	{ ABS_MT_POSITION_Y, 0, 1400, 0, 0, 0 },
 	{ ABS_MT_TRACKING_ID, 0, 65535, 0, 0, 0 },
-	{ .value = -1 }
+	{ .value = -1 },
 };
+/* clang-format on */
 
 /* This device only exists to verify that the EVDEV_ABS override bits work
  * correctly */
-TEST_DEVICE("absinfo-override",
-	.type = LITEST_ABSINFO_OVERRIDE,
-	.features = LITEST_IGNORED,
-	.interface = NULL,
+TEST_DEVICE(LITEST_ABSINFO_OVERRIDE,
+	    .features = LITEST_IGNORED,
+	    .interface = NULL,
 
-	.name = "absinfo override",
-	.id = &input_id,
-	.absinfo = absinfo,
-	.events = events,
-	.udev_properties = {
-	  { "EVDEV_ABS_00", "1:1000:100:10" },
-	  { "EVDEV_ABS_01", "2:2000:200:20" },
-	  { "EVDEV_ABS_35", "3:3000:300:30" },
-	  { "EVDEV_ABS_36", "4:4000:400:40" },
-	  { NULL },
-	},
-)
+	    .name = "absinfo override",
+	    .id = &input_id,
+	    .absinfo = absinfo,
+	    .events = events,
+	    .udev_properties = {
+		    { "EVDEV_ABS_00", "1:1000:100:10" },
+		    { "EVDEV_ABS_01", "2:2000:200:20" },
+		    { "EVDEV_ABS_35", "3:3000:300:30" },
+		    { "EVDEV_ABS_36", "4:4000:400:40" },
+		    { NULL },
+	    }, )

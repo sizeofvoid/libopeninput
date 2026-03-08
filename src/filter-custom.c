@@ -22,18 +22,19 @@
 #include "config.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
-#include "filter.h"
 #include "filter-private.h"
+#include "filter.h"
 
 #define MOTION_TIMEOUT ms2us(1000)
 #define FIRST_MOTION_TIME_INTERVAL ms2us(7) /* random but good enough interval for very first event */
 
 struct custom_accel_function {
 	uint64_t last_time;
+	uint64_t last_delta_time;
 	double step;
 	size_t npoints;
 	double points[];
@@ -55,8 +56,10 @@ create_custom_accel_function(double step, const double *points, size_t npoints)
 			return NULL;
 	}
 
-	struct custom_accel_function *cf = zalloc(sizeof(*cf) + npoints * sizeof(*points));
+	struct custom_accel_function *cf =
+		zalloc(sizeof(*cf) + npoints * sizeof(*points));
 	cf->last_time = 0;
+	cf->last_delta_time = FIRST_MOTION_TIME_INTERVAL;
 	cf->step = step;
 	cf->npoints = npoints;
 	memcpy(cf->points, points, sizeof(*points) * npoints);
@@ -109,20 +112,31 @@ custom_accel_function_calculate_speed(struct custom_accel_function *cf,
 
 	/* calculate speed based on time passed since last event */
 	double distance = hypot(unaccelerated->x, unaccelerated->y);
+	/* delta_time can be zero when:
+	 * - the fallback acceleration function is used for multiple movement types
+	 *   (for example, pointer motion and wheel scrolling simultaneously)
+	 * - two different methods produce the same movement at the same time
+	 *   (for example, button-scrolling and wheel-scrolling)
+	 *
+	 * Reusing the last delta_time is a graceful fallback even if there are
+	 * duplicate events or event-ordering bugs.
+	 */
+	uint64_t delta_time =
+		(time > cf->last_time) ? time - cf->last_time : cf->last_delta_time;
 	/* handle first event in a motion */
-	if (time - cf->last_time > MOTION_TIMEOUT)
-		cf->last_time = time - FIRST_MOTION_TIME_INTERVAL;
+	if (delta_time > MOTION_TIMEOUT)
+		delta_time = FIRST_MOTION_TIME_INTERVAL;
 
-	double dt = us2ms_f(time - cf->last_time);
-	double speed = distance / dt; /* speed is in device-units per ms */
+	/* speed is in device-units per ms */
+	double speed = distance / us2ms_f(delta_time);
 	cf->last_time = time;
+	cf->last_delta_time = delta_time;
 
 	return speed;
 }
 
 static double
-custom_accel_function_profile(struct custom_accel_function *cf,
-			      double speed_in)
+custom_accel_function_profile(struct custom_accel_function *cf, double speed_in)
 {
 	size_t npoints = cf->npoints;
 	double step = cf->step;
@@ -249,9 +263,7 @@ custom_accelerator_filter(enum libinput_config_accel_type accel_type,
 }
 
 static void
-custom_accelerator_restart(struct motion_filter *filter,
-			   void *data,
-			   uint64_t time)
+custom_accelerator_restart(struct motion_filter *filter, void *data, uint64_t time)
 {
 	/* noop, this function has no effect in the custom interface */
 }
@@ -259,8 +271,7 @@ custom_accelerator_restart(struct motion_filter *filter,
 static void
 custom_accelerator_destroy(struct motion_filter *filter)
 {
-	struct custom_accelerator *f =
-		(struct custom_accelerator *)filter;
+	struct custom_accelerator *f = (struct custom_accelerator *)filter;
 
 	/* destroy all custom movement functions */
 	custom_accel_function_destroy(f->funcs.fallback);
@@ -270,8 +281,7 @@ custom_accelerator_destroy(struct motion_filter *filter)
 }
 
 static bool
-custom_accelerator_set_speed(struct motion_filter *filter,
-			     double speed_adjustment)
+custom_accelerator_set_speed(struct motion_filter *filter, double speed_adjustment)
 {
 	assert(speed_adjustment >= -1.0 && speed_adjustment <= 1.0);
 
@@ -284,17 +294,15 @@ static bool
 custom_accelerator_set_accel_config(struct motion_filter *filter,
 				    struct libinput_config_accel *config)
 {
-	struct custom_accelerator *f =
-		(struct custom_accelerator *)filter;
+	struct custom_accelerator *f = (struct custom_accelerator *)filter;
 
-	struct custom_accel_function *fallback = NULL,
-				     *motion = NULL,
-				     *scroll = NULL;
+	struct custom_accel_function *fallback = NULL, *motion = NULL, *scroll = NULL;
 
 	if (config->custom.fallback) {
-		fallback = create_custom_accel_function(config->custom.fallback->step,
-							config->custom.fallback->points,
-							config->custom.fallback->npoints);
+		fallback =
+			create_custom_accel_function(config->custom.fallback->step,
+						     config->custom.fallback->points,
+						     config->custom.fallback->npoints);
 		if (!fallback)
 			goto out;
 	}
@@ -364,9 +372,7 @@ custom_accel_profile_motion(struct motion_filter *filter,
 			    double speed_in,
 			    uint64_t time)
 {
-	return custom_accelerator_profile(LIBINPUT_ACCEL_TYPE_MOTION,
-					  filter,
-					  speed_in);
+	return custom_accelerator_profile(LIBINPUT_ACCEL_TYPE_MOTION, filter, speed_in);
 }
 
 static struct normalized_coords
@@ -387,16 +393,15 @@ custom_accel_profile_scroll(struct motion_filter *filter,
 			    double speed_in,
 			    uint64_t time)
 {
-	return custom_accelerator_profile(LIBINPUT_ACCEL_TYPE_SCROLL,
-					  filter,
-					  speed_in);
+	return custom_accelerator_profile(LIBINPUT_ACCEL_TYPE_SCROLL, filter, speed_in);
 }
 
 static struct normalized_coords
 custom_accelerator_filter_scroll(struct motion_filter *filter,
 				 const struct device_float_coords *unaccelerated,
 				 void *data,
-				 uint64_t time)
+				 uint64_t time,
+				 enum filter_scroll_type type)
 {
 	return custom_accelerator_filter(LIBINPUT_ACCEL_TYPE_SCROLL,
 					 filter,
@@ -423,7 +428,7 @@ create_custom_accelerator_filter(void)
 	/* the unit function by default, speed in = speed out,
 	   i.e. no acceleration */
 	const double default_step = 1.0;
-	const double default_points[2] = {0.0, 1.0};
+	const double default_points[2] = { 0.0, 1.0 };
 
 	/* initialize default acceleration, used as fallback */
 	f->funcs.fallback = create_custom_accel_function(default_step,

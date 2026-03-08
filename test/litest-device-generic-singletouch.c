@@ -23,8 +23,8 @@
 
 #include "config.h"
 
-#include "litest.h"
 #include "litest-int.h"
+#include "litest.h"
 
 static struct input_event down[] = {
 	{ .type = EV_ABS, .code = ABS_X, .value = LITEST_AUTO_ASSIGN },
@@ -47,11 +47,13 @@ static struct litest_device_interface interface = {
 	.touch_move_events = move,
 };
 
+/* clang-format off */
 static struct input_absinfo absinfo[] = {
 	{ ABS_X, 10000, 20000, 0, 0, 10 },
 	{ ABS_Y, -2000, 2000, 0, 0, 9 },
 	{ .value = -1 },
 };
+/* clang-format on */
 
 static struct input_id input_id = {
 	.bustype = 0x01,
@@ -59,19 +61,19 @@ static struct input_id input_id = {
 	.product = 0x03,
 };
 
+/* clang-format off */
 static int events[] = {
 	EV_KEY, BTN_TOUCH,
 	INPUT_PROP_MAX, INPUT_PROP_DIRECT,
 	-1, -1,
 };
+/* clang-format on */
 
-TEST_DEVICE("generic-singletouch",
-	.type = LITEST_GENERIC_SINGLETOUCH,
-	.features = LITEST_SINGLE_TOUCH,
-	.interface = &interface,
+TEST_DEVICE(LITEST_GENERIC_SINGLETOUCH,
+	    .features = LITEST_SINGLE_TOUCH,
+	    .interface = &interface,
 
-	.name = "generic_singletouch",
-	.id = &input_id,
-	.events = events,
-	.absinfo = absinfo,
-)
+	    .name = "generic_singletouch",
+	    .id = &input_id,
+	    .events = events,
+	    .absinfo = absinfo, )

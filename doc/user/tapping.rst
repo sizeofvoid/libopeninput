@@ -34,6 +34,10 @@ Tapping is **enabled** by default on devices where tapping is the only
 method to trigger button clicks. This includes devices without physical
 buttons such as touch-capable graphics tablets.
 
+.. note:: Unfortunately due to the current API design, devices that require
+          tapping effectively prevent us from changing this default. For details see
+          `this comment <https://gitlab.freedesktop.org/libinput/libinput/-/issues/926#note_2056476>`_.
+
 Tapping can be enabled/disabled on a per-device basis. See
 **libinput_device_config_tap_set_enabled()** for details.
 
@@ -56,11 +60,13 @@ tap-and-drag enabled by default.
           single-finger drag.
 
 Also optional is a feature called "drag lock". With drag lock disabled, lifting
-the finger will stop any drag process. When enabled, libinput will ignore a
-finger up event during a drag process, provided the finger is set down again
-within a implementation-specific timeout. Drag lock can be enabled and
-disabled with **libinput_device_config_tap_set_drag_lock_enabled()**.
-Note that drag lock only applies if tap-and-drag is be enabled.
+the finger will stop any drag process. When enabled, the drag
+process continues even after lifting a finger but can be ended
+with an additional tap. If timeout-based drag-locks are enabled
+the drag process will also automatically end once the finger has
+been lifted for an implementation-specific timeout. Drag lock can be
+enabled and disabled with **libinput_device_config_tap_set_drag_lock_enabled()**.
+Note that drag lock only applies if tap-and-drag is enabled.
 
 .. figure:: tap-n-drag.svg
     :align: center
@@ -77,6 +83,9 @@ useful on small touchpads or with slow pointer acceleration.
 If drag lock is enabled, the release of the mouse buttons after the finger
 release (e) is triggered by a timeout. To release the button immediately,
 simply tap again (f).
+
+If drag lock is enabled in sticky mode there is no timeout after
+releasing a finger and an extra tap is required to release the button.
 
 If two fingers are supported by the hardware, a second finger can be used to
 drag while the first is held in-place.

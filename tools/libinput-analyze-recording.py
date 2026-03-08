@@ -192,7 +192,7 @@ def main(argv):
                     print("")
                     continuation_count = 0
 
-                fields.insert(0, f"{e.sec: 3d}.{e.usec//1000:03d}")
+                fields.insert(0, f"{e.sec: 3d}.{e.usec // 1000:03d}")
                 keys_down = [k.name for k, v in keystate.items() if v]
                 fields.append(", ".join(keys_down))
                 print(" | ".join(fields))

@@ -57,15 +57,15 @@ def test_matches_are_valid(quirksfile):
 
         vid = section.get("MatchVendor")
         if vid is not None:
-            assert re.match(
-                "0x[0-9A-F]{4}", vid
-            ), f"{quirksfile}: {name}: {vid} must be uppercase hex (0xAB12)"
+            assert re.match("0x[0-9A-F]{4}", vid), (
+                f"{quirksfile}: {name}: {vid} must be uppercase hex (0xAB12)"
+            )
 
         pid = section.get("MatchProduct")
         if pid is not None:
-            assert re.match(
-                "0x[0-9A-F]{4}", pid
-            ), f"{quirksfile}: {name}: {pid} must be uppercase hex (0xAB12)"
+            assert re.match("0x[0-9A-F]{4}", pid), (
+                f"{quirksfile}: {name}: {pid} must be uppercase hex (0xAB12)"
+            )
 
 
 def test_match_product_is_not_a_logitech_receiver(quirksfile):
@@ -78,9 +78,9 @@ def test_match_product_is_not_a_logitech_receiver(quirksfile):
         vid = int(section.get("MatchVendor", "0x0"), 16)
         if vid == 0x046D:
             pid = int(section.get("MatchProduct", "0x0"), 16)
-            assert (
-                pid not in logitech_receivers
-            ), f"{quirksfile}: {name}: applies to a Logitech Receiver"
+            assert pid not in logitech_receivers, (
+                f"{quirksfile}: {name}: applies to a Logitech Receiver"
+            )
 
 
 def main():
