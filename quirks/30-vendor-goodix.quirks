@@ -9,6 +9,33 @@ MatchProduct=0x01E8
 MatchUdevType=touchpad
 AttrInputProp=+INPUT_PROP_PRESSUREPAD
 
+# "GXTP5100 Touchpad": pressure touchpad mostly used in Lenovo laptops.
+# GXTP5100:00 27C6:01E9 Touchpad
+[Goodix Haptic Touchpad (27C6:01E9)]
+MatchBus=i2c
+MatchVendor=0x27C6
+MatchProduct=0x01E9
+MatchUdevType=touchpad
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
+
+# "GXTP5100 Touchpad": pressure touchpad mostly used in Lenovo laptops.
+# GXTP5100:00 27C6:01EA Touchpad
+[Goodix Haptic Touchpad (27C6:01EA)]
+MatchBus=i2c
+MatchVendor=0x27C6
+MatchProduct=0x01EA
+MatchUdevType=touchpad
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
+
+# "GXTP5100 Touchpad": pressure touchpad mostly used in Lenovo laptops.
+# GXTP5100:00 27C6:01EB Touchpad
+[Goodix Haptic Touchpad (27C6:01EB)]
+MatchBus=i2c
+MatchVendor=0x27C6
+MatchProduct=0x01EB
+MatchUdevType=touchpad
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
+
 # "GXTP5420 Touchpad": pressure touchpad mostly used in Lenovo laptops.
 # GXTP5420:00 27C6:0F95 Touchpad
 [Goodix Haptic Touchpad (27C6:0F95)]
