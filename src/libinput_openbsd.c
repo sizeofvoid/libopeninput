@@ -4799,3 +4799,129 @@ libinput_device_config_rotation_get_default_angle(struct libinput_device *device
 
 	return device->config.rotation->get_default_angle(device);
 }
+
+LIBINPUT_EXPORT void
+libinput_plugin_system_append_path(struct libinput *libinput, const char *path)
+{
+	/* We don't support libinput plugins */
+	return;
+}
+
+LIBINPUT_EXPORT void
+libinput_plugin_system_append_default_paths(struct libinput *libinput)
+{
+	/* We don't support libinput plugins */
+	return;
+}
+
+LIBINPUT_EXPORT int
+libinput_plugin_system_load_plugins(struct libinput *libinput,
+				    enum libinput_plugin_system_flags flags)
+{
+	/* We don't support libinput plugins.
+	 * Return -ENOSYS as the original implementation does
+	 * when #HAVE_PLUGINS is false
+	 */
+	return -ENOSYS;
+}
+
+LIBINPUT_EXPORT int
+libinput_device_config_3fg_drag_get_finger_count(struct libinput_device *device)
+{
+	return 0;
+}
+
+LIBINPUT_EXPORT enum libinput_config_3fg_drag_state
+libinput_device_config_3fg_drag_get_enabled(struct libinput_device *device)
+{
+	return LIBINPUT_CONFIG_3FG_DRAG_DISABLED;
+}
+
+LIBINPUT_EXPORT enum libinput_config_3fg_drag_state
+libinput_device_config_3fg_drag_get_default_enabled(struct libinput_device *device)
+{
+	return LIBINPUT_CONFIG_3FG_DRAG_DISABLED;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_3fg_drag_set_enabled(struct libinput_device *device,
+					    enum libinput_config_3fg_drag_state enable)
+{
+	return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+}
+
+LIBINPUT_EXPORT int
+libinput_device_config_area_has_rectangle(struct libinput_device *device)
+{
+	return device->config.area ? device->config.area->has_rectangle(device) : 0;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_area_set_rectangle(
+	struct libinput_device *device,
+	const struct libinput_config_area_rectangle *rectangle)
+{
+	return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+}
+
+LIBINPUT_EXPORT struct libinput_config_area_rectangle
+libinput_device_config_area_get_rectangle(struct libinput_device *device)
+{
+	struct libinput_config_area_rectangle rect = { 0.0, 0.0, 1.0, 1.0 };
+
+	return rect;
+}
+
+LIBINPUT_EXPORT struct libinput_config_area_rectangle
+libinput_device_config_area_get_default_rectangle(struct libinput_device *device)
+{
+	struct libinput_config_area_rectangle rect = { 0.0, 0.0, 1.0, 1.0 };
+
+	return rect;
+}
+
+LIBINPUT_EXPORT uint32_t
+libinput_tablet_tool_config_eraser_button_get_modes(struct libinput_tablet_tool *tool)
+{
+	return 0;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_tablet_tool_config_eraser_button_set_mode(
+	struct libinput_tablet_tool *tool,
+	enum libinput_config_eraser_button_mode mode)
+{
+	return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+}
+
+LIBINPUT_EXPORT enum libinput_config_eraser_button_mode
+libinput_tablet_tool_config_eraser_button_get_mode(struct libinput_tablet_tool *tool)
+{
+	return LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT;
+}
+
+LIBINPUT_EXPORT enum libinput_config_eraser_button_mode
+libinput_tablet_tool_config_eraser_button_get_default_mode(
+	struct libinput_tablet_tool *tool)
+{
+	return LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_tablet_tool_config_eraser_button_set_button(struct libinput_tablet_tool *tool,
+						     uint32_t button)
+{
+	return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+}
+
+LIBINPUT_EXPORT unsigned int
+libinput_tablet_tool_config_eraser_button_get_button(struct libinput_tablet_tool *tool)
+{
+	return 0;
+}
+
+LIBINPUT_EXPORT unsigned int
+libinput_tablet_tool_config_eraser_button_get_default_button(struct libinput_tablet_tool *tool)
+{
+	return 0;
+}
