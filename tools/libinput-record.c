@@ -908,7 +908,7 @@ print_tablet_tool_proximity_event(struct record_device *dev, struct libinput_eve
 		tool_type = "brush";
 		break;
 	case LIBINPUT_TABLET_TOOL_TYPE_PENCIL:
-		tool_type = "brush";
+		tool_type = "pencil";
 		break;
 	case LIBINPUT_TABLET_TOOL_TYPE_AIRBRUSH:
 		tool_type = "airbrush";
