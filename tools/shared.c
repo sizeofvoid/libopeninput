@@ -787,7 +787,7 @@ find_device(const char *udev_tag)
 			continue;
 
 		const char *sysname = udev_device_get_sysname(device);
-		if (!strstartswith("event", sysname)) {
+		if (!strstartswith(sysname, "event")) {
 			continue;
 		}
 
