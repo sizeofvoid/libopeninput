@@ -5206,7 +5206,7 @@ libinput_tablet_tool_config_eraser_button_get_default_mode(
 	if (!libinput_tablet_tool_config_eraser_button_get_modes(tool))
 		return LIBINPUT_CONFIG_ERASER_BUTTON_DEFAULT;
 
-	return tool->config.eraser_button.get_mode(tool);
+	return tool->config.eraser_button.get_default_mode(tool);
 }
 
 LIBINPUT_EXPORT enum libinput_config_status
@@ -5246,7 +5246,7 @@ libinput_tablet_tool_config_eraser_button_get_default_button(
 	if (!libinput_tablet_tool_config_eraser_button_get_modes(tool))
 		return 0;
 
-	return tool->config.eraser_button.get_button(tool);
+	return tool->config.eraser_button.get_default_button(tool);
 }
 
 #ifdef HAVE_LIBWACOM
