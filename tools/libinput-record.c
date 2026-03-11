@@ -1404,7 +1404,7 @@ print_system_header(FILE *fp)
 	_autofree_ char *dmistr = strdup("unknown"); //
 	if (dmi) {
 		char buf[2048] = "unknown";
-		size_t n = fread(buf, sizeof(buf), 1, dmi); // NOLINT: unix.Stream
+		size_t n = fread(buf, 1, sizeof(buf), dmi); // NOLINT: unix.Stream
 		if (n > 0) {
 			free(dmistr);
 			dmistr = strndup(buf, n - 1);
