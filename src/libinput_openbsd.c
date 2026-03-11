@@ -2225,7 +2225,7 @@ update_seat_key_count(struct libinput_seat *seat,
 {
 	uint32_t key = keycode_as_uint32_t(keycode);
 
-	assert(key >= 0 && key <= KEY_MAX);
+	assert(key <= KEY_MAX);
 
 	switch (state) {
 	case LIBINPUT_KEY_STATE_PRESSED:
@@ -2247,7 +2247,7 @@ update_seat_button_count(struct libinput_seat *seat,
 			 enum libinput_button_state state)
 {
 	uint32_t button = button_code_as_uint32_t(button_code);
-	assert(button >= 0 && button <= KEY_MAX);
+	assert(button <= KEY_MAX);
 
 	switch (state) {
 	case LIBINPUT_BUTTON_STATE_PRESSED:
