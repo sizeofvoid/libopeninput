@@ -1858,41 +1858,12 @@ libinput_init(struct libinput *libinput,
 void
 libinput_init_quirks(struct libinput *libinput)
 {
-	const char *data_path,
-		   *override_file = NULL;
-	struct quirks_context *quirks;
-
+	/* Stub implementation, as quirks disabled in libopeninput */
 	if (libinput->quirks_initialized)
 		return;
 
-	/* If we fail, we'll fail next time too */
 	libinput->quirks_initialized = true;
-
-	data_path = getenv("LIBINPUT_QUIRKS_DIR");
-	if (!data_path) {
-		data_path = LIBINPUT_QUIRKS_DIR;
-		override_file = LIBINPUT_QUIRKS_OVERRIDE_FILE;
-	}
-
-	quirks = quirks_init_subsystem(data_path,
-				       override_file,
-				       log_msg_va,
-				       libinput,
-				       QLOG_LIBINPUT_LOGGING);
-	if (!quirks) {
-		log_error(libinput,
-			  "Failed to load the device quirks from %s%s%s. "
-			  "This will negatively affect device behavior. "
-			  "See %s/device-quirks.html for details.\n",
-			  data_path,
-			  override_file ? " and " : "",
-			  override_file ? override_file : "",
-			  HTTP_DOC_LINK
-			  );
-		return;
-	}
-
-	libinput->quirks = quirks;
+	libinput->quirks = NULL;
 }
 
 static void
@@ -1965,7 +1936,6 @@ libinput_unref(struct libinput *libinput)
 
 	libinput_timer_subsys_destroy(libinput);
 	libinput_drop_destroyed_sources(libinput);
-	quirks_context_unref(libinput->quirks);
 	close(libinput->epoll_fd);
 	free(libinput);
 
