@@ -1942,6 +1942,11 @@ libinput_unref(struct libinput *libinput)
 	return NULL;
 }
 
+struct quirks *
+libinput_device_get_quirks(struct libinput_device *device) {
+	return NULL;
+}
+
 static void
 libinput_event_tablet_tool_destroy(struct libinput_event_tablet_tool *event)
 {
@@ -2123,6 +2128,13 @@ libinput_device_unref(struct libinput_device *device)
 	return device;
 }
 
+void
+libinput_device_disable_feature(struct libinput_device *device,
+		                enum libinput_feature feature)
+{
+	return;
+}
+
 LIBINPUT_EXPORT int
 libinput_get_fd(struct libinput *libinput)
 {
@@ -2186,6 +2198,18 @@ void
 libinput_device_remove_event_listener(struct libinput_event_listener *listener)
 {
 	list_remove(&listener->link);
+}
+
+bool
+libinput_device_has_model_quirk(struct libinput_device *device, enum quirk model_quirk)
+{
+	return false;
+}
+
+bool
+libinput_device_is_virtual(struct libinput_device *device)
+{
+	return false;
 }
 
 static uint32_t
@@ -2904,6 +2928,16 @@ tablet_pad_notify_button(struct libinput_device *device,
 }
 
 void
+tablet_pad_notify_dial (struct libinput_device *device,
+		       uint64_t time,
+		       unsigned int number,
+		       double value,
+		       struct libinput_tablet_pad_mode_group *group)
+{
+	return;
+}
+
+void
 tablet_pad_notify_ring(struct libinput_device *device,
 		       uint64_t time,
 		       unsigned int number,
@@ -3121,6 +3155,12 @@ switch_notify_toggle(struct libinput_device *device,
 #endif
 }
 
+_unused_ static inline void
+libinput_print_queued_event(struct libinput_event *event)
+{
+	return;
+}
+
 static void
 libinput_post_event(struct libinput *libinput,
 		    struct libinput_event *event)
@@ -3267,6 +3307,12 @@ libinput_device_get_name(struct libinput_device *device)
 }
 
 LIBINPUT_EXPORT unsigned int
+libinput_device_get_id_bustype(struct libinput_device *device)
+{
+	return 0; // TODO
+}
+
+LIBINPUT_EXPORT unsigned int
 libinput_device_get_id_product(struct libinput_device *device)
 {
 	return 0; // TODO
@@ -3376,6 +3422,13 @@ libinput_device_tablet_pad_get_num_buttons(struct libinput_device *device)
 }
 
 LIBINPUT_EXPORT int
+libinput_device_tablet_pad_get_num_dials(struct libinput_device *device)
+{
+	fprintf(stderr, "%s: stub\n", __func__);
+	return (-1);
+}
+
+LIBINPUT_EXPORT int
 libinput_device_tablet_pad_get_num_rings(struct libinput_device *device)
 {
 	fprintf(stderr, "%s: stub\n", __func__);
@@ -3432,6 +3485,13 @@ libinput_tablet_pad_mode_group_has_button(struct libinput_tablet_pad_mode_group 
 		return 0;
 
 	return !!(group->button_mask & bit(button));
+}
+
+LIBINPUT_EXPORT int
+libinput_tablet_pad_mode_group_has_dial(struct libinput_tablet_pad_mode_group *group,
+					unsigned int dial)
+{
+	return false;
 }
 
 LIBINPUT_EXPORT int
@@ -3593,6 +3653,18 @@ libinput_event_tablet_tool_get_base_event(struct libinput_event_tablet_tool *eve
 }
 
 LIBINPUT_EXPORT double
+libinput_event_tablet_pad_get_dial_delta_v120(struct libinput_event_tablet_pad *event)
+{
+	return 0.0;
+}
+
+LIBINPUT_EXPORT unsigned int
+libinput_event_tablet_pad_get_dial_number(struct libinput_event_tablet_pad *event)
+{
+	return 0;
+}
+
+LIBINPUT_EXPORT double
 libinput_event_tablet_pad_get_ring_position(struct libinput_event_tablet_pad *event)
 {
 	require_event_type(libinput_event_get_context(&event->base),
@@ -3709,6 +3781,7 @@ libinput_event_tablet_pad_get_mode(struct libinput_event_tablet_pad *event)
 			   event->base.type,
 			   0,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 
@@ -3722,6 +3795,7 @@ libinput_event_tablet_pad_get_mode_group(struct libinput_event_tablet_pad *event
 			   event->base.type,
 			   NULL,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON);
 
@@ -3735,6 +3809,7 @@ libinput_event_tablet_pad_get_time(struct libinput_event_tablet_pad *event)
 			   event->base.type,
 			   0,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON,
 			   LIBINPUT_EVENT_TABLET_PAD_KEY);
@@ -3749,6 +3824,7 @@ libinput_event_tablet_pad_get_time_usec(struct libinput_event_tablet_pad *event)
 			   event->base.type,
 			   0,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON,
 			   LIBINPUT_EVENT_TABLET_PAD_KEY);
@@ -3763,6 +3839,7 @@ libinput_event_tablet_pad_get_base_event(struct libinput_event_tablet_pad *event
 			   event->base.type,
 			   NULL,
 			   LIBINPUT_EVENT_TABLET_PAD_RING,
+			   LIBINPUT_EVENT_TABLET_PAD_DIAL,
 			   LIBINPUT_EVENT_TABLET_PAD_STRIP,
 			   LIBINPUT_EVENT_TABLET_PAD_BUTTON,
 			   LIBINPUT_EVENT_TABLET_PAD_KEY);
@@ -4014,6 +4091,32 @@ libinput_device_config_tap_get_default_drag_lock_enabled(struct libinput_device 
 }
 
 LIBINPUT_EXPORT int
+libinput_device_config_3fg_drag_get_finger_count(struct libinput_device *device)
+{
+	return 0;
+}
+
+LIBINPUT_EXPORT enum libinput_config_3fg_drag_state
+libinput_device_config_3fg_drag_get_enabled(struct libinput_device *device)
+{
+	return LIBINPUT_CONFIG_3FG_DRAG_DISABLED;
+}
+
+LIBINPUT_EXPORT enum libinput_config_3fg_drag_state
+libinput_device_config_3fg_drag_get_default_enabled(struct libinput_device *device)
+{
+	return LIBINPUT_CONFIG_3FG_DRAG_DISABLED;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_3fg_drag_set_enabled(struct libinput_device *device,
+					    enum libinput_config_3fg_drag_state enable)
+{
+	return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+}
+
+
+LIBINPUT_EXPORT int
 libinput_device_config_calibration_has_matrix(struct libinput_device *device)
 {
 	return device->config.calibration ?
@@ -4049,6 +4152,37 @@ libinput_device_config_calibration_get_default_matrix(struct libinput_device *de
 
 	return device->config.calibration->get_default_matrix(device, matrix);
 }
+
+LIBINPUT_EXPORT int
+libinput_device_config_area_has_rectangle(struct libinput_device *device)
+{
+	return device->config.area ? device->config.area->has_rectangle(device) : 0;
+}
+
+LIBINPUT_EXPORT enum libinput_config_status
+libinput_device_config_area_set_rectangle(
+	struct libinput_device *device,
+	const struct libinput_config_area_rectangle *rectangle)
+{
+	return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+}
+
+LIBINPUT_EXPORT struct libinput_config_area_rectangle
+libinput_device_config_area_get_rectangle(struct libinput_device *device)
+{
+	struct libinput_config_area_rectangle rect = { 0.0, 0.0, 1.0, 1.0 };
+
+	return rect;
+}
+
+LIBINPUT_EXPORT struct libinput_config_area_rectangle
+libinput_device_config_area_get_default_rectangle(struct libinput_device *device)
+{
+	struct libinput_config_area_rectangle rect = { 0.0, 0.0, 1.0, 1.0 };
+
+	return rect;
+}
+
 
 LIBINPUT_EXPORT uint32_t
 libinput_device_config_send_events_get_modes(struct libinput_device *device)
@@ -4770,84 +4904,55 @@ libinput_device_config_rotation_get_default_angle(struct libinput_device *device
 	return device->config.rotation->get_default_angle(device);
 }
 
-LIBINPUT_EXPORT void
-libinput_plugin_system_append_path(struct libinput *libinput, const char *path)
-{
-	/* We don't support libinput plugins */
-	return;
-}
-
-LIBINPUT_EXPORT void
-libinput_plugin_system_append_default_paths(struct libinput *libinput)
-{
-	/* We don't support libinput plugins */
-	return;
-}
-
 LIBINPUT_EXPORT int
-libinput_plugin_system_load_plugins(struct libinput *libinput,
-				    enum libinput_plugin_system_flags flags)
-{
-	/* We don't support libinput plugins.
-	 * Return -ENOSYS as the original implementation does
-	 * when #HAVE_PLUGINS is false
-	 */
-	return -ENOSYS;
-}
-
-LIBINPUT_EXPORT int
-libinput_device_config_3fg_drag_get_finger_count(struct libinput_device *device)
+libinput_tablet_tool_config_pressure_range_is_available(
+	struct libinput_tablet_tool *tool)
 {
 	return 0;
 }
 
-LIBINPUT_EXPORT enum libinput_config_3fg_drag_state
-libinput_device_config_3fg_drag_get_enabled(struct libinput_device *device)
-{
-	return LIBINPUT_CONFIG_3FG_DRAG_DISABLED;
-}
-
-LIBINPUT_EXPORT enum libinput_config_3fg_drag_state
-libinput_device_config_3fg_drag_get_default_enabled(struct libinput_device *device)
-{
-	return LIBINPUT_CONFIG_3FG_DRAG_DISABLED;
-}
-
 LIBINPUT_EXPORT enum libinput_config_status
-libinput_device_config_3fg_drag_set_enabled(struct libinput_device *device,
-					    enum libinput_config_3fg_drag_state enable)
+libinput_tablet_tool_config_pressure_range_set(struct libinput_tablet_tool *tool,
+					       double minimum,
+					       double maximum)
 {
 	return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
 }
 
-LIBINPUT_EXPORT int
-libinput_device_config_area_has_rectangle(struct libinput_device *device)
+LIBINPUT_EXPORT double
+libinput_tablet_tool_config_pressure_range_get_minimum(
+	struct libinput_tablet_tool *tool)
 {
-	return device->config.area ? device->config.area->has_rectangle(device) : 0;
+	double min = 0.0;
+
+	return min;
 }
 
-LIBINPUT_EXPORT enum libinput_config_status
-libinput_device_config_area_set_rectangle(
-	struct libinput_device *device,
-	const struct libinput_config_area_rectangle *rectangle)
+LIBINPUT_EXPORT double
+libinput_tablet_tool_config_pressure_range_get_maximum(
+	struct libinput_tablet_tool *tool)
 {
-	return LIBINPUT_CONFIG_STATUS_UNSUPPORTED;
+	double max = 1.0;
+
+	return max;
 }
 
-LIBINPUT_EXPORT struct libinput_config_area_rectangle
-libinput_device_config_area_get_rectangle(struct libinput_device *device)
+LIBINPUT_EXPORT double
+libinput_tablet_tool_config_pressure_range_get_default_minimum(
+	struct libinput_tablet_tool *tool)
 {
-	struct libinput_config_area_rectangle rect = { 0.0, 0.0, 1.0, 1.0 };
+	double min = 0.0;
 
-	return rect;
+	return min;
 }
 
-LIBINPUT_EXPORT struct libinput_config_area_rectangle
-libinput_device_config_area_get_default_rectangle(struct libinput_device *device)
+LIBINPUT_EXPORT double
+libinput_tablet_tool_config_pressure_range_get_default_maximum(
+	struct libinput_tablet_tool *tool)
 {
-	struct libinput_config_area_rectangle rect = { 0.0, 0.0, 1.0, 1.0 };
+	double max = 1.0;
 
-	return rect;
+	return max;
 }
 
 LIBINPUT_EXPORT uint32_t
@@ -4895,3 +5000,32 @@ libinput_tablet_tool_config_eraser_button_get_default_button(struct libinput_tab
 {
 	return 0;
 }
+
+
+/* These are implemented by libinput-plugin.c */
+
+LIBINPUT_EXPORT void
+libinput_plugin_system_append_path(struct libinput *libinput, const char *path)
+{
+	/* We don't support libinput plugins */
+	return;
+}
+
+LIBINPUT_EXPORT void
+libinput_plugin_system_append_default_paths(struct libinput *libinput)
+{
+	/* We don't support libinput plugins */
+	return;
+}
+
+LIBINPUT_EXPORT int
+libinput_plugin_system_load_plugins(struct libinput *libinput,
+				    enum libinput_plugin_system_flags flags)
+{
+	/* We don't support libinput plugins.
+	 * Return -ENOSYS as the original implementation does
+	 * when #HAVE_PLUGINS is false
+	 */
+	return -ENOSYS;
+}
+
