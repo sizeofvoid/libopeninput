@@ -215,7 +215,7 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 	case WSCONS_EVENT_HSCROLL:
 		delta.x = wsevent->value / 8;
 		delta.y = 0;
-		v120.x = wsevent->value * 3;
+		v120.x = wsevent->value / 16;
 		v120.y = 0;
 		pointer_notify_axis_wheel(device, time,
 		                          bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
@@ -225,7 +225,7 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 		delta.x = 0;
 		delta.y = wsevent->value / 8;
 		v120.x = 0;
-		v120.y = wsevent->value * 3;
+		v120.y = wsevent->value / 16;
 		pointer_notify_axis_wheel(device, time,
 		                          bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
 		                          &delta, &v120);
