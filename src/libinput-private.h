@@ -1149,14 +1149,4 @@ libinput_libwacom_unref(struct libinput *li)
 }
 #endif
 
-
-#if defined(__OpenBSD__) || defined(__NetBSD__)
-void
-axis_notify_event(struct libinput_device *device,
-    uint64_t time,
-    const struct normalized_coords *delta,
-    const struct device_float_coords *raw);
-#endif
-
-
 #endif /* LIBINPUT_PRIVATE_H */

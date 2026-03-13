@@ -113,7 +113,8 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 {
 	enum libinput_button_state bstate;
 	enum libinput_key_state kstate;
-	struct normalized_coords accel;
+	struct normalized_coords delta = { 0, 0};
+	struct wheel_v120 v120 = { 0.0, 0.0 };
 	struct device_float_coords raw;
 	struct wscons_device *dev = wscons_device(device);
 	uint64_t time;
@@ -167,7 +168,6 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 	case WSCONS_EVENT_MOUSE_DELTA_X:
 	case WSCONS_EVENT_MOUSE_DELTA_Y:
 		memset(&raw, 0, sizeof(raw));
-		memset(&accel, 0, sizeof(accel));
 
 		if (wsevent->type == WSCONS_EVENT_MOUSE_DELTA_X)
 			raw.x = wsevent->value;
@@ -175,30 +175,36 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 			raw.y = -wsevent->value;
 
 		if (dev->pointer.filter) {
-			accel = filter_dispatch(dev->pointer.filter,
+			delta = filter_dispatch(dev->pointer.filter,
 			                        &raw,
 			                	device,
 			                	time);
 		} else {
-			accel.x = raw.x;
-			accel.y = raw.y;
+			delta.x = raw.x;
+			delta.y = raw.y;
 		}
 
-		pointer_notify_motion(device, time, &accel, &raw);
+		pointer_notify_motion(device, time, &delta, &raw);
 		break;
 
 	case WSCONS_EVENT_MOUSE_DELTA_Z:
-		memset(&raw, 0, sizeof(raw));
-		accel.x = 0;
-		accel.y = wsevent->value * 32;
-		axis_notify_event(device, time, &accel, &raw);
+		delta.x = 0;
+		delta.y = wsevent->value * 32;
+		v120.x = 0;
+		v120.y = wsevent->value * 120;
+		pointer_notify_axis_wheel(device, time,
+		                          bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
+		                          &delta, &v120);
 		break;
 
 	case WSCONS_EVENT_MOUSE_DELTA_W:
-		memset(&raw, 0, sizeof(raw));
-		accel.x = wsevent->value * 32;
-		accel.y = 0;
-		axis_notify_event(device, time, &accel, &raw);
+		delta.x = wsevent->value * 32;
+		delta.y = 0;
+		v120.x = wsevent->value * 120;
+		v120.y = 0;
+		pointer_notify_axis_wheel(device, time,
+		                          bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
+		                          &delta, &v120);
 		break;
 
 	case WSCONS_EVENT_MOUSE_ABSOLUTE_X:
@@ -207,16 +213,22 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 		break;
 
 	case WSCONS_EVENT_HSCROLL:
-		memset(&raw, 0, sizeof(raw));
-		accel.x = wsevent->value/8;
-		accel.y = 0;
-		axis_notify_event(device, time, &accel, &raw);
+		delta.x = wsevent->value / 8;
+		delta.y = 0;
+		v120.x = wsevent->value / 16;
+		v120.y = 0;
+		pointer_notify_axis_wheel(device, time,
+		                          bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL),
+		                          &delta, &v120);
 		break;
 	case WSCONS_EVENT_VSCROLL:
-		memset(&raw, 0, sizeof(raw));
-		accel.x = 0;
-		accel.y = wsevent->value/8;
-		axis_notify_event(device, time, &accel, &raw);
+		delta.x = 0;
+		delta.y = wsevent->value / 8;
+		v120.x = 0;
+		v120.y = wsevent->value / 16;
+		pointer_notify_axis_wheel(device, time,
+		                          bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL),
+		                          &delta, &v120);
 		break;
 
 #ifdef WSCONS_EVENT_SYNC
