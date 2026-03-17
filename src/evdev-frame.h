@@ -550,10 +550,12 @@ evdev_frame_append(struct evdev_frame *frame,
 		   size_t nevents)
 {
 	assert(nevents > 0);
+	int syn_report_value = 0;
 
 	for (size_t i = 0; i < nevents; i++) {
 		if (evdev_usage_eq(events[i].usage, EVDEV_SYN_REPORT)) {
 			nevents = i;
+			syn_report_value = events[i].value;
 			break;
 		}
 	}
@@ -568,14 +570,24 @@ evdev_frame_append(struct evdev_frame *frame,
 		frame->count += nevents;
 	}
 
+	frame->events[frame->count - 1] = (struct evdev_event){
+		.usage = evdev_usage_from_uint32_t(EVDEV_SYN_REPORT),
+		.value = syn_report_value,
+	};
+
 	return 0;
 }
 
 static inline int
 evdev_frame_append_one(struct evdev_frame *frame, evdev_usage_t usage, int32_t value)
 {
-	if (evdev_usage_eq(usage, EVDEV_SYN_REPORT))
+	if (evdev_usage_eq(usage, EVDEV_SYN_REPORT)) {
+		frame->events[frame->count - 1] = (struct evdev_event){
+			.usage = evdev_usage_from_uint32_t(EVDEV_SYN_REPORT),
+			.value = value,
+		};
 		return 0;
+	}
 
 	if (frame->count >= frame->max_size)
 		return -ENOMEM;
