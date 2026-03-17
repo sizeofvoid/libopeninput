@@ -257,6 +257,7 @@ print_evdev_event(struct record_device *dev, struct input_event *ev)
 
 		usec_t time = input_event_time(ev);
 		usec_t dt = usec_delta(time, last_time);
+		last_time = time;
 
 		snprintf(desc,
 			 sizeof(desc),
