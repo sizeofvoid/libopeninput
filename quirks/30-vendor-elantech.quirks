@@ -9,3 +9,11 @@ AttrPressureRange=10:8
 MatchName=*Elan Touchpad*
 AttrResolutionHint=31x31
 AttrPressureRange=10:8
+
+# Elan Hapticpad mostly used in Lenovo laptops.
+[Elan Haptic Touchpad (04F3:3355)]
+MatchBus=i2c
+MatchVendor=0x04F3
+MatchProduct=0x3355
+MatchUdevType=touchpad
+AttrInputProp=+INPUT_PROP_PRESSUREPAD
