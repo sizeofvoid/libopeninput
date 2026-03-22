@@ -47,13 +47,13 @@ usec_from_millis(uint32_t millis)
 static inline usec_t
 usec_from_seconds(uint32_t secs)
 {
-	return usec_from_millis(secs * 1000);
+	return usec_from_uint64_t(secs * 1000000ULL);
 }
 
 static inline usec_t
 usec_from_hours(uint32_t hours)
 {
-	return usec_from_seconds(hours * 3600);
+	return usec_from_uint64_t((uint64_t)hours * 3600 * 1000000ULL);
 }
 
 static inline uint32_t
@@ -83,7 +83,7 @@ usec_to_hours(usec_t us)
 static inline usec_t
 usec_add_millis(usec_t us, uint32_t millis)
 {
-	return usec_from_uint64_t(usec_as_uint64_t(us) + millis * 1000);
+	return usec_from_uint64_t(usec_as_uint64_t(us) + millis * 1000ULL);
 }
 
 static inline usec_t
