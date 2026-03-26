@@ -1,0 +1,6 @@
+# Clickpad that announces BTN_RIGHT
+[Wareus B15 Touchpad]
+MatchName=HTIX5288:00 36B6:C001 Touchpad
+MatchUdevType=touchpad
+MatchDMIModalias=dmi:*svnWareus:*pnB15*
+AttrEventCode=-BTN_RIGHT
