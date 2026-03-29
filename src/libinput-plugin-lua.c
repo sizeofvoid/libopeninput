@@ -563,6 +563,12 @@ libinputplugin_unregister(lua_State *L)
 }
 
 static int
+readonly_newindex(lua_State *L)
+{
+	return luaL_error(L, "attempt to modify a read-only table");
+}
+
+static int
 libinputplugin_gc(lua_State *L)
 {
 	LibinputPlugin *p = luaL_checkudata(L, 1, PLUGIN_METATABLE);
@@ -673,7 +679,28 @@ libinputplugin_log_error(lua_State *L)
 	return libinputplugin_log(L, LIBINPUT_LOG_PRIORITY_ERROR);
 }
 
-static const struct luaL_Reg libinputplugin_vtable[] = {
+static void
+setup_vfuncs(lua_State *L,
+	     const char *metatable_name,
+	     const struct luaL_Reg *vfuncs,
+	     const struct luaL_Reg *public_methods)
+{
+	luaL_newmetatable(L, metatable_name);
+	luaL_setfuncs(L, vfuncs, 0);
+
+	lua_newtable(L);
+	luaL_setfuncs(L, public_methods, 0);
+	lua_setfield(L, -2, "__index");
+
+	/* set metatable.__metatable = false to prevent a script from getmetatable(),
+	   which is blocked anyway but safe and sorry and whatnot */
+	lua_pushboolean(L, 0);
+	lua_setfield(L, -2, "__metatable");
+
+	lua_pop(L, 1);
+}
+
+static const struct luaL_Reg libinputplugin_methods[] = {
 	{ "now", libinputplugin_now },
 	{ "version", libinputplugin_version },
 	{ "connect", libinputplugin_connect },
@@ -685,18 +712,18 @@ static const struct luaL_Reg libinputplugin_vtable[] = {
 	{ "log_debug", libinputplugin_log_debug },
 	{ "log_info", libinputplugin_log_info },
 	{ "log_error", libinputplugin_log_error },
-	{ "__gc", libinputplugin_gc },
 	{ NULL, NULL }
 };
+
+static const struct luaL_Reg libinputplugin_meta[] = { { "__gc", libinputplugin_gc },
+						       { "__newindex",
+							 readonly_newindex },
+						       { NULL, NULL } };
 
 static void
 libinputplugin_init(lua_State *L)
 {
-	luaL_newmetatable(L, PLUGIN_METATABLE);
-	lua_pushstring(L, "__index");
-	lua_pushvalue(L, -2); /* push metatable */
-	lua_settable(L, -3);  /* metatable.__index = metatable */
-	luaL_setfuncs(L, libinputplugin_vtable, 0);
+	setup_vfuncs(L, PLUGIN_METATABLE, libinputplugin_meta, libinputplugin_methods);
 }
 
 static int
@@ -1073,7 +1100,7 @@ evdevdevice_gc(lua_State *L)
 	return 0;
 }
 
-static const struct luaL_Reg evdevdevice_vtable[] = {
+static const struct luaL_Reg evdevdevice_methods[] = {
 	{ "info", evdevdevice_info },
 	{ "name", evdevdevice_name },
 	{ "usages", evdevdevice_usages },
@@ -1087,18 +1114,17 @@ static const struct luaL_Reg evdevdevice_vtable[] = {
 	{ "prepend_frame", evdevdevice_prepend_frame },
 	{ "append_frame", evdevdevice_append_frame },
 	{ "disable_feature", evdevdevice_disable_feature },
-	{ "__gc", evdevdevice_gc },
 	{ NULL, NULL }
 };
+
+static const struct luaL_Reg evdevdevice_meta[] = { { "__gc", evdevdevice_gc },
+						    { "__newindex", readonly_newindex },
+						    { NULL, NULL } };
 
 static void
 evdevdevice_init(lua_State *L)
 {
-	luaL_newmetatable(L, EVDEV_DEVICE_METATABLE);
-	lua_pushstring(L, "__index");
-	lua_pushvalue(L, -2); /* push metatable */
-	lua_settable(L, -3);  /* metatable.__index = metatable */
-	luaL_setfuncs(L, evdevdevice_vtable, 0);
+	setup_vfuncs(L, EVDEV_DEVICE_METATABLE, evdevdevice_meta, evdevdevice_methods);
 }
 
 static void

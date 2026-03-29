@@ -526,6 +526,38 @@ START_TEST(lua_disallowed_functions)
 }
 END_TEST
 
+START_TEST(lua_gc_not_accessible)
+{
+	_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
+	const char *lua =
+		"libinput:register({1})\n"
+		"assert(libinput.__gc == nil)\n"
+		"function check_device_gc(device)\n"
+		"  assert(device.__gc == nil)\n"
+		"  libinput:log_info(\"gc_not_accessible: ok\")\n"
+		"end\n"
+		"libinput:connect(\"new-evdev-device\", check_device_gc)\n";
+
+	_autofree_ char *path = litest_write_plugin(tmpdir->path, lua);
+	_litest_context_destroy_ struct libinput *li =
+		litest_create_context_with_plugindir(tmpdir->path);
+	if (libinput_log_get_priority(li) > LIBINPUT_LOG_PRIORITY_INFO)
+		libinput_log_set_priority(li, LIBINPUT_LOG_PRIORITY_INFO);
+
+	litest_with_logcapture(li, capture) {
+		libinput_plugin_system_load_plugins(li,
+						    LIBINPUT_PLUGIN_SYSTEM_FLAG_NONE);
+		litest_drain_events(li);
+
+		_destroy_(litest_device) *device = litest_add_device(li, LITEST_MOUSE);
+		litest_drain_events(li);
+
+		litest_assert_logcapture_no_errors(capture);
+		litest_assert_strv_substring(capture->infos, "gc_not_accessible: ok");
+	}
+}
+END_TEST
+
 START_TEST(lua_frame_handler)
 {
 	_destroy_(tmpdir) *tmpdir = tmpdir_create(NULL);
@@ -1219,6 +1251,7 @@ TEST_COLLECTION(lua)
 	litest_add_no_device(lua_register_multiversions);
 	litest_add_no_device(lua_allowed_functions);
 	litest_add_no_device(lua_disallowed_functions);
+	litest_add_no_device(lua_gc_not_accessible);
 
 	litest_add_no_device(lua_frame_handler);
 	litest_add_no_device(lua_device_info);
