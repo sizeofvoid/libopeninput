@@ -1362,7 +1362,7 @@ libinput_lua_plugin_new_from_path(struct libinput *libinput, const char *path)
 		return NULL;
 	}
 
-	int ret = luaL_loadfile(L, path);
+	int ret = luaL_loadfilex(L, path, "t");
 	if (ret == LUA_OK) {
 		plugin->L = steal(&L);
 
