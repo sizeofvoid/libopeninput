@@ -2382,44 +2382,6 @@ keyboard_notify_key(struct libinput_device *device,
 }
 
 void
-axis_notify_event(struct libinput_device *device,
-		  uint64_t time,
-		  const struct normalized_coords *delta,
-		  const struct device_float_coords *raw)
-{
-	struct libinput_event_pointer *axis_event;
-	struct wheel_v120 v120 = { 0.0, 0.0 };
-	uint32_t axes;
-
-	axis_event = zalloc(sizeof *axis_event);
-	if (!axis_event)
-		return;
-	if (delta->x) {
-		axes = bit(LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL);
-		v120.x = delta->x * 3.75;
-	} else {
-		axes = bit(LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
-		v120.y = delta->y * 3.75;
-	}
-
-	*axis_event = (struct libinput_event_pointer){
-		.time = time,
-		.delta = *delta,
-		.delta_raw = *raw,
-		.source = LIBINPUT_POINTER_AXIS_SOURCE_WHEEL,
-		.axes = axes,
-		.discrete.x = 0,
-		.discrete.y = 0,
-		.v120 = v120
-	};
-
-	post_device_event(device,
-			  time,
-			  LIBINPUT_EVENT_POINTER_SCROLL_WHEEL,
-			  &axis_event->base);
-}
-
-void
 pointer_notify_motion(struct libinput_device *device,
 		      uint64_t time,
 		      const struct normalized_coords *delta,
@@ -2604,10 +2566,9 @@ pointer_notify_axis_wheel(struct libinput_device *device,
 {
 	struct libinput_event_pointer *axis_event;
 
-	if (!device_has_cap(device, LIBINPUT_DEVICE_CAP_POINTER))
-		return;
-
 	axis_event = zalloc(sizeof *axis_event);
+	if (!axis_event)
+		return;
 
 	*axis_event = (struct libinput_event_pointer){
 		.time = time,
