@@ -585,8 +585,28 @@ tp_gesture_handle_event_on_state_none(struct tp_dispatch *tp,
 static void
 tp_gesture_set_3fg_drag_3fg_or_swipe_timer(struct tp_dispatch *tp, usec_t time)
 {
-	libinput_timer_set(&tp->gesture.drag_3fg_or_swipe_timer,
-			   usec_add(time, DRAG_3FG_OR_SWIPE_TIMEOUT));
+	usec_t expire = usec_add(tp->gesture.initial_time, DRAG_3FG_OR_SWIPE_TIMEOUT);
+
+	/* This is a hack to avoid the state machine getting even more complicated.
+	 * For a slow drag/fast swipe we want the time from the *initial* touch point,
+	 * not the time from when we realised the fingers are moving. IOW
+	 * putting 3fg down, resting for 80ms and then moving fast must trigger
+	 * a drag, not a swipe.
+	 *
+	 * In theory we should set the timer in the NONE/UNKNOWN states but that would
+	 * require a whole parallel set of states like
+	 * NONE_BUT_TIMEOUT_FOR_FAST_STATE_EXPIRED. Let's not do that, instead we set a
+	 * negative timer and let the normal state proceed. Either we moved by the
+	 * threshold already (in which case we shouldn't ever get here anyway) or
+	 * we didn't in which case the neg timer will do the right thing too when it
+	 * fires.
+	 */
+	if (usec_cmp(expire, time) < 0)
+		libinput_timer_set_flags(&tp->gesture.drag_3fg_or_swipe_timer,
+					 expire,
+					 TIMER_FLAG_ALLOW_NEGATIVE);
+	else
+		libinput_timer_set(&tp->gesture.drag_3fg_or_swipe_timer, expire);
 }
 
 static void
