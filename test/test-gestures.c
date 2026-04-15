@@ -2161,6 +2161,65 @@ START_TEST(gestures_3fg_drag_fast_swipe)
 }
 END_TEST
 
+START_TEST(gestures_3fg_drag_slow_start)
+{
+	struct litest_device *dev = litest_current_device();
+	struct libinput *li = dev->libinput;
+
+	uint32_t finger_count = litest_test_param_get_u32(test_env->params, "fingers");
+	bool tap_enabled = litest_test_param_get_bool(test_env->params, "tap-enabled");
+
+	if (litest_slot_count(dev) < 3)
+		return LITEST_NOT_APPLICABLE;
+	if (libinput_device_config_3fg_drag_get_finger_count(dev->libinput_device) <
+	    (int)finger_count)
+		return LITEST_NOT_APPLICABLE;
+
+	litest_enable_3fg_drag(dev->libinput_device, finger_count);
+	if (tap_enabled)
+		litest_enable_tap(dev->libinput_device);
+	else
+		litest_disable_tap(dev->libinput_device);
+
+	litest_drain_events(li);
+
+	/* Fingers are set down, then we do nothing, then we swipe fast. Because
+	 * we did nothing at first even fast movement must become a 3fg drag, not
+	 * a swipe.
+	 */
+	double y = 30.0;
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_down(dev, i, 10 + i, y);
+
+	litest_checkpoint("Waiting past timeout before fast finger move");
+	litest_timeout_3fg_drag_or_swipe(li);
+
+	/* Now move fast */
+	while (y < 60.0) {
+		y += 2;
+		for (uint32_t i = 0; i < finger_count; i++) {
+			litest_touch_move(dev, i, 10 + i, y);
+		}
+		litest_dispatch(li);
+	}
+
+	drain_cancelled_swipe_gesture(li);
+	litest_checkpoint("Expecting button press for 3fg drag");
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_PRESSED);
+	litest_assert_only_typed_events(li, LIBINPUT_EVENT_POINTER_MOTION);
+
+	for (uint32_t i = 0; i < finger_count; i++)
+		litest_touch_up(dev, i);
+
+	litest_dispatch(li);
+	litest_assert_empty_queue(li);
+
+	litest_timeout_3fg_drag(li);
+
+	litest_assert_button_event(li, BTN_LEFT, LIBINPUT_BUTTON_STATE_RELEASED);
+}
+END_TEST
+
 TEST_COLLECTION(gestures)
 {
 	/* clang-format off */
@@ -2247,6 +2306,7 @@ TEST_COLLECTION(gestures)
 			       "fingers", 'u', 2, 3, 4,
 			       "tap-enabled", 'b') {
 		litest_add_parametrized(gestures_3fg_drag_fast_swipe, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
+		litest_add_parametrized(gestures_3fg_drag_slow_start, LITEST_TOUCHPAD, LITEST_SINGLE_TOUCH, params);
 	}
 
 	/* Timing-sensitive test, valgrind is too slow */
