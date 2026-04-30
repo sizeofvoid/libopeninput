@@ -42,6 +42,7 @@
 #include "util-macros.h"
 #include "util-strings.h"
 
+#include "libinput-util.h"
 #include "shared.h"
 
 static volatile sig_atomic_t stop = 0;
@@ -259,8 +260,6 @@ static void
 handle_device_added(struct context *ctx, struct libinput_event *ev)
 {
 	struct libinput_device *device = libinput_event_get_device(ev);
-	struct udev_device *udev_device;
-	const char *devnode;
 
 	if (ctx->device)
 		return;
@@ -270,23 +269,21 @@ handle_device_added(struct context *ctx, struct libinput_event *ev)
 
 	ctx->device = libinput_device_ref(device);
 
-	udev_device = libinput_device_get_udev_device(device);
+	_unref_(udev_device) *udev_device = libinput_device_get_udev_device(device);
 	if (!udev_device)
 		return;
 
-	devnode = udev_device_get_devnode(udev_device);
+	const char *devnode = udev_device_get_devnode(udev_device);
 	if (devnode) {
-		int fd = open(devnode, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
+		_cleanup_(xclose) int fd =
+			open(devnode, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
 		if (fd == -1)
 			return;
 		if (libevdev_new_from_fd(fd, &ctx->evdev) != 0) {
-			close(fd);
 			return;
 		}
-		ctx->fds[1].fd = fd;
+		ctx->fds[1].fd = steal_fd(&fd);
 	}
-
-	udev_device_unref(udev_device);
 }
 
 static void
