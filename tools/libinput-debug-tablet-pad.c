@@ -262,7 +262,7 @@ handle_device_added(struct context *ctx, struct libinput_event *ev)
 		if (fd == -1)
 			return;
 		if (libevdev_new_from_fd(fd, &ctx->evdev) != 0) {
-			close(fd);
+			xclose(&fd);
 			return;
 		}
 	}
