@@ -38,7 +38,6 @@
 #include <sys/epoll.h>
 #include <sys/signalfd.h>
 #include <sys/stat.h>
-#include <sys/timerfd.h>
 #include <sys/utsname.h>
 #include <time.h>
 #include <unistd.h>
@@ -130,8 +129,7 @@ struct record_context {
 	struct list sources;
 
 	struct {
-		bool had_events_since_last_time;
-		bool skipped_timer_print;
+		usec_t last_wall_time;
 	} timestamps;
 
 	bool had_events;
@@ -2071,21 +2069,6 @@ print_wall_time(struct record_context *ctx)
 	}
 }
 
-static void
-arm_timer(int timerfd)
-{
-	time_t t = time(NULL);
-	struct tm tm;
-	struct itimerspec interval = {
-		.it_value = { 0, 0 },
-		.it_interval = { 5, 0 },
-	};
-
-	localtime_r(&t, &tm);
-	interval.it_value.tv_sec = 5 - (tm.tm_sec % 5);
-	timerfd_settime(timerfd, 0, &interval, NULL);
-}
-
 static struct source *
 add_source(struct record_context *ctx,
 	   int fd,
@@ -2132,34 +2115,11 @@ signalfd_dispatch(struct record_context *ctx, int fd, void *data)
 }
 
 static void
-timefd_dispatch(struct record_context *ctx, int fd, void *data)
-{
-	char discard[64];
-
-	(void)read(fd, discard, sizeof(discard));
-
-	if (ctx->timestamps.had_events_since_last_time) {
-		print_wall_time(ctx);
-		ctx->timestamps.had_events_since_last_time = false;
-		ctx->timestamps.skipped_timer_print = false;
-	} else {
-		ctx->timestamps.skipped_timer_print = true;
-	}
-}
-
-static void
 evdev_dispatch(struct record_context *ctx, int fd, void *data)
 {
 	struct record_device *this_device = data;
 
-	if (ctx->timestamps.skipped_timer_print) {
-		print_wall_time(ctx);
-		ctx->timestamps.skipped_timer_print = false;
-	}
-
 	ctx->had_events = true;
-	ctx->timestamps.had_events_since_last_time = true;
-	now_in_us(&ctx->timestamps.last_event_time);
 
 	handle_events(ctx, this_device);
 }
@@ -2172,7 +2132,6 @@ libinput_ctx_dispatch(struct record_context *ctx, int fd, void *data)
 	 * are already processed in handle_events */
 	libinput_dispatch(ctx->libinput);
 	handle_libinput_events(ctx, ctx->first_device, true);
-	now_in_us(&ctx->timestamps.last_event_time);
 }
 
 static void
@@ -2181,9 +2140,7 @@ hidraw_dispatch(struct record_context *ctx, int fd, void *data)
 	struct hidraw *hidraw = data;
 
 	ctx->had_events = true;
-	ctx->timestamps.had_events_since_last_time = true;
 	handle_hidraw(hidraw);
-	now_in_us(&ctx->timestamps.last_event_time);
 }
 
 static int
@@ -2201,10 +2158,20 @@ dispatch_sources(struct record_context *ctx)
 	if (count < 0)
 		return -errno;
 
+	if (count > 0) {
+		usec_t now = usec_from_now();
+		usec_t dt = usec_delta(now, ctx->timestamps.last_wall_time);
+		if (usec_cmp(dt, usec_from_seconds(5)) > 0) {
+			ctx->timestamps.last_wall_time = now;
+			print_wall_time(ctx);
+		}
+	}
+
 	for (i = 0; i < count; ++i) {
 		source = ep[i].data.ptr;
 		if (source->fd == -1)
 			continue;
+
 		source->dispatch(ctx, source->fd, source->user_data);
 	}
 
@@ -2218,7 +2185,7 @@ mainloop(struct record_context *ctx)
 	struct source *source;
 	struct record_device *d = NULL;
 	sigset_t mask;
-	int sigfd, timerfd;
+	int sigfd;
 
 	assert(!list_empty(&ctx->devices));
 
@@ -2232,10 +2199,6 @@ mainloop(struct record_context *ctx)
 
 	sigfd = signalfd(-1, &mask, SFD_NONBLOCK);
 	add_source(ctx, sigfd, signalfd_dispatch, NULL);
-
-	timerfd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
-	add_source(ctx, timerfd, timefd_dispatch, NULL);
-	arm_timer(timerfd);
 
 	list_for_each(d, &ctx->devices, link) {
 		struct hidraw *hidraw;
@@ -2296,6 +2259,8 @@ mainloop(struct record_context *ctx)
 			print_device_description(d);
 			iprintf(d->fp, I_DEVICE, "events:\n");
 		}
+
+		ctx->timestamps.last_wall_time = usec_from_now();
 		print_wall_time(ctx);
 
 		if (ctx->libinput) {
@@ -2659,6 +2624,7 @@ main(int argc, char **argv)
 	struct record_context ctx = {
 		.timeout = usec_from_uint64_t(0),
 		.show_keycodes = false,
+		.timestamps.last_wall_time = usec_from_uint64_t(0),
 	};
 	struct option opts[] = {
 		{ "autorestart", required_argument, 0, OPT_AUTORESTART },
