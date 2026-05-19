@@ -108,7 +108,7 @@ struct hidraw {
 };
 
 struct record_context {
-	int timeout;
+	usec_t timeout;
 	bool show_keycodes;
 
 	usec_t offset;
@@ -1353,13 +1353,13 @@ handle_events(struct record_context *ctx, struct record_device *d)
 }
 
 static void
-print_libinput_header(FILE *fp, int timeout)
+print_libinput_header(FILE *fp, usec_t timeout)
 {
 	iprintf(fp, I_TOPLEVEL, "libinput:\n");
 	iprintf(fp, I_LIBINPUT, "version: \"%s\"\n", LIBINPUT_VERSION);
 	iprintf(fp, I_LIBINPUT, "git: \"%s\"\n", LIBINPUT_GIT_VERSION);
-	if (timeout > 0)
-		iprintf(fp, I_LIBINPUT, "autorestart: %d\n", timeout);
+	if (!usec_is_zero(timeout))
+		iprintf(fp, I_LIBINPUT, "autorestart: %u\n", usec_to_seconds(timeout));
 }
 
 static void
@@ -2159,6 +2159,7 @@ evdev_dispatch(struct record_context *ctx, int fd, void *data)
 
 	ctx->had_events = true;
 	ctx->timestamps.had_events_since_last_time = true;
+	now_in_us(&ctx->timestamps.last_event_time);
 
 	handle_events(ctx, this_device);
 }
@@ -2171,6 +2172,7 @@ libinput_ctx_dispatch(struct record_context *ctx, int fd, void *data)
 	 * are already processed in handle_events */
 	libinput_dispatch(ctx->libinput);
 	handle_libinput_events(ctx, ctx->first_device, true);
+	now_in_us(&ctx->timestamps.last_event_time);
 }
 
 static void
@@ -2181,6 +2183,7 @@ hidraw_dispatch(struct record_context *ctx, int fd, void *data)
 	ctx->had_events = true;
 	ctx->timestamps.had_events_since_last_time = true;
 	handle_hidraw(hidraw);
+	now_in_us(&ctx->timestamps.last_event_time);
 }
 
 static int
@@ -2189,8 +2192,12 @@ dispatch_sources(struct record_context *ctx)
 	struct source *source;
 	struct epoll_event ep[64];
 	int i, count;
+	int timeout = usec_to_millis(ctx->timeout);
 
-	count = epoll_wait(ctx->epoll_fd, ep, ARRAY_LENGTH(ep), ctx->timeout);
+	count = epoll_wait(ctx->epoll_fd,
+			   ep,
+			   ARRAY_LENGTH(ep),
+			   timeout > 0 ? timeout : -1);
 	if (count < 0)
 		return -errno;
 
@@ -2207,13 +2214,12 @@ dispatch_sources(struct record_context *ctx)
 static int
 mainloop(struct record_context *ctx)
 {
-	bool autorestart = (ctx->timeout > 0);
+	bool autorestart = !usec_is_zero(ctx->timeout);
 	struct source *source;
 	struct record_device *d = NULL;
 	sigset_t mask;
 	int sigfd, timerfd;
 
-	assert(ctx->timeout != 0);
 	assert(!list_empty(&ctx->devices));
 
 	ctx->epoll_fd = epoll_create1(0);
@@ -2279,8 +2285,8 @@ mainloop(struct record_context *ctx)
 		if (autorestart)
 			iprintf(ctx->first_device->fp,
 				I_NONE,
-				"# Autorestart timeout: %d\n",
-				ctx->timeout);
+				"# Autorestart timeout: %u\n",
+				usec_to_seconds(ctx->timeout));
 
 		iprintf(ctx->first_device->fp, I_TOPLEVEL, "devices:\n");
 
@@ -2324,8 +2330,8 @@ mainloop(struct record_context *ctx)
 			list_for_each(d, &ctx->devices, link) {
 				iprintf(d->fp,
 					I_NONE,
-					"# Closing after %ds inactivity",
-					ctx->timeout / 1000);
+					"# Closing after %us inactivity",
+					usec_to_seconds(ctx->timeout));
 			}
 		}
 
@@ -2651,7 +2657,7 @@ int
 main(int argc, char **argv)
 {
 	struct record_context ctx = {
-		.timeout = -1,
+		.timeout = usec_from_uint64_t(0),
 		.show_keycodes = false,
 	};
 	struct option opts[] = {
@@ -2690,14 +2696,16 @@ main(int argc, char **argv)
 			usage();
 			rc = EXIT_SUCCESS;
 			goto out;
-		case OPT_AUTORESTART:
-			if (!safe_atoi(optarg, &ctx.timeout) || ctx.timeout <= 0) {
+		case OPT_AUTORESTART: {
+			int timeout;
+			if (!safe_atoi(optarg, &timeout) || timeout <= 0) {
 				usage();
 				rc = EXIT_INVALID_USAGE;
 				goto out;
 			}
-			ctx.timeout = ctx.timeout * 1000;
+			ctx.timeout = usec_from_seconds(timeout);
 			break;
+		}
 		case 'o':
 		case OPT_OUTFILE:
 			output_arg = optarg;
@@ -2752,7 +2760,7 @@ main(int argc, char **argv)
 			optind++;
 	}
 
-	if (ctx.timeout > 0 && output_arg == NULL) {
+	if (!usec_is_zero(ctx.timeout) && output_arg == NULL) {
 		fprintf(stderr, "Option --autorestart requires --output-file\n");
 		rc = EXIT_INVALID_USAGE;
 		goto out;
