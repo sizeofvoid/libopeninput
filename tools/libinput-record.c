@@ -2761,9 +2761,9 @@ main(int argc, char **argv)
 	}
 
 	if (!usec_is_zero(ctx.timeout) && output_arg == NULL) {
-		fprintf(stderr, "Option --autorestart requires --output-file\n");
-		rc = EXIT_INVALID_USAGE;
-		goto out;
+		output_arg = "libinput-recording.yml";
+		fprintf(stderr,
+			"Option --autorestart requires --output-file, defaulting to libinput-recording.yml\n");
 	}
 
 	ctx.output_file.name = safe_strdup(output_arg);

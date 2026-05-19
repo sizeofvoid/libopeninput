@@ -360,7 +360,7 @@ def test_libinput_record_multiple(libinput_record, recording):
 
 def test_libinput_record_autorestart(libinput_record, recording):
     libinput_record.run_command_invalid(["--autorestart"])
-    libinput_record.run_command_invalid(["--autorestart=2"])
+    libinput_record.run_command_success(["--autorestart=2"])
     libinput_record.run_command_success(["-o", recording, "--autorestart=2"])
 
 
