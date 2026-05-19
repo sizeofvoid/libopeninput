@@ -2120,8 +2120,6 @@ evdev_dispatch(struct record_context *ctx, int fd, void *data)
 	struct record_device *this_device = data;
 
 	ctx->had_events = true;
-	ctx->timestamps.had_events_since_last_time = true;
-	now_in_us(&ctx->timestamps.last_event_time);
 
 	handle_events(ctx, this_device);
 }
@@ -2134,7 +2132,6 @@ libinput_ctx_dispatch(struct record_context *ctx, int fd, void *data)
 	 * are already processed in handle_events */
 	libinput_dispatch(ctx->libinput);
 	handle_libinput_events(ctx, ctx->first_device, true);
-	now_in_us(&ctx->timestamps.last_event_time);
 }
 
 static void
@@ -2144,7 +2141,6 @@ hidraw_dispatch(struct record_context *ctx, int fd, void *data)
 
 	ctx->had_events = true;
 	handle_hidraw(hidraw);
-	now_in_us(&ctx->timestamps.last_event_time);
 }
 
 static int
