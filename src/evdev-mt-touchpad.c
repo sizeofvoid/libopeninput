@@ -3953,7 +3953,7 @@ tp_requires_rotation(struct tp_dispatch *tp, struct evdev_device *device)
 		paired = libwacom_get_paired_device(*d);
 		if (paired && libwacom_match_get_vendor_id(paired) == vid &&
 		    libwacom_match_get_product_id(paired) == pid) {
-			rotate = libwacom_is_reversible(dev);
+			rotate = libwacom_is_reversible(*d);
 			break;
 		}
 		d++;
