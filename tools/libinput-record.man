@@ -42,8 +42,9 @@ nodes may be provided on the commandline.
 .B \-\-autorestart=s
 Terminate the current recording after
 .I s
-seconds of device inactivity. This option requires that a
-\fB\-\-output-file\fR is specified. The output filename is used as prefix,
+seconds of device inactivity. If
+\fB\-\-output-file\fR is not specified, it defaults to
+\fBlibinput-recording.yml\fR. The output filename is used as prefix,
 suffixed with the date and time of the recording. The timeout must be
 greater than 0.
 .TP 8
@@ -174,11 +175,12 @@ devices:
         57: [0, 65535, 0, 0, 0]
         58: [0, 255, 0, 0, 0]
       properties: [0, 2, 4]
-    hid: [12, 23, 34, 45, ...]
+    hid: [0x0c, 0x17, 0x22, 0x2d, ...]
     udev:
       properties:
       - ID_INPUT_MOUSE=1
       - ID_INPUT=1
+      virtual: false
     quirks:
       - ModelAppleTouchpad=1
       - AttrSizeHint=32x32
@@ -223,8 +225,8 @@ backwards-incompatible changes. A parser must ignore unknown keys to be
 forwards-compatible.
 .TP 8
 .B ndevices: int
-The number of device recordings in this file. Always 1 unless recorded with
-.B --multiple
+The number of device recordings in this file. Always 1 unless multiple
+devices were recorded.
 .TP 8
 .B libinput: {...}
 A dictionary with libinput-specific information.
@@ -267,6 +269,9 @@ A list of integers representing the HID report descriptor bytes.
 .B udev
 A dictionary with the udev device information.
 .TP 8
+.B quirks
+A list of device quirks, see below.
+.TP 8
 .B events
 A list of dictionaries with the recorded events
 .SS evdev
@@ -282,8 +287,8 @@ All evdev types and codes as nested dictionary. The evdev type is the key,
 the codes are a list.
 .TP 8
 .B absinfo: {code: [min, max, fuzz, flat, resolution], ...}
-An array of arrays with 6 decimal elements each, denoting the contents of a
-\fBstruct input_absinfo\fR. The first element is the code (e.g. \fBABS_X\fR)
+A dictionary of arrays with 5 decimal elements each, denoting the contents of a
+\fBstruct input_absinfo\fR. The key is the code (e.g. \fBABS_X\fR)
 in decimal format.
 .TP 8
 .B properties: [0, 1, ...]
@@ -291,13 +296,18 @@ Array with all \fBINPUT_PROP_FOO\fR constants. May be an empty array.
 .SS udev
 .TP 8
 .B properties: list of strings
-A list of udev properties in the \fBkey=value\fR format. This is not the
+A list of udev properties in \fBkey=value\fR format. This is not the
 complete list of properties assigned to the device but a subset that is
 relevant to libinput. These properties may include properties set on a
 parent device.
 .TP 8
+.B virtual: bool
+\fBtrue\fR if the device is a virtual (non-hardware) device, \fBfalse\fR
+otherwise.
+.SS quirks
+.TP 8
 .B quirks: list of strings
-A list of device quirks the \fBkey=value\fR format.
+A list of device quirks in \fBkey=value\fR format.
 
 .SS events
 A list of the recorded events. The list contains dictionaries
