@@ -34,6 +34,7 @@
 #include "input-event-codes.h"
 #include "libinput-util.h"
 #include "libinput-private.h"
+#include "src/util-time.h"
 
 static const char default_seat[] = "seat0";
 static const char default_seat_name[] = "default";
@@ -117,12 +118,12 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 	struct wheel_v120 v120 = { 0.0, 0.0 };
 	struct device_float_coords raw;
 	struct wscons_device *dev = wscons_device(device);
-	uint64_t time;
+	usec_t time;
 	uint32_t button;
 	int key;
 	keycode_t keycode;
 
-	time = s2us(wsevent->time.tv_sec) + ns2us(wsevent->time.tv_nsec);
+	time = usec_from_timespec(&wsevent->time);
 
 	switch (wsevent->type) {
 	case WSCONS_EVENT_KEY_UP:
@@ -326,7 +327,7 @@ libinput_udev_assign_seat(struct libinput *libinput, const char *seat_id)
 
 	struct libinput_seat *seat;
 	struct libinput_device *device;
-	uint64_t time;
+	usec_t time;
 	struct timespec ts;
 	struct libinput_event *event;
 
@@ -349,7 +350,7 @@ libinput_udev_assign_seat(struct libinput *libinput, const char *seat_id)
 	seat = wscons_seat_get(libinput, default_seat, default_seat_name);
 	list_for_each(device, &seat->devices_list, link) {
 		clock_gettime(CLOCK_REALTIME, &ts);
-		time = s2us(ts.tv_sec) + ns2us(ts.tv_nsec);
+		time = usec_from_timespec(&ts);
 		event = calloc(1, sizeof(*event));
 		post_device_event(device, time, LIBINPUT_EVENT_DEVICE_ADDED,
 		    event);
