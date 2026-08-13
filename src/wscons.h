@@ -18,7 +18,7 @@ struct wscons_device {
 	struct libinput_device base;
 	enum libinput_device_capability capability;
 	struct TransMapRec *scanCodeMap;
-	int old_value;
+	unsigned char key_down[KEY_CNT];
 	struct {
 		struct libinput_device_config_accel config;
 		struct motion_filter *filter;
