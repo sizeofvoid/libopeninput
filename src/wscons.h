@@ -25,6 +25,12 @@ struct wscons_device {
 	} pointer;
 };
 
+struct udev_input {
+	struct libinput base;
+	struct udev *udev;
+	struct udev_monitor *udev_monitor;
+	struct libinput_source *udev_monitor_source;
+};
 
 static inline struct wscons_device *
 wscons_device(struct libinput_device *device)
