@@ -120,6 +120,7 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 	struct wscons_device *dev = wscons_device(device);
 	usec_t time;
 	uint32_t button;
+	uint32_t code;
 	int key;
 	keycode_t keycode;
 
@@ -129,19 +130,24 @@ wscons_process(struct libinput_device *device, struct wscons_event *wsevent)
 	case WSCONS_EVENT_KEY_UP:
 	case WSCONS_EVENT_KEY_DOWN:
 		key = wsevent->value;
+		code = wskey_transcode(dev->scanCodeMap, key);
+		if (code >= KEY_CNT)
+			return;
+		keycode = keycode_from_uint32_t(code);
+
 		if (wsevent->type == WSCONS_EVENT_KEY_UP) {
 			kstate = LIBINPUT_KEY_STATE_RELEASED;
-			dev->old_value = -1;
+			dev->key_down[code] = 0;
 		} else {
 			kstate = LIBINPUT_KEY_STATE_PRESSED;
+
 			/* ignore auto-repeat */
-			if (key == dev->old_value)
+			if (dev->key_down[code])
 				return;
-			dev->old_value = key;
+
+			dev->key_down[code] = 1;
 		}
-		keycode = keycode_from_uint32_t(
-		                wskey_transcode(
-		                        wscons_device(device)->scanCodeMap, key));
+
 		keyboard_notify_key(device, time, keycode, kstate);
 		break;
 
@@ -539,8 +545,6 @@ static int
 wscons_device_init(struct wscons_device *wscons_device)
 {
 	struct libinput_device *device = &wscons_device->base;
-
-	wscons_device->old_value = -1;
 
 	if (strncmp(device->devname, "/dev/wsmouse", 12) == 0) {
 		/* XXX handle tablets and touchpanel */
