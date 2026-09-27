@@ -140,17 +140,17 @@ static uint32_t wsUsbMap[] = {
 	/* 132 */ KEY_RESERVED,
 	/* 133 */ KEY_RESERVED,
 	/* 134 */ KEY_RESERVED,
-	/* 135 */ KEY_RESERVED,	/* Japanese 106 kbd: '\_' */
-	/* 136 */ KEY_RESERVED,	/* Japanese 106 kbd: Hiragana Katakana toggle */
+	/* 135 */ KEY_RO,	/* Japanese 106 kbd: '\_' */
+	/* 136 */ KEY_KATAKANAHIRAGANA,	/* Japanese 106 kbd: Hiragana Katakana toggle */
 	/* 137 */ KEY_YEN,	/* Japanese 106 kbd: '\|' */
-	/* 138 */ KEY_RESERVED,	/* Japanese 106 kbd: Henkan */
-	/* 139 */ KEY_RESERVED,	/* Japanese 106 kbd: Muhenkan */
+	/* 138 */ KEY_HENKAN,	/* Japanese 106 kbd: Henkan */
+	/* 139 */ KEY_MUHENKAN,	/* Japanese 106 kbd: Muhenkan */
 	/* 140 */ KEY_RESERVED,
 	/* 141 */ KEY_RESERVED,
 	/* 142 */ KEY_RESERVED,
 	/* 143 */ KEY_RESERVED,
-	/* 144 */ KEY_RESERVED,	/* Korean 106 kbd: Hangul */
-	/* 145 */ KEY_RESERVED,	/* Korean 106 kbd: Hangul Hanja */
+	/* 144 */ KEY_HANGEUL,	/* Korean 106 kbd: Hangul */
+	/* 145 */ KEY_HANJA,	/* Korean 106 kbd: Hangul Hanja */
 	/* 146 */ KEY_RESERVED,
 	/* 147 */ KEY_RESERVED,
 	/* 148 */ KEY_RESERVED,
